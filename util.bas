@@ -2672,23 +2672,24 @@ END FUNCTION
 FUNCTION diriswriteable(filename as string) as bool
   dim ret as bool = NO
   dim testfile as string
-  if filename = "" then filename = curdir
+  dim testdir as string = filename
+  if filename = "" then testdir = curdir
 
   ' Kludge to detect an rpgdir full of unwriteable files: on Windows you don't seem
   ' able to mark a folder read-only, instead it makes the contents read-only.
-  ' (If filename isn't a directory, these checks will print debug messages,
+  ' (If testdir isn't a directory, these checks will print debug messages,
   ' which I think is a good thing.)
-  testfile = filename + SLASH + "archinym.lmp"
+  testfile = testdir + SLASH + "archinym.lmp"
   if real_isfile(testfile) = NO then
     ' If archinym.lmp doesn't exist, then ohrrpgce.gen does
-    testfile = filename + SLASH + "ohrrpgce.gen"
+    testfile = testdir + SLASH + "ohrrpgce.gen"
     if real_isfile(testfile) = NO then testfile = ""
   end if
   ' In the case of an .rpgdir, we test both an existing file and a new one for writability.
   if len(testfile) andalso fileiswriteable(testfile) = NO then
     ret = NO
   else
-    testfile = filename & SLASH & "__testwrite_" & randint(100000) & ".tmp"
+    testfile = testdir & SLASH & "__testwrite_" & randint(100000) & ".tmp"
     if fileiswriteable(testfile) then
       ret = YES
     end if
