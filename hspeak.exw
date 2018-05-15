@@ -4972,7 +4972,7 @@ end function
 
 procedure write_script_files(integer fh)
   string fname
-  string temp
+  string temp, ext
   --because script files with identical names in different directories can be
   --included, append a number to lump names which would be duplicate
   integer suffix
@@ -4980,11 +4980,17 @@ procedure write_script_files(integer fh)
   names_used={}
   for i=1 to length(file_list) do
     fname=file_only(file_list[i][FILE_NAME])
+    ext=extension_only(fname)
+    --Lump names can be at most 50 characters, so trim if longer
+    if length(fname)>47 then
+      temp=without_extension(fname)
+      fname=temp[1..46-length(ext)]&"."&ext
+    end if
     suffix=count(fname,names_used)
     names_used=append(names_used,fname)
     if suffix>0 then
       temp=without_extension(fname)  --you can't slice a function result directly! :(
-      fname=sprintf("%s~%d.%s",{temp[1..$-1],suffix,extension_only(fname)})
+      fname=sprintf("%s~%d.%s",{temp[1..$-1],suffix,ext})
     end if
     --color_print("writing %d %s\n",{i,fname})
     if write_lump(fh,fname,file_list[i][FILE_TEXT])=false then
