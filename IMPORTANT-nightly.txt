@@ -17,6 +17,11 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
+2018-05-15:
+If you edited per-attack damage color overrides on this day, they will be
+off-by-one. If you edited per-attack damage color overrides in any build
+on or after 2018-05-16 then don't worry, your colors will be correct.
+
 2018-03-27:
 You can actually import/export full spritesets at a time again. There are
 still two major remaining problems with the new spriteset browser, which
