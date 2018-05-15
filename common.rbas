@@ -4142,6 +4142,8 @@ IF uirecords < gen(genMaxMasterPal) + 1 THEN
  FOR i as integer = uirecords TO gen(genMaxMasterPal)
   'In old games (before uicolors.bin was added), use the old fixed color indices, for compatibility
   IF original_genVersion <= 7 THEN  'Before Ypsiliform WIPs
+   'Load the master palette because OldDefaultUIColors needs it
+   loadpalette master(), i
    OldDefaultUIColors uilook_temp(), boxlook_temp()
    SaveUIColors uilook_temp(), boxlook_temp(), i
   ELSE
