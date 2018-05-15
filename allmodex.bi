@@ -686,10 +686,26 @@ declare sub email_files(address as string, subject as string, message as string,
 
 
 '==========================================================================================
+
+
+'Use these macros to avoid deadlocking on gfxmutex due to reentering allmodex from an
+'exception handle, if it's already held by the main thread. Not used by the polling thread.
+#macro GFX_ENTER
+	main_thread_in_gfx_backend = YES
+	mutexlock gfxmutex
+#endmacro
+#macro GFX_EXIT
+	mutexunlock gfxmutex
+	main_thread_in_gfx_backend = NO
+#endmacro
+
+
+'==========================================================================================
 '                                         Globals
 
 extern cliprect as ClipState
-extern keybdmutex as any ptr
+extern gfxmutex as any ptr
+extern main_thread_in_gfx_backend as bool
 extern modex_initialised as bool
 extern vpages() as Frame ptr
 extern vpagesp as Frame ptr ptr

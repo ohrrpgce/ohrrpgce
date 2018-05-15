@@ -1219,7 +1219,8 @@ SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
  STATIC last_error as string, ignore_error as string
  IF msg = ignore_error AND isfatal = NO THEN EXIT SUB
 
- STATIC entered as integer = 0  'don't allow reentry
+ 'Don't allow reentry into showerror; the error might be in debug()
+ STATIC entered as integer = 0
  IF entered THEN
   IF isfatal AND entered = 1 THEN
    entered = 2
@@ -1230,9 +1231,16 @@ SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
  entered = 1
 
  debug printmsg
+
  IF modex_initialised = NO THEN
-  PRINT "showerror: modex_initialised false"
   debug "showerror: modex_initialised false"
+  fatal_error_shutdown
+ END IF
+
+ 'Don't reenter the graphics backend either - if gfxmutex is already
+ 'held then we would deadlock on trying to aquire it.
+ IF main_thread_in_gfx_backend THEN
+  debug "showerror: avoiding gfx backend rentry"
   fatal_error_shutdown
  END IF
 

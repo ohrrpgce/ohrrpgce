@@ -127,7 +127,7 @@ end sub
 
 sub gfx_fb_update_screen_mode()
 	if init_gfx then
-		mutexlock keybdmutex
+		GFX_ENTER
 		calculate_screen_res
 		gfx_fb_screenres
 		windowtitle remember_windowtitle
@@ -137,7 +137,7 @@ sub gfx_fb_update_screen_mode()
 				palette i, (truepal(i) and &hFF0000) shr 16, (truepal(i) and &hFF00) shr 8, truepal(i) and &hFF
 			next
 		end if
-		mutexunlock keybdmutex
+		GFX_EXIT
 	end if
 end sub
 

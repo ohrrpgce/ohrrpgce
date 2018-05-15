@@ -307,8 +307,9 @@ dim shared gif_show_mouse as bool        'While recording a gif, whether to disp
 
 dim shared closerequest as bool = NO     'It has been requested to close the program.
 
-dim keybdmutex as any ptr                '(Global) Controls access to keybdstate(), mouseflags, mouselastflags, various backend functions,
-                                         'and generally used to halt the polling thread.
+dim gfxmutex as any ptr                  '(Global) Coordinates access to globals and gfx backend with the polling thread
+dim main_thread_in_gfx_backend as bool   '(Global) Whether the main thread has acquired gfxmutex.
+
 dim shared keybdthread as any ptr        'id of the polling thread
 dim shared endpollthread as bool         'signal the polling thread to quit
 dim shared keybdstate(scLAST) as integer '"real"time keyboard array (only used internally by pollingthread)
@@ -405,7 +406,7 @@ private sub backend_init()
 	mouselastflags = 0
 	mouseflags = 0
 
-	keybdmutex = mutexcreate
+	gfxmutex = mutexcreate
 	if wantpollingthread then
 		debuginfo "Starting IO polling thread"
 		keybdthread = threadcreate(@pollingthread)
@@ -463,7 +464,7 @@ private sub backend_quit()
 		threadwait keybdthread
 		keybdthread = 0
 	end if
-	mutexdestroy keybdmutex
+	mutexdestroy gfxmutex
 
 	skipped_frame.drop()
 
@@ -505,16 +506,16 @@ end sub
 
 sub settemporarywindowtitle (title as string)
 	'just like setwindowtitle but does not memorize the title
-	mutexlock keybdmutex
+	GFX_ENTER
 	gfx_windowtitle(title)
-	mutexunlock keybdmutex
+	GFX_EXIT
 end sub
 
 sub setwindowtitle (title as string)
 	remember_title = title
-	mutexlock keybdmutex
+	GFX_ENTER
 	gfx_windowtitle(title)
-	mutexunlock keybdmutex
+	GFX_EXIT
 end sub
 
 function allmodex_setoption(opt as string, arg as string) as integer
@@ -1011,7 +1012,7 @@ sub setvispage (page as integer, skippable as bool = YES)
 	end if
 
 	'the fb backend may freeze up if it collides with the polling thread
-	mutexlock keybdmutex
+	GFX_ENTER
 
 	starttime += timer  'Stop timer
 	dim starttime2 as double = timer
@@ -1027,7 +1028,7 @@ sub setvispage (page as integer, skippable as bool = YES)
 	if log_slow then debug_if_slow(starttime2, 0.017, "gfx_present")
 	starttime -= timer  'Restart timer
 
-	mutexunlock keybdmutex
+	GFX_EXIT
 
 	freepage drawpage
 
@@ -1097,9 +1098,9 @@ private sub maybe_do_gfx_setpal()
 		lastframe = timer
 	end if
 
-	mutexlock keybdmutex
+	GFX_ENTER
 	gfx_setpal(@intpal(0))
-	mutexunlock keybdmutex
+	GFX_EXIT
 
 	updatepal = NO
 	if time_draw_calls_from_finish then
@@ -1803,10 +1804,10 @@ function interrupting_keypress () as bool
 	dim keybd_dummy(scLAST) as integer
 	dim mouse as MouseInfo
 
-	mutexlock keybdmutex
+	GFX_ENTER
 	io_keybits(@keybd_dummy(0))
 	io_mousebits(mouse.x, mouse.y, mouse.wheel, mouse.buttons, mouse.clicks)
-	mutexunlock keybdmutex
+	GFX_EXIT
 
 	debug_if_slow(starttime, 0.005, "")
 
@@ -1847,9 +1848,9 @@ sub setkeys_update_keybd (keybd() as integer, byref delayed_alt_keydown as bool)
 	dim winstate as WindowState ptr
 	winstate = gfx_getwindowstate()
 
-	mutexlock keybdmutex
+	GFX_ENTER
 	io_keybits(@keybd(0))
-	mutexunlock keybdmutex
+	GFX_EXIT
 
 	'State of keybd(0 to scLAST) at this point:
 	'bit 0: key currently down
@@ -2152,9 +2153,9 @@ sub update_mouse_state ()
 
 	mouse_state.last_buttons = mouse_state.buttons
 
-	mutexlock keybdmutex   'Just in case
+	GFX_ENTER   'Just in case
 	io_mousebits(mouse_state.x, mouse_state.y, mouse_state.wheel, mouse_state.buttons, mouse_state.clicks)
-	mutexunlock keybdmutex
+	GFX_EXIT
 
 	for button as integer = 0 to 15
 		check_for_released_mouse_button(1 shl button)
@@ -2287,9 +2288,9 @@ sub mouserect (xmin as integer, xmax as integer, ymin as integer, ymax as intege
 #endIF
 		end if
 	end if
-	mutexlock keybdmutex
+	GFX_ENTER
 	io_mouserect(xmin, xmax, ymin, ymax)
-	mutexunlock keybdmutex
+	GFX_EXIT
 
 	' Don't call io_mousebits to get the new state, since that will cause clicks and movements to get lost,
 	' and is difficult to support in .ohrkeys.
@@ -2368,7 +2369,7 @@ private sub pollingthread(unused as any ptr)
 	dim as integer a, dummy, buttons
 
 	while endpollthread = NO
-		mutexlock keybdmutex
+		mutexlock gfxmutex
 
 		dim starttime as double = timer
 
@@ -2394,7 +2395,7 @@ private sub pollingthread(unused as any ptr)
 		mouseflags = mouseflags or (buttons and not mouselastflags)
 		mouselastflags = buttons
 
-		mutexunlock keybdmutex
+		mutexunlock gfxmutex
 
 		if log_slow then debug_if_slow(starttime, 0.005, "io_getmouse")
 
