@@ -42,6 +42,8 @@ CONST CURRENT_RSAV_VERSION = 3
 ' Increment this number any time that loading and resaving a game in either
 ' new or old versions of Game leads to data-loss, or major new features are
 ' added.
+' WARNING: globals-only save files do not (and must not) have "ver" nodes, so
+' we will need some other mechanism to indicate changes to script data format!
 ' 1 - zenzizenzic wip removed nativehbits related nodes
 ' 2 - alectormancy wip increased global limit from 4095 to 16383
 ' 3 - stopped writing obsolete battle_menus node

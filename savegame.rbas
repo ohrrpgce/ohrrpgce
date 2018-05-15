@@ -1302,6 +1302,8 @@ SUB saveglobalvars (byval slot as integer, byval first as integer, byval last as
   doc = CreateDocument()
   rsav_node = CreateNode(doc, "rsav")
   SetRootNode(doc, rsav_node)
+  ' The RSAV doc must not have a "ver" node, so that the slot is considered
+  ' unused by save/load menus.
   script_node = SetChildNode(rsav_node, "script")
   globals_node = SetChildNode(script_node, "globals")
  ELSE
@@ -1342,6 +1344,8 @@ SUB new_loadglobalvars (byval slot as integer, byval first as integer, byval las
  DIM root as NodePtr
  root = DocumentRoot(doc)
 
+ 'Can't check the RSAV version (root."ver"), because globals-only saves don't store the version number!
+
  '--wipe out the range of globals first
  FOR i as integer = first TO last
   global(i) = 0
@@ -1379,6 +1383,7 @@ FUNCTION new_save_slot_used (byval slot as integer, prefix as string="") as inte
   doc = LoadDocument(filename)
   DIM node as NodePtr
   node = DocumentRoot(doc)
+  'Globals-only saves don't have a "ver" node
   IF node."ver".exists THEN
    result = YES
   END IF
