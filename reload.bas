@@ -1714,18 +1714,22 @@ Function ChildByIndex(byval parent as NodePtr, byval index as integer) as NodePt
 end Function
 
 Function DocumentRoot(byval doc as DocPtr) as NodePtr
+	if doc = null then return null
 	return doc->root
 end Function
 
 Function GetDocument(byval nod as NodePtr) as DocPtr
+	if nod = null then return null
 	return nod->doc
 end Function
 
 Function NumChildren(byval nod as NodePtr) as Integer
+	if nod = null then return 0
 	return nod->numChildren
 end Function
 
 Function NodeParent(byval nod as NodePtr) as NodePtr
+	if nod = null then return null
 	return nod->parent
 end Function
 
@@ -1769,10 +1773,12 @@ Function PrevSibling(byval nod as NodePtr, byval withname as zstring ptr = null)
 End Function
 
 Function NodeType(byval nod as NodePtr) as NodeTypes
+	if nod = null then return null
 	return nod->nodeType
 End Function
 
-Function NodeName(byval nod as NodePtr) as String
+Function NodeName(byval nod as NodePtr) as string
+	if nod = null then return ""
 	return *nod->name
 End Function
 
