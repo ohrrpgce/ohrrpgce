@@ -1490,6 +1490,19 @@ FUNCTION format_date(timeser as double) as string
  RETURN FORMAT(timeser, "yyyy mmm dd hh:mm:ss")
 END FUNCTION
 
+'Returns the last mtime of any file in a directory (excluding *.tmp)
+FUNCTION directory_last_mtime(directory as string) as double
+ DIM lasttime as double = 0
+ DIM filelist() as string
+ findfiles directory, ALLFILES, fileTypeFile, NO, filelist()
+ FOR i as integer = 0 TO UBOUND(filelist)
+  IF RIGHT(filelist(i), 4) <> ".tmp" THEN
+   lasttime = large(lasttime, FILEDATETIME(directory + SLASH + filelist(i)))
+  END IF
+ NEXT
+ RETURN lasttime
+END FUNCTION
+
 ' Write workingdir/session_info.txt.tmp
 ' Note: we assume that whenever this is called (and sourcerpg is set) that we are
 ' loading or saving the game.
@@ -1507,7 +1520,12 @@ SUB write_session_info ()
  IF LEN(sourcerpg) THEN
   text(8) = absolute_path(sourcerpg)
   text(9) = "# Last modified time of game:"
-  DIM modified as double = FILEDATETIME(sourcerpg)
+  DIM modified as double
+  IF isfile(sourcerpg) THEN
+   modified = FILEDATETIME(sourcerpg)
+  ELSE  'rpgdir
+   modified = directory_last_mtime(sourcerpg)
+  END IF
   text(10) = format_date(modified)
   text(11) = STR(modified)
  END IF
@@ -1539,8 +1557,10 @@ FUNCTION get_previous_session_info (workdir as string) as SessionInfo
     ret.sourcerpg = text(8)
     IF isfile(ret.sourcerpg) THEN
      ret.sourcerpg_current_mtime = FILEDATETIME(ret.sourcerpg)
-     IF UBOUND(text) >= 11 THEN ret.sourcerpg_old_mtime = VAL(text(11))
+    ELSE  'Is an .rpgdir
+     ret.sourcerpg_current_mtime = directory_last_mtime(ret.sourcerpg)
     END IF
+    IF UBOUND(text) >= 11 THEN ret.sourcerpg_old_mtime = VAL(text(11))
    END IF
    ret.pid = VAL(text(3))
    exe = text(1)
@@ -1555,14 +1575,7 @@ FUNCTION get_previous_session_info (workdir as string) as SessionInfo
  END IF
 
  ' When was a lump last modified?
- ret.last_lump_mtime = 0
- DIM filelist() as string
- findfiles workdir, ALLFILES, fileTypeFile, NO, filelist()
- FOR i as integer = 0 TO UBOUND(filelist)
-  IF RIGHT(filelist(i), 4) <> ".tmp" THEN
-   ret.last_lump_mtime = large(ret.last_lump_mtime, FILEDATETIME(workdir + SLASH + filelist(i)))
-  END IF
- NEXT
+ ret.last_lump_mtime = directory_last_mtime(workdir)
 
  ret.partial_rpg = isfile(workdir + SLASH + "__danger.tmp")
  IF ret.partial_rpg THEN
@@ -1783,11 +1796,12 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
   ' We already checked Custom isn't still running
 
   msg = CUSTOMEXE " crashed while editing a game, but the temp unsaved modified copy of the game still exists." LINE_END
+  msg &= "Original file:" LINE_END
   msg &= decode_filename(sessinfo.sourcerpg) & LINE_END
 
   IF sessinfo.sourcerpg_current_mtime < sessinfo.session_start_time THEN
    ' It's a bit confusing to tell the user 4 last-mod times, so skip this one.
-   msg &= "File modified " & format_date(sessinfo.sourcerpg_old_mtime) & LINE_END
+   msg &= "Last modified " & format_date(sessinfo.sourcerpg_old_mtime) & LINE_END
   END IF
 
   ' The }'s get replaced with either | or a space.
