@@ -181,36 +181,6 @@ FUNCTION GetNPCD (npcdata as NPCType, intoffset as integer) as integer
  RETURN 0
 END FUNCTION
 
-SUB CleanNPCDefinition(dat as NPCType)
-  WITH dat
-   .picture    = 0
-   .palette    = -1 'Default palette
-   .movetype   = 0
-   .speed      = 0
-   .textbox    = 0
-   .facetype   = 0
-   .item       = 0
-   .pushtype   = 0
-   .activation = 0
-   .tag1       = 0
-   .tag2       = 0
-   .usetag     = 0
-   .script     = 0
-   .scriptarg  = 0
-   .vehicle    = 0
-   .defaultzone= 0
-   .defaultwallzone = 0
-   .ignore_passmap = 0
-   .pathfinding_obstruction_mode = 0
-  END WITH
-END SUB
-
-SUB CleanNPCD(dat() as NPCType)
-  FOR i as integer = 0 TO UBOUND(dat)
-    CleanNPCDefinition dat(i)
-  NEXT
-END SUB
-
 
 '==========================================================================================
 '                                       NPC Instances

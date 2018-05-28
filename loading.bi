@@ -30,14 +30,12 @@ declare sub cleaninventory(invent() as inventslot)
 declare function read_map_layer_name(gmap() as integer, layernum as integer) as string
 declare sub write_map_layer_name(gmap() as integer, layernum as integer, newname as string)
 
-'Sprites are not loaded by these functions; can use CleanNPCD to free them if you load them
 declare sub LoadNPCD(file as string, dat() as NPCType)
 declare sub SaveNPCD(file as string, dat() as NPCType)
 declare sub SetNPCD(npcdata as NPCType, intoffset as integer, value as integer)
 declare function GetNPCD(npcdata as NPCType, intoffset as integer) as integer
-declare sub CleanNPCDefinition(dat as NPCType)
-declare sub CleanNPCD(dat() as NPCType)
 
+'Sprites are not loaded by these functions; can use CleanNPCInst to free them if you load them
 declare sub LoadNPCL(file as string, dat() as npcinst)
 declare sub SaveNPCL(file as string, dat() as npcinst)
 declare sub DeserNPCL(npc() as npcinst, byref z as integer, buffer() as integer, byval num as integer, byval xoffset as integer, byval yoffset as integer)

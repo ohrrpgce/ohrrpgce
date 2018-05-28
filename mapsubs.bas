@@ -3623,8 +3623,7 @@ SUB new_blank_map (st as MapEditState)
  st.map.gmap(16) = 2 'Walkabout Layering: Together
  st.map.gmap(31) = 1 'Walkabout layer above map layer 0
  CleanNPCL st.map.npc()
- CleanNPCD st.map.npc_def()
- REDIM PRESERVE st.map.npc_def(0)
+ REDIM st.map.npc_def(0)
  cleandoors st.map.door()
  cleandoorlinks st.map.doorlink()
  'Just in case
@@ -3925,8 +3924,7 @@ SUB mapedit_delete(st as MapEditState)
    CleanNPCL st.map.npc()
   ELSEIF choice = 4 THEN
    CleanNPCL st.map.npc()
-   CleanNPCD st.map.npc_def()
-   REDIM PRESERVE st.map.npc_def(0)
+   REDIM st.map.npc_def(0)
    load_npc_graphics st.map.npc_def(), st.npc_img()
   ELSEIF choice = 5 THEN
    CleanDoors st.map.door()
@@ -6007,7 +6005,7 @@ SUB handle_npc_def_delete (npc() as NPCType, byval id as integer, npc_insts() as
 
  IF yesno(IIF(uses, "Done. ", "") & "Really " & IIF(deleting, "delete", "wipe clean") & " this NPC definition?", NO, NO) = NO THEN EXIT SUB
 
- CleanNPCDefinition npc(id)
+ npc(id).constructor()
  IF deleting THEN
   REDIM PRESERVE npc(UBOUND(npc) - 1)
  END IF
@@ -6055,7 +6053,6 @@ DO
   ELSEIF state.pt = state.last THEN
    '--Add new NPC option
    REDIM PRESERVE map.npc_def(UBOUND(map.npc_def) + 1)
-   CleanNPCDefinition map.npc_def(UBOUND(map.npc_def))
   ELSE
    '--An NPC
    mapedit_edit_npcdef st, map.npc_def(state.pt)
@@ -6067,7 +6064,6 @@ DO
   '--Fast add button (for people who really want ID 134 for a task)
   state.pt = UBOUND(map.npc_def) + 1
   REDIM PRESERVE map.npc_def(state.pt)
-  CleanNPCDefinition map.npc_def(state.pt)
   need_update_selected = YES
  END IF
  IF keyval(scDelete) > 1 THEN

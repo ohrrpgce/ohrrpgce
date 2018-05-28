@@ -230,7 +230,7 @@ END ENUM
 'Note that instances of this type are copied in edit_npc (w/ default copy constructor)
 TYPE NPCType
   picture as integer     '+0
-  palette as integer     '+1
+  palette as integer = -1 '+1
   movetype as integer    '+2
   speed as integer       '+3  real speed, not value in .d
   textbox as integer     '+4
