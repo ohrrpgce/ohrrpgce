@@ -308,6 +308,7 @@ END FUNCTION
 'menu may in fact be a vector of any type inheriting from BasicMenuItem.
 'menu's typetable tells the size in bytes of each menu item
 FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
+ IF state.empty() OR v_len(menudata) = 0 THEN RETURN NO
  DIM selectable(v_len(menudata) - 1) as bool
  FOR idx as integer = 0 TO v_len(menudata) - 1
   selectable(idx) = NOT v_at(menudata, idx)->unselectable

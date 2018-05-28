@@ -692,6 +692,7 @@ IF readbit(gen(), genBits, 15) THEN st.defpass = NO ' option to default the defa
 st.autoshow_zones = YES
 st.showzonehints = YES
 st.zonemenustate.pt = -1  'Properly initialised in mapedit_update_visible_zones
+st.zonemenustate.last = -1
 st.zones_needupdate = YES
 st.npczone_needupdate = YES
 st.mouse_attention = focusNowhere
