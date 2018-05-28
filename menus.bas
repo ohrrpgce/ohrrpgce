@@ -308,7 +308,11 @@ END FUNCTION
 'menu may in fact be a vector of any type inheriting from BasicMenuItem.
 'menu's typetable tells the size in bytes of each menu item
 FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
- IF state.empty() OR v_len(menudata) = 0 THEN RETURN NO
+ IF state.empty() OR v_len(menudata) = 0 THEN
+  correct_menu_state state
+  RETURN NO
+ END IF
+
  DIM selectable(v_len(menudata) - 1) as bool
  FOR idx as integer = 0 TO v_len(menudata) - 1
   selectable(idx) = NOT v_at(menudata, idx)->unselectable
@@ -319,7 +323,11 @@ END FUNCTION
 
 'a version for menus with unselectable items, skip items which are .unselectable
 FUNCTION usemenu (state as MenuState, menu as MenuDef, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
- IF state.empty() THEN RETURN NO
+ IF state.empty() THEN
+  correct_menu_state state
+  RETURN NO
+ END IF
+
  DIM selectable(state.last) as bool
  FOR idx as integer = 0 TO state.last
   selectable(idx) = NOT menu.items[idx]->unselectable
@@ -330,6 +338,11 @@ END FUNCTION
 
 'a version for menus with unselectable items, skip items for which selectable(i) = NO
 FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
+ IF state.empty() THEN
+  correct_menu_state state
+  RETURN NO
+ END IF
+
  WITH state
   IF .autosize THEN
    recalc_menu_size state
