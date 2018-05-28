@@ -232,7 +232,7 @@ TYPE NPCType
   picture as integer     '+0
   palette as integer = -1 '+1
   movetype as integer    '+2
-  speed as integer       '+3  real speed, not value in .d
+  speed as integer = 4   '+3  real speed, not value in .d
   textbox as integer     '+4
   facetype as integer    '+5
   item as integer        '+6
