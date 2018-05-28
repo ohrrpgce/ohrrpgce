@@ -2098,6 +2098,7 @@ DO
    zmenuopts.edged = YES
    zmenuopts.wide = pixel_width
    zmenuopts.itemspacing = -1  'Squeeze so all zones can fit in at 320x200
+   zmenuopts.nevershowright = YES  'Better to always show the ID; the full name can be seen at screen bottom
    standardmenu cast(BasicMenuItem vector, st.zonemenu), st.zonemenustate, xpos, ypos, dpage, zmenuopts
 
    IF st.zonemenustate.pt > -1 THEN

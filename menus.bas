@@ -594,7 +594,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
 
     DIM drawx as integer = x
     IF linewidth > wide AND state.active THEN
-     IF state.pt = i OR menuopts.showright THEN
+     IF menuopts.nevershowright = NO AND (state.pt = i OR menuopts.showright) THEN
       drawx = x + wide - linewidth
      END IF
     END IF

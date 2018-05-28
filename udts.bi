@@ -171,6 +171,7 @@ TYPE MenuOptions
   highlight as bool
   showright as bool       'Always show the right-most portion of text if too long,
                           'instead of only doing so when selected.
+  nevershowright as bool  'Don't show right-most portion, even if selected
   scrollbar as bool       'Draw a scrollbar (boxstyle 0); position given by x, y, .wide and MenuState.size
   fullscreen_scrollbar as bool 'Draw a scrollbar at the right edge of the screen
 END TYPE
