@@ -61,6 +61,8 @@ DECLARE SUB enemy_editor_main ()
 DECLARE SUB shop_editor_main()
 DECLARE SUB textbox_editor_main()
 DECLARE SUB menu_editor ()
+DECLARE SUB font_editor (font() as integer)
+DECLARE SUB font_test_menu ()
 
 DECLARE SUB maptile ()
 DECLARE FUNCTION compile_andor_import_scripts (f as string, quickimport as bool = NO) as bool

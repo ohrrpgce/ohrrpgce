@@ -59,7 +59,6 @@ DECLARE SUB secret_menu ()
 DECLARE SUB condition_test_menu ()
 DECLARE SUB quad_transforms_menu ()
 DECLARE SUB text_test_menu ()
-DECLARE SUB font_test_menu ()
 DECLARE SUB new_graphics_tests ()
 DECLARE SUB plankmenu_cursor_move_tests
 
@@ -563,7 +562,7 @@ SUB gfx_editor_menu()
    IF state.pt = 12 THEN backdrop_browser
    IF state.pt = 13 THEN ui_color_editor(activepalette)
    IF state.pt = 14 THEN ui_boxstyle_editor(activepalette)
-   IF state.pt = 15 THEN fontedit current_font()
+   IF state.pt = 15 THEN font_editor current_font()
    '--always resave the .GEN lump after any menu
    xbsave game + ".gen", gen(), 1000
   END IF
@@ -2218,73 +2217,6 @@ SUB text_test_menu
  LOOP
  setkeys
  showmousecursor
-END SUB
-
-SUB font_test_menu
- DIM menu(...) as string = {"Font 0", "Font 1", "Font 2", "Font 3"}
- DIM st as MenuState
- st.last = UBOUND(menu)
- st.size = 22
-
- DIM controls as string = "1: import from 'fonttests/testfont/', 2: import from bmp, 3: create edged font, 4: create shadow font"
-
- DO
-  setwait 55
-  setkeys
-  IF keyval(scEsc) > 1 THEN EXIT DO
-  IF keyval(sc1) > 1 THEN
-   DIM newfont as Font ptr = font_loadbmps("fonttests/testfont", fonts(st.pt))
-   font_unload @fonts(st.pt)
-   fonts(st.pt) = newfont
-  END IF
-  IF keyval(sc2) > 1 THEN
-   DIM filen as string
-   filen = browse(browsePalettedImage, "")
-   IF LEN(filen) THEN
-    font_unload @fonts(st.pt)
-    fonts(st.pt) = font_load_16x16(filen)
-   END IF
-  END IF
-  IF keyval(sc3) > 1 THEN
-   DIM choice as integer
-   choice = multichoice("Create an edged font from which font?", menu())
-   IF choice > -1 THEN
-    DIM newfont as Font ptr = font_create_edged(fonts(choice))
-    font_unload @fonts(st.pt)
-    fonts(st.pt) = newfont
-   END IF
-  END IF
-  IF keyval(sc4) > 1 THEN
-   DIM choice as integer
-   choice = multichoice("Create a drop-shadow font from which font?", menu())
-   IF choice > -1 THEN
-    DIM newfont as Font ptr = font_create_shadowed(fonts(choice), 2, 2)
-    font_unload @fonts(st.pt)
-    fonts(st.pt) = newfont
-   END IF
-  END IF
-
-  usemenu st
-
-  clearpage vpage
-  'edgeboxstyle 10, 10, 300, 185, 0, vpage
-  standardmenu menu(), st, 0, 0, vpage
-  textcolor uilook(uiText), 0
-  wrapprint controls, 0, rBottom + ancBottom, , vpage
-
-  FOR i as integer = 0 TO 15
-   DIM row as string
-   FOR j as integer = i * 16 TO i * 16 + 15
-    row &= CHR(j)
-   NEXT
-   IF fonts(st.pt) THEN
-    printstr row, 145, 0 + i * fonts(st.pt)->h, vpage, YES, st.pt
-   END IF
-  NEXT
-
-  setvispage vpage
-  dowait
- LOOP
 END SUB
 
 SUB new_graphics_tests

@@ -64,9 +64,6 @@ DECLARE SUB edit_global_text_strings()
 DECLARE SUB writeglobalstring (index as integer, s as string, maxlen as integer)
 DECLARE SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as string, byref max1 as integer, byref min1 as integer, byref menutype1 as integer, byref caption2 as string, byref max2 as integer, byref min2 as integer, byref menutype2 as integer)
 DECLARE FUNCTION attack_chain_browser (byval start_attack as integer) as integer
-DECLARE SUB fontedit (font() as integer)
-DECLARE SUB fontedit_export_font(font() as integer)
-DECLARE SUB fontedit_import_font(font() as integer)
 DECLARE SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as string, excludewords as string = "")
 DECLARE FUNCTION experience_chart (byval expcurve as double=0.2) as double
 DECLARE SUB stat_growth_chart ()
