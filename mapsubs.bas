@@ -4642,50 +4642,45 @@ END SUB
 
 'Draws a preview of a certain door on a map to either the top or bottom half of a page
 SUB DrawDoorPreview(map as MapData, tilesets() as TilesetData ptr, doornum as integer, top_half as bool, page as integer)
- DIM as integer dmx, dmy
- DIM as integer starty, view_width, view_height
+ DIM as integer starty
  IF top_half THEN
   starty = 0
  ELSE
   starty = vpages(page)->h \ 2 + 2
  END IF
- view_width = vpages(page)->w
- view_height = vpages(page)->h \ 2
+
+ ' The camera/viewport position relative to the map; doesn't include starty
+ DIM viewport as RectType
+ viewport.size = XY(vpages(page)->w, vpages(page)->h \ 2)
 
  IF door_exists(map.door(), doornum) THEN
   DIM byref thisdoor as Door = map.door(doornum)
-  ' dmx/dmy gives the camera position (top left of viewport relative to the map)
-  dmx = thisdoor.x * tilew       - (view_width - tilew) \ 2
-  ' thisdoor.y is offset by 1
-  dmy = (thisdoor.y - 1) * tileh - (view_height - tileh) \ 2
-  ' Clamp to map edge if needed
-  IF map.gmap(5) = mapEdgeCrop THEN
-   dmx = small(large(dmx, 0), map.wide * tilew - view_width)
-   dmy = small(large(dmy, 0), map.high * tileh - view_height)
-  END IF
+  ' Position of the door on the map
+  DIM door_mappos as XYPair = XY(thisdoor.x, thisdoor.y - 1) * tilesize
+  DIM viewport_center as XYPair = door_mappos + tilesize \ 2
+  viewport.topleft = camera_position_centered_on(viewport_center, viewport.size, map)
+
   set_map_edge_draw_mode map.gmap()
   FOR i as integer = 0 TO UBOUND(map.tiles)
    IF LayerIsEnabled(map.gmap(), i) THEN
-    drawmap map.tiles(i), dmx, dmy, tilesets(i), page, i <> 0, , , starty, view_height
+    drawmap map.tiles(i), viewport.x, viewport.y, tilesets(i), page, i <> 0, , , starty, viewport.high
    END IF
   NEXT i
   IF LayerIsEnabled(map.gmap(), 0) THEN
-   drawmap map.tiles(0), dmx, dmy, tilesets(0), page, 0, 2, @map.pass, starty, view_height
+   drawmap map.tiles(0), viewport.x, viewport.y, tilesets(0), page, 0, 2, @map.pass, starty, viewport.high
   END IF
   ' Position of the door on the screen
-  DIM as integer door_drawx, door_drawy
-  door_drawx = thisdoor.x * tilew - dmx
-  door_drawy = (thisdoor.y - 1) * tileh - dmy + starty
-  edgebox door_drawx, door_drawy, tilew, tileh, uilook(uiMenuItem), uilook(uiBackground), page
+  DIM as XYPair door_pos = door_mappos - viewport.topleft
+  door_pos.y += starty
+  edgebox door_pos.x, door_pos.y, tilew, tileh, uilook(uiMenuItem), uilook(uiBackground), page
   textcolor uilook(uiBackground), 0
   DIM as string caption = STR(doornum)
-  printstr caption, door_drawx + tilew \ 2 + ancCenter, door_drawy + tileh \ 2 + 1 + ancCenter, page
+  printstr caption, door_pos.x + tilew \ 2 + ancCenter, door_pos.y + tileh \ 2 + 1 + ancCenter, page
  ELSE
   textcolor uilook(uiDisabledItem), 0
   DIM as string caption = "(No such door)"
-  printstr caption, pCentered, starty + view_height \ 2, page
+  printstr caption, pCentered, starty + viewport.high \ 2, page
  END IF
- 
 END SUB
 
 ' Draw preview of source and destination doors of a doorlink.
