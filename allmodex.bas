@@ -5064,44 +5064,59 @@ end function
 '==========================================================================================
 
 
+constructor FontLayer()
+	refcount = 1
+end constructor
+
+constructor FontLayer(src as FontLayer ptr)
+	memcpy(@this, src, sizeof(FontLayer))  'Copy chdata
+	spr = frame_duplicate(src->spr)
+	refcount = 1
+end constructor
+
+'Decrement refcount, and null out the ptr
+sub fontlayer_unload (layerpp as FontLayer ptr ptr)
+	if layerpp = null then showerror "fontlayer_unload: passed NULL" : exit sub
+	if *layerpp then
+		(*layerpp)->refcount -= 1
+		if (*layerpp)->refcount <= 0 then
+			delete *layerpp
+		end if
+		*layerpp = NULL
+	end if
+end sub
+
+destructor FontLayer()
+	frame_unload @spr
+end destructor
+
+
+constructor Font()
+end constructor
+
+'A copy of a Font which shares the layers with the original Font
+constructor Font(src as Font ptr)
+	memcpy(@this, src, sizeof(Font))
+	for idx as integer = 0 to 1
+		if layers(idx) then layers(idx)->refcount += 1
+	next
+end constructor
+
 'This deletes a Font object pointed to by a pointer. It's OK to call on a ptr to a NULL ptr
 sub font_unload (fontpp as Font ptr ptr)
 	if fontpp = null then showerror "font_unload: passed NULL" : exit sub
-	dim fontp as font ptr = *fontpp
+	dim fontp as Font ptr = *fontpp
 	if fontp = null then exit sub
-
-	for i as integer = 0 to 1
-		if fontp->layers(i) then
-			fontp->layers(i)->refcount -= 1
-			if fontp->layers(i)->refcount <= 0 then
-				frame_unload @fontp->layers(i)->spr
-				deallocate(fontp->layers(i))
-			end if
-			fontp->layers(i) = NULL
-		end if
-	next
-
-	Palette16_unload @fontp->pal
-	deallocate fontp
+	delete fontp
 	*fontpp = NULL
 end sub
 
-'Doesn't create a Frame
-private function fontlayer_new () as FontLayer ptr
-	dim ret as FontLayer ptr
-	ret = callocate(sizeof(FontLayer))
-	ret->refcount = 1
-	return ret
-end function
-
-private function fontlayer_duplicate (srclayer as FontLayer ptr) as FontLayer ptr
-	dim ret as FontLayer ptr
-	ret = callocate(sizeof(FontLayer))
-	memcpy(ret, srclayer, sizeof(FontLayer))
-	ret->spr = frame_duplicate(srclayer->spr)
-	ret->refcount = 1
-	return ret
-end function
+destructor Font()
+	for i as integer = 0 to 1
+		fontlayer_unload @layers(i)
+	next
+	Palette16_unload @pal
+end destructor
 
 'Create a version of a font with an outline around each character (in a new palette colour)
 function font_create_edged (basefont as Font ptr) as Font ptr
@@ -5115,9 +5130,9 @@ function font_create_edged (basefont as Font ptr) as Font ptr
 	end if
 	CHECK_FRAME_8BIT(basefont->layers(1)->spr, NULL)
 
-	dim newfont as Font ptr = callocate(sizeof(Font))
+	dim newfont as Font ptr = new Font()
 
-	newfont->layers(0) = fontlayer_new()
+	newfont->layers(0) = new FontLayer()
 	'Share layer 1
 	newfont->layers(1) = basefont->layers(1)
 	newfont->layers(1)->refcount += 1
@@ -5203,15 +5218,12 @@ function font_create_shadowed (basefont as Font ptr, xdrop as integer = 1, ydrop
 	end if
 	CHECK_FRAME_8BIT(basefont->layers(1)->spr, NULL)
 
-	dim newfont as Font ptr = callocate(sizeof(Font))
+	dim newfont as Font ptr = new Font(basefont)
 
-	memcpy(newfont, basefont, sizeof(Font))
-
-	'Copy layer 1 from the old font to layer 0 of the new
-	newfont->layers(0) = fontlayer_duplicate(basefont->layers(1))
-
-	'Share layer 1 with the base font
-	newfont->layers(1)->refcount += 1
+	'Layer 0 is a copy of layer 1 from the old font
+	fontlayer_unload @newfont->layers(0)
+	newfont->layers(0) = new FontLayer(basefont->layers(1))
+	'Layer 1 is shared with the base font
 
 	if newfont->outline_col = 0 then
 		'Doesn't already have an outline colour
@@ -5238,9 +5250,9 @@ function font_create_shadowed (basefont as Font ptr, xdrop as integer = 1, ydrop
 end function
 
 function font_loadold1bit (fontdata as ubyte ptr) as Font ptr
-	dim newfont as Font ptr = callocate(sizeof(Font))
+	dim newfont as Font ptr = new Font()
 
-	newfont->layers(1) = fontlayer_new()
+	newfont->layers(1) = new FontLayer()
 	newfont->layers(1)->spr = frame_new(8, 256 * 8)
 	newfont->h = 10  'I would have said 9, but this is what was used in text slices
 	newfont->offset.x = 0
@@ -5295,10 +5307,10 @@ end function
 'This function is for testing purposes only, and will be removed unless this shows some use:
 'uses hardcoded values
 function font_loadbmps (directory as string, fallback as Font ptr = null) as Font ptr
-	dim newfont as Font ptr = callocate(sizeof(Font))
+	dim newfont as Font ptr = new Font()
 
 	newfont->layers(0) = null
-	newfont->layers(1) = fontlayer_new()
+	newfont->layers(1) = new FontLayer()
 	'Hacky: start by allocating 4096 pixels, expand as needed
 	newfont->layers(1)->spr = frame_new(1, 4096)
 	newfont->cols = 1  'hardcoded
@@ -5384,7 +5396,7 @@ function font_load_16x16 (filename as string) as Font ptr
 		return null
 	end if
 
-	dim newfont as Font ptr = callocate(sizeof(Font))
+	dim newfont as Font ptr = new Font()
 
 	dim as integer charw, charh
 	charw = image->w \ 16
@@ -5394,7 +5406,7 @@ function font_load_16x16 (filename as string) as Font ptr
 	newfont->offset.y = 0
 	newfont->outline_col = 0  'None
 	newfont->layers(0) = null
-	newfont->layers(1) = fontlayer_new()
+	newfont->layers(1) = new FontLayer()
 
 	'"Linearise" the characters. In future this will be unnecessary
 	newfont->layers(1)->spr = frame_new(charw, charh * 256)

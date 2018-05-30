@@ -235,17 +235,22 @@ CONST fontShadow = 2
 
 Type FontChar
 	offset as integer  'offset into spr->image
-	offx as byte   'pixel offsets
+	offx as byte       'Amount to offset the image when drawing, in pixels
 	offy as byte
-	w as byte      'size of sprite
+	w as byte          'Size of sprite
 	h as byte
 End Type
 
-'WARNING: don't add strings to this
+'A FontLayer can be shared between multiple fonts
 Type FontLayer
-	spr as Frame ptr
+	spr as Frame ptr        'FIXME: this is meant to be an atlas/spritesheet, but it's actually a
+	                        'concatenation of pixel buffers for each character. Needs changing for backend accel
 	refcount as integer
 	chdata(255) as FontChar
+
+	declare constructor()
+	declare constructor(src as FontLayer ptr)
+	declare destructor()
 End Type
 
 Type Font
@@ -256,6 +261,11 @@ Type Font
 	cols as integer		'number of used colours, not including colour 0 (transparency), so at most 15
 	pal as Palette16 ptr    '(Default) palette template to use, or NULL if this font is unpaletted (foreground colour only)
 	outline_col as integer  'palette entry (1 to .cols) which should be filled with uiOutline, or 0 for none.
+
+	declare constructor()
+	declare constructor(src as Font ptr)
+	'Recommmended to call the font_unload wrapper instead of using delete directly
+	declare destructor()
 End Type
 
 'text_layout_dimensions returns this struct
