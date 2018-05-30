@@ -9353,7 +9353,6 @@ end</example>
 				Deletes a saved game in the specified save <p>slot</p> (1 to 1000,
 				regardless of how many are displayed on the Load and Save menus).
 				The save will no longer be visible on the load game menu or loadable with <ref>loadfromslot</ref>.
-				However, <ref>importglobals</ref> can still be used to read globals out of the slot.
 			</description>
 			<seealso>
 				<ref>saveinslot</ref>
@@ -9460,11 +9459,13 @@ end</example>
 				Therefore, if you pass no range, all the globals will be written.
 				<note>
 					You can export globals to an empty slot!
-					This doesn't create a visible save game that the player can load,
-					however you will still be able to read them with <ref>importglobals</ref>.
+					This doesn't create a visible save game that the player can load
+					(and <ref>saveslotused</ref> will still return <tt>false</tt> for that slot),
+					however you will be able to read them with <ref>importglobals</ref>.
+					You can delete these globals using <ref>deletesave</ref>.
 				</note>
 				<note>
-					Unlike importglobals, 'export globals (slot, first)' does
+					Unlike importglobals, <tt>export globals (slot, first)</tt> does
 					NOT export a single global variable!
 				</note>
 			</description>

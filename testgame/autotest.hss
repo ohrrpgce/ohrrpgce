@@ -5218,20 +5218,34 @@ script, save slot tests, begin
   assert(export global 1 == 0)
   assert(export global 2 == 0)
 
-  # delete save is meant to preserve stored global variables  (FAILS!!)
-  delete save(1)
-  delete save(2)
+  # Check interaction between deletesave and importglobals
+  # Originally, deletesave was documented as preserving stored global variables, so they could
+  # still be read with importglobals. Since switching to RSAV in Zenzizenzic (2011), deletesave
+  # now deletes the globals too!
+  # Using rpgbatch, it seems no games are affected by the change (see svn commit message)
+  export global 1 := 100
+  export global 2 := 100
+  export globals(1, @export global 1, @export global 2)
+  delete save(1)   # Slot 1 only had global variables
+  delete save(2)   # Slot 2 had a full save
   assert(save slot used(1) == false)
   assert(save slot used(2) == false)
   export global 1 := -1
   export global 2 := -2
-  #import globals(1, @export global 1, @export global 2)
-  #assert(export global 1 == 0)
-  #assert(export global 2 == 0)
-  #import globals(2, @export global 1, @export global 2)
+  import globals(1, @export global 1, @export global 2)
+  # Pre-Zenzizenzic behaviour
   #assert(export global 1 == -123456789)
   #assert(export global 2 == -100)
-
+  # New behaviour
+  assert(export global 1 == 0)
+  assert(export global 2 == 0)
+  import globals(2, @export global 1, @export global 2)
+  # Pre-Zenzizenzic behaviour
+  #assert(export global 1 == -123456789)
+  #assert(export global 2 == -100)
+  # New behaviour
+  assert(export global 1 == 0)
+  assert(export global 2 == 0)
 end
 
 ########################################################################

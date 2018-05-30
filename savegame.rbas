@@ -1948,6 +1948,8 @@ FUNCTION old_save_slot_used (byval slot as integer) as bool
 END FUNCTION
 
 SUB old_erase_save_slot (byval slot as integer)
+ 'Unlike erase_save_slot, this leaves the global variables intact for importglobals.
+ 'It seems that no game was affected by that back-compat break.
  DIM as short saveversion = 0
  IF fileisreadable(old_savefile) = NO THEN EXIT SUB
  DIM savh as integer = FREEFILE
