@@ -3502,6 +3502,9 @@ sub drawbox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer,
 end sub
 
 'Draw a hollow box, with given edge thickness
+'Increasing the thickness causes the lines to fatten towards the interior of the
+'box; w/h is always the external size - meaning x+w and y+h are exclusive, while
+'x and y are inclusive
 sub drawbox (dest as Frame ptr, x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, thickness as integer = 1)
 	w = relative_pos(w, dest->w)
 	h = relative_pos(h, dest->h)
@@ -3589,6 +3592,8 @@ sub rectangle (x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer,
 	rectangle vpages(p), x, y, w, h, c
 end sub
 
+'Draw a solid rectangle (use drawbox for a hollow one)
+'Top/left edges are inclusive, bottom/right are exclusive
 sub rectangle (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer)
 	if cliprect.frame <> fr then
 		setclip , , , , fr
@@ -3632,6 +3637,8 @@ sub fuzzyrect (x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHe
 	fuzzyrect vpages(p), x, y, w, h, c, fuzzfactor
 end sub
 
+'Draw a dithered rectangle
+'Top/left edges are inclusive, bottom/right are exclusive
 sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, fuzzfactor as integer = 50)
 	'How many magic constants could you wish for?
 	'These were half generated via magic formulas, and half hand picked (with magic criteria)
@@ -3695,6 +3702,32 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 		h -= 1
 		sptr += fr->pitch
 	wend
+end sub
+
+'Draw a fuzzy rect over the whole clipping rect (normally, the whole screen) except for the given rectangle.
+sub antifuzzyrect(fr as Frame Ptr, rect as RectType, col as integer, fuzzfactor as integer = 50)
+	dim clipsave as ClipState = cliprect
+	#define MAX 9999999
+
+	'Recall that shrinkclip right and bottom are inclusive, while fuzzyrect is exclusive
+	'Top 3 ninths
+	shrinkclip 0, 0, MAX, rect.y - 1, fr
+	fuzzyrect fr, 0, 0, MAX, MAX, col, fuzzfactor
+	cliprect = clipsave
+	'Left ninth
+	shrinkclip 0, rect.y, rect.x - 1, rect.y + rect.high - 1, fr
+	fuzzyrect fr, 0, 0, MAX, MAX, col, fuzzfactor
+	cliprect = clipsave
+	'Right ninth
+	shrinkclip rect.x + rect.wide, rect.y, MAX, rect.y + rect.high - 1, fr
+	fuzzyrect fr, 0, 0, MAX, MAX, col, fuzzfactor
+	cliprect = clipsave
+	'Bottom 3 ninths
+	shrinkclip 0, rect.y + rect.high, MAX, MAX, fr
+	fuzzyrect fr, 0, 0, MAX, MAX, col, fuzzfactor
+	cliprect = clipsave
+
+	#undef MAX
 end sub
 
 'Draw either a rectangle or a scrolling chequer pattern.

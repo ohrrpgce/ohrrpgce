@@ -181,6 +181,8 @@ DECLARE SUB rectangle OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelP
 DECLARE SUB rectangle OVERLOAD (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer)
 DECLARE SUB fuzzyrect OVERLOAD (x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, p as integer, fuzzfactor as integer = 50)
 DECLARE SUB fuzzyrect OVERLOAD (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, fuzzfactor as integer = 50)
+DECLARE SUB antifuzzyrect(fr as Frame Ptr, rect as RectType, col as integer, fuzzfactor as integer = 50)
+
 DECLARE SUB draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byref chequer_scroll as integer = 0, x as RelPos = 0, y as RelPos = 0, wide as RelPos = rWidth, high as RelPos = rHeight)
 
 Type ClipState
