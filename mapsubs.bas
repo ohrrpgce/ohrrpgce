@@ -2881,8 +2881,8 @@ END SUB
 'Whether the user should have the option to pick an edge tile.
 'Also true if the map is smaller than the screen and the camera is set to crop.
 FUNCTION need_default_edge_tile(map as MapData) as bool
- IF map.gmap(5) = 2 THEN RETURN YES  'Use default edge tile
- IF map.gmap(5) = 0 THEN  'Crop camera
+ IF map.gmap(5) = mapEdgeDefaultTile THEN RETURN YES
+ IF map.gmap(5) = mapEdgeCrop THEN
   IF gen(genResolutionX) > map.wide * 20 ORELSE gen(genResolutionY) > map.high * 20 THEN RETURN YES
  END IF
  RETURN NO
@@ -2948,11 +2948,11 @@ SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem 
  END IF
  ' Map edge mode
  SELECT CASE gmap(5)
-  CASE 0
+  CASE mapEdgeCrop
    menu[midx(5)].text &= "Crop"
-  CASE 1
+  CASE mapEdgeWrap
    menu[midx(5)].text &= "Wrap"
-  CASE 2
+  CASE mapEdgeDefaultTile
    menu[midx(5)].text &= "use default edge tile"
  END SELECT
  ' Default edge tile
@@ -4621,7 +4621,7 @@ SUB DrawDoorPreview(map as MapData, tilesets() as TilesetData ptr, doornum as in
   ' thisdoor.y is offset by 1
   dmy = (thisdoor.y - 1) * tileh - (view_height - tileh) \ 2
   ' Clamp to map edge if needed
-  IF map.gmap(5) = 0 THEN  'Map edge mode = Crop
+  IF map.gmap(5) = mapEdgeCrop THEN
    dmx = small(large(dmx, 0), map.wide * tilew - view_width)
    dmy = small(large(dmy, 0), map.high * tileh - view_height)
   END IF

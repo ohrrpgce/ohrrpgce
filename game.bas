@@ -1719,7 +1719,7 @@ SUB npcmove_meandering_chase(npci as NPCInst, byval avoid_instead as bool = NO)
   'Vertical movement
   IF heroy(0) < npci.y THEN d = dirUp
   IF heroy(0) > npci.y THEN d = dirDown
-  IF gmap(5) = 1 THEN
+  IF gmap(5) = mapEdgeWrap THEN
    'Special handling for wraparound maps
    IF heroy(0) - mapsizetiles.y * 10 > npci.y THEN d = dirUp
    IF heroy(0) + mapsizetiles.y * 10 < npci.y THEN d = dirDown
@@ -1729,7 +1729,7 @@ SUB npcmove_meandering_chase(npci as NPCInst, byval avoid_instead as bool = NO)
   'Horizontal movement
   IF herox(0) < npci.x THEN d = dirLeft
   IF herox(0) > npci.x THEN d = dirRight
-  IF gmap(5) = 1 THEN
+  IF gmap(5) = mapEdgeWrap THEN
    'Special handling for wraparound maps
    IF herox(0) - mapsizetiles.x * 10 > npci.x THEN d = dirLeft
    IF herox(0) + mapsizetiles.x * 10 < npci.x THEN d = dirRight

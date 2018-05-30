@@ -1111,7 +1111,7 @@ SUB limitcamera (byref x as integer, byref y as integer)
  ' The slice the map is drawn "onto"
  DIM mapview as Slice ptr
  mapview = SliceTable.Root
- IF gmap(5) = 0 THEN
+ IF gmap(5) = mapEdgeCrop THEN
   ' When cropping the camera to the map, stop camera movements that attempt to go over the edge
   DIM oldmapx as integer = x
   DIM oldmapy as integer = y
@@ -1130,7 +1130,7 @@ SUB limitcamera (byref x as integer, byref y as integer)
    IF gen(genCameraMode) = pancam THEN gen(genCameraMode) = stopcam
   END IF
  END IF
- IF gmap(5) = 1 THEN
+ IF gmap(5) = mapEdgeWrap THEN
   ' Wrapping map. Wrap the camera according to the center, not the top-left
   x += mapview->Width \ 2
   y += mapview->Height \ 2

@@ -462,6 +462,12 @@ TYPE TilemapInfo
   layers as integer
 END TYPE
 
+ENUM MapEdgeModeEnum
+  mapEdgeCrop = 0
+  mapEdgeWrap = 1
+  mapEdgeDefaultTile = 2
+END ENUM
+
 'WARNING: don't add strings to this
 Type ZoneHashedSegment
   IDmap(14) as ushort

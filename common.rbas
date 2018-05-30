@@ -5588,16 +5588,16 @@ END SUB
 
 SUB set_map_edge_draw_mode(gmap() as integer, wrap_layers_over_edge_of_crop_maps as bool = NO)
  SELECT CASE gmap(5)
-  CASE 0 'Crop
+  CASE mapEdgeCrop
    IF wrap_layers_over_edge_of_crop_maps THEN
     setoutside -1
    ELSE
     'We set an edge tile on crop maps in case the map is smaller than the screen
     setoutside gmap(6)
    END IF
-  CASE 1 'Wrap
+  CASE mapEdgeWrap
    setoutside -1
-  CASE 2 'Use default edge tile
+  CASE mapEdgeDefaultTile
    setoutside gmap(6)
  END SELECT
 END SUB

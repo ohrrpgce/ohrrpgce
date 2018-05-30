@@ -530,7 +530,7 @@ END SUB
 SUB wrapaheadxy (byref x as integer, byref y as integer, byval direction as DirNum, byval distance as integer, byval unitsize as integer)
  aheadxy x, y, direction, distance
  
- IF gmap(5) = 1 THEN
+ IF gmap(5) = mapEdgeWrap THEN
   wrapxy x, y, unitsize
  END IF
 END SUB
@@ -540,13 +540,13 @@ END SUB
 SUB wrapaheadxy (byref p as XYPair, byval direction as DirNum, byval distance as integer, byval unitsize as integer)
  aheadxy p, direction, distance
  
- IF gmap(5) = 1 THEN
+ IF gmap(5) = mapEdgeWrap THEN
   wrapxy p, unitsize
  END IF
 END SUB
 
 SUB cropposition (byref x as integer, byref y as integer, byval unitsize as integer)
- IF gmap(5) = 1 THEN
+ IF gmap(5) = mapEdgeWrap THEN
   wrapxy x, y, unitsize
  ELSE
   x = bound(x, 0, (mapsizetiles.x - 1) * unitsize)
@@ -557,7 +557,7 @@ END SUB
 FUNCTION cropmovement (byref pos as XYPair, byref xygo as XYPair) as bool
  'crops movement at edge of map, or wraps
  'returns true if ran into wall at edge (and sets xgo OR ygo to 0)
- IF gmap(5) = 1 THEN
+ IF gmap(5) = mapEdgeWrap THEN
   '--wrap walking
   wrapxy pos, 20
   RETURN NO
@@ -585,7 +585,7 @@ FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as DirNu
 
  'debug "check_wall_edges(" & tilex & "," & tiley & ", dir=" & direction & ", isveh=" & isveh & ", walls_over_edges=" & walls_over_edges & ", ignore_passmap=" & ignore_passmap & ")"
 
- IF gmap(5) = 1 THEN
+ IF gmap(5) = mapEdgeWrap THEN
   wrapxy tilex, tiley
  END IF
  IF ignore_passmap THEN    ' Check only for the map edge
@@ -829,7 +829,7 @@ FUNCTION wrapcollision (byval posa as XYPair, byval xygoa as XYPair, byval posb 
  dest1.y = (posa.y - bound(xygoa.y, -20, 20)) \ 20
  dest2.y = (posb.y - bound(xygob.y, -20, 20)) \ 20
 
- IF gmap(5) = 1 THEN
+ IF gmap(5) = mapEdgeWrap THEN
   RETURN (dest1 - dest2) MOD mapsizetiles = 0
  ELSE
   RETURN dest1 = dest2
@@ -838,7 +838,7 @@ END FUNCTION
 
 FUNCTION wraptouch (byval pos1 as XYPair, byval pos2 as XYPair, byval distance as integer) as bool
  'whether 2 walkabouts are within distance pixels horizontally + vertically
- IF gmap(5) = 1 THEN
+ IF gmap(5) = mapEdgeWrap THEN
   IF ABS((pos1 - pos2) MOD (mapsizetiles * 20 - distance)) <= distance THEN RETURN YES
  ELSE
   IF ABS(pos1 - pos2) <= 20 THEN RETURN YES
@@ -860,7 +860,7 @@ PRIVATE FUNCTION closestwrappedpos (byval coord as integer, byval screenlen as i
  RETURN lowposs - 10
 END FUNCTION
 
-FUNCTION framewalkabout (byval mappos as XYPair, byref screenpos as XYPair, byval mapsize as XYPair, wrapmode as integer, margin as integer = -1) as bool
+FUNCTION framewalkabout (byval mappos as XYPair, byref screenpos as XYPair, byval mapsize as XYPair, wrapmode as MapEdgeModeEnum, margin as integer = -1) as bool
  'Given a map position returns if a walkabout at that spot MIGHT be on-screen,
  'and sets screenpos to where on the screen to place it.
  'Due to slices attached to NPCs, it's practically impossible to tell, so by default
@@ -869,7 +869,7 @@ FUNCTION framewalkabout (byval mappos as XYPair, byref screenpos as XYPair, byva
  'On a wraparound map, the position is wrapped to make it as close to a screen
  'edge as possible (might still appear bad for slices parented to a walkabout and offset)
 
- IF wrapmode = 1 THEN
+ IF wrapmode = mapEdgeWrap THEN
   screenpos.x = closestwrappedpos(mappos.x - mapx, vpages(dpage)->w, mapsize.w)
   screenpos.y = closestwrappedpos(mappos.y - mapy, vpages(dpage)->h, mapsize.h)
  ELSE
@@ -887,7 +887,7 @@ FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default as DirN
  IF ABS(diff.x) = ABS(diff.y) THEN RETURN default 'Make no attempt to resolve diagonals
  IF ABS(diff.x) > ABS(diff.y) THEN
   'Horizontal
-  IF gmap(5) = 1 ANDALSO ABS(diff.x) > mapsizetiles.x / 2 THEN
+  IF gmap(5) = mapEdgeWrap ANDALSO ABS(diff.x) > mapsizetiles.x / 2 THEN
    'Wraparound map
    IF diff.x < 0 THEN RETURN dirRight
    RETURN 3
@@ -896,7 +896,7 @@ FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default as DirN
   RETURN 1
  ELSE
   'Vertical
-  IF gmap(5) = 1 ANDALSO ABS(diff.y) > mapsizetiles.y / 2 THEN
+  IF gmap(5) = mapEdgeWrap ANDALSO ABS(diff.y) > mapsizetiles.y / 2 THEN
    'Wraparound map
    IF diff.y < 0 THEN RETURN dirDown
    RETURN 0
@@ -1212,7 +1212,7 @@ FUNCTION vehscramble(byval target as XYPair) as bool
    IF ABS(target.y - scramy) > 0 AND herow(i).ygo = 0 THEN
     herow(i).ygo = 20 * SGN(scramy - target.y)
    END IF
-   IF gmap(5) = 1 THEN
+   IF gmap(5) = mapEdgeWrap THEN
     '--this is a wrapping map
     IF ABS(scramx - target.x) > mapsizetiles.x * 20 / 2 THEN herow(i).xgo *= -1
     IF ABS(scramy - target.y) > mapsizetiles.y * 20 / 2 THEN herow(i).ygo *= -1

@@ -33,7 +33,7 @@ DECLARE FUNCTION npc_at_pixel(pixelpos as XYPair, byval copynum as integer=0, al
 'Movement/collision/wrapping
 DECLARE FUNCTION movdivis (byval xygo as integer) as bool
 DECLARE FUNCTION cropmovement (byref pos as XYPair, byref xygo as XYPair) as bool
-DECLARE FUNCTION framewalkabout (byval mappos as XYPair, byref screenpos as XYPair, byval mapsize as XYPair, wrapmode as integer, margin as integer = -1) as bool
+DECLARE FUNCTION framewalkabout (byval mappos as XYPair, byref screenpos as XYPair, byval mapsize as XYPair, wrapmode as MapEdgeModeEnum, margin as integer = -1) as bool
 DECLARE SUB cropposition (byref x as integer, byref y as integer, byval unitsize as integer)
 DECLARE FUNCTION wrappass (x as integer, y as integer, byref xgo as integer, byref ygo as integer, isveh as bool, ignore_passmap as bool = NO) as bool
 DECLARE FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair, byval size as XYPair, byval go as XYPair, isveh as bool, walls_over_edges as bool = YES) as integer
