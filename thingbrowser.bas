@@ -230,8 +230,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
 
   if do_edit then
    do_edit = NO
-   dim editor as FnThingBrowserEditor = editor_func
-   dim ed_ret as integer = editor(edit_record)
+   dim ed_ret as integer = editor_func(edit_record)
    if ed_ret = -1 andalso quit_if_add_cancelled then result = -1 : exit do
    save_plank_selection ps
    build_thing_list()
