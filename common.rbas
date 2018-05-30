@@ -3799,9 +3799,9 @@ IF gen(genVersion) = 1 THEN
  IF isfile(game + ".dor") THEN xbload game + ".dor", doorbuf(), "No doors"
  storerecord doorbuf(), game + ".dox", 20 * 600 \ 2, 0
  upgrade_message "Enforcing default font"
- DIM font(1023) as integer
- getdefaultfont font()
- xbsave game + ".fnt", font(), 2048
+ DIM fnt(1023) as integer
+ getdefaultfont fnt()
+ xbsave game + ".fnt", fnt(), 2048
  upgrade_message "rpgfix: Upgrading to customisable tile animations"
  ' The last two tiles in the tileset used to auto-toggle. Add a default
  ' tile animation and replace those tiles with animated tiles.
@@ -3997,9 +3997,9 @@ update_general_data
 'This is corruption recovery, not upgrade, but Custom has always done this
 IF NOT isfile(game + ".fnt") THEN
  debug game + ".fnt missing (which should never happen)"
- DIM font(1023) as integer
- getdefaultfont font()
- xbsave game + ".fnt", font(), 2048
+ DIM fnt(1023) as integer
+ getdefaultfont fnt()
+ xbsave game + ".fnt", fnt(), 2048
 END IF
 
 IF NOT isfile(game + ".veh") THEN

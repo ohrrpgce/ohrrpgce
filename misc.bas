@@ -30,15 +30,15 @@ dim overrode_log_dir as bool = NO
 dim timer_variables
 #endif
 
-SUB getdefaultfont(font() as integer)
+SUB getdefaultfont(fnt() as integer)
 	for i as integer = 0 to 1023
-		font(i) = default_font(i)
+		fnt(i) = default_font(i)
 	next
 END SUB
 
-SUB getbrowserfont(font() as integer)
+SUB getbrowserfont(fnt() as integer)
 	for i as integer = 0 to 1023
-		font(i) = browser_font(i)
+		fnt(i) = browser_font(i)
 	next
 END SUB
 

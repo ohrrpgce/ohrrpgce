@@ -16,8 +16,8 @@
 'Subs and functions only used here
 DECLARE FUNCTION edit_font_picker_point(byval pixelpos as XYPair) as integer
 DECLARE FUNCTION edit_font_draw_point(byval pixelpos as XYPair) as XYPair
-DECLARE SUB fontedit_export_font(font() as integer)
-DECLARE SUB fontedit_import_font(font() as integer)
+DECLARE SUB fontedit_export_font(fnt() as integer)
+DECLARE SUB fontedit_import_font(fnt() as integer)
 
 
 
@@ -88,7 +88,7 @@ SUB font_test_menu
  LOOP
 END SUB
 
-SUB font_editor (font() as integer)
+SUB font_editor (fnt() as integer)
  DIM f(255) as integer  'Contains the character indices which should be shown (always 32-255)
  DIM copybuf(4) as integer
  DIM menu(6) as string
@@ -125,7 +125,7 @@ SUB font_editor (font() as integer)
   .size = 22
  END WITH
 
- DIM fonttype as fontTypeEnum = get_font_type(font())
+ DIM fonttype as fontTypeEnum = get_font_type(fnt())
 
  DIM linesize as integer = 14
  DIM pt as integer = -1 * linesize
@@ -158,17 +158,17 @@ SUB font_editor (font() as integer)
       readmouse.clearclick(mouseLeft)
      END IF
      IF state.pt = 2 THEN
-      fontedit_import_font font()
-      fonttype = get_font_type(font())
+      fontedit_import_font fnt()
+      fonttype = get_font_type(fnt())
       state.pt = 1
       mode = 0
      END IF
-     IF state.pt = 3 THEN fontedit_export_font font()
+     IF state.pt = 3 THEN fontedit_export_font fnt()
     END IF
     IF state.pt = 5 THEN
      IF intgrabber(fonttype, ftypeASCII, ftypeLatin1) THEN
-      set_font_type font(), fonttype
-      xbsave game + ".fnt", font(), 2048
+      set_font_type fnt(), fonttype
+      xbsave game + ".fnt", fnt(), 2048
      END IF
     END IF
    CASE 0 'Picking a character to edit
@@ -193,24 +193,24 @@ SUB font_editor (font() as integer)
     IF keyval(scLeft) > 1 THEN loopvar x, 0, 7, -1
     IF keyval(scRight) > 1 THEN loopvar x, 0, 7, 1
     IF keyval(scSpace) > 1 THEN
-     setbit font(), 0, (f(pt) * 8 + x) * 8 + y, (readbit(font(), 0, (f(pt) * 8 + x) * 8 + y) XOR 1)
-     setfont font()
-     xbsave game + ".fnt", font(), 2048
+     setbit fnt(), 0, (f(pt) * 8 + x) * 8 + y, (readbit(fnt(), 0, (f(pt) * 8 + x) * 8 + y) XOR 1)
+     setfont fnt()
+     xbsave game + ".fnt", fnt(), 2048
     END IF
   END SELECT
   IF mode >= 0 THEN 'Stuff that happens in both picking and editing mode
    '--copy and paste support
    IF copy_keychord() THEN
     FOR i = 0 TO 63
-     setbit copybuf(), 0, i, readbit(font(), 0, f(pt) * 64 + i)
+     setbit copybuf(), 0, i, readbit(fnt(), 0, f(pt) * 64 + i)
     NEXT i
    END IF
    IF paste_keychord() THEN
     FOR i = 0 TO 63
-     setbit font(), 0, f(pt) * 64 + i, readbit(copybuf(), 0, i)
+     setbit fnt(), 0, f(pt) * 64 + i, readbit(copybuf(), 0, i)
     NEXT i
-    setfont font()
-    xbsave game + ".fnt", font(), 2048
+    setfont fnt()
+    xbsave game + ".fnt", fnt(), 2048
    END IF
    '--clicking on the "Previous menu" label
    IF readmouse.release AND mouseLeft THEN
@@ -233,9 +233,9 @@ SUB font_editor (font() as integer)
      y = hover_draw.y
      DIM setpix as integer = 0
      IF readmouse.buttons AND mouseLeft THEN setpix = 1
-     setbit font(), 0, (f(pt) * 8 + x) * 8 + y, setpix
-     setfont font()
-     xbsave game + ".fnt", font(), 2048
+     setbit fnt(), 0, (f(pt) * 8 + x) * 8 + y, setpix
+     setfont fnt()
+     xbsave game + ".fnt", fnt(), 2048
     END IF
    END IF
   END IF
@@ -285,14 +285,14 @@ SUB font_editor (font() as integer)
     rectangle xoff, yoff, 160, 160, uilook(uiDisabledItem), dpage
     FOR i = 0 TO 7
      FOR j as integer = 0 TO 7
-      IF readbit(font(), 0, (f(pt) * 8 + i) * 8 + j) THEN
+      IF readbit(fnt(), 0, (f(pt) * 8 + i) * 8 + j) THEN
        c = uilook(uiMenuItem)
        rectangle xoff + i * 20, yoff + j * 20, 20, 20, c, dpage
       END IF
      NEXT j
     NEXT i
     IF mode = 1 THEN
-     IF readbit(font(), 0, (f(pt) * 8 + x) * 8 + y) THEN
+     IF readbit(fnt(), 0, (f(pt) * 8 + x) * 8 + y) THEN
       c = uilook(uiSelectedItem2)
      ELSE
       c = uilook(uiSelectedDisabled)
@@ -354,19 +354,19 @@ FUNCTION edit_font_picker_point(byval pixelpos as XYPair) as integer
  RETURN charpos.y * cols + charpos.x
 END FUNCTION
 
-SUB fontedit_export_font(font() as integer)
+SUB fontedit_export_font(fnt() as integer)
 
  DIM newfont as string = "newfont"
  newfont = inputfilename("Input a filename to save to", ".ohf", "", "input_file_export_font") 
 
  IF newfont <> "" THEN
-  xbsave game & ".fnt", font(), 2048
+  xbsave game & ".fnt", fnt(), 2048
   copyfile game & ".fnt", newfont & ".ohf"
  END IF
 
 END SUB
 
-SUB fontedit_import_font(font() as integer)
+SUB fontedit_import_font(fnt() as integer)
 
  STATIC default as string
  DIM newfont as string
@@ -378,20 +378,20 @@ SUB fontedit_import_font(font() as integer)
   DIM i as integer
   DIM font_tmp(1023) as integer
 
-  '--character 0 (actually font(0)) contains metadata (marks as ASCII or Latin-1)
+  '--character 0 (actually fnt(0)) contains metadata (marks as ASCII or Latin-1)
   '--character 1 to 31 are internal icons and should never be overwritten
   FOR i = 1 * 4 TO 32 * 4 - 1
-   font_tmp(i) = font(i)
+   font_tmp(i) = fnt(i)
   NEXT i
 
   '--Reload the font
-  xbload game + ".fnt", font(), "Can't load font"
-  setfont font()
+  xbload game + ".fnt", fnt(), "Can't load font"
+  setfont fnt()
 
   '--write back the old 1-31 characters
   FOR i = 1 * 4 TO 32 * 4 - 1
-   font(i) = font_tmp(i)
+   fnt(i) = font_tmp(i)
   NEXT i
-  
+
  END IF
 END SUB
