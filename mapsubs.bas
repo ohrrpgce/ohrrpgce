@@ -4533,7 +4533,6 @@ SUB link_one_door(st as MapEditState, linknum as integer)
   END IF
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "door_link_editor"
-  usemenu state
   IF state.pt >= 0 THEN
    SELECT CASE state.pt
     CASE 0
@@ -4555,17 +4554,21 @@ SUB link_one_door(st as MapEditState, linknum as integer)
   ELSE
    IF enter_space_click(state) THEN EXIT DO
   END IF
+  'Hide the other menu options if the doorlink is unused
+  state.last = IIF(doorlink.source < 0, 0, 4)
+  usemenu state
+
   '--Draw screen
   copypage 2, dpage
   rectangle 0, rCenter, rWidth, 2, uilook(uiSelectedDisabled + state.tog), dpage
-  FOR i as integer = -1 TO 4
+  FOR i as integer = -1 TO state.last
    menu_temp = ""
    SELECT CASE i
     CASE 0
      IF doorlink.source >= 0 THEN
       menu_temp = STR(doorlink.source)
      ELSE
-      menu_temp = "Unused"
+      menu_temp = "N/A (Unused door link)"
      END IF
     CASE 1
      menu_temp = STR(doorlink.dest)
