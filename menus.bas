@@ -1849,10 +1849,14 @@ SUB ModularMenu.draw()
   END IF
  END IF
  IF floating THEN
-  'FIXME: state.rect isn't calculated until standardmenu is called
-  'TODO: In fact, this is a pretty ugly way to draw a floating menu. And state.rect
-  'takes a tick to update.
+  'state.rect wouldn't be calculated until standardmenu is called, so need
+  'to pre-calculate to prevent flicker....
+  'TODO: In fact, this is a pretty ugly way to draw a floating menu.
   'So this should probably be replaced with MenuDef draw_menu
+  DIM basicmenu as BasicMenuItem vector
+  standard_to_basic_menu menu(), state, basicmenu
+  calc_menustate_size state, menuopts, where.x, where.y, vpage, basicmenu
+  v_free basicmenu
   edgeboxstyle pCentered, pCentered, state.rect.wide + 10, state.rect.high + 10, 1, vpage
   where = XY(pCentered, pCentered)
  END IF
