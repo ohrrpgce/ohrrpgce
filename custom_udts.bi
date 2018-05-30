@@ -232,6 +232,13 @@ ENUM WallStylesEnum
   wallStyleLAST = 2
 END ENUM
 
+ENUM ScreenOutlineMode
+  outlineHidden
+  outlineFixed
+  outlineFollowsCursor
+  outlineLAST = 2
+END ENUM
+
 'MapIDs used for undo steps
 'FIXME:a bit of a mess, clean up later
 ENUM MapID
@@ -327,6 +334,8 @@ TYPE MapEditState
   lockedzonelist(any) as integer
  
   tiny as bool               'whether or not to show the tiny screen relative to map area
+  screen_outline as ScreenOutlineMode 'Setting for showing an outline of how large the in-game screen is
+  screen_outline_focus as XYPair      'Center of the screen outline, in map-coord pixels
   wallmap_mask as integer    'used by wallbitsbrush
 
   message as string          'Message shown at the top of the screen

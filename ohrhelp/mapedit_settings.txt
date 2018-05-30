@@ -1,4 +1,4 @@
-This is the Settings menu for the map editor. These settings are saved and remembered for editing any game.
+This is the Settings menu for the map editor. These settings are saved and remembered for editing any game (with one exception, see below).
 
 Press ESC or F8 to leave or F2 thru F7 to switch to a different editing mode.
 
@@ -11,3 +11,5 @@ Current tile is per-tileset: If false, in tilemap mode, each layer has its own c
 Cursor follows mouse: True keyboard aficionados may want to turn this off. When off, you can still RIGHT CLICK to move the cursor (as well as LEFT CLICK). 
 
 Mouse pan speed: How much to exaggerate (multiply) mouse movements when right-click dragging.
+
+Show in-game screen size: Indicates where the edge of the screen will be, when the hero stands on the selected tile. This option is not saved.

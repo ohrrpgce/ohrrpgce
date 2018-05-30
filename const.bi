@@ -171,8 +171,8 @@ CONST genAutosortScheme = 190   'Method used to autosort inventory
 CONST genMaxLevel = 191         'Maximum level (not to be confused with changeable genLevelCap)
 CONST genBattleMode = 192       'Battle mode 0=Active-time, 1=Turn-based
 CONST genItemStackSize = 193    'Default item stack size
-CONST genResolutionX = 194      'Screen resolution (unzoomed). 0 for default
-CONST genResolutionY = 195      ' "
+CONST genResolutionX = 194      'Screen resolution (unzoomed). (Upgrade code changes 0 to default 320)
+CONST genResolutionY = 195      ' " (default 200)
 CONST genEscMenuScript = 196     'id of plotscript called instead of the default menu
 CONST genSaveSlotCount = 197    'The number of available save slots, 1 to maxSaveSlotCount. If 0, the default of 4 will be used
 CONST genMillisecPerFrame = 198 'Milliseconds per frame; upgrade() ensures not 0.

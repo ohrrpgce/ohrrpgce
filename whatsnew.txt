@@ -39,6 +39,9 @@ June (mumble) 2018 [Fufluns]
     * You can now pick the color used to display damage, healing, absorb
       poison and regen in battle. You can also override the color
       in the attack editor. [James]
+    * Option to show outline of the in-game screen size in the map editor so
+      you can check what will be visible. Press Ctrl-O once/twice or toggle in
+      the Map Editor Settings menu. [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

@@ -79,6 +79,8 @@ CTRL+Y redoes an undone change.
 
 TAB toggles a blue rectangle that shows roughly what portion of the map you are currently looking at.
 
+CTRL+O shows an outline indicating where the edges of screen will be in-game, when the hero is standing on the current tile. Use this to check what wil be visible. Press CTRL+O to make the outline follow the cursor. (This option is also in the F8 menu.)
+
 CTRL+H moves the hero's starting location to this location on this map. Remember that only one map in your game needs a hero starting location.
 
 Press 1 or 2 to make the tile under the cursor animate using animation pattern 0 or 1.

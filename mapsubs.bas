@@ -52,6 +52,7 @@ DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as XYPair) a
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as RectType) as RectType
 DECLARE FUNCTION screen_to_map(st as MapEditState, pos as XYPair) as XYPair
 DECLARE FUNCTION mapedit_mouse_over_what(st as MapEditState) as MapMouseAttention
+DECLARE FUNCTION camera_position_centered_on(viewport_center as XYPair, viewport_size as XYPair, map as MapData) as XYPair
 
 DECLARE SUB mapedit_draw_cursor(st as MapEditState)
 DECLARE FUNCTION mapedit_tool_rect(st as MapEditState) as RectType
@@ -1910,6 +1911,40 @@ DO
     drawmap st.zoneoverlaymap, st.mapx, st.mapy, st.overlaytileset, dpage, YES, , , 20
    END IF
   END IF
+ END IF
+
+ '--Ctrl-O to change show-screen-outline mode
+ DIM cursorcenter as XYPair = tilesize * st.pos + tilesize \ 2
+ IF keyval(scCtrl) > 0 ANDALSO keyval(scO) > 1 THEN
+  loopvar st.screen_outline, 0, outlineLAST
+  IF st.screen_outline = outlineFixed THEN
+   'Note that the camera position is not affected by foot offset
+   st.screen_outline_focus = cursorcenter
+   st.message = "(Press Ctrl-O again to follow cursor)"
+  ELSEIF st.screen_outline = outlineFollowsCursor THEN
+   st.message = "(Press Ctrl-O again to hide)"
+  ELSE
+   st.message = ""
+  END IF
+  st.message_ticks = 15
+ END IF
+
+ 'Draw the in-game screen outline preview
+ IF st.screen_outline <> outlineHidden THEN
+  IF st.screen_outline = outlineFollowsCursor THEN
+   st.screen_outline_focus = cursorcenter
+  END IF
+
+  'Position of the outline rect
+  DIM outline as RectType
+  outline.size = XY(gen(genResolutionX), gen(genResolutionY))
+  outline.topleft = map_to_screen(st, camera_position_centered_on(st.screen_outline_focus, outline.size, st.map))
+
+  'Draw
+  'Increase size by two so that the rectangle is around the outside of the screen,
+  'rather than cutting off a pixel on each side.
+  drawbox outline.x - 1, outline.y - 1, outline.wide + 2, outline.high + 2, findrgb(255,255,255), 1, dpage
+  antifuzzyrect vpages(dpage), outline, findrgb(100,100,100), 40
  END IF
 
  'Draw the cursor, including box, mark, and clone outlines, or NPC cursor
@@ -5712,6 +5747,35 @@ SUB mapedit_window_size_updates(st as MapEditState)
  ' maprect.high = small(st.map.high * 20 - st.mapy, st.viewport.high)
 END SUB
 
+'Return the camera position (topleft corner in map pixel coords) of a viewport onto the map
+'given a position (in map pixel coords) to center the camera on.
+'The camera is clamped to map edges in the same way as done in-game.
+FUNCTION camera_position_centered_on(viewport_center as XYPair, viewport_size as XYPair, map as MapData) as XYPair
+ DIM center as XYPair = viewport_center
+
+ SELECT CASE map.gmap(5)
+  CASE mapEdgeWrap
+   'Easy: no clipping required
+  CASE mapEdgeCrop, mapEdgeDefaultTile
+   DIM mapsize as XYPair = XY(map.wide, map.high) * tilesize
+   'If the map is smaller than the screen in either dimension, then the camera
+   'does not move in that dimension, remaining centered
+   IF viewport_size.w > mapsize.w THEN
+    center.x = mapsize.w \ 2
+   ELSEIF map.gmap(5) = mapEdgeCrop THEN
+    'Clamp the rect to the map
+    center.x = bound(center.x, viewport_size.w \ 2, mapsize.w - viewport_size.w \ 2)
+   END IF
+   IF viewport_size.h > mapsize.h THEN
+    center.y = mapsize.h \ 2
+   ELSEIF map.gmap(5) = mapEdgeCrop THEN
+    center.y = bound(center.y, viewport_size.h \ 2, mapsize.h - viewport_size.h \ 2)
+   END IF
+ END SELECT
+
+ RETURN center - viewport_size \ 2
+END FUNCTION
+
 
 '==========================================================================================
 '                                        NPC Editor
@@ -6171,7 +6235,7 @@ TYPE MapSettingsMenu EXTENDS ModularMenu
 END TYPE
 
 SUB MapSettingsMenu.update ()
- REDIM menu(12)
+ REDIM menu(13)
  state.last = UBOUND(menu)
 
  menu(0) = "[Close]"
@@ -6193,6 +6257,8 @@ SUB MapSettingsMenu.update ()
  ELSE
   menu(12) &= "N/A"
  END IF
+ menu(13) = "Show in-game screen size (Ctrl-O): " & _
+     IIF(st->screen_outline = outlineFollowsCursor, "Follow cursor", yesorno(st->screen_outline))
 END SUB
 
 FUNCTION MapSettingsMenu.each_tick () as bool
@@ -6237,6 +6303,8 @@ FUNCTION MapSettingsMenu.each_tick () as bool
     st->grid_color = color_browser_256(st->grid_color)
     changed = YES
    END IF
+  CASE 13
+   changed = intgrabber(st->screen_outline, 0, outlineLAST)
 
  END SELECT
  state.need_update OR= changed
@@ -6265,6 +6333,7 @@ SUB mapedit_settings_menu (st as MapEditState)
  write_config "mapedit.shadows_when_skewing", st.shadows_when_skewing
  write_config "mapedit.show_grid", yesorno(st.show_grid)
  write_config "mapedit.grid_color", IIF(st.grid_color, rgb_to_string(master(st.grid_color)), "0")
+ 'st.screen_outline is not saved
 END SUB
 
 SUB mapedit_load_settings (st as MapEditState)
@@ -6283,4 +6352,5 @@ SUB mapedit_load_settings (st as MapEditState)
  st.shadows_when_skewing = read_config_bool("mapedit.shadows_when_skewing", YES)
  st.show_grid = read_config_bool("mapedit.show_grid", NO)
  st.grid_color = string_to_color(read_config_str("mapedit.grid_color", "rgb(0,190,190)"), 0)
+ 'st.screen_outline is not loaded
 END SUB
