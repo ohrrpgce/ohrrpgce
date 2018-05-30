@@ -1671,6 +1671,7 @@ SUB script_functions(byval cmdid as integer)
    IF save_slot_used(retvals(0) - 1) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 172'--import globals
+  'If the save slot isn't used, this zeroes out the globals, and shows no error
   IF valid_save_slot(retvals(0)) THEN
    IF retvals(1) = -1 THEN 'importglobals(slot)
     retvals(1) = 0

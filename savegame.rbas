@@ -138,7 +138,13 @@ SUB loadgame (byval slot as integer, prefix as string="")
  IF LEN(errmsg) THEN fatalerror "Couldn't load save slot " & prefix & slot & ": " & errmsg
 END SUB
 
+'Load a range of global variables from a save slot
+'Reads zeroes, without an error, on empty save slots
 SUB loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
+ FOR i as integer = first TO last
+  global(i) = 0
+ NEXT i
+
  'see also saveslot_global() if you just need a very simple function to read a single global from a save slot
  IF keyval(scShift) = 0 THEN
   'bypass new loading if shift is held down when you load
@@ -467,6 +473,10 @@ FUNCTION script_trigger_from_reload(byval node as NodePtr) as integer
 END FUNCTION
 
 SUB gamestate_globals_from_reload(byval parent as Reload.NodePtr, byval first as integer, byval last as integer)
+ FOR i as integer = first TO last
+  global(i) = 0
+ NEXT i
+
  READNODE parent."globals".warn as node
   WITHNODE node."global" as n
    DIM i as integer
@@ -1323,30 +1333,22 @@ SUB saveglobalvars (byval slot as integer, byval first as integer, byval last as
  current_save_slot = -1
 END SUB
 
+'Load a range of global variables from a save slot
+'Does nothing, without an error, on empty save slots
 SUB new_loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
- current_save_slot = slot
- 
  DIM filename as string
  filename = savedir & SLASH & slot & ".rsav"
-
- IF NOT isfile(filename) THEN
-  debug "Save file missing: " & filename
-  current_save_slot = -1
-  EXIT SUB
- END IF
+ IF NOT isfile(filename) THEN EXIT SUB
 
  DIM doc as DocPtr
  doc = LoadDocument(filename)
- 
+
  DIM root as NodePtr
  root = DocumentRoot(doc)
 
- 'Can't check the RSAV version (root."ver"), because globals-only saves don't store the version number!
+ current_save_slot = slot
 
- '--wipe out the range of globals first
- FOR i as integer = first TO last
-  global(i) = 0
- NEXT i
+ 'Can't check the RSAV version (root."ver"), because globals-only saves don't store the version number!
 
  '--load the globals in the range
  gamestate_globals_from_reload root."script".ptr, first, last
@@ -1802,8 +1804,13 @@ NEXT i
 'See http://rpg.hamsterrepublic.com/ohrrpgce/SAV for docs
 END FUNCTION
 
+'Load a range of global variables from a save slot
+'Does nothing, without an error, on empty save slots
 SUB old_loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
 DIM i as integer
+'SAV only stores 4096 globals
+last = small(last, 4095)
+
 DIM buf((last - first + 1) * 2) as integer = ANY
 IF isfile(old_savefile) THEN
  'debuginfo "loadglobalvars from slot " & slot & " of boring old " & old_savefile
@@ -1837,10 +1844,6 @@ IF isfile(old_savefile) THEN
  END IF
 
  CLOSE #fh
-ELSE
- FOR i = first TO last
-  global(i) = 0
- NEXT
 END IF
 END SUB
 

@@ -9350,7 +9350,7 @@ end</example>
 			<canon>delete save (slot)</canon>
 			<shortname>delete save</shortname>
 			<description>
-				Deletes a saved game in the specified save slot (1 to 1000,
+				Deletes a saved game in the specified save <p>slot</p> (1 to 1000,
 				regardless of how many are displayed on the Load and Save menus).
 				The save will no longer be visible on the load game menu or loadable with <ref>loadfromslot</ref>.
 				However, <ref>importglobals</ref> can still be used to read globals out of the slot.
@@ -9381,8 +9381,8 @@ end</example>
 			<shortname>save slot used</shortname>
 			<description>
 				Returns whether a game has been saved in the save slot.
-				Use if you, for example, don't want to overwrite a saved game with <ref>saveinslot</ref>.
-				This returns false if the slot has never been saved to normally,
+				For example, you can use this if you don't want to overwrite a saved game with <ref>saveinslot</ref>.
+				This returns <tt>false</tt> if the slot has never been saved to normally,
 				but has been written to using <ref>exportglobals</ref>
 				(which will create a nearly-empty .rsav file containing just globals,
 				if it doesn't already exist).
@@ -9401,21 +9401,20 @@ end</example>
 				<p>slot</p> is the save slot number, from 1 to 1000.
 				Note that only slots 1-4 appear by default on the save/load menus.
 				<p>first</p> and <p>last</p> are the id numbers of the globals at
-				the beginning and end of the range.
+				the beginning and end of the range (inclusive).
 				If you leave out both of <p>first</p> and <p>last</p> all global variables will be imported.
 				<lb/>
 				To read a single global from a save slot without modifying any of your globals,
-				use the form 'var := import globals (slot, id)'
+				use the form <tt>var := import globals (slot, id)</tt>
 				<lb/>
-				This is NOT the same thing as 'import globals (slot, id, id)',
+				This is NOT the same thing as <tt>import globals (slot, id, id)</tt>,
 				which does modify the global variable.
 				<lb/>
 				import globals and <ref>exportglobals</ref> can be used to save and
 				retrieve info about a saved game without loading it,
 				and also to store variables that any game the player starts can use,
-				like in the following example:
-			</description>
-			<example>global variable (100, game completed)
+				such as high scores and other "global" data, like in the following example:
+				<example>global variable (100, game completed)
 global variable (101, hours to complete)
 global variable (102, minutes to complete)
 
@@ -9435,6 +9434,14 @@ plotscript, check game finished, begin
   )
   wait for textbox
 end</example>
+				<note>
+					You can import globals from an empty save slot; it's not an error to do so.
+					This reads the value of all of the globals as zero.
+					You can also export/import globals to/from an empty save slot
+					that doesn't have a full saved game in it; see <ref>exportglobals</ref>.
+				</note>
+			</description>
+
 			<seealso>
 				<ref>exportglobals</ref>
 				<ref>readglobal</ref>

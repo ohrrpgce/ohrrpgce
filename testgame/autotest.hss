@@ -5213,9 +5213,8 @@ script, save slot tests, begin
   assert(import globals(2, @export global 1, @export global 1) == 0)
   assert(export global 1 == -123456789)
 
-  # loading from nonexistent save... it's not actually specified
-  # what's meant to happen, but this is reasonable
-  import globals(3, @export global 1, @export global 2)
+  # loading from nonexistent save... must zero out the globals without throwing an error
+  import globals(28, @export global 1, @export global 2)
   assert(export global 1 == 0)
   assert(export global 2 == 0)
 
