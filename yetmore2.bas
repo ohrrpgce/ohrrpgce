@@ -1529,8 +1529,8 @@ FUNCTION try_reload_gfx_lump(lumpname as string, extn as string) as integer
   sprite_update_cache sprtype
   RETURN YES
  ELSEIF LEFT(extn, 2) = "pt" THEN
-  DIM ptno as integer = str2int(MID(extn, 3), -1)
-  IF ptno >= 0 THEN
+  DIM ptno as integer
+  IF parse_int(MID(extn, 3), @ptno) THEN
    sprite_update_cache ptno
    RETURN YES
   END IF

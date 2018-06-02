@@ -141,8 +141,7 @@ Function NodeByPath(byval node as NodePtr, path as string, byval create as bool=
 		end if
 		
 		dim index_str as string = mid(segment, sep_pos + 1, len(segment) - sep_pos - 1)
-		index = str2int(index_str)
-		if str(index) <> index_str then
+		if parse_int(index_str, @index) = NO then
 			debug "malformed path index " & segment
 			return null
 		end if

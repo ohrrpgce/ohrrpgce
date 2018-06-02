@@ -822,9 +822,9 @@ FUNCTION str2bool(q as string, default as integer = NO) as bool
  IF LEN(v) = 0 THEN RETURN default
  IF v = "yes" ORELSE v = "true" ORELSE v = "on" THEN RETURN YES
  IF v = "no" ORELSE v = "false" ORELSE v = "off" THEN RETURN NO
- DIM ret as integer = str2int(v, -1975368965)
- IF ret = -1975368965 THEN RETURN default
- RETURN ret <> 0
+ DIM value as integer
+ IF parse_int(v, @value) THEN RETURN value <> 0
+ RETURN default
 END FUNCTION
 
 'Ancient password encryption/decryption function
