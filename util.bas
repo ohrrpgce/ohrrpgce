@@ -720,38 +720,77 @@ FUNCTION length_matching(s1 as string, s2 as string) as integer
  RETURN ret
 END FUNCTION
 
-FUNCTION is_int (s as string) as integer
- 'Even stricter than str2int (doesn't accept "00")
- DIM n as integer = VALINT(s)
- RETURN (n <> 0 ANDALSO n <> VALINT(s + "1")) ORELSE s = "0"
-END FUNCTION
+'Try to parse a string into an int, returning true on success and optionally
+'putting the results in *ret (*ret is unmodified on failure).
+'This is stricter than VALINT: the string must be composed only of digits and
+'possible leading - and leading space.  If strict=YES, then leading spaces and
+'leading zeroes (but not -0) are rejected.
+FUNCTION parse_int (stri as string, ret as integer ptr=NULL, strict as bool=NO) as bool
+ DIM s as string
+ IF strict THEN s = stri ELSE s = LTRIM(stri)
+ IF LEN(s) = 0 THEN RETURN NO
 
-FUNCTION str2int (stri as string, default as integer=0) as integer
- 'Use this in contrast to QuickBasic's VALINT.
- 'it is stricter, and returns a default on failure
- DIM n as integer = 0
- DIM s as string = LTRIM(stri)
- IF s = "" THEN RETURN default
  DIM sign as integer = 1
+ IF s[0] = ASC("-") THEN
+  sign = -1
+  s = MID(s, 2)
+  IF LEN(s) = 0 THEN RETURN NO
+ END IF
 
- DIM ch as string
+ 'Reject leading zeroes
+ IF strict ANDALSO LEN(s) > 1 ANDALSO s[0] = ASC("0") THEN RETURN NO
+
+ DIM n as integer = 0
  DIM c as integer
- FOR i as integer = 1 TO LEN(s)
-  ch = MID(s, i, 1)
-  IF ch = "-" AND i = 1 THEN
-   sign = -1
-   CONTINUE FOR
-  END IF
-  c = ASC(ch) - 48
+ FOR idx as integer = 0 TO LEN(s) - 1
+  c = s[idx] - 48
   IF c >= 0 AND c <= 9 THEN
    n = n * 10 + (c * sign)
   ELSE
-   RETURN default
+   RETURN NO
   END IF
- NEXT i
+ NEXT idx
 
- RETURN n
+ IF ret THEN *ret = n
+ RETURN YES
 END FUNCTION
+
+'Use this in contrast to FB's VALINT.
+'It is stricter, and returns a default on failure: the string
+'must be composed only of digits and possible leading - and leading space.
+'If strict=YES, then leading spaces and leading zeroes (but not -0) are rejected.
+FUNCTION str2int (stri as string, default as integer=0, strict as bool=NO) as integer
+ DIM ret as integer
+ IF parse_int(stri, @ret, strict) THEN RETURN ret
+ RETURN default
+END FUNCTION
+
+#IFDEF __FB_MAIN__
+startTest(parse_int)
+ DIM n as integer
+ IF parse_int("") THEN fail
+ IF parse_int("-") THEN fail
+ IF parse_int("2 ", @n) THEN fail
+ IF parse_int(" - 2", @n) THEN fail
+ IF parse_int("1 2", @n) THEN fail
+ IF parse_int("1") = NO THEN fail
+ IF parse_int("00", @n) = NO ORELSE n <> 0 THEN fail
+ IF parse_int("-001234", @n) = NO ORELSE n <> -1234 THEN fail
+ IF parse_int("2147483647", @n) = NO ORELSE n <> 2147483647 THEN fail
+ IF parse_int("-2147483648", @n) = NO ORELSE n <> -2147483648 THEN fail
+ IF parse_int("0", @n) = NO ORELSE n <> 0 THEN fail
+ IF parse_int("-0", @n) = NO ORELSE n <> 0 THEN fail
+ IF parse_int(" -2", @n) = NO ORELSE n <> -2 THEN fail
+
+ 'Test strictness
+ IF parse_int("00", , YES) THEN fail
+ IF parse_int("-001234", , YES) THEN fail
+ IF parse_int(" 2", , YES) THEN fail
+ IF parse_int(" -2", , YES) THEN fail
+ IF parse_int("0", @n, YES) = NO ORELSE n <> 0 THEN fail
+ IF parse_int("-0", @n, YES) = NO ORELSE n <> 0 THEN fail
+endTest
+#ENDIF
 
 'Lenient, accepts any number or the strings yes, no, true, false, on, off.
 'Otherwise returns default.
@@ -765,6 +804,7 @@ FUNCTION str2bool(q as string, default as integer = NO) as bool
  RETURN ret <> 0
 END FUNCTION
 
+'Ancient password encryption/decryption function
 FUNCTION rotascii (s as string, o as integer) as string
  DIM as string temp = ""
  FOR i as integer = 1 TO LEN(s)

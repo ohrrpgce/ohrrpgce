@@ -1142,8 +1142,7 @@ END SUB
 
 FUNCTION game_setoption(opt as string, arg as string) as integer
  IF opt = "errlvl" THEN
-  IF is_int(arg) THEN
-   err_suppress_lvl = str2int(arg, serrWarn)
+  IF parse_int(arg, @err_suppress_lvl) THEN
    RETURN 2
   ELSE
    RETURN 1
@@ -1161,8 +1160,7 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
   always_enable_debug_keys = YES
   RETURN 1 'arg not used
  ELSEIF opt = "autosnap" then
-  IF is_int(arg) THEN
-   autosnap = str2int(arg)
+  IF parse_int(arg, @autosnap) THEN
    debug "Autosnap mode enabled every " & autosnap & " ticks"
    RETURN 2
   ELSE

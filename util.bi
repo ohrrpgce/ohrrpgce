@@ -625,7 +625,8 @@ declare function instr_nth overload (byval start as integer, s as string, substr
 declare function instr_nth overload (s as string, substring as string, byval nth as integer) as integer
 declare function length_matching (s1 as string, s2 as string) as integer
 declare function is_int(s as string) as integer
-declare function str2int (stri as string, default as integer=0) as integer
+declare function parse_int (stri as string, ret as integer ptr=NULL, strict as bool=NO) as bool
+declare function str2int (stri as string, default as integer=0, strict as bool=NO) as integer
 declare function str2bool(q as string, default as integer = NO) as bool
 declare function rotascii (s as string, o as integer) as string
 declare function titlecase(word as string) as string

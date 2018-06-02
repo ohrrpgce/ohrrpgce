@@ -276,9 +276,9 @@ function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as
 		end if
 		ret = 1
 	end if
-	'all these take numeric arguments, so gobble the arg if it is
+	'all these take an optional numeric argument, so gobble the arg if it is
 	'a number, whether or not it was valid
-	if ret = 1 and is_int(*arg) then ret = 2
+	if ret = 1 and parse_int(*arg) then ret = 2
 
 	if screen_mode_changed then
 		gfx_fb_update_screen_mode

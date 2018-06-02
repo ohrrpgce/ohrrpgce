@@ -743,8 +743,9 @@ FUNCTION gfx_sdl2_setoption(byval opt as zstring ptr, byval arg as zstring ptr) 
     debugging_io = YES
     ret = 1
   END IF
-  'globble numerical args even if invalid
-  IF ret = 1 AND is_int(*arg) THEN ret = 2
+  'all these take an optional numeric argument, so gobble the arg if it is
+  'a number, whether or not it was valid
+  IF ret = 1 AND parse_int(*arg) THEN ret = 2
   RETURN ret
 END FUNCTION
 
