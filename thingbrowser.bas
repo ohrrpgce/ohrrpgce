@@ -181,7 +181,11 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     end select
    end if
   end if
-  if enter_or_space() orelse ((readmouse.release AND mouseLeft) andalso hover=ps.cur andalso confirm_plank_click(hover)) then
+
+  'Activating menu items.
+  'The hover=ps.cur test here is to ensure that clicking and dragging off the selection does not activate it.
+  if ps.cur andalso enter_or_space() orelse _
+     ((readmouse.release AND mouseLeft) andalso hover = ps.cur andalso confirm_plank_click(hover)) then
    if IsAncestor(ps.cur, thinglist) then
     if can_edit = NO orelse edit_by_default = NO then
      'Selected a thing
@@ -205,14 +209,14 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   end if
 
   if can_edit andalso (keyval(scCtrl) > 0 andalso keyval(scE) > 1) then
-   if IsAncestor(ps.cur, thinglist) then
+   if ps.cur andalso IsAncestor(ps.cur, thinglist) then
     'Editing a thing
     edit_record = ps.cur->Extra(0)
     do_edit = YES
    end if
   end if
   
-  if can_edit andalso (keyval(scCtrl) >0 andalso keyval(scN) > 1) then
+  if can_edit andalso (keyval(scCtrl) > 0 andalso keyval(scN) > 1) then
    do_add = YES
   end if
 
@@ -273,8 +277,8 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   if cursor_moved then
    'Yep, a move happened. We would update selection detail display here if that was a thing
    update_plank_scrolling ps
-   dim id as integer = ps.cur->Extra(0)
-   if not IsAncestor(ps.cur, thinglist) then id = -1
+   dim id as integer = -1
+   if ps.cur andalso IsAncestor(ps.cur, thinglist) then id = ps.cur->Extra(0)
    on_cursor_moved id, ps.cur
   end if
   cursor_moved = NO
