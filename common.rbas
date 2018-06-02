@@ -6512,22 +6512,11 @@ FUNCTION add_hero_battle_menu_item(byval parent as NodePtr, kind as string, byva
 END FUNCTION
 
 FUNCTION should_hide_hero_stat(hero as HeroDef, byval statnum as integer) as bool
- DIM hero_node as NodePtr
- hero_node = hero.reld
- READNODE hero_node."stat_options" as opt
-  WITHNODE opt."stat" as stat
-   DIM n as integer
-   n = GetInteger(stat)
-   IF n = statnum THEN
-    IF stat."hide".exists THEN RETURN YES
-   END IF
-  END WITHNODE
- END READNODE
- RETURN NO
+ RETURN NodeByPath(hero.reld, "/stat_options/stat[" & statnum & "]/hide") <> NULL
 END FUNCTION
 
 FUNCTION should_hide_hero_stat(byval hero_id as integer, byval statnum as integer) as bool
- DIM her as HeroDef 
+ DIM her as HeroDef
  loadherodata her, hero_id
  RETURN should_hide_hero_stat(her, statnum)
 END FUNCTION
@@ -6628,20 +6617,9 @@ FUNCTION arrowset_for_multiplayer_gamepad(byval player as integer) as ArrowSet
  DIM gen_root as NodePtr
  gen_root = get_general_reld()
  IF player = 0 THEN
-  IF gen_root."gamepad".exists THEN gamepad_node = gen_root."gamepad".ptr
+  gamepad_node = gen_root."gamepad".ptr
  ELSEIF player >= 1 ANDALSO player <= 3 THEN
-  DIM multi as NodePtr
-  multi = GetChildByName(gen_root, "multiplayer_gamepads")
-  IF multi THEN
-   DIM ch as NodePtr = FirstChild(multi, "player")
-   DO WHILE ch
-    DIM pnum as integer = GetInteger(ch)
-    IF pnum = player THEN
-     gamepad_node = ch
-    END IF
-    ch = NextSibling(multi, "player")
-   LOOP
-  END IF
+  gamepad_node = NodeByPath(gen_root, "/multiplayer_gamepads/player[" & player & "]")
  END IF
  IF gamepad_node <> 0 THEN
   RETURN arrowset_from_reload(gamepad_node)
@@ -6655,24 +6633,19 @@ FUNCTION arrowset_from_reload(gamepad as NodePtr) as ArrowSet
 
  DIM defarr as ArrowSet = default_arrowset()
  DIM arr as ArrowSet
- arr.U = defarr.U
- arr.R = defarr.R
- arr.D = defarr.D
- arr.L = defarr.L
+ arr.U = gamepad."UP".default(defarr.U)
+ arr.R = gamepad."RIGHT".default(defarr.R)
+ arr.D = gamepad."DOWN".default(defarr.D)
+ arr.L = gamepad."LEFT".default(defarr.L)
 
- IF gamepad."UP".exists    THEN arr.U = gamepad."UP".integer
- IF gamepad."RIGHT".exists THEN arr.R = gamepad."RIGHT".integer
- IF gamepad."DOWN".exists  THEN arr.D = gamepad."DOWN".integer
- IF gamepad."LEFT".exists  THEN arr.L = gamepad."LEFT".integer
-
- arr.confirm = gamepad."A".integer
+ arr.confirm = gamepad."A"
  IF arr.confirm = 0 THEN
   debug "WARNING: gamepad node has no confirm, using default"
   arr.confirm = defarr.confirm
  END IF
 
- arr.cancel = gamepad."B".integer
- arr.cancel2 = gamepad."X".integer
+ arr.cancel = gamepad."B"
+ arr.cancel2 = gamepad."X"
  IF arr.cancel = 0 ANDALSO arr.cancel2 = 0 THEN
   debug "WARNING: gamepad node has no cancel, using default"
   arr.cancel = defarr.cancel
