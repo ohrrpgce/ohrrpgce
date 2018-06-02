@@ -154,7 +154,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    cursor_moved = ps.cur <> hover
    ps.cur = hover
   end if
-  if readmouse.buttons AND mouseRight then
+  if hover andalso (readmouse.buttons AND mouseRight) then
    'Holding down right click changes cursor selection
    cursor_moved = ps.cur <> hover
    ps.cur = hover
