@@ -724,32 +724,37 @@ END FUNCTION
 'putting the results in *ret (*ret is unmodified on failure).
 'This is stricter than VALINT: the string must be composed only of digits and
 'possible leading - and leading space.  If strict=YES, then leading spaces and
-'leading zeroes (but not -0) are rejected.
-FUNCTION parse_int (stri as string, ret as integer ptr=NULL, strict as bool=NO) as bool
- DIM s as string
- IF strict THEN s = stri ELSE s = LTRIM(stri)
- IF LEN(s) = 0 THEN RETURN NO
+'leading zeroes (but not -0) are also rejected.
+FUNCTION parse_int (stri as zstring ptr, ret as integer ptr=NULL, strict as bool=NO) as bool
+ IF stri = NULL THEN RETURN NO  'Empty string
+ DIM s as unsigned byte ptr = stri
+
+ IF strict = NO THEN
+  's = LTRIM(s)
+  WHILE isspace(s[0]): s += 1 : WEND
+ END IF
+ IF s[0] = 0 THEN RETURN NO  'length 0
 
  DIM sign as integer = 1
  IF s[0] = ASC("-") THEN
   sign = -1
-  s = MID(s, 2)
-  IF LEN(s) = 0 THEN RETURN NO
+  s += 1  's = MID(s, 2)
+  IF s[0] = 0 THEN RETURN NO  'length 0
  END IF
 
- 'Reject leading zeroes
- IF strict ANDALSO LEN(s) > 1 ANDALSO s[0] = ASC("0") THEN RETURN NO
+ 'Reject leading zeroes (check length is >= 2)
+ IF strict ANDALSO s[0] = ASC("0") ANDALSO s[1] THEN RETURN NO
 
  DIM n as integer = 0
- DIM c as integer
- FOR idx as integer = 0 TO LEN(s) - 1
-  c = s[idx] - 48
+ WHILE s[0]
+  DIM c as integer = s[0] - 48
+  s += 1
   IF c >= 0 AND c <= 9 THEN
    n = n * 10 + (c * sign)
   ELSE
    RETURN NO
   END IF
- NEXT idx
+ WEND
 
  IF ret THEN *ret = n
  RETURN YES
@@ -759,16 +764,33 @@ END FUNCTION
 'It is stricter, and returns a default on failure: the string
 'must be composed only of digits and possible leading - and leading space.
 'If strict=YES, then leading spaces and leading zeroes (but not -0) are rejected.
-FUNCTION str2int (stri as string, default as integer=0, strict as bool=NO) as integer
+FUNCTION str2int (stri as zstring ptr, default as integer=0, strict as bool=NO) as integer
  DIM ret as integer
  IF parse_int(stri, @ret, strict) THEN RETURN ret
  RETURN default
 END FUNCTION
 
+'Split a string composed of alphabetic text and an integer concatenated without
+'whitespace, like "H32" or "Font-1" into action ("Font") and arg (-1).
+'Returns false if isn't strictly formatted like that (eg whitespace anywhere, or eg "H00")
+FUNCTION split_str_int(z as zstring ptr, byref action as string, byref arg as integer) as bool
+ 'Written to avoid temporary strings, for speed
+ IF z = NULL THEN RETURN NO
+ DIM chidx as integer
+ FOR chidx = 0 TO LEN(z) - 1
+  IF isalpha(CAST(ubyte ptr, z)[chidx]) = 0 THEN EXIT FOR
+ NEXT
+ IF chidx = 0 THEN RETURN NO
+ action = LEFT(*z, chidx)
+ RETURN parse_int(z + chidx, @arg, YES)  'strict=YES
+END FUNCTION
+
 #IFDEF __FB_MAIN__
 startTest(parse_int)
  DIM n as integer
+ IF parse_int(NULL) THEN fail
  IF parse_int("") THEN fail
+ IF parse_int(" ") THEN fail
  IF parse_int("-") THEN fail
  IF parse_int("2 ", @n) THEN fail
  IF parse_int(" - 2", @n) THEN fail
@@ -784,6 +806,7 @@ startTest(parse_int)
 
  'Test strictness
  IF parse_int("00", , YES) THEN fail
+ IF parse_int("01", , YES) THEN fail
  IF parse_int("-001234", , YES) THEN fail
  IF parse_int(" 2", , YES) THEN fail
  IF parse_int(" -2", , YES) THEN fail

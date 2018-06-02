@@ -290,7 +290,7 @@ End Type
 
 Type PrintStrStatePtr as PrintStrState ptr
 
-DECLARE FUNCTION parse_tag(z as string, offset as integer, action as string ptr, arg as int32 ptr) as integer
+DECLARE FUNCTION parse_tag (z as string, offset as integer, byref action as string, arg as int32 ptr) as integer
 
 DECLARE SUB printstr (text as string, x as RelPos, y as RelPos, page as integer, withtags as bool = NO, fontnum as integer = fontPlain)
 DECLARE SUB edgeprint (text as string, x as RelPos, y as RelPos, col as integer, page as integer, withtags as bool = NO, withnewlines as bool = NO)

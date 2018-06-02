@@ -4167,32 +4167,18 @@ function get_font(fontnum as integer, show_err as bool = NO) as Font ptr
 	end if
 end function
 
-'Pass a string, a 0-based offset of the start of the tag (it is assumed the first two characters have already
-'been matched as ${ or \8{ as desired), and action and arg pointers, to fill with the parse results. (Action in UPPERCASE)
+'Parses a code like ${Foo123} into action (eg 'FOO') and arg (eg 123) and find closing }.
+'Pass a string, a 0-based offset of the start of the contents (eg. after "${"),
+'and action and arg pointer, to fill with the parse results. (Action in UPPERCASE)
 'Returns 0 for an invalidly formed tag, otherwise the (0-based) offset of the closing }.
-function parse_tag(z as string, offset as integer, action as string ptr, arg as int32 ptr) as integer
-	dim closebrace as integer = INSTR((offset + 4) + 1, z, "}") - 1
+function parse_tag(z as string, offset as integer, byref action as string, arg as int32 ptr) as integer
+	dim closebrace as integer = instr((offset + 2) + 1, z, "}") - 1
 	if closebrace <> -1 then
-		*action = ""
-		dim j as integer
-		for j = 2 to 5
-			if isalpha(z[offset + j]) then
-				*action += CHR(toupper(z[offset + j]))
-			else
-				exit for
-			end if
-		next
-
-		'dim strarg as string = MID(z, offset + j + 1, closebrace - (offset + j))
-		'*arg = str2int(strarg)
-
-		'The C standard lib seems a tad more practical than BASIC's (watch out though, scanf will stab you in the back if it sees a chance)
-		dim brace as byte
-		if isspace(z[offset + j]) orelse sscanf(@z[offset + j], "%d%c", arg, @brace) <> 2 orelse brace <> asc("}") then
-			*action = ""
-			return 0
-		end if
-		return closebrace
+		z[closebrace] = 0
+		dim ret as bool = split_str_int(@z[offset], action, *arg)
+		z[closebrace] = asc("}")
+		action = ucase(action)
+		if ret then return closebrace
 	end if
 	return 0
 end function
@@ -4395,7 +4381,7 @@ private function layout_line_fragment(z as string, endchar as integer, byval sta
 					dim action as string
 					dim intarg as int32
 
-					dim closebrace as integer = parse_tag(z, ch, @action, @intarg)
+					dim closebrace as integer = parse_tag(z, ch + 2, action, @intarg)
 					if closebrace then
 						'Add delayed characters first
 'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
