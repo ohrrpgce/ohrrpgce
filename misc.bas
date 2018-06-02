@@ -71,7 +71,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-full-upgrade       Upgrade game data completely, as Custom does (only useful for bughunting)" & LINE_END
 		help = help & "-autosnap N         Automatically save a screen snapshot every N ticks" & LINE_END
 		help = help & "-autotest           Run quickly and write screenshots on _checkpoints" & LINE_END
-		help = help & "-errlvl level       Override script error suppression level (" & serrBound & " default, " & serrSuspicious & " hide warnings, " & serrBadOp & " hide all but corruption/bugs)" & LINE_END
+		help = help & "-errlvl [level]     Override script error suppression level (" & serrBound & " default, " & serrSuspicious & " hide warnings, " & serrBadOp & " hide all but corruption/bugs)" & LINE_END
 		help = help & "-scriptlog          Script logging initially turned on (Ctrl+F10 to toggle)" LINE_END
                 'Hidden options:
                 'help = help & "-slave channel     IPC channel to use to receive messages from Custom" & LINE_END

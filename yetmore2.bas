@@ -1145,6 +1145,7 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
   IF parse_int(arg, @err_suppress_lvl) THEN
    RETURN 2
   ELSE
+   err_suppress_lvl = serrSuspicious  'Hide warnings and 'suspicious' warnings
    RETURN 1
   END IF
  ELSEIF opt = "autotest" THEN
