@@ -422,12 +422,25 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 		<command id="random">
 			<canon>random (lownumber, highnumber)</canon>
 			<shortname>random</shortname>
-			<description>Returns a random number in the range of the two numbers. The returned value will be greater than or equal to the first number, and less than or equal to the second number</description>
+			<description>Returns a random integer in the range of the two numbers. The returned value will be greater than or equal to the first number, and less than or equal to the second number</description>
 		</command>
 		<command id="seedrandom">
-			<canon>seed random (new seed)</canon>
+			<canon>seed random (seed)</canon>
 			<shortname>seedrandom</shortname>
-			<description>Reseeds the random number generator. If called with no argument, this will reseed the random number generator to a new random sequence. If you pass in a number (other than 0), the random number generator will be seeded with that number, allowing for repeatable random sequences.</description>
+			<description>
+				Reseeds the random number generator.
+				If you pass in a <p>seed</p> (number) other than 0, the random number generator will be seeded with that number,
+				allowing for repeatable random sequences - <ref>random</ref> will always return the same sequence
+				of random numbers afterwards. Each seed causes a completely different sequence.
+				<lb/>
+				If called with no argument (or <p>seed</p> = 0), this will reseed the random number generator to a new random sequence
+				(which is useful only if you've previously called <tt>seed random(...)</tt> to put it into
+				a predictable sequence.)
+				<note>
+					You don't need to call this command before using <ref>random</ref>.
+					In fact, this command is useful only if you <b>don't</b> want completely random numbers.
+				</note>
+			</description>
 			<seealso>
 				<ref>random</ref>
 			</seealso>
