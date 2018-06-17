@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-04-06)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-06-18)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -2320,7 +2320,7 @@
 		<a href="#about-secondsofplay">seconds of play</a><br>
 		
 	
-		<a href="#about-seedrandom">seed random (new seed)</a><br>
+		<a href="#about-seedrandom">seed random (seed)</a><br>
 		
 	
 		<a href="#about-selectedmenuitem">selected menu item(menu handle)</a><br>
@@ -3341,7 +3341,29 @@
 <a name="about-plotscript"></a>
 		<h4>plotscript, name, argumentnames (statements)</h4>
 <p>
-			The plotscript command contains a list of commands that can be triggered directly by an event in your game. Plotscript starts with the keyword plotscript, a comma, and then the name of the plotscript. If there are any arguments to the script, you list their names separated by commas after the name of the script with default values. Then comes the text of the script. It is enclosed in <a href="#about-begin" class="ref">begin</a> and <a href="#about-begin" class="ref">end</a> statements. Scripts that are defined as plotscripts can be called directly from events in your game, or by name within other scripts.
+			
+				The plotscript command contains a list of commands that can be triggered directly by an event in your game.
+				<br>
+				Plotscript starts with the keyword plotscript, a comma, and then the name of the plotscript.
+				If there are any arguments to the script, you list their names separated by commas after the name of
+				the script, optionally with default values declared like <span class="code">arg = defaultvalue</span>.
+				<br>
+				Then comes the text of the script.
+				It is enclosed in <a href="#about-begin" class="ref">begin</a> and <a href="#about-begin" class="ref">end</a> statements.
+				Scripts that are defined as plotscripts can be called directly from "trigger" events in your game,
+				or by name within other scripts.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					What's the difference between <span class="param">plotscript</span> and <a href="#about-script" class="ref">script</a>?
+					<br>
+					The only difference is that plotscripts are listed in the game editor,
+					allowing them to be attached to triggers
+					(such as the new-game script),
+					while plain <span class="code">script</span>s are hidden and can't be selected.
+					(Technically you can use a <span class="code">script</span> as a trigger,
+					but only by using a command like <a href="#about-setdeathscript" class="ref">set death script</a>.)
+				</div>
+			
 			
 			<pre># example of a simple script
 plotscript,my first script,begin
@@ -3696,7 +3718,7 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 <a name="about-random"></a>
 		<h4>random (lownumber, highnumber)</h4>
 <p>
-			Returns a random number in the range of the two numbers. The returned value will be greater than or equal to the first number, and less than or equal to the second number
+			Returns a random integer in the range of the two numbers. The returned value will be greater than or equal to the first number, and less than or equal to the second number
 			
 			
 			
@@ -3704,9 +3726,23 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 </div>
 		<div class="command">
 <a name="about-seedrandom"></a>
-		<h4>seed random (new seed)</h4>
+		<h4>seed random (seed)</h4>
 <p>
-			Reseeds the random number generator. If called with no argument, this will reseed the random number generator to a new random sequence. If you pass in a number (other than 0), the random number generator will be seeded with that number, allowing for repeatable random sequences.
+			
+				Reseeds the random number generator.
+				If you pass in a <span class="param">seed</span> (number) other than 0, the random number generator will be seeded with that number,
+				allowing for repeatable random sequences - <a href="#about-random" class="ref">random</a> will always return the same sequence
+				of random numbers afterwards. Each seed causes a completely different sequence.
+				<br>
+				If called with no argument (or <span class="param">seed</span> = 0), this will reseed the random number generator to a new random sequence
+				(which is useful only if you've previously called <span class="code">seed random(...)</span> to put it into
+				a predictable sequence.)
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					You don't need to call this command before using <a href="#about-random" class="ref">random</a>.
+					In fact, this command is useful only if you <b>don't</b> want completely random numbers.
+				</div>
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-random" class="ref">random</a></li></ul>
@@ -5258,8 +5294,13 @@ resume player</pre>
 <a name="about-npcreference"></a>
 		<h4>NPC reference (ID, copy)</h4>
 <p>
-			What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you don't specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. Copies are counted starting from zero. You can see the copy number of NPCs in the Map Editor if you placed them in Custom. If the NPC ID/copy which you asked for is not found on the map then NPC reference will return <a href="#about-booleanconstants" class="ref">false</a>.<br> If you plan on using the same NPC reference many times in a script you can store it in a <a href="#about-variable" class="ref">variable</a>.<div style="background-color:#BCC;" class="notice">
+			What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you don't specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. Copies are counted starting from zero. You can see the copy number of NPCs in the Map Editor if you placed them in Custom. If the NPC ID/copy which you asked for is not found on the map then NPC reference will return <a href="#about-booleanconstants" class="ref">false</a>.
+				(Unlike other NPC commands, this one does not accept an NPC reference in place of the NPC ID.)
+				<br>
+				If you plan on using the same NPC reference many times in a script you can store it in a <a href="#about-variable" class="ref">variable</a>.
+				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">NPCs hidden due to tag conditions are never returned by this command.</div>
+			
 			
 			<pre>include,plotscr.hsd
 
@@ -5310,7 +5351,7 @@ end</pre>
 <a name="about-nextnpcreference"></a>
 		<h4>next NPC reference (npcref)</h4>
 <p>
-			This command is for looping over all the npcs on the map, in the same way that <a href="#about-firstchild" class="ref">first child</a> and <a href="#about-nextsibling" class="ref">next sibling</a> can be used to iterate over all the children of a slice. When called with no argument or 0, it returns a reference to the first NPC on the map. When you give it an NPC reference it returns a reference to the next NPC. It returns 0 when there are no more NPCs, and skips over NPCs that are disabled by a tag condition. It's safe to delete NPCs while you're iterating over them (unlike <a href="#about-nextsibling" class="ref">next sibling</a>!), but creating NPCs at the same time might result in them getting skipped.
+			This command is for looping over all the npcs on the map, in the same way that <a href="#about-firstchild" class="ref">first child</a> and <a href="#about-nextsibling" class="ref">next sibling</a> can be used to iterate over all the children of a slice. When called with no argument or 0, it returns a reference to the first NPC on the map. When you give it an NPC reference it returns a reference to the next NPC. It returns 0 when there are no more NPCs, and skips over NPCs that are disabled by a tag condition (including used one-time-use NPCs). It's safe to delete NPCs while you're iterating over them (unlike <a href="#about-nextsibling" class="ref">next sibling</a>!), but creating NPCs at the same time might result in them getting skipped.
 			
 			<pre># Iterate over all NPCs... and delete them all!
 variable(npcref)
@@ -5590,6 +5631,8 @@ while (npcref) do (
 <p>
 			
 				Returns the walking speed of the specified NPC (either NPC reference or ID number) in pixels per tick.
+				<br>
+				(This is just an alias for <a href="#about-readnpc" class="ref">read NPC</a><span class="code">(who, NPCstat:movespeed)</span>).
 			
 			
 			
@@ -5601,6 +5644,9 @@ while (npcref) do (
 		<h4>set NPC speed (who, speed)</h4>
 <p>
 			Changes the walking speed of the specified NPC. If you do not specify a speed, the NPC's speed will return to the default, 4. Be careful with using speeds that do not divide evenly into 20, because tiles are 20 pixels in size, and an irregular walking speed may cause the NPC to become misaligned with the tiles.<br>Normally you would only give an NPC ID number to set NPC speed, but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work. Just remember that set NPC speed changes every copy of the NPC on the map, not just the specific one you referenced.
+				<br>
+				(This is just an alias for <a href="#about-alternpc" class="ref">alter NPC</a><span class="code">(who, NPCstat:movespeed, speed)</span>).
+			
 			
 			
 			
@@ -5647,6 +5693,7 @@ while (npcref) do (
 				This command is the opposite of <a href="#about-npcreference" class="ref">NPC reference</a>.
 				If you give <span class="param">get NPC ID</span> a reference to an NPC it will return the NPC's ID.
 				If the NPC ID is not valid then <span class="param">get NPC ID</span> will return -1.
+				This command can be used on tag-disabled NPCs too, returning their ID number.
 			
 			
 			
@@ -5657,7 +5704,19 @@ while (npcref) do (
 <a name="about-npccopycount"></a>
 		<h4>NPC copy count (ID)</h4>
 <p>
-			This command tells you how many copies of a particular NPC ID exist on the map. This can be very useful if you want apply the same action to each copy of an NPC on the map by looping over them. Generally this is used together with the <a href="#about-npcreference" class="ref">NPC reference</a> command.
+			
+				This command tells you how many copies of a particular NPC ID exist on the map.
+				This can be very useful if you want apply the same action to each copy of an NPC
+				on the map by looping over them.
+				Generally this is used together with the <a href="#about-npcreference" class="ref">NPC reference</a> command.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					This command does not count tag-disabled NPCs.
+					So if there are four copies of NPC 2 on a map, but they only appear
+					when tag 5 is on, then <span class="code">npc copy count(2)</span> returns
+					4 when tag 5 is on and 0 when it isn't.
+				</div>
+			
 			
 			<pre>include, plotscr.hsd
 
@@ -17389,7 +17448,20 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-readtimer"></a>
 		<h4>read timer (id)</h4>
 <p>
-			Returns the count of a given timer.
+			
+				Returns the "count" of a given timer.
+				A timer's count is at first equal to the <span class="param">count</span> argument to <a href="#about-settimer" class="ref">set timer</a>
+				(or zero, if the timer hasn't been used).
+				After <span class="param">speed</span> ticks since <a href="#about-settimer" class="ref">set timer</a> was called,
+				the count is reduced by one.
+				<br>
+				The timer is triggered when the count becomes negative.
+				Normally a timer that has finished has a count of -1,
+				unless it had a negative count to begin with, most likely to happen
+				if you restart a timer by passing <span class="code">timer:default</span> as the <span class="param">count</span> argument
+				to <a href="#about-settimer" class="ref">set timer</a>.
+				(So if you keep repeating it that way, each time its count will reduce further: -1, -2, -3, ...)
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-settimer" class="ref">set timer</a></li></ul>
@@ -18005,10 +18077,9 @@ end</pre>
 		<h4>delete save (slot)</h4>
 <p>
 			
-				Deletes a saved game in the specified save slot (1 to 1000,
+				Deletes a saved game in the specified save <span class="param">slot</span> (1 to 1000,
 				regardless of how many are displayed on the Load and Save menus).
 				The save will no longer be visible on the load game menu or loadable with <a href="#about-loadfromslot" class="ref">load from slot</a>.
-				However, <a href="#about-importglobals" class="ref">import globals</a> can still be used to read globals out of the slot.
 			
 			
 			
@@ -18045,8 +18116,8 @@ end</pre>
 <p>
 			
 				Returns whether a game has been saved in the save slot.
-				Use if you, for example, don't want to overwrite a saved game with <a href="#about-saveinslot" class="ref">save in slot</a>.
-				This returns false if the slot has never been saved to normally,
+				For example, you can use this if you don't want to overwrite a saved game with <a href="#about-saveinslot" class="ref">save in slot</a>.
+				This returns <span class="code">false</span> if the slot has never been saved to normally,
 				but has been written to using <a href="#about-exportglobals" class="ref">export globals</a>
 				(which will create a nearly-empty .rsav file containing just globals,
 				if it doesn't already exist).
@@ -18079,22 +18150,20 @@ end</pre>
 				<span class="param">slot</span> is the save slot number, from 1 to 1000.
 				Note that only slots 1-4 appear by default on the save/load menus.
 				<span class="param">first</span> and <span class="param">last</span> are the id numbers of the globals at
-				the beginning and end of the range.
+				the beginning and end of the range (inclusive).
 				If you leave out both of <span class="param">first</span> and <span class="param">last</span> all global variables will be imported.
 				<br>
 				To read a single global from a save slot without modifying any of your globals,
-				use the form 'var := import globals (slot, id)'
+				use the form <span class="code">var := import globals (slot, id)</span>
 				<br>
-				This is NOT the same thing as 'import globals (slot, id, id)',
+				This is NOT the same thing as <span class="code">import globals (slot, id, id)</span>,
 				which does modify the global variable.
 				<br>
 				import globals and <a href="#about-exportglobals" class="ref">export globals</a> can be used to save and
 				retrieve info about a saved game without loading it,
 				and also to store variables that any game the player starts can use,
-				like in the following example:
-			
-			
-			<pre>global variable (100, game completed)
+				such as high scores and other "global" data, like in the following example:
+				<pre>global variable (100, game completed)
 global variable (101, hours to complete)
 global variable (102, minutes to complete)
 
@@ -18114,6 +18183,16 @@ plotscript, check game finished, begin
   )
   wait for textbox
 end</pre>
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					You can import globals from an empty save slot; it's not an error to do so.
+					This reads the value of all of the globals as zero.
+					You can also export/import globals to/from an empty save slot
+					that doesn't have a full saved game in it; see <a href="#about-exportglobals" class="ref">export globals</a>.
+				</div>
+			
+			
+			
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-exportglobals" class="ref">export globals</a>, </li>
@@ -18137,12 +18216,14 @@ end</pre>
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					You can export globals to an empty slot!
-					This doesn't create a visible save game that the player can load,
-					however you will still be able to read them with <a href="#about-importglobals" class="ref">import globals</a>.
+					This doesn't create a visible save game that the player can load
+					(and <a href="#about-saveslotused" class="ref">save slot used</a> will still return <span class="code">false</span> for that slot),
+					however you will be able to read them with <a href="#about-importglobals" class="ref">import globals</a>.
+					You can delete these globals using <a href="#about-deletesave" class="ref">delete save</a>.
 				</div>
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
-					Unlike importglobals, 'export globals (slot, first)' does
+					Unlike importglobals, <span class="code">export globals (slot, first)</span> does
 					NOT export a single global variable!
 				</div>
 			

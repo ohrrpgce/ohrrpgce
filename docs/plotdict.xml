@@ -149,13 +149,34 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-04-06">
+<plotscript version="wip" datecode="2018-06-18">
 
 	<section title="Declarations">
 		<command id="plotscript">
 			<canon>plotscript, name, argumentnames (statements)</canon>
 			<shortname>plotscript</shortname>
-			<description>The plotscript command contains a list of commands that can be triggered directly by an event in your game. Plotscript starts with the keyword plotscript, a comma, and then the name of the plotscript. If there are any arguments to the script, you list their names separated by commas after the name of the script with default values. Then comes the text of the script. It is enclosed in <ref>begin</ref> and <ref>end</ref> statements. Scripts that are defined as plotscripts can be called directly from events in your game, or by name within other scripts.</description>
+			<description>
+				The plotscript command contains a list of commands that can be triggered directly by an event in your game.
+				<lb/>
+				Plotscript starts with the keyword plotscript, a comma, and then the name of the plotscript.
+				If there are any arguments to the script, you list their names separated by commas after the name of
+				the script, optionally with default values declared like <tt>arg = defaultvalue</tt>.
+				<lb/>
+				Then comes the text of the script.
+				It is enclosed in <ref>begin</ref> and <ref>end</ref> statements.
+				Scripts that are defined as plotscripts can be called directly from "trigger" events in your game,
+				or by name within other scripts.
+				<note>
+					What's the difference between <p>plotscript</p> and <ref>script</ref>?
+					<lb/>
+					The only difference is that plotscripts are listed in the game editor,
+					allowing them to be attached to triggers
+					(such as the new-game script),
+					while plain <tt>script</tt>s are hidden and can't be selected.
+					(Technically you can use a <tt>script</tt> as a trigger,
+					but only by using a command like <ref>setdeathscript</ref>.)
+				</note>
+			</description>
 			<example># example of a simple script
 plotscript,my first script,begin
 	# commands go here
@@ -8967,7 +8988,20 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<command id="readtimer">
 			<canon>read timer (id)</canon>
 			<shortname>read timer</shortname>
-			<description>Returns the count of a given timer.</description>
+			<description>
+				Returns the "count" of a given timer.
+				A timer's count is at first equal to the <p>count</p> argument to <ref>settimer</ref>
+				(or zero, if the timer hasn't been used).
+				After <p>speed</p> ticks since <ref>settimer</ref> was called,
+				the count is reduced by one.
+				<lb/>
+				The timer is triggered when the count becomes negative.
+				Normally a timer that has finished has a count of -1,
+				unless it had a negative count to begin with, most likely to happen
+				if you restart a timer by passing <tt>timer:default</tt> as the <p>count</p> argument
+				to <ref>settimer</ref>.
+				(So if you keep repeating it that way, each time its count will reduce further: -1, -2, -3, ...)
+			</description>
 			<seealso><ref>settimer</ref></seealso>
 		</command>
 	</section>		<!-- Timers-->
