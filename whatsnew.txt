@@ -101,6 +101,7 @@ June (mumble) 2018 [Fufluns]
     * If an Untargetable enemy was at exactly the same position as a
       targetable one it was possible to target it [Ralph]
     * "swap menu items" swapped the wrong items [Ralph]
+    * "get NPC speed" always returned 0! [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

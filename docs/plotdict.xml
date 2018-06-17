@@ -1586,12 +1586,17 @@ while (npcref) do (
 			<shortname>get NPC speed</shortname>
 			<description>
 				Returns the walking speed of the specified NPC (either NPC reference or ID number) in pixels per tick.
+				<lb/>
+				(This is just an alias for <ref>readnpc</ref><tt>(who, NPCstat:movespeed)</tt>).
 			</description>
 		</command>
 		<command id="setnpcspeed">
 			<canon>set NPC speed (who, speed)</canon>
 			<shortname>set NPC speed</shortname>
-			<description>Changes the walking speed of the specified NPC. If you do not specify a speed, the NPC&apos;s speed will return to the default, 4. Be careful with using speeds that do not divide evenly into 20, because tiles are 20 pixels in size, and an irregular walking speed may cause the NPC to become misaligned with the tiles.<lb/>Normally you would only give an NPC ID number to set NPC speed, but if you want to use an <ref>npcreference</ref> it will still work. Just remember that set NPC speed changes every copy of the NPC on the map, not just the specific one you referenced.</description>
+			<description>Changes the walking speed of the specified NPC. If you do not specify a speed, the NPC&apos;s speed will return to the default, 4. Be careful with using speeds that do not divide evenly into 20, because tiles are 20 pixels in size, and an irregular walking speed may cause the NPC to become misaligned with the tiles.<lb/>Normally you would only give an NPC ID number to set NPC speed, but if you want to use an <ref>npcreference</ref> it will still work. Just remember that set NPC speed changes every copy of the NPC on the map, not just the specific one you referenced.
+				<lb/>
+				(This is just an alias for <ref>alternpc</ref><tt>(who, NPCstat:movespeed, speed)</tt>).
+			</description>
 		</command>
 		<command id="npciswalking">
 			<canon>NPC is walking (who)</canon>

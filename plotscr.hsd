@@ -724,7 +724,7 @@ if (hsd:n>>NPCY(hsd:who)) then(walk NPC(hsd:who,south,hsd:n--NPCY(hsd:who)))
 end
 
 script,getNPCspeed,hsd:who,begin
- readNPC(hsd:who,NPCstat:movespeed)
+ return(readNPC(hsd:who,NPCstat:movespeed))
 end
 
 script,setNPCspeed,hsd:who,hsd:newspeed=4,begin
