@@ -3239,11 +3239,12 @@ SUB checkdoors ()
  IF door_id >= 0 THEN usedoor door_id
 END SUB
 
-FUNCTION find_doorlink (byref thisdoorlink as doorlink, byval door_id as integer, byval map_id as integer=-1) as bool
+FUNCTION find_doorlink (byref thisdoorlink as DoorLink, byval door_id as integer, byval map_id as integer=-1) as bool
  'populates the thisdoorlink object
- 'returns YES on success, or NO if no links were found or the door doesn't exist
+ 'Returns YES on success, or NO if no links were found or the door doesn't exist
+ '(even if there is a doorlink defined for a non-existent door).
  'If map_id is -1 then use the current map
- DIM thisdoor as door
+ DIM thisdoor as Door
  IF map_id = -1 THEN map_id = gam.map.id
  IF door_id < 0 ORELSE door_id > maxDoorsPerMap THEN
   debug "Tried to lookup out-of-range door " & door_id & " on map " & map_id
@@ -3258,6 +3259,8 @@ FUNCTION find_doorlink (byref thisdoorlink as doorlink, byval door_id as integer
 
  IF readbit(thisdoor.bits(), 0, 0) = 0 THEN RETURN NO
 
+ 'TODO: we still load the doorlinks on each step rather than loading when you enter a map,
+ 'an artifact from real-mode DOS!
  DIM door_links(199) as DoorLink
  deserdoorlinks maplumpname(map_id,"d"), door_links()
  DIM index as integer = find_doorlink_id(door_id, thisdoor, door_links())
@@ -3268,7 +3271,7 @@ FUNCTION find_doorlink (byref thisdoorlink as doorlink, byval door_id as integer
  RETURN NO
 END FUNCTION
 
-FUNCTION find_doorlink_id (byval door_id as integer, thisdoor as door, door_links() as Doorlink) as integer
+FUNCTION find_doorlink_id (byval door_id as integer, thisdoor as Door, door_links() as DoorLink) as integer
  'Returns the index in door_links() which is active for door_id,
  'or -1 if none are, or if the door does not even exist.
  'Assumes that the door_id and the doorlinks() array belong to the same map

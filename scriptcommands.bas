@@ -30,7 +30,7 @@
 DECLARE SUB run_game ()
 DECLARE FUNCTION check_game_exists () as integer
 DECLARE FUNCTION get_optional_arg(byval retval_index as integer, byval default as integer) as integer
-DECLARE FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, byval map_id as integer) as bool
+DECLARE FUNCTION get_door_on_map(byref thisdoor as Door, byval door_id as integer, byval map_id as integer) as bool
 
 
 ''''' Global variables
@@ -3316,48 +3316,54 @@ SUB script_functions(byval cmdid as integer)
   IF npcref >= 0 THEN
    scriptret = find_plotslice_handle(npc(npcref).sl)
   END IF
- CASE 521 '--get door x
+ CASE 521 '--get door x (doorid, [mapid])
   scriptret = -1
   DIM map_id as integer = get_optional_arg(1, -1)
-  DIM thisdoor as door
-  IF get_door_by_map_script_arg(thisdoor, retvals(0), map_id) THEN
-   IF valid_door(thisdoor) THEN
+  DIM thisdoor as Door
+  IF get_door_on_map(thisdoor, retvals(0), map_id) THEN
+   IF valid_door(thisdoor, retvals(0)) THEN
     scriptret = thisdoor.x
    END IF
   END IF
- CASE 522 '--get door y
+ CASE 522 '--get door y (doorid, [mapid])
   scriptret = -1
   DIM map_id as integer = get_optional_arg(1, -1)
-  DIM thisdoor as door
-  IF get_door_by_map_script_arg(thisdoor, retvals(0), map_id) THEN
-   IF valid_door(thisdoor) THEN
+  DIM thisdoor as Door
+  IF get_door_on_map(thisdoor, retvals(0), map_id) THEN
+   IF valid_door(thisdoor, retvals(0)) THEN
     scriptret = thisdoor.y - 1
    END IF
   END IF
- CASE 523 '--get door destination id
+ CASE 523 '--get door destination id (doorid, [mapid])
+  'Documented to return -1 without error for invalid door/doorlink
+  '(Only throws error on bad map ID)
   scriptret = -1
   DIM map_id as integer = get_optional_arg(1, -1)
-  DIM thisdoor as door
-  IF get_door_by_map_script_arg(thisdoor, retvals(0), map_id) THEN
-   DIM dlink as doorlink
+  DIM thisdoor as Door
+  IF get_door_on_map(thisdoor, retvals(0), map_id) THEN
+   DIM dlink as DoorLink
+   'Returns NO if the door is unused
    IF find_doorlink(dlink, retvals(0), map_id) THEN
     scriptret = dlink.dest
    END IF
   END IF
- CASE 524 '--get door destination map
+ CASE 524 '--get door destination map (doorid, [mapid])
+  'Documented to return -1 without error for invalid door/doorlink
+  '(Only throws error on bad map ID)
   scriptret = -1
   DIM map_id as integer = get_optional_arg(1, -1)
-  DIM thisdoor as door
-  IF get_door_by_map_script_arg(thisdoor, retvals(0), map_id) THEN
-   DIM dlink as doorlink
+  DIM thisdoor as Door
+  IF get_door_on_map(thisdoor, retvals(0), map_id) THEN
+   DIM dlink as DoorLink
+   'Returns NO if the door is unused
    IF find_doorlink(dlink, retvals(0), map_id) THEN
     scriptret = dlink.dest_map
    END IF
   END IF
- CASE 525 '--door exists
+ CASE 525 '--door exists (doorid, [mapid])
   DIM map_id as integer = get_optional_arg(1, -1)
-  DIM thisdoor as door
-  IF get_door_by_map_script_arg(thisdoor, retvals(0), map_id) THEN
+  DIM thisdoor as Door
+  IF get_door_on_map(thisdoor, retvals(0), map_id) THEN
    scriptret = readbit(thisdoor.bits(), 0, 0)
   END IF
  CASE 526 '--get attack caption
@@ -5240,10 +5246,10 @@ FUNCTION valid_door(byval id as integer) as bool
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_door(thisdoor as door, byval id as integer=-1) as bool
+FUNCTION valid_door(thisdoor as Door, byval id as integer=-1) as bool
  IF readbit(thisdoor.bits(), 0, 0) = 0 THEN
   'Door doesn't exist
-  DIM errtext as string = current_command_name() & ": invalid door object"
+  DIM errtext as string = current_command_name() & ": invalid (non-existent) door object"
   IF id >= 0 THEN errtext &= " id " & id
   scripterr errtext, serrBadOp
   RETURN NO
@@ -5271,7 +5277,10 @@ FUNCTION valid_save_slot(slot as integer) as bool
  RETURN bound_arg(slot, 1, maxSaveSlotCount, "save slot", , serrBadOp)
 END FUNCTION
 
-FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, byval map_id as integer) as bool
+'Loads a Door; map_id -1 means "current map".
+'Returns true if thisdoor could be loaded EVEN IF the door doesn't exist (marked unused in door.bits())!
+'Use valid_door() instead or afterwards to check the door exists.
+FUNCTION get_door_on_map(byref thisdoor as Door, byval door_id as integer, byval map_id as integer) as bool
  IF map_id = -1 OR map_id = gam.map.id THEN
   'default to current map
   IF door_id < 0 OR door_id > UBOUND(gam.map.door) THEN RETURN NO
