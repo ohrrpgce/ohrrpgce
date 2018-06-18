@@ -3340,8 +3340,7 @@ SUB script_functions(byval cmdid as integer)
   '(Only throws error on bad map ID)
   scriptret = -1
   DIM map_id as integer = get_optional_arg(1, -1)
-  DIM thisdoor as Door
-  IF get_door_on_map(thisdoor, retvals(0), map_id) THEN
+  IF map_id = -1 ORELSE valid_map(map_id) THEN
    DIM dlink as DoorLink
    'Returns NO if the door is unused
    IF find_doorlink(dlink, retvals(0), map_id) THEN
@@ -3353,8 +3352,7 @@ SUB script_functions(byval cmdid as integer)
   '(Only throws error on bad map ID)
   scriptret = -1
   DIM map_id as integer = get_optional_arg(1, -1)
-  DIM thisdoor as Door
-  IF get_door_on_map(thisdoor, retvals(0), map_id) THEN
+  IF map_id = -1 ORELSE valid_map(map_id) THEN
    DIM dlink as DoorLink
    'Returns NO if the door is unused
    IF find_doorlink(dlink, retvals(0), map_id) THEN
