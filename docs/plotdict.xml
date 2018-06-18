@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-06-18">
+<plotscript version="wip" datecode="2018-06-19">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -1341,12 +1341,12 @@ resume player</example>
 		<command id="doorexists">
 			<canon>door exists (number, map)</canon>
 			<shortname>door exists</shortname>
-			<description>Returns <ref>true</ref> if there is a door with ID <p>number</p> on the specified map. If you leave out the map number, the current map will be assumed. This command is useful for avoiding script errors due to invalid door IDs.</description>
+			<description>Returns <ref>true</ref> if there is a door with ID <p>number</p> on the specified <p>map</p>. If you leave out the map number, the current map will be assumed. This command is useful for avoiding script errors due to invalid door IDs.</description>
 		</command>
 		<command id="getdoorx">
 			<canon>get door x (number, map)</canon>
 			<shortname>get door x</shortname>
-			<description>Returns the x coordinate (in tiles) of the numbered door on the specified map. If you leave out the map number, the current map will be assumed.</description>
+			<description>Returns the x coordinate (in tiles) of the door with ID <p>number</p> on the specified <p>map</p>. If you leave out the map number, the current map will be assumed.</description>
 			<seealso>
 				<ref>dooratspot</ref>
 			</seealso>
@@ -1354,7 +1354,7 @@ resume player</example>
 		<command id="getdoory">
 			<canon>get door y (number, map)</canon>
 			<shortname>get door y</shortname>
-			<description>Returns the y coordinate (in tiles) of the numbered door on the specified map. If you leave out the map number, the current map will be assumed.</description>
+			<description>Returns the y coordinate (in tiles) of the door with ID <p>number</p> on the specified <p>map</p>. If you leave out the map number, the current map will be assumed.</description>
 			<seealso>
 				<ref>dooratspot</ref>
 			</seealso>
@@ -1362,7 +1362,7 @@ resume player</example>
 		<command id="getdoordestinationid">
 			<canon>get door destination id (number, map)</canon>
 			<shortname>get door destination id</shortname>
-			<description>Returns the door id of the door linked to by the numbered door on the specified map. If you leave out the map number, the current map will be assumed. To get the door's location, use <ref>getdoorx</ref> and <ref>getdoory</ref>. If door <p>number</p> does not exist, or is not currently linked to any other door, then -1 is returned. <note>A door's destination can vary depending on the current game state. Check your doorlinks if you get unexpected results!</note></description>
+			<description>Returns the door ID of the door currently linked to by the door with ID <p>number</p> on the specified <p>map</p>. If you leave out the map number, the current map will be assumed. To get the door's location, use <ref>getdoorx</ref> and <ref>getdoory</ref>. If door <p>number</p> does not exist, or is not currently linked to any other door, then -1 is returned. <note>A door's destination can vary depending on tags. Check your doorlinks if you get unexpected results! There's no script command to get information about doorlinks currently inactive due to tags.</note></description>
 			<seealso>
 				<ref>getdoorx</ref>
 				<ref>getdoory</ref>
@@ -1372,7 +1372,7 @@ resume player</example>
 		<command id="getdoordestinationmap">
 			<canon>get door destination map (number, map)</canon>
 			<shortname>get door destination map</shortname>
-			<description>Returns the map id of the destination door linked to by the numbered door on the specified map. If you leave out the map number, the current map will be assumed. If door <p>number</p> does not exist, or is not currently linked to any other door, then -1 is returned. <note>A door's destination can vary depending on the current game state. Check your doorlinks if you get unexpected results!</note></description>
+			<description>Returns the map ID of the destination door currently linked to by the door with ID <p>number</p> on the specified <p>map</p>. If you leave out the map number, the current map will be assumed. If door <p>number</p> does not exist, or is not currently linked to any other door, then -1 is returned. <note>A door's destination can vary depending on tags. Check your doorlinks if you get unexpected results! There's no script command to get information about doorlinks currently inactive due to tags.</note></description>
 		</command>
 		<command id="dooratspot">
 			<canon>door at spot (x, y)</canon>

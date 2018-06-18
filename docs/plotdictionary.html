@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-06-18)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-06-19)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -5208,7 +5208,7 @@ resume player</pre>
 <a name="about-doorexists"></a>
 		<h4>door exists (number, map)</h4>
 <p>
-			Returns <a href="#about-booleanconstants" class="ref">true</a> if there is a door with ID <span class="param">number</span> on the specified map. If you leave out the map number, the current map will be assumed. This command is useful for avoiding script errors due to invalid door IDs.
+			Returns <a href="#about-booleanconstants" class="ref">true</a> if there is a door with ID <span class="param">number</span> on the specified <span class="param">map</span>. If you leave out the map number, the current map will be assumed. This command is useful for avoiding script errors due to invalid door IDs.
 			
 			
 			
@@ -5218,7 +5218,7 @@ resume player</pre>
 <a name="about-getdoorx"></a>
 		<h4>get door x (number, map)</h4>
 <p>
-			Returns the x coordinate (in tiles) of the numbered door on the specified map. If you leave out the map number, the current map will be assumed.
+			Returns the x coordinate (in tiles) of the door with ID <span class="param">number</span> on the specified <span class="param">map</span>. If you leave out the map number, the current map will be assumed.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-dooratspot" class="ref">door at spot</a></li></ul>
@@ -5229,7 +5229,7 @@ resume player</pre>
 <a name="about-getdoory"></a>
 		<h4>get door y (number, map)</h4>
 <p>
-			Returns the y coordinate (in tiles) of the numbered door on the specified map. If you leave out the map number, the current map will be assumed.
+			Returns the y coordinate (in tiles) of the door with ID <span class="param">number</span> on the specified <span class="param">map</span>. If you leave out the map number, the current map will be assumed.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-dooratspot" class="ref">door at spot</a></li></ul>
@@ -5240,8 +5240,8 @@ resume player</pre>
 <a name="about-getdoordestinationid"></a>
 		<h4>get door destination id (number, map)</h4>
 <p>
-			Returns the door id of the door linked to by the numbered door on the specified map. If you leave out the map number, the current map will be assumed. To get the door's location, use <a href="#about-getdoorx" class="ref">get door x</a> and <a href="#about-getdoory" class="ref">get door y</a>. If door <span class="param">number</span> does not exist, or is not currently linked to any other door, then -1 is returned. <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">A door's destination can vary depending on the current game state. Check your doorlinks if you get unexpected results!</div>
+			Returns the door ID of the door currently linked to by the door with ID <span class="param">number</span> on the specified <span class="param">map</span>. If you leave out the map number, the current map will be assumed. To get the door's location, use <a href="#about-getdoorx" class="ref">get door x</a> and <a href="#about-getdoory" class="ref">get door y</a>. If door <span class="param">number</span> does not exist, or is not currently linked to any other door, then -1 is returned. <div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">A door's destination can vary depending on tags. Check your doorlinks if you get unexpected results! There's no script command to get information about doorlinks currently inactive due to tags.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -5258,8 +5258,8 @@ resume player</pre>
 <a name="about-getdoordestinationmap"></a>
 		<h4>get door destination map (number, map)</h4>
 <p>
-			Returns the map id of the destination door linked to by the numbered door on the specified map. If you leave out the map number, the current map will be assumed. If door <span class="param">number</span> does not exist, or is not currently linked to any other door, then -1 is returned. <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">A door's destination can vary depending on the current game state. Check your doorlinks if you get unexpected results!</div>
+			Returns the map ID of the destination door currently linked to by the door with ID <span class="param">number</span> on the specified <span class="param">map</span>. If you leave out the map number, the current map will be assumed. If door <span class="param">number</span> does not exist, or is not currently linked to any other door, then -1 is returned. <div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">A door's destination can vary depending on tags. Check your doorlinks if you get unexpected results! There's no script command to get information about doorlinks currently inactive due to tags.</div>
 			
 			
 			
