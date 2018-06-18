@@ -71,6 +71,7 @@ DECLARE FUNCTION valid_formation_slot(byval form as integer, byval slot as integ
 DECLARE FUNCTION valid_zone(byval id as integer) as bool
 DECLARE FUNCTION valid_door OVERLOAD (byval id as integer) as bool
 DECLARE FUNCTION valid_door(thisdoor as door, byval id as integer=-1) as bool
+DECLARE FUNCTION valid_map(map_id as integer) as bool
 DECLARE FUNCTION valid_map_layer(layer as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
 DECLARE FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as bool
 DECLARE FUNCTION valid_save_slot(slot as integer) as bool

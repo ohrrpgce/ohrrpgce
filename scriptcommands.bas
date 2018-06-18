@@ -666,7 +666,7 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 61'--teleport to map
-  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxMap) THEN
+  IF valid_map(retvals(0)) THEN
    gam.map.id = retvals(0)
    (herox(0)) = retvals(1) * 20
    (heroy(0)) = retvals(2) * 20
@@ -1716,24 +1716,25 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 180'--map width([map])
   'map width did not originally have an argument
-  IF curcmd->argc = 0 ORELSE retvals(0) = -1 ORELSE retvals(0) = gam.map.id THEN
+  DIM map_id as integer = get_optional_arg(0, -1)
+  IF map_id = -1 ORELSE map_id = gam.map.id THEN
    scriptret = mapsizetiles.x
   ELSE
-   IF bound_arg(retvals(0), 0, gen(genMaxMap), "map number", , serrBadOp) THEN
+   IF valid_map(map_id) THEN
     DIM as TilemapInfo mapsize
-    GetTilemapInfo maplumpname(retvals(0), "t"), mapsize
+    GetTilemapInfo maplumpname(map_id, "t"), mapsize
     scriptret = mapsize.wide
    END IF
   END IF
  CASE 181'--map height([map])
   'map height did not originally have an argument
-  retvals(0) = get_optional_arg(0, -1)
-  IF retvals(0) = -1 ORELSE retvals(0) = gam.map.id THEN
+  DIM map_id as integer = get_optional_arg(0, -1)
+  IF map_id = -1 ORELSE map_id = gam.map.id THEN
    scriptret = mapsizetiles.y
   ELSE
-   IF bound_arg(retvals(0), 0, gen(genMaxMap), "map number", , serrBadOp) THEN
+   IF valid_map(map_id) THEN
     DIM as TilemapInfo mapsize
-    GetTilemapInfo maplumpname(retvals(0), "t"), mapsize
+    GetTilemapInfo maplumpname(map_id, "t"), mapsize
     scriptret = mapsize.high
    END IF
   END IF
@@ -1827,7 +1828,7 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 207'--get map name(str,map)
-   IF valid_plotstr(retvals(0)) = NO OR retvals(1) < 0 OR retvals(1) > gen(genMaxMap) THEN
+   IF valid_plotstr(retvals(0)) = NO ORELSE valid_map(retvals(1)) = NO THEN
    scriptret = 0
   ELSE
    plotstr(retvals(0)).s = getmapname(retvals(1))
@@ -5265,6 +5266,10 @@ FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as bool
  RETURN YES
 END FUNCTION
 
+FUNCTION valid_map(map_id as integer) as bool
+ RETURN bound_arg(map_id, 0, gen(genMaxMap), "map number", , serrBadOp)
+END FUNCTION
+
 FUNCTION valid_map_layer(layer as integer, errorlevel as scriptErrEnum = serrBadOp) as bool
  IF layer < 0 OR layer > UBOUND(maptiles) THEN
   scripterr current_command_name() + ": invalid map layer " & layer & " -- last map layer is " & UBOUND(maptiles), errorlevel
@@ -5287,7 +5292,7 @@ FUNCTION get_door_on_map(byref thisdoor as Door, byval door_id as integer, byval
   thisdoor = gam.map.door(door_id)
   RETURN YES
  END IF
- IF bound_arg(map_id, 0, gen(genMaxMap), "map ID", , serrBadOp) THEN
+ IF valid_map(map_id) THEN
   IF read_one_door(thisdoor, map_id, door_id) THEN
    RETURN YES
   END IF
