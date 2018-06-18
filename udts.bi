@@ -501,7 +501,7 @@ End Type
 Type Door
   x as integer
   y as integer     ' FIXME: Actual Y + 1 !!!
-  bits(0) as integer
+  exists as bool
 End Type
 
 Type DoorLink

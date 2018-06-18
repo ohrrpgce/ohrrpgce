@@ -3363,7 +3363,7 @@ SUB script_functions(byval cmdid as integer)
   DIM map_id as integer = get_optional_arg(1, -1)
   DIM thisdoor as Door
   IF get_door_on_map(thisdoor, retvals(0), map_id) THEN
-   scriptret = readbit(thisdoor.bits(), 0, 0)
+   scriptret = iif(thisdoor.exists, 1, 0)
   END IF
  CASE 526 '--get attack caption
   IF valid_plotstr(retvals(0), 5) AND bound_arg(retvals(1), 1, gen(genMaxAttack)+1, "attack ID", , serrBadOp) THEN
@@ -5237,8 +5237,7 @@ END FUNCTION
 
 FUNCTION valid_door(byval id as integer) as bool
  IF bound_arg(id, 0, UBOUND(gam.map.door), "door", , serrBadOp) = NO THEN RETURN NO
- IF readbit(gam.map.door(id).bits(), 0, 0) = 0 THEN
-  'Door doesn't exist
+ IF gam.map.door(id).exists = NO THEN
   scripterr current_command_name() & ": invalid door id " & id, serrBadOp
   RETURN NO
  END IF
@@ -5246,8 +5245,7 @@ FUNCTION valid_door(byval id as integer) as bool
 END FUNCTION
 
 FUNCTION valid_door(thisdoor as Door, byval id as integer=-1) as bool
- IF readbit(thisdoor.bits(), 0, 0) = 0 THEN
-  'Door doesn't exist
+ IF thisdoor.exists = NO THEN
   DIM errtext as string = current_command_name() & ": invalid (non-existent) door object"
   IF id >= 0 THEN errtext &= " id " & id
   scripterr errtext, serrBadOp

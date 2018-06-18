@@ -159,8 +159,6 @@ DECLARE SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
 
 DECLARE SUB mapedit_import_export(st as MapEditState)
 
-DECLARE FUNCTION door_exists (doors() as Door, id as integer) as bool
-DECLARE SUB set_door_exists (doors() as Door, id as integer, value as bool)
 DECLARE FUNCTION find_last_used_doorlink(link() as DoorLink) as integer
 DECLARE FUNCTION find_door_at_spot (x as integer, y as integer, doors() as Door) as integer
 DECLARE FUNCTION find_first_free_door (doors() as Door) as integer
@@ -917,7 +915,7 @@ DO
    'delete door
    st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
    IF st.doorid >= 0 THEN
-    set_door_exists(st.map.door(), st.doorid, NO)
+    st.map.door(st.doorid).exists = NO
    END IF
    'zones not deleted
  END IF
@@ -1153,7 +1151,7 @@ DO
     END IF
    END IF
    IF intgrabber(st.cur_door, 0, UBOUND(st.map.door), scLeftCaret, scRightCaret, , , , wheelAlways) THEN
-    IF door_exists(st.map.door(), st.cur_door) THEN
+    IF st.map.door(st.cur_door).exists THEN
      st.x = st.map.door(st.cur_door).x
      st.y = st.map.door(st.cur_door).y - 1
      mapedit_focus_camera st, st.x, st.y
@@ -1163,14 +1161,14 @@ DO
     st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
     IF st.doorid >= 0 THEN
      'clear an existing door
-     set_door_exists(st.map.door(), st.doorid, NO)
+     st.map.door(st.doorid).exists = NO
     ELSE
      'Either move the current door if it exists, or create it
      st.map.door(st.cur_door).x = st.x
      st.map.door(st.cur_door).y = st.y + 1
-     IF door_exists(st.map.door(), st.cur_door) = NO THEN
+     IF st.map.door(st.cur_door).exists = NO THEN
       'If creating a new door, automatically get an unused door ID, ready for the next placement
-      set_door_exists(st.map.door(), st.cur_door, YES)
+      st.map.door(st.cur_door).exists = YES
       st.cur_door = find_first_free_door(st.map.door())
      END IF
     END IF
@@ -1178,7 +1176,7 @@ DO
    IF keyval(scDelete) > 1 THEN
     st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
     IF st.doorid >= 0 THEN
-     set_door_exists(st.map.door(), st.doorid, NO)
+     st.map.door(st.doorid).exists = NO
     END IF
    END IF
 
@@ -1811,7 +1809,7 @@ DO
    WITH st.map.door(i)
     IF .x >= st.mapx \ 20 AND .x <= (st.mapx + st.viewport.wide) \ 20 AND _
        .y >  st.mapy \ 20 AND .y <= (st.mapy + st.viewport.high) \ 20 + 1 AND _
-       door_exists(st.map.door(), i) THEN
+       st.map.door(i).exists THEN
      rectangle .x * 20 - st.mapx, .y * 20 - st.mapy, 20, 20, uilook(uiSelectedItem + tog), dpage
      printstr STR(i), .x * 20 - st.mapx + 10 - (4 * LEN(STR(i))), .y * 20 - st.mapy + 6, dpage
     END IF
@@ -3580,17 +3578,9 @@ END FUNCTION
 '==========================================================================================
 
 
-FUNCTION door_exists (doors() as Door, id as integer) as bool
- RETURN readbit(doors(id).bits(), 0, 0) <> 0
-END FUNCTION
-
-SUB set_door_exists (doors() as Door, id as integer, value as bool)
- setbit(doors(id).bits(), 0, 0, value)
-END SUB
-
 FUNCTION find_door_at_spot (x as integer, y as integer, doors() as Door) as integer
  FOR i as integer = 0 TO UBOUND(doors)
-  IF doors(i).x = x AND doors(i).y = y + 1 AND door_exists(doors(), i) THEN
+  IF doors(i).x = x AND doors(i).y = y + 1 AND doors(i).exists THEN
    RETURN i
   END IF
  NEXT i
@@ -3599,7 +3589,7 @@ END FUNCTION
 
 FUNCTION find_first_free_door (doors() as Door) as integer
  FOR i as integer = 0 TO UBOUND(doors)
-  IF door_exists(doors(), i) = NO THEN RETURN i
+  IF doors(i).exists = NO THEN RETURN i
  NEXT i
  RETURN UBOUND(doors)
 END FUNCTION
@@ -3912,7 +3902,7 @@ SUB mapedit_resize(st as MapEditState)
    .x -= rs.rect.x
    .y -= rs.rect.y
    IF .x < 0 OR .y < 0 OR .x >= st.map.wide OR .y >= st.map.high THEN
-    set_door_exists(st.map.door(), i, NO)
+    st.map.door(i).exists = NO
    END IF
   END WITH
  NEXT
@@ -4653,7 +4643,7 @@ SUB DrawDoorPreview(map as MapData, tilesets() as TilesetData ptr, doornum as in
  DIM viewport as RectType
  viewport.size = XY(vpages(page)->w, vpages(page)->h \ 2)
 
- IF door_exists(map.door(), doornum) THEN
+ IF map.door(doornum).exists THEN
   DIM byref thisdoor as Door = map.door(doornum)
   ' Position of the door on the map
   DIM door_mappos as XYPair = XY(thisdoor.x, thisdoor.y - 1) * tilesize

@@ -1445,8 +1445,9 @@ Function read_one_door(byref thisdoor as door, byval map_id as integer, byval do
 	seek #f, recstart + sectionbytes + door_id * 2 
 	thisdoor.y = readshort(f)
 	seek #f, recstart + sectionbytes * 2 + door_id * 2 
-	thisdoor.bits(0) = readshort(f)
-	
+	dim doorbits as ushort = readshort(f)
+	thisdoor.exists = (doorbits AND 1) <> 0
+
 	close #f
 	
 	return YES
@@ -1468,8 +1469,14 @@ Sub DeSerDoors(filename as string, array() as door, byval record as integer)
 	for i = 0 to maxDoorsPerMap
 		array(i).y = readshort(f)
 	next
+	static showederror as bool
 	for i = 0 to maxDoorsPerMap
-		array(i).bits(0) = readshort(f)
+		dim doorbits as ushort = readshort(f)
+		if doorbits > 1 andalso showederror = NO then
+			showerror "A door has unknown bits " & doorbits & ". Game data is corrupt or unsupported"
+			showederror = YES
+		end if
+		array(i).exists = (doorbits AND 1) = 1
 	next
 	
 	close #f
@@ -1492,7 +1499,9 @@ Sub SerDoors(filename as string, array() as door, byval record as integer)
 		writeshort f, -1, array(i).y
 	next
 	for i = 0 to maxDoorsPerMap
-		writeshort f, -1, array(i).bits(0)
+		dim doorbits as ushort
+		if array(i).exists then doorbits += 1
+		writeshort f, -1, doorbits
 	next
 
 	close #f
@@ -1503,7 +1512,7 @@ Sub CleanDoors(array() as door)
 	for i = lbound(array) to ubound(array)
 		array(i).x = 0
 		array(i).y = 0
-		array(i).bits(0) = 0
+		array(i).exists = NO
 	next
 end sub
 

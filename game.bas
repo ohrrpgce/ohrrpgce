@@ -3220,7 +3220,7 @@ END SUB
 '(There should only be one door on each tile, because the editor doesn't let you place more)
 FUNCTION find_door (byval tilex as integer, byval tiley as integer) as integer
  FOR door_id as integer = 0 TO UBOUND(gam.map.door)
-  IF readbit(gam.map.door(door_id).bits(), 0, 0) THEN  'Door exists
+  IF gam.map.door(door_id).exists THEN
    IF gam.map.door(door_id).x = tilex AND gam.map.door(door_id).y = tiley + 1 THEN
     RETURN door_id
    END IF
@@ -3257,7 +3257,7 @@ FUNCTION find_doorlink (byref thisdoorlink as DoorLink, byval door_id as integer
   IF read_one_door(thisdoor, map_id, door_id) = NO THEN RETURN NO
  END IF
 
- IF readbit(thisdoor.bits(), 0, 0) = 0 THEN RETURN NO
+ IF thisdoor.exists = NO THEN RETURN NO
 
  'TODO: we still load the doorlinks on each step rather than loading when you enter a map,
  'an artifact from real-mode DOS!
@@ -3277,7 +3277,7 @@ FUNCTION find_doorlink_id (byval door_id as integer, thisdoor as Door, door_link
  'Assumes that the door_id and the doorlinks() array belong to the same map
  'If multiple matches exist, only the first one that passes the tag tests will be returned.
 
- IF readbit(thisdoor.bits(), 0, 0) = 0 THEN RETURN -1
+ IF thisdoor.exists = NO THEN RETURN -1
 
  FOR i as integer = 0 TO UBOUND(door_links)
   WITH door_links(i)
