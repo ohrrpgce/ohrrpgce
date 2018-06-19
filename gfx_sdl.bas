@@ -109,6 +109,7 @@ DECLARE SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer,
 DECLARE SUB internal_disable_virtual_gamepad()
 DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer
 DECLARE FUNCTION load_wminfo() as bool
+DECLARE SUB quit_video_subsystem()
 
 
 #IFDEF __FB_DARWIN__
@@ -397,7 +398,7 @@ FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as
     'Sometimes need to quit and reinit the video subsystem for changes to take effect
     force_video_reset = NO
     IF SDL_WasInit(SDL_INIT_VIDEO) THEN
-      SDL_QuitSubSystem(SDL_INIT_VIDEO)
+      quit_video_subsystem()
       IF SDL_InitSubSystem(SDL_INIT_VIDEO) THEN
         debug "Can't start SDL video subsys (resize): " & *SDL_GetError
       END IF
@@ -495,16 +496,29 @@ FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as
   RETURN 1
 END FUNCTION
 
+PRIVATE SUB quit_joystick_subsystem()
+  FOR i as integer = 0 TO small(SDL_NumJoysticks(), 8) - 1
+    IF joystickhandles(i) <> NULL THEN SDL_JoystickClose(joystickhandles(i))
+    joystickhandles(i) = NULL
+  NEXT
+  SDL_QuitSubSystem(SDL_INIT_JOYSTICK)
+END SUB
+
+PRIVATE SUB quit_video_subsystem()
+  IF screenbuffer <> NULL THEN SDL_FreeSurface(screenbuffer)
+  screensurface = NULL
+  screenbuffer = NULL
+  SDL_QuitSubSystem(SDL_INIT_VIDEO)
+END SUB
+
 SUB gfx_sdl_close()
+  IF SDL_WasInit(SDL_INIT_JOYSTICK) THEN
+    quit_joystick_subsystem()
+  END IF
+
   IF SDL_WasInit(SDL_INIT_VIDEO) THEN
-    IF screenbuffer <> NULL THEN SDL_FreeSurface(screenbuffer)
-    screensurface = NULL
-    screenbuffer = NULL
-    FOR i as integer = 0 TO small(SDL_NumJoysticks(), 8) - 1
-      IF joystickhandles(i) <> NULL THEN SDL_JoystickClose(joystickhandles(i))
-      joystickhandles(i) = NULL
-    NEXT
-    SDL_QuitSubSystem(SDL_INIT_VIDEO)
+    quit_video_subsystem()
+
     IF SDL_WasInit(0) = 0 THEN
       SDL_Quit()
     END IF
@@ -1441,6 +1455,7 @@ FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as integer, by
       RETURN 0
     END IF
   END IF
+  '(Note: we only need to call this because we haven't enabled joystick events with SDL_JoystickEventState(SDL_ENABLE))
   SDL_JoystickUpdate() 'should this be here? moved from io_sdl_readjoy
   button = 0
   FOR i as integer = 0 TO SDL_JoystickNumButtons(joystickhandles(joynum)) - 1

@@ -411,23 +411,35 @@ PRIVATE SUB set_window_size(newsize as XYPair, newzoom as integer)
   recreate_screen_texture
 END SUB
 
-SUB gfx_sdl2_close()
-  IF SDL_WasInit(SDL_INIT_VIDEO) THEN
-    IF mainrenderer THEN SDL_DestroyRenderer(mainrenderer)  'Also destroys textures
-    mainrenderer = NULL
-    maintexture = NULL
-    IF mainwindow THEN SDL_DestroyWindow(mainwindow)
-    mainwindow = NULL
-    IF screenbuffer THEN SDL_FreeSurface(screenbuffer)
-    screenbuffer = NULL
-    IF sdlpalette THEN SDL_FreePalette(sdlpalette)
-    sdlpalette = NULL
+PRIVATE SUB quit_joystick_subsystem()
+  FOR i as integer = 0 TO small(SDL_NumJoysticks(), 8) - 1
+    IF joystickhandles(i) <> NULL THEN SDL_JoystickClose(joystickhandles(i))
+    joystickhandles(i) = NULL
+  NEXT
+  SDL_QuitSubSystem(SDL_INIT_JOYSTICK)
+END SUB
 
-    FOR i as integer = 0 TO small(SDL_NumJoysticks(), 8) - 1
-      IF joystickhandles(i) <> NULL THEN SDL_JoystickClose(joystickhandles(i))
-      joystickhandles(i) = NULL
-    NEXT
-    SDL_QuitSubSystem(SDL_INIT_VIDEO)
+PRIVATE SUB quit_video_subsystem()
+  IF mainrenderer THEN SDL_DestroyRenderer(mainrenderer)  'Also destroys textures
+  mainrenderer = NULL
+  maintexture = NULL
+  IF mainwindow THEN SDL_DestroyWindow(mainwindow)
+  mainwindow = NULL
+  IF screenbuffer THEN SDL_FreeSurface(screenbuffer)
+  screenbuffer = NULL
+  IF sdlpalette THEN SDL_FreePalette(sdlpalette)
+  sdlpalette = NULL
+  SDL_QuitSubSystem(SDL_INIT_VIDEO)
+END SUB
+
+SUB gfx_sdl2_close()
+  IF SDL_WasInit(SDL_INIT_JOYSTICK) THEN
+    quit_joystick_subsystem()
+  END IF
+
+  IF SDL_WasInit(SDL_INIT_VIDEO) THEN
+    quit_video_subsystem()
+
     IF SDL_WasInit(0) = 0 THEN
       SDL_Quit()
     END IF
@@ -1312,6 +1324,7 @@ FUNCTION io_sdl2_readjoysane(byval joynum as integer, byref button as integer, b
       RETURN 0
     END IF
   END IF
+  '(Note: we only need to call this because we haven't enabled joystick events with SDL_JoystickEventState(SDL_ENABLE))
   SDL_JoystickUpdate() 'should this be here? moved from io_sdl2_readjoy
   button = 0
   FOR i as integer = 0 TO SDL_JoystickNumButtons(joystickhandles(joynum)) - 1
