@@ -1645,12 +1645,29 @@ while (npcref) do (
 			<canon>get NPC ID (reference)</canon>
 			<shortname>get NPC ID</shortname>
 			<description>
-				This command is the opposite of <ref>npcreference</ref>.
+				This command opposite to <ref>npcreference</ref> (along with <ref>npccopynumber</ref>).
 				If you give <p>get NPC ID</p> a reference to an NPC it will return the NPC's ID.
-				If the NPC ID is not valid then <p>get NPC ID</p> will return -1.
+				If the reference is not valid then <p>get NPC ID</p> will return -1.
 				This command can be used on tag-disabled NPCs too, returning their ID number.
 			</description>
 		</command>
+		<command id="npccopynumber">
+			<canon>NPC copy number (reference)</canon>
+			<shortname>NPC copy number</shortname>
+			<description>
+				This command opposite to <ref>npcreference</ref> (along with <ref>getnpcid</ref>).
+				That is, it returns the copy number that you need to pass to <ref>npcreference</ref>
+				to get this NPC.
+				If you give <p>NPC copy number</p> a reference to an NPC it will return which copy
+				of that NPC definition it is - 0 if it's the first NPC, 1 is the second, etc.
+				This number is also shown in the map editor at the bottom of an NPC,
+				and in the F6 NPC debug mode when you mouse-over an NPC.
+				<lb/>
+				If the reference is not valid then <p>NPC copy number</p> will return -1.
+				This command doesn't work on references to tag-disabled NPCs.
+			</description>
+		</command>
+
 		<command id="npccopycount">
 			<canon>NPC copy count (ID)</canon>
 			<shortname>NPC copy count</shortname>
