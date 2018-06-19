@@ -404,6 +404,10 @@ FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as
       END IF
     END IF
   END IF
+
+  DIM creating_window as bool  'As opposed to recreating
+  IF screensurface = NULL THEN creating_window = YES
+
 #IFDEF __FB_ANDROID__
   'On Android, the requested screen size will be stretched.
   'We also want the option of a margin around the edges for
@@ -491,7 +495,14 @@ FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as
   SDL_EnableUNICODE(IIF(remember_enable_textinput, 1, 0))
 #ENDIF
 
-  SDL_WM_SetCaption(remember_windowtitle, remember_windowtitle)
+  'There was an annoying pulseaudio bug on my system, where the engine tended to crash when
+  'the window was resized. Helgrind revealed a race condition in pa_context_set_name,
+  'called from SDL_WM_SetCaption. So don't call it unless necessary because it hasn't been
+  'called before. (Actually even then, it's may not be necessary?)
+  IF creating_window THEN
+    SDL_WM_SetCaption(remember_windowtitle, remember_windowtitle)
+  END IF
+
   update_mouse_visibility()
   RETURN 1
 END FUNCTION
