@@ -499,9 +499,8 @@ Type ZoneMap
 End Type
 
 Type Door
-  x as integer
-  y as integer     ' FIXME: Actual Y + 1 !!!
-  exists as bool
+  pos as XYPair         ' In tiles
+  exists as bool        ' False if this door ID isn't used
 End Type
 
 Type DoorLink
@@ -516,8 +515,13 @@ End Type
 TYPE MapData
   id as integer
   name as string
-  wide as integer        'Map size in tiles
-  high as integer
+  UNION
+    TYPE
+      wide as integer        'Map size in tiles
+      high as integer
+    END TYPE
+    size as XYPair
+  END UNION
 
   tiles(any) as TileMap
   pass as TileMap

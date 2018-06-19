@@ -44,7 +44,8 @@ DECLARE SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height a
 DECLARE SUB drawwall(walldir as DirNum, byval pos as XYPair, offset as integer, thickness as integer, col as integer)
 
 DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as integer
-DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
+DECLARE FUNCTION mapedit_on_screen(st as MapEditState, tile as XYPair) as bool
+DECLARE FUNCTION mapedit_partially_on_screen(st as MapEditState, tile as XYPair) as bool
 DECLARE FUNCTION mapedit_clamp_tile_to_screen(st as MapEditState, tile as XYPair) as XYPair
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
 DECLARE SUB mapedit_constrain_camera(st as MapEditState)
@@ -160,7 +161,7 @@ DECLARE SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
 DECLARE SUB mapedit_import_export(st as MapEditState)
 
 DECLARE FUNCTION find_last_used_doorlink(link() as DoorLink) as integer
-DECLARE FUNCTION find_door_at_spot (x as integer, y as integer, doors() as Door) as integer
+DECLARE FUNCTION find_door_at_spot (tilepos as XYPair, doors() as Door) as integer
 DECLARE FUNCTION find_first_free_door (doors() as Door) as integer
 DECLARE FUNCTION find_first_doorlink_by_door(doornum as integer, link() as DoorLink) as integer
 
@@ -913,7 +914,7 @@ DO
     END WITH
    NEXT i
    'delete door
-   st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
+   st.doorid = find_door_at_spot(st.pos, st.map.door())
    IF st.doorid >= 0 THEN
     st.map.door(st.doorid).exists = NO
    END IF
@@ -1134,7 +1135,7 @@ DO
   CASE door_mode
    IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
    IF keyval(scAnyEnter) > 1 OR normal_right_release THEN ' enter/right click to link a door
-    st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
+    st.doorid = find_door_at_spot(st.pos, st.map.door())
     IF st.doorid >= 0 THEN
      'Save currently-worked-on map data
      mapedit_savemap st
@@ -1152,20 +1153,18 @@ DO
    END IF
    IF intgrabber(st.cur_door, 0, UBOUND(st.map.door), scLeftCaret, scRightCaret, , , , wheelAlways) THEN
     IF st.map.door(st.cur_door).exists THEN
-     st.x = st.map.door(st.cur_door).x
-     st.y = st.map.door(st.cur_door).y - 1
+     st.pos = st.map.door(st.cur_door).pos
      mapedit_focus_camera st, st.x, st.y
     END IF
    END IF
    IF tool_actkeypress THEN ' space/click to place a door
-    st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
+    st.doorid = find_door_at_spot(st.pos, st.map.door())
     IF st.doorid >= 0 THEN
      'clear an existing door
      st.map.door(st.doorid).exists = NO
     ELSE
      'Either move the current door if it exists, or create it
-     st.map.door(st.cur_door).x = st.x
-     st.map.door(st.cur_door).y = st.y + 1
+     st.map.door(st.cur_door).pos = st.pos
      IF st.map.door(st.cur_door).exists = NO THEN
       'If creating a new door, automatically get an unused door ID, ready for the next placement
       st.map.door(st.cur_door).exists = YES
@@ -1174,7 +1173,7 @@ DO
     END IF
    END IF
    IF keyval(scDelete) > 1 THEN
-    st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
+    st.doorid = find_door_at_spot(st.pos, st.map.door())
     IF st.doorid >= 0 THEN
      st.map.door(st.doorid).exists = NO
     END IF
@@ -1378,7 +1377,7 @@ DO
   'Don't ensure the cursor is on-screen
  ELSE
   'After finishing a pan, ensure cursor on the screen
-  IF mapedit_on_screen(st, st.x, st.y) = NO THEN
+  IF mapedit_on_screen(st, st.pos) = NO THEN
    'Move to mouse, if possible (might not be over the map)
    DIM mappos as XYPair = screen_to_map(st, mouse.pos)
    IF mappos.x >= 0 THEN st.pos = mappos \ 20
@@ -1807,11 +1806,11 @@ DO
   textcolor uilook(uiBackground), 0
   FOR i as integer = 0 TO UBOUND(st.map.door)
    WITH st.map.door(i)
-    IF .x >= st.mapx \ 20 AND .x <= (st.mapx + st.viewport.wide) \ 20 AND _
-       .y >  st.mapy \ 20 AND .y <= (st.mapy + st.viewport.high) \ 20 + 1 AND _
-       st.map.door(i).exists THEN
-     rectangle .x * 20 - st.mapx, .y * 20 - st.mapy, 20, 20, uilook(uiSelectedItem + tog), dpage
-     printstr STR(i), .x * 20 - st.mapx + 10 - (4 * LEN(STR(i))), .y * 20 - st.mapy + 6, dpage
+    IF .exists ANDALSO mapedit_partially_on_screen(st, .pos) THEN
+     DIM where as XYPair = map_to_screen(st, .pos * tilesize)
+     rectangle where.x, where.y, tilew, tileh, uilook(uiSelectedItem + tog), dpage
+     where += tilesize \ 2
+     printstr STR(i), where.x + ancCenter, where.y + ancCenter + 1, dpage
     END IF
    END WITH
   NEXT
@@ -3578,9 +3577,9 @@ END FUNCTION
 '==========================================================================================
 
 
-FUNCTION find_door_at_spot (x as integer, y as integer, doors() as Door) as integer
+FUNCTION find_door_at_spot (tilepos as XYPair, doors() as Door) as integer
  FOR i as integer = 0 TO UBOUND(doors)
-  IF doors(i).x = x AND doors(i).y = y + 1 AND doors(i).exists THEN
+  IF doors(i).pos = tilepos AND doors(i).exists THEN
    RETURN i
   END IF
  NEXT i
@@ -3899,9 +3898,8 @@ SUB mapedit_resize(st as MapEditState)
  edgeprint "Aligning and truncating doors", 0, yout * 10, uilook(uiText), vpage: yout += 1
  FOR i as integer = 0 TO UBOUND(st.map.door)
   WITH st.map.door(i)
-   .x -= rs.rect.x
-   .y -= rs.rect.y
-   IF .x < 0 OR .y < 0 OR .x >= st.map.wide OR .y >= st.map.high THEN
+   .pos -= rs.rect.topleft
+   IF (.pos >= 0 ANDALSO .pos < st.map.size) = NO THEN
     st.map.door(i).exists = NO
    END IF
   END WITH
@@ -4646,7 +4644,7 @@ SUB DrawDoorPreview(map as MapData, tilesets() as TilesetData ptr, doornum as in
  IF map.door(doornum).exists THEN
   DIM byref thisdoor as Door = map.door(doornum)
   ' Position of the door on the map
-  DIM door_mappos as XYPair = XY(thisdoor.x, thisdoor.y - 1) * tilesize
+  DIM door_mappos as XYPair = thisdoor.pos * tilesize
   DIM viewport_center as XYPair = door_mappos + tilesize \ 2
   viewport.topleft = camera_position_centered_on(viewport_center, viewport.size, map)
 
@@ -4665,7 +4663,8 @@ SUB DrawDoorPreview(map as MapData, tilesets() as TilesetData ptr, doornum as in
   edgebox door_pos.x, door_pos.y, tilew, tileh, uilook(uiMenuItem), uilook(uiBackground), page
   textcolor uilook(uiBackground), 0
   DIM as string caption = STR(doornum)
-  printstr caption, door_pos.x + tilew \ 2 + ancCenter, door_pos.y + tileh \ 2 + 1 + ancCenter, page
+  DIM center as XYPair = door_pos + tilesize \ 2 + ancCenter
+  printstr caption, center.x, center.y, page
  ELSE
   textcolor uilook(uiDisabledItem), 0
   DIM as string caption = "(No such door)"
@@ -5359,7 +5358,7 @@ SUB mapedit_show_undo_change(st as MapEditState, byval undostroke as MapEditUndo
     CASE mapIDMetaEditmode TO mapIDMetaEditmodeEND
      st.seteditmode = .mapid - mapIDMetaEditmode
     CASE ELSE
-     IF seen_change = NO THEN seen_change = mapedit_on_screen(st, .x, .y)
+     IF seen_change = NO THEN seen_change = mapedit_on_screen(st, XY(.x, .y))
    END SELECT
   END WITH
  NEXT
@@ -5369,7 +5368,7 @@ SUB mapedit_show_undo_change(st as MapEditState, byval undostroke as MapEditUndo
   IF cursorpos THEN
    st.x = cursorpos->x
    st.y = cursorpos->y
-   IF mapedit_on_screen(st, st.x, st.y) = NO THEN mapedit_focus_camera st, st.x, st.y
+   IF mapedit_on_screen(st, st.pos) = NO THEN mapedit_focus_camera st, st.x, st.y
   END IF
  END IF
 END SUB
@@ -5681,12 +5680,20 @@ FUNCTION mapedit_mouse_over_what(st as MapEditState) as MapMouseAttention
 END FUNCTION
 
 'Can a tile be seen? (Specifically, the centre of the tile)
-FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
+FUNCTION mapedit_on_screen(st as MapEditState, tile as XYPair) as bool
  'Visible portion of the map
  DIM mapview as RectType
  mapview.topleft = st.camera
  mapview.size = st.viewport.size
- RETURN rect_collide_point(mapview, XY(x * 20 + 10, y * 20 + 10))
+ RETURN rect_collide_point(mapview, tile * tilesize + tilesize \ 2)
+END FUNCTION
+
+'Is a tile at least partially visisble on-screen?
+FUNCTION mapedit_partially_on_screen(st as MapEditState, tile as XYPair) as bool
+ DIM mapview as RectType
+ mapview.topleft = st.camera - tilesize
+ mapview.size = st.viewport.size + tilesize
+ RETURN rect_collide_point(mapview, tile * tilesize)
 END FUNCTION
 
 'Given a map coordinate in tiles, return nearest tile that is totally on-screen

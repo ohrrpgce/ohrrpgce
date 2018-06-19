@@ -80,7 +80,7 @@ DECLARE FUNCTION free_slots_in_party() as integer
 DECLARE SUB queue_fade_in (delay as integer = 0, script_overridable as bool = NO)
 DECLARE SUB check_for_queued_fade_in ()
 
-DECLARE FUNCTION find_door (byval tilex as integer, byval tiley as integer) as integer
+DECLARE FUNCTION find_door (byval tilepos as XYPair) as integer
 DECLARE FUNCTION find_doorlink (byref thisdoorlink as doorlink, byval door_id as integer, byval map_id as integer=-1) as bool
 
 DECLARE SUB update_hero_zones (byval who as integer)

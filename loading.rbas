@@ -1341,6 +1341,7 @@ END SUB
 '==========================================================================================
 
 
+'Read a .D## doorlink lump
 SUB DeserDoorLinks(filename as string, array() as doorlink)
 	dim as integer hasheader = -1, f, i
 	'when we strip the header, we can check for its presence here
@@ -1377,6 +1378,7 @@ SUB DeserDoorLinks(filename as string, array() as doorlink)
 	close #f
 End SUB
 
+'Write a .D## doorlink lump
 Sub SerDoorLinks(filename as string, array() as doorlink, byval withhead as bool = YES)
 	dim as integer f, i
 
@@ -1424,6 +1426,7 @@ sub CleanDoorLinks(array() as doorlink)
 	next
 end sub
 
+'Read a single door from a .DOX lump
 Function read_one_door(byref thisdoor as door, byval map_id as integer, byval door_id as integer) as bool
 	'Returns NO if unable to read the file.
 	'Still succeeds for doors that don't happen to be defined. (undefined doors can be identified by checking the .bits()) 
@@ -1441,9 +1444,10 @@ Function read_one_door(byref thisdoor as door, byval map_id as integer, byval do
 	dim sectionbytes as integer = (MaxDoorsPerMap + 1) * 2
 
 	seek #f, recstart + door_id * 2 
-	thisdoor.x = readshort(f)
+	thisdoor.pos.x = readshort(f)
 	seek #f, recstart + sectionbytes + door_id * 2 
-	thisdoor.y = readshort(f)
+	'Amusingly DOX contains y + 1 instead of y
+	thisdoor.pos.y = readshort(f) - 1
 	seek #f, recstart + sectionbytes * 2 + door_id * 2 
 	dim doorbits as ushort = readshort(f)
 	thisdoor.exists = (doorbits AND 1) <> 0
@@ -1453,6 +1457,7 @@ Function read_one_door(byref thisdoor as door, byval map_id as integer, byval do
 	return YES
 End function
 
+'Read a .DOX door lump
 Sub DeSerDoors(filename as string, array() as door, byval record as integer)
 	dim as integer f, i
 	
@@ -1464,10 +1469,10 @@ Sub DeSerDoors(filename as string, array() as door, byval record as integer)
 	seek #f, record * 600 + 1
 	
 	for i = 0 to maxDoorsPerMap
-		array(i).x = readshort(f)
+		array(i).pos.x = readshort(f)
 	next
 	for i = 0 to maxDoorsPerMap
-		array(i).y = readshort(f)
+		array(i).pos.y = readshort(f) - 1
 	next
 	static showederror as bool
 	for i = 0 to maxDoorsPerMap
@@ -1482,6 +1487,7 @@ Sub DeSerDoors(filename as string, array() as door, byval record as integer)
 	close #f
 End Sub
 
+'Write a .DOX door lump
 Sub SerDoors(filename as string, array() as door, byval record as integer)
 	dim as integer f, i
 
@@ -1493,10 +1499,10 @@ Sub SerDoors(filename as string, array() as door, byval record as integer)
 	seek #f, record * 600 + 1
 
 	for i = 0 to maxDoorsPerMap
-		writeshort f, -1, array(i).x
+		writeshort f, -1, array(i).pos.x
 	next
 	for i = 0 to maxDoorsPerMap
-		writeshort f, -1, array(i).y
+		writeshort f, -1, array(i).pos.y + 1
 	next
 	for i = 0 to maxDoorsPerMap
 		dim doorbits as ushort
@@ -1510,8 +1516,8 @@ End Sub
 Sub CleanDoors(array() as door)
 	dim i as integer
 	for i = lbound(array) to ubound(array)
-		array(i).x = 0
-		array(i).y = 0
+		array(i).pos.x = 0
+		array(i).pos.y = 0
 		array(i).exists = NO
 	next
 end sub

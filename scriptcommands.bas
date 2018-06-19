@@ -3323,7 +3323,7 @@ SUB script_functions(byval cmdid as integer)
   DIM thisdoor as Door
   IF get_door_on_map(thisdoor, retvals(0), map_id) THEN
    IF valid_door(thisdoor, retvals(0)) THEN
-    scriptret = thisdoor.x
+    scriptret = thisdoor.pos.x
    END IF
   END IF
  CASE 522 '--get door y (doorid, [mapid])
@@ -3332,7 +3332,7 @@ SUB script_functions(byval cmdid as integer)
   DIM thisdoor as Door
   IF get_door_on_map(thisdoor, retvals(0), map_id) THEN
    IF valid_door(thisdoor, retvals(0)) THEN
-    scriptret = thisdoor.y - 1
+    scriptret = thisdoor.pos.y
    END IF
   END IF
  CASE 523 '--get door destination id (doorid, [mapid])
@@ -3509,7 +3509,7 @@ SUB script_functions(byval cmdid as integer)
    npc(npcref).z = retvals(1)
   END IF
  CASE 550 '--door at spot
-  scriptret = find_door(retvals(0), retvals(1))
+  scriptret = find_door(XY(retvals(0), retvals(1)))
  CASE 551 '--suspend doors
   setbit gen(), genSuspendBits, suspenddoors, 1
  CASE 552 '--resume doors

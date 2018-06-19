@@ -3218,10 +3218,10 @@ END SUB
 
 'Return the ID of a door at a tile, or -1 for none
 '(There should only be one door on each tile, because the editor doesn't let you place more)
-FUNCTION find_door (byval tilex as integer, byval tiley as integer) as integer
+FUNCTION find_door (byval tilepos as XYPair) as integer
  FOR door_id as integer = 0 TO UBOUND(gam.map.door)
   IF gam.map.door(door_id).exists THEN
-   IF gam.map.door(door_id).x = tilex AND gam.map.door(door_id).y = tiley + 1 THEN
+   IF gam.map.door(door_id).pos = tilepos THEN
     RETURN door_id
    END IF
   END IF
@@ -3235,7 +3235,7 @@ SUB checkdoors ()
  IF readbit(gen(), genSuspendBits, suspenddoors) = 1 THEN EXIT SUB
 
  DIM door_id as integer
- door_id = find_door(herotx(0), heroty(0))
+ door_id = find_door(herotpos(0))
  IF door_id >= 0 THEN usedoor door_id
 END SUB
 
@@ -3299,8 +3299,7 @@ SUB usedoor (door_id as integer, fadescreen as bool = YES)
   gam.map.same = (.dest_map = gam.map.id)
   gam.map.id = .dest_map
   deserdoors game + ".dox", gam.map.door(), gam.map.id
-  (herox(0)) = gam.map.door(.dest).x * 20
-  (heroy(0)) = (gam.map.door(.dest).y - 1) * 20
+  (heropos(0)) = gam.map.door(.dest).pos * 20
   IF fadescreen THEN
    fadeout 0, 0, 0
    queue_fade_in 1
