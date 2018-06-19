@@ -49,6 +49,8 @@ June (mumble) 2018 [Fufluns]
     * "use door": added "fade screen" argument, so you can use a door without
       fading [Ralph]
     * "npc copy number" (opposite to "npc reference") [Ralph]
+    * "npc reference" can find tag-disabled npcs with "allow disabled" arg
+      [Ralph]
     * "create line", "slice is line", "get line color", "set line color" [Ralph]
     * "force mount vehicle", "current vehicle id", "current vehicle npc" [James]
     * Missing constants for "get/set menu item subtype":

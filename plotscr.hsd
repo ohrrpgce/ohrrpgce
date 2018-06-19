@@ -139,7 +139,7 @@ define function, begin
 #117,NPCiswalking,1,0       #x obsolete, backwards compatability only
 118,suspendcaterpillar,0    # other heros stop following the leader, and can be manipulated separately.
 119,resumecaterpillar,0     # turns catapillar party back on
-120,NPCreference,2,0,0      # get an NPC reference by ID number
+120,NPCreference,3,0,0,0    # get an NPC reference by ID number (ID, copynumber, allowdisabled)
 121,NPCatspot,3,0,0,0       # get nth NPC reference on tile (X,Y,n)
 122,getNPCID,1,0            # get the ID number of an NPC reference
 123,NPCcopycount,1,0        # find out how many copys of an NPC ID are on the map
@@ -736,8 +736,9 @@ script, npc copy number, hsd:npc, begin
   hsd:id := get NPC ID(hsd:npc)
   if (hsd:id < 0) then (exit returning (-1))  # No such NPC
   if (hsd:npc >= 0) then (exit returning (0))  # It's an NPC ID, not an NPC reference! ID refers to copy 0
+  #while(npc reference(hsd:id, hsd:copy, true) <> hsd:npc) do (hsd:copy += 1)
   while(hsd:ref <> hsd:npc) do (
-    hsd:ref := npc reference(hsd:id, hsd:copy)
+    hsd:ref := npc reference(hsd:id, hsd:copy, true)
     if (hsd:ref == 0) then (return (-1))
     hsd:copy += 1
   )

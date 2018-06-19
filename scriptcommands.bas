@@ -3636,9 +3636,12 @@ SUB script_functions(byval cmdid as integer)
  CASE 120'--NPC reference
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
+   DIM find_disabled as bool = get_optional_arg(2, 0) <> 0
    DIM found as integer = 0
    FOR i as integer = 0 TO UBOUND(npc)
-    IF npc(i).id - 1 = retvals(0) THEN
+    DIM id as integer = npc(i).id
+    IF find_disabled THEN id = ABS(id)
+    IF id - 1 = retvals(0) THEN
      IF found = retvals(1) THEN
       scriptret = (i + 1) * -1
       EXIT FOR

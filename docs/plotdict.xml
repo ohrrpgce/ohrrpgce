@@ -1388,13 +1388,31 @@ resume player</example>
 
 	<section title="Moving NPCs">
 		<command id="npcreference">
-			<canon>NPC reference (ID, copy)</canon>
+			<canon>NPC reference (ID, copy, allow disabled?)</canon>
 			<shortname>NPC reference</shortname>
-			<description>What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you don't specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. Copies are counted starting from zero. You can see the copy number of NPCs in the Map Editor if you placed them in Custom. If the NPC ID/copy which you asked for is not found on the map then NPC reference will return <ref>false</ref>.
+			<description>
+				What is an NPC reference?
+				A reference is a number that uniquely identifies an NPC on a map.
+				You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands.
+				<lb/>
+				The first argument to <tt>NPC reference</tt> is the <p>ID</p> number of the NPC you want to work with.
+				The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map.
+				<lb/>
+				The second argument, <p>copy</p> is optional.
+				It specifies which copy of the NPC you want, in case there are more than one on the map.
+				If you don't specify which copy you want, you will just get a reference to the first NPC on the map with the right ID.
+				Copies are counted starting from zero.
+				You can see the copy number of NPCs in the Map Editor if you placed them in Custom, at the bottom of the NPC.
+				(You can also see them using the F6 NPC debugger, by hoving the mouse over an NPC.)
+				<lb/>
+				The third argument, <p>allow disabled?</p> is optional, and defaults to <tt>false</tt>.
+				If <tt>true</tt>, when used on a copy of an NPC hidden due to tag conditions,
+				<tt>NPC reference</tt> will return a reference instead of returning <tt>false</tt>.
+				<lb/>
+				If the NPC ID/copy which you asked for is not found on the map then NPC reference will return <ref>false</ref> (zero).
 				(Unlike other NPC commands, this one does not accept an NPC reference in place of the NPC ID.)
 				<lb/>
 				If you plan on using the same NPC reference many times in a script you can store it in a <ref>variable</ref>.
-				<note>NPCs hidden due to tag conditions are never returned by this command.</note>
 			</description>
 			<example>include,plotscr.hsd
 
@@ -1664,7 +1682,7 @@ while (npcref) do (
 				and in the F6 NPC debug mode when you mouse-over an NPC.
 				<lb/>
 				If the reference is not valid then <p>NPC copy number</p> will return -1.
-				This command doesn't work on references to tag-disabled NPCs.
+				This command also works on references to tag-disabled NPCs.
 			</description>
 		</command>
 
