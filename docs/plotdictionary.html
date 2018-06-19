@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-06-19)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-06-20)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1798,6 +1798,9 @@
 		<a href="#about-microseconds">microseconds</a><br>
 		
 	
+		
+		<a href="#about-mouseconstants">middle button</a><br>
+	
 		<a href="#about-milliseconds">milliseconds</a><br>
 		
 	
@@ -1915,6 +1918,9 @@
 		<a href="#about-npccopycount">NPC copy count (ID)</a><br>
 		
 	
+		<a href="#about-npccopynumber">NPC copy number (reference)</a><br>
+		
+	
 		<a href="#about-npcdirection">NPC direction (who)</a><br>
 		
 	
@@ -1942,7 +1948,7 @@
 		<a href="#about-npcref">NPC references</a><br>
 		
 	
-		<a href="#about-npcreference">NPC reference (ID, copy)</a><br>
+		<a href="#about-npcreference">NPC reference (ID, copy, allow disabled?)</a><br>
 		
 	
 		<a href="#about-npcreferencefromslice">npc reference from slice (handle)</a><br>
@@ -3459,7 +3465,7 @@ variable+=1 # add one to it</pre>
 <a name="about-defineconstant"></a>
 		<h4>define constant (number,name)</h4>
 <p>
-			Creates a global constant. The first argument is the number that the constant will represent, and the second argument is the name of the constant. Use constants to replace commonly used numbers with friendly names. The following are some general purpose constants have been declared for you in plotscr.hsd (there are hundreds more intended for specific commands):<br><a href="#zero" class="undef">zero</a> <a href="#one" class="undef">one</a> <a href="#two" class="undef">two</a> <a href="#three" class="undef">three</a> <a href="#four" class="undef">four</a> <a href="#five" class="undef">five</a> <a href="#six" class="undef">six</a> <a href="#seven" class="undef">seven</a> <a href="#eight" class="undef">eight</a> <a href="#nine" class="undef">nine</a> <a href="#ten" class="undef">ten</a> <a href="#about-booleanconstants" class="ref">false</a> <a href="#about-booleanconstants" class="ref">true</a> <a href="#about-booleanconstants" class="ref">off</a> <a href="#about-booleanconstants" class="ref">on</a> <a href="#about-directionconstants" class="ref">north</a> <a href="#about-directionconstants" class="ref">east</a> <a href="#about-directionconstants" class="ref">south</a> <a href="#about-directionconstants" class="ref">west</a> <a href="#about-directionconstants" class="ref">up</a> <a href="#about-directionconstants" class="ref">down</a> <a href="#about-directionconstants" class="ref">left</a> <a href="#about-directionconstants" class="ref">right</a> <a href="#about-me" class="ref">me</a> <a href="#about-none" class="ref">none</a>
+			Creates a global constant. The first argument is the number that the constant will represent, and the second argument is the name of the constant. Use constants to replace commonly used numbers with friendly names. The following are some general purpose constants have been defined for you (there are hundreds more intended for specific commands):<br><a href="#zero" class="undef">zero</a> <a href="#one" class="undef">one</a> <a href="#two" class="undef">two</a> <a href="#three" class="undef">three</a> <a href="#four" class="undef">four</a> <a href="#five" class="undef">five</a> <a href="#six" class="undef">six</a> <a href="#seven" class="undef">seven</a> <a href="#eight" class="undef">eight</a> <a href="#nine" class="undef">nine</a> <a href="#ten" class="undef">ten</a> <a href="#about-booleanconstants" class="ref">false</a> <a href="#about-booleanconstants" class="ref">true</a> <a href="#about-booleanconstants" class="ref">off</a> <a href="#about-booleanconstants" class="ref">on</a> <a href="#about-directionconstants" class="ref">north</a> <a href="#about-directionconstants" class="ref">east</a> <a href="#about-directionconstants" class="ref">south</a> <a href="#about-directionconstants" class="ref">west</a> <a href="#about-directionconstants" class="ref">up</a> <a href="#about-directionconstants" class="ref">down</a> <a href="#about-directionconstants" class="ref">left</a> <a href="#about-directionconstants" class="ref">right</a> <a href="#about-me" class="ref">me</a> <a href="#about-none" class="ref">none</a>
 			
 			
 			
@@ -3469,7 +3475,7 @@ variable+=1 # add one to it</pre>
 <a name="about-include"></a>
 		<h4>include, filename</h4>
 <p>
-			The include command effectively inserts another text file into your script. It is followed by a single filename that tells what file will be included. This can be used to organise your scripts and other definitions like <a href="#about-defineconstant" class="ref">define constant</a> into multiple files. The filename can include a path, for example <span class="param">include, ..\utility scripts\math.hss</span>. You can optionally include quote marks around the filename, e.g. <span class="param">include, "misc.hss"</span>, which causes normal string parsing (for example, allowing a # character in a filename). Previously every plotscript file had to start with <span class="param">include, plotscr.hsd</span> but this is now optional. <span class="param">plotscr.hsd</span>, <span class="param">scancode.hsi</span>, and the exported <span class="param">your game name.hsi</span> file are all automatically included.
+			The include command effectively inserts another text file into your script. It is followed by a single filename that tells what file will be included. This can be used to organise your scripts and other definitions like <a href="#about-defineconstant" class="ref">define constant</a> into multiple files. The filename can include a path, for example <span class="param">include, ..\utility scripts\math.hss</span>. You can optionally include quote marks around the filename, e.g. <span class="param">include, "misc.hss"</span>, which causes normal string parsing (for example, allowing a # character in a filename). <br>Previously every plotscript file had to start with <span class="param">include, plotscr.hsd</span> but this is now optional. <span class="param">plotscr.hsd</span>, <span class="param">scancode.hsi</span>, and the exported <span class="param">your game name.hsi</span> file are all automatically included.
 			
 			<pre>include, cutscenes.hss  # All scripts for cutscenes
 include, ..\utility scripts\math.hss  # A few useful scripts shared between multiple games</pre>
@@ -5292,19 +5298,34 @@ resume player</pre>
 		
 		<div class="command">
 <a name="about-npcreference"></a>
-		<h4>NPC reference (ID, copy)</h4>
+		<h4>NPC reference (ID, copy, allow disabled?)</h4>
 <p>
-			What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you don't specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. Copies are counted starting from zero. You can see the copy number of NPCs in the Map Editor if you placed them in Custom. If the NPC ID/copy which you asked for is not found on the map then NPC reference will return <a href="#about-booleanconstants" class="ref">false</a>.
+			
+				What is an NPC reference?
+				A reference is a number that uniquely identifies an NPC on a map.
+				You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands.
+				<br>
+				The first argument to <span class="code">NPC reference</span> is the <span class="param">ID</span> number of the NPC you want to work with.
+				The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map.
+				<br>
+				The second argument, <span class="param">copy</span> is optional.
+				It specifies which copy of the NPC you want, in case there are more than one on the map.
+				If you don't specify which copy you want, you will just get a reference to the first NPC on the map with the right ID.
+				Copies are counted starting from zero.
+				You can see the copy number of NPCs in the Map Editor if you placed them in Custom, at the bottom of the NPC.
+				(You can also see them using the F6 NPC debugger, by hoving the mouse over an NPC.)
+				<br>
+				The third argument, <span class="param">allow disabled?</span> is optional, and defaults to <span class="code">false</span>.
+				If <span class="code">true</span>, when used on a copy of an NPC hidden due to tag conditions,
+				<span class="code">NPC reference</span> will return a reference instead of returning <span class="code">false</span>.
+				<br>
+				If the NPC ID/copy which you asked for is not found on the map then NPC reference will return <a href="#about-booleanconstants" class="ref">false</a> (zero).
 				(Unlike other NPC commands, this one does not accept an NPC reference in place of the NPC ID.)
 				<br>
 				If you plan on using the same NPC reference many times in a script you can store it in a <a href="#about-variable" class="ref">variable</a>.
-				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">NPCs hidden due to tag conditions are never returned by this command.</div>
 			
 			
-			<pre>include,plotscr.hsd
-
-#---NPC reference example---
+			<pre>#---NPC reference example---
 
 plotscript,ref example,begin
 
@@ -5339,7 +5360,7 @@ end</pre>
 <li>
 <a href="#about-getnpcid" class="ref">get NPC ID</a>, </li>
 <li>
-<a href="#npccopynumber" class="undef">npccopynumber</a>, </li>
+<a href="#about-npccopynumber" class="ref">NPC copy number</a>, </li>
 <li>
 <a href="#about-npccopycount" class="ref">NPC copy count</a>, </li>
 <li><a href="#about-nextnpcreference" class="ref">next NPC reference</a></li>
@@ -5690,10 +5711,31 @@ while (npcref) do (
 		<h4>get NPC ID (reference)</h4>
 <p>
 			
-				This command is the opposite of <a href="#about-npcreference" class="ref">NPC reference</a>.
+				This command opposite to <a href="#about-npcreference" class="ref">NPC reference</a> (along with <a href="#about-npccopynumber" class="ref">NPC copy number</a>).
 				If you give <span class="param">get NPC ID</span> a reference to an NPC it will return the NPC's ID.
-				If the NPC ID is not valid then <span class="param">get NPC ID</span> will return -1.
+				If the reference is not valid then <span class="param">get NPC ID</span> will return -1.
 				This command can be used on tag-disabled NPCs too, returning their ID number.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-npccopynumber"></a>
+		<h4>NPC copy number (reference)</h4>
+<p>
+			
+				This command opposite to <a href="#about-npcreference" class="ref">NPC reference</a> (along with <a href="#about-getnpcid" class="ref">get NPC ID</a>).
+				That is, it returns the copy number that you need to pass to <a href="#about-npcreference" class="ref">NPC reference</a>
+				to get this NPC.
+				If you give <span class="param">NPC copy number</span> a reference to an NPC it will return which copy
+				of that NPC definition it is - 0 if it's the first NPC, 1 is the second, etc.
+				This number is also shown in the map editor at the bottom of an NPC,
+				and in the F6 NPC debug mode when you mouse-over an NPC.
+				<br>
+				If the reference is not valid then <span class="param">NPC copy number</span> will return -1.
+				This command also works on references to tag-disabled NPCs.
 			
 			
 			
@@ -5718,9 +5760,7 @@ while (npcref) do (
 				</div>
 			
 			
-			<pre>include, plotscr.hsd
-
-#---NPC copy count example---
+			<pre>#---NPC copy count example---
 
 plotscript, every NPC example, begin
 
@@ -9486,7 +9526,7 @@ end</pre>
 <p>
 			
 				Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button is currently pressed down.
-				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
+				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a>, <a href="#about-mouseconstants" class="ref">middle button</a> or <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
@@ -9510,7 +9550,7 @@ end</pre>
 <p>
 			
 				Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button has been 'clicked' down in the last tick.
-				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
+				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a>, <a href="#about-mouseconstants" class="ref">middle button</a> or <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
@@ -9534,7 +9574,7 @@ end</pre>
 <p>
 			
 				Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button has been released since the last tick.
-				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
+				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a>, <a href="#about-mouseconstants" class="ref">middle button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
@@ -11889,9 +11929,18 @@ end
 <a name="about-lookupslice"></a>
 		<h4>lookup slice (lookup code, start slice)</h4>
 <p>
-			Search for an important slice using a <a href="#about-lookupcode" class="ref">slice lookup code</a>, and return a handle to it, or 0 if it is not found. You can optionally specify a slice for the <span class="param">lookup slice</span> command to start searching from, but if you do not, the whole slice tree will be searched.
+			
+				Search for an important slice using a <a href="#about-lookupcode" class="ref">slice lookup code</a>, and return a handle to it, or 0 if it is not found.
+				You can optionally specify a slice for the <span class="param">lookup slice</span> command to start searching from,
+				but if you do not, the whole slice tree will be searched.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Although the user-defined slice lookup codes are always safe to use for any purpose, There is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, like reordering, reparenting, or god forbid freeing the special slice, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! Deleting or reparenting special slices generally won't work. You may parent your own slices to these special slices, though.</div>
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					You can use a number as a lookup code, but usually you use a builtin code constant, starting with <span class="code">sl:</span>
+					(see below), or name a code in the slice editor, in which case the constant will start with <span class="code">sli:</span>.
+					Don't mix them up!
+				</div>
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Although the user-defined slice lookup codes are always safe to use for any purpose, there is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, like reordering, reparenting, or god forbid freeing the special slice, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! Deleting or reparenting special slices generally won't work. You may parent your own slices to these special slices, though.</div>
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Be aware that when there is more than one slice with the same lookup code, the <span class="param">lookup slice</span> command will only return the first one it finds in a depth-first search. If you need to find multiple slices with the same lookup code, you must search manually using <a href="#about-getslicelookup" class="ref">get slice lookup</a>.</div>
 			You may <a href="#about-setparent" class="ref">set parent</a> a slice to a map layer to make it move with the camera just like heroes and NPCs do.
@@ -12011,7 +12060,7 @@ end
 <a name="about-getslicelookup"></a>
 		<h4>get slice lookup (handle)</h4>
 <p>
-			Returns the <a href="#about-lookupcode" class="ref">slice lookup code</a> of a slice, or <a href="#about-booleanconstants" class="ref">false</a> if it has none. You can compare the result with the <span class="param">sli:</span> slice lookup values in your hsi file, or with the <span class="param">sl:</span> special lookup values in plotscr.hsd
+			Returns the <a href="#about-lookupcode" class="ref">slice lookup code</a> of a slice, or <a href="#about-booleanconstants" class="ref">false</a> if it has none. You can compare the result with the <span class="param">sli:</span> slice lookup values in your hsi file, or with the <span class="param">sl:</span> special builtin lookup values
 			
 			
 			<div class="seealso">See also: <ul>
@@ -12026,7 +12075,7 @@ end
 <a name="about-setslicelookup"></a>
 		<h4>set slice lookup (handle, code)</h4>
 <p>
-			Changes the lookup code of a slice. The first argument is the <a href="#about-slicehandle" class="ref">slice handle</a>, the second is the new <a href="#slicelookupcode" class="undef">slicelookupcode</a>. You can pass <a href="#about-booleanconstants" class="ref">false</a> as the second argument to remove a slice's lookup code. This command works with the <span class="param">sli:</span> slice lookup values in your hsi file. It does not work with the <span class="param">sl:</span> special lookup values in plotscr.hsd, nor can it modify the lookup code of slices that already have special lookup codes. Only user-defined lookup codes can be changed. Built-in special lookup codes cannot.
+			Changes the lookup code of a slice. The first argument is the <a href="#about-slicehandle" class="ref">slice handle</a>, the second is the new <a href="#slicelookupcode" class="undef">slicelookupcode</a>. You can pass <a href="#about-booleanconstants" class="ref">false</a> as the second argument to remove a slice's lookup code. This command works with the <span class="param">sli:</span> slice lookup values in your hsi file. It does not work with the <span class="param">sl:</span> special builtin lookup values, nor can it modify the lookup code of slices that already have special lookup codes. Only user-defined lookup codes can be changed. Built-in special lookup codes cannot.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -18922,7 +18971,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-numericconstants"></a>
 		<h4>Numeric Constants</h4>
 <p>
-			PLOTSCR.HSD defines constants for the numbers from 0 to 10. You can use these constants to make your scripts look friendly :)<br>zero, one, two, three, four, five, six, seven, eight, nine, ten
+			There are pre-defined constants for the numbers from 0 to 10. You can use these constants to make your scripts look friendly :)<br>zero, one, two, three, four, five, six, seven, eight, nine, ten
 			
 			
 			
@@ -18980,7 +19029,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-booleanconstants"></a>
 		<h4>Boolean Constants</h4>
 <p>
-			PLOTSCR.HSD defines constants for true and false, and for ON and OFF. These are useful for checking and setting the values of tags, and in conditional statements. true/on are equal to 1, false/off are equal to 0.<br>true, false, on, off
+			There are constants are named <span class="code">true</span> and <span class="code">false</span>, and for <span class="code">ON</span> and <span class="code">OFF</span>. These are useful for checking and setting the values of tags, and in conditional statements. <span class="code">true</span>/<span class="code">on</span> are equal to 1, <span class="code">false</span>/<span class="code">off</span> are equal to 0.<br>true, false, on, off
 			
 			
 			
@@ -19014,7 +19063,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-directionconstants"></a>
 		<h4>Direction Constants</h4>
 <p>
-			PLOTSCR.HSD defines constants for each of the four directions. These constants are useful for commands such as <a href="#about-walkhero" class="ref">walk hero</a> and <a href="#about-walknpc" class="ref">walk NPC</a>, which take a direction as an argument.<br>north, south, east, west, up, down, right, left
+			There are constants for each of the four directions. These constants are useful for commands such as <a href="#about-walkhero" class="ref">walk hero</a> and <a href="#about-walknpc" class="ref">walk NPC</a>, which take a direction as an argument.<br>north, south, east, west, up, down, right, left
 			
 			
 			
@@ -19072,7 +19121,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-me"></a>
 		<h4>me</h4>
 <p>
-			me is a constant that can be used to refer to the first hero in your party (hero zero) in any command that takes a hero number as an argument. It is equal to zero.
+			<span class="code">me</span> is a constant that can be used to refer to the first hero in your party (hero zero) in any command that takes a hero number as an argument. It is equal to zero.
 			
 			
 			
@@ -19082,7 +19131,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-none"></a>
 		<h4>none</h4>
 <p>
-			none is a constant that means the same as zero.
+			<span class="code">none</span> is a constant that means the same as zero.
 			
 			
 			
@@ -19092,7 +19141,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-autonumber"></a>
 		<h4>autonumber</h4>
 <p>
-			autonumber is a constant that is used as the ID number in old-style <b>define script</b> commands. This is not needed anymore. Use <a href="#about-script" class="ref">script</a> instead.
+			<span class="code">autonumber</span> is an obsolete constant that is used as the ID number in old-style <b>define script</b> commands. This is not needed anymore. Use <a href="#about-script" class="ref">script</a> instead.
 			
 			
 			
@@ -19165,7 +19214,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-colorconstants"></a>
 		<h4>Color Constants</h4>
 <p>
-			PLOTSCR.HSD defines constants for each of the three primary colors. These are used in commands like <a href="#about-readcolor" class="ref">read color</a> or <a href="#about-writecolor" class="ref">write color</a><br>color:red, color:green, color:blue
+			Constants for each of the three primary colors are used in commands like <a href="#about-readcolor" class="ref">read color</a> or <a href="#about-writecolor" class="ref">write color</a><br>color:red, color:green, color:blue
 			
 			
 			
@@ -19193,7 +19242,11 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-mouseconstants"></a>
 		<h4>Mouse Constants</h4>
 <p>
-			PLOTSCR.HSD defines constants for use with the mouse functions. They're used the <a href="#about-mousebutton" class="ref">mouse button</a> command.<br>left button, right button
+			
+				The following constants are for use with the mouse functions such as <a href="#about-mousebutton" class="ref">mouse button</a>.
+				<br>
+				<span class="code">left button</span>, <span class="code">middle button</span>, <span class="code">right button</span>
+			
 			
 			
 			
@@ -19203,6 +19256,12 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-leftbutton"></a>
 		
 				<h4>left button</h4>
+				See <a href="#about-mouseconstants">Mouse Constants</a>
+			</div>
+		<div class="command">
+<a name="about-middlebutton"></a>
+		
+				<h4>middle button</h4>
 				See <a href="#about-mouseconstants">Mouse Constants</a>
 			</div>
 		<div class="command">
@@ -19225,7 +19284,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-tileconstants"></a>
 		<h4>Tile Constants</h4>
 <p>
-			PLOTSCR.HSD defines constants for use with functions like <a href="#about-readpassblock" class="ref">read pass block</a> or <a href="#about-writepassblock" class="ref">write pass block</a>.<br>north wall, east wall, south wall, west wall, vehicle A, vehicle B, harm tile, overhead tile
+			The following constants are for use with functions like <a href="#about-readpassblock" class="ref">read pass block</a> or <a href="#about-writepassblock" class="ref">write pass block</a>.<br>north wall, east wall, south wall, west wall, vehicle A, vehicle B, harm tile, overhead tile
 			
 			
 			
@@ -19417,7 +19476,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 851 commands (of which 47 are aliases), 63 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 852 commands (of which 48 are aliases), 64 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
