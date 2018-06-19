@@ -1011,7 +1011,8 @@ sub setvispage (page as integer, skippable as bool = YES)
 		draw_allmodex_overlays drawpage
 	end if
 
-	'the fb backend may freeze up if it collides with the polling thread
+	'fb_gfx may deadlock if it collides with the polling thread because of
+	'FB bug https://sourceforge.net/p/fbc/bugs/885/
 	GFX_ENTER
 
 	starttime += timer  'Stop timer
@@ -1804,6 +1805,7 @@ function interrupting_keypress () as bool
 	dim keybd_dummy(scLAST) as integer
 	dim mouse as MouseInfo
 
+	'Note: This use of gfxmutex is necessary even if FB bug 885 gets fixed (see r642 & r708)
 	GFX_ENTER
 	io_keybits(@keybd_dummy(0))
 	io_mousebits(mouse.x, mouse.y, mouse.wheel, mouse.buttons, mouse.clicks)
