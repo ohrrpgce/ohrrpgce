@@ -44,8 +44,6 @@ DECLARE SUB shop (byval id as integer)
 DECLARE FUNCTION useinn (byval price as integer, byval holdscreen as integer) as integer
 DECLARE SUB tagdisplay (page as integer)
 DECLARE SUB writejoysettings
-DECLARE FUNCTION herocount (byval last as integer = sizeActiveParty - 1) as integer
-DECLARE FUNCTION caterpillar_size () as integer
 
 DECLARE FUNCTION gamepadmap_from_reload(gamepad as NodePtr, byval use_dpad as bool=NO) as GamePadMap
 DECLARE FUNCTION use_touch_textboxes() as bool

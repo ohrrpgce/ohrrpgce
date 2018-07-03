@@ -76,6 +76,11 @@ DECLARE FUNCTION first_free_slot_in_party() as integer
 DECLARE FUNCTION first_free_slot_in_active_party() as integer
 DECLARE FUNCTION first_free_slot_in_reserve_party() as integer
 DECLARE FUNCTION free_slots_in_party() as integer
+DECLARE FUNCTION herocount (byval last as integer = sizeActiveParty - 1) as integer
+DECLARE FUNCTION caterpillar_size () as integer
+DECLARE FUNCTION active_party_slots() as integer
+DECLARE FUNCTION is_active_party_slot(byval slot as integer) as integer
+DECLARE FUNCTION loop_active_party_slot(byval slot as integer, byval direction as integer=1) as integer
 
 DECLARE SUB queue_fade_in (delay as integer = 0, script_overridable as bool = NO)
 DECLARE SUB check_for_queued_fade_in ()
@@ -99,11 +104,6 @@ DECLARE SUB debug_menu()
 DECLARE SUB update_virtual_gamepad_display()
 DECLARE FUNCTION calc_virtual_gamepad_state() as bool
 DECLARE SUB a_script_wants_keys()
-
-DECLARE FUNCTION last_active_party_slot() as integer 'FIXME: use this everywhere!
-DECLARE FUNCTION is_active_party_slot(byval slot as integer) as integer
-DECLARE FUNCTION active_party_size() as integer
-DECLARE FUNCTION loop_active_party_slot(byval slot as integer, byval direction as integer=1) as integer
 
 DECLARE FUNCTION top_menu_allows_controls() as bool
 

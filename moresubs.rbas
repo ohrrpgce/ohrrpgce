@@ -2067,21 +2067,6 @@ SUB writejoysettings
  CLOSE #fh
 END SUB
 
-FUNCTION herocount (byval last as integer = sizeActiveParty - 1) as integer
- '--differs from liveherocount() in that it does not care if they are alive
- DIM count as integer = 0
- FOR i as integer = 0 TO last
-  IF gam.hero(i).id >= 0 THEN count += 1
- NEXT i
- RETURN count
-END FUNCTION
-
-FUNCTION caterpillar_size () as integer
- 'Returns the number of heroes on the map, regardless of whether caterpillar trailing is suspended
- IF readbit(gen(), genBits, 1) = 1 THEN RETURN herocount
- RETURN 1
-END FUNCTION
-
 FUNCTION default_margin() as integer
  IF running_on_console() THEN
   'On OUYA, default to a safe 8% margin

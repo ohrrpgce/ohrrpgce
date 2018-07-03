@@ -4178,10 +4178,10 @@ FUNCTION hero_should_ignore_walls(byval who as integer) as bool
  RETURN NO
 END FUNCTION
 
+
 '==========================================================================================
 '                                      Party slots
 '==========================================================================================
-
 
 SUB forceparty ()
  '---MAKE SURE YOU HAVE AN ACTIVE PARTY---
@@ -4225,6 +4225,21 @@ FUNCTION first_free_slot_in_reserve_party() as integer
  RETURN -1
 END FUNCTION
 
+FUNCTION herocount (byval last as integer = sizeActiveParty - 1) as integer
+ '--differs from liveherocount() in that it does not care if they are alive
+ DIM count as integer = 0
+ FOR i as integer = 0 TO last
+  IF gam.hero(i).id >= 0 THEN count += 1
+ NEXT i
+ RETURN count
+END FUNCTION
+
+FUNCTION caterpillar_size () as integer
+ 'Returns the number of heroes on the map, regardless of whether caterpillar trailing is suspended
+ IF readbit(gen(), genBits, 1) = 1 THEN RETURN herocount
+ RETURN 1
+END FUNCTION
+
 FUNCTION free_slots_in_party() as integer
  '--Returns the number of free slots in the active+reserve party
  'Note that there can only be 38 heroes total even though there are 41
@@ -4240,16 +4255,14 @@ FUNCTION free_slots_in_party() as integer
 
 END FUNCTION
 
-FUNCTION last_active_party_slot() as integer
- RETURN 3
+'This defines the max size of the active party
+'(Eventually; we can't change this yet)
+FUNCTION active_party_slots() as integer
+ RETURN 4
 END FUNCTION
 
 FUNCTION is_active_party_slot(byval slot as integer) as integer
- RETURN slot >=0 ANDALSO slot <= last_active_party_slot()
-END FUNCTION
-
-FUNCTION active_party_size() as integer
- RETURN last_active_party_slot() + 1
+ RETURN slot >= 0 ANDALSO slot <= active_party_slots() - 1
 END FUNCTION
 
 FUNCTION loop_active_party_slot(byval slot as integer, byval direction as integer=1) as integer
@@ -4262,7 +4275,7 @@ FUNCTION loop_active_party_slot(byval slot as integer, byval direction as intege
   RETURN slot
  END IF
  DO
-  loopvar slot, 0, last_active_party_slot(), direction
+  loopvar slot, 0, active_party_slots - 1, direction
   IF gam.hero(slot).id >= 0 THEN RETURN slot
  LOOP
 END FUNCTION
