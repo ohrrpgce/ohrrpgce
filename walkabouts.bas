@@ -1189,40 +1189,41 @@ END FUNCTION
 'Returns true if the scramble is finished
 FUNCTION vehscramble(byval target as XYPair) as bool
  DIM scrambled_heroes as integer = 0
- DIM count as integer = herocount()
+ 'Maybe this should actually be caterpillar_count(), so that if caterpillar
+ 'mode is suspended, the other heroes don't mount the vehicle?
+ DIM count as integer = active_party_size()
  DIM scramx as integer
  DIM scramy as integer
- FOR i as integer = 0 TO 3
-  IF i < count THEN
-   scramx = herox(i)
-   scramy = heroy(i)
-   IF ABS(scramx - target.x) < large(herow(i).speed, 4) THEN
-    scramx = target.x
-    herow(i).xgo = 0
-    herow(i).ygo = 0
-   END IF
-   IF ABS(scramy - target.y) < large(herow(i).speed, 4) THEN
-    scramy = target.y
-    herow(i).xgo = 0
-    herow(i).ygo = 0
-   END IF
-   IF ABS(target.x - scramx) > 0 AND herow(i).xgo = 0 THEN
-    herow(i).xgo = 20 * SGN(scramx - target.x)
-   END IF
-   IF ABS(target.y - scramy) > 0 AND herow(i).ygo = 0 THEN
-    herow(i).ygo = 20 * SGN(scramy - target.y)
-   END IF
-   IF gmap(5) = mapEdgeWrap THEN
-    '--this is a wrapping map
-    IF ABS(scramx - target.x) > mapsizetiles.x * 20 / 2 THEN herow(i).xgo *= -1
-    IF ABS(scramy - target.y) > mapsizetiles.y * 20 / 2 THEN herow(i).ygo *= -1
-   END IF
-   IF scramx - target.x = 0 AND scramy - target.y = 0 THEN scrambled_heroes += 1
-   (herox(i)) = scramx
-   (heroy(i)) = scramy
+ FOR i as integer = 0 TO count - 1
+  scramx = herox(i)
+  scramy = heroy(i)
+  IF ABS(scramx - target.x) < large(herow(i).speed, 4) THEN
+   scramx = target.x
+   herow(i).xgo = 0
+   herow(i).ygo = 0
   END IF
+  IF ABS(scramy - target.y) < large(herow(i).speed, 4) THEN
+   scramy = target.y
+   herow(i).xgo = 0
+   herow(i).ygo = 0
+  END IF
+  IF ABS(target.x - scramx) > 0 AND herow(i).xgo = 0 THEN
+   herow(i).xgo = 20 * SGN(scramx - target.x)
+  END IF
+  IF ABS(target.y - scramy) > 0 AND herow(i).ygo = 0 THEN
+   herow(i).ygo = 20 * SGN(scramy - target.y)
+  END IF
+  IF gmap(5) = mapEdgeWrap THEN
+   '--this is a wrapping map
+   IF ABS(scramx - target.x) > mapsizetiles.x * 20 / 2 THEN herow(i).xgo *= -1
+   IF ABS(scramy - target.y) > mapsizetiles.y * 20 / 2 THEN herow(i).ygo *= -1
+  END IF
+  IF scramx - target.x = 0 AND scramy - target.y = 0 THEN scrambled_heroes += 1
+  (herox(i)) = scramx
+  (heroy(i)) = scramy
  NEXT i
  IF scrambled_heroes = count THEN
+  'All heroes have reached the target
   IF vstate.dat.on_mount < 0 THEN
    trigger_script ABS(vstate.dat.on_mount), 0, YES, "vehicle on-mount", "", mainFibreGroup
   END IF

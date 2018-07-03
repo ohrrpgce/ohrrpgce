@@ -1461,7 +1461,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 65'--resume overlay
   setbit gen(), genSuspendBits, suspendoverlay, 0
  CASE 70'--room in active party
-  scriptret = 4 - herocount(3)
+  scriptret = active_party_slots() - active_party_size()
  CASE 71'--lock hero
   DIM hero_slot as integer = findhero(retvals(0) + 1, 0, 40, 1, serrWarn)
   IF hero_slot > -1 THEN gam.hero(hero_slot).locked = YES
@@ -4012,10 +4012,10 @@ SUB script_functions(byval cmdid as integer)
    scriptret = slot
   END IF
  CASE 67'--delete hero (hero ID)
-  IF herocount(40) > 1 AND retvals(0) >= 0 THEN
+  IF party_size() > 1 AND retvals(0) >= 0 THEN
    DIM i as integer = findhero(retvals(0) + 1, 0, 40, 1, serrWarn)
    IF i > -1 THEN gam.hero(i).id = -1
-   IF herocount(3) = 0 THEN forceparty
+   IF active_party_size() = 0 THEN forceparty
    party_change_updates
   END IF
  CASE 68'--swap out hero
@@ -4024,7 +4024,7 @@ SUB script_functions(byval cmdid as integer)
    FOR o as integer = 40 TO 4 STEP -1
     IF gam.hero(o).id = -1 THEN
      doswap i, o
-     IF herocount(3) = 0 THEN forceparty
+     IF active_party_size() = 0 THEN forceparty
      EXIT FOR
     END IF
    NEXT o

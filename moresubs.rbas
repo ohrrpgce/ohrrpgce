@@ -709,9 +709,10 @@ DO
    DIM swap2 as integer
    DO
     IF st.swapme < 4 THEN
-     IF (herocount() <= 1 ANDALSO st.reserve.pt = st.reserve.last) ORELSE (gam.hero(st.swapme).locked ANDALSO gam.hero(st.swapme).id >= 0 ANDALSO st.reserve.pt > -1) THEN EXIT DO
+     IF active_party_size() <= 1 ANDALSO st.reserve.pt = st.reserve.last THEN EXIT DO
+     IF gam.hero(st.swapme).locked ANDALSO gam.hero(st.swapme).id >= 0 ANDALSO st.reserve.pt > -1 THEN EXIT DO
     ELSE
-     IF st.swapme - 4 = st.reserve.last AND st.reserve.pt = -1 AND herocount() <= 1 THEN EXIT DO
+     IF st.swapme - 4 = st.reserve.last AND st.reserve.pt = -1 AND active_party_size() <= 1 THEN EXIT DO
      IF gam.hero(st.party.pt).locked ANDALSO gam.hero(st.party.pt).id >= 0 ANDALSO st.reserve.pt = -1 THEN EXIT DO
     END IF
     '---IDENTIFY DESTINATION---
@@ -864,7 +865,7 @@ SUB hero_swap_menu_display (st as OrderTeamState)
     IF st.swapme = i + 4 THEN menu_color = uilook(uiSelectedDisabled + st.party.tog)
    END IF
    IF st.swapme > -1 AND st.swapme < 4 THEN
-    IF (herocount() <= 1 ANDALSO i = st.reserve.last) ORELSE (gam.hero(st.party.pt).locked ANDALSO gam.hero(st.party.pt).id >= 0) THEN
+    IF (active_party_size() <= 1 ANDALSO i = st.reserve.last) ORELSE (gam.hero(st.party.pt).locked ANDALSO gam.hero(st.party.pt).id >= 0) THEN
      menu_color = uilook(uiTimeBar + ((st.reserve.pt = i) * st.party.tog))
     END IF
    END IF
@@ -1178,7 +1179,7 @@ DIM w as integer = rank_to_party_slot(0)
 
 '-- if there is only one hero, return immediately
 '--unless we are in alone-mode
-IF alone = NO AND herocount() <= 1 THEN
+IF alone = NO ANDALSO active_party_size() <= 1 THEN
  setkeys
  RETURN w
 END IF
@@ -1965,7 +1966,7 @@ DO
 
  'Draw screen
  copypage holdscreen, vpage
- edgeboxstyle 0, 3, 218, herocount() * 10 + 4, 0, page
+ edgeboxstyle 0, 3, 218, active_party_size() * 10 + 4, 0, page
  DIM y as integer = 0
  FOR i as integer = 0 TO sizeActiveParty - 1
   IF gam.hero(i).id >= 0 THEN

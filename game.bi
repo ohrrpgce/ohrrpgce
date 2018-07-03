@@ -76,9 +76,12 @@ DECLARE FUNCTION first_free_slot_in_party() as integer
 DECLARE FUNCTION first_free_slot_in_active_party() as integer
 DECLARE FUNCTION first_free_slot_in_reserve_party() as integer
 DECLARE FUNCTION free_slots_in_party() as integer
-DECLARE FUNCTION herocount (byval last as integer = sizeActiveParty - 1) as integer
+DECLARE FUNCTION party_size () as integer
+DECLARE FUNCTION active_party_size () as integer
 DECLARE FUNCTION caterpillar_size () as integer
+'See also liveherocount
 DECLARE FUNCTION active_party_slots() as integer
+DECLARE FUNCTION last_active_party_slot() as integer 'FIXME: use this everywhere!
 DECLARE FUNCTION is_active_party_slot(byval slot as integer) as integer
 DECLARE FUNCTION loop_active_party_slot(byval slot as integer, byval direction as integer=1) as integer
 

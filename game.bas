@@ -3532,10 +3532,10 @@ SUB add_rem_swap_lock_hero (byref box as TextBox)
  END IF '---end if > 0
  '---REMOVE---
  IF box.hero_addrem < 0 THEN
-  IF herocount(40) > 1 THEN
+  IF party_size() > 1 THEN
    i = findhero(-box.hero_addrem, 0, 40, 1, serrWarn)
    IF i > -1 THEN gam.hero(i).id = -1
-   IF herocount(3) = 0 THEN forceparty
+   IF active_party_size() = 0 THEN forceparty
   END IF
  END IF '---end if < 0
  '---SWAP-IN---
@@ -3557,7 +3557,7 @@ SUB add_rem_swap_lock_hero (byref box as TextBox)
    FOR o as integer = 40 TO 4 STEP -1
     IF gam.hero(o).id = -1 THEN
      doswap i, o
-     IF herocount(3) = 0 THEN forceparty
+     IF active_party_size() = 0 THEN forceparty
      EXIT FOR
     END IF
    NEXT o
@@ -4225,10 +4225,19 @@ FUNCTION first_free_slot_in_reserve_party() as integer
  RETURN -1
 END FUNCTION
 
-FUNCTION herocount (byval last as integer = sizeActiveParty - 1) as integer
- '--differs from liveherocount() in that it does not care if they are alive
+FUNCTION party_size () as integer
+ 'Returns the number of heroes in the whole party.
+ 'Differs from liveherocount() in that it does not care if they are alive
  DIM count as integer = 0
- FOR i as integer = 0 TO last
+ FOR i as integer = 0 TO UBOUND(gam.hero) - 1
+  IF gam.hero(i).id >= 0 THEN count += 1
+ NEXT i
+ RETURN count
+END FUNCTION
+
+FUNCTION active_party_size () as integer
+ DIM count as integer = 0
+ FOR i as integer = 0 TO active_party_slots - 1
   IF gam.hero(i).id >= 0 THEN count += 1
  NEXT i
  RETURN count
@@ -4236,7 +4245,7 @@ END FUNCTION
 
 FUNCTION caterpillar_size () as integer
  'Returns the number of heroes on the map, regardless of whether caterpillar trailing is suspended
- IF readbit(gen(), genBits, 1) = 1 THEN RETURN herocount
+ IF readbit(gen(), genBits, 1) = 1 THEN RETURN active_party_size()
  RETURN 1
 END FUNCTION
 
@@ -4249,9 +4258,9 @@ FUNCTION free_slots_in_party() as integer
  'very long that games could already exist that rely on having 41 heroes
 
  '--This is the "correct" intended limit that has never been enforced right.
- 'RETURN 38 - herocount(40)
+ 'RETURN 38 - party_size()
 
- RETURN 41 - herocount(40)
+ RETURN (UBOUND(gam.hero) + 1) - party_size()
 
 END FUNCTION
 
@@ -4270,7 +4279,7 @@ FUNCTION loop_active_party_slot(byval slot as integer, byval direction as intege
  IF direction <> 1 ANDALSO direction <> -1 THEN
   RETURN slot
  END IF
- IF herocount() = 0 THEN
+ IF active_party_size() = 0 THEN
   'If the party is somehow empty, return the original slot
   RETURN slot
  END IF
