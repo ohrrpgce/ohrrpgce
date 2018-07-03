@@ -1172,24 +1172,24 @@ SUB teleporttool_generate_minimap(byref mini as Frame Ptr, maptilesX() as TileMa
  camera.y = bound(dest.y * zoom - minisize.y \ 2, 0, mapsize.y * zoom - minisize.y)
 END SUB
 
-FUNCTION onwho (caption as string, byval alone as bool=NO) as integer
+' This is the hero picker (for the active party only).
+' Returns party slot or -1 if cancelled.
+' If there is only one hero, return immediately if skip_if_alone.
+FUNCTION onwho (caption as string, skip_if_alone as bool = YES) as integer
 
 '-- pre-select the first hero
-DIM w as integer = rank_to_party_slot(0)
+DIM who as integer = rank_to_party_slot(0)
 
-'-- if there is only one hero, return immediately
-'--unless we are in alone-mode
-IF alone = NO ANDALSO active_party_size() <= 1 THEN
+IF skip_if_alone ANDALSO active_party_size() <= 1 THEN
  setkeys
- RETURN w
+ RETURN who
 END IF
 
 menusound gen(genAcceptSFX)
 copypage vpage, dpage
 DIM page as integer = compatpage
 DIM tog as integer
-DIM wtg as integer
-DIM wt as integer
+DIM walktoggle as integer
 
 show_virtual_gamepad()
 
@@ -1200,22 +1200,21 @@ DO
  tog = tog XOR 1
  playtimer
  control
- loopvar wtg, 0, 3
+ loopvar walktoggle, 0, 3, 1
  DIM do_exit as bool = NO
- DIM do_pick as bool = NO
  IF carray(ccMenu) > 1 THEN do_exit = YES
  IF carray(ccLeft) > 1 THEN
-  DO: loopvar(w, 0, 3, -1): LOOP UNTIL gam.hero(w).id >= 0
+  who = loop_active_party_slot(who, -1)
   menusound gen(genCursorSFX)
  END IF
  IF carray(ccRight) > 1 THEN
-  DO: loopvar(w, 0, 3, 1): LOOP UNTIL gam.hero(w).id >= 0
+  who = loop_active_party_slot(who, 1)
   menusound gen(genCursorSFX)
  END IF
- IF carray(ccUse) > 1 THEN do_pick = YES
+ IF carray(ccUse) > 1 THEN EXIT DO
 
  IF get_gen_bool("/mouse/mouse_menus") THEN
-  DIM old_w as integer = w
+  DIM old_who as integer = who
   DIM hover as integer = -1
   FOR i as integer = 0 TO 3
    IF rect_collide_point(Type(100 + i * 30 - 5, 100 - 5, 30, 30), readmouse.pos) THEN
@@ -1225,17 +1224,17 @@ DO
   IF (readmouse.release AND mouseRight) THEN do_exit = YES
   IF (readmouse.buttons AND mouseLeft) THEN
    IF hover >= 0 ANDALSO gam.hero(hover).id >= 0 THEN
-    w = hover
+    who = hover
    END IF
   END IF
   IF (readmouse.release AND mouseLeft) THEN
    IF hover >= 0 THEN
     IF gam.hero(hover).id >= 0 THEN
-     IF w = hover THEN
+     IF who = hover THEN
       'Already selected, confirm
-      do_pick = YES
+      EXIT DO
      ELSE
-      w = hover
+      who = hover
      END IF
     ELSE
      'Can't pick an empty slot
@@ -1248,16 +1247,12 @@ DO
     END IF
    END IF
   END IF
-  IF w <> old_w THEN menusound gen(genCursorSFX)
+  IF who <> old_who THEN menusound gen(genCursorSFX)
  END IF
 
  IF do_exit THEN
-  onwho = -1
+  who = -1
   menusound gen(genCancelSFX)
-  EXIT DO
- END IF
- IF do_pick THEN
-  onwho = w
   EXIT DO
  END IF
 
@@ -1265,13 +1260,14 @@ DO
  DIM cater_slot as integer = 0
  FOR party_slot as integer = 0 TO 3
   IF gam.hero(party_slot).id >= 0 THEN
-   IF w = party_slot THEN wt = wtg \ 2 ELSE wt = 0
-   set_walkabout_frame herow(cater_slot).sl, dirDown, wt
+   DIM walkframe as integer
+   IF who = party_slot THEN walkframe = walktoggle \ 2 ELSE walkframe = 0
+   set_walkabout_frame herow(cater_slot).sl, dirDown, walkframe
    DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 100 + party_slot * 30, 100, 20, 20, page, YES
    cater_slot += 1
   END IF
  NEXT
- edgeprint CHR(25), 106 + w * 30, 90, uilook(uiSelectedItem + tog), page
+ edgeprint CHR(25), 106 + who * 30, 90, uilook(uiSelectedItem + tog), page
  wrapprint caption, pCentered, 80, uilook(uiText), page
  setvispage vpage
  dowait
@@ -1279,6 +1275,7 @@ LOOP
 freepage page
 setkeys
 flusharray carray(), 7, 0
+RETURN who
 END FUNCTION
 
 SUB readjoysettings
@@ -1842,7 +1839,7 @@ DO
    hero_swap_menu 1
   END IF
   IF menuid(st.pt) = 4 THEN '--EQUIP
-   w = onwho(readglobalstring(108, "Equip Who?", 20), NO)
+   w = onwho(readglobalstring(108, "Equip Who?", 20))
    IF w >= 0 THEN
     equip_menu w
    END IF

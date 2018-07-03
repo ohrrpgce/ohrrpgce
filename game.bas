@@ -2853,13 +2853,13 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
        close_menu = YES
       END IF
      CASE spSpells
-      slot = onwho(readglobalstring(106, "Whose Spells?", 20), NO)
+      slot = onwho(readglobalstring(106, "Whose Spells?", 20))
       IF slot >= 0 THEN old_spells_menu slot
      CASE spStatus
-      slot = onwho(readglobalstring(104, "Whose Status?", 20), NO)
+      slot = onwho(readglobalstring(104, "Whose Status?", 20))
       IF slot >= 0 THEN status_screen slot
      CASE spEquip
-      slot = onwho(readglobalstring(108, "Equip Who?", 20), NO)
+      slot = onwho(readglobalstring(108, "Equip Who?", 20))
       IF slot >= 0 THEN equip_menu slot
      CASE spOrder
       hero_swap_menu 0

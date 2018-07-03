@@ -1659,7 +1659,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 134'--hero by rank
   scriptret = herobyrank(retvals(0))
  CASE 145'--pick hero
-  scriptret = onwho(readglobalstring(135, "Which Hero?", 20), YES)
+  scriptret = onwho(readglobalstring(135, "Which Hero?", 20), NO)
  CASE 146'--rename hero by slot
   IF valid_hero_party(retvals(0)) THEN
    IF gam.hero(retvals(0)).id >= 0 THEN
