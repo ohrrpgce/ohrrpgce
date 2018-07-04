@@ -50,7 +50,9 @@ TYPE HeroState
  levelmp(maxMPLevel) as integer 'FF1-style level MP
  equip(4) as EquipSlot      'Equipment
  lev as integer
- lev_gain as integer
+ lev_gain as integer        'Number of levels gained in the last battle or XP-giving script command
+ learnmask((4 * 24 - 1) \ 16) as integer  'Spells learnt in the last battle: 2D array of bits
+                                          '(Not affected by script commands)
  exp_cur as integer
  exp_next as integer
  wep_pic as integer

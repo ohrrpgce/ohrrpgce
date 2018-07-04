@@ -108,9 +108,7 @@ gam.hero(slot).exp_next = exptolevel(her.def_level + 1, her.exp_mult)
 reset_levelmp gam.hero(slot)
 
 '--clear learnmask slots (just to be really thorough)
-FOR i as integer = slot * 6 TO slot * 6 + 5
- learnmask(i) = 0
-NEXT
+flusharray gam.hero(slot).learnmask()
 
 '--heros are added unlocked
 gam.hero(slot).locked = NO
@@ -379,19 +377,13 @@ SUB delitem (byval item_id as integer, byval amount as integer=1)
  NEXT o
 END SUB
 
+'Swap two party slots
 SUB doswap (byval s as integer, byval d as integer)
+ '---hero state and stats
+ SWAP gam.hero(s), gam.hero(d)
 
-'---hero state and stats
-SWAP gam.hero(s), gam.hero(d)
-
-'--Learnt spells flags
-FOR i as integer = 0 TO 5
- SWAP learnmask(s * 6 + i), learnmask(d * 6 + i)
-NEXT
-
-'--set tags, reload hero pictures and palettes, etc
-party_change_updates
-
+ '--set tags, reload hero pictures and palettes, etc
+ party_change_updates
 END SUB
 
 SUB update_textbox ()

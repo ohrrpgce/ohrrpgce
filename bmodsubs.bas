@@ -850,19 +850,17 @@ FUNCTION hero_total_exp (byval hero_slot as integer) as integer
  RETURN total_exp_to_level(gam.hero(hero_slot).lev, gam.hero(hero_slot).exp_mult) + gam.hero(hero_slot).exp_cur
 END FUNCTION
 
-SUB updatestatslevelup (byval hero_slot as integer, byval allowforget as integer)
+SUB updatestatslevelup (byval hero_slot as integer, byval allowforget as bool)
  ' hero_slot = who
  ' allowforget = forget spells if level dropped below requirement
 
- 'wipe learnmask for this hero
- 'note that this gets wiped again later, but that is okay.
- 'this makes sure that learnmask gets cleared for this battle
- 'even if the hero *doesn't* get a level-up.
- FOR o as integer = hero_slot * 6 TO hero_slot * 6 + 5
-  learnmask(o) = 0
- NEXT
-
  WITH gam.hero(hero_slot)
+
+  'wipe learnmask for this hero
+  'note that this gets wiped again later, but that is okay.
+  'this makes sure that learnmask gets cleared for this battle
+  'even if the hero *doesn't* get a level-up.
+  flusharray .learnmask()
 
   'THIS PART UPDATES STATS FOR A LEVEL UP
   IF .lev_gain THEN
@@ -958,18 +956,16 @@ SUB compute_hero_base_stats_from_max(byval hero_slot as integer)
  END WITH
 END SUB
 
-SUB learn_spells_for_current_level(byval who as integer, byval allowforget as integer)
+SUB learn_spells_for_current_level(byval who as integer, byval allowforget as bool)
 
  'Teaches all spells that can be learned from level
  ' up to the hero's current level.
  '(but should not overwrite any spells learned with "write spell")
 
  'wipe learnmask for this hero
- FOR o as integer = who * 6 TO who * 6 + 5
-  learnmask(o) = 0
- NEXT
+ flusharray gam.hero(who).learnmask()
 
- dim her as herodef
+ DIM her as herodef
  loadherodata her, gam.hero(who).id
 
  'learn spells
@@ -979,7 +975,7 @@ SUB learn_spells_for_current_level(byval who as integer, byval allowforget as in
     '--if slot is empty and slot accepts a spell and learn-by-level condition is true
     IF gam.hero(who).spells(j, o) = 0 AND .attack > 0 AND .learned - 1 <= gam.hero(who).lev AND .learned > 0 THEN
      gam.hero(who).spells(j, o) = .attack
-     setbit learnmask(), 0, who * 96 + j * 24 + o, 1
+     setbit gam.hero(who).learnmask(), 0, j * 24 + o, 1
     END IF
     IF allowforget THEN
      '--plotscripts may lower level, forget spells if drop below requirement and know the spell specified
@@ -1023,7 +1019,7 @@ SUB giveheroexperience (byval who as integer, byval exper as integer)
  END WITH
 END SUB
 
-SUB setheroexperience (byval who as integer, byval amount as integer, byval allowforget as integer)
+SUB setheroexperience (byval who as integer, byval amount as integer, byval allowforget as bool)
  'unlike giveheroexperience, this can cause delevelling
  DIM orig_lev as integer = gam.hero(who).lev
  DIM total as integer = 0
@@ -1049,9 +1045,7 @@ SUB setheroexperience (byval who as integer, byval amount as integer, byval allo
  gam.hero(who).lev_gain -= orig_lev
  IF lostlevels THEN
   'didn't learn spells, wipe mask
-  FOR i as integer = who * 6 TO who * 6 + 5
-   learnmask(i) = 0
-  NEXT
+  flusharray gam.hero(who).learnmask()
  END IF
  'Update tags
  evalherotags

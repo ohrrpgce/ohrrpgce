@@ -4159,7 +4159,7 @@ SUB script_functions(byval cmdid as integer)
    gam.hero(retvals(0)).lev = retvals(1)
    gam.hero(retvals(0)).exp_next = exptolevel(retvals(1) + 1, gam.hero(retvals(0)).exp_mult)
    gam.hero(retvals(0)).exp_cur = 0  'XP attained towards the next level
-   updatestatslevelup retvals(0), retvals(2) 'updates stats and spells
+   updatestatslevelup retvals(0), retvals(2) <> 0 'updates stats and spells
    evalherotags
    tag_updates
   END IF
@@ -4168,7 +4168,7 @@ SUB script_functions(byval cmdid as integer)
   IF retvals(0) <> -1 THEN
    IF valid_hero_party(retvals(0)) THEN
     giveheroexperience retvals(0), retvals(1)
-    updatestatslevelup retvals(0), 0
+    updatestatslevelup retvals(0), NO
    END IF
   ELSE
    'This sets the level gain and learnt spells and calls updatestatslevelup for every hero
@@ -4184,17 +4184,19 @@ SUB script_functions(byval cmdid as integer)
   'constants, which are all consistently wrong!
   DIM found as integer = 0
   IF valid_hero_party(retvals(0)) THEN
-   FOR i as integer = retvals(0) * 96 TO retvals(0) * 96 + 95
-    IF readbit(learnmask(), 0, i) THEN
-     IF retvals(1) = found THEN
-      scriptret = gam.hero(retvals(0)).spells((i \ 24) MOD 4, i MOD 24)
-      IF cmdid = 186 THEN scriptret -= 1
-      EXIT FOR
+   WITH gam.hero(retvals(0))
+    FOR i as integer = 0 TO 4 * 24 - 1
+     IF readbit(.learnmask(), 0, i) THEN
+      IF retvals(1) = found THEN
+       scriptret = .spells(i \ 24, i MOD 24)  'Attack ID + 1
+       IF cmdid = 186 THEN scriptret -= 1
+       EXIT FOR
+      END IF
+      found += 1
      END IF
-     found = found + 1
-    END IF
-   NEXT
-   IF retvals(1) = -1 THEN scriptret = found  'getcount
+    NEXT
+    IF retvals(1) = -1 THEN scriptret = found  'getcount
+   END WITH
   END IF
  CASE 269'--total experience
   IF valid_hero_party(retvals(0)) THEN
@@ -4218,11 +4220,11 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 272'--set experience  (who, what, allowforget)
   IF valid_hero_party(retvals(0)) AND retvals(1) >= 0 THEN
-   setheroexperience retvals(0), retvals(1), retvals(2)
+   setheroexperience retvals(0), retvals(1), (retvals(2) <> 0)
   END IF
  CASE 445'--update level up learning(who, allowforget)
   IF valid_hero_party(retvals(0)) THEN
-   learn_spells_for_current_level retvals(0), (retvals(1)<>0)
+   learn_spells_for_current_level retvals(0), (retvals(1) <> 0)
   END IF
  CASE 449'--reset hero picture
   DIM heronum as integer = retvals(0)

@@ -107,7 +107,6 @@ EXTERN plotstr() as Plotstring
 'Battle globals
 EXTERN lastformation as integer
 EXTERN bstackstart as integer
-EXTERN learnmask() as integer
 EXTERN atkq() as AttackQueue
 
 EXTERN timers() as PlotTimer
