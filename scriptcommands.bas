@@ -130,7 +130,7 @@ FUNCTION standard_embed_codes(act as string, byval arg as integer) as string
    '--defaults blank if not found
    insert = ""
    '--first search for a copy of the hero in the party
-   DIM where as integer = findhero(arg + 1, 0, 40, 1)
+   DIM where as integer = findhero(arg + 1)
    IF where >= 0 THEN
     insert = gam.hero(where).name
    ELSE
@@ -1463,10 +1463,10 @@ SUB script_functions(byval cmdid as integer)
  CASE 70'--room in active party
   scriptret = active_party_slots() - active_party_size()
  CASE 71'--lock hero
-  DIM hero_slot as integer = findhero(retvals(0) + 1, 0, 40, 1, serrWarn)
+  DIM hero_slot as integer = findhero(retvals(0) + 1, , serrWarn)
   IF hero_slot > -1 THEN gam.hero(hero_slot).locked = YES
  CASE 72'--unlock hero
-  DIM hero_slot as integer = findhero(retvals(0) + 1, 0, 40, 1, serrWarn)
+  DIM hero_slot as integer = findhero(retvals(0) + 1, , serrWarn)
   IF hero_slot > -1 THEN gam.hero(hero_slot).locked = NO
  CASE 74'--set death script
   gen(genGameoverScript) = large(retvals(0), 0)
@@ -1508,7 +1508,7 @@ SUB script_functions(byval cmdid as integer)
   resetcaterpillar_for_one_hero retvals(0), retvals(1) * 20, retvals(2) * 20
   END IF
  CASE 90'--find hero
-  scriptret = findhero(retvals(0) + 1, 0, 40, 1)
+  scriptret = findhero(retvals(0) + 1)
  CASE 91'--check equipment
   IF valid_hero_party(retvals(0)) THEN
    scriptret = gam.hero(retvals(0)).equip(bound(retvals(1) - 1, 0, 4)).id
@@ -4013,13 +4013,13 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 67'--delete hero (hero ID)
   IF party_size() > 1 AND retvals(0) >= 0 THEN
-   DIM i as integer = findhero(retvals(0) + 1, 0, 40, 1, serrWarn)
+   DIM i as integer = findhero(retvals(0) + 1, , serrWarn)
    IF i > -1 THEN gam.hero(i).id = -1
    IF active_party_size() = 0 THEN forceparty
    party_change_updates
   END IF
  CASE 68'--swap out hero
-  DIM i as integer = findhero(retvals(0) + 1, 0, 40, 1, serrWarn)
+  DIM i as integer = findhero(retvals(0) + 1, , serrWarn)
   IF i > -1 THEN
    FOR o as integer = 40 TO 4 STEP -1
     IF gam.hero(o).id = -1 THEN
@@ -4030,7 +4030,7 @@ SUB script_functions(byval cmdid as integer)
    NEXT o
   END IF
  CASE 69'--swap in hero
-  DIM i as integer = findhero(retvals(0) + 1, 40, 0, -1, serrWarn)
+  DIM i as integer = findhero(retvals(0) + 1, -1, serrWarn)
   IF i > -1 THEN
    FOR o as integer = 0 TO 3
     IF gam.hero(o).id = -1 THEN

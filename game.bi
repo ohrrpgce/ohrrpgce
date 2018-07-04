@@ -72,7 +72,7 @@ DECLARE FUNCTION seek_rpg_or_rpgdir_and_select_it(where as string, gamename as s
 DECLARE SUB usenpc(byval cause as integer, byval npcnum as integer)
 
 DECLARE SUB forceparty ()
-DECLARE FUNCTION findhero (byval id as integer, byval first as integer, byval last as integer, byval direction as integer, errlvl as scriptErrEnum = serrIgnore) as integer
+DECLARE FUNCTION findhero (byval id as integer, byval direction as integer = 1, errlvl as scriptErrEnum = serrIgnore) as integer
 DECLARE FUNCTION first_free_slot_in_party() as integer
 DECLARE FUNCTION first_free_slot_in_active_party() as integer
 DECLARE FUNCTION first_free_slot_in_reserve_party() as integer
