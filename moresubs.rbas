@@ -1965,7 +1965,7 @@ DO
  copypage holdscreen, vpage
  edgeboxstyle 0, 3, 218, active_party_size() * 10 + 4, 0, page
  DIM y as integer = 0
- FOR i as integer = 0 TO sizeActiveParty - 1
+ FOR i as integer = 0 TO active_party_slots - 1
   IF gam.hero(i).id >= 0 THEN
    DIM col as integer = uilook(uiText)
    edgeprint gam.hero(i).name, 128 - LEN(gam.hero(i).name) * 8, 5 + y * 10, col, page

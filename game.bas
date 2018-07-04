@@ -1323,7 +1323,7 @@ END SUB
 
 SUB update_heroes(force_step_check as bool=NO)
  'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left
- FOR whoi as integer = 0 TO sizeActiveParty - 1
+ FOR whoi as integer = 0 TO active_party_slots - 1
   IF herow(whoi).speed = 0 THEN
    '--cancel movement, or some of the following code misbehaves
    herow(whoi).xgo = 0
@@ -1391,13 +1391,13 @@ SUB update_heroes(force_step_check as bool=NO)
    updatecaterpillarhistory
   END IF
   IF herow(0).xgo ORELSE herow(0).ygo ORELSE readbit(gen(), genBits2, 26) THEN
-   FOR whoi as integer = 0 TO sizeActiveParty - 1
+   FOR whoi as integer = 0 TO active_party_slots - 1
     loopvar herow(whoi).wtog, 0, 3
    NEXT whoi
   END IF
  ELSE
   'Suspended caterpillar
-  FOR whoi as integer = 0 TO sizeActiveParty - 1
+  FOR whoi as integer = 0 TO active_party_slots - 1
    IF herow(whoi).xgo ORELSE herow(whoi).ygo ORELSE readbit(gen(), genBits2, 26) THEN
     loopvar herow(whoi).wtog, 0, 3
    END IF
@@ -1405,14 +1405,14 @@ SUB update_heroes(force_step_check as bool=NO)
  END IF
 
  'save position before move. use this later when updating stillticks
- DIM oldpos(0 TO sizeActiveParty - 1) as XYPair
- FOR whoi as integer = 0 TO sizeActiveParty - 1
+ DIM oldpos(0 TO active_party_slots - 1) as XYPair
+ FOR whoi as integer = 0 TO active_party_slots - 1
   oldpos(whoi) = heropos(whoi)
  NEXT whoi
 
  'Non-caterpillar (normal [xy]go-based) hero movement
- DIM didgo(0 TO sizeActiveParty - 1) as bool
- FOR whoi as integer = 0 TO sizeActiveParty - 1
+ DIM didgo(0 TO active_party_slots - 1) as bool
+ FOR whoi as integer = 0 TO active_party_slots - 1
   'NOTE: this loop covers the max caterpillar size, and not the current
   ' return value of caterpillar_size() because empty hero slots still
   ' need to be movable on the map. Scripts sometimes want to move a hero
@@ -1477,7 +1477,7 @@ SUB update_heroes(force_step_check as bool=NO)
     END IF
 
     IF harm_whole_party THEN
-     FOR party_slot as integer = 0 TO sizeActiveParty - 1
+     FOR party_slot as integer = 0 TO active_party_slots - 1
       IF gam.hero(party_slot).id >= 0 THEN
        gam.hero(party_slot).stat.cur.hp = large(gam.hero(party_slot).stat.cur.hp - gmap(9), 0)
       END IF

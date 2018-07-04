@@ -296,7 +296,6 @@ CONST maxMaxSong = 32767 ' Max possible value for gen(genMaxSong)
 CONST maxMaxShop = 32767 ' Max possible value for gen(genMaxShop)
 CONST maxSaveSlotCount = 1000 ' highest allowed value for gen(genSaveSlotCount)
 
-CONST sizeActiveParty = 4 'The size of the active/battle party
 CONST sizeParty = 41 'The maximum size of the entire party (length of gam.hero())
 CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count the zero)
 CONST maplayerMax = 15 'The limit on the highest numbered map layer
