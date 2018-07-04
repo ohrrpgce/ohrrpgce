@@ -22,7 +22,6 @@ DECLARE SUB doswap (byval s as integer, byval d as integer)
 DECLARE SUB party_change_updates ()
 DECLARE SUB evalherotags ()
 DECLARE SUB evalitemtags ()
-DECLARE FUNCTION findhero (byval id as integer, byval first as integer, byval last as integer, byval direction as integer, errlvl as scriptErrEnum = serrIgnore) as integer
 DECLARE SUB hero_swap_menu (byval reserve_too as bool)
 DECLARE SUB settag OVERLOAD (byval tagnum as integer, byval value as integer = 4444)
 DECLARE SUB settag OVERLOAD (tagbits() as integer, byval tagnum as integer, byval value as integer = 4444)
