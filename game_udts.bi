@@ -46,6 +46,7 @@ TYPE HeroState
  name as string
  locked as bool
  stat as HeroStats
+ spells(3, 23) as integer   '4 spell lists: 0 for none, or attack ID + 1
  levelmp(maxMPLevel) as integer 'FF1-style level MP
  equip(4) as EquipSlot      'Equipment
  lev as integer

@@ -2773,8 +2773,8 @@ FOR j as integer = 0 TO 3
  FOR o as integer = 0 TO 23
   '--if this slot is empty and accepts this spell
   '--and is learnable by an item
-  IF spell(who, j, o) = 0 AND her.spell_lists(j,o).attack = atk AND her.spell_lists(j,o).learned = 0 THEN
-   spell(who, j, o) = atk
+  IF gam.hero(who).spells(j, o) = 0 AND her.spell_lists(j,o).attack = atk AND her.spell_lists(j,o).learned = 0 THEN
+   gam.hero(who).spells(j, o) = atk
    result = YES
   END IF
  NEXT o
@@ -2834,7 +2834,7 @@ FUNCTION count_available_spells(byval who as integer, byval list as integer) as 
  DIM i as integer
  DIM n as integer = 0
  FOR i = 0 to 23
-  IF spell(who, list, i) > 0 THEN n + = 1
+  IF gam.hero(who).spells(list, i) > 0 THEN n + = 1
  NEXT i
  RETURN n
 END FUNCTION
@@ -3671,9 +3671,8 @@ SUB spells_menu_refresh_list(sp as SpellsMenuState)
    .can_use = NO
    .targt = 0
    .tstat = 0
-   'NOTE: spell() is a global
-   IF spell(sp.hero, sp.lists(sp.listnum).menu_index, i) > 0 THEN
-    .id = spell(sp.hero, sp.lists(sp.listnum).menu_index, i) - 1
+   IF gam.hero(sp.hero).spells(sp.lists(sp.listnum).menu_index, i) > 0 THEN
+    .id = gam.hero(sp.hero).spells(sp.lists(sp.listnum).menu_index, i) - 1
     loadattackdata atk, .id
     IF atk.useable_outside_battle THEN
      .can_use = YES

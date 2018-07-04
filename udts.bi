@@ -726,7 +726,7 @@ Type AttackData
 	poison_is_negative_regen as bool
 End Type
 
-'An item in a hero's spell list definition (actual spell lists in spell() array of integers)
+'An item in a hero's spell list definition (actual spell lists in HeroState.spells() array of integers)
 Type SpellList
 	attack as integer   'attack id+1, 0 for unused
 	learned as integer  '0 if learnable from an item, or level+1 if learnt at level

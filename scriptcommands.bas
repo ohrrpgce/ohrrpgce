@@ -1597,21 +1597,21 @@ SUB script_functions(byval cmdid as integer)
   retvals(0) = bound(retvals(0), 0, 40)
   FOR i as integer = 0 TO 3
    FOR j as integer = 0 TO 23
-    IF spell(retvals(0), i, j) = retvals(1) THEN
-     spell(retvals(0), i, j) = 0
+    IF gam.hero(retvals(0)).spells(i, j) = retvals(1) THEN
+     gam.hero(retvals(0)).spells(i, j) = 0
      scriptret = 1
     END IF
    NEXT j
   NEXT i
  CASE 129'--read spell
   IF valid_hero_party(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= 3 AND retvals(2) >= 0 AND retvals(2) <= 23 THEN
-   scriptret = spell(retvals(0), retvals(1), retvals(2))
+   scriptret = gam.hero(retvals(0)).spells(retvals(1), retvals(2))
   ELSE
    scriptret = 0
   END IF
  CASE 130'--write spell
   IF valid_hero_party(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= 3 AND retvals(2) >= 0 AND retvals(2) <= 23 AND retvals(3) >= 0 THEN
-   spell(retvals(0), retvals(1), retvals(2)) = retvals(3)
+   gam.hero(retvals(0)).spells(retvals(1), retvals(2)) = retvals(3)
   END IF
  CASE 131'--knows spell
   scriptret = 0
@@ -1619,7 +1619,7 @@ SUB script_functions(byval cmdid as integer)
   IF retvals(1) > 0 THEN
    FOR i as integer = 0 TO 3
     FOR j as integer = 0 TO 23
-     IF spell(retvals(0), i, j) = retvals(1) THEN
+     IF gam.hero(retvals(0)).spells(i, j) = retvals(1) THEN
       scriptret = 1
       EXIT FOR
      END IF
@@ -1640,7 +1640,7 @@ SUB script_functions(byval cmdid as integer)
     loadherodata her, heroID
     FOR i as integer = 0 TO 3
      FOR j as integer = 0 TO 23
-      IF spell(partyslot, i, j) = 0 THEN
+      IF gam.hero(partyslot).spells(i, j) = 0 THEN
        IF her.spell_lists(i,j).attack = retvals(1) AND her.spell_lists(i,j).learned = retvals(2) THEN
         scriptret = 1
         EXIT FOR
@@ -3072,7 +3072,7 @@ SUB script_functions(byval cmdid as integer)
    FOR i as integer = retvals(0) * 96 TO retvals(0) * 96 + 95
     IF readbit(learnmask(), 0, i) THEN
      IF retvals(1) = found THEN
-      scriptret = spell(retvals(0), (i \ 24) MOD 4, i MOD 24)
+      scriptret = gam.hero(retvals(0)).spells((i \ 24) MOD 4, i MOD 24)
       EXIT FOR
      END IF
      found = found + 1
@@ -4199,7 +4199,7 @@ SUB script_functions(byval cmdid as integer)
    FOR i as integer = retvals(0) * 96 TO retvals(0) * 96 + 95
     IF readbit(learnmask(), 0, i) THEN
      IF retvals(1) = found THEN
-      scriptret = spell(retvals(0), (i \ 24) MOD 4, i MOD 24) - 1
+      scriptret = gam.hero(retvals(0)).spells((i \ 24) MOD 4, i MOD 24) - 1
       EXIT FOR
      END IF
      found = found + 1

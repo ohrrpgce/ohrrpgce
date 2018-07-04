@@ -80,10 +80,10 @@ gam.hero(slot).wep_pal = wbuf(53)
 '--put spells in spell list
 FOR i as integer = 0 TO 3
  FOR o as integer = 0 TO 23
-  spell(slot, i, o) = 0
+  gam.hero(slot).spells(i, o) = 0
   WITH her.spell_lists(i, o)
    IF .attack > 0 AND .learned - 1 <= her.def_level AND .learned > 0 THEN
-    spell(slot, i, o) = .attack
+    gam.hero(slot).spells(i, o) = .attack
    END IF
   END WITH
  NEXT o
@@ -380,13 +380,6 @@ SUB delitem (byval item_id as integer, byval amount as integer=1)
 END SUB
 
 SUB doswap (byval s as integer, byval d as integer)
-
-'---Spell lists
-FOR i as integer = 0 TO 3
- FOR o as integer = 0 TO 23
-  SWAP spell(s, i, o), spell(d, i, o)
- NEXT o
-NEXT i
 
 '---hero state and stats
 SWAP gam.hero(s), gam.hero(d)
@@ -1444,7 +1437,7 @@ FOR i as integer = 0 TO 40
  NEXT j
  FOR o as integer = 0 TO 3
   FOR j as integer = 0 TO 23
-   spell(i, o, j) = 0
+   gam.hero(i).spells(o, j) = 0
   NEXT j
  NEXT o
  FOR o as integer = 0 TO maxMPLevel

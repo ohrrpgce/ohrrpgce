@@ -750,7 +750,7 @@ SUB gamestate_spelllist_from_reload(byval hero_slot as integer, byval spell_list
    DIM i as integer = GetInteger(n)
    SELECT CASE i
     CASE 0 TO 23
-     spell(hero_slot, spell_list, i) = n."attack" + 1
+     gam.hero(hero_slot).spells(spell_list, i) = n."attack" + 1
     CASE ELSE
      rsav_warn "invalid spell list slot " & i
    END SELECT
@@ -1212,7 +1212,7 @@ SUB gamestate_spelllist_to_reload(byval hero_slot as integer, byval spell_list a
 
  DIM atk_id as integer
  FOR i as integer = 0 TO 23
-  atk_id = spell(hero_slot, spell_list, i) - 1
+  atk_id = gam.hero(hero_slot).spells(spell_list, i) - 1
   IF atk_id >= 0 THEN
    n = AppendChildNode(node, "spell", i)
    SetChildNode(n, "attack", atk_id)
@@ -1590,7 +1590,7 @@ show_load_index z, "spell"
 FOR i = 0 TO 40
  FOR o = 0 TO 3
   FOR j = 0 TO 23
-   spell(i, o, j) = buffer(z): z = z + 1
+   gam.hero(i).spells(o, j) = buffer(z): z = z + 1
   NEXT j
   z = z + 1'--skip extra data
  NEXT o

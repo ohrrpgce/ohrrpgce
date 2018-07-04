@@ -977,14 +977,14 @@ SUB learn_spells_for_current_level(byval who as integer, byval allowforget as in
   FOR o as integer = 0 TO 23
    WITH her.spell_lists(j,o)
     '--if slot is empty and slot accepts a spell and learn-by-level condition is true
-    IF spell(who, j, o) = 0 AND .attack > 0 AND .learned - 1 <= gam.hero(who).lev AND .learned > 0 THEN
-     spell(who, j, o) = .attack
+    IF gam.hero(who).spells(j, o) = 0 AND .attack > 0 AND .learned - 1 <= gam.hero(who).lev AND .learned > 0 THEN
+     gam.hero(who).spells(j, o) = .attack
      setbit learnmask(), 0, who * 96 + j * 24 + o, 1
     END IF
     IF allowforget THEN
      '--plotscripts may lower level, forget spells if drop below requirement and know the spell specified
-     IF spell(who, j, o) = .attack AND .learned - 1 > gam.hero(who).lev THEN
-      spell(who, j, o) = 0
+     IF gam.hero(who).spells(j, o) = .attack AND .learned - 1 > gam.hero(who).lev THEN
+      gam.hero(who).spells(j, o) = 0
      END IF
     END IF
    END WITH

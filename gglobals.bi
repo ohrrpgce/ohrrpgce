@@ -47,9 +47,6 @@ EXTERN onetime() as integer
 'Vehicle globals
 EXTERN vstate as VehicleState
 
-'Hero globals
-EXTERN spell() as integer
-
 'Map state globals
 EXTERN gmap() as integer
 EXTERN maptiles() as TileMap

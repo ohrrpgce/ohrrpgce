@@ -94,7 +94,6 @@ REDIM itemtags(maxMaxItems) as ItemTagsCache
 REDIM statnames() as string
 
 'Party stuff
-REDIM spell(40, 3, 23) as integer
 REDIM inventory(inventoryMax) as InventSlot
 DIM gold as integer
 

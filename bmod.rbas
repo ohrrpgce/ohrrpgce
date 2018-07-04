@@ -1861,8 +1861,8 @@ SELECT CASE bat.vic.state
   IF bat.vic.showlearn = NO THEN '--Not showing a spell yet. find the next one
    DO
     bat.vic.learnslot += 1
-    IF bat.vic.learnslot > 23 THEN bat.vic.learnslot = 0: bat.vic.learnlist = bat.vic.learnlist + 1
-    IF bat.vic.learnlist > 3 THEN bat.vic.learnlist = 0: bat.vic.learnwho = bat.vic.learnwho + 1
+    IF bat.vic.learnslot > 23 THEN bat.vic.learnslot = 0: bat.vic.learnlist += 1
+    IF bat.vic.learnlist > 3 THEN bat.vic.learnlist = 0: bat.vic.learnwho += 1
     IF bat.vic.learnwho > UBOUND(gam.hero) THEN ' We have iterated through all spell lists for all heroes, time to move on
      bat.vic.state = vicITEMS
      bat.vic.display_ticks = 0
@@ -1874,7 +1874,7 @@ SELECT CASE bat.vic.state
     IF readbit(learnmask(), 0, bat.vic.learnwho * 96 + bat.vic.learnlist * 24 + bat.vic.learnslot) THEN
      'found a learned spell
      DIM learn_attack as AttackData
-     loadattackdata learn_attack, spell(bat.vic.learnwho, bat.vic.learnlist, bat.vic.learnslot) - 1
+     loadattackdata learn_attack, gam.hero(bat.vic.learnwho).spells(bat.vic.learnlist, bat.vic.learnslot) - 1
      bat.vic.item_name = gam.hero(bat.vic.learnwho).name + bat.vic.learned_caption + learn_attack.name
      bat.vic.showlearn = YES
      bat.vic.box = YES
@@ -2748,9 +2748,9 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
     .atk_id = -1
    END WITH
    bat.spell.slot(i).enable = NO
-   IF spell(bat.hero_turn, bat.listslot, i) > 0 THEN '--there is a spell in this slot
+   IF gam.hero(bat.hero_turn).spells(bat.listslot, i) > 0 THEN '--there is a spell in this slot
     spellcount += 1
-    bat.spell.slot(i).atk_id = spell(bat.hero_turn, bat.listslot, i) - 1
+    bat.spell.slot(i).atk_id = gam.hero(bat.hero_turn).spells(bat.listslot, i) - 1
     loadattackdata atk, bat.spell.slot(i).atk_id
     bat.spell.slot(i).name = atk.name
     bat.spell.slot(i).desc = atk.description
@@ -2766,9 +2766,9 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
   spellcount = 0
   FOR i = 0 TO 23 '-- loop through the spell list storing attack ID numbers
    bat.spell.slot(i).atk_id = -1
-   IF spell(bat.hero_turn, bat.listslot, i) > 0 THEN '--there is a spell in this slot
+   IF gam.hero(bat.hero_turn).spells(bat.listslot, i) > 0 THEN '--there is a spell in this slot
     spellcount += 1
-    bat.spell.slot(i).atk_id = spell(bat.hero_turn, bat.listslot, i) - 1
+    bat.spell.slot(i).atk_id = gam.hero(bat.hero_turn).spells(bat.listslot, i) - 1
    END IF
   NEXT i
   IF spellcount > 0 THEN '-- don't attempt to pick randomly from an empty list
@@ -4020,7 +4020,6 @@ FUNCTION knows_attack(who as integer, atk as integer, bslot() as BattleSprite) a
  'who is bslot index
  'atk is attack id
  'bslot() hero and enemy data
- 'spell() is a global array
 
  '--different handling for heroes and monsters
 
@@ -4032,7 +4031,7 @@ FUNCTION knows_attack(who as integer, atk as integer, bslot() as BattleSprite) a
       IF atk = .sub_t THEN RETURN YES
      CASE batmenu_SPELLS:
       FOR j as integer = 0 TO 23
-       IF spell(who, .sub_t, j) = atk THEN RETURN YES 'Knows the attack in a spell list
+       IF gam.hero(who).spells(.sub_t, j) = atk THEN RETURN YES 'Knows the attack in a spell list
       NEXT j
     END SELECT
    END WITH
