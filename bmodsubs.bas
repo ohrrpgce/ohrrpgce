@@ -146,7 +146,7 @@ END IF
 
 '--check for level-MP (heroes only)
 IF attacker <= 3 AND spclass = 1 THEN
- IF lmp(attacker, lmplev) - 1 < 0 THEN
+ IF gam.hero(attacker).levelmp(lmplev) <= 0 THEN
   RETURN NO
  END IF
 END IF
@@ -898,7 +898,7 @@ SUB updatestatslevelup (byval hero_slot as integer, byval allowforget as integer
    IF readbit(gen(), genBits, 3) = 0 THEN '"Don't restore MP on level-up" OFF
     '--MP restoration
     .stat.cur.mp = .stat.max.mp 'set external cur to external max
-    resetlmp hero_slot, .lev
+    reset_levelmp gam.hero(hero_slot)
    END IF
 
    'make current stats match max stats

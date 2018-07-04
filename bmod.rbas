@@ -679,18 +679,21 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
   '--set the flag to prevent re-consuming MP
   bat.atk.has_consumed_costs = YES
  END IF
- IF bslot(bat.acting).consume_lmp > 0 THEN
-  lmp(bat.acting, bslot(bat.acting).consume_lmp - 1) -= 1
-  bslot(bat.acting).consume_lmp = 0
- END IF
- IF bslot(bat.acting).consume_item >= 0 THEN
-  IF consumeitem(bslot(bat.acting).consume_item) THEN
-   setbit bat.iuse(), 0, bslot(bat.acting).consume_item, 0
-   evalitemtags
+
+ WITH bslot(bat.acting)
+  IF .consume_lmp > 0 THEN
+   gam.hero(bat.acting).levelmp(.consume_lmp - 1) -= 1
+   .consume_lmp = 0
   END IF
-  bslot(bat.acting).consume_item = -1
- END IF
- 
+  IF .consume_item >= 0 THEN
+   IF consumeitem(.consume_item) THEN
+    setbit bat.iuse(), 0, .consume_item, 0
+    evalitemtags
+   END IF
+   .consume_item = -1
+  END IF
+ END WITH
+
  IF liveherocount(bslot()) = 0 THEN bat.atk.id = -1
  
 END SUB
@@ -4898,7 +4901,7 @@ END SUB
 FUNCTION hero_attack_cost_info(byref atk as AttackData, byval hero_slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=0) as string
  DIM cur_lmp as integer = 0
  IF magic_list_type = 1 ANDALSO lmp_level > 0 THEN
-  cur_lmp = lmp(hero_slot, lmp_level - 1)
+  cur_lmp = gam.hero(hero_slot).levelmp(lmp_level - 1)
  END IF
  RETURN attack_cost_info(atk,_
    gam.hero(hero_slot).stat.cur.focus,_
@@ -4913,7 +4916,7 @@ FUNCTION bslot_attack_cost_info(bslot() as BattleSprite, byref atk as AttackData
  DIM cur_lmp as integer = 0
  IF slot >= 0 ANDALSO slot <= 3 THEN
   IF magic_list_type = 1 ANDALSO lmp_level > 0 THEN
-   cur_lmp = lmp(slot, lmp_level - 1)
+   cur_lmp = gam.hero(slot).levelmp(lmp_level - 1)
   END IF
  END IF
  RETURN attack_cost_info(atk,_

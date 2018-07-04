@@ -937,25 +937,25 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 287'--get level mp
   IF valid_hero_party(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 7, "mp level") THEN
+   IF bound_arg(retvals(1), 0, maxMPLevel, "mp level") THEN
     retvals(2) = get_optional_arg(2, 0)
     IF retvals(2) = 0 THEN
      'Current stat
-     scriptret = lmp(retvals(0), retvals(1))
+     scriptret = gam.hero(retvals(0)).levelmp(retvals(1))
     ELSEIF retvals(2) = 1 THEN
      'Maximum stat
-     DIM levelmp(7) as integer
+     DIM levelmp(maxMPLevel) as integer
      get_max_levelmp(levelmp(), gam.hero(retvals(0)).lev)
      scriptret = levelmp(retvals(1))
     ELSE
-     scripterr "getlevelmp: stat type should be currentstat==0 or maximumstat==1, not " & retvals(2), serrBadOp
+     scripterr "getlevelmp: stat type should be currentstat (0) or maximumstat (1), not " & retvals(2), serrBadOp
     END IF
    END IF
   END IF
  CASE 288'--set level mp
   IF valid_hero_party(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 7, "mp level") THEN
-    lmp(retvals(0), retvals(1)) = retvals(2)
+   IF bound_arg(retvals(1), 0, maxMPLevel, "mp level") THEN
+    gam.hero(retvals(0)).levelmp(retvals(1)) = retvals(2)
    END IF
   END IF
  CASE 289'--bottom menu

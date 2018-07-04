@@ -48,7 +48,6 @@ EXTERN onetime() as integer
 EXTERN vstate as VehicleState
 
 'Hero globals
-EXTERN lmp() as integer
 EXTERN spell() as integer
 
 'Map state globals

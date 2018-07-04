@@ -97,15 +97,15 @@ NEXT
 '--mutable hero bits (not actually mutable)
 gam.hero(slot).rename_on_status = readbit(her.bits(), 0, 25)
 
-'--reset levelmp
-resetlmp slot, her.def_level
-
 '--setup experience
 gam.hero(slot).exp_mult = her.exp_mult
 gam.hero(slot).lev = her.def_level
 gam.hero(slot).lev_gain = 0
 gam.hero(slot).exp_cur = 0
 gam.hero(slot).exp_next = exptolevel(her.def_level + 1, her.exp_mult)
+
+'--reset levelmp
+reset_levelmp gam.hero(slot)
 
 '--clear learnmask slots (just to be really thorough)
 FOR i as integer = slot * 6 TO slot * 6 + 5
@@ -390,11 +390,6 @@ NEXT i
 
 '---hero state and stats
 SWAP gam.hero(s), gam.hero(d)
-
-'---Level-MP
-FOR i as integer = 0 TO 7
- SWAP lmp(s, i), lmp(d, i)
-NEXT i
 
 '--Learnt spells flags
 FOR i as integer = 0 TO 5
@@ -1452,8 +1447,8 @@ FOR i as integer = 0 TO 40
    spell(i, o, j) = 0
   NEXT j
  NEXT o
- FOR o as integer = 0 TO 7
-  lmp(i, o) = 0
+ FOR o as integer = 0 TO maxMPLevel
+  gam.hero(i).levelmp(o) = 0
  NEXT o
  gam.hero(i).exp_cur = 0
  gam.hero(i).exp_next = 0
@@ -1650,9 +1645,10 @@ SUB reset_map_state (map as MapModeState)
  map.name = ""
 END SUB
 
-'Returns the maximum level
+'Calculate the maximum (full) amount of level MP points
+'UBOUND(ret) should be maxMPLevel
 SUB get_max_levelmp (ret() as integer, byval hero_level as integer)
- FOR mplevel as integer = 0 TO 7
+ FOR mplevel as integer = 0 TO maxMPLevel
   ret(mplevel) = 0
  NEXT
  DIM nextlevel as integer = 0
@@ -1661,17 +1657,13 @@ SUB get_max_levelmp (ret() as integer, byval hero_level as integer)
   ret(nextlevel) += 1
   nextlevel += 1
   IF nextlevel > turn_point THEN nextlevel = 0: turn_point += 1
-  IF turn_point > 7 THEN turn_point = 0
+  IF turn_point > maxMPLevel THEN turn_point = 0
  NEXT
 END SUB
 
 'Reset a hero's level mp to maximum amounts
-SUB resetlmp (byval slot as integer, byval hero_level as integer)
- DIM ret(7) as integer
- get_max_levelmp(ret(), hero_level)
- FOR mplevel as integer = 0 TO 7
-  lmp(slot, mplevel) = ret(mplevel)
- NEXT
+SUB reset_levelmp (byref hero as HeroState)
+ get_max_levelmp(hero.levelmp(), hero.lev)
 END SUB
 
 FUNCTION settingstring (searchee as string, setting as string, result as string) as integer

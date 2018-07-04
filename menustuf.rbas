@@ -1937,7 +1937,7 @@ SUB ExpandTextHeroSlot (code as string, result as string, byval arg0 as ANY ptr=
   IF LEFT(code, 3) = "LMP" THEN
    DIM lmplev as integer = str2int(MID(code, 4)) - 1
    IF lmplev >= 0 ANDALSO lmplev <= 8 THEN
-    result = STR(lmp(hero_slot, lmplev))
+    result = STR(gam.hero(hero_slot).levelmp(lmplev))
    END IF
   END IF
 
@@ -3686,7 +3686,7 @@ SUB spells_menu_refresh_list(sp as SpellsMenuState)
     IF sp.lists(sp.listnum).magic_type = 0 AND gam.hero(sp.hero).stat.cur.mp < cost THEN
      .can_use = NO
     END IF
-    IF sp.lists(sp.listnum).magic_type = 1 AND lmp(sp.hero, INT(i / 3)) = 0 THEN
+    IF sp.lists(sp.listnum).magic_type = 1 AND gam.hero(sp.hero).levelmp(i \ 3) = 0 THEN
      .can_use = NO
     END IF
     IF gam.hero(sp.hero).stat.cur.hp = 0 THEN
@@ -3695,7 +3695,7 @@ SUB spells_menu_refresh_list(sp as SpellsMenuState)
     
     .name = atk.name
     .desc = atk.description
-    .cost = hero_attack_cost_info(atk, sp.hero, sp.lists(sp.listnum).magic_type, INT(i / 3) + 1)
+    .cost = hero_attack_cost_info(atk, sp.hero, sp.lists(sp.listnum).magic_type, i \ 3 + 1)
 
    END IF
    .name = rpad(.name, " ", 10)
@@ -3954,7 +3954,7 @@ SUB spells_menu_control_pick_spell(sp as SpellsMenuState)
    loadattackdata atk, sp.spell(sp.cursor).id
    '--NOTE: atkallowed isn't needed here because the check is done elswehere...
    '--still, it would be nice if we could use it anyway...
-   'IF atkallowed(atk, sp.hero, sp.lists(sp.listnum).magic_type, INT(sp.cursor / 3), )
+   'IF atkallowed(atk, sp.hero, sp.lists(sp.listnum).magic_type, sp.cursor \ 3, )
    
    '--repaint the screen so it will show up under the menu attack targ picker
    spells_menu_paint sp
@@ -3967,7 +3967,7 @@ SUB spells_menu_control_pick_spell(sp as SpellsMenuState)
     gam.hero(sp.hero).stat.cur.mp = small(large(gam.hero(sp.hero).stat.cur.mp - cost, 0), gam.hero(sp.hero).stat.max.mp)
     IF sp.lists(sp.listnum).magic_type = 1 THEN
      '--deduct LMP
-     lmp(sp.hero, INT(sp.cursor / 3)) = lmp(sp.hero, INT(sp.cursor / 3)) - 1
+     gam.hero(sp.hero).levelmp(sp.cursor \ 3) -= 1
     END IF
     spells_menu_refresh_hero sp
     sp.re_use = YES

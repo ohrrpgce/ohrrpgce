@@ -215,7 +215,7 @@ SUB innRestore ()
     '--normal revive
     gam.hero(i).stat.cur.hp = gam.hero(i).stat.max.hp
     gam.hero(i).stat.cur.mp = gam.hero(i).stat.max.mp
-    resetlmp i, gam.hero(i).lev
+    reset_levelmp gam.hero(i)
    END IF
   END IF
  NEXT i

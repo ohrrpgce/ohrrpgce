@@ -34,7 +34,7 @@ DECLARE SUB readjoysettings
 DECLARE FUNCTION renamehero (who as integer, escapable as bool) as bool
 DECLARE SUB resetgame ()
 DECLARE SUB get_max_levelmp (ret() as integer, byval hero_level as integer)
-DECLARE SUB resetlmp (byval slot as integer, byval hero_level as integer)
+DECLARE SUB reset_levelmp (byref hero as HeroState)
 DECLARE SUB reset_game_state ()
 DECLARE SUB reset_map_state (map as MapModeState)
 

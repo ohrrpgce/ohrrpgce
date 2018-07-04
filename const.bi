@@ -301,6 +301,7 @@ CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count
 CONST maplayerMax = 15 'The limit on the highest numbered map layer
 CONST mapTilesMax = 100000 'Maximum map size, in tiles (note also a limit of 32768 tiles wide or high)
 CONST dissolveTypeMax = 10 'Highest numbered frame dissolve effect
+CONST maxMPLevel = 7   'Max level of FF1-style level-MP
 CONST maxElements = 64 'Maximum selectable number of elements
 CONST tempZone = 10000 'ID (and up) to use for temporary zones
 CONST maxDoorsPerMap = 99 '0 thru 99

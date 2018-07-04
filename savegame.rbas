@@ -701,8 +701,8 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
         WITHNODE ch."lev" as n
          j = GetInteger(n)
          SELECT CASE j
-          CASE 0 TO 7
-           lmp(i, j) = n."val"
+          CASE 0 TO maxMPLevel
+           gam.hero(i).levelmp(j) = n."val"
           CASE ELSE
            rsav_warn "invalid level mp slot " & j
          END SELECT
@@ -1176,8 +1176,8 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
    
    ch = SetChildNode(slot, "level_mp")
    FOR j as integer = 0 TO 7
-    IF lmp(i, j) <> 0 THEN
-     SetKeyValueNode(ch, "lev", j, lmp(i, j), "val")
+    IF gam.hero(i).levelmp(j) <> 0 THEN
+     SetKeyValueNode(ch, "lev", j, gam.hero(i).levelmp(j), "val")
     END IF
    NEXT j
   
@@ -1598,7 +1598,7 @@ NEXT i
 show_load_index z, "lmp"
 FOR i = 0 TO 40
  FOR o = 0 TO 7
-  lmp(i, o) = buffer(z): z = z + 1
+  gam.hero(i).levelmp(o) = buffer(z): z = z + 1
  NEXT o
 NEXT i
 show_load_index z, "exlev"
