@@ -3066,20 +3066,6 @@ SUB script_functions(byval cmdid as integer)
    plotstr(retvals(0)).s = readattackname(retvals(1) - 1)
    scriptret = 1
   END IF
- CASE 469'--spells learned
-  DIM found as integer = 0
-  IF valid_hero_party(retvals(0)) THEN
-   FOR i as integer = retvals(0) * 96 TO retvals(0) * 96 + 95
-    IF readbit(learnmask(), 0, i) THEN
-     IF retvals(1) = found THEN
-      scriptret = gam.hero(retvals(0)).spells((i \ 24) MOD 4, i MOD 24)
-      EXIT FOR
-     END IF
-     found = found + 1
-    END IF
-   NEXT
-   IF retvals(1) = -1 THEN scriptret = found  'getcount
-  END IF
  CASE 470'--allocate timers
   IF bound_arg(retvals(0), 0, 100000, "number of timers", , serrBadOp) THEN
    REDIM PRESERVE timers(large(0, retvals(0) - 1))
@@ -4192,14 +4178,17 @@ SUB script_functions(byval cmdid as integer)
   tag_updates
  CASE 185'--hero levelled (who)
   scriptret = gam.hero(bound(retvals(0), 0, 40)).lev_gain
- CASE 186'--spells learnt
-  'NOTE: this is deprecated but will remain for backcompat. New games should use "spells learned" 
+ CASE 186 /'spells learnt'/, 469 /'spells learned'/
+  'NOTE: 'spells learnt' is deprecated but will remain for backcompat. New games should use "spells learned".
+  'spells learned returns the spell ID offset by 1, for consistency with other attack commands and atk:name
+  'constants, which are all consistently wrong!
   DIM found as integer = 0
   IF valid_hero_party(retvals(0)) THEN
    FOR i as integer = retvals(0) * 96 TO retvals(0) * 96 + 95
     IF readbit(learnmask(), 0, i) THEN
      IF retvals(1) = found THEN
-      scriptret = gam.hero(retvals(0)).spells((i \ 24) MOD 4, i MOD 24) - 1
+      scriptret = gam.hero(retvals(0)).spells((i \ 24) MOD 4, i MOD 24)
+      IF cmdid = 186 THEN scriptret -= 1
       EXIT FOR
      END IF
      found = found + 1
