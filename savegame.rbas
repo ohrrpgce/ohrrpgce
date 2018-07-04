@@ -1568,12 +1568,12 @@ FOR i = 0 TO 500
 NEXT i
 show_load_index z, "stats"
 FOR i = 0 TO 40
- FOR j = 0 TO statLast
+ FOR j = 0 TO 11  'statLast
   gam.hero(i).stat.cur.sta(j) = buffer(z): z = z + 1
  NEXT j
  gam.hero(i).lev = buffer(z): z = z + 1
  gam.hero(i).wep_pic = buffer(z): z = z + 1
- FOR j = 0 TO statLast
+ FOR j = 0 TO 11  'statLast
   gam.hero(i).stat.max.sta(j) = buffer(z): z = z + 1
  NEXT j
  gam.hero(i).lev_gain = buffer(z): z = z + 1
@@ -1874,12 +1874,12 @@ SUB old_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
  '-get stats
  DIM z as integer = 3305
  FOR i as integer = 0 TO 3
-  FOR j as integer = 0 TO statLast
+  FOR j as integer = 0 TO 11 'statLast
    pv.hero(i).stat.cur.sta(j) = buffer(z): z += 1
   NEXT j
   pv.hero(i).lev = buffer(z): z += 1
   z += 1 'skip weapon pic because we could care less right now
-  FOR j as integer = 0 TO statLast
+  FOR j as integer = 0 TO 11 'statLast
    pv.hero(i).stat.max.sta(j) = buffer(z): z += 1
   NEXT j
   'base stats aren't loaded or computed: not needed
