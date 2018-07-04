@@ -2001,8 +2001,8 @@ FUNCTION saveslot_quick_root_node(byval saveslot as integer) as NodePtr
 END FUNCTION
 
 FUNCTION saveslot_findhero(byval saveroot as NodePtr, byval id as integer) as integer
- 'NOTE: id is the real ID number, not ID+1 like findhero()
- FOR i as integer = 0 to 40
+ 'id is the real ID number
+ FOR i as integer = 0 to sizeParty - 1
   DIM node as NodePtr = NodeByPath(saveroot, "/party/slot[" & i & "]/id")
   IF node THEN
    IF GetInteger(node) = id THEN RETURN i

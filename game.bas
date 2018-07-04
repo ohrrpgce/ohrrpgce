@@ -3533,14 +3533,14 @@ SUB add_rem_swap_lock_hero (byref box as TextBox)
  '---REMOVE---
  IF box.hero_addrem < 0 THEN
   IF party_size() > 1 THEN
-   i = findhero(-box.hero_addrem, , serrWarn)
+   i = findhero(-box.hero_addrem - 1, , serrWarn)
    IF i > -1 THEN gam.hero(i).id = -1
    IF active_party_size() = 0 THEN forceparty
   END IF
  END IF '---end if < 0
  '---SWAP-IN---
  IF box.hero_swap > 0 THEN
-  i = findhero(box.hero_swap, -1, serrWarn)
+  i = findhero(box.hero_swap - 1, -1, serrWarn)
   IF i > -1 THEN
    FOR o as integer = 0 TO 3
     IF gam.hero(o).id = -1 THEN
@@ -3552,7 +3552,7 @@ SUB add_rem_swap_lock_hero (byref box as TextBox)
  END IF '---end if > 0
  '---SWAP-OUT---
  IF box.hero_swap < 0 THEN
-  i = findhero(-box.hero_swap, , serrWarn)
+  i = findhero(-box.hero_swap - 1, , serrWarn)
   IF i > -1 THEN
    FOR o as integer = 40 TO 4 STEP -1
     IF gam.hero(o).id = -1 THEN
@@ -3565,12 +3565,12 @@ SUB add_rem_swap_lock_hero (byref box as TextBox)
  END IF '---end if < 0
  '---UNLOCK HERO---
  IF box.hero_lock > 0 THEN
-  DIM heroat as integer = findhero(box.hero_lock, , serrWarn)
+  DIM heroat as integer = findhero(box.hero_lock - 1, , serrWarn)
   IF heroat > -1 THEN gam.hero(heroat).locked = NO
  END IF '---end if > 0
  '---LOCK HERO---
  IF box.hero_lock < 0 THEN
-  DIM heroat as integer = findhero(-box.hero_lock, , serrWarn)
+  DIM heroat as integer = findhero(-box.hero_lock - 1, , serrWarn)
   IF heroat > -1 THEN gam.hero(heroat).locked = YES
  END IF '---end if > 0
 
@@ -3705,7 +3705,7 @@ SUB init_text_box_slices(txt as TextBoxState)
   CASE 4' Hero by ID
    'If the hero is in the party, use their current state.
    'if there are multiple copies, use the first.
-   hero_slot = findhero(txt.box.portrait_id + 1)
+   hero_slot = findhero(txt.box.portrait_id)
    IF hero_slot = -1 THEN
     'The hero is not in the party right now, use their default
     DIM her as HeroDef
@@ -4198,13 +4198,12 @@ END SUB
 
 ' Find hero by ID, returning party slot or -1.
 ' direction: 1 to find the first matching hero, or -1 to find the last.
-' NOTE: 'id' is the hero ID + 1!
-' Pass id = -1 to find any hero.
+' Pass id = -1 to find any hero. Otherwise id is the real hero ID, >= 0.
 FUNCTION findhero (byval id as integer, byval direction as integer = 1, errlvl as scriptErrEnum = serrIgnore) as integer
  DIM as integer first, last
  IF direction = -1 THEN first = UBOUND(gam.hero) ELSE last = UBOUND(gam.hero)
  FOR i as integer = first TO last STEP direction
-  IF gam.hero(i).id + 1 = id ORELSE (id = -1 ANDALSO gam.hero(i).id >= 0) THEN
+  IF gam.hero(i).id = id ORELSE (id = -1 ANDALSO gam.hero(i).id >= 0) THEN
    RETURN i
   END IF
  NEXT i
