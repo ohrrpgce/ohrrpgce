@@ -1806,120 +1806,121 @@ FUNCTION should_victory_advance(byref bat as BattleState) as bool
 END FUNCTION
 
 SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as integer)
-DIM tempstr as string
-DIM as integer i, o
-IF bat.vic.box THEN centerfuz 160, 30, 280, 50, 1, page
-bat.vic.display_ticks += 1
-SELECT CASE bat.vic.state
- CASE vicGOLDEXP
-  '--print acquired gold and experience
-  IF bat.rew.plunder > 0 OR bat.rew.exper > 0 THEN bat.vic.box = YES: centerfuz 160, 30, 280, 50, 1, page
-  IF bat.rew.plunder > 0 THEN
-   tempstr = bat.vic.gold_caption & " " & bat.rew.plunder & " " & bat.vic.gold_name & "!"
-   edgeprint tempstr, pCentered, 16, uilook(uiText), page
-  END IF
-  IF bat.rew.exper > 0 THEN
-   tempstr = bat.vic.exp_caption & " " & bat.rew.exper & " " & bat.vic.exp_name & "!"
-   edgeprint tempstr, pCentered, 28, uilook(uiText), page
-  END IF
-  IF should_victory_advance(bat) ORELSE (bat.rew.plunder = 0 ANDALSO bat.rew.exper = 0) THEN
-   bat.vic.state = vicLEVELUP
-  END IF
- CASE vicLEVELUP
-  '--print levelups
-  o = 0
-  DIM numlevelled as integer = 0
-  FOR i = 0 TO UBOUND(gam.hero)
-   IF gam.hero(i).lev_gain <> 0 THEN numlevelled += 1
-  NEXT
-  IF numlevelled THEN
-   numlevelled = large(numlevelled, 4)
-   centerfuz 160, 10 + 5 * numlevelled, 280, 10 + 10 * numlevelled, 1, page
-   bat.vic.box = YES
-  END IF
-  FOR i = 0 TO UBOUND(gam.hero)
-   SELECT CASE gam.hero(i).lev_gain
-    CASE 1
-     tempstr = bat.vic.level_up_caption & " " & gam.hero(i).name
-    CASE IS > 1
-     tempstr = gam.hero(i).lev_gain & " " & bat.vic.levels_up_caption & " " & gam.hero(i).name
-   END SELECT
-   IF gam.hero(i).lev_gain > 0 THEN
-    edgeprint tempstr, pCenteredLeft, 12 + o * 10, uilook(uiText), page
-    o += 1
-   END IF
-  NEXT i
-  IF o = 0 ORELSE should_victory_advance(bat) THEN
-   bat.vic.state = vicSPELLS
-   bat.vic.showlearn = NO
-   bat.vic.learnwho = 0
-   bat.vic.learnlist = 0
-   bat.vic.learnslot = -1
-  END IF
- CASE vicSPELLS
-  '--print learned spells, one at a time
-  IF bat.vic.showlearn = NO THEN '--Not showing a spell yet. find the next one
-   DO
-    bat.vic.learnslot += 1
-    IF bat.vic.learnslot > 23 THEN bat.vic.learnslot = 0: bat.vic.learnlist += 1
-    IF bat.vic.learnlist > 3 THEN bat.vic.learnlist = 0: bat.vic.learnwho += 1
-    IF bat.vic.learnwho > UBOUND(gam.hero) THEN ' We have iterated through all spell lists for all heroes, time to move on
-     bat.vic.state = vicITEMS
-     bat.vic.display_ticks = 0
-     bat.vic.item_name = ""
-     bat.vic.found_index = 0
-     bat.vic.box = NO
-     EXIT DO
+ DIM tempstr as string
+ WITH bat.vic
+  IF .box THEN centerfuz 160, 30, 280, 50, 1, page
+  .display_ticks += 1
+  SELECT CASE .state
+   CASE vicGOLDEXP
+    '--print acquired gold and experience
+    IF bat.rew.plunder > 0 OR bat.rew.exper > 0 THEN .box = YES: centerfuz 160, 30, 280, 50, 1, page
+    IF bat.rew.plunder > 0 THEN
+     tempstr = .gold_caption & " " & bat.rew.plunder & " " & .gold_name & "!"
+     edgeprint tempstr, pCentered, 16, uilook(uiText), page
     END IF
-    IF readbit(learnmask(), 0, bat.vic.learnwho * 96 + bat.vic.learnlist * 24 + bat.vic.learnslot) THEN
-     'found a learned spell
-     DIM learn_attack as AttackData
-     loadattackdata learn_attack, gam.hero(bat.vic.learnwho).spells(bat.vic.learnlist, bat.vic.learnslot) - 1
-     bat.vic.item_name = gam.hero(bat.vic.learnwho).name + bat.vic.learned_caption + learn_attack.name
-     bat.vic.showlearn = YES
-     bat.vic.box = YES
-     IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1
-     EXIT DO
+    IF bat.rew.exper > 0 THEN
+     tempstr = .exp_caption & " " & bat.rew.exper & " " & .exp_name & "!"
+     edgeprint tempstr, pCentered, 28, uilook(uiText), page
     END IF
-   LOOP
-  ELSE' Found a learned spell to display, show it until a keypress
-   IF should_victory_advance(bat) THEN
-    bat.vic.showlearn = NO ' hide the display (which causes us to search for the next learned spell)
-   END IF
-   edgeprint bat.vic.item_name, pCenteredLeft, 22, uilook(uiText), page
-  END IF
- CASE vicITEMS
-  '--print found items, one at a time
-  DIM byref pickedup as RewardsStateItem = bat.rew.found(bat.vic.found_index)
-  '--check to see if we are currently displaying a gotten item
-  IF bat.vic.item_name = "" THEN
-   '--if not, check to see if there are any more gotten items to display
-   IF pickedup.num = 0 THEN
-    bat.vic.state = vicEXITDELAY
-    bat.vic.display_ticks = 0
-    EXIT SUB
-   END IF
-   '--get the item name
-   bat.vic.item_name = readitemname(pickedup.id)
-   '--actually acquire the item
-   getitem pickedup.id, pickedup.num
-  END IF
-  '--if the present item is gotten, show the caption
-  IF pickedup.num = 1 THEN
-   tempstr = bat.vic.item_caption & " " & bat.vic.item_name
-  ELSE
-   tempstr = bat.vic.plural_item_caption & " " & pickedup.num & " " & bat.vic.item_name
-  END IF
-  IF LEN(tempstr) THEN centerfuz 160, 30, 280, 50, 1, page
-  edgeprint tempstr, pCenteredLeft, 22, uilook(uiText), page
-  '--check for a keypress
-  IF should_victory_advance(bat) THEN
-   bat.vic.found_index += 1
-   bat.vic.item_name = ""  'Load the next item
-   '--if there are no further items, exit
-   IF bat.vic.found_index > UBOUND(bat.rew.found) THEN bat.vic.state = vicEXITDELAY
-  END IF
-END SELECT
+    IF should_victory_advance(bat) ORELSE (bat.rew.plunder = 0 ANDALSO bat.rew.exper = 0) THEN
+     .state = vicLEVELUP
+    END IF
+   CASE vicLEVELUP
+    '--print levelups
+    DIM printed_lines as integer = 0
+    DIM numlevelled as integer = 0
+    FOR i as integer = 0 TO UBOUND(gam.hero)
+     IF gam.hero(i).lev_gain <> 0 THEN numlevelled += 1
+    NEXT
+    IF numlevelled THEN
+     numlevelled = large(numlevelled, 4)
+     centerfuz 160, 10 + 5 * numlevelled, 280, 10 + 10 * numlevelled, 1, page
+     .box = YES
+    END IF
+    FOR i as integer = 0 TO UBOUND(gam.hero)
+     SELECT CASE gam.hero(i).lev_gain
+      CASE 1
+       tempstr = .level_up_caption & " " & gam.hero(i).name
+      CASE IS > 1
+       tempstr = gam.hero(i).lev_gain & " " & .levels_up_caption & " " & gam.hero(i).name
+     END SELECT
+     IF gam.hero(i).lev_gain > 0 THEN
+      edgeprint tempstr, pCenteredLeft, 12 + printed_lines * 10, uilook(uiText), page
+      printed_lines += 1
+     END IF
+    NEXT i
+    IF printed_lines = 0 ORELSE should_victory_advance(bat) THEN
+     .state = vicSPELLS
+     .showlearn = NO
+     .learnwho = 0
+     .learnlist = 0
+     .learnslot = -1
+    END IF
+   CASE vicSPELLS
+    '--print learned spells, one at a time
+    IF .showlearn = NO THEN '--Not showing a spell yet. find the next one
+     DO
+      .learnslot += 1
+      IF .learnslot > 23 THEN .learnslot = 0: .learnlist += 1
+      IF .learnlist > 3 THEN .learnlist = 0: .learnwho += 1
+      IF .learnwho > UBOUND(gam.hero) THEN ' We have iterated through all spell lists for all heroes, time to move on
+       .state = vicITEMS
+       .display_ticks = 0
+       .item_name = ""
+       .found_index = 0
+       .box = NO
+       EXIT DO
+      END IF
+      IF readbit(learnmask(), 0, .learnwho * 96 + .learnlist * 24 + .learnslot) THEN
+       'found a learned spell
+       DIM learn_attack as AttackData
+       loadattackdata learn_attack, gam.hero(.learnwho).spells(.learnlist, .learnslot) - 1
+       .item_name = gam.hero(.learnwho).name + .learned_caption + learn_attack.name
+       .showlearn = YES
+       .box = YES
+       IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1
+       EXIT DO
+      END IF
+     LOOP
+    ELSE' Found a learned spell to display, show it until a keypress
+     IF should_victory_advance(bat) THEN
+      .showlearn = NO ' hide the display (which causes us to search for the next learned spell)
+     END IF
+     edgeprint .item_name, pCenteredLeft, 22, uilook(uiText), page
+    END IF
+   CASE vicITEMS
+    '--print found items, one at a time
+    DIM byref pickedup as RewardsStateItem = bat.rew.found(.found_index)
+    '--check to see if we are currently displaying a gotten item
+    IF .item_name = "" THEN
+     '--if not, check to see if there are any more gotten items to display
+     IF pickedup.num = 0 THEN
+      .state = vicEXITDELAY
+      .display_ticks = 0
+      EXIT SUB
+     END IF
+     '--get the item name
+     .item_name = readitemname(pickedup.id)
+     '--actually acquire the item
+     getitem pickedup.id, pickedup.num
+    END IF
+    '--if the present item is gotten, show the caption
+    IF pickedup.num = 1 THEN
+     tempstr = .item_caption & " " & .item_name
+    ELSE
+     tempstr = .plural_item_caption & " " & pickedup.num & " " & .item_name
+    END IF
+    IF LEN(tempstr) THEN centerfuz 160, 30, 280, 50, 1, page
+    edgeprint tempstr, pCenteredLeft, 22, uilook(uiText), page
+    '--check for a keypress
+    IF should_victory_advance(bat) THEN
+     .found_index += 1
+     .item_name = ""  'Load the next item
+     '--if there are no further items, exit
+     IF .found_index > UBOUND(bat.rew.found) THEN .state = vicEXITDELAY
+    END IF
+  END SELECT
+ END WITH
 END SUB
 
 '==============================================================================
