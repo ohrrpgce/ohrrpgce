@@ -47,7 +47,7 @@ DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as integ
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, tile as XYPair) as bool
 DECLARE FUNCTION mapedit_partially_on_screen(st as MapEditState, tile as XYPair) as bool
 DECLARE FUNCTION mapedit_clamp_tile_to_screen(st as MapEditState, tile as XYPair) as XYPair
-DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
+DECLARE SUB mapedit_focus_camera(st as MapEditState, tile as XYPair)
 DECLARE SUB mapedit_constrain_camera(st as MapEditState)
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as XYPair) as XYPair
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as RectType) as RectType
@@ -1154,7 +1154,7 @@ DO
    IF intgrabber(st.cur_door, 0, UBOUND(st.map.door), scLeftCaret, scRightCaret, , , , wheelAlways) THEN
     IF st.map.door(st.cur_door).exists THEN
      st.pos = st.map.door(st.cur_door).pos
-     mapedit_focus_camera st, st.x, st.y
+     mapedit_focus_camera st, st.pos
     END IF
    END IF
    IF tool_actkeypress THEN ' space/click to place a door
@@ -5368,7 +5368,7 @@ SUB mapedit_show_undo_change(st as MapEditState, byval undostroke as MapEditUndo
   IF cursorpos THEN
    st.x = cursorpos->x
    st.y = cursorpos->y
-   IF mapedit_on_screen(st, st.pos) = NO THEN mapedit_focus_camera st, st.x, st.y
+   IF mapedit_on_screen(st, st.pos) = NO THEN mapedit_focus_camera st, st.pos
   END IF
  END IF
 END SUB
@@ -5706,9 +5706,9 @@ FUNCTION mapedit_clamp_tile_to_screen(st as MapEditState, tile as XYPair) as XYP
 END FUNCTION
 
 'Center the camera on a tile
-SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
- st.mapx = bound(x * 20 - st.viewport.wide \ 2, 0, st.map.wide * 20 - st.viewport.wide)
- st.mapy = bound(y * 20 - st.viewport.high \ 2, 0, st.map.high * 20 - st.viewport.high)
+SUB mapedit_focus_camera(st as MapEditState, tile as XYPair)
+ st.camera = tile * tilesize - st.viewport.size \ 2
+ mapedit_constrain_camera st
 END SUB
 
 'Make sure the camera position is within map limits. Ignores cursor.
