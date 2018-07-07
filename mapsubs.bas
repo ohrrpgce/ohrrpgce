@@ -1689,26 +1689,29 @@ DO
 
  '--hero start location display--
  IF gen(genStartMap) = st.map.id THEN
-  IF gen(genStartX) >= st.mapx \ 20 AND gen(genStartX) <= (st.mapx + st.viewport.wide) \ 20 AND gen(genStartY) >= st.mapy \ 20 AND gen(genStartY) <= (st.mapy + st.viewport.high) \ 20 THEN
-   frame_draw st.hero_gfx.sprite + 4, st.hero_gfx.pal, gen(genStartX) * 20 - st.mapx, gen(genStartY) * 20 + 20 - st.mapy, , , dpage
+  DIM start_tile_pos as XYPair = XY(gen(genStartX), gen(genStartY))
+  IF mapedit_partially_on_screen(st, start_tile_pos) THEN
+   DIM screen_pos as XYPair = map_to_screen(st, tilesize * start_tile_pos)
+   ' TODO: hardcoding 4th frame, which is normally Down
+   DIM hero_sprite as Frame ptr = st.hero_gfx.sprite + small(4, st.hero_gfx.sprite->arraylen - 1)
+   frame_draw hero_sprite, st.hero_gfx.pal, screen_pos.x, screen_pos.y, , , dpage
    textcolor uilook(uiText), 0
-   printstr "Hero", gen(genStartX) * 20 - st.mapx, gen(genStartY) * 20 + 30 - st.mapy, dpage
+   printstr "Hero", screen_pos.x, screen_pos.y + tileh \ 2, dpage
   END IF
  END IF
 
  '--point out overhead tiles so that you can see what's wrong if you accidentally use them
- IF st.editmode = tile_mode AND UBOUND(st.map.tiles) > 0 THEN
+ IF st.editmode = tile_mode ANDALSO st.show_overhead_bit ANDALSO UBOUND(st.map.tiles) > 0 THEN
   textcolor uilook(uiSelectedItem + tog), 0
   FOR yidx as integer = 0 TO st.viewport.high \ 20 + 1
    FOR xidx as integer = 0 TO st.viewport.wide \ 20 + 1
     DIM tilex as integer = (st.mapx \ 20) + xidx
     DIM tiley as integer = (st.mapy \ 20) + yidx
-    IF tilex < st.map.wide ANDALSO tiley < st.map.high THEN
+    IF tilex >= 0 ANDALSO tilex < st.map.wide ANDALSO tiley >= 0 ANDALSO tiley < st.map.high THEN
      DIM walls as integer = readblock(st.map.pass, tilex, tiley)
-     DIM pixelx as integer = tilex * 20 - st.mapx
-     DIM pixely as integer = tiley * 20 - st.mapy + 20  '20 for the top toolbar
-     IF st.show_overhead_bit THEN
-      IF (walls AND passOverhead) THEN printstr "O", pixelx + 11, pixely + 11, dpage
+     IF walls AND passOverhead THEN
+      DIM screen_pos as XYPair = map_to_screen(st, tilesize * XY(tilex, tiley))
+      printstr "O", screen_pos.x + 11, screen_pos.y + 11, dpage
      END IF
     END IF
    NEXT xidx
@@ -1918,12 +1921,13 @@ DO
    'Note that the camera position is not affected by foot offset
    st.screen_outline_focus = cursorcenter
    st.message = "(Press Ctrl-O again to follow cursor)"
+   st.message_ticks = 15
   ELSEIF st.screen_outline = outlineFollowsCursor THEN
    st.message = "(Press Ctrl-O again to hide)"
+   st.message_ticks = 15
   ELSE
    st.message = ""
   END IF
-  st.message_ticks = 15
  END IF
 
  'Draw the in-game screen outline preview
@@ -5691,8 +5695,8 @@ END FUNCTION
 'Is a tile at least partially visisble on-screen?
 FUNCTION mapedit_partially_on_screen(st as MapEditState, tile as XYPair) as bool
  DIM mapview as RectType
- mapview.topleft = st.camera - tilesize
- mapview.size = st.viewport.size + tilesize
+ mapview.topleft = st.camera - tilesize + 1
+ mapview.size = st.viewport.size + tilesize - 1
  RETURN rect_collide_point(mapview, tile * tilesize)
 END FUNCTION
 
