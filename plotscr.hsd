@@ -736,10 +736,12 @@ script, npc copy number, hsd:npc, begin
   hsd:id := get NPC ID(hsd:npc)
   if (hsd:id < 0) then (exit returning (-1))  # No such NPC
   if (hsd:npc >= 0) then (exit returning (0))  # It's an NPC ID, not an NPC reference! ID refers to copy 0
+  # This works too, but kind of risky
   #while(npc reference(hsd:id, hsd:copy, true) <> hsd:npc) do (hsd:copy += 1)
-  while(hsd:ref <> hsd:npc) do (
+  while(true) do (
     hsd:ref := npc reference(hsd:id, hsd:copy, true)
-    if (hsd:ref == 0) then (return (-1))
+    if (hsd:ref == hsd:npc) then (break)
+    if (hsd:ref == 0) then (exit returning (-1))
     hsd:copy += 1
   )
   return (hsd:copy)
