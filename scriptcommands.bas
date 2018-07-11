@@ -1077,7 +1077,7 @@ SUB script_functions(byval cmdid as integer)
   IF bound_arg(retvals(0), 0, gen(genMaxAttack), "attack ID") THEN
    IF valid_hero_party(retvals(1)) THEN
     IF valid_hero_party(retvals(2), -1) THEN
-     scriptret = ABS(outside_battle_cure(retvals(0), retvals(1), retvals(2), 0))
+     scriptret = ABS(outside_battle_cure(retvals(0), retvals(1), retvals(2), NO))
     END IF
    END IF
   END IF
@@ -3056,7 +3056,7 @@ SUB script_functions(byval cmdid as integer)
   IF bound_arg(retvals(0), 1, gen(genMaxAttack)+1, "attack ID") THEN
    IF valid_hero_party(retvals(1)) THEN
     IF valid_hero_party(retvals(2), -1) THEN
-     scriptret = ABS(outside_battle_cure(retvals(0) - 1, retvals(1), retvals(2), 0))
+     scriptret = ABS(outside_battle_cure(retvals(0) - 1, retvals(1), retvals(2), NO))
     END IF
    END IF
   END IF

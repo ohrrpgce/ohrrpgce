@@ -43,7 +43,7 @@ DECLARE FUNCTION equip_menu_available_item_id(st as EquipMenuState) as integer
 DECLARE FUNCTION equip_menu_available_item_caption(st as EquipMenuState, byval menuslot as integer) as string
 DECLARE FUNCTION equip_menu_equipped_item_info(st as EquipMenuState) as string
 DECLARE FUNCTION equip_menu_available_item_info(st as EquipMenuState) as string
-DECLARE FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, byval attacker as integer, use_caption as string, byval x_offset as integer=0, byval really_use_attack as integer=YES) as integer
+DECLARE FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, byval attacker as integer, use_caption as string, byval x_offset as integer=0, byval really_use_attack as bool=YES) as bool
 DECLARE SUB spells_menu_refresh_list(sp as SpellsMenuState)
 DECLARE SUB spells_menu_refresh_hero(sp as SpellsMenuState)
 DECLARE SUB spells_menu_control(sp as SpellsMenuState)
@@ -2839,9 +2839,9 @@ FUNCTION count_available_spells(byval who as integer, byval list as integer) as 
  RETURN n
 END FUNCTION
 
-FUNCTION outside_battle_cure (byval atk as integer, byref target as integer, byval attacker as integer, byval spread as integer) as integer
+FUNCTION outside_battle_cure (byval atk as integer, byref target as integer, byval attacker as integer, byval spread as bool) as bool
  DIM i as integer
- DIM didcure as integer = NO
+ DIM didcure as bool = NO
 
  IF spread = NO THEN
   IF chkOOBtarg(target, atk) THEN
@@ -3427,7 +3427,7 @@ FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, 
  RETURN NO
 END FUNCTION
 
-FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, byval attacker as integer, use_caption as string, byval x_offset as integer=0, byval really_use_attack as integer=YES) as integer
+FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, byval attacker as integer, use_caption as string, byval x_offset as integer=0, byval really_use_attack as bool=YES) as bool
  'Lets the player pick a target, and then performs an attack or teaches a spell
  '(FIXME: should move to separate function!)
  'attacker == -1 when not using an attack from a spell list. In that case, use party's avg stats
@@ -3453,8 +3453,8 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  DIM atk as AttackData
  DIM learn_attack as AttackData
  DIM caption as string
- DIM allow_spread as integer = NO
- DIM must_spread as integer = NO
+ DIM allow_spread as bool = NO
+ DIM must_spread as bool = NO
  
  IF attack_id >= 0 THEN
   loadattackdata atk, attack_id
@@ -3521,7 +3521,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   
   '--handle mouse
   DIM old_targ as integer = targ
-  DIM old_spread as integer = spread
+  DIM old_spread as bool = spread
   IF get_gen_bool("/mouse/mouse_menus") THEN
    DIM hover as integer = -1
    FOR i as integer = 0 to 3

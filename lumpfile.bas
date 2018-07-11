@@ -357,9 +357,9 @@ end sub
 '2: left file is short; this record only in right file
 '-2: right file is short; this record only in left file
 'recordsize = record size in shorts (not bytes)
-'maskarray = if specified, only compare SHORTs in each record which are nonzero in maskarray
+'maskarray = if specified, only compare SHORTs in each record which are YES in maskarray
 'Return true on success, false if one of the files doesn't exist
-function compare_files_by_record(differences() as integer, leftfile as string, rightfile as string, byval recordsize as integer, byval maskarray as integer ptr = NULL) as integer
+function compare_files_by_record(differences() as integer, leftfile as string, rightfile as string, byval recordsize as integer, byval maskarray as bool ptr = NULL) as bool
 	redim differences(0)
 
 	dim as integer fh1, fh2

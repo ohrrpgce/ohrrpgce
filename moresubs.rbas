@@ -1651,19 +1651,18 @@ SUB reset_levelmp (byref hero as HeroState)
  get_max_levelmp(hero.levelmp(), hero.lev)
 END SUB
 
-FUNCTION settingstring (searchee as string, setting as string, result as string) as integer
+FUNCTION settingstring (searchee as string, setting as string, result as string) as bool
 
 ' (This is used when reading joyset.ini, but could be replaced with read_ini_int)
 ' checks to see if searchee begins with setting =
 ' if so, sets result to the uppercased space-trimmed value that
 ' follows the = sign and returns true. If not found, returns false
 
-settingstring = 0
-
 IF UCASE(LEFT(searchee, LEN(setting) + 1)) = setting + "=" THEN
  result = UCASE(LTRIM(RTRIM(MID(searchee, LEN(setting) + 2, 32))))
- settingstring = -1
+ RETURN YES
 END IF
+RETURN NO
 
 END FUNCTION
 
@@ -1850,8 +1849,9 @@ party_change_updates
 
 END SUB
 
+'Returns true if the player decided to sleep at the inn
 'holdscreen is a copy of vpage (not a compatpage)
-FUNCTION useinn (byval price as integer, byval holdscreen as integer) as integer
+FUNCTION useinn (byval price as integer, byval holdscreen as integer) as bool
 DIM menu(1) as string
 DIM page as integer
 page = compatpage
@@ -1861,7 +1861,7 @@ DIM state as MenuState
 state.last = UBOUND(menu)
 state.size = 2
 
-useinn = 0 'default return value
+useinn = NO 'default return value
 
 menu(0) = readglobalstring(49, "Pay", 10)
 menu(1) = readglobalstring(50, "Cancel", 10)
@@ -1913,8 +1913,8 @@ DO
  
  IF do_pick THEN
   IF state.pt = 0 AND gold >= price THEN
-   gold = gold - price
-   useinn = -1
+   gold -= price
+   useinn = YES
    menusound gen(genAcceptSFX)
    EXIT DO
   ELSE

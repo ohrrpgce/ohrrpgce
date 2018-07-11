@@ -38,9 +38,9 @@ DECLARE SUB reset_levelmp (byref hero as HeroState)
 DECLARE SUB reset_game_state ()
 DECLARE SUB reset_map_state (map as MapModeState)
 
-DECLARE FUNCTION settingstring (searchee as string, setting as string, result as string) as integer
+DECLARE FUNCTION settingstring (searchee as string, setting as string, result as string) as bool
 DECLARE SUB shop (byval id as integer)
-DECLARE FUNCTION useinn (byval price as integer, byval holdscreen as integer) as integer
+DECLARE FUNCTION useinn (byval price as integer, byval holdscreen as integer) as bool
 DECLARE SUB tagdisplay (page as integer)
 DECLARE SUB writejoysettings
 

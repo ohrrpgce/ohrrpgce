@@ -351,7 +351,7 @@ END SUB
 
 SUB update_backdrop_slice
  DIM backdrop as integer
- DIM transparent as integer = NO
+ DIM transparent as bool = NO
  IF gen(genTextboxBackdrop) THEN
   backdrop = gen(genTextboxBackdrop) - 1
   transparent = txt.box.backdrop_trans
@@ -731,7 +731,7 @@ SUB deletemapstate (mapnum as integer, killmask as integer, prefix as string)
 END SUB
 
 'Note a differing number of layers is allowed!
-FUNCTION tilemap_is_same_size (lumptype as string, what as string) as integer
+FUNCTION tilemap_is_same_size (lumptype as string, what as string) as bool
  DIM as TilemapInfo newsize
  GetTilemapInfo maplumpname(gam.map.id, lumptype), newsize
 
@@ -744,7 +744,7 @@ END FUNCTION
 
 'gmap is a mess; some of it is data that belongs in a replacement lump .T (eg. tileset stuff).
 'So several functions segregate the data.
-FUNCTION gmap_index_affects_tiles(byval index as integer) as integer
+FUNCTION gmap_index_affects_tiles(byval index as integer) as bool
  SELECT CASE index
   CASE 0, 19, 22 TO 24, 26 TO 31
    RETURN YES
@@ -1362,7 +1362,7 @@ END SUB
 'Reads and handles messages from Custom, updating modified_lumps
 SUB receive_file_updates ()
  'This sub is called from control and a couple other places, so prevent reentering
- STATIC entered as integer = NO
+ STATIC entered as bool = NO
  IF entered THEN EXIT SUB
  entered = YES
 
@@ -1476,7 +1476,7 @@ SUB reload_MAP_lump()
   'Only compare part of each MAP record... OK, this is getting really perfectionist
   'Thank goodness this will be simpler when the map file format is replaced.
 
-  REDIM compare_mask(dimbinsize(binMAP)) as integer
+  REDIM compare_mask(dimbinsize(binMAP)) as bool
   FOR i as integer = 0 TO UBOUND(compare_mask)
    compare_mask(i) = (gmap_index_affects_tiles(i) = NO)
   NEXT
@@ -1490,14 +1490,14 @@ SUB reload_MAP_lump()
 
   FOR mapno as integer = 0 TO UBOUND(changed_records)
    'delete saved state
-   IF changed_records(mapno) THEN
+   IF changed_records(mapno) <> 0 THEN
     IF .gmap.mode <> loadmodeNever THEN
      safekill mapstatetemp(mapno, "map") + "_map.tmp"
     END IF
    END IF
   NEXT
 
-  IF changed_records(gam.map.id) THEN
+  IF changed_records(gam.map.id) <> 0 THEN
    '--never/always/if unchanged only
    .gmap.changed = YES
    IF .gmap.dirty THEN
@@ -1510,7 +1510,7 @@ SUB reload_MAP_lump()
 END SUB
 
 'Check whether a lump is an .RGFX, .PT#, .MXS or .TIL lump. Reload them.
-FUNCTION try_reload_gfx_lump(lumpname as string, extn as string) as integer
+FUNCTION try_reload_gfx_lump(lumpname as string, extn as string) as bool
  IF extn = "til" THEN
   sprite_update_cache sprTypeTileset
   RETURN YES
@@ -1545,7 +1545,7 @@ END FUNCTION
 'No need to reload: D
 'Not going to bother with: MN
 'Tilesets are reloaded only when .T changes. Which isn't perfect right now, but will make sense when tilemap format is replaced.
-FUNCTION try_reload_map_lump(basename as string, extn as string) as integer
+FUNCTION try_reload_map_lump(basename as string, extn as string) as bool
  DIM typecode as string
  DIM mapnum as integer = -1
 
@@ -1694,7 +1694,7 @@ SUB try_reload_lumps_anywhere ()
 
  DIM i as integer = 0
  WHILE i < v_len(modified_lumps)
-  DIM handled as integer = NO
+  DIM handled as bool = NO
   DIM basename as string = trimextension(modified_lumps[i])
   DIM extn as string = justextension(modified_lumps[i])
 
@@ -1794,7 +1794,7 @@ SUB try_to_reload_lumps_onmap ()
 
  DIM i as integer = 0
  WHILE i < v_len(modified_lumps)
-  DIM handled as integer = NO
+  DIM handled as bool = NO
   DIM basename as string = trimextension(modified_lumps[i])
   DIM extn as string = justextension(modified_lumps[i])
 
@@ -1852,7 +1852,7 @@ SUB LPM_append_reload_mode_item (menu as MenuDef, tooltips() as string, what as 
  REDIM PRESERVE tooltips(menu.numitems - 1)
 END SUB
 
-SUB LPM_append_force_reload_item (menu as MenuDef, tooltips() as string, what as string, info as LumpReloadState, byval extradata as integer = 0, byval ignore_dirtiness as integer = NO)
+SUB LPM_append_force_reload_item (menu as MenuDef, tooltips() as string, what as string, info as LumpReloadState, byval extradata as integer = 0, byval ignore_dirtiness as bool = NO)
  append_menu_item menu, "Force reload of " + what
  menu.last->extra(0) = extradata
  REDIM PRESERVE tooltips(menu.numitems - 1)
