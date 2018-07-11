@@ -2301,6 +2301,7 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarr
  'See also FillMissingUIColor which is used in different situations
  DIM c as RGBcolor
  DIM as integer fixeddefaults(uiColorLast)
+ '                                    &hRRGGBB
  fixeddefaults(uiBackground)        = &h000000
  fixeddefaults(uiMenuItem)          = &hA19CB0
  fixeddefaults(uiDisabledItem)      = &h4F595A
@@ -2344,7 +2345,16 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarr
  fixeddefaults(uiBattleAbsorb)      = &hFF5757
  fixeddefaults(uiBattlePoison)      = &hFFFFFF
  fixeddefaults(uiBattleRegen)       = &hFFFFFF
- 
+ fixeddefaults(uiFadeOutNewGame)      = &h000000
+ fixeddefaults(uiFadeOutLoadGame)     = &h000000
+ fixeddefaults(uiFadeOutDeath)        = &hFF0000
+ fixeddefaults(uiFadeOutQuit)         = &h000000
+ fixeddefaults(uiFadeOutDoor)         = &h000000
+ fixeddefaults(uiFadeOutInn)          = &h000050
+ fixeddefaults(uiFadeOutEnterBattle)  = &hF0F0F0
+ fixeddefaults(uiFadeOutWonBattle)    = &h000000
+ fixeddefaults(uiFadeOutExitBattle)   = &h000000
+
  FOR i as integer = 0 TO uiColorLast
   c.col = fixeddefaults(i)
   DIM firstindex as integer = IIF(i = uiShadow, 1, 0)   'Shadow color can't be 0
@@ -2460,6 +2470,16 @@ FUNCTION UiColorCaption(byval n as integer) as string
   CASE uiBattleAbsorb: RETURN "Battle absorb (drain)"
   CASE uiBattlePoison: RETURN "Battle poison damage"
   CASE uiBattleRegen: RETURN "Battle regen healing"
+  CASE uiFadeOutNewGame: RETURN "Fadeout: new game"
+  CASE uiFadeOutLoadGame: RETURN "Fadeout: load game"
+  CASE uiFadeOutDeath: RETURN "Fadeout: on death"
+  CASE uiFadeOutQuit: RETURN "Fadeout: quitting game"
+  CASE uiFadeOutDoor: RETURN "Fadeout: door"
+  CASE uiFadeOutInn: RETURN "Fadeout: stay at inn"
+  CASE uiFadeOutEnterBattle: RETURN "Fadeout: enter battle"
+  CASE uiFadeOutWonBattle: RETURN "Fadeout: won battle"
+  CASE uiFadeOutExitBattle: RETURN "Fadeout: exit/flee battle"
+
  END SELECT
  'Invalid values still print, but !?
  RETURN n & "(!?)"

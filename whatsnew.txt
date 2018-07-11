@@ -42,6 +42,7 @@ June (mumble) 2018 [Fufluns]
     * Option to show outline of the in-game screen size in the map editor so
       you can check what will be visible. Press Ctrl-O once/twice or toggle in
       the Map Editor Settings menu. [Ralph]
+    * All the fade-out colors are now customisable User Interface Colors [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

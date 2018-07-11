@@ -815,7 +815,7 @@ SUB script_functions(byval cmdid as integer)
     gam.quit = YES
     gam.want.dont_quit_to_loadmenu = YES  'don't go straight back to loadmenu!
     script_start_waiting()
-    fadeout 0, 0, 0
+    fadeout uilook(uiFadeoutNewGame)
    ELSEIF scriptret > 0 THEN
     gam.want.loadgame = scriptret
     script_start_waiting()

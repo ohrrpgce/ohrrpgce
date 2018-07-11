@@ -269,7 +269,7 @@ SUB gamestate_from_reload(byval node as Reload.NodePtr)
   fadein
   pop_warning "This save file was created with a more recent version of the OHRRPGCE, and some things will not load correctly. Download the latest version at http://HamsterRepublic.com"
   fadeout 0, 0, 0
- END IF 
+ END IF
 
  READNODE node, default
   node."ver".ignore

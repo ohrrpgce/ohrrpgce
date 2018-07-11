@@ -5,7 +5,7 @@
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
-CONST uiColorLast = 42
+CONST uiColorLast = 51
 CONST uiColorOldLast = 17 ' the last uilook saved in uicolors.bin
 CONST uiBoxLast = 14
 CONST uiBoxOldLast = 14 ' the last boxlook saved in uicolors.bin
@@ -55,6 +55,15 @@ CONST uiBattleHeal = 39
 CONST uiBattleAbsorb = 40
 CONST uiBattlePoison = 41
 CONST uiBattleRegen = 42
+CONST uiFadeOutNewGame = 43
+CONST uiFadeOutLoadGame = 44
+CONST uiFadeOutDeath = 45
+CONST uiFadeOutQuit = 46
+CONST uiFadeOutDoor = 47
+CONST uiFadeOutInn = 48
+CONST uiFadeOutEnterBattle = 49
+CONST uiFadeOutWonBattle = 50
+CONST uiFadeOutExitBattle = 51
 
 'When you add more constants you will need to update GuessDefaultUIColors
 'and UiColorCaption, and possibly FillMissingUIColor, in loading.rbas.

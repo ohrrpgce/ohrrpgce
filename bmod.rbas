@@ -64,7 +64,7 @@ DECLARE SUB battle_attack_do_inflict(byval targ as integer, byval tcount as inte
 DECLARE SUB battle_pause ()
 DECLARE SUB battle_debug_menu (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB check_battle_debug_keys (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
-DECLARE SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite, battle_result as bool)
 DECLARE SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_background_anim(byref bat as BattleState, formdata as Formation)
 DECLARE FUNCTION battle_run_away(byref bat as BattleState, bslot() as BattleSprite) as bool
@@ -143,7 +143,7 @@ FUNCTION battle (byval form as integer) as bool
  DIM page as integer = compatpage()
 
  'fade to near white
- fadeout 240, 240, 240
+ fadeout uilook(uiFadeoutEnterBattle)
  queue_fade_in
 
  battle_loadall form, bat, bslot(), st(), formdata
@@ -278,7 +278,7 @@ FUNCTION battle (byval form as integer) as bool
   dowait
  LOOP
 
- battle_cleanup bat, bslot()
+ battle_cleanup bat, bslot(), result
  freepage page
  evalherotags
  evalitemtags
@@ -338,7 +338,7 @@ SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
  IF gen(genRegenChar) <= 0 THEN gen(genRegenChar) = 32
 END SUB
 
-SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
+SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite, battle_result as bool)
  export_battle_hero_stats bslot()
 
  '--overflow checking for the battle stack
@@ -357,7 +357,13 @@ SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
   showerror "bstack underflow " & stackpos & " " & bstackstart
  END IF
 
- fadeout 0, 0, 0
+ IF fatal THEN
+  fadeout uilook(uiFadeoutDeath)
+ ELSEIF battle_result THEN
+  fadeout uilook(uiFadeoutWonBattle)
+ ELSE
+  fadeout uilook(uiFadeoutExitBattle)
+ END IF
  DeleteSlice @bat.root_sl
 END SUB
 

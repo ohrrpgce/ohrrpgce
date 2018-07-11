@@ -1367,7 +1367,7 @@ END IF
 IF ret THEN menusound gen(genAcceptSFX)
 
 IF need_fade_out THEN
- fadeout 0, 0, 0
+ fadeout uilook(uiFadeoutNewGame)  'Usually happens if the starting hero is renameable
 END IF
 freepage holdscreen
 RETURN ret
@@ -1819,7 +1819,7 @@ DO
      EXIT DO
     ELSE
      '--Inn has no script, do simple fade
-     fadeout 0, 0, 80
+     fadeout uilook(uiFadeoutInn)
      queue_fade_in
     END IF
    END IF

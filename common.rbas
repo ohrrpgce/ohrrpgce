@@ -177,6 +177,13 @@ SUB fadein ()
  fadetopal master()
 END SUB
 
+SUB fadeout (palidx as integer)
+ fadestate = NO
+ WITH master(palidx)
+  fadeto .r, .g, .b
+ END WITH
+END SUB
+
 SUB fadeout (byval red as integer, byval green as integer, byval blue as integer)
  fadestate = NO
  fadeto red, green, blue

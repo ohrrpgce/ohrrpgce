@@ -747,16 +747,17 @@ IF readbit(gen(), genBits2, 24) = 0 THEN  '"Don't stop music when starting/loadi
  queue_music_change -1  'stop music (unless initial map has same music)
 END IF
 IF load_slot = -2 THEN
- fadeout 0, 0, 0
+ 'Quit
+ fadeout uilook(uiFadeoutQuit)
  EXIT DO
 ELSEIF load_slot >= 0 THEN
- fadeout 0, 0, 0
+ fadeout uilook(uiFadeoutLoadGame)
  doloadgame load_slot
 ELSE
  'New game
  refresh_purchases()
  'This fadeout means that resetgame fades out the screen although gameover doesn't
- fadeout 0, 0, 0
+ fadeout uilook(uiFadeoutNewGame)
  'Clear the screen so that there's no garbage shown behind the prompt to rename the starting hero
  clearpage dpage
  clearpage vpage
@@ -916,7 +917,7 @@ DO
   ' Don't stop sound effects, because if used from the Load menu this would cut off
   ' the Accept sfx unplesantly. (However, would be ideal to stop longer ones)
   'resetsfx
-  fadeout 0, 0, 0
+  fadeout uilook(uiFadeoutLoadGame)
   queue_fade_in 1, YES
   doloadgame load_slot, load_slot_prefix
  END IF
@@ -939,7 +940,7 @@ DO
    fatal = NO
    queue_fade_in 1
   ELSE
-   fadeout 255, 0, 0
+   fadeout uilook(uiFadeoutDeath)
    gam.quit = YES
   END IF
  END IF
@@ -1046,7 +1047,7 @@ SUB reset_game_final_cleanup()
  makedir tmpdir
  'killdir and thus makedir would fail if some in-use file can't be deleted
  IF NOT isdir(tmpdir) THEN fatalerror "Can't recreate temp directory " & tmpdir
- fadeout 0, 0, 0
+ fadeout uilook(uiFadeoutNewGame)
 END SUB
 
 ' Call this instead of exitprogram when not quitting due to an error.
@@ -2594,7 +2595,7 @@ SUB dotimer(timercontext as TimerContextEnum)
             'do something
             if .trigger = TIMERTRIGGER_GAMEOVER then
               'Fadeout due to death
-              fadeout 255, 0, 0
+              fadeout uilook(uiFadeoutDeath)
               gam.quit = YES
 
               exit sub
@@ -3299,7 +3300,7 @@ SUB usedoor (door_id as integer, fadescreen as bool = YES)
   deserdoors game + ".dox", gam.map.door(), gam.map.id
   (heropos(0)) = gam.map.door(.dest).pos * 20
   IF fadescreen THEN
-   fadeout 0, 0, 0
+   fadeout uilook(uiFadeoutDoor)
    queue_fade_in 1
   END IF
   prepare_map
@@ -3469,7 +3470,7 @@ SUB advance_text_box ()
    DIM holdscreen as integer = duplicatepage(vpage)
    IF useinn(-txt.box.shop, holdscreen) THEN
     innRestore
-    fadeout 0, 0, 80
+    fadeout uilook(uiFadeoutInn)
     queue_fade_in 1, YES
    END IF
    freepage holdscreen

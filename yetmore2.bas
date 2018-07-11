@@ -380,7 +380,7 @@ gam.ingame = NO
 
 'DEBUG debug "Exiting Program"
 'DEBUG debug "fade screen"
-IF need_fade_out THEN fadeout 0, 0, 0
+IF need_fade_out THEN fadeout uilook(uiFadeoutQuit)
 
 'DEBUG debug "Cleanup Routine"
 
@@ -432,7 +432,7 @@ SUB verify_quit
   'Keyboard controls
   IF carray(ccMenu) > 1 THEN EXIT DO
   IF (carray(ccUse) > 1 AND ABS(ptr2) > 20) OR ABS(ptr2) > 50 THEN
-   IF ptr2 < 0 THEN gam.quit = YES: fadeout 0, 0, 0
+   IF ptr2 < 0 THEN gam.quit = YES: fadeout uilook(uiFadeoutQuit)
    EXIT DO
   END IF
   IF carray(ccLeft) > 0 THEN ptr2 = ptr2 - 5: direction = dirLeft
@@ -449,7 +449,7 @@ SUB verify_quit
     direction = dirLeft
     IF (readmouse.release AND mouseLeft) ANDALSO ptr2 <= 0 THEN
      gam.quit = YES
-     fadeout 0, 0, 0
+     fadeout uilook(uiFadeoutQuit)
      EXIT DO
     END IF
    END IF
