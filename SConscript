@@ -1186,10 +1186,11 @@ def RPGWithScripts(rpg, main_script):
     node = env.Command('#' + rpg, source = sources, action = action)
     Precious(node)  # Don't delete the .rpg before "rebuilding" it
     NoClean(node)   # Don't delete the .rpg with -c
+    # Note: the following Ignore does NOT work if the .hss file manually includes plotscr.hsd/scancode.hsi!
     Ignore(node, [CUSTOM, "plotscr.hsd", "scancode.hsi"])  # Don't reimport just because these changed...
     Requires(node, CUSTOM)  # ...but do rebuild Custom before reimporting (because of maxScriptCmdID, etc, checks)
     # Note: unfortunately this Requires causes scons to make sure CUSTOM is
-    # up to date even if it's not calls; I don't know how to avoid that.
+    # up to date even if it's not called; I don't know how to avoid that.
     SideEffect (Alias ('c_debug.txt'), node)  # Prevent more than one copy of Custom from running at once
     return node
 
