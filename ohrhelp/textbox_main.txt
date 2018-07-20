@@ -18,8 +18,8 @@ To find a text box, you can type in the "Search" field and press ENTER.
 
 Press + to add a new text box with the same style options as the currently selected text box.
 
-Press ALT+C to copy the style of a text box (color and other appearance data, but not text).
+Press ALT+C to copy the "style" (appearance) of a text box (everything in the Box Appearance submenu, such as box color and size, portrait, backdrop, sound effects, but NOT the music), but not text or conditionals.
 
-Press ALT+V to paste a previously copied text box style onto the currently selected text box. This will not replace the text.
+Press ALT+V to paste a previously copied text box style onto the currently selected text box. This will not replace the text or anything else outside the Box Appearance submenu.
 
 Text box number zero is a special box that will be used as the default template for all new text boxes created. This is helpful if you have a set style that you want all text boxes to follow.

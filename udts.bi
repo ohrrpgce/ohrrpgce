@@ -888,6 +888,8 @@ END TYPE
 
 TYPE TextBox
   text(7) as string
+
+  'Conditionals
   instead_tag as integer
   instead     as integer
   settag_tag  as integer
@@ -915,27 +917,33 @@ TYPE TextBox
   item        as integer
   menu_tag    as integer
   menu        as integer
+
+  'Choicebox
   choice_enabled as bool
-  no_box      as bool
-  opaque      as bool
-  restore_music as bool
   choice(1)   as string
   choice_tag(1) as integer
+
+  'Appearance
+  no_box      as bool
+  opaque      as bool
   vertical_offset as integer ' in 4-pixel increments
   shrink      as integer     ' in 4-pixel increments, -1 is "Auto"
   textcolor   as integer     ' 0=default
   boxstyle    as integer
   backdrop    as integer     ' +1
-  music       as integer     ' +1, 0=none, -1=silence
+  backdrop_trans as bool
+
   portrait_box  as integer
   portrait_type as integer
   portrait_id   as integer
   portrait_pal  as integer
   portrait_pos  as XYPair
-  sound_effect as integer    ' +1, 0 means none
+
+  restore_music as bool
+  music         as integer   ' +1, 0=none, -1=silence
+  sound_effect  as integer   ' +1, 0 means none
   stop_sound_after as bool
-  line_sound as integer      ' +1, 0=default, -1=none
-  backdrop_trans as bool
+  line_sound    as integer   ' +1, 0=default, -1=none
 END TYPE
 
 TYPE VehicleData

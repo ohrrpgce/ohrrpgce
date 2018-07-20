@@ -1132,17 +1132,20 @@ SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box a
  WITH box
   .no_box          = boxcopier.no_box
   .opaque          = boxcopier.opaque
-  .portrait_box    = boxcopier.portrait_box
   .vertical_offset = boxcopier.vertical_offset
   .shrink          = boxcopier.shrink
   .textcolor       = boxcopier.textcolor
   .boxstyle        = boxcopier.boxstyle
+  'Copy backdrop as it's often used as a portrait
+  .backdrop        = boxcopier.backdrop
+  .backdrop_trans  = boxcopier.backdrop_trans
+
+  .portrait_box    = boxcopier.portrait_box
   .portrait_type   = boxcopier.portrait_type
   .portrait_id     = boxcopier.portrait_id
   .portrait_pal    = boxcopier.portrait_pal
   .portrait_pos    = boxcopier.portrait_pos
-  'Copy backdrop as it's often used as a portrait
-  .backdrop        = boxcopier.backdrop
+
   .sound_effect    = boxcopier.sound_effect
   .stop_sound_after= boxcopier.stop_sound_after
   .line_sound      = boxcopier.line_sound
