@@ -523,6 +523,14 @@ PRIVATE SUB quit_video_subsystem()
 END SUB
 
 SUB gfx_sdl_close()
+  'Calling this before quitting appears to fix the Enter key usually getting stuck if Ctrl-F8
+  '(calling switch_gfx_backend() with Enter pressed) is used to switch from sdl to sdl
+  '(or to sdl if sdl has previously run?)
+  'However, this doesn't seem to fix a very rare problem after switching to gfx_sdl,
+  'where all keys are dead. Seen once each by TMC and Gaplan.
+  'Also doesn't fix sdl -> fb -> sdl typically crashing on linux/X11/KDE (when starting up with sdl)
+  update_state()
+
   IF SDL_WasInit(SDL_INIT_JOYSTICK) THEN
     quit_joystick_subsystem()
   END IF

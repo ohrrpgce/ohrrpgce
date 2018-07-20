@@ -433,6 +433,8 @@ PRIVATE SUB quit_video_subsystem()
 END SUB
 
 SUB gfx_sdl2_close()
+  'TODO: call update_state(), like in gfx_sdl?
+
   IF SDL_WasInit(SDL_INIT_JOYSTICK) THEN
     quit_joystick_subsystem()
   END IF

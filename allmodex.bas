@@ -400,7 +400,7 @@ private sub modex_init()
 end sub
 
 ' Initialise stuff specific to the backend (this is called after gfx_init())
-private sub backend_init()
+private sub after_backend_init()
 	'Polling thread variables
 	endpollthread = NO
 	mouselastflags = 0
@@ -432,7 +432,7 @@ sub setmodex()
 	modex_init()
 	'Select and initialise a graphics/io backend
 	init_preferred_gfx_backend()
-	backend_init()
+	after_backend_init()
 
 	modex_initialised = YES
 end sub
@@ -456,8 +456,8 @@ private sub modex_quit()
 	safekill macrofile
 end sub
 
-' Shuts down the gfx backend and cleans up everything that needs to be
-private sub backend_quit()
+' Cleans up everything that ought to be done before calling gfx_close()
+private sub before_backend_quit()
 	'clean up io stuff
 	if keybdthread then
 		endpollthread = YES
@@ -467,8 +467,6 @@ private sub backend_quit()
 	mutexdestroy gfxmutex
 
 	skipped_frame.drop()
-
-	gfx_close()
 end sub
 
 ' Deinitialise this module and backends, destroy the window
@@ -476,17 +474,18 @@ sub restoremode()
 	if modex_initialised = NO then exit sub
 	modex_initialised = NO
 
-	backend_quit
-	modex_quit
+	before_backend_quit()
+	gfx_close()
+	modex_quit()
 end sub
 
 ' Switch to a different gfx backend
 sub switch_gfx(backendname as string)
 	debuginfo "switch_gfx " & backendname
 
-	backend_quit()
+	before_backend_quit()
 	switch_gfx_backend(backendname)
-	backend_init()
+	after_backend_init()
 
 	' Re-apply settings (this is very incomplete)
 	setwindowtitle remember_title
