@@ -1,5 +1,5 @@
 ## Automated HSpeak tests. See documentation in hspeaktest.py
-## Run these tests with "scons hspeaktest -j4"
+## Run these tests with "scons hspeaktest"
 
 ## Including just this is faster than all of plotscr.hsd
 include, hamsterspeak.hsd
@@ -71,6 +71,8 @@ script, comma and operator tests, begin
   noop4($0="")           # OK
   noop4(1,$0="")         # OK
   noop4(,$0="")          # ERROR
+  ## Warnings for logical errors
+  if (xx == 2||3||4) then()      # WARN   (known failure)
 end
 
 end                      # ERROR
@@ -167,6 +169,12 @@ script, flow tests, dummy, begin
   if(then())                 # ERROR
   if(dummy) variable(x) then()  # ERROR
   if(dummy) then(variable(x))   # OK
+
+  ## In case of of a missing bracket, ideally hspeak would throw an error here
+  ## instead of complaining the next script/declaration appears inside this script.
+  ## (This test fails because the error gets thrown on a different line.)
+  if (key is pressed(key:M) then (pick hero())  # ERROR   (known failure)
+
 end
 
 ############################### Namespace tests ###############################
