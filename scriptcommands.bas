@@ -1659,7 +1659,19 @@ SUB script_functions(byval cmdid as integer)
  CASE 134'--hero by rank
   scriptret = herobyrank(retvals(0))
  CASE 145'--pick hero
-  scriptret = onwho(readglobalstring(135, "Which Hero?", 20), NO)
+  DIM stringid as integer = get_optional_arg(0, -1)
+  DIM skip_if_alone as bool = get_optional_arg(1, NO) <> 0
+  IF stringid = -1 ORELSE valid_plotstr(stringid, serrBadOp) THEN
+   DIM prompt as string
+   IF stringid = -1 THEN
+    prompt = readglobalstring(135, "Which Hero?", 20)
+   ELSE
+    prompt = plotstr(stringid).s
+   END IF
+   scriptret = onwho(prompt, skip_if_alone)
+  ELSE
+   scriptret = -1
+  END IF
  CASE 146'--rename hero by slot
   IF valid_hero_party(retvals(0)) THEN
    IF gam.hero(retvals(0)).id >= 0 THEN

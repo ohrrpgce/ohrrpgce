@@ -68,6 +68,8 @@ June (mumble) 2018 [Fufluns]
       "get/set menu item disabled color" [Ralph]
     * "pathfind hero to", "hero chases npc" and "cancel hero walk" [James]
     * "read preference bitset", "write preference bitset" [Ralph]
+    * "pick hero" has two new args to let you pick the prompt message, and to
+      auto-pick if there's only one active hero [Ralph]
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"

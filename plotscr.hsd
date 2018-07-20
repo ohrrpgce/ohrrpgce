@@ -165,7 +165,7 @@ define function, begin
 142,camerapixelx,0          #? get camera pixel x
 143,camerapixely,0          #? get camera pixel y
 144,loadtileset,2,-1,-1     # load a new tileset for the current map
-145,pickhero,0              # lets you manually pick a hero
+145,pickhero,2,-1,0         # lets you manually pick a hero (message string, skip if alone)
 146,renameherobyslot,1,0    # lets you manually rename a hero
 147,readgeneral,1,0         # directly read from the in-memory array of general game data
 148,writegeneral,2,0,0      # directly write to the in-memory array of general game data. If you crash your game with this command, don't be too surprised

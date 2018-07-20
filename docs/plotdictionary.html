@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-06-20)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-07-21)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -2032,7 +2032,7 @@
 		<a href="#about-paymoney">pay money (amount)</a><br>
 		
 	
-		<a href="#about-pickhero">pick hero</a><br>
+		<a href="#about-pickhero">pick hero (message, skip if alone)</a><br>
 		
 	
 		<a href="#about-pixelfocuscamera">pixel focus camera (x,y,speed)</a><br>
@@ -9114,9 +9114,22 @@ end
 		
 		<div class="command">
 <a name="about-pickhero"></a>
-		<h4>pick hero</h4>
+		<h4>pick hero (message, skip if alone)</h4>
 <p>
-			Pops up a hero-picker box that lets you choose one of the heroes in your active party. The return value is the position in the party of the hero you picked, or -1 if the player cancelled.
+			
+				Pops up a hero-picker box that lets you choose one of the heroes in your active party.
+				The return value is the position in the party of the hero you picked, or -1 if the player cancelled.
+				<br>
+				Both arguments are optional.
+				<br>
+				<span class="param">message</span> is the ID of the string to use for the prompt, which defaults to "Which Hero?".
+				If you leave it out or pass -1, the default message is used,
+				which is defined in the Global Text Strings menu (search it for "pick hero").
+				<br>
+				If <span class="param">skip if alone</span> is true then if there's only one hero in the active party
+				then will automatically be picked, without showing the menu.
+				It defaults to <span class="code">false</span>!
+			
 			
 			
 			

@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-06-20">
+<plotscript version="wip" datecode="2018-07-21">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -3725,9 +3725,22 @@ end
 
 	<section title="Getting Player Input">
 		<command id="pickhero">
-			<canon>pick hero</canon>
+			<canon>pick hero (message, skip if alone)</canon>
 			<shortname>pick hero</shortname>
-			<description>Pops up a hero-picker box that lets you choose one of the heroes in your active party. The return value is the position in the party of the hero you picked, or -1 if the player cancelled.</description>
+			<description>
+				Pops up a hero-picker box that lets you choose one of the heroes in your active party.
+				The return value is the position in the party of the hero you picked, or -1 if the player cancelled.
+				<lb/>
+				Both arguments are optional.
+				<lb/>
+				<p>message</p> is the ID of the string to use for the prompt, which defaults to "Which Hero?".
+				If you leave it out or pass -1, the default message is used,
+				which is defined in the Global Text Strings menu (search it for "pick hero").
+				<lb/>
+				If <p>skip if alone</p> is true then if there's only one hero in the active party
+				then will automatically be picked, without showing the menu.
+				It defaults to <tt>false</tt>!
+			</description>
 		</command>
 		<reference ref="renamehero" />
 		<reference ref="renameherobyslot" />
