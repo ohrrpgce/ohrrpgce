@@ -105,23 +105,18 @@ declare function hexptr(p as any ptr) as string
 
 declare sub Palette16_delete(f as Palette16 ptr ptr)
 
-
 #define POINT_CLIPPED(x, y) ((x) < cliprect.l orelse (x) > cliprect.r orelse (y) < cliprect.t orelse (y) > cliprect.b)
 
 #define PAGEPIXEL(x, y, p) vpages(p)->image[vpages(p)->pitch * (y) + (x)]
 #define FRAMEPIXEL(x, y, fr) fr->image[fr->pitch * (y) + (x)]
 
 ' In a function, pass return value on error
-#macro CHECK_FRAME_8BIT(fr, what...)
-	if (fr)->image = NULL then
-		' Probably usually indicates that the Frame is Surface-backed
-		debug __FUNCTION__ & ": NULL Frame.image"
-		return what  'If what isn't given, just "return"
-	end if
-#endmacro
+' NULL .image ptr usually indicates that the Frame is Surface-backed
+#define CHECK_FRAME_8BIT(fr, retwhat...) FAIL_IF((fr)->image = NULL, " NULL Frame.image", retwhat)
 
 'Used to dereference a ptr only if not NULL
 #define IF_PTR(arg)  if arg then arg
+
 
 
 '------------ Global variables ------------
@@ -6912,20 +6907,15 @@ end sub
 
 ' Export a 32 bit Surface as a single-frame .gif (alpha ignored)
 sub surface_export_gif (surf as Surface Ptr, fname as string, dither as bool = NO)
-	if surf->format <> SF_32bit then
-		showerror "surface_export_gif got 8bit Surface"
-		exit sub
-	end if
-	if surf->pitch <> surf->width then
-		showerror "surface_export_gif: pitch doesn't match width"
-		exit sub
-	end if
+	FAIL_IF(surf = NULL, "NULL Surface")
+	FAIL_IF(surf->format <> SF_32bit, "8bit Surface")
+	FAIL_IF(surf->pitch <> surf->width, "pitch doesn't match width")
 
 	dim writer as GifWriter
 	if GifBegin(@writer, fopen(fname, "wb"), surf->width, surf->height, 0, NO, NULL) = NO then
 		debug "GifWriter(" & fname & ") failed"
 	elseif GifWriteFrame(@writer, surf->pColorData, surf->width, surf->height, 0, 8, iif(dither, 1, 0)) = NO then
-		debug "GifWriteFrame8 failed"
+		debug "GifWriteFrame failed"
 	elseif GifEnd(@writer) = NO then
 		debug "GifEnd failed"
 	end if

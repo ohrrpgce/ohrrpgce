@@ -35,6 +35,18 @@ declare sub remove_exx_handler()
 '----------------------------------------------------------------------
 '                           Macro utilities
 
+#macro EXIT_MSG_IF(condition, errlvl, message, retwhat...)
+	if condition then
+		debugc errlvl, __FUNCTION__ ": " & message
+		return retwhat  'If retwhat isn't given, just "return"
+	end if
+#endmacro
+
+'Log an error message and exit (with optional return value) if 'condition' is true
+#define FAIL_IF(condition, message, retwhat...)  EXIT_MSG_IF(condition, errError, message, retwhat)
+'Show an error message and exit (with optional return value)  if 'condition' is true
+#define ERROR_IF(condition, message, retwhat...) EXIT_MSG_IF(condition, errPromptError, message, retwhat)
+
 
 #DEFINE _CONCAT(a,b) a##b
 #DEFINE TEMPLNAME(a,b) a##__##b
