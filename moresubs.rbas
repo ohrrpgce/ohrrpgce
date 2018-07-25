@@ -36,12 +36,12 @@ DECLARE SUB hero_swap_menu_mouse_control (st as OrderTeamState)
 
 
 
-'who is the hero id + 1!
+'who is the hero id
 SUB addhero (byval who as integer, byval slot as integer, byval forcelevel as integer=-1)
 DIM her as HeroDef
 
 '--load hero's data
-loadherodata her, who - 1
+loadherodata her, who
 
 '--do level forcing
 IF forcelevel >= 0 THEN her.def_level = forcelevel
@@ -51,7 +51,7 @@ IF her.def_level < 0 THEN her.def_level = averagelev
 
 WITH gam.hero(slot)
  '--formally add hero
- .id = who - 1
+ .id = who
 
  '---MUST SET DEFAULT EQUIP---
  FOR i as integer = 0 TO UBOUND(.equip)

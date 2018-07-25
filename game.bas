@@ -759,7 +759,7 @@ ELSE
  clearpage dpage
  clearpage vpage
  'Add initial hero to party (slot 0)
- addhero 1 + gen(genStartHero), 0
+ addhero gen(genStartHero), 0
  'Trigger textbox and/or script
  gam.want.box = gen(genStartTextbox)  '0 for no textbox
  IF gen(genNewGameScript) > 0 THEN
@@ -3523,7 +3523,7 @@ SUB add_rem_swap_lock_hero (byref box as TextBox)
  IF box.hero_addrem > 0 THEN
   i = first_free_slot_in_party()
   IF i > -1 THEN
-   addhero box.hero_addrem, i
+   addhero box.hero_addrem - 1, i
   END IF
  END IF '---end if > 0
  '---REMOVE---

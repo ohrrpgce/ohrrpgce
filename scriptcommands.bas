@@ -4004,8 +4004,7 @@ SUB script_functions(byval cmdid as integer)
   IF bound_arg(retvals(0), 0, gen(genMaxHero), "hero ID") THEN
    DIM slot as integer = first_free_slot_in_party()
    IF slot >= 0 THEN
-    'retvals(0) is the real hero id, addhero subtracts the 1 again
-    addhero retvals(0) + 1, slot
+    addhero retvals(0), slot
    END IF
    scriptret = slot
   END IF

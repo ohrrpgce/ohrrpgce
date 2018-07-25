@@ -233,7 +233,7 @@ SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, byval th
    hire_level = her.def_level
    IF hire_level < 0 THEN hire_level = averagelev()
   END IF
-  addhero hero_id + 1, party_slot, hire_level
+  addhero hero_id, party_slot, hire_level
   buystuff_set_alert buyst, gam.hero(party_slot).name & " " & readglobalstring(95, "Joined!", 20)
  ELSEIF thing_kind = "item" THEN
   buy = thing."buy".ptr
