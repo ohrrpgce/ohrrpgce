@@ -792,6 +792,7 @@ Function NextDescendent(desc as Slice ptr, parent as Slice ptr) as Slice ptr
  if desc = NULL then return NULL
  ' First try to go down, then across, otherwise up as far as needed.
  if desc->FirstChild then return desc->FirstChild
+ if desc = parent then return NULL  'Only for case parent has no children
  while desc->NextSibling = NULL
   desc = desc->Parent
   if desc = parent or desc = NULL then return NULL
