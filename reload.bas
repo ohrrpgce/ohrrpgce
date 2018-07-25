@@ -234,9 +234,8 @@ end sub
 
 'destroys a node and any children still attached to it.
 'if it's still attached to another node, it will be removed from it
-'The purpose of the 'options' parameter is a mystery, and it's never used.
-'FIXME: the old name is never freed
-sub FreeNode(byval nod as NodePtr, byval options as integer)
+'(TODO: node names are never freed from the string table. It doesn't matter)
+sub FreeNode(byval nod as NodePtr)
 	if nod = null then
 		debug "FreeNode ptr already null"
 		exit sub
@@ -246,7 +245,7 @@ sub FreeNode(byval nod as NodePtr, byval options as integer)
 	
 	'If this node has a parent, we should remove this node from
 	'its list of children
-	if nod->parent <> 0 and (options and 1) = 0 then
+	if nod->parent <> 0 then
 		dim par as NodePtr = nod->parent
 		
 		if par->children = nod then
@@ -266,10 +265,8 @@ sub FreeNode(byval nod as NodePtr, byval options as integer)
 			nod->prevSib->nextSib = nod->nextSib
 		end if
 	end if
-	if (options and 1) = 0 then
-		if nod->nodeType = rltString and nod->str <> 0 then RDeallocate(nod->str, nod->doc)
-		RDeallocate(nod, nod->doc)
-	end if
+	if nod->nodeType = rltString and nod->str <> 0 then RDeallocate(nod->str, nod->doc)
+	RDeallocate(nod, nod->doc)
 end sub
 
 'This frees an entire document, its root node, and any of its children
