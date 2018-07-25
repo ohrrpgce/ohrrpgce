@@ -52,11 +52,19 @@ are comments on using them.
  devastating attacks.
 
 -No Damage:
- Doesn't do damage at all.  Good if
- you are making an attack that isn't
- a real attack, such as for
- graphical effect or for doing
+ Doesn't do damage at all, AND the
+ attack will always hit and succeed.
+ Good if you are making an attack
+ that isn't a real attack, such as
+ for graphical effect or for doing
  certain kinds of attack chains.
+ NOTE! The attack can not miss or
+ fail; the "Fail if target is muted/
+ stunned/regened/poisoned" bitsets
+ and Elemental failure conditions
+ are ignored. But the "Reset mute/
+ stun/regen/poison register" bits
+ still take effect.
 
 -<Stat> = [N]% of Maximum:
  Sets the <target stat> to a
