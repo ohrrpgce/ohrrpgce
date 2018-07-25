@@ -1317,6 +1317,25 @@ Function GetChildByNameIndex(byval nod as NodePtr, byval nameindex as integer) a
 	return null
 End Function
 
+'Find first (or last, if 'reverse') node matching both content and (optionally) name
+'Other overloads unimplemented
+Function GetChildByContent(byval nod as NodePtr, content as longint, name as zstring ptr = null, reverse as bool = NO) as NodePtr
+	if nod = null then return null
+	if nod->flags AND nfNotLoaded then LoadNode(nod, NO)
+
+	dim child as NodePtr
+	child = iif(reverse, nod->lastChild, nod->children)
+	while child
+		if child->nodeType = rltInt andalso child->num = content then
+			if name = null orelse *child->name = *name then
+				return child
+			end if
+		end if
+		child = iif(reverse, child->prevSib, child->nextSib)
+	wend
+	return null
+End Function
+
 'This returns a node's content in string form.
 Function GetString(byval node as nodeptr) as string
 	if node = null then return ""

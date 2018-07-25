@@ -3715,7 +3715,10 @@ FUNCTION rgfx_find_spriteset(rgfxdoc as DocPtr, sprtype as SpriteType, setnum as
     IF setnum < 0 THEN RETURN NULL
   END IF
 
-  sprset = ChildByIndex(root_node."spritesets".ptr, setnum)
+  'The spritesets are allowed to be out of order (we can't seek quickly to the right
+  'one anyway), and we take the last matching one to possible allow appending updated
+  'versions to end of file
+  sprset = GetChildByContent(root_node."spritesets".ptr, setnum, "spriteset", YES)  'reverse=YES
   RETURN sprset
 END FUNCTION
 
