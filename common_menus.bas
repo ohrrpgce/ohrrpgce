@@ -60,7 +60,7 @@ npc_facetypes(2) = "Do Not Face Player"
 'The bits corresponding to any blank entries in names() are skipped over.
 'if remem_pt is not -2 (initialise to -1) it is used to store the selected bit (index in names())
 'If immediate_quit is true, then toggling a bit causes the menu to quit immediately and return YES (otherwise NO)
-FUNCTION editbitset (array() as integer, byval wof as integer, byval last as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -2, byval immediate_quit as integer = NO) as integer
+FUNCTION editbitset (array() as integer, byval wof as integer, byval last as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -2, byval immediate_quit as bool = NO) as bool
 
  '---DIM AND INIT---
  DIM state as MenuState
@@ -86,7 +86,7 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
  state.last = nextbit - 1
  state.autosize = YES
 
- DIM ret as integer = NO
+ DIM ret as bool = NO
  DIM col as integer
 
  '---MAIN LOOP---

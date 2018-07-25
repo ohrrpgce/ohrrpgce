@@ -443,7 +443,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
     END IF
    END IF
    WITH attack.elemental_fail_conds(i)
-    DIM fail as integer = NO
+    DIM fail as bool = NO
     DIM effectiveval as single = target.elementaldmg(i)
     DIM t as integer = .type AND 15
     IF .type AND 16 THEN effectiveval = ABS(effectiveval)
@@ -812,8 +812,8 @@ SUB traceshow (s as string)
  printstr s, 0, 191, 1
 END SUB
 
-FUNCTION trytheft (bat as BattleState, byval who as integer, byval targ as integer, attack as AttackData, bslot() as BattleSprite) as integer
- IF is_hero(who) AND is_enemy(targ) THEN
+FUNCTION trytheft (bat as BattleState, byval who as integer, byval targ as integer, attack as AttackData, bslot() as BattleSprite) as bool
+ IF is_hero(who) ANDALSO is_enemy(targ) THEN
   '--a hero is attacking an enemy
   IF attack.can_steal_item THEN
    '--steal bitset is on for this attack
@@ -989,7 +989,7 @@ SUB learn_spells_for_current_level(byval who as integer, byval allowforget as bo
  
 END SUB
 
-FUNCTION allowed_to_gain_levels(byval heroslot as integer) as integer
+FUNCTION allowed_to_gain_levels(byval heroslot as integer) as bool
  IF heroslot < 0 THEN RETURN NO 'out of range
  IF heroslot > UBOUND(gam.hero) THEN RETURN NO ' out of range
  IF gam.hero(heroslot).id = -1 THEN RETURN NO ' no hero in this slot
@@ -1052,8 +1052,8 @@ SUB setheroexperience (byval who as integer, byval amount as integer, byval allo
  tag_updates
 END SUB
 
-FUNCTION visibleandalive (byval who as integer, bslot() as BattleSprite) as integer
- RETURN (bslot(who).vis AND bslot(who).stat.cur.hp > 0)
+FUNCTION visibleandalive (byval who as integer, bslot() as BattleSprite) as bool
+ RETURN (bslot(who).vis ANDALSO bslot(who).stat.cur.hp > 0)
 END FUNCTION
 
 SUB export_battle_hero_stats (bslot() as BattleSprite)

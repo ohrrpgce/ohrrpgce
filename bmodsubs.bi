@@ -36,7 +36,7 @@ declare sub battle_target_arrows_mask (inrange() as integer, byval d as integer,
 declare sub battle_target_arrows (byval d as integer, byval axis as integer, bslot() as battlesprite, targ as TargettingState, byval allow_spread as integer=0)
 declare function targetmaskcount (tmask() as integer) as integer
 declare sub traceshow (s as string)
-declare function trytheft (bat as BattleState, byval who as integer, byval targ as integer, attack as AttackData, bslot() as BattleSprite) as integer
+declare function trytheft (bat as BattleState, byval who as integer, byval targ as integer, attack as AttackData, bslot() as BattleSprite) as bool
 declare function hero_total_exp (byval hero_slot as integer) as integer
 declare sub updatestatslevelup (byval hero_slot as integer, byval allowforget as bool)
 declare sub hero_total_equipment_bonuses (byval hero_slot as integer, bonuses() as integer)
@@ -45,9 +45,9 @@ declare sub compute_hero_base_stats_from_max (byval hero_slot as integer)
 declare sub learn_spells_for_current_level(byval who as integer, byval allowforget as bool)
 declare sub giveheroexperience (byval i as integer, byval exper as integer)
 declare sub setheroexperience (byval who as integer, byval amount as integer, byval allowforget as bool)
-declare function allowed_to_gain_levels(byval heroslot as integer) as integer
+declare function allowed_to_gain_levels(byval heroslot as integer) as bool
 
-declare function visibleandalive (byval who as integer, bslot() as battlesprite) as integer
+declare function visibleandalive (byval who as integer, bslot() as battlesprite) as bool
 declare sub export_battle_hero_stats (bslot() as BattleSprite)
 declare sub import_battle_hero_stats (bslot() as BattleSprite)
 

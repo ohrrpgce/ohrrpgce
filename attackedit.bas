@@ -1434,7 +1434,7 @@ DO
     editbitset buffer(), 0, UBOUND(atkbit), atkbit(), "attack_bitsets", remember_atk_bit
     atk_edit_split_bitsets recbuf(), buffer()
    CASE AtkDamageBitAct
-    DIM updatebits as integer
+    DIM updatebits as bool
     DO
      atk_edit_merge_bitsets recbuf(), buffer()
      updatebits = editbitset(buffer(), 0, UBOUND(maskeddmgbit), maskeddmgbit(), "attack_damage_bitsets", remember_dmg_bit, YES)

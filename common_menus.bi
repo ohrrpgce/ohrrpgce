@@ -10,7 +10,7 @@ TYPE FnMenuLogic as FUNCTION (menu as MenuDef, state as MenuState, dataptr as an
 DECLARE SUB run_MenuDef(menu as MenuDef, each_tick as FnMenuLogic, dataptr as any ptr = NULL)
 
 
-DECLARE FUNCTION editbitset (array() as integer, byval wof as integer, byval last as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -2, byval immediate_quit as integer = NO) as integer
+DECLARE FUNCTION editbitset (array() as integer, byval wof as integer, byval last as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -2, byval immediate_quit as bool = NO) as bool
 
 DECLARE SUB edit_general_bitsets()
 DECLARE SUB edit_backcompat_bitsets()
