@@ -186,6 +186,19 @@ Type SliceChildRefresh as Sub(Byval par as SliceFwd ptr, Byval ch as SliceFwd pt
 Type SliceChildrenRefresh as Sub(Byval par as SliceFwd ptr)
 Type SliceChildDraw as Sub(Byval s as SliceFwd ptr, Byval page as integer)
 
+Type RectangleSliceDataFwd as RectangleSliceData
+Type LineSliceDataFwd as LineSliceData
+Type TextSliceDataFwd as TextSliceData
+Type SpriteSliceDataFwd as SpriteSliceData
+Type MapSliceDataFwd as MapSliceData
+Type GridSliceDataFwd as GridSliceData
+Type LayoutSliceDataFwd as LayoutSliceData
+Type EllipseSliceDataFwd as EllipseSliceData
+Type ScrollSliceDataFwd as ScrollSliceData
+Type SelectSliceDataFwd as SelectSliceData
+Type PanelSliceDataFwd as PanelSliceData
+
+
 Type Slice
   Parent as Slice Ptr
   FirstChild as Slice Ptr
@@ -299,8 +312,22 @@ Type Slice
   '(Panel only draws the first two children, Grid only draws rows*cols many)
   ChildDraw as SliceChildDraw
 
-  SliceData as any ptr
   SliceType as SliceTypes
+
+  Union
+    SliceData    as any ptr
+    RectData     as RectangleSliceDataFwd ptr
+    LineData     as LineSliceDataFwd ptr
+    TextData     as TextSliceDataFwd ptr
+    SpriteData   as SpriteSliceDataFwd ptr
+    MapData      as MapSliceDataFwd ptr
+    GridData     as GridSliceDataFwd ptr
+    LayoutData   as LayoutSliceDataFwd ptr
+    EllipseData  as EllipseSliceDataFwd ptr
+    ScrollData   as ScrollSliceDataFwd ptr
+    SelectData   as SelectSliceDataFwd ptr
+    PanelData    as PanelSliceDataFwd ptr
+  End Union
 
   'Protect is used to mark slices that script authors should not be
   'allowed to directly delete or reparent.
