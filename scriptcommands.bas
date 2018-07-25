@@ -830,7 +830,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 246'--load map state
   IF retvals(1) > -1 AND retvals(1) <= 31 THEN
-   loadmapstate_bitmask retvals(1), retvals(0), "state", -1
+   loadmapstate_bitmask retvals(1), retvals(0), "state", YES  'dontfallback=YES
   ELSEIF retvals(1) = 255 THEN
    loadmapstate_bitmask gam.map.id, retvals(0), "map"
   END IF

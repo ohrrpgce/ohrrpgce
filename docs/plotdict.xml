@@ -1997,6 +1997,8 @@ wait for text box # wait until the player continues</example>
 				Use <ref>showmap</ref> or <tt>show backdrop(-1)</tt> to hide the backdrop and
 				show the map again.
 				You can also do some simple animation effects by calling show backdrop many times with <ref>wait</ref> commands in between.
+				<lb/>
+				Whether and which backdrop is displaying is saved in save games.
 				<note>It's also possible to display backdrops as sprite slices using <ref>loadbackdropsprite</ref>.</note>
 			</description>
 			<seealso>
@@ -2286,7 +2288,7 @@ end</example>
 		<command id="itemcountinslot">
 			<canon>item count in slot (slot)</canon>
 			<shortname>item count in slot</shortname>
-			<description>Return a the count of items at a specific slot in your inventory, or 0 if that slot is empty. Slots are numbered from 0 to <ref>getinventorysize</ref>-1.</description>
+			<description>Return the count of items at a specific slot in your inventory, or 0 if that slot is empty. Slots are numbered from 0 to <ref>getinventorysize</ref>-1.</description>
 			<seealso>
 				<ref>iteminslot</ref>
 				<ref>setiteminslot</ref>
@@ -8309,6 +8311,7 @@ The third argument is the total number of ticks that the animation should run. Y
 				(That is, slices marked not-visible are ignored while searching for slices, but whether <p>parent</p> itself
 				is visible doesn't have any effect.)
 				Pass true for <p>visibleonly</p> in order to avoid finding the children of Select slices which are not selected (and therefore invisible).
+				<p>visibleonly</p> defaults to false.
 				<lb/>
 				This command never returns Special slices, such as the <ref>spritelayer</ref> slice, nor will it return <p>slice</p> or any of its descendants.
 				<note>
