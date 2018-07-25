@@ -226,9 +226,6 @@ textcolor uilook(uiText), 0
 
 setupmusic
 
-'seed the random number generator
-mersenne_twister TIMER
-
 'Cleanups/recovers any working.tmp for any crashed copies of Custom; requires graphics up and running
 check_for_crashed_workingdirs
 

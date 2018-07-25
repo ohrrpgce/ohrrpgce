@@ -108,6 +108,8 @@ SUB lowlevel_init()
   setup_exception_handler
 
   disable_extended_precision
+
+  reseed_prng TIMER * 1e9
 END SUB
 
 '------------- Basic datatypes -------------
@@ -578,6 +580,11 @@ END FUNCTION
  debug "testframe in " & (TIMER - timestart) * 1000 & "ms"
  frame_unload @tframe
 '/
+
+SUB reseed_prng (seed as double)
+ 'Note: the fractional part of seed is ignored!
+ RANDOMIZE seed, 3
+END SUB
 
 ' Returns number +/- up to percent%
 ' Note that the average value returned is number - 0.5! Don't change this

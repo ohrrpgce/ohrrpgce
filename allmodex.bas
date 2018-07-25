@@ -487,17 +487,6 @@ sub switch_gfx(backendname as string)
 	io_setmousevisibility(cursorvisibility)
 end sub
 
-sub mersenne_twister (seed as double)
-	if replay.active orelse replay.paused orelse record.active orelse record.paused then
-		exit sub 'Seeding not allowed in play/record modes
-	end if
-	'FIXME: reseeding the RNG from scripts needs be allowed.
-	'Either the seed should be recorded, or just don't allow any source of nondeterminism which could
-	'be used as a seed (e.g. record results of all nondeterministic script commands).
-	RANDOMIZE seed, 3
-	debuginfo "mersenne_twister seed=" & seed
-end sub
-
 sub settemporarywindowtitle (title as string)
 	'just like setwindowtitle but does not memorize the title
 	GFX_ENTER
@@ -2826,8 +2815,8 @@ sub start_recording_input (filename as string)
 	put #record.file,, header
 	dim ohrkey_ver as integer = 4
 	put #record.file,, ohrkey_ver
-	dim seed as double = TIMER
-	RANDOMIZE seed, 3
+	dim seed as double = TIMER * 1e9
+	reseed_prng seed
 	put #record.file,, seed
 	record.active = YES
 	debuginfo "Recording keyboard input to: """ & filename & """"
@@ -2907,7 +2896,7 @@ sub load_replay_header ()
 	end if
 	dim seed as double
 	GET #replay.file,, seed
-	RANDOMIZE seed, 3
+	reseed_prng seed
 	debuginfo "Replaying keyboard input from: """ & replay.filename & """"
 	read_replay_length()
 	if replay.repeats_done = 0 then

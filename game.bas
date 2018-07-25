@@ -304,9 +304,6 @@ dpage = 1: vpage = 0
 'DEBUG debug "init sound"
 setupmusic
 
-'seed the random number generator
-mersenne_twister TIMER
-
 
 '==============================================================================
 

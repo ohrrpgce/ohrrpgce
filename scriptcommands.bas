@@ -1555,9 +1555,9 @@ SUB script_functions(byval cmdid as integer)
   setpal master()
  CASE 108'--seed random
   IF retvals(0) THEN
-   mersenne_twister retvals(0)
+   reseed_prng retvals(0)
   ELSE
-   mersenne_twister TIMER
+   reseed_prng TIMER * 1e9
   END IF
  CASE 109'--greyscale palette
   greyscalepal
