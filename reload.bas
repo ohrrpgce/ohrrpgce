@@ -1697,7 +1697,7 @@ Function AppendChildNode(byval parent as NodePtr, n as string, val as string) as
 	return ret
 end Function
 
-Function ChildByIndex(byval parent as NodePtr, byval index as integer) as NodePtr
+Function ChildByIndex(byval parent as NodePtr, byval index as integer, byval withname as zstring ptr = NULL) as NodePtr
 	'Return the index'th child node, or 0 if no such child exists
 	'This could be slow for long child lists, so don't use it unless you really need it
 	if parent = 0 then return 0
@@ -1706,9 +1706,11 @@ Function ChildByIndex(byval parent as NodePtr, byval index as integer) as NodePt
 	dim ch as Node Ptr
 	ch = parent->children
 	do while ch
-		if i = index then return ch
+		if withname = NULL orelse *ch->name = *withname then
+			if i = index then return ch
+			i += 1
+		end if
 		ch = ch->nextsib
-		i += 1
 	loop
 	return 0 ' no child matches index
 end Function
