@@ -101,7 +101,7 @@ print "Finished in " & int((timer - realStart) * 1000) & " ms"
 'This sub sets a node's content to binary data, calling the Base64 decoder which is in base64.c
 sub SetContent_base64(byval this as nodeptr, byval encoded as zstring ptr)
 	'This does not compute the exact length (may overestimate), find that out later
-	dim outlen as integer = 3 * (len(*encoded) \ 4) + 2
+	dim outlen as size_t = 3 * (len(*encoded) \ 4) + 2
 
 	'Change to a string, then reserve enough space
 	SetContent(this, NULL, outlen)  'An uninitialised binary blob
