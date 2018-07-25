@@ -145,11 +145,12 @@ Declare Function ResizeZString(byval node as nodeptr, byval newsize as integer) 
 Declare Function GetZStringSize(byval node as nodeptr) as integer
 
 Declare Function GetChildByName(byval nod as NodePtr, byval nam as zstring ptr) as NodePtr 'NOT recursive
-Declare Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr 'recursive depth first search
+Declare Function FindDescendentByName(byval nod as NodePtr, nam as string) as NodePtr 'recursive depth first search
 
 Declare Function DocumentRoot(byval doc as DocPtr) as NodePtr
 Declare Function GetDocument(byval nod as NodePtr) as DocPtr
 Declare Function NumChildren(byval nod as NodePtr) as Integer
+Declare Function CountChildren(byval nod as NodePtr, byval withname as zstring ptr) as integer
 Declare Function NodeParent(byval nod as NodePtr) as NodePtr
 Declare Function FirstChild(byval nod as NodePtr, byval name as zstring ptr = null) as NodePtr
 Declare Function NextSibling(byval nod as NodePtr, byval name as zstring ptr = null) as NodePtr

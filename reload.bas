@@ -1259,7 +1259,7 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 	end if
 end sub
 
-Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr
+Function FindDescendentByName(byval nod as NodePtr, nam as string) as NodePtr
 	'recursively searches for a child by name, depth-first
 	'can also find self
 	if nod = null then return null
@@ -1271,7 +1271,7 @@ Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr
 	dim ret as NodePtr
 	child = nod->children
 	while child <> null
-		ret = FindChildByName(child, nam)
+		ret = FindDescendentByName(child, nam)
 		if ret <> null then return ret
 		child = child->nextSib
 	wend
@@ -1728,6 +1728,19 @@ end Function
 Function NumChildren(byval nod as NodePtr) as Integer
 	if nod = null then return 0
 	return nod->numChildren
+end Function
+
+'Return number of children with this name
+Function CountChildren(byval nod as NodePtr, byval withname as zstring ptr) as integer
+	if nod = null then return 0
+	if nod->flags AND nfNotLoaded then LoadNode(nod, NO)
+	dim count as integer = 0
+	dim ch as NodePtr = nod->children
+	while ch
+		if *ch->name = *withname then count += 1
+		ch = ch->nextSib
+	wend
+	return count
 end Function
 
 Function NodeParent(byval nod as NodePtr) as NodePtr
