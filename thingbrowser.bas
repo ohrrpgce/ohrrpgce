@@ -91,7 +91,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    result = start_id
    exit do
   end if
-  if keyval(scF6) > 1 then slice_editor(root)
+  if keyval(scF6) > 1 then slice_editor(root, SL_COLLECT_EDITOR, "thingbrowser.slice", , YES)
   if keyval(scCtrl) > 0 andalso keyval(scF) > 1 then do_filter = YES
   if len(helpkey) andalso keyval(scF1) > 1 then show_help helpkey
 

@@ -2175,8 +2175,7 @@ FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as
  DO
   setwait 40
   setkeys YES
-  
-  IF keyval(scF6) > 1 THEN slice_editor(root)
+  IF keyval(scF6) > 1 THEN slice_editor root, SL_COLLECT_EDITOR, "prompt_for_string.slice"
   IF keyval(scESC) > 1 THEN
    prompt_for_string = NO
    EXIT DO

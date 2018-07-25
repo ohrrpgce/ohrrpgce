@@ -255,8 +255,9 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
  REDIM ses.specialcodes(0) as SpecialLookupCode
  SELECT CASE group
   CASE SL_COLLECT_EDITOR:
-   'Editor slices have access to all lookup codes, but for convenience
-   'we should put certain codes at the top for certain filenames
+   'SL_COLLECT_EDITOR allows access to all lookup codes, but for certain filenames
+   'this puts relevant codes at the top, and also limits which slice types can
+   'be used with those codes.
    SELECT CASE trimpath(ses.collection_file)
     CASE "choose_rpg.slice"
      append_specialcode ses, SL_EDITOR_SPLASH_MENU, kindlimitANYTHING
@@ -395,9 +396,11 @@ END SUB
 ' Edit an existing slice tree.
 ' recursive is true if using Ctrl+F. Probably should not use otherwise.
 ' privileged: true if should be allowed to edit things that are hidden from users
-SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, recursive as bool = NO, privileged as bool = NO)
+' filename: this is useful only for group = SL_COLLECT_EDITOR, to define the sub-group.
+SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, filename as string = "", recursive as bool = NO, privileged as bool = NO)
  DIM ses as SliceEditState
  ses.collection_group_number = group
+ ses.collection_file = filename
  ses.use_index = NO  'Can't browse collections
  ses.editing_existing = YES
  ses.recursive = recursive
@@ -631,7 +634,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
    IF keyval(scCtrl) > 0 ANDALSO keyval(scF) > 1 THEN
     'Edit this slice alone ("fullscreen")
-    slice_editor ses.curslice, , YES
+    slice_editor ses.curslice, ses.collection_group_number, ses.collection_file, YES
     state.need_update = YES
    END IF
 
@@ -861,7 +864,7 @@ END FUNCTION
 
 SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, edit_separately as bool)
  ' Check for programmer error (doesn't work because of the games slice_editor plays with the draw_root)
- IF ses.editing_existing THEN showerror "slice_editor_load does work when existing existing collection"
+ IF ses.editing_existing THEN showerror "slice_editor_load does work when editing existing collection" : EXIT SUB
  DIM newcollection as Slice Ptr
  newcollection = NewSlice
  WITH *newcollection  'Defaults only
@@ -948,7 +951,7 @@ FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as 
    '(Note: since you can edit the root slice, this is technically wrong...)
    safekill filename
   END IF
- ELSEIF LEN(ses.collection_file) THEN
+ ELSEIF LEN(ses.collection_file) > 0 AND ses.editing_existing = NO THEN
   IF edslice->NumChildren > 0 THEN
    'Prevent attempt to quit the program, stop and wait for response first
    DIM quitting as bool = getquitflag()

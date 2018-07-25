@@ -605,6 +605,7 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
   setkeys
   IF keyval(scEsc) > 1 THEN cleanup_and_terminate
   IF keyval(scF1) > 1 THEN show_help "choose_rpg"
+  IF keyval(scF6) > 1 THEN slice_editor root, SL_COLLECT_EDITOR, "choose_rpg.slice"
 
   usemenu state
   IF enter_space_click(state) THEN
