@@ -1800,9 +1800,13 @@ SUB changefoe(bat as BattleState, byval slot as integer, transmog as TransmogDat
   EXIT SUB
  END IF
 
- formdata.slots(slot).id = transmog.enemy
-
  DIM byref bspr as BattleSprite = bslot(4 + slot)
+
+ IF transmog.rewards_rule = 1 THEN  'Give rewards before transmogrification
+  enemy_death_rewards bat, bspr
+ END IF
+
+ formdata.slots(slot).id = transmog.enemy
 
  WITH bspr
   IF .sl = NULL THEN showerror "changefoe: foe not loaded" : EXIT SUB

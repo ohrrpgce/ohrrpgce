@@ -126,8 +126,9 @@ CONST AtkWepHand1 = 146
 CONST AtkTurnDelay = 147
 CONST AtkDramaticPause = 148
 CONST AtkDamageColor = 149
+CONST AtkTransmogRewards = 150
 
-'Next menu item is 150 (remember to update MnuItems)
+'Next menu item is 151 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -200,6 +201,7 @@ CONST AtkDatWepHand1Y = 318
 CONST AtkDatTurnDelay = 319
 CONST AtkDatDramaticPause = 320
 CONST AtkDatDamageColor = 338
+CONST AtkDatTransmogRewards = 339
 
 'anything past this requires expanding the data
 
@@ -329,7 +331,7 @@ atk_chain_bitset_names(4) = "Invert condition"
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
-CONST MnuItems = 149
+CONST MnuItems = 150
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -340,8 +342,8 @@ DIM menucapoff(MnuItems) as integer
 
 DIM capindex as integer = 0
 REDIM caption(-1 TO -1) as string
-DIM max(43) as integer
-DIM min(43) as integer
+DIM max(44) as integer
+DIM min(44) as integer
 
 'Limit(0) is not used
 
@@ -667,7 +669,14 @@ max(AtkLimDramaticPause) = 1000
 CONST AtkLimColorIndex = 43
 max(AtkLimColorIndex) = 255
 
-'next limit is 44 (remember to update the dim)
+CONST AtkLimTransmogRewards = 44
+max(AtkLimTransmogRewards) = 1
+min(AtkLimTransmogRewards) = 0
+menucapoff(AtkTransmogRewards) = capindex
+addcaption caption(), capindex, "Don't give rewards for old enemy"  '0
+addcaption caption(), capindex, "Give rewards for old enemy"  '1
+
+'next limit is 45 (remember to update the max() and min() dims)
 
 '----------------------------------------------------------------------
 '--menu content
@@ -1013,6 +1022,11 @@ menutype(AtkTransmogStats) = 2000 + menucapoff(AtkTransmogStats)
 menuoff(AtkTransmogStats) = AtkDatTransmogStats
 menulimits(AtkTransmogStats) = AtkLimTransmogStats
 
+menu(AtkTransmogRewards) = "Rewards:"
+menutype(AtkTransmogRewards) = 2000 + menucapoff(AtkTransmogRewards)
+menuoff(AtkTransmogRewards) = AtkDatTransmogRewards
+menulimits(AtkTransmogRewards) = AtkLimTransmogRewards
+
 menu(AtkElementFailAct) = "Elemental failure conditions..."
 menutype(AtkElementFailAct) = 1
 
@@ -1143,11 +1157,12 @@ tagMenu(4) = AtkTagIf2
 tagMenu(5) = AtkTagAnd2
 tagMenu(6) = AtkTag2
 
-DIM transmogMenu(3) as integer
+DIM transmogMenu(4) as integer
 transmogMenu(0) = AtkBackAct
 transmogMenu(1) = AtkTransmogEnemy
 transmogMenu(2) = AtkTransmogHp
 transmogMenu(3) = AtkTransmogStats
+transmogMenu(4) = AtkTransmogRewards
 
 DIM elementFailMenu(gen(genNumElements) + 1) as integer
 elementFailMenu(0) = AtkBackAct

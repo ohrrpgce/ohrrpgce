@@ -3114,6 +3114,7 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .transmog.enemy = buf(118) - 1
   .transmog.hp_rule = buf(119)
   .transmog.other_stats_rule = buf(120)
+  .transmog.rewards_rule = buf(339)
   .override_wep_pic = NO
   .wep_picture = -1
   .wep_pal = -1

@@ -42,6 +42,7 @@ DECLARE SUB setup_enemy_slice(byref bspr as BattleSprite, bat as BattleState, ke
 
 DECLARE FUNCTION dieWOboss(byval who as integer, bslot() as BattleSprite) as integer
 DECLARE SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB enemy_death_rewards(byref bat as BattleState, battler as BattleSprite)
 DECLARE SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef)
 DECLARE SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprite)

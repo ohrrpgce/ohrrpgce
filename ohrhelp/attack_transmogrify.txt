@@ -8,3 +8,5 @@ Press ENTER to select an enemy.
 Health: You can choose whether to keep the old enemy's remaining health, or to restore the enemy's health to the max for the new enemy type, or to adjust the remaining health as a percentage of maximum.
 
 Other stats: You can choose whether to keep the old enemy's other stats, or to restore them to the new enemy type's maximum, or to adjust them as a percentage of maximum.
+
+Rewards: This controls whether the rewards from the old enemy are given out or not. In other words, whether the old enemy counts as defeated or not.

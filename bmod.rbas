@@ -31,7 +31,6 @@ DECLARE FUNCTION find_empty_enemy_slot(formdata as Formation) as integer
 
 DECLARE SUB spawn_on_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, formdata as Formation, bslot() as BattleSprite)
 DECLARE SUB enemy_death_sfx(battler as BattleSprite)
-DECLARE SUB enemy_death_rewards(byref bat as BattleState, battler as BattleSprite)
 DECLARE SUB triggerfade(byval who as integer, bslot() as BattleSprite)
 DECLARE SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 

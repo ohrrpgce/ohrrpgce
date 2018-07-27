@@ -633,6 +633,7 @@ Type TransmogData
 	enemy as integer         ' ID, -1 means no transmogrification
 	hp_rule as TransmogStatsRule
 	other_stats_rule as TransmogStatsRule
+	rewards_rule as integer  ' 0 (don't give) or 1 (give)
 End Type
 
 Type AttackData

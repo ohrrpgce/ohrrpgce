@@ -43,6 +43,7 @@ June (mumble) 2018 [Fufluns]
       you can check what will be visible. Press Ctrl-O once/twice or toggle in
       the Map Editor Settings menu. [Ralph]
     * All the fade-out colors are now customisable User Interface Colors [Ralph]
+    * Option to give rewards from an enemy before it is transmogrified [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]
