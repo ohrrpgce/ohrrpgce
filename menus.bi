@@ -97,6 +97,7 @@ DECLARE SUB draw_fullscreen_scrollbar(state as MenuState, boxstyle as integer=0,
 ' In the meantime, just use a simple menu() as string, but probably
 ' should switch to BasicMenuItem at a minimum
 TYPE ModularMenu EXTENDS Object
+ running as bool         'Whether inside run()
  menu(any) as string
  tooltip as string       'Shown at the bottom of the screen
  title as string         'Shown at the top, like the multichoice() prompt

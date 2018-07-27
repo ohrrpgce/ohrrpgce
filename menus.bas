@@ -1867,6 +1867,7 @@ SUB ModularMenu.draw()
 END SUB
 
 SUB ModularMenu.run()
+ running = YES
  IF floating THEN
   holdscreen = allocatepage
   copypage vpage, holdscreen
@@ -1898,7 +1899,11 @@ SUB ModularMenu.run()
   dowait
  LOOP
  setkeys
- IF holdscreen THEN freepage holdscreen
+ IF holdscreen THEN
+  copypage holdscreen, vpage   'Just in case something else also does holdscreen
+  freepage holdscreen
+ END IF
+ running = NO
 END SUB
 
 
