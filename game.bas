@@ -925,8 +925,7 @@ DO
  END IF
  IF fatal THEN
   '--this is what happens when you die
-  txt.showing = NO
-  txt.fully_shown = NO
+  cleanup_text_box
   IF gen(genGameoverScript) > 0 THEN
    trigger_script gen(genGameoverScript), 0, NO, "death", "", mainFibreGroup
    fatal = NO

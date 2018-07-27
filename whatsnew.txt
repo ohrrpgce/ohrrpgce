@@ -109,6 +109,8 @@ June (mumble) 2018 [Fufluns]
       targetable one it was possible to target it [Ralph]
     * "swap menu items" swapped the wrong items [Ralph]
     * "get NPC speed" always returned 0! [Ralph]
+    * If you died with a textbox open and an on-death script cancelled the
+      death, the textbox slice wasn't removed [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced
