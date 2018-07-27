@@ -38,6 +38,7 @@ DECLARE SUB checkdoors ()
 DECLARE SUB usedoor (door_id as integer, fadescreen as bool = YES)
 DECLARE FUNCTION want_to_check_for_walls(byval who as integer) as bool
 DECLARE FUNCTION hero_should_ignore_walls(byval who as integer) as bool
+DECLARE SUB end_text_box_chain ()
 DECLARE SUB update_npcs ()
 DECLARE SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
 DECLARE FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType) as bool
@@ -3361,9 +3362,10 @@ SUB loadsay (byval box_id as integer)
   settag txt.box.settag1
   settag txt.box.settag2
   'NOTE: We just changed tags, but we do not want tag_updates to update
-  '  NPC visibility until after the box adances. We do however update
-  '  menu tags right away.
-  tag_updates NO
+  'NPC visibility until end_text_box_chain(), however there's a high likelihood
+  'that something else will do so early.
+  'We do however update other things right away.
+  tag_updates NO  'npc_visibility=NO
  END IF
 
  '--make a sound if the choicebox is enabled
@@ -3488,13 +3490,21 @@ SUB advance_text_box ()
   IF txt.box.after < 0 THEN
    trigger_script -txt.box.after, 0, YES, "textbox", "box " & txt.id, mainFibreGroup
   ELSEIF txt.box.after > 0 THEN ' Box 0, the template, is never a valid "next" box
+   context_string = ""
    loadsay txt.box.after
    EXIT SUB
   END IF
  END IF
+
  '---DONE EVALUATING CONDITIONALS--------
- 'Lots of things in this sub directly or indirectly affects tags. Many of the functions
- 'called make sure the proper effects occur themselves, but we do it all again for simplicity
+ 'If no Next textbox, the chain is over
+ end_text_box_chain
+END SUB
+
+SUB end_text_box_chain ()
+ 'Lots of things in advance_text_box directly or indirectly affect tags. All of the functions
+ 'called (except settag) make sure the proper effects occur themselves, but we do it all again
+ 'to be sure. Also, update NPC visibility now, we intentionally called "tag_updates NO" earlier
  evalitemtags
  evalherotags
  tag_updates
