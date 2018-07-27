@@ -685,18 +685,19 @@ SUB script_functions(byval cmdid as integer)
   IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant") THEN
    DIM npcid as integer = get_valid_npc_id(retvals(0), serrBound)
    IF npcid <> -1 THEN
-    DIM as integer writesafe = 1
-    IF retvals(1) = 0 THEN
+    DIM write_value as bool = YES
+    IF retvals(1) = 0 THEN  'NPCstat:picture
      IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN
-      writesafe = 0
+      write_value = NO
      ELSE
       change_npc_def_sprite npcid, retvals(2)
      END IF
     END IF
-    IF retvals(1) = 1 THEN
+    IF retvals(1) = 1 THEN  'NPCstat:palette
      change_npc_def_pal npcid, retvals(2)
     END IF
-    IF writesafe THEN SetNPCD(npcs(npcid), retvals(1), retvals(2))
+    'Shouldn't we check validity of retvals(2) for other data?
+    IF write_value THEN SetNPCD(npcs(npcid), retvals(1), retvals(2))
     lump_reloading.npcd.dirty = YES
    END IF
   END IF

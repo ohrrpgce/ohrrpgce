@@ -1879,6 +1879,11 @@ define constant, begin
 15,NPCstat:defaultmovementzone
 16,NPCstat:defaultavoidancezone
 17,NPCstat:ignorepassmap
+18,NPCstat:pathfindingrule
+# Values for NPCstat:pathfindingrule
+0,pathfinding:default
+1,pathfinding:npcs obstruct
+2,pathfinding:npcs ignored
 0,color:red
 1,color:green
 2,color:blue

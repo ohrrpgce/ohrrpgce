@@ -3238,6 +3238,16 @@ end</example>
 						<lb/>
 						This is for the NPC editor setting, not the <ref>setnpcignoreswalls</ref> command.
 					</li>
+					<li>
+						Alter NPC (who,NPCstat:pathfinding rule,rule)
+						<lb/>
+						The <tt>rule</tt> (see the F1 help page for the NPC editor for more info) is one of:
+						<ul>
+							<li>pathfinding:default</li>
+							<li>pathfinding:npcs obstruct</li>
+							<li>pathfinding:npcs ignored</li>
+						</ul>
+					</li>
 				</ul>
 				Normally you would only give an NPC ID number to alter NPC,
 				but if you want to use an <ref>npcreference</ref> it will still work.
