@@ -4012,8 +4012,8 @@ TYPE SpriteSetEditor
   DECLARE SUB display()
   DECLARE SUB run()
   DECLARE SUB export_menu()
-  DECLARE SUB export_gif(fname as string, anim as string, transparent as bool = NO)
 END TYPE
+DECLARE SUB export_gif(ss as SpriteSet ptr, pal as Palette16 ptr, fname as string, anim as string, transparent as bool = NO)
 
 SUB spriteset_editor(sprtype as SpriteType)
   DIM editor as SpriteSetBrowser
@@ -4735,14 +4735,14 @@ SUB SpriteSetEditor.export_menu()
   frame_export_gif @ss->frames[0], "hero0.gif", master(), pal
  ELSEIF choice = 1 THEN
  ELSEIF choice = 2 THEN
-  export_gif "hero.gif", "walk left"
+  export_gif ss, pal, "hero.gif", "walk left"
  ELSEIF choice = 3 THEN
-  export_gif "herotrans.gif", "walk left", YES
+  export_gif ss, pal, "herotrans.gif", "walk left", YES
  END IF
 END SUB
 
 ' Export a certain animation as a looping gif
-SUB SpriteSetEditor.export_gif(fname as string, anim_name as string, transparent as bool = NO)
+SUB export_gif(ss as SpriteSet ptr, pal as Palette16 ptr, fname as string, anim_name as string, transparent as bool = NO)
   DIM writer as GifWriter
   DIM gifpal as GifPalette
   GifPalette_from_pal gifpal, master(), pal
@@ -4754,18 +4754,30 @@ SUB SpriteSetEditor.export_gif(fname as string, anim_name as string, transparent
     EXIT SUB
   END IF
 
-  CONST frameTime as integer = 5  'In hundreds of a second
+  DIM ms_remainder as integer = 0  'Left over wait ms due to rounding
+
   DIM sprst as SpriteState ptr
   sprst = NEW SpriteState(ss)
   sprst->start_animation(anim_name, 1)  'Loop once
 
+  ' Run until the first wait
+  sprst->animate()
+
   ' FIXME: if animations contain loops other than repeating, this could loop forever
   WHILE sprst->anim
-    sprst->animate()
     DIM fr as Frame ptr = sprst->cur_frame()
-    DIM waitticks as integer = sprst->skip_wait()
-    IF waitticks > 0 THEN
-      IF GifWriteFrame8(@writer, fr->image, fr->w, fr->h, waitticks * frameTime, NULL) = NO THEN
+    DIM framenum as integer = sprst->frame_num
+    DIM waitms as integer = sprst->skip_wait()
+    'print "export op " & sprst->anim_step & " frame " & sprst->frame_num & " wait " & waitms
+    IF waitms < 0 THEN EXIT WHILE  'Error
+
+    IF waitms > 0 THEN
+      DIM frametime as integer  'In hundredths of a second
+      waitms += ms_remainder
+      frametime = waitms \ 10
+      ms_remainder = waitms MOD 10
+      'print "export frame " & framenum
+      IF GifWriteFrame8(@writer, fr->image, fr->w, fr->h, frametime, NULL) = NO THEN
         debug "GifWriteFrame8 failed"
         safekill fname
         DELETE sprst

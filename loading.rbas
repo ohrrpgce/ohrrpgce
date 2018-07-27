@@ -3441,20 +3441,19 @@ FUNCTION default_global_animations(sprtype as SpriteType) as SpriteSet ptr
   IF sprtype = sprTypeHero THEN
     WITH *ss->new_animation("idle")
       .append(animOpFrame, frameSTAND)    '0
-      .append(animOpWait, 1)
     END WITH
     WITH *ss->new_animation("walk", "left")
       .append(animOpFrame, frameSTAND)    '0
-      .append(animOpWait, 2)
+      .append(animOpWait, 2*55)
       .append(animOpFrame, frameSTEP)     '1
-      .append(animOpWait, 2)
+      .append(animOpWait, 2*55)
       .append(animOpRepeat)
     END WITH
     WITH *ss->new_animation("attack", "left")
       .append(animOpFrame, frameATTACKA)  '2
-      .append(animOpWait, 2)
+      .append(animOpWait, 2*55)
       .append(animOpFrame, frameATTACKB)  '3
-      .append(animOpWait, 2)
+      .append(animOpWait, 2*55)
       .append(animOpFrame, frameSTAND)  '0
     END WITH
   END IF

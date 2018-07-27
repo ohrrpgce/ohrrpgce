@@ -9535,8 +9535,10 @@ function SpriteState.cur_frame() as Frame ptr
 	return @ss->frames[frame_num]
 end function
 
-' Advance time until the next wait, skipping the current one, and returns number of frames that the wait was for.
-' Returns -1 if not waiting, -2 on error.
+' Advance time until the next wait, skipping the current one, and returns number of ms that the wait was for.
+' Returns -1 and does nothing if not waiting, -2 on error.
+' The return value ought to be independent of ms_per_frame
+' Note: any time already spent on the current wait is ignored.
 function SpriteState.skip_wait() as integer
 	if anim = NULL then return -2
 	' Look at the current op instead of anim_wait, because it might be a wait
@@ -9545,8 +9547,8 @@ function SpriteState.skip_wait() as integer
 		if .type <> animOpWait and .type <> animOpWaitMS then
 			return -1
 		end if
-		dim ret as integer = ms_to_frames(.arg1)
-		anim_wait = ret
+		dim ret as integer = .arg1
+		anim_wait = ms_to_frames(ret)
 		if animate() = NO then ret = -2  ' Until next wait
 		return ret
 	end with
@@ -9621,13 +9623,14 @@ function SpriteState.animate_step() as bool
 	return YES
 end function
 
-' Advance time by one tick. True on success, false on an error/infinite loop
+' Advance time by one tick. True on success or finished (anim is now NULL!), false on an error/infinite loop
 function SpriteState.animate() as bool
 	if anim = NULL then return NO
 
 	while anim_looplimit > 0
 		if animate_step() = NO then return NO  'stop on error
 		if anim_wait > 0 then return YES  'stop if waiting
+		if anim = NULL then return YES  'stop if finished animating
 	wend
 
 	' Exceeded the loop limit
