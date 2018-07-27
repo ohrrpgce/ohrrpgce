@@ -701,12 +701,6 @@ gam.want.dont_quit_to_loadmenu = NO
 'gam.want.resetgame reset after title/loadmenu
 load_non_elemental_elements gam.non_elemental_elements()
 
-txt.showing = NO
-txt.fully_shown = NO
-txt.show_lines = 0
-txt.sayer = -1
-txt.id = -1
-
 '--Reset some stuff related to debug keys
 gam.showtext_ticks = 0
 gam.debug_showtags = 0
@@ -3515,12 +3509,7 @@ SUB end_text_box_chain ()
    END IF
   END IF
  END IF
- txt.showing = NO
- txt.fully_shown = NO
- txt.sayer = -1
- txt.id = -1
- IF txt.sl THEN DeleteSlice @(txt.sl)
- ClearTextBox txt.box
+ cleanup_text_box
  setkeys
  flusharray carray(), 7, 0
  context_string = ""
@@ -3788,17 +3777,9 @@ END SUB
 'actually need to be cleaned up; most aren't used when no box is up
 SUB cleanup_text_box ()
  ClearTextBox txt.box
- WITH txt
-  .id = -1
-  .showing = NO
-  .fully_shown = NO
-  .choicestate.pt = 0
-  .remember_music = NO
-  .show_lines = 0
-  .sayer = -1
-  .old_dir = 0
- END WITH
  IF txt.sl THEN DeleteSlice @(txt.sl)
+ txt.Destructor()
+ txt.Constructor()
 END SUB
 
 

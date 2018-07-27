@@ -1452,9 +1452,6 @@ NEXT i
 flusharray global(), maxScriptGlobals, 0
 reset_vehicle vstate
 cleanup_text_box
-txt.showing = NO
-txt.fully_shown = NO
-txt.show_lines = 0
 
 FOR i as integer = 0 TO UBOUND(plotstr)
  WITH plotstr(i)

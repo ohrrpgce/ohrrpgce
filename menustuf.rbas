@@ -1702,8 +1702,6 @@ menusound gen(genCancelSFX)
 evalitemtags
 tag_updates
 
-EXIT SUB 'quit
-
 END SUB
 
 SUB sellstuff_infostr(byval ic as integer, info as string, b() as integer, permask() as integer, price() as integer, byval stuff_count as integer, byval recordsize as integer)
