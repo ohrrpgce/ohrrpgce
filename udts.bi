@@ -621,6 +621,20 @@ Enum AttackerAnimation
 	atkrAnimStandingStrike = 9 ' (shows weapon)
 End Enum
 
+Enum TransmogStatsRule
+	transmogKeepCurrent = 0
+	transmogUseNewMax = 1
+	transmogKeepCurrentPercent = 2
+	transmogKeepCurrentCropMax = 3
+End Enum
+
+'Attack transmogrification settings
+Type TransmogData
+	enemy as integer         ' ID, -1 means no transmogrification
+	hp_rule as TransmogStatsRule
+	other_stats_rule as TransmogStatsRule
+End Type
+
 Type AttackData
 	id as integer 'should only be set when loaded!
 	name as string
@@ -662,9 +676,7 @@ Type AttackData
 	elsechain as AttackDataChain
 	instead as AttackDataChain
 	learn_sound_effect as integer ' ID + 1
-	transmog_enemy as integer ' ID +1, 0 no change
-	transmog_hp as integer
-	transmog_stats as integer
+	transmog as TransmogData
 	base_acc_stat as integer
 	base_dog_stat as integer
 	acc_mult as single

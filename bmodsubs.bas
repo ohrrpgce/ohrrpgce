@@ -32,7 +32,7 @@ DECLARE SUB transfer_enemy_bits(byref bspr as BattleSprite)
 DECLARE SUB transfer_enemy_counterattacks (byref bspr as BattleSprite)
 DECLARE SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
 DECLARE SUB reset_enemy_state(byref bspr as BattleSprite)
-DECLARE SUB change_foe_stat(bspr as BattleSprite, byval stat_num as integer, byval new_max as integer, byval stat_rule as integer)
+DECLARE SUB change_foe_stat(bspr as BattleSprite, byval stat_num as integer, byval new_max as integer, byval stat_rule as TransmogStatsRule)
 
 DIM SHARED XY00 as XYpair
 
@@ -1794,13 +1794,13 @@ SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
  END WITH
 END SUB
 
-SUB changefoe(bat as BattleState, byval slot as integer, byval new_id as integer, formdata as Formation, bslot() as BattleSprite, byval hp_rule as integer, byval other_stats_rule as integer)
+SUB changefoe(bat as BattleState, byval slot as integer, transmog as TransmogData, formdata as Formation, bslot() as BattleSprite)
  IF formdata.slots(slot).id = -1 THEN
-  showerror "changefoe doesn't work on empty slot " & slot & " " & new_id
+  showerror "changefoe doesn't work on empty slot " & slot & " (enemy " & transmog.enemy & ")"
   EXIT SUB
  END IF
 
- formdata.slots(slot).id = new_id - 1
+ formdata.slots(slot).id = transmog.enemy
 
  DIM byref bspr as BattleSprite = bslot(4 + slot)
 
@@ -1824,27 +1824,27 @@ SUB changefoe(bat as BattleState, byval slot as integer, byval new_id as integer
   .y = .y + old_h - .h
 
   '--update stats
-  change_foe_stat bspr, 0, .enemy.stat.hp, hp_rule
+  change_foe_stat bspr, 0, .enemy.stat.hp, transmog.hp_rule
   FOR i as integer = 1 TO 11
-   change_foe_stat bspr, i, .enemy.stat.sta(i), other_stats_rule
+   change_foe_stat bspr, i, .enemy.stat.sta(i), transmog.other_stats_rule
   NEXT i
  END WITH
 END SUB
 
-SUB change_foe_stat(bspr as BattleSprite, byval stat_num as integer, byval new_max as integer, byval stat_rule as integer)
+SUB change_foe_stat(bspr as BattleSprite, byval stat_num as integer, byval new_max as integer, byval stat_rule as TransmogStatsRule)
  WITH bspr.stat
   '--selectively alter current stat
   SELECT CASE stat_rule
-   CASE 0 '--keep old current
-   CASE 1 '--use new max
+   CASE transmogKeepCurrent '--keep old current
+   CASE transmogUseNewMax   '--use new max
     .cur.sta(stat_num) = new_max
-   CASE 2 '--preserve % of max
+   CASE transmogKeepCurrentPercent '--preserve % of max
     IF .max.sta(stat_num) > 0 THEN
      .cur.sta(stat_num) = CINT(new_max / .max.sta(stat_num) * .cur.sta(stat_num))
     ELSE
      .cur.sta(stat_num) = new_max
     END IF
-   CASE 3 '--keep old current, crop to new max
+   CASE transmogKeepCurrentCropMax '--keep old current, crop to new max
     .cur.sta(stat_num) = small(.cur.sta(stat_num), new_max)
   END SELECT
   '--always use new max stat
