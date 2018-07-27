@@ -244,12 +244,14 @@ END FUNCTION
 
 'Do an attack (in-battle only).
 'Handled here:
-'- hit or miss
+'- hit or miss or fail
 '- stat reset bits
 '- damage calculation and inflict
+'- stat bounds (0 to (optionally) max), but not stat caps
 '- harm text
 '- records stored, last, revenge & thankvenge targets & damage
 'Not handled here:
+'- 'instead' chains
 '- costs
 '- counterattacks and spawning
 '- other non-damaging effects like tags, force-run, erase rewards
@@ -274,7 +276,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
   attacker.stored_targs_can_be_dead = NO
  END IF
  
- 'If not 'no damage'
+ 'If not 'no damage' (which skips hit/miss/fail checking)
  IF attack.damage_math <> 4 THEN
   DIM target_is_register as bool = NO
  

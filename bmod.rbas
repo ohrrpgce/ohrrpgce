@@ -4166,9 +4166,12 @@ FUNCTION battle_time_can_pass(bat as BattleState) as bool
 END FUNCTION
 
 FUNCTION battle_meters_can_advance(byref bat as BattleState, bslot() as BattleSprite) as bool
- ' Returns YES if active time ready meters for heroes and enemies are allowed to grow.
- ' The actual growth happens in battle_meters()
- 
+ '--Only used in turnACTIVE mode
+ ' (Only relevant when battle_time_can_pass() = YES)
+ ' Returns YES if battle_meters() should be called, which means:
+ ' -regen, poison, stun, mute and attack delay timers should count down
+ ' -when ready_meter_may_grow() = YES, ready meters for heroes and enemies can grow
+
  DIM hero_has_a_turn as bool = bat.hero_turn >= 0
  
  IF NOT hero_has_a_turn THEN RETURN YES
@@ -4380,6 +4383,8 @@ END FUNCTION
 
 FUNCTION ready_meter_may_grow (bat as BattleState, bslot() as BattleSprite, byval who as integer) as bool
  '--Only used in turnACTIVE mode
+ 'Note: this is also a list of conditions in which ready meters don't grow but
+ 'regen/poison/stun/mute and attack delays can countdown.
  WITH bslot(who)
   IF .attack <> 0 THEN RETURN NO
   IF .dissolve <> 0 THEN RETURN NO
