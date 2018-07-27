@@ -63,6 +63,7 @@ DECLARE SUB battle_attack_do_inflict(byval targ as integer, byval tcount as inte
 DECLARE SUB battle_pause ()
 DECLARE SUB battle_debug_menu (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB check_battle_debug_keys (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB dump_bslot(bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite, battle_result as bool)
 DECLARE SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_background_anim(byref bat as BattleState, formdata as Formation)
@@ -869,7 +870,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
      'This target is okay
      IF .opt_spread = 0 ORELSE .opt_spread = 1 THEN
       .pointer = .hover
-      FOR i as integer = 0 to 11: .selected(.hover) = NO : NEXT i
+      FOR i as integer = 0 to 11: .selected(.hover) = NO : NEXT i  'FIXME
      END IF
     ELSE
      do_cancel = YES
@@ -888,7 +889,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
       'Focus a specific target
       menusound gen(genCursorSFX)
       .pointer = .hover
-      FOR i as integer = 0 to 11: .selected(.hover) = NO : NEXT i
+      FOR i as integer = 0 to 11: .selected(.hover) = NO : NEXT i  'FIXME
      END IF
     ELSE
      'Clicked outside of any valid target
@@ -4876,6 +4877,8 @@ SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot()
  IF dbg.def(      , , "Pause battle (Pause)") THEN battle_pause
 
  'F12 for bat.test_view_mode handled in main loop
+
+ IF dbg.def(      , , "Dump battle slots info") THEN dump_bslot bat, bslot(), formdata
 END SUB
 
 ' Check for debug key combos.
@@ -4904,6 +4907,44 @@ SUB battle_debug_menu(bat as BattleState, bslot() as BattleSprite, formdata as F
  dbg.selected_item = menu(result)
  battle_debug_menu_functions(dbg, bat, bslot(), formdata)
 END SUB
+
+SUB dump_bslot(bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+ DIM info as string
+ info = "----Dumping heroes & enemies bslot state----"
+ FOR slot as integer = 0 TO 11
+  WITH bslot(slot)
+   'I don't know whether this is the right way to exclude empty slots or not...
+   IF .vis = NO ANDALSO .dissolve = 0 ANDALSO .flee = 0 ANDALSO .stat.cur.hp <= 0 ANDALSO .bequesting = NO THEN CONTINUE FOR
+
+   info &= !"\nSlot " & slot & IIF(is_hero(slot), " (hero)", " (enemy)")
+   IF is_enemy(slot) THEN info &= !"\n orig. formation enemy = " & formdata.slots(slot - 4).id
+   info &= !"\n name = " & .name & _
+           !"\n vis = " & .vis & _
+           !"\n dissolve = " & .dissolve & _
+           !"\n flee = " & .flee & _
+           !"\n bequesting = " & yesorno(.bequesting) & _
+           !"\n attack = " & .attack - 1
+   IF bat.turn.mode = turnACTIVE THEN
+    info &= !"\n ready_meter = " & .ready_meter & _
+            !"\n ready = " & .ready
+   END IF
+   info &= !"\n Stats:  "
+   FOR stat as integer = 0 TO UBOUND(.stat.cur.sta)
+    DIM sname as string
+    IF stat <= UBOUND(statnames) THEN sname = statnames(stat)
+    IF stat = 12 THEN sname = "poison"
+    IF stat = 13 THEN sname = "regen"
+    IF stat = 14 THEN sname = "stun"
+    IF stat = 15 THEN sname = "mute"
+    info &= sname & ":" & .stat.cur.sta(stat) & "/" & .stat.max.sta(stat) & "  "
+   NEXT stat
+  END WITH
+ NEXT
+ debug info
+ show_overlay_message "Wrote debug info to g_debug.txt"
+END SUB
+
+'==========================================================================================
 
 FUNCTION hero_attack_cost_info(byref atk as AttackData, byval hero_slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=0) as string
  DIM cur_lmp as integer = 0

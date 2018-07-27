@@ -771,8 +771,8 @@ Type HeroDef
 	def_level as integer
 	exp_mult as double
 	def_weapon as integer    'Not offset by 1, unlike HeroState.def_wep!
-	Lev0 as stats
-	LevMax as stats
+	Lev0 as Stats
+	LevMax as Stats
 	spell_lists(3,23) as SpellList
 	elementals(maxElements - 1) as single
 	elem_counter_attack(maxElements - 1) as integer 'id+1, 0=none
@@ -852,7 +852,7 @@ TYPE EnemyDef
   pic as integer
   pal as integer
   size as integer
-  stat as stats
+  stat as Stats
   elementals(maxElements - 1) as single
   spawn as EnemySpawnDef
   regular_ai(4) as integer     'id+1, 0=none
