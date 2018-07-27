@@ -2148,7 +2148,9 @@ SUB pop_warning(s as string, byval autoquit as integer = NO)
  DeleteSlice @root
 END SUB
 
-FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as integer=NO) as integer
+' Returns NO and doesn't modify s if user cancelled, otherwise YES.
+' limit is the maximum length.
+FUNCTION prompt_for_string (byref retstring as string, caption as string, limit as integer = 40) as bool
 
  'Load the slice collection
  DIM root as Slice Ptr
@@ -2161,14 +2163,12 @@ FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as
  text_area = LookupSlice(SL_EDITOR_PROMPT_FOR_STRING_TEXT, root)
  DIM dat as TextSliceData Ptr
  dat = text_area->SliceData
- dat->s = s
+ dat->s = retstring
 
  '--Preserve whatever screen was already showing as a background
  DIM holdscreen as integer
  holdscreen = allocatepage
  copypage vpage, holdscreen
-
- IF limit = NO THEN limit = 40
 
  '--Now loop while editing string
  setkeys YES
@@ -2182,7 +2182,7 @@ FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as
   END IF
   IF keyval(scAnyEnter) > 1 THEN
    prompt_for_string = YES
-   s = dat->s
+   retstring = dat->s
    EXIT DO
   END IF
   strgrabber dat->s, limit
@@ -2776,7 +2776,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
   IF LEN(helpkey) > 0 THEN
    edgeprint "F1 Help", pRight, pBottom, uilook(uiMenuItem), vpage
   END IF
-  edgeprint extra_message, pLeft, pBottom, uilook(uiMenuItem), vpage, YES, YES
+  wrapprint extra_message, pLeft, pBottom, uilook(uiMenuItem), vpage, YES, YES
   setvispage vpage
   dowait
  LOOP
@@ -5974,7 +5974,10 @@ FUNCTION inputfilename (query as string, ext as string, byref directory as strin
   setwait 55
   setkeys YES
   tog = tog XOR 1
-  IF keyval(scEsc) > 1 THEN RETURN ""
+  IF keyval(scEsc) > 1 THEN
+   clearkey scEsc
+   RETURN ""
+  END IF
   IF keyval(scF1) > 1 THEN show_help helpkey
   IF keyval(scUp) > 1 ORELSE keyval(scDown) > 1 THEN foldermode = NOT foldermode
   IF (foldermode AND enter_or_space()) OR keyval(scTAB) > 1 THEN
