@@ -9,3 +9,22 @@ Brown lines check tags, and the action below the line will only take place depen
 Press - to switch between requiring a tag to be OFF or ON, or to switch between gaining or losing things (money and items).
 
 Press Delete to zero out a tag check or action.
+
+The following conditionals happen immediately when the box is opened:
+-"Instead" textbox
+-setting tags *
+-music and sound effects
+-opening a menu
+
+The following conditionals happen when the box is closed:
+-battles
+-"restore music" and "stop sound after"
+-add/lose money
+-gain/lose item
+-enter shop/inn/restore HP & MP
+-load/save/delete game
+-add/remove/swap/lock hero
+-use door
+-next textbox
+
+* (If you toggle a tag which causes an NPC to appear or disappear, the NPC normally isn't updated until the textbox chain closes. However many things, such as triggering a battle or changing the party cause NPC visibility to update)
