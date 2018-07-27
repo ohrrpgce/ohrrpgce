@@ -172,6 +172,8 @@ FUNCTION common_setoption(opt as string, arg as string) as integer
 END FUNCTION
 
 'fade in and out not actually used in custom
+'NOTE: fadestate is NOT reliable. For example we don't set it to YES when "setpal master()" is
+'called or to NO if a script manipulates the palette
 SUB fadein ()
  fadestate = YES
  fadetopal master()

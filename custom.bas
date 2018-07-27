@@ -104,7 +104,7 @@ DIM joy(4) as integer
 DIM vpage as integer = 0
 DIM dpage as integer = 1
 DIM activepalette as integer = -1
-DIM fadestate as bool
+DIM fadestate as bool = YES
 DIM auto_distrib as string 'Which distribution option to package automatically
 DIM option_nowait as bool  'Currently only used when importing scripts from the commandline: don't wait
 

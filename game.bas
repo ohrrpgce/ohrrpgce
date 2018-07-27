@@ -139,7 +139,7 @@ DIM SliceTable as SliceTableType
 
 REDIM buffer(16384) as integer 'FIXME: when can we get rid of this?
 
-DIM fadestate as bool
+DIM fadestate as bool = YES
 DIM presentsong as integer
 DIM backcompat_sound_slot_mode as bool
 REDIM backcompat_sound_slots(7) as integer
@@ -929,7 +929,7 @@ DO
   IF gen(genGameoverScript) > 0 THEN
    trigger_script gen(genGameoverScript), 0, NO, "death", "", mainFibreGroup
    fatal = NO
-   queue_fade_in 1
+   IF fadestate = NO THEN queue_fade_in 1, YES  'Backcompat. Unlikely to be needed
   ELSE
    fadeout uilook(uiFadeoutDeath)
    gam.quit = YES
