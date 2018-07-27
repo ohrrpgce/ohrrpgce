@@ -460,6 +460,9 @@ TYPE TilemapInfo
   wide as integer
   high as integer
   layers as integer
+
+  err as string      'Error message if the file is bad, otherwise blank
+  DECLARE SUB seterr(filename as string, errmsg as string)
 END TYPE
 
 ENUM MapEdgeModeEnum

@@ -666,6 +666,7 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
    IF br.filetype = browseTilemap THEN
     DIM info as TilemapInfo
     IF GetTilemapInfo(filepath, info) = NO THEN
+     .about = info.err
      .kind = bkUnselectable
     END IF
     .about = "Size " & info.wide & "x" & info.high & " tilemap with " & info.layers & " layers"

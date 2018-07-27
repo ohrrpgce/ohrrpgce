@@ -585,25 +585,41 @@ SUB UnloadTilemaps(layers() as TileMap)
   NEXT
 END SUB
 
+SUB TilemapInfo.seterr(filename as string, errmsg as string)
+  this.err = errmsg
+  debuginfo filename & ": " & errmsg
+END SUB
+
 'Get size of a tilemap file; returns false if badly formed
 FUNCTION GetTilemapInfo(filename as string, info as TilemapInfo) as bool
+  info.err = ""
   DIM as integer fh
-  IF OPENFILE(filename, FOR_BINARY + ACCESS_READ, fh) <> 0 THEN RETURN NO
+  IF OPENFILE(filename, FOR_BINARY + ACCESS_READ, fh) <> 0 THEN
+    info.seterr filename, "Couldn't open file"
+    RETURN NO
+  END IF
   WITH info
     .wide = readshort(fh, 8)  'skip over BSAVE header
     .high = readshort(fh, 10)
-    IF in_bound(.wide, 16, 32678) = NO ORELSE in_bound(.high, 10, 32678) = NO THEN CLOSE #fh: RETURN NO
+    IF in_bound(.wide, 16, 32678) = NO ORELSE in_bound(.high, 10, 32678) = NO THEN
+      info.seterr filename, "Bad map size " & .wide & "*" & .high
+      CLOSE #fh
+      RETURN NO
+    END IF
     .layers = (LOF(fh) - 11) \ (.wide * .high)
     'Because of bug 829 (.T not truncated when map resized), and old 32000 byte tilemaps,
     'tilemaps with bad lengths are common; only do a simple length check
     IF .layers = 0 THEN
-      debuginfo "tilemap " & filename & " (" & .wide & "x" & .high & ") bad length or size; " & LOF(fh) & " bytes"
+      info.seterr filename, "Bad file length or map size; " & .wide & "*" & .high & ", " & LOF(fh) & " bytes"
       CLOSE #fh
       RETURN NO
     END IF
     '.layers = small(.layers, maplayerMax + 1)
     CLOSE #fh
-    IF .layers > maplayerMax + 1 THEN RETURN NO
+    IF .layers > maplayerMax + 1 THEN
+      info.seterr filename, "Too many layers: " & info.layers
+      RETURN NO
+    END IF
   END WITH
   RETURN YES
 END FUNCTION
