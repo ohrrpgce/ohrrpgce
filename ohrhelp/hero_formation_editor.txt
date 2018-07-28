@@ -4,4 +4,6 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the me
 
 <Hero Formation #>: Choose which formation you are working on. This number will be used to assign this hero formation to be used by enemy formations.
 
+By default rectangles are used as placeholders but you can use a sprite as placeholder by selecting a slot and pressing Left/Right or typing a spriteset ID. This is just for previewing in the editor and is NOT saved. It also used in the Individual Formation Editor, though.
+
 You can press CTRL+D to revert a hero slot to its default position.

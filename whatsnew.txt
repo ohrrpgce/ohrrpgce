@@ -44,6 +44,7 @@ June (mumble) 2018 [Fufluns]
       the Map Editor Settings menu. [Ralph]
     * All the fade-out colors are now customisable User Interface Colors [Ralph]
     * Option to give rewards from an enemy before it is transmogrified [Ralph]
+    * You can preview hero formations with hero sprites [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

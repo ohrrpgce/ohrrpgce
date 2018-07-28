@@ -32,6 +32,8 @@ CONST SL_FORMEDITOR_LAST_ENEMY = 299  'End of range indicating an enemy slot
 CONST SL_FORMEDITOR_CURSOR = 300
 CONST SL_FORMEDITOR_HERO = 400  '+0 to +3 for 4 slots
 
+'What hero sprites to use as placeholders, or -1 for a rectangle
+DIM SHARED hero_placeholder_sprites(3) as integer = {-1, -1, -1, -1}
 
 'Total-level menu
 SUB formation_editor
@@ -240,8 +242,8 @@ SUB hero_formation_editor ()
    IF slot <> -1 THEN
     IF keyval(scCtrl) > 0 ANDALSO keyval(scD) > 1 THEN
      'Revert to default
-     hform.slots(slot).pos.x = default_hform.slots(slot).pos.x
-     hform.slots(slot).pos.y = default_hform.slots(slot).pos.y
+     hform.slots(slot).pos = default_hform.slots(slot).pos
+     hero_placeholder_sprites(slot) = -1
     END IF
    END IF
    IF state.pt = 2 THEN
@@ -260,8 +262,14 @@ SUB hero_formation_editor ()
      load_hero_formation hform, hero_form_id
      save_hero_formation hform, hero_form_id
     END IF
-   END IF'--DONE SELECTING DIFFERENT HERO FORMATION
-  END IF
+   END IF
+   IF slot <> -1 THEN
+    IF intgrabber(hero_placeholder_sprites(slot), -1, gen(genMaxHeroPic)) THEN
+     load_formation_slices ename(), eform, @rootslice
+    END IF
+   END IF
+
+  END IF '--end positioning_mode=NO
 
   ' Draw screen
 
@@ -284,7 +292,9 @@ SUB hero_formation_editor ()
    menu(1) = CHR(27) + "Hero Formation " & hero_form_id & CHR(26)
    menu(2) = "Preview Enemy Formation: " & test_form_id
    FOR i as integer = 0 TO 3
-    menu(first_hero_item + i) = "Hero Slot " & i & "(x=" & hform.slots(i).pos.x & " y=" & hform.slots(i).pos.y & ")"
+    DIM placeholder as string
+    placeholder = IIF(hero_placeholder_sprites(i) = -1, "Rect", "Sprite " & hero_placeholder_sprites(i))
+    menu(first_hero_item + i) = "Hero Slot " & i & "  " & CHR(27) & "Preview:" & placeholder & CHR(26)
    NEXT i
    standardmenu menu(), state, 0, 0, dpage, menuopts
   END IF
@@ -578,19 +588,26 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
 
  ' Heroes
  FOR i as integer = 0 TO 3
-  sl = NewSliceOfType(slRectangle, *rootslice)
+  IF hero_placeholder_sprites(i) = -1 THEN
+   ' Use a rectangle
+   sl = NewSliceOfType(slRectangle, *rootslice)
+   ChangeRectangleSlice sl, , boxlook(0).bgcol, boxlook(0).edgecol, , transFuzzy, 75
+   sl->Width = 32
+   sl->Height = 40
+  ELSE
+   ' Use a hero sprite
+   sl = NewSliceOfType(slSprite, *rootslice)
+   ChangeSpriteSlice sl, sprTypeHero, bound(hero_placeholder_sprites(i), 0, gen(genMaxHeroPic))
+  END IF
   sl->Lookup = SL_FORMEDITOR_HERO + i
-  ChangeRectangleSlice sl, , boxlook(0).bgcol, boxlook(0).edgecol, , transFuzzy, 75
   sl->AnchorHoriz = alignCenter
   sl->AnchorVert = alignBottom
-  sl->Width = 32
-  sl->Height = 40
+
   ' Add the party slot number to the center
   DIM num_sl as Slice ptr
   num_sl = NewSliceOfType(slText, sl)
-  CenterSlice num_sl
-  num_sl->Y = -5
-  ChangeTextSlice num_sl, STR(i)
+  num_sl->Pos = XY(2,2)
+  ChangeTextSlice num_sl, STR(i), , YES
  NEXT
 
  ' Enemies
@@ -613,7 +630,7 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
  sl->AlignHoriz = alignCenter
  sl->AnchorHoriz = alignCenter
  sl->Lookup = SL_FORMEDITOR_CURSOR
- ChangeTextSlice sl, CHR(25), -1 - uiSelectedItem2
+ ChangeTextSlice sl, CHR(25), -1 - uiSelectedItem2, YES
 END SUB
 
 SUB draw_formation_slices(eform as Formation, rootslice as Slice ptr, selected_slot as integer, page as integer)
