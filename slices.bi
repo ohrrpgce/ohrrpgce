@@ -634,6 +634,7 @@ DECLARE Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
 DECLARE Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
 DECLARE Sub SetSpriteToAsset(sl as Slice ptr, assetfile as string, warn_if_missing as bool = YES)
 DECLARE Sub SetSpriteToFrame(sl as slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = NULL, pal as integer = -2)
+DECLARE Sub SpriteSliceUpdate(sl as Slice ptr)
 DECLARE Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
 DECLARE Sub ChangeSpriteSlice(byval sl as slice ptr,_
                       byval spritetype as SpriteType = sprTypeInvalid,_

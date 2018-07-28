@@ -1619,7 +1619,9 @@ Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
   .frame = 0
   .loaded = YES  'Even if an error occurs, we create a Frame
 
-  dim filename as string = finddatafile(*.assetfile, NO)  'Handle missing file below
+  dim assetfile as string
+  if .assetfile then assetfile = *.assetfile
+  dim filename as string = finddatafile(assetfile, NO)  'Handle missing file below
   if len(filename) then
    .img.sprite = image_import_as_frame_8bit(filename, master())
   end if
@@ -1629,7 +1631,7 @@ Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
   else
    if warn_if_missing then
     visible_debug "Data file " & iif(len(filename), "corrupt", "missing") _
-                  & !":\ndata/" & *.assetfile _
+                  & !":\ndata/" & assetfile _
                   & !"\nThe OHRRPGCE apparently isn't installed properly. Try reinstalling, or report this error."
    end if
    ' Draw an X (the width and height were hopefully loaded from a .slice file)
@@ -1776,11 +1778,11 @@ Sub LoadSpriteSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
 
  if dat->spritetype = sprTypeFrame then
   SetSpriteToAsset sl, LoadPropStr(node, "asset")
+ else
+  'Load the sprite already in order to ensure the size is correct. This could be
+  'skipped, since the slice was probably saved with the correct size...
+  LoadSpriteSliceImage sl
  end if
-
- 'Load the sprite already in order to ensure the size is correct. This could be
- 'skipped, since the slice was probably saved with the correct size...
- LoadSpriteSliceImage sl
 End Sub
 
 Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as Slice ptr
@@ -1824,7 +1826,6 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
    ' This should never happen
    if spritetype < 0 or sprTypeFirst > sprTypeLastLoadable then reporterr "Invalid sprite type " & spritetype, serrBug : exit sub
    .spritetype = spritetype
-   .paletted = (spritetype <> sprTypeBackdrop)
    .loaded = NO
   end if
   if record >= 0 then
@@ -1851,10 +1852,38 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
   if trans > -2 then .trans = (trans <> 0)
   if .loaded = NO then
    unload_sprite_and_pal .img
-   'Load the sprite image (and palette) immediately, so that the size of the slice is correct
-   LoadSpriteSliceImage sl
+   SpriteSliceUpdate sl
   end if
  end with
+end sub
+
+'Called after .spritetype, .record, .palette or .assetfile is changed.
+'Internal use only - normally you should call ChangeSpriteSlice instead
+Sub SpriteSliceUpdate(sl as Slice ptr)
+ if sl = 0 orelse sl->SliceData = 0 orelse sl->SliceType <> slSprite then
+  debug "SpriteSliceUpdate: invalid ptr"
+  exit sub
+ end if
+ dim dat as SpriteSliceData Ptr = sl->SpriteData
+
+ dat->paletted = (dat->spritetype <> sprTypeBackdrop)
+ if dat->spritetype = sprTypeFrame then
+  ' Aside from reloading if edited, dat->assetfile is initially NULL
+  ' when switching to sprTypeFrame, so needs to be initialised to "".
+  ' Note that if you change to a different sprite type, dat->assetfile
+  ' will still be there, but won't be used or saved
+  dim assetfile as string = iif(dat->assetfile, *dat->assetfile, "")
+  SetSpriteToAsset sl, assetfile, NO
+ else
+  dat->record = small(dat->record, sprite_sizes(dat->spritetype).lastrec)
+
+  'Load the sprite image (and palette) immediately, so that the size of the slice
+  'and number of frames are correct
+  dat->loaded = NO  'Force reload
+  LoadSpriteSliceImage sl
+
+  dat->frame = small(dat->frame, SpriteSliceNumFrames(sl) - 1)
+ end if
 end sub
 
 'Cause the sprite to be scaled/stretched to a certain size.
@@ -1869,6 +1898,8 @@ Sub ScaleSpriteSlice(sl as Slice ptr, size as XYPair)
   unload_sprite_and_pal .img
   .scaled = YES
   sl->Size = size
+  'Reload so that number of frames is known
+  LoadSpriteSliceImage sl
  end with
 end sub
 

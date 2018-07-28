@@ -1249,35 +1249,22 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
   IF enter_space_click(state) THEN
    DIM dat as SpriteSliceData ptr = sl->SliceData
    DIM spriteb as SpriteOfTypeBrowser
-   dat->record = spriteb.browse(dat->record, , dat->spritetype)
+   ChangeSpriteSlice sl, , spriteb.browse(dat->record, , dat->spritetype)
    state.need_update = YES
   END IF
  END IF
  IF rule.group AND slgrUPDATESPRITE THEN
   IF state.need_update THEN
-   DIM dat as SpriteSliceData Ptr
-   dat = sl->SliceData
    'state.need_update is cleared at the top of the loop
-   dat->paletted = (dat->spritetype <> sprTypeBackdrop)
-   IF dat->spritetype = sprTypeFrame THEN
-    ' Aside from reloading if edited, dat->assetfile is initially NULL
-    ' when switching to sprTypeFrame, so needs to be initialised to "".
-    ' Note that if you change to a different sprite type, dat->assetfile
-    ' will still be there, but won't be used or saved
-    DIM assetfile as string = IIF(dat->assetfile, *dat->assetfile, "")
-    SetSpriteToAsset sl, assetfile, NO
-   ELSE
-    dat->loaded = NO
-    dat->record = small(dat->record, sprite_sizes(dat->spritetype).lastrec)
-    dat->frame = small(dat->frame, SpriteSliceNumFrames(sl) - 1)
-   END IF
+   SpriteSliceUpdate sl
   END IF
  END IF
  IF rule.group AND slgrBROWSESPRITEASSET THEN
   DIM dat as SpriteSliceData ptr = sl->SliceData
   IF enter_space_click(state) THEN
    ' Browse for an asset. Only paths inside data/ are allowed.
-   DIM as string filename = finddatafile(*dat->assetfile, NO)
+   DIM as string filename
+   IF dat->assetfile THEN filename = finddatafile(*dat->assetfile, NO)
    IF LEN(filename) = 0 THEN filename = get_data_dir()
    filename = browse(browseImage, filename, , "browse_import_sprite")
    IF LEN(filename) THEN
