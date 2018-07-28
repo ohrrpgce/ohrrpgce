@@ -1501,7 +1501,7 @@ Sub UnloadSpriteSlice(byval sl as Slice ptr)
   *dat->assetfile = ""      ' Frees the string contents
   deallocate dat->assetfile ' Free the string descriptor
   dat->assetfile = NULL
- END IF
+ end if
  dat->loaded = NO
 End Sub
 
@@ -1512,31 +1512,38 @@ Sub DisposeSpriteSlice(byval sl as Slice ptr)
  sl->SliceData = 0
 end sub
 
-Sub DrawSpriteSlice(byval sl as Slice ptr, byval p as integer)
+' Load a sprite's Frame and Palette16, so that its size is known
+Sub LoadSpriteSliceImage(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- 
- dim dat as SpriteSliceData ptr = cptr(SpriteSliceData ptr, sl->SliceData)
 
- with *dat
- 
-  if .loaded = NO then
-   if .spritetype = sprTypeFrame then  'This can happen if you clone a sprite, otherwise shouldn't
-    LoadAssetSprite sl, NO
+ with *sl->SpriteData
+  if .loaded then exit sub
+  if .spritetype = sprTypeFrame then  'This can happen if you clone a sprite, otherwise shouldn't
+   LoadAssetSprite sl, NO
+  else
+   load_sprite_and_pal .img, .spritetype, .record, .pal
+   if .scaled then
+    'Becomes a 32-bit sprite
+    frame_assign @.img.sprite, frame_scaled32(.img.sprite, sl->Width, sl->Height, master(), .img.pal)
+    palette16_unload @.img.pal
    else
-    load_sprite_and_pal .img, .spritetype, .record, .pal
-    if .scaled then
-     frame_assign @.img.sprite, frame_scaled32(.img.sprite, sl->Width, sl->Height, master(), .img.pal)
-     palette16_unload @.img.pal
-    else
-     sl->Size = .img.sprite->size
-    end if
-    .loaded = YES
+    sl->Size = .img.sprite->size
    end if
+   .loaded = YES
   end if
+ end with
+end sub
+
+Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+
+ with *sl->SpriteData
+  if .loaded = NO then LoadSpriteSliceImage sl
 
   dim spr as Frame ptr
-  dim have_copy as integer = NO
+  dim have_copy as bool = NO
   spr = .img.sprite
   if spr = 0 then
    reporterr "null sprite ptr for slice " & sl, serrBug
@@ -1584,9 +1591,9 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval p as integer)
     end if
    end if
   end if
- 
-  frame_draw spr, .img.pal, sl->screenX, sl->screenY, , .trans, p
-  
+
+  frame_draw spr, .img.pal, sl->screenX, sl->screenY, , .trans, page
+
   if have_copy then
    frame_unload(@spr)
   end if
@@ -1770,6 +1777,10 @@ Sub LoadSpriteSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if dat->spritetype = sprTypeFrame then
   SetSpriteToAsset sl, LoadPropStr(node, "asset")
  end if
+
+ 'Load the sprite already in order to ensure the size is correct. This could be
+ 'skipped, since the slice was probably saved with the correct size...
+ LoadSpriteSliceImage sl
 End Sub
 
 Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as Slice ptr
@@ -1839,7 +1850,11 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
   if fliph > -2 then .flipHoriz = (fliph <> 0)
   if flipv > -2 then .flipVert = (flipv <> 0)
   if trans > -2 then .trans = (trans <> 0)
-  if .loaded = NO then unload_sprite_and_pal .img
+  if .loaded = NO then
+   unload_sprite_and_pal .img
+   'Load the sprite image (and palette) immediately, so that the size of the slice is correct
+   LoadSpriteSliceImage sl
+  end if
  end with
 end sub
 
