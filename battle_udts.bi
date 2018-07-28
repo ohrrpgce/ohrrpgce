@@ -63,8 +63,7 @@ TYPE BattleSprite
   DECLARE PROPERTY frame() as integer
   DECLARE PROPERTY frame(fr as integer)
 
-  basex as integer
-  basey as integer
+  basepos as XYPair
   d as integer
   xmov as integer
   ymov as integer

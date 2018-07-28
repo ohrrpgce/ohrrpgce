@@ -17,6 +17,12 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
+2018-07-28:
+Fixed slices in battle being the wrong size if you created a spriteset
+with a non-standard size. This changes the positioning of, at least,
+targetting cursors, heroes, and attack sprites, so these might not
+be positioned where you intended.
+
 2018-05-15:
 If you edited per-attack damage color overrides on this day, they will be
 off-by-one. If you edited per-attack damage color overrides in any build

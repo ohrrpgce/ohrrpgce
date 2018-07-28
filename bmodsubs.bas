@@ -1704,10 +1704,8 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
    setup_enemy_slice bspr, bat
 
    '--Position
-   .basex = formdata.slots(slot).pos.x
-   .basey = formdata.slots(slot).pos.y
-   .x = .basex
-   .y = .basey
+   .basepos = formdata.slots(slot).pos
+   (.pos) = .basepos
    '--targetting state
    .revenge = -1
    .thankvenge = -1
@@ -1824,10 +1822,9 @@ SUB changefoe(bat as BattleState, byval slot as integer, transmog as TransmogDat
   setup_enemy_slice bspr, bat, YES
 
   '--adjust position
-  .basex = .basex + old_w / 2 - .w / 2
-  .basey = .basey + old_h - .h
-  .x = .x + old_w / 2 - .w / 2
-  .y = .y + old_h - .h
+  DIM shift as XYPair = XY(old_w / 2 - .w / 2, old_h - .h)
+  .basepos += shift
+  .pos += shift
 
   '--update stats
   change_foe_stat bspr, 0, .enemy.stat.hp, transmog.hp_rule
