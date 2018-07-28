@@ -30,7 +30,6 @@ CONST SL_FORMEDITOR_BACKDROP = 100
 CONST SL_FORMEDITOR_ENEMY = 200  '+0 to +7 for 8 slots
 CONST SL_FORMEDITOR_LAST_ENEMY = 299  'End of range indicating an enemy slot
 CONST SL_FORMEDITOR_CURSOR = 300
-CONST SL_FORMEDITOR_HERO_AREA = 399  'container that holds heroes
 CONST SL_FORMEDITOR_HERO = 400  '+0 to +3 for 4 slots
 
 
@@ -577,29 +576,21 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
  sl->Lookup = SL_FORMEDITOR_BACKDROP
  sl->AutoSort = slAutoSortBottomY
 
- 'Hero Area
- DIM h_area as Slice Ptr
- h_area = NewSliceOfType(slContainer, *rootslice)
- WITH *(h_area)
-  .Lookup = SL_FORMEDITOR_HERO_AREA
-  .X = 240
-  .Y = 82
-  .Width = 56
-  .Height = 100
- END WITH
  ' Heroes
  FOR i as integer = 0 TO 3
-  sl = NewSliceOfType(slRectangle, h_area)
+  sl = NewSliceOfType(slRectangle, *rootslice)
   sl->Lookup = SL_FORMEDITOR_HERO + i
-  ChangeRectangleSlice sl, , boxlook(0).bgcol, boxlook(0).edgecol
-  sl->AnchorHoriz = 1
-  sl->AnchorVert = 2
-  sl->X = i * 8 + 16 'overridden by hero formation
-  sl->Y = i * 20 + 40 'overridden by hero formation
+  ChangeRectangleSlice sl, , boxlook(0).bgcol, boxlook(0).edgecol, , transFuzzy, 75
+  sl->AnchorHoriz = alignCenter
+  sl->AnchorVert = alignBottom
   sl->Width = 32
   sl->Height = 40
-  'Break ties with heroes behind
-  sl->Sorter = i
+  ' Add the party slot number to the center
+  DIM num_sl as Slice ptr
+  num_sl = NewSliceOfType(slText, sl)
+  CenterSlice num_sl
+  num_sl->Y = -5
+  ChangeTextSlice num_sl, STR(i)
  NEXT
 
  ' Enemies
@@ -613,16 +604,16 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
     sl = NewSliceOfType(slSprite, *rootslice)
     ChangeSpriteSlice sl, sprTypeSmallEnemy + bound(.size, 0, 2), .pic, .pal
     sl->Lookup = SL_FORMEDITOR_ENEMY + i
-    sl->Sorter = 100 + i
    END WITH
   END IF
  NEXT i
 
  ' Cursor (defaults to invisible)
  sl = NewSliceOfType(slText, *rootslice)
- sl->AlignHoriz = 1  'mid
- sl->AnchorHoriz = 1  'mid
+ sl->AlignHoriz = alignCenter
+ sl->AnchorHoriz = alignCenter
  sl->Lookup = SL_FORMEDITOR_CURSOR
+ ChangeTextSlice sl, CHR(25), -1 - uiSelectedItem2
 END SUB
 
 SUB draw_formation_slices(eform as Formation, rootslice as Slice ptr, selected_slot as integer, page as integer)
@@ -632,8 +623,6 @@ SUB draw_formation_slices(eform as Formation, rootslice as Slice ptr, selected_s
 END SUB
 
 SUB draw_formation_slices(eform as Formation, hform as HeroFormation, rootslice as Slice ptr, selected_slot as integer, page as integer, byval heromode as bool=NO)
- STATIC flash as integer
- flash = (flash + 1) MOD 256
  DIM cursorsl as Slice ptr = LookupSlice(SL_FORMEDITOR_CURSOR, rootslice)
  cursorsl->Visible = NO
 
@@ -645,31 +634,26 @@ SUB draw_formation_slices(eform as Formation, hform as HeroFormation, rootslice 
    DIM enemy_slot as integer = sl->Lookup - SL_FORMEDITOR_ENEMY
    DIM fslot as FormationSlot ptr = @eform.slots(enemy_slot)
    IF fslot->id < 0 THEN debugc errPromptBug, "Formation enemy slice corresponds to an empty slot"
-   sl->X = fslot->pos.x
-   sl->Y = fslot->pos.y
+   sl->Pos = fslot->pos
    IF NOT heromode THEN
     IF enemy_slot = selected_slot AND cursorsl <> NULL THEN
      cursorsl->Visible = YES
      SetSliceParent cursorsl, sl
-     ChangeTextSlice cursorsl, CHR(25), flash
     END IF
    END IF
   END IF
   sl = sl->NextSibling
  WEND
- 
+
  ' Set hero positions (and maybe parent of cursor slice)
- DIM h_area as Slice ptr = LookupSlice(SL_FORMEDITOR_HERO_AREA, rootslice)
  DIM hrect as Slice Ptr
  FOR i as integer = 0 TO 3
-  hrect = LookupSlice(SL_FORMEDITOR_HERO + i, h_area)
-  hrect->X = hform.slots(i).pos.x
-  hrect->Y = hform.slots(i).pos.y
+  hrect = LookupSlice(SL_FORMEDITOR_HERO + i, rootslice)
+  hrect->Pos = hform.slots(i).pos + XY(240, 82)
   IF heromode THEN
    IF i = selected_slot AND cursorsl <> NULL THEN
     cursorsl->Visible = YES
     SetSliceParent cursorsl, hrect
-    ChangeTextSlice cursorsl, CHR(25), flash
    END IF
   END IF
  NEXT i
