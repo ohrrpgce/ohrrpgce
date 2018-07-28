@@ -2349,11 +2349,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 347 '--sprite frame count
   IF valid_plotsprite(retvals(0)) THEN
-   DIM dat as SpriteSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   WITH *dat
-    scriptret = sprite_sizes(.spritetype).frames
-   END WITH
+   scriptret = SpriteSliceNumFrames(plotslices(retvals(0)))
   END IF
  CASE 348 '--slice x
   IF valid_plotslice(retvals(0)) THEN
@@ -5029,26 +5025,22 @@ END SUB
 
 'By default, no palette set
 FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2) as integer
- WITH sprite_sizes(spritetype)
-  IF bound_arg(record, 0, gen(.genmax) + .genmax_offset, "sprite record number") THEN
-   DIM sl as Slice Ptr
-   sl = NewSliceOfType(slSprite, SliceTable.scriptsprite)
-   ChangeSpriteSlice sl, spritetype, record, pal
-   RETURN create_plotslice_handle(sl)
-  END IF
- END WITH
+ IF bound_arg(record, 0, sprite_sizes(spritetype).lastrec, "sprite record number") THEN
+  DIM sl as Slice Ptr
+  sl = NewSliceOfType(slSprite, SliceTable.scriptsprite)
+  ChangeSpriteSlice sl, spritetype, record, pal
+  RETURN create_plotslice_handle(sl)
+ END IF
  RETURN 0 'Failure, return zero handle
 END FUNCTION
 
 'By default, no palette change
 SUB replace_sprite_plotslice(byval handle as integer, byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2)
- WITH sprite_sizes(spritetype)
-  IF valid_plotsprite(handle) THEN
-   IF bound_arg(record, 0, gen(.genmax) + .genmax_offset, "sprite record number") THEN
-    ChangeSpriteSlice plotslices(handle), spritetype, record, pal
-   END IF
+ IF valid_plotsprite(handle) THEN
+  IF bound_arg(record, 0, sprite_sizes(spritetype).lastrec, "sprite record number") THEN
+   ChangeSpriteSlice plotslices(handle), spritetype, record, pal
   END IF
- END WITH
+ END IF
 END SUB
 
 SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=-99, byval fgcol as integer=-99, byval border as RectBorderTypes=borderUndef, byval translucent as RectTransTypes=transUndef, byval fuzzfactor as integer=0, byval raw_box_border as RectBorderTypes=borderUndef)

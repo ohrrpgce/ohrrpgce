@@ -1268,10 +1268,8 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
     SetSpriteToAsset sl, assetfile, NO
    ELSE
     dat->loaded = NO
-    WITH sprite_sizes(dat->spritetype)
-     dat->record = small(dat->record, gen(.genmax) + .genmax_offset)
-     dat->frame = small(dat->frame, .frames - 1)
-    END WITH
+    dat->record = small(dat->record, sprite_sizes(dat->spritetype).lastrec)
+    dat->frame = small(dat->frame, SpriteSliceNumFrames(sl) - 1)
    END IF
   END IF
  END IF
@@ -1557,9 +1555,8 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    CASE slSprite
     DIM dat as SpriteSliceData Ptr
     dat = .SliceData
-    DIM size as SpriteSize Ptr
-    size = @sprite_sizes(dat->spritetype)
-    str_array_append menu(), " Type: " & size->name
+    DIM byref sizeinfo as SpriteSize = sprite_sizes(dat->spritetype)
+    str_array_append menu(), " Type: " & sizeinfo.name
     DIM mintype as SpriteType = IIF(ses.collection_group_number = SL_COLLECT_EDITOR, sprTypeFrame, 0)
     sliceed_rule_enum rules(), "sprite_type", @(dat->spritetype), mintype, sprTypeLastPickable, slgrUPDATESPRITE
     IF dat->spritetype = sprTypeFrame THEN
@@ -1568,14 +1565,15 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      sliceed_rule_str rules(), "sprite_asset", erShortStrgrabber, dat->assetfile, 1024, (slgrUPDATESPRITE OR slgrBROWSESPRITEASSET)
     ELSE
      str_array_append menu(), " Spriteset: " & dat->record
-     sliceed_rule rules(), "sprite_rec", erIntgrabber, @(dat->record), 0, gen(size->genmax) + size->genmax_offset, (slgrUPDATESPRITE OR slgrBROWSESPRITEID)
+     sliceed_rule rules(), "sprite_rec", erIntgrabber, @(dat->record), 0, sizeinfo.lastrec, (slgrUPDATESPRITE OR slgrBROWSESPRITEID)
      IF dat->paletted THEN
       str_array_append menu(), " Palette: " & defaultint(dat->pal)
       sliceed_rule rules(), "sprite_pal", erIntgrabber, @(dat->pal), -1, gen(genMaxPal), slgrUPDATESPRITE
      END IF
-     IF size->frames > 1 ORELSE dat->frame <> 0 THEN
+     DIM nframes as integer = SpriteSliceNumFrames(sl)
+     IF nframes > 1 THEN
       str_array_append menu(), " Frame: " & dat->frame
-      sliceed_rule rules(), "sprite_frame", erIntgrabber, @(dat->frame), 0, size->frames - 1
+      sliceed_rule rules(), "sprite_frame", erIntgrabber, @(dat->frame), 0, nframes - 1
      END IF
     END IF
     str_array_append menu(), " Transparent: " & yesorno(dat->trans)

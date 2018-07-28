@@ -808,11 +808,9 @@ DO
     OrphanSlice preview
     preview->AnchorVert = alignCenter
     preview->AlignVert = alignCenter
-    WITH sprite_sizes(recbuf(EnDatPicSize) + sprTypeSmallEnemy)
-     recbuf(EnDatCursorX) += .size.x / 2 '--offset relative to the top middle
-     xy_position_on_slice preview, recbuf(EnDatCursorX), recbuf(EnDatCursorY), "Targetting Cursor Offset", "xy_target_cursor"
-     recbuf(EnDatCursorX) -= .size.x / 2
-    END WITH
+    recbuf(EnDatCursorX) += preview->Size.x / 2 '--offset relative to the top middle
+    xy_position_on_slice preview, recbuf(EnDatCursorX), recbuf(EnDatCursorY), "Targetting Cursor Offset", "xy_target_cursor"
+    recbuf(EnDatCursorX) -= preview->Size.x / 2
     '--move the preview image back how it was before
     SetSliceParent(preview, preview_box)
     preview->AnchorVert = alignBottom

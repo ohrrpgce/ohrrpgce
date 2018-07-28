@@ -1010,6 +1010,7 @@ TYPE SpriteSize
  directions as integer
  genmax as integer         'Offset in gen() where max record index is stored
  genmax_offset as integer  'if gen() actually stores num instead of max, this is -1
+ DECLARE FUNCTION lastrec() as integer  'Max valid record number
 END TYPE
 
 TYPE DistribState

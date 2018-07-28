@@ -1785,7 +1785,7 @@ SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
   ._deathtime = .enemy.dissolve_length
   .appeartype = .enemy.dissolve_in - 1
   ._appeartime = .enemy.dissolve_in_length
-  .cursorpos.x = -.enemy.cursor_offset.x '--X offset is subtracted instead of added because enemies are always h-flipped
+  .cursorpos.x = -.enemy.cursor_offset.x '--negated because enemies are h-flipped in the editor!
   .cursorpos.y = -6 + .enemy.cursor_offset.y
   .death_sfx = .enemy.death_sound
 

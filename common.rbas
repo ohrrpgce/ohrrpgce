@@ -5645,6 +5645,10 @@ FUNCTION last_inv_slot() as integer
  RETURN ((gen(genMaxInventory) + 3) \ 3) * 3 - 1
 END FUNCTION
 
+FUNCTION SpriteSize.lastrec() as integer
+ RETURN gen(genmax) + genmax_offset
+END FUNCTION
+
 SUB setup_sprite_sizes ()
  'Populates the global sprite_sizes
  WITH sprite_sizes(sprTypeFrame)   '-1

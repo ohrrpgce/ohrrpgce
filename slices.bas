@@ -1826,7 +1826,6 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
    .spritetype = spritetype
    .paletted = (spritetype <> sprTypeBackdrop)
    .loaded = NO
-   sl->Size = sprite_sizes(.spritetype).size  'FIXME
   end if
   if record >= 0 then
    .record = record
@@ -1907,6 +1906,18 @@ Function SpriteSliceIsDissolving(byval sl as Slice ptr, byval only_auto as bool=
   if only_auto andalso not .d_auto then return NO
   return .dissolving <> 0
  end with
+end function
+
+Function SpriteSliceNumFrames(sl as Slice ptr) as integer
+ if sl = 0 orelse sl->SliceData = 0 orelse sl->SliceType <> slSprite then
+  debug "SpriteSliceNumFrames: invalid ptr"
+  return 0
+ end if
+
+ dim dat as SpriteSliceData Ptr = sl->SpriteData
+ if dat->loaded = NO then LoadSpriteSliceImage sl
+ if dat->img.sprite = 0 then return 0
+ return dat->img.sprite->arraylen
 end function
 
 '--Map-----------------------------------------------------------------

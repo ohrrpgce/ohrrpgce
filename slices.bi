@@ -647,6 +647,7 @@ DECLARE Sub ScaleSpriteSlice(sl as Slice ptr, size as XYPair)
 DECLARE Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, byval over_ticks as integer=-1, byval start_tick as integer=0, byval backwards as bool=NO, byval auto_animate as bool=YES)
 DECLARE Sub CancelSpriteSliceDissolve(sl as Slice ptr)
 DECLARE Function SpriteSliceIsDissolving(byval sl as slice ptr, byval only_auto as bool=YES) as bool
+DECLARE Function SpriteSliceNumFrames(sl as Slice ptr) as integer
 
 DECLARE Sub DisposeMapSlice(byval sl as slice ptr)
 DECLARE Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)
