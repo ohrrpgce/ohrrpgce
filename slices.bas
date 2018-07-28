@@ -1888,6 +1888,7 @@ end sub
 
 'Cause the sprite to be scaled/stretched to a certain size.
 'WARNING: you must call switch_to_32bit_vpages to display a scaled sprite.
+'TODO: once scaled sprites are available in games, uncomment the relevant code in valid_resizeable_slice.
 'Size can't be negative (Maybe handle negatives by setting flipVert and flipHoriz?)
 Sub ScaleSpriteSlice(sl as Slice ptr, size as XYPair)
  if sl = 0 then debug "ScaleSpriteSlice null ptr" : exit sub
@@ -3359,7 +3360,7 @@ Function SliceLegalCoverModes(sl as Slice ptr) as CoverModes
  with *sl
   if .SliceType = slPanel orelse .SliceType = slGrid then return coverNone  'Not implemented
   if .SliceType = slScroll then return coverNone  'That would be daft
-  if .SliceType = slSprite then return coverNone  'Not resizable
+  if SlicePossiblyResizable(sl) = NO then return coverNone
 
   dim ret as CoverModes = coverFull
   if .Fill andalso .FillMode <> sliceFillVert then ret -= coverHoriz    'filling_horiz
@@ -3368,6 +3369,31 @@ Function SliceLegalCoverModes(sl as Slice ptr) as CoverModes
  end with
 end Function
 
+'This function does not consider fill mode! A slice set to fill is not resizable either.
+Function SlicePossiblyResizable(sl as Slice ptr) as bool
+ if sl = 0 then return NO
+ select case sl->SliceType
+  case slSpecial, slRectangle, slLine, slContainer, slGrid, slEllipse, _
+       slSelect, slScroll, slPanel, slLayout
+   return YES
+  case slText
+   if sl->TextData = 0 then return NO
+   'Text slices are never resizable vertically (they autoset their height),
+   'and resizable horizontally if wrapping.
+   return sl->TextData->wrap
+  case slSprite
+   if sl->SpriteData = 0 then return NO
+   return sl->SpriteData->scaled
+  ' If you add any more special cases like slText, please also add special case
+  ' error messages to valid_resizeable_slice.
+  case slMap
+   ' Resizing map slices isn't implemented.
+   return NO
+  case else
+   debugc errPromptBug, "SliceResizable needs to be updated for type " & sl->SliceType
+   return NO
+ end select
+end Function
 
 '=============================================================================
 '                                Slice Velocity

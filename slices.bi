@@ -538,6 +538,7 @@ DECLARE Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
 DECLARE Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
 
 DECLARE Function SliceLegalCoverModes(sl as Slice ptr) as CoverModes
+DECLARE Function SlicePossiblyResizable(sl as Slice ptr) as bool
 
 DECLARE Function SliceXAnchor(byval sl as Slice Ptr) as integer
 DECLARE Function SliceYAnchor(byval sl as Slice Ptr) as integer
@@ -711,8 +712,10 @@ End Extern
 ' <TYPENAME> with whatever name you need. Then, add the drawing code to
 ' Draw<TYPENAME>Slice if you need a Draw function.
 '
-' Also, aside from the obvious places, the following functions will need to be updated:
-' -valid_resizeable_slice
+' Also, aside from the obvious places, the following will need to be updated:
+' -slice editor, eg slice_edit_detail_refresh and editable_slice_types
+' -SlicePossiblyResizable
+' -SliceLegalCoverModes
 ' -AdjustSlicePosToNewParent (likely if there is a custom ChildRefresh function)
 ' -slice_editor_mouse_over, to define whether clickable
 /'

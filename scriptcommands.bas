@@ -4926,31 +4926,30 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as 
  IF valid_plotslice(handle) THEN
   DIM sl as Slice Ptr
   sl = plotslices(handle)
-  SELECT CASE sl->SliceType
-   CASE slSpecial, slRectangle, slLine, slContainer, slGrid, slEllipse, _
-        slSelect, slScroll, slPanel
-    IF sl->Fill = NO THEN RETURN YES
-    SELECT CASE sl->Fillmode
-     CASE sliceFillFull
-      IF horiz_fill_ok ANDALSO vert_fill_ok THEN RETURN YES
-     CASE sliceFillHoriz
-      IF horiz_fill_ok THEN RETURN YES
-     CASE sliceFillVert
-      IF vert_fill_ok THEN RETURN YES
-    END SELECT
-    scripterr current_command_name() & ": slice handle " & handle & " cannot be resized while filling parent", serrBadOp
-   CASE slText
-    DIM dat as TextSliceData ptr
-    dat = sl->SliceData
-    IF dat = 0 THEN scripterr "sanity check fail, text slice " & handle & " has null data", serrBug : RETURN NO
-    IF dat->wrap = YES THEN
-     RETURN YES
-    ELSE
-     scripterr current_command_name() & ": text slice handle " & handle & " cannot be resized unless wrap is enabled", serrBadOp
-    END IF
-   CASE ELSE 'slSprite, slMap
+  IF SlicePossiblyResizable(sl) = NO THEN
+   'Text slices are resizable horizontally only if and only if they wrap
+   'TODO: they are never resizable vertically, but for backcompat not doing anything about that now...
+   IF sl->SliceType = slText THEN
+    scripterr current_command_name() & ": text slice handle " & handle & " cannot be resized unless wrap is enabled", serrBadOp
+   ' Scaling sprite slices aren't available in games yet.
+   'ELSEIF sl->SliceType = slSprite THEN
+   ' scripterr current_command_name() & ": sprite slice handle " & handle & " cannot be resized unless scaling is enabled", serrBadOp
+   ELSE
     scripterr current_command_name() & ": slice handle " & handle & " is not resizeable", serrBadOp
+   END IF
+   RETURN NO
+  END IF
+
+  IF sl->Fill = NO THEN RETURN YES
+  SELECT CASE sl->Fillmode
+   CASE sliceFillFull
+    IF horiz_fill_ok ANDALSO vert_fill_ok THEN RETURN YES
+   CASE sliceFillHoriz
+    IF horiz_fill_ok THEN RETURN YES
+   CASE sliceFillVert
+    IF vert_fill_ok THEN RETURN YES
   END SELECT
+  scripterr current_command_name() & ": slice handle " & handle & " cannot be resized while filling parent", serrBadOp
  END IF
  RETURN NO
 END FUNCTION
