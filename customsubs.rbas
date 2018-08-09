@@ -59,23 +59,19 @@ FUNCTION safe_tag_name(byval tagnum as integer) as string
  END IF
 END FUNCTION
 
-'allowspecial indicates whether to allow picking 'special' tags: those automatically
-'set, eg. based on inventory conditions
 'Return YES if the tag has changed
-FUNCTION tag_grabber (byref n as integer, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as bool=YES) as bool
- DIM dummy_state as MenuState
- dummy_state.pt = dummy_state.first - 1 'prevent mouse clicks from registering. For that one should explicitly pass a real MenuState
- RETURN tag_grabber(n, dummy_state, min, max, allowspecial)
-END FUNCTION
-
-'Return YES if the tag has changed
-FUNCTION tag_grabber (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as bool=YES, byval always_choice as bool=NO) as bool
- min = large(min, -max_tag())
- max = small(max, max_tag())
- IF intgrabber(n, min, max) THEN RETURN YES
+'allowspecial:  Whether to allow picking autoset tags (eg hero is alive)
+'               If you want to change this, use tag_set_grabber instead if possible.
+'always_choice: 'Always' is an option
+'allowneg:      Allow set tag=OFF.
+'               If you want to change this, use tag_id_grabber instead if possible.
+FUNCTION tag_grabber (byref n as integer, state as MenuState, allowspecial as bool=YES, always_choice as bool=NO, allowneg as bool=YES) as bool
+ DIM min as integer = 0
+ IF allowneg THEN min = -max_tag()
+ IF intgrabber(n, min, max_tag()) THEN RETURN YES
  IF enter_space_click(state) THEN
   DIM browse_tag as integer
-  browse_tag = tags_menu(n, YES, allowspecial, (min < 0), always_choice)
+  browse_tag = tags_menu(n, YES, allowspecial, allowneg, always_choice)
   IF browse_tag <> n THEN
    n = browse_tag
    RETURN YES
@@ -84,10 +80,16 @@ FUNCTION tag_grabber (byref n as integer, state as MenuState, byval min as integ
  RETURN NO
 END FUNCTION
 
-'A tag_grabber wrapper for tags that are to be written (set or toggled)
+'A tag_grabber wrapper for set tag ON/OFF actions.
 'Return YES if the tag has changed
-FUNCTION tag_set_grabber (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999) as bool
- RETURN tag_grabber (n, state, min, max, NO)
+FUNCTION tag_set_grabber (byref n as integer, state as MenuState) as bool
+ RETURN tag_grabber(n, state, NO)
+END FUNCTION
+
+'A tag_grabber wrapper for tag ids.
+'Return YES if the tag has changed
+FUNCTION tag_id_grabber (byref n as integer, state as MenuState) as bool
+ RETURN tag_grabber(n, state, NO, , NO)  'allowneg=NO
 END FUNCTION
 
 PRIVATE SUB tag_autoset_warning(byval tag_id as integer)
@@ -173,14 +175,13 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as bool=NO, byval
  init_menu_state state, menu
 
  state.pt = 0
- IF ABS(starttag) >= 2 THEN
-  FOR i as integer = 0 to v_len(tagid) - 1
-   IF tagid[i] = ABS(starttag) THEN
-    state.pt = i
-    EXIT FOR
-   END IF
-  NEXT i
- END IF
+ 'If ABS(starttag) >= 2 (valid tag) or 0 (do nothing), sets initial selection
+ FOR i as integer = 0 to v_len(tagid) - 1
+  IF tagid[i] = ABS(starttag) THEN
+   state.pt = i
+   EXIT FOR
+  END IF
+ NEXT i
 
  DIM int_browsing as integer = NO
  DIM uninterrupted_alt_press as integer = NO

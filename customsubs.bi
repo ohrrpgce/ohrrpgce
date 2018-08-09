@@ -12,9 +12,9 @@
 
 TYPE FnScriptVisitor as function (byref trig as integer, description as string, caption as string) as bool
 
-DECLARE FUNCTION tag_grabber OVERLOAD (byref n as integer, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as bool=YES) as bool
-DECLARE FUNCTION tag_grabber OVERLOAD (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as bool=YES, byval always_choice as bool=NO) as bool
-DECLARE FUNCTION tag_set_grabber (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999) as bool
+DECLARE FUNCTION tag_grabber (byref n as integer, state as MenuState, allowspecial as bool=YES, always_choice as bool=NO, allowneg as bool=YES) as bool
+DECLARE FUNCTION tag_id_grabber (byref n as integer, state as MenuState) as bool
+DECLARE FUNCTION tag_set_grabber (byref n as integer, state as MenuState) as bool
 DECLARE FUNCTION tags_menu (byval starttag as integer=0, byval picktag as bool=NO, byval allowspecial as bool=YES, showsign as bool=NO, byval always_choice as bool=NO) as integer
 DECLARE FUNCTION tag_toggle_caption(byval n as integer, prefix as string="Toggle tag", byval allowspecial as bool=NO) as string
 DECLARE FUNCTION tag_set_caption(byval n as integer, prefix as string="Set Tag", byval allowspecial as bool=NO) as string

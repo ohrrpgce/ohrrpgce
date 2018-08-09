@@ -417,7 +417,7 @@ SUB textbox_conditionals(byref box as TextBox)
    num = read_box_conditional_by_menu_index(box, state.pt)
    SELECT CASE box_conditional_type_by_menu_index(state.pt)
     CASE condTAG
-     tag_grabber num, state, , , , YES
+     tag_grabber num, state, , YES  'always_choice=YES
     CASE condSETTAG
      tag_set_grabber num, state
     CASE condBATTLE

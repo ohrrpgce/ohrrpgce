@@ -1228,7 +1228,7 @@ SUB edit_tag_range_check (byref check as TagRangeCheck)
      EXIT DO
     END IF
    CASE 1:
-    IF tag_set_grabber(check.tag, st, 0) THEN st.need_update = YES
+    IF tag_id_grabber(check.tag, st) THEN st.need_update = YES
    CASE 2:
     IF intgrabber(check.min, 0, 99) THEN st.need_update = YES
    CASE 3:
@@ -1298,13 +1298,13 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
     CASE 0
      IF enter_space_click(st) THEN EXIT DO
     CASE 2
-     IF tag_set_grabber(.have_tag, st, 0) THEN st.need_update = YES
+     IF tag_id_grabber(.have_tag, st) THEN st.need_update = YES
     CASE 3
-     IF tag_set_grabber(.alive_tag, st, 0) THEN st.need_update = YES
+     IF tag_id_grabber(.alive_tag, st) THEN st.need_update = YES
     CASE 4
-     IF tag_set_grabber(.leader_tag, st, 0) THEN st.need_update = YES
+     IF tag_id_grabber(.leader_tag, st) THEN st.need_update = YES
     CASE 5
-     IF tag_set_grabber(.active_tag, st, 0) THEN st.need_update = YES
+     IF tag_id_grabber(.active_tag, st) THEN st.need_update = YES
     CASE 7 TO UBOUND(menu) - 1
      'Edit an existing one here
      DIM check_id as integer = st.pt - 7

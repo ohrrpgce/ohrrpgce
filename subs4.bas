@@ -188,7 +188,7 @@ DO
     state.need_update = YES
    END IF
   CASE 12 '--tags
-   IF tag_grabber(veh(offset(state.pt)), state, , , NO) THEN
+   IF tag_set_grabber(veh(offset(state.pt)), state) THEN
     state.need_update = YES
    END IF
   CASE 4
