@@ -24,15 +24,15 @@ enum
 	LCT_RGBA = 6
 end enum
 
-declare function lodepng_decode_memory(byval out as ubyte ptr ptr, byval w as ulong ptr, byval h as ulong ptr, byval in as const ubyte ptr, byval insize as uinteger, byval colortype as LodePNGColorType, byval bitdepth as ulong) as ulong
-declare function lodepng_decode32(byval out as ubyte ptr ptr, byval w as ulong ptr, byval h as ulong ptr, byval in as const ubyte ptr, byval insize as uinteger) as ulong
-declare function lodepng_decode24(byval out as ubyte ptr ptr, byval w as ulong ptr, byval h as ulong ptr, byval in as const ubyte ptr, byval insize as uinteger) as ulong
+declare function lodepng_decode_memory(byval out as ubyte ptr ptr, byval w as ulong ptr, byval h as ulong ptr, byval in as const ubyte ptr, byval insize as size_t, byval colortype as LodePNGColorType, byval bitdepth as ulong) as ulong
+declare function lodepng_decode32(byval out as ubyte ptr ptr, byval w as ulong ptr, byval h as ulong ptr, byval in as const ubyte ptr, byval insize as size_t) as ulong
+declare function lodepng_decode24(byval out as ubyte ptr ptr, byval w as ulong ptr, byval h as ulong ptr, byval in as const ubyte ptr, byval insize as size_t) as ulong
 declare function lodepng_decode_file(byval out as ubyte ptr ptr, byval w as ulong ptr, byval h as ulong ptr, byval filename as const zstring ptr, byval colortype as LodePNGColorType, byval bitdepth as ulong) as ulong
 declare function lodepng_decode32_file(byval out as ubyte ptr ptr, byval w as ulong ptr, byval h as ulong ptr, byval filename as const zstring ptr) as ulong
 declare function lodepng_decode24_file(byval out as ubyte ptr ptr, byval w as ulong ptr, byval h as ulong ptr, byval filename as const zstring ptr) as ulong
-declare function lodepng_encode_memory(byval out as ubyte ptr ptr, byval outsize as uinteger ptr, byval image as const ubyte ptr, byval w as ulong, byval h as ulong, byval colortype as LodePNGColorType, byval bitdepth as ulong) as ulong
-declare function lodepng_encode32(byval out as ubyte ptr ptr, byval outsize as uinteger ptr, byval image as const ubyte ptr, byval w as ulong, byval h as ulong) as ulong
-declare function lodepng_encode24(byval out as ubyte ptr ptr, byval outsize as uinteger ptr, byval image as const ubyte ptr, byval w as ulong, byval h as ulong) as ulong
+declare function lodepng_encode_memory(byval out as ubyte ptr ptr, byval outsize as size_t ptr, byval image as const ubyte ptr, byval w as ulong, byval h as ulong, byval colortype as LodePNGColorType, byval bitdepth as ulong) as ulong
+declare function lodepng_encode32(byval out as ubyte ptr ptr, byval outsize as size_t ptr, byval image as const ubyte ptr, byval w as ulong, byval h as ulong) as ulong
+declare function lodepng_encode24(byval out as ubyte ptr ptr, byval outsize as size_t ptr, byval image as const ubyte ptr, byval w as ulong, byval h as ulong) as ulong
 declare function lodepng_encode_file(byval filename as const zstring ptr, byval image as const ubyte ptr, byval w as ulong, byval h as ulong, byval colortype as LodePNGColorType, byval bitdepth as ulong) as ulong
 declare function lodepng_encode32_file(byval filename as const zstring ptr, byval image as const ubyte ptr, byval w as ulong, byval h as ulong) as ulong
 declare function lodepng_encode24_file(byval filename as const zstring ptr, byval image as const ubyte ptr, byval w as ulong, byval h as ulong) as ulong
@@ -40,8 +40,8 @@ declare function lodepng_error_text(byval code as ulong) as const zstring ptr
 
 type LodePNGDecompressSettings
 	ignore_adler32 as ulong
-	custom_zlib as function(byval as ubyte ptr ptr, byval as uinteger ptr, byval as const ubyte ptr, byval as uinteger, byval as const LodePNGDecompressSettings ptr) as ulong
-	custom_inflate as function(byval as ubyte ptr ptr, byval as uinteger ptr, byval as const ubyte ptr, byval as uinteger, byval as const LodePNGDecompressSettings ptr) as ulong
+	custom_zlib as function(byval as ubyte ptr ptr, byval as size_t ptr, byval as const ubyte ptr, byval as size_t, byval as const LodePNGDecompressSettings ptr) as ulong
+	custom_inflate as function(byval as ubyte ptr ptr, byval as size_t ptr, byval as const ubyte ptr, byval as size_t, byval as const LodePNGDecompressSettings ptr) as ulong
 	custom_context as const any ptr
 end type
 
@@ -55,8 +55,8 @@ type LodePNGCompressSettings
 	minmatch as ulong
 	nicematch as ulong
 	lazymatching as ulong
-	custom_zlib as function(byval as ubyte ptr ptr, byval as uinteger ptr, byval as const ubyte ptr, byval as uinteger, byval as const LodePNGCompressSettings ptr) as ulong
-	custom_deflate as function(byval as ubyte ptr ptr, byval as uinteger ptr, byval as const ubyte ptr, byval as uinteger, byval as const LodePNGCompressSettings ptr) as ulong
+	custom_zlib as function(byval as ubyte ptr ptr, byval as size_t ptr, byval as const ubyte ptr, byval as size_t, byval as const LodePNGCompressSettings ptr) as ulong
+	custom_deflate as function(byval as ubyte ptr ptr, byval as size_t ptr, byval as const ubyte ptr, byval as size_t, byval as const LodePNGCompressSettings ptr) as ulong
 	custom_context as const any ptr
 end type
 
@@ -67,7 +67,7 @@ type LodePNGColorMode
 	colortype as LodePNGColorType
 	bitdepth as ulong
 	palette as ubyte ptr
-	palettesize as uinteger
+	palettesize as size_t
 	key_defined as ulong
 	key_r as ulong
 	key_g as ulong
@@ -86,7 +86,7 @@ declare function lodepng_is_alpha_type(byval info as const LodePNGColorMode ptr)
 declare function lodepng_is_palette_type(byval info as const LodePNGColorMode ptr) as ulong
 declare function lodepng_has_palette_alpha(byval info as const LodePNGColorMode ptr) as ulong
 declare function lodepng_can_have_alpha(byval info as const LodePNGColorMode ptr) as ulong
-declare function lodepng_get_raw_size(byval w as ulong, byval h as ulong, byval color as const LodePNGColorMode ptr) as uinteger
+declare function lodepng_get_raw_size(byval w as ulong, byval h as ulong, byval color as const LodePNGColorMode ptr) as size_t
 
 type LodePNGTime
 	year as ulong
@@ -106,10 +106,10 @@ type LodePNGInfo
 	background_r as ulong
 	background_g as ulong
 	background_b as ulong
-	text_num as uinteger
+	text_num as size_t
 	text_keys as zstring ptr ptr
 	text_strings as zstring ptr ptr
-	itext_num as uinteger
+	itext_num as size_t
 	itext_keys as zstring ptr ptr
 	itext_langtags as zstring ptr ptr
 	itext_transkeys as zstring ptr ptr
@@ -121,7 +121,7 @@ type LodePNGInfo
 	phys_y as ulong
 	phys_unit as ulong
 	unknown_chunks_data(0 to 2) as ubyte ptr
-	unknown_chunks_size(0 to 2) as uinteger
+	unknown_chunks_size(0 to 2) as size_t
 end type
 
 declare sub lodepng_info_init(byval info as LodePNGInfo ptr)
@@ -192,9 +192,9 @@ end type
 declare sub lodepng_state_init(byval state as LodePNGState ptr)
 declare sub lodepng_state_cleanup(byval state as LodePNGState ptr)
 declare sub lodepng_state_copy(byval dest as LodePNGState ptr, byval source as const LodePNGState ptr)
-declare function lodepng_decode(byval out as ubyte ptr ptr, byval w as ulong ptr, byval h as ulong ptr, byval state as LodePNGState ptr, byval in as const ubyte ptr, byval insize as uinteger) as ulong
-declare function lodepng_inspect(byval w as ulong ptr, byval h as ulong ptr, byval state as LodePNGState ptr, byval in as const ubyte ptr, byval insize as uinteger) as ulong
-declare function lodepng_encode(byval out as ubyte ptr ptr, byval outsize as uinteger ptr, byval image as const ubyte ptr, byval w as ulong, byval h as ulong, byval state as LodePNGState ptr) as ulong
+declare function lodepng_decode(byval out as ubyte ptr ptr, byval w as ulong ptr, byval h as ulong ptr, byval state as LodePNGState ptr, byval in as const ubyte ptr, byval insize as size_t) as ulong
+declare function lodepng_inspect(byval w as ulong ptr, byval h as ulong ptr, byval state as LodePNGState ptr, byval in as const ubyte ptr, byval insize as size_t) as ulong
+declare function lodepng_encode(byval out as ubyte ptr ptr, byval outsize as size_t ptr, byval image as const ubyte ptr, byval w as ulong, byval h as ulong, byval state as LodePNGState ptr) as ulong
 declare function lodepng_chunk_length(byval chunk as const ubyte ptr) as ulong
 declare sub lodepng_chunk_type(byval type as zstring ptr, byval chunk as const ubyte ptr)
 declare function lodepng_chunk_type_equals(byval chunk as const ubyte ptr, byval type as const zstring ptr) as ubyte
@@ -207,15 +207,15 @@ declare function lodepng_chunk_check_crc(byval chunk as const ubyte ptr) as ulon
 declare sub lodepng_chunk_generate_crc(byval chunk as ubyte ptr)
 declare function lodepng_chunk_next(byval chunk as ubyte ptr) as ubyte ptr
 declare function lodepng_chunk_next_const(byval chunk as const ubyte ptr) as const ubyte ptr
-declare function lodepng_chunk_append(byval out as ubyte ptr ptr, byval outlength as uinteger ptr, byval chunk as const ubyte ptr) as ulong
-declare function lodepng_chunk_create(byval out as ubyte ptr ptr, byval outlength as uinteger ptr, byval length as ulong, byval type as const zstring ptr, byval data as const ubyte ptr) as ulong
-declare function lodepng_crc32(byval buf as const ubyte ptr, byval len as uinteger) as ulong
-declare function lodepng_inflate(byval out as ubyte ptr ptr, byval outsize as uinteger ptr, byval in as const ubyte ptr, byval insize as uinteger, byval settings as const LodePNGDecompressSettings ptr) as ulong
-declare function lodepng_zlib_decompress(byval out as ubyte ptr ptr, byval outsize as uinteger ptr, byval in as const ubyte ptr, byval insize as uinteger, byval settings as const LodePNGDecompressSettings ptr) as ulong
-declare function lodepng_zlib_compress(byval out as ubyte ptr ptr, byval outsize as uinteger ptr, byval in as const ubyte ptr, byval insize as uinteger, byval settings as const LodePNGCompressSettings ptr) as ulong
-declare function lodepng_huffman_code_lengths(byval lengths as ulong ptr, byval frequencies as const ulong ptr, byval numcodes as uinteger, byval maxbitlen as ulong) as ulong
-declare function lodepng_deflate(byval out as ubyte ptr ptr, byval outsize as uinteger ptr, byval in as const ubyte ptr, byval insize as uinteger, byval settings as const LodePNGCompressSettings ptr) as ulong
-declare function lodepng_load_file(byval out as ubyte ptr ptr, byval outsize as uinteger ptr, byval filename as const zstring ptr) as ulong
-declare function lodepng_save_file(byval buffer as const ubyte ptr, byval buffersize as uinteger, byval filename as const zstring ptr) as ulong
+declare function lodepng_chunk_append(byval out as ubyte ptr ptr, byval outlength as size_t ptr, byval chunk as const ubyte ptr) as ulong
+declare function lodepng_chunk_create(byval out as ubyte ptr ptr, byval outlength as size_t ptr, byval length as ulong, byval type as const zstring ptr, byval data as const ubyte ptr) as ulong
+declare function lodepng_crc32(byval buf as const ubyte ptr, byval len as size_t) as ulong
+declare function lodepng_inflate(byval out as ubyte ptr ptr, byval outsize as size_t ptr, byval in as const ubyte ptr, byval insize as size_t, byval settings as const LodePNGDecompressSettings ptr) as ulong
+declare function lodepng_zlib_decompress(byval out as ubyte ptr ptr, byval outsize as size_t ptr, byval in as const ubyte ptr, byval insize as size_t, byval settings as const LodePNGDecompressSettings ptr) as ulong
+declare function lodepng_zlib_compress(byval out as ubyte ptr ptr, byval outsize as size_t ptr, byval in as const ubyte ptr, byval insize as size_t, byval settings as const LodePNGCompressSettings ptr) as ulong
+declare function lodepng_huffman_code_lengths(byval lengths as ulong ptr, byval frequencies as const ulong ptr, byval numcodes as size_t, byval maxbitlen as ulong) as ulong
+declare function lodepng_deflate(byval out as ubyte ptr ptr, byval outsize as size_t ptr, byval in as const ubyte ptr, byval insize as size_t, byval settings as const LodePNGCompressSettings ptr) as ulong
+declare function lodepng_load_file(byval out as ubyte ptr ptr, byval outsize as size_t ptr, byval filename as const zstring ptr) as ulong
+declare function lodepng_save_file(byval buffer as const ubyte ptr, byval buffersize as size_t, byval filename as const zstring ptr) as ulong
 
 end extern
