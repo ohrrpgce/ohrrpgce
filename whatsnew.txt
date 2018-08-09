@@ -112,6 +112,10 @@ June (mumble) 2018 [Fufluns]
     * "get NPC speed" always returned 0! [Ralph]
     * If you died with a textbox open and an on-death script cancelled the
       death, the textbox slice wasn't removed [Ralph]
+    * In zone-editing mode the key to change indicator graphics was documented
+      as G but was actually T. It's now actually G. And the keys to change
+      selected zone were documented as +/- but are actually </>! Made some
+      other improvements too [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

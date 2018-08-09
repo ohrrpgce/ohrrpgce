@@ -89,6 +89,7 @@ DECLARE SUB draw_zone_tileset(byval zonetileset as Frame ptr)
 DECLARE SUB draw_zone_tileset2(byval zonetileset as Frame ptr)
 DECLARE SUB draw_zone_tileset3(byval zonetileset as Frame ptr)
 DECLARE SUB mapedit_doZoneHinting(st as MapEditState)
+DECLARE SUB mapedit_lock_cur_zone(st as MapEditState)
 DECLARE SUB zonemenu_add_zone (byref zonemenu as SimpleMenuItem vector, zonecolours() as integer, byval info as ZoneInfo ptr)
 DECLARE FUNCTION mapedit_try_assign_colour_to_zone(byval id as integer, zonecolours() as integer, viszonelist() as integer) as integer
 DECLARE SUB mapedit_update_visible_zones (st as MapEditState)
@@ -1331,10 +1332,9 @@ DO
      st.cur_zinfo = GetZoneInfo(st.map.zmap, st.cur_zone)
      IF keyval(scL) > 1 THEN  'Lock/Unlock
       IF int_array_find(st.lockedzonelist(), st.cur_zone) > -1 THEN
-       int_array_remove(st.lockedzonelist(), st.cur_zone)
-      ELSEIF UBOUND(st.lockedzonelist) + 1 < 8 THEN
-       int_array_append(st.lockedzonelist(), st.cur_zone)
-       st.cur_zinfo->hidden = NO  'Doesn't make sense for a zone to be hidden and locked
+       int_array_remove(st.lockedzonelist(), st.cur_zone)  'Unlock
+      ELSE
+       mapedit_lock_cur_zone st
       END IF
       st.zones_needupdate = YES
      END IF
@@ -1344,8 +1344,11 @@ DO
       st.zones_needupdate = YES
      END IF
     END IF
-    'You may draw if you lock the zone first to avoid weird graphical glitches
+    'You may draw if you lock the zone first, so it stays visible.
+    'For convenience, auto-lock the current zone when you try to draw
+    IF use_current_tool THEN mapedit_lock_cur_zone st
     st.drawing_allowed = (int_array_find(st.lockedzonelist(), st.cur_zone) > -1)
+
     IF keyval(scA) > 1 THEN  'Autoshow zones
      st.autoshow_zones XOR= YES
      st.zones_needupdate = YES
@@ -1353,8 +1356,8 @@ DO
     IF keyval(scS) > 1 THEN  'Show other zones
      st.showzonehints XOR= YES
     END IF
-    IF keyval(scT) > 1 THEN  'Let the user choose the tileset used to display zones in multi-view
-     st.zoneviewtileset = (st.zoneviewtileset + 1) MOD 3
+    IF keyval(scG) > 1 THEN  'Let the user choose the tileset used to display zones in multi-view
+     loopvar st.zoneviewtileset, 0, 2
     END IF
    END IF
    '--done input-modes-------
@@ -2112,14 +2115,16 @@ DO
   ELSE
    '-- View mode
 
-   printstr IIF(st.autoshow_zones,"      ","Don't ") & hilite("A") + "utoshow zones  " _
-            & IIF(st.showzonehints,"      ","Don't ") & hilite("S") + "how other", 0, 5, dpage, YES
+   printstr IIF(st.autoshow_zones,"      ","Don't ") & ticklite("`A`utoshow zones  ") _
+            & IIF(st.showzonehints,"      ","Don't ") & ticklite("`S`how other  ") _
+            & ticklite("Change `G`raphics"), _
+            0, 5, dpage, YES
 
    IF zoneselected THEN
     DIM is_locked as integer = (int_array_find(st.lockedzonelist(), st.cur_zone) > -1)
-    printstr hilite("E") + "dit/" _
-             & IIF(st.cur_zinfo->hidden,"un","") + hilite("H") + "ide/" _
-             & IIF(is_locked,"un","") + hilite("L") + "ock zone", pRight - 20, pBottom, dpage, YES
+    edgeprint hilite("E") + "dit/" _
+              & IIF(st.cur_zinfo->hidden,"un","") + hilite("H") + "ide/" _
+              & IIF(is_locked,"un","") + hilite("L") + "ock zone", pRight - 20, pBottom, uilook(uiText), dpage, YES
    END IF
 
    'Draw zonemenu
@@ -2139,7 +2144,11 @@ DO
 
    IF st.zonemenustate.pt > -1 THEN
     ' A little right arrow
-    edgeprint CHR(26), xpos - 8, ypos + (st.zonemenustate.pt - st.zonemenustate.top) * st.zonemenustate.spacing, uilook(uiText), dpage
+    DIM cursorpos as XYPair = XY(xpos - 8, ypos + (st.zonemenustate.pt - st.zonemenustate.top) * st.zonemenustate.spacing)
+    edgeprint CHR(26), cursorpos.x, cursorpos.y, uilook(uiText), dpage
+    ' And put < and > next to the arrow, to indicate the keys
+    edgeprint hilite("<"), cursorpos.x, cursorpos.y - st.zonemenustate.spacing, 0, dpage, YES
+    edgeprint hilite(">"), cursorpos.x, cursorpos.y + st.zonemenustate.spacing, 0, dpage, YES
    END IF
 
   END IF
@@ -2520,6 +2529,15 @@ END SUB
 '                                Zonemap display helpers
 '==========================================================================================
 
+'Lock the current zone, if possible. May fail
+SUB mapedit_lock_cur_zone(st as MapEditState)
+ IF int_array_find(st.lockedzonelist(), st.cur_zone) = -1 ANDALSO _
+    UBOUND(st.lockedzonelist) + 1 < 8 THEN
+  int_array_append(st.lockedzonelist(), st.cur_zone)
+  st.cur_zinfo->hidden = NO  'Doesn't make sense for a zone to be hidden and locked
+  st.zones_needupdate = YES
+ END IF
+END SUB
 
 'Returns the colour chosen, from 0-7
 FUNCTION mapedit_try_assign_colour_to_zone(byval id as integer, zonecolours() as integer, viszonelist() as integer) as integer
