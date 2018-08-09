@@ -2703,7 +2703,13 @@ END SUB
 
 FUNCTION pick_channel_name() as string
  #ifdef __FB_WIN32__
-  return "\\.\pipe\ohrrpgce_lump_updates_testing_" & randint(100000)
+  #ifdef UWP
+   'This pipe name is mandatory in UWP. (Should it actually be \.\pipe\LOCAL? Looks like a typo in the docs)
+   'Note, named pipes can only be used between apps in the same container.
+   return "\\.\pipe\LOCAL"
+  #else
+   return "\\.\pipe\ohrrpgce_lump_updates_testing_" & randint(100000)
+  #endif
  #else
   return tmpdir + ".lump_updates.txt"
  #endif
