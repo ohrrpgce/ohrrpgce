@@ -190,7 +190,6 @@ DIM numloadedscr as integer    'Number of loaded script headers in script cache 
 DIM totalscrmem as integer     'Total memory used by all loaded scripts, in int32s
 DIM unused_script_cache_mem as integer  'Memory used by scripts in cache which are unused, int32s
 DIM err_suppress_lvl as scriptErrEnum
-DIM scrwatch as integer
 DIM next_interpreter_check_time as double
 DIM interruption_grace_period as integer
 REDIM global(maxScriptGlobals) as integer
@@ -682,7 +681,6 @@ fatal = NO
 checkfatal = NO
 gam.quit = NO
 lastformation = -1
-scrwatch = 0
 menu_set.menufile = workingdir & SLASH & "menus.bin"
 menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
 REDIM remembered_menu_pts(gen(genMaxMenu))
@@ -706,6 +704,7 @@ gam.showtext_ticks = 0
 gam.debug_showtags = 0
 gam.debug_npc_info = 0
 gam.debug_textbox_info = NO
+gam.debug_scripts = 0
 gam.walk_through_walls = NO
 
 reset_vehicle vstate
@@ -807,7 +806,7 @@ DO
  IF menus_allow_gameplay() THEN trigger_onkeypress_script
 
  'Enter complete script debugger (F10 pressed twice) before scripts are run
- IF scrwatch > 1 THEN breakpoint scrwatch, 4
+ IF gam.debug_scripts > 1 THEN breakpoint gam.debug_scripts, 4
 
  IF menus_allow_gameplay() THEN
  'DEBUG debug "enter script interpreter"
@@ -1173,7 +1172,7 @@ SUB displayall()
  IF gam.debug_npc_info > 0 THEN npc_debug_display(gam.debug_npc_info = 2)
  IF gam.debug_textbox_info THEN show_textbox_debug_info
  IF gam.debug_showtags THEN tagdisplay dpage
- IF scrwatch THEN scriptwatcher scrwatch, -1
+ IF gam.debug_scripts THEN scriptwatcher gam.debug_scripts, -1
 END SUB
 
 
@@ -4477,8 +4476,8 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  END IF
 
  IF dbg.def(      , scF4, "Tag debugger (F4)") THEN
-  gam.debug_showtags = (gam.debug_showtags + 1) MOD 3
-  scrwatch = 0
+  loopvar gam.debug_showtags, 0, 2
+  gam.debug_scripts = 0
  END IF
 
  IF dbg.def(scCtrl, scF4, "View/edit slice tree (Ctrl-F4)") THEN
@@ -4518,11 +4517,11 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  END IF
 
  IF dbg.def(      , scF10) THEN
-  loopvar scrwatch, 0, 2
+  loopvar gam.debug_scripts, 0, 2
   gam.debug_showtags = 0
  END IF
  IF dbg.def(      ,      , "Script debugger (F10)") THEN
-  scrwatch = 2  'Go straight in instead of showing the memory usage bars
+  gam.debug_scripts = 2  'Go straight in instead of showing the memory usage bars
   gam.debug_showtags = 0
  END IF
 

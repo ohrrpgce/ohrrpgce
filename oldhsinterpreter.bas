@@ -158,7 +158,7 @@ WITH scrat(nowscript)
 DO
  SELECT CASE .state
   CASE stnext'---check if all args are done
-   IF scrwatch AND breakstnext THEN breakpoint scrwatch, 1
+   IF gam.debug_scripts AND breakstnext THEN breakpoint gam.debug_scripts, 1
    IF .curargn >= curcmd->argc THEN
     '--pop return values of each arg
     '--evaluate function, math, script, whatever
@@ -338,7 +338,7 @@ DO
            '---now get end value
            .state = stdoarg
           CASE 4
-           IF scrwatch AND breakloopbrch THEN breakpoint scrwatch, 5
+           IF gam.debug_scripts AND breakloopbrch THEN breakpoint gam.debug_scripts, 5
            tmpstep = readstack(scrst, 0)
            tmpend = readstack(scrst, -1)
            tmpstart = readstack(scrst, -2)
@@ -467,7 +467,7 @@ DO
       wantimmediate = -1
      END IF
    END SELECT
-   IF scrwatch AND breakstnext THEN breakpoint scrwatch, 2
+   IF gam.debug_scripts AND breakstnext THEN breakpoint gam.debug_scripts, 2
    GOTO interpretloop 'new WITH pointer
   CASE sttriggered'---special initial state used just for script trigger logging
    IF gam.script_log.enabled THEN watched_script_triggered *last_queued_script
@@ -655,7 +655,7 @@ SELECT CASE cmdptr->kind
   'this breakpoint is a perfect duplicate of breakstnext, but originally it also caught
   'streturn on evaluating numbers, locals and globals
   'edit: it's moved about even more now. needs rewriting
-  'IF scrwatch AND breakststart THEN breakpoint scrwatch, 3
+  'IF gam.debug_scripts AND breakststart THEN breakpoint gam.debug_scripts, 3
   'scriptdump "subdoarg"
 
 

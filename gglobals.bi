@@ -80,7 +80,6 @@ EXTERN wantimmediate as integer
 EXTERN scriptprofiling as bool
 EXTERN timing_fibre as bool
 EXTERN insideinterpreter as bool
-EXTERN scrwatch as integer
 EXTERN nowscript as integer
 EXTERN scriptret as integer
 EXTERN numloadedscr as integer

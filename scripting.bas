@@ -1436,7 +1436,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  append_menu_item menu, "Exit game (without saving)"
  append_menu_item menu, "Enter slice debugger"
  IF recursivecall = 1 THEN  'don't reenter the debugger if possibly already inside!
-  IF scrwatch <> 0 THEN
+  IF gam.debug_scripts <> 0 THEN
    append_menu_item menu, "Return to script debugger"
    state.pt = 6
   ELSE
@@ -1480,8 +1480,8 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
     CASE 5
      slice_editor SliceTable.Root
     CASE 6 'Script debugger
-     scrwatch = 2
-     scriptwatcher scrwatch, 0 'clean mode, script state view mode
+     gam.debug_scripts = 2
+     scriptwatcher gam.debug_scripts, 0 'clean mode, script state view mode
     CASE 7 'reload scripts
      reload_scripts
      EXIT DO
@@ -1599,8 +1599,8 @@ FUNCTION script_interrupt () as integer
      debug "script_interrupt: User opted to quit"
      exitprogram NO, 1
     CASE 4 'script debugger
-     scrwatch = 2
-     scriptwatcher scrwatch, 0 'clean mode, script state view mode
+     gam.debug_scripts = 2
+     scriptwatcher gam.debug_scripts, 0 'clean mode, script state view mode
      ret = YES
     CASE 5 'reload scripts
      reload_scripts

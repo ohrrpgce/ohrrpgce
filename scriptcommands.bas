@@ -3079,7 +3079,7 @@ SUB script_functions(byval cmdid as integer)
   IF bound_arg(retvals(0), 0, 100000, "number of timers", , serrBadOp) THEN
    REDIM PRESERVE timers(large(0, retvals(0) - 1))
    IF retvals(0) = 0 THEN
-    'Unfortunately, have to have at least one timer. Deactivate/blank it, in case the player
+    'Unfortunately, have to have at least one timer. Deactivate/blank it, in case the user
     'wants "allocate timers(0)" to kill all timers.
     REDIM timers(0)
    END IF

@@ -174,10 +174,14 @@ TYPE GameState
   walk_through_walls as bool         'used for F11 cheat mode
   mouse_enabled as bool              'initmouse called
   hero(sizeParty - 1) as HeroState
-  debug_showtags as integer          '0: off, 1: small display, 2: full-length display
   debug_npc_info as integer          'NPC debug display. 0: off, 1: IDs/refs, 2: also show obstructions
   debug_textbox_info as bool         'Textbox debug display
   debug_camera_pan as bool           'Arrow keys pan the camera, and camera mode is ignored
+
+  'The following are mutually exclusive
+  debug_scripts as integer           '0: off, 1: show running scripts, 2: pause and enter debugger
+  debug_showtags as integer          '0: off, 1: small display, 2: full-length display
+
   paused as bool                     'Pause the game (only in map mode; this is a debug key)
   autorungame as bool                'Game was autorun, not selected from RPG browser
   return_to_browser as bool          'Return to browser when quitting the game
