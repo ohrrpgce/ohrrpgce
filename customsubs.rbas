@@ -61,15 +61,15 @@ END FUNCTION
 
 'allowspecial indicates whether to allow picking 'special' tags: those automatically
 'set, eg. based on inventory conditions
-FUNCTION tag_grabber (byref n as integer, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as integer=YES) as integer
- 'Return YES if the tag has changed
+'Return YES if the tag has changed
+FUNCTION tag_grabber (byref n as integer, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as bool=YES) as bool
  DIM dummy_state as MenuState
  dummy_state.pt = dummy_state.first - 1 'prevent mouse clicks from registering. For that one should explicitly pass a real MenuState
  RETURN tag_grabber(n, dummy_state, min, max, allowspecial)
 END FUNCTION
 
-FUNCTION tag_grabber (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as integer=YES, byval always_choice as bool=NO) as integer
- 'Return YES if the tag has changed
+'Return YES if the tag has changed
+FUNCTION tag_grabber (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as bool=YES, byval always_choice as bool=NO) as bool
  min = large(min, -max_tag())
  max = small(max, max_tag())
  IF intgrabber(n, min, max) THEN RETURN YES
@@ -85,8 +85,8 @@ FUNCTION tag_grabber (byref n as integer, state as MenuState, byval min as integ
 END FUNCTION
 
 'A tag_grabber wrapper for tags that are to be written (set or toggled)
-FUNCTION tag_set_grabber (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999) as integer
- 'Return YES if the tag has changed
+'Return YES if the tag has changed
+FUNCTION tag_set_grabber (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999) as bool
  RETURN tag_grabber (n, state, min, max, NO)
 END FUNCTION
 
@@ -96,7 +96,9 @@ END SUB
 
 'If picktag is true, then can be used to pick a tag. In that case, allowspecial indicates whether to allow
 'picking 'special' tags: those automatically set, eg. based on inventory conditions
-FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, byval allowspecial as integer=YES, byval showsign as bool=NO, byval always_choice as bool=NO) as integer
+'If showsign is true, picking a tag condition (tag=ON/OFF), and the ON/OFF condition can be selected.
+'Returns a signed tag number (+ve, tag ON, -ve tag OFF).
+FUNCTION tags_menu (byval starttag as integer=0, byval picktag as bool=NO, byval allowspecial as bool=YES, byval showsign as bool=NO, byval always_choice as bool=NO) as integer
  STATIC searchstring as string
  
  'If this method for guessing checktag mode ever fails, we can change it to be an argument
@@ -1734,7 +1736,7 @@ END SUB
 
 'Returns  "prefix ABS(n) suffix [AUTOSET] (<tagname or zero/one/negonecap>)"
 'where everything except the ABS(n) is optional.
-PRIVATE FUNCTION base_tag_caption(byval n as integer, prefix as string, suffix as string, zerocap as string, onecap as string, negonecap as string, byval allowspecial as integer) as string
+PRIVATE FUNCTION base_tag_caption(byval n as integer, prefix as string, suffix as string, zerocap as string, onecap as string, negonecap as string, byval allowspecial as bool) as string
  DIM ret as string
  ret = prefix
  IF LEN(ret) > 0 THEN ret &= " "
@@ -1753,15 +1755,15 @@ PRIVATE FUNCTION base_tag_caption(byval n as integer, prefix as string, suffix a
  RETURN ret
 END FUNCTION
 
-FUNCTION tag_toggle_caption(byval n as integer, prefix as string="Toggle tag", byval allowspecial as integer=NO) as string
+FUNCTION tag_toggle_caption(byval n as integer, prefix as string="Toggle tag", byval allowspecial as bool=NO) as string
  RETURN base_tag_caption(n, prefix, "", "N/A", "Unchangeable", "Unchangeable", allowspecial)
 END FUNCTION
 
-FUNCTION tag_choice_caption(byval n as integer, prefix as string="", byval allowspecial as integer=NO) as string
+FUNCTION tag_choice_caption(byval n as integer, prefix as string="", byval allowspecial as bool=NO) as string
  RETURN base_tag_caption(n, prefix, "", "None", "Unchangeable", "Unchangeable", allowspecial)
 END FUNCTION
 
-FUNCTION tag_set_caption(byval n as integer, prefix as string="Set Tag", byval allowspecial as integer=NO) as string
+FUNCTION tag_set_caption(byval n as integer, prefix as string="Set Tag", byval allowspecial as bool=NO) as string
  RETURN base_tag_caption(n, prefix, "=" & onoroff(n), "No tag set", "Unchangeable", "Unchangeable", allowspecial)
 END FUNCTION
 

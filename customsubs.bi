@@ -12,13 +12,13 @@
 
 TYPE FnScriptVisitor as function (byref trig as integer, description as string, caption as string) as bool
 
-DECLARE FUNCTION tag_grabber OVERLOAD (byref n as integer, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as integer=YES) as integer
-DECLARE FUNCTION tag_grabber OVERLOAD (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as integer=YES, byval always_choice as bool=NO) as integer
-DECLARE FUNCTION tag_set_grabber (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999) as integer
-DECLARE FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, byval allowspecial as integer=YES, showsign as bool=NO, byval always_choice as bool=NO) as integer
-DECLARE FUNCTION tag_toggle_caption(byval n as integer, prefix as string="Toggle tag", byval allowspecial as integer=NO) as string
-DECLARE FUNCTION tag_set_caption(byval n as integer, prefix as string="Set Tag", byval allowspecial as integer=NO) as string
-DECLARE FUNCTION tag_choice_caption(byval n as integer, prefix as string="", byval allowspecial as integer=NO) as string
+DECLARE FUNCTION tag_grabber OVERLOAD (byref n as integer, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as bool=YES) as bool
+DECLARE FUNCTION tag_grabber OVERLOAD (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as bool=YES, byval always_choice as bool=NO) as bool
+DECLARE FUNCTION tag_set_grabber (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999) as bool
+DECLARE FUNCTION tags_menu (byval starttag as integer=0, byval picktag as bool=NO, byval allowspecial as bool=YES, showsign as bool=NO, byval always_choice as bool=NO) as integer
+DECLARE FUNCTION tag_toggle_caption(byval n as integer, prefix as string="Toggle tag", byval allowspecial as bool=NO) as string
+DECLARE FUNCTION tag_set_caption(byval n as integer, prefix as string="Set Tag", byval allowspecial as bool=NO) as string
+DECLARE FUNCTION tag_choice_caption(byval n as integer, prefix as string="", byval allowspecial as bool=NO) as string
 DECLARE FUNCTION tag_condition_caption(byval n as integer, prefix as string="Tag", zerocap as string, onecap as string="Never", negonecap as string="Always") as string
 DECLARE FUNCTION describe_two_tag_condition(prefix as string, truetext as string, falsetext as string, byval zerovalue as bool, byval tag1 as integer, byval tag2 as integer) as string
 
