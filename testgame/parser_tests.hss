@@ -6,6 +6,10 @@ include, hamsterspeak.hsd
 
 define function, begin
   1,noop4,4,0,0,0,0
+  @obsolete, 2,obsoletecmd,0
+  @obsolete(replacement,"Message"), 3,obsoletecmd2,0
+  @obsolete(fatal), 4,removedcmd,0
+  @obsolete(), 100,__obsolete,0      # OK
 end
 
 script, div, a, b ()
@@ -251,6 +255,11 @@ script, namespace tests, arg, begin
   subscript, sub, eqstr ()                        # ERROR
   subscript, div ()                               # ERROR
   subscript, sub, div ()                          # ERROR
+
+  ## Testing @obsolete warnings and errors
+  obsoletecmd            # WARN
+  obsoletecmd2           # WARN
+  removedcmd             # ERROR
 end
 
 definescript(1, missing script, 0)                # ERROR

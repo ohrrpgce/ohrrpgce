@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3U  2018-08-12 @obsolete attribute
 --3Tl 2018-05-14 Delete (possibly-bad) .hs output file on error
 --3Tk 2018-03-18 Optimise binary_compile; puts nodes in opposite order
 --3Tj 2018-03-18 Fix some number and - lexing bugs
@@ -177,7 +178,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Tl"
+constant COMPILER_SUB_VERSION="U "
 constant COPYRIGHT_DATE="2018"
 
 --Known single-character commandline options
@@ -238,8 +239,16 @@ constant PAIR_START=1
 constant PAIR_END=2
 constant OPER_TRUENAME=3
 constant OPER_POS=4
+--FUNC_* are for elements of math_list, function_list or script_list
+--(When changing these, also update create_function() and math_list)
+constant FUNC_ID=1      --(aka PAIR_NUM)
+constant FUNC_NAME=2    --(aka PAIR_NAME)
 constant FUNC_ARGS=3    --Either list of default values (each an integer or NO_DEFAULT), or VAR_ARGS
-constant FUNC_POS=4     --srcpos of start of function/script
+constant FUNC_ATTRS=4   --List of attributes as a list of {string,TokenList} pairs where the
+                        --TokenList are the arguments. Like a Node except children are Tokens instead of Nodes.
+constant FUNC_FLAGS=5   --Bitvector of FLAG_* bits. Also indicates presence of attributes. See attribute_list
+constant FUNC_POS=6     --srcpos of start of function/script. Not used by math_list
+constant FLAG_OBSOLETE=#01  --Has @obsolete attribute
 constant GLB_POS=3      --srcpos of globalvariable definition
 constant CONST_VALUE=1
 constant CONST_POS=2
@@ -336,10 +345,11 @@ sequence reuse_ids        reuse_ids={}            --type {PAIR_NUM, REUSE_PARENT
 map constant_list         constant_list=map:new()
 sequence trigger_list     trigger_list={}         --type {PAIR_NUM, PAIR_NAME}
 sequence operator_list    operator_list={}        --type {PAIR_NUM, PAIR_NAME, OPER_TRUENAME, OPER_POS}
-sequence function_list    function_list={}        --type {PAIR_NUM, PAIR_NAME, FUNC_ARGS, FUNC_POS}
+sequence function_list    function_list={}        --type {PAIR_NUM, PAIR_NAME, FUNC_ARGS, FUNC_POS, FUNC_ATTRS, FUNC_FLAGS}
 sequence global_list      global_list={{},{},{}}  --NOTE: three lists {PAIR_NUM, PAIR_NAME, GLB_POS}, not a list of globals
 sequence string_list      string_list={}          --list of strings
-sequence script_list      script_list={}          --type {PAIR_NUM, PAIR_NAME, FUNC_ARGS, FUNC_POS} (PAIR_NAME is the full name)
+sequence script_list      script_list={}          --type {PAIR_NUM, PAIR_NAME, FUNC_ARGS, FUNC_POS, FUNC_ATTRS, FUNC_FLAGS}
+                                                  --(PAIR_NAME is the full name)
 map global_scope          global_scope=map:new()  --Maps all names in global scope EXCEPT operators to {SYM_KIND, SYM_ID, SYM_POS} tuples
 
 constant SCRIPT_TRIGGER_TOK=1     --Trigger token (type {CMD_TEXT, CMD_POS}), e.g. "script"
@@ -397,35 +407,40 @@ sequence flow_requiring_brackets  --else is excluded, because of case(else)
                              "switch",
                              "case"
                           }
-sequence math_list        math_list={          --type {PAIR_NUM, PAIR_NAME, FUNC_ARGS} (FUNC_POS omitted)
-                              {0,"random",{0,1}}
-                             ,{1,"exponent",{0,2}}
-                             ,{2,"modulus",{0,1}}
-                             ,{3,"divide",{0,1}}
-                             ,{4,"multiply",{0,0}}
-                             ,{5,"subtract",{0,0}}
-                             ,{6,"add",{0,0}}
-                             ,{7,"xor",{0,0}}
-                             ,{8,"or",{0,0}}
-                             ,{9,"and",{0,0}}
-                             ,{10,"equal",{0,0}}
-                             ,{11,"notequal",{0,0}}
-                             ,{12,"lessthan",{0,0}}
-                             ,{13,"greaterthan",{0,0}}
-                             ,{14,"lessthanorequalto",{0,0}}
-                             ,{15,"greaterthanorequalto",{0,0}}
-                             ,{16,"setvariable",{0,0}}
-                             ,{17,"increment",{0,1}}
-                             ,{18,"decrement",{0,1}}
-                             ,{19,"not",{0}}
-                             ,{20,"logand",{0,0}}
-                             ,{21,"logor",{0,0}}
-                             ,{22,"logxor",{0,0}}
-                             ,{23,"abs",{0}}
-                             ,{24,"sign",{0}}
-                             ,{25,"sqrt",{0}}
+sequence math_list        math_list={
+                            --{FUNC_ID, FUNC_NAME, FUNC_ARGS, FUNC_ATTRS, FUNC_FLAGS} (FUNC_POS omitted)
+                              {0,"random",                {0,1}, {}, 0}
+                             ,{1,"exponent",              {0,2}, {}, 0}
+                             ,{2,"modulus",               {0,1}, {}, 0}
+                             ,{3,"divide",                {0,1}, {}, 0}
+                             ,{4,"multiply",              {0,0}, {}, 0}
+                             ,{5,"subtract",              {0,0}, {}, 0}
+                             ,{6,"add",                   {0,0}, {}, 0}
+                             ,{7,"xor",                   {0,0}, {}, 0}
+                             ,{8,"or",                    {0,0}, {}, 0}
+                             ,{9,"and",                   {0,0}, {}, 0}
+                             ,{10,"equal",                {0,0}, {}, 0}
+                             ,{11,"notequal",             {0,0}, {}, 0}
+                             ,{12,"lessthan",             {0,0}, {}, 0}
+                             ,{13,"greaterthan",          {0,0}, {}, 0}
+                             ,{14,"lessthanorequalto",    {0,0}, {}, 0}
+                             ,{15,"greaterthanorequalto", {0,0}, {}, 0}
+                             ,{16,"setvariable",          {0,0}, {}, 0}
+                             ,{17,"increment",            {0,1}, {}, 0}
+                             ,{18,"decrement",            {0,1}, {}, 0}
+                             ,{19,"not",                  {0},   {}, 0}
+                             ,{20,"logand",               {0,0}, {}, 0}
+                             ,{21,"logor",                {0,0}, {}, 0}
+                             ,{22,"logxor",               {0,0}, {}, 0}
+                             ,{23,"abs",                  {0},   {}, 0}
+                             ,{24,"sign",                 {0},   {}, 0}
+                             ,{25,"sqrt",                 {0},   {}, 0}
                           }
 --update is_simple_math_op on adding new operators
+
+sequence attribute_list   attribute_list={     --type {string, integer}, the integers get OR'd into FUNC_FLAGS
+                             {"@obsolete",FLAG_OBSOLETE}
+                          }
 
 sequence separator_list   separator_list={
                              "+=","-=","$+","$=","$","+","--","/","*","^^","^"
@@ -2125,6 +2140,7 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Returns a list of tokens enclosed in begin,end, with no nested begin,end allowed.
 function get_cmd_block(integer convert_constants)
   Token this
   TokenList result
@@ -2148,6 +2164,52 @@ function get_cmd_block(integer convert_constants)
     end if
   end while
   return(result)
+end function
+
+---------------------------------------------------------------------------
+
+--Get a block containing balanced begin,end pairs.
+--Returns {ptr,TokenList}
+--Initial ptr is 1 if we already grabbed the opening 'begin'.
+function get_cmd_depth(integer ptr, TokenList data, integer depth)
+  TokenList result
+  Token this
+  result={}
+  while true do
+    --if get_key()=27 then abort(1/0) end if
+    if ptr>length(data) then
+      src_error("block ended prematurely. Missing "&COLYEL&"end"&COLRED&" or "&COLYEL&")"&COLRED&"?",data[length(data)][CMD_POS])
+    end if
+    this=data[ptr]
+    ptr+=1
+    if compare("end",this[CMD_TEXT])=0 then
+      depth-=1
+    elsif compare("begin",this[CMD_TEXT])=0 then
+      depth+=1
+    end if
+    if depth=0 then
+      exit --break out of the while
+    else
+      result=append(result,this)
+    end if
+  end while
+  return({ptr,result})
+end function
+
+---------------------------------------------------------------------------
+
+--Like get_cmd_block, but allowed to contain balanced begin,end pairs.
+function get_cmd_block_nestable(integer convert_constants)
+  sequence ptr_and_block,block
+  ptr_and_block=get_cmd_depth(get_cmd_pointer,cmd,0)
+  get_cmd_pointer=ptr_and_block[1]
+  block=ptr_and_block[2][2..$]  --trim leading begin
+  if convert_constants then
+    for i=1 to length(block) do
+      block[i][CMD_TEXT]=enforce_constants(block[i][CMD_TEXT])
+    end for
+  end if
+  return block
 end function
 
 ---------------------------------------------------------------------------
@@ -2316,7 +2378,7 @@ end function
 --VAR_ARGS indicating a variable (unlimited) number of arguments.
 --id may only be -1 (autonumbered) when there is no parent script (so that the unscoped
 --and fully-scoped name are the same), otherwise pick_script_id must be called explicitly!
-function create_function(sequence list, integer id, string name, object arglist, integer func_type, srcpos pos)
+function create_function(sequence list, integer id, string name, object arglist, integer func_type, srcpos pos, sequence attributes, integer attr_bits)
   integer at
   if func_type=KIND_SCRIPT then
     at=find(id,column(list,PAIR_NUM))
@@ -2330,7 +2392,7 @@ function create_function(sequence list, integer id, string name, object arglist,
       id=pick_script_id(0,name)
     end if
   end if
-  list=append(list,{id,name,arglist,pos})
+  list=append(list,{id,name,arglist,attributes,attr_bits,pos})
   map:put(global_scope,name,{func_type,id,pos})
   return(list)
 end function
@@ -2341,44 +2403,76 @@ function parse_define_block(TokenList block, sequence list, integer func_type)
   atom num
   string name
   atom args
-  sequence arglist  --sequence of strings
+  object arglist  --sequence of strings, or VAR_ARGS
+  sequence attributes, attr_args, ptr_and_block
+  string attr_name
+  integer attr_bits
   srcpos name_pos
-  integer i
+  integer i, at
   i=1
   while i<=length(block) do
+
+    --Get attributes (each is prefixed with @ to set it apart)
+    attributes={}
+    attr_bits=0
+    while i<=length(block) and block[i][CMD_TEXT][1]='@' do
+      attr_name=block[i][CMD_TEXT]
+      at=find_in_column(attr_name,attribute_list,1)
+      if at=0 then
+        src_error("Unrecognised function attribute "&COLYEL&attr_name&COLRED, block[i][CMD_POS])
+      end if
+      attr_bits=or_bits(attr_bits,attribute_list[at][2])
+
+      if i+1<length(block) and equal(block[i+1][CMD_TEXT],"begin") then
+        ptr_and_block=get_cmd_depth(i+2,block,1)
+        i=ptr_and_block[1]
+        attr_args=ptr_and_block[2]
+      else
+        i+=1
+        attr_args={}
+      end if
+      attributes&={{attr_name,attr_args}}
+    end while
+    if length(attributes)>0 and i>length(block) then
+      src_error(sprintf_utf("expected %s id to follow, but define block ended",{KIND_LONGNAMES[func_type]}),block[i-1][CMD_POS])
+    end if
+
+    --ID
     num=force_16_bit(try_string_to_number(block[i]),block[i][CMD_POS])
     if i+1>length(block) then
       src_error(sprintf_utf("expected %s name but define block ended",{KIND_LONGNAMES[func_type]}),block[i][CMD_POS])
+    end if
+
+    --Name
+    i+=1
+    check_undefined_string(block[i],KIND_LONGNAMES[func_type]&" name")
+    name=block[i][CMD_TEXT]
+    name_pos=block[i][CMD_POS]
+    if i+1>length(block) then
+      src_error("expected argument count but define block ended",block[i][CMD_POS])
+    end if
+
+    --Get arglist
+    i+=1
+    args=try_string_to_number(block[i])
+    arglist={}
+    if args<0 then
+      if func_type=KIND_SCRIPT then
+        src_error("Number of arguments for a script can't be negative (variable number of arguments aren't supported)",block[i][CMD_POS])
+      end if
+      arglist=VAR_ARGS
     else
-      i+=1
-      check_undefined_string(block[i],KIND_LONGNAMES[func_type]&" name")
-      name=block[i][CMD_TEXT]
-      name_pos=block[i][CMD_POS]
-      if i+1>length(block) then
-        src_error("expected argument count but define block ended",block[i][CMD_POS])
-      else
-        i+=1
-        args=try_string_to_number(block[i])
-        arglist={}
-        if args<0 then
-          if func_type=KIND_SCRIPT then
-            src_error("Number of arguments for a script can't be negative (variable number of arguments aren't supported)",block[i][CMD_POS])
-          end if
-          list=create_function(list,num,name,VAR_ARGS,func_type,name_pos)
-        else
-          for j=1 to args do
-            if i+1>length(block) then
-              src_error("expected argument default but define block ended",block[i][CMD_POS])
-            else
-              i+=1
-              arglist=append(arglist,try_string_to_number(block[i]))
-            end if
-          end for
-          list=create_function(list,num,name,arglist,func_type,name_pos)
+      for j=1 to args do
+        if i+1>length(block) then
+          src_error("expected argument default but define block ended",block[i][CMD_POS])
         end if
         i+=1
-      end if
+        arglist=append(arglist,try_string_to_number(block[i]))
+      end for
     end if
+    i+=1
+
+    list=create_function(list,num,name,arglist,func_type,name_pos,attributes,attr_bits)
   end while
   return(list)
 end function
@@ -2573,7 +2667,7 @@ procedure parse_top_level()
     elsif compare("defineoperator",this[CMD_TEXT])=0 then
       parse_operator_block(get_cmd_block(true))
     elsif compare("definefunction",this[CMD_TEXT])=0 then
-      function_list=parse_define_block(get_cmd_block(true),function_list,KIND_FUNCTION)
+      function_list=parse_define_block(get_cmd_block_nestable(true),function_list,KIND_FUNCTION)
     elsif compare("definescript",this[CMD_TEXT])=0 then
       script_list=parse_define_block(get_cmd_block(true),script_list,KIND_SCRIPT)
     elsif compare("plotscrversion",this[CMD_TEXT])=0 then
@@ -2915,33 +3009,6 @@ procedure dump_debug_report()
     exit_timing_zone()
   end if
 end procedure
-
----------------------------------------------------------------------------
-
-function get_cmd_depth(integer ptr, TokenList data, integer depth)
-  TokenList result
-  Token this
-  result={}
-  while true do
-    --if get_key()=27 then abort(1/0) end if
-    if ptr>length(data) then
-      src_error("block ended prematurely. Missing "&COLYEL&"end"&COLRED&" or "&COLYEL&")"&COLRED&"?",data[length(data)][CMD_POS])
-    end if
-    this=data[ptr]
-    ptr+=1
-    if compare("end",this[CMD_TEXT])=0 then
-      depth-=1
-    elsif compare("begin",this[CMD_TEXT])=0 then
-      depth+=1
-    end if
-    if depth=0 then
-      exit --break out of the while
-    else
-      result=append(result,this)
-    end if
-  end while
-  return({ptr,result})
-end function
 
 ---------------------------------------------------------------------------
 
@@ -3893,11 +3960,29 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Get the parameters for a certain attribute of a script or function, if it exists
+--func_defn: an element of script_list or function_list
+--Returns a NodeList, possible empty
+function attribute_params(string name, sequence func_defn)
+  integer attridx
+  attridx=find_in_column(name,func_defn[FUNC_ATTRS],1)
+  if attridx=0 then
+    return {}
+  else
+    return func_defn[FUNC_ATTRS][attridx][TREE_BRANCHES]
+  end if
+end function
+
+---------------------------------------------------------------------------
+
 --Ensure correct number of arguments, add defaults, and translate variables to IDs in assignments
+--And also some extra warnings...
 function fix_arguments(Node tree, integer kind, integer id, sequence list, VarList vars)
   integer at
   integer argnum,maxargs
-  NodeList args
+  NodeList args, params
+  integer fatal
+  string message, param
   string funcname
   srcpos funcpos
   funcname=tree[TREE_TRUNK][CMD_TEXT]
@@ -3971,6 +4056,32 @@ function fix_arguments(Node tree, integer kind, integer id, sequence list, VarLi
   if kind=KIND_MATH and list[at][PAIR_NUM]>=16 and list[at][PAIR_NUM]<=18 then
     args[1][TREE_TRUNK]=convert_variable_to_id(args[1][TREE_TRUNK],vars,funcname)
   end if
+
+  --Obsolescence warnings
+  --(This seems as good a spot to do this as any, because we've looked up the function in 'list' already)
+  if and_bits(list[at][FUNC_FLAGS],FLAG_OBSOLETE)!=0 then
+    params=attribute_params("@obsolete",list[at])
+    message=""
+    fatal=false
+    for i=1 to length(params) do
+      param=params[i][CMD_TEXT]
+      if equal(param,"error") then
+        fatal=true
+      elsif param[1]='"' then
+        message&=param[2..$-1]
+      else
+        message&=sprintf_utf("Use replacement function "&COLYEL&"%s"&COLRED&" instead. ",{param})
+      end if
+    end for
+    if fatal then
+      message=sprintf_utf("Function "&COLYEL&"%s"&COLRED&" is obsolete and can no longer be used. %s",{funcname,message})
+      src_error(message,funcpos)
+    else
+      message=sprintf_utf("Function "&COLYEL&"%s"&COLRED&" is obsolete; it shouldn't be used in newly written scripts. %s",{funcname,message})
+      src_warn(message,funcpos)
+    end if
+  end if
+
   return(args)
 end function
 
@@ -4725,7 +4836,7 @@ procedure check_script_declarations()
     if not at then
       --define script optional, add to script list
       id=pick_script_id(parent_id,all_scripts[i][PAIR_NAME])
-      script_list=create_function(script_list,id,current_script,args_and_defaults[2],KIND_SCRIPT,script_pos)
+      script_list=create_function(script_list,id,current_script,args_and_defaults[2],KIND_SCRIPT,script_pos,{},0)
       at=length(script_list)
       scripts_found&={true}
     else
