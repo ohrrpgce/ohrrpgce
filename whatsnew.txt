@@ -45,6 +45,9 @@ June (mumble) 2018 [Fufluns]
     * All the fade-out colors are now customisable User Interface Colors [Ralph]
     * Option to give rewards from an enemy before it is transmogrified [Ralph]
     * You can preview hero formations with hero sprites [Ralph]
+    * You can share save files between games by overriding the name of the
+      .saves folder (useful if you create additional .rpg files which are
+      sequels, variants (eg a Hardtype) or have bonus content) [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

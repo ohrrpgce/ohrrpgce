@@ -8,6 +8,10 @@ Press ENTER or the SPACE bar to toggle bitsets.
 
 Number of save/load slots: This is the number of slots into which the player can save games. It's actually possible to access more slots using script commands; this option doesn't affect those commands.
 
+Name of saves directory:
+This is an advanced option.
+Use it if you want multiple .rpg files to share the same set of saved games. This is useful if you give people extra .rpg files which are sequels/episodes, contain bonus content, or different versions of the same game (e.g. a Hard-type). You can NOT share saved games between completely unrelated .rpgs, because much of the save data will be nonsense in a different game. (You can still use "import/export globals", though.)
+
 Save script/sprite layer slices: If enabled, the "sprite layer" (aka script layer) slice and all slices attached to it will be saved and restored. This is the default parent of all newly created slices. Slices parented elsewhere in the slice tree, such as to map layers, will NOT be saved. Slice handles to slices in the sprite layer remain valid after loading, but all other slice handles of course become invalid.
 
 Save strings: if enabled, the contents of plotscripting strings is saved, including all display settings like color.

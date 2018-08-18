@@ -86,30 +86,52 @@ DIM SHARED current_save_prefix as string '--used in rsav_warn
 
 '-----------------------------------------------------------------------
 
+'Creating if necessary, return directory in which to put saves if the default isn't writable
+FUNCTION fallback_save_location(savename as string) as string
+ IF savename = "" THEN
+  RETURN prefsdir & SLASH
+ ELSE
+  'This prefsdir (which assumably is the name of another .rpg file) might not already exist.
+  'Need to use find_file_anycase because mismatched cases will work on Windows
+  DIM ret as string = find_file_anycase(settings_dir & SLASH & savename)
+  IF NOT isdir(ret) THEN makedir ret
+  RETURN ret & SLASH
+ END IF
+END FUNCTION
+
 SUB init_save_system()
+ DIM rpg_folder as string = trimfilename(sourcerpg)
+ IF LEN(rpg_folder) THEN rpg_folder &= SLASH
+
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM savename as string
+ 'Don't use .default() because it doesn't provide a default for null nodes or zero-length strings
+ savename = fixfilename(gen_root."saved_games"."savename".string)
+ IF LEN(savename) = 0 THEN savename = trimextension(trimpath(sourcerpg))
 
  '--set up old savegame file
- old_savefile = trimextension(sourcerpg) + ".sav"
+ old_savefile = rpg_folder & savename + ".sav"
  #IFDEF __FB_UNIX__
  IF NOT fileisreadable(old_savefile) THEN
-  'for a systemwide linux install, save files go in the prefs dir
-  old_savefile = prefsdir & SLASH & trimpath(old_savefile)
+  'For a systemwide unix install, the current directory may be unwriteable
+  '(so old_savefile is unreadable if it doesn't exist), so .sav file might be in the prefs dir
+  'Note: there's no point handling an unreadable old_savefile on other OSes,
+  'because on other OSes we never put SAV files anywhere else.
+  old_savefile = fallback_save_location(savename) & savename & ".sav"
  END IF
  #ENDIF
- 
+
  '--set up new rsav folder
- 
- DIM rpg_folder as string = trimfilename(sourcerpg)
- IF diriswriteable(rpg_folder) ANDALSO force_prefsdir_save = NO THEN
+ IF force_prefsdir_save = NO ANDALSO diriswriteable(rpg_folder) THEN
   '--default location is same as the RPG file (if possible)
-  savedir = trimextension(sourcerpg) & ".saves"
-  savedir = find_file_anycase(savedir, fileTypeDirectory)  'Find the directory case-insensitively
+  'Find the directory case-insensitively
+  savedir = find_file_anycase(rpg_folder & savename & ".saves", fileTypeDirectory)
  ELSE
-  '--fallback location is prefsdir
-  savedir = prefsdir & SLASH & "saves"
+  savedir = fallback_save_location(savename) & "saves"
  END IF
  IF NOT isdir(savedir) THEN makedir savedir
 
+ debuginfo "savedir: " & savedir
 END SUB
 
 'Note: resetgame (only if a game was previously started) + initgamedefaults MUST be called before loadgame

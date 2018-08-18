@@ -2031,7 +2031,7 @@ FUNCTION find_file_portably (path as string) as string
 END FUNCTION
 
 'If the given file or directory with possibly changed case already exists then
-'return its filename, otherwise returns 'fname' unchanged.
+'return its filename, otherwise returns 'path' unchanged.
 'Also, path can contain ? or * wildcards in the final component.
 '(Only does case-insensitive matching of the final component. Try find_file_portably for the whole path)
 FUNCTION find_file_anycase(path as string, file_type as FileTypeEnum = fileTypeFile) as string
