@@ -2188,19 +2188,22 @@ FUNCTION escape_filenamec CDECL (byval filename as zstring ptr) as zstring ptr
   RETURN retz
 END FUNCTION
 
-'Makes sure that a string cannot contain any chars unsafe for filenames (overly strict)
+'Exclude chars disallowed in filenames (on any platform), and also
+'wildcards that will be a problem if passed to findfiles. Printable ASCII only.
+'Does NOT disallow characters that need escaping.
 FUNCTION fixfilename (filename as string) as string
-  DIM result as string = ""
-  DIM ch as string
-  DIM ascii as integer
-  FOR i as integer = 1 TO LEN(filename)
-    ch = MID(filename, i, 1)
-    ascii = ASC(ch)
-    SELECT CASE ascii
-      CASE 32, 46, 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45  '[ 0-9A-Za-z_~-]
-        result = result & ch
+  '/\: should definitely be excluded.
+  'For findfiles also exclude *?, and also [] (supported by fnmatch/findfiles only on Unix)
+  'and <> (undocumented wildcards supported by Windows DIR command:
+  ' https://ss64.com/nt/syntax-wildcards.html
+  'Probably not supported by FB's DIR, but to be safe...)
+  DIM temp as string = exclude(filename, "/\:*?[]<>")
+  DIM result as string
+  FOR i as integer = 0 TO LEN(temp) - 1
+    SELECT CASE temp[i]
+      CASE 32 TO 127 : result &= CHR(temp[i])
     END SELECT
-  NEXT i
+  NEXT
   RETURN result
 END FUNCTION
 

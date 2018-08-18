@@ -5932,6 +5932,7 @@ END FUNCTION
 
 'This is like escape_nonprintable_ascii except that it replaced non printable characters and icons
 'with something else or removes them.
+'See also fixfilename
 FUNCTION remove_nonprintable_ascii(s as string, replacement as string = "") as string
  DIM as integer icons_low, icons_high
  IF get_font_type(current_font()) = ftypeLatin1 THEN
@@ -5956,7 +5957,7 @@ END FUNCTION
 
 FUNCTION sanitize_script_identifier (ident as string, allow_whitespace as bool = YES) as string
  ' :'_~? are allowed
- DIM to_exclude as string = "`!@#$%^&*()-+=[]{}\\|<>,.;/"""
+ DIM to_exclude as string = "`!@#$%^&*()-+=[]{}\|<>,.;/"""
  IF allow_whitespace = NO THEN to_exclude &= " "
  DIM tmp as string = exclude(ident, to_exclude)
  RETURN remove_nonprintable_ascii(tmp)
