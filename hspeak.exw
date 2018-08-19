@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ua 2018-08-18 Script can also have attributes
 --3U  2018-08-12 @obsolete attribute
 --3Tl 2018-05-14 Delete (possibly-bad) .hs output file on error
 --3Tk 2018-03-18 Optimise binary_compile; puts nodes in opposite order
@@ -178,7 +179,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="U "
+constant COMPILER_SUB_VERSION="Ua"
 constant COPYRIGHT_DATE="2018"
 
 --Known single-character commandline options
@@ -285,10 +286,11 @@ constant KIND_KEYWORD=13    --Other builtin keywords that can appear in scripts 
 constant KIND_CONSTANT=14   --A constant which hasn't been translated to a KIND_NUMBER yet
 constant KIND_SEPARATOR=15  --Auto-delimiting tokens like +, if they haven't been turned into a
                             --KIND_OPERATOR yet. Can only be used in defineoperator. (separator_list)
-constant KIND_LAST_VALID_IN_SCRIPT=15
-constant KIND_TOPLEVEL=16   --Toplevel keyword such as defineconstant, or script trigger, eg. plotscript
-constant KIND_UNIMPLEMENTED=17
-constant KIND_LAST=17
+constant KIND_ATTRIBUTE=16  --An @attribute
+constant KIND_LAST_VALID_IN_SCRIPT=16
+constant KIND_TOPLEVEL=17   --Toplevel keyword such as defineconstant, or script trigger, eg. plotscript
+constant KIND_UNIMPLEMENTED=18
+constant KIND_LAST=18
 
 constant KIND_LONGNAMES={"number"
                         ,"flow control statement"
@@ -307,6 +309,7 @@ constant KIND_LONGNAMES={"number"
                         ,"untranslated operator"
                         ,"declaration"
                         ,"unimplemented keyword"
+                        ,"function attribute"
                         }
 
 constant nil_sym={0,0,0}
@@ -352,9 +355,12 @@ sequence function_list    function_list={}        --type {PAIR_NUM, PAIR_NAME, F
 sequence global_list      global_list={{},{},{}}  --NOTE: three lists {PAIR_NUM, PAIR_NAME, GLB_POS}, not a list of globals
 sequence string_list      string_list={}          --list of strings
 sequence script_list      script_list={}          --type {PAIR_NUM, PAIR_NAME, FUNC_ARGS, FUNC_POS, FUNC_ATTRS, FUNC_FLAGS}
+--See also math_list, below
                                                   --(PAIR_NAME is the full name)
 map global_scope          global_scope=map:new()  --Maps all names in global scope EXCEPT operators to {SYM_KIND, SYM_ID, SYM_POS} tuples
 
+--SCRIPT_* are for all_scripts.
+--The number of data fields used is variable, between _SCRIPT_MIN_LAST and _SCRIPT_MAX_LAST
 constant SCRIPT_TRIGGER_TOK=1     --Trigger token (type {CMD_TEXT, CMD_POS}), e.g. "script"
 constant SCRIPT_NAME=2            --String, not fully-scoped
 constant SCRIPT_POS=3             --(scrpos of script name)
@@ -362,14 +368,19 @@ constant SCRIPT_FULL_NAME=4       --Full-scoped script name
 constant SCRIPT_ARG_TOKS=5        --List of argument name tokens (type {CMD_TEXT, CMD_POS})
                                   --Initially the tokens may include default values (like "a=4"), which are later removed
 constant SCRIPT_BODY_TOKS=6       --List of tokens (type {CMD_TEXT, CMD_POS}) in the body, of the form do,begin,...,end
-constant SCRIPT_PARENT_IDX=7      --index in all_scripts, or 0 for none
+constant SCRIPT_PARENT_IDX=7      --Index in all_scripts of parent, or 0 for none
 constant SCRIPT_NEST_DEPTH=8      --Nesting depth. A script is 0, subscript 1, sub-subscript 2...
-constant SCRIPT_ID=9              --Script ID. Value not appended until all IDs are assigned in check_script_declarations
-constant SCRIPT_TRIGGER_ID=10     --trigger ID. SCRIPT_TRIGGER_ID and later not appended until compile_a_script
-constant SCRIPT_NUM_NONLOCALS=11
-constant SCRIPT_AST=12
-constant SCRIPT_VARIABLES=13      --VarList of locals and nonlocals
-constant SCRIPT_BINARY=14
+constant SCRIPT_ATTRIBUTES=9      --Temporary store, do not use. These attributes get copied to script_list's FUNC_ATTRS
+constant _SCRIPT_MIN_LAST=9
+--The following are
+constant SCRIPT_ID=10             --Script ID. Value not appended until all IDs are assigned in check_script_declarations
+constant SCRIPT_TRIGGER_ID=11     --trigger ID. SCRIPT_TRIGGER_ID and later not appended until compile_a_script
+constant SCRIPT_NUM_NONLOCALS=12
+
+constant SCRIPT_AST=13
+constant SCRIPT_VARIABLES=14      --VarList of locals and nonlocals
+constant SCRIPT_BINARY=15
+constant _SCRIPT_MAX_LAST=15
 
 sequence all_scripts      all_scripts={}       --list of Scripts == {SCRIPT_*} (variable length)
 
@@ -1116,6 +1127,9 @@ procedure init()
     if map:has(global_scope,separator_list[i])=false then  --omit =
       map:put(global_scope,separator_list[i],{KIND_SEPARATOR,i,0})
     end if
+  end for
+  for i=1 to length(attribute_list) do
+    map:put(global_scope,attribute_list[i][ATTR_NAME],{KIND_ATTRIBUTE,i,0})
   end for
   --Append subscript trigger id (this is needed for scripts.bin)
   trigger_list=append(trigger_list,{-1,"subscript"})
@@ -2423,6 +2437,8 @@ end function
 
 --Read zero or more attributes (token prefixed with @ to set them apart, optionally with parameters)
 --from current position 'ptr' in 'block'.
+--We assume that this is never called on a token that might be a reference instead of an attribute
+--(eg by first checking for KIND_ATTRIBUTE)
 function parse_attributes(TokenList block, integer ptr)
   sequence attributes
   sequence attr_args, ptr_and_block
@@ -2548,7 +2564,7 @@ end procedure
 --parent_name is a fully-scoped name of parent script, or ""
 --if this script isn't a subscript of another.
 --Returns Token with name of parsed script
-function parse_script(Token trigger, string parent_name, integer parent_idx)
+function parse_script(Token trigger, string parent_name, integer parent_idx, sequence attributes)
   Token name
   string full_name
   TokenList arglist
@@ -2563,6 +2579,9 @@ function parse_script(Token trigger, string parent_name, integer parent_idx)
   Symbol sym
   integer temp
   integer idx
+  sequence subscript_attributes
+  sequence attrs_and_ptr
+
   name=get_cmd()
   if parent_idx=0 then
     full_name=name[CMD_TEXT]
@@ -2621,7 +2640,8 @@ function parse_script(Token trigger, string parent_name, integer parent_idx)
     arglist=append(arglist,this)
   end while
 
-  --Create all_scripts entry now for recursive calls; SCRIPT_BODY_TOKS filled in later
+  --Create all_scripts entry now for recursive calls; SCRIPT_BODY_TOKS filled in later,
+  --and more fields are appended in compile_a_script
   all_scripts=append(all_scripts,{
            trigger
           ,name[CMD_TEXT]
@@ -2631,13 +2651,26 @@ function parse_script(Token trigger, string parent_name, integer parent_idx)
           ,{}
           ,parent_idx
           ,nest_depth
+          ,attributes
   })
   idx=length(all_scripts)
 
+  --Read the body
   --Every script is nested inside a big fat do() block
   body={{"do",this[CMD_POS]}}
   depth=0
+  subscript_attributes={}
   while true do
+    --If we just read some attribute statements, they must precede a subscript
+    if length(subscript_attributes)>0 and equal("subscript",this[CMD_TEXT])=0 then
+      src_error(
+        sprintf_utf(
+          "Expected a subscript to follow function attribute "&COLYEL&"%s"&COLRED&", but found "&COLYEL&"%s"&COLRED
+          ,{subscript_attributes[$][CMD_TEXT],this[CMD_TEXT]}
+        )
+        , this[CMD_POS])
+    end if
+
     body=append(body,this)
     if compare("end",this[CMD_TEXT])=0 then
       depth-=1
@@ -2649,12 +2682,19 @@ function parse_script(Token trigger, string parent_name, integer parent_idx)
     elsif compare("subscript",this[CMD_TEXT])=0 then
       --Recurse, so body of subscript doesn't appear in this script.
       --The subscript node stays, for syntax checking, but is removed in normalize_flow_control
-      parse_script(this,full_name,idx)
+      parse_script(this,full_name,idx,subscript_attributes)
+      subscript_attributes={}
       body&={{"begin",this[CMD_POS]},{"end",this[CMD_POS]}}
     else
       sym=map:get(global_scope,this[CMD_TEXT],nil_sym)
       temp=sym[SYM_KIND]
-      if temp>KIND_LAST_VALID_IN_SCRIPT then
+      if temp=KIND_ATTRIBUTE then
+        --Read all subscript attributes, and don't put them in this script's body
+        body=body[1..$-1]
+        attrs_and_ptr=parse_attributes(cmd,get_cmd_pointer-1)
+        subscript_attributes=attrs_and_ptr[1]
+        get_cmd_pointer=attrs_and_ptr[2]
+      elsif temp>KIND_LAST_VALID_IN_SCRIPT then
         err_string=sprintf_utf(
           "%s "&COLYEL&"%s"&COLRED&" is not permitted inside a script.",
           {KIND_LONGNAMES[temp], this[CMD_TEXT]}
@@ -2677,6 +2717,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx)
     this=get_cmd()
   end while
   all_scripts[idx][SCRIPT_BODY_TOKS]=body
+
   current_script=previous_script
   return name
 end function
@@ -2685,16 +2726,29 @@ end function
 
 procedure parse_top_level()
   Token this
-  sequence triggers
+  sequence triggers, attributes
+  sequence attrs_and_ptr
   integer triggeridx
   enter_timing_zone("Top level pass")
   color_print("parsing top-level\n",{})
   triggers=column(trigger_list,PAIR_NAME)
+  attributes={}
   get_cmd_pointer=1
   while get_cmd_pointer<=length(cmd) do
     --read a top-level command
     this=get_cmd()
     triggeridx=find(this[CMD_TEXT],triggers)
+
+    --If we just read some attribute statements, they must precede a script
+    if length(attributes)>0 and triggeridx=0 then
+      src_error(
+        sprintf_utf(
+          "Expected a script to follow function attribute "&COLYEL&"%s"&COLRED&", but found "&COLYEL&"%s"&COLRED
+          ,{attributes[$][CMD_TEXT],this[CMD_TEXT]}
+        )
+        , this[CMD_POS])
+    end if
+
     if compare("defineconstant",this[CMD_TEXT])=0 then
       get_cmd_block(true)
     elsif compare("definetrigger",this[CMD_TEXT])=0 then
@@ -2711,6 +2765,7 @@ procedure parse_top_level()
       --ignore
       get_cmd_block(false)
     elsif triggeridx>0 then
+      --A script
       if trigger_list[triggeridx][PAIR_NUM]<0 then
         src_error(
           sprintf_utf(
@@ -2720,8 +2775,14 @@ procedure parse_top_level()
           ,this[CMD_POS]
         )
       else
-        parse_script(this,{},0)
+        parse_script(this,{},0,attributes)
+        attributes={}
       end if
+    elsif this[CMD_TEXT][1]='@' then
+      --This will keep reading all consecutive attributes until there are no more
+      attrs_and_ptr=parse_attributes(cmd,get_cmd_pointer-1)
+      attributes=attrs_and_ptr[1]
+      get_cmd_pointer=attrs_and_ptr[2]
     else
       check_for_reserved(this[CMD_TEXT],this[CMD_POS],"top-level declaration")
       src_error(
@@ -2733,7 +2794,12 @@ procedure parse_top_level()
       )
     end if
   end while
-  cmd={}
+  if length(attributes)>0 then
+    --If we just read some attribute statements, they must precede a script
+    src_error("Expected a script to follow function attribute, but file ended", this[CMD_POS])
+  end if
+
+  cmd={}  --Free memory
   exit_timing_zone()
 end procedure
 
@@ -3907,6 +3973,8 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
 
       if compare("subscript",s)=0 or compare("variable",s)=0 then
         --Does nothing; remove. (Kept until now to check they isn't placed in a silly place)
+        --(Note: any attributes prefixing a subscript have already been removed in
+        --parse_script())
         tree=delete_element(tree,ptr)
         continue
       end if
@@ -4853,7 +4921,7 @@ procedure check_script_declarations()
   integer at
   sequence args_and_defaults
   sequence scripts_found
-  sequence src_position
+  sequence src_position, attributes
   string fullname
   srcpos script_pos
   integer id, parent_id
@@ -4866,14 +4934,15 @@ procedure check_script_declarations()
 
     current_script=fullname  --global
     script_pos=all_scripts[i][SCRIPT_POS]
-    at=find(fullname,column(script_list,PAIR_NAME))
+    attributes=all_scripts[i][SCRIPT_ATTRIBUTES]  --Attributes get copied to script_list, where they belong
+    --at=find(fullname,column(script_list,PAIR_NAME))
     at=find_in_column(fullname,script_list,PAIR_NAME)
 
     args_and_defaults=process_arglist(all_scripts[i][SCRIPT_ARG_TOKS])
     if not at then
       --define script optional, add to script list
       id=pick_script_id(parent_id,all_scripts[i][PAIR_NAME])
-      script_list=create_function(script_list,id,current_script,args_and_defaults[2],KIND_SCRIPT,script_pos,{})
+      script_list=create_function(script_list,id,current_script,args_and_defaults[2],KIND_SCRIPT,script_pos,attributes)
       at=length(script_list)
       scripts_found&={true}
     else
@@ -4884,6 +4953,7 @@ procedure check_script_declarations()
       --The srcpos stored for this script will be from definescript. Repoint it at the actual script
       --(doesn't really matter, all_scripts would have ended up with that srcpos anyway)
       script_list[at][FUNC_POS]=script_pos
+      script_list[at][FUNC_ATTRS]&=attributes
 
       if length(args_and_defaults[1]) != length(script_list[at][FUNC_ARGS]) then
         src_error(

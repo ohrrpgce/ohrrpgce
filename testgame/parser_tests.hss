@@ -8,7 +8,7 @@ define function, begin
   1,noop4,4,0,0,0,0
   @obsolete, 2,obsoletecmd,0
   @obsolete(replacement,"Message"), 3,obsoletecmd2,0
-  @obsolete(fatal), 4,removedcmd,0
+  @obsolete(error), 4,removedcmd,0
   @obsolete(), 100,__obsolete,0      # OK
 end
 
@@ -224,6 +224,9 @@ script, namespace tests, arg, begin
   variable($)            # ERROR
   variable($+)           # ERROR
   variable(v)
+  variable(@v)           # ERROR  (known failure)
+  variable(@obsolete)    # ERROR
+
   ## subscript args and variables can shadow outer locals, but not globals or other names
   subscript, sub ()                               # OK
   subscript, sub, globalvar ()                    # ERROR
@@ -240,6 +243,8 @@ script, namespace tests, arg, begin
   subscript, sub, v (subscript, sub2, v ())       # OK
   subscript, sub, W (subscript, sub2, w ())       # OK
   v := subscript, sub ()                          # ERROR
+  @obsolete("message") subscript, sub ()          # OK
+  @obsolete, @obsolete(blarg), subscript, sub ()  # OK
   ## Should shadowing scripts in an outer scope be allowed? (Currently not.) Seems useful.
   ## Scripts with both of the following names have been declared, but hspeak
   ## hasn't parsed anotherscript yet, so fails to report an error.
@@ -260,6 +265,7 @@ script, namespace tests, arg, begin
   obsoletecmd            # WARN
   obsoletecmd2           # WARN
   removedcmd             # ERROR
+  obsoletescript         # WARN
 end
 
 definescript(1, missing script, 0)                # ERROR
@@ -276,3 +282,4 @@ definescript(1, a script, -1)                     # ERROR
 
 plotscript, a plotscript ()
 script, a script, x, y, z = 42 ()
+@obsolete, script, obsolete script ()
