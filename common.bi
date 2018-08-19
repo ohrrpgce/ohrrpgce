@@ -330,6 +330,7 @@ DECLARE SUB set_gen_int(nodepath as string, byval v as integer)
 DECLARE FUNCTION gen_intgrabber(nodepath as string) as bool
 
 DECLARE SUB set_global_config_file()
+DECLARE FUNCTION read_ini_prefixed_str (filename as string, prefixed_key as string, default as string="") as string
 DECLARE FUNCTION read_config_str (key as string, default as string="") as string
 DECLARE FUNCTION read_config_int (key as string, default as integer=0) as integer
 DECLARE FUNCTION read_config_bool (key as string, default as bool=NO) as bool
