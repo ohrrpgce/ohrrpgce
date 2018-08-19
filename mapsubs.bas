@@ -4307,10 +4307,10 @@ END SUB
 'Export the map at full resolution
 SUB mapedit_export_map_image(st as MapEditState)
  DIM filename as string
- filename = inputfilename("Filename to save as?", ".bmp", "", "", _
+ filename = inputfilename("Filename to save as?", ".png", "", "", _
                           trimextension(trimpath(sourcerpg)) & " map " & st.map.id & " " & st.map.name)
  IF LEN(filename) = 0 THEN EXIT SUB
- filename += ".bmp"
+ filename += ".png"
  DIM menu(2) as string = {"Only NPCs without tag conditions", "All", "None"}
  DIM npc_choice as integer = multichoice("Draw NPCs?", menu())
  IF npc_choice = -1 THEN EXIT SUB
@@ -4338,7 +4338,7 @@ SUB mapedit_export_map_image(st as MapEditState)
            NO, 2, @st.map.pass
  END IF
 
- frame_export_bmp8 filename, dest, master()
+ frame_export_image dest, filename, master()
  frame_unload @dest
  show_overlay_message "Saved as " & trimpath(filename)
 END SUB

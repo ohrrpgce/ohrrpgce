@@ -300,6 +300,10 @@ dim shared screenshot_record_overlays as bool = NO
 dim shared gif_show_keys as bool         'While recording a gif, whether to display pressed keys
 dim shared gif_show_mouse as bool        'While recording a gif, whether to display mouse location
 
+dim shared loaded_screenshot_settings as bool = NO
+dim shared screenshot_format as string
+dim shared use_gfx_screenshot as bool
+
 dim shared closerequest as bool = NO     'It has been requested to close the program.
 
 dim gfxmutex as any ptr                  '(Global) Coordinates access to globals and gfx backend with the polling thread
@@ -462,6 +466,8 @@ private sub before_backend_quit()
 	mutexdestroy gfxmutex
 
 	skipped_frame.drop()
+
+	flush_gfx_config_settings
 end sub
 
 ' Deinitialise this module and backends, destroy the window
@@ -485,6 +491,11 @@ sub switch_gfx(backendname as string)
 	' Re-apply settings (this is very incomplete)
 	setwindowtitle remember_title
 	io_setmousevisibility(cursorvisibility)
+end sub
+
+'Force config settings to be reloaded, since they may be game- or backend-specific
+sub flush_gfx_config_settings()
+	loaded_screenshot_settings = NO
 end sub
 
 sub settemporarywindowtitle (title as string)
@@ -6715,6 +6726,7 @@ sub frame_export_image (fr as Frame ptr, filename as string, masterpal() as RGBc
 			frame_export_png fr, filename, masterpal(), pal
 		case imGIF
 			frame_export_gif fr, filename, masterpal(), pal, NO  'transparent = NO
+		'Update load_screenshot_settings when adding more formats
 		case else
 			debug "Can't write image: unknown or unsupported file extension: " & filename
 	end select
@@ -7074,20 +7086,39 @@ end sub
 '==========================================================================================
 
 
+'All extensions that might be used for screenshots or recordings (including by gfx_screenshot)
 dim shared as string*4 screenshot_exts(...) => {".bmp", ".png", ".jpg", ".dds", ".gif"}
+
+private sub load_screenshot_settings()
+	loaded_screenshot_settings = YES
+
+	dim temp as string = "." & lcase(read_config_str("gfx.screenshot_format", "png"))
+	if temp = ".bmp" orelse temp = ".png" orelse temp = ".gif" then
+		screenshot_format = temp
+	else
+		debug "Unrecognised/unsupported screenshot_format in config file: " & temp
+		screenshot_format = ".png"
+	end if
+
+	use_gfx_screenshot = read_config_bool("gfx.gfx_" & gfxbackend & ".backend_screenshot", YES)
+end sub
 
 'Save a screenshot. fname should NOT include the extension, since the gfx backend can decide that.
 'Returns the filename it was saved to, with extension
 function screenshot (basename as string) as string
+	if loaded_screenshot_settings = NO then
+		load_screenshot_settings
+	end if
+
 	dim ret as string
 	if len(basename) = 0 then
 		basename = next_unused_screenshot_filename()
 	end if
 	'try external first
-	if gfx_screenshot(basename) = 0 then
+	if use_gfx_screenshot = NO ORELSE gfx_screenshot(basename) = 0 then
 		'otherwise save it ourselves
-		ret = basename & ".bmp"
-		frame_export_bmp(ret, vpages(getvispage), intpal())
+		ret = basename & screenshot_format
+		frame_export_image(vpages(getvispage), ret, intpal())
 		return ret
 	end if
 	' The reason for this for loop is that we don't know what extension the gfx backend

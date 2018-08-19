@@ -48,6 +48,8 @@ June (mumble) 2018 [Fufluns]
     * You can share save files between games by overriding the name of the
       .saves folder (useful if you create additional .rpg files which are
       sequels, variants (eg a Hardtype) or have bonus content) [Ralph]
+    * Screenshots saved as PNGs instead of BMPs (but when using gfx_directx
+      the Screenshot setting in the Options menu has priority) [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

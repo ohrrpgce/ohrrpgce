@@ -89,6 +89,7 @@ DECLARE SUB setmodex ()
 DECLARE SUB restoremode ()
 DECLARE SUB switch_gfx (backendname as string)
 DECLARE FUNCTION allmodex_setoption(opt as string, arg as string) as integer
+DECLARE SUB flush_gfx_config_settings ()
 
 DECLARE SUB switch_to_32bit_vpages ()
 DECLARE SUB switch_to_8bit_vpages ()

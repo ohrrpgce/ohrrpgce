@@ -65,12 +65,12 @@ BEGIN
     CONTROL         "Enable Smooth Draw",IDC_OPTIONS_EnableSmooth,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,86,82,10
     CONTROL         "Enable Aspect Ratio Preservation",IDC_OPTIONS_EnablePreserveAspectRatio,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,62,123,10
-    GROUPBOX        "Screen Shot format",IDC_OPTIONS_ScrnShotFormats,7,136,141,55
+    GROUPBOX        "Screenshot format",IDC_OPTIONS_ScrnShotFormats,7,136,141,55
     CONTROL         "JPEG (.jpg)",IDC_OPTIONS_ScrnShotFormats_JPG,"Button",BS_AUTORADIOBUTTON,20,150,52,10
     CONTROL         "BMP (.bmp)",IDC_OPTIONS_ScrnShotFormats_BMP,"Button",BS_AUTORADIOBUTTON,20,162,53,10
-    CONTROL         "PNG (.png)",IDC_OPTIONS_ScrnShotFormats_PNG,"Button",BS_AUTORADIOBUTTON,20,174,51,10
     CONTROL         "DDS (.dds)",IDC_OPTIONS_ScrnShotFormats_DDS,"Button",BS_AUTORADIOBUTTON,87,150,51,10
-    CONTROL         "OHR (.bmp)",IDC_OPTIONS_ScrnShotFormats_OHR,"Button",BS_AUTORADIOBUTTON,87,162,54,10
+    CONTROL         "PNG (.png)",IDC_OPTIONS_ScrnShotFormats_PNG,"Button",BS_AUTORADIOBUTTON,87,162,54,10
+    CONTROL         "Engine builtin (.png/.gif/.bmp)",IDC_OPTIONS_ScrnShotFormats_OHR,"Button",BS_AUTORADIOBUTTON,20,174,51,10
     PUSHBUTTON      "Set Defaults",IDC_OPTIONS_SetDefaults,184,177,50,14
     EDITTEXT        IDC_OPTIONS_Status,185,86,155,86,ES_MULTILINE | ES_READONLY | WS_VSCROLL
     PUSHBUTTON      "Re-scan For Joysticks",IDC_OPTIONS_RefreshJoysticks,20,108,128,12
