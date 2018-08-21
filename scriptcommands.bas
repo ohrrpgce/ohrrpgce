@@ -1724,7 +1724,7 @@ SUB script_functions(byval cmdid as integer)
    NEXT i
    'NOTE: scriptret is not set here when this command is successful. The return value of the called script will be returned.
   ELSE
-   scripterr "run script by id failed loading " & retvals(0), serrError
+   scripterr "run script by id failed loading " & retvals(0), serrMajor
    scriptret = -1
   END IF
  CASE 180'--map width([map])
@@ -5347,7 +5347,7 @@ END SUB
 
 ' Implementation of "check game exists"
 PRIVATE FUNCTION check_game_exists () as integer
- IF valid_plotstr(retvals(0), serrError) = NO THEN RETURN 0
+ IF valid_plotstr(retvals(0), serrBadOp) = NO THEN RETURN 0
  ' Parse the path
  DIM path as string = plotstr(retvals(0)).s
  ' find_file_portably returns either an error message or a path
@@ -5360,8 +5360,8 @@ END FUNCTION
 
 ' Implementation of "run game".
 PRIVATE SUB run_game ()
- ' Not being able to load the game should always show an error (use serrError for everything)
- IF valid_plotstr(retvals(0), serrError) = NO THEN RETURN
+ ' Not being able to load the game should always show an error (use serrMajor for everything)
+ IF valid_plotstr(retvals(0), serrMajor) = NO THEN RETURN
 
  IF running_as_slave THEN
   ' This would require more work to implement
@@ -5374,11 +5374,11 @@ PRIVATE SUB run_game ()
  ' find_file_portably returns either an error message or a path
  path = find_file_portably(path)
  IF isfile(path) = NO ANDALSO isdir(path) = NO THEN
-  scripterr interpreter_context_name() + path, serrError
+  scripterr interpreter_context_name() + path, serrMajor
   RETURN
  END IF
  IF select_rpg_or_rpgdir(path) = NO THEN
-  scripterr interpreter_context_name() + "Not a valid game: " + path, serrError
+  scripterr interpreter_context_name() + "Not a valid game: " + path, serrMajor
   RETURN
  END IF
 

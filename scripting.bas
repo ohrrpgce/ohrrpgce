@@ -483,7 +483,7 @@ DIM index as integer = nowscript + 1
 
 IF index >= maxScriptRunning THEN
  runscript = 0 '--error
- scripterr "failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", interpreter overloaded", serrError
+ scripterr "Can't load " & *scripttype & " script " & scriptname(n) & ", too many scripts running", serrMajor
  EXIT FUNCTION
 END IF
 
@@ -1375,7 +1375,7 @@ END FUNCTION
 '==========================================================================================
 
 FUNCTION should_display_error_to_user(byval errorlevel as scriptErrEnum) as bool
- IF errorlevel >= serrError THEN RETURN YES  'Unreadable data or engine bugs
+ IF errorlevel >= serrMajor THEN RETURN YES  'Too big to ignore, inc unreadable/unsupported data, engine bugs
  IF gen(genCurrentDebugMode) = 0 THEN 'Release mode, supress most error display
   RETURN NO
  END IF

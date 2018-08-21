@@ -409,8 +409,10 @@ Enum scriptErrEnum
   serrSuspicious = 3 'suspicious operation on weak type or suspicious argument type (unimplemented)
   serrBound = 4      'warning on auto-bound() argument  (suppressed in old games)
   serrBadOp = 5      'bad argument/operation       (not suppressed by default)
-  serrError = 6      'corrupt script data/unimplemented feature/interpreter can't continue
-  serrBug = 7        'impossible condition; engine bug (interpreter stops)
+  serrMajor = 6      'errors too big to ignore, eg interpreter can't continue or can't load script
+  serrError = 7      'corrupt script data/unimplemented feature
+                     'TODO: rename serrError to serrCorruption
+  serrBug = 8        'impossible condition; engine bug (interpreter stops)
 End Enum
 
 Type DirNum as integer

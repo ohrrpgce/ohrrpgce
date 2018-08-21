@@ -865,7 +865,7 @@ FUNCTION decodetrigger (byval trigger as integer) as integer
 #ifdef IS_GAME
    IF .id = 0 THEN
     ' Not an error in Custom as we're not trying to actually run it
-    scripterr "Script " + .name + " is used but is missing (no script with that name)", serrError
+    scripterr "Script " + .name + " is used but is missing (no script with that name)", serrMajor
    END IF
 #endif
    RETURN .id
@@ -5038,7 +5038,8 @@ SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context a
  IF errlvl >= serrBug THEN
   debugc errPromptBug, full_msg
  ELSEIF errlvl >= serrWarn THEN
-  'errlvl >= serrError: Something like an unreadable data file
+  'errlvl >= serrError: Corrupt, unsupported, or unreadable data or interpreter state
+  'errlvl = serrMajor: A script error that can't be ignored
   'errlvl = serrBadOp or errlvl = serrWarn: Likely something like out-of-bounds data
   debugc errPromptError, full_msg
  ELSE
