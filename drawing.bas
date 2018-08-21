@@ -2093,6 +2093,20 @@ SUB fliptile (ts as TileEditState)
  rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 END SUB
 
+'Loads a tileset or backdrop to a video page
+'(Note: vpage 2 and 3 are locked (lock_page_size) to 320x200)
+PRIVATE SUB tilecut_load_source(ts as TileEditState, page as integer)
+ DIM sprtype as SpriteType
+ sprtype = IIF(ts.cuttileset, sprTypeTileset, sprTypeBackdrop)
+ DIM temp as Frame ptr
+ temp = frame_load(sprtype, ts.cutfrom)
+ frame_clear vpages(page)
+ IF temp THEN
+  frame_draw temp, , 0, 0, , NO, vpages(page)
+  frame_unload @temp
+ END IF
+END SUB
+
 SUB tilecut (ts as TileEditState, mouse as MouseInfo)
 DIM area(24) as MouseArea
 'Tileset
@@ -2118,11 +2132,7 @@ IF ts.gotmouse THEN
 END IF
 ts.delay = 3
 DIM previewticks as integer = 0
-IF ts.cuttileset THEN
- loadmxs game + ".til", ts.cutfrom, vpages(2)
-ELSE
- loadmxs game + ".mxs", ts.cutfrom, vpages(2)
-END IF
+tilecut_load_source ts, 2
 DIM tog as integer
 DIM zcsr as integer
 setkeys
@@ -2200,13 +2210,7 @@ DO
  intgrabber ts.cutfrom, 0, maxset, scLeftCaret, scRightCaret
  IF ts.zone = 11 AND mouse.clicks > 0 THEN loopvar ts.cutfrom, 0, maxset, -1
  IF ts.zone = 12 AND mouse.clicks > 0 THEN loopvar ts.cutfrom, 0, maxset, 1
- IF oldcut <> ts.cutfrom THEN
-  IF ts.cuttileset THEN
-   loadmxs game + ".til", ts.cutfrom, vpages(2)
-  ELSE
-   loadmxs game + ".mxs", ts.cutfrom, vpages(2)
-  END IF
- END IF
+ IF oldcut <> ts.cutfrom THEN tilecut_load_source ts, 2
 
  '' Draw screen
  IF previewticks THEN
