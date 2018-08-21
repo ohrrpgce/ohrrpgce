@@ -4749,6 +4749,8 @@ END SUB
 
 'Check a gen() entry for number of spritesets is correct
 SUB fix_sprite_record_count(sprtype as SpriteType)
+ IF sprtype = sprTypeTilesetStrip THEN EXIT SUB  'Only process tilesets once
+
  'If there's an .rgfx lump, prefer that
  IF isfile(workingdir + SLASH + rgfx_lumpnames(sprtype)) THEN
   'For efficiency, handle all enemy types at once when called with sprTypeEnemy
@@ -5512,7 +5514,7 @@ SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integer, byva
 
  WITH *tilesets(layer)
   .num = tilesetnum
-  .spr = frame_load(sprTypeTileset, tilesetnum)
+  .spr = frame_load(sprTypeTilesetStrip, tilesetnum)
   load_tile_anims tilesetnum, .tastuf()
  END WITH
 
@@ -5751,8 +5753,17 @@ SUB setup_sprite_sizes ()
  END WITH
  WITH sprite_sizes(sprTypeTileset)  '11
   .name = "Tileset"
-  .size.x = 20
-  .size.y = 160 * 20
+  .size.w = 320
+  .size.h = 200
+  .fixed_size = YES
+  .frames = 1
+  .directions = 1
+  .genmax = genMaxTile
+ END WITH
+ WITH sprite_sizes(sprTypeTilesetStrip)  '12
+  .name = "Tileset (tilestrip)"
+  .size.w = 20
+  .size.h = 160 * 20
   .fixed_size = YES
   .frames = 1
   .directions = 1
@@ -5766,7 +5777,7 @@ SUB load_sprite_and_pal (byref img as GraphicPair, byval spritetype as SpriteTyp
   img.sprite = frame_load(spritetype, index)
  ELSEIF spritetype >= 0 AND spritetype <= sprTypeLastLoadable THEN
   img.sprite = frame_load(spritetype, index)
-  IF spritetype <> sprTypeTileset THEN
+  IF spritetype <> sprTypeTileset AND spritetype <> sprTypeTilesetStrip THEN
    img.pal    = palette16_load(palnum, spritetype, index)
   END IF
  ELSE

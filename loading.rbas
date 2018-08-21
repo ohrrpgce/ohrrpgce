@@ -3546,6 +3546,7 @@ rgfx_lumpnames(sprTypePortrait)    = "portraits.rgfx"
 rgfx_lumpnames(sprTypeBoxBorder)   = "boxborders.rgfx"
 rgfx_lumpnames(sprTypeBackdrop)    = "backdrops.rgfx"
 rgfx_lumpnames(sprTypeTileset)     = "tilesets.rgfx"  'Not created or used yet!
+rgfx_lumpnames(sprTypeTilesetStrip)= "tilesets.rgfx"  'Not created or used yet!
 
 
 'Create a blank rgfx document

@@ -7531,6 +7531,9 @@ end sub
 'Reload all graphics of certain type
 sub sprite_update_cache(sprtype as SpriteType)
 	sprite_update_cache_range(SPRITE_CACHE_MULT * sprtype, SPRITE_CACHE_MULT * (sprtype + 1) - 1)
+	if sprtype = sprTypeTileset then
+		sprite_update_cache sprTypeTilesetStrip
+	end if
 end sub
 
 'Attempt to completely empty the sprite cache, detecting memory leaks
@@ -7908,12 +7911,16 @@ private function frame_load_uncached(sprtype as SpriteType, record as integer) a
 	dim sprset as SpriteSet ptr
 	dim starttime as double = timer
 
-	if sprtype = sprTypeTileset then
+	if sprtype = sprTypeTileset or sprtype = sprTypeTilesetStrip then
 		dim mxs as Frame ptr
 		mxs = frame_load_mxs(graphics_file("til"), record)
 		if mxs = NULL then return NULL
-		ret = mxs_frame_to_tileset(mxs)
-		frame_unload @mxs
+		if sprtype = sprTypeTilesetStrip then
+			ret = mxs_frame_to_tileset(mxs)
+			frame_unload @mxs
+		else
+			ret = mxs
+		end if
 	else
 		ret = rgfx_load_spriteset(sprtype, record, NO)
 
@@ -8194,7 +8201,8 @@ sub frame_unload cdecl(ppfr as Frame ptr ptr)
 end sub
 
 'Takes a 320x200 Frame and produces a 20x3200 Frame in the format expected of tilesets:
-'linear series of 20x20 tiles.
+'linear series of 20x20 tiles - better cache behaviour, but I haven't tested whether it
+'has a significant performance effect.
 function mxs_frame_to_tileset(spr as Frame ptr) as Frame ptr
 	CHECK_FRAME_8BIT(spr, NULL)
 

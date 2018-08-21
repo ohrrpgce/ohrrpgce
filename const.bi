@@ -355,11 +355,12 @@ Enum SpriteType
 	sprTypeLastPT = 8        'Last type that was stored in an old .pt# lump
 	sprTypeBackdrop = 9      'Can't change this! Saved in .slice files
         sprTypeEnemy = 10        'New .rgfx combined enemies.rgfx file
-	sprTypeLastPickable = 10  'Last sprite type selectable in slice editor
+	sprTypeLastPickable = 10 'Last sprite type selectable in slice editor
 	sprTypeTileset = 11      'Free to change this later (never saved)
-	sprTypeLastLoadable = 11 'Last type that frame_load knows about
+	sprTypeTilesetStrip = 12 'Free to change this later (never saved)
+	sprTypeLastLoadable = 12 'Last type that frame_load knows about
 	' Add new types before Tileset
-	sprTypeLast = 11
+	sprTypeLast = 12
 End Enum
 
 'Names for hero battle sprite frames
