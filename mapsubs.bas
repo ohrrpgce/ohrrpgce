@@ -3690,7 +3690,7 @@ SUB mapedit_loadmap (st as MapEditState, mapnum as integer)
 END SUB
 
 SUB mapedit_savemap (st as MapEditState)
- storerecord st.map.gmap(), game & ".map", getbinsize(binMAP) / 2, st.map.id
+ storerecord st.map.gmap(), game & ".map", getbinsize(binMAP) \ 2, st.map.id
  savetilemaps st.map.tiles(), maplumpname(st.map.id, "t")
  savetilemap st.map.pass, maplumpname(st.map.id, "p")
  savetilemap st.map.foemap, maplumpname(st.map.id, "e")

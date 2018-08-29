@@ -988,7 +988,7 @@ function unlumpfile_internal (lumpfile as string, fmask as string, path as strin
 			namelen += 1
 		wend
 		if namelen = 0 or namelen > 50 then
-			errmsg = "lump length not in range 1--50: '" & lname & "' @ " & seek(lf)
+			errmsg = "lump name length not in range 1--50: '" & lname & "' @ " & seek(lf)
 			exit while
 		end if
 		original_lname = lname

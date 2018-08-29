@@ -901,8 +901,6 @@ DO
   load_slot_prefix = gam.want.loadgame_prefix
   gam.want.loadgame = 0
   gam.want.loadgame_prefix = ""
-  resetgame
-  initgamedefaults
   IF readbit(gen(), genBits2, 24) = 0 THEN  '"Don't stop music when starting/loading game"
    queue_music_change -1  'stop music (unless new map has same music)
   END IF
@@ -911,6 +909,8 @@ DO
   'resetsfx
   fadeout uilook(uiFadeoutLoadGame)
   queue_fade_in 1, YES
+  resetgame
+  initgamedefaults
   doloadgame load_slot, load_slot_prefix
  END IF
 
@@ -2282,7 +2282,7 @@ FUNCTION hero_collision_check(byval rank as integer, byval xgo as integer, byval
   END IF
   '---Do Not Check for hero-hero collision (but if we did, it would go here)
  END IF
- 
+
  'Did not collide with anything
  collision_type = collideNone
  RETURN NO
@@ -2297,7 +2297,7 @@ SUB npchitwall(npci as NPCInst, npcdata as NPCType, collision_type as WalkaboutC
   IF npcdata.movetype = 2 THEN loopvar npci.dir, 0, 3, 2  'Pace
   IF npcdata.movetype = 3 THEN loopvar npci.dir, 0, 3, 1  'Right Turns
   IF npcdata.movetype = 4 THEN loopvar npci.dir, 0, 3, -1 'Left Turns
-  IF npcdata.movetype = 5 THEN npci.dir = randint(4)                'Random Turns
+  IF npcdata.movetype = 5 THEN npci.dir = randint(4)      'Random Turns
   IF npcdata.movetype = 13 OR npcdata.movetype = 14 THEN  'Follow walls stop for others
    IF collision_type = collideNPC OR collision_type = collideHero THEN
     npci.follow_walls_waiting = YES
@@ -2432,7 +2432,7 @@ END SUB
 SUB loadmap_gmap(byval mapnum as integer)
  lump_reloading.gmap.dirty = NO
  lump_reloading.gmap.changed = NO
- loadrecord gmap(), game & ".map", getbinsize(binMAP) / 2, mapnum
+ loadrecord gmap(), game & ".map", getbinsize(binMAP) \ 2, mapnum
  gmap_updates
 END SUB
 
@@ -2822,8 +2822,8 @@ SUB player_menu_keys ()
 END SUB
 
 FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as bool
- DIM open_other_menu as integer = -1 'Menu ID to open
- DIM menu_text_box as integer = 0    'Textbox to open
+ DIM open_other_menu as integer = -1 'Menu ID to open or -1 for none
+ DIM menu_text_box as integer = 0    'Textbox to open or 0 for none (can't open box 0)
  DIM close_menu as bool = NO
  DIM updatetags as bool = NO         'Whether to do tag updates
  DIM slot as integer   'Party slot (temp)
