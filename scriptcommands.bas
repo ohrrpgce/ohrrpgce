@@ -3429,37 +3429,37 @@ SUB script_functions(byval cmdid as integer)
   scriptret = gam.getinputtext_enabled
  CASE 534 '--set hero hand x
   IF valid_hero_party(retvals(0)) THEN
-   IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
+   IF bound_arg(retvals(1), 0, 1, "attack frame", , serrBadOp) THEN
     gam.hero(retvals(0)).hand_pos(retvals(1)).x = retvals(2)
    END IF
   END IF
  CASE 535 '--set hero hand y
   IF valid_hero_party(retvals(0)) THEN
-   IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
+   IF bound_arg(retvals(1), 0, 1, "attack frame", , serrBadOp) THEN
     gam.hero(retvals(0)).hand_pos(retvals(1)).y = retvals(2)
    END IF
   END IF
  CASE 536 '--get hero hand x
   IF valid_hero_party(retvals(0)) THEN
-   IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
+   IF bound_arg(retvals(1), 0, 1, "attack frame", , serrBadOp) THEN
     scriptret = gam.hero(retvals(0)).hand_pos(retvals(1)).x
    END IF
   END IF
  CASE 537 '--get hero hand y
   IF valid_hero_party(retvals(0)) THEN
-   IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
+   IF bound_arg(retvals(1), 0, 1, "attack frame", , serrBadOp) THEN
     scriptret = gam.hero(retvals(0)).hand_pos(retvals(1)).y
    END IF
   END IF
  CASE 538 '--get default hero hand x
   IF valid_hero_party(retvals(0)) THEN
-   IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
+   IF bound_arg(retvals(1), 0, 1, "attack frame", , serrBadOp) THEN
     scriptret = GetHeroHandPos(gam.hero(retvals(0)).id, retvals(1)).x
    END IF
   END IF
  CASE 539 '--get default hero hand y
   IF valid_hero_party(retvals(0)) THEN
-   IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
+   IF bound_arg(retvals(1), 0, 1, "attack frame", , serrBadOp) THEN
     scriptret = GetHeroHandPos(gam.hero(retvals(0)).id, retvals(1)).y
    END IF
   END IF
