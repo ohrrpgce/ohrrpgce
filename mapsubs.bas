@@ -971,7 +971,7 @@ DO
 
    'Try to animate a tile
    FOR i as integer = 0 TO 1
-    IF keyval(sc1 + i) > 1 THEN 'animate tile
+    IF keyval(scAlt) = 0 ANDALSO keyval(scShift) = 0 ANDALSO keyval(sc1 + i) > 1 THEN 'animate tile
      DIM as integer oldtile, newtile
      newtile = -1
      oldtile = readblock(st.map.tiles(st.layer), st.x, st.y)
