@@ -1960,13 +1960,18 @@ DO
 
  '--Draw menubar (includes tileset preview)
  IF st.editmode = tile_mode THEN
+  'TODO: use tilepicker_rect to position all of this
   'This is to draw tile 0 as fully transparent on layer > 0
   st.menubar.layernum = st.layer
-  draw_background vpages(dpage), IIF(st.layer > 0, bgChequerScroll, 0), chequer_scroll, 0, 0, rWidth - 40, 20
+  draw_background vpages(dpage), IIF(st.layer > 0, bgChequerScroll, uilook(uiBackground)), chequer_scroll, 0, 0, rWidth - 40, 20
   drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, st.tilesets(st.layer), dpage, YES, , , 0, 20
-  'Don't show (black out) the last three tiles on the menubar, because they
-  'are overlaid too much by the icons.
-  rectangle pRight, 0, 60, 20, uilook(uiBackground), dpage
+  'Don't show (black out) the end of the menubar, because they
+  'are overlaid too much by the toolbar icons.
+  rectangle pRight, 0, 64, 20, uilook(uiBackground), dpage
+  'The selected tile number
+  textcolor uilook(uiMenuItem), 0
+  DIM pattern as integer = tile_anim_pattern_number(st.usetile(st.layer))
+  printstr IIF(pattern = -1, "", "Pat" & pattern & " ") & st.usetile(st.layer), pRight, pTop, dpage
  ELSE
   rectangle 0, 0, rWidth, 20, uilook(uiBackground), dpage
  END IF
@@ -4008,13 +4013,19 @@ END SUB
 
 '==========================================================================================
 
+'Position/size of the tile_mode tileset tile picker aka menubar
+FUNCTION tilepicker_rect() as RectType
+ 'Spans screen, except for last 64 pixels
+ RETURN TYPE(0, 0, vpages(dpage)->w - 64, tileh)
+END FUNCTION
+
 'Update the scroll position of the tilepicker in the top bar
 SUB update_tilepicker(st as MapEditState)
  'Based on correct_menu_state.
  DIM byref top as integer = st.menubarstart(st.layer)
  DIM pt as integer = st.usetile(st.layer)
- 'Menu width, as number of visible tiles (right 60 pixels is blacked out)
- DIM size as integer = (vpages(dpage)->w - 60) \ tilew - 1
+ 'Menu width, as number of visible tiles
+ DIM size as integer = tilepicker_rect().wide \ tilew - 1
 
  'Selected item must be visible, with a margin of 2 tiles to left and right
  '(this indirectly allows scrolling by clicking at the edges)
