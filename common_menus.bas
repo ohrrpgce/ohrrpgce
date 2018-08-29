@@ -193,7 +193,7 @@ END SUB
 
 SUB edit_backcompat_bitsets()
  DIM bitname(47) as string
- bitname(9) = "Simulate Old Levelup bonus-accretion Bug"
+ bitname(9) = "Simulate Old Levelup bonus-accretion bug"
  bitname(16) = "Simulate Pushable NPC obstruction bug"
  bitname(24) = "Enable better scancodes for scripts"
  bitname(25) = "Simulate old fail vs element resist bit"

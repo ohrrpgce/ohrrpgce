@@ -121,6 +121,8 @@ June (mumble) 2018 [Fufluns]
       as G but was actually T. It's now actually G. And the keys to change
       selected zone were documented as +/- but are actually </>! Made some
       other improvements too [Ralph]
+    * NPCs could walk through pushable NPCs being pushed against a wall. (Fix
+      only enabled if "Simulate Pushable NPC obstruction bug" is off) [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

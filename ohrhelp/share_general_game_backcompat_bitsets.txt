@@ -10,7 +10,7 @@ In newly created games you normally wouldn't change any of these bitsets. When s
 
 "Simulate Old Levelup bonus-accretion bug" simulates an ancient bug where equipment bonuses were added to hero stats on levelup. Included for compatibility with games made before 2001!
 
-"Simulate pushable NPC obstruction bug" simulates a bug where the player and NPCs could walk through NPCs in the process of being pushed.
+"Simulate pushable NPC obstruction bug" simulates a bug where NPCs could walk through pushable NPCs which the player is pushing against a wall or another NPC.
 
 "Enable better scancodes for scripts" makes keys like Up and Numpad 8 which were previously indistinguishable able to be told apart; see "key is pressed" in the dictionary for details.
 

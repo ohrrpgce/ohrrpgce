@@ -1320,14 +1320,14 @@ SUB update_heroes(force_step_check as bool=NO)
    herow(whoi).ygo = 0
   END IF
   '--if starting movement to a new tile and passibility is enabled ... and some vehicle stuff ...
-  IF want_to_check_for_walls(whoi) THEN
-   IF readbit(gen(), genSuspendBits, suspendherowalls) = 0 AND vehicle_is_animating() = NO THEN
+  IF want_to_check_for_walls(whoi) ANDALSO vehicle_is_animating() = NO THEN
+   IF readbit(gen(), genSuspendBits, suspendherowalls) = 0 THEN
     '--this only happens if herowalls is on
     '--wrapping passability
     DIM herotile as XYPair = herotpos(whoi)
     wrappass herotile.x, herotile.y, herow(whoi).xgo, herow(whoi).ygo, vstate.active
    END IF
-   IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 AND vehicle_is_animating() = NO THEN
+   IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 THEN
     '--this only happens if obstruction is on
     FOR i as integer = 0 TO UBOUND(npc)
      WITH npc(i)
@@ -1336,28 +1336,26 @@ SUB update_heroes(force_step_check as bool=NO)
        id = .id - 1
        IF npcs(id).activation <> 2 THEN '---NPC is not step-on
         IF wrapcollision (.pos, .xygo, heropos(whoi), herow(whoi).xygo) THEN
-         IF .not_obstruction = 0 THEN
+         IF .not_obstruction = NO THEN
           herow(whoi).xygo = 0
+
           '--push the NPC
+          'Note: Heroes other than the leader can push NPCs! I've never seen this happen
           DIM push as integer = npcs(id).pushtype
           IF push > 0 AND .xgo = 0 AND .ygo = 0 THEN
            IF herodir(whoi) = dirUp    AND (push = 1 OR push = 2 OR push = 4) THEN .ygo = 20
            IF herodir(whoi) = dirDown  AND (push = 1 OR push = 2 OR push = 6) THEN .ygo = -20
            IF herodir(whoi) = dirLeft  AND (push = 1 OR push = 3 OR push = 7) THEN .xgo = 20
            IF herodir(whoi) = dirRight AND (push = 1 OR push = 3 OR push = 5) THEN .xgo = -20
-           IF readbit(gen(), genBits2, 0) = 0 THEN ' Only do this if the backcompat bitset is off
-            FOR o as integer = 0 TO UBOUND(npc) ' check to make sure no other NPCs are blocking this one
-             IF npc(o).id <= 0 THEN CONTINUE FOR 'Ignore empty NPC slots and negative (tag-disabled) NPCs
-             IF i = o THEN CONTINUE FOR
-             IF npc(o).not_obstruction THEN CONTINUE FOR
-             IF wrapcollision (.pos, .xygo, npc(o).pos, npc(o).xygo) THEN
-              .xgo = 0
-              .ygo = 0
-              EXIT FOR
-             END IF
-            NEXT o
+           IF readbit(gen(), genBits2, 0) = 0 THEN ' "Simulate Pushable NPC obstruction bug" backcompat bit
+            'Check whether the NPC can't be pushed because there's an obstruction on its other side
+            IF npc_collision_check(npc(i), npcs(id), .xgo, .ygo) THEN
+             .xgo = 0
+             .ygo = 0
+            END IF
            END IF
           END IF
+
          END IF
          IF npcs(id).activation = 1 AND whoi = 0 THEN '--NPC is touch-activated
           IF wraptouch(.pos, heropos(0), 20) THEN
@@ -2089,6 +2087,7 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  RETURN didgo
 END FUNCTION
 
+'WARNING: this function returns false if the NPC is blocked by both a wall/zone and an npc/hero
 FUNCTION npc_collision_check_npcs_and_heroes(npci as NPCInst, byval direction as DirNum) as bool
  DIM collide_type as WalkaboutCollisionType
  npc_collision_check(npci, direction, collide_type)
