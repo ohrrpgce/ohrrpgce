@@ -268,7 +268,7 @@ DO
    FOR ctr as integer = 0 TO br.mstate.last
     'IF (tree(index).kind = bkParentDir OR tree(index).kind = bkSubDir OR tree(index).kind = bkSelectable) THEN
      'Search both display name (preferentially) and filename
-     selectst.query_at = find_on_word_boundary(LCASE(tree(index).caption), selectst.query)
+     selectst.query_at = find_on_word_boundary_excluding(LCASE(tree(index).caption), selectst.query, "the")
      IF selectst.query_at = 0 THEN
       IF INSTR(LCASE(tree(index).decoded_filename), selectst.query) = 1 THEN selectst.query_at = -1  'invisible match
      END IF
