@@ -124,6 +124,7 @@ WITH gam.hero(slot)
  FOR i as integer = 0 to 1
   .hand_pos(i) = her.hand_pos(i)
  NEXT i
+ .hand_pos_overridden = NO
  .portrait_pic = her.portrait
  .portrait_pal = her.portrait_pal
 END WITH
@@ -1425,6 +1426,7 @@ FOR i as integer = 0 TO 40
   gam.hero(i).hand_pos(j).x = 0
   gam.hero(i).hand_pos(j).y = 0
  NEXT j
+ gam.hero(i).hand_pos_overridden = NO
  FOR o as integer = 0 TO 3
   FOR j as integer = 0 TO 23
    gam.hero(i).spells(o, j) = 0

@@ -68,6 +68,7 @@ TYPE HeroState
  rename_on_status as bool  'Renameable in status menu
  elementals(maxElements - 1) as single
  hand_pos(1) as XYPair
+ hand_pos_overridden as bool  'YES if hand_pos has been set by a script, so should be saved and not reloaded
 END TYPE
 
 TYPE HeroWalkabout

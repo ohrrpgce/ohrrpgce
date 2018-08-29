@@ -612,6 +612,7 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
        FOR j = 0 TO 1
         .hand_pos(j) = her.hand_pos(j)
        NEXT j
+       .hand_pos_overridden = NO
        
        'Defaults for portrait
        .portrait_pic = her.portrait
@@ -680,6 +681,7 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
         WITHNODE hand."frame" as fr
          j = GetInteger(fr)
          IF j >= 0 AND j <= UBOUND(.hand_pos) THEN
+          .hand_pos_overridden = YES
           .hand_pos(j).x = fr."x"
           .hand_pos(j).y = fr."y"
          ELSE
@@ -1159,16 +1161,14 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
    SetChildNode(slot, "def_wep", .def_wep)
    
    IF gam.hero(i).id >= 0 THEN
-    ch = SetChildNode(slot, "hand")
-    DIM default_pos as XYPair
-    FOR j as integer = 0 TO 1
-     default_pos = GetHeroHandPos(gam.hero(i).id, j)
-     IF .hand_pos(j).x <> default_pos.x ORELSE .hand_pos(j).y <> default_pos.y THEN
+    IF .hand_pos_overridden THEN
+     ch = SetChildNode(slot, "hand")
+     FOR j as integer = 0 TO UBOUND(.hand_pos)
       n = AppendChildNode(ch, "frame", j)
       SetChildNode(n, "x", .hand_pos(j).x)
       SetChildNode(n, "y", .hand_pos(j).y)
-     END IF
-    NEXT j
+     NEXT j
+    END IF
    END IF
    
    ch = SetChildNode(slot, "wep")
@@ -1819,6 +1819,7 @@ FOR i = 0 TO 40
   FOR j = 0 TO 1
    gam.hero(i).hand_pos(j) = her.hand_pos(j)
   NEXT j
+  gam.hero(i).hand_pos_overridden = YES  'Don't know, be cautious
  END IF
 
  compute_hero_base_stats_from_max i

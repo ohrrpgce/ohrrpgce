@@ -3430,13 +3430,19 @@ SUB script_functions(byval cmdid as integer)
  CASE 534 '--set hero hand x
   IF valid_hero_party(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, 1, "attack frame", , serrBadOp) THEN
-    gam.hero(retvals(0)).hand_pos(retvals(1)).x = retvals(2)
+    WITH gam.hero(retvals(0))
+     .hand_pos(retvals(1)).x = retvals(2)
+     .hand_pos_overridden = YES
+    END WITH
    END IF
   END IF
  CASE 535 '--set hero hand y
   IF valid_hero_party(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, 1, "attack frame", , serrBadOp) THEN
-    gam.hero(retvals(0)).hand_pos(retvals(1)).y = retvals(2)
+    WITH gam.hero(retvals(0))
+     .hand_pos(retvals(1)).y = retvals(2)
+     .hand_pos_overridden = YES
+    END WITH
    END IF
   END IF
  CASE 536 '--get hero hand x
