@@ -979,7 +979,7 @@ SUB oobcure (byval attacker as integer, byval target as integer, byval atk as in
   '--copy back stats that need copying back
   DIM last_plain_stat as integer = statMP
 
-  IF readbit(gen(), genBits2, 15) = NO THEN  '"Don't reset max stats after OOB attack"
+  IF prefbit(31) = NO THEN  '"Don't reset max stats after OOB attack"
    '--Then update just the max for the other stats
    '--this kinda sucks but it is consistent with the way outside of battle cure has always worked.
    '--It's needed so that items which permanently change stats out of battle can work, but it's
@@ -1125,8 +1125,7 @@ IF last_slot > max_slot THEN
  last_slot = max_slot
 END IF
 
-IF readbit(gen(), genBits2, 28) THEN
- 'Hide empty slots at the bottom
+IF prefbit(44) THEN '"Hide empty save slots at the bottom of the save/load menus"
  FOR i as integer = last_slot TO 4 STEP -1
   IF save_slot_used(i) THEN
    'Found a used save slot
@@ -3133,8 +3132,7 @@ DO
    END IF
    'Calculate new max stat
    resultant_stat = gam.hero(st.who).stat.base.sta(i) + st.stat_total_bonus(i)
-   IF readbit(gen(), genBits2, 27) THEN
-    'Cap minimum stat to zero
+   IF prefbit(43) THEN 'Cap minimum stats to zero
     resultant_stat = large(resultant_stat, 0)
    END IF
    DIM cap as integer = gen(genStatCap + i)

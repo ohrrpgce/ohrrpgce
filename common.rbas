@@ -668,6 +668,20 @@ SUB setfixbit(byval bitnum as integer, byval bitval as integer)
  CLOSE #fh
 END SUB
 
+'Value of a general preference/backcompat bitset
+FUNCTION prefbit(bitnum as integer) as bool
+ DIM genidx as integer = IIF(bitnum >= 16, genBits2, genBits)
+ DIM bitidx as integer = IIF(bitnum >= 16, bitnum - 16, bitnum)
+ RETURN xreadbit(gen(), bitidx, genidx)
+END FUNCTION
+
+'Set a general preference/backcompat bitset
+SUB setprefbit(bitnum as integer, newval as bool = YES)
+ DIM genidx as integer = IIF(bitnum >= 16, genBits2, genBits)
+ DIM bitidx as integer = IIF(bitnum >= 16, bitnum - 16, bitnum)
+ setbit gen(), genidx, bitidx, newval
+END SUB
+
 '----- Styled boxes
 'All of the following require a box style rather than color, border, etc.
 
@@ -3945,7 +3959,7 @@ IF gen(genVersion) = 4 THEN
  'esperable (2003) introduced the bug where harm tiles no longer damage the
  'whole active party if the caterpillar is disabled. Fixed for alectormancy.
  'The best we can do is not emulating the bug for versions before March 2001 :(
- setbit gen(), genBits2, 12, 1  'Harm tiles harm non-caterpillar heroes
+ setprefbit 28  'Harm tiles harm non-caterpillar heroes
 END IF
 '--VERSION 6--
 IF gen(genVersion) = 5 THEN
@@ -4205,7 +4219,7 @@ END IF
 'Workaround bug #2013: Backdrops were drawn immediately above (instead of) spritelayer until
 'r5437, which swapped the order. genVersion was increased to 18 in r5477
 IF original_genVersion <= 17 THEN
- setbit gen(), genBits2, 23, 1  'Draw Backdrop slice above Script layer
+ setprefbit 39  'Draw Backdrop slice above Script layer
 END IF
 
 'Zero out new attack item cost (ammunition) data
@@ -4364,7 +4378,7 @@ END IF
 IF getfixbit(fixPushNPCBugCompat) = 0 THEN
  upgrade_message "Enabling 'Simulate pushable NPC bug' bitset..."
  setfixbit(fixPushNPCBugCompat, 1)
- setbit gen(), genBits2, 0, 1 ' For backcompat
+ setprefbit 16  '"Simulate Pushable NPC obstruction bug"
 END IF
 
 IF getfixbit(fixDefaultMaxItem) = 0 THEN
@@ -4522,7 +4536,7 @@ END IF
 IF getfixbit(fixSetOldAttackPosBit) = 0 THEN
  upgrade_message "Enabling 'Old attack positioning at bottom-left of target' bit"
  setfixbit(fixSetOldAttackPosBit, 1)
- setbit(gen(), genBits2, 20, 1)  ' "Old attack positioning at bottom-left of target"
+ setprefbit 36  ' "Old attack positioning at bottom-left of target"
 END IF
 
 IF getfixbit(fixWrapCroppedMapsBit) = 0 THEN
@@ -4530,14 +4544,14 @@ IF getfixbit(fixWrapCroppedMapsBit) = 0 THEN
  'Since r6473 'Crop' maps no longer wrap
  IF last_editor_version.branch_revision < 6473 THEN
   upgrade_message "Enabling 'Wrap map layers over edge of Crop maps' bit"
-  setbit gen(), genBits2, 21, 1  'Wrap map layers over edge of Crop maps
+  setprefbit 37  'Wrap map layers over edge of Crop maps
  END IF
 END IF
 
 IF getfixbit(fixOldElementalFailBit) = 0 THEN
  upgrade_message "Enabling 'Simulate old fail vs. element resist bit' bitset"
  setfixbit(fixOldElementalFailBit, 1)
- setbit gen(), genBits2, 9, 1
+ setprefbit 25
 END IF
 
 IF gen(genItemStackSize) <= 0 OR gen(genItemStackSize) > 99 THEN
@@ -6470,7 +6484,7 @@ FUNCTION atlevel_quadratic (byval lev as double, byval a0 as double, byval aMax 
 END FUNCTION
 
 FUNCTION max_tag() as integer
- IF readbit(gen(), genBits2, 16) THEN  'Don't limit maximum tags to 999
+ IF prefbit(32) THEN  'Don't limit maximum tags to 999
   RETURN 15999
  ELSE
   RETURN 999

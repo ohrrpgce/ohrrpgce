@@ -1414,7 +1414,7 @@ DO
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), elementFailMenu(), state
     helpkey = "attack_elementfail"
-    IF readbit(gen(), genBits2, 9) ANDALSO warned_old_fail_bit = NO THEN
+    IF prefbit(25) ANDALSO warned_old_fail_bit = NO THEN
      'Show warning about 'Simulate old fail vs. element resist bit'
      show_help "attack_warn_old_fail_bit"
      warned_old_fail_bit = YES
@@ -1801,11 +1801,11 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
   DIM nextslot as integer = 3
 
   ' "Attacks will ignore extra hits stat" gen bitset
-  IF xreadbit(gen(), 13, genBits2) THEN
+  IF prefbit(29) THEN
     maskeddmgbit(49) = ""  'Ignore attacker's extra hits
   END IF
 
-  IF xreadbit(gen(), 13, genBits2) = NO AND attack.ignore_extra_hits = NO THEN
+  IF prefbit(29) = NO AND attack.ignore_extra_hits = NO THEN
     preview += "Hits " & attack.hits & " to " & attack.hits & " + attacker " + statnames(statHitX) + !" times\n"
   ELSE
     IF attack.hits = 1 THEN

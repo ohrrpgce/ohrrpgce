@@ -689,7 +689,7 @@ clearpage 2
 st.reset_tool = YES
 st.defpass = YES
 st.wallmap_mask = 255  'Initialise stamp_tool
-IF readbit(gen(), genBits, 15) THEN st.defpass = NO ' option to default the defaults to OFF
+IF prefbit(15) THEN st.defpass = NO  '"Default passability disabled by default"
 st.autoshow_zones = YES
 st.showzonehints = YES
 st.zonemenustate.pt = -1  'Properly initialised in mapedit_update_visible_zones

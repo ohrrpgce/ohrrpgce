@@ -209,7 +209,7 @@ END SUB
 SUB innRestore ()
  FOR i as integer = 0 TO 3
   IF gam.hero(i).id >= 0 THEN '--hero exists
-   IF gam.hero(i).stat.cur.hp <= 0 AND readbit(gen(), genBits, 4) THEN
+   IF gam.hero(i).stat.cur.hp <= 0 AND prefbit(4) THEN  '"Inns Don't Revive Dead Heroes"
     '--hero is dead and inn-revive is disabled
    ELSE
     '--normal revive

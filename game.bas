@@ -720,11 +720,10 @@ DIM load_slot_prefix as string = ""
 '.resetgame is YES when resetgame was called so we are skipping straight to launching the game
 IF gam.want.resetgame = NO THEN
  queue_fade_in
- IF readbit(gen(), genBits, 11) = 0 THEN
-  '"Skip title screen" is off
+ IF prefbit(11) = NO THEN  '"Skip title screen" is off
   IF titlescreen() = NO THEN EXIT DO
-  IF readbit(gen(), genBits, 12) = 0 THEN load_slot = pickload()
- ELSEIF readbit(gen(), genBits, 12) = 0 THEN
+  IF prefbit(12) = NO THEN load_slot = pickload()  '"Skip load screen" off
+ ELSEIF prefbit(12) = NO THEN  '"Skip load screen" off
   '"Skip load screen" is off
   IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
   ' Show a black background beneath the load menu
@@ -735,7 +734,7 @@ END IF
 gam.want.resetgame = NO
 'DEBUG debug "picked save slot " & load_slot
 
-IF readbit(gen(), genBits2, 24) = 0 THEN  '"Don't stop music when starting/loading game"
+IF prefbit(40) = NO THEN  '"Don't stop music when starting/loading game"
  queue_music_change -1  'stop music (unless initial map has same music)
 END IF
 IF load_slot = -2 THEN
@@ -795,7 +794,7 @@ DO
  control
 
  '--Debug keys
- IF always_enable_debug_keys OR readbit(gen(), genBits, 8) = 0 THEN check_debug_keys()
+ IF always_enable_debug_keys OR prefbit(8) = NO THEN check_debug_keys()  '"Disable Debugging Keys" off
 
  IF gam.paused = NO THEN
 
@@ -901,7 +900,7 @@ DO
   load_slot_prefix = gam.want.loadgame_prefix
   gam.want.loadgame = 0
   gam.want.loadgame_prefix = ""
-  IF readbit(gen(), genBits2, 24) = 0 THEN  '"Don't stop music when starting/loading game"
+  IF prefbit(40) = NO THEN  '"Don't stop music when starting/loading game"
    queue_music_change -1  'stop music (unless new map has same music)
   END IF
   ' Don't stop sound effects, because if used from the Load menu this would cut off
@@ -946,11 +945,11 @@ DO
   resetsfx
   IF LEN(gam.want.rungame) THEN EXIT DO, DO  'Quit out of game
   IF gam.want.resetgame THEN EXIT DO  'skip to new game
-  DIM skip_load_menu as bool = readbit(gen(), genBits, 12)
+  DIM skip_load_menu as bool = prefbit(12)  '"Skip load screen"
   skip_load_menu OR= (count_used_save_slots() = 0)
   skip_load_menu OR= gam.want.dont_quit_to_loadmenu
   'if skipping title and loadmenu, quit
-  IF readbit(gen(), genBits, 11) AND skip_load_menu THEN
+  IF prefbit(11) AND skip_load_menu THEN  '"Skip title screen"
    EXIT DO, DO ' To game select screen (quit the gameplay and RPG file loops, allowing the program loop to cycle)
   ELSE
    EXIT DO ' To title screen (quit the gameplay loop and allow the RPG file loop to cycle)
@@ -1128,7 +1127,7 @@ SUB displayall()
  ' 
  ' Map layers edge handling.
  ' (backcompat bit: 'Wrap map layers over edge of Crop maps')
- set_map_edge_draw_mode gmap(), readbit(gen(), genBits2, 21)
+ set_map_edge_draw_mode gmap(), prefbit(37)
 
  IF readbit(gen(), genSuspendBits, suspendoverlay) THEN
   ChangeMapSlice SliceTable.MapLayer(0), , , , 0   'draw all
@@ -1182,7 +1181,7 @@ END SUB
 '==========================================================================================
 
 FUNCTION catleaderspeed() as integer
- IF readbit(gen(), genBits2, 25) = 0 THEN
+ IF prefbit(41) = NO THEN
   '"Keep caterpillar length the same when speed changes" bitset is off
   'so treat the caterpillar leader speed as if it is hard-coded to 4
   RETURN 4
@@ -1276,7 +1275,7 @@ SUB interpolatecat (byval old_speed as integer = -1)
 
  IF old_speed = -1 THEN old_speed = sp
  
- IF readbit(gen(), genBits2, 25) = 0 THEN
+ IF prefbit(41) = NO THEN
   '"Keep caterpillar length the same when speed changes" bitset is off
   'so we never actually remap hero indexes when speed changes
   old_speed = 4
@@ -1347,7 +1346,7 @@ SUB update_heroes(force_step_check as bool=NO)
            IF herodir(whoi) = dirDown  AND (push = 1 OR push = 2 OR push = 6) THEN .ygo = -20
            IF herodir(whoi) = dirLeft  AND (push = 1 OR push = 3 OR push = 7) THEN .xgo = 20
            IF herodir(whoi) = dirRight AND (push = 1 OR push = 3 OR push = 5) THEN .xgo = -20
-           IF readbit(gen(), genBits2, 0) = 0 THEN ' "Simulate Pushable NPC obstruction bug" backcompat bit
+           IF prefbit(16) = NO THEN ' "Simulate Pushable NPC obstruction bug" backcompat bit
             'Check whether the NPC can't be pushed because there's an obstruction on its other side
             IF npc_collision_check(npc(i), npcs(id), .xgo, .ygo) THEN
              .xgo = 0
@@ -1378,7 +1377,7 @@ SUB update_heroes(force_step_check as bool=NO)
   IF herow(0).xgo ORELSE herow(0).ygo THEN
    updatecaterpillarhistory
   END IF
-  IF herow(0).xgo ORELSE herow(0).ygo ORELSE readbit(gen(), genBits2, 26) THEN
+  IF herow(0).xgo ORELSE herow(0).ygo ORELSE prefbit(42) THEN  '"Heroes use Walk in Place animation while idle"
    FOR whoi as integer = 0 TO active_party_slots - 1
     loopvar herow(whoi).wtog, 0, 3
    NEXT whoi
@@ -1386,7 +1385,7 @@ SUB update_heroes(force_step_check as bool=NO)
  ELSE
   'Suspended caterpillar
   FOR whoi as integer = 0 TO active_party_slots - 1
-   IF herow(whoi).xgo ORELSE herow(whoi).ygo ORELSE readbit(gen(), genBits2, 26) THEN
+   IF herow(whoi).xgo ORELSE herow(whoi).ygo ORELSE prefbit(42) THEN
     loopvar herow(whoi).wtog, 0, 3
    END IF
   NEXT whoi
@@ -1456,10 +1455,10 @@ SUB update_heroes(force_step_check as bool=NO)
 
     DIM harm_whole_party as bool = NO
 
-    IF whoi = 0 AND readbit(gen(), genBits, 1) = 0 THEN
+    IF whoi = 0 AND prefbit(1) = NO THEN  '"Enable Caterpillar Party" off
      'The caterpillar is disabled, so maybe harm the whole party when the leader steps on a harm tile
      'if backcompat sit, otherwise old buggy behaviour: just the leader
-     IF readbit(gen(), genBits2, 12) THEN  'Harm tiles harm non-caterpillar heroes
+     IF prefbit(28) THEN  'Harm tiles harm non-caterpillar heroes
       harm_whole_party = YES
      END IF
     END IF
@@ -2337,7 +2336,7 @@ SUB execute_script_fibres
     ' debug "wantimmediate would have skipped wait on command " & commandname(scrat(nowscript).curvalue) _
     '       & " in " & scriptname(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
     'END IF
-    IF readbit(gen(), genBits2, 17) THEN
+    IF prefbit(33) THEN  '"Simulate Bug #430 script wait skips"
      'Reenable bug 430 (see also bug 550), where if two scripts were triggered at once then
      'when the top script ended it would cause the one below it to run for two ticks.
      wantimmediate = -1
@@ -2855,7 +2854,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
      CASE spTeam
       hero_swap_menu 1
      CASE spTeamOrOrder
-      hero_swap_menu readbit(gen(), genBits, 5)
+      hero_swap_menu prefbit(5)  '"Hero Swapping Always Available"
      CASE spMap, spMapMaybe
       minimap herox(0), heroy(0)
      CASE spSave, spSaveMaybe
@@ -3307,7 +3306,7 @@ END SUB
 
 'Whether "show textbox" happens immediately
 FUNCTION immediate_showtextbox() as bool
- RETURN xreadbit(gen(), 18, genBits2)
+ RETURN prefbit(34)
 END FUNCTION
 
 'Load a textbox and process conditionals that happen immediately, including
@@ -3813,7 +3812,7 @@ SUB SetupGameSlices ()
  RefreshSliceScreenPos(SliceTable.ScriptSprite)
 
  '"Draw Backdrop slice above Script layer" (backcompat)
- IF readbit(gen(), genBits2, 23) THEN
+ IF prefbit(39) THEN
   SwapSiblingSlices SliceTable.Backdrop, SliceTable.ScriptSprite
  END IF
  
@@ -3911,8 +3910,7 @@ SUB recreate_map_slices()
   DeleteSlice @npc(i).sl
  NEXT i
 
- IF readbit(gen(), genBits2, 11) <> 0 THEN
-  '"Recreate map slices when changing maps" = ON
+ IF prefbit(27) THEN  '"Recreate map slices when changing maps"
 
   'Orphan the hero slices to prevent them from being destroyed when we
   'destroy the map layers
@@ -3948,7 +3946,7 @@ SUB update_map_slices_for_new_tilemap()
  'Call this if the number of map layers may have changed (by loading maptiles()) for a reason other
  'than a map change, so you don't want to destroy and recreate everything by calling recreate_map_slices
 
- IF readbit(gen(), genBits2, 11) <> 0 THEN
+ IF prefbit(27) THEN
   'When "Recreate map slices when changing maps" = ON then number of map layer slices is variable.
   FOR idx as integer = 0 TO mapLayerMax
    IF idx > UBOUND(maptiles) THEN
@@ -4248,7 +4246,7 @@ END FUNCTION
 
 FUNCTION caterpillar_size () as integer
  'Returns the number of heroes on the map, regardless of whether caterpillar trailing is suspended
- IF readbit(gen(), genBits, 1) = 1 THEN RETURN active_party_size()
+ IF prefbit(1) THEN RETURN active_party_size()  '"Enable Caterpillar Party"
  RETURN 1
 END FUNCTION
 

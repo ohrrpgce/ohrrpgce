@@ -215,8 +215,8 @@ PRIVATE FUNCTION should_hide_hero_caterpillar() as integer
 END FUNCTION
 
 PRIVATE FUNCTION should_show_normal_caterpillar() as integer
- RETURN readbit(gen(), genBits, 1) = 1 _
-   ANDALSO (vstate.active = NO ORELSE vstate.dat.do_not_hide_leader = NO)
+ '"Enable Caterpillar Party"
+ RETURN prefbit(1) ANDALSO (vstate.active = NO ORELSE vstate.dat.do_not_hide_leader = NO)
 END FUNCTION
 
 PRIVATE SUB update_walkabout_hero_slices()

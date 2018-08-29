@@ -455,7 +455,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
      'The old bit checked only the target's Strong bits, ignoring their Absorb bits
      '(For consistency, this bit also affects compLe, although it didn't exist at the time.
      'But we can't 100% safely apply it to compGt, because we didn't used to do that in the past.)
-     IF readbit(gen(), genBits2, 9) = 1 THEN effectiveval = ABS(effectiveval)
+     IF prefbit(25) THEN effectiveval = ABS(effectiveval)
     END IF
     IF t = compLt THEN fail = (effectiveval < .value - 0.000005)
     IF t = compLe THEN fail = (effectiveval <= .value + 0.000005)
@@ -483,7 +483,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
   IF attack.divide_spread_damage = YES THEN h = h / tcount
  
   'cap under
-  IF immune ANDALSO readbit(gen(), genBits2, 10) THEN
+  IF immune ANDALSO prefbit(26) THEN
    '"0 damage when immune to attack elements", even without attack.damage_can_be_zero
    h = 0
   ELSEIF h <= 0 THEN
@@ -879,8 +879,7 @@ SUB updatestatslevelup (byval hero_slot as integer, byval allowforget as bool)
     .stat.base.sta(statnum) += statgain
    NEXT
 
-   '"Simulate Old Levelup bonus-accretion Bug"
-   IF readbit(gen(), genBits, 9) = 1 THEN
+   IF prefbit(9) THEN  '"Simulate Old Levelup bonus-accretion bug"
     DIM bonuses(statLast) as integer
     hero_total_equipment_bonuses hero_slot, bonuses()
     FOR statnum as integer = 0 TO statLast
@@ -891,11 +890,11 @@ SUB updatestatslevelup (byval hero_slot as integer, byval allowforget as bool)
    recompute_hero_max_stats hero_slot
 
    'stat restoration
-   IF readbit(gen(), genBits, 2) = 0 THEN '"Don't restore HP on level-up" OFF
+   IF prefbit(2) = NO THEN '"Don't restore HP on level-up" OFF
     '--HP restoration
     .stat.cur.hp = .stat.max.hp 'set external cur to external max
    END IF
-   IF readbit(gen(), genBits, 3) = 0 THEN '"Don't restore MP on level-up" OFF
+   IF prefbit(3) = NO THEN '"Don't restore MP on level-up" OFF
     '--MP restoration
     .stat.cur.mp = .stat.max.mp 'set external cur to external max
     reset_levelmp gam.hero(hero_slot)
@@ -938,7 +937,7 @@ SUB recompute_hero_max_stats(byval hero_slot as integer)
    .max.sta(statnum) = .base.sta(statnum) + bonuses(statnum)
    DIM cap as integer = gen(genStatCap + statnum)
    IF cap > 0 THEN .max.sta(statnum) = small(.max.sta(statnum), cap)
-   IF readbit(gen(), genBits2, 27) THEN
+   IF prefbit(43) THEN
     'Cap minimum stats at zero
     .max.sta(statnum) = large(.max.sta(statnum), 0)
     .cur.sta(statnum) = large(.cur.sta(statnum), 0)

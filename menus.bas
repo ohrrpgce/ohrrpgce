@@ -1688,7 +1688,7 @@ FUNCTION get_special_menu_caption(byval subtype as integer) as string
   CASE spOrder           : cap = readglobalstring(64, "Order", 10)
   CASE spTeam            : cap = readglobalstring(65, "Team", 10)
   CASE spTeamOrOrder
-   IF readbit(gen(), genBits, 5) THEN
+   IF prefbit(5) THEN  '"Hero Swapping Always Available"
     cap = readglobalstring(65, "Team", 10)
    ELSE
     cap = readglobalstring(64, "Order", 10)

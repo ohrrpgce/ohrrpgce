@@ -488,7 +488,7 @@ IF index >= maxScriptRunning THEN
 END IF
 
 IF double_trigger_check AND index > 0 THEN
- IF n = scriptinsts(index - 1).id AND readbit(gen(), genBits, 10) = 0 THEN
+ IF n = scriptinsts(index - 1).id AND prefbit(10) = NO THEN  '"Permit double-triggering of scripts" off
   'fail quietly
   '--scripterr "script " & n & " is already running"
   runscript = 2 '--quiet failure

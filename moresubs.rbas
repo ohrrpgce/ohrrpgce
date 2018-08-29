@@ -654,8 +654,7 @@ DO
  IF st.do_pick THEN
   st.do_pick = NO
   DO
-  IF readbit(gen(), genBits2, 4) THEN
-   '--If this bit is set, we refuse to reorder locked heroes
+  IF prefbit(20) THEN  '"Locked heroes can't be re-ordered"
    IF (gam.hero(st.party.pt).locked ANDALSO gam.hero(st.party.pt).id >= 0) ORELSE (st.swapme >= 0 ANDALSO gam.hero(st.swapme).locked ANDALSO gam.hero(st.swapme).id >= 0) THEN
     MenuSound gen(genCancelSFX)
     EXIT DO

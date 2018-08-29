@@ -387,7 +387,7 @@ FUNCTION script_keyval (byval key as integer, byval joynum as integer = 0) as in
   ret *= 3
  END IF
 
- IF readbit(gen(), genBits2, 8) = 0 THEN  'If improved scancodes not enabled
+ IF prefbit(24) = NO THEN  'If improved scancodes not enabled
   'The new scancodes separate some keys which previously had the same scancode.
   'For backwards compatibility (whether or not you recompile your scripts with
   'a new copy of scancodes.hsi) we make the newly separated scancodes behave
@@ -3832,9 +3832,9 @@ SUB script_functions(byval cmdid as integer)
    gen(genCameraArg1) = retvals(0)
   END IF
  CASE 570'--get active battle pause on all menus
-  scriptret = IIF(readbit(gen(), genBits, 13) <> 0, 1, 0)
+  scriptret = IIF(prefbit(13), 1, 0)  '"Pause on all battle menus & targeting"
  CASE 571'--set active battle pause on all menus
-  setbit gen(), genBits, 13, retvals(0)
+  setprefbit 13, retvals(0)
  CASE 572'--dissolve sprite
   IF valid_plotsprite(retvals(0)) THEN
    DissolveSpriteSlice plotslices(retvals(0)), retvals(1), retvals(2), retvals(3), retvals(4), retvals(5)
