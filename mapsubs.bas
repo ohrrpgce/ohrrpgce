@@ -1698,14 +1698,13 @@ DO
    ' TODO: hardcoding 4th frame, which is normally Down
    DIM hero_sprite as Frame ptr = st.hero_gfx.sprite + small(4, st.hero_gfx.sprite->arraylen - 1)
    frame_draw hero_sprite, st.hero_gfx.pal, screen_pos.x, screen_pos.y, , , dpage
-   textcolor uilook(uiText), 0
-   printstr "Hero", screen_pos.x, screen_pos.y + tileh \ 2, dpage
+   edgeprint "Hero", screen_pos.x, screen_pos.y + tileh \ 2, uilook(uiText), dpage
   END IF
  END IF
 
  '--point out overhead tiles so that you can see what's wrong if you accidentally use them
  IF st.editmode = tile_mode ANDALSO st.show_overhead_bit ANDALSO UBOUND(st.map.tiles) > 0 THEN
-  textcolor uilook(uiSelectedItem + tog), 0
+  DIM col as integer = uilook(uiSelectedItem + tog)
   FOR yidx as integer = 0 TO st.viewport.high \ 20 + 1
    FOR xidx as integer = 0 TO st.viewport.wide \ 20 + 1
     DIM tilex as integer = (st.mapx \ 20) + xidx
@@ -1714,7 +1713,7 @@ DO
      DIM walls as integer = readblock(st.map.pass, tilex, tiley)
      IF walls AND passOverhead THEN
       DIM screen_pos as XYPair = map_to_screen(st, tilesize * XY(tilex, tiley))
-      printstr "O", screen_pos.x + 11, screen_pos.y + 11, dpage
+      edgeprint "O", screen_pos.x + 11, screen_pos.y + 11, col, dpage
      END IF
     END IF
    NEXT xidx
@@ -1736,6 +1735,7 @@ DO
   ELSE
    col = uilook(uiMenuItem)
   END IF
+  DIM textcol as integer = uilook(uiSelectedItem + tog)
 
   'Palette used for st.arrow_icons
   DIM temppal as Palette16
@@ -1796,12 +1796,11 @@ DO
       IF (wallbits AND passWestWall)  THEN drawants vpages(dpage), pixelx       , pixely       , 1, 20
      END IF
 
-     textcolor uilook(uiSelectedItem + tog), 0
      ' Y positions
-     IF (wallbits AND passVehA) THEN printstr "A", pixelx + 2, pixely + 1, dpage
-     IF (wallbits AND passVehB) THEN printstr "B", pixelx + 11, pixely + 1, dpage
-     IF (wallbits AND passHarm) THEN printstr "H", pixelx + 2, pixely + 11, dpage
-     IF (wallbits AND passOverhead) THEN printstr "O", pixelx + 11, pixely + 11, dpage
+     IF (wallbits AND passVehA) THEN edgeprint "A", pixelx + 2, pixely + 1, textcol, dpage
+     IF (wallbits AND passVehB) THEN edgeprint "B", pixelx + 11, pixely + 1, textcol, dpage
+     IF (wallbits AND passHarm) THEN edgeprint "H", pixelx + 2, pixely + 11, textcol, dpage
+     IF (wallbits AND passOverhead) THEN edgeprint "O", pixelx + 11, pixely + 11, textcol, dpage
     END IF
    NEXT xidx
   NEXT yidx
@@ -2037,11 +2036,10 @@ DO
 
  IF st.editmode = tile_mode OR st.tool = clone_tool THEN
   'Also show the default walls option when using clone tool as it is affected by them
-  textcolor uilook(uiText), 0
   DIM defpass_msg as string = hilite("Ctrl+D: ")
   IF st.defpass = NO THEN defpass_msg &= "No "
   defpass_msg &= "Default Walls"
-  printstr defpass_msg, st.viewport_p2.x - 196, st.viewport_p2.y - 8, dpage, YES
+  edgeprint defpass_msg, st.viewport_p2.x - 196, st.viewport_p2.y - 8, uilook(uiText), dpage, YES
  END IF
 
  IF st.editmode = pass_mode THEN
@@ -2064,7 +2062,7 @@ DO
   END IF
 
   IF CheckZoneAtTile(st.map.zmap, zoneOneWayExit, st.x, st.y) THEN
-   printstr hilite("W") + ": one-way walls", st.viewport_p2.x - 196, st.viewport_p2.y - 8, dpage, YES
+   edgeprint hilite("W") + ": one-way walls", st.viewport_p2.x - 196, st.viewport_p2.y - 8, uilook(uiText), dpage, YES
   END IF
  END IF
 
@@ -2080,7 +2078,7 @@ DO
 
  IF st.editmode = foe_mode THEN
   textcolor uilook(uiText), uilook(uiHighlight)
-  printstr "Formation Set: " & st.cur_foe, 0, 16, dpage
+  printstr "Formation Set: " & st.cur_foe & IIF(st.cur_foe = 0, " (None)", ""), 0, 16, dpage
  END IF
 
  IF st.editmode = zone_mode THEN
@@ -2109,7 +2107,7 @@ DO
 
    IF st.tool <> clone_tool THEN
     'Don't overdraw "Default Walls"
-    printstr hilite("E") + "dit zone info", 116, pBottom, dpage, YES
+    edgeprint hilite("E") + "dit zone info", 116, pBottom, uilook(uiText), dpage, YES
    END IF
 
   ELSE
