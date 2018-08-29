@@ -1469,6 +1469,40 @@ SUB reload_general_reld()
  'Not bothering to reload: button codenames, purchases, default safe zone margin, arrowsets/gamepad settings
 END SUB
 
+'Live-previewing: Reload parts of a HeroState when its HeroDef may have changed
+'Currently almost nothing is reloaded!
+PRIVATE SUB update_hero_state(herost as HeroState, hero as HeroDef)
+ IF herost.hand_pos_overridden = NO THEN
+  FOR i as integer = 0 TO 1
+   herost.hand_pos(i) = hero.hand_pos(i)
+  NEXT
+ END IF
+
+ herost.rename_on_status = xreadbit(hero.bits(), 25)
+END SUB
+
+SUB reload_heroes_reld()
+ DIM doc as DocPtr
+ doc = LoadDocument(workingdir & SLASH & "heroes.reld")
+ IF doc = 0 THEN EXIT SUB  '???
+
+ 'Update each hero in the party (this time, we can skip over empty party slots)
+ FOR slot as integer = 0 TO UBOUND(gam.hero)
+  DIM id as integer = gam.hero(slot).id
+  IF id < 0 THEN CONTINUE FOR
+  DIM heronode as NodePtr = NodeByPath(doc, "/hero[" & id & "]")
+  IF heronode THEN
+   DIM hero as HeroDef
+   load_hero_from_reload hero, heronode
+   update_hero_state gam.hero(slot), hero
+  ELSE
+   debug "reload_heroes_reld: missing hero ID " & id
+  END IF
+ NEXT
+
+ FreeDocument doc
+END SUB
+
 'Ignores changes to tilesets. That is handled by try_reload_map_lump and happens only when .T changes.
 SUB reload_MAP_lump()
  WITH lump_reloading
@@ -1743,6 +1777,10 @@ SUB try_reload_lumps_anywhere ()
    handled = YES
 
   ELSEIF try_reload_sfx_lump(basename, extn) THEN                         'sfx##.xxx (sound effects)
+   handled = YES
+
+  ELSEIF modified_lumps[i] = "heroes.reld" THEN                           'HEROES.RELD
+   reload_heroes_reld
    handled = YES
 
   ELSEIF extn = "itm" THEN                                                '.ITM
