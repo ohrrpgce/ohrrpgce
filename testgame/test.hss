@@ -647,6 +647,26 @@ plotscript, resume obstruction test, begin
 end
 
 # In 'Testing scripts' menu
+plotscript, suspend npc walls test, begin
+  suspend npc walls
+end
+
+# In 'Testing scripts' menu
+plotscript, resume npc walls test, begin
+  resume npc walls
+end
+
+# In 'Testing scripts' menu
+plotscript, suspend npcs test, begin
+  suspend npcs
+end
+
+# In 'Testing scripts' menu
+plotscript, resume npcs test, begin
+  resume npcs
+end
+
+# In 'Testing scripts' menu
 plotscript, send me save, begin
   save in slot(32)
   send email(32)
