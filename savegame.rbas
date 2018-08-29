@@ -610,8 +610,7 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
        
        'Load defaults for hand position
        FOR j = 0 TO 1
-        .hand_pos(j).x = her.hand_pos(j).x
-        .hand_pos(j).y = her.hand_pos(j).y
+        .hand_pos(j) = her.hand_pos(j)
        NEXT j
        
        'Defaults for portrait
@@ -680,8 +679,12 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
        READNODE slot."hand" as hand
         WITHNODE hand."frame" as fr
          j = GetInteger(fr)
-         .hand_pos(j).x = fr."x"
-         .hand_pos(j).y = fr."y"
+         IF j >= 0 AND j <= UBOUND(.hand_pos) THEN
+          .hand_pos(j).x = fr."x"
+          .hand_pos(j).y = fr."y"
+         ELSE
+          rsav_warn "Invalid hand position frame num " & j
+         END IF
         END WITHNODE
        END READNODE
 
@@ -1812,10 +1815,9 @@ FOR i = 0 TO 40
   FOR j = 0 TO gen(genNumElements) - 1
    gam.hero(i).elementals(j) = her.elementals(j)
   NEXT
-  
+
   FOR j = 0 TO 1
-   gam.hero(i).hand_pos(j).x = her.hand_pos(j).x
-   gam.hero(i).hand_pos(j).y = her.hand_pos(j).y
+   gam.hero(i).hand_pos(j) = her.hand_pos(j)
   NEXT j
  END IF
 

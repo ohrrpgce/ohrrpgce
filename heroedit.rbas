@@ -1427,11 +1427,9 @@ SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
  frame_draw st.battle.sprite + frame, st.battle.pal, 250, 25,,,dpage
  frame = st.preview_walk_direction * 2 + tog \ 2
  frame_draw st.walkabout.sprite + frame, st.walkabout.pal, 230 + st.preview_walk_pos.x, 5 + st.preview_walk_pos.y, , , dpage
- DIM hand as XYPair
  DIM col as integer = uilook(uiSelectedItem + tog \ 2)
  IF st.previewframe <> -1 THEN
-  hand.x = her.hand_pos(st.previewframe).x
-  hand.y = her.hand_pos(st.previewframe).y
+  DIM hand as XYPair = her.hand_pos(st.previewframe)
   drawline 248 + hand.x,25 + hand.y,249 + hand.x, 25 + hand.y, col, dpage
   drawline 250 + hand.x,23 + hand.y,250 + hand.x, 24 + hand.y, col, dpage
   drawline 251 + hand.x,25 + hand.y,252 + hand.x, 25 + hand.y, col, dpage

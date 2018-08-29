@@ -122,8 +122,7 @@ WITH gam.hero(slot)
  .pal = her.walk_sprite_pal
  .def_wep = her.def_weapon + 1 'default weapon
  FOR i as integer = 0 to 1
-  .hand_pos(i).x = her.hand_pos(i).x
-  .hand_pos(i).y = her.hand_pos(i).y
+  .hand_pos(i) = her.hand_pos(i)
  NEXT i
  .portrait_pic = her.portrait
  .portrait_pal = her.portrait_pal

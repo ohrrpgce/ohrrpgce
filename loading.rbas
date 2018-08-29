@@ -1730,7 +1730,6 @@ SUB loadherodata (hero as herodef, byval index as integer)
  IF doc THEN  'file present
   DIM heronode as NodePtr = NodeByPath(doc, "/hero[" & index & "]")
   IF heronode THEN
-   LoadNode heronode
    load_hero_from_reload hero, heronode
    loaded = YES
   END IF
@@ -1746,7 +1745,7 @@ END SUB
 
 SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
  ClearHeroData hero
- free_hero_reld hero
+ LoadNode parent   'Efficiency
  DIM check_index as integer = 0
  READNODE parent, default
   WITHNODE parent."name" as heroname
