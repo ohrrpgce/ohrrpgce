@@ -466,7 +466,9 @@ Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as 
 	
 	f = fopen(fil, "rb")
 	if f = 0 then
-		debug "failed to open file " & fil
+		if (options and optIgnoreMissing) = 0 then
+			debug "failed to open file " & fil
+		end if
 		return null
 	end if
 	

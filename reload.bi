@@ -38,7 +38,8 @@ END ENUM
 
 ENUM LoadOptions
 	optNone = 0
-	optNoDelay = 1
+	optNoDelay = 1        'Load whole file into memory immediately
+	optIgnoreMissing = 2  'Don't print an error if the file is missing
 END ENUM
 
 TYPE DocPtr as Doc ptr

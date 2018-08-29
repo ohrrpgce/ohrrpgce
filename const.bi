@@ -33,7 +33,7 @@ CONST CURRENT_RPG_VERSION = 21
 ' 18 - beelzebufo turn-based support
 ' 19 - beelzebufo replaced .DT0 with heroes.reld
 ' 20 - callipygous release. Added general.reld (including new version system) and maxScriptCmdID checking.
-' 21 - fufluns replaced all .PT# and defpal#.bin with .rgfx
+' 21 - fufluns replaced all .PT# and .MXS with .rgfx
 
 CONST CURRENT_RGFX_VERSION = 1
 ' Version number embedded in each .rgfx file.
