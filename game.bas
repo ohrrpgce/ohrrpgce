@@ -3231,8 +3231,8 @@ END SUB
 FUNCTION find_doorlink (byref thisdoorlink as DoorLink, byval door_id as integer, byval map_id as integer=-1) as bool
  'populates the thisdoorlink object
  'Returns YES on success, or NO if no links were found or the door doesn't exist
- '(even if there is a doorlink defined for a non-existent door).
- 'If map_id is -1 then use the current map
+ '(Returns YES even if there is a doorlink defined for a non-existent dest door!)
+ 'map_id/door_id is the source door. If map_id is -1 then use the current map
  DIM thisdoor as Door
  IF map_id = -1 THEN map_id = gam.map.id
  IF door_id < 0 ORELSE door_id > maxDoorsPerMap THEN
@@ -3281,8 +3281,9 @@ FUNCTION find_doorlink_id (byval door_id as integer, thisdoor as Door, door_link
 END FUNCTION
 
 SUB usedoor (door_id as integer, fadescreen as bool = YES)
- DIM dlink as doorlink
+ DIM dlink as DoorLink
  IF find_doorlink(dlink, door_id) = NO THEN EXIT SUB
+ 'FIXME: we don't check whether dlink.dest exists!
 
  WITH dlink
   gam.map.same = (.dest_map = gam.map.id)
