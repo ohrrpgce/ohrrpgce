@@ -972,9 +972,14 @@ DO
    'Try to animate a tile
    FOR i as integer = 0 TO 1
     IF keyval(scAlt) = 0 ANDALSO keyval(scShift) = 0 ANDALSO keyval(sc1 + i) > 1 THEN 'animate tile
+
      DIM as integer oldtile, newtile
-     newtile = -1
      oldtile = readblock(st.map.tiles(st.layer), st.x, st.y)
+
+     'Don't animate if it would accomplish nothing
+     DIM pattern as integer = tile_anim_pattern_number(oldtile)
+     IF pattern = -1 ANDALSO tile_anim_is_empty(i, st.tilesets(st.layer)->tastuf()) THEN CONTINUE FOR
+
      'Returns -1 if can't be done
      newtile = tile_anim_animate_tile(oldtile, i, st.tilesets(st.layer)->tastuf())
      IF newtile = oldtile THEN
@@ -5317,8 +5322,9 @@ SUB mapedit_pickblock(st as MapEditState)
   END IF
   DIM infotext as string
   infotext = "Tile " & st.usetile(st.layer)
-  IF st.usetile(st.layer) >= 160 THEN
-   infotext & = !"\nAnimation set " & ((st.usetile(st.layer) - 160) \ 48)
+  DIM animpattern as integer = tile_anim_pattern_number(st.usetile(st.layer))
+  IF animpattern >= 0 THEN
+   infotext & = !"\nAnimation set " & animpattern
   END IF
   edgeprint infotext, 0, infoline_y, uilook(uiText), vpage, YES, YES
   infotext = " Hold/drag to select a rectangle"
