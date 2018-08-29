@@ -3454,13 +3454,13 @@ SUB script_functions(byval cmdid as integer)
  CASE 538 '--get default hero hand x
   IF valid_hero_party(retvals(0)) THEN
    IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
-    scriptret = GetHeroHandPos(gam.hero(retvals(0)).id, retvals(1), NO)
+    scriptret = GetHeroHandPos(gam.hero(retvals(0)).id, retvals(1)).x
    END IF
   END IF
  CASE 539 '--get default hero hand y
   IF valid_hero_party(retvals(0)) THEN
    IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
-    scriptret = GetHeroHandPos(gam.hero(retvals(0)).id, retvals(1), YES)
+    scriptret = GetHeroHandPos(gam.hero(retvals(0)).id, retvals(1)).y
    END IF
   END IF
  CASE 540'--check onetime

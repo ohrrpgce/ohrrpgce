@@ -2123,15 +2123,46 @@ SUB create_blank_hero_reld(hero as HeroDef)
   SetChildNode(hero.reld, "stat_options")
 END SUB
 
-
-Function GetHeroHandPos(byval hero_id as integer, byval which_frame as integer, byval isY as integer) as integer
+FUNCTION GetHeroHandPos(byval hero_id as integer, byval which_frame as integer) as XYPair
  'which-frame is 0 for attack A and 1 for attack B
- 'isY is NO for x and YES for y
+
+ DIM her as HeroDef
+ loadherodata her, hero_id
+ RETURN her.hand_pos(which_frame)
+
+ /' The following code only loads the hand data, nothing else, but the heroes.reld
+  ' code hasn't been tested. I don't think the risk of bugs and maintenance burden
+  ' is worth the very minor efficiency gain.
+ DIM ret as XYPair
+
+ 'First try new heroes.reld lump
+ DIM filename as string = workingdir & SLASH & "heroes.reld"
+ DIM doc as DocPtr
+ IF isfile(filename) THEN
+  doc = LoadDocument(filename)
+  IF doc THEN
+   DIM path as string
+   path = "/hero[" & hero_id & "]/appearance/battle/" & IIF(which_frame = 0, "hand_a", "hand_b")
+   DIM handnode as NodePtr = NodeByPath(doc, path)
+   IF handnode THEN
+    ret.x = handnode."x"
+    ret.y = handnode."y"
+   END IF
+   FreeDocument doc
+   RETURN ret
+  END IF
+ END IF
+
+ 'If the hero doesn't exist in heroes.reld fallback to .DT0 (loadherodata does the same)
+
  DIM fh as integer
  OPENFILE(game & ".dt0", FOR_BINARY, fh)
- GetHeroHandPos = ReadShort(fh,hero_id * getbinsize(binDT0) + 595 + which_frame * 4 + iif(isY,1,0) * 2)
+ DIM off as integer = hero_id * getbinsize(binDT0) + 595 + which_frame * 4
+ ret = XY(ReadShort(fh, off), ReadShort(fh, off + 2))
  CLOSE #FH
-End Function
+ RETURN ret
+ '/
+END FUNCTION
 
 '==========================================================================================
 '                                         Vehicles

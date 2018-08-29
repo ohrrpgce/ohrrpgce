@@ -89,7 +89,7 @@ declare Sub SaveStats2(byval fh as integer, lev0 as stats ptr, levMax as stats p
 declare sub loadherodata (hero as herodef, byval index as integer)
 declare sub saveherodata (hero as herodef, byval index as integer)
 declare sub ClearHeroData (hero as HeroDef)
-declare function GetHeroHandPos(byval hero_id as integer, byval which_frame as integer, byval isy as integer) as integer
+declare function GetHeroHandPos(byval hero_id as integer, byval which_frame as integer) as XYPair
 
 declare Sub LoadVehicle OVERLOAD (file as string, vehicle as VehicleData, byval record as integer)
 declare Sub LoadVehicle OVERLOAD (file as string, veh() as integer, vehname as string, byval record as integer)

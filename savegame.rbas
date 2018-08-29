@@ -1159,8 +1159,7 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
     ch = SetChildNode(slot, "hand")
     DIM default_pos as XYPair
     FOR j as integer = 0 TO 1
-     default_pos.x = GetHeroHandPos(gam.hero(i).id, j, NO)
-     default_pos.y = GetHeroHandPos(gam.hero(i).id, j, YES)
+     default_pos = GetHeroHandPos(gam.hero(i).id, j)
      IF .hand_pos(j).x <> default_pos.x ORELSE .hand_pos(j).y <> default_pos.y THEN
       n = AppendChildNode(ch, "frame", j)
       SetChildNode(n, "x", .hand_pos(j).x)
