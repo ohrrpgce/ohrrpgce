@@ -94,9 +94,6 @@ FOR i as integer = 0 TO gen(genNumElements) - 1
  gam.hero(slot).elementals(i) = her.elementals(i)
 NEXT
 
-'--mutable hero bits (not actually mutable)
-gam.hero(slot).rename_on_status = readbit(her.bits(), 0, 25)
-
 '--setup experience
 gam.hero(slot).exp_mult = her.exp_mult
 gam.hero(slot).lev = her.def_level
@@ -129,8 +126,10 @@ WITH gam.hero(slot)
  .portrait_pal = her.portrait_pal
 END WITH
 
-'--read hero's name (doing this last for no real reason)
+'--name
 gam.hero(slot).name = her.name
+gam.hero(slot).rename_on_status = xreadbit(her.bits(), 25)
+
 '--if renaming is permitted, do it
 IF readbit(her.bits(), 0, 24) THEN
  '--add-hero rename is allowed
@@ -1417,7 +1416,7 @@ FOR i as integer = 0 TO 40
  gam.hero(i).pic = 0
  gam.hero(i).pal = 0
  gam.hero(i).def_wep = 0
- gam.hero(i).rename_on_status = 0
+ gam.hero(i).rename_on_status = NO
  'Hero elementals are actually initialised (to 1 = 100% damage) in addhero.
  FOR j as integer = 0 TO maxElements - 1
   gam.hero(i).elementals(j) = .0f

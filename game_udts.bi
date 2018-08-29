@@ -65,7 +65,7 @@ TYPE HeroState
  pal as integer
  portrait_pic as integer
  portrait_pal as integer
- rename_on_status as bool  'Renameable in status menu
+ rename_on_status as bool     'Renameable in status menu. Not saved.
  elementals(maxElements - 1) as single
  hand_pos(1) as XYPair
  hand_pos_overridden as bool  'YES if hand_pos has been set by a script, so should be saved and not reloaded

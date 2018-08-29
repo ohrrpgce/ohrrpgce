@@ -690,9 +690,11 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
         END WITHNODE
        END READNODE
 
-       ' Abandoned
+       ' Abandoned data no longer loaded (obsolete)
        slot."rename_on_add".ignore
+       slot."rename_on_status".ignore
        slot."hide_empty_lists".ignore
+       slot."battle_menus".ignore
 
        READNODE slot."elements" as ch
         ch."weak".ignore
@@ -705,12 +707,7 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
           .elementals(j) = n."damage".float.default(1.0)
          END IF
         END WITHNODE
-       END READNODE        
-
-       .rename_on_status = slot."rename_on_status".exists
-     
-       'This node is obsolete. Don't use it.
-       slot."battle_menus".ignore
+       END READNODE
 
        READNODE slot."spell_lists".warn as ch
         WITHNODE ch."list" as n
@@ -1221,8 +1218,6 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
      n = AppendChildNode(ch, "element", j)
      SetChildNode(n, "damage", cast(double, .elementals(j)))
     NEXT j
- 
-    IF .rename_on_status THEN SetChildNode(slot, "rename_on_status")
    END IF
   END WITH
   
@@ -1801,7 +1796,7 @@ FOR i = 0 TO 40
  IF gam.hero(i).id >= 0 THEN
   loadherodata her, gam.hero(i).id
 
-  gam.hero(i).rename_on_status = readbit(her.bits(), 0, 25)
+  gam.hero(i).rename_on_status = xreadbit(her.bits(), 25)
 
   '--fix appearance settings
   IF picpalmagicnum <> 4444 THEN
