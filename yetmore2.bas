@@ -1390,6 +1390,13 @@ SUB receive_file_updates ()
    DIM palnum as integer = str2int(pieces(1))
    palette16_update_cache(game + ".pal", palnum)
 
+  ELSEIF pieces(0) = "SCREEN" THEN  'Write a screenshot to file every tick
+   IF pieces(1) = "STOP" THEN
+    stop_recording_video
+   ELSE
+    start_forwarding_screen MID(line_in, 8)
+   END IF
+
   ELSEIF pieces(0) = "Q" THEN   'quit!
    music_stop
    'DIR might be holding a handle for the last directory on which it was run, which could prevent

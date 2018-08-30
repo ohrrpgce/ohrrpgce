@@ -27,6 +27,10 @@ using Reload
  #include "gglobals.bi"  'For carray
 #endif
 
+#ifdef IS_CUSTOM
+ #include "cglobals.bi"  'For slave_channel
+#endif
+
 #ifdef __FB_ANDROID__
 'This is gfx_sdl specific, of course, but a lot of the stuff in our fork of the android fork
 'of SDL 1.2 would more make sense to live in totally separate java files, which is something we will
@@ -96,8 +100,6 @@ declare sub hide_overlays ()
 declare sub update_fps_counter (skipped as bool)
 declare sub allmodex_controls ()
 declare sub replay_controls ()
-
-declare sub stop_recording_video()
 
 declare function time_draw_calls_from_finish() as bool
 
@@ -272,25 +274,35 @@ dim shared replay as ReplayState
 dim shared record as RecordState
 dim shared macrofile as string
 
-'Singleton type for recording a .gif.
+'Abstract base class for recording a video (eg .gif)
 type VideoRecorder extends Object
 	declare virtual property active() as bool
 	declare abstract sub stop()
-	declare abstract sub record_frame(fr as Frame ptr, palette() as RGBcolor)
+	declare abstract sub record_frame(fr as Frame ptr, pal() as RGBcolor)
 end type
 
-'Singleton type for recording a .gif.
 type GIFRecorder extends VideoRecorder
 	'active as bool
 	writer as GifWriter
 	fname as string
+	secondscreen as string           'When recording combined editor+player .gif: path to player screen file
 	last_frame_end_time as double    'Nominal time when the delay for the last frame we wrote ends
+
+	declare constructor(outfile as string, secondscreen as string = "")
+	declare property active() as bool
+	declare sub stop()
+	declare sub record_frame(fr as Frame ptr, pal() as RGBcolor)
+	declare function calc_delay() as integer
+end type
+
+'Class for saving a screenshot to a certain file every frame
+type ScreenForwarder extends VideoRecorder
+	fname as string
 
 	declare constructor(outfile as string)
 	declare property active() as bool
 	declare sub stop()
-	declare sub record_frame(fr as Frame ptr, palette() as RGBcolor)
-	declare function calc_delay() as integer
+	declare sub record_frame(fr as Frame ptr, pal() as RGBcolor)
 end type
 
 dim shared recordvid as VideoRecorder ptr
@@ -6557,6 +6569,7 @@ end function
 '==========================================================================================
 
 
+'Indexed by ImageFileTypes
 dim shared image_type_strings(...) as zstring ptr = {@"Invalid", @"BMP", @"GIF", @"PNG", @"JPEG"}
 
 function image_file_type (filename as string) as ImageFileTypes
@@ -6983,29 +6996,40 @@ function GIFRecorder.calc_delay() as integer
 	return ret
 end function
 
-sub start_recording_gif()
+sub start_recording_gif(secondscreen as string = "")
 	stop_recording_video()
-	recordvid = new GIFRecorder(absolute_path(next_unused_screenshot_filename() + ".gif"))
+	recordvid = new GIFRecorder(absolute_path(next_unused_screenshot_filename() + ".gif"), secondscreen)
 end sub
 
-constructor GIFRecorder(outfile as string)
+constructor GIFRecorder(outfile as string, secondscreen as string = "")
 	dim gifpal as GifPalette
 	' Use master() rather than actual palette (intpal()), because
 	' intpal() is affected by fades. We want the master palette,
 	' because that's likely to be the palette for most frames.
 	GifPalette_from_pal gifpal, master()
 	this.fname = outfile
+	this.secondscreen = secondscreen
 	dim file as FILE ptr = fopen(this.fname, "wb")
 	if GifBegin(@this.writer, file, vpages(vpage)->w, vpages(vpage)->h, 6, NO, @gifpal) then
 		show_overlay_message "Ctrl-F12 to stop recording", 1.
 		this.last_frame_end_time = timer
+		debuginfo "Starting to record to " & outfile
 	else
 		show_overlay_message "Can't record, GifBegin failed"
+		debug "GifBegin failed"
 	end if
 end constructor
 
 sub GIFRecorder.stop()
 	if not this.active then exit sub
+
+	if len(this.secondscreen) then
+		#ifdef IS_CUSTOM
+			debug "Asking Game to stop writing to " & this.secondscreen
+			channel_write_line(slave_channel, "SCREEN STOP")
+		#endif
+		safekill this.secondscreen  'Both Game and Custom will attempt to delete the file
+	end if
 
 	if GifEnd(@this.writer) = NO then
 		show_overlay_message "Recording failed"
@@ -7031,6 +7055,10 @@ sub GIFRecorder.stop()
 	show_overlay_message msg, 1.2
 end sub
 
+function recording_gif() as bool
+	return recordvid andalso recordvid->active andalso *recordvid is GIFRecorder
+end function
+
 'Perform the effect of pressing Ctrl-F12: start or stop recording a gif
 sub toggle_recording_gif()
 	if recordvid andalso recordvid->active then
@@ -7046,6 +7074,33 @@ private sub _gif_pitch_fail(what as string)
 	recordvid->stop()
 end sub
 
+'Stack two images, one of them loaded from a file; our on top and other underneath
+private function combined_screen(our as Frame ptr, our_pal() as RGBcolor, other_path as string) as Frame ptr
+	'Since the editor and player palettes might be different, or one might be running
+	'at 32 bitdepth, easiest to always convert to 32bit.
+	dim other as Surface ptr
+	if real_isfile(other_path) then  'Avoid errors
+		other = image_import_as_surface(other_path, YES)  'always_32bit=YES
+	end if
+	if other = NULL then
+		'Maybe the game has quit, or hasn't started yet.
+		'The bottom of the image will simply be blank while this is the case.
+		debuginfo "combined_screen: couldn't read file"
+		return NULL
+	end if
+
+	dim ret as Frame ptr
+	ret = frame_new(large(our->w, other->width), our->h + other->height, 1, NO, NO, YES)
+	frame_clear ret, uilook(uiBackground)
+	frame_draw our, our_pal(), , 0, 0, , NO, ret
+	dim other_fr as Frame ptr = frame_with_surface(other)  'TODO: get rid of this
+	frame_draw other_fr, , 0, our->h, , NO, ret
+	frame_unload @other_fr
+
+	gfx_surfaceDestroy(@other)
+	return ret
+end function
+
 ' Called with every frame that should be included in any ongoing gif recording
 sub GIFRecorder.record_frame(fr as Frame ptr, pal() as RGBcolor)
 	if this.active = NO then exit sub
@@ -7055,7 +7110,15 @@ sub GIFRecorder.record_frame(fr as Frame ptr, pal() as RGBcolor)
 
 	dim ret as bool
 	dim bits as integer
+	dim combined as Frame ptr
+
+	if len(this.secondscreen) then
+		combined = combined_screen(fr, pal(), this.secondscreen)
+		if combined then fr = combined
+	end if
+
 	dim sf as Surface ptr = fr->surf
+
 	if sf andalso sf->format = SF_32bit then
 		bits = 32
 		if sf->width <> sf->pitch then _gif_pitch_fail "32-bit Surface"
@@ -7078,6 +7141,7 @@ sub GIFRecorder.record_frame(fr as Frame ptr, pal() as RGBcolor)
 		show_overlay_message "Recording failed (GifWriteFrame " & bits & ")"
 		debug "GifWriteFrame failed, bits = " & bits
 	end if
+	frame_unload @combined
 end sub
 
 
@@ -7233,6 +7297,36 @@ private sub snapshot_check()
 	' Normally setkeys happens at the beginning of a tick and setvispage at the end,
 	' so this does no damage.
 	real_clear_newkeypress scF12
+end sub
+
+
+'==========================================================================================
+'                                    Screen forwarding
+'==========================================================================================
+
+
+constructor ScreenForwarder(outfile as string)
+	fname = outfile
+end constructor
+
+property ScreenForwarder.active() as bool
+	return LEN(this.fname) <> 0
+end property
+
+sub ScreenForwarder.stop()
+	if this.active then
+		safekill this.fname
+		this.fname = ""
+	end if
+end sub
+
+sub ScreenForwarder.record_frame(fr as Frame ptr, pal() as RGBcolor)
+	frame_export_image(vpages(getvispage), this.fname, pal())
+end sub
+
+sub start_forwarding_screen(outfile as string)
+	stop_recording_video
+	recordvid = new ScreenForwarder(outfile)
 end sub
 
 

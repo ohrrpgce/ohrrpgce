@@ -365,7 +365,11 @@ DECLARE SUB palette_from_16x16_image (filename as string, pal() as RGBcolor)
 
 DECLARE FUNCTION screenshot(basename as string = "") as string
 DECLARE SUB bmp_screenshot(basename as string)
+DECLARE SUB start_recording_gif(secondscreen as string = "")
+DECLARE FUNCTION recording_gif() as bool
 DECLARE SUB toggle_recording_gif()
+DECLARE SUB start_forwarding_screen(outfile as string)
+DECLARE SUB stop_recording_video()
 
 DECLARE SUB frame_export_bmp4 (f as string, fr as Frame Ptr, maspal() as RGBcolor, pal as Palette16 ptr)
 DECLARE SUB frame_export_bmp8 (f as string, fr as Frame Ptr, maspal() as RGBcolor)

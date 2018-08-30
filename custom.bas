@@ -809,6 +809,15 @@ SUB Custom_volume_menu
  ClearMenuData menu
 END SUB
 
+'Record a combined editor+player gif
+SUB start_recording_combined_gif()
+ IF slave_channel = NULL_CHANNEL THEN EXIT SUB
+ DIM screenfile as string = tmpdir & "screenshare" & randint(100000) & ".bmp"
+ channel_write_line(slave_channel, "SCREEN " & screenfile)
+ start_recording_gif screenfile
+ debuginfo "...recording with secondscreen " & screenfile
+END SUB
+
 TYPE CustomGlobalMenu
  items(any) as string
  item_codes(any) as integer
@@ -836,6 +845,13 @@ SUB Custom_global_menu
  menu.append 7, "Zoom 4x"
  menu.append 8, "Switch graphics backend (Ctrl-F8)"
  'menu.append 9, "Music backend settings"
+ IF slave_channel <> NULL_CHANNEL THEN
+  IF recording_gif() THEN
+   menu.append 12, "Stop recording .gif video (Ctrl-F12)"
+  ELSE
+   menu.append 11, "Record combined editor+player .gif"
+  END IF
+ END IF
 
  DIM choice as integer
  choice = multichoice("Global Editor Options (F9)", menu.items())
@@ -864,6 +880,10 @@ SUB Custom_global_menu
  ELSEIF choice = 10 THEN
   'Warning: data in the current menu may not be saved! So figured it better to avoid this.
   save_current_game
+ ELSEIF choice = 11 THEN
+  start_recording_combined_gif
+ ELSEIF choice = 12 THEN
+  stop_recording_video
  END IF
 END SUB
 

@@ -51,6 +51,8 @@ June (mumble) 2018 [Fufluns]
       sequels, variants (eg a Hardtype) or have bonus content) [Ralph]
     * Screenshots saved as PNGs instead of BMPs (but when using gfx_directx
       the Screenshot setting in the Options menu has priority) [Ralph]
+    * While using Test Game, a "Record combined editor+player .gif" option
+      appears in the editor's F9 Global Options menu [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]
