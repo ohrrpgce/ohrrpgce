@@ -809,33 +809,42 @@ SUB Custom_volume_menu
  ClearMenuData menu
 END SUB
 
+TYPE CustomGlobalMenu
+ items(any) as string
+ item_codes(any) as integer
+ DECLARE SUB append(code as integer, text as string)
+END TYPE
+
+SUB CustomGlobalMenu.append(code as integer, text as string)
+ int_array_append item_codes(), code
+ str_array_append items(), text
+END SUB
+
 ' Accessible with F8 if we are editing a game
 SUB Custom_global_menu
- REDIM menu(8) as string
- menu(0) = "Reimport scripts"
- menu(1) = "Test Game"
- menu(2) = "Volume"
- menu(3) = "Macro record/replay (Ctrl-F11)"
- menu(4) = "Zoom 1x"
- menu(5) = "Zoom 2x"
- menu(6) = "Zoom 3x"
- menu(7) = "Zoom 4x"
- menu(8) = "Switch graphics backend (Ctrl-F8)"
- 'menu(8) = "Music backend settings"
- IF editing_a_game = NO THEN
-  str_array_pop menu(), 1
-  str_array_pop menu(), 0
+ DIM menu as CustomGlobalMenu
+ IF editing_a_game THEN
+  menu.append 0, "Reimport scripts"
+  menu.append 1, "Test Game"
+  'menu.append 10, "Save Game"
  END IF
+ menu.append 2, "Volume"
+ menu.append 3, "Macro record/replay (Ctrl-F11)"
+ menu.append 4, "Zoom 1x"
+ menu.append 5, "Zoom 2x"
+ menu.append 6, "Zoom 3x"
+ menu.append 7, "Zoom 4x"
+ menu.append 8, "Switch graphics backend (Ctrl-F8)"
+ 'menu.append 9, "Music backend settings"
 
- DIM choice as integer = multichoice("Global Editor Options (F9)", menu())
- IF editing_a_game = NO AND choice >= 0 THEN choice += 2
+ DIM choice as integer
+ choice = multichoice("Global Editor Options (F9)", menu.items())
+ IF choice > -1 THEN choice = menu.item_codes(choice)
+
  IF choice = 0 THEN
   reimport_previous_scripts
  ELSEIF choice = 1 THEN
   spawn_game_menu(keyval(scShift) > 0, keyval(scCtrl) > 0)
- ' ELSEIF choice = 2 THEN
- '  'Warning: data in the current menu may not be saved! So figured it better to avoid this.
- '  save_current_game
  ELSEIF choice = 2 THEN
   Custom_volume_menu
  ELSEIF choice = 3 THEN
@@ -852,6 +861,9 @@ SUB Custom_global_menu
   gfx_backend_menu
  ELSEIF choice = 9 THEN
   music_backend_menu
+ ELSEIF choice = 10 THEN
+  'Warning: data in the current menu may not be saved! So figured it better to avoid this.
+  save_current_game
  END IF
 END SUB
 
