@@ -9400,7 +9400,13 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<command id="autosave">
 			<canon>autosave</canon>
 			<shortname>autosave</shortname>
-			<description>Transparently saves the game to the last save slot saved to in the save menu, or if the game has not been saved yet, calls <ref>savemenu</ref>. Returns the number of the last save slot, or if the user cancelled the save menu, returns false.</description>
+			<description>
+				Transparently saves the game to the last save slot saved to or loaded from
+				(see <ref>lastsaveslot</ref>),
+				or if playing a new game which has not been saved yet, calls <ref>savemenu</ref>.
+				Returns the number of the save slot saved to, or if the user cancelled the save menu,
+				returns false.
+			</description>
 			<seealso>
 				<ref>lastsaveslot</ref>
 			</seealso>
@@ -9479,17 +9485,25 @@ end</example>
 			<canon>last save slot</canon>
 			<shortname>last save slot</shortname>
 			<description>
-				Returns the last save slot saved to using the save menu,
-				if the player hasn't saved the game since starting/loading the game.
-				Otherwise, returns the save slot the game was loaded from,
+				Returns the last save slot either loaded or saved to (whichever happened last)
 				or <ref>false</ref> if this is an unsaved new game.
 				Save slots are numbered starting at 1.
-				<ref>saveinslot</ref> does not change the value returned by this command!
-				If you need it to, you need to track it with a global variable.
+				<lb/>
+				<ref>savemenu</ref><tt>(false)</tt> and <ref>loadmenu</ref><tt>(false)</tt>
+				(which show the menus but don't actually save or load) don't change the last save slot.
+				<lb/>
+				<tt>last save slot</tt> returns the last save slot used, even if the save
+				in it has since been deleted (e.g. with <ref>deletesave</ref>).
+				<warn>
+					In versions before Callipygous, <ref>saveinslot</ref> didn't change
+					the value returned by <tt>last save slot</tt>, but
+					<ref>savemenu</ref><tt>(false)</tt> and <ref>loadmenu</ref><tt>(false)</tt>
+					did.
+				</warn>
 			</description>
 			<seealso>
+				<ref>autosave</ref>
 				<ref>saveinslot</ref>
-				<ref>savemenu</ref>
 			</seealso>
 		</command>
 		<command id="saveslotused">
