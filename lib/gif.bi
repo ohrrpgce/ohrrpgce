@@ -12,11 +12,7 @@ type GifRGBA as RGBcolor
 
 type GifPalette
 	bitDepth as long
-	r(0 to 255) as ubyte
-	g(0 to 255) as ubyte
-	b(0 to 255) as ubyte
-	treeSplitElt(0 to 255) as ubyte
-	treeSplit(0 to 255) as ubyte
+	colors(0 to 255) as GifRGBA
 end type
 
 type GifWriter
@@ -30,11 +26,13 @@ type GifWriter
         currentWidth as integer
         currentHeight as integer
         sizeChanged as boolean
+        lastFramePos as clong
 end type
 
 declare function GifBegin(byval writer as GifWriter ptr, byval file as FILE ptr, byval width as ulong, byval height as ulong, byval delay as ulong, byval transparent as boolean = false, byval globalPal as const GifPalette ptr = NULL) as bool
 declare function GifWriteFrame(byval writer as GifWriter ptr, byval image as const GifRGBA ptr, byval width as ulong, byval height as ulong, byval delay as ulong, byval bitDepth as long = 8, byval dither as boolean = false) as bool
 declare function GifWriteFrame8(byval writer as GifWriter ptr, byval image as const ubyte ptr, byval width as ulong, byval height as ulong, byval delay as ulong, byval pal as const GifPalette ptr = NULL) as bool
+declare sub GifOverwriteLastDelay(byval writer as GifWriter ptr, byval delay as ulong)
 declare function GifEnd(byval writer as GifWriter ptr) as bool
 
 end extern

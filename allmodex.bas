@@ -6889,32 +6889,41 @@ end function
 '                                           GIF
 '==========================================================================================
 
+'Number of bits needed for this many colors.
+function bitdepth_needed(colors as integer) as integer
+	dim bits as integer = 0
+	colors -= 1
+	while colors > 0
+		bits += 1
+		colors shr= 1
+	wend
+	return bits
+end function
 
 ' Create a GifPalette from either the master palette or a Palette16 mapped onto
 ' a master palette, as needed for calling lib/gif.bi functions directly
 sub GifPalette_from_pal (byref gpal as GifPalette, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)
 	if pal then
-		' Avoid using color 0 (transparency), which gets remapped to the nearest match
-		' by using a colors 1-16 in a 32 colour palette
-		gpal.bitDepth = 5
-		for idx as integer = 0 to 16
-			' Color 0 = 16
-			dim masteridx as integer = pal->col(idx MOD 16)
-			'if masteridx = 0 then
-                        '        masteridx = uilook(uiBackground)
-			'end if
-			gpal.r(idx) = masterpal(masteridx).r
-			gpal.g(idx) = masterpal(masteridx).g
-			gpal.b(idx) = masterpal(masteridx).b
+		' Color 0 used for transparency by gif encoder so the palette's
+		' color 0 gets remapped to the nearest match, so if possible add
+		' an extra color to end of palette to provide exact match
+		dim palcolors as integer = pal->numcolors
+		if pal->numcolors < 256 then
+			palcolors += 1
+		end if
+		gpal.bitDepth = bitdepth_needed(palcolors)
+
+		for idx as integer = 0 to palcolors - 1
+			' The extra color, if any, is color 0
+			dim masteridx as integer = pal->col(iif(idx = pal->numcolors, 0, idx))
+			gpal.colors(idx) = masterpal(masteridx)
 		next
 	else
 		' Again color 0 will be remapped, but with 256 colours to choose from there's likely
 		' to be a good match
 		gpal.bitDepth = 8
 		for idx as integer = 0 to 255
-			gpal.r(idx) = masterpal(idx).r
-			gpal.g(idx) = masterpal(idx).g
-			gpal.b(idx) = masterpal(idx).b
+			gpal.colors(idx) = masterpal(idx)
 		next
 	end if
 end sub

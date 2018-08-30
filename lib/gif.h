@@ -91,7 +91,7 @@ struct GifStats {
 // Layout of a pixel for GifWriteFrame. You can reorder this, but must be the same as GifRGBA32.
 struct GifRGBA
 {
-    uint8_t r, g, b, a;
+    uint8_t b, g, r, a;
 
     uint8_t& comps(int comp)
     {
@@ -101,7 +101,7 @@ struct GifRGBA
 
 struct GifRGBA32
 {
-    int32_t r, g, b, a;
+    int32_t b, g, r, a;
 };
 
 struct GifPalette
