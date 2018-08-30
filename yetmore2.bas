@@ -1370,26 +1370,27 @@ SUB receive_file_updates ()
  REDIM pieces() as string
 
  WHILE channel_input_line(master_channel, line_in)
-  debuginfo "msg from Custom: " & RTRIM(line_in)
+  debuginfo "msg: " & line_in
+  split RTRIM(line_in), pieces(), " "
 
-  IF LEFT(line_in, 2) = "M " THEN  'file modified/created/deleted
+  IF pieces(0) = "M" THEN  'file modified/created/deleted
    line_in = MID(line_in, 3)
    DIM at as integer = v_find(modified_lumps, line_in)
    IF at = -1 THEN
     v_append modified_lumps, line_in
    END IF
 
-  ELSEIF LEFT(line_in, 3) = "CM " THEN  'please close music file
-   DIM songnum as integer = str2int(MID(line_in, 4))
+  ELSEIF pieces(0) = "CM" THEN  'please close music file
+   DIM songnum as integer = str2int(pieces(1))
    IF songnum = presentsong THEN music_stop
    'Send confirmation
    channel_write_line(master_channel, line_in)
 
-  ELSEIF LEFT(line_in, 4) = "PAL " THEN  'palette changed (path of least resistance...)
-   DIM palnum as integer = str2int(MID(line_in, 5))
+  ELSEIF pieces(0) = "PAL" THEN  'palette changed (path of least resistance...)
+   DIM palnum as integer = str2int(pieces(1))
    palette16_update_cache(game + ".pal", palnum)
 
-  ELSEIF LEFT(line_in, 1) = "Q" THEN   'quit!
+  ELSEIF pieces(0) = "Q" THEN   'quit!
    music_stop
    'DIR might be holding a handle for the last directory on which it was run, which could prevent
    'Custom from deleting workingdir. So reset it.
@@ -1402,7 +1403,7 @@ SUB receive_file_updates ()
    channel_close(master_channel)
    EXIT WHILE
 
-  ELSEIF LEFT(line_in, 2) = "P " THEN   'ping
+  ELSEIF pieces(0) = "P" THEN   'ping
 
   ELSE
    debug "Did not understand message from Custom: " & line_in
@@ -1781,6 +1782,10 @@ SUB try_reload_lumps_anywhere ()
 
   ELSEIF modified_lumps[i] = "heroes.reld" THEN                           'HEROES.RELD
    reload_heroes_reld
+   handled = YES
+
+  ELSEIF extn = "dt0" THEN                                                '.DT0
+   'Ignore: old hero data (redundant to heroes.reld) only for compatibility
    handled = YES
 
   ELSEIF extn = "itm" THEN                                                '.ITM
