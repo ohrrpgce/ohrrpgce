@@ -3574,6 +3574,10 @@ SUB script_functions(byval cmdid as integer)
   run_game
  CASE 627'--check game exists (string id)
   scriptret = check_game_exists
+ CASE 674'--set last save slot
+  IF retvals(0) = 0 ORELSE valid_save_slot(retvals(0)) THEN
+   lastsaveslot = retvals(0)
+  END IF
 
 'old scriptnpc
 

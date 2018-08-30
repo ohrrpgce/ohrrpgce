@@ -696,6 +696,7 @@ define function, begin
 671,menuitemselectable,1,0    # Whether selectable and not hidden
 672,menuitemdisabled,1,0      # Whether disabled
 673,menuitemvisible,1,0       # Isn't hidden
+674,setlastsaveslot,1,-1      # Set return value of lastsaveslot (0-1000)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

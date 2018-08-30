@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-07-21">
+<plotscript version="wip" datecode="2018-08-30">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -9505,6 +9505,16 @@ end</example>
 				<ref>autosave</ref>
 				<ref>saveinslot</ref>
 			</seealso>
+		</command>
+		<command id="setlastsaveslot">
+			<canon>set last save slot (slot)</canon>
+			<shortname>set last save slot</shortname>
+			<description>
+				Sets the value returned by <ref>lastsaveslot</ref>.
+				This changes the slot used by <ref>autosave</ref>.
+				<p>slot</p> can be any slot from 1 to 1000, or 0 for none, even if the
+				number of save slots visible to the player in the load/save menu is less.
+			</description>
 		</command>
 		<command id="saveslotused">
 			<canon>save slot used (slot)</canon>

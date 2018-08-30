@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-07-21)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-08-30)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -2489,6 +2489,9 @@
 		
 	
 		<a href="#about-setiteminslot">set item in slot (slot, item)</a><br>
+		
+	
+		<a href="#about-setlastsaveslot">set last save slot (slot)</a><br>
 		
 	
 		<a href="#about-setleftpadding">set left padding (handle, pixels)</a><br>
@@ -6282,6 +6285,8 @@ resume box advance # go back to normal</pre>
 				Use <a href="#about-showmap" class="ref">show map</a> or <span class="code">show backdrop(-1)</span> to hide the backdrop and
 				show the map again.
 				You can also do some simple animation effects by calling show backdrop many times with <a href="#about-wait" class="ref">wait</a> commands in between.
+				<br>
+				Whether and which backdrop is displaying is saved in save games.
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">It's also possible to display backdrops as sprite slices using <a href="#about-loadbackdropsprite" class="ref">load backdrop sprite</a>.</div>
 			
@@ -6835,7 +6840,7 @@ end</pre>
 <a name="about-itemcountinslot"></a>
 		<h4>item count in slot (slot)</h4>
 <p>
-			Return a the count of items at a specific slot in your inventory, or 0 if that slot is empty. Slots are numbered from 0 to <a href="#about-getinventorysize" class="ref">get inventory size</a>-1.
+			Return the count of items at a specific slot in your inventory, or 0 if that slot is empty. Slots are numbered from 0 to <a href="#about-getinventorysize" class="ref">get inventory size</a>-1.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -8399,6 +8404,16 @@ end</pre>
 						Alter NPC (who,NPCstat:ignore passmap, true or false)
 						<br>
 						This is for the NPC editor setting, not the <a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a> command.
+					</li>
+					<li>
+						Alter NPC (who,NPCstat:pathfinding rule,rule)
+						<br>
+						The <span class="code">rule</span> (see the F1 help page for the NPC editor for more info) is one of:
+						<ul>
+							<li>pathfinding:default</li>
+							<li>pathfinding:npcs obstruct</li>
+							<li>pathfinding:npcs ignored</li>
+						</ul>
 					</li>
 				</ul>
 				Normally you would only give an NPC ID number to alter NPC,
@@ -16399,6 +16414,7 @@ The third argument is the total number of ticks that the animation should run. Y
 				(That is, slices marked not-visible are ignored while searching for slices, but whether <span class="param">parent</span> itself
 				is visible doesn't have any effect.)
 				Pass true for <span class="param">visibleonly</span> in order to avoid finding the children of Select slices which are not selected (and therefore invisible).
+				<span class="param">visibleonly</span> defaults to false.
 				<br>
 				This command never returns Special slices, such as the <a href="#about-spritelayer" class="ref">sprite layer</a> slice, nor will it return <span class="param">slice</span> or any of its descendants.
 				<div style="background-color:#BCC;" class="notice">
@@ -18055,7 +18071,13 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-autosave"></a>
 		<h4>autosave</h4>
 <p>
-			Transparently saves the game to the last save slot saved to in the save menu, or if the game has not been saved yet, calls <a href="#about-savemenu" class="ref">save menu</a>. Returns the number of the last save slot, or if the user cancelled the save menu, returns false.
+			
+				Transparently saves the game to the last save slot saved to or loaded from
+				(see <a href="#about-lastsaveslot" class="ref">last save slot</a>),
+				or if playing a new game which has not been saved yet, calls <a href="#about-savemenu" class="ref">save menu</a>.
+				Returns the number of the save slot saved to, or if the user cancelled the save menu,
+				returns false.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-lastsaveslot" class="ref">last save slot</a></li></ul>
@@ -18154,22 +18176,46 @@ end</pre>
 		<h4>last save slot</h4>
 <p>
 			
-				Returns the last save slot saved to using the save menu,
-				if the player hasn't saved the game since starting/loading the game.
-				Otherwise, returns the save slot the game was loaded from,
+				Returns the last save slot either loaded or saved to (whichever happened last)
 				or <a href="#about-booleanconstants" class="ref">false</a> if this is an unsaved new game.
 				Save slots are numbered starting at 1.
-				<a href="#about-saveinslot" class="ref">save in slot</a> does not change the value returned by this command!
-				If you need it to, you need to track it with a global variable.
+				<br>
+				<a href="#about-savemenu" class="ref">save menu</a><span class="code">(false)</span> and <a href="#about-loadmenu" class="ref">load menu</a><span class="code">(false)</span>
+				(which show the menus but don't actually save or load) don't change the last save slot.
+				<br>
+				<span class="code">last save slot</span> returns the last save slot used, even if the save
+				in it has since been deleted (e.g. with <a href="#about-deletesave" class="ref">delete save</a>).
+				<div style="background-color:#CCB;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+					In versions before Callipygous, <a href="#about-saveinslot" class="ref">save in slot</a> didn't change
+					the value returned by <span class="code">last save slot</span>, but
+					<a href="#about-savemenu" class="ref">save menu</a><span class="code">(false)</span> and <a href="#about-loadmenu" class="ref">load menu</a><span class="code">(false)</span>
+					did.
+				</div>
 			
 			
 			
 			<div class="seealso">See also: <ul>
 <li>
-<a href="#about-saveinslot" class="ref">save in slot</a>, </li>
-<li><a href="#about-savemenu" class="ref">save menu</a></li>
+<a href="#about-autosave" class="ref">autosave</a>, </li>
+<li><a href="#about-saveinslot" class="ref">save in slot</a></li>
 </ul>
 </div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setlastsaveslot"></a>
+		<h4>set last save slot (slot)</h4>
+<p>
+			
+				Sets the value returned by <a href="#about-lastsaveslot" class="ref">last save slot</a>.
+				This changes the slot used by <a href="#about-autosave" class="ref">autosave</a>.
+				<span class="param">slot</span> can be any slot from 1 to 1000, or 0 for none, even if the
+				number of save slots visible to the player in the load/save menu is less.
+			
+			
+			
+			
 		</p>
 </div>
 		<div class="command">
@@ -19489,7 +19535,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 852 commands (of which 48 are aliases), 64 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 853 commands (of which 48 are aliases), 64 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
