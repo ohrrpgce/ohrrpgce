@@ -4023,14 +4023,16 @@ FUNCTION knows_attack(who as integer, atk as integer, bslot() as BattleSprite) a
  '--different handling for heroes and monsters
 
  IF is_hero(who) THEN
+  'Counter attacks do NOT count!
   FOR i as integer = 0 TO bslot(who).batmenu.numitems - 1
    WITH *bslot(who).batmenu.items[i]
+    'The attack is known even if it's disabled by tags
     SELECT CASE .t
      CASE batmenu_ATTACK:
       IF atk = .sub_t THEN RETURN YES
      CASE batmenu_SPELLS:
       FOR j as integer = 0 TO 23
-       IF gam.hero(who).spells(.sub_t, j) = atk THEN RETURN YES 'Knows the attack in a spell list
+       IF gam.hero(who).spells(.sub_t, j) - 1 = atk THEN RETURN YES 'Knows the attack in a spell list
       NEXT j
     END SELECT
    END WITH
@@ -4040,6 +4042,7 @@ FUNCTION knows_attack(who as integer, atk as integer, bslot() as BattleSprite) a
  IF is_enemy(who) THEN
   FOR i as integer = 0 TO 4
    'check if enemy knows this attack for one of the three ai sets
+   'Counter attacks and on-death bequest attacks do NOT count!
    IF bslot(who).enemy.regular_ai(i) - 1 = atk THEN RETURN YES
    IF bslot(who).enemy.desperation_ai(i) - 1 = atk THEN RETURN YES
    IF bslot(who).enemy.alone_ai(i) - 1 = atk THEN RETURN YES

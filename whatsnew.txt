@@ -130,6 +130,8 @@ June (mumble) 2018 [Fufluns]
       other improvements too [Ralph]
     * NPCs could walk through pushable NPCs being pushed against a wall. (Fix
       only enabled if "Simulate Pushable NPC obstruction bug" is off) [Ralph]
+    * Bug 2037: "Attacker must know chained attack" didn't work correctly for
+      known attacks in spell lists (it searched for attack ID+1) [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

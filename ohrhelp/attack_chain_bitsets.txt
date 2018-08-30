@@ -4,7 +4,10 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the li
 
 Modifiy bitsets with Left, Right, SPACE and ENTER.
 
-* "Attacker must know chained attack" causes the chain to fail if the attacker does not have the chained attack in their spell lists or weapon attack.
+* "Attacker must know chained attack" causes the chain to fail if the attacker doesn't have the attack in any of their attack lists as a normal attack (*not* a counterattack), which means:
+-Enemies must have the attack in the Normal, Desperation or Alone lists. Enemy counter attacks and On-Death Bequest attacks do *not* count as known.
+-Heroes must have the chained attack in one of their spell lists or in their battle menu (either as their weapon attack or a fixed attack added directly to the menu). Attacks in spell lists which can be learnt (e.g from an item) but haven't been learnt yet don't count. Attacks which are disabled for any other reason (costs, being mute, menu options which are tag-disabled, etc) *do* count as being known.
+Hero counter attacks do *not* count.
 
 * "Ignore chained attack's delay" causes the chained attack to happen immediately, even if it has a delay when used normally.
 
