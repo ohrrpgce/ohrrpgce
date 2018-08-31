@@ -651,7 +651,10 @@ FUNCTION LoadTilemaps(layers() as TileMap, filename as string, allowfail as bool
     layers(i).data = NULL
   NEXT
 
-  OPENFILE(filename, FOR_BINARY + ACCESS_READ, fh)
+  IF OPENFILE(filename, FOR_BINARY + ACCESS_READ, fh) THEN
+    IF allowfail = NO THEN showerror "Couldn't open tilemaps file " & filename
+    RETURN NO
+  END IF
   DIM as integer tempw = readshort(fh, 8)
   DIM as integer temph = readshort(fh, 10)
   wide = bound(tempw, 16, 32678)

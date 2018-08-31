@@ -579,7 +579,7 @@ PRIVATE FUNCTION loadscript_open_script (n as integer, expect_exists as bool = Y
    scriptfile = workingdir & SLASH & n & ".hsx"
    IF NOT isfile(scriptfile) THEN
     IF expect_exists THEN
-     scripterr "script " & n & " " & scriptname(n) & " does not exist", serrError
+     scripterr "script " & n & " " & scriptname(n) & " does not exist. (Maybe it was renamed, and the script trigger needs to be updated?)", serrError
     END IF
     RETURN 0
    END IF
