@@ -55,6 +55,7 @@ June (mumble) 2018 [Fufluns]
       appears in the editor's F9 Global Options menu [Ralph]
     * Minimaps look much better. Also, you can change the minimap generation
       method in the General Game Settings menu, with three options [Ralph]
+    * The map editor's map picker shows a preview of each map [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

@@ -190,6 +190,19 @@ DIM SHARED wall_styles(2) as WallStyle = {(@"ants", 1, 1), (@"outlined", 0, 3), 
 '                                    Map listing menu
 '==========================================================================================
 
+FUNCTION get_map_minimap(map_id as integer) as Frame ptr
+ DIM map as MapData
+ DIM tilesets(maplayerMax) as TilesetData ptr
+ map.load_for_minimap(map_id)
+ loadmaptilesets tilesets(), map.gmap()
+
+ DIM minimap as Frame ptr
+ minimap = createminimap(map.tiles(), tilesets(), @map.pass, , minimapScaled)
+
+ unloadmaptilesets tilesets()
+ RETURN minimap
+END FUNCTION
+
 SUB make_map_picker_menu(topmenu() as string, state as MenuState)
  REDIM topmenu(0)
  topmenu(0) = "Return to Main Menu"
@@ -198,7 +211,6 @@ SUB make_map_picker_menu(topmenu() as string, state as MenuState)
  NEXT
  str_array_append topmenu(), "Add a New Map"
 
- state.size = 24
  state.last = UBOUND(topmenu)
 END SUB
 
@@ -208,40 +220,61 @@ SUB map_picker ()
  DIM state as MenuState
  state.autosize = YES
  DIM selectst as SelectTypeState
- 
+ DIM menuopts as MenuOptions
+ menuopts.edged = YES
+
+ DIM preview as Frame ptr
+
  make_map_picker_menu topmenu(), state
 
+ switch_to_32bit_vpages
  setkeys YES
  DO
   setwait 55
   setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_choose_map"
-  usemenu state
+  IF usemenu(state) THEN state.need_update = YES
   IF select_by_typing(selectst) THEN
    select_on_word_boundary_excluding topmenu(), selectst, state, "map"
+   state.need_update = YES
   END IF
+  DIM map_id as integer = state.pt - 1
 
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
-   IF state.pt > 0 AND state.pt <= gen(genMaxMap) + 1 THEN
-    mapeditor state.pt - 1
-    make_map_picker_menu topmenu(), state  'User could delete map
-   ELSEIF state.pt = gen(genMaxMap) + 2 THEN
+   IF map_id >= 0 AND map_id <= gen(genMaxMap) THEN
+    switch_to_8bit_vpages
+    mapeditor map_id
+    switch_to_32bit_vpages
+   ELSEIF map_id > gen(genMaxMap) THEN
     mapedit_addmap
-    make_map_picker_menu topmenu(), state
+   END IF
+   state.need_update = YES
+  END IF
+
+  IF state.need_update THEN
+   state.need_update = NO
+   make_map_picker_menu topmenu(), state
+   IF map_id >= 0 AND map_id <= gen(genMaxMap) THEN
+    frame_assign @preview, get_map_minimap(map_id)
+   ELSE
+    frame_unload @preview
    END IF
   END IF
 
   clearpage vpage
+  IF preview THEN frame_draw preview, , pRight, pBottom, , , vpage
   draw_fullscreen_scrollbar state, 0, vpage
 
   REDIM topmenu_display(LBOUND(topmenu) TO UBOUND(topmenu)) as string
   highlight_menu_typing_selection topmenu(), topmenu_display(), selectst, state
-  standardmenu topmenu_display(), state, 0, 0, vpage
+  standardmenu topmenu_display(), state, 0, 0, vpage, menuopts
   setvispage vpage
   dowait
  LOOP
+ switch_to_8bit_vpages
+ frame_unload @preview
 END SUB
 
 

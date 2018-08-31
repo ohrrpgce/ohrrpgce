@@ -552,6 +552,7 @@ TYPE MapData
   Declare Destructor ()
 
   Declare Sub load (map_id as integer)
+  Declare Sub load_for_minimap(map_id as integer)
 END TYPE
 
 Union Stats

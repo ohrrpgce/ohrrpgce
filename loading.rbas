@@ -528,14 +528,20 @@ DESTRUCTOR MapData()
   id = -1
 END DESTRUCTOR
 
-SUB MapData.load(map_id as integer)
+'Only loads what is needed in order to generate a minimap of a map
+SUB MapData.load_for_minimap(map_id as integer)
   id = map_id
+  'gmap is needed for the tilesets
   loadrecord gmap(), game & ".map", getbinsize(binMAP) \ 2, id
   IF gmap(31) = 0 THEN gmap(31) = 2
-  name = getmapname(id)
   LoadTilemaps tiles(), maplumpname(id, "t")
   size = tiles(0).size
   LoadTilemap pass, maplumpname(id, "p")
+END SUB
+
+SUB MapData.load(map_id as integer)
+  load_for_minimap(map_id)
+  name = getmapname(id)
   LoadTilemap foemap, maplumpname(id, "e")
   IF isfile(maplumpname(id, "z")) THEN
     LoadZoneMap zmap, maplumpname(id, "z")
