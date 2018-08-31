@@ -233,11 +233,6 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
-	if ((fnum = fb_FileFree()) == 0) {
-		debug(errPrompt, "OPENFILE: too many open files");
-		return FB_RTERROR_ILLEGALFUNCTIONCALL;
-	}
-
 	FnFileOpen fnOpen;
 
 	// Test for explicitly opening for writing (but ignore opening for
@@ -277,9 +272,22 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 		return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
+	// Avoid race condition with other threads opening a file, either using OPENFILE
+	// or FREEFILE/OPEN. This race condition is a flaw in FB.
+	// Luckily the global FB lock is recursive (lockable multiple times), so we
+	// can use it to prevent other threads from calling FREEFILE.
+	FB_LOCK();
+
+	if ((fnum = fb_FileFree()) == 0) {
+		FB_UNLOCK();
+		debug(errPrompt, "OPENFILE: too many open files");
+		return FB_RTERROR_ILLEGALFUNCTIONCALL;
+	}
+
 	errno = 0;
 	int ret = fb_FileOpenVfsEx(FB_FILE_TO_HANDLE(fnum), &file_to_open, mode, access,
 	                           FB_FILE_LOCK_SHARED, 0, encod, fnOpen);
+	FB_UNLOCK();
 
 	if (ret != FB_RTERROR_OK && ret != FB_RTERROR_FILENOTFOUND) {
 		debug(errError, "OPENFILE(%s, %d)=%d: %s",
