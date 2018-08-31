@@ -1408,7 +1408,8 @@ SUB setup_battle_slices(byref bat as BattleState)
   CenterSlice .backdrop_sl
   .battlefield_sl = NewSliceOfType(slContainer, .root_sl)
   .battlefield_sl->Fill = YES
-  .battlefield_sl->AutoSort = slAutoSortBottomY
+  '.battlefield_sl->AutoSort = slAutoSortBottomY
+  .battlefield_sl->AutoSort = slAutoSortCustom
  END WITH
 END SUB
 
@@ -1452,6 +1453,8 @@ SUB update_battle_slices(bslot() as BattleSprite)
      CancelSpriteSliceDissolve .sprite
     END IF
 
+    'Like slAutoSortBottomY, but break ties according to the order in bslot()
+    .sl->Sorter = (.sl->Y + .sl->Height) * 1000 + i
    ELSE
     .sl->Visible = NO
    END IF

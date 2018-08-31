@@ -584,7 +584,8 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
  sl = *rootslice
  ChangeSpriteSlice sl, sprTypeBackdrop, form.background
  sl->Lookup = SL_FORMEDITOR_BACKDROP
- sl->AutoSort = slAutoSortBottomY
+ 'sl->AutoSort = slAutoSortBottomY
+ sl->AutoSort = slAutoSortCustom
 
  ' Heroes
  FOR i as integer = 0 TO 3
@@ -652,6 +653,8 @@ SUB draw_formation_slices(eform as Formation, hform as HeroFormation, rootslice 
    DIM fslot as FormationSlot ptr = @eform.slots(enemy_slot)
    IF fslot->id < 0 THEN debugc errPromptBug, "Formation enemy slice corresponds to an empty slot"
    sl->Pos = fslot->pos
+   ' Set layering, like slAutoSortBottomY but break ties according to the order in bslot()
+   sl->Sorter = (sl->Y + sl->Height) * 1000 + 100 + enemy_slot
    IF NOT heromode THEN
     IF enemy_slot = selected_slot AND cursorsl <> NULL THEN
      cursorsl->Visible = YES
@@ -667,6 +670,8 @@ SUB draw_formation_slices(eform as Formation, hform as HeroFormation, rootslice 
  FOR i as integer = 0 TO 3
   hrect = LookupSlice(SL_FORMEDITOR_HERO + i, rootslice)
   hrect->Pos = hform.slots(i).pos + XY(240, 82)
+  ' Set layering, like slAutoSortBottomY but break ties according to the order in bslot()
+  hrect->Sorter = (hrect->Y + hrect->Height) * 1000 + i
   IF heromode THEN
    IF i = selected_slot AND cursorsl <> NULL THEN
     cursorsl->Visible = YES
