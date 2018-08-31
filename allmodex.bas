@@ -65,6 +65,7 @@ declare sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal a
 declare sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 declare sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 declare sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Surface ptr)
+declare sub setclipframe (fr as Frame ptr)
 
 'declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(filen as string, w as integer, h as integer, bitdepth as integer) as integer
@@ -3265,9 +3266,7 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 	dim todraw as integer
 	dim tileframe as frame
 
-	if cliprect.frame <> dest then
-		setclip , , , , dest
-	end if
+	setclipframe dest
 
 	'copied from the asm
 	ypos = y \ 20
@@ -3476,9 +3475,7 @@ sub putpixel (spr as Frame ptr, x as integer, y as integer, c as integer)
 end sub
 
 sub putpixel (x as integer, y as integer, c as integer, p as integer)
-	if cliprect.frame <> vpages(p) then
-		setclip , , , , vpages(p)
-	end if
+	setclipframe vpages(p)
 	CHECK_FRAME_8BIT(vpages(p))
 
 	if POINT_CLIPPED(x, y) then
@@ -3499,9 +3496,7 @@ function readpixel (spr as Frame ptr, x as integer, y as integer) as integer
 end function
 
 function readpixel (x as integer, y as integer, p as integer) as integer
-	if cliprect.frame <> vpages(p) then
-		setclip , , , , vpages(p)
-	end if
+	setclipframe vpages(p)
 	CHECK_FRAME_8BIT(vpages(p), 0)
 
 	if POINT_CLIPPED(x, y) then
@@ -3609,9 +3604,7 @@ end sub
 'Draw a solid rectangle (use drawbox for a hollow one)
 'Top/left edges are inclusive, bottom/right are exclusive
 sub rectangle (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer)
-	if cliprect.frame <> fr then
-		setclip , , , , fr
-	end if
+	setclipframe fr
 
 	' Decode relative positions/sizes to absolute
 	w = relative_pos(w, fr->w)
@@ -3667,9 +3660,7 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 	                    21, 28, 11, 16, 20, 22, 18, 17, 19, 32, 17, 16, _
 	                    15, 14, 50}
 
-	if cliprect.frame <> fr then
-		setclip , , , , fr
-	end if
+	setclipframe fr
 
 	fuzzfactor = bound(fuzzfactor, 1, 99)
 
@@ -3807,9 +3798,7 @@ end sub
 sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2 as integer, c as integer, dash_cycle as integer = 0, dash_len as integer = 0)
 	'Uses Bresenham's algorithm
 
-	if cliprect.frame <> dest then
-		setclip , , , , dest
-	end if
+	setclipframe dest
 	CHECK_FRAME_8BIT(dest)
 
 	if y1 > y2 then
@@ -3925,9 +3914,7 @@ sub paintat (dest as Frame ptr, x as integer, y as integer, c as integer)
 	dim i as integer
 	dim tnode as XYPair_node ptr = null
 
-	if cliprect.frame <> dest then
-		setclip , , , , dest
-	end if
+	setclipframe dest
 	CHECK_FRAME_8BIT(dest)
 
 	if POINT_CLIPPED(x, y) then exit sub
@@ -3999,9 +3986,7 @@ sub ellipse (fr as Frame ptr, x as double, y as double, radius as double, col as
 'radius is the semimajor axis if the ellipse is not a circle
 'angle is the angle of the semimajor axis to the x axis, in radians counter-clockwise
 
-	if cliprect.frame <> fr then
-		setclip , , , , fr
-	end if
+	setclipframe fr
 	CHECK_FRAME_8BIT(fr)
 
 	'x,y is the pixel to centre the ellipse at - that is, the centre of that pixel, so add half a pixel to
@@ -4102,9 +4087,7 @@ end sub
 
 'Replaces one colour with another, OR if swapcols is true, swaps the two colours.
 sub replacecolor (fr as Frame ptr, c_old as integer, c_new as integer, swapcols as bool = NO)
-	if cliprect.frame <> fr then
-		setclip , , , , fr
-	end if
+	setclipframe fr
 	CHECK_FRAME_8BIT(fr)
 
 	for yi as integer = cliprect.t to cliprect.b
@@ -4125,9 +4108,7 @@ end sub
 
 'Changes a Frame in-place, applying a remapping
 sub remap_to_palette (fr as Frame ptr, pal as Palette16 ptr)
-	if cliprect.frame <> fr then
-		setclip , , , , fr
-	end if
+	setclipframe fr
 	CHECK_FRAME_8BIT(fr)
 
 	for y as integer = cliprect.t to cliprect.b
@@ -4145,9 +4126,7 @@ end sub
 
 ' Count the number of occurrences of a color in a Frame (just the clipped region)
 function countcolor (fr as Frame ptr, col as integer) as integer
-	if cliprect.frame <> fr then
-		setclip , , , , fr
-	end if
+	setclipframe fr
 	CHECK_FRAME_8BIT(fr, 0)
 
 	dim ret as integer = 0
@@ -4744,9 +4723,7 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 
 	if dest = null then debug "printstr: NULL dest" : exit sub
 
-	if cliprect.frame <> dest then
-		setclip , , , , dest
-	end if
+	setclipframe dest
 
 	'check bounds skipped because this is now quite hard to tell (checked in draw_clipped)
 
@@ -7385,6 +7362,13 @@ sub setclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as inte
 	end with
 end sub
 
+'Ensure that the cliprect is for the given frame
+private sub setclipframe(fr as Frame ptr)
+	if cliprect.frame <> fr then
+		setclip , , , , fr
+	end if
+end sub
+
 'Shrinks clipping area, never grows it
 sub shrinkclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr = 0)
 	if fr andalso cliprect.frame <> fr then
@@ -8539,9 +8523,7 @@ sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palet
 		showerror "trying to draw from/to null frame"
 		exit sub
 	end if
-	if dest <> cliprect.frame then
-		setclip , , , , dest
-	end if
+	setclipframe dest
 
 	x = relative_pos(x, dest->w, src->w)
 	y = relative_pos(y, dest->h, src->h)
