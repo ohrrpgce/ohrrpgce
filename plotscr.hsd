@@ -961,16 +961,17 @@ script, last ascii, begin
 	return (hsd:code)
 end
 
-script, input string, hsd:str, hsd:max len=40, hsd:useexist=0, hsd:center=1, hsd:positionx=-654321, hsd:positiony=-654321, begin
+script, input string, hsd:str, hsd:max len=-1, hsd:useexist=0, hsd:center=1, hsd:positionx=-654321, hsd:positiony=-654321, begin
   variable(hsd:done, hsd:key, hsd:show, hsd:tmp str, hsd:saved, hsd:enable input)
   hsd:enable input := input text enabled
   enable input text (true)
   if(hsd:useexist) else(clear string(hsd:str))
   trim string(hsd:str,1,hsd:maxlen)
-  hsd:show:=getstringbit(hsd:str,0)==false
+  hsd:show:=(string is visible(hsd:str) == false)
+  if(hsd:max len < 0) then (hsd:max len := get screen width / 8)
   if(hsd:positiony <> -654321 || hsd:show) then(
-    if(hsd:positionx == -654321) then(hsd:positionx := 160)
-    if(hsd:positiony == -654321) then(hsd:positiony := 110)
+    if(hsd:positionx == -654321) then(hsd:positionx := get screen width / 2)
+    if(hsd:positiony == -654321) then(hsd:positiony := get screen height / 2 + 10)
     if(hsd:center) then(
       center string at(hsd:str,hsd:positionx,hsd:positiony)
     )else(
@@ -980,22 +981,23 @@ script, input string, hsd:str, hsd:max len=40, hsd:useexist=0, hsd:center=1, hsd
     hsd:positionx := string x(hsd:str)
     hsd:positiony := string y(hsd:str)
   )
-  hsd:tmp str := hsd:str,xor,1
+  hsd:tmp str := hsd:str,xor,1  # A string ID different to hsd:str
   hsd:saved := hsd:save string(hsd:tmp str)
   while(not(hsd:done)) do, begin
     if(hsd:center) then(center string at(hsd:str,hsd:positionx,hsd:positiony))
     wait
-    if(keyval(28)>>1 || keyval(103)>>1) then(hsd:done:=true, return(true)) else(
-      if(keyval(14)>>1) then(delete char(hsd:str,string length(hsd:str)))
+    if(keyval(key:Enter)>1 || keyval(key:Numpad Enter)>1) then(hsd:done:=true, return(true)) else(
+      if(keyval(key:Backspace)>1) then(delete char(hsd:str,string length(hsd:str)))
       get input text(hsd:tmp str)
       concatenate strings(hsd:str, hsd:tmp str)
       trim string(hsd:str, 1, hsd:max len)
-      while(key is pressed(1)) do, begin
+      while(key is pressed(key:Esc)) do, begin
+        # Wait for the player to let go of Esc before finishing
         hsd:done:=true
         return(false)
-        if(read general(44),and,2)
-          then(wait)
-          else(suspendplayer, wait, resumeplayer)
+        if(player is suspended)
+          then(wait)  # Esc will be ignored
+          else(suspendplayer, wait, resumeplayer)  # Ignore the Esc, don't bring up the menu
       end
     )
   end
