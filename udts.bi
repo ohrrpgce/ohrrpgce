@@ -153,6 +153,7 @@ TYPE MenuState
 
   DECLARE FUNCTION empty() as bool
   DECLARE FUNCTION pt_valid() as bool
+  DECLARE FUNCTION would_have_scrollbar() as bool
 END TYPE
 
 'A set of rendering options which can be passed to standardmenu.

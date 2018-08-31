@@ -271,7 +271,7 @@ SUB map_picker ()
   clearpage vpage
   IF preview THEN
    'If there's a scrollbar, shift the preview over to avoid it
-   DIM previewx as RelPos = pRight - IIF(state.last > state.size, 8, 0)
+   DIM previewx as RelPos = pRight - IIF(state.would_have_scrollbar(), 8, 0)
    frame_draw preview, , previewx, pBottom, , , vpage
   END IF
   draw_fullscreen_scrollbar state, 0, vpage

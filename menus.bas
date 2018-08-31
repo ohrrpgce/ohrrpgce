@@ -1756,6 +1756,13 @@ END FUNCTION
 '                                       Scrollbars!
 '==========================================================================================
 
+'Whether this menu will be drawn with a scrollbar (because it's larger than
+'its .size), if not explicitly disabled (by MenuDef.no_scrollbar/MenuOptions.scrollbar)
+FUNCTION MenuState.would_have_scrollbar() as bool
+ DIM count as integer = last - first + 1
+ 'recall size is off-by-1
+ RETURN (top > first OR count > (size + 1)) ANDALSO count > 0
+END FUNCTION
 
 SUB draw_scrollbar(state as MenuState, menu as MenuDef, page as integer, align as AlignType = alignRight)
  draw_scrollbar state, menu.rect, menu.boxstyle, page, align
@@ -1767,7 +1774,7 @@ END SUB
 SUB draw_scrollbar(state as MenuState, rect as RectType, boxstyle as integer=0, page as integer, align as AlignType = alignRight)
  DIM count as integer = state.last - state.first + 1
  'recall state.size is off-by-1
- IF state.top > state.first OR count > (state.size + 1) THEN
+ IF state.would_have_scrollbar() THEN
   IF count > 0 THEN
    DIM sbar as RectType
    DIM slider as RectType
