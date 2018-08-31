@@ -228,6 +228,9 @@ SUB map_picker ()
  menuopts.bgfuzz = YES
 
  DIM preview as Frame ptr
+ DIM wantminimap as bool
+ DIM load_minimap_timer as double
+ DIM instant_threshold as integer = read_config_int("mapedit.instant_minimap_threshold", 10000)
 
  make_map_picker_menu topmenu(), state
 
@@ -261,11 +264,26 @@ SUB map_picker ()
   IF state.need_update THEN
    state.need_update = NO
    make_map_picker_menu topmenu(), state
+
    IF map_id >= 0 AND map_id <= gen(genMaxMap) THEN
-    frame_assign @preview, get_map_minimap(map_id)
+    wantminimap = YES
+    'How large is the map? Delay loading if it would make the menu sluggish
+    IF filelen(maplumpname(map_id, "t")) < instant_threshold THEN
+     'load immediately
+     load_minimap_timer = TIMER
+    ELSE
+     load_minimap_timer = TIMER + 0.2
+    END IF
+    'Keep the old minimap momentarily instead of blacking out, to lessen flicker
    ELSE
+    wantminimap = NO
     frame_unload @preview
    END IF
+  END IF
+
+  IF wantminimap ANDALSO TIMER >= load_minimap_timer THEN
+   frame_assign @preview, get_map_minimap(map_id)
+   wantminimap = NO
   END IF
 
   clearpage vpage
