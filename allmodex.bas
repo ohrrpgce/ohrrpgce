@@ -3666,7 +3666,6 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 	if cliprect.frame <> fr then
 		setclip , , , , fr
 	end if
-	CHECK_FRAME_8BIT(fr)
 
 	fuzzfactor = bound(fuzzfactor, 1, 99)
 
@@ -3702,19 +3701,43 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 
 	if w <= 0 or h <= 0 then exit sub
 
-	dim sptr as ubyte ptr = fr->image + (y * fr->pitch) + x
+	dim sptr as ubyte ptr
+	dim pitch as integer
+	dim pixformat as SurfaceFormat
+	if fr->image then
+		sptr = fr->image
+		pitch = fr->pitch
+		pixformat = SF_8bit
+	elseif fr->surf then
+		sptr = fr->surf->pRawData
+		pitch = fr->surf->pitch
+		pixformat = fr->surf->format
+		if pixformat = SF_32bit then
+			pitch *= 4
+			c = intpal(c).col
+		end if
+	else
+		showerror "fuzzyrect: bad dest Frame"
+		exit sub
+	end if
+	sptr += y * pitch + x
+
 	while h > 0
 		startr = (startr + grain) mod 100
 		r = startr
 		for i as integer = 0 to w-1
 			r += fuzzfactor
 			if r >= 100 then
-				sptr[i] = c
+				if pixformat = SF_8bit then
+					sptr[i] = c
+				else
+					cast(int32 ptr, sptr)[i] = c
+				end if
 				r -= 100
 			end if
 		next
 		h -= 1
-		sptr += fr->pitch
+		sptr += pitch
 	wend
 end sub
 
