@@ -100,6 +100,8 @@ SUB lowlevel_init()
 
   init_crt   'setlocale
 
+  os_init
+
   setup_exx_handler
 
   exename = trimextension(trimpath(COMMAND(0)))

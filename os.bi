@@ -17,6 +17,8 @@ declare function get_windows_version () as string
 
 extern "C"
 
+declare sub os_init ()
+
 declare sub external_log (msg as string)
 
 declare function memory_usage() as integer
@@ -105,6 +107,11 @@ declare function channel_write (byref channel as IPCChannel, byval buf as any pt
 declare function channel_write_line (byref channel as IPCChannel, buf as string) as integer
 declare function channel_input_line (byref channel as IPCChannel, line_in as string) as integer
 
+'Threads
+
+declare function on_main_thread () as bool
+
+'Processes
 
 declare function open_process (program as string, args as string, waitable as boolint, graphical as boolint) as ProcessHandle
 declare function open_piped_process (program as string, args as string, byval iopipe as IPCChannel ptr) as ProcessHandle

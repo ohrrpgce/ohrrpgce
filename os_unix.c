@@ -34,11 +34,18 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <fnmatch.h>
+#include <pthread.h>
 
 #include "misc.h"
 #include "os.h"
 #include "array.h"
 
+static pthread_t main_thread_handle;
+
+
+void os_init() {
+	main_thread_handle = pthread_self();
+}
 
 void external_log(FBSTRING *str) {
 #ifdef __ANDROID__
@@ -81,6 +88,10 @@ void setup_exception_handler() {
 
 void save_backtrace(boolint show_message) {
 	// Unimplemented (but glibc makes this easy!)
+}
+
+boolint on_main_thread() {
+	return pthread_equal(pthread_self(), main_thread_handle) ? -1 : 0;
 }
 
 

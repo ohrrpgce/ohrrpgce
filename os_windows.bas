@@ -30,6 +30,7 @@ include_windows_bi()
 dim shared crash_reportfile as string
 dim shared continue_after_exception as bool = NO
 dim shared want_exception_messagebox as bool = YES
+dim shared main_thread_id as integer
 
 '''''' Extra winapi defines
 
@@ -128,6 +129,10 @@ end function
 
 
 extern "C"
+
+sub os_init ()
+	main_thread_id = GetCurrentThreadId()
+end sub
 
 'Currently Android only
 sub external_log (msg as string)
@@ -257,6 +262,10 @@ end sub
 sub interrupt_self ()
 	DebugBreak
 end sub
+
+function on_main_thread () as bool
+	return GetCurrentThreadId() = main_thread_id
+end function
 
 
 '==========================================================================================
