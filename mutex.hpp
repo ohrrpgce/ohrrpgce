@@ -6,14 +6,18 @@
 
 class mutex {
 	FBMUTEX *fbmutex;
+	bool permanent;
 public:
 	// Unfortunately we have a frightening amount of module-level constructor code,
 	// so we can't rely on the mutex constructor getting called first.
 	// However, only one thread will exist, and fb_MutexLock/Unlock fails silently
 	// on an uninitialised mutex, so there's no problem.
 
-	mutex()       { fbmutex = fb_MutexCreate(); }
-	~mutex()      { fb_MutexDestroy(fbmutex); }
+	// Permanent flag is used for global mutexes which we don't want to risk
+	// getting destroyed early during program shutdown
+	mutex(bool _permanent = false) : permanent(_permanent)
+		      { fbmutex = fb_MutexCreate(); }
+	~mutex()      { if (!permanent) fb_MutexDestroy(fbmutex); }
 	void lock()   { fb_MutexLock(fbmutex); }
 	void unlock() { fb_MutexUnlock(fbmutex); }
 };

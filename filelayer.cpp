@@ -11,12 +11,22 @@
 #include <cstring>
 #include "misc.h"
 #include "errno.h"
+#include "mutex.hpp"
 
 // This array stores information about any open file that was opened using OPENFILE.
 // Indexed by index into FB's __fb_ctx.fileTB, NOT by file number as returned by FREEFILE.
 // When quitting FB closes all files from within a destructor, so globals may have already
 // been deleted. So it would be a bad idea to define openfiles as array of file-scope objects instead of pointers.
 FileInfo *openfiles[FB_MAX_FILES];
+
+// Mutex for creating or deleting entries in openfiles (if there's a risk another thread
+// might close a file) - ONLY needed for dump_openfiles, because it's assumed a thread
+// will never attempt to close a file while another is using it normally.
+// So this is mutex is a bit ridiculous really.
+// (Note that all FB file functions themselves will acquire FB_LOCK.
+// And note that the -exx signal handler will not be called until after
+// builtin functions like SEEK return, so no chance to deadlock because of that.)
+mutex openfiles_mutex(true);  // Non-destructing mutex
 
 IPCChannel *lump_updates_channel;
 
@@ -71,8 +81,10 @@ int file_wrapper_close(FB_FILE *handle) {
 			//debuginfo("unlocking %s", info.name.c_str());
 			unlock_file((FILE *)handle->opaque);  // Only needed on Windows
 		}
+		openfiles_mutex.lock();
 		delete infop;
 		infop = NULL;
+		openfiles_mutex.unlock();
 	}
 
 	return fb_DevFileClose(handle);
@@ -135,10 +147,15 @@ static FB_FILE_HOOKS lumpfile_hooks = {
 void dump_openfiles() {
 	int numopen = 0;
 	for (int fidx = 0; fidx < FB_MAX_FILES; fidx++) {
-		if (!openfiles[fidx])
+		openfiles_mutex.lock();
+		if (!openfiles[fidx]) {
+			openfiles_mutex.unlock();
 			continue;
+		}
+		FileInfo info = *openfiles[fidx];  // Copy so can release lock
+		openfiles_mutex.unlock();
+
 		numopen++;
-		FileInfo &info = *openfiles[fidx];
 		const char *fname = info.name.c_str();
 		debug(errDebug, " %d (%s) hooked=%d dirty=%d error=%d",
 		      fidx + (FB_RESERVED_FILES - 1), fname, info.hooked, info.dirty, info.reported_error);
@@ -305,9 +322,11 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 
 	FileInfo *&infop = get_fileinfo(fnum);
 	assert(!infop);
+	openfiles_mutex.lock();
 	infop = new FileInfo();
 	infop->name = filename->data;
 	infop->hooked = (action == HOOK);
+	openfiles_mutex.unlock();
 
 	errno = 0;
 	FB_FILE *handle = FB_FILE_TO_HANDLE(fnum);
@@ -323,8 +342,10 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 		      openbits, ret, strerror(C_err));
 	}
 	if (ret != FB_RTERROR_OK) {
+		openfiles_mutex.lock();
 		delete infop;
 		infop = NULL;
+		openfiles_mutex.unlock();
 	} else {
 		// HACK: hook CLOSE for all files, by permanently modifying FB's internal
 		// file hooks tables, so that we can be sure that FileInfo will get deleted.
