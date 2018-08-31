@@ -1757,10 +1757,12 @@ function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, t
 	end if
 end function
 
-'Waits for a new keyboard key, mouse or joystick button press. Returns the scancode
-function waitforanykey () as integer
+'Waits for a new keyboard key, mouse or joystick button press. Clears the keypress and returns the scancode.
+'If wait_for_resize = YES, also returns scResize if the window was resized.
+function waitforanykey (wait_for_resize as bool = NO) as integer
 	dim as integer key, sleepjoy = 3
 	dim remem_speed_control as bool = use_speed_control
+	dim original_resolution as XYPair = windowsize
 	use_speed_control = YES
 	skipped_frame.show()  'If we frame-skipped last frame, better show it
 	setkeys
@@ -1777,6 +1779,10 @@ function waitforanykey () as integer
 		end if
 		if sleepjoy > 0 then
 			sleepjoy -= 1
+		end if
+		if wait_for_resize andalso windowsize <> original_resolution then
+			use_speed_control = remem_speed_control
+			return scResize
 		end if
 		if dowait then
 			' Redraw the screen occasionally in case something like an overlay is drawn

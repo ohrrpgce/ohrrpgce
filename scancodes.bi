@@ -170,10 +170,12 @@ CONST scJoyUp = 146
 CONST scJoyDown = 147
 CONST scJoyLAST = 147
 
-'These are only used by anykeypressed! As with scJoy* codes, you can't use them elsewhere!
+'These are only used by anykeypressed/waitforkey! As with scJoy* codes, you can't use them elsewhere!
 CONST scMouseLeft = 180
 CONST scMouseRight = 181
 CONST scMouseMiddle = 182
+'The following are only returned by waitforkey!
+CONST scResize = 183   'The window was resized
 
 ENUM MouseButton
   mouseLeft = 1

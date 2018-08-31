@@ -406,7 +406,7 @@ DECLARE FUNCTION keyval (a as integer, repeat_wait as integer = 0, repeat_rate a
 DECLARE FUNCTION getinputtext () as string
 DECLARE FUNCTION interrupting_keypress () as bool
 DECLARE FUNCTION anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as integer = 1) as integer
-DECLARE FUNCTION waitforanykey () as integer
+DECLARE FUNCTION waitforanykey (wait_for_resize as bool = NO) as integer
 DECLARE SUB waitforkeyrelease ()
 DECLARE SUB setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
 DECLARE SUB setkeys (enable_inputtext as bool = NO)
