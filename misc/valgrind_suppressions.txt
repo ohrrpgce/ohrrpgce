@@ -1,4 +1,4 @@
-# This is a list of suppressions for Valgrind's Memcheck tool, used by
+# This is a list of suppressions for Valgrind's Memcheck and Helgrind tools, used by
 # valgame.sh and valcustom.sh.
 # Many of these are probably out of date and can be removed; I've built these
 # up over years.
@@ -293,3 +293,61 @@
 
 
 
+###############################################################################
+## Helgrind suppressions
+
+# Pulseaudio crashes lots on my system, in any program using SDL_mixer,
+# so there's a good chance these warnings are genuine bugs
+{
+   Pulseaudio is bugged
+   Helgrind:Race
+   obj:/usr/lib/pulseaudio/libpulsecommon*.so
+}
+{
+   Pulseaudio is bugged
+   Helgrind:Misc
+   ...
+   fun:pa_cond_signal
+   fun:pa_threaded_mainloop_signal
+   obj:/usr/lib/libpulse-simple.so*
+}
+
+# And the following specifically seems to be why PA crashes a lot when I resize the window
+# (pa_context_set_name is called from SDL from SDL_WM_SetCaption)
+{
+   pa_context_set_name race bug
+   Helgrind:Race
+   ...
+   fun:pa_context_set_name
+}
+# Conflicts with the above
+{
+   pa_context_set_name race bug
+   Helgrind:Race
+   ...
+   fun:pa_mainloop_dispatch
+   fun:pa_mainloop_iterate
+}
+
+# And this might be an SDL or SDL_mixer bug...
+{
+   SDL races
+   Helgrind:Race
+   obj:/usr/lib/libSDL-1.2.so*
+   # SDL_LockAudio and SDL_UnlockAudio
+   fun:SDL_*ockAudio
+   #fun:Mix_VolumeMusic, fun:Mix_AllocateChannels, fun:Mix_ChannelFinished ...
+}
+{
+   SDL races
+   Helgrind:Race
+   fun:SDL_PauseAudio
+   fun:Mix_OpenAudio
+}
+{
+   SDL races (conflicts with previous Mix_OpenAudio -> SDL_PauseAudio)
+   Helgrind:Race
+   obj:/usr/lib/libSDL-1.2.so.0.11.4
+   ...
+   fun:clone
+}
