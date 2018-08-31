@@ -112,6 +112,7 @@ ENUM MinimapAlgorithmEnum
  minimapScaled   'Proper scaling. Returns a 32 bit Frame; auto-fallback to minimapMajority
  minimapScatter  'Original, noisy minimap algorithm - randomly pick a color
  minimapMajority 'Approximately selects the most common color for each pixel
+ minimapLAST = 2
 END ENUM
 
 DECLARE FUNCTION createminimap OVERLOAD (tiles() as TileMap, tilesets() as TilesetData ptr, pmapptr as TileMap ptr = NULL, byref zoom as integer = -1, algorithm as MinimapAlgorithmEnum = minimapScaled) as Frame ptr

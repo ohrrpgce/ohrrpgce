@@ -1152,11 +1152,18 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string, op
                          & gen(genMillisecPerFrame) & "ms/frame)"
  m(options_start + 4) = "Initial music volume: " & gen(genMusicVolume) & "%"
  m(options_start + 5) = "Initial sound effects volume: " & gen(genSFXVolume) & "%"
+ DIM tmp as string = "Minimap style: "
+ SELECT CASE gen(genMinimapAlgorithm)
+  CASE minimapScaled :   tmp &= "Smoothly scaled down"
+  CASE minimapScatter :  tmp &= "Pick random color"
+  CASE minimapMajority : tmp &= "Pick most common color"
+ END SELECT
+ m(options_start + 6) = tmp
 END SUB
 
 SUB general_data_editor ()
  STATIC shown_framerate_warning as bool = NO
- CONST maxMenu = 23
+ CONST maxMenu = 24
  DIM m(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
@@ -1212,6 +1219,9 @@ SUB general_data_editor ()
  index(options_start + 5) = genSFXVolume
  max(options_start + 5) = 100
  min(options_start + 5) = 0
+ index(options_start + 6) = genMinimapAlgorithm
+ max(options_start + 6) = minimapLAST
+ min(options_start + 6) = 0
 
  DIM aboutline as string = load_aboutline()
  DIM longname as string = load_gamename()

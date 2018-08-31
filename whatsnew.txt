@@ -53,6 +53,8 @@ June (mumble) 2018 [Fufluns]
       the Screenshot setting in the Options menu has priority) [Ralph]
     * While using Test Game, a "Record combined editor+player .gif" option
       appears in the editor's F9 Global Options menu [Ralph]
+    * Minimaps look much better. Also, you can change the minimap generation
+      method in the General Game Settings menu, with three options [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

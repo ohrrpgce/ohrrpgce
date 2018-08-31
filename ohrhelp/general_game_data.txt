@@ -52,3 +52,6 @@ By default, OHRRPGCE games run at 18.2 frames per second (FPS), which is 55 mill
 
 Initial Music/Sound Volume:
 These give the starting values for the two volume settings in the main menu.
+
+Minimap Style:
+This determines how the minimap is generated in-game (how the color of each pixel is determined). The default, "Smoothly scaled down" normally looks the best, but might be blurry. It uses more than the 256 colors in the master palette. "Pick random color" was the method used until Fufluns. The easiest way to try them out is using the Test Game feature (in particular, the Ctrl-F1 teleport tool).

@@ -911,9 +911,11 @@ END FUNCTION
 'The minimap, indicating hero position
 'playerpos is in pixels
 SUB minimap (playerpos as XYPair)
+ IF gen(genMinimapAlgorithm) = minimapScaled THEN switch_to_32bit_vpages
+
  DIM mini as Frame Ptr
  DIM zoom as integer = -1
- mini = createminimap(maptiles(), tilesets(), @pass, zoom)
+ mini = createminimap(maptiles(), tilesets(), @pass, zoom, CAST(MinimapAlgorithmEnum, gen(genMinimapAlgorithm)))
 
  DIM offset as XYPair
  offset.x = rCenter - mini->w / 2
@@ -945,6 +947,7 @@ SUB minimap (playerpos as XYPair)
  setkeys
  flusharray carray(), 7, 0
  MenuSound gen(genCancelSFX)
+ switch_to_8bit_vpages
 END SUB
 
 'The map-teleport debug menu.
@@ -964,6 +967,9 @@ FUNCTION teleporttool () as bool
  DIM offset as XYPair   'Top-left position where the on-screen map viewport starts
  DIM camera as XYPair   'In pixels
  DIM dest as XYPair = herotpos(0)
+
+ 'Switch unconditionally, in-case live-previewing and genMinimapAlgorithm is changed
+ switch_to_32bit_vpages
 
  ensure_normal_palette
 
@@ -1100,6 +1106,7 @@ FUNCTION teleporttool () as bool
  setkeys
  flusharray carray(), 7, 0
  MenuSound gen(genCancelSFX)
+ switch_to_8bit_vpages
 END FUNCTION
 
 'Load enough of a map's data to display it
@@ -1125,7 +1132,7 @@ SUB teleporttool_generate_minimap(byref mini as Frame Ptr, maptilesX() as TileMa
  maxzoom = bound(INT(2.5 * screen_ratio), 4, 20)
 
  frame_unload @mini
- mini = createminimap(maptilesX(), tilesetsX(), @passX, zoom)
+ mini = createminimap(maptilesX(), tilesetsX(), @passX, zoom, CAST(MinimapAlgorithmEnum, gen(genMinimapAlgorithm)))
  offset.x = large(screenw \ 2 - mini->w \ 2, 0)
  offset.y = large(screenh \ 2 - mini->h \ 2, 0)
  minisize.x = screenw - offset.x * 2

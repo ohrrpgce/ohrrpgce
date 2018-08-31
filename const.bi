@@ -198,6 +198,7 @@ CONST genDefAfterBattleScript = 217     ' Default after-battle script, if not ov
 CONST genDefInsteadOfBattleScript = 218 ' Default instead-of-battle script, if not overridden by map
 CONST genDefMapAutorunScript = 219      ' Default autorun script, if not overridden by map
 CONST genMaxEnemyPic = 220       ' Max enemy spriteset id in enemies.rgfx
+CONST genMinimapAlgorithm = 221  ' How to generate in-game minimaps. MinimapAlgorithmEnum
 
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.
