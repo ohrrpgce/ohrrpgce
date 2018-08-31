@@ -160,6 +160,9 @@ END TYPE
 'MenuState is used for drawing MenuDefs too, which would be confusing
 TYPE MenuOptions
   edged as bool
+  highlight as bool       'Display a uiHighlight-colored rectangle behind the selected item
+  bgfuzz as bool          'Draw a fuzzyrect behind the text of each menu item
+
   calc_size as bool       'Set rect according to widest menu item and num items, otherwise
                           'stretches to right & bottom screen edges (which might be smaller!)
   wide as integer = 9999  'Width in pixels (but doesn't extend past screen edge).
@@ -168,7 +171,6 @@ TYPE MenuOptions
   itemspacing as integer  'Pixels added to the default item spacing.
                           'negative shrinks, positive grows. This
                           'alters the vertical size of the whole menu!
-  highlight as bool
   showright as bool       'Always show the right-most portion of text if too long,
                           'instead of only doing so when selected.
   nevershowright as bool  'Don't show right-most portion, even if selected
