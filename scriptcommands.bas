@@ -765,7 +765,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 151'--show mini map
   stop_fibre_timing
-  minimap herox(0), heroy(0)
+  minimap heropos(0)
   start_fibre_timing
  CASE 153'--items menu
   stop_fibre_timing

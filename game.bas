@@ -2856,7 +2856,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
      CASE spTeamOrOrder
       hero_swap_menu prefbit(5)  '"Hero Swapping Always Available"
      CASE spMap, spMapMaybe
-      minimap herox(0), heroy(0)
+      minimap heropos(0)
      CASE spSave, spSaveMaybe
       slot = picksave()
       IF slot >= 0 THEN savegame slot
@@ -4433,7 +4433,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  ' (not AND, unless you want it to always appear in the menu!)
 
  IF txt.showing = NO THEN
-  IF dbg.def(      , scF1, "Minimap (F1)") THEN minimap herox(0), heroy(0)
+  IF dbg.def(      , scF1, "Minimap (F1)") THEN minimap heropos(0)
 
   IF dbg.def(scCtrl, scF1, "Teleport tool (Ctrl-F1)") THEN
    IF teleporttool() THEN
