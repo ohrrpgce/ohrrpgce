@@ -196,8 +196,10 @@ FUNCTION get_map_minimap(map_id as integer) as Frame ptr
  map.load_for_minimap(map_id)
  loadmaptilesets tilesets(), map.gmap()
 
+ 'Pick a zoom amount that prevents too much overlap with the menu
+ DIM zoom as integer = minimap_zoom_amount(map.size, XY(14 * 8, 0))
  DIM minimap as Frame ptr
- minimap = createminimap(map.tiles(), tilesets(), @map.pass, , minimapScaled)
+ minimap = createminimap(map.tiles(), tilesets(), @map.pass, zoom, minimapScaled)
 
  unloadmaptilesets tilesets()
  RETURN minimap
@@ -222,6 +224,8 @@ SUB map_picker ()
  DIM selectst as SelectTypeState
  DIM menuopts as MenuOptions
  menuopts.edged = YES
+ menuopts.highlight = YES
+ menuopts.bgfuzz = YES
 
  DIM preview as Frame ptr
 
@@ -234,6 +238,7 @@ SUB map_picker ()
   setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_choose_map"
+  IF UpdateScreenSlice() THEN state.need_update = YES  'Regenerate minimap on window resize
   IF usemenu(state) THEN state.need_update = YES
   IF select_by_typing(selectst) THEN
    select_on_word_boundary_excluding topmenu(), selectst, state, "map"
@@ -264,7 +269,11 @@ SUB map_picker ()
   END IF
 
   clearpage vpage
-  IF preview THEN frame_draw preview, , pRight, pBottom, , , vpage
+  IF preview THEN
+   'If there's a scrollbar, shift the preview over to avoid it
+   DIM previewx as RelPos = pRight - IIF(state.last > state.size, 8, 0)
+   frame_draw preview, , previewx, pBottom, , , vpage
+  END IF
   draw_fullscreen_scrollbar state, 0, vpage
 
   REDIM topmenu_display(LBOUND(topmenu) TO UBOUND(topmenu)) as string
