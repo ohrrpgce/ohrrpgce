@@ -1,20 +1,30 @@
 /* Contains implementation of surface.h and gfxRender.hpp routines */
 
+//fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
+#include "fb/fb_stub.h"
 #include <stdlib.h>
 #include <string.h>
 #include <list>
 #include <algorithm>
 
+#include "mutex.hpp"
 #include "surface.h"
 #include "gfxRender.hpp"
 #include "rasterizer.hpp"
 #include "misc.h"
 
+
 #define bound(x, low, high)  std::max(std::min(x, high), low)
 
+// g_rasterizer has no state, so is threadsafe
 QuadRasterizer g_rasterizer;
+
+// Access to g_surfaces and g_palettes is gated by surfaceMutex
 std::list< Surface* > g_surfaces;
 std::list< RGBPalette* > g_palettes;
+
+mutex surfaceMutex;
+
 
 int gfx_surfaceCreate_SW( int32_t width, int32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut )
 {//done
@@ -31,7 +41,10 @@ int gfx_surfaceCreate_SW( int32_t width, int32_t height, SurfaceFormat format, S
 	else
 		ret->pColorData = new uint32_t[width*height];
 
+	surfaceMutex.lock();
 	g_surfaces.push_back(ret);
+	surfaceMutex.unlock();
+
 	*ppSurfaceOut = ret;
 	return 0;
 }
@@ -66,7 +79,10 @@ int gfx_surfaceCreateView_SW( Surface *pSurfaceIn, int x, int y, int width, int 
 
 	ret->base_surf = pSurfaceIn;
 	gfx_surfaceReference_SW(pSurfaceIn);
+
+	surfaceMutex.lock();
 	g_surfaces.push_back(ret);
+	surfaceMutex.unlock();
 	*ppSurfaceOut = ret;
 	return 0;
 }
@@ -119,7 +135,9 @@ int gfx_surfaceDestroy_SW( Surface** ppSurfaceIn ) {
 			else
 				delete [] pSurfaceIn->pColorData;
 		}
+		surfaceMutex.lock();
 		g_surfaces.remove(pSurfaceIn);
+		surfaceMutex.unlock();
 		delete pSurfaceIn;
 	}
 	return 0;
@@ -477,7 +495,9 @@ int gfx_paletteCreate_SW( RGBPalette** ppPaletteOut )
 	if( !ppPaletteOut )
 		return -1;
 	*ppPaletteOut = new RGBPalette();
+	surfaceMutex.lock();
 	g_palettes.push_back(*ppPaletteOut);
+	surfaceMutex.unlock();
 	return 0;
 }
 
@@ -495,7 +515,9 @@ int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut )
 
 int gfx_paletteDestroy_SW (RGBPalette** ppPaletteIn) {
 	if (*ppPaletteIn) {
+		surfaceMutex.lock();
 		g_palettes.remove(*ppPaletteIn);
+		surfaceMutex.unlock();
 		delete *ppPaletteIn;
 	}
 	*ppPaletteIn = NULL;

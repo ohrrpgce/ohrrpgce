@@ -85,6 +85,7 @@ public:
 	void drawTriangleTextureColor(VertexPTC* pTriangle, const Surface* pTexture, const RGBPalette* pPalette, int bUseColorKey0, Color argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest);
 };
 
+// Note: QuadRasterizer should not have state, so that g_rasterizer global is threadsafe
 class QuadRasterizer : public TriRasterizer
 {
 protected:
