@@ -108,8 +108,14 @@ DECLARE FUNCTION rgb_to_string(col as RGBcolor) as string
 DECLARE FUNCTION string_to_rgb(text as string, byref col as RGBcolor) as bool
 DECLARE FUNCTION string_to_color(text as string, default as integer = -1) as integer
 
-DECLARE FUNCTION createminimap OVERLOAD (map() as TileMap, tilesets() as TilesetData ptr, pmapptr as TileMap ptr = NULL, byref zoom as integer = -1) as Frame ptr
-DECLARE FUNCTION createminimap OVERLOAD (layer as TileMap, tileset as TilesetData ptr, byref zoom as integer = -1) as Frame ptr
+ENUM MinimapAlgorithmEnum
+ minimapScaled   'Proper scaling. Returns a 32 bit Frame; auto-fallback to minimapMajority
+ minimapScatter  'Original, noisy minimap algorithm - randomly pick a color
+ minimapMajority 'Approximately selects the most common color for each pixel
+END ENUM
+
+DECLARE FUNCTION createminimap OVERLOAD (tiles() as TileMap, tilesets() as TilesetData ptr, pmapptr as TileMap ptr = NULL, byref zoom as integer = -1, algorithm as MinimapAlgorithmEnum = minimapScaled) as Frame ptr
+DECLARE FUNCTION createminimap OVERLOAD (layer as TileMap, tileset as TilesetData ptr, byref zoom as integer = -1, algorithm as MinimapAlgorithmEnum = minimapScaled) as Frame ptr
 DECLARE SUB animatetilesets (tilesets() as TilesetData ptr)
 DECLARE SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
 DECLARE SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integer, byval tilesetnum as integer)

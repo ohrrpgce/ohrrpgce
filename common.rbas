@@ -1523,9 +1523,93 @@ FUNCTION getmapname (byval mapnum as integer) as string
  END IF
 END FUNCTION
 
-FUNCTION createminimap (tiles() as TileMap, tilesets() as TilesetData ptr, pmapptr as TileMap ptr = NULL, byref zoom as integer = -1) as Frame ptr
+
+'==========================================================================================
+'                                        Minimaps
+'==========================================================================================
+
+TYPE ReservoirBin
+  value as integer
+  count as integer
+END TYPE
+
+'Try to pick the most common color in the original tile piece to use in the minimap.
+'Only selected approximately, using a reservoir-style algorithm (a linear-time algorithm for
+'determining a majority winner). Finding the actual most common color in the naive way would require counting
+'number of occurrences of all colors, which would be very slow.
+'Instead, do a single pass through all pixels while maintaining a 'reservoir' of candidates
+'for most common color, kept approximately sorted by decreasing count.
+PRIVATE FUNCTION minimap_pixel_reservoir(x as integer, y as integer, zoom as integer, composed_tile as Frame ptr) as ubyte
+ '1 or 2 bins leads to a lot of artifacts. More bins is slower.
+ CONST lastbin = 2
+ DIM res(lastbin) as ReservoirBin
+ DIM decrement_idx as integer = 0
+ DIM pixel as ubyte
+ DIM as integer ystart, yend
+ ystart = 20 * y \ zoom
+ yend = 20 * (y+1) \ zoom - 1
+ FOR xx as integer = 20 * x \ zoom TO 20 * (x+1) \ zoom - 1
+  FOR yy as integer = ystart TO yend
+   pixel = composed_tile->image[yy * 20 + xx]
+   DIM idx as integer
+   'Increment count, if already in res()
+   FOR idx = 0 TO lastbin
+    WITH res(idx)
+     IF pixel = .value THEN
+      .count += 1
+      EXIT FOR
+     END IF
+    END WITH
+   NEXT
+   IF idx > lastbin THEN
+    'Not found in res(), decrement a bin, eventually overwiting it
+    WITH res(decrement_idx)
+     .count -= 1
+     IF .count <= 0 THEN
+      .value = pixel
+      .count = 1
+     END IF
+    END WITH
+    decrement_idx += 1
+    IF decrement_idx > lastbin THEN decrement_idx = 0
+   END IF
+  NEXT
+ NEXT
+ 'Find bin with highest count (fallback to last pixel if all counts are 0)
+ DIM most as integer = 0
+ FOR idx as integer = 0 TO lastbin
+  IF res(idx).count > most THEN
+   pixel = res(idx).value
+   most = res(idx).count
+  END IF
+ NEXT
+ RETURN pixel
+END FUNCTION
+
+'Pick a random pixel from the original tile piece to use in the minimap
+PRIVATE FUNCTION minimap_pixel_scatter(x as integer, y as integer, fraction as single, byref prng_state as uinteger, composed_tile as Frame ptr) as ubyte
+ DIM as integer i, j
+ i = INT((x + simple_rand(prng_state)) * fraction)
+ j = INT((y + simple_rand(prng_state)) * fraction)
+ RETURN composed_tile->image[j * 20 + i]
+END FUNCTION
+
+PRIVATE FUNCTION minimap_tile_scaled(composed_tile as Frame ptr, zoom as integer) as Frame ptr
+ DIM as Surface ptr composed_surf, scaled
+ composed_surf = frame_to_surface32(composed_tile, master())
+ scaled = surface_scale(composed_surf, zoom, zoom)
+ gfx_surfaceDestroy(@composed_surf)
+
+ DIM scaledfr as Frame ptr = frame_with_surface(scaled)
+ gfx_surfaceDestroy(@scaled)
+ RETURN scaledfr
+END FUNCTION
+
+FUNCTION createminimap (tiles() as TileMap, tilesets() as TilesetData ptr, pmapptr as TileMap ptr = NULL, byref zoom as integer = -1, algorithm as MinimapAlgorithmEnum = minimapScaled) as Frame ptr
  'zoom = 1 is unzoomed, zoom = 20 is 1 pixel per tile.
  'If zoom is -1, calculate and store it
+
+ IF default_page_bitdepth = 8 AND algorithm = minimapScaled THEN algorithm = minimapMajority
 
  'DIM drawtime as double = TIMER
 
@@ -1533,17 +1617,18 @@ FUNCTION createminimap (tiles() as TileMap, tilesets() as TilesetData ptr, pmapp
   'auto-detect best zoom
   zoom = bound(small(vpages(vpage)->w \ tiles(0).wide, vpages(vpage)->h \ tiles(0).high), 1, 20)
  END IF
+ DIM fraction as single
+ fraction = 20 / zoom
 
  DIM mini as Frame Ptr
  mini = frame_new(zoom * tiles(0).wide, zoom * tiles(0).high)
+ IF algorithm = minimapScaled THEN
+  frame_convert_to_32bit mini, master()
+ END IF
 
  DIM composed_tile as Frame Ptr
  composed_tile = frame_new(20, 20)
 
- DIM fraction as single
- fraction = 20 / zoom
-
- DIM pixel as integer
  DIM prng_state as uinteger = 0
 
  FOR ty as integer = 0 TO tiles(0).high - 1
@@ -1552,35 +1637,48 @@ FUNCTION createminimap (tiles() as TileMap, tilesets() as TilesetData ptr, pmapp
    IF tiles(0).layernum <> 0 THEN
     frame_clear(composed_tile, uilook(uiBackground))
    END IF
+
    draw_layers_at_tile(composed_tile, tiles(), tilesets(), tx, ty, pmapptr)
 
-   FOR x as integer = 0 TO zoom - 1
-    FOR y as integer = 0 TO zoom - 1
-     DIM as integer i, j
-     i = INT((x + simple_rand(prng_state)) * fraction)
-     j = INT((y + simple_rand(prng_state)) * fraction)
-     pixel = composed_tile->image[j * 20 + i]
-     mini->image[(tx * zoom + x) + (ty * zoom + y) * mini->w] = pixel
+   IF algorithm = minimapScaled THEN
+    DIM tile as Frame ptr = minimap_tile_scaled(composed_tile, zoom)
+    frame_draw tile, master(), NULL, tx * zoom, ty * zoom, , NO, mini   'master() not used
+    frame_unload @tile
+   ELSE
+
+    FOR x as integer = 0 TO zoom - 1
+     FOR y as integer = 0 TO zoom - 1
+      DIM pixel as integer
+      IF algorithm = minimapScatter THEN
+       pixel = minimap_pixel_scatter(x, y, fraction, prng_state, composed_tile)
+      ELSE
+       pixel = minimap_pixel_reservoir(x, y, zoom, composed_tile)
+      END IF
+      mini->image[(tx * zoom + x) + (ty * zoom + y) * mini->w] = pixel
+     NEXT
     NEXT
-   NEXT
+
+   END IF
   NEXT
  NEXT
 
  frame_unload @composed_tile
 
  ' drawtime = (TIMER - drawtime)
- ' debug "createminimap in " & drawtime & " -- " & (1e6 * drawtime / mini->w / mini->h)  & "us/pix"
-
+ ' debug "createminimap (algorithm " & algorithm & ") in " & drawtime & " -- " & (1e6 * drawtime / mini->w / mini->h)  & "us/pix"
  RETURN mini
 END FUNCTION
 
-FUNCTION createminimap (layer as TileMap, tileset as TilesetData ptr, byref zoom as integer = -1) as Frame ptr
+FUNCTION createminimap (layer as TileMap, tileset as TilesetData ptr, byref zoom as integer = -1, algorithm as MinimapAlgorithmEnum = minimapScaled) as Frame ptr
  DIM layers(0) as TileMap
  DIM tilesetsdata(0) as TilesetData ptr
  layers(0) = layer
  tilesetsdata(0) = tileset
- RETURN createminimap(layers(), tilesetsdata(), NULL, zoom)
+ RETURN createminimap(layers(), tilesetsdata(), NULL, zoom, algorithm)
 END FUNCTION
+
+'==========================================================================================
+
 
 FUNCTION readattackname (byval index as integer) as string
  RETURN readbadgenericname(index, game + ".dt6", 80, 24, 10, 1)
