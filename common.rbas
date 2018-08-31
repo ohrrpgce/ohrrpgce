@@ -1310,7 +1310,8 @@ SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
  setpal default_palette()
  DefaultUIColors uilook(), boxlook()
  clearpage vpage
- basic_textbox msg + quitmsg, uilook(uiText), vpage
+ 'suppress_borders to avoid needing to load the box border spriteset
+ basic_textbox msg + quitmsg, uilook(uiText), vpage, , , , YES  'suppress_borders=YES
  setvispage vpage, NO
 
  DIM key as integer = waitforanykey
@@ -1325,7 +1326,7 @@ SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
    clearpage vpage
    basic_textbox "Warning! If you had unsaved changes to your game you should backup the old .RPG file " _
                  "BEFORE attempting to save, because there is a chance that saving will produce a corrupt file.", _
-                 uilook(uiText), vpage
+                 uilook(uiText), vpage, , , , YES  'suppress_borders=YES
    setvispage vpage
    waitforanykey
   END IF
