@@ -265,10 +265,12 @@ static void scalerow(RGBcolor *srcp, int srcpstep, RGBcolor *destp, int destpste
 				run -= FIXEDPNT;
 				srcp += srcpstep;
 			}
-			// Read the remainder from the final src pixel
-			Racc += srcp->r * run;
-			Gacc += srcp->g * run;
-			Bacc += srcp->b * run;
+			if (run) {
+				// Read the remainder from the final src pixel
+				Racc += srcp->r * run;
+				Gacc += srcp->g * run;
+				Bacc += srcp->b * run;
+			}
 			pos = run;
 		}
 		destp->b = uint8_t(Bacc/runlen);
