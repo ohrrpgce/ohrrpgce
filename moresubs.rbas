@@ -938,11 +938,11 @@ SUB minimap (byval x as integer, byval y as integer)
   tog = tog XOR 1
   playtimer
   control
-  IF anykeypressed(YES, YES) THEN EXIT DO  'inc. joystick and mouse
   rectangle offset.x + (x / 20) * zoom, offset.y + (y / 20) * zoom, zoom, zoom, uilook(uiSelectedItem) * tog, vpage
   setvispage vpage
   dowait
- LOOP
+  'Exit on keypress after setvispage, because it does F12 screenshot check
+ LOOP UNTIL anykeypressed(YES, YES)  'inc. joystick and mouse
  setkeys
  flusharray carray(), 7, 0
  MenuSound gen(genCancelSFX)
