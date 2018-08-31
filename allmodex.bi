@@ -144,8 +144,13 @@ End Type
 
 '*** Requires construction + destruction ***
 Type TileMap
-  wide as integer
-  high as integer
+  Union
+    Type
+      wide as integer
+      high as integer
+    End Type
+    size as XYPair
+  End Union
   data as ubyte ptr
   layernum as integer
 End Type

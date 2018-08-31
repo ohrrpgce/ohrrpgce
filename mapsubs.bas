@@ -3716,14 +3716,10 @@ END SUB
 
 SUB verify_map_size (st as MapEditState)
  WITH st.map
-  DIM as integer w = .tiles(0).wide, h = .tiles(0).high
-  IF .pass.wide = w AND .foemap.wide = w AND .zmap.wide = w AND _
-     .pass.high = h AND .foemap.high = h AND .zmap.high = h THEN
-   EXIT SUB
-  END IF
+  DIM size as XYPair = .tiles(0).size
+  IF .pass.size = size AND .foemap.size = size AND .zmap.size = size THEN EXIT SUB
   '--Map's X and Y do not match
-  .wide = w
-  .high = h
+  .size = size
   clearpage vpage
   DIM j as integer
   j = 0
@@ -3741,13 +3737,11 @@ SUB verify_map_size (st as MapEditState)
   'A map's size might be due to corruption, besides, the tilemap is far away the most important
   '.wide = large(.tiles(0).wide, large(.pass.wide, .foemap.wide))
   '.high = large(.tiles(0).high, large(.pass.high, .foemap.high))
-  .pass.wide = .wide
-  .pass.high = .high
+  .pass.size = size
   .pass.data = REALLOCATE(.pass.data, .wide * .high)
-  .foemap.wide = .wide
-  .foemap.high = .high
+  .foemap.size = size
   .foemap.data = REALLOCATE(.foemap.data, .wide * .high)
-  IF .zmap.wide <> .wide OR .zmap.high <> .high THEN
+  IF .zmap.size <> size THEN
    'Zone maps are too tricky, just delete
    CleanZoneMap .zmap, .wide, .high
   END IF

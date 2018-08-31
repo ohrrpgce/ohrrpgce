@@ -2046,8 +2046,7 @@ Sub ChangeMapSlice(byval sl as Slice ptr,_
     sl->Width = 0
     sl->Height = 0
    else
-    sl->Width = tiles->wide * 20
-    sl->Height = tiles->high * 20
+    sl->Size = tiles->size * 20
    end if
   end if
   if tiles <> cast(TileMap ptr, 1) then

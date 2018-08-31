@@ -457,8 +457,13 @@ TYPE ScriptCommand
 END TYPE
 
 TYPE TilemapInfo
-  wide as integer
-  high as integer
+  UNION
+    TYPE
+      wide as integer
+      high as integer
+    END TYPE
+    size as XYPair
+  END UNION
   layers as integer
 
   err as string      'Error message if the file is bad, otherwise blank
@@ -492,8 +497,13 @@ End Type
 Type ZoneMap
   numzones as integer
   zones as ZoneInfo ptr
-  wide as integer  'width in tiles
-  high as integer  'height in tiles
+  UNION
+    TYPE
+      wide as integer       'width in tiles
+      high as integer       'height in tiles
+    END TYPE
+    size as XYPair
+  END UNION
   wide_segments as integer  'width in 4x4 tile segments
   high_segments as integer  'height in 4x4 tile segments
   bitmap as ushort ptr      'array dimensions are [high][wide]

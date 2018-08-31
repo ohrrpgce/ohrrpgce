@@ -534,8 +534,7 @@ SUB MapData.load(map_id as integer)
   IF gmap(31) = 0 THEN gmap(31) = 2
   name = getmapname(id)
   LoadTilemaps tiles(), maplumpname(id, "t")
-  wide = tiles(0).wide
-  high = tiles(0).high
+  size = tiles(0).size
   LoadTilemap pass, maplumpname(id, "p")
   LoadTilemap foemap, maplumpname(id, "e")
   IF isfile(maplumpname(id, "z")) THEN

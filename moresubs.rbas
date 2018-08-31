@@ -1120,8 +1120,7 @@ END SUB
 
 'Generate the minimap given a zoom factor, and determinate viewport and camera positions
 SUB teleporttool_generate_minimap(byref mini as Frame Ptr, maptilesX() as TileMap, passX as TileMap, tilesetsX() as TilesetData ptr, byref zoom as integer, byref maxzoom as integer, byref mapsize as XYPair, byref minisize as XYPair, byref offset as XYPair, byref camera as XYPair, dest as XYPair)
- mapsize.x = maptilesX(0).wide
- mapsize.y = maptilesX(0).high
+ mapsize = maptilesX(0).size
  DIM screenw as integer = vpages(vpage)->w
  DIM screenh as integer = vpages(vpage)->h
  DIM screen_ratio as double = small(screenw / maptilesX(0).wide, screenh / maptilesX(0).high)

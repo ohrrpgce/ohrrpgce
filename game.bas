@@ -2462,8 +2462,7 @@ SUB loadmap_tilemap(byval mapnum as integer)
  lump_reloading.maptiles.changed = NO
  lump_reloading.maptiles.hash = file_hash64(maplumpname(mapnum, "t"))
  LoadTileMaps maptiles(), maplumpname(mapnum, "t")
- mapsizetiles.w = maptiles(0).wide
- mapsizetiles.h = maptiles(0).high
+ mapsizetiles = maptiles(0).size
  update_map_slices_for_new_tilemap
 
  '--as soon as we know the dimensions of the map, enforce hero position boundaries
