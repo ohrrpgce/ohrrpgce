@@ -65,7 +65,6 @@ declare sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal a
 declare sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 declare sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 declare sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Surface ptr)
-declare sub setclipframe (fr as Frame ptr)
 
 'declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(filen as string, w as integer, h as integer, bitdepth as integer) as integer
@@ -167,7 +166,7 @@ DEFINE_VECTOR_OF_TYPE_COMMON(Frame ptr, Frame_ptr, @_frame_copyctor, @frame_unlo
 '(Not fully implemented, as it seems it would only benefit textbox_appearance_editor)
 'dim shared fixedsize_vpages() as bool
 
-dim cliprect as ClipState
+dim shared tlsKeyClipRect as TLSKey
 
 'The current internal size of the window (takes effect at next setvispage).
 'Should only be modified via set_resolution and unlock_resolution
@@ -176,8 +175,8 @@ dim shared windowsize as XYPair = (320, 200)
 dim shared minwinsize as XYPair
 dim shared resizing_enabled as bool = NO  'keeps track of backend state
 
+'State for drawing maps (I wish we didn't have any global state)
 dim shared bordertile as integer
-
 'Tileset animation states
 dim shared anim1 as integer
 dim shared anim2 as integer
@@ -390,6 +389,8 @@ dim shared global_sfx_volume as single = 1.
 
 ' Initialise anything in this module that's independent from the gfx backend
 private sub modex_init()
+	tlsKeyClipRect = tls_alloc_key()
+
 	redim vpages(3)
 	'redim fixedsize_vpages(3)  'Initially all NO
 	vpagesp = @vpages(0)
@@ -400,8 +401,6 @@ private sub modex_init()
 	'They are currently still used in the tileset editor, importmxs,
 	'and mapedit_linkdoors.
 	'Except for the first two, they're assumed to be the same size as pages 0/1.
-
-	cliprect.frame = NULL
 
 	hash_construct(sprcache, offsetof(SpriteCacheEntry, hashed))
 	dlist_construct(sprcacheB.generic, offsetof(SpriteCacheEntry, cacheB))
@@ -466,6 +465,8 @@ private sub modex_quit()
 
 	releasestack
 	safekill macrofile
+
+	tls_free_key(tlsKeyClipRect)  'Leaking the ClipState, don't care
 end sub
 
 ' Cleans up everything that ought to be done before calling gfx_close()
@@ -3266,7 +3267,7 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 	dim todraw as integer
 	dim tileframe as frame
 
-	setclipframe dest
+	get_cliprect(dest)  'Set clipping Frame
 
 	'copied from the asm
 	ypos = y \ 20
@@ -3475,9 +3476,9 @@ sub putpixel (spr as Frame ptr, x as integer, y as integer, c as integer)
 end sub
 
 sub putpixel (x as integer, y as integer, c as integer, p as integer)
-	setclipframe vpages(p)
 	CHECK_FRAME_8BIT(vpages(p))
 
+	dim byref cliprect as ClipState = get_cliprect(vpages(p))
 	if POINT_CLIPPED(x, y) then
 		'debug "attempt to putpixel off-screen " & x & "," & y & "=" & c & " on page " & p
 		exit sub
@@ -3496,8 +3497,8 @@ function readpixel (spr as Frame ptr, x as integer, y as integer) as integer
 end function
 
 function readpixel (x as integer, y as integer, p as integer) as integer
-	setclipframe vpages(p)
 	CHECK_FRAME_8BIT(vpages(p), 0)
+	dim byref cliprect as ClipState = get_cliprect(vpages(p))
 
 	if POINT_CLIPPED(x, y) then
 		debug "attempt to readpixel off-screen " & x & "," & y & " on page " & p
@@ -3604,7 +3605,7 @@ end sub
 'Draw a solid rectangle (use drawbox for a hollow one)
 'Top/left edges are inclusive, bottom/right are exclusive
 sub rectangle (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer)
-	setclipframe fr
+	dim byref cliprect as ClipState = get_cliprect(fr)
 
 	' Decode relative positions/sizes to absolute
 	w = relative_pos(w, fr->w)
@@ -3660,7 +3661,7 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 	                    21, 28, 11, 16, 20, 22, 18, 17, 19, 32, 17, 16, _
 	                    15, 14, 50}
 
-	setclipframe fr
+	dim byref cliprect as ClipState = get_cliprect(fr)
 
 	fuzzfactor = bound(fuzzfactor, 1, 99)
 
@@ -3778,10 +3779,10 @@ sub draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byr
 		fuzzyrect bg_chequer, 0, 0, bg_chequer->w, bg_chequer->h, uilook(uiDisabledItem)
 		dim offset as integer = 0
 		if bgcolor = -1 then offset = chequer_scroll \ rate
-		dim oldclip as ClipState = cliprect
+		dim oldclip as ClipState = get_cliprect
 		shrinkclip x, y, x + wide - 1, y + high - 1, dest
 		frame_draw bg_chequer, NULL, x - offset, y - offset, zoom, NO, dest
-		cliprect = oldclip
+		get_cliprect() = oldclip
 		frame_unload @bg_chequer
 	end if
 end sub
@@ -3798,8 +3799,8 @@ end sub
 sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2 as integer, c as integer, dash_cycle as integer = 0, dash_len as integer = 0)
 	'Uses Bresenham's algorithm
 
-	setclipframe dest
 	CHECK_FRAME_8BIT(dest)
+	dim byref cliprect as ClipState = get_cliprect(dest)
 
 	if y1 > y2 then
 		'swap ends, we only draw downwards
@@ -3914,9 +3915,9 @@ sub paintat (dest as Frame ptr, x as integer, y as integer, c as integer)
 	dim i as integer
 	dim tnode as XYPair_node ptr = null
 
-	setclipframe dest
 	CHECK_FRAME_8BIT(dest)
 
+	dim byref cliprect as ClipState = get_cliprect(dest)
 	if POINT_CLIPPED(x, y) then exit sub
 
 	tcol = readpixel(dest, x, y)	'get target colour
@@ -3986,8 +3987,8 @@ sub ellipse (fr as Frame ptr, x as double, y as double, radius as double, col as
 'radius is the semimajor axis if the ellipse is not a circle
 'angle is the angle of the semimajor axis to the x axis, in radians counter-clockwise
 
-	setclipframe fr
 	CHECK_FRAME_8BIT(fr)
+	dim byref cliprect as ClipState = get_cliprect(fr)
 
 	'x,y is the pixel to centre the ellipse at - that is, the centre of that pixel, so add half a pixel to
 	'radius to put the perimeter halfway between two pixels
@@ -4087,8 +4088,8 @@ end sub
 
 'Replaces one colour with another, OR if swapcols is true, swaps the two colours.
 sub replacecolor (fr as Frame ptr, c_old as integer, c_new as integer, swapcols as bool = NO)
-	setclipframe fr
 	CHECK_FRAME_8BIT(fr)
+	dim byref cliprect as ClipState = get_cliprect(fr)
 
 	for yi as integer = cliprect.t to cliprect.b
 		dim sptr as ubyte ptr = fr->image + (yi * fr->pitch)
@@ -4108,8 +4109,8 @@ end sub
 
 'Changes a Frame in-place, applying a remapping
 sub remap_to_palette (fr as Frame ptr, pal as Palette16 ptr)
-	setclipframe fr
 	CHECK_FRAME_8BIT(fr)
+	dim byref cliprect as ClipState = get_cliprect(fr)
 
 	for y as integer = cliprect.t to cliprect.b
 		for x as integer = cliprect.l to cliprect.r
@@ -4126,8 +4127,8 @@ end sub
 
 ' Count the number of occurrences of a color in a Frame (just the clipped region)
 function countcolor (fr as Frame ptr, col as integer) as integer
-	setclipframe fr
 	CHECK_FRAME_8BIT(fr, 0)
+	dim byref cliprect as ClipState = get_cliprect(fr)
 
 	dim ret as integer = 0
 	for yi as integer = cliprect.t to cliprect.b
@@ -4581,6 +4582,8 @@ sub draw_line_fragment(dest as Frame ptr, byref state as PrintStrState, layer as
 	charframe.mask = NULL
 	charframe.refcount = NOREFC
 
+	dim byref cliprect as ClipState = get_cliprect()
+
 	with state
 'debug "draw frag: x=" & .x & " y=" & .y & " char=" & .charnum & " reallydraw=" & reallydraw & " layer=" & layer
 		for ch as integer = 0 to len(parsed_line) - 1
@@ -4723,7 +4726,7 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 
 	if dest = null then debug "printstr: NULL dest" : exit sub
 
-	setclipframe dest
+	dim byref cliprect as ClipState = get_cliprect(dest)
 
 	'check bounds skipped because this is now quite hard to tell (checked in draw_clipped)
 
@@ -7345,15 +7348,44 @@ end sub
 
 
 'NOTE: there is only one set of clipping values, shared globally for
-'all drawing operations... this is probably a bad thing, but that is how
-'it works. The frame argument to setclip() is used to determine
-'the allowed range of clipping values.
+'all drawing operations. The cliprect is stored in thread-local storage (TLS)
+'so that it's possible for multiple threads to draw to Frames.
+'The frame argument to setclip() is used to determine the allowed range of clipping values.
 
-'Set the bounds used by various (not quite all?) video page drawing functions.
-'setclip must be called to reset the clip bounds whenever the cliprect.frame changes, to ensure
-'that they are valid (the video page dimensions might differ).
+'Guaranteed to always return the same result on the same thread.
+'Also ensures that the cliprect is for the given Frame, if given.
+function get_cliprect(fr as Frame ptr = NULL) byref as ClipState
+	'Without TLS:
+	' static cliprect as ClipState
+	' if fr then setclip , , , , fr
+	' return cliprect
+
+	dim cliprectp as ClipState ptr = cast(ClipState ptr, tls_get(tlsKeyClipRect))
+	if cliprectp = NULL then
+		cliprectp = new ClipState
+		tls_set(tlsKeyClipRect, cliprectp)
+	end if
+
+	if fr andalso cliprectp->frame <> fr then
+		cliprectp->frame = fr
+		cliprectp->l = 0
+		cliprectp->t = 0
+		cliprectp->r = fr->w - 1
+		cliprectp->b = fr->h - 1
+	end if
+	return *cliprectp
+end function
+
+'Set the bounds used by most Frame drawing functions.
+'setclip (or get_cliprect(fr)) must be called to reset the clip bounds whenever the Frame being drawn to
+'changes, to ensure clip bounds are valid.
 sub setclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr = 0)
+	dim byref cliprect as ClipState = get_cliprect()
 	if fr <> 0 then cliprect.frame = fr
+	if cliprect.frame = 0 then
+		debugc errPromptBug, "Trying to setclip with no Frame"
+		exit sub
+	end if
 	with *cliprect.frame
 		cliprect.l = bound(l, 0, .w) '.w valid, prevents any drawing
 		cliprect.t = bound(t, 0, .h)
@@ -7362,15 +7394,9 @@ sub setclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as inte
 	end with
 end sub
 
-'Ensure that the cliprect is for the given frame
-private sub setclipframe(fr as Frame ptr)
-	if cliprect.frame <> fr then
-		setclip , , , , fr
-	end if
-end sub
-
 'Shrinks clipping area, never grows it
 sub shrinkclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr = 0)
+	dim byref cliprect as ClipState = get_cliprect()
 	if fr andalso cliprect.frame <> fr then
 		cliprect.frame = fr
 		cliprect.l = 0
@@ -7388,7 +7414,7 @@ end sub
 
 'Blit a Frame with setclip clipping.
 'trans: draw transparently, either using ->mask if available, or otherwise use colour 0 as transparent
-'warning! Make sure setclip has been called before calling this
+'warning! Make sure setclip/get_cliprect has been called before calling this
 'write_mask:
 '    If the destination has a mask, sets the mask for the destination rectangle
 '    equal to the mask (or color-key) for the source rectangle. Does not OR them.
@@ -7400,6 +7426,8 @@ private sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as int
 	endx = x + src->w - 1
 	starty = y
 	endy = y + src->h - 1
+
+	dim byref cliprect as ClipState = get_cliprect()
 
 	if startx < cliprect.l then
 		srcoffset = (cliprect.l - startx)
@@ -7431,6 +7459,7 @@ private sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x
 		exit sub
 	end if
 
+	dim byref cliprect as ClipState = get_cliprect()
 	dim as integer sxfrom, sxto, syfrom, syto
 
 	sxfrom = large(cliprect.l, x)
@@ -7444,6 +7473,8 @@ end sub
 
 ' Blit a Surface with setclip clipping.
 private sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Surface ptr)
+
+	dim byref cliprect as ClipState = get_cliprect()
 
 	' It's OK for the src and dest rects to have negative size or be off
 	' the edge of src/dest, because gfx_surfaceCopy properly clips them.
@@ -8273,7 +8304,9 @@ sub frame_unload cdecl(ppfr as Frame ptr ptr)
 	*ppfr = 0
 	if fr = 0 then exit sub
 
+	dim byref cliprect as ClipState = get_cliprect()
 	if cliprect.frame = fr then cliprect.frame = 0
+
 	with *fr
 		if .refcount = FREEDREFC then
 			debug frame_describe(fr) & " already freed!"
@@ -8523,7 +8556,7 @@ sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palet
 		showerror "trying to draw from/to null frame"
 		exit sub
 	end if
-	setclipframe dest
+	get_cliprect(dest)  'Set clipping Frame
 
 	x = relative_pos(x, dest->w, src->w)
 	y = relative_pos(y, dest->h, src->h)
@@ -8537,9 +8570,9 @@ private sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal a
 
 	if src->surf <> NULL or dest->surf <> NULL then
 		if dest->surf = NULL then
-			showerror "draw_clipped: trying to draw a Surface-backed Frame to a regular Frame"
+			showerror "frame_draw_internal: trying to draw a Surface-backed Frame to a regular Frame"
 		elseif write_mask <> NO or scale <> 1 then
-			showerror "draw_clipped: write_mask and scale not supported with a Surface-backed Frame"
+			showerror "frame_draw_internal: write_mask and scale not supported with a Surface-backed Frame"
 		end if
 
 		dim src_surface as Surface ptr

@@ -574,7 +574,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
   draw_fullscreen_scrollbar state, 0, page
  END IF
 
- DIM rememclip as ClipState = cliprect
+ DIM rememclip as ClipState = get_cliprect()
  shrinkclip x, , x + wide - 1, , vpages(page)
 
  FOR i as integer = state.top TO state.top + state.size
@@ -613,7 +613,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
   END IF
  NEXT i
 
- cliprect = rememclip
+ get_cliprect() = rememclip
 END SUB
 
 'Determine the color to draw menu item index 'itemno' in menu 'state'.

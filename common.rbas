@@ -763,8 +763,7 @@ ELSEIF borderindex >= 0 AND borderindex <= gen(genMaxBoxBorder) THEN
  WITH border_gfx
   IF .sprite THEN ' Only proceed if a sprite is actually selected
    'Draw edges
-   'ensure we are clipping the correct page (there are many ways of doing this)
-   shrinkclip , , , , fr
+   DIM byref cliprect as ClipState = get_cliprect(fr)
    DIM oldclip as ClipState = cliprect
 
    '--Top and bottom edges

@@ -122,7 +122,7 @@ Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
   if .ChildrenRefresh then .ChildrenRefresh(s)
 
   if .Clip then
-   rememclip = cliprect
+   rememclip = get_cliprect()
    shrinkclip .ScreenX + .paddingLeft, _
               .ScreenY + .paddingTop, _
               .ScreenX + .Width - .paddingRight - 1, _
@@ -139,7 +139,7 @@ Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
    childindex += 1
   Loop
 
-  if .Clip then cliprect = rememclip
+  if .Clip then get_cliprect() = rememclip
  end with
 End sub
 
@@ -2208,7 +2208,7 @@ Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
     dim clippos as XYPair
     clippos.x = .ScreenX + xslot * w
     clippos.y = .ScreenY + yslot * h
-    dim rememclip as ClipState = cliprect
+    dim rememclip as ClipState = get_cliprect()
     shrinkclip clippos.x + .paddingLeft, _
                clippos.y + .paddingTop, _
                clippos.x + w - .paddingRight - 1, _
@@ -2217,7 +2217,7 @@ Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
 
     DrawSliceRecurse(ch, page, childindex)
 
-    cliprect = rememclip
+    get_cliprect() = rememclip
 
     ch = ch->NextSibling
     childindex += 1
@@ -3130,7 +3130,7 @@ Sub PanelChildDraw(byval s as Slice Ptr, byval page as integer)
     CalcPanelArea clippos, clipsize, s, index
     clippos += .ScreenPos
 
-    rememclip = cliprect
+    rememclip = get_cliprect()
     shrinkclip clippos.x, clippos.y, _
                clippos.x + clipsize.w - 1, clippos.y + clipsize.h - 1, _
                vpages(page)
@@ -3138,7 +3138,7 @@ Sub PanelChildDraw(byval s as Slice Ptr, byval page as integer)
 
    DrawSliceRecurse(ch, page, index)
 
-   if .Clip then cliprect = rememclip
+   if .Clip then get_cliprect() = rememclip
 
    index += 1
    if index > 1 then exit do ' Only ever draw the first 2 children!

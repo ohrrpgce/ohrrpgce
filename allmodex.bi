@@ -203,6 +203,7 @@ End Type
 'NOTE: clipping values are global.
 DECLARE SUB setclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr = 0)
 DECLARE SUB shrinkclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr = 0)
+DECLARE FUNCTION get_cliprect(fr as Frame ptr = NULL) BYREF as ClipState
 
 DECLARE SUB putpixel OVERLOAD (spr as Frame ptr, x as integer, y as integer, c as integer)
 DECLARE SUB putpixel OVERLOAD (x as integer, y as integer, c as integer, p as integer)
@@ -724,7 +725,6 @@ declare sub email_files(address as string, subject as string, message as string,
 '==========================================================================================
 '                                         Globals
 
-extern cliprect as ClipState
 extern gfxmutex as any ptr
 extern main_thread_in_gfx_backend as bool
 extern modex_initialised as bool
