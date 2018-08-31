@@ -290,8 +290,8 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 			ret = NO
 		end if
 		if expectexists andalso ret = NO then
-			' Warning: filename will be wrong if OPENFILE wasn't used
-			debug "loadrecord: record " & record & " is " & partially & "off the end of (?)" & get_filename(fh)
+			' Filename will be unknown if OPENFILE wasn't used
+			debug "loadrecord: record " & record & " is " & partially & "off the end of " & get_filename(fh)
 		end if
 	end if
 	get #fh, , readbuf()

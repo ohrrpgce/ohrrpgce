@@ -2,7 +2,8 @@
  * Copyright 2011. Please read LICENSE.txt for GNU GPL details and disclaimer of liability
  */
 
-//fb_stub.h (included by filelayer.hpp) MUST be included first, to ensure fb_off_t is 64 bit
+//fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
+#include "fb/fb_stub.h"
 #include "filelayer.hpp"
 #include <cstdio>
 #include <cassert>
@@ -11,17 +12,11 @@
 #include "misc.h"
 #include "errno.h"
 
-// This array stores information about any hooked open file that was opened using OPENFILE.
+// This array stores information about any open file that was opened using OPENFILE.
 // Indexed by index into FB's __fb_ctx.fileTB, NOT by file number as returned by FREEFILE.
 // When quitting FB closes all files from within a destructor, so globals may have already
 // been deleted. So it would be a bad idea to define openfiles as array of file-scope objects instead of pointers.
 FileInfo *openfiles[FB_MAX_FILES];
-
-// Mapping from file handles to names.  We don't update this when the file is
-// closed, so don't need to use a pointer like openfiles. And handles get
-// reused, so it's not a memory leak.  (Note openfiles also stores the filename,
-// more robustly, but only includes hooked files)
-map<int, string> filenames;
 
 IPCChannel *lump_updates_channel;
 
@@ -61,32 +56,40 @@ static FileInfo *&get_fileinfo(FB_FILE *handle) {
 	return get_fileinfo(FB_FILE_FROM_HANDLE(handle));
 }
 
+// Unlike the other wrappers, this one is used for non-hooked files too,
+// so that we can maintain openfiles[].
 int file_wrapper_close(FB_FILE *handle) {
 	FileInfo *&infop = get_fileinfo(handle);
-	assert(infop);
-	//debuginfo("closing %s, read-lock:%d write-lock:%d", info.name.c_str(), test_locked(info.name.c_str(), 0), test_locked(info.name.c_str(), 1));
-	if (infop->dirty) {
-		//fprintf(stderr, "%s was dirty\n", infop->name.c_str());
-		send_lump_modified_msg(infop->name.c_str());
+	// infop will be NULL if this file was not opened with OPENFILE: see HACK below
+	if (infop) {
+		//debuginfo("closing %s, read-lock:%d write-lock:%d", info.name.c_str(), test_locked(info.name.c_str(), 0), test_locked(info.name.c_str(), 1));
+		if (infop->hooked) {
+			if (infop->dirty) {
+				//fprintf(stderr, "%s was dirty\n", info.name.c_str());
+				send_lump_modified_msg(infop->name.c_str());
+			}
+			//debuginfo("unlocking %s", info.name.c_str());
+			unlock_file((FILE *)handle->opaque);  // Only needed on Windows
+		}
+		delete infop;
+		infop = NULL;
 	}
-	delete infop;
-	infop = NULL;
 
 	return fb_DevFileClose(handle);
 }
 
 int file_wrapper_seek(FB_FILE *handle, fb_off_t offset, int whence) {
-	// Nothing here
+	// Nothing here yet
 	return fb_DevFileSeek(handle, offset, whence);
 }
 
 int file_wrapper_tell(FB_FILE *handle, fb_off_t *pOffset) {
-	// Nothing here
+	// Nothing here yet
 	return fb_DevFileTell(handle, pOffset);
 }
 
 int file_wrapper_read(FB_FILE *handle, void *value, size_t *pValuelen) {
-	// Nothing here
+	// Nothing here yet
 	return fb_DevFileRead(handle, value, pValuelen);
 }
 
@@ -115,9 +118,9 @@ int file_wrapper_write(FB_FILE *handle, const void *value, size_t valuelen) {
 static FB_FILE_HOOKS lumpfile_hooks = {
 	fb_DevFileEof,
 	file_wrapper_close,
-	file_wrapper_seek,
-	file_wrapper_tell,
-	file_wrapper_read,
+	fb_DevFileSeek,       //file_wrapper_seek,
+	fb_DevFileTell,       //file_wrapper_tell,
+	fb_DevFileRead,       //file_wrapper_read,
 	fb_DevFileReadWstr,
 	file_wrapper_write,
 	fb_DevFileWriteWstr,  // Ought to intercept this
@@ -146,6 +149,8 @@ void dump_openfiles() {
 }
 
 // Replacement for fb_DevFileOpen().
+// (Actually, I don't see why we need this - can't we just switch the hooks and lock the file inside OPENFILE?
+// Almost nothing happens in-between.
 int lump_file_opener(FB_FILE *handle, const char *filename, size_t filename_len) {
 	//fprintf(stderr, "opening %p (%s).\n", handle, filename);
 
@@ -156,11 +161,6 @@ int lump_file_opener(FB_FILE *handle, const char *filename, size_t filename_len)
 	if (ret) return ret;
 
 	handle->hooks = &lumpfile_hooks;
-	FileInfo *&infop = get_fileinfo(handle);
-       assert(!infop);
-	infop = new FileInfo();
-	infop->name = filename;
-	infop->hooked = true;
 
 	if (lock_lumps) {
 		if (handle->access & FB_FILE_ACCESS_WRITE) {
@@ -298,8 +298,15 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 		return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
+	FileInfo *&infop = get_fileinfo(fnum);
+	assert(!infop);
+	infop = new FileInfo();
+	infop->name = filename->data;
+	infop->hooked = (action == HOOK);
+
 	errno = 0;
-	int ret = fb_FileOpenVfsEx(FB_FILE_TO_HANDLE(fnum), &file_to_open, mode, access,
+	FB_FILE *handle = FB_FILE_TO_HANDLE(fnum);
+	int ret = fb_FileOpenVfsEx(handle, &file_to_open, mode, access,
 	                           FB_FILE_LOCK_SHARED, 0, encod, fnOpen);
 	int C_err = errno;
 
@@ -310,8 +317,15 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 		      (filename && filename->data) ? filename->data : "",  // Valid empty string
 		      openbits, ret, strerror(C_err));
 	}
-	if (ret == FB_RTERROR_OK) {
-		filenames[fnum] = string(file_to_open.data);
+	if (ret != FB_RTERROR_OK) {
+		delete infop;
+		infop = NULL;
+	} else {
+		// HACK: hook CLOSE for all files, by permanently modifying FB's internal
+		// file hooks tables, so that we can be sure that FileInfo will get deleted.
+		// This will affect files opened with OPEN instead of OPENFILE too!
+		if (handle->hooks && handle->hooks->pfnClose == fb_DevFileClose)
+			handle->hooks->pfnClose = file_wrapper_close;
 	}
 	delete_fbstring(&file_to_open);
 
@@ -380,12 +394,12 @@ void clear_OPEN_hook() {
 	lump_updates_channel = NULL_CHANNEL;
 }
 
-// Lookup the name of a file from its handle (as returned by FREEFILE).
-// Only works if it was opened with OPENFILE. Returns previous filename if not open.
+// Lookup the name of a file from its handle (as returned by FREEFILE/OPENFILE).
+// Only works if it was opened with OPENFILE, otherwise returns dummy filename.
 // This is just intended for debugging.
 FBSTRING *get_filename(int fnum) {
+	FileInfo *infop = get_fileinfo(fnum);
 	FBSTRING ret;
-	// If fnum isn't in filenames, this inserts an empty string
-	init_fbstring(&ret, filenames[fnum].c_str());
+	init_fbstring(&ret, infop ? infop->name.c_str() : "<Non-OPENFILE file>");
 	return return_fbstring(&ret);
 }

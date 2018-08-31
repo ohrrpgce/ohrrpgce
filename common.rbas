@@ -137,7 +137,7 @@ DIM SHARED importantdebug as bool = NO
 DIM SHARED log_buffer as string
 'When restarting the log, the previous path if significant
 DIM SHARED lastlogfile as string
-'Prevent two threads from writing at once, probably an unnecessary precaution
+'Prevent two threads from writing to debug log at once
 DIM SHARED debug_log_mutex as any ptr
 debug_log_mutex = mutexcreate
 
@@ -423,8 +423,6 @@ SUB debuginfo (s as string)
  'Use for throwaway messages like upgrading
  '(Also this is internally the implementation of debug())
 
- ' It's likely that holding a mutex while writing isn't necessary, since
- ' all FB routines grab a mutex before changing any state anyway.
  mutexlock debug_log_mutex
 
  'For now, on Android log everything to the kernel log for convenience
