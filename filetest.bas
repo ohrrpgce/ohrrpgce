@@ -139,6 +139,7 @@ startTest(get_file_type)
 endTest
 
 startTest(fileisreadable)
+	? !"\nIgnore ""no filename"" warning:"
 	if fileisreadable("") then fail
 	if fileisreadable("_testfile.tmp") = NO then fail
 	if fileisreadable("_nonexistent_file.tmp") then fail
@@ -158,6 +159,7 @@ startTest(fileisreadable)
 endTest
 
 startTest(real_isfile)
+	? !"\nIgnore ""no filename"" warning:"
 	if real_isfile("") then fail
 	if real_isfile("_testfile.tmp") = NO then fail
 	if real_isfile("_nonexistent_file.tmp") then fail
@@ -175,6 +177,7 @@ startTest(real_isfile)
 endTest
 
 startTest(fileiswriteable)
+	? !"\nIgnore ""no filename"" warning:"
 	if fileiswriteable("") then fail
 	if fileiswriteable("_testfile.tmp") = NO then fail
 	if fileiswriteable("_nonexistent_file.tmp") = NO then fail

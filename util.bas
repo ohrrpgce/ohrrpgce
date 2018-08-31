@@ -2703,7 +2703,7 @@ FUNCTION local_file_move(frompath as string, topath as string) as bool
 END FUNCTION
 
 FUNCTION fileisreadable(filename as string) as bool
-  if len(filename) = 0 then debug "fileisreadable: no filename"
+  if len(filename) = 0 then debug "fileisreadable: no filename" : return NO
   dim ret as bool = NO
   dim fh as integer, err_code as integer
 
@@ -2727,7 +2727,7 @@ END FUNCTION
 
 ' Whether an existing file can be opened for writing, or else if a new file can be written.
 FUNCTION fileiswriteable(filename as string) as bool
-  if len(filename) = 0 then debug "fileisreadable: no filename"
+  if len(filename) = 0 then debug "fileiswriteable: no filename" : return NO
   dim ret as bool = NO
   dim fh as integer
   dim exists as bool = (get_file_type(filename) <> fileTypeNonexistent)
@@ -2782,7 +2782,7 @@ FUNCTION isfile (filename as string) as bool
 END FUNCTION
 
 FUNCTION real_isfile(filename as string) as bool
-  if len(filename) = 0 then debug "real_isfile: no filename"
+  if len(filename) = 0 then debug "real_isfile: no filename" : return NO
   dim ret as bool = (get_file_type(filename) = fileTypeFile)
   #ifdef DEBUG_FILE_IO
     debuginfo "real_isfile(" & filename & ") = " & ret

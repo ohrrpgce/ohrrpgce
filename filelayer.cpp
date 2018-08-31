@@ -184,6 +184,11 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 	unsigned int mode, access;
 	FB_FILE_ENCOD encod;
 
+	if (!filename || !filename->data) {
+		debug(errBug, "OPENFILE: empty filename");
+		return FB_RTERROR_ILLEGALFUNCTIONCALL;
+	}
+
 	switch(openbits & FOR_MASK) {
 		case 0:  // Default
 		case FOR_BINARY:
