@@ -1625,13 +1625,11 @@ FUNCTION createminimap (tiles() as TileMap, tilesets() as TilesetData ptr, pmapp
  fraction = 20 / zoom
 
  DIM mini as Frame Ptr
- mini = frame_new(zoom * tiles(0).wide, zoom * tiles(0).high)
- IF algorithm = minimapScaled THEN
-  frame_convert_to_32bit mini, master()
- END IF
+ DIM with_surface32 as bool = (algorithm = minimapScaled)
+ mini = frame_new(zoom * tiles(0).wide, zoom * tiles(0).high, , , , with_surface32)
 
  DIM composed_tile as Frame Ptr
- composed_tile = frame_new(20, 20)
+ composed_tile = frame_new(20, 20, , YES)
 
  DIM prng_state as uinteger = 0
 
