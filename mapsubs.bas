@@ -4824,7 +4824,8 @@ SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
  rs.rect.high = rs.oldsize.y
  rs.rect.x = 0
  rs.rect.y = 0
- 
+
+ switch_to_32bit_vpages
  resize_rezoom_mini_map st, rs
  resize_buildmenu rs
  setkeys
@@ -4882,7 +4883,7 @@ SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
  LOOP
  frame_unload @(rs.minimap)
  ClearMenuData rs.menu
-
+ switch_to_8bit_vpages
 END SUB
 
 SUB resize_correct_width(st as MapEditState, byref rs as MapResizeState)
@@ -4945,18 +4946,31 @@ SUB resize_rezoom_mini_map(st as MapEditState, byref rs as MapResizeState)
 END SUB
 
 SUB show_minimap(st as MapEditState)
- DIM minimap as Frame Ptr
- minimap = createminimap(st.map.tiles(), st.tilesets(), @st.map.pass)
+ DIM algorithm as MinimapAlgorithmEnum
+ IF keyval(scShift) > 0 THEN
+  algorithm = minimapMajority
+ ELSEIF keyval(scContext) > 0 THEN
+  algorithm = minimapScatter
+ ELSE
+  switch_to_32bit_vpages()
+  algorithm = minimapScaled
+ END IF
 
- clearpage vpage
- frame_draw minimap, NULL, 0, 0, 1, NO, vpage
- frame_unload @minimap
-
- 'edgeprint "Press Any Key", pRight, pBottom, uilook(uiText), vpage
  'Because people very often take screenshots of the minimap
  show_overlay_message "Press Any Key", 1.
- setvispage vpage
- waitforanykey
+
+ DO
+  DIM minimap as Frame Ptr
+  minimap = createminimap(st.map.tiles(), st.tilesets(), @st.map.pass, , algorithm)
+  clearpage vpage
+  frame_draw minimap, NULL, 0, 0, 1, NO, vpage
+  frame_unload @minimap
+  setvispage vpage
+
+  IF waitforanykey(YES) <> scResize THEN EXIT DO   'wait_for_resize=YES
+ LOOP
+
+ switch_to_8bit_vpages()
 END SUB
 
 
