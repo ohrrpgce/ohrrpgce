@@ -263,10 +263,6 @@ sub interrupt_self ()
 	DebugBreak
 end sub
 
-function on_main_thread () as bool
-	return GetCurrentThreadId() = main_thread_id
-end function
-
 
 '==========================================================================================
 '                                       Filesystem
@@ -944,6 +940,35 @@ function open_document (filename as string) as string
 	end if
 	return ""
 end function
+
+
+'==========================================================================================
+'                                       Threading
+'==========================================================================================
+
+function on_main_thread () as bool
+	return GetCurrentThreadId() = main_thread_id
+end function
+
+function tls_alloc_key() as TLSKey
+	dim key as DWORD = TlsAlloc()
+	if key = 0 then
+		debugc errError, "TlsAlloc failed: " & get_windows_error(GetLastError())
+	end if
+	return cast(TLSKey, key)
+end function
+
+sub tls_free_key(key as TLSKey)
+	TlsFree(cast(DWORD, key))
+end sub
+
+function tls_get(key as TLSKey) as any ptr
+	return TlsGetValue(cast(DWORD, key))
+end function
+
+sub tls_set(key as TLSKey, value as any ptr)
+	TlsSetValue(cast(DWORD, key), value)
+end sub
 
 
 end extern

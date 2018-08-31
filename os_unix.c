@@ -883,3 +883,36 @@ int get_process_id () {
 void interrupt_self () {
 	raise(SIGINT);
 }
+
+
+//==========================================================================================
+//                                       Threading
+//==========================================================================================
+
+// pthread_key_t can be anything.
+// On Linux and Windows, the TLS key is actually only 4 bytes, but we make TLSKey
+// 8 bytes on 64 bit for less chance of failing this assert.
+// If there's any platform where this fails, need to do some #ifdef'ing
+// (might also get a compile failure if pthread_key_t isn't an integral type).
+_Static_assert(sizeof(pthread_key_t) <= sizeof(void*), "Hacky pthread_key_t assumption violated!");
+
+TLSKey tls_alloc_key() {
+	pthread_key_t key;
+	int ret = pthread_key_create(&key, NULL);
+	if (ret) {
+		debug(errError, "pthread_key_create failed: %s", strerror(ret));
+	}
+	return (TLSKey)key;
+}
+
+void tls_free_key(TLSKey key) {
+	pthread_key_delete((pthread_key_t)key);
+}
+
+void *tls_get(TLSKey key) {
+	return pthread_getspecific((pthread_key_t)key);
+}
+
+void tls_set(TLSKey key, void *value) {
+	pthread_setspecific((pthread_key_t)key, value);
+}

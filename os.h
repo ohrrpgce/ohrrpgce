@@ -63,6 +63,19 @@ int channel_write(IPCChannel *channel, const char *buf, int buflen);
 int channel_write_string(IPCChannel *channel, FBSTRING *input);
 int channel_input_line(IPCChannel *channel, FBSTRING *output);
 
+//Threads
+
+boolint on_main_thread();
+
+typedef intptr_t TLSKey;
+
+TLSKey tls_alloc_key();
+void tls_free_key(TLSKey key);
+void *tls_get(TLSKey key);
+void tls_set(TLSKey key, void *value);
+
+//Processes
+
 ProcessHandle open_process (FBSTRING *program, FBSTRING *args, boolint waitable, boolint graphical);
 ProcessHandle open_piped_process (FBSTRING *program, FBSTRING *args, IPCChannel *iopipe);
 // run_process_and_get_output is Unix only

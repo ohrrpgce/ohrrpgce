@@ -111,6 +111,12 @@ declare function channel_input_line (byref channel as IPCChannel, line_in as str
 
 declare function on_main_thread () as bool
 
+type TLSKey as intptr_t
+declare function tls_alloc_key() as TLSKey
+declare sub tls_free_key(key as TLSKey)
+declare function tls_get(key as TLSKey) as any ptr
+declare sub tls_set(key as TLSKey, value as any ptr)
+
 'Processes
 
 declare function open_process (program as string, args as string, waitable as boolint, graphical as boolint) as ProcessHandle
