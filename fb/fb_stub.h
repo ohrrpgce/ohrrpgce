@@ -188,6 +188,7 @@ typedef struct _FB_LIST {
 #include "fb_file.h"
 #include "fb_device.h"
 #include "fb_error.h"   // Only for enum FB_RTERROR
+#include "fb_thread.h"
 
 typedef FBCALL int (*FnDummy)();
 
