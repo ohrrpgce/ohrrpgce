@@ -4932,7 +4932,7 @@ SUB resize_rezoom_mini_map(st as MapEditState, byref rs as MapResizeState)
  IF rs.rect.x < 0 THEN tw -= rs.rect.x   'plus left most
  th = large(rs.oldsize.y, rs.rect.y + rs.rect.high)
  IF rs.rect.y < 0 THEN th -= rs.rect.y
- rs.zoom = bound(small(320 \ tw, 200 \ th), 1, 20)
+ rs.zoom = minimap_zoom_amount(XY(tw, th))
  IF rs.zoom <> lastzoom THEN
   frame_unload @(rs.minimap)
   rs.minimap = createminimap(st.map.tiles(), st.tilesets(), @st.map.pass, rs.zoom)

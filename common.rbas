@@ -1605,6 +1605,11 @@ PRIVATE FUNCTION minimap_tile_scaled(composed_tile as Frame ptr, zoom as integer
  RETURN scaledfr
 END FUNCTION
 
+FUNCTION minimap_zoom_amount(mapsize as XYPair, margin as XYPair = XY(0,0)) as integer
+ DIM fraction as XYPair = ((vpages(vpage)->size - margin) \ mapsize)
+ RETURN bound(small(fraction.w, fraction.h), 1, 20)
+END FUNCTION
+
 FUNCTION createminimap (tiles() as TileMap, tilesets() as TilesetData ptr, pmapptr as TileMap ptr = NULL, byref zoom as integer = -1, algorithm as MinimapAlgorithmEnum = minimapScaled) as Frame ptr
  'zoom = 1 is unzoomed, zoom = 20 is 1 pixel per tile.
  'If zoom is -1, calculate and store it
@@ -1613,10 +1618,8 @@ FUNCTION createminimap (tiles() as TileMap, tilesets() as TilesetData ptr, pmapp
 
  'DIM drawtime as double = TIMER
 
- IF zoom = -1 THEN
-  'auto-detect best zoom
-  zoom = bound(small(vpages(vpage)->w \ tiles(0).wide, vpages(vpage)->h \ tiles(0).high), 1, 20)
- END IF
+ 'auto-detect best zoom
+ IF zoom = -1 THEN zoom = minimap_zoom_amount(tiles(0).size)
  DIM fraction as single
  fraction = 20 / zoom
 
