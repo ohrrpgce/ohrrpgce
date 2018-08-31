@@ -3647,13 +3647,17 @@ sub rectangle (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelP
 	end if
 end sub
 
-sub fuzzyrect (x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, p as integer, fuzzfactor as integer = 50)
-	fuzzyrect vpages(p), x, y, w, h, c, fuzzfactor
+sub fuzzyrect (x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, p as integer, fuzzfactor as integer = 50, match_pattern as bool = NO)
+	fuzzyrect vpages(p), x, y, w, h, c, fuzzfactor, match_pattern
 end sub
 
 'Draw a dithered rectangle
 'Top/left edges are inclusive, bottom/right are exclusive
-sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, fuzzfactor as integer = 50)
+'match_pattern:
+'  By default if you draw two fuzzy rectangles touching, the patterns
+'  might not match up. Specify YES to force them to match up, but then
+'  changing x,y will not make the pattern appear to shift.
+sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, fuzzfactor as integer = 50, match_pattern as bool = NO)
 	'How many magic constants could you wish for?
 	'These were half generated via magic formulas, and half hand picked (with magic criteria)
 	static grain_table(50) as integer = {_
@@ -3701,6 +3705,10 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 
 	if w <= 0 or h <= 0 then exit sub
 
+	if match_pattern then
+		startr = x * fuzzfactor + y * grain
+	end if
+
 	dim sptr as ubyte ptr
 	dim pitch as integer
 	dim pixformat as SurfaceFormat
@@ -3743,28 +3751,14 @@ end sub
 
 'Draw a fuzzy rect over the whole clipping rect (normally, the whole screen) except for the given rectangle.
 sub antifuzzyrect(fr as Frame Ptr, rect as RectType, col as integer, fuzzfactor as integer = 50)
-	dim clipsave as ClipState = cliprect
-	#define MAX 9999999
-
-	'Recall that shrinkclip right and bottom are inclusive, while fuzzyrect is exclusive
 	'Top 3 ninths
-	shrinkclip 0, 0, MAX, rect.y - 1, fr
-	fuzzyrect fr, 0, 0, MAX, MAX, col, fuzzfactor
-	cliprect = clipsave
+	fuzzyrect fr, 0, 0, 999999, rect.y, col, fuzzfactor, YES
 	'Left ninth
-	shrinkclip 0, rect.y, rect.x - 1, rect.y + rect.high - 1, fr
-	fuzzyrect fr, 0, 0, MAX, MAX, col, fuzzfactor
-	cliprect = clipsave
+	fuzzyrect fr, 0, rect.y, rect.x, rect.high, col, fuzzfactor, YES
 	'Right ninth
-	shrinkclip rect.x + rect.wide, rect.y, MAX, rect.y + rect.high - 1, fr
-	fuzzyrect fr, 0, 0, MAX, MAX, col, fuzzfactor
-	cliprect = clipsave
+	fuzzyrect fr, rect.x + rect.wide, rect.y, 999999, rect.high, col, fuzzfactor, YES
 	'Bottom 3 ninths
-	shrinkclip 0, rect.y + rect.high, MAX, MAX, fr
-	fuzzyrect fr, 0, 0, MAX, MAX, col, fuzzfactor
-	cliprect = clipsave
-
-	#undef MAX
+	fuzzyrect fr, 0, rect.y + rect.high, 999999, 999999, col, fuzzfactor, YES
 end sub
 
 'Draw either a rectangle or a scrolling chequer pattern.
