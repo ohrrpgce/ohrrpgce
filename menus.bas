@@ -583,10 +583,10 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
 
     DIM linewidth as integer = textwidth(.text)
     IF .bgcol THEN
-     rectangle x + 0, y, wide, 8, .bgcol, page
+     rectangle x + 0, y, wide, state.spacing, .bgcol, page
     END IF
     IF state.pt = i AND state.active AND menuopts.highlight <> NO THEN
-     rectangle x + 0, y, IIF(linewidth, linewidth, 9999), 8, uilook(uiHighlight), page
+     rectangle x + 0, y, IIF(linewidth, linewidth, 9999), state.spacing, uilook(uiHighlight), page
     END IF
 
     DIM col as integer
@@ -1530,8 +1530,8 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  IF menu.highlight_selection THEN
   i = state.pt - state.top
   IF i >= 0 AND i <= state.size THEN
-   where = menu.rect.topleft + XY(4, bord + i * (10 + menu.itemspacing))
-   rectangle where.x, where.y, menu.rect.wide - 8, 10, uiLook(uiHighlight), page
+   where = menu.rect.topleft + XY(4, bord + i * state.spacing - menu.itemspacing \ 2)
+   rectangle where.x, where.y, menu.rect.wide - 8, state.spacing, uiLook(uiHighlight), page
   END IF
  END IF
 
