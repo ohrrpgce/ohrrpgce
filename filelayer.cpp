@@ -11,9 +11,11 @@
 #include "misc.h"
 #include "errno.h"
 
+// This array stores information about any hooked open file that was opened using OPENFILE.
+// Indexed by index into FB's __fb_ctx.fileTB, NOT by file number as returned by FREEFILE.
 // When quitting FB closes all files from within a destructor, so globals may have already
-// been deleted. So it would be a bad idea to define openfiles as an object instead of pointer.
-map<FB_FILE *, FileInfo> *openfiles;
+// been deleted. So it would be a bad idea to define openfiles as array of file-scope objects instead of pointers.
+FileInfo *openfiles[FB_MAX_FILES];
 
 // Mapping from file handles to names.  We don't update this when the file is
 // closed, so don't need to use a pointer like openfiles. And handles get
@@ -50,17 +52,25 @@ void send_lump_modified_msg(const char *filename) {
 		clear_OPEN_hook();
 }
 
+static FileInfo *&get_fileinfo(int fnum) {
+	return openfiles[fnum + (FB_RESERVED_FILES - 1)];
+}
+
+static FileInfo *&get_fileinfo(FB_FILE *handle) {
+	// equivalent to openfiles[handle - __fb_ctx.fileTB];
+	return get_fileinfo(FB_FILE_FROM_HANDLE(handle));
+}
+
 int file_wrapper_close(FB_FILE *handle) {
-	assert(openfiles->count(handle));
-	FileInfo &info = (*openfiles)[handle];
+	FileInfo *&infop = get_fileinfo(handle);
+	assert(infop);
 	//debuginfo("closing %s, read-lock:%d write-lock:%d", info.name.c_str(), test_locked(info.name.c_str(), 0), test_locked(info.name.c_str(), 1));
-	if (info.dirty) {
-		//fprintf(stderr, "%s was dirty\n", info.name.c_str());
-		send_lump_modified_msg(info.name.c_str());
+	if (infop->dirty) {
+		//fprintf(stderr, "%s was dirty\n", infop->name.c_str());
+		send_lump_modified_msg(infop->name.c_str());
 	}
-	//debuginfo("unlocking %s", info.name.c_str());
-	unlock_file((FILE *)handle->opaque);  // Only needed on Windows
-	openfiles->erase(handle);
+	delete infop;
+	infop = NULL;
 
 	return fb_DevFileClose(handle);
 }
@@ -81,8 +91,8 @@ int file_wrapper_read(FB_FILE *handle, void *value, size_t *pValuelen) {
 }
 
 int file_wrapper_write(FB_FILE *handle, const void *value, size_t valuelen) {
-	assert(openfiles->count(handle));
-	FileInfo &info = (*openfiles)[handle];
+	FileInfo &info = *get_fileinfo(handle);
+	assert(&info);
 	if (!allow_lump_writes) {
 		// It's not really a great idea to call debug in here,
 		// because we've been called from inside the rtlib, so
@@ -120,22 +130,23 @@ static FB_FILE_HOOKS lumpfile_hooks = {
 };
 
 void dump_openfiles() {
-	if (!openfiles) {
-		debug(errDebug, "dump_openfiles: set_OPEN_hook not called.");
-		return;
-	}
-	debug(errDebug, "%d open files:", (int)openfiles->size());
-	for (auto it = openfiles->begin(); it != openfiles->end(); ++it) {
-		const char *fname = it->second.name.c_str();
-		debug(errDebug, " %p (%s)", it->first, fname);
+	int numopen = 0;
+	for (int fidx = 0; fidx < FB_MAX_FILES; fidx++) {
+		if (!openfiles[fidx])
+			continue;
+		numopen++;
+		FileInfo &info = *openfiles[fidx];
+		const char *fname = info.name.c_str();
+		debug(errDebug, " %d (%s) hooked=%d dirty=%d error=%d",
+		      fidx + (FB_RESERVED_FILES - 1), fname, info.hooked, info.dirty, info.reported_error);
 		if (lock_lumps)
 			debug(errDebug, "   read-lock:%d write-lock:%d", test_locked(fname, 0), test_locked(fname, 1));
 	}
+	debug(errDebug, "%d open OPENFILE files", numopen);
 }
 
 // Replacement for fb_DevFileOpen().
 int lump_file_opener(FB_FILE *handle, const char *filename, size_t filename_len) {
-	assert(openfiles);
 	//fprintf(stderr, "opening %p (%s).\n", handle, filename);
 
 	// Just let the default file opener handle it (it does quite a lot of stuff, actually),
@@ -145,9 +156,12 @@ int lump_file_opener(FB_FILE *handle, const char *filename, size_t filename_len)
 	if (ret) return ret;
 
 	handle->hooks = &lumpfile_hooks;
-	assert(openfiles->count(handle) == 0);
-	FileInfo &info = (*openfiles)[handle];
-	info.name = string(filename);
+	FileInfo *&infop = get_fileinfo(handle);
+       assert(!infop);
+	infop = new FileInfo();
+	infop->name = filename;
+	infop->hooked = true;
+
 	if (lock_lumps) {
 		if (handle->access & FB_FILE_ACCESS_WRITE) {
 			//debuginfo("write-locking %s", filename);
@@ -287,12 +301,14 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 	errno = 0;
 	int ret = fb_FileOpenVfsEx(FB_FILE_TO_HANDLE(fnum), &file_to_open, mode, access,
 	                           FB_FILE_LOCK_SHARED, 0, encod, fnOpen);
+	int C_err = errno;
+
 	FB_UNLOCK();
 
 	if (ret != FB_RTERROR_OK && ret != FB_RTERROR_FILENOTFOUND) {
-		debug(errError, "OPENFILE(%s, %d)=%d: %s",
+		debug(errError, "OPENFILE(%s, 0x%x)=%d: %s",
 		      (filename && filename->data) ? filename->data : "",  // Valid empty string
-		      openbits, ret, strerror(errno));
+		      openbits, ret, strerror(C_err));
 	}
 	if (ret == FB_RTERROR_OK) {
 		filenames[fnum] = string(file_to_open.data);
@@ -336,7 +352,7 @@ boolint renamefile(FBSTRING *source, FBSTRING *destination) {
 		return 0;
 	}
 	if (rename(source->data, destination->data)) {
-		dump_openfiles();  // On Windows rename() typical fails because the file is open
+		dump_openfiles();  // On Windows rename() typically fails because the file is open
 		debug(errPrompt, "rename(%s, %s) failed: %s", source->data, destination->data, strerror(errno));
 		return 0;
 	}
@@ -350,8 +366,6 @@ boolint renamefile(FBSTRING *source, FBSTRING *destination) {
 // TODO: there's no reason to pass lump_writes_allowed; instead the filter function
 // ought to return whether a file should be write-protection.
 void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, IPCChannel *channel) {
-	if (!openfiles)
-		openfiles = new map<FB_FILE *, FileInfo>;
 	pfnLumpfileFilter = lumpfile_filter;
 #ifndef _WIN32
 	lock_lumps = true;

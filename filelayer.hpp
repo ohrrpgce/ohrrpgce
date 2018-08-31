@@ -49,10 +49,11 @@ enum FilterActionEnum {
 
 struct FileInfo {
 	string name;
+	bool hooked;          // We hooked this file (if false, name is still valid)
 	bool dirty;
 	bool reported_error;  // Don't show more than one error
 
-	FileInfo() : dirty(false), reported_error(false) {};
+	FileInfo() : hooked(false), dirty(false), reported_error(false) {};
 };
 
 extern "C" {
