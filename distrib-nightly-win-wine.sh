@@ -7,6 +7,7 @@ SCPHOST="james_paige@motherhamster.org"
 SCPDEST="HamsterRepublic.com/ohrrpgce/nightly"
 SCPDOCS="HamsterRepublic.com/ohrrpgce/nightly/docs"
 
+ISCC="C:\Program Files\Inno Setup 5\iscc.exe"
 SCONS="C:\Python27\Scripts\scons.bat"
 
 SCONS_ARGS="debug=0 gengcc=1"
@@ -83,14 +84,6 @@ svn cleanup
 svn update
 svn info > svninfo.txt
 
-./distrib-wine.sh nightly
-OHRVERDATE=`svn info | grep "^Last Changed Date:" | cut -d ":" -f 2 | cut -d " " -f 2`
-OHRVERCODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
-SUFFIX="${OHRVERDATE}-${OHRVERCODE}"
-
-mustexist distrib/ohrrpgce-win-installer-"${SUFFIX}".exe
-scp -p distrib/ohrrpgce-win-installer-"${SUFFIX}".exe "${SCPHOST}":"${SCPDEST}"/ohrrpgce-wip-win-installer.exe
-
 # Build all utilities once
 rm -f unlump.exe relump.exe
 ${BUILD} relump unlump $SCONS_ARGS
@@ -102,9 +95,18 @@ mustexist unlump.exe
 mustexist relump.exe
 mustexist hspeak.exe
 
-rm -r game*.exe custom*.exe
+# This is the default build (default download is symlinked to it on the server)
+rm -f game*.exe custom*.exe
 ${BUILD} music=sdl $SCONS_ARGS
 zip_and_upload music_sdl gfx_directx.dll SDL.dll SDL_mixer.dll
+
+# Create the installer from the executables we just built: the installer and .zips for default build configs
+# must contain the same executables, to share .pdb files
+echo "InfoBeforeFile=IMPORTANT-nightly.txt" > iextratxt.txt
+wine "${ISCC}" /Q /Odistrib /Fohrrpgce-win-installer ohrrpgce.iss
+rm -f iextratxt.txt
+mustexist "distrib/ohrrpgce-win-installer.exe"
+scp -p distrib/ohrrpgce-win-installer.exe "${SCPHOST}":"${SCPDEST}"/ohrrpgce-wip-win-installer.exe
 
 rm -f game*.exe custom*.exe
 ${BUILD} music=native $SCONS_ARGS
@@ -149,7 +151,7 @@ zip distrib/bam2mid.zip bam2mid.exe bam2mid.txt LICENSE.txt svninfo.txt
 scp distrib/bam2mid.zip "${SCPHOST}":"${SCPDEST}"
 
 rm -f distrib/madplay+oggenc.zip
-zip distrib/madplay+oggenc.zip support/madplay.exe support/oggenc.exe support/LICENSE-*.txt LICENSE.txt
+zip distrib/madplay+oggenc.zip support/madplay.exe support/oggenc.exe support/LICENSE-{madplay,oggenc}.txt
 scp distrib/madplay+oggenc.zip "${SCPHOST}":"${SCPDEST}"
 
 scp svninfo.txt "${SCPHOST}":"${SCPDEST}"

@@ -10,16 +10,25 @@ svn cleanup
 svn update
 svn info > svninfo.txt
 
-CALL distrib.bat nightly
-CALL distver.bat
-pscp -q distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-wip-win-installer.exe
-
+REM Build all utilities once
 del hspeak.exe unlump.exe relump.exe
 CALL scons hspeak relump unlump %SCONS_ARGS%
 
+REM This is the default build (default download is symlinked to it on the server)
 del game*.exe custom*.exe
 call scons music=sdl %SCONS_ARGS%
 call nightly-gfx-music music_sdl gfx_directx.dll SDL.dll SDL_mixer.dll
+
+ECHO Packaging ohrrpgce-win-installer.exe ...
+REM Create the installer from the executables we just built: the installer and .zips for default build configs
+REM must contain the same executables, to share .pdb files
+del distrib\ohrrpgce-wip-win-installer.exe
+echo InfoBeforeFile=IMPORTANT-nightly.txt > iextratxt.txt
+%ISCC% /Q /Odistrib /Fohrrpgce-wip-win-installer ohrrpgce.iss
+del iextratxt.txt
+IF EXIST distrib\ohrrpgce-wip-win-installer.exe (
+    pscp -q distrib\ohrrpgce-wip-win-installer.exe james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+)
 
 del game*.exe custom*.exe
 call scons music=native %SCONS_ARGS%
@@ -68,7 +77,7 @@ pscp -q distrib\bam2mid.zip james_paige@motherhamster.org:HamsterRepublic.com/oh
 :NOBAM2MID
 
 del distrib\madplay+oggenc.zip
-support\zip distrib\madplay+oggenc.zip support\madplay.exe support\oggenc.exe support\LICENSE-*.txt LICENSE.txt
+support\zip distrib\madplay+oggenc.zip support\madplay.exe support\oggenc.exe support\LICENSE-madplay.txt support\LICENSE-oggenc.txt
 pscp -q distrib\madplay+oggenc.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 
 pscp -q svninfo.txt james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/

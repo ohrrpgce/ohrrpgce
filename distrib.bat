@@ -1,5 +1,3 @@
-REM pass 'nightly' as first argument to build nightlies instead of releases
-
 CALL distrib-win-setup.bat || exit /b 1
 
 IF EXIST tmpdist RMDIR /S /Q tmpdist
@@ -124,11 +122,7 @@ del tmpdist\custom.exe
 
 REM ------------------------------------------
 ECHO Packaging ohrrpgce-win-installer.exe ...
-echo InfoBeforeFile=IMPORTANT-nightly.txt > iextratxt.txt
-IF "%1"=="nightly" GOTO LEAVEWARNTXT
 echo. > iextratxt.txt
-:LEAVEWARNTXT
-
 %ISCC% /Q /Odistrib /Fohrrpgce-win-installer ohrrpgce.iss
 del iextratxt.txt
 IF NOT EXIST distrib\ohrrpgce-win-installer.exe GOTO SANITYFAIL

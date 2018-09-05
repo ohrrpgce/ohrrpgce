@@ -1,5 +1,4 @@
 #!/bin/bash
-#pass 'nightly' as first argument to build nightlies instead of releases
 
 echo "Building OHRRPGCE distribution for Windows using Linux+Wine"
 echo "-----------------------------------------------------------"
@@ -142,12 +141,7 @@ cd ..
 mustexist "tmpdist/custom.exe"
 
 echo "Packaging ohrrpgce-win-installer.exe ..."
-if [ "${1}" = "nightly" ] ; then
-  echo "InfoBeforeFile=IMPORTANT-nightly.txt" > iextratxt.txt
-else
-  echo "" > iextratxt.txt
-fi
-
+echo "" > iextratxt.txt
 wine "${ISCC}" /Q /Odistrib /Fohrrpgce-win-installer ohrrpgce.iss
 rm -f iextratxt.txt
 
