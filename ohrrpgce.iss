@@ -14,7 +14,10 @@ DefaultGroupName=OHRRPGCE
 DisableProgramGroupPage=yes
 AllowNoIcons=yes
 AllowUNCPath=no
-LicenseFile=LICENSE-binary.txt
+; Recent-ish versions (since years ago) of Inno Setup by default skip the
+; welcome page; this puts it back
+;DisableWelcomePage=no
+; The following optionally sets InfoBeforeFile
 #include "iextratxt.txt"
 InfoAfterFile=whatsnew.txt
 OutputBaseFilename=ohrrpgce
@@ -80,6 +83,34 @@ Root: HKCR; Subkey: "OHRRPGCE_Game"; ValueType: string; ValueName: ""; ValueData
 Root: HKCR; Subkey: "OHRRPGCE_Game\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\game.ico"; Flags: uninsdeletekey; Tasks: associate
 Root: HKCR; Subkey: "OHRRPGCE_Game\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\game.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: associate
 Root: HKCR; Subkey: "OHRRPGCE_Game\shell\edit\command"; ValueType: string; ValueName: ""; ValueData: """{app}\custom.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: associate
+
+[Code]
+
+{ The following adds a custom page which displays README-custom.txt; necessary
+  because we already use both InfoBeforeFile and InfoAfterFile
+  Based on code from https://stackoverflow.com/a/34593485 }
+
+var
+  InfoPage: TOutputMsgMemoWizardPage;
+
+procedure InitializeWizard();
+var
+  InfoFileName: string;
+  InfoFilePath: string;
+begin
+  InfoPage := CreateOutputMsgMemoPage(wpWelcome,
+                   'About', 'Click Next to continue',
+                   '', '<README goes here>');
+
+  { Load license }
+  { Loading ex-post, as Lines.LoadFromFile supports UTF-8, }
+  { contrary to LoadStringFromFile. }
+  InfoFileName := 'README-custom.txt';
+  ExtractTemporaryFile(InfoFileName);
+  InfoFilePath := ExpandConstant('{tmp}\' + InfoFileName);
+  InfoPage.RichEditViewer.Lines.LoadFromFile(InfoFilePath);
+  DeleteFile(InfoFilePath);
+end;
 
 [Run]
 
