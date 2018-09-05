@@ -163,7 +163,7 @@ rm -f distrib/hspeak-win-nightly.zip
 rm -f hspeak.exe
 wine cmd /C "${SCONS}" hspeak
 mustexist hspeak.exe
-zip distrib/hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e LICENSE.txt plotscr.hsd
+zip distrib/hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e euphoria/*.e euphoria/License.txt LICENSE.txt plotscr.hsd scancode.hsi
 scp distrib/hspeak-win-nightly.zip "${SCPHOST}":"${SCPDEST}"
 
 rm -f distrib/bam2mid.zip

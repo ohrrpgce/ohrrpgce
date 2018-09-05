@@ -88,7 +88,7 @@ del distrib\hspeak-win-nightly.zip
 del hspeak.exe
 call scons hspeak
 IF NOT EXIST hspeak.exe GOTO NOHSPEAK
-support\zip distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e LICENSE.txt plotscr.hsd
+support\zip distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e euphoria\*.e euphoria\License.txt LICENSE.txt plotscr.hsd scancode.hsi
 pscp -q distrib\hspeak-win-nightly.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 :NOHSPEAK
 
