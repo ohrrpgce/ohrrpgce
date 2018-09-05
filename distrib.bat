@@ -3,7 +3,6 @@ REM pass 'nightly' as first argument to build nightlies instead of releases
 REM default locations for required programs
 SET ISCC="C:\Program Files\Inno Setup 5\iscc.exe"
 SET SVN="C:\Program Files\Subversion\bin\svn.exe"
-SET EU="C:\Euphoria\bin"
 
 REM In case we need the 32 bit versions on a 64 bit system...
 IF EXIST %ISCC% GOTO NOX86ISCC
@@ -25,7 +24,9 @@ ECHO Verifying support programs...
 IF NOT EXIST support\cp.exe GOTO NOSUPPORT
 IF NOT EXIST support\zip.exe GOTO NOSUPPORT
 IF NOT EXIST %ISCC% GOTO NOINNO
-IF NOT EXIST %EU%\euc.exe GOTO NOEUPHORIA
+REM This checks whether euc is in the PATH (as required by scons)
+for %%X in (euc.exe) do set EUC=%%~$PATH:X
+IF NOT EXIST "%EUC%" GOTO NOEUPHORIA
 
 IF NOT EXIST tmpdist GOTO SKIPDELTMPDIST
 RMDIR /S /Q tmpdist
@@ -250,8 +251,7 @@ ECHO Download from http://subversion.tigris.org/
 GOTO DONE
 
 :NOEUPHORIA
-ECHO ERROR: Euphoria is missing, unable to continue.
-ECHO Default location: %EU%
+ECHO ERROR: Euphoria is missing (not in the PATH), unable to continue.
 ECHO Download from http://www.OpenEuphoria.com/
 GOTO DONE
 
