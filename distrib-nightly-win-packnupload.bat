@@ -3,7 +3,7 @@
 CALL distver.bat
 set BUILDNAME=%1
 set ZIPFILE=ohrrpgce-win-%BUILDNAME%-%OHRVERCODE%.zip
-set SYMBFILE=ohrrpgce-symbols-win-%BUILDNAME%-%OHRVERDATE%-%OHRVERCODE%.7z
+set SYMBFILE=ohrrpgce-symbols-win-%BUILDNAME%-r%SVNREV%-%OHRVERDATE%-%OHRVERCODE%.7z
 echo Now creating %ZIPFILE%
 
 for %%X in (game.exe custom.exe win32\game.pdb win32\custom.pdb) do (

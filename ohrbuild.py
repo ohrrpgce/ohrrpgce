@@ -327,8 +327,8 @@ def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir
     f.write ('VersionInfoVersion=%s.%s\n' % (tmpdate, rev))
     f.close ()
     f = openw (rootdir, 'distver.bat')
-    f.write('SET OHRVERCODE=%s\nSET OHRVERDATE=%s' % (codename,
-                                                      tmpdate.replace ('.','-')))
+    f.write('SET OHRVERCODE=%s\nSET OHRVERDATE=%s\nSET SVNREV=%s'
+            % (codename, tmpdate.replace('.', '-'), rev))
     f.close()
 
 ########################################################################

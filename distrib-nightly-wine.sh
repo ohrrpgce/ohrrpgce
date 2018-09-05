@@ -21,6 +21,8 @@ BUILD="wine cmd /C ${SCONS}"
 #BUILD="scons target=i686-w64-mingw32.shared"
 #DONT_BUILD_HSPEAK=yes  #TODO: scons doesn't support cross-compiling hspeak yet
 
+OHRVERDATE=`svn info | grep "^Last Changed Date:" | cut -d ":" -f 2 | cut -d " " -f 2`
+SVNREV=`svn info | grep "^Revision:" | cut -d " " -f 2`
 
 #-----------------------------------------------------------------------
 
@@ -40,8 +42,8 @@ function zip_and_upload {
   mustexist custom.pdb
   BUILDNAME="${1}"
   ZIPFILE="ohrrpgce-win-${BUILDNAME}-wip.zip"
-  SYMBFILE="ohrrpgce-symbols-win-${BUILDNAME}-${DATECODE}-wip.7z"
-  echo "Now creating and uploading ${ZIPFILE} and symbols"
+  SYMBFILE="ohrrpgce-symbols-win-${BUILDNAME}-r${SVNREV}-${OHRVERCODE}-wip.7z"
+  echo "Now creating ${ZIPFILE}"
 
   rm -f distrib/"${ZIPFILE}"
   zip -q distrib/"${ZIPFILE}" game.exe custom.exe hspeak.exe
@@ -77,10 +79,12 @@ function zip_and_upload {
     shift
   done
 
+  echo "Now creating ${SYMBFILE}"
   rm -f distrib/"${SYMBFILE}"
   7z a -mx=7 -bd distrib/"${SYMBFILE}" game.exe custom.exe ./win32/custom.pdb ./win32/game.pdb > /dev/null
   mustexist distrib/"${SYMBFILE}"
 
+  echo "Now uploading"
   scp distrib/"${ZIPFILE}" "${SCPHOST}":"${SCPDEST}"
   scp distrib/"${SYMBFILE}" "${SCPHOST}":"${SCPSYMBOLS}"
 

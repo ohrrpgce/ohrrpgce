@@ -158,6 +158,7 @@ mustexist "distrib/ohrrpgce-symbols-win.7z"
 
 echo "Packaging source snapshot zip ..."
 OHRVERDATE=`svn info | grep "^Last Changed Date:" | cut -d ":" -f 2 | cut -d " " -f 2`
+SVNREV=`svn info | grep "^Revision:" | cut -d " " -f 2`
 OHRVERCODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
 REPOSITORY=`svn info | grep "^URL:" | cut -d " " -f 2-`
 rm -Rf tmpdist
@@ -183,7 +184,7 @@ mv ohrrpgce-minimal.zip       ohrrpgce-minimal-"${SUFFIX}".zip
 mv ohrrpgce.zip               ohrrpgce-"${SUFFIX}".zip
 mv ohrrpgce-win-installer.exe ohrrpgce-win-installer-"${SUFFIX}".exe
 mv ohrrpgce-source.zip        ohrrpgce-source-"${SUFFIX}".zip
-mv ohrrpgce-symbols-win.7z    ohrrpgce-symbols-win-"${BUILDNAME}-${SUFFIX}".7z
+mv ohrrpgce-symbols-win.7z    ohrrpgce-symbols-win-"${BUILDNAME}-r${SVNREV}-${SUFFIX}".7z
 cd ..
 
 echo "Done."
