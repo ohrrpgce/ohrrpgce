@@ -27,7 +27,7 @@ echo InfoBeforeFile=IMPORTANT-nightly.txt > iextratxt.txt
 %ISCC% /Q /Odistrib /Fohrrpgce-wip-win-installer ohrrpgce.iss
 del iextratxt.txt
 IF EXIST distrib\ohrrpgce-wip-win-installer.exe (
-    pscp -q distrib\ohrrpgce-wip-win-installer.exe james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+    pscp -q distrib\ohrrpgce-wip-win-installer.exe %SCPHOST%:%SCPDEST%
 )
 
 support\rm -f game.exe custom.exe
@@ -52,31 +52,31 @@ call nightly-gfx-music music_sdl-debug gfx_directx.dll SDL.dll SDL_mixer.dll mis
 
 REM Note that this is duplicated in distrib-nightly-linux.sh
 Echo upload plotdict.xml
-pscp -q docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/docs/
-pscp -q docs\htmlplot.xsl james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/docs/
+pscp -q docs\plotdict.xml %SCPHOST%:%SCPDOCS%
+pscp -q docs\htmlplot.xsl %SCPHOST%:%SCPDOCS%
 
 support\rm -f distrib\ohrrpgce-util.zip
 IF NOT EXIST unlump.exe GOTO NOUTIL
 IF NOT EXIST relump.exe GOTO NOUTIL
 support\zip distrib\ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt svninfo.txt
-pscp -q distrib\ohrrpgce-util.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+pscp -q distrib\ohrrpgce-util.zip %SCPHOST%:%SCPDEST%
 :NOUTIL
 
 support\rm -f distrib\hspeak-win-nightly.zip
 IF NOT EXIST hspeak.exe GOTO NOHSPEAK
 support\zip distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e euphoria\*.e euphoria\License.txt LICENSE.txt plotscr.hsd scancode.hsi
-pscp -q distrib\hspeak-win-nightly.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+pscp -q distrib\hspeak-win-nightly.zip %SCPHOST%:%SCPDEST%
 :NOHSPEAK
 
 support\rm -f distrib\bam2mid.zip bam2mid.exe
 call scons bam2mid.exe
 IF NOT EXIST bam2mid.exe GOTO NOBAM2MID
 support\zip distrib\bam2mid.zip bam2mid.exe bam2mid.txt LICENSE.txt svninfo.txt
-pscp -q distrib\bam2mid.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+pscp -q distrib\bam2mid.zip %SCPHOST%:%SCPDEST%
 :NOBAM2MID
 
 support\rm -f distrib\madplay+oggenc.zip
 support\zip distrib\madplay+oggenc.zip support\madplay.exe support\oggenc.exe support\LICENSE-madplay.txt support\LICENSE-oggenc.txt
-pscp -q distrib\madplay+oggenc.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+pscp -q distrib\madplay+oggenc.zip %SCPHOST%:%SCPDEST%
 
-pscp -q svninfo.txt james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+pscp -q svninfo.txt %SCPHOST%:%SCPDEST%

@@ -3,6 +3,10 @@ REM This file is shared between distrib.bat and distrib-nightly-win.bat
 
 set SCONS_ARGS= release=1
 
+set SCPHOST=james_paige@motherhamster.org
+set SCPDEST=HamsterRepublic.com/ohrrpgce/nightly
+set SCPDOCS=HamsterRepublic.com/ohrrpgce/nightly/docs
+
 ECHO Searching for support programs...
 
 REM Find iscc
