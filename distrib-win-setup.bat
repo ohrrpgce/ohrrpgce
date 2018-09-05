@@ -1,7 +1,7 @@
 @echo off
 REM This file is shared between distrib.bat and distrib-nightly-win.bat
 
-set SCONS_ARGS= debug=0 gengcc=1
+set SCONS_ARGS= release=1
 
 ECHO Searching for support programs...
 

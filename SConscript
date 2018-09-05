@@ -36,6 +36,8 @@ FBLINKFLAGS = []
 # FBLINKERFLAGS are passed to the linker (with -Wl) when linking with fbc
 FBLINKERFLAGS = []
 
+
+release = int (ARGUMENTS.get ('release', False))
 verbose = int (ARGUMENTS.get ('v', False))
 if verbose:
     FBFLAGS += ['-v']
@@ -43,7 +45,7 @@ if 'FBFLAGS' in os.environ:
     FBFLAGS += shlex.split (os.environ['FBFLAGS'])
 fbc = ARGUMENTS.get ('fbc','fbc')
 fbc = os.path.expanduser (fbc)  # expand ~
-gengcc = int (ARGUMENTS.get ('gengcc', 0))
+gengcc = int (ARGUMENTS.get ('gengcc', True if release else False))
 linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # link using g++ instead of fbc?
 envextra = {}
 FRAMEWORKS_PATH = os.path.expanduser("~/Library/Frameworks")  # Frameworks search path in addition to the default /Library/Frameworks
@@ -68,7 +70,7 @@ if verbose:
     print "Using fbc", fbc_binary #, " version:", fbcversion
 
 win32 = False
-unix = False
+unix = False  # True on mac and android
 mac = False
 android = False
 android_source = False
@@ -163,8 +165,11 @@ if int (ARGUMENTS.get ('glibc', False)):
     # No need to bother automatically checking for glibc
     CFLAGS += ["-DHAVE_GLIBC"]
 
-# There are four levels of debug here: 0, 1, 2, 3. See the help.
-debug = 2  # Default to happy medium
+# There are five levels of debug here: 0, 1, 2, 3, 4 (ugh!). See the help.
+if release:
+    debug = 0
+else:
+    debug = 2  # Default to happy medium
 if 'debug' in ARGUMENTS:
     debug = int (ARGUMENTS['debug'])
 optimisations = (debug < 3)    # compile with C/C++/FB optimisations?
@@ -182,7 +187,10 @@ if ARGUMENTS.get('lto'):
     GENGCC_CFLAGS.append('-flto')
     CXXLINKFLAGS.append('-flto')
 
-portable = int (ARGUMENTS.get ('portable', 0))
+portable = False
+if release and unix and not mac and not android:
+    portable = True
+portable = int (ARGUMENTS.get ('portable', portable))
 profile = int (ARGUMENTS.get ('profile', 0))
 if profile:
     FBFLAGS.append ('-profile')
@@ -1252,6 +1260,10 @@ Options:
   music=BACKEND       Music backend. Options:
                         """ + " ".join (music_map.keys ()) + """
                       Current (default) value: """ + "+".join (music) + """
+  release=1           Sets the default settings used for releases, including
+                      nightly builds (which you can override):
+                      Equivalent to debug=0 gengcc=1, and also portable=1
+                      on Unix (except Android and Mac)
   gengcc=1            Compile using GCC emitter (faster binaries, longer compile
                       times, and some extra warnings). This is the default
                       everywhere except x86 Windows/Linux/BSD.
@@ -1371,13 +1383,13 @@ Examples:
  Do a debug build of Game and Custom:
   scons
  Do a release build (same as official releases) of everything and run tests:
-  scons debug=0 . test
+  scons release=1 . test
  Specifying graphics and music backends for a debug build of Game:
   scons gfx=sdl+fb music=native game
  Compile one file at a time, to avoid mixed-up error messages:
   scons -j1
- Create 64 bit release builds:
-  scons arch=64 debug=0 .
+ Create a fully optimised 64 bit build with debug symbols:
+  scons arch=64 release=1 debug=1 .
  Compile and install (Unix only):
   sudo scons install prefix=/usr/local
 """)

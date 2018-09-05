@@ -14,7 +14,7 @@ echo Building binaries
 
 rm ohrrpgce-game ohrrpgce-custom
 
-scons debug=0 ${EXTRA_SCONS_OPTIONS} arch=32 game custom hspeak unlump relump || exit 1
+scons release=1 ${EXTRA_SCONS_OPTIONS} arch=32 game custom hspeak unlump relump || exit 1
 
 echo Bundling apps
 ./bundle-apps.sh || exit 1

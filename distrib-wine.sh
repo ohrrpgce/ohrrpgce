@@ -57,7 +57,7 @@ ISCC="C:\Program Files\Inno Setup 5\iscc.exe"
 SVN="C:\Program Files\Subversion\bin\svn.exe"
 EUC="C:\Euphoria\bin\euc.exe"
 
-SCONS_ARGS="debug=0 gengcc=1"
+SCONS_ARGS="release=1"
 
 # Using wine
 BUILD="wine cmd /C ${SCONS}"

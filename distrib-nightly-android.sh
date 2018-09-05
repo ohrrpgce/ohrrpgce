@@ -13,7 +13,7 @@ fi
 SCRIPTDIR="${0%/*}"
 
 cd "${SCRIPTDIR}"
-scons fbc="${FBCARM}" debug=0 android-source=1 game
+scons fbc="${FBCARM}" release=1 android-source=1 game
 cd "${SDLANDROID}"/project/jni/application
 
 # Make sure we are on the ohrrpgce branch

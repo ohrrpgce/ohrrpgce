@@ -2,10 +2,7 @@
 #
 # Build and package builds for linux
 
-# Number of parallel jobs to run
-NJOBS=-j6
-
-SCONS_ARGS="debug=0 gengcc=1 portable=1 $NJOBS"
+SCONS_ARGS="release=1"
 
 if [ ! -f distrib-linux.sh ] ; then
   echo You should only run this script from the ohrrpgce directory.

@@ -10,7 +10,7 @@ SCPDOCS="HamsterRepublic.com/ohrrpgce/nightly/docs"
 ISCC="C:\Program Files\Inno Setup 5\iscc.exe"
 SCONS="C:\Python27\Scripts\scons.bat"
 
-SCONS_ARGS="debug=0 gengcc=1"
+SCONS_ARGS="release=1"
 
 # Using wine
 BUILD="wine cmd /C ${SCONS}"
