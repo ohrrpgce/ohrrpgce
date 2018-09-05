@@ -43,7 +43,7 @@ function ohrrpgce_common_files {
  cp relump.exe tmpdist/support
  cp unlump.exe tmpdist/support
  mkdir tmpdist/data
- cp data/* tmpdist/data
+ cp -r data/* tmpdist/data
  mkdir tmpdist/ohrhelp
  cp ohrhelp/*.txt tmpdist/ohrhelp
  mkdir tmpdist/docs
@@ -73,9 +73,9 @@ for exe in "game.exe" "custom.exe" "unlump.exe" "relump.exe" ; do
 done
 
 echo "Lumping Vikings of Midgard"
-scons $SCONS_ARGS relump
+#scons $SCONS_ARGS relump
 rm -f vikings.rpg
-./relump.exe vikings/vikings.rpgdir vikings.rpg
+wine ./relump.exe vikings/vikings.rpgdir vikings.rpg
 mustexist "vikings.rpg"
 
 rm -f distrib/ohrrpgce-minimal.zip
