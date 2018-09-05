@@ -11,7 +11,13 @@ SCONS="C:\Python27\Scripts\scons.bat"
 
 SCONS_ARGS="debug=0 gengcc=1"
 
+# Using wine
 BUILD="wine cmd /C ${SCONS}"
+
+# Uncomment to cross-compile
+#export PATH=~/src/mxe/usr/bin:$PATH
+#BUILD="scons target=i686-w64-mingw32.shared"
+#DONT_BUILD_HSPEAK=yes  #TODO: scons doesn't support cross-compiling hspeak yet
 
 
 #-----------------------------------------------------------------------
@@ -85,8 +91,13 @@ SUFFIX="${OHRVERDATE}-${OHRVERCODE}"
 mustexist distrib/ohrrpgce-win-installer-"${SUFFIX}".exe
 scp -p distrib/ohrrpgce-win-installer-"${SUFFIX}".exe "${SCPHOST}":"${SCPDEST}"/ohrrpgce-wip-win-installer.exe
 
-rm -f unlump.exe relump.exe hspeak.exe
-${BUILD} hspeak relump unlump $SCONS_ARGS
+# Build all utilities once
+rm -f unlump.exe relump.exe
+${BUILD} relump unlump $SCONS_ARGS
+if [ -z "$DONT_BUILD_HSPEAK" ]; then
+  rm -f hspeak.exe
+  ${BUILD} hspeak $SCONS_ARGS
+fi
 mustexist unlump.exe
 mustexist relump.exe
 mustexist hspeak.exe

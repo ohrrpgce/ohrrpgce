@@ -4,8 +4,6 @@
 echo "Building OHRRPGCE distribution for Windows using Linux+Wine"
 echo "-----------------------------------------------------------"
 
-SCONS_ARGS="debug=0 gengcc=1"
-
 #-----------------------------------------------------------------------
 
 function mustexist {
@@ -62,13 +60,28 @@ ISCC="C:\Program Files\Inno Setup 5\iscc.exe"
 SVN="C:\Program Files\Subversion\bin\svn.exe"
 EUC="C:\Euphoria\bin\euc.exe"
 
+SCONS_ARGS="debug=0 gengcc=1"
+
+# Using wine
+BUILD="wine cmd /C ${SCONS}"
+
+# Uncomment to cross-compile
+#export PATH=~/src/mxe/usr/bin:$PATH
+#BUILD="scons target=i686-w64-mingw32.shared"
+#DONT_BUILD_HSPEAK=yes  #TODO: scons doesn't support cross-compiling hspeak yet
+
+
 echo "Building executables..."
 
-rm game.exe custom.exe relump.exe unlump.exe hspeak.exe
+rm -f game.exe custom.exe relump.exe unlump.exe
+${BUILD} game custom unlump relump $SCONS_ARGS || exit 1
 
-wine cmd /C "${SCONS}" $SCONS_ARGS game custom hspeak unlump.exe relump.exe
+if [ -z "$DONT_BUILD_HSPEAK" ]; then
+  rm -f hspeak.exe
+  ${BUILD} hspeak $SCONS_ARGS || exit 1
+fi
 
-for exe in "game.exe" "custom.exe" "unlump.exe" "relump.exe" ; do
+for exe in "game.exe" "custom.exe" "unlump.exe" "relump.exe" "hspeak.exe" ; do
   mustexist "${exe}"
 done
 
