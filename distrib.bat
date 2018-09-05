@@ -6,13 +6,13 @@ MKDIR tmpdist
 REM ------------------------------------------
 ECHO Building executables...
 
-del game.exe custom.exe relump.exe unlump.exe hspeak.exe
+support\rm -f game.exe custom.exe relump.exe unlump.exe hspeak.exe
 
 ECHO   Windows executables...
 CALL scons game custom hspeak unlump relump %SCONS_ARGS% || exit /b 1
 
 ECHO   Lumping Vikings of Midgard
-IF EXIST vikings.rpg DEL vikings.rpg
+support\rm -f vikings.rpg
 relump vikings\vikings.rpgdir vikings.rpg > NUL
 IF NOT EXIST vikings.rpg (
     ECHO "ERROR: Failed to relump vikings of midgard"
@@ -21,14 +21,12 @@ IF NOT EXIST vikings.rpg (
 
 REM ------------------------------------------
 ECHO Erasing old distrib files ...
-
-IF EXIST distrib\ohrrpgce-minimal.zip del distrib\ohrrpgce-minimal.zip
-IF EXIST distrib\ohrrpgce.zip del distrib\ohrrpgce.zip
-IF EXIST distrib\ohrrpgce-win-installer.exe del distrib\ohrrpgce-win-installer.exe
+support\rm -f distrib\ohrrpgce-minimal.zip
+support\rm -f distrib\ohrrpgce.zip
+support\rm -f distrib\ohrrpgce-win-installer.exe
 
 REM ------------------------------------------
 ECHO Packaging minimalist ohrrpgce-minimal.zip ...
-del tmpdist\*.???
 support\cp game.exe tmpdist
 support\cp custom.exe tmpdist
 support\cp hspeak.exe tmpdist
@@ -66,7 +64,8 @@ del tmpdist\game.exe
 
 REM ------------------------------------------
 ECHO Packaging ohrrpgce.zip ...
-del tmpdist\*.???
+rmdir /s /q tmpdist
+mkdir tmpdist
 support\cp game.exe tmpdist
 support\cp custom.exe tmpdist
 support\cp hspeak.exe tmpdist
@@ -113,7 +112,8 @@ cd tmpdist
 cd ..
 
 ECHO Sanity checking ohrrpgce.zip
-del tmpdist\*.???
+rmdir /s /q tmpdist
+mkdir tmpdist
 cd tmpdist
 ..\support\unzip -q ..\distrib\ohrrpgce.zip custom.exe
 cd ..

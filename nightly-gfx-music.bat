@@ -4,7 +4,7 @@ IF NOT EXIST custom.exe GOTO failed
 set ZIPFILE=ohrrpgce-win-%1-wip.zip
 echo Now creating and uploading %ZIPFILE%
 
-del distrib\%ZIPFILE%
+support\rm -f distrib\%ZIPFILE%
 support\zip -q distrib\%ZIPFILE% game.exe custom.exe hspeak.exe
 support\zip -q -r distrib\%ZIPFILE% data
 support\zip -q distrib\%ZIPFILE% whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd scancode.hsi svninfo.txt
@@ -49,3 +49,6 @@ support\rm -r sanity
 :failed
 
 :finished
+
+echo.
+echo.
