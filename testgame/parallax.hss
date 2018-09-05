@@ -26,11 +26,6 @@ script, trying to move direction, begin
   if (key is pressed(key:up)) then (return (up))
 end
 
-# Return true if "suspend player" is active
-script, player is suspended, begin
-  return ((read general(44), and, 2) <> 0)
-end
-
 # This will return true if hero 0 will start a new step
 # this tick because of player input. There are no commands
 # that can tell you that directly: you have to figure it out
@@ -198,9 +193,26 @@ end
 # This slice indicate the expected position of the camera (top left corner of screen)
 global variable(3, cam slice)
 
+global variable(4, npc control)
+
+define constant(1, npc cursor)
+
 plotscript, on keypress, begin
   if (key is pressed(key:r)) then (pan camera(right, 10, 5), update troll mountain parallax)
   if (key is pressed(key:f)) then (focus camera(80, 20, 6), update troll mountain parallax)
   if (key is pressed(key:h)) then (camera follows hero, update troll mountain parallax)
   if (key is pressed(key:p)) then (put camera(70 * 20, 20 * 20), update troll mountain parallax)
+
+  if (key is pressed(key:n)) then (npc control := true, camera follows npc(npc cursor))
+
+  if (npc control) then (
+    if (npc is walking (npc cursor) == false) then (
+      # Only move the NPC after they've finished the previous movement,
+      # also use elseif to prevent moving in two directions at once.
+      if      (key is pressed (key:Left))  then (walk npc (npc cursor, left, 1))
+      else if (key is pressed (key:Right)) then (walk npc (npc cursor, right, 1))
+      else if (key is pressed (key:Up))    then (walk npc (npc cursor, up, 1))
+      else if (key is pressed (key:Down))  then (walk npc (npc cursor, down, 1))
+    )
+  )
 end
