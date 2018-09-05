@@ -170,7 +170,7 @@ rm -f distrib/bam2mid.zip
 rm -f bam2mid.exe
 wine cmd /C "${SCONS}" bam2mid.exe
 mustexist bam2mid.exe
-zip distrib/bam2mid.zip bam2mid.exe bam2mid.txt bam2mid.bas banks.bi LICENSE.txt make-bam2mid.bat make-bam2mid.sh svninfo.txt
+zip distrib/bam2mid.zip bam2mid.exe bam2mid.txt LICENSE.txt svninfo.txt
 scp distrib/bam2mid.zip "${SCPHOST}":"${SCPDEST}"
 
 rm -f distrib/madplay+oggenc.zip

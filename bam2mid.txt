@@ -8,5 +8,7 @@ USAGE:
 Or you can drag your bam file and drop it on bam2mid.exe
 
 The source code is available under the GPL license. See LICENCE.txt
-To compile, install FreeBasic, and run make-bam2mid.bat
+It can be downloaded from http://rpg.hamsterrepublic.com/ohrrpgce/Source
+To compile, install FreeBasic and SConscript, and run scons bam2mid
+
 

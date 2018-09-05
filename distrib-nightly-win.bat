@@ -96,7 +96,7 @@ del distrib\bam2mid.zip
 del bam2mid.exe
 call scons bam2mid.exe
 IF NOT EXIST bam2mid.exe GOTO NOBAM2MID
-support\zip distrib\bam2mid.zip bam2mid.exe bam2mid.txt bam2mid.bas banks.bi LICENSE.txt make-bam2mid.bat make-bam2mid.sh svninfo.txt
+support\zip distrib\bam2mid.zip bam2mid.exe bam2mid.txt LICENSE.txt svninfo.txt
 pscp -q distrib\bam2mid.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 :NOBAM2MID
 
