@@ -3,7 +3,7 @@ REM run is equivalent to allowing any developer with write access
 REM to the repository full control of your build computer. Thank
 REM goodness James trusts the other devs ;)
 
-set SCONS_ARGS= debug=0 gengcc=1
+CALL distrib-win-setup.bat || exit /b 1
 
 cd c:\nightly\ohrrpgce
 svn cleanup
