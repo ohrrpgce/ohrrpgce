@@ -151,6 +151,22 @@ FUNCTION editbitset (array() as integer, wof as integer, last as integer, names(
  RETURN ret
 END FUNCTION
 
+'This is a wrapper aroun editbitset, but bools instead of packed bits.
+FUNCTION editbools(bools() as bool, names() as string, helpkey as string = "editbitset", byref remem_pt as integer = -2, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
+ DIM bitarray(0 TO UBOUND(bools) \ 16) as integer
+ FOR i as integer = 0 TO UBOUND(bools)
+  setbit bitarray(), 0, i, bools(i)
+ NEXT
+
+ DIM ret as bool
+ ret = editbitset(bitarray(), 0, UBOUND(bools), names(), helpkey, remem_pt, immediate_quit, title, prevmenu)
+
+ FOR i as integer = 0 TO UBOUND(bools)
+  bools(i) = xreadbit(bitarray(), i)
+ NEXT
+ RETURN ret
+END FUNCTION
+
 
 SUB edit_global_bitsets(bitname() as string, helpfile as string)
  DIM bittemp(2) as integer

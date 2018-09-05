@@ -56,7 +56,6 @@ DECLARE FUNCTION speed_estimate(speed as integer) as string
 DECLARE FUNCTION seconds_estimate(ticks as integer) as string
 
 DECLARE SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
-DECLARE FUNCTION askwhatmetadata (metadata() as integer, metadatalabels() as string) as integer
 DECLARE SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
 DECLARE SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as integer, byval frame as integer, byval wide as integer, byval high as integer, caption as string, helpkey as string)
 DECLARE FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byval y as integer=0, byval page as integer=-1) as integer

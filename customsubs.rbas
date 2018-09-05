@@ -1615,53 +1615,6 @@ SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
  END WITH
 END SUB
 
-'This is basically a reimplementation of editbitsets, but bools instead of packed bits.
-'Currently specific to export_textboxes, but could be generalised.
-FUNCTION askwhatmetadata (metadata() as bool, metadatalabels() as string) as bool
- DIM tog as integer
- 
- DIM state as MenuState
- state.size = UBOUND(metadata) + 1
- state.first = -1
- state.last = UBOUND(metadata)
- state.top = -1
- state.pt = -1
- 
- setkeys
- DO
-  setwait 55
-  setkeys
-  usemenu state
-  tog = tog XOR 1
-  IF keyval(scESC) > 1 THEN RETURN NO
-  IF keyval(scF1) > 1 THEN show_help "textbox_export_askwhatmetadata"
-  
-  IF enter_space_click(state) THEN
-   IF state.pt = -1 THEN RETURN YES
-   metadata(state.pt) XOR= YES
-  END IF
-  
-  clearpage dpage
-  textcolor uilook(uiText), 0
-  printstr "Choose what metadata to include:", 4, 4, dpage
-  
-  IF state.pt <> -1 THEN textcolor uilook(uiText), 0 ELSE textcolor uilook(uiSelectedItem + tog), 1
-  printstr "Done", 4, 4 + 9, dpage
-  FOR i as integer = 0 TO UBOUND(metadatalabels)
-   IF state.pt = i THEN
-    IF metadata(i) = YES THEN textcolor uilook(uiSelectedItem + tog), 1 ELSE textcolor uilook(uiSelectedDisabled), 1
-   ELSE
-    IF metadata(i) = YES THEN textcolor uilook(uiText), 0 ELSE textcolor uilook(uiDisabledItem), 0
-   END IF
-   printstr metadatalabels(i), 4, 4 + 18 + i * 9, dpage
-  NEXT
-  
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
-END FUNCTION
-
 SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
  DIM col as integer
  DIM tog as integer

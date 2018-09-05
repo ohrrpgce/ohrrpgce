@@ -11,6 +11,7 @@ DECLARE SUB run_MenuDef(menu as MenuDef, each_tick as FnMenuLogic, dataptr as an
 
 
 DECLARE FUNCTION editbitset (array() as integer, wof as integer, last as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -2, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
+DECLARE FUNCTION editbools (bools() as bool, names() as string, helpkey as string = "editbitset", byref remem_pt as integer = -2, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
 
 DECLARE SUB edit_general_bitsets()
 DECLARE SUB edit_backcompat_bitsets()

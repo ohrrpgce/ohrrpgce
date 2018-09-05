@@ -252,7 +252,8 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
     metadatalabels(2) = "Choices"
     metadatalabels(3) = "Appearance"
 
-    IF askwhatmetadata(metadata(), metadatalabels()) = YES THEN
+    IF editbools(metadata(), metadatalabels(), "textbox_export_askwhatmetadata", _
+                 , , "Choose which metadata to include", "Done") = YES THEN
      DIM box_text_file as string
      box_text_file = inputfilename("Filename for TextBox Export?", ".txt", "", "input_file_export_textbox")
      IF box_text_file <> "" THEN
