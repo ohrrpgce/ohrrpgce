@@ -1,5 +1,7 @@
 REM pass 'nightly' as first argument to build nightlies instead of releases
 
+set SCONS_ARGS = debug=0 gengcc=1
+
 REM default locations for required programs
 SET ISCC="C:\Program Files\Inno Setup 5\iscc.exe"
 SET SVN="C:\Program Files\Subversion\bin\svn.exe"
@@ -39,7 +41,7 @@ ECHO Building executables...
 del game.exe custom.exe relump.exe unlump.exe hspeak.exe
 
 ECHO   Windows executables...
-CALL scons game custom hspeak unlump.exe relump.exe debug=0
+CALL scons game custom hspeak unlump.exe relump.exe %SCONS_ARGS%
 IF NOT EXIST game.exe GOTO NOEXE
 IF NOT EXIST custom.exe GOTO NOEXE
 IF NOT EXIST unlump.exe GOTO NOEXE
