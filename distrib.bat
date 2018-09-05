@@ -2,37 +2,49 @@ REM pass 'nightly' as first argument to build nightlies instead of releases
 
 set SCONS_ARGS = debug=0 gengcc=1
 
-REM default locations for required programs
+ECHO Searching for support programs...
+
+REM Find iscc
 SET ISCC="C:\Program Files\Inno Setup 5\iscc.exe"
-SET SVN="C:\Program Files\Subversion\bin\svn.exe"
-
 REM In case we need the 32 bit versions on a 64 bit system...
-IF EXIST %ISCC% GOTO NOX86ISCC
-SET ISCC="C:\Program Files (x86)\Inno Setup 5\iscc.exe"
-:NOX86ISCC
-IF EXIST %SVN% GOTO NOX86SVN
-SET SVN="C:\Program Files (x86)\Subversion\bin\svn.exe"
-:NOX86SVN
+IF NOT EXIST %ISCC% SET ISCC="C:\Program Files (x86)\Inno Setup 5\iscc.exe"
 
-REM Also support the Sliksvn install location
-IF EXIST %SVN% GOTO NOSLIKSVN
-SET SVN="C:\Program Files\Sliksvn\bin\svn.exe"
-:NOSLIKSVN
-IF EXIST %SVN% GOTO NOSLIKSVNX86
-SET SVN="C:\Program Files (x86)\Sliksvn\bin\svn.exe"
-:NOSLIKSVNX86
+REM Find svn
+REM This checks whether svn is in PATH, otherwise does SVN=
+for %%X in (svn.exe) do set SVN=%%~$PATH:X
+IF NOT EXIST "%SVN%" (
+    REM Nope, check default locations
 
-ECHO Verifying support programs...
-IF NOT EXIST support\cp.exe GOTO NOSUPPORT
-IF NOT EXIST support\zip.exe GOTO NOSUPPORT
-IF NOT EXIST %ISCC% GOTO NOINNO
-REM This checks whether euc is in the PATH (as required by scons)
+    SET SVN="C:\Program Files\Subversion\bin\svn.exe"
+    IF NOT EXIST "%SVN%" SET SVN="C:\Program Files (x86)\Subversion\bin\svn.exe"
+
+    REM Also support the Sliksvn install location
+    IF NOT EXIST "%SVN%" SET SVN="C:\Program Files\Sliksvn\bin\svn.exe"
+    IF NOT EXIST "%SVN%" SET SVN="C:\Program Files (x86)\Sliksvn\bin\svn.exe"
+)
+
+for %%X in (cp.exe zip.exe grep.exe sed.exe) do (
+    if not exist "support\%%X" (
+        ECHO "ERROR: Support file %%X is missing. Unable to continue."
+        exit /b 1
+    )
+)
+
+IF NOT EXIST %ISCC% (
+    ECHO "ERROR: Innosetup 5 is missing, unable to continue."
+    ECHO "Default location: %ISCC%"
+    ECHO "Download from http://www.jrsoftware.org/isdl.php"
+    exit /b 1
+)
+
 for %%X in (euc.exe) do set EUC=%%~$PATH:X
-IF NOT EXIST "%EUC%" GOTO NOEUPHORIA
+IF NOT EXIST "%EUC%" (
+    ECHO "ERROR: Euphoria is missing (not in the PATH). Unable to continue."
+    ECHO "Download from http://www.OpenEuphoria.com/"
+    exit /b 1
+)
 
-IF NOT EXIST tmpdist GOTO SKIPDELTMPDIST
-RMDIR /S /Q tmpdist
-:SKIPDELTMPDIST
+IF EXIST tmpdist RMDIR /S /Q tmpdist
 MKDIR tmpdist
 
 REM ------------------------------------------
@@ -41,32 +53,22 @@ ECHO Building executables...
 del game.exe custom.exe relump.exe unlump.exe hspeak.exe
 
 ECHO   Windows executables...
-CALL scons game custom hspeak unlump.exe relump.exe %SCONS_ARGS%
-IF NOT EXIST game.exe GOTO NOEXE
-IF NOT EXIST custom.exe GOTO NOEXE
-IF NOT EXIST unlump.exe GOTO NOEXE
-IF NOT EXIST relump.exe GOTO NOEXE
-IF NOT EXIST hspeak.exe GOTO NOEXE
+CALL scons game custom hspeak unlump relump %SCONS_ARGS% || exit /b 1
 
 ECHO   Lumping Vikings of Midgard
-IF NOT EXIST vikings.rpg GOTO SKIPDELVIKING
-DEL vikings.rpg
-:SKIPDELVIKING
+IF EXIST vikings.rpg DEL vikings.rpg
 relump vikings\vikings.rpgdir vikings.rpg > NUL
-IF NOT EXIST vikings.rpg GOTO NORPG
+IF NOT EXIST vikings.rpg (
+    ECHO "ERROR: Failed to relump vikings of midgard"
+    exit /b 1
+)
 
 REM ------------------------------------------
 ECHO Erasing old distrib files ...
 
-IF NOT EXIST distrib\ohrrpgce-minimal.zip GOTO DONEDELMINIMAL
-del distrib\ohrrpgce-minimal.zip
-:DONEDELMINIMAL
-IF NOT EXIST distrib\ohrrpgce.zip GOTO DONEDELCUSTOM
-del distrib\ohrrpgce.zip
-:DONEDELCUSTOM
-IF NOT EXIST distrib\ohrrpgce-win-installer.exe GOTO DONEDELINSTALL
-del distrib\ohrrpgce-win-installer.exe
-:DONEDELINSTALL
+IF EXIST distrib\ohrrpgce-minimal.zip del distrib\ohrrpgce-minimal.zip
+IF EXIST distrib\ohrrpgce.zip del distrib\ohrrpgce.zip
+IF EXIST distrib\ohrrpgce-win-installer.exe del distrib\ohrrpgce-win-installer.exe
 
 REM ------------------------------------------
 ECHO Packaging minimalist ohrrpgce-minimal.zip ...
@@ -154,6 +156,7 @@ cd tmpdist
 ..\support\zip -9 -q -r ..\distrib\ohrrpgce.zip *.* -x *.svn*
 cd ..
 
+ECHO Sanity checking ohrrpgce.zip
 del tmpdist\*.???
 cd tmpdist
 ..\support\unzip -q ..\distrib\ohrrpgce.zip custom.exe
@@ -174,9 +177,11 @@ IF NOT EXIST distrib\ohrrpgce-win-installer.exe GOTO SANITYFAIL
 
 REM ------------------------------------------
 ECHO Packaging source snapshot zip ...
-IF NOT EXIST %SVN% GOTO NOSVN
-IF NOT EXIST support\grep.exe GOTO NOSUPPORT
-IF NOT EXIST support\sed.exe GOTO NOSUPPORT
+IF NOT EXIST %SVN% (
+    ECHO "ERROR: SVN (Subversion) is neither in PATH or in a default location, unable to continue."
+    ECHO "Download from http://subversion.tigris.org/"
+    exit /b 1
+)
 CALL distver.bat
 RMDIR /s /q tmpdist
 MKDIR tmpdist
@@ -208,38 +213,10 @@ ECHO Done.
 GOTO DONE
 
 REM ------------------------------------------
-:NOSUPPORT
-ECHO ERROR: Support files are missing, unable to continue.
-GOTO DONE
-
-:NOINNO
-ECHO ERROR: Innosetup 5 is missing, unable to continue.
-ECHO Default location: %ISCC%
-ECHO Download from http://www.jrsoftware.org/isdl.php
-GOTO DONE
-
-:NOSVN
-ECHO ERROR: SVN (Subversion) is missing, unable to continue.
-ECHO Default location: %SVN%
-ECHO Download from http://subversion.tigris.org/
-GOTO DONE
-
-:NOEUPHORIA
-ECHO ERROR: Euphoria is missing (not in the PATH), unable to continue.
-ECHO Download from http://www.OpenEuphoria.com/
-GOTO DONE
-
-:NOEXE
-ECHO ERROR: An executable failed to build, unable to continue.
-GOTO DONE
-
-:NORPG
-ECHO ERROR: Failed to relump vikings of midgard
-GOTO DONE
 
 :SANITYFAIL
 ECHO ERROR: Sanity test failed, distribution files are incomplete!
-GOTO DONE
+exit /b 1
 
 REM ------------------------------------------
 :DONE
