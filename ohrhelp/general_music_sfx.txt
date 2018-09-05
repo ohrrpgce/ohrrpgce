@@ -6,6 +6,8 @@ Choose songs and sound effects by number, either by using the Left and Right arr
 
 The songs and sound effects must already be imported through their respective importers accessed from the Main Menu.
 
+Default Battle Music: The default used when you create a new battle formation; changing this has no effect on existing formations.
+
 Textbox Line Sound: Played as each non-blank textbox line is displayed (aside from the first).
 
 Stealing sound effects are played in addition to the normal sound effect on an attack, but are played after the attack animation instead of before.

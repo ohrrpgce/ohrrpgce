@@ -848,6 +848,10 @@ SUB generalmusicsfxmenu ()
           genBuySFX, genHireSFX, genSellSFX, genCantBuySFX, genCantSellSFX, _
           genStealSuccessSFX, genStealFailSFX, genStealNoItemSFX _
   }
+  ' mins() stores the minimum allowed values of the gen() elements,
+  ' which is offset by 1 from the song/sfx number
+  DIM mins(1 TO menusize) as integer
+  mins(2) = -1  'Default battle music can be -1, "same as map"
 
   disp(0) = "Previous Menu" 'don't need menu(0)
   menu(1) = "Title Music: "
@@ -906,12 +910,14 @@ SUB generalmusicsfxmenu ()
 
     SELECT CASE state.pt
     CASE 1 TO lastmusicitem
-      IF zintgrabber(gen(index(state.pt)), -1, gen(genMaxSong)) THEN
+      'Music
+      IF zintgrabber(gen(index(state.pt)), mins(state.pt) - 1, gen(genMaxSong)) THEN
         music_stop
         state.need_update = YES
       END IF
     CASE lastmusicitem + 1 TO state.last
-      IF zintgrabber(gen(index(state.pt)), -1, gen(genMaxSFX)) THEN
+      'Sound effect
+      IF zintgrabber(gen(index(state.pt)), mins(state.pt) - 1, gen(genMaxSFX)) THEN
         resetsfx
         state.need_update = YES
       END IF
@@ -927,8 +933,14 @@ SUB generalmusicsfxmenu ()
           ELSE
             disp(idx) = menu(idx) & value & " " & getsfxname(value)
           END IF
-        ELSE
-          disp(idx) = menu(idx) & "None"
+        ELSEIF value = -1 THEN
+          IF index(idx) = genBatMus THEN
+            disp(idx) = menu(idx) & "Silence"
+          ELSE
+            disp(idx) = menu(idx) & "None"
+          END IF
+        ELSEIF value = -2 THEN
+          disp(idx) = menu(idx) & "Same as map"
         END IF
       NEXT
     END IF    
