@@ -62,10 +62,10 @@ function zip_and_upload {
   mustexist "sanity/custom.exe"
   rm -Rf sanity
 
-  if [ -f "${4}" ] ; then
+  while [ -f "${4}" ] ; do
     zip -q distrib/"${ZIPFILE}" "${4}"
     shift
-  fi
+  done
 
   scp distrib/"${ZIPFILE}" "${SCPHOST}":"${SCPDEST}"
 }
