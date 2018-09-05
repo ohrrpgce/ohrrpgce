@@ -55,7 +55,7 @@ mkdir -p OHRRPGCE-Custom.app/Contents/Resources/ohrhelp &&
 sed -i -e "s/#VERSION#/O.H.R.RPG.C.E version ${CODE} ${TODAY}/g" OHRRPGCE-Custom.app/Contents/Info.plist &&
 cp ohrrpgce-custom OHRRPGCE-Custom.app/Contents/MacOS/ &&
 tar xf mac/Frameworks.tar.gz -C OHRRPGCE-Custom.app/Contents &&
-cp -R ohrhelp/*.txt OHRRPGCE-Custom.app/Contents/Resources/ohrhelp &&
+cp -R ohrhelp/* OHRRPGCE-Custom.app/Contents/Resources/ohrhelp &&
 cp -R data/* OHRRPGCE-Custom.app/Contents/Resources/ &&
 cp support/Terminal_wrapper.sh OHRRPGCE-Custom.app/Contents/MacOS/support/ &&
 cp plotscr.hsd scancode.hsi OHRRPGCE-Custom.app/Contents/MacOS/support/ &&

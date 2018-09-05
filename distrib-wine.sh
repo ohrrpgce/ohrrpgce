@@ -40,10 +40,8 @@ function ohrrpgce_common_files {
  cp support/LICENSE-rcedit.txt tmpdist/support
  cp relump.exe tmpdist/support
  cp unlump.exe tmpdist/support
- mkdir tmpdist/data
- cp -r data/* tmpdist/data
- mkdir tmpdist/ohrhelp
- cp ohrhelp/*.txt tmpdist/ohrhelp
+ cp -r data tmpdist/data
+ cp -r ohrhelp tmpdist/ohrhelp
  mkdir tmpdist/docs
  cp docs/*.URL tmpdist/docs
  cp docs/plotdictionary.html tmpdist/docs
@@ -125,29 +123,17 @@ cp docs/plotdict.xml tmpdist/docs
 cp docs/htmlplot.xsl tmpdist/docs
 # Vikings
 cp vikings.rpg tmpdist
-mkdir "tmpdist/Vikings script files"
-cp "vikings/Vikings script files/viking.txt" "tmpdist/Vikings script files"
-cp "vikings/Vikings script files/viking.hsi" "tmpdist/Vikings script files"
-cp "vikings/Vikings script files/utility.lib" "tmpdist/Vikings script files"
+cp -r "vikings/Vikings script files" "tmpdist/Vikings script files"
 cp "vikings/README-vikings.txt" tmpdist
 unix2dos -q "tmpdist/Vikings script files/"*
 # Import folder
-mkdir tmpdist/import
-mkdir tmpdist/import/background
-cp import/background/*.bmp tmpdist/import/background
-mkdir tmpdist/import/fonts
-cp import/fonts/*.ohf tmpdist/import/fonts
-mkdir tmpdist/import/Music
-cp import/Music/*.* tmpdist/import/Music
-mkdir "tmpdist/import/Sound Effects"
-cp import/"Sound Effects"/*.ogg tmpdist/import/"Sound Effects"
-mkdir "tmpdist/import/Master Palettes"
-cp import/"Master Palettes"/*.bmp tmpdist/import/"Master Palettes"
+cp -r import tmpdist/import
 
 cd tmpdist
 zip -9 -q -r ../distrib/ohrrpgce.zip *
 cd ..
 
+echo "Sanity checking ohrrpgce.zip"
 rm -Rf tmpdist
 mkdir tmpdist
 cd tmpdist

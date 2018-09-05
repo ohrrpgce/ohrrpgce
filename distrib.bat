@@ -87,12 +87,8 @@ support\cp gfx_directx.dll tmpdist
 REM wget.exe needed to download everything else (unzip is downloaded as an .exe)
 mkdir tmpdist\support
 support\cp support\wget.exe tmpdist\support
-mkdir tmpdist\data
-support\cp data\*.* tmpdist\data
-mkdir tmpdist\data\defaultgfx
-support\cp data\defaultgfx\*.* tmpdist\data\defaultgfx
-mkdir tmpdist\ohrhelp
-support\cp ohrhelp\*.txt tmpdist\ohrhelp
+support\cp -r data tmpdist\data
+support\cp -r ohrhelp tmpdist\ohrhelp
 mkdir tmpdist\docs
 support\cp docs\*.URL tmpdist\docs
 support\cp docs\plotdictionary.html tmpdist\docs
@@ -102,10 +98,8 @@ cd tmpdist
 ..\support\zip -9 -q -r ..\distrib\ohrrpgce-minimal.zip *.*
 cd ..
 
-del tmpdist\*.???
-RMDIR /s /q tmpdist\ohrhelp
-RMDIR /s /q tmpdist\docs
-RMDIR /s /q tmpdist\support
+rmdir /s /q tmpdist
+mkdir tmpdist
 cd tmpdist
 ..\support\unzip -q ..\distrib\ohrrpgce-minimal.zip game.exe
 cd ..
@@ -129,12 +123,8 @@ support\cp scancode.hsi tmpdist
 support\cp gfx_directx.dll tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
-mkdir tmpdist\data
-support\cp data\*.* tmpdist\data
-mkdir tmpdist\data\defaultgfx
-support\cp data\defaultgfx\*.* tmpdist\data\defaultgfx
-mkdir tmpdist\ohrhelp
-support\cp ohrhelp\*.txt tmpdist\ohrhelp
+support\cp -r data tmpdist\data
+support\cp -r ohrhelp tmpdist\ohrhelp
 mkdir tmpdist\docs
 support\cp docs\FAQ.URL tmpdist\docs
 support\cp docs\HOWTO.URL tmpdist\docs
@@ -156,23 +146,9 @@ support\cp support\LICENSE-rcedit.txt tmpdist\support
 support\cp relump.exe tmpdist\support
 support\cp unlump.exe tmpdist\support
 support\cp vikings.rpg tmpdist
-mkdir "tmpdist\Vikings script files"
-support\cp "vikings\Vikings script files\viking.txt" "tmpdist\Vikings script files"
-support\cp "vikings\Vikings script files\viking.hsi" "tmpdist\Vikings script files"
-support\cp "vikings\Vikings script files\utility.lib" "tmpdist\Vikings script files"
+support\cp -r "vikings\Vikings script files" "tmpdist\Vikings script files"
 support\cp "vikings\README-vikings.txt" tmpdist
-
-mkdir tmpdist\import
-mkdir tmpdist\import\background
-support\cp import\background\*.bmp tmpdist\import\background
-mkdir tmpdist\import\fonts
-support\cp import\fonts\*.ohf tmpdist\import\fonts
-mkdir tmpdist\import\Music
-support\cp import\Music\*.* tmpdist\import\Music
-mkdir "tmpdist\import\Sound Effects"
-support\cp import/"Sound Effects"/*.ogg tmpdist/import/"Sound Effects"
-mkdir "tmpdist\import\Master Palettes"
-support\cp import/"Master Palettes"/*.bmp tmpdist/import/"Master Palettes"
+support\cp -r import tmpdist\import
 
 cd tmpdist
 ..\support\zip -9 -q -r ..\distrib\ohrrpgce.zip *.* -x *.svn*
@@ -202,12 +178,8 @@ IF NOT EXIST %SVN% GOTO NOSVN
 IF NOT EXIST support\grep.exe GOTO NOSUPPORT
 IF NOT EXIST support\sed.exe GOTO NOSUPPORT
 CALL distver.bat
-DEL tmpdist\*.???
-RMDIR /s /q tmpdist\support
-RMDIR /s /q tmpdist\import
-RMDIR /s /q tmpdist\ohrhelp
-RMDIR /s /q tmpdist\docs
-RMDIR /s /q "tmpdist\Vikings script files"
+RMDIR /s /q tmpdist
+MKDIR tmpdist
 CD tmpdist
 %SVN% info .. | ..\support\grep "^URL:" | ..\support\sed s/"^URL: "/"SET REPOSITORY="/ > svnrepo.bat
 CALL svnrepo.bat

@@ -44,8 +44,7 @@ Source: "LICENSE-binary.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "whatsnew.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "plotscr.hsd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "scancode.hsi"; DestDir: "{app}"; Flags: ignoreversion
-Source: "data\*"; DestDir: "{app}\data\"; Flags: ignoreversion
-Source: "data\defaultgfx\*"; DestDir: "{app}\data\defaultgfx\"; Flags: ignoreversion
+Source: "data\*"; DestDir: "{app}\data\"; Flags: ignoreversion recursesubdirs
 Source: "ohrhelp\*"; DestDir: "{app}\ohrhelp\"; Flags: ignoreversion
 Source: "docs\*"; DestDir: "{app}\docs\"; Flags: ignoreversion
 Source: "support\madplay.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
@@ -59,15 +58,9 @@ Source: "support\rcedit.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "relump.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "unlump.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "vikings.rpg"; DestDir: "{app}"; Flags: ignoreversion
-Source: "vikings\Vikings script files\viking.txt"; DestDir: "{app}\Vikings script files\"; Flags: ignoreversion
-Source: "vikings\Vikings script files\viking.hsi"; DestDir: "{app}\Vikings script files\"; Flags: ignoreversion
-Source: "vikings\Vikings script files\utility.lib"; DestDir: "{app}\Vikings script files\"; Flags: ignoreversion
+Source: "vikings\Vikings script files\*"; DestDir: "{app}\Vikings script files"; Flags: ignoreversion
 Source: "vikings\README-vikings.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "import\background\*"; DestDir: "{app}\import\background"; Flags: ignoreversion
-Source: "import\fonts\*"; DestDir: "{app}\import\fonts"; Flags: ignoreversion
-Source: "import\Music\*"; DestDir: "{app}\import\Music"; Flags: ignoreversion
-Source: "import\Sound Effects\*"; DestDir: "{app}\import\Sound Effects"; Flags: ignoreversion
-Source: "import\Master Palettes\*"; DestDir: "{app}\import\Master Palettes"; Flags: ignoreversion
+Source: "import\*"; DestDir: "{app}\import"; Flags: ignoreversion recursesubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
