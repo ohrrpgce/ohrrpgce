@@ -28,6 +28,7 @@ build/
 distrib/
 node_modules/
 *.exe
+win32/*.pdb
 ohrrpgce-game
 ohrrpgce-custom
 OHRRPGCE-Game.app

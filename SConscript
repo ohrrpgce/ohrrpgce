@@ -165,6 +165,14 @@ if int (ARGUMENTS.get ('glibc', False)):
     # No need to bother automatically checking for glibc
     CFLAGS += ["-DHAVE_GLIBC"]
 
+pdb = int(ARGUMENTS.get('pdb', 0))
+if pdb:
+    # fbc -gen gas outputs STABS debug info, gcc outputs DWARF; cv2pdb requires DWARF
+    gengcc = True
+    if not win32:
+        print "pdb=1 only makes sense when targeting Windows"
+        Exit(1)
+
 # There are five levels of debug here: 0, 1, 2, 3, 4 (ugh!). See the help.
 if release:
     debug = 0
@@ -174,12 +182,13 @@ if 'debug' in ARGUMENTS:
     debug = int (ARGUMENTS['debug'])
 optimisations = (debug < 3)    # compile with C/C++/FB optimisations?
 FB_exx = (debug in (2,3))     # compile with -exx?
-if debug >= 1:
+if debug >= 1 or pdb:
+    # If debug=0 and pdb, then the debug info gets stripped later
     FBFLAGS.append ('-g')
     CFLAGS.append ('-g')
 # Note: fbc includes symbols (but not debug info) in .o files even without -g,
 # but strips everything if -g not passed during linking; with linkgcc we need to strip.
-GCC_strip = (debug == 0)  # (linkgcc only) strip debug info and unwanted symbols?
+GCC_strip = (debug == 0 and pdb == 0)  # (linkgcc only) strip debug info and unwanted symbols?
 if ARGUMENTS.get('lto'):
     # Only use LTO on gengcc .C files. GCC throws errors if you try to use LTO
     # across C/FB, after saying declarations don't match.
@@ -623,15 +632,29 @@ if linkgcc:
             return obj
         return target, map(to_o, enumerate(source))
 
-    # Untested on mac. And I would guess not needed, due to -dead_strip
-    if GCC_strip and not mac:
-        # This strips !330KB from each of Game and Custom, leaving ~280KB of symbols
-        def strip_unwanted_syms(source, target, env):
-            # source are the source objects for the executable and target is the exe
-            ohrbuild.strip_nonfunction_symbols(target[0].path, target_prefix, builddir, env)
-        strip_unwanted_syms = Action(strip_unwanted_syms, None)  # Action wrapper to print nothing
+    if pdb:
+        # Note: to run cv2pdb you need Visual Studio installed (specifically, a
+        # dll named mspdb*.dll, eg. mspdb120.dll)
+        # By default cv2pdb modifies the exe in-place, stripping it
+        handle_symbols = os.path.join('support', 'cv2pdb') + ' $TARGET '
+        if debug > 0:
+            # Do not strip
+            handle_symbols += 'NUL'
+        else:
+            handle_symbols += '$TARGET'
+        handle_symbols += ' win32/${TARGET.filebase}.pdb'
+        if not sys.platform.startswith('win'):
+            handle_symbols = 'wine ' + handle_symbols
     else:
-        strip_unwanted_syms = None
+        # Untested on mac. And I would guess not needed, due to -dead_strip
+        if GCC_strip and not mac:
+            # This strips ~330KB from each of Game and Custom, leaving ~280KB of symbols
+            def strip_unwanted_syms(source, target, env):
+                # source are the source objects for the executable and target is the exe
+                ohrbuild.strip_nonfunction_symbols(target[0].path, target_prefix, builddir, env)
+            handle_symbols = Action(strip_unwanted_syms, None)  # Action wrapper to print nothing
+        else:
+            handle_symbols = None
 
     if mac:
         # -( -) not supported
@@ -639,7 +662,7 @@ if linkgcc:
     else:
         basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES "-Wl,-(" $CXXLINKFLAGS "-Wl,-)"'
 
-    basexe_gcc = Builder (action = [basexe_gcc_action, check_binary, strip_unwanted_syms], suffix = exe_suffix,
+    basexe_gcc = Builder (action = [basexe_gcc_action, check_binary, handle_symbols], suffix = exe_suffix,
                           src_suffix = '.bas', emitter = compile_main_module)
 
     env['BUILDERS']['BASEXE'] = basexe_gcc
@@ -1166,6 +1189,14 @@ if platform.system () == 'Windows':
         # static link VC9.0 runtime lib, optimise, whole-program optimisation
         w32_env.Append (CPPFLAGS = ['/MT', '/O2', '/GL'], LINKFLAGS = ['/LTCG'])
 
+    #if pdb:  # I see no reason not to build a .pdb
+    if True:
+        # /OPT:REF enables dead code removal (trimming 110KB) which is disabled by default by /DEBUG,
+        # while /OPT:NOICF disables identical-function-folding, which is confusing while debugging
+        w32_env.Append (CPPFLAGS = ['/Zi'],
+                        LINKFLAGS = ['/DEBUG', '/PDB:' + rootdir + 'win32/gfx_directx.pdb',
+                                     '/OPT:REF', '/OPT:NOICF'])
+
     w32_env.SharedLibrary (rootdir + 'gfx_directx.dll', source = directx_sources,
                           LIBS = ['user32', 'ole32', 'gdi32'])
     TEST = w32_env.Program (rootdir + 'gfx_directx_test1.exe', source = ['gfx_directx/gfx_directx_test1.cpp'],
@@ -1265,19 +1296,26 @@ Options:
                       Equivalent to debug=0 gengcc=1, and also portable=1
                       on Unix (except Android and Mac)
   gengcc=1            Compile using GCC emitter (faster binaries, longer compile
-                      times, and some extra warnings). This is the default
+                      times, and some extra warnings). This is always used
                       everywhere except x86 Windows/Linux/BSD.
-                      Always used for release builds.
   debug=0|1|2|3|4     Debug level:
-                                  -exx |  debug info  | optimisation
-                                 ------+--------------+--------------
-                       debug=0:    no  | symbols only |    yes   <--Releases
-                       debug=1:    no  |     yes      |    yes
-                       debug=2:    yes |     yes      |    yes   <--Default
-                       debug=3:    yes |     yes      |    no
-                       debug=4:    no  |     yes      |    no
+                                  -exx |     debug info      | optimisation
+                                 ------+---------------------+--------------
+                       debug=0:    no  | minimal syms or pdb |    yes   <--Releases
+                       debug=1:    no  |        yes          |    yes
+                       debug=2:    yes |        yes          |    yes   <--Default
+                       debug=3:    yes |        yes          |    no
+                       debug=4:    no  |        yes          |    no
                       -exx builds have array, pointer and file error checking
                       (they abort immediately on errors!), and are slow.
+                      debug info: "minimal syms or pdb" means: if pdb=1 then exes
+                      are totally stripped (the .pdb files contain the symbols),
+                      otherwise exes are mostly-stripped, with only function
+                      symbols present (to allow basic stacktraces); adds ~300KB.
+                      (Note: if gengcc=0, then debug=0 is completely unstripped)
+  pdb=1               Produce .pdb debug info files, for Microsoft debug tools.
+                      Visual Studio must be installed.
+                      Forces gengcc=1.
   lto=1               Do link-time optimisation, for a faster, smaller build
                       (about 2-300KB for Game/Custom) but longer compile time.
                       Use with gengcc=1.
