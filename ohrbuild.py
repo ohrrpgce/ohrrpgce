@@ -143,6 +143,36 @@ def query_git (rootdir):
         date, rev = '', 0
     return date, rev
 
+def query_svn_rev_and_date(rootdir):
+    """Determine svn revision and date, from svn, git, or svninfo.txt
+    NOTE: Actually, we return current date instead of svn last-modified date,
+    as the source might be locally modified"""
+    date, rev = query_git (rootdir)
+    if rev == 0:
+        date, rev = query_svn (rootdir, 'svn info')
+    if rev == 0:
+        print "Falling back to reading svninfo.txt"
+        date, rev = query_svn (rootdir, 'cat svninfo.txt')
+    if rev == 0:
+        print
+        print """ WARNING!!
+Could not determine SVN revision, which will result in RPG files without full
+version info and could lead to mistakes when upgrading .rpg files. A file called
+svninfo.txt should have been included with the source code if you downloaded a
+.zip instead of using svn or git."""
+        print
+
+    # Discard git/svn date and use current date instead because it doesn't reflect when
+    # the source was actually last modified.
+    # Unless overridden: https://reproducible-builds.org/specs/source-date-epoch/
+    if 'SOURCE_DATE_EPOCH' in os.environ:
+        build_date = datetime.datetime.utcfromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']))
+    else:
+        build_date = datetime.date.today()
+    date = build_date.strftime ('%Y%m%d')
+
+    return rev, date
+
 ########################################################################
 
 def get_euphoria_version():
@@ -203,6 +233,21 @@ def get_fb_info(fbc = 'fbc'):
 
 ########################################################################
 
+def read_codename_and_branchrev(rootdir):
+    """Retrieve branch name and svn revision.
+    Note: if branch_rev is -1, the current svn revision should be used."""
+    f = open (os.path.join (rootdir, 'codename.txt'),'rb')
+    lines = []
+    for line in f:
+        if not line.startswith ('#'):
+            lines.append (line.rstrip())
+    f.close()
+    if len(lines) != 2:
+        exit('Expected two noncommented lines in codename.txt')
+    codename = lines[0]
+    branch_rev = int(lines[1])
+    return codename, branch_rev
+
 def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir, DATAFILES):
     """
     Generate ver.txt, iver.txt (Innosetup), distver.bat.
@@ -216,46 +261,14 @@ def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir
             os.mkdir (whichdir)
         return open (os.path.join (whichdir, filename), 'wb')
 
-    # Determine branch name and svn revision
-    f = open (os.path.join (rootdir, 'codename.txt'),'rb')
-    lines = []
-    for line in f:
-        if not line.startswith ('#'):
-            lines.append (line.rstrip())
-    f.close()
-    if len(lines) != 2:
-        exit('Expected two noncommented lines in codename.txt')
-    codename = lines[0]
-    branch_rev = int(lines[1])
+    rev, date = query_svn_rev_and_date(rootdir)
 
-    # Determine svn revision and date
-    date, rev = query_git (rootdir)
-    if rev == 0:
-        date, rev = query_svn (rootdir, 'svn info')
-    if rev == 0:
-        print "Falling back to reading svninfo.txt"
-        date, rev = query_svn (rootdir, 'cat svninfo.txt')
-    if rev == 0:
-        print
-        print """ WARNING!!
-Could not determine SVN revision, which will result in RPG files without full
-version info and could lead to mistakes when upgrading .rpg files. A file called
-svninfo.txt should have been included with the source code if you downloaded a
-.zip instead of using svn or git."""
-        print
-
-    # Discard git/svn date and use current date instead because it doesn't reflect when
-    # the source was actually last modified.
-    # Unless overridden: https://reproducible-builds.org/specs/source-date-epoch/
-    if 'SOURCE_DATE_EPOCH' in os.environ:
-        build_date = datetime.datetime.utcfromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']))
-    else:
-        build_date = datetime.date.today()
-    date = build_date.strftime ('%Y%m%d')
-
+    codename, branch_rev = read_codename_and_branchrev(rootdir)
     if branch_rev <= 0:
         branch_rev = rev
+
     fbver = get_fb_info(fbc)[2]
+
     results = []
 
     # Backends

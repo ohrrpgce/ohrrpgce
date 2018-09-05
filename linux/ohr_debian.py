@@ -4,12 +4,12 @@
 Routines both for installing packages on a Unix, and for creating .deb packages
 """
 
+import sys
 import os
-import re
 import shutil
-import pipes
-import subprocess
-from datetime import date
+
+sys.path.append('..')
+import ohrbuild
 
 ############################################################################
 
@@ -21,60 +21,13 @@ def calculate_size(files, executables):
     size += os.stat('%s' % file)[6]
   return size / 1000
 
-# Note: this is reimplemented in ohrbuild.py
 def read_version():
-  year = date.today().year
-  month = date.today().month
-  day = date.today().day
-  rev = 0
-  code = read_codename()
-
-  date_regex = re.compile('^Last Changed Date: (?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})', re.I)
-  rev_regex  = re.compile('^Revision: (?P<rev>\d+)', re.I)
-  got_date = False
-  got_rev = False
-  if is_subversion_working_copy():
-    f = os.popen('svn info ..', 'r')
-  elif os.path.isdir("../.git"):
-    f = os.popen('git svn info', 'r')
-  else:
-    raise Exception("This should be run from either a subversion working copy, or git working copy with git-svn configured.")
-  for line in f:
-    match = date_regex.match(line)
-    if match != None:
-      year  = match.group('year')
-      month = match.group('month')
-      day   = match.group('day')
-      got_date = True
-    match = rev_regex.match(line)
-    if match != None:
-      rev = match.group('rev')
-      got_rev = True
-  f.close()
-  if not got_rev: print "Failed to get subversion revision number, using 0"
-  if not got_date: print "Failed to get subversion last-modified date, using today's date "
-  return "%s.%s.%s.%s-%s" % (year, month, day, code, rev)
-
-def is_subversion_working_copy():
-  if os.path.isdir(".svn"):
-    return True
-  # Some svn working copies don't have .svn folders
-  output = subprocess.check_output(["svn", "info"])
-  if len(output):
-    if "URL: https://rpg.hamsterrepublic.com/source" in output:
-      return True
-  return False
-
-def read_codename():
-  f = open('../codename.txt', 'r')
-  lines = []
-  for line in f:
-    if not line.startswith('#'):
-      lines.append(line.rstrip())
-  f.close()
-  if len(lines) != 2:
-    exit('Expected two noncommented lines in codename.txt')
-  return lines[0]
+  codename, branch_rev = ohrbuild.read_codename_and_branchrev('..')
+  rev, date = ohrbuild.query_svn_rev_and_date('..')
+  year = date[0:4]
+  month = date[4:6]
+  day = date[6:8]
+  return "%s.%s.%s.%s-%s" % (year, month, day, codename, rev)
 
 def write_control_file(filename, template, values):
   f = open(filename, 'w')
