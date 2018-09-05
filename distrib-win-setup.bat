@@ -1,11 +1,12 @@
 @echo off
 REM This file is shared between distrib.bat and distrib-nightly-win.bat
 
-set SCONS_ARGS= release=1
+set SCONS_ARGS= release=1 pdb=1
 
 set SCPHOST=james_paige@motherhamster.org
 set SCPDEST=HamsterRepublic.com/ohrrpgce/nightly
 set SCPDOCS=HamsterRepublic.com/ohrrpgce/nightly/docs
+set SCPSYMBOLS=HamsterRepublic.com/ohrrpgce/symbols-archive
 
 ECHO Searching for support programs...
 
@@ -30,7 +31,7 @@ IF NOT EXIST "%SVN%" (
     REM Don't throw an error if couldn't find svn, since only distrib.bat needs it
 )
 
-for %%X in (cp.exe zip.exe grep.exe sed.exe) do (
+for %%X in (cp.exe zip.exe grep.exe sed.exe 7za.exe) do (
     if not exist "support\%%X" (
         ECHO "ERROR: Support file %%X is missing. Unable to continue."
         exit /b 1

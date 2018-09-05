@@ -1,8 +1,17 @@
-IF NOT EXIST game.exe GOTO failed
-IF NOT EXIST custom.exe GOTO failed
 
-set ZIPFILE=ohrrpgce-win-%1-wip.zip
-echo Now creating and uploading %ZIPFILE%
+
+CALL distver.bat
+set BUILDNAME=%1
+set ZIPFILE=ohrrpgce-win-%BUILDNAME%-%OHRVERCODE%.zip
+set SYMBFILE=ohrrpgce-symbols-win-%BUILDNAME%-%OHRVERDATE%-%OHRVERCODE%.7z
+echo Now creating %ZIPFILE%
+
+for %%X in (game.exe custom.exe win32\game.pdb win32\custom.pdb) do (
+    if not exist "%%X" (
+        ECHO "ERROR: build result %%X is missing. Unable to continue."
+        GOTO failed
+    )
+)
 
 support\rm -f distrib\%ZIPFILE%
 support\zip -q distrib\%ZIPFILE% game.exe custom.exe hspeak.exe
@@ -16,7 +25,10 @@ copy /y relump.exe support\
 support\zip -q distrib\%ZIPFILE% support\relump.exe
 del support\relump.exe
 
-IF NOT EXIST distrib\%ZIPFILE% GOTO failed
+IF NOT EXIST distrib\%ZIPFILE% (
+    ECHO Failed to create zip
+    GOTO failed
+)
 
 support\rm -rf sanity
 mkdir sanity
@@ -26,7 +38,7 @@ cd ..
 IF NOT EXIST sanity\game.exe GOTO sanityfailed
 IF NOT EXIST sanity\custom.exe GOTO sanityfailed
 IF NOT EXIST sanity\hspeak.exe GOTO sanityfailed
-support\rm -r sanity
+support\rm -rf sanity
 
 :addextrafiles
 
@@ -36,15 +48,23 @@ shift
 goto addextrafiles
 :extrafilesdone
 
+ECHO Now creating %SYMBFILE%
+support\rm -f distrib\%SYMBFILE%
+support\7za a -mx=7 -bd distrib\%SYMBFILE% game.exe custom.exe .\win32\custom.pdb .\win32\game.pdb > NUL
+IF NOT EXIST distrib\%SYMBFILE% (
+    ECHO 7za failed
+    GOTO failed
+)
+
+ECHO Now uploading
 pscp -q distrib\%ZIPFILE% %SCPHOST%:%SCPDEST%
+pscp -q distrib\%SYMBFILE% %SCPHOST%:%SCPSYMBOLS%
 GOTO finished
 
 :sanityfailed
-del sanity\*.exe
-del sanity\*.dll
-del sanity\*.txt
-del sanity\*.hsd
-support\rm -r sanity
+ECHO Sanity check failed!
+support\rm -rf sanity
+GOTO finished
 
 :failed
 

@@ -6,6 +6,9 @@ MKDIR tmpdist
 REM ------------------------------------------
 ECHO Building executables...
 
+REM This should be the BUILDNAME for the default backends
+set BUILDNAME=music_sdl
+
 support\rm -f game.exe custom.exe relump.exe unlump.exe hspeak.exe
 
 ECHO   Windows executables...
@@ -125,7 +128,20 @@ ECHO Packaging ohrrpgce-win-installer.exe ...
 echo. > iextratxt.txt
 %ISCC% /Q /Odistrib /Fohrrpgce-win-installer ohrrpgce.iss
 del iextratxt.txt
-IF NOT EXIST distrib\ohrrpgce-win-installer.exe GOTO SANITYFAIL
+IF NOT EXIST distrib\ohrrpgce-win-installer.exe (
+    ECHO Inno Setup failed!
+    exit /b 1
+)
+
+REM ------------------------------------------
+ECHO Packaging debug info archive
+support\rm -f distrib/ohrrpgce-symbols-win.7z
+REM The ./ path prefixes add the files with the win32/ relative path
+support\7za a -mx=7 -bd distrib\ohrrpgce-symbols-win.7z game.exe custom.exe .\win32\custom.pdb .\win32\game.pdb > NUL
+IF NOT EXIST distrib\ohrrpgce-symbols-win.7z (
+    ECHO 7za failed!
+    exit /b 1
+)
 
 REM ------------------------------------------
 ECHO Packaging source snapshot zip ...
@@ -159,6 +175,7 @@ move distrib\ohrrpgce-minimal.zip distrib\ohrrpgce-minimal-%OHRVERDATE%-%OHRVERC
 move distrib\ohrrpgce.zip distrib\ohrrpgce-%OHRVERDATE%-%OHRVERCODE%.zip
 move distrib\ohrrpgce-win-installer.exe distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe
 move distrib\ohrrpgce-source.zip distrib\ohrrpgce-source-%OHRVERDATE%-%OHRVERCODE%.zip
+move distrib\ohrrpgce-symbols-win.7z distrib\ohrrpgce-symbols-win-%BUILDNAME%-%OHRVERDATE%-%OHRVERCODE%.7z
 
 REM ------------------------------------------
 ECHO Done.

@@ -57,7 +57,10 @@ ISCC="C:\Program Files\Inno Setup 5\iscc.exe"
 SVN="C:\Program Files\Subversion\bin\svn.exe"
 EUC="C:\Euphoria\bin\euc.exe"
 
-SCONS_ARGS="release=1"
+SCONS_ARGS="release=1 pdb=1"
+
+# This should be the BUILDNAME matching $SCONS_ARGS, i.e. the default backends
+BUILDNAME=music_sdl
 
 # Using wine
 BUILD="wine cmd /C ${SCONS}"
@@ -147,6 +150,12 @@ rm -f iextratxt.txt
 
 mustexist "distrib/ohrrpgce-win-installer.exe"
 
+echo "Packaging debug info archive"
+rm -f distrib/ohrrpgce-symbols-win.7z
+# The ./ path prefixes add the files with the win32/ relative path
+7z a -mx=7 -bd distrib/ohrrpgce-symbols-win.7z game.exe custom.exe ./win32/custom.pdb ./win32/game.pdb > /dev/null
+mustexist "distrib/ohrrpgce-symbols-win.7z"
+
 echo "Packaging source snapshot zip ..."
 OHRVERDATE=`svn info | grep "^Last Changed Date:" | cut -d ":" -f 2 | cut -d " " -f 2`
 OHRVERCODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
@@ -174,6 +183,7 @@ mv ohrrpgce-minimal.zip       ohrrpgce-minimal-"${SUFFIX}".zip
 mv ohrrpgce.zip               ohrrpgce-"${SUFFIX}".zip
 mv ohrrpgce-win-installer.exe ohrrpgce-win-installer-"${SUFFIX}".exe
 mv ohrrpgce-source.zip        ohrrpgce-source-"${SUFFIX}".zip
+mv ohrrpgce-symbols-win.7z    ohrrpgce-symbols-win-"${BUILDNAME}-${SUFFIX}".7z
 cd ..
 
 echo "Done."

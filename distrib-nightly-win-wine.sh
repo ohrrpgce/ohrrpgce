@@ -6,11 +6,12 @@ echo "---------------------------------------------------"
 SCPHOST="james_paige@motherhamster.org"
 SCPDEST="HamsterRepublic.com/ohrrpgce/nightly"
 SCPDOCS="HamsterRepublic.com/ohrrpgce/nightly/docs"
+SCPSYMBOLS="HamsterRepublic.com/ohrrpgce/symbols-archive"
 
 ISCC="C:\Program Files\Inno Setup 5\iscc.exe"
 SCONS="C:\Python27\Scripts\scons.bat"
 
-SCONS_ARGS="release=1"
+SCONS_ARGS="release=1 pdb=1"
 
 # Using wine
 BUILD="wine cmd /C ${SCONS}"
@@ -35,9 +36,12 @@ function zip_and_upload {
   mustexist custom.exe
   mustexist hspeak.exe
   mustexist relump.exe
+  mustexist game.pdb
+  mustexist custom.pdb
   BUILDNAME="${1}"
   ZIPFILE="ohrrpgce-win-${BUILDNAME}-wip.zip"
-  echo "Now creating and uploading ${ZIPFILE}"
+  SYMBFILE="ohrrpgce-symbols-win-${BUILDNAME}-${DATECODE}-wip.7z"
+  echo "Now creating and uploading ${ZIPFILE} and symbols"
 
   rm -f distrib/"${ZIPFILE}"
   zip -q distrib/"${ZIPFILE}" game.exe custom.exe hspeak.exe
@@ -73,7 +77,14 @@ function zip_and_upload {
     shift
   done
 
+  rm -f distrib/"${SYMBFILE}"
+  7z a -mx=7 -bd distrib/"${SYMBFILE}" game.exe custom.exe ./win32/custom.pdb ./win32/game.pdb > /dev/null
+  mustexist distrib/"${SYMBFILE}"
+
   scp distrib/"${ZIPFILE}" "${SCPHOST}":"${SCPDEST}"
+  scp distrib/"${SYMBFILE}" "${SCPHOST}":"${SCPSYMBOLS}"
+
+  echo
 }
 
 #-----------------------------------------------------------------------
