@@ -18,7 +18,7 @@
 DECLARE FUNCTION item_attack_name(n as integer) as string
 DECLARE SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
 
-DECLARE SUB item_editor_equipbits(itembuf() as integer)
+DECLARE SUB item_editor_equipbits(itembuf() as integer, itemname as string)
 DECLARE SUB item_editor_elementals(itembuf() as integer)
 DECLARE SUB item_editor_init_new(itembuf() as integer)
 DECLARE SUB item_editor_stat_bonuses(itembuf() as integer)
@@ -152,7 +152,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
      item_editor_elementals itembuf()
     END IF
     IF state.pt = 21 THEN
-     item_editor_equipbits itembuf()
+     item_editor_equipbits itembuf(), item_name
      state.need_update = YES
     END IF
    END IF
@@ -340,16 +340,16 @@ FUNCTION item_attack_name(n as integer) as string
 END FUNCTION
 
 ' Who Can Equip? menu
-SUB item_editor_equipbits(itembuf() as integer)
+SUB item_editor_equipbits(itembuf() as integer, itemname as string)
  DIM hero_id as integer
  ' The equippable bits are discontinuous
  DIM combined_bits(maxMaxHero \ 16) as integer
  DIM bitnames(-1 TO maxMaxHero) as string
  FOR hero_id = 0 TO gen(genMaxHero)
-  bitnames(hero_id) = "Equippable by " & getheroname(hero_id)
+  bitnames(hero_id) = getheroname(hero_id)
   setbit combined_bits(), 0, hero_id, item_read_equipbit(itembuf(), hero_id)
  NEXT
- editbitset combined_bits(), 0, gen(genMaxHero), bitnames()
+ editbitset combined_bits(), 0, gen(genMaxHero), bitnames(), , , , itemname & " is equippable by..."
  FOR hero_id = 0 TO gen(genMaxHero)
   item_write_equipbit(itembuf(), hero_id, xreadbit(combined_bits(), hero_id))
  NEXT

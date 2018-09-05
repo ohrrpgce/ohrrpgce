@@ -1311,7 +1311,7 @@ DO
   IF (keyval(scAnyEnter) > 1) OR mouse_click THEN
    DIM buf() as integer
    vector_to_array buf(), ts.defaultwalls
-   editbitset buf(), bnum, 7, bitmenu()
+   editbitset buf(), bnum, 7, bitmenu(), , , , "Default wallmap bits"
    array_to_vector ts.defaultwalls, buf()
   END IF
  END IF

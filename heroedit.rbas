@@ -33,7 +33,7 @@ DECLARE SUB update_hero_tags_menu (byref hero as HeroDef, menu() as string, byre
 DECLARE SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
 DECLARE SUB hero_editor_appearance (byref st as HeroEditState, byref her as HeroDef)
 DECLARE SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
-DECLARE SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer)
+DECLARE SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer, heroname as string)
 DECLARE SUB hero_editor_elementals(byref her as HeroDef)
 DECLARE SUB hero_editor_edit_spell_list_slot (slot as SpellList)
 DECLARE SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
@@ -271,7 +271,7 @@ SUB hero_editor_stat_visibility (hero as HeroDef)
   END WITHNODE
  END READNODE
 
- editbitset tmpbits(), 0, statLast, menu(), "hero_stat_visibility"
+ editbitset tmpbits(), 0, statLast, menu(), "hero_stat_visibility", , , hero.name & "'s Status screen visible stats"
  
  DIM stat_options as NodePtr
  stat_options = hero_node."stat_options".ptr
@@ -1605,7 +1605,7 @@ SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
    IF state.pt = 0 THEN
     EXIT DO
    ELSE
-    hero_editor_equipbits hero_id, state.pt
+    hero_editor_equipbits hero_id, state.pt, her.name
    END IF
   END IF
   clearpage dpage
@@ -1616,8 +1616,16 @@ SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
  LOOP
 END SUB
 
-SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer)
+SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer, heroname as string)
  '--equip_type is 0 for none (which would be silly) 1 for weapons and 2-5 for armor
+ DIM title as string
+ IF equip_type = 1 THEN
+  title = readglobalstring(38, "Weapon", 10)
+ ELSE
+  title = readglobalstring(25 + (equip_type - 2), "Armor" & (equip_type - 1))
+ END IF
+ title &= " equipment for " & heroname
+
  DIM tempbits(gen(genMaxItem) \ 16 + 1) as integer 
  DIM itemname(gen(genMaxItem)) as string
  DIM item_id(gen(genMaxItem)) as integer
@@ -1632,7 +1640,7 @@ SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer
    nextbit += 1
   END IF
  NEXT i
- editbitset tempbits(), 0, nextbit-1, itemname()
+ editbitset tempbits(), 0, nextbit-1, itemname(), , , , title
  FOR i as integer = 0 TO nextbit-1
   loaditemdata itembuf(), item_id(i)
   item_write_equipbit itembuf(), hero_id, readbit(tempbits(), 0, i)

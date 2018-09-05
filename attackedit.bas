@@ -20,6 +20,7 @@ DECLARE FUNCTION atk_edit_add_new(recbuf() as integer, preview_box as Slice Ptr)
 DECLARE SUB atk_edit_load_attack(recbuf() as integer, attackid as integer, caption() as string, AtkCapFailConds as integer)
 DECLARE SUB atk_edit_merge_bitsets(recbuf() as integer, tempbuf() as integer)
 DECLARE SUB atk_edit_split_bitsets(recbuf() as integer, tempbuf() as integer)
+DECLARE FUNCTION atk_edit_atkname(recbuf() as integer) as string
 DECLARE SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
 DECLARE SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menutype() as integer, caption() as string, menucapoff() as integer, workmenu() as integer, state as MenuState, dmgbit() as string, maskeddmgbit() as string, damagepreview as string)
 DECLARE SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integer, state as MenuState)
@@ -310,8 +311,7 @@ dmgbit(88) = "Healing poison causes regen, and reverse"
 '--Data is split, See AtkDatBits and AtkDatBits2 for offsets
 
 
-'These bits are edited separately, because it would be a pain to linearise them somehow,
-'editbitset doesn't support it.
+'These bits are edited separately
 DIM elementbit(-1 TO 79) as string
 FOR i = 0 TO small(15, gen(genNumElements) - 1)
  elementbit(i + 5) = elementnames(i) & " Damage"  'bits 5-20
@@ -1446,13 +1446,13 @@ DO
     END IF
    CASE AtkBitAct
     atk_edit_merge_bitsets recbuf(), buffer()
-    editbitset buffer(), 0, UBOUND(atkbit), atkbit(), "attack_bitsets", remember_atk_bit
+    editbitset buffer(), 0, UBOUND(atkbit), atkbit(), "attack_bitsets", remember_atk_bit, , atk_edit_atkname(recbuf()) & " general bitsets"
     atk_edit_split_bitsets recbuf(), buffer()
    CASE AtkDamageBitAct
     DIM updatebits as bool
     DO
      atk_edit_merge_bitsets recbuf(), buffer()
-     updatebits = editbitset(buffer(), 0, UBOUND(maskeddmgbit), maskeddmgbit(), "attack_damage_bitsets", remember_dmg_bit, YES)
+     updatebits = editbitset(buffer(), 0, UBOUND(maskeddmgbit), maskeddmgbit(), "attack_damage_bitsets", remember_dmg_bit, YES, atk_edit_atkname(recbuf()) & " damage bitsets")
      atk_edit_split_bitsets recbuf(), buffer()
      IF updatebits THEN
       attack_editor_build_damage_menu recbuf(), menu(), menutype(), caption(), menucapoff(), workmenu(), state, dmgbit(), maskeddmgbit(), damagepreview
@@ -1472,7 +1472,7 @@ DO
      'bits 80 - 127
      buffer(2 + i) = recbuf(AtkDatBitsets2 + 5 + i)
     NEXT i
-    editbitset buffer(), 0, UBOUND(elementbit), elementbit(), "attack_element_bitsets", remember_elmt_bit
+    editbitset buffer(), 0, UBOUND(elementbit), elementbit(), "attack_element_bitsets", remember_elmt_bit, , atk_edit_atkname(recbuf()) & " elements"
     'split the buffer to the two bitset blocks
     FOR i = 0 TO 1
      recbuf(AtkDatBitsets + i) = buffer(i)
@@ -1599,7 +1599,7 @@ DO
  standardmenu dispmenu(), state, 0, 0, dpage
  IF keyval(scAlt) > 0 OR show_name_ticks > 0 THEN 'holding ALT or just tab-flipped, show ID and name
    show_name_ticks = large(0, show_name_ticks - 1)
-   tmpstr = readbadbinstring(recbuf(), AtkDatName, 10, 1) & " " & recindex
+   tmpstr = atk_edit_atkname(recbuf()) & " " & recindex
    textcolor uilook(uiText), uilook(uiHighlight)
    printstr tmpstr, pRight, 0, dpage
  END IF
@@ -1710,6 +1710,10 @@ SUB atk_edit_load_attack(recbuf() as integer, attackid as integer, caption() as 
  loadattackdata recbuf(), attackid
  update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
 END SUB
+
+FUNCTION atk_edit_atkname(recbuf() as integer) as string
+ RETURN readbadbinstring(recbuf(), AtkDatName, 10, 1)
+END FUNCTION
 
 'Regenerate captions for elemental failure conditions
 SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
