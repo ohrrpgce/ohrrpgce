@@ -3,6 +3,8 @@ REM run is equivalent to allowing any developer with write access
 REM to the repository full control of your build computer. Thank
 REM goodness James trusts the other devs ;)
 
+set SCONS_ARGS= debug=0 gengcc=1
+
 cd c:\nightly\ohrrpgce
 svn cleanup
 svn update
@@ -12,71 +14,38 @@ CALL distrib.bat nightly
 CALL distver.bat
 pscp -q distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-wip-win-installer.exe
 
-CALL scons hspeak relump.exe unlump.exe
+del hspeak.exe unlump.exe relump.exe
+CALL scons hspeak relump unlump %SCONS_ARGS%
 
 del game*.exe custom*.exe
-call scons gfx=directx+sdl+fb music=sdl debug=0 gengcc=1
-call nightly-gfx-music directx sdl ~ gfx_directx.dll SDL.dll SDL_mixer.dll 
+call scons music=sdl %SCONS_ARGS%
+call nightly-gfx-music music_sdl gfx_directx.dll SDL.dll SDL_mixer.dll
 
 del game*.exe custom*.exe
-call scons gfx=directx+fb music=native debug=0 gengcc=1
-call nightly-gfx-music directx native ~ gfx_directx.dll audiere.dll
+call scons music=native %SCONS_ARGS%
+call nightly-gfx-music music_native gfx_directx.dll SDL.dll audiere.dll
 
 del game*.exe custom*.exe
-call scons gfx=directx+fb music=native2 debug=0 gengcc=1
-call nightly-gfx-music directx native2 ~ gfx_directx.dll audiere.dll
+call scons music=native2 %SCONS_ARGS%
+call nightly-gfx-music music_native2 gfx_directx.dll SDL.dll audiere.dll
 
 del game*.exe custom*.exe
-call scons gfx=fb+directx+sdl music=sdl debug=0 gengcc=1
-call nightly-gfx-music fb sdl ~ SDL.dll SDL_mixer.dll 
-
-del game*.exe custom*.exe
-call scons gfx=fb+directx music=native debug=0 gengcc=1
-call nightly-gfx-music fb native ~ audiere.dll
-
-del game*.exe custom*.exe
-call scons gfx=fb+directx music=native2 debug=0 gengcc=1
-call nightly-gfx-music fb native2 ~ audiere.dll
+call scons music=silence %SCONS_ARGS%
+call nightly-gfx-music music_silence gfx_directx.dll SDL.dll
 
 REM del game*.exe custom*.exe
-REM call scons gfx=alleg+directx+fb+sdl music=sdl debug=0 gengcc=1
-REM call nightly-gfx-music alleg sdl ~ alleg40.dll SDL.dll SDL_mixer.dll 
-
-REM del game*.exe custom*.exe
-REM call scons gfx=alleg+directx+fb music=native debug=0 gengcc=1
-REM call nightly-gfx-music alleg native ~ alleg40.dll audiere.dll
-
-REM del game*.exe custom*.exe
-REM call scons gfx=alleg+directx+fb music=native2 debug=0 gengcc=1
-REM call nightly-gfx-music alleg native2 ~ alleg40.dll audiere.dll
+REM call scons gfx=alleg+directx+fb+sdl music=sdl %SCONS_ARGS%
+REM call nightly-gfx-music gfx_alleg-music_sdl alleg40.dll SDL.dll SDL_mixer.dll
 
 del game*.exe custom*.exe
-call scons gfx=sdl+directx+fb music=sdl debug=0 gengcc=1
-call nightly-gfx-music sdl sdl ~ SDL.dll SDL_mixer.dll 
-
-del game*.exe custom*.exe
-call scons gfx=sdl+directx+fb music=native debug=0 gengcc=1
-call nightly-gfx-music sdl native ~ audiere.dll SDL.dll
-
-del game*.exe custom*.exe
-call scons gfx=sdl+directx+fb music=native2 debug=0 gengcc=1
-call nightly-gfx-music sdl native2 ~ audiere.dll SDL.dll
-
-del game*.exe custom*.exe
-call scons gfx=directx+sdl+fb music=silence debug=0 gengcc=1
-call nightly-gfx-music directx silence ~ SDL.dll gfx_directx.dll
-
-del game*.exe custom*.exe
-call scons gfx=directx+sdl+fb music=sdl debug=2
-call nightly-gfx-music directx sdl -debug SDL.dll SDL_mixer.dll gfx_directx.dll misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
+call scons music=sdl debug=2
+call nightly-gfx-music music_sdl-debug gfx_directx.dll SDL.dll SDL_mixer.dll misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
 REM Note that this is duplicated in distrib-nightly-linux.sh
 Echo upload plotdict.xml
 pscp -q docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/docs/
 pscp -q docs\htmlplot.xsl james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/docs/
 
-del unlump.exe relump.exe
-call scons unlump.exe relump.exe
 del distrib\ohrrpgce-util.zip
 IF NOT EXIST unlump.exe GOTO NOUTIL
 IF NOT EXIST relump.exe GOTO NOUTIL
@@ -85,8 +54,6 @@ pscp -q distrib\ohrrpgce-util.zip james_paige@motherhamster.org:HamsterRepublic.
 :NOUTIL
 
 del distrib\hspeak-win-nightly.zip
-del hspeak.exe
-call scons hspeak
 IF NOT EXIST hspeak.exe GOTO NOHSPEAK
 support\zip distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e euphoria\*.e euphoria\License.txt LICENSE.txt plotscr.hsd scancode.hsi
 pscp -q distrib\hspeak-win-nightly.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/

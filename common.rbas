@@ -3267,7 +3267,7 @@ FUNCTION missing_helper_message (appname as string) as string
   IF version_branch = "wip" THEN
    ret += CHR(10) + "You are using a nightly build. Did you unzip the nightly on top of a full install of a stable release, as you are meant to?"
    IF INSTR(appname, "oggenc") OR INSTR(appname, "madplay") THEN
-    ret += " Alternatively, download oggenc+madplay.zip from the nightly ""alternative backends"" folder."
+    ret += " Alternatively, download madplay+oggenc.zip from the nightly ""alternative backends"" folder at http://hamsterrepublic.com/ohrrpgce/nightly/."
    END IF
   END IF
  #ENDIF

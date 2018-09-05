@@ -11,6 +11,9 @@ SCONS="C:\Python27\Scripts\scons.bat"
 
 SCONS_ARGS="debug=0 gengcc=1"
 
+BUILD="wine cmd /C ${SCONS}"
+
+
 #-----------------------------------------------------------------------
 
 function mustexist {
@@ -25,14 +28,9 @@ function zip_and_upload {
   mustexist custom.exe
   mustexist hspeak.exe
   mustexist relump.exe
-  GFX="${1}"
-  MUSIC="${2}"
-  EXTRA="${3}"
-  echo "Now uploading the OHR with ${GFX} graphics modules, and ${MUSIC} music module. (${EXTRA})"
-  ZIPFILE="ohrrpgce-wip-${GFX}-${MUSIC}${EXTRA}.zip"
-  if [ "${EXTRA}" = "~" ] ; then
-    ZIPFILE=ohrrpgce-wip-${GFX}-${MUSIC}.zip
-  fi
+  BUILDNAME="${1}"
+  ZIPFILE="ohrrpgce-win-${BUILDNAME}-wip.zip"
+  echo "Now creating and uploading ${ZIPFILE}"
 
   rm -f distrib/"${ZIPFILE}"
   zip -q distrib/"${ZIPFILE}" game.exe custom.exe hspeak.exe
@@ -44,6 +42,7 @@ function zip_and_upload {
   cp relump.exe support/
   zip -q distrib/"${ZIPFILE}" support/relump.exe
   rm support/relump.exe
+  # unlump.exe is excluded
   rm -Rf texttemp
   mkdir texttemp
   cp whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd scancode.hsi svninfo.txt texttemp/
@@ -62,8 +61,8 @@ function zip_and_upload {
   mustexist "sanity/custom.exe"
   rm -Rf sanity
 
-  while [ -f "${4}" ] ; do
-    zip -q distrib/"${ZIPFILE}" "${4}"
+  while [ -f "${2}" ] ; do
+    zip -q distrib/"${ZIPFILE}" "${2}"
     shift
   done
 
@@ -71,7 +70,7 @@ function zip_and_upload {
 }
 
 #-----------------------------------------------------------------------
-# turn of wine's debug noise
+# turn off wine's debug noise
 export WINEDEBUG=fixme-all
 
 svn cleanup
@@ -86,63 +85,35 @@ SUFFIX="${OHRVERDATE}-${OHRVERCODE}"
 mustexist distrib/ohrrpgce-win-installer-"${SUFFIX}".exe
 scp -p distrib/ohrrpgce-win-installer-"${SUFFIX}".exe "${SCPHOST}":"${SCPDEST}"/ohrrpgce-wip-win-installer.exe
 
-wine cmd /C "${SCONS}" hspeak relump.exe unlump.exe
+rm -f unlump.exe relump.exe hspeak.exe
+${BUILD} hspeak relump unlump $SCONS_ARGS
+mustexist unlump.exe
+mustexist relump.exe
+mustexist hspeak.exe
 
 rm -r game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl $SCONS_ARGS
-zip_and_upload directx sdl "~" gfx_directx.dll SDL.dll SDL_mixer.dll 
+${BUILD} music=sdl $SCONS_ARGS
+zip_and_upload music_sdl gfx_directx.dll SDL.dll SDL_mixer.dll
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=directx+fb music=native $SCONS_ARGS
-zip_and_upload directx native "~" gfx_directx.dll audiere.dll
+${BUILD} music=native $SCONS_ARGS
+zip_and_upload music_native gfx_directx.dll SDL.dll audiere.dll
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=directx+fb music=native2 $SCONS_ARGS
-zip_and_upload directx native2 "~" gfx_directx.dll audiere.dll
+${BUILD} music=native2 $SCONS_ARGS
+zip_and_upload music_native2 gfx_directx.dll SDL.dll audiere.dll
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=fb+directx+sdl music=sdl $SCONS_ARGS
-zip_and_upload fb sdl "~" SDL.dll SDL_mixer.dll 
-
-rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=fb+directx music=native $SCONS_ARGS
-zip_and_upload fb native "~" audiere.dll
-
-rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=fb+directx music=native2 $SCONS_ARGS
-zip_and_upload fb native2 "~" audiere.dll
+${BUILD} music=silence $SCONS_ARGS
+zip_and_upload music_silence gfx_directx.dll SDL.dll
 
 # rm -f game*.exe custom*.exe
-# wine cmd /C "${SCONS}" gfx=alleg+directx+fb+sdl music=sdl $SCONS_ARGS
-# zip_and_upload alleg sdl "~" alleg40.dll SDL.dll SDL_mixer.dll 
-
-# rm -f game*.exe custom*.exe
-# wine cmd /C "${SCONS}" gfx=alleg+directx+fb music=native $SCONS_ARGS
-# zip_and_upload alleg native "~" alleg40.dll audiere.dll
-
-# rm -f game*.exe custom*.exe
-# wine cmd /C "${SCONS}" gfx=alleg+directx+fb music=native2 $SCONS_ARGS
-# zip_and_upload alleg native2 "~" alleg40.dll audiere.dll
+# ${BUILD} gfx=alleg+directx+fb+sdl music=sdl $SCONS_ARGS
+# zip_and_upload gfx_alleg-music_sdl alleg40.dll SDL.dll SDL_mixer.dll
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=sdl $SCONS_ARGS
-zip_and_upload sdl sdl "~" SDL.dll SDL_mixer.dll 
-
-rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=native $SCONS_ARGS
-zip_and_upload sdl native "~" audiere.dll SDL.dll
-
-rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=native2 $SCONS_ARGS
-zip_and_upload sdl native2 "~" audiere.dll SDL.dll
-
-rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=silence $SCONS_ARGS
-zip_and_upload directx silence "~" SDL.dll gfx_directx.dll
-
-rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=2
-zip_and_upload directx sdl -debug SDL.dll SDL_mixer.dll gfx_directx.dll misc/gdbcmds1.txt misc/gdbcmds2.txt gdbgame.bat gdbcustom.bat
+${BUILD} music=sdl debug=2
+zip_and_upload music_sdl-debug gfx_directx.dll SDL.dll SDL_mixer.dll misc/gdbcmds1.txt misc/gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
 # Note that this is duplicated in distrib-nightly-linux.sh
 echo "uploading plotscripting docs"
@@ -152,23 +123,16 @@ docs/update-html.sh
 scp docs/plotdictionary.html "${SCPHOST}":"${SCPDOCS}"
 
 rm -f distrib/ohrrpgce-util.zip
-rm -f unlump.exe relump.exe
-wine cmd /C "${SCONS}" unlump.exe relump.exe
-mustexist unlump.exe
-mustexist relump.exe
 zip distrib/ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt svninfo.txt
 scp distrib/ohrrpgce-util.zip "${SCPHOST}":"${SCPDEST}"
 
 rm -f distrib/hspeak-win-nightly.zip
-rm -f hspeak.exe
-wine cmd /C "${SCONS}" hspeak
-mustexist hspeak.exe
 zip distrib/hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e euphoria/*.e euphoria/License.txt LICENSE.txt plotscr.hsd scancode.hsi
 scp distrib/hspeak-win-nightly.zip "${SCPHOST}":"${SCPDEST}"
 
 rm -f distrib/bam2mid.zip
 rm -f bam2mid.exe
-wine cmd /C "${SCONS}" bam2mid.exe
+${BUILD} bam2mid.exe $SCONS_ARGS
 mustexist bam2mid.exe
 zip distrib/bam2mid.zip bam2mid.exe bam2mid.txt LICENSE.txt svninfo.txt
 scp distrib/bam2mid.zip "${SCPHOST}":"${SCPDEST}"

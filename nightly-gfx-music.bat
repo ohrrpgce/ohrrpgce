@@ -1,9 +1,8 @@
 IF NOT EXIST game.exe GOTO failed
 IF NOT EXIST custom.exe GOTO failed
-echo Now uploading the OHR with %1 graphics modules, and %2 music module
-REM %3 is a suffix for the zip file
-set ZIPFILE=ohrrpgce-wip-%1-%2%3.zip
-IF "%3"=="~" set ZIPFILE=ohrrpgce-wip-%1-%2.zip
+
+set ZIPFILE=ohrrpgce-win-%1-wip.zip
+echo Now creating and uploading %ZIPFILE%
 
 del distrib\%ZIPFILE%
 support\zip -q distrib\%ZIPFILE% game.exe custom.exe hspeak.exe
@@ -26,12 +25,13 @@ cd sanity
 cd ..
 IF NOT EXIST sanity\game.exe GOTO sanityfailed
 IF NOT EXIST sanity\custom.exe GOTO sanityfailed
+IF NOT EXIST sanity\hspeak.exe GOTO sanityfailed
 support\rm -r sanity
 
 :addextrafiles
 
-IF NOT EXIST "%4" GOTO extrafilesdone
-support\zip -q distrib\%ZIPFILE% %4
+IF NOT EXIST "%2" GOTO extrafilesdone
+support\zip -q distrib\%ZIPFILE% %2
 shift
 goto addextrafiles
 :extrafilesdone
