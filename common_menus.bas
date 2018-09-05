@@ -60,19 +60,20 @@ npc_facetypes(2) = "Do Not Face Player"
 'The bits corresponding to any blank entries in names() are skipped over.
 'if remem_pt is not -2 (initialise to -1) it is used to store the selected bit (index in names())
 'If immediate_quit is true, then toggling a bit causes the menu to quit immediately and return YES (otherwise NO)
-FUNCTION editbitset (array() as integer, byval wof as integer, byval last as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -2, byval immediate_quit as bool = NO) as bool
+FUNCTION editbitset (array() as integer, wof as integer, last as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -2, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
 
- '---DIM AND INIT---
  DIM state as MenuState
 
  DIM menu(-1 to last) as string
  DIM bits(-1 to last) as integer
- 
+
  init_menu_state state, menu()
- state.top = -1
  state.pt = -1
 
- menu(-1) = "Previous Menu"
+ menu(-1) = prevmenu
+
+ DIM menupos as XYPair
+ IF LEN(title) THEN menupos.y = 14
 
  DIM nextbit as integer = 0
  FOR i as integer = 0 to last
@@ -85,6 +86,7 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
  NEXT
  state.last = nextbit - 1
  state.autosize = YES
+ state.autosize_ignore_pixels = menupos.y
 
  DIM ret as bool = NO
  DIM col as integer
@@ -117,19 +119,22 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
 
   ' Draw
   clearpage dpage
-  calc_menustate_size state, MenuOptions(), 0, 0  ' Recalcs .size, .rect, .spacing
+  calc_menustate_size state, MenuOptions(), menupos.x, menupos.y  ' Recalcs .size, .rect, .spacing
   draw_fullscreen_scrollbar state, , dpage
+  IF LEN(title) THEN edgeprint title, pCentered, menupos.y - 12, uilook(uiMenuItem), dpage
   FOR i as integer = state.top TO small(state.top + state.size, state.last)
+   DIM drawat as XYPair = menupos
+   drawat.x += 8 + IIF(state.pt = i, showRight, 0)
+   drawat.y += (i - state.top) * state.spacing
    DIM biton as integer
    IF i >= 0 THEN
     biton = readbit(array(), wof, bits(i))
-    ellipse vpages(dpage), 0 + 4, (i - state.top) * state.spacing + 3, 3, uilook(uiDisabledItem), IIF(biton, uilook(uiSelectedItem), -1)
+    ellipse vpages(dpage), menupos.x + 4, drawat.y + 3, 3, uilook(uiDisabledItem), IIF(biton, uilook(uiSelectedItem), -1)
    ELSE
-    biton = 1  'Previous menu: shade this option
+    biton = 1  'Previous menu: don't show as disabled
    END IF
    textcolor menu_item_color(state, i, biton = 0), 0
-   DIM drawstr as string = " " & menu(i)
-   printstr drawstr, IIF(state.pt = i, showRight, 0), (i - state.top) * state.spacing, dpage
+   printstr menu(i), drawat.x, drawat.y, dpage
   NEXT i
   SWAP vpage, dpage
   setvispage vpage
