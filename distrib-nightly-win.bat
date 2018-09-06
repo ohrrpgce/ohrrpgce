@@ -7,7 +7,21 @@ CALL distrib-win-setup.bat || exit /b 1
 
 cd c:\nightly\ohrrpgce
 svn cleanup
-svn update
+svn update > nightly-temp.txt
+IF errorlevel 1 (
+    TYPE nightly-temp.txt
+    exit /b 1
+)
+TYPE nightly-temp.txt
+
+REM "At revision" means no change, vs "Updated to revision"
+TYPE nightly-temp.txt | FIND "At revision" > NUL && (
+  echo No changes, no need to update nightly.
+  del nightly-temp.txt
+  exit /b 0
+)
+del nightly-temp.txt
+
 svn info > svninfo.txt
 
 REM Build all utilities once

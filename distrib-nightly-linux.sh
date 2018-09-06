@@ -27,8 +27,16 @@ if [ ! -d ohrrpgce ] ; then
   svn checkout https://rpg.hamsterrepublic.com/source/wip ./ohrrpgce/wip
 fi
 rm ./ohrrpgce/wip/docs/plotdictionary.html
+
 svn cleanup ./ohrrpgce/wip
-svn update ./ohrrpgce/wip
+svn update ./ohrrpgce/wip | tee nightly-temp.txt || exit 1
+UPDATE=`grep "Updated to revision" nightly-temp.txt`
+rm nightly-temp.txt
+
+if [ -z "$UPDATE" ] ; then
+  echo No changes, no need to update nightly.
+  exit
+fi
 
 cd ohrrpgce
 

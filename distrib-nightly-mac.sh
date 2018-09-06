@@ -19,12 +19,11 @@ fi
 
 cd ohrrpgce
 
-svn update > ../nightly-temp.txt || exit 1
-UPDATE=`wc -l < ../nightly-temp.txt`
-cat ../nightly-temp.txt
+svn update | tee ../nightly-temp.txt || exit 1
+UPDATE=`grep "Updated to revision" ../nightly-temp.txt`
 rm ../nightly-temp.txt
 
-if [ ${UPDATE} -eq 1 ] ; then
+if [ -z "$UPDATE" ] ; then
   echo no changes, no need to update nightly.
   exit
 fi

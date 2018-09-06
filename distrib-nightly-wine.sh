@@ -96,7 +96,15 @@ function zip_and_upload {
 export WINEDEBUG=fixme-all
 
 svn cleanup
-svn update
+svn update | tee nightly-temp.txt || exit 1
+UPDATE=`grep "Updated to revision" nightly-temp.txt`
+rm nightly-temp.txt
+
+if [ -z "$UPDATE" ] ; then
+  echo no changes, no need to update nightly.
+  exit
+fi
+
 svn info > svninfo.txt
 
 # Build all utilities once
