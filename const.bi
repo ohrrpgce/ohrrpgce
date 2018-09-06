@@ -403,7 +403,8 @@ End Enum
 Type errorLevelEnum as integer  'For compatibility with C
 
 'Constants for scripterr and friends
-Enum scriptErrEnum
+Type scriptErrEnum as integer
+Enum 'scriptErrEnum
   serrIgnore = 0     'to suppress an error
   serrInfo = 1       'informative messages
   serrWarn = 2       'possibly suspicious operation, eg. re-freeing a slice
