@@ -147,7 +147,7 @@ REM ------------------------------------------
 ECHO Packaging source snapshot zip ...
 IF NOT EXIST %SVN% (
     ECHO "ERROR: SVN (Subversion) is neither in PATH or in a default location, unable to continue."
-    ECHO "Download from http://subversion.tigris.org/"
+    ECHO "Download from https://subversion.apache.org/"
     exit /b 1
 )
 CALL distver.bat

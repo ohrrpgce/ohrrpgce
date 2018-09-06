@@ -25,7 +25,6 @@ del nightly-temp.txt
 svn info > svninfo.txt
 
 REM Build all utilities once
-support\rm -f hspeak.exe unlump.exe relump.exe
 CALL scons hspeak relump unlump %SCONS_ARGS%
 
 REM This is the default build (default download is symlinked to it on the server)

@@ -108,10 +108,8 @@ fi
 svn info > svninfo.txt
 
 # Build all utilities once
-rm -f unlump.exe relump.exe
 ${BUILD} relump unlump $SCONS_ARGS
 if [ -z "$DONT_BUILD_HSPEAK" ]; then
-  rm -f hspeak.exe
   ${BUILD} hspeak $SCONS_ARGS
 fi
 mustexist unlump.exe
