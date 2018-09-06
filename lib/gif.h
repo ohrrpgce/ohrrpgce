@@ -114,7 +114,7 @@ struct GifPalette
 };
 
 struct GifHeapQueue {
-    int len = 0;
+    int len;
     struct qitem {
         int cost, nodeIndex;
     } items[256];
