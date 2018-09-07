@@ -13,7 +13,17 @@ import re
 import datetime
 import fnmatch
 import itertools
-from SCons.Util import WhereIs
+try:
+    from SCons.Util import WhereIs
+except ImportError:
+    # If this script is imported from outside scons
+    def WhereIs(exename):
+        for p in os.environ["PATH"].split(os.pathsep):
+            for ext in ("", ".exe", ".bat"):
+                path = os.path.join(p, exename + ext)
+                if os.path.exists(path):
+                    return path
+
 
 host_win32 = platform.system() == 'Windows'
 
