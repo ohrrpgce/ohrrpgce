@@ -6392,7 +6392,7 @@ FUNCTION MapSettingsMenu.each_tick () as bool
   CASE 8
    changed = boolgrabber(st->cursor_follows_mouse, state)
   CASE 9
-   changed = percent_grabber(st->mouse_pan_mult, pan_mult_str, 0., 5., 1)
+   changed = percent_grabber(st->mouse_pan_mult, pan_mult_str, 0, 20., 1)
   CASE 10
    changed = boolgrabber(st->shadows_when_skewing, state)
   CASE 11
@@ -6448,7 +6448,7 @@ SUB mapedit_load_settings (st as MapEditState)
  st.animations_enabled = read_config_bool("mapedit.tile_animations", YES)
  st.layers_share_usetile = read_config_bool("mapedit.per-tileset_current_tile", YES)
  st.cursor_follows_mouse = read_config_bool("mapedit.cursor_follows_mouse", YES)
- st.mouse_pan_mult = bound(CDBL(read_config_str("mapedit.mouse_pan_multiplier", "1")), 1.0, 5.0)
+ st.mouse_pan_mult = bound(CDBL(read_config_str("mapedit.mouse_pan_multiplier", "1")), 0.1, 20.0)
  st.shadows_when_skewing = read_config_bool("mapedit.shadows_when_skewing", YES)
  st.show_grid = read_config_bool("mapedit.show_grid", NO)
  st.grid_color = string_to_color(read_config_str("mapedit.grid_color", "rgb(0,190,190)"), 0)

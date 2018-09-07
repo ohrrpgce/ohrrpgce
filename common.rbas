@@ -5351,14 +5351,14 @@ FUNCTION percent_grabber(byref float as double, byref repr as string, min as dou
  END IF
 
  DIM changed as bool = NO  'Whether to replace repr
- IF keyval(scLeft) > 1 THEN
-  float -= increment
-  changed = YES
- END IF
- IF keyval(scRight) > 1 THEN
-  float += increment
-  changed = YES
- END IF
+
+ DIM updown as integer = 0
+ IF readmouse().buttons AND mouseright THEN updown = readmouse().wheel_clicks
+ IF keyval(scLeft) > 1 THEN updown -= 1
+ IF keyval(scRight) > 1 THEN updown += 1
+ float += updown * increment
+ IF updown THEN changed = YES
+
  IF (keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1) AND min < 0.0 THEN
   float = -float
   changed = YES
