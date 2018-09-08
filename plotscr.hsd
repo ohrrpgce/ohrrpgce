@@ -697,6 +697,7 @@ define function, begin
 672,menuitemdisabled,1,0      # Whether disabled
 673,menuitemvisible,1,0       # Isn't hidden
 674,setlastsaveslot,1,-1      # Set return value of lastsaveslot (0-1000)
+675,speakingnpc,0             # NPC reference for the NPC which is currently talking
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

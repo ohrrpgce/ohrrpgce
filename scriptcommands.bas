@@ -4666,7 +4666,8 @@ SUB script_functions(byval cmdid as integer)
    cancel_hero_pathfinding(retvals(0))
    cancel_hero_walk(retvals(0))
   END IF
-
+ CASE 675 '--speaking npc
+  scriptret = -1 - txt.sayer
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-08-30">
+<plotscript version="wip" datecode="2018-09-08">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -1813,6 +1813,24 @@ wait for text box # wait until the player continues</example>
 			<canon>current text box</canon>
 			<shortname>current text box</shortname>
 			<description>Returns the number of the currently displayed text box, or -1 if there's none.</description>
+			<seealso>
+				<ref>speakingnpc</ref>
+				<ref>showtextbox</ref>
+				<ref>advancetextbox</ref>
+			</seealso>
+		</command>
+		<command id="speakingnpc">
+			<canon>speaking npc</canon>
+			<shortname>speaking npc</shortname>
+			<description>
+				If the player activated an NPC which showed a textbox
+				and the hero and NPC are still "speaking" (the textbox chain isn't done),
+				returns the NPC reference for that NPC.
+				Otherwise returns false.
+			</description>
+			<seealso>
+				<ref>currenttextbox</ref>
+			</seealso>
 		</command>
 		<command id="stringfromtextbox">
 			<canon>string from textbox (ID, textbox, line, ignored)</canon>
