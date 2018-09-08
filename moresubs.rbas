@@ -1987,6 +1987,7 @@ ELSE
 END IF
 IF keyval(scTab) > 1 THEN
  settag st.pt, NOT istag(st.pt, 0)
+ tag_updates
 END IF
 
 ''Draw the menu
