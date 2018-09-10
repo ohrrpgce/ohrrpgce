@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-09-08">
+<plotscript version="wip" datecode="2018-09-10">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -1904,8 +1904,8 @@ wait for text box # wait until the player continues</example>
 		</command>
 		<reference ref="teleporttomap"/>
 		<command id="forcemountvehicle">
-			<canon>force mount vehicle</canon>
-			<shortname>force mount vehicle(npc)</shortname>
+			<canon>force mount vehicle (npc)</canon>
+			<shortname>force mount vehicle</shortname>
 			<description>Makes you mount the vehicle specified by NPC ID or NPC reference. Unlike <ref>usenpc</ref>, <p>force mount vehicle</p> does not bother checking the tile you are currently standing on. If the NPC is not a vehicle, nothing will happen.</description>
 		</command>
 		<command id="currentvehicleid">
