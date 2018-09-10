@@ -522,8 +522,9 @@ if gengcc:
     # (This flag only recognised by recent gcc)
     if gccversion >= 480:
         GENGCC_CFLAGS.append ('-Wno-maybe-uninitialized')
-    # Ignore warnings due to using an array lbound > 0
-    GENGCC_CFLAGS.append ('-Wno-array-bounds')
+        # (The following is not in gcc 4.2)
+        # Ignore warnings due to using an array lbound > 0
+        GENGCC_CFLAGS.append ('-Wno-array-bounds')
     # Make sure we can print stack traces
     # Also -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
     GENGCC_CFLAGS.append ('-fno-omit-frame-pointer')
