@@ -1068,6 +1068,9 @@ env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
 
 # Put this into a function so that we only call get_euphoria_version() when compiling
 def compile_hspeak(target, source, env):
+    if not EUC:
+        print "Euphoria is required to compile HSpeak but is not installed (euc is not in the PATH)"
+        Exit(1)
     hspeak_builddir = builddir + "hspeak"
     euc_extra_args = ''
     # Work around Euphoria bug (in 4.0/4.1), where $EUDIR is ignored if another
@@ -1089,7 +1092,7 @@ def compile_hspeak(target, source, env):
     Action(actions)(target, source, env)
 
 # HSpeak is built by translating to C, generating a Makefile, and running make.
-HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e', EUC] + Glob('euphoria/*.e'),
+HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'),
                       action = Action(compile_hspeak, "Compiling hspeak"))
 
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
