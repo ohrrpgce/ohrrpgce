@@ -3246,6 +3246,7 @@ SUB mapedit_gmapdata(st as MapEditState)
     END IF
     IF enter_space_click(state) THEN
      map.gmap(idx) = song_picker_or_none(map.gmap(idx))
+     state.need_update = YES
      IF map.gmap(idx) > 0 THEN playsongnum map.gmap(idx) - 1
     END IF
    CASE 7, 12 TO 15 'scripts
