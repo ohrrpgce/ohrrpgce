@@ -4732,6 +4732,8 @@ END SUB
 'By shifting, if a new attack is chained to and added to the queue with
 'atkq(...).delay equal to .attack_delay, the delay will be relative to the
 'current attack (eg the one that it chained from).
+'Note: if an attacker is stunned, their attack isn't updated and languishes;
+'it's also ignored by battle_check_delays()
 SUB turn_mode_decrement_attack_queue_delays(bslot() as BattleSprite)
  DIM mindelay as integer = INT_MAX
 
@@ -4830,7 +4832,7 @@ SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
  NEXT i
 END SUB
 
-'Turn-based only. Finish setting .delay for each atkq
+'Turn-based only. Finish setting .delay for each atkq - called once at the start of each round.
 'The .delay of a queued attack is a key used to determine the attack order. Each
 'attack will have a unique delay to avoid ties, because a tie would result in
 'battle_check_delays picking the first one.
@@ -4856,19 +4858,15 @@ END SUB
 'This shows the most delayed attack should happen last in case of tie - .attack_delay
 'should be the secondary key.
 SUB apply_initiative_order (bslot() as BattleSprite)
- FOR i as integer = 0 to 11
-  '--For each living hero and enemy...
-  IF bslot(i).stat.cur.hp > 0 THEN
-   '--For each blocking attack in the queue for this hero or enemy
-   FOR j as integer = 0 to UBOUND(atkq)
-    IF atkq(j).used ANDALSO atkq(j).attacker = i ANDALSO atkq(j).blocking ANDALSO atkq(j).turn_delay = 0 THEN
-     DIM addend as integer = ATK_DELAY_MULT * bslot(i).initiative_order
-     'debug "Applying initiative: adjust " & bslot(i).name & "'s attack " & atkq(j).attack & ": attack_delay " & atkq(j).delay & " + initiative " & addend & " = delay " & (atkq(j).delay + addend)
-     atkq(j).delay += addend
-    END IF
-   NEXT j
-  END IF
- NEXT i
+ FOR j as integer = 0 to UBOUND(atkq)
+  WITH atkq(j)
+   IF .used ANDALSO .turn_delay <= 0 THEN
+    DIM addend as integer = ATK_DELAY_MULT * bslot(.attacker).initiative_order
+    'debug "Applying initiative: adjust " & bslot(.attacker).name & "'s attack " & .attack & ": attack_delay " & .delay & " + initiative " & addend & " = delay " & (.delay + addend)
+    .delay += addend
+   END IF
+  END WITH
+ NEXT j
 END SUB
 
 SUB cancel_blocking_attacks_for_hero_or_enemy(byval who as integer)
