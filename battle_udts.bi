@@ -362,7 +362,7 @@ TYPE AttackQueue
  attacker as integer 'slot number of attacker
  t(11)    as integer 'Targeted slots, -1 for empty, or slot number.
  blocking as bool    'Whether blocks attacker from acting
- delay    as integer 'Number of ticks that should pass before this attack happens
+ delay    as integer 'Number of ticks (turnACTIVE)/attacks (turnTURN) that should pass before this attack happens
  turn_delay as integer 'Number of turns to wait before the tick delay begins.
  dont_retarget as bool
 END TYPE

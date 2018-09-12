@@ -3126,7 +3126,13 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
 
  DIM safety as integer = 0
  DO WHILE spawn_chained_attack(attack.instead, attack, bat, bslot())
-  IF blocked_by_attack(bat, bat.acting) THEN EXIT SUB  'If the spawned attack is delayed, then stop and wait
+  'If the spawned attack is delayed, then stop and wait
+  IF blocked_by_attack(bat, bat.acting) THEN EXIT SUB
+  'Or possibly the chained attack has a delay but isn't blocking. Also stop and wait.
+  '(That means the call to blocked_by_attack is pointless, unless there was already a
+  'blocking attack on the attack queue - which is probably impossible!)
+  'Or if the chained attack had no delay but had to be retargeted, it also got put on atkq(),
+  'and we need to restart (with a new t() array), next tick.
   IF bat.atk.id = -1 THEN EXIT SUB
   loadattackdata attack, bat.atk.id
   safety += 1
@@ -3968,6 +3974,8 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
  RETURN ret XOR ch.invert_condition
 END FUNCTION
 
+'Try to spawn a chained attack. The new attack might either immediately become the
+'active attack (bat.atk.id), or be put on atkq.
 FUNCTION spawn_chained_attack(byref ch as AttackDataChain, byref attack as AttackData, byref bat as battlestate, bslot() as BattleSprite) as bool
  IF ch.atk_id <= 0 THEN RETURN NO '--no chain defined
  IF bslot(bat.acting).stat.cur.hp <= 0 THEN RETURN NO '--attacker is dead
@@ -4016,7 +4024,8 @@ FUNCTION spawn_chained_attack(byref ch as AttackDataChain, byref attack as Attac
      chained_attack.targ_set = 3 OR chained_attack.prefer_targ > 0 THEN
    'if the chained attack has a different target class/type then re-target
    'also retarget if the chained attack has target setting "random roulette"
-   'also retarget if the chained attack's preferred target is explicitly set
+   'also retarget if the chained attack's preferred target is explicitly set.
+   'This queues the attack.
    autotarget bat.acting, chained_attack, bslot(), , blocking, ch.dont_retarget
    bat.atk.id = -1
   ELSEIF delayed_attack_id > 0 THEN
@@ -4384,8 +4393,11 @@ FUNCTION blocked_by_attack (bat as BattleState, byval who as integer) as bool
    IF .used ANDALSO .attacker = who ANDALSO .blocking THEN
     SELECT CASE bat.turn.mode
      CASE turnACTIVE:
+      'Restrict to .turn_delay = 0, because if there's an attack with a turn
+      'delay the ready meter needs to continue to grow
       IF .turn_delay = 0 ANDALSO .delay > 0 THEN RETURN YES
      CASE turnTURN:
+      '...but that means this is inconsistent
       IF .delay > 0 ORELSE .turn_delay > 0 THEN RETURN YES
     END SELECT
    END IF
@@ -4571,7 +4583,8 @@ FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSpri
     '--only blocking queued attacks are considered part of the current
     ' turn (although it is always perfectly possible for a nonblocking
     ' attack to happen in the current turn)
-    ' FIXME: Why?! This doesn't look correct
+    ' FIXME: Why?! This doesn't look correct - won't it cause us to the next
+    ' round even if there are attacks left?
     IF .blocking THEN RETURN YES
    END IF
   END WITH
