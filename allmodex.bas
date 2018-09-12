@@ -3703,6 +3703,7 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 
 	dim sptr as ubyte ptr
 	dim pitch as integer
+	dim pixelbytes as integer = 1
 	dim pixformat as SurfaceFormat
 	if fr->image then
 		sptr = fr->image
@@ -3714,13 +3715,14 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 		pixformat = fr->surf->format
 		if pixformat = SF_32bit then
 			pitch *= 4
+			pixelbytes = 4
 			c = intpal(c).col
 		end if
 	else
 		showerror "fuzzyrect: bad dest Frame"
 		exit sub
 	end if
-	sptr += y * pitch + x
+	sptr += y * pitch + x * pixelbytes
 
 	while h > 0
 		startr = (startr + grain) mod 100
