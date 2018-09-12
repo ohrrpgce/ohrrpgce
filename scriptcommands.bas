@@ -31,6 +31,7 @@ DECLARE SUB run_game ()
 DECLARE FUNCTION check_game_exists () as integer
 DECLARE FUNCTION get_optional_arg(byval retval_index as integer, byval default as integer) as integer
 DECLARE FUNCTION get_door_on_map(byref thisdoor as Door, byval door_id as integer, byval map_id as integer) as bool
+DECLARE FUNCTION allow_gmap_idx(gmap_idx as integer) as bool
 
 
 ''''' Global variables
@@ -1260,13 +1261,13 @@ SUB script_functions(byval cmdid as integer)
    mouserect retvals(0), retvals(1), retvals(2), retvals(3)
   END IF
  CASE 178'--read gmap
-  'Don't support reading newer gmap indices
-  IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
+  'Don't support reading most gmap indices
+  IF allow_gmap_idx(retvals(0)) THEN
    scriptret = gmap(retvals(0))
   END IF
  CASE 179'--write gmap
-  'Don't support changing newer gmap indices
-  IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
+  'Don't support changing most gmap indices
+  IF allow_gmap_idx(retvals(0)) THEN
    gmap(retvals(0)) = retvals(1)
    IF retvals(0) = 2 OR retvals(0) = 3 THEN update_menu_items  'save and minimap menu options
    IF retvals(0) = 4 THEN gam.showtext_ticks = 0  'cancel map name display
@@ -5397,3 +5398,13 @@ PRIVATE SUB run_game ()
  ' TODO: when switching to fibres, should call exit_interpreter() or something like that instead
  script_start_waiting()
 END SUB
+
+'Although gmap commands are pretty undocumented anyway, restrict their use to avoid backcompat worries
+FUNCTION allow_gmap_idx(gmap_idx as integer) as bool
+ SELECT CASE gmap_idx
+  CASE 0 TO 19:   RETURN YES
+  CASE 32 TO 33:  RETURN YES
+  CASE 378:       RETURN YES
+ END SELECT
+ RETURN NO
+END FUNCTION
