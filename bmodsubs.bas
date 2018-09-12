@@ -192,21 +192,23 @@ END IF
 evalitemtags
 END FUNCTION
 
-FUNCTION countai (byval ai as integer, byval them as integer, bslot() as BattleSprite) as integer
+'Count number of attacks in one of an enemy's attack lists
+'ai: which attack list
+FUNCTION count_attacks_in_ai_list (byval ai as EnemyAIEnum, byval slot as integer, bslot() as BattleSprite) as integer
  DIM atk as AttackData
  DIM atk_id as integer
  DIM count as integer = 0
- WITH bslot(them).enemy
+ WITH bslot(slot).enemy
   FOR i as integer = 0 TO 4
    atk_id = -1
    SELECT CASE ai
-    CASE 0: atk_id = .regular_ai(i) - 1
-    CASE 1: atk_id = .desperation_ai(i) - 1
-    CASE 2: atk_id = .alone_ai(i) - 1
+    CASE aiNormal: atk_id = .regular_ai(i) - 1
+    CASE aiWeak:   atk_id = .desperation_ai(i) - 1
+    CASE aiAlone:  atk_id = .alone_ai(i) - 1
    END SELECT
    IF atk_id >= 0 THEN
     loadattackdata atk, atk_id
-    IF atkallowed(atk, them, 0, 0, bslot()) THEN
+    IF atkallowed(atk, slot, 0, 0, bslot()) THEN
      'this attack is allowed right now
      count += 1
     END IF
@@ -1660,9 +1662,11 @@ FUNCTION battle_distance(byval who1 as integer, byval who2 as integer, bslot() a
  RETURN SQR(quick_battle_distance(who1, who2, bslot()))
 END FUNCTION
 
-FUNCTION targenemycount (bslot() as BattleSprite, byval for_alone_ai as integer=0) as integer
+'If for_alone_ai=YES: number of enemies left, for purpose of Alone AI
+'Otherwise: number of enemies left
+FUNCTION targenemycount (bslot() as BattleSprite, byval for_alone_ai as bool = NO) as integer
  DIM count as integer = 0
- DIM ignore as integer = NO
+ DIM ignore as bool = NO
  FOR i as integer = 4 TO 11
   IF for_alone_ai THEN
    ignore = bslot(i).ignore_for_alone
@@ -1676,7 +1680,7 @@ END FUNCTION
 
 'Called to load an enemy from a Formation slot. Can be called even if the
 'slot is empty, but can not be called to cleanup a loaded enemy.
-SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleState, bslot() as BattleSprite, byval allow_dead as integer = NO)
+SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleState, bslot() as BattleSprite, byval allow_dead as bool = NO)
  '--slot is the enemy formation slot
  DIM byref bspr as BattleSprite = bslot(4 + slot)
 

@@ -10,6 +10,12 @@
 #INCLUDE "udts.bi"
 #INCLUDE "battle_udts.bi"
 
+ENUM EnemyAIEnum
+ aiNormal = 0
+ aiWeak = 1
+ aiAlone = 2
+END ENUM
+
 declare function battle (byval form as integer) as bool
 declare function checknorunbit (bslot() as battlesprite) as integer
 DECLARE SUB checkTagCond (byref t as AttackDataTag, byval check as AttackTagConditionEnum)

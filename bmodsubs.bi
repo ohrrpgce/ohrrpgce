@@ -7,8 +7,9 @@
 #IFNDEF BMODSUBS_BI
 #DEFINE BMODSUBS_BI
 
-#INCLUDE "udts.bi"
-#INCLUDE "battle_udts.bi"
+#include "udts.bi"
+#include "battle_udts.bi"
+#include "bmod.bi"
 
 declare function is_hero(byval who as integer) as bool
 declare function is_enemy(byval who as integer) as bool
@@ -17,16 +18,16 @@ declare function is_weapon(byval who as integer) as bool
 declare sub anim_advance (byval who as integer, attack as AttackData, bslot() as battlesprite, t() as integer)
 declare function atkallowed (atk as AttackData, byval attacker as integer, byval spclass as integer, byval lmplev as integer, bslot() as BattleSprite) as bool
 declare function checktheftchance (byval item as integer, byval itemp as integer, byval rareitem as integer, byval rareitemp as integer) as integer
-declare function countai (byval ai as integer, byval them as integer, bslot() as BattleSprite) as integer
+declare function count_attacks_in_ai_list (byval ai as EnemyAIEnum, byval slot as integer, bslot() as BattleSprite) as integer
 declare function enemycount (bslot() as battlesprite) as integer
-declare function targenemycount (bslot() as BattleSprite, byval for_alone_ai as integer=0) as integer
+declare function targenemycount (bslot() as BattleSprite, byval for_alone_ai as bool = NO) as integer
 declare sub anim_enemy (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
 declare function get_weapon_handle_point(itemid as integer, handlenum as integer) as XYPair
 declare sub anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
 declare function inflict (byref h as integer = 0, byref targstat as integer = 0, byval attackerslot as integer, targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, tcount as integer) as bool
 declare function liveherocount overload (bslot() as BattleSprite) as integer
 declare function liveherocount () as integer
-declare sub loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleState, bslot() as BattleSprite, byval allow_dead as integer = NO)
+declare sub loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleState, bslot() as BattleSprite, byval allow_dead as bool = NO)
 declare sub changefoe(bat as BattleState, byval slot as integer, transmog as TransmogData, formdata as Formation, bslot() as BattleSprite)
 declare sub anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleSprite)
 declare function safesubtract (byval number as integer, byval minus as integer) as integer

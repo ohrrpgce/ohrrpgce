@@ -2548,18 +2548,19 @@ END FUNCTION
 
 SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 
- DIM ai as integer = 0
- 
+ 'Which attack list to use
+ DIM ai as EnemyAIEnum = aiNormal
+
  'if HP is less than the threshold, go into desperation mode
- IF enemy_is_weak(bat.enemy_turn, bslot()) THEN ai = 1
+ IF enemy_is_weak(bat.enemy_turn, bslot()) THEN ai = aiWeak
 
  'if targetable enemy count is 1, go into alone mode
- IF targenemycount(bslot(), YES) = 1 THEN ai = 2
+ IF targenemycount(bslot(), YES) = 1 THEN ai = aiAlone
 
  DIM slot as integer = 0
  'spawn allies when alone
  WITH bslot(bat.enemy_turn)
-  IF ai = 2 AND .enemy.spawn.when_alone > 0 THEN
+  IF ai = aiAlone AND .enemy.spawn.when_alone > 0 THEN
    FOR j as integer = 1 TO .enemy.spawn.how_many
     slot = find_empty_enemy_slot(formdata)
     IF slot > -1 THEN
@@ -2572,16 +2573,16 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
 
  'make sure that the current ai set is valid
  'otherwise fall back on another
- IF countai(ai, bat.enemy_turn, bslot()) = 0 THEN
-  ai = 0
+ IF count_attacks_in_ai_list(ai, bat.enemy_turn, bslot()) = 0 THEN
+  ai = aiNormal
   IF enemy_is_weak(bat.enemy_turn, bslot()) THEN
-   ai = 1
-   IF countai(ai, bat.enemy_turn, bslot()) = 0 THEN ai = 0
+   ai = aiWeak
+   IF count_attacks_in_ai_list(ai, bat.enemy_turn, bslot()) = 0 THEN ai = aiNormal
   END IF
  END IF
 
  'if no valid ai set is available, the enemy loses its turn
- IF countai(ai, bat.enemy_turn, bslot()) = 0 THEN bat.enemy_turn = -1 : EXIT SUB
+ IF count_attacks_in_ai_list(ai, bat.enemy_turn, bslot()) = 0 THEN bat.enemy_turn = -1 : EXIT SUB
 
  'pick a random attack
  DIM atk_id as integer
@@ -2590,9 +2591,9 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
  DO
   WITH bslot(bat.enemy_turn)
    SELECT CASE ai
-    CASE 0: atk_id = .enemy.regular_ai(randint(5))
-    CASE 1: atk_id = .enemy.desperation_ai(randint(5))
-    CASE 2: atk_id = .enemy.alone_ai(randint(5))
+    CASE aiNormal: atk_id = .enemy.regular_ai(randint(5))
+    CASE aiWeak:   atk_id = .enemy.desperation_ai(randint(5))
+    CASE aiAlone:  atk_id = .enemy.alone_ai(randint(5))
    END SELECT
   END WITH
   IF atk_id > 0 THEN
