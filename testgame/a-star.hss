@@ -1,7 +1,7 @@
-define constant(19, last map)
+define constant(20, last map)
 define constant(19, default map)
 
-define constant(3, music count)
+define constant(4, music count)
 define constant(1, timer:turn and go)
 define constant(2, timer:back and forth)
 define constant(2, str:turn and go)
@@ -348,5 +348,29 @@ script, find random zone tile, seek zone, begin
     )
   )
   exit returning(false)
+end
+
+# Map 20: Change the default pathfinding rule
+plotscript, toggle pathfinding rule, _, npc , begin
+  set npc direction(npc, npc direction(npc), xor, 2)
+  if (read gmap(378) == 2) then (  # Ignore NPCs
+    write gmap(378, 1)  # NPCs obstruct
+  ) else (
+    write gmap(378, 2)  # Ignore NPCs
+  )
+end
+
+# Map 20: Make all instances of an NPC type swap places with a partner
+plotscript, npcs swap places, _, used npc, begin
+  variable(id, npc1, npc2, copy)
+  id := get npc id(used npc)
+
+  for (copy, 0, npc copy count(id) -- 1, 2) do (
+    npc1 := npc reference(id, copy)
+    npc2 := npc reference(id, copy + 1)
+
+    pathfind npc to(npc1, npc x(npc2), npc y(npc2))
+    pathfind npc to(npc2, npc x(npc1), npc y(npc1))
+  )
 end
 
