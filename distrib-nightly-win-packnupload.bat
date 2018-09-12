@@ -6,7 +6,7 @@ set ZIPFILE=ohrrpgce-win-%BUILDNAME%-%OHRVERCODE%.zip
 set SYMBFILE=ohrrpgce-symbols-win-%BUILDNAME%-r%SVNREV%-%OHRVERDATE%-%OHRVERCODE%.7z
 echo Now creating %ZIPFILE%
 
-for %%X in (game.exe custom.exe win32\game.pdb win32\custom.pdb) do (
+for %%X in (game.exe custom.exe) do (
     if not exist "%%X" (
         ECHO "ERROR: build result %%X is missing. Unable to continue."
         GOTO failed
@@ -48,6 +48,13 @@ shift
 goto addextrafiles
 :extrafilesdone
 
+for %%X in (win32\game.pdb win32\custom.pdb) do (
+    if not exist "%%X" (
+        ECHO "!!WARNING!! %%X is missing - will not upload symbols file!"
+        GOTO skipsymbols
+    )
+)
+
 ECHO Now creating %SYMBFILE%
 support\rm -f distrib\%SYMBFILE%
 support\7za a -mx=7 -bd distrib\%SYMBFILE% game.exe custom.exe .\win32\custom.pdb .\win32\game.pdb > NUL
@@ -56,9 +63,10 @@ IF NOT EXIST distrib\%SYMBFILE% (
     GOTO failed
 )
 
-ECHO Now uploading
-pscp -q distrib\%ZIPFILE% %SCPHOST%:%SCPDEST%
 pscp -q distrib\%SYMBFILE% %SCPHOST%:%SCPSYMBOLS%
+
+:skipsymbols
+pscp -q distrib\%ZIPFILE% %SCPHOST%:%SCPDEST%
 GOTO finished
 
 :sanityfailed

@@ -14,6 +14,14 @@ support\rm -f game.exe custom.exe relump.exe unlump.exe hspeak.exe
 ECHO   Windows executables...
 CALL scons game custom hspeak unlump relump %SCONS_ARGS% || exit /b 1
 
+REM "scons pdb=1" will continue even if it can't produce these
+FOR %%X IN (win32\game.pdb win32\custom.pdb) DO (
+    IF NOT EXIST "%%X" (
+        ECHO "ERROR: build result %%X is missing. Unable to continue."
+        GOTO SANITYFAIL
+    )
+)
+
 ECHO   Lumping Vikings of Midgard
 support\rm -f vikings.rpg
 relump vikings\vikings.rpgdir vikings.rpg > NUL
@@ -138,6 +146,7 @@ ECHO Packaging debug info archive
 support\rm -f distrib/ohrrpgce-symbols-win.7z
 REM The ./ path prefixes add the files with the win32/ relative path
 support\7za a -mx=7 -bd distrib\ohrrpgce-symbols-win.7z game.exe custom.exe .\win32\custom.pdb .\win32\game.pdb > NUL
+REM NOTE: 7za will produce a .7z file even if input files are missing. The -sse arg to stop that doesn't work!
 IF NOT EXIST distrib\ohrrpgce-symbols-win.7z (
     ECHO 7za failed!
     exit /b 1
