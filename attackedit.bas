@@ -495,6 +495,9 @@ addcaption caption(), capindex, "Null"
 
 CONST AtkLimDelay = 16
 max(AtkLimDelay) = 1000
+IF gen(genBattleMode) = 1 THEN  'Turn-based
+ min(AtkLimDelay) = -1000
+END IF
 
 CONST AtkLimHitX = 17
 max(AtkLimHitX) = 20
@@ -794,8 +797,8 @@ IF gen(genBattleMode) = 0 THEN  'Active-turn
  menu(AtkDelay) = "Delay Ticks Before Attack:"
  menutype(AtkDelay) = 19'ticks
 ELSE
- menu(AtkDelay) = "Delay Attacks Before Attack:"
- menutype(AtkDelay) = 0'int
+ menu(AtkDelay) = "Delay/Advance Attack:"
+ menutype(AtkDelay) = 24 'attack delay
 END IF
 menuoff(AtkDelay) = AtkDatDelay
 menulimits(AtkDelay) = AtkLimDelay
@@ -2198,7 +2201,8 @@ FUNCTION editflexmenu (state as MenuState, nowindex as integer, menutype() as in
 '           20=Else-Chain Rate hack (clumsy hack to force myself to do this elegantly in editedit --James)
 '           21=set tag, excluding special tags
 '           22=(int+100) with a % sign after it
-'           23=color 0=default or master palette index + 1
+'           23=color, or 0 for default
+'           24=turn-based attack delay
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -2223,7 +2227,7 @@ DIM changed as bool = NO
 DIM s as string
 
 SELECT CASE menutype(nowindex)
- CASE 0, 8, 12 TO 17, 19, 20, 23, 3000 TO 3999' integers
+ CASE 0, 8, 12 TO 17, 19, 20, 23, 24, 3000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
  CASE 1000 TO 2999' captioned integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
@@ -2291,7 +2295,7 @@ SUB enforceflexbounds (menuoff() as integer, menutype() as integer, menulimits()
 
 FOR i as integer = 0 TO UBOUND(menuoff)
  SELECT CASE menutype(i)
-  CASE 0, 8, 12 TO 17, 19, 20, 22, 23, 1000 TO 3999
+  CASE 0, 8, 12 TO 17, 19, 20, 22, 23, 24, 1000 TO 3999
    '--bound ints
    IF menulimits(i) > 0 THEN
     '--only bound items that have real limits
@@ -2349,6 +2353,8 @@ SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as intege
 '           20=Else-Chain Rate hack (clumsy hack to force myself to do this elegantly in editedit --James)
 '           21=set tag, excluding special tags
 '           22=(int+100) with a % sign after it
+'           23=color, or 0 for default
+'           24=turn-based attack delay
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-2000)
@@ -2466,6 +2472,8 @@ FOR i = 0 TO size
    datatext = (dat + 100) & "%"
   CASE 23 '--color 0=default >=1 is palette index (color 0 not available)
    datatext = zero_default(dat)
+  CASE 24 '--turn-based attack delay
+   datatext = "Happen " & ABS(dat) & " attacks " & IIF(dat < 0, "earlier", "later") & " than normal"
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
    datatext = dat & " " & caption(capnum + dat)

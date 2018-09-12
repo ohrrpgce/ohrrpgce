@@ -56,6 +56,8 @@ September 29 2018 [Fufluns]
     * Minimaps look much better. Also, you can change the minimap generation
       method in the General Game Settings menu, with three options [Ralph]
     * The map editor's map picker shows a preview of each map [Ralph]
+    * In turn-based mode negative attack delays are now allowed, to make the
+      attack jump ahead in the turn-order queue [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

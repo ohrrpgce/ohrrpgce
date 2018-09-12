@@ -676,7 +676,9 @@ Type AttackData
 	extra_damage as integer
 	attacker_anim as AttackerAnimation
 	attack_anim as AttackAnimation
-	attack_delay as integer 'in ticks
+	attack_delay as integer   'In active-battle mode: ticks to delay (non-negative)
+	                          'In turn-based mode: number of attack queue slots (attacks) to advance/delay
+	                          '(can be negative, to advance)
 	turn_delay as integer 'in turns
 	dramatic_pause as integer 'in ticks
 	hits as integer

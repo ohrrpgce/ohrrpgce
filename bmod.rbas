@@ -4097,7 +4097,7 @@ SUB set_attack_queue_slot(slot as integer, attack as integer, who as integer, de
   .used = YES
   .attack = attack
   .attacker = who
-  .delay = delay
+  .delay = delay   'Can be negative. In turnACTIVE mode, negative delay is equivalent to 0
   .turn_delay = turn_delay
   FOR i as integer = 0 TO UBOUND(.t)
    .t(i) = targs(i)
