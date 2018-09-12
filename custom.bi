@@ -43,6 +43,7 @@ DECLARE FUNCTION importmasterpal (filename as string = "", palnum as integer) as
 DECLARE SUB vehicles ()
 DECLARE SUB scriptman ()
 DECLARE SUB map_picker ()
+DECLARE SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
 DECLARE SUB spriteset_editor(sprtype as SpriteType)
 DECLARE SUB backdrop_browser ()
 DECLARE SUB song_editor_main()
@@ -63,6 +64,7 @@ DECLARE SUB textbox_editor_main()
 DECLARE SUB menu_editor ()
 DECLARE SUB font_editor (font() as integer)
 DECLARE SUB font_test_menu ()
+DECLARE SUB resolution_menu ()
 
 DECLARE SUB maptile ()
 DECLARE FUNCTION compile_andor_import_scripts (f as string, quickimport as bool = NO) as bool

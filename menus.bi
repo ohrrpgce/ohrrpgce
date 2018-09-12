@@ -124,9 +124,6 @@ TYPE ModularMenu EXTENDS Object
  DECLARE SUB run()
 END TYPE
 
-DECLARE FUNCTION generic_add_new (what as string, maxindex as integer, getname as FUNCTION(idx as integer) as string, helpkey as string = "") as integer
-
-
 '' Global variables
 EXTERN force_use_mouse as integer
 

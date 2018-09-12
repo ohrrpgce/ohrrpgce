@@ -41,12 +41,15 @@ DECLARE SUB make_ui_color_editor_menu(m() as string, colors() as integer)
 DECLARE SUB ui_boxstyle_editor(palnum as integer)
 DECLARE SUB make_ui_boxstyle_editor_menu(m() as string, boxes() as BoxStyle)
 
+TYPE FnRecordName as FUNCTION(idx as integer) as string
+
+DECLARE FUNCTION generic_add_new (what as string, maxindex as integer, getname as FnRecordName, helpkey as string = "") as integer
 DECLARE FUNCTION needaddset (byref pt as integer, byref check as integer, what as string) as integer
 DECLARE FUNCTION intgrabber_with_addset (byref pt as integer, byval min as integer, byval max as integer, byval maxmax as integer=32767, what as string, byval less as integer=scLeft, byval more as integer=scRight) as integer
+
 DECLARE FUNCTION load_vehicle_name(vehID as integer) as string
 DECLARE FUNCTION load_item_name (it as integer, hidden as integer, offbyone as integer) as string
 DECLARE SUB onetimetog(byref tagnum as integer)
-DECLARE SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
 
 DECLARE FUNCTION pal16browse OVERLOAD (curpal as integer, sprite as Frame ptr, show_default as bool=NO) as integer
 DECLARE FUNCTION pal16browse OVERLOAD (curpal as integer, picset as SpriteType, picnum as integer, show_default as bool=NO) as integer
@@ -85,8 +88,6 @@ DECLARE SUB edit_purchase_options ()
 DECLARE SUB edit_purchase_details (byval prod as NodePtr)
 
 DECLARE SUB edit_savegame_options ()
-
-DECLARE SUB resolution_menu ()
 
 DECLARE FUNCTION npc_preview_text(byref npc as NPCType) as string
 
