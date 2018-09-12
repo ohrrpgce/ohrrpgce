@@ -1233,17 +1233,22 @@ SUB do_regen(byval who as integer, bat as BattleState, bslot() as BattleSprite, 
  fulldeathcheck -1, bat, bslot(), formdata
 END SUB
 
+'Whether an attack on atkq() is eligible to have its delay count down
+FUNCTION atkq_attack_active(queuedatk as AttackQueue, bslot() as BattleSprite) as bool
+ WITH queuedatk
+  RETURN .used ANDALSO .turn_delay <= 0 ANDALSO .attacker >= 0 ANDALSO _
+         bslot(.attacker).stat.cur.stun >= bslot(.attacker).stat.max.stun
+ END WITH
+END FUNCTION
+
+'turnACTIVE only
 SUB decrement_attack_queue_delays(bslot() as BattleSprite)
  FOR i as integer = 0 TO UBOUND(atkq)
-  WITH atkq(i)
-   IF .used THEN
-    IF .turn_delay = 0 THEN
-     IF bslot(.attacker).stat.cur.stun >= bslot(.attacker).stat.max.stun THEN   
-      .delay = large(0, .delay - 1)
-     END IF
-    END IF
-   END IF
-  END WITH
+  IF atkq_attack_active(atkq(i), bslot()) THEN
+   WITH atkq(i)
+    .delay = large(0, .delay - 1)
+   END WITH
+  END IF
  NEXT i
 END SUB
 
@@ -3120,7 +3125,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
 
  DIM safety as integer = 0
  DO WHILE spawn_chained_attack(attack.instead, attack, bat, bslot())
-  IF blocked_by_attack(bat, bat.acting) THEN EXIT SUB
+  IF blocked_by_attack(bat, bat.acting) THEN EXIT SUB  'If the spawned attack is delayed, then stop and wait
   IF bat.atk.id = -1 THEN EXIT SUB
   loadattackdata attack, bat.atk.id
   safety += 1
@@ -4270,8 +4275,8 @@ SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
  '--check the attack queue delays
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
-   IF .used THEN
-    IF .turn_delay = 0 ANDALSO .delay <= 0 THEN
+   IF atkq_attack_active(atkq(i), bslot()) THEN
+    IF .delay <= 0 THEN
      'debug "queue trigger! " & bslot(.attacker).name & .attacker & ":" & readattackname(.attack)
      IF .t(0) = -1 THEN
       'debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has null target."
@@ -4546,7 +4551,7 @@ SUB show_first_battle_timer (page as integer)
 END SUB
 
 FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSprite) as bool
- 'Returns whether this is a pending attack. Used by turnTURN mode
+ 'Returns whether there is a pending attack left for this round. Used by turnTURN mode
  
  'Check for a currently animating attack
  IF bat.atk.id >= 0 THEN RETURN YES
@@ -4556,18 +4561,12 @@ FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSpri
  'Check for queued attacks
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
-   IF .used THEN
-    '--queued attacks for stunned attackers don't count.
-    IF .attacker >= 0 THEN
-     WITH bslot(.attacker)
-      IF .stat.cur.stun < .stat.max.stun THEN CONTINUE FOR
-     END WITH
-    END IF
-    '--attacks with a turn delay don't count
-    IF .turn_delay > 0 THEN CONTINUE FOR
+   'Ignore unused atkq() slots, attacks with a turn delay, and stunned attackers
+   IF atkq_attack_active(atkq(i), bslot()) THEN
     '--only blocking queued attacks are considered part of the current
     ' turn (although it is always perfectly possible for a nonblocking
     ' attack to happen in the current turn)
+    ' FIXME: Why?! This doesn't look correct
     IF .blocking THEN RETURN YES
    END IF
   END WITH
@@ -4669,7 +4668,7 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
   bat.turn.choosing_attacks = NO
  END IF
   
- '--animating/inflicting attacks
+ '--either start an attack, or go to the next round
  IF pending_attacks_for_this_turn(bat, bslot()) = NO THEN
   start_next_turn bat, bslot(), formdata
  ELSE
