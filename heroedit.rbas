@@ -469,7 +469,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
    END IF
   END IF
 
-  IF statnum = statSpeed THEN
+  IF statnum = statSpeed ANDALSO gen(genBattleMode) = 0 THEN  'Active-time battles
    textcolor uilook(uiDescription), 0
    printstr "Lev0: " & speed_estimate(her.Lev0.spd), 0, pBottom - 9, dpage
    IF twomenus THEN

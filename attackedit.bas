@@ -2190,7 +2190,7 @@ FUNCTION editflexmenu (state as MenuState, nowindex as integer, menutype() as in
 '           12=defaultable positive int >=0 is int, -1 is "default"
 '           13=Default zero int >0 is int, 0 is "default"
 '           14=sound effect + 1 (0=default, -1=none)
-'           15=speed (shows battle turn time estimate)
+'           15=speed (shows battle turn time estimate in active-time mode)
 '           16=stat (numbered the same way as BattleStatsSingle.sta())
 '           17=int with a % sign after it
 '           18=skipper (caption which is skipped by the cursor)
@@ -2341,7 +2341,7 @@ SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as intege
 '           12=defaultable positive int >=0 is int, -1 is "default"
 '           13=Default zero int >0 is int, 0 is "default"
 '           14=sound effect + 1 (0=default, -1=none)
-'           15=speed (shows battle turn time estimate)
+'           15=speed (shows battle turn time estimate in active-time mode)
 '           16=stat (numbered the same way as BattleStatsSingle.sta())
 '           17=int with a % sign after it
 '           18=skipper (caption which is skipped by the cursor)
@@ -2435,7 +2435,10 @@ FOR i = 0 TO size
       datatext = (dat - 1) & " (" + getsfxname(dat - 1) + ")"
     END IF
   CASE 15 '--speed (shows battle turn time estimate)
-    datatext = dat & " (" & speed_estimate(dat) & ")"
+    datatext = STR(dat)
+    IF gen(genBattleMode) = 0 THEN  'active-time
+     datatext &= " (" & speed_estimate(dat) & ")"
+    END IF
   CASE 16 '--stat
     SELECT CASE dat
      CASE 0 TO 11

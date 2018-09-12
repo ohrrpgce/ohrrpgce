@@ -1634,6 +1634,7 @@ FUNCTION step_estimate(freq as integer, low as integer, high as integer, infix a
  RETURN low_est & infix & high_est & suffix & ", avg~" & format(average, "0.0")
 END FUNCTION
 
+'Explanation for a hero/enemy's speed stat. Only applies to active-time mode
 FUNCTION speed_estimate(speed as integer) as string
  IF speed = 0 THEN RETURN "never gets a turn"
  DIM ticks as integer = CEIL(1000 / speed)
