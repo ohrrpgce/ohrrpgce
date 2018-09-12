@@ -83,6 +83,7 @@ DECLARE SUB show_first_battle_timer (page as integer)
 DECLARE FUNCTION has_queued_attacks(byval who as integer) as bool
 DECLARE FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE SUB decrement_attack_queue_delays(bslot() as BattleSprite)
+DECLARE SUB turn_mode_decrement_attack_queue_delays(bslot() as BattleSprite)
 DECLARE SUB ready_all_valid_units(bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB active_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
@@ -3987,10 +3988,15 @@ FUNCTION spawn_chained_attack(byref ch as AttackDataChain, byref attack as Attac
   DIM delayed_attack_id as integer = 0
   IF (chained_attack.attack_delay > 0 ORELSE chained_attack.turn_delay > 0) ANDALSO ch.no_delay = NO THEN
    '--chain is delayed, queue the attack
+   'Note: in turnTURN mode, we're putting the attack on the attack queue without
+   'adding the attacker's .initiative_order, which is correct - the delay is
+   'relative to the spawning attack (since the delays of all attacks have been
+   'shifted so that the current attack has delay 0) instead of the attacker.
    bat.atk.id = -1 '--terminate the attack that lead to this chain
    delayed_attack_id = ch.atk_id
   ELSE
    '--chain is immediate, prep it now!
+   '(This includes attacks in turn-based mode with negative delays (happen earlier than normal)
    bat.atk.id = ch.atk_id - 1
    bat.anim_ready = NO
   END IF
@@ -4271,7 +4277,6 @@ END SUB
 
 SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
  'If an attack in the attack queue is ready, start it.
- IF bat.atk.id >= 0 THEN EXIT SUB 'this check is redundant in active mode, but needed in wait mode
  '--check the attack queue delays
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
@@ -4672,14 +4677,13 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
  IF pending_attacks_for_this_turn(bat, bslot()) = NO THEN
   start_next_turn bat, bslot(), formdata
  ELSE
-  battle_check_delays bat, bslot()
   turn_mode_time_passage bat, bslot()
  END IF
 
 END SUB
 
+'Start the next attack
 SUB turn_mode_time_passage (bat as BattleState, bslot() as battleSprite)
-
  IF bat.atk.id >= 0 THEN EXIT SUB 'Check for a currently animating attack
 
  IF bat.caption_time > 0 THEN EXIT SUB 'Check for attack captions
@@ -4692,7 +4696,33 @@ SUB turn_mode_time_passage (bat as BattleState, bslot() as battleSprite)
   IF bat.menu_mode >= 0 AND bat.hero_turn >= 0 THEN EXIT SUB '--no time if hero menu is open
  END IF
 
- decrement_attack_queue_delays bslot()
+ 'Shift the .delay for active atkq() attacks, so the next one has .delay = 0
+ turn_mode_decrement_attack_queue_delays bslot()
+
+ 'Start the next attack (now has .delay = 0)
+ battle_check_delays bat, bslot()
+END SUB
+
+'Shift the delays of queued attacks so that the next attack has delay 0, so it
+'will be picked by battle_check_delays().
+'(Compare to decrement_attack_queue_delays() for turnACTIVE.)
+'By shifting, if a new attack is chained to and added to the queue with
+'atkq(...).delay equal to .attack_delay, the delay will be relative to the
+'current attack (eg the one that it chained from).
+SUB turn_mode_decrement_attack_queue_delays(bslot() as BattleSprite)
+ DIM mindelay as integer = INT_MAX
+
+ FOR i as integer = 0 TO UBOUND(atkq)
+  IF atkq_attack_active(atkq(i), bslot()) THEN
+   mindelay = small(mindelay, atkq(i).delay)
+  END IF
+ NEXT i
+
+ FOR i as integer = 0 TO UBOUND(atkq)
+  IF atkq_attack_active(atkq(i), bslot()) THEN
+   atkq(i).delay -= mindelay
+  END IF
+ NEXT i
 END SUB
 
 SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
@@ -4784,12 +4814,13 @@ SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
  FOR i as integer = 11 TO 0 STEP -1
   IF speeds(order(i)) = -1 THEN EXIT FOR
   bslot(order(i)).initiative_order = j
-  'debug "Initiative " & j & " " & bslot(order(i)).name
+  debug "Initiative " & j & " " & bslot(order(i)).name
   j += 1
  NEXT i
 
 END SUB
 
+'Turn-based only
 SUB apply_initiative_order (bslot() as BattleSprite)
  FOR i as integer = 0 to 11
   '--For each living hero and enemy...
