@@ -581,7 +581,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
   IF i < v_len(menu) THEN
    WITH *v_at(menu, i)
 
-    DIM linewidth as integer = textwidth(.text)
+    DIM linewidth as integer = textwidth(.text, IIF(menuopts.edged, fontEdged, fontPlain))
     IF .bgcol THEN
      'Note that BasicMenuItem.bgcol draws a rectangle across the width of the menu, while
      'menuopts.highlight/.bgfuzz or a text bg color is across the width of the text

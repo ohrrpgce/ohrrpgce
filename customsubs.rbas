@@ -1344,12 +1344,15 @@ END SUB
 ' -1  =New blank
 ' >=0 =Copy existing
 'TODO: this is duplicated in a number of places. Search for 'generic_add_new'
-FUNCTION generic_add_new (what as string, maxindex as integer, getname as FnRecordName, helpkey as string = "") as integer
+FUNCTION generic_add_new (what as string, maxindex as integer, getname as FnRecordName, previewer as RecordPreviewer ptr = NULL, helpkey as string = "") as integer
  DIM menu(2) as string
  DIM whichtocopy as integer = 0
  DIM state as MenuState
  state.last = UBOUND(menu)
  state.size = 24
+ DIM menuopts as MenuOptions
+ menuopts.edged = YES
+ menuopts.bgfuzz = YES
 
  state.need_update = YES
  setkeys YES
@@ -1362,6 +1365,7 @@ FUNCTION generic_add_new (what as string, maxindex as integer, getname as FnReco
   END IF
   IF keyval(scF1) > 1 THEN show_help helpkey
   usemenu state
+  IF UpdateScreenSlice() THEN state.need_update = YES  'Regenerate preview on window resize
   IF state.pt = 2 THEN
    IF intgrabber(whichtocopy, 0, maxindex) THEN state.need_update = YES
   END IF
@@ -1380,9 +1384,12 @@ FUNCTION generic_add_new (what as string, maxindex as integer, getname as FnReco
    menu(0) = "Cancel"
    menu(1) = "New blank " & what
    menu(2) = "Copy of " & what & " " & whichtocopy & " " & getname(whichtocopy)
+   IF previewer THEN previewer->update(whichtocopy)
   END IF
   clearpage vpage
-  standardmenu menu(), state, 0, 0, vpage
+  IF previewer THEN previewer->draw(pRight, pBottom, vpage)
+  edgeprint "Adding new " & what, pCentered, 4, uilook(uiMenuItem), vpage
+  standardmenu menu(), state, 20, 16, vpage, menuopts
 
   setvispage vpage
   dowait
@@ -4360,4 +4367,6 @@ FUNCTION custom_setoption(opt as string, arg as string) as integer
  RETURN 0
 END FUNCTION
 
-
+'Destructors can't be abstract...
+DESTRUCTOR RecordPreviewer()
+END DESTRUCTOR

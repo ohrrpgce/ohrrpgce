@@ -445,4 +445,33 @@ TYPE ShopStuffState
  min(24) as integer
 END TYPE
 
+' Abstract base class to draw a preview for a record (usually at the bottom right of the screen),
+' currently used only for generic_add_new.
+' TODO: this is very similar to ThingBrowser, maybe they could be merged?
+TYPE RecordPreviewer EXTENDS object
+  DECLARE VIRTUAL DESTRUCTOR()
+  'Passing an invalid recordidx should result in no preview and is not an error.
+  'update() might be called with the same record as last time, if the screen size has changed.
+  DECLARE ABSTRACT SUB update(recordidx as integer)
+  DECLARE ABSTRACT SUB draw(xpos as RelPos, ypos as RelPos, page as integer)
+END TYPE
+
+' Preview a map by showing a minimap. The minimap doesn't try to cover the whole screen:
+' the maximum size of the minimap is the screen size minus screen_margin.
+' Generation of the minimap is delayed, so that it doesn't make controls unresponsive
+TYPE MapPreviewer EXTENDS RecordPreviewer
+  PRIVATE:
+    margin as XYPair             'screen margin
+    wantminimap as integer       'Map ID or -1 if no minimap calculation pending
+    load_minimap_timer as double 'When to load a delayed minimap
+    instant_threshold as integer 'Map size in tiles
+    minimap as Frame ptr
+
+  PUBLIC:
+    DECLARE CONSTRUCTOR(screen_margin as XYPair = XY(14 * 8, 0))
+    DECLARE DESTRUCTOR()
+    DECLARE SUB update(map_id as integer)
+    DECLARE SUB draw(xpos as RelPos, ypos as RelPos, page as integer)
+END TYPE
+
 #ENDIF

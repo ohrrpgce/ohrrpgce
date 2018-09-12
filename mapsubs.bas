@@ -187,23 +187,64 @@ DIM SHARED wall_styles(2) as WallStyle = {(@"ants", 1, 1), (@"outlined", 0, 3), 
 
 
 '==========================================================================================
-'                                    Map listing menu
+'                                     Map previewing
 '==========================================================================================
 
-FUNCTION get_map_minimap(map_id as integer) as Frame ptr
+FUNCTION get_map_minimap(map_id as integer, margin as XYPair) as Frame ptr
  DIM map as MapData
  DIM tilesets(maplayerMax) as TilesetData ptr
  map.load_for_minimap(map_id)
  loadmaptilesets tilesets(), map.gmap()
 
  'Pick a zoom amount that prevents too much overlap with the menu
- DIM zoom as integer = minimap_zoom_amount(map.size, XY(14 * 8, 0))
+ DIM zoom as integer = minimap_zoom_amount(map.size, margin)
  DIM minimap as Frame ptr
  minimap = createminimap(map.tiles(), tilesets(), @map.pass, zoom, minimapScaled)
 
  unloadmaptilesets tilesets()
  RETURN minimap
 END FUNCTION
+
+CONSTRUCTOR MapPreviewer(screen_margin as XYPair = XY(14 * 8, 0))
+ margin = screen_margin
+ instant_threshold = read_config_int("mapedit.instant_minimap_threshold", 10000)
+ wantminimap = -1
+END CONSTRUCTOR
+
+DESTRUCTOR MapPreviewer()
+ frame_unload @minimap
+END DESTRUCTOR
+
+SUB MapPreviewer.update(map_id as integer)
+ IF map_id >= 0 AND map_id <= gen(genMaxMap) THEN
+  wantminimap = map_id
+  'How large is the map? Delay loading if it would make the menu sluggish
+  IF filelen(maplumpname(map_id, "t")) < instant_threshold THEN
+   'load immediately
+   load_minimap_timer = TIMER
+  ELSE
+   load_minimap_timer = TIMER + 0.2
+  END IF
+  'Keep the old minimap momentarily instead of blacking out, to lessen flicker
+ ELSE
+  wantminimap = -1
+  frame_unload @minimap
+ END IF
+END SUB
+
+SUB MapPreviewer.draw(xpos as RelPos, ypos as RelPos, page as integer)
+ IF wantminimap > -1 ANDALSO TIMER >= load_minimap_timer THEN
+  frame_assign @minimap, get_map_minimap(wantminimap, margin)
+  wantminimap = -1
+ END IF
+
+ IF minimap THEN frame_draw minimap, , xpos, ypos, , , page
+END SUB
+
+
+'==========================================================================================
+'                                    Map listing menu
+'==========================================================================================
 
 SUB make_map_picker_menu(topmenu() as string, state as MenuState)
  REDIM topmenu(0)
@@ -227,10 +268,7 @@ SUB map_picker ()
  menuopts.highlight = YES
  menuopts.bgfuzz = YES
 
- DIM preview as Frame ptr
- DIM wantminimap as bool
- DIM load_minimap_timer as double
- DIM instant_threshold as integer = read_config_int("mapedit.instant_minimap_threshold", 10000)
+ DIM previewer as MapPreviewer
 
  make_map_picker_menu topmenu(), state
 
@@ -264,34 +302,13 @@ SUB map_picker ()
   IF state.need_update THEN
    state.need_update = NO
    make_map_picker_menu topmenu(), state
-
-   IF map_id >= 0 AND map_id <= gen(genMaxMap) THEN
-    wantminimap = YES
-    'How large is the map? Delay loading if it would make the menu sluggish
-    IF filelen(maplumpname(map_id, "t")) < instant_threshold THEN
-     'load immediately
-     load_minimap_timer = TIMER
-    ELSE
-     load_minimap_timer = TIMER + 0.2
-    END IF
-    'Keep the old minimap momentarily instead of blacking out, to lessen flicker
-   ELSE
-    wantminimap = NO
-    frame_unload @preview
-   END IF
-  END IF
-
-  IF wantminimap ANDALSO TIMER >= load_minimap_timer THEN
-   frame_assign @preview, get_map_minimap(map_id)
-   wantminimap = NO
+   previewer.update(map_id)
   END IF
 
   clearpage vpage
-  IF preview THEN
-   'If there's a scrollbar, shift the preview over to avoid it
-   DIM previewx as RelPos = pRight - IIF(state.would_have_scrollbar(), 8, 0)
-   frame_draw preview, , previewx, pBottom, , , vpage
-  END IF
+  'If there's a scrollbar, shift the preview over to avoid it
+  DIM previewx as RelPos = pRight - IIF(state.would_have_scrollbar(), 8, 0)
+  previewer.draw(previewx, pBottom, vpage)
   draw_fullscreen_scrollbar state, 0, vpage
 
   REDIM topmenu_display(LBOUND(topmenu) TO UBOUND(topmenu)) as string
@@ -301,7 +318,6 @@ SUB map_picker ()
   dowait
  LOOP
  switch_to_8bit_vpages
- frame_unload @preview
 END SUB
 
 
@@ -3702,14 +3718,14 @@ END FUNCTION
 '                            Creating, loading & saving maps
 '==========================================================================================
 
-
 'Adds a new map with ID gen(genMaxMap) + 1
 SUB mapedit_addmap()
  'Temporary buffers for making the copy
  DIM st as MapEditState
 
  DIM how as integer
- how = generic_add_new("map", gen(genMaxMap), @getmapname, "add_map_how")
+ DIM previewer as MapPreviewer = MapPreviewer(XY(0,10))
+ how = generic_add_new("map", gen(genMaxMap), @getmapname, @previewer, "add_map_how")
  '-- -2  =Cancel
  '-- -1  =New blank
  '-- >=0 =Copy
