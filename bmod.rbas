@@ -107,9 +107,13 @@ DECLARE FUNCTION should_victory_advance(byref bat as BattleState) as bool
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
 
+'This should be larger than the attack queue length
+CONST ATK_DELAY_MULT = 1000
+
 'these are the battle global variables
 DIM bstackstart as integer
 REDIM atkq(15) as AttackQueue
+DIM battl as BattleState ptr  ' Equal to @bat
 
 FUNCTION battle (byval form as integer) as bool
  DIM result as bool  'Return value: whether victorious
@@ -124,6 +128,7 @@ FUNCTION battle (byval form as integer) as bool
  DIM attack as AttackData
  DIM st(3) as HeroDef
  DIM bat as BattleState
+ battl = @bat
  clear_attack_queue()
  DIM bslot(24) as BattleSprite
 
@@ -4090,7 +4095,12 @@ SUB queue_attack(attack as integer, who as integer, delay as integer, turn_delay
  ' IF targs(i) > -1 THEN targstr &= " " & i & "=" & targs(i)
  'NEXT i
  'debug "queue_attack " & readattackname(attack) & ", " & who & ", " & targstr
- 
+
+ IF battl->turn.mode = turnTURN THEN
+  'See apply_initiative_order for explanation
+  delay = delay * (ATK_DELAY_MULT + 1)
+ END IF
+
  FOR i as integer = 0 TO UBOUND(atkq)
   IF atkq(i).used = NO THEN
    'Recycle a queue slot
@@ -4804,7 +4814,7 @@ SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
   END IF
   'Random addition to break ties
   speeds(i) = 100 * bslot(i).stat.cur.spd + randint(100)
-  'debug bslot(i).name & " 100*speed = " & bslot(i).stat.cur.spd & " sort index " & speeds(i)
+  'debug bslot(i).name & " speed = " & bslot(i).stat.cur.spd & " sort index " & speeds(i)
  NEXT i
  
  '--Sort indexes by speed
@@ -4815,13 +4825,36 @@ SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
  FOR i as integer = 11 TO 0 STEP -1
   IF speeds(order(i)) = -1 THEN EXIT FOR
   bslot(order(i)).initiative_order = j
-  debug "Initiative " & j & " " & bslot(order(i)).name
+  'debug "Initiative " & j & " " & bslot(order(i)).name
   j += 1
  NEXT i
-
 END SUB
 
-'Turn-based only
+'Turn-based only. Finish setting .delay for each atkq
+'The .delay of a queued attack is a key used to determine the attack order. Each
+'attack will have a unique delay to avoid ties, because a tie would result in
+'battle_check_delays picking the first one.
+'Initially, .delay = A * ATK_DELAY_MULT + B
+' A is the primary sort key, equal to initiative order plus the attack's .attack_delay.
+' B is the secondary sort key, equal to .attack_delay.
+'As attacks are processed, .delays get shifted so the next attack has .delay = 0.
+'Rationale:
+'Delays specify how many places forwards or backwards in the queue an attack should
+'be moved, but if two attacks want to move to the same place, the most delayed one
+'should happen last, and the most advanced one first. E.g:
+'  0,  1,  2,  3   <-- Attacks in initial order (the initiative order)
+'  0,  1,  0,  0   <-- Delays: attack 1 should move back one place
+'       \->
+'There is a tie for the 3rd place, should be broken as:
+'  0,  2,  1,  3   <-- Final attack order
+'If we add an extra delay to attacks 1 and 2:
+'  0,  1,  2,  3   <-- Initial attack order
+'  0,  2,  1,  0   <-- Delays
+'       \--\==>
+'Then, adjusting the previous result, by moving both attacks 1 place, the result should be
+'  0,  3,  2,  1
+'This shows the most delayed attack should happen last in case of tie - .attack_delay
+'should be the secondary key.
 SUB apply_initiative_order (bslot() as BattleSprite)
  FOR i as integer = 0 to 11
   '--For each living hero and enemy...
@@ -4829,8 +4862,9 @@ SUB apply_initiative_order (bslot() as BattleSprite)
    '--For each blocking attack in the queue for this hero or enemy
    FOR j as integer = 0 to UBOUND(atkq)
     IF atkq(j).used ANDALSO atkq(j).attacker = i ANDALSO atkq(j).blocking ANDALSO atkq(j).turn_delay = 0 THEN
-     'debug "Applying initiative: adjust " & bslot(i).name & "'s attack " & atkq(j).attack & " delay " & atkq(j).delay & "+" & bslot(i).initiative_order
-     atkq(j).delay += bslot(i).initiative_order
+     DIM addend as integer = ATK_DELAY_MULT * bslot(i).initiative_order
+     'debug "Applying initiative: adjust " & bslot(i).name & "'s attack " & atkq(j).attack & ": attack_delay " & atkq(j).delay & " + initiative " & addend & " = delay " & (atkq(j).delay + addend)
+     atkq(j).delay += addend
     END IF
    NEXT j
   END IF

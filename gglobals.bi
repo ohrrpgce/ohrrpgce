@@ -100,15 +100,16 @@ EXTERN scriptp as ScriptData ptr ptr
 EXTERN retvalsp as integer ptr
 EXTERN plotslicesp as slice ptr ptr
 
+EXTERN timers() as PlotTimer
+
 'Script string globals
 EXTERN plotstr() as Plotstring
 
 'Battle globals
+EXTERN battl as BattleState ptr
 EXTERN lastformation as integer
 EXTERN bstackstart as integer
 EXTERN atkq() as AttackQueue
-
-EXTERN timers() as PlotTimer
 
 'Menu globals
 EXTERN menus() as MenuDef

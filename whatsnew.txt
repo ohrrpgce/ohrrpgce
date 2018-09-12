@@ -140,6 +140,8 @@ September 29 2018 [Fufluns]
       known attacks in spell lists (it searched for attack ID+1) [Ralph]
     * Bug 2038: If the last enemy has the "Ignored for "Alone" AI" bit set,
       it doesn't count as alone [Ralph]
+    * In turn-based mode, delaying an attack didn't always delay long enough.
+      E.g. setting the delay to 1 attack could have no effect. [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced
