@@ -1516,7 +1516,17 @@ while (npcref) do (
 		<command id="cancelnpcwalk">
 			<canon>cancel NPC walk (who)</canon>
 			<shortname>cancel NPC walk</shortname>
-			<description>If the specified NPC is walking with a command like <ref>walknpc</ref> or pathfinding with a command like <ref>pathfindnpcto</ref>, they will stop. They are allowed to finish their current step, so they will not end up misaligned with the tiles. This command has no effect on automatic NPC movement patterns, it only stops scripted movement.</description>
+			<description>If the specified NPC is walking with a command like <ref>walknpc</ref> or pathfinding with a command like <ref>pathfindnpcto</ref>, they will stop. They are allowed to finish their current step, so they will not end up misaligned with the tiles. This command has no effect on automatic NPC movement patterns, it only stops scripted movement.
+				<note>
+					If you want to stop an NPC immediately without letting them finish their
+					step, use <ref>walknpc</ref> with a distance of zero tiles, like:
+					<tt>walk NPC(npc, NPC direction(npc), 0)</tt>
+					<lb/>
+					This will misalign the NPC with the tile grid, breaking movement and
+					wall and collision checking! You are responsible for realigning the NPC
+					afterwards somehow.
+				</note>
+			</description>
 			<seealso>
 				<ref>pathfindnpcto</ref>
 				<ref>npcchasesnpc</ref>
