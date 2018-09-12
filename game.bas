@@ -1921,8 +1921,8 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
    t2 = herotpos(0)
    should_collide_with_hero = NO
   case NPCOverrideMove.NPC
-   if npc(npci.pathover.dest_npc).id = 0 then
-    'NPC must have been deleted
+   if npc(npci.pathover.dest_npc).id <= 0 then
+    'NPC must have been deleted or disabled by a tag
     cancel_npc_movement_override (npci)
     return
    end if
