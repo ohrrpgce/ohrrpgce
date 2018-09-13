@@ -11,7 +11,7 @@ Type FnThingBrowserEditor as function(record as integer) as integer
 
 Type ThingBrowser extends Object
  'Displays the browser, and retuns the selected result (or start_id if canceled)
- declare function browse(byref start_id as integer=0, byval or_none as bool=NO, editor_func as FnThingBrowserEditor=0, byval edit_by_default as integer=YES) as integer
+ declare function browse(byref start_id as integer=0, byval or_none as bool=NO, editor_func as FnThingBrowserEditor=0, byval edit_by_default as bool=YES, byval skip_zero as bool=NO) as integer
 
  declare sub build_thing_list()
  declare function check_plank_filter(byval sl as Slice Ptr) as bool
@@ -24,6 +24,7 @@ Type ThingBrowser extends Object
  helpkey as string
  index as integer
  or_none as bool
+ skip_zero as bool 'Valid record IDs start from 1 instead of 0 (excluding None option)
  can_edit as bool 'gets turned on when editor_func is supplied to .browse()
  filter_text as string
 
@@ -33,6 +34,7 @@ Type ThingBrowser extends Object
  declare virtual function lowest_id() as integer
  declare virtual function highest_id() as integer
  declare virtual function highest_possible_id() as integer
+ declare virtual function none_id() as integer
 
  'Any special initialisation needed. Called after root created but before build_thing_list()
  declare virtual sub enter_browser()

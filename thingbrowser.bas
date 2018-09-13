@@ -24,9 +24,10 @@
 
 '-----------------------------------------------------------------------
 
-Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=NO, editor_func as FnThingBrowserEditor=0, byval edit_by_default as integer=YES) as integer
+Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=NO, editor_func as FnThingBrowserEditor=0, byval edit_by_default as bool=YES, byval skip_zero as bool=NO) as integer
  dim result as integer = start_id
  this.or_none = or_none
+ this.skip_zero = skip_zero
  
  dim holdscreen as integer = allocatepage
  copypage vpage, holdscreen
@@ -324,7 +325,7 @@ Function ThingBrowser.confirm_plank_click (byval plank as Slice Ptr) as bool
  'This function is called if a click has happened with readmouse.pos colliding with the plank
  'return YES to select/pick the plank, or return NO if the plank should just be focused, not activated
  dim id as integer = plank->Extra(0)
- if not IsAncestor(plank, thinglist) then id = -1
+ if not IsAncestor(plank, thinglist) then id = INT_MIN
  dim btn as Slice Ptr
  for i as integer = 0 to ubound(sub_buttons)
   dim code as integer = sub_buttons(i)
@@ -422,8 +423,10 @@ Function ThingBrowser.check_plank_filter(byval sl as Slice Ptr) as bool
 End Function
 
 Function ThingBrowser.lowest_id() as integer
- if or_none then return -1
- return 0
+ dim ret as integer = 0
+ if skip_zero then ret += 1
+ if or_none then ret -= 1
+ return ret
 End Function
 
 Function ThingBrowser.highest_id() as integer
@@ -432,6 +435,15 @@ End Function
 
 Function ThingBrowser.highest_possible_id() as integer
  return 32767
+End Function
+
+'The ID which is the NONE option. Irrelevant if or_none = NO (but mustn't be a valid ID)
+Function ThingBrowser.none_id() as integer
+ if or_none then
+  return lowest_id()
+ else
+  return INT_MIN  'No None
+ end if
 End Function
 
 Function ThingBrowser.create_thing_plank(byval id as integer) as Slice Ptr
@@ -481,7 +493,7 @@ End Function
 
 Function ItemBrowser.thing_text_for_id(byval id as integer) as string
  dim digits as integer = len(str(highest_id()))
- if id = -1 then
+ if id = none_id then
   return lpad("", " ", digits) & " " & rpad("NO ITEM", " ", 8)
  end if
  return lpad(str(id), " ", digits) & " " & rpad(readitemname(id), " ", 8)
@@ -512,7 +524,7 @@ End Function
 
 Function ShopBrowser.thing_text_for_id(byval id as integer) as string
  dim digits as integer = len(str(highest_id()))
- if id = -1 then
+ if id = none_id then
   return lpad("", " ", digits) & " " & rpad("NO SHOP", " ", 16)
  end if
  return lpad(str(id), " ", digits) & " " & rpad(readshopname(id), " ", 16)
@@ -544,7 +556,7 @@ End Function
 
 Function ShopStuffBrowser.thing_text_for_id(byval id as integer) as string
  dim digits as integer = len(str(highest_id()))
- if id = -1 then
+ if id = none_id then
   return lpad("", " ", digits) & " " & rpad("NOTHING", " ", 16) & STRING(11, " ")
  end if
  dim stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
@@ -588,13 +600,13 @@ Function AttackBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim spr as Slice Ptr
  spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
  ChangeSpriteSlice spr, sprTypeAttack, attack.picture, attack.pal, 0
- if id = -1 then
+ if id = none_id then
   spr->Visible = NO
  end if
  dim txt as Slice Ptr
  txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
  ChangeTextSlice txt, id & !"\n" & attack.name
- if id = -1 then ChangeTextSlice txt, "NONE"
+ if id = none_id then ChangeTextSlice txt, "NONE"
  return plank
 End Function
 
@@ -650,13 +662,13 @@ Function EnemyBrowser.create_thing_plank(byval id as integer) as Slice ptr
   'FIXME: switch this to sprTypeEnemy when EnemyDef supports it
  end select
  ChangeSpriteSlice spr, spr_kind, enemy.pic, enemy.pal, 0
- if id = -1 then
+ if id = none_id then
   spr->Visible = NO
  end if
  dim txt as Slice Ptr
  txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
  ChangeTextSlice txt, id & !"\n" & enemy.name
- if id = -1 then ChangeTextSlice txt, "NONE"
+ if id = none_id then ChangeTextSlice txt, "NONE"
  return plank
 End Function
 
@@ -699,13 +711,13 @@ Function HeroBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim spr as Slice Ptr
  spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
  ChangeSpriteSlice spr, sprTypeHero, hero.sprite, hero.sprite_pal, 0
- if id = -1 then
+ if id = none_id then
   spr->Visible = NO
  end if
  dim txt as Slice Ptr
  txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
  ChangeTextSlice txt, id & !"\n" & hero.name
- if id = -1 then ChangeTextSlice txt, "NONE"
+ if id = none_id then ChangeTextSlice txt, "NONE"
  return plank
 End Function
 
@@ -772,13 +784,13 @@ Function SfxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  
  dim spr as Slice Ptr
  spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
- if id = -1 then
+ if id = none_id then
   spr->Visible = NO
  end if
  dim txt as Slice Ptr
  txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
  ChangeTextSlice txt, id & !"\n" & sfxname
- if id = -1 then ChangeTextSlice txt, "NONE"
+ if id = none_id then ChangeTextSlice txt, "NONE"
  return plank
 End Function
 
@@ -841,13 +853,13 @@ Function SongBrowser.create_thing_plank(byval id as integer) as Slice ptr
  
  dim spr as Slice Ptr
  spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
- if id = -1 then
+ if id = none_id then
   spr->Visible = NO
  end if
  dim txt as Slice Ptr
  txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
  ChangeTextSlice txt, id & !"\n" & songname
- if id = -1 then ChangeTextSlice txt, "NONE"
+ if id = none_id then ChangeTextSlice txt, "NONE"
  return plank
 End Function
 
@@ -891,9 +903,15 @@ Function TextboxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  
  dim txt as Slice Ptr
  txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
- ChangeTextSlice txt, str(id & " " & s)
- if id = -1 then ChangeTextSlice txt, "NONE"
- if id = 0 then ChangeTextSlice txt, str(id &  " [template] " & s)
+ dim caption as string
+ if id = none_id then
+  caption = "NONE"
+ elseif id = 0 then
+  caption = id & " [template] " & s
+ else
+  caption = id & " " & s
+ end if
+ ChangeTextSlice txt, caption
 
  'show the text box color
  dim rect as Slice Ptr
@@ -1018,7 +1036,7 @@ Function SpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  txt->AlignVert = alignBottom
  txt->AnchorVert = alignBottom
  ChangeTextSlice txt, thing_text_for_id(id), uilook(uiMenuItem), YES
- if id = -1 then ChangeTextSlice txt, "NONE"
+ if id = none_id then ChangeTextSlice txt, "NONE"
  plank->size = spr->size
  return plank
 End Function
@@ -1134,7 +1152,7 @@ Function BackdropSpriteBrowser.create_thing_plank(byval id as integer) as Slice 
  plank->size = XY(98, 63)
  dim spr as Slice Ptr
  spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
- if id = -1 then
+ if id = none_id then
   DeleteSlice @spr
  end if
  if spr then
@@ -1182,7 +1200,7 @@ Function BoxborderSpriteBrowser.create_thing_plank(byval id as integer) as Slice
  txt->AlignHoriz = alignCenter
  txt->AnchorHoriz = alignCenter
  ChangeTextSlice txt, thing_text_for_id(id), uilook(uiMenuItem), YES
- if id = -1 then ChangeTextSlice txt, "NONE"
+ if id = none_id then ChangeTextSlice txt, "NONE"
  plank->size = XY(50, 50)
  return plank
 End Function
