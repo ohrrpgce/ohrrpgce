@@ -10,6 +10,8 @@ Press - to switch between requiring a tag to be OFF or ON, or to switch between 
 
 Press Delete to zero out a tag check or action.
 
+Press ENTER or SPACE or CLICK on most actions to pick options from a menu, or edit them directly (LEFT or RIGHT or input a number).
+
 The following conditionals happen immediately when the box is opened:
 -"Instead" textbox
 -setting tags *

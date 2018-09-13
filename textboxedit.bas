@@ -42,6 +42,7 @@ DECLARE SUB textbox_connection_draw_node(byref node as TextboxConnectNode, x as 
 DECLARE SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_conditionals(byref box as TextBox)
 DECLARE SUB textbox_update_conditional_menu(byref box as TextBox, menu() as string)
+DECLARE FUNCTION textbox_conditional_textbox_or_script_picker(num as integer, state as MenuState) as integer
 DECLARE FUNCTION textbox_conditional_hero_picker(byval num as integer, state as MenuState) as integer
 DECLARE SUB import_textboxes_warn (byref warn as string, s as string)
 DECLARE FUNCTION export_textboxes (filename as string, metadata() as bool) as bool
@@ -61,7 +62,7 @@ CONST condGAMELOAD   = 6
 CONST condMONEY      = 7
 CONST condDOOR       = 8
 CONST condITEM       = 9
-CONST condBOX        = 10
+CONST condBOXorSCRIPT = 10
 CONST condMENU       = 11
 CONST condSETTAG     = 12
 
@@ -75,9 +76,11 @@ FUNCTION textbox_picker (recindex as integer = -1) as integer
  RETURN b.browse(recindex, , @text_box_editor, NO)
 END FUNCTION
 
-FUNCTION textbox_picker_or_none (recindex as integer = -1) as integer
+'skip_zero: textbox 0 is replaced with the None option, rather than use -1 for None
+FUNCTION textbox_picker_or_none (recindex as integer = -1, skip_zero as bool = NO) as integer
+ DIM offset as integer = IIF(skip_zero, 0, 1)
  DIM b as TextboxBrowser
- RETURN b.browse(recindex - 1, YES , @text_box_editor, NO) + 1
+ RETURN b.browse(recindex - offset, YES, @text_box_editor, NO, skip_zero) + offset
 END FUNCTION
 
 'whichbox is the box to edit, -1 for default, or past last textbox to add a new
@@ -382,7 +385,6 @@ SUB textbox_conditionals(byref box as TextBox)
  grey(26) = NO
 
  DIM num as integer
- DIM temptrig as integer
  DIM c as integer
 
  textbox_update_conditional_menu box, menu()
@@ -394,21 +396,6 @@ SUB textbox_conditionals(byref box as TextBox)
   state.tog = state.tog XOR 1
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_conditions"
-  IF enter_space_click(state) THEN
-   SELECT CASE state.pt
-    CASE -1 '--Previous menu
-     EXIT DO
-    CASE 1 '--instead script
-     temptrig = large(-box.instead, 0)
-     scriptbrowse temptrig, plottrigger, "instead of textbox plotscript"
-     box.instead = -temptrig
-    CASE 26 '--after script
-     temptrig = large(-box.after, 0)
-     scriptbrowse temptrig, plottrigger, "after textbox plotscript"
-     box.after = -temptrig
-   END SELECT
-   textbox_update_conditional_menu box, menu()
-  END IF
   usemenu state
   IF keyval(scDelete) > 1 THEN ' Pressed the delete key
    write_box_conditional_by_menu_index box, state.pt, 0
@@ -417,6 +404,8 @@ SUB textbox_conditionals(byref box as TextBox)
   IF state.pt >= 0 THEN
    num = read_box_conditional_by_menu_index(box, state.pt)
    SELECT CASE box_conditional_type_by_menu_index(state.pt)
+    CASE condEXIT
+     IF enter_space_click(state) THEN EXIT DO
     CASE condTAG
      tag_grabber num, state, , YES  'always_choice=YES
     CASE condSETTAG
@@ -460,8 +449,11 @@ SUB textbox_conditionals(byref box as TextBox)
        END SELECT
       END IF
      END IF
-    CASE condBOX
+    CASE condBOXorSCRIPT
      scrintgrabber num, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger
+     IF enter_space_click(state) THEN
+      num = textbox_conditional_textbox_or_script_picker(num, state)
+     END IF
     CASE condMENU
      intgrabber num, 0, gen(genMaxMenu)
    END SELECT
@@ -501,6 +493,27 @@ SUB textbox_conditionals(byref box as TextBox)
   dowait
  LOOP
 END SUB
+
+FUNCTION textbox_conditional_textbox_or_script_picker(num as integer, state as MenuState) as integer
+ DIM whichbrowser as integer = -1
+ IF num > 0 THEN whichbrowser = 0
+ IF num < 0 THEN whichbrowser = 1
+ IF num = 0 THEN
+  DIM choices(1) as string = {"Textbox", "Script"}
+  whichbrowser = multichoice("Go to a textbox, or run a script?", choices())
+ END IF
+ IF whichbrowser = 0 THEN
+  'num = textbox_picker_or_none(num, YES)
+  'Don't allow reentering textbox editor
+  DIM b as TextboxBrowser
+  num = b.browse(num, YES, , NO, YES)  'skip_zero = YES
+ ELSEIF whichbrowser = 1 THEN
+  DIM temptrigger as integer = -num
+  scriptbrowse temptrigger, plottrigger, IIF(state.pt = 1, "instead of", "after") & " textbox plotscript"
+  num = -temptrigger
+ END IF
+ RETURN num
+END FUNCTION
 
 FUNCTION textbox_conditional_hero_picker(byval num as integer, state as MenuState) as integer
  DIM cur_hero as integer = ABS(num)
@@ -789,7 +802,7 @@ END FUNCTION
 FUNCTION box_conditional_type_by_menu_index(menuindex as integer) as integer
  SELECT CASE menuindex
   CASE -1      : RETURN condEXIT
-  CASE 1, 26   : RETURN condBOX
+  CASE 1, 26   : RETURN condBOXorSCRIPT
   CASE 3, 4    : RETURN condSETTAG
   CASE 6       : RETURN condMONEY
   CASE 8       : RETURN condBATTLE
