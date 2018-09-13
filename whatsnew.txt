@@ -142,6 +142,8 @@ September 29 2018 [Fufluns]
       it doesn't count as alone [Ralph]
     * In turn-based mode, delaying an attack didn't always delay long enough.
       E.g. setting the delay to 1 attack could have no effect. [Ralph]
+    * On Windows, if custom.exe crashed and you re-run, it might think the
+      previous copy is still running and refuse to edit the game [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

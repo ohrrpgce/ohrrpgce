@@ -897,6 +897,7 @@ end function
 'Returns full path to a process given its PID in device form, e.g.
 '\Device\HarddiskVolume1\OHRRPGCE\custom.exe
 'or "" if it doesn't exist or we don't have permission.
+'This function is used primarily to determine whether a process is still running
 function get_process_path (pid as integer) as string
 	dim proc as HANDLE
 	proc = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid)
@@ -914,6 +915,22 @@ function get_process_path (pid as integer) as string
 		dim errcode as integer = GetLastError()
 		debug "get_process_path: GetProcessImageFileName err " & errcode & " " & get_windows_error(errcode)
 	end if
+
+	if len(ret) then
+		'If a process crashes or is killed (but not if it closes normally), Windows apparently keeps some
+		'information about the dead PID and continues to return its image path.
+		'So check the exitcode to prevent misidentifying a PID as still running.
+		dim exitcode as DWORD
+		if GetExitCodeProcess(proc, @exitcode) = 0 then
+			dim errcode as integer = GetLastError()
+			debug "get_process_path: GetExitCodeProcess err " & errcode & " " & get_windows_error(errcode)
+		end if
+		if exitcode <> STILL_ACTIVE then
+			debuginfo "pid " & pid & " image " & ret & " may have crashed, exitcode " & exitcode
+			ret = ""
+		end if
+	end if
+
 	CloseHandle(proc)
 	return ret
 end function
