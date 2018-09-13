@@ -645,8 +645,10 @@ if linkgcc:
         handle_symbols += ' win32/${TARGET.filebase}.pdb'
         if not sys.platform.startswith('win'):
             handle_symbols = 'wine ' + handle_symbols
-        # If cv2pdb fails (because Visual Studio is missing) continue without error
-        handle_symbols += " || true"
+            # If cv2pdb fails (because Visual Studio is missing) continue without error
+            handle_symbols += " || true"
+        else:
+            handle_symbols += " || exit /b 0"   # aka " || true"
     else:
         # Untested on mac. And I would guess not needed, due to -dead_strip
         if GCC_strip and not mac:
