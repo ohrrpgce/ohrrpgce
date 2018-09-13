@@ -29,6 +29,7 @@ fi
 rm ./ohrrpgce/wip/docs/plotdictionary.html
 
 svn cleanup ./ohrrpgce/wip
+svn revert ./ohrrpgce/wip/docs  # Plotdict gets modified by update-html.sh
 svn update ./ohrrpgce/wip | tee nightly-temp.txt || exit 1
 UPDATE=`grep "Updated to revision" nightly-temp.txt`
 rm nightly-temp.txt

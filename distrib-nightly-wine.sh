@@ -96,6 +96,7 @@ function zip_and_upload {
 export WINEDEBUG=fixme-all
 
 svn cleanup
+svn revert ./ohrrpgce/wip/docs  # Plotdict gets modified by update-html.sh
 svn update | tee nightly-temp.txt || exit 1
 UPDATE=`grep "Updated to revision" nightly-temp.txt`
 rm nightly-temp.txt
