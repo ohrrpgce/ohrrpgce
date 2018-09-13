@@ -4403,9 +4403,9 @@ FUNCTION blocked_by_attack (bat as BattleState, byval who as integer) as bool
    IF .used ANDALSO .attacker = who ANDALSO .blocking THEN
     SELECT CASE bat.turn.mode
      CASE turnACTIVE:
-      'Restrict to .turn_delay = 0, because if there's an attack with a turn
+      'Restrict to .turn_delay <= 0, because if there's an attack with a turn
       'delay the ready meter needs to continue to grow
-      IF .turn_delay = 0 ANDALSO .delay > 0 THEN RETURN YES
+      IF .turn_delay <= 0 ANDALSO .delay > 0 THEN RETURN YES
      CASE turnTURN:
       '...but that means this is inconsistent
       IF .delay > 0 ORELSE .turn_delay > 0 THEN RETURN YES
@@ -4860,7 +4860,8 @@ END SUB
 SUB apply_initiative_order (bslot() as BattleSprite)
  FOR j as integer = 0 to UBOUND(atkq)
   WITH atkq(j)
-   IF .used ANDALSO .turn_delay <= 0 THEN
+   'Don't apply to attacks with .turn_delay < 0, they've already been processed in a previous round
+   IF .used ANDALSO .turn_delay = 0 THEN
     DIM addend as integer = ATK_DELAY_MULT * bslot(.attacker).initiative_order
     'debug "Applying initiative: adjust " & bslot(.attacker).name & "'s attack " & .attack & ": attack_delay " & .delay & " + initiative " & addend & " = delay " & (.delay + addend)
     .delay += addend
@@ -4882,7 +4883,10 @@ END SUB
 SUB update_turn_delays_in_attack_queue (byval who as integer)
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
-   IF .used ANDALSO .attacker = who ANDALSO .turn_delay > 0 THEN
+   'A non-blocking attack
+   'Allow turn_delay to go negative to mark non-blocking attacks in turn-based mode
+   'that got shunted to the next round, which therefore shouldn't have initiative added again
+   IF .used ANDALSO .attacker = who THEN
     .turn_delay -= 1
    END IF
   END WITH
