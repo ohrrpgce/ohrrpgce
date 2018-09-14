@@ -26,7 +26,10 @@ if [ ! -d ohrrpgce ] ; then
   mkdir ohrrpgce
   svn checkout https://rpg.hamsterrepublic.com/source/wip ./ohrrpgce/wip
 fi
+# Remove the plotdict files before performing the svn update
+# because otherwise they constantly get into conflicted state
 rm ./ohrrpgce/wip/docs/plotdictionary.html
+rm ./ohrrpgce/wip/docs/plotdict.xml
 
 svn cleanup ./ohrrpgce/wip
 svn revert ./ohrrpgce/wip/docs  # Plotdict gets modified by update-html.sh
