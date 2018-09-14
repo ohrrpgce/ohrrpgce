@@ -668,15 +668,15 @@ END SUB
 
 'Value of a general preference/backcompat bitset
 FUNCTION prefbit(bitnum as integer) as bool
- DIM genidx as integer = IIF(bitnum >= 16, genBits2, genBits)
- DIM bitidx as integer = IIF(bitnum >= 16, bitnum - 16, bitnum)
+ DIM genidx as integer = IIF(bitnum >= 48, genBits3, IIF(bitnum >= 16, genBits2, genBits))
+ DIM bitidx as integer = IIF(bitnum >= 48, bitnum - 48, IIF(bitnum >= 16, bitnum - 16, bitnum))
  RETURN xreadbit(gen(), bitidx, genidx)
 END FUNCTION
 
 'Set a general preference/backcompat bitset
 SUB setprefbit(bitnum as integer, newval as bool = YES)
- DIM genidx as integer = IIF(bitnum >= 16, genBits2, genBits)
- DIM bitidx as integer = IIF(bitnum >= 16, bitnum - 16, bitnum)
+ DIM genidx as integer = IIF(bitnum >= 48, genBits3, IIF(bitnum >= 16, genBits2, genBits))
+ DIM bitidx as integer = IIF(bitnum >= 48, bitnum - 48, IIF(bitnum >= 16, bitnum - 16, bitnum))
  setbit gen(), genidx, bitidx, newval
 END SUB
 

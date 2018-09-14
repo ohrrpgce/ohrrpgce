@@ -154,8 +154,7 @@ CONST genAcceptSFX = 173        'menu interface (+1)
 CONST genCancelSFX = 174        ' "       "
 CONST genCursorSFX = 175        ' "       "
 CONST genTextboxLine = 176      'Text box 'click'  (+1)
-CONST genBits2 = 177            'More general bitsets
-CONST genBits3 = 178            'More general bitsets
+CONST genBits2 = 177'-178       'More general bitsets
 CONST genItemLearnSFX = 179     'learn spell oob item (+1)
 CONST genCantLearnSFX = 180     'hero couldn't learn spell from item (+1)
 CONST genBuySFX = 181           'buy item from shop (+1)
@@ -199,6 +198,7 @@ CONST genDefInsteadOfBattleScript = 218 ' Default instead-of-battle script, if n
 CONST genDefMapAutorunScript = 219      ' Default autorun script, if not overridden by map
 CONST genMaxEnemyPic = 220       ' Max enemy spriteset id in enemies.rgfx
 CONST genMinimapAlgorithm = 221  ' How to generate in-game minimaps. MinimapAlgorithmEnum
+CONST genBits3 = 222'-225        ' More general bitsets
 
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.
