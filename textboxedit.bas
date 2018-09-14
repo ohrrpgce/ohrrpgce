@@ -401,67 +401,66 @@ SUB textbox_conditionals(byref box as TextBox)
    write_box_conditional_by_menu_index box, state.pt, 0
    textbox_update_conditional_menu box, menu()
   END IF
-  IF state.pt >= 0 THEN
-   num = read_box_conditional_by_menu_index(box, state.pt)
-   SELECT CASE box_conditional_type_by_menu_index(state.pt)
-    CASE condEXIT
-     IF enter_space_click(state) THEN EXIT DO
-    CASE condTAG
-     tag_grabber num, state, , YES  'always_choice=YES
-    CASE condSETTAG
-     tag_set_grabber num, state
-    CASE condBATTLE
-     intgrabber num, 0, gen(genMaxFormation)
-    CASE condSHOP
-     xintgrabber num, 0, gen(genMaxShop), -1, -32000
-     IF enter_space_click(state) THEN
-      num = shop_picker_or_none(num)
+
+  num = read_box_conditional_by_menu_index(box, state.pt)
+  SELECT CASE box_conditional_type_by_menu_index(state.pt)
+   CASE condEXIT
+    IF enter_space_click(state) THEN EXIT DO
+   CASE condTAG
+    tag_grabber num, state, , YES  'always_choice=YES
+   CASE condSETTAG
+    tag_set_grabber num, state
+   CASE condBATTLE
+    intgrabber num, 0, gen(genMaxFormation)
+   CASE condSHOP
+    xintgrabber num, 0, gen(genMaxShop), -1, -32000
+    IF enter_space_click(state) THEN
+     num = shop_picker_or_none(num)
+    END IF
+   CASE condHERO
+    intgrabber num, -99, 99
+    IF enter_space_click(state) THEN
+     num = textbox_conditional_hero_picker(num, state)
+    END IF
+   CASE condGAMEDELETE
+    intgrabber num, -1, 32
+   CASE condGAMESAVE
+    intgrabber num, -2, 32
+   CASE condGAMELOAD
+    intgrabber num, -3, 32
+   CASE condMONEY
+    intgrabber num, -32000, 32000
+   CASE condDOOR
+    intgrabber num, 0, maxDoorsPerMap
+   CASE condITEM
+    xintgrabber num, 0, gen(genMaxItem), 0, -gen(genMaxItem)
+    IF enter_space_click(state) THEN
+     DIM orig_num as integer = num
+     DIM add_or_del as integer = SGN(num)
+     num = item_picker_or_none(abs(num))
+     IF num > 0 THEN
+      DIM add_or_del_choices(1) as string = {"Add " & readitemname(num - 1), "Remove " & readitemname(num - 1)} 
+      SELECT CASE multichoice("Add or remove item?", add_or_del_choices(), IIF(add_or_del = -1, 1, 0), -1)
+       CASE 1
+        num = num * -1
+       CASE -1
+        'Cancel
+        num = orig_num
+      END SELECT
      END IF
-    CASE condHERO
-     intgrabber num, -99, 99
-     IF enter_space_click(state) THEN
-      num = textbox_conditional_hero_picker(num, state)
-     END IF
-    CASE condGAMEDELETE
-     intgrabber num, -1, 32
-    CASE condGAMESAVE
-     intgrabber num, -2, 32
-    CASE condGAMELOAD
-     intgrabber num, -3, 32
-    CASE condMONEY
-     intgrabber num, -32000, 32000
-    CASE condDOOR
-     intgrabber num, 0, maxDoorsPerMap
-    CASE condITEM
-     xintgrabber num, 0, gen(genMaxItem), 0, -gen(genMaxItem)
-     IF enter_space_click(state) THEN
-      DIM orig_num as integer = num
-      DIM add_or_del as integer = SGN(num)
-      num = item_picker_or_none(abs(num))
-      IF num > 0 THEN
-       DIM add_or_del_choices(1) as string = {"Add " & readitemname(num - 1), "Remove " & readitemname(num - 1)} 
-       SELECT CASE multichoice("Add or remove item?", add_or_del_choices(), IIF(add_or_del = -1, 1, 0), -1)
-        CASE 1
-         num = num * -1
-        CASE -1
-         'Cancel
-         num = orig_num
-       END SELECT
-      END IF
-     END IF
-    CASE condBOXorSCRIPT
-     scrintgrabber num, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger
-     IF enter_space_click(state) THEN
-      num = textbox_conditional_textbox_or_script_picker(num, state)
-     END IF
-    CASE condMENU
-     intgrabber num, 0, gen(genMaxMenu)
-   END SELECT
-   IF num <> read_box_conditional_by_menu_index(box, state.pt) THEN
-    'The value has changed
-    write_box_conditional_by_menu_index(box, state.pt, num)
-    textbox_update_conditional_menu box, menu()
-   END IF
+    END IF
+   CASE condBOXorSCRIPT
+    scrintgrabber num, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger
+    IF enter_space_click(state) THEN
+     num = textbox_conditional_textbox_or_script_picker(num, state)
+    END IF
+   CASE condMENU
+    intgrabber num, 0, gen(genMaxMenu)
+  END SELECT
+  IF num <> read_box_conditional_by_menu_index(box, state.pt) THEN
+   'The value has changed
+   write_box_conditional_by_menu_index(box, state.pt, num)
+   textbox_update_conditional_menu box, menu()
   END IF
 
   clearpage dpage
