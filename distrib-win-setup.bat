@@ -15,7 +15,9 @@ SET "ISCC=C:\Program Files\Inno Setup 5\iscc.exe"
 REM In case we need the 32 bit versions on a 64 bit system...
 IF NOT EXIST "%ISCC%" SET "ISCC=C:\Program Files (x86)\Inno Setup 5\iscc.exe"
 
-REM Find svn
+REM Find svn (Note: %SVN% is only used by distrib-win.bat, not nightlies.
+REM Should probably just require svn to be in PATH instead!)
+
 REM This checks whether svn is in PATH, otherwise does SVN=
 for %%X in (svn.exe) do set SVN=%%~$PATH:X
 IF NOT EXIST "%SVN%" (

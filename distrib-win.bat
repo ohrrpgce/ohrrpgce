@@ -134,7 +134,7 @@ del tmpdist\custom.exe
 REM ------------------------------------------
 ECHO Packaging ohrrpgce-win-installer.exe ...
 echo. > iextratxt.txt
-%ISCC% /Q /Odistrib /Fohrrpgce-win-installer ohrrpgce.iss
+"%ISCC%" /Q /Odistrib /Fohrrpgce-win-installer ohrrpgce.iss
 del iextratxt.txt
 IF NOT EXIST distrib\ohrrpgce-win-installer.exe (
     ECHO Inno Setup failed!
@@ -163,11 +163,11 @@ CALL distver.bat
 RMDIR /s /q tmpdist
 MKDIR tmpdist
 CD tmpdist
-%SVN% info .. | ..\support\grep "^URL:" | ..\support\sed s/"^URL: "/"SET REPOSITORY="/ > svnrepo.bat
+"%SVN%" info .. | ..\support\grep "^URL:" | ..\support\sed s/"^URL: "/"SET REPOSITORY="/ > svnrepo.bat
 CALL svnrepo.bat
 ECHO   Checkout...
-%SVN% co -q %REPOSITORY%
-%SVN% info %OHRVERCODE% > %OHRVERCODE%/svninfo.txt
+"%SVN%" co -q %REPOSITORY%
+"%SVN%" info %OHRVERCODE% > %OHRVERCODE%/svninfo.txt
 del svnrepo.bat
 ECHO   Zip...
 ..\support\zip -q -r ..\distrib\ohrrpgce-source.zip *.*

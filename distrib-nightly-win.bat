@@ -32,15 +32,15 @@ support\rm -f game.exe custom.exe
 call scons music=sdl %SCONS_ARGS%
 call distrib-nightly-win-packnupload music_sdl gfx_directx.dll SDL.dll SDL_mixer.dll
 
-ECHO Packaging ohrrpgce-win-installer.exe ...
+ECHO Packaging ohrrpgce-win-installer-wip.exe ...
 REM Create the installer from the executables we just built: the installer and .zips for default build configs
 REM must contain the same executables, to share .pdb files
-support\rm -f distrib\ohrrpgce-wip-win-installer.exe
+support\rm -f distrib\ohrrpgce-win-installer-wip.exe
 echo InfoBeforeFile=IMPORTANT-nightly.txt > iextratxt.txt
-%ISCC% /Q /Odistrib /Fohrrpgce-wip-win-installer ohrrpgce.iss
+"%ISCC%" /Q /Odistrib /Fohrrpgce-win-installer-wip ohrrpgce.iss
 del iextratxt.txt
-IF EXIST distrib\ohrrpgce-wip-win-installer.exe (
-    pscp -q distrib\ohrrpgce-wip-win-installer.exe %SCPHOST%:%SCPDEST%
+IF EXIST distrib\ohrrpgce-win-installer-wip.exe (
+    pscp -q distrib\ohrrpgce-win-installer-wip.exe %SCPHOST%:%SCPDEST%
 )
 
 support\rm -f game.exe custom.exe
