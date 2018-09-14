@@ -17,6 +17,10 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
+2018-09-14:
+The "read/write preference bitset" functions have been replaced with
+"read/write preference bit" functions, which have simpler arguments.
+
 2018-07-28:
 Fixed slices in battle being the wrong size if you created a spriteset
 with a non-standard size. This changes the positioning of, at least,

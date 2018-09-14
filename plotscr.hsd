@@ -1077,16 +1077,27 @@ script,set load script,hsd:ID=0,begin
   write general(57,hsd:ID)
 end
 
-# See https://rpg.hamsterrepublic.com/ohrrpgce/GEN for index and bitnum
-# (index should be 101 or 177)
-script,read preference bitset,hsd:index,hsd:bitnum,begin
-  hsd:index += hsd:bitnum/16
+script,hsd:pref bit index,hsd:bitnum, begin
+  if (hsd:bitnum >= 48) then (
+    return(222 + (hsd:bitnum--48)/16)  # genBits3
+  ) else if (hsd:bitnum >= 16) then (
+    return(177 + (hsd:bitnum--16)/16)  # genBits2
+  ) else (
+    return(101) # genBits
+  )
+end
+
+# See https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets for bitnum
+script,read preference bit,hsd:bitnum,begin
+  variable(hsd:index)
+  hsd:index := hsd:pref bit index(hsd:bitnum)
   hsd:bitnum := hsd:bitnum,mod,16
   return((read general(hsd:index),and,2^hsd:bitnum)<>0)
 end
 
-script,write preference bitset,hsd:index,hsd:bitnum,hsd:value=1,begin
-  hsd:index += hsd:bitnum/16
+script,write preference bit,hsd:bitnum,hsd:value=1,begin
+  variable(hsd:index)
+  hsd:index := hsd:pref bit index(hsd:bitnum)
   hsd:bitnum := hsd:bitnum,mod,16
   if(hsd:value) then (hsd:value := 2^hsd:bitnum)
   write general(hsd:index, (read general(hsd:index),and,(-1--2^hsd:bitnum))+hsd:value)

@@ -83,7 +83,7 @@ September 29 2018 [Fufluns]
       "get/set menu item disabled color" [Ralph]
     * "pathfind hero to", "hero chases npc" and "cancel hero walk" [James]
     * NPCstat:pathfindingrule constant for "read npc"/"alter npc"
-    * "read preference bitset", "write preference bitset" [Ralph]
+    * "read preference bit", "write preference bit" [Ralph]
     * "pick hero" has two new args to let you pick the prompt message, and to
       auto-pick if there's only one active hero [Ralph]
     * hspeak is several times faster when compiling very large scripts [Ralph]

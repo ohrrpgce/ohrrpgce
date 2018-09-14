@@ -9301,46 +9301,44 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				<ref>getscreenwidth</ref>
 			</seealso>
 		</command>
-		<command id="readpreferencebitset">
-			<canon>read preference bitset (index, bitnum)</canon>
-			<shortname>read preference bitset</shortname>
+		<command id="readpreferencebit">
+			<canon>read preference bit (bitnum)</canon>
+			<shortname>read preference bit</shortname>
 			<description>
-				Returns the value (true or false) of one of the bitsets in the Preference Bitsets,
+				Returns the value (true or false) of one of the bits in the Preference Bitsets,
 				Active-time Battle Bitsets or Backwards-compatibility Bitsets
 				menus (in the General Game Settings menu).
-				You can use this command if there isn't a dedicated command to read the bitset,
+				You can use this command if there isn't a dedicated command to read the bit,
 				such as <ref>extendedscancodesenabled</ref>.
-				Get the appropriate values of <p>index</p> (which should be 101 or 177) and <p>bitnum</p>
-				(which should be 0 to 31)
-				by searching <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN">this wiki article</a>.
-				For example "Dead heroes gain share of experience" is <tt>read preference bitset(177, 3)</tt>.
+				Get the value of <p>bitnum</p>
+				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
+				For example "Dead heroes gain share of experience" is <tt>read preference bit(19)</tt>.
 			</description>
 			<seealso>
-				<ref>writepreferencebitset</ref>
+				<ref>writepreferencebit</ref>
 			</seealso>
 		</command>
-		<command id="writepreferencebitset">
-			<canon>write preference bitset (index, bitnum, value)</canon>
-			<shortname>write preference bitset</shortname>
+		<command id="writepreferencebit">
+			<canon>write preference bit (bitnum, value)</canon>
+			<shortname>write preference bit</shortname>
 			<description>
-				Sets the <p>value</p> (true or false) of one of the bitsets in the Preference Bitsets,
+				Sets the <p>value</p> (true or false) of one of the bits in the Preference Bitsets,
 				Active-time Battle Bitsets or Backwards-compatibility Bitsets
 				menus (in the General Game Settings menu).
-				You can use this command if there isn't a dedicated command to write the bitset,
+				You can use this command if there isn't a dedicated command to write the bit,
 				such as <ref>setbattlewaitmode</ref>.
-				Get the appropriate values of <p>index</p> (which should be 101 or 177) and <p>bitnum</p>
-				(which should be 0 to 31)
-				by searching <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN">this wiki article</a>.
+				Get the value of <p>bitnum</p>
+				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
 				For example you can turn on "Heroes use Walk in Place animation while idle" with
-				<tt>write preference bitset(177, 26, true)</tt>.
+				<tt>write preference bit(42, true)</tt>.
 				<danger>
-					Use common sense. Some bitsets, such as "Don't limit max tags to 1000" might be disastrous
+					Use common sense. Some bits, such as "Don't limit max tags to 1000" might be disastrous
 					to change in the middle of a game!
 					Or they might have no effect.
 				</danger>
 			</description>
 			<seealso>
-				<ref>readpreferencebitset</ref>
+				<ref>readpreferencebit</ref>
 			</seealso>
 		</command>
 
