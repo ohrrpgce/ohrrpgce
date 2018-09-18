@@ -98,7 +98,10 @@ function zip_and_upload {
 export WINEDEBUG=fixme-all
 
 svn cleanup
-svn revert ./ohrrpgce/wip/docs  # Plotdict gets modified by update-html.sh
+# Plotdict gets modified by update-html.sh, remove any modifications or conflicts
+svn resolve --accept theirs-full --recursive docs
+svn revert --recursive docs
+
 svn update | tee nightly-temp.txt || exit 1
 UPDATE=`grep "Updated to revision" nightly-temp.txt`
 rm nightly-temp.txt

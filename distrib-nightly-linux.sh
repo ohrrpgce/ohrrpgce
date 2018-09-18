@@ -26,13 +26,12 @@ if [ ! -d ohrrpgce ] ; then
   mkdir ohrrpgce
   svn checkout https://rpg.hamsterrepublic.com/source/wip ./ohrrpgce/wip
 fi
-# Remove the plotdict files before performing the svn update
-# because otherwise they constantly get into conflicted state
-rm ./ohrrpgce/wip/docs/plotdictionary.html
-rm ./ohrrpgce/wip/docs/plotdict.xml
 
 svn cleanup ./ohrrpgce/wip
-svn revert ./ohrrpgce/wip/docs  # Plotdict gets modified by update-html.sh
+# Plotdict gets modified by update-html.sh, remove any modifications or conflicts
+svn resolve --accept theirs-full --recursive ./ohrrpgce/wip/docs
+svn revert --recursive ./ohrrpgce/wip/docs
+
 svn update ./ohrrpgce/wip | tee nightly-temp.txt || exit 1
 UPDATE=`grep "Updated to revision" nightly-temp.txt`
 rm nightly-temp.txt
