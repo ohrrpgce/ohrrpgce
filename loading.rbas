@@ -4066,6 +4066,7 @@ SUB loadenemydata (enemy as EnemyDef, byval index as integer, byval altfile as b
    END IF
   NEXT i
   .spawn.how_many = buf(91)
+  .spawn.all_elements_on_hit = buf(371) <> 0  'Lossy if this field is expanded later!
   
   '--attacks
   FOR i as integer = 0 TO 4
@@ -4174,6 +4175,7 @@ SUB saveenemydata (enemy as EnemyDef, byval index as integer, byval altfile as b
   NEXT i
 
   buf(91) = .spawn.how_many
+  buf(371) = IIF(.spawn.all_elements_on_hit, 1, 0)
   
   '--attacks
   FOR i as integer = 0 TO 4

@@ -767,7 +767,7 @@ SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot()
       loadfoe slot, formdata, bat, bslot()
      END IF
     NEXT j
-    EXIT FOR
+    IF .enemy.spawn.all_elements_on_hit = NO THEN EXIT FOR  'Only first matching element
    END IF
   NEXT i
  END WITH

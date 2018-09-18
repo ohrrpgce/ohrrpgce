@@ -127,13 +127,14 @@ CONST EnDatAtkBequest = 367
 CONST EnDatNonElemCtr = 368
 CONST EnDatDissolveIn = 369
 CONST EnDatDissolveInTime = 370
+CONST EnDatSpawnAllElementsOnHit = 371
 
 '-------------------------------------------------------------------------
 
 DIM capindex as integer = 0
 REDIM caption(-1 TO -1) as string
-DIM max(28) as integer
-DIM min(28) as integer
+DIM max(29) as integer
+DIM min(29) as integer
 'Limit 0 is not used
 
 CONST EnLimPic = 1
@@ -220,14 +221,23 @@ CONST EnLimDissolveInTime = 28
 min(EnLimDissolveInTime) = 0
 max(EnLimDissolveInTime) = 99
 
-'--next limit 29, remember to update dim!
+CONST EnLimSpawnAllElementsOnHit = 29
+min(EnLimSpawnAllElementsOnHit) = 0
+max(EnLimSpawnAllElementsOnHit) = 1
+DIM EnCapSpawnAllElementsOnHit as integer = capindex
+addcaption caption(), capindex, "Only first matching element"
+addcaption caption(), capindex, "All of the above"
+
+'--next limit 30, remember to update min() and max() dim!
 
 '-------------------------------------------------------------------------
 '--menu content
-DIM menu(267) as string
-DIM menutype(267) as integer
-DIM menuoff(267) as integer
-DIM menulimits(267) as integer
+CONST MnuItems = 268
+DIM menu(MnuItems) as string
+DIM menutype(MnuItems) as integer
+DIM menuoff(MnuItems) as integer
+DIM menulimits(MnuItems) as integer
+DIM menucapoff(MnuItems) as integer
 
 CONST EnMenuBackAct = 0
 menu(EnMenuBackAct) = "Previous Menu"
@@ -503,7 +513,13 @@ menutype(EnMenuDissolveInTime) = 13
 menuoff(EnMenuDissolveInTime) = EnDatDissolveInTime
 menulimits(EnMenuDissolveInTime) = EnLimDissolveInTime
 
-'Next is 268, don't forget to update the DIMs
+CONST EnMenuSpawnAllElementsOnHit = 268
+menu(EnMenuSpawnAllElementsOnHit) = "on Multi-Element Hit:"
+menutype(EnMenuSpawnAllElementsOnHit) = 2000 + EnCapSpawnAllElementsOnHit
+menuoff(EnMenuSpawnAllElementsOnHit) = EnDatSpawnAllElementsOnHit
+menulimits(EnMenuSpawnAllElementsOnHit) = EnLimSpawnAllElementsOnHit
+
+'Next is 269, don't forget to update MnuItems
 
 '-------------------------------------------------------------------------
 '--menu structure
@@ -559,7 +575,7 @@ FOR i as integer = 0 TO 11
  statMenu(1 + i) = EnMenuStat + i
 NEXT i
 
-DIM spawnMenu(5 + gen(genNumElements)) as integer
+DIM spawnMenu(6 + gen(genNumElements)) as integer
 spawnMenu(0) = EnMenuBackAct
 spawnMenu(1) = EnMenuSpawnNum
 spawnMenu(2) = EnMenuSpawnDeath
@@ -569,6 +585,7 @@ spawnMenu(5) = EnMenuSpawnNEHit
 FOR i as integer = 0 TO gen(genNumElements) - 1
  spawnMenu(6 + i) = EnMenuSpawnElement + i
 NEXT i
+spawnMenu(6 + gen(genNumElements)) = EnMenuSpawnAllElementsOnHit
 
 DIM atkMenu(29 + gen(genNumElements)) as integer
 atkMenu(0) = EnMenuBackAct

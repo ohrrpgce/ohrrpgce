@@ -58,6 +58,8 @@ September 29 2018 [Fufluns]
     * The map editor's map picker shows a preview of each map [Ralph]
     * In turn-based mode negative attack delays are now allowed, to make the
       attack jump ahead in the turn-order queue [Ralph]
+    * Enemy spawning option to allow multi-elemental attacks to trigger multiple
+      on-hit elemental spawning conditions, not just the first [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

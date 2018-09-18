@@ -853,6 +853,7 @@ TYPE EnemySpawnDef
   when_alone as integer                     'id+1, 0=none
   non_elemental_hit as integer              'id+1, 0=none
   elemental_hit(maxElements - 1) as integer 'id+1, 0=none
+  all_elements_on_hit as bool
 END TYPE
 
 TYPE EnemyDef

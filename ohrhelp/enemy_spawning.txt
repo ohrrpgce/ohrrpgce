@@ -8,14 +8,20 @@ Press + or INSERT to create a new enemy and select it for spawning.
 
 Hold ALT to display the name of the enemy that you are editing. While you are holding ALT you can press the left and right arrow keys to change which enemy you are editing, or you can type in an enemy ID number.
 
-How Many to Spawn: This number determines how many enemies will be aded each time a sspawning event occurs (You can't spaawn more enemies than there are empty slots in the battle formation).
+How Many to Spawn: This number determines how many enemies will be added each time a spawning event occurs (You can't spawn more enemies than there are empty slots in the battle formation - so at most 8 enemies at once). This affects *all* of the following conditions.
 
 Spawn on Death: An enemy who will be spawned when this enemy dies.
 
-on Non-Elemental Death: An enemy who will be spawned if the enemy is killed by an attack that does not have any elemental bitsets turned on.
+Spawn on Non-Elemental Death: An enemy who will be spawned if the enemy is killed by an attack that does not have any elemental bitsets turned on.
 
 Spawn When Alone: An enemy who will be spawned whenever the enemy is the last enemy alive in a battle formation.
 
-Spawn on Non-elemental hit: An enemy who will be spawned each time the enemy is hit by an attack with no elemental bitsets turned on.
+The following 'On-hit' spawn conditions may happen whenever the enemy is targetted by an attack, whether it hits, misses or fails.
+(Don't forget to set 'How Many to Spawn' to 1 or more!)
 
-Spawn on (Elemental) Attack: For each of the elemental types, an enemy who will be spawned each time this enemy is hit with an attack that has the corresponding elemental bitset turned on.
+Spawn on Non-elemental Hit: An enemy who will be spawned each time the enemy is hit by an attack with no elemental bitsets turned on.
+
+Spawn on (Elemental) Hit: For each of the elemental types, an enemy who will be spawned each time this enemy is hit with an attack that has the corresponding elemental bitset turned on.
+
+Spawn on Multi-Element Hit: If the enemy is hit by a multi-elemental attack, this controls whether only the first matching spawn condition (which is not None) is used, or whether all of them will be activated. The total spawned will be a multiple of 'How Many to Spawn'.
+
