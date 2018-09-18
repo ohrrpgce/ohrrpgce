@@ -58,8 +58,8 @@ The attack will fail on any target with a damaged mute register
 * Check costs when used as a weapon
 This bitset only matters for attacks that are assigned to weapon items. Normally weapon attacks can always be used regardless of whether or not the attacker has enough MP, or enough items to satisfy the item cost. This bitset causes weapon attacks to be disabled when the attacker cannot afford them, just like attacks in spell lists.
 
-* Do not chain if attack fails
-This causes the attack's chain to be ignored if the attack fails. Normally chains can continue even if the attack fails.
+* Do not chain if attack misses or fails
+This causes the attack's chain to be ignored if the attack doesn't hit instead of continuing.
 
 * Reset Poison register
 This causes the target's poison register to be reset to an undamaged state. This is convenient for making attacks that cure poison.
