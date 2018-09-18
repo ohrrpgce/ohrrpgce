@@ -38,11 +38,9 @@ function zip_and_upload {
   mustexist custom.exe
   mustexist hspeak.exe
   mustexist relump.exe
-  mustexist game.pdb
-  mustexist custom.pdb
   BUILDNAME="${1}"
   ZIPFILE="ohrrpgce-win-${BUILDNAME}-wip.zip"
-  SYMBFILE="ohrrpgce-symbols-win-${BUILDNAME}-r${SVNREV}-${OHRVERCODE}-wip.7z"
+  SYMBFILE="ohrrpgce-symbols-win-${BUILDNAME}-r${SVNREV}-${OHRVERDATE}-wip.7z"
   echo "Now creating ${ZIPFILE}"
 
   rm -f distrib/"${ZIPFILE}"
@@ -81,12 +79,16 @@ function zip_and_upload {
 
   echo "Now creating ${SYMBFILE}"
   rm -f distrib/"${SYMBFILE}"
-  7z a -mx=7 -bd distrib/"${SYMBFILE}" game.exe custom.exe ./win32/custom.pdb ./win32/game.pdb > /dev/null
-  mustexist distrib/"${SYMBFILE}"
+  if [ -f "win32/game.pdb" -a -f "win32/custom.pdb" ]; then
+    7z a -mx=7 -bd distrib/"${SYMBFILE}" game.exe custom.exe ./win32/custom.pdb ./win32/game.pdb > /dev/null
+    mustexist distrib/"${SYMBFILE}"
+  else
+    echo "!!WARNING!! game.pdb or custom.pdb is missing - will not upload symbols file!"
+  fi
 
   echo "Now uploading"
   scp distrib/"${ZIPFILE}" "${SCPHOST}":"${SCPDEST}"
-  scp distrib/"${SYMBFILE}" "${SCPHOST}":"${SCPSYMBOLS}"
+  [ -f distrib/"${SYMBFILE}" ] && scp distrib/"${SYMBFILE}" "${SCPHOST}":"${SCPSYMBOLS}"
 
   echo
 }

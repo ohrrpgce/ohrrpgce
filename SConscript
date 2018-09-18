@@ -644,7 +644,7 @@ if linkgcc:
             handle_symbols += '$TARGET'
         handle_symbols += ' win32/${TARGET.filebase}.pdb'
         if not sys.platform.startswith('win'):
-            handle_symbols = 'wine ' + handle_symbols
+            handle_symbols = 'WINEDEBUG=fixme-all wine ' + handle_symbols
             # If cv2pdb fails (because Visual Studio is missing) continue without error
             handle_symbols += " || true"
         else:
