@@ -78,7 +78,7 @@ DECLARE SUB battle_attack_cancel_target_attack(byval targ as integer, byref bat 
 DECLARE FUNCTION check_has_remaining_targets(bat as BattleState, bslot() as BattleSprite, targs() as integer) as bool
 DECLARE SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_sort_away_dead_t_target(byval deadguy as integer, t() as integer)
-DECLARE SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite)
+DECLARE SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite, result as AttackResult)
 DECLARE SUB show_first_battle_timer (page as integer)
 DECLARE FUNCTION has_queued_attacks(byval who as integer) as bool
 DECLARE FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSprite) as bool
@@ -639,7 +639,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
   bslot(targ).dissolve = 0
  END IF
  IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_hit targ, bat, bslot(), formdata
- battle_counterattacks bat, h, targstat, targ, attack, bslot()
+ battle_counterattacks bat, h, targstat, targ, attack, bslot(), result
  IF bat.atk.has_consumed_costs = NO THEN
   '--if the attack costs MP, we want to actually consume MP
   IF attack.mp_cost > 0 THEN bslot(bat.acting).stat.cur.mp = large(bslot(bat.acting).stat.cur.mp - focuscost(attack.mp_cost, bslot(bat.acting).stat.cur.focus), 0)
@@ -4533,7 +4533,24 @@ SUB battle_sort_away_dead_t_target(byval deadguy as integer, t() as integer)
  IF t(UBOUND(t)) = deadguy THEN t(UBOUND(t)) = -1
 END SUB
 
-SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite)
+SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite, atkresult as AttackResult)
+
+ DIM provoke as CounterProkeEnum = attack.counterattack_provoke
+ IF provoke = provokeDefault THEN provoke = gen(genDefCounterProvoke)
+
+ SELECT CASE provoke
+  CASE provokeAlways
+  CASE provokeNever     : EXIT SUB
+  CASE provokeHit       : IF atkresult <> atkHit  THEN EXIT SUB
+  CASE provokeMiss      : IF atkresult <> atkMiss THEN EXIT SUB
+  CASE provokeFail      : IF atkresult <> atkFail THEN EXIT SUB
+  CASE provokeDidntHit  : IF atkresult =  atkHit  THEN EXIT SUB
+  CASE provokeDidntMiss : IF atkresult =  atkMiss THEN EXIT SUB
+  CASE provokeDidntFail : IF atkresult =  atkFail THEN EXIT SUB
+  CASE ELSE
+   debugc errPromptBug, "Invalid counterattack_provoke " & provoke & ", def: " & gen(genDefCounterProvoke)
+ END SELECT
+
  DIM blocking as bool = NO
  'counterattacks are forced non-blocking for active-mode
  IF bat.turn.mode = turnTURN THEN blocking = YES 'But in turn-based mode, they are blocking

@@ -1088,7 +1088,7 @@ END FUNCTION
 
 ' Returns the native size in BYTES of the records for the version you are running
 FUNCTION curbinsize (byval id as integer) as integer
- IF id = binATTACK     THEN RETURN 600 'attack.bin
+ IF id = binATTACK     THEN RETURN 602 'attack.bin
                                        '(size of combined attack data as on DT6 page minus 80)
  IF id = binSTF        THEN RETURN 84  '.stf
  IF id = binSONGDATA   THEN RETURN 32  'songdata.bin
@@ -4440,6 +4440,8 @@ IF fix_stun OR fix_dam_mp OR fix_elem_fails OR fix_multipliers THEN
   IF saveattack THEN saveattackdata dat(), i
  NEXT
 END IF
+
+IF gen(genDefCounterProvoke) = 0 THEN gen(genDefCounterProvoke) = provokeAlways
 
 '-------------------------------------------------------------------------------
 ' Enemies

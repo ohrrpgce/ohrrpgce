@@ -611,6 +611,20 @@ Type AttackElementCondition
 	value as single
 End Type
 
+
+Enum CounterProkeEnum
+	provokeDefault = 0       ' Use genDefCounterProvoke
+	provokeAlways = 1        ' Always trigger counter attacks
+	provokeNever = 2         ' Never trigger counter attacks
+	provokeHit = 3           ' Only if the attack hit (didn't miss or fail)
+	provokeFail = 4          ' Only if the attack failed
+	provokeMiss = 5          ' Only if the attack missed
+	provokeDidntHit = 6      ' Only if the attack missed or failed
+	provokeDidntFail = 7     ' Only if the attack didn't fail
+	provokeDidntMiss = 8     ' Only if the attack didn't miss
+	provokeLAST = 8
+End Enum
+
 Enum AttackAnimation
 	atkAnimNormal = 0
 	atkAnimProjectile = 1
@@ -754,6 +768,7 @@ Type AttackData
 	targ_does_not_flinch as bool
 	do_not_exceed_targ_stat as bool
 	nonblocking as bool
+	counterattack_provoke as CounterProkeEnum
 	never_trigger_elemental_counterattacks as bool
 	poison_is_negative_regen as bool
 End Type

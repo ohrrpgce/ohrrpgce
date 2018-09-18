@@ -30,6 +30,11 @@ DECLARE SUB atk_edit_preview(byval pattern as integer, sl as Slice Ptr)
 DECLARE SUB atk_edit_pushptr(state as MenuState, laststate as MenuState, byref menudepth as integer)
 DECLARE SUB atk_edit_backptr(workmenu() as integer, mainMenu() as integer, state as MenuState, laststate as menustate, byref menudepth as integer)
 
+'--Globals
+DIM counter_provoke_captions(provokeLAST) as string * 23 = { _
+    "Default", "Always", "Never", "If attack hits", "If attack fails", "If attack misses", _
+    "If attack doesn't hit", "If attack doesn't fail", "If attack doesn't miss" _
+}
 
 SUB addcaption (caption() as string, byref indexer as integer, cap as string)
  str_array_append caption(), cap
@@ -128,8 +133,9 @@ CONST AtkTurnDelay = 147
 CONST AtkDramaticPause = 148
 CONST AtkDamageColor = 149
 CONST AtkTransmogRewards = 150
+#define AtkCounterProvoke 151
 
-'Next menu item is 151 (remember to update MnuItems)
+'Next menu item is 152 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -203,6 +209,7 @@ CONST AtkDatTurnDelay = 319
 CONST AtkDatDramaticPause = 320
 CONST AtkDatDamageColor = 338
 CONST AtkDatTransmogRewards = 339
+CONST AtkDatCounterProvoke = 340
 
 'anything past this requires expanding the data
 
@@ -331,7 +338,7 @@ atk_chain_bitset_names(4) = "Invert condition"
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
-CONST MnuItems = 150
+CONST MnuItems = 151
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -342,8 +349,8 @@ DIM menucapoff(MnuItems) as integer
 
 DIM capindex as integer = 0
 REDIM caption(-1 TO -1) as string
-DIM max(44) as integer
-DIM min(44) as integer
+DIM max(45) as integer
+DIM min(45) as integer
 
 'Limit(0) is not used
 
@@ -679,7 +686,15 @@ menucapoff(AtkTransmogRewards) = capindex
 addcaption caption(), capindex, "Don't give rewards for old enemy"  '0
 addcaption caption(), capindex, "Give rewards for old enemy"  '1
 
-'next limit is 45 (remember to update the max() and min() dims)
+CONST AtkLimCounterProvoke = 45
+max(AtkLimCounterProvoke) = provokeLAST
+min(AtkLimCounterProvoke) = 0
+menucapoff(AtkCounterProvoke) = capindex
+FOR idx as integer = 0 TO UBOUND(counter_provoke_captions)
+ addcaption caption(), capindex, counter_provoke_captions(idx)
+NEXT
+
+'next limit is 46 (remember to update the max() and min() dims)
 
 '----------------------------------------------------------------------
 '--menu content
@@ -704,7 +719,7 @@ menutype(AtkTargAct) = 1
 menu(AtkCostAct) = "Cost..."
 menutype(AtkCostAct) = 1
 
-menu(AtkChainAct) = "Chaining..."
+menu(AtkChainAct) = "Chaining and Counterattacks..."
 menutype(AtkChainAct) = 1
 
 menu(AtkBitAct) = "Bitsets..."
@@ -1030,6 +1045,11 @@ menutype(AtkTransmogRewards) = 2000 + menucapoff(AtkTransmogRewards)
 menuoff(AtkTransmogRewards) = AtkDatTransmogRewards
 menulimits(AtkTransmogRewards) = AtkLimTransmogRewards
 
+menu(AtkCounterProvoke) = "Provoke counterattacks:"
+menutype(AtkCounterProvoke) = 25
+menuoff(AtkCounterProvoke) = AtkDatCounterProvoke
+menulimits(AtkCounterProvoke) = AtkLimCounterProvoke
+
 menu(AtkElementFailAct) = "Elemental failure conditions..."
 menutype(AtkElementFailAct) = 1
 
@@ -1126,7 +1146,7 @@ costMenu(7) = AtkItemCost2
 costMenu(8) = AtkItem3
 costMenu(9) = AtkItemCost3
 
-DIM chainMenu(22) as integer
+DIM chainMenu(23) as integer
 chainMenu(0) = AtkBackAct
 chainMenu(1) = AtkChainBrowserAct
 chainMenu(2) = AtkChainHeader
@@ -1150,6 +1170,7 @@ chainMenu(19) = AtkInsteadChainBits
 chainMenu(20) = AtkInsteadChainMode
 chainMenu(21) = AtkInsteadChainVal1
 chainMenu(22) = AtkInsteadChainVal2
+chainMenu(23) = AtkCounterProvoke
 
 DIM tagMenu(6) as integer
 tagMenu(0) = AtkBackAct
@@ -1555,7 +1576,7 @@ DO
   enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
   '--fix caption attack caption duration
   caption(menucapoff(AtkCapTime) - 1) = "ticks (" & seconds_estimate(recbuf(AtkDatCapTime)) & " sec)"
-  updateflexmenu state.pt, dispmenu(), workmenu(), state.last, menu(), menutype(), menuoff(), menulimits(), recbuf(), caption(), max(), recindex
+  updateflexmenu state.pt, dispmenu(), workmenu(), state.last, menu(), menutype(), menuoff(), menulimits(), recbuf(), caption(), max(), recindex, menucapoff()
   flexmenu_update_selectable workmenu(), menutype(), selectable()
   '--update the picture and palette preview
   ChangeSpriteSlice preview, sprTypeAttack, recbuf(AtkDatPic), recbuf(AtkDatPal)
@@ -2203,6 +2224,7 @@ FUNCTION editflexmenu (state as MenuState, nowindex as integer, menutype() as in
 '           22=(int+100) with a % sign after it
 '           23=color, or 0 for default
 '           24=turn-based attack delay
+'           25=counterattack provoke setting (captioned, with default for 0)
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -2227,7 +2249,7 @@ DIM changed as bool = NO
 DIM s as string
 
 SELECT CASE menutype(nowindex)
- CASE 0, 8, 12 TO 17, 19, 20, 23, 24, 3000 TO 3999' integers
+ CASE 0, 8, 12 TO 17, 19, 20, 23, 24, 25, 3000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
  CASE 1000 TO 2999' captioned integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
@@ -2295,7 +2317,7 @@ SUB enforceflexbounds (menuoff() as integer, menutype() as integer, menulimits()
 
 FOR i as integer = 0 TO UBOUND(menuoff)
  SELECT CASE menutype(i)
-  CASE 0, 8, 12 TO 17, 19, 20, 22, 23, 24, 1000 TO 3999
+  CASE 0, 8, 12 TO 17, 19, 20, 22, 23, 24, 25, 1000 TO 3999
    '--bound ints
    IF menulimits(i) > 0 THEN
     '--only bound items that have real limits
@@ -2320,7 +2342,7 @@ SUB setactivemenu (workmenu() as integer, newmenu() as integer, byref state as M
  state.need_update = YES
 END SUB
 
-SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as integer, size as integer, menu() as string, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, maxtable() as integer, recindex as integer)
+SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as integer, size as integer, menu() as string, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, maxtable() as integer, recindex as integer, menucapoff() as integer)
 
 '--generates a nowmenu subset from generic menu data
 
@@ -2355,6 +2377,7 @@ SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as intege
 '           22=(int+100) with a % sign after it
 '           23=color, or 0 for default
 '           24=turn-based attack delay
+'           25=counterattack provoke setting (captioned, with default for 0)
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-2000)
@@ -2474,6 +2497,10 @@ FOR i = 0 TO size
    datatext = zero_default(dat)
   CASE 24 '--turn-based attack delay
    datatext = "Happen " & ABS(dat) & " attacks " & IIF(dat < 0, "earlier", "later") & " than normal"
+  CASE 25 '--counterattack provoke setting
+   capnum = menucapoff(AtkCounterProvoke)
+   datatext = caption(capnum + dat)
+   IF dat = provokeDefault THEN datatext &= " (" & caption(capnum + gen(genDefCounterProvoke)) & ")"
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
    datatext = dat & " " & caption(capnum + dat)

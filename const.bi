@@ -199,6 +199,7 @@ CONST genDefMapAutorunScript = 219      ' Default autorun script, if not overrid
 CONST genMaxEnemyPic = 220       ' Max enemy spriteset id in enemies.rgfx
 CONST genMinimapAlgorithm = 221  ' How to generate in-game minimaps. MinimapAlgorithmEnum
 CONST genBits3 = 222'-225        ' More general bitsets
+CONST genDefCounterProvoke = 226 ' CounterProkeEnum value for provokeDefault attacks (Default to provokeAlways if 0)
 
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.

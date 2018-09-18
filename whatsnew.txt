@@ -60,6 +60,8 @@ September 29 2018 [Fufluns]
       attack jump ahead in the turn-order queue [Ralph]
     * Enemy spawning option to allow multi-elemental attacks to trigger multiple
       on-hit elemental spawning conditions, not just the first [Ralph]
+    * Attack option to control whether counterattacks are triggered on a hit,
+      miss or fail, with a global default in Battle System Options menu [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

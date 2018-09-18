@@ -27,6 +27,8 @@ Battle Mode: Choose between active-time and turn-based.
 
 Number of Elements: Set the number of elements available for use throughout Custom. Decreasing this value will delete data for the removed elements. The limit is currently 64.
 
+  Display
+
 Status Indicators: Choose a special font character that will stand for a status affliction so that the player can see when his heroes are afflicted. There is currently no support for Status Indicators for enemies. Press ENTER to see all available font characters.
 
 Enemy Dissolve: Use the Left and Right arrow keys to choose a default animation for enemies to perform when they die. This can be overridden on a case-by-case basis in the Enemy Editor.
@@ -40,3 +42,7 @@ Experience given to swapped-out heroes: This controls the amount of experience a
 Hero Weak State: This is the HP threshold below which heroes use their "Weak" graphic when standing (in battles).
 
 Enemy Weak State: This is the HP threshold below which enemies use their "Desperation" attacks.
+
+  Other Defaults
+
+Attacks Provoke Counterattacks: Defines when counterattacks are triggered, by default. This only affects attacks which use the "Provoke Counterattacks: Default" setting.
