@@ -246,12 +246,13 @@ DIM atkbit(-1 TO 128) as string
 atkbit(3) = "Unreversable Picture"
 atkbit(4) = "Steal Item"
 
-'FOR i = 0 TO 7
- 'atkbit(i + 5) = elementnames(i) & " Damage" '05-12
- 'atkbit(i + 13) = "Bonus vs " & readglobalstring(9 + i, "EnemyType" & i+1) '13-20
- 'atkbit(i + 21) = "Fail vs " & elementnames(i) & " resistance" '21-28
- 'atkbit(i + 29) = "Fail vs " & readglobalstring(9 + i, "EnemyType" & i+1) '29-36
-'NEXT i
+'Obsolete: these are hidden except in the allbits() debug editor
+FOR i = 0 TO 7
+ atkbit(i + 5) = "##" & elementnames(i) & " Damage (obsolete,unused)" '05-12
+ atkbit(i + 13) = "##Bonus vs " & readglobalstring(9 + i, "EnemyType (obsolete,unused)" & i+1) '13-20
+ atkbit(i + 21) = "##Fail vs " & elementnames(i) & " resistance (obsolete,unused)" '21-28
+ atkbit(i + 29) = "##Fail vs " & readglobalstring(9 + i, "EnemyType (obsolete,unused)" & i+1) '29-36
+NEXT i
 
 FOR i = 0 TO 7
  atkbit(i + 37) = "Cannot target enemy slot " & i
@@ -303,7 +304,7 @@ dmgbit(49) = "Ignore attacker's extra hits"
 dmgbit(51) = "Show damage without inflicting"
 dmgbit(57) = "Reset target stat to max before hit"
 dmgbit(58) = "Allow Cure to exceed maximum"
-'dmgbit(60) = "Damage " & statnames(statMP) & " (obsolete)"
+dmgbit(60) = "##Damage MP (obsolete,unused)"
 dmgbit(61) = "Do not randomize"
 dmgbit(62) = "Damage can be Zero"
 dmgbit(69) = "% based attacks damage instead of set"
@@ -1367,14 +1368,10 @@ DO
    IF LEN(dmgbit(i)) THEN allbits(i) = dmgbit(i)
   NEXT
 
-  'Obsolete bits; changes will have no effect
-  FOR i = 0 TO 7
-   allbits(i + 5) = elementnames(i) & " Damage" '05-12
-   allbits(i + 13) = "Bonus vs " & readglobalstring(9 + i, "EnemyType" & i+1) '13-20
-   allbits(i + 21) = "Fail vs " & elementnames(i) & " resistance" '21-28
-   allbits(i + 29) = "Fail vs " & readglobalstring(9 + i, "EnemyType" & i+1) '29-36
-  NEXT i
-  allbits(60) = "Damage " & statnames(statMP) & " (obsolete)"
+  'Unhide hidden bits
+  FOR i = 0 TO UBOUND(allbits)
+   IF LEFT(allbits(i), 2) = "##" THEN allbits(i) = MID(allbits(i), 3)
+  NEXT
 
   atk_edit_merge_bitsets recbuf(), buffer()
   editbitset buffer(), 0, UBOUND(allbits), allbits(), "attack_bitsets"

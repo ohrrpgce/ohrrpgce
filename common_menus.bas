@@ -57,7 +57,7 @@ npc_facetypes(2) = "Do Not Face Player"
 '==============================================================================
 
 'Edit array of bits. The bits don't have to be consecutive, but they do have to be in ascending order.
-'The bits corresponding to any blank entries in names() are skipped over.
+'The bits corresponding to any blank entries in names(), or starting with '##' are hidden/skipped over.
 'if remem_pt is not -2 (initialise to -1) it is used to store the selected bit (index in names())
 'If immediate_quit is true, then toggling a bit causes the menu to quit immediately and return YES (otherwise NO)
 FUNCTION editbitset (array() as integer, wof as integer, last as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -2, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
@@ -77,7 +77,7 @@ FUNCTION editbitset (array() as integer, wof as integer, last as integer, names(
 
  DIM nextbit as integer = 0
  FOR i as integer = 0 to last
-  IF names(i) <> "" THEN
+  IF names(i) <> "" ANDALSO LEFT(names(i), 2) <> "##" THEN
    menu(nextbit) = names(i)
    bits(nextbit) = i
    IF remem_pt = i THEN state.pt = nextbit
