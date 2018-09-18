@@ -134,8 +134,9 @@ CONST AtkDramaticPause = 148
 CONST AtkDamageColor = 149
 CONST AtkTransmogRewards = 150
 #define AtkCounterProvoke 151
+CONST AtkTriggerElementalCounters = 152
 
-'Next menu item is 152 (remember to update MnuItems)
+'Next menu item is 153 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -290,7 +291,7 @@ atkbit(82) = "Do not cause target to flinch"
 atkbit(84) = "Delay doesn't block further actions"
 atkbit(85) = "Force victory"
 atkbit(86) = "Force battle exit (no run animation)"
-atkbit(87) = "Never trigger elemental counterattacks"
+atkbit(87) = "Never trigger elemental counterattacks"  'Also in Spawning & Counterattacks menu
 '             ^---------------------------------------^
 '               the amount of room you have (39 chars)
 
@@ -339,7 +340,7 @@ atk_chain_bitset_names(4) = "Invert condition"
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
-CONST MnuItems = 151
+CONST MnuItems = 152
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -1051,6 +1052,9 @@ menutype(AtkCounterProvoke) = 25
 menuoff(AtkCounterProvoke) = AtkDatCounterProvoke
 menulimits(AtkCounterProvoke) = AtkLimCounterProvoke
 
+menu(AtkTriggerElementalCounters) = " Never trigger elemental counterattacks:"
+menutype(AtkTriggerElementalCounters) = 7000 + 87  'Attack bit 87
+
 menu(AtkElementFailAct) = "Elemental failure conditions..."
 menutype(AtkElementFailAct) = 1
 
@@ -1147,7 +1151,7 @@ costMenu(7) = AtkItemCost2
 costMenu(8) = AtkItem3
 costMenu(9) = AtkItemCost3
 
-DIM chainMenu(23) as integer
+DIM chainMenu(24) as integer
 chainMenu(0) = AtkBackAct
 chainMenu(1) = AtkChainBrowserAct
 chainMenu(2) = AtkChainHeader
@@ -1172,6 +1176,7 @@ chainMenu(20) = AtkInsteadChainMode
 chainMenu(21) = AtkInsteadChainVal1
 chainMenu(22) = AtkInsteadChainVal2
 chainMenu(23) = AtkCounterProvoke
+chainMenu(24) = AtkTriggerElementalCounters
 
 DIM tagMenu(6) as integer
 tagMenu(0) = AtkBackAct

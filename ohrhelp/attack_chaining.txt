@@ -62,3 +62,5 @@ When the target class or target setting are different, the chained attack will p
   Counterattacks
 
 Counterattacks to an attack are defined in the enemy editor, but here you can control whether this attack will trigger them if it hits, misses, or fails. The Default value is set in the Battle System Options menu.
+
+Never Trigger elemental counterattacks: This option can specifically disable elemental counterattacks (as opposed to non-elemental or stat counterattacks). It is also an attack bitset.
