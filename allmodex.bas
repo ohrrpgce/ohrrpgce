@@ -6851,6 +6851,8 @@ sub find_palette_mapping(inputpal() as RGBcolor, masterpal() as RGBcolor, mappin
 	next
 end sub
 
+declare sub quantize_surface_threshold(surf as Surface ptr, ret as Frame ptr, pal() as RGBcolor, options as QuantizeOptions, quantizing as bool)
+
 'Convert a 32 bit Surface to a paletted Frame.
 'Frees surf.
 'Only colours firstindex..255 in pal() are used.
@@ -6867,6 +6869,25 @@ function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options 
 	dim ret as Frame ptr
 	ret = frame_new(surf->width, surf->height)
 
+	if options.dither then
+		if surf->pitch <> surf->width or ret->pitch <> surf->width then
+			debugc errPromptBug, "Can't call dither_image due to pitch mismatch"
+		else
+			dither_image(surf->pColorData, surf->width, surf->height, ret->image, @pal(0), 8, options.firstindex)
+			'Handle options.transparency
+			quantize_surface_threshold(surf, ret, pal(), options, NO)
+		end if
+	else
+		quantize_surface_threshold(surf, ret, pal(), options, YES)
+	end if
+
+	gfx_surfaceDestroy(@surf)
+	return ret
+end function
+
+'If quantizing=YES, converting the image to 8 bit, otherwise only post-processing result from dither_image
+'to handle options.transparency.
+private sub quantize_surface_threshold(surf as Surface ptr, ret as Frame ptr, pal() as RGBcolor, options as QuantizeOptions, quantizing as bool)
 	dim inptr as RGBcolor ptr
 	dim outptr as ubyte ptr
 	for y as integer = 0 to surf->height - 1
@@ -6878,16 +6899,14 @@ function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options 
 				*outptr = 0
 			elseif inptr->a = 0 then
 				*outptr = 0
-			else
+			elseif quantizing then
 				*outptr = nearcolor(pal(), inptr->r, inptr->g, inptr->b, options.firstindex)
 			end if
 			inptr += 1
 			outptr += 1
 		next
 	next
-	gfx_surfaceDestroy(@surf)
-	return ret
-end function
+end sub
 
 
 '==========================================================================================

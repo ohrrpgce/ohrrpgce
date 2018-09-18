@@ -332,6 +332,7 @@ DECLARE FUNCTION font_load_16x16 (filename as string) as Font ptr
 TYPE QuantizeOptions
 	firstindex as integer    'Pass firstindex = 1 to prevent anything from getting mapped to colour 0. (Default 0)
 	transparency as RGBcolor 'Color to map to 0 (should have .a=0) (Default -1, meaning none)
+	dither as bool
 END TYPE
 
 ENUM ImageFileTypes

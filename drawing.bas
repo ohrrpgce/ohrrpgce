@@ -611,12 +611,26 @@ FUNCTION importimage_process(filename as string, pmask() as RGBcolor) as Frame p
   END IF
 
  ELSE
+  DIM menu(1) as string
+  menu(0) = "Dither image (better color matching)"
+  menu(1) = "No dithering"
+  DIM paloption as integer
+  paloption = multichoice("This image is unpaletted, and needs to be converted to your master palette. " _
+                          "How do you want to convert it?", _
+                          menu(), , , "importimage_dithering")
+  IF paloption = -1 THEN RETURN NULL
+
+  DIM options as QuantizeOptions
+  options.firstindex = 1
+  options.transparency = TYPE(-1)  'No transparent color
+  options.dither = (paloption = 0)
+
   'Since the source image is not paletted, we don't know what the background colour
   'is (if any: not all backdrops and tilesets are transparent). Import it, disallowing anything to
   'be remapped to colour 0 (unfortunately colour 0 is the only pure black in the default palette),
   'then let the user pick.
   '(If it's a BMP with an alpha channel, transparent pixels are also automatically mapped to 0)
-  img = image_import_as_frame_quantized(filename, pmask(), TYPE(1, -1))
+  img = image_import_as_frame_quantized(filename, pmask(), options)
   importimage_change_background_color img
  END IF
 
