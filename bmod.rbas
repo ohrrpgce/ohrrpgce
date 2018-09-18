@@ -587,7 +587,9 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
  '--attempt inflict the damage to the target
  DIM h as integer = 0 '--set inside inflict
  DIM targstat as integer = 0 '--set inside inflict
- IF inflict(h, targstat, bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount) THEN
+ DIM result as AttackResult
+ result = inflict(h, targstat, bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount)
+ IF result = atkHit THEN
   '--attack succeeded
   IF attack.transmog.enemy >= 0 ANDALSO is_enemy(targ) THEN
    changefoe bat, targ - 4, attack.transmog, formdata, bslot()

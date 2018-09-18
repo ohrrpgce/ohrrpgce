@@ -259,7 +259,7 @@ END FUNCTION
 '- other non-damaging effects like tags, force-run, erase rewards
 '- death checks
 '- stat caps (bug 980)
-FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attackerslot as integer, targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, tcount as integer) as bool
+FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attackerslot as integer, targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, tcount as integer) as AttackResult
 
  attacker.attack_succeeded = NO
  
@@ -348,25 +348,25 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
   IF attack.aim_math = 12 THEN attackhit = randint(100) < ((attack.aim_extra + acc * accmult) * (100 - dog * dogmult)) / 100
   IF attackhit = NO THEN
    target.harm.text = readglobalstring(120, "miss", 20)
-   RETURN NO
+   RETURN atkMiss
   END IF
  
   WITH target
    IF attack.fail_if_targ_poison = YES AND .stat.cur.poison < .stat.max.poison THEN
     .harm.text = readglobalstring(122, "fail", 20)
-    RETURN NO
+    RETURN atkFail
    END IF
    IF attack.fail_if_targ_regen = YES AND .stat.cur.regen < .stat.max.regen THEN
     .harm.text = readglobalstring(122, "fail", 20)
-    RETURN NO
+    RETURN atkFail
    END IF
    IF attack.fail_if_targ_stun = YES AND .stat.cur.stun <> .stat.max.stun THEN
     .harm.text = readglobalstring(122, "fail", 20)
-    RETURN NO
+    RETURN atkFail
    END IF
    IF attack.fail_if_targ_mute = YES AND .stat.cur.mute <> .stat.max.mute THEN
     .harm.text = readglobalstring(122, "fail", 20)
-    RETURN NO
+    RETURN atkFail
    END IF
   END WITH
  
@@ -464,9 +464,13 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
     IF t = compGt THEN fail = (effectiveval > .value + 0.000005)
     IF t = compGe THEN fail = (effectiveval >= .value - 0.000005)
     IF fail THEN
-     target.harm.text = readglobalstring(122, "fail", 20)
-     IF .type AND 32 THEN target.harm.text = readglobalstring(120, "miss", 20)
-     RETURN NO
+     IF .type AND 32 THEN
+      target.harm.text = readglobalstring(120, "miss", 20)
+      RETURN atkMiss
+     ELSE
+      target.harm.text = readglobalstring(122, "fail", 20)
+      RETURN atkFail
+     END IF
     END IF
    END WITH
   NEXT
@@ -666,7 +670,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
  
  '--success!
  attacker.attack_succeeded = YES
- RETURN YES
+ RETURN atkHit
 
 END FUNCTION
 
