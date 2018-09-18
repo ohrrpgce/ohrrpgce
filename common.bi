@@ -233,6 +233,7 @@ DECLARE FUNCTION percent_grabber OVERLOAD (byref float as double, byref repr as 
 DECLARE FUNCTION percent_grabber OVERLOAD (byref float as single, byref repr as string, min as double, max as double, decimalplaces as integer = 4, ret_if_repr_changed as bool = YES) as bool
 
 DECLARE FUNCTION bitgrabber (byref bitsets as integer, whichbit as integer, byref state as MenuState) as bool
+DECLARE FUNCTION bitsetgrabber (bitwords() as integer, wordnum as integer, bitnum as integer, byref state as MenuState) as bool
 DECLARE FUNCTION boolgrabber (byref thebool as bool, byref state as MenuState) as bool
 
 DECLARE FUNCTION menu_click (state as MenuState) as bool

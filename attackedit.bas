@@ -2190,6 +2190,22 @@ FUNCTION flexmenu_handle_crossrefs (state as MenuState, nowindex as integer, men
  RETURN ret
 END FUNCTION
 
+'Helper for menutypes 6000-6999 and 7000-7999 which works out readbit/setbit arguments
+SUB flexmenu_bitset_word_and_bit(menutype_item as integer, menuoff_item as integer, byref wordnum as integer, byref bitnum as integer)
+ IF menutype_item >= 7000 THEN
+  bitnum = menutype_item - 7000
+  IF bitnum < 16*4 THEN
+   wordnum = AtkDatBitsets
+  ELSE
+   wordnum = AtkDatBitsets2
+   bitnum -= 16*4
+  END IF
+ ELSE
+  wordnum = menuoff_item
+  bitnum = menutype_item - 6000
+ END If
+END SUB
+
 FUNCTION editflexmenu (state as MenuState, nowindex as integer, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, mintable() as integer, maxtable() as integer) as bool
 '--Calls intgrabber/strgrabber etc, as appropriate for the selected data field.
 '--returns true if data has changed, false it not
@@ -2236,6 +2252,12 @@ FUNCTION editflexmenu (state as MenuState, nowindex as integer, menutype() as in
 '                     the repr string needed by percent_grabber.
 '                     Limits not yet supported.
 '                     (The single is stored in 2 consecutive INTs.)
+'           6000-6999=bitset, either NO/YES or captioned
+'                     The bit number, in the bitarray starting at offset in menuoff is type - 6000
+'                     If menucapoff() is non-zero it's used instead of NO/YES
+'           7000-7999=attack bitset, either NO/YES or captioned
+'                     The attack bit number is type - 7000, menuoff() ignored.
+'                     If menucapoff() is non-zero it's used instead of NO/YES
 'menuoff() is the offsets into the data block where each menu data is stored
 'menulimits() is the offsets into the mintable() and maxtable() arrays
 'datablock() holds the actual data
@@ -2294,6 +2316,10 @@ SELECT CASE menutype(nowindex)
   'modifies caption(capnum)
   changed = percent_grabber(value, caption(capnum), -1000.0, 1000.0)
   SerSingle(datablock(), menuoff(nowindex), value)
+ CASE 6000 TO 6999, 7000 TO 7999' bitset or attack bitset
+  DIM as integer wordnum, bitnum
+  flexmenu_bitset_word_and_bit menutype(nowindex), menuoff(nowindex), wordnum, bitnum
+  changed = bitsetgrabber(datablock(), wordnum, bitnum, state)
 END SELECT
 
 '--preview sound effects
@@ -2391,6 +2417,12 @@ SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as intege
 '                     the repr string needed by percent_grabber.
 '                     Limits not yet supported.
 '                     (The single is stored in 2 consecutive INTs.)
+'           6000-6999=bitset, either NO/YES or captioned
+'                     The bit number, in the bitarray starting at offset in menuoff is type - 6000
+'                     If menucapoff() is non-zero it's used instead of NO/YES
+'           7000-7999=attack bitset, either NO/YES or captioned
+'                     The attack bit number is type - 7000, menuoff() ignored.
+'                     If menucapoff() is non-zero it's used instead of NO/YES
 'menuoff() tells us what index to look for the data for this menu item
 'menulimits() is the offset to look in maxtable() for limits
 'datablock() the actual data the menu represents
@@ -2518,6 +2550,15 @@ FOR i = 0 TO size
   CASE 5000 TO 5999 '--percent_grabber
    capnum = menutype(nowdat(i)) - 5000
    datatext = caption(capnum)
+  CASE 6000 TO 6999, 7000 TO 7999 '--bitset or attack bitset
+   DIM as integer wordnum, bitnum, thebit
+   flexmenu_bitset_word_and_bit menutype(nowdat(i)), menuoff(nowdat(i)), wordnum, bitnum
+   thebit = readbit(datablock(), wordnum, bitnum)
+   IF menucapoff(nowdat(i)) THEN
+    datatext = caption(menucapoff(nowdat(i) + thebit))
+   ELSE
+    datatext = yesorno(thebit)
+   END IF
  END SELECT
  IF replacestr(nowmenu(i), "$$", datatext) = 0 THEN
   'No replacements made

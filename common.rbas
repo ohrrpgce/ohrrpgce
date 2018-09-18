@@ -5544,10 +5544,21 @@ FUNCTION cropafter_keycombo(index_selected as bool = NO) as bool
  RETURN keyval(scShift) > 0 AND keyval(scBackspace) > 1
 END FUNCTION
 
+'Edit a bit in an integer - Note: whichbit is a mask, not a bit number!
 'Automatically sets state.need_update
 FUNCTION bitgrabber (byref bitsets as integer, whichbit as integer, byref state as MenuState) as bool
  IF toggle_item(state) THEN
   bitsets XOR= whichbit
+  state.need_update = YES
+  RETURN YES
+ END IF
+END FUNCTION
+
+'Edit a bit in an integer array (ie, data record)
+'Automatically sets state.need_update
+FUNCTION bitsetgrabber (bitwords() as integer, wordnum as integer, bitnum as integer, byref state as MenuState) as bool
+ IF toggle_item(state) THEN
+  setbit bitwords(), wordnum, bitnum, (readbit(bitwords(), wordnum, bitnum) XOR 1)
   state.need_update = YES
   RETURN YES
  END IF
