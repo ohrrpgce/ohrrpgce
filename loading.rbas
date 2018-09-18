@@ -3961,6 +3961,7 @@ SUB clearenemydata (enemy as EnemyDef)
  memset @enemy, 0, sizeof(enemy)
 
  enemy.pal = -1 'default palette
+ enemy.spawn.how_many = 1
  '--elemental resists
  FOR i as integer = 0 TO maxElements - 1
   enemy.elementals(i) = 1.0f
@@ -3971,6 +3972,7 @@ SUB clearenemydata (buf() as integer)
  flusharray buf(), dimbinsize(binDT1)
 
  buf(54) = -1 'default palette
+ buf(91) = 1  'how many to spawn
  '--elemental resists
  FOR i as integer = 0 TO 63 'maxElements - 1
   SerSingle buf(), 239 + i*2, 1.0f
