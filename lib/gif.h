@@ -109,7 +109,7 @@ struct GifPalette
     int bitDepth;  // log2 of the possible number of colors
     //int numColors; // The number of colors actually used (including kGifTransIndex)
 
-    // alpha component should be set to 0
+    // alpha component is ignored.
     GifRGBA colors[256];
 };
 
@@ -367,6 +367,8 @@ void GifAverageColors(GifRGBA* image, GifKDTree* tree)
         col.r = (uint8_t)r;
         col.g = (uint8_t)g;
         col.b = (uint8_t)b;
+        // When building a k-d tree with a fixed palette col.a is the original palette index, otherwise it's garbage
+        col.a = image[node.firstPixel].a;
         node.palIndex = palIndex;
     }
     //tree->pal.numColors = GifIMax(palIndex, kGifTransIndex + 1);
