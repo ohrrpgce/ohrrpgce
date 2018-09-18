@@ -6874,7 +6874,7 @@ function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options 
 		outptr = ret->image + y * ret->pitch
 		for x as integer = 0 to surf->width - 1
 			' Ignore alpha
-			if inptr->col and &h00ffffff = options.transparency.col then
+			if (inptr->col and &h00ffffff) = options.transparency.col then
 				*outptr = 0
 			elseif inptr->a = 0 then
 				*outptr = 0
