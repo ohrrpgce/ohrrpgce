@@ -530,6 +530,8 @@ DIM state as MenuState
 state.autosize = YES
 state.autosize_ignore_pixels = 12
 state.need_update = YES
+DIM menuopts as MenuOptions
+menuopts.fullscreen_scrollbar = YES
 
 DIM mainMenu(9) as integer
 mainMenu(0) = EnMenuBackAct
@@ -897,7 +899,7 @@ DO
   DrawSlice preview_box, vpage
  END IF
 
- standardmenu dispmenu(), state, 0, 0, vpage
+ standardmenu dispmenu(), state, 0, 0, vpage, menuopts
  draw_fullscreen_scrollbar state, , vpage
  IF keyval(scAlt) > 0 OR show_name_ticks > 0 THEN 'holding ALT or just pressed TAB
   show_name_ticks = large(0, show_name_ticks - 1)

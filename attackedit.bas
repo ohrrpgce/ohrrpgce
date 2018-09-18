@@ -1114,6 +1114,8 @@ DIM dispmenu(65) as string
 DIM state as MenuState
 state.autosize = YES
 state.autosize_ignore_pixels = 12
+DIM menuopts as MenuOptions
+menuopts.fullscreen_scrollbar = YES
 
 DIM mainMenu(13) as integer
 mainMenu(0) = AtkBackAct
@@ -1622,7 +1624,7 @@ DO
 
  edgeprint flexmenu_tooltip(workmenu(state.pt), menutype()), pLeft, pBottom, uilook(uiDisabledItem), dpage
 
- standardmenu dispmenu(), state, 0, 0, dpage
+ standardmenu dispmenu(), state, 0, 0, dpage, menuopts
  IF keyval(scAlt) > 0 OR show_name_ticks > 0 THEN 'holding ALT or just tab-flipped, show ID and name
    show_name_ticks = large(0, show_name_ticks - 1)
    tmpstr = atk_edit_atkname(recbuf()) & " " & recindex
