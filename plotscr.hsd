@@ -1104,47 +1104,47 @@ script,write preference bit,hsd:bitnum,hsd:value=1,begin
 end
 
 script,set battle wait mode,hsd:bit=1,begin
-  write preference bitset(101, 0, hsd:bit)
+  write preference bit(0, hsd:bit)
 end
 
 script,set caterpillar mode,hsd:bit=1,begin
-  write preference bitset(101, 1, hsd:bit)
+  write preference bit(1, hsd:bit)
 end
 
 script,set no HP level up restore,hsd:bit=1,begin
-  write preference bitset(101, 2, hsd:bit)
+  write preference bit(2, hsd:bit)
 end
 
 script,set no MP level up restore,hsd:bit=1,begin
-  write preference bitset(101, 3, hsd:bit)
+  write preference bit(3, hsd:bit)
 end
 
 script,set inn no revive mode,hsd:bit=1,begin
-  write preference bitset(101, 4, hsd:bit)
+  write preference bit(4, hsd:bit)
 end
 
 script,set full hero swap mode,hsd:bit=1,begin
-  write preference bitset(101, 5, hsd:bit)
+  write preference bit(5, hsd:bit)
 end
 
 script,hide battle ready meter,hsd:bit=1,begin
-  write preference bitset(101, 6, hsd:bit)
+  write preference bit(6, hsd:bit)
 end
 
 script,hide battle health meter,hsd:bit=1,begin
-  write preference bitset(101, 7, hsd:bit)
+  write preference bit(7, hsd:bit)
 end
 
 script,set debug keys disable,hsd:bit=1,begin
-  write preference bitset(101, 8, hsd:bit)
+  write preference bit(8, hsd:bit)
 end
 
 script,set dead heroes gain experience,hsd:bit=1,begin
-  write preference bitset(177, 3, hsd:bit)
+  write preference bit(19, hsd:bit)
 end
 
 script,set active battle pause for animations,hsd:bit=1,begin
-  write preference bitset(177, 7, hsd:bit)
+  write preference bit(23, hsd:bit)
 end
 
 script,set capped hero stat,hsd:who,hsd:stat,hsd:value,hsd:stat type=current stat,begin
@@ -1177,7 +1177,7 @@ script, set inventory size, hsd:newsize, begin
 end
 
 script, extended scancodes enabled, begin
-  return(read preference bitset(177, 8))
+  return(read preference bit(24))
 end
 
 script, get level cap, begin
