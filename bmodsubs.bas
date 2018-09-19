@@ -130,67 +130,64 @@ END FUNCTION
 '
 'See also attack_cost_info in bcommon.bas
 
-FUNCTION atkallowed (atk as AttackData, attackerslot as integer, spclass as integer, lmplev as integer, bslot() as BattleSprite) as bool
 'In-battle function
-'--atk   = attack data
-'--attackerslot = bslot() index hero or enemy who is attacking
+'--attackerslot = bslot() index of hero or enemy who is attacking
 '--spclass  = 0 for normal attacks, 1 for level-MP spells
 '--lmplev   = which level-MP level to use
+FUNCTION atkallowed (attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer, bslot() as BattleSprite) as bool
 
-DIM byref attacker as BattleSprite = bslot(attackerslot)
+ DIM byref attacker as BattleSprite = bslot(attackerslot)
 
-'--check for mutedness
-IF atk.mutable AND attacker.stat.cur.mute < attacker.stat.max.mute THEN
- RETURN NO
-END IF
-
-'--Check for sufficient MP (You can cast with negative MP as long as the attack costs no MP)
-IF large(attacker.stat.cur.mp, 0) - focuscost(atk.mp_cost, attacker.stat.cur.focus) < 0 THEN
- RETURN NO
-END IF
-
-'NOTE: hp_cost is not checked!
-'NOTE: money_cost is not checked!
-
-'--check for level-MP (heroes only)
-IF attackerslot <= 3 AND spclass = 1 THEN
- IF gam.hero(attackerslot).levelmp(lmplev) <= 0 THEN
+ '--check for mutedness
+ IF attack.mutable AND attacker.stat.cur.mute < attacker.stat.max.mute THEN
   RETURN NO
  END IF
-END IF
 
-'--check for sufficient items
-DIM itemid as integer
-DIM itemcount as integer
-FOR i as integer = 0 to 2
-  itemid = atk.item(i).id
-  itemcount = atk.item(i).number
-  IF itemid > 0 THEN 'this slot is used
-    ' Only hero items are checked
-    ' However if an enemy uses this attack, it will add/subtract items from the player!
-    IF attackerslot <= 3 THEN
-      IF countitem(itemid - 1) < itemcount THEN
-        'yes, this still works for adding items.
-        RETURN NO
-      END IF
-    END IF
+ '--Check for sufficient MP (You can cast with negative MP as long as the attack costs no MP)
+ IF large(attacker.stat.cur.mp, 0) - focuscost(attack.mp_cost, attacker.stat.cur.focus) < 0 THEN
+  RETURN NO
+ END IF
+
+ 'NOTE: hp_cost is not checked!
+ 'NOTE: money_cost is not checked!
+
+ '--check for level-MP (heroes only)
+ IF attackerslot <= 3 AND spclass = 1 THEN
+  IF gam.hero(attackerslot).levelmp(lmplev) <= 0 THEN
+   RETURN NO
   END IF
-NEXT i
+ END IF
 
-'--succeed
-RETURN YES
+ '--check for sufficient items
+ DIM itemid as integer
+ DIM itemcount as integer
+ FOR i as integer = 0 TO UBOUND(attack.item)
+  itemid = attack.item(i).id
+  itemcount = attack.item(i).number
+  IF itemid > 0 THEN 'this slot is used
+   ' Only hero items are checked
+   ' However if an enemy uses this attack, it will add/subtract items from the player!
+   IF attackerslot <= 3 THEN
+    IF countitem(itemid - 1) < itemcount THEN
+     'yes, this still works for adding items.
+     RETURN NO
+    END IF
+   END IF
+  END IF
+ NEXT i
 
+ '--succeed
+ RETURN YES
 END FUNCTION
 
+'Out-of-battle function
+'attackerslot = party slot of hero who wants to cast the spell
+'spclass  = 0 for normal attacks, 1 for level-MP spells
 FUNCTION atkallowed(attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer) as bool
- 'Out-of-battle function
- 'attackerslot = party slot of hero who wants to cast the spell
- 'spclass  = 0 for normal attacks, 1 for level-MP spells
 
  DIM byref attacker as HeroState = gam.hero(attackerslot)
 
  DIM cost as integer = focuscost(attack.mp_cost, attacker.stat.cur.focus)
-
  IF spclass = 0 AND attacker.stat.cur.mp < cost THEN
   RETURN NO
  END IF
