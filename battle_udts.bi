@@ -77,9 +77,9 @@ TYPE BattleSprite
   stat as BattleStats
   elementaldmg(maxElements - 1) as single
   '--level-mp
-  consume_lmp as integer '0 for no LMP consumption, >= 1 to indicate which level of MP should be deducted
+  consume_lmp as integer '-1 for no LMP consumption, >= 0 to indicate which level of MP should be deducted
                          'FIXME: consume_lmp would probably be better as a member of the AttackState or AttackQueue later on.
-  '--item consumption
+  '--item consumption (when using an item; this is not part of attack costs)
   consume_item as integer ' -1 means no item consumed, >=0 indicates which inventory slot will be used (NOT item ID)
                          'FIXME: consume_item would probably be better as a member of the AttackState or AttackQueue later on.
   '--battle menu

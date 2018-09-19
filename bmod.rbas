@@ -313,6 +313,7 @@ SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
  '--Init BattleSprites
  FOR i as integer = 0 TO 11
   bslot(i).consume_item = -1
+  bslot(i).consume_lmp = -1
   bslot(i).revenge = -1
   bslot(i).thankvenge = -1
   bslot(i).counter_target = -1
@@ -647,9 +648,9 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
  END IF
 
  WITH bslot(bat.acting)
-  IF .consume_lmp > 0 THEN
-   gam.hero(bat.acting).levelmp(.consume_lmp - 1) -= 1
-   .consume_lmp = 0
+  IF .consume_lmp >= 0 THEN
+   gam.hero(bat.acting).levelmp(.consume_lmp) -= 1
+   .consume_lmp = -1
   END IF
   IF .consume_item >= 0 THEN
    IF consumeitem(.consume_item) THEN
@@ -752,10 +753,10 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  'check to see if the hero is still allowed to do the attack.
  'This may have changed since we started targetting because the attacker
  'might have been muted, or hit with an MP-damaging attack
- ' (NOTE: Does not attempt to re-check LMP)
+ ' (FIXME: Does not attempt to re-check LMP)
  IF NOT atkallowed(bat.targ.atk, bat.hero_turn, 0, 0, bslot()) THEN
   bslot(bat.hero_turn).attack = 0
-  bslot(bat.hero_turn).consume_lmp = 0
+  bslot(bat.hero_turn).consume_lmp = -1
   bat.targ.mode = targNONE
   flusharray carray(), 7, 0
   EXIT SUB
@@ -891,7 +892,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  IF do_cancel THEN
   menusound gen(genCancelSFX)
   bslot(bat.hero_turn).attack = 0
-  bslot(bat.hero_turn).consume_lmp = 0
+  bslot(bat.hero_turn).consume_lmp = -1
   bat.targ.mode = targNONE
   flusharray carray(), 7, 0
   EXIT SUB
@@ -2867,7 +2868,7 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
     '--attack is allowed
     menusound gen(genAcceptSFX)
     '--if lmp then set lmp consume flag
-    IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN bslot(bat.hero_turn).consume_lmp = bat.sptr \ 3 + 1
+    IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN bslot(bat.hero_turn).consume_lmp = bat.sptr \ 3
     '--queue attack
     bslot(bat.hero_turn).attack = bat.spell.slot(bat.sptr).atk_id + 1
     '--exit spell menu
@@ -2999,9 +3000,7 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
 
    DIM itembuf(dimbinsize(binITM)) as integer
    loaditemdata itembuf(), inventory(bat.item.pt).id
-   bslot(bat.hero_turn).consume_item = -1
-   IF itembuf(73) = 1 THEN bslot(bat.hero_turn).consume_item = bat.item.pt
-   
+   bslot(bat.hero_turn).consume_item = IIF(itembuf(73) = 1, bat.item.pt, -1)
    bslot(bat.hero_turn).attack = itembuf(47)
    bat.targ.mode = targSETUP
    bat.menu_mode = batMENUHERO
@@ -3076,6 +3075,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  DIM i as integer
 
  '--check for item consumption
+ '(Note: this is different from attack item costs)
  IF bslot(bat.acting).consume_item >= 0 THEN
   IF inventory(bslot(bat.acting).consume_item).used = 0 THEN
    '--abort if item is gone
@@ -3108,6 +3108,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
 
  IF attack.recheck_costs_after_delay THEN
   'The "Re-check costs after attack delay" is on, so cancel the attack if we can't afford it now
+  '(Costs aren't subtracted until the moment of the attack against the first target, in battle_attack_do_inflict)
   IF atkallowed(attack, bat.acting, 0, 0, bslot()) = NO THEN
    bat.atk.id = -1
    EXIT SUB
