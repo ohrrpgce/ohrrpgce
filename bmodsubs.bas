@@ -212,6 +212,14 @@ SUB subtract_attack_costs(attack as AttackData, attackerslot as integer, byref b
   END WITH
  END IF
 
+ '--Level-MP
+ WITH attacker
+  IF attackerslot <= 3 AND .consume_lmp >= 0 THEN
+   gam.hero(attackerslot).levelmp(.consume_lmp) -= 1
+   .consume_lmp = -1
+  END IF
+ END WITH
+
  '--ditto for HP
  IF attack.hp_cost > 0 THEN
    WITH attacker

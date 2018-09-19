@@ -640,26 +640,25 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
  END IF
  IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_hit targ, bat, bslot(), formdata
  battle_counterattacks bat, h, targstat, targ, attack, bslot(), result
+
  IF bat.atk.has_consumed_costs = NO THEN
   subtract_attack_costs attack, bat.acting, bat, bslot()
+
+  'Was the attack triggered by an item? That's outside normal attack costs
+  WITH bslot(bat.acting)
+   IF .consume_item >= 0 THEN
+    IF consumeitem(.consume_item) THEN
+     'Finished the item stack
+     setbit bat.iuse(), 0, .consume_item, 0
+     evalitemtags
+    END IF
+    .consume_item = -1
+   END IF
+  END WITH
 
   '--set the flag to prevent re-consuming costs
   bat.atk.has_consumed_costs = YES
  END IF
-
- WITH bslot(bat.acting)
-  IF .consume_lmp >= 0 THEN
-   gam.hero(bat.acting).levelmp(.consume_lmp) -= 1
-   .consume_lmp = -1
-  END IF
-  IF .consume_item >= 0 THEN
-   IF consumeitem(.consume_item) THEN
-    setbit bat.iuse(), 0, .consume_item, 0
-    evalitemtags
-   END IF
-   .consume_item = -1
-  END IF
- END WITH
 
  IF liveherocount(bslot()) = 0 THEN bat.atk.id = -1
  
