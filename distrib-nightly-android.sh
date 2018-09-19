@@ -13,6 +13,17 @@ fi
 SCRIPTDIR="${0%/*}"
 
 cd "${SCRIPTDIR}"
+
+svn cleanup
+svn update | tee nightly-temp.txt || exit 1
+UPDATE=`grep "Updated to revision" nightly-temp.txt`
+rm nightly-temp.txt
+
+if [ -z "$UPDATE" ] ; then
+  echo No changes, no need to update nightly.
+  exit
+fi
+
 scons fbc="${FBCARM}" release=1 android-source=1 game
 cd "${SDLANDROID}"/project/jni/application
 
