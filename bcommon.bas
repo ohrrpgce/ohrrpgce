@@ -93,7 +93,9 @@ FUNCTION focuscost (cost as integer, focus as integer) as integer
  END IF
 END FUNCTION
 
-FUNCTION attack_cost_info(byref atk as AttackData, byval focus as integer=0, byval cur_mp as integer=0, byval max_mp as integer=0, byval magic_list_type as integer=0, byval lmp_level as integer=0, byval cur_lmp as integer=0) as string
+'magic_list_type: 0 for normal/random spell lists, 1 for level mp
+'lmp_level: -1 if no cost, otherwise 0-based level-MP level
+FUNCTION attack_cost_info(byref atk as AttackData, byval focus as integer=0, byval cur_mp as integer=0, byval max_mp as integer=0, byval magic_list_type as integer=0, byval lmp_level as integer=-1, byval cur_lmp as integer=0) as string
 
  DIM cost_s as string
  DIM vec as string vector
@@ -127,9 +129,9 @@ FUNCTION attack_cost_info(byref atk as AttackData, byval focus as integer=0, byv
   v_append vec, cost_s
  END IF
 
- IF magic_list_type = 1 ANDALSO lmp_level > 0 THEN
+ IF magic_list_type = 1 ANDALSO lmp_level > -1 THEN
   'Uses level-based MP
-  cost_s = readglobalstring(160, "Level MP", 20) & " " & lmp_level & ": " & cur_lmp
+  cost_s = readglobalstring(160, "Level MP", 20) & " " & (lmp_level + 1) & ": " & cur_lmp
   v_append vec, cost_s
  END IF
  

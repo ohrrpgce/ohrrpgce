@@ -73,7 +73,7 @@ DECLARE SUB display_attack_queue (bslot() as BattleSprite)
 DECLARE FUNCTION blocked_by_attack (bat as BattleState, byval who as integer) as bool
 DECLARE FUNCTION ready_meter_may_grow (bat as BattleState, bslot() as BattleSprite, byval who as integer) as bool
 
-DECLARE FUNCTION hero_attack_cost_info(byref atk as AttackData, byval hero_slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=0) as string
-DECLARE FUNCTION bslot_attack_cost_info(bslot() as BattleSprite, byref atk as AttackData, byval slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=0) as string
+DECLARE FUNCTION hero_attack_cost_info(byref atk as AttackData, byval hero_slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=-1) as string
+DECLARE FUNCTION bslot_attack_cost_info(bslot() as BattleSprite, byref atk as AttackData, byval slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=-1) as string
 
 #ENDIF

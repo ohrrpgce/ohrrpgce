@@ -3677,7 +3677,7 @@ SUB spells_menu_refresh_list(sp as SpellsMenuState)
 
     .name = atk.name
     .desc = atk.description
-    .cost = hero_attack_cost_info(atk, sp.hero, sp.lists(sp.listnum).magic_type, i \ 3 + 1)
+    .cost = hero_attack_cost_info(atk, sp.hero, sp.lists(sp.listnum).magic_type, i \ 3)
    END IF
    .name = rpad(.name, " ", 10)
   END WITH

@@ -2726,8 +2726,8 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
     loadattackdata atk, bat.spell.slot(i).atk_id
     bat.spell.slot(i).name = atk.name
     bat.spell.slot(i).desc = atk.description
-    bat.spell.slot(i).cost = bslot_attack_cost_info(bslot(), atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(i / 3) + 1)
-    IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(i / 3), bslot()) THEN
+    bat.spell.slot(i).cost = bslot_attack_cost_info(bslot(), atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), i \ 3)
+    IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), i \ 3, bslot()) THEN
      '-- check whether or not the spell is allowed
      bat.spell.slot(i).enable = YES
     END IF
@@ -2863,11 +2863,11 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
    menusound gen(genCancelSFX)
   ELSE
    loadattackdata atk, bat.spell.slot(bat.sptr).atk_id
-   IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(bat.sptr / 3), bslot()) THEN
+   IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), bat.sptr \ 3, bslot()) THEN
     '--attack is allowed
     menusound gen(genAcceptSFX)
     '--if lmp then set lmp consume flag
-    IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN bslot(bat.hero_turn).consume_lmp = INT(bat.sptr / 3) + 1
+    IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN bslot(bat.hero_turn).consume_lmp = bat.sptr \ 3 + 1
     '--queue attack
     bslot(bat.hero_turn).attack = bat.spell.slot(bat.sptr).atk_id + 1
     '--exit spell menu
@@ -4990,10 +4990,10 @@ END SUB
 
 '==========================================================================================
 
-FUNCTION hero_attack_cost_info(byref atk as AttackData, byval hero_slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=0) as string
+FUNCTION hero_attack_cost_info(byref atk as AttackData, byval hero_slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=-1) as string
  DIM cur_lmp as integer = 0
- IF magic_list_type = 1 ANDALSO lmp_level > 0 THEN
-  cur_lmp = gam.hero(hero_slot).levelmp(lmp_level - 1)
+ IF magic_list_type = 1 ANDALSO lmp_level > -1 THEN
+  cur_lmp = gam.hero(hero_slot).levelmp(lmp_level)
  END IF
  RETURN attack_cost_info(atk,_
    gam.hero(hero_slot).stat.cur.focus,_
@@ -5004,11 +5004,11 @@ FUNCTION hero_attack_cost_info(byref atk as AttackData, byval hero_slot as integ
    cur_lmp)
 END FUNCTION
 
-FUNCTION bslot_attack_cost_info(bslot() as BattleSprite, byref atk as AttackData, byval slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=0) as string
+FUNCTION bslot_attack_cost_info(bslot() as BattleSprite, byref atk as AttackData, byval slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=-1) as string
  DIM cur_lmp as integer = 0
  IF slot >= 0 ANDALSO slot <= 3 THEN
-  IF magic_list_type = 1 ANDALSO lmp_level > 0 THEN
-   cur_lmp = gam.hero(slot).levelmp(lmp_level - 1)
+  IF magic_list_type = 1 ANDALSO lmp_level > -1 THEN
+   cur_lmp = gam.hero(slot).levelmp(lmp_level)
   END IF
  END IF
  RETURN attack_cost_info(atk,_
