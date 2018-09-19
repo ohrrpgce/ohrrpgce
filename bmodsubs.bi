@@ -21,9 +21,17 @@ declare function is_hero(byval who as integer) as bool
 declare function is_enemy(byval who as integer) as bool
 declare function is_attack(byval who as integer) as bool
 declare function is_weapon(byval who as integer) as bool
+
 declare sub anim_advance (byval who as integer, attack as AttackData, bslot() as battlesprite, t() as integer)
-declare function atkallowed (atk as AttackData, byval attacker as integer, byval spclass as integer, byval lmplev as integer, bslot() as BattleSprite) as bool
+
+declare function atkallowed overload (attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer, bslot() as BattleSprite) as bool
+declare function atkallowed overload (attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer) as bool
+declare sub subtract_attack_costs overload (attack as AttackData, attackerslot as integer, byref bat as BattleState, bslot() as BattleSprite)
+declare sub subtract_attack_costs overload (attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer)
+
 declare function checktheftchance (byval item as integer, byval itemp as integer, byval rareitem as integer, byval rareitemp as integer) as integer
+declare function trytheft (bat as BattleState, byval who as integer, byval targ as integer, attack as AttackData, bslot() as BattleSprite) as bool
+
 declare function count_attacks_in_ai_list (byval ai as EnemyAIEnum, byval slot as integer, bslot() as BattleSprite) as integer
 declare function enemycount (bslot() as battlesprite) as integer
 declare function targenemycount (bslot() as BattleSprite, byval for_alone_ai as bool = NO) as integer
@@ -43,7 +51,7 @@ declare sub battle_target_arrows_mask (inrange() as integer, byval d as integer,
 declare sub battle_target_arrows (byval d as integer, byval axis as integer, bslot() as battlesprite, targ as TargettingState, byval allow_spread as integer=0)
 declare function targetmaskcount (tmask() as integer) as integer
 declare sub traceshow (s as string)
-declare function trytheft (bat as BattleState, byval who as integer, byval targ as integer, attack as AttackData, bslot() as BattleSprite) as bool
+
 declare function hero_total_exp (byval hero_slot as integer) as integer
 declare sub updatestatslevelup (byval hero_slot as integer, byval allowforget as bool)
 declare sub hero_total_equipment_bonuses (byval hero_slot as integer, bonuses() as integer)

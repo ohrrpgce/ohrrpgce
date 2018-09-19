@@ -3654,10 +3654,9 @@ END FUNCTION
 
 SUB spells_menu_refresh_list(sp as SpellsMenuState)
  IF sp.lists(sp.listnum).magic_type < 0 THEN EXIT SUB
- 
+
  DIM atk as AttackData
- DIM cost as integer
- 
+
  FOR i as integer = 0 TO 23
   WITH sp.spell(i)
    .name = ""
@@ -3671,27 +3670,14 @@ SUB spells_menu_refresh_list(sp as SpellsMenuState)
     .id = gam.hero(sp.hero).spells(sp.lists(sp.listnum).menu_index, i) - 1
     loadattackdata atk, .id
     IF atk.useable_outside_battle THEN
-     .can_use = YES
+     .can_use = atkallowed(atk, sp.hero, sp.lists(sp.listnum).magic_type, i \ 3)
      .targt = atk.targ_set
      .tstat = atk.targ_stat
     END IF
-    cost = focuscost(atk.mp_cost, gam.hero(sp.hero).stat.cur.focus)
-    
-    'FIXME: should use the same cost-checking sub that the battle spell menu uses
-    IF sp.lists(sp.listnum).magic_type = 0 AND gam.hero(sp.hero).stat.cur.mp < cost THEN
-     .can_use = NO
-    END IF
-    IF sp.lists(sp.listnum).magic_type = 1 AND gam.hero(sp.hero).levelmp(i \ 3) = 0 THEN
-     .can_use = NO
-    END IF
-    IF gam.hero(sp.hero).stat.cur.hp = 0 THEN
-     .can_use = NO
-    END IF
-    
+
     .name = atk.name
     .desc = atk.description
     .cost = hero_attack_cost_info(atk, sp.hero, sp.lists(sp.listnum).magic_type, i \ 3 + 1)
-
    END IF
    .name = rpad(.name, " ", 10)
   END WITH
@@ -3944,26 +3930,20 @@ SUB spells_menu_control_pick_spell(sp as SpellsMenuState)
   IF sp.cursor = 24 THEN sp.mset = 0
   IF sp.spell(sp.cursor).can_use THEN
    '--spell that can be used oob
+   DIM lmplev as integer = sp.cursor \ 3
    
    DIM atk as AttackData
    loadattackdata atk, sp.spell(sp.cursor).id
    '--NOTE: atkallowed isn't needed here because the check is done elswehere...
    '--still, it would be nice if we could use it anyway...
-   'IF atkallowed(atk, sp.hero, sp.lists(sp.listnum).magic_type, sp.cursor \ 3, )
+   'IF atkallowed(atk, sp.hero, sp.lists(sp.listnum).magic_type, lmplev)
    
    '--repaint the screen so it will show up under the menu attack targ picker
    spells_menu_paint sp
    IF menu_attack_targ_picker(sp.spell(sp.cursor).id, -1, sp.hero, TRIM(sp.spell(sp.cursor).name), 36) THEN
     '--attack was actually used
-    'FIXME: outside-battle and inside-battle attack cost consumption should be unified
-    '--deduct MP
-    DIM cost as integer
-    cost = focuscost(atk.mp_cost, gam.hero(sp.hero).stat.cur.focus)
-    gam.hero(sp.hero).stat.cur.mp = small(large(gam.hero(sp.hero).stat.cur.mp - cost, 0), gam.hero(sp.hero).stat.max.mp)
-    IF sp.lists(sp.listnum).magic_type = 1 THEN
-     '--deduct LMP
-     gam.hero(sp.hero).levelmp(sp.cursor \ 3) -= 1
-    END IF
+    subtract_attack_costs atk, sp.hero, sp.lists(sp.listnum).magic_type, lmplev
+
     spells_menu_refresh_hero sp
     sp.re_use = YES
    ELSE

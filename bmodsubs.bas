@@ -125,19 +125,27 @@ FUNCTION is_weapon(byval who as integer) as bool
  RETURN NO
 END FUNCTION
 
-FUNCTION atkallowed (atk as AttackData, byval attacker as integer, byval spclass as integer, byval lmplev as integer, bslot() as BattleSprite) as bool
+'==============================================================================
+'                                Attack costs
+'
+'See also attack_cost_info in bcommon.bas
+
+FUNCTION atkallowed (atk as AttackData, attackerslot as integer, spclass as integer, lmplev as integer, bslot() as BattleSprite) as bool
+'In-battle function
 '--atk   = attack data
-'--attacker = hero or enemy who is attacking
+'--attackerslot = bslot() index hero or enemy who is attacking
 '--spclass  = 0 for normal attacks, 1 for level-MP spells
 '--lmplev   = which level-MP level to use
 
+DIM byref attacker as BattleSprite = bslot(attackerslot)
+
 '--check for mutedness
-IF atk.mutable AND bslot(attacker).stat.cur.mute < bslot(attacker).stat.max.mute THEN
+IF atk.mutable AND attacker.stat.cur.mute < attacker.stat.max.mute THEN
  RETURN NO
 END IF
 
-'--check for sufficient mp
-IF large(bslot(attacker).stat.cur.mp, 0) - focuscost(atk.mp_cost, bslot(attacker).stat.cur.focus) < 0 THEN
+'--Check for sufficient MP (You can cast with negative MP as long as the attack costs no MP)
+IF large(attacker.stat.cur.mp, 0) - focuscost(atk.mp_cost, attacker.stat.cur.focus) < 0 THEN
  RETURN NO
 END IF
 
@@ -145,8 +153,8 @@ END IF
 'NOTE: money_cost is not checked!
 
 '--check for level-MP (heroes only)
-IF attacker <= 3 AND spclass = 1 THEN
- IF gam.hero(attacker).levelmp(lmplev) <= 0 THEN
+IF attackerslot <= 3 AND spclass = 1 THEN
+ IF gam.hero(attackerslot).levelmp(lmplev) <= 0 THEN
   RETURN NO
  END IF
 END IF
@@ -160,7 +168,7 @@ FOR i as integer = 0 to 2
   IF itemid > 0 THEN 'this slot is used
     ' Only hero items are checked
     ' However if an enemy uses this attack, it will add/subtract items from the player!
-    IF attacker <= 3 THEN
+    IF attackerslot <= 3 THEN
       IF countitem(itemid - 1) < itemcount THEN
         'yes, this still works for adding items.
         RETURN NO
@@ -173,6 +181,99 @@ NEXT i
 RETURN YES
 
 END FUNCTION
+
+FUNCTION atkallowed(attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer) as bool
+ 'Out-of-battle function
+ 'attackerslot = party slot of hero who wants to cast the spell
+ 'spclass  = 0 for normal attacks, 1 for level-MP spells
+
+ DIM byref attacker as HeroState = gam.hero(attackerslot)
+
+ DIM cost as integer = focuscost(attack.mp_cost, attacker.stat.cur.focus)
+
+ IF spclass = 0 AND attacker.stat.cur.mp < cost THEN
+  RETURN NO
+ END IF
+ IF spclass = 1 AND attacker.levelmp(lmplev) = 0 THEN
+  RETURN NO
+ END IF
+ IF attacker.stat.cur.hp = 0 THEN
+  RETURN NO
+ END IF
+
+ RETURN YES
+END FUNCTION
+
+'In-battle routine
+SUB subtract_attack_costs(attack as AttackData, attackerslot as integer, byref bat as BattleState, bslot() as BattleSprite)
+ DIM byref attacker as BattleSprite = bslot(attackerslot)
+
+ '--if the attack costs MP, we want to actually consume MP
+ IF attack.mp_cost > 0 THEN
+  WITH attacker
+   .stat.cur.mp = large(.stat.cur.mp - focuscost(attack.mp_cost, .stat.cur.focus), 0)
+  END WITH
+ END IF
+
+ '--ditto for HP
+ IF attack.hp_cost > 0 THEN
+   WITH attacker
+     .stat.cur.hp = large(.stat.cur.hp - attack.hp_cost, 0)
+     .harm.ticks = gen(genDamageDisplayTicks)
+     .harm.pos.x = .x + (.w * .5)
+     .harm.pos.y = .y + (.h * .5)
+     .harm.text = STR(attack.hp_cost)
+   END WITH
+   'This triggerfade is needed because the hp cost might have killed the attacker
+   triggerfade attackerslot, bslot()
+ END IF
+
+ '--ditto for money
+ IF attack.money_cost <> 0 THEN
+   gold = large(gold - attack.money_cost, 0)
+   WITH attacker
+     .harm.ticks = gen(genDamageDisplayTicks)
+     .harm.pos.x = .x + (.w * .5)
+     .harm.pos.y = .y + (.h * .5)
+     .harm.text = ABS(attack.money_cost) & "$"
+     IF attack.money_cost < 0 THEN .harm.text  += "+"
+   END WITH
+   IF gold > 2000000000 THEN gold = 2000000000
+   IF gold < 0 THEN gold = 0
+ END IF
+
+ '--if the attack consumes items, we want to consume those too
+ FOR i as integer = 0 TO UBOUND(attack.item)
+  WITH attack.item(i)
+   IF .id > 0 THEN 'this slot is used
+    IF .number > 0 THEN 'remove items
+     delitem(.id - 1, .number)
+    ELSEIF .number < 0 THEN 'add items
+     getitem(.id - 1, abs(.number))
+    END IF
+    'Update tags when items have changed because it could affect chain conditionals
+    evalitemtags
+   END IF
+  END WITH
+ NEXT i
+END SUB
+
+'Out-of-battle routine
+SUB subtract_attack_costs(attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer)
+ DIM byref attacker as HeroState = gam.hero(attackerslot)
+
+ '--deduct MP
+ DIM cost as integer
+ cost = focuscost(attack.mp_cost, attacker.stat.cur.focus)
+ attacker.stat.cur.mp = small(large(attacker.stat.cur.mp - cost, 0), attacker.stat.max.mp)
+ IF spclass = 1 THEN
+  '--deduct LMP
+  attacker.levelmp(lmplev) -= 1
+ END IF
+END SUB
+
+
+'==============================================================================
 
 FUNCTION checktheftchance (byval item as integer, byval itemP as integer, byval rareitem as integer, byval rareitemP as integer) as integer
 IF randint(100) < itemP THEN
