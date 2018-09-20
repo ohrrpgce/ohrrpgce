@@ -14,6 +14,7 @@
 #include "custom.bi"
 #include "thingbrowser.bi"
 #include "bcommon.bi"
+#include "sliceedit.bi"
 
 '--Local SUBs
 DECLARE FUNCTION atk_edit_add_new(recbuf() as integer, preview_box as Slice Ptr) as bool
@@ -1206,17 +1207,20 @@ NEXT
 '--Create the box that holds the preview
 DIM preview_box as Slice Ptr
 preview_box = NewSliceOfType(slRectangle)
-ChangeRectangleSlice preview_box, ,uilook(uiDisabledItem), uilook(uiMenuItem), , transOpaque
+ChangeRectangleSlice preview_box, , uilook(uiDisabledItem), uilook(uiMenuItem), , transOpaque
 '--Align the box in the bottom right
 WITH *preview_box
  .X = -8
  .Y = -8
- .Width = 52
- .Height = 52
- .AnchorHoriz = 2
- .AlignHoriz = 2
- .AnchorVert = 2
- .AlignVert = 2
+ .CoverChildren = YES
+ .PaddingTop = 1
+ .PaddingBottom = 1
+ .PaddingLeft = 1
+ .PaddingRight = 1
+ .AnchorHoriz = alignRight
+ .AlignHoriz = alignRight
+ .AnchorVert = alignBottom
+ .AlignVert = alignBottom
 END WITH
 
 '--Create the preview sprite. It will be updated before it is drawn.
@@ -1224,10 +1228,10 @@ DIM preview as Slice Ptr
 preview = NewSliceOfType(slSprite, preview_box)
 '--Align the sprite to the center of the containing box
 WITH *preview
- .AnchorHoriz = 1
- .AlignHoriz = 1
- .AnchorVert = 1
- .AlignVert = 1
+ .AnchorHoriz = alignCenter
+ .AlignHoriz = alignCenter
+ .AnchorVert = alignCenter
+ .AlignVert = alignCenter
 END WITH
 
 '--Create the weapon preview sprite. It will be updated before it is drawn.
@@ -1235,10 +1239,11 @@ DIM weppreview as Slice Ptr
 weppreview = NewSliceOfType(slSprite, preview_box)
 '--Align the sprite to the top of the containing box
 WITH *weppreview
- .AnchorHoriz = 1
- .AlignHoriz = 1
- .AnchorVert = 2
- .AlignVert = 0
+ .Visible = NO
+ .AnchorHoriz = alignCenter
+ .AlignHoriz = alignCenter
+ .AnchorVert = alignBottom
+ .AlignVert = alignTop
 END WITH
 
 DIM damagepreview as string
@@ -1584,6 +1589,7 @@ DO
   flexmenu_update_selectable workmenu(), menutype(), selectable()
   '--update the picture and palette preview
   ChangeSpriteSlice preview, sprTypeAttack, recbuf(AtkDatPic), recbuf(AtkDatPal)
+  DrawSlice preview_box, dpage   'FIXME: pre-call DrawSlice to work around CoverChildren lag
   '--update the weapon picture and palette preview
   IF recbuf(AtkDatWepPic) = 0 THEN
    weppreview->visible = NO
@@ -1679,10 +1685,12 @@ FUNCTION atk_edit_add_new (recbuf() as integer, preview_box as Slice Ptr) as boo
       loadattackdata recbuf(), attacktocopy
       convertattackdata recbuf(), attack
       ChangeSpriteSlice preview, sprTypeAttack, recbuf(AtkDatPic), recbuf(AtkDatPal)
+      DrawSlice preview_box, dpage   'FIXME: pre-call DrawSlice to work around CoverChildren lag
       menu(0) = "Cancel"
       menu(1) = "New Blank Attack"
       menu(2) = "Copy of Attack " & attacktocopy
     END IF
+    IF keyval(scF6) > 1 THEN slice_editor preview_box
     IF enter_space_click(state) THEN
       setkeys
       SELECT CASE state.pt
