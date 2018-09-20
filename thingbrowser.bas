@@ -1028,16 +1028,19 @@ Function SpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  box->Fill = YES
  box->Visible = NO
  ChangeRectangleSlice box, , , , borderNone
- dim spr as Slice Ptr
- spr = NewSliceOfType(slSprite, plank, SL_EDITOR_THINGBROWSER_PLANK_SPRITE)
- ChangeSpriteSlice spr, sprite_kind(), id, , sprite_frame()
+ if id <> none_id then
+  dim spr as Slice Ptr
+  spr = NewSliceOfType(slSprite, plank, SL_EDITOR_THINGBROWSER_PLANK_SPRITE)
+  ChangeSpriteSlice spr, sprite_kind(), id, , sprite_frame()
+  plank->size = spr->size
+ else
+  plank->size = XY(40, sprite_sizes(sprite_kind()).size.h)
+ end if
  dim txt as Slice Ptr
  txt = NewSliceOfType(slText, plank, SL_PLANK_MENU_SELECTABLE)
  txt->AlignVert = alignBottom
  txt->AnchorVert = alignBottom
- ChangeTextSlice txt, thing_text_for_id(id), uilook(uiMenuItem), YES
- if id = none_id then ChangeTextSlice txt, "NONE"
- plank->size = spr->size
+ ChangeTextSlice txt, iif(id = none_id, "NONE", thing_text_for_id(id)), uilook(uiMenuItem), YES
  return plank
 End Function
 
