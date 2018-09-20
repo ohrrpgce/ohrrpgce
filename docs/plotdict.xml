@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-09-10">
+<plotscript version="wip" datecode="2018-09-20">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -877,7 +877,17 @@ resume player</example>
 		<command id="suspendnpcs">
 			<canon>suspend NPCs</canon>
 			<shortname>suspend NPCs</shortname>
-			<description>Stops NPCs from walking around automatically. When suspend NPCs is run, all NPCs stop in their tracks once they've finished their current move, ready for you to control them with the <ref>walknpc</ref> command. You can use <ref>waitforall</ref> to wait for all NPCs to stop moving. Use <ref>setnpcmoves</ref>(who, false) instead to prevent a single NPC from moving.</description>
+			<description>
+				Stops NPCs from walking around automatically (ie, suspends NPC AI).
+				When <tt>suspend NPCs</tt> is run, all NPCs stop in their tracks once they've
+				finished their current step to the next tile, ready for you to control them
+				with commands like <ref>walknpc</ref> and <ref>pathfindnpcto</ref>.
+				You should use a wait command like <ref>waitfornpc</ref> to ensure an NPC has
+				finished its current movement before getting it to start a new one (which could
+				cause tile misalignment).
+				<lb/>
+				Use <ref>setnpcmoves</ref>(who, false) instead to prevent a single NPC from moving.
+			</description>
 			<example>suspend NPCs
 # do stuff
 resume NPCs</example>

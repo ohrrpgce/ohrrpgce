@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-09-10)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-09-20)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -2119,7 +2119,7 @@
 		<a href="#about-readpassblock">read pass block (x,y)</a><br>
 		
 	
-		<a href="#about-readpreferencebitset">read preference bitset (index, bitnum)</a><br>
+		<a href="#about-readpreferencebit">read preference bit (bitnum)</a><br>
 		
 	
 		<a href="#about-readspell">read spell (hero,list,slot)</a><br>
@@ -3313,7 +3313,7 @@
 		<a href="#about-writepassblock">write pass block (x,y,value)</a><br>
 		
 	
-		<a href="#about-writepreferencebitset">write preference bitset (index, bitnum, value)</a><br>
+		<a href="#about-writepreferencebit">write preference bit (bitnum, value)</a><br>
 		
 	
 		<a href="#about-writespell">write spell (hero,list,slot,attack)</a><br>
@@ -4435,7 +4435,17 @@ resume player</pre>
 <a name="about-suspendnpcs"></a>
 		<h4>suspend NPCs</h4>
 <p>
-			Stops NPCs from walking around automatically. When suspend NPCs is run, all NPCs stop in their tracks once they've finished their current move, ready for you to control them with the <a href="#about-walknpc" class="ref">walk NPC</a> command. You can use <a href="#about-waitforall" class="ref">wait for all</a> to wait for all NPCs to stop moving. Use <a href="#about-setnpcmoves" class="ref">set NPC moves</a>(who, false) instead to prevent a single NPC from moving.
+			
+				Stops NPCs from walking around automatically (ie, suspends NPC AI).
+				When <span class="code">suspend NPCs</span> is run, all NPCs stop in their tracks once they've
+				finished their current step to the next tile, ready for you to control them
+				with commands like <a href="#about-walknpc" class="ref">walk NPC</a> and <a href="#about-pathfindnpcto" class="ref">pathfind NPC to</a>.
+				You should use a wait command like <a href="#about-waitfornpc" class="ref">wait for NPC</a> to ensure an NPC has
+				finished its current movement before getting it to start a new one (which could
+				cause tile misalignment).
+				<br>
+				Use <a href="#about-setnpcmoves" class="ref">set NPC moves</a>(who, false) instead to prevent a single NPC from moving.
+			
 			
 			<pre>suspend NPCs
 # do stuff
@@ -5465,7 +5475,10 @@ while (npcref) do (
 <a name="about-npcchasesnpc"></a>
 		<h4>NPC chases NPC (who, other who, stop when reached, stuck ticks)</h4>
 <p>
-			Makes the specified NPC walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing NPC will go around obstacles. If the destination NPC cannot be reached at all, the chasing NPC will go to the closest reachable tile. The first argument <span class="param">who</span> is the NPC who will be chasing. The second argument <span class="param">other who</span> is the NPC to chase. You can use an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The third argument <span class="param">stop when reached</span> can be true if you want the chasing NPC to stop after the first time it reaches the destination NPC. If ommitted or false, the NPC will keep chasing even after it reaches a moving destination NPC. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, an NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a> command. Be careful if you are using <a href="#about-waitfornpc" class="ref">wait for NPC</a> to wait for <a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a> when no <span class="param">stuck ticks</span> timeout is used, since <a href="#about-waitfornpc" class="ref">wait for NPC</a> might wait forever if the NPC has no way to get to its destination.
+			Makes the specified NPC walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing NPC will go around obstacles. If the destination NPC cannot be reached at all, the chasing NPC will go to the closest reachable tile. The first argument <span class="param">who</span> is the NPC who will be chasing. The second argument <span class="param">other who</span> is the NPC to chase. You can use an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The third argument <span class="param">stop when reached</span> can be true if you want the chasing NPC to stop after the first time it reaches the destination NPC. If omitted or false, the NPC will keep chasing even after it reaches a moving destination NPC. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, an NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a> command. Be careful if you are using <a href="#about-waitfornpc" class="ref">wait for NPC</a> to wait for <a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a> when no <span class="param">stuck ticks</span> timeout is used, since <a href="#about-waitfornpc" class="ref">wait for NPC</a> might wait forever if the NPC has no way to get to its destination.
+			<br>
+			If the destination NPC is deleted or disappears due to a tag condition, the chasing NPC stops.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -5483,6 +5496,17 @@ while (npcref) do (
 		<h4>cancel NPC walk (who)</h4>
 <p>
 			If the specified NPC is walking with a command like <a href="#about-walknpc" class="ref">walk NPC</a> or pathfinding with a command like <a href="#about-pathfindnpcto" class="ref">pathfind NPC to</a>, they will stop. They are allowed to finish their current step, so they will not end up misaligned with the tiles. This command has no effect on automatic NPC movement patterns, it only stops scripted movement.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					If you want to stop an NPC immediately without letting them finish their
+					step, use <a href="#about-walknpc" class="ref">walk NPC</a> with a distance of zero tiles, like:
+					<span class="code">walk NPC(npc, NPC direction(npc), 0)</span>
+					<br>
+					This will misalign the NPC with the tile grid, breaking movement and
+					wall and collision checking! You are responsible for realigning the NPC
+					afterwards somehow.
+				</div>
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17886,51 +17910,49 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		</p>
 </div>
 		<div class="command">
-<a name="about-readpreferencebitset"></a>
-		<h4>read preference bitset (index, bitnum)</h4>
+<a name="about-readpreferencebit"></a>
+		<h4>read preference bit (bitnum)</h4>
 <p>
 			
-				Returns the value (true or false) of one of the bitsets in the Preference Bitsets,
+				Returns the value (true or false) of one of the bits in the Preference Bitsets,
 				Active-time Battle Bitsets or Backwards-compatibility Bitsets
 				menus (in the General Game Settings menu).
-				You can use this command if there isn't a dedicated command to read the bitset,
+				You can use this command if there isn't a dedicated command to read the bit,
 				such as <a href="#about-extendedscancodesenabled" class="ref">extended scancodes enabled</a>.
-				Get the appropriate values of <span class="param">index</span> (which should be 101 or 177) and <span class="param">bitnum</span>
-				(which should be 0 to 31)
-				by searching <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN">this wiki article</a>.
-				For example "Dead heroes gain share of experience" is <span class="code">read preference bitset(177, 3)</span>.
+				Get the value of <span class="param">bitnum</span>
+				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
+				For example "Dead heroes gain share of experience" is <span class="code">read preference bit(19)</span>.
 			
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-writepreferencebitset" class="ref">write preference bitset</a></li></ul>
+			<div class="seealso">See also: <ul><li><a href="#about-writepreferencebit" class="ref">write preference bit</a></li></ul>
 </div>
 		</p>
 </div>
 		<div class="command">
-<a name="about-writepreferencebitset"></a>
-		<h4>write preference bitset (index, bitnum, value)</h4>
+<a name="about-writepreferencebit"></a>
+		<h4>write preference bit (bitnum, value)</h4>
 <p>
 			
-				Sets the <span class="param">value</span> (true or false) of one of the bitsets in the Preference Bitsets,
+				Sets the <span class="param">value</span> (true or false) of one of the bits in the Preference Bitsets,
 				Active-time Battle Bitsets or Backwards-compatibility Bitsets
 				menus (in the General Game Settings menu).
-				You can use this command if there isn't a dedicated command to write the bitset,
+				You can use this command if there isn't a dedicated command to write the bit,
 				such as <a href="#about-setbattlewaitmode" class="ref">set battle wait mode</a>.
-				Get the appropriate values of <span class="param">index</span> (which should be 101 or 177) and <span class="param">bitnum</span>
-				(which should be 0 to 31)
-				by searching <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN">this wiki article</a>.
+				Get the value of <span class="param">bitnum</span>
+				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
 				For example you can turn on "Heroes use Walk in Place animation while idle" with
-				<span class="code">write preference bitset(177, 26, true)</span>.
+				<span class="code">write preference bit(42, true)</span>.
 				<div style="background-color:#DCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
-					Use common sense. Some bitsets, such as "Don't limit max tags to 1000" might be disastrous
+					Use common sense. Some bits, such as "Don't limit max tags to 1000" might be disastrous
 					to change in the middle of a game!
 					Or they might have no effect.
 				</div>
 			
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-readpreferencebitset" class="ref">read preference bitset</a></li></ul>
+			<div class="seealso">See also: <ul><li><a href="#about-readpreferencebit" class="ref">read preference bit</a></li></ul>
 </div>
 		</p>
 </div>
