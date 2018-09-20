@@ -1078,7 +1078,7 @@ menu(AtkBlankMenuItem) = ""
 menutype(AtkBlankMenuItem) = 18  'skip
 
 menu(AtkWepPic) = "Weapon Picture:"
-menutype(AtkWepPic) = 13
+menutype(AtkWepPic) = 26
 menuoff(AtkWepPic) = AtkDatWepPic
 menulimits(AtkWepPic) = AtkLimWepPic
 
@@ -2240,7 +2240,7 @@ FUNCTION editflexmenu (state as MenuState, nowindex as integer, menutype() as in
 '           10=item number (offset!)
 '           11=sound effect (offset)
 '           12=defaultable positive int >=0 is int, -1 is "default"
-'           13=Default zero int >0 is int, 0 is "default"
+'           13=Default zero int >0 is int, 0 is "default"  (see also type 26)
 '           14=sound effect + 1 (0=default, -1=none)
 '           15=speed (shows battle turn time estimate in active-time mode)
 '           16=stat (numbered the same way as BattleStatsSingle.sta())
@@ -2253,6 +2253,7 @@ FUNCTION editflexmenu (state as MenuState, nowindex as integer, menutype() as in
 '           23=color, or 0 for default
 '           24=turn-based attack delay
 '           25=counterattack provoke setting (captioned, with default for 0)
+'           26=Defaultable non-negative int: >0 is int offset by 1, 0 is "default"
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -2294,7 +2295,7 @@ SELECT CASE menutype(nowindex)
    datablock(menuoff(nowindex)) = flexb.browse(datablock(menuoff(nowindex)))
    changed = (old_dat <> datablock(menuoff(nowindex)))
   END IF
- CASE 7, 9 TO 11 'offset integers
+ CASE 7, 9 TO 11, 26 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
  CASE 22 '(int+100)%
   DIM temp as integer = datablock(menuoff(nowindex)) + 100
@@ -2403,7 +2404,7 @@ SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as intege
 '           10=item name (offset)
 '           11=sound effect (offset)
 '           12=defaultable positive int >=0 is int, -1 is "default"
-'           13=Default zero int >0 is int, 0 is "default"
+'           13=Default zero int >0 is int, 0 is "default"  (see also type 26)
 '           14=sound effect + 1 (0=default, -1=none)
 '           15=speed (shows battle turn time estimate in active-time mode)
 '           16=stat (numbered the same way as BattleStatsSingle.sta())
@@ -2416,6 +2417,7 @@ SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as intege
 '           23=color, or 0 for default
 '           24=turn-based attack delay
 '           25=counterattack provoke setting (captioned, with default for 0)
+'           26=Defaultable non-negative int: >0 is int offset by 1, 0 is "default"
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-2000)
@@ -2545,6 +2547,8 @@ FOR i = 0 TO size
    capnum = menucapoff(AtkCounterProvoke)
    datatext = caption(capnum + dat)
    IF dat = provokeDefault THEN datatext &= " (" & caption(capnum + gen(genDefCounterProvoke)) & ")"
+  CASE 26 '--0=default, >0 is int offset by 1
+   IF dat = 0 THEN datatext = "Default" ELSE datatext = STR(dat - 1)
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
    datatext = dat & " " & caption(capnum + dat)
