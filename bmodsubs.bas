@@ -1221,7 +1221,7 @@ SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackDa
  CASE 2 'self
   tmask(who) = YES
 
- CASE 3 'all
+ CASE 3 'all (not dead)
   FOR i = 0 TO 11: tmask(i) = bslot(i).vis: NEXT i
 
  CASE 4 'ally-including-dead
@@ -1292,6 +1292,15 @@ SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackDa
   IF counter >= 0 THEN
    tmask(counter) = bslot(counter).vis
   END IF
+
+ CASE 14 'all-including-dead
+  FOR i = 0 TO 3
+   IF gam.hero(i).id >= 0 THEN tmask(i) = YES
+  NEXT i
+  FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
+
+ 'Consider updating chkOOBtarg when adding new target classes concerning dead allies...
+ 'but OOB nearly all are treated as 'All'.
 
  END SELECT
 
@@ -1519,6 +1528,8 @@ FUNCTION attack_can_hit_dead(attacker as integer, attack as AttackData, stored_t
    END IF
   CASE 10 'dead-ally (hero only)
    IF is_hero(attacker) THEN RETURN YES
+  CASE 14 'all-including-dead
+   RETURN YES
  END SELECT
 
  RETURN NO
@@ -1641,8 +1652,8 @@ FUNCTION find_preferred_target(tmask() as bool, byval who as integer, atk as Att
   RETURN found
 
  CASE 1 '--First
-  'special handling for heroes using attacks that target all
-  IF is_hero(who) AND atk.targ_class = 3 THEN
+  'special handling for heroes using attacks that target all/all-including-dead
+  IF is_hero(who) AND (atk.targ_class = 3 OR atk.targ_class = 14) THEN
    FOR i = 4 to 11
     IF tmask(i) THEN RETURN i
    NEXT i

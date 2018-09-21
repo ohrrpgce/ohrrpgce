@@ -69,6 +69,7 @@ September 29 2018 [Fufluns]
       Options menu. Some bits have been renamed and now all Backcompat Bits are
       off by default in new games; if one of them is on then you know you're
       missing out on some feature or bugfix [Ralph]
+    * Added missing attack target class "All (including dead heroes)" [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

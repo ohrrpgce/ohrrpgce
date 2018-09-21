@@ -821,9 +821,9 @@ SUB buystuff_set_alert(buyst as ShopBuyState, alert as string, byval ticks as in
  END WITH
 END SUB
 
-FUNCTION chkOOBtarg (byval target as integer, byval atk as integer) as integer
+FUNCTION chkOOBtarg (byval target as integer, byval atk as integer) as bool
 'true if valid, false if not valid
-'atk id can be -1 for when no attack is relevant
+'atk id can be -1 for when no attack is relevant (when we are learning an attack, not using it)
  IF target < 0 OR target > 40 THEN RETURN NO
  IF gam.hero(target).id = -1 THEN RETURN NO
  IF atk < -1 OR atk > gen(genMaxAttack) THEN RETURN NO
@@ -834,8 +834,11 @@ FUNCTION chkOOBtarg (byval target as integer, byval atk as integer) as integer
  IF atk >= 0 THEN
   DIM attack as AttackData
   loadattackdata attack, atk
-  IF hp = 0 AND (attack.targ_class = 4 OR attack.targ_class = 10) THEN RETURN YES
-  IF hp > 0 AND attack.targ_class = 10 THEN RETURN NO
+
+  IF hp = 0 ANDALSO attack_can_hit_dead(0, attack) THEN RETURN YES  'Fake attacker 0, indicating a hero
+  'Dead-ally
+  IF hp > 0 ANDALSO attack.targ_class = 10 THEN RETURN NO
+  'TODO: Why not handle Self and Ally-not-self?
  END IF
 
  IF hp = 0 THEN RETURN NO
@@ -895,9 +898,10 @@ SUB doequip (toequip as integer, who as integer, where as integer)
  tag_updates
 END SUB
 
-FUNCTION getOOBtarg (byval search_direction as integer, byref target as integer, byval atk as integer, byval recheck as integer=NO) as integer
+FUNCTION getOOBtarg (byval search_direction as integer, byref target as integer, byval atk as integer, byval recheck as bool=NO) as bool
+ 'Move the hero selection cursor for the target picker for an OOB attack/learning attack.
  '--return true on success, false on failure
- '--atk id can be -1 for when no attack is relevant
+ '--atk id can be -1 for when no attack is relevant (when we are learning an attack, not using it)
  IF recheck THEN target -= 1 ' For a re-check, back the cursor up so if the current target is still valid, it won't change
  DIM safety as integer = 0
  DO
@@ -3425,6 +3429,8 @@ END FUNCTION
 
 FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, byval attacker as integer, use_caption as string, byval x_offset as integer=0, byval really_use_attack as bool=YES) as bool
  'Lets the player pick a target, and then performs an attack or teaches a spell
+ 'attack_id: attack to be used, -1 otherwise
+ 'learn_id: attack to be learnt, -1 otherwise
  '(FIXME: should move to separate function!)
  'attacker == -1 when not using an attack from a spell list. In that case, use party's avg stats
  'Returns true if the attack/spell was actually used/learned
