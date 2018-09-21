@@ -6,20 +6,32 @@ Modify bitsets with Left, Right, SPACE, ENTER, or by LEFT-CLICK.
 
 Most options are self-explanatory, but here is documentation on some of them:
 
-"Enable Caterpillar Party" makes heroes in the active party appear behind the leader, following him while walking around.
 
-"Hero Swapping Always Available" lets the player move heroes between the active and reserve parties from the in-game menu, by default from a submenu named "Team"; otherwise the player can only rearrange the active party ("Order" submenu), and you can make "Team" available in shops or custom menus.
-
-The "debugging keys" are special keys that help with testing a game, but could be used to cheat (like allowing the player to walk through walls).  See the OHR wiki for documentation on the various debugging keys.
-
-"Permit double-triggering of scripts" turns off a check that a prevents a script from being triggered if it is already the current active/"topmost" script. This check doesn't work if the triggered script calls another; it is often better to check manually. Be aware that if you allow double triggering of scripts, any scripts called by NPC activation will require manual checking to prevent double activation, otherwise it will be extremely easy to get stuck in endless loops.
-
-"Default passability disabled by default" changes the default Default Passability setting in the map tilemap editor; set to your preference, it doesn't affect the game.
-
-"Don't save gameover/loadgame script IDs" exists so that it's possible to change the gameover and loadgame scripts and have the change reflected in existing saved games. It makes the setloadscript command do nothing.
+ Hero Experience, Levels and Stats
 
 "Don't divide experience between heroes" causes all heroes to get the full amount of experience after battles, rather than dividing the experience depending on the number of heroes in your active party.
 
 "Don't reset max stats after OOB attack" prevents maximum values for stats other than HP and MP from being reset to the current values after an attack occurs out of battle (either from the Spells menu, attached to an item, or using the "map cure" script command). Turning this on prevents items that permanently alter a stat (other than HP and MP) from working properly! You only need to enable this bitset if you are using scripts which cause your current and maximum stat values to differ and you don't want an OOB attack to clobber the values.
 
+
+ Hero Party
+
+"Enable caterpillar party" makes heroes in the active party appear behind the leader, following them while walking around.
+
+"Hero Swapping Always Available" lets the player move heroes between the active and reserve parties from the in-game menu, by default from a submenu named "Team"; otherwise the player can only rearrange the active party ("Order" submenu), and you can make "Team" available in shops or custom menus.
+
+
+ Starting or Loading Games
+
 "Don't stop music when starting/loading game" means that when loading a game or starting a new game, if the map is set to "Music: -same as previous map-", it should use the music from the title screen or previous game. Otherwise it will be silent.
+
+
+ Misc
+
+The "debugging keys" are special keys that help with testing a game, but could be used to cheat (like allowing the player to walk through walls).  See the OHR wiki for documentation on the various debugging keys.
+
+"Permit double-triggering of scripts" turns off a check that a prevents a script from being triggered if it is already the current active/"topmost" script. This check doesn't work if the triggered script calls another; it is often better to check manually. Be aware that if you allow double triggering of scripts, any scripts called by NPC activation will require manual checking to prevent double activation, otherwise it will be extremely easy to get stuck in endless loops.
+
+"Don't save gameover/loadgame script IDs" exists so that it's possible to change the gameover and loadgame scripts and have the change reflected in existing saved games. It makes the setloadscript command do nothing.
+
+"Default passability disabled by default" changes the default Default Passability setting in the map tilemap editor; set to your preference, it doesn't affect the game.

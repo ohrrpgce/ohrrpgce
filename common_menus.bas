@@ -224,27 +224,39 @@ SUB edit_global_bitsets OVERLOAD (bits() as IntStrPair, helpfile as string)
 END SUB
 
 SUB edit_general_bitsets()
- DIM bitname(111) as string
- bitname(1) = "Enable Caterpillar Party"
- bitname(2) = "Don't Restore HP on Levelup"
- bitname(3) = "Don't Restore MP on Levelup"
- bitname(4) = "Inns Don't Revive Dead Heroes"
- bitname(5) = "Hero Swapping Always Available"
- bitname(8) = "Disable Debugging Keys"
- bitname(10) = "Permit double-triggering of scripts"
- bitname(11) = "Skip title screen"
- bitname(12) = "Skip load screen"
- bitname(15) = "Default passability disabled by default"
- bitname(18) = "Don't save gameover/loadgame script IDs"
- bitname(19) = "Dead heroes gain share of experience"
- bitname(20) = "Locked heroes can't be re-ordered"
- bitname(30) = "Don't divide experience between heroes"
- bitname(31) = "Don't reset max stats after OOB attack"
- bitname(40) = "Don't stop music when starting/loading game"
- bitname(41) = "Keep caterpillar length the same when speed changes"
- bitname(42) = "Heroes use Walk in Place animation while idle"
- bitname(43) = "Cap minimum stats at zero"
- bitname(44) = "Hide empty save slots at the bottom of the save/load menus"
+ REDIM bits() as IntStrPair
+ a_append bits(), -1, ""
+ a_append bits(), -1, " Hero Experience, Levels and Stats"
+ a_append bits(), 2,  "Don't restore HP on levelup"
+ a_append bits(), 3,  "Don't restore MP on levelup"
+ a_append bits(), 4,  "Inns don't revive dead heroes"
+ a_append bits(), 31, "Don't reset max stats after OOB attack"
+ a_append bits(), 30, "Don't divide experience between heroes"
+ a_append bits(), 19, "Dead heroes gain share of experience"
+ a_append bits(), 43, "Cap minimum stats at zero"
+
+ a_append bits(), -1, ""
+ a_append bits(), -1, " Hero Party"
+ a_append bits(), 1,  "Enable caterpillar party"
+ a_append bits(), 41, "Keep caterpillar length the same when speed changes"
+ a_append bits(), 42, "Heroes use Walk in Place animation while idle"
+ a_append bits(), 5,  "Hero swapping always available"
+ a_append bits(), 20, "Locked heroes can't be re-ordered"
+
+ a_append bits(), -1, ""
+ a_append bits(), -1, " Starting or Loading Games"
+ a_append bits(), 11, "Skip title screen"
+ a_append bits(), 12, "Skip load screen"
+ a_append bits(), 40, "Don't stop music when starting/loading game"
+ a_append bits(), 44, "Hide empty save slots at the bottom of the save/load menus"
+
+ a_append bits(), -1, ""
+ a_append bits(), -1, " Misc"
+ a_append bits(), 8,  "Disable debugging keys"
+ a_append bits(), 10, "Permit double-triggering of scripts"
+ a_append bits(), 18, "Don't save gameover/loadgame script IDs"
+ a_append bits(), 15, "Default passability disabled by default"
+
  edit_global_bitsets bitname(), "general_game_bitsets"
 END SUB
 
