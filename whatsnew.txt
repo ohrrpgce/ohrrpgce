@@ -65,7 +65,9 @@ September 29 2018 [Fufluns]
     * Attack option to control whether counterattacks are triggered on a hit,
       miss or fail, with a global default in Battle System Options menu [Ralph]
     * Re-organised General Preference bitsets. All battle-related bitsets have
-      been moved into the Battle System Options menu [Ralph]
+      been moved into the Battle System Options menu. Some bits have been renamed
+      and now all Backcompat Bits are off by default in new games; if one of them
+      is on then you know you're missing out on some feature or bugfix [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

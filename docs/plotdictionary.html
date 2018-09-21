@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-09-20)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-09-21)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -2476,7 +2476,10 @@
 		<a href="#about-sethoursofplay">set hours of play (hours)</a><br>
 		
 	
-		<a href="#about-setinnnorevivemode">set inn no revive mode (state)</a><br>
+		<a href="#about-sethpleveluprestore">set HP level up restore (state)</a><br>
+		
+	
+		<a href="#about-setinnnorevivemode">set inn revive mode (state)</a><br>
 		
 	
 		<a href="#about-setinsteadofbattlescript">set instead of battle script (id)</a><br>
@@ -2599,10 +2602,7 @@
 		<a href="#about-setmusicvolume">set music volume (volume)</a><br>
 		
 	
-		<a href="#about-setnohpleveluprestore">set no HP level up restore (state)</a><br>
-		
-	
-		<a href="#about-setnompleveluprestore">set no MP level up restore (state)</a><br>
+		<a href="#about-setnompleveluprestore">set MP level up restore (state)</a><br>
 		
 	
 		<a href="#about-setnpcdirection">set NPC direction (who, direction)</a><br>
@@ -9234,7 +9234,7 @@ end
 					which were previously the same scancode are now distinct (read scancode.hsi for the complete list).
 					However for backwards compatibility, the old behaviour is emulated
 					(so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes)
-					unless you turn on the "Enable better scancodes for scripts"
+					unless you turn off the "Disable better scancodes for scripts"
 					Preference Bitset in the General Game Settings menu.
 				</div>
 				<div style="background-color:#BCC;" class="notice">
@@ -17657,13 +17657,13 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				Calling set load script with no argument disables the load script.
 				<div style="background-color:#CCB;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
-					This command has no effect if the "Don't save gameover/loadgame script IDs" Preference Bitset is turned on!
+					This command has no effect if the "Save gameover/loadgame script IDs" Preference Bitset is turned off!
 				</div>
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Setting the load script and then loading an existing saved game has no effect, because the load game script
 					already stored in that saved game is used instead.
-					Unless "Don't save gameover/loadgame script IDs" is on, in which case the default one is used.
+					Unless "Save gameover/loadgame script IDs" is off, in which case the default one is used.
 				</div>
 			
 			
@@ -17800,13 +17800,13 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		</p>
 </div>
 		<div class="command">
-<a name="about-setnohpleveluprestore"></a>
-		<h4>set no HP level up restore (state)</h4>
+<a name="about-sethpleveluprestore"></a>
+		<h4>set HP level up restore (state)</h4>
 <p>
 			
 				Sets whether or not a hero regains full HP after a level-up.
-				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then HP is restored on a level-up.
-				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the hero's HP is not restored on a level-up.
+				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then HP is restored on a level-up.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then the hero's HP is not restored on a level-up.
 			
 			
 			
@@ -17815,12 +17815,12 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 </div>
 		<div class="command">
 <a name="about-setnompleveluprestore"></a>
-		<h4>set no MP level up restore (state)</h4>
+		<h4>set MP level up restore (state)</h4>
 <p>
 			
 				Sets whether or not a hero regains full MP after a level-up.
-				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then MP is restored on a level-up.
-				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the hero's MP is not restored on a level-up.
+				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then MP is restored on a level-up.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then the hero's MP is not restored on a level-up.
 			
 			
 			
@@ -17829,12 +17829,12 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 </div>
 		<div class="command">
 <a name="about-setinnnorevivemode"></a>
-		<h4>set inn no revive mode (state)</h4>
+		<h4>set inn revive mode (state)</h4>
 <p>
 			
 				Sets whether or not inns restore dead heroes to life.
-				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then dead heroes are restored by inns.
-				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then dead heroes remain dead in inns.
+				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then dead heroes are restored by inns.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then dead heroes remain dead in inns.
 			
 			
 			
@@ -17874,8 +17874,9 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<h4>extended scancodes enabled</h4>
 <p>
 			
-				Returns the state of the "Enable better scancodes" general bitset:
-				whether or not numpad keys are distinguishable from Home, Up, etc. keys.
+				Returns the state of the "Disable better scancodes for scripts" backcompat bitset,
+				returning <span class="code">true</span> if it's off.
+				This means that numpad keys are distinguishable from Home, Up, etc. keys.
 			
 			
 			
@@ -17945,7 +17946,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				<span class="code">write preference bit(42, true)</span>.
 				<div style="background-color:#DCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
-					Use common sense. Some bits, such as "Don't limit max tags to 1000" might be disastrous
+					Use common sense. Some bits, such as "Limit maximum tags to 999" might be disastrous
 					to change in the middle of a game!
 					Or they might have no effect.
 				</div>

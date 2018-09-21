@@ -227,11 +227,11 @@ SUB edit_general_bitsets()
  REDIM bits() as IntStrPair
  a_append bits(), -1, ""
  a_append bits(), -1, " Hero Experience, Levels and Stats"
- a_append bits(), 2,  "Don't restore HP on levelup"
- a_append bits(), 3,  "Don't restore MP on levelup"
- a_append bits(), 4,  "Inns don't revive dead heroes"
+ a_append bits(), 2,  "!Restore HP on levelup"
+ a_append bits(), 3,  "!Restore MP on levelup"
+ a_append bits(), 4,  "!Inns revive dead heroes"
  a_append bits(), 31, "Don't reset max stats after OOB attack"
- a_append bits(), 30, "Don't divide experience between heroes"
+ a_append bits(), 30, "!Divide experience between heroes"
  a_append bits(), 19, "Dead heroes gain share of experience"
  a_append bits(), 43, "Cap minimum stats at zero"
 
@@ -247,47 +247,48 @@ SUB edit_general_bitsets()
  a_append bits(), -1, " Starting or Loading Games"
  a_append bits(), 11, "Skip title screen"
  a_append bits(), 12, "Skip load screen"
- a_append bits(), 40, "Don't stop music when starting/loading game"
+ a_append bits(), 40, "!Stop music before starting/loading game"
  a_append bits(), 44, "Hide empty save slots at the bottom of the save/load menus"
 
  a_append bits(), -1, ""
  a_append bits(), -1, " Misc"
- a_append bits(), 8,  "Disable debugging keys"
+ a_append bits(), 8,  "!Enable debugging keys"
  a_append bits(), 10, "Permit double-triggering of scripts"
- a_append bits(), 18, "Don't save gameover/loadgame script IDs"
+ a_append bits(), 18, "!Save gameover/loadgame script IDs"
  a_append bits(), 15, "Default passability disabled by default"
 
- edit_global_bitsets bitname(), "general_game_bitsets"
+ edit_global_bitsets bits(), "general_game_bitsets"
 END SUB
 
 SUB edit_backcompat_bitsets()
  DIM bitname(111) as string
- bitname(9) = "Simulate Old Levelup bonus-accretion bug"
- bitname(16) = "Simulate Pushable NPC obstruction bug"
- bitname(24) = "Enable better scancodes for scripts"
+ bitname(9) = "Simulate old levelup bonus-accretion bug"
+ bitname(16) = "Simulate pushable NPC obstruction bug"
+ bitname(24) = "!Disable better scancodes for scripts"
  bitname(25) = "Simulate old fail vs element resist bit"
- bitname(27) = "Recreate map slices when changing maps"
- bitname(28) = "Harm tiles harm non-caterpillar heroes"
- bitname(32) = "Don't limit maximum tags to 999"
+ bitname(27) = "!Don't recreate map slices when changing maps"
+ bitname(28) = "!Harm tiles ignore non-caterpillar heroes"
+ bitname(32) = "!Limit maximum tags to 999"
  bitname(33) = "Simulate Bug #430 script wait skips"
- bitname(34) = "showtextbox happens immediately"
+ bitname(34) = "!showtextbox is delayed"
  bitname(36) = "Old attack positioning at bottom-left of target"
  bitname(37) = "Wrap map layers over edge of Crop maps"
- bitname(39) = "Draw Backdrop slice above Script layer"
+ bitname(39) = "Draw Backdrop slice above Script Layer"
  edit_global_bitsets bitname(), "share_general_game_backcompat_bitsets"
 END SUB
 
 SUB edit_battle_bitsets()
  REDIM bits() as IntStrPair
+ a_append bits(), -1, ""
  a_append bits(), -1, " Battle Display Options"
- a_append bits(), 6,  "Hide ready-meter in battle"
- a_append bits(), 7,  "Hide health-meter in battle"
- a_append bits(), 14, "Disable hero's battle cursor"
+ a_append bits(), 6,  "!Show ready-meter"
+ a_append bits(), 7,  "!Show health-meter"
+ a_append bits(), 14, "Disable hero cursor"
  a_append bits(), 38, "Never show script timers during battles"
 
  a_append bits(), -1, ""
  a_append bits(), -1, " General Options"
- a_append bits(), 17, "Disable ESC key running from battle"
+ a_append bits(), 17, "!Hold ESC key to run from battle"
  a_append bits(), 26, "0 damage when immune to attack elements"
  a_append bits(), 29, "Attacks will ignore extra hits stat"
 
@@ -298,8 +299,8 @@ SUB edit_battle_bitsets()
   a_append bits(), 0,  "Pause on Spells & Items menus"
   a_append bits(), 35, "Pause when targeting attacks"
   a_append bits(), 23, "Battle menus wait for attack animations"
-  a_append bits(), 21, "Attack captions pause battle meters"
-  a_append bits(), 22, "Don't randomize initial ready meters"
+  a_append bits(), 21, "Attack captions pause ready meters"
+  a_append bits(), 22, "!Randomize initial ready meters"
  END IF
 
  edit_global_bitsets bits(), "general_battle_bitsets"

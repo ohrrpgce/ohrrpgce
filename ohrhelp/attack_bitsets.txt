@@ -38,7 +38,7 @@ Although the damage will still be dealt to the target, this bitset will prevent 
 Allows the attack to be used by heroes outside of battle, from the Spells menu. This is normally only used for curing attacks, but note that it also works for damaging attacks. (Some attack features like chaining do not work outside of battle)
 
 * Cause heroes to run away
-If this bitset is turned on, the attack will cause the heroes to run away (regardless of attacker or target) in addition to normal effects. This can be used in combination with the general bitset "Disable ESC to run from battle" if you are implementing your own alternate running-away system.
+If this bitset is turned on, the attack will cause the heroes to run away (regardless of attacker or target) in addition to normal effects. This can be used in combination with turning off the general bitset "Hold ESC to run from battle" if you are implementing your own alternate running-away system.
 
 * Mutable
 If this bitset is turned on, this attack will be disabled for anyone with a damaged Mute register.

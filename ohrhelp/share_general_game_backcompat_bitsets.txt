@@ -4,25 +4,29 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the li
 
 Modify bitsets with Left, Right, SPACE and ENTER.
 
-These settings enable or disable bugfixes and features which break backwards compatibility with previous versions of the OHRRPGCE.
+These settings disable bugfixes and features which break backwards compatibility with previous versions of the OHRRPGCE.
+If one of these bits is ON, then the engine operates in a back-compatible mode.
 
-In newly created games you normally wouldn't change any of these bitsets. When switching to a newer engine version you may want to enable new features or bugfixes by toggling options in this menu, but doing so may break something in your game.
+In newly created games you normally wouldn't change any of these bitsets. When switching to a newer engine version you may want to enable new features or bugfixes by turning OFF options in this menu, but doing so may break something in your game.
+
 
 "Simulate Old Levelup bonus-accretion bug" simulates an ancient bug where equipment bonuses were added to hero stats on levelup. Included for compatibility with games made before 2001!
 
 "Simulate pushable NPC obstruction bug" simulates a bug where NPCs could walk through pushable NPCs which the player is pushing against a wall or another NPC.
 
-"Enable better scancodes for scripts" makes keys like Up and Numpad 8 which were previously indistinguishable able to be told apart; see "key is pressed" in the dictionary for details.
+"Disable better scancodes for scripts" makes some keys (mainly in the numpad) like Up and Numpad 8 indistinguishable; see "key is pressed" in the dictionary for details.
 
 "Simulate old fail vs. element resist bit" will cause an attack's elemental resist fail conditions to ignore absorption (use the absolute value), so "fail if damage < 50%" will actually mean "fail if -50% < damage < 50%", and "< 0%" will do nothing at all!
 
-"Harm tiles harm non-caterpillar heroes" causes all heroes in the active party to be harmed when the leader walks over a harm tile if the caterpillar party isn't enabled. This defaults to off in old games.
+"Don't recreate map slices when changing maps": normally when you change maps, the map slices and anything parented to them (except for the hero slices) get recreated, erasing all scripted changes. This prevents that.
 
-"Don't limit maximum tags to 999" is a bit you probably want to turn ON. It raises the available tags from 999 to 15999. The only reason this bit exists is for backwards compatibility with old games that use the "set tag" and "check tag" plotscripting commands to manipulate NPC onetime tags. If your game is not one of those, go ahead and turn this bit ON and enjoy access to the full range of tags.
+"Harm tiles ignore non-caterpillar heroes" only has an effect when the caterpillar party isn't enabled. It causes only the leader of the party to to be harmed, instead of all heroes in the active party as normal, when walking over a harm tile.
+
+"Limit maximum tags to 999" decreases the available tags from 15999 to 999. The only reason this bit exists is for backwards compatibility with old games that use the "set tag" and "check tag" plotscripting commands to manipulate NPC onetime tags. If your game is not one of those, go ahead and turn this bit OFF and enjoy access to the full range of tags.
 
 "Simulate Bug #430" reenables a bug in Voxhumana and older releases which caused script 'wait' commands to sometimes be skipped. Some games contained bugs in their scripts (usually involving screen fades and commands causing implicit waits like "teleport to map") which were hidden by this bug.
 
-"showtextbox happens immediately" causes "show textbox" (as well as textboxes indirectly shown by "items menu" and "use item") to take effect immediately, including conditionals such as setting tags. If this is off then textboxes aren't triggered until the next wait command, and if you attempt to show multiple textboxes during the same tick then only the last will actually trigger. But even with this bitset on you would only see the last triggered textbox so you want to prevent your script from accidently hiding a previous textbox you should use "wait for textbox":
+"showtextbox is delayed" causes "show textbox" (as well as textboxes indirectly shown by "items menu" and "use item") to not be triggered until the next wait command. If off, showing a textboxes takes effect immediately, including conditionals such as setting tags. If this is off then if you attempt to show multiple textboxes during the same tick then only the last will actually trigger. But even with this bitset off you would only see the last triggered textbox so if you want to prevent your script from accidently hiding a previous textbox you should use "wait for textbox":
   wait for textbox
   show textbox (5)
 "advance textbox" always happens immediately.

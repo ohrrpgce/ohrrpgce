@@ -4,34 +4,40 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the li
 
 Modify bitsets with Left, Right, SPACE, ENTER, or by LEFT-CLICK.
 
-Most options are self-explanatory, but here is documentation on some of them:
+Note: the names and meanings of some options have been flipped, so if you're following an old guide you might need to turn a bit OFF instead of ON or vice-versa.
 
+Most options are self-explanatory, but here is documentation on some of them:
 
  Hero Experience, Levels and Stats
 
-"Don't divide experience between heroes" causes all heroes to get the full amount of experience after battles, rather than dividing the experience depending on the number of heroes in your active party.
-
 "Don't reset max stats after OOB attack" prevents maximum values for stats other than HP and MP from being reset to the current values after an attack occurs out of battle (either from the Spells menu, attached to an item, or using the "map cure" script command). Turning this on prevents items that permanently alter a stat (other than HP and MP) from working properly! You only need to enable this bitset if you are using scripts which cause your current and maximum stat values to differ and you don't want an OOB attack to clobber the values.
+
+"Divide experience between heroes" splits up the experience from a battle between all the eligible heroes (how it is split depends on other settings like "Dead heroes gain share of experience").
+If OFF, having more heroes in the party doesn't decrease the amount of experience they each get.
 
 
  Hero Party
 
 "Enable caterpillar party" makes heroes in the active party appear behind the leader, following them while walking around.
 
+"Keep caterpillar length the same when speed changes" is something you normally want ON. If you turn it OFF and use the "get hero speed" command, the caterpillar party will bunch up or stretch out amusingly.
+
 "Hero Swapping Always Available" lets the player move heroes between the active and reserve parties from the in-game menu, by default from a submenu named "Team"; otherwise the player can only rearrange the active party ("Order" submenu), and you can make "Team" available in shops or custom menus.
 
 
  Starting or Loading Games
 
-"Don't stop music when starting/loading game" means that when loading a game or starting a new game, if the map is set to "Music: -same as previous map-", it should use the music from the title screen or previous game. Otherwise it will be silent.
+"Stop music before starting/loading game" means that when loading a game or starting a new game, if the map is set to "Music: -same as previous map-", it should be silent. Otherwise it will use the music from the title screen or whatever was playing on the Load menu, possibly from the previous game.
 
 
  Misc
 
-The "debugging keys" are special keys that help with testing a game, but could be used to cheat (like allowing the player to walk through walls).  See the OHR wiki for documentation on the various debugging keys.
+The "debugging keys" are special keys that help with testing a game, but could be used to cheat (like allowing the player to walk through walls). Press F8 in-game to see the Debug Menu with all the debug options. You can then press F1 to see help on what they do. Pressing F8 during a battle shows the Battle Debug Menu.
+Note: when you export your game with the Distribute Game debug keys are always automatically disabled in the exported game.
 
 "Permit double-triggering of scripts" turns off a check that a prevents a script from being triggered if it is already the current active/"topmost" script. This check doesn't work if the triggered script calls another; it is often better to check manually. Be aware that if you allow double triggering of scripts, any scripts called by NPC activation will require manual checking to prevent double activation, otherwise it will be extremely easy to get stuck in endless loops.
 
-"Don't save gameover/loadgame script IDs" exists so that it's possible to change the gameover and loadgame scripts and have the change reflected in existing saved games. It makes the setloadscript command do nothing.
+"Save gameover/loadgame script IDs" exists so that it's possible to change the gameover and loadgame scripts with the "set load script" and "set death script" commands - if it's OFF, "set load script" does nothing!
+On the other hand, if you turn this ON, then changing the Load and Death scripts in the editor won't affect existing saved games! So keep it off unless you need it.
 
 "Default passability disabled by default" changes the default Default Passability setting in the map tilemap editor; set to your preference, it doesn't affect the game.

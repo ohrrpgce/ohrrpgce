@@ -701,7 +701,7 @@ SUB generate_battlesystem_menu(menu() as string, enabled() as bool, greyout() as
  ELSE
   menu(2) &= "Turn-based"
  END IF
- menu(3) = "Battle perference bitsets..."
+ menu(3) = "Battle preference bitsets..."
  menu(4) = "Number of Elements: " & gen(genNumElements)
  menu(5) = "Hero Elemental Resistance Calculation..."
  menu(6) = "Mark non-elemental elementals..."

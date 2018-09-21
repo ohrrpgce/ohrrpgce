@@ -3812,7 +3812,7 @@ end
 					which were previously the same scancode are now distinct (read scancode.hsi for the complete list).
 					However for backwards compatibility, the old behaviour is emulated
 					(so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes)
-					unless you turn on the &quot;Enable better scancodes for scripts&quot;
+					unless you turn off the &quot;Disable better scancodes for scripts&quot;
 					Preference Bitset in the General Game Settings menu.
 				</note>
 				<note>
@@ -9152,12 +9152,12 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				The argument is the script&apos;s ID number, NOT the script&apos;s name.
 				Calling set load script with no argument disables the load script.
 				<warn>
-					This command has no effect if the "Don't save gameover/loadgame script IDs" Preference Bitset is turned on!
+					This command has no effect if the "Save gameover/loadgame script IDs" Preference Bitset is turned off!
 				</warn>
 				<note>
 					Setting the load script and then loading an existing saved game has no effect, because the load game script
 					already stored in that saved game is used instead.
-					Unless "Don't save gameover/loadgame script IDs" is on, in which case the default one is used.
+					Unless "Save gameover/loadgame script IDs" is off, in which case the default one is used.
 				</note>
 			</description>
 		</command>
@@ -9235,31 +9235,31 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				</note>
 			</description>
 		</command>
-		<command id="setnohpleveluprestore">
-			<canon>set no HP level up restore (state)</canon>
-			<shortname>set no HP level up restore</shortname>
+		<command id="sethpleveluprestore">
+			<canon>set HP level up restore (state)</canon>
+			<shortname>set HP level up restore</shortname>
 			<description>
 				Sets whether or not a hero regains full HP after a level-up.
-				If the argument is <ref>off</ref> then HP is restored on a level-up.
-				If the argument is <ref>on</ref> then the hero's HP is not restored on a level-up.
+				If the argument is <ref>on</ref> then HP is restored on a level-up.
+				If the argument is <ref>off</ref> then the hero's HP is not restored on a level-up.
 			</description>
 		</command>
 		<command id="setnompleveluprestore">
-			<canon>set no MP level up restore (state)</canon>
-			<shortname>set no MP level up restore</shortname>
+			<canon>set MP level up restore (state)</canon>
+			<shortname>set MP level up restore</shortname>
 			<description>
 				Sets whether or not a hero regains full MP after a level-up.
-				If the argument is <ref>off</ref> then MP is restored on a level-up.
-				If the argument is <ref>on</ref> then the hero's MP is not restored on a level-up.
+				If the argument is <ref>on</ref> then MP is restored on a level-up.
+				If the argument is <ref>off</ref> then the hero's MP is not restored on a level-up.
 			</description>
 		</command>
 		<command id="setinnnorevivemode">
-			<canon>set inn no revive mode (state)</canon>
-			<shortname>set inn no revive mode</shortname>
+			<canon>set inn revive mode (state)</canon>
+			<shortname>set inn revive mode</shortname>
 			<description>
 				Sets whether or not inns restore dead heroes to life.
-				If the argument is <ref>off</ref> then dead heroes are restored by inns.
-				If the argument is <ref>on</ref> then dead heroes remain dead in inns.
+				If the argument is <ref>on</ref> then dead heroes are restored by inns.
+				If the argument is <ref>off</ref> then dead heroes remain dead in inns.
 			</description>
 		</command>
 		<command id="setfullheroswapmode">
@@ -9284,8 +9284,9 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 			<canon>extended scancodes enabled</canon>
 			<shortname>extended scancodes enabled</shortname>
 			<description>
-				Returns the state of the "Enable better scancodes" general bitset:
-				whether or not numpad keys are distinguishable from Home, Up, etc. keys.
+				Returns the state of the "Disable better scancodes for scripts" backcompat bitset,
+				returning <tt>true</tt> if it's off.
+				This means that numpad keys are distinguishable from Home, Up, etc. keys.
 			</description>
 			<seealso>
 				<ref>keyispressed</ref>
@@ -9322,7 +9323,14 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				such as <ref>extendedscancodesenabled</ref>.
 				Get the value of <p>bitnum</p>
 				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
-				For example "Dead heroes gain share of experience" is <tt>read preference bit(19)</tt>.
+				<note>
+					Some bits are shown with the opposite names on the wiki and in the editor!
+					If that's the case, you need to set the bit off instead of on and vice versa.
+					They might also have slightly different names.
+					For example to check whether "Randomize initial ready meters" is <b>on</b>,
+					use <tt>read preference bit(22) == off</tt>,
+					because bit 22 is documented as "Don't randomize battle ready-meters".
+				</note>
 			</description>
 			<seealso>
 				<ref>writepreferencebit</ref>
@@ -9339,10 +9347,17 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				such as <ref>setbattlewaitmode</ref>.
 				Get the value of <p>bitnum</p>
 				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
-				For example you can turn on "Heroes use Walk in Place animation while idle" with
-				<tt>write preference bit(42, true)</tt>.
+
+				<note>
+					Some bits are shown with the opposite names on the wiki and in the editor!
+					If that's the case, you need to set the bit off instead of on and vice versa.
+					They might also have slightly different names.
+					For example to turn <b>on</b> "Randomize initial ready meters", use
+					<tt>write preference bit(22, off)</tt>,
+					because bit 22 is documented as "Don't randomize battle ready-meters".
+				</note>
 				<danger>
-					Use common sense. Some bits, such as "Don't limit max tags to 1000" might be disastrous
+					Use common sense. Some bits, such as "Limit maximum tags to 999" might be disastrous
 					to change in the middle of a game!
 					Or they might have no effect.
 				</danger>
@@ -9387,22 +9402,20 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 			</description>
 			<seealso><ref>getactivebattlepauseonallmenus</ref></seealso>
 		</command>
-		<command id="hidebattlereadymeter">
-			<canon>hide battle ready meter (state)</canon>
-			<shortname>hide battle ready meter</shortname>
+		<command id="showbattlereadymeter">
+			<canon>show battle ready meter (state)</canon>
+			<shortname>show battle ready meter</shortname>
 			<description>
-				Sets whether or not the ready meter appears in battle.
-				If the argument is <ref>off</ref> then the ready meter appears.
-				If the argument is <ref>on</ref> then the ready meter will be hidden.
+				Sets whether or not the ready meter appears in battle, or will be hidden.
+				<p>state</p> should be <tt>true</tt> or <tt>false</tt>.
 			</description>
 		</command>
-		<command id="hidebattlehealthmeter">
-			<canon>hide battle health meter (state)</canon>
-			<shortname>hide battle health meter</shortname>
+		<command id="showbattlehealthmeter">
+			<canon>show battle health meter (state)</canon>
+			<shortname>show battle health meter</shortname>
 			<description>
-				Sets whether or not the health meter appears in battle.
-				If the argument is <ref>off</ref> then the health meter appears.
-				If the argument is <ref>on</ref> then the health meter will be hidden.
+				Sets whether or not the health meter appears in battle, or will be hidden.
+				<p>state</p> should be <tt>true</tt> or <tt>false</tt>.
 			</description>
 		</command>
 		<command id="setdeadheroesgainexperience">
@@ -9410,8 +9423,8 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 			<shortname>set dead heroes gain experience</shortname>
 			<description>
 				Sets whether or not dead heroes gain experience from battles.
-				If the argument is <ref>off</ref> then only living heroes gain experience.
-				If the argument is <ref>on</ref> then dead heroes get it too.
+				If the argument is <ref>false</ref> then only living heroes gain experience.
+				If the argument is <ref>true</ref> then dead heroes get it too.
 			</description>
 		</command>
 		</section>		<!-- Battle settings -->

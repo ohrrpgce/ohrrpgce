@@ -1111,28 +1111,53 @@ script,set caterpillar mode,hsd:bit=1,begin
   write preference bit(1, hsd:bit)
 end
 
+#@obsolete(set HP level up restore)
 script,set no HP level up restore,hsd:bit=1,begin
   write preference bit(2, hsd:bit)
 end
 
+#@obsolete(set MP level up restore)
 script,set no MP level up restore,hsd:bit=1,begin
   write preference bit(3, hsd:bit)
 end
 
+#@obsolete(set inn revive mode)
 script,set inn no revive mode,hsd:bit=1,begin
   write preference bit(4, hsd:bit)
+end
+
+script,set HP level up restore,hsd:bit=1,begin
+  write preference bit(2, not(hsd:bit))
+end
+
+script,set MP level up restore,hsd:bit=1,begin
+  write preference bit(3, not(hsd:bit))
+end
+
+script,set inn revive mode,hsd:bit=1,begin
+  write preference bit(4, not(hsd:bit))
 end
 
 script,set full hero swap mode,hsd:bit=1,begin
   write preference bit(5, hsd:bit)
 end
 
+#@obsolete(show battle ready meter)
 script,hide battle ready meter,hsd:bit=1,begin
   write preference bit(6, hsd:bit)
 end
 
+#@obsolete(show battle health meter)
 script,hide battle health meter,hsd:bit=1,begin
   write preference bit(7, hsd:bit)
+end
+
+script,show battle ready meter,hsd:bit=1,begin
+  write preference bit(6, not(hsd:bit))
+end
+
+script,show battle health meter,hsd:bit=1,begin
+  write preference bit(7, not(hsd:bit))
 end
 
 script,set debug keys disable,hsd:bit=1,begin

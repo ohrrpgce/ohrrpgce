@@ -8,7 +8,7 @@ Note that there are more bitsets which affect things like stats and hero experie
 
  Battle Display Options
 
-"Disable hero's battle cursor" prevents a cursor from appearing above the hero currently taking an action. The cursor will still appear when you are targetting a hero with an attack. This may be useful if you want first-person battles where there are no hero sprites on the screen (so you make heroes sprites blank).
+"Disable hero cursor" prevents a cursor from appearing above the hero currently taking an action. The cursor will still appear when you are targetting a hero with an attack. This may be useful if you want first-person battles where there are no hero sprites on the screen (so you make heroes sprites blank).
 
 "Never show script timers during battles" prevents timers (see "set timer" command) from displaying during battle; they will countdown normally.
 
@@ -31,8 +31,8 @@ This does everything the next two bits do, and more. If ON, those bits have no e
 
 "Pause when targeting attacks" pauses the battle ready meters while the player is choosing a target.
 
-"Attack captions pause battle meters" pauses the battle ready meters whenever an attack dispays a text caption. Captions can possibly last longer than the attack animation that triggered them.
+"Attack captions pause ready meters" pauses the battle ready meters whenever an attack dispays a text caption. Captions can possibly last longer than the attack animation that triggered them.
 
 "Battle menus wait for attack animations" prevents hero's turns from starting in the middle of attack animations. The battle menu will not appear until all animating attacks are finished.
 
-"Don't randomize initial ready meters" determines whether at the beginning of battle, ready meters have random values, or start empty.
+"Randomize initial ready meters" determines whether at the beginning of battle, ready meters have random values, or start empty.
