@@ -3664,8 +3664,8 @@ SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
  get_valid_targs bat.targ.mask(), bat.hero_turn, bat.targ.atk, bslot()
  bat.targ.hit_dead = attack_can_hit_dead(bat.hero_turn, bat.targ.atk, bslot(bat.hero_turn).stored_targs_can_be_dead)
 
- '--attacks that can target all should default to the first enemy
- IF bat.targ.atk.targ_class = 3 THEN
+ '--attacks that can target all/all-including-dead should default to the first enemy
+ IF bat.targ.atk.targ_class = 3 OR bat.targ.atk.targ_class = 14 THEN
   bat.targ.pointer = 4
  END IF
 
