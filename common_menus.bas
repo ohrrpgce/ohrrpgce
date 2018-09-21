@@ -58,6 +58,7 @@ npc_facetypes(2) = "Do Not Face Player"
 
 'Edit array of bits. The bits don't have to be consecutive, but they do have to be in ascending order.
 'The bits corresponding to any blank entries in names(), or starting with '##' are hidden/skipped over.
+'If a bit name starts with ! then the diplayed value of the bit is reversed.
 'remem_pt is used to store the selected bit (index in names())
 'If immediate_quit is true, then toggling a bit causes the menu to quit immediately and return YES (otherwise NO)
 FUNCTION editbitset (array() as integer, wof as integer, names() as string, helpkey as string="editbitset", byref remem_bitnum as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
@@ -121,12 +122,13 @@ FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair
   usemenu state, selectable()
   IF state.pt >= 0 ANDALSO selectable(state.pt) THEN
    DIM bitnum as integer = bitmenu(state.pt).i
+   DIM bitflip as integer = IIF(bitmenu(state.pt).s[0] = ASC("!"), 1, 0)
    IF keyval(scLeft) > 1 OR keyval(scLeftCaret) > 1 THEN
-    setbit array(), wof, bitnum, 0
+    setbit array(), wof, bitnum, 0 XOR bitflip
     IF immediate_quit THEN ret = YES: EXIT DO
    END IF
    IF keyval(scRight) > 1 OR keyval(scRightCaret) > 1 THEN
-    setbit array(), wof, bitnum, 1
+    setbit array(), wof, bitnum, 1 XOR bitflip
     IF immediate_quit THEN ret = YES: EXIT DO
    END IF
    IF enter_space_click(state) THEN
@@ -148,8 +150,13 @@ FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair
    drawat.y += (i - state.top) * state.spacing
    DIM biton as integer
    DIM col as integer
+   DIM text as string = IIF(i = -1, prevmenu, bitmenu(i).s)
    IF i >= 0 ANDALSO selectable(i) THEN
     biton = readbit(array(), wof, bitmenu(i).i)
+    IF text[0] = ASC("!") THEN
+     biton XOR= 1
+     text = MID(text, 2)
+    END IF
     ellipse vpages(dpage), menupos.x + 4, drawat.y + 3, 3, uilook(uiDisabledItem), IIF(biton, uilook(uiSelectedItem), -1)
    ELSE
     biton = 1  'Don't show as disabled
@@ -157,7 +164,7 @@ FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair
    END IF
    col = menu_item_color(state, i, biton = 0, selectable(i) = NO, col)
    textcolor col, 0
-   printstr IIF(i = -1, prevmenu, bitmenu(i).s), drawat.x, drawat.y, dpage
+   printstr text, drawat.x, drawat.y, dpage
   NEXT i
   SWAP vpage, dpage
   setvispage vpage
