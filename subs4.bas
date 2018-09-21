@@ -39,7 +39,7 @@ DIM veh(39) as integer
 DIM min(39) as integer
 DIM max(39) as integer
 DIM offset(39) as integer
-DIM vehbit(15) as string
+DIM vehbit() as IntStrPair
 DIM tiletype(8) as string
 DIM vehname as string = ""
 DIM vehicle_id as integer = 0
@@ -49,15 +49,20 @@ state.size = 24
 state.last = UBOUND(menu)
 state.need_update = YES
 
-vehbit(0) = "Pass through walls"
-vehbit(1) = "Pass through NPCs"
-vehbit(2) = "Enable NPC activation"
-vehbit(3) = "Enable door use"
-vehbit(4) = "Do not hide leader"
-vehbit(5) = "Do not hide party"
-vehbit(6) = "Dismount one space ahead"
-vehbit(7) = "Pass walls while dismounting"
-vehbit(8) = "Disable flying shadow"
+a_append vehbit(), -1, " Appearance"
+a_append vehbit(), 4,  "Do not hide leader"
+a_append vehbit(), 5,  "Do not hide party"
+a_append vehbit(), 8,  "Disable flying shadow"
+a_append vehbit(), -1, ""
+a_append vehbit(), -1, " Movement"
+a_append vehbit(), 0,  "Pass through walls"
+a_append vehbit(), 1,  "Pass through NPCs"
+a_append vehbit(), 6,  "Dismount one space ahead"
+a_append vehbit(), 7,  "Pass walls while dismounting"
+a_append vehbit(), -1, ""
+a_append vehbit(), -1, " Activation"
+a_append vehbit(), 2,  "Enable NPC activation"
+a_append vehbit(), 3,  "Enable door use"
 
 tiletype(0) = "default"
 tiletype(1) = "A"
