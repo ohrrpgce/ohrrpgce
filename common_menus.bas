@@ -184,43 +184,55 @@ FUNCTION editbools(bools() as bool, names() as string, helpkey as string = "edit
  RETURN ret
 END FUNCTION
 
-
-SUB edit_global_bitsets(bitname() as string, helpfile as string)
- DIM bittemp(2) as integer
+SUB gather_gen_bits(bittemp() as integer)
  bittemp(0) = gen(genBits)
  bittemp(1) = gen(genBits2)
  bittemp(2) = gen(genBits2+1)
- editbitset bittemp(), 0, bitname(), helpfile
+ FOR i as integer = 0 TO 3
+  bittemp(3 + i) = gen(genBits3 + i)
+ NEXT
+END SUB
+
+SUB scatter_gen_bits(bittemp() as integer)
  gen(genBits) = bittemp(0)
  gen(genBits2) = bittemp(1)
  gen(genBits2+1) = bittemp(2)
+ FOR i as integer = 0 TO 3
+  gen(genBits3 + i) = bittemp(3 + i)
+ NEXT
+END SUB
+
+SUB edit_global_bitsets OVERLOAD (bitname() as string, helpfile as string)
+ DIM bittemp(6) as integer
+ gather_gen_bits bittemp()
+ editbitset bittemp(), 0, bitname(), helpfile
+ scatter_gen_bits bittemp()
+END SUB
+
+SUB edit_global_bitsets OVERLOAD (bits() as IntStrPair, helpfile as string)
+ DIM bittemp(6) as integer
+ gather_gen_bits bittemp()
+ editbitset bittemp(), 0, bits(), helpfile
+ scatter_gen_bits bittemp()
 END SUB
 
 SUB edit_general_bitsets()
- DIM bitname(47) as string
+ DIM bitname(111) as string
  bitname(1) = "Enable Caterpillar Party"
  bitname(2) = "Don't Restore HP on Levelup"
  bitname(3) = "Don't Restore MP on Levelup"
  bitname(4) = "Inns Don't Revive Dead Heroes"
  bitname(5) = "Hero Swapping Always Available"
- bitname(6) = "Hide Ready-meter in Battle"
- bitname(7) = "Hide Health-meter in Battle"
  bitname(8) = "Disable Debugging Keys"
  bitname(10) = "Permit double-triggering of scripts"
  bitname(11) = "Skip title screen"
  bitname(12) = "Skip load screen"
- bitname(14) = "Disable Hero's Battle Cursor"
  bitname(15) = "Default passability disabled by default"
- bitname(17) = "Disable ESC key running from battle"
  bitname(18) = "Don't save gameover/loadgame script IDs"
  bitname(19) = "Dead heroes gain share of experience"
  bitname(20) = "Locked heroes can't be re-ordered"
- bitname(22) = "Don't randomize battle ready meters"
- bitname(26) = "0 damage when immune to attack elements"
- bitname(29) = "Attacks will ignore extra hits stat"
  bitname(30) = "Don't divide experience between heroes"
  bitname(31) = "Don't reset max stats after OOB attack"
- bitname(38) = "Never show script timers during battles"
  bitname(40) = "Don't stop music when starting/loading game"
  bitname(41) = "Keep caterpillar length the same when speed changes"
  bitname(42) = "Heroes use Walk in Place animation while idle"
@@ -230,7 +242,7 @@ SUB edit_general_bitsets()
 END SUB
 
 SUB edit_backcompat_bitsets()
- DIM bitname(47) as string
+ DIM bitname(111) as string
  bitname(9) = "Simulate Old Levelup bonus-accretion bug"
  bitname(16) = "Simulate Pushable NPC obstruction bug"
  bitname(24) = "Enable better scancodes for scripts"
@@ -246,14 +258,32 @@ SUB edit_backcompat_bitsets()
  edit_global_bitsets bitname(), "share_general_game_backcompat_bitsets"
 END SUB
 
-SUB edit_active_time_battle_bitsets()
- DIM bitname(35) as string
- bitname(0) = "Pause on Spells & Items menus"
- bitname(13) = "Pause on all battle menus & targeting"
- bitname(21) = "Attack captions pause battle meters"
- bitname(23) = "Battle menus wait for attack animations"
- bitname(35) = "Pause when targeting attacks"
- edit_global_bitsets bitname(), "general_game_active_battle_bitsets"
+SUB edit_battle_bitsets()
+ REDIM bits() as IntStrPair
+ a_append bits(), -1, " Battle Display Options"
+ a_append bits(), 6,  "Hide ready-meter in battle"
+ a_append bits(), 7,  "Hide health-meter in battle"
+ a_append bits(), 14, "Disable hero's battle cursor"
+ a_append bits(), 38, "Never show script timers during battles"
+
+ a_append bits(), -1, ""
+ a_append bits(), -1, " General Options"
+ a_append bits(), 17, "Disable ESC key running from battle"
+ a_append bits(), 26, "0 damage when immune to attack elements"
+ a_append bits(), 29, "Attacks will ignore extra hits stat"
+
+ IF gen(genBattleMode) = 0 THEN
+  a_append bits(), -1, ""
+  a_append bits(), -1, " Active-Time Battle Options"
+  a_append bits(), 13, "Pause on all battle menus & targeting"
+  a_append bits(), 0,  "Pause on Spells & Items menus"
+  a_append bits(), 35, "Pause when targeting attacks"
+  a_append bits(), 23, "Battle menus wait for attack animations"
+  a_append bits(), 21, "Attack captions pause battle meters"
+  a_append bits(), 22, "Don't randomize initial ready meters"
+ END IF
+
+ edit_global_bitsets bits(), "general_battle_bitsets"
 END SUB
 
 SUB edit_mouse_options ()

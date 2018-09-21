@@ -2,7 +2,7 @@ This is a list of menu bitsets - simple OFF or ON settings. Bitsets that are tur
 
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
 
-Modifiy bitsets with Left, Right, SPACE and ENTER.
+Modify bitsets with Left, Right, SPACE, ENTER, or by LEFT-CLICK.
 
  *"Translucent Box"
 

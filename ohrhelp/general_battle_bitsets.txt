@@ -1,0 +1,38 @@
+This is a list of option bitsets for the battle system - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
+
+Modify bitsets with Left, Right, SPACE, ENTER, or by LEFT-CLICK.
+
+Note that there are more bitsets which affect things like stats and hero experience in the Preference Bitsets menu.
+
+ Battle Display Options
+
+"Disable hero's battle cursor" prevents a cursor from appearing above the hero currently taking an action. The cursor will still appear when you are targetting a hero with an attack. This may be useful if you want first-person battles where there are no hero sprites on the screen (so you make heroes sprites blank).
+
+"Never show script timers during battles" prevents timers (see "set timer" command) from displaying during battle; they will countdown normally.
+
+ General Options
+
+"0 damage when immune to attack elements" allows elemental attacks to do zero damage if the target takes 0% damage from that element. Normally you would have to to set the "Allow zero damage" bit on the attack to do less than 1 point of damage.
+
+"Ignore attacker's extra hits" makes the engine ignore the Hits stat, letting you repurpose this stat for something else. Otherwise, Hits randomly increases the number of times each attack by an enemy/hero hits, by 0 to Hits times.
+Turning this on is equivalent to setting the "Ignore attacker's extra hits" attack bit on all attacks (that bit is hidden if you turn on this general one).
+
+
+ Active-time Battle Options
+
+These bitsets only apply to Active-time battle mode. They aren't shown if your game is set to use Turn-based battles.
+
+"Pause on all battle menus & targeting" pauses the battle ready meters whenever it is the player's turn, no matter which menu they are in.
+This does everything the next two bits do, and more. If ON, those bits have no effect:
+
+"Pause on Spells & Item menus" pauses the battle ready meters while the player is browsing item and spell menus, but not while they are choosing an option from the main battle menu or selecting targets.
+
+"Pause when targeting attacks" pauses the battle ready meters while the player is choosing a target.
+
+"Attack captions pause battle meters" pauses the battle ready meters whenever an attack dispays a text caption. Captions can possibly last longer than the attack animation that triggered them.
+
+"Battle menus wait for attack animations" prevents hero's turns from starting in the middle of attack animations. The battle menu will not appear until all animating attacks are finished.
+
+"Don't randomize initial ready meters" determines whether at the beginning of battle, ready meters have random values, or start empty.

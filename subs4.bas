@@ -701,9 +701,7 @@ SUB generate_battlesystem_menu(menu() as string, enabled() as bool, greyout() as
  ELSE
   menu(2) &= "Turn-based"
  END IF
- menu(3) = "Active-time battle bitsets..."
- enabled(3) = (gen(genBattleMode) = 0) 'Active-time battle bitsets
- greyout(3) = NOT enabled(3)
+ menu(3) = "Battle perference bitsets..."
  menu(4) = "Number of Elements: " & gen(genNumElements)
  menu(5) = "Hero Elemental Resistance Calculation..."
  menu(6) = "Mark non-elemental elementals..."
@@ -825,7 +823,7 @@ SUB battleoptionsmenu ()
   usemenu state, enabled()
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
-   IF state.pt = 3 ANDALSO enabled(3) THEN edit_active_time_battle_bitsets
+   IF state.pt = 3 THEN edit_battle_bitsets
    IF state.pt = 5 THEN equipmergemenu
    IF state.pt = 6 THEN mark_non_elemental_elementals
    IF state.pt = 9 THEN statcapsmenu

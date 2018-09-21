@@ -16,7 +16,7 @@ DECLARE FUNCTION editbools (bools() as bool, names() as string, helpkey as strin
 
 DECLARE SUB edit_general_bitsets()
 DECLARE SUB edit_backcompat_bitsets()
-DECLARE SUB edit_active_time_battle_bitsets()
+DECLARE SUB edit_battle_bitsets()
 DECLARE SUB edit_mouse_options ()
 
 'Globals

@@ -2,7 +2,7 @@ This is a list of enemy bitsets - simple OFF or ON settings. Bitsets that are tu
 
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
 
-Modifiy bitsets with Left, Right, SPACE and ENTER.
+Modify bitsets with Left, Right, SPACE, ENTER, or by LEFT-CLICK.
 
 "MP Idiot" enemies lose a turn whenever they randomly select an attack they don't have enough MP for. Normally enemies only attempt attacks they can actually use.
 
