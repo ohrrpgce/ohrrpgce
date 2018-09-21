@@ -58,40 +58,59 @@ npc_facetypes(2) = "Do Not Face Player"
 
 'Edit array of bits. The bits don't have to be consecutive, but they do have to be in ascending order.
 'The bits corresponding to any blank entries in names(), or starting with '##' are hidden/skipped over.
-'if remem_pt is not -2 (initialise to -1) it is used to store the selected bit (index in names())
+'remem_pt is used to store the selected bit (index in names())
 'If immediate_quit is true, then toggling a bit causes the menu to quit immediately and return YES (otherwise NO)
-FUNCTION editbitset (array() as integer, wof as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -2, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
+FUNCTION editbitset (array() as integer, wof as integer, names() as string, helpkey as string="editbitset", byref remem_bitnum as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
 
- DIM state as MenuState
-
- DIM menu(-1 to UBOUND(names)) as string
- DIM bits(-1 to UBOUND(names)) as integer
-
- init_menu_state state, menu()
- state.pt = -1
-
- menu(-1) = prevmenu
-
- DIM menupos as XYPair
- IF LEN(title) THEN menupos.y = 14
+ DIM remem_pt as integer = -1  'Index in bitmenu()
+ DIM bitmenu(UBOUND(names)) as IntStrPair
 
  DIM nextbit as integer = 0
  FOR i as integer = 0 TO UBOUND(names)
   IF names(i) <> "" ANDALSO LEFT(names(i), 2) <> "##" THEN
-   menu(nextbit) = names(i)
-   bits(nextbit) = i
-   IF remem_pt = i THEN state.pt = nextbit
+   bitmenu(nextbit).s = names(i)
+   bitmenu(nextbit).i = i
+   IF remem_bitnum = i THEN remem_pt = nextbit
    nextbit += 1
   END IF
  NEXT
- state.last = nextbit - 1
+ REDIM PRESERVE bitmenu(nextbit - 1)
+
+ DIM ret as bool = editbitset(array(), wof, bitmenu(), helpkey, remem_pt, immediate_quit, title, prevmenu)
+ IF remem_pt = -1 THEN
+  remem_bitnum = -1
+ ELSE
+  remem_bitnum = bitmenu(remem_pt).i
+ END IF
+ RETURN ret
+END FUNCTION
+
+'See above for documentation.
+'This overload takes an array of bits to edit which allows bits be out of order,
+'and to include unselectable section headings.
+'The .i member of bitmenu() is the bit number, which is -1 for unselectable menu items.
+'This overload doesn't hide bits with blank names or ## prefix.
+FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair, helpkey as string="editbitset", byref remem_pt as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
+
+ DIM selectable(-1 TO UBOUND(bitmenu)) as bool
+ selectable(-1) = YES
+ FOR idx as integer = 0 TO UBOUND(bitmenu)
+  selectable(idx) = (bitmenu(idx).i >= 0)
+ NEXT
+
+ DIM menupos as XYPair
+ IF LEN(title) THEN menupos.y = 14
+
+ DIM state as MenuState
+ state.pt = remem_pt
+ state.first = -1
+ correct_menu_state state
+ state.last = UBOUND(bitmenu)
  state.autosize = YES
  state.autosize_ignore_pixels = menupos.y
 
  DIM ret as bool = NO
- DIM col as integer
 
- '---MAIN LOOP---
  push_and_reset_gfxio_state
  DO
   setwait 55
@@ -99,18 +118,19 @@ FUNCTION editbitset (array() as integer, wof as integer, names() as string, help
   state.tog = state.tog XOR 1
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpkey
-  usemenu state
-  IF state.pt >= 0 THEN
-   IF keyval(scLeft) > 1 OR keyval(scComma) > 1 THEN
-    setbit array(), wof, bits(state.pt), 0
+  usemenu state, selectable()
+  IF state.pt >= 0 ANDALSO selectable(state.pt) THEN
+   DIM bitnum as integer = bitmenu(state.pt).i
+   IF keyval(scLeft) > 1 OR keyval(scLeftCaret) > 1 THEN
+    setbit array(), wof, bitnum, 0
     IF immediate_quit THEN ret = YES: EXIT DO
    END IF
-   IF keyval(scRight) > 1 OR keyval(scPeriod) > 1 THEN
-    setbit array(), wof, bits(state.pt), 1
+   IF keyval(scRight) > 1 OR keyval(scRightCaret) > 1 THEN
+    setbit array(), wof, bitnum, 1
     IF immediate_quit THEN ret = YES: EXIT DO
    END IF
    IF enter_space_click(state) THEN
-    setbit array(), wof, bits(state.pt), readbit(array(), wof, bits(state.pt)) XOR 1
+    setbit array(), wof, bitnum, readbit(array(), wof, bitnum) XOR 1
     IF immediate_quit THEN ret = YES: EXIT DO
    END IF
   ELSE
@@ -127,27 +147,24 @@ FUNCTION editbitset (array() as integer, wof as integer, names() as string, help
    drawat.x += 8 + IIF(state.pt = i, showRight, 0)
    drawat.y += (i - state.top) * state.spacing
    DIM biton as integer
-   IF i >= 0 THEN
-    biton = readbit(array(), wof, bits(i))
+   DIM col as integer
+   IF i >= 0 ANDALSO selectable(i) THEN
+    biton = readbit(array(), wof, bitmenu(i).i)
     ellipse vpages(dpage), menupos.x + 4, drawat.y + 3, 3, uilook(uiDisabledItem), IIF(biton, uilook(uiSelectedItem), -1)
    ELSE
-    biton = 1  'Previous menu: don't show as disabled
+    biton = 1  'Don't show as disabled
+    IF i > -1 THEN col = uilook(uiText) 'Section heading: override text color
    END IF
-   textcolor menu_item_color(state, i, biton = 0), 0
-   printstr menu(i), drawat.x, drawat.y, dpage
+   col = menu_item_color(state, i, biton = 0, selectable(i) = NO, col)
+   textcolor col, 0
+   printstr IIF(i = -1, prevmenu, bitmenu(i).s), drawat.x, drawat.y, dpage
   NEXT i
   SWAP vpage, dpage
   setvispage vpage
   dowait
  LOOP
  pop_gfxio_state
- IF remem_pt <> -2 THEN
-  IF state.pt = -1 THEN
-   remem_pt = -1
-  ELSE
-   remem_pt = bits(state.pt)
-  END IF
- END IF
+ remem_pt = state.pt
  RETURN ret
 END FUNCTION
 

@@ -28,7 +28,7 @@ DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, shaded(
 DECLARE SUB standardmenu OVERLOAD (byval menu as BasicMenuItem vector, state as MenuState, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB recalc_menu_size (byref state as MenuState)
 DECLARE SUB calc_menustate_size (state as MenuState, menuopts as MenuOptions, x as RelPos, y as RelPos, page as integer = -1, menu as BasicMenuItem vector = NULL)
-DECLARE FUNCTION menu_item_color(state as MenuState, itemno as integer, disabled as bool = NO, unselectable as bool = NO, c as integer = 0, c_disabled as integer = 0, def_normal as integer = -uiMenuItem-1, def_disabled as integer = -uiDisabledItem-1) as integer
+DECLARE FUNCTION menu_item_color(state as MenuState, itemno as integer, disabled as bool = NO, unselectable as bool = NO, c_normal as integer = 0, c_disabled as integer = 0, def_normal as integer = -uiMenuItem-1, def_disabled as integer = -uiDisabledItem-1) as integer
 
 
 '' Mouse support

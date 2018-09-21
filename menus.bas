@@ -617,13 +617,14 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
 END SUB
 
 'Determine the color to draw menu item index 'itemno' in menu 'state'.
-'c and c_disabled:
+'c_normal and c_disabled:
 ' The normal and disabled colors for the menu item.
 ' They can be 0, indicating to use the def_normal and def_disabled
 ' defaults instead, or < 0 to use a UI color (decoded with ColorIndex).
+' This is a double-fallback, useful in some weird existing code.
 'disabled: whether this item is disabled
 'unselectable: whether this item is unselectable
-FUNCTION menu_item_color(state as MenuState, itemno as integer, disabled as bool = NO, unselectable as bool = NO, c as integer = 0, c_disabled as integer = 0, def_normal as integer = -uiMenuItem-1, def_disabled as integer = -uiDisabledItem-1) as integer
+FUNCTION menu_item_color(state as MenuState, itemno as integer, disabled as bool = NO, unselectable as bool = NO, c_normal as integer = 0, c_disabled as integer = 0, def_normal as integer = -uiMenuItem-1, def_disabled as integer = -uiDisabledItem-1) as integer
  DIM col as integer
  IF .disabled THEN
   IF state.pt = itemno AND state.active THEN
@@ -637,7 +638,7 @@ FUNCTION menu_item_color(state as MenuState, itemno as integer, disabled as bool
    col = uilook(uiSelectedItem + state.tog)
   ELSE
    IF def_normal = 0 THEN def_normal = -uiMenuItem - 1
-   col = IIF(c, c, def_normal)
+   col = IIF(c_normal, c_normal, def_normal)
   END IF
  END IF
  col = ColorIndex(col)
