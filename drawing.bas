@@ -1228,7 +1228,7 @@ area(24).w = 8
 area(24).h = 8
 
 DIM pastogkey(7) as integer
-DIM bitmenu(10) as string
+DIM bitmenu(7) as string
 IF tmode = 3 THEN
  pastogkey(0) = scUp
  pastogkey(1) = scRight
@@ -1325,7 +1325,7 @@ DO
   IF (keyval(scAnyEnter) > 1) OR mouse_click THEN
    DIM buf() as integer
    vector_to_array buf(), ts.defaultwalls
-   editbitset buf(), bnum, 7, bitmenu(), , , , "Default wallmap bits"
+   editbitset buf(), bnum, bitmenu(), , , , "Default wallmap bits"
    array_to_vector ts.defaultwalls, buf()
   END IF
  END IF

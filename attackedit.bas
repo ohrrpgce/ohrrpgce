@@ -1386,7 +1386,7 @@ DO
   NEXT
 
   atk_edit_merge_bitsets recbuf(), buffer()
-  editbitset buffer(), 0, UBOUND(allbits), allbits(), "attack_bitsets"
+  editbitset buffer(), 0, allbits(), "attack_bitsets"
   atk_edit_split_bitsets recbuf(), buffer()
   state.need_update = YES
  END IF
@@ -1479,13 +1479,13 @@ DO
     END IF
    CASE AtkBitAct
     atk_edit_merge_bitsets recbuf(), buffer()
-    editbitset buffer(), 0, UBOUND(atkbit), atkbit(), "attack_bitsets", remember_atk_bit, , atk_edit_atkname(recbuf()) & " general bitsets"
+    editbitset buffer(), 0, atkbit(), "attack_bitsets", remember_atk_bit, , atk_edit_atkname(recbuf()) & " general bitsets"
     atk_edit_split_bitsets recbuf(), buffer()
    CASE AtkDamageBitAct
     DIM updatebits as bool
     DO
      atk_edit_merge_bitsets recbuf(), buffer()
-     updatebits = editbitset(buffer(), 0, UBOUND(maskeddmgbit), maskeddmgbit(), "attack_damage_bitsets", remember_dmg_bit, YES, atk_edit_atkname(recbuf()) & " damage bitsets")
+     updatebits = editbitset(buffer(), 0, maskeddmgbit(), "attack_damage_bitsets", remember_dmg_bit, YES, atk_edit_atkname(recbuf()) & " damage bitsets")
      atk_edit_split_bitsets recbuf(), buffer()
      IF updatebits THEN
       attack_editor_build_damage_menu recbuf(), menu(), menutype(), caption(), menucapoff(), workmenu(), state, dmgbit(), maskeddmgbit(), damagepreview
@@ -1505,7 +1505,7 @@ DO
      'bits 80 - 127
      buffer(2 + i) = recbuf(AtkDatBitsets2 + 5 + i)
     NEXT i
-    editbitset buffer(), 0, UBOUND(elementbit), elementbit(), "attack_element_bitsets", remember_elmt_bit, , atk_edit_atkname(recbuf()) & " elements"
+    editbitset buffer(), 0, elementbit(), "attack_element_bitsets", remember_elmt_bit, , atk_edit_atkname(recbuf()) & " elements"
     'split the buffer to the two bitset blocks
     FOR i = 0 TO 1
      recbuf(AtkDatBitsets + i) = buffer(i)
@@ -1514,13 +1514,13 @@ DO
      recbuf(AtkDatBitsets2 + 5 + i) = buffer(2 + i)
     NEXT i
    CASE AtkChainBits
-    editbitset recbuf(), AtkDatChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names(), "attack_chain_bitsets"
+    editbitset recbuf(), AtkDatChainBits, atk_chain_bitset_names(), "attack_chain_bitsets"
     state.need_update = YES
    CASE AtkElseChainBits
-    editbitset recbuf(), AtkDatElseChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names(), "attack_chain_bitsets"
+    editbitset recbuf(), AtkDatElseChainBits, atk_chain_bitset_names(), "attack_chain_bitsets"
     state.need_update = YES
    CASE AtkInsteadChainBits
-    editbitset recbuf(), AtkDatInsteadChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names(), "attack_chain_bitsets"
+    editbitset recbuf(), AtkDatInsteadChainBits, atk_chain_bitset_names(), "attack_chain_bitsets"
     state.need_update = YES
    CASE AtkChainBrowserAct
     saveattackdata recbuf(), recindex

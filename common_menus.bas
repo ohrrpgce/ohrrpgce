@@ -60,12 +60,12 @@ npc_facetypes(2) = "Do Not Face Player"
 'The bits corresponding to any blank entries in names(), or starting with '##' are hidden/skipped over.
 'if remem_pt is not -2 (initialise to -1) it is used to store the selected bit (index in names())
 'If immediate_quit is true, then toggling a bit causes the menu to quit immediately and return YES (otherwise NO)
-FUNCTION editbitset (array() as integer, wof as integer, last as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -2, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
+FUNCTION editbitset (array() as integer, wof as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -2, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
 
  DIM state as MenuState
 
- DIM menu(-1 to last) as string
- DIM bits(-1 to last) as integer
+ DIM menu(-1 to UBOUND(names)) as string
+ DIM bits(-1 to UBOUND(names)) as integer
 
  init_menu_state state, menu()
  state.pt = -1
@@ -76,7 +76,7 @@ FUNCTION editbitset (array() as integer, wof as integer, last as integer, names(
  IF LEN(title) THEN menupos.y = 14
 
  DIM nextbit as integer = 0
- FOR i as integer = 0 to last
+ FOR i as integer = 0 TO UBOUND(names)
   IF names(i) <> "" ANDALSO LEFT(names(i), 2) <> "##" THEN
    menu(nextbit) = names(i)
    bits(nextbit) = i
@@ -159,7 +159,7 @@ FUNCTION editbools(bools() as bool, names() as string, helpkey as string = "edit
  NEXT
 
  DIM ret as bool
- ret = editbitset(bitarray(), 0, UBOUND(bools), names(), helpkey, remem_pt, immediate_quit, title, prevmenu)
+ ret = editbitset(bitarray(), 0, names(), helpkey, remem_pt, immediate_quit, title, prevmenu)
 
  FOR i as integer = 0 TO UBOUND(bools)
   bools(i) = xreadbit(bitarray(), i)
@@ -173,7 +173,7 @@ SUB edit_global_bitsets(bitname() as string, helpfile as string)
  bittemp(0) = gen(genBits)
  bittemp(1) = gen(genBits2)
  bittemp(2) = gen(genBits2+1)
- editbitset bittemp(), 0, UBOUND(bitname), bitname(), helpfile
+ editbitset bittemp(), 0, bitname(), helpfile
  gen(genBits) = bittemp(0)
  gen(genBits2) = bittemp(1)
  gen(genBits2+1) = bittemp(2)

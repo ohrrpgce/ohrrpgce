@@ -817,7 +817,7 @@ DO
     state.need_update = (recbuf(EnDatDeathSFX) <> old_sfx)
     IF recbuf(EnDatDeathSFX) = 0 THEN playsfx gen(genDefaultDeathSFX) - 1
    CASE EnMenuBitsetAct
-    editbitset recbuf(), EnDatBitset, UBOUND(ebit), ebit(), "enemy_bitsets", remember_bit
+    editbitset recbuf(), EnDatBitset, ebit(), "enemy_bitsets", remember_bit
    CASE EnMenuDissolve, EnMenuDissolveTime
     setup_preview_dissolve = YES
    CASE EnMenuDissolveIn, EnMenuDissolveInTime

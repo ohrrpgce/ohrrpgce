@@ -142,7 +142,7 @@ FUNCTION hero_editor (hero_id as integer) as integer
     CASE 4: hero_editor_stats_menu her
     CASE 5: hero_editor_spell_lists_toplevel her
     CASE 6: hero_editor_battle_menu hero_id, her
-    CASE 7: editbitset her.bits(), 0, 26, hbit()
+    CASE 7: editbitset her.bits(), 0, hbit()
     CASE 8: hero_editor_elementals her
     CASE 9: hero_editor_tags hero_id, her
     CASE 10: hero_editor_equipment_list hero_id, her
@@ -271,7 +271,7 @@ SUB hero_editor_stat_visibility (hero as HeroDef)
   END WITHNODE
  END READNODE
 
- editbitset tmpbits(), 0, statLast, menu(), "hero_stat_visibility", , , hero.name & "'s Status screen visible stats"
+ editbitset tmpbits(), 0, menu(), "hero_stat_visibility", , , hero.name & "'s Status screen visible stats"
  
  DIM stat_options as NodePtr
  stat_options = hero_node."stat_options".ptr
@@ -1640,7 +1640,7 @@ SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer
    nextbit += 1
   END IF
  NEXT i
- editbitset tempbits(), 0, nextbit-1, itemname(), , , , title
+ editbitset tempbits(), 0, itemname(), , , , title
  FOR i as integer = 0 TO nextbit-1
   loaditemdata itembuf(), item_id(i)
   item_write_equipbit itembuf(), hero_id, readbit(tempbits(), 0, i)

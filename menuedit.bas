@@ -515,7 +515,7 @@ SUB edit_menu_bits (menu as MenuDef)
  bitname(10) = "Remember selection when reopening"
 
  MenuBitsToArray menu, bits()
- editbitset bits(), 0, UBOUND(bitname), bitname(), "menu_editor_bitsets"
+ editbitset bits(), 0, bitname(), "menu_editor_bitsets"
  MenuBitsFromArray menu, bits()  
 END SUB
 
@@ -530,7 +530,7 @@ SUB edit_menu_item_bits (mi as MenuDefItem)
  bitname(2) = "Don't run on-close script"
 
  MenuItemBitsToArray mi, bits()
- editbitset bits(), 0, UBOUND(bitname), bitname(), "menu_editor_item_bitsets"
+ editbitset bits(), 0, bitname(), "menu_editor_item_bitsets"
  MenuItemBitsFromArray mi, bits()  
 END SUB
 

@@ -4326,7 +4326,7 @@ SUB mark_non_elemental_elementals ()
   END WITHNODE
  END READNODE
 
- editbitset bits(), 0, gen(genNumElements) - 1, names(), "non_elemental_elementals"
+ editbitset bits(), 0, names(), "non_elemental_elementals"
 
  DIM saved(maxElements - 1) as bool
 

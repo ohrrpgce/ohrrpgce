@@ -193,7 +193,7 @@ DO
    END IF
   CASE 4
    IF enter_space_click(state) THEN
-    editbitset veh(), 9, 8, vehbit(), "vehicle_bitsets"
+    editbitset veh(), 9, vehbit(), "vehicle_bitsets"
    END IF
   CASE 10, 11
    IF enter_space_click(state) THEN

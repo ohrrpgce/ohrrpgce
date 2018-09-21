@@ -349,7 +349,7 @@ SUB item_editor_equipbits(itembuf() as integer, itemname as string)
   bitnames(hero_id) = getheroname(hero_id)
   setbit combined_bits(), 0, hero_id, item_read_equipbit(itembuf(), hero_id)
  NEXT
- editbitset combined_bits(), 0, gen(genMaxHero), bitnames(), , , , itemname & " is equippable by..."
+ editbitset combined_bits(), 0, bitnames(), , , , itemname & " is equippable by..."
  FOR hero_id = 0 TO gen(genMaxHero)
   item_write_equipbit(itembuf(), hero_id, xreadbit(combined_bits(), hero_id))
  NEXT
