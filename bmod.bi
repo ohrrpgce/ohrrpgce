@@ -58,7 +58,7 @@ DECLARE SUB enforce_weak_picture(byval who as integer, bslot() as BattleSprite, 
 DECLARE SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, formdata as Formation)
 DECLARE SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
-DECLARE FUNCTION spawn_chained_attack(byref ch as AttackDataChain, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
+DECLARE FUNCTION spawn_chained_attack(byref ch as AttackDataChain, instead_chain as bool, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE FUNCTION valid_statnum(byval statnum as integer, context as string) as bool
 DECLARE FUNCTION knows_attack(byval who as integer, byval atk as integer, bslot() as BattleSprite) as bool
