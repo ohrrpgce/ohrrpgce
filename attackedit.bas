@@ -243,58 +243,66 @@ getelementnames elementnames()
 
 '--bitsets
 
-DIM atkbit(-1 TO 128) as string
+REDIM atkbit() as IntStrPair
 
-atkbit(3) = "Unreversable Picture"
-atkbit(4) = "Steal Item"
+a_append atkbit(), -1, ""
+a_append atkbit(), -1, " Appearance"
+a_append atkbit(), 3,  "Unreversable picture"
+a_append atkbit(), 55, "Show attack name"
+a_append atkbit(), 56, "Don't display damage"
+a_append atkbit(), 82, "Don't cause target to flinch"
 
-'Obsolete: these are hidden except in the allbits() debug editor
+a_append atkbit(), -1, ""
+a_append atkbit(), -1, " Targetting"
+a_append atkbit(), 54, "Automatically choose target"
 FOR i = 0 TO 7
- atkbit(i + 5) = "##" & elementnames(i) & " Damage (obsolete,unused)" '05-12
- atkbit(i + 13) = "##Bonus vs " & readglobalstring(9 + i, "EnemyType (obsolete,unused)" & i+1) '13-20
- atkbit(i + 21) = "##Fail vs " & elementnames(i) & " resistance (obsolete,unused)" '21-28
- atkbit(i + 29) = "##Fail vs " & readglobalstring(9 + i, "EnemyType (obsolete,unused)" & i+1) '29-36
-NEXT i
-
-FOR i = 0 TO 7
- atkbit(i + 37) = "Cannot target enemy slot " & i
+ a_append atkbit(), i + 37, "Cannot target enemy slot " & i
 NEXT i
 FOR i = 0 TO 3
- atkbit(i + 45) = "Cannot target hero slot " & i
+ a_append atkbit(), i + 45, "Cannot target hero slot " & i
 NEXT i
 
-atkbit(50) = "Erase rewards (Enemy target only)"
-atkbit(52) = "Store Target"
-atkbit(53) = "Delete Stored Targets"
-atkbit(54) = "Automatically choose target"
-atkbit(55) = "Show attack name"
-atkbit(56) = "Do not display Damage"
-atkbit(59) = "Useable Outside of Battle"
-atkbit(63) = "Cause heroes to run away"
-atkbit(64) = "Mutable"
-atkbit(65) = "Fail if target is poisoned"
-atkbit(66) = "Fail if target is regened"
-atkbit(67) = "Fail if target is stunned"
-atkbit(68) = "Fail if target is muted"
-atkbit(70) = "Check costs when used as a weapon"
-atkbit(71) = "Do not chain if attack misses or fails"
-atkbit(72) = "Reset Poison register"
-atkbit(73) = "Reset Regen register"
-atkbit(74) = "Reset Stun register"
-atkbit(75) = "Reset Mute register"
-atkbit(76) = "Cancel target's attack"
-atkbit(77) = "Can't be cancelled by other attacks"
-atkbit(78) = "Do not trigger spawning on hit"
-atkbit(79) = "Do not trigger spawning on kill"
-atkbit(80) = "Check costs when used as an item"
-atkbit(81) = "Re-check costs after attack delay"
-atkbit(82) = "Do not cause target to flinch"
-atkbit(84) = "Delay doesn't block further actions"
-atkbit(85) = "Force victory"
-atkbit(86) = "Force battle exit (no run animation)"
-atkbit(87) = "Never trigger elemental counterattacks"  'Also in Spawning & Counterattacks menu
-'             ^---------------------------------------^
-'               the amount of room you have (39 chars)
+a_append atkbit(), -1, ""
+a_append atkbit(), -1, " Failure Conditions"
+a_append atkbit(), 64, "Mutable"
+a_append atkbit(), 65, "Fail if target is poisoned"
+a_append atkbit(), 66, "Fail if target is regened"
+a_append atkbit(), 67, "Fail if target is stunned"
+a_append atkbit(), 68, "Fail if target is muted"
+
+a_append atkbit(), -1, ""
+a_append atkbit(), -1, " Effects"
+a_append atkbit(), 4,  "Steal item"
+a_append atkbit(), 50, "Erase rewards (Enemy targets only)"
+a_append atkbit(), 52, "Store target"
+a_append atkbit(), 53, "Delete stored targets"
+a_append atkbit(), 63, "Cause heroes to run away"
+a_append atkbit(), 85, "Force victory"
+a_append atkbit(), 86, "Force battle exit (no run animation)"
+a_append atkbit(), 72, "Reset Poison register"
+a_append atkbit(), 73, "Reset Regen register"
+a_append atkbit(), 74, "Reset Stun register"
+a_append atkbit(), 75, "Reset Mute register"
+a_append atkbit(), 76, "Cancel target's attack"
+a_append atkbit(), 77, "Can't be cancelled by other attacks"
+
+a_append atkbit(), -1, ""
+a_append atkbit(), -1, " Counter-effects"
+a_append atkbit(), 78, "Don't trigger spawning on hit"
+a_append atkbit(), 79, "Don't trigger spawning on kill"
+a_append atkbit(), 87, "Don't trigger elemental counterattacks"  'Also in Spawning & Counterattacks menu
+
+a_append atkbit(), -1, ""
+a_append atkbit(), -1, " Costs"
+a_append atkbit(), 70, "Check costs when used as a weapon"
+a_append atkbit(), 80, "Check costs when used as an item"
+a_append atkbit(), 81, "Re-check costs after attack delay"
+
+a_append atkbit(), -1, ""
+a_append atkbit(), -1, " Misc"
+a_append atkbit(), 59, "Useable outside of battle (from Spells menu)"
+a_append atkbit(), 84, "Delay doesn't block further actions"
+a_append atkbit(), 71, "Don't chain if attack misses or fails"
 
 DIM dmgbit(-1 TO 128) as string
 DIM maskeddmgbit(-1 TO 128) as string  'Built in attack_editor_build_damage_menu
@@ -312,9 +320,6 @@ dmgbit(62) = "Damage can be Zero"
 dmgbit(69) = "% based attacks damage instead of set"
 dmgbit(83) = "Don't allow damage to exceed target stat"
 dmgbit(88) = "Healing poison causes regen, and reverse"
-'             ^---------------------------------------^
-'               the amount of room you have (39 chars)
-
 
 
 '--191 attack bits allowed in menu.
@@ -1374,11 +1379,19 @@ DO
    allbits(i) = "  bit " & i
   NEXT
   FOR i = 0 TO UBOUND(atkbit)
-   IF LEN(atkbit(i)) THEN allbits(i) = atkbit(i)
+   allbits(atkbit(i).i) = atkbit(i).s
   NEXT
   FOR i = 0 TO UBOUND(dmgbit)
    IF LEN(dmgbit(i)) THEN allbits(i) = dmgbit(i)
   NEXT
+
+  'Obsolete bits
+  FOR i = 0 TO 7
+   allbits(i + 5) = "##" & elementnames(i) & " Damage (obsolete,unused)" '05-12
+   allbits(i + 13) = "##Bonus vs " & readglobalstring(9 + i, "EnemyType (obsolete,unused)" & i+1) '13-20
+   allbits(i + 21) = "##Fail vs " & elementnames(i) & " resistance (obsolete,unused)" '21-28
+   allbits(i + 29) = "##Fail vs " & readglobalstring(9 + i, "EnemyType (obsolete,unused)" & i+1) '29-36
+  NEXT i
 
   'Unhide hidden bits
   FOR i = 0 TO UBOUND(allbits)

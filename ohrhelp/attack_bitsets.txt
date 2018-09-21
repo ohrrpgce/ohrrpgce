@@ -4,11 +4,26 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the li
 
 Modify bitsets with Left, Right, SPACE and ENTER.
 
-* Unreversable Picture
+
+  Appearance
+
+* Unreversable picture
 Normally, an attack picture will be flipped to match the direction the attacker is facing. This bitset makes the attack picture always appear unflipped, exactly as you drew it.
 
-* Steal Item
-Gives the attacker a chance to steal an item. (Only works for enemy targets. See the "Rewards" menu in the enemy editor.)
+* Show attack name
+Causes the attack's name to be displayed alongside the attack's damage. (This can be used together with the "Do not display Damage" bitset if you want only the attack's name to be shown)
+
+* Don't display damage
+Although the damage will still be dealt to the target, this bitset will prevent the damage from being displayed.
+
+* Don't cause target to flinch
+Normally the target of an attack flinches. For heroes this is their "Hurt" frame, and for enemies this is a small horizontal twitch. This bitset prevents the flinching.
+
+
+  Targetting
+
+* Automatically choose target
+Causes the attacker to automatically choose a target according to the attack's preferred target settings. This bitset is only useful for attacks used by heroes, since enemies always automatically choose targets regardless of this bitset.
 
 * Cannot target enemy slot
 Prevents the attack from being targeted to enemies in certain slots.
@@ -16,29 +31,7 @@ Prevents the attack from being targeted to enemies in certain slots.
 * Cannot target hero slot
 Prevents the attack from being targeted to heroes in certain slots.
 
-* Erase rewards (Enemy target only)
-When an enemy is hit with an attack that has this bitset turned on, its money, experience and items are deleted. Killing the enemy will not give any rewards at the end of battle.
-
-* Store Target
-When an attack with this bitset is used, the attacker will memorize the target(s) for later use with attacks that use the "Stored Targets" target class. The targets are ADDED to the list of previously stored targets, rather than replacing them! If you want to SET the stored target, use this together with Delete Stored Targets, below.
-
-* Delete Stored Targets
-When an attack with this bitset is used, the attacker will forget any previously stored targets, and will no longer be able to use attacks that use "Stored Target" target class.
-
-* Automatically choose target
-Causes the attacker to automatically choose a target according to the attack's preferred target settings. This bitset is only useful for attacks used by heroes, since enemies always automatically choose targets regardless of this bitset.
-
-* Show attack name
-Causes the attack's name to be displayed alongside the attack's damage. (This can be used together with the "Do not display Damage" bitset if you want only the attack's name to be shown)
-
-* Do not display Damage
-Although the damage will still be dealt to the target, this bitset will prevent the damage from being displayed.
-
-* Useable Outside of Battle
-Allows the attack to be used by heroes outside of battle, from the Spells menu. This is normally only used for curing attacks, but note that it also works for damaging attacks. (Some attack features like chaining do not work outside of battle)
-
-* Cause heroes to run away
-If this bitset is turned on, the attack will cause the heroes to run away (regardless of attacker or target) in addition to normal effects. This can be used in combination with turning off the general bitset "Hold ESC to run from battle" if you are implementing your own alternate running-away system.
+  Failure Conditions
 
 * Mutable
 If this bitset is turned on, this attack will be disabled for anyone with a damaged Mute register.
@@ -55,11 +48,30 @@ The attack will fail on any target with a damaged stun register
 * Fail if target is muted
 The attack will fail on any target with a damaged mute register
 
-* Check costs when used as a weapon
-This bitset only matters for attacks that are assigned to weapon items. Normally weapon attacks can always be used regardless of whether or not the attacker has enough MP, or enough items to satisfy the item cost. This bitset causes weapon attacks to be disabled when the attacker cannot afford them, just like attacks in spell lists.
 
-* Do not chain if attack misses or fails
-This causes the attack's chain to be ignored if the attack doesn't hit instead of continuing.
+  Effects
+
+* Steal item
+Gives the attacker a chance to steal an item. (Only works for enemy targets. See the "Rewards" menu in the enemy editor.)
+
+* Erase rewards (Enemy target only)
+When an enemy is hit with an attack that has this bitset turned on, its money, experience and items are deleted. Killing the enemy will not give any rewards at the end of battle.
+
+* Store target
+When an attack with this bitset is used, the attacker will memorize the target(s) for later use with attacks that use the "Stored Targets" target class. The targets are ADDED to the list of previously stored targets, rather than replacing them! If you want to SET the stored target, use this together with Delete Stored Targets, below.
+
+* Delete stored targets
+When an attack with this bitset is used, the attacker will forget any previously stored targets, and will no longer be able to use attacks that use "Stored Target" target class.
+
+* Cause heroes to run away
+If this bitset is turned on, the attack will cause the heroes to run away (regardless of attacker or target) in addition to normal effects. This can be used in combination with turning off the general bitset "Hold ESC to run from battle" if you are implementing your own alternate running-away system.
+
+* Force Victory
+In addition to the attack's normal effects, the battle will immediately stop, with the victory animations playing and rewards listed. Happens regardless of attacker or target. Any surviving enemies do not die/flee, and rewards are NOT given for them.
+
+* Force Battle Exit
+In addition to the attack's normal effects, the battle immediately ends with the screen fading out. Happens regardless of attacker or target. The player does NOT receive any rewards, such as experience, for enemies they've already defeated!
+This counts as running from (losing) the battle for the "fight formation" command.
 
 * Reset Poison register
 This causes the target's poison register to be reset to an undamaged state. This is convenient for making attacks that cure poison.
@@ -76,14 +88,26 @@ This causes the target's mute register to be reset to an undamaged state. This i
 * Cancel target's attack
 If a target is hit with an attack that has this bitset turned on, any attack that the target has already chosen to use will be interrupted, and they will lose a turn.
 
-* Can't be canceled by other attacks
+* Can't be cancelled by other attacks
 This bitset is used to make attacks which cannot be interrupted by other attacks with the "Cancel target's attack" bitset.
 
-* Do not trigger spawning on hit
+
+  Counter-effects
+
+* Don't trigger spawning on hit
 When this bitset is turned on, the attack will not trigger the target's hit spawning.
 
-* Do not trigger spawning on kill
+* Don't trigger spawning on kill
 When this bitset is turned on, if the attack kills the target it will not trigger death spawning.
+
+* Don't trigger elemental counterattacks
+This prevents any of the target's Elemental Counterattacks (including against non-elementals!) from occurring, but does NOT prevent the Non-elemental Counterattack or Stat-damage Counterattacks.
+
+
+  Costs
+
+* Check costs when used as a weapon
+This bitset only matters for attacks that are assigned to weapon items. Normally weapon attacks can always be used regardless of whether or not the attacker has enough MP, or enough items to satisfy the item cost. This bitset causes weapon attacks to be disabled when the attacker cannot afford them, just like attacks in spell lists.
 
 * Check costs when used as an item
 This bitset only matters for attacks that are done when an item is used from the Items menu in battle. Normally item attacks can always be used regardless of whether or not the attacker has enough MP, or enough items to satisfy the item cost. This bitset causes weapon attacks to be disabled when the attacker cannot afford them, just like attacks in spell lists.
@@ -91,18 +115,15 @@ This bitset only matters for attacks that are done when an item is used from the
 * Re-check costs after attack delay
 If this bitset is turned on, the attack will fail if the attacker does not have enough MP or items at the moment when the attack is executed. This can happen if they are hit with an MP-draining attack while they are preparing to cast a spell, or if another character uses up an item that they were trying to use.
 
-* Do not cause target to flinch
-Normally the target of an attack flinches. For heroes this is their "Hurt" frame, and for enemies this is a small horizontal twitch. This bitset prevents the flinching.
+
+  Misc
+
+* Useable Outside of Battle
+Allows the attack to be used by heroes outside of battle, from the Spells menu. This is normally only used for curing attacks, but note that it also works for damaging attacks. (Some attack features like chaining do not work outside of battle)
 
 * Delay doesn't block further actions
 This bitset means the attacker will start their next turn immediately without waiting for the attack delay to run out. These non-blocking attacks don't interfere with the attacker's ready-meter. (non-blocking is a automatically inherited by attacks that chain from a non-blocking attack)
 
-* Force Victory
-In addition to the attack's normal effects, the battle will immediately stop, with the victory animations playing and rewards listed. Happens regardless of attacker or target. Any surviving enemies do not die/flee, and rewards are NOT given for them.
+* Don't chain if attack misses or fails
+This causes the attack's chain to be ignored if the attack doesn't hit instead of continuing.
 
-* Force Battle Exit
-In addition to the attack's normal effects, the battle immediately ends with the screen fading out. Happens regardless of attacker or target. The player does NOT receive any rewards, such as experience, for enemies they've already defeated!
-This counts as running from (losing) the battle for the "fight formation" command.
-
-* Never Trigger Elemental Counterattacks
-This prevents any of the target's Elemental Counterattacks (including against non-elementals!) from occurring, but does NOT prevent the Non-elemental Counterattack or Stat-damage Counterattacks.
