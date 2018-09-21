@@ -981,7 +981,7 @@ Function ArrayBrowser.thing_kind_name() as string
 End Function
 
 Sub ArrayBrowser.set_list(array() as string)
- str_array_copy array(), list()
+ a_copy array(), list()
 End Sub
 
 '-----------------------------------------------------------------------

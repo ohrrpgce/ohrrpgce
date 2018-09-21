@@ -1170,8 +1170,8 @@ PRIVATE SUB SerializeZoneTiles(zmap as ZoneMap, byval root as NodePtr, rect as R
         GetZonesAtTile zmap, zoneshere(), xstart, y
         FOR i = 0 TO UBOUND(zoneshere)
           id = zoneshere(i)
-          IF int_array_find(seen_this_line(), id) <> -1 THEN CONTINUE FOR
-          int_array_append seen_this_line(), id
+          IF a_find(seen_this_line(), id) <> -1 THEN CONTINUE FOR
+          a_append seen_this_line(), id
 
           DIM as integer spantype = NO  'NO: currently in a stretch of unset tiles
           spanoff = 0
@@ -4410,7 +4410,7 @@ SUB load_script_triggers_and_names()
     ' Previously defined, but no longer exists
     scrname = "[" & scrname & "]"
    END IF
-   intstr_array_append script_names(), trigger_id, scrname
+   a_append script_names(), trigger_id, scrname
    idx += 1
   WEND
   CLOSE fh
@@ -4425,7 +4425,7 @@ SUB load_script_triggers_and_names()
    DIM script_id as integer = buf(0)
    DIM scrname as string = readbinstring(buf(), 1, 38)
    'debug "plotscr.lst:  script " & id & " " & scrname
-   intstr_array_append script_names(), script_id, scrname
+   a_append script_names(), script_id, scrname
    idx += 1
   WEND
   CLOSE fh

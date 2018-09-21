@@ -825,8 +825,8 @@ TYPE CustomGlobalMenu
 END TYPE
 
 SUB CustomGlobalMenu.append(code as integer, text as string)
- int_array_append item_codes(), code
- str_array_append items(), text
+ a_append item_codes(), code
+ a_append items(), text
 END SUB
 
 ' Accessible with F8 if we are editing a game
@@ -1639,8 +1639,8 @@ FUNCTION empty_workingdir (workdir as string) as bool
  DIM filelist() as string
  findfiles workdir, ALLFILES, fileTypeFile, NO, filelist()
  ' Delete these metadata files last
- array_shuffle_to_end filelist(), str_array_findcasei(filelist(), "__danger.tmp")
- array_shuffle_to_end filelist(), str_array_findcasei(filelist(), "session_info.txt.tmp")
+ a_shuffle_to_end filelist(), a_findcasei(filelist(), "__danger.tmp")
+ a_shuffle_to_end filelist(), a_findcasei(filelist(), "session_info.txt.tmp")
  FOR i as integer = 0 TO UBOUND(filelist)
   DIM fname as string = workdir + SLASH + filelist(i)
   IF NOT safekill(fname) THEN

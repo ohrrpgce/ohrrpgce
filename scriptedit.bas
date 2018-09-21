@@ -57,7 +57,7 @@ FUNCTION isunique (s as string, set() as string) as bool
   IF key = set(i) THEN RETURN NO
  NEXT i
 
- str_array_append set(), key
+ a_append set(), key
  RETURN YES
 END FUNCTION
 
@@ -786,16 +786,16 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
  scriptids(0) = IIF(allow_default, -1, 0)
  'Then maybe comes "[default] default-script-name"
  IF allow_default THEN
-  str_array_append scriptnames(), scriptname_default(0, default)
-  int_array_append scriptids(), 0
+  a_append scriptnames(), scriptname_default(0, default)
+  a_append scriptids(), 0
  END IF
 
  'If trigger is a script that isn't imported, either numbered or a plotscript, then
  'show it as a special option at the top of the menu, equivalent to cancelling
  IF trigger > 0 THEN
-  IF intstr_array_find(script_names(), trigger) = -1 THEN
-   str_array_append scriptnames(), scriptname(trigger)
-   int_array_append scriptids(), trigger
+  IF a_find(script_names(), trigger) = -1 THEN
+   a_append scriptnames(), scriptname(trigger)
+   a_append scriptids(), trigger
   END IF
  END IF
 
@@ -810,8 +810,8 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
   loadrecord localbuf(), fh, 20
   'Add any non-autonumbered scripts (definescript was used)
   IF localbuf(0) < 16384 THEN
-   str_array_append scriptnames(), localbuf(0) & " " + readbinstring(localbuf(), 1, 36)
-   int_array_append scriptids(), localbuf(0)
+   a_append scriptnames(), localbuf(0) & " " + readbinstring(localbuf(), 1, 36)
+   a_append scriptids(), localbuf(0)
   END IF
  NEXT
  CLOSE #fh
@@ -823,8 +823,8 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
  FOR record as integer = 0 TO (LOF(fh) \ 40) - 1
   loadrecord localbuf(), fh, 20
   IF localbuf(0) <> 0 THEN
-   int_array_append scriptids(), 16384 + record
-   str_array_append scriptnames(), readbinstring(localbuf(), 1, 36)
+   a_append scriptids(), 16384 + record
+   a_append scriptnames(), readbinstring(localbuf(), 1, 36)
   END IF
  NEXT
  CLOSE #fh
@@ -1162,7 +1162,7 @@ PRIVATE FUNCTION script_usage_visitor(byref trig as integer, description as stri
  '--See script_usage_list about rank calculation
  DIM rank as integer = trig
  IF trig >= 16384 THEN rank = 100000 + plotscript_order(trig - 16384)
- intstr_array_append script_usage_menu(), rank, "  " & description & " " & caption
+ a_append script_usage_menu(), rank, "  " & description & " " & caption
  RETURN NO  'trig not modified
 END FUNCTION
 
@@ -1173,13 +1173,13 @@ SUB script_list_export (menu() as string, description as string, remove_first_it
                                      ".txt", "", "", title)
  IF LEN(fname) THEN
   DIM lines() as string
-  str_array_copy menu(), lines()
+  a_copy menu(), lines()
   FOR i as integer = 1 TO remove_first_items
-   str_array_pop lines(), 0
+   a_pop lines(), 0
   NEXT
-  str_array_insert lines(), 0, title
-  str_array_insert lines(), 1, "Exported " & DATE & " " & TIME
-  str_array_insert lines(), 2, ""
+  a_insert lines(), 0, title
+  a_insert lines(), 1, "Exported " & DATE & " " & TIME
+  a_insert lines(), 2, ""
   lines_to_file lines(), fname + ".txt", LINE_END
  END IF
 END SUB
@@ -1213,7 +1213,7 @@ SUB script_usage_list ()
   id = buf(0)
   IF id <= 16383 THEN
    s = id & ":" & readbinstring(buf(), 1, 38)
-   intstr_array_append script_usage_menu(), id, s
+   a_append script_usage_menu(), id, s
   END IF
  NEXT i
  CLOSE #fh
@@ -1225,7 +1225,7 @@ SUB script_usage_list ()
  REDIM plotscripts(0) as string
  WHILE loadrecord(buf(), fh, 20)
   s = readbinstring(buf(), 1, 38)
-  str_array_append plotscripts(), s
+  a_append plotscripts(), s
  WEND
 
  'Have to skip if no plotscripts
@@ -1242,7 +1242,7 @@ SUB script_usage_list ()
    id = buf(0)
    IF id <> 0 THEN
     s = readbinstring(buf(), 1, 38)
-    intstr_array_append script_usage_menu(), 100000 + plotscript_order(i), s
+    a_append script_usage_menu(), 100000 + plotscript_order(i), s
    END IF
    i += 1
   WEND 
@@ -1321,12 +1321,12 @@ PRIVATE FUNCTION check_broken_script_trigger(byref trig as integer, description 
  id = decodetrigger(trig)
  '--Check for missing new-style script
  IF id = 0 THEN
-  str_array_append missing_script_trigger_list(), description & " " & scriptname(trig) & " missing. " & caption 
+  a_append missing_script_trigger_list(), description & " " & scriptname(trig) & " missing. " & caption 
  ELSEIF id < 16384 THEN
   '--now check for missing old-style scripts
-  IF intstr_array_find(script_names(), id) <> -1 THEN RETURN NO 'Found okay
+  IF a_find(script_names(), id) <> -1 THEN RETURN NO 'Found okay
 
-  str_array_append missing_script_trigger_list(), description & " ID " & id & " missing. " & caption
+  a_append missing_script_trigger_list(), description & " ID " & id & " missing. " & caption
  ELSEIF id >= 16384 AND id = trig THEN
   '--The trigger was not decoded, which should not happen since you can't select autonumbered scripts!
   '--Prehaps a lump was copied from a different .rpg file
@@ -1344,7 +1344,7 @@ SUB script_broken_trigger_list()
  visit_scripts @check_broken_script_trigger
 
  IF UBOUND(missing_script_trigger_list) = num_fixed_menu_items - 1 THEN
-  str_array_append missing_script_trigger_list(), "No broken triggers found!"
+  a_append missing_script_trigger_list(), "No broken triggers found!"
  END IF
 
  DIM state as MenuState
@@ -1379,7 +1379,7 @@ FUNCTION autofix_old_script_visitor(byref id as integer, description as string, 
  '--returns true if a fix has occured
  IF id = 0 THEN RETURN NO ' not a trigger
  IF id >= 16384 THEN RETURN NO 'New-style script
- IF intstr_array_find(script_names(), id) <> -1 THEN RETURN NO 'Found okay
+ IF a_find(script_names(), id) <> -1 THEN RETURN NO 'Found okay
 
  DIM buf(19) as integer
  DIM fh as integer

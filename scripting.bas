@@ -1406,7 +1406,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
 
  IF nowscript >= 0 THEN
   scriptcmdhash = scrat(nowscript).id * 100000 + scrat(nowscript).ptr * 10 + scrat(nowscript).depth
-  IF int_array_find(ignorelist(), scriptcmdhash) <> -1 THEN EXIT SUB
+  IF a_find(ignorelist(), scriptcmdhash) <> -1 THEN EXIT SUB
  END IF
 
  ' OK, decided to show the error
@@ -1472,7 +1472,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
      killscriptthread
      EXIT DO
     CASE 3 'hide errors from this command
-     int_array_append(ignorelist(), scriptcmdhash)
+     a_append(ignorelist(), scriptcmdhash)
      EXIT DO
     CASE 4
      debug "scripterr: User opted to quit"

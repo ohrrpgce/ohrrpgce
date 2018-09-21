@@ -431,7 +431,7 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
 
     IF .type = compNone OR .type = compTag OR .editstate = 1 OR .editstate = 5 THEN
      'Ignore the current operator; we're pretending there is none
-     newtype = str_array_findcasei(comp_strings(), inchar)
+     newtype = a_findcasei(comp_strings(), inchar)
 
     ELSE
      'First check whether in the middle of typing a comparison operator.
@@ -439,7 +439,7 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
      'change to >= regardless of initial state
      IF .lastinput THEN
       'Only checking input strings of len 2
-      newtype = str_array_findcasei(comp_strings(), CHR(.lastinput) + inchar)
+      newtype = a_findcasei(comp_strings(), CHR(.lastinput) + inchar)
      END IF
 
      IF newtype = -1 THEN
@@ -449,7 +449,7 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
       'the bug to occur depends on the surrounding context in the function).
       DIM _temp as integer = charnum - 1
       DIM tempcomp as string = statetable(_temp, .type)
-      newtype = str_array_findcasei(comp_strings(), tempcomp)
+      newtype = a_findcasei(comp_strings(), tempcomp)
      END IF
     END IF
 
@@ -552,7 +552,7 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
         .editstate = 5
        END IF
       ELSE 'LEN = 2
-       .type = str_array_findcasei(comp_strings(), LEFT(newcomp, 1))
+       .type = a_findcasei(comp_strings(), LEFT(newcomp, 1))
       END IF
      ELSE
       temp = 0
@@ -575,7 +575,7 @@ END FUNCTION
 'default: meaning of the null condition (true: ALWAYS, false: NEVER)
 SUB cond_editor (cond as Condition, default as bool = NO, outer_state as MenuState)
  DIM menu(10) as string
- DIM compty(10) as integer  'CompType (can't pass that to int_array_find)
+ DIM compty(10) as integer  'CompType (can't pass that to a_find)
  menu(0)  = "Cancel"
  menu(1)  = "Always"
  menu(2)  = "Never"
@@ -609,7 +609,7 @@ SUB cond_editor (cond as Condition, default as bool = NO, outer_state as MenuSta
    st.pt = 4
   END IF
  ELSE
-  st.pt = int_array_find(compty(), cond.type)
+  st.pt = a_find(compty(), cond.type)
   IF st.pt = -1 THEN st.pt = 1   'If cond.type is invalid
  END IF
 
@@ -4003,7 +4003,7 @@ END SUB
 FUNCTION edit_purchase_enumbrowse(caption as string, byval node as NodePtr, enumstr() as string, helpkey as string) as bool
  DIM choice as integer
  DIM old as integer
- old = str_array_find(enumstr(), GetString(node), 0)
+ old = a_find(enumstr(), GetString(node), 0)
  choice = multichoice(caption, enumstr(), old, old, helpkey)
  IF choice <> old THEN
   SetContent(node, enumstr(choice))
@@ -4014,7 +4014,7 @@ END FUNCTION
 
 FUNCTION edit_purchase_enumgrabber(byval node as NodePtr, enumstr() as string) as bool
  DIM choice as integer
- choice = str_array_find(enumstr(), GetString(node), 0)
+ choice = a_find(enumstr(), GetString(node), 0)
  IF intgrabber(choice, 0, UBOUND(enumstr)) THEN
   SetContent(node, enumstr(choice))
   RETURN YES

@@ -291,7 +291,7 @@ sub music_play(filename as string, byval fmt as MusicFormatEnum)
 			'check if already converted
 			if isfile(midname) = NO then
 				bam2mid(songname, midname)
-				str_array_append tempfiles(), midname
+				a_append tempfiles(), midname
 			end if
 			songname = midname
 			fmt = FORMAT_MIDI

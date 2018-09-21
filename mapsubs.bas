@@ -250,9 +250,9 @@ SUB make_map_picker_menu(topmenu() as string, state as MenuState)
  REDIM topmenu(0)
  topmenu(0) = "Return to Main Menu"
  FOR i as integer = 0 TO gen(genMaxMap)
-  str_array_append topmenu(), "Map " & i & ": " + getmapname(i)
+  a_append topmenu(), "Map " & i & ": " + getmapname(i)
  NEXT
- str_array_append topmenu(), "Add a New Map"
+ a_append topmenu(), "Add a New Map"
 
  state.last = UBOUND(topmenu)
 END SUB
@@ -1412,8 +1412,8 @@ DO
      st.cur_zone = st.zonemenu[st.zonemenustate.pt].dat
      st.cur_zinfo = GetZoneInfo(st.map.zmap, st.cur_zone)
      IF keyval(scL) > 1 THEN  'Lock/Unlock
-      IF int_array_find(st.lockedzonelist(), st.cur_zone) > -1 THEN
-       int_array_remove(st.lockedzonelist(), st.cur_zone)  'Unlock
+      IF a_find(st.lockedzonelist(), st.cur_zone) > -1 THEN
+       a_remove(st.lockedzonelist(), st.cur_zone)  'Unlock
       ELSE
        mapedit_lock_cur_zone st
       END IF
@@ -1421,14 +1421,14 @@ DO
      END IF
      IF keyval(scH) > 1 THEN
       st.cur_zinfo->hidden XOR= YES
-      int_array_remove(st.lockedzonelist(), st.cur_zone)  'Doesn't make sense for a zone to be hidden and locked
+      a_remove(st.lockedzonelist(), st.cur_zone)  'Doesn't make sense for a zone to be hidden and locked
       st.zones_needupdate = YES
      END IF
     END IF
     'You may draw if you lock the zone first, so it stays visible.
     'For convenience, auto-lock the current zone when you try to draw
     IF use_current_tool THEN mapedit_lock_cur_zone st
-    st.drawing_allowed = (int_array_find(st.lockedzonelist(), st.cur_zone) > -1)
+    st.drawing_allowed = (a_find(st.lockedzonelist(), st.cur_zone) > -1)
 
     IF keyval(scA) > 1 THEN  'Autoshow zones
      st.autoshow_zones XOR= YES
@@ -1706,7 +1706,7 @@ DO
   IF st.zonesubmode = zone_edit_mode THEN
    draw_zone_minimap st, st.zoneoverlaymap, 0, findrgb(255,255,0)
   ELSE
-   DIM bitnum as integer = int_array_find(st.zonecolours(), st.cur_zone)
+   DIM bitnum as integer = a_find(st.zonecolours(), st.cur_zone)
    IF bitnum <> -1 THEN
     draw_zone_minimap st, st.zoneviewmap, bitnum, findrgb(255,255,0)
    END IF
@@ -2205,7 +2205,7 @@ DO
             0, 5, dpage, YES
 
    IF zoneselected THEN
-    DIM is_locked as integer = (int_array_find(st.lockedzonelist(), st.cur_zone) > -1)
+    DIM is_locked as integer = (a_find(st.lockedzonelist(), st.cur_zone) > -1)
     edgeprint hilite("E") + "dit/" _
               & IIF(st.cur_zinfo->hidden,"un","") + hilite("H") + "ide/" _
               & IIF(is_locked,"un","") + hilite("L") + "ock zone", pRight - 20, pBottom, uilook(uiText), dpage, YES
@@ -2370,8 +2370,8 @@ PRIVATE SUB mapedit_list_npcs_by_tile_update (st as MapEditState, pos as XYPair,
     IF .x = pos.x * 20 AND .y = pos.y * 20 THEN
      DIM s as string
      s = "NPC ID=" & (.id - 1) & " facing " & dir_str(.dir)
-     str_array_append menu(), s
-     int_array_append npcrefs(), i
+     a_append menu(), s
+     a_append npcrefs(), i
     END IF
    END IF
   END WITH
@@ -2615,9 +2615,9 @@ END SUB
 
 'Lock the current zone, if possible. May fail
 SUB mapedit_lock_cur_zone(st as MapEditState)
- IF int_array_find(st.lockedzonelist(), st.cur_zone) = -1 ANDALSO _
+ IF a_find(st.lockedzonelist(), st.cur_zone) = -1 ANDALSO _
     UBOUND(st.lockedzonelist) + 1 < 8 THEN
-  int_array_append(st.lockedzonelist(), st.cur_zone)
+  a_append(st.lockedzonelist(), st.cur_zone)
   st.cur_zinfo->hidden = NO  'Doesn't make sense for a zone to be hidden and locked
   st.zones_needupdate = YES
  END IF
@@ -2629,23 +2629,23 @@ FUNCTION mapedit_try_assign_colour_to_zone(byval id as integer, zonecolours() as
  DIM idx as integer
 
  'note viszonelist(-1) is not used, but is 0, so does not interfere
- idx = int_array_find(viszonelist(), id)
+ idx = a_find(viszonelist(), id)
  IF idx <> -1 THEN
   RETURN idx
  END IF
 
  'Success guaranteed
- int_array_append viszonelist(), id
+ a_append viszonelist(), id
 
  'First check whether we remember a colour
- idx = int_array_find(zonecolours(), id)
+ idx = a_find(zonecolours(), id)
  IF idx <> -1 THEN
   zonecolours(idx) = id
   RETURN idx
  END IF
 
  'An unused colour?
- idx = int_array_find(zonecolours(), 0)
+ idx = a_find(zonecolours(), 0)
  IF idx <> -1 THEN
   zonecolours(idx) = id
   RETURN idx
@@ -2656,7 +2656,7 @@ FUNCTION mapedit_try_assign_colour_to_zone(byval id as integer, zonecolours() as
   'Rotate the first colour checked, otherwise everything keeps getting colour 0
   zone_col_rotate = (zone_col_rotate + 1) MOD (UBOUND(zonecolours) + 1)
 
-  IF int_array_find(viszonelist(), zonecolours(zone_col_rotate)) = -1 THEN
+  IF a_find(viszonelist(), zonecolours(zone_col_rotate)) = -1 THEN
    zonecolours(zone_col_rotate) = id
    RETURN zone_col_rotate
   END IF
@@ -2669,7 +2669,7 @@ SUB zonemenu_add_zone (byref zonemenu as SimpleMenuItem vector, zonecolours() as
   EXIT SUB
  END IF
 
- DIM col as integer = int_array_find(zonecolours(), info->id)
+ DIM col as integer = a_find(zonecolours(), info->id)
  DIM extra as string
  IF info->hidden THEN
   extra = "(H)"
@@ -2761,7 +2761,7 @@ SUB mapedit_update_visible_zones (st as MapEditState)
  'Update the zoneviewmap
  CleanTilemap st.zoneviewmap, st.map.wide, st.map.high
  FOR i as integer = 0 TO UBOUND(viszonelist)
-  DIM colour as integer = int_array_find(st.zonecolours(), viszonelist(i))
+  DIM colour as integer = a_find(st.zonecolours(), viszonelist(i))
   ZoneToTilemap st.map.zmap, st.zoneviewmap, viszonelist(i), colour
  NEXT
  'needs to be called after zoneviewmap is updated, to show hidden zones
@@ -4029,7 +4029,7 @@ SUB mapedit_delete(st as MapEditState)
  options(6) = "Erase doorlinks"
  IF st.map.id = gen(genMaxMap) AND st.map.id >= 1 THEN
   '--if this is the last map, then we can actually remove it entirely, rather than just blanking it
-  str_array_append options(), "Delete map entirely"
+  a_append options(), "Delete map entirely"
  END IF
  DIM choice as integer = multichoice("Delete which map data?", options(), 0, 0, "mapedit_delete")
  IF choice >= 1 AND choice <= 6 THEN
@@ -4212,7 +4212,7 @@ SUB mapedit_import_tilemaps(st as MapEditState, appending as bool)
   REDIM menu_choices(0) as string
   menu_choices(0) = "Cancel"
   FOR layer as integer = 0 TO num_new_layers - 1
-   str_array_append menu_choices(), "Append just layer " & layer & " from the imported tilemap"
+   a_append menu_choices(), "Append just layer " & layer & " from the imported tilemap"
   NEXT
   choice = multichoice(menu_caption, menu_choices(), 1, 0)
 
@@ -4362,7 +4362,7 @@ SUB mapedit_export_tilemap_image(st as MapEditState)
  REDIM menu_choices(0) as string
  menu_choices(0) = "Cancel"
  FOR layer as integer = 0 TO UBOUND(st.map.tiles)
-  str_array_append menu_choices(), "Export map layer " & layer & " " & read_map_layer_name(st.map.gmap(), layer)
+  a_append menu_choices(), "Export map layer " & layer & " " & read_map_layer_name(st.map.gmap(), layer)
  NEXT
  DIM choice as integer
  choice = multichoice(menu_caption, menu_choices(), 1, 0)

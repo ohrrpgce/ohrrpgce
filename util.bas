@@ -1220,28 +1220,28 @@ SUB flusharray (array() as integer, byval size as integer=-1, byval value as int
  NEXT i
 END SUB
 
-#MACRO MAKE_ARRAY_APPEND(Subname, Typename)
+#MACRO MAKE_ARRAY_APPEND(Typename)
  'Insert a new element into an array at position 'pos'.
- SUB Subname (array() as Typename, value as Typename)
+ SUB a_append (array() as Typename, value as Typename)
   REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
   array(UBOUND(array)) = value
  END SUB
 #ENDMACRO
 
-MAKE_ARRAY_APPEND(str_array_append, string)
-MAKE_ARRAY_APPEND(int_array_append, integer)
+MAKE_ARRAY_APPEND(string)
+MAKE_ARRAY_APPEND(integer)
 
-SUB intstr_array_append (array() as IntStrPair, byval k as integer, s as string)
+SUB a_append (array() as IntStrPair, byval k as integer, s as string)
  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
  array(UBOUND(array)).i = k
  array(UBOUND(array)).s = s
 END SUB
 
-#MACRO MAKE_ARRAY_INSERT(Subname, Typename)
+#MACRO MAKE_ARRAY_INSERT(Typename)
  'Insert a new element into an array at position 'pos'.
- SUB Subname(array() as Typename, pos as integer, value as Typename)
+ SUB a_insert(array() as Typename, pos as integer, value as Typename)
   IF pos < LBOUND(array) OR pos > UBOUND(array) + 1 THEN
-   showerror #Subname " out of bounds: " & pos
+   showerror "a_insert out of bounds: " & pos
    EXIT SUB
   END IF
   REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
@@ -1252,22 +1252,22 @@ END SUB
  END SUB
 #ENDMACRO
 
-MAKE_ARRAY_INSERT(str_array_insert, string)
-MAKE_ARRAY_INSERT(int_array_insert, integer)
+MAKE_ARRAY_INSERT(string)
+MAKE_ARRAY_INSERT(integer)
 
-#MACRO MAKE_ARRAY_POP(Subname, Typename)
+#MACRO MAKE_ARRAY_POP(Typename)
  ' Remove array(which) (default last), shuffling everything else down
- SUB Subname (array() as Typename, which as integer = &hE2D0FD15)
+ SUB a_pop (array() as Typename, which as integer = &hE2D0FD15)
   IF which = &hE2D0FD15 THEN which = UBOUND(array)
   IF which >= LBOUND(array) AND which <= UBOUND(array) THEN
-   array_shuffle_to_end array(), which
+   a_shuffle_to_end array(), which
    REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) - 1)
   END IF
  END SUB
 #ENDMACRO
 
-MAKE_ARRAY_POP(str_array_pop, string)
-MAKE_ARRAY_POP(int_array_pop, integer)
+MAKE_ARRAY_POP(string)
+MAKE_ARRAY_POP(integer)
 
 #MACRO MAKE_ARRAY_FIND(Subname, ArrayTypename, ValTypename, EqualCheck)
  ' Return index of first item in array equal to 'value', or 'notfound'.
@@ -1279,15 +1279,15 @@ MAKE_ARRAY_POP(int_array_pop, integer)
  END FUNCTION
 #ENDMACRO
 
-MAKE_ARRAY_FIND(str_array_find,      string,     string,  array(i) = value)
-MAKE_ARRAY_FIND(str_array_findcasei, string,     string,  LCASE(array(i)) = LCASE(value))
-MAKE_ARRAY_FIND(int_array_find,      integer,    integer, array(i) = value)
-MAKE_ARRAY_FIND(intstr_array_find,   IntStrPair, integer, array(i).i = value)
-MAKE_ARRAY_FIND(intstr_array_find,   IntStrPair, string,  array(i).s = value)
+MAKE_ARRAY_FIND(a_find,      string,     string,  array(i) = value)
+MAKE_ARRAY_FIND(a_findcasei, string,     string,  LCASE(array(i)) = LCASE(value))
+MAKE_ARRAY_FIND(a_find,      integer,    integer, array(i) = value)
+MAKE_ARRAY_FIND(a_find,      IntStrPair, integer, array(i).i = value)
+MAKE_ARRAY_FIND(a_find,      IntStrPair, string,  array(i).s = value)
 
 #MACRO MAKE_ARRAY_SHUFFLE_TO_END(Typename)
  'Preserves order of everything except element at position 'which'. OK to give invalid 'which'
- SUB array_shuffle_to_end(array() as Typename, which as integer)
+ SUB a_shuffle_to_end(array() as Typename, which as integer)
   IF which < LBOUND(array) THEN EXIT SUB
   FOR idx as integer = which TO UBOUND(array) - 1
    SWAP array(idx), array(idx + 1)
@@ -1298,29 +1298,29 @@ MAKE_ARRAY_FIND(intstr_array_find,   IntStrPair, string,  array(i).s = value)
 MAKE_ARRAY_SHUFFLE_TO_END(string)
 MAKE_ARRAY_SHUFFLE_TO_END(integer)
 
-#MACRO MAKE_ARRAY_REMOVE(Funcname, Typename, Prefix)
+#MACRO MAKE_ARRAY_REMOVE(Typename)
  'Remove the first instance of value, resizing the dynamic array.
  'No error or warning if it isn't found.
  'Returns the index of the item if it was found, or -1 if not
- FUNCTION Funcname (array() as TypeName, value as TypeName) as integer
+ FUNCTION a_remove (array() as TypeName, value as TypeName) as integer
   DIM idx as integer
-  idx = Prefix##_array_find(array(), value, &he110b0b1)
+  idx = a_find(array(), value, &he110b0b1)
   IF idx = &he110b0b1 THEN RETURN -1
-  Prefix##_array_pop array(), idx
+  a_pop array(), idx
   RETURN idx
  END FUNCTION
 #ENDMACRO
 
-MAKE_ARRAY_REMOVE(str_array_remove, string,  str)
-MAKE_ARRAY_REMOVE(int_array_remove, integer, int)
+MAKE_ARRAY_REMOVE(string)
+MAKE_ARRAY_REMOVE(integer)
 
-SUB int_array_copy (fromarray() as integer, toarray() as integer)
+SUB a_copy (fromarray() as integer, toarray() as integer)
  DIM as integer low = LBOUND(fromarray), high = UBOUND(fromarray)
  REDIM toarray(low TO high)
  memcpy @toarray(low), @fromarray(low), sizeof(integer) * (high - low + 1)
 END SUB
 
-SUB str_array_copy (fromarray() as string, toarray() as string)
+SUB a_copy (fromarray() as string, toarray() as string)
  DIM as integer low = LBOUND(fromarray), high = UBOUND(fromarray)
  REDIM toarray(low TO high)
  FOR i as integer = low TO high
@@ -2476,7 +2476,7 @@ SUB findfiles (directory as string, namemask as string = "", filetype as FileTyp
      IF filenames[i] = "dev" ORELSE filenames[i] = "proc" ORELSE filenames[i] = "sys" THEN CONTINUE FOR
      'Maybe we should filter out some other dirs on Mac and on Android?
     END IF
-    str_array_append filelist(), filenames[i]
+    a_append filelist(), filenames[i]
   NEXT
 
   v_free filenames
@@ -2515,7 +2515,7 @@ SUB findfiles (directory as string, namemask as string = "", filetype as FileTyp
   IF foundfile = "" THEN EXIT SUB
   REDIM tempfilelist(-1 TO -1) as string
   DO UNTIL foundfile = ""
-    str_array_append tempfilelist(), foundfile
+    a_append tempfilelist(), foundfile
     foundfile = DIR '("", attrib)
   LOOP
   FOR i as integer = 0 TO UBOUND(tempfilelist)
@@ -2526,7 +2526,7 @@ SUB findfiles (directory as string, namemask as string = "", filetype as FileTyp
       'files with attribute 0 appear in the list, so single those out
       IF DIR(searchdir + foundfile, 32+16+4+2+1) = "" OR DIR(searchdir + foundfile, 32+4+2+1) <> "" THEN CONTINUE FOR
     END IF
-    str_array_append filelist(), foundfile
+    a_append filelist(), foundfile
   NEXT
 
   'If DIR is not called until it returns "" then internally it holds a HANDLE for the search,
@@ -3292,7 +3292,7 @@ FUNCTION lines_from_file(strarray() as string, filename as string, expect_exists
  DO UNTIL EOF(fh)
   DIM text as string
   LINE INPUT #fh, text
-  str_array_append strarray(), text
+  a_append strarray(), text
  LOOP
  CLOSE #fh
  RETURN YES
@@ -3388,7 +3388,7 @@ private sub get_commandline_args(cmdargs() as string, args_file as string = "")
 
 	dim i as integer = 1
 	while command(i) <> ""
-		str_array_append(cmdargs(), command(i))
+		a_append(cmdargs(), command(i))
 		i += 1
 	wend
 end sub
@@ -3425,7 +3425,7 @@ sub processcommandline(nonoption_args() as string, opt_handler as FnSetOption, a
 		if argsused = 0 then
 			'Everything else falls through and is stored for the program to catch
 			'(we could prehaps move their handling into functions as well)
-			str_array_append(nonoption_args(), cmdargs(cnt))
+			a_append(nonoption_args(), cmdargs(cnt))
 			argsused = 1
 			'debuginfo "commandline arg " & (ubound(nonoption_args) - 1) & ": stored " & cmdargs(cnt)
 		end if
@@ -3470,7 +3470,7 @@ SUB write_ini_value (ini() as string, key as string, value as string)
   END IF
  NEXT i
  IF NOT found THEN
-  str_array_append ini(), key & " = " & value
+  a_append ini(), key & " = " & value
  END IF
 END SUB
 

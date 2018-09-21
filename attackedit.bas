@@ -38,7 +38,7 @@ DIM counter_provoke_captions(provokeLAST) as string * 23 = { _
 }
 
 SUB addcaption (caption() as string, byref indexer as integer, cap as string)
- str_array_append caption(), cap
+ a_append caption(), cap
  indexer = UBOUND(caption) + 1
 END SUB
 

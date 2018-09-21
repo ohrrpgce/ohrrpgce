@@ -4846,10 +4846,10 @@ SUB AnimationEditor.rebuild_toplevel_menu()
   topmenu(-1) = "Previous menu"
   FOR idx as integer = 0 TO UBOUND(sprset->animations)
     WITH sprset->animations(idx)
-      str_array_append topmenu(), .name + " " + .variant
+      a_append topmenu(), .name + " " + .variant
     END WITH
   NEXT
-  str_array_append topmenu(), "New animation..."
+  a_append topmenu(), "New animation..."
 
   init_menu_state topstate, topmenu()
 END SUB
@@ -5002,7 +5002,7 @@ SUB AnimationEditor.edit_animation(anim_name as string)
    ELSEIF keyval(scDelete) > 1 OR keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN
     ' Delete op
     IF curop THEN
-     any_array_remove(anim.ops, op_idx)  'macro
+     a_any_remove(anim.ops, op_idx)  'macro
     ELSEIF UBOUND(anim.ops) > 0 THEN
      REDIM PRESERVE anim.ops(UBOUND(anim.ops) - 1)
     END IF

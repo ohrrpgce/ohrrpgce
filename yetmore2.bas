@@ -1565,7 +1565,7 @@ FUNCTION try_reload_gfx_lump(lumpname as string, extn as string) as bool
   sprite_update_cache sprTypeLargeEnemy
   sprite_update_cache sprTypeEnemy
  ELSEIF extn = "rgfx" THEN
-  DIM sprtype as integer = str_array_find(rgfx_lumpnames(), lumpname)
+  DIM sprtype as integer = a_find(rgfx_lumpnames(), lumpname)
   IF sprtype = -1 THEN RETURN NO
   sprite_update_cache sprtype
   RETURN YES

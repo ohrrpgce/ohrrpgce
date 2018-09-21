@@ -899,7 +899,7 @@ FUNCTION scriptname (id_or_trigger as integer) as string
  IF id_or_trigger = 0 THEN
   RETURN "[none]"
  ELSE
-  DIM idx as integer = intstr_array_find(script_names(), id_or_trigger)
+  DIM idx as integer = a_find(script_names(), id_or_trigger)
   IF idx > -1 THEN RETURN script_names(idx).s
   RETURN "[id " & id_or_trigger & "]"
  END IF

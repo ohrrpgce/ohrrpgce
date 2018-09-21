@@ -152,35 +152,37 @@ TYPE IntStrPair
   s as string
 END TYPE
 
-declare function str_array_find      (array() as string,  value as string,  notfound as integer = -1) as integer
-declare function str_array_findcasei (array() as string,  value as string,  notfound as integer = -1) as integer
-declare function int_array_find      (array() as integer, value as integer, notfound as integer = -1) as integer
-declare function intstr_array_find overload (array() as IntStrPair, value as integer, notfound as integer = -1) as integer
-declare function intstr_array_find overload (array() as IntStrPair, value as string, notfound as integer = -1) as integer
-declare sub array_shuffle_to_end overload(array() as integer, which as integer)
-declare sub array_shuffle_to_end overload(array() as string, which as integer)
+declare function a_find overload (array() as string,  value as string,  notfound as integer = -1) as integer
+declare function a_findcasei (array() as string,  value as string,  notfound as integer = -1) as integer
+declare function a_find overload (array() as integer, value as integer, notfound as integer = -1) as integer
+declare function a_find overload (array() as IntStrPair, value as integer, notfound as integer = -1) as integer
+declare function a_find overload (array() as IntStrPair, value as string, notfound as integer = -1) as integer
+declare sub a_shuffle_to_end overload (array() as integer, which as integer)
+declare sub a_shuffle_to_end overload (array() as string, which as integer)
 
 'These act on *dynamic length* destination arrays only! Static arrays will segfault!
-declare sub str_array_append (array() as string,  value as string)
-declare sub int_array_append (array() as integer, value as integer)
-declare sub intstr_array_append (array() as IntStrPair, byval k as integer, s as string)
-declare sub str_array_insert (array() as string,  pos as integer, value as string)
-declare sub int_array_insert (array() as integer, pos as integer, value as integer)
-declare sub str_array_pop (array() as string,  which as integer = &hE2D0FD15)
-declare sub int_array_pop (array() as integer, which as integer = &hE2D0FD15)
-declare function str_array_remove (array() as string,  value as string)  as integer
-declare function int_array_remove (array() as integer, value as integer) as integer
-declare sub int_array_copy (fromarray() as integer, toarray() as integer)
-declare sub str_array_copy (fromarray() as string,  toarray() as string)
+declare sub a_append overload (array() as string,  value as string)
+declare sub a_append overload (array() as integer, value as integer)
+declare sub a_append overload (array() as IntStrPair, byval k as integer, s as string)
+declare sub a_insert overload (array() as string,  pos as integer, value as string)
+declare sub a_insert overload (array() as integer, pos as integer, value as integer)
+declare sub a_pop overload (array() as string,  which as integer = &hE2D0FD15)
+declare sub a_pop overload (array() as integer, which as integer = &hE2D0FD15)
+declare function a_remove overload (array() as string,  value as string)  as integer
+declare function a_remove overload (array() as integer, value as integer) as integer
+declare sub a_copy overload (fromarray() as integer, toarray() as integer)
+declare sub a_copy overload (fromarray() as string,  toarray() as string)
 
 /'
-declare sub int_array_exclude (() as integer, array() as integer)
-declare sub int_array_sort (dest() as integer, src() as integer)
+declare sub a_exclude (() as integer, array() as integer)
+declare sub a_sort (dest() as integer, src() as integer)
 '/
 
+
 ' This macro removes the i-th element from a 1-D array by shuffling it to the end
-' and redimming. Has to be a macro since FB doesn't have templates
-#MACRO any_array_remove(array, which)
+' and redimming. Has to be a macro since FB doesn't have templates,
+' and can't be named a_remove as that clashes.
+#MACRO a_any_remove(array, which)
   FOR _aidx as integer = which TO UBOUND(array) - 1
     SWAP array(_aidx), array(_aidx + 1)
   NEXT

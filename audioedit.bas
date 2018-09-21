@@ -93,7 +93,7 @@ SUB mp3_ID3_tags (in_file as string, comments() as string)
    debug "mp3_ID3_tags: line not understood: " & tag
    CONTINUE FOR
   END IF
-  str_array_append comments(), LEFT(tag, where - 1) & "=" & MID(tag, where + 2)
+  a_append comments(), LEFT(tag, where - 1) & "=" & MID(tag, where + 2)
  NEXT
 END SUB
 

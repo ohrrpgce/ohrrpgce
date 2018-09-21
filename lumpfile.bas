@@ -1277,9 +1277,9 @@ sub fixlumporder (filelist() as string)
 	dim as integer temp, readpos, writepos
 
 	'--move archinym.lmp and browse.txt to front
-	temp = str_array_findcasei(filelist(), "browse.txt")
+	temp = a_findcasei(filelist(), "browse.txt")
 	if temp > -1 then swap filelist(0), filelist(temp)
-	temp = str_array_findcasei(filelist(), "archinym.lmp")
+	temp = a_findcasei(filelist(), "archinym.lmp")
 	if temp > -1 then swap filelist(1), filelist(temp)
 
 	'--exclude illegal *.tmp files; shuffle them to the end of the array, then trimming them

@@ -695,7 +695,7 @@ sub gfx_backend_menu ()
 			'Only shown if you use --gfx to override the default
 			item &= " (Selected default)"
 		end if
-		str_array_append menu(), item
+		a_append menu(), item
 	next
 
 	dim choice as integer

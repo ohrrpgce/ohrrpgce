@@ -7303,7 +7303,7 @@ private sub snapshot_check()
 		if F12bits = 1 then
 			' Take a screenshot, but maybe delete it later
 			shot = tmpdir & get_process_id() & "_tempscreen" & ubound(backlog)
-			str_array_append(backlog(), screenshot(shot))
+			a_append(backlog(), screenshot(shot))
 			'debug "temp save " & backlog(ubound(backlog))
 		else
 			' Key repeat has kicked in, so move our backlog of screenshots to the visible location.
