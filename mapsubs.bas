@@ -21,6 +21,9 @@ CONST tilew = 20
 CONST tileh = 20
 DIM SHARED tilesize as XYPair = (20, 20)
 
+'Remembered camera position of each map, in tiles
+DIM SHARED remem_map_positions() as XYPair
+
 '---------------------------- Local subs/functions & types -------------------------------
 
 DECLARE SUB make_map_picker_menu (topmenu() as string, state as MenuState)
@@ -48,6 +51,7 @@ DECLARE FUNCTION mapedit_on_screen(st as MapEditState, tile as XYPair) as bool
 DECLARE FUNCTION mapedit_partially_on_screen(st as MapEditState, tile as XYPair) as bool
 DECLARE FUNCTION mapedit_clamp_tile_to_screen(st as MapEditState, tile as XYPair) as XYPair
 DECLARE SUB mapedit_focus_camera(st as MapEditState, tile as XYPair)
+DECLARE SUB mapedit_move_cursor(st as MapEditState, tile as XYPair)
 DECLARE SUB mapedit_constrain_camera(st as MapEditState)
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as XYPair) as XYPair
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as RectType) as RectType
@@ -612,6 +616,11 @@ st.clone_merge = YES
 
 st.cur_door = find_first_free_door(st.map.door())
 
+'Return to previously selected tile
+REDIM PRESERVE remem_map_positions(gen(genMaxMap))
+mapedit_window_size_updates st  'Needed to set the size of st.viewport
+mapedit_move_cursor st, remem_map_positions(st.map.id)
+
 DIM mapeditmenu(16) as string
 DIM mapeditmenu_display(16) as string
 
@@ -749,6 +758,9 @@ palette16_unload @st.shadowpal
 v_free st.mode_tools
 v_free st.zonemenu
 ' Contents of st.map are freed by destructor
+
+'Remember position
+remem_map_positions(st.map.id) = XY(st.x, st.y)
 
 remember_menu_pt = st.menustate.pt  'preserve for other maps
 END SUB
@@ -1235,8 +1247,7 @@ DO
    END IF
    IF intgrabber(st.cur_door, 0, UBOUND(st.map.door), scLeftCaret, scRightCaret, , , , wheelAlways) THEN
     IF st.map.door(st.cur_door).exists THEN
-     st.pos = st.map.door(st.cur_door).pos
-     mapedit_focus_camera st, st.pos
+     mapedit_move_cursor st, st.map.door(st.cur_door).pos
     END IF
    END IF
    IF tool_actkeypress THEN ' space/click to place a door
@@ -5848,6 +5859,13 @@ END FUNCTION
 SUB mapedit_focus_camera(st as MapEditState, tile as XYPair)
  st.camera = tile * tilesize - st.viewport.size \ 2
  mapedit_constrain_camera st
+END SUB
+
+'Move the cursor, and center the camera on it
+SUB mapedit_move_cursor(st as MapEditState, tile as XYPair)
+ st.x = bound(tile.x, 0, st.map.wide - 1)
+ st.y = bound(tile.y, 0, st.map.high - 1)
+ mapedit_focus_camera st, st.pos
 END SUB
 
 'Make sure the camera position is within map limits. Ignores cursor.
