@@ -161,6 +161,7 @@ DECLARE FUNCTION getsfxname (byval num as integer) as string
 DECLARE FUNCTION getheroname (byval hero_id as integer) as string
 DECLARE FUNCTION getmapname (byval m as integer) as string
 DECLARE SUB getstatnames(statnames() as string)
+DECLARE FUNCTION battle_statnames(statnum as integer) as string
 DECLARE SUB getelementnames(elmtnames() as string)
 
 DECLARE FUNCTION getdisplayname (default as string) as string

@@ -599,13 +599,9 @@ max(AtkLimPrefTargStat) = 16
 min(AtkLimPrefTargStat) = 0
 menucapoff(AtkPrefTargStat) = capindex
 addcaption caption(), capindex, "same as target stat" '0
-FOR i = 0 TO 11  '1 - 12
- addcaption caption(), capindex, statnames(i)
+FOR i = 0 TO 15  '1 - 16
+ addcaption caption(), capindex, battle_statnames(i)
 NEXT
-addcaption caption(), capindex, "poison register"'13
-addcaption caption(), capindex, "regen register" '14 
-addcaption caption(), capindex, "stun register"  '15
-addcaption caption(), capindex, "mute register"  '16
 
 CONST AtkLimChainMode = 31
 max(AtkLimChainMode) = 19
@@ -2529,14 +2525,7 @@ FOR i = 0 TO size
      datatext &= " (" & speed_estimate(dat) & ")"
     END IF
   CASE 16 '--stat
-    SELECT CASE dat
-     CASE 0 TO 11
-      datatext = statnames(dat)
-     CASE 12: datatext = "poison register"
-     CASE 13: datatext = "regen register"
-     CASE 14: datatext = "stun register"
-     CASE 15: datatext = "mute register"
-    END SELECT
+    datatext = battle_statnames(dat)
   CASE 17 '--int%
    datatext = dat & "%"
   CASE 18 '--skipper

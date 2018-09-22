@@ -6202,6 +6202,19 @@ SUB getstatnames(statnames() as string)
  statnames(11) = readglobalstring(4, "Hits", 10)
 END SUB
 
+FUNCTION battle_statnames(statnum as integer) as string
+ SELECT CASE statnum
+  CASE 0 TO 11
+   RETURN statnames(statnum)
+  CASE 12: RETURN "poison register"
+  CASE 13: RETURN "regen register"
+  CASE 14: RETURN "stun register"
+  CASE 15: RETURN "mute register"
+  CASE ELSE:
+   showerror "battle_statnames: Invalid stat " & statnum
+ END SELECT
+END FUNCTION
+
 SUB getelementnames(elmtnames() as string)
  REDIM elmtnames(gen(genNumElements) - 1)
  FOR i as integer = 0 TO gen(genNumElements) - 1
