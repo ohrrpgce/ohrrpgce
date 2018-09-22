@@ -51,6 +51,12 @@ DECLARE FUNCTION plank_menu_clone_template (byval templatesl as Slice ptr) as Sl
 'Specific behavior can be overridden by giving the PlankState a .state_callback
 DECLARE SUB set_plank_state (byref ps as PlankState, byval sl as Slice Ptr, byval state as PlankItemState = plankNORMAL)
 
+TYPE FwdSide
+ fwd as integer
+ side as integer
+END TYPE
+
+DECLARE FUNCTION plank_effective_pos(pl as Slice ptr, prev as Slice ptr, axis as integer, d as integer, prev_front as FwdSide, prev_center as FwdSide, byref ret as FwdSide) as bool
 'plank_menu_arrows handles arrow key movement, and updates PlankState.cur and returns true .cur has changed, so you can update the visuals
 DECLARE FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice Ptr=0) as bool
 

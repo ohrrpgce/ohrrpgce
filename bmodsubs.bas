@@ -876,7 +876,8 @@ SUB battle_target_arrows (byval d as integer, byval axis as integer, bslot() as 
  DIM inrange(0) as integer
  inrange(0) = 0
  battle_target_arrows_sector_mask inrange(), d, axis, bslot(), targ, foredistance(), sidedistance()
- IF inrange(0) THEN
+ IF inrange(0) THEN  'At least one target is inrange
+  'First, pick the closest target within the 90 degree wide sector
   DIM best as integer = 99999
   FOR i as integer = 0 TO 11
    IF readbit(inrange(), 0, i) THEN
@@ -888,6 +889,7 @@ SUB battle_target_arrows (byval d as integer, byval axis as integer, bslot() as 
   NEXT i
  END IF
  IF newptr = targ.pointer THEN
+  'If there's none, allow targets which are at a steeper angle, pick the one with minimum angle
   DIM bestangle as double = 999.
   DIM angle as double
   FOR i as integer = 0 TO 11
@@ -901,6 +903,7 @@ SUB battle_target_arrows (byval d as integer, byval axis as integer, bslot() as 
   NEXT i
  END IF 
  IF newptr = targ.pointer THEN
+  'Spread attack
   IF allow_spread = YES AND targ.opt_spread = 1 THEN
    FOR i as integer = 0 TO 11
     targ.selected(i) = targ.mask(i)

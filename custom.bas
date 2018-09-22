@@ -2294,8 +2294,9 @@ SUB plankmenu_tests_generate_grid(root as Slice ptr, scatter as integer, percent
    DIM sl as Slice ptr = NewSliceOfType(slRectangle, root)
    sl->X = x * 40 + randint(scatter)
    sl->Y = y * 40 + randint(scatter)
-   sl->Width = large(20 - scatter, 3) + randint(scatter * 2)
-   sl->Height = large(20 - scatter, 3) + randint(scatter * 2)
+   DIM sizerange as integer = small(scatter * 2, 36)
+   sl->Width = 20 + randint(sizerange) - sizerange \ 2
+   sl->Height = 20 + randint(sizerange) - sizerange \ 2
    'default set_plank_state makes the SELECTABLE rectanges invisible, so put it on top of another one!
    ChangeRectangleSlice sl, , uiDisabledItem * -1 - 1
    sl->Lookup = SL_PLANK_HOLDER
@@ -2308,14 +2309,96 @@ SUB plankmenu_tests_generate_grid(root as Slice ptr, scatter as integer, percent
  NEXT
 END SUB
 
+SUB draw_effective_points(ps as PlankState, axis as integer, d as integer)
+ REDIM planks(any) as Slice Ptr
+ find_all_planks ps, ps.m, planks()
+
+ DIM as PlankViewpoint viewpoint = PlankViewpoint(ps.cur, axis, d)
+
+ FOR i as integer = 0 TO UBOUND(planks)
+  DIM pnt as FwdSide
+  IF viewpoint.plank_effective_pos(pnt, planks(i)) = NO THEN CONTINUE FOR
+  DIM effpos as XYPair
+  IF axis = 0 THEN effpos = XY(pnt.fwd * d, pnt.side) ELSE effpos = XY(pnt.side, pnt.fwd * d)
+  rectangle effpos.x - 1, effpos.y - 1, 3, 3, uilook(uiText), vpage
+ NEXT i
+END SUB
+
+'Draw lines showing positions for slice centers which plank_menu_move_cursor
+'would give equal preference
+SUB draw_isoline(sl as Slice ptr, ps as PlankState, movex as integer, movey as integer)
+ DIM sl_center as XYPair = sl->ScreenPos + sl->Size \ 2
+ DIM edgelen as integer
+ IF movex THEN edgelen = sl->Height ELSE edgelen = sl->Width
+ DIM col as integer = findrgb(255,255,255)
+
+ 'DIM parabola_scale as double = 2. / large(8, edgelen) ^ 1.5
+
+ FOR dist as integer = 15 TO 150 STEP 15
+  DIM radius as double = dist  '(dist / 10)^0.5
+
+  ' DIM as double semimajor = 1'large(8, ABS(sl->Width * movex) + ABS(sl->Height * movey))
+  ' DIM as double semiminor = 1'large(8, ABS(sl->Width * movey) + ABS(sl->Height * movex))
+
+  DIM as integer prev_side_width = large(16, ABS(sl->Width * movey) + ABS(sl->Height * movex))
+
+  DIM as double directedness = 2. ^ 2
+
+  DIM as double semimajor = 0.3333 ''large(16, ABS(sl->Width * movex) + ABS(sl->Height * movey))
+  DIM as double semiminor = 1'large(16, ABS(sl->Width * movey) + ABS(sl->Height * movex))
+  semimajor *= radius
+  semiminor *= radius
+
+  DIM as double angle = ATAN2(movex, movey)
+
+  ' The center of the ellipse is 'radius' pixels in the move direction
+  DIM as XYPair el_center = XY(movex * radius, movey * radius)
+
+  el_center += sl_center
+
+  ellipse vpages(vpage), el_center.x, el_center.y, semimajor, col, , semiminor, angle
+
+  /'
+  FOR side as integer = -100 TO 100
+   DIM pnt as XYPair
+   DIM as integer fwd
+
+   fwd = dist - parabola_scale * large(0,(ABS(side) - 0)) ^ 2.5
+
+
+   IF fwd <= 0 THEN CONTINUE FOR
+   IF movex THEN
+    pnt.x = fwd * movex
+    pnt.y = side
+   ELSE
+    pnt.x = side
+    pnt.y = fwd * movey
+   END IF
+
+   pnt += sl_center
+   putpixel pnt.x, pnt.y, col, vpage
+  NEXT
+  '/
+ NEXT
+
+ DIM as integer axis, d
+ IF movex < 0 THEN axis = 0 : d = -1
+ IF movex > 0 THEN axis = 0 : d = 1
+ IF movey < 0 THEN axis = 1 : d = -1
+ IF movey > 0 THEN axis = 1 : d = 1
+ draw_effective_points ps, axis, d
+END SUB
+
 SUB plankmenu_cursor_move_tests
- DIM as integer scatter = 10, percent = 80
+ DIM as integer scatter = 14, percent = 70
 
  DIM root as Slice ptr = NewSliceOfType(slContainer)
  root->Fill = YES
  DIM ps as PlankState
  ps.m = root
  DIM update as bool = YES
+
+ DIM as integer movex, movey
 
  setkeys
  DO
@@ -2335,12 +2418,25 @@ SUB plankmenu_cursor_move_tests
   END IF
 
   set_plank_state ps, ps.cur, plankNORMAL
-  plank_menu_arrows(ps)
+
+  IF keyval(scShift) > 0 THEN
+   ' movex = 0
+   ' movey = 0
+   IF keyval(scLeft) > 0 THEN movex = -1 : movey = 0
+   IF keyval(scRight) > 0 THEN movex = 1 : movey = 0
+   IF keyval(scUp) > 0 THEN movey = -1 : movex = 0
+   IF keyval(scDown) > 0 THEN movey = 1 : movex = 0
+  ELSE
+   plank_menu_arrows(ps)
+  END IF
+  IF keyval(scSpace) > 0 THEN movex = 0 : movey = 0
   set_plank_state ps, ps.cur, plankSEL
 
   clearpage vpage
   DrawSlice root, vpage
-  wrapprint "Scatter: " & scatter & " (+/-)  Percent present: " & percent & " (</>)", pLeft, pBottom, uilook(uiText), vpage
+  IF ps.cur ANDALSO (movex OR movey) THEN draw_isoline ps.cur, ps, movex, movey
+  wrapprint "Scatter: " & scatter & " (+/-)  Present: " & percent & "% (</>) " & _
+            "SHIFT+arrows: isolines (SPACE clears)", pLeft, pBottom, uilook(uiText), vpage
   setvispage vpage
   dowait
 

@@ -3985,7 +3985,7 @@ sub paintat (dest as Frame ptr, x as integer, y as integer, c as integer)
 
 end sub
 
-sub ellipse (fr as Frame ptr, x as double, y as double, radius as double, col as integer, fillcol as integer, semiminor as double = 0.0, angle as double = 0.0)
+sub ellipse (fr as Frame ptr, x as double, y as double, radius as double, col as integer, fillcol as integer = -1, semiminor as double = 0.0, angle as double = 0.0)
 'radius is the semimajor axis if the ellipse is not a circle
 'angle is the angle of the semimajor axis to the x axis, in radians counter-clockwise
 

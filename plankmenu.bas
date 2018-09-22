@@ -4,7 +4,7 @@
 
 #include "config.bi"
 #include "allmodex.bi"
-#include "common.bi" 
+#include "common.bi"
 #include "loading.bi"
 #include "const.bi"
 #include "uiconst.bi"
@@ -47,6 +47,89 @@ FUNCTION load_plank_from_file(filename as string) as Slice Ptr
  RETURN plank
 END FUNCTION
 
+'Find the position of an edge of a slice given by axis & d. See below for
+'meaning of fwd and side.
+'axis:  0 for left/right, 1 for up/down
+'d:     1 for right or bottom edge, -1 for left or top edge
+'rearedge: use the edge opposite the forward direction rather than the forward one
+PRIVATE SUB slice_forward_edge(sl as Slice ptr, axis as integer, d as integer, rearedge as bool, byref pos as FwdSide, byref edgelen as integer)
+ DIM right_or_bottom_edge as bool = (d = 1) XOR rearedge
+ pos.fwd = sl->ScreenPos.n(axis) + IIF(right_or_bottom_edge, sl->Size.n(axis), 0)
+ pos.fwd *= d
+ pos.side = sl->ScreenPos.n(axis XOR 1)
+ edgelen = large(1, sl->Size.n(axis XOR 1))
+END SUB
+
+PRIVATE SUB slice_forward_center(sl as Slice ptr, axis as integer, d as integer, byref center as FwdSide)
+ center.fwd = (sl->ScreenPos + sl->Size \ 2).n(axis)
+ center.fwd *= d
+ center.side = (sl->ScreenPos + sl->Size \ 2).n(axis XOR 1)
+END SUB
+
+'
+FUNCTION plank_effective_pos(pl as Slice ptr, prev as Slice ptr, axis as integer, d as integer, prev_front as FwdSide, prev_center as FwdSide, byref ret as FwdSide) as bool
+ 'Get the edge of this plank facing the old one.
+ DIM pl_front as FwdSide, pl_edgelen as integer
+ slice_forward_edge(pl, axis, d, YES, pl_front, pl_edgelen)
+
+ DIM pl_center as FwdSide
+ slice_forward_center(pl, axis, d, pl_center)
+
+ pl_center.fwd -= prev_center.fwd
+ pl_center.side -= prev_center.side
+ pl_front.fwd -= prev_center.fwd
+ pl_front.side -= prev_center.side
+
+ 'Shift everything relative to prev_center, which is at 0,0
+
+ 'First, ignore any plank that isn't at least fwd of the center of
+ 'the old plank. Use the center rather than the fwd edge of the old plank
+ 'so that they can overlap a bit.
+ IF pl_center.fwd <= 0 THEN RETURN NO
+
+ 'Unless the plank overlaps with this one, ignore if it's not forward of our front edge
+ IF pl_center.fwd < prev_front.fwd ANDALSO SliceCollide(prev, pl) = NO THEN RETURN NO
+
+ 'Find the 'side' distance between the edge and the line from the center of the prev
+ 'slice,
+ DIM pl_closest_side as integer
+ DIM pl_far_side as integer
+
+ IF pl_front.side <= 0 AND pl_front.side + pl_edgelen >= 0 THEN
+  'Line L intersects the plank
+  pl_closest_side = 0
+ ELSE
+
+  pl_closest_side = small(ABS(pl_front.side), ABS(pl_front.side + pl_edgelen))
+  '  pl_far_side = pl_closest_side + f
+ END IF
+
+ 'Penalise slices that stick out by moving the closest point up to 4px
+ 'towards the center of the slice.
+ ' IF pl_closest_side > 0 THEN
+ '  pl_closest_side += small(pl_edgelen, 6) \ 2
+ ' END IF
+ '  pl_closest_side = small(pl_closest_side + 3, ABS(pl_center.side))
+
+ '  pl_closest_side = (pl_closest_side + small(pl_center.fwd, ABS(pl_center.side))) / 2
+
+ ' pl_far_side = large(ABS(pl_front.side), ABS(pl_front.side + pl_edgelen))
+
+
+ 'If the front edge of the plank is actually behind us but it sticks out far ahead,
+ 'then pl_front.fwd is negative, but we should still consider it.
+ '  DIM pl_dist_fwd as integer = pl_fwd
+ DIM pl_dist_fwd as integer = large(1, pl_front.fwd)
+ ' pl_dist_fwd = bound(directedness * pl_closest_side, pl_front.fwd, pl_center.fwd)   'Or pl_center.side to penalise large slices
+ ' pl_dist_fwd = large(1, pl_dist_fwd)
+
+
+ ret.fwd = pl_dist_fwd
+ ret.side = pl_closest_side
+
+ RETURN YES
+END FUNCTION
+
 'axis:  0 for left/right, 1 for up/down
 'd:     1 for right or down, -1 for left or up
 FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, byval d as integer, byval start_parent as Slice Ptr=0) as bool
@@ -56,34 +139,75 @@ FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, 
   ps.cur = top_left_plank(ps)
   RETURN YES
  END IF
- 
+
  DIM old_cur as Slice Ptr = ps.cur
 
  REDIM planks(any) as Slice Ptr
  IF start_parent = 0 THEN start_parent = ps.m
  find_all_planks ps, start_parent, planks()
- 
- DIM old as XYPair
- old = ps.cur->ScreenPos + ps.cur->Size \ 2
 
- DIM best as ulongint = &HFFFFFFFFFFFFFFFF
- DIM p as XYPair
- DIM dist as ulongint
- 
- DIM sl as Slice Ptr
+ 'fwd (forwards): a coordinate increasing in the direction we're trying to move
+ 'side (sidewards): the orthogonal coordinate to the fwd one
+ '
+ 'Eg, for axis = 1, d = 1:
+ '    +-------+     side
+ '    |pv C   |^   ----->
+ '    +---+---+|
+ '        .    |D
+ '        .    |
+ '        .    |  E
+ '       L.    v<--->
+ '        .     +---+
+ ' |      .  S  |pl |
+ ' |fwd   .<--->|   |
+ ' v      .     +---+
+ '        .<-------->
+ '             F
+ '
+ ' C: center of prev
+ ' L: line from center of prev, in fwd direction
+ ' S: pl_closest_side distance
+ ' F: pl_far_side distance
+ ' D: pl_dist_fwd
+ ' E: pl_edgelen
+ '
+ ' Note: there's heaps of dead code in this function, computing quantities
+ ' which might be useful for changing the scoring function (eg extra penalties)
+ ' but which can be removed once this is finalised.
+
+ DIM prev_center as FwdSide
+ slice_forward_center(ps.cur, axis, d, prev_center)
+
+ DIM prev_front as FwdSide, prev_edgelen as integer
+ slice_forward_edge(ps.cur, axis, d, NO, prev_front, prev_edgelen)
+
+ prev_front.fwd -= prev_center.fwd
+ prev_front.side -= prev_center.side
+
+ DIM best as double = DBL_MAX  'INT_MAX
+
+ DIM as double directedness = 3.
+
  FOR i as integer = 0 TO UBOUND(planks)
-  sl = planks(i)
-  p.x = sl->ScreenX + sl->Width \ 2
-  p.y = sl->ScreenY + sl->Height \ 2
-  IF (d = 1 ANDALSO p.n(axis) > old.n(axis)) ORELSE (d = -1 ANDALSO p.n(axis) < old.n(axis)) THEN
-   dist = (old.x - p.x) ^ 2 + (old.y - p.y) ^ 2
-   IF dist < best THEN
-    best = dist
-    ps.cur = sl
-   END IF
+  DIM pl as Slice ptr = planks(i)
+
+  DIM pnt as FwdSide
+  IF plank_effective_pos(pl, ps.cur, axis, d, prev_front, prev_center, pnt) = NO THEN
+   CONTINUE FOR
+  END IF
+
+  DIM score as double
+  score = pnt.fwd + (directedness * pnt.side) ^ 2 / pnt.fwd
+
+  ''Penalise planks which are wide and stick out a long way to the side
+  ''score += 0.5 * large(0, pl_far_side - prev_edgelen \ 2)
+
+  IF score < best THEN
+   best = score
+   ps.cur = pl
   END IF
  NEXT i
- 
+
  RETURN ps.cur <> old_cur
 END FUNCTION
 
