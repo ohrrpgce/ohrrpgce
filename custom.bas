@@ -2319,8 +2319,13 @@ SUB draw_effective_points(ps as PlankState, axis as integer, d as integer)
   DIM pnt as FwdSide
   IF viewpoint.plank_effective_pos(pnt, planks(i)) = NO THEN CONTINUE FOR
   DIM effpos as XYPair
-  IF axis = 0 THEN effpos = XY(pnt.fwd * d, pnt.side) ELSE effpos = XY(pnt.side, pnt.fwd * d)
-  rectangle effpos.x - 1, effpos.y - 1, 3, 3, uilook(uiText), vpage
+  DIM byref origin as FwdSide = viewpoint.prev_center
+  IF axis = 0 THEN
+   effpos = XY((origin.fwd + pnt.fwd) * d, origin.side + pnt.side)
+  ELSE
+   effpos = XY(origin.side + pnt.side, (origin.fwd + pnt.fwd) * d)
+  END IF
+  rectangle effpos.x - 1, effpos.y - 1, 3, 3, findrgb(255,255,0), vpage
  NEXT i
 END SUB
 
@@ -2334,7 +2339,7 @@ SUB draw_isoline(sl as Slice ptr, ps as PlankState, movex as integer, movey as i
 
  'DIM parabola_scale as double = 2. / large(8, edgelen) ^ 1.5
 
- FOR dist as integer = 15 TO 150 STEP 15
+ FOR dist as integer = 15 TO 150 STEP 25
   DIM radius as double = dist  '(dist / 10)^0.5
 
   ' DIM as double semimajor = 1'large(8, ABS(sl->Width * movex) + ABS(sl->Height * movey))

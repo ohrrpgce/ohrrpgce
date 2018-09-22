@@ -56,7 +56,19 @@ TYPE FwdSide
  side as integer
 END TYPE
 
-DECLARE FUNCTION plank_effective_pos(pl as Slice ptr, prev as Slice ptr, axis as integer, d as integer, prev_front as FwdSide, prev_center as FwdSide, byref ret as FwdSide) as bool
+'
+TYPE PlankViewpoint 'PlankCursorComparator
+ prev as Slice ptr
+ axis as integer
+ d as integer
+ prev_center as FwdSide
+ prev_front as FwdSide
+ prev_edgelen as integer
+
+ DECLARE CONSTRUCTOR (prev as Slice ptr, axis as integer, d as integer)
+ DECLARE FUNCTION plank_effective_pos (byref ret as FwdSide, pl as Slice ptr) as bool
+END TYPE
+
 'plank_menu_arrows handles arrow key movement, and updates PlankState.cur and returns true .cur has changed, so you can update the visuals
 DECLARE FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice Ptr=0) as bool
 
