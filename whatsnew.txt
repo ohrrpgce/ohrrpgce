@@ -70,6 +70,7 @@ September 29 2018 [Fufluns]
       off by default in new games; if one of them is on then you know you're
       missing out on some feature or bugfix [Ralph]
     * Added missing attack target class "All (including dead heroes)" [Ralph]
+    * C to cycle through NPC instances in map editor [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

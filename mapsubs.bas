@@ -1274,6 +1274,19 @@ DO
     NEXT i
    END IF
 
+   'Jump between NPCS
+   IF keyval(scCtrl) = 0 ANDALSO keyval(scC) > 1 THEN
+    FOR i as integer = 0 to UBOUND(st.map.npc)
+     loopvar st.npc_inst_iter, 0, UBOUND(st.map.npc)
+     WITH st.map.npc(st.npc_inst_iter)
+      IF ABS(.id) - 1 = st.cur_npc THEN
+       mapedit_move_cursor st, .pos \ tilesize
+       EXIT FOR
+      END IF
+     END WITH
+    NEXT i
+   END IF
+
    'Mouse controls
    DIM npc_d as DirNum = -1  'If not -1, create an NPC facing this direction
    IF st.mouse_attention = focusTopBar then
@@ -2076,9 +2089,13 @@ DO
  '--npc info
  IF st.editmode = npc_mode THEN
   edgeprint npc_preview_text(st.map.npc_def(st.cur_npc)), 0, 0, uilook(uiText), dpage
-  edgeprint mapedit_npc_instance_count(st, st.cur_npc) & " copies of " & CHR(27) & "NPC " & st.cur_npc & CHR(26) & " on this map", 0, 10, uilook(uiText), dpage
+  DIM copies as integer = mapedit_npc_instance_count(st, st.cur_npc)
+  DIM msg as string
+  msg = copies & " copies of " & CHR(27) & "NPC " & st.cur_npc & CHR(26) & " on this map"
+  IF copies THEN msg &= ticklite(" (`C`: " & IIF(copies = 1, "goto copy)", "cycle copies)"))
+  edgeprint msg, 0, 10, uilook(uiText), dpage, YES
  END IF
- 
+
  edgeprint "X " & st.x & "   Y " & st.y, 0, st.viewport_p2.y - 9, uilook(uiSelectedItem + tog), dpage
  edgeprint st.modenames(st.editmode), 0, 24, uilook(uiText), dpage
 
