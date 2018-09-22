@@ -24,16 +24,17 @@ For each chain, there are several different options.
 
 * Option settings - this is a list of bitsets that affect chain behaviour. See the sub-menu help screen.
 
-* Condition - There are several different options for chain condition
+* Condition - There are many different options for chain condition. Press ENTER/SPACE/LEFT-CLICK to view a list of options.
 
   * Tag Check - check whether a pair
     of tags is ON or OFF before
     allowing the chain to continue.
-    (you can just use one tag if you
-    want)
+    (You can just use one tag if you
+    want - set the other tag
+    condition to ALWAYS.)
 
   * Stat Check - Don't allow the
-    chain to continue unless either,
+    chain to continue unless either
     the attacker's stat, any of the
     targets' stats, or all of the
     targets' stats, are above or
@@ -46,11 +47,18 @@ For each chain, there are several different options.
     or as a percentage, or a
     comparison to another stat.
 
-  * Scaled stat chance - A random
-    number will be generated between
-    0.0 and 1.0. If it is smaller
-    than a stat divided by a constant
-    then the chain will be allowed.
+  * Stat-based chance - The chance to
+    take the chain increases
+    proportional to the value of one
+    of the target or attacker stats.
+    The chance is 0% if the stat is 0
+    and grows up to the Rate value
+    at a certain stat value.
+    E.g. "from 0% at stat=0 to 15%
+    at stat>=45" means that at
+    stat=30 the chance to chain is
+    15%*30/45 = 10%, while at values
+    above 45, it's capped at 15%.
 
 
 [NOTE: Same-Target Chains With 0 Delay]

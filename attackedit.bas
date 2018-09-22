@@ -623,9 +623,9 @@ addcaption caption(), capindex, "All targets' stats < %"     '13
 addcaption caption(), capindex, "All targets' stats > attacker stat" '14
 addcaption caption(), capindex, "All targets' stats < attacker stat" '15
 addcaption caption(), capindex, "Attacker stat < attacker stat" '16
-addcaption caption(), capindex, "Scaled stat chance (attacker)" '17
-addcaption caption(), capindex, "Scaled stat chance (max any target)" '18
-addcaption caption(), capindex, "Scaled stat chance (min all targets)" '19
+addcaption caption(), capindex, "Stat-based chance (attacker)" '17
+addcaption caption(), capindex, "Stat-based chance (max any target)" '18
+addcaption caption(), capindex, "Stat-based chance (min all targets)" '19
 
 CONST AtkLimChainVal1 = 32
 max(AtkLimChainVal1) = 0 '--updated by update_attack_editor_for_chain()
@@ -1588,9 +1588,9 @@ DO
   max(AtkLimItem) = gen(genMaxItem) + 1
   max(AtkLimSfx) = gen(genMaxSFX) + 1
   '--in case chain mode has changed
-  update_attack_editor_for_chain recbuf(AtkDatChainMode),        menu(AtkChainVal1),        max(AtkLimChainVal1),        min(AtkLimChainVal1),        menutype(AtkChainVal1),        menu(AtkChainVal2),        max(AtkLimChainVal2),        min(AtkLimChainVal2),        menutype(AtkChainVal2)
-  update_attack_editor_for_chain recbuf(AtkDatElseChainMode),    menu(AtkElseChainVal1),    max(AtkLimElseChainVal1),    min(AtkLimElseChainVal1),    menutype(AtkElseChainVal1),    menu(AtkElseChainVal2),    max(AtkLimElseChainVal2),    min(AtkLimElseChainVal2),    menutype(AtkElseChainVal2)
-  update_attack_editor_for_chain recbuf(AtkDatInsteadChainMode), menu(AtkInsteadChainVal1), max(AtkLimInsteadChainVal1), min(AtkLimInsteadChainVal1), menutype(AtkInsteadChainVal1), menu(AtkInsteadChainVal2), max(AtkLimInsteadChainVal2), min(AtkLimInsteadChainVal2), menutype(AtkInsteadChainVal2)
+  update_attack_editor_for_chain recbuf(AtkDatChainMode),        menu(AtkChainVal1),        max(AtkLimChainVal1),        min(AtkLimChainVal1),        menutype(AtkChainVal1),        menu(AtkChainVal2),        max(AtkLimChainVal2),        min(AtkLimChainVal2),        menutype(AtkChainVal2),        recbuf(AtkDatChainRate),        recbuf(AtkDatChainVal1)
+  update_attack_editor_for_chain recbuf(AtkDatElseChainMode),    menu(AtkElseChainVal1),    max(AtkLimElseChainVal1),    min(AtkLimElseChainVal1),    menutype(AtkElseChainVal1),    menu(AtkElseChainVal2),    max(AtkLimElseChainVal2),    min(AtkLimElseChainVal2),    menutype(AtkElseChainVal2),    recbuf(AtkDatElseChainRate),    recbuf(AtkDatElseChainVal1)
+  update_attack_editor_for_chain recbuf(AtkDatInsteadChainMode), menu(AtkInsteadChainVal1), max(AtkLimInsteadChainVal1), min(AtkLimInsteadChainVal1), menutype(AtkInsteadChainVal1), menu(AtkInsteadChainVal2), max(AtkLimInsteadChainVal2), min(AtkLimInsteadChainVal2), menutype(AtkInsteadChainVal2), recbuf(AtkDatInsteadChainRate), recbuf(AtkDatInsteadChainVal1)
   '--re-enforce bounds, as they might have just changed
   enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
   '--fix caption attack caption duration
@@ -2461,7 +2461,7 @@ DIM capnum as integer
 DIM dat as integer
 DIM i as integer
 FOR i = 0 TO size
- DIM nospace as integer = NO
+ DIM nospace as bool = NO
  DIM datatext as string
  dat = datablock(menuoff(nowdat(i)))
  nowmenu(i) = menu(nowdat(i))

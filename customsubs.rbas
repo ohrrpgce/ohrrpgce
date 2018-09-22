@@ -2177,7 +2177,7 @@ SUB writeglobalstring (index as integer, s as string, maxlen as integer)
  loadglobalstrings
 END SUB
 
-SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as string, byref max1 as integer, byref min1 as integer, byref menutype1 as integer, byref caption2 as string, byref max2 as integer, byref min2 as integer, byref menutype2 as integer)
+SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as string, byref max1 as integer, byref min1 as integer, byref menutype1 as integer, byref caption2 as string, byref max2 as integer, byref min2 as integer, byref menutype2 as integer, rate as integer, stat as integer)
  SELECT CASE mode
   CASE 0 '--no special condition
    'Set limits to maximally permissive to preserve existing values
@@ -2190,64 +2190,66 @@ SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as str
    min2 = -32768
    menutype2 = 18'skipper
   CASE 1 '--tagcheck
-   caption1 = "  if Tag:"
+   caption1 = "    if Tag:"
    max1 = max_tag()
    min1 = -max_tag()
    menutype1 = 2
-   caption2 = "  and Tag:"
+   caption2 = "    and Tag:"
    max2 = max_tag()
    min2 = -max_tag()
    menutype2 = 2
   CASE 2 TO 19 ' stat checks
    SELECT CASE mode
-    CASE 2 TO 5, 16: caption1 = "  if attacker"
-    CASE 6 TO 9: caption1 = "  if any target's"
-    CASE 10 TO 15: caption1 = "  if all targets'"
-    CASE 17: caption1 = "  if random 0 to 1 < attacker"
-    CASE 18: caption1 = "  if random 0 to 1 < max any target"
-    CASE 19: caption1 = "  if random 0 to 1 < min all targets"
+    CASE 2 TO 5, 16: caption1 = "    if attacker"
+    CASE 6 TO 9: caption1 = "    if any target's"
+    CASE 10 TO 15: caption1 = "    if all targets'"
+    CASE 17: caption1 = "    Stat: attacker's"
+    CASE 18: caption1 = "    Stat: max any target's"
+    CASE 19: caption1 = "    Stat: min all targets'"
    END SELECT
    max1 = 15
    min1 = 0
    menutype1 = 16 'stat
    SELECT CASE mode
     CASE 2,6,10
-     caption2 = "  is >"
+     caption2 = "    is >"
      max2 = 32767
      min2 = -32767
      menutype2 = 0
     CASE 3,7,11
-     caption2 = "  is <"
+     caption2 = "    is <"
      max2 = 32767
      min2 = -32767
      menutype2 = 0
     CASE 4,8,12
-     caption2 = "  is >"
+     caption2 = "    is >"
      max2 = 32767
      min2 = 0
      menutype2 = 17 'int%
     CASE 5,9,13
-     caption2 = "  is <"
+     caption2 = "    is <"
      max2 = 32767
      min2 = 0
      menutype2 = 17 'int%
     CASE 14
-     caption2 = "  is > attacker"
+     caption2 = "    is > attacker"
      max2 = 15
      min2 = 0
      menutype2 = 16 ' stat
     CASE 15
-     caption2 = "  is < attacker"
+     caption2 = "    is < attacker"
      max2 = 15
      min2 = 0
      menutype2 = 16 ' stat
     CASE 16
-     caption2 = "  is < attacker"
+     caption2 = "    is < attacker"
      max2 = 15
      min2 = 0
      menutype2 = 16 ' stat
     CASE 17, 18, 19
-     caption2 = "  divided by"
+     'DIM statname as string = LEFT(battle_statnames(stat), 8)
+     'caption2 = "    from 0% at " & statname & "=0 to " & rate & "% at " & statname & " >="
+     caption2 = "    from 0% at stat=0 to " & rate & "% at stat>=$$"
      max2 = 32767
      min2 = 1
      menutype2 = 0

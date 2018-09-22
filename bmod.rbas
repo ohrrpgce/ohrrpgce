@@ -3746,7 +3746,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
      ret = .cur.sta(ch.val1) < .max.sta(ch.val1) * (ch.val2 / 100)
     END WITH
    END IF
-  CASE 6 '--any target stat greater than value
+  CASE 6 '--any targets' stat greater than value
    IF valid_statnum(ch.val1, "check_attack_chain() any target [>n]") THEN
     FOR i as integer = 0 to 11
      targ = bat.anim_t(i)
@@ -3756,7 +3756,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
      END IF
     NEXT i
    END IF
-  CASE 7 '--any target stat less than value
+  CASE 7 '--any targets' stat less than value
    IF valid_statnum(ch.val1, "check_attack_chain() any target [<n]") THEN
     FOR i as integer = 0 to 11
      targ = bat.anim_t(i)
@@ -3766,7 +3766,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
      END IF
     NEXT i
    END IF
-  CASE 8 '--any target stat greater than % of max
+  CASE 8 '--any targets' stat greater than % of max
    IF valid_statnum(ch.val1, "check_attack_chain() any target [>n%]") THEN
     FOR i as integer = 0 to 11
      targ = bat.anim_t(i)
@@ -3778,7 +3778,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
      END IF
     NEXT i
    END IF
-  CASE 9 '--any target stat less than % of max
+  CASE 9 '--any targets' stat less than % of max
    IF valid_statnum(ch.val1, "check_attack_chain() any target [<n%]") THEN
     FOR i as integer = 0 to 11
      targ = bat.anim_t(i)
@@ -3791,7 +3791,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
      END IF
     NEXT i
    END IF
-  CASE 10 '--all target stat greater than value
+  CASE 10 '--all targets' stat greater than value
    IF valid_statnum(ch.val1, "check_attack_chain() all target [>n]") THEN
     tcount = 0
     tgood = 0
@@ -3805,7 +3805,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
     NEXT i
     IF tcount > 0 ANDALSO tgood = tcount THEN ret = YES
    END IF
-  CASE 11 '--all target stat less than value
+  CASE 11 '--all targets' stat less than value
    IF valid_statnum(ch.val1, "check_attack_chain() all target [<n]") THEN
     tcount = 0
     tgood = 0
@@ -3819,7 +3819,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
     NEXT i
     IF tcount > 0 ANDALSO tgood = tcount THEN ret = YES
    END IF
-  CASE 12 '--all target stat greater than % of max
+  CASE 12 '--all targets' stat greater than % of max
    IF valid_statnum(ch.val1, "check_attack_chain() all target [>n%]") THEN
     tcount = 0
     tgood = 0
@@ -3835,7 +3835,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
     NEXT i
     IF tcount > 0 ANDALSO tgood = tcount THEN ret = YES
    END IF
-  CASE 13 '--all target stat less than % of max
+  CASE 13 '--all targets' stat less than % of max
    IF valid_statnum(ch.val1, "check_attack_chain() all target [<n%]") THEN
     tcount = 0
     tgood = 0
@@ -3851,7 +3851,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
     NEXT i
     IF tcount > 0 ANDALSO tgood = tcount THEN ret = YES
    END IF
-  CASE 14 '--all target stat greater than attacker stat
+  CASE 14 '--all targets' stat greater than attacker stat
    IF valid_statnum(ch.val1, "check_attack_chain()") ANDALSO valid_statnum(ch.val2, "check_attack_chain()") THEN
     tcount = 0
     tgood = 0
@@ -3865,7 +3865,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
     NEXT i
     IF tcount > 0 ANDALSO tgood = tcount THEN ret = YES
    END IF
-  CASE 15 '--all target stat less than attacker stat
+  CASE 15 '--all targets' stat less than attacker stat
    IF valid_statnum(ch.val1, "check_attack_chain()") ANDALSO valid_statnum(ch.val2, "check_attack_chain()") THEN
     tcount = 0
     tgood = 0
@@ -3915,7 +3915,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
    'TODO
   'CASE 21 '--any target local flags
    'TODO
-  'CASE 22 '--all target local flags
+  'CASE 22 '--all targets local flags
    'TODO
   'CASE 23 '--attacker local flag and any target local flag
    'TODO
