@@ -1254,7 +1254,8 @@ SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
   printstr "${H#} = Name of hero ID #", 0, 144, dpage
   printstr "${V#} = Global Plotscript Variable ID #", 0, 152, dpage
   printstr "${S#} = Insert String Variable with ID #", 0, 160, dpage
-  printstr "CTRL+SPACE: choose an extended character", 0, 176, dpage
+  printstr "${B#} = Platform-specific button name #", 0, 168, dpage
+  printstr "CTRL+SPACE: choose an extended character", 0, 184, dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
