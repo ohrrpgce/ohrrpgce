@@ -2,7 +2,7 @@ This is the enemy spawning menu.
 
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
-Use the Left and Right arrow keys to change values, or you can type in numbers, or press ENTER or SPACE to edit/browse for an enemy to spawn.
+Use the Left and Right arrow keys to change values, or you can type in numbers, or press ENTER or SPACE or CLICK to browse for an enemy to spawn, or hold CTRL or SHIFT with ENTER/SPACE/CLICK to edit an enemy.
 
 Press + or INSERT to create a new enemy and select it for spawning.
 

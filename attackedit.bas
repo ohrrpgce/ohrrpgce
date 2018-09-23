@@ -2169,7 +2169,7 @@ SUB flexmenu_update_selectable(workmenu() as integer, menutype() as integer, sel
  NEXT
 END SUB
 
-'Handles attempt to enter the attack or enemy editor by hitting Enter/etc/+/Insert on a menu item.
+'Handles attempt to enter the attack or enemy browser or editor by hitting Enter/etc/+/Insert/etc on a menu item.
 'Returns true if need to update state.
 FUNCTION flexmenu_handle_crossrefs (state as MenuState, nowindex as integer, menutype() as integer, menuoff() as integer, recindex as integer, recbuf() as integer, is_attack_editor as bool) as bool
 
@@ -2599,7 +2599,7 @@ END FUNCTION
 FUNCTION flexmenu_tooltip(nowindex as integer, menutype() as integer) as string
  SELECT CASE menutype(nowindex)
   CASE 7, 9  'attack (offset)
-   RETURN "ENTER to edit, + or INSERT to add new"
+   RETURN THINGGRABBER_TOOLTIP
  END SELECT
 END FUNCTION
 

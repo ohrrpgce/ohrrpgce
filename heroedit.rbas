@@ -770,7 +770,7 @@ SUB hero_editor_edit_spell_list_slot (slot as SpellList)
   copypage holdscreen, vpage
   draw_menu menu, st, vpage
   IF st.pt = 1 THEN
-   edgeprint "ENTER to edit, + or INSERT to add new", 0, pBottom, uilook(uiSelectedDisabled), vpage
+   edgeprint THINGGRABBER_TOOLTIP, 0, pBottom, uilook(uiSelectedDisabled), vpage
   END IF
   setvispage vpage
   
@@ -1086,7 +1086,7 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
   fuzzyrect 0, 0, , , uilook(uiBackground), vpage
   draw_menu menu, st, vpage
   IF menu.items[st.pt]->t = edbatmenu_ATTACK THEN
-   edgeprint "ENTER to edit, + or INSERT to add new", 0, pBottom, uilook(uiMenuItem), vpage
+   edgeprint THINGGRABBER_TOOLTIP, 0, pBottom, uilook(uiMenuItem), vpage
   END IF
   setvispage vpage
 

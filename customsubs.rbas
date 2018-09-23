@@ -991,13 +991,18 @@ END FUNCTION
 'min is the minimum value of datum. Usually equal to offset if there is no
 '"none" option, or offset-1 if there is. (Not the same as min for zintgrabber!)
 'max_record is the maximum object ID, not the upper range of datum.
-PRIVATE FUNCTION thinggrabber (byref datum as integer, state as MenuState, offset as integer, min as integer, max_record as integer, intgrab as bool = YES, editor_func as FnEditor) as bool
+'add_new_if_none: pass YES only if Enter/Space/Click already was diverted to ThingBrowser.
+PRIVATE FUNCTION thinggrabber (byref datum as integer, state as MenuState, offset as integer, min as integer, max_record as integer, intgrab as bool = YES, editor_func as FnEditor, add_new_if_none as bool = NO) as bool
  DIM editor_arg as integer  'What to pass to editor_func.
  IF keyval(scPlus) > 1 OR keyval(scInsert) > 1 THEN
   editor_arg = max_record + 1
  ELSEIF enter_space_click(state) THEN
-  ' A value < 0 would mean None; default to 0 in that case
-  editor_arg = large(datum - offset, 0)
+  ' (Note: this case generally isn't reached, it's handled in attackgrabber, etc,
+  ' unless Shift or Ctrl is held)
+  editor_arg = datum - offset
+  ' If editor_arg < 0, ie initial value is None, then could either go to editor
+  ' for record 0 or add new. Shouldn't add new if there's no ThingBrowser to enter.
+  IF editor_arg < 0 ANDALSO add_new_if_none THEN editor_arg = max_record + 1
  ELSE
   ' Check this only after checking scPlus, because intgrabber reads it
   IF intgrab THEN
@@ -1019,69 +1024,54 @@ PRIVATE FUNCTION thinggrabber (byref datum as integer, state as MenuState, offse
  RETURN YES
 END FUNCTION
 
+PRIVATE FUNCTION want_to_enter_browser(state as MenuState) as bool
+ RETURN keyval(scCtrl) = 0 ANDALSO keyval(scShift) = 0 ANDALSO enter_space_click(state)
+END FUNCTION
+
 'Edit an attack ID (possibly offset) numerically or by entering the attack editor.
 'See thinggrabber.
 FUNCTION attackgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
- DIM editor_arg as integer  'What to pass to editor_func.
- IF keyval(scPlus) > 1 OR keyval(scInsert) > 1 THEN
-  editor_arg = gen(genMaxAttack) + 1
- ELSEIF enter_space_click(state) THEN
-  editor_arg = datum
+ IF want_to_enter_browser(state) THEN
+  IF offset = 1 THEN
+   datum = attack_picker_or_none(datum)
+  ELSE
+   datum = attack_picker(datum)
+  END IF
+  RETURN YES
  ELSE
-  'attack_editor won't actually get called, because the keys to enter the editor are trapped above
-  RETURN thinggrabber(datum, state, offset, min, gen(genMaxAttack), intgrab, @attack_editor)
+  RETURN thinggrabber(datum, state, offset, min, gen(genMaxAttack), intgrab, @attack_editor, YES)
  END IF
- 
- IF offset = 1 THEN
-  datum = attack_picker_or_none(editor_arg)
- ELSE
-  datum = attack_picker(editor_arg)
- END IF
- RETURN YES
 END FUNCTION
 
 'Edit an enemy ID (possibly offset) numerically or by entering the enemy editor.
 'See thinggrabber.
 FUNCTION enemygrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
- DIM editor_arg as integer  'What to pass to editor_func.
- IF keyval(scPlus) > 1 OR keyval(scInsert) > 1 THEN
-  editor_arg = gen(genMaxEnemy) + 1
- ELSEIF enter_space_click(state) THEN
-  editor_arg = datum
+ IF want_to_enter_browser(state) THEN
+  IF offset = 1 THEN
+   datum = enemy_picker_or_none(datum)
+  ELSE
+   datum = enemy_picker(datum)
+  END IF
+  RETURN YES
  ELSE
-  'enemy_editor won't actually get called, because the keys to enter the editor are trapped above
-  RETURN thinggrabber(datum, state, offset, min, gen(genMaxEnemy), intgrab, @enemy_editor)
+  RETURN thinggrabber(datum, state, offset, min, gen(genMaxEnemy), intgrab, @enemy_editor, YES)
  END IF
- 
- IF offset = 1 THEN
-  datum = enemy_picker_or_none(editor_arg)
- ELSE
-  datum = enemy_picker(editor_arg)
- END IF
- RETURN YES
 END FUNCTION
 
 'Edit a textbox ID (possibly offset) numerically or by entering the textbox editor.
 'See thinggrabber.
 FUNCTION textboxgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
  'TODO: textbox 0 is never selectable, but ID 0 is None. So this acts a bit weird.
- DIM editor_arg as integer 'What to pass to editor_func
-
- IF keyval(scPlus) > 1 OR keyval(scInsert) > 1 THEN
-  editor_arg = gen(genMaxTextbox) + 1
- ELSEIF enter_space_click(state) THEN
-  editor_arg = datum
+ IF want_to_enter_browser(state) THEN
+  IF offset = 1 THEN
+   datum = textbox_picker_or_none(datum)
+  ELSE
+   datum = textbox_picker(datum)
+  END IF
+  RETURN YES
  ELSE
-  'text_box_editor won't actually get called, because the keys to enter the editor are trapped above
-  RETURN thinggrabber(datum, state, offset, min, gen(genMaxTextbox), intgrab, @text_box_editor)
+  RETURN thinggrabber(datum, state, offset, min, gen(genMaxTextbox), intgrab, @text_box_editor, YES)
  END IF
- 
- IF offset = 1 THEN
-  datum = textbox_picker_or_none(editor_arg)
- ELSE
-  datum = textbox_picker(editor_arg)
- END IF
- RETURN YES
 END FUNCTION
 
 ' Shared by ui_color_editor and ui_boxstyle_editor

@@ -71,7 +71,7 @@ DECLARE SUB mapedit_update_layer_palettes(st as MapEditState)
 DECLARE SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
 DECLARE SUB npcdef_editor (st as MapEditState)
 DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
-DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4)
+DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4, thinggrabber_hint as bool = NO)
 DECLARE FUNCTION count_npc_slots_used(npcs() as NPCInst) as integer
 
 'Undo
@@ -6163,7 +6163,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   clearpage dpage
   highlight_menu_typing_selection cast(BasicMenuItem vector, ed.menu), menu_display, selectst, ed.state
   standardmenu menu_display, ed.state, 0, 0, dpage, menuopts
-  npcdefedit_preview_npc npcdata, npc_img, ed.boxpreview, 4 + (walk \ 2)
+  npcdefedit_preview_npc npcdata, npc_img, ed.boxpreview, 4 + (walk \ 2), (itemid = 4)
 
   SWAP vpage, dpage
   setvispage vpage
@@ -6178,13 +6178,17 @@ END SUB
 
 ' Displays the NPC walkabout, tag conditions and textbox preview at the bottom of the screen
 ' (Default to displaying south1 frame)
-SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4)
+SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4, thinggrabber_hint as bool = NO)
  edgebox pRight - 15, pBottom - 23, npc_img.sprite->w + 2, npc_img.sprite->h + 2, uilook(uiDisabledItem), uilook(uiText), dpage
  frame_draw npc_img.sprite + framenum, npc_img.pal, pRight - 16, pBottom - 24, 1, YES, dpage
  textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
  printstr boxpreview, 0, pBottom - 10, dpage
  textcolor uilook(uiSelectedItem2), 0
- printstr describe_two_tag_condition("Appears if", "Appears all the time", "Never appears!", YES, npcdata.tag1, npcdata.tag2), 0, pBottom, dpage
+ IF thinggrabber_hint THEN
+  printstr THINGGRABBER_TOOLTIP, 0, pBottom, dpage
+ ELSE
+  printstr describe_two_tag_condition("Appears if", "Appears all the time", "Never appears!", YES, npcdata.tag1, npcdata.tag2), 0, pBottom, dpage
+ END IF
 END SUB
 
 'Wrapper around edit_npc to do the right thing

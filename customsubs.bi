@@ -31,6 +31,8 @@ DECLARE FUNCTION format_percent_cond(cond as AttackElementCondition, default as 
 DECLARE FUNCTION percent_cond_grabber(byref cond as AttackElementCondition, byref repr as string, default as string, byval min as double, byval max as double, byval decimalplaces as integer = 4, ret_if_repr_changed as bool = YES) as bool
 DECLARE SUB percent_cond_editor (cond as AttackElementCondition, byval min as double, byval max as double, byval decimalplaces as integer = 4, do_what as string = "...", percent_of_what as string = "")
 
+CONST THINGGRABBER_TOOLTIP = "Ctrl-Enter/Click to edit, +/Insert to add new"
+
 DECLARE FUNCTION enter_or_add_new(state as MenuState) as bool
 DECLARE FUNCTION attackgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
 DECLARE FUNCTION enemygrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool

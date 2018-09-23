@@ -2,7 +2,7 @@ This is the enemy attack editor.
 
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
-Use the Left and Right arrow keys to change the attacks, or type in attack ID numbers, or press ENTER or SPACE to edit an attack or browse attacks.
+Use the Left and Right arrow keys to change the attacks, or type in attack ID numbers, or press ENTER or SPACE or CLICK to browse attacks, or hold CTRL or SHIFT with ENTER/SPACE/CLICK to edit an attack.
 
 Press + or INSERT to create a new attack and select it.
 

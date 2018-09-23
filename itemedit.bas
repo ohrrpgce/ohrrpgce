@@ -257,7 +257,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
    'Editing a textbox/attack ID. Move it up if a textbox is being previewed
    DIM y as RelPos = pBottom
    IF itembuf(51) < 0 THEN y -= 10
-   edgeprint "ENTER to edit, + or INSERT to add new", 0, y, uilook(uiDisabledItem), dpage
+   edgeprint THINGGRABBER_TOOLTIP, 0, y, uilook(uiDisabledItem), dpage
   END IF
   IF itembuf(51) < 0 THEN
    edgeprint box_preview, 0, pBottom, uilook(uiText), dpage

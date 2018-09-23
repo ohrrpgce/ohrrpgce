@@ -1128,6 +1128,7 @@ SUB startingdatamenu
   END IF
 
   clearpage vpage
+  IF state.pt = 6 THEN edgeprint THINGGRABBER_TOOLTIP, 0, pBottom, uilook(uiDisabledItem), vpage
   highlight_menu_typing_selection m(), menu_display(), selectst, state
   standardmenu menu_display(), state, 0, 0, vpage
   setvispage vpage

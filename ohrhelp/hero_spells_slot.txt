@@ -1,7 +1,7 @@
 This is the editor for a single slot in a spell list.
 
 Here you choose which attack will be used for the spell.
-With the attack selected, press ENTER or SPACE to enter the attack editor to edit/browse for an attack. Press INSERT or + as a quick way to add a new attack.
+With the attack selected, press ENTER or SPACE or CLICK to browse for an attack, or hold CTRL or SHIFT and ENTER/SPACE/CLICK to enter the attack editor. Press INSERT or + as a quick way to add a new attack.
 
 You can also choose how the hero will learn the spell.
 
