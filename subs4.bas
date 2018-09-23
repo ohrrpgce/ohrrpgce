@@ -1148,21 +1148,24 @@ TYPE GeneralSettingsMenu
  DIM index(any) as integer    'gen() index, or -1
  DIM min(any) as integer
  DIM max(any) as integer
- DIM enabled(any) as bool
+ DIM selectable(any) as bool
+ DIM shaded(any) as bool      'Indicates headings
 
- DECLARE SUB add_item(id as integer = -1, text as string = "")
+ DECLARE SUB add_item(id as integer = -1, text as string = "", heading as bool = NO)
  DECLARE SUB gen_int(genidx as integer, minvalue as integer, maxvalue as integer)
+ DECLARE SUB header(text as string)
 
  DECLARE SUB update(longname as string, aboutline as string)
 END TYPE
 
-SUB GeneralSettingsMenu.add_item(id as integer = -1, text as string = "")
+SUB GeneralSettingsMenu.add_item(id as integer = -1, text as string = "", heading as bool = NO)
  a_append itemids(), id
  a_append menutext(), text
  a_append index(), 0
  a_append min(), 0
  a_append max(), 0
- a_append enabled(), (LEN(text) > 0)
+ a_append selectable(), NOT heading
+ a_append shaded(), heading
 END SUB
 
 'Applies to last add_item()
@@ -1173,6 +1176,11 @@ SUB GeneralSettingsMenu.gen_int(genidx as integer, minvalue as integer, maxvalue
  max(i) = maxvalue
 END SUB
 
+SUB GeneralSettingsMenu.header(text as string)
+ add_item , , YES
+ add_item , text, YES
+END SUB
+
 SUB GeneralSettingsMenu.update(longname as string, aboutline as string)
  DIM tmp as string
 
@@ -1181,27 +1189,70 @@ SUB GeneralSettingsMenu.update(longname as string, aboutline as string)
  ERASE index
  ERASE min
  ERASE max
- ERASE enabled
+ ERASE selectable
+ ERASE shaded
 
  add_item 0,  "Return to Main Menu"
- add_item 1,  "Long name:" + longname
- add_item 2,  "About line:" + aboutline
- add_item 3,  "Pick Title Screen..."
- add_item 4,  "New Game Settings..."
- add_item 5,  "Saved Games Settings..."
- add_item 6,  "Preference Bitsets..."
- add_item 7,  "Backwards-compatibility Bitsets..."
- add_item 8,  "Battle System Options..."
- add_item 9,  "Special Plotscripts..."
- add_item 10, "Plotscript Error Display..."
- add_item 11, "Global Music and Sound Effects..."
- add_item 12, "Master Palettes..."
- add_item 13, "Password For Editing..."
- add_item 14, "Window-size Options..."
- add_item 15, "Platform-specific options..."
- add_item 16, "Mouse Options..."
- add_item  , ""
 
+ header " Game Title & Info"
+ add_item 1,  "Long name: " + longname
+ add_item 2,  "About line: " + aboutline
+ add_item 3,  "Title Screen..."
+
+ '-------------------------
+ header " Major Settings"
+ add_item 4,  "New Games..."
+ add_item 5,  "Saved Games..."
+ add_item 8,  "Battle System..."
+ add_item 6,  "Preference Bitsets..."
+ add_item 7,  "Backwards-Compatibility..."
+
+ '-------------------------
+ header " Controls"
+ add_item 16, "Mouse Options..."
+ add_item 15, "Platform-Specific Controls..."
+
+ '-------------------------
+ header " Scripts"
+ add_item 9,  "Special Plotscripts..."
+ add_item 10, "Error Display..."
+
+ '-------------------------
+ header " Graphics"
+ add_item 12, "Master Palettes..."
+ add_item 14, "Window-Size Options..."
+
+ DIM fps as string
+ '16ms and 33ms are special-cased to be exactly 60/30fps
+ IF gen(genMillisecPerFrame) = 16 THEN
+  fps = "60"
+ ELSEIF gen(genMillisecPerFrame) = 33 THEN
+  fps = "30"
+ ELSE
+  fps = FORMAT(small(60., 1000 / gen(genMillisecPerFrame)), ".#")
+ END IF
+ add_item , "Framerate: " & fps & " frames/sec (" & gen(genMillisecPerFrame) & "ms/frame)"
+ gen_int genMillisecPerFrame, 16, 200
+
+ tmp = "Minimap style: "
+ SELECT CASE gen(genMinimapAlgorithm)
+  CASE minimapScaled :   tmp &= "Smoothly scaled down"
+  CASE minimapScatter :  tmp &= "Pick random color"
+  CASE minimapMajority : tmp &= "Pick most common color"
+ END SELECT
+ add_item , tmp
+ gen_int genMinimapAlgorithm, 0, minimapLAST
+
+ '-------------------------
+ header " Audio"
+ add_item 11, "Global Music and Sound Effects..."
+ add_item , "Initial music volume: " & gen(genMusicVolume) & "%"
+ gen_int genMusicVolume, 0, 100
+ add_item , "Initial sound effects volume: " & gen(genSFXVolume) & "%"
+ gen_int genSFXVolume, 0, 100
+
+ '-------------------------
+ header " Inventory"
  IF gen(genMaxInventory) = 0 THEN
   add_item , "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
  ELSE
@@ -1223,31 +1274,11 @@ SUB GeneralSettingsMenu.update(longname as string, aboutline as string)
  add_item , "Default maximum item stack size: " & gen(genItemStackSize)
  gen_int genItemStackSize, 1, 99
 
- DIM fps as string
- '16ms and 33ms are special-cased to be exactly 60/30fps
- IF gen(genMillisecPerFrame) = 16 THEN
-  fps = "60"
- ELSEIF gen(genMillisecPerFrame) = 33 THEN
-  fps = "30"
- ELSE
-  fps = FORMAT(small(60., 1000 / gen(genMillisecPerFrame)), ".#")
- END IF
- add_item , "Framerate: " & fps & " frames/sec (" & gen(genMillisecPerFrame) & "ms/frame)"
- gen_int genMillisecPerFrame, 16, 200
+ '-------------------------
+ header " Misc"
+ add_item 17, "In-App Purchases... (experimental)"
+ add_item 13, "Password For Editing..."
 
- add_item , "Initial music volume: " & gen(genMusicVolume) & "%"
- gen_int genMusicVolume, 0, 100
- add_item , "Initial sound effects volume: " & gen(genSFXVolume) & "%"
- gen_int genSFXVolume, 0, 100
-
- tmp = "Minimap style: "
- SELECT CASE gen(genMinimapAlgorithm)
-  CASE minimapScaled :   tmp &= "Smoothly scaled down"
-  CASE minimapScatter :  tmp &= "Pick random color"
-  CASE minimapMajority : tmp &= "Pick most common color"
- END SELECT
- add_item , tmp
- gen_int genMinimapAlgorithm, 0, minimapLAST
 END SUB
 
 SUB general_data_editor ()
@@ -1266,8 +1297,13 @@ SUB general_data_editor ()
  DIM state as MenuState
  WITH state
   .autosize = YES
+  .autosize_ignore_pixels = 4
   .last = UBOUND(genmenu.menutext)
  END WITH
+ DIM menuopts as MenuOptions
+ menuopts.disabled_col = uilook(eduiHeading)
+ menuopts.itemspacing = 1
+ calc_menustate_size state, menuopts, 4, 4, vpage  'Avoid scrollbar length glitch
 
  setkeys YES
  DO
@@ -1276,7 +1312,7 @@ SUB general_data_editor ()
 
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "general_game_data"
-  usemenu state, genmenu.enabled()
+  usemenu state, genmenu.selectable()
 
   IF enter_space_click(state) THEN
    SELECT CASE genmenu.itemids(state.pt)
@@ -1295,8 +1331,9 @@ SUB general_data_editor ()
     CASE 12: masterpalettemenu
     CASE 13: inputpasw
     CASE 14: resolution_menu
-    CASE 15: edit_platform_options
+    CASE 15: edit_platform_controls
     CASE 16: edit_mouse_options
+    CASE 17: edit_purchase_options
    END SELECT
   END IF
 
@@ -1346,7 +1383,7 @@ SUB general_data_editor ()
   draw_fullscreen_scrollbar state, , dpage
   DIM menu_display(UBOUND(genmenu.menutext)) as string
   highlight_menu_typing_selection genmenu.menutext(), menu_display(), selectst, state
-  standardmenu menu_display(), state, 0, 0, dpage
+  standardmenu menu_display(), state, genmenu.shaded(), 4, 4, dpage, menuopts
 
   SWAP vpage, dpage
   setvispage vpage

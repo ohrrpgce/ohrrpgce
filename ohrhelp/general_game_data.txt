@@ -4,54 +4,73 @@ Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End), or type
 
 Press ENTER or the SPACE bar to enter various submenus.
 
+
+  Game Title & Info
+
 Long Name: Type in a "full" name for your game which will be used in the game browse (as opposed to the file name).
 
 About Line: Type in some info about your game to appear when the game is selected in the game browser.
 
-Preference Bitsets: Enter a bitset menu for many important customisation options. See the help screen in that menu.
+Title Screen: Choose a fullscreen backdrop to appear when the game is opened by the player (before choosing a save file).  You must import the backdrop in the Graphics Editor first.
 
-Pick Title Screen: Choose a fullscreen backdrop to appear when the game is opened by the player (before choosing a save file).  You must import the backdrop in the Graphics Editor first.
 
-New Game Settings: Set initialization data for the player when they start a new game (such as initial money).
+  Major Settings
 
-Saved Games Settings: Most options related to saving games.
+New Game: Set initialization data for the player when they start a new game (such as initial money).
 
-Special Plotscripts: Choose plotscripts to be run on certain special triggers like beginning a game or pressing the menu key.
-
-Master Palettes: Your game can have more than one master palette available. See the submenu help file for more info.
-
-Global Music and Sound Effects: Set a wide range of default music and sounds for various aspects of your game.
+Saved Games: Most options related to saving games.
 
 Battle System Options: Another menu of global game options, for battles and stats.
 
-Password for Editing: Set a password to be required to open the game with custom.exe (people will still be able to play the game with game.exe, obviously).
+Preference Bitsets: Enter a bitset menu for many important customisation options. See the help screen in that menu.
+
+
+  Controls
+
+Mouse Options: Set for what the mouse can be used by the player.
+
+Platform-specific Controls: Specific Gamepad/Joystick. Most important for when your game runs on Android or OUYA.
+
+
+  Scripts
+
+Special Plotscripts: Choose plotscripts to be run on certain special triggers like beginning a game or pressing the menu key.
+
+Error Display: Control which script errors will be shown at runtime. See the help page.
+
+
+  Graphics
+
+Master Palettes: Your game can have more than one master palette available. See the submenu help file for more info.
+
+Window Size Options: The resolution your game will run at and the size of the window.
+
+Framerate:
+By default, OHRRPGCE games run at 18.2 frames per second (FPS), which is 55 milliseconds (ms) per frame. Increasing the framerate is highly desirable if you want to use the mouse or create an action game. HOWEVER, increasing the framerate is not recommended for RPGs because the walk animation will become very fast (this is an unfinished feature). Battles are NOT affected by this setting (so you're safe there!)
+
+Minimap Style:
+This determines how the minimap is generated in-game (how the color of each pixel is determined). The default, "Smoothly scaled down" normally looks the best, but might be blurry. It uses more than the 256 colors in the master palette. "Pick random color" was the method used until Fufluns. The easiest way to try them out is using the Test Game feature (in particular, the Ctrl-F1 teleport tool).
+
+
+  Audio
+
+Global Music and Sound Effects: Set a wide range of default music and sounds for various aspects of your game.
+
+Initial Music/Sound Volume:
+These give the starting values for the two volume settings in the main menu.
+
+
+  Inventory
 
 Inventory Size: This is the number of rows available for the player's item inventory. Type in a number and the screen will show you how many actual item slots will result (there are three slots in a row).
 
 Inventory Autosort: This sets the criterion which the 'Autosort' option in the inventory menu uses to sort items (after first moving all items to the top). You can sort by type (which for example places items usable in-battle ahead of those usable only out-of-battle), by whether they are usable at all, alphabetically by name, by the ID number in the item editor, or do no additional sorting.
 
-Script Errors: Control which script errors will be shown at runtime.
-Note that future versions of the engine will raise many new types of warnings and errors, so it could be a bad idea to release with warnings enabled.
+Default maximum item stack size: The number of items that can be stored in each inventory slot, unless overridden for a specific item type.
 
- Show All Warnings
-          (Recommended for testing)
- Hide Nit-picking Warnings
-  -This setting hides extra-
-   paranoid warnings about suspicious
-   code
- Hide All Warnings
-          (Recommended for release)
- Hide Errors not reported in old vers
-  -Emulates old versions which
-   ignored almost every mistake that
-   you could make
- Hide All Ignoreable Errors
 
-Framerate:
-By default, OHRRPGCE games run at 18.2 frames per second (FPS), which is 55 milliseconds (ms) per frame. Increasing the framerate is highly desirable if you want to use the mouse or create an action game. HOWEVER, increasing the framerate is not recommended for RPGs because the walk animation will become very fast (this is an unfinished feature). Battles are NOT affected by this setting (so you're safe there!)
+  Misc
 
-Initial Music/Sound Volume:
-These give the starting values for the two volume settings in the main menu.
+Password for Editing: Set a password to be required to open the game with custom.exe (people will still be able to play the game with game.exe, obviously).
 
-Minimap Style:
-This determines how the minimap is generated in-game (how the color of each pixel is determined). The default, "Smoothly scaled down" normally looks the best, but might be blurry. It uses more than the 256 colors in the master palette. "Pick random color" was the method used until Fufluns. The easiest way to try them out is using the Test Game feature (in particular, the Ctrl-F1 teleport tool).
+

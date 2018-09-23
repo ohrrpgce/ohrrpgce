@@ -1970,13 +1970,15 @@ FUNCTION window_size_description(scale as integer) as string
 END FUNCTION
 
 SUB resolution_menu ()
- DIM menu(7) as string
+ DIM menu(9) as string
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
  DIM selectable(UBOUND(menu)) as bool
  flusharray selectable(), , YES
- selectable(5) = NO
+
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM console as NodePtr = GetOrCreateChild(gen_root, "console_options")
 
  'FIXME: selecting a resolution other than 320x200 causes the distrib menu
  'to not package gfx_directx.dll; remove that when gfx_directx is updated
@@ -1999,8 +2001,19 @@ SUB resolution_menu ()
    CASE 2: st.need_update OR= intgrabber(gen(genWindowSize), 1, 10)
    CASE 3: st.need_update OR= intgrabber(gen(genLivePreviewWindowSize), 1, 10)
    CASE 4: st.need_update OR= intgrabber(gen(genRungameFullscreenIndependent), 0, 1)
-   CASE 6: st.need_update OR= intgrabber(gen(genResolutionX), 0, MaxResolutionX)  'Arbitrary limits
-   CASE 7: st.need_update OR= intgrabber(gen(genResolutionY), 0, MaxResolutionY)
+   CASE 5
+    DIM margins as integer = GetChildNodeInt(console, "safe_margin", 0)
+    IF (margins = 0 ANDALSO keyval(scBackspace) > 1) ORELSE keyval(scDelete) > 1 THEN
+     FreeChildNode console, "safe_margin"
+     st.need_update = YES
+    ELSE
+     IF intgrabber(margins, 0, 10) THEN
+      SetChildNode console, "safe_margin", margins
+      st.need_update = YES
+     END IF
+    END IF
+   CASE 8: st.need_update OR= intgrabber(gen(genResolutionX), 0, MaxResolutionX)
+   CASE 9: st.need_update OR= intgrabber(gen(genResolutionY), 0, MaxResolutionY)
   END SELECT
   IF st.need_update THEN
    xbsave game + ".gen", gen(), 1000   'Instant live previewing update
@@ -2016,15 +2029,19 @@ SUB resolution_menu ()
   ELSE
    menu(4) &= "shared with this game"
   END IF
-  menu(5) = fgtag(uilook(uiText), " Experimental options")
-  menu(6) = "Game horizontal resolution: " & gen(genResolutionX) & " pixels"
-  menu(7) = "Game vertical resolution: " & gen(genResolutionY) & " pixels"
+  menu(5) = "Console TV safe margin: " & GetChildNodeStr(console, "safe_margin", "Default")  'This is an integer
+  selectable(6) = NO
+  selectable(7) = NO
+  menu(7) = fgtag(uilook(eduiHeading), " Experimental options")
+  menu(8) = "Game horizontal resolution: " & gen(genResolutionX) & " pixels"
+  menu(9) = "Game vertical resolution: " & gen(genResolutionY) & " pixels"
   clearpage vpage
   standardmenu menu(), st, 0, 0, vpage
   setvispage vpage
   dowait
  LOOP
  xbsave game + ".gen", gen(), 1000
+ write_general_reld()
 END SUB
 
 'This menu is for testing experimental Condition UI stuff
