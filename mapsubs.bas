@@ -3067,14 +3067,14 @@ SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem 
  gdidx(5)  = 17: append_simplemenu_item menu, "NPC Data: "
 
  gdidx(6) = -1:  append_simplemenu_item menu, "", YES
- gdidx(7) = -1:  append_simplemenu_item menu, " NPC Defaults", YES, uilook(uiText)
+ gdidx(7) = -1:  append_simplemenu_item menu, " NPC Defaults", YES, uilook(eduiHeading)
 
  gdidx(8)  = 32: append_simplemenu_item menu, "Default NPC Move Zone: "
  gdidx(9)  = 33: append_simplemenu_item menu, "Default NPC Avoid Zone: "
  gdidx(10) = 378:append_simplemenu_item menu, "Default Pathfinding Rule: "
 
  gdidx(11) = -1: append_simplemenu_item menu, "", YES
- gdidx(12) = -1: append_simplemenu_item menu, " Display", YES, uilook(uiText)
+ gdidx(12) = -1: append_simplemenu_item menu, " Display", YES, uilook(eduiHeading)
 
  gdidx(13) = 11: append_simplemenu_item menu, "Foot Offset: "
  gdidx(14) = 16: append_simplemenu_item menu, "Walkabout Layering: "
@@ -3086,7 +3086,7 @@ SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem 
  'Extra gap is needed here for the edge tile preview anyway
  gdidx(20) = -1: append_simplemenu_item menu, "", YES
 
- gdidx(21) = -1: append_simplemenu_item menu, " Scripts", YES, uilook(uiText)
+ gdidx(21) = -1: append_simplemenu_item menu, " Scripts", YES, uilook(eduiHeading)
  gdidx(22) = 7:  append_simplemenu_item menu, "Autorun Script: "
  gdidx(23) = 8:  append_simplemenu_item menu, "Autorun Script Argument: "
  gdidx(24) = 12: append_simplemenu_item menu, "After-Battle Script: "

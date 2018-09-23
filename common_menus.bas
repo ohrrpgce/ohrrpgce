@@ -160,7 +160,7 @@ FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair
     ellipse vpages(dpage), menupos.x + 4, drawat.y + 3, 3, uilook(uiDisabledItem), IIF(biton, uilook(uiSelectedItem), -1)
    ELSE
     biton = 1  'Don't show as disabled
-    IF i > -1 THEN col = uilook(uiText) 'Section heading: override text color
+    IF i > -1 THEN col = uilook(eduiHeading) 'Section heading: override text color
    END IF
    col = menu_item_color(state, i, biton = 0, selectable(i) = NO, col)
    textcolor col, 0

@@ -76,4 +76,8 @@ CONST uiFadeOutExitBattle = 51
 '-automatic remapping in remappalette in subs4.bas
 '-used master palette colours indicated in masterpalettemenu in subs4.bas
 
+'TODO: editor UI constants. Not implemented yet, these are just aliases.
+
+CONST eduiHeading = uiText
+
 #ENDIF

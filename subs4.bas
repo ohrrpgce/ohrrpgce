@@ -285,8 +285,8 @@ SUB generalscriptsmenu ()
   END IF
 
   menu(0) = "Previous Menu"
-  menu(2) = fgtag(uilook(uiText)) + " Global script triggers"
-  menu(8) = fgtag(uilook(uiText)) + " Map default scripts"
+  menu(2) = fgtag(uilook(eduiHeading)) + " Global script triggers"
+  menu(8) = fgtag(uilook(eduiHeading)) + " Map default scripts"
   FOR i as integer = 1 TO menusize
    IF scriptgenoff(i) THEN
     menu(i) = scripttype(i) + ": " + scriptname(gen(scriptgenoff(i)))
@@ -770,7 +770,7 @@ SUB battleoptionsmenu ()
   .need_update = YES
  END WITH
  DIM menuopts as MenuOptions
- menuopts.disabled_col = uilook(uiText)  'For section headings
+ menuopts.disabled_col = uilook(eduiHeading)  'For section headings
 
  'I think these things are here (and not upgrade) because we don't want to  force them on games
  IF gen(genPoisonChar) <= 0 THEN gen(genPoisonChar) = 161

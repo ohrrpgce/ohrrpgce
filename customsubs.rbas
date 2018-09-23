@@ -3186,7 +3186,7 @@ SUB edit_platform_options ()
      menu.last->unselectable = YES
      append_menu_item menu, " Phone/Tablet Virtual Gamepad (Normal)"
      menu.last->unselectable = YES
-     menu.last->col = uilook(uiText)
+     menu.last->col = uilook(eduiHeading)
 
      vbutton_count = 0
      READNODE vgp
@@ -3211,7 +3211,7 @@ SUB edit_platform_options ()
      menu.last->unselectable = YES
      append_menu_item menu, " Phone/Tablet Virtual Gamepad (Battle Mode)"
      menu.last->unselectable = YES
-     menu.last->col = uilook(uiText)
+     menu.last->col = uilook(eduiHeading)
 
      vbutton_count = 0
      READNODE vgpb
@@ -3245,13 +3245,13 @@ SUB edit_platform_options ()
  
     append_menu_item menu, " Gamepad Buttons"
     menu.last->unselectable = YES
-    menu.last->col = uilook(uiText)
+    menu.last->col = uilook(eduiHeading)
 
     platform_options_append_gamepad_button_menu_items gamepad, menu, NO, buttons(), default_scancodes()
 
     append_menu_item menu, " Multiplayer Options"
     menu.last->unselectable = YES
-    menu.last->col = uilook(uiText)
+    menu.last->col = uilook(eduiHeading)
 
     IF NOT gen_root."multiplayer_gamepads".exists THEN
      '--this caption will change if  any other platform ever gets multiplayer gamepad support
@@ -3268,7 +3268,7 @@ SUB edit_platform_options ()
         has_player_node(pnum) = YES
         append_menu_item menu, player_who(pnum) & " player buttons"
         menu.last->unselectable = YES
-        menu.last->col = uilook(uiText)
+        menu.last->col = uilook(eduiHeading)
         platform_options_append_gamepad_button_menu_items player, menu, YES, buttons(), default_scancodes_multiplayer()
        END IF
       END WITHNODE
@@ -3744,7 +3744,7 @@ SUB edit_button_name_strings()
 
    append_menu_item menu, " " & plat_detail(keynum)
    menu.last->unselectable = YES
-   menu.last->col = uilook(uiText)
+   menu.last->col = uilook(eduiHeading)
 
    freenum = 0
    READNODE buttonnames
@@ -3947,7 +3947,7 @@ SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval p
  menu.last->unselectable = YES
  append_menu_item menu, " Enabled Stores"
  menu.last->unselectable = YES
- menu.last->col = uilook(uiText)
+ menu.last->col = uilook(eduiHeading)
 
  node = GetOrCreateChild(store_node, "default")
  append_menu_item menu, "Windows+Mac+Linux: " & blank_default(GetString(node), "disabled")
@@ -3963,7 +3963,7 @@ SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval p
  menu.last->unselectable = YES
  append_menu_item menu, " OUYA Developer ID"
  menu.last->unselectable = YES
- menu.last->col = uilook(uiText)
+ menu.last->col = uilook(eduiHeading)
 
  node = GetOrCreateChild(ouya_node, "developer_id")
  append_menu_item menu, "> " & GetString(node)
@@ -3986,7 +3986,7 @@ SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval p
  menu.last->unselectable = YES
  append_menu_item menu, " Purchaseable Products"
  menu.last->unselectable = YES
- menu.last->col = uilook(uiText)
+ menu.last->col = uilook(eduiHeading)
 
  READNODE products
   WITHNODE products."prod" as prod
@@ -4085,7 +4085,7 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->unselectable = YES
    append_menu_item menu, "OUYA Store Settings"
    menu.last->unselectable = YES
-   menu.last->col = uilook(uiText)
+   menu.last->col = uilook(eduiHeading)
 
    store = GetOrCreateChild(prod, "ouya")
    n = GetOrCreateChild(store, "identifier")
@@ -4098,7 +4098,7 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->unselectable = YES
    append_menu_item menu, " Paypal Settings"
    menu.last->unselectable = YES
-   menu.last->col = uilook(uiText)
+   menu.last->col = uilook(eduiHeading)
 
    store = GetOrCreateChild(prod, "paypal")
    n = GetOrCreateChild(store, "button_id")
@@ -4111,7 +4111,7 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->unselectable = YES
    append_menu_item menu, " Purchase Action"
    menu.last->unselectable = YES
-   menu.last->col = uilook(uiText)
+   menu.last->col = uilook(eduiHeading)
 
    buy_action = GetOrCreateChild(prod, "buy_action")
    

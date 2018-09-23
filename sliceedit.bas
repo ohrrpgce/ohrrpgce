@@ -1415,7 +1415,7 @@ SUB sliceed_rule_tog(rules() as EditRule, helpkey as string, dataptr as bool ptr
 END SUB
 
 SUB sliceed_header(menu() as string, rules() as EditRule, text as string, helpkey as string = "")
- a_append menu(), fgtag(uilook(uiText), text)
+ a_append menu(), fgtag(uilook(eduiHeading), text)
  sliceed_rule_none rules(), helpkey
 END SUB
 
