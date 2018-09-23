@@ -31,6 +31,7 @@ Prevents the attack from being targeted to enemies in certain slots.
 * Cannot target hero slot
 Prevents the attack from being targeted to heroes in certain slots.
 
+
   Failure Conditions
 
 * Mutable
@@ -49,29 +50,13 @@ The attack will fail on any target with a damaged stun register
 The attack will fail on any target with a damaged mute register
 
 
-  Effects
+  Effects: on Target
 
 * Steal item
 Gives the attacker a chance to steal an item. (Only works for enemy targets. See the "Rewards" menu in the enemy editor.)
 
 * Erase rewards (Enemy target only)
 When an enemy is hit with an attack that has this bitset turned on, its money, experience and items are deleted. Killing the enemy will not give any rewards at the end of battle.
-
-* Store target
-When an attack with this bitset is used, the attacker will memorize the target(s) for later use with attacks that use the "Stored Targets" target class. The targets are ADDED to the list of previously stored targets, rather than replacing them! If you want to SET the stored target, use this together with Delete Stored Targets, below.
-
-* Delete stored targets
-When an attack with this bitset is used, the attacker will forget any previously stored targets, and will no longer be able to use attacks that use "Stored Target" target class.
-
-* Cause heroes to run away
-If this bitset is turned on, the attack will cause the heroes to run away (regardless of attacker or target) in addition to normal effects. This can be used in combination with turning off the general bitset "Hold ESC to run from battle" if you are implementing your own alternate running-away system.
-
-* Force Victory
-In addition to the attack's normal effects, the battle will immediately stop, with the victory animations playing and rewards listed. Happens regardless of attacker or target. Any surviving enemies do not die/flee, and rewards are NOT given for them.
-
-* Force Battle Exit
-In addition to the attack's normal effects, the battle immediately ends with the screen fading out. Happens regardless of attacker or target. The player does NOT receive any rewards, such as experience, for enemies they've already defeated!
-This counts as running from (losing) the battle for the "fight formation" command.
 
 * Reset Poison register
 This causes the target's poison register to be reset to an undamaged state. This is convenient for making attacks that cure poison.
@@ -90,6 +75,28 @@ If a target is hit with an attack that has this bitset turned on, any attack tha
 
 * Can't be cancelled by other attacks
 This bitset is used to make attacks which cannot be interrupted by other attacks with the "Cancel target's attack" bitset.
+
+
+  Effects: on Attacker
+
+* Store target
+When an attack with this bitset is used, the attacker will memorize the target(s) for later use with attacks that use the "Stored Targets" target class. The targets are ADDED to the list of previously stored targets, rather than replacing them! If you want to SET the stored target, use this together with Delete Stored Targets, below.
+
+* Delete stored targets
+When an attack with this bitset is used, the attacker will forget any previously stored targets, and will no longer be able to use attacks that use "Stored Target" target class.
+
+
+  Effects: Global
+
+* Force battle victory
+In addition to the attack's normal effects, the battle will immediately stop, with the victory animations playing and rewards listed. Happens regardless of attacker or target. Any surviving enemies do not die/flee, and rewards are NOT given for them.
+
+* Force battle loss & exit (no run animation)
+In addition to the attack's normal effects, the battle immediately ends with the screen fading out - like dying, except a different fade out color. Happens regardless of attacker or target. The player does NOT receive any rewards, such as experience, for enemies they've already defeated!
+This counts as running from (losing) the battle for the "fight formation" command.
+
+* Force battle loss & heroes run away
+If this bitset is turned on, the attack will cause the heroes to run away (regardless of attacker or target) in addition to normal effects. This can be used in combination with turning off the general bitset "Hold ESC to run from battle" if you are implementing your own alternate running-away system.
 
 
   Counter-effects

@@ -33,5 +33,5 @@ Note: Some of these can be overridden with scripts.
 
 "Fadeout: won battle" happens after winning a battle.
 
-"Fadeout: exit/flee battle" happens when leaving battle due to running or the "Force battle exit" attack bit or a timer expires. If you died in the battle, the death fadeout is used instead. (The "On Death" battle formation option has no effect.)
+"Fadeout: exit/flee battle" happens when leaving battle due to running or the "Force battle loss & exit" attack bit or a timer expires. If you died in the battle, the death fadeout is used instead. (The "On Death" battle formation option has no effect.)
 

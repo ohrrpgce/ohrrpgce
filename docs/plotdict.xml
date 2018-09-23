@@ -1897,14 +1897,14 @@ wait for text box # wait until the player continues</example>
 				The situations which cause <ref>true</ref> to be returned are:<lb/>
 				<ul>
 					<li>Normal victory</li>
-					<li>An attack with the "Force victory" bit ends the battle</li>
+					<li>An attack with the "Force battle victory" bit ends the battle</li>
 				</ul>
 				The situations which cause <ref>false</ref> to be returned are:<lb/>
 				<ul>
 					<li>All heroes died</li>
 					<li>Player ran from battle</li>
-					<li>An attack with the "Cause heroes to run away" bit ends the battle</li>
-					<li>An attack with the "Force battle exit" bit ends the battle</li>
+					<li>An attack with the "Force battle loss & heroes run away" bit ends the battle</li>
+					<li>An attack with the "Force battle loss & exit" bit ends the battle</li>
 					<li>A timer with <ref>timerflag:critical</ref> runs out and ends the battle</li>
 					<li>The end-battle-instantly debug key is used</li>
 				</ul>
