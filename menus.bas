@@ -1522,6 +1522,9 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
   .spacing = 10 + menu.itemspacing
  END WITH
 
+ 'Needed to recalculate .size if autosized on first tick (also called from usemenu)
+ recalc_menu_size state
+
  IF menu.no_box = NO THEN
   WITH menu.rect
    edgeboxstyle .x, .y, .wide, .high, menu.boxstyle, page, menu.translucent

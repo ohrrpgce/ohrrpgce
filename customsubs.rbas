@@ -3293,8 +3293,8 @@ SUB edit_platform_controls ()
 
    LOOP WHILE st.need_update
 
+   'Update .last to avoid glitch on first tick, not needed for any other reason (*grumble*)
    init_menu_state st, menu
-   position_menu menu, dpage  'Avoid annoying glitch on first tick
   END IF '--done updating menu
 
   usemenu st, menu
