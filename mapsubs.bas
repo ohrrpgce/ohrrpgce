@@ -3058,39 +3058,41 @@ END FUNCTION
 SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem vector, gmap() as integer, gdidx() as integer, midx() as integer, script_defaults() as integer)
 
  v_new menu
- REDIM gdidx(25)
+ REDIM gdidx(27)
  gdidx(0)  = -1: append_simplemenu_item menu, "Previous Menu"
  gdidx(1)  = 1:  append_simplemenu_item menu, "Ambient Music: "
  gdidx(2)  = 2:  append_simplemenu_item menu, "Minimap Available: "
  gdidx(3)  = 3:  append_simplemenu_item menu, "Save Anywhere: "
  gdidx(4)  = 18: append_simplemenu_item menu, "Tile Data: "
  gdidx(5)  = 17: append_simplemenu_item menu, "NPC Data: "
- gdidx(6)  = 32: append_simplemenu_item menu, "Default NPC Move Zone: "
- gdidx(7)  = 33: append_simplemenu_item menu, "Default NPC Avoid Zone: "
- gdidx(8)  = 378: append_simplemenu_item menu, "Default Pathfinding rules: "
 
- 'Add an extra gap
- gdidx(9) = -1: append_simplemenu_item menu, "", YES
- gdidx(10)  = -1: append_simplemenu_item menu, "Display:", YES, uilook(uiText)
+ gdidx(6) = -1:  append_simplemenu_item menu, "", YES
+ gdidx(7) = -1:  append_simplemenu_item menu, " NPC Defaults", YES, uilook(uiText)
 
- gdidx(11)  = 11: append_simplemenu_item menu, "Foot Offset: "
- gdidx(12) = 16: append_simplemenu_item menu, "Walkabout Layering: "
- gdidx(13) = 4:  append_simplemenu_item menu, "Display Map Name: "
- gdidx(14) = 10: append_simplemenu_item menu, "Harm-Tile Flash: "   'flash colour drawn here
- gdidx(15) = 9:  append_simplemenu_item menu, "Harm-Tile Damage: "
- gdidx(16) = 5:  append_simplemenu_item menu, "Map Edge Mode: " 
- gdidx(17) = 6:  append_simplemenu_item menu, "Default Edge Tile: " 'edge tile drawn here
+ gdidx(8)  = 32: append_simplemenu_item menu, "Default NPC Move Zone: "
+ gdidx(9)  = 33: append_simplemenu_item menu, "Default NPC Avoid Zone: "
+ gdidx(10) = 378:append_simplemenu_item menu, "Default Pathfinding Rule: "
 
- 'Add an extra gap, for the edge tile preview
- gdidx(18) = -1: append_simplemenu_item menu, "", YES
+ gdidx(11) = -1: append_simplemenu_item menu, "", YES
+ gdidx(12) = -1: append_simplemenu_item menu, " Display", YES, uilook(uiText)
 
- gdidx(19) = -1: append_simplemenu_item menu, "Scripts:", YES, uilook(uiText)
- gdidx(20) = 7:  append_simplemenu_item menu, "Autorun Script: "
- gdidx(21) = 8:  append_simplemenu_item menu, "Autorun Script Argument: "
- gdidx(22) = 12: append_simplemenu_item menu, "After-Battle Script: "
- gdidx(23) = 13: append_simplemenu_item menu, "Instead-of-Battle Script: "
- gdidx(24) = 14: append_simplemenu_item menu, "Each-Step Script: "
- gdidx(25) = 15: append_simplemenu_item menu, "On-Keypress Script: "
+ gdidx(13) = 11: append_simplemenu_item menu, "Foot Offset: "
+ gdidx(14) = 16: append_simplemenu_item menu, "Walkabout Layering: "
+ gdidx(15) = 4:  append_simplemenu_item menu, "Display Map Name: "
+ gdidx(16) = 10: append_simplemenu_item menu, "Harm-Tile Flash: "   'flash colour drawn here
+ gdidx(17) = 9:  append_simplemenu_item menu, "Harm-Tile Damage: "
+ gdidx(18) = 5:  append_simplemenu_item menu, "Map Edge Mode: "
+ gdidx(19) = 6:  append_simplemenu_item menu, "Default Edge Tile: " 'edge tile drawn here
+ 'Extra gap is needed here for the edge tile preview anyway
+ gdidx(20) = -1: append_simplemenu_item menu, "", YES
+
+ gdidx(21) = -1: append_simplemenu_item menu, " Scripts", YES, uilook(uiText)
+ gdidx(22) = 7:  append_simplemenu_item menu, "Autorun Script: "
+ gdidx(23) = 8:  append_simplemenu_item menu, "Autorun Script Argument: "
+ gdidx(24) = 12: append_simplemenu_item menu, "After-Battle Script: "
+ gdidx(25) = 13: append_simplemenu_item menu, "Instead-of-Battle Script: "
+ gdidx(26) = 14: append_simplemenu_item menu, "Each-Step Script: "
+ gdidx(27) = 15: append_simplemenu_item menu, "On-Keypress Script: "
 
  IF UBOUND(gdidx) + 1 <> v_len(menu) THEN debugc errFatalBug, "Wrong gdidx length!"
  invert_permutation gdidx(), midx()

@@ -594,7 +594,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
     END IF
 
     DIM col as integer
-    col = menu_item_color(state, i, .disabled, .unselectable, .col, .disabled_col)
+    col = menu_item_color(state, i, .disabled, .unselectable, .col, .disabled_col, menuopts.normal_col, menuopts.disabled_col)
 
     DIM drawx as integer = x
     IF linewidth > wide AND state.active THEN

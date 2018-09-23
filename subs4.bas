@@ -49,6 +49,7 @@ state.size = 24
 state.last = UBOUND(menu)
 state.need_update = YES
 
+a_append vehbit(), -1, ""
 a_append vehbit(), -1, " Appearance"
 a_append vehbit(), 4,  "Do not hide leader"
 a_append vehbit(), 5,  "Do not hide party"
@@ -231,28 +232,31 @@ SaveVehicle game + ".veh", veh(), vehname, vehicle_id
 END SUB
 
 SUB generalscriptsmenu ()
- CONST menusize = 11
+ CONST menusize = 13
  DIM menu(menusize) as string
  DIM menu_display(menusize) as string
  DIM selectable(menusize) as bool
  flusharray selectable(), , YES
  DIM scripttype(menusize) as string
  selectable(1) = NO
- scripttype(2) = "New game"
- scripttype(3) = "Game over"
- scripttype(4) = "Load game"
- scripttype(5) = "Menu action"
- selectable(6) = NO
+ selectable(2) = NO
+ 'Global script triggers:
+ scripttype(3) = "New game"
+ scripttype(4) = "Game over"
+ scripttype(5) = "Load game"
+ scripttype(6) = "Menu action"
+ selectable(7) = NO
+ selectable(8) = NO
  'Map default scripts:
- scripttype(7) = "Map autorun"
- scripttype(8) = "After battle"
- scripttype(9) = "Instead of battle"
- scripttype(10) = "Each-step"
- scripttype(11) = "On-keypress"
+ scripttype(9) = "Map autorun"
+ scripttype(10) = "After battle"
+ scripttype(11) = "Instead of battle"
+ scripttype(12) = "Each-step"
+ scripttype(13) = "On-keypress"
 
  DIM scriptgenoff(menusize) as integer = { _
-     0, 0, genNewGameScript, genGameoverScript, genLoadGameScript, genEscMenuScript, 0, _
-     genDefMapAutorunScript, genDefAfterBattleScript, genDefInsteadOfBattleScript, _
+     0, 0, 0, genNewGameScript, genGameoverScript, genLoadGameScript, genEscMenuScript, _
+     0, 0, genDefMapAutorunScript, genDefAfterBattleScript, genDefInsteadOfBattleScript, _
      genDefEachStepScript, genDefOnKeypressScript _
  }
 
@@ -281,8 +285,8 @@ SUB generalscriptsmenu ()
   END IF
 
   menu(0) = "Previous Menu"
-  menu(1) = fgtag(uilook(uiDisabledItem)) + "Global script triggers:"
-  menu(6) = fgtag(uilook(uiDisabledItem)) + "Map default scripts:"
+  menu(2) = fgtag(uilook(uiText)) + " Global script triggers"
+  menu(8) = fgtag(uilook(uiText)) + " Map default scripts"
   FOR i as integer = 1 TO menusize
    IF scriptgenoff(i) THEN
     menu(i) = scripttype(i) + ": " + scriptname(gen(scriptgenoff(i)))
@@ -696,7 +700,7 @@ SUB generate_battlesystem_menu(menu() as string, enabled() as bool, greyout() as
 
  menu(0) = "Previous Menu"
 
- menu(1) = "Mechanics"
+ menu(1) = " Mechanics"
  enabled(1) = NO
  greyout(1) = YES
 
@@ -712,7 +716,7 @@ SUB generate_battlesystem_menu(menu() as string, enabled() as bool, greyout() as
  menu(6) = "Mark non-elemental elementals..."
 
  enabled(7) = NO
- menu(8) = "Stats and Experience"
+ menu(8) = " Stats and Experience"
  enabled(8) = NO
  greyout(8) = YES
  menu(9) = "Stat Caps..."
@@ -728,7 +732,7 @@ SUB generate_battlesystem_menu(menu() as string, enabled() as bool, greyout() as
  menu(15) = "Enemy Weak state below: " & gen(genEnemyWeakHP) & "% " & statnames(statHP)
 
  enabled(16) = NO
- menu(17) = "Display"
+ menu(17) = " Display"
  enabled(17) = NO
  greyout(17) = YES
 
@@ -742,7 +746,7 @@ SUB generate_battlesystem_menu(menu() as string, enabled() as bool, greyout() as
  menu(25) = "Rewards Display: " & IIF(gen(genSkipBattleRewardsTicks) = 0, "Wait for keypress", gen(genSkipBattleRewardsTicks) & " ticks (" & seconds_estimate(gen(genSkipBattleRewardsTicks)) & " secs)")
 
  enabled(26) = NO
- menu(27) = "Other Defaults"
+ menu(27) = " Other Defaults"
  enabled(27) = NO
  greyout(27) = YES
 
@@ -765,6 +769,8 @@ SUB battleoptionsmenu ()
   .last = maxMenu
   .need_update = YES
  END WITH
+ DIM menuopts as MenuOptions
+ menuopts.disabled_col = uilook(uiText)  'For section headings
 
  'I think these things are here (and not upgrade) because we don't want to  force them on games
  IF gen(genPoisonChar) <= 0 THEN gen(genPoisonChar) = 161
@@ -857,7 +863,7 @@ SUB battleoptionsmenu ()
   clearpage vpage
   draw_fullscreen_scrollbar state, , vpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, greyout(), 0, 0, vpage
+  standardmenu menu_display(), state, greyout(), 0, 0, vpage, menuopts
   setvispage vpage
   dowait
  LOOP

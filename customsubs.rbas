@@ -3182,10 +3182,12 @@ SUB edit_platform_options ()
      append_menu_item menu, "Hide V.Gamepad when suspendplayer: " & yesorno(mobile."hide_virtual_gamepad_when_suspendplayer".integer.default(NO))
      menu.last->t = platformoptTOGGLEVGAMEPADSUSPENDPLAYER
 
-     append_menu_item menu, "Phone/Tablet virtual gamepad (Normal)"
+     append_menu_item menu, ""
      menu.last->unselectable = YES
-     menu.last->disabled = YES
-     
+     append_menu_item menu, " Phone/Tablet Virtual Gamepad (Normal)"
+     menu.last->unselectable = YES
+     menu.last->col = uilook(uiText)
+
      vbutton_count = 0
      READNODE vgp
       WITHNODE vgp."button" as but
@@ -3205,10 +3207,12 @@ SUB edit_platform_options ()
       menu.last->dataptr = vgp
      END IF
 
-     append_menu_item menu, "Phone/Tablet virtual gamepad (Battle Mode)"
+     append_menu_item menu, ""
      menu.last->unselectable = YES
-     menu.last->disabled = YES
-     
+     append_menu_item menu, " Phone/Tablet Virtual Gamepad (Battle Mode)"
+     menu.last->unselectable = YES
+     menu.last->col = uilook(uiText)
+
      vbutton_count = 0
      READNODE vgpb
       WITHNODE vgpb."button" as but
@@ -3239,16 +3243,16 @@ SUB edit_platform_options ()
     append_menu_item menu, ""
     menu.last->unselectable = YES
  
-    append_menu_item menu, "Gamepad buttons"
+    append_menu_item menu, " Gamepad Buttons"
     menu.last->unselectable = YES
-    menu.last->disabled = YES
- 
+    menu.last->col = uilook(uiText)
+
     platform_options_append_gamepad_button_menu_items gamepad, menu, NO, buttons(), default_scancodes()
- 
-    append_menu_item menu, "Multiplayer Options:"
+
+    append_menu_item menu, " Multiplayer Options"
     menu.last->unselectable = YES
-    menu.last->disabled = YES
-    
+    menu.last->col = uilook(uiText)
+
     IF NOT gen_root."multiplayer_gamepads".exists THEN
      '--this caption will change if  any other platform ever gets multiplayer gamepad support
      append_menu_item menu, "Enable OUYA multiplayer..."
@@ -3264,7 +3268,7 @@ SUB edit_platform_options ()
         has_player_node(pnum) = YES
         append_menu_item menu, player_who(pnum) & " player buttons"
         menu.last->unselectable = YES
-        menu.last->disabled = YES
+        menu.last->col = uilook(uiText)
         platform_options_append_gamepad_button_menu_items player, menu, YES, buttons(), default_scancodes_multiplayer()
        END IF
       END WITHNODE
@@ -3738,9 +3742,9 @@ SUB edit_button_name_strings()
    append_menu_item menu, CHR(27) & " Platform: " & plat_key(keynum) & " " & CHR(26)
    menu.last->t = buttonnameBROWSE
 
-   append_menu_item menu, plat_detail(keynum)
+   append_menu_item menu, " " & plat_detail(keynum)
    menu.last->unselectable = YES
-   menu.last->disabled = YES
+   menu.last->col = uilook(uiText)
 
    freenum = 0
    READNODE buttonnames
@@ -3909,7 +3913,7 @@ SUB edit_purchase_options ()
   clearpage dpage
   
   draw_menu menu, st, dpage
-  wrapprint "Don't enable purchases unless all the content if your game is original!", 0, pBottom, uilook(uiSelectedDisabled), dpage
+  wrapprint "Don't enable purchases unless all the content in your game is original!", 0, pBottom, uilook(uiSelectedDisabled), dpage
   
   SWAP vpage, dpage
   setvispage vpage
@@ -3937,11 +3941,13 @@ SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval p
 
  append_menu_item menu, "(This menu is experimental!)"
  menu.last->unselectable = YES
- menu.last->disabled = YES
+ menu.last->col = uilook(uiMouseHoverItem)
 
- append_menu_item menu, "Enabled Stores:"
+ append_menu_item menu, ""
  menu.last->unselectable = YES
- menu.last->disabled = YES
+ append_menu_item menu, " Enabled Stores"
+ menu.last->unselectable = YES
+ menu.last->col = uilook(uiText)
 
  node = GetOrCreateChild(store_node, "default")
  append_menu_item menu, "Windows+Mac+Linux: " & blank_default(GetString(node), "disabled")
@@ -3953,10 +3959,12 @@ SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval p
  menu.last->t = editpurchSTOREOUYA
  menu.last->dataptr = node
 
- append_menu_item menu, "OUYA Developer ID:"
+ append_menu_item menu, ""
  menu.last->unselectable = YES
- menu.last->disabled = YES
-   
+ append_menu_item menu, " OUYA Developer ID"
+ menu.last->unselectable = YES
+ menu.last->col = uilook(uiText)
+
  node = GetOrCreateChild(ouya_node, "developer_id")
  append_menu_item menu, "> " & GetString(node)
  menu.last->t = editpurchSTRING
@@ -3974,9 +3982,11 @@ SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval p
  menu.last->t = editpurchKEYDER
  menu.last->dataptr = node
 
- append_menu_item menu, "Purchaseable Products"
+ append_menu_item menu, ""
  menu.last->unselectable = YES
- menu.last->disabled = YES
+ append_menu_item menu, " Purchaseable Products"
+ menu.last->unselectable = YES
+ menu.last->col = uilook(uiText)
 
  READNODE products
   WITHNODE products."prod" as prod
@@ -4070,10 +4080,12 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->t = editpurchLONGSTRING
    menu.last->sub_t = 99999
    menu.last->dataptr = n
-   
+
+   append_menu_item menu, ""
+   menu.last->unselectable = YES
    append_menu_item menu, "OUYA Store Settings"
    menu.last->unselectable = YES
-   menu.last->disabled = YES
+   menu.last->col = uilook(uiText)
 
    store = GetOrCreateChild(prod, "ouya")
    n = GetOrCreateChild(store, "identifier")
@@ -4082,9 +4094,11 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->sub_t = 128
    menu.last->dataptr = n
 
-   append_menu_item menu, "Paypal Settings"
+   append_menu_item menu, ""
    menu.last->unselectable = YES
-   menu.last->disabled = YES
+   append_menu_item menu, " Paypal Settings"
+   menu.last->unselectable = YES
+   menu.last->col = uilook(uiText)
 
    store = GetOrCreateChild(prod, "paypal")
    n = GetOrCreateChild(store, "button_id")
@@ -4093,9 +4107,11 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->sub_t = 128
    menu.last->dataptr = n
 
-   append_menu_item menu, "Purchase Action"
+   append_menu_item menu, ""
    menu.last->unselectable = YES
-   menu.last->disabled = YES
+   append_menu_item menu, " Purchase Action"
+   menu.last->unselectable = YES
+   menu.last->col = uilook(uiText)
 
    buy_action = GetOrCreateChild(prod, "buy_action")
    

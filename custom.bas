@@ -2016,7 +2016,7 @@ SUB resolution_menu ()
   ELSE
    menu(4) &= "shared with this game"
   END IF
-  menu(5) = fgtag(uilook(uiDisabledItem), "Experimental options:")
+  menu(5) = fgtag(uilook(uiText), " Experimental options")
   menu(6) = "Game horizontal resolution: " & gen(genResolutionX) & " pixels"
   menu(7) = "Game vertical resolution: " & gen(genResolutionY) & " pixels"
   clearpage vpage
