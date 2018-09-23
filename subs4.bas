@@ -1142,23 +1142,87 @@ SUB startingdatamenu
  LOOP
 END SUB
 
-SUB generate_gen_menu(m() as string, longname as string, aboutline as string, options_start as integer)
- m(1) = "Long Name:" + longname
- m(2) = "About Line:" + aboutline
+TYPE GeneralSettingsMenu
+ DIM itemids(any) as integer  'Meaningless unique value, or -1
+ DIM menutext(any) as string
+ DIM index(any) as integer    'gen() index, or -1
+ DIM min(any) as integer
+ DIM max(any) as integer
+ DIM enabled(any) as bool
+
+ DECLARE SUB add_item(id as integer = -1, text as string = "")
+ DECLARE SUB gen_int(genidx as integer, minvalue as integer, maxvalue as integer)
+
+ DECLARE SUB update(longname as string, aboutline as string)
+END TYPE
+
+SUB GeneralSettingsMenu.add_item(id as integer = -1, text as string = "")
+ a_append itemids(), id
+ a_append menutext(), text
+ a_append index(), 0
+ a_append min(), 0
+ a_append max(), 0
+ a_append enabled(), (LEN(text) > 0)
+END SUB
+
+'Applies to last add_item()
+SUB GeneralSettingsMenu.gen_int(genidx as integer, minvalue as integer, maxvalue as integer)
+ DIM i as integer = UBOUND(index)
+ index(i) = genidx
+ min(i) = minvalue
+ max(i) = maxvalue
+END SUB
+
+SUB GeneralSettingsMenu.update(longname as string, aboutline as string)
+ DIM tmp as string
+
+ ERASE itemids
+ ERASE menutext
+ ERASE index
+ ERASE min
+ ERASE max
+ ERASE enabled
+
+ add_item 0,  "Return to Main Menu"
+ add_item 1,  "Long name:" + longname
+ add_item 2,  "About line:" + aboutline
+ add_item 3,  "Pick Title Screen..."
+ add_item 4,  "New Game Settings..."
+ add_item 5,  "Saved Games Settings..."
+ add_item 6,  "Preference Bitsets..."
+ add_item 7,  "Backwards-compatibility Bitsets..."
+ add_item 8,  "Battle System Options..."
+ add_item 9,  "Special Plotscripts..."
+ add_item 10, "Plotscript Error Display..."
+ add_item 11, "Global Music and Sound Effects..."
+ add_item 12, "Master Palettes..."
+ add_item 13, "Password For Editing..."
+ add_item 14, "Window-size Options..."
+ add_item 15, "Platform-specific options..."
+ add_item 16, "Mouse Options..."
+ add_item  , ""
+
  IF gen(genMaxInventory) = 0 THEN
-  m(options_start + 0) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
+  add_item , "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
  ELSE
-  m(options_start + 0) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
+  add_item , "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
  END IF
- m(options_start + 1) = "Inventory autosort: "
+ gen_int genMaxInventory, 0, (inventoryMax + 1) \ 3
+
+ tmp = "Inventory autosort: "
  SELECT CASE gen(genAutosortScheme)
-  CASE 0: m(options_start + 1) += "by item type/uses"
-  CASE 1: m(options_start + 1) += "by whether usable"
-  CASE 2: m(options_start + 1) += "alphabetically"
-  CASE 3: m(options_start + 1) += "by item ID number"
-  CASE 4: m(options_start + 1) += "no reordering"
+  CASE 0: tmp &= "by item type/uses"
+  CASE 1: tmp &= "by whether usable"
+  CASE 2: tmp &= "alphabetically"
+  CASE 3: tmp &= "by item ID number"
+  CASE 4: tmp &= "no reordering"
  END SELECT
- m(options_start + 2) = "Default maximum item stack size: " & gen(genItemStackSize)
+ add_item , tmp
+ gen_int genAutosortScheme, 0, 4
+
+ add_item , "Default maximum item stack size: " & gen(genItemStackSize)
+ gen_int genItemStackSize, 1, 99
+
  DIM fps as string
  '16ms and 33ms are special-cased to be exactly 60/30fps
  IF gen(genMillisecPerFrame) = 16 THEN
@@ -1168,149 +1232,120 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string, op
  ELSE
   fps = FORMAT(small(60., 1000 / gen(genMillisecPerFrame)), ".#")
  END IF
- m(options_start + 3) = "Framerate: " & fps & " frames/sec (" _
-                         & gen(genMillisecPerFrame) & "ms/frame)"
- m(options_start + 4) = "Initial music volume: " & gen(genMusicVolume) & "%"
- m(options_start + 5) = "Initial sound effects volume: " & gen(genSFXVolume) & "%"
- DIM tmp as string = "Minimap style: "
+ add_item , "Framerate: " & fps & " frames/sec (" & gen(genMillisecPerFrame) & "ms/frame)"
+ gen_int genMillisecPerFrame, 16, 200
+
+ add_item , "Initial music volume: " & gen(genMusicVolume) & "%"
+ gen_int genMusicVolume, 0, 100
+ add_item , "Initial sound effects volume: " & gen(genSFXVolume) & "%"
+ gen_int genSFXVolume, 0, 100
+
+ tmp = "Minimap style: "
  SELECT CASE gen(genMinimapAlgorithm)
   CASE minimapScaled :   tmp &= "Smoothly scaled down"
   CASE minimapScatter :  tmp &= "Pick random color"
   CASE minimapMajority : tmp &= "Pick most common color"
  END SELECT
- m(options_start + 6) = tmp
+ add_item , tmp
+ gen_int genMinimapAlgorithm, 0, minimapLAST
 END SUB
 
 SUB general_data_editor ()
  STATIC shown_framerate_warning as bool = NO
- CONST maxMenu = 24
- DIM m(maxMenu) as string
- DIM menu_display(maxMenu) as string
- DIM min(maxMenu) as integer
- DIM max(maxMenu) as integer
- DIM index(maxMenu) as integer
- DIM enabled(maxMenu) as bool
+
+ 'make sure genMaxInventory is a valid value (possible in older versions)
+ IF gen(genMaxInventory) THEN gen(genMaxInventory) = last_inv_slot()
+
+ DIM aboutline as string = load_aboutline()
+ DIM longname as string = load_gamename()
+
+ DIM genmenu as GeneralSettingsMenu
+ genmenu.update(longname, aboutline)
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
  WITH state
   .autosize = YES
-  .last = maxMenu
-  .need_update = YES
+  .last = UBOUND(genmenu.menutext)
  END WITH
-
- 'make sure genMaxInventory is a valid value (possible in older versions)
- IF gen(genMaxInventory) THEN gen(genMaxInventory) = last_inv_slot()
-
- m(0) = "Return to Main Menu"
- m(3) = "Pick Title Screen..."
- m(4) = "New Game Settings..."
- m(5) = "Saved Games Settings..."
- m(6) = "Preference Bitsets..."
- m(7) = "Backwards-compatibility Bitsets..."
- m(8) = "Battle System Options..."
- m(9) = "Special Plotscripts..."
- m(10) = "Plotscript Error Display..."
- m(11) = "Global Music and Sound Effects..."
- m(12) = "Master Palettes..."
- m(13) = "Password For Editing..."
- m(14) = "Window-size Options..."
- m(15) = "Platform-specific options..."
- m(16) = "Mouse Options..."
-
- CONST options_start = 18
-
- flusharray enabled(), UBOUND(enabled), YES
- enabled(options_start - 1) = NO
-
- index(options_start) = genMaxInventory
- max(options_start) = (inventoryMax + 1) \ 3
- index(options_start + 1) = genAutosortScheme
- max(options_start + 1) = 4
- index(options_start + 2) = genItemStackSize
- max(options_start + 2) = 99
- min(options_start + 2) = 1
- index(options_start + 3) = genMillisecPerFrame
- max(options_start + 3) = 200
- min(options_start + 3) = 16
- index(options_start + 4) = genMusicVolume
- max(options_start + 4) = 100
- min(options_start + 4) = 0
- index(options_start + 5) = genSFXVolume
- max(options_start + 5) = 100
- min(options_start + 5) = 0
- index(options_start + 6) = genMinimapAlgorithm
- max(options_start + 6) = minimapLAST
- min(options_start + 6) = 0
-
- DIM aboutline as string = load_aboutline()
- DIM longname as string = load_gamename()
 
  setkeys YES
  DO
   setwait 55
   setkeys YES
 
-  IF state.need_update THEN
-   generate_gen_menu m(), longname, aboutline, options_start
-   state.need_update = NO
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "general_game_data"
+  usemenu state, genmenu.enabled()
+
+  IF enter_space_click(state) THEN
+   SELECT CASE genmenu.itemids(state.pt)
+    CASE 0:  EXIT DO
+    CASE 3
+     DIM backdropb as BackdropSpriteBrowser
+     gen(genTitle) = backdropb.browse(gen(genTitle))
+    CASE 4:  startingdatamenu
+    CASE 5:  edit_savegame_options
+    CASE 6:  edit_general_bitsets
+    CASE 7:  edit_backcompat_bitsets
+    CASE 8:  battleoptionsmenu
+    CASE 9:  generalscriptsmenu
+    CASE 10: script_error_mode_menu
+    CASE 11: generalmusicsfxmenu
+    CASE 12: masterpalettemenu
+    CASE 13: inputpasw
+    CASE 14: resolution_menu
+    CASE 15: edit_platform_options
+    CASE 16: edit_mouse_options
+   END SELECT
   END IF
 
   DIM enable_strgrabber as bool = NO
-  IF LEN(selectst.query) = 0 AND (state.pt = 1 OR state.pt = 2) THEN enable_strgrabber = YES
 
-  IF keyval(scESC) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "general_game_data"
-  usemenu state, enabled()
-  IF enter_space_click(state) THEN
-   IF state.pt = 0 THEN EXIT DO
-   IF state.pt = 3 THEN
-    DIM backdropb as BackdropSpriteBrowser
-    gen(genTitle) = backdropb.browse(gen(genTitle))
-   END IF
+  SELECT CASE genmenu.itemids(state.pt)
+   CASE 1  'Long name
+    IF LEN(selectst.query) = 0 THEN
+     enable_strgrabber = YES
+     state.need_update OR= strgrabber(longname, 38)
+    END IF
+   CASE 2  'About line
+    IF LEN(selectst.query) = 0 THEN
+     enable_strgrabber = YES
+     state.need_update OR= strgrabber(aboutline, 38)
+    END IF
+   CASE genMaxInventory
+    DIM as integer temp = (gen(genMaxInventory) + 1) \ 3
+    IF intgrabber(temp, genmenu.min(state.pt), genmenu.max(state.pt)) THEN
+     gen(genMaxInventory) = temp * 3 - 1
+     IF temp = 0 THEN gen(genMaxInventory) = 0
+     state.need_update = YES
+    END IF
+   CASE ELSE
+    WITH genmenu
+     IF .index(state.pt) ANDALSO intgrabber(gen(.index(state.pt)), .min(state.pt), .max(state.pt)) THEN
+      state.need_update = YES
+      IF .index(state.pt) = genMillisecPerFrame ANDALSO shown_framerate_warning = NO THEN
+       show_help "framerate_warning"
+       shown_framerate_warning = YES
+      END IF
+     END IF
+    END WITH
+  END SELECT
 
-   IF state.pt = 4 THEN startingdatamenu
-   IF state.pt = 5 THEN edit_savegame_options
-   IF state.pt = 6 THEN edit_general_bitsets
-   IF state.pt = 7 THEN edit_backcompat_bitsets
-   IF state.pt = 8 THEN battleoptionsmenu
-   IF state.pt = 9 THEN generalscriptsmenu
-   IF state.pt = 10 THEN script_error_mode_menu
-   IF state.pt = 11 THEN generalmusicsfxmenu
-   IF state.pt = 12 THEN masterpalettemenu
-   IF state.pt = 13 THEN inputpasw
-   IF state.pt = 14 THEN resolution_menu
-   IF state.pt = 15 THEN edit_platform_options
-   IF state.pt = 16 THEN edit_mouse_options ()
-  END IF
-  IF state.pt = 1 THEN
-   IF enable_strgrabber ANDALSO strgrabber(longname, 38) THEN state.need_update = YES
-  ELSEIF state.pt = 2 THEN
-   IF enable_strgrabber ANDALSO strgrabber(aboutline, 38) THEN state.need_update = YES
-  ELSEIF index(state.pt) = genMaxInventory THEN
-   DIM as integer temp = (gen(genMaxInventory) + 1) \ 3
-   IF intgrabber(temp, min(state.pt), max(state.pt)) THEN
-    gen(genMaxInventory) = temp * 3 - 1
-    IF temp = 0 THEN gen(genMaxInventory) = 0
-    state.need_update = YES
-   END IF
-  ELSEIF index(state.pt) = genMillisecPerFrame THEN
-   IF intgrabber(gen(index(state.pt)), min(state.pt), max(state.pt)) THEN
-    IF shown_framerate_warning = NO THEN show_help "framerate_warning"
-    shown_framerate_warning = YES
-    state.need_update = YES
-   END IF
-  ELSEIF index(state.pt) THEN
-   IF intgrabber(gen(index(state.pt)), min(state.pt), max(state.pt)) THEN state.need_update = YES
+  IF state.need_update THEN
+   genmenu.update(longname, aboutline)
+   state.last = UBOUND(genmenu.menutext)
+   state.need_update = NO
   END IF
 
   IF enable_strgrabber = NO ANDALSO select_by_typing(selectst, NO) THEN
-   select_on_word_boundary m(), selectst, state
+   select_on_word_boundary genmenu.menutext(), selectst, state
   END IF
 
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
-  highlight_menu_typing_selection m(), menu_display(), selectst, state
+  DIM menu_display(UBOUND(genmenu.menutext)) as string
+  highlight_menu_typing_selection genmenu.menutext(), menu_display(), selectst, state
   standardmenu menu_display(), state, 0, 0, dpage
 
   SWAP vpage, dpage
