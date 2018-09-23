@@ -4893,7 +4893,7 @@ SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot()
  IF dbg.def(      , scF7, "Kill all targetable enemies (F7)") THEN
   FOR slot as integer = 4 TO 11
    WITH bslot(slot)
-    IF .hero_untargetable = NO AND .death_unneeded = NO THEN
+    IF .hero_untargetable = NO THEN
      .stat.cur.hp = 0
      triggerfade slot, bslot()
     END IF

@@ -64,22 +64,31 @@ getelementnames elementnames()
 '-------------------------------------------------------------------------
 
 '--bitsets
-DIM ebit(64) as string
+DIM enemybits() as IntStrPair
 
-FOR i as integer = 32 TO 53
- ebit(i) = "" 'preferable to be blank, so we can hide it
-NEXT i
-ebit(54) = "Harmed by Cure"
-ebit(55) = "MP Idiot"
-ebit(56) = "Boss"
-ebit(57) = "Unescapable"
-ebit(58) = "Die Without Boss"
-ebit(59) = "Flee instead of Die"
-ebit(60) = "Untargetable by Enemies"
-ebit(61) = "Untargetable by Heros"
-ebit(62) = "Win battle even if alive"
-ebit(63) = "Never flinch when attacked"
-ebit(64) = "Ignored for ""Alone"" AI"
+a_append enemybits(), -1, ""
+a_append enemybits(), -1, " Appearance"
+a_append enemybits(), 59, "Flee instead of die"
+a_append enemybits(), 63, "Never flinch when attacked"
+
+a_append enemybits(), -1, ""
+a_append enemybits(), -1, " Behavior"
+a_append enemybits(), 55, "MP idiot"
+a_append enemybits(), 58, "Die without boss"
+
+a_append enemybits(), -1, ""
+a_append enemybits(), -1, " Type"
+a_append enemybits(), 64, "Ignored for ""Alone"" AI"
+a_append enemybits(), 56, "Boss"
+a_append enemybits(), 57, "Unescapable"
+a_append enemybits(), 62, "Win battle even if alive"
+a_append enemybits(), 61, "Untargetable by heroes & win even if alive"
+a_append enemybits(), 60, "Untargetable by enemies"
+
+a_append enemybits(), -1, ""
+a_append enemybits(), -1, " Other"
+a_append enemybits(), 54, "Harmed by cure"
+
 
 '-------------------------------------------------------------------------
 
@@ -817,7 +826,7 @@ DO
     state.need_update = (recbuf(EnDatDeathSFX) <> old_sfx)
     IF recbuf(EnDatDeathSFX) = 0 THEN playsfx gen(genDefaultDeathSFX) - 1
    CASE EnMenuBitsetAct
-    editbitset recbuf(), EnDatBitset, ebit(), "enemy_bitsets", remember_bit
+    editbitset recbuf(), EnDatBitset, enemybits(), "enemy_bitsets", remember_bit
    CASE EnMenuDissolve, EnMenuDissolveTime
     setup_preview_dissolve = YES
    CASE EnMenuDissolveIn, EnMenuDissolveInTime

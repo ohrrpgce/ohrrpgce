@@ -4,12 +4,29 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the li
 
 Modify bitsets with Left, Right, SPACE, ENTER, or by LEFT-CLICK.
 
+
+  Appearance
+
+"Flee instead of die" - the enemy will run away instead of dissolving.
+
+"Never flinch when attacked" - normally when hit with an attack enemies (and heroes) get pushed back a few pixels.
+
+
+  Behavior
+
 "MP Idiot" enemies lose a turn whenever they randomly select an attack they don't have enough MP for. Normally enemies only attempt attacks they can actually use.
 
-The "Boss" bit's only effect is on other enemies with the "Die Without Boss" bit set.
+"Die without boss" causes the enemy to immediately die if there are no 'Boss' enemies left alive.
 
-"Untargetable by heroes" has the side effect of implicitly turning on the next bit:
+
+  Type
+
+The bits in this section have no direct effect on the enemy itself; they change the behaviour of other enemies or of what the heroes can do.
+
+"Ignored for "Alone" AI" - enemies with this bitset turned on aren't considered when enemies decide which set of attacks to use.
+
+The "Boss" bit's only effect is on other enemies with the "Die without boss" bit set.
 
 "Win battle even if alive" enemies don't need to be killed for the player to win the battle.
 
-"Ignored for "Alone" AI" enemies with this bitset turned on aren't considered when enemies decide which set of attacks to use. Be aware that this also causes an enemy to ignore ITSELF when checking to see if it is alone.
+"Untargetable by heroes & win even if alive" makes the enemy both unkillable by heroes and has the same effect as "Win battle even if alive".
