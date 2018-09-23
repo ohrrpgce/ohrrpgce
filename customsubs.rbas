@@ -1002,7 +1002,9 @@ PRIVATE FUNCTION thinggrabber (byref datum as integer, state as MenuState, offse
   editor_arg = datum - offset
   ' If editor_arg < 0, ie initial value is None, then could either go to editor
   ' for record 0 or add new. Shouldn't add new if there's no ThingBrowser to enter.
-  IF editor_arg < 0 ANDALSO add_new_if_none THEN editor_arg = max_record + 1
+  IF editor_arg < 0 THEN
+   editor_arg = IIF(add_new_if_none, max_record + 1, 0)
+  END IF
  ELSE
   ' Check this only after checking scPlus, because intgrabber reads it
   IF intgrab THEN
