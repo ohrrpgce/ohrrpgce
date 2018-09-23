@@ -32,22 +32,13 @@ Prevents the attack from being targeted to enemies in certain slots.
 Prevents the attack from being targeted to heroes in certain slots.
 
 
-  Failure Conditions
+  Effects: on Attacker
 
-* Mutable
-If this bitset is turned on, this attack will be disabled for anyone with a damaged Mute register.
+* Store target
+When an attack with this bitset is used, the attacker will memorize the target(s) for later use with attacks that use the "Stored Targets" target class. The targets are ADDED to the list of previously stored targets, rather than replacing them! If you want to SET the stored target, use this together with Delete Stored Targets, below.
 
-* Fail if target is poisoned
-The attack will fail on any target with a damaged poison register
-
-* Fail if target is regened
-The attack will fail on any target with a damaged regen register
-
-* Fail if target is stunned
-The attack will fail on any target with a damaged stun register
-
-* Fail if target is muted
-The attack will fail on any target with a damaged mute register
+* Delete stored targets
+When an attack with this bitset is used, the attacker will forget any previously stored targets, and will no longer be able to use attacks that use "Stored Target" target class.
 
 
   Effects: on Target
@@ -77,15 +68,6 @@ If a target is hit with an attack that has this bitset turned on, any attack tha
 This bitset is used to make attacks which cannot be interrupted by other attacks with the "Cancel target's attack" bitset.
 
 
-  Effects: on Attacker
-
-* Store target
-When an attack with this bitset is used, the attacker will memorize the target(s) for later use with attacks that use the "Stored Targets" target class. The targets are ADDED to the list of previously stored targets, rather than replacing them! If you want to SET the stored target, use this together with Delete Stored Targets, below.
-
-* Delete stored targets
-When an attack with this bitset is used, the attacker will forget any previously stored targets, and will no longer be able to use attacks that use "Stored Target" target class.
-
-
   Effects: Global
 
 * Force battle victory
@@ -109,6 +91,24 @@ When this bitset is turned on, if the attack kills the target it will not trigge
 
 * Don't trigger elemental counterattacks
 This prevents any of the target's Elemental Counterattacks (including against non-elementals!) from occurring, but does NOT prevent the Non-elemental Counterattack or Stat-damage Counterattacks.
+
+
+  Failure Conditions
+
+* Mutable
+If this bitset is turned on, this attack will be disabled for anyone with a damaged Mute register.
+
+* Fail if target is poisoned
+The attack will fail on any target with a damaged poison register
+
+* Fail if target is regened
+The attack will fail on any target with a damaged regen register
+
+* Fail if target is stunned
+The attack will fail on any target with a damaged stun register
+
+* Fail if target is muted
+The attack will fail on any target with a damaged mute register
 
 
   Costs

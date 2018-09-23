@@ -263,12 +263,9 @@ FOR i = 0 TO 3
 NEXT i
 
 a_append atkbit(), -1, ""
-a_append atkbit(), -1, " Failure Conditions"
-a_append atkbit(), 64, "Mutable"
-a_append atkbit(), 65, "Fail if target is poisoned"
-a_append atkbit(), 66, "Fail if target is regened"
-a_append atkbit(), 67, "Fail if target is stunned"
-a_append atkbit(), 68, "Fail if target is muted"
+a_append atkbit(), -1, " Effects: on Attacker"
+a_append atkbit(), 52, "Store target"
+a_append atkbit(), 53, "Delete stored targets"
 
 a_append atkbit(), -1, ""
 a_append atkbit(), -1, " Effects: on Target"
@@ -283,11 +280,6 @@ a_append atkbit(), -1, ""
 a_append atkbit(), 77, "Can't be cancelled by other attacks"
 
 a_append atkbit(), -1, ""
-a_append atkbit(), -1, " Effects: on Attacker"
-a_append atkbit(), 52, "Store target"
-a_append atkbit(), 53, "Delete stored targets"
-
-a_append atkbit(), -1, ""
 a_append atkbit(), -1, " Effects: Global"
 a_append atkbit(), 85, "Force battle victory"
 a_append atkbit(), 86, "Force battle loss & exit (no run animation)"
@@ -298,6 +290,14 @@ a_append atkbit(), -1, " Counter-effects"
 a_append atkbit(), 78, "Don't trigger spawning on hit"
 a_append atkbit(), 79, "Don't trigger spawning on kill"
 a_append atkbit(), 87, "Don't trigger elemental counterattacks"  'Also in Spawning & Counterattacks menu
+
+a_append atkbit(), -1, ""
+a_append atkbit(), -1, " Failure Conditions"
+a_append atkbit(), 64, "Mutable"
+a_append atkbit(), 65, "Fail if target is poisoned"
+a_append atkbit(), 66, "Fail if target is regened"
+a_append atkbit(), 67, "Fail if target is stunned"
+a_append atkbit(), 68, "Fail if target is muted"
 
 a_append atkbit(), -1, ""
 a_append atkbit(), -1, " Costs"
