@@ -180,7 +180,7 @@ FUNCTION hero_editor (hero_id as integer) as integer
   END IF
 
   menu(1) = CHR(27) & "Hero " & hero_id & CHR(26)
-  menu(2) = "Name:" & her.name
+  menu(2) = "Name: " & her.name
 
   '--Draw screen
   clearpage dpage
@@ -1256,35 +1256,57 @@ SUB edit_tag_range_check (byref check as TagRangeCheck)
  setkeys
 END SUB
 
-SUB update_hero_tags_menu (byref hero as HeroDef, menu() as string, byref st as MenuState)
- REDIM menu(7 + UBOUND(hero.checks) + 1)
+TYPE HeroTagsMenu
+ 'DIM itemids(any) as integer  'Meaningless unique value, or -1
+ DIM menu(any) as string
+ DIM selectable(any) as bool
+ DIM shaded(any) as bool      'Indicates headings
+
+ 'DECLARE SUB add_item(id as integer = -1, text as string = "", heading as bool = NO)
+ 'DECLARE SUB header(text as string)
+
+ DECLARE SUB update(byref hero as HeroDef, byref st as MenuState)
+END TYPE
+
+SUB HeroTagsMenu.update (byref hero as HeroDef, byref st as MenuState)
+ REDIM menu(9 + UBOUND(hero.checks) + 1)
+ REDIM selectable(UBOUND(menu)) as bool
+ REDIM shaded(UBOUND(menu)) as bool
+
  WITH hero
-  menu(0) = "Previous Menu: "
-  menu(1) = "Hero existance checks"
-  menu(2) = "have hero: " + tag_condition_caption(.have_tag, "set tag", "NONE", "Not usable")
-  menu(3) = "is alive: " + tag_condition_caption(.alive_tag, "set tag", "NONE", "Not usable")
-  menu(4) = "is leader: " + tag_condition_caption(.leader_tag, "set tag", "NONE", "Not usable")
-  menu(5) = "is in party now: " + tag_condition_caption(.active_tag, "set tag", "NONE", "Not usable")
-  menu(6) = "Hero level checks"
+  menu(0) = "Previous Menu"
+  shaded(1) = YES
+  shaded(2) = YES
+  menu(2) = " Hero Existence Checks"
+  menu(3) = "have hero: " + tag_condition_caption(.have_tag, "set tag", "NONE", "Not usable")
+  menu(4) = "is alive: " + tag_condition_caption(.alive_tag, "set tag", "NONE", "Not usable")
+  menu(5) = "is leader: " + tag_condition_caption(.leader_tag, "set tag", "NONE", "Not usable")
+  menu(6) = "is in party now: " + tag_condition_caption(.active_tag, "set tag", "NONE", "Not usable")
+
+  shaded(7) = YES
+  shaded(8) = YES
+  menu(8) = " Hero Level Checks"
   FOR i as integer = 0 to UBOUND(hero.checks)
-   menu(7 + i) = tag_range_check_string(hero.checks(i))
+   menu(9 + i) = tag_range_check_string(hero.checks(i))
   NEXT i
   menu(UBOUND(menu)) = "Add a range check..."
  END WITH
  st.last = UBOUND(menu)
+
+ FOR i as integer = 0 to UBOUND(selectable)
+  selectable(i) = NOT shaded(i)
+ NEXT i
 END SUB
 
 SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
- REDIM menu(ANY) as string 'This is redimmed in update_hero_tags_menu()
- REDIM selectable(ANY) as bool
- REDIM shaded(ANY) as bool
+ DIM tagmenu as HeroTagsMenu
  DIM st as MenuState
  st.need_update = YES
  st.autosize = YES
+ DIM menuopts as MenuOptions
+ menuopts.disabled_col = uilook(eduiHeading)
 
- 'Pre-init selectable() because usemenu needs it
- update_hero_tags_menu hero, menu(), st
- REDIM selectable(UBOUND(menu)) as bool
+ tagmenu.update hero, st
 
  setkeys
  DO
@@ -1292,22 +1314,22 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
   setkeys
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_tags"
-  usemenu st, selectable()
+  usemenu st, tagmenu.selectable()
   WITH hero
    SELECT CASE st.pt
     CASE 0
      IF enter_space_click(st) THEN EXIT DO
-    CASE 2
-     IF tag_id_grabber(.have_tag, st) THEN st.need_update = YES
     CASE 3
-     IF tag_id_grabber(.alive_tag, st) THEN st.need_update = YES
+     IF tag_id_grabber(.have_tag, st) THEN st.need_update = YES
     CASE 4
-     IF tag_id_grabber(.leader_tag, st) THEN st.need_update = YES
+     IF tag_id_grabber(.alive_tag, st) THEN st.need_update = YES
     CASE 5
+     IF tag_id_grabber(.leader_tag, st) THEN st.need_update = YES
+    CASE 6
      IF tag_id_grabber(.active_tag, st) THEN st.need_update = YES
-    CASE 7 TO UBOUND(menu) - 1
+    CASE 9 TO UBOUND(tagmenu.menu) - 1
      'Edit an existing one here
-     DIM check_id as integer = st.pt - 7
+     DIM check_id as integer = st.pt - 9
      IF enter_space_click(st) THEN
       edit_tag_range_check hero.checks(check_id)
       st.need_update = YES
@@ -1325,7 +1347,7 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
        st.need_update = YES
       END IF
      END IF
-    CASE UBOUND(menu)
+    CASE UBOUND(tagmenu.menu)
      'Add a new range-check
      IF enter_space_click(st) THEN
       REDIM PRESERVE hero.checks(UBOUND(hero.checks) + 1) as TagRangeCheck
@@ -1337,18 +1359,7 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
   END WITH
 
   IF st.need_update THEN
-   update_hero_tags_menu hero, menu(), st
-   REDIM selectable(UBOUND(menu)) as bool
-   REDIM shaded(UBOUND(menu)) as bool
-   FOR i as integer = 0 to UBOUND(selectable)
-    SELECT CASE i
-     CASE 1,6 'These are the section labels in menu()
-      selectable(i) = NO
-     CASE ELSE
-      selectable(i) = YES
-    END SELECT
-    shaded(i) = NOT selectable(i)
-   NEXT i
+   tagmenu.update hero, st
    st.need_update = NO
    'Save the hero, and then regenerate the tag cache
    saveherodata hero, hero_id
@@ -1356,7 +1367,7 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
   END IF
 
   clearpage dpage
-  standardmenu menu(), st, shaded(), 0, 0, dpage
+  standardmenu tagmenu.menu(), st, tagmenu.shaded(), 0, 0, dpage, menuopts
   SWAP vpage, dpage
   setvispage vpage
   dowait

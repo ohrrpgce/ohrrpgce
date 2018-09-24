@@ -5984,7 +5984,8 @@ SUB update_edit_npc (npcdata as NPCType, ed as NPCEditState, gmap() as integer, 
  ed.menu_append  0, "Picture " & npcdata.picture
  ed.menu_append  1, "Palette " & defaultint(npcdata.palette)
 
- ed.menu_append   , "Movement", YES
+ ed.menu_append   , "", YES
+ ed.menu_append   , " Movement", YES
  ed.menu_append  2, "Move Type = " & safe_caption(npc_movetypes(), npcdata.movetype, "movetype")
  IF npcdata.movetype = 15 THEN
   DIM obs_caption as string
@@ -6005,7 +6006,8 @@ SUB update_edit_npc (npcdata as NPCType, ed as NPCEditState, gmap() as integer, 
  ed.menu_append 17, "Ignore Passmap: " & yesorno(npcdata.ignore_passmap)
  ed.menu_append  7, "Pushability " & safe_caption(npc_pushtypes(), npcdata.pushtype, "pushtype")
 
- ed.menu_append   , "Activation by player:", YES
+ ed.menu_append   , "", YES
+ ed.menu_append   , " Activation by player", YES
  ed.menu_append  8, "Activation: " & safe_caption(npc_usetypes(), npcdata.activation, "usetype")
  ed.menu_append  4, "Display Text " & zero_default(npcdata.textbox, "[None]")
  ed.menu_append  6, "Give Item: " & ed.itemname
@@ -6019,7 +6021,8 @@ SUB update_edit_npc (npcdata as NPCType, ed as NPCEditState, gmap() as integer, 
   ed.menu_append 11, "Usable Repeatedly"
  END IF
 
- ed.menu_append   , "Appears when...:", YES
+ ed.menu_append   , "", YES
+ ed.menu_append   , " Appears when...", YES
  ed.menu_append  9, "Appear if Tag " & tag_condition_caption(npcdata.tag1, "", "Always")
  ed.menu_append 10, "Appear if Tag " & tag_condition_caption(npcdata.tag2, "", "Always")
 
@@ -6042,6 +6045,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  END WITH
  DIM menuopts as MenuOptions
  menuopts.fullscreen_scrollbar = YES
+ menuopts.disabled_col = uilook(eduiHeading)
 
  DIM npc_img as GraphicPair
  load_sprite_and_pal npc_img, sprTypeWalkabout, npcdata.picture, npcdata.palette
