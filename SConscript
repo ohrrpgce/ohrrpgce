@@ -51,7 +51,6 @@ envextra = {}
 FRAMEWORKS_PATH = os.path.expanduser("~/Library/Frameworks")  # Frameworks search path in addition to the default /Library/Frameworks
 destdir = ARGUMENTS.get ('destdir', '')
 prefix =  ARGUMENTS.get ('prefix', '/usr')
-DATAFILES = ''
 dry_run = int(ARGUMENTS.get ('dry_run', '0'))  # Only used by uninstall
 
 base_libraries = []  # libraries shared by all utilities (except bam2mid)
@@ -869,7 +868,6 @@ elif unix:  # Unix+X11 systems: Linux & BSD
         common_libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')
     # common_libraries += ['vorbisfile']
     # commonenv['FBFLAGS'] += ['-d','HAVE_VORBISFILE']
-    DATAFILES = prefix + '/share/games/ohrrpgce'
 
 
 ################ Add the libraries to env and commonenv
@@ -992,7 +990,7 @@ archinfo = arch
 if arch == '(see target)':
     archinfo = target
 def version_info(source, target, env):
-    ohrbuild.verprint (gfx, music, fbc, archinfo, asan, portable, builddir, rootdir, DATAFILES)
+    ohrbuild.verprint (gfx, music, fbc, archinfo, asan, portable, builddir, rootdir)
 VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'],
                         source = ['codename.txt'], 
                         action = env.Action(version_info, "Generating ver.txt"))

@@ -3427,12 +3427,12 @@ PRIVATE FUNCTION finddatafile_internal(filename as string, searchtype as FileTyp
  #IFDEF __FB_UNIX__
   '~/.ohrrpgce/
   try_data_path(settings_dir & filename)
- #ENDIF
- IF LEN(DATAFILES) THEN
-  try_data_path(DATAFILES & SLASH & filename)
+  ' Assuming the binary is in $prefix/games or $prefix/bin
+  CONST DATAFILES = "../share/games/ohrrpgce/"
+  try_data_path(DATAFILES & filename)
   ' In this case the packaging script could avoid put anything in a subdirectory
-  try_data_path(DATAFILES & SLASH & "data" & SLASH & filename)
- END IF
+  try_data_path(DATAFILES & "data/" & filename)
+ #ENDIF
  RETURN ""
 END FUNCTION
 
@@ -6417,9 +6417,10 @@ FUNCTION get_help_dir(helpfile as string="") as string
  IF help_dir_helper(exepath & SLASH & "ohrhelp", helpfile) THEN RETURN exepath & SLASH & "ohrhelp"
  'platform-specific relative data files path (Mac OS X bundles)
  IF help_dir_helper(app_resources_dir & SLASH & "ohrhelp", helpfile) THEN RETURN app_resources_dir & SLASH & "ohrhelp"
- IF LEN(DATAFILES) THEN
-  IF help_dir_helper(DATAFILES & SLASH & "ohrhelp", helpfile) THEN RETURN DATAFILES & SLASH & "ohrhelp"
- END IF
+ #IFDEF __FB_UNIX__
+  DIM datafiles as string = "../share/games/ohrrpgce/ohrhelp"
+  IF help_dir_helper(datafiles, helpfile) THEN RETURN datafiles
+ #ENDIF
  '-- if all else fails, use exepath even if invalid
  RETURN exepath & SLASH & "ohrhelp"
 END FUNCTION
