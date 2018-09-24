@@ -51,6 +51,7 @@ DECLARE SUB archive_log_file(logfile as string, archivefile as string)
 #IFDEF IS_CUSTOM
 #include "cglobals.bi"
 #include "customsubs.bi"
+#include "custom.bi"
 #ENDIF
 
 
@@ -2886,6 +2887,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
     edgeprint captlines(i), linex, rCenter + boxy + i * 10, uilook(uiMenuItem), vpage
    NEXT
   END IF
+  menu.max_chars = vpages(vpage)->w \ 8 - 2
   draw_menu menu, state, vpage
   IF LEN(helpkey) > 0 THEN
    edgeprint "F1 Help", pRight, pBottom, uilook(uiMenuItem), vpage
@@ -3279,7 +3281,7 @@ SUB upgrade_message (s as string)
  IF show_upgrade_messages AND got_upgrade_messages = NO THEN
   got_upgrade_messages = YES
   reset_console 20, vpages(vpage)->h - 20
-  show_message("Auto-Updating obsolete RPG file")
+  show_message("Auto-updating game")
  END IF
  DIM temptime as double
  IF time_rpg_upgrade THEN
@@ -3734,6 +3736,43 @@ SUB upgrade_1997 ()
  'Other stuff: textbox to add a hero has .hero_swap = 99 and .hero_lock = 99,
  'global text strings diff
 END SUB
+
+#IFDEF IS_CUSTOM
+'Check for some corruption caused by a bug that was fixed in r9931
+SUB check_for_broken_textbox_after_chains ()
+ upgrade_message "Checking for broken After chains..."
+ DIM box as TextBox
+ DO
+  DIM boxes() as string
+  DIM boxids() as integer
+  FOR i as integer = 0 TO gen(genMaxTextBox)
+   LoadTextBox box, i
+   IF box.after ANDALSO box.after_tag = 0 THEN
+    a_append boxids(), i
+    a_append boxes(), "Box " & i & ": " & textbox_preview_line(i)
+   END IF
+  NEXT
+  IF UBOUND(boxes) = -1 THEN
+   'No broken boxes
+   setfixbit(fixCheckForBrokenTBChains, 1)
+   EXIT SUB
+  END IF
+  DIM choice as integer = 0
+  choice = multichoice("The following textboxes have an `After' chain set but the " _
+                       "After conditional is set to `Never', so the chain does nothing. " _
+                       "This might have been caused by a bug in Dwimmercrafty and Etheldreme, " _
+                       "which set the After condition to Never but it falsely appeared to be " _
+                       !"`Always' in the editor!\n" _
+                       "Select a textbox to inspect it or ESC to ignore for now. ", _
+                       boxes(), choice, , , NO)
+  IF choice = -1 THEN EXIT DO
+  text_box_editor boxids(choice)
+ LOOP
+ IF yesno("Ask again next time? If No, will be ignored forever.", YES, YES) = NO THEN
+  setfixbit(fixCheckForBrokenTBChains, 1)
+ END IF
+END SUB
+#ENDIF
 
 SUB try_upgrade_pt(sprtype as SpriteType)
  IF NOT real_isfile(workingdir + SLASH + rgfx_lumpnames(sprtype)) THEN
@@ -4722,6 +4761,12 @@ gen(genErrorLevel) = serrIgnore
 xbsave game + ".gen", gen(), 1000
 'Save changes to the general.reld lump too!
 write_general_reld()
+
+#IFDEF IS_CUSTOM
+ IF getfixbit(fixCheckForBrokenTBChains) = 0 THEN
+  check_for_broken_textbox_after_chains
+ END IF
+#ENDIF
 
 'wow! this is quite a big and ugly routine!
 END SUB

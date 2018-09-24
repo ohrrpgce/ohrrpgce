@@ -284,8 +284,9 @@ CONST fixWrapCroppedMapsBit = 26 'Checked whether to turn on "Wrap map layers ov
 CONST fixInitNonElementalSpawning = 27 'Initialize non_elemental_for_spawning data in general.reld
 CONST fixInitDefaultVolumes = 28 'genMusicVolume and genSFXVolume have been initialised to 50, 75.
 CONST fixAttackMultipliers = 29  'Initialise attack damage and aim multipliers, randomization, and absorption.
+CONST fixCheckForBrokenTBChains = 30 'Ran check_for_broken_textbox_after_chains()
 
-CONST sizeFixBits = 30 ' *** Update this when adding fix bits (last bit + 1) ***
+CONST sizeFixBits = 31 ' *** Update this when adding fix bits (last bit + 1) ***
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_onetime = 15999 'The last available onetime use flag. (The first is 2.)

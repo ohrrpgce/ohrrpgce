@@ -116,10 +116,11 @@ September 29 2018 [Fufluns]
     * Panel slices set to clip had broken child clipping and positioning
       when inside another clipping slice or over the screen edge [Ralph]
     * In the textbox editor, pressing Ctrl+Left/Right to link to another box
-      appeared to work but actually the "After" tag condition didn't
-      get set to "Always", although it claimed it was. It didn't actually
-      get set to "Always" until you entered a submenu. The in-game F1
-      textbox debug screen also showed "ALWAYS" instead of "NEVER"! [Ralph]
+      appeared to work but actually the "After" tag condition may not have
+      gotten set to "Always", although it appeared it was. If you have any
+      secretly-wrong textbox chains in your game you will be warned when you
+      open it in Custom so you can fix them. (The in-game F1 textbox debug
+      screen also showed "ALWAYS" instead of "NEVER"!) [Ralph]
     * Fixed "delete_ScriptData" error when quitting after having stopped
       a script in the script debugger [Ralph]
     * "hero z" could incorrectly throw "invalid party slot" errors, but
