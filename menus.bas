@@ -109,6 +109,7 @@ SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vecto
 END SUB
 
 SUB recalc_menu_size (byref state as MenuState)
+ 'For .autosized menus (normally standardmenu, not MenuDef) only - this overrides MenuDef.maxrows!
  'Run this once per frame for a menu that should fill the whole screen vertically
  'Does not work unless .spacing is set correctly (set on call to standardmenu)
  WITH state
@@ -1022,7 +1023,7 @@ SUB init_menu_state (byref state as MenuState, menu as MenuDef)
   .first = 0
   .last = count_menu_items(menu) - 1
   .size = menu.maxrows - 1
-  IF .size = -1 THEN .size = 17
+  IF .size = -1 THEN .size = 17  'FIXME: this is so wrong
  END WITH
  ' Pick a suitable .pt
  sort_menu_and_select_selectable_item menu, state
@@ -1522,8 +1523,12 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
   .spacing = 10 + menu.itemspacing
  END WITH
 
- 'Needed to recalculate .size if autosized on first tick (also called from usemenu)
- recalc_menu_size state
+ IF state.autosize THEN
+  'NOTE: .autosize is not normally used with MenuDef (and never in Game). It overrides
+  'MenuDef.maxrows.
+  'Needed to recalculate .size if autosized on first tick (also called from usemenu)
+  recalc_menu_size state
+ END IF
 
  IF menu.no_box = NO THEN
   WITH menu.rect
