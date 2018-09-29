@@ -73,6 +73,7 @@ September 29 2018 [Fufluns]
     * C to cycle through NPC instances in map editor [Ralph]
     * Preference bitset "Negative-damage harmtiles can cure above max HP"
       (defaults to on) [Ralph]
+    * Added fuzzy rect slice settings: fuzzy zoom, stationary pattern [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

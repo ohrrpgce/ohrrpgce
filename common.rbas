@@ -743,9 +743,9 @@ SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer,
  draw_box_border fr, XY(x, y), XY(w, h), bordercol, borderindex, trans
 END SUB
 
-SUB draw_box_back (fr as Frame ptr, pos as XYPair, size as XYPair, col as integer, trans as RectTransTypes, fuzzfactor as integer=50)
+SUB draw_box_back (fr as Frame ptr, pos as XYPair, size as XYPair, col as integer, trans as RectTransTypes, fuzzfactor as integer=50, fuzz_stationary as bool=NO, fuzz_zoom as integer=1)
  IF trans = transFuzzy THEN
-  fuzzyrect fr, pos.x, pos.y, size.w, size.h, col, fuzzfactor
+  fuzzyrect fr, pos.x, pos.y, size.w, size.h, col, fuzzfactor, fuzz_stationary, fuzz_zoom
  ELSEIF trans = transOpaque THEN
   rectangle fr, pos.x, pos.y, size.w, size.h, col
  'ELSEIF trans = transHollow THEN

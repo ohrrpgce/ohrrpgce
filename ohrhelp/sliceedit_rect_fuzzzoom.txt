@@ -1,0 +1,2 @@
+This sets the size of each of the pixels in the fuzzy pattern.
+For example you can use this to create a chequered pattern (with fuzzfactor 50%).

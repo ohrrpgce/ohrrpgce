@@ -350,6 +350,8 @@ Type RectangleSliceData
  border as RectBorderTypes = borderLine   'borderNone/borderLine/0-14 for box style's border
  translucent as RectTransTypes
  fuzzfactor as integer = 50
+ fuzz_stationary as bool
+ fuzz_zoom as integer = 1
  bgcol as integer
  'if style is changed then set style_loaded = NO
  style as integer = -1    '-1: None, 0-14: style

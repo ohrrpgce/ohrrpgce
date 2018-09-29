@@ -1514,6 +1514,10 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     IF dat->translucent = transFuzzy THEN
      a_append menu(), "  Fuzziness: " & dat->fuzzfactor & "%"
      sliceed_rule rules(), "rect_fuzzfact", erIntgrabber, @(dat->fuzzfactor), 0, 99
+     a_append menu(), "  Fuzzy zoom: " & dat->fuzz_zoom
+     sliceed_rule rules(), "rect_fuzzzoom", erIntgrabber, @(dat->fuzz_zoom), 1, 10000  'No need for upper limit
+     a_append menu(), "  Stationary pattern: " & yesorno(dat->fuzz_stationary)
+     sliceed_rule_tog rules(), "rect_fuzz_stationary", @(dat->fuzz_stationary)
     END IF
 
    CASE slLine

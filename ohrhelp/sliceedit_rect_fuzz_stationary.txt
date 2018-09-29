@@ -1,0 +1,3 @@
+If a fuzzy rectangle has a `Stationary Pattern' then as the slice is moved around the screen the pattern doesn't move. Try it to see what this means.
+
+Two fuzzy rect slices (with the same Fuzziness and Zoom) which are both stationary and which overlap will always have their fuzzy patterns line up exactly. This is useful for creating non-rectangular fuzzy shapes.

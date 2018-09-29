@@ -956,7 +956,8 @@ Sub DrawRectangleSlice(byval sl as Slice ptr, byval p as integer)
    borderindex = lookup_box_border(.border)
   end if
 
-  draw_box_back vpages(p), sl->ScreenPos, sl->Size, ColorIndex(.bgcol), .translucent, .fuzzfactor
+  draw_box_back vpages(p), sl->ScreenPos, sl->Size, ColorIndex(.bgcol), .translucent, _
+                .fuzzfactor, .fuzz_stationary, .fuzz_zoom
   draw_box_border vpages(p), sl->ScreenPos, sl->Size, ColorIndex(.fgcol), borderindex, .translucent
  end with
 end sub
@@ -975,6 +976,8 @@ Sub CloneRectangleSlice(byval sl as Slice ptr, byval cl as Slice ptr)
   .translucent = dat->translucent
   .border      = dat->border
   .fuzzfactor  = dat->fuzzfactor
+  .fuzz_stationary = dat->fuzz_stationary
+  .fuzz_zoom = dat->fuzz_zoom
   .use_raw_box_border = dat->use_raw_box_border
   .raw_box_border = dat->raw_box_border
  end with
@@ -996,7 +999,13 @@ Sub SaveRectangleSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
   end if
  end if
  SaveProp node, "trans", dat->translucent
- SavePropAlways node, "fuzzfactor", dat->fuzzfactor
+ if dat->fuzzfactor <> 50 then
+  SavePropAlways node, "fuzzfactor", dat->fuzzfactor
+ end if
+ SaveProp node, "fz_stationary", dat->fuzz_stationary
+ if dat->fuzz_zoom <> 1 then
+  SavePropAlways node, "fz_zoom", dat->fuzz_zoom
+ end if
 End Sub
 
 Sub LoadRectangleSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
@@ -1005,6 +1014,8 @@ Sub LoadRectangleSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat = sl->SliceData
  dat->translucent = LoadProp(node, "trans")
  dat->fuzzfactor = LoadProp(node, "fuzzfactor", 50)
+ dat->fuzz_stationary = LoadPropBool(node, "fz_stationary")
+ dat->fuzz_zoom = LoadProp(node, "fz_zoom", 1)
  dat->style = LoadProp(node, "style", -1)
  if dat->style >= 0 then
   dat->style_loaded = NO

@@ -1,1 +1,3 @@
 This is the transparency of 'Fuzzy' rectangles as a percentage. In addition, each value causes a different texture on the rectangle.
+
+Tip: you can overlay two or more rectangles with different Fuzziness settings to create thousands of different patterns! Try 46% and 47% (slow waves, good for paper or metal), or 30% above 86% in two slightly different shades a color (looks like woven fabric). You can use two different zooms for even more effects.

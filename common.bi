@@ -71,7 +71,7 @@ DECLARE SUB edgeboxstyle OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as R
 '----- Unstyled boxes
 DECLARE SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, page as integer, trans as RectTransTypes=transOpaque, border as RectBorderTypes=borderLine)
 
-DECLARE SUB draw_box_back (fr as Frame ptr, pos as XYPair, size as XYPair, col as integer, trans as RectTransTypes, fuzzfactor as integer=50)
+DECLARE SUB draw_box_back (fr as Frame ptr, pos as XYPair, size as XYPair, col as integer, trans as RectTransTypes, fuzzfactor as integer=50, fuzz_stationary as bool=NO, fuzz_zoom as integer=1)
 DECLARE SUB draw_box_border (fr as Frame ptr, pos as XYPair, size as XYPair, bordercol as integer, borderindex as RectBorderTypes, trans as RectTransTypes = transHollow)
 
 DECLARE FUNCTION decodetrigger (byval trigger as integer) as integer
