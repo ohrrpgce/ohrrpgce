@@ -109,7 +109,6 @@ declare sub Palette16_delete(f as Palette16 ptr ptr)
 
 #define POINT_CLIPPED(x, y) ((x) < cliprect.l orelse (x) > cliprect.r orelse (y) < cliprect.t orelse (y) > cliprect.b)
 
-#define PAGEPIXEL(x, y, p) vpages(p)->image[vpages(p)->pitch * (y) + (x)]
 #define FRAMEPIXEL(x, y, fr) fr->image[fr->pitch * (y) + (x)]
 
 ' In a function, pass return value on error
@@ -3473,44 +3472,56 @@ end function
 
 
 'No clipping!!
+'c is either an 8 bit or 32 bit RGBColor value
 sub putpixel (spr as Frame ptr, x as integer, y as integer, c as integer)
 	if x < 0 orelse x >= spr->w orelse y < 0 orelse y >= spr->h then
 		exit sub
 	end if
-	CHECK_FRAME_8BIT(spr)
-	FRAMEPIXEL(x, y, spr) = c
+	if spr->image then
+		FRAMEPIXEL(x, y, spr) = c
+		exit sub
+	end if
+	ERROR_IF(spr->surf = NULL, "NULL image and surface")
+	with *spr->surf
+		ERROR_IF(.format <> SF_32bit, "surf isn't 32bit")
+		cast(integer ptr, .pColorData)[.pitch * y + x] = c
+	end with
 end sub
 
 sub putpixel (x as integer, y as integer, c as integer, p as integer)
-	CHECK_FRAME_8BIT(vpages(p))
-
 	dim byref cliprect as ClipState = get_cliprect(vpages(p))
 	if POINT_CLIPPED(x, y) then
 		'debug "attempt to putpixel off-screen " & x & "," & y & "=" & c & " on page " & p
 		exit sub
 	end if
 
-	PAGEPIXEL(x, y, p) = c
+	putpixel vpages(p), x, y, c
 end sub
 
+'Returns either an 8 bit, or 32 bit RGBColor value
 function readpixel (spr as Frame ptr, x as integer, y as integer) as integer
 	if x < 0 orelse x >= spr->w orelse y < 0 orelse y >= spr->h then
 		return -1
 	end if
-	CHECK_FRAME_8BIT(spr, 0)
 
-	return FRAMEPIXEL(x, y, spr)
+	if spr->image then
+		return FRAMEPIXEL(x, y, spr)
+	end if
+	ERROR_IF(spr->surf = NULL, "NULL image and surface", -1)
+	with *spr->surf
+		ERROR_IF(.format <> SF_32bit, "surf isn't 32bit", -1)
+		return cast(integer ptr, .pColorData)[.pitch * y + x]
+	end with
 end function
 
 function readpixel (x as integer, y as integer, p as integer) as integer
-	CHECK_FRAME_8BIT(vpages(p), 0)
 	dim byref cliprect as ClipState = get_cliprect(vpages(p))
 
 	if POINT_CLIPPED(x, y) then
 		debug "attempt to readpixel off-screen " & x & "," & y & " on page " & p
 		return -1
 	end if
-	return PAGEPIXEL(x, y, p)
+	return readpixel(vpages(p), x, y)
 end function
 
 sub drawbox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, thickness as integer = 1, p as integer)
@@ -3807,7 +3818,6 @@ end sub
 sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2 as integer, c as integer, dash_cycle as integer = 0, dash_len as integer = 0)
 	'Uses Bresenham's algorithm
 
-	CHECK_FRAME_8BIT(dest)
 	dim byref cliprect as ClipState = get_cliprect(dest)
 
 	if y1 > y2 then
@@ -3887,17 +3897,40 @@ sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2
 	'/
 
 	dim sptr as ubyte ptr
-	sptr = dest->image + (y1 * dest->pitch) + x1
+	dim sptr32 as integer ptr
+	dim is32bit as bool
+	if dest->image then
+		sptr = dest->image + (y1 * dest->pitch) + x1
+		is32bit = NO
+	elseif dest->surf then
+		ERROR_IF(dest->surf->format <> SF_32bit, "surf not 32bit")
+		ERROR_IF(dest->surf->pitch <> dest->pitch, "mismatched pitch")
+		sptr = dest->surf->pRawData
+		minorstep *= 4
+		majorstep *= 4
+		is32bit = YES
+	else
+		debugc errPromptError, "drawline: bad Frame"
+		exit sub
+	end if
 
 	dim dash_accum as integer
 
 	for it as integer = 0 to length
 		if POINT_CLIPPED(x1, y1) = NO then
 			if dash_cycle = 0 then
-				*sptr = c
+				if is32bit then
+					*cast(integer ptr, sptr) = c
+				else
+					*sptr = c
+				end if
 			else
 				if dash_accum < dash_len then
-					*sptr = c
+					if is32bit then
+						*cast(integer ptr, sptr) = c
+					else
+						*sptr = c
+					end if
 				end if
 				dash_accum += 1
 				if dash_accum = dash_cycle then dash_accum = 0
