@@ -1310,6 +1310,14 @@ SUB updatecaterpillarhistory ()
  NEXT i
 END SUB
 
+PRIVATE SUB apply_harmtile_to(hero as HeroState)
+ WITH hero.stat
+  .cur.hp = large(.cur.hp - gmap(9), 0)
+  ' If "!Negative-damage harmtiles can cure above max HP" is off
+  IF prefbit(46) THEN .cur.hp = small(.cur.hp, .max.hp)
+ END WITH
+END SUB
+
 SUB update_heroes(force_step_check as bool=NO)
  'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left
  FOR whoi as integer = 0 TO active_party_slots - 1
@@ -1466,13 +1474,12 @@ SUB update_heroes(force_step_check as bool=NO)
     IF harm_whole_party THEN
      FOR party_slot as integer = 0 TO active_party_slots - 1
       IF gam.hero(party_slot).id >= 0 THEN
-       gam.hero(party_slot).stat.cur.hp = large(gam.hero(party_slot).stat.cur.hp - gmap(9), 0)
+       apply_harmtile_to gam.hero(party_slot)
       END IF
      NEXT
     ELSE
      '--harm single hero
-     DIM party_slot as integer = rank_to_party_slot(whoi)
-     gam.hero(party_slot).stat.cur.hp = large(gam.hero(party_slot).stat.cur.hp - gmap(9), 0)
+     apply_harmtile_to gam.hero(rank_to_party_slot(whoi))
     END IF
 
     IF gmap(10) THEN

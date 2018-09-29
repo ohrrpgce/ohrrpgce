@@ -234,6 +234,7 @@ SUB edit_general_bitsets()
  a_append bits(), 30, "!Divide experience between heroes"
  a_append bits(), 19, "Dead heroes gain share of experience"
  a_append bits(), 43, "Cap minimum stats at zero"
+ a_append bits(), 46, "!Negative-damage harmtiles can cure above max HP"
 
  a_append bits(), -1, ""
  a_append bits(), -1, " Hero Party"
