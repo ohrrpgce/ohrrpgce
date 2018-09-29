@@ -12,6 +12,7 @@
 #include "customsubs.bi"
 #include "slices.bi"
 #include "thingbrowser.bi"
+#include "sliceedit.bi"
 
 
 'Local SUBs
@@ -340,6 +341,7 @@ SUB individual_formation_editor ()
  DO
   setwait 55
   setkeys
+  IF keyval(scF6) > 1 THEN slice_editor rootslice
   IF positioning_mode = YES THEN
    '--enemy positioning mode
    IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
@@ -654,6 +656,7 @@ SUB draw_formation_slices(eform as Formation, hform as HeroFormation, rootslice 
    IF fslot->id < 0 THEN debugc errPromptBug, "Formation enemy slice corresponds to an empty slot"
    sl->Pos = fslot->pos
    ' Set layering, like slAutoSortBottomY but break ties according to the order in bslot()
+   ' (Enemy slices are anchored by the top-left edge)
    sl->Sorter = (sl->Y + sl->Height) * 1000 + 100 + enemy_slot
    IF NOT heromode THEN
     IF enemy_slot = selected_slot AND cursorsl <> NULL THEN
@@ -671,7 +674,8 @@ SUB draw_formation_slices(eform as Formation, hform as HeroFormation, rootslice 
   hrect = LookupSlice(SL_FORMEDITOR_HERO + i, rootslice)
   hrect->Pos = hform.slots(i).pos + XY(240, 82)
   ' Set layering, like slAutoSortBottomY but break ties according to the order in bslot()
-  hrect->Sorter = (hrect->Y + hrect->Height) * 1000 + i
+  ' (Hero slices are anchored by the bottom-center edge)
+  hrect->Sorter = hrect->Y * 1000 + i
   IF heromode THEN
    IF i = selected_slot AND cursorsl <> NULL THEN
     cursorsl->Visible = YES
