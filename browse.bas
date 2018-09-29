@@ -155,6 +155,7 @@ END IF
 DIM holdpage2 as Frame Ptr = frame_duplicate(vpages(2))
 DIM holdpage3 as Frame Ptr = frame_duplicate(vpages(3))
 
+DIM vpages_were_32bit as bool = vpages_are_32bit()
 switch_to_32bit_vpages
 
 'Load a variant of the default font, misc/browser font.ohf, which has both Latin-1
@@ -361,7 +362,9 @@ LOOP
 setcursorvisibility(prev_mouse_vis)
 force_use_mouse -= 1
 setfont current_font()
-switch_to_8bit_vpages
+IF vpages_were_32bit = NO THEN
+ switch_to_8bit_vpages
+END IF
 
 IF LEN(ret) THEN
  default = ret

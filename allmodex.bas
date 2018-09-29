@@ -613,6 +613,7 @@ end sub
 
 ' Convert all videopages to 32 bit. Preserves their content
 sub switch_to_32bit_vpages ()
+	if default_page_bitdepth = 32 then exit sub
 	default_page_bitdepth = 32
 	for i as integer = 0 to ubound(vpages)
 		if vpages(i) then
@@ -624,6 +625,7 @@ end sub
 ' Convert all videopages to 8 bit Frames (not backed by Surfaces).
 ' WIPES their contents!
 sub switch_to_8bit_vpages ()
+	if default_page_bitdepth = 8 then exit sub
 	default_page_bitdepth = 8
 	for i as integer = 0 to ubound(vpages)
 		if vpages(i) then
@@ -634,6 +636,10 @@ sub switch_to_8bit_vpages ()
 		end if
 	next
 end sub
+
+function vpages_are_32bit () as bool
+	return default_page_bitdepth = 32
+end function
 
 sub freepage (page as integer)
 	if page < 0 orelse page > ubound(vpages) orelse vpages(page) = NULL then
