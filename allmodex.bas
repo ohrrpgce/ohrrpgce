@@ -3658,17 +3658,17 @@ sub rectangle (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelP
 	end if
 end sub
 
-sub fuzzyrect (x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, p as integer, fuzzfactor as integer = 50, match_pattern as bool = NO)
-	fuzzyrect vpages(p), x, y, w, h, c, fuzzfactor, match_pattern
+sub fuzzyrect (x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, p as integer, fuzzfactor as integer = 50, stationary as bool = NO, zoom as integer = 1)
+	fuzzyrect vpages(p), x, y, w, h, c, fuzzfactor, stationary, zoom
 end sub
 
 'Draw a dithered rectangle
 'Top/left edges are inclusive, bottom/right are exclusive
-'match_pattern:
+'stationary (originally "match_pattern"):
 '  By default if you draw two fuzzy rectangles touching, the patterns
 '  might not match up. Specify YES to force them to match up, but then
 '  changing x,y will not make the pattern appear to shift.
-sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, fuzzfactor as integer = 50, match_pattern as bool = NO)
+sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, fuzzfactor as integer = 50, stationary as bool = NO, zoom as integer = 1)
 	'How many magic constants could you wish for?
 	'These were half generated via magic formulas, and half hand picked (with magic criteria)
 	static grain_table(50) as integer = {_
@@ -3681,6 +3681,7 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 	dim byref cliprect as ClipState = get_cliprect(fr)
 
 	fuzzfactor = bound(fuzzfactor, 1, 99)
+	zoom = large(zoom, 1)
 
 	' Decode relative positions/sizes to absolute
 	w = relative_pos(w, fr->w)
@@ -3689,9 +3690,6 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 	y = relative_pos(y, fr->h, h)
 
 	dim grain as integer
-	dim r as integer = 0
-	dim startr as integer = 0
-
 	if fuzzfactor <= 50 then grain = grain_table(fuzzfactor) else grain = grain_table(100 - fuzzfactor)
 	'if w = 99 then grain = h mod 100  'for hand picking
 
@@ -3701,23 +3699,34 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 	'clip
 	if x + w > cliprect.r then w = (cliprect.r - x) + 1
 	if y + h > cliprect.b then h = (cliprect.b - y) + 1
+	dim as integer x_start = 0, y_start = 0
 	if x < cliprect.l then
-		startr += (cliprect.l - x) * fuzzfactor
-		w -= (cliprect.l - x)
+		x_start = cliprect.l - x
+		w -= x_start
 		x = cliprect.l
 	end if
 	if y < cliprect.t then
-		startr += (cliprect.t - y) * grain
-		h -= (cliprect.t - y)
+		y_start = cliprect.t - y
+		h -= y_start
 		y = cliprect.t
 	end if
 
 	if w <= 0 or h <= 0 then exit sub
 
-	if match_pattern then
-		startr = x * fuzzfactor + y * grain
+	if stationary then
+		x_start = x
+		y_start = y
 	end if
 
+	'startr is the initial value of r, multiplied by zoom, at the top-left of the rect,
+	'and the start of every line thereafter
+	dim startr as integer = 0
+	'These +1's are unneeded, they are only here to make the results identical to previous versions
+	startr = (((x_start \ zoom) + 1) * fuzzfactor + ((y_start \ zoom) + 1) * grain) mod 100
+	x_start = x_start mod zoom
+	y_start = y_start mod zoom
+
+	'Get image pointer
 	dim sptr as ubyte ptr
 	dim pitch as integer
 	dim pixelbytes as integer = 1
@@ -3742,17 +3751,38 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 	sptr += y * pitch + x * pixelbytes
 
 	while h > 0
-		startr = (startr + grain) mod 100
-		r = startr
+		dim r as integer = startr
+		if r < fuzzfactor then r += 100
+
+		y_start += 1
+		if y_start = zoom then
+			startr = (startr + grain) mod 100
+			y_start = 0
+		end if
+
+		'Whether we are currently drawing, or not
+		dim drawpix as bool = r >= 100
+		if drawpix then r -= 100
+
+		'Number of times left to draw 'drawpix' on this row
+		dim repeats as integer = zoom - x_start
+
 		for i as integer = 0 to w-1
-			r += fuzzfactor
-			if r >= 100 then
+			if drawpix then
 				if pixformat = SF_8bit then
 					sptr[i] = c
 				else
 					cast(int32 ptr, sptr)[i] = c
 				end if
-				r -= 100
+			end if
+			if repeats = 1 then
+				'Advance to next pixel
+				repeats = zoom
+				r += fuzzfactor
+				drawpix = (r >= 100)
+				if drawpix then r -= 100
+			else
+				repeats -= 1
 			end if
 		next
 		h -= 1
@@ -3761,15 +3791,15 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 end sub
 
 'Draw a fuzzy rect over the whole clipping rect (normally, the whole screen) except for the given rectangle.
-sub antifuzzyrect(fr as Frame Ptr, rect as RectType, col as integer, fuzzfactor as integer = 50)
+sub antifuzzyrect(fr as Frame Ptr, rect as RectType, col as integer, fuzzfactor as integer = 50, zoom as integer = 1)
 	'Top 3 ninths
-	fuzzyrect fr, 0, 0, 999999, rect.y, col, fuzzfactor, YES
+	fuzzyrect fr, 0, 0, 999999, rect.y, col, fuzzfactor, YES, zoom
 	'Left ninth
-	fuzzyrect fr, 0, rect.y, rect.x, rect.high, col, fuzzfactor, YES
+	fuzzyrect fr, 0, rect.y, rect.x, rect.high, col, fuzzfactor, YES, zoom
 	'Right ninth
-	fuzzyrect fr, rect.x + rect.wide, rect.y, 999999, rect.high, col, fuzzfactor, YES
+	fuzzyrect fr, rect.x + rect.wide, rect.y, 999999, rect.high, col, fuzzfactor, YES, zoom
 	'Bottom 3 ninths
-	fuzzyrect fr, 0, rect.y + rect.high, 999999, 999999, col, fuzzfactor, YES
+	fuzzyrect fr, 0, rect.y + rect.high, 999999, 999999, col, fuzzfactor, YES, zoom
 end sub
 
 'Draw either a rectangle or a scrolling chequer pattern.
@@ -3792,17 +3822,8 @@ sub draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byr
 	if bgcolor >= 0 then
 		rectangle dest, x, y, wide, high, bgcolor
 	else
-		dim bg_chequer as Frame Ptr
-		bg_chequer = frame_new(wide / zoom + 2, high / zoom + 2)
-		frame_clear bg_chequer, uilook(uiBackground)
-		fuzzyrect bg_chequer, 0, 0, bg_chequer->w, bg_chequer->h, uilook(uiDisabledItem)
-		dim offset as integer = 0
-		if bgcolor = -1 then offset = chequer_scroll \ rate
-		dim oldclip as ClipState = get_cliprect
-		shrinkclip x, y, x + wide - 1, y + high - 1, dest
-		frame_draw bg_chequer, NULL, x - offset, y - offset, zoom, NO, dest
-		get_cliprect() = oldclip
-		frame_unload @bg_chequer
+		rectangle dest, x, y, wide, high, uilook(uiBackground)
+		fuzzyrect dest, x, y, wide, high, uilook(uiDisabledItem), 25, , zoom
 	end if
 end sub
 
@@ -4028,7 +4049,6 @@ sub ellipse (fr as Frame ptr, x as double, y as double, radius as double, col as
 'radius is the semimajor axis if the ellipse is not a circle
 'angle is the angle of the semimajor axis to the x axis, in radians counter-clockwise
 
-	CHECK_FRAME_8BIT(fr)
 	dim byref cliprect as ClipState = get_cliprect(fr)
 
 	'x,y is the pixel to centre the ellipse at - that is, the centre of that pixel, so add half a pixel to
