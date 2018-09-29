@@ -720,37 +720,41 @@ SUB edgeboxstyle (x as RelPos, y as RelPos, w as RelPos, h as RelPos, boxstyle a
  edgebox x, y, w, h, col, bordercol, page, trans, border
 END SUB
 
+'Convert from box style to box border spriteset, or -1 or -2
+FUNCTION lookup_box_border(border as RectBorderTypes) as RectBorderTypes
+ IF border < 0 THEN RETURN border
+ IF border <= UBOUND(boxlook) THEN RETURN boxlook(border).border - 1
+ debug "bad box border " & border
+ RETURN 0
+END FUNCTION
+
 '----- Unstyled boxes
 'The following take col/bgcol/border instead of a box style number
 
-SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, page as integer, trans as RectTransTypes=transOpaque, border as RectBorderTypes=borderLine, fuzzfactor as integer=50, relcoords as bool=YES)
- edgebox x, y, w, h, col, bordercol, vpages(page), trans, border, fuzzfactor, relcoords
-END SUB
-
-SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, border as RectBorderTypes=borderLine, fuzzfactor as integer=50, relcoords as bool=YES)
+SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, page as integer, trans as RectTransTypes=transOpaque, border as RectBorderTypes=borderLine)
 '--border: -2 is none, -1 is simple line, 0+ is styled box edge
- DIM borderindex as RectBorderTypes
- IF border >= 0 THEN
-  IF border <= UBOUND(boxlook) THEN borderindex = boxlook(border).border - 1
- ELSE
-  borderindex = border
- END IF
- edgebox_rawborder x, y, w, h, col, bordercol, fr, trans, borderindex, fuzzfactor, relcoords
-END SUB
-
-SUB edgebox_rawborder (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, borderindex as RectBorderTypes=borderLine, fuzzfactor as integer=50, relcoords as bool=YES)
-'--borderindex: -2 is none -1 is simple line, 0+ is box border sprite record number
-IF relcoords THEN
+ DIM borderindex as RectBorderTypes = lookup_box_border(border)
+ DIM fr as Frame ptr = vpages(page)
  w = relative_pos(w, fr->w)
  h = relative_pos(h, fr->h)
  x = relative_pos(x, fr->w, w)
  y = relative_pos(y, fr->h, h)
-END IF
-IF trans = transFuzzy THEN
- fuzzyrect fr, x, y, w, h, col, fuzzfactor
-ELSEIF trans = transOpaque THEN
- rectangle fr, x, y, w, h, col
-END IF
+ draw_box_back fr, XY(x, y), XY(w, h), col, trans
+ draw_box_border fr, XY(x, y), XY(w, h), bordercol, borderindex, trans
+END SUB
+
+SUB draw_box_back (fr as Frame ptr, pos as XYPair, size as XYPair, col as integer, trans as RectTransTypes, fuzzfactor as integer=50)
+ IF trans = transFuzzy THEN
+  fuzzyrect fr, pos.x, pos.y, size.w, size.h, col, fuzzfactor
+ ELSEIF trans = transOpaque THEN
+  rectangle fr, pos.x, pos.y, size.w, size.h, col
+ 'ELSEIF trans = transHollow THEN
+ END IF
+END SUB
+
+SUB draw_box_border (fr as Frame ptr, pos as XYPair, size as XYPair, bordercol as integer, borderindex as RectBorderTypes, trans as RectTransTypes = transHollow)
+DIM byref as integer x = pos.x, y = pos.y, w = size.w, h = size.h
+
 IF borderindex = borderLine THEN
  '--Simple line border
  drawbox fr, x, y, w, h, bordercol

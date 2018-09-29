@@ -944,17 +944,21 @@ Sub DrawRectangleSlice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  
- dim dat as RectangleSliceData ptr = cptr(RectangleSliceData ptr, sl->SliceData)
+ with *sl->RectData
+  if .style >= 0 and .style_loaded = NO then
+   UpdateRectangleSliceStyle sl->RectData
+  end if
 
- if dat->style >= 0 and dat->style_loaded = NO then
-  UpdateRectangleSliceStyle dat
- end if
+  dim borderindex as RectBorderTypes
+  if .use_raw_box_border then
+   borderindex = .raw_box_border
+  else
+   borderindex = lookup_box_border(.border)
+  end if
 
- if dat->use_raw_box_border then
-  edgebox_rawborder sl->screenx, sl->screeny, sl->width, sl->height, ColorIndex(dat->bgcol), ColorIndex(dat->fgcol), vpages(p), dat->translucent, dat->raw_box_border, dat->fuzzfactor, NO
- else
-  edgebox           sl->screenx, sl->screeny, sl->width, sl->height, ColorIndex(dat->bgcol), ColorIndex(dat->fgcol), p,         dat->translucent, dat->border,         dat->fuzzfactor, NO
- end if
+  draw_box_back vpages(p), sl->ScreenPos, sl->Size, ColorIndex(.bgcol), .translucent, .fuzzfactor
+  draw_box_border vpages(p), sl->ScreenPos, sl->Size, ColorIndex(.fgcol), borderindex, .translucent
+ end with
 end sub
 
 Sub CloneRectangleSlice(byval sl as Slice ptr, byval cl as Slice ptr)

@@ -59,6 +59,8 @@ ENUM RectBorderTypes
  '(but also used by edgebox_rawborder to mean use raw box border sprite N)
 END ENUM
 
+DECLARE FUNCTION lookup_box_border(border as RectBorderTypes) as RectBorderTypes
+
 '----- Styled boxes
 DECLARE SUB centerfuz (x as RelPos, y as RelPos, w as RelPos, h as RelPos, boxstyle_plus1 as integer, page as integer)
 DECLARE SUB centerbox (x as RelPos=rCenter, y as RelPos=rCenter, w as RelPos, h as RelPos, boxstyle_plus1 as integer, page as integer)
@@ -67,9 +69,10 @@ DECLARE SUB edgeboxstyle OVERLOAD (rect as RectType, boxstyle as integer, page a
 DECLARE SUB edgeboxstyle OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, boxstyle as integer, page as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
 
 '----- Unstyled boxes
-DECLARE SUB edgebox OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, page as integer, trans as RectTransTypes=transOpaque, border as RectBorderTypes=borderLine, fuzzfactor as integer=50, relcoords as bool=YES)
-DECLARE SUB edgebox OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, border as RectBorderTypes=borderLine, fuzzfactor as integer=50, relcoords as bool=YES)
-DECLARE SUB edgebox_rawborder (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, borderindex as RectBorderTypes=borderLine, fuzzfactor as integer=50, relcoords as bool=YES)
+DECLARE SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, page as integer, trans as RectTransTypes=transOpaque, border as RectBorderTypes=borderLine)
+
+DECLARE SUB draw_box_back (fr as Frame ptr, pos as XYPair, size as XYPair, col as integer, trans as RectTransTypes, fuzzfactor as integer=50)
+DECLARE SUB draw_box_border (fr as Frame ptr, pos as XYPair, size as XYPair, bordercol as integer, borderindex as RectBorderTypes, trans as RectTransTypes = transHollow)
 
 DECLARE FUNCTION decodetrigger (byval trigger as integer) as integer
 DECLARE FUNCTION trigger_or_default(trigger as integer, default as integer) as integer
