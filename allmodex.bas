@@ -6276,14 +6276,14 @@ private function lodepngerr(errornum as integer, funcname as zstring ptr) as int
 	return errornum
 end function
 
-#define CHKERR(funccall)  lodepngerr(funccall, @__FUNCTION__)
+#define PNGCHKERR(funccall)  lodepngerr(funccall, @__FUNCTION__)
 
 sub pnginfo (filename as string, byref iminfo as ImageFileInfo)
 	iminfo.imagetype = imPNG
 
 	'lodepng_inspect only inspects the PNG header, which is always 33 bytes. Load into memory
 	dim header(32) as byte
-	' if CHKERR(lodepng_buffer_file(@header(0), 33, strptr(filename))) then
+	' if PNGCHKERR(lodepng_buffer_file(@header(0), 33, strptr(filename))) then
 	' 	exit sub
 	' end if
 	dim fh as integer
@@ -6297,7 +6297,7 @@ sub pnginfo (filename as string, byref iminfo as ImageFileInfo)
 	dim state as LodePNGState
 	dim errornum as integer
 	errornum = lodepng_inspect(@iminfo.size.w, @iminfo.size.h, @state, @header(0), 33)
-	if CHKERR(errornum) then
+	if PNGCHKERR(errornum) then
 		iminfo.error = *lodepng_error_text(errornum)
 		exit sub
 	end if
@@ -6331,7 +6331,7 @@ function frame_import_paletted_png(filename as string, pal() as RGBcolor) as Fra
 
 	dim filebuf as byte ptr
 	dim filebufsize as size_t
-	if CHKERR(lodepng_load_file(@filebuf, @filebufsize, strptr(filename))) then
+	if PNGCHKERR(lodepng_load_file(@filebuf, @filebufsize, strptr(filename))) then
 		deallocate filebuf
 		return NULL
 	end if
@@ -6345,7 +6345,7 @@ function frame_import_paletted_png(filename as string, pal() as RGBcolor) as Fra
 	' where LodePNG unnecessarily remaps colors
 	state.decoder.color_convert = 0
 
-	if CHKERR(lodepng_decode(@pixelbuf, @size.w, @size.h, @state, filebuf, filebufsize)) = 0 then
+	if PNGCHKERR(lodepng_decode(@pixelbuf, @size.w, @size.h, @state, filebuf, filebufsize)) = 0 then
 		ret = frame_new(size.w, size.h)
 		if ret then
 			memcpy(ret->image, pixelbuf, size.w * size.h)
@@ -6383,7 +6383,7 @@ function surface_import_png(filename as string, always_32bit as bool) as Surface
 	/'
 	dim bufsize as size_t
 	'Read the file into memory
-	if CHKERR(lodepng_load_file(@buf, @bufsize, strptr(filename)) then return NULL
+	if PNGCHKERR(lodepng_load_file(@buf, @bufsize, strptr(filename)) then return NULL
 	'etc, see lodepng_decode_memory() for other steps
 	'/
 
@@ -6396,7 +6396,7 @@ function surface_import_png(filename as string, always_32bit as bool) as Surface
 	if iminfo.paletted = NO orelse always_32bit then
 		dim buf as byte ptr
 		dim size as XYPair
-		if CHKERR(lodepng_decode_file(@buf, @size.w, @size.h, strptr(filename), LCT_RGB, 8)) then
+		if PNGCHKERR(lodepng_decode_file(@buf, @size.w, @size.h, strptr(filename), LCT_RGB, 8)) then
 			return NULL
 		end if
 
@@ -6468,7 +6468,7 @@ function surface_export_png(surf as Surface ptr, filename as string, masterpal()
 	if state.error = 0 then
 		state.error = lodepng_save_file(filebuf, filebufsize, strptr(filename))
 	end if
-	CHKERR(state.error)
+	PNGCHKERR(state.error)
 	dim ret as bool = (state.error = 0)
 
 	'? (surf->width * surf->height) & " pix in " & CINT(1e6 * time) & !"us  \twinsize = " & state.encoder.zlibsettings.windowsize & "  fsize " & filebufsize
@@ -6495,7 +6495,7 @@ function frame_export_png(fr as Frame ptr, filename as string, masterpal() as RG
 	return ret
 end function
 
-#undef CHKERR
+#undef PNGCHKERR
 
 
 '==========================================================================================
