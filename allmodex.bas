@@ -56,7 +56,6 @@ end type
 
 '----------- Local functions ----------
 
-declare function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame ptr
 declare sub _frame_copyctor cdecl(dest as Frame ptr ptr, src as Frame ptr ptr)
 declare sub init_frame_with_surface(ret as Frame ptr, surf as Surface ptr)
 declare sub reload_global_animations(def_anim as SpriteSet ptr, sprtype as SpriteType)
@@ -8149,7 +8148,7 @@ function graphics_file(lumpname_or_extn as string) as string
 end function
 
 ' Loads a 4-bit or 8-bit sprite/backdrop/tileset from the appropriate game lump. See frame_load.
-private function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame ptr
+function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame ptr
 	if sprtype < 0 or sprtype > sprTypeLastLoadable or record < 0 then
 		debugc errBug, "frame_load: invalid type=" & sprtype & " and rec=" & record
 		return 0

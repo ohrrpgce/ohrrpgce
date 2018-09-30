@@ -525,6 +525,7 @@ declare function graphics_file(filename_or_extn as string) as string
 declare function frame_new(w as integer, h as integer, frames as integer = 1, clr as bool = NO, wantmask as bool = NO, with_surface32 as bool = NO, no_alloc as bool = NO) as Frame ptr
 declare function frame_new_view(spr as Frame ptr, x as integer, y as integer, w as integer, h as integer) as Frame ptr
 declare function frame_load(sprtype as SpriteType, record as integer) as Frame ptr
+declare function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame ptr
 declare function frame_load_4bit(filen as string, record as integer, numframes as integer, wid as integer, hei as integer) as Frame ptr
 declare function frame_load_mxs(filen as string, record as integer) as Frame ptr
 declare function frameset_to_node(fr as Frame ptr, parent as Reload.NodePtr) as Reload.NodePtr

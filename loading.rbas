@@ -3584,6 +3584,7 @@ SUB convert_mxs_to_rgfx(infile as string, outfile as string, sprtype as SpriteTy
 
   FOR imnum as integer = 0 TO num_images - 1
     DIM fr as Frame ptr
+    'frame_load_mxs is uncached
     fr = frame_load_mxs(infile, imnum)
     rgfx_save_spriteset(doc, fr, sprtype, imnum)
     frame_unload @fr
@@ -3623,8 +3624,8 @@ SUB convert_pt_to_rgfx(dest_type as SpriteType)
 
     FOR setnum as integer = 0 TO lastset
       DIM fr as Frame ptr
-      'We can use frame_load here because we haven't saved the .rgfx file yet and it shouldn't exist
-      fr = frame_load(sprtype, setnum)
+      'We can use frame_load_uncached here because we haven't saved the .rgfx file yet and it shouldn't exist
+      fr = frame_load_uncached(sprtype, setnum)
 
       'For sprType{Small,Medium,Large}Enemy rgfx_save_spriteset converts to enemies.rgfx
       rgfx_save_spriteset(doc, fr, sprtype, setnum, defpals(setnum))
