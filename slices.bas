@@ -1510,21 +1510,22 @@ Declare Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
 
 ' Frees any memory held by a sprite, leaving in a consistent state, but does not reset its type and other data
 Sub UnloadSpriteSlice(byval sl as Slice ptr)
- dim dat as SpriteSliceData ptr = sl->SliceData
- unload_sprite_and_pal dat->img
- if dat->assetfile then
-  *dat->assetfile = ""      ' Frees the string contents
-  deallocate dat->assetfile ' Free the string descriptor
-  dat->assetfile = NULL
- end if
- dat->loaded = NO
+ with *sl->SpriteData
+  unload_sprite_and_pal .img
+  if .assetfile then
+   *.assetfile = ""      ' Frees the string contents
+   deallocate .assetfile ' Free the string descriptor
+   .assetfile = NULL
+  end if
+  .loaded = NO
+ end with
 End Sub
 
 Sub DisposeSpriteSlice(byval sl as Slice ptr)
- if sl = 0 orelse sl->SliceData = 0 then exit sub
+ if sl = 0 orelse sl->SpriteData = 0 then exit sub
  UnloadSpriteSlice sl
- delete cast(SpriteSliceData ptr, sl->SliceData)
- sl->SliceData = 0
+ delete sl->SpriteData
+ sl->SpriteData = 0
 end sub
 
 ' Load a sprite's Frame and Palette16, so that its size is known
@@ -1617,15 +1618,14 @@ end sub
 
 Function GetSpriteSliceData(byval sl as Slice ptr) as SpriteSliceData ptr
  if sl = 0 then debug "GetSpriteSliceData null ptr": return 0
- return sl->SliceData
+ return sl->SpriteData
 End Function
 
 ' Actually load the asset for a sprite slice
 Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
  if sl = 0 then fatalerror "LoadSpriteasset null ptr"
 
- dim dat as SpriteSliceData Ptr = sl->SliceData
- with *dat
+ with *sl->SpriteData
   frame_unload(@.img.sprite)
   palette16_unload(@.img.pal)
   .record = 0
@@ -1667,11 +1667,10 @@ End Sub
 Sub SetSpriteToAsset(sl as Slice ptr, assetfile as string, warn_if_missing as bool = YES)
  if sl = 0 then fatalerror "SetSpriteToAsset null ptr"
 
- 'Create temp copy, in cast assetfile is dat->assetfile, which we're about to delete
+ 'Create temp copy, in case assetfile is dat->assetfile, which we're about to delete
  dim filename as string = assetfile
  UnloadSpriteSlice sl
- dim dat as SpriteSliceData Ptr = sl->SliceData
- with *dat
+ with *sl->SpriteData
   .spritetype = sprTypeFrame
   .assetfile = callocate(sizeof(string))
   *.assetfile = filename
@@ -1685,12 +1684,11 @@ End Sub
 ' or pal: a palette number, or neither if the Frame is not paletted (indexes the master palette directly).
 Sub SetSpriteToFrame(sl as Slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = NULL, pal as integer = -2)
  if sl = 0 then debug "SetSpriteToFrame null ptr": exit sub
- dim dat as SpriteSliceData ptr = cptr(SpriteSliceData ptr, sl->SliceData)
 
  if pal = -1 then showerror "SetSpriteToFrame: a default palette can't be used"
 
  UnloadSpriteSlice sl
- with *dat
+ with *sl->SpriteData
   .spritetype = sprTypeFrame
   .img.sprite = fr
   .record = -1
@@ -1717,11 +1715,8 @@ End Sub
 
 Sub CloneSpriteSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneSpriteSlice null ptr": exit sub
- dim dat as SpriteSliceData Ptr
- dat = sl->SliceData
- dim clonedat as SpriteSliceData Ptr
- clonedat = cl->SliceData
- with *clonedat
+ dim dat as SpriteSliceData Ptr = sl->SpriteData
+ with *cl->SpriteData
   .spritetype = dat->spritetype
   if dat->assetfile then
    .assetfile = callocate(sizeof(string))
@@ -1843,8 +1838,7 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
                       byval trans as integer = -2)
  if sl = 0 then debug "ChangeSpriteSlice null ptr" : exit sub
  if sl->SliceType <> slSprite then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a sprite" : exit sub
- dim dat as SpriteSliceData Ptr = sl->SliceData
- with *dat
+ with *sl->SpriteData
   if spritetype <> sprTypeInvalid then
    ' This should never happen
    if spritetype < 0 or sprTypeFirst > sprTypeLastLoadable then reporterr "Invalid sprite type " & spritetype, serrBug : exit sub
@@ -1887,26 +1881,28 @@ Sub SpriteSliceUpdate(sl as Slice ptr)
   debug "SpriteSliceUpdate: invalid ptr"
   exit sub
  end if
- dim dat as SpriteSliceData Ptr = sl->SpriteData
 
- dat->paletted = (dat->spritetype <> sprTypeBackdrop)
- if dat->spritetype = sprTypeFrame then
-  ' Aside from reloading if edited, dat->assetfile is initially NULL
-  ' when switching to sprTypeFrame, so needs to be initialised to "".
-  ' Note that if you change to a different sprite type, dat->assetfile
-  ' will still be there, but won't be used or saved
-  dim assetfile as string = iif(dat->assetfile, *dat->assetfile, "")
-  SetSpriteToAsset sl, assetfile, NO
- else
-  dat->record = small(dat->record, sprite_sizes(dat->spritetype).lastrec)
+ with *sl->SpriteData
+  .paletted = (.spritetype <> sprTypeBackdrop)
+  if .spritetype = sprTypeFrame then
+   ' Aside from reloading if edited, .assetfile is initially NULL
+   ' when switching to sprTypeFrame, so needs to be initialised to "".
+   ' Note that if you change to a different sprite type, .assetfile
+   ' will still be there, but won't be used or saved
+   dim assetfile as string = iif(.assetfile, *.assetfile, "")
+   SetSpriteToAsset sl, assetfile, NO
 
-  'Load the sprite image (and palette) immediately, so that the size of the slice
-  'and number of frames are correct
-  dat->loaded = NO  'Force reload
-  LoadSpriteSliceImage sl
+  else
+   .record = small(.record, sprite_sizes(.spritetype).lastrec)
 
-  dat->frame = small(dat->frame, SpriteSliceNumFrames(sl) - 1)
- end if
+   'Load the sprite image (and palette) immediately, so that the size of the slice
+   'and number of frames are correct
+   .loaded = NO  'Force reload
+   LoadSpriteSliceImage sl
+
+   .frame = small(.frame, SpriteSliceNumFrames(sl) - 1)
+  end if
+ end with
 end sub
 
 'Cause the sprite to be scaled/stretched to a certain size.
@@ -1916,8 +1912,7 @@ end sub
 Sub ScaleSpriteSlice(sl as Slice ptr, size as XYPair)
  if sl = 0 then debug "ScaleSpriteSlice null ptr" : exit sub
  if sl->SliceType <> slSprite then reporterr "ScaleSpriteSlice: only works on sprites, not " & SliceTypeName(sl) : exit sub
- dim dat as SpriteSliceData Ptr = sl->SliceData
- with *dat
+ with *sl->SpriteData
   .loaded = NO
   unload_sprite_and_pal .img
   .scaled = YES
@@ -1930,8 +1925,7 @@ end sub
 Sub DissolveSpriteSlice(byval sl as Slice ptr, byval dissolve_type as integer, byval over_ticks as integer=-1, byval start_tick as integer=0, byval backwards as bool=NO, byval auto_animate as bool=YES)
  if sl = 0 then debug "DissolveSpriteSlice null ptr" : exit sub
  if sl->SliceType <> slSprite then reporterr "Attempt to dissolve " & SliceTypeName(sl) & " slice " & sl & " as a sprite" : exit sub
- dim dat as SpriteSliceData Ptr = sl->SliceData
- with *dat
+ with *sl->SpriteData
   .dissolving = YES
   '(Note that the bounds checking here and in LoadSpriteSlice is bypassed by the slice editor)
   .d_type = bound(dissolve_type, 0, dissolveTypeMax)
@@ -1946,8 +1940,7 @@ end sub
 Sub CancelSpriteSliceDissolve(sl as Slice ptr)
  if sl = 0 then debug "CancelSpriteSliceDissolve null ptr" : exit sub
  if sl->SliceType <> slSprite then reporterr "CancelSpriteSliceDissolve: bad slice type" : exit sub
- dim dat as SpriteSliceData Ptr = sl->SliceData
- with *dat
+ with *sl->SpriteData
   .dissolving = NO
   .d_auto = NO
  end with
@@ -1956,8 +1949,7 @@ end sub
 Function SpriteSliceIsDissolving(byval sl as Slice ptr, byval only_auto as bool=YES) as bool
  if sl = 0 then debug "SpriteSliceIsDissolving null ptr" : return NO
  if sl->SliceType <> slSprite then return NO
- dim dat as SpriteSliceData Ptr = sl->SliceData
- with *dat
+ with *sl->SpriteData
   if only_auto andalso not .d_auto then return NO
   return .dissolving <> 0
  end with
@@ -1969,10 +1961,11 @@ Function SpriteSliceNumFrames(sl as Slice ptr) as integer
   return 0
  end if
 
- dim dat as SpriteSliceData Ptr = sl->SpriteData
- if dat->loaded = NO then LoadSpriteSliceImage sl
- if dat->img.sprite = 0 then return 0
- return dat->img.sprite->arraylen
+ with *sl->SpriteData
+  if .loaded = NO then LoadSpriteSliceImage sl
+  if .img.sprite = 0 then return 0
+  return .img.sprite->arraylen
+ end with
 end function
 
 '--Map-----------------------------------------------------------------
@@ -1980,9 +1973,8 @@ end function
 Sub DisposeMapSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- dim dat as MapSliceData ptr = cptr(MapSliceData ptr, sl->SliceData)
- delete dat
- sl->SliceData = 0
+ delete sl->MapData
+ sl->MapData = 0
 end sub
 
 Sub DrawMapSlice(byval sl as Slice ptr, byval p as integer)
@@ -1998,9 +1990,7 @@ Sub DrawMapSlice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  
- dim dat as MapSliceData ptr = cptr(MapSliceData ptr, sl->SliceData)
-
- with *dat
+ with *sl->MapData
   if .tiles = 0 then exit sub 'tilemap ptr null if the layer doesn't exist. This slice probably shouldn't either.
   if .tileset = 0 then exit sub 'quit silently on a null tileset ptr
   '2nd, 3rd arguments to drawmap are "camera position" of upper left of the screen.
@@ -2010,20 +2000,16 @@ end sub
 
 Function GetMapSliceData(byval sl as Slice ptr) as MapSliceData ptr
  if sl = 0 then debug "GetMapSliceData null ptr": return 0
- return sl->SliceData
+ return sl->MapData
 End Function
 
 Sub SaveMapSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveMapSlice null ptr": exit sub
- DIM dat as SpriteSliceData Ptr
- dat = sl->SliceData
  'FIXME: current MapSlice impl. has no savable properties
 end sub
 
 Sub LoadMapSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadMapSlice null ptr": exit sub
- dim dat as SpriteSliceData Ptr
- dat = sl->SliceData
  'FIXME: current MapSlice impl. has no savable properties
 End Sub
 
