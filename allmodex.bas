@@ -3576,6 +3576,12 @@ end sub
 ' FIXME: this function doesn't respect clipping!
 sub drawants(dest as Frame ptr, x as RelPos, y as RelPos, wide as RelPos, high as RelPos, color as integer = -1)
 	if color = -1 then color = uilook(uiText)
+	dim as integer color2 = uilook(uiBackground)
+	if dest->surf andalso dest->surf->format = SF_32bit then
+		'putpixel takes BGRA, not master palette index
+		color = intpal(color).col
+		color2 = intpal(color2).col
+	end if
 
 	' Decode relative positions/sizes to absolute
 	wide = relative_pos(wide, dest->w)
@@ -3594,7 +3600,7 @@ sub drawants(dest as Frame ptr, x as RelPos, y as RelPos, wide as RelPos, high a
 		select case (idx + x + y + tickcount) mod 3
 			case 0: continue for
 			case 1: col = color
-			case 2: col = uilook(uiBackground)
+			case 2: col = color2
 		end select
 		putpixel dest, x, y + idx, col
 		if wide > 0 then
@@ -3606,7 +3612,7 @@ sub drawants(dest as Frame ptr, x as RelPos, y as RelPos, wide as RelPos, high a
 		select case (idx + x + y + tickcount) mod 3
 			case 0: continue for
 			case 1: col = color
-			case 2: col = uilook(uiBackground)
+			case 2: col = color2
 		end select
 		putpixel dest, x + idx, y, col
 		if high > 0 then
@@ -3929,6 +3935,7 @@ sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2
 		sptr = dest->surf->pRawData
 		minorstep *= 4
 		majorstep *= 4
+		c = intpal(c).col
 		is32bit = YES
 	else
 		debugc errPromptError, "drawline: bad Frame"
@@ -4048,6 +4055,12 @@ end sub
 sub ellipse (fr as Frame ptr, x as double, y as double, radius as double, col as integer, fillcol as integer = -1, semiminor as double = 0.0, angle as double = 0.0)
 'radius is the semimajor axis if the ellipse is not a circle
 'angle is the angle of the semimajor axis to the x axis, in radians counter-clockwise
+
+	if fr->surf andalso fr->surf->format = SF_32bit then
+		'putpixel takes BGRA, not master palette index
+		col = intpal(col).col
+		fillcol = intpal(fillcol).col
+	end if
 
 	dim byref cliprect as ClipState = get_cliprect(fr)
 
