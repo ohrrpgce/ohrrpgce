@@ -1228,13 +1228,18 @@ END SUB
  END SUB
 #ENDMACRO
 
-MAKE_ARRAY_APPEND(string)
+'MAKE_ARRAY_APPEND(string)
 MAKE_ARRAY_APPEND(integer)
 
-SUB a_append (array() as IntStrPair, byval k as integer, s as string)
+SUB a_append (array() as string, value as zstring ptr)
+ REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
+ array(UBOUND(array)) = *value
+END SUB
+
+SUB a_append (array() as IntStrPair, byval k as integer, s as zstring ptr)
  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
  array(UBOUND(array)).i = k
- array(UBOUND(array)).s = s
+ array(UBOUND(array)).s = *s
 END SUB
 
 #MACRO MAKE_ARRAY_INSERT(Typename)

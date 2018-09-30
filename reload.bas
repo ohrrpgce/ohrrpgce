@@ -28,8 +28,8 @@ Namespace Reload
 
 Type hashFunction as Function(byval k as ZString ptr) as uinteger
 
-Declare Function AddStringToTable (st as string, byval doc as DocPtr) as integer
-Declare Function FindStringInTable overload(st as string, byval doc as DocPtr) as integer
+Declare Function AddStringToTable (st as zstring ptr, byval doc as DocPtr) as integer
+Declare Function FindStringInTable overload(st as zstring ptr, byval doc as DocPtr) as integer
 
 Declare Function CreateHashTable(doc as Docptr, hashFunc as hashFunction, numbuckets as integer = 65) as Hashptr
 Declare Sub DestroyHashTable(byval h as HashPtr)
@@ -172,7 +172,7 @@ End function
 
 'creates and initilalizes an empty node with a given name.
 'it associates the node with the given document, and cannot be added to another one!
-Function CreateNode(byval doc as DocPtr, nam as string) as NodePtr
+Function CreateNode(byval doc as DocPtr, nam as zstring ptr) as NodePtr
 	dim ret as NodePtr
 	
 	if doc = null then return null
@@ -195,12 +195,12 @@ Function CreateNode(byval doc as DocPtr, nam as string) as NodePtr
 	return ret
 End function
 
-Function CreateNode(byval nod as NodePtr, nam as string) as NodePtr
+Function CreateNode(byval nod as NodePtr, nam as zstring ptr) as NodePtr
 	return CreateNode(nod->doc, nam)
 end function
 
 'FIXME: the old name is never freed
-sub RenameNode(byval nod as NodePtr, newname as string)
+sub RenameNode(byval nod as NodePtr, newname as zstring ptr)
 	nod->namenum = AddStringToTable(newname, nod->doc)
 	
 	nod->name = nod->doc->strings[nod->namenum].str
@@ -545,8 +545,8 @@ End Function
 
 'Internal function
 'Locates a string in the string table. If it's not there, returns -1
-Function FindStringInTable (st as string, byval doc as DocPtr) as integer
-	if st = "" then return 0
+Function FindStringInTable (st as zstring ptr, byval doc as DocPtr) as integer
+	if len(*st) = 0 then return 0
 
 	dim ret as integer = FindItem(doc->stringhash, st)
 
@@ -557,7 +557,7 @@ end function
 
 'Adds a string to the string table. If it already exists, return the index
 'If it doesn't already exist, add it, and return the new index
-Function AddStringToTable(name as string, byval doc as DocPtr) as integer
+Function AddStringToTable(name as zstring ptr, byval doc as DocPtr) as integer
 	dim ret as integer
 	ret = FindStringInTable(name, doc)
 	if ret <> -1 then
@@ -585,8 +585,8 @@ Function AddStringToTable(name as string, byval doc as DocPtr) as integer
 	
 	ret = doc->numStrings
 	doc->numStrings += 1
-	doc->strings[ret].str = RCallocate(len(name) + 1, doc)
-	*doc->strings[ret].str = name
+	doc->strings[ret].str = RCallocate(len(*name) + 1, doc)
+	*doc->strings[ret].str = *name
 	
 	AddItem(doc->stringHash, doc->strings[ret].str, ret)
 
@@ -1259,11 +1259,11 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 	end if
 end sub
 
-Function FindDescendentByName(byval nod as NodePtr, nam as string) as NodePtr
+Function FindDescendentByName(byval nod as NodePtr, nam as zstring ptr) as NodePtr
 	'recursively searches for a child by name, depth-first
 	'can also find self
 	if nod = null then return null
-	if *nod->name = nam then return nod
+	if *nod->name = *nam then return nod
 	
 	if nod->flags AND nfNotLoaded then LoadNode(nod, YES)
 	
@@ -1451,7 +1451,7 @@ Function ResizeZString(byval node as nodeptr, byval newsize as integer) as ZStri
 end function
 
 'Return pointer to a child node if it exists, otherwise create it (as a null node)
-Function GetOrCreateChild(byval parent as NodePtr, n as string) as NodePtr
+Function GetOrCreateChild(byval parent as NodePtr, n as zstring ptr) as NodePtr
 	if parent = NULL then return NULL
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1469,7 +1469,7 @@ Function GetOrCreateChild(byval parent as NodePtr, n as string) as NodePtr
 end Function
 
 'Sets the child node of name n to a null value (doesn't affect children). If n doesn't exist, it adds it
-Function SetChildNode(byval parent as NodePtr, n as string) as NodePtr
+Function SetChildNode(byval parent as NodePtr, n as zstring ptr) as NodePtr
 	if parent = 0 then return 0
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1489,7 +1489,7 @@ Function SetChildNode(byval parent as NodePtr, n as string) as NodePtr
 end Function
 
 'Sets the child node of name n to an integer value. If n doesn't exist, it adds it
-Function SetChildNode(byval parent as NodePtr, n as string, byval val as longint) as NodePtr
+Function SetChildNode(byval parent as NodePtr, n as zstring ptr, byval val as longint) as NodePtr
 	if parent = 0 then return 0
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1509,7 +1509,7 @@ Function SetChildNode(byval parent as NodePtr, n as string, byval val as longint
 end Function
 
 'Sets the child node of name n to a floating point value. If n doesn't exist, it adds it
-Function SetChildNode(byval parent as NodePtr, n as string, byval val as double) as NodePtr
+Function SetChildNode(byval parent as NodePtr, n as zstring ptr, byval val as double) as NodePtr
 	if parent = 0 then return 0
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1529,7 +1529,7 @@ Function SetChildNode(byval parent as NodePtr, n as string, byval val as double)
 end Function
 
 'Sets the child node of name n to a string value. If n doesn't exist, it adds it
-Function SetChildNode(byval parent as NodePtr, n as string, val as string) as NodePtr
+Function SetChildNode(byval parent as NodePtr, n as zstring ptr, val as string) as NodePtr
 	if parent = 0 then return 0
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1549,7 +1549,7 @@ Function SetChildNode(byval parent as NodePtr, n as string, val as string) as No
 end Function
 
 'Toggle a node to a zero/nonzero value. Create the node if it does not exist
-Sub ToggleBoolChildNode(byval parent as NodePtr, n as string)
+Sub ToggleBoolChildNode(byval parent as NodePtr, n as zstring ptr)
 	if parent = 0 then exit sub
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1561,13 +1561,13 @@ Sub ToggleBoolChildNode(byval parent as NodePtr, n as string)
 		'it does not exist, so add it (and toggle it)
 		SetChildNode(parent, n, YES)
 	else
-		SetChildNode(parent, n, NOT GetInteger(ch))
+		SetChildNode(parent, n, GetInteger(ch) = 0)
 	end if
 	
 end Sub
 
 'If the child node exists, delete it. If it does not exist, create an empty node
-Sub ToggleChildNode(byval parent as NodePtr, n as string)
+Sub ToggleChildNode(byval parent as NodePtr, n as zstring ptr)
 	if parent = 0 then exit sub
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1591,7 +1591,7 @@ Sub ToggleChildNode(byval parent as NodePtr, n as string)
 end Sub
 
 'If the child node exists, delete it.
-Sub FreeChildNode(byval parent as NodePtr, n as string)
+Sub FreeChildNode(byval parent as NodePtr, n as zstring ptr)
 	if parent = 0 then exit sub
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1607,7 +1607,7 @@ end Sub
 
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
-Function GetChildNodeInt(byval parent as NodePtr, n as string, byval d as longint) as longint
+Function GetChildNodeInt(byval parent as NodePtr, n as zstring ptr, byval d as longint) as longint
 	if parent = 0 then return d
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1619,7 +1619,7 @@ Function GetChildNodeInt(byval parent as NodePtr, n as string, byval d as longin
 end function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
-Function GetChildNodeFloat(byval parent as NodePtr, n as string, byval d as double) as Double
+Function GetChildNodeFloat(byval parent as NodePtr, n as zstring ptr, byval d as double) as Double
 	if parent = 0 then return d
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1631,7 +1631,7 @@ Function GetChildNodeFloat(byval parent as NodePtr, n as string, byval d as doub
 end function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
-Function GetChildNodeStr(byval parent as NodePtr, n as string, d as string) as string
+Function GetChildNodeStr(byval parent as NodePtr, n as zstring ptr, d as string) as string
 	if parent = 0 then return d
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1643,7 +1643,7 @@ Function GetChildNodeStr(byval parent as NodePtr, n as string, d as string) as s
 end function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
-Function GetChildNodeBool(byval parent as NodePtr, n as string, byval d as integer) as integer
+Function GetChildNodeBool(byval parent as NodePtr, n as zstring ptr, byval d as integer) as integer
 	if parent = 0 then return d
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1655,7 +1655,7 @@ Function GetChildNodeBool(byval parent as NodePtr, n as string, byval d as integ
 end function
 
 'looks for a child node of the name n, and returns whether it finds it or not. For "flags", etc
-Function GetChildNodeExists(byval parent as NodePtr, n as string) as integer
+Function GetChildNodeExists(byval parent as NodePtr, n as zstring ptr) as integer
 	if parent = 0 then return 0
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1666,7 +1666,7 @@ Function GetChildNodeExists(byval parent as NodePtr, n as string) as integer
 end function
 
 'Appends a child node of name n with a null value.
-Function AppendChildNode(byval parent as NodePtr, n as string) as NodePtr
+Function AppendChildNode(byval parent as NodePtr, n as zstring ptr) as NodePtr
 	if parent = 0 then return 0
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1681,7 +1681,7 @@ Function AppendChildNode(byval parent as NodePtr, n as string) as NodePtr
 end Function
 
 'Appends a child node of name n to with integer value.
-Function AppendChildNode(byval parent as NodePtr, n as string, byval val as longint) as NodePtr
+Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, byval val as longint) as NodePtr
 	if parent = 0 then return 0
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1693,7 +1693,7 @@ Function AppendChildNode(byval parent as NodePtr, n as string, byval val as long
 end Function
 
 'Appends a child node of name n with a floating point value.
-Function AppendChildNode(byval parent as NodePtr, n as string, byval val as double) as NodePtr
+Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, byval val as double) as NodePtr
 	if parent = 0 then return 0
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1705,7 +1705,7 @@ Function AppendChildNode(byval parent as NodePtr, n as string, byval val as doub
 end Function
 
 'Appends a child node of name n with a string value.
-Function AppendChildNode(byval parent as NodePtr, n as string, val as string) as NodePtr
+Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, val as string) as NodePtr
 	if parent = 0 then return 0
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)

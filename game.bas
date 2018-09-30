@@ -4406,7 +4406,7 @@ END DESTRUCTOR
 ' combining_scancode: either check for keyval(combining_scancode) > 1, or if 0, check keyval(scCtrl) = 0.
 ' scancode: check for keyval(scancode) > 1, or no key combination if 0.
 ' menuitem: name of the menu item to add to the debug menu, or "" for none.
-FUNCTION DebugMenuDef.def(combining_scancode as integer = 0, scancode as integer = 0, menuitem as string = "") as bool
+FUNCTION DebugMenuDef.def(combining_scancode as integer = 0, scancode as integer = 0, menuitem as zstring ptr = @"") as bool
  IF menu = NULL THEN
   'Only check keys
   IF combining_scancode THEN
@@ -4417,9 +4417,9 @@ FUNCTION DebugMenuDef.def(combining_scancode as integer = 0, scancode as integer
   IF scancode = 0 THEN RETURN NO
   RETURN keyval(scancode) > 1
  ELSEIF LEN(selected_item) THEN
-  RETURN menuitem = selected_item
- ELSEIF LEN(menuitem) THEN
-  v_append menu, menuitem
+  RETURN *menuitem = selected_item
+ ELSEIF LEN(*menuitem) THEN
+  v_append menu, *menuitem
   RETURN NO
  END IF
 END FUNCTION

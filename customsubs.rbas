@@ -1864,27 +1864,27 @@ TYPE GlobalTextStringsMenu
  curitem as integer
 END TYPE
 
-PRIVATE SUB GTS_add_to_menu (menu as GlobalTextStringsMenu, description as string, byval index as integer, default as string, byval maxlen as integer, helpfile as string = "")
+PRIVATE SUB GTS_add_to_menu (menu as GlobalTextStringsMenu, description as zstring ptr, byval index as integer, default as zstring ptr, byval maxlen as integer, helpfile as zstring ptr = @"")
  WITH menu
   IF .curitem > GTSnumitems THEN fatalerror "GlobalTextStringsMenu.curitem too large"
   .selectable(.curitem) = YES
   .index(.curitem) = index
-  .description(.curitem) = description
-  .text(.curitem) = readglobalstring(index, default, maxlen)
-  .default(.curitem) = default
+  .description(.curitem) = *description
+  .text(.curitem) = readglobalstring(index, *default, maxlen)
+  .default(.curitem) = *default
   .maxlen(.curitem) = maxlen
-  IF LEN(helpfile) THEN .help(.curitem) = "globalstring_" + helpfile
+  IF LEN(*helpfile) THEN .help(.curitem) = "globalstring_" + *helpfile
   .curitem += 1
  END WITH
 END SUB
 
-PRIVATE SUB GTS_menu_header (menu as GlobalTextStringsMenu, description as string)
+PRIVATE SUB GTS_menu_header (menu as GlobalTextStringsMenu, description as zstring ptr)
  WITH menu
   'IF .curitem > -1 THEN .curitem += 1
   IF .curitem > GTSnumitems THEN fatalerror "GlobalTextStringsMenu.curitem too large"
   .shaded(.curitem) = YES
   .selectable(.curitem) = NO
-  .description(.curitem) = description
+  .description(.curitem) = *description
   .curitem += 1
  END WITH
 END SUB

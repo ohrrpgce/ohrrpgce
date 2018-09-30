@@ -112,12 +112,12 @@ TYPE NodePtr as Node ptr
 
 
 Declare Function CreateDocument() as DocPtr
-Declare Function CreateNode overload(byval doc as DocPtr, nam as string) as NodePtr
-Declare Function CreateNode(byval nod as NodePtr, nam as string) as NodePtr
+Declare Function CreateNode overload(byval doc as DocPtr, nam as zstring ptr) as NodePtr
+Declare Function CreateNode(byval nod as NodePtr, nam as zstring ptr) as NodePtr
 Declare sub FreeChildren(byval nod as NodePtr)
 Declare sub FreeNode(byval nod as NodePtr)
 Declare sub FreeDocument(byval doc as DocPtr)
-Declare sub RenameNode(byval nod as NodePtr, newname as string)
+Declare sub RenameNode(byval nod as NodePtr, newname as zstring ptr)
 Declare sub RemoveProvisionalNodes(byval nod as NodePtr)
 Declare sub MarkProvisional(byval nod as NodePtr)
 Declare sub SetContent Overload (byval nod as NodePtr, dat as string)
@@ -146,7 +146,7 @@ Declare Function ResizeZString(byval node as nodeptr, byval newsize as integer) 
 Declare Function GetZStringSize(byval node as nodeptr) as integer
 
 Declare Function GetChildByName(byval nod as NodePtr, byval nam as zstring ptr) as NodePtr 'NOT recursive
-Declare Function FindDescendentByName(byval nod as NodePtr, nam as string) as NodePtr 'recursive depth first search
+Declare Function FindDescendentByName(byval nod as NodePtr, nam as zstring ptr) as NodePtr 'recursive depth first search
 'Other overloads unimplemented
 Declare Function GetChildByContent(byval nod as NodePtr, content as longint, name as zstring ptr = null, reverse as bool = NO) as NodePtr
 
@@ -167,23 +167,23 @@ Declare Function CloneNodeTree(byval nod as NodePtr, byval doc as DocPtr=0) as N
 Declare Function NodeHasAncestor(byval nod as NodePtr, byval possible_parent as NodePtr) as integer
 
 'Helper functions:
-Declare Function GetOrCreateChild Overload (byval parent as NodePtr, n as string) as NodePtr
-Declare Function SetChildNode Overload (byval parent as NodePtr, n as string) as NodePtr
-Declare Function SetChildNode(byval parent as NodePtr, n as string, byval val as longint) as NodePtr
-Declare Function SetChildNode(byval parent as NodePtr, n as string, byval val as double) as NodePtr
-Declare Function SetChildNode(byval parent as NodePtr, n as string, val as string) as NodePtr
-Declare Sub ToggleBoolChildNode(byval parent as NodePtr, n as string)
-Declare Sub ToggleChildNode(byval parent as NodePtr, n as string)
-Declare Sub FreeChildNode(byval parent as NodePtr, n as string)
-Declare Function GetChildNodeInt(byval parent as NodePtr, n as string, byval d as longint = 0) as longint
-Declare Function GetChildNodeFloat(byval parent as NodePtr, n as string, byval d as double = 0.0) as Double
-Declare Function GetChildNodeStr(byval parent as NodePtr, n as string, d as string = "") as string
-Declare Function GetChildNodeBool(byval parent as NodePtr, n as string, byval d as integer = 0) as integer
-Declare Function GetChildNodeExists(byval parent as NodePtr, n as string) as integer
-Declare Function AppendChildNode Overload (byval parent as NodePtr, n as string) as NodePtr
-Declare Function AppendChildNode(byval parent as NodePtr, n as string, byval val as longint) as NodePtr
-Declare Function AppendChildNode(byval parent as NodePtr, n as string, byval val as double) as NodePtr
-Declare Function AppendChildNode(byval parent as NodePtr, n as string, val as string) as NodePtr
+Declare Function GetOrCreateChild Overload (byval parent as NodePtr, n as zstring ptr) as NodePtr
+Declare Function SetChildNode Overload (byval parent as NodePtr, n as zstring ptr) as NodePtr
+Declare Function SetChildNode(byval parent as NodePtr, n as zstring ptr, byval val as longint) as NodePtr
+Declare Function SetChildNode(byval parent as NodePtr, n as zstring ptr, byval val as double) as NodePtr
+Declare Function SetChildNode(byval parent as NodePtr, n as zstring ptr, val as string) as NodePtr
+Declare Sub ToggleBoolChildNode(byval parent as NodePtr, n as zstring ptr)
+Declare Sub ToggleChildNode(byval parent as NodePtr, n as zstring ptr)
+Declare Sub FreeChildNode(byval parent as NodePtr, n as zstring ptr)
+Declare Function GetChildNodeInt(byval parent as NodePtr, n as zstring ptr, byval d as longint = 0) as longint
+Declare Function GetChildNodeFloat(byval parent as NodePtr, n as zstring ptr, byval d as double = 0.0) as Double
+Declare Function GetChildNodeStr(byval parent as NodePtr, n as zstring ptr, d as string = "") as string
+Declare Function GetChildNodeBool(byval parent as NodePtr, n as zstring ptr, byval d as integer = 0) as integer
+Declare Function GetChildNodeExists(byval parent as NodePtr, n as zstring ptr) as integer
+Declare Function AppendChildNode Overload (byval parent as NodePtr, n as zstring ptr) as NodePtr
+Declare Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, byval val as longint) as NodePtr
+Declare Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, byval val as double) as NodePtr
+Declare Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, val as string) as NodePtr
 Declare Function ChildByIndex(byval parent as NodePtr, byval index as integer, byval withname as zstring ptr = NULL) as NodePtr
 
 Declare function ReadVLI overload(byval f as integer) as longint

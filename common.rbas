@@ -373,9 +373,9 @@ SUB end_debug
  importantdebug = NO
 END SUB
 
-SUB debug (s as string)
+SUB debug (msg as zstring ptr)
  importantdebug = YES
- debuginfo "! " & s
+ debuginfo "! " & *msg
 END SUB
 
 SUB debugc CDECL (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
@@ -414,26 +414,26 @@ END SUB
 'This is a kludge (the whole debug logging system is a mess)...  debuginfo
 'replacement before start_new_debug has been called, to avoid junk ending up in
 '?_debug_archive.txt when start_new_debug is called.
-SUB early_debuginfo (s as string)
- external_log s
- IF debug_to_console THEN PRINT s
- log_buffer &= s & LINE_END
+SUB early_debuginfo (msg as zstring ptr)
+ external_log msg
+ IF debug_to_console THEN PRINT *msg
+ log_buffer &= *msg & LINE_END
 END SUB
 
-SUB debuginfo (s as string)
+SUB debuginfo (msg as zstring ptr)
  'Use for throwaway messages like upgrading
  '(Also this is internally the implementation of debug())
 
  mutexlock debug_log_mutex
 
  'For now, on Android log everything to the kernel log for convenience
- external_log s
- IF debug_to_console THEN PRINT s
+ external_log msg
+ IF debug_to_console THEN PRINT *msg
  IF remember_debug_messages THEN
   'Don't keep growing the buffer or the program will grind to a halt
-  IF LEN(log_buffer) < 10000 THEN log_buffer &= s & LINE_END
+  IF LEN(log_buffer) < 10000 THEN log_buffer &= *msg & LINE_END
  END IF
- append_to_logfile s
+ append_to_logfile *msg
 
  mutexunlock debug_log_mutex
 END SUB
@@ -529,7 +529,7 @@ END SUB
 
 ' Show a message in a box and wait for the user to advance with a keypress.
 ' Returns the scancode of the keypress (it is cleared!)
-FUNCTION notification (msg as string) as integer
+FUNCTION notification (msg as zstring ptr) as integer
  ' For safety disallow reentering, though I'm not currently aware of a way this might happen
  STATIC entered as bool = NO
  IF entered THEN
@@ -543,7 +543,7 @@ FUNCTION notification (msg as string) as integer
  defaultmousecursor
  DIM holdpage as integer = allocatepage
  copypage vpage, holdpage
- basic_textbox msg, uilook(uiText), holdpage
+ basic_textbox *msg, uilook(uiText), holdpage
  setvispage holdpage
  clearkeys
  DIM scancode as integer = waitforanykey()
@@ -555,11 +555,11 @@ FUNCTION notification (msg as string) as integer
 END FUNCTION
 
 'Same as debugc, but always show a message to the user regardless of errlvl
-SUB visible_debug (msg as string, errlvl as errorLevelEnum = errDebug)
+SUB visible_debug (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
  debugc errlvl, msg
  IF errlvl < errShowError OR errlvl = errBug THEN
   'If it's not one of these error levels, then a message has already been shown
-  notification msg + !"\nPress any key..."
+  notification *msg + !"\nPress any key..."
   'pop_warning msg
  END IF
 END SUB
@@ -1228,22 +1228,23 @@ SUB fatal_error_shutdown
  #ENDIF
 END SUB
 
-SUB fatalerror (msg as string)
+SUB fatalerror (msg as zstring ptr)
  showerror msg, YES
 END SUB
 
 'Show an error. If isfatal, doesn't return.
 'If multiple errors occur, give the user the option to quit instead of continuing.
-SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
+SUB showerror (zmsg as zstring ptr, byval isfatal as bool = NO, isbug as bool = NO)
  DIM printmsg as string
- printmsg = IIF(isbug, "(BUG) ", "") + IIF(isfatal, "FATAL: ", "ERROR: ") + msg
+ printmsg = IIF(isbug, "(BUG) ", "") + IIF(isfatal, "FATAL: ", "ERROR: ") + *zmsg
  PRINT printmsg
 
  STATIC num_errors as integer = 0
  num_errors += 1
 
  STATIC last_error as string, ignore_error as string
- IF msg = ignore_error AND isfatal = NO THEN EXIT SUB
+ IF *zmsg = ignore_error AND isfatal = NO THEN EXIT SUB
+ DIM msg as string = *zmsg
 
  'Don't allow reentry into showerror; the error might be in debug()
  STATIC entered as integer = 0
@@ -1282,7 +1283,7 @@ SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
    ignore_error = msg
   END IF
   IF num_errors >= 3 THEN
-   quitmsg += "Press ESC to cleanly quit, or any other key to ignore and try to continue."
+   quitmsg += "Press ESC to quit the program, or any other key to ignore and try to continue."
    prompt_to_quit = YES
   ELSE
    quitmsg += "Press any key to try to continue."
@@ -1329,7 +1330,7 @@ SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
   'Continuing to edit
   IF editing_a_game THEN
    clearpage vpage
-   basic_textbox "Warning! If you had unsaved changes to your game you should backup the old .RPG file " _
+   basic_textbox "If you had unsaved changes to your game you may want to backup the old .RPG file " _
                  "BEFORE attempting to save, because there is a chance that saving will produce a corrupt file.", _
                  uilook(uiText), vpage, , , , YES  'suppress_borders=YES
    setvispage vpage
@@ -2156,7 +2157,7 @@ FUNCTION stredit (s as string, byref insert as integer, maxl as integer, numline
  
 END FUNCTION
 
-SUB pop_warning(s as string, byval autoquit as integer = NO)
+SUB pop_warning(msg as zstring ptr, byval autoquit as integer = NO)
  'autoquit is specifically for cleanup_and_terminate and has no other use
 
  '--Construct the warning UI (This will be hella easier later when the Slice Editor can save/load)
@@ -2195,7 +2196,7 @@ SUB pop_warning(s as string, byval autoquit as integer = NO)
  text_area = NewSliceOfType(slText, inner_box)
  WITH *text_area
   .Fill = YES
-  ChangeTextSlice text_area, s, , , YES
+  ChangeTextSlice text_area, *msg, , , YES
  END WITH
  DIM animate as Slice Ptr
  animate = outer_box
@@ -2366,9 +2367,9 @@ SUB advance_incremental_search(text as string, searchstring as string, byref cha
  scroll_to_y = charpos.pos.y
 END SUB
 
-SUB show_help(helpkey as string)
+SUB show_help(helpkey as zstring ptr)
  DIM original_text as string
- original_text = load_help_file(helpkey)
+ original_text = load_help_file(*helpkey)
  DIM help_str as string = original_text  'The edited version
 
  '--Construct the help UI (This will be hella easier later when the Slice Editor can save/load)
@@ -2490,11 +2491,11 @@ SUB show_help(helpkey as string)
      'Prevent attempt to quit the program, stop and wait for response first
      DIM quitting as bool = getquitflag()
      setquitflag NO
-     DIM choice as integer = twochoice("Save changes to help for """ & helpkey & """?", "Yes", "No", 0, -1)
+     DIM choice as integer = twochoice("Save changes to help for """ & *helpkey & """?", "Yes", "No", 0, -1)
      IF getquitflag() THEN choice = 1  'Second attempt to quit: discard
      IF choice <> -1 THEN
       IF quitting THEN setquitflag
-      IF choice = 0 THEN save_help_file helpkey, dat->s
+      IF choice = 0 THEN save_help_file *helpkey, dat->s
       EXIT DO
      END IF
     END IF
@@ -2563,7 +2564,7 @@ SUB show_help(helpkey as string)
      pop_warning "Your """ & get_help_dir() & """ folder is not writable. Try making a copy of it at """ & documents_dir & SLASH & "ohrhelp"""
     END IF
    END IF
-   IF keyval(scF1) and helpkey <> "share_helphelp" THEN
+   IF keyval(scF1) and *helpkey <> "share_helphelp" THEN
     show_help "share_helphelp"
    END IF
    IF keyval(scF6) THEN slice_editor help_root
@@ -2807,7 +2808,7 @@ END SUB
 'Preserves the contents of the screen.
 'centerlines: whether to center-justify everything, otherwise left-justified.
 'extra_message: shown at the bottom of the screen.
-FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as string="", centerlines as bool=YES, extra_message as string = "") as integer
+FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", centerlines as bool=YES, extra_message as zstring ptr=@"") as integer
  DIM state as MenuState
  DIM menu as MenuDef
  ClearMenuData menu
@@ -2818,7 +2819,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
 
  'TODO: convert to text slices. This is ugly and still can't handle window resizing
  maxwidth = (vpages(vpage)->w - 24) \ 8
- split(wordwrap(capt, maxwidth), captlines())
+ split(wordwrap(*capt, maxwidth), captlines())
  FOR i as integer = 0 TO UBOUND(captlines)
   wide = large(wide, textwidth(captlines(i)))
  NEXT
@@ -2864,7 +2865,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
    END IF
   END IF
 
-  IF keyval(scF1) > 1 ANDALSO LEN(helpkey) > 0 THEN
+  IF keyval(scF1) > 1 ANDALSO LEN(*helpkey) > 0 THEN
    show_help helpkey
   END IF
 
@@ -2879,7 +2880,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
   usemenu state
 
   copypage holdscreen, vpage
-  IF capt <> "" THEN
+  IF LEN(*capt) > 0 THEN
    centerbox rCenter, rCenter + boxy + boxheight \ 2, 16 + wide, 6 + boxheight, 2, vpage
    FOR i as integer = 0 TO UBOUND(captlines)
     DIM linex as RelPos
@@ -2893,10 +2894,10 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
   END IF
   menu.max_chars = vpages(vpage)->w \ 8 - 2
   draw_menu menu, state, vpage
-  IF LEN(helpkey) > 0 THEN
+  IF LEN(*helpkey) > 0 THEN
    edgeprint "F1 Help", pRight, pBottom, uilook(uiMenuItem), vpage
   END IF
-  wrapprint extra_message, pLeft, pBottom, uilook(uiMenuItem), vpage, YES, YES
+  wrapprint *extra_message, pLeft, pBottom, uilook(uiMenuItem), vpage, YES, YES
   setvispage vpage
   dowait
  LOOP
@@ -2908,14 +2909,14 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
  RETURN result
 END FUNCTION
 
-FUNCTION twochoice(capt as string, strA as string="Yes", strB as string="No", byval defaultval as integer=0, byval escval as integer=-1, helpkey as string="") as integer
- DIM choices(1) as string = {strA, strB}
+FUNCTION twochoice(capt as zstring ptr, strA as zstring ptr=@"Yes", strB as zstring ptr=@"No", byval defaultval as integer=0, byval escval as integer=-1, helpkey as zstring ptr=@"") as integer
+ DIM choices(1) as string = {*strA, *strB}
  RETURN multichoice(capt, choices(), defaultval, escval, helpkey)
 END FUNCTION
 
 'Asks a yes-or-no pop-up question. Less flexible than twochoice, since it only returns a bool.
 '(Not to be confused with yesorno(), which returns a yes/no string)
-FUNCTION yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
+FUNCTION yesno(capt as zstring ptr, byval defaultval as bool=YES, byval escval as bool=NO) as bool
  IF defaultval THEN defaultval = 0 ELSE defaultval = 1
  IF escval THEN escval = 0 ELSE escval = 1
  DIM result as integer
@@ -3101,27 +3102,27 @@ FUNCTION find_support_dir () as string
  RETURN "" ' not found. booo! :(
 END FUNCTION
 
-FUNCTION find_helper_app (appname as string, try_install as bool=NO, download_url as string="") as string
+FUNCTION find_helper_app (appname as zstring ptr, try_install as bool=NO, download_url as zstring ptr=@"") as string
  'Returns an empty string if the app is not found, or the full path if it is found
 
  'try_install currently only works on Windows, and not for all possible apps
  'download_url: only used if try_install is true, to override the default
 
  'Look in the same folder as CUSTOM/GAME
- IF isfile(exepath & SLASH & appname & DOTEXE) THEN RETURN exepath & SLASH & appname & DOTEXE
+ IF isfile(exepath & SLASH & *appname & DOTEXE) THEN RETURN exepath & SLASH & *appname & DOTEXE
 
  #IFDEF __FB_DARWIN__
-  IF isfile(exepath & "/support/" & appname) THEN RETURN exepath & "/support/" & appname
+  IF isfile(exepath & "/support/" & *appname) THEN RETURN exepath & "/support/" & *appname
  #ENDIF
  #IFDEF __FB_UNIX__
   'Use the standard util "which" to search the path
   DIM where as string
-  run_and_get_output("which " & appname, where, , NO)  'disable debuginfo spam
+  run_and_get_output("which " & *appname, where, , NO)  'disable debuginfo spam
   'where is empty on failure
   RETURN RTRIM(where, !"\n")
  #ENDIF
  #IFDEF __FB_WIN32__
-  RETURN find_windows_helper_app(appname, try_install, download_url)
+  RETURN find_windows_helper_app(*appname, try_install, *download_url)
  #ENDIF
 END FUNCTION
 
@@ -5092,9 +5093,9 @@ SUB loadglobalstrings
  END IF
 END SUB
 
-FUNCTION readglobalstring (byval index as integer, default as string, byval maxlen as integer=10) as string
+FUNCTION readglobalstring (byval index as integer, default as zstring ptr, byval maxlen as integer=10) as string
 IF index * 11 + 2 > LEN(global_strings_buffer) THEN
- RETURN default
+ RETURN *default
 ELSE
  DIM namelen as UBYTE = global_strings_buffer[index * 11]
  IF maxlen < namelen THEN namelen = maxlen
@@ -5334,9 +5335,9 @@ END FUNCTION
 'Returns a YES/NO string. Not to be confused with yesno() (in this file)
 'which asks an interactive yes/no question.
 'If you want to override the defaults, why not use IIF() instead, which is identical?
-FUNCTION yesorno (byval n as integer, yes_cap as string="YES", no_cap as string="NO") as string
- IF n THEN RETURN yes_cap
- RETURN no_cap
+FUNCTION yesorno (byval n as integer, yes_cap as zstring ptr=@"YES", no_cap as zstring ptr=@"NO") as string
+ IF n THEN RETURN *yes_cap
+ RETURN *no_cap
 END FUNCTION
 
 'This is mostly equivalent to '(float * 100) & "%"', however it doesn't show
@@ -6155,8 +6156,8 @@ END FUNCTION
 'The filename entered by the user is restricted to ASCII, meaning it doesn't have to
 'be encoded before being used, but the whole path return still needs to be run through
 'decode_filename() before being displayed.
-FUNCTION inputfilename (query as string, ext as string, byref directory as string, helpkey as string, default as string="", allow_overwrite as bool=YES) as string
- DIM filename as string = default
+FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref directory as string, helpkey as zstring ptr, default as zstring ptr=@"", allow_overwrite as bool=YES) as string
+ DIM filename as string = *default
  DIM tog as integer
  DIM foldermode as bool = NO
  'Can get passed a filename maybe because it's shared with browse() (as it is in importmxs)
@@ -6188,11 +6189,11 @@ FUNCTION inputfilename (query as string, ext as string, byref directory as strin
    IF keyval(scAnyEnter) > 1 THEN
     filename = TRIM(filename)
     IF filename <> "" THEN
-     IF get_file_type(directory + SLASH + filename + ext) <> fileTypeNonexistent THEN
+     IF get_file_type(directory + SLASH + filename + *ext) <> fileTypeNonexistent THEN
       If allow_overwrite THEN
        IF yesno("That already exists, overwrite?") THEN RETURN directory + SLASH + filename
       ELSE
-       notification filename & ext & " already exists"
+       notification filename & *ext & " already exists"
       END IF
      ELSE
       RETURN directory + SLASH + filename
@@ -6203,7 +6204,7 @@ FUNCTION inputfilename (query as string, ext as string, byref directory as strin
   clearpage dpage
   textcolor uilook(uiText), 0
 
-  printstr query, pCentered, 20, dpage
+  printstr *query, pCentered, 20, dpage
   printstr "Output directory (TAB to select):", pCentered, 35, dpage
 
   IF foldermode THEN
@@ -6220,7 +6221,7 @@ FUNCTION inputfilename (query as string, ext as string, byref directory as strin
    textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
   END IF
   DIM display_fname as string = IIF(LEN(filename), filename, "<type filename>")
-  printstr display_fname + fgtag(uilook(uiText)) + ext, pCenteredRight, 60, dpage, YES
+  printstr display_fname + fgtag(uilook(uiText)) + *ext, pCenteredRight, 60, dpage, YES
 
   SWAP vpage, dpage
   setvispage vpage
@@ -7325,35 +7326,35 @@ FUNCTION enforce_gen_int_limits(nodepath as string, byval v as integer) as integ
  RETURN v
 END FUNCTION
 
-FUNCTION get_gen_bool(nodepath as string) as bool
+FUNCTION get_gen_bool(nodepath as zstring ptr) as bool
  DIM gen_root as NodePtr = get_general_reld()
  DIM node as NodePtr = NodeByPath(gen_root, nodepath)
  IF node THEN RETURN IIF(GetInteger(node), YES, NO)
- RETURN default_gen_bool(nodepath)
+ RETURN default_gen_bool(*nodepath)
 END FUNCTION
 
-FUNCTION get_gen_int(nodepath as string) as integer
+FUNCTION get_gen_int(nodepath as zstring ptr) as integer
  DIM gen_root as NodePtr = get_general_reld()
  DIM node as NodePtr = NodeByPath(gen_root, nodepath)
- IF node THEN RETURN enforce_gen_int_limits(nodepath, GetInteger(node))
- RETURN default_gen_int(nodepath)
+ IF node THEN RETURN enforce_gen_int_limits(*nodepath, GetInteger(node))
+ RETURN default_gen_int(*nodepath)
 END FUNCTION
 
-SUB set_gen_bool(nodepath as string, byval v as bool)
+SUB set_gen_bool(nodepath as zstring ptr, byval v as bool)
  'This changes the node, but does not call write_general_reld()
  DIM gen_root as NodePtr = get_general_reld()
  DIM node as NodePtr = NodeByPath(gen_root, nodepath, YES)
  SetContent(node, IIF(v, 1, 0))
 END SUB
 
-SUB set_gen_int(nodepath as string, byval v as integer)
+SUB set_gen_int(nodepath as zstring ptr, byval v as integer)
  'This changes the node, but does not call write_general_reld()
  DIM gen_root as NodePtr = get_general_reld()
  DIM node as NodePtr = NodeByPath(gen_root, nodepath, YES)
- SetContent(node, enforce_gen_int_limits(nodepath, v))
+ SetContent(node, enforce_gen_int_limits(*nodepath, v))
 END SUB
 
-SUB toggle_gen_bool(nodepath as string)
+SUB toggle_gen_bool(nodepath as zstring ptr)
  'This changes the node, but does not call write_general_reld()
  set_gen_bool(nodepath, NOT get_gen_bool(nodepath))
 END SUB
@@ -7392,16 +7393,16 @@ END SUB
 ' edit.backend_screenshot
 ' etc
 'Also, in-game, check the game-specific .ini file first.
-FUNCTION read_config_str (key as string, default as string="") as string
+FUNCTION read_config_str (key as zstring ptr, default as zstring ptr=@"") as string
  #IFDEF IS_GAME
   IF config_file <> "" THEN
    'Settings in the game's .ini file override others
-   DIM ret as string = read_ini_prefixed_str(config_file, key, CHR(0))
+   DIM ret as string = read_ini_prefixed_str(config_file, *key, CHR(0))
    IF ret <> CHR(0) THEN RETURN ret
   END IF
  #ENDIF
 
- RETURN read_ini_prefixed_str(global_config_file, key, default)
+ RETURN read_ini_prefixed_str(global_config_file, *key, *default)
 END FUNCTION
 
 'See read_config_str
@@ -7431,11 +7432,11 @@ FUNCTION read_ini_prefixed_str (filename as string, prefixed_key as string, defa
  LOOP
 END FUNCTION
 
-FUNCTION read_config_int (key as string, default as integer=0) as integer
+FUNCTION read_config_int (key as zstring ptr, default as integer=0) as integer
  RETURN str2int(read_config_str(key), default)
 END FUNCTION
 
-FUNCTION read_config_bool (key as string, default as bool=NO) as bool
+FUNCTION read_config_bool (key as zstring ptr, default as bool=NO) as bool
  RETURN str2bool(read_config_str(key), default)
 END FUNCTION
 
@@ -7450,10 +7451,11 @@ END FUNCTION
 '-Backend-specific options go under eg "gfx.sdl."
 '-A setting for Custom and not falling into another category can start with "edit.".
 '-Stuff for Game but not game-specific goes under "game."
-SUB write_config (key as string, value as string)
+SUB write_config (zkey as zstring ptr, value as string)
  'FIXME: if "edit.game_foo.thing" exists and you load and then save "thing",
  'it gets saved to "thing", resulting in a local setting accidentally becoming global,
  'and not being able to change it locally!
+ DIM key as string = *zkey
  #IFDEF IS_GAME
   IF starts_with(key, config_prefix) ANDALSO starts_with(config_prefix, "game.game_") THEN
    IF LEN(config_file) THEN
@@ -7469,10 +7471,10 @@ SUB write_config (key as string, value as string)
  write_ini_value global_config_file, key, value
 END SUB
 
-SUB write_config (key as string, value as integer)
+SUB write_config (key as zstring ptr, value as integer)
  write_config key, STR(value)
 END SUB
 
-SUB write_config (key as string, value as double)
+SUB write_config (key as zstring ptr, value as double)
  write_config key, FORMAT(value, "0.000")
 END SUB

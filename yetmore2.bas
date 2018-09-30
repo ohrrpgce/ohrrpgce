@@ -1895,14 +1895,14 @@ FUNCTION lump_reload_mode_to_string (byval mode as integer) as string
  IF mode = loadmodeMerge THEN RETURN "Merge in-game changes"
 END FUNCTION
 
-SUB LPM_append_reload_mode_item (menu as MenuDef, tooltips() as string, what as string, info as LumpReloadState, byval extradata as integer = 0)
- append_menu_item menu, "Reload " + what + ": " + lump_reload_mode_to_string(info.mode)
+SUB LPM_append_reload_mode_item (menu as MenuDef, tooltips() as string, what as zstring ptr, info as LumpReloadState, byval extradata as integer = 0)
+ append_menu_item menu, "Reload " + *what + ": " + lump_reload_mode_to_string(info.mode)
  menu.last->extra(0) = extradata
  REDIM PRESERVE tooltips(menu.numitems - 1)
 END SUB
 
-SUB LPM_append_force_reload_item (menu as MenuDef, tooltips() as string, what as string, info as LumpReloadState, byval extradata as integer = 0, byval ignore_dirtiness as bool = NO)
- append_menu_item menu, "Force reload of " + what
+SUB LPM_append_force_reload_item (menu as MenuDef, tooltips() as string, what as zstring ptr, info as LumpReloadState, byval extradata as integer = 0, byval ignore_dirtiness as bool = NO)
+ append_menu_item menu, "Force reload of " + *what
  menu.last->extra(0) = extradata
  REDIM PRESERVE tooltips(menu.numitems - 1)
  DIM tmp as string

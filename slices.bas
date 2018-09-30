@@ -24,20 +24,20 @@
 '==============================================================================
 
 'Reload helper functions used by saving/loading
-DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as integer)
-DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as double)
-DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, s as string)
+DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, byval value as integer)
+DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, byval value as double)
+DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, s as string)
 
-DECLARE Sub SavePropAlways OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as integer)
-DECLARE Sub SavePropAlways OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as double)
-DECLARE Sub SavePropAlways OVERLOAD (node as Reload.Nodeptr, propname as string, s as string)
+DECLARE Sub SavePropAlways OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, byval value as integer)
+DECLARE Sub SavePropAlways OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, byval value as double)
+DECLARE Sub SavePropAlways OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, s as string)
 
 EXTERN "C"
 
-DECLARE Function LoadPropStr(node as Reload.Nodeptr, propname as string, defaultval as string="") as string
-DECLARE Function LoadProp(node as Reload.Nodeptr, propname as string, byval defaultval as integer=0) as integer
-DECLARE Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval defaultval as bool=NO) as bool
-DECLARE Function LoadPropFloat(node as Reload.Nodeptr, propname as string, byval defaultval as double=0.0) as double
+DECLARE Function LoadPropStr(node as Reload.Nodeptr, propname as zstring ptr, defaultval as string="") as string
+DECLARE Function LoadProp(node as Reload.Nodeptr, propname as zstring ptr, byval defaultval as integer=0) as integer
+DECLARE Function LoadPropBool(node as Reload.Nodeptr, propname as zstring ptr, byval defaultval as bool=NO) as bool
+DECLARE Function LoadPropFloat(node as Reload.Nodeptr, propname as zstring ptr, byval defaultval as double=0.0) as double
 
 'Other local subs and functions
 DECLARE Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
@@ -3985,31 +3985,31 @@ end function
 
 End Extern
 
-Sub SavePropAlways(node as Reload.Nodeptr, propname as string, byval value as integer)
+Sub SavePropAlways(node as Reload.Nodeptr, propname as zstring ptr, byval value as integer)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
  Reload.SetChildNode(node, propname, CLNGINT(value))
 End Sub
 
 'Doesn't save anything = 0
-Sub SaveProp(node as Reload.Nodeptr, propname as string, byval value as integer)
+Sub SaveProp(node as Reload.Nodeptr, propname as zstring ptr, byval value as integer)
  if value <> 0 then SavePropAlways node, propname, value
 End Sub
 
-Sub SavePropAlways(node as Reload.Nodeptr, propname as string, byval value as double)
+Sub SavePropAlways(node as Reload.Nodeptr, propname as zstring ptr, byval value as double)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
  Reload.SetChildNode(node, propname, value)
 End Sub
 
-Sub SaveProp(node as Reload.Nodeptr, propname as string, byval value as double)
+Sub SaveProp(node as Reload.Nodeptr, propname as zstring ptr, byval value as double)
  if value <> 0. then SavePropAlways node, propname, value
 End Sub
 
-Sub SavePropAlways(node as Reload.Nodeptr, propname as string, s as string)
+Sub SavePropAlways(node as Reload.Nodeptr, propname as zstring ptr, s as string)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
  Reload.SetChildNode(node, propname, s)
 End Sub
 
-Sub SaveProp(node as Reload.Nodeptr, propname as string, s as string)
+Sub SaveProp(node as Reload.Nodeptr, propname as zstring ptr, s as string)
  if len(s) then SavePropAlways node, propname, s
 End Sub
 
@@ -4109,22 +4109,22 @@ End sub
 
 '--loading---------------------------------------------------------------------
 
-Function LoadPropStr(node as Reload.Nodeptr, propname as string, defaultval as string="") as string
+Function LoadPropStr(node as Reload.Nodeptr, propname as zstring ptr, defaultval as string="") as string
  if node = 0 then debug "LoadPropStr null node ptr": return defaultval
  return Reload.GetChildNodeStr(node, propname, defaultval)
 End function
 
-Function LoadProp(node as Reload.Nodeptr, propname as string, byval defaultval as integer=0) as integer
+Function LoadProp(node as Reload.Nodeptr, propname as zstring ptr, byval defaultval as integer=0) as integer
  if node = 0 then debug "LoadProp null node ptr": return defaultval
  return Reload.GetChildNodeInt(node, propname, CLNGINT(defaultval))
 End function
 
-Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval defaultval as bool=NO) as bool
+Function LoadPropBool(node as Reload.Nodeptr, propname as zstring ptr, byval defaultval as bool=NO) as bool
  if node = 0 then debug "LoadPropBool null node ptr": return defaultval
  return Reload.GetChildNodeBool(node, propname, defaultval)
 End function
 
-Function LoadPropFloat(node as Reload.Nodeptr, propname as string, byval defaultval as double=0.0) as double
+Function LoadPropFloat(node as Reload.Nodeptr, propname as zstring ptr, byval defaultval as double=0.0) as double
  if node = 0 then debug "LoadPropFloat null node ptr": return defaultval
  return Reload.GetChildNodeFloat(node, propname, defaultval)
 End function

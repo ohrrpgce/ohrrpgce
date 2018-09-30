@@ -161,9 +161,9 @@ declare sub a_shuffle_to_end overload (array() as integer, which as integer)
 declare sub a_shuffle_to_end overload (array() as string, which as integer)
 
 'These act on *dynamic length* destination arrays only! Static arrays will segfault!
-declare sub a_append overload (array() as string,  value as string)
+declare sub a_append overload (array() as string,  value as zstring ptr)
 declare sub a_append overload (array() as integer, value as integer)
-declare sub a_append overload (array() as IntStrPair, byval k as integer, s as string)
+declare sub a_append overload (array() as IntStrPair, byval k as integer, s as zstring ptr)
 declare sub a_insert overload (array() as string,  pos as integer, value as string)
 declare sub a_insert overload (array() as integer, pos as integer, value as integer)
 declare sub a_pop overload (array() as string,  which as integer = &hE2D0FD15)

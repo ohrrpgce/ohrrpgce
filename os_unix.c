@@ -47,9 +47,9 @@ void os_init() {
 	main_thread_handle = pthread_self();
 }
 
-void external_log(FBSTRING *str) {
+void external_log(const char *msg) {
 #ifdef __ANDROID__
-	__android_log_write(ANDROID_LOG_INFO, "OHRRPGCE", str->data);
+	__android_log_write(ANDROID_LOG_INFO, "OHRRPGCE", msg);
 #endif
 }
 

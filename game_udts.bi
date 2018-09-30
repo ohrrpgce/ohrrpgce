@@ -355,7 +355,7 @@ TYPE DebugMenuDef
  selected_item as string  ' If this is set, find the menu item with this name instead of building the menu.
  Declare Sub start_building_menu()
  Declare Destructor()
- Declare Function def(combining_scancode as integer = 0, scancode as integer = 0, menuitem as string = "") as bool
+ Declare Function def(combining_scancode as integer = 0, scancode as integer = 0, menuitem as zstring ptr = @"") as bool
 END TYPE
 
 TYPE CaterpillarHistory

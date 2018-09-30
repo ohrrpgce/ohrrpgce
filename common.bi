@@ -149,7 +149,7 @@ DECLARE SUB fix_sprite_record_count(sprtype as SpriteType)
 DECLARE SUB fix_recordless_lump(lumpname as string, record_byte_size as integer, byval header_bytes as integer=0)
 DECLARE SUB fix_record_count(byref last_rec_index as integer, record_byte_size as integer, lumpname as string, info as string, byval skip_header_bytes as integer=0, byval count_offset as integer=0)
 DECLARE SUB loadglobalstrings ()
-DECLARE FUNCTION readglobalstring (byval index as integer, default as string, byval maxlen as integer=10) as string
+DECLARE FUNCTION readglobalstring (byval index as integer, default as zstring ptr, byval maxlen as integer=10) as string
 DECLARE SUB load_default_master_palette (master_palette() as RGBColor)
 DECLARE SUB dump_integer_array_as_hex (arraydim as string, byval start as uinteger ptr, byval _ubound as integer, byval nibbles as integer = 8)
 
@@ -174,7 +174,7 @@ DECLARE SUB playsongnum (byval songnum as integer)
 DECLARE FUNCTION open_url (url as string) as bool
 DECLARE FUNCTION spawn_and_wait (app as string, args as string) as string
 DECLARE FUNCTION find_support_dir () as string
-DECLARE FUNCTION find_helper_app (appname as string, try_install as bool=NO, download_url as string="") as string
+DECLARE FUNCTION find_helper_app (appname as zstring ptr, try_install as bool=NO, download_url as zstring ptr=@"") as string
 DECLARE FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, download_url as string="") as string
 DECLARE FUNCTION download_file (url as string, dest as string, forcefilename as string="") as bool
 DECLARE FUNCTION missing_helper_message (appname as string) as string
@@ -207,11 +207,11 @@ DECLARE FUNCTION fgtag(col as integer, text as string = "") as string
 DECLARE FUNCTION bgtag(col as integer, text as string = "") as string
 
 DECLARE SUB basic_textbox (msg as string, col as integer = -1, page as integer, ypos as RelPos = pCentered, width as RelPos = -1, shrink as bool = NO, suppress_borders as bool = NO)
-DECLARE FUNCTION notification (msg as string) as integer
-DECLARE SUB pop_warning(s as string, byval autoquit as integer = NO)
-DECLARE FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as string="", centerlines as bool=YES, extra_message as string = "") as integer
-DECLARE FUNCTION twochoice(capt as string, strA as string="Yes", strB as string="No", byval defaultval as integer=0, byval escval as integer=-1, helpkey as string="") as integer
-DECLARE FUNCTION yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
+DECLARE FUNCTION notification (msg as zstring ptr) as integer
+DECLARE SUB pop_warning(msg as zstring ptr, byval autoquit as integer = NO)
+DECLARE FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", centerlines as bool=YES, extra_message as zstring ptr=@"") as integer
+DECLARE FUNCTION twochoice(capt as zstring ptr, strA as zstring ptr=@"Yes", strB as zstring ptr=@"No", byval defaultval as integer=0, byval escval as integer=-1, helpkey as zstring ptr=@"") as integer
+DECLARE FUNCTION yesno(capt as zstring ptr, byval defaultval as bool=YES, byval escval as bool=NO) as bool
 DECLARE FUNCTION confirmed_copy (srcfile as string, destfile as string) as bool
 DECLARE FUNCTION confirmed_copydirectory(src as string, dest as string) as bool
 DECLARE FUNCTION os_shell_move(src as string, dest as string) as bool
@@ -230,7 +230,7 @@ DECLARE FUNCTION tag_is_autoset(byval tag_id as integer) as bool
 DECLARE FUNCTION describe_tag_autoset_places(byval tag_id as integer) as string
 DECLARE FUNCTION onoroff (byval n as integer) as string
 DECLARE FUNCTION describe_tag_condition(tag as integer, zerocap as string, maxwidth as integer = 320) as string
-DECLARE FUNCTION yesorno (byval n as integer, yes_cap as string="YES", no_cap as string="NO") as string
+DECLARE FUNCTION yesorno (byval n as integer, yes_cap as zstring ptr=@"YES", no_cap as zstring ptr=@"NO") as string
 
 DECLARE FUNCTION format_percent (byval float as double, byval sigfigs as integer = 5) as string
 DECLARE FUNCTION percent_grabber OVERLOAD (byref float as double, byref repr as string, min as double, max as double, decimalplaces as integer = 4, ret_if_repr_changed as bool = YES) as bool
@@ -266,7 +266,7 @@ DECLARE FUNCTION escape_nonprintable_ascii(s as string) as string
 DECLARE FUNCTION remove_nonprintable_ascii(s as string, replacement as string = "") as string
 DECLARE FUNCTION sanitize_script_identifier (ident as string, allow_whitespace as bool = YES) as string
 
-DECLARE FUNCTION inputfilename (query as string, ext as string, byref directory as string, helpkey as string, default as string="", allow_overwrite as bool=YES) as string
+DECLARE FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref directory as string, helpkey as zstring ptr, default as zstring ptr=@"", allow_overwrite as bool=YES) as string
 DECLARE FUNCTION prompt_for_string (byref retstring as string, caption as string, limit as integer = 40) as bool
 
 DECLARE FUNCTION get_home_dir() as string
@@ -276,7 +276,7 @@ DECLARE FUNCTION get_help_dir(helpfile as string="") as string
 DECLARE FUNCTION load_help_file(helpkey as string) as string
 DECLARE SUB save_help_file(helpkey as string, text as string)
 
-DECLARE SUB show_help(helpkey as string)
+DECLARE SUB show_help(helpkey as zstring ptr)
 DECLARE FUNCTION multiline_string_editor(s as string, helpkey as string="", prompt_to_save as bool = YES) as string
 DECLARE SUB export_string_to_file(s as string)
 DECLARE SUB import_string_from_file(s as string)
@@ -334,24 +334,24 @@ TYPE FnNoArgsBool as FUNCTION () as bool
 DECLARE FUNCTION progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double) as bool
 
 DECLARE FUNCTION default_gen_bool(nodepath as string) as bool
-DECLARE FUNCTION get_gen_bool(nodepath as string) as bool
-DECLARE SUB set_gen_bool(nodepath as string, byval v as bool)
-DECLARE SUB toggle_gen_bool(nodepath as string)
+DECLARE FUNCTION get_gen_bool(nodepath as zstring ptr) as bool
+DECLARE SUB set_gen_bool(nodepath as zstring ptr, byval v as bool)
+DECLARE SUB toggle_gen_bool(nodepath as zstring ptr)
 
 DECLARE FUNCTION default_gen_int(nodepath as string) as integer
 DECLARE FUNCTION gen_int_limits(nodepath as string) as XYPair
 DECLARE FUNCTION enforce_gen_int_limits(nodepath as string, byval v as integer) as integer
-DECLARE FUNCTION get_gen_int(nodepath as string) as integer
-DECLARE SUB set_gen_int(nodepath as string, byval v as integer)
+DECLARE FUNCTION get_gen_int(nodepath as zstring ptr) as integer
+DECLARE SUB set_gen_int(nodepath as zstring ptr, byval v as integer)
 DECLARE FUNCTION gen_intgrabber(nodepath as string) as bool
 
 DECLARE SUB set_global_config_file()
 DECLARE FUNCTION read_ini_prefixed_str (filename as string, prefixed_key as string, default as string="") as string
-DECLARE FUNCTION read_config_str (key as string, default as string="") as string
-DECLARE FUNCTION read_config_int (key as string, default as integer=0) as integer
-DECLARE FUNCTION read_config_bool (key as string, default as bool=NO) as bool
-DECLARE SUB write_config OVERLOAD (key as string, value as string)
-DECLARE SUB write_config OVERLOAD (key as string, value as integer)
+DECLARE FUNCTION read_config_str (key as zstring ptr, default as zstring ptr=@"") as string
+DECLARE FUNCTION read_config_int (key as zstring ptr, default as integer=0) as integer
+DECLARE FUNCTION read_config_bool (key as zstring ptr, default as bool=NO) as bool
+DECLARE SUB write_config OVERLOAD (key as zstring ptr, value as string)
+DECLARE SUB write_config OVERLOAD (key as zstring ptr, value as integer)
 
 'Global variables  (See also common_base.bi)
 EXTERN sourcerpg as string

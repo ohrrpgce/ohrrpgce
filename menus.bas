@@ -125,13 +125,13 @@ END SUB
 
 'Simple... and yet, more options than a regular menu item
 'Can also insert instead of appending... bad name
-SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as string, byval unselectable as bool = NO, byval col as integer = 0, byval dat as integer = 0, byval where as integer = -1)
+SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as zstring ptr, byval unselectable as bool = NO, byval col as integer = 0, byval dat as integer = 0, byval where as integer = -1)
  IF where = -1 THEN
   v_expand menu, 1
   where = v_len(menu) - 1
  END IF
  WITH menu[where]
-  .text = caption
+  .text = *caption
   .col = col
   .bgcol = 0
   .unselectable = unselectable
@@ -1070,12 +1070,12 @@ SUB sort_menu_and_select_selectable_item(menu as MenuDef, state as MenuState)
 END SUB
 
 ' Returns index in menu.items[]
-FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as integer=0, byval sub_t as integer=0, byval dataptr as ANY ptr=0) as integer
+FUNCTION append_menu_item(byref menu as MenuDef, caption as zstring ptr, byval t as integer=0, byval sub_t as integer=0, byval dataptr as ANY ptr=0) as integer
  DIM i as integer
  DIM item as MenuDefItem ptr
  item = NEW MenuDefItem
  WITH *item
-  .caption = caption
+  .caption = *caption
   .t = t
   .sub_t = sub_t
   .dataptr = dataptr

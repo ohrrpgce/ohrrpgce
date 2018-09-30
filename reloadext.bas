@@ -104,13 +104,14 @@ Function GetNodePath(byval node as NodePtr) as string
 	return prefix & "/" & NodeName(node)
 End Function
 
-Function NodeByPath(byval doc as DocPtr, path as string, byval create as bool=NO) as NodePtr
+Function NodeByPath(byval doc as DocPtr, path as zstring ptr, byval create as bool=NO) as NodePtr
 	Return NodeByPath(DocumentRoot(doc), path, create)
 End Function
 
-Function NodeByPath(byval node as NodePtr, path as string, byval create as bool=NO) as NodePtr
+Function NodeByPath(byval node as NodePtr, zpath as zstring ptr, byval create as bool=NO) as NodePtr
 	if node = null then return null
-	if path = "" then return null
+	if len(*zpath) = 0 then return null
+	dim path as string = *zpath
 	if mid(path, 1, 1) <> "/" then
 		debug "malformed path segment " & path
 		return null
@@ -253,7 +254,7 @@ End Function
 '   * "int" int - <value>
 '"int" can be optionally overridden.
 'Returns a pointer to the 'value' node, so you can stuff in more data.
-Function SetKeyValueNode (byval parent as NodePtr, keyname as string, byval key as integer, byval value as integer = 0, valuename as string = "int") as NodePtr
+Function SetKeyValueNode (byval parent as NodePtr, keyname as zstring ptr, byval key as integer, byval value as integer = 0, valuename as zstring ptr = @"int") as NodePtr
 	if parent = NULL then
 		debug "SetKeyValueNode: NULL node ptr"
 		return NULL
@@ -274,7 +275,7 @@ Function SetKeyValueNode (byval parent as NodePtr, keyname as string, byval key 
 End Function
 
 'See SetKeyValueNode. Returns a pointer to the 'value' node.
-Function GetKeyValueNode (byval parent as NodePtr, keyname as string, byval key as integer, valuename as string = "int") as NodePtr
+Function GetKeyValueNode (byval parent as NodePtr, keyname as zstring ptr, byval key as integer, valuename as zstring ptr = @"int") as NodePtr
 	if parent = NULL then
 		debug "GetKeyValueNode: NULL node ptr"
 		return NULL
@@ -286,7 +287,7 @@ Function GetKeyValueNode (byval parent as NodePtr, keyname as string, byval key 
 		if GetInteger(n) = key then
 			dim retnode as NodePtr = GetChildByName(n, valuename)
 			if retnode = NULL then
-				debug "GetKeyValueNode(" & NodeName(parent) & ", " & keyname & ", " & key & "): no '" & valuename & "' child!"
+				debug "GetKeyValueNode(" & NodeName(parent) & ", " & *keyname & ", " & key & "): no '" & *valuename & "' child!"
 				return NULL
 			end if
 			return retnode
@@ -297,7 +298,7 @@ Function GetKeyValueNode (byval parent as NodePtr, keyname as string, byval key 
 End Function
 
 'More convenient form of GetKeyValueNode
-Function ReadKeyValueNode (byval parent as NodePtr, keyname as string, byval key as integer, byval default as integer, valuename as string = "int") as integer
+Function ReadKeyValueNode (byval parent as NodePtr, keyname as zstring ptr, byval key as integer, byval default as integer, valuename as zstring ptr = @"int") as integer
 	dim n as NodePtr = GetKeyValueNode(parent, keyname, key, valuename)
 	if n = NULL then
 		return default

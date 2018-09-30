@@ -82,7 +82,7 @@ CONST distmenuLINUXSETUP as integer = 9
 CONST distmenuLINUX64SETUP as integer = 10
 
 DECLARE FUNCTION dist_yesno(capt as string, byval defaultval as integer=YES, byval escval as integer=NO) as integer
-DECLARE SUB dist_info (msg as string, errlvl as errorLevelEnum = errDebug)
+DECLARE SUB dist_info (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
 DIM SHARED auto_yes as bool = NO
 
 SUB distribute_game ()
@@ -1743,7 +1743,7 @@ FUNCTION dist_yesno(capt as string, byval defaultval as integer=YES, byval escva
  RETURN yesno(capt, defaultval, escval)
 END FUNCTION
 
-SUB dist_info (msg as string, errlvl as errorLevelEnum = errDebug)
+SUB dist_info (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
  IF auto_yes THEN
   debugc errlvl, msg
  ELSE

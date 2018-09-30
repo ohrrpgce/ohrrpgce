@@ -13,7 +13,7 @@
 DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu() as SimpleMenuItem, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, byval menu as BasicMenuItem vector, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu() as string, menuopts as MenuOptions = MenuOptions())
-DECLARE SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as string, byval unselectable as bool = NO, byval col as integer = 0, byval dat as integer = 0, byval where as integer = -1)
+DECLARE SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as zstring ptr, byval unselectable as bool = NO, byval col as integer = 0, byval dat as integer = 0, byval where as integer = -1)
 DECLARE SUB correct_menu_state (state as MenuState)
 DECLARE SUB correct_menu_state_top (state as MenuState)
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
@@ -58,7 +58,7 @@ DECLARE SUB SortMenuItems(menu as MenuDef)
 DECLARE FUNCTION getmenuname(byval record as integer) as string
 DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu as MenuDef)
 DECLARE SUB sort_menu_and_select_selectable_item(menu as MenuDef, state as MenuState)
-DECLARE FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as integer=0, byval sub_t as integer=0, byval dataptr as ANY ptr=0) as integer
+DECLARE FUNCTION append_menu_item(byref menu as MenuDef, caption as zstring ptr, byval t as integer=0, byval sub_t as integer=0, byval dataptr as ANY ptr=0) as integer
 DECLARE SUB remove_menu_item OVERLOAD (byref menu as MenuDef, byval mi as MenuDefItem ptr)
 DECLARE SUB remove_menu_item OVERLOAD (byref menu as MenuDef, byval mislot as integer)
 DECLARE SUB swap_menu_items(byref menu1 as MenuDef, byval mislot1 as integer, byref menu2 as MenuDef, byval mislot2 as integer)
