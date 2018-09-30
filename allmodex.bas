@@ -6794,6 +6794,17 @@ function image_import_as_frame_8bit(filename as string, masterpal() as RGBcolor,
 	end if
 end function
 
+'Returns a Frame backed by a 32-bit Surface
+function image_import_as_frame_32bit(filename as string) as Frame ptr
+	dim surf as Surface ptr
+	surf = image_import_as_surface(filename, YES)
+	if surf = NULL then return NULL
+	dim ret as Frame ptr
+	ret = frame_with_surface(surf)
+	gfx_surfaceDestroy(@surf)
+	return ret
+end function
+
 'Output file format is determined from the filename.
 sub frame_export_image (fr as Frame ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)
 	select case image_file_type(filename)
@@ -7992,6 +8003,7 @@ end function
 ' Note: normally it makes no sense to call this on a Surface that is itself
 ' a view of a Frame
 function frame_with_surface(surf as Surface ptr) as Frame ptr
+	if surf = NULL then return NULL
 	dim ret as Frame ptr = frame_new(1, 1, 1, , , , YES)  'no_alloc = YES. Dummy size
 	init_frame_with_surface ret, surf
 	return ret

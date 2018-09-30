@@ -1554,6 +1554,10 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      IF dat->assetfile = NULL THEN fatalerror "sliceedit: null dat->assetfile"
      a_append menu(), " Asset file: " & *dat->assetfile
      sliceed_rule_str rules(), "sprite_asset", erShortStrgrabber, dat->assetfile, 1024, (slgrUPDATESPRITE OR slgrBROWSESPRITEASSET)
+     IF ses.privileged THEN
+      a_append menu(), "  Load as 32bit Frame: " & yesorno(dat->load_asset_as_32bit)
+      sliceed_rule_tog rules(), "sprite_32bit_asset", @(dat->load_asset_as_32bit), slgrUPDATESPRITE
+     END IF
     ELSE
      a_append menu(), " Spriteset: " & dat->record
      sliceed_rule rules(), "sprite_rec", erIntgrabber, @(dat->record), 0, sizeinfo.lastrec, (slgrUPDATESPRITE OR slgrBROWSESPRITEID)

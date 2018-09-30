@@ -1638,7 +1638,12 @@ Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
   if .assetfile then assetfile = *.assetfile
   dim filename as string = finddatafile(assetfile, NO)  'Handle missing file below
   if len(filename) then
-   .img.sprite = image_import_as_frame_8bit(filename, master())
+   if .load_asset_as_32bit then
+    .img.sprite = image_import_as_frame_32bit(filename)
+   else
+    dim transp_color as RGBcolor  'Black. TODO: this should be stored in dat and customisabled
+    .img.sprite = image_import_as_frame_8bit(filename, master(), , transp_color)
+   end if
   end if
   if .img.sprite then
    sl->Width = .img.sprite->w
@@ -1722,6 +1727,7 @@ Sub CloneSpriteSlice(byval sl as Slice ptr, byval cl as Slice ptr)
    .assetfile = callocate(sizeof(string))
    *.assetfile = *dat->assetfile
   end if
+  .load_asset_as_32bit = dat->load_asset_as_32bit
   .record     = dat->record
   .paletted   = dat->paletted
   .pal        = dat->pal
@@ -1749,6 +1755,7 @@ Sub SaveSpriteSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
   ' If it's not an asset sprite, then the Frame came from an unknown source and can't be saved
   if dat->assetfile = NULL then reporterr "SaveSpriteSlice: tried to save Frame sprite", serrBug : exit sub
   SavePropAlways node, "asset", *dat->assetfile
+  SaveProp node, "32bit_asset", dat->load_asset_as_32bit
  else
   SavePropAlways node, "rec", dat->record
   if dat->paletted then
@@ -1792,6 +1799,7 @@ Sub LoadSpriteSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->d_auto     = LoadPropBool(node, "d_auto")
 
  if dat->spritetype = sprTypeFrame then
+  dat->load_asset_as_32bit = LoadPropBool(node, "32bit_asset")
   SetSpriteToAsset sl, LoadPropStr(node, "asset")
  else
   'Load the sprite already in order to ensure the size is correct. This could be

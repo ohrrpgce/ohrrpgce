@@ -399,6 +399,7 @@ Type SpriteSliceData
                            'created from a Frame loaded from elsewhere, and can't be saved.
                            '(The string memory is owned by this slice. Used a string ptr
                            'to minimise overhead for non-asset slices.)
+ load_asset_as_32bit as bool
  record as integer  'Spriteset number. Meaningless if spritetype is sprTypeFrame
  frame as integer   'Currently displaying frame number. Must be 0 if spritetype is sptTypeFrame
  paletted as bool   'UNSAVED: YES: 4-bit, NO: 8-bit  (could remove this when 256-colour palettes added, or change meaning)
