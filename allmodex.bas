@@ -8116,6 +8116,8 @@ end sub
 ' For 4-bit sprites it will return a pointer to the first frame, and subsequent frames
 ' will be immediately after it in memory. (This is a hack, and will probably be removed)
 ' For tilesets, the tileset will already be reordered as needed.
+' Note: if no game has been loaded, the lump doesn't exist, or the record is out of range,
+' may return either NULL or a blank Frame!
 function frame_load(sprtype as SpriteType, record as integer) as Frame ptr
 	dim ret as Frame ptr = sprite_fetch_from_cache(sprtype, record)
 	if ret then return ret
@@ -8159,6 +8161,7 @@ private function frame_load_uncached(sprtype as SpriteType, record as integer) a
 
 	if sprtype = sprTypeTileset or sprtype = sprTypeTilesetStrip then
 		dim mxs as Frame ptr
+		'Returns a blank Frame on error
 		mxs = frame_load_mxs(graphics_file("til"), record)
 		if mxs = NULL then return NULL
 		if sprtype = sprTypeTilesetStrip then
@@ -8173,6 +8176,7 @@ private function frame_load_uncached(sprtype as SpriteType, record as integer) a
 		if ret then
 			'OK
 		elseif sprtype = sprTypeBackdrop then
+			'Returns a blank Frame on error
 			ret = frame_load_mxs(graphics_file("mxs"), record)
 			if ret then
 				sprset = new SpriteSet(ret)  'Attaches to ret
@@ -8182,9 +8186,12 @@ private function frame_load_uncached(sprtype as SpriteType, record as integer) a
 				'debug "loading " & sprtype & "  " & record
 				'cachemiss += 1
 				ret = frame_load_4bit(graphics_file("pt" & sprtype), record, .frames, .size.w, .size.h)
+				if ret = NULL then
+					ret = frame_new(.size.w, .size.h, .frames, YES)
+				end if
 			end with
-			initialise_backcompat_pt_frameids ret, sprtype
 			if ret then
+				initialise_backcompat_pt_frameids ret, sprtype
 				sprset = new SpriteSet(ret)  'Attaches to ret
 				sprset->global_animations = load_global_animations(sprtype)
 			end if
@@ -8696,6 +8703,8 @@ private sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal a
 			end if
 		end if
 
+		' TODO: this ignores the src mask, if the src is 8-bit, which means dissolved Frames
+		' aren't drawn correctly
 		draw_clipped_surf src_surface, master_pal, pal, x, y, trans, dest->surf
 
 		cleanup:
