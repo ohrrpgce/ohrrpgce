@@ -623,7 +623,7 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
   DIM flags as int32 = 0
   IF towindowed = NO THEN flags = SDL_WINDOW_FULLSCREEN_DESKTOP
   IF SDL_SetWindowFullscreen(mainwindow, flags) THEN
-    debugc errPrompt, "Could not toggle fullscreen mode: " & *SDL_GetError()
+    debugc errShow, "Could not toggle fullscreen mode: " & *SDL_GetError()
     EXIT SUB
   END IF
   windowedmode = towindowed

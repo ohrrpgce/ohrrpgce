@@ -463,7 +463,7 @@ SUB gamestate_slices_from_reload(byval node as Reload.NodePtr)
   ELSE
    WITH SliceTable
     IF .ScriptSprite->NumChildren <> 0 THEN
-     debugc errPromptBug, "RSAV: old sprite_layer meant to be empty"
+     debugc errShowBug, "RSAV: old sprite_layer meant to be empty"
     END IF
     DeleteSlice @.ScriptSprite
     .ScriptSprite = NewSliceOfType(slSpecial, .Root)

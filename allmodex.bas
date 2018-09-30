@@ -3209,7 +3209,7 @@ private function calcblock (tmap as TileMap, x as integer, y as integer, overhea
 
 	if overheadmode > 0 then
 		if pmapptr = NULL then
-			debugc errPromptBug, "calcblock: overheadmode but passmap ptr is NULL"
+			debugc errShowBug, "calcblock: overheadmode but passmap ptr is NULL"
 			block = -1
 		elseif x >= pmapptr->wide or y >= pmapptr->high then
 			'Impossible if the passmap is the same size
@@ -3937,7 +3937,7 @@ sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2
 		c = intpal(c).col
 		is32bit = YES
 	else
-		debugc errPromptError, "drawline: bad Frame"
+		debugc errShowError, "drawline: bad Frame"
 		exit sub
 	end if
 
@@ -4243,7 +4243,7 @@ end sub
 function get_font(fontnum as integer, show_err as bool = NO) as Font ptr
 	if fontnum < 0 orelse fontnum > ubound(fonts) orelse fonts(fontnum) = null then
 		if show_err then
-			debugc errPromptBug, "invalid font num " & fontnum
+			debugc errShowBug, "invalid font num " & fontnum
 		end if
 		return fonts(0)
 	else
@@ -4675,11 +4675,11 @@ sub draw_line_fragment(dest as Frame ptr, byref state as PrintStrState, layer as
 						.thefont = fonts(arg)
 					else
 						'This should be impossible, because layout_line_fragment has already checked this
-						debugc errPromptBug, "draw_line_fragment: NULL font!"
+						debugc errShowBug, "draw_line_fragment: NULL font!"
 					end if
 				else
 					'This should be impossible, because layout_line_fragment has already checked this
-					debugc errPromptBug, "draw_line_fragment: invalid font!"
+					debugc errShowBug, "draw_line_fragment: invalid font!"
 				end if
 				if reallydraw then
 					'In case .fgcolor == -1 and .thefont->pal == NULL. Palette changes are per-font,
@@ -5191,11 +5191,11 @@ end destructor
 'Create a version of a font with an outline around each character (in a new palette colour)
 function font_create_edged (basefont as Font ptr) as Font ptr
 	if basefont = null then
-		debugc errPromptBug, "font_create_edged wasn't passed a font!"
+		debugc errShowBug, "font_create_edged wasn't passed a font!"
 		return null
 	end if
 	if basefont->layers(1) = null then
-		debugc errPromptBug, "font_create_edged was passed a blank font!"
+		debugc errShowBug, "font_create_edged was passed a blank font!"
 		return null
 	end if
 	CHECK_FRAME_8BIT(basefont->layers(1)->spr, NULL)
@@ -5529,7 +5529,7 @@ end sub
 
 function get_font_type (ohf_font() as integer) as fontTypeEnum
 	if ohf_font(0) <> ftypeASCII and ohf_font(0) <> ftypeLatin1 then
-		debugc errPromptBug, "Unknown font type ID " & ohf_font(0)
+		debugc errShowBug, "Unknown font type ID " & ohf_font(0)
 		return ftypeASCII
 	end if
 	return ohf_font(0)
@@ -5537,7 +5537,7 @@ end function
 
 sub set_font_type (ohf_font() as integer, ty as fontTypeEnum)
 	if ty <> ftypeASCII and ty <> ftypeLatin1 then
-		debugc errPromptBug, "set_font_type: bad type " & ty
+		debugc errShowBug, "set_font_type: bad type " & ty
 	end if
 	ohf_font(0) = ty
 end sub
@@ -5893,7 +5893,7 @@ function frame_import_bmp_raw(bmp as string) as Frame ptr
 
 	if info.biBitCount > 8 then
 		close #bf
-		debugc errPromptBug, "frame_import_bmp_raw should not have been called!"
+		debugc errShowBug, "frame_import_bmp_raw should not have been called!"
 		return 0
 	end if
 
@@ -6953,7 +6953,7 @@ function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options 
 
 	if options.dither then
 		if surf->pitch <> surf->width or ret->pitch <> surf->width then
-			debugc errPromptBug, "Can't call dither_image due to pitch mismatch"
+			debugc errShowBug, "Can't call dither_image due to pitch mismatch"
 		else
 			dither_image(surf->pColorData, surf->width, surf->height, ret->image, @pal(0), 8, options.firstindex)
 			'Handle options.transparency
@@ -7184,7 +7184,7 @@ sub toggle_recording_gif()
 end sub
 
 private sub _gif_pitch_fail(what as string)
-	debugc errPromptBug, "Can't record gif from " & what & " with extra pitch"
+	debugc errShowBug, "Can't record gif from " & what & " with extra pitch"
 	'This will cause the following GifWriteFrame* call to fail
 	recordvid->stop()
 end sub
@@ -7486,7 +7486,7 @@ sub setclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as inte
 	dim byref cliprect as ClipState = get_cliprect()
 	if fr <> 0 then cliprect.frame = fr
 	if cliprect.frame = 0 then
-		debugc errPromptBug, "Trying to setclip with no Frame"
+		debugc errShowBug, "Trying to setclip with no Frame"
 		exit sub
 	end if
 	with *cliprect.frame
@@ -7901,12 +7901,12 @@ end sub
 'no_alloc: ignore this; internal use only.
 function frame_new(w as integer, h as integer, frames as integer = 1, clr as bool = NO, wantmask as bool = NO, with_surface32 as bool = NO, no_alloc as bool = NO) as Frame ptr
 	if w < 1 or h < 1 or frames < 1 then
-		debugc errPromptBug, "frame_new: bad size " & w & "*" & h & "*" & frames
+		debugc errShowBug, "frame_new: bad size " & w & "*" & h & "*" & frames
 		return 0
 	end if
 	if with_surface32 then
 		if wantmask then
-			debugc errPromptBug, "frame_new: mask and backing surface mututally exclusive"
+			debugc errShowBug, "frame_new: mask and backing surface mututally exclusive"
 		end if
 	end if
 
@@ -8260,7 +8260,7 @@ declare sub read_frame_node(fr as Frame ptr, fr_node as Node ptr, bitdepth as in
 'TODO: Doesn't save mask, but we don't have any need to serialise masks at the moment
 function frameset_to_node(fr as Frame ptr, parent as Node ptr) as Node ptr
 	if fr->arrayelem then
-		debugc errPromptBug, "frameset_to_node: not first Frame in array"
+		debugc errShowBug, "frameset_to_node: not first Frame in array"
 		return NULL
 	end if
 
@@ -8331,15 +8331,15 @@ function frameset_from_node(fs_node as Node ptr) as Frame ptr
 	wend
 
 	if dataformat <> 0 then
-		debugc errPromptError, "frameset_from_node: unsupported data format " & dataformat
+		debugc errShowError, "frameset_from_node: unsupported data format " & dataformat
 		return NULL
 	end if
 	if frames = 0 then
-		debugc errPromptError, "frameset_from_node: no frames!"
+		debugc errShowError, "frameset_from_node: no frames!"
 		return NULL
 	end if
 	if w <= 0 orelse h <= 0 orelse w > 2048 orelse h > 2048 then
-		debugc errPromptError, "frameset_from_node: bad size " & .w & "*" & .h
+		debugc errShowError, "frameset_from_node: bad size " & .w & "*" & .h
 		return NULL
 	end if
 
@@ -8349,7 +8349,7 @@ function frameset_from_node(fs_node as Node ptr) as Frame ptr
 	elseif bitdepth = 32 then
 		fr = frame_new(w, h, frames, , , , YES)  'no_alloc = YES
 	else
-		debugc errPromptError, "frameset_from_node: Unsupported graphics bitdepth " & bitdepth
+		debugc errShowError, "frameset_from_node: Unsupported graphics bitdepth " & bitdepth
 		return NULL
 	end if
 	if fr = NULL then return NULL  'Should already have shown an error
@@ -8371,7 +8371,7 @@ end function
 private sub read_frame_node(fr as Frame ptr, fr_node as Node ptr, bitdepth as integer, byref lastid as integer)
 	fr->frameid = GetChildNodeInt(fr_node, "id", fr->frameid)
 	if fr->frameid <= lastid then
-		debugc errPromptError, "frame_from_node: frameids not in order; " & fr->frameid & " follows " & lastid
+		debugc errShowError, "frame_from_node: frameids not in order; " & fr->frameid & " follows " & lastid
 		exit sub
 	end if
 	lastid = fr->frameid
@@ -8380,7 +8380,7 @@ private sub read_frame_node(fr as Frame ptr, fr_node as Node ptr, bitdepth as in
 	dim imdata as ubyte ptr = GetZString(image_node)
 	dim imlen as integer = GetZStringSize(image_node)
 	if imdata = NULL OR imlen <> fr->w * fr->h * bitdepth \ 8 then
-		debugc errPromptError, "frame_from_node: Couldn't load image; data missing or bad length (" & imlen & " for " & fr->w & "*" & fr->h & ", bitdepth=" & bitdepth & ")"
+		debugc errShowError, "frame_from_node: Couldn't load image; data missing or bad length (" & imlen & " for " & fr->w & "*" & fr->h & ", bitdepth=" & bitdepth & ")"
 		exit sub
 	end if
 

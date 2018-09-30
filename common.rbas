@@ -391,14 +391,14 @@ SUB debugc CDECL (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
    debug *s
   CASE errError
    debug "Error: " & *s
-  CASE errPromptError
+  CASE errShowError
    debug "Error: " & *s
    notification "Error: " & *s & !"\nPress any key..."
   CASE errBug
    debug "(BUG) " & *s
-  CASE errPrompt
+  CASE errShow
    showerror *s
-  CASE errPromptBug
+  CASE errShowBug
    showerror *s, NO, YES
   CASE errFatal
    showerror *s, YES, NO
@@ -557,7 +557,7 @@ END FUNCTION
 'Same as debugc, but always show a message to the user regardless of errlvl
 SUB visible_debug (msg as string, errlvl as errorLevelEnum = errDebug)
  debugc errlvl, msg
- IF errlvl < errPromptError OR errlvl = errBug THEN
+ IF errlvl < errShowError OR errlvl = errBug THEN
   'If it's not one of these error levels, then a message has already been shown
   notification msg + !"\nPress any key..."
   'pop_warning msg
@@ -1201,7 +1201,7 @@ FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
 END FUNCTION
 
 FUNCTION maplumpname (byval map_id as integer, oldext as string) as string
- IF map_id < 0 THEN debugc errPromptBug, "maplumpname: Bad map " & map_id
+ IF map_id < 0 THEN debugc errShowBug, "maplumpname: Bad map " & map_id
  IF map_id < 100 THEN
   return game & "." & oldext & RIGHT("0" & map_id, 2)
  ELSE
@@ -2094,7 +2094,7 @@ FUNCTION stredit (s as string, byref insert as integer, maxl as integer, numline
    END IF
   NEXT linenum
   IF insert_line = -1 THEN
-   debugc errPromptBug, "Ignorable engine bug: stredit couldn't find line"
+   debugc errShowBug, "Ignorable engine bug: stredit couldn't find line"
   END IF
   IF keyval(scUp) > 1 THEN move_lines = -1
   IF keyval(scDown) > 1 THEN move_lines = 1
@@ -5199,12 +5199,12 @@ SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context a
  END IF
 #ENDIF
  IF errlvl >= serrBug THEN
-  debugc errPromptBug, full_msg
+  debugc errShowBug, full_msg
  ELSEIF errlvl >= serrWarn THEN
   'errlvl >= serrError: Corrupt, unsupported, or unreadable data or interpreter state
   'errlvl = serrMajor: A script error that can't be ignored
   'errlvl = serrBadOp or errlvl = serrWarn: Likely something like out-of-bounds data
-  debugc errPromptError, full_msg
+  debugc errShowError, full_msg
  ELSE
   'Info or ignore
   debugc errInfo, full_msg
@@ -5712,7 +5712,7 @@ FUNCTION layer_tileset_index(byval layer as integer) as integer
  ELSEIF layer <= 15 THEN
   RETURN 370 + (layer - 8)
  ELSE
-  debugc errPromptBug, "layer_tileset_index: Bad map layer " & layer
+  debugc errShowBug, "layer_tileset_index: Bad map layer " & layer
  END IF
 END FUNCTION
 

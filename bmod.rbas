@@ -4495,7 +4495,7 @@ SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat
   CASE provokeDidntMiss : IF atkresult =  atkMiss THEN EXIT SUB
   CASE provokeDidntFail : IF atkresult =  atkFail THEN EXIT SUB
   CASE ELSE
-   debugc errPromptBug, "Invalid counterattack_provoke " & provoke & ", def: " & gen(genDefCounterProvoke)
+   debugc errShowBug, "Invalid counterattack_provoke " & provoke & ", def: " & gen(genDefCounterProvoke)
  END SELECT
 
  DIM blocking as bool = NO

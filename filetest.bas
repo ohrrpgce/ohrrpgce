@@ -245,7 +245,7 @@ endTest
 
 sub error_counter cdecl (byval errorlevel as ErrorLevelEnum, byval msg as zstring ptr)
 	DBG("(error reported: " & *msg & ")")
-	if errorlevel > errPromptBug then
+	if errorlevel > errShowBug then
 		? "unexpected error (errlvl=" & errorlevel & "): " & *msg
 		end 1
 	end if

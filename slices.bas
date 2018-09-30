@@ -833,7 +833,7 @@ Function SliceIndexAmongSiblings(sl as Slice Ptr) as integer
   if sib = sl then return i
   sib = sib->NextSibling
  next i
- debugc errPromptBug, "slice not a child of its parent"
+ debugc errShowBug, "slice not a child of its parent"
  return 0
 End function
 
@@ -2360,7 +2360,7 @@ Sub LayoutSliceData.SpaceRow(par as Slice ptr, first as Slice ptr, axis0 as inte
  first = SkipForward(first)
  dim as Slice ptr ch = first, last
  'Should never happen
- if ch = 0 then debugc errPromptBug, "SpaceRow: no children" : exit sub
+ if ch = 0 then debugc errShowBug, "SpaceRow: no children" : exit sub
 
  while ch
   'Always place at least one child on each row
@@ -3435,7 +3435,7 @@ Function SlicePossiblyResizable(sl as Slice ptr) as bool
    ' Resizing map slices isn't implemented.
    return NO
   case else
-   debugc errPromptBug, "SliceResizable needs to be updated for type " & sl->SliceType
+   debugc errShowBug, "SliceResizable needs to be updated for type " & sl->SliceType
    return NO
  end select
 end Function

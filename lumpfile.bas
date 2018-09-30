@@ -271,7 +271,7 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 	dim idx as integer
 	if recordsize <= 0 then return NO
 	if ubound(buf) < recordsize - 1 then
-		debugc errPromptBug, "loadrecord: " & recordsize & " ints will not fit in " & ubound(buf) + 1 & " element array, in " & get_filename(fh)
+		debugc errShowBug, "loadrecord: " & recordsize & " ints will not fit in " & ubound(buf) + 1 & " element array, in " & get_filename(fh)
 		'continue, fit in as much as possible
 	end if
 	dim readbuf(recordsize - 1) as short
@@ -1437,7 +1437,7 @@ function inworkingdir(filename as string, writable as boolint, writes_allowed as
 
 #ifdef IS_GAME
 	if ret = FilterActionEnum.hook andalso writable andalso writes_allowed = NO then
-		debugc errPromptBug, "Engine bug: Illegally tried to open protected file " & filename & " for writing"
+		debugc errShowBug, "Engine bug: Illegally tried to open protected file " & filename & " for writing"
 		ret = FilterActionEnum.deny
 	end if
 #endif

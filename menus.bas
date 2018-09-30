@@ -737,7 +737,7 @@ SUB highlight_menu_typing_selection(byref menu as BasicMenuItem vector, byref me
  IF selectst.remember_pt <> state.pt THEN select_clear selectst
  selectst.remember_pt = state.pt
 
- IF state.first <> 0 OR v_len(menu) - 1 <> state.last THEN debugc errPromptBug, "highlight_menu_typing_selection: bad MenuState"
+ IF state.first <> 0 OR v_len(menu) - 1 <> state.last THEN debugc errShowBug, "highlight_menu_typing_selection: bad MenuState"
  v_copy menu_display, menu
 
  v_at(menu_display, state.pt)->text = highlight_menu_typing_selection_string(v_at(menu, state.pt)->text, selectst)

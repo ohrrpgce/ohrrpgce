@@ -794,12 +794,12 @@ endTest
 
 
 'Most error conditions in array.c raise a errFatalBug error, but bounds checking
-'raises errPromptBug errors
+'raises errShowBug errors
 
 dim shared num_errors as integer = 0
 
 sub error_counter cdecl (byval errorlevel as ErrorLevelEnum, byval msg as zstring ptr)
-	if errorlevel > errPromptBug then
+	if errorlevel > errShowBug then
 		print "unexpected error (errlvl=" & errorlevel & "): " & *msg
 		end 1
 	end if

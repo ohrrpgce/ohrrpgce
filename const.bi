@@ -394,11 +394,14 @@ Enum 'errorLevelEnum
   errInfo = 1   'Informational spam (doesn't cause g/c_debug.txt to be kept)
   errDebug      'Log a message and preserve g/c_debug.txt
   errError      'Something is wrong, but it's not necessarily due to a bug
-  errPromptError 'Something is wrong, but it's not necessarily due to a bug. Show an error message and log it.
-  errBug        'Engine bug detected; log but don't interrupt the program. Usually would use errPromptBug instead.
-  errPrompt     'Show error and possibly prompt the user whether they want to quit (doesn't return) or continue
-  errPromptBug  'As above, but indicates that it's an engine bug
+  errShowError  'Something is wrong, but it's not necessarily due to a bug. Show an error message and log it.
+  errBug        'Engine bug detected; log but don't interrupt the program. Usually would use errShowBug instead.
+  errShow       'Show error and possibly prompt the user whether they want to quit (doesn't return) or continue
+                '(Equivalent to showerror)
+  errShowBug    'As above, but indicates that it's an engine bug
+                '(Equivalent to showbug)
   errFatal      'Does not return!
+                '(Equivalent to fatalerror)
   errFatalBug   'Does not return!
   errDie        'Exit immediately without attempting to show a message (especially for gfx backend errors)
 End Enum

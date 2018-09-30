@@ -554,6 +554,7 @@ Function FindStringInTable (st as string, byval doc as DocPtr) as integer
 	return ret
 end function
 
+
 'Adds a string to the string table. If it already exists, return the index
 'If it doesn't already exist, add it, and return the new index
 Function AddStringToTable(name as string, byval doc as DocPtr) as integer
@@ -570,7 +571,7 @@ Function AddStringToTable(name as string, byval doc as DocPtr) as integer
 	if doc->numStrings >= doc->numAllocStrings then 'I hope it's only ever equals...
 		dim s as StringTableEntry ptr = RReallocate(doc->strings, doc, sizeof(StringTableEntry) * (doc->numAllocStrings * 2))
 		if s = 0 then 'panic
-			debugc errPromptBug, "Error resizing string table"
+			debugc errShowBug, "Error resizing string table"
 			return -1
 		end if
 		for i as integer = doc->numAllocStrings to doc->numAllocStrings * 2 - 1
@@ -1059,7 +1060,7 @@ sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 	end if
 
 	if nod->doc <> doc then
-		debugc errPromptBug, "SetRootNode: node was created in the context of another RELOAD doc"
+		debugc errShowBug, "SetRootNode: node was created in the context of another RELOAD doc"
 	end if
 
 	doc->root = nod
