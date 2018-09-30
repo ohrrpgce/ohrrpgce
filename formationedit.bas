@@ -653,7 +653,7 @@ SUB draw_formation_slices(eform as Formation, hform as HeroFormation, rootslice 
    'Is an enemy
    DIM enemy_slot as integer = sl->Lookup - SL_FORMEDITOR_ENEMY
    DIM fslot as FormationSlot ptr = @eform.slots(enemy_slot)
-   IF fslot->id < 0 THEN debugc errShowBug, "Formation enemy slice corresponds to an empty slot"
+   IF fslot->id < 0 THEN showbug "Formation enemy slice corresponds to an empty slot"
    sl->Pos = fslot->pos
    ' Set layering, like slAutoSortBottomY but break ties according to the order in bslot()
    ' (Enemy slices are anchored by the top-left edge)

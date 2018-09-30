@@ -738,7 +738,7 @@ NEXT i
 unloadmaptilesets st.tilesets()
 unloadtilemap st.menubar
 v_free st.history
-IF st.secondary_undo_buffer THEN debugc errShowBug, "mapedit cleanup: secondary_undo_buffer exists!"
+IF st.secondary_undo_buffer THEN showbug "mapedit cleanup: secondary_undo_buffer exists!"
 v_free st.cloned
 unloadtilemap st.zoneviewmap
 unloadtilemap st.zoneoverlaymap
@@ -1698,7 +1698,7 @@ DO
 
  '--Apply temporary previews to the map
  '(Creating the secondary undo buffer causes edits to be undoable with undo_preview)
- IF st.secondary_undo_buffer THEN debugc errShowBug, "mapedit preview: secondary_undo_buffer already exists!"
+ IF st.secondary_undo_buffer THEN showbug "mapedit preview: secondary_undo_buffer already exists!"
  IF st.tool = clone_tool AND st.cloned <> NULL THEN
   v_new st.secondary_undo_buffer
   apply_changelist st, st.cloned, st.pos - st.clone_offset
@@ -3249,7 +3249,7 @@ SUB mapedit_gmapdata(st as MapEditState)
   DIM idx as integer = gdidx(i)
   IF idx >= 0 THEN
    IF NOT in_bound(map.gmap(idx), gdmin(idx), gdmax(idx)) THEN
-    debugc errError, "Map " & map.id & "'s general data corrupt (or unsupported); clamping gmap(" & idx & ") = " & map.gmap(idx) & " -> 0"
+    debugerror "Map " & map.id & "'s general data corrupt (or unsupported); clamping gmap(" & idx & ") = " & map.gmap(idx) & " -> 0"
     map.gmap(idx) = 0
    END IF
   END IF

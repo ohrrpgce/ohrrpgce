@@ -413,7 +413,7 @@ function copy_file_replacing(byval source as zstring ptr, byval destination as z
 	'Overwrites existing files
 	if CopyFile_(source, destination, 0) = 0 then
 		dim errstr as string = error_string
-		debugc errError, "copy_file_replacing(" & *source & "," & *destination & ") failed: " & errstr
+		debugerror "copy_file_replacing(" & *source & "," & *destination & ") failed: " & errstr
 		return NO
 	end if
 	return YES
@@ -970,7 +970,7 @@ end function
 function tls_alloc_key() as TLSKey
 	dim key as DWORD = TlsAlloc()
 	if key = 0 then
-		debugc errError, "TlsAlloc failed: " & get_windows_error(GetLastError())
+		debugerror "TlsAlloc failed: " & get_windows_error(GetLastError())
 	end if
 	return cast(TLSKey, key)
 end function

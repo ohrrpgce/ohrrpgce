@@ -513,7 +513,7 @@ sub sound_play(slot as integer, loopcount as integer, volume as single = 1.)
 	' remains loaded after the sound effect has stopped.
 	with sfx_slots(slot)
 		if .buf = 0 then
-			debugc errShowBug, "sound_play: not loaded"
+			showbug "sound_play: not loaded"
 			exit sub
 		end if
 
@@ -526,7 +526,7 @@ sub sound_play(slot as integer, loopcount as integer, volume as single = 1.)
 			' Note that the i-th sfx slot is played on the i-th SDL_mixer channel,
 			' which is just a simplification.
 			if Mix_PlayChannel(slot, .buf, loopcount) = -1 then
-				debugc errShowBug, "sound_play: Mix_PlayChannel failed"
+				showbug "sound_play: Mix_PlayChannel failed"
 				exit sub
 			end if
 			.playing = YES

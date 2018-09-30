@@ -3209,7 +3209,7 @@ private function calcblock (tmap as TileMap, x as integer, y as integer, overhea
 
 	if overheadmode > 0 then
 		if pmapptr = NULL then
-			debugc errShowBug, "calcblock: overheadmode but passmap ptr is NULL"
+			showbug "calcblock: overheadmode but passmap ptr is NULL"
 			block = -1
 		elseif x >= pmapptr->wide or y >= pmapptr->high then
 			'Impossible if the passmap is the same size
@@ -3431,12 +3431,12 @@ function frame_load_mxs (filen as string, record as integer) as Frame ptr
 		return dest
 	end if
 	if openfile(filen, for_binary + access_read, fh) then
-		debugc errError, "frame_load_mxs: Couldn't open " & filen
+		debugerror "frame_load_mxs: Couldn't open " & filen
 		return dest
 	end if
 
 	if lof(fh) < (record + 1) * 64000 then
-		debugc errError, "frame_load_mxs: wanted page " & record & "; " & filen & " is only " & lof(fh) & " bytes"
+		debugerror "frame_load_mxs: wanted page " & record & "; " & filen & " is only " & lof(fh) & " bytes"
 		close #fh
 		return dest
 	end if
@@ -4243,7 +4243,7 @@ end sub
 function get_font(fontnum as integer, show_err as bool = NO) as Font ptr
 	if fontnum < 0 orelse fontnum > ubound(fonts) orelse fonts(fontnum) = null then
 		if show_err then
-			debugc errShowBug, "invalid font num " & fontnum
+			showbug "invalid font num " & fontnum
 		end if
 		return fonts(0)
 	else
@@ -4675,11 +4675,11 @@ sub draw_line_fragment(dest as Frame ptr, byref state as PrintStrState, layer as
 						.thefont = fonts(arg)
 					else
 						'This should be impossible, because layout_line_fragment has already checked this
-						debugc errShowBug, "draw_line_fragment: NULL font!"
+						showbug "draw_line_fragment: NULL font!"
 					end if
 				else
 					'This should be impossible, because layout_line_fragment has already checked this
-					debugc errShowBug, "draw_line_fragment: invalid font!"
+					showbug "draw_line_fragment: invalid font!"
 				end if
 				if reallydraw then
 					'In case .fgcolor == -1 and .thefont->pal == NULL. Palette changes are per-font,
@@ -5191,11 +5191,11 @@ end destructor
 'Create a version of a font with an outline around each character (in a new palette colour)
 function font_create_edged (basefont as Font ptr) as Font ptr
 	if basefont = null then
-		debugc errShowBug, "font_create_edged wasn't passed a font!"
+		showbug "font_create_edged wasn't passed a font!"
 		return null
 	end if
 	if basefont->layers(1) = null then
-		debugc errShowBug, "font_create_edged was passed a blank font!"
+		showbug "font_create_edged was passed a blank font!"
 		return null
 	end if
 	CHECK_FRAME_8BIT(basefont->layers(1)->spr, NULL)
@@ -5529,7 +5529,7 @@ end sub
 
 function get_font_type (ohf_font() as integer) as fontTypeEnum
 	if ohf_font(0) <> ftypeASCII and ohf_font(0) <> ftypeLatin1 then
-		debugc errShowBug, "Unknown font type ID " & ohf_font(0)
+		showbug "Unknown font type ID " & ohf_font(0)
 		return ftypeASCII
 	end if
 	return ohf_font(0)
@@ -5537,7 +5537,7 @@ end function
 
 sub set_font_type (ohf_font() as integer, ty as fontTypeEnum)
 	if ty <> ftypeASCII and ty <> ftypeLatin1 then
-		debugc errShowBug, "set_font_type: bad type " & ty
+		showbug "set_font_type: bad type " & ty
 	end if
 	ohf_font(0) = ty
 end sub
@@ -5704,7 +5704,7 @@ private function write_bmp_header(filen as string, w as integer, h as integer, b
 	info.biClrImportant = 1 shl bitdepth
 
 	if openfile(filen, for_binary + access_write, of) then  'Truncate
-		debugc errError, "write_bmp_header: couldn't open " & filen
+		debugerror "write_bmp_header: couldn't open " & filen
 		return -1
 	end if
 
@@ -5893,7 +5893,7 @@ function frame_import_bmp_raw(bmp as string) as Frame ptr
 
 	if info.biBitCount > 8 then
 		close #bf
-		debugc errShowBug, "frame_import_bmp_raw should not have been called!"
+		showbug "frame_import_bmp_raw should not have been called!"
 		return 0
 	end if
 
@@ -6953,7 +6953,7 @@ function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options 
 
 	if options.dither then
 		if surf->pitch <> surf->width or ret->pitch <> surf->width then
-			debugc errShowBug, "Can't call dither_image due to pitch mismatch"
+			showbug "Can't call dither_image due to pitch mismatch"
 		else
 			dither_image(surf->pColorData, surf->width, surf->height, ret->image, @pal(0), 8, options.firstindex)
 			'Handle options.transparency
@@ -7184,7 +7184,7 @@ sub toggle_recording_gif()
 end sub
 
 private sub _gif_pitch_fail(what as string)
-	debugc errShowBug, "Can't record gif from " & what & " with extra pitch"
+	showbug "Can't record gif from " & what & " with extra pitch"
 	'This will cause the following GifWriteFrame* call to fail
 	recordvid->stop()
 end sub
@@ -7486,7 +7486,7 @@ sub setclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as inte
 	dim byref cliprect as ClipState = get_cliprect()
 	if fr <> 0 then cliprect.frame = fr
 	if cliprect.frame = 0 then
-		debugc errShowBug, "Trying to setclip with no Frame"
+		showbug "Trying to setclip with no Frame"
 		exit sub
 	end if
 	with *cliprect.frame
@@ -7901,12 +7901,12 @@ end sub
 'no_alloc: ignore this; internal use only.
 function frame_new(w as integer, h as integer, frames as integer = 1, clr as bool = NO, wantmask as bool = NO, with_surface32 as bool = NO, no_alloc as bool = NO) as Frame ptr
 	if w < 1 or h < 1 or frames < 1 then
-		debugc errShowBug, "frame_new: bad size " & w & "*" & h & "*" & frames
+		showbug "frame_new: bad size " & w & "*" & h & "*" & frames
 		return 0
 	end if
 	if with_surface32 then
 		if wantmask then
-			debugc errShowBug, "frame_new: mask and backing surface mututally exclusive"
+			showbug "frame_new: mask and backing surface mututally exclusive"
 		end if
 	end if
 
@@ -8213,7 +8213,7 @@ function frame_load_4bit(filen as string, rec as integer, numframes as integer, 
 
 	dim fh as integer
 	if openfile(filen, for_binary + access_read, fh) then
-		debugc errError, "frame_load_4bit: could not open " & filen
+		debugerror "frame_load_4bit: could not open " & filen
 		return 0
 	end if
 
@@ -8260,7 +8260,7 @@ declare sub read_frame_node(fr as Frame ptr, fr_node as Node ptr, bitdepth as in
 'TODO: Doesn't save mask, but we don't have any need to serialise masks at the moment
 function frameset_to_node(fr as Frame ptr, parent as Node ptr) as Node ptr
 	if fr->arrayelem then
-		debugc errShowBug, "frameset_to_node: not first Frame in array"
+		showbug "frameset_to_node: not first Frame in array"
 		return NULL
 	end if
 

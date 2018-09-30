@@ -1034,7 +1034,7 @@ FUNCTION popdw () as integer
 		pdw = *stackptr
 	else
 		pdw = 0
-		debugc errShowBug, "Stack underflow"
+		showbug "Stack underflow"
 	end if
 
 	popdw = pdw
@@ -1158,7 +1158,7 @@ sub split_line_positions(original_text as string, lines() as string, line_starts
  next
  'Always exits early on last iteration
  if idx <> ubound(lines) or offset <> len(original_text) then
-  debugc errShowBug, "split_line_positions buggy or called with bad args"
+  showbug "split_line_positions buggy or called with bad args"
  end if
 end sub
 

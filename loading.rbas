@@ -145,7 +145,7 @@ SUB SetNPCD (npcdata as NPCType, intoffset as integer, value as integer)
    CASE 17: .ignore_passmap = value
    CASE 18: .pathfinding_obstruction_mode = value
    CASE ELSE
-    debugc errShowBug, "SetNPCD: " & intoffset & " is an invalid integer offset"
+    showbug "SetNPCD: " & intoffset & " is an invalid integer offset"
   END SELECT
  END WITH
 END SUB
@@ -174,7 +174,7 @@ FUNCTION GetNPCD (npcdata as NPCType, intoffset as integer) as integer
    CASE 17: RETURN .ignore_passmap
    CASE 18: RETURN .pathfinding_obstruction_mode
    CASE ELSE
-    debugc errShowBug, "GetNPCD: " & intoffset & " is an invalid integer offset"
+    showbug "GetNPCD: " & intoffset & " is an invalid integer offset"
   END SELECT
  END WITH
  RETURN 0
@@ -557,7 +557,7 @@ END SUB
 
 FUNCTION read_map_layer_name(gmap() as integer, layernum as integer) as string
  IF layernum > 15 THEN
-  debugc errShowBug, "read_map_layer_name: layernum too high"
+  showbug "read_map_layer_name: layernum too high"
  ELSE
   RETURN readbinstring(gmap(), 34 + layernum * 21, 40)
  END IF
@@ -565,7 +565,7 @@ END FUNCTION
 
 SUB write_map_layer_name(gmap() as integer, layernum as integer, newname as string)
  IF layernum > 15 THEN
-  debugc errShowBug, "write_map_layer_name: layernum too high"
+  showbug "write_map_layer_name: layernum too high"
  ELSE
   writebinstring(newname, gmap(), 34 + layernum * 21, 40)
  END IF
@@ -2525,7 +2525,7 @@ FUNCTION ColorIndex(byval n as integer) as integer
   end select
   return uilook(uiC)
  end if
- debugc errError, "Invalid slice color " & n
+ debugerror "Invalid slice color " & n
 END FUNCTION
 
 'Given the base color of a menu item, return which color should be used as the

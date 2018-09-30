@@ -253,7 +253,7 @@ EXTERN "C"
 
 
 PRIVATE SUB log_error(failed_call as zstring ptr, funcname as zstring ptr)
-  debugc errError, *funcname & " " & *failed_call & ": " & *SDL_GetError()
+  debugerror *funcname & " " & *failed_call & ": " & *SDL_GetError()
 END SUB
 
 FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer

@@ -329,7 +329,7 @@ SUB backdrop_browser ()
   IF mstate.pt <> 6 ANDALSO intgrabber(backdrop_id, 0, count - 1) THEN
    ' Change selected backdrop
    frame_assign @backdrop, rgfx_load_spriteset(rgfx_doc, sprTypeBackdrop, backdrop_id)
-   IF backdrop = NULL THEN debugc errShowBug, "rgfx failed to load" : EXIT DO
+   IF backdrop = NULL THEN showbug "rgfx failed to load" : EXIT DO
    mstate.need_update = YES
   END IF
   IF enter_space_click(mstate) THEN

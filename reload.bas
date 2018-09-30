@@ -571,7 +571,7 @@ Function AddStringToTable(name as zstring ptr, byval doc as DocPtr) as integer
 	if doc->numStrings >= doc->numAllocStrings then 'I hope it's only ever equals...
 		dim s as StringTableEntry ptr = RReallocate(doc->strings, doc, sizeof(StringTableEntry) * (doc->numAllocStrings * 2))
 		if s = 0 then 'panic
-			debugc errShowBug, "Error resizing string table"
+			showbug "Error resizing string table"
 			return -1
 		end if
 		for i as integer = doc->numAllocStrings to doc->numAllocStrings * 2 - 1
@@ -1060,7 +1060,7 @@ sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 	end if
 
 	if nod->doc <> doc then
-		debugc errShowBug, "SetRootNode: node was created in the context of another RELOAD doc"
+		showbug "SetRootNode: node was created in the context of another RELOAD doc"
 	end if
 
 	doc->root = nod

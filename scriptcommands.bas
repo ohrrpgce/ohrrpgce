@@ -5014,9 +5014,9 @@ END FUNCTION
 SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
  'This function is used to restore handles when loading a slice collection from a saved game.
  'This should ONLY be called when starting a game, before any scripts have run!
- IF sl = 0 THEN debugc errShowBug, "set_plotslice_handle null ptr"
+ IF sl = 0 THEN showbug "set_plotslice_handle null ptr"
  IF sl->TableSlot <> 0 THEN
-  debugc errShowBug, "set_plotslice_handle shouldn't be called on a slice with existing TableSlot"
+  showbug "set_plotslice_handle shouldn't be called on a slice with existing TableSlot"
  END IF
 
  IF handle > UBOUND(plotslices) THEN
@@ -5025,7 +5025,7 @@ SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
  END IF
 
  IF plotslices(handle) <> 0 THEN
-  debugc errShowBug, "set_plotslice_handle: non-empty plotslices(" & handle & ")"
+  showbug "set_plotslice_handle: non-empty plotslices(" & handle & ")"
  END IF
  
  'Store the slice pointer in the handle slot

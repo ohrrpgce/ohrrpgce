@@ -463,7 +463,7 @@ SUB gamestate_slices_from_reload(byval node as Reload.NodePtr)
   ELSE
    WITH SliceTable
     IF .ScriptSprite->NumChildren <> 0 THEN
-     debugc errShowBug, "RSAV: old sprite_layer meant to be empty"
+     showbug "RSAV: old sprite_layer meant to be empty"
     END IF
     DeleteSlice @.ScriptSprite
     .ScriptSprite = NewSliceOfType(slSpecial, .Root)
@@ -473,7 +473,7 @@ SUB gamestate_slices_from_reload(byval node as Reload.NodePtr)
 
     SliceLoadFromNode .ScriptSprite, layernode, YES   'Load slice handles
     IF .ScriptSprite->Lookup <> SL_SCRIPT_LAYER THEN
-     debugc errError, "RSAV: sprite_layer has unexpected lookup code " & .ScriptSprite->Lookup
+     debugerror "RSAV: sprite_layer has unexpected lookup code " & .ScriptSprite->Lookup
      .ScriptSprite->Lookup = SL_SCRIPT_LAYER
     END IF
    END WITH

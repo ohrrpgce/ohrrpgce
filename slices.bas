@@ -160,7 +160,7 @@ FUNCTION SliceTypeByName (s as string) as SliceTypes
   CASE "Panel":          RETURN slPanel
   CASE "Layout":         RETURN slLayout
  END SELECT
- debugc errError, "Unrecognized slice name """ & s & """"
+ debugerror "Unrecognized slice name """ & s & """"
  RETURN slInvalid
 END FUNCTION
 
@@ -833,7 +833,7 @@ Function SliceIndexAmongSiblings(sl as Slice Ptr) as integer
   if sib = sl then return i
   sib = sib->NextSibling
  next i
- debugc errShowBug, "slice not a child of its parent"
+ showbug "slice not a child of its parent"
  return 0
 End function
 
@@ -2360,7 +2360,7 @@ Sub LayoutSliceData.SpaceRow(par as Slice ptr, first as Slice ptr, axis0 as inte
  first = SkipForward(first)
  dim as Slice ptr ch = first, last
  'Should never happen
- if ch = 0 then debugc errShowBug, "SpaceRow: no children" : exit sub
+ if ch = 0 then showbug "SpaceRow: no children" : exit sub
 
  while ch
   'Always place at least one child on each row

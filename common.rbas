@@ -1193,7 +1193,7 @@ FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
 END FUNCTION
 
 FUNCTION maplumpname (byval map_id as integer, oldext as string) as string
- IF map_id < 0 THEN debugc errShowBug, "maplumpname: Bad map " & map_id
+ IF map_id < 0 THEN showbug "maplumpname: Bad map " & map_id
  IF map_id < 100 THEN
   return game & "." & oldext & RIGHT("0" & map_id, 2)
  ELSE
@@ -2109,7 +2109,7 @@ FUNCTION stredit (s as string, byref insert as integer, maxl as integer, numline
    END IF
   NEXT linenum
   IF insert_line = -1 THEN
-   debugc errShowBug, "Ignorable engine bug: stredit couldn't find line"
+   showbug "Ignorable engine bug: stredit couldn't find line"
   END IF
   IF keyval(scUp) > 1 THEN move_lines = -1
   IF keyval(scDown) > 1 THEN move_lines = 1
@@ -4836,7 +4836,7 @@ END SUB
 SUB fix_recordless_lump(lumpname as string, record_byte_size as integer, byval header_bytes as integer=0)
  DIM fh as integer
  IF OPENFILE(lumpname, FOR_BINARY + ACCESS_READ_WRITE, fh) THEN
-  debugc errError, "Error while opening " & lumpname
+  debugerror "Error while opening " & lumpname
   EXIT SUB
  END IF
  DIM total_bytes as integer = LOF(fh) - header_bytes
@@ -5214,7 +5214,7 @@ SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context a
  END IF
 #ENDIF
  IF errlvl >= serrBug THEN
-  debugc errShowBug, full_msg
+  showbug full_msg
  ELSEIF errlvl >= serrMajor THEN
   'errlvl >= serrError: Corrupt, unsupported, or unreadable data or interpreter state
   'errlvl = serrMajor: A script error that can't be ignored
@@ -5729,7 +5729,7 @@ FUNCTION layer_tileset_index(byval layer as integer) as integer
  ELSEIF layer <= 15 THEN
   RETURN 370 + (layer - 8)
  ELSE
-  debugc errShowBug, "layer_tileset_index: Bad map layer " & layer
+  showbug "layer_tileset_index: Bad map layer " & layer
  END IF
 END FUNCTION
 

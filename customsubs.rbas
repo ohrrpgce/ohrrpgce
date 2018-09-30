@@ -3061,7 +3061,7 @@ SUB check_used_onetime_npcs(bits() as integer)
   FOR i as integer = 0 TO UBOUND(npcdata)
    WITH npcdata(i)
     IF .usetag > max_onetime THEN
-     debugc errError, "out-of-range onetime tag " & .usetag & " for NPC " & i & " on map " & m
+     debugerror "out-of-range onetime tag " & .usetag & " for NPC " & i & " on map " & m
     ELSEIF .usetag > 0 THEN
      'debug "Map " & m & " NPC " & i & " uses onetime " & .usetag
      IF readbit(bits(), 0, .usetag) THEN
