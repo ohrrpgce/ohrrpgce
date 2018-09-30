@@ -1529,24 +1529,33 @@ Sub DisposeSpriteSlice(byval sl as Slice ptr)
 end sub
 
 ' Load a sprite's Frame and Palette16, so that its size is known
-Sub LoadSpriteSliceImage(byval sl as Slice ptr)
+Sub LoadSpriteSliceImage(byval sl as Slice ptr, warn_if_missing as bool = NO)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
 
  with *sl->SpriteData
+  'Check whether need to reload the graphic because it needs to be re-scaled
+  if .scaled andalso .img.sprite then
+   if .img.sprite->Size <> sl->Size then .loaded = NO
+  end if
+
   if .loaded then exit sub
   if .spritetype = sprTypeFrame then  'This can happen if you clone a sprite, otherwise shouldn't
-   LoadAssetSprite sl, NO
+   LoadAssetSprite sl, warn_if_missing
   else
    load_sprite_and_pal .img, .spritetype, .record, .pal
+  end if
+  .loaded = YES  'Set YES even if loading failed, so we don't try again
+  if .img.sprite then
    if .scaled then
-    'Becomes a 32-bit sprite
-    frame_assign @.img.sprite, frame_scaled32(.img.sprite, sl->Width, sl->Height, master(), .img.pal)
-    palette16_unload @.img.pal
+    if .img.sprite->size <> sl->Size then
+     'Becomes a 32-bit sprite
+     frame_assign @.img.sprite, frame_scaled32(.img.sprite, sl->Width, sl->Height, master(), .img.pal)
+     palette16_unload @.img.pal
+    end if
    else
     sl->Size = .img.sprite->size
    end if
-   .loaded = YES
   end if
  end with
 end sub
@@ -1556,13 +1565,13 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
  if sl->SliceData = 0 then exit sub
 
  with *sl->SpriteData
-  if .loaded = NO then LoadSpriteSliceImage sl
+  LoadSpriteSliceImage sl
 
   dim spr as Frame ptr
   dim have_copy as bool = NO
   spr = .img.sprite
   if spr = 0 then
-   reporterr "null sprite ptr for slice " & sl, serrBug
+   reporterr "null sprite ptr for slice", serrBug
    sl->Visible = NO  'prevent error loop
    exit sub
   end if
@@ -1646,8 +1655,10 @@ Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
    end if
   end if
   if .img.sprite then
-   sl->Width = .img.sprite->w
-   sl->Height = .img.sprite->h
+   if .scaled = NO then
+    sl->Width = .img.sprite->w
+    sl->Height = .img.sprite->h
+   end if
   else
    if warn_if_missing then
     visible_debug "Data file " & iif(len(filename), "corrupt", "missing") _
@@ -1675,7 +1686,8 @@ Sub SetSpriteToAsset(sl as Slice ptr, assetfile as string, warn_if_missing as bo
   .assetfile = callocate(sizeof(string))
   *.assetfile = filename
  end with
- LoadAssetSprite sl, warn_if_missing
+ 'LoadAssetSprite sl, warn_if_missing
+ LoadSpriteSliceImage sl, warn_if_missing
 End Sub
 
 ' Provide an external image for this sprite slice, instead of one of the game's sprites.
@@ -1713,6 +1725,7 @@ Sub SetSpriteToFrame(sl as Slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = 
  end with
 End Sub
 
+'Cloning sprTypeFrame sprite slices does not work!
 Sub CloneSpriteSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneSpriteSlice null ptr": exit sub
  dim dat as SpriteSliceData Ptr = sl->SpriteData

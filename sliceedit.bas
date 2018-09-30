@@ -1572,7 +1572,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      END IF
     END IF
     a_append menu(), " Transparent: " & yesorno(dat->trans)
-    sliceed_rule_tog rules(), "sprite_trans", @(dat->trans)
+    sliceed_rule_tog rules(), "sprite_trans", @(dat->trans), slgrUPDATESPRITE
     a_append menu(), " Flip horiz.: " & yesorno(dat->flipHoriz)
     sliceed_rule_tog rules(), "sprite_flip", @(dat->flipHoriz),   'slgrUPDATESPRITE
     a_append menu(), " Flip vert.: " & yesorno(dat->flipVert)
@@ -1588,6 +1588,15 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      sliceed_rule rules(), "sprite_d_tick", erIntGrabber, @(dat->d_tick), 0, 999999
      a_append menu(), "  Backwards: " & yesorno(dat->d_back)
      sliceed_rule_tog rules(), "sprite_d_back", @(dat->d_back)
+     'FIXME: dissolve is advanced in DrawSpriteSlice, which is wrong, causing the slice to dissolve
+     'in the slice editor, making this setting useless.
+     'TODO: need to set d_time to 0 to reset the animation if it's already finished, when this is changed to YES
+     'a_append menu(), "  Animate: " & yesorno(dat->d_auto)
+     'sliceed_rule_tog rules(), "sprite_d_auto", @(dat->d_auto)
+    END IF
+    IF ses.privileged THEN
+     a_append menu(), " Scaled: " & yesorno(dat->scaled)
+     sliceed_rule_tog rules(), "sprite_scaled", @(dat->scaled), slgrUPDATESPRITE
     END IF
 
    CASE slGrid
