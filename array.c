@@ -52,7 +52,7 @@ static unsigned short alloc_header() {
 			return i;
 		}
 	}
-	debug(errFatal, "header_table is full: 65536 arrays are allocated. Compile without -DVALGRIND_ARRAYS");
+	debug(errFatalError, "header_table is full: 65536 arrays are allocated. Compile without -DVALGRIND_ARRAYS");
 	abort();
 }
 
@@ -130,15 +130,15 @@ static bool sadd_overflow(int a, int b, int *res) {
 // alloc: allocate memory for this many element (must be >= len)
 static array_t mem_alloc(typetable *typetbl, int len, int alloc) {
 	if (alloc < len || len < 0)
-		debug(errFatal, "mem_alloc: alloc == %d < len == %d", alloc, len);
+		debug(errFatalError, "mem_alloc: alloc == %d < len == %d", alloc, len);
 	int arraysize;
 	if (smul_overflow(alloc, typetbl->element_len, &arraysize) ||
 	    sadd_overflow(arraysize, ARRAY_OVERHEAD, &arraysize))
-		debug(errFatal, "mem_alloc: overflow; vector alloc=%d", alloc);
+		debug(errFatalError, "mem_alloc: overflow; vector alloc=%d", alloc);
 	//printf("alloc arraysize %d len %d alloc %d ellen %d\n", arraysize, len, alloc, typetbl->element_len);
 	void *mem = malloc(arraysize);
 	if (!mem)
-		debug(errFatal, "mem_alloc: out of memory");
+		debug(errFatalError, "mem_alloc: out of memory");
 	array_t array = get_array_ptr(mem);
 #ifdef VALGRIND_ARRAYS
 	*(unsigned short *)mem = alloc_header();
@@ -190,7 +190,7 @@ static array_t mem_resize(array_t array, unsigned int len) {
 	int arraysize;
 	if (smul_overflow(alloclen, header->typetbl->element_len, &arraysize) ||
 	    sadd_overflow(arraysize, ARRAY_OVERHEAD, &arraysize))
-		debug(errFatal, "mem_resize: overflow; vector len=%d", len);
+		debug(errFatalError, "mem_resize: overflow; vector len=%d", len);
 #if !FORCE_REALLOC
 	//printf("realloc to arraysize %d len %d alloc %d\n", arraysize, len, alloclen);
 	void *newmem = realloc(mem, arraysize);
@@ -206,7 +206,7 @@ static array_t mem_resize(array_t array, unsigned int len) {
 	free(mem);
 #endif
 	if (!newmem)
-		debug(errFatal, "out of memory");
+		debug(errFatalError, "out of memory");
 #ifndef VALGRIND_ARRAYS
 	header = newmem;
 #endif
@@ -514,7 +514,7 @@ void *array_index(array_t array, int n) {
 	if (!array)
 		throw_error("array_index: array uninitialised");
 	if (n < 0 || n >= length(array)) {
-		debug(errPromptBug, "array_index: out of bounds array access, index %d in length %d array of %s", n, length(array), get_type(array)->name);
+		debug(errShowBug, "array_index: out of bounds array access, index %d in length %d array of %s", n, length(array), get_type(array)->name);
 		return NULL;
 	}
 	return nth_elem(array, n);
@@ -619,7 +619,7 @@ array_t array_insert(array_t *array, int pos, void *value) {
 	int len = length(*array);
 
 	if (pos < 0 || pos > len) {
-		debug(errPromptBug, "array_insert: tried to insert at position %d of array of length %d", pos, len);
+		debug(errShowBug, "array_insert: tried to insert at position %d of array of length %d", pos, len);
 		return *array;
 	}
 
@@ -653,7 +653,7 @@ array_t array_delete_slice(array_t *array, int from, int to) {
 
 	// Cast, and checking to < 0, is just to silence an annoying warning due to a gcc bug
 	if (from < 0 || to < 0 || to > len || (unsigned int)from > (unsigned int)to) {
-		debug(errPromptBug, "array_delete_slice: invalid slice [%d, %d) of array of length %d", from, to, len);
+		debug(errShowBug, "array_delete_slice: invalid slice [%d, %d) of array of length %d", from, to, len);
 		return *array;
 	}
 	if (from == to)

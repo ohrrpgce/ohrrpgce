@@ -13,9 +13,12 @@
 declare sub debug (msg as zstring ptr)
 declare sub early_debuginfo (msg as zstring ptr)
 declare sub debuginfo (msg as zstring ptr)
+declare sub debugerror (msg as zstring ptr)
 declare sub fatalerror (msg as zstring ptr)
+declare sub fatalbug (msg as zstring ptr)
+declare sub showbug (msg as zstring ptr)
 declare sub showerror (msg as zstring ptr, isfatal as bool = NO, isbug as bool = NO)
-declare sub visible_debug (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
+declare sub visible_debug (msg as zstring ptr)
 declare sub debugc cdecl alias "debugc" (errorlevel as errorLevelEnum, msg as zstring ptr)
 
 'Called by fatalerror

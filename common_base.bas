@@ -27,7 +27,7 @@ SUB early_debuginfo (msg as zstring ptr)
 END SUB
 
 SUB debugc cdecl alias "debugc" (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
-  IF errorlevel >= errFatal THEN fatalerror s
+  IF errorlevel >= errFatalError THEN fatalerror s
   IF errorlevel = errBug OR errorlevel = errShowBug OR errorlevel = errFatalBug THEN print "(BUG) ",
   IF errorlevel >= errError THEN print "ERROR: ",
   print *s
@@ -41,13 +41,24 @@ SUB showerror (msg as zstring ptr, isfatal as bool = NO, isbug as bool = NO)
  END IF
 END SUB
 
-SUB visible_debug (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
- debugc errlvl, msg
- 'notification msg + !"\nPress any key..."
+SUB debugerror (msg as zstring ptr)
+  debugc errError, msg
+END SUB
+
+SUB visible_debug (msg as zstring ptr)
+  debugc errShowDebug, msg
 END SUB
 
 SUB fatalerror (msg as zstring ptr)
   IF LEN(*msg) THEN print "ERROR: " + *msg
   IF cleanup_function THEN cleanup_function()
   SYSTEM 1
+END SUB
+
+SUB fatalbug (msg as zstring ptr)
+  debugc errFatalBug, msg
+END SUB
+
+SUB showbug (msg as zstring ptr)
+  debugc errShowBug, msg
 END SUB

@@ -389,23 +389,30 @@ Enum fontTypeEnum
 End Enum
 
 'Constants for debugc
-'NOTE: errorlevel.h MUST be updated when this is changed!
-Enum 'errorLevelEnum
+'NOTE: enum ErrorLevel in errorlevel.h MUST be updated when this is changed!
+Enum 'ErrorLevelEnum
   errInfo = 1   'Informational spam (doesn't cause g/c_debug.txt to be kept)
+                '(== debuginfo)
+  errShowInfo   'Show and call debuginfo
   errDebug      'Log a message and preserve g/c_debug.txt
-  errError      'Something is wrong, but it's not necessarily due to a bug
-  errShowError  'Something is wrong, but it's not necessarily due to a bug. Show an error message and log it.
+                '(== debug)
+  errShowDebug  'Show and call debug. Minor error, but want to keep user well informed
+                '(== visible_debug)
+  errError      'Something is wrong, but it's not necessarily due to a bug. Only log it.
+                '(== debugerror)
   errBug        'Engine bug detected; log but don't interrupt the program. Usually would use errShowBug instead.
-  errShow       'Show error and possibly prompt the user whether they want to quit (doesn't return) or continue
-                '(Equivalent to showerror)
+  errShowError  'Something is wrong and continuing might be dubious, but it's not necessarily due to a bug.
+                'Show error and possibly prompt the user whether they want to quit (doesn't return) or continue
+                '(== showerror)
   errShowBug    'As above, but indicates that it's an engine bug
-                '(Equivalent to showbug)
-  errFatal      'Does not return!
-                '(Equivalent to fatalerror)
+                '(== showbug)
+  errFatalError 'Does not return!
+                '(== fatalerror)
   errFatalBug   'Does not return!
+                '(== fatalbug)
   errDie        'Exit immediately without attempting to show a message (especially for gfx backend errors)
 End Enum
-Type errorLevelEnum as integer  'For compatibility with C
+Type ErrorLevelEnum as integer  'For compatibility with C
 
 'Constants for scripterr and friends
 Type scriptErrEnum as integer

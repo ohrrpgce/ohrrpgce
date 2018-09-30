@@ -35,7 +35,7 @@ void set_debug_hook(void (*new_debug_hook)(enum ErrorLevel errorlevel, const cha
 #define debug(errorlevel, ...) _throw_error(errorlevel, NULL, 0, __VA_ARGS__)
 #define debuginfo(...) _throw_error(errInfo, NULL, 0, __VA_ARGS__)
 #define throw_error(...) _throw_error(errFatalBug, __FILE__, __LINE__, __VA_ARGS__)
-#define fatal_error(...) _throw_error(errFatal, __FILE__, __LINE__, __VA_ARGS__)
+#define fatal_error(...) _throw_error(errFatalError, __FILE__, __LINE__, __VA_ARGS__)
 
 void init_fbstring(FBSTRING *fbstr, const char *cstr);
 void init_fbstring_copy(FBSTRING *fbstr, FBSTRING *src);

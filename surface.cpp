@@ -29,7 +29,7 @@ mutex surfaceMutex;
 int gfx_surfaceCreate_SW( int32_t width, int32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut )
 {//done
 	if (!ppSurfaceOut) {
-		debug(errPromptBug, "surfaceCreate_SW: NULL out ptr");
+		debug(errShowBug, "surfaceCreate_SW: NULL out ptr");
 		return -1;
 	}
 	Surface *ret = new Surface {
@@ -55,7 +55,7 @@ int gfx_surfaceCreate_SW( int32_t width, int32_t height, SurfaceFormat format, S
 int gfx_surfaceCreateView_SW( Surface *pSurfaceIn, int x, int y, int width, int height, Surface** ppSurfaceOut )
 {//done
 	if (!ppSurfaceOut) {
-		debug(errPromptBug, "surfaceCreateView_SW: NULL out ptr");
+		debug(errShowBug, "surfaceCreateView_SW: NULL out ptr");
 		return -1;
 	}
 	if (x < 0) {
@@ -113,7 +113,7 @@ int gfx_surfaceCreateFrameView_SW( Frame* pFrameIn, Surface** ppSurfaceOut )
 
 int gfx_surfaceDestroy_SW( Surface** ppSurfaceIn ) {
 	if (!ppSurfaceIn) {
-		debug(errPromptBug, "surfaceDestroy_SW: NULL in ptr");
+		debug(errShowBug, "surfaceDestroy_SW: NULL in ptr");
 		return -1;
 	}
 	Surface *pSurfaceIn = *ppSurfaceIn;
@@ -304,7 +304,7 @@ static void scalerow(RGBcolor *srcp, int srcpstep, RGBcolor *destp, int destpste
 // Ignores alpha.
 Surface* surface_scale(Surface *surf, int destWidth, int destHeight) {
 	if (surf->format != SF_32bit) {
-		debug(errPromptBug, "surface_scale: input must be 32-bit Surface");
+		debug(errShowBug, "surface_scale: input must be 32-bit Surface");
 		return NULL;
 	}
 	if (destWidth < 1 || destHeight < 1) {
@@ -351,15 +351,15 @@ void clampRectToSurface( SurfaceRect* pRect, Surface* pSurf ) {
 // bUseColorKey0 says whether color 0 in 8-bit source images is transparent
 int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest ) {
 	if (!pSurfaceSrc || !pSurfaceDest) {
-		debug(errPromptBug, "surfaceCopy_SW: NULL ptr %p %p", pSurfaceSrc, pSurfaceDest);
+		debug(errShowBug, "surfaceCopy_SW: NULL ptr %p %p", pSurfaceSrc, pSurfaceDest);
 		return -1;
 	}
 	if (pSurfaceSrc->format == SF_32bit && pSurfaceDest->format == SF_8bit) {
-		debug(errPromptBug, "surfaceCopy_SW: can't copy from 32-bit to 8-bit Surface");
+		debug(errShowBug, "surfaceCopy_SW: can't copy from 32-bit to 8-bit Surface");
 		return -1;
 	}
 	if (pSurfaceSrc->format != SF_8bit && (pPalette || pPal8)) {
-		debug(errPromptBug, "surfaceCopy_SW: given a palette but not an 8-bit src");
+		debug(errShowBug, "surfaceCopy_SW: given a palette but not an 8-bit src");
 		return -1;
 	}
 
@@ -451,7 +451,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 		}
 	} else { //source is 8bit, dest is 32bit
 		if (!pPalette) {
-			debug(errPromptBug, "surfaceCopy_SW: NULL palette");
+			debug(errShowBug, "surfaceCopy_SW: NULL palette");
 			return -1;
 		}
 

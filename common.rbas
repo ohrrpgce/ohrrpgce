@@ -385,24 +385,26 @@ SUB debugc CDECL (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
  'Unimplemented: the idea is that 'Bug' error levels could prompt the user to send a bug report somehow
 
  SELECT CASE errorlevel
-  CASE errInfo
+  CASE errInfo       'aka debuginfo
    debuginfo *s
-  CASE errDebug
+  CASE errShowInfo
+   debuginfo *s
+   notification *s + !"\nPress any key..."
+  CASE errDebug      'aka debug
    debug *s
-  CASE errError
+  CASE errShowDebug  'aka visible_debug
+   visible_debug *s
+  CASE errError      'aka debugerror
    debug "Error: " & *s
-  CASE errShowError
-   debug "Error: " & *s
-   notification "Error: " & *s & !"\nPress any key..."
   CASE errBug
    debug "(BUG) " & *s
-  CASE errShow
+  CASE errShowError  'aka showerror
    showerror *s
-  CASE errShowBug
+  CASE errShowBug    'aka showbug
    showerror *s, NO, YES
-  CASE errFatal
+  CASE errFatalError 'aka fatalerror
    showerror *s, YES, NO
-  CASE errFatalBug
+  CASE errFatalBug   'aka fatalbug
    showerror *s, YES, YES
   CASE errDie
    PRINT "DIE: " & *s
@@ -553,16 +555,6 @@ FUNCTION notification (msg as zstring ptr) as integer
  entered = NO
  RETURN scancode
 END FUNCTION
-
-'Same as debugc, but always show a message to the user regardless of errlvl
-SUB visible_debug (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
- debugc errlvl, msg
- IF errlvl < errShowError OR errlvl = errBug THEN
-  'If it's not one of these error levels, then a message has already been shown
-  notification *msg + !"\nPress any key..."
-  'pop_warning msg
- END IF
-END SUB
 
 FUNCTION confirmed_copy (srcfile as string, destfile as string) as bool
  'Copy a file, check to make sure it really was copied, and show an error message if not.
@@ -1228,8 +1220,30 @@ SUB fatal_error_shutdown
  #ENDIF
 END SUB
 
-SUB fatalerror (msg as zstring ptr)
+SUB visible_debug (msg as zstring ptr)
+ 'equivalent to: debugc errShowDebug, msg
+ debug *msg
+ notification *msg + !"\nPress any key..."
+END SUB
+
+SUB debugerror (msg as zstring ptr)
+ 'equivalent to: debugc errError, msg
  showerror msg, YES
+END SUB
+
+SUB fatalerror (msg as zstring ptr)
+ 'equivalent to: debugc errFatalError, msg
+ showerror msg, YES
+END SUB
+
+SUB fatalbug (msg as zstring ptr)
+ 'equivalent to: debugc errFatalBug, msg
+ showerror msg, YES, YES
+END SUB
+
+SUB showbug (msg as zstring ptr)
+ 'equivalent to: debugc errShowBug, msg
+ showerror msg, NO, YES
 END SUB
 
 'Show an error. If isfatal, doesn't return.
@@ -5201,11 +5215,13 @@ SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context a
 #ENDIF
  IF errlvl >= serrBug THEN
   debugc errShowBug, full_msg
- ELSEIF errlvl >= serrWarn THEN
+ ELSEIF errlvl >= serrMajor THEN
   'errlvl >= serrError: Corrupt, unsupported, or unreadable data or interpreter state
   'errlvl = serrMajor: A script error that can't be ignored
-  'errlvl = serrBadOp or errlvl = serrWarn: Likely something like out-of-bounds data
   debugc errShowError, full_msg
+ ELSEIF errlvl >= serrWarn THEN
+  'errlvl = serrBadOp or errlvl = serrWarn: Likely something like out-of-bounds data
+  debugc errShowDebug, full_msg
  ELSE
   'Info or ignore
   debugc errInfo, full_msg

@@ -3937,7 +3937,7 @@ sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2
 		c = intpal(c).col
 		is32bit = YES
 	else
-		debugc errShowError, "drawline: bad Frame"
+		showbug "drawline: bad Frame"
 		exit sub
 	end if
 

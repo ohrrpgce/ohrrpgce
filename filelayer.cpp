@@ -117,7 +117,7 @@ int file_wrapper_write(FB_FILE *handle, const void *value, size_t valuelen) {
 			// Setting this flag does not prevent recursion, since debug can open
 			// a new file. We rely on the hook filter not hooking ?_debug.txt
 			info.reported_error = true;
-			debug(errPromptBug, "Tried to write to protected file %s", info.name.c_str());
+			debug(errShowBug, "Tried to write to protected file %s", info.name.c_str());
 		}
 		return 1;
 	} else {
@@ -221,12 +221,12 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			mode = FB_FILE_MODE_APPEND;
 			break;
 		default:
-			debug(errPromptBug, "OPENFILE: bad flags (bad FOR): %x", openbits);
+			debug(errShowBug, "OPENFILE: bad flags (bad FOR): %x", openbits);
 			return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
 	if ((openbits & FOR_MASK) != FOR_BINARY && (openbits & ACCESS_MASK)) {
-		debug(errPromptBug, "OPENFILE: bad flags (ACCESS_* only valid with FOR_BINARY): %x", openbits);
+		debug(errShowBug, "OPENFILE: bad flags (ACCESS_* only valid with FOR_BINARY): %x", openbits);
 		return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
@@ -246,7 +246,7 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			access = FB_FILE_ACCESS_READWRITE;
 			break;
 		default:
-			debug(errPromptBug, "OPENFILE: bad flags (bad ACCESS): %x", openbits);
+			debug(errShowBug, "OPENFILE: bad flags (bad ACCESS): %x", openbits);
 			return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
@@ -265,7 +265,7 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			encod = FB_FILE_ENCOD_UTF32;
 			break;
 		default:
-			debug(errPromptBug, "OPENFILE: bad flags (bad ENCODING): %x", openbits);
+			debug(errShowBug, "OPENFILE: bad flags (bad ENCODING): %x", openbits);
 			return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
@@ -290,7 +290,7 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			access = FB_FILE_ACCESS_READ;
 		}
 		if (encod != FB_FILE_ENCOD_ASCII) {
-			debug(errPromptBug, "OPENFILE: ENCODING not implemented for hooked files");
+			debug(errShowBug, "OPENFILE: ENCODING not implemented for hooked files");
 			return FB_RTERROR_ILLEGALFUNCTIONCALL;
 		}
 		fnOpen = lump_file_opener;
@@ -316,7 +316,7 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 
 	if ((fnum = fb_FileFree()) == 0) {
 		FB_UNLOCK();
-		debug(errPrompt, "OPENFILE: too many open files");
+		debug(errShowError, "OPENFILE: too many open files");
 		return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
@@ -393,7 +393,7 @@ boolint renamefile(FBSTRING *source, FBSTRING *destination) {
 	}
 	if (rename(source->data, destination->data)) {
 		dump_openfiles();  // On Windows rename() typically fails because the file is open
-		debug(errPrompt, "rename(%s, %s) failed: %s", source->data, destination->data, strerror(errno));
+		debug(errShowError, "rename(%s, %s) failed: %s", source->data, destination->data, strerror(errno));
 		return 0;
 	}
 	if (actionsrc == HOOK)

@@ -1744,11 +1744,11 @@ FUNCTION dist_yesno(capt as string, byval defaultval as integer=YES, byval escva
 END FUNCTION
 
 SUB dist_info (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
- IF auto_yes THEN
-  debugc errlvl, msg
- ELSE
-  visible_debug msg, errlvl
+ IF auto_yes = NO THEN
+  IF errlvl = errInfo  THEN errlvl = errShowInfo
+  IF errlvl = errDebug THEN errlvl = errShowDebug
  END IF
+ debugc errlvl, msg
 END SUB
 
 SUB auto_export_distribs (distrib_type as string)
