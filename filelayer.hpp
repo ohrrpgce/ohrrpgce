@@ -14,6 +14,7 @@ using namespace std;
 
 // NOTE: Duplicated in lumpfile.bi
 enum OPENBits {
+	OR_ERROR =          0x0000001,  // Show an error message (showerror) if the file can't be opened
 	// FOR RANDOM (fixed sized records) not supported. Use load/storerecord() instead.
 	FOR_BINARY =        0x0010000,  // default
 	FOR_INPUT =         0x0020000,

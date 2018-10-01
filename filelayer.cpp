@@ -336,10 +336,13 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 
 	FB_UNLOCK();
 
+	const char *cfilename = (filename && filename->data) ? filename->data : "";  // Valid empty string
 	if (ret != FB_RTERROR_OK && ret != FB_RTERROR_FILENOTFOUND) {
-		debug(errError, "OPENFILE(%s, 0x%x)=%d: %s",
-		      (filename && filename->data) ? filename->data : "",  // Valid empty string
+		debug(errError, "OPENFILE(%s, 0x%x)=%d: %s", cfilename,
 		      openbits, ret, strerror(C_err));
+	}
+	if (ret != FB_RTERROR_OK && (openbits & OR_ERROR)) {
+		debug(errShowError, "Couldn't open file %s: %s", cfilename, strerror(C_err));
 	}
 	if (ret != FB_RTERROR_OK) {
 		openfiles_mutex.lock();

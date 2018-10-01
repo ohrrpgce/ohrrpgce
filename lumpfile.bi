@@ -219,11 +219,13 @@ declare sub Buffered_putc(byval bfile as BufferedFile ptr, byval datum as ubyte)
 
 ' NOTE: Duplicated in filelayer.h
 enum OPENBits
+	OR_ERROR =          &h0000001  ' Show an error message (showerror) if the file can't be opened
+	                               ' NOTE: You must add ACCESS_READ to get an error if it doesn't exist
 	' FOR RANDOM (fixed sized records) not supported. Use load/storerecord() instead.
 	FOR_BINARY =        &h0010000  ' default
 	FOR_INPUT =         &h0020000  ' Text files only! Reading only, not opened if doesn't exist.
 	FOR_OUTPUT =        &h0040000  ' Text files only! Write only. File created, or truncated if exists.
-	FOR_APPEND =        &h0080000  ' Text files only! Write only. Start at the end, can only write to the end.
+	FOR_APPEND =        &h0080000  ' Text files only! Write only. All writes always happen at the end
 	FOR_MASK =          &h00F0000
 	' ACCESS flags can only be used with FOR_BINARY
 	' FB's OPEN defaults to ACCESS ANY.
@@ -232,6 +234,7 @@ enum OPENBits
 	ACCESS_READ =       &h0200000  ' Read only. Not created if doesn't exist.
 	ACCESS_WRITE =      &h0400000  ' Write only. Create if needed, truncate to zero length otherwise.
 	ACCESS_READ_WRITE = &h0800000  ' [Default] Read+Write. Create if needed, does not truncate
+        'ACCESS_RW_NO_CREATE=&h0A00000  ' Not implemented
 	ACCESS_MASK =       &h0F00000
 	' Not implemented yet for hooked files, so no point using these
 	'ENCODING_ASCII =   &h1000000  ' default
