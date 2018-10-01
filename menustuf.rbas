@@ -1400,11 +1400,14 @@ SUB picksave_draw(menu() as string, byval loading as bool, byval newgame_opt as 
   IF st.pt = i THEN col = uilook(uiSelectedItem + tog)
   yoff = (i - top) * 44
   IF pv(i).valid THEN
-   FOR o as integer = 0 TO 3
+   'If the sprites are much larger than the default 32x40 then they will overlap, and get clipped
+   setclip 5, yoff + 22, 315, yoff + 63, vpages(page)
+   FOR o as integer = 3 TO 0 STEP -1
     IF sprites(i, o).sprite THEN
      frame_draw sprites(i, o).sprite + iif(st.pt = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + yoff, 1, -1, page
     END IF
    NEXT o
+   setclip , , , , vpages(page)
    edgeprint pv(i).leader_name, 14, 25 + yoff, col, page
    edgeprint lev(i), 14, 34 + yoff, col, page
    edgeprint pv(i).playtime, 14, 43 + yoff, col, page
