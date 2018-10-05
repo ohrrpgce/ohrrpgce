@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-09-21)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-10-04)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1552,12 +1552,6 @@
 		<a href="#about-heroz">hero Z (who)</a><br>
 		
 	
-		<a href="#about-hidebattlehealthmeter">hide battle health meter (state)</a><br>
-		
-	
-		<a href="#about-hidebattlereadymeter">hide battle ready meter (state)</a><br>
-		
-	
 		<a href="#about-hidemousecursor">hide mouse cursor</a><br>
 		
 	
@@ -2807,6 +2801,12 @@
 		
 	
 		<a href="#about-showbackdrop">show backdrop (number)</a><br>
+		
+	
+		<a href="#about-showbattlehealthmeter">show battle health meter (state)</a><br>
+		
+	
+		<a href="#about-showbattlereadymeter">show battle ready meter (state)</a><br>
 		
 	
 		<a href="#about-showgrid">show grid (handle, shown)</a><br>
@@ -6105,14 +6105,14 @@ resume box advance # go back to normal</pre>
 				The situations which cause <a href="#about-booleanconstants" class="ref">true</a> to be returned are:<br>
 				<ul>
 					<li>Normal victory</li>
-					<li>An attack with the "Force victory" bit ends the battle</li>
+					<li>An attack with the "Force battle victory" bit ends the battle</li>
 				</ul>
 				The situations which cause <a href="#about-booleanconstants" class="ref">false</a> to be returned are:<br>
 				<ul>
 					<li>All heroes died</li>
 					<li>Player ran from battle</li>
-					<li>An attack with the "Cause heroes to run away" bit ends the battle</li>
-					<li>An attack with the "Force battle exit" bit ends the battle</li>
+					<li>An attack with the "Force battle loss &amp; heroes run away" bit ends the battle</li>
+					<li>An attack with the "Force battle loss &amp; exit" bit ends the battle</li>
 					<li>A timer with <a href="#about-timerflag:critical" class="ref">timer flag: critical</a> runs out and ends the battle</li>
 					<li>The end-battle-instantly debug key is used</li>
 				</ul>
@@ -17922,7 +17922,15 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				such as <a href="#about-extendedscancodesenabled" class="ref">extended scancodes enabled</a>.
 				Get the value of <span class="param">bitnum</span>
 				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
-				For example "Dead heroes gain share of experience" is <span class="code">read preference bit(19)</span>.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					Some bits are shown with the opposite names on the wiki and in the editor!
+					If that's the case, you need to set the bit off instead of on and vice versa.
+					They might also have slightly different names.
+					For example to check whether "Randomize initial ready meters" is <b>on</b>,
+					use <span class="code">read preference bit(22) == off</span>,
+					because bit 22 is documented as "Don't randomize battle ready-meters".
+				</div>
 			
 			
 			
@@ -17942,8 +17950,16 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				such as <a href="#about-setbattlewaitmode" class="ref">set battle wait mode</a>.
 				Get the value of <span class="param">bitnum</span>
 				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
-				For example you can turn on "Heroes use Walk in Place animation while idle" with
-				<span class="code">write preference bit(42, true)</span>.
+
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					Some bits are shown with the opposite names on the wiki and in the editor!
+					If that's the case, you need to set the bit off instead of on and vice versa.
+					They might also have slightly different names.
+					For example to turn <b>on</b> "Randomize initial ready meters", use
+					<span class="code">write preference bit(22, off)</span>,
+					because bit 22 is documented as "Don't randomize battle ready-meters".
+				</div>
 				<div style="background-color:#DCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
 					Use common sense. Some bits, such as "Limit maximum tags to 999" might be disastrous
@@ -18016,13 +18032,12 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		</p>
 </div>
 		<div class="command">
-<a name="about-hidebattlereadymeter"></a>
-		<h4>hide battle ready meter (state)</h4>
+<a name="about-showbattlereadymeter"></a>
+		<h4>show battle ready meter (state)</h4>
 <p>
 			
-				Sets whether or not the ready meter appears in battle.
-				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then the ready meter appears.
-				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the ready meter will be hidden.
+				Sets whether or not the ready meter appears in battle, or will be hidden.
+				<span class="param">state</span> should be <span class="code">true</span> or <span class="code">false</span>.
 			
 			
 			
@@ -18030,13 +18045,12 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		</p>
 </div>
 		<div class="command">
-<a name="about-hidebattlehealthmeter"></a>
-		<h4>hide battle health meter (state)</h4>
+<a name="about-showbattlehealthmeter"></a>
+		<h4>show battle health meter (state)</h4>
 <p>
 			
-				Sets whether or not the health meter appears in battle.
-				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then the health meter appears.
-				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the health meter will be hidden.
+				Sets whether or not the health meter appears in battle, or will be hidden.
+				<span class="param">state</span> should be <span class="code">true</span> or <span class="code">false</span>.
 			
 			
 			
@@ -18049,8 +18063,8 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <p>
 			
 				Sets whether or not dead heroes gain experience from battles.
-				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then only living heroes gain experience.
-				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then dead heroes get it too.
+				If the argument is <a href="#about-booleanconstants" class="ref">false</a> then only living heroes gain experience.
+				If the argument is <a href="#about-booleanconstants" class="ref">true</a> then dead heroes get it too.
 			
 			
 			

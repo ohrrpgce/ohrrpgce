@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-09-20">
+<plotscript version="wip" datecode="2018-10-04">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -1903,8 +1903,8 @@ wait for text box # wait until the player continues</example>
 				<ul>
 					<li>All heroes died</li>
 					<li>Player ran from battle</li>
-					<li>An attack with the "Force battle loss & heroes run away" bit ends the battle</li>
-					<li>An attack with the "Force battle loss & exit" bit ends the battle</li>
+					<li>An attack with the "Force battle loss &amp; heroes run away" bit ends the battle</li>
+					<li>An attack with the "Force battle loss &amp; exit" bit ends the battle</li>
 					<li>A timer with <ref>timerflag:critical</ref> runs out and ends the battle</li>
 					<li>The end-battle-instantly debug key is used</li>
 				</ul>
