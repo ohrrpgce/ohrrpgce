@@ -2307,7 +2307,7 @@ FUNCTION attack_chain_browser (byval start_attack as integer) as integer
     EXIT DO
    END IF
    IF keyval(scF1) > 1 THEN show_help "attack_chain_browse"
-   IF keyval(scF6) > 1 THEN slice_editor state.root
+   IF keyval(scF6) > 1 THEN slice_editor state.root, SL_COLLECT_EDITOR
 
    IF enter_or_space() THEN
     IF state.focused <> 0 THEN

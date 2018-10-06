@@ -2581,7 +2581,7 @@ SUB show_help(helpkey as zstring ptr)
    IF keyval(scF1) and *helpkey <> "share_helphelp" THEN
     show_help "share_helphelp"
    END IF
-   IF keyval(scF6) THEN slice_editor help_root
+   IF keyval(scF6) THEN slice_editor help_root, SL_COLLECT_EDITOR
 
    'Update scroll position (help_text->Y)
    'Decreasing Y to scroll down is confusing...

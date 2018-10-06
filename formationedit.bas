@@ -341,7 +341,7 @@ SUB individual_formation_editor ()
  DO
   setwait 55
   setkeys
-  IF keyval(scF6) > 1 THEN slice_editor rootslice
+  IF keyval(scF6) > 1 THEN slice_editor rootslice, SL_COLLECT_EDITOR
   IF positioning_mode = YES THEN
    '--enemy positioning mode
    IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO

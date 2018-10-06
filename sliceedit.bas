@@ -339,11 +339,13 @@ SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byva
  END WITH
 END SUB
 
-PRIVATE FUNCTION create_draw_root () as Slice ptr
+PRIVATE FUNCTION create_draw_root (ses as SliceEditState) as Slice ptr
  'Instead of parenting to the actual screen slice, parent to a
  'fake screen slice which is the size of the ingame screen.
  'Also, center, so that if you're running at a higher resolution than in-game, the
  'menu doesn't overlap so much.
+
+ DIM use_game_res as bool = ses.collection_group_number <> SL_COLLECT_EDITOR
 
  DIM rect as RectangleSliceData
  rect.bgcol = uilook(uiBackground)
@@ -351,7 +353,7 @@ PRIVATE FUNCTION create_draw_root () as Slice ptr
  DIM ret as Slice ptr = NewRectangleSlice(NULL, rect)
  WITH *ret
   .Pos = remember_draw_root_pos
-  IF gen(genResolutionX) > 0 THEN  'We might not have loaded a game yet
+  IF use_game_res ANDALSO gen(genResolutionX) > 0 THEN  'We might not have loaded a game yet
    .Width = gen(genResolutionX)
    .Height = gen(genResolutionY)
   ELSE
@@ -416,7 +418,7 @@ SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLEC
  ELSE
   ' Temporarily reparent the root of the slice tree!
   rootslice = FindRootSlice(edslice)
-  ses.draw_root = create_draw_root()
+  ses.draw_root = create_draw_root(ses)
   SetSliceParent rootslice, ses.draw_root
  END IF
 
@@ -900,7 +902,7 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
          "Try removing the special slices and exporting the collection; " _
          "you'll then be able to import normally."
    notification msg
-   slice_editor newcollection
+   slice_editor newcollection, ses.collection_group_number
    EXIT SUB
   ELSE
    'If it's already been imported into the game, only warn
@@ -914,7 +916,7 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
   DeleteSlice @ses.draw_root
  END IF
  edslice = newcollection
- ses.draw_root = create_draw_root()
+ ses.draw_root = create_draw_root(ses)
  SetSliceParent edslice, ses.draw_root
 END SUB
 

@@ -464,7 +464,7 @@ SUB main_editor_menu()
    IF state.pt = 8 THEN textbox_editor_main
    IF state.pt = 9 THEN tags_menu
    IF state.pt = 10 THEN menu_editor
-   IF state.pt = 11 THEN slice_editor
+   IF state.pt = 11 THEN slice_editor SL_COLLECT_USERDEFINED
    IF state.pt = 12 THEN vehicles
    IF state.pt = 13 THEN song_editor_main
    IF state.pt = 14 THEN sfx_editor_main
@@ -2428,7 +2428,7 @@ SUB plankmenu_cursor_move_tests
   setkeys
 
   IF keyval(scESC) > 1 THEN EXIT DO
-  IF keyval(scF6) > 1 THEN slice_editor root
+  IF keyval(scF6) > 1 THEN slice_editor root, SL_COLLECT_EDITOR
   IF keyval(scPlus) > 1 THEN scatter += 1 : update = YES
   IF keyval(scMinus) > 1 THEN scatter -= 1 : update = YES
   IF keyval(scLeftCaret) > 1 THEN percent -= 1 : update = YES

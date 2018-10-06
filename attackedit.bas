@@ -1707,7 +1707,7 @@ FUNCTION atk_edit_add_new (recbuf() as integer, preview_box as Slice Ptr) as boo
       menu(1) = "New Blank Attack"
       menu(2) = "Copy of Attack " & attacktocopy
     END IF
-    IF keyval(scF6) > 1 THEN slice_editor preview_box
+    IF keyval(scF6) > 1 THEN slice_editor preview_box, SL_COLLECT_EDITOR
     IF enter_space_click(state) THEN
       setkeys
       SELECT CASE state.pt
