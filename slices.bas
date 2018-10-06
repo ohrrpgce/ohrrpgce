@@ -347,7 +347,7 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
    DIM dat as LayoutSliceData
    newsl = NewLayoutSlice(parent, dat)
   CASE ELSE
-   debug "NewSliceByType: Warning! type " & t & " is invalid"
+   showbug "NewSliceByType: type " & t & " is invalid"
    newsl = NewSlice(parent)
  END SELECT
  newsl->Lookup = lookup_code
@@ -918,6 +918,129 @@ End Function
 
 
 '==Special slice types=========================================================
+
+
+'--Class-based Slice wrapper--------------------------------------------------
+'These wrappers will no longer be needed once we switch to a true polymorphic Slice class
+
+Declare Sub InitClassSlicePtrs(sl as Slice ptr)
+
+Function NewClassSlice(parent as Slice ptr, inst as ClassSlice ptr) as Slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then return 0
+
+ ret->SliceType = slSpecial
+ ret->ClassInst = inst
+ InitClassSlicePtrs ret
+ inst->initialize(ret)
+ return ret
+End Function
+
+'This is called only from SliceLoadFromNode
+Private Function InitClassSliceByName(sl as Slice ptr, classname as string) as bool
+ dim inst as ClassSlice ptr
+ 'if classname = "thing" then
+ ' inst = new ThingClass()
+ 'else
+  return NO
+ 'end if
+ sl->ClassInst = inst
+ InitClassSlicePtrs sl
+ inst->initialize(sl)
+ return YES
+End Function
+
+Sub DisposeClassSlice(sl as Slice ptr)
+ if sl = 0 orelse sl->ClassInst = 0 then exit sub
+ delete sl->ClassInst
+ sl->ClassInst = NULL
+End Sub
+
+Sub DrawClassSlice(sl as Slice ptr, page as integer)
+ if sl = 0 orelse sl->ClassInst = 0 then debug "DrawClassSlice null ptr": exit sub
+ sl->ClassInst->Draw(sl, page)
+End Sub
+
+Sub CloneClassSlice(sl as Slice ptr, cl as Slice ptr)
+ if sl = 0 orelse sl->ClassInst = 0 then debug "CloneClassSlice null ptr": exit sub
+ sl->ClassInst->Clone(sl, cl)
+End Sub
+
+Sub SaveClassSlice(sl as Slice ptr, node as Reload.Nodeptr)
+ if sl = 0 orelse sl->ClassInst = 0 orelse node = 0 then debug "SaveClassSlice null ptr": exit sub
+ sl->ClassInst->Save(sl, node)
+End Sub
+
+Sub LoadClassSlice(sl as Slice ptr, node as Reload.Nodeptr)
+ if sl = 0 orelse sl->ClassInst = 0 orelse node = 0 then debug "LoadClassSlice null ptr": exit sub
+ sl->ClassInst->load(sl, node)
+End Sub
+
+Sub ClassChildRefresh(sl as Slice ptr, ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES)
+ if sl = 0 orelse sl->ClassInst = 0 then debug "ClassSliceChildRefresh null ptr": exit sub
+ sl->ClassInst->ChildRefresh sl, ch, childindex, visibleonly
+End Sub
+
+Sub ClassChildrenRefresh(sl as Slice ptr)
+ if sl = 0 orelse sl->ClassInst = 0 then debug "ClassSliceChildrenRefresh null ptr": exit sub
+ sl->ClassInst->ChildrenRefresh sl
+End Sub
+
+Sub ClassChildDraw(sl as Slice ptr, page as integer)
+ if sl = 0 orelse sl->ClassInst = 0 then debug "ClassSliceChildDraw null ptr": exit sub
+ sl->ClassInst->ChildDraw sl, page
+End Sub
+
+Private Sub InitClassSlicePtrs(sl as Slice ptr)
+ sl->Draw = @DrawClassSlice
+ sl->Dispose = @DisposeClassSlice
+ sl->Clone = @CloneClassSlice
+ sl->Save = @SaveClassSlice
+ sl->Load = @LoadClassSlice
+ sl->ChildRefresh = @ClassChildRefresh
+ sl->ChildrenRefresh = @ClassChildrenRefresh
+ sl->ChildDraw = @ClassChildDraw
+End Sub
+
+
+'--ClassSlice default methods---------------------------------------------
+
+'If part of the initialisation needs the Slice ptr, it can be delayed until this is called
+Sub ClassSlice.Initialize(sl as Slice ptr)
+End Sub
+
+Destructor ClassSlice()
+End Destructor
+
+Sub ClassSlice.Draw(sl as Slice ptr, page as integer)
+End Sub
+
+Sub ClassSlice.Clone(sl as Slice ptr, cl as Slice ptr)
+ showerror "This ClassSlice can't be cloned"
+End Sub
+
+Sub ClassSlice.Save(sl as Slice ptr, node as Reload.Nodeptr)
+ showerror "This ClassSlice can't be saved"
+End Sub
+
+'Should never be called
+Sub ClassSlice.Load(sl as Slice ptr, node as Reload.Nodeptr)
+ showerror "This ClassSlice can't be loaded"
+End Sub
+
+Sub ClassSlice.ChildRefresh(sl as Slice ptr, ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES)
+ DefaultChildRefresh sl, ch, childindex, visibleonly
+End Sub
+
+Sub ClassSlice.ChildrenRefresh(sl as Slice ptr)
+ 'Is NULL by default
+End Sub
+
+Sub ClassSlice.ChildDraw(sl as Slice ptr, page as integer)
+ DefaultChildDraw sl, page
+End Sub
+
 
 '--Rectangle--------------------------------------------------------------
 Sub DisposeRectangleSlice(byval sl as Slice ptr)
@@ -4181,12 +4304,20 @@ Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handle
  if typenum = slInvalid then
   reporterr "Could not load slice: invalid type " & typestr, serrError
   exit sub
+ end if
+ if typenum = slSpecial andalso Reload.GetChildByName(node, "class") <> null then
+  'ClassSlice
+  dim classname as string = LoadPropStr(node, "class")
+  if InitClassSliceByName(sl, classname) = NO then
+   reporterr "Could not load slice: invalid class " & classname, serrError
+   exit sub
+  end if
  else
   dim newsl as Slice Ptr = NewSliceOfType(typenum)
   ReplaceSliceType sl, newsl
-  '--Load properties specific to this slice type
-  sl->Load(sl, node)
  end if
+ '--Load properties specific to this slice type
+ sl->Load(sl, node)
  '--Now load all the children
  dim children as Reload.NodePtr
  children = Reload.GetChildByName(node, "children")

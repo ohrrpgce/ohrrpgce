@@ -177,7 +177,7 @@ DECLARE_VECTOR_OF_TYPE(SliceContext ptr, SliceContext_ptr)
 
 Extern "C"
 Type SliceFwd as Slice
-Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
+Type SliceDraw as Sub(Byval as SliceFwd ptr, byval page as integer)
 Type SliceDispose as Sub(Byval as SliceFwd ptr)
 Type SliceClone as Sub(Byval as SliceFwd ptr, byval as SliceFwd ptr)
 Type SliceSave as Sub(Byval as SliceFwd ptr, byval node as Reload.Nodeptr)
@@ -185,6 +185,20 @@ Type SliceLoad as Sub(Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
 Type SliceChildRefresh as Sub(Byval par as SliceFwd ptr, Byval ch as SliceFwd ptr, childindex as integer = -1, visibleonly as bool = YES)
 Type SliceChildrenRefresh as Sub(Byval par as SliceFwd ptr)
 Type SliceChildDraw as Sub(Byval s as SliceFwd ptr, Byval page as integer)
+
+'Eventually, Slice will be replaced with this OO-based ClassSlice,
+'but currently it's only used for certain Special slices.
+Type ClassSlice Extends Object
+ Declare Virtual Sub Initialize(sl as SliceFwd ptr)
+ Declare Virtual Destructor()
+ Declare Virtual Sub Draw(sl as SliceFwd ptr, page as integer)
+ Declare Virtual Sub Clone(sl as SliceFwd ptr, as SliceFwd ptr)
+ Declare Virtual Sub Save(sl as SliceFwd ptr, node as Reload.Nodeptr)
+ Declare Virtual Sub Load(sl as SliceFwd ptr, node as Reload.Nodeptr)
+ Declare Virtual Sub ChildRefresh(sl as SliceFwd ptr, ch as SliceFwd ptr, childindex as integer = -1, visibleonly as bool = YES)
+ Declare Virtual Sub ChildrenRefresh(sl as SliceFwd ptr)
+ Declare Virtual Sub ChildDraw(sl as SliceFwd ptr, page as integer)
+End Type
 
 Type RectangleSliceDataFwd as RectangleSliceData
 Type LineSliceDataFwd as LineSliceData
@@ -316,6 +330,7 @@ Type Slice
 
   Union
     SliceData    as any ptr
+    ClassInst    as ClassSlice ptr
     RectData     as RectangleSliceDataFwd ptr
     LineData     as LineSliceDataFwd ptr
     TextData     as TextSliceDataFwd ptr
@@ -497,6 +512,7 @@ End Type
 
 DECLARE Function NewSlice(byval parent as Slice ptr = 0) as Slice Ptr
 DECLARE Function NewSliceOfType(byval t as SliceTypes, byval parent as Slice Ptr=0, byval lookup_code as integer=0) as Slice Ptr
+DECLARE Function NewClassSlice(parent as Slice ptr, inst as ClassSlice ptr) as Slice ptr
 DECLARE Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer = 0)
 DECLARE Sub DeleteSliceChildren(byval s as Slice ptr, byval debugme as integer = 0)
 DECLARE Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_special as bool = YES) as Slice ptr
