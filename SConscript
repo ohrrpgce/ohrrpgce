@@ -941,6 +941,7 @@ shared_modules += ['allmodex',
 # (.bas files only) 
 edit_modules = ['custom',
                 'customsubs.rbas',
+                'specialslices',
                 'drawing',
                 'textboxedit',
                 'scriptedit',
