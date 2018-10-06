@@ -12,8 +12,10 @@
 #include "loading.bi"
 #include "customsubs.bi"
 #include "slices.bi"
+#include "sliceedit.bi"
 #include "thingbrowser.bi"
 #include "cglobals.bi"
+#include "specialslices.bi"
 
 '--Local SUBs
 DECLARE SUB enforce_hero_data_limits(her as HeroDef)
@@ -302,6 +304,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
  DIM i as integer
  DIM activemenu as integer = 0  '0 or 1 indicating left or rightmenu
  DIM twomenus as bool = (gen(genMaxLevel) > 0)  'whether to draw the second menu
+ DIM as integer n0, nMax
 
  '.unselectable attribute only used from leftmenu
  DIM as BasicMenuItem vector leftmenu, rightmenu, middlemenu
@@ -320,6 +323,18 @@ SUB hero_editor_stats_menu (her as HeroDef)
  ' FIXME: the rightmost column is always the level 99 stats rather than gen(genMaxLevel)
  rightmenu[3].text = "LEVEL 99"
  rightmenu[3].col = uilook(uiDescription)
+
+ DIM rootsl as Slice Ptr
+ rootsl = NewSliceOfType(slContainer)
+ rootsl->Fill = YES
+
+ DIM graph as GraphSlice ptr = NEW GraphSlice()
+ graph->int_x_labels = YES
+ graph->int_y_labels = YES
+ graph->default_maxy = 20
+ DIM graph_sl as Slice ptr
+ graph_sl = NewClassSlice(rootsl, graph)
+ graph_sl->Pos = XY(0, 141)
 
  DIM mstate as MenuState
  WITH mstate
@@ -342,8 +357,6 @@ SUB hero_editor_stats_menu (her as HeroDef)
  NEXT
  max(statFocus) = 100
  max(statHitX) = 20
- 
- DIM mouse as MouseInfo
 
  setkeys
  DO
@@ -351,13 +364,13 @@ SUB hero_editor_stats_menu (her as HeroDef)
   setkeys
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_stats"
+  IF keyval(scF6) > 1 THEN slice_editor rootsl, SL_COLLECT_EDITOR
 
   usemenu mstate, leftmenu
   DIM statnum as integer = mstate.pt - 4
-  
-  mouse = readmouse
-  IF mouse.moved THEN
-   IF mouse.x > 160 AND twomenus THEN
+
+  IF readmouse.clicks AND (mouseLeft OR mouseRight) THEN
+   IF readmouse.x > 160 AND twomenus THEN
     activemenu = 1
    ELSE
     activemenu = 0
@@ -403,17 +416,35 @@ SUB hero_editor_stats_menu (her as HeroDef)
    NEXT i
   END IF
 
+  'Update graph
+  graph_sl->Visible = (statnum >= 0)
+  graph_sl->Size = get_resolution() - graph_sl->Pos - XY(0, 10)
+  IF statnum >= 0 THEN
+   n0 = her.Lev0.sta(statnum)
+   nMax = her.LevMax.sta(statnum)
+
+   REDIM graph->x(gen(genMaxLevel))
+   REDIM graph->y(gen(genMaxLevel))
+   FOR level as integer = 0 TO gen(genMaxLevel)
+    graph->x(level) = level
+    graph->y(level) = atlevel(level, n0, nMax)
+   NEXT
+
+   graph->mouse_over()
+  END IF
+
   ' Menu positions
   DIM rightmenux as integer = small(270, get_resolution().w - 135)
   DIM midmenux as integer = rightmenux \ 2
 
-  ' Position of the graph...
-  ' based on its bottom-right corner
-  DIM graphBR as XYPair = get_resolution() - XY(5, 40)
-  DIM graphrect as RectType = (graphBR.x - 100, 130, 100, graphBR.y - 130)
-
   '--Draw screen
   clearpage dpage
+  DrawSlice rootsl, dpage
+  IF statnum >= 0 THEN
+   textcolor uilook(uiDescription), 0
+   printstr statnames(statnum) & " by level", pCentered, graph_sl->ScreenY + ancBottom, dpage
+  END IF
+
   'Note that exactly one of the following two standardmenus should be active, since they share 'state'
   IF activemenu = 0 THEN
    standardmenu leftmenu, mstate, 0, 0, dpage
@@ -426,55 +457,37 @@ SUB hero_editor_stats_menu (her as HeroDef)
    standardmenu middlemenu, inactive_state, midmenux, 0, dpage
   END IF
 
-  IF statnum >= 0 THEN  '--Draw graph
-   textcolor uilook(uiMenuItem), 0
-   printstr statnames(statnum), graphBR.x - 10 + ancRight, graphBR.y + 4, dpage
-   IF twomenus THEN
-    DIM levelmsg as string
-    levelmsg = "Levels 0-" & gen(genMaxLevel)
-    printstr levelmsg, graphBR.x - 10 + ancRight, graphBR.y + 13, dpage
-   END IF
-   DIM as integer n0, nMax, numbars, barwidth
-   IF gen(genMaxLevel) < graphrect.wide THEN
-    numbars = gen(genMaxLevel) + 1
-    barwidth = graphrect.wide \ numbars
-   ELSE
-    numbars = graphrect.wide
-    barwidth = 1
-   END IF
-   n0 = her.Lev0.sta(statnum)
-   nMax = her.LevMax.sta(statnum)
-   ' The y value at the top of the graph
-   DIM graphmax as integer = large(small(99, max(statnum)), large(n0, atlevel(gen(genMaxLevel), n0, nMax)))
-   FOR i as integer = 0 TO numbars - 1
-    DIM as integer level, ordinate
-    level = INT(i * gen(genMaxLevel) / large(1, numbars - 1))  'round result to avoid error
-    ordinate = atlevel(level, n0, nMax) * (graphrect.high / graphmax)
-    rectangle graphrect.x + i * barwidth, graphBR.y - ordinate, barwidth, ordinate + 1, uilook(uiMenuItem), dpage
-   NEXT i
-
+  IF statnum >= 0 THEN
    'Experimental stuff
    IF keyval(scLeftShift) > 1 THEN
     debug "0=" & atlevel(0, n0, nMax) & " max(" & gen(genMaxLevel) & ")=" & atlevel(gen(genMaxLevel), n0, nMax) & " 99=" & atlevel(99, n0, nMax)
    END IF
-   IF keyval(scF6) > 1 AND gen(genMaxLevel) > 0 THEN
+   IF keyval(scF7) > 1 AND gen(genMaxLevel) > 0 THEN
     gen(genMaxLevel) -= 1
     debug "gen(genMaxLevel)=" & gen(genMaxLevel)
     mstate.need_update = YES
    END IF
-   IF keyval(scF7) > 1 THEN
+   IF keyval(scF8) > 1 THEN
     gen(genMaxLevel) += 1
     debug "gen(genMaxLevel)=" & gen(genMaxLevel)
     mstate.need_update = YES
    END IF
   END IF
 
+  'Preview speed, if appropriate
   IF statnum = statSpeed ANDALSO gen(genBattleMode) = 0 THEN  'Active-time battles
-   textcolor uilook(uiDescription), 0
-   printstr "Lev0: " & speed_estimate(her.Lev0.spd), 0, pBottom - 9, dpage
-   IF twomenus THEN
-    printstr "Lev" & gen(genMaxLevel) & ": " & speed_estimate(atlevel(gen(genMaxLevel), her.Lev0.spd, her.LevMax.spd)), 0, pBottom, dpage
+   DIM as integer whatlevel, spdstat
+   IF graph->showpoint THEN
+    whatlevel = CINT(graph->showx)
+   ELSEIF activemenu = 0 THEN
+    whatlevel = 0
+   ELSE
+    whatlevel = gen(genMaxLevel)
    END IF
+   spdstat = atlevel(whatlevel, her.Lev0.spd, her.LevMax.spd)
+
+   textcolor uilook(uiDescription), 0
+   printstr "Level " & whatlevel & ": " & speed_estimate(spdstat), 0, pBottom, dpage
   END IF
   SWAP vpage, dpage
   setvispage vpage
@@ -482,6 +495,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
  LOOP
  v_free leftmenu
  v_free rightmenu
+ DeleteSlice @rootsl  'Deletes graph
 END SUB
 
 SUB hero_editor_spell_lists_toplevel (her as HeroDef)
@@ -514,7 +528,7 @@ SUB hero_editor_spell_lists_toplevel (her as HeroDef)
   IF mstate.pt >= 1 THEN
    strgrabber her.list_name(listnum), 10
   END IF
-  IF keyval(scEnter) > 1 THEN
+  IF menu_click(mstate) ORELSE keyval(scAnyEnter) > 1 THEN  'Avoid enter_space_click
    IF mstate.pt = 0 THEN EXIT DO
    IF mstate.pt >= 1 AND mstate.pt <= 4 THEN
     IF LEN(her.list_name(listnum)) > 0 THEN
