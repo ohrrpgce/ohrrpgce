@@ -5356,15 +5356,24 @@ FUNCTION yesorno (byval n as integer, yes_cap as zstring ptr=@"YES", no_cap as z
  RETURN *no_cap
 END FUNCTION
 
+'The problem with strformat("%.Xg", ...) is that it displays values larger than 10^X
+'in scientific form, even though that may be much longer than displaying it directly,
+'eg.  "%.3g" % 2212.13123 == "2.21e+03"
+'This function doesn't show exponents so easily
+FUNCTION format_float(byval float as double, byval sigfigs as integer = 5) as string
+ DIM deciplaces as integer = sigfigs - (INT(LOG(ABS(float)) / LOG(10)) + 1)
+ IF deciplaces < -4 THEN RETURN strprintf("%." & sigfigs & "g", float)
+ IF deciplaces > sigfigs THEN deciplaces = sigfigs
+ DIM repr as string = FORMAT(float, "0." & STRING(deciplaces, "#"))
+ 'Unlike STR, FORMAT will add a trailing point
+ IF repr[LEN(repr) - 1] = ASC(".") THEN repr = LEFT(repr, LEN(repr) - 1)
+ RETURN repr
+END FUNCTION
+
 'This is mostly equivalent to '(float * 100) & "%"', however it doesn't show
 'exponentials, and it rounds to some number of significant places
 FUNCTION format_percent(byval float as double, byval sigfigs as integer = 5) as string
- DIM deciplaces as integer = sigfigs - (INT(LOG(ABS(float * 100)) / LOG(10)) + 1)
- IF deciplaces > sigfigs THEN deciplaces = sigfigs
- DIM repr as string = FORMAT(float * 100, "0." & STRING(deciplaces, "#"))
- 'Unlike STR, FORMAT will add a trailing point
- IF repr[LEN(repr) - 1] = ASC(".") THEN repr = LEFT(repr, LEN(repr) - 1)
- RETURN repr + "%"
+ RETURN format_float(float * 100, sigfigs) & "%"
 END FUNCTION
 
 'Edit a floating point value and its string representation simultaneously (repr
