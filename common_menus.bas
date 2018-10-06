@@ -104,11 +104,13 @@ FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair
 
  DIM state as MenuState
  state.pt = remem_pt
+ state.top = -1
  state.first = -1
- correct_menu_state state
  state.last = UBOUND(bitmenu)
  state.autosize = YES
  state.autosize_ignore_pixels = menupos.y
+ calc_menustate_size state, MenuOptions(), 0, 0   'For autosize
+ correct_menu_state state
 
  DIM ret as bool = NO
 
