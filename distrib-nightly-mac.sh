@@ -54,6 +54,6 @@ mv distrib/ohrrpgce-mac-minimal-*-wip.tar.gz distrib/ohrrpgce-mac-minimal.tar.gz
 scp -p distrib/ohrrpgce-mac-minimal.tar.gz $UPLOAD_DEST/ohrrpgce/nightly/
 rm distrib/ohrrpgce-mac-minimal.tar.gz
 
-scp -p distrib/ohrrpgce-util-mac.zip $UPLOAD_DEST/ohrrpgce/nightly/
-rm distrib/ohrrpgce-util-mac.zip
+scp -p distrib/ohrrpgce-mac-util.zip $UPLOAD_DEST/ohrrpgce/nightly/
+rm distrib/ohrrpgce-mac-util.zip
 

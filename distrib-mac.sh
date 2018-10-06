@@ -72,4 +72,4 @@ echo "Create minimal player tarball"
 gnutar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$CODE.tar.gz OHRRPGCE-Game.app README-mac-minimal.txt LICENSE-binary.txt
 
 echo "Creating utilities archive"
-gnutar -zcf distrib/ohrrpgce-mac-util.tar.gz unlump relump hspeak plotscr.hsd scancode.hsi LICENSE-binary.txt
+zip distrib/ohrrpgce-mac-util.zip unlump relump hspeak plotscr.hsd scancode.hsi LICENSE-binary.txt
