@@ -1503,28 +1503,31 @@ END SUB
 
 
 SUB textbox_edit_importer ()
- IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
-  DIM box_text_file as string
-  box_text_file = browse(browseAny, browse_default, "*.txt", "browse_import_textbox")
-  clearpage vpage
-  DIM backup_say as string = tmpdir & "backup-textbox-lump.say"
-  '--make a backup copy of the .say lump
-  copyfile game & ".say", backup_say
-  IF NOT isfile(backup_say) THEN
-   notification "unable to save a backup copy of the text box data to " & backup_say
-  ELSE
-   '--Backup was successfuly, okay to proceed
-   DIM remember_boxcount as integer = gen(genMaxTextbox)
-   DIM import_warn as string = ""
-   IF import_textboxes(box_text_file, import_warn) THEN
-    notification "Successfully imported """ & decode_filename(box_text_file) & """. " & import_warn
-   ELSE
-    'Failure! Reset, revert, abort, run-away!
-    gen(genMaxTextBox) = remember_boxcount
-    copyfile backup_say, game & ".say"
-    notification "Import failed, restoring backup. " & import_warn
-   END IF
-  END IF
+ IF yesno("Are you sure? Boxes will be overwritten", NO) = NO THEN EXIT SUB
+
+ DIM box_text_file as string
+ box_text_file = browse(browseAny, browse_default, "*.txt", "browse_import_textbox")
+ IF LEN(box_text_file) = 0 THEN EXIT SUB
+ clearpage vpage
+
+ '--Make a backup copy of the .say lump
+ DIM backup_say as string = tmpdir & "backup-textbox-lump.say"
+ copyfile game & ".say", backup_say
+ IF NOT isfile(backup_say) THEN
+  visible_debug "Unable to save a backup copy of the text box data to " & backup_say
+  EXIT SUB
+ END IF
+
+ '--Backup was successful, okay to proceed
+ DIM remember_boxcount as integer = gen(genMaxTextbox)
+ DIM import_warn as string = ""
+ IF import_textboxes(box_text_file, import_warn) THEN
+  notification "Successfully imported """ & decode_filename(box_text_file) & """. " & import_warn
+ ELSE
+  'Failure! Reset, revert, abort, run-away!
+  gen(genMaxTextBox) = remember_boxcount
+  copyfile backup_say, game & ".say"
+  notification "Import failed, restoring backup. " & import_warn
  END IF
 END SUB
 
@@ -1783,20 +1786,19 @@ SUB textbox_edit_exporter ()
  metadatalabels(1) = "Conditionals"
  metadatalabels(2) = "Choices"
  metadatalabels(3) = "Appearance"
-
  IF editbools(metadata(), metadatalabels(), "textbox_export_askwhatmetadata", _
-              , , "Choose which metadata to include", "Done") = YES THEN
-  DIM box_text_file as string
-  box_text_file = inputfilename("Filename for TextBox Export?", ".txt", "", "input_file_export_textbox")
-  IF box_text_file <> "" THEN
-   box_text_file = box_text_file & ".txt"
-   IF export_textboxes(box_text_file, metadata()) THEN
-    notification "Successfully exported " & decode_filename(box_text_file)
-   ELSE
-    notification "Failed to export " & decode_filename(box_text_file)
-   END IF '--export_textboxes
-  END IF '--box_text_file <> ""
- END IF '--metadata
+              , , "Choose which metadata to include", "Done") = NO THEN EXIT SUB
+
+ DIM box_text_file as string
+ box_text_file = inputfilename("Filename for TextBox Export?", ".txt", browse_default, "input_file_export_textbox")
+ IF box_text_file = "" THEN EXIT SUB
+ box_text_file &= ".txt"
+
+ IF export_textboxes(box_text_file, metadata()) THEN
+  notification "Successfully exported " & decode_filename(box_text_file)
+ ELSE
+  notification "Failed to export " & decode_filename(box_text_file)
+ END IF
 END SUB
 
 FUNCTION export_textboxes (filename as string, metadata() as bool) as bool
