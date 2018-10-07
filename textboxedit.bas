@@ -44,6 +44,8 @@ DECLARE SUB textbox_conditionals(byref box as TextBox)
 DECLARE SUB textbox_update_conditional_menu(byref box as TextBox, menu() as string)
 DECLARE FUNCTION textbox_conditional_textbox_or_script_picker(num as integer, state as MenuState) as integer
 DECLARE FUNCTION textbox_conditional_hero_picker(byval num as integer, state as MenuState) as integer
+DECLARE SUB textbox_edit_importer ()
+DECLARE SUB textbox_edit_exporter ()
 DECLARE SUB import_textboxes_warn (byref warn as string, s as string)
 DECLARE FUNCTION export_textboxes (filename as string, metadata() as bool) as bool
 DECLARE FUNCTION import_textboxes (filename as string, byref warn as string) as bool
@@ -66,6 +68,9 @@ CONST condBOXorSCRIPT = 10
 CONST condMENU       = 11
 CONST condSETTAG     = 12
 
+DIM SHARED browse_default as string
+
+
 SUB textbox_editor_main ()
  DIM b as TextboxBrowser
  b.browse(-1, , @text_box_editor)
@@ -87,8 +92,6 @@ END FUNCTION
 'one. Returns -1 if cancelled add-new, or else last box edited.
 '(See also FnEditor)
 FUNCTION text_box_editor(whichbox as integer = -1) as integer
- STATIC browse_default as string
-
  DIM box as TextBox
  DIM st as TextboxEditState
  WITH st
@@ -247,53 +250,11 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
     textbox_connections box, st, menu()
    END IF
    IF state.pt = 9 THEN '--Export textboxes to a .TXT file
-    STATIC metadata(3) as bool
-    DIM metadatalabels(3) as string
-    metadatalabels(0) = "Text"
-    metadata(0) = YES '--by default, export text
-    metadatalabels(1) = "Conditionals"
-    metadatalabels(2) = "Choices"
-    metadatalabels(3) = "Appearance"
-
-    IF editbools(metadata(), metadatalabels(), "textbox_export_askwhatmetadata", _
-                 , , "Choose which metadata to include", "Done") = YES THEN
-     DIM box_text_file as string
-     box_text_file = inputfilename("Filename for TextBox Export?", ".txt", "", "input_file_export_textbox")
-     IF box_text_file <> "" THEN
-      box_text_file = box_text_file & ".txt"
-      IF export_textboxes(box_text_file, metadata()) THEN
-       notification "Successfully exported " & decode_filename(box_text_file)
-      ELSE
-       notification "Failed to export " & decode_filename(box_text_file)
-      END IF '--export_textboxes
-     END IF '--box_text_file <> ""
-    END IF '--metadata
+    textbox_edit_exporter
    END IF
    IF state.pt = 10 THEN '-- Import text boxes from a .TXT file
-    IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
-     DIM box_text_file as string
-     box_text_file = browse(browseAny, browse_default, "*.txt", "browse_import_textbox")
-     clearpage vpage
-     DIM backup_say as string = tmpdir & "backup-textbox-lump.say"
-     '--make a backup copy of the .say lump
-     copyfile game & ".say", backup_say
-     IF NOT isfile(backup_say) THEN
-      notification "unable to save a backup copy of the text box data to " & backup_say
-     ELSE
-      '--Backup was successfuly, okay to proceed
-      DIM remember_boxcount as integer = gen(genMaxTextbox)
-      DIM import_warn as string = ""
-      IF import_textboxes(box_text_file, import_warn) THEN
-       notification "Successfully imported """ & decode_filename(box_text_file) & """. " & import_warn
-      ELSE
-       'Failure! Reset, revert, abort, run-away!
-       gen(genMaxTextBox) = remember_boxcount
-       copyfile backup_say, game & ".say"
-       notification "Import failed, restoring backup. " & import_warn
-      END IF
-     END IF
-     LoadTextBox box, st.id
-    END IF
+    textbox_edit_importer
+    LoadTextBox box, st.id
    END IF
 
    '--Save box after visiting any submenu
@@ -1541,6 +1502,32 @@ END SUB
 '============================== Import Textboxes ==============================
 
 
+SUB textbox_edit_importer ()
+ IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
+  DIM box_text_file as string
+  box_text_file = browse(browseAny, browse_default, "*.txt", "browse_import_textbox")
+  clearpage vpage
+  DIM backup_say as string = tmpdir & "backup-textbox-lump.say"
+  '--make a backup copy of the .say lump
+  copyfile game & ".say", backup_say
+  IF NOT isfile(backup_say) THEN
+   notification "unable to save a backup copy of the text box data to " & backup_say
+  ELSE
+   '--Backup was successfuly, okay to proceed
+   DIM remember_boxcount as integer = gen(genMaxTextbox)
+   DIM import_warn as string = ""
+   IF import_textboxes(box_text_file, import_warn) THEN
+    notification "Successfully imported """ & decode_filename(box_text_file) & """. " & import_warn
+   ELSE
+    'Failure! Reset, revert, abort, run-away!
+    gen(genMaxTextBox) = remember_boxcount
+    copyfile backup_say, game & ".say"
+    notification "Import failed, restoring backup. " & import_warn
+   END IF
+  END IF
+ END IF
+END SUB
+
 SUB import_textboxes_warn (byref warn as string, s as string)
  debug "import_textboxes: " & s
  IF warn <> "" THEN warn = warn & " "
@@ -1788,6 +1775,29 @@ END FUNCTION
 
 '============================== Export Texboxes ===============================
 
+SUB textbox_edit_exporter ()
+ STATIC metadata(3) as bool
+ DIM metadatalabels(3) as string
+ metadatalabels(0) = "Text"
+ metadata(0) = YES '--by default, export text
+ metadatalabels(1) = "Conditionals"
+ metadatalabels(2) = "Choices"
+ metadatalabels(3) = "Appearance"
+
+ IF editbools(metadata(), metadatalabels(), "textbox_export_askwhatmetadata", _
+              , , "Choose which metadata to include", "Done") = YES THEN
+  DIM box_text_file as string
+  box_text_file = inputfilename("Filename for TextBox Export?", ".txt", "", "input_file_export_textbox")
+  IF box_text_file <> "" THEN
+   box_text_file = box_text_file & ".txt"
+   IF export_textboxes(box_text_file, metadata()) THEN
+    notification "Successfully exported " & decode_filename(box_text_file)
+   ELSE
+    notification "Failed to export " & decode_filename(box_text_file)
+   END IF '--export_textboxes
+  END IF '--box_text_file <> ""
+ END IF '--metadata
+END SUB
 
 FUNCTION export_textboxes (filename as string, metadata() as bool) as bool
  DIM fh as integer = FREEFILE
