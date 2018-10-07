@@ -46,6 +46,7 @@ declare sub remove_exx_handler()
 #define FAIL_IF(condition, message, retwhat...)  EXIT_MSG_IF(condition, errError, message, retwhat)
 'Show an error message and exit (with optional return value)  if 'condition' is true
 #define ERROR_IF(condition, message, retwhat...) EXIT_MSG_IF(condition, errShowError, message, retwhat)
+#define BUG_IF(condition, message, retwhat...) EXIT_MSG_IF(condition, errShowBug, message, retwhat)
 
 
 #DEFINE _CONCAT(a,b) a##b

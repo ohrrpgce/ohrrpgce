@@ -563,11 +563,9 @@ Function AddStringToTable(name as zstring ptr, byval doc as DocPtr) as integer
 	if ret <> -1 then
 		return ret
 	end if
-	
-	if doc->numAllocStrings = 0 then 'This should never run.
-		fatalerror "ERROR! Unallocated string table!"
-	end if
-	
+
+	BUG_IF(doc->numAllocStrings = 0, "Unallocated string table!", 0)
+
 	if doc->numStrings >= doc->numAllocStrings then 'I hope it's only ever equals...
 		dim s as StringTableEntry ptr = RReallocate(doc->strings, doc, sizeof(StringTableEntry) * (doc->numAllocStrings * 2))
 		if s = 0 then 'panic
@@ -658,21 +656,19 @@ Declare sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byva
 'This serializes a document as a binary file. This is where the magic happens :)
 sub SerializeBin(file as string, byval doc as DocPtr)
 	dim starttime as double = timer
-	if doc = null then exit sub
-	
+	BUG_IF(doc = NULL, "null doc")
+	BUG_IF(doc->root = NULL, "null root")
+
 	RemoveProvisionalNodes(doc->root)
 	'BuildStringTable(doc->root, doc)
 
 	'In case things go wrong, we serialize to a temporary file first
 	safekill file & ".tmp"
-	
+
 	dim f as BufferedFile ptr
 	f = Buffered_open(file & ".tmp")
-	if f = NULL then
-		debug "SerializeBin: Unable to open " & file & ".tmp"
-		exit sub
-	end if
-	
+	ERROR_IF(f = NULL, "Unable to open " & file & ".tmp")
+
 	dim i as uinteger
 	
 	Buffered_write(f, @"RELD", 4) 'magic signature
@@ -722,17 +718,14 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 
 	safekill file
 	if local_file_move(file & ".tmp", file) = NO then
-		debug "SerializeBin: could not rename " & file & ".tmp to " & file
+		showerror "SerializeBin: could not rename " & file & ".tmp to " & file
 		exit sub  'don't delete the data
 	end if
 	debug_if_slow(starttime, 0.1, file)
 end sub
 
 sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byval doc as DocPtr)
-	if nod = 0 then
-		debug "serializeBin null node ptr"
-		exit sub
-	end if
+	BUG_IF(nod = NULL, "null node ptr")
 
 	'first, if a node isn't loaded, we need to do so.
 	if nod->flags AND nfNotLoaded then
@@ -746,10 +739,7 @@ sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byval doc as
 
 	content_start_loc = Buffered_tell(f)
 
-	if nod->namenum = -1 then
-		debug *nod->name & " node without valid name index"
-		exit sub
-	end if
+	BUG_IF(nod->namenum = -1, "node without valid name index")
 	WriteVLI(f, nod->namenum)
 
 	select case nod->nodeType
@@ -821,10 +811,7 @@ end sub
 'Make a node provisional, which means it will be deleted before the doc is
 'serialised if it has no children.
 sub MarkProvisional(byval nod as NodePtr)
-	if nod = NULL then
-		debug "MarkProvisional null node ptr"
-		exit sub
-	end if
+	BUG_IF(nod = NULL, "null node ptr")
 	nod->flags OR= nfProvisional
 end sub
 
@@ -1840,7 +1827,7 @@ Sub SwapSiblingNodes(byval nod1 as NodePtr, byval nod2 as NodePtr)
 		index += 1
 		ch = NextSibling(ch)
 	wend
-	if p1 = -1 or p2 = -1 then debug "SwapSiblingNodes: sanity fail, siblings not found in parent's children": exit sub
+	BUG_IF(p1 = -1 orelse p2 = -1, "sanity fail, siblings not found in parent's children")
 	swap holder(p1), holder(p2)
 	
 	for i as integer = 0 to ubound(holder) - 1
@@ -1877,10 +1864,7 @@ end sub
 'The doc is an optional doc ptr that new new node should belong to. If omitted, the clone
 'will be in the same doc as the original node
 Function CloneNodeTree(byval nod as NodePtr, byval doc as DocPtr=0) as NodePtr
-	if nod = null then
-		debug "CloneNodeTree: null node pointer"
-		return null
-	end if
+	BUG_IF(nod = NULL, "null node ptr", NULL)
 	dim n as NodePtr
 	if doc then
 		n = CreateNode(doc, NodeName(nod))
