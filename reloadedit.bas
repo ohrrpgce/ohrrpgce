@@ -260,7 +260,7 @@ FUNCTION reload_editor_edit_node_name(byval node as Reload.Nodeptr) as integer
  IF node = 0 THEN debug "reload_editor_edit_node_name: null node": RETURN NO
  DIM s as string
  s = Reload.NodeName(node)
- IF strgrabber(s, 40) THEN
+ IF strgrabber(s) THEN
   Reload.RenameNode(node, s)
   RETURN YES
  END IF
@@ -297,7 +297,7 @@ FUNCTION reload_editor_edit_node_value(byref st as ReloadEditorState, byval node
    Reload.SetContent(node, s)
    RETURN YES
   ELSE
-   IF strgrabber(s, 40) THEN
+   IF strgrabber(s) THEN
     Reload.SetContent(node, s)
     RETURN YES
    END IF

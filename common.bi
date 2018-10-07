@@ -179,9 +179,9 @@ DECLARE FUNCTION find_windows_helper_app (appname as string, try_install as bool
 DECLARE FUNCTION download_file (url as string, dest as string, forcefilename as string="") as bool
 DECLARE FUNCTION missing_helper_message (appname as string) as string
 
-DECLARE FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, byval numlines as integer = 1, byval line_length as integer = 1) as integer
+DECLARE FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer = 9999999, byval numlines as integer = 1, byval line_length as integer = 1) as integer
 'strgrabber has separate versions in customsubs.bas and yetmore2.bas
-DECLARE FUNCTION strgrabber (s as string, maxl as integer) as bool
+DECLARE FUNCTION strgrabber (s as string, maxl as integer = 9999999) as bool
 DECLARE SUB handle_text_copy_paste (byref text as string, byref clip as string)
 
 'When to accept mouse wheel input

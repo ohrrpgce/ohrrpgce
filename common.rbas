@@ -2024,7 +2024,7 @@ SUB handle_text_copy_paste (byref text as string, byref clip as string)
 END SUB
 
 'Returns true if the string has changed
-FUNCTION strgrabber (text as string, maxl as integer) as bool
+FUNCTION strgrabber (text as string, maxl as integer = 9999999) as bool
  STATIC clip as string
  DIM original as string = text
 
@@ -2051,7 +2051,7 @@ FUNCTION strgrabber (text as string, maxl as integer) as bool
  RETURN (text <> original)
 END FUNCTION
 
-FUNCTION stredit (s as string, byref insert as integer, maxl as integer, numlines as integer = 1, line_length as integer = 1) as integer
+FUNCTION stredit (s as string, byref insert as integer, maxl as integer = 9999999, numlines as integer = 1, line_length as integer = 1) as integer
  'Return value is the line that the cursor is on, or 0 if numlines=1
  'insert is the 0-based position of the cursor (range 0..LEN(s)-1), and is modified byref. Set to -1 to move automatically to end of string
  'maxl is maximum length in characters.
@@ -2491,7 +2491,7 @@ SUB show_help(helpkey as zstring ptr)
 
   IF editing THEN
    DIM numlines as integer = help_draw_area->Height \ 10 + 1
-   cursor_line = stredit(help_str, dat->insert, 32767, numlines, help_text->Width \ 8)
+   cursor_line = stredit(help_str, dat->insert, , numlines, help_text->Width \ 8)
    'The limit of 32767 chars is totally arbitrary and maybe not a good limit
    ChangeTextSlice help_text, help_str
   END IF
@@ -2717,8 +2717,7 @@ FUNCTION multiline_string_editor(s as string, helpkey as string="", prompt_to_sa
   setkeys YES
 
   DIM textstring as string = dat->s
-  cursor_line = stredit(textstring, dat->insert, 32767, dat->line_limit, text->Width \ 8)
-  'The limit of 32767 chars is totally arbitrary and maybe not a good limit
+  cursor_line = stredit(textstring, dat->insert, , dat->line_limit, text->Width \ 8)
   ChangeTextSlice text, textstring
 
   IF keyval(scESC) > 1 THEN

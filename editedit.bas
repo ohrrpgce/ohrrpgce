@@ -220,7 +220,7 @@ FUNCTION ee_edit_widget(byref st as EEState, byval widget as NodePtr) as bool
  IF subwidget <> "" THEN
   DIM s as string
   s = GetChildNodeStr(widget, subwidget)
-  IF strgrabber(s, 1000000) THEN
+  IF strgrabber(s) THEN
    IF s = "" THEN
     SetChildNode(widget, subwidget)
    ELSE
@@ -764,7 +764,7 @@ FUNCTION widget_editor_edit_node(byref st as WEState, byval kind as integer, byv
    IF enter_or_space() THEN st.exit_please = YES
   CASE wedSTRING:
    DIM s as string = GetString(node)
-   IF strgrabber(s, 1000000) THEN ' The 1 million character limit is totally arbitrary
+   IF strgrabber(s) THEN
     SetContent node, s
     changed = YES
    END IF
