@@ -183,68 +183,66 @@ Function NodeByPath(byval node as NodePtr, zpath as zstring ptr, byval create as
 
 End Function
 
-'For debug purposes: check that two RELOAD trees are equal
+'For debug purposes: check that two RELOAD trees are equal, returns YES if they are
 'pedantic: Insist on equality of types
 'FIXME: the order of child nodes usually does not matter, would be good to have an option to ignore such differences
-Function CompareNodes(byval nod1 as nodeptr, byval nod2 as nodeptr, byval pedantic as integer) as integer
+Function CompareNodes(nod1 as NodePtr, nod2 as NodePtr, pedantic as bool = NO, logdiffs as bool = NO) as bool
+	#define logdiff(msg)  if logdiffs then debug msg
+
 	if NodeName(nod1) <> NodeName(nod2) then
-		debug "Names of nodes differ! '" & GetNodePath(nod1) & "' vs '" & GetNodePath(nod2) & "'"
-		return 1
+		logdiff("Names of nodes differ! '" & GetNodePath(nod1) & "' vs '" & GetNodePath(nod2) & "'")
+		return NO
 	end if
-	
+
 	if pedantic then
 		if NodeType(nod1) <> NodeType(nod2) then
-			debug "Types of node " & GetNodePath(nod1) & " differ! " & NodeType(nod1) & " vs " & NodeType(nod2)
-			return 1
+			logdiff("Types of node " & GetNodePath(nod1) & " differ! " & NodeType(nod1) & " vs " & NodeType(nod2))
+			return NO
 		end if
-		
+
 		select case NodeType(nod1)
 			case rltNull
 			case rltInt
 				if GetInteger(nod1) <> GetInteger(nod2) then
-					debug "Value of node " & GetNodePath(nod1) & " differ! " & GetInteger(nod1) & " vs " & GetInteger(nod2)
-					return 1
+					logdiff("Value of node " & GetNodePath(nod1) & " differ! " & GetInteger(nod1) & " vs " & GetInteger(nod2))
+					return NO
 				end if
 			case rltFloat
 				if GetFloat(nod1) <> GetFloat(nod2) then
-					debug "Value of node " & GetNodePath(nod1) & " differ! " & GetFloat(nod1) & " vs " & GetFloat(nod2)
-					return 1
+					logdiff("Value of node " & GetNodePath(nod1) & " differ! " & GetFloat(nod1) & " vs " & GetFloat(nod2))
+					return NO
 				end if
 			case rltString
 				if GetString(nod1) <> GetString(nod2) then
-					debug "Value of node " & GetNodePath(nod1) & " differ! """ & GetString(nod1) & """ vs """ & GetString(nod2) & """"
-					return 1
+					logdiff("Value of node " & GetNodePath(nod1) & " differ! """ & GetString(nod1) & """ vs """ & GetString(nod2) & """")
+					return NO
 				end if
 		end select
 	else
 		'This is too easy
 		if GetString(nod1) <> GetString(nod2) then
-			debug "Value of node " & GetNodePath(nod1) & " differ! """ & GetString(nod1) & """ vs """ & GetString(nod2) & """"
-			return 1
+			logdiff("Value of node " & GetNodePath(nod1) & " differ! """ & GetString(nod1) & """ vs """ & GetString(nod2) & """")
+			return NO
 		end if
 	end if
-			
-	
+
 	if NumChildren(nod1) <> NumChildren(nod2) then
-		debug "Number of children on node " & GetNodePath(nod1) & " differ! " & NumChildren(nod1) & " vs " & NumChildren(nod2)
-		return 1
+		logdiff("Number of children on node " & GetNodePath(nod1) & " differ! " & NumChildren(nod1) & " vs " & NumChildren(nod2))
+		return NO
 	end if
-	
-	dim numkids as integer = NumChildren(nod1)
-	dim ret as integer = 0  'I GUESS they're the same...
-	
-	nod1 = FirstChild(nod1)
-	nod2 = FirstChild(nod2)
-	for i as integer = 0 to numkids - 1
-		if CompareNodes(nod1, nod2, pedantic) then
+
+	dim ret as bool = YES  'I GUESS they're the same...
+
+	dim as NodePtr ch1 = FirstChild(nod1), ch2 = FirstChild(nod2)
+	for i as integer = 0 to NumChildren(nod1) - 1
+		if CompareNodes(ch1, ch2, pedantic, logdiffs) = NO then
 			'keep going, find all differing children (but we don't keep descending when a difference is found)
-			ret = 1
+			ret = NO
 		end if
-		
-		nod1 = NextSibling(nod1)
-		nod2 = NextSibling(nod2)
+		ch1 = NextSibling(ch1)
+		ch2 = NextSibling(ch2)
 	next
-	
+
 	return ret
 End Function
 

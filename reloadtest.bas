@@ -650,7 +650,7 @@ endTest
 startTest(compareWithXML)
 	if skip_xml2reload then skip
 	'non-pedantic
-	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), NO) then fail
+	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), NO, YES) = NO then fail
 endTest
 
 /'
@@ -665,7 +665,7 @@ startTest(pedanticCompareWithXML)
 	if doc2 = null then fail
 
 	'pedantic
-	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES) then fail
+	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES, YES) = NO then fail
 endTest
 '/
 
@@ -759,7 +759,7 @@ startTest(loadDocumentNoDelay)
 endTest
 
 startTest(compareDocumentsNoDelay)
-	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES) then fail
+	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES, YES) = NO then fail
 endTest
 
 startTest(freeDocumentNoDelay)
@@ -773,7 +773,7 @@ startTest(loadAndCompareDocumentsDelay)
 	
 	if doc2 = null then fail
 	
-	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES) then fail
+	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES, YES) = NO then fail
 endTest
 
 startTest(freeDocumentDelay)
