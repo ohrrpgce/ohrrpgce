@@ -1529,9 +1529,10 @@ SUB distribute_game_as_mac_app ()
  load_distrib_state distinfo
 
  DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & "-mac.zip"
+ DIM destshortname as string = trimpath(destname)
 
  IF isfile(destname) THEN
-  IF dist_yesno(trimpath(destname) & " already exists. Overwrite it?") = NO THEN RETURN
+  IF dist_yesno(destshortname & " already exists. Overwrite it?") = NO THEN RETURN
   'Okay to overwrite! (but actually do the overwriting later on)
  END IF
 
@@ -1596,8 +1597,12 @@ SUB distribute_game_as_mac_app ()
    EXIT DO
   END IF
   CHDIR olddir
-  
-  dist_info trimpath(destname) & " was successfully created!", errInfo
+
+  dist_info destshortname & " was successfully created!", errInfo
+  'I have seen someone -- on Linux, even -- wipe the +x flag on ohrrpgce-game
+  'by unzipping and rezipping.
+  dist_info "Note: Don't unzip and re-zip " & destshortname & ": that might wipe critical metadata from " _
+            & gameshortname & ".app and prevent it from running!", errInfo
   EXIT DO 'this loop is only ever one pass
  LOOP
 
