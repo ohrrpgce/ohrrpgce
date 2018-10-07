@@ -706,8 +706,8 @@ FUNCTION get_windows_gameplayer() as string
  DIM dlfile as string
  IF version_branch = "wip" THEN
   '--If running a nightly wip, download the latest nightly wip
-  url = "http://hamsterrepublic.com/ohrrpgce/nightly/ohrrpgce-wip-default.zip"
-  dlfile = "ohrrpgce-wip-default.zip"
+  url = "http://hamsterrepublic.com/ohrrpgce/nightly/ohrrpgce-win-default.zip"
+  dlfile = "ohrrpgce-win-default.zip"
  ELSE
   '--If running any stable release, download the latest stable release.
   url = "http://hamsterrepublic.com/dl/ohrrpgce-minimal.zip"
