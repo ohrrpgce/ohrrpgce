@@ -2784,19 +2784,26 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
 
  DIM gameexename as string = GAMEEXE
  DIM executable as string
- executable = exepath & SLASH & GAMEEXE
 
 #ifdef __FB_DARWIN__
  gameexename = "OHRRPGCE-Game"
- CONST mac_game_bundle as string = "/OHRRPGCE-Game.app/Contents/MacOS/ohrrpgce-game"
- ' First check for unbundled ohrrpgce-game, then OHRRPGCE-Game.app
+ CONST mac_game_bundle as string = "OHRRPGCE-Game.app/Contents/MacOS/ohrrpgce-game"
+ ' First check for unbundled ohrrpgce-game (because it would be most recently built) then OHRRPGCE-Game.app
  executable = exepath & SLASH & GAMEEXE
  IF isfile(executable) = NO THEN
-  executable = app_dir & mac_game_bundle
+  executable = app_dir & GAMEEXE
   IF isfile(executable) = NO THEN
-   executable = parentdir(exepath, 3) & mac_game_bundle
+   executable = app_dir & mac_game_bundle
+   IF isfile(executable) = NO THEN
+    executable = ENVIRON("HOME") & "/Applications/" & mac_game_bundle
+    IF isfile(executable) = NO THEN
+     executable = "/Applications/" & mac_game_bundle
+    END IF
+   END IF
   END IF
  END IF
+#else
+ executable = exepath & SLASH & GAMEEXE
 #endif
  IF isfile(executable) = NO THEN
   notification "Couldn't find " & gameexename & !"\nIt should be in the same directory as " & CUSTOMEXE
@@ -2955,7 +2962,7 @@ SUB automatic_backup (rpgfile as string)
  DIM backupdir as string = trimfilename(rpgfile) & SLASH & "autobackups"
  IF NOT isdir(backupdir) THEN makedir backupdir
  IF NOT diriswriteable(backupdir) THEN
-  debuginfo "Can't do automatic backups """ & backupdir & """ is not writeable"
+  debug "Can't do automatic backups: """ & backupdir & """ is not writeable"
  END IF
  DIM warnfile as string = backupdir & SLASH & "README-WARNING-automatic-backups.txt"
  IF NOT isfile(warnfile) THEN

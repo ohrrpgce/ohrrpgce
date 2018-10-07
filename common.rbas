@@ -6460,7 +6460,7 @@ FUNCTION get_documents_dir() as string
   'See https://developer.apple.com/library/mac/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html#//apple_ref/doc/uid/TP40010672-CH2-SW10
   ret = ENVIRON("HOME") & "/Documents"
  #ELSEIF defined(__FB_UNIX__)
-  ' I don't know how true this is
+  ' FIXME: I don't know how true this is
   ret = ENVIRON("HOME") & "/Documents"
  #ELSEIF defined(__FB_WIN32__)
   'Localised and customisable; need to call winapi

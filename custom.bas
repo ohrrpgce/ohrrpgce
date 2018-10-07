@@ -138,19 +138,13 @@ DIM shop_stuff_context_id as integer
 orig_dir = CURDIR
 'Note: debug log messages go in CURDIR until log_dir set below
 
-app_dir = EXEPATH  'FreeBasic builtin
+app_dir = add_trailing_slash(EXEPATH)  'FreeBasic builtin
 
 #IFDEF __FB_DARWIN__
  'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside
- IF RIGHT(exepath, 19) = ".app/Contents/MacOS" THEN
-  app_resources_dir = parentdir(exepath, 1) + "Resources"
-  app_dir = parentdir(exepath, 3)
- END IF
- 'FIXME: why are we changing app_dir??
- IF app_dir = "/Applications/" THEN
-  'Equal to documents_dir (not set yet)
-  app_dir = ENVIRON("HOME") & SLASH & "Documents"
-  CHDIR app_dir
+ IF LCASE(RIGHT(app_dir, 20)) = ".app/contents/macos/" THEN
+  app_resources_dir = parentdir(app_dir, 1) + "Resources"
+  app_dir = parentdir(app_dir, 3)
  END IF
 #ENDIF
 
