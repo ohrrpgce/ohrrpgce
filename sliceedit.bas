@@ -10,6 +10,7 @@
 #include "slices.bi"
 #include "loading.bi"
 #include "thingbrowser.bi"
+#include "reloadext.bi"
 
 #include "sliceedit.bi"
 
@@ -939,6 +940,34 @@ SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice
  END IF
 END SUB
 
+FUNCTION slice_collection_has_changed(sl as Slice ptr, filename as string) as bool
+ IF isfile(filename) = NO THEN RETURN YES
+
+ 'Load the original slice tree
+ DIM olddoc as DocPtr
+ olddoc = LoadDocument(filename, optNoDelay)
+ IF olddoc = NULL THEN RETURN YES
+ DIM oldtree as Nodeptr = DocumentRoot(olddoc)
+
+ 'Create a node in a new RELOAD document, and save the slice tree into it
+ DIM newdoc as DocPtr
+ newdoc = CreateDocument()
+ IF newdoc = NULL THEN FreeDocument olddoc : RETURN YES
+ DIM newtree as Nodeptr
+ newtree = CreateNode(newdoc, "")
+ SliceSaveToNode sl, newtree, NO
+ ' For debug
+ 'SetRootNode newdoc, newtree
+ 'SerializeBin filename + ".2", newdoc
+
+ DIM changed as bool
+ changed = Reload.Ext.CompareNodes(newtree, oldtree) = NO  'Check not equal
+
+ FreeDocument olddoc
+ FreeDocument newdoc
+ RETURN changed
+END FUNCTION
+
 ' Called when you leave the editor or switch to a different collection: saves if necessary.
 ' Returns false if the user cancelled rather than made a decision
 FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr) as bool
@@ -954,12 +983,14 @@ FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as 
    safekill filename
   END IF
  ELSEIF LEN(ses.collection_file) > 0 AND ses.editing_existing = NO THEN
+  IF slice_collection_has_changed(edslice, filename) = NO THEN RETURN YES
+
   IF edslice->NumChildren > 0 THEN
    'Prevent attempt to quit the program, stop and wait for response first
    DIM quitting as bool = getquitflag()
    setquitflag NO
    DIM dowhat as integer
-   dowhat = twochoice("Save collection before leaving, overwriting " & _
+   dowhat = twochoice(!"Slice collection modified.\nSave before leaving, overwriting " & _
                       simplify_path_further(filename) & "?", "Yes", "No", 0, -1)
    IF dowhat = -1 AND quitting = NO THEN RETURN NO  'cancel
    IF dowhat = 0 THEN  'yes
@@ -1054,7 +1085,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
   usemenu_flag = usemenu(state)
   IF state.pt = 0 AND enter_space_click(state) THEN EXIT DO
   slice_edit_detail_keys ses, state, sl, rules(), usemenu_flag
-  
+
   draw_background vpages(dpage), bgChequer
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice ses.draw_root, dpage
