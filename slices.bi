@@ -185,6 +185,7 @@ Type SliceLoad as Sub(Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
 Type SliceChildRefresh as Sub(Byval par as SliceFwd ptr, Byval ch as SliceFwd ptr, childindex as integer = -1, visibleonly as bool = YES)
 Type SliceChildrenRefresh as Sub(Byval par as SliceFwd ptr)
 Type SliceChildDraw as Sub(Byval s as SliceFwd ptr, Byval page as integer)
+End Extern
 
 'Eventually, Slice will be replaced with this OO-based ClassSlice,
 'but currently it's only used for certain Special slices.
@@ -199,6 +200,8 @@ Type ClassSlice Extends Object
  Declare Virtual Sub ChildrenRefresh(sl as SliceFwd ptr)
  Declare Virtual Sub ChildDraw(sl as SliceFwd ptr, page as integer)
 End Type
+
+Extern "C"
 
 Type RectangleSliceDataFwd as RectangleSliceData
 Type LineSliceDataFwd as LineSliceData

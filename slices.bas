@@ -1006,6 +1006,8 @@ End Sub
 
 '--ClassSlice default methods---------------------------------------------
 
+End Extern
+
 'If part of the initialisation needs the Slice ptr, it can be delayed until this is called
 Sub ClassSlice.Initialize(sl as Slice ptr)
 End Sub
@@ -1041,6 +1043,7 @@ Sub ClassSlice.ChildDraw(sl as Slice ptr, page as integer)
  DefaultChildDraw sl, page
 End Sub
 
+Extern "C"
 
 '--Rectangle--------------------------------------------------------------
 Sub DisposeRectangleSlice(byval sl as Slice ptr)
