@@ -1628,6 +1628,16 @@ startTest(normalize_path)
 endTest
 #ENDIF
 
+FUNCTION add_trailing_slash (dirname as string) as string
+  IF LEN(dirname) = 0 THEN RETURN dirname  'For safety
+  #IFDEF __FB_WIN32__
+    'Also valid on Windows
+    IF RIGHT(dirname, 1) = "\" THEN RETURN dirname
+  #ENDIF
+  IF RIGHT(dirname, 1) = SLASH THEN RETURN dirname
+  RETURN dirname + SLASH
+END FUNCTION
+
 'On Windows both slashes are trimmed, on Unix only /
 'This will NOT trim a trailing slash if it's part of the root,
 '"/" on Unix; "X:\" or "X:/" on Windows.
@@ -1821,7 +1831,7 @@ END FUNCTION
 FUNCTION absolute_with_orig_path(file_or_dir as string, byval add_slash as integer = NO) as string
   DIM d as string = file_or_dir
   IF NOT is_absolute_path(d) THEN d = orig_dir & SLASH & d
-  IF add_slash AND RIGHT(d, 1) <> SLASH THEN d = d & SLASH
+  IF add_slash THEN d = add_trailing_slash(d)
   RETURN d
 END FUNCTION
 
@@ -1956,10 +1966,17 @@ FUNCTION parentdir (path as string, byval upamount as integer = 1) as string
   FOR i as integer = 0 TO upamount - 1
    pathname += ".." + SLASH
   NEXT
-  DIM ret as string = simplify_path(pathname)
-  IF RIGHT(ret, 1) <> SLASH THEN ret += SLASH
-  RETURN ret
+  RETURN add_trailing_slash(simplify_path(pathname))
 END FUNCTION
+
+#IFDEF __FB_MAIN__
+startTest(parentdir)
+  testEqual(parentdir("foo/bar/qux/", 1), "foo/bar/")
+  testEqual(parentdir("foo/bar/qux", 1), "foo/bar/")
+  testEqual(parentdir("foo/bar/qux", 2), "foo/")
+  testEqual(parentdir("foo/bar/qux", 3), "./")
+endTest
+#ENDIF
 
 ' Given a relative path to a file or dir by a user clueless about Unix/Windows
 ' differences, try to find that file, returning either a simplified/normalised
@@ -2452,8 +2469,7 @@ SUB findfiles (directory as string, namemask as string = "", filetype as FileTyp
    showerror "findfiles: bad filetype"
    EXIT SUB
   END IF
-  DIM as string searchdir = directory
-  IF RIGHT(searchdir, 1) <> SLASH THEN searchdir += SLASH
+  DIM as string searchdir = add_trailing_slash(directory)
   DIM as string nmask = anycase(namemask)
   IF LEN(nmask) = 0 THEN nmask = ALLFILES
 #ifdef DEBUG_FILE_IO
@@ -3349,7 +3365,7 @@ FUNCTION get_tmpdir () as string
  IF NOT isdir(tmp) THEN
   IF makedir(tmp) <> 0 THEN fatalerror "Temp directory " & tmp & " missing and unable to create it"
  END IF
- IF RIGHT(tmp, 1) <> SLASH THEN tmp = tmp & SLASH
+ tmp = add_trailing_slash(tmp)
  DIM as string d = DATE, t = TIME
  tmp += "ohrrpgce" & MID(d,7,4) & MID(d,1,2) & MID(d,4,2) & MID(t,1,2) & MID(t,4,2) & MID(t,7,2) & "." & randint(1000) & ".tmp" & SLASH
  IF NOT isdir(tmp) THEN

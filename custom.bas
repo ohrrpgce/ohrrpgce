@@ -1748,8 +1748,7 @@ FUNCTION pick_recovered_rpg_filename(old_sourcerpg as string) as string
  DIM destfile_basename as string
  IF LEN(old_sourcerpg) THEN
   ' Put next to original file
-  destdir = trimfilename(old_sourcerpg)
-  IF LEN(destdir) THEN destdir &= SLASH
+  destdir = add_trailing_slash(trimfilename(old_sourcerpg))
   IF NOT diriswriteable(destdir) THEN destdir = ""
   destfile_basename = trimpath(trimextension(old_sourcerpg)) & " crash-recovered "
  ELSE

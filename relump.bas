@@ -35,7 +35,7 @@ END IF
 DIM src as string = COMMAND(1)
 DIM dest as string = COMMAND(2)
 
-IF RIGHT(src,1)=SLASH THEN src=LEFT(src,LEN(src)-1)
+src = trim_trailing_slashes(src)
 
 IF NOT isdir(src) THEN
   IF isfile(src) THEN fatalerror src + "' is a file, not a folder"

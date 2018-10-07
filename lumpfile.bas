@@ -967,7 +967,7 @@ function unlumpfile_internal (lumpfile as string, fmask as string, path as strin
 	end if
 	maxsize = LOF(lf)
 
-	if len(path) > 0 and right(path, 1) <> SLASH then path = path & SLASH
+	path = add_trailing_slash(path)
 
 	'should make browsing a bit faster
 	if len(fmask) > 0 then
@@ -1041,7 +1041,7 @@ end function
 
 'lump may include * or ? wildcards
 sub copylump(package as string, lump as string, dest as string, byval ignoremissing as integer = NO)
-	if len(dest) and right(dest, 1) <> SLASH then dest = dest + SLASH
+	dest = add_trailing_slash(dest)
 	if isdir(package) then
 		#ifdef DEBUG_FILE_IO
 			debuginfo "copylump " & lump & " in " & package & " -> " & dest
