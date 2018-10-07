@@ -955,10 +955,9 @@ FUNCTION slice_collection_has_changed(sl as Slice ptr, filename as string) as bo
  IF newdoc = NULL THEN FreeDocument olddoc : RETURN YES
  DIM newtree as Nodeptr
  newtree = CreateNode(newdoc, "")
+ SetRootNode newdoc, newtree
  SliceSaveToNode sl, newtree, NO
- ' For debug
- 'SetRootNode newdoc, newtree
- 'SerializeBin filename + ".2", newdoc
+ 'SerializeBin filename + ".2", newdoc  'For debug
 
  DIM changed as bool
  changed = Reload.Ext.CompareNodes(newtree, oldtree) = NO  'Check not equal
