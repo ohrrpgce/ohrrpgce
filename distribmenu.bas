@@ -1582,6 +1582,13 @@ SUB distribute_game_as_mac_app ()
 
   'Remove the old copy that we are replacing
   safekill destname
+
+  'Package as a .zip file. NOTE: When created on Unix, .zip files contain file permissions
+  'including the all-important +x bit in the "external attributes", but on Windows they don't.
+  'We rely on a quirk of the Mac Finder, which sets the +x bit on every file when extracting
+  'files from a Windows/DOS .zip file. Other Mac archivers might not do this. For a solution
+  'to actually create Mac .zip packages with correct file permissions from Windows, see
+  'prepare_map_app_zip()
   DIM olddir as string = CURDIR
   CHDIR apptmp
   IF create_zipfile(apptmp, destname, "*.app *.txt") = NO THEN
@@ -1598,6 +1605,48 @@ SUB distribute_game_as_mac_app ()
  killdir apptmp, YES
 
 END SUB
+
+/' This works, but isn't used yet. May not be needed. See comment above.
+FUNCTION prepare_mac_app_zip(zipfile as string, gamename as string) as bool
+ '--Renames OHRRPGCE-Game.app to gamename.app inside a zip file, without extracting it
+ DIM unzip as string = find_helper_app("unzip", YES)
+ IF unzip = "" THEN dist_info "ERROR: unzip is not available": RETURN NO
+ DIM ziptool as string = find_helper_app("ziptool", YES)
+ IF ziptool = "" THEN dist_info "ERROR: ziptool is not available": RETURN NO
+
+ 'First get list of files/directories
+ DIM as string stdout_s, stderr_s
+ IF run_and_get_output(unzip & " -Z -1 " & escape_filename(zipfile), stdout_s, stderr_s) THEN
+  dist_info !"Couldn't examine zip file:\n" & stderr_s
+  RETURN NO
+ END IF
+ DIM files() as string
+ split stdout_s, files()
+
+ 'Rename each entry
+ DIM renamed as integer = 0
+ DIM args as string
+ FOR idx as integer = 0 TO UBOUND(files)
+  DIM newname as string = files(idx)
+  IF replacestr(newname, "OHRRPGCE-Game.app", gamename & ".app") THEN
+   renamed += 1
+   args += " rename " & idx & " " & escape_filename(newname)
+  END IF
+ NEXT
+
+ IF renamed < 5 THEN  'Sanity check
+  dist_info "Looks like contents of " & zipfile & " isn't right"
+  RETURN NO
+ END IF
+
+ IF safe_shell(ziptool & " " & escape_filename(zipfile) & args) THEN
+  dist_info "Modifying " & zipfile & " with ziptool failed"
+  RETURN NO
+ END IF
+
+ RETURN YES
+END FUNCTION
+'/
 
 FUNCTION get_mac_gameplayer() as string
  'Download OHRRPGCE-Game.app,
