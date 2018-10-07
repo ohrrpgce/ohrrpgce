@@ -1558,7 +1558,7 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
  DIM i as integer
  DO WHILE NOT EOF(fh)
   line_number += 1
-  LINE INPUT #1, s
+  LINE INPUT #fh, s
   s = decode_backslash_codes(s, "Line " & line_number & ":", show_encoding_warnings)
   IF firstline THEN
    IF RTRIM(s) <> STRING(38, "=") THEN
