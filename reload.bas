@@ -1642,9 +1642,9 @@ Function GetChildNodeBool(byval parent as NodePtr, n as zstring ptr, byval d as 
 end function
 
 'looks for a child node of the name n, and returns whether it finds it or not. For "flags", etc
-Function GetChildNodeExists(byval parent as NodePtr, n as zstring ptr) as integer
-	if parent = 0 then return 0
-	
+Function GetChildNodeExists(byval parent as NodePtr, n as zstring ptr) as bool
+	if parent = 0 then return NO
+
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
 	
 	dim nod as NodePtr = GetChildByName(parent, n)

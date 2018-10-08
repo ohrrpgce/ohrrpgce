@@ -109,6 +109,7 @@ DIM auto_distrib as string 'Which distribution option to package automatically
 DIM option_nowait as bool  'Currently only used when importing scripts from the commandline: don't wait
 
 DIM editing_a_game as bool
+DIM last_active_seconds as double
 DIM game as string
 DIM sourcerpg as string
 DIM documents_dir as string
@@ -295,6 +296,10 @@ config_prefix = "edit.game_" & game_id & "."
 flush_gfx_config_settings
 
 '============================= Unlump, Upgrade, Load ==========================
+
+'Start counting edit_time from now
+active_seconds = 0.
+idle_time_threshold = large(read_config_int("idle_time", 30), 1)
 
 'For getdisplayname
 copylump sourcerpg, "archinym.lmp", workingdir, YES
@@ -1491,15 +1496,23 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
  PRINT #fh, version
  CLOSE #fh
 
- '--Delete general.reld version info. It will then be set by upgrade()
  DIM root_node as NodePtr
  root_node = get_general_reld()
+
+ '--Delete general.reld version info. It will then be set by upgrade()
  IF root_node = NULL THEN showerror "Couldn't load general.reld!" : RETURN NO
  DIM vernode as NodePtr
  vernode = GetChildByName(root_node, "editor_version")
  IF vernode THEN FreeNode vernode
  vernode = GetChildByName(root_node, "prev_editor_versions")
  IF vernode THEN FreeNode vernode
+
+ '--Set creation time, wipe edit_time
+ SetChildNode(root_node, "edit_time", 0.)
+ DIM created_node as NodePtr
+ created_node = SetChildNode(root_node, "created", NOW)
+ SetChildNode(created_node, "str", format_date(NOW))
+
  close_general_reld
 
  printstr "Finalumping", 0, 130, vpage

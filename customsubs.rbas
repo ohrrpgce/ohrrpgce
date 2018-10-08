@@ -7,6 +7,7 @@
 
 #include "config.bi"
 #include "string.bi" 'for format
+#include "vbcompat.bi" 'for NOW
 #include "allmodex.bi"
 #include "common.bi"
 #include "loading.bi"
@@ -2932,6 +2933,21 @@ SUB spawn_game_menu(gdb as bool = NO, valgrind as bool = NO)
  IF scancode = scF1 THEN show_help "test_game"
 END SUB
 
+'Update and save edit_time and last_saved for the game
+SUB save_edit_time ()
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM timenode as NodePtr = GetOrCreateChild(gen_root, "edit_time")
+ SetContent(timenode, GetFloat(timenode) + active_seconds - last_active_seconds)
+ debuginfo "Saving - been editing for " & format_duration(active_seconds - last_active_seconds, 0)
+
+ DIM saved_node as NodePtr
+ saved_node = SetChildNode(gen_root, "last_saved", NOW)
+ SetChildNode(saved_node, "str", format_date(NOW))
+
+ last_active_seconds = active_seconds
+ write_general_reld()
+END SUB
+
 'Return true on success
 FUNCTION save_current_game (byval genDebugMode_override as integer=-1) as bool
  'Apply the appropriate genCurrentDebugMode
@@ -2941,7 +2957,8 @@ FUNCTION save_current_game (byval genDebugMode_override as integer=-1) as bool
   gen(genCurrentDebugMode) = gen(genDebugMode)
  END IF
  xbsave game + ".gen", gen(), 1000
- 
+ save_edit_time
+
  clearpage 0
  textcolor uilook(uiText), 0
  printstr "LUMPING DATA: please wait.", 0, 0, 0

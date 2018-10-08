@@ -1151,20 +1151,21 @@ TYPE GeneralSettingsMenu
  DIM selectable(any) as bool
  DIM shaded(any) as bool      'Indicates headings
 
- DECLARE SUB add_item(id as integer = -1, text as string = "", heading as bool = NO)
+ DECLARE SUB add_item(id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
  DECLARE SUB gen_int(genidx as integer, minvalue as integer, maxvalue as integer)
  DECLARE SUB header(text as string)
 
  DECLARE SUB update(longname as string, aboutline as string)
+ DECLARE SUB update_edit_time()
 END TYPE
 
-SUB GeneralSettingsMenu.add_item(id as integer = -1, text as string = "", heading as bool = NO)
+SUB GeneralSettingsMenu.add_item(id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
  a_append itemids(), id
  a_append menutext(), text
  a_append index(), 0
  a_append min(), 0
  a_append max(), 0
- a_append selectable(), NOT heading
+ a_append selectable(), canselect
  a_append shaded(), heading
 END SUB
 
@@ -1177,8 +1178,8 @@ SUB GeneralSettingsMenu.gen_int(genidx as integer, minvalue as integer, maxvalue
 END SUB
 
 SUB GeneralSettingsMenu.header(text as string)
- add_item , , YES
- add_item , text, YES
+ add_item , , NO, YES
+ add_item , text, NO, YES
 END SUB
 
 SUB GeneralSettingsMenu.update(longname as string, aboutline as string)
@@ -1279,6 +1280,29 @@ SUB GeneralSettingsMenu.update(longname as string, aboutline as string)
  add_item 17, "In-App Purchases... (experimental)"
  add_item 13, "Password For Editing..."
 
+ header " Stats"
+ add_item  , "Time spent editing...", NO
+ add_item 18, " this session:", NO
+ add_item 19, " in total:", NO
+ DIM created as double = GetChildNodeFloat(get_general_reld, "created", 0.)
+ IF created <> 0. THEN
+  add_item , "Game created " & FORMAT(created, "yyyy mmm dd hh:mm"), NO
+ END IF
+
+ 'Next free ID number: 20
+
+END SUB
+
+'Update the edit_time display
+SUB GeneralSettingsMenu.update_edit_time()
+ menutext(a_find(itemids(), 18)) = " this session: " & format_duration(active_seconds, 0)
+ 'Round edit_time to integer so it ticks in sync with 'This session'
+ DIM total_edit_time as double = INT(GetChildNodeFloat(get_general_reld, "edit_time")) + active_seconds
+ DIM total_text as string = " in total: "
+ '"created" was added at the same time as "edit_time", so if it's missing then the total is inaccurate.
+ IF GetChildNodeExists(get_general_reld, "created") = NO THEN total_text &= "at least "
+ total_text &= format_duration(total_edit_time, 0)
+ menutext(a_find(itemids(), 19)) = total_text
 END SUB
 
 SUB general_data_editor ()
@@ -1374,6 +1398,7 @@ SUB general_data_editor ()
    state.last = UBOUND(genmenu.menutext)
    state.need_update = NO
   END IF
+  genmenu.update_edit_time()
 
   IF enable_strgrabber = NO ANDALSO select_by_typing(selectst, NO) THEN
    select_on_word_boundary genmenu.menutext(), selectst, state

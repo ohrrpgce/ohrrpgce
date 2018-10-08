@@ -64,11 +64,15 @@ September 29 2018 [Fufluns]
       on-hit elemental spawning conditions, not just the first [Ralph]
     * Attack option to control whether counterattacks are triggered on a hit,
       miss or fail, with a global default in Battle System Options menu [Ralph]
-    * Re-organised General Preference/Battle/Backcompat bitsets and Attack
-      bitsets. All battle-related bitsets have been moved into the Battle System
-      Options menu. Some bits have been renamed and now all Backcompat Bits are
-      off by default in new games; if one of them is on then you know you're
-      missing out on some feature or bugfix [Ralph]
+    * Re-organised various menus, especially Attack Bitsets menu and the
+      General Game Settings menu:
+      * General Preference/Battle/Backcompat bitsets rearranged - all battle-
+        related bitsets have been moved into the Battle System Options menu.
+        Some bits have been renamed and now all Backcompat Bits are
+        off by default in new games; if one of them is on then you know you're
+        missing out on some feature or bugfix [Ralph]
+    * See how long you've been working on your game in General Game Settings
+      (starts counting from zero with Fufluns) [Ralph]
     * Added missing attack target class "All (including dead heroes)" [Ralph]
     * C to cycle through NPC instances in map editor [Ralph]
     * Preference bitset "Negative-damage harmtiles can cure above max HP"

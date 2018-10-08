@@ -70,6 +70,7 @@ DECLARE SUB maptile ()
 DECLARE FUNCTION compile_andor_import_scripts (f as string, quickimport as bool = NO) as bool
 DECLARE SUB reimport_previous_scripts ()
 DECLARE SUB write_session_info ()
+DECLARE FUNCTION format_date(timeser as double) as string
 
 DECLARE SUB common_elementals_editor(elementals() as single, helpfile as string, byval showsign as integer = 0)
 DECLARE SUB load_npc_graphics(npc_def() as NPCType, npc_img() as GraphicPair)

@@ -74,3 +74,11 @@ Default maximum item stack size: The number of items that can be stored in each 
 Password for Editing: Set a password to be required to open the game with custom.exe (people will still be able to play the game with game.exe, obviously).
 
 
+  Stats
+
+These aren't editable settings.
+
+Time spent editing: shows how long you've been actively editing this game. The timer stops if you don't interact with the program for at least half a minute (it makes no difference whether it's foregrounded).
+"This session" means since you started the program and opened the game; "Total" time is across all development sessions. The total is only counted since version Fufluns.
+
+Game created [date]: this only appears if the game was created with Fufluns or later, telling when the game was started.

@@ -179,7 +179,7 @@ Declare Function GetChildNodeInt(byval parent as NodePtr, n as zstring ptr, byva
 Declare Function GetChildNodeFloat(byval parent as NodePtr, n as zstring ptr, byval d as double = 0.0) as Double
 Declare Function GetChildNodeStr(byval parent as NodePtr, n as zstring ptr, d as string = "") as string
 Declare Function GetChildNodeBool(byval parent as NodePtr, n as zstring ptr, byval d as integer = 0) as integer
-Declare Function GetChildNodeExists(byval parent as NodePtr, n as zstring ptr) as integer
+Declare Function GetChildNodeExists(byval parent as NodePtr, n as zstring ptr) as bool
 Declare Function AppendChildNode Overload (byval parent as NodePtr, n as zstring ptr) as NodePtr
 Declare Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, byval val as longint) as NodePtr
 Declare Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, byval val as double) as NodePtr

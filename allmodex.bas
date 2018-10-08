@@ -130,6 +130,13 @@ dim default_page_bitdepth as integer = 8  '8 or 32. Affects allocatepage only, s
 'like alt+enter or window buttons.
 dim user_toggled_fullscreen as bool = NO
 
+'Amount of time (in seconds) that the user has been actively using the program. Stops counting if no input
+dim active_seconds as double
+'Seconds without input after which to stop increasing time
+dim idle_time_threshold as double = 30.
+'When last input arrived
+dim shared last_active_time as double
+
 redim fonts(3) as Font ptr
 
 'Toggles 0-1 every time dowait is called
@@ -2000,7 +2007,8 @@ sub setkeys (enable_inputtext as bool = NO)
 	'invisible to the game.
 
 	' Get real keyboard state
-	real_kb.setkeys_elapsed_ms = bound(1000 * (TIMER - last_setkeys_time), 0, 255)
+	dim time_passed as double = TIMER - last_setkeys_time
+	real_kb.setkeys_elapsed_ms = bound(1000 * time_passed, 0, 255)
 	last_setkeys_time = TIMER
 	setkeys_update_keybd real_kb.keybd(), real_kb.delayed_alt_keydown
 	update_keydown_times real_kb
@@ -2027,6 +2035,14 @@ sub setkeys (enable_inputtext as bool = NO)
 
 	' Call io_mousebits
 	update_mouse_state()
+
+	' Update active_seconds, if have been active within some interval
+	if anykeypressed(NO, YES) then  'Don't check the joystick state just for this
+		last_active_time = last_setkeys_time
+	end if
+	if last_setkeys_time < last_active_time + idle_time_threshold then
+		active_seconds += time_passed
+	end if
 
 	' Custom/Game-specific global controls, done last so that there can't be interference
 	static entered as bool
