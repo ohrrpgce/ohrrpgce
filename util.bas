@@ -1198,16 +1198,30 @@ FUNCTION days_since_datestr (datestr as string) as integer
  RETURN NOW - DateSerial(y, m, d)
 END FUNCTION
 
-'Format a duration as a string with 0.1s precision, like '2m23.1s' or '0.4s'
-FUNCTION format_duration(length as double) as string
+'Format a duration as a string with given precision, like '2m23.1s' or '0.4s'.
+'decimal_places = 1 means 0.1s precision, = 0 means 1s precision, etc
+FUNCTION format_duration(length as double, decimal_places as integer = 1) as string
+ DIM subseconds as string
+ IF decimal_places > 0 THEN subseconds = "." & STRING(decimal_places, "0")
+
+ DIM seconds as double = fmod(length, 60)
+ DIM minutes as integer = INT(length) \ 60
+ IF seconds > 60 - 0.5 * 0.1 ^ decimal_places THEN
+  'Avoid e.g. printing 1m60.0s for length 119.99
+  seconds = 0.
+  minutes += 1
+ END IF
+
  DIM msg as string
- IF length >= 60 THEN
-  msg = (INT(length) \ 60) & "m"
-  'Avoid printing 1m60.0s for length 119.99
-  length = small(fmod(length, 60), 59.9)
-  msg &= FORMAT(length, "00.0") & "s"
+ IF minutes >= 1 THEN
+  IF minutes >= 60 THEN
+   msg = (minutes \ 60) & "h"
+   minutes = minutes MOD 60
+  END IF
+  msg &= minutes & "m"
+  msg &= FORMAT(seconds, "00" & subseconds) & "s"
  ELSE
-  msg = FORMAT(length, "0.0") & "s"
+  msg = FORMAT(seconds, "0" & subseconds) & "s"
  END IF
  RETURN msg
 END FUNCTION
