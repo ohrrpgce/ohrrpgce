@@ -3827,149 +3827,137 @@ end
 					but the state of the keyboard at the beginning of the current game tick.
 				</note>
 				Keyboard scan codes:
-				<ul>
-					<li>key:Esc</li>
-					<li>key:F1</li>
-					<li>key:F2</li>
-					<li>key:F3</li>
-					<li>...</li>
-					<li>key:F15</li>
-				</ul>
-				<ul>
-					<li>key:Num Lock</li>
-					<li>key:Scroll Lock</li>
-					<li>key:Caps Lock</li>
-				</ul>
-				<ul>
-					<li>key:Print Screen</li>
-					<li>key:Pause</li>
-				</ul>
-				<ul>
-					<li>key:1</li>
-					<li>key:Exclamation</li>
-					<li>key:2</li>
-					<li>key:At Sign</li>
-					<li>key:3</li>
-					<li>key:Hash</li>
-					<li>key:4</li>
-					<li>key:Dollar Sign</li>
-					<li>key:5</li>
-					<li>key:6</li>
-					<li>key:Circumflex</li>
-					<li>key:7</li>
-					<li>key:Ampersand</li>
-					<li>key:8</li>
-					<li>key:Asterisk</li>
-					<li>key:9</li>
-					<li>key:Left Parenthesis</li>
-					<li>key:0</li>
-					<li>key:Right Parenthesis</li>
-					<li>key:Minus</li>
-					<li>key:Underscore</li>
-					<li>key:Equals</li>
-					<li>key:Plus</li>
-					<li>key:Backspace</li>
-				</ul>
-				<ul>
-					<li>key:A</li>
-					<li>key:B</li>
-					<li>key:C</li>
-					<li>...</li>
-					<li>key:Z</li>
-				</ul>
-				<ul>
-					<li>key:Left Bracket     # [</li>
-					<li>key:Left Brace       # {</li>
-					<li>key:Right Bracket    # ]</li>
-					<li>key:Right Brace      # }</li>
-					<li>key:Semicolon        # ;</li>
-					<li>key:Colon            # :</li>
-					<li>key:Quote            # '</li>
-					<li>key:Doublequote      # &quot;</li>
-					<li>key:Apostrophe       # &apos;</li>
-					<li>key:Backquote        # `</li>
-					<li>key:Tilde            # ~</li>
-					<li>key:Backslash        # \</li>
-					<li>key:Pipe             # |</li>
-					<li>key:Comma            # ,</li>
-					<li>key:Left Caret       # &lt;</li>
-					<li>key:Period           # .</li>
-					<li>key:Right Caret      # ></li>
-					<li>key:Slash            # /</li>
-					<li>key:Question Mark    # ?</li>
-					<li>key:Enter</li>
-					<li>key:Space</li>
-					<li>key:Tab</li>
-				</ul>
-				<ul>
-					<li>key:Home</li>
-					<li>key:End</li>
-					<li>key:Page Up</li>
-					<li>key:Page Down</li>
-					<li>key:Insert</li>
-					<li>key:Delete</li>
-				</ul>
-				<ul>
-					<li>key:Up</li>
-					<li>key:Left</li>
-					<li>key:Right</li>
-					<li>key:Down</li>
-				</ul>
-				<ul>
-					<li>key:Meta           # Either Command/Windows key</li>
-					<li>key:Win Logo       # equal to key:Meta</li>
-					<li>key:Command        # equal to key:Meta</li>
-					<li>key:Left Meta      # Left Command/Windows key</li>
-					<li>key:Right Meta     # Right Command/Windows key</li>
-					<li>key:Left Win Logo  # equal to key:Left Meta</li>
-					<li>key:Right Win Logo # equal to key:Right Meta</li>
-					<li>key:Left Command   # Macintosh, equal to key:Left Meta</li>
-					<li>key:Right Command  # Macintosh, equal to key:Right Meta</li>
-					<li>key:Context        # Context Menu key, next to right Windows key on PC keyboards</li>
-				</ul>
-				<ul>
-					<li>key:Alt            # either Alt key pressed</li>
-					<li>key:Left Alt</li>
-					<li>key:Right Alt</li>
-					<li>key:Filtered Alt   # either Alt key pressed, unless a key combinations like Alt+Tab is pressed, however key presses are delayed until key release.</li>
-					<li>key:Ctrl           # either Ctrl key pressed</li>
-					<li>key:Left Ctrl</li>
-					<li>key:Right Ctrl</li>
-					<li>key:Shift          # either Shift key pressed</li>
-					<li>key:Left Shift</li>
-					<li>key:Right Shift</li>
-					<li>key:Any Enter      # either Enter or Numpad Enter key pressed</li>
-				</ul>
-				<ul>
-					<li>key:Numpad 0</li>
-					<li>key:Numpad 1</li>
-					<li>key:Numpad 2</li>
-					<li>key:Numpad 3</li>
-					<li>key:Numpad 4</li>
-					<li>key:Numpad 5</li>
-					<li>key:Numpad 6</li>
-					<li>key:Numpad 7</li>
-					<li>key:Numpad 8</li>
-					<li>key:Numpad 9</li>
-					<li>key:Numpad Period</li>
-					<li>key:Numpad Asterisk</li>
-					<li>key:Numpad Slash</li>
-					<li>key:Numpad Plus</li>
-					<li>key:Numpad Minus</li>
-					<li>key:Numpad Enter</li>
-				</ul>
-				Joystick scan codes (for the first joystick only):
-				<ul>
-					<li>joy:button 1</li>
-					<li>joy:button 2</li>
-					<li>joy:button 3</li>
-					<li>...</li>
-					<li>joy:button 16</li>
-					<li>joy:x left</li>
-					<li>joy:x right</li>
-					<li>joy:y up</li>
-					<li>joy:y down</li>
-				</ul>
+				<example>key:Esc
+key:F1
+key:F2
+key:F3
+...
+key:F15
+
+key:Num Lock
+key:Scroll Lock
+key:Caps Lock
+
+key:Print Screen
+key:Pause
+
+key:1
+key:Exclamation
+key:2
+key:At Sign
+key:3
+key:Hash
+key:4
+key:Dollar Sign
+key:5
+key:6
+key:Circumflex
+key:7
+key:Ampersand
+key:8
+key:Asterisk
+key:9
+key:Left Parenthesis
+key:0
+key:Right Parenthesis
+key:Minus
+key:Underscore
+key:Equals
+key:Plus
+key:Backspace
+
+key:A
+key:B
+key:C
+...
+key:Z
+
+key:Left Bracket     # [
+key:Left Brace       # {
+key:Right Bracket    # ]
+key:Right Brace      # }
+key:Semicolon        # ;
+key:Colon            # :
+key:Quote            # '
+key:Doublequote      # &quot;
+key:Apostrophe       # &apos;
+key:Backquote        # `
+key:Tilde            # ~
+key:Backslash        # \
+key:Pipe             # |
+key:Comma            # ,
+key:Left Caret       # &lt;
+key:Period           # .
+key:Right Caret      # >
+key:Slash            # /
+key:Question Mark    # ?
+key:Enter
+key:Space
+key:Tab
+
+key:Home
+key:End
+key:Page Up
+key:Page Down
+key:Insert
+key:Delete
+
+key:Up
+key:Left
+key:Right
+key:Down
+
+key:Meta           # Either Command/Windows key
+key:Win Logo       # equal to key:Meta
+key:Command        # equal to key:Meta
+key:Left Meta      # Left Command/Windows key
+key:Right Meta     # Right Command/Windows key
+key:Left Win Logo  # equal to key:Left Meta
+key:Right Win Logo # equal to key:Right Meta
+key:Left Command   # Macintosh, equal to key:Left Meta
+key:Right Command  # Macintosh, equal to key:Right Meta
+key:Context        # Context Menu key, next to right Windows key on PC keyboards
+
+key:Alt            # either Alt key pressed
+key:Left Alt
+key:Right Alt
+key:Filtered Alt   # either Alt key pressed, unless a key combinations like Alt+Tab is
+                   # pressed, however key presses are delayed until key release.
+key:Ctrl           # either Ctrl key pressed
+key:Left Ctrl
+key:Right Ctrl
+key:Shift          # either Shift key pressed
+key:Left Shift
+key:Right Shift
+key:Any Enter      # either Enter or Numpad Enter key pressed
+
+key:Numpad 0
+key:Numpad 1
+key:Numpad 2
+key:Numpad 3
+key:Numpad 4
+key:Numpad 5
+key:Numpad 6
+key:Numpad 7
+key:Numpad 8
+key:Numpad 9
+key:Numpad Period
+key:Numpad Asterisk
+key:Numpad Slash
+key:Numpad Plus
+key:Numpad Minus
+key:Numpad Enter
+
+#  Joystick scan codes (for the first joystick only):
+joy:button 1
+joy:button 2
+joy:button 3
+...
+joy:button 16
+joy:x left
+joy:x right
+joy:y up
+joy:y down</example>
 				<note>Previously it was necessary to <p>include, scancode.hsi</p> to use the <p>key:</p> constants, but no longer.</note>
 			</description>
 			<seealso>
