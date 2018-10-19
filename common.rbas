@@ -141,6 +141,8 @@ DIM SHARED lastlogfile as string
 'Prevent two threads from writing to debug log at once
 DIM SHARED debug_log_mutex as any ptr
 debug_log_mutex = mutexcreate
+DIM SHARED program_start_timer as double
+program_start_timer = TIMER
 
 TYPE SavedGfxIOState
  prev_mouse_vis as CursorVisibility
@@ -426,16 +428,20 @@ SUB debuginfo (msg as zstring ptr)
  'Use for throwaway messages like upgrading
  '(Also this is internally the implementation of debug())
 
+ 'If the mutex hasn't been created yet this is a noop
  mutexlock debug_log_mutex
 
  'For now, on Android log everything to the kernel log for convenience
  external_log msg
- IF debug_to_console THEN PRINT *msg
+ DIM tagged_msg as string
+ IF program_start_timer <> 0.0 THEN tagged_msg = strprintf("%4.1f  ", TIMER - program_start_timer)
+ tagged_msg &= *msg
+ IF debug_to_console THEN PRINT tagged_msg
  IF remember_debug_messages THEN
   'Don't keep growing the buffer or the program will grind to a halt
-  IF LEN(log_buffer) < 10000 THEN log_buffer &= *msg & LINE_END
+  IF LEN(log_buffer) < 10000 THEN log_buffer &= tagged_msg & LINE_END
  END IF
- append_to_logfile *msg
+ append_to_logfile tagged_msg
 
  mutexunlock debug_log_mutex
 END SUB
