@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-10-04)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-10-20)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -6374,7 +6374,18 @@ resume box advance # go back to normal</pre>
 <a name="about-mainmenu"></a>
 		<h4>main menu</h4>
 <p>
-			Takes you directly to the main menu; exactly equivalent to <a href="#about-openmenu" class="ref">open menu</a>(0).
+			
+				Opens the main menu; exactly equivalent to <a href="#about-openmenu" class="ref">open menu</a>(0).
+				If menu 0 is already open, it is brought to the top.
+				Returns the menu handle of the new or existing instance of menu 0.
+				<div style="background-color:#CCB;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+					If menu 0 does NOT have the "Allow gameplay &amp; scripts" bit set,
+					then your script will pause as soon as the menu opens, until either
+					it's closed or another menu with that bit ON is opened.
+					And once the menu has closed the menu handle is invalid!
+				</div>
+			
 			
 			
 			
@@ -9251,143 +9262,137 @@ end
 					but the state of the keyboard at the beginning of the current game tick.
 				</div>
 				Keyboard scan codes:
-				<ul>
-					<li>key:Esc</li>
-					<li>key:F1</li>
-					<li>key:F2</li>
-					<li>key:F3</li>
-					<li>...</li>
-					<li>key:F15</li>
-				</ul>
-				<ul>
-					<li>key:Num Lock</li>
-					<li>key:Scroll Lock</li>
-					<li>key:Caps Lock</li>
-				</ul>
-				<ul>
-					<li>key:Print Screen</li>
-					<li>key:Pause</li>
-				</ul>
-				<ul>
-					<li>key:1</li>
-					<li>key:Exclamation</li>
-					<li>key:2</li>
-					<li>key:At Sign</li>
-					<li>key:3</li>
-					<li>key:Hash</li>
-					<li>key:4</li>
-					<li>key:Dollar Sign</li>
-					<li>key:5</li>
-					<li>key:6</li>
-					<li>key:Circumflex</li>
-					<li>key:7</li>
-					<li>key:Ampersand</li>
-					<li>key:8</li>
-					<li>key:Asterisk</li>
-					<li>key:9</li>
-					<li>key:Left Parenthesis</li>
-					<li>key:0</li>
-					<li>key:Right Parenthesis</li>
-					<li>key:Minus</li>
-					<li>key:Underscore</li>
-					<li>key:Equals</li>
-					<li>key:Plus</li>
-					<li>key:Backspace</li>
-				</ul>
-				<ul>
-					<li>key:A</li>
-					<li>key:B</li>
-					<li>key:C</li>
-					<li>...</li>
-					<li>key:Z</li>
-				</ul>
-				<ul>
-					<li>key:Left Bracket     # [</li>
-					<li>key:Left Brace       # {</li>
-					<li>key:Right Bracket    # ]</li>
-					<li>key:Right Brace      # }</li>
-					<li>key:Semicolon        # ;</li>
-					<li>key:Colon            # :</li>
-					<li>key:Quote            # '</li>
-					<li>key:Doublequote      # "</li>
-					<li>key:Apostrophe       # '</li>
-					<li>key:Backquote        # `</li>
-					<li>key:Tilde            # ~</li>
-					<li>key:Backslash        # \</li>
-					<li>key:Pipe             # |</li>
-					<li>key:Comma            # ,</li>
-					<li>key:Left Caret       # &lt;</li>
-					<li>key:Period           # .</li>
-					<li>key:Right Caret      # &gt;</li>
-					<li>key:Slash            # /</li>
-					<li>key:Question Mark    # ?</li>
-					<li>key:Enter</li>
-					<li>key:Space</li>
-					<li>key:Tab</li>
-				</ul>
-				<ul>
-					<li>key:Home</li>
-					<li>key:End</li>
-					<li>key:Page Up</li>
-					<li>key:Page Down</li>
-					<li>key:Insert</li>
-					<li>key:Delete</li>
-				</ul>
-				<ul>
-					<li>key:Up</li>
-					<li>key:Left</li>
-					<li>key:Right</li>
-					<li>key:Down</li>
-				</ul>
-				<ul>
-					<li>key:Left Win Logo  # equal to key:Left Command</li>
-					<li>key:Right Win Logo # equal to key:Right Command</li>
-					<li>key:Context</li>
-					<li>key:Left Command   # Macintosh, equal to key:Left Win Logo</li>
-					<li>key:Right Command  # Macintosh, equal to key:Right Win Logo</li>
-				</ul>
-				<ul>
-					<li>key:Alt            # either Alt key pressed</li>
-					<li>key:Left Alt</li>
-					<li>key:Right Alt</li>
-					<li>key:Filtered Alt   # either Alt key pressed, unless a key combinations like Alt+Tab is pressed, however key presses are delayed until key release.</li>
-					<li>key:Ctrl           # either Ctrl key pressed</li>
-					<li>key:Left Ctrl</li>
-					<li>key:Right Ctrl</li>
-					<li>key:Shift          # either Shift key pressed</li>
-					<li>key:Left Shift</li>
-					<li>key:Right Shift</li>
-				</ul>
-				<ul>
-					<li>key:Numpad 0</li>
-					<li>key:Numpad 1</li>
-					<li>key:Numpad 2</li>
-					<li>key:Numpad 3</li>
-					<li>key:Numpad 4</li>
-					<li>key:Numpad 5</li>
-					<li>key:Numpad 6</li>
-					<li>key:Numpad 7</li>
-					<li>key:Numpad 8</li>
-					<li>key:Numpad 9</li>
-					<li>key:Numpad Period</li>
-					<li>key:Numpad Asterisk</li>
-					<li>key:Numpad Slash</li>
-					<li>key:Numpad Plus</li>
-					<li>key:Numpad Minus</li>
-					<li>key:Numpad Enter</li>
-				</ul>
-				Joystick scan codes (for the first joystick only):
-				<ul>
-					<li>joy:button 1</li>
-					<li>joy:button 2</li>
-					<li>joy:button 3</li>
-					<li>...</li>
-					<li>joy:button 16</li>
-					<li>joy:x left</li>
-					<li>joy:x right</li>
-					<li>joy:y up</li>
-					<li>joy:y down</li>
-				</ul>
+				<pre>key:Esc
+key:F1
+key:F2
+key:F3
+...
+key:F15
+
+key:Num Lock
+key:Scroll Lock
+key:Caps Lock
+
+key:Print Screen
+key:Pause
+
+key:1
+key:Exclamation
+key:2
+key:At Sign
+key:3
+key:Hash
+key:4
+key:Dollar Sign
+key:5
+key:6
+key:Circumflex
+key:7
+key:Ampersand
+key:8
+key:Asterisk
+key:9
+key:Left Parenthesis
+key:0
+key:Right Parenthesis
+key:Minus
+key:Underscore
+key:Equals
+key:Plus
+key:Backspace
+
+key:A
+key:B
+key:C
+...
+key:Z
+
+key:Left Bracket     # [
+key:Left Brace       # {
+key:Right Bracket    # ]
+key:Right Brace      # }
+key:Semicolon        # ;
+key:Colon            # :
+key:Quote            # '
+key:Doublequote      # "
+key:Apostrophe       # '
+key:Backquote        # `
+key:Tilde            # ~
+key:Backslash        # \
+key:Pipe             # |
+key:Comma            # ,
+key:Left Caret       # &lt;
+key:Period           # .
+key:Right Caret      # &gt;
+key:Slash            # /
+key:Question Mark    # ?
+key:Enter
+key:Space
+key:Tab
+
+key:Home
+key:End
+key:Page Up
+key:Page Down
+key:Insert
+key:Delete
+
+key:Up
+key:Left
+key:Right
+key:Down
+
+key:Meta           # Either Command/Windows key
+key:Win Logo       # equal to key:Meta
+key:Command        # equal to key:Meta
+key:Left Meta      # Left Command/Windows key
+key:Right Meta     # Right Command/Windows key
+key:Left Win Logo  # equal to key:Left Meta
+key:Right Win Logo # equal to key:Right Meta
+key:Left Command   # Macintosh, equal to key:Left Meta
+key:Right Command  # Macintosh, equal to key:Right Meta
+key:Context        # Context Menu key, next to right Windows key on PC keyboards
+
+key:Alt            # either Alt key pressed
+key:Left Alt
+key:Right Alt
+key:Filtered Alt   # either Alt key pressed, unless a key combinations like Alt+Tab is
+                   # pressed, however key presses are delayed until key release.
+key:Ctrl           # either Ctrl key pressed
+key:Left Ctrl
+key:Right Ctrl
+key:Shift          # either Shift key pressed
+key:Left Shift
+key:Right Shift
+key:Any Enter      # either Enter or Numpad Enter key pressed
+
+key:Numpad 0
+key:Numpad 1
+key:Numpad 2
+key:Numpad 3
+key:Numpad 4
+key:Numpad 5
+key:Numpad 6
+key:Numpad 7
+key:Numpad 8
+key:Numpad 9
+key:Numpad Period
+key:Numpad Asterisk
+key:Numpad Slash
+key:Numpad Plus
+key:Numpad Minus
+key:Numpad Enter
+
+#  Joystick scan codes (for the first joystick only):
+joy:button 1
+joy:button 2
+joy:button 3
+...
+joy:button 16
+joy:x left
+joy:x right
+joy:y up
+joy:y down</pre>
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Previously it was necessary to <span class="param">include, scancode.hsi</span> to use the <span class="param">key:</span> constants, but no longer.</div>
 			
@@ -10376,7 +10381,31 @@ get hero name (1, find hero (leader))
 <a name="about-openmenu"></a>
 		<h4>open menu (ID, allow duplicate)</h4>
 <p>
-			Opens the menu specified by <span class="param">ID</span>. You can also use the constants defined in your HSI file in the form menu:name. The menu will be opened on top of any menus that are already open. The optional second argument <span class="param">allow duplicates</span> can be <a href="#about-booleanconstants" class="ref">true</a> if you want to be able to open more than one copy of the same menu at the same time. The return value is a menu handle that you should store in a variable for use with other menu-related commands.
+			
+				Opens the menu specified by <span class="param">ID</span>.
+				You can also use the constants defined in your HSI file in the form <span class="code">menu:name</span>.
+				The menu will be opened on top of any menus that are already open.
+				<br>
+				The optional second argument <span class="param">allow duplicates</span> (defaulting to <span class="code">false</span>)
+				can be <a href="#about-booleanconstants" class="ref">true</a> if you want to be able to open more than one
+				copy of the same menu at the same time.
+				If <span class="param">allow duplicates</span> is false and the menu is already open,
+				then the existing menu (the top-most one, if there's more than one)
+				is brought to the top.
+				<br>
+				The return value is a menu handle that you should store in a variable for use with
+				other menu-related commands.
+				(If an existing menu was brought to top, its handle is returned
+				<br>
+				If <span class="param">ID</span> isn't a valid menu, this acts like <a href="#about-createmenu" class="ref">create menu</a>.
+				<div style="background-color:#CCB;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+					If menu 0 does NOT have the "Allow gameplay &amp; scripts" bit set,
+					then your script will pause as soon as the menu opens, until either
+					it's closed or another menu with that bit ON is opened.
+					And once the menu has closed the menu handle is invalid!
+				</div>
+			
 			
 			
 			

@@ -876,7 +876,7 @@ SUB script_functions(byval cmdid as integer)
    scriptret = wrappass(npc(npcref).x \ 20, npc(npcref).y \ 20, tempxgo, tempygo, 0)
   END IF
  CASE 267'--main menu
-  add_menu 0
+  scriptret = add_menu(0)
  CASE 274'--open menu
   IF bound_arg(retvals(0), 0, gen(genMaxMenu), "menu ID") THEN
    scriptret = add_menu(retvals(0), (retvals(1) <> 0))

@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-10-04">
+<plotscript version="wip" datecode="2018-10-20">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -2058,7 +2058,17 @@ wait for text box # wait until the player continues</example>
 		<command id="mainmenu">
 			<canon>main menu</canon>
 			<shortname>main menu</shortname>
-			<description>Takes you directly to the main menu; exactly equivalent to <ref>openmenu</ref>(0).</description>
+			<description>
+				Opens the main menu; exactly equivalent to <ref>openmenu</ref>(0).
+				If menu 0 is already open, it is brought to the top.
+				Returns the menu handle of the new or existing instance of menu 0.
+				<warn>
+					If menu 0 does NOT have the "Allow gameplay &amp; scripts" bit set,
+					then your script will pause as soon as the menu opens, until either
+					it's closed or another menu with that bit ON is opened.
+					And once the menu has closed the menu handle is invalid!
+				</warn>
+			</description>
 		</command>
 		<command id="showminimap">
 			<canon>show mini map</canon>
@@ -4531,7 +4541,30 @@ get hero name (1, find hero (leader))
 		<command id="openmenu">
 			<canon>open menu (ID, allow duplicate)</canon>
 			<shortname>open menu</shortname>
-			<description>Opens the menu specified by <p>ID</p>. You can also use the constants defined in your HSI file in the form menu:name. The menu will be opened on top of any menus that are already open. The optional second argument <p>allow duplicates</p> can be <ref>true</ref> if you want to be able to open more than one copy of the same menu at the same time. The return value is a menu handle that you should store in a variable for use with other menu-related commands.</description>
+			<description>
+				Opens the menu specified by <p>ID</p>.
+				You can also use the constants defined in your HSI file in the form <tt>menu:name</tt>.
+				The menu will be opened on top of any menus that are already open.
+				<lb/>
+				The optional second argument <p>allow duplicates</p> (defaulting to <tt>false</tt>)
+				can be <ref>true</ref> if you want to be able to open more than one
+				copy of the same menu at the same time.
+				If <p>allow duplicates</p> is false and the menu is already open,
+				then the existing menu (the top-most one, if there's more than one)
+				is brought to the top.
+				<lb/>
+				The return value is a menu handle that you should store in a variable for use with
+				other menu-related commands.
+				(If an existing menu was brought to top, its handle is returned
+				<lb/>
+				If <p>ID</p> isn't a valid menu, this acts like <ref>createmenu</ref>.
+				<warn>
+					If menu 0 does NOT have the "Allow gameplay &amp; scripts" bit set,
+					then your script will pause as soon as the menu opens, until either
+					it's closed or another menu with that bit ON is opened.
+					And once the menu has closed the menu handle is invalid!
+				</warn>
+			</description>
 		</command>
 		<command id="createmenu">
 			<canon>create menu</canon>
