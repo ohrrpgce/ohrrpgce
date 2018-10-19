@@ -119,7 +119,6 @@ DIM SHARED mousewheel as integer     'Position of the wheel. A multiple of 120
 DIM SHARED virtual_keyboard_shown as bool = NO
 DIM SHARED allow_virtual_gamepad as bool = YES
 DIM SHARED safe_zone_margin as single = 0.0
-DIM SHARED last_used_bitdepth as integer = 0
 
 END EXTERN ' Can't put assignment statements in an extern block
 
@@ -327,7 +326,6 @@ PRIVATE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
   IF mainwindow THEN SDL_DestroyWindow(mainwindow)
   mainwindow = NULL
 
-  last_used_bitdepth = bitdepth
   DIM flags as Uint32 = 0
   IF resizable THEN flags = flags OR SDL_WINDOW_RESIZABLE
   IF windowedmode = NO THEN
@@ -775,7 +773,7 @@ END FUNCTION
 
 SUB gfx_sdl2_set_safe_zone_margin(margin as single)
  safe_zone_margin = margin
- recreate_window(last_used_bitdepth)
+ recreate_window()
 END SUB
 
 FUNCTION gfx_sdl2_supports_safe_zone_margin() as bool
