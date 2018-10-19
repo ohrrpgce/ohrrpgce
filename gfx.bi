@@ -44,8 +44,10 @@ type WindowState
 	fullscreen as boolint
 	unused as integer      'Obsolete, used to be user_toggled_fullscreen
 	mouse_over as boolint
+	windowsize as XYPair   'The actual size (client area), not the resolution seen by the engine
+	zoom as integer
 end type
-#define WINDOWSTATE_SZ 6
+#define WINDOWSTATE_SZ 8
 
 type GamePadMap
 	'For passing OHR scancodes to io_remap_android_gamepad

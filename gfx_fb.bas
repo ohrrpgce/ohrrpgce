@@ -223,6 +223,8 @@ sub gfx_fb_windowtitle(byval title as zstring ptr)
 end sub
 
 function gfx_fb_getwindowstate() as WindowState ptr
+	window_state.windowsize = XY(screenmodex, screenmodey)
+	window_state.zoom = zoom
 	return @window_state
 end function
 

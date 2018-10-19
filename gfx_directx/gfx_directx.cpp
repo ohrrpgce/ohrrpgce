@@ -617,6 +617,16 @@ DFI_IMPLEMENT_CDECL(void, gfx_GetWindowState, int nID, WindowState *pState)
 		pState->fullscreen = g_DirectX.isViewFullscreen() ? -1 : 0;
 	if (pState->structsize >= 6)
 		pState->mouse_over = g_Mouse.isCursorOverClient() ? -1 : 0;
+	if (pState->structsize >= 7)
+	{
+		SIZE sz = g_Window.getClientSize();
+		pState->windowsize = {sz.cx, sz.cy};
+	}
+	if (pState->structsize >= 8)
+	{
+		SIZE res = g_Window.getResolution();
+		pState->zoom = min(res.cx / 320, res.cy / 200);
+	}
 	pState->structsize = min(pState->structsize, WINDOWSTATE_SZ);
 }
 

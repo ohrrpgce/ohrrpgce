@@ -709,6 +709,8 @@ FUNCTION gfx_sdl_getwindowstate() as WindowState ptr
   state.minimised = (temp AND SDL_APPACTIVE) = 0
   state.fullscreen = (windowedmode = 0)
   state.mouse_over = (temp AND SDL_APPMOUSEFOCUS) <> 0
+  state.windowsize = XY(screensurface->w, screensurface->h)
+  state.zoom = zoom
   RETURN @state
 END FUNCTION
 

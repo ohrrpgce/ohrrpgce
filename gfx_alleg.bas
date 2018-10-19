@@ -184,6 +184,8 @@ function gfx_alleg_getwindowstate() as WindowState ptr
 	state.minimised = NO  'Don't know
 	state.fullscreen = (windowed = NO)
 	state.mouse_over = YES  'Don't know
+	state.zoom = 2
+	state.windowsize = XY(640, 400)
 	return @state
 end function
 

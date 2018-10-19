@@ -142,6 +142,8 @@ function gfx_console_init(byval terminate_signal_handler as sub cdecl (), byval 
 	window_state.focused = YES
 	window_state.minimised = NO
 	window_state.mouse_over = NO
+	window_state.zoom = 2
+	window_state.windowsize = XY(640, 400)  'We don't claim to have a resizable window
 
 	if curses_mode then
 		retstr = *curses_version()

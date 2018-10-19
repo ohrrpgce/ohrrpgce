@@ -24,8 +24,10 @@ struct WindowState
 	boolint fullscreen;
 	int unused;        // Obsolete, used to be user_toggled_fullscreen
 	boolint mouse_over;
+	XYPair windowsize; // The actual size (client area), not the resolution seen by the engine
+	int zoom;
 };
-#define WINDOWSTATE_SZ 6
+#define WINDOWSTATE_SZ 8
 
 typedef void (__cdecl *FnDebug)(enum ErrorLevel errlvl, const char* message);
 
