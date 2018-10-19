@@ -782,9 +782,9 @@ SUB gfx_sdl_set_zoom(value as integer, change_windowsize as bool)
   IF value >= 1 AND value <= 16 AND value <> zoom THEN
     zoom = value
     zoom_has_been_changed = YES
+    debuginfo "set_zoom change_windowsize=" & change_windowsize & ", zoom=" & zoom & " old size = " & screensurface->w & "," & screensurface->h
     IF change_windowsize THEN
       gfx_sdl_recenter_window_hint()  'Recenter because the window might go off the screen edge.
-
 
       IF SDL_WasInit(SDL_INIT_VIDEO) THEN
         gfx_sdl_set_screen_mode()
@@ -800,15 +800,16 @@ SUB gfx_sdl_set_zoom(value as integer, change_windowsize as bool)
         END IF
       END WITH
     ELSE
-      'Keep window size the same, unless that would result in a tiny resolution
-      resize_request.w = large(320, screensurface->w \ zoom)
-      resize_request.h = large(200, screensurface->h \ zoom)
+      'Keep window size the same
+      resize_request.w = screensurface->w \ zoom
+      resize_request.h = screensurface->h \ zoom
       resize_requested = YES
     END IF
   END IF
 END SUB
 
 FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
+  'debuginfo "gfx_sdl_setoption " & *opt & " " & *arg
   DIM ret as integer = 0
   DIM value as integer = str2int(*arg, -1)
   IF *opt = "zoomonly" THEN

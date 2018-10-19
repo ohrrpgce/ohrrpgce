@@ -865,6 +865,8 @@ sub set_resolution (w as integer, h as integer)
 	debuginfo "set_resolution " & w & "*" & h
 	windowsize.w = large(w, minwinsize.w)
 	windowsize.h = large(h, minwinsize.h)
+	'Ignore any pending resize request
+	gfx_get_resize(XY(0,0))
 	'Update page size
 	screen_size_update
 	'Tell the gfx backend about the new page size. If we delayed this then a following
@@ -893,10 +895,28 @@ end sub
 
 'Set the size that a pixel appears on the screen.
 'Supported by all backends except gfx_alleg.
+'If change_windowsize = YES, this changes the window size and keeps the same resolution,
+'otherwise it changes the resolution and keeps the same window size
 sub set_scale_factor (scale as integer, change_windowsize as bool = YES)
 	'gfx_sdl and gfx_fb, which use blit.c scaling, are limited to 1x-16x
 	scale = bound(scale, 1, 16)
 	debuginfo "Setting graphics scaling to x" & scale & " change_windowsize=" & change_windowsize
+	if change_windowsize = NO then
+		dim winstate as WindowState ptr = gfx_getwindowstate()
+		if winstate->structsize >= 8 THEN  'winstate->windowsize valid
+                        dim newresolution as XYPair = winstate->windowsize \ scale
+			debuginfo " ...current window size " & winstate->windowsize
+			if newresolution.w < 320 orelse newresolution.h < 200 then
+				debuginfo " ...too small, increasing res"
+				'Don't allow a tiny resolution: change both resolution and window size
+				newresolution.w = large(newresolution.w, 320)
+				newresolution.h = large(newresolution.h, 200)
+				set_resolution newresolution.w, newresolution.h
+				'TODO: set both resolution and scale at the same time
+				change_windowsize = YES
+			end if
+		end if
+	end if
 	if change_windowsize = NO then
 		' Only supported by gfx_sdl currently
 		if gfx_setoption("zoomonly", str(scale)) then exit sub
