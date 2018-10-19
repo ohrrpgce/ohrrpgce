@@ -714,7 +714,6 @@ SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot()
      loadfoe slot, formdata, bat, bslot()
     END IF
    NEXT j
-   EXIT SUB '--skip further checks
   END IF
   FOR i = 0 TO gen(genNumElements) - 1
    IF .enemy.spawn.elemental_hit(i) > 0 AND bat.atk.elemental(i) THEN
@@ -2425,6 +2424,8 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
   .cur.mute   = .max.mute
  END WITH
  '-- remove any attack queue entries
+ 'FIXME: actually we should only do this if the death isn't cancelled by an on-death attack,
+ 'because cancelling pending attacks will screw up a lot of stuff, such as buff-debuff chains!
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used ANDALSO .attacker = deadguy THEN
@@ -2598,10 +2599,12 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
   END IF
  LOOP
 
+ 'FIXME: bat.hero_turn?!!? Surely this is wrong?
  IF bat.turn.mode = turnACTIVE THEN
   update_turn_delays_in_attack_queue bat.hero_turn
  END IF
 
+ 'Note: if autotargetting fails the targetless attack gets queued anyway, wasting the enemy's turn
  autotarget bat.enemy_turn, atk, bslot()
 
  IF bat.turn.mode = turnACTIVE THEN

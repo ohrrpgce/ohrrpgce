@@ -1591,6 +1591,8 @@ FUNCTION autotarget (who as integer, byref atk as AttackData, bslot() as BattleS
  NEXT i
 
  '--Now copy the target into the queue
+ '(Note! this is done even if the attack has no targets, which will result in it being
+ 'cancelled when it gets dequeued, wasting the attacker's turn)
  IF queue THEN
   queue_attack atk.id, who, t(), override_blocking, dont_retarget
  END IF
