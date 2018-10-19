@@ -18,7 +18,7 @@ Equippable as: This determines which of a hero's equipment slots an item can be 
 
 Teach Spell: This is an attack which the item can teach to a hero if it is used from the Items menu outside of battle. The hero must be able to learn the attack. Add the same attack to a hero's spell list, and mark it to be learned "From an Item".
 
-When used out of battle: This controls what happens if the item is used from the Items menu outside of battle. You can either select a text box (scroll to the left) or an attack (scroll to the right). Attacks are most often cure spells, to create cure potions. Note that attacks used out of battle don't quite work in the same way as those in-battle. See the wiki article on Potions for details.
+When used out of battle: This controls what happens if the item is used from the Items menu outside of battle. You can either select a text box (scroll to the left) or an attack (scroll to the right). Attacks are most often cure spells, to create cure potions. Note that attacks used out of battle don't quite work in the same way as those in-battle. See the wiki article "Out-of-battle attacks" for details.
 Press ENTER or SPACE to browse for or edit a text box or attack.
 
 Weapon Picture: This is the sprite set used by the item when it is equipped by a hero as a weapon.
