@@ -450,6 +450,7 @@ sub io_fb_updatekeys(byval keybd as integer ptr)
 	keybd[scRightAlt] or= keybd[scUnfilteredAlt] and 8
 	keybd[scLeftCtrl] or= keybd[scCtrl] and 8
 	keybd[scRightCtrl] or= keybd[scCtrl] and 8
+	'scMeta unsupported
 
 	'Some other keys are also indistinguishable, and are mirrored
 	keybd[scNumpadSlash] or= keybd[scSlash] and 8

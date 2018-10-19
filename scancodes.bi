@@ -157,6 +157,11 @@ CONST scAlt = 119
 'Either scEnter or scNumpadEnter
 CONST scAnyEnter = 120
 
+'Either left or right Meta key
+CONST scWinLogo = 121
+CONST scCommand = 121
+CONST scMeta = 121
+
 'Used for size of arrays, must NOT include joystick/mouse scancodes (due to script_keyval)
 'NOTE: 127 is also hardcoded into gfx.bi API and backends.
 'Can't be increased anyway, due to joystick scancodes

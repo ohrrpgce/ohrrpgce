@@ -110,6 +110,7 @@ September 29 2018 [Fufluns]
     * hspeak is several times faster when compiling very large scripts [Ralph]
     * "set last save slot" [Ralph]
     * "speaking npc" [Ralph]
+    * key:AnyEnter, key:Meta/key:WinLogo/key:Command for "key is pressed"
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"

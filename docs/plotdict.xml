@@ -3916,11 +3916,16 @@ end
 					<li>key:Down</li>
 				</ul>
 				<ul>
-					<li>key:Left Win Logo  # equal to key:Left Command</li>
-					<li>key:Right Win Logo # equal to key:Right Command</li>
-					<li>key:Context</li>
-					<li>key:Left Command   # Macintosh, equal to key:Left Win Logo</li>
-					<li>key:Right Command  # Macintosh, equal to key:Right Win Logo</li>
+					<li>key:Meta           # Either Command/Windows key</li>
+					<li>key:Win Logo       # equal to key:Meta</li>
+					<li>key:Command        # equal to key:Meta</li>
+					<li>key:Left Meta      # Left Command/Windows key</li>
+					<li>key:Right Meta     # Right Command/Windows key</li>
+					<li>key:Left Win Logo  # equal to key:Left Meta</li>
+					<li>key:Right Win Logo # equal to key:Right Meta</li>
+					<li>key:Left Command   # Macintosh, equal to key:Left Meta</li>
+					<li>key:Right Command  # Macintosh, equal to key:Right Meta</li>
+					<li>key:Context        # Context Menu key, next to right Windows key on PC keyboards</li>
 				</ul>
 				<ul>
 					<li>key:Alt            # either Alt key pressed</li>
@@ -3933,6 +3938,7 @@ end
 					<li>key:Shift          # either Shift key pressed</li>
 					<li>key:Left Shift</li>
 					<li>key:Right Shift</li>
+					<li>key:Any Enter      # either Enter or Numpad Enter key pressed</li>
 				</ul>
 				<ul>
 					<li>key:Numpad 0</li>

@@ -112,8 +112,10 @@ define constant,begin
 88,key:F12
 91,key:Left Win Logo
 91,key:Left Command   #Macintosh
+91,key:Left Meta
 92,key:Right Win Logo
 92,key:Right Command  #Macintosh
+92,key:Right Meta
 93,key:Context
 
 94,key:F13
@@ -145,6 +147,11 @@ define constant,begin
 118,key:Pause     # previously key:Numlock
 
 119,key:Filtered Alt  # Same as key:Alt, but try to filter out keypresses which are part of window manager combinations
+
+120,key:Any Enter  # either key:Enter or key:Numpad Enter
+121,key:Meta  # either key:Left Meta or key:Right Meta
+121,key:Win Logo
+121,key:Command
 
 #keys >= 128 are NOT scan codes, per se, but for other devices (mouse, joystick)
 # note that these only work for key is pressed, not for keyval

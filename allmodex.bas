@@ -1893,8 +1893,11 @@ sub setkeys_update_keybd (keybd() as integer, byref delayed_alt_keydown as bool)
 	if ((keybd(scLeftShift) or keybd(scRightShift)) and 3) <> (keybd(scShift) and 3) then
 		keybd(scShift) = keybd(scLeftShift) or keybd(scRightShift)
 	end if
-
+	'TODO: Actually, wouldn't it make more sense to set all the combined scancodes here instead of
+	'duplicating that in all backends?
+	'These two scancodes are set here instead of in backends...
 	keybd(scAnyEnter) = keybd(scEnter) or keybd(scNumpadEnter)
+	keybd(scMeta) = keybd(scLeftMeta) or keybd(scRightMeta)
 
 	'Backends don't know about scAlt, only scUnfilteredAlt
 	keybd(scAlt) = keybd(scUnfilteredAlt)
