@@ -890,7 +890,7 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
   textcolor uilook(uiText), 0
-  printstr "Pick a " & LCASE(scrtype), 0, 0, dpage
+  printstr "Pick " & LCASE(scrtype), 0, 0, dpage
   highlight_menu_typing_selection scriptnames(), scriptnames_display(), selectst, state
   standardmenu scriptnames_display(), state, 8, 10, dpage
   SWAP dpage, vpage
