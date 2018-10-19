@@ -16,6 +16,7 @@
 #include "gfx.bi"
 #include "surface.bi"
 #include "common.bi"
+#include "allmodex.bi"  'For set_scale_factor
 #include "scancodes.bi"
 '#define NEED_SDL_GETENV
 
@@ -942,6 +943,8 @@ PRIVATE SUB keycombos_logic(evnt as SDL_Event)
 #IFDEF __FB_DARWIN__
   'We have to handle menu item key combinations here: SDLMain.m only handles the case that you actually click on them
   '(many of those actually generate an SDL keypress event, which is then handled here)
+  'Note: these can NOT be handled in allmodex because the modifier keys won't appear to be pressed there,
+  'no events are generated to fake those keypresses.
 
   IF evnt.key.keysym.mod_ AND KMOD_META THEN  'Command key
     IF evnt.key.keysym.sym = SDLK_m THEN
@@ -969,9 +972,9 @@ PRIVATE SUB keycombos_logic(evnt as SDL_Event)
     FOR i as integer = 1 TO 4
       IF evnt.key.keysym.sym = SDLK_0 + i THEN
         #IFDEF IS_CUSTOM
-          gfx_sdl_set_zoom(i, NO)
+          set_scale_factor i, NO
         #ELSE
-          gfx_sdl_set_zoom(i, YES)
+          set_scale_factor i, YES
         #ENDIF
       END IF
     NEXT
