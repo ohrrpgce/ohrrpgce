@@ -184,6 +184,22 @@ CONST scMouseMiddle = 182
 'The following are only returned by waitforkey!
 CONST scResize = 183   'The window was resized
 
+
+'------------------------------------------------------------------------------
+'                            Joystick scancodes
+'Indices used by JoystickState
+
+ENUM 'JoyScancode
+ joyButton1  = 0
+ joyButton32 = 31
+ joyLeft     = 32
+ joyRight    = 33
+ joyUp       = 34
+ joyDown     = 35
+ joyLAST     = 35
+END ENUM
+TYPE JoyScancode as integer
+
 ENUM MouseButton
   mouseLeft = 1
   mouseRight = 2

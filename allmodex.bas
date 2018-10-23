@@ -84,6 +84,7 @@ declare function calcblock(tmap as TileMap, x as integer, y as integer, overhead
 declare sub screen_size_update ()
 
 declare sub pollingthread(as any ptr)
+declare sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
 declare function read_inputtext () as string
 declare sub update_mouse_state ()
 
@@ -224,11 +225,8 @@ dim shared log_slow as bool = NO            'Enable spammy debug_if_slow logging
 ' Shared by KeyboardState and JoystickState, this holds down/triggered/new-press
 ' state of an array of keys/buttons.
 type KeyArray
-	setkeys_elapsed_ms as integer       'Time since last setkeys call (used by keyval)
 	keys(any) as KeyBits                'keyval array
 	key_down_ms(any) as integer         'ms each key has been down
-	repeat_wait as integer = 500        'ms before keys start to repeat
-	repeat_rate as integer = 55         'repeat interval, in ms
 
 	' Redim the arrays. (Not a constructor, because that's a nuisance for globals)
 	declare sub set_size(maxkey as integer)
@@ -240,6 +238,11 @@ sub KeyArray.set_size(maxkey as integer)
 end sub
 
 type KeyboardState extends KeyArray
+	'These are shared with joysticks too
+	setkeys_elapsed_ms as integer       'Time since last setkeys call (used by keyval)
+	repeat_wait as integer = 500        'ms before keys start to repeat
+	repeat_rate as integer = 55         'repeat interval, in ms
+
 	diagonalhack as integer = -1        '-1 before call to keyval w/ arrow key, afterwards 0 or 2
 	delayed_alt_keydown as bool = NO    'Whether have delayed reporting an ALT keypress
 	inputtext as string
@@ -259,6 +262,24 @@ dim shared inputtext_enabled as bool = NO   'Whether to fetch real_kb.inputtext,
 #ELSE
 	dim shared disable_native_text_input as bool = NO
 #ENDIF
+
+type JoystickState extends KeyArray
+	axes(1) as integer           'Range -100 to 100
+	'setkeys_elapsed_ms, repeat_wait, repeat_rate from KeyboardState
+	'(either real_kb or replay_kb) are also used for joysticks
+
+	' Configuration
+	left_thresh as integer	= -50
+	right_thresh as integer = 50
+	up_thresh as integer	= -50
+	down_thresh as integer	= 50
+	use_button as integer	= 0  'Which button is the use key
+	menu_button as integer	= 1  'Which button is the menu key
+end type
+
+dim shared real_joys(1) as JoystickState    'Real joystick state even if replaying input
+dim shared replay_joys(1) as JoystickState  'Contains replayed state of joysticks while replaying, else unused
+                                            'NOTE! Recording/replaying joysticks not implemented yet!
 
 'Singleton type
 type ReplayState
@@ -1911,6 +1932,11 @@ function interrupting_keypress () as bool
 	return ret
 end function
 
+
+'==========================================================================================
+'                                 setkeys (update IO state)
+'==========================================================================================
+
 'Poll io backend to update key state bits, and then handle all special scancodes.
 'keybd() should be dimmed at least (0 to scLAST)
 sub setkeys_update_keybd (keybd() as KeyBits, byref delayed_alt_keydown as bool)
@@ -2005,14 +2031,57 @@ sub setkeys_update_keybd (keybd() as KeyBits, byref delayed_alt_keydown as bool)
 
 end sub
 
+'This is similar to io_keybits for a single joystick:
+'it updates a JoystickState with currently-down and new-keypress bits, and also reads axes().
+'Returns true on success (ie the joystick exists)
+'We use the thresholds set by the calibrate screen.
+'Basically it does a similar thing to the pollingthread, emulating new-keypress
+'bits which the backend doesn't support.
+sub setkeys_update_joystick(joynum as integer, joy as JoystickState)
+	dim as integer jx, jy
+	dim as uinteger buttons
+	if readjoy(joynum, buttons, jx, jy) = 0 then
+		'failed to read
+	end if
+
+	' The gfx backend only tells us which buttons are currently down,
+	' like io_updatekeys, not which have new keypresses, like io_keybits,
+	' so this is similar to the former (as handled in pollingthread).
+
+	' Clear bits 1 (keypress event) and 2 (new keypress)
+	for scancode as JoyScancode = 0 to ubound(joy.keys)
+		joy.keys(scancode) and= 1
+	next
+
+	' Set pressed buttons
+	if jy <= joy.up_thresh     then joy.keys(joyUp) or= 8
+	if jy >= joy.down_thresh   then joy.keys(joyDown) or= 8
+	if jx <= joy.left_thresh   then joy.keys(joyLeft) or= 8
+	if jx >= joy.right_thresh  then joy.keys(joyRight) or= 8
+	for btn as integer = 0 to 31
+		if buttons and (1 shl btn) then
+			joy.keys(joyButton1 + btn) or= 8
+		end if
+	next
+
+	' Convert those bits we just set into KeyBits bits 0 & 1 (detecting new keypresses)
+	keystate_convert_bit3_to_keybits(joy.keys())
+
+	' Duplicate bit 1 (key event) to bit 2 (new keypress)
+	for scancode as JoyScancode = 0 to ubound(joy.keys)
+		dim byref key as KeyBits = joy.keys(scancode)
+		key = (key and 3) or ((key and 2) shl 1)
+	next
+end sub
+
 ' Updates kbstate.key_down_ms
-sub update_keydown_times (kbstate as KeyArray)
+sub setkeys_update_keydown_times (kbstate as KeyArray, setkeys_elapsed_ms as integer)
 	for a as KBScancode = 0 to ubound(kbstate.keys)
 		if (kbstate.keys(a) and 4) or (kbstate.keys(a) and 1) = 0 then
 			kbstate.key_down_ms(a) = 0
 		end if
 		if kbstate.keys(a) and 1 then
-			kbstate.key_down_ms(a) += kbstate.setkeys_elapsed_ms
+			kbstate.key_down_ms(a) += setkeys_elapsed_ms
 		end if
 	next
 end sub
@@ -2048,23 +2117,36 @@ sub setkeys (enable_inputtext as bool = NO)
 	'input, but this goes in the separate real_kb.keys() array so it's
 	'invisible to the game.
 
-	' Get real keyboard state
 	dim time_passed as double = TIMER - last_setkeys_time
 	real_kb.setkeys_elapsed_ms = bound(1000 * time_passed, 0, 255)
 	last_setkeys_time = TIMER
-	setkeys_update_keybd real_kb.keys(), real_kb.delayed_alt_keydown
-	update_keydown_times real_kb
-	kbstate.diagonalhack = -1  'Reset arrow key fire state
 
+	' Get real joystick state. Do this before keyboard, because
+	' setkeys_update_keybd will call map_joystick_to_keys
+	for joynum as integer = 0 to ubound(real_joys)
+		setkeys_update_joystick joynum, real_joys(joynum)
+		setkeys_update_keydown_times real_joys(joynum), real_kb.setkeys_elapsed_ms
+	next
+
+	' Get real keyboard state
+	setkeys_update_keybd real_kb.keys(), real_kb.delayed_alt_keydown
+	setkeys_update_keydown_times real_kb, real_kb.setkeys_elapsed_ms
+	real_kb.diagonalhack = -1  'Reset arrow key fire state
 	real_kb.inputtext = read_inputtext()
 
 	if replay.active then
 		' Updates replay_kb.keys(), .setkeys_elapsed_ms,  and .inputtext
+		' FUTURE: updates replay_joys.keys()
 		replay_input_tick ()
 
 		' Updates replay_kb.key_down_ms()
-		update_keydown_times replay_kb
-		kbstate.diagonalhack = -1  'Reset arrow key fire state
+		setkeys_update_keydown_times replay_kb, replay_kb.setkeys_elapsed_ms
+		replay_kb.diagonalhack = -1  'Reset arrow key fire state
+
+		' Update replay_joys().key_down_ms()
+		for joynum as integer = 0 to ubound(replay_joys)
+			setkeys_update_keydown_times replay_joys(joynum), replay_kb.setkeys_elapsed_ms
+		next
 	end if
 
 	'Taking a screenshot with gfx_directx is very slow, so avoid timing that
