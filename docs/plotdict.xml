@@ -3810,13 +3810,17 @@ end
 
 		<section title="Keyboard Input">
 		<command id="keyispressed">
-			<canon>key is pressed (scancode)</canon>
+			<canon>key is pressed (scancode, joystick num)</canon>
 			<shortname>key is pressed</shortname>
 			<description>
 				Returns <ref>true</ref> if the keyboard or joystick key with the specified <ref>scancode</ref> is being pressed
 				(either held down or pressed since last tick), or <ref>false</ref> if it is not.
-				The argument is a scancode, NOT the <ref>upkey</ref>, <ref>downkey</ref>, <ref>keyconstant</ref>s used with <ref>waitforkey</ref>.
+				The <p>scancode</p> argument is a <tt>key:</tt> constant such as <tt>key:ctrl</tt>
+				NOT the <ref>upkey</ref>, <ref>downkey</ref>, etc, <ref>keyconstant</ref>s used with <ref>waitforkey</ref>.
 				<lb/>
+				The <p>joystick num<p> argument is optional, and defaults to 0.
+				It is only used with joystick scancodes such as <tt>joy:button 1</tt>,
+				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
 				<note>
 					Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2)
 					which were previously the same scancode are now distinct (read scancode.hsi for the complete list).
@@ -3958,7 +3962,7 @@ key:Numpad Plus
 key:Numpad Minus
 key:Numpad Enter
 
-#  Joystick scan codes (for the first joystick only):
+#  Joystick scan codes:
 joy:button 1
 joy:button 2
 joy:button 3
@@ -3975,9 +3979,13 @@ joy:y down</example>
 			</seealso>
 		</command>
 		<command id="keyval">
-			<canon>keyval (scancode)</canon>
+			<canon>keyval (scancode, joystick num)</canon>
 			<shortname>keyval</shortname>
 			<description>Returns a bitmask for the state of the specified key. The argument is a scancode, see <ref>keyispressed</ref>. The first (least significant) bit is whether the key was depressed at the beginning of the current tick. The second bit is whether the key was pushed down by the player since the start of the previous tick (or when the key starts to repeatedly trigger after being held down for a while). It can therefore return 0, 1, 2 or 3: <lb/><lb/>0 = not pressed<lb/>1 = key held down since last tick, but is not a new press<lb/>2 = the player pressed the key and released it, all in the same tick<lb/>3 = new keypress (or typematic repeat)
+			<lb/>
+			The <p>joystick num<p> argument is optional, and defaults to 0.
+			It is only used with joystick scancodes such as <tt>joy:button 1</tt>,
+			and tells which joystick to read: 0 is the first one, 1 is the second, etc.
 			<danger>Just like <ref>keyispressed</ref>, this command does not return real time data, but the situation at the beginning of the current game tick.</danger>
 			<note>The joystick scancodes described in <ref>keyispressed</ref> aren't fully supported for <p>keyval</p>: the return value will be 3 if the key is down, or 0 if it isn't. In other words, no additional information over <ref>keyispressed</ref>.</note>
 			<danger>

@@ -357,35 +357,20 @@ END FUNCTION
 '==========================================================================================
 
 
-FUNCTION script_keyval (byval key as KBScancode, byval joynum as integer = 0) as integer
+FUNCTION script_keyval (byval key as KBScancode, byval joynum as integer = 0) as KeyBits
  'Wrapper around keyval for use by scripts: performs scancode mapping for back-compat
 
- DIM ret as integer = 0
+ IF key < 0 ORELSE key > scKEYVAL_LAST THEN
+  scripterr "invalid scancode keyval(" & key & ")", serrBound
+  RETURN 0
+ END IF
 
- IF key >= 0 AND key <= scLAST THEN
+ DIM ret as KeyBits = 0
+
+ IF key <= scLAST THEN
   ret = keyval(key)
- ELSEIF key >= scJoyButton1 AND key <= scJoyLAST THEN
-  'This is just partial joystick support! We don't support keyrepeat, instead both bits have
-  'same value.
-  'For real joystick support, it needs to be handled in allmodex.bas.
-  DIM b as integer, xaxis as integer, yaxis as integer '0 >= {xaxis, yaxis} >= 100
-  IF readjoy(joynum, b, xaxis, yaxis) THEN
-   IF key >= scJoyButton1 AND key <= scJoyButton16 THEN
-    ret = (b SHR (key - scJoyButton1)) AND 1
-   ELSEIF key = scJoyLeft THEN
-    ret = abs(xaxis <= -50) 'true = -1...
-   ELSEIF key = scJoyRight THEN
-    ret = abs(xaxis >= 50)
-   ELSEIF key = scJoyUp THEN
-    ret = abs(yaxis <= -50)
-   ELSEIF key = scJoyDown THEN
-    ret = abs(yaxis >= 50)
-   END IF
-  ELSE
-   ret = 0
-  END IF
-  'Set key-down and key-press bits
-  ret *= 3
+ ELSE
+  ret = joykeyval(keybd_to_joy_scancode(key), joynum)
  END IF
 
  IF prefbit(24) = NO THEN  'If improved scancodes not enabled
@@ -1383,16 +1368,13 @@ SUB script_functions(byval cmdid as integer)
   wrappedsong retvals(0)
  CASE 29'--stop song
   stopsong
- CASE 30'--keyval
+ CASE 30'--keyval (scancode, joystick num)
   'This used to be keyispressed; which undocumentedly reported two bits
   'instead of true/false.
   a_script_wants_keys()
-  IF retvals(0) >= 0 AND retvals(0) <= 147 THEN
-   'keyval() reports a 3rd bit, but didn't at the time that this command was (re-)documented
-   scriptret = script_keyval(retvals(0)) AND 3
-  ELSE
-   scripterr "invalid scancode keyval(" & retvals(0) & ")", serrBound
-  END IF
+  DIM joynum as integer = get_optional_arg(1, 0)
+  'keyval() reports a 3rd bit, but didn't at the time that this command was (re-)documented
+  scriptret = script_keyval(retvals(0), joynum) AND 3
  CASE 31'--rank in caterpillar
   scriptret = rankincaterpillar(retvals(0))
  CASE 38'--camera follows hero
@@ -1991,10 +1973,9 @@ SUB script_functions(byval cmdid as integer)
   IF valid_plotstr(retvals(0)) AND retvals(1) >= 0 THEN
    plotstr(retvals(0)).s = getsongname(retvals(1))
   END IF
- CASE 235'--key is pressed
+ CASE 235'--key is pressed (scancode, joystick num)
   a_script_wants_keys()
-  'Undocumented second argument is joystick number
-  IF script_keyval(retvals(0), bound(retvals(1), 0, 7)) THEN scriptret = 1 ELSE scriptret = 0
+  IF script_keyval(retvals(0), retvals(1)) THEN scriptret = 1 ELSE scriptret = 0
  CASE 236'--sound is playing
   DIM sfxid as integer = backcompat_sound_id(retvals(0))
   IF sfxid >= 0 AND sfxid <= gen(genMaxSFX) THEN

@@ -164,20 +164,27 @@ CONST scWinLogo = 121
 CONST scCommand = 121
 CONST scMeta = 121
 
-'Used for size of arrays, must NOT include joystick/mouse scancodes (due to script_keyval)
+'Used for size of arrays - does NOT include joystick/mouse scancodes
 'NOTE: 127 is also hardcoded into gfx.bi API and backends.
 'Can't be increased anyway, due to joystick scancodes
 CONST scLAST = 127
 
+'------------- Virtual scancodes
+
+'For convenience the buttons of the first joystick are also accessible like keyboard buttons
 CONST scJoyButton1 = 128
 CONST scJoyButton16 = 143
+'Buttons 17-32 are not available as keyboard keys. Access them directly using joykeyval
 CONST scJoyLeft = 144
 CONST scJoyRight = 145
 CONST scJoyUp = 146
 CONST scJoyDown = 147
 CONST scJoyLAST = 147
 
-'These are only used by anykeypressed/waitforkey! As with scJoy* codes, you can't use them elsewhere!
+'This is the last scancode which can be passed to keyval().
+CONST scKEYVAL_LAST = scJoyLAST
+
+'These are only returned by anykeypressed/waitforkey! You can't use them elsewhere!
 CONST scMouseLeft = 180
 CONST scMouseRight = 181
 CONST scMouseMiddle = 182

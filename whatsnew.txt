@@ -111,6 +111,8 @@ September 29 2018 [Fufluns]
     * "set last save slot" [Ralph]
     * "speaking npc" [Ralph]
     * key:AnyEnter, key:Meta/key:WinLogo/key:Command for "key is pressed"
+    * "keyval" now takes the joystick number as a second argument (for use
+      with joy: key constants), like "key is pressed" did [Ralph]
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"

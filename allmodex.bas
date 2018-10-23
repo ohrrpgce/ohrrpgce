@@ -1569,7 +1569,12 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 'You won't see Left/Right keypresses even when scAlt/scCtrl is pressed, so do not
 'check "keyval(scLeftAlt) > 0 or keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
 
-	dim kbstate as KeyboardState ptr
+	ERROR_IF(a > scKEYVAL_LAST, "bad scancode " & a, 0)
+	if a > scLAST then
+		'For convenience, poll joystick 0
+		return joykeyval(keybd_to_joy_scancode(a), 0)
+	end if
+
 	dim inputst as InputState ptr
 	if replay.active andalso real_keys = NO then
 		inputst = @replay_input
@@ -2525,6 +2530,36 @@ end sub
 '                                        Joystick
 '==========================================================================================
 
+'Translate a sc* constant to a joy* constant
+function keybd_to_joy_scancode(key as KBScancode) as JoyScancode
+	ERROR_IF(key < scJoyButton1 orelse key > scJoyLAST, "Bad scancode " & key, 0)
+	select case key
+		case scJoyLeft  : return joyLeft
+		case scJoyRight : return joyRight
+		case scJoyUp    : return joyUp
+		case scJoyDown  : return joyDown
+		case else       : return joyButton1 + key - scJoyButton1
+	end select
+end function
+
+'The new way to read joystick buttons. Like keyval.
+function joykeyval (key as JoyScancode, joynum as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
+	ERROR_IF(key > joyLAST, "bad scancode " & key, 0)
+
+	dim inputst as InputState ptr
+	if replay.active andalso real_keys = NO then
+		inputst = @replay_input
+	else
+		inputst = @real_input
+	end if
+
+	if joynum > ubound(inputst->joys) then return 0  'Not an error
+	dim byref joy as JoystickState = inputst->joys(joynum)
+
+	dim is_arrowkey as bool
+	is_arrowkey = (key = joyLeft orelse key = joyRight orelse key = joyUp orelse key = joyDown)
+	return joy.key_repeating(key, is_arrowkey, repeat_wait, repeat_rate, *inputst)
+end function
 
 function readjoy (joybuf() as integer, jnum as integer) as bool
 'Return false if joystick is not present, or true if joystick is present.
