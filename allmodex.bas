@@ -225,7 +225,7 @@ dim shared log_slow as bool = NO            'Enable spammy debug_if_slow logging
 ' state of an array of keys/buttons.
 type KeyArray
 	setkeys_elapsed_ms as integer       'Time since last setkeys call (used by keyval)
-	keybd(any) as KeyBits               'keyval array
+	keys(any) as KeyBits                'keyval array
 	key_down_ms(any) as integer         'ms each key has been down
 	repeat_wait as integer = 500        'ms before keys start to repeat
 	repeat_rate as integer = 55         'repeat interval, in ms
@@ -235,7 +235,7 @@ type KeyArray
 end type
 
 sub KeyArray.set_size(maxkey as integer)
-	redim keybd(maxkey)
+	redim keys(maxkey)
 	redim key_down_ms(maxkey)
 end sub
 
@@ -1536,7 +1536,7 @@ function keyval (a as KBScancode, repeat_wait as integer = 0, repeat_rate as int
 		kbstate = @real_kb
 	end if
 
-	dim result as KeyBits = kbstate->keybd(a)
+	dim result as KeyBits = kbstate->keys(a)
 
 	if a >= 0 then
 		if repeat_wait = 0 then repeat_wait = kbstate->repeat_wait
@@ -1554,7 +1554,7 @@ function keyval (a as KBScancode, repeat_wait as integer = 0, repeat_rate as int
 			'if a = scAlt then
 				'alt can repeat (probably a bad idea not to), but only if nothing else has been pressed
 				'for i as KBScancode = 1 to scLAST
-				'	if kbstate->keybd(i) > 1 then check_repeat = NO
+				'	if kbstate->keys(i) > 1 then check_repeat = NO
 				'next
 				'if delayed_alt_keydown = NO then check_repeat = NO
 			'end if
@@ -2007,11 +2007,11 @@ end sub
 
 ' Updates kbstate.key_down_ms
 sub update_keydown_times (kbstate as KeyArray)
-	for a as KBScancode = 0 to ubound(kbstate.keybd)
-		if (kbstate.keybd(a) and 4) or (kbstate.keybd(a) and 1) = 0 then
+	for a as KBScancode = 0 to ubound(kbstate.keys)
+		if (kbstate.keys(a) and 4) or (kbstate.keys(a) and 1) = 0 then
 			kbstate.key_down_ms(a) = 0
 		end if
-		if kbstate.keybd(a) and 1 then
+		if kbstate.keys(a) and 1 then
 			kbstate.key_down_ms(a) += kbstate.setkeys_elapsed_ms
 		end if
 	next
@@ -2032,7 +2032,7 @@ sub setkeys (enable_inputtext as bool = NO)
 'to avoid QWERTY punctuation keys)
 'For more, see http://en.wikipedia.org/wiki/Dead_key
 '
-'Note that key repeat is NOT added to kb.keybd() (it's done by "post-processing" in keyval)
+'Note that key repeat is NOT added to kb.keys() (it's done by "post-processing" in keyval)
 
 	dim starttime as double = timer
 
@@ -2045,21 +2045,21 @@ sub setkeys (enable_inputtext as bool = NO)
 	end if
 
 	'While playing back a recording we still poll for keyboard
-	'input, but this goes in the separate real_kb.keybd() array so it's
+	'input, but this goes in the separate real_kb.keys() array so it's
 	'invisible to the game.
 
 	' Get real keyboard state
 	dim time_passed as double = TIMER - last_setkeys_time
 	real_kb.setkeys_elapsed_ms = bound(1000 * time_passed, 0, 255)
 	last_setkeys_time = TIMER
-	setkeys_update_keybd real_kb.keybd(), real_kb.delayed_alt_keydown
+	setkeys_update_keybd real_kb.keys(), real_kb.delayed_alt_keydown
 	update_keydown_times real_kb
 	kbstate.diagonalhack = -1  'Reset arrow key fire state
 
 	real_kb.inputtext = read_inputtext()
 
 	if replay.active then
-		' Updates replay_kb.keybd(), .setkeys_elapsed_ms,  and .inputtext
+		' Updates replay_kb.keys(), .setkeys_elapsed_ms,  and .inputtext
 		replay_input_tick ()
 
 		' Updates replay_kb.key_down_ms()
@@ -2101,10 +2101,10 @@ end sub
 'Erase a keypress from the keyboard state.
 sub clearkey(k as KBScancode)
 	if replay.active then
-		replay_kb.keybd(k) = 0
+		replay_kb.keys(k) = 0
 		replay_kb.key_down_ms(k) = 0
 	else
-		real_kb.keybd(k) = 0
+		real_kb.keys(k) = 0
 		real_kb.key_down_ms(k) = 0
 	end if
 end sub
@@ -2127,21 +2127,21 @@ end sub
 'Clear the new keypress flag for a key.
 sub clear_newkeypress(k as KBScancode)
 	if replay.active then
-		replay_kb.keybd(k) and= 1
+		replay_kb.keys(k) and= 1
 	else
-		real_kb.keybd(k) and= 1
+		real_kb.keys(k) and= 1
 	end if
 end sub
 
 'Erase a keypress from the real keyboard state even if replaying recorded input.
 sub real_clearkey(k as KBScancode)
-	real_kb.keybd(k) = 0
+	real_kb.keys(k) = 0
 	real_kb.key_down_ms(k) = 0
 end sub
 
 'Clear the new keypress flag for a key. Real keyboard state even if replaying recorded input.
 sub real_clear_newkeypress(k as KBScancode)
-	real_kb.keybd(k) and= 1
+	real_kb.keys(k) and= 1
 end sub
 
 sub setquitflag (newstate as bool = YES)
@@ -2513,7 +2513,7 @@ private sub allmodex_controls()
 		if replay.active or replay.paused then
 			stop_replaying_input "Replay ended by quit request"
 		end if
-		real_kb.keybd(scEsc) = 7
+		real_kb.keys(scEsc) = 7
 	end if
 #elseif defined(IS_GAME)
 	'Quick abort (could probably do better, just moving this here for now)
@@ -2827,8 +2827,8 @@ private function draw_allmodex_recordable_overlays (page as integer) as bool
 		' FIXME: due to frameskip some keypresses might not be recorded. Should show for more than 1 tick.
 		dim as string modifiers, keys
 		with *iif(replay.active, @replay_kb, @real_kb)
-			for idx as integer = 0 to ubound(.keybd)
-				if .keybd(idx) = 0 then continue for
+			for idx as KBScancode = 0 to ubound(.keys)
+				if .keys(idx) = 0 then continue for
 				dim keyname as string = scancodename(idx)
 				select case idx
 				case scLeftShift, scRightShift, scLeftAlt, scRightAlt, scLeftCtrl, scRightCtrl
@@ -3047,10 +3047,10 @@ sub record_input_tick ()
 	dim presses as ubyte = 0
 	dim keys_down as integer = 0
 	for i as KBScancode = 0 to scLAST
-		if real_kb.keybd(i) <> record.last_kb.keybd(i) then
+		if real_kb.keys(i) <> record.last_kb.keys(i) then
 			presses += 1
 		end if
-		if real_kb.keybd(i) then keys_down += 1  'must record setkeys_elapsed_ms
+		if real_kb.keys(i) then keys_down += 1  'must record setkeys_elapsed_ms
 	next i
 	if presses = 0 and keys_down = 0 and len(real_kb.inputtext) = 0 then exit sub
 
@@ -3062,10 +3062,10 @@ sub record_input_tick ()
 	put #record.file,, presses
 
 	for i as ubyte = 0 to scLAST
-		if real_kb.keybd(i) <> record.last_kb.keybd(i) then
+		if real_kb.keys(i) <> record.last_kb.keys(i) then
 			PUT #record.file,, i
-			PUT #record.file,, cubyte(real_kb.keybd(i))
-			if record.debug then debugstr &= " " & scancodename(i) & "=" & real_kb.keybd(i)
+			PUT #record.file,, cubyte(real_kb.keys(i))
+			if record.debug then debugstr &= " " & scancodename(i) & "=" & real_kb.keys(i)
 		end if
 	next i
 	'Currently inputtext is Latin-1, format will need changing in future
@@ -3152,7 +3152,7 @@ sub replay_input_tick ()
 			'debug "saving replay input tick " & replay.nexttick & " until its time has come (+" & replay.nexttick - replay.tick & ")"
 			for i as KBScancode = 0 to scLAST
 				'Check for a corrupt file
-				if replay_kb.keybd(i) then
+				if replay_kb.keys(i) then
 					' There ought to be a tick in the input file so that we can set setkeys_elapsed_ms correctly
 					debug "bad recorded key input: key " & i & " is down, but expected tick " & replay.tick & " is missing"
 					exit for
@@ -3186,7 +3186,7 @@ sub replay_input_tick ()
 		for i as integer = 1 to presses
 			GET #replay.file,, key
 			GET #replay.file,, keybits
-			replay_kb.keybd(key) = keybits
+			replay_kb.keys(key) = keybits
 			if replay.debug then info &= " " & scancodename(key) & "=" & keybits
 		next i
 		info &= " )"
