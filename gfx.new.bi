@@ -48,7 +48,7 @@ extern gfx_AcquireMouse as function (byval bEnable as integer) as integer 'alert
 extern gfx_AcquireJoystick as function (byval bEnable as integer, byval nDevice as integer) as integer
 extern gfx_AcquireTextInput as function (byval bEnabled as integer) as integer  'sets whether text input translation is enabled, returns 0 on failure
 
-extern gfx_GetKeyboard as function (byval pKeyboard as integer ptr) as integer 'gets the keyboard state in a format the engine understands; returns 0 on failure
+extern gfx_GetKeyboard as function (byval pKeyboard as KeyBits ptr) as integer 'gets the keyboard state in a format the engine understands; returns 0 on failure
 extern gfx_GetText as sub (byval pBuffer as wstring ptr, byval buffenLen as integer)  'gets the textual input since the last call, stores it in a buffer which can hold len-1 characters
 
 extern gfx_GetMouseMovement as function (byref dx as integer, byref dy as integer, byref dWheel as integer, byref buttons as integer) as integer 'gets the mouse movement since the last input poll and the button state; returns 0 on failure

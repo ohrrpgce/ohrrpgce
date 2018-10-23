@@ -357,7 +357,7 @@ END FUNCTION
 '==========================================================================================
 
 
-FUNCTION script_keyval (byval key as integer, byval joynum as integer = 0) as integer
+FUNCTION script_keyval (byval key as KBScancode, byval joynum as integer = 0) as integer
  'Wrapper around keyval for use by scripts: performs scancode mapping for back-compat
 
  DIM ret as integer = 0

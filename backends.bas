@@ -32,7 +32,7 @@ dim gfx_AcquireKeyboard as function (byval bEnable as integer) as integer
 dim gfx_AcquireMouse as function (byval bEnable as integer) as integer
 dim gfx_AcquireJoystick as function (byval bEnable as integer, byval nDevice as integer) as integer
 dim gfx_AcquireTextInput as function (byval bEnable as integer) as integer
-dim gfx_GetKeyboard as function (byval pKeyboard as integer ptr) as integer
+dim gfx_GetKeyboard as function (byval pKeyboard as KeyBits ptr) as integer
 dim gfx_GetText as sub (byval pBuffer as wstring ptr, byval buffenLen as integer)
 dim gfx_GetMouseMovement as function (byref dx as integer, byref dy as integer, byref dWheel as integer, byref buttons as integer) as integer
 dim gfx_GetMousePosition as function (byref x as integer, byref y as integer, byref wheel as integer, byref buttons as integer) as integer
@@ -74,8 +74,8 @@ dim gfx_ouya_receipts_result as function () as string
 dim io_init as sub ()
 dim io_pollkeyevents as sub ()
 dim io_waitprocessing as sub ()
-dim io_keybits as sub (byval keybdarray as integer ptr)
-dim io_updatekeys as sub (byval keybd as integer ptr)
+dim io_keybits as sub (byval keybdarray as KeyBits ptr)
+dim io_updatekeys as sub (byval keybd as KeyBits ptr)
 dim io_enable_textinput as sub (byval enable as integer)
 dim io_textinput as sub (byval buf as wstring ptr, byval bufsize as integer)
 dim io_get_clipboard_text as function () as zstring ptr

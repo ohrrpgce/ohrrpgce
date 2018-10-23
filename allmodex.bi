@@ -411,20 +411,20 @@ DECLARE SUB frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBc
 '==========================================================================================
 '                                          Input
 
-DECLARE FUNCTION real_keyval(a as integer, repeat_wait as integer = 0, repeat_rate as integer = 0) as integer
-DECLARE FUNCTION keyval (a as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as integer
+DECLARE FUNCTION real_keyval(a as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
+DECLARE FUNCTION keyval (a as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
 DECLARE FUNCTION getinputtext () as string
 DECLARE FUNCTION interrupting_keypress () as bool
-DECLARE FUNCTION anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as integer = 1) as integer
-DECLARE FUNCTION waitforanykey (wait_for_resize as bool = NO) as integer
+DECLARE FUNCTION anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as KeyBits = 1) as KBScancode
+DECLARE FUNCTION waitforanykey (wait_for_resize as bool = NO) as KBScancode
 DECLARE SUB waitforkeyrelease ()
 DECLARE SUB setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
 DECLARE SUB setkeys (enable_inputtext as bool = NO)
-DECLARE SUB real_clearkey (k as integer)
-DECLARE SUB clearkey (k as integer)
+DECLARE SUB real_clearkey (k as KBScancode)
+DECLARE SUB clearkey (k as KBScancode)
 DECLARE SUB clearkeys()
-DECLARE SUB real_clear_newkeypress(k as integer)
-DECLARE SUB clear_newkeypress(k as integer)
+DECLARE SUB real_clear_newkeypress(k as KBScancode)
+DECLARE SUB clear_newkeypress(k as KBScancode)
 DECLARE SUB setquitflag (newstate as bool = YES)
 DECLARE FUNCTION getquitflag () as bool
 #DEFINE slowkey(key, ms) (keyval((key), (ms), (ms)) > 1)

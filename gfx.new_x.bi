@@ -35,7 +35,7 @@ DECLARE FUNCTION gfx_AcquireMouse (byval bEnable as integer) as integer 'alerts 
 'returns 0 on failure;
 DECLARE FUNCTION gfx_AcquireJoystick (byval bEnable as integer, byval nDevice as integer) as integer
 
-DECLARE FUNCTION gfx_GetKeyboard (byval pKeyboard as integer ptr) as integer 'gets the keyboard state in a format the engine understands; returns 0 on failure
+DECLARE FUNCTION gfx_GetKeyboard (byval pKeyboard as KeyBits ptr) as integer 'gets the keyboard state in a format the engine understands; returns 0 on failure
 
 DECLARE FUNCTION gfx_GetMouseMovement (byref dx as integer, byref dy as integer, byref dWheel as integer, byref buttons as integer) as integer 'gets the mouse movement since the last input poll and the button state; returns 0 on failure
 DECLARE FUNCTION gfx_GetMousePosition (byref x as integer, byref y as integer, byref wheel as integer, byref buttons as integer) as integer 'gets the mouse position and button state; returns 0 on failure

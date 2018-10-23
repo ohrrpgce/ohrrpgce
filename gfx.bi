@@ -172,6 +172,15 @@ extern Gfx_ouya_receipts_result as function () as string
 
 '=============================== io Backend API ===============================
 
+
+'The state of a key
+'1:  key currently down
+'2:  keypress event (either new keypress or key repeat)
+'4:  new keypress
+'8:  set by io_updatekeys() only, normally 0
+type KeyBits as integer
+
+
 extern Io_init as sub ()
 
 '(optional) called in loops where gfx_present is not.
@@ -185,11 +194,11 @@ extern Io_waitprocessing as sub ()
 '(optional) Primary keyboard state function. Get keypress events (since last call) and keyboard state:
 'bit 0: key down, bit 1: keypress since last call, must clear all other bits
 'Length 128 array.
-extern Io_keybits as sub (byval keybdarray as integer ptr)
+extern Io_keybits as sub (byval keybdarray as KeyBits ptr)
 
 '(optional, must be thread safe) Get current up/down state of each key. Only used by the polling thread, not needed otherwise
 'set bit 3 (8) on each key if current down, should not modify the other bits!
-extern Io_updatekeys as sub (byval keybd as integer ptr)
+extern Io_updatekeys as sub (byval keybd as KeyBits ptr)
 
 '(optional) Enable or disable text input methods, possibly causing some keys to go dead
 '(stop reporting keypresses). See each backend or setkeys in allmodex.bas for details.
@@ -249,7 +258,7 @@ extern Io_readjoysane as function (byval joynum as integer, byref buttons as uin
 '=========================== Backend API wrappers =============================
 ' functions in allmodex.bas
 
-declare sub Io_amx_keybits (byval keybdarray as integer ptr)
+declare sub Io_amx_keybits (byval keybdarray as KeyBits ptr)
 declare sub Io_amx_mousebits (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 
 

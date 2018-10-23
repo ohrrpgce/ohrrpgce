@@ -221,20 +221,34 @@ dim shared log_slow as bool = NO            'Enable spammy debug_if_slow logging
 	blocking_draws = YES
 #ENDIF
 
-
-type KeyboardState
+' Shared by KeyboardState and JoystickState, this holds down/triggered/new-press
+' state of an array of keys/buttons.
+type KeyArray
 	setkeys_elapsed_ms as integer       'Time since last setkeys call (used by keyval)
-	keybd(scLAST) as integer            'keyval array
-	key_down_ms(scLAST) as integer      'ms each key has been down
+	keybd(any) as KeyBits               'keyval array
+	key_down_ms(any) as integer         'ms each key has been down
+	repeat_wait as integer = 500        'ms before keys start to repeat
+	repeat_rate as integer = 55         'repeat interval, in ms
+
+	' Redim the arrays. (Not a constructor, because that's a nuisance for globals)
+	declare sub set_size(maxkey as integer)
+end type
+
+sub KeyArray.set_size(maxkey as integer)
+	redim keybd(maxkey)
+	redim key_down_ms(maxkey)
+end sub
+
+type KeyboardState extends KeyArray
 	diagonalhack as integer = -1        '-1 before call to keyval w/ arrow key, afterwards 0 or 2
 	delayed_alt_keydown as bool = NO    'Whether have delayed reporting an ALT keypress
-	keyrepeatwait as integer = 500
-	keyrepeatrate as integer = 55
 	inputtext as string
 end type
 
 dim shared real_kb as KeyboardState         'Always contains real keyboard state even if replaying
 dim shared replay_kb as KeyboardState       'Contains replayed state of keyboard while replaying, else unused
+real_kb.set_size(scLAST)
+replay_kb.set_size(scLAST)
 dim shared last_setkeys_time as double      'Used to compute real_kb.setkeys_elapsed_ms
 dim shared inputtext_enabled as bool = NO   'Whether to fetch real_kb.inputtext, not applied to replay_kb
 
@@ -330,7 +344,7 @@ dim main_thread_in_gfx_backend as bool   '(Global) Whether the main thread has a
 type PollingThreadState
 	threadptr as any ptr          'id of the polling thread
 	wantquit as bool              'signal the polling thread to quit
-	keybdstate(scLAST) as integer '"real"time keyboard array
+	keybdstate(scLAST) as KeyBits '"real"time keyboard array
 	mousebuttons as integer
 	mouselastbuttons as integer
 end type
@@ -1500,11 +1514,11 @@ end function
 '                                      Keyboard input
 '==========================================================================================
 
-function real_keyval(a as integer, repeat_wait as integer = 0, repeat_rate as integer = 0) as integer
+function real_keyval(a as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
 	return keyval(a, repeat_wait, repeat_rate, YES)
 end function
 
-function keyval (a as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as integer
+function keyval (a as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
 'except for special keys (like -1), each key reports 3 bits:
 '
 'bit 0: key was down at the last setkeys call
@@ -1521,11 +1535,12 @@ function keyval (a as integer, repeat_wait as integer = 0, repeat_rate as intege
 	else
 		kbstate = @real_kb
 	end if
-	dim result as integer = kbstate->keybd(a)
+
+	dim result as KeyBits = kbstate->keybd(a)
 
 	if a >= 0 then
-		if repeat_wait = 0 then repeat_wait = kbstate->keyrepeatwait
-		if repeat_rate = 0 then repeat_rate = kbstate->keyrepeatrate
+		if repeat_wait = 0 then repeat_wait = kbstate->repeat_wait
+		if repeat_rate = 0 then repeat_rate = kbstate->repeat_rate
 
 		'awful hack to avoid arrow keys firing alternatively when not pressed at the same time:
 		'save state of the first arrow key you query
@@ -1538,7 +1553,7 @@ function keyval (a as integer, repeat_wait as integer = 0, repeat_rate as intege
 
 			'if a = scAlt then
 				'alt can repeat (probably a bad idea not to), but only if nothing else has been pressed
-				'for i as integer = 1 to scLAST
+				'for i as KBScancode = 1 to scLAST
 				'	if kbstate->keybd(i) > 1 then check_repeat = NO
 				'next
 				'if delayed_alt_keydown = NO then check_repeat = NO
@@ -1560,12 +1575,14 @@ function keyval (a as integer, repeat_wait as integer = 0, repeat_rate as intege
 end function
 
 sub setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
+	' Not actually used anywhere yet, but give the replay and real states
+	' separate repeat rates to avoid desync issues
 	if replay.active then
-		replay_kb.keyrepeatwait = repeat_wait
-		replay_kb.keyrepeatrate = repeat_rate
+		replay_kb.repeat_wait = repeat_wait
+		replay_kb.repeat_rate = repeat_rate
 	else
-		real_kb.keyrepeatwait = repeat_wait
-		real_kb.keyrepeatrate = repeat_rate
+		real_kb.repeat_wait = repeat_wait
+		real_kb.repeat_rate = repeat_rate
 	end if
 end sub
 
@@ -1757,10 +1774,10 @@ end function
 '               1 to trigger only on new keypress or repeat.
 'Returns scancode if one is found, 0 otherwise.
 'Use this instead of looping over all keys, to make sure alt filtering and joysticks work
-function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as integer = 1) as integer
+function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as KeyBits = 1) as KBScancode
 	dim as integer joybutton, joyx, joyy
 
-	for i as integer = 0 to scLAST
+	for i as KBScancode = 0 to scLAST
 		'check scAlt only, so Alt-filtering (see setkeys) works
 		if i = scLeftAlt or i = scRightAlt or i = scUnfilteredAlt then continue for
 		' Ignore capslock and numlock because they always appear pressed when on,
@@ -1796,8 +1813,9 @@ end function
 
 'Waits for a new keyboard key, mouse or joystick button press. Clears the keypress and returns the scancode.
 'If wait_for_resize = YES, also returns scResize if the window was resized.
-function waitforanykey (wait_for_resize as bool = NO) as integer
-	dim as integer key, sleepjoy = 3
+function waitforanykey (wait_for_resize as bool = NO) as KBScancode
+	dim key as KBScancode
+	dim sleepjoy as integer = 3
 	dim remem_speed_control as bool = use_speed_control
 	dim original_resolution as XYPair = windowsize
 	use_speed_control = YES
@@ -1851,7 +1869,7 @@ function interrupting_keypress () as bool
 
 	io_pollkeyevents()
 
-	dim keybd_dummy(scLAST) as integer
+	dim keybd_dummy(scLAST) as KeyBits
 	dim mouse as MouseInfo
 
 	'Note: This use of gfxmutex is necessary even if FB bug 885 gets fixed (see r642 & r708)
@@ -1872,7 +1890,7 @@ function interrupting_keypress () as bool
 #endif
 	end if
 
-	for i as integer = 0 to scLAST
+	for i as KBScancode = 0 to scLAST
 		'Check for new keypresses
 		if keybd_dummy(i) and 2 then ret = YES
 	next
@@ -1895,7 +1913,7 @@ end function
 
 'Poll io backend to update key state bits, and then handle all special scancodes.
 'keybd() should be dimmed at least (0 to scLAST)
-sub setkeys_update_keybd (keybd() as integer, byref delayed_alt_keydown as bool)
+sub setkeys_update_keybd (keybd() as KeyBits, byref delayed_alt_keydown as bool)
 	dim winstate as WindowState ptr
 	winstate = gfx_getwindowstate()
 
@@ -1942,7 +1960,7 @@ sub setkeys_update_keybd (keybd() as integer, byref delayed_alt_keydown as bool)
 	end if
 
 	'Calculate new "new keypress" bit (bit 2)
-	for a as integer = 0 to scLAST
+	for a as KBScancode = 0 to scLAST
 		keybd(a) and= 3
 		if a = scAlt then
 			'Special behaviour for alt, to ignore pesky WM shortcuts like alt+tab, alt+enter:
@@ -1988,11 +2006,8 @@ sub setkeys_update_keybd (keybd() as integer, byref delayed_alt_keydown as bool)
 end sub
 
 ' Updates kbstate.key_down_ms
-sub update_keydown_times (kbstate as KeyboardState)
-	'reset arrow key fire state
-	kbstate.diagonalhack = -1
-
-	for a as integer = 0 to scLAST
+sub update_keydown_times (kbstate as KeyArray)
+	for a as KBScancode = 0 to ubound(kbstate.keybd)
 		if (kbstate.keybd(a) and 4) or (kbstate.keybd(a) and 1) = 0 then
 			kbstate.key_down_ms(a) = 0
 		end if
@@ -2039,14 +2054,17 @@ sub setkeys (enable_inputtext as bool = NO)
 	last_setkeys_time = TIMER
 	setkeys_update_keybd real_kb.keybd(), real_kb.delayed_alt_keydown
 	update_keydown_times real_kb
+	kbstate.diagonalhack = -1  'Reset arrow key fire state
+
 	real_kb.inputtext = read_inputtext()
 
 	if replay.active then
 		' Updates replay_kb.keybd(), .setkeys_elapsed_ms,  and .inputtext
 		replay_input_tick ()
 
-		' Updates replay_kb.key_down_ms(), .diagonalhack
+		' Updates replay_kb.key_down_ms()
 		update_keydown_times replay_kb
+		kbstate.diagonalhack = -1  'Reset arrow key fire state
 	end if
 
 	'Taking a screenshot with gfx_directx is very slow, so avoid timing that
@@ -2081,7 +2099,7 @@ sub setkeys (enable_inputtext as bool = NO)
 end sub
 
 'Erase a keypress from the keyboard state.
-sub clearkey(k as integer)
+sub clearkey(k as KBScancode)
 	if replay.active then
 		replay_kb.keybd(k) = 0
 		replay_kb.key_down_ms(k) = 0
@@ -2095,7 +2113,7 @@ end sub
 '(TODO: joystick)
 'If a key is being held down then this can't hide it.
 sub clearkeys()
-	for k as integer = 0 to scLAST
+	for k as KBScancode = 0 to scLAST
 		clearkey(k)
 	next
 	#ifdef IS_GAME
@@ -2107,7 +2125,7 @@ sub clearkeys()
 end sub
 
 'Clear the new keypress flag for a key.
-sub clear_newkeypress(k as integer)
+sub clear_newkeypress(k as KBScancode)
 	if replay.active then
 		replay_kb.keybd(k) and= 1
 	else
@@ -2116,13 +2134,13 @@ sub clear_newkeypress(k as integer)
 end sub
 
 'Erase a keypress from the real keyboard state even if replaying recorded input.
-sub real_clearkey(k as integer)
+sub real_clearkey(k as KBScancode)
 	real_kb.keybd(k) = 0
 	real_kb.key_down_ms(k) = 0
 end sub
 
 'Clear the new keypress flag for a key. Real keyboard state even if replaying recorded input.
-sub real_clear_newkeypress(k as integer)
+sub real_clear_newkeypress(k as KBScancode)
 	real_kb.keybd(k) and= 1
 end sub
 
@@ -2412,8 +2430,8 @@ end function
 ' io_mousebits or io_keybits.
 
 'these are wrappers provided by the polling thread
-sub io_amx_keybits cdecl (keybdarray as integer ptr)
-	for a as integer = 0 to scLAST
+sub io_amx_keybits cdecl (keybdarray as KeyBits ptr)
+	for a as KBScancode = 0 to scLAST
 		keybdarray[a] = pollthread.keybdstate(a)
 		pollthread.keybdstate(a) and= 1
 	next
@@ -2432,7 +2450,7 @@ end sub
 
 'Input: a key array with bit 3 (1<<3 == 8) set for pressed keys (from io_updatekeys)
 'Output: key array with bits 0 and 1 set (like io_keybits)
-private sub keystate_convert_bit3_to_keybits(keystate() as integer)
+private sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
 	for a as integer = 0 to ubound(keystate)
 		if (keystate(a) and 8) then
 			'decide whether to set the 'new key' bit, otherwise the keystate is preserved
@@ -3028,7 +3046,7 @@ sub record_input_tick ()
 	record.tick += 1
 	dim presses as ubyte = 0
 	dim keys_down as integer = 0
-	for i as integer = 0 to scLAST
+	for i as KBScancode = 0 to scLAST
 		if real_kb.keybd(i) <> record.last_kb.keybd(i) then
 			presses += 1
 		end if
@@ -3132,7 +3150,7 @@ sub replay_input_tick ()
 			debug "input replay late for tick " & replay.nexttick & " (" & replay.nexttick - replay.tick & ")"
 		elseif replay.nexttick > replay.tick then
 			'debug "saving replay input tick " & replay.nexttick & " until its time has come (+" & replay.nexttick - replay.tick & ")"
-			for i as integer = 0 to scLAST
+			for i as KBScancode = 0 to scLAST
 				'Check for a corrupt file
 				if replay_kb.keybd(i) then
 					' There ought to be a tick in the input file so that we can set setkeys_elapsed_ms correctly

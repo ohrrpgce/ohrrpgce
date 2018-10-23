@@ -6,6 +6,8 @@
 #IFNDEF SCANCODES_BI
 #DEFINE SCANCODES_BI
 
+TYPE KBScancode as integer
+
 CONST scNone = 0  'All of allmodex treats this as a valid scancode, but it doesn't mean anything
 CONST scEsc = 01
 CONST sc1 = 02
