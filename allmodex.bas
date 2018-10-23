@@ -222,20 +222,20 @@ dim shared log_slow as bool = NO            'Enable spammy debug_if_slow logging
 	blocking_draws = YES
 #ENDIF
 
-type KeyboardStateFwd as KeyboardState
+type InputStateFwd as InputState
 
 ' Shared by KeyboardState and JoystickState, this holds down/triggered/new-press
 ' state of an array of keys/buttons.
 type KeyArray extends Object
-	keys(any) as KeyBits                'keyval array
+	keys(any) as KeyBits                'State of each key
 	key_down_ms(any) as integer         'ms each key has been down
 	arrow_key_down_ms as integer        'Max ms that any arrow key has been down
 
 	' Redim the arrays. (Not a constructor, because that's a nuisance for globals)
 	declare sub init(maxkey as integer)
-
 	declare abstract sub update_arrow_keydown_time()
-	declare function key_repeating(key as integer, is_arrowkey as bool, repeat_wait as integer, repeat_rate as integer, repeat_settings as KeyboardStateFwd ptr) as KeyBits
+	declare sub update_keydown_times(inputst as InputStateFwd)
+	declare function key_repeating(key as integer, is_arrowkey as bool, repeat_wait as integer, repeat_rate as integer, byref inputst as InputStateFwd) as KeyBits
 end type
 
 sub KeyArray.init(maxkey as integer)
@@ -244,11 +244,6 @@ sub KeyArray.init(maxkey as integer)
 end sub
 
 type KeyboardState extends KeyArray
-	'These are shared with joysticks too
-	setkeys_elapsed_ms as integer       'Time since last setkeys call (used by keyval)
-	repeat_wait as integer = 500        'ms before keys start to repeat
-	repeat_rate as integer = 55         'repeat interval, in ms
-
 	delayed_alt_keydown as bool = NO    'Whether have delayed reporting an ALT keypress
 	inputtext as string
 
@@ -257,7 +252,7 @@ end type
 
 dim shared real_kb as KeyboardState         'Always contains real keyboard state even if replaying
 dim shared replay_kb as KeyboardState       'Contains replayed state of keyboard while replaying, else unused
-dim shared last_setkeys_time as double      'Used to compute real_kb.setkeys_elapsed_ms
+dim shared last_setkeys_time as double      'Used to compute real_input.elapsed_ms
 dim shared inputtext_enabled as bool = NO   'Whether to fetch real_kb.inputtext, not applied to replay_kb
 
 #IFDEF USE_X11
@@ -270,8 +265,6 @@ dim shared inputtext_enabled as bool = NO   'Whether to fetch real_kb.inputtext,
 
 type JoystickState extends KeyArray
 	axes(1) as integer           'Range -100 to 100
-	'setkeys_elapsed_ms, repeat_wait, repeat_rate from KeyboardState
-	'(either real_kb or replay_kb) are also used for joysticks
 
 	' Configuration
 	left_thresh as integer	= -50
@@ -287,6 +280,18 @@ end type
 dim shared real_joys(1) as JoystickState    'Real joystick state even if replaying input
 dim shared replay_joys(1) as JoystickState  'Contains replayed state of joysticks while replaying, else unused
                                             'NOTE! Recording/replaying joysticks not implemented yet!
+
+' State which is shared between keyboard and joysticks but separate for
+' recording and replaying.
+' (In future will include mouse too, once record/replay is implemented for mouse)
+type InputState
+	elapsed_ms as integer               'Time since last setkeys call (used by key_repeating)
+	repeat_wait as integer = 500        'ms before keys start to repeat
+	repeat_rate as integer = 55         'repeat interval, in ms
+end type
+
+dim shared real_input as InputState         'Always contains real state even if replaying
+dim shared replay_input as InputState       'Contains replayed input state while replaying, else unused
 
 'Singleton type
 type ReplayState
@@ -1576,10 +1581,13 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 'check "keyval(scLeftAlt) > 0 or keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
 
 	dim kbstate as KeyboardState ptr
+	dim inputst as InputState ptr
 	if replay.active andalso real_keys = NO then
 		kbstate = @replay_kb
+		inputst = @replay_input
 	else
 		kbstate = @real_kb
+		inputst = @real_input
 	end if
 
 	dim check_repeat as bool = YES
@@ -1600,23 +1608,22 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 	if check_repeat then
 		dim is_arrowkey as bool
 		is_arrowkey = (a = scLeft orelse a = scRight orelse a = scUp orelse a = scDown)
-		return kbstate->key_repeating(a, is_arrowkey, repeat_wait, repeat_rate, kbstate)
+		return kbstate->key_repeating(a, is_arrowkey, repeat_wait, repeat_rate, *inputst)
 	else
 		return kbstate->keys(a)
 	end if
 end function
 
 'Return state of a key plus key repeat bit. (Should only be called from keyval)
-'repeat_settings should be either real_kb or replay_kb.
-'repeat_wait and repeat_rate can override it.
-function KeyArray.key_repeating(key as integer, is_arrowkey as bool, repeat_wait as integer, repeat_rate as integer, repeat_settings as KeyboardState ptr) as KeyBits
+'repeat_wait and repeat_rate can override inputst settings.
+function KeyArray.key_repeating(key as integer, is_arrowkey as bool, repeat_wait as integer, repeat_rate as integer, byref inputst as InputState) as KeyBits
 	dim result as KeyBits = keys(key)
 
 	if result and 1 then
 		'Check key repeat
 
-		if repeat_wait = 0 then repeat_wait = repeat_settings->repeat_wait
-		if repeat_rate = 0 then repeat_rate = repeat_settings->repeat_rate
+		if repeat_wait = 0 then repeat_wait = inputst.repeat_wait
+		if repeat_rate = 0 then repeat_rate = inputst.repeat_rate
 
 		dim down_ms as integer
 		down_ms = iif(is_arrowkey, arrow_key_down_ms, key_down_ms(key))
@@ -1624,7 +1631,7 @@ function KeyArray.key_repeating(key as integer, is_arrowkey as bool, repeat_wait
 		if down_ms >= repeat_wait then
 			'Keypress event at "wait + i * rate" ms after keydown
 			dim temp as integer = down_ms - repeat_wait
-			if temp \ repeat_rate > (temp - repeat_settings->setkeys_elapsed_ms) \ repeat_rate then
+			if temp \ repeat_rate > (temp - inputst.elapsed_ms) \ repeat_rate then
 				result or= 2
 			end if
 		end if
@@ -1636,11 +1643,11 @@ sub setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
 	' Not actually used anywhere yet, but give the replay and real states
 	' separate repeat rates to avoid desync issues
 	if replay.active then
-		replay_kb.repeat_wait = repeat_wait
-		replay_kb.repeat_rate = repeat_rate
+		replay_input.repeat_wait = repeat_wait
+		replay_input.repeat_rate = repeat_rate
 	else
-		real_kb.repeat_wait = repeat_wait
-		real_kb.repeat_rate = repeat_rate
+		real_input.repeat_wait = repeat_wait
+		real_input.repeat_rate = repeat_rate
 	end if
 end sub
 
@@ -2176,17 +2183,17 @@ sub JoystickState.update_arrow_keydown_time ()
 end sub
 
 ' Updates kbstate.key_down_ms
-sub setkeys_update_keydown_times (kbstate as KeyArray, setkeys_elapsed_ms as integer)
-	for a as KBScancode = 0 to ubound(kbstate.keys)
-		if (kbstate.keys(a) and 4) or (kbstate.keys(a) and 1) = 0 then
-			kbstate.key_down_ms(a) = 0
+sub KeyArray.update_keydown_times (inputst as InputState)
+	for key as KBScancode = 0 to ubound(keys)
+		if (keys(key) and 4) or (keys(key) and 1) = 0 then
+			key_down_ms(key) = 0
 		end if
-		if kbstate.keys(a) and 1 then
-			kbstate.key_down_ms(a) += setkeys_elapsed_ms
+		if keys(key) and 1 then
+			key_down_ms(key) += inputst.elapsed_ms
 		end if
 	next
 
-	kbstate.update_arrow_keydown_time
+	update_arrow_keydown_time
 end sub
 
 sub setkeys (enable_inputtext as bool = NO)
@@ -2221,32 +2228,32 @@ sub setkeys (enable_inputtext as bool = NO)
 	'invisible to the game.
 
 	dim time_passed as double = TIMER - last_setkeys_time
-	real_kb.setkeys_elapsed_ms = bound(1000 * time_passed, 0, 255)
+	real_input.elapsed_ms = bound(1000 * time_passed, 0, 255)
 	last_setkeys_time = TIMER
 
 	' Get real joystick state. Do this before keyboard, because
 	' setkeys_update_keybd will call map_joystick_to_keys
 	for joynum as integer = 0 to ubound(real_joys)
 		setkeys_update_joystick joynum, real_joys(joynum)
-		setkeys_update_keydown_times real_joys(joynum), real_kb.setkeys_elapsed_ms
+		real_joys(joynum).update_keydown_times(real_input)
 	next
 
 	' Get real keyboard state
 	setkeys_update_keybd real_kb.keys(), real_kb.delayed_alt_keydown
-	setkeys_update_keydown_times real_kb, real_kb.setkeys_elapsed_ms
+	real_kb.update_keydown_times(real_input)
 	real_kb.inputtext = read_inputtext()
 
 	if replay.active then
-		' Updates replay_kb.keys(), .setkeys_elapsed_ms,  and .inputtext
+		' Updates replay_kb.keys() and .inputtext, and replay_input.elapsed_ms
 		' FUTURE: updates replay_joys.keys()
 		replay_input_tick ()
 
 		' Updates replay_kb.key_down_ms()
-		setkeys_update_keydown_times replay_kb, replay_kb.setkeys_elapsed_ms
+		replay_kb.update_keydown_times(replay_input)
 
 		' Update replay_joys().key_down_ms()
 		for joynum as integer = 0 to ubound(replay_joys)
-			setkeys_update_keydown_times replay_joys(joynum), replay_kb.setkeys_elapsed_ms
+			replay_joys(joynum).update_keydown_times(replay_input)
 		next
 	end if
 
@@ -3191,10 +3198,10 @@ sub record_input_tick ()
 	if presses = 0 and keys_down = 0 and len(real_kb.inputtext) = 0 then exit sub
 
 	dim debugstr as string
-	if record.debug then debugstr = "L:" & LOC(record.file) & " T:" & record.tick & " ms:" & real_kb.setkeys_elapsed_ms & " ("
+	if record.debug then debugstr = "L:" & LOC(record.file) & " T:" & record.tick & " ms:" & real_input.elapsed_ms & " ("
 
 	put #record.file,, record.tick
-	put #record.file,, cubyte(real_kb.setkeys_elapsed_ms)
+	put #record.file,, cubyte(real_input.elapsed_ms)
 	put #record.file,, presses
 
 	for i as ubyte = 0 to scLAST
@@ -3295,14 +3302,14 @@ sub replay_input_tick ()
 				end if
 			next
 			' Otherwise, this doesn't matter as it won't be used
-			replay_kb.setkeys_elapsed_ms = 1
+			replay_input.elapsed_ms = 1
 			' Increment how much we've played so far - not actual play time but at same rate as the .length_ms estimate
 			replay.play_position_ms += replay.next_tick_ms
 			replay_kb.inputtext = ""
 			exit sub
 		end if
 
-		replay_kb.setkeys_elapsed_ms = replay.next_tick_ms
+		replay_input.elapsed_ms = replay.next_tick_ms
 		replay.play_position_ms += replay.next_tick_ms
 
 		dim presses as ubyte
@@ -3314,7 +3321,7 @@ sub replay_input_tick ()
 
 		dim as string info
 		if replay.debug then
-			info = "L:" & replay.fpos & " T:" & replay.nexttick & " ms:" & replay_kb.setkeys_elapsed_ms & " ("
+			info = "L:" & replay.fpos & " T:" & replay.nexttick & " ms:" & replay_input.elapsed_ms & " ("
 		end if
 
 		dim key as ubyte
