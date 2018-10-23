@@ -326,16 +326,20 @@ dim shared closerequest as bool = NO     'It has been requested to close the pro
 dim gfxmutex as any ptr                  '(Global) Coordinates access to globals and gfx backend with the polling thread
 dim main_thread_in_gfx_backend as bool   '(Global) Whether the main thread has acquired gfxmutex.
 
-dim shared keybdthread as any ptr        'id of the polling thread
-dim shared endpollthread as bool         'signal the polling thread to quit
-dim shared keybdstate(scLAST) as integer '"real"time keyboard array (only used internally by pollingthread)
-dim shared mouseflags as integer
-dim shared mouselastflags as integer
-dim shared cursorvisibility as CursorVisibility = cursorDefault
+'State variables for the pollingthread
+type PollingThreadState
+	threadptr as any ptr          'id of the polling thread
+	wantquit as bool              'signal the polling thread to quit
+	keybdstate(scLAST) as integer '"real"time keyboard array
+	mousebuttons as integer
+	mouselastbuttons as integer
+end type
+dim shared pollthread as PollingThreadState
 
 'State of the mouse (set when setkeys is called), includes persistent state
 dim shared mouse_state as MouseInfo
 dim shared last_mouse_wheel as integer   'mouse_state.wheel at previous update_mouse_state call.
+dim shared cursorvisibility as CursorVisibility = cursorDefault
 
 dim shared textfg as integer
 dim shared textbg as integer
@@ -418,14 +422,14 @@ end sub
 ' Initialise stuff specific to the backend (this is called after gfx_init())
 private sub after_backend_init()
 	'Polling thread variables
-	endpollthread = NO
-	mouselastflags = 0
-	mouseflags = 0
+	pollthread.wantquit = NO
+	pollthread.mouselastbuttons = 0
+	pollthread.mousebuttons = 0
 
 	gfxmutex = mutexcreate
 	if wantpollingthread then
 		debuginfo "Starting IO polling thread"
-		keybdthread = threadcreate(@pollingthread)
+		pollthread.threadptr = threadcreate(@pollingthread)
 	end if
 
 	io_init()
@@ -477,10 +481,10 @@ end sub
 ' Cleans up everything that ought to be done before calling gfx_close()
 private sub before_backend_quit()
 	'clean up io stuff
-	if keybdthread then
-		endpollthread = YES
-		threadwait keybdthread
-		keybdthread = 0
+	if pollthread.threadptr then
+		pollthread.wantquit = YES
+		threadwait pollthread.threadptr
+		pollthread.threadptr = NULL
 	end if
 	mutexdestroy gfxmutex
 
@@ -2410,57 +2414,64 @@ end function
 'these are wrappers provided by the polling thread
 sub io_amx_keybits cdecl (keybdarray as integer ptr)
 	for a as integer = 0 to scLAST
-		keybdarray[a] = keybdstate(a)
-		keybdstate(a) = keybdstate(a) and 1
+		keybdarray[a] = pollthread.keybdstate(a)
+		pollthread.keybdstate(a) and= 1
 	next
 end sub
 
 sub io_amx_mousebits cdecl (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
-	'get the mouse state one last time, for good measure
-	io_getmouse(mx, my, mwheel, mbuttons)
-	mclicks = mouseflags or (mbuttons and not mouselastflags)
-	mouselastflags = mbuttons
-	mouseflags = 0
-	mbuttons = mbuttons or mclicks
+	with pollthread
+		'get the mouse state one last time, for good measure
+		io_getmouse(mx, my, mwheel, mbuttons)
+		mclicks = .mousebuttons or (mbuttons and not .mouselastbuttons)
+		.mouselastbuttons = mbuttons
+		.mousebuttons = 0
+		mbuttons = mbuttons or mclicks
+	end with
+end sub
+
+'Input: a key array with bit 3 (1<<3 == 8) set for pressed keys (from io_updatekeys)
+'Output: key array with bits 0 and 1 set (like io_keybits)
+private sub keystate_convert_bit3_to_keybits(keystate() as integer)
+	for a as integer = 0 to ubound(keystate)
+		if (keystate(a) and 8) then
+			'decide whether to set the 'new key' bit, otherwise the keystate is preserved
+			if (keystate(a) and 1) = 0 then
+				'this is a new keypress
+				keystate(a) or= 2
+			end if
+		end if
+		'move the bit (clearing it) that io_updatekeys sets from 8 to 1
+		keystate(a) = (keystate(a) and 2) or ((keystate(a) shr 3) and 1)
+	next
 end sub
 
 private sub pollingthread(unused as any ptr)
-	dim as integer a, dummy, buttons
+	with pollthread
+		while .wantquit = NO
+			mutexlock gfxmutex
 
-	while endpollthread = NO
-		mutexlock gfxmutex
+			dim starttime as double = timer
 
-		dim starttime as double = timer
+			io_updatekeys(@.keybdstate(0))
+			if log_slow then debug_if_slow(starttime, 0.005, "io_updatekeys")
+			starttime = timer
 
-		io_updatekeys(@keybdstate(0))
-		if log_slow then debug_if_slow(starttime, 0.005, "io_updatekeys")
-		starttime = timer
+			'set key state for every key
+			keystate_convert_bit3_to_keybits(.keybdstate())
 
-		'set key state for every key
-		'highest scancode in fbgfx.bi is &h79, no point overdoing it
-		for a = 0 to scLAST
-			if keybdstate(a) and 8 then
-				'decide whether to set the 'new key' bit, otherwise the keystate is preserved
-				if (keybdstate(a) and 1) = 0 then
-					'this is a new keypress
-					keybdstate(a) = keybdstate(a) or 2
-				end if
-			end if
-			'move the bit (clearing it) that io_updatekeys sets from 8 to 1
-			keybdstate(a) = (keybdstate(a) and 2) or ((keybdstate(a) shr 3) and 1)
-		next
+			dim as integer dummy, buttons
+			io_getmouse(dummy, dummy, dummy, buttons)
+			.mousebuttons = .mousebuttons or (buttons and not .mouselastbuttons)
+			.mouselastbuttons = buttons
 
-		io_getmouse(dummy, dummy, dummy, buttons)
-		mouseflags = mouseflags or (buttons and not mouselastflags)
-		mouselastflags = buttons
+			mutexunlock gfxmutex
 
-		mutexunlock gfxmutex
+			if log_slow then debug_if_slow(starttime, 0.005, "io_getmouse")
 
-		if log_slow then debug_if_slow(starttime, 0.005, "io_getmouse")
-
-		'25ms was found to be sufficient
-		sleep 25
-	wend
+			sleep 15
+		wend
+	end with
 end sub
 
 
