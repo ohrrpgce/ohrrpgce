@@ -222,6 +222,8 @@ dim shared log_slow as bool = NO            'Enable spammy debug_if_slow logging
 	blocking_draws = YES
 #ENDIF
 
+type KeyboardStateFwd as KeyboardState
+
 ' Shared by KeyboardState and JoystickState, this holds down/triggered/new-press
 ' state of an array of keys/buttons.
 type KeyArray extends Object
@@ -233,6 +235,7 @@ type KeyArray extends Object
 	declare sub init(maxkey as integer)
 
 	declare abstract sub update_arrow_keydown_time()
+	declare function key_repeating(key as integer, is_arrowkey as bool, repeat_wait as integer, repeat_rate as integer, repeat_settings as KeyboardStateFwd ptr) as KeyBits
 end type
 
 sub KeyArray.init(maxkey as integer)
@@ -1579,41 +1582,50 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 		kbstate = @real_kb
 	end if
 
-	dim result as KeyBits = kbstate->keys(a)
+	dim check_repeat as bool = YES
 
-	if a >= 0 andalso (result and 1) then
+	'if a = scAlt then
+		'alt can repeat (probably a bad idea not to), but only if nothing else has been pressed
+		'for i as KBScancode = 1 to scLAST
+		'	if kbstate->keys(i) > 1 then check_repeat = NO
+		'next
+		'if delayed_alt_keydown = NO then check_repeat = NO
+	'end if
+
+	'Don't fire repeat presses for special toggle keys (note: these aren't actually
+	'toggle keys in all backends, eg. gfx_fb)
+	if a = scNumlock or a = scCapslock or a = scScrolllock then check_repeat = NO
+	if a < 0 then check_repeat = NO  'quit flag
+
+	if check_repeat then
+		dim is_arrowkey as bool
+		is_arrowkey = (a = scLeft orelse a = scRight orelse a = scUp orelse a = scDown)
+		return kbstate->key_repeating(a, is_arrowkey, repeat_wait, repeat_rate, kbstate)
+	else
+		return kbstate->keys(a)
+	end if
+end function
+
+'Return state of a key plus key repeat bit. (Should only be called from keyval)
+'repeat_settings should be either real_kb or replay_kb.
+'repeat_wait and repeat_rate can override it.
+function KeyArray.key_repeating(key as integer, is_arrowkey as bool, repeat_wait as integer, repeat_rate as integer, repeat_settings as KeyboardState ptr) as KeyBits
+	dim result as KeyBits = keys(key)
+
+	if result and 1 then
 		'Check key repeat
 
-		if repeat_wait = 0 then repeat_wait = kbstate->repeat_wait
-		if repeat_rate = 0 then repeat_rate = kbstate->repeat_rate
+		if repeat_wait = 0 then repeat_wait = repeat_settings->repeat_wait
+		if repeat_rate = 0 then repeat_rate = repeat_settings->repeat_rate
 
-		dim arrowkey as bool
-		arrowkey = (a = scLeft orelse a = scRight orelse a = scUp orelse a = scDown)
+		dim down_ms as integer
+		down_ms = iif(is_arrowkey, arrow_key_down_ms, key_down_ms(key))
 
-		dim key_down_ms as integer = kbstate->key_down_ms(a)
-		if arrowkey then key_down_ms = kbstate->arrow_key_down_ms
-
-		if key_down_ms >= repeat_wait then
-			dim check_repeat as bool = YES
-
-			'if a = scAlt then
-				'alt can repeat (probably a bad idea not to), but only if nothing else has been pressed
-				'for i as KBScancode = 1 to scLAST
-				'	if kbstate->keys(i) > 1 then check_repeat = NO
-				'next
-				'if delayed_alt_keydown = NO then check_repeat = NO
-			'end if
-
-			'Don't fire repeat presses for special toggle keys (note: these aren't actually
-			'toggle keys in all backends, eg. gfx_fb)
-			if a = scNumlock or a = scCapslock or a = scScrolllock then check_repeat = NO
-
-			if check_repeat then
-				'Keypress event at "wait + i * rate" ms after keydown
-				dim temp as integer = key_down_ms - repeat_wait
-				if temp \ repeat_rate > (temp - kbstate->setkeys_elapsed_ms) \ repeat_rate then
-					result or= 2
-				end if
+		if down_ms >= repeat_wait then
+			'Keypress event at "wait + i * rate" ms after keydown
+			dim temp as integer = down_ms - repeat_wait
+			if temp \ repeat_rate > (temp - repeat_settings->setkeys_elapsed_ms) \ repeat_rate then
+				result or= 2
 			end if
 		end if
 	end if
