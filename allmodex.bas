@@ -244,6 +244,7 @@ type KeyboardState extends KeyArray
 
 	declare constructor()
 	declare sub reset()
+	declare sub update_keybits()
 	declare sub update_arrow_keydown_time()
 end type
 
@@ -270,6 +271,7 @@ type JoystickState extends KeyArray
 	menu_button as integer	= 1  'Which button is the menu key
 
 	declare constructor()
+	declare sub update_keybits(joynum as integer)
 	declare sub update_arrow_keydown_time()
 end type
 
@@ -2032,56 +2034,56 @@ end constructor
 
 'Poll io backend to update key state bits, and then handle all special scancodes.
 'keybd() should be dimmed at least (0 to scLAST)
-sub setkeys_update_keybd (keybd() as KeyBits, byref delayed_alt_keydown as bool)
+sub KeyboardState.update_keybits()
 	dim winstate as WindowState ptr
 	winstate = gfx_getwindowstate()
 
 	GFX_ENTER
-	io_keybits(@keybd(0))
+	io_keybits(@keys(0))
 	GFX_EXIT
 
-	'State of keybd(0 to scLAST) at this point:
+	'State of keys(0 to scLAST) at this point:
 	'bit 0: key currently down
 	'bit 1: key down since last io_keybits call
 	'bit 2: zero
 
-	'debug "raw scEnter = " & keybd(scEnter) & " scAlt = " & keybd(scAlt)
+	'debug "raw scEnter = " & keys(scEnter) & " scAlt = " & keys(scAlt)
 
 	'DELETEME (after a lag period): This is a temporary fix for gfx_directx not knowing about scShift
 	'(or any other of the new scancodes, but none of the rest matter much (maybe
 	'scPause) since there are no games that use them).
 	'(Ignore bit 2, because that isn't set yet)
-	if ((keybd(scLeftShift) or keybd(scRightShift)) and 3) <> (keybd(scShift) and 3) then
-		keybd(scShift) = keybd(scLeftShift) or keybd(scRightShift)
+	if ((keys(scLeftShift) or keys(scRightShift)) and 3) <> (keys(scShift) and 3) then
+		keys(scShift) = keys(scLeftShift) or keys(scRightShift)
 	end if
 	'TODO: Actually, wouldn't it make more sense to set all the combined scancodes here instead of
 	'duplicating that in all backends?
 	'These two scancodes are set here instead of in backends...
-	keybd(scAnyEnter) = keybd(scEnter) or keybd(scNumpadEnter)
-	keybd(scMeta) = keybd(scLeftMeta) or keybd(scRightMeta)
+	keys(scAnyEnter) = keys(scEnter) or keys(scNumpadEnter)
+	keys(scMeta) = keys(scLeftMeta) or keys(scRightMeta)
 
 	'Backends don't know about scAlt, only scUnfilteredAlt
-	keybd(scAlt) = keybd(scUnfilteredAlt)
+	keys(scAlt) = keys(scUnfilteredAlt)
 
 	'Don't fire ctrl presses when alt down due to large number of WM shortcuts containing ctrl+alt
 	'(Testing delayed_alt_keydown is just a hack to add one tick delay after alt up,
 	'which is absolutely required)
-	if (keybd(scAlt) and 1) or delayed_alt_keydown then
+	if (keys(scAlt) and 1) or delayed_alt_keydown then
 
-		if keybd(scEnter) and 6 then
-			keybd(scEnter) and= 1
+		if keys(scEnter) and 6 then
+			keys(scEnter) and= 1
 			delayed_alt_keydown = NO
 		end if
 
-		keybd(scCtrl) and= 1
-		keybd(scLeftCtrl) and= 1
-		keybd(scRightCtrl) and= 1
+		keys(scCtrl) and= 1
+		keys(scLeftCtrl) and= 1
+		keys(scRightCtrl) and= 1
 	end if
 
 	'Calculate new "new keypress" bit (bit 2)
-	for a as KBScancode = 0 to scLAST
-		keybd(a) and= 3
-		if a = scAlt then
+	for key as KBScancode = 0 to scLAST
+		keys(key) and= 3
+		if key = scAlt then
 			'Special behaviour for alt, to ignore pesky WM shortcuts like alt+tab, alt+enter:
 			'Wait until alt has been released, without losing focus, before
 			'causing a key-down event.
@@ -2091,16 +2093,16 @@ sub setkeys_update_keybd (keybd() as KeyBits, byref delayed_alt_keydown as bool)
 			'the engine, only by games. Maybe those shoudl be blocked too
 			'Note: currently keyval causes key-repeat events for alt if delayed_alt_keydown = YES
 
-			if keybd(scAlt) and 2 then
+			if keys(scAlt) and 2 then
 				if delayed_alt_keydown = NO then
-					keybd(scAlt) -= 2
+					keys(scAlt) -= 2
 				end if
 				delayed_alt_keydown = YES
 			end if
 
 			/'
 			for scancode as integer = 0 to scLAST
-				if scancode <> scUnfilteredAlt and scancode <> scAlt and scancode <> scLeftAlt and scancode <> scRightAlt and (keybd(scancode) and 1) then
+				if scancode <> scUnfilteredAlt and scancode <> scAlt and scancode <> scLeftAlt and scancode <> scRightAlt and (keys(scancode) and 1) then
 					delayed_alt_keydown = NO
 				end if
 			next
@@ -2109,16 +2111,16 @@ sub setkeys_update_keybd (keybd() as KeyBits, byref delayed_alt_keydown as bool)
 				delayed_alt_keydown = NO
 			end if
 
-			if (keybd(scAlt) and 1) = 0 andalso delayed_alt_keydown then
-				keybd(scAlt) or= 6
+			if (keys(scAlt) and 1) = 0 andalso delayed_alt_keydown then
+				keys(scAlt) or= 6
 				delayed_alt_keydown = NO
 			end if
 
-		'elseif a = scCtrl or a = scLeftCtrl or a = scRightCtrl then
+		'elseif key = scCtrl or key = scLeftCtrl or key = scRightCtrl then
 
 		else
 			'Duplicate bit 1 to bit 2
-			 keybd(a) or= (keybd(a) and 2) shl 1
+			 keys(key) or= (keys(key) and 2) shl 1
 		end if
 	next
 
@@ -2130,7 +2132,7 @@ end sub
 'We use the thresholds set by the calibrate screen.
 'Basically it does a similar thing to the pollingthread, emulating new-keypress
 'bits which the backend doesn't support.
-sub setkeys_update_joystick(joynum as integer, joy as JoystickState)
+sub JoystickState.update_keybits(joynum as integer)
 	dim as integer jx, jy
 	dim as uinteger buttons
 	if readjoy(joynum, buttons, jx, jy) = 0 then
@@ -2142,27 +2144,27 @@ sub setkeys_update_joystick(joynum as integer, joy as JoystickState)
 	' so this is similar to the former (as handled in pollingthread).
 
 	' Clear bits 1 (keypress event) and 2 (new keypress)
-	for scancode as JoyScancode = 0 to ubound(joy.keys)
-		joy.keys(scancode) and= 1
+	for scancode as JoyScancode = 0 to ubound(keys)
+		keys(scancode) and= 1
 	next
 
 	' Set pressed buttons
-	if jy <= joy.up_thresh     then joy.keys(joyUp) or= 8
-	if jy >= joy.down_thresh   then joy.keys(joyDown) or= 8
-	if jx <= joy.left_thresh   then joy.keys(joyLeft) or= 8
-	if jx >= joy.right_thresh  then joy.keys(joyRight) or= 8
+	if jy <= up_thresh     then keys(joyUp) or= 8
+	if jy >= down_thresh   then keys(joyDown) or= 8
+	if jx <= left_thresh   then keys(joyLeft) or= 8
+	if jx >= right_thresh  then keys(joyRight) or= 8
 	for btn as integer = 0 to 31
 		if buttons and (1 shl btn) then
-			joy.keys(joyButton1 + btn) or= 8
+			keys(joyButton1 + btn) or= 8
 		end if
 	next
 
 	' Convert those bits we just set into KeyBits bits 0 & 1 (detecting new keypresses)
-	keystate_convert_bit3_to_keybits(joy.keys())
+	keystate_convert_bit3_to_keybits(keys())
 
 	' Duplicate bit 1 (key event) to bit 2 (new keypress)
-	for scancode as JoyScancode = 0 to ubound(joy.keys)
-		dim byref key as KeyBits = joy.keys(scancode)
+	for scancode as JoyScancode = 0 to ubound(keys)
+		dim byref key as KeyBits = keys(scancode)
 		key = (key and 3) or ((key and 2) shl 1)
 	next
 end sub
@@ -2229,22 +2231,22 @@ sub setkeys (enable_inputtext as bool = NO)
 	' Get real joystick state. Do this before keyboard, because
 	' setkeys_update_keybd will call map_joystick_to_keys
 	for joynum as integer = 0 to ubound(real_input.joys)
-		setkeys_update_joystick joynum, real_input.joys(joynum)
-		real_input.joys(joynum).update_keydown_times(real_input)
+		real_input.joys(joynum).update_keybits joynum
+		real_input.joys(joynum).update_keydown_times real_input
 	next
 
 	' Get real keyboard state
-	setkeys_update_keybd real_input.kb.keys(), real_input.kb.delayed_alt_keydown
-	real_input.kb.update_keydown_times(real_input)
+	real_input.kb.update_keybits
+	real_input.kb.update_keydown_times real_input
 	real_input.kb.inputtext = read_inputtext()
 
 	if replay.active then
 		' Updates replay_input.kb.keys(), .kb.inputtext, .elapsed_ms
 		' FUTURE: updates replay_input.joys
-		replay_input_tick ()
+		replay_input_tick
 
 		' Updates key_down_ms()
-		replay_input.kb.update_keydown_times(replay_input)
+		replay_input.kb.update_keydown_times replay_input
 
 		' Update replay_input.joys().key_down_ms()
 		for joynum as integer = 0 to ubound(replay_input.joys)
