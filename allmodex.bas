@@ -224,15 +224,18 @@ dim shared log_slow as bool = NO            'Enable spammy debug_if_slow logging
 
 ' Shared by KeyboardState and JoystickState, this holds down/triggered/new-press
 ' state of an array of keys/buttons.
-type KeyArray
+type KeyArray extends Object
 	keys(any) as KeyBits                'keyval array
 	key_down_ms(any) as integer         'ms each key has been down
+	arrow_key_down_ms as integer        'Max ms that any arrow key has been down
 
 	' Redim the arrays. (Not a constructor, because that's a nuisance for globals)
-	declare sub set_size(maxkey as integer)
+	declare sub init(maxkey as integer)
+
+	declare abstract sub update_arrow_keydown_time()
 end type
 
-sub KeyArray.set_size(maxkey as integer)
+sub KeyArray.init(maxkey as integer)
 	redim keys(maxkey)
 	redim key_down_ms(maxkey)
 end sub
@@ -243,15 +246,14 @@ type KeyboardState extends KeyArray
 	repeat_wait as integer = 500        'ms before keys start to repeat
 	repeat_rate as integer = 55         'repeat interval, in ms
 
-	diagonalhack as integer = -1        '-1 before call to keyval w/ arrow key, afterwards 0 or 2
 	delayed_alt_keydown as bool = NO    'Whether have delayed reporting an ALT keypress
 	inputtext as string
+
+	declare sub update_arrow_keydown_time()
 end type
 
 dim shared real_kb as KeyboardState         'Always contains real keyboard state even if replaying
 dim shared replay_kb as KeyboardState       'Contains replayed state of keyboard while replaying, else unused
-real_kb.set_size(scLAST)
-replay_kb.set_size(scLAST)
 dim shared last_setkeys_time as double      'Used to compute real_kb.setkeys_elapsed_ms
 dim shared inputtext_enabled as bool = NO   'Whether to fetch real_kb.inputtext, not applied to replay_kb
 
@@ -275,6 +277,8 @@ type JoystickState extends KeyArray
 	down_thresh as integer	= 50
 	use_button as integer	= 0  'Which button is the use key
 	menu_button as integer	= 1  'Which button is the menu key
+
+	declare sub update_arrow_keydown_time()
 end type
 
 dim shared real_joys(1) as JoystickState    'Real joystick state even if replaying input
@@ -434,6 +438,15 @@ dim shared global_sfx_volume as single = 1.
 ' Initialise anything in this module that's independent from the gfx backend
 private sub modex_init()
 	tlsKeyClipRect = tls_alloc_key()
+
+	' init IO state
+	real_kb.init(scLAST)
+	replay_kb.init(scLAST)
+	' TODO: variable number of joysticks
+	for joynum as integer = 0 to ubound(real_joys)
+		real_joys(joynum).init(joyLAST)
+		replay_joys(joynum).init(joyLAST)
+	next
 
 	redim vpages(3)
 	'redim fixedsize_vpages(3)  'Initially all NO
@@ -1568,17 +1581,19 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 
 	dim result as KeyBits = kbstate->keys(a)
 
-	if a >= 0 then
+	if a >= 0 andalso (result and 1) then
+		'Check key repeat
+
 		if repeat_wait = 0 then repeat_wait = kbstate->repeat_wait
 		if repeat_rate = 0 then repeat_rate = kbstate->repeat_rate
 
-		'awful hack to avoid arrow keys firing alternately when not pressed at the same time:
-		'save state of the first arrow key you query
-		dim arrowkey as bool = NO
-		if a = scLeft or a = scRight or a = scUp or a = scDown then arrowkey = YES
-		if arrowkey and kbstate->diagonalhack <> -1 then return (result and 5) or (kbstate->diagonalhack and result > 0)
+		dim arrowkey as bool
+		arrowkey = (a = scLeft orelse a = scRight orelse a = scUp orelse a = scDown)
 
-		if kbstate->key_down_ms(a) >= repeat_wait then
+		dim key_down_ms as integer = kbstate->key_down_ms(a)
+		if arrowkey then key_down_ms = kbstate->arrow_key_down_ms
+
+		if key_down_ms >= repeat_wait then
 			dim check_repeat as bool = YES
 
 			'if a = scAlt then
@@ -1595,10 +1610,11 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 
 			if check_repeat then
 				'Keypress event at "wait + i * rate" ms after keydown
-				dim temp as integer = kbstate->key_down_ms(a) - repeat_wait
-				if temp \ repeat_rate > (temp - kbstate->setkeys_elapsed_ms) \ repeat_rate then result or= 2
+				dim temp as integer = key_down_ms - repeat_wait
+				if temp \ repeat_rate > (temp - kbstate->setkeys_elapsed_ms) \ repeat_rate then
+					result or= 2
+				end if
 			end if
-			if arrowkey then kbstate->diagonalhack = result and 2
 		end if
 	end if
 	return result
@@ -2137,6 +2153,16 @@ sub setkeys_update_joystick(joynum as integer, joy as JoystickState)
 	next
 end sub
 
+sub KeyboardState.update_arrow_keydown_time ()
+	arrow_key_down_ms = large(large(key_down_ms(scLeft), key_down_ms(scRight)), _
+	                          large(key_down_ms(scUp),   key_down_ms(scDown)))
+end sub
+
+sub JoystickState.update_arrow_keydown_time ()
+	arrow_key_down_ms = large(large(key_down_ms(joyLeft), key_down_ms(joyRight)), _
+	                          large(key_down_ms(joyUp),   key_down_ms(joyDown)))
+end sub
+
 ' Updates kbstate.key_down_ms
 sub setkeys_update_keydown_times (kbstate as KeyArray, setkeys_elapsed_ms as integer)
 	for a as KBScancode = 0 to ubound(kbstate.keys)
@@ -2147,6 +2173,8 @@ sub setkeys_update_keydown_times (kbstate as KeyArray, setkeys_elapsed_ms as int
 			kbstate.key_down_ms(a) += setkeys_elapsed_ms
 		end if
 	next
+
+	kbstate.update_arrow_keydown_time
 end sub
 
 sub setkeys (enable_inputtext as bool = NO)
@@ -2194,7 +2222,6 @@ sub setkeys (enable_inputtext as bool = NO)
 	' Get real keyboard state
 	setkeys_update_keybd real_kb.keys(), real_kb.delayed_alt_keydown
 	setkeys_update_keydown_times real_kb, real_kb.setkeys_elapsed_ms
-	real_kb.diagonalhack = -1  'Reset arrow key fire state
 	real_kb.inputtext = read_inputtext()
 
 	if replay.active then
@@ -2204,7 +2231,6 @@ sub setkeys (enable_inputtext as bool = NO)
 
 		' Updates replay_kb.key_down_ms()
 		setkeys_update_keydown_times replay_kb, replay_kb.setkeys_elapsed_ms
-		replay_kb.diagonalhack = -1  'Reset arrow key fire state
 
 		' Update replay_joys().key_down_ms()
 		for joynum as integer = 0 to ubound(replay_joys)

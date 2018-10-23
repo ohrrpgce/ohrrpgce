@@ -173,11 +173,15 @@ extern Gfx_ouya_receipts_result as function () as string
 '=============================== io Backend API ===============================
 
 
-'The state of a key
+'KeyBits
+'The state of a key/button. In different contexts the bits get used differently:
+'the io backend API only uses certain bits; they are stored differently in KeyArray,
+'and keyval modifies the bits before returning them.
 '1:  key currently down
-'2:  keypress event (either new keypress or key repeat)
+'2:  keypress event (either new keypress or key repeat) - Note: keypresses
+'    due to key repeat get added by keyval, they aren't stored in KeyArray
 '4:  new keypress
-'8:  set by io_updatekeys() only, normally 0
+'8:  set by io_updatekeys() only, normally 0 (not stored in KeyArray or anywhere else)
 type KeyBits as integer
 
 
