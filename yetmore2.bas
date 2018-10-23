@@ -97,7 +97,7 @@ SUB control
 
  'Joystick
 
- DIM proceed as integer = NO
+ DIM proceed as bool = NO
  FOR i as integer = 0 TO UBOUND(gotj)
   IF gotj(i) THEN
    gotj(i) = readjoy(joy(), i)

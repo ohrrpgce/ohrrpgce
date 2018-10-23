@@ -2451,16 +2451,14 @@ end sub
 'Input: a key array with bit 3 (1<<3 == 8) set for pressed keys (from io_updatekeys)
 'Output: key array with bits 0 and 1 set (like io_keybits)
 private sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
-	for a as integer = 0 to ubound(keystate)
-		if (keystate(a) and 8) then
-			'decide whether to set the 'new key' bit, otherwise the keystate is preserved
-			if (keystate(a) and 1) = 0 then
-				'this is a new keypress
-				keystate(a) or= 2
-			end if
+	for scancode as integer = 0 to ubound(keystate)
+		dim byref key as KeyBits = keystate(scancode)
+		if (key and 9) = 8 then
+			'Key is pressed, wasn't pressed last time. This is a new keypress
+			key or= 2
 		end if
 		'move the bit (clearing it) that io_updatekeys sets from 8 to 1
-		keystate(a) = (keystate(a) and 2) or ((keystate(a) shr 3) and 1)
+		key = (key and 2) or ((key shr 3) and 1)
 	next
 end sub
 
@@ -2471,11 +2469,12 @@ private sub pollingthread(unused as any ptr)
 
 			dim starttime as double = timer
 
+			'Sets bit 3 (1<<3 == 8) for currently pressed keys
 			io_updatekeys(@.keybdstate(0))
 			if log_slow then debug_if_slow(starttime, 0.005, "io_updatekeys")
 			starttime = timer
 
-			'set key state for every key
+			'Convert from io_updatekeys bits (bit 3) to io_keybits bits (bits 0 and 1)
 			keystate_convert_bit3_to_keybits(.keybdstate())
 
 			dim as integer dummy, buttons
@@ -3189,7 +3188,7 @@ sub replay_input_tick ()
 			replay_kb.keys(key) = keybits
 			if replay.debug then info &= " " & scancodename(key) & "=" & keybits
 		next i
-		info &= " )"
+		if replay.debug then info &= " )"
 		dim input_len as ubyte
 		GET #replay.file,, input_len
 		if input_len then
