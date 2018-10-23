@@ -238,22 +238,17 @@ type KeyArray extends Object
 	declare function key_repeating(key as integer, is_arrowkey as bool, repeat_wait as integer, repeat_rate as integer, byref inputst as InputStateFwd) as KeyBits
 end type
 
-sub KeyArray.init(maxkey as integer)
-	redim keys(maxkey)
-	redim key_down_ms(maxkey)
-end sub
-
 type KeyboardState extends KeyArray
 	delayed_alt_keydown as bool = NO    'Whether have delayed reporting an ALT keypress
 	inputtext as string
 
+	declare constructor()
+	declare sub reset()
 	declare sub update_arrow_keydown_time()
 end type
 
-dim shared real_kb as KeyboardState         'Always contains real keyboard state even if replaying
-dim shared replay_kb as KeyboardState       'Contains replayed state of keyboard while replaying, else unused
 dim shared last_setkeys_time as double      'Used to compute real_input.elapsed_ms
-dim shared inputtext_enabled as bool = NO   'Whether to fetch real_kb.inputtext, not applied to replay_kb
+dim shared inputtext_enabled as bool = NO   'Whether to fetch real_input.kb.inputtext, not applied to replay_input.kb
 
 #IFDEF USE_X11
 	'As a workaround for bug 2005, we disable native text input by default
@@ -274,29 +269,30 @@ type JoystickState extends KeyArray
 	use_button as integer	= 0  'Which button is the use key
 	menu_button as integer	= 1  'Which button is the menu key
 
+	declare constructor()
 	declare sub update_arrow_keydown_time()
 end type
 
-dim shared real_joys(1) as JoystickState    'Real joystick state even if replaying input
-dim shared replay_joys(1) as JoystickState  'Contains replayed state of joysticks while replaying, else unused
-                                            'NOTE! Recording/replaying joysticks not implemented yet!
-
-' State which is shared between keyboard and joysticks but separate for
-' recording and replaying.
+' Keyboard and joystick state which is separate for recording and replaying.
 ' (In future will include mouse too, once record/replay is implemented for mouse)
 type InputState
+	'Shared between keyboard and joysticks
 	elapsed_ms as integer               'Time since last setkeys call (used by key_repeating)
 	repeat_wait as integer = 500        'ms before keys start to repeat
 	repeat_rate as integer = 55         'repeat interval, in ms
+
+	kb as KeyboardState
+	joys(1) as JoystickState
 end type
 
 dim shared real_input as InputState         'Always contains real state even if replaying
 dim shared replay_input as InputState       'Contains replayed input state while replaying, else unused
+                                            'NOTE! Recording/replaying joysticks not implemented yet!
 
 'Singleton type
 type ReplayState
 	active as bool             'Currently replaying input and not paused
-	paused as bool             'While paused, keyval, etc, act on real_kb.
+	paused as bool             'While paused, keyval, etc, act on real_input.kb.
 	filename as string         'Used only for error messages.
 	file as integer = -1       'File handle
 	tick as integer = -1       'Counts number of ticks we've replayed
@@ -446,15 +442,6 @@ dim shared global_sfx_volume as single = 1.
 ' Initialise anything in this module that's independent from the gfx backend
 private sub modex_init()
 	tlsKeyClipRect = tls_alloc_key()
-
-	' init IO state
-	real_kb.init(scLAST)
-	replay_kb.init(scLAST)
-	' TODO: variable number of joysticks
-	for joynum as integer = 0 to ubound(real_joys)
-		real_joys(joynum).init(joyLAST)
-		replay_joys(joynum).init(joyLAST)
-	next
 
 	redim vpages(3)
 	'redim fixedsize_vpages(3)  'Initially all NO
@@ -1583,10 +1570,8 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 	dim kbstate as KeyboardState ptr
 	dim inputst as InputState ptr
 	if replay.active andalso real_keys = NO then
-		kbstate = @replay_kb
 		inputst = @replay_input
 	else
-		kbstate = @real_kb
 		inputst = @real_input
 	end if
 
@@ -1595,7 +1580,7 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 	'if a = scAlt then
 		'alt can repeat (probably a bad idea not to), but only if nothing else has been pressed
 		'for i as KBScancode = 1 to scLAST
-		'	if kbstate->keys(i) > 1 then check_repeat = NO
+		'	if inputst->kb.keys(i) > 1 then check_repeat = NO
 		'next
 		'if delayed_alt_keydown = NO then check_repeat = NO
 	'end if
@@ -1608,9 +1593,9 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 	if check_repeat then
 		dim is_arrowkey as bool
 		is_arrowkey = (a = scLeft orelse a = scRight orelse a = scUp orelse a = scDown)
-		return kbstate->key_repeating(a, is_arrowkey, repeat_wait, repeat_rate, *inputst)
+		return inputst->kb.key_repeating(a, is_arrowkey, repeat_wait, repeat_rate, *inputst)
 	else
-		return kbstate->keys(a)
+		return inputst->kb.keys(a)
 	end if
 end function
 
@@ -1642,25 +1627,17 @@ end function
 sub setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
 	' Not actually used anywhere yet, but give the replay and real states
 	' separate repeat rates to avoid desync issues
-	if replay.active then
-		replay_input.repeat_wait = repeat_wait
-		replay_input.repeat_rate = repeat_rate
-	else
-		real_input.repeat_wait = repeat_wait
-		real_input.repeat_rate = repeat_rate
-	end if
+	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+	inputst->repeat_wait = repeat_wait
+	inputst->repeat_rate = repeat_rate
 end sub
 
 
 'Erase a keypress from the keyboard state.
 sub clearkey(k as KBScancode)
-	if replay.active then
-		replay_kb.keys(k) = 0
-		replay_kb.key_down_ms(k) = 0
-	else
-		real_kb.keys(k) = 0
-		real_kb.key_down_ms(k) = 0
-	end if
+	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+	inputst->kb.keys(k) = 0
+	inputst->kb.key_down_ms(k) = 0
 end sub
 
 'Mark all keyboard keys and mouse buttons as unpressed.
@@ -1680,22 +1657,19 @@ end sub
 
 'Clear the new keypress flag for a key.
 sub clear_newkeypress(k as KBScancode)
-	if replay.active then
-		replay_kb.keys(k) and= 1
-	else
-		real_kb.keys(k) and= 1
-	end if
+	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+	inputst->kb.keys(k) and= 1
 end sub
 
 'Erase a keypress from the real keyboard state even if replaying recorded input.
 sub real_clearkey(k as KBScancode)
-	real_kb.keys(k) = 0
-	real_kb.key_down_ms(k) = 0
+	real_input.kb.keys(k) = 0
+	real_input.kb.key_down_ms(k) = 0
 end sub
 
 'Clear the new keypress flag for a key. Real keyboard state even if replaying recorded input.
 sub real_clear_newkeypress(k as KBScancode)
-	real_kb.keys(k) and= 1
+	real_input.kb.keys(k) and= 1
 end sub
 
 
@@ -1865,7 +1839,7 @@ end function
 'If using gfx_sdl and gfx_directx this is Latin-1, while gfx_fb doesn't currently support even that
 function getinputtext () as string
 	if replay.active then
-		return replay_kb.inputtext
+		return replay_input.kb.inputtext
 	end if
 
 	if disable_native_text_input = NO then
@@ -1879,7 +1853,7 @@ function getinputtext () as string
 		last_call_was_bad = (inputtext_enabled = NO)
 	end if
 
-	return real_kb.inputtext
+	return real_input.kb.inputtext
 end function
 
 
@@ -2034,6 +2008,27 @@ end function
 '==========================================================================================
 '                               setkeys (update input state)
 '==========================================================================================
+
+
+sub KeyArray.init(maxkey as integer)
+	redim keys(maxkey)
+	redim key_down_ms(maxkey)
+end sub
+
+constructor KeyboardState()
+	init(scLAST)
+end constructor
+
+sub KeyboardState.reset()
+	init(ubound(keys))
+	delayed_alt_keydown = NO
+	inputtext = ""
+end sub
+
+constructor JoystickState()
+	init(joyLAST)
+end constructor
+
 
 'Poll io backend to update key state bits, and then handle all special scancodes.
 'keybd() should be dimmed at least (0 to scLAST)
@@ -2224,7 +2219,7 @@ sub setkeys (enable_inputtext as bool = NO)
 	end if
 
 	'While playing back a recording we still poll for keyboard
-	'input, but this goes in the separate real_kb.keys() array so it's
+	'input, but this goes in the separate real_input.kb.keys() array so it's
 	'invisible to the game.
 
 	dim time_passed as double = TIMER - last_setkeys_time
@@ -2233,27 +2228,27 @@ sub setkeys (enable_inputtext as bool = NO)
 
 	' Get real joystick state. Do this before keyboard, because
 	' setkeys_update_keybd will call map_joystick_to_keys
-	for joynum as integer = 0 to ubound(real_joys)
-		setkeys_update_joystick joynum, real_joys(joynum)
-		real_joys(joynum).update_keydown_times(real_input)
+	for joynum as integer = 0 to ubound(real_input.joys)
+		setkeys_update_joystick joynum, real_input.joys(joynum)
+		real_input.joys(joynum).update_keydown_times(real_input)
 	next
 
 	' Get real keyboard state
-	setkeys_update_keybd real_kb.keys(), real_kb.delayed_alt_keydown
-	real_kb.update_keydown_times(real_input)
-	real_kb.inputtext = read_inputtext()
+	setkeys_update_keybd real_input.kb.keys(), real_input.kb.delayed_alt_keydown
+	real_input.kb.update_keydown_times(real_input)
+	real_input.kb.inputtext = read_inputtext()
 
 	if replay.active then
-		' Updates replay_kb.keys() and .inputtext, and replay_input.elapsed_ms
-		' FUTURE: updates replay_joys.keys()
+		' Updates replay_input.kb.keys(), .kb.inputtext, .elapsed_ms
+		' FUTURE: updates replay_input.joys
 		replay_input_tick ()
 
-		' Updates replay_kb.key_down_ms()
-		replay_kb.update_keydown_times(replay_input)
+		' Updates key_down_ms()
+		replay_input.kb.update_keydown_times(replay_input)
 
-		' Update replay_joys().key_down_ms()
-		for joynum as integer = 0 to ubound(replay_joys)
-			replay_joys(joynum).update_keydown_times(replay_input)
+		' Update replay_input.joys().key_down_ms()
+		for joynum as integer = 0 to ubound(replay_input.joys)
+			replay_input.joys(joynum).update_keydown_times(replay_input)
 		next
 	end if
 
@@ -2656,7 +2651,7 @@ private sub allmodex_controls()
 		if replay.active or replay.paused then
 			stop_replaying_input "Replay ended by quit request"
 		end if
-		real_kb.keys(scEsc) = 7
+		real_input.kb.keys(scEsc) = 7
 	end if
 #elseif defined(IS_GAME)
 	'Quick abort (could probably do better, just moving this here for now)
@@ -2969,7 +2964,7 @@ private function draw_allmodex_recordable_overlays (page as integer) as bool
 		' are sorted to the front.
 		' FIXME: due to frameskip some keypresses might not be recorded. Should show for more than 1 tick.
 		dim as string modifiers, keys
-		with *iif(replay.active, @replay_kb, @real_kb)
+		with iif(replay.active, @replay_input, @real_input)->kb
 			for idx as KBScancode = 0 to ubound(.keys)
 				if .keys(idx) = 0 then continue for
 				dim keyname as string = scancodename(idx)
@@ -3088,7 +3083,7 @@ sub pause_recording_input
 	if record.active then
 		record.active = NO
 		record.paused = YES
-		record.last_kb = real_kb
+		record.last_kb = real_input.kb
 	end if
 end sub
 
@@ -3096,7 +3091,7 @@ sub resume_recording_input
 	if record.paused then
 		record.active = YES
 		record.paused = NO
-		real_kb = record.last_kb
+		real_input.kb = record.last_kb
 	end if
 end sub
 
@@ -3114,9 +3109,9 @@ sub start_replaying_input (filename as string, num_repeats as integer = 1)
 		debug "Can't replay input because already recording input!"
 		exit sub
 	end if
-	replay.constructor()     'Reset
-	replay_kb.constructor()  'Reset
+	replay.constructor()     'Reset  (TODO: does this leak the filename string?)
 	replay.filename = filename
+	replay_input.kb.reset()
 	if openfile(filename, for_binary + access_read, replay.file) then
 		stop_replaying_input "Couldn't open " & filename
 		replay.file = -1
@@ -3171,7 +3166,7 @@ end sub
 ' and keyval, etc, return the real state of the keyboard.
 ' (Safe to try pausing/resuming when not replaying)
 sub pause_replaying_input
-        ' The replay state is preserved in replay_kb, so pausing and resuming is easy.
+        ' The replay state is preserved in replay_input.kb, so pausing and resuming is easy.
 	if replay.active then
 		replay.active = NO
 		replay.paused = YES
@@ -3190,12 +3185,12 @@ sub record_input_tick ()
 	dim presses as ubyte = 0
 	dim keys_down as integer = 0
 	for i as KBScancode = 0 to scLAST
-		if real_kb.keys(i) <> record.last_kb.keys(i) then
+		if real_input.kb.keys(i) <> record.last_kb.keys(i) then
 			presses += 1
 		end if
-		if real_kb.keys(i) then keys_down += 1  'must record setkeys_elapsed_ms
+		if real_input.kb.keys(i) then keys_down += 1  'must record elapsed_ms
 	next i
-	if presses = 0 and keys_down = 0 and len(real_kb.inputtext) = 0 then exit sub
+	if presses = 0 andalso keys_down = 0 andalso len(real_input.kb.inputtext) = 0 then exit sub
 
 	dim debugstr as string
 	if record.debug then debugstr = "L:" & LOC(record.file) & " T:" & record.tick & " ms:" & real_input.elapsed_ms & " ("
@@ -3205,21 +3200,21 @@ sub record_input_tick ()
 	put #record.file,, presses
 
 	for i as ubyte = 0 to scLAST
-		if real_kb.keys(i) <> record.last_kb.keys(i) then
+		if real_input.kb.keys(i) <> record.last_kb.keys(i) then
 			PUT #record.file,, i
-			PUT #record.file,, cubyte(real_kb.keys(i))
-			if record.debug then debugstr &= " " & scancodename(i) & "=" & real_kb.keys(i)
+			PUT #record.file,, cubyte(real_input.kb.keys(i))
+			if record.debug then debugstr &= " " & scancodename(i) & "=" & real_input.kb.keys(i)
 		end if
 	next i
 	'Currently inputtext is Latin-1, format will need changing in future
-	put #record.file,, cubyte(len(real_kb.inputtext))
-	put #record.file,, real_kb.inputtext
+	put #record.file,, cubyte(len(real_input.kb.inputtext))
+	put #record.file,, real_input.kb.inputtext
 	if record.debug then
 		debugstr &= " )"
-		if len(real_kb.inputtext) then debugstr &= " input: '" & real_kb.inputtext & "'"
+		if len(real_input.kb.inputtext) then debugstr &= " input: '" & real_input.kb.inputtext & "'"
 		debuginfo debugstr
 	end if
-	record.last_kb = real_kb
+	record.last_kb = real_input.kb
 end sub
 
 ' Scan the replay file to find its length, setting replay.length_ms and replay.length_ticks
@@ -3295,7 +3290,7 @@ sub replay_input_tick ()
 			'debug "saving replay input tick " & replay.nexttick & " until its time has come (+" & replay.nexttick - replay.tick & ")"
 			for i as KBScancode = 0 to scLAST
 				'Check for a corrupt file
-				if replay_kb.keys(i) then
+				if replay_input.kb.keys(i) then
 					' There ought to be a tick in the input file so that we can set setkeys_elapsed_ms correctly
 					debug "bad recorded key input: key " & i & " is down, but expected tick " & replay.tick & " is missing"
 					exit for
@@ -3305,7 +3300,7 @@ sub replay_input_tick ()
 			replay_input.elapsed_ms = 1
 			' Increment how much we've played so far - not actual play time but at same rate as the .length_ms estimate
 			replay.play_position_ms += replay.next_tick_ms
-			replay_kb.inputtext = ""
+			replay_input.kb.inputtext = ""
 			exit sub
 		end if
 
@@ -3329,7 +3324,7 @@ sub replay_input_tick ()
 		for i as integer = 1 to presses
 			GET #replay.file,, key
 			GET #replay.file,, keybits
-			replay_kb.keys(key) = keybits
+			replay_input.kb.keys(key) = keybits
 			if replay.debug then info &= " " & scancodename(key) & "=" & keybits
 		next i
 		if replay.debug then info &= " )"
@@ -3337,11 +3332,11 @@ sub replay_input_tick ()
 		GET #replay.file,, input_len
 		if input_len then
 			'Currently inputtext is Latin-1, format will need changing in future
-			replay_kb.inputtext = space(input_len)
-			GET #replay.file,, replay_kb.inputtext
-			if replay.debug then info &= " input: '" & replay_kb.inputtext & "'"
+			replay_input.kb.inputtext = space(input_len)
+			GET #replay.file,, replay_input.kb.inputtext
+			if replay.debug then info &= " input: '" & replay_input.kb.inputtext & "'"
 		else
-			replay_kb.inputtext = ""
+			replay_input.kb.inputtext = ""
 		end if
 
 		if replay.debug then debuginfo info
