@@ -306,7 +306,7 @@ DFI_IMPLEMENT_CDECL(void, io_mouserect, int xmin, int xmax, int ymin, int ymax)
 	gfx_ClipCursor(xmin, ymin, xmax, ymax);
 }
 
-DFI_IMPLEMENT_CDECL(int, io_readjoysane, int joynum, int* button, int* x, int* y)
+DFI_IMPLEMENT_CDECL(int, io_readjoysane, int joynum, unsigned int* button, int* x, int* y)
 {
 	return gfx_GetJoystick(joynum, x, y, button);
 }
@@ -683,7 +683,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_SetMouse, int x, int y)
 	return g_Mouse.setPosition(x, y);
 }
 
-DFI_IMPLEMENT_CDECL(int, gfx_GetJoystick, int nDevice, int* x, int* y, int* buttons)
+DFI_IMPLEMENT_CDECL(int, gfx_GetJoystick, int nDevice, int* x, int* y, unsigned int* buttons)
 {
 	g_Joystick.poll();
 	return g_Joystick.getState(nDevice, *buttons, *x, *y);

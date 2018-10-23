@@ -21,7 +21,7 @@ namespace gfx
 			~Device() {pDevice = NULL;}
 			SmartPtr<IDirectInputDevice8> pDevice;
 			DIDEVICEINSTANCE info;
-			int nButtons;
+			unsigned int nButtons;
 			int xPos;
 			int yPos;
 			bool bNewDevice;
@@ -49,7 +49,7 @@ namespace gfx
 		void refreshEnumeration(); //refreshes the device list
 		void delayedRefreshEnumeration() { m_bRefreshRequest = TRUE; }
 		UINT getJoystickCount();
-		BOOL getState(int& nDevice, int& buttons, int& xPos, int& yPos);
+		BOOL getState(int& nDevice, unsigned int& buttons, int& xPos, int& yPos);
 		void poll();
 	};
 }

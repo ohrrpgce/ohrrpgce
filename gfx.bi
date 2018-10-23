@@ -238,7 +238,12 @@ extern Io_setmousevisibility as sub (byval visibility as CursorVisibility)
 
 'call io_mouserect(-1, -1, -1, -1) to disable clipping
 extern Io_mouserect as sub (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-extern Io_readjoysane as function (byval as integer, byref as integer, byref as integer, byref as integer) as integer
+
+'Poll state of a joystick.
+'Returns nonzero on success, 0 if the joystick can't be read.
+'buttons is a bitvector of up to 32 buttons
+'jx/jy are the first two axes, in the range from -100 to 100
+extern Io_readjoysane as function (byval joynum as integer, byref buttons as uinteger, byref jx as integer, byref jy as integer) as integer
 
 
 '=========================== Backend API wrappers =============================

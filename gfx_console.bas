@@ -407,9 +407,10 @@ sub io_console_mouserect(byval xmin as integer, byval xmax as integer, byval ymi
 	mousey = ymin
 end sub
 
-function io_console_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
+function io_console_readjoysane(byval joynum as integer, byref button as uinteger, byref x as integer, byref y as integer) as integer
 	x = 0
 	y = 0
+	button = 0
 	return 1
 end function
 

@@ -98,7 +98,7 @@ DFI_DECLARE_CDECL( int, io_setmousevisibility, enum CursorVisibility visibility 
 DFI_DECLARE_CDECL( void, io_getmouse, int* mx, int* my, int* mwheel, int* mbuttons );
 DFI_DECLARE_CDECL( void, io_setmouse, int x, int y );
 DFI_DECLARE_CDECL( void, io_mouserect, int xmin, int xmax, int ymin, int ymax );
-DFI_DECLARE_CDECL( int, io_readjoysane, int, int*, int*, int* );
+DFI_DECLARE_CDECL( int, io_readjoysane, int joynum, unsigned int* buttons, int* jx, int* jy);
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -142,7 +142,7 @@ DFI_DECLARE_CDECL( void, gfx_GetText, wchar_t *pBuffer, int bufferLen ); //gets 
 DFI_DECLARE_CDECL( int, gfx_GetMouse, int* x, int* y, int* wheel, int* buttons ); //gets the mouse position and button state; returns 0 on failure
 DFI_DECLARE_CDECL( int, gfx_SetMouse, int x, int y); //sets the mouse position; returns 0 on failure
 
-DFI_DECLARE_CDECL( int, gfx_GetJoystick, int nDevice, int* x, int* y, int* buttons ); //gets the indexed joystick position and button state; returns 0 on failure
+DFI_DECLARE_CDECL( int, gfx_GetJoystick, int nDevice, int* x, int* y, unsigned int* buttons ); //gets the indexed joystick position and button state; returns 0 on failure
 DFI_DECLARE_CDECL( int, gfx_SetJoystick, int nDevice, int x, int y ); //sets the indexed joystick position; returns 0 on failure
 DFI_DECLARE_CDECL( int, gfx_GetJoystickCount ); //returns the number of joysticks attached to the system
 

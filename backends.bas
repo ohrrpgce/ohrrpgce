@@ -93,7 +93,7 @@ dim io_setmousevisibility as sub (byval visible as integer)
 dim io_getmouse as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
 dim io_setmouse as sub (byval x as integer, byval y as integer)
 dim io_mouserect as sub (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-dim io_readjoysane as function (byval as integer, byref as integer, byref as integer, byref as integer) as integer
+dim io_readjoysane as function (byval as integer, byref as uinteger, byref as integer, byref as integer) as integer
 
 
 'New Surface-based graphics backend function pointers

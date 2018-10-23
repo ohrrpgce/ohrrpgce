@@ -68,8 +68,6 @@ Joystick::~Joystick()
 // Called after configNewDevices(): remove entries from m_device that are no longer present
 void Joystick::filterAttachedDevices()
 {
-	if(m_devices.size() == 0)
-		return;
 	std::list<Device>::iterator iter = m_devices.begin(), iterNext;
 	while( iter != m_devices.end() )
 	{
@@ -193,7 +191,7 @@ UINT Joystick::getJoystickCount()
 	return m_devices.size();
 }
 
-BOOL Joystick::getState(int &nDevice, int &buttons, int &xPos, int &yPos)
+BOOL Joystick::getState(int &nDevice, unsigned int &buttons, int &xPos, int &yPos)
 {
 	if(m_dinput == NULL)
 		return FALSE;
@@ -274,7 +272,7 @@ void Joystick::poll()
 				iter->nButtons |= (js.rgbButtons[i] & 0x80) ? (0x1 << i) : 0x0;
 			iter->xPos = js.lX;
 			iter->yPos = js.lY;
-			//debug(errInfo, "%s x %d y %d buttons %d", name, iter->xPos, iter->yPos, iter->nButtons);
+			//debug(errInfo, "%s x %d y %d buttons %u", name, iter->xPos, iter->yPos, iter->nButtons);
 		}
 		iter = iterNext;
 	}

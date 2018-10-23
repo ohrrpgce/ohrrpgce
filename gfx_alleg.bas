@@ -277,7 +277,7 @@ sub io_alleg_mouserect(byval xmin as integer, byval xmax as integer, byval ymin 
  	set_mouse_range(xmin * 2, ymin * 2 + baroffset, xmax * 2 + 1, ymax * 2 + 1 + baroffset)
 end sub
 
-function io_alleg_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
+function io_alleg_readjoysane(byval joynum as integer, byref button as uinteger, byref x as integer, byref y as integer) as integer
 	'don't know
 	return 0
 end function

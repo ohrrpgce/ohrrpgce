@@ -1322,7 +1322,7 @@ SUB io_sdl2_mouserect(byval xmin as integer, byval xmax as integer, byval ymin a
   END IF
 END SUB
 
-FUNCTION io_sdl2_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
+FUNCTION io_sdl2_readjoysane(byval joynum as integer, byref button as uinteger, byref x as integer, byref y as integer) as integer
   IF joynum < 0 OR SDL_NumJoysticks() < joynum + 1 THEN RETURN 0
   IF joystickhandles(joynum) = NULL THEN
     joystickhandles(joynum) = SDL_JoystickOpen(joynum)
