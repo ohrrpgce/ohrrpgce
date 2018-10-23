@@ -1535,18 +1535,27 @@ end function
 '                                      Keyboard input
 '==========================================================================================
 
-function real_keyval(a as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
-	return keyval(a, repeat_wait, repeat_rate, YES)
+
+function real_keyval (key as KBScancode) as KeyBits
+	return keyval_ex(key, 0, 0, YES)
 end function
 
-function keyval (a as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
+function keyval (key as KBScancode) as KeyBits
+	return keyval_ex(key, 0, 0, NO)
+end function
+
+function slowkey (key as KBScancode, ms as integer) as bool
+	return keyval_ex(key, ms, ms, NO) > 1
+end function
+
+function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
 'except for special keys (like -1), each key reports 3 bits:
 '
 'bit 0: key was down at the last setkeys call
 'bit 1: keypress event (either new keypress, or key-repeat) during last setkey-setkey interval
 'bit 2: new keypress during last setkey-setkey interval
 '
-'Note: Alt/Ctrl keys may behave strangely with gfx_fb (and old gfx_directx):
+'Note: Alt/Ctrl keys may behave strangely with gfx_fb:
 'You won't see Left/Right keypresses even when scAlt/scCtrl is pressed, so do not
 'check "keyval(scLeftAlt) > 0 or keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
 
@@ -1563,7 +1572,7 @@ function keyval (a as KBScancode, repeat_wait as integer = 0, repeat_rate as int
 		if repeat_wait = 0 then repeat_wait = kbstate->repeat_wait
 		if repeat_rate = 0 then repeat_rate = kbstate->repeat_rate
 
-		'awful hack to avoid arrow keys firing alternatively when not pressed at the same time:
+		'awful hack to avoid arrow keys firing alternately when not pressed at the same time:
 		'save state of the first arrow key you query
 		dim arrowkey as bool = NO
 		if a = scLeft or a = scRight or a = scUp or a = scDown then arrowkey = YES
@@ -1606,6 +1615,54 @@ sub setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
 		real_kb.repeat_rate = repeat_rate
 	end if
 end sub
+
+
+'Erase a keypress from the keyboard state.
+sub clearkey(k as KBScancode)
+	if replay.active then
+		replay_kb.keys(k) = 0
+		replay_kb.key_down_ms(k) = 0
+	else
+		real_kb.keys(k) = 0
+		real_kb.key_down_ms(k) = 0
+	end if
+end sub
+
+'Mark all keyboard keys and mouse buttons as unpressed.
+'(TODO: joystick)
+'If a key is being held down then this can't hide it.
+sub clearkeys()
+	for k as KBScancode = 0 to scLAST
+		clearkey(k)
+	next
+	#ifdef IS_GAME
+		flusharray carray(), 7, 0
+	#endif
+	mouse_state.clearclick(mouseLeft)
+	mouse_state.clearclick(mouseRight)
+	mouse_state.clearclick(mouseMiddle)
+end sub
+
+'Clear the new keypress flag for a key.
+sub clear_newkeypress(k as KBScancode)
+	if replay.active then
+		replay_kb.keys(k) and= 1
+	else
+		real_kb.keys(k) and= 1
+	end if
+end sub
+
+'Erase a keypress from the real keyboard state even if replaying recorded input.
+sub real_clearkey(k as KBScancode)
+	real_kb.keys(k) = 0
+	real_kb.key_down_ms(k) = 0
+end sub
+
+'Clear the new keypress flag for a key. Real keyboard state even if replaying recorded input.
+sub real_clear_newkeypress(k as KBScancode)
+	real_kb.keys(k) and= 1
+end sub
+
 
 ' Get text input by assuming a US keyboard layout and reading scancodes rather than using the io backend.
 ' Also supports alt- combinations for the high 128 characters
@@ -1790,6 +1847,12 @@ function getinputtext () as string
 	return real_kb.inputtext
 end function
 
+
+'==========================================================================================
+'                              Checking/waiting for keypresses
+'==========================================================================================
+
+
 'Checks the keyboard and optionally joystick for keypress events.
 'trigger_level: 0 to trigger on a held key,
 '               1 to trigger only on new keypress or repeat.
@@ -1934,7 +1997,7 @@ end function
 
 
 '==========================================================================================
-'                                 setkeys (update IO state)
+'                               setkeys (update input state)
 '==========================================================================================
 
 'Poll io backend to update key state bits, and then handle all special scancodes.
@@ -2178,52 +2241,6 @@ sub setkeys (enable_inputtext as bool = NO)
 		global_setkeys_hook
 		entered = NO
 	end if
-end sub
-
-'Erase a keypress from the keyboard state.
-sub clearkey(k as KBScancode)
-	if replay.active then
-		replay_kb.keys(k) = 0
-		replay_kb.key_down_ms(k) = 0
-	else
-		real_kb.keys(k) = 0
-		real_kb.key_down_ms(k) = 0
-	end if
-end sub
-
-'Mark all keyboard keys and mouse buttons as unpressed.
-'(TODO: joystick)
-'If a key is being held down then this can't hide it.
-sub clearkeys()
-	for k as KBScancode = 0 to scLAST
-		clearkey(k)
-	next
-	#ifdef IS_GAME
-		flusharray carray(), 7, 0
-	#endif
-	mouse_state.clearclick(mouseLeft)
-	mouse_state.clearclick(mouseRight)
-	mouse_state.clearclick(mouseMiddle)
-end sub
-
-'Clear the new keypress flag for a key.
-sub clear_newkeypress(k as KBScancode)
-	if replay.active then
-		replay_kb.keys(k) and= 1
-	else
-		real_kb.keys(k) and= 1
-	end if
-end sub
-
-'Erase a keypress from the real keyboard state even if replaying recorded input.
-sub real_clearkey(k as KBScancode)
-	real_kb.keys(k) = 0
-	real_kb.key_down_ms(k) = 0
-end sub
-
-'Clear the new keypress flag for a key. Real keyboard state even if replaying recorded input.
-sub real_clear_newkeypress(k as KBScancode)
-	real_kb.keys(k) and= 1
 end sub
 
 sub setquitflag (newstate as bool = YES)

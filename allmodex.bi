@@ -411,8 +411,10 @@ DECLARE SUB frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBc
 '==========================================================================================
 '                                          Input
 
-DECLARE FUNCTION real_keyval(a as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
-DECLARE FUNCTION keyval (a as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
+DECLARE FUNCTION keyval_ex (key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
+DECLARE FUNCTION real_keyval (key as KBScancode) as KeyBits
+DECLARE FUNCTION keyval (key as KBScancode) as KeyBits
+DECLARE FUNCTION slowkey (key as KBScancode, ms as integer) as bool
 DECLARE FUNCTION getinputtext () as string
 DECLARE FUNCTION interrupting_keypress () as bool
 DECLARE FUNCTION anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as KeyBits = 1) as KBScancode
@@ -420,14 +422,14 @@ DECLARE FUNCTION waitforanykey (wait_for_resize as bool = NO) as KBScancode
 DECLARE SUB waitforkeyrelease ()
 DECLARE SUB setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
 DECLARE SUB setkeys (enable_inputtext as bool = NO)
-DECLARE SUB real_clearkey (k as KBScancode)
-DECLARE SUB clearkey (k as KBScancode)
-DECLARE SUB clearkeys()
-DECLARE SUB real_clear_newkeypress(k as KBScancode)
-DECLARE SUB clear_newkeypress(k as KBScancode)
+DECLARE SUB real_clearkey (key as KBScancode)
+DECLARE SUB clearkey (key as KBScancode)
+DECLARE SUB clearkeys ()
+DECLARE SUB real_clear_newkeypress (key as KBScancode)
+DECLARE SUB clear_newkeypress (key as KBScancode)
+
 DECLARE SUB setquitflag (newstate as bool = YES)
 DECLARE FUNCTION getquitflag () as bool
-#DEFINE slowkey(key, ms) (keyval((key), (ms), (ms)) > 1)
 
 DECLARE SUB start_recording_input (filename as string)
 DECLARE SUB stop_recording_input (msg as string="", errorlevel as ErrorLevelEnum = errError)
