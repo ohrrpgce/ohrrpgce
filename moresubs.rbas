@@ -1958,13 +1958,10 @@ END FUNCTION
 SUB tagdisplay (page as integer)
 STATIC st as MenuState
 DIM lineh as integer = lineheight()
-st.last = gen(genMaxTagName)
+'It's possible to set other tags with "set tag", so don't limit to named tags
+st.last = max_tag() 'gen(genMaxTagName)
 IF gam.debug_showtags = 2 THEN
  st.size = small(st.last, get_resolution().h \ lineh - 1)
- IF st.size <= 6 THEN
-  'Pressing F4 had no visible effect, so quit this debug mode instead
-  gam.debug_showtags = 0
- END IF
 ELSE
  st.size = 6
 END IF
@@ -1980,7 +1977,11 @@ IF keyval(scCtrl) > 0 THEN
   tag_updates
  END IF
 ELSE
- IF usemenu(st, scMinus, scPlus) = NO THEN
+ IF keyval(scEnd) > 1 THEN
+  'Go to last named tag instead of tag 15999
+  st.pt = gen(genMaxTagName)
+  correct_menu_state st
+ ELSEIF usemenu(st, scMinus, scPlus) = NO THEN
   'little bit hacky...
   usemenu(st, scNumpadMinus, scNumpadPlus)
  END IF
@@ -1997,20 +1998,22 @@ DIM helpbox as XYPair = textsize(helpmsg, , fontEdged)
 fuzzyrect pRight, pTop, helpbox.w, helpbox.h, uilook(uiOutline), page
 wrapprint helpmsg, pRight, 0, uilook(uiMenuItem), page
 'This fuzzy box is exactly wide enough for the max tag name length
-fuzzyrect 0, 0, 200, (st.size + 1) * lineh, uilook(uiOutline), page
+fuzzyrect 0, 0, 208, (st.size + 1) * lineh, uilook(uiOutline), page
+DIM as integer col0 = findrgb(140,140,140), col1 = findrgb(230,230,230)
 FOR i as integer = st.top TO st.top + st.size
- DIM temp as string = i & "  "
+ DIM temp as string = i & IIF(istag(i, 0), " +", " -")
  SELECT CASE i
   CASE 0, 1
    temp += "Reserved Tag"
   CASE IS > 1
    temp += load_tag_name(i)
    IF tag_is_autoset(i) THEN temp &= " [AUTOSET]"
+   IF i = gen(genMaxTagName) + 1 THEN temp &= "[NO MORE NAMED TAGS]"
  END SELECT
  DIM col as integer
- IF istag(i, 0) THEN col = uiSelectedItem ELSE col = uiMenuItem
+ IF istag(i, 0) THEN col = col1 ELSE col = col0
  DIM y as integer = (i - st.top) * lineh
- edgeprint temp, 8, y, uilook(col), page
+ edgeprint temp, 8, y, col, page
  IF i = st.pt THEN edgeprint CHR(26), 0, y, uilook(uiText), page
 NEXT i
 
