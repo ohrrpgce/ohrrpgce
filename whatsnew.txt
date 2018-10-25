@@ -171,6 +171,9 @@ September 29 2018 [Fufluns]
       previous copy is still running and refuse to edit the game [Ralph]
     * "Don't chain if attack misses/fails" bit would skip Instead chains if
       the attacker's last attack missed/failed [Ralph]
+    * When a hero used an "Automatically choose target" attack in active-time
+      battle mode, any queued turn-delayed attacks didn't have their delays
+      count down and trigger [Chronas, Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

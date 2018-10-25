@@ -54,6 +54,7 @@ DECLARE SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, page as integer)
 DECLARE SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB hero_attack_targetting_done(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
@@ -739,12 +740,10 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  IF bat.targ.mode = targSETUP THEN setup_targetting bat, bslot()
 
  IF bat.targ.mode = targAUTO THEN
+  'battle_confirm_targets doesn't get called, so some logic from that needs to be duplicated here
+  update_turn_delays_in_attack_queue bat.hero_turn
   autotarget bat.hero_turn, bslot(bat.hero_turn).attack - 1, bslot()
-  bslot(bat.hero_turn).ready_meter = 0
-  bslot(bat.hero_turn).ready = NO
-  bslot(bat.hero_turn).attack = 0
-  bat.hero_turn = -1
-  bat.targ.mode = targNONE
+  hero_attack_targetting_done bat, bslot()
   EXIT SUB
  END IF
  
@@ -905,8 +904,11 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  END IF
  
 END SUB
- 
+
+'Called when the player confirms targets for an attack
 SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
+
+ 'Note: when changing this SUB you also need to update the 'bat.targ.mode = targAUTO' block above.
 
  IF bat.turn.mode = turnACTIVE THEN
   update_turn_delays_in_attack_queue bat.hero_turn
@@ -924,13 +926,19 @@ SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
   END IF
  NEXT slot
  queue_attack bslot(bat.hero_turn).attack - 1, bat.hero_turn, targs()
- bslot(bat.hero_turn).attack = 0
 
+ hero_attack_targetting_done bat, bslot()
+END SUB
+
+'This is called to cleanup after a hero attack has been targetted and put on atkq
+SUB hero_attack_targetting_done(byref bat as BattleState, bslot() as BattleSprite)
  IF bat.turn.mode = turnACTIVE THEN
+  'For debug only
   bslot(bat.hero_turn).active_turn_num += 1
   'debug "Hero " & bat.hero_turn & " " & bslot(bat.hero_turn).name & " turn #" & bslot(bat.hero_turn).active_turn_num
  END IF
- 
+
+ bslot(bat.hero_turn).attack = 0
  bslot(bat.hero_turn).ready_meter = 0
  bslot(bat.hero_turn).ready = NO
  bat.hero_turn = -1
@@ -4852,7 +4860,6 @@ END SUB
 SUB update_turn_delays_in_attack_queue (byval who as integer)
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
-   'A non-blocking attack
    'Allow turn_delay to go negative to mark non-blocking attacks in turn-based mode
    'that got shunted to the next round, which therefore shouldn't have initiative added again
    IF .used ANDALSO .attacker = who THEN
