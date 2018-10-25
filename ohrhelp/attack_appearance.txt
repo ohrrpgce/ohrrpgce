@@ -137,7 +137,8 @@ Causes a delay before the attack is executed. During the delay, time passes and 
 Delay/Advance Attack: [Turn-based battles only]
 Normally, the order in which combatants act depends on their speed. This setting lets you cause the attacker to act earlier or later than normal. It's the number of places in the turn order queue that the attacker is moved forward or back. If the delay is large then the attacker will always act last... unless someone else has an even bigger delay!
 
-Delay Turns Before Attack: In turn-based battles, this is how many rounds of combat the attacker will wait before attacking. In active-time battles, the turn delay is based on the amount of time it takes for the attacker's ready-meter to fill up.
+Delay Turns Before Attack: In turn-based battles, this is how many rounds of combat the attacker will wait before attacking. In active-time battles, the turn delay decreases by one every time the attacker gets a turn (after their ready meter fills up). If the attack is a blocking delayed attack it happens instead of the attacker's normal turn, otherwise it happens immediately before its action - unless there's also a tick delay.
+For example, if you set a delay of one turn (and zero ticks) on a chained attack with the "Delay doesn't block further actions" chain bitset, then the chained attack happens immediately before the attacker's next attack (but for heroes, after the player picks an attack).
 
 Dramatic Pause: This delay is part of the attacker's animation. Unlike "Delay Ticks" the Dramatic Pause always freezes time for all heroes and enemies. A Dramatic Pause cannot be interrupted by other attacks.
 Use Dramatic Pause if you want the Caption to appear well before the attack actually happens.

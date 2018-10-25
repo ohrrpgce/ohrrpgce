@@ -2607,9 +2607,8 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
   END IF
  LOOP
 
- 'FIXME: bat.hero_turn?!!? Surely this is wrong?
  IF bat.turn.mode = turnACTIVE THEN
-  update_turn_delays_in_attack_queue bat.hero_turn
+  update_turn_delays_in_attack_queue bat.enemy_turn
  END IF
 
  'Note: if autotargetting fails the targetless attack gets queued anyway, wasting the enemy's turn
