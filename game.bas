@@ -1904,6 +1904,9 @@ END SUB
 '- NPC movement during scripted NPC pathfinding (when npci.pathover.override is set)
 SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
  if npci.pathover.stop_after_stillticks > 0 andalso npci.stillticks >= npci.pathover.stop_after_stillticks then
+  if npcdata.speed = 0 then
+   debuginfo "warning: gave up NPC pathfinding because NPC has zero speed and stop_after_stillticks specified"
+  end if
   cancel_npc_movement_override (npci)
   return
  end if
@@ -1985,17 +1988,19 @@ END SUB
 'A currently stationary NPC decides what to do.
 'Most move types are implemented here, but some are handled upon collision in npchitwall()
 SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
- 
- IF npcdata.movetype <> 8 ANDALSO npcdata.speed = 0 THEN
-  ' Do nothing for most movetypes when walking speed is 0
-  EXIT SUB
- END IF
 
- IF npci.pathover.override THEN 
+ IF npci.pathover.override THEN
   npcmove_pathfinding_chase(npci, npcdata)
   EXIT SUB
  END IF
- 
+
+ IF npcdata.movetype <> 8 ANDALSO npcdata.speed = 0 THEN
+  ' Do nothing when walking speed is 0, unless movetype is 'walk in place'
+  '(If speed=0 and we're pathfinding, the NPC will still face the destination but not move,
+  'and we need to allow stop_after_stillticks to work.)
+  EXIT SUB
+ END IF
+
  SELECT CASE npcdata.movetype
   CASE 1:
    npcmove_random_wander(npci)
