@@ -2092,7 +2092,7 @@ sub KeyboardState.init_controls()
 end sub
 
 sub JoystickState.init_controls()
-	redim controls(6)
+	redim controls(9)
 	controls(0) = TYPE(joyUp,       ccUp)
 	controls(1) = TYPE(joyDown,     ccDown)
 	controls(2) = TYPE(joyLeft,     ccLeft)
@@ -2100,6 +2100,11 @@ sub JoystickState.init_controls()
 	controls(4) = TYPE(joyButton1,  ccUse)
 	controls(5) = TYPE(joyButton2,  ccMenu)
 	controls(6) = TYPE(joyButton2,  ccRun)
+	'Typically the first four buttons will be a dpad, in some random order.
+	'It's better if all those dpad buttons do something
+	controls(7) = TYPE(joyButton3,  ccUse)
+	controls(8) = TYPE(joyButton4,  ccMenu)
+	controls(9) = TYPE(joyButton4,  ccRun)
 end sub
 
 'Poll io backend to update key state bits, and then handle all special scancodes.

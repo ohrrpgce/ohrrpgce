@@ -5607,7 +5607,7 @@ END FUNCTION
 'You should call usemenu before calling this, to ensure state.pt is correct!
 FUNCTION enter_space_click (state as MenuState) as bool
  IF menu_click(state) THEN RETURN YES
- RETURN keyval(ccUse) ORELSE keyval(scAnyEnter) > 1 ORELSE keyval(scSpace) > 1
+ RETURN keyval(ccUse) > 1 ORELSE keyval(scAnyEnter) > 1 ORELSE keyval(scSpace) > 1
 END FUNCTION
 
 FUNCTION enter_or_space () as bool
@@ -5615,7 +5615,7 @@ FUNCTION enter_or_space () as bool
 END FUNCTION
 
 FUNCTION toggle_item (state as MenuState) as bool
- RETURN keyval(ccLeft) > 1 OR keyval(ccRight) > 1 OR enter_space_click(state)
+ RETURN keyval(ccLeft) > 1 ORELSE keyval(ccRight) > 1 ORELSE enter_space_click(state)
 END FUNCTION
 
 ' Pressed Shift+Backspace, or Delete on the "<- Record # ->" line
