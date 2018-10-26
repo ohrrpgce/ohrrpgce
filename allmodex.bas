@@ -2078,10 +2078,14 @@ sub KeyboardState.init_controls()
 	controls(1)  = TYPE(scDown,   ccDown)
 	controls(2)  = TYPE(scLeft,   ccLeft)
 	controls(3)  = TYPE(scRight,  ccRight)
+	#ifdef IS_GAME
 	controls(4)  = TYPE(scCtrl,   ccUse)
+	#endif
 	controls(5)  = TYPE(scSpace,  ccUse)
 	controls(6)  = TYPE(scEnter,  ccUse)
+	#ifdef IS_GAME
 	controls(7)  = TYPE(scAlt,    ccMenu)
+	#endif
 	controls(8)  = TYPE(scEsc,    ccMenu)
 	controls(9)  = TYPE(scEsc,    ccRun)
 	controls(10) = TYPE(scTab,    ccRun)  'Who knew?
@@ -2266,7 +2270,9 @@ private sub update_carray ()
 	with inputst->kb
 		for idx as integer = 0 to ubound(.controls)
 			with .controls(idx)
-				carray(.ckey) or= keyval(.scancode)
+				if .ckey then
+					carray(.ckey) or= keyval(.scancode)
+				end if
 			end with
 		next
 	end with
@@ -2276,7 +2282,9 @@ private sub update_carray ()
 		with inputst->joys(joynum)
 			for idx as integer = 0 to ubound(.controls)
 				with .controls(idx)
-					carray(.ckey) or= joykeyval(.scancode)
+					if .ckey then
+						carray(.ckey) or= joykeyval(.scancode)
+					end if
 				end with
 			next
 		end with
