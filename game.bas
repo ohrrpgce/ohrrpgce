@@ -3495,7 +3495,6 @@ SUB end_text_box_chain ()
  END IF
  cleanup_text_box
  setkeys
- flusharray carray(), 7, 0
  context_string = ""
 END SUB
 

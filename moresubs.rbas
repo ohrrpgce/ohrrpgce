@@ -606,8 +606,7 @@ DO
  setvispage st.page
  dowait
 LOOP
-carray(4) = 0
-carray(5) = 0
+clearkeys
 MenuSound gen(genCancelSFX)
 freepage holdscreen
 
@@ -841,7 +840,6 @@ SUB minimap (playerpos as XYPair)
   'Exit on keypress after setvispage, because it does F12 screenshot check
  LOOP UNTIL anykeypressed(YES, YES)  'inc. joystick and mouse
  setkeys
- flusharray carray(), 7, 0
  MenuSound gen(genCancelSFX)
  switch_to_8bit_vpages
 END SUB
@@ -999,7 +997,6 @@ FUNCTION teleporttool () as bool
  unloadmaptilesets tilesets2()
  restore_previous_palette
  setkeys
- flusharray carray(), 7, 0
  MenuSound gen(genCancelSFX)
  switch_to_8bit_vpages
 END FUNCTION
@@ -1136,7 +1133,6 @@ DO
 LOOP
 freepage page
 setkeys
-flusharray carray(), 7, 0
 RETURN who
 END FUNCTION
 
@@ -1675,7 +1671,7 @@ DO
  check_for_queued_fade_in
  dowait
 LOOP
-FOR t = 4 TO 5: carray(t) = 0: NEXT t
+clearkeys
 freepage page
 freepage holdscreen
 

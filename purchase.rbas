@@ -166,7 +166,6 @@ SUB purchases_menu ()
  
  ' Clear keypresses
  setkeys
- flusharray carray(), 7, 0
 
  freepage holdscreen
  DeleteSlice @root

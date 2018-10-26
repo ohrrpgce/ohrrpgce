@@ -342,7 +342,6 @@ SUB verify_quit
   dowait
  LOOP
  setkeys
- flusharray carray(), 7, 0
 END SUB
 
 FUNCTION titlescreen () as bool

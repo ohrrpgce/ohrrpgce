@@ -754,7 +754,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
   bslot(bat.hero_turn).attack = 0
   bslot(bat.hero_turn).consume_lmp = -1
   bat.targ.mode = targNONE
-  flusharray carray(), 7, 0
+  clearkeys
   EXIT SUB
  END IF
 
@@ -789,7 +789,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
    bat.targ.selected(i) = NO
   NEXT i
   bat.targ.opt_spread = 1
-  flusharray carray(), 7, 0
+  clearkeys
  END IF
  
  'arrow keys to select
@@ -890,7 +890,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
   bslot(bat.hero_turn).attack = 0
   bslot(bat.hero_turn).consume_lmp = -1
   bat.targ.mode = targNONE
-  flusharray carray(), 7, 0
+  clearkeys
   EXIT SUB
  END IF
  
@@ -2692,7 +2692,7 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef
       CASE batmenu_ATTACK:
        bslot(bat.hero_turn).attack = .sub_t + 1
        bat.targ.mode = targSETUP
-       flusharray carray(), 7, 0
+       clearkeys
        EXIT SUB
       CASE batmenu_SPELLS:
        bat.listslot = .sub_t
@@ -2754,7 +2754,7 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
   IF v_len(spells) > 0 THEN
    bslot(bat.hero_turn).attack = spells[randint(v_len(spells))] + 1
    bat.targ.mode = targSETUP
-   flusharray carray(), 7, 0
+   clearkeys
   END IF
   v_free spells
  END IF
@@ -2840,7 +2840,7 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
 
  IF do_cancel THEN
   bat.menu_mode = batMENUHERO
-  flusharray carray(), 7, 0
+  clearkeys
   menusound gen(genCancelSFX)
   EXIT SUB
  END IF
@@ -2850,7 +2850,7 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
   IF bat.sptr = 24 THEN
    '--used cancel
    bat.menu_mode = batMENUHERO
-   flusharray carray(), 7, 0
+   clearkeys
    menusound gen(genCancelSFX)
    EXIT SUB
   END IF
@@ -2872,7 +2872,7 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
     '--exit spell menu
     bat.targ.mode = targSETUP
     bat.menu_mode = batMENUHERO
-    flusharray carray(), 7, 0
+    clearkeys
    ELSE
     '--not allowed
     menusound gen(genCancelSFX)
@@ -2986,7 +2986,7 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
 
  IF do_cancel THEN
   bat.menu_mode = batMENUHERO
-  flusharray carray(), 7, 0
+  clearkeys
   bslot(bat.hero_turn).consume_item = -1 ' -1 here indicates that this hero will not consume any item
   menusound gen(genCancelSFX)
   EXIT SUB
@@ -3002,7 +3002,7 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
    bslot(bat.hero_turn).attack = itembuf(47)
    bat.targ.mode = targSETUP
    bat.menu_mode = batMENUHERO
-   flusharray carray(), 7, 0
+   clearkeys
   END IF
  END IF
 END SUB

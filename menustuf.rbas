@@ -1281,7 +1281,7 @@ LOOP
 freesprites:
 freepage page
 freepage holdscreen
-FOR t as integer = 4 TO 5: carray(t) = 0: NEXT t
+clearkeys
 FOR i as integer = 0 TO last_slot
  FOR o as integer = 0 TO 3
   unload_sprite_and_pal sprites(i, o)
@@ -2155,7 +2155,6 @@ SUB status_screen (byval slot as integer)
  freepage holdscreen
  DeleteSlice @(st.sl)
  setkeys
- flusharray carray(), 7
  
 END SUB
 
@@ -2545,7 +2544,6 @@ FUNCTION item_screen () as integer
  freepage holdscreen
  DeleteSlice @(st.ps.m)
  setkeys
- flusharray carray(), 7, 0
 
  RETURN st.textbox
 END FUNCTION
@@ -3999,7 +3997,6 @@ SUB old_spells_menu (byval who as integer)
 
  menusound gen(genCancelSFX)
  setkeys
- flusharray carray(), 7
  freepage sp.page
  freepage holdscreen
 
