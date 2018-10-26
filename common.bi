@@ -191,11 +191,11 @@ ENUM WheelHandlingEnum
   wheelRightButton  'When the right mouse button is down
 END ENUM
 
-DECLARE FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight) as bool
-DECLARE FUNCTION intgrabber OVERLOAD (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
-DECLARE FUNCTION intgrabber OVERLOAD (byref n as longint, min as longint, max as longint, less as integer=scLeft, more as integer=scRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
-DECLARE FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight) as bool
-DECLARE FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin as integer=1, nmax as integer=1, less as integer=scLeft, more as integer=scRight) as integer
+DECLARE FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as integer=ccLeft, more as integer=ccRight) as bool
+DECLARE FUNCTION intgrabber OVERLOAD (byref n as integer, min as integer, max as integer, less as integer=ccLeft, more as integer=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
+DECLARE FUNCTION intgrabber OVERLOAD (byref n as longint, min as longint, max as longint, less as integer=ccLeft, more as integer=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
+DECLARE FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less as integer=ccLeft, more as integer=ccRight) as bool
+DECLARE FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin as integer=1, nmax as integer=1, less as integer=ccLeft, more as integer=ccRight) as integer
 
 DECLARE SUB reset_console (byval top as integer = 0, byval h as integer = 200, byval c as integer = -1)
 DECLARE SUB show_message (s as string)

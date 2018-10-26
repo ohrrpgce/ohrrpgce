@@ -1751,7 +1751,7 @@ END FUNCTION
 
 'keygrabber is like intgrabber (or usemenu) except it only watches the two keys passed as arguments, not
 'number keys, page up/down, copy/paste, minus, etc.
-FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight) as bool
+FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as integer=ccLeft, more as integer=ccRight) as bool
  IF keyval(more) > 1 THEN
   loopvar n, min, max, 1
   RETURN YES
@@ -1766,14 +1766,14 @@ END FUNCTION
 'If returninput is true, returns whether the user tried to modify the int,
 'otherwise returns true only if the int actually changed.
 'If autoclamp is false, n is clamped within allowable range only if a key is pressed
-FUNCTION intgrabber (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
+FUNCTION intgrabber (byref n as integer, min as integer, max as integer, less as integer=ccLeft, more as integer=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
  DIM as longint temp = n
  intgrabber = intgrabber(temp, cast(longint, min), cast(longint, max), less, more, returninput, use_clipboard, autoclamp, scrollwheel)
  n = temp
 END FUNCTION
 
 'See above for documentation
-FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as integer=scLeft, more as integer=scRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
+FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as integer=ccLeft, more as integer=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
  STATIC clip as longint
  DIM old as longint = n
  DIM typed as bool = NO
@@ -1863,7 +1863,7 @@ FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as
  END IF
 END FUNCTION
 
-FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight) as bool
+FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less as integer=ccLeft, more as integer=ccRight) as bool
  '--adjust for entries that are offset by +1
  '--what a hack!
  '--all entries <= 0 are special options not meant to be enumerated
@@ -1884,7 +1884,7 @@ FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less a
  RETURN (old <> n)
 END FUNCTION
 
-FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin as integer=1, nmax as integer=1, less as integer=scLeft, more as integer=scRight) as integer
+FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin as integer=1, nmax as integer=1, less as integer=ccLeft, more as integer=ccRight) as integer
  '--quite a bit of documentation required:
  '--like zintgrabber, but for cases where positive values mean one thing, negatives
  '--another, and 0 means none.
@@ -2078,15 +2078,15 @@ FUNCTION stredit (s as string, byref insert as integer, maxl as integer = 999999
  ' (Mac uses Option (ie ALT) instead of CTRL for moving by word, so accept that too.
  ' Doesn't use Option-Home/End though.)
  IF keyval(scCtrl) = 0 AND keyval(scAlt) = 0 THEN
-  IF keyval(scLeft) > 1 THEN insert = large(0, insert - 1)
-  IF keyval(scRight) > 1 THEN insert = small(LEN(s), insert + 1)
+  IF keyval(ccLeft) > 1 THEN insert = large(0, insert - 1)
+  IF keyval(ccRight) > 1 THEN insert = small(LEN(s), insert + 1)
  ELSE 'CTRL
-  IF keyval(scLeft) > 1 THEN 'move by word
+  IF keyval(ccLeft) > 1 THEN 'move by word
    IF insert > 0 THEN 'searching from position -1 searches from the end
     insert = INSTRREV(s, ANY !" \n", insert - 1)  'different argument order: the FB devs, they are so funny
    END IF
   END IF
-  IF keyval(scRight) > 1 THEN
+  IF keyval(ccRight) > 1 THEN
    insert = INSTR(insert + 1, s, ANY !" \n")
    IF insert = 0 THEN insert = LEN(s)
   END IF
@@ -2117,8 +2117,8 @@ FUNCTION stredit (s as string, byref insert as integer, maxl as integer = 999999
   IF insert_line = -1 THEN
    showbug "Ignorable engine bug: stredit couldn't find line"
   END IF
-  IF keyval(scUp) > 1 THEN move_lines = -1
-  IF keyval(scDown) > 1 THEN move_lines = 1
+  IF keyval(ccUp) > 1 THEN move_lines = -1
+  IF keyval(ccDown) > 1 THEN move_lines = 1
   IF keyval(scPageUp) > 1 THEN move_lines = -(numlines - 2)
   IF keyval(scPageDown) > 1 THEN move_lines = numlines - 2
   move_lines += readmouse.wheel_clicks * 3
@@ -2248,8 +2248,8 @@ SUB pop_warning(msg as zstring ptr, byval autoquit as integer = NO)
   
   IF deadkeys = 0 THEN
    IF keyval(scESC) > 1 OR enter_or_space() OR click_dismiss() THEN EXIT DO
-   IF keyval(scUp) > 1 THEN dat->first_line -= 1
-   IF keyval(scDown) > 1 THEN dat->first_line += 1
+   IF keyval(ccUp) > 1 THEN dat->first_line -= 1
+   IF keyval(ccDown) > 1 THEN dat->first_line += 1
    dat->first_line = bound(dat->first_line, 0, large(0, dat->line_count - dat->line_limit))
   END IF
   deadkeys = large(deadkeys - 1, 0)
@@ -2610,8 +2610,8 @@ SUB show_help(helpkey as zstring ptr)
     '/
    ELSE
     '--not editing, just browsing
-    IF slowkey(scUp, 30)      THEN top -= 8
-    IF slowkey(scDown, 30)    THEN top += 8
+    IF slowkey(ccUp, 30)      THEN top -= 8
+    IF slowkey(ccDown, 30)    THEN top += 8
     IF keyval(scPageUp) > 1   THEN top -= help_draw_area->Height - 12
     IF keyval(scPageDown) > 1 THEN top += help_draw_area->Height - 12
     IF keyval(scHome) > 1     THEN top = 0
@@ -5436,8 +5436,8 @@ FUNCTION percent_grabber(byref float as double, byref repr as string, min as dou
 
  DIM updown as integer = 0
  IF readmouse().buttons AND mouseright THEN updown = readmouse().wheel_clicks
- IF keyval(scLeft) > 1 THEN updown -= 1
- IF keyval(scRight) > 1 THEN updown += 1
+ IF keyval(ccLeft) > 1 THEN updown -= 1
+ IF keyval(ccRight) > 1 THEN updown += 1
  float += updown * increment
  IF updown THEN changed = YES
 
@@ -5615,7 +5615,7 @@ FUNCTION enter_or_space () as bool
 END FUNCTION
 
 FUNCTION toggle_item (state as MenuState) as bool
- RETURN keyval(scLeft) > 1 OR keyval(scRight) > 1 OR enter_space_click(state)
+ RETURN keyval(ccLeft) > 1 OR keyval(ccRight) > 1 OR enter_space_click(state)
 END FUNCTION
 
 ' Pressed Shift+Backspace, or Delete on the "<- Record # ->" line
@@ -6203,7 +6203,7 @@ FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref director
    RETURN ""
   END IF
   IF keyval(scF1) > 1 THEN show_help helpkey
-  IF keyval(scUp) > 1 ORELSE keyval(scDown) > 1 THEN foldermode = NOT foldermode
+  IF keyval(ccUp) > 1 ORELSE keyval(ccDown) > 1 THEN foldermode = NOT foldermode
   IF (foldermode AND enter_or_space()) OR keyval(scTAB) > 1 THEN
    DIM newdir as string
    newdir = browse(browseDir, directory, "", "browse_for_folder")
@@ -6588,10 +6588,10 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   DIM mouse_over_grid as bool = in_bound(mousecursor.x, 0, 15) AND in_bound(mousecursor.y, 0, 15)
   DIM mouse_hover_col as integer = int_from_xy(mousecursor, 16, 16)
 
-  IF keyval(scUp) > 1 THEN    mouse_active = NO : loopvar(cursor.y, 0, 15, -1)
-  IF keyval(scDown) > 1 THEN  mouse_active = NO : loopvar(cursor.y, 0, 15, 1)
-  IF keyval(scLeft) > 1 THEN  mouse_active = NO : loopvar(cursor.x, 0, 15, -1)
-  IF keyval(scRight) > 1 THEN mouse_active = NO : loopvar(cursor.x, 0, 15, 1)
+  IF keyval(ccUp) > 1 THEN    mouse_active = NO : loopvar(cursor.y, 0, 15, -1)
+  IF keyval(ccDown) > 1 THEN  mouse_active = NO : loopvar(cursor.y, 0, 15, 1)
+  IF keyval(ccLeft) > 1 THEN  mouse_active = NO : loopvar(cursor.x, 0, 15, -1)
+  IF keyval(ccRight) > 1 THEN mouse_active = NO : loopvar(cursor.x, 0, 15, 1)
 
   ret = int_from_xy(cursor, 16, 16)
 

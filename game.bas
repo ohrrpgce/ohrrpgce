@@ -2517,7 +2517,7 @@ SUB MenuSound(byval s as integer)
   END IF
 END SUB
 
-SUB usemenusounds (byval deckey as integer = scUp, byval inckey as integer = scDown)
+SUB usemenusounds (byval deckey as integer = ccUp, byval inckey as integer = ccDown)
   IF keyval(deckey) > 1 ORELSE keyval(inckey) > 1 ORELSE keyval(scPageup) > 1 _
        ORELSE keyval(scPagedown) > 1 ORELSE keyval(scHome) > 1 ORELSE keyval(scEnd) > 1 THEN
     menusound gen(genCursorSFX)

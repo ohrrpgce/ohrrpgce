@@ -295,22 +295,22 @@ SUB ee_rearrange(byref st as EEState, mi as MenuDefItem Ptr)
  END IF
  
  IF keyval(scShift) > 0 THEN
-  IF keyval(scUP) > 1 THEN
+  IF keyval(ccUP) > 1 THEN
    ee_swap_widget_up widget
    st.seek_widget = widget
    changed = YES
   END IF
-  IF keyval(scDOWN) > 1 THEN
+  IF keyval(ccDOWN) > 1 THEN
    ee_swap_widget_down widget
    st.seek_widget = widget
    changed = YES
   END IF
-  IF keyval(scLEFT) > 1 THEN
+  IF keyval(ccLEFT) > 1 THEN
    ee_swap_widget_left widget
    st.seek_widget = widget
    changed = YES
   END IF
-  IF keyval(scRIGHT) > 1 THEN
+  IF keyval(ccRIGHT) > 1 THEN
    ee_swap_widget_right widget
    st.seek_widget = widget
    changed = YES
@@ -776,7 +776,7 @@ FUNCTION widget_editor_edit_node(byref st as WEState, byval kind as integer, byv
    END IF
   CASE wedBOOL:
    DIM b as integer = GetInteger(node) <> 0
-   IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 ORELSE enter_or_space() THEN
+   IF keyval(ccLeft) > 1 ORELSE keyval(ccRight) > 1 ORELSE enter_or_space() THEN
     SetContent node, (NOT b)
     changed = YES
    END IF

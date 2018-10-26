@@ -658,19 +658,19 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
    ELSEIF keyval(scShift) > 0 THEN
 
-    IF keyval(scUp) > 1 THEN
+    IF keyval(ccUp) > 1 THEN
      SwapSiblingSlices ses.curslice, ses.curslice->PrevSibling
      cursor_seek = ses.curslice
      state.need_update = YES
-    ELSEIF keyval(scDown) > 1 THEN
+    ELSEIF keyval(ccDown) > 1 THEN
      SwapSiblingSlices ses.curslice, ses.curslice->NextSibling
      cursor_seek = ses.curslice
      state.need_update = YES
-    ELSEIF keyval(scRight) > 1 THEN
+    ELSEIF keyval(ccRight) > 1 THEN
      SliceAdoptSister ses.curslice
      cursor_seek = ses.curslice
      state.need_update = YES
-    ELSEIF keyval(scLeft) > 1 THEN
+    ELSEIF keyval(ccLeft) > 1 THEN
      IF ses.curslice->parent <> edslice THEN
       SliceAdoptNiece ses.curslice
       cursor_seek = ses.curslice
@@ -680,23 +680,23 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
    ELSEIF keyval(scCtrl) > 0 THEN '--ctrl, not shift
 
-    IF keyval(scUp) > 1 THEN
+    IF keyval(ccUp) > 1 THEN
      cursor_seek = ses.curslice->prevSibling
      state.need_update = YES
-    ELSEIF keyval(scDown) > 1 THEN
+    ELSEIF keyval(ccDown) > 1 THEN
      cursor_seek = ses.curslice->nextSibling
      state.need_update = YES
-    ELSEIF keyval(scLeft) > 1 THEN
+    ELSEIF keyval(ccLeft) > 1 THEN
      cursor_seek = ses.curslice->parent
      state.need_update = YES
-    ELSEIF keyval(scRight) > 1 THEN
+    ELSEIF keyval(ccRight) > 1 THEN
      cursor_seek = ses.curslice->firstChild
      state.need_update = YES
     END IF
 
    ELSE '--neither shift nor ctrl
 
-    IF keyval(scLeft) > 1 THEN
+    IF keyval(ccLeft) > 1 THEN
      cursor_seek = (ses.curslice)->parent
      state.need_update = YES
     END IF
@@ -1390,10 +1390,10 @@ SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Sl
   DIM speed as integer = IIF(keyval(scShift) > 0, 10, 1)
   'The following calls to slice_edit_updates only do something if x/y are focussl->Width/Height.
   'Perfectly harmless otherwise.
-  IF keyval(scUp)    > 0 THEN y -= speed : slice_edit_updates focussl, @y
-  IF keyval(scRight) > 0 THEN x += speed : slice_edit_updates focussl, @x
-  IF keyval(scDown)  > 0 THEN y += speed : slice_edit_updates focussl, @y
-  IF keyval(scLeft)  > 0 THEN x -= speed : slice_edit_updates focussl, @x
+  IF keyval(ccUp)    > 0 THEN y -= speed : slice_edit_updates focussl, @y
+  IF keyval(ccRight) > 0 THEN x += speed : slice_edit_updates focussl, @x
+  IF keyval(ccDown)  > 0 THEN y += speed : slice_edit_updates focussl, @y
+  IF keyval(ccLeft)  > 0 THEN x -= speed : slice_edit_updates focussl, @x
   draw_background vpages(dpage), bgChequer
   'Invisible slices won't be updated by DrawSlice
   RefreshSliceTreeScreenPos focussl
@@ -2025,10 +2025,10 @@ END SUB
 FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState, lowerlimit as integer, upperlimit as integer) as bool
  ' To determine whether Backspace and numerals edit the name or the ID code,
  ' we use ses.editing_lookup_name
- IF (ses.editing_lookup_name = NO OR keyval(scLeft) > 0 OR keyval(scRight)) _
+ IF (ses.editing_lookup_name = NO OR keyval(ccLeft) > 0 OR keyval(ccRight)) _
     ANDALSO intgrabber(code, lowerlimit, upperlimit, , , , , NO) THEN  'autoclamp=NO
   ' Another kludge: Don't wrap around to INT_MAX!
-  IF code = upperlimit AND keyval(scLeft) > 0 THEN code = UBOUND(ses.slicelookup)
+  IF code = upperlimit AND keyval(ccLeft) > 0 THEN code = UBOUND(ses.slicelookup)
   ses.editing_lookup_name = NO
   RETURN YES
  ELSEIF code > 0 AND code <= UBOUND(ses.slicelookup) THEN

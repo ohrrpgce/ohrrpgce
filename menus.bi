@@ -16,12 +16,12 @@ DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu() as string
 DECLARE SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as zstring ptr, byval unselectable as bool = NO, byval col as integer = 0, byval dat as integer = 0, byval where as integer = -1)
 DECLARE SUB correct_menu_state (state as MenuState)
 DECLARE SUB correct_menu_state_top (state as MenuState)
-DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
-DECLARE FUNCTION usemenu OVERLOAD (byref pt as integer, byref top as integer, byval first as integer, byval last as integer, byval size as integer, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
-DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, byval menudata as BasicMenuItem vector, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
-DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, menu as MenuDef, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
-DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, selectable() as bool, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
-DECLARE FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
+DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, byval deckey as integer = ccUp, byval inckey as integer = ccDown) as bool
+DECLARE FUNCTION usemenu OVERLOAD (byref pt as integer, byref top as integer, byval first as integer, byval last as integer, byval size as integer, byval deckey as integer = ccUp, byval inckey as integer = ccDown) as bool
+DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, byval menudata as BasicMenuItem vector, byval deckey as integer = ccUp, byval inckey as integer = ccDown) as bool
+DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, menu as MenuDef, byval deckey as integer = ccUp, byval inckey as integer = ccDown) as bool
+DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, selectable() as bool, byval deckey as integer = ccUp, byval inckey as integer = ccDown) as bool
+DECLARE FUNCTION scrollmenu (state as MenuState, byval deckey as integer = ccUp, byval inckey as integer = ccDown) as bool
 DECLARE SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref basicmenu as BasicMenuItem vector, byval shaded as bool ptr = NULL)
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, shaded() as bool, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions = MenuOptions())

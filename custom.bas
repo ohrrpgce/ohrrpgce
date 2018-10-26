@@ -789,12 +789,12 @@ PRIVATE FUNCTION volume_controls_callback(menu as MenuDef, state as MenuState, d
  IF keyval(scF1) > 1 THEN show_help("editor_volume")
  DIM BYREF mi as MenuDefItem = *menu.items[state.pt]
  IF mi.t = mtypeSpecial AND (mi.sub_t = spMusicVolume OR mi.sub_t = spVolumeMenu) THEN
-  IF keyval(scLeft) > 1 THEN set_music_volume large(get_music_volume - 1/16, 0.0)
-  IF keyval(scRight) > 1 THEN set_music_volume small(get_music_volume + 1/16, 1.0)
+  IF keyval(ccLeft) > 1 THEN set_music_volume large(get_music_volume - 1/16, 0.0)
+  IF keyval(ccRight) > 1 THEN set_music_volume small(get_music_volume + 1/16, 1.0)
  END IF
  IF mi.t = mtypeSpecial AND mi.sub_t = spSoundVolume THEN
-  IF keyval(scLeft) > 1 THEN set_global_sfx_volume large(get_global_sfx_volume - 1/16, 0.0)
-  IF keyval(scRight) > 1 THEN set_global_sfx_volume small(get_global_sfx_volume + 1/16, 1.0)
+  IF keyval(ccLeft) > 1 THEN set_global_sfx_volume large(get_global_sfx_volume - 1/16, 0.0)
+  IF keyval(ccRight) > 1 THEN set_global_sfx_volume small(get_global_sfx_volume + 1/16, 1.0)
  END IF
  RETURN NO
 END FUNCTION
@@ -985,7 +985,7 @@ FUNCTION shop_editor (shop_id as integer) as integer
    IF intgrabber(shopbuf(18), 0, 32767) THEN shopst.st.need_update = YES
   END IF
   IF shopst.st.pt = 6 THEN
-   IF scrintgrabber(shopbuf(19), 0, 0, scLeft, scRight, 1, plottrigger) THEN shopst.st.need_update = YES
+   IF scrintgrabber(shopbuf(19), 0, 0, ccLeft, ccRight, 1, plottrigger) THEN shopst.st.need_update = YES
   END IF
   
   IF shopst.st.need_update THEN
@@ -1166,9 +1166,9 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
     DIM newthing as integer = stuf.thing
     IF keyval(scShift) > 0 THEN
      ' While holding Shift, can swap a thing with the one before/after it.
-     IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN
-      IF keyval(scLeft) > 1 AND stuf.thing > 0 THEN newthing -= 1
-      IF keyval(scRight) > 1 AND stuf.thing < thing_last_id THEN newthing += 1
+     IF keyval(ccLeft) > 1 OR keyval(ccRight) > 1 THEN
+      IF keyval(ccLeft) > 1 AND stuf.thing > 0 THEN newthing -= 1
+      IF keyval(ccRight) > 1 AND stuf.thing < thing_last_id THEN newthing += 1
       shop_save_stf shop_id, stuf, stufbuf()
       shop_swap_stf shop_id, stuf.thing, newthing
       stuf.thing = newthing
@@ -2172,10 +2172,10 @@ SUB quad_transforms_menu ()
 
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
-  IF keyval(scLeft)  THEN scale.x -= 0.1
-  IF keyval(scRight) THEN scale.x += 0.1
-  IF keyval(scUp)    THEN scale.y -= 0.1
-  IF keyval(scDown)  THEN scale.y += 0.1
+  IF keyval(ccLeft)  THEN scale.x -= 0.1
+  IF keyval(ccRight) THEN scale.x += 0.1
+  IF keyval(ccUp)    THEN scale.y -= 0.1
+  IF keyval(ccDown)  THEN scale.y += 0.1
   IF keyval(scLeftCaret)  THEN angle -= 0.1
   IF keyval(scRightCaret) THEN angle += 0.1
   IF keyval(scLeftBracket) > 1 THEN spritemode -= 1: st.need_update = YES
@@ -2449,10 +2449,10 @@ SUB plankmenu_cursor_move_tests
   IF keyval(scShift) > 0 THEN
    ' movex = 0
    ' movey = 0
-   IF keyval(scLeft) > 0 THEN movex = -1 : movey = 0
-   IF keyval(scRight) > 0 THEN movex = 1 : movey = 0
-   IF keyval(scUp) > 0 THEN movey = -1 : movex = 0
-   IF keyval(scDown) > 0 THEN movey = 1 : movex = 0
+   IF keyval(ccLeft) > 0 THEN movex = -1 : movey = 0
+   IF keyval(ccRight) > 0 THEN movex = 1 : movey = 0
+   IF keyval(ccUp) > 0 THEN movey = -1 : movex = 0
+   IF keyval(ccDown) > 0 THEN movey = 1 : movex = 0
   ELSE
    plank_menu_arrows(ps)
   END IF

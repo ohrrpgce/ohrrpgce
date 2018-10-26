@@ -127,11 +127,11 @@ FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair
   IF state.pt >= 0 ANDALSO selectable(state.pt) THEN
    DIM bitnum as integer = bitmenu(state.pt).i
    DIM bitflip as integer = IIF(bitmenu(state.pt).s[0] = ASC("!"), 1, 0)
-   IF keyval(scLeft) > 1 OR keyval(scLeftCaret) > 1 THEN
+   IF keyval(ccLeft) > 1 OR keyval(scLeftCaret) > 1 THEN
     setbit array(), wof, bitnum, 0 XOR bitflip
     IF immediate_quit THEN EXIT DO
    END IF
-   IF keyval(scRight) > 1 OR keyval(scRightCaret) > 1 THEN
+   IF keyval(ccRight) > 1 OR keyval(scRightCaret) > 1 THEN
     setbit array(), wof, bitnum, 1 XOR bitflip
     IF immediate_quit THEN EXIT DO
    END IF
@@ -383,7 +383,7 @@ SUB edit_mouse_options ()
    CASE 6:
     IF gen_intgrabber("/mouse/move_hero/max_path_length") THEN st.need_update = YES
    CASE ELSE
-    IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+    IF keyval(ccLeft) > 1 ORELSE keyval(ccRight) > 1 THEN
      do_toggle = YES
     END IF
   END SELECT

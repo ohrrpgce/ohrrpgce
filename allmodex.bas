@@ -2913,11 +2913,11 @@ private sub replay_controls ()
 	end if
 	'Also scPause, handled in setkeys because it affects record too.
 
-	if real_keyval(scLeft) > 1 then
+	if real_keyval(ccLeft) > 1 then
 		base_fps_multiplier *= 0.5
 		show_replay_overlay()
 	end if
-	if real_keyval(scRight) > 1 then
+	if real_keyval(ccRight) > 1 then
 		base_fps_multiplier *= 2
 		show_replay_overlay()
 	end if

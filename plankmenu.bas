@@ -256,17 +256,10 @@ FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice 
  DIM result as bool = NO
  'IF keyval(scA) > 1 THEN slice_editor m
  IF start_parent = 0 THEN start_parent = ps.m
-#IFDEF IS_GAME
  IF carray(ccLeft) > 1  ANDALSO plank_menu_move_cursor(ps, 0, -1, start_parent) THEN result = YES
  IF carray(ccRight) > 1 ANDALSO plank_menu_move_cursor(ps, 0, 1, start_parent)  THEN result = YES
  IF carray(ccUp) > 1    ANDALSO plank_menu_move_cursor(ps, 1, -1, start_parent) THEN result = YES
  IF carray(ccDown) > 1  ANDALSO plank_menu_move_cursor(ps, 1, 1, start_parent)  THEN result = YES
-#ELSE
- IF keyval(scLeft) > 1  ANDALSO plank_menu_move_cursor(ps, 0, -1, start_parent) THEN result = YES
- IF keyval(scRight) > 1 ANDALSO plank_menu_move_cursor(ps, 0, 1, start_parent)  THEN result = YES
- IF keyval(scUp) > 1    ANDALSO plank_menu_move_cursor(ps, 1, -1, start_parent) THEN result = YES
- IF keyval(scDown) > 1  ANDALSO plank_menu_move_cursor(ps, 1, 1, start_parent)  THEN result = YES
-#ENDIF
  IF keyval(scPageUp) > 1 THEN plank_menu_scroll_page ps, -1, start_parent : result = YES
  IF keyval(scPageDown) > 1 THEN plank_menu_scroll_page ps, 1, start_parent : result = YES
  IF keyval(scHome) > 1 THEN IF plank_menu_home(ps) THEN result = YES

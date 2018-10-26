@@ -1047,8 +1047,8 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(scEsc) > 1 THEN EXIT DO
- IF keyval(scUp) > 1 THEN csr = large(0, csr - 1)
- IF keyval(scDown) > 1 THEN csr = small(2, csr + 1)
+ IF keyval(ccUp) > 1 THEN csr = large(0, csr - 1)
+ IF keyval(ccDown) > 1 THEN csr = small(2, csr + 1)
  IF csr = 0 THEN intgrabber pt, 0, UBOUND(array)
  IF csr = 1 THEN intgrabber array(pt), -32768, 32767
  IF csr = 2 THEN

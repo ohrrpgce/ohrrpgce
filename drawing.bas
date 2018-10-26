@@ -138,7 +138,7 @@ SUB changepal OVERLOAD (ss as SpriteEditState, palchange as integer)
  ss.palette = palette16_load(ss.pal_num)
 END SUB
 
-FUNCTION pal_num_intgrabber (ss as SpriteEditState, lesskey as integer=scLeft, morekey as integer=scRight) as bool
+FUNCTION pal_num_intgrabber (ss as SpriteEditState, lesskey as integer=ccLeft, morekey as integer=ccRight) as bool
  DIM old as integer = ss.pal_num
  IF intgrabber(ss.pal_num, 0, gen(genMaxPal) + 1, lesskey, morekey) THEN
   palette16_save ss.palette, old
@@ -456,15 +456,15 @@ PRIVATE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame pt
   IF keyval(scF1) > 1 THEN show_help "importimage_disable"
   IF prev_menu_selected THEN
    IF enter_or_space() THEN EXIT DO
-   IF keyval(scDown) > 1 THEN
+   IF keyval(ccDown) > 1 THEN
     cy = 0
     prev_menu_selected = NO
    END IF
   ELSE
-   IF keyval(scLeft) > 1 THEN cx = large(cx - 1, 0)
-   IF keyval(scRight) > 1 THEN cx = small(cx + 1, 15)
-   IF keyval(scDown) > 1 THEN cy = small(cy + 1, 15)
-   IF keyval(scUp) > 1 THEN cy -= 1
+   IF keyval(ccLeft) > 1 THEN cx = large(cx - 1, 0)
+   IF keyval(ccRight) > 1 THEN cx = small(cx + 1, 15)
+   IF keyval(ccDown) > 1 THEN cy = small(cy + 1, 15)
+   IF keyval(ccUp) > 1 THEN cy -= 1
    IF cy < 0 THEN
     cy = 0
     prev_menu_selected = YES
@@ -709,7 +709,7 @@ DO
   state.pt = tempnum
   state.need_update = YES
  END IF
- IF keyval(scDown) > 1 AND state.pt = gen(genMaxTile) AND gen(genMaxTile) < 32767 THEN
+ IF keyval(ccDown) > 1 AND state.pt = gen(genMaxTile) AND gen(genMaxTile) < 32767 THEN
   state.pt += 1
   IF needaddset(state.pt, gen(genMaxTile), "tile set") THEN
    clearpage 3
@@ -867,10 +867,10 @@ SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tiles
   tog = tog XOR 1
   IF keyval(scESC) > 1 OR enter_or_space() THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "maptile_setanimrange"
-  IF keyval(scUp) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 16, 0)
-  IF keyval(scDown) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 16, 112)
-  IF keyval(scLeft) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 1, 0)
-  IF keyval(scRight) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 1, 112)
+  IF keyval(ccUp) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 16, 0)
+  IF keyval(ccDown) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 16, 112)
+  IF keyval(ccLeft) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 1, 0)
+  IF keyval(ccRight) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 1, 112)
   WITH readmouse
    over_esc = rect_collide_point(str_rect("ESC when done", 0, 0), .pos)
    IF (.release AND mouseleft) ANDALSO over_esc THEN
@@ -1109,10 +1109,10 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
 
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "maptile_testanimpattern"
-  IF keyval(scUp) > 1 THEN loopvar csr, 0, 47, -16
-  IF keyval(scDown) > 1 THEN loopvar csr, 0, 47, 16
-  IF keyval(scLeft) > 1 THEN loopvar csr, 0, 47, -1
-  IF keyval(scRight) > 1 THEN loopvar csr, 0, 47, 1
+  IF keyval(ccUp) > 1 THEN loopvar csr, 0, 47, -16
+  IF keyval(ccDown) > 1 THEN loopvar csr, 0, 47, 16
+  IF keyval(ccLeft) > 1 THEN loopvar csr, 0, 47, -1
+  IF keyval(ccRight) > 1 THEN loopvar csr, 0, 47, 1
 
   clearpage dpage
   '--draw available animating tiles--
@@ -1227,13 +1227,13 @@ area(24).y = 42
 area(24).w = 8
 area(24).h = 8
 
-DIM pastogkey(7) as integer
+DIM pastogkey(7) as KBScancode
 DIM bitmenu(7) as string
 IF tmode = 3 THEN
- pastogkey(0) = scUp
- pastogkey(1) = scRight
- pastogkey(2) = scDown
- pastogkey(3) = scLeft
+ pastogkey(0) = ccUp
+ pastogkey(1) = ccRight
+ pastogkey(2) = ccDown
+ pastogkey(3) = ccLeft
  pastogkey(4) = scA
  pastogkey(5) = scB
  pastogkey(6) = scH
@@ -1272,10 +1272,10 @@ DO
  END IF
  IF tmode <> 3 OR keyval(scCtrl) = 0 THEN
   DIM movedcsr as integer = NO
-  IF slowkey(scLeft, 100) THEN bnum = (bnum + 159) MOD 160: movedcsr = YES
-  IF slowkey(scRight, 100) THEN bnum = (bnum + 1) MOD 160: movedcsr = YES
-  IF slowkey(scUp, 100) THEN bnum = (bnum + 144) MOD 160: movedcsr = YES
-  IF slowkey(scDown, 100) THEN bnum = (bnum + 16) MOD 160: movedcsr = YES
+  IF slowkey(ccLeft, 100) THEN bnum = (bnum + 159) MOD 160: movedcsr = YES
+  IF slowkey(ccRight, 100) THEN bnum = (bnum + 1) MOD 160: movedcsr = YES
+  IF slowkey(ccUp, 100) THEN bnum = (bnum + 144) MOD 160: movedcsr = YES
+  IF slowkey(ccDown, 100) THEN bnum = (bnum + 16) MOD 160: movedcsr = YES
   IF movedcsr AND ts.gotmouse THEN
    mouse.x = (mouse.x MOD 20) + (bnum MOD 16) * 20
    mouse.y = (mouse.y MOD 20) + (bnum \ 16) * 20
@@ -1553,18 +1553,18 @@ DO
   DIM fixmouse as integer = NO
   DIM stepsize as integer = IIF(keyval(scShift) > 0, ts.fastmovestep, 1)
   IF ts.tool <> scroll_tool THEN
-   IF slowkey(scUp, 100)    THEN ts.y -= stepsize: fixmouse = YES
-   IF slowkey(scDown, 100)  THEN ts.y += stepsize: fixmouse = YES
-   IF slowkey(scLeft, 100)  THEN ts.x -= stepsize: fixmouse = YES
-   IF slowkey(scRight, 100) THEN ts.x += stepsize: fixmouse = YES
+   IF slowkey(ccUp, 100)    THEN ts.y -= stepsize: fixmouse = YES
+   IF slowkey(ccDown, 100)  THEN ts.y += stepsize: fixmouse = YES
+   IF slowkey(ccLeft, 100)  THEN ts.x -= stepsize: fixmouse = YES
+   IF slowkey(ccRight, 100) THEN ts.x += stepsize: fixmouse = YES
    ts.x = bound(ts.x, 0, 19)
    ts.y = bound(ts.y, 0, 19)
   ELSE
    DIM scrolloff as XYPair
-   IF slowkey(scUp, 100)    THEN scrolloff.y -= stepsize
-   IF slowkey(scDown, 100)  THEN scrolloff.y += stepsize
-   IF slowkey(scLeft, 100)  THEN scrolloff.x -= stepsize
-   IF slowkey(scRight, 100) THEN scrolloff.x += stepsize
+   IF slowkey(ccUp, 100)    THEN scrolloff.y -= stepsize
+   IF slowkey(ccDown, 100)  THEN scrolloff.y += stepsize
+   IF slowkey(ccLeft, 100)  THEN scrolloff.x -= stepsize
+   IF slowkey(ccRight, 100) THEN scrolloff.x += stepsize
    scrolltile ts, scrolloff.x, scrolloff.y
    IF scrolloff.x OR scrolloff.y THEN fixmouse = YES
    ts.x = POSMOD(ts.x + scrolloff.x, 20)
@@ -1590,16 +1590,16 @@ DO
   NEXT i
  END IF
  '----------
- IF keyval(scComma) > 1 OR (keyval(scAlt) > 0 AND keyval(scLeft) > 1) THEN
+ IF keyval(scComma) > 1 OR (keyval(scAlt) > 0 AND keyval(ccLeft) > 1) THEN
   ts.curcolor = (ts.curcolor + 255) MOD 256
   IF ts.curcolor MOD 16 = 15 THEN ts.curcolor = (ts.curcolor + 144) MOD 256
  END IF
- IF keyval(scPeriod) > 1 OR (keyval(scAlt) > 0 AND keyval(scRight) > 1) THEN
+ IF keyval(scPeriod) > 1 OR (keyval(scAlt) > 0 AND keyval(ccRight) > 1) THEN
   ts.curcolor += 1
   IF ts.curcolor MOD 16 = 0 THEN ts.curcolor = (ts.curcolor + 112) MOD 256
  END IF
- IF keyval(scAlt) > 0 AND keyval(scUp) > 1 THEN ts.curcolor = (ts.curcolor + 240) MOD 256
- IF keyval(scAlt) > 0 AND keyval(scDown) > 1 THEN ts.curcolor = (ts.curcolor + 16) MOD 256
+ IF keyval(scAlt) > 0 AND keyval(ccUp) > 1 THEN ts.curcolor = (ts.curcolor + 240) MOD 256
+ IF keyval(scAlt) > 0 AND keyval(ccDown) > 1 THEN ts.curcolor = (ts.curcolor + 16) MOD 256
  IF keyval(scTilde) > 1 THEN ts.hidemouse = ts.hidemouse XOR YES
  IF keyval(scCtrl) > 0 AND keyval(scZ) > 1 AND ts.allowundo THEN
   loopvar ts.undo, 0, 5, -1
@@ -2175,10 +2175,10 @@ DO
  DIM inc as integer
  IF keyval(scShift) OR snap_to_grid THEN inc = 20 ELSE inc = 1
  DIM as integer movex = 0, movey = 0
- IF keyval(scUp) AND 5 THEN movey = -inc
- IF keyval(scDown) AND 5 THEN movey = inc
- IF keyval(scLeft) AND 5 THEN movex = -inc
- IF keyval(scRight) AND 5 THEN movex = inc
+ IF keyval(ccUp) AND 5 THEN movey = -inc
+ IF keyval(ccDown) AND 5 THEN movey = inc
+ IF keyval(ccLeft) AND 5 THEN movex = -inc
+ IF keyval(ccRight) AND 5 THEN movex = inc
  ts.x = bound(ts.x + movex, 0, 320 - 20)
  ts.y = bound(ts.y + movey, 0, 200 - 20)
  IF (movex <> 0 OR movey <> 0) AND ts.gotmouse THEN movemouse ts.x, ts.y
@@ -2980,10 +2980,10 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   ELSE
    DIM movespeed as integer
    IF keyval(scShift) THEN movespeed = 9 ELSE movespeed = 1
-   IF keyval(scUp)    > 1 THEN pickpos.y -= movespeed
-   IF keyval(scDown)  > 1 THEN pickpos.y += movespeed
-   IF keyval(scleft)  > 1 THEN pickpos.x -= movespeed
-   IF keyval(scRight) > 1 THEN pickpos.x += movespeed
+   IF keyval(ccUp)    > 1 THEN pickpos.y -= movespeed
+   IF keyval(ccDown)  > 1 THEN pickpos.y += movespeed
+   IF keyval(ccleft)  > 1 THEN pickpos.x -= movespeed
+   IF keyval(ccRight) > 1 THEN pickpos.x += movespeed
    pickpos.x = bound(pickpos.x, 0, picksize.x - 1)
    pickpos.y = bound(pickpos.y, 0, picksize.y - 1)
   END IF
@@ -3093,11 +3093,11 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref impsp
    clicked_zone = mouseover(readmouse.x, readmouse.y, 0, 0, 0, ss.area())
   END IF
 
-  IF keyval(scLeft) > 1 OR keyval(scLeftBrace) > 1 OR clicked_zone = 5 THEN 'Prev pal
+  IF keyval(ccLeft) > 1 OR keyval(scLeftBrace) > 1 OR clicked_zone = 5 THEN 'Prev pal
    changepal ss, -1
    palstate.need_update = YES
   END IF
-  IF keyval(scRight) > 1 OR keyval(scRightBrace) > 1 OR clicked_zone = 6 THEN 'Next pal
+  IF keyval(ccRight) > 1 OR keyval(scRightBrace) > 1 OR clicked_zone = 6 THEN 'Next pal
    changepal ss, 1
    palstate.need_update = YES
   END IF
@@ -3531,10 +3531,10 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
  ' Change master palette index for the selected palette color
  ss.curcolor = ss.palette->col(ss.palindex)
  IF keyval(scAlt) > 0 THEN
-  IF keyval(scUp) > 1    AND ss.curcolor > 15  THEN ss.curcolor -= 16 : ss.showcolnum = COLORNUM_SHOW_TICKS
-  IF keyval(scDown) > 1  AND ss.curcolor < 240 THEN ss.curcolor += 16 : ss.showcolnum = COLORNUM_SHOW_TICKS
-  IF keyval(scLeft) > 1  AND ss.curcolor > 0   THEN ss.curcolor -= 1  : ss.showcolnum = COLORNUM_SHOW_TICKS
-  IF keyval(scRight) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1  : ss.showcolnum = COLORNUM_SHOW_TICKS
+  IF keyval(ccUp) > 1    AND ss.curcolor > 15  THEN ss.curcolor -= 16 : ss.showcolnum = COLORNUM_SHOW_TICKS
+  IF keyval(ccDown) > 1  AND ss.curcolor < 240 THEN ss.curcolor += 16 : ss.showcolnum = COLORNUM_SHOW_TICKS
+  IF keyval(ccLeft) > 1  AND ss.curcolor > 0   THEN ss.curcolor -= 1  : ss.showcolnum = COLORNUM_SHOW_TICKS
+  IF keyval(ccRight) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1  : ss.showcolnum = COLORNUM_SHOW_TICKS
  END IF
  IF ss.mouse.buttons > 0 ANDALSO ss.zonenum = 3 THEN
   ss.curcolor = ((ss.zone.y \ 6) * 16) + (ss.zone.x \ 4)
@@ -3554,10 +3554,10 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
   WITH ss
    fixmouse = NO
    DIM stepsize as integer = IIF(keyval(scShift) > 0, .fastmovestep, 1)
-   IF slowkey(scUp, 100)    THEN .y -= stepsize: fixmouse = YES
-   IF slowkey(scDown, 100)  THEN .y += stepsize: fixmouse = YES
-   IF slowkey(scLeft, 100)  THEN .x -= stepsize: fixmouse = YES
-   IF slowkey(scRight, 100) THEN .x += stepsize: fixmouse = YES
+   IF slowkey(ccUp, 100)    THEN .y -= stepsize: fixmouse = YES
+   IF slowkey(ccDown, 100)  THEN .y += stepsize: fixmouse = YES
+   IF slowkey(ccLeft, 100)  THEN .x -= stepsize: fixmouse = YES
+   IF slowkey(ccRight, 100) THEN .x += stepsize: fixmouse = YES
    .x = bound(.x, 0, .wide - 1)
    .y = bound(.y, 0, .high - 1)
   END WITH
@@ -3815,10 +3815,10 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
  IF ss.tool = scroll_tool AND keyval(scAlt) = 0 THEN
   DIM scrolloff as XYPair
   DIM stepsize as integer = IIF(keyval(scShift) > 0, ss.fastmovestep, 1)
-  IF slowkey(scUp, 100)    THEN scrolloff.y -= stepsize
-  IF slowkey(scDown, 100)  THEN scrolloff.y += stepsize
-  IF slowkey(scLeft, 100)  THEN scrolloff.x -= stepsize
-  IF slowkey(scRight, 100) THEN scrolloff.x += stepsize
+  IF slowkey(ccUp, 100)    THEN scrolloff.y -= stepsize
+  IF slowkey(ccDown, 100)  THEN scrolloff.y += stepsize
+  IF slowkey(ccLeft, 100)  THEN scrolloff.x -= stepsize
+  IF slowkey(ccRight, 100) THEN scrolloff.x += stepsize
   spriteedit_scroll ss, scrolloff.x, scrolloff.y
  END IF
  IF keyval(scI) > 1 OR (ss.zonenum = 13 AND (ss.mouse.release AND mouseLeft)) THEN
@@ -5013,10 +5013,10 @@ SUB AnimationEditor.edit_animation(anim_name as string)
     animating = YES
    ELSEIF keyval(scShift) > 0 AND op_idx >= 0 THEN
     ' Rearranging items
-    IF keyval(scUp) > 1 AND op_idx > 0 THEN
+    IF keyval(ccUp) > 1 AND op_idx > 0 THEN
      SWAP anim.ops(op_idx), anim.ops(op_idx - 1)
      state.pt -= 1
-    ELSEIF keyval(scDown) > 1 AND op_idx < UBOUND(anim.ops) THEN
+    ELSEIF keyval(ccDown) > 1 AND op_idx < UBOUND(anim.ops) THEN
      SWAP anim.ops(op_idx), anim.ops(op_idx + 1)
      state.pt += 1
     END IF

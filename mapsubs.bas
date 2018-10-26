@@ -1206,10 +1206,10 @@ DO
 
    DIM wallbit as integer = 0
    IF keyval(scCtrl) > 0 AND keyval(scShift) = 0 THEN
-    IF keyval(scUp) > 1    THEN wallbit = passNorthWall
-    IF keyval(scRight) > 1 THEN wallbit = passEastWall
-    IF keyval(scDown) > 1  THEN wallbit = passSouthWall
-    IF keyval(scLeft) > 1  THEN wallbit = passWestWall
+    IF keyval(ccUp) > 1    THEN wallbit = passNorthWall
+    IF keyval(ccRight) > 1 THEN wallbit = passEastWall
+    IF keyval(ccDown) > 1  THEN wallbit = passSouthWall
+    IF keyval(ccLeft) > 1  THEN wallbit = passWestWall
     IF keyval(scA) > 1 THEN wallbit = passVehA
     IF keyval(scB) > 1 THEN wallbit = passVehB
    END IF
@@ -1344,10 +1344,10 @@ DO
    'Note that pressing SPACE+arrow keys at the same time will place an NPC and
    'move the cursor: "RMZ-style NPC placement"
    IF (keyval(scCtrl) > 0 AND keyval(scShift) = 0) OR keyval(scSpace) > 1 THEN
-    IF slowkey(scUp, 660)    THEN npc_d = 0
-    IF slowkey(scRight, 660) THEN npc_d = 1
-    IF slowkey(scDown, 660)  THEN npc_d = 2
-    IF slowkey(scLeft, 660)  THEN npc_d = 3
+    IF slowkey(ccUp, 660)    THEN npc_d = 0
+    IF slowkey(ccRight, 660) THEN npc_d = 1
+    IF slowkey(ccDown, 660)  THEN npc_d = 2
+    IF slowkey(ccLeft, 660)  THEN npc_d = 3
    END IF
 
    'Place or delete an NPC
@@ -1495,15 +1495,15 @@ DO
  END IF
 
  'Keyboard camera+cursor controls
- IF keyval(scLeft) OR keyval(scRight) OR keyval(scUp) OR keyval(scDown) THEN st.mouse_active = NO
+ IF keyval(ccLeft) OR keyval(ccRight) OR keyval(ccUp) OR keyval(ccDown) THEN st.mouse_active = NO
  DIM rate as XYPair = (1, 1)
  IF keyval(scShift) > 0 THEN rate = st.shift_speed
  IF keyval(scAlt) = 0 AND keyval(scCtrl) = 0 THEN
   'Move cursor position
-  IF slowkey(scUp, 110) THEN st.y = large(st.y - rate.y, 0)
-  IF slowkey(scDown, 110) THEN st.y = small(st.y + rate.y, st.map.high - 1)
-  IF slowkey(scLeft, 110) THEN st.x = large(st.x - rate.x, 0)
-  IF slowkey(scRight, 110) THEN st.x = small(st.x + rate.x, st.map.wide - 1)
+  IF slowkey(ccUp, 110) THEN st.y = large(st.y - rate.y, 0)
+  IF slowkey(ccDown, 110) THEN st.y = small(st.y + rate.y, st.map.high - 1)
+  IF slowkey(ccLeft, 110) THEN st.x = large(st.x - rate.x, 0)
+  IF slowkey(ccRight, 110) THEN st.x = small(st.x + rate.x, st.map.wide - 1)
   IF mouse_pan = NO THEN  'Cursor can be offscreen while panning
    st.mapx = bound(st.mapx, (st.x + 1) * 20 - st.viewport.wide, st.x * 20)
    st.mapy = bound(st.mapy, (st.y + 1) * 20 - st.viewport.high, st.y * 20)
@@ -1512,10 +1512,10 @@ DO
  IF keyval(scAlt) > 0 AND keyval(scCtrl) = 0 THEN
   'Move camera position
   DIM oldrel as XYPair = st.pos - st.camera \ 20
-  IF slowkey(scUp, 110) THEN st.mapy -= 20 * rate.y
-  IF slowkey(scDown, 110) THEN st.mapy += 20 * rate.y
-  IF slowkey(scLeft, 110) THEN st.mapx -= 20 * rate.x
-  IF slowkey(scRight, 110) THEN st.mapx += 20 * rate.x
+  IF slowkey(ccUp, 110) THEN st.mapy -= 20 * rate.y
+  IF slowkey(ccDown, 110) THEN st.mapy += 20 * rate.y
+  IF slowkey(ccLeft, 110) THEN st.mapx -= 20 * rate.x
+  IF slowkey(ccRight, 110) THEN st.mapx += 20 * rate.x
   mapedit_constrain_camera st
   st.pos = st.camera \ 20 + oldrel
  END IF
@@ -1528,10 +1528,10 @@ DO
   st.mouse_skewing = YES
  END IF
  IF keyval(scShift) > 0 AND keyval(scCtrl) > 0 THEN
-  IF keyval(scLeft) > 0 THEN st.per_layer_skew.x -= 10
-  IF keyval(scRight) > 0 THEN st.per_layer_skew.x += 10
-  IF keyval(scUp) > 0 THEN st.per_layer_skew.y -= 10
-  IF keyval(scDown) > 0 THEN st.per_layer_skew.y += 10
+  IF keyval(ccLeft) > 0 THEN st.per_layer_skew.x -= 10
+  IF keyval(ccRight) > 0 THEN st.per_layer_skew.x += 10
+  IF keyval(ccUp) > 0 THEN st.per_layer_skew.y -= 10
+  IF keyval(ccDown) > 0 THEN st.per_layer_skew.y += 10
  ELSEIF st.mouse_skewing ANDALSO mouse.dragging AND mouseRight THEN
   DIM numlayers as integer = UBOUND(st.map.tiles) + 1  '+1 for overhead
   st.per_layer_skew = (mouse.pos - mouse.clickstart) '* 5 / numlayers
@@ -3283,7 +3283,7 @@ SUB mapedit_gmapdata(st as MapEditState)
     IF enter_space_click(state) THEN
      scriptbrowse(map.gmap(idx), plottrigger, "plotscript", YES, script_defaults(idx))
      state.need_update = YES
-    ELSEIF scrintgrabber(map.gmap(idx), -1, 0, scLeft, scRight, 1, plottrigger) THEN
+    ELSEIF scrintgrabber(map.gmap(idx), -1, 0, ccLeft, ccRight, 1, plottrigger) THEN
      state.need_update = YES
     END IF
    CASE 10 'Harm tile color
@@ -3430,7 +3430,7 @@ SUB mapedit_layers (st as MapEditState)
    'Moving layers up or down: state.pt needs to be updated afterwards, which happens
    'in mapedit_makelayermenu with resetpt = YES
 
-   IF keyval(scUp) > 1 AND fakelayerno > 0 THEN
+   IF keyval(ccUp) > 1 AND fakelayerno > 0 THEN
     IF fakelayerno = map.gmap(31) + 1 THEN
      'swapping with NPC/Hero layers
      map.gmap(31) += 1
@@ -3442,7 +3442,7 @@ SUB mapedit_layers (st as MapEditState)
     state.need_update = YES
    END IF
    'UBOUND(map.tiles) or UBOUND(map.tiles) + 1 is the maximum fakelayerno (can't adjust overhead tiles either)
-   IF keyval(scDown) > 1 THEN
+   IF keyval(ccDown) > 1 THEN
     IF layerno = 0 AND UBOUND(map.tiles) > 0 THEN
      'can't move npcs/heroes below layer 0, so swap with 2nd layer instead
      mapedit_swap_layers st, layerno, layerno + 1
@@ -3502,7 +3502,7 @@ SUB mapedit_layers (st as MapEditState)
       ToggleLayerEnabled(map.gmap(), layerno)
       state.need_update = YES
      END IF
-     IF layerisenabled(map.gmap(), layerno) AND (keyval(scLeft) > 1 OR keyval(scRight) > 1) THEN
+     IF layerisenabled(map.gmap(), layerno) AND (keyval(ccLeft) > 1 OR keyval(ccRight) > 1) THEN
       ToggleLayerVisible(st.visible(), layerno)
       state.need_update = YES
      END IF
@@ -4953,20 +4953,20 @@ SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
      EXIT DO
     END IF
    CASE 1
-    IF keyval(scLeft) > 0 THEN rs.rect.wide -= incval
-    IF keyval(scRight) > 0 THEN rs.rect.wide += incval
+    IF keyval(ccLeft) > 0 THEN rs.rect.wide -= incval
+    IF keyval(ccRight) > 0 THEN rs.rect.wide += incval
     resize_correct_width st, rs
    CASE 2
-    IF keyval(scLeft) > 0 THEN rs.rect.high -= incval
-    IF keyval(scRight) > 0 THEN rs.rect.high += incval
+    IF keyval(ccLeft) > 0 THEN rs.rect.high -= incval
+    IF keyval(ccRight) > 0 THEN rs.rect.high += incval
     resize_correct_height st, rs
    CASE 3
-    IF keyval(scLeft) > 0 THEN rs.rect.x -= incval: rs.rect.wide += incval
-    IF keyval(scRight) > 0 THEN rs.rect.x += incval: rs.rect.wide -= incval
+    IF keyval(ccLeft) > 0 THEN rs.rect.x -= incval: rs.rect.wide += incval
+    IF keyval(ccRight) > 0 THEN rs.rect.x += incval: rs.rect.wide -= incval
     resize_correct_width st, rs
    CASE 4
-    IF keyval(scLeft) > 0 THEN rs.rect.y -= incval: rs.rect.high += incval
-    IF keyval(scRight) > 0 THEN rs.rect.y += incval: rs.rect.high -= incval
+    IF keyval(ccLeft) > 0 THEN rs.rect.y -= incval: rs.rect.high += incval
+    IF keyval(ccRight) > 0 THEN rs.rect.y += incval: rs.rect.high -= incval
     resize_correct_height st, rs
   END SELECT
   IF keyval(scAnyEnter) > 1 THEN EXIT DO
@@ -5403,10 +5403,10 @@ SUB mapedit_pickblock(st as MapEditState)
   ' Cursor movement
   DIM repeatms as integer = 80
   IF keyval(scShift) > 0 THEN repeatms = 40
-  IF slowkey(scUp, repeatms) AND tilepick.y > 0 THEN tilepick.y -= 1
-  IF slowkey(scDown, repeatms) AND tilepick.y < tilesetview.high - 1 THEN tilepick.y += 1
-  IF slowkey(scLeft, repeatms) AND tilepick.x > 0 THEN tilepick.x -= 1
-  IF slowkey(scRight, repeatms) AND tilepick.x < tilesetview.wide - 1 THEN tilepick.x += 1
+  IF slowkey(ccUp, repeatms) AND tilepick.y > 0 THEN tilepick.y -= 1
+  IF slowkey(ccDown, repeatms) AND tilepick.y < tilesetview.high - 1 THEN tilepick.y += 1
+  IF slowkey(ccLeft, repeatms) AND tilepick.x > 0 THEN tilepick.x -= 1
+  IF slowkey(ccRight, repeatms) AND tilepick.x < tilesetview.wide - 1 THEN tilepick.x += 1
   IF mouse.buttons THEN
    IF mouse.x < tilesetview.wide * tilew AND mouse.y + scrolly < tilesetview.high * tileh THEN
     tilepick = (mouse.pos + XY(0, scrolly)) \ tilesize
@@ -6131,13 +6131,13 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
    CASE 10'--tag conditionals
     tag_grabber npcdata.tag2, ed.state
    CASE 11'--one-time-use tag
-    IF keyval(scLeft) > 1 OR keyval(scRight) > 1 OR enter_space_click(ed.state) THEN
+    IF keyval(ccLeft) > 1 OR keyval(ccRight) > 1 OR enter_space_click(ed.state) THEN
      onetimetog npcdata.usetag
     END IF
    CASE 12'--script
     IF enter_space_click(ed.state) THEN
      ed.scrname = scriptbrowse(npcdata.script, plottrigger, "NPC use plotscript")
-    ELSEIF scrintgrabber(npcdata.script, 0, 0, scLeft, scRight, 1, plottrigger) THEN
+    ELSEIF scrintgrabber(npcdata.script, 0, 0, ccLeft, ccRight, 1, plottrigger) THEN
      ed.scrname = scriptname(npcdata.script)
     END IF
    CASE 13

@@ -24,7 +24,7 @@ declare sub loadmap_zonemap(byval mapnum as integer)
 declare sub loadmap_bitmask (byval mapnum as integer, byval loadmask as integer)
 
 declare sub menusound(byval s as integer)
-declare sub usemenusounds (byval deckey as integer = scUp, byval inckey as integer = scDown)
+declare sub usemenusounds (byval deckey as integer = ccUp, byval inckey as integer = ccDown)
 declare sub dotimer(timercontext as TimerContextEnum)
 declare function dotimerbattle() as integer
 

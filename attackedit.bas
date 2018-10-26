@@ -2727,7 +2727,7 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
   END IF
   
   oldpt = hstate.pt
-  IF usemenu(hstate, scLeft, scRight) THEN
+  IF usemenu(hstate, ccLeft, ccRight) THEN
    state(hstate.pt).pt = small(state(oldpt).pt, state(hstate.pt).last)
   END IF
   FOR i as integer = 0 TO 4

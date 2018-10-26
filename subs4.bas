@@ -206,7 +206,7 @@ DO
     veh(offset(state.pt)) = large(0, veh(offset(state.pt)))
     scriptbrowse veh(offset(state.pt)), plottrigger, "vehicle plotscript"
     state.need_update = YES
-   ELSEIF scrintgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt), scLeft, scRight, 1, plottrigger) THEN
+   ELSEIF scrintgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt), ccLeft, ccRight, 1, plottrigger) THEN
     state.need_update = YES
    END IF
   CASE 13, 14 '--mount and dismount actions
@@ -217,7 +217,7 @@ DO
     scriptbrowse temptrig, plottrigger, "vehicle plotscript"
     veh(offset(state.pt)) = -temptrig
     state.need_update = YES
-   ELSEIF scrintgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt), scLeft, scRight, -1, plottrigger) THEN
+   ELSEIF scrintgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt), ccLeft, ccRight, -1, plottrigger) THEN
     state.need_update = YES
    END IF
  END SELECT
@@ -280,7 +280,7 @@ SUB generalscriptsmenu ()
    IF enter_space_click(state) THEN
     scriptbrowse(gen(scriptgenoff(state.pt)), plottrigger, scripttype(state.pt) + " script")
    ELSE
-    scrintgrabber(gen(scriptgenoff(state.pt)), 0, 0, scLeft, scRight, 1, plottrigger)
+    scrintgrabber(gen(scriptgenoff(state.pt)), 0, 0, ccLeft, ccRight, 1, plottrigger)
    END IF
   END IF
 
@@ -445,7 +445,7 @@ DO
  usemenu state
 
  oldpal = palnum
- IF keyval(scRight) > 1 AND palnum = gen(genMaxMasterPal) THEN
+ IF keyval(ccRight) > 1 AND palnum = gen(genMaxMasterPal) THEN
   palnum += 1
   IF needaddset(palnum, gen(genMaxMasterPal), "Master Palette") THEN
    IF importmasterpal("", palnum) THEN
@@ -462,8 +462,8 @@ DO
  IF state.pt = 1 THEN
   intgrabber(palnum, 0, gen(genMaxMasterPal))
  ELSE
-  IF keyval(scLeft) > 1 THEN palnum += gen(genMaxMasterPal)
-  IF keyval(scRight) > 1 THEN palnum += 1
+  IF keyval(ccLeft) > 1 THEN palnum += gen(genMaxMasterPal)
+  IF keyval(ccRight) > 1 THEN palnum += 1
   palnum = palnum MOD (gen(genMaxMasterPal) + 1)
  END IF
  IF palnum <> oldpal THEN

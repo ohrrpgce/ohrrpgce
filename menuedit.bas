@@ -208,7 +208,7 @@ SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuD
     scriptbrowse menudata.on_close, plottrigger, "menu on-close plotscript"
     state.need_update = YES
    END IF
-   IF scrintgrabber(menudata.on_close, 0, 0, scLeft, scRight, 1, plottrigger) THEN state.need_update = YES
+   IF scrintgrabber(menudata.on_close, 0, 0, ccLeft, ccRight, 1, plottrigger) THEN state.need_update = YES
   CASE 17: ' esc menu
    IF zintgrabber(menudata.esc_menu, -1, gen(genMaxMenu)) THEN state.need_update = YES
  END SELECT
@@ -246,12 +246,12 @@ SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as
     END IF
    END IF
    IF keyval(scShift) > 0 THEN
-    IF keyval(scUp) > 1 AND mstate.pt < mstate.last - 1 THEN ' just went up
+    IF keyval(ccUp) > 1 AND mstate.pt < mstate.last - 1 THEN ' just went up
      'NOTE: Cursor will have already moved because of usemenu call above
      swap_menu_items menudata, mstate.pt, menudata, mstate.pt + 1
      mstate.need_update = YES
     END IF
-    IF keyval(scDown) > 1 AND mstate.pt > mstate.first THEN ' just went down
+    IF keyval(ccDown) > 1 AND mstate.pt > mstate.first THEN ' just went down
      'NOTE: Cursor will have already moved because of usemenu call above
      swap_menu_items menudata, mstate.pt, menudata, mstate.pt - 1
      mstate.need_update = YES
@@ -327,7 +327,7 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
      max = gen(genMaxTextBox)
    END SELECT
    IF mi.t = mtypeScript THEN
-    IF scrintgrabber(mi.sub_t, 0, 0, scLeft, scRight, 1, plottrigger) THEN dstate.need_update = YES
+    IF scrintgrabber(mi.sub_t, 0, 0, ccLeft, ccRight, 1, plottrigger) THEN dstate.need_update = YES
     IF enter_space_click(dstate) THEN
      scriptbrowse mi.sub_t, plottrigger, "Menu Item Script"
      dstate.need_update = YES
@@ -545,10 +545,10 @@ SUB reposition_menu (menu as MenuDef, mstate as MenuState)
 
   DIM speed as integer = IIF(keyval(scShift) > 0, 10, 1)
   WITH menu.offset
-   IF keyval(scUp) > 1 THEN .y -= speed
-   IF keyval(scDown) > 1 THEN .y += speed
-   IF keyval(scLeft) > 1 THEN .x -= speed
-   IF keyval(scRight) > 1 THEN .x += speed
+   IF keyval(ccUp) > 1 THEN .y -= speed
+   IF keyval(ccDown) > 1 THEN .y += speed
+   IF keyval(ccLeft) > 1 THEN .x -= speed
+   IF keyval(ccRight) > 1 THEN .x += speed
   END WITH
 
   clearpage dpage
@@ -576,10 +576,10 @@ SUB reposition_anchor (menu as MenuDef, mstate as MenuState)
   IF keyval(scF1) > 1 THEN show_help "reposition_anchor"
   
   WITH menu
-   IF keyval(scUp) > 1 THEN .anchorvert = bound(.anchorvert - 1, alignTop, alignBottom)
-   IF keyval(scDown) > 1 THEN .anchorvert = bound(.anchorvert + 1, alignTop, alignBottom)
-   IF keyval(scLeft) > 1 THEN .anchorhoriz = bound(.anchorhoriz - 1, alignLeft, alignRight)
-   IF keyval(scRight) > 1 THEN .anchorhoriz = bound(.anchorhoriz + 1, alignLeft, alignRight)
+   IF keyval(ccUp) > 1 THEN .anchorvert = bound(.anchorvert - 1, alignTop, alignBottom)
+   IF keyval(ccDown) > 1 THEN .anchorvert = bound(.anchorvert + 1, alignTop, alignBottom)
+   IF keyval(ccLeft) > 1 THEN .anchorhoriz = bound(.anchorhoriz - 1, alignLeft, alignRight)
+   IF keyval(ccRight) > 1 THEN .anchorhoriz = bound(.anchorhoriz + 1, alignLeft, alignRight)
   END WITH
  
   clearpage dpage

@@ -322,12 +322,12 @@ DO
    songnum = newsong
    state.need_update = YES
   END IF
-  IF keyval(scLeft) > 1 AND songnum > 0 THEN
+  IF keyval(ccLeft) > 1 AND songnum > 0 THEN
    importsong_save_song_data songname, songnum
    songnum -= 1
    state.need_update = YES
   END IF
-  IF keyval(scRight) > 1 AND songnum < 32767 THEN
+  IF keyval(ccRight) > 1 AND songnum < 32767 THEN
    importsong_save_song_data songname, songnum
    songnum += 1
    IF needaddset(songnum, gen(genMaxSong), "song") THEN songname = ""
@@ -664,13 +664,13 @@ DO
    sfxnum = newsfx
    importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu(), metadata, selectable(), state
   END IF
-  IF keyval(scLeft) > 1 AND sfxnum > 0 THEN
+  IF keyval(ccLeft) > 1 AND sfxnum > 0 THEN
    importsfx_save_sfx_data sfxname, sfxnum
    freesfx sfxnum
    sfxnum -= 1
    importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu(), metadata, selectable(), state
   END IF
-  IF keyval(scRight) > 1 AND sfxnum < maxMaxSFX THEN
+  IF keyval(ccRight) > 1 AND sfxnum < maxMaxSFX THEN
    importsfx_save_sfx_data sfxname, sfxnum
    freesfx sfxnum
    sfxnum += 1

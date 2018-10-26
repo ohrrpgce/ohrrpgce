@@ -160,12 +160,12 @@ FUNCTION hero_editor (hero_id as integer) as integer
     saveherodata her, remem_hero_id
     hero_editor_load_hero st, her, hero_id
    END IF
-   IF keyval(scLeft) > 1 AND hero_id > 0 THEN
+   IF keyval(ccLeft) > 1 AND hero_id > 0 THEN
     saveherodata her, hero_id
     hero_id -= 1
     hero_editor_load_hero st, her, hero_id
    END IF
-   IF keyval(scRight) > 1 AND hero_id < maxMaxHero THEN
+   IF keyval(ccRight) > 1 AND hero_id < maxMaxHero THEN
     saveherodata her, hero_id
     hero_id += 1
     IF needaddset(hero_id, gen(genMaxHero), "hero") THEN
@@ -387,7 +387,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
   IF statnum < 0 THEN
    activemenu = 0
   ELSE
-   IF twomenus AND (keyval(scLeft) > 1 OR keyval(scRight) > 1) THEN activemenu XOR= 1
+   IF twomenus AND (keyval(ccLeft) > 1 OR keyval(ccRight) > 1) THEN activemenu XOR= 1
    IF activemenu = 0 THEN
     IF intgrabber(her.Lev0.sta(statnum), min(statnum), max(statnum), scLeftCaret, scRightCaret) THEN mstate.need_update = YES
    ELSE
@@ -608,14 +608,14 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
   IF keyval(scEsc) > 1 THEN EXIT DO
   
   IF mstate.pt >= 0 THEN
-   IF usemenu(mstate, scLeft, scRight) THEN
+   IF usemenu(mstate, ccLeft, ccRight) THEN
     mstate.need_update = YES
    ELSE
-    IF keyval(scUp) > 1 THEN
+    IF keyval(ccUp) > 1 THEN
      mstate.pt -= 3
      IF mstate.pt < 0 THEN mstate.pt = -1
      mstate.need_update = YES
-    ELSEIF keyval(scDown) > 1 THEN
+    ELSEIF keyval(ccDown) > 1 THEN
      mstate.pt += 3
      IF mstate.pt > mstate.last THEN mstate.pt = mstate.first
      mstate.need_update = YES
@@ -755,7 +755,7 @@ SUB hero_editor_edit_spell_list_slot (slot as SpellList)
    CASE 2:
     IF zintgrabber(slot.learned, -1, 99) THEN st.need_update = YES
    CASE 3:
-    IF enter_space_click(st) ORELSE keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+    IF enter_space_click(st) ORELSE keyval(ccLeft) > 1 ORELSE keyval(ccRight) > 1 THEN
      IF slot.learned > 0 THEN
       slot.learned = 0
      ELSE

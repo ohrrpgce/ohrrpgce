@@ -178,22 +178,22 @@ SUB reload_editor_rearrange(byref st as ReloadEditorState, mi as MenuDefItem Ptr
  END IF
  
  IF keyval(scShift) > 0 THEN
-  IF keyval(scUP) > 1 THEN
+  IF keyval(ccUP) > 1 THEN
    Reload.SwapNodePrev node
    st.seeknode = node
    changed = YES
   END IF
-  IF keyval(scDOWN) > 1 THEN
+  IF keyval(ccDOWN) > 1 THEN
    Reload.SwapNodeNext node
    st.seeknode = node
    changed = YES
   END IF
-  IF keyval(scLEFT) > 1 THEN
+  IF keyval(ccLEFT) > 1 THEN
    reload_editor_swap_node_left node
    st.seeknode = node
    changed = YES
   END IF
-  IF keyval(scRIGHT) > 1 THEN
+  IF keyval(ccRIGHT) > 1 THEN
    reload_editor_swap_node_right node
    st.seeknode = node
    changed = YES

@@ -173,10 +173,10 @@ SUB font_editor (fnt() as integer)
     END IF
    CASE 0 'Picking a character to edit
     IF keyval(scEsc) > 1 THEN mode = -1
-    IF keyval(scUp) > 1 THEN pt = large(pt - linesize, -1 * linesize)
-    IF keyval(scDown) > 1 THEN pt = small(pt + linesize, last)
-    IF keyval(scLeft) > 1 THEN pt = large(pt - 1, 0)
-    IF keyval(scRight) > 1 THEN pt = small(pt + 1, last)
+    IF keyval(ccUp) > 1 THEN pt = large(pt - linesize, -1 * linesize)
+    IF keyval(ccDown) > 1 THEN pt = small(pt + linesize, last)
+    IF keyval(ccLeft) > 1 THEN pt = large(pt - 1, 0)
+    IF keyval(ccRight) > 1 THEN pt = small(pt + 1, last)
     IF enter_or_space() THEN
      IF pt < 0 THEN
       mode = -1
@@ -188,10 +188,10 @@ SUB font_editor (fnt() as integer)
     END IF
    CASE 1 ' Editing a character
     IF keyval(scEsc) > 1 OR keyval(scAnyEnter) > 1 THEN mode = 0
-    IF keyval(scUp) > 1 THEN loopvar y, 0, 7, -1
-    IF keyval(scDown) > 1 THEN loopvar y, 0, 7, 1
-    IF keyval(scLeft) > 1 THEN loopvar x, 0, 7, -1
-    IF keyval(scRight) > 1 THEN loopvar x, 0, 7, 1
+    IF keyval(ccUp) > 1 THEN loopvar y, 0, 7, -1
+    IF keyval(ccDown) > 1 THEN loopvar y, 0, 7, 1
+    IF keyval(ccLeft) > 1 THEN loopvar x, 0, 7, -1
+    IF keyval(ccRight) > 1 THEN loopvar x, 0, 7, 1
     IF keyval(scSpace) > 1 THEN
      setbit fnt(), 0, (f(pt) * 8 + x) * 8 + y, (readbit(fnt(), 0, (f(pt) * 8 + x) * 8 + y) XOR 1)
      setfont fnt()

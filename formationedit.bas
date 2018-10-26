@@ -210,10 +210,10 @@ SUB hero_formation_editor ()
      thiswidth = hrect->Width
      thisheight = hrect->Height
     END IF
-    IF keyval(scUp) > 0 THEN .pos.y -= movespeed
-    IF keyval(scDown) > 0 THEN .pos.y += movespeed
-    IF keyval(scLeft) > 0 THEN .pos.x -= movespeed
-    IF keyval(scRight) > 0 THEN .pos.x += movespeed
+    IF keyval(ccUp) > 0 THEN .pos.y -= movespeed
+    IF keyval(ccDown) > 0 THEN .pos.y += movespeed
+    IF keyval(ccLeft) > 0 THEN .pos.x -= movespeed
+    IF keyval(ccRight) > 0 THEN .pos.x += movespeed
     IF readmouse.dragging AND mouseLeft THEN
      .pos += (readmouse.pos - readmouse.lastpos)
     END IF
@@ -355,10 +355,10 @@ SUB individual_formation_editor ()
     IF sprite THEN size = sprite->Size
     ' Note that enemy positions are the top-left corner of the sprite
     ' (which needs to be changed)
-    IF keyval(scUp) > 0 THEN .pos.y -= movespeed
-    IF keyval(scDown) > 0 THEN .pos.y += movespeed
-    IF keyval(scLeft) > 0 THEN .pos.x -= movespeed
-    IF keyval(scRight) > 0 THEN .pos.x += movespeed
+    IF keyval(ccUp) > 0 THEN .pos.y -= movespeed
+    IF keyval(ccDown) > 0 THEN .pos.y += movespeed
+    IF keyval(ccLeft) > 0 THEN .pos.x -= movespeed
+    IF keyval(ccRight) > 0 THEN .pos.x += movespeed
     IF readmouse.dragging AND mouseLeft THEN
      .pos += (readmouse.pos - readmouse.lastpos)
     END IF

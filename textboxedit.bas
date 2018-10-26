@@ -168,9 +168,9 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
      ' Ctrl+Left/Right links to previous/next box. We actually let scrintgrabber
      ' handle that, by starting at box.after. So continuing to press Ctrl+Left/Right works.
      IF keyval(scCtrl) > 0 AND box.after = 0 THEN
-      IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN box.after = st.id
+      IF keyval(ccLeft) > 1 OR keyval(ccRight) > 1 THEN box.after = st.id
      END IF
-     IF scrintgrabber(box.after, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger) THEN
+     IF scrintgrabber(box.after, 0, gen(genMaxTextbox), ccLeft, ccRight, -1, plottrigger) THEN
       textbox_set_after_textbox box, box.after
       SaveTextBox box, st.id
       update_textbox_editor_main_menu box, menu()
@@ -411,7 +411,7 @@ SUB textbox_conditionals(byref box as TextBox)
      END IF
     END IF
    CASE condBOXorSCRIPT
-    scrintgrabber num, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger
+    scrintgrabber num, 0, gen(genMaxTextbox), ccLeft, ccRight, -1, plottrigger
     IF enter_space_click(state) THEN
      num = textbox_conditional_textbox_or_script_picker(num, state)
     END IF
@@ -794,10 +794,10 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
   IF enter_or_space() THEN EXIT DO
   DIM as integer speed = IIF(keyval(scShift), 10, 1)
   DIM as integer delay = IIF(keyval(scShift), 55, 90)
-  IF slowkey(scLeft, delay)  THEN box.portrait_pos.x -= speed
-  IF slowkey(scRight, delay) THEN box.portrait_pos.x += speed
-  IF slowkey(scUp, delay)    THEN box.portrait_pos.y -= speed
-  IF slowkey(scDown, delay)  THEN box.portrait_pos.y += speed
+  IF slowkey(ccLeft, delay)  THEN box.portrait_pos.x -= speed
+  IF slowkey(ccRight, delay) THEN box.portrait_pos.x += speed
+  IF slowkey(ccUp, delay)    THEN box.portrait_pos.y -= speed
+  IF slowkey(ccDown, delay)  THEN box.portrait_pos.y += speed
 
   textbox_draw_with_background box, st, backdrop, dpage
   edgeprint "Arrow keys to move, space to confirm", 0, 0, uilook(uiSelectedItem + tog), dpage
@@ -879,7 +879,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
   END IF
   IF keyval(scAlt) = 0 THEN
    'Not holding ALT
-   IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN
+   IF keyval(ccLeft) > 1 OR keyval(ccRight) > 1 THEN
     SELECT CASE menu[state.pt].dat
      CASE 7: box.no_box = (NOT box.no_box)
      CASE 8: box.opaque = (NOT box.opaque)
@@ -1261,7 +1261,7 @@ SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
    IF state.pt = 1 THEN box.choice_enabled = (NOT box.choice_enabled)
   END IF
   IF state.pt = 1 THEN
-   IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN box.choice_enabled = (NOT box.choice_enabled)
+   IF keyval(ccLeft) > 1 OR keyval(ccRight) > 1 THEN box.choice_enabled = (NOT box.choice_enabled)
   END IF
   FOR i as integer = 0 TO 1
    IF state.pt = 2 + (i * 2) THEN strgrabber box.choice(i), 15
@@ -1371,8 +1371,8 @@ SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu
   IF keyval(scEsc) > 1 THEN EXIT SUB
   IF keyval(scF1) > 1 THEN show_help "textbox_connections"
   '--Horizontal column navigation
-  IF keyval(scLeft) > 1 THEN loopvar column, col_limit_left, col_limit_right, -1
-  IF keyval(scRight) > 1 THEN loopvar column, col_limit_left, col_limit_right, 1
+  IF keyval(ccLeft) > 1 THEN loopvar column, col_limit_left, col_limit_right, -1
+  IF keyval(ccRight) > 1 THEN loopvar column, col_limit_left, col_limit_right, 1
   '--Vertical navigation within selected column
   SELECT CASE column
    CASE 0 'Previous

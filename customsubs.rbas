@@ -263,7 +263,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as bool=NO, byval
     NEXT i
    END IF
   ELSEIF showsign THEN
-   IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+   IF keyval(ccLeft) > 1 ORELSE keyval(ccRight) > 1 THEN
     tagsign = tagsign * -1
    END IF
   END IF
@@ -510,7 +510,7 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
       '...and numerals enter from the left
       temp = 0
       'Don't erase previous value when trying to inc/decrement it
-      IF keyval(scLeft) > 0 OR keyval(scRight) > 0 THEN temp = .varnum
+      IF keyval(ccLeft) > 0 OR keyval(ccRight) > 0 THEN temp = .varnum
       IF intgrabber(temp, 0, maxScriptGlobals, , , YES) THEN
        .varnum = temp
        .editstate = 6
@@ -559,7 +559,7 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
       temp = 0
       'IF .editstate <> 2 THEN temp = .value
       'Don't erase previous value when trying to inc/decrement it
-      IF keyval(scLeft) > 0 OR keyval(scRight) > 0 THEN temp = .value
+      IF keyval(ccLeft) > 0 OR keyval(ccRight) > 0 THEN temp = .value
       IF intgrabber(temp, -2147483648, 2147483647, , , YES) THEN
        .value = temp
        .editstate = 3
@@ -813,10 +813,10 @@ FUNCTION charpicker() as string
   END IF
   IF keyval(scF1) > 1 THEN show_help "charpicker"
 
-  IF keyval(scUp) > 1 THEN pt = large(pt - linesize, 0)
-  IF keyval(scDown) > 1 THEN pt = small(pt + linesize, last)
-  IF keyval(scLeft) > 1 THEN pt = large(pt - 1, 0)
-  IF keyval(scRight) > 1 THEN pt = small(pt + 1, last)
+  IF keyval(ccUp) > 1 THEN pt = large(pt - linesize, 0)
+  IF keyval(ccDown) > 1 THEN pt = small(pt + linesize, last)
+  IF keyval(ccLeft) > 1 THEN pt = large(pt - 1, 0)
+  IF keyval(ccRight) > 1 THEN pt = small(pt + 1, last)
 
   IF enter_or_space() THEN
    setkeys
@@ -1405,7 +1405,7 @@ END FUNCTION
 'add a new set. DOES NOT INCREMENT max. Check whether pt > max to see whether this
 'needs to be handled.
 'maxmax is max value of max, of course
-FUNCTION intgrabber_with_addset(byref pt as integer, byval min as integer, byval max as integer, byval maxmax as integer=32767, what as string, byval less as integer=scLeft, byval more as integer=scRight) as integer
+FUNCTION intgrabber_with_addset(byref pt as integer, byval min as integer, byval max as integer, byval maxmax as integer=32767, what as string, byval less as integer=ccLeft, byval more as integer=ccRight) as integer
  IF keyval(more) > 1 AND pt = max AND max < maxmax THEN
   IF yesno("Add new " & what & "?") THEN
    pt += 1
@@ -1413,7 +1413,7 @@ FUNCTION intgrabber_with_addset(byref pt as integer, byval min as integer, byval
   END IF
   RETURN NO
  ELSE
-  IF less = scUp ANDALSO more = scDown THEN
+  IF less = ccUp ANDALSO more = ccDown THEN
    'special case to work around a strange bug in mac os x sprite brows menu arrow key handling
    RETURN intgrabber(pt, min, max, scComma, scPeriod, NO, NO)
   ELSE
@@ -1687,10 +1687,10 @@ SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as intege
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpkey
   IF enter_or_space() THEN EXIT DO
-  IF keyval(scLeft) > 0  THEN x -= 1
-  IF keyval(scRight) > 0 THEN x += 1
-  IF keyval(scUp) > 0    THEN y -= 1
-  IF keyval(scDown) > 0  THEN y += 1
+  IF keyval(ccLeft) > 0  THEN x -= 1
+  IF keyval(ccRight) > 0 THEN x += 1
+  IF keyval(ccUp) > 0    THEN y -= 1
+  IF keyval(ccDown) > 0  THEN y += 1
 
   clearpage dpage
   DrawSlice sl, dpage
@@ -1722,10 +1722,10 @@ SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as in
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpkey
   IF enter_or_space() THEN EXIT DO
-  IF keyval(scLeft) > 0  THEN x -= 1
-  IF keyval(scRight) > 0 THEN x += 1
-  IF keyval(scUp) > 0    THEN y -= 1
-  IF keyval(scDown) > 0  THEN y += 1
+  IF keyval(ccLeft) > 0  THEN x -= 1
+  IF keyval(ccRight) > 0 THEN x += 1
+  IF keyval(ccUp) > 0    THEN y -= 1
+  IF keyval(ccDown) > 0  THEN y += 1
 
   clearpage dpage
   drawbox rCenter - wide, rCenter - high, wide * 2, high * 2, uilook(uiSelectedDisabled), 1, dpage
@@ -2320,8 +2320,8 @@ FUNCTION attack_chain_browser (byval start_attack as integer) as integer
     END IF
    END IF
 
-   IF keyval(scLeft) > 1 THEN loopvar(state.column, 0, 2, -1) : state.refresh = YES
-   IF keyval(scRight) > 1 THEN loopvar(state.column, 0, 2, 1) : state.refresh = YES
+   IF keyval(ccLeft) > 1 THEN loopvar(state.column, 0, 2, -1) : state.refresh = YES
+   IF keyval(ccRight) > 1 THEN loopvar(state.column, 0, 2, 1) : state.refresh = YES
    SELECT CASE state.column
     CASE 0: IF usemenu(state.before) THEN state.refresh = YES
     CASE 1: 
@@ -3114,10 +3114,10 @@ END SUB
 FUNCTION reorderable_node(byval node as NodePtr) as integer
  IF keyval(scShift) > 0 THEN
   IF node THEN
-   IF keyval(scUp) > 1 THEN
+   IF keyval(ccUp) > 1 THEN
     SwapNodePrev node
     RETURN YES
-   ELSEIF keyval(scDown) > 1 THEN
+   ELSEIF keyval(ccDown) > 1 THEN
     SwapNodeNext node
     RETURN YES
    END IF
@@ -3420,23 +3420,23 @@ SUB platform_options_append_gamepad_button_menu_items (byval gamepad as NodePtr,
  NEXT bnum
 END SUB
 
-FUNCTION prompt_for_scancode () as integer
+FUNCTION prompt_for_scancode () as KBScancode
  'Return a user-specified scancode, or -1 if cancelled.
  
- DIM result as integer = -1
+ DIM result as KBScancode = -1
  
  DIM instructions as string = "To choose a key, press and hold the desired key until the flashing bar fills. Tap ESC briefly to cancel."
  DIM toomany as string = "That is too many keys, please just press one."
  DIM nowrelease as string = "New key confirmed! Now release it."
 
- DIM pressed as integer
+ DIM pressed as KBScancode
  DIM presstime as double ' the timestamp when the key was first pressed
  DIM heldfor as double ' the number of seconds the key has been held
  DIM threshold as double = 1.
  DIM keylist as string
  DIM keyname as string
  DIM count as integer
- DIM confirmed as integer = 0
+ DIM confirmed as KBScancode = 0
  DIM bartog as bool = NO
  
  DIM root as Slice Ptr
@@ -3566,7 +3566,7 @@ FUNCTION prompt_for_scancode () as integer
  RETURN result
 END FUNCTION
 
-FUNCTION scancode_to_name(byval sc as integer) as string
+FUNCTION scancode_to_name(byval sc as KBScancode) as string
  'Return a string name for a given scancode, or "" if it doesn't know what the scancode is.
  'Only includes scancodes that gfx_sdl knows how to translate into SDL scancodes
  STATIC scNames(127) as string
@@ -3768,11 +3768,11 @@ SUB edit_button_name_strings()
   node = menu.items[st.pt]->dataptr
   
   IF t = buttonnameBROWSE THEN
-   IF keyval(scLeft) > 1 THEN
+   IF keyval(ccLeft) > 1 THEN
     loopvar keynum, 0, UBOUND(plat_key), -1
     st.need_update = YES
    END IF
-   IF keyval(scRight) > 1 THEN
+   IF keyval(ccRight) > 1 THEN
     loopvar keynum, 0, UBOUND(plat_key), 1
     st.need_update = YES
    END IF
@@ -4180,7 +4180,7 @@ SUB edit_purchase_details (byval prod as NodePtr)
      END IF
     END IF
    CASE editpurchTOGGLEREPEATABLE:
-    IF enter_space_click(st) ORELSE keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+    IF enter_space_click(st) ORELSE keyval(ccLeft) > 1 ORELSE keyval(ccRight) > 1 THEN
      ToggleChildNode node, "repeatable"
      st.need_update = YES
     END IF
