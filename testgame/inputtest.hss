@@ -76,7 +76,8 @@ end
 #into the lookup for convenience (and for testing)
 script, set slice lookups, sl, begin
   if (get slice extra (sl, 0)) then (
-    set slice lookup (sl, get slice extra (sl, 0))
+    # Offet by 100 to allow negative scancode while avoiding disallowed negative lookup codes
+    set slice lookup (sl, 100 + get slice extra (sl, 0))
   )
 
   variable (child)
@@ -89,13 +90,13 @@ end
 
 script, update keyboard, begin
   variable (i, sl, st)
-  for (i, 0, 127) do, begin
-    sl := lookup slice (i)
+  for (i, -8, 127) do, begin
+    sl := lookup slice (100 + i)
     if (sl == 0) then (continue)
 
     set rect style(sl, keyval(i) + 1)
 
-	if (keyval(i)) then (
+    if (keyval(i)) then (
       input hash += (input hash * 333667), xor, (tick * 367 + i * 336667 + keyval(i) * 3336677)  # primes
     )
   end
