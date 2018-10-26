@@ -1474,6 +1474,9 @@ END SUB
 FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as uinteger, byref x as integer, byref y as integer) as integer
   IF joynum < 0 ORELSE joynum >= maxJoysticks THEN RETURN 0
 
+  'SDL reports joystick state even when the app isn't focused (under both Linux and Windows)
+  IF (SDL_GetAppState() AND SDL_APPINPUTFOCUS) = 0 THEN RETURN 0
+
   DIM byref joy as SDL_Joystick ptr = joystickhandles(joynum)
   IF joy = NULL THEN
     IF joynum > SDL_NumJoysticks() - 1 THEN RETURN 0

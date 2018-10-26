@@ -2642,7 +2642,7 @@ function keybd_to_joy_scancode(key as KBScancode) as JoyScancode
 	end select
 end function
 
-'TODO: this always returns 2!
+'TODO: this always returns 4!
 function num_joysticks () as integer
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
 	return ubound(inputst->joys) + 1
