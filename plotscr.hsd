@@ -31,7 +31,7 @@ define function, begin
 6,suspendplayer,0           # stop the player from controlling stuff (except text boxes)
 7,resumenpcs,0              # resume npc automation
 8,resumeplayer,0            # unlock players controls
-9,waitforkey,1,99           # wait for a keypress
+9,waitforkey,1,-1           # wait for a keypress (scancode)
 10,walkhero,3,0,2,1         # walk hero(who,direction,distance)
 11,showtextbox,1,1          # show a text box
 12,checktag,1,0             # returns the value of a tag
@@ -51,7 +51,7 @@ define function, begin
 27,suspendoverlay,0         # turns off overhead tiles
 28,playsong,1,0             # play song(#)
 29,stopsong,0               # stop the music
-30,keyval,1,0               # check key by scancode - returns value from keyval array
+30,keyval,2,0,0             # check key/joystick/virtual scancode state bits (scancode, joystick num)
 31,rankincaterpillar,1,0    # finds the heros position in the caterpillar
 32,showbackdrop,1,0         # showbackdrop (#)
 33,showmap,0                # cancels a showbackdrop
@@ -254,7 +254,7 @@ define function, begin
 232,trace,1,0                 #writes the provided string to G_DEBUG.txt
 233,getsongname,2,0,0         #get song name and store in string (string id, song)
 234,loadmenu,2,1,1            #show loadmenu (really load/quit?, show new game)
-235,keyispressed,2,0,0        #check key by scancode, returns a bool
+235,keyispressed,2,0,0        #check key is down, returns true/false (scancode, joystick num)
 236,soundisplaying,1,0        #checks to see if a sound is playing (soundID)
 #237,soundslots,0              #returns the number of slots available
 238,searchstring,3,0,0,1      #Search string, (ID1,ID2,start)
