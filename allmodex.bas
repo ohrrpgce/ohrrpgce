@@ -2288,7 +2288,7 @@ private sub update_carray ()
 			for idx as integer = 0 to ubound(.controls)
 				with .controls(idx)
 					if .ckey then
-						carray(.ckey) or= joykeyval(.scancode)
+						carray(.ckey) or= joykeyval(.scancode, joynum)
 					end if
 				end with
 			next
