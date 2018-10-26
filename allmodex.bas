@@ -24,7 +24,6 @@ using Reload
 
 #ifdef IS_GAME
  #include "game.bi"  'For exit_gracefully
- #include "gglobals.bi"  'For carray
 #endif
 
 #ifdef IS_CUSTOM
@@ -143,6 +142,8 @@ redim fonts(3) as Font ptr
 'Toggles 0-1 every time dowait is called
 dim global_tog as integer
 
+redim carray(7) as integer  'FIXME: 7 is the wrong size, only used because of old code
+
 'Convert scancodes to text; Enter does not insert newline!
 'This array is a global instead of an internal detail because it's used by charpicker and the font editor
 'to work out key mapping for the extended characters. Would be nice if it weren't needed.
@@ -224,15 +225,25 @@ dim shared log_slow as bool = NO            'Enable spammy debug_if_slow logging
 
 type InputStateFwd as InputState
 
+'Mapping from a scancode to a carray() index (action)
+type ControlKey
+	scancode as integer                 'Either a KBScancode or JoyScancode
+	ckey as KBScancode                  'A cc* virtual scancode: index in carray()
+end type
+
 ' Shared by KeyboardState and JoystickState, this holds down/triggered/new-press
 ' state of an array of keys/buttons.
 type KeyArray extends Object
 	keys(any) as KeyBits                'State of each key
 	key_down_ms(any) as integer         'ms each key has been down
 	arrow_key_down_ms as integer        'Max ms that any arrow key has been down
+	controls(any) as ControlKey         'Mapping from scancodes to controls
+	                                    'The reason that controls() is in this UDT is so that we can
+	                                    'replay input which has controls set up differently.
 
 	' Redim the arrays. (Not a constructor, because that's a nuisance for globals)
 	declare sub init(maxkey as integer)
+	declare abstract sub init_controls()
 	declare abstract sub update_arrow_keydown_time()
 	declare sub update_keydown_times(inputst as InputStateFwd)
 	declare function key_repeating(key as integer, is_arrowkey as bool, repeat_wait as integer, repeat_rate as integer, byref inputst as InputStateFwd) as KeyBits
@@ -243,6 +254,7 @@ type KeyboardState extends KeyArray
 	inputtext as string
 
 	declare constructor()
+	declare sub init_controls()
 	declare sub reset()
 	declare sub update_keybits()
 	declare sub update_arrow_keydown_time()
@@ -271,6 +283,7 @@ type JoystickState extends KeyArray
 	menu_button as integer	= 1  'Which button is the menu key
 
 	declare constructor()
+	declare sub init_controls()
 	declare sub update_keybits(joynum as integer)
 	declare sub update_arrow_keydown_time()
 end type
@@ -1654,9 +1667,7 @@ sub clearkeys()
 	for k as KBScancode = 0 to scLAST
 		clearkey(k)
 	next
-	#ifdef IS_GAME
-		flusharray carray(), 7, 0
-	#endif
+	flusharray carray()
 	mouse_state.clearclick(mouseLeft)
 	mouse_state.clearclick(mouseRight)
 	mouse_state.clearclick(mouseMiddle)
@@ -2020,6 +2031,7 @@ end function
 sub KeyArray.init(maxkey as integer)
 	redim keys(maxkey)
 	redim key_down_ms(maxkey)
+	init_controls()
 end sub
 
 constructor KeyboardState()
@@ -2036,6 +2048,31 @@ constructor JoystickState()
 	init(joyLAST)
 end constructor
 
+sub KeyboardState.init_controls()
+	redim controls(10)
+	controls(0)  = TYPE(scUp,     ccUp)
+	controls(1)  = TYPE(scDown,   ccDown)
+	controls(2)  = TYPE(scLeft,   ccLeft)
+	controls(3)  = TYPE(scRight,  ccRight)
+	controls(4)  = TYPE(scCtrl,   ccUse)
+	controls(5)  = TYPE(scSpace,  ccUse)
+	controls(6)  = TYPE(scEnter,  ccUse)
+	controls(7)  = TYPE(scAlt,    ccMenu)
+	controls(8)  = TYPE(scEsc,    ccMenu)
+	controls(9)  = TYPE(scEsc,    ccRun)
+	controls(10) = TYPE(scTab,    ccRun)  'Who knew?
+end sub
+
+sub JoystickState.init_controls()
+	redim controls(6)
+	controls(0) = TYPE(joyUp,       ccUp)
+	controls(1) = TYPE(joyDown,     ccDown)
+	controls(2) = TYPE(joyLeft,     ccLeft)
+	controls(3) = TYPE(joyRight,    ccRight)
+	controls(4) = TYPE(joyButton1,  ccUse)
+	controls(5) = TYPE(joyButton2,  ccMenu)
+	controls(6) = TYPE(joyButton2,  ccRun)
+end sub
 
 'Poll io backend to update key state bits, and then handle all special scancodes.
 'keybd() should be dimmed at least (0 to scLAST)
@@ -2132,9 +2169,7 @@ sub KeyboardState.update_keybits()
 end sub
 
 'This is similar to io_keybits for a single joystick:
-'it updates a JoystickState with currently-down and new-keypress bits, and also reads axes().
-'Returns true on success (ie the joystick exists)
-'We use the thresholds set by the calibrate screen.
+'it updates a JoystickState with currently-down and new-keypress bits.
 'Basically it does a similar thing to the pollingthread, emulating new-keypress
 'bits which the backend doesn't support.
 sub JoystickState.update_keybits(joynum as integer)
@@ -2198,6 +2233,32 @@ sub KeyArray.update_keydown_times (inputst as InputState)
 	update_arrow_keydown_time
 end sub
 
+private sub update_carray ()
+	flusharray carray()
+
+	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+
+	'inputst->kb.update_carray
+	with inputst->kb
+		for idx as integer = 0 to ubound(.controls)
+			with .controls(idx)
+				carray(.ckey) or= keyval(.scancode)
+			end with
+		next
+	end with
+
+	for joynum as integer = 0 to ubound(inputst->joys)
+		'inputst->joys(joynum).update_carray
+		with inputst->joys(joynum)
+			for idx as integer = 0 to ubound(.controls)
+				with .controls(idx)
+					carray(.ckey) or= joykeyval(.scancode)
+				end with
+			next
+		end with
+	next
+end sub
+
 sub setkeys (enable_inputtext as bool = NO)
 'Updates the keyboard state to reflect new keypresses
 'since the last call, also clears all keypress events (except key-is-down)
@@ -2258,6 +2319,8 @@ sub setkeys (enable_inputtext as bool = NO)
 			replay_input.joys(joynum).update_keydown_times(replay_input)
 		next
 	end if
+
+	update_carray()
 
 	'Taking a screenshot with gfx_directx is very slow, so avoid timing that
 	if log_slow then debug_if_slow(starttime, 0.005, replay.active)

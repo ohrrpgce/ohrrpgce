@@ -3,9 +3,6 @@
 
 #include "reload.bi"
 
-DECLARE SUB defaultc
-DECLARE sub control
-
 DECLARE SUB apply_game_window_settings (reloading as bool = NO)
 DECLARE SUB set_speedcontrol ()
 

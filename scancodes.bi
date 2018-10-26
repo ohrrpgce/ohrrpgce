@@ -198,6 +198,8 @@ CONST scResize = 183   'The window was resized
 
 ENUM 'JoyScancode
  joyButton1  = 0
+ joyButton2  = 1
+ joyButton3  = 2
  joyButton32 = 31
  joyLeft     = 32
  joyRight    = 33

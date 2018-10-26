@@ -122,7 +122,6 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
   END IF
   
   playtimer
-  control
 
   IF get_gen_bool("/mouse/mouse_menus") THEN
    IF panel ANDALSO SliceCollidePoint(panel, readmouse.pos) THEN
@@ -1223,7 +1222,6 @@ DO
  setwait speedcontrol
  setkeys
  IF loading = NO THEN playtimer
- control
  IF carray(ccMenu) > 1 THEN
   MenuSound gen(genCancelSFX)
   IF loading THEN ret_slot = -2 ELSE ret_slot = -1
@@ -1319,7 +1317,6 @@ FUNCTION picksave_confirm(menu() as string, byval loading as bool, byval newgame
   setkeys
   tog = tog XOR 1
   playtimer
-  control
   IF carray(ccMenu) > 1 THEN
    MenuSound gen(genCancelSFX)
    RETURN NO
@@ -1540,7 +1537,6 @@ DO
  setkeys
  tog = tog XOR 1
  playtimer
- control
  
  DIM do_quit as bool = NO
  DIM do_pick as bool = NO
@@ -2095,7 +2091,6 @@ SUB status_screen (byval slot as integer)
   setwait speedcontrol
   setkeys
   playtimer
-  control
   IF carray(ccMenu) > 1 THEN EXIT DO
   DIM do_next as bool = NO
   IF carray(ccUse) > 1 THEN do_next = YES
@@ -2497,7 +2492,6 @@ FUNCTION item_screen () as integer
   setwait speedcontrol
   setkeys
   playtimer
-  control
   
   IF carray(ccMenu) > 1 THEN
    item_screen_cancel_action st
@@ -2709,7 +2703,6 @@ SUB spell_screen (byval slot as integer)
   setwait speedcontrol
   setkeys
   playtimer
-  control
   IF carray(ccMenu) > 1 THEN EXIT DO
   IF carray(ccUse) > 1 THEN
   END IF
@@ -3102,7 +3095,6 @@ DO
  setkeys
  tog = tog XOR 1
  playtimer
- control
  IF st.mode = 0 THEN
   equip_menu_controls_slot_picker st
  ELSE
@@ -3494,7 +3486,6 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   loopvar wtogl, 0, 3
 
   playtimer
-  control
   do_effect = NO
   
   '--handle keys
@@ -3996,7 +3987,6 @@ SUB old_spells_menu (byval who as integer)
   sp.tog = sp.tog XOR 1
   loopvar wtogl, 0, 3
   playtimer
-  control
   spells_menu_control sp
   IF sp.quit THEN EXIT DO
   copypage holdscreen, sp.page
@@ -4228,7 +4218,6 @@ FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1
  DO
   setwait speedcontrol
   setkeys
-  control
 
   IF readmouse.buttons AND mouseLeft THEN
    IF st.pushed_sl = 0 THEN

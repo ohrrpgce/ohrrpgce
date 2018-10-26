@@ -162,7 +162,6 @@ FUNCTION battle (byval form as integer) as bool
   setkeys
   bat.tog XOR= 1
   playtimer
-  control
 
   '--background animation
   battle_background_anim bat, formdata

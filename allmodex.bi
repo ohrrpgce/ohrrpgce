@@ -734,6 +734,7 @@ declare sub email_files(address as string, subject as string, message as string,
 '==========================================================================================
 '                                         Globals
 
+extern carray() as integer
 extern gfxmutex as any ptr
 extern main_thread_in_gfx_backend as bool
 extern modex_initialised as bool

@@ -100,7 +100,6 @@ REDIM boxlook(uiBoxLast) as BoxStyle
 DIM statnames() as string
 REDIM herotags(maxMaxHero) as HeroTagsCache
 REDIM itemtags(maxMaxItems) as ItemTagsCache
-DIM joy(4) as integer
 DIM vpage as integer = 0
 DIM dpage as integer = 1
 DIM activepalette as integer = -1

@@ -494,7 +494,6 @@ DO
   hero_swap_menu_mouse_control st
  END IF
  
- control
  IF carray(ccMenu) > 1 THEN
   IF st.swapme >= 0 THEN
    MenuSound gen(genCancelSFX)
@@ -836,7 +835,6 @@ SUB minimap (playerpos as XYPair)
   setkeys
   tog = tog XOR 1
   playtimer
-  control
   rectangle indicator.x, indicator.y, zoom, zoom, uilook(uiSelectedItem) * tog, vpage
   setvispage vpage
   dowait
@@ -908,7 +906,6 @@ FUNCTION teleporttool () as bool
   setkeys
   toggle XOR= 1
 
-  control
 
   'Cap to a maximum zoom because createminimap draws the whole map and is really slow
   IF keyval(scMinus) > 1 THEN
@@ -1065,7 +1062,6 @@ DO
  setkeys
  tog = tog XOR 1
  playtimer
- control
  loopvar walktoggle, 0, 3, 1
  DIM do_exit as bool = NO
  IF carray(ccMenu) > 1 THEN do_exit = YES
@@ -1193,7 +1189,6 @@ ELSE
   setwait speedcontrol
   setkeys YES
   playtimer
-  control
   IF carray(ccUse) > 1 AND keyval(scSpace) = 0 THEN
    IF LEN(gam.hero(who).name) > 0 THEN
     ret = YES
@@ -1585,7 +1580,6 @@ DO
  setkeys
  tog = tog XOR 1
  playtimer
- control
  usemenu st
  usemenusounds
  
@@ -1718,7 +1712,6 @@ DO
  setkeys
  tog = tog XOR 1
  playtimer
- control
  DIM do_pick as bool = NO
  DIM do_quit as bool = NO
  IF carray(ccMenu) > 1 THEN do_quit = YES

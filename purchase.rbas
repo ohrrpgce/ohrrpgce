@@ -119,8 +119,7 @@ SUB purchases_menu ()
    
   END IF '--done updating menu
 
-  control
-  IF usemenu(st, csetup(ccUp), csetup(ccDown)) THEN
+  IF usemenu(st) THEN  ', ccUp, ccDown) THEN  'FIXME
    menusound gen(genCursorSFX)
   END IF
   IF carray(ccUse) > 1 THEN do_pick = YES

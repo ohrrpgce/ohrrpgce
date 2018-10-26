@@ -176,11 +176,6 @@ REDIM mstates(0) as MenuState
 DIM topmenu as integer = -1
 REDIM remembered_menu_pts(0) as integer  'True slot number of the selected menu item when the menu was last closed
 
-REDIM csetup(12) as integer
-REDIM carray(13) as integer
-REDIM joy(14) as integer
-REDIM gotj(7) as bool
-
 'Script interpreter
 DIM nowscript as integer = -1
 DIM scriptret as integer
@@ -321,17 +316,7 @@ setfont current_font()
 clearpage vpage
 setvispage vpage, NO
 
-'-- Init joysticks
-'-- Find which joysticks are present (this is a DOS-ism, the active joysticks are probably
-'-- numbered 0 through n-1).
-'-- FIXME: Also, this is definitely wrong for gfx_directx, which removes a joystick, renumbering the
-'-- others, if it can't read it.
-FOR i as integer = 0 TO UBOUND(gotj)
- gotj(i) = readjoy(joy(), i)
-NEXT i
-
 gen(genJoy) = 1  'joystick enabled by default
-defaultc  'set up default controls
 
 DIM gp as GamePadMap
 gp.A = scEnter
@@ -782,7 +767,6 @@ DO
  update_virtual_gamepad_display()
  setkeys gam.getinputtext_enabled
  'debug_mouse_state()
- control
 
  '--Debug keys
  IF always_enable_debug_keys OR prefbit(8) = NO THEN check_debug_keys()  '"Disable Debugging Keys" off
@@ -3005,7 +2989,7 @@ FUNCTION update_menu_item (mi as MenuDefItem) as bool
 END FUNCTION
 
 FUNCTION game_usemenu (state as MenuState, menu as MenuDef) as bool
- RETURN usemenu(state, menu, csetup(ccUp), csetup(ccDown))
+ RETURN usemenu(state, menu) ', ccUp, ccDown)  FIXME
 END FUNCTION
 
 FUNCTION allowed_to_open_main_menu () as bool
