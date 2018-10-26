@@ -129,7 +129,7 @@ FUNCTION hero_editor (hero_id as integer) as integer
   setwait 55
   setkeys YES
   animate_hero_preview st
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_editor"
   IF cropafter_keycombo(mstate.pt = 1) THEN
    'FIXME: this only clears the old .dt0 file, not the new heroes.reld file
@@ -214,7 +214,7 @@ FUNCTION hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recinde
     setwait 55
     animate_hero_preview st
     setkeys
-    IF keyval(scESC) > 1 THEN  'cancel
+    IF keyval(ccCancel) > 1 THEN  'cancel
       recindex -= 1
       EXIT DO
     END IF
@@ -362,7 +362,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
  DO
   setwait 55
   setkeys
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_stats"
   IF keyval(scF6) > 1 THEN slice_editor rootsl, SL_COLLECT_EDITOR
 
@@ -521,7 +521,7 @@ SUB hero_editor_spell_lists_toplevel (her as HeroDef)
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_spell_menu_types"
   usemenu mstate
   DIM listnum as integer = mstate.pt - 1
@@ -605,7 +605,7 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
   setwait 55
   setkeys YES
   IF keyval(scF1) > 1 THEN show_help "hero_spells"
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   
   IF mstate.pt >= 0 THEN
    IF usemenu(mstate, ccLeft, ccRight) THEN
@@ -741,7 +741,7 @@ SUB hero_editor_edit_spell_list_slot (slot as SpellList)
   setwait 55
   setkeys
   IF keyval(scF1) > 1 THEN show_help "hero_spells_slot"
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   
   usemenu st
 
@@ -817,7 +817,7 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
   setwait 55
   setkeys YES
   IF keyval(scF1) > 1 THEN show_help "hero_battle_menu_edit"
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
 
   IF st.need_update THEN
    InitLikeStandardMenu menu
@@ -981,7 +981,7 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
   setwait 55
   setkeys YES
   IF keyval(scF1) > 1 THEN show_help "hero_battle_menu_item"
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
 
   IF st.need_update THEN
    ClearMenuData menu
@@ -1128,7 +1128,7 @@ SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
   setwait 55
   setkeys
   IF keyval(scF1) > 1 THEN show_help "browse_battle_menu_kinds"
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   
   IF st.need_update THEN
    ClearMenuData menu
@@ -1228,7 +1228,7 @@ SUB edit_tag_range_check (byref check as TagRangeCheck)
   setwait 55
   setkeys
   IF keyval(scF1) > 1 THEN show_help "edit_tag_range_check_" & kind_name
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   
   IF usemenu(st) THEN
    check.max = bound(check.max, check.min, 99)
@@ -1326,7 +1326,7 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
  DO
   setwait 55
   setkeys
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_tags"
   usemenu st, tagmenu.selectable()
   WITH hero
@@ -1510,7 +1510,7 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
   setwait 55
   setkeys
   animate_hero_preview st
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_appearance"
   usemenu state
   st.previewframe = -1
@@ -1623,7 +1623,7 @@ SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
  DO
   setwait 55
   setkeys
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_equipment"
   usemenu state
   IF enter_space_click(state) THEN
@@ -1708,7 +1708,7 @@ SUB hero_editor_counterattacks (hero as HeroDef)
   setwait 55
   setkeys
   IF keyval(scF1) > 1 THEN show_help "hero_counterattacks"
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   
   usemenu st
 

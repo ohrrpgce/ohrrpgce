@@ -1314,7 +1314,7 @@ setkeys YES
 DO
  setwait 55
  setkeys YES
- IF keyval(scESC) > 1 THEN
+ IF keyval(ccCancel) > 1 THEN
   IF menudepth = 1 THEN
    atk_edit_backptr workmenu(), mainMenu(), state, laststate, menudepth
    flexmenu_update_selectable workmenu(), menutype(), selectable()
@@ -1691,7 +1691,7 @@ FUNCTION atk_edit_add_new (recbuf() as integer, preview_box as Slice Ptr) as boo
   DO
     setwait 55
     setkeys
-    IF keyval(scESC) > 1 THEN setkeys : RETURN NO  'cancel
+    IF keyval(ccCancel) > 1 THEN setkeys : RETURN NO  'cancel
     IF keyval(scF1) > 1 THEN show_help "attack_new"
     usemenu state
     IF state.pt = 2 THEN
@@ -2714,7 +2714,7 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
   setwait 33
   setkeys
 
-  IF keyval(scEsc) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    result = base_num
    EXIT DO
   END IF

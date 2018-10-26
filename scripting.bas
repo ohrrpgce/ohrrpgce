@@ -1474,7 +1474,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
   setwait 55
   setkeys
 
-  IF keyval(scEsc) > 1 THEN 'ignore
+  IF keyval(ccCancel) > 1 THEN 'ignore
    EXIT DO 
   END IF
 
@@ -1597,7 +1597,7 @@ FUNCTION script_interrupt () as integer
   setwait 55
   setkeys
 
-  IF keyval(scEsc) > 1 THEN 'continue
+  IF keyval(ccCancel) > 1 THEN 'continue
    EXIT DO 
   END IF
 

@@ -143,7 +143,7 @@ SUB distribute_game ()
   setwait 55
   setkeys
 
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "distribute_game"
   IF enter_space_click(st) THEN
    SELECT CASE menu[st.pt].dat
@@ -232,7 +232,7 @@ SUB edit_distrib_info ()
   setwait 55
   setkeys YES
 
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN
    SELECT CASE st.pt
     CASE 1: show_help "edit_distrib_info_pkgname"

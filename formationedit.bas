@@ -52,7 +52,7 @@ SUB formation_editor
  DO
   setwait 55
   setkeys
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "formation_main"
   usemenu state
   IF enter_space_click(state) THEN
@@ -92,7 +92,7 @@ SUB formation_set_editor
  DO
   setwait 55
   setkeys
-  IF keyval(scESC) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    SaveFormationSet formset, set_id
    EXIT DO
   END IF
@@ -199,7 +199,7 @@ SUB hero_formation_editor ()
   setkeys
   IF positioning_mode = YES THEN
    '--hero positioning mode
-   IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
+   IF keyval(ccCancel) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
    IF readmouse.release AND mouseRight THEN setkeys: positioning_mode = NO
    IF keyval(scF1) > 1 THEN show_help "hero_formation_editor_placement"
    DIM as integer thiswidth = 0, thisheight = 0, movespeed = 1
@@ -224,7 +224,7 @@ SUB hero_formation_editor ()
   END IF
   IF positioning_mode = NO THEN
    '--menu mode
-   IF keyval(scESC) > 1 THEN
+   IF keyval(ccCancel) > 1 THEN
     EXIT DO
    END IF
    IF keyval(scF1) > 1 THEN show_help "hero_formation_editor"
@@ -344,7 +344,7 @@ SUB individual_formation_editor ()
   IF keyval(scF6) > 1 THEN slice_editor rootslice, SL_COLLECT_EDITOR
   IF positioning_mode = YES THEN
    '--enemy positioning mode
-   IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
+   IF keyval(ccCancel) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
    IF readmouse.release AND mouseRight THEN setkeys: positioning_mode = NO
    IF keyval(scF1) > 1 THEN show_help "formation_editor_placement"
    DIM as integer movespeed = 1
@@ -371,7 +371,7 @@ SUB individual_formation_editor ()
   END IF
   IF positioning_mode = NO THEN
    '--menu mode
-   IF keyval(scESC) > 1 THEN
+   IF keyval(ccCancel) > 1 THEN
     EXIT DO
    END IF
    IF keyval(scF1) > 1 THEN show_help "formation_editor"

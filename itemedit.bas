@@ -124,7 +124,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "item_editor"
   usemenu state
   enable_strgrabber = NO
@@ -378,7 +378,7 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
  DO
   setwait 55
   setkeys YES
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpfile
   IF st.pt = 0 THEN
    IF enter_space_click(st) THEN EXIT DO
@@ -464,7 +464,7 @@ SUB item_editor_stat_bonuses(itembuf() as integer)
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "equipment_stat_bonuses"
   usemenu state
   IF enter_space_click(state) THEN

@@ -142,7 +142,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_main"
   IF cropafter_keycombo(state.pt = 1) THEN
    cropafter st.id, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY)
@@ -355,7 +355,7 @@ SUB textbox_conditionals(byref box as TextBox)
   setwait 55
   setkeys
   state.tog = state.tog XOR 1
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_conditions"
   usemenu state
   IF keyval(scDelete) > 1 THEN ' Pressed the delete key
@@ -789,7 +789,7 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
   setwait 55
   setkeys
   tog = tog XOR 1
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_position_portrait"
   IF enter_or_space() THEN EXIT DO
   DIM as integer speed = IIF(keyval(scShift), 10, 1)
@@ -829,7 +829,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
  DO
   setwait 55
   setkeys
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_appearance"
   usemenu state, cast(BasicMenuItem vector, menu)
   IF enter_space_click(state) THEN
@@ -1202,7 +1202,7 @@ SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
  DO
   setwait 55
   setkeys YES
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_line_editor"
 
   DIM newtext as string = text
@@ -1253,7 +1253,7 @@ SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
  DO
   setwait 55
   setkeys YES
-  IF keyval(scEsc) > 1 THEN EXIT SUB
+  IF keyval(ccCancel) > 1 THEN EXIT SUB
   IF keyval(scF1) > 1 THEN show_help "textbox_choice_editor"
   usemenu state
   IF enter_space_click(state) THEN
@@ -1368,7 +1368,7 @@ SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu
    NEXT i
    do_search = NO
   END IF
-  IF keyval(scEsc) > 1 THEN EXIT SUB
+  IF keyval(ccCancel) > 1 THEN EXIT SUB
   IF keyval(scF1) > 1 THEN show_help "textbox_connections"
   '--Horizontal column navigation
   IF keyval(ccLeft) > 1 THEN loopvar column, col_limit_left, col_limit_right, -1

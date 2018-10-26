@@ -215,7 +215,7 @@ DO
  setkeys YES
  browse_update_layout br, tree()
 
- IF keyval(scEsc) > 1 THEN EXIT DO
+ IF keyval(ccCancel) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help helpkey
  IF usemenu(br.mstate) THEN br.mstate.need_update = YES
  mouse_drag_menu(br.mstate)
@@ -382,7 +382,7 @@ frame_unload @holdpage2
 frame_draw holdpage3, , 0, 0, , NO, vpages(3)
 frame_unload @holdpage3
 
-clearkey(scESC)
+setkeys
 RETURN ret
 
 END FUNCTION

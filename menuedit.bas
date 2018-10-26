@@ -136,7 +136,7 @@ ClearMenuData detail
 END SUB
 
 SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuDef, byref record as integer, menu_set as MenuSet)
- IF keyval(scESC) > 1 THEN state.active = NO
+ IF keyval(ccCancel) > 1 THEN state.active = NO
  IF keyval(scF1) > 1 THEN show_help "menu_editor_main"
  
  usemenu state
@@ -218,7 +218,7 @@ SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as
  DIM i as integer
  DIM elem as integer
 
- IF keyval(scESC) > 1 THEN
+ IF keyval(ccCancel) > 1 THEN
   mstate.active = NO
   menudata.edit_mode = NO
   mstate.need_update = YES
@@ -289,7 +289,7 @@ END SUB
 SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as MenuDef, mi as MenuDefItem)
  DIM max as integer
 
- IF keyval(scESC) > 1 THEN
+ IF keyval(ccCancel) > 1 THEN
   dstate.active = NO
   mstate.active = YES
   EXIT SUB
@@ -540,7 +540,7 @@ SUB reposition_menu (menu as MenuDef, mstate as MenuState)
   setwait 55
   setkeys
 
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "reposition_menu"
 
   DIM speed as integer = IIF(keyval(scShift) > 0, 10, 1)
@@ -572,7 +572,7 @@ SUB reposition_anchor (menu as MenuDef, mstate as MenuState)
   setkeys
   tog = tog XOR 1
  
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "reposition_anchor"
   
   WITH menu

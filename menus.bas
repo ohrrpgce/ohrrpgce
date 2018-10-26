@@ -1826,7 +1826,7 @@ SUB run_MenuDef(menu as MenuDef, each_tick as FnMenuLogic, dataptr as any ptr = 
   setwait 55
   setkeys YES
   usemenu state
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF each_tick(menu, state, dataptr) THEN EXIT DO
   copypage holdscreen, vpage
   draw_menu menu, state, vpage
@@ -1906,7 +1906,7 @@ SUB ModularMenu.run()
   setwait 55
   setkeys YES
   usemenu state
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF LEN(helpkey) AND keyval(scF1) > 1 THEN show_help helpkey
   IF each_tick() THEN EXIT DO
   IF state.need_update THEN

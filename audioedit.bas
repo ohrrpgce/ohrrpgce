@@ -165,7 +165,7 @@ FUNCTION pick_ogg_quality(byref quality as integer) as bool
  DO
   setwait 55
   setkeys
-  IF keyval(scESC) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    RETURN NO  'cancelled
   END IF
   IF keyval(scF1) > 1 THEN show_help "pick_ogg_quality"
@@ -303,7 +303,7 @@ setkeys YES
 DO
  setwait 55
  setkeys YES
- IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(ccCancel) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "import_songs"
  IF keyval(scF2) > 1 THEN Custom_volume_menu
  IF keyval(scF3) > 1 THEN music_backend_menu
@@ -645,7 +645,7 @@ setkeys YES
 DO
  setwait 55
  setkeys YES
- IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(ccCancel) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "import_sfx"
  IF keyval(scF2) > 1 THEN Custom_volume_menu
  IF keyval(scF3) > 1 THEN music_backend_menu
@@ -884,7 +884,7 @@ SUB generalmusicsfxmenu ()
     setwait 55
     setkeys YES
 
-    IF keyval(scESC) > 1 THEN EXIT DO
+    IF keyval(ccCancel) > 1 THEN EXIT DO
     IF keyval(scF1) > 1 THEN show_help "general_music_sfx"
     IF keyval(scF2) > 1 THEN Custom_volume_menu
     usemenu state

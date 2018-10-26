@@ -133,7 +133,7 @@ SUB editor_editor()
    st.state.need_update = NO
   END IF
   
-  IF keyval(scESC) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    IF ee_okay_to_unload(st) THEN EXIT DO 
   END IF
   IF keyval(scF1) > 1 THEN show_help("editor_editor")
@@ -712,7 +712,7 @@ FUNCTION widget_editor(byval widget as NodePtr) as bool
    init_menu_state st.state, st.menu
   END IF
   
-  IF keyval(scESC) > 1 ORELSE st.exit_please THEN
+  IF keyval(ccCancel) > 1 ORELSE st.exit_please THEN
    EXIT DO 
   END IF
   IF keyval(scF1) > 1 THEN show_help("widget_editor")

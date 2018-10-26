@@ -99,7 +99,7 @@ SUB editor_runner(byval root as NodePtr)
    es.need_update = NO
   END IF
 
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   
   IF keyval(scF6) THEN slice_editor es.root_sl, SL_COLLECT_EDITOR
 

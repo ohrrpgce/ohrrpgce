@@ -474,7 +474,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   setwait 55
   setkeys
 
-  IF keyval(scEsc) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    IF ses.hide_mode <> hideNothing THEN
     ses.hide_mode = hideNothing
    ELSE
@@ -1066,7 +1066,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
  DO
   setwait 55
   setkeys YES
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "sliceedit_" & rules(state.pt).helpkey
   IF keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD 3
   IF keyval(scF7) > 1 THEN ses.show_ants = NOT ses.show_ants
@@ -1383,7 +1383,7 @@ SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Sl
  DO
   setwait 55
   setkeys
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF enter_or_space() THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "sliceedit_xy"
   IF keyval(scF7) > 1 THEN show_ants = NOT show_ants
@@ -2200,7 +2200,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
 
   usemenu st, cast(BasicMenuItem vector, menu)
   curcode = v_at(menu, st.pt)->dat
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "slice_lookup_codes"
   IF keyval(scSpace) = 0 ANDALSO enter_space_click(st) THEN
    IF curcode <> -1 THEN result = curcode  'Not 'Previous Menu'

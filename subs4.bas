@@ -164,7 +164,7 @@ DO
   menu(14) = "On Dismount: " + tmp
   menu(15) = "Elevation: " & veh(offset(15)) & " pixels"
  END IF
- IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(ccCancel) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "vehicle_editor"
  usemenu state
  SELECT CASE state.pt
@@ -269,7 +269,7 @@ SUB generalscriptsmenu ()
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "global_scripts"
   usemenu state, selectable()
   IF state.pt = 0 THEN
@@ -349,7 +349,7 @@ SUB script_error_mode_menu ()
   setwait 55
   setkeys YES
 
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "general_script_error"
    usemenu state
 
@@ -440,7 +440,7 @@ DO
  setwait 55
  setkeys YES
 
- IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(ccCancel) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "master_palette_menu"
  usemenu state
 
@@ -661,7 +661,7 @@ DO
  setwait 55
  setkeys YES
  tog = tog XOR 1
- IF keyval(scEsc) > 1 THEN EXIT DO
+ IF keyval(ccCancel) > 1 THEN EXIT DO
  IF keyval(scEnter) > 1 THEN
 '  IF oldpassword = NO THEN
  writepassword pas
@@ -829,7 +829,7 @@ SUB battleoptionsmenu ()
   setwait 55
   setkeys YES
 
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "battle_system_options"
   usemenu state, enabled()
   IF enter_space_click(state) THEN
@@ -903,7 +903,7 @@ SUB statcapsmenu
   setwait 55
   setkeys YES
 
-  IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_space_click(state)) THEN EXIT DO
+  IF keyval(ccCancel) > 1 OR (state.pt = 0 AND enter_space_click(state)) THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "stat_caps_menu"
   usemenu state
   IF state.pt > 0 THEN
@@ -1025,7 +1025,7 @@ SUB equipmergemenu
   setwait 55
   setkeys
   tog XOR= 1
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "equip_elemental_formula"
   IF enter_space_click(st) THEN
    IF st.pt = 0 THEN
@@ -1085,7 +1085,7 @@ SUB startingdatamenu
   setwait 55
   setkeys YES
 
-  IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_space_click(state)) THEN EXIT DO
+  IF keyval(ccCancel) > 1 OR (state.pt = 0 AND enter_space_click(state)) THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "new_game_data"
   usemenu state
   IF state.pt = 6 THEN
@@ -1334,7 +1334,7 @@ SUB general_data_editor ()
   setwait 55
   setkeys YES
 
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "general_game_data"
   usemenu state, genmenu.selectable()
 

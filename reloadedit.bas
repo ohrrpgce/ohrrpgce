@@ -77,7 +77,7 @@ SUB reload_editor()
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    IF reload_editor_okay_to_unload(st) THEN EXIT DO 
   END IF
   IF keyval(scF1) > 1 THEN show_help("reload_editor")

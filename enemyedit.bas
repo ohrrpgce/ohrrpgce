@@ -702,7 +702,7 @@ setkeys YES
 DO
  setwait 55
  setkeys YES
- IF keyval(scESC) > 1 THEN
+ IF keyval(ccCancel) > 1 THEN
   IF menudepth THEN
    enemy_edit_backmenu state, lastptr, lasttop, menudepth, workmenu(), mainMenu()
    helpkey = "enemy"
@@ -999,7 +999,7 @@ FUNCTION enemy_edit_add_new (recbuf() as integer, preview_box as Slice ptr) as b
   DO
     setwait 55
     setkeys
-    IF keyval(scESC) > 1 THEN setkeys : RETURN NO 'cancel
+    IF keyval(ccCancel) > 1 THEN setkeys : RETURN NO 'cancel
     IF keyval(scF1) > 1 THEN show_help "enemy_new"
     usemenu state
     IF state.pt = 2 THEN

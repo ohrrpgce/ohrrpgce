@@ -1341,7 +1341,7 @@ SUB showerror (zmsg as zstring ptr, byval isfatal as bool = NO, isbug as bool = 
  setvispage vpage, NO
 
  DIM key as integer = waitforanykey
- IF isfatal ORELSE (num_errors >= 3 ANDALSO key = scEsc) THEN
+ IF isfatal ORELSE (num_errors >= 3 ANDALSO key = scEsc) THEN  'No way to check for ccCancel...
   fatal_error_shutdown
  END IF
  debug "showerror: user continued"
@@ -2247,7 +2247,7 @@ SUB pop_warning(msg as zstring ptr, byval autoquit as integer = NO)
   END IF
   
   IF deadkeys = 0 THEN
-   IF keyval(scESC) > 1 OR enter_or_space() OR click_dismiss() THEN EXIT DO
+   IF keyval(ccCancel) > 1 OR enter_or_space() OR click_dismiss() THEN EXIT DO
    IF keyval(ccUp) > 1 THEN dat->first_line -= 1
    IF keyval(ccDown) > 1 THEN dat->first_line += 1
    dat->first_line = bound(dat->first_line, 0, large(0, dat->line_count - dat->line_limit))
@@ -2316,7 +2316,7 @@ FUNCTION prompt_for_string (byref retstring as string, caption as string, limit 
   setwait 40
   setkeys YES
   IF keyval(scF6) > 1 THEN slice_editor root, SL_COLLECT_EDITOR, "prompt_for_string.slice"
-  IF keyval(scESC) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    prompt_for_string = NO
    EXIT DO
   END IF
@@ -2503,7 +2503,7 @@ SUB show_help(helpkey as zstring ptr)
   END IF
 
   IF deadkeys = 0 THEN
-   IF keyval(scESC) > 1 AND (editing OR searchstring = "") THEN
+   IF keyval(ccCancel) > 1 AND (editing OR searchstring = "") THEN
     '--If there are any changes to the help screen, offer to save them
     IF original_text = help_str THEN
      EXIT DO
@@ -2538,7 +2538,7 @@ SUB show_help(helpkey as zstring ptr)
     'Fancy new incremental search
     DIM advance_dir as integer = -2
     DIM update as bool = NO
-    IF keyval(scESC) > 1 THEN searchstring = "" : advance_dir = 0
+    IF keyval(ccCancel) > 1 THEN searchstring = "" : advance_dir = 0
     'Forward/backward search
     DIM temp as integer = find_next_or_prev_keychord()
     IF temp <> 0 THEN advance_dir = temp
@@ -2726,7 +2726,7 @@ FUNCTION multiline_string_editor(s as string, helpkey as string="", prompt_to_sa
   cursor_line = stredit(textstring, dat->insert, , dat->line_limit, text->Width \ 8)
   ChangeTextSlice text, textstring
 
-  IF keyval(scESC) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    '--If there are any changes to the help screen, offer to save them
    IF s = dat->s THEN
     EXIT DO
@@ -2869,7 +2869,7 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
   setwait 55
   setkeys
 
-  IF keyval(scEsc) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    result = escval
    state.active = NO
   END IF
@@ -3059,7 +3059,7 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
    END IF
    RETURN ""
   END IF
-  IF keyval(scEsc) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    kill_process handle
    cleanup_process @handle
    setkeys
@@ -6105,7 +6105,7 @@ FUNCTION decode_backslash_codes(s as string, context as string = "", byref show_
  END IF
  IF icon_warn AND show_warnings THEN
   visible_debug context & " This string contains characters which apparently aren't in your font. Maybe your text editor saved the file using the wrong encoding? Expected " & encoding_name & !". (Press ESC to skip warnings)\n\n" & s
-  IF keyval(scESC) THEN show_warnings = NO
+  IF keyval(ccCancel) THEN show_warnings = NO
  END IF
  RETURN result
 END FUNCTION
@@ -6198,8 +6198,8 @@ FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref director
   setwait 55
   setkeys YES
   tog = tog XOR 1
-  IF keyval(scEsc) > 1 THEN
-   clearkey scEsc
+  IF keyval(ccCancel) > 1 THEN
+   setkeys
    RETURN ""
   END IF
   IF keyval(scF1) > 1 THEN show_help helpkey
@@ -6608,7 +6608,7 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   DIM showcol as integer = IIF(mouse_over_grid AND mouse_active, mouse_hover_col, ret)
 
   'ESC or right click outside to go back
-  IF keyval(scESC) > 1 ORELSE (mouse_over_grid = NO ANDALSO (mouse.release AND mouseRight)) THEN
+  IF keyval(ccCancel) > 1 ORELSE (mouse_over_grid = NO ANDALSO (mouse.release AND mouseRight)) THEN
    ret = start_color
    EXIT DO
   END IF

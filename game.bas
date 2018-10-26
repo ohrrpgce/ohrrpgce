@@ -4695,7 +4695,7 @@ SUB battle_formation_testing_menu()
   setwait 55
   setkeys
 
-  IF keyval(scEsc) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    EXIT DO
   END IF
   IF keyval(scF1) > 1 THEN show_help "game_formation_testing"

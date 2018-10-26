@@ -1844,7 +1844,7 @@ SUB live_preview_menu ()
   setkeys
   IF running_as_slave THEN try_to_reload_lumps_onmap
 
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "game_live_preview_menu"
 
   LPM_update menu1, st1, tooltips()

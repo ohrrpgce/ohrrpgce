@@ -87,7 +87,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   setwait 55
   setkeys YES
 
-  if keyval(scEsc) > 1 then
+  if keyval(ccCancel) > 1 then
    'cancel out of the browser
    result = start_id
    exit do

@@ -430,7 +430,7 @@ SUB main_editor_menu()
   setkeys YES
 
   usemenu state
-  IF keyval(scEsc) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    prompt_for_save_and_quit
   END IF
   IF keyval(scF1) > 1 THEN
@@ -523,7 +523,7 @@ SUB gfx_editor_menu()
  DO
   setwait 55
   setkeys YES
-  IF keyval(scEsc) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    EXIT DO
   END IF
   IF keyval(scF1) > 1 THEN
@@ -599,7 +599,7 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
  DO
   setwait 55
   setkeys
-  IF keyval(scEsc) > 1 THEN cleanup_and_terminate
+  IF keyval(ccCancel) > 1 THEN cleanup_and_terminate
   IF keyval(scF1) > 1 THEN show_help "choose_rpg"
   IF keyval(scF6) > 1 THEN slice_editor root, SL_COLLECT_EDITOR, "choose_rpg.slice"
 
@@ -705,7 +705,7 @@ SUB prompt_for_password()
   setwait 55
   setkeys YES
   tog = tog XOR 1
-  IF keyval(scEsc) > 0 THEN cleanup_and_terminate
+  IF keyval(ccCancel) > 0 THEN cleanup_and_terminate
   IF keyval(scAnyEnter) > 1 THEN
    IF checkpassword(pas) THEN
     EXIT SUB
@@ -950,7 +950,7 @@ FUNCTION shop_editor (shop_id as integer) as integer
  DO
   setwait 55
   setkeys YES
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "shop_main"
   IF cropafter_keycombo(shopst.st.pt = 1) THEN cropafter shopst.id, gen(genMaxShop), 0, game + ".sho", 40
   usemenu shopst.st
@@ -1048,7 +1048,7 @@ SUB shop_add_new (shopst as ShopEditState)
   DO
     setwait 55
     setkeys
-    IF keyval(scESC) > 1 THEN  'cancel
+    IF keyval(ccCancel) > 1 THEN  'cancel
       shopst.id -= 1
       EXIT DO
     END IF
@@ -1151,7 +1151,7 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
   setwait 55
   setkeys YES
 
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "shop_stuff"
   IF stuf.st.pt = 0 ANDALSO enter_space_click(stuf.st) THEN EXIT DO
 
@@ -1927,7 +1927,7 @@ SUB secret_menu ()
  DO
   setwait 55
   setkeys
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF enter_space_click(st) THEN
    IF st.pt = 0 THEN slice_editor SL_COLLECT_EDITOR, get_data_dir() & SLASH "blank.slice", YES
    IF st.pt = 1 THEN reload_editor
@@ -1991,7 +1991,7 @@ SUB resolution_menu ()
  DO
   setwait 55
   setkeys
-  DIM quit as bool = (keyval(scEsc) > 1 OR (enter_space_click(st) AND st.pt = 0))
+  DIM quit as bool = (keyval(ccCancel) > 1 OR (enter_space_click(st) AND st.pt = 0))
   IF usemenu(st, selectable()) ORELSE quit THEN
    ' Reinforce limits, because we temporarily allow 0 while typing for convenience
    gen(genResolutionX) = large(MinResolutionX, gen(genResolutionX))
@@ -2065,7 +2065,7 @@ SUB condition_test_menu ()
  DO
   setwait 55
   setkeys YES
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "condition_test"
   tmp = 0
   IF st.pt = 0 THEN
@@ -2171,7 +2171,7 @@ SUB quad_transforms_menu ()
   end if
 
   setkeys
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(ccLeft)  THEN scale.x -= 0.1
   IF keyval(ccRight) THEN scale.x += 0.1
   IF keyval(ccUp)    THEN scale.y -= 0.1
@@ -2241,7 +2241,7 @@ SUB text_test_menu
   setwait 55
   setkeys
   mouse = readmouse
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN
    show_help "texttest"
    text = load_help_file("texttest")
@@ -2432,7 +2432,7 @@ SUB plankmenu_cursor_move_tests
   setwait 55
   setkeys
 
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF6) > 1 THEN slice_editor root, SL_COLLECT_EDITOR
   IF keyval(scPlus) > 1 THEN scatter += 1 : update = YES
   IF keyval(scMinus) > 1 THEN scatter -= 1 : update = YES

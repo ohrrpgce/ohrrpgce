@@ -531,7 +531,7 @@ SUB scriptman ()
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "script_management"
   IF keyval(scF5) > 1 THEN
    reimport_previous_scripts
@@ -878,7 +878,7 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 THEN RETURN scriptname(trigger)
+  IF keyval(ccCancel) > 1 THEN RETURN scriptname(trigger)
   IF keyval(scF1) > 1 THEN show_help "scriptbrowse"
   IF enter_space_click(state) THEN EXIT DO
   usemenu state
@@ -1289,7 +1289,7 @@ SUB script_usage_list ()
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "script_usage_list"
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
@@ -1355,7 +1355,7 @@ SUB script_broken_trigger_list()
  DO
   setwait 55
   setkeys
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "script_broken_trigger_list"
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO

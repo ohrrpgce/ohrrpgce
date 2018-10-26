@@ -281,7 +281,7 @@ SUB map_picker ()
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_choose_map"
   IF UpdateScreenSlice() THEN state.need_update = YES  'Regenerate minimap on window resize
   IF usemenu(state) THEN state.need_update = YES
@@ -652,7 +652,7 @@ setkeys YES
 DO
  setwait 55
  setkeys YES
- IF keyval(scESC) > 1 THEN
+ IF keyval(ccCancel) > 1 THEN
   mapedit_savemap st
   EXIT DO
  END IF
@@ -805,7 +805,7 @@ DO
 
  mapedit_window_size_updates st
 
- IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(ccCancel) > 1 THEN EXIT DO
  IF keyval(scCtrl) = 0 AND keyval(scAlt) = 0 THEN  'Ignore OS keys and Ctrl+F# to toggle layer vis
   IF keyval(scF8) > 1 THEN mapedit_settings_menu st 'If quit by F2-F7, will catch it here
   FOR i as integer = tile_mode TO zone_mode
@@ -2424,7 +2424,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
   setkeys
 
   IF keyval(scF1) > 1 THEN show_help "mapedit_npcs_by_tile"
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF enter_space_click(state) THEN
    clearkey(scSpace)
    IF state.pt = 0 THEN
@@ -2993,7 +2993,7 @@ SUB mapedit_edit_zoneinfo(st as MapEditState)
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_zone_edit"
   usemenu state, enabled()
   DIM enable_strgrabber as bool = NO
@@ -3263,7 +3263,7 @@ SUB mapedit_gmapdata(st as MapEditState)
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_space_click(state)) THEN EXIT DO
+  IF keyval(ccCancel) > 1 OR (state.pt = 0 AND enter_space_click(state)) THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "general_map_data"
   usemenu state, cast(BasicMenuItem vector, menu)
   DIM idx as integer = gdidx(state.pt)
@@ -3388,7 +3388,7 @@ SUB mapedit_layers (st as MapEditState)
   IF fakelayerno >= map.gmap(31) THEN fakelayerno += 1
   'Warning: gen(31) (#layers below heroes/npcs) might be larger than the number of layers
 
-  IF keyval(scESC) > 1 THEN clearkey(scESC): EXIT DO
+  IF keyval(ccCancel) > 1 THEN setkeys: EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_layers"
   IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND UBOUND(map.tiles) < maplayerMax THEN
    DIM layer_to_copy as integer
@@ -4479,7 +4479,7 @@ SUB mapedit_import_export(st as MapEditState)
  DO
   setwait 55
   setkeys
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_importexport"
   usemenu state
   IF enter_space_click(state) THEN
@@ -4537,7 +4537,7 @@ SUB mapedit_linkdoors (st as MapEditState)
   setwait 55
   setkeys
   state.tog = state.tog XOR 1
-  IF keyval(scESC) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    serdoorlinks(maplumpname(st.map.id, "d"), st.map.doorlink())
    EXIT DO
   END IF
@@ -4656,7 +4656,7 @@ SUB link_one_door(st as MapEditState, linknum as integer)
    last_resolution = get_resolution()
    DrawDoorPair st, linknum, 2
   END IF
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "door_link_editor"
   IF state.pt >= 0 THEN
    SELECT CASE state.pt
@@ -4933,7 +4933,7 @@ SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
  DO
   setwait 55
   setkeys
-  IF keyval(scESC) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    'Unlike every other menu, hitting ESC cancels changes, so confirm if changes were made
    IF (rs.rect.x = 0 AND rs.rect.y = 0 AND rs.rect.wide = rs.oldsize.x AND rs.rect.high = rs.oldsize.y) _
       ORELSE yesno("Cancel resize?", NO, YES) THEN  'Must default to yes on ESC
@@ -5395,7 +5395,7 @@ SUB mapedit_pickblock(st as MapEditState)
  DO
   setwait 27, 55
   setkeys
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
 
   tilesetview.high = IIF(show_animated_tiles, real_tilesetview_high, 10)
@@ -6063,7 +6063,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   setkeys YES
   tog = tog XOR 1
   IF npcdata.movetype > 0 THEN walk = (walk + 1) MOD 4
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "edit_npc"
   usemenu ed.state, cast(BasicMenuItem vector, ed.menu)
   DIM itemid as integer = ed.menu[ed.state.pt].dat
@@ -6270,7 +6270,7 @@ DO
  setkeys YES
  state.size = vpages(dpage)->h \ 25 - 1
  state.tog = state.tog XOR 1
- IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(ccCancel) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "pick_npc_to_edit"
  intgrabber state.pt, -1, state.last, , , , NO  'use_clipboard=NO
  corners_to_rect XY(0,0), vpages(dpage)->size, state.rect

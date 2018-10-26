@@ -218,7 +218,7 @@ SUB importmxs (f as string, cap as string, byref count as integer, sprtype as Sp
    cropafter pt, crop_this, 3, game + f, 64000
    count = crop_this + 1
   END IF
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "importimage"
   usemenu mstate
   IF mstate.pt = 6 THEN
@@ -323,7 +323,7 @@ SUB backdrop_browser ()
    ' FIXME: Not implemented
    count = crop_this + 1
   END IF
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "backdrop_browser"
   usemenu mstate
   IF mstate.pt <> 6 ANDALSO intgrabber(backdrop_id, 0, count - 1) THEN
@@ -452,7 +452,7 @@ PRIVATE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame pt
    END IF
   END WITH
 
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "importimage_disable"
   IF prev_menu_selected THEN
    IF enter_or_space() THEN EXIT DO
@@ -697,7 +697,7 @@ DO
  chequer_scroll += 1
  setwait 55
  setkeys
- IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(ccCancel) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "maptile_pickset"
  IF cropafter_keycombo(YES) AND state.pt > -1 THEN
   cropafter state.pt, gen(genMaxTile), 3, game + ".til", 64000
@@ -780,7 +780,7 @@ SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref 
   chequer_scroll += 1
   setwait 55
   setkeys
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "maptile_tilemode"
   usemenu state
   IF enter_space_click(state) THEN
@@ -826,7 +826,7 @@ SUB tile_animation(byval tilesetnum as integer)
  DO
   setwait 55
   setkeys
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "maptile_tileanim"
   IF usemenu(state) THEN state.need_update = YES
   IF state.pt = 4 THEN
@@ -865,7 +865,7 @@ SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tiles
   setwait 55
   setkeys
   tog = tog XOR 1
-  IF keyval(scESC) > 1 OR enter_or_space() THEN EXIT DO
+  IF keyval(ccCancel) > 1 OR enter_or_space() THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "maptile_setanimrange"
   IF keyval(ccUp) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 16, 0)
   IF keyval(ccDown) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 16, 112)
@@ -962,7 +962,7 @@ SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer
   IF keyval(scF1) > 1 THEN show_help "maptile_setanimpattern"
   SELECT CASE context
    CASE 0 '---PICK A STATEMENT---
-    IF keyval(scESC) > 1 THEN EXIT DO
+    IF keyval(ccCancel) > 1 THEN EXIT DO
     IF usemenu(state) THEN state.need_update = YES
     IF enter_space_click(state) THEN
      IF state.pt = 0 THEN
@@ -974,7 +974,7 @@ SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer
      END IF
     END IF
    CASE 1 '---EDIT THAT STATEMENT---
-    IF keyval(scESC) > 1 THEN
+    IF keyval(ccCancel) > 1 THEN
      save_tile_anims tilesetnum, tastuf()
      context = 0
     END IF
@@ -1107,7 +1107,7 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
   setkeys
   tog = tog XOR 1
 
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "maptile_testanimpattern"
   IF keyval(ccUp) > 1 THEN loopvar csr, 0, 47, -16
   IF keyval(ccDown) > 1 THEN loopvar csr, 0, 47, 16
@@ -1257,7 +1257,7 @@ DO
  setwait 17, 70
  setkeys
  mouse = readmouse
- IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(ccCancel) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN
   IF tmode = 3 THEN
    show_help "default_passability"
@@ -1533,7 +1533,7 @@ DO
 
  ts.delay = large(ts.delay - 1, 0)
  ts.justpainted = large(ts.justpainted - 1, 0)
- IF keyval(scEsc) > 1 THEN
+ IF keyval(ccCancel) > 1 THEN
   IF ts.hold = YES THEN
    ts.hold = NO
   ELSE
@@ -2166,7 +2166,7 @@ DO
    ts.y = small(mouse.y, 200 - 20)
   END IF
  END IF
- IF keyval(scESC) > 1 THEN
+ IF keyval(ccCancel) > 1 THEN
   EXIT DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "tilecut"
@@ -2850,7 +2850,7 @@ FUNCTION spriteedit_import16_cut_custom_frames(byref ss as SpriteEditState, imps
    ' Choose maximum zoom that will fit
    zoom = small(large(1, vpages(dpage)->w \ impsprite->w), large(1, texty \ impsprite->h))
 
-   IF keyval(scESC) > 1 THEN RETURN NULL
+   IF keyval(ccCancel) > 1 THEN RETURN NULL
    IF keyval(scF1) > 1 THEN show_help "sprite_import16_cut_frames"
    IF enter_or_space() THEN EXIT DO
 
@@ -2964,7 +2964,7 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   DIM mouse_in_bounds as bool
   mouse_in_bounds = (mouse.pos >= imagepos) ANDALSO (mouse.pos < (imagepos + picksize * zoom))
   tog XOR= 1
-  IF keyval(scESC) > 1 THEN ret = NO : EXIT DO
+  IF keyval(ccCancel) > 1 THEN ret = NO : EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpkey
 
   IF enter_or_space() OR (mouse_in_bounds AND (mouse.release AND mouseleft)) THEN
@@ -3084,7 +3084,7 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref impsp
  DO
   setwait 55
   setkeys
-  IF keyval(scESC) > 1 THEN ret = 3 : EXIT DO
+  IF keyval(ccCancel) > 1 THEN ret = 3 : EXIT DO
   IF keyval(scF1) > 1 THEN show_help "frame_import16"
 
   DIM clicked_zone as integer = -1
@@ -3404,7 +3404,7 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
    ss.zonecursor = 0
    ss.zonenum = mouseover(ss.mouse.x, ss.mouse.y, ss.zone.x, ss.zone.y, ss.zonecursor, ss.area())
   END IF
-  IF keyval(scESC) > 1 THEN
+  IF keyval(ccCancel) > 1 THEN
    IF ss.hold = YES THEN
     spriteedit_reset_tool(ss)
    ELSE
@@ -4595,7 +4595,7 @@ SUB SpriteSetBrowser.run()
     setwait 55
     setkeys
 
-    IF keyval(scEsc) > 1 THEN EXIT DO
+    IF keyval(ccCancel) > 1 THEN EXIT DO
     IF keyval(scF1) > 1 THEN show_help "spriteset_browser"
     IF keyval(scF6) > 1 THEN
       IF keyval(scCtrl) > 0 THEN
@@ -4707,7 +4707,7 @@ SUB SpriteSetEditor.run()
   tog XOR= 1
   anim_preview->animate()
 
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
 
   IF keyval(scE) > 1 THEN edit_animations(ss, pal)
   IF keyval(scX) > 1 THEN export_menu()
@@ -4870,7 +4870,7 @@ SUB AnimationEditor.toplevel()
       sprstate->start_animation(topmenu(topstate.pt))
     END IF
 
-    IF keyval(scEsc) > 1 THEN EXIT DO
+    IF keyval(ccCancel) > 1 THEN EXIT DO
     IF keyval(scF1) > 1 THEN show_help "animation_editor"
     IF keyval(scX) > 1 AND topstate.pt >= 0 THEN
       export_menu topmenu(topstate.pt)
@@ -4974,7 +4974,7 @@ SUB AnimationEditor.edit_animation(anim_name as string)
     state.pt = small(state.pt, UBOUND(anim.ops))
    END IF
 
-   IF keyval(scEsc) > 1 or keyval(scP) > 1 THEN
+   IF keyval(ccCancel) > 1 or keyval(scP) > 1 THEN
     animating = NO
    END IF
 
@@ -4986,7 +4986,7 @@ SUB AnimationEditor.edit_animation(anim_name as string)
    IF state.pt <= UBOUND(anim.ops) THEN op_idx = state.pt
    IF op_idx > -1 THEN curop = @anim.ops(op_idx)
 
-   IF keyval(scEsc) > 1 THEN EXIT DO
+   IF keyval(ccCancel) > 1 THEN EXIT DO
    IF keyval(scF1) > 1 THEN show_help "animation_edit"
 
    IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN

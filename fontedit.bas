@@ -32,7 +32,7 @@ SUB font_test_menu
  DO
   setwait 55
   setkeys
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(sc1) > 1 THEN
    DIM newfont as Font ptr = font_loadbmps("fonttests/testfont", fonts(st.pt))
    font_unload @fonts(st.pt)
@@ -149,7 +149,7 @@ SUB font_editor (fnt() as integer)
   hover_draw = edit_font_draw_point(readmouse.pos)
   SELECT CASE mode
    CASE -1 ' Main font menu
-    IF keyval(scEsc) > 1 THEN EXIT DO
+    IF keyval(ccCancel) > 1 THEN EXIT DO
     usemenu state, selectable()
     IF enter_space_click(state) THEN
      IF state.pt = 0 THEN EXIT DO
@@ -172,7 +172,7 @@ SUB font_editor (fnt() as integer)
      END IF
     END IF
    CASE 0 'Picking a character to edit
-    IF keyval(scEsc) > 1 THEN mode = -1
+    IF keyval(ccCancel) > 1 THEN mode = -1
     IF keyval(ccUp) > 1 THEN pt = large(pt - linesize, -1 * linesize)
     IF keyval(ccDown) > 1 THEN pt = small(pt + linesize, last)
     IF keyval(ccLeft) > 1 THEN pt = large(pt - 1, 0)
@@ -187,7 +187,7 @@ SUB font_editor (fnt() as integer)
      END IF
     END IF
    CASE 1 ' Editing a character
-    IF keyval(scEsc) > 1 OR keyval(scAnyEnter) > 1 THEN mode = 0
+    IF keyval(ccCancel) > 1 OR keyval(scAnyEnter) > 1 THEN mode = 0
     IF keyval(ccUp) > 1 THEN loopvar y, 0, 7, -1
     IF keyval(ccDown) > 1 THEN loopvar y, 0, 7, 1
     IF keyval(ccLeft) > 1 THEN loopvar x, 0, 7, -1

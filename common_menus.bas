@@ -121,7 +121,7 @@ FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair
   setwait 55
   setkeys
   state.tog = state.tog XOR 1
-  IF keyval(scEsc) > 1 THEN ret = NO : EXIT DO
+  IF keyval(ccCancel) > 1 THEN ret = NO : EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpkey
   usemenu state, selectable()
   IF state.pt >= 0 ANDALSO selectable(state.pt) THEN
@@ -329,7 +329,7 @@ SUB edit_mouse_options ()
   setwait 55
   setkeys YES
   IF keyval(scF1) > 1 THEN show_help "edit_mouse_options"
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
 
   IF st.need_update THEN
    st.need_update = NO

@@ -2909,14 +2909,13 @@ private sub replay_controls ()
 		base_fps_multiplier = 1.
 		show_help("share_replay")
 		setkeys
-		clearkey(scEsc)
 		overlay_replay_display = remem
 		resume_replaying_input()
 	end if
 	if real_keyval(scSpace) > 1 then
 		overlay_replay_display xor= YES
 	end if
-	if real_keyval(scEsc) > 1 then
+	if real_keyval(ccCancel) > 1 then
 		replay_menu
 	end if
 	'Also scPause, handled in setkeys because it affects record too.

@@ -1046,7 +1046,7 @@ DO
  setwait speedcontrol
  setkeys
  tog = tog XOR 1
- IF keyval(scEsc) > 1 THEN EXIT DO
+ IF keyval(ccCancel) > 1 THEN EXIT DO
  IF keyval(ccUp) > 1 THEN csr = large(0, csr - 1)
  IF keyval(ccDown) > 1 THEN csr = small(2, csr + 1)
  IF csr = 0 THEN intgrabber pt, 0, UBOUND(array)
