@@ -2,6 +2,9 @@
 # the "key is pressed" command. This is more complete than it needs to be :)
 
 define constant,begin
+# anykey, upkey, downkey, leftkey, rightkey, usekey, menukey, cancelkey, runkey
+# are also valid virtual scancodes, but they're defined in plotscr.hsd.
+
 01,key:Esc
 02,key:1
 02,key:Exclamation

@@ -17,6 +17,7 @@
 #include "scriptcommands.bi"
 #include "yetmore2.bi"
 #include "scripting.bi"
+#include "loading.bi"
 #include "sliceedit.bi"
 #include "string.bi" 'for format
 
@@ -936,6 +937,25 @@ SUB reloadscript (si as ScriptInst, oss as OldScriptState, byval updatestats as 
  END WITH
 END SUB
 
+'Re-unlump .hsp lump
+SUB load_hsp ()
+ DIM header as HSHeader
+ header.plotscr_version = ""  'Required, because of strcmp below
+
+ IF isfile(game + ".hsp") THEN
+  'TODO: should really delete all existing .hsz files, to catch missing scripts
+  unlump game + ".hsp", tmpdir
+  load_hsp_header tmpdir & "hs", header
+ END IF
+
+ debuginfo "plotscr.hsd version: " & header.plotscr_version
+ IF LEN(header.plotscr_version) THEN
+  scripts_use_cc_scancodes = strcmp(STRPTR(header.plotscr_version), @"3U ") >= 0
+ ELSE
+  scripts_use_cc_scancodes = NO
+ END IF
+END SUB
+
 'Unload all scripts not in use, so they will get loaded again when used.
 'force_full_message: even if the player previously asked to hide notifications
 '    about reloading failing, show the error rather than just an overlay message.
@@ -943,9 +963,10 @@ END SUB
 SUB reload_scripts (force_full_message as bool = YES)
  STATIC dont_show_again as bool = NO  'Don't pop up the full error message
 
- IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
  DIM unfreeable as string, still_unfreeable as string
  DIM num_unfreeable as integer
+
+ load_hsp
 
  ' Iterate over the hashmap bucket chains
  FOR i as integer = 0 TO UBOUND(script)

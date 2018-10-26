@@ -110,7 +110,10 @@ September 29 2018 [Fufluns]
     * hspeak is several times faster when compiling very large scripts [Ralph]
     * "set last save slot" [Ralph]
     * "speaking npc" [Ralph]
-    * key:AnyEnter, key:Meta/key:WinLogo/key:Command for "key is pressed"
+    * All key commands accept all key constants - no more hassles! You can pass
+      "any key", "use key", etc, to "key is pressed", "keyval" and "wait for
+      scancode", and pass key: and joy: constants to "wait for key" [Ralph]
+    * Added key:AnyEnter, key:Meta/key:WinLogo/key:Command and "run key"
     * "keyval" now takes the joystick number as a second argument (for use
       with joy: key constants), like "key is pressed" did [Ralph]
 

@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-10-20">
+<plotscript version="wip" datecode="2018-10-26">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -747,12 +747,18 @@ wait for hero (me) # wait until he stops</example>
 			<shortname>wait for key</shortname>
 			<description>
 				Waits for the player to press a key.
-				You can use the following constants: <ref>anykey</ref>, <ref>upkey</ref>, <ref>downkey</ref>, <ref>leftkey</ref>, <ref>rightkey</ref>, <ref>usekey</ref>, <ref>cancelkey</ref>, or <ref>menukey</ref>.
-				If you do not specify <p>key</p>, then <ref>anykey</ref> will be used.
-				These are not scancodes (as used by <ref>keyispressed</ref>), and can not be mixed with scancodes!
-				Use <ref>waitforscancode</ref> if you want to use scancodes or wait for other keys.
+				You can use any scancode, such as <tt>key:a</tt> or <tt>key:ctrl</tt>, including the following virtual scancodes:
+				<ref>anykey</ref>, <ref>upkey</ref>, <ref>downkey</ref>, <ref>leftkey</ref>, <ref>rightkey</ref>, <ref>usekey</ref>, <ref>cancelkey</ref> (aka <ref>menukey</ref>) or <ref>runkey</ref>.
+				If you do not specify <p>key</p>, then <ref>anykey</ref> will be used,
+				which waits for any keyboard or joystick button.
 				<p>usekey</p> will wait for Space, Ctrl or Enter; and <p>cancelkey</p> and <p>menukey</p> (which are identical) both wait for Alt or Esc.
-				If and only if anykey is used, then <p>waitforkey</p> will return the scancode of the key that was pressed, which might be a joystick scancode like <p>joy:x up</p>.
+				If and only if <tt>anykey</tt> is used, then <p>waitforkey</p> will return the scancode of the key that was pressed, which might be a joystick scancode like <p>joy:x up</p>.
+				<note>
+					Previously you couldn't use scancodes like <tt>key:x</tt>,
+					and there was a separate <ref>waitforscancode</ref> command for those,
+					but now you can use any scancode with <tt>wait for key</tt>, and use any
+					of the codes like <tt>use key</tt> with other key commands like <ref>keyispressed</ref>.
+				</note>
 			</description>
 			<example>show text box(623) # "press cancel!"
 wait for key(cancel key)</example>
@@ -761,9 +767,7 @@ wait for key(cancel key)</example>
 			<canon>wait for scancode (key)</canon>
 			<shortname>wait for scancode</shortname>
 			<added>ubersetzung</added>
-			<description>Waits for the player to press a specific key. You can use any of the constants from <ref>keyispressed</ref> to specify the key.</description>
-			<example>show text box(624) # "press P!"
-wait for scancode(key:P)</example>
+			<description>Identical to <ref>waitforkey</ref>.</description>
 		</command>
 		<command id="waitfornpc">
 			<canon>wait for NPC (who)</canon>
@@ -3815,12 +3819,17 @@ end
 			<description>
 				Returns <ref>true</ref> if the keyboard or joystick key with the specified <ref>scancode</ref> is being pressed
 				(either held down or pressed since last tick), or <ref>false</ref> if it is not.
-				The <p>scancode</p> argument is a <tt>key:</tt> constant such as <tt>key:ctrl</tt>
-				NOT the <ref>upkey</ref>, <ref>downkey</ref>, etc, <ref>keyconstant</ref>s used with <ref>waitforkey</ref>.
+				The <p>scancode</p> argument can be a keyboard <tt>key:</tt> constant such as <tt>key:ctrl</tt>,
+				a joystick button, or one of the <ref>upkey</ref>, <ref>anykey</ref>, <ref>usekey</ref>, etc, <ref>keyconstants</ref>.
 				<lb/>
-				The <p>joystick num<p> argument is optional, and defaults to 0.
+				The <p>joystick num</p> argument is optional, and defaults to 0.
 				It is only used with joystick scancodes such as <tt>joy:button 1</tt>,
 				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+				<note>
+					Previously you couldn't use virtual scancodes like <ref>usekey</ref>,
+					which could only be used with <ref>waitforkey</ref>.
+					Now all key commands accept any kind of constant; what a relief!
+				</note>
 				<note>
 					Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2)
 					which were previously the same scancode are now distinct (read scancode.hsi for the complete list).
@@ -3971,8 +3980,20 @@ joy:button 16
 joy:x left
 joy:x right
 joy:y up
-joy:y down</example>
-				<note>Previously it was necessary to <p>include, scancode.hsi</p> to use the <p>key:</p> constants, but no longer.</note>
+joy:y down
+
+#  Virtual scancodes:
+any key            # Any keyboard key or joystick button (including joystick left/right/up/down)
+up key             # Up key on the keyboard, or on any joystick
+down key           # ...ditto
+left key
+right key
+use key            # Space, Ctrl or Enter, or Use button on any joystick
+cancel key         # Alt or Esc, or Cancel button on any joystick
+menu key           # Alt or Esc, or Menu button on any joystick
+run key            # Esc or Tab, or Run button on any joystick (Hold to run from battle)
+</example>
+				<note>Previously it was necessary to <tt>include, scancode.hsi</tt> to use the <tt>key:</tt> constants, but no longer.</note>
 			</description>
 			<seealso>
 				<ref>keyval</ref>
@@ -3981,13 +4002,17 @@ joy:y down</example>
 		<command id="keyval">
 			<canon>keyval (scancode, joystick num)</canon>
 			<shortname>keyval</shortname>
-			<description>Returns a bitmask for the state of the specified key. The argument is a scancode, see <ref>keyispressed</ref>. The first (least significant) bit is whether the key was depressed at the beginning of the current tick. The second bit is whether the key was pushed down by the player since the start of the previous tick (or when the key starts to repeatedly trigger after being held down for a while). It can therefore return 0, 1, 2 or 3: <lb/><lb/>0 = not pressed<lb/>1 = key held down since last tick, but is not a new press<lb/>2 = the player pressed the key and released it, all in the same tick<lb/>3 = new keypress (or typematic repeat)
+			<description>Returns a bitmask for the state of the specified key, joystick button, or virtual scancode. The argument is a scancode, see <ref>keyispressed</ref>. The first (least significant) bit is whether the key was depressed at the beginning of the current tick. The second bit is whether the key was pushed down by the player since the start of the previous tick (or when the key starts to repeatedly trigger after being held down for a while). It can therefore return 0, 1, 2 or 3: <lb/><lb/>0 = not pressed<lb/>1 = key held down since last tick, but is not a new press<lb/>2 = the player pressed the key and released it, all in the same tick<lb/>3 = new keypress (or typematic repeat)
 			<lb/>
-			The <p>joystick num<p> argument is optional, and defaults to 0.
+			The <p>joystick num</p> argument is optional, and defaults to 0.
 			It is only used with joystick scancodes such as <tt>joy:button 1</tt>,
 			and tells which joystick to read: 0 is the first one, 1 is the second, etc.
 			<danger>Just like <ref>keyispressed</ref>, this command does not return real time data, but the situation at the beginning of the current game tick.</danger>
-			<note>The joystick scancodes described in <ref>keyispressed</ref> aren't fully supported for <p>keyval</p>: the return value will be 3 if the key is down, or 0 if it isn't. In other words, no additional information over <ref>keyispressed</ref>.</note>
+			<note>
+				Previously you couldn't use virtual scancodes like <ref>usekey</ref>,
+				which could only be used with <ref>waitforkey</ref>.
+				Now all key commands accept any kind of constant; what a relief!
+			</note>
 			<danger>
 				Don't rely on the key repeat rate for things that affect gameplay such as the rate at which you can shoot bullets!
 				The repeat rate is once every 55 milliseconds (18 times a second), independent of the frames per second (fps) that
@@ -10173,17 +10198,18 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		</command>
 		<command id="keyconstants">
 			<canon>Key constants</canon>
-			<shortname>key constant</shortname>
+			<shortname>key constants</shortname>
 			<description>
-				A constant specifying a key (or joystick button, but generally not a mouse button) by its function,
-				used ONLY with the <ref>waitforkey</ref> command.
-				These are NOT <ref>scancode</ref>s and can not be used with commands
-				like <ref>keyispressed</ref>.
+				A constant specifying a key (or joystick button, but generally not a mouse button) by its function.
+				They can be passed to <ref>keyispressed</ref>, <ref>keyval</ref>, <ref>waitforkey</ref>,
+				and <ref>waitforscancode</ref>.
+				<lb />
+				Previously these could only be used with the <ref>waitforkey</ref> command, but that's changed!
 				<lb />
 				Possible values:
 				<lb />
 				<p>any key</p>, <p>up key</p>, <p>down key</p>, <p>left key</p>, <p>right key</p>,
-				<p>use key</p>, <p>menu key</p>, <p>cancel key</p>.
+				<p>use key</p>, <p>menu key</p>, <p>cancel key</p>, <p>run key</p>.
 				<lb />
 				(<p>menu key</p> and <p>cancel key</p> are identical).
 			</description>
@@ -10230,6 +10256,10 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		<command id="cancelkey">
 			<alias>keyconstants</alias>
 			<shortname>cancel key</shortname>
+		</command>
+		<command id="runkey">
+			<alias>keyconstants</alias>
+			<shortname>run key</shortname>
 		</command>
 		<command id="booleanconstants">
 			<canon>Boolean Constants</canon>

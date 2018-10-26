@@ -489,7 +489,7 @@ SUB process_wait_conditions()
       '--no reference found, why wait for a non-existant npc?
       script_stop_waiting()
      END IF
-    CASE 9'--wait for key
+    CASE 9, 244'--wait for key, wait for scancode
      IF txt.showing ANDALSO use_touch_textboxes() THEN
       'If a touch textbox is currently being displayed, we make a special
       'exception and treat any touch as the key we are waiting for
@@ -499,27 +499,22 @@ SUB process_wait_conditions()
      ELSE
       a_script_wants_keys()
      END IF
-     IF .waitarg >= 0 AND .waitarg <= 5 THEN
-      IF carray(.waitarg) > 1 THEN
+     IF .waitarg <> scAny THEN
+      IF keyval(.waitarg) > 1 THEN
        script_stop_waiting()
       END IF
       'Because carray(ccMenu) doesn't include it, and we don't want to break scripts
       'doing waitforkey(menu key) followed by looking for key:alt (== scUnfilteredAlt)
       IF .waitarg = ccMenu AND keyval(scUnfilteredAlt) > 1 THEN script_stop_waiting()
      ELSE
-      '.waitarg == anykey
-      DIM temp as integer = anykeypressed(YES, NO)  'Check joysticks but not mouse clicks
+      '.waitarg == scAny
+      DIM temp as KBScancode = anykeypressed(YES, NO)  'Check joysticks but not mouse clicks
       'Because anykeypressed doesn't check it, and we don't want to break scripts
       'doing waitforkey(any key) followed by looking for key:alt (== scUnfilteredAlt)
       IF keyval(scUnfilteredAlt) > 1 THEN temp = scUnfilteredAlt
       IF temp THEN
        script_stop_waiting(temp)
       END IF
-     END IF
-    CASE 244'--wait for scancode
-     a_script_wants_keys()
-     IF keyval(.waitarg) > 1 THEN
-      script_stop_waiting()
      END IF
     CASE 42'--wait for camera
      IF gen(genCameraMode) <> pancam ANDALSO gen(genCameraMode) <> focuscam THEN script_stop_waiting()
@@ -1291,8 +1286,26 @@ SUB script_functions(byval cmdid as integer)
   setbit gen(), genSuspendBits, suspendnpcs, 0
  CASE 8'--resume player
   setbit gen(), genSuspendBits, suspendplayer, 0
- CASE 9'--wait for key
-  script_start_waiting(retvals(0))
+ CASE 9, 244'--wait for key, wait for scancode
+  'waitforkey used to take constants upkey, usekey, etc, which had values 0-5,
+  'but if scripts_use_cc_scancodes is true, these constants now have values <= -1,
+  'and can be passed to keyval.
+  DIM scancode as KBScancode = retvals(0)
+  IF cmdid = 9 ANDALSO scripts_use_cc_scancodes = NO THEN
+   'Backcompat: constants >= 0 are 'usekey', etc, not key:.../sc... scancodes
+   IF scancode >= 0 THEN
+    IF scancode = 99 THEN
+     scancode = scAny
+    ELSE
+     scancode = ccHIGHEST - scancode  'Map to cc* constant
+    END IF
+   END IF
+  END IF
+  IF scancode < scKEYVAL_FIRST ORELSE scancode > scKEYVAL_LAST THEN
+   scripterr "Unrecognised scancode " & scancode, serrBadOp
+  ELSE
+   script_start_waiting(scancode)
+  END IF
  CASE 10'--walk hero
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
    SELECT CASE retvals(1)
@@ -2046,8 +2059,6 @@ SUB script_functions(byval cmdid as integer)
    'debug "joystick failed"
    scriptret = 0
   END IF
- CASE 244'--wait for scancode
-  script_start_waiting(retvals(0))
  CASE 249'--party money
   scriptret = gold
  CASE 250'--set money

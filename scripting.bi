@@ -37,6 +37,7 @@ DECLARE FUNCTION loadscript (id as integer, loaddata as bool = YES) as ScriptDat
 DECLARE SUB delete_ScriptData (byval scriptd as ScriptData ptr)
 DECLARE SUB deref_script (script as ScriptData ptr)
 DECLARE SUB reload_scripts (force_full_message as bool = YES)
+DECLARE SUB load_hsp ()
 
 DECLARE FUNCTION script_string_constant(scriptinsts_slot as integer, offset as integer) as string
 DECLARE FUNCTION commandname (byval id as integer) as string

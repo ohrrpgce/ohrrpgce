@@ -721,7 +721,7 @@ SUB export_scripts()
   END IF
 
  ELSE
-  IF strcmp(STRPTR(header.hspeak_version), STRPTR("3I ")) < 0 THEN
+  IF header.hspeak_version = "" ORELSE strcmp(STRPTR(header.hspeak_version), STRPTR("3I ")) < 0 THEN
    ' They are old enough for hsdecmpl to work
    notification "No backup of the original script source is available, but the scripts are " _
                 "old enough to decompile with HSDECMPL, which I will now attempt. " _

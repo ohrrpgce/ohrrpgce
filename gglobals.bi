@@ -84,6 +84,7 @@ EXTERN unused_script_cache_mem as integer
 EXTERN scriptctr as uinteger
 EXTERN next_interpreter_check_time as double
 EXTERN interruption_grace_period as integer
+EXTERN scripts_use_cc_scancodes as bool
 EXTERN scrst as Stack
 EXTERN curcmd as ScriptCommand ptr
 EXTERN last_queued_script as ScriptFibre ptr
