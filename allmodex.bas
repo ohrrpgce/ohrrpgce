@@ -86,6 +86,7 @@ declare sub pollingthread(as any ptr)
 declare sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
 declare function read_inputtext () as string
 declare sub update_mouse_state ()
+declare sub update_carray ()
 
 declare sub load_replay_header ()
 declare sub record_input_tick ()
@@ -247,6 +248,7 @@ type KeyArray extends Object
 	declare abstract sub update_arrow_keydown_time()
 	declare sub update_keydown_times(inputst as InputStateFwd)
 	declare function key_repeating(key as integer, is_arrowkey as bool, repeat_wait as integer, repeat_rate as integer, byref inputst as InputStateFwd) as KeyBits
+	declare sub clearkeys()
 end type
 
 type KeyboardState extends KeyArray
@@ -1572,7 +1574,7 @@ function slowkey (key as KBScancode, ms as integer) as bool
 end function
 
 function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
-'except for special keys (like -1), each key reports 3 bits:
+'except for possibly certain special keys (like capslock), each key reports 3 bits:
 '
 'bit 0: key was down at the last setkeys call
 'bit 1: keypress event (either new keypress, or key-repeat) during last setkey-setkey interval
@@ -1652,48 +1654,46 @@ sub setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
 	inputst->repeat_rate = repeat_rate
 end sub
 
-
-'Erase a keypress from the keyboard state.
-sub clearkey(k as KBScancode)
+'Erase a keypress event from the keyboard state, and optionally cancel key repeat. Does not affect key-down state.
+sub clearkey(k as KBScancode, clear_key_repeat as bool = YES)
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
-	inputst->kb.keys(k) = 0
-	inputst->kb.key_down_ms(k) = 0
+	inputst->kb.keys(k) and= 1
+	if clear_key_repeat then
+		inputst->kb.key_down_ms(k) = 0
+	end if
 end sub
 
-'Mark all keyboard keys and joystick and mouse buttons as unpressed.
-'If a key is being held down then this can't hide it.
-'Note: an alternative is to call setkeys, which will wipe & update the "new keypress" bits
+'Erase a new keypress bit and optionally cancel key repeat from the real keyboard state,
+'even if replaying recorded input.
+sub real_clearkey(k as KBScancode, clear_key_repeat as bool = YES)
+	real_input.kb.keys(k) and= 1
+	if clear_key_repeat then
+		real_input.kb.key_down_ms(k) = 0
+	end if
+end sub
+
+'Erase all new keypress bits and cancel key repeat. Does not affect key-down state.
+sub KeyArray.clearkeys()
+	for scancode as integer = 0 to ubound(keys)
+		keys(scancode) and= 1
+	next
+	flusharray key_down_ms()
+end sub
+
+'Clear keypress events for all keyboard keys and joystick buttons, including cancelling
+'key repeat, and clear mouse clicks. Doesn't change the 'down' state of keys/buttons.
+'Note: an alternative is to call setkeys, which will also wipe & update the "new keypress" bits
 sub clearkeys()
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
-	flusharray inputst->kb.keys()  'AKA clearkey for each key
-	flusharray inputst->kb.key_down_ms()
+	inputst->kb.clearkeys()
 	for joynum as integer = 0 to ubound(inputst->joys)
-		flusharray inputst->joys(joynum).keys()
-		flusharray inputst->joys(joynum).key_down_ms()
+		inputst->joys(joynum).clearkeys()
 	next
-	flusharray carray()
 	mouse_state.clearclick(mouseLeft)
 	mouse_state.clearclick(mouseRight)
 	mouse_state.clearclick(mouseMiddle)
+	update_carray()
 end sub
-
-'Clear the new keypress flag for a key.
-sub clear_newkeypress(k as KBScancode)
-	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
-	inputst->kb.keys(k) and= 1
-end sub
-
-'Erase a keypress from the real keyboard state even if replaying recorded input.
-sub real_clearkey(k as KBScancode)
-	real_input.kb.keys(k) = 0
-	real_input.kb.key_down_ms(k) = 0
-end sub
-
-'Clear the new keypress flag for a key. Real keyboard state even if replaying recorded input.
-sub real_clear_newkeypress(k as KBScancode)
-	real_input.kb.keys(k) and= 1
-end sub
-
 
 ' Get text input by assuming a US keyboard layout and reading scancodes rather than using the io backend.
 ' Also supports alt- combinations for the high 128 characters
@@ -7726,7 +7726,8 @@ private sub snapshot_check()
 	' This is in case this sub is called more than once before setkeys is called.
 	' Normally setkeys happens at the beginning of a tick and setvispage at the end,
 	' so this does no damage.
-	real_clear_newkeypress scF12
+	' Clear 'new keypress' bit, but not key repeat.
+	real_clearkey(scF12, NO)
 end sub
 
 
