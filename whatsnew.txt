@@ -177,6 +177,7 @@ September 29 2018 [Fufluns]
     * In active-time battle mode, when a hero used an "Automatically choose
       target" attack or an enemy attacked, any queued turn-delayed attacks
       didn't have their delays count down [Chronas, Ralph]
+    * Joystick controls should now work everywhere in-game [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

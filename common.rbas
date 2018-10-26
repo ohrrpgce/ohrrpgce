@@ -5607,11 +5607,11 @@ END FUNCTION
 'You should call usemenu before calling this, to ensure state.pt is correct!
 FUNCTION enter_space_click (state as MenuState) as bool
  IF menu_click(state) THEN RETURN YES
- RETURN keyval(scAnyEnter) > 1 OR keyval(scSpace) > 1
+ RETURN keyval(ccUse) ORELSE keyval(scAnyEnter) > 1 ORELSE keyval(scSpace) > 1
 END FUNCTION
 
 FUNCTION enter_or_space () as bool
- RETURN keyval(scAnyEnter) > 1 OR keyval(scSpace) > 1
+ RETURN keyval(ccUse) > 1 ORELSE keyval(scAnyEnter) > 1 ORELSE keyval(scSpace) > 1
 END FUNCTION
 
 FUNCTION toggle_item (state as MenuState) as bool

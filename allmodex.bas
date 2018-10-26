@@ -299,7 +299,7 @@ type InputState
 	repeat_rate as integer = 55         'repeat interval, in ms
 
 	kb as KeyboardState
-	joys(1) as JoystickState
+	joys(3) as JoystickState
 end type
 
 dim shared real_input as InputState         'Always contains real state even if replaying
