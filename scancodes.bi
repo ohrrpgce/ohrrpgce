@@ -172,6 +172,7 @@ CONST scLAST = 127
 '------------- Virtual scancodes
 
 'For convenience the buttons of the first joystick are also accessible like keyboard buttons
+CONST scJoyFIRST = 128
 CONST scJoyButton1 = 128
 CONST scJoyButton16 = 143
 'Buttons 17-32 are not available as keyboard keys. Access them directly using joykeyval

@@ -1660,12 +1660,16 @@ sub clearkey(k as KBScancode)
 	inputst->kb.key_down_ms(k) = 0
 end sub
 
-'Mark all keyboard keys and mouse buttons as unpressed.
-'(TODO: joystick)
+'Mark all keyboard keys and joystick and mouse buttons as unpressed.
 'If a key is being held down then this can't hide it.
+'Note: an alternative is to call setkeys, which will wipe & update the "new keypress" bits
 sub clearkeys()
-	for k as KBScancode = 0 to scLAST
-		clearkey(k)
+	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+	flusharray inputst->kb.keys()  'AKA clearkey for each key
+	flusharray inputst->kb.key_down_ms()
+	for joynum as integer = 0 to ubound(inputst->joys)
+		flusharray inputst->joys(joynum).keys()
+		flusharray inputst->joys(joynum).key_down_ms()
 	next
 	flusharray carray()
 	mouse_state.clearclick(mouseLeft)
@@ -1886,8 +1890,6 @@ end function
 'Returns scancode if one is found, 0 otherwise.
 'Use this instead of looping over all keys, to make sure alt filtering and joysticks work
 function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as KeyBits = 1) as KBScancode
-	dim as integer joybutton, joyx, joyy
-
 	for i as KBScancode = 0 to scLAST
 		'check scAlt only, so Alt-filtering (see setkeys) works
 		if i = scLeftAlt or i = scRightAlt or i = scUnfilteredAlt then continue for
@@ -1902,14 +1904,15 @@ function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, t
 			return i
 		end if
 	next
+
 	if checkjoystick then
-		dim starttime as double = timer
-		if io_readjoysane(0, joybutton, joyx, joyy) then
-			for i as integer = 16 to 1 step -1
-				if joybutton and (i ^ 2) then return (scJoyButton1 - 1) + i
-			next i
-		end if
-		debug_if_slow(starttime, 0.01, "io_readjoysane")
+		for joynum as integer = 0 to num_joysticks() - 1
+			for key as integer = scJoyFIRST to scJoyLAST
+				if joykeyval(keybd_to_joy_scancode(key), joynum) > trigger_level then
+					return key
+				end if
+			next
+		next
 	end if
 
 	if checkmouse then
@@ -2337,7 +2340,7 @@ sub setkeys (enable_inputtext as bool = NO)
 	update_mouse_state()
 
 	' Update active_seconds, if have been active within some interval
-	if anykeypressed(NO, YES) then  'Don't check the joystick state just for this
+	if anykeypressed() THEN
 		last_active_time = last_setkeys_time
 	end if
 	if last_setkeys_time < last_active_time + idle_time_threshold then
@@ -2595,7 +2598,7 @@ end sub
 
 'Translate a sc* constant to a joy* constant
 function keybd_to_joy_scancode(key as KBScancode) as JoyScancode
-	ERROR_IF(key < scJoyButton1 orelse key > scJoyLAST, "Bad scancode " & key, 0)
+	ERROR_IF(key < scJoyFIRST orelse key > scJoyLAST, "Bad scancode " & key, 0)
 	select case key
 		case scJoyLeft  : return joyLeft
 		case scJoyRight : return joyRight
@@ -2603,6 +2606,12 @@ function keybd_to_joy_scancode(key as KBScancode) as JoyScancode
 		case scJoyDown  : return joyDown
 		case else       : return joyButton1 + key - scJoyButton1
 	end select
+end function
+
+'TODO: this always returns 2!
+function num_joysticks () as integer
+	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+	return ubound(inputst->joys) + 1
 end function
 
 'The new way to read joystick buttons. Like keyval.

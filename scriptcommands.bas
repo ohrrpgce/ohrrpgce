@@ -399,11 +399,6 @@ END FUNCTION
 SUB trigger_onkeypress_script ()
  DIM doit as bool = NO
 
- 'carray is checked just for joystick movement
- FOR i as integer = 0 TO 5
-  IF carray(i) THEN doit = YES: EXIT FOR
- NEXT i
-
  'Checks whether keyboard and joystick keys are down, and optionally the mouse
  IF anykeypressed(YES, gam.mouse_enabled, 0) THEN doit = YES
 

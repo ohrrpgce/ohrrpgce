@@ -415,8 +415,6 @@ DECLARE FUNCTION keyval_ex (key as KBScancode, repeat_wait as integer = 0, repea
 DECLARE FUNCTION real_keyval (key as KBScancode) as KeyBits
 DECLARE FUNCTION keyval (key as KBScancode) as KeyBits
 DECLARE FUNCTION slowkey (key as KBScancode, ms as integer) as bool
-DECLARE FUNCTION joykeyval (key as JoyScancode, joynum as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
-DECLARE FUNCTION keybd_to_joy_scancode (key as KBScancode) as JoyScancode
 DECLARE FUNCTION getinputtext () as string
 DECLARE FUNCTION interrupting_keypress () as bool
 DECLARE FUNCTION anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as KeyBits = 1) as KBScancode
@@ -429,6 +427,10 @@ DECLARE SUB clearkey (key as KBScancode)
 DECLARE SUB clearkeys ()
 DECLARE SUB real_clear_newkeypress (key as KBScancode)
 DECLARE SUB clear_newkeypress (key as KBScancode)
+
+DECLARE FUNCTION joykeyval (key as JoyScancode, joynum as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
+DECLARE FUNCTION keybd_to_joy_scancode (key as KBScancode) as JoyScancode
+DECLARE FUNCTION num_joysticks () as integer
 
 DECLARE SUB setquitflag (newstate as bool = YES)
 DECLARE FUNCTION getquitflag () as bool
