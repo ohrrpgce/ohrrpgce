@@ -2989,7 +2989,7 @@ FUNCTION update_menu_item (mi as MenuDefItem) as bool
 END FUNCTION
 
 FUNCTION game_usemenu (state as MenuState, menu as MenuDef) as bool
- RETURN usemenu(state, menu) ', ccUp, ccDown)  FIXME
+ RETURN usemenu(state, menu, ccUp, ccDown)
 END FUNCTION
 
 FUNCTION allowed_to_open_main_menu () as bool

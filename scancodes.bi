@@ -182,15 +182,33 @@ CONST scJoyUp = 146
 CONST scJoyDown = 147
 CONST scJoyLAST = 147
 
-'This is the last scancode which can be passed to keyval().
-CONST scKEYVAL_LAST = scJoyLAST
-
 'These are only returned by anykeypressed/waitforkey! You can't use them elsewhere!
 CONST scMouseLeft = 180
 CONST scMouseRight = 181
 CONST scMouseMiddle = 182
 'The following are only returned by waitforkey!
 CONST scResize = 183   'The window was resized
+
+CONST scAny = -1   'Any key - can NOT be used to index into carray(), only passed to keyval().
+                   'Warning: not 100% equivalent to "any key" in scripts, because it excludes
+                   'scUnfilteredAlt, and joystick buttons not mapped into carray aren't checked
+
+'--- Scancodes shared with carray()
+CONST ccHIGHEST = -2
+CONST ccUp = -2
+CONST ccDown = -3
+CONST ccLeft = -4
+CONST ccRight = -5
+CONST ccUse = -6
+CONST ccCancel = -7
+CONST ccMenu = -7
+CONST ccRun = -8
+CONST ccLOWEST = -8
+
+
+'These are the range of scancodes which can be passed to keyval().
+CONST scKEYVAL_FIRST = ccLOWEST
+CONST scKEYVAL_LAST = scJoyLAST
 
 
 '------------------------------------------------------------------------------

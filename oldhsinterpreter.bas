@@ -1305,7 +1305,7 @@ END IF 'end drawing scripts list
 
 IF mode > 1 AND drawloop = NO THEN
  setvispage page, NO
- DIM w as integer = waitforanykey
+ DIM w as KBScancode = waitforanykey
  IF w = scEsc OR w = scF10 THEN
   mode = 0
   clearkey(scF10)

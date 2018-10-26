@@ -143,7 +143,7 @@ redim fonts(3) as Font ptr
 'Toggles 0-1 every time dowait is called
 dim global_tog as integer
 
-redim carray(7) as integer  'FIXME: 7 is the wrong size, only used because of old code
+redim carray(ccLOWEST to ccHIGHEST) as KeyBits
 
 'Convert scancodes to text; Enter does not insert newline!
 'This array is a global instead of an internal detail because it's used by charpicker and the font editor
@@ -1584,10 +1584,31 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 'You won't see Left/Right keypresses even when scAlt/scCtrl is pressed, so do not
 'check "keyval(scLeftAlt) > 0 or keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
 
-	ERROR_IF(a > scKEYVAL_LAST, "bad scancode " & a, 0)
+	ERROR_IF(a < scKEYVAL_FIRST orelse a > scKEYVAL_LAST, "bad scancode " & a, 0)
 	if a > scLAST then
 		'For convenience, poll joystick 0
-		return joykeyval(keybd_to_joy_scancode(a), 0)
+		return joykeyval(keybd_to_joy_scancode(a), 0, repeat_wait, repeat_rate, real_keys)
+	end if
+	if a < 0 then
+		'Handle scAny and cc* constants
+		'Note: repeat_wait, repeat_rate and real_keys are ignored!
+		if real_keys then showbug "real_keyval doesn't support cc* keys"
+		if repeat_wait <> 0 orelse repeat_rate <> 0 then
+			'This could be due to a script (although not implemented yet)
+			debug "keyval: cc* constants/usekey, etc, don't support custom repeat rate"
+		end if
+		if a = scAny then
+			'This doesn't check all joystick buttons, only ones mapped to carray.
+			dim ret as KeyBits
+			for key as KBScancode = scKEYVAL_FIRST to scLAST
+				if key <> scAny then
+					ret or= keyval(key)
+				end if
+			next
+			return ret
+		else
+			return carray(a)
+		end if
 	end if
 
 	dim inputst as InputState ptr

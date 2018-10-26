@@ -475,15 +475,6 @@ CONST npcUse = 0
 CONST npcTouch = 1
 CONST npcStepOn = 2
 
-'--- Constants for carray() 
-CONST ccUp = 0
-CONST ccDown = 1
-CONST ccLeft = 2
-CONST ccRight = 3
-CONST ccUse = 4
-CONST ccMenu = 5
-CONST ccRun = 6
-
 ' These constants are for the .t type of a MenuDefItem for user-created menus
 ' (MenuDefs used elsewhere including battles are free to assign other meanings)
 Enum MenuItemType

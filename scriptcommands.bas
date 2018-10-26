@@ -360,7 +360,7 @@ END FUNCTION
 FUNCTION script_keyval (byval key as KBScancode, byval joynum as integer = 0) as KeyBits
  'Wrapper around keyval for use by scripts: performs scancode mapping for back-compat
 
- IF key < 0 ORELSE key > scKEYVAL_LAST THEN
+ IF key < scKEYVAL_FIRST ORELSE key > scKEYVAL_LAST THEN
   scripterr "invalid scancode keyval(" & key & ")", serrBound
   RETURN 0
  END IF
