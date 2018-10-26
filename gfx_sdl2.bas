@@ -85,6 +85,8 @@ DECLARE SUB sdlCocoaMinimise()
 
 #ENDIF
 
+CONST maxJoysticks = 8
+
 DIM SHARED zoom as integer = 2  'Window size
 DIM SHARED smooth_zoom as integer = 2  'Amount to zoom before applying smoothing
 DIM SHARED smooth as integer = 0  'Smoothing mode (0 or 1)
@@ -102,7 +104,7 @@ DIM SHARED resize_request as XYPair
 DIM SHARED remember_windowtitle as string
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
 DIM SHARED debugging_io as bool = NO
-DIM SHARED joystickhandles(7) as SDL_Joystick ptr
+DIM SHARED joystickhandles(maxJoysticks - 1) as SDL_Joystick ptr
 DIM SHARED sdlpalette as SDL_Palette ptr
 DIM SHARED framesize as XYPair
 DIM SHARED dest_rect as SDL_Rect
@@ -411,7 +413,7 @@ PRIVATE SUB set_window_size(newsize as XYPair, newzoom as integer)
 END SUB
 
 PRIVATE SUB quit_joystick_subsystem()
-  FOR i as integer = 0 TO small(SDL_NumJoysticks(), 8) - 1
+  FOR i as integer = 0 TO small(SDL_NumJoysticks(), maxJoysticks) - 1
     IF joystickhandles(i) <> NULL THEN SDL_JoystickClose(joystickhandles(i))
     joystickhandles(i) = NULL
   NEXT
@@ -1323,25 +1325,53 @@ SUB io_sdl2_mouserect(byval xmin as integer, byval xmax as integer, byval ymin a
 END SUB
 
 FUNCTION io_sdl2_readjoysane(byval joynum as integer, byref button as uinteger, byref x as integer, byref y as integer) as integer
-  IF joynum < 0 OR SDL_NumJoysticks() < joynum + 1 THEN RETURN 0
-  IF joystickhandles(joynum) = NULL THEN
-    joystickhandles(joynum) = SDL_JoystickOpen(joynum)
-    IF joystickhandles(joynum) = NULL THEN
+  IF joynum < 0 ORELSE joynum >= maxJoysticks THEN RETURN 0
+
+  DIM byref joy as SDL_Joystick ptr = joystickhandles(joynum)
+  IF joy = NULL THEN
+    IF joynum > SDL_NumJoysticks() - 1 THEN RETURN 0
+    joy = SDL_JoystickOpen(joynum)
+    IF joy = NULL THEN
       debug "Couldn't open joystick " & joynum & ": " & *SDL_GetError
       RETURN 0
     END IF
+
+    DIM joyname as const zstring ptr = SDL_JoystickNameForIndex(joynum)
+    IF joyname = NULL THEN joyname = @"(NULL)"
+    debuginfo strprintf("Opened joystick %d %s -- %d buttons %d axes %d hats %d balls", _
+                        joynum, joyname, SDL_JoystickNumButtons(joy), _
+                        SDL_JoystickNumAxes(joy), SDL_JoystickNumHats(joy), SDL_JoystickNumBalls(joy))
   END IF
   '(Note: we only need to call this because we haven't enabled joystick events with SDL_JoystickEventState(SDL_ENABLE))
-  SDL_JoystickUpdate() 'should this be here? moved from io_sdl2_readjoy
+  'SDL_JoystickUpdate() 'should this be here? Not necessary according to docs
   button = 0
-  FOR i as integer = 0 TO SDL_JoystickNumButtons(joystickhandles(joynum)) - 1
-    IF SDL_JoystickGetButton(joystickhandles(joynum), i) THEN button = button OR (1 SHL i)
+  FOR i as integer = 0 TO SDL_JoystickNumButtons(joy) - 1
+    IF SDL_JoystickGetButton(joy, i) THEN button = button OR (1 SHL i)
   NEXT
   'SDL_JoystickGetAxis returns a value from -32768 to 32767
-  x = SDL_JoystickGetAxis(joystickhandles(joynum), 0) / 32768.0 * 100
-  y = SDL_JoystickGetAxis(joystickhandles(joynum), 1) / 32768.0 * 100
+  x = SDL_JoystickGetAxis(joy, 0) / 32768.0 * 100
+  y = SDL_JoystickGetAxis(joy, 1) / 32768.0 * 100
+
   IF debugging_io THEN
-    debuginfo "gfx_sdl2: joysane: x=" & x & " y=" & y & " button=" & button
+    STATIC last_state(maxJoysticks - 1) as string
+    DIM temp as string = lpad(BIN(button), "0", SDL_JoystickNumButtons(joy))
+    DIM msg as string = strprintf("joy %d buttons: 0b%s x: %4d y: %4d", joynum, STRPTR(temp), x, y)
+    FOR i as integer = 0 TO SDL_JoystickNumAxes(joy) - 1
+      msg &= strprintf(" axis%d: %6d", i, SDL_JoystickGetAxis(joy, i))
+    NEXT
+    FOR i as integer = 0 TO SDL_JoystickNumHats(joy) - 1
+      msg &= strprintf(" hat%d: 0x%x", i, SDL_JoystickGetHat(joy, i))  'Value from 0-15
+    NEXT
+    FOR i as integer = 0 TO SDL_JoystickNumBalls(joy) - 1
+      DIM as integer bx, by
+      'NOTE: This is relative movement since last call, so will break if we ever support balls!
+      SDL_JoystickGetBall(joy, i, @bx, @by)
+      msg &= strprintf(" ball%d: %d,%d", i, bx, by)
+    NEXT
+    IF last_state(joynum) <> msg THEN
+      debuginfo msg
+      last_state(joynum) = msg
+    END IF
   END IF
   RETURN 1
 END FUNCTION

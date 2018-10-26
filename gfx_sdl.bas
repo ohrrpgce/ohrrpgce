@@ -1472,17 +1472,21 @@ SUB io_sdl_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as
 END SUB
 
 FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as uinteger, byref x as integer, byref y as integer) as integer
-  IF joynum < 0 OR SDL_NumJoysticks() < joynum + 1 THEN RETURN 0
+  IF joynum < 0 ORELSE joynum >= maxJoysticks THEN RETURN 0
+
   DIM byref joy as SDL_Joystick ptr = joystickhandles(joynum)
   IF joy = NULL THEN
+    IF joynum > SDL_NumJoysticks() - 1 THEN RETURN 0
     joy = SDL_JoystickOpen(joynum)
     IF joy = NULL THEN
       debug "Couldn't open joystick " & joynum & ": " & *SDL_GetError
       RETURN 0
     END IF
 
+    DIM joyname as const zstring ptr = SDL_JoystickName(joynum)
+    IF joyname = NULL THEN joyname = @"(NULL)"
     debuginfo strprintf("Opened joystick %d %s -- %d buttons %d axes %d hats %d balls", _
-                        joynum, SDL_JoystickName(joynum), SDL_JoystickNumButtons(joy), _
+                        joynum, joyname, SDL_JoystickNumButtons(joy), _
                         SDL_JoystickNumAxes(joy), SDL_JoystickNumHats(joy), SDL_JoystickNumBalls(joy))
   END IF
   '(Note: we only need to call this because we haven't enabled joystick events with SDL_JoystickEventState(SDL_ENABLE))
