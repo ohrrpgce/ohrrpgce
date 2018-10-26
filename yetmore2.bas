@@ -87,12 +87,6 @@ SUB control
  carray(ccUse) = keyval(csetup(4)) OR keyval(csetup(5)) OR keyval(csetup(6))
  carray(ccMenu) = keyval(csetup(7)) OR keyval(csetup(8))
  carray(ccRun) = keyval(csetup(9)) OR keyval(csetup(10))
- IF keyval(scCtrl) > 0 AND keyval(csetup(11)) > 1 THEN  'ctrl + J
-  calibrate
-  FOR i as integer = 0 TO UBOUND(gotj)
-   gotj(i) = readjoy(joy(), i)
-  NEXT i
- END IF
  carray(8) = keyval(csetup(12))
 
  'Joystick

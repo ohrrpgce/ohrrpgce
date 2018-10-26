@@ -330,11 +330,8 @@ FOR i as integer = 0 TO UBOUND(gotj)
  gotj(i) = readjoy(joy(), i)
 NEXT i
 
-gen(genJoy) = 0  'joystick disabled by default
+gen(genJoy) = 1  'joystick enabled by default
 defaultc  'set up default controls
-
-'Read joyset.ini
-readjoysettings
 
 DIM gp as GamePadMap
 gp.A = scEnter

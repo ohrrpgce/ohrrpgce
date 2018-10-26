@@ -5,7 +5,6 @@
 
 DECLARE SUB addhero (byval who as integer, byval slot as integer, byval forcelevel as integer=-1)
 DECLARE FUNCTION averagelev () as integer
-DECLARE SUB calibrate
 
 DECLARE FUNCTION consumeitem (byval invslot as integer) as bool
 DECLARE FUNCTION countitem (byval item_id as integer) as integer
@@ -30,7 +29,6 @@ DECLARE FUNCTION istag OVERLOAD (tagbits() as integer, num as integer, zero as b
 DECLARE SUB minimap (heropos as XYPair)
 DECLARE FUNCTION teleporttool () as bool
 DECLARE FUNCTION onwho (caption as string, skip_if_alone as bool = YES) as integer
-DECLARE SUB readjoysettings
 DECLARE FUNCTION renamehero (who as integer, escapable as bool) as bool
 DECLARE SUB resetgame ()
 DECLARE SUB get_max_levelmp (ret() as integer, byval hero_level as integer)
@@ -38,11 +36,9 @@ DECLARE SUB reset_levelmp (byref hero as HeroState)
 DECLARE SUB reset_game_state ()
 DECLARE SUB reset_map_state (map as MapModeState)
 
-DECLARE FUNCTION settingstring (searchee as string, setting as string, result as string) as bool
 DECLARE SUB shop (byval id as integer)
 DECLARE FUNCTION useinn (byval price as integer, byval holdscreen as integer) as bool
 DECLARE SUB tagdisplay (page as integer)
-DECLARE SUB writejoysettings
 
 DECLARE FUNCTION gamepadmap_from_reload(gamepad as NodePtr, byval use_dpad as bool=NO) as GamePadMap
 DECLARE FUNCTION use_touch_textboxes() as bool

@@ -150,108 +150,6 @@ FUNCTION averagelev () as integer
  RETURN average
 END FUNCTION
 
-SUB calibrate
-
-DIM state as integer = 0
-DIM state_str as string = "Center Joystick and Press Button"
-DIM midx as integer = 0
-DIM midy as integer = 0
-DIM button as integer = 0
-DIM disabled as integer = 10
-DIM tog as integer
-DIM tx as integer
-DIM ty as integer
-
-setkeys
-DO
- setwait speedcontrol
- setkeys
- tog = tog XOR 1
- IF keyval(scEsc) > 1 THEN EXIT DO
- FOR i as integer = 0 TO 1
-  IF readjoy(joy(), i) THEN EXIT FOR
- NEXT i
- SELECT CASE button
-  CASE 0'no button
-   IF joy(3) = 0 THEN joy(13) = 3: joy(14) = 2: button = 1
-   IF joy(2) = 0 THEN joy(13) = 2: joy(14) = 3: button = 1
-  CASE 1'button down
-   IF joy(2) <> 0 AND joy(3) <> 0 THEN button = 2
-  CASE 2
-   button = 0
- END SELECT
- 'button = IIF(keyval(scB) AND 4, 2, 0)  'simulate joystick button with B
- disabled = disabled - SGN(disabled)
- SELECT CASE state
-  CASE 0
-   IF (button = 2) AND (disabled = 0) THEN
-    midx = joy(0)
-    midy = joy(1)
-    state_str = "Push UP and Press Button"
-    tx = 160
-    ty = 45
-    state = 1
-   END IF
-  CASE 1
-   IF button = 2 THEN
-    joy(9) = joy(1) + (midy - joy(1)) * .33
-    state_str = "Push DOWN and Press Button"
-    ty = 155
-    state = 2
-   END IF
-  CASE 2
-   IF button = 2 THEN
-    joy(10) = joy(1) - (joy(1) - midy) * .33
-    state_str = "Push LEFT and Press Button"
-    tx = 50
-    ty = 110
-    state = 3
-   END IF
-  CASE 3
-   IF button = 2 THEN
-    joy(11) = joy(0) + (midx - joy(0)) * .33
-    state_str = "Push RIGHT and Press Button"
-    tx = 260
-    state = 4
-   END IF
-  CASE 4
-   IF button = 2 THEN
-    joy(12) = joy(0) - (joy(0) - midx) * .33
-    state_str = "Press the USE button"
-    state = 5
-   END IF
-  CASE 5
-   IF button = 2 THEN
-    disabled = 4
-    state_str = ""
-    state = 6
-   END IF
-  CASE 6
-   IF disabled = 0 THEN
-    writejoysettings
-    gen(genJoy) = 1
-    EXIT DO
-   END IF
- END SELECT
- clearpage dpage
- centerbox 160, 100, 100, 80, 1, dpage
- centerbox 160, 100, 20, 20, 3, dpage
- IF state > 0 THEN
-  centerbox 160 + (joy(0) - midx) * .1, 100 + (joy(1) - midy) * .1, 10, 10, 15, dpage
- END IF
- IF state > 0 AND state < 5 THEN
-  edgeprint "This way!", tx - 36, ty - 5, uilook(uiDescription), dpage
- END IF
- edgeprint "Calibrate Joystick", 88, 8, uilook(uiText), dpage
- edgeprint state_str, 160 - 4 * LEN(state_str), 174, uilook(uiSelectedItem + tog), dpage
- edgeprint "X=" & joy(0) & " Y=" & joy(1), 160 - 4 * LEN("X=" & joy(0) & " Y=" & joy(1)), 184, uilook(uiSelectedItem + tog), dpage
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-
-END SUB
-
 FUNCTION consumeitem (byval invslot as integer) as bool
  '--Subtracts one of an item at a location. If the item is depleted, returns true. If there are some of the item left, it returns false
  '--Argument is the inventory slot index, not the item ID
@@ -1246,49 +1144,6 @@ flusharray carray(), 7, 0
 RETURN who
 END FUNCTION
 
-SUB readjoysettings
-
-IF isfile(exepath & SLASH & "joyset.ini") THEN
- '--use joyset.ini
- DIM fh as integer = FREEFILE
- OPEN exepath & SLASH & "joyset.ini" FOR INPUT as #fh
- DIM safety as integer = 0
- DIM n as string = ""
- DIM a as string
- DO WHILE NOT EOF(fh) AND safety < 100
-  LINE INPUT #fh, a
-  IF settingstring(a, "UPTHRESH", n) THEN
-   joy(9) = str2int(n)
-  END IF
-  IF settingstring(a, "DOWNTHRESH", n) THEN
-   joy(10) = str2int(n)
-  END IF
-  IF settingstring(a, "LEFTTHRESH", n) THEN
-   joy(11) = str2int(n)
-  END IF
-  IF settingstring(a, "RIGHTTHRESH", n) THEN
-   joy(12) = str2int(n)
-  END IF
-  IF settingstring(a, "USEBUTTON", n) THEN
-   joy(13) = bound(str2int(n) + 2, 2, 3)
-  END IF
-  IF settingstring(a, "MENUBUTTON", n) THEN
-   joy(14) = bound(str2int(n) + 2, 2, 3)
-  END IF
-  safety = safety + 1
- LOOP
- CLOSE #fh
- '--wait a little to make sure the buttons clear
- setwait speedcontrol
- dowait
- gen(genJoy) = 1
-ELSE
- '--no joyset.ini file, must recalibrate
- 'calibrate
-END IF
-
-END SUB
-
 FUNCTION renamehero (byval who as integer, byval escapable as bool) as bool
 'If escapable is true, then ESC exits, otherwise it resets the entered name
 'Returns true if the player didn't cancel.
@@ -1652,21 +1507,6 @@ SUB reset_levelmp (byref hero as HeroState)
  get_max_levelmp(hero.levelmp(), hero.lev)
 END SUB
 
-FUNCTION settingstring (searchee as string, setting as string, result as string) as bool
-
-' (This is used when reading joyset.ini, but could be replaced with read_ini_int)
-' checks to see if searchee begins with setting =
-' if so, sets result to the uppercased space-trimmed value that
-' follows the = sign and returns true. If not found, returns false
-
-IF UCASE(LEFT(searchee, LEN(setting) + 1)) = setting + "=" THEN
- result = UCASE(LTRIM(RTRIM(MID(searchee, LEN(setting) + 2, 32))))
- RETURN YES
-END IF
-RETURN NO
-
-END FUNCTION
-
 SUB shop (byval id as integer)
 
 DIM storebuf(40) as integer
@@ -2017,19 +1857,6 @@ FOR i as integer = st.top TO st.top + st.size
  IF i = st.pt THEN edgeprint CHR(26), 0, y, uilook(uiText), page
 NEXT i
 
-END SUB
-
-SUB writejoysettings
- DIM fh as integer = FREEFILE
- OPEN exepath & SLASH & "joyset.ini" FOR OUTPUT as #fh
- PRINT #fh, "#Joystick/gamepad configuration"
- PRINT #fh, "UPTHRESH=" & joy(9)
- PRINT #fh, "DOWNTHRESH=" & joy(10)
- PRINT #fh, "LEFTTHRESH=" & joy(11)
- PRINT #fh, "RIGHTTHRESH=" & joy(12)
- PRINT #fh, "USEBUTTON=" & (joy(13) - 2)
- PRINT #fh, "MENUBUTTON=" & (joy(14) - 2)
- CLOSE #fh
 END SUB
 
 FUNCTION default_margin() as integer
