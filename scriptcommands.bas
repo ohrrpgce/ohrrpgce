@@ -361,7 +361,7 @@ FUNCTION script_keyval (byval key as KBScancode, byval joynum as integer = 0) as
  'Wrapper around keyval for use by scripts: performs scancode mapping for back-compat
 
  IF key < scKEYVAL_FIRST ORELSE key > scKEYVAL_LAST THEN
-  scripterr "invalid scancode keyval(" & key & ")", serrBound
+  scripterr current_command_name() & ": invalid scancode keyval(" & key & ")", serrBound
   RETURN 0
  END IF
 
@@ -4656,6 +4656,12 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 675 '--speaking npc
   scriptret = -1 - txt.sayer
+ CASE 676 '--keypress (scancode, joynum)
+  a_script_wants_keys()
+  scriptret = IIF(script_keyval(retvals(0), retvals(1)) > 1, 1, 0)
+ CASE 677 '--new keypress (scancode, joynum)
+  a_script_wants_keys()
+  scriptret = IIF(script_keyval(retvals(0), retvals(1)) AND 4, 1, 0)
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

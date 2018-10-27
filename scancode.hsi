@@ -174,8 +174,11 @@ define constant,begin
 142,joy:button 15
 143,joy:button 16
 144,joy:x left
+144,joy:left
 145,joy:x right
+145,joy:right
 146,joy:y up
+146,joy:up
 147,joy:y down
-
+147,joy:down
 end

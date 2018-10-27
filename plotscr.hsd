@@ -263,7 +263,7 @@ define function, begin
 241,expandstring,2,0,0        #expand ${Hxx}, etc in a string(ID)
 242,joystickbutton,2,0,0      #returns whether a given button is pressed (button, joystick)
 243,joystickaxis,3,0,100,0    #returns the axis position (axis,multiplier,joystick)
-244,waitforscancode,1,0       #waits for a specific scancode
+244,waitforscancode,1,0       #waits for a specific scancode (identical to waitforkey!)
 245,savemapstate,2,255,255    #save map data to a temp file (savebits, customid)
 246,loadmapstate,2,255,255    #load map data from a temp file (loadbits, customid)
 247,resetmapstate,1,255       #reload original map data (loadbits)
@@ -699,7 +699,8 @@ define function, begin
 673,menuitemvisible,1,0       # Isn't hidden
 674,setlastsaveslot,1,-1      # Set return value of lastsaveslot (0-1000)
 675,speakingnpc,0             # NPC reference for the NPC which is currently talking
-
+676,keypress,2,0,0            # check for new or keyrepeat key-press event, returns bool (scancode, joystick num)
+677,newkeypress,2,0,0         # check for new key-press event, returns bool (scancode, joystick num)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

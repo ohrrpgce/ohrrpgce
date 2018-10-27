@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-10-26)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-10-27)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1621,6 +1621,9 @@
 		<a href="#about-keyispressed">key is pressed (scancode, joystick num)</a><br>
 		
 	
+		<a href="#about-keypress">keypress (scancode, joystick num)</a><br>
+		
+	
 		<a href="#about-keyval">keyval (scancode, joystick num)</a><br>
 		
 	
@@ -1841,6 +1844,9 @@
 		
 	
 		<a href="#about-multiply">number * number</a><br>
+		
+	
+		<a href="#about-newkeypress">new keypress (scancode, joystick num)</a><br>
 		
 	
 		<a href="#about-nextcontainersibling">next container sibling(handle)</a><br>
@@ -9236,7 +9242,15 @@ end
 <span class="backlink"><a href="#Getting%20Player%20Input">Getting Player Input</a> →
 			</span>Keyboard Input</h3>
 		<ul></ul>
-<p></p>
+<p>
+			There are two main commands for checking for keypresses: <a href="#about-keypress" class="ref">keypress</a> and <a href="#about-keyispressed" class="ref">key is pressed</a>.
+			Use <a href="#about-keyispressed" class="ref">key is pressed</a> (which checks whether a key is down) when you want the player to do something continually,
+			such as if they're controlling a character's movement or jumping.
+			For nearly everything else you will use <a href="#about-keypress" class="ref">keypress</a>, such as when you script a menu
+			(both activating menu items and moving the cursor - since the cursor moves in jumps rather than continually),
+			or to use a special ability such throwing a ball.
+			Use <a href="#about-newkeypress" class="ref">new keypress</a> instead of <a href="#about-keypress" class="ref">keypress</a> if you don't want key repeat.
+		</p>
 		
 		
 		<div class="command">
@@ -9247,10 +9261,10 @@ end
 				Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard or joystick key with the specified <a href="#about-scancode" class="ref">scancode</a> is being pressed
 				(either held down or pressed since last tick), or <a href="#about-booleanconstants" class="ref">false</a> if it is not.
 				The <span class="param">scancode</span> argument can be a keyboard <span class="code">key:</span> constant such as <span class="code">key:ctrl</span>,
-				a joystick button, or one of the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, etc, <a href="#keyconstant" class="undef">keyconstant</a>s.
+				a joystick button, or one of the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">any key</a>, <a href="#about-keyconstants" class="ref">use key</a>, etc (see <a href="#about-keyconstants" class="ref">key constants</a>).
 				<br>
 				The <span class="param">joystick num</span> argument is optional, and defaults to 0.
-				It is only used with joystick scancodes such as <span class="code">joy:button 1</span>,
+				It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
 				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
@@ -9279,6 +9293,7 @@ end
 					unless you stick a <a href="#about-wait" class="ref">wait</a> in your <a href="#about-while" class="ref">while</a> loop.
 					That's because <span class="param">key is pressed</span> does not return real time data,
 					but the state of the keyboard at the beginning of the current game tick.
+					(Why not use <a href="#about-waitforkey" class="ref">wait for key</a> instead?)
 				</div>
 				Keyboard scan codes:
 				<pre>key:Esc
@@ -9412,24 +9427,91 @@ joy:x left
 joy:x right
 joy:y up
 joy:y down
+joy:left           # aka joy:x left
+joy:right          # aka joy:x right
+joy:up             # aka joy:y up
+joy:down           # aka joy:y down
 
 #  Virtual scancodes:
 any key            # Any keyboard key or joystick button (including joystick left/right/up/down)
-up key
-down key
+up key             # Up key on the keyboard, or on any joystick
+down key           # ...ditto
 left key
 right key
-use key            # Space, Ctrl or Enter
-cancel key         # Alt or Esc
-menu key           # Alt or Esc
-run key            # Esc or Tab (Hold to run from battle)
+use key            # Space, Ctrl or Enter, or Use button on any joystick
+cancel key         # Alt or Esc, or Cancel button on any joystick
+menu key           # Alt or Esc, or Menu button on any joystick
+run key            # Esc or Tab, or Run button on any joystick (Hold to run from battle)
 </pre>
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Previously it was necessary to <span class="code">include, scancode.hsi</span> to use the <span class="code">key:</span> constants, but no longer.</div>
 			
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-keyval" class="ref">keyval</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-keypress" class="ref">keypress</a>, </li>
+<li>
+<a href="#about-newkeypress" class="ref">new keypress</a>, </li>
+<li><a href="#about-keyval" class="ref">keyval</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-keypress"></a>
+		<h4>keypress (scancode, joystick num)</h4>
+<p>
+			
+				Checks for a keypress event, and returns <span class="code">true</span> or <span class="code">false</span>.
+				A keypress happens either when there's a new keypress (the key/button gets pressed down),
+				or each time it repeats once it's been held down for a little while
+				(every tenth of a second after it's been held half a second, by default).
+				<br>
+				The <span class="param">scancode</span> argument is a <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
+				a joystick button (e.g. <span class="code">joy:left</span>), or a virtual scancode such as
+				<a href="#about-keyconstants" class="ref">use key</a> (see <a href="#about-keyconstants" class="ref">key constants</a>).
+				<br>
+				The <span class="param">joystick num</span> argument is optional, and defaults to 0.
+				It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
+				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-keyispressed" class="ref">key is pressed</a>, </li>
+<li>
+<a href="#about-newkeypress" class="ref">new keypress</a>, </li>
+<li><a href="#about-keyval" class="ref">keyval</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-newkeypress"></a>
+		<h4>new keypress (scancode, joystick num)</h4>
+<p>
+			
+				Checks for a new keypress (the key/button gets pressed down), and returns <span class="code">true</span> or <span class="code">false</span>.
+				<br>
+				The <span class="param">scancode</span> argument is a <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
+				a joystick button (e.g. <span class="code">joy:left</span>), or a virtual scancode such as
+				<a href="#about-keyconstants" class="ref">use key</a> (see <a href="#about-keyconstants" class="ref">key constants</a>).
+				<br>
+				The <span class="param">joystick num</span> argument is optional, and defaults to 0.
+				It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
+				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-keyispressed" class="ref">key is pressed</a>, </li>
+<li>
+<a href="#about-keypress" class="ref">keypress</a>, </li>
+<li><a href="#about-keyval" class="ref">keyval</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -9437,15 +9519,34 @@ run key            # Esc or Tab (Hold to run from battle)
 <a name="about-keyval"></a>
 		<h4>keyval (scancode, joystick num)</h4>
 <p>
-			Returns a bitmask for the state of the specified key. The argument is a scancode, see <a href="#about-keyispressed" class="ref">key is pressed</a>. The first (least significant) bit is whether the key was depressed at the beginning of the current tick. The second bit is whether the key was pushed down by the player since the start of the previous tick (or when the key starts to repeatedly trigger after being held down for a while). It can therefore return 0, 1, 2 or 3: <br><br>0 = not pressed<br>1 = key held down since last tick, but is not a new press<br>2 = the player pressed the key and released it, all in the same tick<br>3 = new keypress (or typematic repeat)
+			
+			Returns a bitmask for the state of the specified key, joystick button, or virtual scancode.
+			The argument is a <a href="#about-scancode" class="ref">scancode</a>, see <a href="#about-keyispressed" class="ref">key is pressed</a>.
+			<br>
+			The result holds the same information as given by the <a href="#about-keyispressed" class="ref">key is pressed</a> and <a href="#about-keypress" class="ref">keypress</a> commands,
+			so you can use those instead.
+			The first (least significant) bit is whether the key was depressed at the beginning of the current tick.
+			The second bit is whether a keypress event happened (either this is a new keypress, or key repeat occurred)
+			- same as <a href="#about-keypress" class="ref">keypress</a>.
+			<br>
+			It can therefore return 0, 1, 2 or 3:
+			<br>
+			0 = not pressed<br>
+			1 = key held down since last tick, but is not a new press<br>
+			2 = the player pressed the key and released it, all in the same tick<br>
+			3 = new keypress (or typematic repeat)
 			<br>
 			The <span class="param">joystick num</span> argument is optional, and defaults to 0.
-			It is only used with joystick scancodes such as <span class="code">joy:button 1</span>,
+			It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
 			and tells which joystick to read: 0 is the first one, 1 is the second, etc.
 			<div style="background-color:#DCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">Just like <a href="#about-keyispressed" class="ref">key is pressed</a>, this command does not return real time data, but the situation at the beginning of the current game tick.</div>
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">The joystick scancodes described in <a href="#about-keyispressed" class="ref">key is pressed</a> aren't fully supported for <span class="param">keyval</span>: the return value will be 3 if the key is down, or 0 if it isn't. In other words, no additional information over <a href="#about-keyispressed" class="ref">key is pressed</a>.</div>
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+				Previously you couldn't use virtual scancodes like <a href="#about-keyconstants" class="ref">use key</a>,
+				which could only be used with <a href="#about-waitforkey" class="ref">wait for key</a>.
+				Now all key commands accept any kind of constant; what a relief!
+			</div>
 			<div style="background-color:#DCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
 				Don't rely on the key repeat rate for things that affect gameplay such as the rate at which you can shoot bullets!
@@ -9458,7 +9559,13 @@ run key            # Esc or Tab (Hold to run from battle)
 			
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-keyispressed" class="ref">key is pressed</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-keyispressed" class="ref">key is pressed</a>, </li>
+<li>
+<a href="#about-keypress" class="ref">keypress</a>, </li>
+<li><a href="#about-newkeypress" class="ref">new keypress</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -9555,14 +9662,34 @@ run key            # Esc or Tab (Hold to run from battle)
 <span class="backlink"><a href="#Getting%20Player%20Input">Getting Player Input</a> →
 			</span>Joystick Input</h3>
 		<ul></ul>
-<p></p>
+<p>
+			Joystick buttons and up/down/left/right directions can also be read using the
+			<a href="#about-keypress" class="ref">keypress</a>, <a href="#about-newkeypress" class="ref">new keypress</a>, <a href="#about-keyispressed" class="ref">key is pressed</a> and <a href="#about-waitforkey" class="ref">wait for key</a>
+			commands, by using the <span class="code">joy:...</span> constants instead of keyboard scancodes.
+			<br>
+			But the best way to support joysticks is to use virtual scancodes such as <a href="#about-keyconstants" class="ref">use key</a>
+			instead of keyboard scancodes, e.g. write <span class="code">if (keypress(use key))</span> instead of
+			<span class="code">if (keypress(key:space) || keypress(key:enter) || keypress(key:ctrl))</span>.
+		</p>
 		
 		
 		<div class="command">
 <a name="about-joystickbutton"></a>
 		<h4>joystick button (button, joystick)</h4>
 <p>
-			Returns <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> depending on whether button #<span class="param">button</span> on joystick #<span class="param">joystick</span> is pressed. <span class="param">button</span> can be from 1-16 (assuming the joystick has that many buttons), and <span class="param">joystick</span> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <span class="param">joystick</span> defaults to.
+			
+				Returns <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> depending on whether button
+				#<span class="param">button</span> on joystick #<span class="param">joystick</span> is pressed.
+				<span class="param">button</span> can be from 1-16 (assuming the joystick has that many buttons),
+				and <span class="param">joystick</span> can be from 0-7.
+				Most of the time, you will want to use joystick #0,
+				so that is what <span class="param">joystick</span> defaults to.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					If you want to check for new button presses, or want key-repeat to happen,
+					use the <a href="#about-keypress" class="ref">keypress</a> or <a href="#about-newkeypress" class="ref">new keypress</a> commands instead.
+				</div>
+			
 			
 			
 			
@@ -19124,10 +19251,12 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		<h4>Scancodes</h4>
 <p>
 			
-				A scancode is a constant referring to a keyboard key or a button on the first joystick.
+				A scancode is either a constant referring to a keyboard key or joystick button,
+				or is a virtual scancode like <a href="#about-keyconstants" class="ref">use key</a>
+				(see <a href="#about-keyconstants" class="ref">key constants</a> for the full list)
+				which is an action that can be attached to multiple keys/buttons.
 				See <a href="#about-keyispressed" class="ref">key is pressed</a> for a list of scancodes, or read the <b>scancode.hsi</b>
 				file included with the engine.
-				Constants like <a href="#about-keyconstants" class="ref">use key</a> are NOT scancodes and can't be used in place of one.
 			
 			
 			
@@ -19139,9 +19268,9 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		<h4>Key constants</h4>
 <p>
 			
-				A constant specifying a key (or joystick button, but generally not a mouse button) by its function.
+				A constant specifying a keyboard key or joystick button by its function.
 				They can be passed to <a href="#about-keyispressed" class="ref">key is pressed</a>, <a href="#about-keyval" class="ref">keyval</a>, <a href="#about-waitforkey" class="ref">wait for key</a>,
-				and <a href="#about-waitforscancode" class="ref">wait for scancode</a>.
+				<a href="#about-keypress" class="ref">keypress</a>, <a href="#about-newkeypress" class="ref">new keypress</a> and <a href="#about-waitforscancode" class="ref">wait for scancode</a>.
 				<br>
 				Previously these could only be used with the <a href="#about-waitforkey" class="ref">wait for key</a> command, but that's changed!
 				<br>
@@ -19183,55 +19312,55 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-anykey"></a>
 		
 				<h4>any key</h4>
-				See <a href="#about-keyconstants">key constant</a>
+				See <a href="#about-keyconstants">key constants</a>
 			</div>
 		<div class="command">
 <a name="about-upkey"></a>
 		
 				<h4>up key</h4>
-				See <a href="#about-keyconstants">key constant</a>
+				See <a href="#about-keyconstants">key constants</a>
 			</div>
 		<div class="command">
 <a name="about-downkey"></a>
 		
 				<h4>down key</h4>
-				See <a href="#about-keyconstants">key constant</a>
+				See <a href="#about-keyconstants">key constants</a>
 			</div>
 		<div class="command">
 <a name="about-leftkey"></a>
 		
 				<h4>left key</h4>
-				See <a href="#about-keyconstants">key constant</a>
+				See <a href="#about-keyconstants">key constants</a>
 			</div>
 		<div class="command">
 <a name="about-rightkey"></a>
 		
 				<h4>right key</h4>
-				See <a href="#about-keyconstants">key constant</a>
+				See <a href="#about-keyconstants">key constants</a>
 			</div>
 		<div class="command">
 <a name="about-usekey"></a>
 		
 				<h4>use key</h4>
-				See <a href="#about-keyconstants">key constant</a>
+				See <a href="#about-keyconstants">key constants</a>
 			</div>
 		<div class="command">
 <a name="about-menukey"></a>
 		
 				<h4>menu key</h4>
-				See <a href="#about-keyconstants">key constant</a>
+				See <a href="#about-keyconstants">key constants</a>
 			</div>
 		<div class="command">
 <a name="about-cancelkey"></a>
 		
 				<h4>cancel key</h4>
-				See <a href="#about-keyconstants">key constant</a>
+				See <a href="#about-keyconstants">key constants</a>
 			</div>
 		<div class="command">
 <a name="about-runkey"></a>
 		
 				<h4>run key</h4>
-				See <a href="#about-keyconstants">key constant</a>
+				See <a href="#about-keyconstants">key constants</a>
 			</div>
 		<div class="command">
 <a name="about-booleanconstants"></a>
@@ -19684,7 +19813,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 854 commands (of which 49 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 856 commands (of which 49 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
