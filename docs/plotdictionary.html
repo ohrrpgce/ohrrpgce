@@ -4234,12 +4234,15 @@ wait for hero (me) # wait until he stops</pre>
 <p>
 			
 				Waits for the player to press a key.
-				You can use any scancode, such as <span class="code">key:a</span> or <span class="code">key:ctrl</span>, including the following virtual scancodes:
-				<a href="#about-keyconstants" class="ref">any key</a>, <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, <a href="#about-keyconstants" class="ref">left key</a>, <a href="#about-keyconstants" class="ref">right key</a>, <a href="#about-keyconstants" class="ref">use key</a>, <a href="#about-keyconstants" class="ref">cancel key</a> (aka <a href="#about-keyconstants" class="ref">menu key</a>) or <a href="#about-keyconstants" class="ref">run key</a>.
+				<span class="param">key</span> is an optional <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
+				a joystick button (e.g. <span class="code">joy:left</span>), or a virtual scancode such as
+				<a href="#about-keyconstants" class="ref">use key</a>.
 				If you do not specify <span class="param">key</span>, then <a href="#about-keyconstants" class="ref">any key</a> will be used,
 				which waits for any keyboard or joystick button.
 				<span class="param">usekey</span> will wait for Space, Ctrl or Enter; and <span class="param">cancelkey</span> and <span class="param">menukey</span> (which are identical) both wait for Alt or Esc.
-				If and only if <span class="code">anykey</span> is used, then <span class="param">waitforkey</span> will return the scancode of the key that was pressed, which might be a joystick scancode like <span class="param">joy:x up</span>.
+				<br>
+				If and only if <span class="code">anykey</span> is used, then <span class="param">waitforkey</span> will return the scancode of the keyboard or joystick key that was pressed,
+				but won't ever be a constant like <span class="code">usekey</span>.
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Previously you couldn't use scancodes like <span class="code">key:x</span>,
@@ -9250,6 +9253,13 @@ end
 			(both activating menu items and moving the cursor - since the cursor moves in jumps rather than continually),
 			or to use a special ability such throwing a ball.
 			Use <a href="#about-newkeypress" class="ref">new keypress</a> instead of <a href="#about-keypress" class="ref">keypress</a> if you don't want key repeat.
+			<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+				You can NOT wait for the player to press a key by continually polling <a href="#about-keyispressed" class="ref">key is pressed</a>, etc,
+				in a <a href="#about-while" class="ref">while</a> loop unless you stick a <a href="#about-wait" class="ref">wait</a> in your loop.
+				That's because key, joystick and mouse commands don't return real time data,
+				but the state of the devices at the beginning of the current game tick.
+			</div>
 		</p>
 		
 		
@@ -9260,8 +9270,9 @@ end
 			
 				Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard or joystick key with the specified <a href="#about-scancode" class="ref">scancode</a> is being pressed
 				(either held down or pressed since last tick), or <a href="#about-booleanconstants" class="ref">false</a> if it is not.
-				The <span class="param">scancode</span> argument can be a keyboard <span class="code">key:</span> constant such as <span class="code">key:ctrl</span>,
-				a joystick button, or one of the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">any key</a>, <a href="#about-keyconstants" class="ref">use key</a>, etc (see <a href="#about-keyconstants" class="ref">key constants</a>).
+				The <span class="param">scancode</span> argument is a <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
+				a joystick button (e.g. <span class="code">joy:left</span>), or a virtual scancode such as
+				<a href="#about-keyconstants" class="ref">use key</a>.
 				<br>
 				The <span class="param">joystick num</span> argument is optional, and defaults to 0.
 				It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
@@ -9274,177 +9285,10 @@ end
 				</div>
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
-					Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2)
-					which were previously the same scancode are now distinct (read scancode.hsi for the complete list).
-					However for backwards compatibility, the old behaviour is emulated
-					(so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes)
-					unless you turn off the "Disable better scancodes for scripts"
-					Preference Bitset in the General Game Settings menu.
-				</div>
-				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					You can't rely on the behaviour of the caps-, scroll- and num-lock keys.
 					They might report on/off state instead of pressed/not pressed,
 					depending on the graphics backend, operating system, and engine version.
 				</div>
-				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
-					You can NOT wait for the player to press a key by continually polling <span class="param">key is pressed</span>
-					unless you stick a <a href="#about-wait" class="ref">wait</a> in your <a href="#about-while" class="ref">while</a> loop.
-					That's because <span class="param">key is pressed</span> does not return real time data,
-					but the state of the keyboard at the beginning of the current game tick.
-					(Why not use <a href="#about-waitforkey" class="ref">wait for key</a> instead?)
-				</div>
-				Keyboard scan codes:
-				<pre>key:Esc
-key:F1
-key:F2
-key:F3
-...
-key:F15
-
-key:Num Lock
-key:Scroll Lock
-key:Caps Lock
-
-key:Print Screen
-key:Pause
-
-key:1
-key:Exclamation
-key:2
-key:At Sign
-key:3
-key:Hash
-key:4
-key:Dollar Sign
-key:5
-key:6
-key:Circumflex
-key:7
-key:Ampersand
-key:8
-key:Asterisk
-key:9
-key:Left Parenthesis
-key:0
-key:Right Parenthesis
-key:Minus
-key:Underscore
-key:Equals
-key:Plus
-key:Backspace
-
-key:A
-key:B
-key:C
-...
-key:Z
-
-key:Left Bracket     # [
-key:Left Brace       # {
-key:Right Bracket    # ]
-key:Right Brace      # }
-key:Semicolon        # ;
-key:Colon            # :
-key:Quote            # '
-key:Doublequote      # "
-key:Apostrophe       # '
-key:Backquote        # `
-key:Tilde            # ~
-key:Backslash        # \
-key:Pipe             # |
-key:Comma            # ,
-key:Left Caret       # &lt;
-key:Period           # .
-key:Right Caret      # &gt;
-key:Slash            # /
-key:Question Mark    # ?
-key:Enter
-key:Space
-key:Tab
-
-key:Home
-key:End
-key:Page Up
-key:Page Down
-key:Insert
-key:Delete
-
-key:Up
-key:Left
-key:Right
-key:Down
-
-key:Meta           # Either Command/Windows key
-key:Win Logo       # equal to key:Meta
-key:Command        # equal to key:Meta
-key:Left Meta      # Left Command/Windows key
-key:Right Meta     # Right Command/Windows key
-key:Left Win Logo  # equal to key:Left Meta
-key:Right Win Logo # equal to key:Right Meta
-key:Left Command   # Macintosh, equal to key:Left Meta
-key:Right Command  # Macintosh, equal to key:Right Meta
-key:Context        # Context Menu key, next to right Windows key on PC keyboards
-
-key:Alt            # either Alt key pressed
-key:Left Alt
-key:Right Alt
-key:Filtered Alt   # either Alt key pressed, unless a key combinations like Alt+Tab is
-                   # pressed, however key presses are delayed until key release.
-key:Ctrl           # either Ctrl key pressed
-key:Left Ctrl
-key:Right Ctrl
-key:Shift          # either Shift key pressed
-key:Left Shift
-key:Right Shift
-key:Any Enter      # either Enter or Numpad Enter key pressed
-
-key:Numpad 0
-key:Numpad 1
-key:Numpad 2
-key:Numpad 3
-key:Numpad 4
-key:Numpad 5
-key:Numpad 6
-key:Numpad 7
-key:Numpad 8
-key:Numpad 9
-key:Numpad Period
-key:Numpad Asterisk
-key:Numpad Slash
-key:Numpad Plus
-key:Numpad Minus
-key:Numpad Enter
-
-#  Joystick scan codes:
-joy:button 1
-joy:button 2
-joy:button 3
-...
-joy:button 16
-joy:x left
-joy:x right
-joy:y up
-joy:y down
-joy:left           # aka joy:x left
-joy:right          # aka joy:x right
-joy:up             # aka joy:y up
-joy:down           # aka joy:y down
-
-#  Virtual scancodes:
-any key            # Any keyboard key or joystick button (including joystick left/right/up/down)
-up key             # Up key on the keyboard, or on any joystick
-down key           # ...ditto
-left key
-right key
-use key            # Space, Ctrl or Enter, or Use button on any joystick
-cancel key         # Alt or Esc, or Cancel button on any joystick
-menu key           # Alt or Esc, or Menu button on any joystick
-run key            # Esc or Tab, or Run button on any joystick (Hold to run from battle)
-</pre>
-				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Previously it was necessary to <span class="code">include, scancode.hsi</span> to use the <span class="code">key:</span> constants, but no longer.</div>
 			
 			
 			
@@ -9466,15 +9310,24 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 				Checks for a keypress event, and returns <span class="code">true</span> or <span class="code">false</span>.
 				A keypress happens either when there's a new keypress (the key/button gets pressed down),
 				or each time it repeats once it's been held down for a little while
-				(every tenth of a second after it's been held half a second, by default).
+				(18 times a second after it's been held half a second, by default).
 				<br>
 				The <span class="param">scancode</span> argument is a <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
 				a joystick button (e.g. <span class="code">joy:left</span>), or a virtual scancode such as
-				<a href="#about-keyconstants" class="ref">use key</a> (see <a href="#about-keyconstants" class="ref">key constants</a>).
+				<a href="#about-keyconstants" class="ref">use key</a>.
 				<br>
 				The <span class="param">joystick num</span> argument is optional, and defaults to 0.
 				It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
 				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+				<div style="background-color:#DCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+					It's not a good idea to rely on the key repeat rate for things that affect gameplay such as the rate at which you can shoot bullets!
+					The repeat rate is once every 55 milliseconds (18 times a second), independent of the frames per second (fps) that
+					the game is running at.
+					Suppose you use key repeat to shoot bullets and your game runs at 36 fps,
+					then a bullet will be fired every other frame.
+					But if played on a really slow computer that only ran the game at 18 fps, a bullet will be fired every frame!
+				</div>
 			
 			
 			
@@ -9497,7 +9350,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 				<br>
 				The <span class="param">scancode</span> argument is a <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
 				a joystick button (e.g. <span class="code">joy:left</span>), or a virtual scancode such as
-				<a href="#about-keyconstants" class="ref">use key</a> (see <a href="#about-keyconstants" class="ref">key constants</a>).
+				<a href="#about-keyconstants" class="ref">use key</a>.
 				<br>
 				The <span class="param">joystick num</span> argument is optional, and defaults to 0.
 				It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
@@ -9521,7 +9374,14 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 <p>
 			
 			Returns a bitmask for the state of the specified key, joystick button, or virtual scancode.
-			The argument is a <a href="#about-scancode" class="ref">scancode</a>, see <a href="#about-keyispressed" class="ref">key is pressed</a>.
+			<br>
+			The <span class="param">scancode</span> argument is a <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
+			a joystick button (e.g. <span class="code">joy:left</span>), or a virtual scancode such as
+			<a href="#about-keyconstants" class="ref">use key</a>.
+			<br>
+			The <span class="param">joystick num</span> argument is optional, and defaults to 0.
+			It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
+			and tells which joystick to read: 0 is the first one, 1 is the second, etc.
 			<br>
 			The result holds the same information as given by the <a href="#about-keyispressed" class="ref">key is pressed</a> and <a href="#about-keypress" class="ref">keypress</a> commands,
 			so you can use those instead.
@@ -9535,26 +9395,11 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 			1 = key held down since last tick, but is not a new press<br>
 			2 = the player pressed the key and released it, all in the same tick<br>
 			3 = new keypress (or typematic repeat)
-			<br>
-			The <span class="param">joystick num</span> argument is optional, and defaults to 0.
-			It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
-			and tells which joystick to read: 0 is the first one, 1 is the second, etc.
-			<div style="background-color:#DCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">Just like <a href="#about-keyispressed" class="ref">key is pressed</a>, this command does not return real time data, but the situation at the beginning of the current game tick.</div>
 			<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 				Previously you couldn't use virtual scancodes like <a href="#about-keyconstants" class="ref">use key</a>,
 				which could only be used with <a href="#about-waitforkey" class="ref">wait for key</a>.
 				Now all key commands accept any kind of constant; what a relief!
-			</div>
-			<div style="background-color:#DCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
-				Don't rely on the key repeat rate for things that affect gameplay such as the rate at which you can shoot bullets!
-				The repeat rate is once every 55 milliseconds (18 times a second), independent of the frames per second (fps) that
-				the game is running at.
-				Suppose you use key repeat (e.g. keyval(key:X)&gt;1) to shoot bullets and your game runs at 36 fps,
-				then a bullet will be fired every other frame.
-				But if played on a really slow computer that only ran the game at 18 fps, a bullet will be fired every frame!
 			</div>
 			
 			
@@ -9791,7 +9636,7 @@ end</pre>
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
 					wait for the player to click the mouse with a while loop that doesn't contain
-					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated one per frame.
+					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated once per frame.
 				</div>
 			
 			
@@ -9815,7 +9660,7 @@ end</pre>
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
 					wait for the player to click the mouse with a while loop that doesn't contain
-					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated one per frame.
+					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated once per frame.
 				</div>
 			
 			
@@ -9839,7 +9684,7 @@ end</pre>
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
 					wait for the player to click the mouse with a while loop that doesn't contain
-					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated one per frame.
+					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated once per frame.
 				</div>
 			
 			
@@ -18068,11 +17913,11 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				Returns the state of the "Disable better scancodes for scripts" backcompat bitset,
 				returning <span class="code">true</span> if it's off.
 				This means that numpad keys are distinguishable from Home, Up, etc. keys.
+				See <a href="#about-scancode" class="ref">scancode</a>.
 			
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-keyispressed" class="ref">key is pressed</a></li></ul>
-</div>
+			
 		</p>
 </div>
 		<div class="command">
@@ -19251,16 +19096,178 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		<h4>Scancodes</h4>
 <p>
 			
-				A scancode is either a constant referring to a keyboard key or joystick button,
+				A scancode is a constant referring to a keyboard key, a joystick button,
 				or is a virtual scancode like <a href="#about-keyconstants" class="ref">use key</a>
 				(see <a href="#about-keyconstants" class="ref">key constants</a> for the full list)
 				which is an action that can be attached to multiple keys/buttons.
-				See <a href="#about-keyispressed" class="ref">key is pressed</a> for a list of scancodes, or read the <b>scancode.hsi</b>
-				file included with the engine.
+				<br>
+				The scancodes are also listed in the <b>scancode.hsi</b> file included with the engine.
+				<pre>key:Esc
+key:F1
+key:F2
+key:F3
+...
+key:F15
+
+key:Num Lock
+key:Scroll Lock
+key:Caps Lock
+
+key:Print Screen
+key:Pause
+
+key:1
+key:Exclamation
+key:2
+key:At Sign
+key:3
+key:Hash
+key:4
+key:Dollar Sign
+key:5
+key:6
+key:Circumflex
+key:7
+key:Ampersand
+key:8
+key:Asterisk
+key:9
+key:Left Parenthesis
+key:0
+key:Right Parenthesis
+key:Minus
+key:Underscore
+key:Equals
+key:Plus
+key:Backspace
+
+key:A
+key:B
+key:C
+...
+key:Z
+
+key:Left Bracket     # [
+key:Left Brace       # {
+key:Right Bracket    # ]
+key:Right Brace      # }
+key:Semicolon        # ;
+key:Colon            # :
+key:Quote            # '
+key:Doublequote      # "
+key:Apostrophe       # '
+key:Backquote        # `
+key:Tilde            # ~
+key:Backslash        # \
+key:Pipe             # |
+key:Comma            # ,
+key:Left Caret       # &lt;
+key:Period           # .
+key:Right Caret      # &gt;
+key:Slash            # /
+key:Question Mark    # ?
+key:Enter
+key:Space
+key:Tab
+
+key:Home
+key:End
+key:Page Up
+key:Page Down
+key:Insert
+key:Delete
+
+key:Up
+key:Left
+key:Right
+key:Down
+
+key:Meta           # Either Command/Windows key
+key:Win Logo       # equal to key:Meta
+key:Command        # equal to key:Meta
+key:Left Meta      # Left Command/Windows key
+key:Right Meta     # Right Command/Windows key
+key:Left Win Logo  # equal to key:Left Meta
+key:Right Win Logo # equal to key:Right Meta
+key:Left Command   # Macintosh, equal to key:Left Meta
+key:Right Command  # Macintosh, equal to key:Right Meta
+key:Context        # Context Menu key, next to right Windows key on PC keyboards
+
+key:Alt            # either Alt key pressed
+key:Left Alt
+key:Right Alt
+key:Filtered Alt   # either Alt key pressed, unless a key combinations like Alt+Tab is
+                   # pressed, however key presses are delayed until key release.
+key:Ctrl           # either Ctrl key pressed
+key:Left Ctrl
+key:Right Ctrl
+key:Shift          # either Shift key pressed
+key:Left Shift
+key:Right Shift
+key:Any Enter      # either Enter or Numpad Enter key pressed
+
+key:Numpad 0
+key:Numpad 1
+key:Numpad 2
+key:Numpad 3
+key:Numpad 4
+key:Numpad 5
+key:Numpad 6
+key:Numpad 7
+key:Numpad 8
+key:Numpad 9
+key:Numpad Period
+key:Numpad Asterisk
+key:Numpad Slash
+key:Numpad Plus
+key:Numpad Minus
+key:Numpad Enter
+
+#  Joystick scan codes:
+joy:button 1
+joy:button 2
+joy:button 3
+...
+joy:button 16
+joy:x left
+joy:x right
+joy:y up
+joy:y down
+joy:left           # aka joy:x left
+joy:right          # aka joy:x right
+joy:up             # aka joy:y up
+joy:down           # aka joy:y down
+
+#  Virtual scancodes:
+any key            # Any keyboard key or joystick button (including joystick left/right/up/down)
+up key             # Up key on the keyboard, or on any joystick
+down key           # ...ditto
+left key
+right key
+use key            # Space, Ctrl or Enter, or Use button on any joystick
+cancel key         # Alt or Esc, or Cancel button on any joystick
+menu key           # Alt or Esc, or Menu button on any joystick
+run key            # Esc or Tab, or Run button on any joystick (Hold to run from battle)
+</pre>
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					Previously it was necessary to <span class="code">include, scancode.hsi</span>
+					to use the <span class="code">key:</span> constants, but no longer.
+				</div>
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2)
+					which were previously the same scancode are now distinct (read scancode.hsi for the complete list).
+					However for backwards compatibility, the old behaviour is emulated
+					(so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes)
+					unless you turn off "Disable better scancodes for scripts"
+					in the Backwards-Compatibility settings menu (in the General Game Settings menu).
+				</div>
 			
 			
 			
-			
+			<div class="seealso">See also: <ul><li><a href="#about-extendedscancodesenabled" class="ref">extended scancodes enabled</a></li></ul>
+</div>
 		</p>
 </div>
 		<div class="command">

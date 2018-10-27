@@ -747,12 +747,15 @@ wait for hero (me) # wait until he stops</example>
 			<shortname>wait for key</shortname>
 			<description>
 				Waits for the player to press a key.
-				You can use any scancode, such as <tt>key:a</tt> or <tt>key:ctrl</tt>, including the following virtual scancodes:
-				<ref>anykey</ref>, <ref>upkey</ref>, <ref>downkey</ref>, <ref>leftkey</ref>, <ref>rightkey</ref>, <ref>usekey</ref>, <ref>cancelkey</ref> (aka <ref>menukey</ref>) or <ref>runkey</ref>.
+				<p>key</p> is an optional <ref>scancode</ref> such as a keyboard key (e.g. <tt>key:ctrl</tt>)
+				a joystick button (e.g. <tt>joy:left</tt>), or a virtual scancode such as
+				<ref>usekey</ref>.
 				If you do not specify <p>key</p>, then <ref>anykey</ref> will be used,
 				which waits for any keyboard or joystick button.
 				<p>usekey</p> will wait for Space, Ctrl or Enter; and <p>cancelkey</p> and <p>menukey</p> (which are identical) both wait for Alt or Esc.
-				If and only if <tt>anykey</tt> is used, then <p>waitforkey</p> will return the scancode of the key that was pressed, which might be a joystick scancode like <p>joy:x up</p>.
+				<lb/>
+				If and only if <tt>anykey</tt> is used, then <p>waitforkey</p> will return the scancode of the keyboard or joystick key that was pressed,
+				but won't ever be a constant like <tt>usekey</tt>.
 				<note>
 					Previously you couldn't use scancodes like <tt>key:x</tt>,
 					and there was a separate <ref>waitforscancode</ref> command for those,
@@ -3821,15 +3824,23 @@ end
 			(both activating menu items and moving the cursor - since the cursor moves in jumps rather than continually),
 			or to use a special ability such throwing a ball.
 			Use <ref>newkeypress</ref> instead of <ref>keypress</ref> if you don't want key repeat.
+			<note>
+				You can NOT wait for the player to press a key by continually polling <ref>keyispressed</ref>, etc,
+				in a <ref>while</ref> loop unless you stick a <ref>wait</ref> in your loop.
+				That's because key, joystick and mouse commands don't return real time data,
+				but the state of the devices at the beginning of the current game tick.
+			</note>
 		</description>
+
 		<command id="keyispressed">
 			<canon>key is pressed (scancode, joystick num)</canon>
 			<shortname>key is pressed</shortname>
 			<description>
 				Returns <ref>true</ref> if the keyboard or joystick key with the specified <ref>scancode</ref> is being pressed
 				(either held down or pressed since last tick), or <ref>false</ref> if it is not.
-				The <p>scancode</p> argument can be a keyboard <tt>key:</tt> constant such as <tt>key:ctrl</tt>,
-				a joystick button, or one of the <ref>upkey</ref>, <ref>anykey</ref>, <ref>usekey</ref>, etc (see <ref>keyconstants</ref>).
+				The <p>scancode</p> argument is a <ref>scancode</ref> such as a keyboard key (e.g. <tt>key:ctrl</tt>)
+				a joystick button (e.g. <tt>joy:left</tt>), or a virtual scancode such as
+				<ref>usekey</ref>.
 				<lb/>
 				The <p>joystick num</p> argument is optional, and defaults to 0.
 				It's only used with joystick scancodes such as <tt>joy:button 1</tt>,
@@ -3840,174 +3851,10 @@ end
 					Now all key commands accept any kind of constant; what a relief!
 				</note>
 				<note>
-					Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2)
-					which were previously the same scancode are now distinct (read scancode.hsi for the complete list).
-					However for backwards compatibility, the old behaviour is emulated
-					(so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes)
-					unless you turn off the &quot;Disable better scancodes for scripts&quot;
-					Preference Bitset in the General Game Settings menu.
-				</note>
-				<note>
 					You can't rely on the behaviour of the caps-, scroll- and num-lock keys.
 					They might report on/off state instead of pressed/not pressed,
 					depending on the graphics backend, operating system, and engine version.
 				</note>
-				<note>
-					You can NOT wait for the player to press a key by continually polling <p>key is pressed</p>
-					unless you stick a <ref>wait</ref> in your <ref>while</ref> loop.
-					That's because <p>key is pressed</p> does not return real time data,
-					but the state of the keyboard at the beginning of the current game tick.
-					(Why not use <ref>waitforkey</ref> instead?)
-				</note>
-				Keyboard scan codes:
-				<example>key:Esc
-key:F1
-key:F2
-key:F3
-...
-key:F15
-
-key:Num Lock
-key:Scroll Lock
-key:Caps Lock
-
-key:Print Screen
-key:Pause
-
-key:1
-key:Exclamation
-key:2
-key:At Sign
-key:3
-key:Hash
-key:4
-key:Dollar Sign
-key:5
-key:6
-key:Circumflex
-key:7
-key:Ampersand
-key:8
-key:Asterisk
-key:9
-key:Left Parenthesis
-key:0
-key:Right Parenthesis
-key:Minus
-key:Underscore
-key:Equals
-key:Plus
-key:Backspace
-
-key:A
-key:B
-key:C
-...
-key:Z
-
-key:Left Bracket     # [
-key:Left Brace       # {
-key:Right Bracket    # ]
-key:Right Brace      # }
-key:Semicolon        # ;
-key:Colon            # :
-key:Quote            # '
-key:Doublequote      # &quot;
-key:Apostrophe       # &apos;
-key:Backquote        # `
-key:Tilde            # ~
-key:Backslash        # \
-key:Pipe             # |
-key:Comma            # ,
-key:Left Caret       # &lt;
-key:Period           # .
-key:Right Caret      # >
-key:Slash            # /
-key:Question Mark    # ?
-key:Enter
-key:Space
-key:Tab
-
-key:Home
-key:End
-key:Page Up
-key:Page Down
-key:Insert
-key:Delete
-
-key:Up
-key:Left
-key:Right
-key:Down
-
-key:Meta           # Either Command/Windows key
-key:Win Logo       # equal to key:Meta
-key:Command        # equal to key:Meta
-key:Left Meta      # Left Command/Windows key
-key:Right Meta     # Right Command/Windows key
-key:Left Win Logo  # equal to key:Left Meta
-key:Right Win Logo # equal to key:Right Meta
-key:Left Command   # Macintosh, equal to key:Left Meta
-key:Right Command  # Macintosh, equal to key:Right Meta
-key:Context        # Context Menu key, next to right Windows key on PC keyboards
-
-key:Alt            # either Alt key pressed
-key:Left Alt
-key:Right Alt
-key:Filtered Alt   # either Alt key pressed, unless a key combinations like Alt+Tab is
-                   # pressed, however key presses are delayed until key release.
-key:Ctrl           # either Ctrl key pressed
-key:Left Ctrl
-key:Right Ctrl
-key:Shift          # either Shift key pressed
-key:Left Shift
-key:Right Shift
-key:Any Enter      # either Enter or Numpad Enter key pressed
-
-key:Numpad 0
-key:Numpad 1
-key:Numpad 2
-key:Numpad 3
-key:Numpad 4
-key:Numpad 5
-key:Numpad 6
-key:Numpad 7
-key:Numpad 8
-key:Numpad 9
-key:Numpad Period
-key:Numpad Asterisk
-key:Numpad Slash
-key:Numpad Plus
-key:Numpad Minus
-key:Numpad Enter
-
-#  Joystick scan codes:
-joy:button 1
-joy:button 2
-joy:button 3
-...
-joy:button 16
-joy:x left
-joy:x right
-joy:y up
-joy:y down
-joy:left           # aka joy:x left
-joy:right          # aka joy:x right
-joy:up             # aka joy:y up
-joy:down           # aka joy:y down
-
-#  Virtual scancodes:
-any key            # Any keyboard key or joystick button (including joystick left/right/up/down)
-up key             # Up key on the keyboard, or on any joystick
-down key           # ...ditto
-left key
-right key
-use key            # Space, Ctrl or Enter, or Use button on any joystick
-cancel key         # Alt or Esc, or Cancel button on any joystick
-menu key           # Alt or Esc, or Menu button on any joystick
-run key            # Esc or Tab, or Run button on any joystick (Hold to run from battle)
-</example>
-				<note>Previously it was necessary to <tt>include, scancode.hsi</tt> to use the <tt>key:</tt> constants, but no longer.</note>
 			</description>
 			<seealso>
 				<ref>keypress</ref>
@@ -4022,15 +3869,23 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 				Checks for a keypress event, and returns <tt>true</tt> or <tt>false</tt>.
 				A keypress happens either when there's a new keypress (the key/button gets pressed down),
 				or each time it repeats once it's been held down for a little while
-				(every tenth of a second after it's been held half a second, by default).
+				(18 times a second after it's been held half a second, by default).
 				<lb/>
 				The <p>scancode</p> argument is a <ref>scancode</ref> such as a keyboard key (e.g. <tt>key:ctrl</tt>)
 				a joystick button (e.g. <tt>joy:left</tt>), or a virtual scancode such as
-				<ref>usekey</ref> (see <ref>keyconstants</ref>).
+				<ref>usekey</ref>.
 				<lb/>
 				The <p>joystick num</p> argument is optional, and defaults to 0.
 				It's only used with joystick scancodes such as <tt>joy:button 1</tt>,
 				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+				<danger>
+					It's not a good idea to rely on the key repeat rate for things that affect gameplay such as the rate at which you can shoot bullets!
+					The repeat rate is once every 55 milliseconds (18 times a second), independent of the frames per second (fps) that
+					the game is running at.
+					Suppose you use key repeat to shoot bullets and your game runs at 36 fps,
+					then a bullet will be fired every other frame.
+					But if played on a really slow computer that only ran the game at 18 fps, a bullet will be fired every frame!
+				</danger>
 			</description>
 			<seealso>
 				<ref>keyispressed</ref>
@@ -4046,7 +3901,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 				<lb/>
 				The <p>scancode</p> argument is a <ref>scancode</ref> such as a keyboard key (e.g. <tt>key:ctrl</tt>)
 				a joystick button (e.g. <tt>joy:left</tt>), or a virtual scancode such as
-				<ref>usekey</ref> (see <ref>keyconstants</ref>).
+				<ref>usekey</ref>.
 				<lb/>
 				The <p>joystick num</p> argument is optional, and defaults to 0.
 				It's only used with joystick scancodes such as <tt>joy:button 1</tt>,
@@ -4063,7 +3918,14 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 			<shortname>keyval</shortname>
 			<description>
 			Returns a bitmask for the state of the specified key, joystick button, or virtual scancode.
-			The argument is a <ref>scancode</ref>, see <ref>keyispressed</ref>.
+			<lb/>
+			The <p>scancode</p> argument is a <ref>scancode</ref> such as a keyboard key (e.g. <tt>key:ctrl</tt>)
+			a joystick button (e.g. <tt>joy:left</tt>), or a virtual scancode such as
+			<ref>usekey</ref>.
+			<lb/>
+			The <p>joystick num</p> argument is optional, and defaults to 0.
+			It's only used with joystick scancodes such as <tt>joy:button 1</tt>,
+			and tells which joystick to read: 0 is the first one, 1 is the second, etc.
 			<lb/>
 			The result holds the same information as given by the <ref>keyispressed</ref> and <ref>keypress</ref> commands,
 			so you can use those instead.
@@ -4077,24 +3939,11 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 			1 = key held down since last tick, but is not a new press<lb/>
 			2 = the player pressed the key and released it, all in the same tick<lb/>
 			3 = new keypress (or typematic repeat)
-			<lb/>
-			The <p>joystick num</p> argument is optional, and defaults to 0.
-			It's only used with joystick scancodes such as <tt>joy:button 1</tt>,
-			and tells which joystick to read: 0 is the first one, 1 is the second, etc.
-			<danger>Just like <ref>keyispressed</ref>, this command does not return real time data, but the situation at the beginning of the current game tick.</danger>
 			<note>
 				Previously you couldn't use virtual scancodes like <ref>usekey</ref>,
 				which could only be used with <ref>waitforkey</ref>.
 				Now all key commands accept any kind of constant; what a relief!
 			</note>
-			<danger>
-				Don't rely on the key repeat rate for things that affect gameplay such as the rate at which you can shoot bullets!
-				The repeat rate is once every 55 milliseconds (18 times a second), independent of the frames per second (fps) that
-				the game is running at.
-				Suppose you use key repeat (e.g. keyval(key:X)>1) to shoot bullets and your game runs at 36 fps,
-				then a bullet will be fired every other frame.
-				But if played on a really slow computer that only ran the game at 18 fps, a bullet will be fired every frame!
-			</danger>
 			</description>
 			<seealso>
 				<ref>keyispressed</ref>
@@ -4248,7 +4097,7 @@ end</example>
 				<note>
 					Just like keyboard commands such as <ref>keyispressed</ref>, you can <b>not</b>
 					wait for the player to click the mouse with a while loop that doesn't contain
-					a <ref>wait</ref> command, because the mouse state is only updated one per frame.
+					a <ref>wait</ref> command, because the mouse state is only updated once per frame.
 				</note>
 			</description>
 			<seealso>
@@ -4265,7 +4114,7 @@ end</example>
 				<note>
 					Just like keyboard commands such as <ref>keyispressed</ref>, you can <b>not</b>
 					wait for the player to click the mouse with a while loop that doesn't contain
-					a <ref>wait</ref> command, because the mouse state is only updated one per frame.
+					a <ref>wait</ref> command, because the mouse state is only updated once per frame.
 				</note>
 			</description>
 			<seealso>
@@ -4282,7 +4131,7 @@ end</example>
 				<note>
 					Just like keyboard commands such as <ref>keyispressed</ref>, you can <b>not</b>
 					wait for the player to click the mouse with a while loop that doesn't contain
-					a <ref>wait</ref> command, because the mouse state is only updated one per frame.
+					a <ref>wait</ref> command, because the mouse state is only updated once per frame.
 				</note>
 			</description>
 			<seealso>
@@ -9444,10 +9293,8 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				Returns the state of the "Disable better scancodes for scripts" backcompat bitset,
 				returning <tt>true</tt> if it's off.
 				This means that numpad keys are distinguishable from Home, Up, etc. keys.
+				See <ref>scancode</ref>.
 			</description>
-			<seealso>
-				<ref>keyispressed</ref>
-			</seealso>
 		</command>
 		<command id="getscreenwidth">
 			<canon>get screen width</canon>
@@ -10287,13 +10134,175 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<canon>Scancodes</canon>
 			<shortname>scancode</shortname>
 			<description>
-				A scancode is either a constant referring to a keyboard key or joystick button,
+				A scancode is a constant referring to a keyboard key, a joystick button,
 				or is a virtual scancode like <ref>usekey</ref>
 				(see <ref>keyconstants</ref> for the full list)
 				which is an action that can be attached to multiple keys/buttons.
-				See <ref>keyispressed</ref> for a list of scancodes, or read the <b>scancode.hsi</b>
-				file included with the engine.
+				<lb/>
+				The scancodes are also listed in the <b>scancode.hsi</b> file included with the engine.
+				<example>key:Esc
+key:F1
+key:F2
+key:F3
+...
+key:F15
+
+key:Num Lock
+key:Scroll Lock
+key:Caps Lock
+
+key:Print Screen
+key:Pause
+
+key:1
+key:Exclamation
+key:2
+key:At Sign
+key:3
+key:Hash
+key:4
+key:Dollar Sign
+key:5
+key:6
+key:Circumflex
+key:7
+key:Ampersand
+key:8
+key:Asterisk
+key:9
+key:Left Parenthesis
+key:0
+key:Right Parenthesis
+key:Minus
+key:Underscore
+key:Equals
+key:Plus
+key:Backspace
+
+key:A
+key:B
+key:C
+...
+key:Z
+
+key:Left Bracket     # [
+key:Left Brace       # {
+key:Right Bracket    # ]
+key:Right Brace      # }
+key:Semicolon        # ;
+key:Colon            # :
+key:Quote            # '
+key:Doublequote      # &quot;
+key:Apostrophe       # &apos;
+key:Backquote        # `
+key:Tilde            # ~
+key:Backslash        # \
+key:Pipe             # |
+key:Comma            # ,
+key:Left Caret       # &lt;
+key:Period           # .
+key:Right Caret      # >
+key:Slash            # /
+key:Question Mark    # ?
+key:Enter
+key:Space
+key:Tab
+
+key:Home
+key:End
+key:Page Up
+key:Page Down
+key:Insert
+key:Delete
+
+key:Up
+key:Left
+key:Right
+key:Down
+
+key:Meta           # Either Command/Windows key
+key:Win Logo       # equal to key:Meta
+key:Command        # equal to key:Meta
+key:Left Meta      # Left Command/Windows key
+key:Right Meta     # Right Command/Windows key
+key:Left Win Logo  # equal to key:Left Meta
+key:Right Win Logo # equal to key:Right Meta
+key:Left Command   # Macintosh, equal to key:Left Meta
+key:Right Command  # Macintosh, equal to key:Right Meta
+key:Context        # Context Menu key, next to right Windows key on PC keyboards
+
+key:Alt            # either Alt key pressed
+key:Left Alt
+key:Right Alt
+key:Filtered Alt   # either Alt key pressed, unless a key combinations like Alt+Tab is
+                   # pressed, however key presses are delayed until key release.
+key:Ctrl           # either Ctrl key pressed
+key:Left Ctrl
+key:Right Ctrl
+key:Shift          # either Shift key pressed
+key:Left Shift
+key:Right Shift
+key:Any Enter      # either Enter or Numpad Enter key pressed
+
+key:Numpad 0
+key:Numpad 1
+key:Numpad 2
+key:Numpad 3
+key:Numpad 4
+key:Numpad 5
+key:Numpad 6
+key:Numpad 7
+key:Numpad 8
+key:Numpad 9
+key:Numpad Period
+key:Numpad Asterisk
+key:Numpad Slash
+key:Numpad Plus
+key:Numpad Minus
+key:Numpad Enter
+
+#  Joystick scan codes:
+joy:button 1
+joy:button 2
+joy:button 3
+...
+joy:button 16
+joy:x left
+joy:x right
+joy:y up
+joy:y down
+joy:left           # aka joy:x left
+joy:right          # aka joy:x right
+joy:up             # aka joy:y up
+joy:down           # aka joy:y down
+
+#  Virtual scancodes:
+any key            # Any keyboard key or joystick button (including joystick left/right/up/down)
+up key             # Up key on the keyboard, or on any joystick
+down key           # ...ditto
+left key
+right key
+use key            # Space, Ctrl or Enter, or Use button on any joystick
+cancel key         # Alt or Esc, or Cancel button on any joystick
+menu key           # Alt or Esc, or Menu button on any joystick
+run key            # Esc or Tab, or Run button on any joystick (Hold to run from battle)
+</example>
+				<note>
+					Previously it was necessary to <tt>include, scancode.hsi</tt>
+					to use the <tt>key:</tt> constants, but no longer.
+				</note>
+				<note>
+					Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2)
+					which were previously the same scancode are now distinct (read scancode.hsi for the complete list).
+					However for backwards compatibility, the old behaviour is emulated
+					(so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes)
+					unless you turn off &quot;Disable better scancodes for scripts&quot;
+					in the Backwards-Compatibility settings menu (in the General Game Settings menu).
+				</note>
 			</description>
+			<seealso>
+				<ref>extendedscancodesenabled</ref>
+			</seealso>
 		</command>
 		<command id="keyconstants">
 			<canon>Key constants</canon>
