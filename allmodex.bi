@@ -495,9 +495,6 @@ DECLARE FUNCTION readmouse () byref as MouseInfo
 DECLARE SUB movemouse (x as integer, y as integer)
 DECLARE SUB mouserect (xmin as integer, xmax as integer, ymin as integer, ymax as integer)
 
-DECLARE FUNCTION readjoy OVERLOAD (joybuf() as integer, jnum as integer) as bool
-DECLARE FUNCTION readjoy (joynum as integer, byref buttons as integer, byref x as integer, byref y as integer) as bool
-
 
 '==========================================================================================
 '                                  Music and Sound effects

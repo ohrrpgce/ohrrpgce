@@ -2208,9 +2208,14 @@ end sub
 sub JoystickState.update_keybits(joynum as integer)
 	dim as integer jx, jy
 	dim as uinteger buttons
-	if readjoy(joynum, buttons, jx, jy) = 0 then
-		'failed to read
+
+	dim starttime as double = timer
+	if io_readjoysane(joynum, buttons, jx, jy) = 0 then
+		'failed to read or is not present
+		'(Warning: if gfx_directx can't read a joystick, it is removed and the others
+		'are renumbered)
 	end if
+	debug_if_slow(starttime, 0.01, joynum & " = " & buttons)
 
 	axes(0) = jx
 	axes(1) = jy
@@ -2681,43 +2686,6 @@ function joystick_axis (axis as integer, joynum as integer = 0) as integer
 
 	if axis < 0 orelse axis > ubound(joy.axes) then return 0
 	return joy.axes(axis)
-end function
-
-function readjoy (joybuf() as integer, jnum as integer) as bool
-'Return false if joystick is not present, or true if joystick is present.
-'(Warning: if gfx_directx can't read a joystick, it is removed and the others
-'are renumbered)
-'jnum is the joystick to read
-'joybuf(0) = Analog X axis (scaled to -100 to 100)
-'joybuf(1) = Analog Y axis
-'joybuf(2) = button 1: 0=pressed nonzero=not pressed
-'joybuf(3) = button 2: 0=pressed nonzero=not pressed
-'Other values in joybuf() should be preserved.
-'If X and Y axis are not analog,
-'  upward motion when joybuf(0) < joybuf(9)
-'  down motion when joybuf(0) > joybuf(10)
-'  left motion when joybuf(1) < joybuf(11)
-'  right motion when joybuf(1) > joybuf(12)
-	dim starttime as double = timer
-	dim as integer buttons, x, y
-	dim ret as bool
-	ret = io_readjoysane(jnum, buttons, x, y)
-	if ret then
-		joybuf(0) = x
-		joybuf(1) = y
-		joybuf(2) = (buttons AND 1) = 0 '0 = pressed, not 0 = unpressed (why???)
-		joybuf(3) = (buttons AND 2) = 0 'ditto
-		ret = YES
-	end if
-	debug_if_slow(starttime, 0.01, jnum & " = " & buttons)
-	return ret
-end function
-
-function readjoy (joynum as integer, byref buttons as integer, byref x as integer, byref y as integer) as bool
-	dim starttime as double = timer
-	dim ret as bool = io_readjoysane(joynum, buttons, x, y)
-	debug_if_slow(starttime, 0.01, joynum & " = " & buttons)
-	return ret
 end function
 
 
