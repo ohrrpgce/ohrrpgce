@@ -347,6 +347,7 @@ SUB item_editor_equipbits(itembuf() as integer, itemname as string)
  DIM bitnames(-1 TO maxMaxHero) as string
  FOR hero_id = 0 TO gen(genMaxHero)
   bitnames(hero_id) = getheroname(hero_id)
+  IF LEN(bitnames(hero_id)) = 0 THEN bitnames(hero_id) = "Hero " & hero_id
   setbit combined_bits(), 0, hero_id, item_read_equipbit(itembuf(), hero_id)
  NEXT
  editbitset combined_bits(), 0, bitnames(), , , , itemname & " is equippable by..."
