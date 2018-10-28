@@ -113,8 +113,9 @@ September 29 2018 [Fufluns]
     * All key commands accept all key constants - no more hassles! You can pass
       "any key", "use key", etc, to "key is pressed", "keyval" and "wait for
       scancode", and pass key: and joy: constants to "wait for key" [Ralph]
-    * Added key:AnyEnter, key:Meta/key:WinLogo/key:Command and "run key",
-      and joy:up/down/left/right (aliases to "joy:y up", etc)
+    * Added key:AnyEnter, key:Meta/key:WinLogo/key:Command, "run key",
+      "joy:button 17" to "joy:button 32", and joy:up/down/left/right
+      (aliases to "joy:y up", etc)
     * Long-missing "keypress" and "new keypress" commands: you should often use
       these instead of "key is pressed" and "keyval" [Ralph]
     * "keyval" now takes the joystick number as a second argument (for use

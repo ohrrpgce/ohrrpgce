@@ -2641,7 +2641,10 @@ function keybd_to_joy_scancode(key as KBScancode) as JoyScancode
 		case scJoyRight : return joyRight
 		case scJoyUp    : return joyUp
 		case scJoyDown  : return joyDown
-		case else       : return joyButton1 + key - scJoyButton1
+		case is <= scJoyButton16  'button 1 to 16
+			return joyButton1 + key - scJoyButton1
+		case is >= scJoyButton17  'button 17 to 32
+			return joyButton17 + key - scJoyButton17
 	end select
 end function
 

@@ -171,16 +171,17 @@ CONST scLAST = 127
 
 '------------- Virtual scancodes
 
-'For convenience the buttons of the first joystick are also accessible like keyboard buttons
+'For convenience joystick buttons are also accessible via scancodes
 CONST scJoyFIRST = 128
 CONST scJoyButton1 = 128
 CONST scJoyButton16 = 143
-'Buttons 17-32 are not available as keyboard keys. Access them directly using joykeyval
 CONST scJoyLeft = 144
 CONST scJoyRight = 145
 CONST scJoyUp = 146
 CONST scJoyDown = 147
-CONST scJoyLAST = 147
+CONST scJoyButton17 = 148
+CONST scJoyButton32 = 163
+CONST scJoyLAST = 163
 
 'These are only returned by anykeypressed/waitforkey! You can't use them elsewhere!
 CONST scMouseLeft = 180
@@ -220,6 +221,7 @@ ENUM 'JoyScancode
  joyButton2  = 1
  joyButton3  = 2
  joyButton4  = 3
+ joyButton17 = 16
  joyButton32 = 31
  joyLeft     = 32
  joyRight    = 33

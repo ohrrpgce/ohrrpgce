@@ -10267,6 +10267,9 @@ joy:button 2
 joy:button 3
 ...
 joy:button 16
+joy:button 17      # Warning: joy:button17 is not joy:button16+1! All other button codes are consecutive
+...
+joy:button 32
 joy:x left
 joy:x right
 joy:y up

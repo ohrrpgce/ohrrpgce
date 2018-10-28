@@ -173,6 +173,24 @@ define constant,begin
 141,joy:button 14
 142,joy:button 15
 143,joy:button 16
+# Warning: gap in scancode numbers!
+148,joy:button 17
+149,joy:button 18
+150,joy:button 19
+151,joy:button 20
+152,joy:button 21
+153,joy:button 22
+154,joy:button 23
+155,joy:button 24
+156,joy:button 25
+157,joy:button 26
+158,joy:button 27
+159,joy:button 28
+160,joy:button 29
+161,joy:button 30
+162,joy:button 31
+163,joy:button 32
+
 144,joy:x left
 144,joy:left
 145,joy:x right
@@ -181,4 +199,5 @@ define constant,begin
 146,joy:up
 147,joy:y down
 147,joy:down
+
 end
