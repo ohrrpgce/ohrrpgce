@@ -77,7 +77,11 @@ FUNCTION editbitset (array() as integer, wof as integer, names() as string, help
    nextbit += 1
   END IF
  NEXT
- REDIM PRESERVE bitmenu(nextbit - 1)
+ IF nextbit THEN
+  REDIM PRESERVE bitmenu(nextbit - 1)
+ ELSE
+  ERASE bitmenu
+ END IF
 
  DIM ret as bool = editbitset(array(), wof, bitmenu(), helpkey, remem_pt, immediate_quit, title, prevmenu)
  IF remem_pt = -1 THEN
