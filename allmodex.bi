@@ -427,6 +427,7 @@ DECLARE SUB clearkey (key as KBScancode, clear_key_repeat as bool = YES)
 DECLARE SUB clearkeys ()
 
 DECLARE FUNCTION joykeyval (key as JoyScancode, joynum as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
+DECLARE FUNCTION joystick_axis (axis as integer, joynum as integer = 0) as integer
 DECLARE FUNCTION keybd_to_joy_scancode (key as KBScancode) as JoyScancode
 DECLARE FUNCTION num_joysticks () as integer
 

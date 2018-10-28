@@ -2212,6 +2212,9 @@ sub JoystickState.update_keybits(joynum as integer)
 		'failed to read
 	end if
 
+	axes(0) = jx
+	axes(1) = jy
+
 	' The gfx backend only tells us which buttons are currently down,
 	' like io_updatekeys, not which have new keypresses, like io_keybits,
 	' so this is similar to the former (as handled in pollingthread).
@@ -2665,6 +2668,16 @@ function joykeyval (key as JoyScancode, joynum as integer = 0, repeat_wait as in
 	dim is_arrowkey as bool
 	is_arrowkey = (key = joyLeft orelse key = joyRight orelse key = joyUp orelse key = joyDown)
 	return joy.key_repeating(key, is_arrowkey, repeat_wait, repeat_rate, *inputst)
+end function
+
+'Returns a value from -100 to 100
+function joystick_axis (axis as integer, joynum as integer = 0) as integer
+	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+	if joynum > ubound(inputst->joys) then return 0  'Not an error
+	dim byref joy as JoystickState = inputst->joys(joynum)
+
+	if axis < 0 orelse axis > ubound(joy.axes) then return 0
+	return joy.axes(axis)
 end function
 
 function readjoy (joybuf() as integer, jnum as integer) as bool

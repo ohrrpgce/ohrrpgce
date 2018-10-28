@@ -4026,7 +4026,7 @@ end
 			<description>
 				Returns <ref>true</ref> or <ref>false</ref> depending on whether button
 				#<p>button</p> on joystick #<p>joystick</p> is pressed.
-				<p>button</p> can be from 1-16 (assuming the joystick has that many buttons),
+				<p>button</p> can be from 1-32 (assuming the joystick has that many buttons),
 				and <p>joystick</p> can be from 0-7.
 				Most of the time, you will want to use joystick #0,
 				so that is what <p>joystick</p> defaults to.

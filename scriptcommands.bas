@@ -2035,29 +2035,13 @@ SUB script_functions(byval cmdid as integer)
    scriptret = retvals(0)
   END IF
  CASE 242'-- joystick button(button, joystick)
-  retvals(0) = bound(retvals(0)-1,0,15)
-  retvals(1) = bound(retvals(1),0,7)
-  DIM b as integer
-  IF readjoy(retvals(1),b,0,0) THEN
-   scriptret = (b SHR retvals(0)) AND 1
-  ELSE
-   scriptret = 0
+  IF bound_arg(retvals(0), 1, 32, "button number 1-32") ANDALSO bound_arg(retvals(1), 0, 15, "joystick") THEN
+   DIM key as KeyBits = joykeyval(joyButton1 + retvals(0) - 1, retvals(1))
+   scriptret = IIF(key > 0, 1, 0)
   END IF
  CASE 243'-- joystick axis(axis, scale, joystick)
-  retvals(0) = bound(retvals(0),0,1)
-  retvals(2) = bound(retvals(2),0,7)
-  DIM as integer xaxis, yaxis
-  IF readjoy(retvals(2), 0, xaxis, yaxis) THEN
-   IF retvals(0) = 0 THEN  'x axis
-    'debug "x " & xaxis
-    scriptret = int((xaxis / 100) * retvals(1)) 'normally, xaxis * 100
-   ELSEIF retvals(0) = 1 THEN  'y axis
-    'debug "y " & yaxis
-    scriptret = int((yaxis / 100) * retvals(1)) 'normally, yaxis * 100
-   END IF
-  ELSE
-   'debug "joystick failed"
-   scriptret = 0
+  IF bound_arg(retvals(2), 0, 15, "joystick") THEN
+   scriptret = (joystick_axis(retvals(0), retvals(2)) / 100) * retvals(1)
   END IF
  CASE 249'--party money
   scriptret = gold
