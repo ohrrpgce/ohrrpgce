@@ -60,10 +60,12 @@ npc_facetypes(2) = "Do Not Face Player"
 'The bits corresponding to any blank entries in names(), or starting with '##' are hidden/skipped over.
 'If a bit name starts with ! then the diplayed value of the bit is reversed.
 'remem_pt is used to store the selected bit (index in names())
-'If immediate_quit is true, then toggling a bit causes the menu to quit immediately (and return YES).
-'Return value is YES if the user selected the prevmenu option, NO if they quit with ESC
-'(which is useful if prevmenu is something like "Done")
-FUNCTION editbitset (array() as integer, wof as integer, names() as string, helpkey as string="editbitset", byref remem_bitnum as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
+'If immediate_quit is true, then toggling a bit causes the menu to quit immediately (and return edbitPickedBit).
+'Return value:
+' edbitCancel    if user pressed ESC
+' edbitBack      if used selected prevmenu (which is useful if prevmenu is something like "Done")
+' edbitPickedBit if immediate_quit=YES and the user toggled a bit
+FUNCTION editbitset (array() as integer, wof as integer, names() as string, helpkey as string="editbitset", byref remem_bitnum as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as EditBitsetResult
 
  DIM remem_pt as integer = -1  'Index in bitmenu()
  DIM bitmenu(UBOUND(names)) as IntStrPair
@@ -83,7 +85,8 @@ FUNCTION editbitset (array() as integer, wof as integer, names() as string, help
   ERASE bitmenu
  END IF
 
- DIM ret as bool = editbitset(array(), wof, bitmenu(), helpkey, remem_pt, immediate_quit, title, prevmenu)
+ DIM ret as EditBitsetResult
+ ret = editbitset(array(), wof, bitmenu(), helpkey, remem_pt, immediate_quit, title, prevmenu)
  IF remem_pt = -1 THEN
   remem_bitnum = -1
  ELSE
@@ -97,7 +100,7 @@ END FUNCTION
 'and to include unselectable section headings.
 'The .i member of bitmenu() is the bit number, which is -1 for unselectable menu items.
 'This overload doesn't hide bits with blank names or ## prefix.
-FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair, helpkey as string="editbitset", byref remem_pt as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
+FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair, helpkey as string="editbitset", byref remem_pt as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as EditBitsetResult
 
  DIM selectable(-1 TO UBOUND(bitmenu)) as bool
  selectable(-1) = YES
@@ -118,14 +121,14 @@ FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair
  calc_menustate_size state, MenuOptions(), 0, 0   'For autosize
  correct_menu_state state
 
- DIM ret as bool = YES
+ DIM ret as EditBitsetResult
 
  push_and_reset_gfxio_state
  DO
   setwait 55
   setkeys
   state.tog = state.tog XOR 1
-  IF keyval(ccCancel) > 1 THEN ret = NO : EXIT DO
+  IF keyval(ccCancel) > 1 THEN ret = edbitCancelled : EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpkey
   usemenu state, selectable()
   IF state.pt >= 0 ANDALSO selectable(state.pt) THEN
@@ -133,18 +136,18 @@ FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair
    DIM bitflip as integer = IIF(bitmenu(state.pt).s[0] = ASC("!"), 1, 0)
    IF keyval(ccLeft) > 1 OR keyval(scLeftCaret) > 1 THEN
     setbit array(), wof, bitnum, 0 XOR bitflip
-    IF immediate_quit THEN EXIT DO
+    IF immediate_quit THEN ret = edbitPickedBit : EXIT DO
    END IF
    IF keyval(ccRight) > 1 OR keyval(scRightCaret) > 1 THEN
     setbit array(), wof, bitnum, 1 XOR bitflip
-    IF immediate_quit THEN EXIT DO
+    IF immediate_quit THEN ret = edbitPickedBit : EXIT DO
    END IF
    IF enter_space_click(state) THEN
     setbit array(), wof, bitnum, readbit(array(), wof, bitnum) XOR 1
-    IF immediate_quit THEN EXIT DO
+    IF immediate_quit THEN ret = edbitPickedBit : EXIT DO
    END IF
   ELSE
-   IF enter_space_click(state) THEN EXIT DO
+   IF enter_space_click(state) THEN ret = edbitBack : EXIT DO
   END IF
 
   ' Draw
@@ -183,14 +186,14 @@ FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair
  RETURN ret
 END FUNCTION
 
-'This is a wrapper aroun editbitset, but bools instead of packed bits.
-FUNCTION editbools(bools() as bool, names() as string, helpkey as string = "editbitset", byref remem_pt as integer = -2, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
+'This is a wrapper around editbitset, but bools instead of packed bits.
+FUNCTION editbools(bools() as bool, names() as string, helpkey as string = "editbitset", byref remem_pt as integer = -2, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as EditBitsetResult
  DIM bitarray(0 TO UBOUND(bools) \ 16) as integer
  FOR i as integer = 0 TO UBOUND(bools)
   setbit bitarray(), 0, i, bools(i)
  NEXT
 
- DIM ret as bool
+ DIM ret as EditBitsetResult
  ret = editbitset(bitarray(), 0, names(), helpkey, remem_pt, immediate_quit, title, prevmenu)
 
  FOR i as integer = 0 TO UBOUND(bools)

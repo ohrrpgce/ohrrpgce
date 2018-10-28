@@ -1787,7 +1787,7 @@ SUB textbox_edit_exporter ()
  metadatalabels(2) = "Choices"
  metadatalabels(3) = "Appearance"
  IF editbools(metadata(), metadatalabels(), "textbox_export_askwhatmetadata", _
-              , , "Choose which metadata to include", "Done") = NO THEN EXIT SUB
+              , , "Choose which metadata to include", "Done") = edbitCancelled THEN EXIT SUB
 
  DIM box_text_file as string
  box_text_file = inputfilename("Filename for TextBox Export?", ".txt", browse_default, "input_file_export_textbox")

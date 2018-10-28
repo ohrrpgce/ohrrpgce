@@ -1499,14 +1499,16 @@ DO
     editbitset buffer(), 0, atkbit(), "attack_bitsets", remember_atk_bit, , atk_edit_atkname(recbuf()) & " general bitsets"
     atk_edit_split_bitsets recbuf(), buffer()
    CASE AtkDamageBitAct
-    DIM updatebits as bool
+    'Every time the user toggles a bit editbitset quits immediately, we refresh
+    'the list of applicable bits, and reenter
+    DIM editret as EditBitsetResult
     DO
      atk_edit_merge_bitsets recbuf(), buffer()
-     updatebits = editbitset(buffer(), 0, maskeddmgbit(), "attack_damage_bitsets", remember_dmg_bit, YES, atk_edit_atkname(recbuf()) & " damage bitsets")
+     editret = editbitset(buffer(), 0, maskeddmgbit(), "attack_damage_bitsets", remember_dmg_bit, YES, atk_edit_atkname(recbuf()) & " damage bitsets")
      atk_edit_split_bitsets recbuf(), buffer()
-     IF updatebits THEN
+     IF editret = edbitPickedBit THEN
       attack_editor_build_damage_menu recbuf(), menu(), menutype(), caption(), menucapoff(), workmenu(), state, dmgbit(), maskeddmgbit(), damagepreview
-     ELSE
+     ELSE  'User quit editbitset
       EXIT DO
      END IF
     LOOP

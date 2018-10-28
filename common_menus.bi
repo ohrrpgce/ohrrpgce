@@ -9,10 +9,16 @@ TYPE FnMenuLogic as FUNCTION (menu as MenuDef, state as MenuState, dataptr as an
 
 DECLARE SUB run_MenuDef(menu as MenuDef, each_tick as FnMenuLogic, dataptr as any ptr = NULL)
 
+ENUM 'EditBitsetResult
+  edbitCancelled
+  edbitBack
+  edbitPickedBit
+END ENUM
+TYPE EditBitsetResult as integer
 
-DECLARE FUNCTION editbitset overload (array() as integer, wof as integer, names() as string, helpkey as string="editbitset", byref remem_bitnum as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
-DECLARE FUNCTION editbitset overload (array() as integer, wof as integer, bitmenu() as IntStrPair, helpkey as string="editbitset", byref remem_pt as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
-DECLARE FUNCTION editbools (bools() as bool, names() as string, helpkey as string = "editbitset", byref remem_pt as integer = -2, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as bool
+DECLARE FUNCTION editbitset overload (array() as integer, wof as integer, names() as string, helpkey as string="editbitset", byref remem_bitnum as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as EditBitsetResult
+DECLARE FUNCTION editbitset overload (array() as integer, wof as integer, bitmenu() as IntStrPair, helpkey as string="editbitset", byref remem_pt as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as EditBitsetResult
+DECLARE FUNCTION editbools (bools() as bool, names() as string, helpkey as string = "editbitset", byref remem_pt as integer = -2, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as EditBitsetResult
 
 DECLARE SUB edit_general_bitsets()
 DECLARE SUB edit_backcompat_bitsets()
