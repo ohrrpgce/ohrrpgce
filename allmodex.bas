@@ -2247,10 +2247,17 @@ sub JoystickState.update_keybits(joynum as integer)
 	next
 
 	' Set pressed buttons
+	
 	if jy <= up_thresh     then keys(joyUp) or= 8
 	if jy >= down_thresh   then keys(joyDown) or= 8
 	if jx <= left_thresh   then keys(joyLeft) or= 8
 	if jx >= right_thresh  then keys(joyRight) or= 8
+	' Also treat the first hat as X, Y directions
+	' (E.g. on this here PSX controller with thumbsticks, use a usb adaptor, the
+	' dpad reports as axes 0/1 with analog off, and as hat 0 with analog on)
+	for bitn as integer = 0 to 3
+		if state.hats(0) and (1 shl bitn) then keys(joyLeft + bitn) or= 8
+	next
 	for btn as integer = 0 to 31
 		if state.buttons_down and (1 shl btn) then
 			keys(joyButton1 + btn) or= 8
