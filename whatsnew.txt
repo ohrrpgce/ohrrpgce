@@ -120,6 +120,8 @@ September 29 2018 [Fufluns]
       these instead of "key is pressed" and "keyval" [Ralph]
     * "keyval" now takes the joystick number as a second argument (for use
       with joy: key constants), like "key is pressed" did [Ralph]
+    * "get joystick name", "joystick button count", "joystick axis count",
+      "joystick hat count" [Ralph]
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"

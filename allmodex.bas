@@ -2725,6 +2725,12 @@ function joystick_axis (axis as integer, joynum as integer = 0) as integer
 	return joy.state.axes(axis)
 end function
 
+function joystick_info (joynum as integer) as JoystickInfo ptr
+	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+	if joynum > ubound(inputst->joys) then return NULL  'Not an error
+	return @inputst->joys(joynum).state.info
+end function
+
 
 '==========================================================================================
 '                       Compat layer for old graphics backend IO API

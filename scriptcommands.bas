@@ -2035,12 +2035,12 @@ SUB script_functions(byval cmdid as integer)
    scriptret = retvals(0)
   END IF
  CASE 242'-- joystick button(button, joystick)
-  IF bound_arg(retvals(0), 1, 32, "button number 1-32") ANDALSO bound_arg(retvals(1), 0, 15, "joystick") THEN
+  IF bound_arg(retvals(0), 1, 32, "button number 1-32") ANDALSO valid_joystick(retvals(1)) THEN
    DIM key as KeyBits = joykeyval(joyButton1 + retvals(0) - 1, retvals(1))
    scriptret = IIF(key > 0, 1, 0)
   END IF
  CASE 243'-- joystick axis(axis, scale, joystick)
-  IF bound_arg(retvals(2), 0, 15, "joystick") THEN
+  IF valid_joystick(retvals(2)) THEN
    scriptret = (joystick_axis(retvals(0), retvals(2)) / 1000) * retvals(1)
   END IF
  CASE 249'--party money
@@ -4646,6 +4646,35 @@ SUB script_functions(byval cmdid as integer)
  CASE 677 '--new keypress (scancode, joynum)
   a_script_wants_keys()
   scriptret = IIF(script_keyval(retvals(0), retvals(1)) AND 4, 1, 0)
+ CASE 678 '--get joystick name (stringid, joynum)
+  IF valid_plotstr(retvals(0), serrBadOp) ANDALSO valid_joystick(retvals(1)) THEN
+   DIM info as JoystickInfo ptr = joystick_info(retval(1))
+   IF info THEN
+    plotstr(retvals(0)).s = info->name
+   END IF
+  END IF
+  scriptret = IIF(script_keyval(retvals(0), retvals(1)) AND 4, 1, 0)
+ CASE 679 '--joystick button count (joynum)
+  IF valid_joystick(retvals(0)) THEN
+   DIM info as JoystickInfo ptr = joystick_info(retval(0))
+   IF info THEN
+    scriptret = info->num_buttons
+   END IF
+  END IF
+ CASE 680 '--joystick axis count (joynum)
+  IF valid_joystick(retvals(0)) THEN
+   DIM info as JoystickInfo ptr = joystick_info(retval(0))
+   IF info THEN
+    scriptret = info->num_axes
+   END IF
+  END IF
+ CASE 681 '--joystick hat count (joynum)
+  IF valid_joystick(retvals(0)) THEN
+   DIM info as JoystickInfo ptr = joystick_info(retval(0))
+   IF info THEN
+    scriptret = info->num_hats
+   END IF
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
@@ -5168,6 +5197,11 @@ END FUNCTION
 '                        Other script command arg checking/decoding
 '==========================================================================================
 
+'This doesn't check how many joysticks are plugged in, because it's not an error
+'to poll a missing joystick
+FUNCTION valid_joystick(byval joynum as integer) as bool
+  RETURN bound_arg(joynum, 0, 15, "joystick", , serrBadOp)
+END FUNCTION
 
 FUNCTION valid_item_slot(byval item_slot as integer) as bool
  RETURN bound_arg(item_slot, 0, last_inv_slot(), "item slot")
