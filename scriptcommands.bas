@@ -4648,29 +4648,28 @@ SUB script_functions(byval cmdid as integer)
   scriptret = IIF(script_keyval(retvals(0), retvals(1)) AND 4, 1, 0)
  CASE 678 '--get joystick name (stringid, joynum)
   IF valid_plotstr(retvals(0), serrBadOp) ANDALSO valid_joystick(retvals(1)) THEN
-   DIM info as JoystickInfo ptr = joystick_info(retval(1))
+   DIM info as JoystickInfo ptr = joystick_info(retvals(1))
    IF info THEN
     plotstr(retvals(0)).s = info->name
    END IF
   END IF
-  scriptret = IIF(script_keyval(retvals(0), retvals(1)) AND 4, 1, 0)
  CASE 679 '--joystick button count (joynum)
   IF valid_joystick(retvals(0)) THEN
-   DIM info as JoystickInfo ptr = joystick_info(retval(0))
+   DIM info as JoystickInfo ptr = joystick_info(retvals(0))
    IF info THEN
     scriptret = info->num_buttons
    END IF
   END IF
  CASE 680 '--joystick axis count (joynum)
   IF valid_joystick(retvals(0)) THEN
-   DIM info as JoystickInfo ptr = joystick_info(retval(0))
+   DIM info as JoystickInfo ptr = joystick_info(retvals(0))
    IF info THEN
     scriptret = info->num_axes
    END IF
   END IF
  CASE 681 '--joystick hat count (joynum)
   IF valid_joystick(retvals(0)) THEN
-   DIM info as JoystickInfo ptr = joystick_info(retval(0))
+   DIM info as JoystickInfo ptr = joystick_info(retvals(0))
    IF info THEN
     scriptret = info->num_hats
    END IF
