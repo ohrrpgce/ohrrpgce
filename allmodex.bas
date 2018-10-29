@@ -2251,7 +2251,7 @@ sub JoystickState.update_keybits(joynum as integer)
 	dim as double angle, norm
 	norm = sqr(jx ^ 2 + jy ^ 2)
 	angle = atan2(-jy, jx) * 6 / 3.14159265  'range -6.0 - 6.0, 0 is right, 3 is up, -3 is down
-	debug strprintf("%d,%d -> norm %f ang %f",jx, jy, norm, angle)
+	'debug strprintf("%d,%d -> norm %f ang %f",jx, jy, norm, angle)
 	if norm >= xy_threshold then
 		if angle > 1  andalso angle < 5  then keys(joyUp)    or= 8
 		if angle > -5 andalso angle < -1 then keys(joyDown)  or= 8

@@ -288,10 +288,10 @@ extern Io_readjoysane as function (byval joynum as integer, byref buttons as uin
 'Poll state of a joystick. (New)
 'state is wiped clean before being handed to the backend.
 'Returns > 0 on an error.
-' -1: acquired new joystick,
+' -1: acquired new joystick
 '  0: success
-'  1: joystick index is out of range
-'  2: the joystick is gone and should be dropped
+'  1: couldn't open/joystick index is out of range
+'  2: previously acquired joystick is gone and should be dropped
 '  3: we don't have input focus currently (temporarily can't be read)
 extern Io_get_joystick_state as function (byval joynum as integer, byval state as IOJoystickState ptr) as integer
 
