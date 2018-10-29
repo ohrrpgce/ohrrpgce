@@ -278,10 +278,7 @@ type JoystickState extends KeyArray
 	state as IOJoystickState
 
 	' Configuration
-	left_thresh as integer	= -500
-	right_thresh as integer = 500
-	up_thresh as integer	= -500
-	down_thresh as integer	= 500
+	xy_threshold as integer = 500
 
 	declare constructor()
 	declare sub init_controls()
@@ -2247,17 +2244,27 @@ sub JoystickState.update_keybits(joynum as integer)
 	next
 
 	' Set pressed buttons
-	
-	if jy <= up_thresh     then keys(joyUp) or= 8
-	if jy >= down_thresh   then keys(joyDown) or= 8
-	if jx <= left_thresh   then keys(joyLeft) or= 8
-	if jx >= right_thresh  then keys(joyRight) or= 8
+
+	' Convert axes 0, 1 to X, Y buttons
+	'Instead of treating X and Y separately, which would divide the range of possible values
+	'into quadrants, we divide it into a circular dead zone and 8 surrounding sectors
+	dim as double angle, norm
+	norm = sqr(jx ^ 2 + jy ^ 2)
+	angle = atan2(-jy, jx) * 6 / 3.14159265  'range -6.0 - 6.0, 0 is right, 3 is up, -3 is down
+	debug strprintf("%d,%d -> norm %f ang %f",jx, jy, norm, angle)
+	if norm >= xy_threshold then
+		if angle > 1  andalso angle < 5  then keys(joyUp)    or= 8
+		if angle > -5 andalso angle < -1 then keys(joyDown)  or= 8
+		if angle > -2 andalso angle < 2  then keys(joyRight) or= 8
+		if angle > 4  orelse  angle < -4 then keys(joyLeft)  or= 8
+	end if
 	' Also treat the first hat as X, Y directions
 	' (E.g. on this here PSX controller with thumbsticks, use a usb adaptor, the
 	' dpad reports as axes 0/1 with analog off, and as hat 0 with analog on)
 	for bitn as integer = 0 to 3
 		if state.hats(0) and (1 shl bitn) then keys(joyLeft + bitn) or= 8
 	next
+
 	for btn as integer = 0 to 31
 		if state.buttons_down and (1 shl btn) then
 			keys(joyButton1 + btn) or= 8
