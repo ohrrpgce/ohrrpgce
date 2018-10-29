@@ -368,6 +368,13 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   ' keyrepeat is disabled (see SDL_KEYDOWN handling).
   SDL_EnableKeyRepeat(400, 50)
 
+  'Clear keyboard state because if we re-initialise the backend (switch backend)
+  'some key-up events can easily get lost
+  'However, there's also a very rare problem after switching to gfx_sdl,
+  'where all keys are dead. Seen once each by TMC (Linux?) and Gaplan (Windows).
+  'Also doesn't fix sdl -> fb -> sdl typically crashing on linux/X11/KDE (when starting up with sdl)
+  memset(@keybdstate(0), 0, (UBOUND(keybdstate) + 1) * SIZEOF(keybdstate(0)))
+
   ' Needed for X11 clipboard
   SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE)
 
@@ -513,28 +520,6 @@ PRIVATE SUB quit_video_subsystem()
   screensurface = NULL
   screenbuffer = NULL
   SDL_QuitSubSystem(SDL_INIT_VIDEO)
-END SUB
-
-SUB gfx_sdl_close()
-  'Calling this before quitting appears to fix the Enter key usually getting stuck if Ctrl-F8
-  '(calling switch_gfx_backend() with Enter pressed) is used to switch from sdl to sdl
-  '(or to sdl if sdl has previously run?)
-  'However, this doesn't seem to fix a very rare problem after switching to gfx_sdl,
-  'where all keys are dead. Seen once each by TMC and Gaplan.
-  'Also doesn't fix sdl -> fb -> sdl typically crashing on linux/X11/KDE (when starting up with sdl)
-  update_state()
-
-  IF SDL_WasInit(SDL_INIT_JOYSTICK) THEN
-    quit_joystick_subsystem()
-  END IF
-
-  IF SDL_WasInit(SDL_INIT_VIDEO) THEN
-    quit_video_subsystem()
-
-    IF SDL_WasInit(0) = 0 THEN
-      SDL_Quit()
-    END IF
-  END IF
 END SUB
 
 FUNCTION gfx_sdl_getversion() as integer

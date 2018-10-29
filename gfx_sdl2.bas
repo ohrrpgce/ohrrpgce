@@ -297,7 +297,11 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   ' repeat keypresses.
   ' However, we still get key repeats, apparently from Windows, even if SDL
   ' keyrepeat is disabled (see SDL_KEYDOWN handling).
-'  SDL_EnableKeyRepeat(400, 50)
+  'SDL_EnableKeyRepeat(400, 50)
+
+  'Clear keyboard state because if we re-initialise the backend (switch backend)
+  'some key-up events can easily get lost
+  memset(@keybdstate(0), 0, (UBOUND(keybdstate) + 1) * SIZEOF(keybdstate(0)))
 
   *info_buffer = *info_buffer & " (" & SDL_NumJoysticks() & " joysticks) Driver:"
 '  SDL_VideoDriverName(info_buffer + LEN(*info_buffer), info_buffer_size - LEN(*info_buffer))
@@ -423,22 +427,6 @@ PRIVATE SUB quit_video_subsystem()
   IF sdlpalette THEN SDL_FreePalette(sdlpalette)
   sdlpalette = NULL
   SDL_QuitSubSystem(SDL_INIT_VIDEO)
-END SUB
-
-SUB gfx_sdl2_close()
-  'TODO: call update_state(), like in gfx_sdl?
-
-  IF SDL_WasInit(SDL_INIT_JOYSTICK) THEN
-    quit_joystick_subsystem()
-  END IF
-
-  IF SDL_WasInit(SDL_INIT_VIDEO) THEN
-    quit_video_subsystem()
-
-    IF SDL_WasInit(0) = 0 THEN
-      SDL_Quit()
-    END IF
-  END IF
 END SUB
 
 FUNCTION gfx_sdl2_getversion() as integer

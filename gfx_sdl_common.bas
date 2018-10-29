@@ -5,6 +5,25 @@
 '' Part of the OHRRPGCE - See LICENSE.txt for GNU GPL License details and disclaimer of liability
 
 
+
+
+SUB GFX_SDL(close)()
+  debug "quit_joystick_subsystem"
+  IF SDL_WasInit(SDL_INIT_JOYSTICK) THEN
+    quit_joystick_subsystem()
+  END IF
+
+  debug "quit_video_subsystem"
+  IF SDL_WasInit(SDL_INIT_VIDEO) THEN
+    quit_video_subsystem()
+
+    IF SDL_WasInit(0) = 0 THEN
+      SDL_Quit()
+    END IF
+  END IF
+END SUB
+
+
 '==============================================================================
 '                                   Joysticks
 
