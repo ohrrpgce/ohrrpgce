@@ -407,13 +407,6 @@ sub io_console_mouserect(byval xmin as integer, byval xmax as integer, byval ymi
 	mousey = ymin
 end sub
 
-function io_console_readjoysane(byval joynum as integer, byref button as uinteger, byref x as integer, byref y as integer) as integer
-	x = 0
-	y = 0
-	button = 0
-	return 1
-end function
-
 function gfx_console_setprocptrs() as integer
 	gfx_init = @gfx_console_init
 	gfx_close = @gfx_console_close
@@ -437,7 +430,6 @@ function gfx_console_setprocptrs() as integer
 	io_getmouse = @io_console_getmouse
 	io_setmouse = @io_console_setmouse
 	io_mouserect = @io_console_mouserect
-	io_readjoysane = @io_console_readjoysane
 
 	'new render API
 	gfx_present = @gfx_console_present

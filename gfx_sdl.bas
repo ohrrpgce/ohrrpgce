@@ -147,6 +147,7 @@ DIM SHARED remember_enable_textinput as bool = NO
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
 DIM SHARED debugging_io as bool = NO
 DIM SHARED joystickhandles(maxJoysticks - 1) as SDL_Joystick ptr
+DIM SHARED joystickinfo(maxJoysticks - 1) as JoystickInfo
 DIM SHARED sdlpalette(0 TO 255) as SDL_Color
 DIM SHARED framesize as XYPair
 DIM SHARED dest_rect as SDL_Rect
@@ -1471,29 +1472,55 @@ SUB io_sdl_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as
   END IF
 END SUB
 
-FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as uinteger, byref x as integer, byref y as integer) as integer
-  IF joynum < 0 ORELSE joynum >= maxJoysticks THEN RETURN 0
-
+'Check a joystick is valid, and open it if not open yet, reading info
+'Returns 0 on success, 1 if the joystick index is out of range, 2 if the joystick can't be read,
+'3 if we don't have input focus currently
+PRIVATE FUNCTION get_joystick(byval joynum as integer) as integer
   'SDL reports joystick state even when the app isn't focused (under both Linux and Windows)
-  IF (SDL_GetAppState() AND SDL_APPINPUTFOCUS) = 0 THEN RETURN 0
+  IF (SDL_GetAppState() AND SDL_APPINPUTFOCUS) = 0 THEN RETURN 3
 
+  IF joynum < 0 ORELSE joynum >= maxJoysticks THEN RETURN 1
+  IF joynum > SDL_NumJoysticks() - 1 THEN RETURN 1
   DIM byref joy as SDL_Joystick ptr = joystickhandles(joynum)
-  IF joy = NULL THEN
-    IF joynum > SDL_NumJoysticks() - 1 THEN RETURN 0
-    joy = SDL_JoystickOpen(joynum)
-    IF joy = NULL THEN
-      debug "Couldn't open joystick " & joynum & ": " & *SDL_GetError
-      RETURN 0
-    END IF
+  IF joy THEN RETURN 0
 
+  joy = SDL_JoystickOpen(joynum)
+  IF joy = NULL THEN
+    debug "Couldn't open joystick " & joynum & ": " & *SDL_GetError
+    RETURN 2
+  END IF
+
+  STATIC joystick_id as integer
+
+  WITH joystickinfo(joynum)
     DIM joyname as const zstring ptr = SDL_JoystickName(joynum)
     IF joyname = NULL THEN joyname = @"(NULL)"
-    debuginfo strprintf("Opened joystick %d %s -- %d buttons %d axes %d hats %d balls", _
-                        joynum, joyname, SDL_JoystickNumButtons(joy), _
-                        SDL_JoystickNumAxes(joy), SDL_JoystickNumHats(joy), SDL_JoystickNumBalls(joy))
-  END IF
+    .name = *joyname
+
+    .num_buttons = SDL_JoystickNumButtons(joy)
+    .num_axes = SDL_JoystickNumAxes(joy)
+    .num_hats = SDL_JoystickNumHats(joy)
+    .num_balls = SDL_JoystickNumBalls(joy)
+    joystick_id += 1
+    .instance_id = joystick_id
+    'Can't retrieve guid
+
+    debuginfo strprintf("Opened joystick %d %s (id %d) -- %d buttons %d axes %d hats %d balls", _
+                        joynum, joyname, .instance_id, .num_buttons, .num_axes, .num_hats, .num_balls)
+
+    .num_buttons = small(32, .num_buttons)
+    .num_axes = small(8, .num_axes)
+    .num_hats = small(4, .num_hats)
+  END WITH
+  RETURN 0
+END FUNCTION
+
+FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as uinteger, byref x as integer, byref y as integer) as integer
+  IF get_joystick(joynum) THEN RETURN 0
+
+  DIM byref joy as SDL_Joystick ptr = joystickhandles(joynum)
   '(Note: we only need to call this because we haven't enabled joystick events with SDL_JoystickEventState(SDL_ENABLE))
-  SDL_JoystickUpdate() 'should this be here? moved from io_sdl_readjoy
+  'SDL_JoystickUpdate() 'should this be here? moved from io_sdl_readjoy
   button = 0
   FOR i as integer = 0 TO SDL_JoystickNumButtons(joy) - 1
     IF SDL_JoystickGetButton(joy, i) THEN button = button OR (1 SHL i)
@@ -1524,6 +1551,60 @@ FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as uinteger, b
     END IF
   END IF
   RETURN 1
+END FUNCTION
+
+FUNCTION io_sdl_get_joystick_state(byval joynum as integer, byval state as IOJoystickState ptr) as integer
+  DIM ret as integer = get_joystick(joynum)
+  IF ret THEN RETURN ret  'Failure
+
+  DIM byref joy as SDL_Joystick ptr = joystickhandles(joynum)
+
+  'Copy over fixed data
+  state->info = joystickinfo(joynum)
+
+  DIM idx as integer
+  WITH *state
+    FOR idx = 0 TO .info.num_buttons - 1
+      IF SDL_JoystickGetButton(joy, idx) THEN .buttons_down OR= 1 SHL idx
+    NEXT
+
+    FOR idx = 0 TO .info.num_axes - 1
+      'Has range -32768 to 32767, which is pretty odd...
+      .axes(idx) = large(-1000, SDL_JoystickGetAxis(joy, idx) * 1000 \ 32767)
+    NEXT
+
+    FOR idx = 0 TO .info.num_hats - 1
+      DIM vec as integer = SDL_JoystickGetHat(joy, idx)
+      IF vec AND SDL_HAT_LEFT  THEN .hats(idx) OR= 1
+      IF vec AND SDL_HAT_RIGHT THEN .hats(idx) OR= 2
+      IF vec AND SDL_HAT_UP    THEN .hats(idx) OR= 4
+      IF vec AND SDL_HAT_DOWN  THEN .hats(idx) OR= 8
+    NEXT
+
+    IF debugging_io THEN
+      STATIC last_state(maxJoysticks - 1) as string
+      DIM temp as string = lpad(BIN(.buttons_down), "0", .info.num_buttons)
+      DIM msg as string = strprintf("joy %d buttons: 0b%s", joynum, STRPTR(temp))
+      FOR idx = 0 TO .info.num_axes - 1
+        msg &= strprintf(" axis%d: %6d", idx, .axes(idx))
+      NEXT
+      FOR idx = 0 TO .info.num_hats - 1
+        msg &= strprintf(" hat%d: 0x%x", idx, .hats(idx))  'Value from 0-15
+      NEXT
+      FOR idx = 0 TO .info.num_balls - 1
+        DIM as integer bx, by
+        'NOTE: This is relative movement since last call, so will break if we ever support balls!
+        SDL_JoystickGetBall(joy, idx, @bx, @by)
+        msg &= strprintf(" ball%d: %d,%d", idx, bx, by)
+      NEXT
+      IF last_state(joynum) <> msg THEN
+        debuginfo msg
+        last_state(joynum) = msg
+      END IF
+    END IF
+  END WITH
+
+  RETURN 0
 END FUNCTION
 
 PRIVATE FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer
@@ -1641,6 +1722,7 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   io_setmouse = @io_sdl_setmouse
   io_mouserect = @io_sdl_mouserect
   io_readjoysane = @io_sdl_readjoysane
+  io_get_joystick_state = @io_sdl_get_joystick_state
 
   gfx_present = @gfx_sdl_present
 

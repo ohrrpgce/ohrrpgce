@@ -49,6 +49,30 @@ type WindowState
 end type
 #define WINDOWSTATE_SZ 8
 
+type JoystickInfo
+	'All of this data is optional except for num_axes, num_hats
+	instance_id as integer   'Uniquely identifies a joystick, or = 0 if not possible to.
+	                         'Unplugging and replugging a jotstick should assign a new ID.
+	model_guid(15) as ubyte  'Identifies the model of hardware. Provided by winapi and SDL2
+	name as zstring * 40     'Concatenation of manufacturer name and product name, if both available
+	num_buttons as integer   'At most 32. 0 if not known.
+	num_axes as integer      'At most 8.
+	num_hats as integer      'At most 4.
+	num_balls as integer     'I don't actually expect we will ever use this - backend should just report balls as axes
+end type
+
+type IOJoystickState
+	structsize as integer    'Number of members in the struct or inside info (not counting info itself),
+	                         'set to IOJOYSTICKSTATE_SZ by both engine and backend. Always at least 11
+	buttons_down as uinteger 'Whether each button is currently down
+	buttons_new as uinteger  '(Optional) Whether a new keypress has happened for each button, since last poll
+	axes(7) as integer       'Values from -1000 to 1000
+	hats(3) as integer       'Length 4 bitvector: left=1, right=2, up=4, down=8
+	info as JoystickInfo
+end type
+#define IOJOYSTICKSTATE_SZ 11
+
+
 type GamePadMap
 	'For passing OHR scancodes to io_remap_android_gamepad
 	Ud as integer
@@ -252,11 +276,19 @@ extern Io_setmousevisibility as sub (byval visibility as CursorVisibility)
 'call io_mouserect(-1, -1, -1, -1) to disable clipping
 extern Io_mouserect as sub (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 
-'Poll state of a joystick.
+'(optional, ptr may be NULL)
+'Poll state of a joystick. (Old)
 'Returns nonzero on success, 0 if the joystick can't be read.
 'buttons is a bitvector of up to 32 buttons
 'jx/jy are the first two axes, in the range from -100 to 100
 extern Io_readjoysane as function (byval joynum as integer, byref buttons as uinteger, byref jx as integer, byref jy as integer) as integer
+
+'(optional, ptr may be NULL)
+'Poll state of a joystick. (New)
+'state is wiped clean before being handed to the backend.
+'Returns 0 on success, 1 if the joystick index is out of range, 2 if the joystick is gone
+'and should be dropped, 3 if we don't have input focus currently (temporarily can't be read)
+extern Io_get_joystick_state as function (byval joynum as integer, byval state as IOJoystickState ptr) as integer
 
 
 '=========================== Backend API wrappers =============================

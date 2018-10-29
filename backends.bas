@@ -94,6 +94,7 @@ dim io_getmouse as sub (byref mx as integer, byref my as integer, byref mwheel a
 dim io_setmouse as sub (byval x as integer, byval y as integer)
 dim io_mouserect as sub (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 dim io_readjoysane as function (byval as integer, byref as uinteger, byref as integer, byref as integer) as integer
+dim io_get_joystick_state as function (byval joynum as integer, byval state as IOJoystickState ptr) as integer
 
 
 'New Surface-based graphics backend function pointers
@@ -271,6 +272,8 @@ private sub set_default_gfx_function_ptrs
 	io_running_on_ouya = @io_dummy_running_on_ouya
 	io_mousebits = @io_amx_mousebits   'Special handling when missing, see gfx_load_library
 	io_getmouse = @io_dummy_getmouse
+	io_readjoysane = NULL
+	io_get_joystick_state = NULL
 end sub
 
 private function hTRYLOAD(byval hFile as any ptr, byval procedure as any ptr ptr, funcname as string) as bool
@@ -379,7 +382,8 @@ private function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, file
 	TRYLOAD (io_getmouse)
 	MUSTLOAD(io_setmouse)
 	MUSTLOAD(io_mouserect)
-	MUSTLOAD(io_readjoysane)
+	TRYLOAD (io_readjoysane)
+	TRYLOAD (io_get_joystick_state)
 
 	backendinfo->dylib = hFile
 	backendinfo->wantpolling = needpolling

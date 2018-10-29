@@ -277,11 +277,6 @@ sub io_alleg_mouserect(byval xmin as integer, byval xmax as integer, byval ymin 
  	set_mouse_range(xmin * 2, ymin * 2 + baroffset, xmax * 2 + 1, ymax * 2 + 1 + baroffset)
 end sub
 
-function io_alleg_readjoysane(byval joynum as integer, byref button as uinteger, byref x as integer, byref y as integer) as integer
-	'don't know
-	return 0
-end function
-
 function gfx_alleg_setprocptrs() as integer
 	gfx_init = @gfx_alleg_init
 	gfx_close = @gfx_alleg_close
@@ -304,7 +299,6 @@ function gfx_alleg_setprocptrs() as integer
 	io_getmouse = @io_alleg_getmouse
 	io_setmouse = @io_alleg_setmouse
 	io_mouserect = @io_alleg_mouserect
-	io_readjoysane = @io_alleg_readjoysane
 
 	return 1
 end function

@@ -2041,7 +2041,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 243'-- joystick axis(axis, scale, joystick)
   IF bound_arg(retvals(2), 0, 15, "joystick") THEN
-   scriptret = (joystick_axis(retvals(0), retvals(2)) / 100) * retvals(1)
+   scriptret = (joystick_axis(retvals(0), retvals(2)) / 1000) * retvals(1)
   END IF
  CASE 249'--party money
   scriptret = gold

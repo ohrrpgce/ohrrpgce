@@ -529,18 +529,49 @@ sub io_fb_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as 
 	end if
 end sub
 
-function io_fb_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
-	dim as single xa, ya
+function io_fb_get_joystick_state(byval joynum as integer, byval state as IOJoystickState ptr) as integer
+	if window_state.focused = NO then return 3  'Not focused
+
+	'Axes which are not present are set to -1000.
+	'Those which are present aren't necessarily consecutive on Windows, since there fbgfx
+	'sets the axes like so (accessed with plain winapi joyGetPosEx and joyGetDevCaps):
+	' 0: X
+	' 1: Y
+	' 2: Z
+	' 3: R
+	' 4: U
+	' 5: V
+	' 6,7: POV hat (direction converted by fbgfx to possible values {-1,0,1} for each axis)
+	'On linux, fbgfx reads events from /dev/input/js# and /dev/js#, which seem to
+	'treat POV hats as extra axes
+	dim ax(7) as single
 	dim as size_t button_bits
-	if getjoystick(joynum, button_bits, xa, ya) then 'returns 1 on failure
-		return 0
+	if getjoystick(joynum, button_bits, ax(0), ax(1), ax(2), ax(3), ax(4), ax(5), ax(6), ax(7)) then
+		'getjoystick returns 1 on failure if the joystick can't be opened
+		return 1  'No joystick
 	end if
 
-	button = button_bits
-	x = int(xa * 100)
-	y = int(ya * 100)
-	'if abs(x) > 10 then debug "X = " + str(x)
-	return 1
+	for i as integer = 0 to 7
+		if ax(i) <> -1000 then
+			'debug "ax " & i & " " & ax(i)
+#ifdef __FB_WIN32__
+			if i >= 6 then
+				'POV hat (see comment above)
+				if ax(i) then
+					dim bitnum as integer = 2*(i-6) + iif(ax(i) > 0, 1, 0)
+					state->hats(0) or= 1 shl bitnum
+				end if
+				state->info.num_hats = 1
+				continue for
+			end if
+#endif
+			state->axes(state->info.num_axes) = 1000 * ax(i)
+			state->info.num_axes += 1
+		end if
+	next
+
+	state->buttons_down = button_bits
+	return 0  'Success
 end function
 
 sub io_fb_set_clipboard_text(text as zstring ptr)  'ustring
@@ -607,7 +638,7 @@ function gfx_fb_setprocptrs() as integer
 	io_getmouse = @io_fb_getmouse
 	io_setmouse = @io_fb_setmouse
 	io_mouserect = @io_fb_mouserect
-	io_readjoysane = @io_fb_readjoysane
+	io_get_joystick_state = @io_fb_get_joystick_state
 
 	'new render API
 	gfx_present = @gfx_fb_present

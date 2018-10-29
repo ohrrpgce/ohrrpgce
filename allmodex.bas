@@ -4,6 +4,7 @@
 'This module is completely bool-clean (bool always used when appropriate)
 
 #include "config.bi"
+#include "crt/string.bi"
 #include "crt/limits.bi"
 #include "string.bi"
 #include "common.bi"
@@ -274,15 +275,13 @@ dim shared inputtext_enabled as bool = NO   'Whether to fetch real_input.kb.inpu
 #ENDIF
 
 type JoystickState extends KeyArray
-	axes(1) as integer           'Range -100 to 100
+	state as IOJoystickState
 
 	' Configuration
-	left_thresh as integer	= -50
-	right_thresh as integer = 50
-	up_thresh as integer	= -50
-	down_thresh as integer	= 50
-	use_button as integer	= 0  'Which button is the use key
-	menu_button as integer	= 1  'Which button is the menu key
+	left_thresh as integer	= -500
+	right_thresh as integer = 500
+	up_thresh as integer	= -500
+	down_thresh as integer	= 500
 
 	declare constructor()
 	declare sub init_controls()
@@ -2204,23 +2203,41 @@ end sub
 'This is similar to io_keybits for a single joystick:
 'it updates a JoystickState with currently-down and new-keypress bits.
 'Basically it does a similar thing to the pollingthread, emulating new-keypress
-'bits which the backend doesn't support.
+'bits since the backend may not report them.
 sub JoystickState.update_keybits(joynum as integer)
+	memset(@state, 0, SIZEOF(state))
+	state.structsize = IOJOYSTICKSTATE_SZ
+
 	dim as integer jx, jy
-	dim as uinteger buttons
 
 	dim starttime as double = timer
-	if io_readjoysane(joynum, buttons, jx, jy) = 0 then
-		'failed to read or is not present
-		'(Warning: if gfx_directx can't read a joystick, it is removed and the others
-		'are renumbered)
+	if io_get_joystick_state then
+		dim ret as integer
+		ret = io_get_joystick_state(joynum, @state)
+		if ret > 0 then
+			'Failed to read/not present. Continue, wiping keys()
+		end if
+		jx = state.axes(0)
+		jy = state.axes(1)
+	elseif io_readjoysane then
+		if io_readjoysane(joynum, state.buttons_down, jx, jy) = 0 then
+			'Failed to read/not present. Continue, wiping keys()
+			'(Warning: if gfx_directx can't read a joystick, it is removed and the others
+			'are renumbered)
+		else
+			'io_readjoysane reports -100 to 100, not -1000 to 1000
+			jx *= 10
+			jy *= 10
+			state.axes(0) = jx
+			state.axes(1) = jy
+		end if
+	else
+		'Backend doesn't support joysticks! Continue, wiping keys()
 	end if
-	debug_if_slow(starttime, 0.01, joynum & " = " & buttons)
+	debug_if_slow(starttime, 0.01, joynum)
 
-	axes(0) = jx
-	axes(1) = jy
-
-	' The gfx backend only tells us which buttons are currently down,
+	' Unless the gfx backend supports state.buttons_new (not actually implemented
+	' by any yet), it only tells us which buttons are currently down,
 	' like io_updatekeys, not which have new keypresses, like io_keybits,
 	' so this is similar to the former (as handled in pollingthread).
 
@@ -2235,7 +2252,7 @@ sub JoystickState.update_keybits(joynum as integer)
 	if jx <= left_thresh   then keys(joyLeft) or= 8
 	if jx >= right_thresh  then keys(joyRight) or= 8
 	for btn as integer = 0 to 31
-		if buttons and (1 shl btn) then
+		if state.buttons_down and (1 shl btn) then
 			keys(joyButton1 + btn) or= 8
 		end if
 	next
@@ -2247,6 +2264,12 @@ sub JoystickState.update_keybits(joynum as integer)
 	for scancode as JoyScancode = 0 to ubound(keys)
 		dim byref key as KeyBits = keys(scancode)
 		key = (key and 3) or ((key and 2) shl 1)
+	next
+	' Add in explicit new-keypress bits from the backend, if reported
+	for btn as integer = 0 to 31
+		if state.buttons_new and (1 shl btn) then
+			keys(joyButton1 + btn) or= 4
+		end if
 	next
 end sub
 
@@ -2678,14 +2701,14 @@ function joykeyval (key as JoyScancode, joynum as integer = 0, repeat_wait as in
 	return joy.key_repeating(key, is_arrowkey, repeat_wait, repeat_rate, *inputst)
 end function
 
-'Returns a value from -100 to 100
+'Returns a value from -1000 to 1000
 function joystick_axis (axis as integer, joynum as integer = 0) as integer
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
 	if joynum > ubound(inputst->joys) then return 0  'Not an error
 	dim byref joy as JoystickState = inputst->joys(joynum)
 
-	if axis < 0 orelse axis > ubound(joy.axes) then return 0
-	return joy.axes(axis)
+	if axis < 0 orelse axis >= joy.state.info.num_axes then return 0
+	return joy.state.axes(axis)
 end function
 
 
@@ -2714,8 +2737,9 @@ sub io_amx_mousebits cdecl (byref mx as integer, byref my as integer, byref mwhe
 	end with
 end sub
 
-'Input: a key array with bit 3 (1<<3 == 8) set for pressed keys (from io_updatekeys)
-'Output: key array with bits 0 and 1 set (like io_keybits)
+'Input: a key array with bit 3 (1<<3 == 8) set for currently pressed keys (from io_updatekeys)
+'       and bit 0 set for keys pressed last tick
+'Output: key array with only bits 0 and 1 set (like io_keybits)
 private sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
 	for scancode as integer = 0 to ubound(keystate)
 		dim byref key as KeyBits = keystate(scancode)
