@@ -1473,8 +1473,7 @@ SUB io_sdl_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as
 END SUB
 
 'Check a joystick is valid, and open it if not open yet, reading info
-'Returns 0 on success, 1 if the joystick index is out of range, 2 if the joystick can't be read,
-'3 if we don't have input focus currently
+'Same return values as io_get_joystick_state in gfx.bi
 PRIVATE FUNCTION get_joystick(byval joynum as integer) as integer
   'SDL reports joystick state even when the app isn't focused (under both Linux and Windows)
   IF (SDL_GetAppState() AND SDL_APPINPUTFOCUS) = 0 THEN RETURN 3
@@ -1490,7 +1489,7 @@ PRIVATE FUNCTION get_joystick(byval joynum as integer) as integer
     RETURN 2
   END IF
 
-  STATIC joystick_id as integer
+  STATIC joystick_counter as integer
 
   WITH joystickinfo(joynum)
     DIM joyname as const zstring ptr = SDL_JoystickName(joynum)
@@ -1501,8 +1500,8 @@ PRIVATE FUNCTION get_joystick(byval joynum as integer) as integer
     .num_axes = SDL_JoystickNumAxes(joy)
     .num_hats = SDL_JoystickNumHats(joy)
     .num_balls = SDL_JoystickNumBalls(joy)
-    joystick_id += 1
-    .instance_id = joystick_id
+    joystick_counter += 1
+    .instance_id = joystick_counter
     'Can't retrieve guid
 
     debuginfo strprintf("Opened joystick %d %s (id %d) -- %d buttons %d axes %d hats %d balls", _
@@ -1512,11 +1511,11 @@ PRIVATE FUNCTION get_joystick(byval joynum as integer) as integer
     .num_axes = small(8, .num_axes)
     .num_hats = small(4, .num_hats)
   END WITH
-  RETURN 0
+  RETURN -1  'Acquired joystick
 END FUNCTION
 
 FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as uinteger, byref x as integer, byref y as integer) as integer
-  IF get_joystick(joynum) THEN RETURN 0
+  IF get_joystick(joynum) > 0 THEN RETURN 0
 
   DIM byref joy as SDL_Joystick ptr = joystickhandles(joynum)
   '(Note: we only need to call this because we haven't enabled joystick events with SDL_JoystickEventState(SDL_ENABLE))
@@ -1555,7 +1554,7 @@ END FUNCTION
 
 FUNCTION io_sdl_get_joystick_state(byval joynum as integer, byval state as IOJoystickState ptr) as integer
   DIM ret as integer = get_joystick(joynum)
-  IF ret THEN RETURN ret  'Failure
+  IF ret > 0 THEN RETURN ret  'Failure
 
   DIM byref joy as SDL_Joystick ptr = joystickhandles(joynum)
 
@@ -1604,7 +1603,7 @@ FUNCTION io_sdl_get_joystick_state(byval joynum as integer, byval state as IOJoy
     END IF
   END WITH
 
-  RETURN 0
+  RETURN ret
 END FUNCTION
 
 PRIVATE FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer

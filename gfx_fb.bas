@@ -532,6 +532,11 @@ end sub
 function io_fb_get_joystick_state(byval joynum as integer, byval state as IOJoystickState ptr) as integer
 	if window_state.focused = NO then return 3  'Not focused
 
+	if joynum > 15 then return 1  'Out of range (fbgfx only supports 16 joysticks)
+	static joystick_counter as integer
+	'state.instance_id mapping. Used to tell report whether this is a new joystick or not
+	static joystick_ids(15) as integer
+
 	'Axes which are not present are set to -1000.
 	'Those which are present aren't necessarily consecutive on Windows, since there fbgfx
 	'sets the axes like so (accessed with plain winapi joyGetPosEx and joyGetDevCaps):
@@ -548,7 +553,12 @@ function io_fb_get_joystick_state(byval joynum as integer, byval state as IOJoys
 	dim as size_t button_bits
 	if getjoystick(joynum, button_bits, ax(0), ax(1), ax(2), ax(3), ax(4), ax(5), ax(6), ax(7)) then
 		'getjoystick returns 1 on failure if the joystick can't be opened
-		return 1  'No joystick
+		if joystick_ids(joynum) then
+			joystick_ids(joynum) = 0
+			return 2  'Joystick lost
+		else
+			return 1  'No joystick
+		end if
 	end if
 
 	for i as integer = 0 to 7
@@ -571,7 +581,14 @@ function io_fb_get_joystick_state(byval joynum as integer, byval state as IOJoys
 	next
 
 	state->buttons_down = button_bits
-	return 0  'Success
+
+	if joystick_ids(joynum) = 0 then
+		joystick_counter += 1
+		joystick_ids(joynum) = joystick_counter
+		return -1  'Acquired joystick
+	else
+		return 0  'Success
+	end if
 end function
 
 sub io_fb_set_clipboard_text(text as zstring ptr)  'ustring

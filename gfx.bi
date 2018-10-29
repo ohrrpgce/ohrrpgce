@@ -51,7 +51,8 @@ end type
 
 type JoystickInfo
 	'All of this data is optional except for num_axes, num_hats
-	instance_id as integer   'Uniquely identifies a joystick, or = 0 if not possible to.
+	instance_id as integer   'Uniquely identifies a joystick. (Some backends may not be to track
+	                         'correctly if there are multiple joysticks plugged in at once).
 	                         'Unplugging and replugging a jotstick should assign a new ID.
 	model_guid(15) as ubyte  'Identifies the model of hardware. Provided by winapi and SDL2
 	name as zstring * 40     'Concatenation of manufacturer name and product name, if both available
@@ -286,8 +287,12 @@ extern Io_readjoysane as function (byval joynum as integer, byref buttons as uin
 '(optional, ptr may be NULL)
 'Poll state of a joystick. (New)
 'state is wiped clean before being handed to the backend.
-'Returns 0 on success, 1 if the joystick index is out of range, 2 if the joystick is gone
-'and should be dropped, 3 if we don't have input focus currently (temporarily can't be read)
+'Returns > 0 on an error.
+' -1: acquired new joystick,
+'  0: success
+'  1: joystick index is out of range
+'  2: the joystick is gone and should be dropped
+'  3: we don't have input focus currently (temporarily can't be read)
 extern Io_get_joystick_state as function (byval joynum as integer, byval state as IOJoystickState ptr) as integer
 
 
