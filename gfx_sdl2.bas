@@ -54,15 +54,6 @@ declare function SDL_ANDROID_OUYAReceiptsAreReady () as bool
 declare function SDL_ANDROID_OUYAReceiptsResult () as zstring ptr
 #ENDIF
 
-DECLARE FUNCTION putenv (byval as zstring ptr) as integer
-#IFNDEF __FB_WIN32__
-'Doens't work on Windows. There we do putenv with a null string
-DECLARE FUNCTION unsetenv (byval as zstring ptr) as integer
-#ENDIF
-
-'DECLARE FUNCTION SDL_putenv cdecl alias "SDL_putenv" (byval variable as zstring ptr) as integer
-'DECLARE FUNCTION SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
-
 
 DECLARE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
 DECLARE FUNCTION recreate_screen_texture() as bool
@@ -102,6 +93,7 @@ DIM SHARED windowedmode as bool = YES
 DIM SHARED resizable as bool = NO
 DIM SHARED resize_requested as bool = NO
 DIM SHARED resize_request as XYPair
+DIM SHARED recenter_window_hint as bool = NO
 DIM SHARED remember_windowtitle as string
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
 DIM SHARED debugging_io as bool = NO
@@ -259,62 +251,59 @@ PRIVATE SUB log_error(failed_call as zstring ptr, funcname as zstring ptr)
 END SUB
 
 FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
-/' Trying to load the resource as a SDL_Surface, Unfinished - the winapi has lost me
-#ifdef __FB_WIN32__
-  DIM as HBITMAP iconh
-  DIM as BITMAP iconbmp
-  iconh = cast(HBITMAP, LoadImage(NULL, windowicon, IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION))
-  GetObject(iconh, sizeof(iconbmp), @iconbmp);
-#endif
-'/
-  'starting with svn revision 3964 custom actually supports capslock
-  'as a toggle, so we no longer want to treat it like a regular key.
-  'that is why these following lines are commented out
 
-  ''disable capslock/numlock/pause special keypress behaviour
-  'putenv("SDL_DISABLE_LOCK_KEYS=1") 'SDL 1.2.14
-  'putenv("SDL_NO_LOCK_KEYS=1")      'SDL SVN between 1.2.13 and 1.2.14
-  
   #ifdef USE_X11
     'Xlib will kill the program if most errors occur, such as if OpenGL on the machine is broken
     'so the window can't be created. We need to install an error handler to prevent that
     set_X11_error_handlers
   #endif
 
-#ifdef IS_CUSTOM
-  'By default SDL prevents screensaver (new in SDL 1.2.10)
-  putenv("SDL_VIDEO_ALLOW_SCREENSAVER=1")
-#endif
+  'Not needed, seems to work without
+  'SDL_SetHint(SDL_HINT_WINDOWS_INTRESOURCE_ICON, windowicon)
+  #ifdef IS_CUSTOM
+    'By default SDL prevents the screensaver (new in SDL 2.0.2)
+    SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1")
+  #endif
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest")
+  'We don't need shaders
+  SDL_SetHint(SDL_HINT_RENDER_OPENGL_SHADERS, "0")
+  'SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "0") 'software, opengl, direct3d, opengles2, opengles, metal
+  'Maybe want to set SDL_HINT_VIDEO_X11_NET_WM_PING off, since we detect hung scripts ourselves?
+  'Make Ctrl-click on Mac send a right-click event
+  SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1")
+  'IMEs should provide their own UIs for inputting characters, as we don't handle SDL_TEXTEDITING events
+  SDL_SetHint(SDL_HINT_IME_INTERNAL_EDITING, "1")
+  'Return key on on-screen keyboard acts as 'done'
+  SDL_SetHint("SDL_RETURN_KEY_HIDES_IME", "1")  'SDL_HINT_RETURN_KEY_HIDES_IME not ni FB's header yet
+  'This controls whether SDL will wait for vsync (causing the framerate to cap to 60fps), or
+  'to triple buffer (adding a frame of latency) - only some drivers
+  'SDL_SetHint(SDL_HINT_VIDEO_DOUBLE_BUFFER, "1")
 
   DIM ver as SDL_version
   SDL_GetVersion(@ver)
-  *info_buffer = MID("SDL " & ver.major & "." & ver.minor & "." & ver.patch, 1, info_buffer_size)
+  DIM ret as string
+  ret = "SDL " & ver.major & "." & ver.minor & "." & ver.patch
 
   DIM video_already_init as bool = (SDL_WasInit(SDL_INIT_VIDEO) <> 0)
 
   IF SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_JOYSTICK) THEN
-    *info_buffer = MID("Can't start SDL (video): " & *SDL_GetError & LINE_END & *info_buffer, 1, info_buffer_size)
+    ret = "Can't start SDL (video): " & *SDL_GetError() & !"\n" & ret
+    *info_buffer = LEFT(ret, info_buffer_size)
     RETURN 0
   END IF
-
-  ' This enables key repeat both for text input and for keys. We only
-  ' want it for text input (only with --native-keybd), and otherwise filter out
-  ' repeat keypresses.
-  ' However, we still get key repeats, apparently from Windows, even if SDL
-  ' keyrepeat is disabled (see SDL_KEYDOWN handling).
-  'SDL_EnableKeyRepeat(400, 50)
 
   'Clear keyboard state because if we re-initialise the backend (switch backend)
   'some key-up events can easily get lost
   memset(@keybdstate(0), 0, (UBOUND(keybdstate) + 1) * SIZEOF(keybdstate(0)))
 
-  *info_buffer = *info_buffer & " (" & SDL_NumJoysticks() & " joysticks) Driver:"
-'  SDL_VideoDriverName(info_buffer + LEN(*info_buffer), info_buffer_size - LEN(*info_buffer))
+  ret &= " (" & SDL_NumJoysticks() & " joysticks) Driver:" & *SDL_GetCurrentVideoDriver() & " (Drivers:"
+  FOR i as integer = 0 TO SDL_GetNumVideoDrivers() - 1
+    ret &= " " & *SDL_GetVideoDriver(i)
+  NEXT
+  ret &= ")"
 
   framesize.w = 320
   framesize.h = 200
-
-  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest")
 
   sdlpalette = SDL_AllocPalette(256)
   CheckOK(sdlpalette = NULL, RETURN 0)
@@ -328,6 +317,7 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   END IF
 #ENDIF
 
+  *info_buffer = LEFT(ret, info_buffer_size)
   RETURN recreate_window()
 END FUNCTION
 
@@ -347,11 +337,12 @@ PRIVATE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
   END IF
 
   DIM windowpos as integer
-  IF running_as_slave = NO THEN   'Don't display the window straight on top of Custom's
+  IF recenter_window_hint ANDALSO running_as_slave = NO THEN   'Don't display the window straight on top of Custom's
     windowpos = SDL_WINDOWPOS_CENTERED
   ELSE
     windowpos = SDL_WINDOWPOS_UNDEFINED
   END IF
+  recenter_window_hint = NO
 
   'Start with initial zoom and repeatedly decrease it if it is too large
   '(This is necessary to run in fullscreen in OSX IIRC)
@@ -700,13 +691,12 @@ FUNCTION gfx_sdl2_get_resize(byref ret as XYPair) as bool
   RETURN NO
 END FUNCTION
 
-'Interesting behaviour: under X11+KDE, if the window doesn't go over the screen edges and is resized
+'Interesting behaviour: under X11+KDE+SDL 1.2, if the window doesn't go over the screen edges and is resized
 'larger (SDL_SetVideoMode), then it will automatically be moved to fit onscreen (if you DON'T ask for recenter).
 SUB gfx_sdl2_recenter_window_hint()
   'Takes effect at the next SDL_SetVideoMode call, and it's then removed
   debuginfo "recenter_window_hint()"
-  putenv("SDL_VIDEO_CENTERED=1")
-  '(Note this is overridden by SDL_VIDEO_WINDOW_POS, so this function may do nothing when running as slave)
+  recenter_window_hint = YES
 END SUB
 
 SUB gfx_sdl2_set_zoom(byval value as integer)
