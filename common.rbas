@@ -1281,14 +1281,16 @@ SUB showerror (zmsg as zstring ptr, byval isfatal as bool = NO, isbug as bool = 
 
  IF modex_initialised = NO THEN
   debug "showerror: modex_initialised false"
-  fatal_error_shutdown
+  IF isfatal THEN fatal_error_shutdown
+  EXIT SUB
  END IF
 
  'Don't reenter the graphics backend either - if gfxmutex is already
  'held then we would deadlock on trying to aquire it.
  IF main_thread_in_gfx_backend THEN
   debug "showerror: avoiding gfx backend rentry"
-  fatal_error_shutdown
+  IF isfatal THEN fatal_error_shutdown
+  EXIT SUB
  END IF
 
  DIM prompt_to_quit as bool = NO
