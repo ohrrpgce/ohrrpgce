@@ -1,9 +1,11 @@
-/* This function is copied and adapted from:
+/* This code is adapted from part of:
  *	XlibInt.c - Internal support routines for the C subroutine
  *	interface library (Xlib) to the X Window System Protocol V11.0.
+ * xorg-libX11 git commit 2911c39cecd63
  */
 
 /*
+Copyright 2018  Ralph Versteegen
 Copyright 1985, 1986, 1987, 1998  The Open Group
 Permission to use, copy, modify, distribute, and sell this software and its
 documentation for any purpose is hereby granted without fee, provided that
@@ -25,13 +27,57 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 */
 
-#include "Xlibint.h"
-#include "Xprivate.h"
-#include <X11/Xpoll.h>
-#include <assert.h>
+#include <X11/Xlib.h>
 #include <stdio.h>
+#include <string.h>
 
-static int _XPrintDefaultError(
+
+/* Map a major op >= 128 to the name of its extension. See also:
+   https://www.x.org/wiki/Development/Documentation/Protocol/OpCodes/
+*/
+char *opcode_to_extension(int opcode, FILE *fp) {
+    static char buffer[64];
+
+    Display *display;
+    display = XOpenDisplay(NULL);  // uses display indicated by $DISPLAY
+    if (!display) {
+        fprintf(fp, "XOpenDisplay failed\n");
+        return NULL;
+    }
+
+    int listn = 0;
+    char **list = XListExtensions(display, &listn);
+    if (!list || !listn) {
+        fprintf(fp, "XListExtensions failed\n");
+        XCloseDisplay(display);
+        return NULL;
+    }
+
+    char *ret = NULL;
+
+    for (int i = 0; i < listn; i++) {
+        XExtCodes codes;
+	if (!XQueryExtension(display, list[i],
+		&codes.major_opcode, &codes.first_event,
+                             &codes.first_error)) {
+            fprintf(stderr, "XQueryExtension failed\n");
+        }
+        if (codes.major_opcode == opcode) {
+            ret = buffer;
+            snprintf(buffer, 64, "%s", list[i]);
+            break;
+        }
+    }
+    XCloseDisplay(display);
+
+    return ret;
+}
+
+/* Xlib's default error handler calls internal function _XPrintDefaultError
+   and then calls exit(). This function is a nearly functionally identical
+   adapted version of _XPrintDefaultError that doesn't depend on Xlib internals.
+*/
+void PrintXError(
     Display *dpy,
     XErrorEvent *event,
     FILE *fp)
@@ -40,8 +86,7 @@ static int _XPrintDefaultError(
     char mesg[BUFSIZ];
     char number[32];
     const char *mtype = "XlibMessage";
-    register _XExtension *ext = (_XExtension *)NULL;
-    _XExtension *bext = (_XExtension *)NULL;
+    const char *extname = NULL;
     XGetErrorText(dpy, event->error_code, buffer, BUFSIZ);
     XGetErrorDatabaseText(dpy, mtype, "XError", "X Error", mesg, BUFSIZ);
     (void) fprintf(fp, "%s:  %s\n  ", mesg, buffer);
@@ -52,12 +97,9 @@ static int _XPrintDefaultError(
 	snprintf(number, sizeof(number), "%d", event->request_code);
 	XGetErrorDatabaseText(dpy, "XRequest", number, "", buffer, BUFSIZ);
     } else {
-	for (ext = dpy->ext_procs;
-	     ext && (ext->codes.major_opcode != event->request_code);
-	     ext = ext->next)
-	  ;
-	if (ext) {
-	    strncpy(buffer, ext->name, BUFSIZ);
+        extname = opcode_to_extension(event->request_code, fp);
+	if (extname) {
+	    strncpy(buffer, extname, BUFSIZ);
 	    buffer[BUFSIZ - 1] = '\0';
         } else
 	    buffer[0] = '\0';
@@ -68,15 +110,26 @@ static int _XPrintDefaultError(
 			      mesg, BUFSIZ);
 	fputs("  ", fp);
 	(void) fprintf(fp, mesg, event->minor_code);
-	if (ext) {
-	    snprintf(mesg, sizeof(mesg), "%s.%d", ext->name, event->minor_code);
+	if (extname) {
+	    snprintf(mesg, sizeof(mesg), "%s.%d", extname, event->minor_code);
 	    XGetErrorDatabaseText(dpy, "XRequest", mesg, "", buffer, BUFSIZ);
 	    (void) fprintf(fp, " (%s)", buffer);
 	}
+
 	fputs("\n", fp);
     }
     if (event->error_code >= 128) {
+        /* The following code is almost identical to the implementation of
+           XGetErrorText, except that calls XGetErrorDatabaseText for an
+           XProtoError instead of XlibMessage string. The XlibMessage strings
+           include a printf %lx argument while the XProtoError error string
+           don't, and are worded differently.
+           See https://cgit.freedesktop.org/xorg/lib/libX11/tree/src/XErrorDB
+           And XGetErrorText has already been called above, so no point doing
+           more than just printing event->resourceid.
+        */
 	/* kludge, try to find the extension that caused it */
+        /*
 	buffer[0] = '\0';
 	for (ext = dpy->ext_procs; ext; ext = ext->next) {
 	    if (ext->error_string)
@@ -95,6 +148,7 @@ static int _XPrintDefaultError(
 	    snprintf(buffer, sizeof(buffer), "%s.%d", bext->name,
                      event->error_code - bext->codes.first_error);
 	else
+        */
 	    strcpy(buffer, "Value");
 	XGetErrorDatabaseText(dpy, mtype, buffer, "", mesg, BUFSIZ);
 	if (mesg[0]) {
@@ -103,10 +157,12 @@ static int _XPrintDefaultError(
 	    fputs("\n", fp);
 	}
 	/* let extensions try to print the values */
+	/* We can't do this
 	for (ext = dpy->ext_procs; ext; ext = ext->next) {
 	    if (ext->error_values)
 		(*ext->error_values)(dpy, event, fp);
 	}
+        */
     } else if ((event->error_code == BadWindow) ||
 	       (event->error_code == BadPixmap) ||
 	       (event->error_code == BadCursor) ||
@@ -134,11 +190,11 @@ static int _XPrintDefaultError(
 			  mesg, BUFSIZ);
     fputs("  ", fp);
     (void) fprintf(fp, mesg, event->serial);
+    /* We can't do this
     XGetErrorDatabaseText(dpy, mtype, "CurrentSerial", "Current Serial #%lld",
 			  mesg, BUFSIZ);
     fputs("\n  ", fp);
     (void) fprintf(fp, mesg, (unsigned long long)(X_DPY_GET_REQUEST(dpy)));
+    */
     fputs("\n", fp);
-    if (event->error_code == BadImplementation) return 0;
-    return 1;
 }
