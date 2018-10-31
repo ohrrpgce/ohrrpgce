@@ -857,7 +857,7 @@ elif android:
     common_modules += ['os_unix_wm.c']
 elif unix:  # Unix+X11 systems: Linux & BSD
     base_modules += ['os_unix.c', 'os_unix2.bas']
-    common_modules += ['os_unix_wm.c']
+    common_modules += ['os_unix_wm.c', 'lib/x11_printerror.c']
     if portable:
         # To support old libstdc++.so versions
         base_modules += ['lib/stdc++compat.cpp']

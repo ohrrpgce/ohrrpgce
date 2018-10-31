@@ -275,6 +275,11 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   'putenv("SDL_DISABLE_LOCK_KEYS=1") 'SDL 1.2.14
   'putenv("SDL_NO_LOCK_KEYS=1")      'SDL SVN between 1.2.13 and 1.2.14
   
+  #ifdef USE_X11
+    'Xlib will kill the program if most errors occur, such as if OpenGL on the machine is broken
+    'so the window can't be created. We need to install an error handler to prevent that
+    set_X11_error_handlers
+  #endif
 
 #ifdef IS_CUSTOM
   'By default SDL prevents screensaver (new in SDL 1.2.10)

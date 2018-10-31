@@ -56,6 +56,41 @@ void os_get_screen_size(int *wide, int *high) {
 
 #elif defined(USE_X11)
 
+int PrintXError(Display *dpy, XErrorEvent *event, FILE *fp);
+
+static int X_fatal_error_handler(Display *dpl) {
+	debugc(errDie, "Xlib fatal IO error handler called!");
+	/* not reached */
+	return 0;
+}
+
+static int X_error_handler(Display *dpl, XErrorEvent *event) {
+	// Print the error to a buffer and log it and print to stderr, like
+	// Xlib errors normally are
+	char buf[500];
+	buf[499] = '\0';
+	FILE *fbuf = fmemopen(buf, 499, "w+");
+	fprintf(fbuf, "Xlib error handler called:\n");
+	PrintXError(dpl, event, fbuf);
+	fclose(fbuf);
+	fputs(buf, stderr);
+	debugc(errError, buf);
+	return 0;  //ignored
+}
+
+void set_X11_error_handlers() {
+	// The default Xlib error handler prints the error to stderr and calls
+	// exit(). That sucks, it would mean that e.g. if something goes wrong
+	// when the backend tries to create the window we can't try again with
+	// other settings or backend. So set our own handler.
+	XSetErrorHandler(X_error_handler);
+
+	// We can't stop Xlib from killing the program if the connection to
+	// the X server is lost, or other fatal error, but we can at least
+	// try to shut down cleanly
+	XSetIOErrorHandler(X_fatal_error_handler);
+}
+
 void os_get_screen_size(int *wide, int *high) {
 	Display *display;
 	display = XOpenDisplay(NULL);  // uses display indicated by $DISPLAY env var

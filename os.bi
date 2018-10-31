@@ -132,9 +132,15 @@ declare sub cleanup_process (byval process as ProcessHandle ptr)
 declare function get_process_id () as integer
 declare function get_process_path (pid as integer) as string
 
+'WM and screen
+
 'Only implemented for X11 and Windows, sets to 0 otherwise or on error
 'NOTE: call get_screen_size instead of this.
 declare sub os_get_screen_size(wide as integer ptr, high as integer ptr)
+
+#ifdef USE_X11
+declare sub set_X11_error_handlers()
+#endif
 
 end extern
 

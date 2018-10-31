@@ -324,6 +324,13 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   GetObject(iconh, sizeof(iconbmp), @iconbmp);
 #endif
 '/
+
+  #ifdef USE_X11
+    'Xlib will kill the program if most errors occur, such as if OpenGL on the machine is broken
+    'so the window can't be created. We need to install an error handler to prevent that
+    set_X11_error_handlers
+  #endif
+
   'starting with svn revision 3964 custom actually supports capslock
   'as a toggle, so we no longer want to treat it like a regular key.
   'that is why these following lines are commented out

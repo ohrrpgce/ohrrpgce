@@ -73,6 +73,12 @@ dim shared truepal(255) as int32
 
 function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 	if init_gfx = NO then
+		#ifdef USE_X11
+			'Xlib will kill the program if most errors occur, such as if OpenGL on the machine is broken
+			'so the window can't be created. We need to install an error handler to prevent that
+			set_X11_error_handlers
+		#endif
+
 		dim bpp as size_t 'bits, not bytes. see, bits is b, bytes is B
 		dim refreshrate as size_t
 		dim driver as string
