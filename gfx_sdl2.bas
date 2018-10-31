@@ -380,7 +380,14 @@ PRIVATE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
 
   mainrenderer = SDL_CreateRenderer(mainwindow, -1, SDL_RENDERER_PRESENTVSYNC)
   ' Don't kill the program yet; we might be able to switch to a different backend
-  CheckOK(mainrenderer = NULL, RETURN 0)
+  IF mainrenderer = NULL THEN
+    log_error("SDL_CreateRenderer failed; falling back to software renderer", "")
+    'Doing SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "software") or "0" instead didn't help to
+    'recover from a broken X11 OpenGL implementation
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software")
+    mainrenderer = SDL_CreateRenderer(mainwindow, -1, SDL_RENDERER_PRESENTVSYNC)
+    CheckOK(mainrenderer = NULL, RETURN 0)
+  END IF
 
   SDL_RenderSetLogicalSize(mainrenderer, framesize.w, framesize.h)
   #IFDEF SDL_RenderSetIntegerScale
