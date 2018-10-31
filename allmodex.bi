@@ -718,15 +718,22 @@ declare sub email_files(address as string, subject as string, message as string,
 '==========================================================================================
 
 
+
 'Use these macros to avoid deadlocking on gfxmutex due to reentering allmodex from an
-'exception handle, if it's already held by the main thread. Not used by the polling thread.
+'exception handler, if it's already held by the main thread. Not used by the polling thread.
 #macro GFX_ENTER
+	if main_thread_in_gfx_backend then
+		debugc errBug, "GFX_ENTER reentered!"
+		'Try to recover by skipping whatever we were about to do
+		goto skip_gfx
+	end if
 	main_thread_in_gfx_backend = YES
 	mutexlock gfxmutex
 #endmacro
 #macro GFX_EXIT
 	mutexunlock gfxmutex
 	main_thread_in_gfx_backend = NO
+	skip_gfx:
 #endmacro
 
 

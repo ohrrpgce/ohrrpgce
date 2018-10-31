@@ -455,6 +455,7 @@ dim shared global_sfx_volume as single = 1.
 ' Initialise anything in this module that's independent from the gfx backend
 private sub modex_init()
 	tlsKeyClipRect = tls_alloc_key()
+	gfxmutex = mutexcreate
 
 	redim vpages(3)
 	'redim fixedsize_vpages(3)  'Initially all NO
@@ -482,7 +483,6 @@ private sub after_backend_init()
 	pollthread.mouselastbuttons = 0
 	pollthread.mousebuttons = 0
 
-	gfxmutex = mutexcreate
 	if wantpollingthread then
 		debuginfo "Starting IO polling thread"
 		pollthread.threadptr = threadcreate(@pollingthread)
@@ -531,6 +531,7 @@ private sub modex_quit()
 	releasestack
 	safekill macrofile
 
+	mutexdestroy gfxmutex
 	tls_free_key(tlsKeyClipRect)  'Leaking the ClipState, don't care
 end sub
 
@@ -542,7 +543,6 @@ private sub before_backend_quit()
 		threadwait pollthread.threadptr
 		pollthread.threadptr = NULL
 	end if
-	mutexdestroy gfxmutex
 
 	skipped_frame.drop()
 
@@ -1110,12 +1110,14 @@ sub setvispage (page as integer, skippable as bool = YES)
 		draw_allmodex_overlays drawpage
 	end if
 
+	starttime += timer  'Stop timer
+	dim starttime2 as double
+
 	'fb_gfx may deadlock if it collides with the polling thread because of
 	'FB bug https://sourceforge.net/p/fbc/bugs/885/
 	GFX_ENTER
 
-	starttime += timer  'Stop timer
-	dim starttime2 as double = timer
+	starttime2 = timer
 
 	if vpages(page)->surf then
 		present_internal_surface drawpage
