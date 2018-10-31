@@ -397,7 +397,7 @@ SUB debugc CDECL (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
   CASE errShowDebug  'aka visible_debug
    visible_debug *s
   CASE errError      'aka debugerror
-   debug "Error: " & *s
+   debugerror *s
   CASE errBug
    debug "(BUG) " & *s
   CASE errShowError  'aka showerror
@@ -1234,7 +1234,7 @@ END SUB
 
 SUB debugerror (msg as zstring ptr)
  'equivalent to: debugc errError, msg
- showerror msg, YES
+ debug "Error: " & *msg
 END SUB
 
 SUB fatalerror (msg as zstring ptr)
