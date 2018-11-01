@@ -557,7 +557,9 @@ PRIVATE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, p
 
   SDL_UnlockTexture(maintexture)
 
-  'SDL_RenderClear(mainrenderer)
+  'Clearing the screen first is necessary in fullscreen, when the window size may not match the maintexture size
+  '(this clears the black bars)
+  SDL_RenderClear(mainrenderer)
   CheckOK(SDL_RenderCopy(mainrenderer, maintexture, NULL, NULL), ret = NO)
   SDL_RenderPresent(mainrenderer)
 
