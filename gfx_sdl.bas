@@ -768,7 +768,13 @@ SUB gfx_sdl_set_zoom(value as integer, change_windowsize as bool)
   IF value >= 1 AND value <= 16 AND value <> zoom THEN
     zoom = value
     zoom_has_been_changed = YES
-    debuginfo "set_zoom change_windowsize=" & change_windowsize & ", zoom=" & zoom & " old size = " & screensurface->w & "," & screensurface->h
+    DIM temp as string
+    IF screensurface THEN temp = " old size = " & screensurface->w & "," & screensurface->h
+    debuginfo "set_zoom change_windowsize=" & change_windowsize & ", zoom=" & zoom & temp
+    IF change_windowsize = NO ANDALSO screensurface = NULL THEN
+      debug "...but window hasn't been created yet, doesn't make sense!"
+      change_windowsize = YES  'Avoid NULL dereference
+    END IF
     IF change_windowsize THEN
       gfx_sdl_recenter_window_hint()  'Recenter because the window might go off the screen edge.
 
