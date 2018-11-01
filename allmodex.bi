@@ -414,6 +414,7 @@ DECLARE SUB frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBc
 DECLARE FUNCTION keyval_ex (key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
 DECLARE FUNCTION real_keyval (key as KBScancode) as KeyBits
 DECLARE FUNCTION keyval (key as KBScancode) as KeyBits
+DECLARE FUNCTION carray alias "KEYVAL" (key as KBScancode) as KeyBits
 DECLARE FUNCTION slowkey (key as KBScancode, ms as integer) as bool
 DECLARE FUNCTION getinputtext () as string
 DECLARE FUNCTION interrupting_keypress () as bool
@@ -740,7 +741,6 @@ declare sub email_files(address as string, subject as string, message as string,
 '==========================================================================================
 '                                         Globals
 
-extern carray() as integer
 extern gfxmutex as any ptr
 extern main_thread_in_gfx_backend as bool
 extern modex_initialised as bool

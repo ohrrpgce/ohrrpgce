@@ -87,7 +87,6 @@ declare sub pollingthread(as any ptr)
 declare sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
 declare function read_inputtext () as string
 declare sub update_mouse_state ()
-declare sub update_carray ()
 
 declare sub load_replay_header ()
 declare sub record_input_tick ()
@@ -143,8 +142,6 @@ redim fonts(3) as Font ptr
 
 'Toggles 0-1 every time dowait is called
 dim global_tog as integer
-
-redim carray(ccLOWEST to ccHIGHEST) as KeyBits
 
 'Convert scancodes to text; Enter does not insert newline!
 'This array is a global instead of an internal detail because it's used by charpicker and the font editor
@@ -296,6 +293,10 @@ type InputState
 
 	kb as KeyboardState
 	joys(3) as JoystickState
+
+	carray(ccLOWEST to ccHIGHEST) as KeyBits
+
+	declare sub update_carray()
 end type
 
 dim shared real_input as InputState         'Always contains real state even if replaying
@@ -1582,6 +1583,13 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 'You won't see Left/Right keypresses even when scAlt/scCtrl is pressed, so do not
 'check "keyval(scLeftAlt) > 0 or keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
 
+	dim inputst as InputState ptr
+	if replay.active andalso real_keys = NO then
+		inputst = @replay_input
+	else
+		inputst = @real_input
+	end if
+
 	ERROR_IF(a < scKEYVAL_FIRST orelse a > scKEYVAL_LAST, "bad scancode " & a, 0)
 	if a > scLAST then
 		'For convenience, poll joystick 0
@@ -1590,7 +1598,6 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 	if a < 0 then
 		'Handle scAny and cc* constants
 		'Note: repeat_wait, repeat_rate and real_keys are ignored!
-		if real_keys then showbug "real_keyval doesn't support cc* keys"
 		if repeat_wait <> 0 orelse repeat_rate <> 0 then
 			'This could be due to a script (although not implemented yet)
 			debug "keyval: cc* constants/usekey, etc, don't support custom repeat rate"
@@ -1605,15 +1612,8 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 			next
 			return ret
 		else
-			return carray(a)
+			return inputst->carray(a)
 		end if
-	end if
-
-	dim inputst as InputState ptr
-	if replay.active andalso real_keys = NO then
-		inputst = @replay_input
-	else
-		inputst = @real_input
 	end if
 
 	dim check_repeat as bool = YES
@@ -1708,10 +1708,10 @@ sub clearkeys()
 	for joynum as integer = 0 to ubound(inputst->joys)
 		inputst->joys(joynum).clearkeys()
 	next
+	inputst->update_carray()
 	mouse_state.clearclick(mouseLeft)
 	mouse_state.clearclick(mouseRight)
 	mouse_state.clearclick(mouseMiddle)
-	update_carray()
 end sub
 
 ' Get text input by assuming a US keyboard layout and reading scancodes rather than using the io backend.
@@ -2313,29 +2313,27 @@ sub KeyArray.update_keydown_times (inputst as InputState)
 	update_arrow_keydown_time
 end sub
 
-private sub update_carray ()
-	flusharray carray()
+sub InputState.update_carray ()
+	dim real_keys as bool = (@this = @real_input)
 
-	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+	flusharray this.carray()
 
-	'inputst->kb.update_carray
-	with inputst->kb
-		for idx as integer = 0 to ubound(.controls)
-			with .controls(idx)
-				if .ckey then
-					carray(.ckey) or= keyval(.scancode)
-				end if
-			end with
-		next
-	end with
+	'kb.update_carray
+	for idx as integer = 0 to ubound(kb.controls)
+		with kb.controls(idx)
+			if .ckey then
+				this.carray(.ckey) or= keyval_ex(.scancode, , , real_keys)
+			end if
+		end with
+	next
 
-	for joynum as integer = 0 to ubound(inputst->joys)
-		'inputst->joys(joynum).update_carray
-		with inputst->joys(joynum)
+	for joynum as integer = 0 to ubound(joys)
+		'joys(joynum).update_carray
+		with joys(joynum)
 			for idx as integer = 0 to ubound(.controls)
 				with .controls(idx)
 					if .ckey then
-						carray(.ckey) or= joykeyval(.scancode, joynum)
+						this.carray(.ckey) or= joykeyval(.scancode, joynum, , , real_keys)
 					end if
 				end with
 			next
@@ -2389,22 +2387,23 @@ sub setkeys (enable_inputtext as bool = NO)
 	real_input.kb.update_keybits
 	real_input.kb.update_keydown_times real_input
 	real_input.kb.inputtext = read_inputtext()
+	real_input.update_carray
 
 	if replay.active then
 		' Updates replay_input.kb.keys(), .kb.inputtext, .elapsed_ms
 		' FUTURE: updates replay_input.joys
 		replay_input_tick
 
-		' Updates key_down_ms()
+		' Updates kb.key_down_ms()
 		replay_input.kb.update_keydown_times replay_input
 
 		' Update replay_input.joys().key_down_ms()
 		for joynum as integer = 0 to ubound(replay_input.joys)
 			replay_input.joys(joynum).update_keydown_times(replay_input)
 		next
-	end if
 
-	update_carray()
+                replay_input.update_carray
+	end if
 
 	'Taking a screenshot with gfx_directx is very slow, so avoid timing that
 	if log_slow then debug_if_slow(starttime, 0.005, replay.active)
