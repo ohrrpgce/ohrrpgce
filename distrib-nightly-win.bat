@@ -60,6 +60,10 @@ REM call scons gfx=alleg+directx+fb+sdl music=sdl %SCONS_ARGS%
 REM call distrib-nightly-win-packnupload gfx_alleg-music_sdl alleg40.dll SDL.dll SDL_mixer.dll
 
 support\rm -f game.exe custom.exe
+call scons gfx=sdl2+directx+fb music=sdl2 %SCONS_ARGS%
+call distrib-nightly-win-packnupload sdl2 gfx_directx.dll SDL2.dll SDL2_mixer.dll
+
+support\rm -f game.exe custom.exe
 call scons music=sdl debug=2
 call distrib-nightly-win-packnupload music_sdl-debug gfx_directx.dll SDL.dll SDL_mixer.dll misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
