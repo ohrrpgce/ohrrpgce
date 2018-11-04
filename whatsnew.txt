@@ -79,6 +79,7 @@ September 29 2018 [Fufluns]
       (defaults to on) [Ralph]
     * Added fuzzy rect slice settings: fuzzy zoom, stationary pattern [Ralph]
     * Much nicer interactive stat preview graph in the Hero Stats menu [Ralph]
+    * New F8 debug option "Show/test any battle formation" [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

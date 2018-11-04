@@ -1,0 +1,3 @@
+This debug menu displays all battle formations, displaying the names of the enemies in each one.
+
+Press ENTER on a formation to start a battle.

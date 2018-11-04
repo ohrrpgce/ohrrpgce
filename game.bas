@@ -52,7 +52,7 @@ DECLARE FUNCTION should_skip_this_timer(timercontext as TimerContextEnum, tmr as
 
 DECLARE SUB update_menu_states ()
 DECLARE SUB check_debug_keys()
-DECLARE SUB battle_formation_testing_menu()
+DECLARE SUB battle_formation_testing_menu(all_formations as bool)
 DECLARE SUB show_textbox_debug_info ()
 
 DECLARE SUB queue_music_change (byval song as integer)
@@ -4596,7 +4596,8 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
 
  IF dbg.def( , , "Edit general preference bitsets") THEN edit_general_bitsets
  IF dbg.def( , , "Edit backcompat bitsets") THEN edit_backcompat_bitsets
- IF dbg.def( , , "Show/test battle formations") THEN battle_formation_testing_menu
+ IF dbg.def( , , "Show/test battle formations here") THEN battle_formation_testing_menu NO
+ IF dbg.def( , , "Show/test any battle formation") THEN battle_formation_testing_menu YES
  IF dbg.def( , , "(Advanced) Manipulate gen() array") THEN patcharray gen(), "gen"
  IF dbg.def( , , "(Advanced) Manipulate gmap() array") THEN patcharray gmap(), "gmap"
  'IF dbg.def( , , "Test Slicified Spell Screen") THEN spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), NO)
@@ -4642,45 +4643,62 @@ SUB debug_menu()
  debug_menu_functions(dbg)
 END SUB
 
-SUB battle_formation_testing_menu()
+PRIVATE SUB battle_formation_testing_menu_add(menu as MenuDef, form_num as integer)
+ IF form_num >= 0 THEN
+  DIM formdata as Formation
+  LoadFormation formdata, form_num
+  DIM desc as string = describe_formation(formdata)
+  append_menu_item(menu, form_num & ": " & LEFT(desc, 35))
+  menu.last->extra(0) = form_num
+ END IF
+END SUB
 
- STATIC defaultval as integer = 0
- DIM form_num as integer
+'Show debug menu of formations and let player pick one to fight.
+'all_formations: if true, show list of all formations, otherwise show the formation
+'set for the tile the hero stands on.
+SUB battle_formation_testing_menu(all_formations as bool)
+
+ DIM battle_formation_set as integer = 0
  DIM state as MenuState
  DIM menu as MenuDef
  ClearMenuData menu
 
- DIM battle_formation_set as integer
- battle_formation_set = readblock(foemap, herotx(0), heroty(0))
-
- IF battle_formation_set = 0 THEN
-  append_menu_item(menu, "Formation set: None", 0, 1)
-  menu.last->disabled = YES
-  menu.last->extra(0) = -1
- ELSE
-  DIM formset as FormationSet
-  LoadFormationSet formset, battle_formation_set
-  append_menu_item(menu, "Formation set: " & battle_formation_set & " freq=" & formset.frequency)
-  menu.last->disabled = YES
-  menu.last->extra(0) = -1
-  FOR i as integer = 0 TO UBOUND(formset.formations)
-   form_num = formset.formations(i)
-   IF form_num >= 0 THEN
-    DIM formdata as Formation
-    LoadFormation formdata, form_num
-    DIM desc as string = describe_formation(formdata)
-    append_menu_item(menu, form_num & ": " & LEFT(desc, 35))
-    menu.last->extra(0) = form_num
-    IF defaultval = 0 THEN defaultval = 1
-   END IF
+ IF all_formations THEN
+  FOR i as integer = 0 TO gen(genMaxFormation)
+   battle_formation_testing_menu_add(menu, i)
   NEXT i
+ ELSE
+  battle_formation_set = readblock(foemap, herotx(0), heroty(0))
+
+  IF battle_formation_set = 0 THEN
+   append_menu_item(menu, "Formation set: None", 0, 1)
+   menu.last->disabled = YES
+   menu.last->extra(0) = -1
+  ELSE
+   DIM formset as FormationSet
+   LoadFormationSet formset, battle_formation_set
+   append_menu_item(menu, "Formation set: " & battle_formation_set & " freq=" & formset.frequency)
+   menu.last->disabled = YES
+   menu.last->extra(0) = -1
+   FOR i as integer = 0 TO UBOUND(formset.formations)
+    battle_formation_testing_menu_add(menu, formset.formations(i))
+   NEXT i
+  END IF
  END IF
- 
+
+ 'Determine the default menu item
+ STATIC defaultval as integer = 0
+ STATIC prev_formation_set as integer = 0
+ IF prev_formation_set <> battle_formation_set THEN
+  defaultval = IIF(battle_formation_set, 1, 0)  'Skip the "Formation set" option
+ END IF
+ prev_formation_set = battle_formation_set
+
  state.active = YES
  menu.textalign = alignLeft
  menu.maxrows = 16
- init_menu_state state, menu
  state.pt = defaultval
+ init_menu_state state, menu  'Ensure .pt is valid
  menu.alignvert = alignTop
  menu.anchorvert = alignTop
  menu.offset.Y = 10
@@ -4698,12 +4716,14 @@ SUB battle_formation_testing_menu()
   IF keyval(ccCancel) > 1 THEN
    EXIT DO
   END IF
-  IF keyval(scF1) > 1 THEN show_help "game_formation_testing"
+  IF keyval(scF1) > 1 THEN
+   IF all_formations THEN show_help "game_all_formations_testing" ELSE show_help "game_formation_testing"
+  END IF
 
   IF enter_space_click(state) THEN
+   DIM form_num as integer
    form_num = menu.items[state.pt]->extra(0)
    IF form_num >= 0 THEN
-    defaultval = state.pt
     fatal = NO
     gam.wonbattle = battle(form_num)
     prepare_map YES
@@ -4720,6 +4740,7 @@ SUB battle_formation_testing_menu()
   setvispage vpage
   dowait
  LOOP
+ defaultval = state.pt
  setkeys
  freepage holdscreen
  ClearMenuData menu
