@@ -2549,7 +2549,7 @@ FUNCTION item_screen () as integer
 END FUNCTION
 
 SUB inventory_autosort()
- DIM autosort_changed as integer = NO
+ DIM autosort_changed as bool = NO
  'First sort all items to the top
  FOR i as integer = 0 TO last_inv_slot() - 1
   IF inventory(i).used THEN CONTINUE FOR
@@ -2591,6 +2591,12 @@ SUB inventory_autosort()
     inventory(slot).sortorder += 2  'Consumed by use
    END IF
   NEXT
+ ELSEIF gen(genAutosortScheme) = 1 THEN
+  'Sorting by usable
+  FOR slot as integer = 0 TO last_inv_slot()
+   IF inventory(slot).used = NO THEN CONTINUE FOR
+   inventory(slot).sortorder = item_can_be_used(inventory(slot).id)
+  NEXT
  END IF
 
  'Then sort by the autosort criterion (insertion sort)
@@ -2603,8 +2609,8 @@ SUB inventory_autosort()
     CASE 0 'type
      IF inventory(best).sortorder > inventory(o).sortorder THEN best = o
     CASE 1 'use
-     'FIXME: This comparison could be slow
-     IF item_can_be_used(inventory(best).id) = NO ANDALSO item_can_be_used(inventory(o).id) = YES THEN best = o
+     'Usable items go first
+     IF inventory(best).sortorder = NO ANDALSO inventory(o).sortorder = YES THEN best = o : EXIT FOR
     CASE 2 'alphabetical
      IF string_compare(@inventory(best).text, @inventory(o).text) > 0 THEN best = o
     CASE 3 'id
