@@ -2753,7 +2753,6 @@ SUB player_menu_keys ()
   'Following controls useable on empty menus too
 
   IF player_menu_should_close() THEN
-   carray(ccMenu) = 0
    setkeys ' Forget keypress that closed the menu
    DIM esc_menu as integer = menus(topmenu).esc_menu - 1
    remove_menu topmenu
@@ -2910,7 +2909,6 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
   'WARNING: below this point, mi is invalid
 
   IF insideinterpreter = NO THEN '--Not inside a script
-   carray(ccUse) = 0
    setkeys '--Discard the keypress that triggered the menu item that closed the menu
   END IF
  END IF

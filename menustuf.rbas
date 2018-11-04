@@ -2871,10 +2871,8 @@ END FUNCTION
 
 SUB equip_menu_controls_slot_picker (st as EquipMenuState)
  '--primary menu
- DIM do_pick as integer = NO
+ DIM do_pick as bool = NO
  IF carray(ccMenu) > 1 THEN
-  carray(ccUse) = 0
-  carray(ccMenu) = 0
   st.quit = YES
   EXIT SUB
  END IF
@@ -2968,7 +2966,7 @@ SUB equip_menu_controls_slot_picker (st as EquipMenuState)
    'UPDATE ITEM POSSESSION BITSETS
    evalitemtags
   END IF
-  IF st.slot = 6 THEN carray(ccUse) = 0: st.quit = YES
+  IF st.slot = 6 THEN st.quit = YES
  END IF
 END SUB
 
@@ -3185,6 +3183,7 @@ DO
  setvispage vpage
  dowait
 LOOP
+setkeys
 freepage page
 freepage holdscreen
 MenuSound gen(genCancelSFX)
@@ -3643,9 +3642,8 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   setvispage vpage
   dowait
  LOOP
- 
- carray(ccUse) = 0
- carray(ccMenu) = 0
+
+ setkeys
  freepage page
  freepage holdscreen
 END FUNCTION

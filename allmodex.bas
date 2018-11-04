@@ -2824,7 +2824,7 @@ private sub allmodex_controls()
 			stop_replaying_input "Replay ended by quit request"
 		end if
 		real_input.kb.keys(scEsc) = 7
-		carray(ccCancel) = 7
+		real_input.carray(ccCancel) = 7
 	end if
 #elseif defined(IS_GAME)
 	'Quick abort (could probably do better, just moving this here for now)
