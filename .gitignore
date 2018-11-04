@@ -11,7 +11,6 @@ iver.txt
 #*.xml
 *.hs
 *.hsi
-*.sav
 *.saves
 *.ohrkeys
 *.pyc
@@ -26,8 +25,11 @@ GTAGS
 
 build/
 distrib/
+# Used by node_hsint.js
 node_modules/
+
 *.exe
+# scons puts .pdbs under win32/
 win32/*.pdb
 ohrrpgce-game
 ohrrpgce-custom
@@ -50,11 +52,14 @@ miditest
 slice2bas
 verprint
 
+# Created by reloadtest
 unittest.rld
 unittest.xml
 import/Music
 import/Sound Effects
 support/*.zip
+# The following extra dlls are needed by support/cv2pdb.exe, if you don't install VS
+support/ms*.dll
 # The following are from hsdecmpl
 support/hsdecmpl.txt
 support/plotscr.hsd
@@ -72,6 +77,7 @@ vc90.pub
 *.dSYM
 autotest/
 autobackups/
+# Obsolete
 joyset.ini
 android/tmp/
 android/extraconfig.cfg
@@ -84,5 +90,5 @@ ohr.geany
 *.bmp
 *.gif
 *.png
-# Everything under data
+# Don't ignore anything under data/
 !data/**
