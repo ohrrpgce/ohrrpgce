@@ -2551,11 +2551,13 @@ END FUNCTION
 SUB inventory_autosort()
  DIM autosort_changed as bool = NO
  'First sort all items to the top
+ DIM numitems as integer = 0
  FOR i as integer = 0 TO last_inv_slot() - 1
-  IF inventory(i).used THEN CONTINUE FOR
+  IF inventory(i).used THEN numitems += 1 : CONTINUE FOR
   FOR o as integer = i + 1 TO last_inv_slot()
    IF inventory(o).used THEN
     SWAP inventory(i), inventory(o)
+    numitems += 1
     autosort_changed = YES
     EXIT FOR
    END IF
@@ -2566,8 +2568,7 @@ SUB inventory_autosort()
   'Sorting by type: cache the sort order of the items, or the cost of repeatedly loading
   'item data might go out of control
   DIM itemdata(dimbinsize(binITM)) as integer
-  FOR slot as integer = 0 TO last_inv_slot()
-   IF inventory(slot).used = NO THEN CONTINUE FOR
+  FOR slot as integer = 0 TO numitems - 1
    loaditemdata itemdata(), inventory(slot).id
 
    IF itemdata(47) THEN  'Usable in-battle
@@ -2593,35 +2594,32 @@ SUB inventory_autosort()
   NEXT
  ELSEIF gen(genAutosortScheme) = 1 THEN
   'Sorting by usable
-  FOR slot as integer = 0 TO last_inv_slot()
-   IF inventory(slot).used = NO THEN CONTINUE FOR
+  FOR slot as integer = 0 TO numitems - 1
    inventory(slot).sortorder = item_can_be_used(inventory(slot).id)
   NEXT
  END IF
 
- 'Then sort by the autosort criterion (insertion sort)
- FOR i as integer = 0 TO last_inv_slot() - 1
-  IF inventory(i).used = NO THEN EXIT FOR
-  DIM best as integer = i
-  FOR o as integer = i TO last_inv_slot()
-   IF inventory(o).used = NO THEN EXIT FOR
+ 'Then sort by the autosort criterion (use bubble sort because it's stable)
+ FOR i as integer = 0 TO numitems - 1
+  FOR slot as integer = numitems - 2 TO i STEP -1
+   DIM disordered as bool = NO
    SELECT CASE gen(genAutosortScheme)
     CASE 0 'type
-     IF inventory(best).sortorder > inventory(o).sortorder THEN best = o
+     IF inventory(slot).sortorder > inventory(slot + 1).sortorder THEN disordered = YES
     CASE 1 'use
      'Usable items go first
-     IF inventory(best).sortorder = NO ANDALSO inventory(o).sortorder = YES THEN best = o : EXIT FOR
+     IF inventory(slot).sortorder = NO ANDALSO inventory(slot + 1).sortorder = YES THEN disordered = YES
     CASE 2 'alphabetical
-     IF string_compare(@inventory(best).text, @inventory(o).text) > 0 THEN best = o
+     IF string_compare(@inventory(slot).text, @inventory(slot + 1).text) > 0 THEN disordered = YES
     CASE 3 'id
-     IF inventory(best).id > inventory(o).id THEN best = o
+     IF inventory(slot).id > inventory(slot + 1).id THEN disordered = YES
     CASE 4 'nothing
    END SELECT
-  NEXT o
-  IF best <> i THEN
-   SWAP inventory(i), inventory(best)
-   autosort_changed = YES
-  END IF
+   IF disordered THEN
+    SWAP inventory(slot), inventory(slot + 1)
+    autosort_changed = YES
+   END IF
+  NEXT slot
  NEXT i
  IF autosort_changed THEN
   menusound gen(genAcceptSFX)
