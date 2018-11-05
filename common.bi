@@ -32,6 +32,8 @@ DECLARE SUB pop_gfxio_state ()
 
 DECLARE SUB start_new_debug (title as string)
 DECLARE SUB end_debug ()
+DECLARE SUB debug_reload (nod as Node ptr)
+'Other debug and error reporting functions are declared in common_base.bi
 
 DECLARE FUNCTION filesize (file as string) as string
 

@@ -424,6 +424,11 @@ SUB early_debuginfo (msg as zstring ptr)
  log_buffer &= *msg & LINE_END
 END SUB
 
+PRIVATE FUNCTION get_timestamp() as string
+ IF program_start_timer <> 0.0 THEN RETURN strprintf("%4.1f  ", TIMER - program_start_timer)
+ RETURN ""
+END FUNCTION
+
 SUB debuginfo (msg as zstring ptr)
  'Use for throwaway messages like upgrading
  '(Also this is internally the implementation of debug())
@@ -433,20 +438,19 @@ SUB debuginfo (msg as zstring ptr)
 
  'For now, on Android log everything to the kernel log for convenience
  external_log msg
- DIM tagged_msg as string
- IF program_start_timer <> 0.0 THEN tagged_msg = strprintf("%4.1f  ", TIMER - program_start_timer)
- tagged_msg &= *msg
+ DIM tagged_msg as string = get_timestamp() & *msg
  IF debug_to_console THEN PRINT tagged_msg
  IF remember_debug_messages THEN
   'Don't keep growing the buffer or the program will grind to a halt
   IF LEN(log_buffer) < 10000 THEN log_buffer &= tagged_msg & LINE_END
  END IF
+
  append_to_logfile tagged_msg
 
  mutexunlock debug_log_mutex
 END SUB
 
-PRIVATE SUB append_to_logfile(s as string)
+PRIVATE FUNCTION open_logfile() as integer
  STATIC sizeerror as bool = NO
  DIM filename as string
  #IFDEF IS_GAME
@@ -458,17 +462,39 @@ PRIVATE SUB append_to_logfile(s as string)
  IF OPEN(filename FOR APPEND as #fh) THEN
   external_log "Couldn't open debug log " & filename
   PRINT "Couldn't open debug log " & filename
-  EXIT SUB
+  RETURN 0
  END IF
  IF LOF(fh) > 2 * 1024 * 1024 THEN
   IF sizeerror = NO THEN PRINT #fh, "too much debug() output, not printing any more messages"
   sizeerror = YES
   CLOSE #fh
-  EXIT SUB
+  RETURN 0
  END IF
  sizeerror = NO
+ RETURN fh
+END FUNCTION
+
+PRIVATE SUB append_to_logfile(s as string)
+ DIM fh as integer = open_logfile()
+ IF fh = 0 THEN EXIT SUB
  PRINT #fh, normalize_newlines(s, LINE_END)
  CLOSE #fh
+END SUB
+
+'Print a RELOAD node tree to the debug log as XML.
+'Note: this doesn't behave the same as debug(), as it doesn't
+'print to the console, to the android log, and to log_buffer.
+SUB debug_reload(nod as Node ptr)
+ DIM fh as integer = open_logfile()
+ IF fh = 0 THEN EXIT SUB
+ PRINT #fh, get_timestamp(),
+ IF nod = NULL THEN
+  PRINT #fh, "[NULL Node]"
+ ELSE
+  Reload.SerializeXML nod, fh, YES, YES  'Don't print very long strings in full
+ END IF
+ CLOSE #fh
+ importantdebug = YES  'Preserve ?_debug.txt
 END SUB
 
 'Wrap a string in colour tags. Default to flashing.

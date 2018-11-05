@@ -8,12 +8,12 @@
 
 
 SUB GFX_SDL(close)()
-  debug "quit_joystick_subsystem"
+  'debug "quit_joystick_subsystem"
   IF SDL_WasInit(SDL_INIT_JOYSTICK) THEN
     quit_joystick_subsystem()
   END IF
 
-  debug "quit_video_subsystem"
+  'debug "quit_video_subsystem"
   IF SDL_WasInit(SDL_INIT_VIDEO) THEN
     quit_video_subsystem()
 

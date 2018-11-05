@@ -1153,8 +1153,8 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 	if nod->flags AND nfNotLoaded then
 		LoadNode(nod, YES)
 	end if
-	
-	dim closetag as integer = YES
+
+	dim closetag as bool = YES
 
 	dim needsencoding as integer = NodeNeedsEncoding(nod, debugging, shortform)
 
