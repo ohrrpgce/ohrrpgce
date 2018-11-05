@@ -108,6 +108,11 @@ Function NodeByPath(byval doc as DocPtr, path as zstring ptr, byval create as bo
 	Return NodeByPath(DocumentRoot(doc), path, create)
 End Function
 
+'Find a node in a tree by a path of node names, and optionally their integer values (NOT their child index).
+'The path must begin with / (but not end with it).
+'For example, /party/slot[3]/stats returns a great-grandchild of 'node'.
+'NOTE: If you use an index equal to 0, eg. "/hero[0]", it will match null and most string nodes
+'named "hero" too, because GetInteger on anything that doesn't look like a number returns 0!
 Function NodeByPath(byval node as NodePtr, zpath as zstring ptr, byval create as bool=NO) as NodePtr
 	if node = null then return null
 	if len(*zpath) = 0 then return null
@@ -129,7 +134,7 @@ Function NodeByPath(byval node as NodePtr, zpath as zstring ptr, byval create as
 	end if
 
 	dim index as integer = 0
-	dim use_index as integer = NO
+	dim use_index as bool = NO
 
 	sep_pos = instr(segment, "[")
 	if sep_pos then
@@ -166,7 +171,8 @@ Function NodeByPath(byval node as NodePtr, zpath as zstring ptr, byval create as
 	
 	if child = null then
 		if create then
-			child = SetChildNode(node, segment)
+			'Note that a child with this name may already exist if use_index is true
+			child = AppendChildNode(node, segment)
 			if use_index then
 				SetContent(child, index)
 			end if

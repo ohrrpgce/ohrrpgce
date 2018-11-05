@@ -1661,9 +1661,9 @@ Function AppendChildNode(byval parent as NodePtr, n as zstring ptr) as NodePtr
 	dim ret as NodePtr
 	ret = CreateNode(parent->doc, n)
 	AddChild(parent, ret)
-	
-	SetContent(ret)
-	
+
+	'SetContent(ret)  'Does nothing
+
 	return ret
 end Function
 

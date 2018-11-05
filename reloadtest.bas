@@ -426,8 +426,7 @@ startTest(bitsetArray)
 endTest
 
 startTest(testNodeByPath)
-	dim nod1 as NodePtr
-	dim nod2 as NodePtr
+	dim as NodePtr nod1, nod2, created1, created2
 	nod1 = SetChildNode(DocumentRoot(doc), "party")
 	AppendChildNode(nod1, "slot", 0)
 	AppendChildNode(nod1, "slot", 0)
@@ -459,15 +458,21 @@ startTest(testNodeByPath)
 	'Also test creation with subscript syntax
 	nod1 = NodeByPath(doc, "/foo/bar/baz/also_should_not_be_created[2]")
 	if nod1 <> null then fail
-	nod1 = NodeByPath(doc, "/foo/bar/baz/also_should_be_created[2]", YES)
-	if nod1 = null then fail
+	created1 = NodeByPath(doc, "/foo/bar/baz/also_should_be_created[2]", YES)
+	if created1 = null then fail
 	nod1 = NodeByPath(doc, "/foo/bar/baz")
 	if GetChildNodeExists(nod1, "also_should_be_created") = NO then fail
 	nod1 = NodeByPath(doc, "/foo/bar/baz/also_should_be_created[2]")
-	if nod1 = null then fail
+	if nod1 <> created1 then fail
 	if GetInteger(nod1) <> 2 then fail
 	nod1 = NodeByPath(doc, "/foo/bar/baz/also_should_be_created[0]")
 	if nod1 <> null then fail
+	'Test for bug regression: This must create a new node, not overwrite nod1
+	created2 = NodeByPath(doc, "/foo/bar/baz/also_should_be_created[0]", YES)
+	if created2 = null then fail
+	if GetInteger(created2) <> 0 then fail
+	if created2 = created1 then fail
+	if GetInteger(created1) <> 2 then fail
 endTest
 
 startTest(testProvisional)
