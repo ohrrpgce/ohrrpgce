@@ -272,12 +272,15 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   'Make Ctrl-click on Mac send a right-click event
   SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1")
   'IMEs should provide their own UIs for inputting characters, as we don't handle SDL_TEXTEDITING events
-  SDL_SetHint(SDL_HINT_IME_INTERNAL_EDITING, "1")
+  SDL_SetHint("SDL_IME_INTERNAL_EDITING", "1")  'SDL_HINT_IME_INTERNAL_EDITING not in old FB headers
   'Return key on on-screen keyboard acts as 'done'
-  SDL_SetHint("SDL_RETURN_KEY_HIDES_IME", "1")  'SDL_HINT_RETURN_KEY_HIDES_IME not ni FB's header yet
+  SDL_SetHint("SDL_RETURN_KEY_HIDES_IME", "1")  'SDL_HINT_RETURN_KEY_HIDES_IME not in FB's header yet
+  'Don't minimise the window if it loses focus while fullscreen - it's annoying if you
+  'have multiple monitors and you move the mouse to another monitor
+  SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0")
   'This controls whether SDL will wait for vsync (causing the framerate to cap to 60fps), or
   'to triple buffer (adding a frame of latency) - only some drivers
-  'SDL_SetHint(SDL_HINT_VIDEO_DOUBLE_BUFFER, "1")
+  'SDL_SetHint("SDL_VIDEO_DOUBLE_BUFFER", "1")  'SDL_HINT_VIDEO_DOUBLE_BUFFER not in FB's header yet
 
   DIM ver as SDL_version
   SDL_GetVersion(@ver)
