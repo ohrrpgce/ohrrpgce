@@ -238,7 +238,7 @@ FUNCTION hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recinde
           RETURN NO
         CASE 1 ' blank
           gen(genMaxHero) += 1
-          ClearHeroData her
+          ClearHeroData her, gen(genMaxHero)
           RETURN YES
         CASE 2 ' copy
           gen(genMaxHero) += 1

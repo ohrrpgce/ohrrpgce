@@ -1363,7 +1363,7 @@ SUB reload_heroes_reld()
   DIM heronode as NodePtr = NodeByPath(doc, "/hero[" & id & "]")
   IF heronode THEN
    DIM hero as HeroDef
-   load_hero_from_reload hero, heronode
+   load_hero_from_reload hero, heronode, id
    update_hero_state gam.hero(slot), hero
   ELSE
    debug "reload_heroes_reld: missing hero ID " & id
