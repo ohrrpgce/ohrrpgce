@@ -822,14 +822,14 @@ Type HeroDef
 	max_name_len as integer
 	hand_pos(1) as XYPair
 	reld as Reload.NodePtr
-	
-	Declare Destructor ()  'defined in common.bas
+
+	Declare Destructor ()
 End Type
 
 'This caches the tags needed by evalherotag/tag_is_special
 TYPE HeroTagsCache
-	Declare Constructor () 'defined in common.bas
-	Declare Destructor () 'defined in common.bas
+	Declare Constructor ()
+	Declare Destructor ()
 	have_tag as integer
 	alive_tag as integer
 	leader_tag as integer
