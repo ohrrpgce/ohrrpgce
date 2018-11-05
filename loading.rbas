@@ -2103,6 +2103,7 @@ SUB ClearHeroData (hero as HeroDef, id as integer = -1)
   hero.sprite_pal = -1      'default battle palette
   hero.walk_sprite_pal = -1 'default walkabout palette
   hero.portrait_pal = -1
+  hero.exp_mult = 0.2
   FOR i as integer = 0 TO maxElements - 1
     hero.elementals(i) = 1.0f
   NEXT
