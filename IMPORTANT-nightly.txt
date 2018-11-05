@@ -20,10 +20,10 @@ http://hamsterrepublic.com/ohrrpgce/buglist.php
 2018-11-06:
 Nightlies since 2018-09-29 (SVN r10523) were affected by a **nasty bug**
 that deleted some hero data if you either created a new hero (either as a
-copy or blank), or were editing a game created a game created before
-pre-Beelzebufo which still contained heroes that had never been edited
-since. Once the problem started it would repeatedly keep deleting the data
-as you used the hero editor.
+copy or blank), or were editing a game created before pre-Beelzebufo which
+still contained heroes that had never been edited since. Once the problem
+started it would repeatedly keep deleting the data as you used the hero
+editor.
 
 The heroes that were affected were the newly created (or never-edited)
 heroes, and hero 0. (Possibly some other hero instead of 0, but that's
