@@ -1599,18 +1599,20 @@ end sub
 
 Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as integer)
 	'WARNING: this is the loader for the old-style binary hero data lump. See loadherodata
-	if record < 0 or record > gen(genMaxHero) then debug "load_hero_from_old_dt0: fail on record:" & record : exit sub
-	if not fileisreadable(filename) then exit sub
-	
+
 	dim as integer f, i, j
-	
+
+	'We rely on ClearHeroData to set correct defaults for everything,
+	'because dt0 does not contain all hero data!
 	ClearHeroData hero
-	
-	openfile(filename, for_binary + access_read, f)
+
+	if record < 0 or record > gen(genMaxHero) then debug "load_hero_from_old_dt0: fail on record:" & record : exit sub
+
+	'Currently .dt0 always exists, but in future we might delete it
+	if openfile(filename, for_binary + access_read, f) then exit sub
 	dim recordsize as integer = getbinsize(binDT0)  'in BYTES
 	seek #f, record * recordsize + 1
-	
-	'begin (this makes the baby jesus cry :'( )
+
 	with hero
 		.name              = readvstr(f, 16)
 		.sprite            = readshort(f)
@@ -1622,7 +1624,7 @@ Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as 
 		LoadStats2(f, @.Lev0, @.LevMax)
 		'get #f,, .spell_lists()
 		for i = 0 to 3
-			for j = 0 to 23 'have to do it this way in case FB reads arrays the wrong way
+			for j = 0 to 23
 				.spell_lists(i,j).attack = readshort(f)
 				.spell_lists(i,j).learned = readshort(f)
 			next
@@ -1652,23 +1654,19 @@ Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as 
 		next
 		'WARNING: skip past rest of the elements if you add more to this file
 	end with
-	
+
 	close #f
-	
 end sub
 
 Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as integer)
 	'WARNING: this is the saver for the old-style binary hero data lump. See saveherodata
-	'FIXME: this sub is deprecated, and will eventually be removed.
-	if not fileiswriteable(filename) then exit sub
-	
+	'TODO: this sub is deprecated, and will eventually be removed.
 	dim as integer f, i, j
-	
-	openfile(filename, for_binary, f)
-	
+
+	if openfile(filename, for_binary, f) then exit sub
+
 	seek #f, record * getbinsize(binDT0) + 1
-	
-	'begin (this makes the baby jesus cry :'( )
+
 	with hero
 		writevstr(f,16,.name)
 		writeshort(f,-1,.sprite)
@@ -1680,7 +1678,7 @@ Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as in
 		SaveStats2(f, @.Lev0, @.LevMax)
 		'get #f,, .spell_lists()
 		for i = 0 to 3
-			for j = 0 to 23 'have to do it this way in case FB reads arrays the wrong way
+			for j = 0 to 23
 				writeshort(f,-1,.spell_lists(i,j).attack)
 				writeshort(f,-1,.spell_lists(i,j).learned)
 			next
@@ -1720,7 +1718,7 @@ Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as in
 		next
 
 	end with
-	
+
 	close #f
 end sub
 
@@ -1885,7 +1883,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
  'debuginfo "Loaded hero from reload: " & hero.name
 END SUB
 
-SUB saveherodata (hero as herodef, byval index as integer)
+SUB saveherodata (hero as HeroDef, byval index as integer)
  '--save the old way
  'WARNING: this is lossy, and serves no purpose other than
  'allowing people to downgrade to older versions WITH DATA LOSS
