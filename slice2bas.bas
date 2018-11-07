@@ -182,6 +182,9 @@ Sub WriteSliceNodeAsBasic(byval fh as integer, byval n as NodePtr, byval d as in
      & DatInt(n, "vertical") & ", " _
      & DatInt(n, "primary") & ", " _
      & DatInt(n, "pixels") & ", " _
+     /' This doesn't match LoadPanelSlice, which defaults to 0 due to a bug. Newly created
+        Panel slices default to 0.5. We rely on the sourceslices all having explicit
+        'percent' attributes - SavePanelSlice now always saves them. '/ _
      & DatFlo(n, "percent", 0.5) & ", " _
      & DatInt(n, "padding")
   case "Select"

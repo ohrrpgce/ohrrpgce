@@ -797,6 +797,10 @@ Function New<TYPENAME>Slice(byval parent as Slice ptr, byref dat as <TYPENAME>Sl
  dim d as <TYPENAME>SliceData ptr = new <TYPENAME>SliceData
  *d = dat
 
+ 'NOTE: if you want to initialise any data members to non-zero values you
+ 'can do it either here or in the TYPE definition, but must make sure
+ 'those members are saved and loaded correctly, eg using SavePropAlways
+
  ret->SliceType = sl<TYPENAME>
  ret->SliceData = d
  ret->Draw = @Draw<TYPENAME>Slice

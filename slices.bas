@@ -3173,7 +3173,8 @@ Sub SavePanelSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  SavePropAlways node, "vertical", dat->vertical
  SavePropAlways node, "primary", dat->primary
  SaveProp node, "pixels", dat->pixels
- SaveProp node, "percent", dat->percent
+ 'We MUST always save percent, as it gets loaded with wrong default if it's missing
+ SavePropAlways node, "percent", dat->percent
  SaveProp node, "padding", dat->padding
 End Sub
 
@@ -3184,6 +3185,8 @@ Sub LoadPanelSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->vertical = LoadPropBool(node, "vertical")
  dat->primary = bound(LoadProp(node, "primary"), 0, 1)
  dat->pixels = LoadProp(node, "pixels")
+ 'The default percent value is actually 0.5, but to work around a bug introduced
+ 'in r9509 which omitted 'percent' if equal to 0, we must it load as 0 if omitted.
  dat->percent = LoadPropFloat(node, "percent")
  dat->padding = LoadProp(node, "padding")
 End Sub
