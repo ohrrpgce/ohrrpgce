@@ -5701,6 +5701,7 @@ lookup slice(sl:virtual keyboard entrytext)
 lookup slice(sl:virtual keyboard del)
 lookup slice(sl:virtual keyboard enter)
 lookup slice(sl:shop buy info panel)
+lookup slice(sl:status hide if no hp)
 lookup slice(sl:pathfind dest display)
 </example>
 			<seealso>

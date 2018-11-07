@@ -188,6 +188,7 @@ September 29 2018 [Fufluns]
     * The Experience Curve hero setting defaulted to 0.00 instead of 0.20 for
       pre-Beelzebufo games (specifically, any heroes which haven't been edited
       since then), resulting in very low XP needed to level [Ralph]
+    * Hiding the HP stat would display garbage in Status menu instead [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

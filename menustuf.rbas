@@ -2053,7 +2053,8 @@ SUB status_screen_refresh(byref st as StatusScreenState)
   DIM her as HeroDef
   loadherodata her, hero_id
 
-  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_MP, (NOT hero_has_mp(st.slot) ORELSE should_hide_hero_stat(her, 1))
+  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_HP, should_hide_hero_stat(her, statHP)
+  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_MP, (NOT hero_has_mp(st.slot) ORELSE should_hide_hero_stat(her, statMP))
   hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_LMP, NOT hero_uses_lmp(st.slot)
   hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_MAX_LEV, gam.hero(st.slot).lev >= current_max_level
   hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_PORTRAIT, gam.hero(st.slot).portrait_pic < 0

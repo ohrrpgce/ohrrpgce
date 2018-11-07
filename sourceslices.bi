@@ -527,6 +527,7 @@ Sub default_status_screen (byval sl1 as Slice Ptr)
         sl8->fill = -1
         ChangeScrollSlice sl8, , 
          sl9 = NewSliceOfType(slText)
+         sl9->lookup = -102028
          sl9->y = 3
          sl9->width = 80
          sl9->height = 10
@@ -535,6 +536,7 @@ Sub default_status_screen (byval sl1 as Slice Ptr)
          ChangeTextSlice sl9, !"${HPLABEL}", , , , 
          SetSliceParent(sl9, sl8)
          sl9 = NewSliceOfType(slText)
+         sl9->lookup = -102028
          sl9->y = 13
          sl9->width = 136
          sl9->height = 10
