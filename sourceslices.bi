@@ -145,7 +145,7 @@ Sub default_item_screen (byval sl1 as Slice Ptr)
   sl2->fillmode = 1
    sl3 = NewSliceOfType(slRectangle)
    sl3->fill = -1
-   ChangeRectangleSlice sl3, 1, , , , 1, 
+   ChangeRectangleSlice sl3, 1, , , , , 
     sl4 = NewSliceOfType(slText)
     sl4->width = 56
     sl4->height = 10
