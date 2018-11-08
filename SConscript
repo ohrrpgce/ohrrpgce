@@ -909,6 +909,8 @@ base_modules +=   ['util.bas',
                    'miscc.c',
                    'fb/error.c',
                    'lib/sha1.c',
+                   'lib/lodepng.c',  # Only for lodepng_gzip.c
+                   'lib/lodepng_gzip.c',  # Only for filetest
                    'filelayer.cpp',
                    'vector.bas']
 
@@ -980,7 +982,6 @@ common_modules += ['rasterizer.cpp',
                    'matrixMath.cpp',
                    'surface.cpp',
                    'lib/gif.cpp',
-                   'lib/lodepng.c',
                    'lib/ujpeg.c']
 
 

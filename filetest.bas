@@ -2,9 +2,11 @@
 ' but even OPENFILE tests are not comprehensive (e.g. don't actually test the messaging,
 ' mechanism, or ACCESS_READ_WRITE, or ACCESS_ANY, etc)
 
+#include "config.bi"
 #include "testing.bi"
 #include "lumpfile.bi"
 #include "util.bi"
+#include "lib/lodepng_gzip.bi"
 
 dim shared fh as integer
 dim shared num_errors as integer = 0
@@ -308,5 +310,59 @@ startTest(canWriteAgain)
 	if num_errors <> 0 then fail
 endTest
 
+dim shared as string gz_infile, gz_outfile, gz_outfile2
+gz_infile = command(0)
+gz_outfile = "_testfile.tmp.gz"
+gz_outfile2 = "_testfile.tmp"
+
+startTest(gzipRead)
+	'Compress
+	dim starttime as double = timer
+	if safe_shell("gzip -9 -c " & gz_infile & " > " & gz_outfile) then fail
+	? "  gzip compressed in " & cint((timer - starttime) * 1e3) & " ms"
+	'Read
+	dim gzipdata as string = read_file(gz_outfile)
+	? "  gzip compressed size = " & len(gzipdata)
+	'Decompress
+	dim outdata as byte ptr
+	dim outdatasize as size_t
+	starttime = timer
+	if decompress_gzip(strptr(gzipdata), len(gzipdata), @outdata, @outdatasize) then fail
+	? "  lodepng decompressed in " & cint((timer - starttime) * 1e3) & " ms"
+	? "  original size = " & outdatasize
+	'Read original and result and check
+	dim indata as string = read_file(gz_infile)
+	if outdatasize <> len(indata) then fail
+	if memcmp(strptr(indata), outdata, outdatasize) then fail
+	deallocate outdata
+	if safekill(gz_outfile) = NO then fail
+endTest
+
+startTest(gzipWrite)
+	'Read
+	dim indata as string = read_file(gz_infile)
+	'Compress
+	dim outdata as byte ptr
+	dim outdatasize as size_t
+	dim starttime as double = timer
+	if compress_gzip(strptr(indata), len(indata), @outdata, @outdatasize) then fail
+	? !"\n  lodepng compressed in " & cint((timer - starttime) * 1e3) & " ms"
+	? "  lodepng compressed size = " & outdatasize
+	'Write
+	dim fil as FILE ptr
+	fil = fopen(strptr(gz_outfile), "wb")
+	if fil = NULL then fail
+	if fwrite(outdata, 1, outdatasize, fil) <> outdatasize then fail
+	fclose(fil)
+	deallocate outdata
+	'Decompress
+	starttime = timer
+	if safe_shell("gzip -d " & gz_outfile) then fail
+	? "  gzip decompressed in " & cint((timer - starttime) * 1e3) & " ms"
+	'Read result and check
+	dim indata2 as string = read_file(gz_outfile2)
+	if indata <> indata2 then fail
+	safekill(gz_outfile2)
+endTest
 
 ? "All tests passed."
