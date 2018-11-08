@@ -73,6 +73,7 @@ unix = False  # True on mac and android
 mac = False
 android = False
 android_source = False
+glibc = False  # Computed below; can also be overridden by glibc=1 cmdline argument
 target = ARGUMENTS.get ('target', None)
 arch = ARGUMENTS.get ('arch', None)  # default decided below
 
@@ -100,6 +101,8 @@ elif 'darwin' in target or 'mac' in target:
     mac = True
 elif 'linux' in target or 'bsd' in target or 'unix' in target:
     unix = True
+    if 'linux' in target:
+        glibc = True
 else:
     print "!! WARNING: target '%s' not recognised!" % target
 
@@ -154,14 +157,14 @@ if not arch:
     else:
         arch = default_arch
 
-
 ################ Other commandline arguments
 
 if int (ARGUMENTS.get ('asm', False)):
     FBFLAGS += ["-R", "-RR", "-g"]
 
-if int (ARGUMENTS.get ('glibc', False)):
-    # No need to bother automatically checking for glibc
+# glibc=0|1 overrides automatic detection
+glibc = int (ARGUMENTS.get ('glibc', glibc))
+if glibc:
     CFLAGS += ["-DHAVE_GLIBC"]
 
 pdb = int(ARGUMENTS.get('pdb', 0))
@@ -607,6 +610,9 @@ if linkgcc:
             CXXLINKFLAGS += ['-lpthread']
             if portable and not mac:
                 #CXXLINKFLAGS += ['/usr/lib/libncurses.5.dylib']  # Mac: -l: syntax not supported
+                # FIXME: linking against this older version when libfb was compiled
+                # against a newer version seems to cause problems: in programs like unlump
+                # waiting for a keypress doesn't work.
                 CXXLINKFLAGS += ['-l:libncurses.so.5']
             else:
                 CXXLINKFLAGS += ['-lncurses']  # would be libncurses.so.6 since ~2015
@@ -686,6 +692,12 @@ if portable and (unix and not mac):
     # See https://bugzilla.mozilla.org/show_bug.cgi?id=1153109
     # and https://gcc.gnu.org/onlinedocs/libstdc%2B%2B/manual/using_dual_abi.html
     CXXFLAGS.append ("-D_GLIBCXX_USE_CXX11_ABI=0")
+    if glibc:
+        # For compatibility with glibc < 2.28 when linking with glibc >= 2.28 (2018-08-01)
+        # This redirects fcntl (used in libfb) to __wrap_fcntl, defined in lib/wrap_fcntl.c
+        # If libfb was compiled against >= 2.28 we need to wrap fcntl64, otherwise fcntl.
+        CXXFLAGS.append ("-Wl,--wrap=fcntl")
+        CXXFLAGS.append ("-Wl,--wrap=fcntl64")
 
 # As long as exceptions aren't used anywhere and don't have to be propagated between libraries,
 # we can link libgcc_s statically, which avoids one more thing that might be incompatible
@@ -861,6 +873,8 @@ elif unix:  # Unix+X11 systems: Linux & BSD
     if portable:
         # To support old libstdc++.so versions
         base_modules += ['lib/stdc++compat.cpp']
+        if glibc:
+            base_modules += ['lib/wrap_fcntl.c']
     if 'sdl' in gfx or 'fb' in gfx:
         common_modules += ['lib/SDL/SDL_x11clipboard.c', 'lib/SDL/SDL_x11events.c']
     if gfx != ['console']:
@@ -1350,7 +1364,7 @@ Experimental options:
                       few targets).
   android-source=1    Used as part of the Android build process for Game/Custom
                       (see wiki)
-  glibc=1             Enable memory_usage function
+  glibc=0|1           Override automatic detection (just checks for Linux).
   target=...          Set cross-compiling target. Passed through to fbc. Either
                       a toolchain prefix triplet such as arm-linux-androideabi
                       (will be prefixed to names of tools like gcc/as/ld/, e.g.

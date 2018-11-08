@@ -7,6 +7,7 @@
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"
 #include "config.h"
+#include <stdlib.h>
 
 #ifdef USE_X11
 #include <X11/Xlib.h>
@@ -67,14 +68,15 @@ static int X_fatal_error_handler(Display *dpl) {
 static int X_error_handler(Display *dpl, XErrorEvent *event) {
 	// Print the error to a buffer and log it and print to stderr, like
 	// Xlib errors normally are
-	char buf[500];
-	buf[499] = '\0';
-	FILE *fbuf = fmemopen(buf, 499, "w+");
+	char *buf;
+	size_t bufsize;
+	FILE *fbuf = open_memstream(&buf, &bufsize);
 	fprintf(fbuf, "Xlib error handler called:\n");
 	PrintXError(dpl, event, fbuf);
 	fclose(fbuf);
 	fputs(buf, stderr);
 	debugc(errError, buf);
+	free(buf);
 	return 0;  //ignored
 }
 
