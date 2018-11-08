@@ -4547,7 +4547,7 @@ END IF
 
 DIM as bool fixdissolves =  (getfixbit(fixDefaultDissolveEnemy) = 0)
 DIM as bool fixelementals = (getfixbit(fixEnemyElementals) = 0)
-IF full_upgrade ANDALSO (fixdissolves OR fixenemyelementals) THEN
+IF full_upgrade ANDALSO (fixdissolves OR fixelementals) THEN
  IF fixdissolves THEN
   upgrade_message "Initializing default enemy fade (per enemy)..."
  END IF
@@ -4556,7 +4556,7 @@ IF full_upgrade ANDALSO (fixdissolves OR fixenemyelementals) THEN
  END IF
  ' loadenemydata will upgrade the data when loading. All we have to do is load and save again.
  DIM enemy as EnemyDef
- FOR i as integer = 0 to gen(genMaxEnemy)
+ FOR i as integer = 0 TO gen(genMaxEnemy)
   loadenemydata enemy, i
   saveenemydata enemy, i
  NEXT
