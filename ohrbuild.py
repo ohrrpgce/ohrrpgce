@@ -443,7 +443,18 @@ def check_lib_requirements(binary):
             req[symbol] = max(req[symbol], version)
 
     # Tables giving the required version of GCC corresponding to each GLIBCXX symbol versioning tag
+    # From https://gcc.gnu.org/onlinedocs/libstdc++/manual/abi.html (Section 4)
     GLIBCXX_to_gcc = {
+        (3,4):    (3,4,0),
+        (3,4,1):  (3,4,1),
+        (3,4,2):  (3,4,2),
+        (3,4,3):  (3,4,3),
+        (3,4,4):  (4,0,0),
+        (3,4,5):  (4,0,1),
+        (3,4,6):  (4,0,2),
+        (3,4,7):  (4,0,3),
+        (3,4,8):  (4,1,1),
+        (3,4,9):  (4,2,0),
         (3,4,10): (4,3,0),
         (3,4,11): (4,4,0),
         (3,4,12): (4,4,1),
@@ -457,64 +468,83 @@ def check_lib_requirements(binary):
         (3,4,20): (4,9,0),
         (3,4,21): (5,1,0),
         (3,4,22): (6,1,0),
+        (3,4,23): (7,1,0),
+        (3,4,24): (7,2,0),
+        (3,4,25): (8,0,0),
+        (3,4,26): (9,0,0),
     }
 
     # Ditto for CXXABI
     CXXABI_to_gcc = {
+        (1,3):   (3,4,0),
+        (1,3,1): (4,0,0),
         (1,3,2): (4,3,0),
         (1,3,3): (4,4,0),
-        (1,3,3): (4,4,1),
-        (1,3,3): (4,4,2),
+        #(1,3,3): (4,4,1),
+        #(1,3,3): (4,4,2),
         (1,3,4): (4,5,0),
         (1,3,5): (4,6,0),
-        (1,3,5): (4,6,1),
+        #(1,3,5): (4,6,1),
         (1,3,6): (4,7,0),
         (1,3,7): (4,8,0),
-        (1,3,7): (4,8,3),
+        #(1,3,7): (4,8,3),
         (1,3,8): (4,9,0),
         (1,3,9): (5,1,0),
         (1,3,10): (6,1,0),
+        (1,3,11): (7,1,0),
+        #(1,3,11): (7,2,0),
+        #(1,3,11): (8,0,0),
+        #(1,3,11): (9,0,0),
     }
 
+    # From https://gcc.gnu.org/releases.html
     gcc_release_dates = {
-        (4,3,0): 'March 5, 2008',
-        (4,4,0): 'April 21, 2009',
-        (4,4,1): 'July 22, 2009',
-        (4,4,2): 'October 15, 2009',
-        (4,5,0): 'April 14, 2010',
-        (4,6,0): 'March 25, 2011',
-        (4,6,1): 'June 27, 2011',
-        (4,7,0): 'March 22, 2012',
-        (4,8,0): 'March 22, 2013',
-        (4,8,3): 'May 22, 2014',
-        (4,9,0): 'April 22, 2014',
-        (5,1,0): 'April 22, 2015',
-        (6,1,0): 'April 27, 2016',
+        (4,3,0): '2008-03-05',
+        (4,4,0): '2009-04-21',
+        (4,4,1): '2009-07-22',
+        (4,4,2): '2009-10-15',
+        (4,5,0): '2010-04-14',
+        (4,6,0): '2011-03-25',
+        (4,6,1): '2011-06-27',
+        (4,7,0): '2012-03-22',
+        (4,8,0): '2013-03-22',
+        (4,8,3): '2014-05-22',
+        (4,9,0): '2014-04-22',
+        (5,1,0): '2015-04-22',
+        (6,1,0): '2016-04-27',
+        (7,1,0): '2017-05-02',
+        (7,2,0): '2017-08-14',
+        (8,1,0): '2018-05-02',
     }
 
+    # From https://sourceware.org/glibc/wiki/Glibc%20Timeline
     glibc_release_dates = {
-        (2,26): '2017-08-01',
-        (2,25): '2017-02-01',
-        (2,24): '2016-08-04',
-        (2,23): '2016-02-19',
-        (2,22): '2015-08-14',
-        (2,21): '2015-02-06',
-        (2,20): '2014-09-08',
-        (2,19): '2014-02-07',
-        (2,18): '2013-08-12',
-        (2,17): '2012-12-25',
-        (2,16): '2012-06-30',
-        (2,15): '2012-03-21',
-        (2,14,1): '2011-10-07',
-        (2,14): '2011-06-01',
-        (2,13): '2011-02-01',
-        (2,12,2): '2010-12-13',
-        (2,12,1): '2010-08-03',
         (2,12): '2010-05-03',
+        (2,12,1): '2010-08-03',
+        (2,12,2): '2010-12-13',
+        (2,13): '2011-02-01',
+        (2,14): '2011-06-01',
+        (2,14,1): '2011-10-07',
+        (2,15): '2012-03-21',
+        (2,16): '2012-06-30',
+        (2,17): '2012-12-25',
+        (2,18): '2013-08-12',
+        (2,19): '2014-02-07',
+        (2,20): '2014-09-08',
+        (2,21): '2015-02-06',
+        (2,22): '2015-08-14',
+        (2,23): '2016-02-19',
+        (2,24): '2016-08-04',
+        (2,25): '2017-02-01',
+        (2,26): '2017-08-01',
+        (2,27): '2018-02-01',
+        (2,28): '2018-08-01',
     }
     #print req
 
     def verstring(version_tuple):
+        unknown = [a for a in version_tuple if 'unknown' in str(a)]
+        if unknown: return unknown[0]
         return '.'.join(map(str, version_tuple))
 
     def lookup_version(version_tuple, table):
@@ -529,26 +559,24 @@ def check_lib_requirements(binary):
     gcc_ver_reqs = []
     gcc_req = ''
 
-    if 'libstdc++.so.6' in libraries:
-        gcc_ver_reqs.append((3,4,0))
 
-    if req['GLIBCXX'] > (3,4,22) or req['CXXABI'] > (1,3,10):
-        gcc_req = '>6.1.0'
-    else:
-        if req['GCC']:
-            gcc_ver_reqs.append(req['GCC'])
-        # fixme: this isn't very good
-        if req['CXXABI'] < (1,3,2):
-            pass
-        else: #if req['CXXABI'] in GLIBCXX_to_gcc:
-            gcc_ver_reqs.append(CXXABI_to_gcc.get(req['CXXABI'], (9, 'unknown')))
-        if req['GLIBCXX'] < (3,4,10):
-            pass
-        else: #if req['GLIBCXX'] in GLIBCXX_to_gcc:
-            gcc_ver_reqs.append(GLIBCXX_to_gcc.get(req['GLIBCXX'], (9, 'unknown')))
-        if gcc_ver_reqs:
-            max_version = max(gcc_ver_reqs)
-            gcc_req = verstring(max_version) + ' (released %s)' % lookup_version(max_version, gcc_release_dates)
+    if 'libstdc++.so.6' in libraries:
+        gcc_ver_reqs.append((3,4,0))  # First version using .so version .6
+
+    if req['GCC']:
+        gcc_ver_reqs.append(req['GCC'])
+    # fixme: this isn't very good
+    if req['CXXABI'] < min(CXXABI_to_gcc.keys()):
+        gcc_ver_reqs.append((0, 'unknown ancient version')) #pass
+    else: #if req['CXXABI'] in GLIBCXX_to_gcc:
+        gcc_ver_reqs.append(CXXABI_to_gcc.get(req['CXXABI'], (999, 'unknown future version')))
+    if req['GLIBCXX'] < min(GLIBCXX_to_gcc.keys()):
+        gcc_ver_reqs.append((0, 'unknown ancient version')) #pass
+    else: #if req['GLIBCXX'] in GLIBCXX_to_gcc:
+        gcc_ver_reqs.append(GLIBCXX_to_gcc.get(req['GLIBCXX'], (999, 'unknown future version')))
+    if gcc_ver_reqs:
+        max_version = max(gcc_ver_reqs)
+        gcc_req = verstring(max_version) + ' (released %s)' % lookup_version(max_version, gcc_release_dates)
     if gcc_req:
         gcc_req = 'and libs for gcc ' + gcc_req
 
