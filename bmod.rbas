@@ -969,23 +969,27 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
       rectangle 2, 5 + i * 10, j, 9, col, page
      END IF
     END IF
-    IF prefbit(7) = NO THEN  '"Hide health-meter in battle" off
-     col = uiLook(uiHealthBar)
-     DIM target_lifemeter_len as integer = CINT(bslot(i).stat.cur.hp * 87 / large(bslot(i).stat.max.hp, 1))
-     IF bslot(i).lifemeter < target_lifemeter_len THEN bslot(i).lifemeter += 1
-     IF bslot(i).lifemeter > target_lifemeter_len THEN bslot(i).lifemeter -= 1
-     IF bslot(i).lifemeter > 87 THEN
-      bslot(i).lifemeter = 87
-      col = uiLook(uiHealthBar + bat.tog)
+    WITH bslot(i)
+     DIM hidehp as bool = should_hide_hero_stat(gam.hero(i).id, statHP)
+     IF prefbit(7) = NO ANDALSO hidehp = NO THEN  '"Hide health-meter in battle" off
+      col = uiLook(uiHealthBar)
+      DIM target_lifemeter_len as integer = 87 * bound(.stat.cur.hp / large(.stat.max.hp, 1), 0, 1)
+      IF .lifemeter < target_lifemeter_len THEN .lifemeter += 1
+      IF .lifemeter > target_lifemeter_len THEN .lifemeter -= 1
+      IF .lifemeter = 87 ANDALSO .stat.cur.hp > .stat.max.hp THEN
+       col = uiLook(uiHealthBar + bat.tog)
+      END IF
+      edgeboxstyle 136, 4 + i * 10, 89, 11, 0, page, YES, YES
+      rectangle 137, 5 + i * 10, .lifemeter, 9, col, page
      END IF
-     edgeboxstyle 136, 4 + i * 10, 89, 11, 0, page, YES, YES
-     rectangle 137, 5 + i * 10, bslot(i).lifemeter, 9, col, page
-    END IF
-    '--name--
-    col = uilook(uiMenuItem): IF i = bat.hero_turn THEN col = uilook(uiSelectedItem + bat.tog)
-    edgeprint bslot(i).name, 128 - LEN(bslot(i).name) * 8, 5 + i * 10, col, page
-    '--hp--
-    edgeprint bslot(i).stat.cur.hp & "/" & bslot(i).stat.max.hp, 136, 5 + i * 10, col, page
+     '--name--
+     col = uilook(IIF(i = bat.hero_turn, uiSelectedItem + bat.tog, uiMenuItem))
+     edgeprint .name, 128 - LEN(.name) * 8, 5 + i * 10, col, page
+     '--hp--
+     IF hidehp = NO THEN
+      edgeprint .stat.cur.hp & "/" & .stat.max.hp, 136, 5 + i * 10, col, page
+     END IF
+    END WITH
     WITH bslot(i).stat
      DIM indicatorpos as integer = 217
      'poison indicator
