@@ -46,7 +46,7 @@ DECLARE FUNCTION mapedit_layer_offset(st as MapEditState, i as integer) as XYPai
 DECLARE SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height as integer, overhead as bool = NO, pal as Palette16 ptr = NULL)
 DECLARE SUB drawwall(walldir as DirNum, byval pos as XYPair, offset as integer, thickness as integer, col as integer)
 
-DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as integer
+DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as NPCIndex
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, tile as XYPair) as bool
 DECLARE FUNCTION mapedit_partially_on_screen(st as MapEditState, tile as XYPair) as bool
 DECLARE FUNCTION mapedit_clamp_tile_to_screen(st as MapEditState, tile as XYPair) as XYPair
@@ -1354,7 +1354,7 @@ DO
    IF tool_actkeypress OR npc_d > -1 THEN
     DIM npc_slot as integer = 0
     IF npc_d = -1 THEN
-     DIM npci as integer = mapedit_npc_at_spot(st, st.pos)
+     DIM npci as NPCIndex = mapedit_npc_at_spot(st, st.pos)
      IF npci > -1 THEN
       WITH st.map.npc(npci)
        .id = 0
@@ -1368,7 +1368,7 @@ DO
     IF npc_d = -1 THEN npc_d = 2
     IF npc_slot = 0 THEN
      npc_slot = -1
-     FOR i as integer = 299 TO 0 STEP -1
+     FOR i as integer = UBOUND(st.map.npc) TO 0 STEP -1
       IF st.map.npc(i).id = 0 THEN npc_slot = i
      NEXT i
      IF npc_slot >= 0 THEN
@@ -1933,7 +1933,7 @@ DO
   DIM oldwallzone as integer = st.cur_npc_wall_zone
   st.cur_npc_zone = 0
   st.cur_npc_wall_zone = 0
-  DIM npci as integer = mapedit_npc_at_spot(st, st.pos)
+  DIM npci as NPCIndex = mapedit_npc_at_spot(st, st.pos)
   IF npci > -1 THEN
    WITH st.map.npc_def(st.map.npc(npci).id - 1)
     IF .defaultzone = -1 THEN
@@ -2465,7 +2465,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
  LOOP
 END SUB
 
-FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as integer
+FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as NPCIndex
  FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
    IF .id > 0 THEN
@@ -6209,9 +6209,9 @@ END SUB
 
 '----------------------------- Toplevel NPC Editor ----------------------------
 
-SUB handle_npc_def_delete (npc() as NPCType, byval id as integer, npc_insts() as NPCInst)
+SUB handle_npc_def_delete (npc() as NPCType, byval id as NPCTypeID, npc_insts() as NPCInst)
 
- '--Count number of uses
+ '--Count number of copies of this NPC
  DIM as integer uses = 0
  FOR i as integer = 0 to UBOUND(npc_insts)
   IF npc_insts(i).id = id + 1 THEN uses += 1
@@ -6233,6 +6233,7 @@ SUB handle_npc_def_delete (npc() as NPCType, byval id as integer, npc_insts() as
 
  IF yesno(IIF(uses, "Done. ", "") & "Really " & IIF(deleting, "delete", "wipe clean") & " this NPC definition?", NO, NO) = NO THEN EXIT SUB
 
+ 'npc(id).destructor()
  npc(id).constructor()
  IF deleting THEN
   REDIM PRESERVE npc(UBOUND(npc) - 1)

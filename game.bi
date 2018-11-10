@@ -69,7 +69,7 @@ DECLARE FUNCTION is_rpgdir(path as string) as bool
 DECLARE FUNCTION select_rpg_or_rpgdir(path as string) as bool
 DECLARE FUNCTION seek_rpg_or_rpgdir_and_select_it(where as string, gamename as string) as bool
 
-DECLARE SUB usenpc(byval cause as integer, byval npcnum as integer)
+DECLARE SUB usenpc(byval cause as integer, byval npcnum as NPCIndex)
 
 DECLARE SUB forceparty ()
 DECLARE FUNCTION findhero (byval id as integer, byval direction as integer = 1, errlvl as scriptErrEnum = serrIgnore) as integer
@@ -154,7 +154,7 @@ DECLARE FUNCTION player_is_suspended() as bool
 DECLARE FUNCTION hero_is_pathfinding(byval rank as integer) as bool
 DECLARE SUB cancel_hero_pathfinding(byval rank as integer, byval user_only as bool=NO)
 DECLARE SUB path_hero_to_tile(byval rank as integer, dest as XYPair, byval stop_after_stillticks as integer=0)
-DECLARE SUB path_hero_to_npc(byval rank as integer, byval npc as integer, byval stop_when_npc_reached as bool, byval stop_after_stillticks as integer=0)
+DECLARE SUB path_hero_to_npc(byval rank as integer, byval npc as NPCIndex, byval stop_when_npc_reached as bool, byval stop_after_stillticks as integer=0)
 DECLARE SUB user_trigger_hero_pathfinding()
 DECLARE SUB update_hero_pathfinding(byval rank as integer)
 DECLARE SUB update_hero_pathfinding_menu_queue()

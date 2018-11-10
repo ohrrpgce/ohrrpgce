@@ -181,7 +181,7 @@ SUB reset_npc_graphics ()
  NEXT i
 END SUB
 
-SUB change_npc_def_sprite (byval npc_id as integer, byval walkabout_sprite_id as integer)
+SUB change_npc_def_sprite (byval npc_id as NPCTypeID, byval walkabout_sprite_id as integer)
  FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id - 1 = npc_id THEN
    'found a match!
@@ -190,7 +190,7 @@ SUB change_npc_def_sprite (byval npc_id as integer, byval walkabout_sprite_id as
  NEXT i
 END SUB
 
-SUB change_npc_def_pal (byval npc_id as integer, byval palette_id as integer)
+SUB change_npc_def_pal (byval npc_id as NPCTypeID, byval palette_id as integer)
  FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id - 1 = npc_id THEN
    'found a match!
@@ -1079,13 +1079,12 @@ SUB vehicle_graceful_dismount ()
  END IF
 END SUB
 
-SUB forcemountvehicle (byval npci as integer)
- DIM npcid as integer = npc(npci).id
+SUB forcemountvehicle (byval npci as NPCIndex)
  IF npc(npci).id < 0 THEN
   'Hidden/tagdisabled NPC
   EXIT SUB
  END IF
- npcid = npcid - 1 'Adjust for actual ID
+ DIM npcid as NPCTypeID = npc(npci).id - 1
  DIM vehid as integer = npcs(npcid).vehicle - 1
  IF vehid < 0 THEN
   'This NPC is not a vehicle
@@ -1096,7 +1095,7 @@ SUB forcemountvehicle (byval npci as integer)
 END SUB
 
 'If it's possible to mount this vehicle/NPC, or forced, start the mount animation
-SUB try_mount_vehicle(vehid as integer, npci as integer, force_mount as bool = NO)
+SUB try_mount_vehicle(vehid as integer, npci as NPCIndex, force_mount as bool = NO)
  reset_vehicle vstate
  vstate.id = vehid
  LoadVehicle game & ".veh", vstate.dat, vstate.id
@@ -1259,7 +1258,7 @@ SUB cancel_hero_walk(byval rank as integer)
  herow(rank).xygo = herow(rank).xygo MOD 20
 END SUB
 
-FUNCTION npc_at_spot(tilepos as XYPair, byval copynum as integer=0) as integer
+FUNCTION npc_at_spot(tilepos as XYPair, byval copynum as integer=0) as NPCIndex
  'Return the index into the npc() NPCInst of the npc found at the given x,y coords
  'or -1 if not found
  DIM found as integer = 0
@@ -1290,7 +1289,7 @@ FUNCTION count_npcs_at_spot(tilepos as XYPair) as integer
  RETURN found
 END FUNCTION
 
-FUNCTION npc_at_pixel(pixelpos as XYPair, byval copynum as integer=0, allow_disabled as bool=NO) as integer
+FUNCTION npc_at_pixel(pixelpos as XYPair, byval copynum as integer=0, allow_disabled as bool=NO) as NPCIndex
  'Return the index into the npc() NPCInst of the npc found at the given x,y coords.
  ' This checks the location where the npc is currently displayed,
  ' not the tile they are considered to be occupying

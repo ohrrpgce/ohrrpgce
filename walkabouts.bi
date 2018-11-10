@@ -10,8 +10,8 @@ DECLARE FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
 DECLARE SUB create_walkabout_shadow (byval walkabout_cont as Slice Ptr)
 DECLARE SUB delete_walkabout_shadow (byval walkabout_cont as Slice Ptr)
 DECLARE SUB reset_npc_graphics ()
-DECLARE SUB change_npc_def_sprite (byval npc_id as integer, byval walkabout_sprite_id as integer)
-DECLARE SUB change_npc_def_pal (byval npc_id as integer, byval palette_id as integer)
+DECLARE SUB change_npc_def_sprite (byval npc_id as NPCTypeID, byval walkabout_sprite_id as integer)
+DECLARE SUB change_npc_def_pal (byval npc_id as NPCTypeID, byval palette_id as integer)
 DECLARE SUB vishero ()
 DECLARE SUB visnpc ()
 DECLARE SUB update_walkabout_slices()
@@ -26,9 +26,9 @@ DECLARE SUB orphan_npc_slices()
 DECLARE FUNCTION hero_layer() as Slice Ptr
 DECLARE FUNCTION npc_layer() as Slice Ptr
 
-DECLARE FUNCTION npc_at_spot(tilepos as XYPair, byval copynum as integer=0) as integer
+DECLARE FUNCTION npc_at_spot(tilepos as XYPair, byval copynum as integer=0) as NPCIndex
 DECLARE FUNCTION count_npcs_at_spot(tilepos as XYPair) as integer
-DECLARE FUNCTION npc_at_pixel(pixelpos as XYPair, byval copynum as integer=0, allow_disabled as bool=NO) as integer
+DECLARE FUNCTION npc_at_pixel(pixelpos as XYPair, byval copynum as integer=0, allow_disabled as bool=NO) as NPCIndex
 
 'Movement/collision/wrapping
 DECLARE FUNCTION movdivis (byval xygo as integer) as bool
@@ -67,7 +67,7 @@ DECLARE SUB update_vehicle_state ()
 DECLARE FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as integer) as integer
 DECLARE SUB vehicle_graceful_dismount ()
 DECLARE FUNCTION vehscramble(byval target as XYPair) as bool
-DECLARE SUB try_mount_vehicle(vehid as integer, npci as integer, force_mount as bool = NO)
-DECLARE SUB forcemountvehicle (byval npcnum as integer)
+DECLARE SUB try_mount_vehicle(vehid as integer, npci as NPCIndex, force_mount as bool = NO)
+DECLARE SUB forcemountvehicle (byval npcnum as NPCIndex)
 
 #endif

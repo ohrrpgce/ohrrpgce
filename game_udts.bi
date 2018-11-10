@@ -97,7 +97,7 @@ END TYPE
 
 TYPE NPCSliceContext EXTENDS SliceContext
   DECLARE VIRTUAL FUNCTION description() as string
-  npcindex as integer
+  npcindex as NPCIndex
 END TYPE
 
 TYPE ScriptLoggingState
@@ -149,7 +149,7 @@ END ENUM
 TYPE HeroPathing
   mode as HeroPathingMode 'Set if pathfinding is happening
   dest_pos as XYPair 'Used when mode = HeroPathingMode.POS
-  dest_npc as integer 'NPC reference used when mode = HeroPathingMode.NPC
+  dest_npc as NPCIndex 'Target NPC used when mode = HeroPathingMode.NPC
   on_map as integer ' the map ID where the pathing was started
   stop_after_stillticks as bool 'Cancel pathing if stuck for this many ticks
   stop_when_npc_reached as bool 'Cancel pathing as soon as the hero catches up the the NPC it is following

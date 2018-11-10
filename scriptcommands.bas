@@ -480,7 +480,7 @@ SUB process_wait_conditions()
       END IF
      END IF
     CASE 4'--wait for NPC
-     DIM npcref as integer = getnpcref(.waitarg, 0)
+     DIM npcref as NPCIndex = getnpcref(.waitarg, 0)
      IF npcref >= 0 ANDALSO .waitarg2 = gam.map.id THEN
       IF npc(npcref).xgo = 0 ANDALSO npc(npcref).ygo = 0 ANDALSO npc(npcref).pathover.override = NO THEN
        script_stop_waiting()
@@ -561,7 +561,7 @@ SUB script_functions(byval cmdid as integer)
  'These variables are uninitialised for speed
  DIM menuslot as integer = ANY
  DIM mislot as integer = ANY
- DIM npcref as integer = ANY
+ DIM npcref as NPCIndex = ANY
  DIM mi as MenuDefItem ptr = ANY
  DIM i as integer = ANY
  scriptret = 0
@@ -659,7 +659,7 @@ SUB script_functions(byval cmdid as integer)
   gam.showstring = STR(retvals(0))
  CASE 78'--alter NPC
   IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant") THEN
-   DIM npcid as integer = get_valid_npc_id(retvals(0), serrBound)
+   DIM npcid as NPCTypeID = get_valid_npc_id(retvals(0), serrBound)
    IF npcid <> -1 THEN
     DIM write_value as bool = YES
     IF retvals(1) = 0 THEN  'NPCstat:picture
@@ -3631,10 +3631,10 @@ SUB script_functions(byval cmdid as integer)
   IF retvals(2) = -1 THEN
    scriptret = count_npcs_at_spot(XY(retvals(0), retvals(1)))
   ELSE
-   scriptret = npc_at_spot(XY(retvals(0), retvals(1)), retvals(2))
+   DIM npcidx as NPCIndex = npc_at_spot(XY(retvals(0), retvals(1)), retvals(2))
    'convert the npc() index number into a script npc reference
    '(also converts -1 failure value into 0 failure value)
-   scriptret = (scriptret + 1) * -1
+   scriptret = (npcidx + 1) * -1
   END IF
  CASE 122'--get NPC ID
   ' Note: this command can be given an ID, effectively checking whether any NPCs with that ID exist
@@ -3725,7 +3725,7 @@ SUB script_functions(byval cmdid as integer)
   IF retvals(2) = -1 THEN scriptret = found
  CASE 182'--read NPC
   IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant") THEN
-   DIM npcid as integer = get_valid_npc_id(retvals(0), serrBound)
+   DIM npcid as NPCTypeID = get_valid_npc_id(retvals(0), serrBound)
    IF npcid <> -1 THEN
     scriptret = GetNPCD(npcs(npcid), retvals(1))
    END IF
@@ -4428,7 +4428,7 @@ SUB script_functions(byval cmdid as integer)
    IF retvals(2) THEN embedtext plotstr(retvals(0)).s
   END IF
  CASE 628'--pathfind npc to
-  DIM npcref as integer = get_valid_npc(retvals(0), serrBadOp)
+  DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBadOp)
   IF npcref >= 0 THEN
    cancel_npc_movement_override (npc(npcref))
    npc(npcref).pathover.override = NPCOverrideMove.POS
@@ -4439,8 +4439,8 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 629'--npc chases npc
-  DIM npcref as integer = get_valid_npc(retvals(0), serrBadOp)
-  DIM dest_npcref as integer = get_valid_npc(retvals(1), serrBadOp)
+  DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBadOp)
+  DIM dest_npcref as NPCIndex = get_valid_npc(retvals(1), serrBadOp)
   IF npcref >= 0 ANDALSO dest_npcref <> -1 THEN
    cancel_npc_movement_override (npc(npcref))
    npc(npcref).pathover.override = NPCOverrideMove.NPC
@@ -4452,7 +4452,7 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 630'--cancel npc walk
-  DIM npcref as integer = get_valid_npc(retvals(0), serrBadOp)
+  DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBadOp)
   IF npcref >= 0 THEN
    cancel_npc_movement_override (npc(npcref))
    cancel_npc_walk (npc(npcref))
@@ -4628,7 +4628,7 @@ SUB script_functions(byval cmdid as integer)
    path_hero_to_tile(retvals(0), XY(retvals(1), retvals(2)), retvals(3))
   END IF
  CASE 669 '--hero chases npc
-  DIM dest_npcref as integer = get_valid_npc(retvals(1), serrBadOp)
+  DIM dest_npcref as NPCIndex = get_valid_npc(retvals(1), serrBadOp)
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
    cancel_hero_pathfinding(retvals(0))
    path_hero_to_npc(retvals(0), dest_npcref, retvals(2) <> 0, retvals(3))
@@ -4726,44 +4726,43 @@ END FUNCTION
 '==========================================================================================
 
 
+'Implementation of "npc reference".
 'Deprecated; Use get_valid_npc for all new NPC commands
-FUNCTION getnpcref (byval seekid as integer, byval offset as integer) as integer
+FUNCTION getnpcref (byval seekid as NPCScriptref, byval copynum as integer) as NPCIndex
  SELECT CASE seekid
  CASE -300 TO -1'--direct reference
-  getnpcref = (seekid + 1) * -1
-  EXIT FUNCTION
+  RETURN (seekid + 1) * -1
 
  CASE 0 TO UBOUND(npcs) 'ID
   DIM found as integer = 0
-  FOR i as integer = 0 TO 299
+  FOR i as integer = 0 TO UBOUND(npc)
    IF npc(i).id - 1 = seekid THEN
-    IF found = offset THEN
-     getnpcref = i
-     EXIT FUNCTION
+    IF found = copynum THEN
+     RETURN i
     END IF
-    found = found + 1
+    found += 1
    END IF
   NEXT i
  END SELECT
 
  '--failure
- getnpcref = -1
+ RETURN -1
 END FUNCTION
 
 'Replacement for getnpcref.
 'Given NPC ref or NPC ID, return npc() index, or throw a scripterr and return -1
 'Note this is stricter than getnpcref: invalid npc refs are not alright!
 'References to Hidden/Disabled NPCs are alright.
-FUNCTION get_valid_npc (byval seekid as integer, byval errlvl as scriptErrEnum = serrBadOp) as integer
+FUNCTION get_valid_npc (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp) as NPCIndex
  IF seekid < 0 THEN
-  DIM npcidx as integer = (seekid + 1) * -1
-  IF npcidx > 299 ORELSE npc(npcidx).id = 0 THEN
+  DIM npcidx as NPCIndex = (seekid + 1) * -1
+  IF npcidx > UBOUND(npc) ORELSE npc(npcidx).id = 0 THEN
    scripterr current_command_name() & ": invalid npc reference " & seekid & " (maybe the NPC was deleted?)", errlvl
    RETURN -1
   END IF
   RETURN npcidx
  ELSE
-  FOR i as integer = 0 TO 299
+  FOR i as integer = 0 TO UBOUND(npc)
    IF npc(i).id - 1 = seekid THEN RETURN i
   NEXT
   scripterr current_command_name() & ": invalid npc reference; no NPCs of ID " & seekid & " exist", errlvl
@@ -4773,7 +4772,7 @@ END FUNCTION
 
 'Given NPC ref or NPC ID, return an NPC ID, or throw a scripterr and return -1
 'References to Hidden/Disabled NPCs are alright.
-FUNCTION get_valid_npc_id (byval seekid as integer, byval errlvl as scriptErrEnum = serrBadOp) as integer
+FUNCTION get_valid_npc_id (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp) as NPCTypeID
  IF seekid >= 0 THEN
   IF seekid > UBOUND(npcs) THEN
    scripterr current_command_name() & ": invalid NPC ID " & seekid, errlvl
@@ -4781,7 +4780,7 @@ FUNCTION get_valid_npc_id (byval seekid as integer, byval errlvl as scriptErrEnu
   END IF
   RETURN seekid
  ELSE
-  DIM npcidx as integer = (seekid + 1) * -1
+  DIM npcidx as NPCIndex = (seekid + 1) * -1
   IF npcidx > UBOUND(npc) THEN
    scripterr current_command_name() & ": invalid NPC reference " & seekid, errlvl
    RETURN -1
@@ -4789,7 +4788,7 @@ FUNCTION get_valid_npc_id (byval seekid as integer, byval errlvl as scriptErrEnu
    scripterr current_command_name() & ": invalid NPC reference " & seekid & " (maybe the NPC was deleted?)", errlvl
    RETURN -1
   ELSE
-   DIM id as integer = ABS(npc(npcidx).id) - 1
+   DIM id as NPCTypeID = ABS(npc(npcidx).id) - 1
    IF id > UBOUND(npcs) THEN
     'Note that an NPC may be marked hidden because it has an invalid ID
     scripterr current_command_name() & ": NPC reference " & seekid & " is for a disabled NPC with invalid ID " & npc(npcidx).id & " (the map must be incompletely loaded)", errlvl

@@ -41,9 +41,9 @@ DECLARE FUNCTION hero_should_ignore_walls(byval who as integer) as bool
 DECLARE SUB end_text_box_chain ()
 DECLARE SUB update_npcs ()
 DECLARE SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
-DECLARE FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType) as bool
+DECLARE FUNCTION perform_npc_move(byval npcnum as NPCIndex, npci as NPCInst, npcdata as NPCType) as bool
 DECLARE SUB npchitwall (npci as NPCInst, npcdata as NPCType, collision_type as WalkaboutCollisionType)
-DECLARE FUNCTION find_useable_npc () as integer
+DECLARE FUNCTION find_useable_npc () as NPCIndex
 DECLARE SUB interpret_scripts ()
 DECLARE SUB update_heroes(force_step_check as bool=NO)
 DECLARE SUB doloadgame(byval load_slot as integer, prefix as string="")
@@ -64,7 +64,7 @@ DECLARE SUB npcmove_meandering_avoid(npci as NPCInst)
 DECLARE SUB npcmove_walk_in_place(npci as NPCInst)
 DECLARE SUB npcmove_direct_chase(npci as NPCInst, npcdata as NPCType)
 DECLARE SUB npcmove_direct_avoid(npci as NPCInst, npcdata as NPCType)
-DECLARE SUB npcmove_change_dir_and_walk_ahead(npci as NPCInst, byval new_dir as integer)
+DECLARE SUB npcmove_change_dir_and_walk_ahead(npci as NPCInst, byval new_dir as DirNum)
 DECLARE SUB npcmove_rotate_and_walk_ahead(npci as NPCInst, byval rota as integer, byval amount as integer = 1)
 DECLARE SUB npcmove_follow_walls(npci as NPCInst, npcdata as NPCType, byval direction as integer)
 DECLARE SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
@@ -1312,10 +1312,10 @@ SUB update_heroes(force_step_check as bool=NO)
    END IF
    IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 THEN
     '--this only happens if obstruction is on
-    FOR i as integer = 0 TO UBOUND(npc)
+    FOR i as NPCIndex = 0 TO UBOUND(npc)
      WITH npc(i)
       IF .id > 0 THEN '---NPC EXISTS---
-       DIM id as integer
+       DIM id as NPCTypeID
        id = .id - 1
        IF npcs(id).activation <> 2 THEN '---NPC is not step-on
         IF wrapcollision (.pos, .xygo, heropos(whoi), herow(whoi).xygo) THEN
@@ -1473,7 +1473,7 @@ SUB update_heroes(force_step_check as bool=NO)
   'Trigger step-on NPCs
   IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 THEN
    '--check for step-on NPCS
-   FOR i as integer = 0 TO UBOUND(npc)
+   FOR i as NPCIndex = 0 TO UBOUND(npc)
     WITH npc(i)
      IF .id > 0 THEN '---NPC EXISTS---
       IF vstate.active = NO OR (vstate.dat.enable_npc_activation = YES AND vstate.npc <> i) THEN
@@ -1612,9 +1612,9 @@ END SUB
 'NPC movement
 'Note that NPC xgo and ygo can also be set from elsewhere, eg. being pushed
 SUB update_npcs ()
- FOR o as integer = 0 TO UBOUND(npc)
+ FOR o as NPCIndex = 0 TO UBOUND(npc)
   IF npc(o).id > 0 THEN
-   DIM as integer id = (npc(o).id - 1)
+   DIM as NPCTypeID id = (npc(o).id - 1)
 
    '--if this is the active vehicle
    IF vstate.active = YES AND vstate.npc = o THEN
@@ -2014,7 +2014,7 @@ SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
 
 END SUB
 
-FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType) as bool
+FUNCTION perform_npc_move(byval npcnum as NPCIndex, npci as NPCInst, npcdata as NPCType) as bool
  '--npcnum is the npc() index of npci.
  '--Here we attempt to actually update the coordinates for this NPC, checking obstructions
  '--Return true if we finished a step (didgo)
@@ -4035,12 +4035,12 @@ END SUB
 
 '--Look in front of the leader for an activatable NPC.
 '--WARNING: has side-effects: assumes result is passed to usenpc
-FUNCTION find_useable_npc() as integer
+FUNCTION find_useable_npc() as NPCIndex
  DIM ux as integer = herox(0)
  DIM uy as integer = heroy(0)
  wrapaheadxy ux, uy, herodir(0), 20, 20
 
- FOR j as integer = 0 TO 299
+ FOR j as NPCIndex = 0 TO UBOUND(npc)
   WITH npc(j)
    IF .id > 0 AND (j <> vstate.npc OR vstate.active = NO) THEN
     '--Step-on NPCs cannot be used
@@ -4079,13 +4079,13 @@ FUNCTION find_useable_npc() as integer
 END FUNCTION
 
 'Activate npc(npcnum)
-SUB usenpc(byval cause as integer, byval npcnum as integer)
+SUB usenpc(byval cause as integer, byval npcnum as NPCIndex)
  'cause = 0: normal use key
  'cause = 1: touch and step-on
  'cause = 2: scripted
  IF npcnum < 0 THEN EXIT SUB
  IF npc(npcnum).suspend_use ANDALSO cause <> 2 THEN EXIT SUB
- DIM id as integer = npc(npcnum).id - 1
+ DIM id as NPCTypeID = npc(npcnum).id - 1
 
  '---Item from NPC---
  DIM getit as integer = npcs(id).item
@@ -5035,7 +5035,7 @@ SUB path_hero_to_tile(byval rank as integer, dest as XYPair, byval stop_after_st
  gam.hero_pathing(rank).on_map = gam.map.id
 END SUB
 
-SUB path_hero_to_npc(byval rank as integer, byval npc as integer, byval stop_when_npc_reached as bool, byval stop_after_stillticks as integer=0)
+SUB path_hero_to_npc(byval rank as integer, byval npc as NPCIndex, byval stop_when_npc_reached as bool, byval stop_after_stillticks as integer=0)
  gam.hero_pathing(rank).mode = HeroPathingMode.NPC
  gam.hero_pathing(rank).dest_npc = npc
  gam.hero_pathing(rank).stop_when_npc_reached = stop_when_npc_reached
@@ -5049,7 +5049,7 @@ SUB user_trigger_hero_pathfinding()
  'Only used for leader
  DIM clickpos as XYPair = XY(mapx, mapy) + readmouse().pos
  wrapxy clickpos, 20
- DIM npc_index as integer = npc_at_pixel(clickpos)
+ DIM npc_index as NPCIndex = npc_at_pixel(clickpos)
  IF npc_index >= 0 THEN
   gam.hero_pathing(0).mode = HeroPathingMode.NPC
   gam.hero_pathing(0).dest_npc = npc_index

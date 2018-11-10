@@ -231,6 +231,16 @@ ENUM PathfindingObstructionMode
   obmodeLAST = 2
 END ENUM
 
+'Value passable to any NPC script command:
+'Either an NPC ID (>= 0) or an NPC reference (< 0). No 'invalid' value.
+TYPE NPCScriptref as integer
+
+'Index in npcs() NPCType array, -1 for none/invalid.
+TYPE NPCTypeID as integer
+
+'Index in npc() NPCInst array, -1 for none/invalid.
+TYPE NPCIndex as integer
+
 'Warning: when editing NPCType, update Get/SetNPCD,
 'readnpc, alternpc, plotscr.hsd constants, and plotdict.xml
 'Note that instances of this type are copied in edit_npc (w/ default copy constructor)
@@ -247,8 +257,8 @@ TYPE NPCType
   tag1 as integer        '+9   appear only if
   tag2 as integer        '+10  appear only if 2
   usetag as integer      '+11  onetime use bit or 0 for none
-  script as integer      '+12
-  scriptarg as integer   '+13
+  script as integer      '+12  script trigger
+  scriptarg as integer   '+13  argument to the script
   vehicle as integer     '+14
   defaultzone as integer '+15
   defaultwallzone as integer '+16
@@ -265,10 +275,10 @@ END ENUM
 TYPE PathfinderOverride
   override as NPCOverrideMove 'Set if normal movement has been overridden by pathfinding
 
-  cooldown as integer 'Used to prevent stuck pathfinding NPCs from re-pathing too fast
+  cooldown as integer 'Ticks; used to prevent stuck pathfinding NPCs from re-pathing too fast
 
   dest_pos as XYPair 'Used when pathfinding overrides normal movement (only used for NPCOverrideMove.POS)
-  dest_npc as integer 'NPC reference used when pathfinding overrides normal movement (only used for NPCOverrideMove.NPC)
+  dest_npc as NPCIndex 'Target NPC used when pathfinding overrides normal movement (only used for NPCOverrideMove.NPC)
   stop_when_npc_reached as bool
   stop_after_stillticks as integer
 END TYPE
@@ -286,6 +296,7 @@ TYPE NPCInst
   END UNION
   z as integer      '            Does not include foot offset
   id as integer     'npcl+600    0 if unused, ID + 1 for normal NPCs, -ID - 1 for hidden NPCs
+                    '  (So NOT an NPCTypeID)
                     '  NOTE: NPCs with invalidly high ID numbers (on incompletely loaded maps)
                     '        are automatically hidden (and obviously unsafe to unhide)
   UNION
@@ -1026,7 +1037,7 @@ TYPE VehicleState
   active    as bool 'Is mounting/in/dismounting. If this is false, the rest is garbage
   id        as integer 'vehicle defintion id that is loaded into .dat
   dat       as VehicleData
-  npc       as integer 'npc reference number
+  npc       as NPCIndex
   old_speed as integer 'hero speed before mount
   mounting  as bool
   rising    as bool

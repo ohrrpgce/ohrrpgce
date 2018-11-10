@@ -820,7 +820,7 @@ SUB debug_npcs ()
  NEXT
 END SUB
 
-FUNCTION describe_npctype(npcid as integer) as string
+FUNCTION describe_npctype(npcid as NPCTypeID) as string
  DIM info as string
  WITH npcs(npcid)
   info &= fgcol_text("NPC Type: ", uilook(uiSelectedItem)) _
@@ -834,10 +834,10 @@ FUNCTION describe_npctype(npcid as integer) as string
  RETURN info
 END FUNCTION
 
-FUNCTION describe_npcinst(npcnum as integer) as string
+FUNCTION describe_npcinst(npcnum as NPCIndex) as string
  DIM info as string
  WITH npc(npcnum)
-  DIM id as integer = ABS(.id) - 1
+  DIM id as NPCTypeID = ABS(.id) - 1
   'Calculate NPC copy number
   DIM copynum as integer
   FOR i as integer = 0 TO npcnum - 1
@@ -889,10 +889,10 @@ PRIVATE SUB npc_debug_display_tooltip ()
  'Find each NPC at pos
  DIM info as string
  FOR copy as integer = 0 TO 999
-  DIM npcnum as integer = npc_at_pixel(pos, copy, YES)
-  IF npcnum = -1 THEN EXIT FOR
+  DIM npcidx as NPCIndex = npc_at_pixel(pos, copy, YES)
+  IF npcidx = -1 THEN EXIT FOR
   IF LEN(info) THEN info &= !"\n"
-  info &= describe_npcinst(npcnum)
+  info &= describe_npcinst(npcidx)
  NEXT
 
  IF LEN(info) THEN
