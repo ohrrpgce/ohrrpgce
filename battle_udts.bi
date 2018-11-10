@@ -240,15 +240,17 @@ END ENUM
 
 '--Used by BattleState.menu_mode
 ENUM BattleMenuMode
- batMENUHERO = 0 
+ batMENUHERO = 0
  batMENUSPELL = 1
  batMENUITEM = 2
 END ENUM
 
 '--used by the .t member of the menu items in the .batmenu member
-CONST batmenu_ATTACK = -1000
-CONST batmenu_SPELLS = -1001
-CONST batmenu_ITEMS  = -1002
+ENUM BattleMenuItemType
+ batmenu_ATTACK = mtypeLAST + 1
+ batmenu_SPELLS
+ batmenu_ITEMS
+END ENUM
 
 'This type is just used by RewardState
 TYPE RewardsStateItem

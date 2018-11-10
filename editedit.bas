@@ -51,10 +51,12 @@ TYPE WEState
  exit_please as bool
 END TYPE
 
-CONST wedEXIT = -1
-CONST wedSTRING = -2
-CONST wedINT = -3
-CONST wedBOOL = -4
+ENUM WEdMenuItemType
+ wedEXIT = mtypeLAST + 1
+ wedSTRING
+ wedINT
+ wedBOOL
+END ENUM
 
 '-----------------------------------------------------------------------
 

@@ -119,7 +119,7 @@ DO
  END IF
  IF dstate.active THEN
   draw_menu detail, dstate, dpage
-  IF menudata.items[mstate.pt]->t = 3 THEN '--textbox
+  IF menudata.items[mstate.pt]->t = mtypeTextBox THEN
    edgeprint box_preview, 0, pBottom, uilook(uiText), dpage
   END IF
  END IF
@@ -298,9 +298,9 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
 
  usemenu dstate
 
- DIM editaction as integer = detail.items[dstate.pt]->t
+ DIM editaction as integer = detail.items[dstate.pt]->sub_t
  SELECT CASE editaction
-  CASE 0
+  CASE 0: 'go back
    IF enter_space_click(dstate) THEN
     dstate.active = NO
     mstate.active = YES
@@ -422,15 +422,15 @@ SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem
  DIM index as integer
  DeleteMenuItems detail
 
- ' Set .t of each menu item to indicate what menu_editor_detail_keys should do
+ ' Set .sub_t of each menu item to indicate what menu_editor_detail_keys should do
 
- append_menu_item detail, "Go Back", 0
+ append_menu_item detail, "Go Back", , 0
  
  cap = mi.caption
  IF LEN(cap) = 0 THEN cap = "[DEFAULT]"
- append_menu_item detail, "Caption: " & cap, 1
+ append_menu_item detail, "Caption: " & cap, , 1
  
- append_menu_item(detail, "Type", 2)
+ append_menu_item detail, "Type", , 2
  WITH *detail.last
   SELECT CASE mi.t
    CASE mtypeLabel
@@ -446,7 +446,7 @@ SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem
   END SELECT
  END WITH
  
- append_menu_item(detail, "Subtype: " & mi.sub_t, 3)
+ append_menu_item detail, "Subtype: " & mi.sub_t, , 3
  WITH *detail.last
   SELECT CASE mi.t
    CASE mtypeLabel
@@ -472,7 +472,7 @@ SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem
       'Sadly, for back-compatibility, leave out the handle instead of passing zero.
      END IF
      argsinfo &= "extra0, extra1, extra2"
-     append_menu_item(detail, argsinfo, -1)   'type: does nothing
+     append_menu_item detail, argsinfo, , -1   'sub_t: does nothing
      detail.last->disabled = YES
      detail.last->unselectable = YES  'Does nothing, yet
     END IF
@@ -482,18 +482,18 @@ SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem
   .caption &= get_menu_item_editing_annotation(mi)
  END WITH
 
- append_menu_item detail, "Color: " & slice_color_caption(mi.col, "Default"), 12
- append_menu_item detail, "Disabled color: " & slice_color_caption(mi.disabled_col, "Default"), 13
+ append_menu_item detail, "Color: " & slice_color_caption(mi.col, "Default"), , 12
+ append_menu_item detail, "Disabled color: " & slice_color_caption(mi.disabled_col, "Default"), , 13
 
- append_menu_item detail, tag_condition_caption(mi.tag1, "Enable if tag", "Always"), 4
- append_menu_item detail, tag_condition_caption(mi.tag2, " and also tag", "Always"), 5
+ append_menu_item detail, tag_condition_caption(mi.tag1, "Enable if tag", "Always"), , 4
+ append_menu_item detail, tag_condition_caption(mi.tag2, " and also tag", "Always"), , 5
  IF menu_item_is_activatable(mi) THEN
-  append_menu_item detail, tag_set_caption(mi.settag, "Set tag"), 6
-  append_menu_item detail, tag_toggle_caption(mi.togtag), 7
+  append_menu_item detail, tag_set_caption(mi.settag, "Set tag"), , 6
+  append_menu_item detail, tag_toggle_caption(mi.togtag), , 7
  END IF
- append_menu_item detail, "Edit Bitsets...", 8
+ append_menu_item detail, "Edit Bitsets...", , 8
  FOR i = 0 TO 2
-  append_menu_item detail, "Extra data " & i & ": " & mi.extra(i), 9 + i
+  append_menu_item detail, "Extra data " & i & ": " & mi.extra(i), , 9 + i
  NEXT i
 END SUB
 

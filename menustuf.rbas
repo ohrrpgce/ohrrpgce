@@ -57,6 +57,12 @@ DECLARE SUB sellstuff_infostr(byval ic as integer, info as string, b() as intege
 
 DECLARE SUB get_virtual_keyboard_buttons (byval sl as Slice Ptr, byref arr as any ptr vector)
 
+ENUM ShopMenuItemType
+ shopmtypeItem = mtypeLAST + 1  'Don't overlap with MenuItemType values to avoid draw_menu glitches
+ shopmtypeHero
+END ENUM
+
+
 SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
  'shoptype is 0 for items and 1 for heroes
 
@@ -591,7 +597,7 @@ SUB buystuff_refresh_menu (buyst as ShopBuyState, menu as MenuDef, st as MenuSta
       thing = stuff_slot."item".ptr
       id = stuff_slot."item".integer
       append_menu_item menu, thing."name".default(readitemname(id)).string
-      menu.last->t = 0 'item
+      menu.last->t = shopmtypeItem  'Not actually used
       menu.last->sub_t = GetInteger(stuff_slot)
       menu.last->dataptr = thing
       menu.last->disabled = NOT buystuff_can_buy(thing, buyst)
@@ -601,7 +607,7 @@ SUB buystuff_refresh_menu (buyst as ShopBuyState, menu as MenuDef, st as MenuSta
       thing = stuff_slot."hero".ptr
       id = stuff_slot."hero".integer
       append_menu_item menu, thing."name".default(getheroname(id)).string
-      menu.last->t = 1 'hero
+      menu.last->t = shopmtypeHero  'Not actually used
       menu.last->sub_t = GetInteger(stuff_slot)
       menu.last->dataptr = thing
       menu.last->disabled = NOT buystuff_can_buy(thing, buyst)

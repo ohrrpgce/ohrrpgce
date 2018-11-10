@@ -3126,15 +3126,17 @@ FUNCTION reorderable_node(byval node as NodePtr) as integer
  RETURN NO
 END FUNCTION
 
-CONST platformoptEXIT as integer = 1
-CONST platformoptTOGGLEVGAMEPAD as integer = 2
-CONST platformoptBUTTON as integer = 3
-CONST platformoptVBUTTON as integer = 4
-CONST platformoptADDVBUTTON as integer = 5
-CONST platformoptTOGGLEMULTI as integer = 6
-CONST platformoptBUTTONNAMES as integer = 7
-CONST platformoptTOGGLETOUCHTEXTBOXES as integer = 9
-CONST platformoptTOGGLEVGAMEPADSUSPENDPLAYER as integer = 11
+ENUM PlatformMenuItemType
+ platformoptEXIT = mtypeLAST + 1  'Don't overlap with MenuItemType values
+ platformoptTOGGLEVGAMEPAD
+ platformoptBUTTON
+ platformoptVBUTTON
+ platformoptADDVBUTTON
+ platformoptTOGGLEMULTI
+ platformoptBUTTONNAMES
+ platformoptTOGGLETOUCHTEXTBOXES
+ platformoptTOGGLEVGAMEPADSUSPENDPLAYER
+END ENUM
 
 SUB edit_platform_controls ()
 

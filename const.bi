@@ -476,7 +476,12 @@ CONST npcTouch = 1
 CONST npcStepOn = 2
 
 ' These constants are for the .t type of a MenuDefItem for user-created menus
-' (MenuDefs used elsewhere including battles are free to assign other meanings)
+' (MenuDefs used elsewhere including battles are NOT free to assign other meanings
+' to these values, because draw_menu or other functions may treat some of these specially!
+' (Currently, just mtypeSpecial items.) So you should use menu item types after
+' mtypeLAST instead.
+' FIXME/WARNING: we have sooooo much code that uses type 0 just by default, so
+' mtypeLabel had better never be treated specially by any menu code!
 Enum MenuItemType
   mtypeLabel =    0
   mtypeSpecial =  1

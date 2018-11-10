@@ -948,14 +948,16 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
  
 END SUB
 
-CONST edbatmenu_EXIT = 0
-CONST edbatmenu_KIND = 1
-CONST edbatmenu_NUM = 2 'extra 0 = lower limit, extra 1 = upper limit
-CONST edbatmenu_STR = 3
-CONST edbatmenu_TAG = 4
-CONST edbatmenu_COLOR = 5 'extra 0 = lower limit, extra 1 = upper limit  (to reduce redundancy...)
-CONST edbatmenu_ATTACK = 6
-CONST edbatmenu_UNSELECTABLE = 7 'Does nothing
+ENUM EdBatMenuMenuItemType
+ edbatmenu_EXIT = mtypeLAST + 1
+ edbatmenu_KIND
+ edbatmenu_NUM 'extra 0 = lower limit, extra 1 = upper limit
+ edbatmenu_STR
+ edbatmenu_TAG
+ edbatmenu_COLOR 'extra 0 = lower limit, extra 1 = upper limit  (to reduce redundancy...)
+ edbatmenu_ATTACK
+ edbatmenu_UNSELECTABLE 'Does nothing
+END ENUM
 
 SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
  IF edit_node = 0 THEN debug "edit_battle_menu_item null NodePtr": EXIT SUB
@@ -1132,11 +1134,11 @@ SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
   
   IF st.need_update THEN
    ClearMenuData menu
-   append_menu_item menu, "Previous Menu...", 0
-   append_menu_item menu, "Weapon's Attack", 1
-   append_menu_item menu, "Specific Attack", 2
-   append_menu_item menu, "Spell List", 3
-   append_menu_item menu, "Items Menu", 4
+   append_menu_item menu, "Previous Menu...", , 0
+   append_menu_item menu, "Weapon's Attack", , 1
+   append_menu_item menu, "Specific Attack", , 2
+   append_menu_item menu, "Spell List", , 3
+   append_menu_item menu, "Items Menu", , 4
    init_menu_state st, menu
    st.need_update = NO
   END IF
@@ -1145,7 +1147,7 @@ SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
   
   IF enter_space_click(st) THEN
    WITH *menu.items[st.pt]
-    SELECT CASE .t
+    SELECT CASE .sub_t
      CASE 1: change_battle_menu_kind menu_node, "weapon"
      CASE 2: change_battle_menu_kind menu_node, "attack", YES
      CASE 3: change_battle_menu_kind menu_node, "spells", YES
