@@ -159,9 +159,9 @@ int decompress_gzip(const unsigned char *in, size_t insize, unsigned char **outp
 
   const unsigned char* crcp = &in[insize - 8];
 
-  ssize_t strmsize = crcp - strm;
-  if (strmsize < 0)
-    return GZ_CORRUPT;
+  if (crcp < strm)
+    return GZ_CORRUPT;  // Footer missing
+  size_t strmsize = crcp - strm;
 
   int ret;
   ret = lodepng_inflate(outp, outsizep, strm, strmsize, &lodepng_default_decompress_settings);
