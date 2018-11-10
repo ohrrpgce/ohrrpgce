@@ -3434,7 +3434,7 @@ FUNCTION prompt_for_scancode () as KBScancode
  DIM pressed as KBScancode
  DIM presstime as double ' the timestamp when the key was first pressed
  DIM heldfor as double ' the number of seconds the key has been held
- DIM threshold as double = 1.
+ DIM threshold as double = 0.5  ' seconds to hold to confirm a key
  DIM keylist as string
  DIM keyname as string
  DIM count as integer
@@ -3495,7 +3495,8 @@ FUNCTION prompt_for_scancode () as KBScancode
  DO
   setwait 55
   setkeys
-  
+  IF getquitflag THEN result = -1: EXIT DO  'Unlike other menus, ESC doesn't quit, so have to check this manually
+
   IF confirmed THEN
    'A key has been confirmed, wait for it to be released
    ChangeTextSlice infosl, nowrelease
@@ -3507,7 +3508,7 @@ FUNCTION prompt_for_scancode () as KBScancode
   ELSE
    keylist = ""
    count = 0
-   FOR i as integer = 1 to 127
+   FOR i as KBScancode = 0 to scLAST
     IF keyval(i) > 0 THEN
      keyname = scancode_to_name(i)
      IF keyname <> "" THEN
@@ -3528,7 +3529,7 @@ FUNCTION prompt_for_scancode () as KBScancode
    ChangeTextSlice infosl, instructions
    IF count = 0 THEN
     'No buttons are being held down.
-    IF pressed = ccCancel THEN EXIT DO
+    IF pressed = scESC THEN EXIT DO
     IF pressed = scF1 THEN show_help "prompt_for_scancode"
     pressed = 0
     bartog = NO
