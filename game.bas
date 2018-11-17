@@ -245,6 +245,8 @@ start_new_debug "Starting OHRRPGCE Game"
 debuginfo DATE & " " & TIME
 debuginfo long_version & build_info
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
+debuginfo "orig_dir: " & orig_dir
+debuginfo "curdir: " & CURDIR
 ' Load these three strings with info collectable before backend initialisation
 read_backend_info()
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo

@@ -2799,15 +2799,29 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
     executable = ENVIRON("HOME") & "/Applications/" & mac_game_bundle
     IF isfile(executable) = NO THEN
      executable = "/Applications/" & mac_game_bundle
+     'If Gatekeeper Path Randomization (aka App Translocation) happens, then EXEPATH (and app_dir)
+     'is a random path inside a read-only mount.
+     'So also check CURDIR, which is the location of the .rpg
+     IF isfile(executable) = NO THEN
+      executable = CURDIR & SLASH & mac_game_bundle
+     END IF
     END IF
    END IF
   END IF
  END IF
 #else
- executable = exepath & SLASH & GAMEEXE
+ executable = EXEPATH & SLASH & GAMEEXE
 #endif
  IF isfile(executable) = NO THEN
-  notification "Couldn't find " & gameexename & !"\nIt should be in the same directory as " & CUSTOMEXE
+#ifdef __FB_DARWIN__
+  IF INSTR(EXEPATH, "AppTranslocation") THEN
+   'Gatekeeper Path Randomization is active. Also possible to detect with an API, or by
+   'checking whether the filesystem is read-only using statfs().
+   visible_debug !"It appears that macOS's Gatekeeper has quarantined OHRRPGCE-Custom, so it can't access OHRRPGCE-Game. To disable the quarantine, move OHRRPGCE-Custom to a different folder using Finder (you can move it back afterwards), and make sure you're not running it from inside your Downloads folder or from inside the DMG you downloaded.\nAlternatively, place OHRRPGCE-Game next to the .rpg file or in your user or global Applications folder."
+   RETURN NO
+  END IF
+#endif
+  visible_debug "Couldn't find " & gameexename & !"\nIt should be in the same directory as " & CUSTOMEXE
   RETURN NO
  END IF
  DIM arguments as string

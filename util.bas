@@ -2744,9 +2744,8 @@ FUNCTION fileisreadable(filename as string) as bool
   ' Check this first, to exclude directories on Linux (you can open a directory read-only)
   if get_file_type(filename) = fileTypeFile then
     err_code = openfile(filename, for_binary + access_read, fh)
-    if err_code = fberrNOTFOUND then
-      'Doesn't exist (shouldn't happen)
-    elseif err_code <> fberrOK then
+    if err_code <> fberrOK then
+      'if err_code fberrNOTFOUND, it doesn't exist. Shouldn't happen unless there's a race condition
       debuginfo "fileisreadable: Error " & err_code & " reading " & filename
     else
       close #fh

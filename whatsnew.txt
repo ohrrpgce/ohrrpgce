@@ -190,6 +190,7 @@ September 29 2018 [Fufluns]
       since then), resulting in very low XP needed to level [Ralph]
     * Hiding the HP stat would display garbage in Status menu instead. Also,
       it now hides the HP display/bar in battles too. [Ralph]
+    * Test Game often didn't work when run on Mac OS 10.12+ (Sierra) [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

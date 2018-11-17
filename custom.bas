@@ -156,6 +156,7 @@ IF diriswriteable(app_dir) THEN
  CHDIR app_dir
 ELSE
  'If CUSTOM is installed read-only, use your Documents dir as the default
+ '(On Mac, this will also happen due to Gatekeeper Path Randomization (aka App Translocation))
  CHDIR get_documents_dir()
 END IF
 
@@ -173,6 +174,8 @@ start_new_debug "Starting OHRRPGCE Custom"
 debuginfo DATE & " " & TIME
 debuginfo long_version & build_info
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
+debuginfo "orig_dir: " & orig_dir
+debuginfo "curdir: " & CURDIR
 ' Load these three strings with info collectable before backend initialisation
 read_backend_info()
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
