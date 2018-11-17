@@ -296,7 +296,7 @@ type InputState
 
 	carray(ccLOWEST to ccHIGHEST) as KeyBits
 
-	declare sub update_carray()
+	declare sub update_carray (whichcarray() as KeyBits, repeat_wait as integer = 0, repeat_rate as integer = 0)
 end type
 
 dim shared real_input as InputState         'Always contains real state even if replaying
@@ -1597,20 +1597,22 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 	end if
 	if a < 0 then
 		'Handle scAny and cc* constants
-		'Note: repeat_wait, repeat_rate and real_keys are ignored!
-		if repeat_wait <> 0 orelse repeat_rate <> 0 then
-			'This could be due to a script (although not implemented yet)
-			debug "keyval: cc* constants/usekey, etc, don't support custom repeat rate"
-		end if
 		if a = scAny then
 			'This doesn't check all joystick buttons, only ones mapped to carray.
+			'Note: repeat_wait and repeat_rate are ignored!
 			dim ret as KeyBits
 			for key as KBScancode = scKEYVAL_FIRST to scLAST
 				if key <> scAny then
-					ret or= keyval(key)
+					ret or= keyval_ex(key, , , real_keys)
 				end if
 			next
 			return ret
+		elseif repeat_wait <> 0 orelse repeat_rate <> 0 then
+			'Inefficent kludge: carray() was computed with the default key repeat
+			'rate, so simplest solution is to recompute whole array with desired rate.
+			dim temp_carray(ccLOWEST to ccHIGHEST) as KeyBits
+			inputst->update_carray temp_carray(), repeat_wait, repeat_rate
+			return temp_carray(a)
 		else
 			return inputst->carray(a)
 		end if
@@ -1708,7 +1710,7 @@ sub clearkeys()
 	for joynum as integer = 0 to ubound(inputst->joys)
 		inputst->joys(joynum).clearkeys()
 	next
-	inputst->update_carray()
+	inputst->update_carray(inputst->carray())
 	mouse_state.clearclick(mouseLeft)
 	mouse_state.clearclick(mouseRight)
 	mouse_state.clearclick(mouseMiddle)
@@ -2313,16 +2315,17 @@ sub KeyArray.update_keydown_times (inputst as InputState)
 	update_arrow_keydown_time
 end sub
 
-sub InputState.update_carray ()
+'Normally whichcarray() is equal to this.carray(), except for kludge used inside keyval_ex().
+sub InputState.update_carray (whichcarray() as KeyBits, repeat_wait as integer = 0, repeat_rate as integer = 0)
 	dim real_keys as bool = (@this = @real_input)
 
-	flusharray this.carray()
+	flusharray whichcarray()
 
 	'kb.update_carray
 	for idx as integer = 0 to ubound(kb.controls)
 		with kb.controls(idx)
 			if .ckey then
-				this.carray(.ckey) or= keyval_ex(.scancode, , , real_keys)
+				whichcarray(.ckey) or= keyval_ex(.scancode, repeat_wait, repeat_rate, real_keys)
 			end if
 		end with
 	next
@@ -2333,7 +2336,7 @@ sub InputState.update_carray ()
 			for idx as integer = 0 to ubound(.controls)
 				with .controls(idx)
 					if .ckey then
-						this.carray(.ckey) or= joykeyval(.scancode, joynum, , , real_keys)
+						whichcarray(.ckey) or= joykeyval(.scancode, joynum, repeat_wait, repeat_rate, real_keys)
 					end if
 				end with
 			next
@@ -2387,7 +2390,7 @@ sub setkeys (enable_inputtext as bool = NO)
 	real_input.kb.update_keybits
 	real_input.kb.update_keydown_times real_input
 	real_input.kb.inputtext = read_inputtext()
-	real_input.update_carray
+	real_input.update_carray real_input.carray()
 
 	if replay.active then
 		' Updates replay_input.kb.keys(), .kb.inputtext, .elapsed_ms
@@ -2402,7 +2405,7 @@ sub setkeys (enable_inputtext as bool = NO)
 			replay_input.joys(joynum).update_keydown_times(replay_input)
 		next
 
-                replay_input.update_carray
+                replay_input.update_carray replay_input.carray()
 	end if
 
 	'Taking a screenshot with gfx_directx is very slow, so avoid timing that
