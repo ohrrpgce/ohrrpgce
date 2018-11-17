@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ub 2018-11-17 Fix some error messages
 --3Ua 2018-08-18 Script can also have attributes
 --3U  2018-08-12 @obsolete attribute
 --3Tl 2018-05-14 Delete (possibly-bad) .hs output file on error
@@ -179,7 +180,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Ua"
+constant COMPILER_SUB_VERSION="Ub"
 constant COPYRIGHT_DATE="2018"
 
 --Known single-character commandline options
@@ -307,7 +308,8 @@ constant KIND_LONGNAMES={"number"
                         ,"keyword"
                         ,"constant"
                         ,"untranslated operator"
-                        ,"declaration"
+                        ,"attribute declaration"
+                        ,"top-level declaration"
                         ,"unimplemented keyword"
                         ,"function attribute"
                         }
@@ -2622,7 +2624,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx, seq
   if not find_in_column(full_name,script_list,PAIR_NAME) then
     --Doesn't appear in a definescript block; if it did the name is already reserved.
     --Note that we won't add it to script_list yet; that happens later in check_script_declarations
-    check_undefined_string(name,"user script name")
+    check_undefined_string(name,"user script name to follow " &COLYEL &trigger[CMD_TEXT] &COLRED)
   end if
 
   --Parse arguments
@@ -2700,7 +2702,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx, seq
           {KIND_LONGNAMES[temp], this[CMD_TEXT]}
         )
         if temp=KIND_TOPLEVEL then
-          err_string&=sprintf_utf(" Perhaps "&COLYEL&"%s"&COLRED&" has an extra "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED,{name[CMD_TEXT]})
+          err_string&=sprintf_utf(" Perhaps "&COLYEL&"%s"&COLRED&" has an extra "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED&" or is missing a "&COLYEL&")"&COLRED&" or "&COLYEL&"end"&COLRED&".",{name[CMD_TEXT]})
         end if
         src_error(err_string,this[CMD_POS])
       end if
