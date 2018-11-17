@@ -973,7 +973,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
      DIM hidehp as bool = should_hide_hero_stat(gam.hero(i).id, statHP)
      IF prefbit(7) = NO ANDALSO hidehp = NO THEN  '"Hide health-meter in battle" off
       col = uiLook(uiHealthBar)
-      DIM target_lifemeter_len as integer = 87 * bound(.stat.cur.hp / large(.stat.max.hp, 1), 0, 1)
+      DIM target_lifemeter_len as integer = 87 * bound(.stat.cur.hp / large(.stat.max.hp, 1), 0., 1.)
       IF .lifemeter < target_lifemeter_len THEN .lifemeter += 1
       IF .lifemeter > target_lifemeter_len THEN .lifemeter -= 1
       IF .lifemeter = 87 ANDALSO .stat.cur.hp > .stat.max.hp THEN
