@@ -489,19 +489,20 @@ FUNCTION buystuff_can_show(byval slot as NodePtr, buyst as ShopBuyState) as bool
 
  'There's no real need to provide a default for stockidx, it should always exist
  DIM stockidx as integer = thing."stockidx".default(GetInteger(slot))
+ DIM byref stock as integer = gam.stock(buyst.shop_id, stockidx)
  'Load stock data if uninitialised.
- IF gam.stock(buyst.shop_id, stockidx) = 0 THEN
+ IF stock = 0 THEN
   IF thing."stock".exists THEN
-   gam.stock(buyst.shop_id, stockidx) = thing."stock" + 1
+   stock = thing."stock" + 1
+  ELSEIF thing."infinite".exists THEN
+   stock = -1
   END IF
  END IF
- IF gam.stock(buyst.shop_id, stockidx) = 1 THEN
-  'This item is out of stock
-  RETURN NO
- END IF
+
+ IF stock = 1 THEN RETURN NO  'This item is out of stock
 
  IF buy."require_tag".exists THEN
-  IF NOT istag(tag(), buy."require_tag".integer, YES) THEN
+  IF NOT istag(tag(), buy."require_tag", YES) THEN
    RETURN NO
   END IF
  END IF
@@ -1210,7 +1211,7 @@ NEXT i
 
 IF loading THEN
  'check for no slots
- DIM nofull as integer = YES
+ DIM nofull as bool = YES
  FOR i as integer = 0 TO last_slot
   IF pv(i).valid THEN nofull = NO
  NEXT i
@@ -1654,8 +1655,8 @@ DO
      'INCREMENT STOCK-------
      IF b(i * recordsize + 26) > 0 THEN
       DIM stockidx as integer = b(i * recordsize + 37) - 1
-      IF b(i * recordsize + 26) = 1 THEN gam.stock(id, stockidx) = -1
-      IF b(i * recordsize + 26) = 2 AND gam.stock(id, stockidx) > 0 THEN gam.stock(id, stockidx) += 1
+      IF b(i * recordsize + 26) = 1 THEN gam.stock(id, stockidx) = -1  'Acquire infinite stock
+      IF b(i * recordsize + 26) = 2 AND gam.stock(id, stockidx) > 0 THEN gam.stock(id, stockidx) += 1  'Increment stock
      END IF
     END IF
    NEXT i
@@ -1692,7 +1693,7 @@ DO
   END IF
   printstr item_name, 20 + 96 * (i MOD 3), 12 + 8 * ((i - top) \ 3), page
  NEXT i
- centerfuz 160, 192, 312, 14, 4, page
+ centerbox 160, 192, 312, 14, 4, page
  edgeprint info, pCenteredLeft, 187, uilook(uiText), page
  edgeprint gold & " " & readglobalstring(32, "$"), 310 - LEN(gold & " " & readglobalstring(32, "$")) * 8, 1, uilook(uiGold), page
  IF alert THEN
