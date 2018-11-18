@@ -155,7 +155,6 @@ SUB spriteedit_pal16_browser (ss as SpriteEditState, sprite as Frame ptr)
  '--save current palette
  palette16_save ss.palette, ss.pal_num
  ss.pal_num = pal16browse(ss.pal_num, sprite)
- setkeys
  palette16_unload @ss.palette
  ss.palette = palette16_load(ss.pal_num)
 END SUB

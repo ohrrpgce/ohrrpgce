@@ -1390,7 +1390,7 @@ FUNCTION generic_add_new (what as string, maxindex as integer, getname as FnReco
 END FUNCTION
 
 
-FUNCTION needaddset (byref pt as integer, byref check as integer, what as string) as integer
+FUNCTION needaddset (byref pt as integer, byref check as integer, what as string) as bool
  IF pt <= check THEN RETURN NO
  IF yesno("Add new " & what & "?") THEN
   check += 1
@@ -1405,7 +1405,7 @@ END FUNCTION
 'add a new set. DOES NOT INCREMENT max. Check whether pt > max to see whether this
 'needs to be handled.
 'maxmax is max value of max, of course
-FUNCTION intgrabber_with_addset(byref pt as integer, byval min as integer, byval max as integer, byval maxmax as integer=32767, what as string, byval less as integer=ccLeft, byval more as integer=ccRight) as integer
+FUNCTION intgrabber_with_addset(byref pt as integer, byval min as integer, byval max as integer, byval maxmax as integer=32767, what as string, byval less as integer=ccLeft, byval more as integer=ccRight) as bool
  IF keyval(more) > 1 AND pt = max AND max < maxmax THEN
   IF yesno("Add new " & what & "?") THEN
    pt += 1
@@ -1488,8 +1488,7 @@ FUNCTION pal16browse (curpal as integer, sprite as Frame ptr, show_default as bo
  DIM buf(7) as integer
  REDIM pal16(100) as Palette16 ptr
 
- DIM as integer i, o, j
- DIM c as integer
+ DIM as integer i, j
 
  DIM state as MenuState
  state.need_update = YES
@@ -1524,6 +1523,8 @@ FUNCTION pal16browse (curpal as integer, sprite as Frame ptr, show_default as bo
 
  DIM last_size as integer = state.size
 
+ STATIC pal_clipboard as Palette16 ptr
+
  DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
  showmousecursor
  setkeys
@@ -1542,8 +1543,28 @@ FUNCTION pal16browse (curpal as integer, sprite as Frame ptr, show_default as bo
 
   IF usemenu(state) THEN state.need_update = YES
 
+  'Copy/paste palette
+  'Allow Alt+C/V as well as Ctrl+C/V because Alt+C/V copy-pastes the palette
+  'in the sprite editor
+  IF keyval(scAlt) > 0 ORELSE keyval(scCtrl) > 0 THEN
+   DIM palidx as integer = state.pt - state.top   'Index in pal16
+   IF state.pt >= 0 ANDALSO palidx <= UBOUND(pal16) ANDALSO pal16(palidx) THEN
+    IF keyval(scC) > 1 THEN  'Ctrl-C copy
+     palette16_unload @pal_clipboard
+     pal_clipboard = palette16_duplicate(pal16(palidx))
+    END IF
+    IF keyval(scV) > 1 THEN  'Ctrl-V paste
+     IF pal_clipboard THEN
+      palette16_unload @pal16(palidx)
+      pal16(palidx) = palette16_duplicate(pal_clipboard)
+      palette16_save pal16(palidx), state.pt
+     END IF
+    END IF
+   END IF
+  END IF
+
   DIM temppt as integer = large(state.pt, 0)
-  IF intgrabber(temppt, 0, state.last, , , YES) THEN
+  IF intgrabber(temppt, 0, state.last, , , , NO) THEN  'use_clipboard=NO
    state.pt = temppt
    correct_menu_state state
    state.need_update = YES
@@ -1576,39 +1597,40 @@ FUNCTION pal16browse (curpal as integer, sprite as Frame ptr, show_default as bo
     CASE -1
      printstr "Default", 4, 5 + sloty, dpage
     CASE IS >= 0
-     o = LEN(" " & (cur_slot)) * 8
+     DIM txtwidth as integer = 8 + large(16, textwidth(STR(cur_slot)))
      DIM border_col as integer
      IF cur_slot = state.hover THEN border_col = uilook(uiMouseHoverItem)
      IF cur_slot = state.pt THEN border_col = uilook(uiMenuitem)
-     edgebox o - 1, 1 + sloty, 114, 18, uilook(uiBackground), border_col, dpage
+     edgebox txtwidth - 1, 1 + sloty, 114, 18, uilook(uiBackground), border_col, dpage
      FOR j = 0 TO 15
       IF pal16(i) THEN
-       c = pal16(i)->col(j)
-       rectangle o + j * 7, 2 + sloty, 5, 16, c, dpage
+       DIM c as integer = pal16(i)->col(j)
+       rectangle txtwidth + j * 7, 2 + sloty, 5, 16, c, dpage
       END IF
      NEXT j
      IF cur_slot <> state.pt THEN
       IF pal16(i) THEN
-       pal16browse_draw_spriteset sprite, pal16(i), o + 150, sloty, dpage
+       pal16browse_draw_spriteset sprite, pal16(i), txtwidth + 150, sloty, dpage
       END IF
      END IF
-     printstr "" & cur_slot, 4, 5 + sloty, dpage
+     printstr STR(cur_slot), 4, 5 + sloty, dpage
    END SELECT
   NEXT i
-  IF state.pt >= 0 THEN '--write current pic on top
+  IF state.pt >= 0 THEN '--draw the selected spriteset last, on top of all others
    i = state.pt - state.top
    DIM sloty as integer = i * 20
-   o = LEN(" " & state.pt) * 8
+   DIM txtwidth as integer = 8 + large(16, textwidth(STR(state.pt)))
    IF pal16(i) THEN
-    pal16browse_draw_spriteset sprite, pal16(i), o + 125, sloty, dpage
+    pal16browse_draw_spriteset sprite, pal16(i), txtwidth + 125, sloty, dpage
    END IF
   END IF
- 
+
   SWAP vpage, dpage
   setvispage vpage
   dowait
  LOOP
  setcursorvisibility(prev_mouse_vis)
+ setkeys
 
  FOR i = 0 TO 100
   palette16_unload @pal16(i)
