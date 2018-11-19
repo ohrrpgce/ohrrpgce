@@ -663,7 +663,7 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
      ELSE
       spellnames(i) = ""
      END IF
-     spellnames(i) = rpad(spellnames(i), " ",  10)
+     spellnames(i) = rpad(spellnames(i), " ", 10)
     END WITH
    NEXT i
    info = ""
@@ -1214,7 +1214,8 @@ SUB edit_tag_range_check (byref check as TagRangeCheck)
  append_menu_item menu, "At or above"
  append_menu_item menu, "At or below"
  menu.textalign = alignLeft
- 
+ menu.min_chars = 35
+
  DIM st as MenuState
  init_menu_state st, menu
  st.pt = 1
@@ -1250,12 +1251,9 @@ SUB edit_tag_range_check (byref check as TagRangeCheck)
    CASE 3:
     IF intgrabber(check.max, 0, 99) THEN st.need_update = YES
   END SELECT
-  
+
   IF st.need_update THEN
-   DIM w as integer = vpages(vpage)->w / 8 - 2
-   DIM cap as string = tag_condition_caption(check.tag, "Set tag", "NONE", "Not usable")
-   cap = LEFT(rpad(cap, " ", w), w)
-   menu.items[1]->caption = cap
+   menu.items[1]->caption = tag_condition_caption(check.tag, "Set tag", "NONE", "Not usable")
    menu.items[2]->caption = "At or above " & kind_name & " " & check.min
    menu.items[3]->caption = "At or below " & kind_name & " " & check.max
    st.need_update = NO

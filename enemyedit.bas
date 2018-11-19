@@ -493,7 +493,7 @@ menutype(EnMenuElementalsAct) = 1
 
 CONST EnMenuElemDmg = 200' to 263
 FOR i as integer = 0 TO gen(genNumElements) - 1
- menu(EnMenuElemDmg + i) = "Damage from " + rpad(elementnames(i), " ", 15) + ":"
+ menu(EnMenuElemDmg + i) = "Damage from " + rpad(elementnames(i), " ", 15, clipRight) + ":"
  menutype(EnMenuElemDmg + i) = 5000 + EnCapElemResist + i  'percent_grabber
  menuoff(EnMenuElemDmg + i) = 239 + i*2 
 NEXT

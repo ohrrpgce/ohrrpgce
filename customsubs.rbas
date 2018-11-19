@@ -3443,7 +3443,7 @@ SUB platform_options_append_gamepad_button_menu_items (byval gamepad as NodePtr,
   DIM b as string = buttons(bnum)
   DIM bnode as NodePtr = GetOrCreateChild(gamepad, b)
   DIM cap as string
-  cap = "Button " & rpad(b, " ", large(LEN(b), 2)) & ": "
+  cap = "Button " & rpad(b, " ", 2) & ": "
   DIM padnum as integer = 12 - large(0, LEN(b) - 2)
   DIM sc as integer = GetInteger(bnode)
   IF sc THEN

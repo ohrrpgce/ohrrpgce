@@ -2745,7 +2745,7 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
      bat.spell.slot(i).enable = YES
     END IF
    END IF
-   bat.spell.slot(i).name = rpad(bat.spell.slot(i).name, " ", 10) '-- pad the spell menu caption
+   bat.spell.slot(i).name = rpad(bat.spell.slot(i).name, " ", 10)
   NEXT i
  ELSEIF st(bat.hero_turn).list_type(bat.listslot) = 2 THEN '-- this is a random spell list
   '-- loop through the spell list storing attack ID numbers

@@ -2796,7 +2796,7 @@ SUB SaveTextBox (byref box as TextBox, byval record as integer)
  WITH box
   '--Transcribe lines of text into the buffer
   FOR i = 0 TO 7
-   str2array rpad(.text(i), CHR(0), 38), boxbuf(), i * 38
+   str2array rpad(.text(i), CHR(0), 38, clipRight), boxbuf(), i * 38
   NEXT i
   '--Transcribe conditional data
   DIM condbuf(20) as integer
@@ -2842,7 +2842,7 @@ SUB SaveTextBox (byref box as TextBox, byval record as integer)
   setbit boxbuf(), 174, 7, NO 'Unused
   '--Transcribe choice text
   FOR i = 0 TO 1
-   str2array rpad(.choice(i), CHR(0), 15), boxbuf(), 349 + (i * 18)
+   str2array rpad(.choice(i), CHR(0), 15, clipRight), boxbuf(), 349 + (i * 18)
    'Also save choice tags
    boxbuf(182 + (i * 9)) = .choice_tag(i)
   NEXT i

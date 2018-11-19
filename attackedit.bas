@@ -1072,7 +1072,7 @@ menu(AtkElementalFailHeader) = "Fail when target's damage..."
 menutype(AtkElementalFailHeader) = 18  'skip
 
 FOR i = 0 TO small(maxElements, gen(genNumElements)) - 1
- menu(AtkElementalFails + i) = " from " + rpad(elementnames(i), " ", 15)
+ menu(AtkElementalFails + i) = " from " + rpad(elementnames(i), " ", 15, clipRight)
  menutype(AtkElementalFails + i) = 4000 + AtkCapFailConds + i * 2  'percent_cond_grabber
  menuoff(AtkElementalFails + i) = AtkDatElementalFail + i * 3
 NEXT

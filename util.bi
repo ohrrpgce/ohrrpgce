@@ -635,9 +635,9 @@ declare function blob_to_string (byval str_ptr as zstring ptr, byval str_len as 
 declare function utf8_to_latin1(utf8string as ustring) as string
 declare function latin1_to_utf8(s as string) as ustring
 
-declare function rpad (s as string, pad_char as string = " ", size as integer, clip as clipDir = clipRight) as string
-declare function lpad (s as string, pad_char as string = " ", size as integer, clip as clipDir = clipLeft) as string
-declare function rlpad (s as string, pad_char as string = " ", pad_right as integer, pad_left as integer, clip as clipDir = clipNone) as string
+declare function rpad (s as string, pad_char as zstring ptr = @" ", size as integer, clip as clipDir = clipNone) as string
+declare function lpad (s as string, pad_char as zstring ptr = @" ", size as integer, clip as clipDir = clipNone) as string
+declare function rlpad (s as string, pad_char as zstring ptr = @" ", pad_right as integer, pad_left as integer, clip as clipDir = clipNone) as string
 declare function instr_nth overload (byval start as integer, s as string, substring as string, byval nth as integer) as integer
 declare function instr_nth overload (s as string, substring as string, byval nth as integer) as integer
 declare function length_matching (s1 as string, s2 as string) as integer

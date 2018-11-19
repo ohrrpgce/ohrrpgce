@@ -981,7 +981,8 @@ IF inventory(i).used = 0 THEN
  inventory(i).text = SPACE(11)
 ELSE
  inventory(i).text = readitemname(inventory(i).id)
- inventory(i).text = rpad(inventory(i).text, " ", 8) + CHR(1) + RIGHT(" " & inventory(i).num, 2)
+ 'CHR(1) is 'X'
+ inventory(i).text = rpad(inventory(i).text, " ", 8) + CHR(1) + lpad(STR(inventory(i).num), , 2)
 END IF
 END SUB
 
@@ -2055,6 +2056,7 @@ SUB ExpandTextItemScreen (code as string, result as string, byval arg0 as ANY pt
      DIM swapslot as integer = swapcur->Extra(0)
      IF swapslot >= 0 ANDALSO inventory(swapslot).used THEN
       DIM id as integer = inventory(swapslot).id
+      'CHR(1) is 'X'
       DIM info as string = readitemname(id) & CHR(1) & lpad(STR(inventory(swapslot).num), " ", 2)
       IF item_can_be_discarded(id) THEN
        result = readglobalstring(41, "Discard", 10) & " " & info
@@ -3420,7 +3422,7 @@ FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, b
    IF consumeitem(slot) THEN
     IF is_attack_item ANDALSO inventory(slot).used = NO THEN
      '--used the last attack item (potion) in a consumable stack
-     menu_attack_targ_picker attack_id, -1, -1, rpad(attack_name, " ", 8) & "x 0", , NO
+     menu_attack_targ_picker attack_id, -1, -1, rpad(attack_name, " ", 8) & CHR(1) & " 0", , NO
      menusound gen(genCancelSFX)
     END IF
     consumed = YES

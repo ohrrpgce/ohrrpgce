@@ -373,7 +373,7 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
 
  FOR i as integer = 0 TO gen(genNumElements) - 1
   float_reprs(i) = format_percent(elementals(i))
-  elementnames(i) = rpad(elementnames(i), " ", 15)
+  elementnames(i) = rpad(elementnames(i), " ", 15, clipRight)
  NEXT
 
  DO

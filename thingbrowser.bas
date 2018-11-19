@@ -494,7 +494,7 @@ End Function
 Function ItemBrowser.thing_text_for_id(byval id as integer) as string
  dim digits as integer = len(str(highest_id()))
  if id = none_id then
-  return lpad("", " ", digits) & " " & rpad("NO ITEM", " ", 8)
+  return SPACE(digits) & " " & rpad("NO ITEM", , 8)
  end if
  return lpad(str(id), " ", digits) & " " & rpad(readitemname(id), " ", 8)
 End Function
@@ -525,7 +525,7 @@ End Function
 Function ShopBrowser.thing_text_for_id(byval id as integer) as string
  dim digits as integer = len(str(highest_id()))
  if id = none_id then
-  return lpad("", " ", digits) & " " & rpad("NO SHOP", " ", 16)
+  return SPACE(digits) & " " & rpad("NO SHOP", , 16)
  end if
  return lpad(str(id), " ", digits) & " " & rpad(readshopname(id), " ", 16)
 End Function
@@ -557,15 +557,20 @@ End Function
 Function ShopStuffBrowser.thing_text_for_id(byval id as integer) as string
  dim digits as integer = len(str(highest_id()))
  if id = none_id then
-  return lpad("", " ", digits) & " " & rpad("NOTHING", " ", 16) & STRING(11, " ")
+  return SPACE(digits) & " " & rpad("NOTHING", " ", 16)  'I think this is never used
  end if
  dim stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
  loadrecord stufbuf(), game & ".stf", getbinsize(binSTF) \ 2, shop_id * 50 + id
  dim kind as string = iif(stufbuf(17) = 1, "(HERO)", "(ITEM)")
  dim thing_name as string = readbadbinstring(stufbuf(), 0, 16, 0)
- dim stock_info as string = rpad(STR(stufbuf(19)), " ", 3)
- IF stufbuf(19) = 0 THEN stock_info = "-  "
- IF stufbuf(19) = -1 THEN stock_info = "*  "
+ dim stock_info as string
+ if stufbuf(19) = -1 then  'Infinite stock
+  stock_info = "*  "
+ elseif stufbuf(19) = 0 then  'No stock
+  stock_info = "-  "
+ else
+  stock_info = rpad(STR(stufbuf(19)), " ", 3)
+ end if
  return lpad(str(id), " ", digits) & " " & rpad(thing_name, " ", 16) & " " & stock_info & " " & kind
 End Function
 
