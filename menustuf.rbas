@@ -471,6 +471,69 @@ SUB buystuff_init_info_menu(buyst as ShopBuyState)
  END IF
 END SUB
 
+'Initialises or resets an element of gam.stock() as needed, and returns its value.
+'Pass in data from the STF record:
+'stockidx:      This is the non-offset index in gam.stock(): subtract 1 from STF 'stockidx' value
+'thingtype:     0 for items, 1 for heroes
+'initial_stock: 'In Stock' field, which differs from gam.stock(): -1 for infinite, >= 0 for finite.
+FUNCTION initialize_stock OVERLOAD (shop_id as integer, stockidx as integer, thingtype as integer, thingid as integer, initial_stock as integer) as integer
+
+ DIM byref stock as integer = gam.stock(shop_id, stockidx)
+ DIM byref origstock as OriginalStock = gam.original_stock(shop_id, stockidx)
+
+ 'If this thing record has been edited since 'stock' was initialised, reset it
+ '(When loading old saved games, gam.stock() will be initialised but gam.original_stock() won't be)
+ WITH origstock
+  IF .thingtype >= 0 THEN  'Is initialised
+   IF .thingtype <> thingtype ORELSE .thingid <> thingid ORELSE _
+      (.stock < 0) <> (initial_stock < 0) THEN
+    'The 'thing' changed, or the In Stock level was changed to/from Infinite
+    stock = 0  'Reset gam.stock()
+    .thingtype = -1  'Reset gam.original_stock()
+   ELSEIF .stock <> initial_stock THEN
+    'If the initial stock was changed to some different finite value, adjust by the difference
+    DIM diff as integer = initial_stock - .stock
+    stock = large(1, stock + diff)  'Minimum of 0 in stock
+    .thingtype = -1  'Reset gam.original_stock()
+   END IF
+  END IF
+
+  IF .thingtype < 0 THEN  'Needs (re-)initialising
+   .thingtype = thingtype
+   .thingid = thingid
+   .stock = initial_stock
+  END IF
+ END WITH
+
+ 'Load stock data if uninitialised or reset
+ IF stock = 0 THEN stock = IIF(initial_stock < 0, initial_stock, initial_stock + 1)
+
+ RETURN stock
+END FUNCTION
+
+'Initialises or resets an element of gam.stock() as needed, and returns its value.
+FUNCTION initialize_stock(shop_id as integer, slot as NodePtr) as integer
+ DIM thing as NodePtr
+ IF slot."hero".exists THEN
+  thing = slot."hero".ptr
+ ELSE
+  thing = slot."item".ptr
+ END IF
+
+ 'There's no real need to provide a default for stockidx, it should always exist
+ DIM stockidx as integer = thing."stockidx".default(GetInteger(slot))
+ DIM thingtype as integer = IIF(slot."item".exists, 0, 1)
+ DIM thingid as integer = GetInteger(thing)
+ DIM initial_stock as integer
+ IF thing."stock".exists THEN
+  initial_stock = thing."stock"
+ ELSEIF thing."infinite".exists THEN
+  initial_stock = -1
+ END IF
+
+ RETURN initialize_stock(shop_id, stockidx, thingtype, thingid, initial_stock)
+END FUNCTION
+
 FUNCTION buystuff_can_show(byval slot as NodePtr, buyst as ShopBuyState) as bool
  'Return YES if this thing should appear in the menu
 
@@ -487,17 +550,8 @@ FUNCTION buystuff_can_show(byval slot as NodePtr, buyst as ShopBuyState) as bool
   RETURN NO
  END IF
 
- 'There's no real need to provide a default for stockidx, it should always exist
- DIM stockidx as integer = thing."stockidx".default(GetInteger(slot))
- DIM byref stock as integer = gam.stock(buyst.shop_id, stockidx)
- 'Load stock data if uninitialised.
- IF stock = 0 THEN
-  IF thing."stock".exists THEN
-   stock = thing."stock" + 1
-  ELSEIF thing."infinite".exists THEN
-   stock = -1
-  END IF
- END IF
+ 'Initialise and retrieve gam.stock() value
+ DIM stock as integer = initialize_stock(buyst.shop_id, slot)
 
  IF stock = 1 THEN RETURN NO  'This item is out of stock
 
@@ -1506,13 +1560,13 @@ DIM sold as string = readglobalstring(84, "Sold", 10)
 loadshopstuf b(), id
 
 ' Initialise state of the shop stock (if we haven't visited the shop before, or if
-' new items have been added to it since last time)
+' new items have been added to it since last time, or if the stock needs resetting
 FOR slot as integer = 0 TO storebuf(16)
  DIM stockidx as integer = b(slot * recordsize + 37) - 1
- IF gam.stock(id, stockidx) = 0 THEN
-  DIM stockamount as integer = b(stockidx * recordsize + 19)
-  gam.stock(id, stockidx) = IIF(stockamount < 0, stockamount, stockamount + 1)
- END IF
+ DIM thingtype as integer = b(slot * recordsize + 17)
+ DIM thingid as integer = b(slot * recordsize + 18)
+ DIM initial_stock as integer = b(slot * recordsize + 19)
+ initialize_stock id, stockidx, thingtype, thingid, initial_stock
 NEXT slot
 
 DIM ic as integer = 0

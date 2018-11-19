@@ -13,6 +13,7 @@ Type can be either Item or Hero. Items are only available if the shop's "Buy" me
 Below this is "Hero ID" or "Item ID" where you actually select the hero/item for hire/sale.
 
 Stock can be "None", "Infinite" or a limited number. If your items fail to show up when you test your shops, make sure that they are not set to "None".
+If you change the stock for an item then stock in existing saved games (and Test Game) will be adjusted: e.g. if you increase the stock from 2 to 4 and there was 1 item left in stock in a saved game, it will increase to 3.
 
 Buy Require Tag and Sell Require Tag allow you to restrict access to certain items in this shop.
 

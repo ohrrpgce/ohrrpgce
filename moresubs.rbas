@@ -1294,11 +1294,6 @@ FOR i as integer = 0 TO 40
 NEXT i
 CleanInventory(inventory())
 
-FOR i as integer = 0 TO gen(genMaxShop)
- FOR o as integer = 0 TO 49
-  gam.stock(i, o) = 0 'default of 0 means "unloaded". The actual value will be populated when you first visit the shop
- NEXT o
-NEXT i
 flusharray global(), maxScriptGlobals, 0
 reset_vehicle vstate
 cleanup_text_box
@@ -1381,6 +1376,10 @@ SUB reset_game_state ()
  gam.mouse_enabled = NO
  defaultmousecursor  'init mouse state
  gam.pad.being_shown = NO
+
+ 'Resize these after we have loaded gen()
+ REDIM gam.stock(gen(genMaxShop), 49)
+ REDIM gam.original_stock(gen(genMaxShop), 49)
 
  'If we are resetting, the old slices will have already been destroyed
  'by cleanup_game_slices() so we just re-assign herow().sl

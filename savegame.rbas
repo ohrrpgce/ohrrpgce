@@ -831,6 +831,11 @@ SUB gamestate_shops_from_reload(byval node as Reload.NodePtr)
        SELECT CASE j
         CASE 0 TO shoptmp(16)
          gam.stock(i, j) = n2."stock".default(0)
+         WITH gam.original_stock(i, j)
+          .thingtype = n2."orig_type".default(-1)
+          .thingid   = n2."orig_id"
+          .stock     = n2."orig_stock"
+         END WITH
         CASE ELSE
          rsav_warn "invalid shop " & i & " stuff slot " & j
        END SELECT
@@ -1276,9 +1281,16 @@ SUB gamestate_shops_to_reload(byval parent as Reload.NodePtr)
   loadrecord shoptmp(), game & ".sho", 20, i
   ch = SetChildNode(n, "slots")
   FOR j as integer = 0 TO shoptmp(16)
-   IF gam.stock(i, j) <> 0 THEN
+   IF gam.stock(i, j) <> 0 THEN  'Has been initialised
     n2 = AppendChildNode(ch, "slot", j)
     SetChildNode(n2, "stock", gam.stock(i, j))
+    WITH gam.original_stock(i, j)
+     IF .thingtype > -1 THEN  'Has been initialised
+      SetChildNode(n2, "orig_type",  .thingtype)
+      SetChildNode(n2, "orig_id",    .thingid)
+      SetChildNode(n2, "orig_stock", .stock)
+     END IF
+    END WITH
    END IF
   NEXT j
  NEXT i

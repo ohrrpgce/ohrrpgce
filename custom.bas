@@ -1126,6 +1126,7 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
  'stuff_id is the thing to start on, or > max to add a new one
  'Return value is the last thing selected, or -1 if adding a new one was cancelled
  DIM thing_last_id as integer = read_shop_stuff_count(shop_id)
+ DIM show_stockidx as bool = NO
 
  DIM stuf as ShopStuffState
  stuf.thing = stuff_id
@@ -1156,11 +1157,12 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
 
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "shop_stuff"
-  IF stuf.st.pt = 0 ANDALSO enter_space_click(stuf.st) THEN EXIT DO
+  IF keyval(scF6) > 1 THEN show_stockidx XOR= YES  'Debug key
 
   DIM used as bool = enter_space_click(stuf.st)
+  IF stuf.st.pt = 0 ANDALSO used THEN EXIT DO
   IF used THEN
-   'save as a precation because we might be about to browse
+   'Save as a precaution because we might be about to browse
    shop_save_stf shop_id, stuf, stufbuf()
    write_shop_stuff_count shop_id, thing_last_id
   END IF
@@ -1276,7 +1278,9 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
    textcolor uilook(uiDisabledItem), 0
    printstr "SHIFT + Left/Right to reorder", pRight, pBottom, dpage
   END IF
- 
+
+  IF show_stockidx THEN edgeprint "Stockidx " & stufbuf(37) - 1, pLeft, pBottom, uilook(uiMenuItem), dpage
+
   SWAP vpage, dpage
   setvispage vpage
   dowait

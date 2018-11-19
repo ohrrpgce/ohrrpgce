@@ -159,6 +159,14 @@ TYPE HeroPathing
   dest_display_sl as Slice Ptr
 END TYPE
 
+'Holds part of a STF record, enough to tell whether the record has been edited significantly
+TYPE OriginalStock
+  thingtype as integer = -1          '-1 if uninitialised, 0 for items, 1 for heroes
+  thingid as integer                 'ID of the item or hero
+  stock as integer                   'Same values as STF 'In Stock' field!: -1 for infinite, >= 0 is finite amount
+                                     '(Note this differs from encoding of gam.stock())
+END TYPE
+
 TYPE GameState
   map as MapModeState
   wonbattle as bool                  'Indicates the status of the last battle (won as opposed to dying or running or 'force exit')
@@ -166,11 +174,14 @@ TYPE GameState
   music_change_delay as integer      'Number of ticks to wait before changing music; <= 0 if no change pending
   delayed_music as integer           'Song number to change to, -1 to stop music
   random_battle_countdown as integer
-  stock(ANY, ANY) as integer           'Keeps track of available inventory at each shop (shop, stockidx)
-                                     'must REDIM gam.stock(gen(genMaxShop), 49) as integer after gen() is loaded
+  stock(any, any) as integer         'Keeps track of available inventory at each shop (shop, stockidx)
+                                     'must REDIM gam.stock(gen(genMaxShop), 49) after gen() is loaded.
                                      'Each entry is either -1 (infinite stock), 0 (not loaded; will be loaded
                                      'when the shop is visited unless STF is too short)
                                      'or remainingstock+1 if > 0
+  original_stock(any, any) as OriginalStock 'Saves info about the STF entry at the time that an element of stock()
+                                     'is initialised, so we can tell if the STF entry has been edited since and
+                                     'the stock() element should be reset.
   foe_freq(254) as integer           'A cache of the fight frequency for each formation set
   walk_through_walls as bool         'used for F11 cheat mode
   mouse_enabled as bool              'initmouse called

@@ -2,11 +2,11 @@ You can edit and play your game at the same time, and most of your edits come in
 
 -"Test Game" does NOT save your game! You still have to do that in the normal way!
 -Reloading will not happen while you are in most builtin menus in Game (e.g. `Status').
--Game can't reload data until Custom saves it. As a general rule of thumb you'll either need to exit whatever menu you're using in Custom for changes to be saved, or change record (e.g. switch to a different enemy, hero, textbox...)
--If Custom freezes, try quitting Game.
+-Game can't reload data until Custom saves it. As a general rule of thumb you'll either need to exit whatever editor you're using in Custom for changes to be saved, or change record (e.g. switch to a different enemy, hero, textbox...)
+-If Custom freezes, try quitting Game, and vice-versa.
 -Resizing a map while you're on it is a bad idea; it's not handled correctly.
 
-You can press Ctrl+S in the map editor proper and maptile editor to force immediate saving of data. While playing, press the new F5 debug key (currently only works on maps) for lots of options about reloading map state.
+You can press Ctrl+S in the map editor proper and maptile editor to force immediate saving of data. While playing, press the F5 debug key (currently only works on maps) for lots of options about reloading map state or scripts.
 
 Instant reloading of the following things currently works:
 -All map data, including NPCs, general map settings, and doors
@@ -17,18 +17,18 @@ Instant reloading of the following things currently works:
 -Attacks, as long as they haven't been queued already (?)
 -Preference bitsets and other General Game Data
 -Unequipped items (stat bonuses and the like are read from file when you equip them)
+-Scripts which aren't running (see below)
 
 The following things will reload, but normally only after leaving and re-entering a menu or battle:
 -Enemies (leave and re-enter the battle first)
 -Formations (ditto)
 -Menus
+-Shops
 -Global text strings
 
 The following things do not currently reload at all:
 -Hero definitions for heroes which are already in the party (this is a problem with saved games too!)
--Shop stocks (problem with saved games too)
--Scripts (see below)
 -Default palettes (which palette is the default for a sprite)
--Equipped items
+-Stat bonuses for equipped items
 
-You can force a manual reload of scripts from the F5 menu but currently running scripts will not be reloaded, and may even throw errors. For that reason, reloading is not automatic.
+Loaded/running scripts can't be reloaded. Once they exit and are re-triggered the new version will be loaded. This means a mix of old and new scripts can run at the same time! Use the F5 Reload menu to disable automatic reloading.

@@ -81,6 +81,9 @@ September 29 2018 [Fufluns]
     * Much nicer interactive stat preview graph in the Hero Stats menu [Ralph]
     * New F8 debug option "Show/test any battle formation" [Ralph]
     * You can copy & paste palettes inside the palette browser [Ralph]
+    * Shop stock levels in saved games and when Testing Game are now updated if
+      you edit the things in a shop - reset if needed, or increased/decreased
+      to reflect the change [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]
