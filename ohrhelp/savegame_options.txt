@@ -6,7 +6,7 @@ Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End), or type
 
 Press ENTER or the SPACE bar to toggle bitsets.
 
-Number of save/load slots: This is the number of slots into which the player can save games. It's actually possible to access more slots using script commands; this option doesn't affect those commands.
+Number of save/load slots: This is the number of slots into which the player can save games. It's actually possible to access more slots using textbox conditionals and script commands; this option doesn't affect those commands.
 
 Name of saves directory:
 This is an advanced option.

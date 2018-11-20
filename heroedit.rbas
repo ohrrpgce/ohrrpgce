@@ -59,6 +59,7 @@ FUNCTION hero_picker (recindex as integer = -1) as integer
  RETURN b.browse(recindex, , @hero_editor, NO)
 END FUNCTION
 
+'0 is None, > 0 is ID + 1
 FUNCTION hero_picker_or_none (recindex as integer = -1) as integer
  DIM b as HeroBrowser
  RETURN b.browse(recindex - 1, YES , @hero_editor, NO) + 1

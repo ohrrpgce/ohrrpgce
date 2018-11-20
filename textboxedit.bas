@@ -374,21 +374,23 @@ SUB textbox_conditionals(byref box as TextBox)
    CASE condBATTLE
     intgrabber num, 0, gen(genMaxFormation)
    CASE condSHOP
-    xintgrabber num, 0, gen(genMaxShop), -1, -32000
+    xintgrabber num, 0, gen(genMaxShop), -1, -32000  'Negative values are Inn cost
     IF enter_space_click(state) THEN
      num = shop_picker_or_none(num)
     END IF
    CASE condHERO
-    intgrabber num, -99, 99
+    'From -gen(genMaxHero) - 1 to  gen(genMaxHero) + 1
+    xintgrabber num, 0, gen(genMaxHero), 0, -gen(genMaxHero)
     IF enter_space_click(state) THEN
      num = textbox_conditional_hero_picker(num, state)
     END IF
    CASE condGAMEDELETE
-    intgrabber num, -1, 32
+    'Don't cap to gen(genSaveSlotCount): should be able to access hidden slots, just like script commands
+    intgrabber num, -1, maxSaveSlotCount
    CASE condGAMESAVE
-    intgrabber num, -2, 32
+    intgrabber num, -2, maxSaveSlotCount
    CASE condGAMELOAD
-    intgrabber num, -3, 32
+    intgrabber num, -3, maxSaveSlotCount
    CASE condMONEY
     intgrabber num, -32000, 32000
    CASE condDOOR
@@ -969,7 +971,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
 END SUB
 
 ' Append a menu item; first argument is menu item type
-PRIVATE SUB menuitem(itemdata as integer, byref menu as SimpleMenuItem vector, caption as string, unselectable as bool = NO, col as integer = 0)
+PRIVATE SUB menuitem(itemdata as integer, byref menu as SimpleMenuItem vector, caption as zstring ptr, unselectable as bool = NO, col as integer = 0)
  IF itemdata = -1 THEN unselectable = YES : col = uilook(eduiHeading)
  append_simplemenu_item menu, caption, unselectable, col, itemdata
 END SUB
