@@ -2624,9 +2624,6 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
  hstate.last = 4
  DIM state(4) as MenuState
  DIM menu(4) as MenuDef
- FOR i as integer = 0 TO 4
-  ClearMenuData menu(i)
- NEXT i
 
  append_menu_item(menu(0), "Default (" & statnames(statAtk) & ")")
  menu(0).last->extra(0) = 0
@@ -2756,8 +2753,5 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
  LOOP
  
  setkeys
- FOR i as integer = 0 TO 4
-  ClearMenuData menu(i)
- NEXT i
  RETURN result
 END FUNCTION

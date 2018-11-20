@@ -3992,7 +3992,6 @@ SUB mapedit_resize(st as MapEditState)
  rs.rect.high = 0
  rs.rect.x = 0
  rs.rect.y = 0
- 'resizemapmenu both inits and deletes rs.menu
  resizemapmenu st, rs
  IF rs.rect.wide = -1 THEN EXIT SUB
 
@@ -4983,7 +4982,6 @@ SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
   dowait
  LOOP
  frame_unload @(rs.minimap)
- ClearMenuData rs.menu
  switch_to_8bit_vpages
 END SUB
 

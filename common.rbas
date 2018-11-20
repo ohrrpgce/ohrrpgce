@@ -2858,7 +2858,6 @@ END SUB
 FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", centerlines as bool=YES, extra_message as zstring ptr=@"") as integer
  DIM state as MenuState
  DIM menu as MenuDef
- ClearMenuData menu
  DIM result as integer
  DIM captlines() as string
  DIM maxwidth as integer  'max possible line length, in characters
@@ -2951,7 +2950,6 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
  pop_gfxio_state
  copypage holdscreen, vpage
  freepage holdscreen
- ClearMenuData menu
 
  RETURN result
 END FUNCTION
@@ -4321,7 +4319,6 @@ IF NOT isfile(workingdir + SLASH + "menuitem.bin") THEN
  ' If we're playing an old game without sound effects, SFX volume option is pointless
  create_default_menu menu, has_sfx
  SaveMenuData def_menu_set, menu, 0
- ClearMenuData menu
 END IF
 updaterecordlength game & ".say", binSAY
 updaterecordlength game & ".dt0", binDT0
@@ -5155,9 +5152,9 @@ PRIVATE SUB add_item_to_(menu as MenuDef, subtype as integer, hide_if_disabled a
  menu.last->hide_if_disabled = hide_if_disabled
 END SUB
 
-' Initialise the default main menu used for old games
+' Initialise the default main menu used for old games.
+' The passed in MenuDef should be blank
 SUB create_default_menu(menu as MenuDef, add_sfx_volume as bool = YES)
- ClearMenuData menu
  add_item_to_ menu, spItems
  add_item_to_ menu, spSpells
  add_item_to_ menu, spStatus
@@ -5183,6 +5180,7 @@ SUB create_default_menu(menu as MenuDef, add_sfx_volume as bool = YES)
 END SUB
 
 ' Initialise the volume menu used in old games
+' menu should be blank.
 SUB create_volume_menu(menu as MenuDef)
  ' Load the main menu and copy some of the styling
  DIM menu_set as MenuSet
@@ -5191,7 +5189,6 @@ SUB create_volume_menu(menu as MenuDef)
  DIM mainmenu as MenuDef
  LoadMenuData menu_set, mainmenu, 0, YES
 
- ClearMenuData menu
  add_item_to_ menu, spMusicVolume
  add_item_to_ menu, spSoundVolume
  menu.min_chars = 10

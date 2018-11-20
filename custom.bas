@@ -788,7 +788,6 @@ SUB Custom_volume_menu
  DIM menu as MenuDef
  create_volume_menu menu
  run_MenuDef menu, @volume_controls_callback
- ClearMenuData menu
 END SUB
 
 'Record a combined editor+player gif

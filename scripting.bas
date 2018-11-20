@@ -1444,7 +1444,6 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  DIM state as MenuState
  state.pt = 0
  DIM menu as MenuDef
- ClearMenuData menu
  menu.anchorvert = alignTop
  menu.offset.y = -100 + 38 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
  menu.bordersize = -4
@@ -1549,7 +1548,6 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
 
   dowait
  LOOP
- ClearMenuData menu
  pop_gfxio_state
  recursivecall -= 1
 
@@ -1576,7 +1574,6 @@ FUNCTION script_interrupt () as integer
  DIM state as MenuState
  state.pt = 0
  DIM menu as MenuDef
- ClearMenuData menu
  menu.anchorvert = alignTop
  menu.offset.y = -100 + 38 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
  menu.bordersize = -4
@@ -1653,7 +1650,6 @@ FUNCTION script_interrupt () as integer
 
   dowait
  LOOP
- ClearMenuData menu
 
  pop_gfxio_state
  clearpage vpage

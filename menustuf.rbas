@@ -103,7 +103,6 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
 
  '--Create the menu
  DIM menu as MenuDef
- ClearMenuData menu
  
  DIM st as MenuState
  st.active = YES

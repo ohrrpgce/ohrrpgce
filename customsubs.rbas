@@ -1079,7 +1079,6 @@ END FUNCTION
 
 ' Shared by ui_color_editor and ui_boxstyle_editor
 SUB make_ui_editor_sample_menu(sample_menu as MenuDef, sample_state as MenuState)
- ClearMenuData sample_menu
  WITH sample_menu
   .alignhoriz = alignRight
   .alignvert = alignTop
@@ -1182,7 +1181,6 @@ SUB ui_color_editor(palnum as integer)
   dowait
  LOOP
  SaveUIColors uilook(), boxlook(), palnum
- ClearMenuData sample_menu
 END SUB
 
 SUB make_ui_color_editor_menu(m() as string, colors() as integer)
@@ -1314,7 +1312,6 @@ SUB ui_boxstyle_editor(palnum as integer)
   dowait
  LOOP
  SaveUIColors uilook(), boxlook(), palnum
- ClearMenuData sample_menu
 END SUB
 
 SUB make_ui_boxstyle_editor_menu(m() as string, boxes() as BoxStyle)
@@ -3957,8 +3954,6 @@ SUB edit_purchase_options ()
   
   dowait
  LOOP
- 
- ClearMenuData menu
 
 END SUB
 
@@ -4064,9 +4059,7 @@ FUNCTION edit_purchase_enumgrabber(byval node as NodePtr, enumstr() as string) a
 END FUNCTION
 
 SUB edit_purchase_details (byval prod as NodePtr)
-
  DIM menu as MenuDef
- 
  DIM st as MenuState
  st.active = YES
  st.need_update = YES
@@ -4250,7 +4243,6 @@ SUB edit_purchase_details (byval prod as NodePtr)
   
   dowait
  LOOP
- ClearMenuData menu
 END SUB
 
 SUB generate_savegame_options_menu(menu() as string, save_options_node as Node ptr)

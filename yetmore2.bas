@@ -1829,7 +1829,6 @@ SUB live_preview_menu ()
  st1.active = YES
  
  DIM menu1 as MenuDef
- ClearMenuData menu1
  menu1.textalign = alignLeft
  menu1.boxstyle = 3
  menu1.translucent = YES

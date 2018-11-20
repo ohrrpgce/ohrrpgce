@@ -1133,9 +1133,9 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
  DIM menu_set as MenuSet
  menu_set.menufile = workingdir + SLASH + "menus.bin"
  menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
- DIM menutmp as MenuDef
  FOR i = 0 TO gen(genMaxMenu)
   resave = NO
+  DIM menutmp as MenuDef
   LoadMenuData menu_set, menutmp, i
   FOR j = 0 TO menutmp.numitems - 1
    WITH *menutmp.items[j]
@@ -1148,7 +1148,6 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
   IF resave THEN
    SaveMenuData menu_set, menutmp, i
   END IF
-  ClearMenuData menutmp
  NEXT i
 
 END SUB

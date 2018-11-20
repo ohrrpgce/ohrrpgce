@@ -2637,6 +2637,7 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as bool=NO) as
  mstates(topmenu).pt = 0
  mstates(topmenu).top = 0
  IF record = -1 THEN
+  'TODO: this is only necessary because menus(0) is garbage if topmenu = -1
   ClearMenuData menus(topmenu)
  ELSE
   LoadMenuData menu_set, menus(topmenu), record
@@ -4660,7 +4661,6 @@ SUB battle_formation_testing_menu(all_formations as bool)
  DIM battle_formation_set as integer = 0
  DIM state as MenuState
  DIM menu as MenuDef
- ClearMenuData menu
 
  IF all_formations THEN
   FOR i as integer = 0 TO gen(genMaxFormation)
@@ -4742,7 +4742,6 @@ SUB battle_formation_testing_menu(all_formations as bool)
  defaultval = state.pt
  setkeys
  freepage holdscreen
- ClearMenuData menu
 
 END SUB
 

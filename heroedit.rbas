@@ -718,7 +718,6 @@ END SUB
 SUB hero_editor_edit_spell_list_slot (slot as SpellList)
 
  DIM menu as MenuDef
- ClearMenuData menu
  append_menu_item menu, "Previous menu..."
  append_menu_item menu, "Attack:"
  append_menu_item menu, "Learned at level:"
@@ -1209,7 +1208,6 @@ SUB edit_tag_range_check (byref check as TagRangeCheck)
  IF check.kind <> TagRangeCheckKind.level THEN visible_debug("edit_tag_range_check: unsupported check kind " & check.kind)
  DIM kind_name as string = "level"
  DIM menu as MenuDef
- ClearMenuData menu
  append_menu_item menu, "Previous menu..."
  append_menu_item menu, "Tag:"
  append_menu_item menu, "At or above"

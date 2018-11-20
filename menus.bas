@@ -974,7 +974,6 @@ FUNCTION getmenuname(byval record as integer) as string
  DIM menu as MenuDef
  LoadMenuData menu_set, menu, record, YES
  ret = menu.name
- ClearMenuData menu
 
 #IFDEF IS_GAME
  add_string_cache cache(), record, ret

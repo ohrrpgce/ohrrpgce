@@ -43,7 +43,6 @@ DIM dstate as MenuState 'detail state
 dstate.active = NO
 
 DIM edmenu as MenuDef
-ClearMenuData edmenu
 WITH edmenu
  .textalign = alignLeft
  .alignhoriz = alignLeft
@@ -57,7 +56,6 @@ END WITH
 DIM menudata as MenuDef
 LoadMenuData menu_set, menudata, record
 DIM detail as MenuDef
-ClearMenuData detail
 WITH detail
  .textalign = alignLeft
  .anchorhoriz = alignLeft
@@ -129,9 +127,6 @@ DO
  dowait
 LOOP
 SaveMenuData menu_set, menudata, record
-ClearMenuData edmenu
-ClearMenuData menudata
-ClearMenuData detail
 
 END SUB
 
