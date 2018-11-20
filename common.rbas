@@ -5851,12 +5851,14 @@ FUNCTION xreadbit (bitarray() as integer, byval bitoffset as integer, byval into
  RETURN readbit(bitarray(), intoffset, bitoffset) <> 0 
 END FUNCTION
 
-FUNCTION getheroname (byval hero_id as integer) as string
+'use_default: don't return a blank name
+FUNCTION getheroname (hero_id as integer, use_default as bool = YES) as string
  DIM her as HeroDef
  IF hero_id >= 0 THEN
   loadherodata her, hero_id
-  RETURN her.name
+  IF LEN(her.name) THEN RETURN her.name
  END IF
+ IF use_default THEN RETURN "Hero " & hero_id
  RETURN ""
 END FUNCTION
 

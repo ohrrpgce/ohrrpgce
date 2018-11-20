@@ -163,7 +163,7 @@ DECLARE FUNCTION readitemdescription (byval index as integer) as string
 DECLARE FUNCTION readshopname (byval shopnum as integer) as string
 DECLARE FUNCTION getsongname (byval num as integer, byval prefixnum as bool = NO) as string
 DECLARE FUNCTION getsfxname (byval num as integer) as string
-DECLARE FUNCTION getheroname (byval hero_id as integer) as string
+DECLARE FUNCTION getheroname (hero_id as integer, use_default as bool = YES) as string
 DECLARE FUNCTION getmapname (byval m as integer) as string
 DECLARE SUB getstatnames(statnames() as string)
 DECLARE FUNCTION battle_statnames(statnum as integer) as string

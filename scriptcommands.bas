@@ -128,14 +128,12 @@ FUNCTION standard_embed_codes(act as string, byval arg as integer) as string
  DIM insert as string = "${" & act & arg & "}"
  SELECT CASE UCASE(act)
   CASE "H": '--Hero name by ID
-   '--defaults blank if not found
-   insert = ""
    '--first search for a copy of the hero in the party
    DIM where as integer = findhero(arg)
    IF where >= 0 THEN
     insert = gam.hero(where).name
    ELSE
-    insert = getheroname(arg)
+    insert = getheroname(arg, NO)  'Don't default to "Hero #" if blank name
    END IF
   CASE "P": '--Hero name by Party position
    IF arg < 40 THEN
@@ -180,14 +178,12 @@ FUNCTION saveslot_embed_codes(byval saveslot as integer, act as string, byval ar
 
  SELECT CASE UCASE(act)
   CASE "H": '--Hero name by ID
-   '--defaults blank if not found
-   insert = ""
    '--first search for a copy of the hero in the party
    DIM where as integer = saveslot_findhero(node, arg)
    IF where >= 0 THEN
     insert = saveslot_hero_name_by_slot(node, where)
    ELSE
-    insert = getheroname(arg)
+    insert = getheroname(arg, NO)  'Don't default to "Hero #" if blank name
    END IF
   CASE "P": '--Hero name by Party position
    IF arg < 40 THEN
