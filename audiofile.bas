@@ -7,6 +7,9 @@
 #include "common.bi"
 #include "string.bi"
 #include "audiofile.bi"
+
+#ifdef IS_CUSTOM
+
 '#ifdef HAVE_VORBISFILE
 #include "vorbis/vorbisfile.bi"
 '#endif
@@ -338,6 +341,10 @@ function read_mp3_metadata(songfile as string, byref filetype as string = "") as
 	       "Bitrate:  " & cint(bits / duration / 1000) & !"kbps\n"
 end function
 
+
+#endif  'IS_CUSTOM
+
+
 ' Check that an audio file really is the format it appears to be
 ' (This isn't and was never really necessary...)
 FUNCTION valid_audio_file (filepath as string) as bool
@@ -406,7 +413,6 @@ function getmusictype (file as string) as MusicFormatEnum
 
 	return chk
 end function
-
 
 '==========================================================================================
 '                                     Music/SFX Lumps
