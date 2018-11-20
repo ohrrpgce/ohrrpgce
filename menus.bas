@@ -886,36 +886,17 @@ FUNCTION MenuDefItem.visible() as bool
  RETURN disabled = NO OR hide_if_disabled = NO
 END FUNCTION
 
-'This initialises a menu if it has not been already
-SUB ClearMenuData(dat as MenuDef)
- DIM bits(0) as integer
- WITH dat
-  .record = -1
-  .handle = 0
-  .age = 0
-  .name = ""
-  .boxstyle = 0
-  .textcolor = 0
-  .maxrows = 0
-  .offset.x = 0
-  .offset.y = 0
-  .anchorhoriz = alignCenter
-  .anchorvert = alignCenter
-  .alignhoriz = alignCenter
-  .alignvert = alignCenter
-  .textalign = alignCenter
-  .min_chars = 0
-  .max_chars = 0
-  .bordersize = 0
-  .itemspacing = 0
-  IF .items THEN
-   DeleteMenuItems dat
-  ELSE
-   dlist_construct .itemlist, OFFSETOF(MenuDefItem, trueorder)
-  END IF
- END WITH
- bits(0) = 0
- MenuBitsFromArray dat, bits()
+CONSTRUCTOR MenuDef()
+ dlist_construct itemlist, OFFSETOF(MenuDefItem, trueorder)
+END CONSTRUCTOR
+
+DESTRUCTOR MenuDef()
+ DeleteMenuItems this
+END DESTRUCTOR
+
+SUB ClearMenuData(menu as MenuDef)
+ menu.Destructor()
+ menu.Constructor()
 END SUB
 
 'Initialise a MenuDef so that it looks like a plain menu, as drawn by standardmenu
@@ -1119,17 +1100,10 @@ END SUB
 '                        Saving/Loading/(De)serializing MenuDefs
 '==========================================================================================
 
-Destructor MenuDef ()
- DeleteMenuItems this
-End Destructor
-
 SUB LoadMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer, byval ignore_items as integer=NO)
+ ClearMenuData dat
+ IF record > gen(genMaxMenu) OR record < 0 THEN EXIT SUB
  DIM f as integer
- DIM bits(0) as integer
- IF record > gen(genMaxMenu) OR record < 0 THEN
-  ClearMenuData dat
-  EXIT SUB
- END IF
  OPENFILE(menu_set.menufile, FOR_BINARY, f)
  SEEK #f, record * getbinsize(binMENUS) + 1
  WITH dat
@@ -1139,6 +1113,7 @@ SUB LoadMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer, b
   .boxstyle = ReadShort(f)
   .textcolor = ReadShort(f)
   .maxrows = ReadShort(f)
+  DIM bits(0) as integer
   bits(0) = ReadShort(f)
   MenuBitsFromArray dat, bits()
   .offset.x = ReadShort(f)
@@ -1156,11 +1131,6 @@ SUB LoadMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer, b
   ReadShort(f)  'garbage INT
   .itemspacing = ReadShort(f)
   .disabled_textcolor = ReadShort(f)
-  IF .items THEN
-   DeleteMenuItems dat
-  ELSE
-   dlist_construct .itemlist, OFFSETOF(MenuDefItem, trueorder)
-  END IF
  END WITH
  CLOSE #f
  IF ignore_items = NO THEN 'This is disableable for performance when all you care about loading is the menu's name

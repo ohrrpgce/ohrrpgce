@@ -96,7 +96,6 @@ declare Sub LoadVehicle OVERLOAD (file as string, vehicle as VehicleData, byval 
 declare Sub LoadVehicle OVERLOAD (file as string, veh() as integer, vehname as string, byval record as integer)
 declare Sub SaveVehicle OVERLOAD (file as string, veh() as integer, vehname as string, byval record as integer)
 declare Sub SaveVehicle OVERLOAD (file as string, vehicle as VehicleData, byval record as integer)
-declare Sub ClearVehicle (vehicle as VehicleData)
 
 declare Sub SaveUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer)
 declare Sub LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer=-1)

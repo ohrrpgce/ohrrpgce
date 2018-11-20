@@ -231,6 +231,8 @@ TYPE TextBoxState
   sayer          as integer = -1 'The NPC reference who triggered this textbox as a positive number, or -1 for none
   old_dir        as integer 'For NPCs that return to their previos direction after speaking
   sl             as Slice Ptr
+
+  Declare Destructor()
 END TYPE
 
 TYPE EquippableList

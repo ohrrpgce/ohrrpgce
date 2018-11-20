@@ -81,9 +81,8 @@ END TYPE
 
 DECLARE_VECTOR_OF_TYPE(MenuDefItem, MenuDefItem)
 
-'*** Requires construction (with ClearMenuData or LoadMenuData) ***
 TYPE MenuDef
-  record    as integer
+  record    as integer = -1
   handle    as integer
   name      as string
   boxstyle  as integer
@@ -107,11 +106,11 @@ TYPE MenuDef
   remember_selection as bool 'Bitset 10: .pt is remember when closing
   rect      as RectType
   offset    as XYPair
-  anchorhoriz as AlignType  'Relative to self
-  anchorvert as AlignType   'Relative to self
-  alignhoriz as AlignType   'Relative to screen. NOT saved or exposed to users
-  alignvert as AlignType    'Relative to screen. NOT saved or exposed to users
-  textalign as AlignType    'Text alignment
+  anchorhoriz as AlignType = alignCenter  'Relative to self
+  anchorvert as AlignType = alignCenter   'Relative to self
+  alignhoriz as AlignType = alignCenter   'Relative to screen. NOT saved or exposed to users
+  alignvert as AlignType = alignCenter    'Relative to screen. NOT saved or exposed to users
+  textalign as AlignType = alignCenter    'Text alignment
   withtags as bool          'Enable text markup. NOT saved or exposed to users
 
   min_chars as integer
@@ -123,7 +122,9 @@ TYPE MenuDef
   on_close  as integer   'Script trigger
   esc_menu  as integer   'Cancel button close action: 0=just close, >0 is menu ID + 1 to open in-place
   age as integer         'This is incremented in draw_menu and should normally be the age of the menu in ticks
-  Declare Destructor () 'defined in menus.bas
+
+  Declare Constructor()
+  Declare Destructor()
 END TYPE
 
 TYPE MenuState
@@ -834,6 +835,7 @@ Type HeroDef
 	hand_pos(1) as XYPair
 	reld as Reload.NodePtr
 
+	Declare Constructor (id as integer = -1)
 	Declare Destructor ()
 End Type
 
@@ -919,22 +921,26 @@ TYPE EnemyDef
   death_unneeded as bool
   never_flinch   as bool
   ignore_for_alone    as bool
+
+  Declare Constructor()
 END TYPE
 
 TYPE FormationSlot
-  id as integer    '-1: none
+  id as integer = -1  '-1: none
   pos as XYPair
 END TYPE
 
 TYPE Formation
   slots(7) as FormationSlot
-  music as integer              '-1: none, -2: same as map
+  music as integer = -1         '-1: none, -2: same as map
   background as integer
-  background_frames as integer  'always >= 1 (no animation if == 1)
+  background_frames as integer = 1  'always >= 1 (no animation if == 1)
   background_ticks as integer
   victory_tag as integer        '0: none, 1+: tag number
   death_action as integer       '-1: continue game, 0: gameover
   hero_form as integer
+
+  Declare Destructor()  'Does nothing
 END TYPE
 
 TYPE FormationSet
@@ -988,7 +994,7 @@ TYPE TextBox
   no_box      as bool
   opaque      as bool
   vertical_offset as integer ' in 4-pixel increments
-  shrink      as integer     ' in 4-pixel increments, -1 is "Auto"
+  shrink      as integer = -1 ' in 4-pixel increments, -1 is "Auto"
   textcolor   as integer     ' 0=default
   boxstyle    as integer
   backdrop    as integer     ' +1
@@ -997,7 +1003,7 @@ TYPE TextBox
   portrait_box  as integer
   portrait_type as integer
   portrait_id   as integer
-  portrait_pal  as integer
+  portrait_pal  as integer = -1
   portrait_pos  as XYPair
 
   restore_music as bool
@@ -1035,7 +1041,7 @@ END TYPE
 
 TYPE VehicleState
   active    as bool 'Is mounting/in/dismounting. If this is false, the rest is garbage
-  id        as integer 'vehicle defintion id that is loaded into .dat
+  id        as integer = -1 'Vehicle definition id that is loaded into .dat
   dat       as VehicleData
   npc       as NPCIndex
   old_speed as integer 'hero speed before mount

@@ -918,18 +918,9 @@ FUNCTION vehicle_is_animating() as bool
  END WITH
 END FUNCTION
 
-SUB reset_vehicle(v as VehicleState)
- v.id = -1
- v.npc = 0
- v.old_speed = 0
- v.active   = NO
- v.mounting = NO
- v.rising   = NO
- v.falling  = NO
- v.init_dismount   = NO
- v.ahead           = NO
- v.trigger_cleanup = NO
- ClearVehicle v.dat
+SUB reset_vehicle(vstate as VehicleState)
+ vstate.Destructor()
+ vstate.Constructor()
 END SUB
 
 SUB dump_vehicle_state()

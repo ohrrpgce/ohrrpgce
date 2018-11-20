@@ -3755,11 +3755,12 @@ SUB init_text_box_slices(txt as TextBoxState)
  END IF
 END SUB
 
-'This is used for resetting game state. But only a few of the txt members
-'actually need to be cleaned up; most aren't used when no box is up
+DESTRUCTOR TextBoxState()
+ IF sl THEN DeleteSlice @sl
+END DESTRUCTOR
+
+'Resets the TextBoxState, including deleting the slices (which aren't recreated until loadsay)
 SUB cleanup_text_box ()
- ClearTextBox txt.box
- IF txt.sl THEN DeleteSlice @(txt.sl)
  txt.Destructor()
  txt.Constructor()
 END SUB
