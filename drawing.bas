@@ -138,7 +138,7 @@ SUB changepal OVERLOAD (ss as SpriteEditState, palchange as integer)
  ss.palette = palette16_load(ss.pal_num)
 END SUB
 
-FUNCTION pal_num_intgrabber (ss as SpriteEditState, lesskey as integer=ccLeft, morekey as integer=ccRight) as bool
+FUNCTION pal_num_intgrabber (ss as SpriteEditState, lesskey as KBScancode=ccLeft, morekey as KBScancode=ccRight) as bool
  DIM old as integer = ss.pal_num
  IF intgrabber(ss.pal_num, 0, gen(genMaxPal) + 1, lesskey, morekey) THEN
   palette16_save ss.palette, old

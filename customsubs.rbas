@@ -1402,7 +1402,7 @@ END FUNCTION
 'add a new set. DOES NOT INCREMENT max. Check whether pt > max to see whether this
 'needs to be handled.
 'maxmax is max value of max, of course
-FUNCTION intgrabber_with_addset(byref pt as integer, byval min as integer, byval max as integer, byval maxmax as integer=32767, what as string, byval less as integer=ccLeft, byval more as integer=ccRight) as bool
+FUNCTION intgrabber_with_addset(byref pt as integer, byval min as integer, byval max as integer, byval maxmax as integer=32767, what as string, byval less as KBScancode=ccLeft, byval more as KBScancode=ccRight) as bool
  IF keyval(more) > 1 AND pt = max AND max < maxmax THEN
   IF yesno("Add new " & what & "?") THEN
    pt += 1

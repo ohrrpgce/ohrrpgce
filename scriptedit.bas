@@ -15,6 +15,7 @@
 #include "cglobals.bi"
 #include "ver.txt"
 #include "scrconst.bi"
+#include "custom.bi"
 
 '--Types
 
@@ -904,7 +905,7 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
  END IF
 END FUNCTION
 
-FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=75, byval more as integer=77, byval scriptside as integer, byval triggertype as integer) as bool
+FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as KBScancode=ccLeft, byval more as KBScancode=ccRight, byval scriptside as integer, byval triggertype as integer) as bool
  'Allow scrolling through scripts with the less/more keys, plus obsolete typing in of
  'script IDs. That is really obsolete because the script ID is no longer displayed
  'unless there is no script with that ID AND it's less than the last used ID, so it's

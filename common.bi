@@ -193,11 +193,11 @@ ENUM WheelHandlingEnum
   wheelRightButton  'When the right mouse button is down
 END ENUM
 
-DECLARE FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as integer=ccLeft, more as integer=ccRight) as bool
-DECLARE FUNCTION intgrabber OVERLOAD (byref n as integer, min as integer, max as integer, less as integer=ccLeft, more as integer=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
-DECLARE FUNCTION intgrabber OVERLOAD (byref n as longint, min as longint, max as longint, less as integer=ccLeft, more as integer=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
-DECLARE FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less as integer=ccLeft, more as integer=ccRight) as bool
-DECLARE FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin as integer=1, nmax as integer=1, less as integer=ccLeft, more as integer=ccRight) as integer
+DECLARE FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as KBScancode=ccLeft, more as KBScancode=ccRight) as bool
+DECLARE FUNCTION intgrabber OVERLOAD (byref n as integer, min as integer, max as integer, less as KBScancode=ccLeft, more as KBScancode=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
+DECLARE FUNCTION intgrabber OVERLOAD (byref n as longint, min as longint, max as longint, less as KBScancode=ccLeft, more as KBScancode=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
+DECLARE FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less as KBScancode=ccLeft, more as KBScancode=ccRight) as bool
+DECLARE FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin as integer=1, nmax as integer=1, less as KBScancode=ccLeft, more as KBScancode=ccRight) as integer
 
 DECLARE SUB reset_console (byval top as integer = 0, byval h as integer = 200, byval c as integer = -1)
 DECLARE SUB show_message (s as string)
@@ -209,8 +209,8 @@ DECLARE FUNCTION fgtag(col as integer, text as string = "") as string
 DECLARE FUNCTION bgtag(col as integer, text as string = "") as string
 
 DECLARE SUB basic_textbox (msg as string, col as integer = -1, page as integer, ypos as RelPos = pCentered, width as RelPos = -1, shrink as bool = NO, suppress_borders as bool = NO)
-DECLARE FUNCTION notification (msg as zstring ptr) as integer
-DECLARE SUB pop_warning(msg as zstring ptr, byval autoquit as integer = NO)
+DECLARE FUNCTION notification (msg as zstring ptr) as KBScancode
+DECLARE SUB pop_warning(msg as zstring ptr, byval autoquit as bool = NO)
 DECLARE FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", centerlines as bool=YES, extra_message as zstring ptr=@"") as integer
 DECLARE FUNCTION twochoice(capt as zstring ptr, strA as zstring ptr=@"Yes", strB as zstring ptr=@"No", byval defaultval as integer=0, byval escval as integer=-1, helpkey as zstring ptr=@"") as integer
 DECLARE FUNCTION yesno(capt as zstring ptr, byval defaultval as bool=YES, byval escval as bool=NO) as bool

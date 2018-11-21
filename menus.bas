@@ -252,7 +252,7 @@ SUB mouse_drag_menu(byref state as MenuState, byval button as MouseButton=mouseR
  END WITH
 END SUB
 
-FUNCTION usemenu (byref state as MenuState, byval deckey as integer = ccUp, byval inckey as integer = ccDown) as bool
+FUNCTION usemenu (byref state as MenuState, byval deckey as KBScancode = ccUp, byval inckey as KBScancode = ccDown) as bool
  WITH state
   IF .autosize THEN
    recalc_menu_size state
@@ -284,7 +284,7 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as integer = ccUp, byva
  END WITH
 END FUNCTION
 
-FUNCTION usemenu (byref pt as integer, byref top as integer, byval first as integer, byval last as integer, byval size as integer, byval deckey as integer = ccUp, byval inckey as integer = ccDown) as bool
+FUNCTION usemenu (byref pt as integer, byref top as integer, byval first as integer, byval last as integer, byval size as integer, byval deckey as KBScancode = ccUp, byval inckey as KBScancode = ccDown) as bool
  'FIXME: eventually phase this out by making sure that all callers to usemenu have their own MenuState
  DIM state as MenuState
  WITH state
@@ -308,7 +308,7 @@ END FUNCTION
 'a version for menus with unselectable items, skip items for which menudata[i].unselectable = YES
 'menu may in fact be a vector of any type inheriting from BasicMenuItem.
 'menu's typetable tells the size in bytes of each menu item
-FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, byval deckey as integer = ccUp, byval inckey as integer = ccDown) as bool
+FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, byval deckey as KBScancode = ccUp, byval inckey as KBScancode = ccDown) as bool
  IF state.empty() OR v_len(menudata) = 0 THEN
   correct_menu_state state
   RETURN NO
@@ -323,14 +323,14 @@ FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, by
 END FUNCTION
 
 'a version for menus with unselectable items, skip items which are .unselectable
-FUNCTION usemenu (state as MenuState, menu as MenuDef, byval deckey as integer = ccUp, byval inckey as integer = ccDown) as bool
+FUNCTION usemenu (state as MenuState, menu as MenuDef, byval deckey as KBScancode = ccUp, byval inckey as KBScancode = ccDown) as bool
  IF state.empty() THEN
   correct_menu_state state
   RETURN NO
  END IF
 
  DIM selectable(state.last) as bool
- FOR idx as integer = 0 TO state.last
+ FOR idx as KBScancode = 0 TO state.last
   selectable(idx) = NOT menu.items[idx]->unselectable
  NEXT
 
@@ -338,7 +338,7 @@ FUNCTION usemenu (state as MenuState, menu as MenuDef, byval deckey as integer =
 END FUNCTION
 
 'a version for menus with unselectable items, skip items for which selectable(i) = NO
-FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as integer = ccUp, byval inckey as integer = ccDown) as bool
+FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as KBScancode = ccUp, byval inckey as KBScancode = ccDown) as bool
  IF state.empty() THEN
   correct_menu_state state
   RETURN NO
@@ -418,7 +418,7 @@ END FUNCTION
 'scrollmenu is like usemenu for menus where no menu item is selected:
 'you just want to scroll a menu up and down (modifies .top; .pt is ignored).
 'Returns true when view changed.
-FUNCTION scrollmenu (state as MenuState, byval deckey as integer = ccUp, byval inckey as integer = ccDown) as bool
+FUNCTION scrollmenu (state as MenuState, byval deckey as KBScancode = ccUp, byval inckey as KBScancode = ccDown) as bool
  WITH state
   IF .autosize THEN
    recalc_menu_size state
@@ -1050,7 +1050,7 @@ SUB sort_menu_and_select_selectable_item(menu as MenuDef, state as MenuState)
 END SUB
 
 ' Returns index in menu.items[]
-FUNCTION append_menu_item(byref menu as MenuDef, caption as zstring ptr, byval t as integer=0, byval sub_t as integer=0, byval dataptr as ANY ptr=0) as integer
+FUNCTION append_menu_item(byref menu as MenuDef, caption as zstring ptr, byval t as integer=mtypeLabel, byval sub_t as integer=0, byval dataptr as any ptr=0) as integer
  DIM i as integer
  DIM item as MenuDefItem ptr
  item = NEW MenuDefItem

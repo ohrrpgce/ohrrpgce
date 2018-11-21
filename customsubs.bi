@@ -47,7 +47,7 @@ TYPE FnRecordName as FUNCTION(idx as integer) as string
 
 DECLARE FUNCTION generic_add_new (what as string, maxindex as integer, getname as FnRecordName, previewer as RecordPreviewer ptr = NULL, helpkey as string = "") as integer
 DECLARE FUNCTION needaddset (byref pt as integer, byref check as integer, what as string) as bool
-DECLARE FUNCTION intgrabber_with_addset (byref pt as integer, byval min as integer, byval max as integer, byval maxmax as integer=32767, what as string, byval less as integer=ccLeft, byval more as integer=ccRight) as bool
+DECLARE FUNCTION intgrabber_with_addset (byref pt as integer, byval min as integer, byval max as integer, byval maxmax as integer=32767, what as string, byval less as KBScancode=ccLeft, byval more as KBScancode=ccRight) as bool
 
 DECLARE FUNCTION load_vehicle_name(vehID as integer) as string
 DECLARE FUNCTION load_item_name (it as integer, hidden as integer, offbyone as integer) as string

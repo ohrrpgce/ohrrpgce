@@ -755,12 +755,10 @@ queue_fade_in
 update_heroes(YES)
 setkeys
 
-DIM tog as integer
 DO
  'DEBUG debug "top of master loop"
  setwait speedcontrol
  IF running_as_slave THEN try_to_reload_lumps_onmap
- tog = tog XOR 1
  'DEBUG debug "increment play timers"
  IF gam.paused = NO THEN playtimer
 
@@ -842,7 +840,7 @@ DO
    END IF
   END IF
  END IF
- FOR i as integer = 0 to 3
+ FOR i as integer = 0 TO 3
   IF herow(i).xgo = 0 ANDALSO herow(i).ygo = 0 THEN
    update_hero_pathfinding(i)
   END IF
@@ -865,6 +863,7 @@ DO
 
  'DEBUG debug "hero movement"
  update_heroes()
+
  'DEBUG debug "NPC movement"
  update_npcs()
 
@@ -3729,10 +3728,10 @@ SUB init_text_box_slices(txt as TextBoxState)
   choice_box = NewSliceOfType(slRectangle, txt.sl, SL_TEXTBOX_CHOICE_BOX)
   WITH *choice_box
    '--center the box
-   .AnchorHoriz = 1
-   .AlignHoriz = 1
-   .AnchorVert = 0
-   .AlignVert = 0
+   .AnchorHoriz = alignCenter
+   .AlignHoriz = alignCenter
+   .AnchorVert = alignTop
+   .AlignVert = alignTop
    '--set box size
    .Width = 10 + large(LEN(txt.box.choice(0)) * 8, LEN(txt.box.choice(1)) * 8)
    .Height = 24

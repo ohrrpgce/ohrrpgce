@@ -1344,10 +1344,10 @@ DO
    'Note that pressing SPACE+arrow keys at the same time will place an NPC and
    'move the cursor: "RMZ-style NPC placement"
    IF (keyval(scCtrl) > 0 AND keyval(scShift) = 0) OR keyval(scSpace) > 1 THEN
-    IF slowkey(ccUp, 660)    THEN npc_d = 0
-    IF slowkey(ccRight, 660) THEN npc_d = 1
-    IF slowkey(ccDown, 660)  THEN npc_d = 2
-    IF slowkey(ccLeft, 660)  THEN npc_d = 3
+    IF slowkey(ccUp, 660)    THEN npc_d = dirUp
+    IF slowkey(ccRight, 660) THEN npc_d = dirRight
+    IF slowkey(ccDown, 660)  THEN npc_d = dirDown
+    IF slowkey(ccLeft, 660)  THEN npc_d = dirLeft
    END IF
 
    'Place or delete an NPC
@@ -1360,12 +1360,12 @@ DO
        .id = 0
        .x = 0
        .y = 0
-       .dir = 0
+       .dir = dirUp
        npc_slot = 1
       END WITH
      END IF
     END IF
-    IF npc_d = -1 THEN npc_d = 2
+    IF npc_d = -1 THEN npc_d = dirDown
     IF npc_slot = 0 THEN
      npc_slot = -1
      FOR i as integer = UBOUND(st.map.npc) TO 0 STEP -1

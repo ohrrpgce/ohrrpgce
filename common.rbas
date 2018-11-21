@@ -563,7 +563,7 @@ END SUB
 
 ' Show a message in a box and wait for the user to advance with a keypress.
 ' Returns the scancode of the keypress (it is cleared!)
-FUNCTION notification (msg as zstring ptr) as integer
+FUNCTION notification (msg as zstring ptr) as KBScancode
  ' For safety disallow reentering, though I'm not currently aware of a way this might happen
  STATIC entered as bool = NO
  IF entered THEN
@@ -580,7 +580,7 @@ FUNCTION notification (msg as zstring ptr) as integer
  basic_textbox *msg, uilook(uiText), holdpage
  setvispage holdpage
  clearkeys
- DIM scancode as integer = waitforanykey()
+ DIM scancode as KBScancode = waitforanykey()
  freepage holdpage
  restore_previous_palette
  setcursorvisibility(prev_mouse_vis)
@@ -1368,7 +1368,7 @@ SUB showerror (zmsg as zstring ptr, byval isfatal as bool = NO, isbug as bool = 
  basic_textbox msg + quitmsg, uilook(uiText), vpage, , , , YES  'suppress_borders=YES
  setvispage vpage, NO
 
- DIM key as integer = waitforanykey
+ DIM key as KBScancode = waitforanykey
  IF isfatal ORELSE (num_errors >= 3 ANDALSO key = scEsc) THEN  'No way to check for ccCancel...
   fatal_error_shutdown
  END IF
@@ -1779,7 +1779,7 @@ END FUNCTION
 
 'keygrabber is like intgrabber (or usemenu) except it only watches the two keys passed as arguments, not
 'number keys, page up/down, copy/paste, minus, etc.
-FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as integer=ccLeft, more as integer=ccRight) as bool
+FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as KBScancode=ccLeft, more as KBScancode=ccRight) as bool
  IF keyval(more) > 1 THEN
   loopvar n, min, max, 1
   RETURN YES
@@ -1794,14 +1794,14 @@ END FUNCTION
 'If returninput is true, returns whether the user tried to modify the int,
 'otherwise returns true only if the int actually changed.
 'If autoclamp is false, n is clamped within allowable range only if a key is pressed
-FUNCTION intgrabber (byref n as integer, min as integer, max as integer, less as integer=ccLeft, more as integer=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
+FUNCTION intgrabber (byref n as integer, min as integer, max as integer, less as KBScancode=ccLeft, more as KBScancode=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
  DIM as longint temp = n
  intgrabber = intgrabber(temp, cast(longint, min), cast(longint, max), less, more, returninput, use_clipboard, autoclamp, scrollwheel)
  n = temp
 END FUNCTION
 
 'See above for documentation
-FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as integer=ccLeft, more as integer=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
+FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as KBScancode=ccLeft, more as KBScancode=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
  STATIC clip as longint
  DIM old as longint = n
  DIM typed as bool = NO
@@ -1891,7 +1891,7 @@ FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as
  END IF
 END FUNCTION
 
-FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less as integer=ccLeft, more as integer=ccRight) as bool
+FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less as KBScancode=ccLeft, more as KBScancode=ccRight) as bool
  '--adjust for entries that are offset by +1
  '--what a hack!
  '--all entries <= 0 are special options not meant to be enumerated
@@ -1912,7 +1912,7 @@ FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less a
  RETURN (old <> n)
 END FUNCTION
 
-FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin as integer=1, nmax as integer=1, less as integer=ccLeft, more as integer=ccRight) as integer
+FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin as integer=1, nmax as integer=1, less as KBScancode=ccLeft, more as KBScancode=ccRight) as integer
  '--quite a bit of documentation required:
  '--like zintgrabber, but for cases where positive values mean one thing, negatives
  '--another, and 0 means none.
@@ -2205,7 +2205,7 @@ FUNCTION stredit (s as string, byref insert as integer, maxl as integer = 999999
  
 END FUNCTION
 
-SUB pop_warning(msg as zstring ptr, byval autoquit as integer = NO)
+SUB pop_warning(msg as zstring ptr, byval autoquit as bool = NO)
  'autoquit is specifically for cleanup_and_terminate and has no other use
 
  '--Construct the warning UI (This will be hella easier later when the Slice Editor can save/load)
