@@ -1827,9 +1827,9 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
   DIM attack as AttackData
   convertattackdata(recbuf(), attack)
   DIM targetstat as string = caption(menucapoff(AtkTargStat) + attack.targ_stat)
-  DIM iselemental as integer = NO
-  DIM target_is_register as integer = NO
-  DIM percentage_attack as integer = NO
+  DIM iselemental as bool = NO
+  DIM target_is_register as bool = NO
+  DIM percentage_attack as bool = NO
 
   IF attack.targ_stat > statLast AND attack.targ_stat <= statLastRegister THEN target_is_register = YES
   IF attack.damage_math = 5 OR attack.damage_math = 6 THEN percentage_attack = YES
@@ -1900,8 +1900,8 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
   ELSE
     'Doing damage
 
-    DIM setvalue as integer = NO  'Setting target stat directly to a value (percentage of something)
-    DIM elemental_modifiers as integer = iselemental  'absorbable due to elements?
+    DIM setvalue as bool = NO  'Setting target stat directly to a value (percentage of something)
+    DIM elemental_modifiers as bool = iselemental  'absorbable due to elements?
 
     'A normal attack (not percentage-based)
     IF attack.damage_math <= 3 THEN
@@ -2064,7 +2064,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
       END IF
     END IF
 
-    DIM might_otherwise_exceed_max as integer = NO  'Could "allow cure to exceed max" be needed for THE TARGET
+    DIM might_otherwise_exceed_max as bool = NO  'Could "allow cure to exceed max" be needed for THE TARGET
 
     'Check whether (and say when) this attack might cure the target
     IF elemental_modifiers THEN

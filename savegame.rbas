@@ -514,7 +514,7 @@ END SUB
 
 SUB gamestate_maps_from_reload(byval node as Reload.NodePtr)
  DIM i as integer
- DIM loaded_current as integer = NO
+ DIM loaded_current as bool = NO
  
  READNODE node
   WITHNODE node."map" as n
@@ -1469,7 +1469,7 @@ SUB new_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
 
  DIM h as NodePtr
  DIM stat as NodePtr
- DIM foundleader as integer = NO
+ DIM foundleader as bool = NO
  FOR i as integer = 0 TO 3
   pv.hero_id(i) = 0
   h = NodeByPath(parent, "/party/slot[" & i & "]")
@@ -1921,7 +1921,7 @@ SUB old_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
  pv.playtime = playtime(buffer(z), buffer(z + 1), buffer(z + 2))
 
  '--leader data
- DIM foundleader as integer = NO
+ DIM foundleader as bool = NO
  pv.leader_name = ""
  FOR o as integer = 0 TO 3
   '--load hero ID
@@ -1941,7 +1941,7 @@ SUB old_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
  loadrecord buffer(), old_savefile, 15000, slot * 2 + 1
 
  z = 6060
- DIM use_saved_pics as integer = NO
+ DIM use_saved_pics as bool = NO
  IF buffer(z) = 4444 THEN use_saved_pics = YES
  z += 1
  FOR i as integer = 0 TO 3

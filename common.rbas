@@ -98,7 +98,7 @@ DIM global_config_file as string
 DIM config_prefix as string
 
 'Used by intgrabber, reset by usemenu
-DIM negative_zero as integer = NO
+DIM negative_zero as bool = NO
 
 'The global reload document acts as a parent to any misc reload data structures (e.g. hero data) kept in memory.
 DIM global_reload_doc as reload.DocPtr
@@ -3538,7 +3538,7 @@ FUNCTION filename_relative_to_datadir(filename as string) as string
  RETURN ret
 END FUNCTION
 
-SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as integer = NO)
+SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as bool = NO)
  'If the length of records in this lump has changed (increased) according to binsize.bin, stretch it, padding records with zeroes.
  'Note: does not create a lump if it doesn't exist.
  'Pass 'repeating' as true when more than one lump with this bindex exists.
@@ -4462,7 +4462,7 @@ DIM fix_elem_fails as integer = (getfixbit(fixAttackElementFails) = 0) AND full_
 ' be changed if we desire, since the editor doesn't support it yet.
 ' (Instead, loadattackdata will perform these upgrades, since we don't set the fixbit.)
 'DIM fix_multipliers as integer = (getfixbit(fixAttackMultipliers) = 0) AND full_upgrade
-DIM fix_multipliers as integer = NO
+DIM fix_multipliers as bool = NO
 IF fix_stun OR fix_dam_mp OR fix_elem_fails OR fix_multipliers THEN
  IF fix_stun THEN
   upgrade_message "Target disabling old stun attacks..."
@@ -4483,7 +4483,7 @@ IF fix_stun OR fix_dam_mp OR fix_elem_fails OR fix_multipliers THEN
  REDIM dat(40 + dimbinsize(binATTACK)) as integer
  DIM cond as AttackElementCondition
  FOR i as integer = 0 to gen(genMaxAttack)
-  DIM saveattack as integer = NO
+  DIM saveattack as bool = NO
   loadattackdata dat(), i
 
   IF fix_stun AND dat(18) = 14 THEN '--Target stat is stun register

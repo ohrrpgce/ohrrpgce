@@ -40,7 +40,7 @@ end function
 
 
 dim as string filename1, filename2
-dim pedantic as integer = NO
+dim pedantic as bool = NO
 
 dim i as integer = 1
 

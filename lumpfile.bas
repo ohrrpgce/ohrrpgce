@@ -576,7 +576,7 @@ function LumpedLump_read(byref this as LumpedLump, byval position as integer, by
 	return amount
 end function
 
-function indexlumpfile (lumpfile as string, byval keepopen as integer = YES) as LumpIndex ptr
+function indexlumpfile (lumpfile as string, byval keepopen as bool = YES) as LumpIndex ptr
 	dim index as LumpIndex ptr
 	dim lf as integer
 	dim dat as ubyte
@@ -646,7 +646,7 @@ function indexlumpfile (lumpfile as string, byval keepopen as integer = YES) as 
 		seek #lf, seek(lf) + size
 		if eof(lf) then
 			'success
-			if keepopen = 0 then close lf
+			if keepopen = NO then close lf
 			return index
 		end if
 	loop
@@ -1040,7 +1040,7 @@ function unlumpfile_internal (lumpfile as string, fmask as string, path as strin
 end function
 
 'lump may include * or ? wildcards
-sub copylump(package as string, lump as string, dest as string, byval ignoremissing as integer = NO)
+sub copylump(package as string, lump as string, dest as string, byval ignoremissing as bool = NO)
 	dest = add_trailing_slash(dest)
 	if isdir(package) then
 		#ifdef DEBUG_FILE_IO

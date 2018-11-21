@@ -141,7 +141,7 @@ SUB reload_editor_rearrange(byref st as ReloadEditorState, mi as MenuDefItem Ptr
  DIM node as Reload.Nodeptr
  node = mi->dataptr
  
- DIM changed as integer = NO
+ DIM changed as bool = NO
  
  IF keyval(scInsert) > 1 THEN
   DIM s as string
@@ -237,7 +237,7 @@ SUB reload_editor_edit_node(byref st as ReloadEditorState, mi as MenuDefItem Ptr
  node = mi->dataptr
  IF node = 0 THEN debug "reload_editor_edit_node: mi has null node": EXIT SUB
 
- DIM changed as integer = NO
+ DIM changed as bool = NO
 
  IF keyval(scCTRL) > 0 AND keyval(scShift) > 0 THEN EXIT SUB 'no typing while holding ctrl+shift!
   

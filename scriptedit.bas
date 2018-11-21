@@ -981,7 +981,7 @@ PRIVATE SUB seekscript (byref temp as integer, byval seekdir as integer, byval t
  DIM buf(19) as integer
  DIM plotids(gen(genMaxRegularScript)) as integer
  DIM recordsloaded as integer = 0
- DIM screxists as integer = NO
+ DIM screxists as bool = NO
 
  DIM fh as integer
  OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY, fh)

@@ -210,7 +210,7 @@ END SUB
 FUNCTION ee_edit_widget(byref st as EEState, byval widget as NodePtr) as bool
  IF widget = 0 THEN debug "ee_edit_widget: null widget" : RETURN NO
 
- DIM changed as integer = NO
+ DIM changed as bool = NO
 
  DIM subwidget as string = ""
  IF st.type_data THEN
@@ -274,7 +274,7 @@ SUB ee_rearrange(byref st as EEState, mi as MenuDefItem Ptr)
  DIM widget as Nodeptr
  widget = mi->dataptr
  
- DIM changed as integer = NO
+ DIM changed as bool = NO
 
  ee_insertion st, widget
 

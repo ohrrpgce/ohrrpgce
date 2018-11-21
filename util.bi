@@ -342,7 +342,7 @@ declare function trim_path_root (pathname as string) as string
 declare function is_absolute_path (sDir as string) as bool
 declare function is_possibly_absolute_path (sDir as string) as bool
 declare function absolute_path (pathname as string) as string
-declare function absolute_with_orig_path (file_or_dir as string, byval add_slash as integer = NO) as string
+declare function absolute_with_orig_path (file_or_dir as string, byval add_slash as bool = NO) as string
 declare function parentdir (pathname as string, byval upamount as integer = 1) as string
 declare function anycase (filename as string) as string
 declare function escape_filename (filename as string) as string
@@ -644,7 +644,7 @@ declare function length_matching (s1 as string, s2 as string) as integer
 declare function parse_int (stri as zstring ptr, ret as integer ptr=NULL, strict as bool=NO) as bool
 declare function str2int (stri as zstring ptr, default as integer=0, strict as bool=NO) as integer
 declare function split_str_int(z as zstring ptr, byref action as string, byref arg as integer) as bool
-declare function str2bool(q as string, default as integer = NO) as bool
+declare function str2bool(q as string, default as integer = NO) as integer
 declare function rotascii (s as string, o as integer) as string
 declare function titlecase(word as string) as string
 declare function escape_string(s as string, chars as string) as string

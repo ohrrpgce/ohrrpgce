@@ -636,7 +636,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
    h *= -1      'cure bit
   END IF
  
-  DIM capdamage as integer = YES
+  DIM capdamage as bool = YES
  
   IF attack.percent_damage_not_set = NO THEN
    'percentage attacks set stat
@@ -1993,7 +1993,7 @@ SUB try_to_reload_files_inbattle ()
 
  DIM i as integer = 0
  WHILE i < v_len(modified_lumps)
-  DIM handled as integer = NO
+  DIM handled as bool = NO
   DIM basename as string = trimextension(modified_lumps[i])
   DIM extn as string = justextension(modified_lumps[i])
 

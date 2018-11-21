@@ -137,7 +137,7 @@ DECLARE FUNCTION finddatafile(filename as string, error_if_missing as bool = YES
 DECLARE FUNCTION finddatadir(dirname as string, error_if_missing as bool = YES) as string
 DECLARE FUNCTION get_data_dir() as string
 DECLARE FUNCTION filename_relative_to_datadir(filename as string) as string
-DECLARE SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as integer = NO)
+DECLARE SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as bool = NO)
 DECLARE SUB clamp_value (byref value as integer, byval min as integer, byval max as integer, argname as string)
 
 DECLARE SUB writepassword (pass as string)

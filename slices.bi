@@ -380,7 +380,7 @@ Type RectangleSliceData
  use_raw_box_border as bool
  raw_box_border as integer
 
- 'Declare constructor (byval style as integer = -1, byval bgcol as integer=0, byval translucent as integer = NO, byval fgcol as integer = -1, byval border as integer = -1)
+ 'Declare constructor (byval style as integer = -1, byval bgcol as integer=0, byval translucent as bool = NO, byval fgcol as integer = -1, byval border as integer = -1)
 End Type
 
 Type LineSliceData
@@ -397,7 +397,7 @@ Type TextSliceData
  s as string
  s_orig as string 'UNSAVED: Used when expanding ${} codes, so the codes can be re-expanded again later
  wrap as bool     'Whether to wrap the text according to slice width. Otherwise slice width is determined by s.
- 'Declare constructor(st as string, byval col as integer = -1, byval ol as integer = YES)
+ 'Declare constructor(st as string, byval col as integer = -1, byval ol as bool = YES)
 
  'All of the following are UNSAVED and not cloned and are not exposed to users in the editor or in scripts
  use_render_text as bool 'Use alternative render_text-based implementation. Enables text markup.

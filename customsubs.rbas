@@ -184,8 +184,8 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as bool=NO, byval
   END IF
  NEXT i
 
- DIM int_browsing as integer = NO
- DIM uninterrupted_alt_press as integer = NO
+ DIM int_browsing as bool = NO
+ DIM uninterrupted_alt_press as bool = NO
  DIM alt_pt as integer 
  
  DIM do_search as bool = NO
@@ -378,7 +378,7 @@ END FUNCTION
 FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bool, st as MenuState) as bool
 
  DIM intxt as string = getinputtext
- DIM entered_operator as integer = NO
+ DIM entered_operator as bool = NO
  DIM temp as integer
 
  WITH cond
@@ -2523,11 +2523,11 @@ SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as 
  END IF
  FOR i as integer = 0 TO menumax
   menukeys(i) = ""
-  DIM firstletter as integer = YES
+  DIM firstletter as bool = YES
   FOR j as integer = 1 TO LEN(menu(i))
    DIM isalp as integer = isalpha(menu(i)[j - 1])
    IF firstletter ANDALSO isalp THEN
-    DIM excluded as integer = NO
+    DIM excluded as bool = NO
     FOR k as integer = 0 TO UBOUND(excludes)
      IF MID(menu(i), j, LEN(excludes(k))) = excludes(k) THEN excluded = YES : EXIT FOR
     NEXT

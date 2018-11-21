@@ -37,7 +37,7 @@ DECLARE SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditSt
 DECLARE SUB textbox_set_after_textbox (byref box as TextBox, after_textbox as integer)
 DECLARE SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu() as string)
-DECLARE SUB textbox_connection_captions(byref node as TextboxConnectNode, id as integer, tag as integer, box as TextBox, topcation as string, use_tag as integer = YES)
+DECLARE SUB textbox_connection_captions(byref node as TextboxConnectNode, id as integer, tag as integer, box as TextBox, topcation as string, use_tag as bool = YES)
 DECLARE SUB textbox_connection_draw_node(byref node as TextboxConnectNode, x as integer, y as integer, selected as integer)
 DECLARE SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_conditionals(byref box as TextBox)
@@ -1070,7 +1070,7 @@ END SUB
 SUB textbox_seek(byref box as TextBox, byref st as TextboxEditState)
  DIM remember_id as integer = st.id
  st.id += 1
- DIM foundstr as integer = NO
+ DIM foundstr as bool = NO
  DO
   IF st.id > gen(genMaxTextBox) THEN st.id = 0
   IF st.id = remember_id THEN
@@ -1290,7 +1290,7 @@ END SUB
 
 SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu() as string)
 'FIXME: menu() should be moved to become a member of st, then we wouldn't have to pass it around
- DIM do_search as integer = YES
+ DIM do_search as bool = YES
  REDIM prev(5) as TextboxConnectNode
  DIM current as TextboxConnectNode
  REDIM nxt(2) as TextboxConnectNode
@@ -1466,7 +1466,7 @@ SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu
  LOOP
 END SUB
 
-SUB textbox_connection_captions(byref node as TextboxConnectNode, id as integer, tag as integer, box as TextBox, topcation as string, use_tag as integer = YES)
+SUB textbox_connection_captions(byref node as TextboxConnectNode, id as integer, tag as integer, box as TextBox, topcation as string, use_tag as bool = YES)
  DIM preview_line as string
  IF id >= 0 THEN
   node.lines(0) = topcation & " " & id
@@ -1554,7 +1554,7 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
  DIM getindex as integer = 0 
  DIM mode as integer = 0
  DIM s as string
- DIM firstline as integer = YES
+ DIM firstline as bool = YES
  DIM line_number as integer = 0
  DIM boxlines as integer = 0
  DIM i as integer

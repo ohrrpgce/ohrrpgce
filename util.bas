@@ -827,7 +827,7 @@ endTest
 
 'Lenient, accepts any number or the strings yes, no, true, false, on, off.
 'Otherwise returns default.
-FUNCTION str2bool(q as string, default as integer = NO) as bool
+FUNCTION str2bool(q as string, default as integer = NO) as integer
  DIM v as string = TRIM(LCASE(q))
  IF LEN(v) = 0 THEN RETURN default
  IF v = "yes" ORELSE v = "true" ORELSE v = "on" THEN RETURN YES
@@ -1843,7 +1843,8 @@ FUNCTION absolute_path(pathname as string) as string
   RETURN pathname
 END FUNCTION
 
-FUNCTION absolute_with_orig_path(file_or_dir as string, byval add_slash as integer = NO) as string
+
+FUNCTION absolute_with_orig_path(file_or_dir as string, byval add_slash as bool = NO) as string
   DIM d as string = file_or_dir
   IF NOT is_absolute_path(d) THEN d = orig_dir & SLASH & d
   IF add_slash THEN d = add_trailing_slash(d)

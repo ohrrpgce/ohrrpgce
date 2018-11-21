@@ -300,7 +300,7 @@ END SUB
 'Call each tick if script logging is enabled
 SUB script_log_tick
  WITH gam.script_log
-  DIM doprint as integer = NO
+  DIM doprint as bool = NO
   IF .output_flag THEN doprint = YES
 
   DIM wait_msg as string = ""
@@ -1375,7 +1375,7 @@ FUNCTION interpreter_context_name() as string
  RETURN ""
 END FUNCTION
 
-FUNCTION script_call_chain (byval trim_front as integer = YES) as string
+FUNCTION script_call_chain (byval trim_front as bool = YES) as string
  IF nowscript < 0 THEN
   RETURN "(No scripts running)"
  END IF

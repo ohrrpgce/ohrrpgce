@@ -69,7 +69,7 @@ DECLARE SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Fram
 DECLARE SUB sprite_editor_cleanup(byref ss as SpriteEditState)
 DECLARE SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 DECLARE SUB textcolor_icon(selected as bool, hover as bool)
-DECLARE SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, byval areanum as integer, byval highlight as integer = NO)
+DECLARE SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, byval areanum as integer, byval highlight as bool = NO)
 DECLARE SUB spriteedit_draw_palette(pal16 as Palette16 ptr, x as integer, y as integer, page as integer)
 DECLARE SUB spriteedit_draw_sprite_area(ss as SpriteEditState, sprite as Frame ptr, pal as Palette16 ptr, page as integer)
 DECLARE SUB spriteedit_display(ss as SpriteEditState)
@@ -1270,7 +1270,7 @@ DO
   bnum = (mouse.y \ 20) * 16 + mouse.x \ 20
  END IF
  IF tmode <> 3 OR keyval(scCtrl) = 0 THEN
-  DIM movedcsr as integer = NO
+  DIM movedcsr as bool = NO
   IF slowkey(ccLeft, 100) THEN bnum = (bnum + 159) MOD 160: movedcsr = YES
   IF slowkey(ccRight, 100) THEN bnum = (bnum + 1) MOD 160: movedcsr = YES
   IF slowkey(ccUp, 100) THEN bnum = (bnum + 144) MOD 160: movedcsr = YES
@@ -1549,7 +1549,7 @@ DO
    IF keyval(scF) > 1 THEN ts.fastmovestep = small(ts.fastmovestep + 1, 19)
    IF keyval(scS) > 1 THEN ts.fastmovestep = large(ts.fastmovestep - 1, 2)
   END IF
-  DIM fixmouse as integer = NO
+  DIM fixmouse as bool = NO
   DIM stepsize as integer = IIF(keyval(scShift) > 0, ts.fastmovestep, 1)
   IF ts.tool <> scroll_tool THEN
    IF slowkey(ccUp, 100)    THEN ts.y -= stepsize: fixmouse = YES
@@ -2556,7 +2556,7 @@ SUB textcolor_icon(selected as bool, hover as bool)
 END SUB
 
 'Draw one of the clickable areas (obviously this will all be replaced with slices eventually)
-SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, byval areanum as integer, byval highlight as integer = NO)
+SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, byval areanum as integer, byval highlight as bool = NO)
  textcolor_icon highlight, (ss.zonenum = areanum + 1)
  printstr icon, ss.area(areanum).x, ss.area(areanum).y, dpage
 END SUB
@@ -3549,7 +3549,7 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
 
  ' Change brush position
  IF keyval(scAlt) = 0 THEN
-  DIM fixmouse as integer = NO
+  DIM fixmouse as bool = NO
   WITH ss
    fixmouse = NO
    DIM stepsize as integer = IIF(keyval(scShift) > 0, .fastmovestep, 1)

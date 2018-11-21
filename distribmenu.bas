@@ -81,7 +81,7 @@ CONST distmenuREADME as integer = 8
 CONST distmenuLINUXSETUP as integer = 9
 CONST distmenuLINUX64SETUP as integer = 10
 
-DECLARE FUNCTION dist_yesno(capt as string, byval defaultval as integer=YES, byval escval as integer=NO) as integer
+DECLARE FUNCTION dist_yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
 DECLARE SUB dist_info (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
 DIM SHARED auto_yes as bool = NO
 
@@ -510,7 +510,7 @@ SUB distribute_game_as_zip ()
   killdir ziptmp
  END IF
 
- DIM use_gameplayer as integer = YES
+ DIM use_gameplayer as bool = YES
  DIM gameplayer as string
  gameplayer = get_windows_gameplayer()
  IF gameplayer = "" THEN
@@ -1467,7 +1467,7 @@ FUNCTION get_debian_package_name() as string
  s = exclude(s, "'")
  DIM result as string = ""
  DIM ch as string
- DIM dash as integer = NO
+ DIM dash as bool = NO
  FOR i as integer = 1 TO LEN(s)
    ch = MID(s, i, 1)
    IF ch >= "a" ANDALSO ch <= "z" THEN
@@ -1792,7 +1792,7 @@ SUB distribute_game_as_linux_tarball (which_arch as string)
 
 END SUB
 
-FUNCTION dist_yesno(capt as string, byval defaultval as integer=YES, byval escval as integer=NO) as integer
+FUNCTION dist_yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
  IF auto_yes THEN RETURN YES
  RETURN yesno(capt, defaultval, escval)
 END FUNCTION

@@ -542,7 +542,7 @@ END IF
 xbload tmpdir + archinym + ".gen", gen(), "general game data missing from " + sourcerpg
 killfile tmpdir + archinym + ".gen"  'So it doesn't override the copy in workingdir
 
-DIM forcerpgcopy as integer = NO
+DIM forcerpgcopy as bool = NO
 IF gen(genVersion) > CURRENT_RPG_VERSION THEN
  debug "genVersion = " & gen(genVersion)
  future_rpg_warning  '(fatal error is running_as_slave)

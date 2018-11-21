@@ -2196,7 +2196,7 @@ DO
  END IF
 
  IF st.editmode = zone_mode THEN
-  DIM zoneselected as integer = YES
+  DIM zoneselected as bool = YES
   textcolor uilook(uiText), 0
   IF st.zonesubmode = zone_edit_mode THEN
    SELECT CASE st.tool
@@ -3617,7 +3617,7 @@ SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector
  menu[1].text = "Default tileset: "
  menu[1].role = ltDefaultTileset
  
- DIM needdefault as integer = NO
+ DIM needdefault as bool = NO
  
  DIM slot as integer = 2
  FOR i as integer = 0 TO small(UBOUND(st.map.tiles), st.map.gmap(31) - 1)
@@ -5492,7 +5492,7 @@ SUB mapedit_throw_away_history(st as MapEditState)
 END SUB
 
 SUB mapedit_show_undo_change(st as MapEditState, byval undostroke as MapEditUndoTile vector)
- DIM seen_change as integer = NO
+ DIM seen_change as bool = NO
  DIM cursorpos as MapEditUndoTile ptr = NULL
 
  FOR i as integer = 0 TO v_len(undostroke) - 1
