@@ -1371,6 +1371,8 @@ SUB reload_heroes_reld()
  NEXT
 
  FreeDocument doc
+
+ load_special_tag_caches  'includes hero tags
 END SUB
 
 'Ignores changes to tilesets. That is handled by try_reload_map_lump and happens only when .T changes.

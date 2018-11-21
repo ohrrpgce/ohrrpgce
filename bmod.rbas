@@ -2056,6 +2056,7 @@ SUB checkTagCond (byref t as AttackDataTag, byval check as AttackTagConditionEnu
    IF NOT istag(t.tagcheck, 0) THEN EXIT SUB
   END IF
   settag t.tag  'Set the original damned tag!
+  tag_updates NO  'npc_visibility=NO
  END IF
 END SUB
 

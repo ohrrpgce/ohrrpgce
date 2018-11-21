@@ -55,6 +55,9 @@ FUNCTION individual_item_editor(item_id as integer) as integer
   item_editor_init_new itembuf()
   saveitemdata itembuf(), item_id
  END IF
+ IF item_id > UBOUND(itemtags) THEN
+  load_special_tag_caches
+ END IF
 
  CONST menusize as integer = 21
  DIM menu(menusize) as string

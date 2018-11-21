@@ -5268,7 +5268,8 @@ End Destructor
 
 SUB load_special_tag_caches()
  DIM her as HeroDef
- FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags))
+ REDIM herotags(gen(genMaxHero))
+ FOR i as integer = 0 TO gen(genMaxHero)
   WITH herotags(i)
    loadherodata her, i
    .have_tag = her.have_tag
@@ -5282,7 +5283,8 @@ SUB load_special_tag_caches()
   END WITH
  NEXT i
  REDIM item_data(dimbinsize(binITM)) as integer
- FOR i as integer = 0 TO small(gen(genMaxItem), UBOUND(itemtags))
+ REDIM itemtags(gen(genMaxItem))
+ FOR i as integer = 0 TO gen(genMaxItem)
   WITH itemtags(i)
    loaditemdata item_data(), i
    .have_tag = item_data(74)

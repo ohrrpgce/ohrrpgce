@@ -90,8 +90,8 @@ DIM persist_reld_doc as DocPtr
 REDIM tag(1000) as integer '16000 bitsets
 REDIM onetime(1000) as integer '16000 bitsets
 
-REDIM herotags(maxMaxHero) as HeroTagsCache
-REDIM itemtags(maxMaxItems) as ItemTagsCache
+REDIM herotags() as HeroTagsCache
+REDIM itemtags() as ItemTagsCache
 REDIM statnames() as string
 
 'Party stuff
@@ -685,6 +685,8 @@ gam.debug_textbox_info = NO
 gam.debug_scripts = 0
 gam.walk_through_walls = NO
 
+load_special_tag_caches
+
 reset_vehicle vstate
 
 '========================== Title and loadgame menu ============================
@@ -743,8 +745,6 @@ ELSE
  prepare_map
 END IF
 
-load_special_tag_caches
-evalherotags
 
 
 '================================= Main loop ==================================
@@ -752,6 +752,7 @@ evalherotags
 
 queue_fade_in
 'DEBUG debug "pre-call update_heroes"
+evalherotags
 update_heroes(YES)
 setkeys
 
@@ -3395,6 +3396,7 @@ SUB advance_text_box ()
  IF txt.box.choice_enabled THEN
   MenuSound gen(genAcceptSFX)
   settag txt.box.choice_tag(txt.choicestate.pt)
+  tag_updates NO  'npc_visibility=NO
  END IF
  '---RESET MUSIC----
  IF txt.box.restore_music THEN
