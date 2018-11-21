@@ -436,31 +436,37 @@ END SUB
 SUB evalitemtags
  DIM as integer id
 
- FOR i as integer = 0 TO maxMaxItems
-  'clear all four tags
-  settag itemtags(i).have_tag, NO
-  settag itemtags(i).in_inventory_tag, NO
-  settag itemtags(i).is_equipped_tag, NO
-  settag itemtags(i).is_actively_equipped_tag, NO
+ FOR i as integer = 0 TO small(gen(genMaxItem), UBOUND(itemtags))
+  WITH itemtags(i)
+   'clear all four tags
+   settag .have_tag, NO
+   settag .in_inventory_tag, NO
+   settag .is_equipped_tag, NO
+   settag .is_actively_equipped_tag, NO
+  END WITH
  NEXT i
 
  'search inventory slots
  FOR j as integer = 0 TO last_inv_slot()
   'get item ID
   id = inventory(j).id
-  IF inventory(j).used THEN 'there is an item in this slot
-   settag itemtags(id).have_tag, YES
-   settag itemtags(id).in_inventory_tag, YES
+  IF id <= UBOUND(itemtags) ANDALSO inventory(j).used THEN 'there is an item in this slot
+   WITH itemtags(id)
+    settag .have_tag, YES
+    settag .in_inventory_tag, YES
+   END WITH
   END IF
  NEXT j
 
- FOR j as integer = 0 TO 40 'search hero list
-  FOR k as integer = 0 TO 4 'search equipment slots
+ FOR j as integer = 0 TO UBOUND(gam.hero) 'search hero list
+  FOR k as integer = 0 TO UBOUND(gam.hero(j).equip) 'search equipment slots
    id = gam.hero(j).equip(k).id
-   IF id >= 0 THEN ' there is an item equipped in this slot
-    settag itemtags(id).have_tag, YES
-    settag itemtags(id).is_equipped_tag, YES
-    IF j < 4 THEN settag itemtags(id).is_actively_equipped_tag, YES
+   IF id >= 0 ANDALSO id <= UBOUND(itemtags) THEN ' there is an item equipped in this slot
+    WITH itemtags(id)
+     settag .have_tag, YES
+     settag .is_equipped_tag, YES
+     IF j < active_party_slots THEN settag .is_actively_equipped_tag, YES
+    END WITH
    END IF
   NEXT k
  NEXT j
