@@ -3485,6 +3485,7 @@ SUB end_text_box_chain ()
  'Lots of things in advance_text_box directly or indirectly affect tags. All of the functions
  'called (except settag) make sure the proper effects occur themselves, but we do it all again
  'to be sure. Also, update NPC visibility now, we intentionally called "tag_updates NO" earlier
+ 'in advance_textbox and usenpc
  evalitemtags
  evalherotags
  tag_updates

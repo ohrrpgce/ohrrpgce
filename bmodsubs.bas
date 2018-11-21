@@ -555,9 +555,9 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
    WITH attack.elemental_fail_conds(i)
     DIM fail as bool = NO
     DIM effectiveval as single = target.elementaldmg(i)
-    DIM t as integer = .type AND 15
-    IF .type AND 16 THEN effectiveval = ABS(effectiveval)
-    IF .type AND 64 THEN effectiveval = rando() * effectiveval
+    DIM t as CompType = .comp AND 15
+    IF .comp AND 16 THEN effectiveval = ABS(effectiveval)
+    IF .comp AND 64 THEN effectiveval = rando() * effectiveval
     IF t = compLt OR t = compLe THEN
      '"Simulate old fail vs element resist bit":
      'The old bit checked only the target's Strong bits, ignoring their Absorb bits
@@ -570,7 +570,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
     IF t = compGt THEN fail = (effectiveval > .value + 0.000005)
     IF t = compGe THEN fail = (effectiveval >= .value - 0.000005)
     IF fail THEN
-     IF .type AND 32 THEN
+     IF .comp AND 32 THEN
       target.harm.text = readglobalstring(120, "miss", 20)
       RETURN atkMiss
      ELSE

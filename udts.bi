@@ -9,7 +9,7 @@
 'Forward declarations
 TYPE SliceFwd as Slice
 
-ENUM CompType
+ENUM 'CompType
   compNone
   compEq  ' =
   compNe  ' <>
@@ -17,8 +17,10 @@ ENUM CompType
   compLe  ' <=
   compGt  ' >
   compGe  ' >=
-  compTag ' 
+  compTag '
+  compLAST = compTag
 END ENUM
+TYPE CompType as integer
 
 'A check on the value of a tag or global variable. When type == compTag, then
 '.tag is positive to check that the tag is on, and negative to check it is off,
@@ -29,7 +31,7 @@ TYPE Condition
     varnum as integer  ' global
     tag as integer
   END UNION
-  type as CompType
+  comp as CompType
   value as integer  'Not used when type == compTag
   'The following only used only in Custom and never saved
   editstate as ubyte
@@ -621,8 +623,10 @@ Type AttackDataChain
 End Type
 
 Type AttackElementCondition
-	type as integer
-	value as single
+	comp as integer  'a CompType with extra bits set:
+	                 '16: Invert condition, 32: Miss instead of fail,
+	                 '64: Multiply threshold value by random(0.0, 1.0)
+	value as single  'Threshold
 End Type
 
 

@@ -383,18 +383,18 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
 
  WITH cond
 
-  'debug "cond_grabber: .type = " & comp_strings(.type) & " tag/var = " & .tag & " value = " & .value & " editst = " & .editstate & " lastchar = " & CHR(.lastinput) & "  default = " & default
+  'debug "cond_grabber: .comp = " & comp_strings(.comp) & " tag/var = " & .tag & " value = " & .value & " editst = " & .editstate & " lastchar = " & CHR(.lastinput) & "  default = " & default
 
   IF keyval(scDelete) > 1 THEN
-   .type = 0
+   .comp = 0
    RETURN YES
   END IF
 
   'Simplify
-  IF .type = compTag AND .tag = 0 THEN .type = 0
+  IF .comp = compTag AND .tag = 0 THEN .comp = 0
 
   'enter_or_space
-  IF .type = compTag AND alwaysedit = NO THEN
+  IF .comp = compTag AND alwaysedit = NO THEN
    IF enter_or_space() THEN
     DIM browse_tag as integer
     browse_tag = tags_menu(.tag, YES, YES)
@@ -428,11 +428,11 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
 
    IF charnum THEN
     entered_operator = YES
-    DIM newtype as integer = -1
+    DIM newcomp as CompType = -1
 
-    IF .type = compNone OR .type = compTag OR .editstate = 1 OR .editstate = 5 THEN
+    IF .comp = compNone OR .comp = compTag OR .editstate = 1 OR .editstate = 5 THEN
      'Ignore the current operator; we're pretending there is none
-     newtype = a_findcasei(comp_strings(), inchar)
+     newcomp = a_findcasei(comp_strings(), inchar)
 
     ELSE
      'First check whether in the middle of typing a comparison operator.
@@ -440,28 +440,28 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
      'change to >= regardless of initial state
      IF .lastinput THEN
       'Only checking input strings of len 2
-      newtype = a_findcasei(comp_strings(), CHR(.lastinput) + inchar)
+      newcomp = a_findcasei(comp_strings(), CHR(.lastinput) + inchar)
      END IF
 
-     IF newtype = -1 THEN
+     IF newcomp = -1 THEN
       'This _temp variable is to work around a FB bug, https://sourceforge.net/p/fbc/bugs/816/
       '(Fixed in FB 1.06.)
       'It only occurs when compiling with debug=0 (without -exx. Whether adding/removing -exx causes
       'the bug to occur depends on the surrounding context in the function).
       DIM _temp as integer = charnum - 1
-      DIM tempcomp as string = statetable(_temp, .type)
-      newtype = a_findcasei(comp_strings(), tempcomp)
+      DIM tempcomp as string = statetable(_temp, .comp)
+      newcomp = a_findcasei(comp_strings(), tempcomp)
      END IF
     END IF
 
-    IF newtype > -1 THEN
-     IF .type = compNone OR .type = compTag THEN
+    IF newcomp > -1 THEN
+     IF .comp = compNone OR .comp = compTag THEN
       'In future, largest allowable tag ID will increase
       .varnum = small(ABS(.tag), maxScriptGlobals)
       .value = 0
       .editstate = 2
      END IF
-     .type = newtype
+     .comp = newcomp
     END IF
    END IF
 
@@ -469,13 +469,13 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
   NEXT
 
   'Other input: a finite state machine
-  IF .type = compNone THEN
-   'No need to check for entered_operator: the type would have changed
+  IF .comp = compNone THEN
+   'No need to check for entered_operator: the comp would have changed
    .tag = 0
    IF intgrabber(.tag, -max_tag(), max_tag()) THEN
-    .type = compTag
+    .comp = compTag
    END IF
-  ELSEIF .type = compTag THEN
+  ELSEIF .comp = compTag THEN
    'editstate meaning (asterisks indicate highlighting)
    '0: Tag #=OFF/ON  (no highlight)
    '1: Tag *#*=OFF/ON
@@ -523,7 +523,7 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
       IF .editstate = 1 THEN .editstate = 2 ELSE .editstate = 4
      ELSEIF keyval(scBackspace) > 1 AND .varnum = 0 THEN
       .editstate = 0
-      .type = compNone
+      .comp = compNone
      ELSE
       intgrabber(.varnum, 0, maxScriptGlobals)
      END IF
@@ -543,7 +543,7 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
      ELSEIF .editstate = 5 AND entered_operator THEN
       .editstate = 4
      ELSEIF keyval(scBackspace) > 1 THEN
-      DIM newcomp as string = comp_strings(.type)
+      DIM newcomp as string = comp_strings(.comp)
       IF .editstate = 5 THEN  'state 5 simulates LEN(newcomp) = 0
        .editstate = 1
       ELSEIF LEN(newcomp) = 1 THEN
@@ -553,7 +553,7 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
         .editstate = 5
        END IF
       ELSE 'LEN = 2
-       .type = a_findcasei(comp_strings(), LEFT(newcomp, 1))
+       .comp = a_findcasei(comp_strings(), LEFT(newcomp, 1))
       END IF
      ELSE
       temp = 0
@@ -595,10 +595,10 @@ SUB cond_editor (cond as Condition, default as bool = NO, outer_state as MenuSta
  DIM starttag as integer = 1
 
  ' Determine initial menu selection
- IF cond.type = compTag AND cond.tag = 0 THEN cond.type = compNone
- IF cond.type = compNone THEN
+ IF cond.comp = compTag AND cond.tag = 0 THEN cond.comp = compNone
+ IF cond.comp = compNone THEN
   st.pt = IIF(default, 1, 2)
- ELSEIF cond.type = compTag THEN
+ ELSEIF cond.comp = compTag THEN
   starttag = ABS(cond.tag)
   IF cond.tag = 1 THEN
    st.pt = 2
@@ -610,8 +610,8 @@ SUB cond_editor (cond as Condition, default as bool = NO, outer_state as MenuSta
    st.pt = 4
   END IF
  ELSE
-  st.pt = a_find(compty(), cond.type)
-  IF st.pt = -1 THEN st.pt = 1   'If cond.type is invalid
+  st.pt = a_find(compty(), cond.comp)
+  IF st.pt = -1 THEN st.pt = 1   'If cond.comp is invalid
  END IF
 
  DIM menuopts as MenuOptions
@@ -646,7 +646,7 @@ SUB cond_editor (cond as Condition, default as bool = NO, outer_state as MenuSta
 
   ' Typing a number could be any type. Select what's under the cursor
   IF compty(st.pt) <> 0 AND INSTR(getinputtext, ANY "0123456789") > 0 THEN
-   cond.type = compty(st.pt)
+   cond.comp = compty(st.pt)
    cond.varnum = 0  'Clear ID so you can type it in
    cond.editstate = 6  'Editing global ID. Also valid editstate for tags.
    EXIT DO
@@ -655,7 +655,7 @@ SUB cond_editor (cond as Condition, default as bool = NO, outer_state as MenuSta
   ' If you start typing a relation, exit to cond_grabber which will handle it
   ' FIXME: regardless of editstate, the cond_grabber ignores the keypress
   IF INSTR(getinputtext, ANY "=<>!") > 0 THEN
-   IF cond.type = compTag OR cond.type = compNone THEN cond.type = compEq
+   IF cond.comp = compTag OR cond.comp = compNone THEN cond.comp = compEq
    cond.editstate = 6
    EXIT DO
   END IF
@@ -664,22 +664,22 @@ SUB cond_editor (cond as Condition, default as bool = NO, outer_state as MenuSta
   ' and cond_grabber processes the TAB.
   ' Also, press TAB to select a tag option but skip the tag browser.
   IF enter_space_click(st) OR keyval(scTab) > 1 THEN
-   IF compty(st.pt) THEN cond.type = compty(st.pt)
+   IF compty(st.pt) THEN cond.comp = compty(st.pt)
    SELECT CASE st.pt
     CASE 0:
      EXIT DO
     CASE 1:
      IF default THEN
-      cond.type = compNone
+      cond.comp = compNone
      ELSE
-      cond.type = compTag
+      cond.comp = compTag
       cond.tag = -1
      END IF
     CASE 2:
      IF default = NO THEN
-      cond.type = compNone
+      cond.comp = compNone
      ELSE
-      cond.type = compTag
+      cond.comp = compTag
       cond.tag = 1
      END IF
     CASE 3, 4:
@@ -728,15 +728,15 @@ FUNCTION condition_string (cond as Condition, selected as bool, default as strin
   cond.lastinput = 0
  ELSEIF cond.editstate = 0 THEN
   ' Set initial edit state to highlight the relevant part
-  IF cond.type = compTag THEN
+  IF cond.comp = compTag THEN
    cond.editstate = 1
-  ELSEIF cond.type <> compNone THEN
+  ELSEIF cond.comp <> compNone THEN
    cond.editstate = 6   ' Initially, the global ID is edited
   END IF
  END IF
 
- IF cond.type = compNone THEN
- ELSEIF cond.type = compTag THEN
+ IF cond.comp = compNone THEN
+ ELSEIF cond.comp = compTag THEN
   IF cond.tag = 0 THEN
   ELSE
    IF cond.editstate = 0 THEN
@@ -753,23 +753,23 @@ FUNCTION condition_string (cond as Condition, selected as bool, default as strin
     ret += " (" & load_tag_name(ABS(cond.tag)) & ")"
    END IF
   END IF
- ELSEIF cond.type >= compEq AND cond.type <= compGe THEN
+ ELSEIF cond.comp >= compEq AND cond.comp <= compGe THEN
   SELECT CASE cond.editstate
    CASE 0
-    ret = "Global #" & cond.varnum & " " & comp_strings(cond.type) & " " & cond.value
+    ret = "Global #" & cond.varnum & " " & comp_strings(cond.comp) & " " & cond.value
    CASE 1
     ret = "Global #" & hilite(str(cond.varnum), hlcol)
    CASE 2
-    ret = "Global #" & cond.varnum & " " & hilite(comp_strings(cond.type), hlcol)
+    ret = "Global #" & cond.varnum & " " & hilite(comp_strings(cond.comp), hlcol)
    CASE 3
-    ret = "Global #" & cond.varnum & " " & comp_strings(cond.type) & hilite(" " & cond.value, hlcol)
+    ret = "Global #" & cond.varnum & " " & comp_strings(cond.comp) & hilite(" " & cond.value, hlcol)
    CASE 4
-    ret = "Global #" & cond.varnum & " " & hilite(comp_strings(cond.type), hlcol) & " " & cond.value
+    ret = "Global #" & cond.varnum & " " & hilite(comp_strings(cond.comp), hlcol) & " " & cond.value
    CASE 5
     'FIXME: a tag for text background colour hasn't been implemented yet
     ret = "Global #" & cond.varnum & hilite(" ? ", hlcol) & cond.value
    CASE 6
-    ret = "Global #" & hilite(cond.varnum & " ", hlcol) & comp_strings(cond.type) & " " & cond.value
+    ret = "Global #" & hilite(cond.varnum & " ", hlcol) & comp_strings(cond.comp) & " " & cond.value
   END SELECT
  ELSE
   ret = "[Corrupt condition data]"
@@ -881,10 +881,10 @@ END FUNCTION
 
 'Return initial representation string for percent_cond_grabber
 FUNCTION format_percent_cond(cond as AttackElementCondition, default as string, byval decimalplaces as integer = 4) as string
- IF cond.type = compNone THEN
+ IF cond.comp = compNone THEN
   RETURN default
  ELSE
-  RETURN " " + comp_strings(cond.type) + " " + format_percent(cond.value, decimalplaces)
+  RETURN " " + comp_strings(cond.comp) + " " + format_percent(cond.value, decimalplaces)
  END IF
 END FUNCTION
 
@@ -893,28 +893,28 @@ END FUNCTION
 FUNCTION percent_cond_grabber(byref cond as AttackElementCondition, byref repr as string, default as string, byval min as double, byval max as double, byval decimalplaces as integer = 4, ret_if_repr_changed as bool = YES) as bool
  WITH cond
   DIM intxt as string = getinputtext
-  DIM newtype as integer = .type
+  DIM newcomp as CompType = .comp
   DIM oldrepr as string = repr
   DIM ret as bool
 
-  IF keyval(scDelete) > 1 THEN newtype = compNone
+  IF keyval(scDelete) > 1 THEN newcomp = compNone
 
   'Listen for comparison operator input
-  IF INSTR(intxt, "<") THEN newtype = compLt
-  IF INSTR(intxt, ">") THEN newtype = compGt
+  IF INSTR(intxt, "<") THEN newcomp = compLt
+  IF INSTR(intxt, ">") THEN newcomp = compGt
 
-  IF newtype <> .type THEN
-   IF .type = compNone THEN .value = 0
-   .type = newtype
+  IF newcomp <> .comp THEN
+   IF .comp = compNone THEN .value = 0
+   .comp = newcomp
    repr = format_percent_cond(cond, default, decimalplaces)
    ret = YES
-  ELSEIF .type = compNone THEN
+  ELSEIF .comp = compNone THEN
    DIM temp as string = "0%"
    .value = 0
    'typing 0 doesn't change the value or repr, workaround
    IF percent_grabber(.value, temp, min, max, decimalplaces, NO) OR INSTR(intxt, "0") > 0 THEN
     repr = " < " + temp  'Default
-    .type = compLt
+    .comp = compLt
     ret = YES
    END IF
   ELSE
@@ -922,12 +922,12 @@ FUNCTION percent_cond_grabber(byref cond as AttackElementCondition, byref repr a
    repr = MID(repr, 4)
    IF keyval(scBackspace) > 1 ANDALSO repr = "0%" THEN
     repr = default
-    .type = compNone
+    .comp = compNone
     ret = YES
    ELSE
     ret OR= percent_grabber(.value, repr, min, max, decimalplaces, NO)
     'Add the operator back
-    repr = " " + comp_strings(.type) + " " + repr
+    repr = " " + comp_strings(.comp) + " " + repr
    END IF
   END IF
 
@@ -937,10 +937,10 @@ FUNCTION percent_cond_grabber(byref cond as AttackElementCondition, byref repr a
 END FUNCTION
 
 SUB percent_cond_editor (cond as AttackElementCondition, byval min as double, byval max as double, byval decimalplaces as integer = 4, do_what as string = "...", percent_of_what as string = "")
- DIM cond_types(2) as integer = {compNone, compLt, compGt}
- DIM type_num as integer
+ DIM cond_types(2) as CompType = {compNone, compLt, compGt}
+ DIM comp_num as CompType
  FOR i as integer = 0 TO 2
-  IF cond.type = cond_types(i) THEN type_num = i
+  IF cond.comp = cond_types(i) THEN comp_num = i
  NEXT
 
  DIM menu(2) as string
@@ -957,16 +957,16 @@ SUB percent_cond_editor (cond as AttackElementCondition, byval min as double, by
   IF keyval(ccCancel) > 1 OR enter_space_click(st) THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "percent_cond_editor"
   SELECT CASE st.pt
-   CASE 1: IF intgrabber(type_num, 0, 2) THEN cond.type = cond_types(type_num)
+   CASE 1: IF intgrabber(comp_num, 0, 2) THEN cond.comp = cond_types(comp_num)
    CASE 2: percent_grabber(cond.value, repr, min, max, decimalplaces)
   END SELECT
 
   'Update
-  IF cond.type = compNone THEN menu(1) = "Condition: Never"
-  IF cond.type = compGt THEN menu(1) = "Condition: " + do_what + " when more than..."
-  IF cond.type = compLt THEN menu(1) = "Condition: " + do_what + " when less than..."
+  IF cond.comp = compNone THEN menu(1) = "Condition: Never"
+  IF cond.comp = compGt THEN menu(1) = "Condition: " + do_what + " when more than..."
+  IF cond.comp = compLt THEN menu(1) = "Condition: " + do_what + " when less than..."
   menu(2) = "Threshold: " + repr + percent_of_what
-  st.last = IIF(cond.type = compNone, 1, 2)
+  st.last = IIF(cond.comp = compNone, 1, 2)
 
   usemenu st
 

@@ -2959,31 +2959,31 @@ SUB loadoldattackelementalfail (byref cond as AttackElementCondition, buf() as i
  WITH cond
   IF element < 8 THEN
    IF xreadbit(buf(), 21+element, 20) THEN  'atkdat.fail_vs_elemental_resistance(element)
-    .type = compLt  '< 100% damage
+    .comp = compLt  '< 100% damage
     .value = 1.00
    ELSE
-    .type = compNone     
+    .comp = compNone
    END IF
   ELSEIF element < 16 THEN
    IF xreadbit(buf(), 21+element, 20) THEN  'atkdat.fail_vs_monster_type(element - 8)
-    .type = compGt  '> 100% damage from "enemytype#-killer"
+    .comp = compGt  '> 100% damage from "enemytype#-killer"
     .value = 1.00
    ELSE
-    .type = compNone
+    .comp = compNone
    END IF
   ELSE
-   .type = compNone
+   .comp = compNone
   END IF
  END WITH
 END SUB
 
 SUB SerAttackElementCond (cond as AttackElementCondition, buf() as integer, byval index as integer)
- buf(index) = cond.type
+ buf(index) = cond.comp
  SerSingle buf(), index + 1, cond.value
 END SUB
 
 SUB DeSerAttackElementCond (cond as AttackElementCondition, buf() as integer, byval index as integer)
- cond.type = buf(index)
+ cond.comp = buf(index)
  cond.value = DeSerSingle(buf(), index + 1)
 END SUB
 
