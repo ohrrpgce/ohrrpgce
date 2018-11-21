@@ -386,38 +386,41 @@ FUNCTION user_textbox_advance() as bool
 END FUNCTION
 
 SUB evalherotags ()
- DIM as integer id
  DIM leaderid as integer = herobyrank(0)
 
  FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags)) '--for each available hero
   'unset all tags, including ones used on heroes not in the party 
-  settag herotags(i).have_tag, NO
-  settag herotags(i).alive_tag, NO
-  settag herotags(i).leader_tag, NO
-  settag herotags(i).active_tag, NO
-  FOR j as integer = 0 TO v_len(herotags(i).checks) - 1
-   settag herotags(i).checks[j].tag, NO
-  NEXT j
+  WITH herotags(i)
+   settag .have_tag, NO
+   settag .alive_tag, NO
+   settag .leader_tag, NO
+   settag .active_tag, NO
+   FOR j as integer = 0 TO v_len(.checks) - 1
+    settag .checks[j].tag, NO
+   NEXT j
+  END WITH
  NEXT i
  'scan party
  FOR i as integer = 0 TO UBOUND(gam.hero)
-  id = gam.hero(i).id
-  IF id >= 0 THEN
-   settag herotags(id).have_tag, YES
-   IF gam.hero(i).stat.cur.hp > 0 THEN settag herotags(id).alive_tag, YES
-   IF id = leaderid THEN settag herotags(id).leader_tag, YES
-   IF i < 4 THEN settag herotags(id).active_tag, YES
-   FOR j as integer = 0 TO v_len(herotags(id).checks) - 1
-    WITH herotags(id).checks[j]
-     SELECT CASE .kind
-      CASE TagRangeCheckKind.level
-       IF gam.hero(i).lev >= .min ANDALSO gam.hero(i).lev <= .max THEN
-        settag .tag, YES
-       END IF
-      CASE ELSE
-     END SELECT
-    END WITH
-   NEXT j
+  DIM byref hero as HeroState = gam.hero(i)
+  IF hero.id >= 0 THEN
+   WITH herotags(hero.id)
+    settag .have_tag, YES
+    IF hero.stat.cur.hp > 0 THEN settag .alive_tag, YES
+    IF hero.id = leaderid THEN settag .leader_tag, YES
+    IF i < active_party_slots THEN settag .active_tag, YES
+    FOR j as integer = 0 TO v_len(.checks) - 1
+     WITH .checks[j]
+      SELECT CASE .kind
+       CASE TagRangeCheckKind.level
+        IF hero.lev >= .min ANDALSO hero.lev <= .max THEN
+         settag .tag, YES
+        END IF
+       CASE ELSE
+      END SELECT
+     END WITH
+    NEXT j
+   END WITH
   END IF
  NEXT i
 END SUB

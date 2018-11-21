@@ -5269,23 +5269,27 @@ End Destructor
 SUB load_special_tag_caches()
  DIM her as HeroDef
  FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags))
-  loadherodata her, i
-  herotags(i).have_tag = her.have_tag
-  herotags(i).alive_tag = her.alive_tag
-  herotags(i).leader_tag = her.leader_tag
-  herotags(i).active_tag = her.active_tag
-  v_resize herotags(i).checks, 0
-  FOR j as integer = 0 to UBOUND(her.checks)
-   v_append herotags(i).checks, her.checks(j)
-  NEXT j
+  WITH herotags(i)
+   loadherodata her, i
+   .have_tag = her.have_tag
+   .alive_tag = her.alive_tag
+   .leader_tag = her.leader_tag
+   .active_tag = her.active_tag
+   v_resize .checks, 0
+   FOR j as integer = 0 to UBOUND(her.checks)
+    v_append .checks, her.checks(j)
+   NEXT j
+  END WITH
  NEXT i
  REDIM item_data(dimbinsize(binITM)) as integer
  FOR i as integer = 0 TO small(gen(genMaxItem), UBOUND(itemtags))
-  loaditemdata item_data(), i
-  itemtags(i).have_tag = item_data(74)
-  itemtags(i).in_inventory_tag = item_data(75)
-  itemtags(i).is_equipped_tag = item_data(76)
-  itemtags(i).is_actively_equipped_tag = item_data(77)
+  WITH itemtags(i)
+   loaditemdata item_data(), i
+   .have_tag = item_data(74)
+   .in_inventory_tag = item_data(75)
+   .is_equipped_tag = item_data(76)
+   .is_actively_equipped_tag = item_data(77)
+  END WITH
  NEXT i
 END SUB
 
@@ -5298,20 +5302,24 @@ FUNCTION tag_is_autoset(byval tag_id as integer) as bool
  IF tag_id <= 1 THEN RETURN NO
 
  FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags))
-  IF tag_id = herotags(i).have_tag THEN count += 1
-  IF tag_id = herotags(i).alive_tag THEN count += 1
-  IF tag_id = herotags(i).leader_tag THEN count += 1
-  IF tag_id = herotags(i).active_tag THEN count += 1
-  FOR j as integer = 0 TO v_len(herotags(i).checks) - 1
-   IF tag_id = herotags(i).checks[j].tag THEN count += 1
-  NEXT j
+  WITH herotags(i)
+   IF tag_id = .have_tag THEN count += 1
+   IF tag_id = .alive_tag THEN count += 1
+   IF tag_id = .leader_tag THEN count += 1
+   IF tag_id = .active_tag THEN count += 1
+   FOR j as integer = 0 TO v_len(.checks) - 1
+    IF tag_id = .checks[j].tag THEN count += 1
+   NEXT j
+  END WITH
  NEXT i
 
  FOR i as integer = 0 TO small(gen(genMaxItem), UBOUND(itemtags))
-  IF tag_id = itemtags(i).have_tag THEN count += 1
-  IF tag_id = itemtags(i).in_inventory_tag THEN count += 1
-  IF tag_id = itemtags(i).is_equipped_tag THEN count += 1
-  IF tag_id = itemtags(i).is_actively_equipped_tag THEN count += 1
+  WITH itemtags(i)
+   IF tag_id = .have_tag THEN count += 1
+   IF tag_id = .in_inventory_tag THEN count += 1
+   IF tag_id = .is_equipped_tag THEN count += 1
+   IF tag_id = .is_actively_equipped_tag THEN count += 1
+  END WITH
  NEXT i
 
  RETURN count > 0
@@ -5327,28 +5335,32 @@ FUNCTION describe_tag_autoset_places(byval tag_id as integer) as string
  DIM kind_name as string
 
  FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags)) '--for each available hero
-  IF tag_id = herotags(i).have_tag THEN ret += "Hero " & i & !" in party tag\n"
-  IF tag_id = herotags(i).alive_tag THEN ret += "Hero " & i & !" is alive tag\n"
-  IF tag_id = herotags(i).leader_tag THEN ret += "Hero " & i & !" is leader tag\n"
-  IF tag_id = herotags(i).active_tag THEN ret += "Hero " & i & !" in active party tag\n"
-  FOR j as integer = 0 TO v_len(herotags(i).checks) - 1
-   WITH herotags(i).checks[j]
-    SELECT CASE .kind
-     CASE TagRangeCheckKind.level
-      kind_name = "level"
-     CASE ELSE
-      kind_name = "???(" & .kind & ")"
-    END SELECT
-    IF tag_id = .tag THEN ret += "Hero " & i & " " & kind_name & " check " & j & !"\n"
-   END WITH
-  NEXT j
+  WITH herotags(i)
+   IF tag_id = .have_tag THEN ret += "Hero " & i & !" in party tag\n"
+   IF tag_id = .alive_tag THEN ret += "Hero " & i & !" is alive tag\n"
+   IF tag_id = .leader_tag THEN ret += "Hero " & i & !" is leader tag\n"
+   IF tag_id = .active_tag THEN ret += "Hero " & i & !" in active party tag\n"
+   FOR j as integer = 0 TO v_len(.checks) - 1
+    WITH .checks[j]
+     SELECT CASE .kind
+      CASE TagRangeCheckKind.level
+       kind_name = "level"
+      CASE ELSE
+       kind_name = "???(" & .kind & ")"
+     END SELECT
+     IF tag_id = .tag THEN ret += "Hero " & i & " " & kind_name & " check " & j & !"\n"
+    END WITH
+   NEXT j
+  END WITH
  NEXT i
 
  FOR i as integer = 0 TO maxMaxItems
-  IF tag_id = itemtags(i).have_tag THEN ret += "Item " & i & !" have tag\n"
-  IF tag_id = itemtags(i).in_inventory_tag THEN ret += "Item " & i & !" in inventory tag\n"
-  IF tag_id = itemtags(i).is_equipped_tag THEN ret += "Item " & i & !" is equipped tag\n"
-  IF tag_id = itemtags(i).is_actively_equipped_tag THEN ret += "Item " & i & !" equipped by active hero tag\n"
+  WITH itemtags(i)
+   IF tag_id = .have_tag THEN ret += "Item " & i & !" have tag\n"
+   IF tag_id = .in_inventory_tag THEN ret += "Item " & i & !" in inventory tag\n"
+   IF tag_id = .is_equipped_tag THEN ret += "Item " & i & !" is equipped tag\n"
+   IF tag_id = .is_actively_equipped_tag THEN ret += "Item " & i & !" equipped by active hero tag\n"
+  END WITH
  NEXT i
 
  RETURN ret

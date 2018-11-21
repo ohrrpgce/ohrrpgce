@@ -220,10 +220,12 @@ FUNCTION individual_item_editor(item_id as integer) as integer
     IF tag_id_grabber(itembuf(74 + (state.pt - 11)), state) THEN
      state.need_update = YES
      'Update cache
-     itemtags(item_id).have_tag = itembuf(74)
-     itemtags(item_id).in_inventory_tag = itembuf(75)
-     itemtags(item_id).is_equipped_tag = itembuf(76)
-     itemtags(item_id).is_actively_equipped_tag = itembuf(77)
+     WITH itemtags(item_id)
+      .have_tag = itembuf(74)
+      .in_inventory_tag = itembuf(75)
+      .is_equipped_tag = itembuf(76)
+      .is_actively_equipped_tag = itembuf(77)
+     END WITH
     END IF
   END SELECT
   IF state.need_update THEN
