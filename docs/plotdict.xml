@@ -1068,12 +1068,16 @@ resume random enemies # back to normal</example>
 		<command id="suspendboxadvance">
 			<canon>suspend box advance</canon>
 			<shortname>suspend box advance</shortname>
-			<description>Prevents the player from advancing or clearing text boxes by pressing keys. While this is active, the only way to make a text box advance is with the <ref>advancetextbox</ref> command (or <ref>showtextbox</ref>). Useful for cut scenes that play out like a movie, where the player just watches the dialogue unfold. Be very careful with this command, since you do not want to leave the player stuck on a text box forever.</description>
+			<description>Prevents the player from advancing or clearing text boxes by pressing keys, or moving the cursor in choice boxes. In other words, suspends text box controls. While this is active, the only way to make a text box advance is with the <ref>advancetextbox</ref> command (or <ref>showtextbox</ref>) or using the "Advance text box when menu closes" menu bit. Useful for cut scenes that play out like a movie, where the player just watches the dialogue unfold. Be very careful with this command, since you do not want to leave the player stuck on a text box forever.</description>
 			<example>suspend box advance # stop players from mucking things up
-show text box(2) # Show a text box
-wait(45) # Wait about 3 seconds
-advance text box # "hit spacebar"
+show text box(2)   # Show a text box
+wait(45)           # Wait about 3 seconds
+advance text box   # Next text box. Maybe it ends with "Press USE key to continue"
 resume box advance # go back to normal</example>
+		</command>
+		<command id="suspendtextboxcontrols">
+			<alias>suspendboxadvance</alias>
+			<shortname>suspend textbox controls</shortname>
 		</command>
 		<command id="resumeboxadvance">
 			<canon>resume box advance</canon>
@@ -1081,10 +1085,18 @@ resume box advance # go back to normal</example>
 			<description>Undoes the <ref>suspendboxadvance</ref> command and allows the player to advance and clear text boxes by pressing keys as normal.</description>
 			<example c="suspendboxadvance" />
 		</command>
+		<command id="resumetextboxcontrols">
+			<alias>resumeboxadvance</alias>
+			<shortname>resume textbox controls</shortname>
+		</command>
 		<command id="boxadvanceissuspended">
 			<canon>box advance is suspended</canon>
 			<shortname>box advance is suspended</shortname>
-			<description>Returns true if <ref>suspendboxadvance</ref> is active.</description>
+			<description>Returns true if <ref>suspendboxadvance</ref> (aka <ref>suspendtextboxcontrols</ref>) is active.</description>
+		</command>
+		<command id="textboxcontrolsaresuspended">
+			<alias>boxadvanceissuspended</alias>
+			<shortname>textbox controls are suspended</shortname>
 		</command>
 		<command id="suspendoverlay">
 			<canon>suspend overlay</canon>

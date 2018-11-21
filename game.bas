@@ -847,18 +847,22 @@ DO
    update_hero_pathfinding(i)
   END IF
  NEXT i
- IF txt.fully_shown = YES ANDALSO readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
-  IF user_textbox_advance() THEN advance_text_box
+
+ 'Textbox controls
+ IF readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
+  IF txt.fully_shown = YES THEN
+   IF user_textbox_advance() THEN advance_text_box
+  END IF
+  IF txt.fully_shown = YES ANDALSO txt.box.choice_enabled THEN
+   choicebox_controls
+  END IF
  END IF
- 'debug "after advance_text_box:"
+
  IF vstate.active THEN
   'DEBUG debug "evaluate vehicles"
   update_vehicle_state()
  END IF
- 'You can still move the cursor of a textbox choice box when box advance is suspended
- IF txt.fully_shown = YES AND txt.box.choice_enabled THEN
-  choicebox_controls
- END IF
+
  'DEBUG debug "hero movement"
  update_heroes()
  'DEBUG debug "NPC movement"

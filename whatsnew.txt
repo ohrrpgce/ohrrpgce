@@ -127,6 +127,8 @@ September 29 2018 [Fufluns]
       with joy: key constants), like "key is pressed" did [Ralph]
     * "get joystick name", "joystick button count", "joystick axis count",
       "joystick hat count" [Ralph]
+    * "suspend/resume textbox controls" and "textbox controls are suspended" are
+      aliases to "suspend/resume box advance" and "box advance is suspended"
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"
@@ -134,6 +136,7 @@ September 29 2018 [Fufluns]
       of Labels renamed to "Disabled", and the "Close menu if selected" bit
       renamed to "Close menu when activated"
     * In-battle instant-run debug key moved from Ctrl-F4 to Ctrl-F5
+    * "suspend box advance" now suspends choicebox selection controls too
 
   * Bugfixes
     * Fix a major memory leak while recording .gifs [Ralph]
