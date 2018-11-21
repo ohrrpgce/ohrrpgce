@@ -1309,9 +1309,9 @@ FOR i as integer = 0 TO UBOUND(plotstr)
  END WITH
 NEXT i
 
-FOR i as integer = topmenu TO 0 STEP -1
- remove_menu i, NO
-NEXT i
+ERASE menus
+ERASE mstates
+topmenu = -1
 
 'delete temp files that are part of the game state
 deletetemps

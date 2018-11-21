@@ -171,9 +171,9 @@ lump_reloading.hsp.mode = loadmodeAlways
 
 'Menu Data
 DIM menu_set as MenuSet
-REDIM menus(0) as MenuDef 'This is an array because it holds a stack of hierarchical menus (resized as required)
-REDIM mstates(0) as MenuState
-DIM topmenu as integer = -1
+REDIM menus() as MenuDef  'A stack of hierarchical menus (resized as required - initially zero size)
+REDIM mstates() as MenuState
+DIM topmenu as integer = -1  'Always equal to UBOUND(menus)
 REDIM remembered_menu_pts(0) as integer  'True slot number of the selected menu item when the menu was last closed
 
 'Script interpreter
@@ -2630,16 +2630,11 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as bool=NO) as
  END IF
  'Load the menu into a new menu slot
  topmenu += 1
- IF topmenu > UBOUND(menus) THEN
-  REDIM PRESERVE menus(topmenu) as MenuDef
-  REDIM PRESERVE mstates(topmenu) as MenuState
- END IF
+ REDIM PRESERVE menus(topmenu) as MenuDef
+ REDIM PRESERVE mstates(topmenu) as MenuState
  mstates(topmenu).pt = 0
  mstates(topmenu).top = 0
- IF record = -1 THEN
-  'TODO: this is only necessary because menus(0) is garbage if topmenu = -1
-  ClearMenuData menus(topmenu)
- ELSE
+ IF record <> -1 THEN
   LoadMenuData menu_set, menus(topmenu), record
   IF menus(topmenu).remember_selection THEN
    IF record <= UBOUND(remembered_menu_pts) THEN
@@ -2686,12 +2681,14 @@ SUB remove_menu (byval slot as integer, byval run_on_close as bool=YES)
    trigger_script .on_close, 0, YES, "menu on-close", "menu " & .record, mainFibreGroup
   END IF
  END WITH
- ClearMenuData menus(topmenu)
  topmenu = topmenu - 1
  IF topmenu >= 0 THEN
   REDIM PRESERVE menus(topmenu) as MenuDef
   REDIM PRESERVE mstates(topmenu) as MenuState
   mstates(topmenu).active = YES
+ ELSE
+  ERASE menus
+  ERASE mstates
  END IF
 END SUB
 

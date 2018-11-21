@@ -82,9 +82,6 @@ END SUB
 FUNCTION exportnames (outdir as string = "") as string
  REDIM u(0) as string
  DIM her as HeroDef
- DIM menu_set as MenuSet
- menu_set.menufile = workingdir & SLASH & "menus.bin"
- menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
  DIM elementnames() as string
  getelementnames elementnames()
 
