@@ -3400,6 +3400,11 @@ SUB append_message (s as string)
  END WITH
 END SUB
 
+
+'==========================================================================================
+'                                     Tile animations
+'==========================================================================================
+
 SUB animatetilesets (tilesets() as TilesetData ptr)
  FOR i as integer = 0 TO UBOUND(tilesets)
   'Animate each tileset...
@@ -3461,9 +3466,22 @@ SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
  NEXT i
 END SUB
 
+
+'==========================================================================================
+'                                Finding data files, directories
+'==========================================================================================
+
+PRIVATE FUNCTION get_file_type_logged(path as string) as FileTypeEnum
+ DIM ret as FileTypeEnum = get_file_type(path)
+ #ifdef DEBUG_FILE_IO
+  debuginfo "try_data_path(" & path & ") = " & ret
+ #endif
+ RETURN ret
+END FUNCTION
+
 #MACRO try_data_path(path)
  temp = path
- IF get_file_type(temp) = searchtype THEN RETURN temp
+ IF get_file_type_logged(temp) = searchtype THEN RETURN temp
 #ENDMACRO
 
 PRIVATE FUNCTION finddatafile_internal(filename as string, searchtype as FileTypeEnum) as string
@@ -3538,6 +3556,9 @@ FUNCTION filename_relative_to_datadir(filename as string) as string
  RETURN ret
 END FUNCTION
 
+
+'==========================================================================================
+
 SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as bool = NO)
  'If the length of records in this lump has changed (increased) according to binsize.bin, stretch it, padding records with zeroes.
  'Note: does not create a lump if it doesn't exist.
@@ -3598,13 +3619,10 @@ SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersi
  END IF
 END SUB
 
-'Clamp a value to within a range with warning
-SUB clamp_value (byref value as integer, byval min as integer, byval max as integer, argname as string)
- DIM oldval as integer = value
- IF value < min THEN value = min
- IF value > max THEN value = max
- IF value <> oldval THEN debug "Clamped invalid " + argname + " value " & oldval & " to " & value
-END SUB
+
+'==========================================================================================
+'                                        Passwords
+'==========================================================================================
 
 FUNCTION passwordhash (p as string) as ushort
  'Just a simple stupid 9-bit hash.
@@ -6260,14 +6278,14 @@ FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref director
    IF keyval(scAnyEnter) > 1 THEN
     filename = TRIM(filename)
     IF filename <> "" THEN
-     IF get_file_type(directory + SLASH + filename + *ext) <> fileTypeNonexistent THEN
+     IF is_not_file(directory + SLASH + filename + *ext) THEN
+      RETURN directory + SLASH + filename
+     ELSE
       If allow_overwrite THEN
        IF yesno("That already exists, overwrite?") THEN RETURN directory + SLASH + filename
       ELSE
        notification filename & *ext & " already exists"
       END IF
-     ELSE
-      RETURN directory + SLASH + filename
      END IF
     END IF
    END IF

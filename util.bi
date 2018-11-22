@@ -368,6 +368,7 @@ declare function fileiswriteable(filename as string) as bool
 declare function diriswriteable(filename as string) as bool
 declare function isfile(filename as string) as bool
 declare function real_isfile(filename as string) as bool
+declare function is_not_file(filename as string) as bool
 declare function isdir (filename as string) as bool
 declare function count_directory_size(directory as string) as integer
 
@@ -535,7 +536,7 @@ Enum AlignType
 End Enum
 
 CONST _rFactor = 10100000
-' Max amount that can be added to an r* or anc* constant
+' Max amount that can be added to/subtracted from an r* or anc* constant
 CONST _rMargin = 50000
 
 ' Relative coordinates, used by relative_pos() and various functions
@@ -562,7 +563,7 @@ CONST ancCenter = _rFactor * 1
 CONST ancMiddle = _rFactor * 1
 CONST ancBottom = _rFactor * 2
 CONST ancRight =  _rFactor * 2
-' show* constants shift so the left-most or right-most part of the object is visible
+' show* constants shift if over the screen edge, so the left-most or right-most part of the object is visible
 CONST showLeft =  _rFactor * 9
 CONST showTop  =  _rFactor * 9
 CONST showRight = _rFactor * 18
@@ -588,6 +589,7 @@ declare function bound overload (byval n as integer, byval lowest as integer, by
 declare function bound overload (byval n as longint, byval lowest as longint, byval highest as longint) as longint
 declare function bound overload (byval n as double, byval lowest as double, byval highest as double) as double
 declare function in_bound (byval n as integer, byval lowest as integer, byval highest as integer) as integer
+declare sub clamp_value (byref value as integer, byval min as integer, byval max as integer, argname as string)
 declare function large overload (byval n1 as integer, byval n2 as integer) as integer
 declare function large overload (byval n1 as longint, byval n2 as longint) as longint
 declare function large overload (byval n1 as double, byval n2 as double) as double

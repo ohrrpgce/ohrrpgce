@@ -378,6 +378,14 @@ FUNCTION in_bound (byval n as integer, byval lowest as integer, byval highest as
  RETURN (n >= lowest) AND (n <= highest)
 END FUNCTION
 
+'Clamp a value to within a range with warning
+SUB clamp_value (byref value as integer, byval min as integer, byval max as integer, argname as string)
+ DIM oldval as integer = value
+ IF value < min THEN value = min
+ IF value > max THEN value = max
+ IF value <> oldval THEN debug "Clamped invalid " + argname + " value " & oldval & " to " & value
+END SUB
+
 FUNCTION large (byval n1 as integer, byval n2 as integer) as integer
  large = n1
  IF n2 > n1 THEN large = n2
@@ -2775,7 +2783,7 @@ FUNCTION fileiswriteable(filename as string) as bool
     ret = YES
   end if
 #ifdef DEBUG_FILE_IO
-  debuginfo "fileiswriteable(" & filename & ") = " & ret
+  debuginfo "fileiswriteable(" & filename & ") = " & ret & " exists=" & exists
 #endif
   return ret
 END FUNCTION
@@ -2819,9 +2827,21 @@ END FUNCTION
 
 FUNCTION real_isfile(filename as string) as bool
   if len(filename) = 0 then debug "real_isfile: no filename" : return NO
-  dim ret as bool = (get_file_type(filename) = fileTypeFile)
+  dim filetype as FileTypeEnum = get_file_type(filename)
+  dim ret as bool = (filetype = fileTypeFile)
   #ifdef DEBUG_FILE_IO
     debuginfo "real_isfile(" & filename & ") = " & ret
+    IF ret = NO ANDALSO filetype <> fileTypeNonexistent THEN debuginfo " filetype=" & filetype
+  #endif
+  return ret
+END FUNCTION
+
+'Check whether a filename doesn't refer to a file/dir/etc
+FUNCTION is_not_file (filename as string) as bool
+  dim filetype as FileTypeEnum = get_file_type(filename)
+  dim ret as bool = (filetype = fileTypeNonexistent)
+  #ifdef DEBUG_FILE_IO
+    debuginfo "is_not_file(" & filename & ") = " & ret & " filetype=" & filetype
   #endif
   return ret
 END FUNCTION
