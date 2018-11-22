@@ -3498,10 +3498,10 @@ PRIVATE FUNCTION finddatafile_internal(filename as string, searchtype as FileTyp
   '~/.ohrrpgce/
   try_data_path(settings_dir & filename)
   ' Assuming the binary is in $prefix/games or $prefix/bin
-  CONST DATAFILES = "../share/games/ohrrpgce/"
-  try_data_path(DATAFILES & filename)
-  ' In this case the packaging script could avoid put anything in a subdirectory
+  DIM DATAFILES as string = exepath & "/../share/games/ohrrpgce/"
+  ' In this case the packaging script could avoid putting anything in a subdirectory
   try_data_path(DATAFILES & "data/" & filename)
+  try_data_path(DATAFILES & filename)
  #ENDIF
  RETURN ""
 END FUNCTION
