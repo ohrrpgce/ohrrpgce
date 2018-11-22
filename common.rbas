@@ -3147,24 +3147,35 @@ FUNCTION find_support_dir () as string
  RETURN "" ' not found. booo! :(
 END FUNCTION
 
+#MACRO try_app_path(path)
+ temp = path
+ IF isfile(temp) THEN RETURN temp
+#ENDMACRO
+
 FUNCTION find_helper_app (appname as zstring ptr, try_install as bool=NO, download_url as zstring ptr=@"") as string
  'Returns an empty string if the app is not found, or the full path if it is found
 
  'try_install currently only works on Windows, and not for all possible apps
  'download_url: only used if try_install is true, to override the default
 
+ DIM temp as string
+
  'Look in the same folder as CUSTOM/GAME
- IF isfile(exepath & SLASH & *appname & DOTEXE) THEN RETURN exepath & SLASH & *appname & DOTEXE
+ try_app_path(exepath & SLASH & *appname & DOTEXE)
 
  #IFDEF __FB_DARWIN__
-  IF isfile(exepath & "/support/" & *appname) THEN RETURN exepath & "/support/" & *appname
+  try_app_path(exepath & "/support/" & *appname)
  #ENDIF
  #IFDEF __FB_UNIX__
   'Use the standard util "which" to search the path
   DIM where as string
   run_and_get_output("which " & *appname, where, , NO)  'disable debuginfo spam
   'where is empty on failure
-  RETURN RTRIM(where, !"\n")
+  where = RTRIM(where, !"\n")
+  IF LEN(where) THEN RETURN where
+  'unlump and relump get installed here
+  try_app_path(exepath & "/../share/games/ohrrpgce/" & *appname)
+  try_app_path("/usr/share/games/ohrrpgce/" & *appname)
  #ENDIF
  #IFDEF __FB_WIN32__
   RETURN find_windows_helper_app(*appname, try_install, *download_url)
@@ -3490,13 +3501,15 @@ PRIVATE FUNCTION finddatafile_internal(filename as string, searchtype as FileTyp
  try_data_path(filename)
  try_data_path("data" & SLASH & filename)
  'platform-specific relative data files path (Mac OS X bundles)
- try_data_path(app_resources_dir & SLASH & filename)
+ IF LEN(app_resources_dir) THEN
+  try_data_path(app_resources_dir & SLASH & filename)
+ END IF
  'same folder as executable
  try_data_path(exepath & SLASH & filename)
  try_data_path(exepath & SLASH & "data" & SLASH & filename)
  #IFDEF __FB_UNIX__
   '~/.ohrrpgce/
-  try_data_path(settings_dir & filename)
+  try_data_path(settings_dir & SLASH & filename)
   ' Assuming the binary is in $prefix/games or $prefix/bin
   DIM DATAFILES as string = exepath & "/../share/games/ohrrpgce/"
   ' In this case the packaging script could avoid putting anything in a subdirectory
@@ -3535,7 +3548,9 @@ FUNCTION get_data_dir() as string
  try_data_path(exepath & SLASH & "data")
  try_data_path("data")
  'Contents of data/ are copied into Resources dir in Mac OS X app bundles
- IF LEN(app_resources_dir) THEN try_data_path(app_resources_dir)
+ IF LEN(app_resources_dir) THEN
+  try_data_path(app_resources_dir)
+ END IF
  'Don't bother with DATAFILES, probably read-only
  IF makedir("data") = 0 THEN RETURN "data"
 END FUNCTION
