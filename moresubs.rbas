@@ -772,6 +772,26 @@ SUB hero_swap_menu_init(st as OrderTeamState)
  st.party.need_update = YES
 END SUB
 
+/' Not used yet
+FUNCTION check_condition(cond as Condition) as bool
+ IF cond.comp = compTag THEN
+  RETURN istag(tag(), cond.tag, , NO)
+ ELSE
+  IF cond.varnum < 0 ORELSE cond.varnum > UBOUND(global) THEN RETURN NO
+  DIM globalvar as integer = global(cond.varnum)
+  SELECT CASE cond.comp
+   CASE compEq :    RETURN globalvar = cond.value
+   CASE compNe :    RETURN globalvar <> cond.value
+   CASE compLt :    RETURN globalvar < cond.value
+   CASE compLe :    RETURN globalvar <= cond.value
+   CASE compGt :    RETURN globalvar > cond.value
+   CASE compGe :    RETURN globalvar >= cond.value
+   CASE ELSE   :    debugerror strprintf("Invalid Condition (%d,%d,%d)", cond.comp, cond.varnum, cond.value)
+  END SELECT
+ END IF
+END FUNCTION
+'/
+
 'Either pass a tag number and specify YES/NO, or pass just a tag number; +ve/-ve indicates value
 SUB settag (byval tagnum as integer, byval value as integer = 4444)
  IF ABS(tagnum) <= max_tag() THEN

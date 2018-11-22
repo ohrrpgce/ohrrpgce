@@ -60,6 +60,29 @@ SUB SerSingle (buf() as integer, byval index as integer, byval sing as single)
   buf(index + 1) = CAST(short ptr, @sing)[1]
 END SUB
 
+/' Not used yet
+SUB LoadCondition (byref cond as Condition, buf() as integer, offset as integer)
+  cond.comp = buf(offset)
+  cond.varnum = buf(offset + 1)
+  cond.value = buf(offset + 2)
+  cond.editstate = 0
+  cond.lastinput = 0
+  IF cond.comp < 0 ORELSE cond.comp > compLAST ORELSE _
+     (cond.comp = compTag ANDALSO (cond.tag < -max_tag ORELSE cond.tag > max_tag)) ORELSE _
+     (cond.comp <> compTag ANDALSO (cond.varnum < 0 ORELSE cond.varnum > maxScriptGlobals)) THEN
+    debugerror strprintf("LoadCondition: Invalid cond (%d,%d,%d) at off=%d", cond.comp, cond.varnum, cond.value, offset)
+    cond.comp = compNone
+    cond.varnum = 0
+    cond.value = 0
+  END IF
+END SUB
+
+SUB SaveCondition (cond as Condition, buf() as integer, offset as integer)
+  buf(offset) = cond.comp
+  buf(offset + 1) = cond.varnum
+  buf(offset + 2) = cond.value
+END SUB
+'/
 
 '==========================================================================================
 '                                      NPC Definitions
