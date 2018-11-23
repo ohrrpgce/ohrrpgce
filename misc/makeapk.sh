@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # This is the script that James uses to build Android apk files for specific
-# games. It probably won;t be useful to you directly, but might serve as a useful
+# games. It probably won't be useful to you directly, but might serve as a useful
 # example. See instead the distrib-nightly-android.sh script if you are just
 # interested in building a standalone Android OHRRPGCE game player.
 
@@ -18,6 +18,7 @@ fi
 PROJECT="${1}"
 PROJDIR="${SDLANDROID}"/project/jni/application
 BRANCHSUFFIX="${2}"
+BRANCHBASE="ohrrpgce"
 
 if [ -z "${BRANCHSUFFIX}" ] ; then
   BRANCHSUFFIX="${PROJECT}"
@@ -45,8 +46,8 @@ cd ..
 
 scons fbc="${FBCARM}" debug=0 android-source=1 game
 cd "${PROJDIR}"
-git checkout ohrrpgce
-git checkout ohrrpgce_"${BRANCHSUFFIX}"
+git checkout "${BRANCHBASE}"
+git checkout "${BRANCHBASE}"_"${BRANCHSUFFIX}"
 rm src
 ln -s "${PROJECT}" src
 cd "${SDLANDROID}"
