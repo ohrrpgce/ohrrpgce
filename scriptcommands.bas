@@ -1292,6 +1292,13 @@ SUB script_functions(byval cmdid as integer)
    IF scancode >= 0 THEN
     IF scancode = 99 THEN
      scancode = scAny
+    ELSEIF scancode > 5 THEN
+     'Invalid keycode! Probably used a scancode instead of a *key constant.
+     'This acts like anykey.
+     scancode = scAny
+     'Not much point showing an error, because if you recompile the problem will
+     'go away! However, the behaviour will change, so better warn people.
+     scripterr "You wrongly passed a scancode (eg. key:space) to the 'wait for key' command. This was equivalent to 'anykey', but 'wait for key' now genuinely supports scancodes. if you reimport your scripts, this will wait for that key instead of for anykey.", serrBadOp
     ELSE
      scancode = ccHIGHEST - scancode  'Map to cc* constant
     END IF
