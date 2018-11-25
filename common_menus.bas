@@ -300,13 +300,17 @@ SUB edit_battle_bitsets()
 
  a_append bits(), -1, ""
  a_append bits(), -1, " General Options"
- a_append bits(), 17, "!Hold ESC key to run from battle"
  a_append bits(), 26, "0 damage when immune to attack elements"
  a_append bits(), 29, "Attacks will ignore extra hits stat"
 
  IF gen(genBattleMode) = 0 THEN
   a_append bits(), -1, ""
   a_append bits(), -1, " Active-Time Battle Options"
+  IF get_gen_bool("/mouse/mouse_battles") THEN
+   a_append bits(), 17, "!Hold ESC key or right-click to run from battle"
+  ELSE
+   a_append bits(), 17, "!Hold ESC key to run from battle"
+  END IF
   a_append bits(), 13, "Pause on all battle menus & targeting"
   a_append bits(), 0,  "Pause on Spells & Items menus"
   a_append bits(), 35, "Pause when targeting attacks"

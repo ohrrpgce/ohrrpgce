@@ -4218,6 +4218,7 @@ FUNCTION battle_run_away(byref bat as BattleState, bslot() as BattleSprite) as b
  '-- a successful run has completed, thus ending battle.
 
  IF get_gen_bool("/mouse/mouse_battles") THEN
+  'This is also used to close menus with the mouse
   IF (readmouse.buttons AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
    bat.mouse_running += 1
   ELSE
