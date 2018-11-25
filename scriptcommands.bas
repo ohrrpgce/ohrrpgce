@@ -1631,7 +1631,7 @@ SUB script_functions(byval cmdid as integer)
    scripterr "can learn spell: fail on empty party slot " & partyslot, serrBound
   ELSE
    IF retvals(1) > 0 THEN
-    DIM her as herodef
+    DIM her as HeroDef
     loadherodata her, heroID
     FOR i as integer = 0 TO 3
      FOR j as integer = 0 TO 23
@@ -4224,7 +4224,7 @@ SUB script_functions(byval cmdid as integer)
   DIM whichsprite as integer = retvals(1)
   IF really_valid_hero_party(heronum, , serrBound) THEN
    IF bound_arg(whichsprite, 0, 2, "hero picture type") THEN
-    DIM her as herodef
+    DIM her as HeroDef
     loadherodata her, gam.hero(heronum).id
     SELECT CASE whichsprite
      CASE 0:
@@ -4242,7 +4242,7 @@ SUB script_functions(byval cmdid as integer)
   DIM whichsprite as integer = retvals(1)
   IF really_valid_hero_party(heronum, , serrBound) THEN
    IF bound_arg(whichsprite, 0, 2, "hero picture type") THEN
-    DIM her as herodef
+    DIM her as HeroDef
     loadherodata her, gam.hero(heronum).id
     SELECT CASE whichsprite
      CASE 0:

@@ -72,22 +72,22 @@ declare sub ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, byval id as integer,
 declare sub SaveZoneMap(zmap as ZoneMap, filename as string, rsrect as RectType ptr = NULL)
 declare sub LoadZoneMap(zmap as ZoneMap, filename as string)
 
-declare SUB DeserDoorLinks(filename as string, array() as doorlink)
-declare Sub SerDoorLinks(filename as string, array() as doorlink, byval withhead as bool = YES)
-declare sub CleanDoorLinks(array() as doorlink)
-declare Sub DeSerDoors(filename as string, array() as door, byval record as integer)
-declare Sub SerDoors(filename as string, array() as door, byval record as integer)
-declare Function read_one_door(byref thisdoor as door, byval map_id as integer, byval door_id as integer) as bool
-declare Sub CleanDoors(array() as door)
+declare SUB DeserDoorLinks(filename as string, array() as DoorLink)
+declare Sub SerDoorLinks(filename as string, array() as DoorLink, byval withhead as bool = YES)
+declare sub CleanDoorLinks(array() as DoorLink)
+declare Sub DeSerDoors(filename as string, array() as Door, byval record as integer)
+declare Sub SerDoors(filename as string, array() as Door, byval record as integer)
+declare Function read_one_door(byref thisdoor as Door, byval map_id as integer, byval door_id as integer) as bool
+declare Sub CleanDoors(array() as Door)
 
 
-declare Sub LoadStats(byval fh as integer, sta as stats ptr)
-declare Sub SaveStats(byval fh as integer, sta as stats ptr)
-declare Sub LoadStats2(byval fh as integer, lev0 as stats ptr, levMax as stats ptr)
-declare Sub SaveStats2(byval fh as integer, lev0 as stats ptr, levMax as stats ptr)
+declare Sub LoadStats(byval fh as integer, sta as Stats ptr)
+declare Sub SaveStats(byval fh as integer, sta as Stats ptr)
+declare Sub LoadStats2(byval fh as integer, lev0 as Stats ptr, levMax as Stats ptr)
+declare Sub SaveStats2(byval fh as integer, lev0 as Stats ptr, levMax as Stats ptr)
 
-declare sub loadherodata (hero as herodef, byval index as integer)
-declare sub saveherodata (hero as herodef, byval index as integer)
+declare sub loadherodata (hero as HeroDef, byval index as integer)
+declare sub saveherodata (hero as HeroDef, byval index as integer)
 declare sub load_hero_from_reload(hero as HeroDef, byval parent as NodePtr, byval id as integer = -1)
 declare sub ClearHeroData (hero as HeroDef, id as integer = -1)
 declare function GetHeroHandPos(byval hero_id as integer, byval which_frame as integer) as XYPair

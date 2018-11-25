@@ -1041,7 +1041,7 @@ SUB savedefaultpals(byval fileset as SpriteType, poffset() as integer, maxset as
 END SUB
 
 SUB guessdefaultpals(byval fileset as SpriteType, poffset() as integer)
- DIM her as herodef
+ DIM her as HeroDef
  DIM found as integer
  
  flusharray poffset()

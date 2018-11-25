@@ -982,7 +982,7 @@ SUB updatestatslevelup (byval hero_slot as integer, byval allowforget as bool)
   'THIS PART UPDATES STATS FOR A LEVEL UP
   IF .lev_gain THEN
 
-   DIM her as herodef
+   DIM her as HeroDef
    loadherodata her, gam.hero(hero_slot).id
 
    'stat increase/decrease
@@ -1081,7 +1081,7 @@ SUB learn_spells_for_current_level(byval who as integer, byval allowforget as bo
  'wipe learnmask for this hero
  flusharray gam.hero(who).learnmask()
 
- DIM her as herodef
+ DIM her as HeroDef
  loadherodata her, gam.hero(who).id
 
  'learn spells

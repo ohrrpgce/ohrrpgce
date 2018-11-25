@@ -17,11 +17,11 @@ ENUM EnemyAIEnum
 END ENUM
 
 declare function battle (byval form as integer) as bool
-declare function checknorunbit (bslot() as battlesprite) as integer
+declare function checkNoRunBit (bslot() as BattleSprite) as bool
 DECLARE SUB checkTagCond (byref t as AttackDataTag, byval check as AttackTagConditionEnum)
 DECLARE SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
 declare sub invertstack
-declare sub quickinflict (byval harm as integer, byval targ as integer, bslot() as battlesprite, byval col as integer=-1)
+declare sub quickinflict (byval harm as integer, byval targ as integer, bslot() as BattleSprite, byval col as integer=-1)
 
 DECLARE SUB anim_end()
 DECLARE SUB anim_wait(byval ticks as integer)
@@ -51,7 +51,7 @@ DECLARE SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer
 DECLARE SUB triggerfade(byval who as integer, bslot() as BattleSprite)
 DECLARE SUB enemy_death_rewards(byref bat as BattleState, battler as BattleSprite)
 DECLARE SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
-DECLARE SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef)
+DECLARE SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprite)
 DECLARE SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer)
 DECLARE SUB enforce_weak_picture(byval who as integer, bslot() as BattleSprite, byref bat as BattleState)

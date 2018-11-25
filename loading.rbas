@@ -33,8 +33,8 @@ REDIM script_names() as IntStrPair
 '==========================================================================================
 
 declare sub save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
-declare Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as integer)
-declare Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as integer)
+declare Sub load_hero_from_old_dt0(filename as string, hero as HeroDef, byval record as integer)
+declare Sub save_hero_as_old_dt0(filename as string, hero as HeroDef, byval record as integer)
 declare sub create_blank_hero_reld(hero as HeroDef, byval id as integer = -1)
 declare sub general_reld_init_buttonnames(root_node as NodePtr)
 declare sub append_trade_node (byval par as NodePtr, byval itnum as integer, byval itqty as integer)
@@ -1574,53 +1574,45 @@ end sub
 
 
 'loads a standard block of stats from a file handle.
-Sub LoadStats(byval fh as integer, sta as stats ptr)
-	dim i as integer
+Sub LoadStats(byval fh as integer, sta as Stats ptr)
 	if sta = 0 then exit sub
-	
 	with *sta
-		for i = 0 to 11
+		for i as integer = 0 to 11
 			.sta(i) = readShort(fh)
 		next i
 	end with
-	
 end sub
 
 'saves a stat block to a file handle
-Sub SaveStats(byval fh as integer, sta as stats ptr)
-	dim i as integer
+Sub SaveStats(byval fh as integer, sta as Stats ptr)
 	if sta = 0 then exit sub
-	
 	with *sta
-		for i = 0 to 11
+		for i as integer = 0 to 11
 			writeShort(fh, -1, .sta(i))
 		next i
 	end with
-	
 end sub
 
 'this differs from the above because it loads two interleaved blocks of stats,
 'such as those found in the hero definitions.
-Sub LoadStats2(byval fh as integer, lev0 as stats ptr, levMax as stats ptr)
-	dim as integer i
+Sub LoadStats2(byval fh as integer, lev0 as Stats ptr, levMax as Stats ptr)
 	if lev0 = 0 or levMax = 0 then exit sub
-	for i = 0 to 11
+	for i as integer = 0 to 11
 		lev0->sta(i) = readShort(fh)
 		levMax->sta(i) = readShort(fh)
 	next i
 end sub
 
 'save interleaved stat blocks
-Sub SaveStats2(byval fh as integer, lev0 as stats ptr, levMax as stats ptr)
+Sub SaveStats2(byval fh as integer, lev0 as Stats ptr, levMax as Stats ptr)
 	if lev0 = 0 or levMax = 0 then exit sub
-	dim as integer i
-	for i = 0 to 11
+	for i as integer = 0 to 11
 		writeShort(fh,-1,lev0->sta(i))
 		writeShort(fh,-1,levMax->sta(i))
 	next i
 end sub
 
-Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as integer)
+Sub load_hero_from_old_dt0(filename as string, hero as HeroDef, byval record as integer)
 	'WARNING: this is the loader for the old-style binary hero data lump. See loadherodata
 
 	dim as integer f, i, j
@@ -1681,7 +1673,7 @@ Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as 
 	close #f
 end sub
 
-Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as integer)
+Sub save_hero_as_old_dt0(filename as string, hero as HeroDef, byval record as integer)
 	'WARNING: this is the saver for the old-style binary hero data lump. See saveherodata
 	'TODO: this sub is deprecated, and will eventually be removed.
 	dim as integer f, i, j

@@ -2038,12 +2038,11 @@ SUB checkitemusability(iuse() as integer, bslot() as BattleSprite, byval who as 
  NEXT i
 END SUB
 
-FUNCTION checkNoRunBit (bslot() as BattleSprite) as integer
- DIM i as integer
- FOR i = 4 TO 11
-  IF bslot(i).stat.cur.hp > 0 AND bslot(i).vis = YES AND bslot(i).unescapable = YES THEN RETURN 1
+FUNCTION checkNoRunBit (bslot() as BattleSprite) as bool
+ FOR i as integer = 4 TO 11
+  IF bslot(i).stat.cur.hp > 0 AND bslot(i).vis = YES AND bslot(i).unescapable = YES THEN RETURN YES
  NEXT i
- RETURN 0
+ RETURN NO
 END FUNCTION
 
 SUB checkTagCond (byref t as AttackDataTag, byval check as AttackTagConditionEnum)
@@ -2634,7 +2633,7 @@ END SUB
 '                                    Menus
 
 
-SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef)
+SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 
  DIM do_pick as bool = NO
  DIM do_close as bool = NO

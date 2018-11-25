@@ -1170,7 +1170,7 @@ FUNCTION renamehero (byval who as integer, byval escapable as bool) as bool
 'Returns true if the player didn't cancel.
 DIM ret as bool
 
-DIM her as herodef
+DIM her as HeroDef
 loadherodata her, gam.hero(who).id
 
 DIM limit as integer = her.max_name_len

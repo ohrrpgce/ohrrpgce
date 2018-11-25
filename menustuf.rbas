@@ -228,7 +228,7 @@ SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, byval th
   menusound gen(genHireSFX)
   DIM hero_id as integer = GetInteger(thing)
   DIM party_slot as integer = first_free_slot_in_party()
-  DIM her as herodef
+  DIM her as HeroDef
   loadherodata her, hero_id
   DIM hire_level as integer
   IF thing."level".exists THEN
@@ -294,7 +294,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
  IF thing_kind = "hero" THEN
   buy = thing."hire".ptr
   trade_str = readglobalstring(87, "Joins for", 20)
-  DIM her as herodef
+  DIM her as HeroDef
   loadherodata her, thing_id
   append_menu_item buyst.info, her.name
   buyst.info.last->disabled = YES
@@ -2825,7 +2825,7 @@ END IF
 
 DIM result as bool = NO
 
-dim her as herodef
+dim her as HeroDef
 '--load the hero's data.
 loadherodata her, gam.hero(who).id
 
