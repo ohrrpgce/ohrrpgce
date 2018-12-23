@@ -25,6 +25,7 @@
 ' DECLARE FUNCTION should_hide_hero_caterpillar() as integer
 ' DECLARE FUNCTION should_show_normal_caterpillar() as integer
 
+DECLARE FUNCTION user_triggered_vehicle_use_action() as bool
 
 '==========================================================================================
 '                          Creating/modifying walkabout slices
@@ -1040,7 +1041,7 @@ SUB update_vehicle_state ()
   REDIM user_trigger(1) as integer
   button(0) = vstate.dat.use_button
   button(1) = vstate.dat.menu_button
-  user_trigger(0) = carray(ccUse) > 1
+  user_trigger(0) = user_triggered_vehicle_use_action()
   user_trigger(1) = user_triggered_main_menu()
   FOR i as integer = 0 TO 1
    IF user_trigger(i) ANDALSO herow(0).xgo = 0 ANDALSO herow(0).ygo = 0 THEN
@@ -1062,6 +1063,19 @@ SUB update_vehicle_state ()
 
  IF vstate.active THEN npc(vstate.npc).z = heroz(0)
 END SUB
+
+FUNCTION user_triggered_vehicle_use_action() as bool
+ IF carray(ccUse) > 1 THEN RETURN YES
+ IF get_gen_bool("/mouse/move_hero") THEN
+  IF readmouse().release AND mouseLeft THEN
+   DIM clickpos as XYPair = XY(mapx, mapy) + readmouse().pos
+   wrapxy clickpos, 20
+   IF hero_at_pixel(clickpos) = 0 THEN RETURN YES
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION
+
 
 SUB vehicle_graceful_dismount ()
  herow(0).xgo = 0
