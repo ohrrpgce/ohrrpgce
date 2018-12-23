@@ -1037,13 +1037,13 @@ SUB update_vehicle_state ()
  'Handle Use and Menu keys according to vehicle-specific settings
  IF vstate.active = YES AND normal_controls_disabled() = NO THEN
   REDIM button(1) as integer
-  REDIM carray_code(1) as integer
+  REDIM user_trigger(1) as integer
   button(0) = vstate.dat.use_button
   button(1) = vstate.dat.menu_button
-  carray_code(0) = ccUse
-  carray_code(1) = ccMenu
+  user_trigger(0) = carray(ccUse) > 1
+  user_trigger(1) = user_triggered_main_menu()
   FOR i as integer = 0 TO 1
-   IF carray(carray_code(i)) > 1 AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
+   IF user_trigger(i) ANDALSO herow(0).xgo = 0 ANDALSO herow(0).ygo = 0 THEN
     SELECT CASE button(i)
      CASE -2
       '-disabled

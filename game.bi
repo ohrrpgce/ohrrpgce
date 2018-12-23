@@ -151,6 +151,8 @@ DECLARE SUB cancel_npc_movement_override (npci as NPCInst)
 DECLARE FUNCTION caterpillar_is_suspended() as bool 
 DECLARE FUNCTION player_is_suspended() as bool 
 
+DECLARE FUNCTION user_triggered_main_menu() as bool
+
 DECLARE FUNCTION hero_is_pathfinding(byval rank as integer) as bool
 DECLARE SUB cancel_hero_pathfinding(byval rank as integer, byval user_only as bool=NO)
 DECLARE SUB path_hero_to_tile(byval rank as integer, dest as XYPair, byval stop_after_stillticks as integer=0)

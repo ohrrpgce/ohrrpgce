@@ -69,7 +69,6 @@ DECLARE SUB npcmove_rotate_and_walk_ahead(npci as NPCInst, byval rota as integer
 DECLARE SUB npcmove_follow_walls(npci as NPCInst, npcdata as NPCType, byval direction as integer)
 DECLARE SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
 DECLARE FUNCTION catindex(byval rank as integer) as integer
-DECLARE FUNCTION user_triggered_main_menu() as bool
 DECLARE FUNCTION player_menu_should_close() as bool
 DECLARE SUB debug_mouse_state()
 DECLARE FUNCTION find_doorlink_id (byval door_id as integer, thisdoor as door, door_links() as Doorlink) as integer
