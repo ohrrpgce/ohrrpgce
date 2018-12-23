@@ -1308,3 +1308,21 @@ FUNCTION npc_at_pixel(pixelpos as XYPair, byval copynum as integer=0, allow_disa
  RETURN -1 'failure
 END FUNCTION
 
+FUNCTION hero_at_pixel(pixelpos as XYPair) as integer
+ 'Return the caterpillar rank of the hero walkabout found given x,y coords.
+ ' This checks the location where the hero is currently displayed,
+ ' not the tile they are considered to be occupying
+ ' pixelpos should be in the map bounds.
+ ' Note: if an hero is partially over the map edge we may miss it.
+ 'Returns -1 if not found
+ FOR i as integer = 0 TO 3
+  DIM size as XYPair = (20, 20)
+  DIM diff as XYPair = pixelpos - (heropos(i) + XY(0, gmap(11)))
+  IF diff.x >= 0 AND diff.x < size.w THEN
+   IF diff.y >= 0 AND diff.y < size.h THEN
+    RETURN i
+   END IF
+  END IF
+ NEXT i
+ RETURN -1 'failure
+END FUNCTION

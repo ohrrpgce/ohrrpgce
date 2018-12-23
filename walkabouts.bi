@@ -29,6 +29,7 @@ DECLARE FUNCTION npc_layer() as Slice Ptr
 DECLARE FUNCTION npc_at_spot(tilepos as XYPair, byval copynum as integer=0) as NPCIndex
 DECLARE FUNCTION count_npcs_at_spot(tilepos as XYPair) as integer
 DECLARE FUNCTION npc_at_pixel(pixelpos as XYPair, byval copynum as integer=0, allow_disabled as bool=NO) as NPCIndex
+DECLARE FUNCTION hero_at_pixel(pixelpos as XYPair) as integer
 
 'Movement/collision/wrapping
 DECLARE FUNCTION movdivis (byval xygo as integer) as bool
