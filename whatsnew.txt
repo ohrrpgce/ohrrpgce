@@ -84,6 +84,7 @@ September 29 2018 [Fufluns]
     * Shop stock levels in saved games and when Testing Game are now updated if
       you edit the things in a shop - reset if needed, or increased/decreased
       to reflect the change [Ralph]
+    * Copy/pasting of item definitions [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

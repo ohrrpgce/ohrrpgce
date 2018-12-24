@@ -39,8 +39,23 @@ FUNCTION item_picker_or_none (recindex as integer = -1) as integer
  RETURN itemb.browse(recindex - 1, YES , @individual_item_editor, NO) + 1
 END FUNCTION
 
+PRIVATE SUB read_item_strings(itembuf() as integer, byref item_name as string, byref info as string)
+ item_name = readbadbinstring(itembuf(), 0, 8)
+ info = readbadbinstring(itembuf(), 9, 36)
+END SUB
+
+PRIVATE SUB write_item_strings(itembuf() as integer, item_name as string, info as string)
+ writebadbinstring item_name, itembuf(), 0, 8
+ writebadbinstring info, itembuf(), 9, 36
+END SUB
+
 FUNCTION individual_item_editor(item_id as integer) as integer
 'Return value is the item_id (for thingbrowser)
+
+ STATIC clipboard_used as bool  'There's something in clipboard_buf
+ STATIC clipboard_buf(dimbinsize(binITM)) as integer  'For copy/pasting
+ DIM undo_available as bool  'There's something in undobuf
+ DIM undobuf(dimbinsize(binITM)) as integer  'Just to undo pasting
 
  DIM itembuf(dimbinsize(binITM)) as integer
 
@@ -75,9 +90,8 @@ FUNCTION individual_item_editor(item_id as integer) as integer
 
  loaditemdata itembuf(), item_id
  DIM item_name as string, info as string
- 'item_name and info aren't rewritten to itembuf() after changes until the menu is quit
- item_name = readbadbinstring(itembuf(), 0, 8)
- info = readbadbinstring(itembuf(), 9, 36)
+ 'item_name and info are written to itembuf() after any change
+ read_item_strings itembuf(), item_name, info
 
  'Indexed by menu index, not by .itm/itembuf() index
  DIM max(menusize) as integer
@@ -121,7 +135,10 @@ FUNCTION individual_item_editor(item_id as integer) as integer
  state.last = menusize
  state.need_update = YES
  state.autosize = YES
- state.autosize_ignore_pixels = 12
+ state.autosize_ignore_lines = 2
+ state.autosize_ignore_pixels = 4
+ DIM menuopts as MenuOptions
+ menuopts.scrollbar = YES  'FIXME: this really needs to be the default!
 
  setkeys YES
  DO
@@ -133,6 +150,30 @@ FUNCTION individual_item_editor(item_id as integer) as integer
   enable_strgrabber = NO
   IF LEN(selectst.query) = 0 AND (state.pt = 1 OR state.pt = 2) THEN
    enable_strgrabber = YES
+  END IF
+  IF enable_strgrabber = NO ANDALSO keyval(scAlt) > 0 THEN
+   'Alt-C/V to copy/paste. Not available when a text field
+   'selected, because Alt-C/V input characters.
+   IF keyval(scC) > 1 THEN
+    a_copy itembuf(), clipboard_buf()
+    clipboard_used = YES
+    show_overlay_message "Copied item", 0.75
+   END IF
+   IF clipboard_used ANDALSO keyval(scV) > 1 THEN
+    a_copy itembuf(), undobuf()
+    undo_available = YES
+    a_copy clipboard_buf(), itembuf()
+    read_item_strings itembuf(), item_name, info
+    state.need_update = YES
+    show_overlay_message "Pasted item (Ctrl-Z to undo)", 1.1
+   END IF
+  END IF
+  IF undo_available ANDALSO keyval(scCtrl) > 0 ANDALSO keyval(scZ) > 1 THEN
+   'Ctrl-Z to undo paste
+   a_copy undobuf(), itembuf()
+   read_item_strings itembuf(), item_name, info
+   state.need_update = YES
+   show_overlay_message "Undid paste", 0.75
   END IF
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
@@ -233,16 +274,17 @@ FUNCTION individual_item_editor(item_id as integer) as integer
   END SELECT
   IF state.need_update THEN
    state.need_update = NO
+   write_item_strings itembuf(), item_name, info
    generate_item_edit_menu menu(), shaded(), itembuf(), item_name, info, eqst(), box_preview
    load_sprite_and_pal wep_img, sprTypeWeapon, itembuf(52), itembuf(53)
   END IF
-  IF enable_strgrabber = NO ANDALSO select_by_typing(selectst, NO) THEN
+  IF enable_strgrabber = NO ANDALSO keyval(scAlt) = 0 ANDALSO select_by_typing(selectst, NO) THEN
    select_on_word_boundary menu(), selectst, state
   END IF
 
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, shaded(), 0, 0, dpage
+  standardmenu menu_display(), state, shaded(), 0, 0, dpage, menuopts
   IF itembuf(49) = 1 THEN
    'Is a weapon
    DIM frame as integer = 0
@@ -258,22 +300,32 @@ FUNCTION individual_item_editor(item_id as integer) as integer
    drawline handle.x    , handle.y + 1, handle.x    , handle.y + 2, col, dpage
   END IF
 
-  IF state.pt >= 6 AND state.pt <= 9 THEN
-   'Editing a textbox/attack ID. Move it up if a textbox is being previewed
-   DIM y as RelPos = pBottom
-   IF itembuf(51) < 0 THEN y -= 10
-   edgeprint THINGGRABBER_TOOLTIP, 0, y, uilook(uiDisabledItem), dpage
-  END IF
+  'Tooltip and textbox preview
+  DIM tooltipy as RelPos = pBottom
   IF itembuf(51) < 0 THEN
    edgeprint box_preview, 0, pBottom, uilook(uiText), dpage
+   tooltipy -= 10
   END IF
+  DIM tooltip as string
+  IF state.pt >= 6 AND state.pt <= 9 THEN 'Editing a textbox/attack ID
+   tooltip = THINGGRABBER_TOOLTIP
+  ELSEIF state.pt = 0 THEN
+   'These keys work when many other menu items, aside from "Back to Item Menu",
+   'are selected too, but I think it's bad to show tooltips not specific to the current menu item,
+   'so only show it in one place (so the keys are discoverable).
+   IF clipboard_used THEN
+    tooltip = "Alt-C/V to copy/paste item definition"
+   ELSE
+    tooltip = "Alt-C to copy item definition"
+   END IF
+  END IF
+  edgeprint tooltip, 0, tooltipy, uilook(uiDisabledItem), dpage
+
   SWAP vpage, dpage
   setvispage vpage
   dowait
  LOOP
  unload_sprite_and_pal wep_img
- writebadbinstring item_name, itembuf(), 0, 8
- writebadbinstring info, itembuf(), 9, 36
  saveitemdata itembuf(), item_id
  RETURN item_id
 END FUNCTION

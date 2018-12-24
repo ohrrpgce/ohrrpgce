@@ -2,6 +2,8 @@ This is the Item Editor.
 
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu, or type part of a menu item to jump to it.
 
+Press Alt-C to copy this item definition, and Alt-V to paste. (Doesn't work while certain menu items are selected.) You can also use Ctrl-Z to undo a paste, if you make a mistake.
+
 Name: Here you can type a short display name for the item.  Item names can only be eight characters long, so make good use of special font characters (accessible by pressing CTRL+SPACE bar)!
 
 Info: Here you can type a longer descriptive line about the item which will be displayed in the inventory screen.
