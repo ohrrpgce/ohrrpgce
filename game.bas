@@ -5155,10 +5155,17 @@ SUB update_hero_pathfinding(byval rank as integer)
      usenpc 0, find_useable_npc()
     END IF
    END IF
-   IF gam.hero_pathing(rank).stop_when_npc_reached ANDALSO xypair_wrapped_distance(t1, t2) <= 1 THEN
-    'Within 1 tile of destination
-    cancel_hero_pathfinding(rank)
-    EXIT SUB
+   IF gam.hero_pathing(rank).stop_when_npc_reached THEN
+    WITH npc(gam.hero_pathing(rank).dest_npc)
+     IF npcs(.id - 1).activation <> 2 THEN
+      '---NPC is NOT step-on activated
+      IF xypair_wrapped_distance(t1, t2) <= 1 THEN
+       'Within 1 tile of destination
+       cancel_hero_pathfinding(rank)
+       EXIT SUB
+      END IF
+     END IF
+    END WITH
    END IF
  END SELECT
 
