@@ -3186,6 +3186,12 @@ end</example>
 			<description>Uses an attack on a hero outside of battle as if you had used it from an item or cast it as a spell. In spite of the name, it works for both cure spells and damage spells. The first argument, <p>attack</p> is name of the attack from your HSI file in the form atk:name. (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1.) The second argument, <p>target</p> is the position in the party of the hero to cure (or harm). The third optional argument, <p>attacker</p> is the position in the party of the hero who is using the attack. If this argument is omitted or set to -1, then the average stats of the active party will be used, just like when the attack is used from an item. The return value is <ref>true</ref> if the cure/attack succeeded, and <ref>false</ref> if it did nothing.
 			<note>The <p>map cure</p> command replaces the old command <p>outside battle cure</p> which had a bug which required you to use <p>atk:name -- 1</p> instead of <p>atk:name</p> for the <p>attack</p> argument.</note>
 			<note>If the attack results in all the heroes in the party being dead (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <ref>wait</ref>).</note>
+			<note>
+				If you want to cure a hero that has 0 HP with an attack, then the attack's Target Class
+				needs to be set to something that allows targetting dead heroes.
+				Otherwise the attack doesn't happen and this command returns <tt>false</tt>.
+				Other Target settings, including "Spread Attack", are ignored.
+			</note>
 			</description>
 			<seealso>
 				<ref>useitem</ref>

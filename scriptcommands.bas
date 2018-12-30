@@ -3040,6 +3040,7 @@ SUB script_functions(byval cmdid as integer)
   IF bound_arg(retvals(0), 1, gen(genMaxAttack)+1, "attack ID") THEN
    IF valid_hero_party(retvals(1)) THEN
     IF valid_hero_party(retvals(2), -1) THEN
+     'If the attack can not target dead heroes, then this fails and returns false
      scriptret = ABS(outside_battle_cure(retvals(0) - 1, retvals(1), retvals(2), NO))
     END IF
    END IF
