@@ -1994,10 +1994,10 @@ END FUNCTION
 
 #IFDEF __FB_MAIN__
 startTest(parentdir)
-  testEqual(parentdir("foo/bar/qux/", 1), "foo/bar/")
-  testEqual(parentdir("foo/bar/qux", 1), "foo/bar/")
-  testEqual(parentdir("foo/bar/qux", 2), "foo/")
-  testEqual(parentdir("foo/bar/qux", 3), "./")
+  testEqual(parentdir("foo/bar/qux/", 1), "foo" SLASH "bar" SLASH)
+  testEqual(parentdir("foo/bar/qux", 1), "foo" SLASH "bar" SLASH)
+  testEqual(parentdir("foo/bar/qux", 2), "foo" SLASH)
+  testEqual(parentdir("foo/bar/qux", 3), "." SLASH)
 endTest
 #ENDIF
 
@@ -3310,8 +3310,8 @@ startTest(HashTableIntToInt)
   if items[3].hash <> 65 then fail
   if items[4].hash <> 129 then fail
   if items[0].value_int <> 10 then fail
-  if items[1].value_int <> 0 then fail
-  if items[2].value_int <> -6 then fail
+  'The order of these two values (0, -6) may be random or depend on the CRT implementation
+  if items[1].value_int + items[2].value_int <> -6 then fail
   if items[3].value_int <> 11 then fail
   if items[4].value_int <> 9 then fail
 
