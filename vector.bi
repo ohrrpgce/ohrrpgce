@@ -33,6 +33,7 @@ TYPE FnCopy as function cdecl (byval as any ptr) as any ptr  'Allocate and initi
 TYPE FnDelete as sub cdecl (byval as any ptr)  'Destruct and delete
 TYPE FnStr as function cdecl (byval as any ptr) as string
 TYPE FnCompare as function cdecl (byval as any ptr, byval as any ptr) as int32
+TYPE FnHash as function cdecl (byval as any ptr) as uinteger
 
 'Not used
 ENUM 'PassConvention
@@ -52,6 +53,7 @@ TYPE TypeTable
   _delete as FnDelete
   comp as FnCompare
   inequal as FnCompare
+  hash as FnHash
   tostr as FnStr
   name as zstring ptr  'For debugging
 END TYPE
@@ -350,7 +352,7 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
     return memcmp(p1, p2, sizeof(T))   
   end function
 
-  DEFINE_CUSTOM_VECTOR_TYPE(T, TID, NULL, COPY_FUNC, DELETE_FUNC, @TID##_compare_func, NULL, NULL)
+  DEFINE_CUSTOM_VECTOR_TYPE(T, TID, NULL, COPY_FUNC, DELETE_FUNC, @TID##_compare_func, NULL, NULL, NULL)
 #ENDMACRO
 
 'Creates TypeTable for T, allowing use of 'T vector'
@@ -361,7 +363,7 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
 '
 'WARNING: Don't forget to use CDECL!!! No warning will be given!
 '
-#MACRO DEFINE_CUSTOM_VECTOR_TYPE(T, TID, CTOR_FUNC, COPYCTOR_FUNC, DTOR_FUNC, COMPARE_FUNC, INEQUAL_FUNC, STR_FUNC)
+#MACRO DEFINE_CUSTOM_VECTOR_TYPE(T, TID, CTOR_FUNC, COPYCTOR_FUNC, DTOR_FUNC, COMPARE_FUNC, INEQUAL_FUNC, HASH_FUNC, STR_FUNC)
 
   private function TID##_copy cdecl (byval p as T ptr) as T ptr
     'This works regardless of whether the UDT has a copy-constructor or not.
@@ -385,6 +387,7 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
      cast(FnDelete, @TID##_delete), /'_delete'/              _
      cast(FnCompare, COMPARE_FUNC), /'comp'/                 _
      cast(FnCompare, INEQUAL_FUNC), /'inequal'/              _
+     cast(FnHash, HASH_FUNC),       /'hash'/                 _
      cast(FnStr, STR_FUNC),         /'tostr'/                _
      @#T                            /'name'/                 _
   )
@@ -403,7 +406,7 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
     v_copy this, that
   end sub
 
-  DEFINE_CUSTOM_VECTOR_TYPE(T vector, TID##_vector, @TID##_vector_ctor, @TID##_vector_copyctor, @v_free, NULL, @v_inequal, @v_str)
+  DEFINE_CUSTOM_VECTOR_TYPE(T vector, TID##_vector, @TID##_vector_ctor, @TID##_vector_copyctor, @v_free, NULL, @v_inequal, NULL, @v_str)
 #ENDMACRO
 
 

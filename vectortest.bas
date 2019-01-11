@@ -87,7 +87,7 @@ function VecMap_string cdecl (byref this as VecMap) as string
 end function
 
 DECLARE_VECTOR_OF_TYPE(VecMap, VecMap)
-DEFINE_CUSTOM_VECTOR_TYPE(VecMap, VecMap, @VecMap_construct, @VecMap_copy, @VecMap_destruct, @VecMap_compare, NULL, @VecMap_string)
+DEFINE_CUSTOM_VECTOR_TYPE(VecMap, VecMap, @VecMap_construct, @VecMap_copy, @VecMap_destruct, @VecMap_compare, NULL, NULL, @VecMap_string)
 
 
 '''''''''''''''''''''''''''''''''''' Tests '''''''''''''''''''''''''''''''''''''

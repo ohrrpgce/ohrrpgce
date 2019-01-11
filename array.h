@@ -7,6 +7,7 @@ typedef void (*FnDtor)(void *);
 typedef void *(*FnCopy)(void *);  // Allocate and initialise a copy
 typedef void (*FnDelete)(void *);  // Destruct and delete
 typedef int (*FnCompare)(const void *, const void *);
+typedef unsigned int (*FnHash)(const void *);
 typedef struct FBSTRING *(*FnStr)(const void *);
 
 typedef struct _typetable {
@@ -21,6 +22,7 @@ typedef struct _typetable {
 	FnDelete delete;
 	FnCompare comp;
 	FnCompare inequal;
+	FnHash hash;
 	FnStr tostr;
 	char *name;
 } typetable;
@@ -37,13 +39,13 @@ typedef struct _dummy_ {int a;} *array_t;
 // These typetables are defined in vector.bas
 
                                                      // C name of the element type:
-extern typetable type_table(integer);                // intptr_t, not int
+extern typetable type_table(integer);                // int
 extern typetable type_table(double);                 // double
-extern typetable type_table(string);                 // FBSTRING*
+extern typetable type_table(string);                 // FBSTRING
 extern typetable type_table(zstring_ptr);            // char*  (assumed to be static strings!)
 extern typetable type_table(any_ptr);                // void*
 extern typetable type_table(any_vector);             // array_t (vector of void* vectors)
-extern typetable type_table(integer_vector);         // array_t (vector of intptr_t vectors)
+extern typetable type_table(integer_vector);         // array_t (vector of int vectors)
 
 // Typetables for UDTs
 
@@ -52,6 +54,7 @@ extern typetable type_table(MapEditUndoTile_vector); // array_t (vector of MAPED
 extern typetable type_table(BasicMenuItem);          // BASICMENUITEM
 extern typetable type_table(MenuDefItem);            // MENUDEFITEM
 extern typetable type_table(SimpleMenuItem);         // SIMPLEMENUITEM
+// And more... these don't belong here anyway
 
 
 void array_new(array_t *array, int len, int reserve, typetable *tbl);
