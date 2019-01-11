@@ -418,11 +418,10 @@ dim shared overlay_replay_display as bool
 
 MAKETYPE_DoubleList(SpriteCacheEntry)
 MAKETYPE_DListItem(SpriteCacheEntry)
-'WARNING: don't add strings to this
 type SpriteCacheEntry
 	'cachelist used only if object is a member of sprcacheB
 	cacheB as DListItem(SpriteCacheEntry)
-	hashed as HashedItem
+	hash as uinteger   'Used as HashTable hash/key
 	p as Frame ptr
 	cost as integer
 	Bcached as bool
@@ -469,7 +468,7 @@ private sub modex_init()
 	'and mapedit_linkdoors.
 	'Except for the first two, they're assumed to be the same size as pages 0/1.
 
-	hash_construct(sprcache, offsetof(SpriteCacheEntry, hashed))
+	sprcache.construct()
 	dlist_construct(sprcacheB.generic, offsetof(SpriteCacheEntry, cacheB))
 	sprcacheB_used = 0
 
@@ -526,7 +525,7 @@ private sub modex_quit()
 		font_unload(@fonts(i))
 	next
 
-	hash_destruct(sprcache)
+	sprcache.destruct()
 	'debug "cachehit = " & cachehit & " mis == " & cachemiss
 
 	releasestack
@@ -8028,10 +8027,10 @@ CONST SPRCACHE_BASE_SZ = 4096  'bytes
 ' removes a sprite from the cache, and frees it.
 private sub sprite_remove_cache(entry as SpriteCacheEntry ptr)
 	if entry->p->refcount <> 1 then
-		debug "error: invalidly uncaching sprite " & entry->hashed.hash & " " & frame_describe(entry->p)
+		debug "error: invalidly uncaching sprite " & entry->hash & " " & frame_describe(entry->p)
 	end if
 	dlist_remove(sprcacheB.generic, entry)
-	hash_remove(sprcache, entry)
+	sprcache.remove(entry->hash)
 	entry->p->cacheentry = NULL  'help to detect double free
 	frame_freemem(entry->p)
 	#ifdef COMBINED_SPRCACHE_LIMIT
@@ -8041,7 +8040,7 @@ private sub sprite_remove_cache(entry as SpriteCacheEntry ptr)
 			sprcacheB_used -= entry->cost
 		end if
 	#endif
-	deallocate(entry)
+	delete entry
 end sub
 
 'Free some sprites from the end of the B cache
@@ -8061,17 +8060,18 @@ private function sprite_cacheB_shrink(amount as integer) as bool
 end function
 
 'freeleaks = YES will causes a crash if those pointers are accessed
+'FIXME: broken since r3213!
 sub sprite_empty_cache_range(minkey as integer, maxkey as integer, leakmsg as string, freeleaks as bool = NO)
-	dim iterstate as integer = 0
+	dim iterstate as uinteger = 0
 	dim as SpriteCacheEntry ptr pt, nextpt
 
 	nextpt = NULL
-	pt = hash_iter(sprcache, iterstate, nextpt)
+	pt = sprcache.iter(iterstate, nextpt)
 	while pt
-		nextpt = hash_iter(sprcache, iterstate, nextpt)
+		nextpt = sprcache.iter(iterstate, pt)
 		'recall that the cache counts as a reference
 		if pt->p->refcount <> 1 then
-			debug "warning: " & leakmsg & pt->hashed.hash & " with " & pt->p->refcount & " references"
+			debug "warning: " & leakmsg & pt->hash & " with " & pt->p->refcount & " references"
 			if freeleaks then sprite_remove_cache(pt)
 		else
 			sprite_remove_cache(pt)
@@ -8083,23 +8083,23 @@ end sub
 'Unlike sprite_empty_cache, this reloads (in-use) sprites from file, without changing the pointers
 'to them. Any sprite that's not actually in use is removed from the cache as it's unnecessary to reload.
 private sub sprite_update_cache_range(minkey as integer, maxkey as integer)
-	dim iterstate as integer = 0
+	dim iterstate as uinteger = 0
 	dim as SpriteCacheEntry ptr pt, nextpt
 
 	nextpt = NULL
-	pt = hash_iter(sprcache, iterstate, nextpt)
+	pt = sprcache.iter(iterstate, nextpt)
 	while pt
-		nextpt = hash_iter(sprcache, iterstate, nextpt)
+		nextpt = sprcache.iter(iterstate, pt)
 
-		if pt->hashed.hash < minkey or pt->hashed.hash > maxkey then
+		if pt->hash < minkey or pt->hash > maxkey then
 			pt = nextpt
 			continue while
 		end if
 
 		'recall that the cache counts as a reference
 		if pt->p->refcount <> 1 then
-			dim sprtype as integer = pt->hashed.hash \ SPRITE_CACHE_MULT
-			dim record as integer = pt->hashed.hash mod SPRITE_CACHE_MULT
+			dim sprtype as integer = pt->hash \ SPRITE_CACHE_MULT
+			dim record as integer = pt->hash mod SPRITE_CACHE_MULT
 
 			if record = SPRITE_CACHE_GLOBAL_ANIMS then
 				'Unlike normal SpriteSets, the one holding the default animations must
@@ -8116,7 +8116,7 @@ private sub sprite_update_cache_range(minkey as integer, maxkey as integer)
 						'Unfortunately, this error will occur if you change the number
 						'of frames in the spriteset editor. Only thing we can do about it is
 						'try to unload all affected Frames before updating the cache.
-						showerror "sprite_update_cache: number of frames changed for sprite " & pt->hashed.hash
+						showerror "sprite_update_cache: number of frames changed for sprite " & pt->hash
 						numframes = small(numframes, pt->p->arraylen)
 					end if
 
@@ -8148,6 +8148,7 @@ private sub sprite_update_cache_range(minkey as integer, maxkey as integer)
 				end if
 			end if
 		else
+			'Don't bother if not in use
 			sprite_remove_cache(pt)
 		end if
 		pt = nextpt
@@ -8184,14 +8185,14 @@ sub sprite_debug_cache()
 	dim iterstate as integer = 0
 	dim pt as SpriteCacheEntry ptr = NULL
 
-	while hash_iter(sprcache, iterstate, pt)
-		debug pt->hashed.hash & " cost=" & pt->cost & " : " & frame_describe(pt->p)
+	while sprcache.iter(iterstate, pt)
+		debug pt->hash & " cost=" & pt->cost & " : " & frame_describe(pt->p)
 	wend
 
 	debug "==sprcacheB== (used units = " & sprcacheB_used & "/" & SPRCACHEB_SZ & ")"
 	pt = sprcacheB.first
 	while pt
-		debug pt->hashed.hash & " cost=" & pt->cost & " : " & frame_describe(pt->p)
+		debug pt->hash & " cost=" & pt->cost & " : " & frame_describe(pt->p)
 		pt = pt->cacheB.next
 	wend
 end sub
@@ -8233,8 +8234,7 @@ end sub
 ' search cache, update as required if found
 private function sprite_fetch_from_cache(sprtype as SpriteType, record as integer) as Frame ptr
 	dim entry as SpriteCacheEntry ptr
-
-	entry = hash_find(sprcache, SPRITE_CACHE_KEY(sprtype, record))
+	entry = sprcache.get(SPRITE_CACHE_KEY(sprtype, record))
 
 	if entry then
 		'cachehit += 1
@@ -8252,9 +8252,9 @@ private sub sprite_add_cache(sprtype as SpriteType, record as integer, p as Fram
 	if p = 0 then exit sub
 
 	dim entry as SpriteCacheEntry ptr
-	entry = callocate(sizeof(SpriteCacheEntry))
+	entry = new SpriteCacheEntry
 
-	entry->hashed.hash = SPRITE_CACHE_KEY(sprtype, record)
+	entry->hash = SPRITE_CACHE_KEY(sprtype, record)
 	entry->p = p
 	entry->cost = (p->w * p->h * p->arraylen) \ SPRCACHE_BASE_SZ + 1
 	'leave entry->cacheB unlinked
@@ -8264,7 +8264,7 @@ private sub sprite_add_cache(sprtype as SpriteType, record as integer, p as Fram
 	p->cached = 1
 	p->refcount += 1
 	p->cacheentry = entry
-	hash_add(sprcache, entry)
+	sprcache.add(entry->hash, entry)
 
 	#ifdef COMBINED_SPRCACHE_LIMIT
 		sprcacheB_used += entry->cost
@@ -8948,7 +8948,7 @@ function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO)
 		return ret
 	end if
 
-	ret = callocate(sizeof(frame))
+	ret = callocate(sizeof(Frame))
 	if ret = 0 then return 0
 
 	ret->w = p->w

@@ -498,7 +498,6 @@ END ENUM
 'WARNING: don't add strings to this
 Type ZoneHashedSegment
   IDmap(14) as ushort
-  hashed as HashedItem
 End Type
 
 'Data associated with an individual zone, other than the tiles themselves

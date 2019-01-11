@@ -2964,90 +2964,450 @@ END SUB
 '/
 
 '------------- Hash Table -------------
+'See util.bi for documentation.
 
-#define HTCASTUSERPTR(someptr)  cast(any ptr, cast(byte ptr, someptr) - this.memberoffset)
-#define HTCASTITEMPTR(someptr)  cast(HashedItem ptr, cast(byte ptr, someptr) + this.memberoffset)
+DEFINE_VECTOR_OF_TYPE(HashBucketItem, HashBucketItem)
 
-SUB hash_construct(byref this as HashTable, byval itemoffset as integer, byval tablesize as integer = 256)
+sub HashTable.construct(tablesize as integer = 31)
   this.numitems = 0
+  if tablesize > 4096 then tablesize = 4096  'Prevent overflow of iter() 'state'
   this.tablesize = tablesize
   this.table = callocate(sizeof(any ptr) * this.tablesize)
-  this.comparefunc = NULL
-  this.memberoffset = itemoffset
-END SUB
+  this.key_compare = NULL
+  this.key_hash = NULL
+  this.key_length = 0
+  this.key_copy = NULL
+  this.key_delete = NULL
+  this.key_is_integer = YES
+  this.value_copy = NULL
+  this.value_delete = NULL
+  this.value_is_string = NO
+  this.value_is_zstring = NO
+end sub
 
-SUB hash_destruct(byref this as HashTable)
+sub HashTable.construct(tablesize as integer = 31, key_type as TypeTable, copy_and_delete_keys as bool, value_type as TypeTable, copy_and_delete_values as bool)
+  this.construct(tablesize)
+  if @key_type <> @type_table(integer) then
+    this.key_compare = key_type.comp
+    this.key_hash = key_type.hash
+    this.key_length = key_type.element_len
+    if copy_and_delete_keys then
+      this.key_copy = key_type.copy
+      this.key_delete = key_type._delete
+    end if
+    this.key_is_integer = NO
+  end if
+  if @value_type <> @type_table(integer) then
+    if copy_and_delete_values then
+      this.value_copy = value_type.copy
+      this.value_delete = value_type._delete
+    end if
+  end if
+  this.value_is_string = (@value_type = @type_table(string))
+  this.value_is_zstring = (@value_type = @type_table(zstring))
+end sub
+
+sub HashTable.destruct()
+  this.clear()
   deallocate(this.table)
   this.table = NULL
-  this.numitems = 0
   this.tablesize = 0
-END SUB
+end sub
 
-SUB hash_add(byref this as HashTable, byval item as any ptr)
-  dim bucket as HashedItem ptr ptr
-  dim it as HashedItem ptr = HTCASTITEMPTR(item)
-  
-  bucket = @this.table[it->hash mod this.tablesize]
-  it->_prevp = bucket
-  it->_next = *bucket
-  if *bucket then
-    it->_next->_prevp = @it->_next
-  end if
-  *bucket = it
-
-  this.numitems += 1
-END SUB
-
-SUB hash_remove(byref this as HashTable, byval item as any ptr)
-  IF item = NULL THEN EXIT SUB
-
-  dim it as HashedItem ptr = HTCASTITEMPTR(item)
-
-  *(it->_prevp) = it->_next
-  IF it->_next THEN
-    it->_next->_prevp = it->_prevp
-  END IF
-  it->_next = NULL
-  it->_prevp = NULL
-  this.numitems -= 1
-END SUB
-
-FUNCTION hash_find(byref this as HashTable, byval hash as unsigned integer, byval key as any ptr = NULL) as any ptr
-  dim bucket as HashedItem ptr ptr
-  dim it as HashedItem ptr
-  
-  it = this.table[hash mod this.tablesize]
-  while it
+'Look for a key in a bucket vector, return NULL on failure
+private function hash_search_bucket(this as HashTable, bucket as HashBucketItem vector, hash as integer, key as any ptr = NULL) as HashBucketItem ptr
+  for bucketidx as integer = 0 to v_len(bucket) - 1
+    dim it as HashBucketItem ptr = @bucket[bucketidx]
     if it->hash = hash then
-      dim ret as any ptr = HTCASTUSERPTR(it)
-      if key andalso this.comparefunc then
-        if this.comparefunc(ret, key) then
-          return ret
+      if it->key = key then
+        return it
+      elseif this.key_compare then
+        'One or both keys may be NULL
+        if this.key_compare(it->key, key) = 0 then
+          return it
         end if
       else
-        return ret
+        'showbug "HashTable: need a key compare function"
+        'Shallow comparison of key pointers: take as inequal
       end if
     end if
-    it = it->_next
-  wend
+  next
   return NULL
-END FUNCTION
+end function
 
-FUNCTION hash_iter(byref this as HashTable, byref state as integer, byref item as any ptr) as any ptr
-  dim it as HashedItem ptr = NULL
-  if item then
-    it = HTCASTITEMPTR(item)->_next
+function HashTable.hash_key(key as any ptr) as integer
+  if this.key_hash then
+    return this.key_hash(key)
+  elseif key then
+    if this.key_length = 0 then showbug "HashTable: can't hash ptr; use TypeTable constructor"
+    return stringhash(key, this.key_length)
+  end if
+  return 0
+end function
+
+sub HashTable.add(hash as integer, value as any ptr, _key as any ptr = NULL)
+  dim byref bucket as HashBucketItem vector = this.table[cuint(hash) mod this.tablesize]
+  dim item as HashBucketItem ptr = any
+  if bucket = NULL then
+    v_new bucket, 1
+    item = @bucket[0]
+  else
+    item = v_expand(bucket)
+  end if
+  item->hash = hash
+  item->key = iif(this.key_copy, this.key_copy(_key), _key)
+  item->value = iif(this.value_copy, this.value_copy(value), value)
+  this.numitems += 1
+end sub
+
+sub HashTable.add(hash as integer, value as integer)
+  this.add(hash, canyptr(value), NULL)
+end sub
+
+sub HashTable.add(key as any ptr, value as any ptr)
+  this.add(this.hash_key(key), value, key)
+end sub
+
+sub HashTable.add(key as any ptr, value as integer)
+  this.add(this.hash_key(key), canyptr(value), key)
+end sub
+
+sub HashTable.set(hash as integer, value as any ptr, _key as any ptr = NULL)
+  dim bucket as HashBucketItem vector = this.table[cuint(hash) mod this.tablesize]
+  dim it as HashBucketItem ptr = hash_search_bucket(this, bucket, hash, _key)
+  if it then
+    if this.value_delete andalso it->value then this.value_delete(it->value)
+    it->value = iif(this.value_copy, this.value_copy(value), value)
+  else
+    this.add(hash, value, _key)
+  end if
+end sub
+
+sub HashTable.set(hash as integer, value as integer)
+  this.set(hash, canyptr(value), NULL)
+end sub
+
+sub HashTable.set(key as any ptr, value as any ptr)
+  this.set(this.hash_key(key), value, key)
+end sub
+
+sub HashTable.set(key as any ptr, value as integer)
+  this.set(this.hash_key(key), canyptr(value), key)
+end sub
+
+function HashTable.get(hash as integer, default as any ptr = NULL, _key as any ptr = NULL) as any ptr
+  dim bucket as HashBucketItem vector = this.table[cuint(hash) mod this.tablesize]
+  dim it as HashBucketItem ptr = hash_search_bucket(this, bucket, hash, _key)
+  if it = NULL then return default
+  return it->value
+end function
+
+function HashTable.get(key as any ptr, default as any ptr = 0) as any ptr
+  return this.get(this.hash_key(key), default, key)
+end function
+
+function HashTable.get_int(hash as integer, default as integer = 0) as integer
+  return cintptr32(this.get(hash, canyptr(default), NULL))
+end function
+
+function HashTable.get_int(key as any ptr, default as integer = 0) as integer
+  return cintptr32(this.get(this.hash_key(key), canyptr(default), key))
+end function
+
+function HashTable.get_str(hash as integer, default as zstring ptr = @"", _key as any ptr = NULL) as string
+  'return *cast(string ptr, this.get(hash, @default, _key))
+  'Avoiding initialising a new string from default if not needed, but want to still allow NULL as a value
+  dim ret as any ptr = this.get(hash, canyptr(-1234), _key)
+  if ret = canyptr(-1234) then return *default
+  if this.value_is_string then
+    return *cast(string ptr, ret)
+  elseif this.value_is_zstring then
+    return *cast(zstring ptr, ret)
+  else
+    showbug "HashTable.get_str shouldn't be called!"
+  end if
+end function
+
+function HashTable.get_str(key as any ptr, default as zstring ptr = @"") as string
+  return this.get_str(this.hash_key(key), default, key)
+  'if ret = canyptr(-1) then return *default else return *ret
+end function
+
+function HashTable.remove(hash as integer, _key as any ptr = NULL) as bool
+  dim byref bucket as HashBucketItem vector = this.table[cuint(hash) mod this.tablesize]
+  dim it as HashBucketItem ptr = hash_search_bucket(this, bucket, hash, _key)
+  if it = NULL then return NO
+  if this.key_delete andalso it->key then this.key_delete(it->key)
+  if this.value_delete andalso it->value then this.value_delete(it->value)
+  dim idx as integer = it - @bucket[0]
+  v_delete_slice bucket, idx, idx + 1
+  this.numitems -= 1
+  return YES
+end function
+
+function HashTable.remove(key as any ptr) as bool
+  return this.remove(this.hash_key(key), key)
+end function
+
+sub HashTable.clear()
+  for bucketnum as integer = 0 to this.tablesize - 1
+    dim byref bucket as HashBucketItem vector = this.table[bucketnum]
+    for bucketidx as integer = 0 to v_len(bucket) - 1
+      with bucket[bucketidx]
+        if this.key_delete andalso .key then this.key_delete(.key)
+        if this.value_delete andalso .value then this.value_delete(.value)
+      end with
+    next
+    v_free bucket
+  next
+  this.numitems = 0
+end sub
+
+function HashTable.iter(byref state as uinteger, prev_value as any ptr, byref key as any ptr = NULL) as any ptr
+  if state = -1 then
+    key = NULL
+    return NULL
   end if
 
-  while it = NULL
-    if state >= this.tablesize then return NULL
-    it = this.table[state]
-    state += 1
+  'If the length of a bucket exceeds &hfffff = 1048575, then we are in trouble!
+  'However, even then iteration will still work if you delete each item you iterate over.
+  dim as integer bucketnum = state shr 20, bucketidx = state and &hfffff
+
+  if state <> 0 then
+    'Check whether something got deleted from the hash table since last .iter(), upsetting the iteration,
+    'and if so search backwards in this bucket to find the correct bucketidx.
+    'NOTE: this assumes values are unique!!
+    '(If new items got added to the hash table they get added to the end of a bucket, which is no problem.
+    'They may or may get included in the iteration.)
+
+    dim bucket as HashBucketItem vector = this.table[bucketnum]
+    'bucketidx was incremented on the last iter() call, so we expect to see prev_value at bucketidx-1
+    bucketidx -= 1
+    bucketidx = small(bucketidx, v_len(bucket) - 1)  'The bucket might have shrunk
+    while bucketidx >= 0
+      if bucket[bucketidx].value = prev_value then exit while
+      bucketidx -= 1
+    wend
+    if bucketidx < 0 then
+      showbug "HashTable.iter: item has been deleted from the table"
+      state = -1
+      return NULL
+    end if
+    'Increment past prev_value
+    bucketidx += 1
+  end if
+
+  'Advance to next non-empty bucket if we've reached the end of this one
+  while bucketidx >= v_len(this.table[bucketnum])
+    bucketnum += 1
+    bucketidx = 0
+    if bucketnum >= this.tablesize then
+      key = NULL
+      state = -1
+      return NULL
+    end if
   wend
- 
-  item = HTCASTUSERPTR(it)
-  return item
-END FUNCTION
+
+  state = (bucketnum shl 20) or (bucketidx + 1)  '+1 to advance to next item on next call
+  with this.table[bucketnum][bucketidx]
+    key = .key
+    return .value
+  end with
+end function
+
+function HashTable.keys() as any ptr vector
+  dim ret as any ptr vector
+  'v_new ret, 0, this.numitems
+  ' dim typetbl as TypeType ptr
+  ' if typetbl = NULL then typetbl = @type_table(any_ptr)
+  array_new ret, this.numitems, 0, iif(this.key_is_integer, @type_table(integer), @type_table(any_ptr))
+
+  for bucketnum as integer = 0 to this.tablesize - 1
+    dim byref bucket as HashBucketItem vector = this.table[bucketnum]
+    for bucketidx as integer = 0 to v_len(bucket) - 1
+      if this.key_is_integer then
+        v_append ret, @bucket[bucketidx].hash
+      else
+        v_append ret, @bucket[bucketidx].key
+      end if
+    next
+  next
+  return ret
+end function
+
+/' This seems unnecessary, so commenting out to reduce bloat. (Testcase below is commented out too)
+function HashTable.hashes() as integer vector
+  dim ret as integer vector
+  dim idx as integer
+  v_new ret, this.numitems, 0
+  for bucketnum as integer = 0 to this.tablesize - 1
+    dim byref bucket as HashBucketItem vector = this.table[bucketnum]
+    for bucketidx as integer = 0 to v_len(bucket) - 1
+      ret[idx] = bucket[bucketidx].hash
+      idx += 1
+    next
+  next
+  return ret
+end function
+'/
+
+function HashTable.items() as HashBucketItem vector
+  dim ret as HashBucketItem vector
+  v_new ret, 0, this.numitems
+  for idx as integer = 0 to this.tablesize - 1
+    v_extend(ret, this.table[idx])
+  next
+  return ret
+end function
+
+private function hash_compare cdecl (byval a as HashBucketItem ptr, byval b as HashBucketItem ptr) as long
+  if a->hash < b->hash then return -1
+  if a->hash > b->hash then return 1
+end function
+
+function HashTable.items_sorted() as HashBucketItem vector
+  dim ret as HashBucketItem vector = this.items()
+  dim comp as FnCompare = iif(this.key_compare, this.key_compare, cast(FnCompare, @hash_compare))
+  qsort(@ret[0], this.numitems, sizeof(HashBucketItem), comp)
+  return ret
+end function
+
+#IFDEF __FB_MAIN__
+startTest(HashTableIntToInt)
+  dim as HashTable tbl
+  tbl.construct(64)
+  'tbl.construct(64, type_table(integer), NO, type_table(any_ptr), NO)  'Equivalent to above
+
+  tbl.add(65, 11)  ' |
+  tbl.add(1, 10)   ' |
+  tbl.add(129, 9)  ' v
+  tbl.add(-255, 8)  'All in same bucket
+  tbl.add(20, 7)
+  tbl.add(20, -6)  'Duplicates
+  if tbl.numitems <> 6 then fail
+
+  if tbl.get(1) <> 10 then fail  'Interestingly FB allows comparing a ptr to an int without warning
+  if tbl.get(65) <> 11 then fail
+  if tbl.get(129) <> 9 then fail
+  if tbl.get(-255) <> 8 then fail
+  if tbl.get(20) <> 7 then fail
+  dim tmp as integer = tbl.get_int(20)  'But here you do need get_int()
+  if tmp <> 7 then fail
+  if tbl.get_int(-255, -1) <> 8 then fail  'And also when providing a default value
+  if tbl.get_int(0, -1) <> -1 then fail
+
+  tbl.set(20, 0)
+  if tbl.remove(-255) <> YES then fail
+  if tbl.remove(84) <> NO then fail
+
+  if tbl.get_int(20, -1) <> 0 then fail
+
+  dim items as HashBucketItem vector = tbl.items_sorted()
+
+  if v_len(items) <> 5 then fail
+  if items[0].hash <> 1 then fail
+  if items[1].hash <> 20 then fail
+  if items[2].hash <> 20 then fail
+  if items[3].hash <> 65 then fail
+  if items[4].hash <> 129 then fail
+  if items[0].value_int <> 10 then fail
+  if items[1].value_int <> 0 then fail
+  if items[2].value_int <> -6 then fail
+  if items[3].value_int <> 11 then fail
+  if items[4].value_int <> 9 then fail
+
+  v_free items
+
+  /'
+  dim hashes as uinteger vector = tbl.hashes()
+  v_sort hashes
+  if v_str(hashes) <> "[1, 20, 20, 65, 129]" then fail
+  v_free hashes
+  '/
+
+  tbl.destruct()
+  if tbl.numitems <> 0 then fail
+endTest
+
+startTest(HashTableStrings)
+  dim tbl as HashTable
+  tbl.construct( , type_table(string), YES, type_table(integer), NO)
+
+  dim as string a = "A", b = "B", c = "C", d, e, f
+  tbl.add @a, 100
+  tbl.add @b, 200
+  tbl.set @c, 300
+
+  c = "foo"
+  d = "C"
+  'Note: you can NOT write 'tbl.get(@"C")', that's a zstring ptr not a string ptr
+  if tbl.get(@c) <> 0 then fail
+  if tbl.get(@d) <> 300 then fail
+
+  tbl.destruct()
+  if a <> "A" then fail  'Shouldn't have touched the originals
+
+  'Try out reinitialising a table with different types.
+  'This time, don't copy the strings
+  tbl.construct(1 , type_table(string), NO, type_table(string), NO)
+
+  c = "C"
+  tbl.add @a, @d
+  tbl.add @b, @e
+  tbl.set @c, @f
+  if tbl.numitems <> 3 then fail
+
+  a = "not A"
+  if tbl.get(@a) <> NULL then fail
+  c = "B"
+  tbl.set @c, @d  'Overwrites "B" key, since we are comparing by value, not pointer
+  if tbl.numitems <> 3 then fail
+  if tbl.get(@b) <> @d then fail
+  if tbl.get(@c) <> @d then fail  'Since b and c are equal, the @c->@f item is shadowed
+  c = "C"
+  if tbl.get(@c) <> @f then fail  'But is still there
+
+  if tbl.get_str(@e) <> "" then fail  '@e = "", which is not in the table
+  if tbl.get_str(@e, "none") <> "none" then fail
+  if tbl.get_str(@a) <> "" then fail  '@e = "", not in the table either
+  if tbl.get_str(@a, "none") <> "none" then fail
+
+  if tbl.get_str(@c) <> "" then fail  'In the table; value is ""
+  if tbl.get_str(@c, "none") <> "" then fail
+  if tbl.get_str(@b, "none") <> "C" then fail
+
+  tbl.destruct()
+endTest
+
+startTest(HashTableZstring)
+  dim tbl as HashTable
+  tbl.construct(1 , type_table(zstring), YES, type_table(zstring), NO)
+
+  dim as zstring ptr a = @"A", b = @"B", c = @"C"
+  tbl.add a, a
+  tbl.add b, b
+  tbl.set c, c
+  if tbl.get(b) <> b then fail
+  if tbl.get_str(b) <> "B" then fail
+  if tbl.get_int(@"D", 42) <> 42 then fail
+
+  dim items as HashBucketItem vector = tbl.items()
+  'Check the key is a deep copy, value is shallow
+  if items[0].key = a then fail
+  if *cast(zstring ptr, items[0].key) <> *a then fail
+  if items[0].value <> a then fail
+  v_free items
+
+  if tbl.get(b) <> b then fail
+
+  dim as string a2 = "A"
+  if strptr(a2) = a then fail
+  if tbl.get(strptr(a2)) <> a then fail
+
+  tbl.destruct()
+endTest
+
+#ENDIF
 
 '------------- Old allmodex stuff -------------
 

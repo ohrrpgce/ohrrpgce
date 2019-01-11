@@ -24,8 +24,12 @@ SUB string_copyctor cdecl (byval dest as string ptr, byval src as string ptr)
   fb_StrAssignEx(dest, -1, src, -1, 0, 1)
 END SUB
 
-FUNCTION zstring_compare CDECL (byval a as zstring ptr ptr, byval b as zstring ptr ptr) as long
+FUNCTION zstringp_compare CDECL (byval a as zstring ptr ptr, byval b as zstring ptr ptr) as long
   RETURN strcmp(*a, *b)
+END FUNCTION
+
+FUNCTION zstring_compare CDECL (byval a as zstring ptr, byval b as zstring ptr) as long
+  RETURN strcmp(a, b)
 END FUNCTION
 
 FUNCTION double_compare CDECL (byval a as double ptr, byval b as double ptr) as long
@@ -49,7 +53,11 @@ FUNCTION string_str CDECL (byval this as string ptr) as string
   RETURN """" + *this + """"
 END FUNCTION
 
-FUNCTION zstring_str CDECL (byval this as zstring ptr ptr) as string
+FUNCTION zstring_str CDECL (byval this as zstring ptr) as string
+  RETURN """" + *this + """"
+END FUNCTION
+
+FUNCTION zstringp_str CDECL (byval this as zstring ptr ptr) as string
   RETURN """" + **this + """"
 END FUNCTION
 
@@ -57,8 +65,8 @@ FUNCTION string_hash CDECL (byval this as string ptr) as uinteger
   RETURN stringhash(strptr(*this), len(*this))
 END FUNCTION
 
-FUNCTION zstring_hash CDECL (byval this as zstring ptr ptr) as uinteger
-  RETURN stringhash(*this, strlen(*this))
+FUNCTION zstring_hash CDECL (byval this as zstring ptr) as uinteger
+  RETURN stringhash(this, strlen(this))
 END FUNCTION
 
 FUNCTION integer_str CDECL (byval this as integer ptr) as string
@@ -73,18 +81,29 @@ FUNCTION double_str CDECL (byval this as double ptr) as string
   RETURN STR(*this)
 END FUNCTION
 
+FUNCTION zstring_copy cdecl (byval p as zstring ptr) as zstring ptr
+  IF p = NULL THEN RETURN NULL
+  DIM length as integer = strlen(p)
+  DIM ret as zstring ptr = allocate(length + 1)
+  memcpy(ret, p, length + 1)
+  RETURN ret
+END FUNCTION
+
 
 ' Non-UDT types each require special treatment
-'DEFINE_CUSTOM_VECTOR_TYPE(T,          TID,         CTOR_FUNC, COPYCTOR_FUNC,    DTOR_FUNC,    COMPARE_FUNC,     INEQUAL_FUNC,    HASH_FUNC,     STR_FUNC)
+'DEFINE_CUSTOM_VECTOR_TYPE(T,          TID,         CTOR_FUNC, COPYCTOR_FUNC,    DTOR_FUNC,    COMPARE_FUNC,      INEQUAL_FUNC,    HASH_FUNC,     STR_FUNC)
 
-DEFINE_CUSTOM_VECTOR_TYPE(integer,     integer,     NULL,      NULL,             NULL,         @integer_compare, NULL,            NULL,          @integer_str)
-DEFINE_CUSTOM_VECTOR_TYPE(double,      double,      NULL,      NULL,             NULL,         @double_compare,  @double_inequal, NULL,          @double_str)
-DEFINE_CUSTOM_VECTOR_TYPE(string,      string,      NULL,      @string_copyctor, @string_dtor, @string_compare,  NULL,            @string_hash,  @string_str)
-DEFINE_CUSTOM_VECTOR_TYPE(zstring ptr, zstring_ptr, NULL,      NULL,             NULL,         @zstring_compare, NULL,            @zstring_hash, @zstring_str)
+DEFINE_CUSTOM_VECTOR_TYPE(integer,     integer,     NULL,      NULL,             NULL,         @integer_compare,  NULL,            NULL,          @integer_str)
+DEFINE_CUSTOM_VECTOR_TYPE(double,      double,      NULL,      NULL,             NULL,         @double_compare,   @double_inequal, NULL,          @double_str)
+DEFINE_CUSTOM_VECTOR_TYPE(string,      string,      NULL,      @string_copyctor, @string_dtor, @string_compare,   NULL,            @string_hash,  @string_str)
+'zstring_ptr should be used in vectors, never HashTables
+DEFINE_CUSTOM_VECTOR_TYPE(zstring ptr, zstring_ptr, NULL,      NULL,             NULL,         @zstringp_compare, NULL,            NULL,          @zstringp_str)
+'zstring should be used in HashTables, and can't be used in vectors.
+DEFINE_TYPE_TABLE        (zstring,     zstring,     NULL,      NULL,             NULL,         @zstring_compare, NULL,             @zstring_hash, @zstring_str, @zstring_copy, @DEALLOCATE)
 
-DEFINE_CUSTOM_VECTOR_TYPE(any ptr,     any_ptr,     NULL,      NULL,             NULL,         @integer_compare, NULL,            NULL,          @ptr_str)
+DEFINE_CUSTOM_VECTOR_TYPE(any ptr,     any_ptr,     NULL,      NULL,             NULL,         @integer_compare,  NULL,            NULL,          @ptr_str)
 'Note: v_copy might change (free) the src if it is temp. An 'any vector' should never contain temps
-'DEFINE_CUSTOM_VECTOR_TYPE(any vector, any_vector,  NULL,      @v_copy,          @v_free,      NULL,             NULL,            NULL,          NULL)
+'DEFINE_CUSTOM_VECTOR_TYPE(any vector, any_vector,  NULL,      @v_copy,          @v_free,      NULL,              NULL,            NULL,          NULL)
 
 DEFINE_VECTOR_VECTOR_OF(integer, integer)  'integer vector vector
 

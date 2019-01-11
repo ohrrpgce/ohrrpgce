@@ -355,7 +355,7 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
   DEFINE_CUSTOM_VECTOR_TYPE(T, TID, NULL, COPY_FUNC, DELETE_FUNC, @TID##_compare_func, NULL, NULL, NULL)
 #ENDMACRO
 
-'Creates TypeTable for T, allowing use of 'T vector'
+'Creates TypeTable for T, allowing use of 'T vector' and type_table(T)
 'If you want to customise one of the methods, you can use this instead of DEFINE_VECTOR_OF_TYPE.
 'You don't need to provide EQUAL_FUNC if you give COMPARE_FUNC unless you have special reason
 '(doubles). You don't need COMPARE_FUNC if you don't want to sort an vector. You can give NULL
@@ -375,6 +375,11 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
     delete p
   end sub
 
+  DEFINE_TYPE_TABLE(T, TID, CTOR_FUNC, COPYCTOR_FUNC, DTOR_FUNC, COMPARE_FUNC, INEQUAL_FUNC, HASH_FUNC, STR_FUNC, @TID##_copy, @TID##_delete)
+#ENDMACRO
+
+
+#MACRO DEFINE_TYPE_TABLE(T, TID, CTOR_FUNC, COPYCTOR_FUNC, DTOR_FUNC, COMPARE_FUNC, INEQUAL_FUNC, HASH_FUNC, STR_FUNC, COPY_FUNC, DELETE_FUNC)
   DIM type_table(TID) as TypeTable
   'FB doesn't let you use function addresses in initialisers, considered non-constant
   type_table(TID) = Type( _
@@ -383,15 +388,14 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
      cast(FnCtor, CTOR_FUNC),       /'ctor'/                 _
      cast(FnCopyCtor, COPYCTOR_FUNC),/'copyctor'/            _
      cast(FnDtor, DTOR_FUNC),       /'dtor'/                 _
-     cast(FnCopy, @TID##_copy),     /'copy'/                 _
-     cast(FnDelete, @TID##_delete), /'_delete'/              _
+     cast(FnCopy, COPY_FUNC),       /'copy'/                 _
+     cast(FnDelete, DELETE_FUNC),   /'_delete'/              _
      cast(FnCompare, COMPARE_FUNC), /'comp'/                 _
      cast(FnCompare, INEQUAL_FUNC), /'inequal'/              _
      cast(FnHash, HASH_FUNC),       /'hash'/                 _
      cast(FnStr, STR_FUNC),         /'tostr'/                _
      @#T                            /'name'/                 _
   )
-
 #ENDMACRO
 
 'Defines T vector vector (which means the base type is 'T vector')
@@ -419,6 +423,7 @@ DECLARE_VECTOR_OF_TYPE(integer, integer)
 DECLARE_VECTOR_OF_TYPE(double, double)
 DECLARE_VECTOR_OF_TYPE(string, string)
 DECLARE_VECTOR_OF_TYPE(zstring ptr, zstring_ptr)  'Warning, no deleting, copying or initialisation done (strings assumed to be static)
+DECLARE_VECTOR_OF_TYPE(zstring, zstring)  'Warning, no deleting, copying or initialisation done (strings assumed to be static)
 DECLARE_VECTOR_OF_TYPE(any ptr, any_ptr)  'Pointers aren't freed when the vector is
 
 DECLARE_VECTOR_OF_TYPE(integer vector, integer_vector)

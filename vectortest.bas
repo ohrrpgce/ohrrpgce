@@ -63,7 +63,7 @@ sub VecMap_set (byref this as VecMap, nam as string, byval foo as integer, byval
 	'? __FUNCTION__
 end sub
 
-sub VecMap_copy cdecl (byref this as VecMap, byref that as VecMap)
+sub VecMap_copyctor cdecl (byref this as VecMap, byref that as VecMap)
 	this.constructor()
 	this.name = that.name
 	v_copy this.vec, that.vec
@@ -87,7 +87,7 @@ function VecMap_string cdecl (byref this as VecMap) as string
 end function
 
 DECLARE_VECTOR_OF_TYPE(VecMap, VecMap)
-DEFINE_CUSTOM_VECTOR_TYPE(VecMap, VecMap, @VecMap_construct, @VecMap_copy, @VecMap_destruct, @VecMap_compare, NULL, NULL, @VecMap_string)
+DEFINE_CUSTOM_VECTOR_TYPE(VecMap, VecMap, @VecMap_construct, @VecMap_copyctor, @VecMap_destruct, @VecMap_compare, NULL, NULL, @VecMap_string)
 
 
 '''''''''''''''''''''''''''''''''''' Tests '''''''''''''''''''''''''''''''''''''

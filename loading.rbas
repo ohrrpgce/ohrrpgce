@@ -858,7 +858,8 @@ SUB CleanZoneMap(zmap as ZoneMap, byval wide as integer, byval high as integer)
     .wide_segments = (wide + 3) \ 4
     .high_segments = (high + 3) \ 4
     .zoneIDmap = CALLOCATE(2 * 16 * .wide_segments * .high_segments)
-    hash_construct(.extraID_hash, offsetof(ZoneHashedSegment, hashed))
+    .extraID_hash.construct(64)
+    .extraID_hash.value_delete = @DEALLOCATE
   END WITH
 END SUB
 
@@ -866,12 +867,12 @@ END SUB
 SUB DeleteZoneMap(zmap as ZoneMap)
   WITH zmap
     FOR i as integer = 0 TO .numzones - 1
-      (@.zones[i])->Destructor()  'all TYPEs have destructors, proof that -lang deprecated limitations are artificial
+      (@.zones[i])->Destructor()
     NEXT
     .numzones = 0
     DEALLOCATE(.zones)
     .zones = NULL
-    hash_destruct(.extraID_hash)
+    .extraID_hash.destruct()
     DEALLOCATE(.bitmap)
     .bitmap = NULL
     DEALLOCATE(.zoneIDmap)
@@ -893,7 +894,7 @@ SUB GetZonesAtTile(zmap as ZoneMap, zones() as integer, x as integer, y as integ
     DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
     IF bitvector AND (1 SHL 15) THEN
       'This 4x4 segment is overcrowded, fall back to looking up the tile
-      IDmap = cast(ushort ptr, hash_find(.extraID_hash, (x SHL 16) OR y))
+      IDmap = .extraID_hash.get((x SHL 16) OR y)
     END IF
     REDIM zones(-1 TO 15)
     DIM nextindex as integer = 0
@@ -928,7 +929,7 @@ FUNCTION CheckZoneAtTile(zmap as ZoneMap, id as integer, x as integer, y as inte
     DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
     IF bitvector AND (1 SHL 15) THEN
       'This 4x4 segment is overcrowded, fall back to looking up the tile
-      IDmap = cast(ushort ptr, hash_find(.extraID_hash, (x SHL 16) OR y))
+      IDmap = .extraID_hash.get((x SHL 16) OR y)
     END IF
     FOR slot as integer = 0 TO 14
       IF IDmap[slot] = id THEN
@@ -953,7 +954,7 @@ SUB DebugZoneMap(zmap as ZoneMap, byval x as integer = -1, byval y as integer = 
       DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
       IF bitvector AND (1 SHL 15) THEN
         'This 4x4 segment is overcrowded, fall back to looking up the tile
-        IDmap = cast(ushort ptr, hash_find(.extraID_hash, (x SHL 16) OR y))
+        IDmap = .extraID_hash.get((x SHL 16) OR y)
         debug " (crowded tile)"
       END IF
       DIM temp as string
@@ -999,8 +1000,7 @@ END SUB
 
 PRIVATE FUNCTION ZoneMapAddExtraSegment(zmap as ZoneMap, byval x as integer, byval y as integer) as ZoneHashedSegment ptr
   DIM tiledescriptor as ZoneHashedSegment ptr = CALLOCATE(SIZEOF(ZoneHashedSegment))
-  tiledescriptor->hashed.hash = (x SHL 16) OR y
-  hash_add(zmap.extraID_hash, tiledescriptor)
+  zmap.extraID_hash.add((x SHL 16) OR y, tiledescriptor)
   RETURN tiledescriptor
 END FUNCTION
 
@@ -1015,7 +1015,7 @@ FUNCTION SetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, b
     DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
     IF *bitvector AND (1 SHL 15) THEN
       'This 4x4 segment is overcrowded, fall back to looking up the tile
-      IDmap = cast(ushort ptr, hash_find(.extraID_hash, (x SHL 16) OR y))
+      IDmap = .extraID_hash.get((x SHL 16) OR y)
     END IF
     IF (*bitvector AND &h7fff) = &h7fff THEN debug "SetZoneTile: tile too full": RETURN NO
   tryagain:
@@ -1069,7 +1069,7 @@ SUB UnsetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byva
     DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
     IF *bitvector AND (1 SHL 15) THEN
       'This 4x4 segment is overcrowded, fall back to looking up the tile
-      IDmap = cast(ushort ptr, hash_find(.extraID_hash, (x SHL 16) OR y))
+      IDmap = .extraID_hash.get((x SHL 16) OR y)
     END IF
     DIM slot as integer = -1
     FOR i as integer = 0 TO 14
@@ -1144,7 +1144,7 @@ SUB ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, byval id as integer, byval b
           DIM tileptr as ubyte ptr = @tmap.data[y * .wide]
           FOR x = segmentx * 4 TO small(.wide, segmentx * 4 + 4) - 1
             IF bitvectors[x] AND (1 SHL 15) THEN
-              DIM IDmap as ushort ptr = hash_find(.extraID_hash, (x SHL 16) OR y)
+              DIM IDmap as ushort ptr = .extraID_hash.get((x SHL 16) OR y)
               IF bitvectors[x] AND ZoneBitmaskFromIDMap(IDmap, id) THEN
                 tileptr[x] OR= (1 SHL bitnum)
               ELSE

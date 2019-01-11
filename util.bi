@@ -35,6 +35,10 @@ declare sub remove_exx_handler()
 '----------------------------------------------------------------------
 '                           Macro utilities
 
+#define cvar(v, x) cast(typeof(v), x)
+#define canyptr(x) cast(any ptr, cast(intptr_t, x))
+#define cintptr32(x) cast(integer, cast(intptr_t, x))  'Cast a ptr to a 32 bit int
+
 #macro EXIT_MSG_IF(condition, errlvl, message, retwhat...)
 	if condition then
 		debugc errlvl, __FUNCTION__ ": " & message
@@ -275,41 +279,135 @@ declare function dlist_walk (byref this as DoubleList(Any), byval startitem as a
 
 'declare sub dlist_print (byref this as DoubleList(Any))
 
-'------------- Hash Table -------------
+'----------------------------------------------------------------------
+'                             HashTable
 
-'WARNING: don't add strings to this
-TYPE HashedItem
-  hash as unsigned integer
-  'these are internal
-  _next as HashedItem ptr       
-  _prevp as HashedItem ptr ptr  'pointer to either a _next pointer to this, or table entry
-END TYPE
-'(notice that unlike DListItem, the HashedItem next/prev point to HashedItem rather than containing objects)
+Type HashBucketItem
+  hash as integer
+  key as any ptr              'If the table uses integer keys, 'key' is NULL
+  Union
+    value as any ptr
+    value_int as integer
+  end Union
+end Type
 
-'if we had classes, then this would work well as a template, but it's pointless at the moment
-TYPE HashTable
+DECLARE_VECTOR_OF_TYPE(HashBucketItem, HashBucketItem)
+
+'This is a multimap (it allows duplicate keys).
+'Keys and values can be either integers or pointers to any type.
+'The table optionally will make copies of keys or values instead of just treating them
+'as opaque pointers - to do that you need to either use the construct() overload which provides type
+'information, or manually set some of the key_* or value_* members.
+'Use DECLARE_VECTOR_OF_TYPE() and DEFINE_CUSTOM_VECTOR_TYPE() to declare/create a TypeTable for a UDT.
+'(But note that the default hash function for a UDT just hashes its contents, which will not work
+'if the compiler adds padding to the UDT! And it might not be what you want if the UDT contains pointers,
+'including strings.)
+'You need to ensure that you don't mix different key/value types in the same table, and that you use the
+'correct overloads, because in most cases that isn't checked.
+
+Type HashTable
+  'Public members: (you may wish to manually set some function ptrs instead of providing TypeTables)
   numitems as integer
-  tablesize as unsigned integer
-  table as any ptr ptr
-  'arguments to comparefunc are (byval as TypeContainingHashedItem ptr, byval as KeyType ptr)
-  comparefunc as FnCompare
-  memberoffset as integer
-END TYPE
+  key_compare as FnCompare    'If NULL, items are compared by hash value only, and keys should be NULL.
+                              'Arguments to comparefunc are (byval as KeyType ptr, byval as KeyType ptr)
+  key_hash as FnHash
+  key_copy as FnCopy          'May be NULL
+  key_delete as FnDelete      'May be NULL
+  key_length as integer       'May be 0. Needed only if key_hash is NULL and not using integer keys
+  key_is_integer as bool      'Whether key_type is integer, rather than using ptrs as keys
+  value_copy as FnCopy        'May be NULL
+  value_delete as FnDelete    'May be NULL
+  value_is_string as bool     'value_type is type_table(string)
+  value_is_zstring as bool    'value_type is type_table(zstring)
 
-'a HashTable compares items by their hash values. If two different keys might hash to the same value, you should
-'set the 'comparefunc' function pointer in the HashTable, and pass 'key' to hash_find
+  'Internal members:
+  tablesize as uinteger       'Length of the 'table' array
+  table as HashBucketItem vector ptr  'An array of hash table buckets, each a vector or NULL
 
-declare sub hash_construct(byref this as HashTable, byval itemoffset as integer, byval tablesize as integer = 256)
-declare sub hash_destruct(byref this as HashTable)
 
-'Pass an object containing HashedItem member with .hash already set
-declare sub hash_add(byref this as HashTable, byval item as any ptr)
-declare sub hash_remove(byref this as HashTable, byval item as any ptr)
-declare function hash_find(byref this as HashTable, byval hash as unsigned integer, byval key as any ptr = NULL) as any ptr
+  'Use this constructor if either keys and values are just integers or opaque ptrs,
+  'or if you want to set the .key_* and .value_* members yourself.
+  'E.g. set tbl.value_delete = @DEALLOCATE to free values when they are removed.
+  'tablesize should be manually adjusted to something suitable, because it does not grow automatically.
+  'If there are N items in the table, then time to lookup a key will be on average N/tablesize.
+  declare sub construct(tablesize as integer = 31)
 
-'to iterate over a hash table, dim state as integer = 0 and object pointer = NULL and
-'pass to hash_iter until item = NULL. Returns item.
-declare function hash_iter(byref this as HashTable, byref state as integer, byref item as any ptr) as any ptr
+  'Construct a HashTable with information about the types, if you want to store non-opaque pointers.
+  'Pass a type info struct like 'type_table(T)' if you want the key/value to be a T ptr.
+  'For example you should pass type_table(string) or type_table(zstring) to store FB or C strings;
+  'do NOT use type_table(zstring_ptr)!
+  'type_table(integer) as key or value is a special case, as integers are stored directly instead of
+  'pointers to integers. type_table(any_ptr) (not type_table(any)) is also a special case, and means
+  'an opaque pointer.
+  'If you want the keys or values to be copied with NEW and freed with DELETE when added/removed
+  'from the table, pass copy_and_delete_{keys,values} = YES. Otherwise, you are responsible for
+  'allocating and deleting them. These args have no effect when key/value_type is integer, and must
+  'not be used with any_ptr.
+  declare sub construct(tablesize as integer = 31, key_type as TypeTable, copy_and_delete_keys as bool, value_type as TypeTable, copy_and_delete_values as bool)
+
+  'Frees all memory. construct() can be called afterwards, with any types.
+  declare sub destruct()
+
+  'Remove and everything in the table and call the dtors, if provided
+  declare sub clear()
+
+  'Provide either a hash, or both a key and its hash. Both key and value may be NULL.
+  'However if the value is NULL you can't distinguish between NULL values and keys that aren't present!
+  'NOTE: if the key already exists, it will be duplicated! Use set() instead to overwrite.
+  declare sub add(hash as integer, value as any ptr, _key as any ptr = NULL)  'Ignore _key
+  declare sub add(hash as integer, value as integer)
+  declare sub add(key as any ptr, value as any ptr)
+  declare sub add(key as any ptr, value as integer)
+
+  'Change the value of (the first instance of) a key, or add it if it's not in the table yet.
+  declare sub set(hash as integer, value as any ptr, _key as any ptr = NULL)  'Ignore _key
+  declare sub set(hash as integer, value as integer)
+  declare sub set(key as any ptr, value as any ptr)
+  declare sub set(key as any ptr, value as integer)
+
+  'Returns the value for (the first instance of) a key, or default if not present
+  declare function get(hash as integer, default as any ptr = NULL, _key as any ptr = NULL) as any ptr  'Ignore _key
+  declare function get(key as any ptr, default as any ptr = 0) as any ptr
+  'Convenience functions, which cast the return value of .get()
+  declare function get_int(hash as integer, default as integer = 0) as integer
+  declare function get_int(key as any ptr, default as integer = 0) as integer
+  declare function get_str(hash as integer, default as zstring ptr = @"", _key as any ptr = NULL) as string  'Ignore _key
+  declare function get_str(key as any ptr, default as zstring ptr = @"") as string
+
+  'Remove (the first instance of) an item and call key/value dtors, if provided.
+  'Returns YES if it was found, NO otherwise
+  declare function remove(hash as integer, _key as any ptr = NULL) as bool  'Ignore _key
+  declare function remove(key as any ptr) as bool
+
+  'To iterate over a hash table, dim state as uinteger = 0 and prev_value = NULL and
+  'pass to iter until value = NULL. Returns values, and optionally keys ('key' set byref).
+  'Adding items to the table while iterating is OK; they may or may not get iterated over. Removing items while
+  'iterating is OK, provided that prev_value isn't removed and that values are unique.
+  declare function iter(byref state as uinteger, prev_value as any ptr, byref key as any ptr = NULL) as any ptr
+
+  'Returns either an integer vector (if this.key_is_integer) or else an any ptr vector
+  '(you should store the result in an appropriate variable!)
+  'Unsorted. Keys are not copied, so pointers will become invalid if you free the key
+  '(e.g. remove from the table if it's set to delete keys)
+  declare function keys() as any ptr vector
+
+  'Implemented, but I don't think this is needed.
+  'declare function hashes() as integer vector
+
+  'Unsorted contents of the table. Only a shallow copy of key and value ptrs, so
+  'make sure they haven't been deleted yet and you don't double-free!  You must
+  'free the vector.
+  'Duplicate keys appear in the order they were added.
+  declare function items() as HashBucketItem vector
+
+  'Like .items(), but sorted either using key_compare, or by hash.
+  'Duplicate keys do NOT appear in the order they were added.
+  declare function items_sorted() as HashBucketItem vector
+
+  'For internal use, mostly. Get the hash of a key ptr.
+  declare function hash_key(key as any ptr) as integer
+end Type
+
 
 
 '----------------------------------------------------------------------
