@@ -2,8 +2,11 @@
 struct FBSTRING;
 
 typedef void (*FnCtor)(void *);
+typedef void (*FnCopyCtor)(void *, void *);  // second arg ought to be const, but in practice isn't (AnyVector)
+typedef void (*FnDtor)(void *);
+typedef void *(*FnCopy)(void *);  // Allocate and initialise a copy
+typedef void (*FnDelete)(void *);  // Destruct and delete
 typedef int (*FnCompare)(const void *, const void *);
-typedef void (*FnCopy)(void *, void *);  // second arg ought to be const, but in practice isn't (AnyVector)
 typedef struct FBSTRING *(*FnStr)(const void *);
 
 typedef struct _typetable {
@@ -12,8 +15,10 @@ typedef struct _typetable {
 	// Note: strings are an exception
 	enum PassConvention { PASS_BYVAL, PASS_BYREF, PASS_ZSTRING } passtype;
 	FnCtor ctor;
-	FnCopy copyctor;
-	FnCtor dtor;
+	FnCopyCtor copyctor;
+	FnDtor dtor;
+	FnCopy copy;
+	FnDelete delete;
 	FnCompare comp;
 	FnCompare inequal;
 	FnStr tostr;

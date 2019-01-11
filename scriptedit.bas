@@ -242,7 +242,7 @@ SUB addtrigger (scrname as string, byval id as integer, triggers as TriggerSet)
    IF .usedbits = 0 OR .trigs = 0 THEN showerror "Could not allocate memory for script importation": EXIT SUB
 
    FOR i as integer = .size TO allocnum - 1
-    DIM dummy as TriggerData ptr = NEW (@.trigs[i]) TriggerData  'placement new, initialise those strings
+    .trigs[i].Constructor()  'Zero everything out
    NEXT
    .usedbits[.size \ 32] = 0
   END IF

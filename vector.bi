@@ -27,7 +27,10 @@
 #DEFINE vector ptr
 
 TYPE FnCtor as sub cdecl (byval as any ptr)
-TYPE FnCopy as sub cdecl (byval as any ptr, byval as any ptr)
+TYPE FnCopyCtor as sub cdecl (byval dest as any ptr, byval src as any ptr)
+TYPE FnDtor as sub cdecl (byval as any ptr)
+TYPE FnCopy as function cdecl (byval as any ptr) as any ptr  'Allocate and initialise a copy
+TYPE FnDelete as sub cdecl (byval as any ptr)  'Destruct and delete
 TYPE FnStr as function cdecl (byval as any ptr) as string
 TYPE FnCompare as function cdecl (byval as any ptr, byval as any ptr) as int32
 
@@ -43,15 +46,17 @@ TYPE TypeTable
   element_len as uint32
   passtype as PassConvention  'Not used
   ctor as FnCtor
-  copyctor as FnCopy
-  dtor as FnCtor
+  copyctor as FnCopyCtor
+  dtor as FnDtor
+  copy as FnCopy
+  _delete as FnDelete
   comp as FnCompare
   inequal as FnCompare
   tostr as FnStr
   name as zstring ptr  'For debugging
 END TYPE
 
-#DEFINE type_table(T) type_tbl_##T
+#DEFINE type_table(TID) type_tbl_##TID
 
 ''' array.c declarations (internal, do no use!)
 
@@ -322,13 +327,13 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
 
   'Note this is the copy constructor, NOT the assignment operator, so p1 contains garbage
   'and so *p1 = *p2 won't work
-  private sub TID##_copyconstr_func cdecl (byval p1 as T ptr, byval p2 as T ptr)
-    '(Does not work for POD UDTs not containing strings: FB refuses to give these
+  private sub TID##_copyctor_func cdecl (byval p1 as T ptr, byval p2 as T ptr)
+    '(Does not work for POD UDTs not containing strings: FB does not generate
     ' copy constructors)
     p1->constructor(*p2)
   end sub
 
-  private sub TID##_delete_func cdecl (byval p as T ptr)
+  private sub TID##_dtor_func cdecl (byval p as T ptr)
     '(Only works for UDTs, not primitive types)
     'FB acts very strangely wrt destructors... if a UDT does not actually need destructing,
     'FB will still generate destructor calls, but if you try to call ->destructor() on such
@@ -336,9 +341,8 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
     p->destructor()
   end sub
 
-  DEFINE_VECTOR_OF_TYPE_COMMON(T, TID, @TID##_copyconstr_func, @TID##_delete_func)
+  DEFINE_VECTOR_OF_TYPE_COMMON(T, TID, @TID##_copyctor_func, @TID##_dtor_func)
 #ENDMACRO
-
 
 #MACRO DEFINE_VECTOR_OF_TYPE_COMMON(T, TID, COPY_FUNC, DELETE_FUNC)
   'Dumb default (FB doesn't provide default comparison methods for UDTs)
@@ -357,16 +361,28 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
 '
 'WARNING: Don't forget to use CDECL!!! No warning will be given!
 '
-#MACRO DEFINE_CUSTOM_VECTOR_TYPE(T, TID, CTOR_FUNC, COPY_FUNC, DELETE_FUNC, COMPARE_FUNC, INEQUAL_FUNC, STR_FUNC)
+#MACRO DEFINE_CUSTOM_VECTOR_TYPE(T, TID, CTOR_FUNC, COPYCTOR_FUNC, DTOR_FUNC, COMPARE_FUNC, INEQUAL_FUNC, STR_FUNC)
+
+  private function TID##_copy cdecl (byval p as T ptr) as T ptr
+    'This works regardless of whether the UDT has a copy-constructor or not.
+    '(You might get an 'Invalid data types' error here due to https://sourceforge.net/p/fbc/bugs/894/)
+    return new T(*p)
+  end function
+
+  private sub TID##_delete cdecl (byval p as T ptr)
+    delete p
+  end sub
 
   DIM type_table(TID) as TypeTable
-  'FB doesn't let you use addresses in initialisers, considered non-constant
+  'FB doesn't let you use function addresses in initialisers, considered non-constant
   type_table(TID) = Type( _
      sizeof(T),                     /'element_len'/          _
      PASS_BYVAL,                    /'passtype'/             _
      cast(FnCtor, CTOR_FUNC),       /'ctor'/                 _
-     cast(FnCopy, COPY_FUNC),       /'copyctor'/             _
-     cast(FnCtor, DELETE_FUNC),     /'dtor'/                 _
+     cast(FnCopyCtor, COPYCTOR_FUNC),/'copyctor'/            _
+     cast(FnDtor, DTOR_FUNC),       /'dtor'/                 _
+     cast(FnCopy, @TID##_copy),     /'copy'/                 _
+     cast(FnDelete, @TID##_delete), /'_delete'/              _
      cast(FnCompare, COMPARE_FUNC), /'comp'/                 _
      cast(FnCompare, INEQUAL_FUNC), /'inequal'/              _
      cast(FnStr, STR_FUNC),         /'tostr'/                _
@@ -400,7 +416,7 @@ DECLARE_VECTOR_OF_TYPE(integer, integer)
 DECLARE_VECTOR_OF_TYPE(double, double)
 DECLARE_VECTOR_OF_TYPE(string, string)
 DECLARE_VECTOR_OF_TYPE(zstring ptr, zstring_ptr)  'Warning, no deleting, copying or initialisation done (strings assumed to be static)
-DECLARE_VECTOR_OF_TYPE(any ptr, any_ptr)
+DECLARE_VECTOR_OF_TYPE(any ptr, any_ptr)  'Pointers aren't freed when the vector is
 
 DECLARE_VECTOR_OF_TYPE(integer vector, integer_vector)
 

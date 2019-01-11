@@ -6,7 +6,7 @@
 
 extern "C"
 	type FnDebugHook as sub (byval errorlevel as ErrorLevelEnum, byval msg as zstring ptr)
-	declare sub set_debug_hook (byval new_debug_hook as FnDebugHook)
+	declare sub set_debug_hook (byval new_debug_hook as FnDebugHook)  'In miscc.c
 end extern
 
 TYPE testPtr as function() as integer

@@ -20,8 +20,8 @@ SUB string_dtor cdecl (byval arg as string ptr)
 END SUB
 
 'Strings don't have constructors or other operator methods, so call libfb directly
-SUB string_copyctor cdecl (byval p1 as string ptr, byval p2 as string ptr)
-  fb_StrAssignEx(p1, -1, p2, -1, 0, 1)
+SUB string_copyctor cdecl (byval dest as string ptr, byval src as string ptr)
+  fb_StrAssignEx(dest, -1, src, -1, 0, 1)
 END SUB
 
 FUNCTION zstring_compare CDECL (byval a as zstring ptr ptr, byval b as zstring ptr ptr) as long
@@ -67,7 +67,7 @@ END FUNCTION
 
 
 ' Non-UDT types each require special treatment
-'DEFINE_CUSTOM_VECTOR_TYPE(T,          TID,         CTOR_FUNC, COPY_FUNC,        DELETE_FUNC,  COMPARE_FUNC,     INEQUAL_FUNC,    STR_FUNC)
+'DEFINE_CUSTOM_VECTOR_TYPE(T,          TID,         CTOR_FUNC, COPYCTOR_FUNC,    DTOR_FUNC,    COMPARE_FUNC,     INEQUAL_FUNC,    STR_FUNC)
 
 DEFINE_CUSTOM_VECTOR_TYPE(integer,     integer,     NULL,      NULL,             NULL,         @integer_compare, NULL,            @integer_str)
 DEFINE_CUSTOM_VECTOR_TYPE(double,      double,      NULL,      NULL,             NULL,         @double_compare,  @double_inequal, @double_str)

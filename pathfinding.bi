@@ -11,8 +11,8 @@ Enum AStarNodeStatus
 End Enum
 
 Type AStarNode
- p as XYPair
  status as AStarNodeStatus
+ p as XYPair
  _parent as XYPair
  has_parent as bool
  Declare Property parent () as XYPair

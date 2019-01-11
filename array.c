@@ -223,7 +223,7 @@ array_t array_create_temp(struct typetable *typetbl, int len, ...) {
 	va_list va;
 	va_start(va, len);
 	array_t array = mem_alloc(typetbl, len, len);
-	FnCopy copier = typetbl->copy;
+	FnCopyCtor copier = typetbl->copyctor;
 	//FIXME
 	va_end(va);
 	return array;

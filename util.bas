@@ -683,7 +683,7 @@ FUNCTION blob_to_string (byval str_ptr as zstring ptr, byval str_len as integer)
  fb_hStrAllocTemp(@ret, str_len)
  memcpy(@ret[0], str_ptr, str_len)
  ret[str_len] = 0
- return ret
+ RETURN ret
 END FUNCTION
 
 'Add padding to the right of a string, and possible clip it to 'size'
@@ -1395,7 +1395,7 @@ END FUNCTION
 FUNCTION integerptr_compare CDECL (byval a as integer ptr ptr, byval b as integer ptr ptr) as long
  IF **a < **b THEN RETURN -1
  IF **a > **b THEN RETURN 1
- 'implicitly RETURN 0 (it's faster to omit the RETURN :-)
+ 'implicitly RETURN 0
 END FUNCTION
 
 'a string ptr is a pointer to a FB string descriptor
