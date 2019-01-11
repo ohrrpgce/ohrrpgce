@@ -421,7 +421,7 @@ MAKETYPE_DListItem(SpriteCacheEntry)
 type SpriteCacheEntry
 	'cachelist used only if object is a member of sprcacheB
 	cacheB as DListItem(SpriteCacheEntry)
-	hash as uinteger   'Used as HashTable hash/key
+	hash as integer   'Used as HashTable hash/key
 	p as Frame ptr
 	cost as integer
 	Bcached as bool
@@ -8060,7 +8060,6 @@ private function sprite_cacheB_shrink(amount as integer) as bool
 end function
 
 'freeleaks = YES will causes a crash if those pointers are accessed
-'FIXME: broken since r3213!
 sub sprite_empty_cache_range(minkey as integer, maxkey as integer, leakmsg as string, freeleaks as bool = NO)
 	dim iterstate as uinteger = 0
 	dim as SpriteCacheEntry ptr pt, nextpt
@@ -8069,12 +8068,14 @@ sub sprite_empty_cache_range(minkey as integer, maxkey as integer, leakmsg as st
 	pt = sprcache.iter(iterstate, nextpt)
 	while pt
 		nextpt = sprcache.iter(iterstate, pt)
-		'recall that the cache counts as a reference
-		if pt->p->refcount <> 1 then
-			debug "warning: " & leakmsg & pt->hash & " with " & pt->p->refcount & " references"
-			if freeleaks then sprite_remove_cache(pt)
-		else
-			sprite_remove_cache(pt)
+		if pt->hash >= minkey andalso pt->hash <= maxkey then
+			'recall that the cache counts as a reference
+			if pt->p->refcount <> 1 then
+				debug "warning: " & leakmsg & pt->hash & " with " & pt->p->refcount & " references"
+				if freeleaks then sprite_remove_cache(pt)
+			else
+				sprite_remove_cache(pt)
+			end if
 		end if
 		pt = nextpt
 	wend
@@ -8172,7 +8173,7 @@ sub sprite_empty_cache(sprtype as SpriteType = sprTypeInvalid, setnum as integer
 		if sprcacheB_used <> 0 or sprcache.numitems <> 0 then
 			debug "sprite_empty_cache: corruption: sprcacheB_used=" & sprcacheB_used & " items=" & sprcache.numitems
 		end if
-	elseif setnum <= 0 then
+	elseif setnum < 0 then
 		sprite_empty_cache_range(SPRITE_CACHE_MULT * sprtype, SPRITE_CACHE_MULT * (sprtype + 1) - 1, "leaked sprite ")
 	else
 		dim which as integer = SPRITE_CACHE_MULT * sprtype + setnum

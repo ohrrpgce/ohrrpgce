@@ -345,6 +345,7 @@ Enum SpriteType
 	sprTypeInvalid = -2
 	sprTypeFirst = -1
 	sprTypeFrame = -1        'A sprite created either from a Frame or an engine asset
+	' Cachable types must not be negative (due modulo arithmetic on hash values).
 	' Many functions only accept a type between 0 and sprTypeLastPT
 	sprTypeHero = 0
 	sprTypeSmallEnemy = 1
