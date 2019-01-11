@@ -1867,47 +1867,197 @@ FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byv
  LOOP
 END FUNCTION
 
-'The maximum - 1 number of global text strings that can appear in the global
-'text strings menu (the actual number varies)
-CONST GTSnumitems = 209
-
-TYPE GlobalTextStringsMenu
- 'st.top in this menu is -1
- index(-1 TO GTSnumitems) as integer
- description(-1 TO GTSnumitems) as string
- selectable(-1 TO GTSnumitems) as bool
- shaded(-1 TO GTSnumitems) as bool    'For headers
- text(-1 TO GTSnumitems) as string
- default(-1 TO GTSnumitems) as string
- maxlen(-1 TO GTSnumitems) as integer
- help(-1 TO GTSnumitems) as string
- curitem as integer
-END TYPE
-
-PRIVATE SUB GTS_add_to_menu (menu as GlobalTextStringsMenu, description as zstring ptr, byval index as integer, default as zstring ptr, byval maxlen as integer, helpfile as zstring ptr = @"")
- WITH menu
-  IF .curitem > GTSnumitems THEN fatalerror "GlobalTextStringsMenu.curitem too large"
-  .selectable(.curitem) = YES
-  .index(.curitem) = index
-  .description(.curitem) = *description
-  .text(.curitem) = readglobalstring(index, *default, maxlen)
-  .default(.curitem) = *default
-  .maxlen(.curitem) = maxlen
-  IF LEN(*helpfile) THEN .help(.curitem) = "globalstring_" + *helpfile
-  .curitem += 1
- END WITH
+SUB GlobalTextStringsMenu.add_item (item_index as integer, description as zstring ptr, default as zstring ptr = @"", maxlen as integer = 0, helpfile as zstring ptr = @"", item_selectable as bool = YES, item_shaded as bool = NO)
+ a_append selectable(),   item_selectable
+ a_append shaded(),       item_shaded
+ a_append index(),        item_index
+ a_append descriptions(), *description
+ a_append text(),         readglobalstring(item_index, *default, maxlen)
+ a_append defaults(),     *default
+ a_append maxlens(),      maxlen
+ a_append help(),         IIF(LEN(*helpfile), "globalstring_" + *helpfile, "")
 END SUB
 
-PRIVATE SUB GTS_menu_header (menu as GlobalTextStringsMenu, description as zstring ptr)
- WITH menu
-  'IF .curitem > -1 THEN .curitem += 1
-  IF .curitem > GTSnumitems THEN fatalerror "GlobalTextStringsMenu.curitem too large"
-  .shaded(.curitem) = YES
-  .selectable(.curitem) = NO
-  .description(.curitem) = *description
-  .curitem += 1
- END WITH
+SUB GlobalTextStringsMenu.header (description as zstring ptr)
+ add_item -1, "", , , , NO, YES
+ add_item -1, description, , , , NO, YES
 END SUB
+
+CONSTRUCTOR GlobalTextStringsMenu ()
+ '--load current names
+
+ 'getelementnames handles the double-defaulting of element names
+ DIM elementnames() as string
+ getelementnames elementnames()
+
+ add_item -1,  "Return to Main Menu"
+
+ header        " Stats"
+ add_item 0,   "Health Points",              "HP", 10
+ add_item 1,   "Spell Points",               "MP", 10
+ add_item 2,   "Attack Power",               "Atk", 10
+ add_item 3,   "Accuracy",                   "Aim", 10
+ add_item 4,   "Extra Hits number",          "Hits", 10
+ add_item 5,   "Defense/Blocking Power",     "Def", 10
+ add_item 6,   "Dodge",                      "Dodge", 10
+ add_item 7,   "Unused stat (aka Counter)",  "Ctr", 10
+ add_item 8,   "Speed",                      "Speed", 10
+ add_item 29,  "Spell Skill",                "Magic", 10
+ add_item 30,  "Spell Defense",              "Will", 10
+ add_item 31,  "Spell Cost Reduction %",     "MP~", 10
+
+ header        " Elements"
+ FOR i as integer = 0 TO gen(genNumElements) - 1
+  add_item 174 + i*2, "Elemental " & i,     elementnames(i), 14
+ NEXT i
+
+ header        " Equip slots"
+ add_item 38,  "Weapon",                     "Weapon", 10
+ add_item 25,  "Armor 1",                    "Head", 10
+ add_item 26,  "Armor 2",                    "Body", 10
+ add_item 27,  "Armor 3",                    "Arms", 10
+ add_item 28,  "Armor 4",                    "Legs", 10
+
+ header        " Special Menu Item Default Captions"
+ add_item 60,  "Items",                      "Items", 10
+ add_item 61,  "Spells",                     "Spells", 10
+ add_item 62,  "Status",                     "Status", 10
+ add_item 63,  "Equip",                      "Equip", 10
+ add_item 64,  "Order",                      "Order", 10
+ add_item 65,  "Team",                       "Team", 10
+ add_item 66,  "Save",                       "Save", 10
+ add_item 322, "Load",                       "Load", 20
+ add_item 67,  "Quit",                       "Quit", 10
+ add_item 68,  "Minimap",                    "Map", 10
+ add_item 69,  "Volume Menu [obsolete]",     "Volume", 10  'Obsolete
+ add_item 318, "Music Volume",               "Music", 20
+ add_item 320, "Sound Volume",               "Sound", 20
+ add_item 308, "TV Margins [consoles only]", "Margins", 10
+ add_item 313, "In-App Purchases",           "Purchases", 10
+ add_item 314, "Switch to windowed",         "Windowed", 20
+ add_item 316, "Switch to fullscreen",       "Fullscreen", 20
+
+ header        " Item Menu"
+ add_item 35,  "Exit Item Menu",             "DONE", 10
+ add_item 36,  "Sort Item Menu",             "AUTOSORT", 10
+ add_item 37,  "Drop Item",                  "TRASH", 10
+ add_item 41,  "Drop Prompt",                "Discard", 10
+ add_item 42,  "Negative Drop Prefix",       "Cannot", 10
+
+ header        " Status Main Screen"
+ add_item 43,  "Level",                      "Level", 10
+ add_item 33,  "Experience",                 "Experience", 10
+ add_item 47,  "(exp) for next (level)",     "for next", 10
+ add_item 32,  "Money",                      "$", 10
+ add_item 160, "Level MP",                   "Level MP", 20
+
+ header        " Status Second Screen"
+ add_item 302, "Elemental Effects Title",    "Elemental Effects:", 30
+ add_item 130, "No Elemental Effects",       "No Elemental Effects", 30
+ add_item 162, "Takes > 100% element dmg",   "Weak to $E", 30,   "elemental_resist"
+ add_item 165, "Takes 0 to 100% element dmg","Strong to $E", 30, "elemental_resist"
+ add_item 168, "Takes 0% element dmg",       "Immune to $E", 30, "elemental_resist"
+ add_item 171, "Takes < 0% element dmg",     "Absorb $E", 30,   "elemental_resist"
+
+ header        " Equip Menu"
+ add_item 110, "Equip Nothing (unequip)",    "Nothing", 10
+ add_item 39,  "Unequip All",                "-REMOVE-", 8
+ add_item 40,  "Exit Equip",                 "-EXIT-", 8
+
+ header        " Spells Menu"
+ add_item 133, "(hero) has no spells",       "has no spells", 20
+ add_item 46,  "Exit Spell List Menu",       "EXIT", 10
+ add_item 51,  "Cancel Spell Menu",          "(CANCEL)", 10
+
+ header        " Team/Order Menu"
+ add_item 48,  "Remove Hero from Team",      "REMOVE", 10
+
+ header        " Save/Load Menus"
+ add_item 52,  "New Game",                   "NEW GAME", 10
+ add_item 53,  "Exit Game",                  "EXIT", 10
+ add_item 59,  "Cancel Save",                "CANCEL", 10
+ add_item 102, "Replace Save Prompt",        "Replace Old Data?", 20
+ add_item 44,  "Overwrite Save Yes",         "Yes", 10
+ add_item 45,  "Overwrite Save No",          "No", 10
+ add_item 154, "day",                        "day", 10
+ add_item 155, "days",                       "days", 10
+ add_item 156, "hour",                       "hour", 10
+ add_item 157, "hours",                      "hours", 10
+ add_item 158, "minute",                     "minute", 10
+ add_item 159, "minutes",                    "minutes", 10
+
+ header        " Quit Playing Prompt"
+ add_item 55,  "Prompt",                     "Quit Playing?", 20
+ add_item 57,  "Yes",                        "Yes", 10
+ add_item 58,  "No",                         "No", 10
+
+ header        " Shop Menu"
+ add_item 70,  "Buy",                        "Buy", 10
+ add_item 71,  "Sell",                       "Sell", 10
+ add_item 72,  "Inn",                        "Inn", 10
+ add_item 73,  "Hire",                       "Hire", 10
+ add_item 74,  "Exit",                       "Exit", 10
+ add_item 324, "You own (itemcount)",        "You own", 20
+ add_item 326, "Equipped (itemcount)",       "Equipped", 20
+
+ header        " Buy/Hire Menu"
+ add_item 85,  "Buy trade prefix",           "Trade for", 20
+ add_item 81,  "($) and a (item)",           "and a", 10
+ add_item 153, "($) and (number) (item)",    "and", 10
+ add_item 87,  "Hire price prefix",          "Joins for", 20
+ add_item 97,  "(#) in stock",               "in stock", 20
+ add_item 99,  "Equipability prefix",        "Equip:", 10
+ add_item 89,  "Cannot buy prefix",          "Cannot Afford", 20
+ add_item 91,  "Cannot hire prefix",         "Cannot Hire", 20
+ add_item 305, "Inventory full warning",     "No room in inventory", 30
+ add_item 100, "Party full warning",         "No room in party", 20
+ add_item 93,  "Buy alert",                  "Purchased", 20
+ add_item 95,  "Hire alert (suffix)",        "Joined!", 20
+ add_item 309, "The shop is empty",          "The shop is empty", 30
+
+ header        " Sell Menu"
+ add_item 75,  "Unsellable item warning",    "CANNOT SELL", 20
+ add_item 77,  "Sell value prefix",          "Worth", 20
+ add_item 79,  "Sell trade prefix",          "Trade for", 20
+ add_item 82,  "Worthless item warning",     "Worth Nothing", 20
+ add_item 84,  "Sell alert",                 "Sold", 10
+
+ header        " Inns"
+ add_item 143, "THE INN COSTS (# gold)",     "THE INN COSTS", 20
+ add_item 145, "You have (# gold)",          "You have", 20
+ add_item 49,  "Pay at Inn",                 "Pay", 10
+ add_item 50,  "Cancel Inn",                 "Cancel", 10
+
+ header        " Battles"
+ add_item 34,  "Battle Item Menu",           "Item", 10
+ add_item 117, "Stole (itemname)",           "Stole", 30
+ add_item 111, "Nothing to Steal",           "Has Nothing", 30
+ add_item 114, "Steal Failure",              "Cannot Steal", 30
+ add_item 120, "When an Attack Misses",      "miss", 20
+ add_item 122, "When a Spell Fails",         "fail", 20
+ add_item 147, "CANNOT RUN!",                "CANNOT RUN!", 20
+ add_item 54,  "Pause",                      "PAUSE", 10
+ add_item 126, "Gained (experience)",        "Gained", 10
+ add_item 149, "Level up for (hero)",        "Level up for", 20
+ add_item 151, "(#) levels for (hero)",      "levels for", 20
+ add_item 124, "(hero) learned (spell)",     "learned", 10
+ add_item 139, "Found a (item)",             "Found a", 20
+ add_item 141, "Found (number) (items)",     "Found", 20
+ add_item 125, "Found (gold)",               "Found", 10
+
+ header        " Misc"
+ add_item 104, "Status Prompt",              "Whose Status?", 20
+ add_item 106, "Spells Prompt",              "Whose Spells?", 20
+ add_item 108, "Equip Prompt",               "Equip Who?", 20
+ add_item 135, "Plotscript: pick hero",      "Which Hero?", 20
+ add_item 137, "Hero name prompt",           "Name the Hero", 20
+
+ '**** next unused index is 328
+
+ 'NOTE: if you add global strings here, be sure to update the limit-checking on
+ 'the implementation of the "get global string" plotscripting command
+ '(although that command is actually undocumented)
+END CONSTRUCTOR
 
 SUB edit_global_text_strings()
  DIM search as string = ""
@@ -1915,192 +2065,8 @@ SUB edit_global_text_strings()
  DIM as MenuOptions menuopts, menuopts2
  DIM menu as GlobalTextStringsMenu
 
- '--load current names
-
- 'getelementnames handles the double-defaulting of element names
- DIM elementnames() as string
- getelementnames elementnames()
-
- FOR i as integer = -1 TO UBOUND(menu.index)
-  'initialize unused menu items to -1 because if you leave them at 0
-  'they collide with HP
-  menu.index(i) = -1
- NEXT i
-
- menu.description(-1) = "Return to Main Menu"
- menu.selectable(-1) = YES
-
- GTS_menu_header menu, " Stats"
- GTS_add_to_menu menu, "Health Points",              0, "HP", 10
- GTS_add_to_menu menu, "Spell Points",               1, "MP", 10
- GTS_add_to_menu menu, "Attack Power",               2, "Atk", 10
- GTS_add_to_menu menu, "Accuracy",                   3, "Aim", 10
- GTS_add_to_menu menu, "Extra Hits number",          4, "Hits", 10
- GTS_add_to_menu menu, "Defense/Blocking Power",     5, "Def", 10
- GTS_add_to_menu menu, "Dodge",                      6, "Dodge", 10
- GTS_add_to_menu menu, "Unused stat (aka Counter)",  7, "Ctr", 10
- GTS_add_to_menu menu, "Speed",                      8, "Speed", 10
- GTS_add_to_menu menu, "Spell Skill",                29, "Magic", 10
- GTS_add_to_menu menu, "Spell Defense",              30, "Will", 10
- GTS_add_to_menu menu, "Spell Cost Reduction %",     31, "MP~", 10
-
- GTS_menu_header menu, " Elements"
- FOR i as integer = 0 TO gen(genNumElements) - 1
-  GTS_add_to_menu menu, "Elemental " & i,            174 + i*2, elementnames(i), 14
- NEXT i
-
- GTS_menu_header menu, " Equip slots"
- GTS_add_to_menu menu, "Weapon",                     38, "Weapon", 10
- GTS_add_to_menu menu, "Armor 1",                    25, "Head", 10
- GTS_add_to_menu menu, "Armor 2",                    26, "Body", 10
- GTS_add_to_menu menu, "Armor 3",                    27, "Arms", 10
- GTS_add_to_menu menu, "Armor 4",                    28, "Legs", 10
-
- GTS_menu_header menu, " Special Menu Item Default Captions"
- GTS_add_to_menu menu, "Items",                      60, "Items", 10
- GTS_add_to_menu menu, "Spells",                     61, "Spells", 10
- GTS_add_to_menu menu, "Status",                     62, "Status", 10
- GTS_add_to_menu menu, "Equip",                      63, "Equip", 10
- GTS_add_to_menu menu, "Order",                      64, "Order", 10
- GTS_add_to_menu menu, "Team",                       65, "Team", 10
- GTS_add_to_menu menu, "Save",                       66, "Save", 10
- GTS_add_to_menu menu, "Load",                      322, "Load", 20
- GTS_add_to_menu menu, "Quit",                       67, "Quit", 10
- GTS_add_to_menu menu, "Minimap",                    68, "Map", 10
- GTS_add_to_menu menu, "Volume Menu [obsolete]",     69, "Volume", 10  'Obsolete
- GTS_add_to_menu menu, "Music Volume",              318, "Music", 20
- GTS_add_to_menu menu, "Sound Volume",              320, "Sound", 20
- GTS_add_to_menu menu, "TV Margins [consoles only]",308, "Margins", 10
- GTS_add_to_menu menu, "In-App Purchases",          313, "Purchases", 10
- GTS_add_to_menu menu, "Switch to windowed",        314, "Windowed", 20
- GTS_add_to_menu menu, "Switch to fullscreen",      316, "Fullscreen", 20
-
- GTS_menu_header menu, " Item Menu"
- GTS_add_to_menu menu, "Exit Item Menu",             35, "DONE", 10
- GTS_add_to_menu menu, "Sort Item Menu",             36, "AUTOSORT", 10
- GTS_add_to_menu menu, "Drop Item",                  37, "TRASH", 10
- GTS_add_to_menu menu, "Drop Prompt",                41, "Discard", 10
- GTS_add_to_menu menu, "Negative Drop Prefix",       42, "Cannot", 10
-
- GTS_menu_header menu, " Status Main Screen"
- GTS_add_to_menu menu, "Level",                      43, "Level", 10
- GTS_add_to_menu menu, "Experience",                 33, "Experience", 10
- GTS_add_to_menu menu, "(exp) for next (level)",     47, "for next", 10
- GTS_add_to_menu menu, "Money",                      32, "$", 10
- GTS_add_to_menu menu, "Level MP",                   160, "Level MP", 20
-
- GTS_menu_header menu, " Status Second Screen"
- GTS_add_to_menu menu, "Elemental Effects Title",    302, "Elemental Effects:", 30
- GTS_add_to_menu menu, "No Elemental Effects",       130, "No Elemental Effects", 30
- GTS_add_to_menu menu, "Takes > 100% element dmg",   162, "Weak to $E", 30,   "elemental_resist"
- GTS_add_to_menu menu, "Takes 0 to 100% element dmg",165, "Strong to $E", 30, "elemental_resist"
- GTS_add_to_menu menu, "Takes 0% element dmg",       168, "Immune to $E", 30, "elemental_resist"
- GTS_add_to_menu menu, "Takes < 0% element dmg",     171, "Absorb $E", 30,   "elemental_resist"
-
- GTS_menu_header menu, " Equip Menu"
- GTS_add_to_menu menu, "Equip Nothing (unequip)",    110, "Nothing", 10
- GTS_add_to_menu menu, "Unequip All",                39, "-REMOVE-", 8
- GTS_add_to_menu menu, "Exit Equip",                 40, "-EXIT-", 8
-
- GTS_menu_header menu, " Spells Menu"
- GTS_add_to_menu menu, "(hero) has no spells",       133, "has no spells", 20
- GTS_add_to_menu menu, "Exit Spell List Menu",       46, "EXIT", 10
- GTS_add_to_menu menu, "Cancel Spell Menu",          51, "(CANCEL)", 10
-
- GTS_menu_header menu, " Team/Order Menu"
- GTS_add_to_menu menu, "Remove Hero from Team",      48, "REMOVE", 10
-
- GTS_menu_header menu, " Save/Load Menus"
- GTS_add_to_menu menu, "New Game",                   52, "NEW GAME", 10
- GTS_add_to_menu menu, "Exit Game",                  53, "EXIT", 10
- GTS_add_to_menu menu, "Cancel Save",                59, "CANCEL", 10
- GTS_add_to_menu menu, "Replace Save Prompt",        102, "Replace Old Data?", 20
- GTS_add_to_menu menu, "Overwrite Save Yes",         44, "Yes", 10
- GTS_add_to_menu menu, "Overwrite Save No",          45, "No", 10
- GTS_add_to_menu menu, "day",                        154, "day", 10
- GTS_add_to_menu menu, "days",                       155, "days", 10
- GTS_add_to_menu menu, "hour",                       156, "hour", 10
- GTS_add_to_menu menu, "hours",                      157, "hours", 10
- GTS_add_to_menu menu, "minute",                     158, "minute", 10
- GTS_add_to_menu menu, "minutes",                    159, "minutes", 10
-
- GTS_menu_header menu, " Quit Playing Prompt"
- GTS_add_to_menu menu, "Prompt",                     55, "Quit Playing?", 20
- GTS_add_to_menu menu, "Yes",                        57, "Yes", 10
- GTS_add_to_menu menu, "No",                         58, "No", 10
-
- GTS_menu_header menu, " Shop Menu"
- GTS_add_to_menu menu, "Buy",                        70, "Buy", 10
- GTS_add_to_menu menu, "Sell",                       71, "Sell", 10
- GTS_add_to_menu menu, "Inn",                        72, "Inn", 10
- GTS_add_to_menu menu, "Hire",                       73, "Hire", 10
- GTS_add_to_menu menu, "Exit",                       74, "Exit", 10
- GTS_add_to_menu menu, "You own (itemcount)",       324, "You own", 20
- GTS_add_to_menu menu, "Equipped (itemcount)",      326, "Equipped", 20
-
- GTS_menu_header menu, " Buy/Hire Menu"
- GTS_add_to_menu menu, "Buy trade prefix",           85, "Trade for", 20
- GTS_add_to_menu menu, "($) and a (item)",           81, "and a", 10
- GTS_add_to_menu menu, "($) and (number) (item)",    153, "and", 10
- GTS_add_to_menu menu, "Hire price prefix",          87, "Joins for", 20
- GTS_add_to_menu menu, "(#) in stock",               97, "in stock", 20
- GTS_add_to_menu menu, "Equipability prefix",        99, "Equip:", 10
- GTS_add_to_menu menu, "Cannot buy prefix",          89, "Cannot Afford", 20
- GTS_add_to_menu menu, "Cannot hire prefix",         91, "Cannot Hire", 20
- GTS_add_to_menu menu, "Inventory full warning",     305, "No room in inventory", 30
- GTS_add_to_menu menu, "Party full warning",         100, "No room in party", 20
- GTS_add_to_menu menu, "Buy alert",                  93, "Purchased", 20
- GTS_add_to_menu menu, "Hire alert (suffix)",        95, "Joined!", 20
- GTS_add_to_menu menu, "The shop is empty",          309, "The shop is empty", 30
-
- GTS_menu_header menu, " Sell Menu"
- GTS_add_to_menu menu, "Unsellable item warning",    75, "CANNOT SELL", 20
- GTS_add_to_menu menu, "Sell value prefix",          77, "Worth", 20
- GTS_add_to_menu menu, "Sell trade prefix",          79, "Trade for", 20
- GTS_add_to_menu menu, "Worthless item warning",     82, "Worth Nothing", 20
- GTS_add_to_menu menu, "Sell alert",                 84, "Sold", 10
-
- GTS_menu_header menu, " Inns"
- GTS_add_to_menu menu, "THE INN COSTS (# gold)",     143, "THE INN COSTS", 20
- GTS_add_to_menu menu, "You have (# gold)",          145, "You have", 20
- GTS_add_to_menu menu, "Pay at Inn",                 49, "Pay", 10
- GTS_add_to_menu menu, "Cancel Inn",                 50, "Cancel", 10
-
- GTS_menu_header menu, " Battles"
- GTS_add_to_menu menu, "Battle Item Menu",           34, "Item", 10
- GTS_add_to_menu menu, "Stole (itemname)",           117, "Stole", 30
- GTS_add_to_menu menu, "Nothing to Steal",           111, "Has Nothing", 30
- GTS_add_to_menu menu, "Steal Failure",              114, "Cannot Steal", 30
- GTS_add_to_menu menu, "When an Attack Misses",      120, "miss", 20
- GTS_add_to_menu menu, "When a Spell Fails",         122, "fail", 20
- GTS_add_to_menu menu, "CANNOT RUN!",                147, "CANNOT RUN!", 20
- GTS_add_to_menu menu, "Pause",                      54, "PAUSE", 10
- GTS_add_to_menu menu, "Gained (experience)",        126, "Gained", 10
- GTS_add_to_menu menu, "Level up for (hero)",        149, "Level up for", 20
- GTS_add_to_menu menu, "(#) levels for (hero)",      151, "levels for", 20
- GTS_add_to_menu menu, "(hero) learned (spell)",     124, "learned", 10
- GTS_add_to_menu menu, "Found a (item)",             139, "Found a", 20
- GTS_add_to_menu menu, "Found (number) (items)",     141, "Found", 20
- GTS_add_to_menu menu, "Found (gold)",               125, "Found", 10
-
- GTS_menu_header menu, " Misc"
- GTS_add_to_menu menu, "Status Prompt",              104, "Whose Status?", 20
- GTS_add_to_menu menu, "Spells Prompt",              106, "Whose Spells?", 20
- GTS_add_to_menu menu, "Equip Prompt",               108, "Equip Who?", 20
- GTS_add_to_menu menu, "Plotscript: pick hero",      135, "Which Hero?", 20
- GTS_add_to_menu menu, "Hero name prompt",           137, "Name the Hero", 20
-
- '**** next unused index is 324
-
- 'NOTE: if you add global strings here, be sure to update the limit-checking on
- 'the implementation of the "get global string" plotscripting command
- '(although that command is actually undocumented)
-
  WITH state
-  .top = -1
-  .pt = -1
-  .first = -1
-  .last = menu.curitem - 1
+  .last = UBOUND(menu.text)
   .autosize = YES
   .autosize_ignore_lines = 3
  END WITH
@@ -2118,9 +2084,12 @@ SUB edit_global_text_strings()
   END IF
   IF keyval(scCTRL) > 0 AND keyval(scS) > 1 THEN
    IF prompt_for_string(search, "Search (descriptions & values)") THEN
+    'Search forward from state.pt
     FOR i as integer = 0 TO state.last
-     DIM idx as integer = (state.pt + 1 + i) MOD (state.last + 1)
-     IF INSTR(LCASE(menu.text(idx)), LCASE(search)) OR INSTR(LCASE(menu.description(idx)), LCASE(search)) THEN
+     DIM idx as integer = state.pt + 1 + i
+     IF idx > state.last THEN idx = idx - state.last + 1
+
+     IF INSTR(LCASE(menu.text(idx)), LCASE(search)) OR INSTR(LCASE(menu.descriptions(idx)), LCASE(search)) THEN
       state.pt = idx
       correct_menu_state state
       EXIT FOR
@@ -2130,20 +2099,20 @@ SUB edit_global_text_strings()
   END IF
   IF keyval(scCTRL) > 0 AND keyval(scD) > 1 THEN
    'Revert to default
-   IF LEN(menu.default(state.pt)) THEN
-    menu.text(state.pt) = menu.default(state.pt)
+   IF LEN(menu.defaults(state.pt)) THEN
+    menu.text(state.pt) = menu.defaults(state.pt)
    END IF
   END IF
 
   usemenu state, menu.selectable()
-  IF state.pt = -1 THEN
+  IF state.pt = 0 THEN
    IF enter_space_click(state) THEN EXIT DO
   ELSEIF menu.index(state.pt) <> -1 THEN
-   strgrabber menu.text(state.pt), menu.maxlen(state.pt)
+   strgrabber menu.text(state.pt), menu.maxlens(state.pt)
   END IF
- 
+
   clearpage dpage
-  menuopts.highlight = YES
+  menuopts.highlight = (state.pt <> 0) 'Don't hightlight Return to Main Menu
   menuopts.scrollbar = YES
   standardmenu menu.text(), state, 232, 0, dpage, menuopts
   'Since both halves of the menu share the same state and both are active,
@@ -2151,17 +2120,17 @@ SUB edit_global_text_strings()
   state.tog XOR= 1
 
   menuopts2.disabled_col = uilook(eduiHeading)
-  standardmenu menu.description(), state, menu.shaded(), 0, 0, dpage, menuopts2
+  standardmenu menu.descriptions(), state, menu.shaded(), 0, 0, dpage, menuopts2
   edgeprint "CTRL+S Search", 0, pBottom, uilook(uiDisabledItem), dpage
-  IF LEN(menu.default(state.pt)) THEN
-   edgeprint "Default: " & menu.default(state.pt), pRight, pBottom, uilook(uiDisabledItem), dpage
+  IF LEN(menu.defaults(state.pt)) THEN
+   edgeprint "Default: " & menu.defaults(state.pt), pRight, pBottom, uilook(uiDisabledItem), dpage
   END IF
   IF LEN(menu.help(state.pt)) THEN
    edgeprint "Press F1 for help about this string", 0, pBottom - 10, uilook(uiDisabledItem), dpage
   END IF
   IF menu.index(state.pt) >= 0 THEN
-   edgeboxstyle rCenter - (menu.maxlen(state.pt) * 4), pBottom, 8 * menu.maxlen(state.pt) + 4, 8, 0, dpage, transOpaque, YES
-   edgeprint menu.text(state.pt), rCenter + 2 - (menu.maxlen(state.pt) * 4), pBottom, uilook(uiText), dpage
+   edgeboxstyle rCenter - (menu.maxlens(state.pt) * 4), pBottom, 8 * menu.maxlens(state.pt) + 4, 10, 0, dpage, transOpaque, YES
+   edgeprint menu.text(state.pt), rCenter + 2 - (menu.maxlens(state.pt) * 4), pBottom + 1, uilook(uiText), dpage
   END IF
   SWAP vpage, dpage
   setvispage vpage
@@ -2171,8 +2140,8 @@ SUB edit_global_text_strings()
  'Note: it is safe to write the strings to file out of order as long as we write
  'all of them. Any gaps in the file will be filled with garbage: do not leave
  'unused global string indices, or you won't be able to use them later!
- FOR i as integer = 0 TO GTSnumitems
-  writeglobalstring menu.index(i), menu.text(i), menu.maxlen(i)
+ FOR i as integer = 0 TO UBOUND(menu.index)
+  writeglobalstring menu.index(i), menu.text(i), menu.maxlens(i)
  NEXT i
  'Write defaults for all elements that don't appear in the menu
  FOR i as integer = gen(genNumElements) TO 63 'maxElements - 1

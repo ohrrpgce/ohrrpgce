@@ -98,4 +98,21 @@ DECLARE SUB mark_non_elemental_elementals ()
 
 DECLARE FUNCTION custom_setoption(opt as string, arg as string) as integer
 
+TYPE GlobalTextStringsMenu
+ index(any) as integer
+ descriptions(any) as string
+ selectable(any) as bool
+ shaded(any) as bool    'For headers
+ text(any) as string
+ defaults(any) as string
+ maxlens(any) as integer
+ help(any) as string
+
+ DECLARE CONSTRUCTOR ()
+
+ PRIVATE:
+ DECLARE SUB add_item (item_index as integer, description as zstring ptr, default as zstring ptr = @"", maxlen as integer = 0, helpfile as zstring ptr = @"", item_selectable as bool = YES, item_shaded as bool = NO)
+ DECLARE SUB header (description as zstring ptr)
+END TYPE
+
 #endif
