@@ -340,9 +340,9 @@ Type HashTable
   'pointers to integers. type_table(any_ptr) (not type_table(any)) is also a special case, and means
   'an opaque pointer.
   'If you want the keys or values to be copied with NEW and freed with DELETE when added/removed
-  'from the table, pass copy_and_delete_{keys,values} = YES. Otherwise, you are responsible for
-  'allocating and deleting them. These args have no effect when key/value_type is integer, and must
-  'not be used with any_ptr.
+  'from the table, pass copy_and_delete_{keys,values} = YES. (Hint: you probably want that for keys
+  'and values which are 'string's. Otherwise, you are responsible for allocating and deleting them.
+  'These args have no effect when key/value_type is integer, and must not be used with any_ptr.
   declare sub construct(tablesize as integer = 31, key_type as TypeTable, copy_and_delete_keys as bool, value_type as TypeTable, copy_and_delete_values as bool)
 
   'Frees all memory. construct() can be called afterwards, with any types.
@@ -409,10 +409,22 @@ Type HashTable
 end Type
 
 
+'This convenience class is a HashTable with 'string' key, and has method overloads for that.
+Type StrHashTable Extends HashTable
+  declare sub construct(tablesize as integer = 31, value_type as TypeTable = type_table(any_ptr), copy_and_delete_values as bool = NO)
+  declare sub add(key as string, value as any ptr)
+  declare sub add(key as string, value as integer)
+  declare sub set(key as string, value as any ptr)
+  declare sub set(key as string, value as integer)
+  declare function get(key as string, default as any ptr = NULL) as any ptr
+  declare function get_int(key as string, default as integer = 0) as integer
+  declare function get_str(key as string, default as zstring ptr = @"") as string
+  declare function remove(key as string) as bool
+end Type
+
 
 '----------------------------------------------------------------------
 '                         Hash Functions
-
 
 declare sub file_hash_SHA1 overload (filename as string, result_out as SHA160 ptr)
 declare sub file_hash_SHA1 overload (fh as integer, result_out as SHA160 ptr)

@@ -1525,7 +1525,6 @@ END SUB
 
 '---------------- Hash Functions --------------
 
-
 'Return the SHA1 hash of a file.
 SUB file_hash_SHA1(filename as string, result_out as SHA160 ptr)
   DIM fh as integer
@@ -3408,6 +3407,51 @@ startTest(HashTableZstring)
 endTest
 
 #ENDIF
+
+
+'----------------- StrHashTable -----------------
+
+sub StrHashTable.construct(tablesize as integer = 31, value_type as TypeTable = type_table(any_ptr), copy_and_delete_values as bool = NO)
+  base.construct(tablesize, type_table(string), YES, value_type, copy_and_delete_values)
+end sub
+
+sub StrHashTable.add(key as string, value as any ptr)
+  'Could just cast to string ptr and pass to base.add, but calling stringhash
+  'directly avoids a couple extra function calls
+  base.add(stringhash(strptr(key), len(key)), value, @key)
+end sub
+
+sub StrHashTable.add(key as string, value as integer)
+  base.add(stringhash(strptr(key), len(key)), canyptr(value), @key)
+end sub
+
+sub StrHashTable.set(key as string, value as any ptr)
+  base.set(stringhash(strptr(key), len(key)), value, @key)
+end sub
+
+sub StrHashTable.set(key as string, value as integer)
+  base.set(stringhash(strptr(key), len(key)), canyptr(value), @key)
+end sub
+
+function StrHashTable.get(key as string, default as any ptr = NULL) as any ptr
+  return base.get(stringhash(strptr(key), len(key)), default, @key)
+end function
+
+function StrHashTable.get_int(key as string, default as integer = 0) as integer
+  return cintptr32(base.get(stringhash(strptr(key), len(key)), canyptr(default), @key))
+end function
+
+function StrHashTable.get_str(key as string, default as zstring ptr = @"") as string
+  'return base.get_str(stringhash(strptr(key), len(key)), default, @key)
+  'Avoiding initialising a new string from default if not needed, but want to still allow NULL as a value
+  dim ret as string ptr = base.get(stringhash(strptr(key), len(key)), canyptr(-1234), @key)
+  if ret = canyptr(-1234) then return *default else return *ret
+end function
+
+function StrHashTable.remove(key as string) as bool
+  return base.remove(stringhash(strptr(key), len(key)), @key)
+end function
+
 
 '------------- Old allmodex stuff -------------
 
