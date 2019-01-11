@@ -100,6 +100,7 @@ end extern
   declare function array_heappush (byref this as any vector, byval value as any ptr, byval compfunc as FnCompare = 0) as int32
   end extern
 
+  'Some of the following are commented out because they're defined below as wrapper functions
   #DEFINE v_free array_free
   #DEFINE v_copy array_assign
   #DEFINE v_move array_assign_d
@@ -189,9 +190,11 @@ end extern
   declare function v_append overload alias "array_append" (byref this as T vector, byref value as T) as T vector
 
   'Concatenate two vectors. Returns 'this'
+  'Note: brackets around the argument list aren't optional: gengcc builds will break
   declare function v_extend overload alias "array_extend" (byref this as T vector, byref append as T vector) as T vector
 
   'Concatenate two vectors, but destroy the second in the process: much faster. Returns 'this'.
+  'Note: brackets around the argument list aren't optional: gengcc builds will break
   declare function v_extend_d overload alias "array_extend_d" (byref this as T vector, byref append as T vector) as T vector
 
   'Sort (Quicksort: non-stable) into ascending order. Returns 'this'.
@@ -216,6 +219,7 @@ end extern
 
   'Remove the first instance of value. No error or warning if it isn't found.
   'Returns the index of the item if it was found, or -1 if not
+  'Use v_delete_slice if you want to remove an item at a certain index
   declare function v_remove overload alias "array_remove" (byref this as T vector, byref value as T) as int32
 
   'Delete the range [from, to). Returns 'this'
@@ -298,7 +302,7 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
 '''''''''''''''''''''''''''''' Definition macros '''''''''''''''''''''''''''''''
 
 
-'For UDTs not containing strings
+'For UDTs not having a [copy] constructor or destructor (which those containing strings have).
 'T is a type, and TID is T with spaces replaced with underscores.
 #MACRO DEFINE_VECTOR_OF_TYPE(T, TID)
 
@@ -311,14 +315,14 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
 #ENDMACRO
 
 
-'For UDTs containing strings, and classes in -lang fb
+'For UDTs having a destructor or copy constructor (eg containing strings), but no constructor.
+'If it has a constructor, you need DEFINE_CUSTOM_VECTOR_TYPE, or more likely, you should store ptrs instead!
 'T is a type, and TID is T with spaces replaced with underscores.
 #MACRO DEFINE_VECTOR_OF_CLASS(T, TID)
 
   'Note this is the copy constructor, NOT the assignment operator, so p1 contains garbage
   'and so *p1 = *p2 won't work
   private sub TID##_copyconstr_func cdecl (byval p1 as T ptr, byval p2 as T ptr)
-    'Yay! A piece of -lang fb that they forgot to maliciously disable in -lang deprecated!
     '(Does not work for POD UDTs not containing strings: FB refuses to give these
     ' copy constructors)
     p1->constructor(*p2)

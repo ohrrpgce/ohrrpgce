@@ -329,9 +329,6 @@ array_t array_append(array_t *array, void *value) {
 // Destructive
 // (E, A)
 array_t array_extend_d(array_t *dest, array_t *src) {
-	if (!*src)
-		return *dest;  // All done!
-
 	if (!*dest) {
 		throw_error("array_extend_d: dest array not initialised");
 		/*
@@ -342,6 +339,8 @@ array_t array_extend_d(array_t *dest, array_t *src) {
 		// Voilà!
 		*/
 	}
+	if (!*src)
+		return *dest;  // All done!
 
 	if (*dest == *src)
 		throw_error("array_extend_d: trying to destructively extend array onto itself!");
@@ -361,10 +360,12 @@ array_t array_extend_d(array_t *dest, array_t *src) {
 	return *dest;
 }
 
-// (E, E)
+// (E, A)
 array_t array_extend(array_t *dest, array_t *src) {
-	if (!*dest || !*src)
+	if (!*dest)
 		throw_error("array_extend: array uninitialised");
+	if (!*src)
+		return *dest;
 
 	if (get_header(*src)->temp)
 		return array_extend_d(dest, src);
