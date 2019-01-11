@@ -996,11 +996,11 @@ SUB reset_game_final_cleanup()
  unloadtilemap pass
  unloadtilemap foemap
  DeleteZonemap zmap
+ cleanup_game_slices
+ SliceDebugDump YES
  'checks for leaks and deallocates them
  sprite_empty_cache
  palette16_empty_cache
- cleanup_game_slices
- SliceDebugDump YES
  cleanup_global_reload_doc
  close_general_reld
  clear_binsize_cache
