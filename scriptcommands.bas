@@ -4678,6 +4678,9 @@ SUB script_functions(byval cmdid as integer)
     scriptret = info->num_hats
    END IF
   END IF
+ CASE 682 '--find color(r, g, b, searchstart)
+  'r, g, b don't have to be in the range 0-255.
+  scriptret = nearcolor(master(), retvals(0), retvals(1), retvals(2), retvals(3))
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

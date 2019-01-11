@@ -130,6 +130,7 @@ September 29 2018 [Fufluns]
       "joystick hat count" [Ralph]
     * "suspend/resume textbox controls" and "textbox controls are suspended" are
       aliases to "suspend/resume box advance" and "box advance is suspended"
+    * "find color" [Ralph]
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"

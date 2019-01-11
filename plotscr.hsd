@@ -708,6 +708,7 @@ define function, begin
 679,joystickbuttoncount,1,0   # Number of buttons a joystick has (might be 0 if not known) (joynum)
 680,joystickaxiscount,1,0     # Number of axes a joystick has (joynum)
 681,joystickhatcount,1,0      # Number of hats (eg dpads) a joystick has (joynum)
+682,findcolor,4,0,0,0,0       # Index of nearest match in palette (r, g, b, searchstart)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

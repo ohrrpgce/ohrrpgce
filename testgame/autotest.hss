@@ -120,6 +120,7 @@ script, run tests 1, begin
   string load tests
   save slot tests
   slice tests
+  master palette tests
   maptile tests
   wallchecking tests
   zone tests
@@ -4873,6 +4874,23 @@ script, zones randomized test, begin
   )
   shownovalue
   wait
+end
+
+########################################################################
+
+script, master palette tests, begin
+  $0="master palette tests"
+
+  assert(find color(255, 0, 255) == 0)
+  assert(find color(0, 0, 0, 255) == 255)
+  assert(find color(0, 0, 0, 256) == 0)
+  assert(find color(255, 0, 255, 1) == 185)
+  assert(find color(255, 0, 255, 185) == 185)
+  assert(find color(255, 0, 255, 186) == 200)
+  assert(find color(180, 180, 0) == 103)
+  assert(find color(512, 100, -512) == 168)
+
+  # Lots of other color commands could be tested
 end
 
 ########################################################################

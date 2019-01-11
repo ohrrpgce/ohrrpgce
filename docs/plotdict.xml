@@ -2664,6 +2664,22 @@ gain hero stat(who, stat:mp, 0)</example>
 				<ref>rgb</ref>
 			</seealso>
 		</command>
+		<command id="findcolor">
+			<canon>find color (r, g, b, searchstart)</canon>
+			<shortname>find color</shortname>
+			<description>
+				Searches the master palette for the color most similar to the given <p>r</p>, <p>g</p>, <p>b</p>
+				triple and returns its index, from 0 to 255.
+				The color is selected using an approximate perceptual distance function.
+				<lb/>
+				<p>r</p>, <p>g</p>, <p>b</p> should be in the range 0-255
+				(but out-of-bounds values are allowed, which weights those colors even more heavily).
+				The <p>searchstart</p> argument is optional, and defaults to 0.
+				It says how many colors at the beginning of the palette to ignore.
+				For example, if <p>searchstart</p> is 1, then color 0 will never be returned,
+				which is useful because 0 is often used as the transparent color.
+			</description>
+		</command>
 		<command id="rgb">
 			<canon>RGB (red, green, blue)</canon>
 			<shortname>RGB</shortname>
