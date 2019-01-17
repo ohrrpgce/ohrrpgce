@@ -2729,6 +2729,7 @@ END SUB
 
 ' Save all lumps in lumpsdir, except for *.tmp, as a lumped file or .rpgdir directory.
 ' Returns true on success.
+' Note that this can set cleanup_workingdir_on_exit=NO on failure.
 FUNCTION write_rpg_or_rpgdir (lumpsdir as string, filetolump as string) as bool
  '--build the list of files to lump. We don't need hidden files
  DIM filelist() as string
@@ -4075,6 +4076,13 @@ FUNCTION custom_setoption(opt as string, arg as string) as integer
  ELSEIF opt = "nowait" THEN
   option_nowait = YES
   RETURN 1
+ ELSEIF opt = "export-trans" THEN
+  IF LEN(arg) THEN
+   export_translations_to = arg
+   RETURN 2
+  ELSE
+   RETURN 1
+  END IF
  END IF
  RETURN 0
 END FUNCTION

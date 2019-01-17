@@ -64,6 +64,7 @@ DECLARE SUB plankmenu_cursor_move_tests
 
 DECLARE SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
 DECLARE SUB import_scripts_and_terminate (scriptfile as string)
+DECLARE SUB export_translations_and_terminate (translationfile as string)
 
 DECLARE SUB prompt_for_password()
 DECLARE SUB prompt_for_save_and_quit()
@@ -87,8 +88,10 @@ DIM vpage as integer = 0
 DIM dpage as integer = 1
 DIM activepalette as integer = -1
 DIM fadestate as bool = YES
+'The following are set from commandline options
 DIM auto_distrib as string 'Which distribution option to package automatically
 DIM option_nowait as bool  'Currently only used when importing scripts from the commandline: don't wait
+DIM export_translations_to as string
 
 DIM editing_a_game as bool
 DIM last_active_seconds as double
@@ -351,6 +354,9 @@ load_special_tag_caches
 load_script_triggers_and_names
 
 IF scriptfile <> "" THEN import_scripts_and_terminate scriptfile
+
+'Set by --export-trans
+IF export_translations_to <> "" THEN export_translations_and_terminate export_translations_to
 
 IF auto_distrib <> "" THEN
  auto_export_distribs auto_distrib
@@ -719,6 +725,14 @@ SUB import_scripts_and_terminate (scriptfile as string)
  END IF
  cleanup_workingdir_on_exit = YES  'Cleanup even if saving the .rpg failed: no loss
  IF success = NO AND option_nowait THEN PRINT "Compiling or importing failed"
+ cleanup_and_terminate NO, IIF(success, 0, 1)
+END SUB
+
+SUB export_translations_and_terminate (translationfile as string)
+ debuginfo "Importing scripts from " & translationfile
+ DIM success as bool
+ success = export_translations(translationfile)
+ PRINT "Exporting " & translationfile & IIF(success, " succeeded", " failed")
  cleanup_and_terminate NO, IIF(success, 0, 1)
 END SUB
 

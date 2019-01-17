@@ -82,6 +82,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "                    distribution in the requested format. Not all formats are " & LINE_END
 		help = help & "                    available on all platforms. See c_debug.txt for error messages" & LINE_END
 		help = help & "-nowait             When importing scripts (ignored otherwise) quit immediately on success" & LINE_END
+		help = help & "-export-trans file  Export translations to a file" & LINE_END
 #ENDIF
 		help = help & "-rawexx             Don't catch -exx fatal errors, let gdbgame/gdbcustom.sh/bat catch them" & LINE_END
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END

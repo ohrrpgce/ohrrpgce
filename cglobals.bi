@@ -15,3 +15,4 @@ EXTERN option_nowait as bool
 EXTERN editing_a_game as bool
 EXTERN counter_provoke_captions(provokeLAST) as string * 23
 EXTERN last_active_seconds as double
+EXTERN export_translations_to as string
