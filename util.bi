@@ -346,7 +346,9 @@ Type HashTable
   declare sub construct(tablesize as integer = 31, key_type as TypeTable, copy_and_delete_keys as bool, value_type as TypeTable, copy_and_delete_values as bool)
 
   'Frees all memory. construct() can be called afterwards, with any types.
+  'Optional, since the automatic destructor calls destruct().
   declare sub destruct()
+  declare destructor()
 
   'Remove and everything in the table and call the dtors, if provided
   declare sub clear()
@@ -402,6 +404,7 @@ Type HashTable
 
   'Like .items(), but sorted either using key_compare, or by hash.
   'Duplicate keys do NOT appear in the order they were added.
+  'Not thread-safe!
   declare function items_sorted() as HashBucketItem vector
 
   'For internal use, mostly. Get the hash of a key ptr.

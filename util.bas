@@ -2980,6 +2980,7 @@ END SUB
 DEFINE_VECTOR_OF_TYPE(HashBucketItem, HashBucketItem)
 
 sub HashTable.construct(tablesize as integer = 31)
+  this.destruct()
   this.numitems = 0
   if tablesize > 4096 then tablesize = 4096  'Prevent overflow of iter() 'state'
   this.tablesize = tablesize
@@ -3024,6 +3025,10 @@ sub HashTable.destruct()
   this.table = NULL
   this.tablesize = 0
 end sub
+
+destructor HashTable()
+  this.destruct()
+end destructor
 
 'Look for a key in a bucket vector, return NULL on failure
 private function hash_search_bucket(this as HashTable, bucket as HashBucketItem vector, hash as integer, key as any ptr = NULL) as HashBucketItem ptr
@@ -3271,15 +3276,18 @@ function HashTable.items() as HashBucketItem vector
   return ret
 end function
 
-private function hash_compare cdecl (byval a as HashBucketItem ptr, byval b as HashBucketItem ptr) as long
+dim shared HashTable_key_compare as FnCompare
+
+private function HashBucketItem_compare cdecl (a as HashBucketItem ptr, b as HashBucketItem ptr) as long
+  if HashTable_key_compare then return HashTable_key_compare(a->key, b->key)
   if a->hash < b->hash then return -1
   if a->hash > b->hash then return 1
 end function
 
 function HashTable.items_sorted() as HashBucketItem vector
   dim ret as HashBucketItem vector = this.items()
-  dim comp as FnCompare = iif(this.key_compare, this.key_compare, cast(FnCompare, @hash_compare))
-  qsort(@ret[0], this.numitems, sizeof(HashBucketItem), comp)
+  HashTable_key_compare = this.key_compare
+  qsort(@ret[0], this.numitems, sizeof(HashBucketItem), cast(FnCompare, @HashBucketItem_compare))
   return ret
 end function
 
