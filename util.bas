@@ -1106,6 +1106,18 @@ FUNCTION safe_caption(caption_array() as string, index as integer, description a
  END IF
 END FUNCTION
 
+'Overload for storing captions in a zstring ptr array, useful because unlike string arrays,
+'those can be initialised (with  = {...}).
+'Because of https://sourceforge.net/p/fbc/bugs/666/ it's not possible to define an overload for
+'safe_caption which takes a zstring ptr array, hence the different name.
+FUNCTION safe_captionz(caption_array() as zstring ptr, index as integer, description as string) as string
+ IF index >= LBOUND(caption_array) AND index <= UBOUND(caption_array) THEN
+  RETURN *caption_array(index)
+ ELSE
+  RETURN "Invalid " & description & " " & index
+ END IF
+END FUNCTION
+
 'Returns a copy of the string with separators inserted, replacing spaces, so that there's at most 'wid'
 'characters between separators; use together with split()
 Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as string

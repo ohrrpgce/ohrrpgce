@@ -774,6 +774,7 @@ declare function defaultint (n as integer, default_caption as string="default", 
 declare function blank_default (s as string, blankcaption as string="[default]") as string
 declare function caption_or_int (captions() as string, n as integer) as string
 declare function safe_caption (caption_array() as string, index as integer, description as string) as string
+declare function safe_captionz (caption_array() as zstring ptr, index as integer, description as string) as string
 
 declare Function wordwrap(z as string, byval width as integer, sep as string = chr(10)) as string
 declare sub split(in as string, ret() as string, sep as string = chr(10))
