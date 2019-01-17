@@ -64,7 +64,12 @@ These give the starting values for the two volume settings in the main menu.
 
 Inventory Size: This is the number of rows available for the player's item inventory. Type in a number and the screen will show you how many actual item slots will result (there are three slots in a row).
 
-Inventory Autosort: This sets the criterion which the 'Autosort' option in the inventory menu uses to sort items (after first moving all items to the top). You can sort by type (which for example places items usable in-battle ahead of those usable only out-of-battle), by whether they are usable at all, alphabetically by name, by the ID number in the item editor, or do no additional sorting.
+Inventory Autosort: This sets the criterion which the 'Autosort' option in the inventory menu uses to sort items (after first moving all items to the top). You can sort by:
+-item type/uses:  Items usable in battle go to the top, then usable out of battle, then equippable, then others. Whether they are consumed or can't be dropped also matters.
+-usable: places items into four groups depending on whether they are usable in-battle or out-of-battle - usable ones to the top.
+-alphabetically: by name
+-by item ID number
+-no reordering: move items to the top of the inventory, filling gaps, without changing their order
 
 Default maximum item stack size: The number of items that can be stored in each inventory slot, unless overridden for a specific item type.
 

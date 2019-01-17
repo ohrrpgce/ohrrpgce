@@ -25,7 +25,7 @@ DECLARE SUB loadshopstuf (array() as integer, byval id as integer)
 DECLARE FUNCTION count_available_spells(byval who as integer, byval list as integer) as integer
 DECLARE FUNCTION outside_battle_cure (byval atk as integer, byref target as integer, byval attacker as integer, byval spread as bool) as bool
 DECLARE FUNCTION item_can_be_discarded (byval item_id as integer) as bool
-DECLARE FUNCTION item_can_be_used (byval item_id as integer) as bool
+DECLARE FUNCTION item_can_be_used_bits (byval item_id as integer) as integer
 DECLARE SUB inventory_autosort()
 DECLARE FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1, prompt as string="") as string
 

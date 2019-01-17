@@ -139,6 +139,7 @@ September 29 2018 [Fufluns]
       renamed to "Close menu when activated"
     * In-battle instant-run debug key moved from Ctrl-F4 to Ctrl-F5
     * "suspend box advance" now suspends choicebox selection controls too
+    * Sorting inventory "by whether usable" considers battle uses too [Ralph]
 
   * Bugfixes
     * Fix a major memory leak while recording .gifs [Ralph]
