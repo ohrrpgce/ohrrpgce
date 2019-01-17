@@ -989,6 +989,7 @@ SUB reset_game_final_cleanup()
  ' called save_game_config to save "gfx.fullscreen"
  user_toggled_fullscreen = NO
  cleanup_text_box
+ translations.clear()
  resetinterpreter 'unload scripts
  unloadmaptilesets tilesets()
  refresh_map_slice_tilesets '--zeroes out now-invalid pointers
@@ -3295,6 +3296,32 @@ FUNCTION immediate_showtextbox() as bool
  RETURN prefbit(34)
 END FUNCTION
 
+SUB translate_textbox(box as TextBox, id as integer)
+  DIM boxcode as string = "tb" & id
+  DIM trans as TranslationString ptr = get_translation(boxcode)
+  IF trans THEN
+   'Replace text. The number of lines of text might change, so also adjust size and position of the box
+
+   IF box.shrink <> -1 THEN
+    'Not auto-sized. Change to auto if it appears the box was correctly sized
+    'as opposed to intentionally over/under-size
+    IF ABS(get_text_box_height(box) - (20 + 10 * text_box_last_line(box))) < 10 THEN
+     box.shrink = -1
+    END IF
+   END IF
+
+   textbox_translation_to_lines box, trans->text
+
+   box.vertical_offset = small(box.vertical_offset, (get_resolution().y - 4 - get_text_box_height(box)) \ 4)
+  END IF
+
+  IF box.choice_enabled THEN
+    FOR choice as integer = 0 TO UBOUND(box.choice)
+      box.choice(choice) = translate(box.choice(choice), boxcode & "c" & choice)
+    NEXT
+  END IF
+END SUB
+
 'Load a textbox and process conditionals that happen immediately, including
 'the "instead" conditionals to pick a different box.
 SUB loadsay (byval box_id as integer)
@@ -3330,6 +3357,8 @@ SUB loadsay (byval box_id as integer)
   .size = 2
   .last = 1
  END WITH
+
+ translate_textbox txt.box, box_id
 
  FOR j as integer = 0 TO UBOUND(txt.box.text)
   embedtext txt.box.text(j), 38
@@ -4594,6 +4623,11 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  IF dbg.def( , , "Realign leader to grid") THEN
   (heropos(0)) = herotpos(0) * 20
   herow(0).xygo = 0
+ END IF
+
+ IF dbg.def( , , "(Experimental) Load translations") THEN
+  DIM fname as string = browse(browseAny, , "*.txt")
+  IF LEN(fname) THEN load_translations fname
  END IF
 
  IF dbg.def( , , "Edit general preference bitsets") THEN edit_general_bitsets

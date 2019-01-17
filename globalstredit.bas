@@ -10,6 +10,8 @@
 #include "menus.bi"
 #include "custom.bi"
 #include "customsubs.bi"
+#include "loading.bi"
+#include "vbcompat.bi"
 
 
 DECLARE SUB writeglobalstring (index as integer, s as string, maxlen as integer)
@@ -329,4 +331,146 @@ SUB writeglobalstring (index as integer, s as string, maxlen as integer)
  PUT #fh, 2 + index * 11, ch
  CLOSE #fh
  loadglobalstrings
+END SUB
+
+'==========================================================================================
+'                                       Translations
+'==========================================================================================
+
+
+FUNCTION escape_str_for_web_translation(istr as string) as string
+ DIM result as string = ""
+ DIM as integer icons_low, icons_high
+ IF get_font_type(current_font()) = ftypeLatin1 THEN
+  icons_low = 127
+  icons_high = 160
+ ELSE
+  icons_low = 127
+  icons_high = 255
+ END IF
+ FOR idx as integer = 1 TO LEN(istr)
+  DIM ch as string = MID(istr, idx, 1)
+  SELECT CASE ASC(ch)
+   CASE 10  'New line
+    result &= LINE_END
+   CASE 0 TO 31, icons_low TO icons_high
+    result &= "${*" & ASC(ch) & "}"
+   CASE ELSE
+    result &= ch
+  END SELECT
+ NEXT idx
+ RETURN result
+END FUNCTION
+
+'Function for sortint
+PRIVATE FUNCTION compare_translations(a as HashBucketItem ptr, b as HashBucketItem ptr) as integer
+  #DEFINE item_sortorder(x) CAST(TranslationString ptr, x->value)->sortorder
+  RETURN item_sortorder(a) - item_sortorder(b)
+END FUNCTION
+
+SUB write_translation_file_txt(fname as string, translations as StrHashTable)
+  DIM fh as integer
+  IF OPENFILE(fname, FOR_OUTPUT + OR_ERROR, fh) THEN EXIT SUB
+
+  PRINT #fh, "# Translation format 0  |  <  '''$ { X }'''  *"
+  PRINT #fh, "# Translations for " & trimpath(sourcerpg)
+  PRINT #fh, "# Exported " & format_date(NOW)  'FILEDATETIME(sourcerpg))
+
+  DIM items as HashBucketItem vector = translations.items()
+  v_sort items, CAST(FnCompare, @compare_translations)
+
+  FOR idx as integer = 0 TO v_len(items) - 1
+    DIM code as string ptr = items[idx].key
+    WITH *CAST(TranslationString ptr, items[idx].value)
+      PRINT #fh,
+      IF LEN(.description) THEN PRINT #fh, "# " & .description
+      IF .maxlen THEN PRINT #fh, SPACE(LEN(*code) + 4) & STRING(.maxlen, "=")
+      DIM tokens as string
+
+      'Convert leading spaces to a WS token
+      DIM spaces as integer = skip_over(.text, 1, " ")
+      IF spaces THEN tokens &= " ws" & spaces
+
+      IF INSTR(.text, !"\n") THEN
+        PRINT #fh, *code & tokens & " <" & LINE_END & escape_str_for_web_translation(.text) & LINE_END & *code & " >"
+      ELSE
+        PRINT #fh, *code & tokens & " | " & escape_str_for_web_translation(.text)
+      END IF
+    END WITH
+  NEXT
+
+  CLOSE fh
+
+  v_free items
+END SUB
+
+'This is a variant on textbox_lines_to_string()
+FUNCTION unwrap_textbox(box as TextBox) as string
+  DIM ret as string
+
+  CONST leeway as integer = 4  'In characters
+  DIM rightmargin as integer = 0  'In characters: space at right of the textbox
+
+  debug "box_to_string"
+
+  FOR idx as integer = 0 TO text_box_last_line(box)
+    DIM lin as string = box.text(idx)
+    DIM indentation as integer = skip_over(lin, 1, " ")
+    DIM unwrap as bool = NO
+
+    IF idx > 0 THEN
+      'Heuristic test for whether this line is a continuation of the previous one,
+      'in which case they should be joined without a newline.
+      'Do this because it greatly confuses automated translators to have spurious newlines,
+      'and because we will need to re-wrap the lines anyway.
+
+      DIM firstwordend as integer = INSTR(1 + indentation, lin, " ")
+      IF firstwordend = 0 THEN firstwordend = LEN(lin) + 1
+      DIM firstwordlen as integer = firstwordend - (1 + indentation)
+
+      'Cap length of the word, because if it's really long then 1) you likely would
+      'split it with hyphens if you were wrapping text, 2) it's likely not a word
+      firstwordlen = small(firstwordlen, 12)
+
+      debug "firstword " & MID(lin, 1 + indentation, firstwordlen)
+
+      IF LEN(RTRIM(box.text(idx - 1))) + 1 + firstwordlen > 38 - rightmargin - leeway THEN
+        'If leeway is 0, this word couldn't have fit on the previous line.
+        'But all a little leeway because people often wrap their lines early.
+        ret &= " "
+      ELSE
+        ret &= !"\n"
+      END IF
+    END IF
+    ret &= TRIM(lin)
+  NEXT
+  RETURN ret
+END FUNCTION
+
+SUB create_translations()
+  init_translations
+
+  'Textboxes are tricky because the text need to be unwrapped and rewrapped
+  FOR id as integer = 0 TO gen(genMaxTextBox)
+    DIM box as TextBox
+    LoadTextBox box, id
+    DIM text as string = unwrap_textbox(box)
+    add_translation "tb" & id, text,
+    IF box.choice_enabled THEN
+      FOR idx as integer = 0 TO UBOUND(box.choice)
+        add_translation "tb" & id & "c" & idx, box.choice(idx), "Text box " & id & " choice " & idx
+      NEXT
+    END IF
+  NEXT
+END SUB
+
+FUNCTION export_translations (fname as string) as bool
+  create_translations
+  write_translation_file_txt(fname, translations)
+  show_overlay_message "Wrote " & fname
+  RETURN YES
+END FUNCTION
+
+SUB translations_menu ()
+  export_translations "translations.txt"
 END SUB

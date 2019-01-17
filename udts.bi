@@ -1123,4 +1123,13 @@ TYPE BoxStyle
  border as integer '0 for none, >= 1 is border sprite id -1
 END TYPE
 
+TYPE TranslationString
+  description as string
+  original as string
+  text as string
+  maxlen as integer
+  deduplicate as bool   'Merge together identical strings?
+  sortorder as integer  'Used only while exporting
+END TYPE
+
 #ENDIF

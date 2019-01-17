@@ -738,6 +738,20 @@ FUNCTION length_matching(s1 as string, s2 as string) as integer
  RETURN ret
 END FUNCTION
 
+'Advance 'idx' (1-based) over copies of tok. Returns number of copies skipped over.
+'If tok is more than one character long, only skips over whole matches.
+FUNCTION skip_over(text as string, byref idx as integer, tok as zstring ptr, maxskips as integer = -1) as integer
+  IF LEN(text) = 0 THEN RETURN 0  'Protect against zero-length strings with null pointers
+  DIM ret as integer = 0
+  DIM toklen as integer = strlen(tok)
+  WHILE strncmp(@text[idx - 1], tok, toklen) = 0
+    idx += toklen
+    ret += 1
+    IF ret = maxskips THEN EXIT WHILE
+  WEND
+  RETURN ret
+END FUNCTION
+
 'Try to parse a string into an int, returning true on success and optionally
 'putting the results in *ret (*ret is unmodified on failure).
 'This is stricter than VALINT: the string must be composed only of digits and

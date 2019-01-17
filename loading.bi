@@ -246,9 +246,17 @@ DECLARE SUB load_shop_stuff(byval shop_id as integer, byval stuff_list as NodePt
 
 DECLARE SUB load_non_elemental_elements (elem() as bool)
 
+DECLARE SUB init_translations()
+DECLARE SUB load_translations(fname as string)
+DECLARE SUB add_translation(code as string, text as string, description as string = "", deduplicate as bool = NO)
+DECLARE FUNCTION unescape_str_for_web_translation(text as string, scan_template as zstring ptr = @"$ { %9[^ }0-9-] %d }%n", chcode_indic as zstring ptr = @"*") as string
+DECLARE SUB textbox_translation_to_lines(box as TextBox, text as string)
+DECLARE FUNCTION get_translation(code as zstring ptr) as TranslationString ptr
+DECLARE FUNCTION translate(original as string, code as zstring ptr) as string
+
 DECLARE SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as bool, lump as string, byval bytes as integer, byval prompt as integer=YES)
 
-
+EXTERN translations as StrHashTable
 EXTERN rgfx_lumpnames() as string
 
 #ENDIF

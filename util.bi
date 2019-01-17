@@ -756,6 +756,7 @@ declare function rlpad (s as string, pad_char as zstring ptr = @" ", pad_right a
 declare function instr_nth overload (byval start as integer, s as string, substring as string, byval nth as integer) as integer
 declare function instr_nth overload (s as string, substring as string, byval nth as integer) as integer
 declare function length_matching (s1 as string, s2 as string) as integer
+declare function skip_over (text as string, byref idx as integer, tok as zstring ptr, maxskips as integer = -1) as integer
 declare function parse_int (stri as zstring ptr, ret as integer ptr=NULL, strict as bool=NO) as bool
 declare function str2int (stri as zstring ptr, default as integer=0, strict as bool=NO) as integer
 declare function split_str_int(z as zstring ptr, byref action as string, byref arg as integer) as bool

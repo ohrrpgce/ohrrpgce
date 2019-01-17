@@ -15,6 +15,7 @@
 #include "os.bi"
 #include "slices.bi"
 #include "battle_udts.bi"
+#include "crt.bi"
 
 USING RELOAD
 USING RELOAD.EXT
@@ -2685,7 +2686,6 @@ END SUB
 '                                        Textboxes
 '==========================================================================================
 
-
 SUB LoadTextBox (byref box as TextBox, byval record as integer)
  DIM boxbuf(dimbinsize(binSAY)) as integer
  IF record < 0 OR record > gen(genMaxTextBox) THEN
@@ -5027,10 +5027,238 @@ FUNCTION last_hero_formation_id() as integer
  END READNODE
 
  FreeDocument doc
- 
+
  RETURN result
- 
 END FUNCTION
+
+
+'==========================================================================================
+'                                       Translations
+'==========================================================================================
+
+DIM translations as StrHashTable
+
+PRIVATE SUB TranslationString_delete CDECL (p as TranslationString ptr)
+  DELETE p
+END SUB
+
+'I don't like running code before main()
+SUB init_translations()
+  translations.construct(64) ', type_table(any_ptr), NO)
+  translations.value_delete = CAST(FnDelete, @TranslationString_delete) 'We want it to auto-delete but not copy
+END SUB
+
+'Split up a string (the translation of a textbox) into the multiple lines of the textbox
+'This is a variant on textbox_string_to_lines() in textboxedit.bas,
+'but does not enforce the textbox line limit!
+SUB textbox_translation_to_lines(box as TextBox, text as string)
+ DIM lines() as string
+ 'TODO: wrap around portraits
+ DIM wrappedtext as string = wordwrap(text, 38)
+ split(wrappedtext, lines())
+ a_copy lines(), box.text()
+END SUB
+
+FUNCTION translation_produce_scan_template(embed_template as string) as string
+  DIM ret as string = embed_template
+  replacestr(ret, "#", "%d")
+  replacestr(ret, "X", "%9[^ }0-9-]")
+  RETURN ret & "%n"
+END FUNCTION
+
+'Remove extra spaces that appear in ${X#} embed codes (because an automated translator
+'might have added them) and convert ${*##} to CHR(##).
+'Also supports using other markup formatting instead. scan_template should be produced
+'by translation_produce_scan_template().
+FUNCTION unescape_str_for_web_translation(text as string, scan_template as zstring ptr = @"$ { %9[^ }0-9-] %d }%n", chcode_indic as zstring ptr = @"*") as string
+  DIM where as integer = 1
+  DIM ret as string = text
+  DO
+    where = INSTR(where, ret, "$")
+    IF where = 0 THEN EXIT DO
+    DIM embedtype as string * 10
+    DIM arg as integer
+    DIM bytesparsed as integer = -1
+    sscanf(@ret[where - 1], scan_template, strptr(embedtype), @arg, @bytesparsed)
+    IF bytesparsed > 0 THEN
+      'Successful match (return value of sscanf can't tell you that - must use %n)
+      DIM replacement as string
+      IF embedtype = *chcode_indic THEN
+        replacement = CHR(arg)
+      ELSE
+        replacement = "${" & embedtype & arg & "}"
+      END IF
+      ret = LEFT(ret, where - 1) & replacement & MID(ret, where + bytesparsed)
+      where += LEN(replacement)
+    ELSE
+      'Not an embed code, skip
+      where += 1
+    END IF
+  LOOP
+  RETURN ret
+END FUNCTION
+
+'Testcases, but don't have a way to run automatically currently
+'if unescape_str_for_web_translation("${*65}-$ {*65}$ {*65}-$ {  * 65 }") <> "A-AA-A" then fail
+'if unescape_str_for_web_translation("$ {H 0}  ${ H1} $ { LM-1 }$$#") <> "${H0}  ${H1} ${LM-1}$$#" then fail
+
+SUB add_translation(code as string, text as string, description as string = "", deduplicate as bool = NO)
+  DIM trans as TranslationString ptr = NEW TranslationString
+  trans->text = text
+  trans->description = description
+  trans->deduplicate = deduplicate
+  trans->sortorder = translations.numitems
+  translations.add(code, trans)
+END SUB
+
+PRIVATE SUB skip_to_translation_start(text as string, byref where as integer, tok as zstring ptr, ws as integer)
+  'A lot of these neural translators will increase the number of |'s or <'s, eg to ||||.
+  'So skip to whitespace.
+  skip_over(text, where, tok)
+  IF ws THEN
+    'Skip over leading whitespace, because its preservation is very unreliable: a WS token
+    'should be used instead.
+    skip_over(text, where, " ")
+  ELSE
+    'Preserve leading whitespace if no WS token used
+    skip_over(text, where, " ", 1)
+  END IF
+END SUB
+
+SUB load_translations(fname as string)  ', byref errmsg as string, byref warnings as integer = 0)
+  init_translations()
+  dim as string errmsg = ""
+  dim warnings as integer
+
+  DIM fh as integer
+  IF OPENFILE(fname, FOR_INPUT + OR_ERROR, fh) THEN EXIT SUB
+
+  'TODO: read these templates from the file header
+  DIM scan_template as string = translation_produce_scan_template("$ { X # }")
+  DIM chcode_indic as string = "*"
+  #DEFINE _unescape(x) unescape_str_for_web_translation(x, scan_template, chcode_indic)
+
+  DIM linenum as integer = 0
+  DO UNTIL EOF(fh)
+    DIM linein as string
+    LINE INPUT #fh, linein
+    DIM lcaselinein as string = LCASE(linein)
+    linenum += 1
+
+    linein = TRIM(linein)
+    IF LEN(linein) = 0 ORELSE LEFT(LTRIM(linein), 1) = "#" THEN
+      'Comment/blank. Maybe we should preserve comments, if we export the translations again?
+      'Very easy to do, just add a translation with a dummy code.
+      CONTINUE DO
+    END IF
+
+    DIM codeend as integer
+    DIM where as integer
+    where = INSTR(linein, " ")
+    IF where THEN
+      DIM code as string = LEFT(lcaselinein, where - 1)
+
+      'Check for a leading whitespace token, like WS3
+      DIM ws as integer = 0
+      skip_over(linein, where, " ")
+      IF skip_over(lcaselinein, where, "ws", 1) THEN
+        'ws = VALINT(MID(linein, where))
+        scanf(@"%d", @ws)
+      END IF
+
+      'Single-line translation
+      where = INSTR(linein, "|")
+      IF where THEN
+        skip_to_translation_start(linein, where, "|", ws)
+
+        add_translation(code, _unescape(SPACE(ws) & MID(linein, where)))
+        CONTINUE DO
+      END IF
+
+      'Multi-line translation
+      where = INSTR(linein, "<")
+      IF where THEN
+        skip_to_translation_start(linein, where, "<", ws)
+
+        DIM trans as string
+        DIM firstline as bool = YES
+
+        'As exported, there will be a newline after <, but that might get removed.
+        IF where < LEN(linein) THEN
+          trans = MID(linein, where)
+          firstline = NO
+        END IF
+
+        'Append more lines
+        DO
+          IF EOF(fh) THEN
+            errmsg = "End token '" & code & " >' is missing, hit the end of the file"
+            EXIT DO
+          END IF
+          LINE INPUT #fh, linein
+          lcaselinein = LCASE(linein)
+          linenum += 1
+
+          'Look for end of block: code '>'
+          'However the previous newline might get lost instead of this appearing on a line
+          'by itself.
+          DIM endtok as integer = INSTR(lcaselinein, code)
+          IF endtok THEN
+            where = INSTR(endtok, linein, " ")
+            skip_over(linein, where, " ")
+            DIM trailing as string = RTRIM(MID(linein, where))
+            IF trailing <> ">" THEN
+              warnings += 1
+              debug fname & " line " & linenum & ": expected to see >, instead found (and will ignore): " & trailing
+            END IF
+            linein = RTRIM(LEFT(linein, endtok - 1))
+          END IF
+
+          IF firstline = NO THEN trans &= CHR(10)
+          firstline = NO
+          trans &= linein
+          IF endtok THEN EXIT DO
+        LOOP
+
+        IF ws THEN
+          'Replace leading whitespace (because its preservation is very unreliable) with what the
+          'WS token specifies.
+          trans = SPACE(ws) & LTRIM(trans)
+        END IF
+
+        add_translation(code, _unescape(trans))
+        CONTINUE DO
+      END IF
+
+    END IF
+
+    warnings += 1
+    debug fname & " line " & linenum & " malformed, ignored: " & linein
+  LOOP
+
+  CLOSE fh
+END SUB
+
+'translate(text, "TB", txt.id)
+
+'Call translate() instead unless you want to know whether you're getting a translation
+FUNCTION get_translation(code as zstring ptr) as TranslationString ptr
+  IF translations.tablesize = 0 THEN RETURN NULL  'Hasn't been constructed
+  DIM trans as TranslationString ptr = translations.get(*code)
+  IF trans ANDALSO LEN(trans->text) THEN RETURN trans
+  RETURN NULL
+END FUNCTION
+
+FUNCTION translate(original as string, code as zstring ptr) as string
+  DIM trans as TranslationString ptr = get_translation(code)
+  debug "translate " & *code
+  IF trans THEN debug "found '''" & trans->text & "'''" : RETURN trans->text
+  RETURN original
+END FUNCTION
+
+
+'==========================================================================================
+
 
 SUB load_non_elemental_elements (elem() as bool)
  flusharray elem(), NO
