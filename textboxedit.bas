@@ -24,7 +24,7 @@ DECLARE FUNCTION read_box_conditional_by_menu_index(byref box as TextBox, menuin
 DECLARE FUNCTION box_conditional_type_by_menu_index(menuindex as integer) as integer
 DECLARE SUB update_textbox_editor_main_menu (byref box as TextBox, menu() as string)
 DECLARE SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState, menu() as string)
-DECLARE SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, page as integer, override_y as integer=-1, suppress_text as integer=NO)
+DECLARE SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, page as integer, override_y as integer=-1, suppress_text as bool=NO)
 DECLARE SUB textbox_draw_with_background(byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr, page as integer)
 DECLARE SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState, parent_menu() as string)
 DECLARE SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem vector, byref box as TextBox, byref st as TextboxEditState)
@@ -590,7 +590,7 @@ END SUB
 
 
 ' Draw the textbox without backdrop, optionally without text or at other y position.
-SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, page as integer, override_y as integer=-1, suppress_text as integer=NO)
+SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, page as integer, override_y as integer=-1, suppress_text as bool=NO)
  DIM ypos as integer
  IF override_y >= 0 THEN
   ypos = override_y
@@ -602,10 +602,8 @@ SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, pa
  END IF
  IF suppress_text = NO THEN
   DIM col as integer
-  DIM i as integer
-  FOR i as integer = 0 TO 7
-   col = uilook(uiText)
-   IF box.textcolor > 0 THEN col = box.textcolor
+  col = IIF(box.textcolor > 0, box.textcolor, uilook(uiText))
+  FOR i as integer = 0 TO UBOUND(box.text)
    edgeprint box.text(i), 8, 3 + ypos + i * 10, col, page
   NEXT i
  END IF
@@ -1150,7 +1148,7 @@ END SUB
 
 
 'Wrap and split up a string and stuff it into box.text, possibly editing 'text'
-'by trimming unneeded whitespace at the end.
+'by trimming unneeded whitespace at the end if needed to meet the line limit.
 '(Opposite of textbox_lines_to_string.)
 'Returns true if it did fit, and does nothing and returns false if it didn't.
 FUNCTION textbox_string_to_lines(byref box as TextBox, byref text as string) as bool
@@ -1158,22 +1156,18 @@ FUNCTION textbox_string_to_lines(byref box as TextBox, byref text as string) as 
  DIM wrappedtext as string = wordwrap(text, 38)
  split(wrappedtext, lines())
 
- IF UBOUND(lines) > UBOUND(box.text) THEN
+ IF UBOUND(lines) + 1 > maxTextboxLines THEN
   'Trim whitespace lines past the end so that stuffing doesn't fail unnecessarily
-  FOR idx as integer = UBOUND(box.text) + 1 TO UBOUND(lines)
+  FOR idx as integer = maxTextboxLines TO UBOUND(lines)
    IF LEN(TRIM(lines(idx))) > 0 THEN RETURN NO  'Can't trim! Failure
   NEXT
+  REDIM PRESERVE lines(maxTextboxLines - 1)
+  'Also trim those extra lines from the input string.
   DIM line_starts() as integer
   split_line_positions text, lines(), line_starts()
-  text = LEFT(text, line_starts(UBOUND(box.text) + 1) - 1)
+  text = LEFT(text, line_starts(maxTextboxLines) - 1)
  END IF
- FOR idx as integer = 0 TO UBOUND(box.text)
-  IF UBOUND(lines) < idx THEN
-   box.text(idx) = ""
-  ELSE
-   box.text(idx) = lines(idx)
-  END IF
- NEXT
+ a_copy lines(), box.text()
  RETURN YES
 END FUNCTION
 
@@ -1189,7 +1183,7 @@ SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
  END WITH
  DIM txtdata as TextSliceData Ptr = textslice->SliceData
  WITH *txtdata
-  .line_limit = 8
+  .line_limit = maxTextboxLines
   .insert = -1  'End of text
   .show_insert = YES
   .outline = YES
@@ -1210,7 +1204,7 @@ SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
 
   DIM newtext as string = text
   DIM newinsert as integer = txtdata->insert
-  stredit(newtext, newinsert, 9999, 8, 38)
+  stredit(newtext, newinsert, 9999, maxTextboxLines, 38)
   IF textbox_string_to_lines(box, newtext) THEN
    'Accepted: the new text did fit in the box
    text = newtext
@@ -1557,7 +1551,6 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
  DIM s as string
  DIM firstline as bool = YES
  DIM line_number as integer = 0
- DIM boxlines as integer = 0
  DIM i as integer
  DO WHILE NOT EOF(fh)
   line_number += 1
@@ -1585,7 +1578,6 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
      END IF
      index = getindex
      LoadTextBox box, index
-     boxlines = 0
      mode = 1
     ELSE
      import_textboxes_warn warn, "line " & line_number & ": expected Box # but found """ & s & """."
@@ -1594,6 +1586,8 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
     END IF
    CASE 1 '--Seek divider
     IF RTRIM(s) = STRING(38, "-") THEN
+     '--Beginning of text. Erase old text.
+     ERASE box.text
      mode = 2
     ELSEIF RTRIM(s) = STRING(38, "=") THEN
      '--No text. Don't touch this box's text; save and prepare for the next box.
@@ -1604,7 +1598,6 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
      SaveTextBox box, index
      index += 1
      mode = 0
-     boxlines = 0
     ELSE
      IF INSTR(s, ":") THEN '--metadata, probably
       DIM t as string, valline as string, v as string
@@ -1731,19 +1724,16 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
     END IF
    CASE 2 '--Text lines
     IF RTRIM(s) = STRING(38, "=") THEN
-     FOR i = boxlines TO 7
-      box.text(i) = ""
-     NEXT i
+     'End of this textbox, save and start the next one.
      IF index > gen(genMaxTextbox) THEN
       warn_append += index - gen(genMaxTextbox)
       gen(genMaxTextbox) = index
      END IF
      SaveTextBox box, index
      index += 1
-     boxlines = 0
      mode = 0
     ELSE
-     IF boxlines >= 8 THEN
+     IF UBOUND(box.text) + 1 = maxTextboxLines THEN
       import_textboxes_warn warn, "line " & line_number & ": too many lines in box " & index & ". Overflowed with """ & s & """."
       CLOSE #fh
       RETURN NO
@@ -1753,15 +1743,11 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
       debug "import_textboxes: line " & line_number & ": line too long (" & LEN(s) & ")"
       s = LEFT(s, 38)
      END IF
-     box.text(boxlines) = s
-     boxlines += 1
+     a_append box.text(), s
     END IF
   END SELECT
  LOOP
  IF mode = 2 THEN'--Save the last box
-  FOR i = boxlines TO 7
-   box.text(i) = ""
-  NEXT i
   IF index > gen(genMaxTextbox) THEN
    warn_append += index - gen(genMaxTextbox)
    gen(genMaxTextbox) = index

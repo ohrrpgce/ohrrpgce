@@ -967,7 +967,7 @@ END ENUM
 TYPE PortraitTypeEnum as integer
 
 TYPE TextBox
-  text(7) as string
+  text(any) as string
 
   'Conditionals
   instead_tag as integer

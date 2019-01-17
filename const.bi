@@ -299,9 +299,10 @@ CONST maxMaxSong = 32767 ' Max possible value for gen(genMaxSong)
 CONST maxMaxShop = 32767 ' Max possible value for gen(genMaxShop)
 CONST maxSaveSlotCount = 1000 ' highest allowed value for gen(genSaveSlotCount)
 
-CONST sizeParty = 41 'The maximum size of the entire party (length of gam.hero())
+CONST sizeParty = 41 'The maximum size of the entire party (number of gam.hero() party slots)
 CONST sizeActiveParty = 4 'Maximum size of the active party (this is for CUSTOM, use active_party_slots() in GAME)
 CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count the zero)
+CONST maxTextboxLines = 8 'Maximum number of lines in a text box
 CONST maplayerMax = 15 'The limit on the highest numbered map layer
 CONST mapTilesMax = 100000 'Maximum map size, in tiles (note also a limit of 32768 tiles wide or high)
 CONST dissolveTypeMax = 10 'Highest numbered frame dissolve effect
@@ -317,7 +318,7 @@ CONST maxScriptStrings = 99 'ID of last plotstring  (also "maximum string id" in
 CONST maxScriptHeap = 8192 'Maximum number of local variables in use by all running scripts
 CONST maxScriptRunning = 128 'Number of scripts which can run at once
 CONST maxScriptNesting = 4 'Maximum subscript nesting depth
-'Amount of script data to cache (these are configurable)
+'Amount of script data to cache (these can be freely changed, unlike other constants)
 CONST scriptmemMax = 65536 'in 4-byte ints (256kb)
 CONST scriptTableSize = 512  'hash table size, power of 2 please
 CONST scriptCheckDelay = 1.1     'How long, in seconds, before the script interpreter becomes interruptable

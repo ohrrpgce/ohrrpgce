@@ -2703,6 +2703,7 @@ SUB LoadTextBox (byref box as TextBox, byval record as integer)
  '--Populate TextBox object
  WITH box
   '--Load lines of text
+  REDIM .text(7)  'maxTextboxLines - 1
   FOR i = 0 TO 7
    .text(i) = STRING(38, 0)
    array2str boxbuf(), i * 38, .text(i)
@@ -2786,11 +2787,12 @@ SUB SaveTextBox (byref box as TextBox, byval record as integer)
 
  DIM i as integer
 
- 'FIXME: not all elements are saved here yet. They will be added as direct boxbuf() access is phased out
  WITH box
   '--Transcribe lines of text into the buffer
+  IF UBOUND(.text) > 7 THEN showbug "Can't save all textbox lines"
   FOR i = 0 TO 7
-   str2array rpad(.text(i), CHR(0), 38, clipRight), boxbuf(), i * 38
+   DIM tline as string = IIF(i <= UBOUND(.text), .text(i), "")
+   str2array rpad(tline, CHR(0), 38, clipRight), boxbuf(), i * 38
   NEXT i
   '--Transcribe conditional data
   DIM condbuf(20) as integer
@@ -4778,6 +4780,12 @@ SUB save_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
  SetChildNode node, "copyright_year", distinfo.copyright_year
 END SUB
 
+
+'==========================================================================================
+'                                          Shops
+'==========================================================================================
+
+
 SUB load_shop_stuff(byval shop_id as integer, byval stuff_list as NodePtr)
  'Load shop stuff from the binary .STF lump into a bunch of reload nodes.
  
@@ -4860,6 +4868,12 @@ SUB append_trade_node (byval par as NodePtr, byval itnum as integer, byval itqty
  n = AppendChildNode(par, "trade", itnum - 1)
  SetChildNode(n, "count", itqty + 1)
 END SUB
+
+
+'==========================================================================================
+'                                    Hero Formations
+'==========================================================================================
+
 
 SUB write_hero_formation(byval par as NodePtr, byref hform as HeroFormation)
  FreeChildren(par)

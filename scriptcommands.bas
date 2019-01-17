@@ -2022,10 +2022,10 @@ SUB script_functions(byval cmdid as integer)
  CASE 240'-- string from textbox (string, box, line, ignored)   [obsolete]
   IF valid_plotstr(retvals(0)) THEN
    DIM box as TextBox
-   retvals(1) = bound(retvals(1),0,gen(genMaxTextbox))
-   retvals(2) = bound(retvals(2),0,7)
+   retvals(1) = bound(retvals(1), 0, gen(genMaxTextbox))
    LoadTextBox box, retvals(1)
-   plotstr(retvals(0)).s = trim(box.text(retvals(2)))
+   retvals(2) = bound(retvals(2), 0, UBOUND(box.text))
+   plotstr(retvals(0)).s = TRIM(box.text(retvals(2)))
    embedtext plotstr(retvals(0)).s
   END IF
  CASE 241'-- expand string(id, saveslot)
@@ -3337,7 +3337,8 @@ SUB script_functions(byval cmdid as integer)
    scriptret = iif(thisdoor.exists, 1, 0)
   END IF
  CASE 526 '--get attack caption
-  IF valid_plotstr(retvals(0), 5) AND bound_arg(retvals(1), 1, gen(genMaxAttack)+1, "attack ID", , serrBadOp) THEN
+  IF valid_plotstr(retvals(0), serrBadOp) ANDALSO _
+     bound_arg(retvals(1), 1, gen(genMaxAttack)+1, "attack ID", , serrBadOp) THEN
    plotstr(retvals(0)).s = readattackcaption(retvals(1) - 1)
    scriptret = 1
   END IF
@@ -3367,28 +3368,29 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 529 '-- textbox line (string, box, line, expand, strip)
-  IF valid_plotstr(retvals(0), 5) ANDALSO _
+  IF valid_plotstr(retvals(0), serrBadOp) ANDALSO _
      bound_arg(retvals(1), 0, gen(genMaxTextbox), "textbox", , serrBadOp) THEN
    IF retvals(2) < 0 THEN
-    'There's no upper bound on valid textbox line numbers
     scripterr "textbox line: invalid line number " & retvals(2), serrBadOp
-   ELSEIF retvals(2) > 7 THEN
-    'On the other hand, this is currently impossible
-    plotstr(retvals(0)).s = ""
    ELSE
     DIM box as TextBox
     LoadTextBox box, retvals(1)
-    plotstr(retvals(0)).s = box.text(retvals(2))
-    IF retvals(4) THEN plotstr(retvals(0)).s = trim(plotstr(retvals(0)).s)
-    IF retvals(3) THEN embedtext plotstr(retvals(0)).s
+    WITH plotstr(retvals(0))
+     'There's no upper bound on valid textbox line numbers
+     IF retvals(2) <= UBOUND(box.text) THEN
+      .s = box.text(retvals(2))
+     ELSE
+      .s = ""
+     END IF
+     IF retvals(4) THEN .s = TRIM(.s)
+     IF retvals(3) THEN embedtext .s
+    END WITH
    END IF
   END IF
  CASE 530 '--get slice text (string, slice)
   IF valid_plotstr(retvals(0), serrBadOp) THEN
    IF valid_plottextslice(retvals(1)) THEN
-    DIM dat as TextSliceData Ptr
-    dat = plotslices(retvals(1))->SliceData
-    plotstr(retvals(0)).s = dat->s
+    plotstr(retvals(0)).s = plotslices(retvals(1))->TextData->s
    END IF
   END IF
  CASE 531 '--get input text (string)

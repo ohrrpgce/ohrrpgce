@@ -3331,7 +3331,7 @@ SUB loadsay (byval box_id as integer)
   .last = 1
  END WITH
 
- FOR j as integer = 0 TO 7
+ FOR j as integer = 0 TO UBOUND(txt.box.text)
   embedtext txt.box.text(j), 38
  NEXT j
 
@@ -3652,7 +3652,7 @@ SUB init_text_box_slices(txt as TextBoxState)
  IF txt.box.textcolor > 0 THEN col = txt.box.textcolor
 
  DIM s as string = ""
- FOR i as integer = 0 TO 7
+ FOR i as integer = 0 TO UBOUND(txt.box.text)
   s &= txt.box.text(i) & CHR(10)
  NEXT i
 
