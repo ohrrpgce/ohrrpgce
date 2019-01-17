@@ -101,7 +101,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
  'Set st.id: textbox to edit
  STATIC remember_box_id as integer = 1
  IF whichbox <= -1 THEN
-  st.id = remember_box_id
+  st.id = small(remember_box_id, gen(genMaxTextBox))
  ELSE
   st.id = small(whichbox, gen(genMaxTextBox) + 1)
   IF st.id > gen(genMaxTextBox) THEN
@@ -1290,7 +1290,7 @@ END SUB
 
 
 SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu() as string)
-'FIXME: menu() should be moved to become a member of st, then we wouldn't have to pass it around
+'TODO: menu() should be moved to become a member of st, then we wouldn't have to pass it around
  DIM do_search as bool = YES
  REDIM prev(5) as TextboxConnectNode
  DIM current as TextboxConnectNode
@@ -1595,7 +1595,8 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
    CASE 1 '--Seek divider
     IF RTRIM(s) = STRING(38, "-") THEN
      mode = 2
-    ELSEIF RTRIM(s) = STRING(38, "=") THEN '--no text
+    ELSEIF RTRIM(s) = STRING(38, "=") THEN
+     '--No text. Don't touch this box's text; save and prepare for the next box.
      IF index > gen(genMaxTextbox) THEN
       warn_append += index - gen(genMaxTextbox)
       gen(genMaxTextbox) = index
@@ -1607,8 +1608,8 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
     ELSE
      IF INSTR(s, ":") THEN '--metadata, probably
       DIM t as string, valline as string, v as string
-      t = LCASE(LEFT(s, instr(s, ":") - 1))
-      valline = LTRIM(MID(s, instr(s, ":") + 1))
+      t = LCASE(LEFT(s, INSTR(s, ":") - 1))
+      valline = LTRIM(MID(s, INSTR(s, ":") + 1))
       'v is valline with any comment appearing after the value removed
       v = valline
       IF INSTR(v, " ") THEN v = MID(v, 1, INSTR(v, " ") - 1)
@@ -1805,10 +1806,9 @@ SUB textbox_edit_exporter ()
 END SUB
 
 FUNCTION export_textboxes (filename as string, metadata() as bool) as bool
- DIM fh as integer = FREEFILE
- IF OPEN(filename FOR OUTPUT as #fh) THEN debug "export_textboxes: Failed to open " & filename : RETURN NO
+ DIM fh as integer
+ IF OPENFILE(filename, FOR_OUTPUT + OR_ERROR, fh) THEN RETURN NO
  DIM box as TextBox
- DIM blank as integer
  DIM as integer i, j, k
  FOR i = 0 TO gen(genMaxTextBox)
   LoadTextBox box, i
@@ -2008,23 +2008,13 @@ FUNCTION export_textboxes (filename as string, metadata() as bool) as bool
     PRINT #fh, "Portrait Y: " & box.portrait_pos.Y
    END IF
   END IF
-  
-  
-  
+
+
   IF metadata(0) THEN '--box text
    '--Write the separator
    PRINT #fh, "--------------------------------------"
-   blank = 0
-   FOR j = 0 TO 7
-    IF box.text(j) = "" THEN
-     blank += 1
-    ELSE
-     FOR k = 1 TO blank
-      PRINT #fh, ""
-     NEXT k
-     blank = 0
-     PRINT #fh, escape_nonprintable_ascii(box.text(j))
-    END IF
+   FOR j = 0 TO text_box_last_line(box)
+    PRINT #fh, escape_nonprintable_ascii(box.text(j))
    NEXT j
   END IF
  NEXT i

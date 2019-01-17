@@ -5906,17 +5906,22 @@ FUNCTION getheroname (hero_id as integer, use_default as bool = YES) as string
  RETURN ""
 END FUNCTION
 
+'Index of last non-blank line, or -1 if none
+FUNCTION text_box_last_line(byref box as TextBox) as integer
+ FOR i as integer = UBOUND(box.text) TO 0 STEP -1
+  IF LEN(TRIM(box.text(i))) > 0 THEN RETURN i
+ NEXT
+ RETURN -1
+END FUNCTION
+
 FUNCTION get_text_box_height(byref box as TextBox) as integer
  IF box.shrink >= 0 THEN RETURN 88 - box.shrink * 4
- FOR i as integer = UBOUND(box.text) TO 0 STEP -1
-  IF LEN(TRIM(box.text(i))) > 0 THEN
-   DIM vsize as integer = 20 + i * 10
-   IF vsize < 32 AND vsize > 24 THEN RETURN 32
-   IF vsize <= 24 THEN RETURN 16
-   RETURN vsize
-  END IF
- NEXT i
- RETURN 88
+ DIM lastline as integer = text_box_last_line(box)
+ IF lastline = -1 THEN RETURN 88  'Instead of 90 for a full box, why?
+ DIM vsize as integer = 20 + lastline * 10
+ IF vsize < 32 AND vsize > 24 THEN RETURN 32
+ IF vsize <= 24 THEN RETURN 16
+ RETURN vsize
 END FUNCTION
 
 FUNCTION last_inv_slot() as integer
@@ -6265,7 +6270,7 @@ FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref director
  DIM tog as integer
  DIM foldermode as bool = NO
  'Can get passed a filename maybe because it's shared with browse() (as it is in importmxs)
- IF real_isfile(directory) THEN directory = trimfilename(directory)
+ IF LEN(directory) ANDALSO real_isfile(directory) THEN directory = trimfilename(directory)
  IF directory = "" THEN directory = CURDIR
  setkeys YES
  DO

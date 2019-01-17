@@ -2866,14 +2866,10 @@ SUB ClearTextBox (byref box as TextBox)
 END SUB
 
 'Concatenate textbox lines into a string
-FUNCTION textbox_lines_to_string(byref box as TextBox) as string
- DIM lastline as integer
- FOR lastline = UBOUND(box.text) TO 0 STEP -1
-  IF LEN(box.text(lastline)) THEN EXIT FOR
- NEXT
+FUNCTION textbox_lines_to_string(byref box as TextBox, join_char as string = !"\n") as string
  DIM ret as string
- FOR idx as integer = 0 TO lastline
-  IF idx > 0 THEN ret &= !"\n"
+ FOR idx as integer = 0 TO text_box_last_line(box)
+  IF idx > 0 THEN ret &= join_char
   ret &= box.text(idx)
  NEXT
  RETURN ret

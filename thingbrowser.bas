@@ -895,10 +895,7 @@ Function TextboxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  LoadTextBox box, id
 
  'Most of the text will not be visible, but we still do want to use it for search and filter
- dim s as string = ""
- for i as integer = 0 TO 7 
-  s &= box.text(i) & " " 'concat with spaces instead of newlines
- next i
+ dim text as string = textbox_lines_to_string(box, " ") 'Concat with spaces instead of newlines
 
  if plank_template = 0 then
   plank_template = load_plank_from_file(finddatafile("textbox_browser_plank.slice"))
@@ -912,9 +909,9 @@ Function TextboxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  if id = none_id then
   caption = "NONE"
  elseif id = 0 then
-  caption = id & " [template] " & s
+  caption = id & " [template] " & text
  else
-  caption = id & " " & s
+  caption = id & " " & text
  end if
  ChangeTextSlice txt, caption
 
