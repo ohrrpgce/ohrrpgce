@@ -64,8 +64,6 @@ DECLARE SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPa
 DECLARE SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
 DECLARE SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as integer, byval frame as integer, byval wide as integer, byval high as integer, caption as string, helpkey as string)
 DECLARE FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byval y as integer=0, byval page as integer=-1) as integer
-DECLARE SUB edit_global_text_strings()
-DECLARE SUB writeglobalstring (index as integer, s as string, maxlen as integer)
 DECLARE SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as string, byref max1 as integer, byref min1 as integer, byref menutype1 as integer, byref caption2 as string, byref max2 as integer, byref min2 as integer, byref menutype2 as integer, rate as integer, stat as integer)
 DECLARE FUNCTION attack_chain_browser (byval start_attack as integer) as integer
 DECLARE SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as string, excludewords as string = "")
@@ -97,22 +95,5 @@ DECLARE FUNCTION npc_preview_text(byref npc as NPCType) as string
 DECLARE SUB mark_non_elemental_elementals ()
 
 DECLARE FUNCTION custom_setoption(opt as string, arg as string) as integer
-
-TYPE GlobalTextStringsMenu
- index(any) as integer
- descriptions(any) as string
- selectable(any) as bool
- shaded(any) as bool    'For headers
- text(any) as string
- defaults(any) as string
- maxlens(any) as integer
- help(any) as string
-
- DECLARE CONSTRUCTOR ()
-
- PRIVATE:
- DECLARE SUB add_item (item_index as integer, description as zstring ptr, default as zstring ptr = @"", maxlen as integer = 0, helpfile as zstring ptr = @"", item_selectable as bool = YES, item_shaded as bool = NO)
- DECLARE SUB header (description as zstring ptr)
-END TYPE
 
 #endif
