@@ -3675,14 +3675,14 @@ SUB init_text_box_slices(txt as TextBoxState)
  DIM pal_id as integer = -1
  DIM hero_slot as integer = -1
  SELECT CASE txt.box.portrait_type
-  CASE 1' Fixed ID number
+  CASE portraitSPRITESET 'Fixed ID number
    img_id = txt.box.portrait_id
    pal_id = txt.box.portrait_pal
-  CASE 2' Hero by caterpillar
+  CASE portraitPARTYRANK 'Hero by caterpillar
    hero_slot = rank_to_party_slot(txt.box.portrait_id)
-  CASE 3' Hero by party slot
+  CASE portraitPARTYSLOT 'Hero by party slot
    hero_slot = txt.box.portrait_id
-  CASE 4' Hero by ID
+  CASE portraitHEROID 'Hero by ID
    'If the hero is in the party, use their current state.
    'if there are multiple copies, use the first.
    hero_slot = findhero(txt.box.portrait_id)

@@ -610,11 +610,11 @@ SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, pa
   NEXT i
  END IF
  ' Don't draw box if portrait type is NONE
- IF box.portrait_box AND box.portrait_type <> 0 THEN
+ IF box.portrait_box ANDALSO box.portrait_type <> portraitNONE THEN
   edgeboxstyle 4 + box.portrait_pos.x, ypos  + box.portrait_pos.y, 50, 50, box.boxstyle, page, YES
  END IF
  WITH st.portrait
-  IF .sprite THEN frame_draw .sprite, .pal, 4 + box.portrait_pos.x, ypos + box.portrait_pos.y,,,page
+  IF .sprite THEN frame_draw .sprite, .pal, 4 + box.portrait_pos.x, ypos + box.portrait_pos.y, , , page
  END WITH
 END SUB
 
@@ -855,18 +855,18 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
     CASE 16: box.stop_sound_after = (NOT box.stop_sound_after)
     CASE 18: box.backdrop_trans = (NOT box.backdrop_trans)
     CASE 11:
-     IF box.portrait_type = 1 THEN
+     IF box.portrait_type = portraitSPRITESET THEN
       DIM portraitb as PortraitSpriteBrowser
       box.portrait_id = portraitb.browse(box.portrait_id)
       state.need_update = YES
      END IF
     CASE 12:
-     IF box.portrait_type = 1 THEN
+     IF box.portrait_type = portraitSPRITESET THEN
       box.portrait_pal = pal16browse(box.portrait_pal, sprTypePortrait, box.portrait_id, YES)
      END IF
     CASE 13: box.portrait_box = (NOT box.portrait_box)
     CASE 14:
-     IF box.portrait_type <> 0 THEN  'If portrait type is NONE, then the portrait+box aren't visible
+     IF box.portrait_type <> portraitNONE THEN  'If portrait type is NONE, then the portrait+box aren't visible
       textbox_position_portrait box, st, backdrop
      END IF
     CASE 15:
@@ -911,16 +911,16 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
       music_stop
      END IF
     CASE 10:
-     state.need_update OR= intgrabber(box.portrait_type, 0, 4)
+     state.need_update OR= intgrabber(box.portrait_type, 0, portraitLAST)
     CASE 11:
      SELECT CASE box.portrait_type
-      CASE 1: state.need_update OR= intgrabber(box.portrait_id, 0, gen(genMaxPortrait))
-      CASE 2: state.need_update OR= intgrabber(box.portrait_id, 0, 3)
-      CASE 3: state.need_update OR= intgrabber(box.portrait_id, 0, 40)
-      CASE 4: state.need_update OR= intgrabber(box.portrait_id, 0, gen(genMaxHero))
+      CASE portraitSPRITESET: state.need_update OR= intgrabber(box.portrait_id, 0, gen(genMaxPortrait))
+      CASE portraitPARTYRANK: state.need_update OR= intgrabber(box.portrait_id, 0, sizeActiveParty - 1)
+      CASE portraitPARTYSLOT: state.need_update OR= intgrabber(box.portrait_id, 0, sizeParty - 1)
+      CASE portraitHEROID:    state.need_update OR= intgrabber(box.portrait_id, 0, gen(genMaxHero))
      END SELECT
     CASE 12:
-     IF box.portrait_type = 1 THEN
+     IF box.portrait_type = portraitSPRITESET THEN
       state.need_update OR= intgrabber(box.portrait_pal, -1, gen(genMaxPal))
      END IF
     CASE 15:
@@ -976,6 +976,14 @@ PRIVATE SUB menuitem(itemdata as integer, byref menu as SimpleMenuItem vector, c
  append_simplemenu_item menu, caption, unselectable, col, itemdata
 END SUB
 
+STATIC SHARED portrait_type_names(portraitLAST) as zstring ptr = {_
+    @"NONE", _
+    @"Fixed", _
+    @"Hero (by caterpillar order)", _
+    @"Hero (by party order)", _
+    @"Hero (by ID)" _
+}
+
 SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem vector, byref box as TextBox, byref st as TextboxEditState)
  DIM menutemp as string
  v_new menu
@@ -1001,28 +1009,21 @@ SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem vector, 
 
  menuitem -1, menu, ""
  menuitem -1, menu, " Portrait"
- SELECT CASE box.portrait_type
-  CASE 0: menutemp = "NONE"
-  CASE 1: menutemp = "Fixed"
-  CASE 2: menutemp = "Hero (by caterpillar order)"
-  CASE 3: menutemp = "Hero (by party order)"
-  CASE 4: menutemp = "Hero (by ID)"
-  CASE ELSE: menutemp = ""
- END SELECT
- menuitem 10, menu, "Type: " & menutemp
- IF box.portrait_type <> 0 THEN
+ menuitem 10, menu, "Type: " & safe_captionz(portrait_type_names(), box.portrait_type, "type")
+
+ IF box.portrait_type <> portraitNONE THEN
   menutemp = STR(box.portrait_id)
   SELECT CASE box.portrait_type
-   CASE 0: menutemp = "(N/A)"
-   CASE 2: IF box.portrait_id = 0 THEN menutemp &= " (Leader)"
-   CASE 3: IF box.portrait_id > 3 THEN menutemp &= " (Reserve)"
-   CASE 4: menutemp &= " (" & getheroname(box.portrait_id) & ")"
+   CASE portraitNONE: menutemp = "(N/A)"
+   CASE portraitPARTYRANK: IF box.portrait_id = 0 THEN menutemp &= " (Leader)"
+   CASE portraitPARTYSLOT: IF box.portrait_id > 3 THEN menutemp &= " (Reserve)"
+   CASE portraitHEROID: menutemp &= " (" & getheroname(box.portrait_id) & ")"
   END SELECT
   menuitem 11, menu, "ID: " & menutemp
   menutemp = defaultint(box.portrait_pal)
   SELECT CASE box.portrait_type
-   CASE 0: menutemp = "(N/A)"
-   CASE 1:
+   CASE portraitNONE: menutemp = "(N/A)"
+   CASE portraitSPRITESET:
    CASE ELSE: menutemp &= " (N/A, see hero editor)"
   END SELECT
   menuitem 12, menu, "Palette: " & menutemp
@@ -1994,12 +1995,13 @@ FUNCTION export_textboxes (filename as string, metadata() as bool) as bool
    END IF
    PRINT #fh, "Show Box: " & yesorno(NOT box.no_box) '--argh, double negatives
    PRINT #fh, "Translucent: " & yesorno(NOT box.opaque) '--  "       "      "
-   
-   IF box.portrait_box <> NO OR box.portrait_type <> 0 THEN
+
+   IF box.portrait_box <> NO ORELSE box.portrait_type <> portraitNONE THEN
     PRINT #fh, "Portrait Box: " & yesorno(box.portrait_box)
    END IF
-   IF box.portrait_type <> 0 THEN
-    PRINT #fh, "Portrait Type: " & box.portrait_type
+   IF box.portrait_type <> portraitNONE THEN
+    PRINT #fh, "Portrait Type: " & box.portrait_type & " (" & _
+               safe_captionz(portrait_type_names(), box.portrait_type, "type") & ")"
     PRINT #fh, "Portrait ID: " & box.portrait_id
     IF box.portrait_pal <> -1 THEN PRINT #fh, "Portrait Palette: " & box.portrait_pal
     PRINT #fh, "Portrait X: " & box.portrait_pos.X

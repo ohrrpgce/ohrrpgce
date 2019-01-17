@@ -956,6 +956,16 @@ TYPE HeroFormation
   slots(3) as FormationSlot
 END TYPE
 
+ENUM 'PortraitTypeEnum
+ portraitNONE = 0
+ portraitSPRITESET = 1    'Spriteset ID
+ portraitPARTYRANK = 2    'Hero by caterpillar rank
+ portraitPARTYSLOT = 3    'Hero by party slot
+ portraitHEROID = 4       'Hero by ID
+ portraitLAST = 4
+END ENUM
+TYPE PortraitTypeEnum as integer
+
 TYPE TextBox
   text(7) as string
 
@@ -1004,7 +1014,7 @@ TYPE TextBox
   backdrop_trans as bool
 
   portrait_box  as integer
-  portrait_type as integer
+  portrait_type as PortraitTypeEnum
   portrait_id   as integer
   portrait_pal  as integer = -1
   portrait_pos  as XYPair

@@ -300,6 +300,7 @@ CONST maxMaxShop = 32767 ' Max possible value for gen(genMaxShop)
 CONST maxSaveSlotCount = 1000 ' highest allowed value for gen(genSaveSlotCount)
 
 CONST sizeParty = 41 'The maximum size of the entire party (length of gam.hero())
+CONST sizeActiveParty = 4 'Maximum size of the active party (this is for CUSTOM, use active_party_slots() in GAME)
 CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count the zero)
 CONST maplayerMax = 15 'The limit on the highest numbered map layer
 CONST mapTilesMax = 100000 'Maximum map size, in tiles (note also a limit of 32768 tiles wide or high)

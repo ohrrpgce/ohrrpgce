@@ -1668,20 +1668,20 @@ SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
  unload_sprite_and_pal gfx
  WITH gfx
   SELECT CASE box.portrait_type
-   CASE 1' Fixed ID number
+   CASE portraitSPRITESET
     img_id = box.portrait_id
     pal_id = box.portrait_pal
-   CASE 2' Hero by caterpillar
+   CASE portraitPARTYRANK
     'In custom, no party exists, so preview using the first hero
     loadherodata her, 0
     img_id = her.portrait
     pal_id = her.portrait_pal
-   CASE 3' Hero by party slot
+   CASE portraitPARTYSLOT
     'In custom, no party exists, so preview using the first hero
     loadherodata her, 0
     img_id = her.portrait
     pal_id = her.portrait_pal
-   CASE 4' Hero by ID
+   CASE portraitHEROID
     loadherodata her, box.portrait_id
     img_id = her.portrait
     pal_id = her.portrait_pal
