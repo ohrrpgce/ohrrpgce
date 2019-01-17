@@ -1530,8 +1530,16 @@ END SUB
 
 SUB import_textboxes_warn (byref warn as string, s as string)
  debug "import_textboxes: " & s
- IF warn <> "" THEN warn = warn & " "
- warn = warn & s
+ warn &= !"\n" & s
+END SUB
+
+SUB import_save_textbox(box as TextBox, byref index as integer, byref warn_append as integer)
+ IF index > gen(genMaxTextbox) THEN
+  warn_append += index - gen(genMaxTextbox)
+  gen(genMaxTextbox) = index
+ END IF
+ SaveTextBox box, index
+ index += 1
 END SUB
 
 FUNCTION import_textboxes (filename as string, byref warn as string) as bool
@@ -1546,12 +1554,10 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
  DIM show_encoding_warnings as bool = YES
  DIM box as TextBox
  DIM index as integer = 0
- DIM getindex as integer = 0 
  DIM mode as integer = 0
  DIM s as string
  DIM firstline as bool = YES
  DIM line_number as integer = 0
- DIM i as integer
  DO WHILE NOT EOF(fh)
   line_number += 1
   LINE INPUT #fh, s
@@ -1568,7 +1574,7 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
   SELECT CASE mode
    CASE 0 '--Seek box number
     IF LEFT(s, 4) = "Box " THEN
-     getindex = VALINT(MID(s, 5))
+     DIM getindex as integer = VALINT(MID(s, 5))
      IF getindex > index THEN
       warn_skip += 1
       debug "import_textboxes: line " & line_number & ": box ID " & index & " is not in the txt file"
@@ -1577,7 +1583,11 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
       debug "import_textboxes: line " & line_number & ": box ID numbers out-of-order. Expected " & index & ", but found " & getindex
      END IF
      index = getindex
-     LoadTextBox box, index
+     IF index <= gen(genMaxTextBox) THEN
+      LoadTextBox box, index
+     ELSE
+      LoadTextBox box, 0  'Copy style from the template
+     END IF
      mode = 1
     ELSE
      import_textboxes_warn warn, "line " & line_number & ": expected Box # but found """ & s & """."
@@ -1591,12 +1601,7 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
      mode = 2
     ELSEIF RTRIM(s) = STRING(38, "=") THEN
      '--No text. Don't touch this box's text; save and prepare for the next box.
-     IF index > gen(genMaxTextbox) THEN
-      warn_append += index - gen(genMaxTextbox)
-      gen(genMaxTextbox) = index
-     END IF
-     SaveTextBox box, index
-     index += 1
+     import_save_textbox(box, index, warn_append)
      mode = 0
     ELSE
      IF INSTR(s, ":") THEN '--metadata, probably
@@ -1725,12 +1730,7 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
    CASE 2 '--Text lines
     IF RTRIM(s) = STRING(38, "=") THEN
      'End of this textbox, save and start the next one.
-     IF index > gen(genMaxTextbox) THEN
-      warn_append += index - gen(genMaxTextbox)
-      gen(genMaxTextbox) = index
-     END IF
-     SaveTextBox box, index
-     index += 1
+     import_save_textbox(box, index, warn_append)
      mode = 0
     ELSE
      IF UBOUND(box.text) + 1 = maxTextboxLines THEN
@@ -1740,7 +1740,7 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
      END IF
      IF LEN(s) > 38 THEN '--this should be down here
       warn_length += 1
-      debug "import_textboxes: line " & line_number & ": line too long (" & LEN(s) & ")"
+      debug "import_textboxes: line " & line_number & " too long: """ & s & """"
       s = LEFT(s, 38)
      END IF
      a_append box.text(), s
@@ -1748,17 +1748,13 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
   END SELECT
  LOOP
  IF mode = 2 THEN'--Save the last box
-  IF index > gen(genMaxTextbox) THEN
-   warn_append += index - gen(genMaxTextbox)
-   gen(genMaxTextbox) = index
-  END IF
-  SaveTextBox box, index
+  import_save_textbox(box, index, warn_append)
  ELSEIF mode = 0 THEN '--this... is not good
   import_textboxes_warn warn, "line " & line_number & ": txt file ended unexpectedly."
   CLOSE #fh
   RETURN NO
  END IF
- IF warn_length > 0 THEN import_textboxes_warn warn, warn_length & " lines were too long."
+ IF warn_length > 0 THEN import_textboxes_warn warn, warn_length & " lines were too long. See the debug log (c_debug.txt) for a list of trimmed lines."
  IF warn_skip > 0   THEN import_textboxes_warn warn, warn_skip & " box ID numbers were not in the txt file."
  IF warn_append > 0 THEN import_textboxes_warn warn, warn_append & " new boxes were appended."
  CLOSE #fh
