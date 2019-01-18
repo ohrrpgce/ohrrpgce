@@ -85,6 +85,7 @@ September 29 2018 [Fufluns]
       you edit the things in a shop - reset if needed, or increased/decreased
       to reflect the change [Ralph]
     * Copy/pasting of item definitions [Ralph]
+    * New attack animation "Screen Center" [James]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

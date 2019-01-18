@@ -3615,6 +3615,44 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   NEXT i
   anim_end
  END IF
+
+ '----SCREEN CENTER
+ ' Simply put the animation directly in the center of the screen
+ IF attack.attack_anim = atkAnimScreenCenter THEN
+  anim_advance bat.acting, attack, bslot(), t()
+  FOR j as integer = 1 TO numhits
+   ' Create one attack sprite
+   targetpos = TYPE<XYZTriple>(320/2 - bslot(12).w/2, 200, 100 + bslot(12).h/2)
+   anim_setpos 12, targetpos.x, targetpos.y, atkimgdirection
+   anim_setz 12, targetpos.z
+   IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
+   IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
+   anim_appear 12
+   anim_checkpoint
+   IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
+   anim_wait 4
+   anim_disappear 24
+   anim_setframe bat.acting, frameSTAND
+   FOR i = 0 TO tcount - 1
+    anim_inflict t(i), tcount
+    anim_flinchstart t(i), bslot(), attack
+   NEXT i
+   anim_wait 1
+   ' Destroy attacks
+   anim_disappear 12
+   FOR i = 0 TO tcount - 1
+    anim_flinchdone t(i), bslot(), attack
+   NEXT i
+   anim_wait 3
+   anim_skip_ahead_if_targetless
+  NEXT j
+  anim_skip_to_here
+  anim_retreat bat.acting, attack, bslot()
+  FOR i = 0 TO tcount - 1
+   anim_setframe t(i), frameSTAND
+  NEXT i
+  anim_end
+ END IF
  
  '--setup animation pattern
  FOR i = 12 TO 23 '--for each attack sprite

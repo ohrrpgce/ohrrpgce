@@ -654,6 +654,7 @@ Enum AttackAnimation
 	atkAnimMeteor = 8
 	atkAnimDriveby = 9
 	atkAnimNull  = 10
+	atkAnimScreenCenter = 11
 End Enum
 
 Enum AttackerAnimation

@@ -502,7 +502,7 @@ addcaption caption(), capindex, "Teleport"
 addcaption caption(), capindex, "Standing Strike"
 
 CONST AtkLimAnimAttack = 15
-max(AtkLimAnimAttack) = 10
+max(AtkLimAnimAttack) = 11
 menucapoff(AtkAnimAttack) = capindex
 addcaption caption(), capindex, "Normal"
 addcaption caption(), capindex, "Projectile"
@@ -515,6 +515,7 @@ addcaption caption(), capindex, "Sequential Projectile"
 addcaption caption(), capindex, "Meteor"
 addcaption caption(), capindex, "Driveby"
 addcaption caption(), capindex, "Null"
+addcaption caption(), capindex, "Screen Center"
 
 CONST AtkLimDelay = 16
 max(AtkLimDelay) = 1000
