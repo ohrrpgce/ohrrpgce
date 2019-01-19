@@ -1175,6 +1175,8 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
     .cur.mute = small(.cur.mute + 1, .max.mute)
     .cur.stun = small(.cur.stun + 1, .max.stun)
     IF .cur.stun < .max.stun THEN
+     'FIXME: this doesn't belong here, because this happens only once per second!
+     'Stun should be a continuous block
      bslot(i).ready = NO
      IF bat.hero_turn = i THEN bat.hero_turn = -1
      IF bat.enemy_turn = i THEN bat.enemy_turn = -1
@@ -5016,13 +5018,7 @@ SUB dump_bslot(bat as BattleState, bslot() as BattleSprite, formdata as Formatio
    END IF
    info &= !"\n Stats:  "
    FOR stat as integer = 0 TO UBOUND(.stat.cur.sta)
-    DIM sname as string
-    IF stat <= UBOUND(statnames) THEN sname = statnames(stat)
-    IF stat = 12 THEN sname = "poison"
-    IF stat = 13 THEN sname = "regen"
-    IF stat = 14 THEN sname = "stun"
-    IF stat = 15 THEN sname = "mute"
-    info &= sname & ":" & .stat.cur.sta(stat) & "/" & .stat.max.sta(stat) & "  "
+    info &= battle_statnames(stat) & ":" & .stat.cur.sta(stat) & "/" & .stat.max.sta(stat) & "  "
    NEXT stat
   END WITH
  NEXT

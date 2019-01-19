@@ -3697,10 +3697,13 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
     col = uilook(uiMenuItem)
     IF i = targ THEN col = uilook(uiSelectedItem + tog)
     IF attack_id >= 0 THEN
-     IF atk.targ_stat = 0 or atk.targ_stat = 1 THEN
+     IF atk.targ_stat = statHP or atk.targ_stat = statMP THEN
       caption = gam.hero(i).stat.cur.sta(atk.targ_stat) & "/" & gam.hero(i).stat.max.sta(atk.targ_stat) & " " & statnames(atk.targ_stat)
-     ELSE
+     ELSEIF atk.targ_stat <= statLast THEN
       caption = gam.hero(i).stat.cur.sta(atk.targ_stat) & " " & statnames(atk.targ_stat)
+     ELSE
+      'Targets a register, which does nothing, but maybe the attack has some side effect
+      caption = gam.hero(i).name
      END IF
      edgeprint caption, 119 + x_offset, 16 + i * 20, col, page
     ELSEIF learn_id >= 0 THEN
