@@ -119,13 +119,13 @@ DEFINE_VECTOR_OF_TYPE(XYPair, XYPair)
 
 #MACRO XYPAIR_OPERATOR_AND_XY(OP)
   OPERATOR OP (lhs as XYPair, rhs as XYPair) as bool
-    RETURN lhs.x OP rhs.x AND lhs.y OP rhs.y
+    RETURN lhs.x OP rhs.x ANDALSO lhs.y OP rhs.y
   END OPERATOR
 #ENDMACRO
 
 #MACRO XYPAIR_OPERATOR_AND_INT(OP)
   OPERATOR OP (lhs as XYPair, rhs as integer) as bool
-    RETURN lhs.x OP rhs AND lhs.y OP rhs
+    RETURN lhs.x OP rhs ANDALSO lhs.y OP rhs
   END OPERATOR
 #ENDMACRO
 
@@ -141,11 +141,11 @@ XYPAIR_OPERATOR_AND_XY(>=)
 XYPAIR_OPERATOR_AND_INT(>=)
 
 OPERATOR <> (lhs as XYPair, rhs as XYPair) as bool
-  RETURN lhs.x <> rhs.x OR lhs.y <> rhs.y
+  RETURN lhs.x <> rhs.x ORELSE lhs.y <> rhs.y
 END OPERATOR
 
 OPERATOR <> (lhs as XYPair, rhs as integer) as bool
-  RETURN lhs.x <> rhs OR lhs.y <> rhs
+  RETURN lhs.x <> rhs ORELSE lhs.y <> rhs
 END OPERATOR
 
 OPERATOR XYPair.CAST () as string

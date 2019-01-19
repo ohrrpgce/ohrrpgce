@@ -179,11 +179,11 @@ FUNCTION individual_item_editor(item_id as integer) as integer
    IF state.pt = 0 THEN EXIT DO
    IF itembuf(49) = 1 THEN
     IF state.pt = 17 THEN
-     xy_position_on_sprite wep_img, itembuf(80), itembuf(81), 0, 24, 24, "weapon handle position", "xy_weapon_handle"
+     xy_position_on_sprite wep_img, itembuf(80), itembuf(81), 0, "Weapon handle position", "xy_weapon_handle"
      state.need_update = YES
     END IF
     IF state.pt = 18 THEN
-     xy_position_on_sprite wep_img, itembuf(78), itembuf(79), 1, 24, 24, "weapon handle position", "xy_weapon_handle"
+     xy_position_on_sprite wep_img, itembuf(78), itembuf(79), 1, "Weapon handle position", "xy_weapon_handle"
      state.need_update = YES
     END IF
    END IF

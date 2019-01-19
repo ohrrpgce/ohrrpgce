@@ -1554,10 +1554,10 @@ DO
     SerAttackElementCond cond, recbuf(), menuoff(workmenu(state.pt))
     state.need_update = YES
    CASE AtkWepHand0
-    xy_position_on_slice weppreview, recbuf(AtkDatWepHand0X), recbuf(AtkDatWepHand0Y), "weapon handle position", "xy_weapon_handle"
+    xy_position_on_slice weppreview, recbuf(AtkDatWepHand0X), recbuf(AtkDatWepHand0Y), "Weapon handle position", "xy_weapon_handle"
    CASE AtkWepHand1
     ChangeSpriteSlice weppreview, , , , 1
-    xy_position_on_slice weppreview, recbuf(AtkDatWepHand1X), recbuf(AtkDatWepHand1Y), "weapon handle position", "xy_weapon_handle"
+    xy_position_on_slice weppreview, recbuf(AtkDatWepHand1X), recbuf(AtkDatWepHand1Y), "Weapon handle position", "xy_weapon_handle"
     ChangeSpriteSlice weppreview, , , , 0
    CASE AtkBaseAtk
     recbuf(AtkDatBaseAtk) = browse_base_attack_stat(recbuf(AtkDatBaseAtk))

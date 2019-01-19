@@ -1,1 +1,3 @@
-This is the Cursor Offset positioner. Move the cursor with the arrow keys, and press ENTER or SPACE when done.  This is where the cursor will appear in game when a player is targetting this enemy.
+This is the Cursor Offset positioner. This is where the cursor will appear in game when a player is targetting this enemy.
+
+Move the flashing cursor with the arrow keys, by right clicking, or by dragging with the left mouse button, and press ENTER or SPACE or LEFT CLICK to confirm a position.

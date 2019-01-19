@@ -62,7 +62,7 @@ DECLARE FUNCTION seconds_estimate(ticks as integer) as string
 
 DECLARE SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
 DECLARE SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
-DECLARE SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as integer, byval frame as integer, byval wide as integer, byval high as integer, caption as string, helpkey as string)
+DECLARE SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as integer, byval frame as integer, caption as string, helpkey as string)
 DECLARE FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byval y as integer=0, byval page as integer=-1) as integer
 DECLARE SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as string, byref max1 as integer, byref min1 as integer, byref menutype1 as integer, byref caption2 as string, byref max2 as integer, byref min2 as integer, byref menutype2 as integer, rate as integer, stat as integer)
 DECLARE FUNCTION attack_chain_browser (byval start_attack as integer) as integer

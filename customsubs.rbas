@@ -1692,6 +1692,13 @@ SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
  END WITH
 END SUB
 
+SUB draw_crosshairs(pos as XYPair, zoom as integer = 1, col as integer, page as integer)
+  rectangle pos.x - zoom, pos.y, zoom, zoom, col, page
+  rectangle pos.x + zoom, pos.y, zoom, zoom, col, page
+  rectangle pos.x, pos.y - zoom, zoom, zoom, col, page
+  rectangle pos.x, pos.y + zoom, zoom, zoom, col, page
+END SUB
+
 SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
  DIM col as integer
  DIM tog as integer
@@ -1710,18 +1717,23 @@ SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as intege
   IF keyval(ccRight) > 0 THEN x += 1
   IF keyval(ccUp) > 0    THEN y -= 1
   IF keyval(ccDown) > 0  THEN y += 1
+  DIM dragging as bool = readmouse.drag_dist > 3
+  IF readmouse.buttons AND mouseRight ORELSE dragging THEN
+   DIM temp as XYPair = readmouse.pos - sl->ScreenPos
+   x = temp.x
+   y = temp.y
+  END IF
+  IF enter_or_space() ORELSE (readmouse.release AND mouseLeft ANDALSO dragging = NO) THEN EXIT DO
 
   clearpage dpage
   DrawSlice sl, dpage
   col = uilook(uiBackground)
   IF tog = 0 THEN col = uilook(uiSelectedItem)
-  rectangle sl->ScreenX + x - 2, sl->ScreenY + y, 2, 2, col, dpage
-  rectangle sl->ScreenX + x + 2, sl->ScreenY + y, 2, 2, col, dpage
-  rectangle sl->ScreenX + x, sl->ScreenY + y - 2, 2, 2, col, dpage
-  rectangle sl->ScreenX + x, sl->ScreenY + y + 2, 2, 2, col, dpage
+  draw_crosshairs sl->ScreenPos + XY(x, y), 1, col, dpage
 
   wrapprint caption, pCentered, 0, uilook(uiText), dpage
-  edgeprint "Position point and press Enter or SPACE", 0, pBottom, uilook(uiText), dpage
+  edgeprint "Position point and press Enter, Space, or Click", 0, pBottom, uilook(uiText), dpage
+  edgeprint XY(x, y), 0, pBottom - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -1729,35 +1741,48 @@ SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as intege
  LOOP
 END SUB
 
-SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as integer, byval frame as integer, byval wide as integer, byval high as integer, caption as string, helpkey as string)
+SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as integer, byval frame as integer, caption as string, helpkey as string)
  DIM col as integer
  DIM tog as integer
+ DIM fr as Frame ptr = spr.sprite + frame
+
  setkeys
  DO
   setwait 55
   setkeys
   tog = tog XOR 1
 
+  'Draw the sprite at 2x zoom unless that won't fit on-screen
+  DIM zoom as integer = 1
+  IF fr->size * 2 < get_resolution() - XY(5, 30) THEN zoom = 2
+  DIM topleft as XYPair
+  topleft = (get_resolution() - fr->size * zoom) \ 2
+
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpkey
-  IF enter_or_space() THEN EXIT DO
   IF keyval(ccLeft) > 0  THEN x -= 1
   IF keyval(ccRight) > 0 THEN x += 1
   IF keyval(ccUp) > 0    THEN y -= 1
   IF keyval(ccDown) > 0  THEN y += 1
+  DIM dragging as bool = readmouse.drag_dist > 3
+  IF readmouse.buttons AND mouseRight ORELSE dragging THEN
+   DIM temp as XYPair
+   temp = (readmouse.pos - topleft) \ zoom
+   x = temp.x
+   y = temp.y
+  END IF
+  IF enter_or_space() ORELSE (readmouse.release AND mouseLeft ANDALSO dragging = NO) THEN EXIT DO
 
   clearpage dpage
-  drawbox rCenter - wide, rCenter - high, wide * 2, high * 2, uilook(uiSelectedDisabled), 1, dpage
-  frame_draw spr.sprite + frame, spr.pal, rCenter - wide, rCenter - high, 2,, dpage
+  drawbox topleft.x - 1, topleft.y - 1, fr->w * zoom + 2, fr->h * zoom + 2, uilook(uiSelectedDisabled), 1, dpage
+  frame_draw fr, spr.pal, topleft.x, topleft.y, zoom, , dpage
   col = uilook(uiBackground)
   IF tog = 0 THEN col = uilook(uiSelectedItem)
-  rectangle rCenter - wide + x * 2 - 2, rCenter - high + y * 2, 2, 2, col, dpage
-  rectangle rCenter - wide + x * 2 + 2, rCenter - high + y * 2, 2, 2, col, dpage
-  rectangle rCenter - wide + x * 2, rCenter - high + y * 2 - 2, 2, 2, col, dpage
-  rectangle rCenter - wide + x * 2, rCenter - high + y * 2 + 2, 2, 2, col, dpage
+  draw_crosshairs topleft + XY(x, y) * zoom, zoom, col, dpage
 
   wrapprint caption, pCentered, 0, uilook(uiText), dpage
-  edgeprint "Position point and press Enter or SPACE", 0, pBottom, uilook(uiText), dpage
+  edgeprint "Position point and press Enter, Space, or Click", 0, pBottom, uilook(uiText), dpage
+  edgeprint XY(x, y), 0, pBottom - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
