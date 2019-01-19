@@ -1949,7 +1949,7 @@ end function
 'If wait_for_resize = YES, also returns scResize if the window was resized.
 function waitforanykey (wait_for_resize as bool = NO) as KBScancode
 	dim key as KBScancode
-	dim sleepjoy as integer = 3
+	dim sleepjoymouse as integer = 5
 	dim remem_speed_control as bool = use_speed_control
 	dim original_resolution as XYPair = windowsize
 	use_speed_control = YES
@@ -1959,15 +1959,18 @@ function waitforanykey (wait_for_resize as bool = NO) as KBScancode
 		setwait 60, 200
 		io_pollkeyevents()
 		setkeys
-		key = anykeypressed(sleepjoy = 0, YES, 3)  'New keypresses only
+		key = anykeypressed(sleepjoymouse = 0, sleepjoymouse = 0, 3)  'New keypresses only
 		if key then
 			snapshot_check  'In case F12 pressed, otherwise it wouldn't work
 			setkeys  'Clear the keypress
 			use_speed_control = remem_speed_control
 			return key
 		end if
-		if sleepjoy > 0 then
-			sleepjoy -= 1
+		if sleepjoymouse > 0 then
+			'Delay before checking joystick so user has time to return
+			'stick to center, and delay mouse because mouse button might be pressed
+			'when called, and releasing it counts as input.
+			sleepjoymouse -= 1
 		end if
 		if wait_for_resize andalso windowsize <> original_resolution then
 			use_speed_control = remem_speed_control
