@@ -5177,20 +5177,22 @@ SUB update_hero_pathfinding(byval rank as integer)
      cancel_hero_pathfinding(rank)
      EXIT SUB
     END IF
-   END WITH
-   IF rank = 0 ANDALSO gam.hero_pathing(rank).by_user THEN
-    'When the leader is being pathed by the user using built-in mouse/touch controls
-    'the leader needs to be able to activate "use" NPCs in a way that slightly
-    'resembles "touch" NPCs.
-    'Only the leader activates NPCs in this way, and only when doing built-in user pathing.
-    IF xypair_manhattan_distance(t1, t2) = 1 THEN
-     'One tile away from dest NPC!
-     (herodir(rank)) = xypair_direction_to(t1, t2, herodir(rank))
-     usenpc 0, find_useable_npc()
+    IF rank = 0 ANDALSO gam.hero_pathing(rank).by_user THEN
+     'When the leader is being pathed by the user using built-in mouse/touch controls
+     'the leader needs to be able to activate "use" NPCs in a way that slightly
+     'resembles "touch" NPCs.
+     'Only the leader activates NPCs in this way, and only when doing built-in user pathing.
+     IF xypair_manhattan_distance(t1, t2) = 1 THEN
+      'One tile away from dest NPC!
+      (herodir(rank)) = xypair_direction_to(t1, t2, herodir(rank))
+      usenpc 0, find_useable_npc()
+      IF .id < 0 THEN  'If one-time-usable, the NPC might now be disabled
+       cancel_hero_pathfinding(rank)
+       EXIT SUB
+      END IF
+     END IF
     END IF
-   END IF
-   IF gam.hero_pathing(rank).stop_when_npc_reached THEN
-    WITH npc(gam.hero_pathing(rank).dest_npc)
+    IF gam.hero_pathing(rank).stop_when_npc_reached THEN
      IF npcs(.id - 1).activation <> 2 THEN
       '---NPC is NOT step-on activated
       IF xypair_wrapped_distance(t1, t2) <= 1 THEN
@@ -5199,8 +5201,8 @@ SUB update_hero_pathfinding(byval rank as integer)
        EXIT SUB
       END IF
      END IF
-    END WITH
-   END IF
+    END IF
+   END WITH
  END SELECT
 
  dim pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
