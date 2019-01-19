@@ -832,17 +832,7 @@ DO
    CASE EnMenuDissolveIn, EnMenuDissolveInTime
     setup_preview_appear = YES
    CASE EnMenuCursorOffset
-    '--temporarily move the preview image, centering it on the screen
-    OrphanSlice preview
-    preview->AnchorVert = alignCenter
-    preview->AlignVert = alignCenter
-    recbuf(EnDatCursorX) += preview->Size.x / 2 '--offset relative to the top middle
-    xy_position_on_slice preview, recbuf(EnDatCursorX), recbuf(EnDatCursorY), "Targetting Cursor Offset", "xy_target_cursor"
-    recbuf(EnDatCursorX) -= preview->Size.x / 2
-    '--move the preview image back how it was before
-    SetSliceParent(preview, preview_box)
-    preview->AnchorVert = alignBottom
-    preview->AlignVert = alignBottom
+    xy_position_on_sprite_slice preview, recbuf(EnDatCursorX), recbuf(EnDatCursorY), "Targetting Cursor Offset", "xy_target_cursor"
   END SELECT
  END IF
 

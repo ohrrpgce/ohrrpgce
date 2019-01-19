@@ -1692,13 +1692,16 @@ SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
  END WITH
 END SUB
 
-SUB draw_crosshairs(pos as XYPair, zoom as integer = 1, col as integer, page as integer)
-  rectangle pos.x - zoom, pos.y, zoom, zoom, col, page
-  rectangle pos.x + zoom, pos.y, zoom, zoom, col, page
-  rectangle pos.x, pos.y - zoom, zoom, zoom, col, page
-  rectangle pos.x, pos.y + zoom, zoom, zoom, col, page
+SUB draw_crosshairs(pos as XYPair, length as integer = 1, zoom as integer = 1, col as integer, page as integer)
+  rectangle pos.x - length * zoom, pos.y, length * zoom, zoom, col, page
+  rectangle pos.x + zoom, pos.y, length * zoom, zoom, col, page
+  rectangle pos.x, pos.y - length * zoom, zoom, length * zoom, col, page
+  rectangle pos.x, pos.y + zoom, zoom, length * zoom, col, page
 END SUB
 
+'Editor for an x/y position.
+'Note that this does not center or scale the slice, unlike xy_position_on_sprite
+'UNUSED
 SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
  DIM col as integer
  DIM tog as integer
@@ -1729,7 +1732,7 @@ SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as intege
   DrawSlice sl, dpage
   col = uilook(uiBackground)
   IF tog = 0 THEN col = uilook(uiSelectedItem)
-  draw_crosshairs sl->ScreenPos + XY(x, y), 1, col, dpage
+  draw_crosshairs sl->ScreenPos + XY(x, y), 1, 1, col, dpage
 
   wrapprint caption, pCentered, 0, uilook(uiText), dpage
   edgeprint "Position point and press Enter, Space, or Click", 0, pBottom, uilook(uiText), dpage
@@ -1739,6 +1742,17 @@ SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as intege
   setvispage vpage
   dowait
  LOOP
+END SUB
+
+'xy_position_on_sprite is a bit nicer than xy_position_on_slice, so this wrapper lets you use
+'the former with a sprite slice
+SUB xy_position_on_sprite_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
+ BUG_IF(sl->SliceType <> slSprite, "expected sprite slice")
+ WITH *sl->SpriteData
+  IF .img.sprite THEN
+   xy_position_on_sprite .img, x, y, .frame, caption, helpkey
+  END IF
+ END WITH
 END SUB
 
 SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as integer, byval frame as integer, caption as string, helpkey as string)
@@ -1778,7 +1792,7 @@ SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as in
   frame_draw fr, spr.pal, topleft.x, topleft.y, zoom, , dpage
   col = uilook(uiBackground)
   IF tog = 0 THEN col = uilook(uiSelectedItem)
-  draw_crosshairs topleft + XY(x, y) * zoom, zoom, col, dpage
+  draw_crosshairs topleft + XY(x, y) * zoom, 1, zoom, col, dpage
 
   wrapprint caption, pCentered, 0, uilook(uiText), dpage
   edgeprint "Position point and press Enter, Space, or Click", 0, pBottom, uilook(uiText), dpage

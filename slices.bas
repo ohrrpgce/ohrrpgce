@@ -1656,6 +1656,7 @@ Sub DisposeSpriteSlice(byval sl as Slice ptr)
 end sub
 
 ' Load a sprite's Frame and Palette16, so that its size is known
+' Afterwards, the Frame ptr won't be NULL, unless sl->SliceData doesn't exist.
 Sub LoadSpriteSliceImage(byval sl as Slice ptr, warn_if_missing as bool = NO)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
