@@ -305,6 +305,7 @@ TYPE ShopBuyState
   price_sl       as Slice Ptr
   alert_box      as Slice Ptr
   alert_sl       as Slice Ptr
+  alert_ticks    as integer
   hire_box       as Slice Ptr
   hire_sl        as Slice Ptr
   portrait_box   as Slice Ptr

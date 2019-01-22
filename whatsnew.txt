@@ -141,6 +141,7 @@ September 29 2018 [Fufluns]
     * In-battle instant-run debug key moved from Ctrl-F4 to Ctrl-F5
     * "suspend box advance" now suspends choicebox selection controls too
     * Sorting inventory "by whether usable" considers battle uses too [Ralph]
+    * Shops auto-quit when there's nothing left to buy, as they used to [Ralph]
 
   * Bugfixes
     * Fix a major memory leak while recording .gifs [Ralph]

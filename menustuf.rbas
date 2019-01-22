@@ -90,12 +90,13 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
  '--walking frame numbers used for animating heroes
  DIM walks(15) as integer
  FOR i as integer = 0 TO 10 STEP 2
-  walks(i) = 1
+  walks(i) = frameSTEP
+  walks(i+1) = frameSTAND
  NEXT i
- walks(11) = 2
- walks(12) = 2
- walks(13) = 3
- walks(14) = 3
+ walks(11) = frameATTACKA
+ walks(12) = frameATTACKA
+ walks(13) = frameATTACKB
+ walks(14) = frameATTACKB
 
  buystuff_make_slices buyst
  DIM panel as Slice Ptr = LookupSlice(SL_SHOP_BUY_INFO_PANEL, buyst.root_sl)
@@ -106,12 +107,18 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
  
  DIM st as MenuState
  st.active = YES
- st.need_update = YES
  st.select_by_mouse_release = YES
 
- show_virtual_gamepad()
- 
- menusound gen(genAcceptSFX)
+ buystuff_refresh_menu buyst, menu, st
+
+ IF menu.numitems = 0 THEN
+  'The menu will immediately quit
+  menusound gen(genCancelSFX)
+ ELSE
+  show_virtual_gamepad()
+  menusound gen(genAcceptSFX)
+ END IF
+
  setkeys
  DO
   setwait speedcontrol
@@ -120,12 +127,7 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
   IF buyst.tog THEN loopvar buyst.walk, 0, 15
   DIM do_quit as bool = NO
   DIM do_pick as bool = NO
-  
-  IF st.need_update THEN
-   buystuff_refresh_menu buyst, menu, st
-   st.need_update = NO
-  END IF
-  
+
   playtimer
 
   IF get_gen_bool("/mouse/mouse_menus") THEN
@@ -153,16 +155,12 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
   END IF
   IF carray(ccMenu) > 1 THEN do_quit = YES
   IF carray(ccUse) > 1 THEN do_pick = YES
-  
-  WITH *(buyst.alert_box)
-   IF .extra(0) > 0 THEN
-    .extra(0) -= 1
-    IF .extra(0) <= 0 THEN
-     .Visible = NO
-    END IF
-   END IF
-  END WITH
-  
+
+  buyst.alert_ticks = large(0, buyst.alert_ticks - 1)
+  IF buyst.alert_ticks <= 0 THEN
+   buyst.alert_box->Visible = NO
+  END IF
+
   IF menu.numitems > 0 THEN
    buyst.selected = menu.items[st.pt]->dataptr
    buyst.curslot = menu.items[st.pt]->sub_t
@@ -173,7 +171,10 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
    st.need_update = YES
   END IF
   
-  IF do_quit THEN EXIT DO
+  IF do_quit THEN
+   menusound gen(genCancelSFX)
+   EXIT DO
+  END IF
 
   IF do_pick ANDALSO menu.numitems > 0 THEN
    IF buystuff_can_buy(buyst.selected, buyst, YES) THEN
@@ -181,7 +182,15 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
     st.need_update = YES
    END IF
   END IF
-  
+
+  IF st.need_update THEN
+   buystuff_refresh_menu buyst, menu, st
+   st.need_update = NO
+  END IF
+
+  'Auto-quit when no items left. Don't play CancelSFX, as we might have just bought something
+  IF menu.numitems = 0 ANDALSO buyst.alert_ticks = 0 THEN EXIT DO
+
   'Animate hero walking to indicate equipability
   DIM hero_sl as Slice Ptr
   FOR i as integer = 0 TO 3
@@ -208,8 +217,8 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
  freepage holdscreen
 
  DeleteSlice @(buyst.root_sl)
- 
- menusound gen(genCancelSFX)
+ FreeDocument stuff_doc
+
  evalitemtags
  party_change_updates
 
@@ -875,9 +884,9 @@ SUB buystuff_set_alert(buyst as ShopBuyState, alert as string, byval ticks as in
  ChangeTextSlice buyst.alert_sl, alert
  WITH *(buyst.alert_box)
   .Visible = YES
-  .extra(0) = ticks
   .Width = buyst.alert_sl->Width + 16
  END WITH
+ buyst.alert_ticks = ticks
 END SUB
 
 FUNCTION chkOOBtarg (byval target as integer, byval atk as integer) as bool
