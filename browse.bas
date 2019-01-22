@@ -343,7 +343,7 @@ DO
  edgeprint br.alert, 8, 34 + br.mstate.size * 9, uilook(uiText), dpage
  IF br.engine_version_shown THEN
   rectangle 0, pBottom, 320, 10, uilook(uiDisabledItem), dpage
-  edgeprint version & " " & gfxbackend & "/" & musicbackend, 8, pBottom + 1, uilook(uiMenuItem), dpage
+  edgeprint short_version & " " & gfxbackend & "/" & musicbackend, 8, pBottom + 1, uilook(uiMenuItem), dpage
   textcolor uilook(uiText), 0
  END IF
 

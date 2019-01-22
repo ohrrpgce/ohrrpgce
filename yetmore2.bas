@@ -1159,15 +1159,14 @@ END SUB
 
 SUB wrong_spawned_version_fatal_error
  fatalerror !"This version of Game differs from the version of Custom which spawned it and cannot be used for the ""Test Game"" option. Download and place matching versions in the same directory before trying again.\n" _
-             "Game is version " + version + " r" & version_revision & !"\n" _
-             "Custom is version " + custom_version
+             "Game player is version " + short_version & !"\n" _
+             "Editor is version " + custom_version
 END SUB
 
 SUB check_game_custom_versions_match ()
- DIM game_version as string = version + " r" & version_revision
- IF game_version <> custom_version THEN
+ IF short_version <> custom_version THEN
   pop_warning !"Warning: This version of Game is not exactly identical to the version of Custom that spawned it. There's no chance of corrupting your game, but something might go haywire.\n" _
-               "Game is version " + game_version + !"\n" _
+               "Game is version " + short_version + !"\n" _
                "Custom is version " + custom_version
  END IF
 END SUB
@@ -1190,7 +1189,7 @@ SUB handshake_with_master ()
      fatalerror "Could not communicate with Custom"
     END IF
     IF UBOUND(pieces) >= 3 THEN
-     custom_version = pieces(3) & " r" & pieces(2)
+     custom_version = pieces(3)
     ELSE
      custom_version = "<unknown>"
     END IF

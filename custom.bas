@@ -471,11 +471,10 @@ SUB main_editor_menu()
   standardmenu menu_display(), state, 0, 0, dpage, menuopts
 
   textcolor uilook(uiSelectedDisabled), 0
-  DIM footer_y as integer = vpages(dpage)->h - 24
-  printstr version_code, 0, footer_y, dpage
-  printstr version_build, 0, footer_y + 8, dpage
+  printstr version_code, 0, pBottom - 16, dpage
+  printstr version_build & " In use: " & gfxbackend & "/" & musicbackend, 0, pBottom - 8, dpage
   textcolor uilook(uiText), 0
-  printstr "Press F1 for help on any menu!", 0, footer_y + 16, dpage
+  printstr "Press F1 for help on any menu!", 0, pBottom, dpage
  
   SWAP vpage, dpage
   setvispage vpage
@@ -616,7 +615,7 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
   clearpage dpage
   DrawSlice root, dpage
   standardmenu chooserpg_menu(), state, menusl->ScreenX, menusl->ScreenY, dpage, opts
-  wrapprint version & " " & gfxbackend & "/" & musicbackend, 8, pBottom - 14, uilook(uiMenuItem), dpage
+  wrapprint short_version & " " & gfxbackend & "/" & musicbackend, 8, pBottom - 14, uilook(uiMenuItem), dpage
   edgeprint "Press F1 for help on any menu!", 8, pBottom - 4, uilook(uiText), dpage
 
   SWAP vpage, dpage
@@ -913,7 +912,7 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
  DIM fh as integer
  OPENFILE(workingdir + SLASH + "archinym.lmp", FOR_OUTPUT, fh)
  PRINT #fh, "ohrrpgce"
- PRINT #fh, version
+ PRINT #fh, short_version
  CLOSE #fh
 
  DIM root_node as NodePtr
@@ -965,7 +964,7 @@ END FUNCTION
 ' loading or saving the game.
 SUB write_session_info ()
  DIM text(11) as string
- text(0) = version
+ text(0) = short_version
  text(1) = get_process_path(get_process_id())  'May not match COMMAND(0)
  text(2) = "# Custom pid:"
  text(3) = STR(get_process_id())

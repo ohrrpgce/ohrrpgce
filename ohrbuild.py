@@ -258,7 +258,7 @@ def read_codename_and_branchrev(rootdir):
     branch_rev = int(lines[1])
     return codename, branch_rev
 
-def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir):
+def verprint (used_gfx, used_music, fbc, arch, gccversion, asan, portable, pdb, builddir, rootdir):
     """
     Generate ver.txt, iver.txt (Innosetup), distver.bat.
 
@@ -276,8 +276,6 @@ def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir
     codename, branch_rev = read_codename_and_branchrev(rootdir)
     if branch_rev <= 0:
         branch_rev = rev
-
-    fbver = get_fb_info(fbc)[2]
 
     results = []
 
@@ -300,25 +298,30 @@ def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir
     results.append ("#DEFINE GFX_CHOICES_INIT  " +\
       " :  ".join (['redim gfx_choices(%d)' % (len(supported_gfx) - 1)] + tmp))
 
-    name = 'OHRRPGCE'
-    gfx_code = 'gfx_' + "+".join (supported_gfx)
-    music_code = 'music_' + "+".join (used_music)
-    asan = 'AddrSan' if asan else ''
-    portable = 'portable' if portable else ''
-    data = {'name' : name, 'codename': codename, 'date': date, 'arch': arch, 'asan': asan,
-            'rev' : rev, 'branch_rev' : branch_rev, 'fbver': fbver, 'music': music_code,
-            'gfx' : gfx_code, 'portable' : portable}
+    data = {
+        'codename': codename, 'date': date, 'arch': arch,
+        'rev': rev, 'branch_rev': branch_rev,
+        'name':   'OHRRPGCE',
+        'gfx':    'gfx_' + "+".join(supported_gfx),
+        'music':  'music_' + "+".join(used_music),
+        'asan':   'AddrSan ' if asan else '',
+        'portable': 'portable ' if portable else '',
+        'pdb':    'pdb ' if pdb else '',
+        'gccver': gccversion,
+        'fbver':  get_fb_info(fbc)[2],
+        'uname':  platform.uname()[1],
+    }
 
     results.extend ([
-        'CONST version as string = "%(name)s %(codename)s %(date)s"' % data,
+        'CONST short_version as string = "%(name)s %(codename)s %(date)s"' % data,
         'CONST version_code as string = "%(name)s Editor version %(codename)s"' % data,
+        'CONST version_build as string = "%(date)s.%(rev)s %(gfx)s %(music)s"' % data,
         'CONST version_revision as integer = %(rev)d' % data,
         'CONST version_date as integer = %(date)s' % data,
         'CONST version_branch as string = "%(codename)s"' % data,
         'CONST version_branch_revision as integer = %(branch_rev)s' % data,
-        'CONST version_build as string = "%(date)s %(gfx)s %(music)s"' % data,
-        ('CONST long_version as string = "%(name)s %(codename)s %(date)s.%(rev)s'
-         ' %(gfx)s/%(music)s FreeBASIC %(fbver)s %(arch)s %(asan)s %(portable)s"') % data])
+        ('CONST long_version as string = "%(name)s %(codename)s %(date)s.%(rev)s %(gfx)s/%(music)s '
+         'FreeBASIC %(fbver)s GCC %(gccver)s %(arch)s %(asan)s%(portable)s%(pdb)s Built on %(uname)s"') % data])
 
     # If there is a build/ver.txt placed there by previous versions of this function
     # then it must be deleted because scons thinks that one is preferred

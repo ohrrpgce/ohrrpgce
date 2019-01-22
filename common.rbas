@@ -4240,7 +4240,7 @@ IF NOT isfile(workingdir + SLASH + "archinym.lmp") THEN
  '--create archinym information lump
  OPENFILE(workingdir + SLASH + "archinym.lmp", FOR_OUTPUT, fh)
  PRINT #fh, RIGHT(game, LEN(game) - LEN(workingdir + SLASH))
- PRINT #fh, version + "(previous)"
+ PRINT #fh, short_version + "(previous)"
  CLOSE #fh
 END IF
 

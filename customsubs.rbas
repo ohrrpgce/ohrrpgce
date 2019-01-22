@@ -2630,7 +2630,7 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
  'Write version info
  DIM tmp as string
  'msgtype magickey,proto_ver,program_ver,version_string
- tmp = "V OHRRPGCE," & CURRENT_TESTING_IPC_VERSION & "," & version_revision & "," & version
+ tmp = "V OHRRPGCE," & CURRENT_TESTING_IPC_VERSION & "," & version_revision & "," & short_version
  channel_write_line(slave_channel, tmp)
  tmp = "G " & sourcerpg
  channel_write_line(slave_channel, tmp)

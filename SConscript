@@ -312,8 +312,8 @@ if CXX:
 #gcc = env['ENV'].get('GCC', env['ENV'].get('CC', 'gcc'))
 #gcc = CC or WhereIs(target + "-gcc") or WhereIs("gcc")
 
-gccversion = get_command_output(GCC, "-dumpversion")
-gccversion = int(gccversion.replace('.', ''))  # Convert e.g. 4.9.2 to 492
+fullgccversion = get_command_output(GCC, "-dumpversion")
+gccversion = int(fullgccversion.replace('.', ''))  # Convert e.g. 4.9.2 to 492
 
 EUC = WhereIs("euc")  # Euphoria compiler
 
@@ -1010,7 +1010,7 @@ archinfo = arch
 if arch == '(see target)':
     archinfo = target
 def version_info(source, target, env):
-    ohrbuild.verprint (gfx, music, fbc, archinfo, asan, portable, builddir, rootdir)
+    ohrbuild.verprint (gfx, music, fbc, archinfo, fullgccversion, asan, portable, pdb, builddir, rootdir)
 VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'],
                         source = ['codename.txt'], 
                         action = env.Action(version_info, "Generating ver.txt"))
