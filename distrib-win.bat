@@ -109,6 +109,7 @@ support\cp support\wget.exe tmpdist\support
 support\cp support\wget.hlp tmpdist\support
 support\cp support\zip.exe tmpdist\support
 support\cp support\unzip.exe tmpdist\support
+support\cp support\CrashRpt*.dll support\CrashSender*.exe support\crashrpt_lang.ini tmpdist\support
 support\cp support\rcedit.exe tmpdist\support
 support\cp support\LICENSE-rcedit.txt tmpdist\support
 support\cp relump.exe tmpdist\support

@@ -34,6 +34,7 @@ function ohrrpgce_common_files {
  cp support/wget.exe tmpdist/support
  cp support/wget.hlp tmpdist/support
  cp support/zip.exe tmpdist/support
+ cp support/CrashRpt*.dll support/CrashSender*.exe support/crashrpt_lang.ini tmpdist/support
  cp support/unzip.exe tmpdist/support
  cp support/rcedit.exe tmpdist/support
  cp support/LICENSE-rcedit.txt tmpdist/support

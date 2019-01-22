@@ -57,6 +57,9 @@ Source: "support\wget.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\wget.hlp"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\zip.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\unzip.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
+Source: "support\CrashRpt*.dll"; DestDir: "{app}\support\"; Flags: ignoreversion
+Source: "support\CrashSender*.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
+Source: "support\crashrpt_lang.ini"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\rcedit.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "relump.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "unlump.exe"; DestDir: "{app}\support\"; Flags: ignoreversion

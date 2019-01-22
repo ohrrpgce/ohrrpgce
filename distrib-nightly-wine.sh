@@ -50,6 +50,7 @@ function zip_and_upload {
   zip -q distrib/"${ZIPFILE}" support/madplay.exe
   zip -q distrib/"${ZIPFILE}" support/oggenc.exe
   zip -q distrib/"${ZIPFILE}" support/zip.exe
+  zip -q distrib/"${ZIPFILE}" support/CrashRpt*.dll support/CrashSender*.exe support/crashrpt_lang.ini
   cp relump.exe support/
   zip -q distrib/"${ZIPFILE}" support/relump.exe
   rm support/relump.exe

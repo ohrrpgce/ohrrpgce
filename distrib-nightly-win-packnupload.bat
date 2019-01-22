@@ -21,6 +21,7 @@ support\zip -q -r distrib\%ZIPFILE% ohrhelp
 support\zip -q distrib\%ZIPFILE% support\madplay.exe
 support\zip -q distrib\%ZIPFILE% support\oggenc.exe
 support\zip -q distrib\%ZIPFILE% support\zip.exe
+support\zip -q distrib\%ZIPFILE% support\CrashRpt*.dll support\CrashSender*.exe support\crashrpt_lang.ini
 copy /y relump.exe support\
 support\zip -q distrib\%ZIPFILE% support\relump.exe
 del support\relump.exe
