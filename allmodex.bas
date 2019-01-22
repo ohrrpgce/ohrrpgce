@@ -554,9 +554,11 @@ sub restoremode()
 	if modex_initialised = NO then exit sub
 	modex_initialised = NO
 
+	debuginfo "Closing gfx backend & allmodex..."
 	before_backend_quit()
 	gfx_close()
 	modex_quit()
+	debuginfo "...done"
 end sub
 
 ' Switch to a different gfx backend
@@ -1423,8 +1425,10 @@ sub setupmusic
 end sub
 
 sub closemusic ()
+	debuginfo "Closing music backend..."
 	music_close
 	sound_close
+	debuginfo "...done"
 end sub
 
 sub resetsfx ()

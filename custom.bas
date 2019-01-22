@@ -736,6 +736,7 @@ SUB export_translations_and_terminate (translationfile as string)
 END SUB
 
 SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
+ debuginfo "Cleaning up and terminating " & retval
  IF slave_channel <> NULL_CHANNEL THEN
   channel_write_line(slave_channel, "Q ")
   #IFDEF __FB_WIN32__
@@ -770,8 +771,9 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
  IF cleanup_workingdir_on_exit THEN
   empty_workingdir workingdir
  END IF
- end_debug
  restoremode
+ debuginfo "End."
+ end_debug
  SYSTEM retval
 END SUB
 

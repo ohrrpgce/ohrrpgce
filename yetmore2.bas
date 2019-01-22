@@ -238,22 +238,18 @@ END FUNCTION
 'Note that this is called both from reset_game_final_cleanup(), in which case lots of stuff
 'has already been deallocated, or from exit_gracefully(), in which case no cleanup has been done!
 SUB exitprogram(byval need_fade_out as bool = NO, byval errorout as integer = 0)
+debuginfo "Cleaning up and terminating " & errorout
 
 gam.ingame = NO
 
 'uncomment for slice debugging
 'DestroyGameSlices YES
 
-'DEBUG debug "Exiting Program"
-'DEBUG debug "fade screen"
 IF need_fade_out THEN fadeout uilook(uiFadeoutQuit)
-
-'DEBUG debug "Cleanup Routine"
 
 releasestack
 
 '--scripts
-'DEBUG debug "Release scripts"
 'Also prints script profiling info
 resetinterpreter
 destroystack(scrst)
@@ -266,11 +262,10 @@ killdir tmpdir, YES  'recursively deletes playing.tmp if it exists
 
 v_free modified_lumps
 
-'DEBUG debug "Restore Old Graphics Mode"
 restoremode
-'DEBUG debug "Terminate NOW (boom!)"
+debuginfo "End."
 IF errorout = 0 THEN end_debug
-END errorout
+SYSTEM errorout
 
 END SUB
 
