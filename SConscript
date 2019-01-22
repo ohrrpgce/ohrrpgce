@@ -829,6 +829,8 @@ if win32:
     common_libraries += [libfbgfx]
     commonenv['FBFLAGS'] += ['-s','gui']  # Change to -s console to see 'print' statements in the console!
     commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
+    #env['CXXLINKFLAGS'] += ['win32/CrashRpt1403.lib']  # If not linking the .dll w/ LoadLibrary
+    env['CFLAGS'] += ['-I', 'win32/include']
     if 'sdl' in gfx or 'fb' in gfx:
         common_modules += ['lib/SDL/SDL_windowsclipboard.c', 'gfx_common/ohrstring.cpp']
     if 'console' in gfx:

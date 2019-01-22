@@ -21,11 +21,27 @@ include_windows_bi()
 #include "common_base.bi"
 #include "util.bi"
 #include "const.bi"
-'#include "win32/exchndl.bi"  'Our win32 directory
+#include "ver.txt"
 
-#if 1
-	dim shared ExcHndlSetLogFileNameA as function(as zstring ptr) as boolean
+#define WITH_CRASHRPT
+'#define WITH_EXCHNDL
+#define DYNAMIC_EXCHNDL
+
+#if defined(WITH_EXCHNDL)
+	#if defined(DYNAMIC_EXCHNDL)
+		dim shared ExcHndlSetLogFileNameA as function(as zstring ptr) as boolean
+	#else
+		#include "win32/exchndl.bi"  'Our win32 directory
+	#endif
 #endif
+
+#if defined(WITH_CRASHRPT)
+	extern "C"
+		'This function is in os_windows2.c
+		declare function crashrpt_setup(libpath as zstring ptr, appname as zstring ptr, version as zstring ptr, buildstring as zstring ptr, logfile1 as zstring ptr, logfile2 as zstring ptr, add_screenshot as boolint) as boolint
+	end extern
+#endif
+
 
 dim shared crash_reportfile as string
 dim shared continue_after_exception as bool = NO
@@ -174,11 +190,14 @@ end function
 '==========================================================================================
 
 extern "windows"
+'A default last-resort exception handler, used only if we haven't loaded an
+'exception handling library.
 function exceptFilterMessageBox(pExceptionInfo as PEXCEPTION_POINTERS) as clong
 	if want_exception_messagebox then
 		'Avoid calling FB string routines
 		dim msgbuf as string * 301
 		if len(crash_reportfile) then
+			'This only happens if we loaded exchndl.dll
 			snprintf(strptr(msgbuf), 300, _
 				 !"The engine has crashed! Sorry :(\n\n" _
 				 !"A crash report has been written to\n%s\n\n" _
@@ -198,7 +217,7 @@ function exceptFilterMessageBox(pExceptionInfo as PEXCEPTION_POINTERS) as clong
 	end if
 
 	if continue_after_exception then
-		return &hffffffff  '== EXCEPTION_CONTINUE_EXECUTION, which is not declared
+		return &hffffffff  '== EXCEPTION_CONTINUE_EXECUTION, which is not declared in FB's headers
 	else
 		'Stop, don't show the default "program has stopped responding" message.
 		return 1  '== EXCEPTION_EXECUTE_HANDLER
@@ -206,14 +225,41 @@ function exceptFilterMessageBox(pExceptionInfo as PEXCEPTION_POINTERS) as clong
 end function
 end extern
 
-' Load the DrMingw embeddable exception handler, if available
 sub setup_exception_handler()
-	'Install our own exception handler to show a useful message on a crash.
+	'Install a default exception handler to show a useful message on a crash.
+	'If we're using crashrpt:
+	'CrashRpt will handle the crash - if we successfully found and loaded it -
+	'and this exception handler won't run.
+	'If we're using exchndl:
 	'exchndl will call any preexisting exception handler after its own runs.
 	'(Note: this won't work if libexchndl.a is statically linked)
         SetUnhandledExceptionFilter(@exceptFilterMessageBox)
 
-#if 1
+#if defined(WITH_CRASHRPT)
+	'Load CrashRpt, which connects to CrashSender.exe, and out-of-process exception
+	'handler (meaning, it spawns a separate process to report the crash, so it can work
+	'even if there's severe memory/state corruption).
+
+	'The utilities (programs other than Game and Custom) set app_name to NULL rather than override it
+	dim appname as zstring ptr = iif(app_name <> NULL, app_name, strptr(exename))
+	dim screenshot as bool = NO '(app_name <> NULL)
+	dim crashrpt_dll as string = EXEPATH & "\support\CrashRpt1403.dll"
+	if real_isfile(crashrpt_dll) then
+		early_debuginfo "Loading " & crashrpt_dll
+		if crashrpt_setup(strptr(crashrpt_dll), appname, short_version, long_version, app_log_filename, app_archive_filename, screenshot) then
+			'early_debuginfo "crashrpt.dll handler installed"
+			exit sub
+		end if
+		'On failure, crashrpt_setup logs an error itself
+	else
+		early_debuginfo "Couldn't find crashrpt.dll"
+	end if
+#endif
+
+#if defined(WITH_EXCHNDL)
+	' Load the DrMingw embeddable exception handler, if available
+
+#if defined(DYNAMIC_EXCHNDL)
 	' To dynamically link to exchndl.dll
 
 	dim dll as string
@@ -235,17 +281,21 @@ sub setup_exception_handler()
 		exit sub
 	end if
 #else
-	' If statically linked
+	' If statically linked to libexchndl.a/exchndl.dll
 	ExcHndlInit()
 #endif
 	crash_reportfile = trimextension(exename) + "-crash-report.txt"
 	early_debuginfo "exchndl will log to " & crash_reportfile
 	ExcHndlSetLogFileNameA(strptr(crash_reportfile))
+
+#endif
 end sub
 
 'Called from within fatalerror. Will popup an "Engine crashed" messagebox if show_message true.
 sub save_backtrace(show_message as bool = YES)
-	if len(crash_reportfile) = 0 then exit sub  'Don't have exchndl
+	#if defined(WITH_EXCHNDL)
+		if len(crash_reportfile) = 0 then exit sub  'Don't have exchndl
+	#endif
 	debug "Saving backtrace"
 	want_exception_messagebox = show_message
 	continue_after_exception = YES

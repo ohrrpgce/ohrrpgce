@@ -10,6 +10,8 @@
 #include "config.bi"
 #include "const.bi"
 
+declare function get_app_name() as zstring ptr
+
 declare sub debug (msg as zstring ptr)
 declare sub early_debuginfo (msg as zstring ptr)
 declare sub debuginfo (msg as zstring ptr)
@@ -26,5 +28,8 @@ extern cleanup_function as sub ()
 
 'Global variables
 EXTERN workingdir as string
+EXTERN app_name as zstring ptr
+EXTERN app_log_filename as zstring ptr
+EXTERN app_archive_filename as zstring ptr
 
 #endif

@@ -59,6 +59,18 @@ DEFINE_VECTOR_OF_TYPE(TagRangeCheck, TagRangeCheck)
 
 ''''' Global variables (anything else in common.bi missing here will be in game.bas or custom.bas)
 
+
+'app_name is used only by the crash handler
+#IFDEF IS_CUSTOM
+ DIM app_name as zstring ptr = @"OHRRPGCE-Custom"
+ DIM app_log_filename as zstring ptr = @"c_debug.txt"
+ DIM app_archive_filename as zstring ptr = @"c_debug_archive.txt"
+#ELSE
+ DIM app_name as zstring ptr = @"OHRRPGCE-Game"
+ DIM app_log_filename as zstring ptr = @"g_debug.txt"
+ DIM app_archive_filename as zstring ptr = @"g_debug_archive.txt"
+#ENDIF
+
 'Used for search_string_cache. Should change every time the current game changes; changing
 'it on reloading some lumps while live previewing also useful, to clear certain caches
 '(Always blank in Custom)

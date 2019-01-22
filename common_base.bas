@@ -13,6 +13,10 @@ DIM workingdir as string
 
 DIM cleanup_function as sub ()
 
+DIM app_name as zstring ptr = NULL  'NULL, so exename is used instead
+DIM app_log_filename as zstring ptr = NULL
+DIM app_archive_filename as zstring ptr = NULL
+
 SUB debug (msg as zstring ptr)
   print *msg
 END SUB
