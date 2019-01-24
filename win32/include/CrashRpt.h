@@ -19,7 +19,7 @@ be found in the Authors.txt file in the root of the source tree.
 #define _CRASHRPT_H_
 
 #include <windows.h>
-#include <dbghelp.h>
+//#include <dbghelp.h>
 
 // Define SAL macros to be empty if some old Visual Studio used
 #ifndef __reserved
