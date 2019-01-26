@@ -8,48 +8,67 @@
 #include <string.h>
 
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN  // Prevent conflicts due to windows.h including winsock 1 header
-#include <windows.h>
-#include <winsock2.h>
-// The follow two headers are necessary for getaddrinfo to work on pre-WinXP versions
-#include <ws2tcpip.h>
-#include <wspiapi.h>
+  #define WIN32_LEAN_AND_MEAN  // Prevent conflicts due to windows.h including winsock 1 header
+  #include <windows.h>
+  #include <winsock2.h>
+  // The follow two headers are necessary for getaddrinfo to work on pre-WinXP versions
+  #include <ws2tcpip.h>
+  #include <wspiapi.h>
+  #define SHUT_WR SD_SEND
+#else
+  #include <errno.h>
+  #include <sys/types.h>
+  #include <sys/socket.h>
+  #include <netdb.h>
+  typedef int SOCKET;
+  #define SOCKET_ERROR -1
+  #define INVALID_SOCKET -1
+  #define closesocket close
 #endif
 
 #include "os.h"
 #include "misc.h"
 
 
+static const char *lasterror() {
+#ifdef _WIN32
+	return win_error(WSAGetLastError());
+#else
+	return strerror(errno);
+#endif
+}
+
 /*****************************************************************************/
 
-struct HTTPRequest {
+typedef struct {
 	boolint failed;
+	boolint started;     // HTTP_request called, cleanup needed
 	char *response;      // Response with the header stripped
 	int response_len;    // Length of response, NOT response_buf
 	char *response_buf;  // Response with the header
 	int status;          // HTTP status, 200 for success
 	char *status_string; // Returned from the server, may be anything
-};
+} HTTPRequest;
 
 
-void HTTP_Request_init(struct HTTPRequest *req) {
-	req->failed = false;
-	req->response = NULL;
-	req->status = 0;
-	req->status_string = NULL;
+void HTTP_Request_init(HTTPRequest *req) {
+	memset(req, 0, sizeof(HTTPRequest));
 }
 
-void HTTP_Request_destroy(struct HTTPRequest *req) {
+void HTTP_Request_destroy(HTTPRequest *req) {
+	if (req->started) return;
 	free(req->response_buf);
 	req->response_buf = NULL;
 	req->response = NULL;
 	free(req->status_string);
 	req->status_string = NULL;
+#ifdef _WIN32
+	WSACleanup();
+#endif
+	req->started = false;
 }
 
-#ifdef _WIN32
-
-static void parse_HTTP_response(struct HTTPRequest *req) {
+static void parse_HTTP_response(HTTPRequest *req) {
 	// Find the HTTP result code
 	char status_buf[64];
 	if (sscanf(req->response_buf, "HTTP/%*d.%*d %d %63[^\r]\r\n", &req->status, status_buf) != 2) {
@@ -70,14 +89,13 @@ static void parse_HTTP_response(struct HTTPRequest *req) {
 	}
 }
 
-static bool send_on_socket(SOCKET sock, const char *sendbuf, int sendlen, struct HTTPRequest *req, const char *server) {
+static bool send_on_socket(SOCKET sock, const char *sendbuf, int sendlen, HTTPRequest *req, const char *server) {
 	int sent = 0;
 	while (sent < sendlen) {
 		int result = send(sock, sendbuf + sent, sendlen - sent, 0);
 		if (result == SOCKET_ERROR) {
-			debug(errError, "send(%s) error: %s", server, win_error(WSAGetLastError()));
+			debug(errError, "send(%s) error: %s", server, lasterror());
 			closesocket(sock);
-			WSACleanup();
 			req->failed = true;
 			return false;
 		} else {
@@ -88,21 +106,28 @@ static bool send_on_socket(SOCKET sock, const char *sendbuf, int sendlen, struct
 }
 
 /* Make a HTTP request and receive a response, synchronously.
-   -req does not need to be initialised before being passed in, but does have to be destroyed
+   -req MUST not be initialised before being passed in, but does have to be destroyed
     afterwards with HTTP_Request_destroy(), whether this function succeeds or not.
    -url can optionally include a protocol
    -verb should be e.g. "GET" or "POST"
    -data should be NULL for GET and the data to include for POST.
    Returns non-zero on success.
 */
-boolint HTTP_request(struct HTTPRequest *req, const char *url, const char *verb, const char *data, int datalen) {
-	// We use winsock, so with some minor changes this should be portable to Unix
+boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const char *data, int datalen) {
+	int result;
+
+	HTTP_Request_init(req);
+#ifdef _WIN32
+	// Initialise Winsock
 	WSADATA wsaData;
-	int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	result = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (result) {
 		debug(errError, "WSAStartup failed: %s", win_error(result));
+		req->failed = true;
 		return false;
 	}
+#endif
+	req->started = true;
 
 	// Split protocol
 	const char *url_protosep, *url_server;
@@ -135,7 +160,7 @@ boolint HTTP_request(struct HTTPRequest *req, const char *url, const char *verb,
 		if (service) {
 			sprintf(port, "%d", ntohs(service->s_port));
 		} else {
-			debug(errError, "getservbyname(%s) failed: %s", port, win_error(WSAGetLastError()));
+			debug(errError, "getservbyname(%s) failed: %s", port, lasterror());
 			port = "80";
 		}
 		//endservent();  // Doesn't exist
@@ -152,17 +177,24 @@ boolint HTTP_request(struct HTTPRequest *req, const char *url, const char *verb,
 	hints.ai_protocol = IPPROTO_TCP;  //TCP
 	result = getaddrinfo(server, port, &hints, &addr);
 	if (result) {
-		debug(errError, "getaddrinfo(%s) failed: %s", server, win_error(WSAGetLastError()));
-		WSACleanup();
+#ifdef _WIN32
+		// Unlike Linux, on Windows gai_strerror isn't threadsafe, so use WSAGetLastError()
+		const char *err = lasterror();
+#else
+		// Can't use lasterror: getaddrinfo doesn't set errno
+		const char *err = gai_strerror(result);
+#endif
+		debug(errError, "getaddrinfo(%s) failed: %s", server, err);
+		req->failed = true;
 		return false;
 	}
 
 	// Create socket (a file descriptor under Unix)
 	SOCKET sock = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
 	if (sock == INVALID_SOCKET) {
-		debug(errError, "socket(%s) error: %s", server, win_error(WSAGetLastError()));
+		debug(errError, "socket(%s) error: %s", server, lasterror());
 		freeaddrinfo(addr);
-		WSACleanup();
+		req->failed = true;
 		return false;
 	}
 
@@ -170,10 +202,10 @@ boolint HTTP_request(struct HTTPRequest *req, const char *url, const char *verb,
 	result = connect(sock, addr->ai_addr, addr->ai_addrlen);
 	if (result == SOCKET_ERROR) {
 		// Not bothering to attempt to connect to the next available address from addr
-		debug(errError, "connect(%s) error: %s", server, win_error(WSAGetLastError()));
+		debug(errError, "connect(%s) error: %s", server, lasterror());
 		closesocket(sock);
 		freeaddrinfo(addr);
-		WSACleanup();
+		req->failed = true;
 		return false;
 		//sock = INVALID_SOCKET;
 	}
@@ -199,7 +231,7 @@ boolint HTTP_request(struct HTTPRequest *req, const char *url, const char *verb,
 		if (!send_on_socket(sock, data, datalen, req, server))
 			return false;
 
-	shutdown(sock, SD_SEND);  // Tell that we won't be sending any more (optional)
+	shutdown(sock, SHUT_WR);  // Tell that we won't be sending any more (optional)
 
 	// Recieve the response
 	int recvbuf_len = 4096;
@@ -210,10 +242,13 @@ boolint HTTP_request(struct HTTPRequest *req, const char *url, const char *verb,
 			req->response_buf = realloc(req->response_buf, recvbuf_len);
 		}
 		result = recv(sock, req->response_buf + received, recvbuf_len - received - 1, 0);  // Space for NUL
-		if (result == SOCKET_ERROR)
-			debug(errError, "recv(%s) error: %s", server, win_error(WSAGetLastError()));
-		else
+		if (result == SOCKET_ERROR) {
+			debug(errError, "recv(%s) error: %s", server, lasterror());
+			req->failed = true;
+			break;
+		} else {
 			received += result;
+		}
 	} while (result > 0);
 	req->response_buf[received] = '\0';
 	req->response_len = received;
@@ -222,9 +257,5 @@ boolint HTTP_request(struct HTTPRequest *req, const char *url, const char *verb,
 	parse_HTTP_response(req);
 
 	closesocket(sock);
-	WSACleanup();
-
 	return true;
 }
-
-#endif  //_WIN32

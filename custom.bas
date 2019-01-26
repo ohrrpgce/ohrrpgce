@@ -61,6 +61,7 @@ DECLARE SUB quad_transforms_menu ()
 DECLARE SUB text_test_menu ()
 DECLARE SUB new_graphics_tests ()
 DECLARE SUB plankmenu_cursor_move_tests
+DECLARE SUB HTTP_demo()
 
 DECLARE SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
 DECLARE SUB import_scripts_and_terminate (scriptfile as string)
@@ -1339,6 +1340,7 @@ SUB secret_menu ()
      "New backdrop browser", _
      "RGFX tests", _
      "Backend Keyrepeat Bugtest", _
+     "HTTP test", _
      "Test Game under Valgrind", _
      "Test Game under GDB", _
      "Edit Translations" _
@@ -1376,9 +1378,10 @@ SUB secret_menu ()
    IF st.pt = 18 THEN backdrop_browser
    IF st.pt = 19 THEN new_graphics_tests
    IF st.pt = 20 THEN backend_keyrepeat_bugtest
+   IF st.pt = 21 THEN HTTP_demo
    IF st.pt = 22 THEN spawn_game_menu NO, YES
-   IF st.pt = 21 THEN spawn_game_menu YES
-   IF st.pt = 23 THEN translations_menu
+   IF st.pt = 23 THEN spawn_game_menu YES
+   IF st.pt = 24 THEN translations_menu
   END IF
   usemenu st
   clearpage vpage
@@ -1894,4 +1897,14 @@ SUB plankmenu_cursor_move_tests
   IF ps.cur = 0 THEN ps.cur = top_left_plank(ps)  'Do after first draw
  LOOP
  DeleteSlice @root
+END SUB
+
+SUB HTTP_demo()
+ DIM url as string = "http://rpg.hamsterrepublic.com/nightly-archive/"
+ IF prompt_for_string(url, "URL to fetch?", 100) = NO THEN EXIT SUB
+ DIM req as HTTPRequest
+ HTTP_request(@req, url, "GET", NULL, 0)
+ notification "failed=" & yesorno(req.failed) & " " & req.status & " - " & *req.status_string
+ pop_warning *cast(zstring ptr, req.response)
+ HTTP_Request_destroy(@req)
 END SUB
