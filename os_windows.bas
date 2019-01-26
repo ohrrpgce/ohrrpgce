@@ -36,6 +36,10 @@ include_windows_bi()
 #endif
 
 #if defined(WITH_CRASHRPT)
+	'This API version is not defined by CrashRpt, it's something we define to allow different
+	'copies of the engine which use incompatible versions of CrashRpt to coexist.
+	CONST CURRENT_CRASHRPT_API = 1
+
 	extern "C"
 		'This function is in os_windows2.c
 		declare function crashrpt_setup(libpath as zstring ptr, appname as zstring ptr, version as zstring ptr, buildstring as zstring ptr, logfile1 as zstring ptr, logfile2 as zstring ptr, add_screenshot as boolint) as boolint
@@ -225,6 +229,61 @@ function exceptFilterMessageBox(pExceptionInfo as PEXCEPTION_POINTERS) as clong
 end function
 end extern
 
+'Load the crashrpt dll, return whether successful
+function try_load_crashrpt_at(crashrpt_dll as string) as bool
+	if real_isfile(crashrpt_dll) = NO then return NO
+
+	'The utilities (programs other than Game and Custom) set app_name to NULL rather than override it
+	dim appname as zstring ptr = iif(app_name <> NULL, app_name, strptr(exename))
+	dim add_screenshot as bool = NO '(app_name <> NULL)
+	early_debuginfo "Loading " & crashrpt_dll
+	if crashrpt_setup(strptr(crashrpt_dll), appname, short_version, long_version, _
+			  app_log_filename, app_archive_filename, add_screenshot) then
+		'early_debuginfo "CrashRpt handler installed"
+		return YES
+	end if
+	'On failure, crashrpt_setup logs an error itself
+	return NO
+end function
+
+sub find_and_load_crashrpt()
+	dim dll_loc_file as string = ENVIRON("APPDATA") & "\OHRRPGCE\crashrpt_loc_api" & CURRENT_CRASHRPT_API & ".txt"
+
+	'First check the support directory.
+	'Can't call find_helper_app since common.rbas isn't linked by all utilities,
+	'and want to minimise the amount of code run before installing the handler anyway.
+	dim crashrpt_dll as string = EXEPATH & "\support\CrashRpt1403.dll"
+	if try_load_crashrpt_at(crashrpt_dll) then
+		'debuginfo "Caching at " &  dll_loc_file
+		'Success: write the location of the dll to a file so that game.exe can
+		'find the copy distributed with Custom even when running from somewhere else.
+		'Always update the file so that it's not stale.
+		'We might be pointing it to an older .dll version than it had, but it's too much
+		'trouble to check for that, and doesn't matter.
+		dim fh as integer = FREEFILE
+		if open(dll_loc_file for output as fh) = 0 then
+			print #fh, crashrpt_dll
+			close #fh
+		end if
+
+		exit sub
+	end if
+
+	'Then try to read the dll location from the dll_loc_file.
+	dim fh as integer = FREEFILE
+	if open(dll_loc_file for input as fh) = 0 then
+		line input #fh, crashrpt_dll
+		close #fh
+
+		if try_load_crashrpt_at(crashrpt_dll) then
+			exit sub
+		end if
+	end if
+
+	early_debuginfo "Couldn't find crashrpt.dll"
+end sub
+
+'Installs one or two of three different possible handlers for unhandled exceptions.
 sub setup_exception_handler()
 	'Install a default exception handler to show a useful message on a crash.
 	'If we're using crashrpt:
@@ -239,21 +298,7 @@ sub setup_exception_handler()
 	'Load CrashRpt, which connects to CrashSender.exe, and out-of-process exception
 	'handler (meaning, it spawns a separate process to report the crash, so it can work
 	'even if there's severe memory/state corruption).
-
-	'The utilities (programs other than Game and Custom) set app_name to NULL rather than override it
-	dim appname as zstring ptr = iif(app_name <> NULL, app_name, strptr(exename))
-	dim screenshot as bool = NO '(app_name <> NULL)
-	dim crashrpt_dll as string = EXEPATH & "\support\CrashRpt1403.dll"
-	if real_isfile(crashrpt_dll) then
-		early_debuginfo "Loading " & crashrpt_dll
-		if crashrpt_setup(strptr(crashrpt_dll), appname, short_version, long_version, app_log_filename, app_archive_filename, screenshot) then
-			'early_debuginfo "crashrpt.dll handler installed"
-			exit sub
-		end if
-		'On failure, crashrpt_setup logs an error itself
-	else
-		early_debuginfo "Couldn't find crashrpt.dll"
-	end if
+	find_and_load_crashrpt()
 #endif
 
 #if defined(WITH_EXCHNDL)

@@ -6522,6 +6522,7 @@ FUNCTION get_settings_dir () as string
  #ELSEIF DEFINED(__FB_UNIX__)
   settings_dir = ENVIRON("HOME") & "/.ohrrpgce"
  #ELSEIF DEFINED(__FB_WIN32__)
+  'Note, this is duplicated in load_crashrpt()
   settings_dir = ENVIRON("APPDATA") & SLASH & "OHRRPGCE"
   '--APPDATA enviroment variable doesn't exist in Windows 98 so we need a fallback
   IF ENVIRON("APPDATA") = "" THEN
