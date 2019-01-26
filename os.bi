@@ -1,7 +1,7 @@
 'OHRRPGCE COMMON - Header for OS-specific routines
 'Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 '
-'Implementations are in os_unix.c, os_windows.bas and os_windows2.c
+'Implementations are in os_unix.c, os_unix2.bas, os_unix_wm.bas, os_windows.bas, os_windows2.c, os_sockets.c
 'Documentation is sadly to be found duplicated in those files, with many differences,
 'so check both Unix and Windows implementations before use
 
@@ -106,6 +106,21 @@ declare function channel_wait_for_client_connection (byref channel as IPCChannel
 declare function channel_write (byref channel as IPCChannel, byval buf as any ptr, byval buflen as integer) as integer
 declare function channel_write_line (byref channel as IPCChannel, buf as string) as integer
 declare function channel_input_line (byref channel as IPCChannel, line_in as string) as integer
+
+'Networking
+
+type HTTPRequest
+	failed as boolint
+	response as ubyte ptr        ' Response with the header stripped
+	response_len as integer      ' Length of response, NOT response_buf
+	response_buf as zstring ptr  ' Response with the header
+	status as integer            ' HTTP status, 200 for success
+	status_string as zstring ptr ' Returned from the server, may be anything
+end type
+
+declare sub HTTP_Request_init(req as HTTPRequest ptr)
+declare sub HTTP_Request_destroy(req as HTTPRequest ptr)
+declare function HTTP_request(req as HTTPRequest ptr, url as const zstring ptr, verb as const zstring ptr, data as const ubyte ptr, datalen as integer) as boolint
 
 'Threads
 

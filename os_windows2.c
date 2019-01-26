@@ -4,7 +4,7 @@
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"
 
-#include "windows.h"
+#include <windows.h>
 
 #include "os.h"
 #include "misc.h"
@@ -12,9 +12,11 @@
 #define _CRASHRPT_NO_WRAPPERS  //Exclude C++ wrapper classes
 #include "CrashRpt.h"
 
-// In os_windows.bas
-FBSTRING *get_windows_error (int errcode);
-
+const char* win_error(int errcode) {
+	static char strbuf[256] = "<N/A>";
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errcode, 0, strbuf, 255, NULL);
+	return strbuf;
+}
 
 // (This could have been written in os_windows.bas and there's no special reason it isn't)
 void os_get_screen_size(int *wide, int *high) {
@@ -28,9 +30,7 @@ void os_get_screen_size(int *wide, int *high) {
 	// which is the part of the screen not obscured by taskbar and similar toolbars
 	RECT rect;
 	if (!SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0)) {
-		FBSTRING *errstr = get_windows_error(GetLastError());
-		debug(errError, "get_screen_size failed: %s", errstr->data);
-		delete_fbstring(errstr);
+		debug(errError, "get_screen_size failed: %s", win_error(GetLastError()));
 		return;
 	}
 	*wide = rect.right - rect.left;
@@ -40,7 +40,7 @@ void os_get_screen_size(int *wide, int *high) {
 
 #define lookup_sym(lib, sym) \
 	if (!(sym = (void*)GetProcAddress((HINSTANCE)lib, #sym))) { \
-		debuginfo("Couldn't load symbol " #sym);   \
+		debuginfo("Couldn't load %s: %s", #sym, win_error(GetLastError())); \
 		FreeLibrary((HINSTANCE)lib); \
 		return 0; \
 	}
@@ -52,9 +52,7 @@ boolint crashrpt_setup(const char *libpath, const char *appname, const char *ver
 	// First, have to find the dll
 	void *lib = LoadLibrary(libpath);
 	if (!lib) {
-		FBSTRING *errstr = get_windows_error(GetLastError());
-		debuginfo("LoadLibrary(%s) failed: %s", libpath, errstr->data);
-		delete_fbstring(errstr);
+		debuginfo("LoadLibrary(%s) failed: %s", libpath, win_error(GetLastError()));
 		return 0;
 	}
 

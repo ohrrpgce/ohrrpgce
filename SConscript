@@ -820,12 +820,15 @@ del fb_defines
 
 ################ OS-specific modules and libraries
 
+# This module is OS-specific but shared by Windows (winsock) and Unix. A web port probably won't use it.
+base_modules += ['os_sockets.c']
+
 if win32:
     base_modules += ['os_windows.bas', 'os_windows2.c']
     # winmm needed for MIDI, used by music backends but also by miditest
     # psapi.dll needed just for get_process_path() and memory_usage(). Not present on Win98 unfortunately
     # ole32.dll needed just for open_document()
-    base_libraries += ['winmm', 'psapi', 'ole32']
+    base_libraries += ['winmm', 'psapi', 'ole32', 'ws2_32']
     common_libraries += [libfbgfx]
     commonenv['FBFLAGS'] += ['-s','gui']  # Change to -s console to see 'print' statements in the console!
     commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
