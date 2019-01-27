@@ -1952,11 +1952,9 @@ SUB DrawSliceAnts (byval sl as Slice Ptr, byval dpage as integer)
   DIM dat as PanelSliceData Ptr = sl->SliceData
   IF dat THEN
    FOR childindex as integer = 0 TO 1
-    DIM ppos as XYPair
-    DIM psize as XYPair
-    CalcPanelArea ppos, psize, sl, childindex
-    ppos += sl->ScreenPos
-    drawants vpages(dpage), ppos.x, ppos.y, psize.x, psize.y
+    DIM support as RectType
+    CalcPanelSupport support, sl, childindex
+    drawants vpages(dpage), support.x, support.y, support.wide, support.high
    NEXT
   END IF
  END IF

@@ -722,7 +722,7 @@ DECLARE Sub ChangePanelSlice(byval sl as slice ptr,_
                       byval percent as double=-1.0,_
                       byval padding as integer=-1)
 DECLARE Function GetPanelSliceData(byval sl as slice ptr) as PanelSliceData ptr
-DECLARE Sub CalcPanelArea (byref ppos as XYPair, byref psize as XYPair, byval par as Slice ptr, byval index as integer)
+DECLARE Sub CalcPanelSupport (byref support as RectType, byval par as Slice ptr, byval index as integer)
 
 
 EXTERN NumDrawnSlices as integer
