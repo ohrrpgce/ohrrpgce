@@ -1062,7 +1062,7 @@ Extern "C"
 Sub DisposeRectangleSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- dim dat as RectangleSliceData ptr = cptr(RectangleSliceData ptr, sl->SliceData)
+ dim dat as RectangleSliceData ptr = sl->SliceData
  delete dat
  sl->SliceData = 0
 end sub
@@ -1335,7 +1335,7 @@ Declare Sub NewUpdateTextSlice(byval sl as Slice ptr)
 Sub DisposeTextSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+ dim dat as TextSliceData ptr = sl->SliceData
  delete dat
  sl->SliceData = 0
 end sub
@@ -1344,7 +1344,7 @@ Sub WrapTextSlice(byval sl as Slice ptr, lines() as string)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
 
- dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+ dim dat as TextSliceData ptr = sl->SliceData
  dim d as string
  if dat->wrap AND sl->width > 7 then
   d = wordwrap(dat->s, int(sl->width / 8))
@@ -1375,7 +1375,7 @@ end function
 
 'New render_text-based drawing of Text slices. Only used when dat->use_render_text
 Sub NewDrawTextSlice(byval sl as Slice ptr, byval p as integer, col as integer)
- dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+ dim dat as TextSliceData ptr = sl->SliceData
 
  'dat->line_limit is not yet supported (render_text ought to be extended for it)
 
@@ -1430,7 +1430,7 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
 
- dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+ dim dat as TextSliceData ptr = sl->SliceData
 
  dim col as integer = dat->col
  if col = 0 then col = uilook(uiText) '--This is backcompat for before it was possible to choose uiText directly using ColorIndex
@@ -1481,7 +1481,7 @@ end sub
 
 'New render_text-based updating of Text slice size. Only used when dat->use_render_text
 Sub NewUpdateTextSlice(byval sl as Slice ptr)
- dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+ dim dat as TextSliceData ptr = sl->SliceData
 
  'dat->line_limit not supported yet
  dim fontnum as integer = iif(dat->outline, fontEdged, fontPlain)
@@ -1497,7 +1497,7 @@ Sub UpdateTextSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  
- dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+ dim dat as TextSliceData ptr = sl->SliceData
 
  if dat->use_render_text then
   NewUpdateTextSlice sl
@@ -1521,7 +1521,7 @@ end sub
 '(Note: this assumes use_render_text; text wrapping may not be identical otherwise)
 Function TextSliceCharPos(sl as Slice ptr, charnum as integer) as XYPair
  if sl = 0 orelse sl->SliceData = 0 then return XY(0, 0)
- dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+ dim dat as TextSliceData ptr = sl->SliceData
 
  dim wide as integer = TextSliceRenderTextWide(sl, dat, 0)
  dim fontnum as integer = iif(dat->outline, fontEdged, fontPlain)
@@ -1531,7 +1531,7 @@ Function TextSliceCharPos(sl as Slice ptr, charnum as integer) as XYPair
 end function
 
 Private Sub UpdateTextSliceHeight(byval sl as Slice ptr, lines() as string)
- dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+ dim dat as TextSliceData ptr = sl->SliceData
  dim high as integer
  high = dat->line_count
  if dat->line_limit > -1 then  'If not unlimited
@@ -2224,8 +2224,7 @@ Sub ChangeMapSlice(byval sl as Slice ptr,_
                    byval overlay as integer=-1)
  if sl = 0 then debug "ChangeMapSlice null ptr" : exit sub
  if sl->SliceType <> slMap then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a map" : exit sub
- dim dat as MapSliceData Ptr = sl->SliceData
- with *dat
+ with *sl->MapData
   if tiles <> cast(TileMap ptr, 1) then
    .tiles = tiles
    if tiles = NULL then
@@ -2253,7 +2252,7 @@ end sub
 Sub DisposeGridSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- dim dat as GridSliceData ptr = cptr(GridSliceData ptr, sl->SliceData)
+ dim dat as GridSliceData ptr = sl->SliceData
  delete dat
  sl->SliceData = 0
 end sub
@@ -2261,10 +2260,8 @@ end sub
 Sub DrawGridSlice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- 
- dim dat as GridSliceData ptr = cptr(GridSliceData ptr, sl->SliceData)
+ dim dat as GridSliceData ptr = sl->SliceData
 
- 
  if dat->show then
   drawbox sl->screenx, sl->screeny, sl->width, sl->height, uilook(uiText), 1, p
   dim w as integer = sl->width \ large(1, dat->cols)
@@ -2281,10 +2278,8 @@ end sub
 
 Sub CloneGridSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneGridSlice null ptr": exit sub
- dim dat as GridSliceData Ptr
- dat = sl->SliceData
- dim clonedat as GridSliceData Ptr
- clonedat = cl->SliceData
+ dim dat as GridSliceData ptr = sl->SliceData
+ dim clonedat as GridSliceData ptr = cl->SliceData
  with *clonedat
   .cols = dat->cols
   .rows = dat->rows
@@ -2351,7 +2346,6 @@ Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
  with *s
   'if .ChildrenRefresh then .ChildrenRefresh(s)  'Always NULL
 
-  '--get grid data
   dim dat as GridSliceData ptr
   dat = .SliceData
   dim w as integer = .Width \ large(1, dat->cols)
@@ -2697,7 +2691,7 @@ end function
 Sub DisposeEllipseSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- dim dat as EllipseSliceData ptr = cptr(EllipseSliceData ptr, sl->SliceData)
+ dim dat as EllipseSliceData ptr = sl->SliceData
  frame_unload @dat->frame
  delete dat
  sl->SliceData = 0
@@ -2707,7 +2701,7 @@ Sub DrawEllipseSlice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  
- dim dat as EllipseSliceData ptr = cptr(EllipseSliceData ptr, sl->SliceData)
+ dim dat as EllipseSliceData ptr = sl->SliceData
 
  with *dat
 
@@ -2821,7 +2815,7 @@ end sub
 Sub DisposeScrollSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- dim dat as ScrollSliceData ptr = cptr(ScrollSliceData ptr, sl->SliceData)
+ dim dat as ScrollSliceData ptr = sl->SliceData
  delete dat
  sl->SliceData = 0
 end sub
@@ -2859,7 +2853,7 @@ Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
  DefaultChildDraw sl, p
 
  'Then proceed with the scrollbars
- dim dat as ScrollSliceData ptr = cptr(ScrollSliceData ptr, sl->SliceData)
+ dim dat as ScrollSliceData ptr = sl->SliceData
 
  dim min as XYPair
  dim max as XYPair
@@ -3018,7 +3012,7 @@ end sub
 Sub DisposeSelectSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- dim dat as SelectSliceData ptr = cptr(SelectSliceData ptr, sl->SliceData)
+ dim dat as SelectSliceData ptr = sl->SliceData
  delete dat
  sl->SliceData = 0
 end sub
@@ -3027,7 +3021,7 @@ end sub
 'size and screen position.
 Sub SelectChildRefresh(par as Slice ptr, ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES)
  if ch = 0 then debug "SelectChildRefresh null ptr": exit sub
- dim dat as SelectSliceData ptr = cptr(SelectSliceData ptr, par->SliceData)
+ dim dat as SelectSliceData ptr = par->SliceData
  if dat = 0 then exit sub
 
  if childindex < 0 then  'Not known by the caller
@@ -3133,7 +3127,7 @@ end sub
 Sub DisposePanelSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- dim dat as PanelSliceData ptr = cptr(PanelSliceData ptr, sl->SliceData)
+ dim dat as PanelSliceData ptr = sl->SliceData
  delete dat
  sl->SliceData = 0
 end sub
@@ -3232,16 +3226,9 @@ End Sub
 Sub PanelChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES)
  if ch = 0 then debug "PanelChildRefresh null ptr": exit sub
  if visibleonly and (ch->Visible = NO) then exit sub
- 
- '--get panel data
- dim dat as PanelSliceData ptr
- dat = par->SliceData
- 
+
  if childindex < 0 then childindex = SliceIndexAmongSiblings(ch)
- if childindex > 1 then
-  'Panel only expects 2 children
-  exit sub
- end if
+ if childindex > 1 then exit sub  'Panel only expects 2 children
 
  dim support as RectType = any
  CalcPanelSupport support, par, childindex
