@@ -41,8 +41,9 @@ DECLARE Function LoadPropFloat(node as Reload.Nodeptr, propname as zstring ptr, 
 
 'Other local subs and functions
 DECLARE Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
-DECLARE Function SliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
-DECLARE Function SliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
+DECLARE Function SliceXAlign(sl as Slice Ptr, supportw as integer) as integer
+DECLARE Function SliceYAlign(sl as Slice Ptr, supporth as integer) as integer
+DECLARE Sub RefreshChild(ch as Slice ptr, support as RectType)
 DECLARE Sub ApplySliceVelocity(byval s as Slice ptr)
 DECLARE Sub SeekSliceTarg(byval s as Slice ptr)
 
@@ -98,17 +99,28 @@ Sub NullChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex a
 Sub DefaultChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES)
  if ch = 0 then debug "DefaultChildRefresh null ptr": exit sub
  if visibleonly and (ch->Visible = NO) then exit sub
+ dim support as RectType = any
+ support.xy = par->ScreenPos + XY(par->paddingLeft, par->paddingTop)
+ support.wide = par->Width - par->paddingLeft - par->paddingRight
+ support.high = par->Height - par->paddingTop - par->paddingBottom
+ RefreshChild ch, support
+End Sub
+
+'Support is the box (in screen coordinates) which the child is aligned relative to,
+'and which it would fill if ch->Fill is true.
+'By default it is the size of the parent minus padding.
+Sub RefreshChild(ch as Slice ptr, support as RectType)
  with *ch
-  .ScreenX = .X + SliceXAlign(ch, par) - SliceXAnchor(ch)
-  .ScreenY = .Y + SliceYAlign(ch, par) - SliceYAnchor(ch)
+  .ScreenX = .X + support.x + SliceXAlign(ch, support.wide) - SliceXAnchor(ch)
+  .ScreenY = .Y + support.y + SliceYAlign(ch, support.high) - SliceYAnchor(ch)
   if .Fill then
    if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillHoriz then
-    .ScreenX = par->ScreenX + par->paddingLeft
-    .Width = par->Width - par->paddingLeft - par->paddingRight
+    .ScreenX = support.x
+    .Width = support.wide
    end if
    if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillVert then
-    .ScreenY = par->ScreenY + par->paddingTop
-    .height = par->Height - par->paddingTop - par->paddingBottom
+    .ScreenY = support.y
+    .Height = support.high
    end if
   end if
  end with
@@ -2298,24 +2310,6 @@ Sub LoadGridSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->show = LoadPropBool(node, "show")
 End Sub
 
-Function GridSliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr, byval w as integer) as integer
- if sl = 0 then debug "GridSliceXAlign null ptr": Return 0
- SELECT CASE sl->AlignHoriz
-  CASE alignLeft:   RETURN alignTo->ScreenX + alignTo->paddingLeft
-  CASE alignMiddle: RETURN alignTo->ScreenX + alignTo->paddingLeft + (w - alignTo->paddingLeft - alignTo->paddingRight) \ 2
-  CASE alignRight:  RETURN alignTo->ScreenX + w - alignTo->paddingRight
- END SELECT
-End Function
-
-Function GridSliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr, byval h as integer) as integer
- if sl = 0 then debug "GridSliceYAlign null ptr": Return 0
- SELECT CASE sl->AlignVert
-  CASE alignTop:    RETURN alignTo->ScreenY + alignTo->paddingTop
-  CASE alignMiddle: RETURN alignTo->ScreenY + alignTo->paddingTop + (h - alignTo->paddingTop - alignTo->paddingBottom) \ 2
-  CASE alignBottom: RETURN alignTo->ScreenY + h - alignTo->paddingBottom
- END SELECT
-End Function
-
 'Computes ScreenX/Y, and also sets the width/height if filling
 Sub GridChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES)
  if ch = 0 then debug "GridChildRefresh null ptr": exit sub
@@ -2330,21 +2324,12 @@ Sub GridChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex a
  if childindex < 0 then childindex = SliceIndexAmongSiblings(ch)
  dim xslot as integer = childindex mod large(1, dat->cols)
  dim yslot as integer = childindex \ large(1, dat->cols)
- 
- with *ch
-  .ScreenX = .X + GridSliceXAlign(ch, par, w) - SliceXAnchor(ch) + xslot * w
-  .ScreenY = .Y + GridSliceYAlign(ch, par, h) - SliceYAnchor(ch) + yslot * h
-  if .Fill then
-   if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillHoriz then
-    .ScreenX = par->ScreenX + xslot * w + par->paddingLeft
-    .Width = w - par->paddingLeft - par->paddingRight
-   end if
-   if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillVert then
-    .ScreenY = par->ScreenY + yslot * h + par->paddingTop
-    .Height = h - par->paddingTop - par->paddingBottom
-   end if
-  end if
- end with
+
+ dim support as RectType = any
+ support.xy = par->ScreenPos + XY(par->paddingLeft + xslot * w, par->paddingTop + yslot * h)
+ support.wide = w - par->paddingLeft - par->paddingRight
+ support.high = h - par->paddingTop - par->paddingBottom
+ RefreshChild ch, support
 End sub
 
 Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
@@ -3193,6 +3178,7 @@ Sub LoadPanelSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->padding = LoadProp(node, "padding")
 End Sub
 
+'Calculate size 'psize' and position 'ppos' (relative to parent) of child 'index' of panel slice 'par'.
 Sub CalcPanelArea (byref ppos as XYPair, byref psize as XYPair, byval par as Slice ptr, byval index as integer)
 
  if par = 0 then debug "CalcPanelArea null par ptr": exit sub
@@ -3214,7 +3200,7 @@ Sub CalcPanelArea (byref ppos as XYPair, byref psize as XYPair, byval par as Sli
  if dat->vertical then axis = 1
  dim other as integer = axis XOR 1
 
- dim innersize as XYPair = par->Size
+ dim innersize as XYPair = par->Size  'Total space available for both children with all padding subtracted
  dim prsize as integer
  dim prepad as XYPair
  dim postpad as XYPair
@@ -3405,21 +3391,21 @@ Function GetSliceRefreshAttachParent(byval sl as Slice Ptr) as Slice Ptr
  RETURN ScreenSlice
 End Function
 
-Function SliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
+Function SliceXAlign(sl as Slice Ptr, supportw as integer) as integer
  if sl = 0 then debug "SliceXAlign null ptr": Return 0
  SELECT CASE sl->AlignHoriz
-  CASE alignLeft:   RETURN alignTo->ScreenX + alignTo->paddingLeft
-  CASE alignMiddle: RETURN alignTo->ScreenX + alignTo->paddingLeft + (alignTo->Width - alignTo->paddingLeft - alignTo->paddingRight) \ 2
-  CASE alignRight:  RETURN alignTo->ScreenX + alignTo->Width - alignTo->paddingRight
+  CASE alignLeft:   RETURN 0
+  CASE alignMiddle: RETURN supportw \ 2
+  CASE alignRight:  RETURN supportw
  END SELECT
 End Function
 
-Function SliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
+Function SliceYAlign(sl as Slice Ptr, supporth as integer) as integer
  if sl = 0 then debug "SliceYAlign null ptr": Return 0
  SELECT CASE sl->AlignVert
-  CASE alignTop:    RETURN alignTo->ScreenY + alignTo->paddingTop
-  CASE alignMiddle: RETURN alignTo->ScreenY + alignTo->paddingTop + (alignTo->Height - alignTo->paddingTop - alignTo->paddingBottom) \ 2
-  CASE alignBottom: RETURN alignTo->ScreenY + alignTo->Height - alignTo->paddingBottom
+  CASE alignTop:    RETURN 0
+  CASE alignMiddle: RETURN supporth \ 2
+  CASE alignBottom: RETURN supporth
  END SELECT
 End Function
 

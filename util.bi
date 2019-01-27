@@ -621,6 +621,10 @@ UNION RectType
     topleft as XYPair
     size as XYPair
   END TYPE
+  TYPE
+    xy as XYPair
+    wh as XYPair
+  END TYPE
 
   DECLARE OPERATOR CAST () as string
 END UNION
