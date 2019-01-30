@@ -14,6 +14,7 @@ include_windows_bi()
 #include "win/shlobj.bi"
 #undef this
 #include "os.bi"
+
 #include "crt/string.bi"
 #include "crt/limits.bi"
 #include "crt/stdio.bi"
@@ -23,8 +24,18 @@ include_windows_bi()
 #include "const.bi"
 #include "ver.txt"
 
+'Try to load CrashRpt*.dll on startup.
+'You should build with pdb=1, and keep the generated .pdb files.
+'The scons debug=... setting doesn't matter; debug=0 to strip all symbols is fine,
+'but debug=2/3 will add -exx for more error checking.
 #define WITH_CRASHRPT
-'#define WITH_EXCHNDL
+
+'You should compile with gengcc=1, or debug info will be garbage. Source lines will be
+'included with scons debug>=1
+#define WITH_EXCHNDL
+
+'Only has an effect if WITH_EXCHNDL defined: Try to load exchndl.dll at startup,
+'instead of being statically linked.
 #define DYNAMIC_EXCHNDL
 
 #if defined(WITH_EXCHNDL)
@@ -229,6 +240,8 @@ function exceptFilterMessageBox(pExceptionInfo as PEXCEPTION_POINTERS) as clong
 end function
 end extern
 
+#ifdef WITH_CRASHRPT
+
 'Load the crashrpt dll, return whether successful
 function try_load_crashrpt_at(crashrpt_dll as string) as bool
 	if real_isfile(crashrpt_dll) = NO then return NO
@@ -246,7 +259,7 @@ function try_load_crashrpt_at(crashrpt_dll as string) as bool
 	return NO
 end function
 
-sub find_and_load_crashrpt()
+function find_and_load_crashrpt() as bool
 	dim dll_loc_file as string = ENVIRON("APPDATA") & "\OHRRPGCE\crashrpt_loc_api" & CURRENT_CRASHRPT_API & ".txt"
 
 	'First check the support directory.
@@ -266,7 +279,7 @@ sub find_and_load_crashrpt()
 			close #fh
 		end if
 
-		exit sub
+		return YES
 	end if
 
 	'Then try to read the dll location from the dll_loc_file.
@@ -276,12 +289,15 @@ sub find_and_load_crashrpt()
 		close #fh
 
 		if try_load_crashrpt_at(crashrpt_dll) then
-			exit sub
+			return YES
 		end if
 	end if
 
 	early_debuginfo "Couldn't find crashrpt.dll"
-end sub
+	return NO
+end function
+
+#endif
 
 'Installs one or two of three different possible handlers for unhandled exceptions.
 sub setup_exception_handler()
@@ -298,7 +314,7 @@ sub setup_exception_handler()
 	'Load CrashRpt, which connects to CrashSender.exe, and out-of-process exception
 	'handler (meaning, it spawns a separate process to report the crash, so it can work
 	'even if there's severe memory/state corruption).
-	find_and_load_crashrpt()
+	if find_and_load_crashrpt() then exit sub
 #endif
 
 #if defined(WITH_EXCHNDL)
