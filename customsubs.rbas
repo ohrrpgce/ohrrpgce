@@ -3195,10 +3195,10 @@ FUNCTION prompt_for_scancode () as KBScancode
  WITH *box
   .width = 308
   .height = 48
-  .AnchorHoriz = 1
-  .AnchorVert = 2
-  .AlignHoriz = 1
-  .AlignVert = 2
+  .AnchorHoriz = alignCenter
+  .AnchorVert = alignBottom
+  .AlignHoriz = alignCenter
+  .AlignVert = alignBottom
   .paddingLeft = 8
   .paddingRight = 8
   .paddingTop = 8
@@ -3216,19 +3216,19 @@ FUNCTION prompt_for_scancode () as KBScancode
  WITH *bar
   .width = 0
   .height = 10
-  .AnchorHoriz = 1
-  .AnchorVert = 0
-  .AlignHoriz = 1
-  .AlignVert = 0
+  .AnchorHoriz = alignCenter
+  .AnchorVert = alignTop
+  .AlignHoriz = alignCenter
+  .AlignVert = alignTop
  END WITH
 
  DIM keybox as Slice Ptr
  keybox = NewSliceofType(slContainer, root)
  WITH *keybox
-  .AnchorHoriz = 1
-  .AnchorVert = 1
-  .AlignHoriz = 1
-  .AlignVert = 1
+  .AnchorHoriz = alignCenter
+  .AnchorVert = alignCenter
+  .AlignHoriz = alignCenter
+  .AlignVert = alignCenter
  END WITH
  
  DIM keysl as Slice Ptr

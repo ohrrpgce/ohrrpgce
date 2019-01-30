@@ -3669,10 +3669,10 @@ SUB init_text_box_slices(txt as TextBoxState)
   .PaddingTop = 3
   .PaddingBottom = 3
   'Horizontal centering
-  .AlignHoriz = 1
-  .AnchorHoriz = 1
-  .AnchorVert = 0
-  .AlignVert = 0
+  .AlignHoriz = alignCenter
+  .AnchorHoriz = alignCenter
+  .AnchorVert = alignTop
+  .AlignVert = alignTop
  END WITH
 
  '--Set up the actual text
@@ -3777,8 +3777,8 @@ SUB init_text_box_slices(txt as TextBoxState)
    choice_sl(i) = NewSliceOfType(slText, choice_box)
    ChangeTextSlice choice_sl(i), txt.box.choice(i), uilook(uiMenuItem), YES
    WITH *(choice_sl(i))
-    .AnchorHoriz = 1
-    .AlignHoriz = 1
+    .AnchorHoriz = alignCenter
+    .AlignHoriz = alignCenter
     .Y = 2 + i * 10
    END WITH
   NEXT i

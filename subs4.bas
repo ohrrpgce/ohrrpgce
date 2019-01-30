@@ -328,10 +328,10 @@ SUB script_error_mode_menu ()
   .Fill = YES
   .FillMode = sliceFillHoriz
   .height = 48
-  .AnchorHoriz = 1
-  .AnchorVert = 2
-  .AlignHoriz = 1
-  .AlignVert = 2
+  .AnchorHoriz = alignCenter
+  .AnchorVert = alignBottom
+  .AlignHoriz = alignCenter
+  .AlignVert = alignBottom
   .paddingLeft = 8
   .paddingRight = 8
   .paddingTop = 8

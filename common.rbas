@@ -7046,10 +7046,10 @@ FUNCTION gamepad_virtual_keyboard (arr as ArrowSet, default_str as string, max_l
   .y = 10
   .width = 210
   .height = 80
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
-  .AnchorVert = 0
-  .AlignVert = 1
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
+  .AnchorVert = alignTop
+  .AlignVert = alignCenter
  END WITH
  ChangeRectangleSlice box, 0
  
@@ -7085,8 +7085,8 @@ FUNCTION gamepad_virtual_keyboard (arr as ArrowSet, default_str as string, max_l
   .x = -10
   .y = 15
   .width = 48
-  .AnchorHoriz = 2
-  .AlignHoriz = 2
+  .AnchorHoriz = alignRight
+  .AlignHoriz = alignRight
  END WITH
 
  DIM del as Slice Ptr
@@ -7094,17 +7094,17 @@ FUNCTION gamepad_virtual_keyboard (arr as ArrowSet, default_str as string, max_l
  WITH *del
   .width = 40
   .height = 12
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
  END WITH
  ChangeRectangleSlice del, , uilook(uiBackground), , borderNone
  DIM deltxt as Slice Ptr
  deltxt = NewSliceOfType(slText, del)
  WITH *deltxt
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
-  .AnchorVert = 1
-  .AlignVert = 1
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
+  .AnchorVert = alignCenter
+  .AlignVert = alignCenter
  END WITH
  ChangeTextSlice deltxt, "DEL", uilook(uiMenuItem), YES
 
@@ -7114,17 +7114,17 @@ FUNCTION gamepad_virtual_keyboard (arr as ArrowSet, default_str as string, max_l
   .y = 20
   .width = 40
   .height = 12
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
  END WITH
  ChangeRectangleSlice confirm, , uilook(uiBackground), , borderNone
  DIM confirmtxt as Slice Ptr
  confirmtxt = NewSliceOfType(slText, confirm)
  WITH *confirmtxt
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
-  .AnchorVert = 1
-  .AlignVert = 1
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
+  .AnchorVert = alignCenter
+  .AlignVert = alignCenter
  END WITH
  ChangeTextSlice confirmtxt, "DONE", uilook(uiMenuItem), YES
 
@@ -7138,19 +7138,19 @@ FUNCTION gamepad_virtual_keyboard (arr as ArrowSet, default_str as string, max_l
    .width = small(320, max_length * 8 + 20)
   END IF
   .height = 20
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
-  .AnchorVert = 1
-  .AlignVert = 1
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
+  .AnchorVert = alignCenter
+  .AlignVert = alignCenter
  END WITH
  ChangeRectangleSlice typingbox, 0
  DIM typing as Slice Ptr
  typing = NewSliceOfType(sltext, typingbox)
  WITH *typing
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
-  .AnchorVert = 1
-  .AlignVert = 1
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
+  .AnchorVert = alignCenter
+  .AlignVert = alignCenter
  END WITH
 
  DIM p as XYPair
@@ -7292,10 +7292,10 @@ FUNCTION progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as
  WITH *rect_sl
   .Width = 280
   .Height = 50 ' updated again after the text is wrapped
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
-  .AnchorVert = 1
-  .AlignVert = 1
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
+  .AnchorVert = alignCenter
+  .AlignVert = alignCenter
  END WITH
  ChangeRectangleSlice rect_sl, 0
  
@@ -7304,8 +7304,8 @@ FUNCTION progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as
  WITH *text_sl
   .Y = 8
   .Width = rect_sl->Width - 16
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
  END WITH
  ChangeTextSlice text_sl, caption, uiLook(uiText), YES, YES
  
@@ -7317,10 +7317,10 @@ FUNCTION progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as
   .Y = -23
   .Width = 10
   .Height = 10
-  .AnchorHoriz = 1
-  .AlignVert = 1
-  .AnchorVert = 1
-  .AlignVert = 2
+  .AnchorHoriz = alignCenter
+  .AlignVert = alignCenter
+  .AnchorVert = alignCenter
+  .AlignVert = alignBottom
   END WITH
   ChangeEllipseSlice bubbles(i), uilook(uiHealthBar), uilook(uiHealthBarFlash)
  NEXT i

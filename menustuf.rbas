@@ -713,8 +713,8 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
  DIM right_panel as Slice Ptr
  right_panel = NewSliceOfType(slContainer, buyst.root_sl)
  WITH *right_panel
-  .AnchorHoriz = 2
-  .AlignHoriz = 2
+  .AnchorHoriz = alignRight
+  .AlignHoriz = alignRight
   .Width = 168
   .Height = 176
   .PaddingTop = 25
@@ -724,8 +724,8 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
  DIM your_money_box as Slice Ptr
  your_money_box = NewSliceOfType(slRectangle, right_panel)
  WITH *your_money_box
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
   .Width = .parent->Width
   .Height = INT(.parent->PaddingTop * 0.75)
   .Y = -(.parent->PaddingTop) + 4
@@ -734,10 +734,10 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
  
  buyst.money_sl = NewSliceOfType(slText, your_money_box)
  WITH *(buyst.money_sl)
-  .AnchorHoriz = 1
-  .AnchorVert = 1
-  .AlignHoriz = 1
-  .AlignVert = 1
+  .AnchorHoriz = alignCenter
+  .AnchorVert = alignCenter
+  .AlignHoriz = alignCenter
+  .AlignVert = alignCenter
  END WITH
  ChangeTextSlice buyst.money_sl, "You have ??? Gold" , uilook(uiGold), YES 
   
@@ -755,8 +755,8 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
 
  buyst.hero_box = NewSliceOfType(slContainer, info_box)
  WITH *(buyst.hero_box)
-  .AnchorVert = 2
-  .AlignVert = 2
+  .AnchorVert = alignBottom
+  .AlignVert = alignBottom
   .Width = .parent->Width - (.parent->PaddingLeft + .parent->PaddingRight)
   .Height = 44
  END WITH
@@ -773,10 +773,10 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
   ChangeRectangleSlice buyst.party_box(i), , , , borderLine
   buyst.party_sl(i) = NewSliceOfType(slSprite, buyst.party_box(i))
   WITH *(buyst.party_sl(i))
-   .AnchorVert = 1
-   .AlignVert = 1
-   .AnchorHoriz = 1
-   .AlignHoriz = 1
+   .AnchorVert = alignCenter
+   .AlignVert = alignCenter
+   .AnchorHoriz = alignCenter
+   .AlignHoriz = alignCenter
   END WITH
   ChangeSpriteSlice buyst.party_sl(i), sprTypeHero
  NEXT i
@@ -791,8 +791,8 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
 
  buyst.hire_box = NewSliceOfType(slRectangle, right_panel)
  WITH *(buyst.hire_box)
-  .AnchorVert = 2
-  .AlignVert = 2
+  .AnchorVert = alignBottom
+  .AlignVert = alignBottom
   .X = 30
   .Y = -20
   .Width = 38
@@ -803,19 +803,19 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
  
  buyst.hire_sl = NewSliceOfType(slSprite, buyst.hire_box)
  WITH *(buyst.hire_sl)
-  .AnchorVert = 1
-  .AlignVert = 1
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
+  .AnchorVert = alignCenter
+  .AlignVert = alignCenter
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
  END WITH
  ChangeSpriteSlice buyst.hire_sl, sprTypeHero
 
  buyst.portrait_box = NewSliceOfType(slRectangle, right_panel)
  WITH *(buyst.portrait_box)
-  .AnchorVert = 2
-  .AlignVert = 2
-  .AnchorHoriz = 2
-  .AlignHoriz = 2
+  .AnchorVert = alignBottom
+  .AlignVert = alignBottom
+  .AnchorHoriz = alignRight
+  .AlignHoriz = alignRight
   .X = -20
   .Y = -20
   .Width = 54
@@ -826,19 +826,19 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
  
  buyst.portrait_sl = NewSliceOfType(slSprite, buyst.portrait_box)
  WITH *(buyst.portrait_sl)
-  .AnchorVert = 1
-  .AlignVert = 1
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
+  .AnchorVert = alignCenter
+  .AlignVert = alignCenter
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
  END WITH
  ChangeSpriteSlice buyst.portrait_sl, sprTypePortrait
 
  buyst.price_box = NewSliceOfType(slRectangle, buyst.root_sl)
  WITH *(buyst.price_box)
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
-  .AnchorVert = 2
-  .AlignVert = 2
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
+  .AnchorVert = alignBottom
+  .AlignVert = alignBottom
   .Y = -3
   .Height = 16
   .PaddingLeft = 8
@@ -848,10 +848,10 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
  
  buyst.price_sl = NewSliceOfType(slText, buyst.price_box)
  WITH *(buyst.price_sl)
-  .AnchorVert = 1
-  .AlignVert = 1
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
+  .AnchorVert = alignCenter
+  .AlignVert = alignCenter
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
   .Fill = NO
   .FillMode = sliceFillHoriz
  END WITH
@@ -859,10 +859,10 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
 
  buyst.alert_box = NewSliceOfType(slRectangle, buyst.root_sl)
  WITH *(buyst.alert_box)
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
-  .AnchorVert = 2
-  .AlignVert = 2
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
+  .AnchorVert = alignBottom
+  .AlignVert = alignBottom
   .Y = -3
   .Height = 16
   .Visible = NO
@@ -871,10 +871,10 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
  
  buyst.alert_sl = NewSliceOfType(slText, buyst.alert_box)
  WITH *(buyst.alert_sl)
-  .AnchorVert = 1
-  .AlignVert = 1
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
+  .AnchorVert = alignCenter
+  .AlignVert = alignCenter
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
  END WITH
  ChangeTextSlice buyst.alert_sl, "", uilook(uiText), YES
 

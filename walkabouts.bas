@@ -44,10 +44,10 @@ FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
  sprsl = NewSliceOfType(slSprite, sl, SL_WALKABOUT_SPRITE_COMPONENT)
  WITH *sprsl
   'Anchor and align NPC sprite in the bottom center of the NPC container
-  .AnchorHoriz = 1
-  .AnchorVert = 2
-  .AlignHoriz = 1
-  .AlignVert = 2
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
+  .AnchorVert = alignBottom
+  .AlignVert = alignBottom
   .Protect = YES
  END WITH
  RETURN sl
@@ -63,10 +63,10 @@ SUB create_walkabout_shadow (byval walkabout_cont as Slice Ptr)
  WITH *shadow
   .Width = 12
   .Height = 6
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
-  .AnchorVert = 2
-  .AlignVert = 2
+  .AnchorHoriz = alignCenter
+  .AlignHoriz = alignCenter
+  .AnchorVert = alignBottom
+  .AlignVert = alignBottom
   .Y = gmap(11) 'foot offset
   .Visible = NO
  END WITH

@@ -632,10 +632,10 @@ WITH *preview_box
  .Y = -8
  .Width = 82
  .Height = 82
- .AnchorHoriz = 2
- .AlignHoriz = 2
- .AnchorVert = 2
- .AlignVert = 2
+ .AnchorHoriz = alignRight
+ .AlignHoriz = alignRight
+ .AnchorVert = alignBottom
+ .AlignVert = alignBottom
 END WITH
 
 '--Create the preview sprite. It will be updated before it is drawn.
@@ -644,10 +644,10 @@ preview = NewSliceOfType(slSprite, preview_box)
 '--Align the sprite to the bottom center of the containing box
 WITH *preview
  .Y = -1
- .AnchorHoriz = 1
- .AlignHoriz = 1
- .AnchorVert = 2
- .AlignVert = 2
+ .AnchorHoriz = alignCenter
+ .AlignHoriz = alignCenter
+ .AnchorVert = alignBottom
+ .AlignVert = alignBottom
 END WITH
 
 '--Need a copy of the sprite to call frame_dissolved on

@@ -185,8 +185,8 @@ FUNCTION purchase_menu_create_product_slice(byval prod as NodePtr, byval parent 
    .PaddingLeft = 4
    .PaddingBottom = 4
    .PaddingRight = 4
-   .AnchorHoriz = 1
-   .AlignHoriz = 1
+   .AnchorHoriz = alignCenter
+   .AlignHoriz = alignCenter
   END WITH
   ChangeRectangleSlice box, 14 ' For now, use the same box styles as the Load menu
   
