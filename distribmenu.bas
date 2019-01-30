@@ -410,7 +410,7 @@ SUB maybe_write_license_text_file (filename as string)
  
  IF NOT isfile(lic_file) THEN debug lic_file & " does not exist": EXIT SUB
  
- copyfile lic_file, filename
+ writeablecopyfile lic_file, filename
  
 END SUB
 

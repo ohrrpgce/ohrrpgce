@@ -417,7 +417,7 @@ SUB importsong_import_song_file (songname as string, songfile as string, bamfile
  END IF
 
  'Copy in new lump (this implicitly sends a notification to Game if it's been spawned)
- copyfile sourcesong, songfile
+ writeablecopyfile sourcesong, songfile
 
  IF oggtemp <> "" THEN killfile oggtemp
 
@@ -544,7 +544,7 @@ SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as str
  DIM query as string = "Name of file to export to?"
  DIM outfile as string = inputfilename(query, file_ext, "", "input_file_export_song", songname)
  IF outfile = "" THEN EXIT SUB
- copyfile songfile, outfile & file_ext
+ writeablecopyfile songfile, outfile & file_ext
 END SUB
 
 SUB delete_song (byval songnum as integer, songfile as string, bamfile as string)
@@ -748,7 +748,7 @@ SUB importsfx_importsfxfile(sfxname as string, sfxfile as string, byval sfxnum a
  sfxfile = workingdir & SLASH & "sfx" & sfxnum & "." & LCASE(justextension(sourcesfx))
 
  '--copy in the new lump
- copyfile sourcesfx, sfxfile
+ writeablecopyfile sourcesfx, sfxfile
 
  IF oggtemp <> "" THEN killfile oggtemp
 
@@ -760,7 +760,7 @@ SUB importsfx_exportsfx(sfxfile as string, file_ext as string, sfxname as string
  DIM query as string = "Name of file to export to?"
  DIM outfile as string = inputfilename(query, file_ext, "", "input_file_export_sfx", sfxname)
  IF outfile = "" THEN EXIT SUB
- copyfile sfxfile, outfile & file_ext
+ writeablecopyfile sfxfile, outfile & file_ext
 END SUB
 
 SUB importsfx_save_sfx_data(sfxname as string, byval sfxnum as integer)

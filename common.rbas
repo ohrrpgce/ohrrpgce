@@ -602,6 +602,7 @@ END FUNCTION
 
 FUNCTION confirmed_copy (srcfile as string, destfile as string) as bool
  'Copy a file, check to make sure it really was copied, and show an error message if not.
+ 'The copy will not be read-only (this acts like writeablecopyfile()).
  '(FIXME: The real error message is printed to debug by copy_file_replacing())
  ' Returns true if the copy was okay, false if it failed
  IF NOT isfile(srcfile) THEN
@@ -617,6 +618,10 @@ FUNCTION confirmed_copy (srcfile as string, destfile as string) as bool
   visible_debug "BUG: couldn't copy file to " & destfile & ", although copyfile() succeeded"
   RETURN NO
  END IF
+ #IFDEF __FB_WIN32__
+  'On Windows copyfile() preserves file attributes, but we usually don't want the copy to be read-only
+  setwriteable destfile, YES
+ #ENDIF
  RETURN YES
 END FUNCTION
 

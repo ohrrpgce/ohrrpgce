@@ -2737,7 +2737,7 @@ SUB automatic_backup (rpgfile as string)
   IF isdir(destfile) THEN killdir destfile
   confirmed_copydirectory(rpgfile, destfile)
  ELSE
-  copyfile rpgfile, destfile
+  writeablecopyfile rpgfile, destfile
  END IF
 
  'Cull old backups to avoid bloatclutter.
@@ -2783,7 +2783,7 @@ FUNCTION write_rpg_or_rpgdir (lumpsdir as string, filetolump as string) as bool
   END IF
   FOR i as integer = 0 TO UBOUND(filelist)
    safekill filetolump + SLASH + filelist(i)
-   IF copyfile(lumpsdir + SLASH + filelist(i), filetolump + SLASH + filelist(i)) = NO THEN
+   IF writeablecopyfile(lumpsdir + SLASH + filelist(i), filetolump + SLASH + filelist(i)) = NO THEN
     pop_warning "Failed to save game to " & filetolump & LINE_END "Look in c_debug.txt for error messages."
     RETURN NO
    END IF
@@ -2811,9 +2811,7 @@ END FUNCTION
 SUB move_unwriteable_rpg (filetolump as string)
  clearpage vpage
  DIM newfile as string = documents_dir & SLASH & trimpath(filetolump)
- basic_textbox filetolump + " is not writeable. Saving to " + newfile + !"\n[Press Any Key]", uilook(uiText), vpage
- setvispage vpage
- waitforanykey
+ visible_debug filetolump + " is not writeable. Saving to " + newfile
  filetolump = newfile
 END SUB
 
