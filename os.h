@@ -32,6 +32,7 @@ typedef struct ProcessInfo *ProcessHandle;
 
 #endif
 
+boolint is_windows_9x();
 int memory_usage();
 FBSTRING *memory_usage_string();
 

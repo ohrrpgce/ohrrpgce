@@ -32,35 +32,17 @@
 #include "../../misc.h"
 #include "../../gfx_common/ohrstring.hpp"
 
-#define TEXT_FORMAT  CF_UNICODETEXT
-//#define TEXT_FORMAT  CF_TEXT
-
 int clipboard_count = 0;
 
-////<< The following are from SDL_windows.c
+// The following function originally in SDL_windows.c
 
-/* Sets an error message based on GetLastError() */
-int
-WIN_SetErrorFromHRESULT(const char *prefix, HRESULT hr)
-{
-    TCHAR buffer[1024];
-    char *message;
-    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, hr, 0,
-                  buffer, SDL_arraysize(buffer), NULL);
-    message = WstringToMBstring(buffer, CP_UTF8);
-    debug(errInfo, "%s%s%s", prefix ? prefix : "", prefix ? ": " : "", message);
-    free(message);
-    return -1;
-}
-
-/* Sets an error message based on GetLastError() */
+/* Logs an error message based on GetLastError() */
 int
 WIN_SetError(const char *prefix)
 {
-    return WIN_SetErrorFromHRESULT(prefix, GetLastError());
+    debug(errInfo, "%s: %s", prefix, win_error(GetLastError()));
+    return -1;
 }
-
-////>> End SDL_windows.c
 
 int
 WIN_SetClipboardText(HWND hWindow, const char *text)
@@ -85,10 +67,9 @@ WIN_SetClipboardText(HWND hWindow, const char *text)
                 ++size;
             }
         }
-        size = (size+1)*sizeof(*tstr);
 
         /* Save the data to the clipboard */
-        hMem = GlobalAlloc(GMEM_MOVEABLE, size);
+        hMem = GlobalAlloc(GMEM_MOVEABLE, (size+1)*sizeof(*tstr));
         if (hMem) {
             LPTSTR dst = (LPTSTR)GlobalLock(hMem);
             if (dst) {
@@ -104,10 +85,29 @@ WIN_SetClipboardText(HWND hWindow, const char *text)
             }
 
             EmptyClipboard();
-            if (!SetClipboardData(TEXT_FORMAT, hMem)) {
+            if (!SetClipboardData(CF_UNICODETEXT, hMem)) {
                 result = WIN_SetError("Couldn't set clipboard data");
             }
-            clipboard_count = GetClipboardSequenceNumber();
+
+            // Normally, saving the text in UTF16 is sufficient since Windows
+            // automatically converts it to 8-bit text if requested.
+            // But also save the text in ASCII, for Win 95/98 which don't know about
+            // Unicode! (Win98 with Unicode layer installed doesn't work either).
+            // CF_TEXT is technically system codepage, not ASCII, eh.
+            hMem = GlobalAlloc(GMEM_MOVEABLE, size+1);
+            if (hMem) {
+                char *dst = GlobalLock(hMem);
+                if (dst) {
+                    strcpy(dst, text);
+                    GlobalUnlock(hMem);
+                    if (!SetClipboardData(CF_TEXT, hMem)) {
+                        result = WIN_SetError("Couldn't set clipboard data");
+                    }
+                }
+            }
+
+            // Commented out for Win95 support
+            //clipboard_count = GetClipboardSequenceNumber();
         }
         free(tstr);
 
@@ -125,19 +125,26 @@ WIN_GetClipboardText(HWND hWindow)
     char *text;
 
     text = NULL;
-    if (IsClipboardFormatAvailable(TEXT_FORMAT) &&
+    if ((IsClipboardFormatAvailable(CF_TEXT) || IsClipboardFormatAvailable(CF_UNICODETEXT)) &&
         OpenClipboard(hWindow)) {
         HANDLE hMem;
         LPTSTR tstr;
 
-        hMem = GetClipboardData(TEXT_FORMAT);
+        hMem = GetClipboardData(CF_UNICODETEXT);
         if (hMem) {
             tstr = (LPTSTR)GlobalLock(hMem);
             text = WstringToMBstring(tstr, CP_UTF8);
             GlobalUnlock(hMem);
         } else {
-            // Not an error; e.g. the clipboard doesn't contain text
-            //WIN_SetError("Couldn't get clipboard data");
+            // As above: also write in multibyte to support Win 95/98.
+            hMem = GetClipboardData(CF_TEXT);
+            if (hMem) {
+                text = strdup((char*)GlobalLock(hMem));
+                GlobalUnlock(hMem);
+            } else {
+                // Not an error; e.g. the clipboard doesn't contain text
+                //WIN_SetError("Couldn't get clipboard data");
+            }
         }
         CloseClipboard();
     }
@@ -159,7 +166,7 @@ WIN_HasClipboardText(HWND hWindow)
     return result;
 }
 
-/*
+/* NOTE: if you want to use this you must uncomment the other GetClipboardSequenceNumber() call too
 void
 WIN_CheckClipboardUpdate(struct SDL_VideoData * data)
 {
