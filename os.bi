@@ -117,6 +117,7 @@ type HTTPRequest
 	response_buf as zstring ptr  ' Response with the header
 	status as integer            ' HTTP status, 200 for success
 	status_string as zstring ptr ' Returned from the server, may be anything
+	_dummy as any ptr
 end type
 
 declare sub HTTP_Request_init(req as HTTPRequest ptr)

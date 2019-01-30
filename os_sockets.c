@@ -1,8 +1,7 @@
 //OHHRPGCE COMMON - Berkeley socket-based networking routines (Windows and Unix)
 //Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 
-//fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
-#include "fb/fb_stub.h"
+#include "config.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -11,9 +10,15 @@
   #define WIN32_LEAN_AND_MEAN  // Prevent conflicts due to windows.h including winsock 1 header
   #include <windows.h>
   #include <winsock2.h>
-  // The follow two headers are necessary for getaddrinfo to work on pre-WinXP versions
-  #include <ws2tcpip.h>
-  #include <wspiapi.h>
+  #ifdef IS_MINGW
+    #define NO_IPv6
+  #else
+    // The follow two headers are necessary for getaddrinfo to work on pre-WinXP versions
+    // (actually, with mingw, getaddrinfo is completely missing without them).
+    // wspiapi.h is part of mingw-w64 but not mingw. If using VC++, it's in the Windows SDK.
+    #include <ws2tcpip.h>
+    #include <wspiapi.h>
+  #endif
   #define SHUT_WR SD_SEND
 #else
   #include <errno.h>
@@ -48,24 +53,28 @@ typedef struct {
 	char *response_buf;  // Response with the header
 	int status;          // HTTP status, 200 for success
 	char *status_string; // Returned from the server, may be anything
+#ifdef NO_IPv6
+	void *_dummy;
+#else
+	struct addrinfo *addr;
+#endif
 } HTTPRequest;
-
 
 void HTTP_Request_init(HTTPRequest *req) {
 	memset(req, 0, sizeof(HTTPRequest));
 }
 
 void HTTP_Request_destroy(HTTPRequest *req) {
-	if (req->started) return;
+	if (!req->started) return;
 	free(req->response_buf);
-	req->response_buf = NULL;
-	req->response = NULL;
 	free(req->status_string);
-	req->status_string = NULL;
+#ifndef NO_IPv6
+	if (req->addr) freeaddrinfo(req->addr);
+#endif
+	memset(req, 0, sizeof(HTTPRequest));
 #ifdef _WIN32
 	WSACleanup();
 #endif
-	req->started = false;
 }
 
 static void parse_HTTP_response(HTTPRequest *req) {
@@ -155,7 +164,7 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 		memcpy(port, url, proto_len);
 		port[proto_len] = '\0';
 		// Translate from the protocol to a port number. This isn't needed for getaddrinfo,
-		// but it is needed for the Host: line in the HTTP header
+		// but it is needed for the Host: line in the HTTP header, and with gethostbyname
 		struct servent *service = getservbyname(port, "tcp");
 		if (service) {
 			sprintf(port, "%d", ntohs(service->s_port));
@@ -171,11 +180,39 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 	debuginfo("server %s port %s path %s", server, port, path);
 
 	// DNS lookup of address
-	struct addrinfo hints = {0}, *addr;
+#ifdef NO_IPv6
+	// We can't use getaddrinfo, fallback to gethostbyname - while this might support
+	// IPv6 it's more of a pain, and probably doesn't if we don't have gethostbyname.
+	struct hostent *hoste;
+	hoste = gethostbyname(server);
+	if (!hoste) {
+#ifdef _WIN32
+		const char *err = lasterror();
+#else
+		const char *err = hstrerror(h_errno);
+#endif
+		debug(errError, "getaddrinfo(%s) failed: %s", server, err);
+		req->failed = true;
+		return false;
+	}
+
+	struct sockaddr_in saddr = {0};
+	saddr.sin_family = AF_INET;
+	saddr.sin_port = htons(atoi(port));
+	memcpy((char *)&saddr.sin_addr, hoste->h_addr_list[0], hoste->h_length);
+
+	int ai_family = PF_INET;
+	int ai_socktype = SOCK_STREAM;
+	int ai_protocol = 0;
+	struct sockaddr *ai_addr = (struct sockaddr *)&saddr;
+	int ai_addrlen = sizeof(saddr);
+#else
+	// Use getaddrinfo if available, for IPv6 support.
+	struct addrinfo hints = {0};
 	hints.ai_family = AF_UNSPEC;      //Either IPv4 or IPv6
 	hints.ai_socktype = SOCK_STREAM;  //TCP
 	hints.ai_protocol = IPPROTO_TCP;  //TCP
-	result = getaddrinfo(server, port, &hints, &addr);
+	result = getaddrinfo(server, port, &hints, &req->addr);
 	if (result) {
 #ifdef _WIN32
 		// Unlike Linux, on Windows gai_strerror isn't threadsafe, so use WSAGetLastError()
@@ -188,29 +225,31 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 		req->failed = true;
 		return false;
 	}
+	int ai_family = req->addr->ai_family;
+	int ai_socktype = req->addr->ai_socktype;
+	int ai_protocol = req->addr->ai_protocol;
+	struct sockaddr *ai_addr = req->addr->ai_addr;
+	socklen_t ai_addrlen = req->addr->ai_addrlen;
+#endif
 
 	// Create socket (a file descriptor under Unix)
-	SOCKET sock = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+	SOCKET sock = socket(ai_family, ai_socktype, ai_protocol);
 	if (sock == INVALID_SOCKET) {
 		debug(errError, "socket(%s) error: %s", server, lasterror());
-		freeaddrinfo(addr);
 		req->failed = true;
 		return false;
 	}
 
 	// Connect
-	result = connect(sock, addr->ai_addr, addr->ai_addrlen);
+	result = connect(sock, ai_addr, ai_addrlen);
 	if (result == SOCKET_ERROR) {
 		// Not bothering to attempt to connect to the next available address from addr
 		debug(errError, "connect(%s) error: %s", server, lasterror());
 		closesocket(sock);
-		freeaddrinfo(addr);
 		req->failed = true;
 		return false;
 		//sock = INVALID_SOCKET;
 	}
-
-	freeaddrinfo(addr);
 
 	// Build the header
 	const int HDRBUFSZ = 256;

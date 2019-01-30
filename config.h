@@ -7,6 +7,7 @@
 #include "fb/fb_stub.h"
 #include "errorlevel.h"
 #include <stdint.h>
+#include <stdlib.h>  // For __MINGW64_VERSION_MAJOR
 
 // For Windows (changes declarations in windows.h from ANSI to UTF16)
 #define UNICODE 1
@@ -16,6 +17,14 @@
 
 #if (defined(unix) || defined(__unix__)) && !defined(__APPLE__) && !defined(__ANDROID__)
 # define USE_X11 1
+#endif
+
+#ifdef __MINGW64_VERSION_MAJOR
+// This is mingw-w64, not mingw or anything else
+# define IS_MINGW64
+#elif defined(__MINGW32__)
+// This is mingw, not mingw-w64
+# define IS_MINGW
 #endif
 
 #ifdef __cplusplus
