@@ -65,23 +65,19 @@ dim shared main_thread_id as integer
 
 '''''' Extra winapi defines
 
-' Missing from FB 0.23 headers
-#ifndef GetProcessImageFileName
-	extern "Windows"
-	#ifdef UNICODE
-		declare function GetProcessImageFileName alias "GetProcessImageFileNameW" (byval hProcess as HANDLE, byval lpImageFileName as LPWSTR, byval nSize as DWORD) as DWORD
-	#else
-		declare function GetProcessImageFileName alias "GetProcessImageFileNameA" (byval hProcess as HANDLE, byval lpImageFileName as LPSTR, byval nSize as DWORD) as DWORD
-	#endif
-	end extern
-#endif
-
 'We #undef'd copyfile
 #ifdef UNICODE
 	declare function CopyFile_ alias "CopyFileW" (byval as LPCWSTR, byval as LPCWSTR, byval as BOOL) as BOOL
 #else
 	declare function CopyFile_ alias "CopyFileA" (byval as LPCSTR, byval as LPCSTR, byval as BOOL) as BOOL
 #endif
+
+extern "C"
+#undef GetProcessMemoryInfo
+dim shared GetProcessMemoryInfo as function (byval Process as HANDLE, byval ppsmemCounters as PPROCESS_MEMORY_COUNTERS, byval cb as DWORD) as WINBOOL
+#undef GetProcessImageFileNameA
+dim shared GetProcessImageFileNameA as function (byval hProcess as HANDLE, byval lpImageFileName as LPSTR, byval nSize as DWORD) as DWORD
+end extern
 
 
 '==========================================================================================
@@ -166,6 +162,14 @@ extern "C"
 
 sub os_init ()
 	main_thread_id = GetCurrentThreadId()
+
+	' psapi.dll is not present on older Windows versions (added between 98 and XP),
+	' but we can do without it.
+	dim psapi as any ptr = dylibload("psapi")
+	if psapi then
+		GetProcessMemoryInfo = dylibsymbol(psapi, "GetProcessMemoryInfo")
+		GetProcessImageFileNameA = dylibsymbol(psapi, "GetProcessImageFileNameA")
+	end if
 end sub
 
 'Currently Android only
@@ -174,6 +178,7 @@ end sub
 
 #macro GET_MEMORY_INFO(memctrs, on_error)
 	' This requires psapi.dll
+	if GetProcessMemoryInfo = NULL then return on_error
 	if GetProcessMemoryInfo(GetCurrentProcess(), @memctrs, sizeof(memctrs)) = 0 then
 		debug "GetProcessMemoryInfo failed: " & error_string
 		return on_error
@@ -192,10 +197,6 @@ end function
 
 function memory_usage_string() as string
 	dim memctrs as PROCESS_MEMORY_COUNTERS
-	if GetProcessMemoryInfo(GetCurrentProcess(), @memctrs, sizeof(memctrs)) = 0 then
-		debug "GetProcessMemoryInfo failed: " & error_string
-		return ""
-	end if
 	GET_MEMORY_INFO(memctrs, "")
 	return "workingset=" & memctrs.WorkingSetSize & " peak workingset=" & memctrs.PeakWorkingSetSize _
 	       & " commit=" & memctrs.PagefileUsage & " peak commit=" & memctrs.PeakPagefileUsage _
@@ -1011,7 +1012,7 @@ end function
 
 'Returns full path to a process given its PID in device form, e.g.
 '\Device\HarddiskVolume1\OHRRPGCE\custom.exe
-'or "" if it doesn't exist or we don't have permission.
+'or "" if it doesn't exist, or "<unknown>" if it can't be determined (e.g. we don't have permission, or running Win98).
 'This function is used primarily to determine whether a process is still running
 function get_process_path (pid as integer) as string
 	dim proc as HANDLE
@@ -1021,17 +1022,18 @@ function get_process_path (pid as integer) as string
 		' OpenProcess sets "Invalid parameter" error if the pid doesn't exist
 		if errcode <> ERROR_INVALID_PARAMETER then
 			debug "get_process_path: OpenProcess(pid=" & pid & ") err " & errcode & " " & get_windows_error(errcode)
+			return "<unknown>"
 		end if
 		return ""
 	end if
 	dim ret as zstring * 256
 	'QueryFullProcessImageName, which returns a normal filename instead of device form, is Win Vista+.
-	if GetProcessImageFileName(proc, ret, 256) = 0 then
+	'GetModuleFileNameExA doesn't return a normal filename either.
+	if GetProcessImageFileNameA andalso GetProcessImageFileNameA(proc, ret, 256) = 0 then
 		dim errcode as integer = GetLastError()
 		debug "get_process_path: GetProcessImageFileName err " & errcode & " " & get_windows_error(errcode)
-	end if
-
-	if len(ret) then
+		ret = "<unknown>"
+	elseif len(ret) then
 		'If a process crashes or is killed (but not if it closes normally), Windows apparently keeps some
 		'information about the dead PID and continues to return its image path.
 		'So check the exitcode to prevent misidentifying a PID as still running.

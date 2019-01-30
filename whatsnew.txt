@@ -86,6 +86,7 @@ September 29 2018 [Fufluns]
       to reflect the change [Ralph]
     * Copy/pasting of item definitions [Ralph]
     * New attack animation "Screen Center" [James]
+    * Windows 98 is supported again! [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

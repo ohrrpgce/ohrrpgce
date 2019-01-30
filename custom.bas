@@ -1027,7 +1027,7 @@ FUNCTION get_previous_session_info (workdir as string) as SessionInfo
    ' but it's incredibly unlikely
    DIM pid_current_exe as string = get_process_path(ret.pid)
    debuginfo "pid_current_exe = " & pid_current_exe
-   ret.running = (LEN(exe) ANDALSO pid_current_exe = exe)
+   ret.running = (LEN(exe) ANDALSO (pid_current_exe = exe ORELSE exe = "<unknown>"))
   END IF
  ELSE
   'We don't know anything, except that we could work out session_start_time by looking at working.tmp mtimes.
