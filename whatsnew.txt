@@ -86,7 +86,8 @@ September 29 2018 [Fufluns]
       to reflect the change [Ralph]
     * Copy/pasting of item definitions [Ralph]
     * New attack animation "Screen Center" [James]
-    * Windows 98 is supported again! [Ralph]
+    * Windows 95 is supported again! (But hspeak doesn't run on 95; upgrade to
+      Windows 98) [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

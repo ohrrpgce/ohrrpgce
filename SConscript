@@ -73,6 +73,7 @@ unix = False  # True on mac and android
 mac = False
 android = False
 android_source = False
+win95 = int(ARGUMENTS.get ('win95', '1'))
 glibc = False  # Computed below; can also be overridden by glibc=1 cmdline argument
 target = ARGUMENTS.get ('target', None)
 arch = ARGUMENTS.get ('arch', None)  # default decided below
@@ -826,9 +827,12 @@ base_modules += ['os_sockets.c']
 if win32:
     base_modules += ['os_windows.bas', 'os_windows2.c', 'lib/win98_compat.bas']
     # winmm needed for MIDI, used by music backends but also by miditest
-    # psapi.dll needed just for get_process_path() and memory_usage(). Not present on Win98 unfortunately
+    # psapi.dll needed just for get_process_path() and memory_usage(). Not present on Win98 unfortunately,
+    # so now we dynamically link it.
     # ole32.dll needed just for open_document()
-    base_libraries += ['winmm', 'ole32', 'ws2_32']  # 'psapi' is dynamically loaded
+    base_libraries += ['winmm', 'ole32', 'wsock32' if win95 else 'ws2_32']
+    if win95:
+        env['CFLAGS'] += ['-D', 'USE_WINSOCK1']
     common_libraries += [libfbgfx]
     commonenv['FBFLAGS'] += ['-s','gui']  # Change to -s console to see 'print' statements in the console!
     commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
@@ -1347,6 +1351,8 @@ Options:
   lto=1               Do link-time optimisation, for a faster, smaller build
                       (about 2-300KB for Game/Custom) but longer compile time.
                       Use with gengcc=1.
+  win95=0             (Windows only) Link to Winsock 2 instead of 1. Use win95=0
+                      and mingw-w64 (not mingw) to get support for IPv6.
   valgrind=1          Recommended when using valgrind (also turns off -exx).
   asan=1              Use AddressSanitizer. Unless overridden with gengcc=0 also
                       disables -exx and uses GCC emitter.

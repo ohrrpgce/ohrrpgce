@@ -9,10 +9,20 @@
 #ifdef _WIN32
   #define WIN32_LEAN_AND_MEAN  // Prevent conflicts due to windows.h including winsock 1 header
   #include <windows.h>
-  #include <winsock2.h>
-  #ifdef IS_MINGW
+  #ifdef USE_WINSOCK1
+    // Use winsock 1 instead of 2; don't even try to support IPv6.
+    // TODO: DELETEME later - Winsock2 is installable in Win95, but since the official
+    // OHR build machine currently doesn't have the necessary headers for IPv6
+    // support, we might as well use winsock 1 and support vanilla Win95 for now.
+    #include <winsock.h>
+    #define SD_SEND 1
     #define NO_IPv6
   #else
+    #include <winsock2.h>
+  #endif
+  #ifdef IS_MINGW
+    #define NO_IPv6
+  #elif !defined(USE_WINSOCK1)
     // The follow two headers are necessary for getaddrinfo to work on pre-WinXP versions
     // (actually, with mingw, getaddrinfo is completely missing without them).
     // wspiapi.h is part of mingw-w64 but not mingw. If using VC++, it's in the Windows SDK.
