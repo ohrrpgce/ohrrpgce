@@ -122,13 +122,16 @@ end function
 
 'Returns true only on Windows 95, 98 and ME
 function is_windows_9x () as bool
+	static cached as integer = -2   'I did not bother to test whether a cache is needed
+	if cached <> -2 then return cached
 	dim verinfo as OSVERSIONINFO
 	verinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO)
 	if GetVersionEx(@verinfo) then
-		return verinfo.dwPlatformId <= 1
+		cached = verinfo.dwPlatformId <= 1
 	else
-		return NO  'simply most likely
+		cached = NO  'simply most likely
 	end if
+	return cached
 end function
 
 'Note: this returns Windows 8 on Windows 8.1 and 10, because GetVersionEx lies to preserve compatibility!
@@ -818,6 +821,7 @@ function open_process (program as string, args as string, waitable as boolint, g
 		'to not work when passed to cmd.exe as a commandline, breaking run_and_get_output.
 		'I can't understand why cmd.exe should care!
 		'sinfo.dwFlags or= STARTF_USESTDHANDLES 'OR STARTF_USESHOWWINDOW
+		'FIXME: On Windows 9X (when using command.com), this doesn't work, and a window always pops up.
 		flags or= CREATE_NO_WINDOW
 	end if
 

@@ -46,6 +46,10 @@ void os_init() {
 	main_thread_handle = pthread_self();
 }
 
+boolint is_windows_9x()
+	return false;
+}
+
 void external_log(const char *msg) {
 #ifdef __ANDROID__
 	__android_log_write(ANDROID_LOG_INFO, "OHRRPGCE", msg);

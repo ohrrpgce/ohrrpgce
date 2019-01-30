@@ -3215,12 +3215,14 @@ FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, dow
  IF isfile(support & SLASH & appname & ".exe") THEN RETURN support & SLASH & appname & ".exe"
 
  #IFDEF __FB_WIN32__
-  ' Check whether appname.exe is in the $PATH
-  DIM ret as string
-  ' Prepend a _ because if its args are blank echo prints "ECHO ON."
-  run_and_get_output "for %X in (" & appname & ".exe) do echo _%~$PATH:X", ret, , NO 'disable debuginfo spam
-  ret = RTRIM(ret, ANY !"\n\r")
-  IF LEN(ret) > 1 THEN RETURN MID(ret, 2)  ' Trim the _.
+  IF is_windows_9x() = NO THEN
+   ' Check whether appname.exe is in the $PATH  (command.com doesn't seem to support this syntax)
+   DIM ret as string
+   ' Prepend a _ because if its args are blank echo prints "ECHO ON."
+   run_and_get_output "for %X in (" & appname & ".exe) do echo _%~$PATH:X", ret, , NO 'disable debuginfo spam
+   ret = RTRIM(ret, ANY !"\n\r")
+   IF LEN(ret) > 1 THEN RETURN MID(ret, 2)  ' Trim the _.
+  END IF
  #ENDIF
 
  IF try_install THEN

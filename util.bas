@@ -2301,11 +2301,15 @@ END FUNCTION
 FUNCTION safe_shell (cmd as string, timeout as double = 5., log_it as bool = YES) as integer
   IF log_it THEN debuginfo cmd
 #IFDEF __FB_WIN32__
-  'SHELL wraps system() which calls cmd.exe (or command.com on older OSes)
-  'cmd.exe will remove the first and last quotes from the string and leave the rest.
-  'Therefore, there need to be two quotes at the beginning of the string!
+  'SHELL wraps system() which calls cmd.exe (or command.com on non-NT Windows)
   DIM handle as ProcessHandle
-  handle = open_process("cmd.exe", "/C """ & cmd & """", YES, NO)
+  IF is_windows_9x() THEN
+   handle = open_process("command.com", "/C " & cmd, YES, NO)
+  ELSE
+   'cmd.exe will remove the first and last quotes from the string and leave the rest.
+   'Therefore, there need to be two quotes at the beginning of the string!
+   handle = open_process("cmd.exe", "/C """ & cmd & """", YES, NO)
+  END IF
   RETURN wait_for_process(@handle, timeout * 1000)
 #ELSE
   ' (SHELL returns wrong exit code in FB 0.23 and earlier)
@@ -2331,12 +2335,16 @@ FUNCTION run_and_get_output(cmd as string, byref stdout_s as string, byref stder
   DIM as string stdout_file, stderr_file, cmdline
   DIM as bool grab_stderr
   grab_stderr = (stderr_s <> "<ignore>")
+  IF is_windows_9x() THEN
+   grab_stderr = NO
+   stderr_s = "(Can't grab errors on Windows 9x/ME)"
+  END IF
 
   stdout_file = tmpdir & "temp_stdout." & randint(1000000) & ".tmp"
   cmdline = cmd & " > " & escape_filename(stdout_file)
   IF grab_stderr THEN
     stderr_file = tmpdir & "temp_stderr." & randint(1000000) & ".tmp"
-    ' This redirection works on Windows too
+    ' This redirection works on Windows too with cmd.exe, but not command.com
     cmdline &= " 2> " & escape_filename(stderr_file)
   END IF
   ret = safe_shell(cmdline, , log_it)
