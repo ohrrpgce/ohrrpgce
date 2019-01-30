@@ -47,9 +47,10 @@ function zip_and_upload {
   zip -q distrib/"${ZIPFILE}" game.exe custom.exe hspeak.exe
   zip -q -r distrib/"${ZIPFILE}" data
   zip -q -r distrib/"${ZIPFILE}" ohrhelp
-  zip -q distrib/"${ZIPFILE}" support/madplay.exe
-  zip -q distrib/"${ZIPFILE}" support/oggenc.exe
+  zip -q distrib/"${ZIPFILE}" support/madplay.exe support/LICENSE-madplay.txt
+  zip -q distrib/"${ZIPFILE}" support/oggenc.exe support/LICENSE-oggenc.txt
   zip -q distrib/"${ZIPFILE}" support/zip.exe
+  zip -q distrib/"${ZIPFILE}" support/wget.exe
   zip -q distrib/"${ZIPFILE}" support/CrashRpt*.dll support/CrashSender*.exe support/crashrpt_lang.ini
   cp relump.exe support/
   zip -q distrib/"${ZIPFILE}" support/relump.exe

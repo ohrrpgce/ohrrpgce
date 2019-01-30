@@ -18,9 +18,10 @@ support\zip -q distrib\%ZIPFILE% game.exe custom.exe hspeak.exe
 support\zip -q -r distrib\%ZIPFILE% data
 support\zip -q distrib\%ZIPFILE% whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd scancode.hsi svninfo.txt
 support\zip -q -r distrib\%ZIPFILE% ohrhelp
-support\zip -q distrib\%ZIPFILE% support\madplay.exe
-support\zip -q distrib\%ZIPFILE% support\oggenc.exe
+support\zip -q distrib\%ZIPFILE% support\madplay.exe support\LICENSE-madplay.txt
+support\zip -q distrib\%ZIPFILE% support\oggenc.exe support\LICENSE-oggenc.txt
 support\zip -q distrib\%ZIPFILE% support\zip.exe
+support\zip -q distrib\%ZIPFILE% support\wget.exe
 support\zip -q distrib\%ZIPFILE% support\CrashRpt*.dll support\CrashSender*.exe support\crashrpt_lang.ini
 copy /y relump.exe support\
 support\zip -q distrib\%ZIPFILE% support\relump.exe
