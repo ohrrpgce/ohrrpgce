@@ -50,6 +50,7 @@ END TYPE
 DECLARE FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
 DECLARE SUB setup_workingdir ()
 DECLARE SUB check_for_crashed_workingdirs ()
+DECLARE FUNCTION check_a_crashed_workingdir (sessinfo as SessionInfo) as bool
 DECLARE FUNCTION empty_workingdir (workdir as string) as bool
 DECLARE FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
 DECLARE FUNCTION check_ok_to_open (filename as string) as bool
@@ -1109,11 +1110,22 @@ FUNCTION check_ok_to_open (filename as string) as bool
 
   IF paths_equal(sessinfo.sourcerpg, filename) THEN
    IF NOT sessinfo.running THEN
-    notification "Found a copy of Custom which was editing this game, but crashed. Run Custom again to do a cleanup or recovery."
+    ' Apparently this crashed between when we launched, and when the .rpg was selected in the browser.
+    ' Return true if we managed to delete it.
+    RETURN check_a_crashed_workingdir(sessinfo)
    ELSE
-    notification "Another copy of " CUSTOMEXE " is already editing " & decode_filename(sourcerpg) & _
-                 !".\nYou can't open the same game twice at once! " _
-                 "(Make a copy first if you really want to.)"
+    DIM msg as string
+    msg = "Another copy of " CUSTOMEXE " is already editing " & decode_filename(sourcerpg) & _
+          !".\nYou can't open the same game twice at once! " _
+          "(Make a copy first if you really want to.)"
+    'IF is_windows_9x() THEN
+     'sessinfo.running is not reliable on Win9x, so provide a bypass ... maybe it's not 100% reliable anyway
+     IF twochoice(msg, "OK, quit", "No! I swear it's crashed! Recover it.") = 1 THEN
+      RETURN check_a_crashed_workingdir(sessinfo)
+     END IF
+    'ELSE
+    ' notification msg
+    'END IF
    END IF
    RETURN NO
   END IF
@@ -1122,7 +1134,6 @@ FUNCTION check_ok_to_open (filename as string) as bool
 END FUNCTION
 
 SUB check_for_crashed_workingdirs ()
-
  'This also finds working.tmp, which belongs to old versions
  DIM olddirs() as string
  findfiles tmpdir, "working*.tmp", fileTypeDirectory, NO, olddirs()
@@ -1136,40 +1147,43 @@ SUB check_for_crashed_workingdirs ()
     CONTINUE FOR
    END IF
    debuginfo "Found workingtmp for crashed Custom"
-
-   IF sessinfo.partial_rpg THEN
-    debuginfo "...crashed while unlumping/deleting temp files, silent cleanup"
-    ' In either case, safe to delete files.
-    empty_workingdir(sessinfo.workingdir)
-    CONTINUE FOR
-   END IF
-
-   IF LEN(sessinfo.sourcerpg) = 0 THEN
-    debuginfo "...crashed before opening a game, silent cleanup"
-    empty_workingdir(sessinfo.workingdir)
-    CONTINUE FOR
-   END IF
-
   END IF
 
-  ' Does this look like a game, or should we just delete it?
-  IF NOT sessinfo.fresh_danger_tmp THEN
-   DIM filelist() as string
-   findfiles sessinfo.workingdir, ALLFILES, fileTypeFileOrDir, NO, filelist()
-
-   IF UBOUND(filelist) <= 5 THEN
-    'Just some stray files that refused to delete last time,
-    'or possibly an old copy of Custom running but no game opened yet no way to handle that
-    debuginfo (UBOUND(filelist) + 1) & " files in working.tmp, silent cleanup"
-    empty_workingdir(sessinfo.workingdir)
-    CONTINUE FOR
-   END IF
-  END IF
-
-  'Auto-handling failed, ask user what to do
-  handle_dirty_workingdir(sessinfo)
+  check_a_crashed_workingdir sessinfo
  NEXT
 END SUB
+
+'Returns true if we deleted this session successfully
+FUNCTION check_a_crashed_workingdir (sessinfo as SessionInfo) as bool
+ IF sessinfo.info_file_exists THEN
+  IF sessinfo.partial_rpg THEN
+   debuginfo "...crashed while unlumping/deleting temp files, silent cleanup"
+   ' In either case, safe to delete files.
+   RETURN empty_workingdir(sessinfo.workingdir)
+  END IF
+
+  IF LEN(sessinfo.sourcerpg) = 0 THEN
+   debuginfo "...crashed before opening a game, silent cleanup"
+   RETURN empty_workingdir(sessinfo.workingdir)
+  END IF
+ END IF
+
+ ' Does this look like a game, or should we just delete it?
+ IF NOT sessinfo.fresh_danger_tmp THEN
+  DIM filelist() as string
+  findfiles sessinfo.workingdir, ALLFILES, fileTypeFileOrDir, NO, filelist()
+
+  IF UBOUND(filelist) <= 5 THEN
+   'Just some stray files that refused to delete last time,
+   'or possibly an old copy of Custom running but no game opened yet no way to handle that
+   debuginfo (UBOUND(filelist) + 1) & " files in working.tmp, silent cleanup"
+   RETURN empty_workingdir(sessinfo.workingdir)
+  END IF
+ END IF
+
+ 'Auto-handling failed, ask user what to do
+ RETURN handle_dirty_workingdir(sessinfo)
+END FUNCTION
 
 ' When recovering an rpg from working.tmp, pick an unused destination filename.
 FUNCTION pick_recovered_rpg_filename(old_sourcerpg as string) as string

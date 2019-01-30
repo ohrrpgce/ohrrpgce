@@ -1028,7 +1028,9 @@ function get_process_path (pid as integer) as string
 	dim ret as zstring * 256
 	'QueryFullProcessImageName, which returns a normal filename instead of device form, is Win Vista+.
 	'GetModuleFileNameExA doesn't return a normal filename either.
-	if GetProcessImageFileNameA andalso GetProcessImageFileNameA(proc, ret, 256) = 0 then
+	if GetProcessImageFileNameA = NULL then
+		ret = "<unknown>"
+	elseif GetProcessImageFileNameA(proc, ret, 256) = 0 then
 		dim errcode as integer = GetLastError()
 		debug "get_process_path: GetProcessImageFileName err " & errcode & " " & get_windows_error(errcode)
 		ret = "<unknown>"
