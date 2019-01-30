@@ -824,7 +824,7 @@ del fb_defines
 base_modules += ['os_sockets.c']
 
 if win32:
-    base_modules += ['os_windows.bas', 'os_windows2.c']
+    base_modules += ['os_windows.bas', 'os_windows2.c', 'lib/win98_compat.bas']
     # winmm needed for MIDI, used by music backends but also by miditest
     # psapi.dll needed just for get_process_path() and memory_usage(). Not present on Win98 unfortunately
     # ole32.dll needed just for open_document()
