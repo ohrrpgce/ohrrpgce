@@ -116,6 +116,8 @@ private function file_handle_to_readable_FILE (byval fhandle as HANDLE, funcname
 	return fh
 end function
 
+extern "C"
+
 'Returns true only on Windows 95, 98 and ME
 function is_windows_9x () as bool
 	static cached as integer = -2   'I did not bother to test whether a cache is needed
@@ -156,9 +158,6 @@ function get_windows_version () as string
 	end if
 	return ret
 end function
-
-
-extern "C"
 
 sub os_init ()
 	main_thread_id = GetCurrentThreadId()

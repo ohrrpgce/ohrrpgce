@@ -46,7 +46,7 @@ void os_init() {
 	main_thread_handle = pthread_self();
 }
 
-boolint is_windows_9x()
+boolint is_windows_9x() {
 	return false;
 }
 

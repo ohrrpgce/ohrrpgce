@@ -10,12 +10,12 @@
 
 #include "vector.bi"
 
+extern "C"
+
 declare function is_windows_9x () as bool
 #ifdef __FB_WIN32__
 declare function get_windows_version () as string
 #endif
-
-extern "C"
 
 declare sub os_init ()
 

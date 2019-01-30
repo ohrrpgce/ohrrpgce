@@ -21,7 +21,7 @@
 
 #ifdef __MINGW64_VERSION_MAJOR
 // This is mingw-w64, not mingw or anything else
-# define IS_MINGW64
+# define IS_MINGW_W64
 #elif defined(__MINGW32__)
 // This is mingw, not mingw-w64
 # define IS_MINGW

@@ -111,13 +111,16 @@ FBSTRING *strprintf (const char *fmtstr, ...) {
 	FBSTRING *ret;
 	va_list vl;
 	va_start(vl, fmtstr);
+#if defined(IS_MINGW) || defined(IS_MINGW_W64)
 	// vsnprintf is non-standard in old Windows versions like 98: it returns
 	// -1 instead of the required length when the buffer isn't long enough.
 	// Luckily mingw provides a replacement.
 	// mingw automatically redirects vsnprintf to __mingw_vsnprintf,
 	// while mingw-w64 does not.
-	//int len = vsnprintf(NULL, 0, fmtstr, vl);
 	int len = __mingw_vsnprintf(NULL, 0, fmtstr, vl);
+#else
+	int len = vsnprintf(NULL, 0, fmtstr, vl);
+#endif
 	va_end(vl);
 
 	va_start(vl, fmtstr);
