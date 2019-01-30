@@ -1949,7 +1949,11 @@ endTest
 'If one path is absolute and the other isn't, returns false!
 'It doesn't make a difference if one has a trailing slash and not the other.
 FUNCTION paths_equal(path1 as string, path2 as string) as bool
-  RETURN simplify_path(path1) = simplify_path(path2)
+  #IFDEF __FB_WIN32__
+    RETURN simplify_path(LCASE(path1)) = simplify_path(LCASE(path2))
+  #ELSE
+    RETURN simplify_path(path1) = simplify_path(path2)
+  #ENDIF
 END FUNCTION
 
 'Run pathname through simplify_path, and also make it relative if it's below

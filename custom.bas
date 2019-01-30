@@ -247,7 +247,7 @@ IF game = "" THEN
  choose_rpg_to_open(rpg_browse_default)
 END IF
 
-IF NOT is_absolute_path(sourcerpg) THEN sourcerpg = absolute_path(sourcerpg)
+sourcerpg = absolute_path(sourcerpg)
 
 IF check_ok_to_open(sourcerpg) = NO THEN
  cleanup_and_terminate NO
@@ -1107,7 +1107,7 @@ FUNCTION check_ok_to_open (filename as string) as bool
  FOR idx as integer = 0 TO UBOUND(olddirs)
   DIM sessinfo as SessionInfo = get_previous_session_info(tmpdir & olddirs(idx))
 
-  IF sessinfo.sourcerpg = filename THEN
+  IF paths_equal(sessinfo.sourcerpg, filename) THEN
    IF NOT sessinfo.running THEN
     notification "Found a copy of Custom which was editing this game, but crashed. Run Custom again to do a cleanup or recovery."
    ELSE
