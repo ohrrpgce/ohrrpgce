@@ -113,13 +113,13 @@ Sub RefreshChild(ch as Slice ptr, support as RectType)
  with *ch
   .ScreenX = .X + support.x + SliceXAlign(ch, support.wide) - SliceXAnchor(ch)
   .ScreenY = .Y + support.y + SliceYAlign(ch, support.high) - SliceYAnchor(ch)
-  select case sl->ClampHoriz
+  select case .ClampHoriz
    case alignLeft:   .ScreenX = large(.ScreenX, support.x)
-   case alignRight:  .ScreenX = small(.ScreenX, support.x + support.w - .Width)
+   case alignRight:  .ScreenX = small(.ScreenX, support.x + support.wide - .Width)
   end select
-  select case sl->ClampVert
+  select case .ClampVert
    case alignTop:    .ScreenY = large(.ScreenY, support.y)
-   case alignBottom: .ScreenY = small(.ScreenY, support.y + support.h - .Height)
+   case alignBottom: .ScreenY = small(.ScreenY, support.y + support.high - .Height)
   end select
 
   if .Fill then

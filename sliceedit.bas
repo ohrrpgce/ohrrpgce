@@ -1737,6 +1737,16 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    a_append menu(), " Anchor vert.  at: " & VertCaptions(.AnchorVert)
    sliceed_rule_enum rules(), "anchor", @.AnchorVert, 0, 2
   END IF
+  IF ses.privileged THEN
+   IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
+    a_append menu(), " Clamp horiz.: " & clamp_caption(.ClampHoriz, NO)
+    sliceed_rule_enum rules(), "clamp", @.ClampHoriz, 0, 2
+   END IF
+   IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
+    a_append menu(), " Clamp vert.: " & clamp_caption(.ClampVert, YES)
+    sliceed_rule_enum rules(), "clamp", @.ClampVert, 0, 2
+   END IF
+  END IF
 
   sliceed_header menu(), rules(), "[Padding]", "padding"
   a_append menu(), " Top: " & .PaddingTop

@@ -648,6 +648,7 @@ Enum AlignType
   alignTop = 0
   alignMiddle = 1
   alignCenter = 1
+  alignNone = 1   'Only used by slice clamp options
   alignRight = 2
   alignBottom = 2
 End Enum
