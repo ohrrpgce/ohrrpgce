@@ -113,6 +113,15 @@ Sub RefreshChild(ch as Slice ptr, support as RectType)
  with *ch
   .ScreenX = .X + support.x + SliceXAlign(ch, support.wide) - SliceXAnchor(ch)
   .ScreenY = .Y + support.y + SliceYAlign(ch, support.high) - SliceYAnchor(ch)
+  select case sl->ClampHoriz
+   case alignLeft:   .ScreenX = large(.ScreenX, support.x)
+   case alignRight:  .ScreenX = small(.ScreenX, support.x + support.w - .Width)
+  end select
+  select case sl->ClampVert
+   case alignTop:    .ScreenY = large(.ScreenY, support.y)
+   case alignBottom: .ScreenY = small(.ScreenY, support.y + support.h - .Height)
+  end select
+
   if .Fill then
    if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillHoriz then
     .ScreenX = support.x
@@ -379,7 +388,10 @@ Function NewSlice(byval parent as Slice ptr = 0) as Slice ptr
  ret->Visible = YES
  ret->Attached = 0
  ret->Attach = slSlice
- 
+
+ ret->ClampHoriz = alignNone
+ ret->ClampVert = alignNone
+
  ret->Draw = NULL
  ret->Dispose = @DisposeNullSlice
  ret->Clone = @CloneNullSlice
@@ -2586,7 +2598,7 @@ Sub LayoutChildrenRefresh(byval par as Slice ptr)
 
     'The child's X/Y offsets it from its computed position,
     'but doesn't affect the positioning out of anything else.
-    'Anchor, align points and Fill are ignored (TODO?)
+    'Anchor, align points, clamping and Fill are ignored. Probably none of these make sense.
     .ScreenX = par->ScreenX + offset.x + .X
     .ScreenY = par->ScreenY + offset.y + .Y
 
@@ -4121,6 +4133,8 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  SaveProp node, "alignv", sl->AlignVert
  SaveProp node, "anchorh", sl->AnchorHoriz
  SaveProp node, "anchorv", sl->AnchorVert
+ if sl->ClampHoriz <> alignNone then SavePropAlways node, "clamph", sl->ClampHoriz
+ if sl->ClampVert  <> alignNone then SavePropAlways node, "clampv", sl->ClampVert
  SaveProp node, "padt", sl->PaddingTop
  SaveProp node, "padl", sl->PaddingLeft
  SaveProp node, "padr", sl->PaddingRight
@@ -4231,6 +4245,8 @@ Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handle
  sl->AlignVert = LoadProp(node, "alignv")
  sl->AnchorHoriz = LoadProp(node, "anchorh")
  sl->AnchorVert = LoadProp(node, "anchorv")
+ sl->ClampHoriz = LoadProp(node, "clamph", alignNone)
+ sl->ClampVert = LoadProp(node, "clampv", alignNone)
  sl->PaddingTop = LoadProp(node, "padt")
  sl->PaddingLeft = LoadProp(node, "padl")
  sl->PaddingRight = LoadProp(node, "padr")
@@ -4307,7 +4323,7 @@ End sub
 
 
 '==============================================================================
-'                              Sliice Debugging
+'                              Slice Debugging
 
 SUB SliceDebugRemember(sl as Slice Ptr)
  if ENABLE_SLICE_DEBUG = NO then exit sub

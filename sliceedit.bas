@@ -250,6 +250,11 @@ FUNCTION anchor_and_align_grabber(byref anchor as AlignType, byref align as Alig
  RETURN ret
 END FUNCTION
 
+FUNCTION clamp_caption(align as AlignType, vertical as bool) as string
+ IF align = alignNone THEN RETURN "No"
+ RETURN "to " & IIF(vertical, VertCaptions(align), HorizCaptions(align))
+END FUNCTION
+
 '==============================================================================
 
 SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)

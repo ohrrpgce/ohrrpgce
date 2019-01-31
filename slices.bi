@@ -280,7 +280,9 @@ Type Slice
   AlignVert as AlignType   'Relative to parent. Only used when not filling
   AnchorHoriz as AlignType 'Relative to self. Only used when not filling
   AnchorVert as AlignType  'Relative to self. Only used when not filling
-  
+  ClampHoriz as AlignType  'alignNone for no clamping. Only used when not filling
+  ClampVert as AlignType  'alignNone for no clamping. Only used when not filling
+
   as integer PaddingTop, PaddingLeft, PaddingRight, PaddingBottom
 
   ' Note that setting a slice to Fill causes its size to be modified, and its
