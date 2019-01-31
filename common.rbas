@@ -2346,9 +2346,7 @@ FUNCTION prompt_for_string (byref retstring as string, caption as string, limit 
  ChangeTextSlice caption_area, caption
  DIM text_area as Slice Ptr
  text_area = LookupSlice(SL_EDITOR_PROMPT_FOR_STRING_TEXT, root)
- DIM dat as TextSliceData Ptr
- dat = text_area->SliceData
- dat->s = retstring
+ DIM editstr as string = retstring
 
  '--Preserve whatever screen was already showing as a background
  DIM holdscreen as integer
@@ -2360,17 +2358,18 @@ FUNCTION prompt_for_string (byref retstring as string, caption as string, limit 
  DO
   setwait 40
   setkeys YES
-  IF keyval(scF6) > 1 THEN slice_editor root, SL_COLLECT_EDITOR, "prompt_for_string.slice"
+  IF keyval(scF6) > 1 THEN slice_editor root, SL_COLLECT_EDITOR, "prompt_for_string.slice", , YES
   IF keyval(ccCancel) > 1 THEN
    prompt_for_string = NO
    EXIT DO
   END IF
   IF keyval(scAnyEnter) > 1 THEN
    prompt_for_string = YES
-   retstring = dat->s
+   retstring = text_area->TextData->s
    EXIT DO
   END IF
-  strgrabber dat->s, limit
+  strgrabber editstr, limit
+  ChangeTextSlice text_area, editstr
 
   copypage holdscreen, dpage
   DrawSlice root, dpage
@@ -2482,7 +2481,7 @@ SUB show_help(helpkey as zstring ptr)
   .Y = -4
  END WITH
  ChangeTextSlice footer_text, , uilook(uiMenuItem), NO, , boxlook(1).bgcol  'outline=NO
- CAST(TextSliceData ptr, footer_text->SliceData)->use_render_text = YES
+ footer_text->TextData->use_render_text = YES
  'Fills the clipping area
  DIM clip_box as Slice Ptr
  clip_box = NewSliceOfType(slContainer, help_box)
@@ -2502,7 +2501,7 @@ SUB show_help(helpkey as zstring ptr)
  WITH *help_text
   .Fill = YES
   .FillMode = sliceFillHoriz
-  CAST(TextSliceData ptr, .SliceData)->use_render_text = YES
+  .TextData->use_render_text = YES
   ChangeTextSlice help_text, help_str, , , YES  'wrap=YES
  END WITH
  DIM animate as Slice Ptr
@@ -2612,7 +2611,7 @@ SUB show_help(helpkey as zstring ptr)
     IF diriswriteable(get_help_dir()) THEN
      editing = YES
      'Displaying the cursor doesn't work properly with use_render_text :(
-     CAST(TextSliceData ptr, help_text->SliceData)->use_render_text = NO
+     help_text->TextData->use_render_text = NO
      ChangeTextSlice help_text, help_str
      'Hide footer
      help_outer_box->paddingBottom = 4
