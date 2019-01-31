@@ -31,9 +31,11 @@
   #endif
   #define SHUT_WR SD_SEND
 #else
+  #include <signal.h>
   #include <errno.h>
   #include <sys/types.h>
   #include <sys/socket.h>
+  #include <arpa/inet.h>
   #include <netdb.h>
   typedef int SOCKET;
   #define SOCKET_ERROR -1
@@ -145,6 +147,9 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 		req->failed = true;
 		return false;
 	}
+#else
+	// Ignore SIGPIPE globally, or else we'll get killed on a disconnect
+	signal(SIGPIPE, SIG_IGN);
 #endif
 	req->started = true;
 
