@@ -518,6 +518,7 @@ def check_lib_requirements(binary):
         (7,1,0): '2017-05-02',
         (7,2,0): '2017-08-14',
         (8,1,0): '2018-05-02',
+        (8,2,0): '2018-07-26',
     }
 
     # From https://sourceware.org/glibc/wiki/Glibc%20Timeline
@@ -542,6 +543,7 @@ def check_lib_requirements(binary):
         (2,26): '2017-08-01',
         (2,27): '2018-02-01',
         (2,28): '2018-08-01',
+        (2,29): '2018-02-01',
     }
     #print req
 

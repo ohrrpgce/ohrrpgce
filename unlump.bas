@@ -51,7 +51,7 @@ SUB showusage ()
  PRINT "The output directory defaults to 'filename.rpgdir' or 'filename.unlmp'."
  PRINT ""
  PRINT "[Press a Key]"
- DIM dummy as string = readkey()
+ readkey
  fatalerror ""
 END SUB
 

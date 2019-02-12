@@ -774,7 +774,7 @@ declare function replacestr overload (byref buffer as string, replacewhat as str
 declare function normalize_newlines (buffer as string, newline as string = LINE_END) as string
 declare function exclude (s as string, x as string) as string
 declare function exclusive (s as string, x as string) as string
-declare function scancodename (byval k as integer) as string
+declare function scancodename (byval k as KBScancode) as string
 declare function special_char_sanitize(s as string) as string
 
 declare function sign_string (n as integer, neg_str as string, zero_str as string, pos_str as string) as string
@@ -832,8 +832,8 @@ declare function string_compare cdecl (byval a as string ptr, byval b as string 
 declare sub invert_permutation overload (indices() as integer, inverse() as integer)
 declare sub invert_permutation overload (indices() as integer)
 
-declare function starts_with(s as string, prefix as string) as integer
-declare function ends_with(s as string, suffix as string) as integer
+declare function starts_with(s as string, prefix as string) as bool
+declare function ends_with(s as string, suffix as string) as bool
 
 declare function readkey () as string
 
@@ -851,7 +851,8 @@ DECLARE SUB xbsave (f as string, array() as integer, bsize as integer)
 
 DECLARE SUB setbitmask (byref bitsets as integer, bitmask as integer, value as bool)
 DECLARE SUB setbit (bitwords() as integer, wordnum as integer, bitnum as integer, value as bool)
-DECLARE FUNCTION readbit (bitwords() as integer, wordnum as integer, bitnum as integer) as integer
+DECLARE FUNCTION readbit (bitwords() as integer, wordnum as integer = 0, bitnum as integer) as integer
+DECLARE FUNCTION xreadbit (bitwords() as integer, bitnum as integer, wordoffset as integer=0) as bool
 
 DECLARE SUB array2str (arr() as integer, byval o as integer, s as string)
 DECLARE SUB str2array (s as string, arr() as integer, byval o as integer)

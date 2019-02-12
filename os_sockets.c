@@ -114,6 +114,7 @@ static bool send_on_socket(SOCKET sock, const char *sendbuf, int sendlen, HTTPRe
 	int sent = 0;
 	while (sent < sendlen) {
 		int result = send(sock, sendbuf + sent, sendlen - sent, 0);
+		// FIXME: EAGAIN and EWOULDBLOCK
 		if (result == SOCKET_ERROR) {
 			debug(errError, "send(%s) error: %s", server, lasterror());
 			closesocket(sock);
@@ -296,6 +297,7 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 			req->response_buf = realloc(req->response_buf, recvbuf_len);
 		}
 		result = recv(sock, req->response_buf + received, recvbuf_len - received - 1, 0);  // Space for NUL
+		// FIXME: EAGAIN and EWOULDBLOCK
 		if (result == SOCKET_ERROR) {
 			debug(errError, "recv(%s) error: %s", server, lasterror());
 			req->failed = true;

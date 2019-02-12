@@ -27,7 +27,7 @@ IF COMMAND = "" THEN
  PRINT "to relump it."
  PRINT ""
  PRINT "[Press a Key]"
- DIM dummy as string = readkey()
+ readkey
  fatalerror ""
 END IF
 

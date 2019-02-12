@@ -3018,11 +3018,12 @@ FUNCTION open_url (url as string) as bool
  RETURN NO
 #ENDIF
 
+#IFDEF __FB_UNIX__
  '--Try the unix way
  safe_shell "xdg-open '" & url & "'"
  '-Unfortunately we can't test if it worked, so just pretend that it did.
  RETURN YES
- 
+#ENDIF
 END FUNCTION
 
 FUNCTION spawn_and_wait (app as string, args as string) as string
@@ -5907,11 +5908,6 @@ SUB set_map_edge_draw_mode(gmap() as integer, wrap_layers_over_edge_of_crop_maps
    setoutside gmap(6)
  END SELECT
 END SUB
-
-FUNCTION xreadbit (bitarray() as integer, byval bitoffset as integer, byval intoffset as integer=0) as bool
- 'This is a wrapper for readbit that returns YES/NO and accepts a default arg of zero for the integer offset
- RETURN readbit(bitarray(), intoffset, bitoffset) <> 0 
-END FUNCTION
 
 'use_default: don't return a blank name
 FUNCTION getheroname (hero_id as integer, use_default as bool = YES) as string

@@ -258,8 +258,6 @@ DECLARE FUNCTION copy_keychord () as bool
 DECLARE FUNCTION paste_keychord () as bool
 DECLARE FUNCTION find_next_or_prev_keychord () as integer
 
-DECLARE FUNCTION xreadbit (bitarray() as integer, byval bitoffset as integer, byval intoffset as integer=0) as bool
-
 DECLARE FUNCTION prefbit(bitnum as integer) as bool
 DECLARE SUB setprefbit(bitnum as integer, newval as bool = YES)
 

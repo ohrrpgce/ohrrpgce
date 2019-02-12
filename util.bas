@@ -3647,7 +3647,7 @@ SUB setbit (bitwords() as integer, wordnum as integer, bitnum as integer, value 
 	wordbit = bitnum mod 16
 
 	if wordoff > ubound(bitwords) then
-		debug "setbit overflow: ub " & ubound(bitwords) & ", wordnum " & wordnum & ", bitnum " & bitnum & ", v " & value
+		debugc errBug, "setbit overflow: ub " & ubound(bitwords) & ", wordnum " & wordnum & ", bitnum " & bitnum & ", v " & value
 		exit sub
 	end if
 
@@ -3656,7 +3656,7 @@ end SUB
 
 'Returns 0 or 1. Use xreadbit if you want NO or YES instead.
 'See setbit for full documentation
-FUNCTION readbit (bitwords() as integer, wordnum as integer, bitnum as integer) as integer
+FUNCTION readbit (bitwords() as integer, wordnum as integer = 0, bitnum as integer) as integer
 	dim wordoff as integer
 	dim wordbit as integer
 
@@ -3664,7 +3664,7 @@ FUNCTION readbit (bitwords() as integer, wordnum as integer, bitnum as integer) 
 	wordbit = bitnum mod 16
 
 	if wordoff > ubound(bitwords) then
-		debug "readbit overflow: ub " & ubound(bitwords) & ", wordnum " & wordnum & ", bitnum " & bitnum
+		debugc errBug, "readbit overflow: ub " & ubound(bitwords) & ", wordnum " & wordnum & ", bitnum " & bitnum
 		return 0
 	end if
 
@@ -3675,16 +3675,21 @@ FUNCTION readbit (bitwords() as integer, wordnum as integer, bitnum as integer) 
 	end if
 end FUNCTION
 
+'This is a wrapper for readbit that returns YES/NO
+FUNCTION xreadbit (bitwords() as integer, bitnum as integer, wordoffset as integer = 0) as bool
+	RETURN readbit(bitwords(), wordoffset, bitnum) <> 0
+END FUNCTION
+
 'Prehaps doesn't belong here because scancodes are OHR-specific. However, OHR
 'scancodes are 95% the same as FB scancodes
-FUNCTION scancodename (byval k as integer) as string
+FUNCTION scancodename (byval k as KBScancode) as string
  'static scancodenames(...) as string * 14 = { ... }
  #INCLUDE "scancodenames.bi"
 
- IF k >= lbound(scancodenames) and k <= ubound(scancodenames) THEN
-  IF scancodenames(k) <> "" THEN return scancodenames(k)
+ IF k >= LBOUND(scancodenames) ANDALSO k <= UBOUND(scancodenames) THEN
+  IF scancodenames(k) <> "" THEN RETURN scancodenames(k)
  END IF
- return "scancode" & k
+ RETURN "scancode" & k
 END FUNCTION
 
 FUNCTION special_char_sanitize(s as string) as string
@@ -3703,12 +3708,12 @@ FUNCTION special_char_sanitize(s as string) as string
  RETURN result
 END FUNCTION
 
-FUNCTION starts_with(s as string, prefix as string) as integer
+FUNCTION starts_with(s as string, prefix as string) as bool
  'Return YES if the string begins with a specific prefix
  RETURN MID(s, 1, LEN(prefix)) = prefix
 END FUNCTION
 
-FUNCTION ends_with(s as string, suffix as string) as integer
+FUNCTION ends_with(s as string, suffix as string) as bool
  'Return YES if the string ends with a specific prefix
  RETURN RIGHT(s, LEN(suffix)) = suffix
 END FUNCTION

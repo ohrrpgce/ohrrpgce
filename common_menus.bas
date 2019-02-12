@@ -133,7 +133,7 @@ FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair
   usemenu state, selectable()
   IF state.pt >= 0 ANDALSO selectable(state.pt) THEN
    DIM bitnum as integer = bitmenu(state.pt).i
-   DIM bitflip as integer = IIF(bitmenu(state.pt).s[0] = ASC("!"), 1, 0)
+   DIM bitflip as integer = IIF(starts_with(bitmenu(state.pt).s, "!"), 1, 0)
    IF keyval(ccLeft) > 1 OR keyval(scLeftCaret) > 1 THEN
     setbit array(), wof, bitnum, 0 XOR bitflip
     IF immediate_quit THEN ret = edbitPickedBit : EXIT DO
