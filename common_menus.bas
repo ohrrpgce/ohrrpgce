@@ -56,26 +56,45 @@ npc_facetypes(2) = "Do Not Face Player"
 
 '==============================================================================
 
+'This is a debug menu, which shows all bits (including hidden and unused) and their
+'indices, in order of their index.  So it throws away the ordering in bitmenu(),
+'and acts like editbitset with show_index=YES, show_all=YES.
+'See editbitset for arg documentation.
+FUNCTION edit_all_bits (array() as integer, wof as integer, bitmenu() as IntStrPair, numbits as integer, helpkey as string="editbitset", byref remem_pt as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as EditBitsetResult
+
+ REDIM fullbitmenu(numbits - 1) as IntStrPair
+ FOR i as integer = 0 TO numbits - 1
+  fullbitmenu(i).i = i
+ NEXT
+
+ FOR i as integer = 0 TO UBOUND(bitmenu)
+  IF bitmenu(i).i >= 0 THEN
+   fullbitmenu(bitmenu(i).i).s = bitmenu(i).s
+  END IF
+ NEXT
+
+ RETURN editbitset(array(), wof, fullbitmenu(), helpkey, remem_pt, immediate_quit, title, prevmenu, YES, YES)
+END FUNCTION
+
 'Edit array of bits. The bits don't have to be consecutive, but they do have to be in ascending order.
-'The bits corresponding to any blank entries in names(), or starting with '##' are hidden/skipped over.
+'The bits corresponding to any blank entries in names(), or starting with '##' are hidden/skipped over,
+'unless show_all is true.
 'If a bit name starts with ! then the diplayed value of the bit is reversed.
-'remem_pt is used to store the selected bit (index in names())
+'remem_pt is used to store the selected bit.
 'If immediate_quit is true, then toggling a bit causes the menu to quit immediately (and return edbitPickedBit).
 'Return value:
 ' edbitCancel    if user pressed ESC
 ' edbitBack      if used selected prevmenu (which is useful if prevmenu is something like "Done")
 ' edbitPickedBit if immediate_quit=YES and the user toggled a bit
-FUNCTION editbitset (array() as integer, wof as integer, names() as string, helpkey as string="editbitset", byref remem_bitnum as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as EditBitsetResult
+FUNCTION editbitset (array() as integer, wof as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu", show_index as bool = NO, show_all as bool = NO) as EditBitsetResult
 
- DIM remem_pt as integer = -1  'Index in bitmenu()
- DIM bitmenu(UBOUND(names)) as IntStrPair
+ REDIM bitmenu(UBOUND(names)) as IntStrPair
 
  DIM nextbit as integer = 0
  FOR i as integer = 0 TO UBOUND(names)
-  IF names(i) <> "" ANDALSO LEFT(names(i), 2) <> "##" THEN
+  IF show_all ORELSE LEN(names(i)) THEN
    bitmenu(nextbit).s = names(i)
    bitmenu(nextbit).i = i
-   IF remem_bitnum = i THEN remem_pt = nextbit
    nextbit += 1
   END IF
  NEXT
@@ -85,27 +104,29 @@ FUNCTION editbitset (array() as integer, wof as integer, names() as string, help
   ERASE bitmenu
  END IF
 
- DIM ret as EditBitsetResult
- ret = editbitset(array(), wof, bitmenu(), helpkey, remem_pt, immediate_quit, title, prevmenu)
- IF remem_pt = -1 THEN
-  remem_bitnum = -1
- ELSE
-  remem_bitnum = bitmenu(remem_pt).i
- END IF
- RETURN ret
+ RETURN editbitset(array(), wof, bitmenu(), helpkey, remem_pt, immediate_quit, title, prevmenu, show_index, show_all)
 END FUNCTION
 
 'See above for documentation.
 'This overload takes an array of bits to edit which allows bits be out of order,
 'and to include unselectable section headings.
-'The .i member of bitmenu() is the bit number, which is -1 for unselectable menu items.
-'This overload doesn't hide bits with blank names or ## prefix.
-FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair, helpkey as string="editbitset", byref remem_pt as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as EditBitsetResult
+'The .i member of bits() is the bit number, which is -1 for unselectable menu items.
+'This overload doesn't hide bits with blank names.  Bits with ## prefix are hidden
+'unless show_hidden=YES.  If you want to see unused bits (like show_all=YES for the
+'other editbitset overload), use edit_all_bits instead.
+FUNCTION editbitset (array() as integer, wof as integer, bits() as IntStrPair, helpkey as string="editbitset", byref remem_pt as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu", show_index as bool = NO, show_hidden as bool = NO) as EditBitsetResult
 
- DIM selectable(-1 TO UBOUND(bitmenu)) as bool
+ DIM selectable(-1 TO UBOUND(bits)) as bool  'Oversized if there are any hidden bits
  selectable(-1) = YES
- FOR idx as integer = 0 TO UBOUND(bitmenu)
-  selectable(idx) = (bitmenu(idx).i >= 0)
+
+ 'Build bitmenu(), a copy of bits(), with hidden items removed
+ '(Note that bitmenu(-1) for prevmenu doesn't exist)
+ DIM bitmenu() as IntStrPair
+ FOR idx as integer = 0 TO UBOUND(bits)
+  IF show_hidden ORELSE LEFT(bits(idx).s, 2) <> "##" THEN
+   a_append bitmenu(), bits(idx).i, LTRIM(bits(idx).s, "#")
+   selectable(UBOUND(bitmenu)) = (bits(idx).i >= 0)
+  END IF
  NEXT
 
  DIM menupos as XYPair
@@ -164,10 +185,11 @@ FUNCTION editbitset (array() as integer, wof as integer, bitmenu() as IntStrPair
    DIM text as string = IIF(i = -1, prevmenu, bitmenu(i).s)
    IF i >= 0 ANDALSO selectable(i) THEN
     biton = readbit(array(), wof, bitmenu(i).i)
-    IF text[0] = ASC("!") THEN
+    IF LEFT(text, 1) = "!" THEN  'Inverted display
      biton XOR= 1
      text = MID(text, 2)
     END IF
+    IF show_index THEN text = strprintf("%2d ", bitmenu(i).i) & text
     ellipse vpages(dpage), menupos.x + 4, drawat.y + 3, 3, uilook(uiDisabledItem), IIF(biton, uilook(uiSelectedItem), -1)
    ELSE
     biton = 1  'Don't show as disabled

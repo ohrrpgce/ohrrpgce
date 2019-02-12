@@ -89,6 +89,15 @@ a_append enemybits(), -1, ""
 a_append enemybits(), -1, " Other"
 a_append enemybits(), 54, "Harmed by cure"
 
+a_append enemybits(), -1, "##"
+a_append enemybits(), -1, "## Obsolete"
+FOR i as integer = 0 TO 7
+ a_append enemybits(), i + 0,  "##Weak against " & elementnames(i) & " (obsolete)"
+ a_append enemybits(), i + 8,  "##Strong against " & elementnames(i) & " (obsolete)"
+ a_append enemybits(), i + 16, "##Absorbs " & elementnames(i) & " (obsolete)"
+ a_append enemybits(), i + 24, "##Enemy type " & readglobalstring(9 + i, "EnemyType" & i+1) & " (obsolete)"
+NEXT
+
 
 '-------------------------------------------------------------------------
 
@@ -840,6 +849,11 @@ DO
   IF editflexmenu(state, workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), caption(), min(), max()) THEN
    state.need_update = YES
   END IF
+ END IF
+
+ 'Debug key CTRL-B: edit all bitsets
+ IF keyval(scCtrl) > 0 AND keyval(scB) > 1 THEN
+  edit_all_bits recbuf(), EnDatBitset, enemybits(), 80, "enemy_bitsets", remember_bit
  END IF
 
  IF setup_preview_dissolve THEN

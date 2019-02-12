@@ -697,7 +697,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
    END IF
 
    IF attack.poison_is_negative_regen AND (targstat = statPoison OR targstat = statRegen) THEN
-    'Healing poison causes regen and reverse
+    'Healing poison causes regen, and vice versa
     DIM negatedstat as integer = IIF(targstat = statPoison, statRegen, statPoison)
     ' For both of target.stat and attacker.stat:
     FOR itr as integer = 0 TO 1

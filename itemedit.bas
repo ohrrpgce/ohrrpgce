@@ -129,6 +129,17 @@ FUNCTION individual_item_editor(item_id as integer) as integer
  iidx(15) = 52 'weapon pic
  iidx(16) = 53 'weapon pal
 
+ DIM elementnames() as string
+ getelementnames elementnames()
+
+ DIM bitnames(0 TO 47) as string
+ FOR i as integer = 0 TO 7
+  'Lots of obsolete elemental bits
+  bitnames(i) = "##Weak against " & elementnames(i) & " (obsolete)"
+  bitnames(i + 8) = "##Strong against " & elementnames(i) & " (obsolete)"
+  bitnames(i + 16) = "##Absorbs " & elementnames(i) & " (obsolete)"
+ NEXT
+
  DIM selectst as SelectTypeState
  DIM enable_strgrabber as bool
  DIM state as MenuState
@@ -272,6 +283,11 @@ FUNCTION individual_item_editor(item_id as integer) as integer
      END WITH
     END IF
   END SELECT
+  IF keyval(scCtrl) > 0 ANDALSO keyval(scB) > 1 THEN  'Ctrl+B debug key: edit all bits... except equipability
+   editbitset itembuf(), 70, bitnames(), , , , , , YES, YES 'show_index = show_all = YES
+   state.need_update = YES
+  END IF
+
   IF state.need_update THEN
    state.need_update = NO
    write_item_strings itembuf(), item_name, info

@@ -321,12 +321,12 @@ dmgbit(49) = "Ignore attacker's extra hits"
 dmgbit(51) = "Show damage without inflicting"
 dmgbit(57) = "Reset target stat to max before hit"
 dmgbit(58) = "Allow Cure to exceed maximum"
-dmgbit(60) = "##Damage MP (obsolete,unused)"
+dmgbit(60) = "##Damage MP (obsolete)"
 dmgbit(61) = "Do not randomize"
 dmgbit(62) = "Damage can be Zero"
 dmgbit(69) = "% based attacks damage instead of set"
 dmgbit(83) = "Don't allow damage to exceed target stat"
-dmgbit(88) = "Healing poison causes regen, and reverse"
+dmgbit(88) = "Healing poison causes regen, and vice versa"
 
 
 '--191 attack bits allowed in menu.
@@ -1377,14 +1377,11 @@ DO
   END IF
  END IF
 
- 'Debug key: edit all bitsets
+ 'Debug key CTRL-B: edit all bitsets
  IF keyval(scCtrl) > 0 AND keyval(scB) > 1 THEN
-  DIM allbits(-1 TO 128) as string
-  FOR i = 0 TO UBOUND(allbits)
-   allbits(i) = "  bit " & i
-  NEXT
+  DIM allbits(127) as string
   FOR i = 0 TO UBOUND(atkbit)
-   allbits(atkbit(i).i) = atkbit(i).s
+   IF atkbit(i).i >= 0 THEN allbits(atkbit(i).i) = atkbit(i).s
   NEXT
   FOR i = 0 TO UBOUND(dmgbit)
    IF LEN(dmgbit(i)) THEN allbits(i) = dmgbit(i)
@@ -1392,19 +1389,14 @@ DO
 
   'Obsolete bits
   FOR i = 0 TO 7
-   allbits(i + 5) = "##" & elementnames(i) & " Damage (obsolete,unused)" '05-12
-   allbits(i + 13) = "##Bonus vs " & readglobalstring(9 + i, "EnemyType (obsolete,unused)" & i+1) '13-20
-   allbits(i + 21) = "##Fail vs " & elementnames(i) & " resistance (obsolete,unused)" '21-28
-   allbits(i + 29) = "##Fail vs " & readglobalstring(9 + i, "EnemyType (obsolete,unused)" & i+1) '29-36
+   allbits(i + 5) = "##" & elementnames(i) & " Damage (obsolete)" '05-12
+   allbits(i + 13) = "##Bonus vs " & readglobalstring(9 + i, "EnemyType (obsolete)" & i+1) '13-20
+   allbits(i + 21) = "##Fail vs " & elementnames(i) & " resistance (obsolete)" '21-28
+   allbits(i + 29) = "##Fail vs " & readglobalstring(9 + i, "EnemyType" & i+1) & " (obsolete)" '29-36
   NEXT i
 
-  'Unhide hidden bits
-  FOR i = 0 TO UBOUND(allbits)
-   IF LEFT(allbits(i), 2) = "##" THEN allbits(i) = MID(allbits(i), 3)
-  NEXT
-
   atk_edit_merge_bitsets recbuf(), buffer()
-  editbitset buffer(), 0, allbits(), "attack_bitsets"
+  editbitset buffer(), 0, allbits(), "attack_bitsets", , , , , YES, YES  'show_index = show_all = YES
   atk_edit_split_bitsets recbuf(), buffer()
   state.need_update = YES
  END IF
@@ -1881,7 +1873,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
   END IF
 
   IF attack.targ_stat <> statRegen AND attack.targ_stat <> statPoison THEN
-    maskeddmgbit(88) = ""  'Healing poison causes regen and reverse
+    maskeddmgbit(88) = ""  'Healing poison causes regen, and vice versa
   END IF
 
   'If Damage Math is No Damage
@@ -2046,7 +2038,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
       maskeddmgbit(2)  = ""  'Absorb Damage
       maskeddmgbit(57) = ""  'Reset target stat to max before hit
       maskeddmgbit(58) = ""  'Allow Cure to exceed maximum
-      maskeddmgbit(88) = ""  'Healing poison causes regen and reverse
+      maskeddmgbit(88) = ""  'Healing poison causes regen, and vice versa
     END IF
 
     IF attack.show_damage_without_inflicting = NO AND setvalue = NO AND gen(genDamageCap) > 0 THEN
@@ -2114,7 +2106,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
       END IF
 
       IF attack.poison_is_negative_regen AND (attack.targ_stat = statPoison OR attack.targ_stat = statRegen) THEN
-        'Healing poison causes regen and reverse
+        'Healing poison causes regen, and vice versa
         DIM negatedstat as integer = IIF(attack.targ_stat = statPoison, statRegen, statPoison)
         DIM negatedstatname as string = caption(menucapoff(AtkTargStat) + negatedstat)
         preview += !"\nIf Target/Attacker " + targetstat + " > Max"

@@ -16,8 +16,9 @@ ENUM 'EditBitsetResult
 END ENUM
 TYPE EditBitsetResult as integer
 
-DECLARE FUNCTION editbitset overload (array() as integer, wof as integer, names() as string, helpkey as string="editbitset", byref remem_bitnum as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as EditBitsetResult
-DECLARE FUNCTION editbitset overload (array() as integer, wof as integer, bitmenu() as IntStrPair, helpkey as string="editbitset", byref remem_pt as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as EditBitsetResult
+DECLARE FUNCTION edit_all_bits (array() as integer, wof as integer, bitmenu() as IntStrPair, numbits as integer, helpkey as string="editbitset", byref remem_pt as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as EditBitsetResult
+DECLARE FUNCTION editbitset overload (array() as integer, wof as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu", show_all as bool = NO, show_index as bool = NO) as EditBitsetResult
+DECLARE FUNCTION editbitset overload (array() as integer, wof as integer, bitmenu() as IntStrPair, helpkey as string="editbitset", byref remem_pt as integer = -1, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu", show_index as bool = NO, show_hidden as bool = NO) as EditBitsetResult
 DECLARE FUNCTION editbools (bools() as bool, names() as string, helpkey as string = "editbitset", byref remem_pt as integer = -2, immediate_quit as bool = NO, title as string = "", prevmenu as string="Previous Menu") as EditBitsetResult
 
 DECLARE SUB edit_general_bitsets()

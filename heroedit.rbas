@@ -117,8 +117,13 @@ FUNCTION hero_editor (hero_id as integer) as integer
   .last = UBOUND(menu)
  END WITH
 
- DIM hbit(-1 TO 26) as string
- 'Lots of obsolete elemental bits
+ DIM elementnames() as string
+ getelementnames elementnames()
+
+ DIM hbit(47) as string
+ 'Bits 0-23 are obsolete elemental strong/weak/absorb bits. They aren't saved in
+ 'heroes.reld, but might be set if we loaded from .dt0 instead of heroes.reld
+ '(happens first time we edit the hero only).
  hbit(24) = "Rename when added to party"
  hbit(25) = "Permit renaming on status screen"
  hbit(26) = "Do not show spell lists if empty"
