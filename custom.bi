@@ -87,5 +87,6 @@ DECLARE SUB global_Custom_controls ()
 
 DECLARE FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtype as string, allow_default as bool = NO, default as integer = 0) as string
 DECLARE FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as KBScancode=ccLeft, byval more as KBScancode=ccRight, byval scriptside as integer, byval triggertype as integer) as bool
+DECLARE FUNCTION get_hspeak_version(hspeak_path as string) as string
 
 #endif

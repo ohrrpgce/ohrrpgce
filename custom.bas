@@ -63,6 +63,7 @@ DECLARE SUB text_test_menu ()
 DECLARE SUB new_graphics_tests ()
 DECLARE SUB plankmenu_cursor_move_tests
 DECLARE SUB HTTP_demo()
+DECLARE SUB CreateProcess_tests()
 
 DECLARE SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
 DECLARE SUB import_scripts_and_terminate (scriptfile as string)
@@ -1355,9 +1356,10 @@ SUB secret_menu ()
      "RGFX tests", _
      "Backend Keyrepeat Bugtest", _
      "HTTP test", _
+     "CreateProcess tests (Windows only)", _
+     "Edit Translations", _
      "Test Game under Valgrind", _
-     "Test Game under GDB", _
-     "Edit Translations" _
+     "Test Game under GDB" _
  }
  DIM st as MenuState
  st.autosize = YES
@@ -1393,9 +1395,10 @@ SUB secret_menu ()
    IF st.pt = 19 THEN new_graphics_tests
    IF st.pt = 20 THEN backend_keyrepeat_bugtest
    IF st.pt = 21 THEN HTTP_demo
-   IF st.pt = 22 THEN spawn_game_menu NO, YES
-   IF st.pt = 23 THEN spawn_game_menu YES
-   IF st.pt = 24 THEN translations_menu
+   IF st.pt = 22 THEN CreateProcess_tests
+   IF st.pt = 23 THEN translations_menu
+   IF st.pt = 24 THEN spawn_game_menu NO, YES 'With valgrind
+   IF st.pt = 25 THEN spawn_game_menu YES     'With gdb
   END IF
   usemenu st
   clearpage vpage
@@ -1921,4 +1924,79 @@ SUB HTTP_demo()
  notification "failed=" & yesorno(req.failed) & " " & req.status & " - " & *req.status_string
  pop_warning *cast(zstring ptr, req.response)
  HTTP_Request_destroy(@req)
+END SUB
+
+EXTERN "C"
+ 'This global affects the behaviour of open_process, which is called by
+ 'safe_shell, run_and_get_output, and a few other places.
+ EXTERN CreateProc_opts as integer
+END EXTERN
+
+SUB CreateProcess_tests()
+#IFDEF __FB_WIN32__
+ DIM menu(3) as string
+ menu(0) = "Get HSpeak version (run_and_get_output)"
+ menu(1) = "Run madplay and get output (run_and_get_output)"
+ menu(2) = "Run madplay without output (safe_shell)"
+ menu(3) = "CreateProcess: "
+ DIM CPopts(9) as string
+ CPopts(0) = "Normal/unmodified"
+ CPopts(1) = "CREATE_NO_WINDOW"
+ CPopts(2) = "DETACHED_PROCESS (no window)"
+ CPopts(3) = "CREATE_NEW_CONSOLE"
+ CPopts(4) = "No flags"
+ CPopts(5) = "No flags, inactive window"
+ CPopts(6) = "No flags, inactive minimised"
+ CPopts(7) = "No flags, active minimised"
+ CPopts(8) = "CREATE_NO_WINDOW and no I/O"
+ CPopts(9) = "DETACHED_PROCESS and no I/O"
+
+ DIM state as MenuState
+ state.size = 24
+ state.last = UBOUND(menu)
+
+ DIM madplay as string = find_helper_app("madplay")
+ ERROR_IF(madplay = "", missing_helper_message("madplay"))
+ DIM hspeak as string = find_helper_app("hspeak")
+ ERROR_IF(hspeak = "", missing_helper_message("hspeak"))
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(ccCancel) > 1 THEN EXIT DO
+  usemenu state
+  IF enter_space_click(state) THEN
+   SELECT CASE state.pt
+    CASE 0
+     notification "hspeak version '" &  get_hspeak_version(hspeak) & "'"
+    CASE 1
+     DIM as string outp, errp
+     DIM errlvl as integer = run_and_get_output(madplay & " -V", outp, errp)
+     IF errlvl = 0 THEN
+      notification "Test output: " & outp & !"\n-----------------------\n" & errp
+     ELSE
+      notification "Running madplay failed, " & errlvl & !"\n" & outp & !"\n" & errp
+     END IF
+    CASE 2
+     DIM handle as ProcessHandle
+     handle = open_process(madplay, "-q", YES, NO)
+     DIM ran as bool = handle <> 0
+     VAR errlvl = wait_for_process(@handle, 2500)
+     IF ran THEN
+      notification iif(errlvl=2, "Success", "Unexpected error " & errlvl)
+     ELSE
+      notification "Couldn't start"
+     END IF
+   END SELECT
+  END IF
+  IF state.pt = 3 THEN intgrabber CreateProc_opts, 0, 8
+  menu(3) = "CreateProcess: " & CPopts(CreateProc_opts)
+
+  clearpage vpage
+  standardmenu menu(), state, 0, 0, vpage
+  setvispage vpage
+  dowait
+ LOOP
+#ENDIF
 END SUB

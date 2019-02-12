@@ -2368,7 +2368,7 @@ FUNCTION run_and_get_output(cmd as string, byref stdout_s as string, byref stder
     killfile stdout_file
   ELSE
     stdout_s = ""
-    ret = -4444
+    ret -= -4000
   END IF
 
   IF ret ORELSE (grab_stderr AND LEN(stderr_s)) THEN

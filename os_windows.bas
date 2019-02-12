@@ -796,6 +796,8 @@ end function
 '                                       Processes
 '==========================================================================================
 
+extern CreateProc_opts as integer
+dim CreateProc_opts as integer
 
 'Try to launch a program asynchronously, searching for it in the standard search paths
 '(including windows/system32, current directory, and PATH).
@@ -821,9 +823,38 @@ function open_process (program as string, args as string, waitable as boolint, g
 		'to not work when passed to cmd.exe as a commandline, breaking run_and_get_output.
 		'I can't understand why cmd.exe should care!
 		'sinfo.dwFlags or= STARTF_USESTDHANDLES 'OR STARTF_USESHOWWINDOW
-		'FIXME: On Windows 9X (when using command.com), this doesn't work, and a window always pops up.
+		'Note: On Windows 9X, this doesn't work, and a window always pops up, whether 'program'
+		'is command.com or not. The only way to avoid a window being created is to set
+		'flags or= DETACHED_PROCESS, and call the program directly instead of running it via
+		'command.com.
 		flags or= CREATE_NO_WINDOW
 	end if
+
+	/' Test code activated by CreateProcess_tests() '/
+	if CreateProc_opts <> 0 then flags = 0
+	if CreateProc_opts = 0 then flags or= CREATE_NO_WINDOW
+	if CreateProc_opts = 1 then flags or= DETACHED_PROCESS
+	if CreateProc_opts = 2 then flags or= CREATE_NEW_CONSOLE
+	if CreateProc_opts = 3 then
+		' CreateProcess defaults: I'm guessing this is equivalent to
+		'flags or= CREATE_NEW_CONSOLE
+		'sinfo.wShowWindow = 1 'SW_SHOWNORMAL  'Show and activate windows
+	end if
+	if CreateProc_opts = 4 then
+		sinfo.dwFlags = STARTF_USESHOWWINDOW
+		sinfo.wShowWindow = 4 'SW_SHOWNOACTIVATE  'Don't activate window, but do show
+	end if
+	if CreateProc_opts = 5 then
+		sinfo.dwFlags = STARTF_USESHOWWINDOW
+		sinfo.wShowWindow = 7 'SW_SHOWMINNOACTIVE  'Minimised and not active
+	end if
+	if CreateProc_opts = 6 then
+		sinfo.dwFlags = STARTF_USESHOWWINDOW
+		sinfo.wShowWindow = 2 'SW_SHOWMINIMIZED  'Minimised and activate
+	end if
+	if CreateProc_opts = 7 then flags or= CREATE_NO_WINDOW : sinfo.dwFlags or= STARTF_USESTDHANDLES
+	if CreateProc_opts = 8 then flags or= DETACHED_PROCESS : sinfo.dwFlags or= STARTF_USESTDHANDLES
+	/' End test code '/
 
 	dim pinfop as ProcessHandle = Callocate(sizeof(PROCESS_INFORMATION))
 	'Passing NULL as lpApplicationName causes the first quote-delimited
@@ -838,6 +869,13 @@ function open_process (program as string, args as string, waitable as boolint, g
 		return pinfop
 	end if
 end function
+
+'TODO: In fact the following function doesn't need named pipes at all, it can
+'be implemented with anonymous pipes instead, which also work on Win9x.
+'Very useful thread at https://groups.google.com/forum/#!topic/comp.os.ms-windows.programmer.win32/qRjQS8r7uU0
+'and multiple examples on MSDN,
+'https://docs.microsoft.com/en-us/windows/desktop/procthread/creating-a-child-process-with-redirected-input-and-output
+'https://support.microsoft.com/en-nz/help/190351/how-to-spawn-console-processes-with-redirected-standard-handles
 
 'Untested?
 'Run a (hidden) commandline program asynchronously and open a pipe which writes
@@ -978,6 +1016,7 @@ end function
 sub kill_process (byval process as ProcessHandle)
 	if process = NULL then exit sub
 	'Isn't there some way to signal the process to quit? This kills it immediately.
+	'TODO: yes, ExitProcess() asks it nicely.
 	if TerminateProcess(process->hProcess, 1) = 0 then
 		dim errstr as string = error_string
 		debug "TerminateProcess failed: " & errstr
