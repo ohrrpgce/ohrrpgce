@@ -41,3 +41,8 @@ Note: when you export your game with the Distribute Game debug keys are always a
 On the other hand, if you turn this ON, then changing the Load and Death scripts in the editor won't affect existing saved games! So keep it off unless you need it.
 
 "Default passability disabled by default" changes the default Default Passability setting in the map tilemap editor; set to your preference, it doesn't affect the game.
+
+"Map joystick controls to keyboard keys for scripts", ON by default, makes it easy for scripts to support joysticks without giving them any thought. When ON, up/down/left/right/use/cancel buttons on all joysticks are mapped to the keyboard keys key:up, key:down, key:left, key:right, key:esc and key:enter.
+This only affects the script commands for checking keyboard keys, not built-in controls for moving the hero and using menus, which always support keyboard, mouse and joysticks.
+You don't need to turn on this bit if you use the constants "left key", ... "use key", "menu key", etc, in your scripts instead of "key:left", ... "key:enter", "key:esc", etc, since those constants mean "LEFT on any keyboard/controller", etc.
+If you want to know the real state of these keyboard keys (e.g. if you want to create a local multi-player game that uses keyboard and joystick for different players), you need to turn this OFF.

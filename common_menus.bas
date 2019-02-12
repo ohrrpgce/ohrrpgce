@@ -290,6 +290,7 @@ SUB edit_general_bitsets()
  a_append bits(), 10, "Permit double-triggering of scripts"
  a_append bits(), 18, "!Save gameover/loadgame script IDs"
  a_append bits(), 15, "Default passability disabled by default"
+ a_append bits(), 47, "!Map joystick controls to keyboard keys for scripts"
 
  edit_global_bitsets bits(), "general_game_bitsets"
 END SUB

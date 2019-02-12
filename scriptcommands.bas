@@ -388,6 +388,17 @@ FUNCTION script_keyval (byval key as KBScancode, byval joynum as integer = 0) as
   END SELECT
  END IF
 
+ IF prefbit(47) = NO THEN  '!Map joystick controls to keyboard keys for scripts
+  SELECT CASE key
+   CASE scUp:     ret OR= keyval(ccUp)
+   CASE scDown:   ret OR= keyval(ccDown)
+   CASE scLeft:   ret OR= keyval(ccLeft)
+   CASE scRight:  ret OR= keyval(ccRight)
+   CASE scEnter:  ret OR= keyval(ccUse)
+   CASE scEsc:    ret OR= keyval(ccCancel)
+  END SELECT
+ END IF
+
  RETURN ret
 END FUNCTION
 

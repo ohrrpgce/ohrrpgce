@@ -10330,6 +10330,13 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 					to use the <tt>key:</tt> constants, but no longer.
 				</note>
 				<note>
+					If the "Map joystick controls to keyboard keys for scripts" general preference
+					bitset is ON (which it is by default), then checking the
+					<tt>key:up</tt>, <tt>key:down</tt>, <tt>key:left</tt>, <tt>key:right</tt>,
+					<tt>key:esc</tt>, <tt>key:enter</tt> keys will report <tt>true</tt>
+					if the corresponding button on any joystick is pressed.
+				</note>
+				<note>
 					Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2)
 					which were previously the same scancode are now distinct (read scancode.hsi for the complete list).
 					However for backwards compatibility, the old behaviour is emulated

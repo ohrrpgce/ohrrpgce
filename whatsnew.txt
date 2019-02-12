@@ -88,6 +88,12 @@ September 29 2018 [Fufluns]
     * New attack animation "Screen Center" [James]
     * Windows 95 is supported again! (But hspeak doesn't run on 95; upgrade to
       Windows 98) [Ralph]
+    * Joystick controls should now work everywhere in-game again - been broken
+      for over a decade! [Ralph]
+      * New general bitset "Map joystick controls to keyboard keys for scripts"
+        (ON by default) allows existing scripts which check keyboard keys
+        key:enter, key:esc, and key:left/right/up/down to work when the
+        player uses a joystick.
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]
@@ -198,7 +204,6 @@ September 29 2018 [Fufluns]
     * In active-time battle mode, when a hero used an "Automatically choose
       target" attack or an enemy attacked, any queued turn-delayed attacks
       didn't have their delays count down [Chronas, Ralph]
-    * Joystick controls should now work everywhere in-game [Ralph]
     * The Experience Curve hero setting defaulted to 0.00 instead of 0.20 for
       pre-Beelzebufo games (specifically, any heroes which haven't been edited
       since then), resulting in very low XP needed to level [Ralph]
