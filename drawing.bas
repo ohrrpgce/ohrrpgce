@@ -3073,7 +3073,7 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref impsp
 
  DIM pmenu(2) as string
  DIM retval(2) as integer
- DIM palstate as MenuState 
+ DIM palstate as MenuState
  palstate.pt = 0
  palstate.last = 2
  palstate.size = 2
@@ -3246,7 +3246,7 @@ FUNCTION spriteedit_import16(byref ss as SpriteEditState) as Frame ptr
  DIM remap as integer
  IF is_identical THEN
   remap = 2
-  debuginfo "spriteedit_import16: is identical"
+  debuginfo "spriteedit_import16: palette is identical"
  ELSE
   remap = spriteedit_import16_remap_menu(ss, impsprite, pal16, palmapping())
  END IF
@@ -4005,9 +4005,9 @@ TYPE SpriteSetBrowser
   DECLARE SUB set_focus(setnum as integer, framenum as integer)
   DECLARE SUB run()
   DECLARE SUB setup_editstate(edstate as SpriteEditState, setnum as integer, framenum as integer, fullset as bool = NO)
-  DECLARE SUB edit_spriteset(setnum as integer)
+  DECLARE SUB cleanup_editstate(edstate as SpriteEditState, fullset as bool = NO)
   DECLARE SUB add_spriteset()
-  DECLARE SUB edit_frame(setnum as integer, framenum as integer)
+  DECLARE SUB edit_any(setnum as integer, framenum as integer)
   DECLARE SUB delete_frame(setnum as integer, delete_framenum as integer)
   DECLARE SUB export_any()
   DECLARE SUB import_any()
@@ -4324,10 +4324,6 @@ SUB SpriteSetBrowser.add_spriteset()
   set_focus(gen(genmax), 0)
 END SUB
 
-SUB SpriteSetBrowser.edit_spriteset(setnum as integer)
-  'Not implemented
-END SUB
-
 'Callback for sprite_editor
 SUB SpriteSetBrowser_save_callback(spr as Frame ptr, context as any ptr, defpal as integer)
  DIM byref this as SpriteSetBrowser = *cast(SpriteSetBrowser ptr, context)
@@ -4351,13 +4347,15 @@ SUB SpriteSetBrowser_save_callback_fullset(spr as Frame ptr, context as any ptr,
 END SUB
 
 'Setup public members of SpriteEditState for a call to sprite_editor.
-'editing_spriteset should already be set.
+'cleanup_editstate must be called when finished.
+'editing_spriteset should already be loaded.
 SUB SpriteSetBrowser.setup_editstate(edstate as SpriteEditState, setnum as integer, framenum as integer, fullset as bool = NO)
-  'Members used by SpriteSetBrowser_save_callback
+
+  'Members used by SpriteSetBrowser_save_callback[_fullset]
   editing_setnum = setnum
   editing_framenum = framenum
   IF fullset THEN
-   editing_frame = editing_spriteset
+   editing_frame = spriteset_to_basic_spritesheet(editing_spriteset)
   ELSE
    editing_frame = @editing_spriteset[editing_framenum]
   END IF
@@ -4381,28 +4379,48 @@ SUB SpriteSetBrowser.setup_editstate(edstate as SpriteEditState, setnum as integ
   END WITH
 END SUB
 
-SUB SpriteSetBrowser.edit_frame(setnum as integer, framenum as integer)
+SUB SpriteSetBrowser.cleanup_editstate(edstate as SpriteEditState, fullset as bool = NO)
+  frame_unload @editing_spriteset
+  IF fullset THEN
+    frame_unload @editing_frame  'This is a basic spritesheet (all frames merged)
+  ELSE
+    editing_frame = NULL
+  END IF
+END SUB
+
+SUB SpriteSetBrowser.edit_any(setnum as integer, framenum as integer)
+  DIM fullset as bool = (framenum < 0)  'Whole spriteset?
+
   editing_spriteset = frame_load(sprtype, setnum)
 
   DIM edstate as SpriteEditState
-  setup_editstate edstate, setnum, framenum
+  setup_editstate edstate, setnum, framenum, fullset
 
   sprite_editor edstate, editing_frame
-  'sprite_editor calls the save callback on quitting, which modifies editing_frame
-  'and writes to rgfx.
+  'sprite_editor calls the save callback on quitting, which writes to rgfx,
+  'and modifies editing_frame/editing_spriteset unless fullset=YES.
 
-  frame_unload @editing_spriteset
+  cleanup_editstate edstate, fullset
+
   defpalettes(setnum) = edstate.pal_num
   'Save default palettes immediately for live previewing
   '(TODO: should really be handled in the save_callback instead)
   savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
 
+  IF fullset THEN
+    'Unlike editing a single frame, in which the cached Frame is modified in-place,
+    'when editing a whole spriteset we're replacing it (writing out directly to .rgfx),
+    'so need to remove the spriteset from the cache.
+    delete_menu_items()   'Required in order to empty cache
+    sprite_empty_cache sprtype, setnum
+  END IF
+
   'All palettes might have been modified, but they would have been modified
-  'in-place.  The Frame would also have been modified in-place, and is shared
-  'with the Sprite slices.
+  'in-place.  The Frame would also have been modified in-place (unless fullset),
+  'and is shared with the Sprite slices.
   'However, we still need to rebuild the menu if the default palette changed,
   'because that doesn't affect existing Sprite slices loaded with pal=-1
-  '(unless we force them to be reloaded with ChangeSpriteSlice
+  '(unless we force them to be reloaded with ChangeSpriteSlice)
   rebuild_menu()
 END SUB
 
@@ -4431,14 +4449,7 @@ SUB SpriteSetBrowser.import_any()
   DIM as integer setnum = cur_setnum, framenum = cur_framenum  'Cache for after delete_menu_items
   DIM fullset as bool = (framenum < 0)  'Whole spriteset?
 
-  DIM sset as Frame ptr
-  sset = frame_load(sprtype, setnum)
-  IF fullset THEN
-   editing_spriteset = spriteset_to_basic_spritesheet(sset)
-   frame_unload @sset
-  ELSE
-   editing_spriteset = sset
-  END IF
+  editing_spriteset = frame_load(sprtype, setnum)
 
   DIM edstate as SpriteEditState
   setup_editstate edstate, setnum, framenum, fullset
@@ -4459,9 +4470,9 @@ SUB SpriteSetBrowser.import_any()
    savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
   END IF
 
-  sprite_editor_cleanup edstate
+  sprite_editor_cleanup edstate  'Matches sprite_editor_initialise
 
-  frame_unload @editing_spriteset
+  cleanup_editstate edstate, fullset
 
   'Unlike editing a single frame, in which the cached Frame is modified in-place,
   'when importing a whole spriteset we're replacing it, so need to empty the cache.
@@ -4649,10 +4660,9 @@ SUB SpriteSetBrowser.run()
     IF enter_or_space() ORELSE ((readmouse.release AND mouseLeft) ANDALSO hover = ps.cur) then
       IF cur_setnum = -1 THEN  'Add new
         add_spriteset()
-      ELSEIF cur_framenum = -1 THEN  'Whole spriteset
-        edit_spriteset(cur_setnum)
       ELSE
-        edit_frame(cur_setnum, cur_framenum)
+        'Editing either a single frame or whole spriteset
+        edit_any(cur_setnum, cur_framenum)
       END IF
     END IF
 
