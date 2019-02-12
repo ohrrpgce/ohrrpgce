@@ -1073,10 +1073,7 @@ SUB textbox_seek(byref box as TextBox, byref st as TextboxEditState)
  DO
   IF st.id > gen(genMaxTextBox) THEN st.id = 0
   IF st.id = remember_id THEN
-   edgeboxstyle 115, 90, 100, 20, 0, vpage
-   edgeprint "Not found.", 120, 95, uilook(uiText), vpage
-   setvispage vpage
-   waitforanykey
+   notification "Not found.", YES  'shrink=YES
    EXIT DO
   END IF
   LoadTextBox box, st.id

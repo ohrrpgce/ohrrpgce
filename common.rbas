@@ -575,11 +575,11 @@ END SUB
 
 ' Show a message in a box and wait for the user to advance with a keypress.
 ' Returns the scancode of the keypress (it is cleared!)
-FUNCTION notification (msg as zstring ptr) as KBScancode
+FUNCTION notification (msg as zstring ptr, shrink as bool = NO) as KBScancode
  ' For safety disallow reentering, though I'm not currently aware of a way this might happen
  STATIC entered as bool = NO
  IF entered THEN
-  debug "BUG: notfication reentered"
+  showbug "notification() reentered"
   RETURN 0
  END IF
  entered = YES
@@ -589,9 +589,8 @@ FUNCTION notification (msg as zstring ptr) as KBScancode
  defaultmousecursor
  DIM holdpage as integer = allocatepage
  copypage vpage, holdpage
- basic_textbox *msg, uilook(uiText), holdpage
+ basic_textbox *msg, uilook(uiText), holdpage, , , shrink
  setvispage holdpage
- clearkeys
  DIM scancode as KBScancode = waitforanykey()
  freepage holdpage
  restore_previous_palette

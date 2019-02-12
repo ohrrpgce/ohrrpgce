@@ -1237,9 +1237,7 @@ FUNCTION recover_workingdir (sessinfo as SessionInfo) as bool
        "You can rename it to " & origname & ", but ALWAYS keep the previous copy " _
        !"as a backup because some data in the recovered file might be corrupt!\n" _
        "If you have questions, ask ohrrpgce-crash@HamsterRepublic.com"
- basic_textbox msg, uilook(uiText), vpage
- setvispage vpage
- waitforanykey
+ notification msg
  RETURN empty_workingdir(sessinfo.workingdir)
 END FUNCTION
 
