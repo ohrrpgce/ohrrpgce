@@ -3538,6 +3538,10 @@ PRIVATE FUNCTION finddatafile_internal(filename as string, searchtype as FileTyp
 END FUNCTION
 
 PRIVATE FUNCTION finddatafile_internal2(filename as string, searchtype as FileTypeEnum, error_if_missing as bool) as string
+ IF LEN(filename) = 0 THEN
+  IF error_if_missing THEN showbug "finddatafile/dir: blank filename"
+  RETURN ""
+ END IF
  DIM ret as string = finddatafile_internal(filename, searchtype)
  IF LEN(ret) THEN RETURN ret
  IF error_if_missing THEN

@@ -1792,7 +1792,8 @@ Function GetSpriteSliceData(byval sl as Slice ptr) as SpriteSliceData ptr
  return sl->SpriteData
 End Function
 
-' Actually load the asset for a sprite slice
+' Actually load the asset for a sprite slice, or load a placeholder Frame
+' if it's missing. If the assetfile is "", always loads a placeholder with no warning.
 Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
  if sl = 0 then fatalerror "LoadSpriteasset null ptr"
 
@@ -1825,7 +1826,7 @@ Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
     sl->Height = .img.sprite->h
    end if
   else
-   if warn_if_missing then
+   if warn_if_missing andalso len(assetfile) then
     visible_debug "Data file " & iif(len(filename), "corrupt", "missing") _
                   & !":\ndata/" & assetfile _
                   & !"\nThe OHRRPGCE apparently isn't installed properly. Try reinstalling, or report this error."
