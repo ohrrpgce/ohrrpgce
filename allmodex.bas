@@ -8030,11 +8030,24 @@ CONST SPRCACHE_BASE_SZ = 4096  'bytes
  CONST SPRCACHEB_SZ = 4096  'in SPRITE_BASE_SZ units
 #ENDIF
 
+#if 0
+        'Enable this to help track down sprite leaks.
+        'Set TRACE_SPRITE to the particular spriteset you want to trace
+        #define TRACE_SPRITE  SPRITE_CACHE_KEY(sprTypeWalkabout, 1)  'walkabout set 1
+        #macro TRACE_CACHE(fr, msg)
+                if fr->cacheentry andalso fr->cacheentry->hash = TRACE_SPRITE then
+                        debug msg ", spr " & TRACE_SPRITE & " refc=" & fr->refcount
+                end if
+        #endmacro
+#else
+        #define TRACE_CACHE(fr, msg)
+#endif
 
 ' removes a sprite from the cache, and frees it.
 private sub sprite_remove_cache(entry as SpriteCacheEntry ptr)
+	TRACE_CACHE(entry->p, "freeing from cache")
 	if entry->p->refcount <> 1 then
-		debug "error: invalidly uncaching sprite " & entry->hash & " " & frame_describe(entry->p)
+		debugc errBug, "invalidly uncaching sprite " & entry->hash & " " & frame_describe(entry->p)
 	end if
 	dlist_remove(sprcacheB.generic, entry)
 	sprcache.remove(entry->hash)
@@ -8509,9 +8522,15 @@ end sub
 ' may return either NULL or a blank Frame!
 function frame_load(sprtype as SpriteType, record as integer) as Frame ptr
 	dim ret as Frame ptr = sprite_fetch_from_cache(sprtype, record)
-	if ret then return ret
+	if ret then
+		TRACE_CACHE(ret, "frame_load from cache")
+		return ret
+	end if
 	ret = frame_load_uncached(sprtype, record)
-	if ret then sprite_add_cache(sprtype, record, ret)
+	if ret then
+		sprite_add_cache(sprtype, record, ret)
+		TRACE_CACHE(ret, "frame_load from file")
+	end if
 	return ret
 end function
 
@@ -8821,9 +8840,13 @@ sub frame_unload cdecl(ppfr as Frame ptr ptr)
 			exit sub
 		end if
 		.refcount -= 1
-		if .refcount < 0 then debug frame_describe(fr) & " has refcount " & .refcount
+		TRACE_CACHE(fr, "frame_unload")
+
+		if .refcount < 0 then debugc errBug, frame_describe(fr) & " has refcount " & .refcount
 		'if cached, can free two references at once
 		if (.refcount - .cached) <= 0 then
+			TRACE_CACHE(fr, "now unused")
+
 			if .arrayelem then
 				'this should not happen, because each arrayelem gets an extra refcount
 				debug "arrayelem with refcount = " & .refcount
@@ -9010,6 +9033,7 @@ function frame_reference cdecl(p as Frame ptr) as Frame ptr
 		'showerror "tried to reference a non-refcounted sprite!"
 	else
 		p->refcount += 1
+		TRACE_CACHE(p, "frame_reference")
 	end if
 	return p
 end function
