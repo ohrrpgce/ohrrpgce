@@ -226,7 +226,7 @@ bool multismoothblit(int srcbitdepth, int destbitdepth, void *srcbuffer, void *d
 	void *intermediate_buffer;
 	intermediate_buffer = malloc(w * h * zoom01 * zoom01 * srcbitdepth / 8);
 	if (!intermediate_buffer)
-		debugc(errDie, "multismoothblit: malloc failed");
+		debugc(errFatalError, "multismoothblit: malloc failed");
 	void *first_buffer = srcbuffer;
 
 	if (zoom0 > 1) {
@@ -235,6 +235,7 @@ bool multismoothblit(int srcbitdepth, int destbitdepth, void *srcbuffer, void *d
 	}
 	func1(first_buffer, intermediate_buffer, w * zoom0, h * zoom0, w * zoom01, zoom1, 1, pal);
 	func2(intermediate_buffer, destbuffer, w * zoom01, h * zoom01, pitch, zoom2, finalsmooth, pal);
+	free(intermediate_buffer);
 	return true;
 }
 
