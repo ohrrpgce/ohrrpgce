@@ -958,6 +958,7 @@ SUB update_vehicle_state ()
   END IF
  END IF
  IF vstate.falling THEN '--fall-------------------
+  'TODO: This reduces hero Z to zero, but maybe it should return to what it was before mounting?
   DIM fallen_count as integer = 0
   FOR i as integer = 0 TO 3
    IF heroz(i) > 0 THEN
@@ -1120,9 +1121,29 @@ SUB try_mount_vehicle(vehid as integer, npci as NPCIndex, force_mount as bool = 
  create_walkabout_shadow npc(vstate.npc).sl
 END SUB
 
+'Used only while live-previewing and .VEH changes
+SUB reload_vehicle ()
+ IF vstate.active THEN
+  settag vstate.dat.riding_tag, NO
+  LoadVehicle game & ".veh", vstate.dat, vstate.id
+  settag vstate.dat.riding_tag, YES
+  IF vstate.mounting = NO ANDALSO vstate.ahead = NO THEN
+   IF vstate.dat.speed = 3 THEN
+    change_hero_speed(0, 10)
+   ELSE
+    change_hero_speed(0, vstate.dat.speed)
+   END IF
+  END IF
+  IF vehicle_is_animating() = NO THEN
+   FOR i as integer = 0 TO 3
+    (heroz(i)) = vstate.dat.elevation
+   NEXT
+  END IF
+ END IF
+END SUB
+
 SUB forcedismount ()
  IF vstate.active THEN
-  '--clear vehicle on loading new map--
   IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
    '--dismount-ahead is true, dismount-passwalls is false
    SELECT CASE herodir(0)

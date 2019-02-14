@@ -61,7 +61,8 @@ DECLARE SUB cancel_hero_walk(byval rank as integer)
 
 'Vehicles
 DECLARE FUNCTION vehicle_is_animating() as bool
-DECLARE SUB reset_vehicle(v as vehicleState)
+DECLARE SUB reset_vehicle(vstate as VehicleState)
+DECLARE SUB reload_vehicle()
 DECLARE SUB dump_vehicle_state()
 DECLARE SUB forcedismount ()
 DECLARE SUB update_vehicle_state ()

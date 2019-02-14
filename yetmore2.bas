@@ -1669,6 +1669,10 @@ SUB try_reload_lumps_anywhere ()
   ELSEIF modified_lumps[i] = "browse.txt" THEN                            'BROWSE.TXT
    handled = YES  'ignore
 
+  ELSEIF extn = "veh" THEN                                                '.VEH
+   reload_vehicle
+   handled = YES
+
                                                                           ''' Script stufff
 
   ELSEIF extn = "hsp" THEN                                                '.HSP

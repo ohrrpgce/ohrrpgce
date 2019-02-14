@@ -9,7 +9,7 @@ You can edit and play your game at the same time, and most of your edits come in
 You can press Ctrl+S in the map editor proper and maptile editor to force immediate saving of data. While playing, press the F5 debug key (currently only works on maps) for lots of options about reloading map state or scripts.
 
 Instant reloading of the following things currently works:
--All map data, including NPCs, general map settings, and doors
+-All map data, including NPCs (also vehicles), general map settings, and doors
 -All graphics, and tile animations
 -16 color palettes, the master palette, and UI colors & box styles
 -The font
