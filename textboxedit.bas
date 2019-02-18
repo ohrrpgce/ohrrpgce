@@ -373,6 +373,9 @@ SUB textbox_conditionals(byref box as TextBox)
     tag_set_grabber num, state
    CASE condBATTLE
     intgrabber num, 0, gen(genMaxFormation)
+    IF enter_space_click(state) THEN
+     num = formation_picker(num)
+    END IF
    CASE condSHOP
     xintgrabber num, 0, gen(genMaxShop), -1, -32000  'Negative values are Inn cost
     IF enter_space_click(state) THEN
