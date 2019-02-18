@@ -685,11 +685,11 @@ End Sub
 '-----------------------------------------------------------------------
 
 Function FormationBrowser.thing_kind_name() as string
- return "Battle Formations"
+ return "Formations"
 End Function
 
 Function FormationBrowser.thing_kind_name_singular() as string
- return "Battle Formation"
+ return "Formation"
 End Function
 
 Function FormationBrowser.init_helpkey() as string
