@@ -1,0 +1,11 @@
+Browse to pick a battle formation.
+
+You can type the name of an enemy in the formation, or type the formation's ID number to make the cursor jump to it.
+
+Click the "+New" button or press CTRL+N to add a new battle formation.
+
+Right-click on a formation for a pop-up menu that lets you choose if you want to "Pick" this formation, or if you want to edit it.
+
+Press CTRL+F or click "Filter" if you want to filter the list to only show battle formations that match a certain string of text.
+
+You can press SHIFT+BACKSPACE if you want to delete all battle formations after the currently selected one. Use with caution!

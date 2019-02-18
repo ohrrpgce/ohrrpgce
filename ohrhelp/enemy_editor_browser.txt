@@ -4,7 +4,7 @@ You can type the name of an enemy or type the enemy's ID number to make the curs
 
 Click the "+New" button or press CTRL+N to add a new enemy.
 
-Right-click on an attack for a pop-up menu that lets you choose if you want to "Pick" this enemy, or if you want to edit it.
+Right-click on an enemy for a pop-up menu that lets you choose if you want to "Pick" this enemy, or if you want to edit it.
 
 Press CTRL+F or click "Filter" if you want to filter the list to only show enemies that match a certain string of text.
 
