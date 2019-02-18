@@ -13,6 +13,7 @@
 #include "slices.bi"
 #include "thingbrowser.bi"
 #include "sliceedit.bi"
+#include "bcommon.bi"
 
 
 'Local SUBs
@@ -93,7 +94,6 @@ SUB formation_set_editor
  DIM set_id as integer = 1, form_id as integer
  DIM menu(23) as string
  DIM rootslice as Slice ptr
- DIM as string ename(7)
  DIM state as MenuState
  state.last = UBOUND(menu)
  state.size = 24
@@ -102,7 +102,7 @@ SUB formation_set_editor
  menuopts.itemspacing = -1
 
  LoadFormationSet formset, set_id
- formation_set_editor_load_preview state, form_id, formset, form, ename(), rootslice
+ formation_set_editor_load_preview state, form_id, formset, form, menu(), rootslice
 
  setkeys
  DO
@@ -114,7 +114,7 @@ SUB formation_set_editor
   END IF
   IF keyval(scF1) > 1 THEN show_help "formation_sets"
   IF usemenu(state) THEN 
-   formation_set_editor_load_preview state, form_id, formset, form, ename(), rootslice
+   formation_set_editor_load_preview state, form_id, formset, form, menu(), rootslice
   END IF
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN
@@ -127,16 +127,17 @@ SUB formation_set_editor
    IF intgrabber(set_id, 1, 255) THEN
     SaveFormationSet formset, remember_id
     LoadFormationSet formset, set_id
+    formation_set_editor_load_preview state, form_id, formset, form, menu(), rootslice
    END IF
   END IF
   IF state.pt = 2 THEN intgrabber formset.frequency, 0, 200
   IF state.pt = 3 THEN tag_grabber formset.tag, state
   IF state.pt >= 4 THEN
    IF intgrabber(formset.formations(state.pt - 4), -1, gen(genMaxFormation)) THEN
-    formation_set_editor_load_preview state, form_id, formset, form, ename(), rootslice
+    formation_set_editor_load_preview state, form_id, formset, form, menu(), rootslice
    ELSEIF enter_space_click(state) THEN
     formset.formations(state.pt - 4) = formation_picker_or_none(form_id + 1) - 1
-    formation_set_editor_load_preview state, form_id, formset, form, ename(), rootslice
+    formation_set_editor_load_preview state, form_id, formset, form, menu(), rootslice
    END IF
   END IF
   IF state.pt >= 4 AND form_id >= 0 THEN
@@ -148,13 +149,6 @@ SUB formation_set_editor
   menu(1) = CHR(27) & "Formation Set " & set_id & CHR(26)
   menu(2) = "Battle Frequency: " & formset.frequency & " (" & step_estimate(formset.frequency, 40, 160, "-", " steps") & ")"
   menu(3) = tag_condition_caption(formset.tag, "Only if tag", "No tag check")
-  FOR i as integer = 0 TO 19
-   IF formset.formations(i) = -1 THEN
-    menu(4 + i) = "Empty"
-   ELSE
-    menu(4 + i) = "Formation " & formset.formations(i)
-   END IF
-  NEXT i
 
   standardmenu menu(), state, 0, 0, dpage, menuopts
 
@@ -167,16 +161,27 @@ SUB formation_set_editor
 
 END SUB
 
-SUB formation_set_editor_load_preview(state as MenuState, byref form_id as integer, formset as FormationSet, form as Formation, ename() as string, byref rootslice as slice Ptr)
+SUB formation_set_editor_load_preview(state as MenuState, byref form_id as integer, formset as FormationSet, form as Formation, menu() as string, byref rootslice as slice Ptr)
  IF state.pt >= 4 THEN
   '--have form selected
   form_id = formset.formations(state.pt - 4)
   IF form_id >= 0 THEN
    '--form not empty
    LoadFormation form, form_id
+   DIM as string ename(7) 'not used here, but that is okay
    load_formation_slices ename(), form, @rootslice
   END IF
  END IF
+ 'Also reload the formation descriptions for the menu
+ dim each_form as Formation
+ FOR i as integer = 0 TO 19
+  IF formset.formations(i) = -1 THEN
+   menu(4 + i) = "Empty"
+  ELSE
+   LoadFormation each_form, game & ".for", formset.formations(i)
+   menu(4 + i) = "Form " & formset.formations(i) & " " & describe_formation(each_form)
+  END IF
+ NEXT i
 END SUB
 
 SUB hero_formation_editor ()
