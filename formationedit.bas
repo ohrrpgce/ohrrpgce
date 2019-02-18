@@ -17,6 +17,7 @@
 
 'Local SUBs
 DECLARE FUNCTION individual_formation_editor (form_id as integer = -1) as integer
+DECLARE SUB formation_editor_main ()
 DECLARE SUB formation_set_editor ()
 DECLARE SUB draw_formation_slices OVERLOAD (eform as Formation, rootslice as Slice ptr, selected_slot as integer, page as integer)
 DECLARE SUB draw_formation_slices OVERLOAD (eform as Formation, hform as HeroFormation, rootslice as Slice ptr, selected_slot as integer, page as integer, byval heromode as bool=NO)
@@ -41,16 +42,15 @@ SUB formation_editor_main ()
  b.browse(-1, , @individual_formation_editor)
 END SUB
 
-'FUNCTION enemy_picker (recindex as integer = -1) as integer
-' DIM b as EnemyBrowser
-' RETURN b.browse(recindex, , @enemy_editor, NO)
-'END FUNCTION
-'
-'FUNCTION enemy_picker_or_none (recindex as integer = -1) as integer
-' DIM b as EnemyBrowser
-' RETURN b.browse(recindex - 1, YES , @enemy_editor, NO) + 1
-'END FUNCTION
+FUNCTION formation_picker (recindex as integer = -1) as integer
+ DIM b as FormationBrowser
+ RETURN b.browse(recindex, , @individual_formation_editor, NO)
+END FUNCTION
 
+FUNCTION formation_picker_or_none (recindex as integer = -1) as integer
+ DIM b as FormationBrowser
+ RETURN b.browse(recindex - 1, YES , @individual_formation_editor, NO) + 1
+END FUNCTION
 
 'Total-level menu
 SUB formation_editor
@@ -133,6 +133,9 @@ SUB formation_set_editor
   IF state.pt = 3 THEN tag_grabber formset.tag, state
   IF state.pt >= 4 THEN
    IF intgrabber(formset.formations(state.pt - 4), -1, gen(genMaxFormation)) THEN
+    formation_set_editor_load_preview state, form_id, formset, form, ename(), rootslice
+   ELSEIF enter_space_click(state) THEN
+    formset.formations(state.pt - 4) = formation_picker_or_none(form_id + 1) - 1
     formation_set_editor_load_preview state, form_id, formset, form, ename(), rootslice
    END IF
   END IF
