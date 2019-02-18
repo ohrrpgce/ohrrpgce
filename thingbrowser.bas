@@ -15,6 +15,7 @@
 #include "scriptcommands.bi"
 #include "plankmenu.bi"
 #include "loading.bi"
+#include "bcommon.bi"
 
 #ifdef IS_CUSTOM
 #include "custom.bi"
@@ -679,6 +680,46 @@ End Function
 
 Sub EnemyBrowser.handle_cropafter(byval id as integer)
  cropafter id, gen(genMaxEnemy), 0, game & ".dt1", getbinsize(binDT1)
+End Sub
+
+'-----------------------------------------------------------------------
+
+Function FormationBrowser.thing_kind_name() as string
+ return "Battle Formations"
+End Function
+
+Function FormationBrowser.thing_kind_name_singular() as string
+ return "Battle Formation"
+End Function
+
+Function FormationBrowser.init_helpkey() as string
+ return "formation_editor_browser"
+End Function
+
+Function FormationBrowser.highest_id() as integer
+ return gen(genMaxFormation)
+End Function
+
+Function FormationBrowser.highest_possible_id() as integer
+ return maxMaxFormation
+End Function
+
+Function FormationBrowser.thing_text_for_id(byval id as integer) as string
+ dim digits as integer = len(str(highest_id()))
+ if id = none_id then
+  return SPACE(digits) & " " & rpad("NOTHING", " ", 16)
+ end if
+ dim form as Formation
+ LoadFormation form, game & ".for", id
+ dim cap as string
+ cap = lpad(str(id), " ", digits) & " " & describe_formation(form)
+ 'Make a guess of about how many characters to padd the string to so they are all single-screen sized
+ dim w_chars as integer = (vpages(vpage)->w - 16) / 8
+ return rpad(cap, " ", w_chars)
+End Function
+
+Sub FormationBrowser.handle_cropafter(byval id as integer)
+ cropafter id, gen(genMaxFormation), 0, game & ".for", 80
 End Sub
 
 '-----------------------------------------------------------------------

@@ -16,7 +16,7 @@
 
 
 'Local SUBs
-DECLARE SUB individual_formation_editor ()
+DECLARE FUNCTION individual_formation_editor (form_id as integer = -1) as integer
 DECLARE SUB formation_set_editor ()
 DECLARE SUB draw_formation_slices OVERLOAD (eform as Formation, rootslice as Slice ptr, selected_slot as integer, page as integer)
 DECLARE SUB draw_formation_slices OVERLOAD (eform as Formation, hform as HeroFormation, rootslice as Slice ptr, selected_slot as integer, page as integer, byval heromode as bool=NO)
@@ -35,6 +35,22 @@ CONST SL_FORMEDITOR_HERO = 400  '+0 to +3 for 4 slots
 
 'What hero sprites to use as placeholders, or -1 for a rectangle
 DIM SHARED hero_placeholder_sprites(3) as integer = {-1, -1, -1, -1}
+
+SUB formation_editor_main ()
+ DIM b as FormationBrowser
+ b.browse(-1, , @individual_formation_editor)
+END SUB
+
+'FUNCTION enemy_picker (recindex as integer = -1) as integer
+' DIM b as EnemyBrowser
+' RETURN b.browse(recindex, , @enemy_editor, NO)
+'END FUNCTION
+'
+'FUNCTION enemy_picker_or_none (recindex as integer = -1) as integer
+' DIM b as EnemyBrowser
+' RETURN b.browse(recindex - 1, YES , @enemy_editor, NO) + 1
+'END FUNCTION
+
 
 'Total-level menu
 SUB formation_editor
@@ -57,7 +73,7 @@ SUB formation_editor
   usemenu state
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
-   IF state.pt = 1 THEN individual_formation_editor
+   IF state.pt = 1 THEN formation_editor_main
    IF state.pt = 2 THEN formation_set_editor
    IF state.pt = 3 THEN hero_formation_editor
   END IF
@@ -308,9 +324,26 @@ SUB hero_formation_editor ()
  DeleteSlice @rootslice
 END SUB
 
-SUB individual_formation_editor ()
- DIM form_id as integer = 0
+'form_id: which formation to show. If -1, same as last time. If >= max, ask to add a new formation,
+'(and exit and return -1 if cancelled).
+'Otherwise, returns the formation number we were last editing.
+FUNCTION individual_formation_editor (form_id as integer = -1) as integer
+
  DIM form as Formation
+ 
+ STATIC remember_form_id as integer = 0
+ IF form_id < 0 THEN
+  form_id = remember_form_id
+ ELSE
+  IF form_id > gen(genMaxFormation) THEN
+   'Added a new record
+   gen(genMaxFormation) = form_id
+   ClearFormation form
+   form.music = gen(genBatMus) - 1
+   SaveFormation form, form_id
+  END IF
+ END IF
+ 
  DIM ename(7) as string
  DIM rootslice as Slice ptr
  DIM as integer i
@@ -461,7 +494,7 @@ SUB individual_formation_editor ()
    END IF
    IF state.pt = 1 THEN '---SELECT A DIFFERENT FORMATION
     DIM as integer remember_id = form_id
-    IF intgrabber_with_addset(form_id, 0, gen(genMaxFormation), 32767, "formation") THEN
+    IF intgrabber_with_addset(form_id, 0, gen(genMaxFormation), maxMaxFormation, "formation") THEN
      SaveFormation form, remember_id
      IF form_id > gen(genMaxFormation) THEN
       gen(genMaxFormation) = form_id
@@ -563,7 +596,9 @@ SUB individual_formation_editor ()
  SaveFormation form, form_id
  music_stop
  DeleteSlice @rootslice
-END SUB
+ remember_form_id = form_id
+ RETURN form_id
+END FUNCTION
 
 SUB formation_init_added_enemy(byref slot as FormationSlot)
  'default to middle of field

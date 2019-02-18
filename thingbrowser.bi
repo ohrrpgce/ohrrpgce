@@ -126,6 +126,17 @@ Type EnemyBrowser extends ThingBrowser
  plank_template as Slice Ptr
 End Type
 
+Type FormationBrowser extends ThingBrowser
+ declare virtual function thing_kind_name() as string
+ declare virtual function thing_kind_name_singular() as string
+ declare virtual function init_helpkey() as string
+ declare virtual function highest_id() as integer
+ declare virtual function highest_possible_id() as integer
+ declare virtual function thing_text_for_id(byval id as integer) as string
+ declare virtual sub handle_cropafter(byval id as integer)
+ plank_template as Slice Ptr
+End Type
+
 Type HeroBrowser extends ThingBrowser
  declare virtual function thing_kind_name() as string
  declare virtual function thing_kind_name_singular() as string
