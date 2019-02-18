@@ -9,7 +9,7 @@
 #include "const.bi"
 #include "common.bi"
 #include "allmodex.bi"
-#include "common.bi"
+#include "bcommon.bi"
 #include "customsubs.bi"
 #include "loading.bi"
 #include "scrconst.bi"
@@ -528,7 +528,11 @@ SUB textbox_update_conditional_menu(byref box as TextBox, menu() as string)
   menu(6) = " gain " & ABS(box.money) & "$"
  END IF
  menu(7) = textbox_condition_caption(box.battle_tag, "BATTLE")
- menu(8) = " fight enemy formation " & box.battle
+ IF box.battle_tag = 0 THEN
+  menu(8) = " fight enemy formation"
+ ELSE
+  menu(8) = " fight enemy formation " & box.battle & " " & describe_formation_by_id(box.battle)
+ END IF
  menu(9) = textbox_condition_caption(box.item_tag, "ITEM")
  SELECT CASE box.item
   CASE 0 :      menu(10) = " do not add/remove items"

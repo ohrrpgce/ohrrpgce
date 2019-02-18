@@ -6,6 +6,7 @@
 #include "util.bi"
 #include "config.bi"
 #include "common.bi"
+#include "loading.bi"
 
 'This is similar to fuzzythreshold. It interpolates between these values:
 ' 0.12  0.24  1.00  2.00 ...  x
@@ -185,4 +186,10 @@ FUNCTION describe_formation(formdata as Formation) as string
  NEXT i
  
  RETURN result
+END FUNCTION
+
+FUNCTION describe_formation_by_id(byval form_id as integer) as string
+ DIM form as Formation
+ LoadFormation form, game & ".for", form_id
+ RETURN describe_formation(form)
 END FUNCTION

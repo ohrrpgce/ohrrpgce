@@ -10,6 +10,7 @@ DECLARE FUNCTION equip_elemental_merge(values() as single, byval formula as inte
 DECLARE FUNCTION focuscost (byval cost as integer, byval focus as integer) as integer
 
 DECLARE FUNCTION attack_cost_info(byref atk as AttackData, byval focus as integer=0, byval cur_mp as integer=0, byval max_mp as integer=0, byval magic_list_type as integer=0, byval lmp_level as integer=-1, byval cur_lmp as integer=0) as string
-DECLARE FUNCTION describe_formation(formdata as Formation) as string
+DECLARE FUNCTION describe_formation (formdata as Formation) as string
+DECLARE FUNCTION describe_formation_by_id (byval form_id as integer) as string
 
 #ENDIF
