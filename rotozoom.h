@@ -1,6 +1,8 @@
-/*  
-
-SDL2_rotozoom.c: rotozoomer, zoomer and shrinker for 32bit or 8bit surfaces
+/*
+Rotozoomer, zoomer and shrinker for 32bit or 8bit surfaces
+Adapted from SDL2_rotozoom.h from sdl2_gfx, version 1.0.4 - zlib licensed.
+http://www.ferzkopp.net/wordpress/2016/01/02/sdl_gfx-sdl2_gfx/
+https://sourceforge.net/projects/sdl2gfx/
 
 Copyright (C) 2012-2014  Andreas Schiffler
 
@@ -27,8 +29,8 @@ Andreas Schiffler -- aschiffler at ferzkopp dot net
 
 */
 
-#ifndef _SDL2_rotozoom_h
-#define _SDL2_rotozoom_h
+#ifndef rotozoom_h
+#define rotozoom_h
 
 #include <math.h>
 
@@ -36,12 +38,6 @@ Andreas Schiffler -- aschiffler at ferzkopp dot net
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef M_PI
-#define M_PI	3.1415926535897932384626433832795
-#endif
-
-#include "SDL.h"
 
 	/* ---- Defines */
 
@@ -57,55 +53,20 @@ extern "C" {
 
 	/* ---- Function Prototypes */
 
-#ifdef _MSC_VER
-#  if defined(DLL_EXPORT) && !defined(LIBSDL2_GFX_DLL_IMPORT)
-#    define SDL2_ROTOZOOM_SCOPE __declspec(dllexport)
-#  else
-#    ifdef LIBSDL2_GFX_DLL_IMPORT
-#      define SDL2_ROTOZOOM_SCOPE __declspec(dllimport)
-#    endif
-#  endif
-#endif
-#ifndef SDL2_ROTOZOOM_SCOPE
-#  define SDL2_ROTOZOOM_SCOPE extern
-#endif
-
 	/* 
 
 	Rotozoom functions
 
 	*/
 
-	SDL2_ROTOZOOM_SCOPE SDL_Surface *rotozoomSurface(SDL_Surface * src, double angle, double zoom, int smooth);
-
-	SDL2_ROTOZOOM_SCOPE SDL_Surface *rotozoomSurfaceXY
+	SDL_Surface *rotozoomSurfaceXY
 		(SDL_Surface * src, double angle, double zoomx, double zoomy, int smooth);
 
-
-	SDL2_ROTOZOOM_SCOPE void rotozoomSurfaceSize(int width, int height, double angle, double zoom, int *dstwidth,
-		int *dstheight);
-
-	SDL2_ROTOZOOM_SCOPE void rotozoomSurfaceSizeXY
+	void rotozoomSurfaceSizeXY
 		(int width, int height, double angle, double zoomx, double zoomy, 
 		int *dstwidth, int *dstheight);
 
-	/* 
-
-	Zooming functions
-
-	*/
-
-	SDL2_ROTOZOOM_SCOPE SDL_Surface *zoomSurface(SDL_Surface * src, double zoomx, double zoomy, int smooth);
-
-	SDL2_ROTOZOOM_SCOPE void zoomSurfaceSize(int width, int height, double zoomx, double zoomy, int *dstwidth, int *dstheight);
-
-	/* 
-
-	Shrinking functions
-
-	*/     
-
-	SDL2_ROTOZOOM_SCOPE SDL_Surface *shrinkSurface(SDL_Surface * src, int factorx, int factory);
+	void zoomSurfaceSize(int width, int height, double zoomx, double zoomy, int *dstwidth, int *dstheight);
 
 	/* 
 
@@ -113,11 +74,11 @@ extern "C" {
 
 	*/
 
-	SDL2_ROTOZOOM_SCOPE SDL_Surface* rotateSurface90Degrees(SDL_Surface* src, int numClockwiseTurns);
+	SDL_Surface* rotateSurface90Degrees(SDL_Surface* src, int numClockwiseTurns);
 
 	/* Ends C function definitions when using C++ */
 #ifdef __cplusplus
 }
 #endif
 
-#endif				/* _SDL2_rotozoom_h */
+#endif				/* rotozoom_h */
