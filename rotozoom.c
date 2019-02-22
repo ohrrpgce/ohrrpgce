@@ -498,7 +498,7 @@ Assumes dst surface was allocated with the correct dimensions.
 `flipx` : Flag indicating horizontal mirroring should be applied.
 `flipy` : Flag indicating vertical mirroring should be applied.
 */
-void transformSurfaceY(SDL_Surface * src, SDL_Surface * dst, int cx, int cy, int isin, int icos, boolint flipx, boolint flipy)
+void _transformSurfaceY(SDL_Surface * src, SDL_Surface * dst, int cx, int cy, int isin, int icos, boolint flipx, boolint flipy)
 {
 	int x, y, dx, dy, xd, yd, sdx, sdy, ax, ay;
 	tColorY *pc, *sp;
@@ -664,6 +664,18 @@ SDL_Surface* rotateSurface90Degrees(SDL_Surface* src, int numClockwiseTurns)
 	return dst;
 }
 
+/* Correct x/y zoom to positive non-zero values. (Negative zoom means the image is flipped).
+
+`zoomx`     : Pointer to the horizontal zoom factor.
+`zoomy`     : Pointer to the vertical zoom factor.
+*/
+void _normaliseZoom(double *zoomx, double *zoomy)
+{
+	*zoomx = fabs(*zoomx);
+	*zoomy = fabs(*zoomy);
+	if (*zoomx < VALUE_LIMIT) *zoomx = VALUE_LIMIT;
+	if (*zoomy < VALUE_LIMIT) *zoomy = VALUE_LIMIT;
+}
 
 /*
 Internal target surface sizing function for rotozooms with trig result return.
@@ -682,6 +694,17 @@ void _rotozoomSurfaceSizeTrig(int width, int height, double angle, double zoomx,
 	int *dstwidth, int *dstheight,
 	double *canglezoom, double *sanglezoom)
 {
+	_normaliseZoom(&zoomx, &zoomy);
+
+	if (fabs(angle) <= VALUE_LIMIT) {
+		/* No rotation */
+		*dstwidth = (int) floor(((double) width * zoomx) + 0.5);
+		*dstwidth = MAX(*dstwidth, 1);
+		*dstheight = (int) floor(((double) height * zoomy) + 0.5);
+		*dstheight = MAX(*dstheight, 1);
+		return;
+	}
+
 	double x, y, cx, cy, sx, sy;
 	double radangle;
 	int dstwidthhalf, dstheighthalf;
@@ -707,8 +730,10 @@ void _rotozoomSurfaceSizeTrig(int width, int height, double angle, double zoomx,
 	*dstheight = 2 * dstheighthalf;
 }
 
+
 /*
-Returns the size of the resulting target surface for a rotozoomSurfaceXY() call.
+Returns the size of the resulting target surface for a rotozoomSurface() call.
+The minimum size of the target surface is 1. The input factors can be positive or negative.
 
 `width`     : The source surface width.
 `height`    : The source surface height.
@@ -718,7 +743,7 @@ Returns the size of the resulting target surface for a rotozoomSurfaceXY() call.
 `dstwidth`  : The calculated width of the rotozoomed destination surface.
 `dstheight` : The calculated height of the rotozoomed destination surface.
 */
-void rotozoomSurfaceSizeXY(int width, int height, double angle, double zoomx, double zoomy, int *dstwidth, int *dstheight)
+void rotozoomSurfaceSize(int width, int height, double angle, double zoomx, double zoomy, int *dstwidth, int *dstheight)
 {
 	double dummy_sanglezoom, dummy_canglezoom;
 
@@ -741,34 +766,43 @@ or 32bit RGBA/ABGR it will be converted into a 32bit RGBA format on the fly.
 
 Returns the new rotozoomed surface.
 */
-SDL_Surface *rotozoomSurfaceXY(SDL_Surface * src, double angle, double zoomx, double zoomy, boolint smooth)
+SDL_Surface *rotozoomSurface(SDL_Surface * src, double angle, double zoomx, double zoomy, boolint smooth)
 {
 	SDL_Surface *rz_dst = NULL;
 	double zoominv;
 	double sanglezoom, canglezoom, sanglezoominv, canglezoominv;
 	int dstwidthhalf, dstwidth, dstheighthalf, dstheight;
 	int is32bit;
-	boolint flipx, flipy;
+	boolint flipx = (zoomx < 0.), flipy = (zoomy < 0.);
+	_normaliseZoom(&zoomx, &zoomy);
 
 	if (!src)
 		return NULL;
 
 	is32bit = (src->format->BitsPerPixel == 32);
 
-	flipx = (zoomx<0.0);
-	if (flipx) zoomx=-zoomx;
-	flipy = (zoomy<0.0);
-	if (flipy) zoomy=-zoomy;
-	/* Sanity check zoom factor */
-	if (zoomx < VALUE_LIMIT) zoomx = VALUE_LIMIT;
-	if (zoomy < VALUE_LIMIT) zoomy = VALUE_LIMIT;
+	/* Determine target size */
+	_rotozoomSurfaceSizeTrig(src->w, src->h, angle, zoomx, zoomy, &dstwidth, &dstheight, &canglezoom, &sanglezoom);
+
+	/* Alloc space to completely contain the zoomed/rotated surface */
+	if (is32bit) {
+		rz_dst =
+			SDL_CreateRGBSurface(SDL_SWSURFACE, dstwidth, dstheight + GUARD_ROWS, 32,
+			src->format->Rmask, src->format->Gmask,
+			src->format->Bmask, src->format->Amask);
+	} else {
+		rz_dst = SDL_CreateRGBSurface(SDL_SWSURFACE, dstwidth, dstheight + GUARD_ROWS, 8, 0, 0, 0, 0);
+	}
+
+	if (!rz_dst)
+		return NULL;
+
+	/* Adjust for guard rows */
+	rz_dst->h = dstheight;
 
 	/* Check if we have a rotozoom or just a zoom */
 	if (fabs(angle) > VALUE_LIMIT) {
 		/* ----------  angle != 0: full rotozoom ---------- */
-
-		/* Determine target size */
-		_rotozoomSurfaceSizeTrig(src->w, src->h, angle, zoomx, zoomy, &dstwidth, &dstheight, &canglezoom, &sanglezoom);
 
 		/* Calculate target factors from sin/cos and zoom */
 		zoominv = 65536.0 / (zoomx * zoomx);
@@ -780,54 +814,16 @@ SDL_Surface *rotozoomSurfaceXY(SDL_Surface * src, double angle, double zoomx, do
 		dstwidthhalf = dstwidth / 2;
 		dstheighthalf = dstheight / 2;
 
-		/* Alloc space to completely contain the rotated surface */
-		if (is32bit) {
-			rz_dst =
-				SDL_CreateRGBSurface(SDL_SWSURFACE, dstwidth, dstheight + GUARD_ROWS, 32,
-				src->format->Rmask, src->format->Gmask,
-				src->format->Bmask, src->format->Amask);
-		} else {
-			rz_dst = SDL_CreateRGBSurface(SDL_SWSURFACE, dstwidth, dstheight + GUARD_ROWS, 8, 0, 0, 0, 0);
-		}
-
-		if (rz_dst == NULL)
-			return NULL;
-
-		/* Adjust for guard rows */
-		rz_dst->h = dstheight;
-
 		if (is32bit) {
 			_transformSurfaceRGBA(src, rz_dst, dstwidthhalf, dstheighthalf,
-				(int) (sanglezoominv), (int) (canglezoominv),
-				flipx, flipy,
-				smooth);
+				(int)sanglezoominv, (int)canglezoominv, flipx, flipy, smooth);
 		} else {
-			transformSurfaceY(src, rz_dst, dstwidthhalf, dstheighthalf,
-				(int) (sanglezoominv), (int) (canglezoominv),
-				flipx, flipy);
+			_transformSurfaceY(src, rz_dst, dstwidthhalf, dstheighthalf,
+				(int)sanglezoominv, (int)canglezoominv, flipx, flipy);
 		}
 
 	} else {
 		/* ------- angle == 0: Just a zoom  --------- */
-		/* Calculate target size */
-		zoomSurfaceSize(src->w, src->h, zoomx, zoomy, &dstwidth, &dstheight);
-
-		/* Alloc space to completely contain the zoomed surface */
-		if (is32bit) {
-			rz_dst =
-				SDL_CreateRGBSurface(SDL_SWSURFACE, dstwidth, dstheight + GUARD_ROWS, 32,
-				src->format->Rmask, src->format->Gmask,
-				src->format->Bmask, src->format->Amask);
-		} else {
-			rz_dst = SDL_CreateRGBSurface(SDL_SWSURFACE, dstwidth, dstheight + GUARD_ROWS, 8, 0, 0, 0, 0);
-		}
-
-		if (rz_dst == NULL)
-			return NULL;
-
-		/* Adjust for guard rows */
-		rz_dst->h = dstheight;
-
 		if (is32bit) {
 			_zoomSurfaceRGBA(src, rz_dst, flipx, flipy, smooth);
 		} else {
@@ -836,44 +832,4 @@ SDL_Surface *rotozoomSurfaceXY(SDL_Surface * src, double angle, double zoomx, do
 	}
 
 	return rz_dst;
-}
-
-/*
-Calculates the size of the target surface for a zoomSurface() call.
-
-The minimum size of the target surface is 1. The input factors can be positive or negative.
-
-`width`     : The width of the source surface to zoom.
-`height`    : The height of the source surface to zoom.
-`zoomx`     : The horizontal zoom factor.
-`zoomy`     : The vertical zoom factor.
-`dstwidth`  : Pointer to an integer to store the calculated width of the zoomed target surface.
-`dstheight` : Pointer to an integer to store the calculated height of the zoomed target surface.
-*/
-void zoomSurfaceSize(int width, int height, double zoomx, double zoomy, int *dstwidth, int *dstheight)
-{
-	/* Make zoom factors positive */
-	boolint flipx, flipy;
-	flipx = (zoomx<0.0);
-	if (flipx) zoomx = -zoomx;
-	flipy = (zoomy<0.0);
-	if (flipy) zoomy = -zoomy;
-
-	/* Sanity check zoom factors */
-	if (zoomx < VALUE_LIMIT) {
-		zoomx = VALUE_LIMIT;
-	}
-	if (zoomy < VALUE_LIMIT) {
-		zoomy = VALUE_LIMIT;
-	}
-
-	/* Calculate target size */
-	*dstwidth = (int) floor(((double) width * zoomx) + 0.5);
-	*dstheight = (int) floor(((double) height * zoomy) + 0.5);
-	if (*dstwidth < 1) {
-		*dstwidth = 1;
-	}
-	if (*dstheight < 1) {
-		*dstheight = 1;
-	}
 }
