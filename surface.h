@@ -121,6 +121,12 @@ extern "C"
 	Surface* surface32_from_pixels( char *input, int w, int h, enum PixelFormat format );
 	char *surface32_to_pixels( Surface *surf, enum PixelFormat format );
 
+	// Roto-zooming functions (implemented in rotozoom.c)
+	Surface *rotozoomSurface(Surface * src, double angle, double zoomx, double zoomy, int smooth);
+	void rotozoomSurfaceSize(int width, int height, double angle, double zoomx, double zoomy, int *dstwidth, int *dstheight);
+	Surface* rotateSurface90Degrees(Surface* src, int numClockwiseTurns);
+
+
 #ifdef __cplusplus
 };
 #endif
