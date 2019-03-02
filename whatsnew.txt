@@ -167,6 +167,7 @@ September 29 2018 [Fufluns]
       a script in the script debugger [Ralph]
     * "hero z" could incorrectly throw "invalid party slot" errors, but
       its argument is actually party caterpillar rank [Ralph]
+    * "hero is walking", "npc is walking" didn't consider pathfinding [James]
     * The width of a Text slice didn't update after changing the text in the
       slice editor [Ralph]
     * Bad results if "scroll to child" was called twice in a row, or after the

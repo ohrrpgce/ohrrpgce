@@ -1583,16 +1583,16 @@ SUB script_functions(byval cmdid as integer)
  CASE 116'--hero is walking
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
    'Both scripted and user pathfinding count as walking
-   IF herow(retvals(0)).xygo = 0 ANDALSO NOT hero_is_pathfinding(retvals(0)) THEN
-    scriptret = 0
-   ELSE
+   'Note that when holding down an arrow key we will return false at the end of
+   'every step, not so when pathfinding or doing a long "walk hero"
+   IF herow(retvals(0)).xygo <> 0 ORELSE hero_is_pathfinding(retvals(0)) THEN
     scriptret = 1
    END IF
    IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN
     ' Other heroes trail behind the leader automatically without using .xgo and .ygo.
     ' walkhero partially works when the caterpillar party is enabled too
     ' (well they move, but don't animate), so combine the two
-    IF herow(0).xygo <> 0 THEN
+    IF herow(0).xygo <> 0 ORELSE hero_is_pathfinding(0) THEN
      scriptret = 1
     END IF
    END IF
@@ -3620,7 +3620,8 @@ SUB script_functions(byval cmdid as integer)
  CASE 117, 177'--NPC is walking
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
-   'Only scripted pathfinding, not 'Chase You (Pathfinding)', counts as walking
+   'Only scripted pathfinding, not 'Chase You (Pathfinding)', counts as walking,
+   'so at the end of a step the NPC isn't walking. During a step it is, of course.
    IF npc(npcref).xygo = 0 ANDALSO npc(npcref).pathover.override = NO THEN
     scriptret = 0
    ELSE
