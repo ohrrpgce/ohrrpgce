@@ -196,10 +196,15 @@ int lump_file_opener(FB_FILE *handle, const char *filename, size_t filename_len)
 // or without an ENCODING argument is translated to in -lang fb.
 // Note that calling this function acts like the functional form OPEN(): when compiled with -exx
 // it doesn't cause the program to abort if there's an error.
-// Return 0 on success, 1 on error, 2 if file not found (FB_RTERROR_FILENOTFOUND)
+// Returns an FBErrorEnum: fberrOK/0 on success, fberrILLEGAL_CALL/1 on error,
+// fberrNOTFOUND/2 if file not found.
+// (This enum and constants are named differently in C, eg. FB_RTERROR_FILENOTFOUND.)
+// Also sets fnum to 0 if the file couldn't be opened.
 FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 	unsigned int mode, access;
 	FB_FILE_ENCOD encod;
+
+	fnum = 0;
 
 	if (!filename || !filename->data) {
 		debug(errBug, "OPENFILE: empty filename");
@@ -345,6 +350,7 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 		debug(errShowError, "Couldn't open file %s: %s", cfilename, strerror(C_err));
 	}
 	if (ret != FB_RTERROR_OK) {
+		fnum = 0;
 		openfiles_mutex.lock();
 		delete infop;
 		infop = NULL;
