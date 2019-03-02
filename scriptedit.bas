@@ -1382,17 +1382,19 @@ FUNCTION autofix_old_script_visitor(byref id as integer, description as string, 
  DIM fh as integer
   
  DIM found_name as string = ""
- 
- OPENFILE(workingdir & "plotscr.lst.tmp", FOR_BINARY + ACCESS_READ, fh)
- FOR i as integer = 0 TO (LOF(fh) \ 40) - 1
-  loadrecord buf(), fh, 20, i
-  IF buf(0) = id THEN '--Yay! found it in the old file!
-   found_name = readbinstring(buf(), 1, 38)
-   EXIT FOR
-  END IF
- NEXT i
- CLOSE #fh
- 
+
+ 'Read the old copy of plotscr.lst
+ IF OPENFILE(workingdir & "plotscr.lst.old.tmp", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
+  FOR i as integer = 0 TO (LOF(fh) \ 40) - 1
+   loadrecord buf(), fh, 20, i
+   IF buf(0) = id THEN '--Yay! found it in the old file!
+    found_name = readbinstring(buf(), 1, 38)
+    EXIT FOR
+   END IF
+  NEXT i
+  CLOSE #fh
+ END IF
+
  IF found_name = "" THEN RETURN NO '--broken but unfixable (no old name)
 
  OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY, fh)
