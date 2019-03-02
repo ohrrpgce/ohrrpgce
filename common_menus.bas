@@ -312,6 +312,7 @@ SUB edit_backcompat_bitsets()
  edit_global_bitsets bitname(), "share_general_game_backcompat_bitsets"
 END SUB
 
+'Battle System bitsets
 SUB edit_battle_bitsets()
  REDIM bits() as IntStrPair
  a_append bits(), -1, ""
@@ -326,8 +327,8 @@ SUB edit_battle_bitsets()
  a_append bits(), 26, "0 damage when immune to attack elements"
  a_append bits(), 29, "Attacks will ignore extra hits stat"
 
+ a_append bits(), -1, ""
  IF gen(genBattleMode) = 0 THEN
-  a_append bits(), -1, ""
   a_append bits(), -1, " Active-Time Battle Options"
   IF get_gen_bool("/mouse/mouse_battles") THEN
    a_append bits(), 17, "!Hold ESC key or right-click to run from battle"
@@ -340,6 +341,9 @@ SUB edit_battle_bitsets()
   a_append bits(), 23, "Battle menus wait for attack animations"
   a_append bits(), 21, "Attack captions pause ready meters"
   a_append bits(), 22, "!Randomize initial ready meters"
+ ELSE
+  a_append bits(), -1, " Turn-based Battle Options"
+  a_append bits(), 48, "!Press ESC to cancel/change a hero's attack"
  END IF
 
  edit_global_bitsets bits(), "general_battle_bitsets"

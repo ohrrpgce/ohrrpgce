@@ -2681,8 +2681,10 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef
    bat.next_hero = bat.hero_turn
    bat.hero_turn = -1
    IF bat.turn.mode = turnTURN THEN
-    '--wait mode switches into reverse
-    bat.turn.reverse = YES
+    IF prefbit(48) = NO THEN  '"!Press ESC to cancel/change a hero's attack"
+     '--Switch into "reverse", meaning go back to the previous hero
+     bat.turn.reverse = YES
+    END IF
    END IF
    'Don't loop the sound effect while holding down Menu to allow time to pass
    IF carray(ccMenu) AND 4 THEN menusound gen(genCancelSFX)

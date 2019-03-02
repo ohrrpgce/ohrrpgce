@@ -36,3 +36,10 @@ This does everything the next two bits do, and more. If ON, those bits have no e
 "Battle menus wait for attack animations" prevents hero's turns from starting in the middle of attack animations. The battle menu will not appear until all animating attacks are finished.
 
 "Randomize initial ready meters" determines whether at the beginning of battle, ready meters have random values, or start empty.
+
+
+ Turn-based Battle Options
+
+These bitsets only apply to Turn-based battle mode. They aren't shown if your game is set to use Active-time battles.
+
+"Press ESC to cancel/change a hero's attack" is on by default, and lets you press ESC to go back to the previous hero and change the attack you already selected. It would be odd for you to disable this.

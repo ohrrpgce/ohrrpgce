@@ -95,6 +95,8 @@ September 29 2018 [Fufluns]
         key:enter, key:esc, and key:left/right/up/down to work when the
         player uses a joystick.
     * Vehicles are reloaded while using Test Game [Ralph]
+    * Turn-based battles bitset to disallow cancelling/changing a hero's attack
+      [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

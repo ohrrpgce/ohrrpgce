@@ -291,9 +291,9 @@ TYPE TurnManager
  '--stuff used by all modes
  '--stuff used only by turnACTIVE
  '--stuff used only by turnTURN
- choosing_attacks as integer 'YES/NO
+ choosing_attacks as bool
  number as integer ' number of the current turn (merely debugging information)
- reverse as integer 'YES/NO
+ reverse as bool   ' bat.next_hero loops backwards, used to cancel and return to previous hero
 END TYPE
 
 'This type stores the state of the battle engine, for example,
