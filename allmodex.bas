@@ -8861,7 +8861,11 @@ sub frame_unload cdecl(ppfr as Frame ptr ptr)
 						debug frame_describe(@fr[i]) & " array elem freed with bad refcount"
 					end if
 				next
-				if .cached then sprite_to_B_cache(fr->cacheentry) else frame_freemem(fr)
+				if .cached then
+					sprite_to_B_cache(fr->cacheentry)
+				else
+					frame_freemem(fr)
+				end if
 			end if
 		end if
 	end with

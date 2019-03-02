@@ -66,6 +66,7 @@ DECLARE SUB edit_animations(sprset as SpriteSet ptr, pal as Palette16 ptr)
 ' Sprite editor
 DECLARE SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
 DECLARE SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Frame ptr)
+DECLARE SUB sprite_editor_update_for_sprite_size(byref ss as SpriteEditState, sprite as Frame ptr)
 DECLARE SUB sprite_editor_cleanup(byref ss as SpriteEditState)
 DECLARE SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 DECLARE SUB textcolor_icon(selected as bool, hover as bool)
@@ -3225,11 +3226,14 @@ FUNCTION spriteedit_import16(byref ss as SpriteEditState) as Frame ptr
  SWAP pal16->col(0), pal16->col(bgcol)
 
  IF ss.fullset THEN
+  'When importing a whole spriteset, it's possible the change the frame size.
   impsprite = spriteedit_import16_split_spriteset(ss, impsprite, pal16)
   IF impsprite = NULL THEN  'Cancelled
    palette16_unload @pal16
    RETURN NULL
   END IF
+  'Note: if we cancel import, must undo this
+  sprite_editor_update_for_sprite_size ss, impsprite
  ELSE
   'Trim or expand the image to final dimensions
   frame_assign @impsprite, frame_resized(impsprite, ss.wide, ss.high)
@@ -3270,6 +3274,7 @@ FUNCTION spriteedit_import16(byref ss as SpriteEditState) as Frame ptr
   'Cancel Import
   frame_unload @impsprite
   palette16_unload @pal16
+  sprite_editor_update_for_sprite_size ss, ss.sprite  'Restore original sprite size
   RETURN NULL
  END IF
 
@@ -3277,22 +3282,43 @@ FUNCTION spriteedit_import16(byref ss as SpriteEditState) as Frame ptr
  RETURN impsprite
 END FUNCTION
 
+'Called for SpriteEditState initialisation which depends on sprite size.
+'Call this if the sprite size changes.
+SUB sprite_editor_update_for_sprite_size(byref ss as SpriteEditState, sprite as Frame ptr)
+ WITH ss
+  .wide = sprite->w
+  .high = sprite->h
+  .zoom = large(1, small(240 \ .wide, 170 \ .high))
+  .x = small(.x, .wide - 1)
+  .y = small(.y, .high - 1)
+  .fastmovestep = large(4, .wide \ 10)
+  .previewpos.x = 319 - .wide
+  .previewpos.y = 119
+  .undomax = maxSpriteHistoryMem \ (sizeof(Frame) + .wide * .high)  'Could shorten .undo_history too
+ END WITH
+
+ 'DRAWING ZONE
+ WITH ss.area(0)
+  .w = ss.wide * ss.zoom
+  .h = ss.high * ss.zoom
+  .x = 4
+  .y = 1
+  .hidecursor = YES
+ END WITH
+END SUB
+
 ' Once the public members of ss have already been filled with arguments
 ' to sprite_editor, this function initialises the private members.
 ' Should be matched with call to sprite_editor_cleanup.
 SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Frame ptr)
  WITH ss
-  .wide = sprite->w
-  .high = sprite->h
   .palette = palette16_load(.pal_num)
   .sprite = frame_duplicate(sprite)
   .delay = 10
-  .zoom = large(1, small(240 \ .wide, 170 \ ss.high))
-  .x = small(ss_save.cursor.x, .wide - 1)
-  .y = small(ss_save.cursor.y, .high - 1)
+  .x = ss_save.cursor.x
+  .y = ss_save.cursor.y
   .lastpos.x = -1
   .lastpos.y = -1
-  .fastmovestep = large(4, .wide \ 10)
   .zone.x = 0
   .zone.y = 0
   .hold = NO
@@ -3304,13 +3330,13 @@ SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Frame ptr)
   .mist = ss_save.mist
   .palindex = ss_save.palindex
   .hidemouse = ss_save.hidemouse
-  .previewpos.x = 319 - .wide
-  .previewpos.y = 119
 
   v_new .undo_history
   .undodepth = 0
-  .undomax = maxSpriteHistoryMem \ (sizeof(Frame) + .wide * .high)
  END WITH
+
+ 'Initialises everything in ss that depends on sprite size
+ sprite_editor_update_for_sprite_size ss, sprite
 
  init_sprite_zones ss.area(), ss
 
