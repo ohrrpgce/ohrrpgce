@@ -117,7 +117,7 @@ SUB airbrush (spr as Frame ptr, byval x as integer, byval y as integer, byval d 
  ' mist_amount sets how many pixels to place i put 100 and it ran fast so
  ' it works EXCELLENTLY with a mouse on the DTE =)
 
- FOR count as integer = 1 TO randint(m)
+ FOR count as integer = 0 TO randint(m)
   DIM x2 as integer = randint(d)
   DIM y2 as integer = randint(d)
   DIM x3 as integer = x - d / 2

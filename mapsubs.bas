@@ -665,6 +665,12 @@ DO
   select_on_word_boundary mapeditmenu(), selectst, st.menustate
  END IF
 
+ IF keyval(scCtrl) > 0 AND keyval(scS) > 1 THEN
+  'Since this key is also available in mapping mode...
+  mapedit_savemap st
+  show_overlay_message "Saved.", 0.5
+ END IF
+
  IF enter_space_click(st.menustate) THEN
   SELECT CASE st.menustate.pt
    CASE 0
@@ -946,6 +952,7 @@ DO
  IF keyval(scCtrl) > 0 AND keyval(scS) > 1 THEN
   'Instant save, mostly for live previewing, but maybe you're paranoid...
   mapedit_savemap st
+  show_overlay_message "Saved.", 0.5
  END IF
 
  IF st.editmode = tile_mode OR st.tool = paint_tool THEN
