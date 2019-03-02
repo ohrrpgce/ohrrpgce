@@ -112,6 +112,10 @@ DIM config_prefix as string
 'Used by intgrabber, reset by usemenu
 DIM negative_zero as bool = NO
 
+'Used by percent_grabber and format_percent, reset by usemenu
+DIM SHARED editing_percent as any ptr  'Ptr to a single or double which was last passed to percent_grabber
+DIM SHARED editing_percent_repr as string
+
 'The global reload document acts as a parent to any misc reload data structures (e.g. hero data) kept in memory.
 DIM global_reload_doc as reload.DocPtr
 global_reload_doc = reload.CreateDocument()
@@ -5471,25 +5475,42 @@ END FUNCTION
 
 'This is mostly equivalent to '(float * 100) & "%"', however it doesn't show
 'exponentials, and it rounds to some number of significant places
-FUNCTION format_percent(byval float as double, byval sigfigs as integer = 5) as string
+FUNCTION _format_percent(byval float as double, byval sigfigs as integer = 5) as string
  RETURN format_float(float * 100, sigfigs) & "%"
 END FUNCTION
 
+FUNCTION format_percent(byref float as single, byval sigfigs as integer = 5) as string
+ IF @float = editing_percent THEN RETURN editing_percent_repr
+ RETURN _format_percent(float, sigfigs)
+END FUNCTION
+
+FUNCTION format_percent(byref float as double, byval sigfigs as integer = 5) as string
+ IF @float = editing_percent THEN RETURN editing_percent_repr
+ RETURN _format_percent(float, sigfigs)
+END FUNCTION
+
 'Edit a floating point value and its string representation simultaneously (repr
-'effectively stores the editing state). Initialise repr with format_percent(float)
+'effectively stores the editing state). You can either initialise repr with "" or
+'format_percent(float), or more easily, just ignore repr (pass "") and use
+'format_percent() instead. Then the repr state is stored in a global variable.
 'Returns true if float or repr changed
 'decimalplaces actually limits the number of sig. fig.s too, except in front of the decimal point.
 'Note: min and max are not in percent: max=1 is 100%
-FUNCTION percent_grabber(byref float as double, byref repr as string, min as double, max as double, decimalplaces as integer = 4, ret_if_repr_changed as bool = YES) as bool
+FUNCTION percent_grabber(byref float as double, byref repr as string = "", min as double, max as double, decimalplaces as integer = 4, ret_if_repr_changed as bool = YES) as bool
  STATIC clip as double
  DIM oldfloat as double = float
+
+ 'Use cached repr if repr is ""
+ IF @float <> editing_percent THEN editing_percent_repr = ""
+ IF LEN(repr) = 0 THEN repr = editing_percent_repr
+
  DIM oldrepr as string = repr
 
  'In case we forget to initialise repr (e.g. maybe we got called before a
  ''need_update' block), we don't want to overwrite float with garbage.
  'So for safety if repr is bad, throw it away.
- IF ABS(VAL(repr) - float * 100) > 0.5 * (0.1 ^ decimalplaces) THEN
-  repr = format_percent(float, decimalplaces)
+ IF LEN(repr) = 0 ORELSE ABS(VAL(repr) - float * 100) > 0.5 * (0.1 ^ decimalplaces) THEN
+  repr = _format_percent(float, decimalplaces)
   'debug "percent_grabber: resetting " & oldrepr & " to " & repr
  END IF
 
@@ -5548,19 +5569,25 @@ FUNCTION percent_grabber(byref float as double, byref repr as string, min as dou
  DIM temp as double = float
  float = bound(float, min, max) 
  IF changed OR float <> temp THEN
-  repr = format_percent(float, decimalplaces)
+  repr = _format_percent(float, decimalplaces)
  ELSE
   repr += "%"
  END IF
+ editing_percent = @float
+ editing_percent_repr = repr
+
  DIM ret as bool = ABS(oldfloat - float) * 100 > 0.5 * 0.1 ^ decimalplaces
  IF ret_if_repr_changed THEN ret OR= (oldrepr <> repr)
  RETURN ret
 END FUNCTION
 
-FUNCTION percent_grabber(byref float as single, byref repr as string, min as double, max as double, decimalplaces as integer = 4, ret_if_repr_changed as bool = YES) as bool
+FUNCTION percent_grabber(byref float as single, byref repr as string = "", min as double, max as double, decimalplaces as integer = 4, ret_if_repr_changed as bool = YES) as bool
  DIM temp as double = float
+ 'percent_grabber needs to know whether it's called with the same float as previously
+ IF @float = editing_percent THEN editing_percent = @temp
  DIM ret as bool = percent_grabber(temp, repr, min, max, decimalplaces, ret_if_repr_changed)
  float = temp
+ editing_percent = @float
  RETURN ret
 END FUNCTION
 
