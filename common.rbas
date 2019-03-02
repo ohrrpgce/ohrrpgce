@@ -109,8 +109,8 @@ DIM global_config_file as string
 'Defines the current context. E.g. "edit.game_(gamename)."
 DIM config_prefix as string
 
-'Used by intgrabber, reset by usemenu
-DIM negative_zero as bool = NO
+'Used by intgrabber, reset by reset_menu_edit_state (called by usemenu etc)
+DIM SHARED negative_zero as bool = NO
 
 'Used by percent_grabber and format_percent, reset by usemenu
 DIM SHARED editing_percent as any ptr  'Ptr to a single or double which was last passed to percent_grabber
@@ -1796,6 +1796,20 @@ FUNCTION getsfxname (byval num as integer) as string
  loadrecord sfxd(), workingdir & SLASH & "sfxdata.bin", curbinsize(binSFXDATA) \ 2, num
  RETURN readbinstring (sfxd(), 0, 30)
 END FUNCTION
+
+'Hook called when the selected menu item changes, so that any
+'edit state stored in global variables can be reset.
+'You can NOT rely on this always being called immediately! For
+'example if you switch to a different menu it isn't called.
+'Not called when scrolling a menu.
+SUB reset_menu_edit_state ()
+ 'show_overlay_message "RESET", 0.15
+ 'Reset intgrabber
+ negative_zero = NO
+ 'Reset percent_grabber/format_percent
+ editing_percent = NULL
+ editing_percent_repr = ""
+END SUB
 
 'keygrabber is like intgrabber (or usemenu) except it only watches the two keys passed as arguments, not
 'number keys, page up/down, copy/paste, minus, etc.

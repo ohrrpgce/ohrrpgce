@@ -195,6 +195,8 @@ ENUM WheelHandlingEnum
   wheelRightButton  'When the right mouse button is down
 END ENUM
 
+DECLARE SUB reset_menu_edit_state ()
+
 DECLARE FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as KBScancode=ccLeft, more as KBScancode=ccRight) as bool
 DECLARE FUNCTION intgrabber OVERLOAD (byref n as integer, min as integer, max as integer, less as KBScancode=ccLeft, more as KBScancode=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
 DECLARE FUNCTION intgrabber OVERLOAD (byref n as longint, min as longint, max as longint, less as KBScancode=ccLeft, more as KBScancode=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
@@ -384,7 +386,6 @@ EXTERN app_dir as string
 EXTERN app_resources_dir as string
 EXTERN global_config_file as string
 EXTERN config_prefix as string
-EXTERN negative_zero as bool
 EXTERN global_reload_doc as DocPtr
 EXTERN herotags() as HeroTagsCache
 EXTERN itemtags() as ItemTagsCache

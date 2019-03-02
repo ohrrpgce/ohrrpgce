@@ -277,7 +277,7 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as KBScancode = ccUp, b
   IF oldptr = .pt AND oldtop = .top THEN
    RETURN NO
   ELSE
-   negative_zero = NO 'Reset for intgrabber
+   reset_menu_edit_state
    RETURN YES
   END IF
 
@@ -409,7 +409,7 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as KBSc
   IF oldptr = .pt AND oldtop = .top THEN
    RETURN NO
   ELSE
-   negative_zero = NO 'Reset for intgrabber
+   reset_menu_edit_state
    RETURN YES
   END IF
  END WITH
