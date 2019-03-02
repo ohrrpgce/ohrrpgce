@@ -722,7 +722,13 @@ advance text box # "hit spacebar"</example>
 		<command id="waitfortextbox">
 			<canon>wait for text box</canon>
 			<shortname>wait for text box</shortname>
-			<description>Makes the script wait until there is no text box displaying on the screen. Useful to know when to move on after using a <ref>showtextbox</ref> command.</description>
+			<description>
+				Makes the script wait until there is no text box displaying on the screen.
+				Useful to know when to move on after using a <ref>showtextbox</ref> command.
+				<warn>
+					<tt>wait for text box</tt> doesn't wait if <ref>suspendboxadvance</ref> has been used, because it's impossible for the player to advance the textbox!
+				</warn>
+			</description>
 			<example>show text box(2) # Show a text box
 wait for text box # wait until the player continues</example>
 		</command>
@@ -1068,7 +1074,13 @@ resume random enemies # back to normal</example>
 		<command id="suspendboxadvance">
 			<canon>suspend box advance</canon>
 			<shortname>suspend box advance</shortname>
-			<description>Prevents the player from advancing or clearing text boxes by pressing keys, or moving the cursor in choice boxes. In other words, suspends text box controls. While this is active, the only way to make a text box advance is with the <ref>advancetextbox</ref> command (or <ref>showtextbox</ref>) or using the "Advance text box when menu closes" menu bit. Useful for cut scenes that play out like a movie, where the player just watches the dialogue unfold. Be very careful with this command, since you do not want to leave the player stuck on a text box forever.</description>
+			<description>
+				Prevents the player from advancing or clearing text boxes by pressing keys, or moving the cursor in choice boxes. In other words, suspends text box controls. While this is active, the only way to make a text box advance is with the <ref>advancetextbox</ref> command (or <ref>showtextbox</ref>) or using the "Advance text box when menu closes" menu bit. Useful for cut scenes that play out like a movie, where the player just watches the dialogue unfold. Be very careful with this command, since you do not want to leave the player stuck on a text box forever.
+				<warn>
+					<ref>waitfortextbox</ref> doesn't wait while <tt>suspend box advance</tt> is active!
+				</warn>
+			</description>
+
 			<example>suspend box advance # stop players from mucking things up
 show text box(2)   # Show a text box
 wait(45)           # Wait about 3 seconds
