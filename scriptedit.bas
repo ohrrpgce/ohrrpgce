@@ -305,9 +305,8 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   'Open either scripts.bin or (if compiled by ancient hspeak) scripts.txt to read list of scripts
   safekill tmpdir & "scripts.bin"
   unlumpfile(hsfile, "scripts.bin", tmpdir)
-  IF isfile(tmpdir & "scripts.bin") THEN
+  IF OPENFILE(tmpdir + "scripts.bin", FOR_BINARY + ACCESS_READ, fptr) = fberrOK THEN
    dotbin = YES
-   OPENFILE(tmpdir + "scripts.bin", FOR_BINARY, fptr)
    'load header
    DIM headersize as integer
    DIM temp as short
@@ -319,19 +318,17 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
    
    'the scripts.bin lump does not have a format version field in its header, instead use header size
    IF headersize <> 4 THEN
-    pop_warning hsfile + " is in an unrecognised format. Please upgrade to the latest version of CUSTOM."
+    visible_debug hsfile + " is in an unrecognised format. Please upgrade to the latest version of CUSTOM."
     RETURN NO
    END IF
   ELSE
    dotbin = NO
    safekill tmpdir + "scripts.txt"
    unlumpfile(hsfile, "scripts.txt", tmpdir)
-   IF isfile(tmpdir + "scripts.txt") = 0 THEN
-    pop_warning hsfile + " appears to be corrupt. Please try to recompile your scripts."
+   IF OPENFILE(tmpdir + "scripts.txt", FOR_INPUT, fptr) <> fberrOK THEN
+    visible_debug hsfile + " appears to be corrupt. Please try to recompile your scripts."
     RETURN NO
    END IF
-
-   OPENFILE(tmpdir + "scripts.txt", FOR_INPUT, fptr)
   END IF
 
   'load in existing trigger table
@@ -339,8 +336,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
     DIM fh as integer = 0
     .size = 0
     DIM fname as string = workingdir & SLASH & "lookup1.bin"
-    IF isfile(fname) THEN
-     OPENFILE(fname, FOR_BINARY, fh)
+    IF OPENFILE(fname, FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
      .size = LOF(fh) \ 40
     END IF
 
@@ -350,7 +346,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
     .usedbits = CALLOCATE(allocnum \ 8)
 
     IF .usedbits = 0 OR .trigs = 0 THEN showerror "Could not allocate memory for script importation": RETURN NO
-   
+
     IF fh THEN
      FOR j as integer = 0 TO .size - 1
       loadrecord buffer(), fh, 20, j
@@ -370,13 +366,16 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   DIM scrname as string = ""
   DIM id as integer
   DIM trigger as integer
+
+  'We first write to plotscr.lst.tmp, which we afterwards move to plotscr.lst, with
+  'previous file moved to plotscr.lst.old.tmp.
   DIM plotscr_lsth as integer
-  IF OPENFILE(workingdir + SLASH + "plotscr.lst.tmp", FOR_BINARY, plotscr_lsth) THEN
-   showerror "Could not open " + workingdir + SLASH + "plotscr.lst.tmp"
+  IF OPENFILE(workingdir + SLASH + "plotscr.lst.tmp", FOR_BINARY + ACCESS_WRITE + OR_ERROR, plotscr_lsth) THEN
    CLOSE fptr
    RETURN NO
   END IF
 
+  'Loop through each script in either scripts.bin or scripts.txt
   show_message "Imported:  "
   DO
    IF EOF(fptr) THEN EXIT DO
@@ -403,7 +402,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
     scrname = LEFT(scrname, 36)
    END IF
 
-   'save to plotscr.lst
+   'save to plotscr.lst.tmp
    buffer(0) = id
    writebinstring scrname, buffer(), 1, 36
    storerecord buffer(), plotscr_lsth, 20, numscripts
@@ -426,8 +425,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
 
   'output the updated trigger table
   DIM lookupfh as integer
-  IF OPENFILE(workingdir + SLASH + "lookup1.bin.tmp", FOR_BINARY, lookupfh) THEN
-   showerror "Couldn't open " + workingdir + SLASH + "lookup1.bin.tmp"
+  IF OPENFILE(workingdir + SLASH + "lookup1.bin.tmp", FOR_BINARY + ACCESS_WRITE + OR_ERROR, lookupfh) <> fberrOK THEN
    CLOSE fptr
    RETURN NO
   END IF
@@ -803,29 +801,31 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
  DIM firstscript as integer = UBOUND(scriptids) + 1
 
  'Look through lists of definescript scripts too
- OPENFILE(workingdir + SLASH + "plotscr.lst", FOR_BINARY + ACCESS_READ, fh)
- FOR record as integer = 0 TO gen(genNumPlotscripts) - 1
-  loadrecord localbuf(), fh, 20
-  'Add any non-autonumbered scripts (definescript was used)
-  IF localbuf(0) < 16384 THEN
-   a_append scriptnames(), localbuf(0) & " " + readbinstring(localbuf(), 1, 36)
-   a_append scriptids(), localbuf(0)
-  END IF
- NEXT
- CLOSE #fh
+ IF OPENFILE(workingdir + SLASH + "plotscr.lst", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
+  FOR record as integer = 0 TO gen(genNumPlotscripts) - 1
+   loadrecord localbuf(), fh, 20
+   'Add any non-autonumbered scripts (definescript was used)
+   IF localbuf(0) < 16384 THEN
+    a_append scriptnames(), localbuf(0) & " " + readbinstring(localbuf(), 1, 36)
+    a_append scriptids(), localbuf(0)
+   END IF
+  NEXT
+  CLOSE #fh
+ END IF
 
  DIM numberedlast as integer = UBOUND(scriptids)
 
  'And list of plotscripts
- OPENFILE(workingdir + SLASH + "lookup1.bin", FOR_BINARY + ACCESS_READ, fh)
- FOR record as integer = 0 TO (LOF(fh) \ 40) - 1
-  loadrecord localbuf(), fh, 20
-  IF localbuf(0) <> 0 THEN
-   a_append scriptids(), 16384 + record
-   a_append scriptnames(), readbinstring(localbuf(), 1, 36)
-  END IF
- NEXT
- CLOSE #fh
+ IF OPENFILE(workingdir + SLASH + "lookup1.bin", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
+  FOR record as integer = 0 TO (LOF(fh) \ 40) - 1
+   loadrecord localbuf(), fh, 20
+   IF localbuf(0) <> 0 THEN
+    a_append scriptids(), 16384 + record
+    a_append scriptnames(), readbinstring(localbuf(), 1, 36)
+   END IF
+  NEXT
+  CLOSE #fh
+ END IF
 
  DIM scriptmax as integer = UBOUND(scriptids)
 
@@ -983,9 +983,11 @@ PRIVATE SUB seekscript (byref temp as integer, byval seekdir as integer, byval t
  DIM recordsloaded as integer = 0
  DIM screxists as bool = NO
 
+ DIM num_triggers as integer
  DIM fh as integer
- OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY, fh)
- DIM num_triggers as integer = LOF(fh) \ 40
+ IF OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
+  num_triggers = LOF(fh) \ 40
+ END IF
  IF temp = -1 THEN temp = num_triggers + 16384
 
  DO
@@ -1016,14 +1018,14 @@ PRIVATE SUB seekscript (byref temp as integer, byval seekdir as integer, byval t
     WEND
    END IF
   END IF
-  IF temp >= 16384 THEN
+  IF temp >= 16384 ANDALSO fh THEN
    loadrecord buf(), fh, 20, temp - 16384
    IF buf(0) THEN screxists = YES
   END IF
   IF screxists THEN EXIT DO
  LOOP
 
- CLOSE fh
+ IF fh THEN CLOSE fh
 END SUB
 
 
@@ -1154,6 +1156,7 @@ END SUB
 DIM SHARED plotscript_order() as integer
 DIM SHARED script_usage_menu() as IntStrPair
 
+'Internal to script_usage_list
 PRIVATE FUNCTION script_usage_visitor(byref trig as integer, description as string, caption as string) as bool
  IF trig = 0 THEN RETURN NO
  '--See script_usage_list about rank calculation
@@ -1204,50 +1207,56 @@ SUB script_usage_list ()
  DIM num_fixed_menu_items as integer = 2
 
  'Loop through old-style non-autonumbered scripts
- OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY, fh)
- FOR i as integer = 0 TO gen(genNumPlotscripts) - 1
-  loadrecord buf(), fh, 20, i
-  id = buf(0)
-  IF id <= 16383 THEN
-   s = id & ":" & readbinstring(buf(), 1, 38)
-   a_append script_usage_menu(), id, s
-  END IF
- NEXT i
- CLOSE #fh
+ IF OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
+  FOR i as integer = 0 TO gen(genNumPlotscripts) - 1
+   loadrecord buf(), fh, 20, i
+   id = buf(0)
+   IF id <= 16383 THEN
+    s = id & ":" & readbinstring(buf(), 1, 38)
+    a_append script_usage_menu(), id, s
+   END IF
+  NEXT i
+  CLOSE #fh
+ END IF
 
  'Loop through new-style plotscripts
 
  'First, a detour: determine the alphabetic rank of each plotscript
- OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY, fh)
  REDIM plotscripts(0) as string
- WHILE loadrecord(buf(), fh, 20)
-  s = readbinstring(buf(), 1, 38)
-  a_append plotscripts(), s
- WEND
-
- 'Have to skip if no plotscripts
- IF UBOUND(plotscripts) > 0 THEN
-  'We must skip plotscripts(0)
-  REDIM plotscript_order(UBOUND(plotscripts) - 1)
-  qsort_strings_indices plotscript_order(), @plotscripts(1), UBOUND(plotscripts), sizeof(string)
-  invert_permutation plotscript_order()
-
-  'OK, now that we can calculate ranks, we can add new-style scripts
-  SEEK #fh, 1
-  i = 0
+ IF OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
   WHILE loadrecord(buf(), fh, 20)
-   id = buf(0)
-   IF id <> 0 THEN
-    s = readbinstring(buf(), 1, 38)
-    a_append script_usage_menu(), 100000 + plotscript_order(i), s
-   END IF
-   i += 1
-  WEND 
+   s = readbinstring(buf(), 1, 38)
+   a_append plotscripts(), s
+  WEND
+
+  'Have to skip if no plotscripts
+  IF UBOUND(plotscripts) > 0 THEN
+   'We must skip plotscripts(0)
+   REDIM plotscript_order(UBOUND(plotscripts) - 1)
+   qsort_strings_indices plotscript_order(), @plotscripts(1), UBOUND(plotscripts), sizeof(string)
+   invert_permutation plotscript_order()
+
+   'OK, now that we can calculate ranks, we can add new-style scripts
+   SEEK #fh, 1
+   i = 0
+   WHILE loadrecord(buf(), fh, 20)
+    id = buf(0)
+    IF id <> 0 THEN
+     s = readbinstring(buf(), 1, 38)
+     a_append script_usage_menu(), 100000 + plotscript_order(i), s
+    END IF
+    i += 1
+   WEND
+  END IF
+  CLOSE #fh
  END IF
- CLOSE #fh
 
  'add script instances to script_usage_menu
  visit_scripts @script_usage_visitor
+
+ IF UBOUND(script_usage_menu) = 1 THEN
+  a_append script_usage_menu(), 0, "No scripts imported!"
+ END IF
 
  'sort, and build menu() (for standardmenu)
  DIM indices(UBOUND(script_usage_menu)) as integer
@@ -1372,6 +1381,7 @@ SUB script_broken_trigger_list()
  REDIM missing_script_trigger_list(0)
 END SUB
 
+'Internal, called from autofix_broken_old_scripts()
 FUNCTION autofix_old_script_visitor(byref id as integer, description as string, caption as string) as bool
  '--returns true if a fix has occured
  IF id = 0 THEN RETURN NO ' not a trigger
@@ -1397,19 +1407,19 @@ FUNCTION autofix_old_script_visitor(byref id as integer, description as string, 
 
  IF found_name = "" THEN RETURN NO '--broken but unfixable (no old name)
 
- OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY, fh)
- FOR i as integer = 0 TO (LOF(fh) \ 40) - 1
-  loadrecord buf(), fh, 20, i
-  IF found_name = readbinstring(buf(), 1, 38) THEN '--Yay! found it in the new file!
-   id = 16384 + i
-   CLOSE #fh
-   RETURN YES '--fixed it, report a change!
-  END IF
- NEXT i
- CLOSE #fh 
+ IF OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
+  FOR i as integer = 0 TO (LOF(fh) \ 40) - 1
+   loadrecord buf(), fh, 20, i
+   IF found_name = readbinstring(buf(), 1, 38) THEN '--Yay! found it in the new file!
+    id = 16384 + i
+    CLOSE #fh
+    RETURN YES '--fixed it, report a change!
+   END IF
+  NEXT i
+  CLOSE #fh
+ END IF
 
  RETURN NO '--broken but unfixable (no matching new name)
- 
 END FUNCTION
 
 'If the user converted any scripts from old-style definescript scripts into
