@@ -866,11 +866,6 @@ elif mac:
     #     # libvorbisfile is linked into SDL_mixer.framework which has been compiled to export its symbols
     #     commonenv['FBFLAGS'] += ['-d', 'HAVE_VORBISFILE']
 
-    if arch == 'x86_64' and 'sdl' in music:
-        print
-        print 'WARNING: according the SDL_mixer 1.2 release notes:'
-        print '"Mac native midi had to be disabled because the code depends on legacy Quicktime and won\'t compile in 64-bit."'
-
 elif android:
     # liblog for __android_log_print/write
     base_libraries += ['log']
