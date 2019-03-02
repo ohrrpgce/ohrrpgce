@@ -2341,10 +2341,10 @@ FUNCTION prompt_for_string (byref retstring as string, caption as string, limit 
  root = NewSliceOfType(slContainer)
  SliceLoadFromFile root, finddatafile("prompt_for_string.slice")
  DIM caption_area as Slice Ptr
- caption_area = LookupSlice(SL_EDITOR_PROMPT_FOR_STRING_CAPTION, root)
+ caption_area = LookupSliceSafe(SL_EDITOR_PROMPT_FOR_STRING_CAPTION, root)
  ChangeTextSlice caption_area, caption
  DIM text_area as Slice Ptr
- text_area = LookupSlice(SL_EDITOR_PROMPT_FOR_STRING_TEXT, root)
+ text_area = LookupSliceSafe(SL_EDITOR_PROMPT_FOR_STRING_TEXT, root, slText)
  DIM editstr as string = retstring
 
  '--Preserve whatever screen was already showing as a background

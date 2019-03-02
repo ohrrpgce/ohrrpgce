@@ -577,8 +577,6 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
  DIM root as Slice ptr
  root = NewSliceOfType(slContainer)
  SliceLoadFromFile root, finddatafile("choose_rpg.slice")
- DIM menusl as Slice ptr = LookupSlice(SL_EDITOR_SPLASH_MENU, root)
- IF menusl = 0 THEN menusl = NewSliceOfType(slContainer, root)
  
  DIM chooserpg_menu(2) as string
  chooserpg_menu(0) = "CREATE NEW GAME"
@@ -594,6 +592,8 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
   IF keyval(ccCancel) > 1 THEN cleanup_and_terminate
   IF keyval(scF1) > 1 THEN show_help "choose_rpg"
   IF keyval(scF6) > 1 THEN slice_editor root, SL_COLLECT_EDITOR, "choose_rpg.slice"
+
+  DIM menusl as Slice ptr = LookupSliceSafe(SL_EDITOR_SPLASH_MENU, root)
 
   usemenu state
   IF enter_space_click(state) THEN

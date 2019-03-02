@@ -42,13 +42,13 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  set_up_sub_buttons
  enter_browser
 
- dim mode_indicator as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_MODE_INDICATOR, root)
+ dim mode_indicator as Slice Ptr = LookupSliceSafe(SL_EDITOR_THINGBROWSER_MODE_INDICATOR, root)
  ChangeTextSlice mode_indicator, "Browsing " & thing_kind_name()
  if can_edit andalso edit_by_default then ChangeTextSlice mode_indicator, "Editing " & thing_kind_name()
 
  dim noscroll_area as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_NOSCROLL_AREA, root)
  dim back_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_BACK_HOLDER, root)
- dim new_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_NEW_HOLDER, root)
+ dim new_holder as Slice Ptr = LookupSliceSafe(SL_EDITOR_THINGBROWSER_NEW_HOLDER, root)
  if not can_edit then new_holder->Visible = NO
  dim filter_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_FILTER_HOLDER, root)
  dim type_query_sl as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_TYPE_QUERY, root)
@@ -389,11 +389,15 @@ Sub ThingBrowser.build_thing_list()
  dim start_time as double = TIMER
  plank_menu_clear root, SL_EDITOR_THINGBROWSER_THINGLIST
  dim thinglist as slice ptr
- thinglist = LookupSlice(SL_EDITOR_THINGBROWSER_THINGLIST, root)
+ thinglist = LookupSliceSafe(SL_EDITOR_THINGBROWSER_THINGLIST, root)
  plank_size = XY(1,1)  'Avoid divide-by-zero
  dim plank as slice ptr
  for id as integer = lowest_id() to highest_id()
   plank = create_thing_plank(id)
+  if plank = NULL then
+   showbug "create_thing_plank returned NULL!"
+   exit for  'Probably something is really broken
+  end if
   if check_plank_filter(plank) then
    SetSliceParent(plank, thinglist)
    plank->Lookup = SL_PLANK_HOLDER
@@ -604,13 +608,13 @@ Function AttackBrowser.create_thing_plank(byval id as integer) as Slice ptr
  plank = CloneSliceTree(plank_template)
  
  dim spr as Slice Ptr
- spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
+ spr = LookupSliceSafe(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
  ChangeSpriteSlice spr, sprTypeAttack, attack.picture, attack.pal, 0
  if id = none_id then
   spr->Visible = NO
  end if
  dim txt as Slice Ptr
- txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
+ txt = LookupSliceSafe(SL_PLANK_MENU_SELECTABLE, plank, slText)
  ChangeTextSlice txt, id & !"\n" & attack.name
  if id = none_id then ChangeTextSlice txt, "NONE"
  return plank
@@ -659,7 +663,7 @@ Function EnemyBrowser.create_thing_plank(byval id as integer) as Slice ptr
  plank = CloneSliceTree(plank_template)
  
  dim spr as Slice Ptr
- spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
+ spr = LookupSliceSafe(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
  dim spr_kind as SpriteType
  select case enemy.size
   case 0: spr_kind = sprTypeSmallEnemy
@@ -672,7 +676,7 @@ Function EnemyBrowser.create_thing_plank(byval id as integer) as Slice ptr
   spr->Visible = NO
  end if
  dim txt as Slice Ptr
- txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
+ txt = LookupSliceSafe(SL_PLANK_MENU_SELECTABLE, plank, slText)
  ChangeTextSlice txt, id & !"\n" & enemy.name
  if id = none_id then ChangeTextSlice txt, "NONE"
  return plank
@@ -755,13 +759,13 @@ Function HeroBrowser.create_thing_plank(byval id as integer) as Slice ptr
  plank = CloneSliceTree(plank_template)
  
  dim spr as Slice Ptr
- spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
+ spr = LookupSliceSafe(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
  ChangeSpriteSlice spr, sprTypeHero, hero.sprite, hero.sprite_pal, 0
  if id = none_id then
   spr->Visible = NO
  end if
  dim txt as Slice Ptr
- txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
+ txt = LookupSliceSafe(SL_PLANK_MENU_SELECTABLE, plank, slText)
  ChangeTextSlice txt, id & !"\n" & hero.name
  if id = none_id then ChangeTextSlice txt, "NONE"
  return plank
@@ -829,12 +833,12 @@ Function SfxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  plank = CloneSliceTree(plank_template)
  
  dim spr as Slice Ptr
- spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
+ spr = LookupSliceSafe(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
  if id = none_id then
   spr->Visible = NO
  end if
  dim txt as Slice Ptr
- txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
+ txt = LookupSliceSafe(SL_PLANK_MENU_SELECTABLE, plank, slText)
  ChangeTextSlice txt, id & !"\n" & sfxname
  if id = none_id then ChangeTextSlice txt, "NONE"
  return plank
@@ -898,12 +902,12 @@ Function SongBrowser.create_thing_plank(byval id as integer) as Slice ptr
  plank = CloneSliceTree(plank_template)
  
  dim spr as Slice Ptr
- spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
+ spr = LookupSliceSafe(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
  if id = none_id then
   spr->Visible = NO
  end if
  dim txt as Slice Ptr
- txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
+ txt = LookupSliceSafe(SL_PLANK_MENU_SELECTABLE, plank, slText)
  ChangeTextSlice txt, id & !"\n" & songname
  if id = none_id then ChangeTextSlice txt, "NONE"
  return plank
@@ -945,7 +949,7 @@ Function TextboxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  plank = CloneSliceTree(plank_template)
  
  dim txt as Slice Ptr
- txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
+ txt = LookupSliceSafe(SL_PLANK_MENU_SELECTABLE, plank, slText)
  dim caption as string
  if id = none_id then
   caption = "NONE"

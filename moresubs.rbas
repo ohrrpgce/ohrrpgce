@@ -375,7 +375,7 @@ FUNCTION user_textbox_advance() as bool
     'Go ahead and advance the textbox to avoid getting stuck.
     RETURN YES
    END IF
-   IF box_sl ANDALSO SliceCollidePoint(box_sl, readmouse.pos) THEN RETURN YES
+   IF SliceCollidePoint(box_sl, readmouse.pos) THEN RETURN YES
   END IF
  END IF
 
@@ -709,7 +709,7 @@ SUB hero_swap_menu_display (st as OrderTeamState)
   IF gam.hero(i).id >= 0 THEN
    set_walkabout_frame herow(cater_slot).sl, dirDown, 0
    IF i = st.swapme THEN ypos -= 6
-   DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), xpos, ypos, 20, 20, st.page, YES
+   DrawSliceAt LookupSliceSafe(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), xpos, ypos, 20, 20, st.page, YES
    cater_slot += 1
   END IF
  NEXT i
@@ -1151,7 +1151,7 @@ DO
    DIM walkframe as integer
    IF who = party_slot THEN walkframe = walktoggle \ 2 ELSE walkframe = 0
    set_walkabout_frame herow(cater_slot).sl, dirDown, walkframe
-   DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 100 + party_slot * 30, 100, 20, 20, page, YES
+   DrawSliceAt LookupSliceSafe(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 100 + party_slot * 30, 100, 20, 20, page, YES
    cater_slot += 1
   END IF
  NEXT

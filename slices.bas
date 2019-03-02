@@ -798,6 +798,18 @@ Function LookupSlice(byval lookup_code as integer, byval start_sl as Slice ptr, 
   WEND
 End Function
 
+'This is intended for built-in menus, to allow continuing gracefully instead of
+'crashing, by creating a dummy slice if the slice is missing, and printing a more
+'informative error message; if onlytype isn't specified, you get a container.
+Function LookupSliceSafe(lookup_code as integer, start_sl as Slice ptr, onlytype as SliceTypes=slInvalid) as Slice ptr
+ dim ret as Slice ptr = LookupSlice(lookup_code, start_sl, onlytype)
+ if ret then return ret
+ debug "Builtin slice collection missing " & iif(onlytype = slInvalid, "any", SliceTypeName(onlytype)) & _
+       " slice with lookup code " & lookup_code
+ if onlytype = slInvalid then onlytype = slContainer
+ return NewSliceOfType(onlytype, start_sl, lookup_code)
+End Function
+
 'Return the root of the tree by going up.
 Function FindRootSlice(slc as Slice ptr) as Slice ptr
  dim root as Slice ptr

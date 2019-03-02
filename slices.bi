@@ -551,6 +551,7 @@ DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
 DECLARE Function SliceIndexAmongSiblings(byval sl as slice ptr) as integer
 DECLARE Function SliceChildByIndex(byval sl as slice ptr, byval index as integer) as Slice ptr
 DECLARE Function LookupSlice(byval lookup_code as integer, byval start_sl as Slice ptr, byval onlytype as SliceTypes=slInvalid) as Slice ptr
+DECLARE Function LookupSliceSafe(lookup_code as integer, start_sl as Slice ptr, onlytype as SliceTypes=slInvalid) as Slice ptr
 DECLARE Function FindRootSlice(slc as Slice ptr) as Slice ptr
 DECLARE Function NextDescendent(desc as Slice ptr, parent as Slice ptr) as Slice ptr
 DECLARE Function IsAncestor(byval sl as slice ptr, byval ancestor as slice ptr) as bool
