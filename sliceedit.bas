@@ -39,15 +39,22 @@ END TYPE
 ' The slice editor has three different modes:
 ' -editing a slice group in the .rpg. use_index = YES, collection_file = ""
 ' -editing an external slice (.collection_file). use_index = NO.
-' -editing an exiting slice tree. editing_existing = YES, use_index = NO, collection_file = ""
+' -editing an existing slice tree. editing_existing = YES, use_index = NO,
+'  collection_file normally "", or is the filename the collection was loaded from
+'  (but is not necessarily still equal to)
 TYPE SliceEditState
  collection_group_number as integer  'Which special lookup codes are available, and part of filename if use_index = YES
  collection_number as integer  'Used only if use_index = YES
  collection_file as string     'Used only if use_index = NO: the file we are currently editing (will be autosaved)
- editing_existing as bool  'True if editor was given an existing slice tree to edit
  use_index as bool         'If this is the indexed collection editor; if NO then we are editing
-                           'either an external file (collection_file), or some given slice tree (collection_file = "").
+                           'either an external file (collection_file), or some given slice tree (editing_existing)
+                           'or both.
                            'When true, the collections are always re-saved when quitting.
+
+ editing_existing as bool  'True if editor was given an existing slice tree (edslice) to edit
+ 'The following is used only if editing_existing AND collection_file<>""
+ existing_matches_file as bool 'Whether the slice tree that was passed in was equal to contents of collection_file.
+
  recursive as bool
  clipboard as Slice Ptr
  draw_root as Slice Ptr    'The slice to actually draw; either edslice or its parent.
@@ -404,7 +411,8 @@ END SUB
 ' Edit an existing slice tree.
 ' recursive is true if using Ctrl+F. Probably should not use otherwise.
 ' privileged: true if should be allowed to edit things that are hidden from users
-' filename: this is useful only for group = SL_COLLECT_EDITOR, to define the sub-group.
+' filename: useful mainly for group = SL_COLLECT_EDITOR, to define the sub-group,
+' and also the file to which to save (doesn't save by default if edslice doesn't match the file)
 SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, filename as string = "", recursive as bool = NO, privileged as bool = NO)
  DIM ses as SliceEditState
  ses.collection_group_number = group
@@ -413,6 +421,10 @@ SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLEC
  ses.editing_existing = YES
  ses.recursive = recursive
  ses.privileged = privileged
+
+ IF LEN(filename) THEN
+  ses.existing_matches_file = slice_collection_has_changed(edslice, filename) = NO
+ END IF
 
  DIM rootslice as Slice ptr
 
@@ -872,7 +884,7 @@ END FUNCTION
 
 SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, edit_separately as bool)
  ' Check for programmer error (doesn't work because of the games slice_editor plays with the draw_root)
- IF ses.editing_existing THEN showerror "slice_editor_load does work when editing existing collection" : EXIT SUB
+ IF ses.editing_existing THEN showerror "slice_editor_load doesn't work when editing existing collection" : EXIT SUB
  DIM newcollection as Slice Ptr
  newcollection = NewSlice
  WITH *newcollection  'Defaults only
@@ -986,7 +998,11 @@ FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as 
    '(Note: since you can edit the root slice, this is technically wrong...)
    safekill filename
   END IF
- ELSEIF LEN(ses.collection_file) > 0 AND ses.editing_existing = NO THEN
+ ELSEIF LEN(ses.collection_file) > 0 THEN
+  'If we're editing a menu's slice collection, which it had modified, we better not save its changes
+  '(Export instead if you want to save)
+  IF ses.editing_existing ANDALSO ses.existing_matches_file = NO THEN RETURN YES
+
   IF slice_collection_has_changed(edslice, filename) = NO THEN RETURN YES
 
   IF edslice->NumChildren > 0 THEN
@@ -1836,7 +1852,9 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
   slice_editor_refresh_append index, ses.slicemenu(), CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
   ses.last_non_slice += 1
  ELSEIF LEN(ses.collection_file) THEN
-  DIM msg as string = "Editing " & simplify_path_further(ses.collection_file)
+  DIM msg as string = "Editing "
+  IF ses.editing_existing ANDALSO ses.existing_matches_file = NO THEN msg &= "instance of "
+  msg &= simplify_path_further(ses.collection_file)
   ses.collection_name_pt = index
   slice_editor_refresh_append index, ses.slicemenu(), msg
   ses.last_non_slice += 1
