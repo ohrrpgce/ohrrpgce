@@ -836,6 +836,7 @@ SUB select_menuitem(searcher as MenuSearcher, selectst as SelectTypeState, state
    ' loopvar index, state.first, state.last
    'WEND
    state.pt = index
+   reset_menu_edit_state
    selectst.remember_pt = state.pt
    EXIT FOR
   END IF

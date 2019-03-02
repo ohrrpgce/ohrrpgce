@@ -264,6 +264,7 @@ FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice 
  IF keyval(scPageDown) > 1 THEN plank_menu_scroll_page ps, 1, start_parent : result = YES
  IF keyval(scHome) > 1 THEN IF plank_menu_home(ps) THEN result = YES
  IF keyval(scEnd) > 1 THEN IF plank_menu_end(ps) THEN result = YES
+ IF result THEN reset_menu_edit_state
  RETURN result
 END FUNCTION
 
@@ -623,6 +624,7 @@ SUB restore_plank_selection (byref ps as PlankState)
  ps.cur = 0
  IF ps.selection_saved = NO THEN EXIT SUB
  ps.cur = find_plank_nearest_screen_pos(ps, ps._saved_pos)
+ reset_menu_edit_state
  ps.selection_saved = NO
 END SUB
 
@@ -633,6 +635,7 @@ FUNCTION focus_plank_by_extra_id(byref ps as PlankState, byval extra_idx as inte
  new_cur = find_plank_by_extra_id(ps, extra_idx, id, start_parent)
  IF new_cur THEN
   ps.cur = new_cur
+  reset_menu_edit_state
   update_plank_scrolling ps
  END IF
  
@@ -694,8 +697,11 @@ Function plank_select_by_string(byref ps as PlankState, query as string) as bool
    END IF
   NEXT i
  END IF
- 
- RETURN ps.cur <> old_cur
+
+ IF ps.cur <> old_cur THEN
+  reset_menu_edit_state
+  RETURN YES
+ END IF
 End Function
 
 
