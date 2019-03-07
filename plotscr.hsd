@@ -870,7 +870,7 @@ script,stringisvisible,hsd:stringID,begin
 end
 
 # Internal functions, do not use
-# To get around the 32 string limitation...
+# To get around the 100 string limitation...
 script, hsd:save string, hsd:id, begin
   variable (hsd:sl)
   hsd:sl := create text
@@ -1728,6 +1728,21 @@ script, next line sibling, hsd:sib, begin
 end
 
 #### More slice commands
+
+script, get selected child, hsd:parent, begin
+  return(slice child(hsd:parent, get select slice index(hsd:parent)))
+end
+
+script, set selected child, hsd:parent, hsd:child, begin
+  if (parent slice(hsd:child) <> hsd:parent) then (
+    variable(hsd:tmp)
+    hsd:tmp := hsd:save string(99)
+    script error($99="set selected slice: 2nd slice must be a child of the 1st")
+    hsd:restore string(99, hsd:tmp)
+  ) else (
+    set select slice index(hsd:parent, slice child index(hsd:child))
+  )
+end
 
 script, free slice children, hsd:parent, begin
   variable(hsd:sl, hsd:next)

@@ -8169,7 +8169,11 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="setselectsliceindex">
 			<canon>set select slice index (handle, index)</canon>
 			<shortname>set select slice index</shortname>
-			<description>Changes the currently selected (visible) child of a select slice. The first argument is the handle of the select slice. The second argument is the index number of the child slice (not a handle or a lookup code!) this will be 0 for the first child, 1 for the second child, 2 for the third child, and so-on. An invalid index number means no child slices will be visible at all.</description>
+			<description>Changes the currently selected (visible) child of a select slice. The first argument is the handle of the select slice. The second argument is the index number of the child slice (not a handle or a lookup code!) this will be 0 for the first child, 1 for the second child, 2 for the third child, and so-on. An invalid index number means no child slices will be visible at all.
+				<lb/>
+				Use <ref>setselectedchild</ref> instead if you want to set the selected child
+				by its slice handles instead of index.
+			</description>
 			<seealso>
 				<ref>getselectsliceindex</ref>
 			</seealso>
@@ -8177,10 +8181,35 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="getselectsliceindex">
 			<canon>get select slice index (handle)</canon>
 			<shortname>get select slice index</shortname>
-			<description>Returns the index number of the currently selected (visible) child of a select slice. The first argument is the handle of the select slice. The return value the index number of the child slice (not a handle or a lookup code!) this will be 0 for the first child, 1 for the second child, 2 for the third child, and so-on.</description>
+			<description>Returns the index number of the currently selected (visible) child of a select slice. The first argument is the handle of the select slice. The return value the index number of the child slice (not a handle or a lookup code!) this will be 0 for the first child, 1 for the second child, 2 for the third child, and so-on.
+				<lb/>
+				Use <ref>getselectedchild</ref> instead if you want a slice handle for
+				the selected child instead of its index.
+			</description>
 			<seealso>
 				<ref>setselectsliceindex</ref>
 			</seealso>
+		</command>
+		<command id="setselectedchild">
+			<canon>set selected child (select, child)</canon>
+			<shortname>set selected child</shortname>
+			<description>
+				Given a select slice handle <p>select</p> and a slice handle for one of its
+				children, <p>child</p>, selects that child.
+				<lb/>
+				This is just a convenience wrapper around <ref>setselectsliceindex</ref>.
+			</description>
+		</command>
+		<command id="getselectedchild">
+			<canon>get selected child (handle)</canon>
+			<shortname>get selected child</shortname>
+			<description>
+				Given a select slice <p>handle</p>, returned the slice handle of the currently selected child.
+				Returns <tt>false</tt>/0 if the selected index is out of range
+				(including when slice has no children).
+				<lb/>
+				This is just a convenience wrapper around <ref>getselectsliceindex</ref>.
+			</description>
 		</command>
 		</section>		<!-- Select Slices-->
 
