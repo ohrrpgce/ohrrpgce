@@ -137,6 +137,7 @@ end extern
   '#DEFINE v_heappush array_heappush
 #ENDIF
 
+#define v_last(array)  (v_end(array)[-1])
 
 '''''''''''''''''''''''''''''' Declaration macro '''''''''''''''''''''''''''''''
 
@@ -189,6 +190,9 @@ end extern
 
   'Returns pointer 1 past end, useful for indexing from the end
   declare function v_end overload alias "array_end" (byval this as T vector) as T ptr
+
+  'The last element of the array; invalid if length is zero
+  '#define v_last(array)  (v_end(array)[-1])
 
   'Returns type table
   declare function v_type overload alias "array_type" (byval this as T vector) as TypeTable ptr

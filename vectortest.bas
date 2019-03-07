@@ -128,7 +128,7 @@ startTest(appendInteger)
 	v_append arr, 42
 	v_append arr, -2
 	if v_len(arr) <> 2 then fail
-	if @arr[1] <> @(v_end(arr)[-1]) then fail
+	if @arr[1] <> @(v_last(arr)) then fail
 	if arr[0] <> 42 then fail
 	if arr[1] <> -2 then fail
 	v_free arr
@@ -297,7 +297,7 @@ startTest(appendTypeB)
 	end with
 	'Another style
 	v_resize arr, v_len(arr) + 1
-	with v_end(arr)[-1]
+	with v_last(arr)
 		.str1 = "c"
 		.str2 = ""
 		.int1 = -1

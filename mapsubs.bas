@@ -5960,7 +5960,7 @@ END TYPE
 
 SUB NPCEditState.menu_append(itemid as integer = -2, menuitem as string, unselectable as bool = NO)
  append_simplemenu_item menu, menuitem, unselectable, , itemid
- v_end(menu)[-1].disabled = unselectable
+ v_last(menu).disabled = unselectable
 END SUB
 
 FUNCTION editnpc_zone_caption(byval zoneid as integer, byval default as integer, zmap as ZoneMap) as string
