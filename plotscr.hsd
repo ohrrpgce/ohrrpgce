@@ -1719,6 +1719,14 @@ script, next panel sibling, hsd:sib, begin
   return(next sibling of type(hsd:sib, slicetype:panel))
 end
 
+script, first line child, hsd:parent, begin
+  return(first child of type(hsd:parent, slicetype:line))
+end
+
+script, next line sibling, hsd:sib, begin
+  return(next sibling of type(hsd:sib, slicetype:line))
+end
+
 #### More slice commands
 
 script, free slice children, hsd:parent, begin

@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-10-27">
+<plotscript version="wip" datecode="2019-03-07">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -6866,6 +6866,21 @@ end
 			</description>
 		</command>
 
+		<command id="firstlinechild">
+			<canon>first line child(handle)</canon>
+			<shortname>first line child</shortname>
+			<description>
+				An alias for <ref>firstchildoftype</ref><tt>(handle, slicetype:line)</tt>.
+			</description>
+		</command>
+		<command id="nextlinesibling">
+			<canon>next line sibling(handle)</canon>
+			<shortname>next line sibling</shortname>
+			<description>
+				An alias for <ref>nextsiblingoftype</ref><tt>(handle, slicetype:line)</tt>.
+			</description>
+		</command>
+
 		</section>	        <!-- Type-specific iteration commands-->
 
 		</section>		<!-- Moving Around the Slice Tree-->
@@ -7088,7 +7103,7 @@ end
 				For a description of the different slice types, see the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices#Slice_types">Slices</a> article on the wiki.
 				<note>
 					There are two types of slice used by the engine for which there are no commands:
-					'special' slices (like <ref>sprite layer</ref>),
+					'special' slices (such as <ref>sprite layer</ref>),
 					and 'map' slices (which are map layers).
 					However you can use <ref>lookupslice</ref> to find each instance of these.
 					Special slices are nothing but container slices with special purposes (but not special behaviour).
@@ -7104,11 +7119,12 @@ end
 				<tt>slicetype:Special</tt>,
 				<tt>slicetype:Container</tt>,
 				<tt>slicetype:Rect</tt>,
+				<tt>slicetype:Line</tt>,
+				<tt>slicetype:Ellipse</tt>,
 				<tt>slicetype:Sprite</tt>,
 				<tt>slicetype:Text</tt>,
 				<tt>slicetype:Map</tt>,
 				<tt>slicetype:Grid</tt>,
-				<tt>slicetype:Ellipse</tt>,
 				<tt>slicetype:Scroll</tt>,
 				<tt>slicetype:Select</tt>,
 				<tt>slicetype:Panel</tt>,
