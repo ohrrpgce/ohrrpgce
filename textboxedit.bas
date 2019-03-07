@@ -1199,11 +1199,13 @@ FUNCTION textbox_string_to_lines(byref box as TextBox, byref text as string) as 
   FOR idx as integer = maxTextboxLines TO UBOUND(lines)
    IF LEN(TRIM(lines(idx))) > 0 THEN RETURN NO  'Can't trim! Failure
   NEXT
-  REDIM PRESERVE lines(maxTextboxLines - 1)
+  '(Delay REDIM'ing lines(), split_line_positions doesn't like it)
   'Also trim those extra lines from the input string.
   DIM line_starts() as integer
   split_line_positions text, lines(), line_starts()
   text = LEFT(text, line_starts(maxTextboxLines) - 1)
+  'Now trim lines()
+  REDIM PRESERVE lines(maxTextboxLines - 1)
  END IF
  a_copy lines(), box.text()
  RETURN YES

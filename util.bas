@@ -1176,7 +1176,7 @@ Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as
 end function
 
 'After calling wordwrap() and split(), this calculates the start position of each line
-'in the lines array produced by split().
+'in the lines array produced by split(), and puts the result in line_starts() after REDIM'ing it.
 'Offsets are 0-based
 sub split_line_positions(original_text as string, lines() as string, line_starts() as integer, sep as string = chr(10))
  dim offset as integer = 0
