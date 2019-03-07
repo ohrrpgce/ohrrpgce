@@ -4029,12 +4029,13 @@ TYPE SpriteSetBrowser
   DECLARE SUB delete_menu_items()
   DECLARE SUB update()
   DECLARE SUB set_focus(setnum as integer, framenum as integer)
-  DECLARE SUB replace_spriteset(setnum as integer, ss as Frame ptr)
+  DECLARE SUB replace_spriteset(setnum as integer, ss as Frame ptr = NULL)
   DECLARE SUB run()
   DECLARE SUB setup_editstate(edstate as SpriteEditState, setnum as integer, framenum as integer, fullset as bool = NO)
   DECLARE SUB cleanup_editstate(edstate as SpriteEditState, fullset as bool = NO)
   DECLARE SUB add_spriteset()
   DECLARE SUB edit_any(setnum as integer, framenum as integer)
+  DECLARE SUB edit_spriteset(setnum as integer)
   DECLARE SUB add_frame(setnum as integer, new_group as bool = NO, after_framenum as integer = 0)
   DECLARE SUB delete_frame(setnum as integer, framenum as integer)
   DECLARE SUB export_any()
@@ -4055,10 +4056,13 @@ TYPE SpriteSetEditor
   tog as integer
 
   DECLARE SUB display()
-  DECLARE SUB run()
+  DECLARE SUB run(sprtype as SpriteType, setnum as integer)
   DECLARE SUB export_menu()
 END TYPE
 DECLARE SUB export_gif(ss as SpriteSet ptr, pal as Palette16 ptr, fname as string, anim as string, transparent as bool = NO)
+
+DECLARE SUB spriteset_detail_editor(sprtype as SpriteType, setnum as integer)
+
 
 SUB spriteset_editor(sprtype as SpriteType)
   DIM editor as SpriteSetBrowser
@@ -4452,6 +4456,12 @@ SUB SpriteSetBrowser.edit_any(setnum as integer, framenum as integer)
   rebuild_menu()
 END SUB
 
+SUB SpriteSetBrowser.edit_spriteset(setnum as integer)
+  spriteset_detail_editor sprtype, setnum
+  replace_spriteset setnum
+  rebuild_menu
+END SUB
+
 'Export current frame or spriteset
 SUB SpriteSetBrowser.export_any()
   DIM as integer setnum = cur_setnum, framenum = cur_framenum
@@ -4566,12 +4576,14 @@ SUB SpriteSetBrowser.add_frame(setnum as integer, new_group as bool = NO, framen
   rebuild_menu
 END SUB
 
-'Save ss, empty the cache, and free ss.
+'If ss is given: Save ss, empty the cache, and free ss.
+'Otherwise, just does cleanup needed when a spriteset needs to be reloaded.
 'This is needed when a sprite set can't be modified in-place, eg because number of frames changed.
-SUB SpriteSetBrowser.replace_spriteset(setnum as integer, ss as Frame ptr)
-  rgfx_save_spriteset ss, sprtype, setnum, defpalettes(setnum)
-
-  frame_unload @ss
+SUB SpriteSetBrowser.replace_spriteset(setnum as integer, ss as Frame ptr = NULL)
+  IF ss THEN
+    rgfx_save_spriteset ss, sprtype, setnum, defpalettes(setnum)
+    frame_unload @ss
+  END IF
 
   delete_menu_items()   'Required in order to empty cache
   sprite_empty_cache sprtype, setnum
@@ -4720,6 +4732,8 @@ SUB SpriteSetBrowser.run()
       END IF
     END IF
 
+    'IF keyval(scA) > 1 THEN edit_spriteset(cur_setnum)
+
     IF cur_setnum >= 0 THEN
       'Previous palette
       IF keyval(scLeftBrace) > 1 THEN change_def_pal(-1)
@@ -4758,10 +4772,15 @@ END SUB
 
 '-------------------------------------------------------------------------------
 
-SUB SpriteSetEditor.run()
- ss = spriteset_load(sprTypeHero, 1)
+SUB spriteset_detail_editor(sprtype as SpriteType, setnum as integer)
+ DIM editor as SpriteSetEditor
+ editor.run sprtype, setnum
+END SUB
+
+SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
+ ss = spriteset_load(sprtype, setnum)
  anim_preview = NEW SpriteState(ss)
- pal = palette16_load(-1, sprTypeHero, 1)
+ pal = palette16_load(-1, sprtype, setnum)
 
  setkeys
  DO
