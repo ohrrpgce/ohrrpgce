@@ -4035,6 +4035,7 @@ TYPE SpriteSetBrowser
   DECLARE SUB cleanup_editstate(edstate as SpriteEditState, fullset as bool = NO)
   DECLARE SUB add_spriteset()
   DECLARE SUB edit_any(setnum as integer, framenum as integer)
+  DECLARE SUB add_frame(setnum as integer, new_group as bool = NO, after_framenum as integer = 0)
   DECLARE SUB delete_frame(setnum as integer, framenum as integer)
   DECLARE SUB export_any()
   DECLARE SUB import_any()
@@ -4530,6 +4531,41 @@ SUB SpriteSetBrowser.delete_frame(setnum as integer, framenum as integer)
   rebuild_menu
 END SUB
 
+'Inserts a new blank frame.
+'-new_group = YES: a new frame group is added to the end
+'-new_group = NO:  a frame is inserted at the end of framenum's frame group
+SUB SpriteSetBrowser.add_frame(setnum as integer, new_group as bool = NO, framenum as integer = 0)
+  DIM ss as Frame ptr = frame_load(sprtype, setnum)
+  DIM frvec as Frame ptr vector = frame_array_to_vector(ss)
+
+  DIM new_id as integer
+  DIM insertidx as integer
+  IF new_group THEN
+    'framenum ignored
+    insertidx = v_len(frvec)
+    new_id = ((v_last(frvec)->frameid \ 100) + 1) * 100
+  ELSE
+    'Find the next ID that isn't already taken (and its insertidx)
+    new_id = frvec[framenum]->frameid + 1
+    FOR insertidx = framenum + 1 TO v_len(frvec) - 1
+      IF frvec[insertidx]->frameid = new_id THEN new_id += 1 ELSE EXIT FOR
+    NEXT
+  END IF
+
+  WITH *frvec[0]
+    DIM fr as Frame ptr = frame_new(.w, .h, , YES, .mask <> NULL)
+    fr->frameid = new_id
+    v_insert frvec, insertidx, fr
+  END WITH
+
+  frame_unload @ss
+  ss = frame_vector_to_array(frvec)
+  v_free frvec
+
+  replace_spriteset setnum, ss
+  rebuild_menu
+END SUB
+
 'Save ss, empty the cache, and free ss.
 'This is needed when a sprite set can't be modified in-place, eg because number of frames changed.
 SUB SpriteSetBrowser.replace_spriteset(setnum as integer, ss as Frame ptr)
@@ -4665,9 +4701,12 @@ SUB SpriteSetBrowser.run()
       END IF
     END IF
 
-    IF cur_framenum >= 0 THEN  'Whole spriteset
-      IF keyval(scPlus) > 1 THEN
-        add_frame(cur_setnum, cur_framenum)
+    '+: Add new frame or frame group
+    IF keyval(scPlus) > 1 ORELSE keyval(scInsert) > 1 THEN
+      IF cur_framenum = -1 THEN  'Whole spriteset
+        add_frame(cur_setnum, YES)  'New group
+      ELSE
+        add_frame(cur_setnum, NO, cur_framenum)  'After existing frame
       END IF
     END IF
     '/
