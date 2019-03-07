@@ -86,7 +86,7 @@ REDIM uilook(uiColorLast) as integer
 REDIM boxlook(uiBoxLast) as BoxStyle
 DIM statnames() as string
 REDIM herotags() as HeroTagsCache
-REDIM itemtags() as ItemTagsCache
+REDIM itemtags() as ItemDefTags
 DIM vpage as integer = 0
 DIM dpage as integer = 1
 DIM activepalette as integer = -1

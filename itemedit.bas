@@ -274,13 +274,8 @@ FUNCTION individual_item_editor(item_id as integer) as integer
    CASE 11 TO 14
     IF tag_id_grabber(itembuf(74 + (state.pt - 11)), state) THEN
      state.need_update = YES
-     'Update cache
-     WITH itemtags(item_id)
-      .have_tag = itembuf(74)
-      .in_inventory_tag = itembuf(75)
-      .is_equipped_tag = itembuf(76)
-      .is_actively_equipped_tag = itembuf(77)
-     END WITH
+     'Update itemtags() cache
+     item_tags_from_buf itemtags(item_id), itembuf()
     END IF
   END SELECT
   IF keyval(scCtrl) > 0 ANDALSO keyval(scB) > 1 THEN  'Ctrl+B debug key: edit all bits... except equipability

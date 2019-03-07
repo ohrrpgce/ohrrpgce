@@ -332,24 +332,6 @@ FUNCTION enemycount (bslot() as BattleSprite) as integer
  RETURN result
 END FUNCTION
 
-'handlenum should be 0 or 1
-FUNCTION get_weapon_handle_point(itemid as integer, handlenum as integer) as XYPair
- 'FIXME: Ack! Lets just make handle position a member of bslot()
- 'FIXME: Ack! Already did the above... using this sub!
- DIM fh as integer
- IF itemid >= 0 THEN
-  OPENFILE(game + ".itm", FOR_BINARY, fh)
-  DIM recoff as integer = itemid * getbinsize(binITM) + 1
-  DIM ret as XYPair
-  'Second handle point is before the first one!
-  DIM handleoffset as integer = recoff + 160 - handlenum * 4
-  ret.x = ReadShort(fh, handleoffset)
-  ret.y = ReadShort(fh, handleoffset + 2)
-  CLOSE #fh
-  RETURN ret
- END IF
-END FUNCTION
-
 'Do an attack (in-battle only).
 'Handled here:
 '- hit or miss or fail
@@ -1390,31 +1372,25 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
    anim_setframe who, frameSTAND
    anim_wait 3 'wait 3 ticks
    anim_setframe who, frameATTACKA
-  
-   DIM as integer hx = gam.hero(who).hand_pos(0).x
-   DIM as integer hy = gam.hero(who).hand_pos(0).y
-   DIM as integer wx = bslot(24).hand(0).x
-   DIM as integer wy = bslot(24).hand(0).y
-   DIM as integer dx = hx - wx
-   DIM as integer dy = hy - wy
-  
-   anim_align2 24, who, 0, 0, dx, 16
-   anim_setz 24, 16 - dy
-  
+
+   DIM as XYPair hand = gam.hero(who).hand_pos(0)
+   DIM as XYPair wep = bslot(24).hand(0)
+   DIM as XYPair wepoff = hand - wep
+
+   anim_align2 24, who, 0, 0, wepoff.x, 16
+   anim_setz 24, 16 - wepoff.y
+
    anim_setframe 24, 0
    anim_appear 24
    anim_wait 3
    anim_setframe who, frameATTACKB
-  
-   hx = gam.hero(who).hand_pos(1).x
-   hy = gam.hero(who).hand_pos(1).y
-   wx = bslot(24).hand(1).x
-   wy = bslot(24).hand(1).y
-   dx = hx - wx
-   dy = hy - wy
-  
-   anim_align2 24, who, 0, 0, dx, 16
-   anim_setz 24, 16 - dy
+
+   hand = gam.hero(who).hand_pos(1)
+   wep = bslot(24).hand(1)
+   wepoff = hand - wep
+
+   anim_align2 24, who, 0, 0, wepoff.x, 16
+   anim_setz 24, 16 - wepoff.y
    anim_setframe 24, 1
 
   CASE atkrAnimSpinStrike

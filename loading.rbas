@@ -3804,6 +3804,31 @@ SUB loaditemdata (array() as integer, byval index as integer)
  END IF
 END SUB
 
+'Fill in a ItemDefTags from an ITM record
+SUB item_tags_from_buf(tags as ItemDefTags, itembuf() as integer)
+ tags.have_tag = itembuf(74)
+ tags.in_inventory_tag = itembuf(75)
+ tags.is_equipped_tag = itembuf(76)
+ tags.is_actively_equipped_tag = itembuf(77)
+END SUB
+
+SUB loaditemdata (item as ItemDef, item_id as integer)
+ DIM itembuf(dimbinsize(binITM)) as integer
+ loaditemdata itembuf(), item_id
+ WITH item
+  .name = readbadbinstring(itembuf(), 0, 8)
+  .info = readbadbinstring(itembuf(), 9, 36)
+  .stacksize = itembuf(210)
+  FOR i as integer = 0 TO 1
+   'Second handle point is before the first one!
+   .wep_handle(i).x = itembuf(80 - i * 2)
+   .wep_handle(i).y = itembuf(81 - i * 2)
+  NEXT
+  item_tags_from_buf .tags, itembuf()
+  'TODO: very incomplete!
+ END WITH
+END SUB
+
 SUB saveitemdata (array() as integer, byval index as integer)
  storerecord array(), game & ".itm", getbinsize(binITM) \ 2, index
 END SUB
@@ -3832,11 +3857,9 @@ SUB LoadItemElementals (byval index as integer, itemresists() as single)
 END SUB
 
 FUNCTION get_item_stack_size (byval item_id as integer) as integer
- DIM itembuf(dimbinsize(binITM)) as integer
- loaditemdata itembuf(), item_id
- DIM stacksize as integer = itembuf(210)
- IF stacksize = 0 THEN stacksize = gen(genItemStackSize)
- RETURN stacksize
+ DIM item as ItemDef
+ loaditemdata item, item_id
+ RETURN IIF(item.stacksize, item.stacksize, gen(genItemStackSize))
 END FUNCTION
 
 ' Read one of the 'Equippable by' bits

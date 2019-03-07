@@ -162,8 +162,10 @@ DECLARE SUB default_frame_group_info(sprtype as SpriteType, info() as FrameGroup
 DECLARE FUNCTION spriteset_to_basic_spritesheet(ss as Frame ptr) as Frame ptr
 DECLARE FUNCTION spriteset_from_basic_spritesheet(sheet as Frame ptr, sprtype as SpriteType, numframes as integer) as Frame ptr
 
-DECLARE SUB loaditemdata (array() as integer, byval index as integer)
+DECLARE SUB loaditemdata OVERLOAD (array() as integer, byval index as integer)
+DECLARE SUB loaditemdata OVERLOAD (item as ItemDef, index as integer)
 DECLARE SUB saveitemdata (array() as integer, byval index as integer)
+DECLARE SUB item_tags_from_buf(tags as ItemDefTags, itembuf() as integer)
 DECLARE FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) as single
 DECLARE SUB LoadItemElementals (byval index as integer, itemresists() as single)
 DECLARE FUNCTION get_item_stack_size (byval item_id as integer) as integer

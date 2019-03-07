@@ -388,7 +388,7 @@ EXTERN global_config_file as string
 EXTERN config_prefix as string
 EXTERN global_reload_doc as DocPtr
 EXTERN herotags() as HeroTagsCache
-EXTERN itemtags() as ItemTagsCache
+EXTERN itemtags() as ItemDefTags
 EXTERN lookup1_bin_cache() as TriggerData
 EXTERN script_names() as IntStrPair
 EXTERN debug_to_console as bool

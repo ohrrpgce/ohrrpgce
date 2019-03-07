@@ -36,7 +36,6 @@ declare function count_attacks_in_ai_list (byval ai as EnemyAIEnum, byval slot a
 declare function enemycount (bslot() as battlesprite) as integer
 declare function targenemycount (bslot() as BattleSprite, byval for_alone_ai as bool = NO) as integer
 declare sub anim_enemy (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
-declare function get_weapon_handle_point(itemid as integer, handlenum as integer) as XYPair
 declare sub anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
 declare function inflict (byref h as integer = 0, byref targstat as integer = 0, byval attackerslot as integer, targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, tcount as integer) as AttackResult
 declare function liveherocount overload (bslot() as BattleSprite) as integer

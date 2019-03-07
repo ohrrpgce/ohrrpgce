@@ -3188,16 +3188,22 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    IF attack.override_wep_pic THEN
     wpic = attack.wep_picture
     wpal = attack.wep_pal
-    .hand(0).x = attack.wep_handle(0).x
-    .hand(0).y = attack.wep_handle(0).y
-    .hand(1).x = attack.wep_handle(1).x
-    .hand(1).y = attack.wep_handle(1).y
+    .hand(0) = attack.wep_handle(0)
+    .hand(1) = attack.wep_handle(1)
    ELSE
     wpic = gam.hero(bat.acting).wep_pic
     wpal = gam.hero(bat.acting).wep_pal
     DIM weapon as integer = gam.hero(bat.acting).equip(0).id
-    .hand(0) = get_weapon_handle_point(weapon, 0)
-    .hand(1) = get_weapon_handle_point(weapon, 1)
+    IF weapon >= 0 THEN
+     DIM item as ItemDef
+     loaditemdata item, weapon
+     .hand(0) = item.wep_handle(0)
+     .hand(1) = item.wep_handle(1)
+    ELSE
+     'I don't know whether resetting this here is actually necessary, just duplicating old beheviour
+     .hand(0) = 0
+     .hand(1) = 0
+    END IF
    END IF
    setup_battlesprite_slice bslot(24), bat, sprTypeWeapon, wpic, wpal
   END WITH

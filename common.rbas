@@ -5358,13 +5358,8 @@ SUB load_special_tag_caches()
  REDIM item_data(dimbinsize(binITM)) as integer
  REDIM itemtags(gen(genMaxItem))
  FOR i as integer = 0 TO gen(genMaxItem)
-  WITH itemtags(i)
-   loaditemdata item_data(), i
-   .have_tag = item_data(74)
-   .in_inventory_tag = item_data(75)
-   .is_equipped_tag = item_data(76)
-   .is_actively_equipped_tag = item_data(77)
-  END WITH
+  loaditemdata item_data(), i
+  item_tags_from_buf itemtags(i), item_data()
  NEXT i
 END SUB
 

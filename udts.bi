@@ -854,13 +854,23 @@ TYPE HeroTagsCache
 	checks as TagRangeCheck vector
 END TYPE
 
-'This is part of the UDT for items, which hasn't been written yet
-'It caches the tags needed by evalitemtag/tag_is_special
-TYPE ItemTagsCache
+'This contains all the tags that may be autoset by an item, and is part of ItemDef.
+'It's separate because it's used for the itemtags cache, for evalitemtag/tag_is_special
+TYPE ItemDefTags
 	have_tag         as integer
 	in_inventory_tag as integer
 	is_equipped_tag  as integer
 	is_actively_equipped_tag as integer
+END TYPE
+
+'An item definition
+TYPE ItemDef
+	name as string
+	info as string
+	stacksize as integer      'Max per inventory slot. 0 means default, genItemStackSize
+	wep_handle(1) as XYPair   'Handle points
+	tags as ItemDefTags
+	'TODO: all other data is missing
 END TYPE
 
 TYPE EnemyStealDef
