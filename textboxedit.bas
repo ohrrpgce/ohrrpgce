@@ -22,6 +22,8 @@ DECLARE FUNCTION textbox_condition_short_caption(tag as integer) as string
 DECLARE SUB write_box_conditional_by_menu_index(byref box as TextBox, menuindex as integer, num as integer)
 DECLARE FUNCTION read_box_conditional_by_menu_index(byref box as TextBox, menuindex as integer) as integer
 DECLARE FUNCTION box_conditional_type_by_menu_index(menuindex as integer) as integer
+DECLARE FUNCTION box_conditional_tag_by_menu_index(byref box as TextBox, menuindex as integer) as integer
+DECLARE FUNCTION box_conditional_is_enabled(byref box as TextBox, menuindex as integer) as bool
 DECLARE SUB update_textbox_editor_main_menu (byref box as TextBox, menu() as string)
 DECLARE SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState, menu() as string)
 DECLARE SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, page as integer, override_y as integer=-1, suppress_text as bool=NO)
@@ -445,8 +447,7 @@ SUB textbox_conditionals(byref box as TextBox)
     rectangle 0, drawy, 312, state.spacing - 1, c, dpage
    ELSE
     'Display items that do nothing greyed out
-    'FIXME: not correct: shop 0, formation 0, door 0 and menu 0 still do something!
-    IF read_box_conditional_by_menu_index(box, i) = 0 THEN textcolor uilook(uiDisabledItem), 0
+    IF box_conditional_is_enabled(box, i) = NO THEN textcolor uilook(uiDisabledItem), 0
    END IF
    IF i = state.hover THEN textcolor uilook(uiMouseHoverItem), 0 
    IF i = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0
@@ -785,6 +786,36 @@ FUNCTION box_conditional_type_by_menu_index(menuindex as integer) as integer
  END SELECT
 END FUNCTION
 
+'Returns the value (istag() arg) of the tag condition for a conditional, given its menu index.
+'Eg. for the .door ("use door") conditional, returns .door_tag
+FUNCTION box_conditional_tag_by_menu_index(byref box as TextBox, menuindex as integer) as integer
+ 'This works by simply scanning up the menu until we hit a tag condition
+ WHILE menuindex >= 0
+  IF box_conditional_type_by_menu_index(menuindex) = condTAG THEN
+   RETURN read_box_conditional_by_menu_index(box, menuindex)
+  END IF
+  menuindex -= 1
+ WEND
+END FUNCTION
+
+'Whether a conditional-action does anything.
+'Returns false if a conditional is disabled by a NEVER condition,
+'or by being set to zero, if zero means do nothing.
+'Not intended to be called a menu index for a section header (tag condition).
+FUNCTION box_conditional_is_enabled(byref box as TextBox, menuindex as integer) as bool
+ SELECT CASE box_conditional_tag_by_menu_index(box, menuindex)
+  CASE 0, 1 ' NEVER: Disabled or check tag 1=ON
+   RETURN NO
+ END SELECT
+ SELECT CASE box_conditional_type_by_menu_index(menuindex)
+  CASE condSHOP, condBATTLE, condDOOR, condMENU
+   'Shop 0, formation 0, door 0 and menu 0 can all be activated with conditionals
+   RETURN YES
+  CASE ELSE
+   '0 does nothing
+   RETURN read_box_conditional_by_menu_index(box, menuindex) <> 0
+ END SELECT
+END FUNCTION
 
 '============================== Appearance Editor =============================
 
