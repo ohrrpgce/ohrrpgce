@@ -4029,12 +4029,13 @@ TYPE SpriteSetBrowser
   DECLARE SUB delete_menu_items()
   DECLARE SUB update()
   DECLARE SUB set_focus(setnum as integer, framenum as integer)
+  DECLARE SUB replace_spriteset(setnum as integer, ss as Frame ptr)
   DECLARE SUB run()
   DECLARE SUB setup_editstate(edstate as SpriteEditState, setnum as integer, framenum as integer, fullset as bool = NO)
   DECLARE SUB cleanup_editstate(edstate as SpriteEditState, fullset as bool = NO)
   DECLARE SUB add_spriteset()
   DECLARE SUB edit_any(setnum as integer, framenum as integer)
-  DECLARE SUB delete_frame(setnum as integer, delete_framenum as integer)
+  DECLARE SUB delete_frame(setnum as integer, framenum as integer)
   DECLARE SUB export_any()
   DECLARE SUB import_any()
   DECLARE SUB copy_any()
@@ -4508,48 +4509,36 @@ SUB SpriteSetBrowser.import_any()
 END SUB
 
 'Delete a frame from a spriteset
-SUB SpriteSetBrowser.delete_frame(setnum as integer, delete_framenum as integer)
-  DIM src_ss as Frame ptr = frame_load(sprtype, setnum)
+SUB SpriteSetBrowser.delete_frame(setnum as integer, framenum as integer)
+  DIM ss as Frame ptr = frame_load(sprtype, setnum)
 
-  IF src_ss->arraylen <= 1 THEN
+  IF ss->arraylen <= 1 THEN
     notification "Can't delete last frame!"
+    frame_unload @ss
     EXIT SUB
   END IF
 
-  DIM delete_id as integer = src_ss[delete_framenum].frameid
+  DIM frvec as Frame ptr vector = frame_array_to_vector(ss)
+  frame_unload @ss
 
-  DIM new_ss as Frame ptr
-  new_ss = frame_new(src_ss->w, src_ss->h, src_ss->arraylen - 1, YES)
+  v_delete_slice frvec, framenum, framenum + 1
 
-  DIM shift as bool = NO
-  DIM destidx as integer = 0
-  DIM previd as integer
-  FOR srcidx as integer = 0 TO src_ss->arraylen - 1
-    DIM srcid as integer = src_ss[srcidx].frameid
-    DIM destid as integer
-    IF srcid > previd + 1 THEN shift = NO
-    destid = srcid
-    IF shift THEN destid -= 1
+  ss = frame_vector_to_array(frvec)
+  v_free frvec
 
-    IF srcid = delete_id THEN
-      shift = YES
-    ELSE
-      frame_draw @src_ss[srcidx], , 0, 0, , NO, @new_ss[destidx], YES
-      new_ss[destidx].frameid = src_ss[srcidx].frameid
-      destidx += 1
-    END IF
-    previd = srcid
-  NEXT
+  replace_spriteset setnum, ss
+  rebuild_menu
+END SUB
 
-  rgfx_save_spriteset new_ss, sprtype, setnum, defpalettes(setnum)
+'Save ss, empty the cache, and free ss.
+'This is needed when a sprite set can't be modified in-place, eg because number of frames changed.
+SUB SpriteSetBrowser.replace_spriteset(setnum as integer, ss as Frame ptr)
+  rgfx_save_spriteset ss, sprtype, setnum, defpalettes(setnum)
 
-  frame_unload @src_ss
-  frame_unload @new_ss
+  frame_unload @ss
 
   delete_menu_items()   'Required in order to empty cache
   sprite_empty_cache sprtype, setnum
-
-  rebuild_menu()
 END SUB
 
 'Change the default palette of the current spriteset by 'diff'

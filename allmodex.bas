@@ -8510,6 +8510,31 @@ private sub frame_freemem(f as Frame ptr)
 	deallocate(f)
 end sub
 
+' Duplicates a Frame array to a vector of individual Frame ptrs. Doesn't deref input.
+' (TODO: this function is temporary; Frame arrays should be replaced with SpriteSets)
+function frame_array_to_vector(frames as Frame ptr) as Frame ptr vector
+	dim ret as Frame ptr vector
+	v_new ret
+	for idx as integer = 0 TO frames->arraylen - 1
+		v_append ret, frame_duplicate(@frames[idx])
+	next
+	return ret
+end function
+
+' Duplicates a vector of Frames, which must all have the same size and mask/no mask,
+' as a single Frame array. Doesn't free input.
+' (TODO: this function is temporary; Frame arrays should be replaced with SpriteSets)
+function frame_vector_to_array(frames as Frame ptr vector) as Frame ptr
+	if frames = NULL then return NULL
+	dim ret as Frame ptr
+	ret = frame_new(frames[0]->w, frames[0]->h, v_len(frames), , frames[0]->mask <> NULL)
+
+	for idx as integer = 0 TO v_len(frames) - 1
+		frame_draw frames[idx], , 0, 0, , NO, @ret[idx], YES
+		ret[idx].frameid = frames[idx]->frameid
+	next
+	return ret
+end function
 
 '================================ Loading & Saving Frames =================================
 
@@ -8780,15 +8805,14 @@ end function
 private sub read_frame_node(fr as Frame ptr, fr_node as Node ptr, bitdepth as integer, byref lastid as integer)
 	fr->frameid = GetChildNodeInt(fr_node, "id", fr->frameid)
 	if fr->frameid <= lastid then
-		debugc errShowError, "frame_from_node: frameids not in order; " & fr->frameid & " follows " & lastid
-		exit sub
+		debugc errShowError, "frame_from_node: corrupt .rgfx file; frameids not in order: " & fr->frameid & " follows " & lastid
 	end if
 	lastid = fr->frameid
 
 	dim image_node as NodePtr = GetChildByName(fr_node, "image")
 	dim imdata as ubyte ptr = GetZString(image_node)
 	dim imlen as integer = GetZStringSize(image_node)
-	if imdata = NULL OR imlen <> fr->w * fr->h * bitdepth \ 8 then
+	if imdata = NULL orelse imlen <> fr->w * fr->h * bitdepth \ 8 then
 		debugc errShowError, "frame_from_node: Couldn't load image; data missing or bad length (" & imlen & " for " & fr->w & "*" & fr->h & ", bitdepth=" & bitdepth & ")"
 		exit sub
 	end if
@@ -8994,6 +9018,7 @@ function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO)
 	ret->image = 0
 	ret->mask = 0
 	ret->arraylen = 1
+	ret->frameid = p->frameid
 
 	if p->image then
 		if clr = 0 then

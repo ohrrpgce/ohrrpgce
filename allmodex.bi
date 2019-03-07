@@ -656,6 +656,9 @@ declare function spriteset_for_frame(fr as Frame ptr) as SpriteSet ptr
 declare function empty_spriteset() as SpriteSet ptr
 declare function load_global_animations(sprtype as SpriteType, rgfxdoc as Reload.DocPtr = NULL) as SpriteSet ptr
 
+declare function frame_array_to_vector(frames as Frame ptr) as Frame ptr vector
+declare function frame_vector_to_array(frames as Frame ptr vector) as Frame ptr
+
 ' The animation state of a SpriteSet instance
 Type SpriteState
 	ss as SpriteSet ptr
