@@ -2376,6 +2376,8 @@ FUNCTION prompt_for_string (byref retstring as string, caption as string, limit 
  DO
   setwait 40
   setkeys YES
+  'The root slice has been set to horizontally centered instead of to fill parent (which is the screen slice)
+  root->Width = bound(LEN(editstr) * 8 + 58, 300, get_resolution().w)
   IF keyval(scF6) > 1 THEN slice_editor root, SL_COLLECT_EDITOR, "prompt_for_string.slice", , YES
   IF keyval(ccCancel) > 1 THEN
    prompt_for_string = NO
