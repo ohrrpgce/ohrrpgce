@@ -184,7 +184,7 @@ TYPE GameState
                                      'the stock() element should be reset.
   foe_freq(254) as integer           'A cache of the fight frequency for each formation set
   walk_through_walls as bool         'used for F11 cheat mode
-  mouse_enabled as bool              'initmouse called
+  mouse_enabled as bool              'Mouse clicks trigger onkeypress script (initmouse called/mouse movement on)
   hero(sizeParty - 1) as HeroState
   debug_npc_info as integer          'NPC debug display. 0: off, 1: IDs/refs, 2: also show obstructions
   debug_textbox_info as bool         'Textbox debug display
