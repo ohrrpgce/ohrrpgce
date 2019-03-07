@@ -25,6 +25,8 @@ TYPE TriggerSet
  usedbits as unsigned integer ptr
 END TYPE
 
+DIM inside_importscripts as bool
+
 DIM SHARED script_import_default as string   'File, directory, or "" if not initialised
 
 '--Local subs and functions
@@ -252,6 +254,10 @@ END SUB
 ' Returns true on success
 ' If quickimport is true, doesn't display the names of imported scripts
 FUNCTION compile_andor_import_scripts (filename as string, quickimport as bool = NO) as bool
+ 'We don't have to check whether this is non-zero, as only possible to re-enter via the global F9 menu.
+ 'Also, this is the single point of entry to compilescripts and importscripts (they're only called
+ 'from this function)
+ inside_importscripts = YES
  DIM ret as bool = NO
  DIM extn as string = LCASE(justextension(filename))
  IF extn <> "hs" AND extn <> "hsp" THEN
@@ -266,6 +272,7 @@ FUNCTION compile_andor_import_scripts (filename as string, quickimport as bool =
  ELSE
   ret = importscripts(filename, filename, quickimport)
  END IF
+ inside_importscripts = NO
  RETURN ret
 END FUNCTION
 

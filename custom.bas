@@ -832,7 +832,11 @@ END SUB
 SUB Custom_global_menu
  DIM menu as CustomGlobalMenu
  IF editing_a_game THEN
-  menu.append 0, "Reimport scripts"
+  IF inside_importscripts = NO THEN
+   'Don't reallow importing if we're already in the middle of it
+   'TODO: maybe this should also be disallowed from inside scriptbrowse, etc?
+   menu.append 0, "Reimport scripts"
+  END IF
   menu.append 1, "Test Game"
   'menu.append 10, "Save Game"
  END IF

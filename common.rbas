@@ -580,13 +580,14 @@ END SUB
 ' Show a message in a box and wait for the user to advance with a keypress.
 ' Returns the scancode of the keypress (it is cleared!)
 FUNCTION notification (msg as zstring ptr, shrink as bool = NO) as KBScancode
- ' For safety disallow reentering, though I'm not currently aware of a way this might happen
- STATIC entered as bool = NO
- IF entered THEN
-  showbug "notification() reentered"
+ ' Allow reentering a few times - for example use of F9 global menu in Custom
+ ' might harmlessly result in reentering - but stop any infinite loop.
+ STATIC entered as integer = 0
+ IF entered >= 5 THEN
+  showbug !"notification() reentered excessively, with message:\n" & *msg
   RETURN 0
  END IF
- entered = YES
+ entered += 1
 
  ensure_normal_palette
  DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
@@ -599,7 +600,7 @@ FUNCTION notification (msg as zstring ptr, shrink as bool = NO) as KBScancode
  freepage holdpage
  restore_previous_palette
  setcursorvisibility(prev_mouse_vis)
- entered = NO
+ entered -= 1
  RETURN scancode
 END FUNCTION
 
