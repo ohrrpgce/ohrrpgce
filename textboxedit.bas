@@ -348,7 +348,6 @@ SUB textbox_conditionals(byref box as TextBox)
  grey(26) = NO
 
  DIM num as integer
- DIM c as integer
 
  textbox_update_conditional_menu box, menu()
  init_menu_state state, menu()
@@ -435,24 +434,27 @@ SUB textbox_conditionals(byref box as TextBox)
   FOR i as integer = state.top TO state.top + state.size
    IF i > state.last THEN CONTINUE FOR
    DIM drawy as integer = (i - state.top) * state.spacing
-   textcolor uilook(uiMenuItem), 0
-   IF grey(i) = YES THEN
-    c = uilook(uiSelectedDisabled)
+   DIM disabled as bool
+   IF grey(i) = YES THEN  'Section heading
+    DIM bgcol as integer
     SELECT CASE read_box_conditional_by_menu_index(box, i)
-     CASE -1 ' Check tag 1=OFF always true
-      c = uilook(uiHighlight)
-     CASE 0, 1 ' Disabled or check tag 1=ON never true
-      c = uilook(uiDisabledItem)
+     CASE -1   ' ALWAYS: Check tag 1=OFF
+      bgcol = uilook(uiHighlight)
+     CASE 0, 1 ' NEVER: Disabled or check tag 1=ON
+      bgcol = uilook(uiDisabledItem)
+     CASE ELSE ' Tag check
+      bgcol = uilook(uiSelectedDisabled)
     END SELECT
-    rectangle 0, drawy, 312, state.spacing - 1, c, dpage
+    rectangle 0, drawy, rWidth, state.spacing - 1, bgcol, dpage
+    disabled = NO
    ELSE
     'Display items that do nothing greyed out
-    IF box_conditional_is_enabled(box, i) = NO THEN textcolor uilook(uiDisabledItem), 0
+    disabled = (box_conditional_is_enabled(box, i) = NO)
    END IF
-   IF i = state.hover THEN textcolor uilook(uiMouseHoverItem), 0 
-   IF i = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0
+   textcolor menu_item_color(state, i, disabled), 0
    printstr menu(i), 0, drawy, dpage
   NEXT i
+  rectangle pRight, 0, 8, rHeight, uilook(uiBackground), dpage  'Background rect for the scrollbar
   draw_fullscreen_scrollbar state, , dpage
   SWAP vpage, dpage
   setvispage vpage
@@ -803,6 +805,7 @@ END FUNCTION
 'or by being set to zero, if zero means do nothing.
 'Not intended to be called a menu index for a section header (tag condition).
 FUNCTION box_conditional_is_enabled(byref box as TextBox, menuindex as integer) as bool
+ IF menuindex = -1 THEN RETURN YES  'Previous menu
  SELECT CASE box_conditional_tag_by_menu_index(box, menuindex)
   CASE 0, 1 ' NEVER: Disabled or check tag 1=ON
    RETURN NO
