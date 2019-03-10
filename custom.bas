@@ -59,6 +59,7 @@ DECLARE FUNCTION get_previous_session_info (workdir as string) as SessionInfo
 DECLARE SUB secret_menu ()
 DECLARE SUB condition_test_menu ()
 DECLARE SUB quad_transforms_menu ()
+DECLARE SUB rotozoom_tests ()
 DECLARE SUB text_test_menu ()
 DECLARE SUB new_graphics_tests ()
 DECLARE SUB plankmenu_cursor_move_tests
@@ -1360,6 +1361,7 @@ SUB secret_menu ()
      "HTTP test", _
      "CreateProcess tests (Windows only)", _
      "Edit Translations", _
+     "Rotozoom tests/benchmarks", _
      "Test Game under Valgrind", _
      "Test Game under GDB" _
  }
@@ -1399,8 +1401,9 @@ SUB secret_menu ()
    IF st.pt = 21 THEN HTTP_demo
    IF st.pt = 22 THEN CreateProcess_tests
    IF st.pt = 23 THEN translations_menu
-   IF st.pt = 24 THEN spawn_game_menu NO, YES 'With valgrind
-   IF st.pt = 25 THEN spawn_game_menu YES     'With gdb
+   IF st.pt = 24 THEN rotozoom_tests
+   IF st.pt = 25 THEN spawn_game_menu NO, YES 'With valgrind
+   IF st.pt = 26 THEN spawn_game_menu YES     'With gdb
   END IF
   usemenu st
   clearpage vpage
@@ -1678,6 +1681,74 @@ SUB quad_transforms_menu ()
  gfx_surfaceDestroy(@spriteSurface)
  gfx_paletteDestroy(@masterPalette)
 END SUB
+
+'smooth is 0, 1 or 2
+SUB rotozoom_test_with (img as GraphicPair, rotate as double, zoomx as double, zoomy as double, smooth as integer)
+ clearpage vpage
+
+ DIM as Surface ptr in_surf, out_surf
+ IF smooth > 0 THEN
+  in_surf = frame_to_surface32(img.sprite, master())
+ ELSE
+  IF gfx_surfaceCreateFrameView(img.sprite, @in_surf) THEN EXIT SUB
+ END IF
+
+ ' First warm up the CPU, because CPU frequency toggling is the norm
+ ' these days and it makes timing meaningless unless at a reliable frequency
+ DIM rztime as double = TIMER
+ WHILE TIMER - rztime < 150e-3
+  out_surf = rotozoomSurface(in_surf, rotate, 1., 1., NO)
+  gfx_surfaceDestroy(@out_surf)
+ WEND
+
+ ' Repeat 10 times and take the min time
+ DIM rzmin as double = 1e99
+ FOR repeat as integer = 1 TO 10
+  ' Repeat several times until at least 3ms passed
+  rztime = TIMER
+  DIM cnt as integer = 0
+  WHILE TIMER - rztime < 3e-3
+   gfx_surfaceDestroy(@out_surf)
+   IF smooth = 2 THEN
+    out_surf = surface_scale(in_surf, large(1, img.sprite->w * zoomx), large(1, img.sprite->h * zoomy))
+   ELSE
+    out_surf = rotozoomSurface(in_surf, rotate, zoomx, zoomy, smooth)  'smooth 0/1
+   END IF
+   BUG_IF(out_surf = NULL, "rotozoom returned NULL")
+   cnt += 1
+  WEND
+  rzmin = small(rzmin, (TIMER - rztime) / cnt)
+ NEXT
+
+ DIM spr as Frame ptr = frame_with_surface(out_surf)
+ frame_draw spr, img.pal, pCentered, pCentered - 50, , NO, vpage
+ setvispage vpage
+ notification strprintf("zoom %.2fx%.2f (size %d*%d) rotate %.1f smooth %d: %.1fus", zoomx, zoomy, out_surf->width, out_surf->height, rotate, smooth, (rzmin * 1e6))
+
+ gfx_surfaceDestroy(@in_surf)
+ gfx_surfaceDestroy(@out_surf)
+ frame_unload @spr
+END SUB
+
+SUB rotozoom_tests ()
+ switch_to_32bit_vpages
+
+ DIM img as GraphicPair
+ load_sprite_and_pal img, sprTypeBackdrop, 1
+ rotozoom_test_with img, 45, 1.2, 1.2, 0
+ rotozoom_test_with img, 45, 1.2, 1.2, 1
+ rotozoom_test_with img, 45, 1.2, 1.2, 2
+ unload_sprite_and_pal img
+
+ load_sprite_and_pal img, sprTypeLargeEnemy, 1
+ FOR zoom as double = 0.5 TO 6.501 STEP 2.
+  rotozoom_test_with img, 130, zoom, zoom, 0
+ NEXT
+ unload_sprite_and_pal img
+
+ switch_to_8bit_vpages
+END SUB
+
 
 SUB text_test_menu
  DIM text as string = load_help_file("texttest")
