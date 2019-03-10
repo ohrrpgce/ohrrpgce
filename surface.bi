@@ -100,6 +100,7 @@ End Type
 extern "C"
 
 	extern gfx_surfaceCreate as function ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr) as integer
+	extern gfx_surfaceCreatePixelsView as function ( byval pixels as any ptr, byval width as integer, byval height as integer, byval pitch as integer, byval format as SurfaceFormat, byval ppSurfaceOut as Surface ptr ptr) as integer
 	extern gfx_surfaceCreateFrameView as function ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
 	extern gfx_surfaceCreateView as function ( byval pSurfaceIn as Surface ptr, byval x as integer, byval y as integer, byval width as integer, byval height as integer, byval ppSurfaceOut as Surface ptr ptr) as integer
 	extern gfx_surfaceDestroy as function ( byval ppSurfaceIn as Surface ptr ptr ) as integer
@@ -144,6 +145,7 @@ extern "C"
 
 	'' The following software-rasterised implementation of the above interface is in surface.cpp.
 	declare function gfx_surfaceCreate_SW ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr ) as integer
+	declare function gfx_surfaceCreatePixelsView_SW ( byval pixels as any ptr, byval width as integer, byval height as integer, byval pitch as integer, byval format as SurfaceFormat, byval ppSurfaceOut as Surface ptr ptr) as integer
 	declare function gfx_surfaceCreateFrameView_SW ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
 	declare function gfx_surfaceCreateView_SW ( byval pSurfaceIn as Surface ptr, byval x as integer, byval y as integer, byval width as integer, byval height as integer, byval ppSurfaceOut as Surface ptr ptr) as integer
 	declare function gfx_surfaceDestroy_SW ( byval ppSurfaceIn as Surface ptr ptr ) as integer

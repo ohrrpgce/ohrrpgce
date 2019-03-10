@@ -100,6 +100,7 @@ dim io_get_joystick_state as function (byval joynum as integer, byval state as I
 'New Surface-based graphics backend function pointers
 
 dim gfx_surfaceCreate as function ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr) as integer
+dim gfx_surfaceCreatePixelsView as function ( byval pixels as any ptr, byval width as integer, byval height as integer, byval pitch as integer, byval format as SurfaceFormat, byval ppSurfaceOut as Surface ptr ptr) as integer
 dim gfx_surfaceCreateFrameView as function ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
 dim gfx_surfaceCreateView as function ( byval pSurfaceIn as Surface ptr, byval x as integer, byval y as integer, byval width as integer, byval height as integer, byval ppSurfaceOut as Surface ptr ptr) as integer
 dim gfx_surfaceDestroy as function ( byval ppSurfaceIn as Surface ptr ptr ) as integer
@@ -447,6 +448,7 @@ End Function
 private sub default_gfx_render_procs()
 	gfx_surfaceCreate = @gfx_surfaceCreate_SW
 	gfx_surfaceCreateView = @gfx_surfaceCreateView_SW
+	gfx_surfaceCreatePixelsView = @gfx_surfaceCreatePixelsView_SW
 	gfx_surfaceCreateFrameView = @gfx_surfaceCreateFrameView_SW
 	gfx_surfaceDestroy = @gfx_surfaceDestroy_SW
 	gfx_surfaceReference = @gfx_surfaceReference_SW

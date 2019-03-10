@@ -87,6 +87,25 @@ int gfx_surfaceCreateView_SW( Surface *pSurfaceIn, int x, int y, int width, int 
 	return 0;
 }
 
+int gfx_surfaceCreatePixelsView_SW( void *pixels, int width, int height, int pitch, SurfaceFormat format, Surface** ppSurfaceOut )
+{
+	if (!ppSurfaceOut) {
+		debug(errShowBug, "surfaceCreatePixelsView: NULL out ptr");
+		return -1;
+	}
+	Surface *ret = new Surface {
+	  width: width, height: height, pitch: pitch,
+	  refcount: 1, isview: 1, format: format, usage: SU_Staging, base_surf: NULL
+	};
+	ret->pRawData = pixels;
+
+	surfaceMutex.lock();
+	g_surfaces.push_back(ret);
+	surfaceMutex.unlock();
+	*ppSurfaceOut = ret;
+	return 0;
+}
+
 // Return a Surface which is a view onto a Frame. The Surface and Frame should both
 // be destroyed as normal.
 // (The Frame refcount is incremented)
@@ -122,10 +141,11 @@ int gfx_surfaceDestroy_SW( Surface** ppSurfaceIn ) {
 		if(--pSurfaceIn->refcount > 0)
 			return 0;
 		if(pSurfaceIn->isview) {
-			// We don't own the pixel data, deref the parent instead
+			// We don't own the pixel data, deref the parent instead if
+			// it's a Frame or Surface, rather than a view on a pixel buffer
 			if(pSurfaceIn->base_frame) {
 				frame_unload(&pSurfaceIn->base_frame);
-			} else {
+			} else if(pSurfaceIn->base_surf) {
 				gfx_surfaceDestroy_SW(&pSurfaceIn->base_surf);
 			}
 		}
