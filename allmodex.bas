@@ -115,9 +115,6 @@ declare sub Palette16_delete(f as Palette16 ptr ptr)
 ' NULL .image ptr usually indicates that the Frame is Surface-backed
 #define CHECK_FRAME_8BIT(fr, retwhat...) FAIL_IF((fr)->image = NULL, " NULL Frame.image", retwhat)
 
-'Used to dereference a ptr only if not NULL
-#define IF_PTR(arg)  if arg then arg
-
 
 
 '------------ Global variables ------------
@@ -745,7 +742,7 @@ function allocatepage(w as integer = -1, h as integer = -1, bitdepth as integer 
 	if h < 0 then h = windowsize.h
 	if bitdepth < 0 then bitdepth = default_page_bitdepth
 	if bitdepth <> 8 and bitdepth <> 32 then
-		showerror "allocatepage: Bad bitdepth " & bitdepth
+		showbug "allocatepage: Bad bitdepth " & bitdepth
 	end if
 	dim fr as Frame ptr = frame_new(w, h, , YES, , bitdepth = 32)
 
@@ -779,10 +776,7 @@ end sub
 
 'The contents are either trimmed or extended with colour uilook(uiBackground).
 sub resizepage (page as integer, w as integer, h as integer)
-	if vpages(page) = NULL then
-		showerror "resizepage called with null ptr"
-		exit sub
-	end if
+	BUG_IF(vpages(page) = NULL, "NULL page")
 	frame_assign @vpages(page), frame_resized(vpages(page), w, h, 0, 0, uilook(uiBackground))
 end sub
 
@@ -2509,7 +2503,7 @@ sub setcursorvisibility (state as CursorVisibility)
 		io_setmousevisibility(state)
 		cursorvisibility = state
 	case else
-		showerror "Bad setcursorvisibility(" & state & ") call"
+		showbug "Bad setcursorvisibility(" & state & ") call"
 	end select
 end sub
 
@@ -2943,7 +2937,7 @@ end sub
 private sub replay_controls ()
 	'We call show_help which calls setkeys which calls us.
 	static reentering as bool = NO
-	if reentering then showerror "Reentry of replay_controls shouldn't occur"
+	BUG_IF(reentering, "Reentry shouldn't happen")
 	reentering = YES
 
 	if real_keyval(scF1) > 1 then
@@ -4137,7 +4131,7 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 			c = intpal(c).col
 		end if
 	else
-		showerror "fuzzyrect: bad dest Frame"
+		showbug "fuzzyrect: bad dest Frame"
 		exit sub
 	end if
 	sptr += y * pitch + x * pixelbytes
@@ -5533,7 +5527,7 @@ end constructor
 
 'Decrement refcount, and null out the ptr
 sub fontlayer_unload (layerpp as FontLayer ptr ptr)
-	if layerpp = null then showerror "fontlayer_unload: passed NULL" : exit sub
+	BUG_IF(layerpp = NULL, "NULL ptr")
 	if *layerpp then
 		(*layerpp)->refcount -= 1
 		if (*layerpp)->refcount <= 0 then
@@ -5561,7 +5555,7 @@ end constructor
 
 'This deletes a Font object pointed to by a pointer. It's OK to call on a ptr to a NULL ptr
 sub font_unload (fontpp as Font ptr ptr)
-	if fontpp = null then showerror "font_unload: passed NULL" : exit sub
+	BUG_IF(fontpp = NULL, "NULL font")
 	dim fontp as Font ptr = *fontpp
 	if fontp = null then exit sub
 	delete fontp
@@ -5577,14 +5571,8 @@ end destructor
 
 'Create a version of a font with an outline around each character (in a new palette colour)
 function font_create_edged (basefont as Font ptr) as Font ptr
-	if basefont = null then
-		showbug "font_create_edged wasn't passed a font!"
-		return null
-	end if
-	if basefont->layers(1) = null then
-		showbug "font_create_edged was passed a blank font!"
-		return null
-	end if
+	BUG_IF(basefont = NULL, "NULL font", NULL)
+	BUG_IF(basefont->layers(1) = NULL, "blank font", NULL)
 	CHECK_FRAME_8BIT(basefont->layers(1)->spr, NULL)
 
 	dim newfont as Font ptr = new Font()
@@ -5665,14 +5653,8 @@ end function
 
 'Create a version of a font with a drop shadow (in a new palette colour)
 function font_create_shadowed (basefont as Font ptr, xdrop as integer = 1, ydrop as integer = 1) as Font ptr
-	if basefont = null then
-		debug "createshadowfont wasn't passed a font!"
-		return null
-	end if
-	if basefont->layers(1) = null then
-		debug "createshadowfont was passed a blank font!"
-		return null
-	end if
+	BUG_IF(basefont = NULL, "NULL font", NULL)
+	BUG_IF(basefont->layers(1) = NULL, "blank font", NULL)
 	CHECK_FRAME_8BIT(basefont->layers(1)->spr, NULL)
 
 	dim newfont as Font ptr = new Font(basefont)
@@ -5841,11 +5823,7 @@ end function
 function font_load_16x16 (filename as string) as Font ptr
 	dim image as Frame ptr
 	image = image_import_as_frame_raw(filename)
-
-	if image = NULL then
-		debug "font_load_16x16: couldn't load " & filename
-		return null
-	end if
+	FAIL_IF(image = NULL, "couldn't load file", NULL)
 
 	if image->w MOD 16 ORELSE image->h MOD 16 then
 		debug "font_load_16x16: " & filename & ": bad dimensions " & image->size
@@ -5915,17 +5893,15 @@ end sub
 'any font derived from them will be too (ability to change the type only added in Callipygous)
 
 function get_font_type (ohf_font() as integer) as fontTypeEnum
-	if ohf_font(0) <> ftypeASCII and ohf_font(0) <> ftypeLatin1 then
-		showbug "Unknown font type ID " & ohf_font(0)
+	if ohf_font(0) <> ftypeASCII andalso ohf_font(0) <> ftypeLatin1 then
+		showerror "Unknown font type ID " & ohf_font(0)
 		return ftypeASCII
 	end if
 	return ohf_font(0)
 end function
 
 sub set_font_type (ohf_font() as integer, ty as fontTypeEnum)
-	if ty <> ftypeASCII and ty <> ftypeLatin1 then
-		showbug "set_font_type: bad type " & ty
-	end if
+	BUG_IF(ty <> ftypeASCII andalso ty <> ftypeLatin1, "bad type " & ty)
 	ohf_font(0) = ty
 end sub
 
@@ -5941,7 +5917,7 @@ sub surface_export_bmp (f as string, surf as Surface Ptr, maspal() as RGBcolor)
 	elseif surf->base_frame then
 		frame_export_bmp8(f, surf->base_frame, maspal())
 	else
-		showerror "surface_export_bmp: SF_8bit not supported"
+		showbug "surface_export_bmp: SF_8bit not supported"
 	end if
 end sub
 
@@ -5952,7 +5928,7 @@ sub surface_export_bmp24 (f as string, surf as Surface Ptr)
 	dim as ubyte buf(3)
 
 	if surf->format <> SF_32bit then
-		showerror "surface_export_bmp24 got 8bit Surface"
+		showbug "surface_export_bmp24 got 8bit Surface"
 		exit sub
 	end if
 
@@ -7120,7 +7096,7 @@ function image_import_as_surface(filename as string, always_32bit as bool) as Su
 			return surface_import_jpeg(filename)
 		case else
 			debug "image_import_as_surface: Unrecognised: " & filename
-			return 0
+			return NULL
 	end select
 end function
 
@@ -7330,7 +7306,7 @@ declare sub quantize_surface_threshold(surf as Surface ptr, ret as Frame ptr, pa
 'the Surface's alpha is ignored and transparency.a must be 0 or it won't be matched.
 function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options as QuantizeOptions) as Frame ptr
 	if surf->format <> SF_32bit then
-		showerror "quantize_surface only works on 32 bit Surfaces (bad image_import_as_frame_quantized call?)"
+		showbug "quantize_surface only works on 32 bit Surfaces (bad image_import_as_frame_quantized call?)"
 		gfx_surfaceDestroy(@surf)
 		return NULL
 	end if
@@ -7443,10 +7419,7 @@ sub frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBcolor, pa
 		surface_export_gif fr->surf, fname
 		exit sub
 	end if
-	if fr->pitch <> fr->w then
-		showerror "frame_export_gif: pitch doesn't match width"
-		exit sub
-	end if
+	BUG_IF(fr->pitch <> fr->w, "pitch doesn't match width")
 
 	dim writer as GifWriter
 	dim gifpal as GifPalette
@@ -8132,7 +8105,7 @@ private sub sprite_update_cache_range(minkey as integer, maxkey as integer)
 						'Unfortunately, this error will occur if you change the number
 						'of frames in the spriteset editor. Only thing we can do about it is
 						'try to unload all affected Frames before updating the cache.
-						showerror "sprite_update_cache: number of frames changed for sprite " & pt->hash
+						showbug "sprite_update_cache: number of frames changed for sprite " & pt->hash
 						numframes = small(numframes, pt->p->arraylen)
 					end if
 
@@ -8438,7 +8411,8 @@ function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor, pal as Pal
 	if fr->surf then
 		debug "frame_to_surface32 called on a Surface-backed Frame"
 		if fr->surf->format = SF_8bit then
-			showerror "Converting Frame w/ 8bit Surface to 32bit Surface unimplemented"
+			showbug "Converting Frame w/ 8bit Surface to 32bit Surface unimplemented"
+			return NULL
 		end if
 		return fr->surf
 	end if
@@ -8457,10 +8431,7 @@ end function
 ' Turn a regular Frame into a 32-bit Surface-backed Frame.
 ' Content is preserved.
 sub frame_convert_to_32bit(fr as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)
-	if fr->cached then
-		showerror "frame_convert_to_32bit: refusing to clobber cached Frame"
-		exit sub
-	end if
+	BUG_IF(fr->cached, "refusing to clobber cached Frame")
 	fr->surf = frame_to_surface32(fr, masterpal(), pal)
 
 	deallocate(fr->image)
@@ -8749,8 +8720,9 @@ end sub
 function frameset_from_node(fs_node as Node ptr) as Frame ptr
 	dim as integer dataformat = GetChildNodeInt(fs_node, "format")
 	dim as integer bitdepth = GetChildNodeInt(fs_node, "bits", 8)
-	dim as integer w = GetChildNodeInt(fs_node, "w")
-	dim as integer h = GetChildNodeInt(fs_node, "h")
+	dim as XYPair size
+	size.w = GetChildNodeInt(fs_node, "w")
+	size.h = GetChildNodeInt(fs_node, "h")
 
 	dim as integer frames = 0
 	dim as Node ptr ch = FirstChild(fs_node, "frame")
@@ -8759,26 +8731,18 @@ function frameset_from_node(fs_node as Node ptr) as Frame ptr
 		ch = NextSibling(ch, "frame")
 	wend
 
-	if dataformat <> 0 then
-		debugc errShowError, "frameset_from_node: unsupported data format " & dataformat
-		return NULL
-	end if
-	if frames = 0 then
-		debugc errShowError, "frameset_from_node: no frames!"
-		return NULL
-	end if
-	if w <= 0 orelse h <= 0 orelse w > 2048 orelse h > 2048 then
-		debugc errShowError, "frameset_from_node: bad size " & .w & "*" & .h
-		return NULL
-	end if
+	ERROR_IF(dataformat <> 0, "unsupported data format " & dataformat, NULL)
+	ERROR_IF(frames = 0, "no frames!", NULL)
+	ERROR_IF(size.w <= 0 orelse size.h <= 0 orelse size.w > 2048 orelse size.h > 2048, _
+		 "bad size " & size, NULL)
 
 	dim fr as Frame ptr
 	if bitdepth = 8 then
-		fr = frame_new(w, h, frames)
+		fr = frame_new(size.w, size.h, frames)
 	elseif bitdepth = 32 then
-		fr = frame_new(w, h, frames, , , , YES)  'no_alloc = YES
+		fr = frame_new(size.w, size.h, frames, , , , YES)  'no_alloc = YES
 	else
-		debugc errShowError, "frameset_from_node: Unsupported graphics bitdepth " & bitdepth
+		showerror "frameset_from_node: Unsupported graphics bitdepth " & bitdepth
 		return NULL
 	end if
 	if fr = NULL then return NULL  'Should already have shown an error
@@ -8799,16 +8763,14 @@ end function
 'lastid: frameid for previous Frame
 private sub read_frame_node(fr as Frame ptr, fr_node as Node ptr, bitdepth as integer, byref lastid as integer)
 	fr->frameid = GetChildNodeInt(fr_node, "id", fr->frameid)
-	if fr->frameid <= lastid then
-		debugc errShowError, "frame_from_node: corrupt .rgfx file; frameids not in order: " & fr->frameid & " follows " & lastid
-	end if
+	ERROR_IF(fr->frameid <= lastid, "corrupt .rgfx file; frameids not in order: " & fr->frameid & " follows " & lastid)
 	lastid = fr->frameid
 
 	dim image_node as NodePtr = GetChildByName(fr_node, "image")
 	dim imdata as ubyte ptr = GetZString(image_node)
 	dim imlen as integer = GetZStringSize(image_node)
 	if imdata = NULL orelse imlen <> fr->w * fr->h * bitdepth \ 8 then
-		debugc errShowError, "frame_from_node: Couldn't load image; data missing or bad length (" & imlen & " for " & fr->w & "*" & fr->h & ", bitdepth=" & bitdepth & ")"
+		showerror "frame_from_node: Couldn't load image; data missing or bad length (" & imlen & " for " & fr->size & ", bitdepth=" & bitdepth & ")"
 		exit sub
 	end if
 
@@ -8961,7 +8923,7 @@ function frame_is_valid(p as Frame ptr) as bool
 	if cint(p->mask) = &hFEEEFEEE or cint(p->image) = &hFEEEFEEE then ret = NO
 
 	if ret = NO then
-		debugc errBug, "Invalid sprite " & frame_describe(p)
+		showbug "Invalid sprite " & frame_describe(p)
 		'if we get here, we are probably doomed, but this might be a recovery
 		if p->cacheentry then sprite_remove_cache(p->cacheentry)
 	end if
@@ -8991,10 +8953,7 @@ function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO)
 	if p = 0 then return 0
 
 	if p->surf then
-		if clr or addmask then
-			showerror "frame_duplicate: clr/addmask unimplemented for Surfaces"
-			return 0
-		end if
+		BUG_IF(clr orelse addmask, "clr/addmask unimplemented for Surfaces", NULL)
 		dim surf as Surface ptr = surface_duplicate(p->surf)
 		ret = frame_with_surface(surf)
 		ret->offset = p->offset
@@ -9101,10 +9060,7 @@ end sub
 ' and the dest is 32-bit.
 ' Also, the mask if any is ignored.
 sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
-	if src = NULL or dest = NULL then
-		showerror "trying to draw from/to null frame"
-		exit sub
-	end if
+	BUG_IF(src = NULL orelse dest = NULL, "trying to draw from/to null frame")
 	get_cliprect(dest)  'Set clipping Frame
 
 	x = relative_pos(x, dest->w, src->w)
@@ -9121,11 +9077,8 @@ private sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal a
 	   (dest->surf andalso dest->surf->format <> SF_8bit) then
 		' Have to use gfx_surfaceCopy, so translate everything to Surfaces
 
-		if dest->surf = NULL then
-			showerror "frame_draw_internal: trying to draw a Surface-backed Frame to a regular Frame"
-		elseif write_mask <> NO or scale <> 1 then
-			showerror "frame_draw_internal: write_mask and scale not supported with a Surface-backed Frame"
-		end if
+		BUG_IF(dest->surf = NULL, "trying to draw a 32-bit Frame to a regular Frame")
+		BUG_IF(write_mask orelse scale <> 1, "write_mask and scale not supported with 32-bit Frames")
 
 		dim src_surface as Surface ptr
 		if src->surf then
@@ -9136,6 +9089,7 @@ private sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal a
 		end if
 		dim master_pal as RGBPalette ptr
 		if src_surface->format = SF_8bit then
+			' From 8 -> 32 bit
 			' TODO: Don't do this every single call!
 			if gfx_paletteFromRGB(@masterpal(0), @master_pal) then
 				debug "gfx_paletteFromRGB failed"
@@ -9147,7 +9101,7 @@ private sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal a
 		' aren't drawn correctly
 		draw_clipped_surf src_surface, master_pal, pal, x, y, trans, dest->surf
 
-		cleanup:
+	cleanup:
 		if master_pal then
 			gfx_paletteDestroy(@master_pal)
 		end if
@@ -9494,11 +9448,7 @@ end sub
 sub frame_flip_horiz(spr as Frame ptr)
 	if spr = 0 then exit sub
 	CHECK_FRAME_8BIT(spr)
-
-	if spr->refcount > 1 then
-		debug "illegal hflip on " & frame_describe(spr)
-		exit sub
-	end if
+	BUG_IF(spr->refcount > 1, "illegal when refc>1")
 
 	flip_image(spr->image, spr->h, spr->pitch, spr->w, 1)
 	if spr->mask then
@@ -9511,11 +9461,7 @@ end sub
 sub frame_flip_vert(spr as Frame ptr)
 	if spr = 0 then exit sub
 	CHECK_FRAME_8BIT(spr)
-
-	if spr->refcount > 1 then
-		debug "illegal vflip on " & frame_describe(spr)
-		exit sub
-	end if
+	BUG_IF(spr->refcount > 1, "illegal when refc>1")
 
 	flip_image(spr->image, spr->w, 1, spr->h, spr->pitch)
 	if spr->mask then
@@ -9739,11 +9685,7 @@ end function
 
 sub Palette16_add_cache(s as string, p as Palette16 ptr, fr as integer = 0)
 	if p = 0 then exit sub
-	if p->refcount = NOREFC then
-		'sanity check
-		debug "Tried to add a non-refcounted Palette16 to the palette cache!"
-		exit sub
-	end if
+	BUG_IF(p->refcount = NOREFC, "Tried to add a non-refcounted Palette16 to the palette cache!")
 
 	dim as integer i, sec = -1
 	for i = fr to ubound(palcache)
@@ -9791,9 +9733,7 @@ end function
 
 'pal() is an array of master palette indices, to convert into a Palette16
 function Palette16_new_from_indices(pal() as integer) as Palette16 ptr
-	if ubound(pal) > 255 then
-		fatalerror "Palette indices pal() too long!"
-	end if
+	BUG_IF(ubound(pal) > 255, "Palette indices pal() too long!", NULL)
 	dim ret as Palette16 ptr = Palette16_new(ubound(pal) + 1)
 	for idx as integer = 0 to ubound(pal)
 		ret->col(idx) = pal(idx)
@@ -9809,7 +9749,7 @@ end function
 function Palette16_load(num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0, default_blank as bool = YES) as Palette16 ptr
 	dim as Palette16 ptr ret = Palette16_load(graphics_file("pal"), num, autotype, spr)
 	if ret = 0 then
-		if num >= 0 AND default_blank then
+		if num >= 0 andalso default_blank then
 			' Only bother to warn if a specific palette failed to load.
 			' Avoids debug noise when default palette load fails because of a non-existant defpal file
 			debug "failed to load palette " & num
@@ -10076,7 +10016,7 @@ end sub
 
 ' This should only be called from within allmodex
 constructor SpriteSet(frameset as Frame ptr)
-	if frameset->arrayelem then fatalerror "SpriteSet needs first Frame in array"
+	BUG_IF(frameset->arrayelem, "need first Frame in array")
 	'redim animations(0 to -1)
 	frames = frameset
 	frameset->sprset = @this
@@ -10135,7 +10075,7 @@ end function
 'Variant on rgfx_load_global_animations.
 private sub reload_global_animations(def_anim as SpriteSet ptr, sprtype as SpriteType)
 	dim rgfxdoc as Doc ptr = rgfx_open(sprtype, YES)
-	if rgfxdoc = NULL then debug "reload_global_animations failed" : exit sub
+	FAIL_IF(rgfxdoc = NULL, "failed")
 	'This overwrites the existing animations
 	load_animations_node(DocumentRoot(rgfxdoc), def_anim)
 	FreeDocument rgfxdoc
