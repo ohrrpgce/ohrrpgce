@@ -97,15 +97,16 @@ ENUM EditRuleMode
   erShortStrgrabber   'No full-screen text editor
   erStrgrabber        'Press ENTER for full-screen text editor
   erToggle
-  erPercentgrabber
+  erPercentgrabber    'Edits doubles
+  erSinglePercentgrabber 'Edits singles
   erLookupgrabber
 END ENUM
 
 TYPE EditRule
   dataptr as any ptr  'It scares the heck out of me that I think this is the best solution
   mode as EditRuleMode
-  lower as integer
-  upper as integer
+  lower as integer    'Interpreted as percent for percent_grabber
+  upper as integer    'Interpreted as percent for percent_grabber
   group as integer    'Marks this rule as a member of a numbered group, the meaning of which is defined in the implementation
   helpkey as string   'actually appended to "sliceedit_" to get the full helpkey
 END TYPE
@@ -190,7 +191,8 @@ DECLARE SUB preview_SelectSlice_parents (byval sl as Slice ptr)
 DECLARE SUB sliceed_rule (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as integer ptr, lower as integer=0, upper as integer=0, group as integer = 0)
 DECLARE SUB sliceed_rule_str (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as string ptr, upper as integer=0, group as integer = 0)
 DECLARE SUB sliceed_rule_enum (rules() as EditRule, helpkey as string, dataptr as ssize_t ptr, lower as integer=0, upper as integer=0, group as integer = 0)
-DECLARE SUB sliceed_rule_double (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as double ptr, lower as integer=0, upper as integer=0, group as integer = 0)
+DECLARE SUB sliceed_rule_double (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as double ptr, lower as integer=0, upper as integer=100, group as integer = 0)
+DECLARE SUB sliceed_rule_single (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as single ptr, lower as integer=0, upper as integer=100, group as integer = 0)
 DECLARE SUB sliceed_rule_tog (rules() as EditRule, helpkey as string, dataptr as bool ptr, group as integer=0)
 DECLARE SUB sliceed_rule_none (rules() as EditRule, helpkey as string, group as integer = 0)
 
@@ -1233,9 +1235,10 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    END IF
   CASE erPercentgrabber
    DIM n as double ptr = rule.dataptr
-   IF percent_grabber(*n, format_percent(*n), 0.0, 1.0) THEN
-    state.need_update = YES
-   END IF
+   state.need_update OR= percent_grabber(*n, "", rule.lower, rule.upper, 4, YES)
+  CASE erSinglePercentgrabber
+   DIM n as single ptr = rule.dataptr
+   state.need_update OR= percent_grabber(*n, "", rule.lower, rule.upper, 4, YES)
   CASE erLookupgrabber
    DIM n as integer ptr = rule.dataptr
    state.need_update OR= lookup_code_grabber(*n, ses, rule.lower, rule.upper)
@@ -1463,7 +1466,11 @@ SUB sliceed_rule_enum (rules() as EditRule, helpkey as string, dataptr as ssize_
  sliceed_rule rules(), helpkey, erEnumgrabber, cast(integer ptr, dataptr), lower, upper, group
 END SUB
 
-SUB sliceed_rule_double (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as double ptr, lower as integer=0, upper as integer=0, group as integer = 0)
+SUB sliceed_rule_double (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as double ptr, lower as integer=0, upper as integer=100, group as integer = 0)
+ sliceed_rule rules(), helpkey, mode, cast(integer ptr, dataptr), lower, upper, group
+END SUB
+
+SUB sliceed_rule_single (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as single ptr, lower as integer=0, upper as integer=100, group as integer = 0)
  sliceed_rule rules(), helpkey, mode, cast(integer ptr, dataptr), lower, upper, group
 END SUB
 
