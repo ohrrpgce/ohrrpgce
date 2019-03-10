@@ -8414,7 +8414,7 @@ function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor, pal as Pal
 			showbug "Converting Frame w/ 8bit Surface to 32bit Surface unimplemented"
 			return NULL
 		end if
-		return fr->surf
+		return gfx_surfaceReference(fr->surf)
 	end if
 
 	dim surf as Surface ptr
@@ -8440,13 +8440,18 @@ sub frame_convert_to_32bit(fr as Frame ptr, masterpal() as RGBcolor, pal as Pale
 	fr->mask = NULL
 end sub
 
-' Turn Surface-backed Frame back to a regular Frame. Content IS WIPED!
+' Turn Surface-backed Frame back to a regular Frame. Content IS WIPED if it was a 32-bit Surface!
 sub frame_drop_surface(fr as Frame ptr)
 	if fr->surf then
-		gfx_surfaceDestroy(@fr->surf)
-		if fr->image = NULL then
-			fr->image = callocate(fr->pitch * fr->h)
+		if fr->image = NULL then  'Should always be true
+			if fr->surf->format = SF_8bit then
+				fr->image = allocate(fr->pitch * fr->h)
+				memcpy(fr->image, fr->surf->pPaletteData, fr->pitch * fr->h)
+			else
+				fr->image = callocate(fr->pitch * fr->h)
+			end if
 		end if
+		gfx_surfaceDestroy(@fr->surf)
 	end if
 end sub
 
@@ -9121,9 +9126,10 @@ end sub
 
 'Return a copy which has been clipped or extended. Extended portions are filled with bgcol.
 'Can also be used to scroll (does not wrap around)
+'Turns an 8-bit Surface-backed Frame into a regular Frame, and works on 32-bit Surface-backed ones too.
 function frame_resized(spr as Frame ptr, wide as integer, high as integer, shiftx as integer = 0, shifty as integer = 0, bgcol as integer = 0) as Frame ptr
 	dim as Frame ptr ret
-	ret = frame_new(wide, high, , NO, (spr->mask <> NULL), (spr->surf <> NULL))
+	ret = frame_new(wide, high, , NO, (spr->mask <> NULL), (spr->surf <> NULL andalso spr->surf->format = SF_32bit))
 	frame_clear ret, bgcol
 	frame_draw spr, NULL, shiftx, shifty, 1, NO, ret, (spr->surf = NULL)  'trans=NO, write_mask=not for Surfaces
 	return ret

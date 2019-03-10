@@ -358,10 +358,6 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 		debug(errShowBug, "surfaceCopy_SW: can't copy from 32-bit to 8-bit Surface");
 		return -1;
 	}
-	if (pSurfaceSrc->format != SF_8bit && (pPalette || pPal8)) {
-		debug(errShowBug, "surfaceCopy_SW: given a palette but not an 8-bit src");
-		return -1;
-	}
 
 	SurfaceRect rectDest, rectSrc;
 	if (!pRectDest)
@@ -457,7 +453,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 
 		RGBcolor *restrict pal32 = pPalette->col;
 		if (pPal8) {
-			// Form a temp palette to avoid doble-indirection on every pixel
+			// Form a temp palette to avoid double-indirection on every pixel
 			pal32 = (RGBcolor*)alloca(pPal8->numcolors * sizeof(RGBcolor));
 			for (int idx = 0; idx < pPal8->numcolors; idx++) {
 				pal32[idx] = pPalette->col[pPal8->col[idx]];
