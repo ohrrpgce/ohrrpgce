@@ -97,6 +97,8 @@ September 29 2018 [Fufluns]
     * Vehicles are reloaded while using Test Game [Ralph]
     * Turn-based battles bitset to disallow cancelling/changing a hero's attack
       [Ralph]
+    * Displaying "x1" after singular items in the inventory is now optional
+      (in General Game Settings) [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

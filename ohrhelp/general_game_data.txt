@@ -73,6 +73,8 @@ Inventory Autosort: This sets the criterion which the 'Autosort' option in the i
 
 Default maximum item stack size: The number of items that can be stored in each inventory slot, unless overridden for a specific item type.
 
+Display 'x1' in inventory: If an inventory slot contains one item, e.g. Boots, this controls whether "Boots  x 1" is displayed or just "Boots". You can set it to show 'x1' for stackable items only (max stack size more than one).
+
 
   Misc
 

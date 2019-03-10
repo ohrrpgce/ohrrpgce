@@ -1301,18 +1301,24 @@ SUB reload_gen()
  DIM should_reset_window as bool = NO
 
  FOR j as integer = 0 TO UBOUND(gen)
-  SELECT CASE j
-   CASE 44 TO 54, genTextboxBackdrop, genJoy  '44-54, 58, 60
-    'Ignore.
-    ' Don't need to ignore genMusicVolume, genSFXVolume, since they're only read once
-   CASE genResolutionX, genResolutionY, genWindowSize, genLivePreviewWindowSize, genRungameFullscreenIndependent
-    IF gen(j) <> newgen(j) THEN should_reset_window = YES
-    gen(j) = newgen(j)
-   CASE ELSE
-    gen(j) = newgen(j)
-  END SELECT
+  IF gen(j) <> newgen(j) THEN
+   SELECT CASE j
+    CASE 44 TO 54, genTextboxBackdrop, genJoy  '44-54, 58, 60
+     CONTINUE FOR 'Ignore.
+     ' Don't need to ignore genMusicVolume, genSFXVolume, since they're only read once
+    CASE genResolutionX, genResolutionY, genWindowSize, genLivePreviewWindowSize, genRungameFullscreenIndependent
+     should_reset_window = YES
+    CASE genInventSlotx1Display
+     'Reset inventory slot names
+     gen(j) = newgen(j)
+     FOR slot as integer = 0 TO last_inv_slot()
+      update_inventory_caption slot
+     NEXT
+   END SELECT
+   gen(j) = newgen(j)
+  END IF
  NEXT
- 'FIXME: does anything else need to be reloaded when gen() changes?
+ 'TODO: does anything else need to be reloaded when gen() changes?
  'Number of elements maybe?
 
  IF should_reset_window THEN apply_game_window_settings YES

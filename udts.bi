@@ -334,8 +334,8 @@ TYPE InventSlot
   'following fields should not be used if used = NO
   id as integer	        'read ID number starting at 0, not +1!!
   num as integer
-  text as string        'text field which shows up in inventory, blank if empty
-  sortorder as integer  'contains garbage nearly always: only used in items_menu_autosort
+  text as string        'text field which shows up in inventory, blank if empty. NOTE: Not used by Items menu!!
+  sortorder as integer  'contains garbage nearly always: only used in items_menu_autosort (not saved)
 END TYPE
 
 TYPE PlotTimer

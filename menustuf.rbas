@@ -983,15 +983,28 @@ FUNCTION getOOBtarg (byval search_direction as integer, byref target as integer,
  RETURN NO
 END FUNCTION
 
+'Returns the string such as "x 9" that appears in inventory slots
+FUNCTION inventory_slot_number_str(slot as InventSlot) as string
+ IF slot.num = 1 THEN
+  'Optionally, don't display the x1 suffix
+  IF gen(genInventSlotx1Display) = 1 ORELSE _  'Never display x1
+     (gen(genInventSlotx1Display) = 2 ANDALSO get_item_stack_size(slot.id) <= 1) THEN 'Only if stacksize>1
+   RETURN "   "
+  END IF
+ END IF
+ RETURN CHR(1) & lpad(STR(slot.num), , 2)   'CHR(1) is 'X'
+END FUNCTION
+
 SUB update_inventory_caption (byval i as integer)
- 'WARNING: this can't be removed until all three of the Items, Equip, and Battle items menus have been re-written
-IF inventory(i).used = 0 THEN
- inventory(i).text = SPACE(11)
-ELSE
- inventory(i).text = readitemname(inventory(i).id)
- 'CHR(1) is 'X'
- inventory(i).text = rpad(inventory(i).text, " ", 8) + CHR(1) + lpad(STR(inventory(i).num), , 2)
-END IF
+ 'WARNING: this is no longer used by the Items menu, but is still used by Equip and Battle items menus,
+ 'which need re-writing. (I think the goal is to get rid of InventSlot.text?)
+ WITH inventory(i)
+  IF .used THEN
+   .text = rpad(readitemname(.id), " ", 8) & inventory_slot_number_str(inventory(i))
+  ELSE
+   .text = SPACE(11)
+  END IF
+ END WITH
 END SUB
 
 SUB oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval target_count as integer)
@@ -2064,8 +2077,8 @@ SUB ExpandTextItemScreen (code as string, result as string, byval arg0 as ANY pt
      DIM swapslot as integer = swapcur->Extra(0)
      IF swapslot >= 0 ANDALSO inventory(swapslot).used THEN
       DIM id as integer = inventory(swapslot).id
-      'CHR(1) is 'X'
-      DIM info as string = readitemname(id) & CHR(1) & lpad(STR(inventory(swapslot).num), " ", 2)
+      'info is the same as inventory(swapslot).text but with less whitespace
+      DIM info as string = RTRIM(readitemname(id) & inventory_slot_number_str(inventory(swapslot)))
       IF item_can_be_discarded(id) THEN
        result = readglobalstring(41, "Discard", 10) & " " & info
       ELSE
@@ -2080,12 +2093,12 @@ END SUB
 SUB ExpandTextItemSlot (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 
  DIM slot as integer = *CAST(integer ptr, arg0)
- 
+
  '.used .id .num .text
  IF inventory(slot).used THEN
   SELECT CASE UCASE(code)
    CASE "ITEM": result = readitemname(inventory(slot).id)
-   CASE "NUM": result = CHR(1) & lpad(STR(inventory(slot).num), " ", 2)
+   CASE "NUM":  result = inventory_slot_number_str(inventory(slot))
   END SELECT
  ELSE
   'An empty slot

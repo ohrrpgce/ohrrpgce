@@ -1275,6 +1275,15 @@ SUB GeneralSettingsMenu.update(longname as string, aboutline as string)
  add_item , "Default maximum item stack size: " & gen(genItemStackSize)
  gen_int genItemStackSize, 1, 99
 
+ tmp = "Display '" & CHR(1) & "1' in inventory: "  'CHR(1) is the x symbol
+ SELECT CASE gen(genInventSlotx1Display)
+  CASE 0: tmp &= "always"
+  CASE 1: tmp &= "never"
+  CASE 2: tmp &= "only if stackable"
+ END SELECT
+ add_item , tmp
+ gen_int genInventSlotx1Display, 0, 2
+
  '-------------------------
  header " Misc"
  add_item 17, "In-App Purchases... (experimental)"
