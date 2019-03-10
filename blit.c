@@ -17,16 +17,32 @@ void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, int w, in
 void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, int w, int h, int pitch, int zoom, int smooth, RGBcolor pal[]);
 void smoothzoomblit_32_to_32bit(RGBcolor *srcbuffer, RGBcolor *destbuffer, int w, int h, int pitch, int zoom, int smooth, RGBcolor dummypal[]);
 
+
+inline uint8_t *get_frame_buf(Frame *spr) {
+	if (spr->surf) {
+		if (spr->surf->format != SF_8bit) {
+			debug(errShowBug, "blitohr[scaled]: 32bit sprite!");
+			return NULL;
+		}
+		return spr->surf->pPaletteData;
+	} else {
+		return spr->image;
+	}
+}
+
+// 8 bit blitting routine. Supports 8-bit Surface-backed Frames too.
+// The arguments must already be clipped to the destination (done in draw_clipped())
 // write_mask:
 //    If the destination has a mask, sets the mask for the destination rectangle
 //    equal to the mask (or color-key) for the source rectangle. Does not OR them.
 void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int startx, int starty, int endx, int endy, boolint trans, boolint write_mask) {
 	int i, j;
-	unsigned char *maskp, *srcp, *destp;
+	unsigned char *maskp, *srcp, *original_srcp, *restrict destp;
 	int srclineinc, destlineinc;
 
-	srcp = spr->image;
+	original_srcp = srcp = get_frame_buf(spr);
 
+	// Surfaces don't have masks
 	maskp = spr->mask;
 	if (maskp == NULL) {
 		//we could add an optimised version for this case, which is the 99% case
@@ -38,7 +54,7 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 
 	srclineinc = spr->pitch - (endx - startx + 1);
 
-	destp = destspr->image + startx + starty * destspr->pitch;
+	destp = get_frame_buf(destspr) + startx + starty * destspr->pitch;
 	destlineinc = destspr->pitch - (endx - startx + 1);
 
 	if (pal != NULL && trans != 0) {
@@ -114,7 +130,7 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 
 	// Set the destination mask
 	if (write_mask && destspr->mask) {
-		srcp = (spr->mask ? spr->mask : spr->image) + startoffset;
+		srcp = (spr->mask ? spr->mask : original_srcp) + startoffset;
 		destp = destspr->mask + startx + starty * destspr->pitch;
 		for (i = starty; i <= endy; i++) {
 			memcpy(destp, srcp, endx - startx + 1);
@@ -124,6 +140,8 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 	}
 }
 
+// 8 bit scaled blitting routine. Supports 8-bit Surface-backed Frames too.
+// The arguments must already be clipped to the destination (done in draw_clipped_scaled())
 //horribly slow; keep putting off doing something about it
 // write_mask:
 //    If the destination has a mask, sets the mask for the destination rectangle
@@ -131,19 +149,21 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 void blitohrscaled(Frame *spr, Frame *destspr, Palette16 *pal, int x, int y, int startx, int starty, int endx, int endy, boolint trans, boolint write_mask, int scale) {
 	unsigned char *restrict destbuf;
 	unsigned char *restrict maskbuf;
+	unsigned char *restrict srcp;
 	int tx, ty;
 	int pix, spix;
 
-	destbuf = destspr->image;
+	srcp = get_frame_buf(spr);
+	destbuf = get_frame_buf(destspr);
+
 	maskbuf = spr->mask;
-	if (spr->mask == 0) {
-		maskbuf = spr->image;
+	if (maskbuf == 0) {
+		maskbuf = srcp;
 	}
 	if (destspr->mask == 0) {
 		write_mask = false;
 	}
-	
-	//ty = starty
+
 	if (trans == 0) {
 		for (ty = starty; ty <= endy; ty++) {
 			//tx = startx
@@ -152,11 +172,11 @@ void blitohrscaled(Frame *spr, Frame *destspr, Palette16 *pal, int x, int y, int
 				pix = (ty * destspr->pitch) + tx;
 				//and where to get the pixel from
 				spix = (((ty - y) / scale) * spr->pitch) + ((tx - x) / scale);
-				
+
 				if (pal != 0)
-					destbuf[pix] = pal->col[spr->image[spix]];
+					destbuf[pix] = pal->col[srcp[spix]];
 				else
-					destbuf[pix] = spr->image[spix];
+					destbuf[pix] = srcp[spix];
 				if (write_mask)
 					destspr->mask[pix] = maskbuf[spix];
 			}
@@ -169,13 +189,13 @@ void blitohrscaled(Frame *spr, Frame *destspr, Palette16 *pal, int x, int y, int
 				pix = (ty * destspr->pitch) + tx;
 				//and where to get the pixel from
 				spix = (((ty - y) / scale) * spr->pitch) + ((tx - x) / scale);
-					
+
 				//check mask
 				if (maskbuf[spix]) {
 					if (pal != 0)
-						destbuf[pix] = pal->col[spr->image[spix]];
+						destbuf[pix] = pal->col[srcp[spix]];
 					else
-						destbuf[pix] = spr->image[spix];
+						destbuf[pix] = srcp[spix];
 				}
 				if (write_mask)
 					destspr->mask[pix] = maskbuf[spix];

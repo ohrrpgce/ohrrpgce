@@ -7945,11 +7945,6 @@ end sub
 
 ' Blit a Frame with setclip clipping and scale <> 1.
 private sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
-	if src->surf <> NULL or dest->surf <> NULL then
-		showerror "draw_clipped_scaled: scale " & scale & " not supported with Surface-backed Frames"
-		exit sub
-	end if
-
 	dim byref cliprect as ClipState = get_cliprect()
 	dim as integer sxfrom, sxto, syfrom, syto
 
@@ -9122,7 +9117,10 @@ end sub
 
 private sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 
-	if src->surf <> NULL or dest->surf <> NULL then
+	if (src->surf andalso src->surf->format <> SF_8bit) orelse _
+	   (dest->surf andalso dest->surf->format <> SF_8bit) then
+		' Have to use gfx_surfaceCopy, so translate everything to Surfaces
+
 		if dest->surf = NULL then
 			showerror "frame_draw_internal: trying to draw a Surface-backed Frame to a regular Frame"
 		elseif write_mask <> NO or scale <> 1 then
@@ -9160,6 +9158,7 @@ private sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal a
 		if scale = 1 then
 			draw_clipped src, pal, x, y, trans, dest
 		else
+			BUG_IF(src->surf orelse dest->surf, "32-bit Frames don't support scale<>1")
 			draw_clipped_scaled src, pal, x, y, scale, trans, dest, write_mask
 		end if
 	end if
