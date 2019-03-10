@@ -13,7 +13,7 @@ Type ThingBrowser extends Object
  'Displays the browser, and retuns the selected result (or start_id if canceled)
  declare function browse(byref start_id as integer=0, byval or_none as bool=NO, editor_func as FnThingBrowserEditor=0, byval edit_by_default as bool=YES, byval skip_zero as bool=NO) as integer
 
- declare sub build_thing_list()
+ declare virtual sub build_thing_list()
  declare function check_plank_filter(byval sl as Slice Ptr) as bool
  declare sub loop_sprite_helper(byval plank as Slice Ptr, byval min as integer, byval max as integer, byval delay as integer=1)
 
@@ -168,11 +168,13 @@ Type SfxBrowser extends ThingBrowser
  declare virtual function highest_id() as integer
  declare virtual function highest_possible_id() as integer
  declare virtual sub on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
+ declare virtual sub build_thing_list()
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
  plank_template as Slice Ptr
  declare virtual sub set_up_sub_buttons()
  declare virtual function on_sub_button_click(byval button_lookup as integer,byval id as integer, byval plank as Slice Ptr) as bool
  declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
+ imported_sfx(any) as bool
 End Type
 
 Type SongBrowser extends ThingBrowser
@@ -181,11 +183,13 @@ Type SongBrowser extends ThingBrowser
  declare virtual function highest_id() as integer
  declare virtual function highest_possible_id() as integer
  declare virtual sub on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
+ declare virtual sub build_thing_list()
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
  plank_template as Slice Ptr
  declare virtual sub set_up_sub_buttons()
  declare virtual function on_sub_button_click(byval button_lookup as integer,byval id as integer, byval plank as Slice Ptr) as bool
  declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
+ imported_songs(any) as bool
 End Type
 
 '-----------------------------------------------------------------------

@@ -153,6 +153,9 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   end if
   hover = find_plank_at_screen_pos(ps, readmouse.pos)
   if hover andalso (readmouse.clicks AND mouseLeft) then
+   'FIXME: clicking on the Play button of a music/sfx plank results in the song/sfx getting
+   'played twice, once for the button-down moving the selection, and a second time for
+   'the button-release activating the play button
    cursor_moved = ps.cur <> hover
    ps.cur = hover
   end if
@@ -386,7 +389,7 @@ Function ThingBrowser.init_helpkey() as string
 End Function
 
 Sub ThingBrowser.build_thing_list()
- dim start_time as double = TIMER
+ dim timing as double = TIMER
  plank_menu_clear root, SL_EDITOR_THINGBROWSER_THINGLIST
  dim thinglist as slice ptr
  thinglist = LookupSliceSafe(SL_EDITOR_THINGBROWSER_THINGLIST, root)
@@ -412,7 +415,10 @@ Sub ThingBrowser.build_thing_list()
  thinglist->Height = plank_size.y  'Only needed if a Grid: Height of one row
  if thinglist->SliceType = slGrid then ChangeGridSlice thinglist, , thinglist->Width \ plank_size.x
  DrawSlice root, vpage 'refresh screen positions
- debuginfo thing_kind_name() & ": build_thing_list() took " & int((TIMER - start_time) * 1000) & "ms"
+ timing = TIMER - timing
+ if timing > 0.2 then
+  debuginfo thing_kind_name() & ": build_thing_list() took " & cint(timing * 1000) & "ms"
+ end if
 End Sub
 
 Function ThingBrowser.check_plank_filter(byval sl as Slice Ptr) as bool
@@ -823,6 +829,14 @@ Sub SfxBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
 #endif
 End Sub
 
+Sub SfxBrowser.build_thing_list()
+ 'Find the list of all sfx that actually exist, so we only show Play icons for them
+ redim imported_sfx(highest_id())
+ list_of_imported_songs_or_sfx(imported_sfx(), YES)
+
+ base.build_thing_list()
+End Sub
+
 Function SfxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim sfxname as string = getsfxname(id)
 
@@ -831,10 +845,10 @@ Function SfxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  end if
  dim plank as Slice Ptr
  plank = CloneSliceTree(plank_template)
- 
+
  dim spr as Slice Ptr
  spr = LookupSliceSafe(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
- if id = none_id then
+ if id = none_id orelse imported_sfx(id) = NO then
   spr->Visible = NO
  end if
  dim txt as Slice Ptr
@@ -864,16 +878,11 @@ End Function
 
 Sub SongBrowser.on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
  if id >= 0 then
-  'Check whether actually exists, since playsongnum doesn't stop the music if you
-  'play a nonexistent song.
-  '(Don't want to test ahead of time whether to display the play button, which
-  'would cause a thousand isfile() calls if you've got 100 unused songs!)
-  if find_music_lump(id) <> "" then
+  'playsongnum doesn't stop the music if you play a nonexistent song.
+  if imported_songs(id) then
    playsongnum id
   else
    music_stop
-   'Hide the play button... hiding it only when you select it looks a bit weird
-   'LookupSliceSafe(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)->Visible = NO
   end if
  else
   music_stop
@@ -900,6 +909,14 @@ Sub SongBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
 #endif
 End Sub
 
+Sub SongBrowser.build_thing_list()
+ 'Find the list of all songs that actually exist, so we only show Play icons for them
+ redim imported_songs(highest_id())
+ list_of_imported_songs_or_sfx(imported_songs(), NO)
+
+ base.build_thing_list()
+End Sub
+
 Function SongBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim songname as string = getsongname(id)
 
@@ -911,7 +928,7 @@ Function SongBrowser.create_thing_plank(byval id as integer) as Slice ptr
  
  dim spr as Slice Ptr
  spr = LookupSliceSafe(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
- if id = none_id then
+ if id = none_id orelse imported_songs(id) = NO then
   spr->Visible = NO
  end if
  dim txt as Slice Ptr

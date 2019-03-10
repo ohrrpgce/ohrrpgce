@@ -462,3 +462,36 @@ function find_sfx_lump (sfxnum as integer) as string
 		return ""
 	end if
 end function
+
+'Find out whether each song or sfx actually exists rather than being a blank record.
+'Fills in imported_files().
+'imported_files() should be pre-initialised to right length!
+'sfx: if true, check for sfx instead of files.
+sub list_of_imported_songs_or_sfx(imported_files() as bool, sfx as bool)
+#ifdef IS_CUSTOM
+	flusharray imported_files(), , NO
+	dim filelist() as string
+	findfiles workingdir, ALLFILES, fileTypeFile, , filelist()
+	for idx as integer = 0 to ubound(filelist)
+		dim as integer snumber = -1  'song or sfx number
+		dim as string basename = trimextension(filelist(idx)), extn = justextension(filelist(idx))
+		'Just accept unknown audio file extensions
+		if sfx then
+			if starts_with(basename, "sfx") then
+				snumber = str2int(mid(basename, 4), -1, YES)
+			end if
+		else
+			if starts_with(basename, "song") then
+				snumber = str2int(mid(basename, 5), -1, YES)
+			else 'if basename = archinym then
+				snumber = str2int(extn, -1, YES)  'BAM file
+			end if
+		end if
+
+		if snumber > -1 andalso snumber <= ubound(imported_files) then imported_files(snumber) = YES
+	next
+#else
+	'Don't need such superfluous features bloating Game
+	flusharray imported_files(), , YES
+#endif
+end Sub
