@@ -555,7 +555,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
   END IF
 
-  IF keyval(scF7) > 1 THEN
+  IF keyval(scF8) > 1 THEN
    IF ses.curslice ANDALSO ses.curslice->SliceType = slSprite THEN
     'Make a sprite melt, just for a fun test
     DissolveSpriteSlice(ses.curslice, 5, 36)
@@ -783,6 +783,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  '--free the clipboard if there is something in it
  IF ses.clipboard THEN DeleteSlice @ses.clipboard
 
+ switch_to_8bit_vpages  'In case Ctrl-3 used
  pop_gfxio_state
 END SUB
 
@@ -1091,6 +1092,18 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
   IF keyval(scF1) > 1 THEN show_help "sliceedit_" & rules(state.pt).helpkey
   IF keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD 3
   IF keyval(scF7) > 1 THEN ses.show_ants = NOT ses.show_ants
+  IF keyval(scCtrl) > 0 ANDALSO keyval(sc3) > 1 THEN
+   'Switching to 32 bit color depth allows 32-bit and smooth-scaled sprites,
+   'but breaks sprite dissolves
+   IF vpages_are_32bit THEN
+    switch_to_8bit_vpages
+    show_overlay_message "Switched to 8-bit color"
+   ELSE
+    switch_to_32bit_vpages
+    show_overlay_message "Switched to 32-bit color"
+   END IF
+   state.need_update = YES  'smoothing menu item needs update
+  END IF
 
   IF UpdateScreenSlice() THEN state.need_update = YES
 
