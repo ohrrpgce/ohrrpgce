@@ -1302,20 +1302,26 @@ SUB reload_gen()
 
  FOR j as integer = 0 TO UBOUND(gen)
   IF gen(j) <> newgen(j) THEN
+   'Before updating gen()
    SELECT CASE j
     CASE 44 TO 54, genTextboxBackdrop, genJoy  '44-54, 58, 60
      CONTINUE FOR 'Ignore.
      ' Don't need to ignore genMusicVolume, genSFXVolume, since they're only read once
+   END SELECT
+   gen(j) = newgen(j)
+   'After updating gen()
+   SELECT CASE j
     CASE genResolutionX, genResolutionY, genWindowSize, genLivePreviewWindowSize, genRungameFullscreenIndependent
      should_reset_window = YES
+    CASE genMillisecPerFrame
+     set_speedcontrol
+     set_animation_framerate gen(genMillisecPerFrame)
     CASE genInventSlotx1Display
      'Reset inventory slot names
-     gen(j) = newgen(j)
      FOR slot as integer = 0 TO last_inv_slot()
       update_inventory_caption slot
      NEXT
    END SELECT
-   gen(j) = newgen(j)
   END IF
  NEXT
  'TODO: does anything else need to be reloaded when gen() changes?
