@@ -427,6 +427,8 @@ END SUB
 SUB importsong_get_song_info (songname as string, songfile as string, bamfile as string, byval songnum as integer, file_ext as string, menu() as string, metadata as string, selectable() as bool, state as MenuState)
  music_stop
 
+ 'TODO: this is redundant to find_music_lump and getmusictype
+
  DIM temp as string
  '-- first job: find the song's name
  temp = workingdir & SLASH & "song" & songnum

@@ -864,7 +864,17 @@ End Function
 
 Sub SongBrowser.on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
  if id >= 0 then
-  playsongnum id
+  'Check whether actually exists, since playsongnum doesn't stop the music if you
+  'play a nonexistent song.
+  '(Don't want to test ahead of time whether to display the play button, which
+  'would cause a thousand isfile() calls if you've got 100 unused songs!)
+  if find_music_lump(id) <> "" then
+   playsongnum id
+  else
+   music_stop
+   'Hide the play button... hiding it only when you select it looks a bit weird
+   'LookupSliceSafe(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)->Visible = NO
+  end if
  else
   music_stop
  end if
@@ -878,9 +888,7 @@ End Sub
 Function SongBrowser.on_sub_button_click(byval button_lookup as integer,byval id as integer, byval plank as Slice Ptr) as bool
  select case button_lookup
   case SL_EDITOR_THINGBROWSER_PLANK_SPRITE:
-   if id >= 0 then
-    playsongnum id
-   end if
+   on_cursor_moved id, plank  'Play the song
    return NO
  end select
  return YES
