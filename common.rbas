@@ -1688,7 +1688,7 @@ FUNCTION createminimap (tiles() as TileMap, tilesets() as TilesetData ptr, pmapp
  'zoom = 1 is unzoomed, zoom = 20 is 1 pixel per tile.
  'If zoom is -1, calculate and store it
 
- IF default_page_bitdepth = 8 AND algorithm = minimapScaled THEN algorithm = minimapMajority
+ IF vpages_are_32bit = NO ANDALSO algorithm = minimapScaled THEN algorithm = minimapMajority
 
  'DIM drawtime as double = TIMER
 

@@ -122,7 +122,7 @@ declare sub Palette16_delete(f as Palette16 ptr ptr)
 dim modex_initialised as bool = NO
 dim vpages() as Frame ptr
 dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs typeless debugging symbol
-dim default_page_bitdepth as integer = 8  '8 or 32. Affects allocatepage only, set by switch_to_*bit_vpages()
+dim shared default_page_bitdepth as integer = 8  '8 or 32. Affects allocatepage only, set by switch_to_*bit_vpages()
 
 'Whether the player has at any point toggled fullscreen/windowed in some low-level way
 'like alt+enter or window buttons.

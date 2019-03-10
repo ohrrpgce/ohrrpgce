@@ -756,7 +756,6 @@ extern global_tog as integer
 extern max_display_fps as integer
 extern use_speed_control as bool
 extern user_toggled_fullscreen as bool
-extern default_page_bitdepth as integer
 extern active_seconds as double
 extern idle_time_threshold as double
 
