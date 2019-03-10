@@ -32,7 +32,7 @@ struct Surface
 {
 	int32_t width;
 	int32_t height;
-	int32_t pitch;
+	int32_t pitch;      // Measured in pixels, not bytes
 	int refcount;
 	int isview;         // Is a view onto a Frame or another Surface (see below)
 	enum SurfaceFormat format;

@@ -38,12 +38,12 @@ Type Surface
 		End Type
 		size as XYPair
 	End Union
-	pitch as int32
+	pitch as int32   'Measured in pixels, not bytes
 	refcount as int32
 	isview as int32  'Is a view onto a Frame or another Surface (see below)
-			'FB enums are 64 bit on a 64 bit machine, unlike C/C++ which uses 'int'
-	format as int32 ' SurfaceFormat
-	usage as int32  ' SurfaceUsage
+			 'FB enums are 64 bit on a 64 bit machine, unlike C/C++ which uses 'int'
+	format as int32  ' SurfaceFormat
+	usage as int32   ' SurfaceUsage
 	' The following are only used if isview is true; at most one of them is non-NULL
 	base_frame as FrameFwd ptr  'If not NULL, is a view of a whole Frame
 	base_surf as SurfaceFwd ptr 'If not NULL, is a view of part of a Surface
@@ -136,6 +136,11 @@ extern "C"
 	declare function surface_duplicate ( surf as Surface ptr ) as Surface ptr
 	declare function surface32_from_pixels ( pixels as ubyte ptr, w as integer, h as integer, format as PixelFormat ) as Surface ptr
 	declare function surface32_to_pixels( surf as Surface ptr, format as PixelFormat ) as ubyte ptr
+
+	'' Roto-zoomer, implemented in rotozoom.c
+	declare function rotozoomSurface(src as Surface ptr, angle as double, zoomx as double, zoomy as double, smooth as boolint) as Surface ptr
+	declare sub rotozoomSurfaceSize(width as integer, height as integer, angle as double, zoomx as double, zoomy as double, dstwidth as integer ptr, dstheight as integer ptr)
+	declare function rotateSurface90Degrees(src as Surface ptr, numClockwiseTurns as integer) as Surface ptr
 
 	'' The following software-rasterised implementation of the above interface is in surface.cpp.
 	declare function gfx_surfaceCreate_SW ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr ) as integer

@@ -36,16 +36,6 @@ Andreas Schiffler -- aschiffler at ferzkopp dot net
 #include "misc.h"
 #include "surface.h"
 
-/* A 32 bit RGBA pixel. */
-typedef struct tColorRGBA {
-	uint8_t r, g, b, a;
-} tColorRGBA;
-
-/* A 8 bit paletted pixel. */
-typedef struct tColorY {
-	uint8_t y;
-} tColorY;
-
 #define MAX(a,b)    (((a) > (b)) ? (a) : (b))
 
 /*
@@ -85,8 +75,8 @@ Returns 0 for success or -1 for error.
 int _zoomSurfaceRGBA(Surface *src, Surface *dst, boolint flipx, boolint flipy, boolint smooth)
 {
 	int x, y, sx, sy, ssx, ssy, *sax, *say, *csax, *csay, *salast, csx, csy, ex, ey, cx, cy, sstep, sstepx, sstepy;
-	tColorRGBA *c00, *c01, *c10, *c11;
-	tColorRGBA *sp, *csp, *dp;
+	RGBcolor *c00, *c01, *c10, *c11;
+	RGBcolor *sp, *csp, *dp;
 	int spixelgap, spixelw, spixelh, dgap, t1, t2;
 
 	/* Allocate memory for row/column increments */
@@ -141,10 +131,10 @@ int _zoomSurfaceRGBA(Surface *src, Surface *dst, boolint flipx, boolint flipy, b
 		}
 	}
 
-	sp = (tColorRGBA *) src->pixels;
-	dp = (tColorRGBA *) dst->pixels;
-	dgap = dst->pitch - dst->width * 4;
-	spixelgap = src->pitch/4;
+	sp = (RGBcolor *) src->pColorData;
+	dp = (RGBcolor *) dst->pColorData;
+	dgap = dst->pitch - dst->width;
+	spixelgap = src->pitch;
 
 	if (flipx) sp += spixelw;
 	if (flipy) sp += (spixelgap * spixelh);
@@ -226,7 +216,7 @@ int _zoomSurfaceRGBA(Surface *src, Surface *dst, boolint flipx, boolint flipy, b
 			}
 
 			/* Advance destination pointer y */
-			dp = (tColorRGBA *) ((uint8_t *) dp + dgap);
+			dp += dgap;
 		}
 
 	} else {
@@ -260,7 +250,7 @@ int _zoomSurfaceRGBA(Surface *src, Surface *dst, boolint flipx, boolint flipy, b
 			sp = csp + sstep;
 
 			/* Advance destination pointer y */
-			dp = (tColorRGBA *) ((uint8_t *) dp + dgap);
+			dp += dgap;
 		}
 	}
 
@@ -301,12 +291,12 @@ int _zoomSurfaceY(Surface *src, Surface *dst, boolint flipx, boolint flipy)
 	}
 
 	/* Pointer setup */
-	sp = csp = (uint8_t *) src->pixels;
-	dp = (uint8_t *) dst->pixels;
+	sp = csp = (uint8_t *) src->pPaletteData;
+	dp = (uint8_t *) dst->pPaletteData;
 	dgap = dst->pitch - dst->width;
 
-	if (flipx) csp += (src->width-1);
-	if (flipy) csp  = ( (uint8_t*)csp + src->pitch*(src->height-1) );
+	if (flipx) csp += src->width - 1;
+	if (flipy) csp += src->pitch * (src->height - 1);
 
 	/* Precalculate row increments */
 	csx = 0;
@@ -349,7 +339,7 @@ int _zoomSurfaceY(Surface *src, Surface *dst, boolint flipx, boolint flipy)
 			dp++;
 		}
 		/* Advance source pointer (for row) */
-		csp += ((*csay) * src->pitch);
+		csp += *csay * src->pitch;
 		csay++;
 
 		/* Advance destination pointers */
@@ -383,8 +373,8 @@ Assumes dst surface was allocated with the correct dimensions.
 void _transformSurfaceRGBA(Surface *src, Surface *dst, int cx, int cy, int isin, int icos, boolint flipx, boolint flipy, boolint smooth)
 {
 	int x, y, t1, t2, dx, dy, xd, yd, sdx, sdy, ax, ay, ex, ey, sw, sh;
-	tColorRGBA c00, c01, c10, c11, cswap;
-	tColorRGBA *pc, *sp;
+	RGBcolor c00, c01, c10, c11, cswap;
+	RGBcolor *pc, *sp;
 	int gap;
 
 	/* Variable setup */
@@ -394,8 +384,8 @@ void _transformSurfaceRGBA(Surface *src, Surface *dst, int cx, int cy, int isin,
 	ay = (cy << 16) - (isin * cx);
 	sw = src->width - 1;
 	sh = src->height - 1;
-	pc = (tColorRGBA*) dst->pixels;
-	gap = dst->pitch - dst->width * 4;
+	pc = (RGBcolor *)dst->pColorData;
+	gap = dst->pitch - dst->width;
 
 	if (smooth) {
 		/*
@@ -411,13 +401,11 @@ void _transformSurfaceRGBA(Surface *src, Surface *dst, int cx, int cy, int isin,
 				if (flipx) dx = sw - dx;
 				if (flipy) dy = sh - dy;
 				if ((dx > -1) && (dy > -1) && (dx < (src->width-1)) && (dy < (src->height-1))) {
-					sp = (tColorRGBA *)src->pixels;
-					sp += ((src->pitch/4) * dy);
-					sp += dx;
+					sp = (RGBcolor *)src->pColorData + src->pitch * dy + dx;
 					c00 = *sp;
 					sp += 1;
 					c01 = *sp;
-					sp += (src->pitch/4);
+					sp += src->pitch;
 					c11 = *sp;
 					sp -= 1;
 					c10 = *sp;
@@ -450,7 +438,7 @@ void _transformSurfaceRGBA(Surface *src, Surface *dst, int cx, int cy, int isin,
 				sdy += isin;
 				pc++;
 			}
-			pc = (tColorRGBA *) ((uint8_t *) pc + gap);
+			pc += gap;
 		}
 
 	} else {
@@ -467,15 +455,14 @@ void _transformSurfaceRGBA(Surface *src, Surface *dst, int cx, int cy, int isin,
 				if (flipx) dx = (src->width-1)-dx;
 				if (flipy) dy = (src->height-1)-dy;
 				if ((dx >= 0) && (dy >= 0) && (dx < src->width) && (dy < src->height)) {
-					sp = (tColorRGBA *) ((uint8_t *) src->pixels + src->pitch * dy);
-					sp += dx;
+					sp = (RGBcolor *)src->pColorData + src->pitch * dy + dx;
 					*pc = *sp;
 				}
 				sdx += icos;
 				sdy += isin;
 				pc++;
 			}
-			pc = (tColorRGBA *) ((uint8_t *) pc + gap);
+			pc += gap;
 		}
 	}
 }
@@ -501,7 +488,7 @@ Assumes dst surface was allocated with the correct dimensions.
 void _transformSurfaceY(Surface *src, Surface *dst, int cx, int cy, int isin, int icos, boolint flipx, boolint flipy)
 {
 	int x, y, dx, dy, xd, yd, sdx, sdy, ax, ay;
-	tColorY *pc, *sp;
+	uint8_t *pc, *sp;
 	int gap;
 
 	/* Variable setup */
@@ -509,7 +496,7 @@ void _transformSurfaceY(Surface *src, Surface *dst, int cx, int cy, int isin, in
 	yd = ((src->height - dst->height) << 15);
 	ax = (cx << 16) - (icos * cx);
 	ay = (cy << 16) - (isin * cx);
-	pc = (tColorY*) dst->pixels;
+	pc = dst->pPaletteData;
 	gap = dst->pitch - dst->width;
 	/* Clear surface to colorkey (zero) */
 	memset(pc, 0, dst->pitch * dst->height);
@@ -525,8 +512,7 @@ void _transformSurfaceY(Surface *src, Surface *dst, int cx, int cy, int isin, in
 			if (flipx) dx = (src->width-1)-dx;
 			if (flipy) dy = (src->height-1)-dy;
 			if ((dx >= 0) && (dy >= 0) && (dx < src->width) && (dy < src->height)) {
-				sp = (tColorY *) (src->pixels);
-				sp += (src->pitch * dy + dx);
+				sp = src->pPaletteData + src->pitch * dy + dx;
 				*pc = *sp;
 			}
 			sdx += icos;
@@ -578,7 +564,7 @@ Surface* rotateSurface90Degrees(Surface* src, int numClockwiseTurns)
 		newHeight = src->height;
 	}
 
-	if (gfx_surfaceCreate(newWidth, newHeight, src->format, SF_Staging, &dst))
+	if (gfx_surfaceCreate(newWidth, newHeight, src->format, SU_Staging, &dst))
 		return NULL;
 
 	int bpp = src->format == SF_32bit ? 4 : 1;  /* bytes per pixel */
@@ -588,18 +574,18 @@ Surface* rotateSurface90Degrees(Surface* src, int numClockwiseTurns)
 		{
 			if (src->pitch == dst->pitch) {
 				/* If the pitch is the same for both surfaces, the memory can be copied all at once. */
-				memcpy(dst->pixels, src->pixels, (src->height * src->pitch));
+				memcpy(dst->pRawData, src->pRawData, (src->height * src->pitch) * bpp);
 			}
 			else
 			{
 				/* If the pitch differs, copy each row separately */
-				srcBuf = (uint8_t*)(src->pixels);
-				dstBuf = (uint8_t*)(dst->pixels);
+				srcBuf = (uint8_t*)(src->pRawData);
+				dstBuf = (uint8_t*)(dst->pRawData);
 				int bpr = src->width * bpp;
 				for (row = 0; row < src->height; row++) {
 					memcpy(dstBuf, srcBuf, bpr);
-					srcBuf += src->pitch;
-					dstBuf += dst->pitch;
+					srcBuf += src->pitch * bpp;
+					dstBuf += dst->pitch * bpp;
 				}
 			}
 		}
@@ -609,12 +595,12 @@ Surface* rotateSurface90Degrees(Surface* src, int numClockwiseTurns)
 	case 1: /* rotated 90 degrees clockwise */
 		{
 			for (row = 0; row < src->height; ++row) {
-				srcBuf = (uint8_t*)(src->pixels) + (row * src->pitch);
-				dstBuf = (uint8_t*)(dst->pixels) + (dst->width - row - 1) * bpp;
+				srcBuf = (uint8_t*)(src->pRawData) + (row * src->pitch) * bpp;
+				dstBuf = (uint8_t*)(dst->pRawData) + (dst->width - row - 1) * bpp;
 				for (col = 0; col < src->width; ++col) {
 					memcpy (dstBuf, srcBuf, bpp);
 					srcBuf += bpp;
-					dstBuf += dst->pitch;
+					dstBuf += dst->pitch * bpp;
 				}
 			}
 		}
@@ -623,8 +609,8 @@ Surface* rotateSurface90Degrees(Surface* src, int numClockwiseTurns)
 	case 2: /* rotated 180 degrees clockwise */
 		{
 			for (row = 0; row < src->height; ++row) {
-				srcBuf = (uint8_t*)(src->pixels) + (row * src->pitch);
-				dstBuf = (uint8_t*)(dst->pixels) + ((dst->height - row - 1) * dst->pitch) + (dst->width - 1) * bpp;
+				srcBuf = (uint8_t*)(src->pRawData) + (row * src->pitch * bpp);
+				dstBuf = (uint8_t*)(dst->pRawData) + ((dst->height - row - 1) * dst->pitch + dst->width - 1) * bpp;
 				for (col = 0; col < src->width; ++col) {
 					memcpy (dstBuf, srcBuf, bpp);
 					srcBuf += bpp;
@@ -637,12 +623,12 @@ Surface* rotateSurface90Degrees(Surface* src, int numClockwiseTurns)
 	case 3: /* rotated 270 degrees clockwise */
 		{
 			for (row = 0; row < src->height; ++row) {
-				srcBuf = (uint8_t*)(src->pixels) + (row * src->pitch);
-				dstBuf = (uint8_t*)(dst->pixels) + (row * bpp) + ((dst->height - 1) * dst->pitch);
+				srcBuf = (uint8_t*)(src->pRawData) + (row * src->pitch * bpp);
+				dstBuf = (uint8_t*)(dst->pRawData) + (row * bpp) + ((dst->height - 1) * dst->pitch) * bpp;
 				for (col = 0; col < src->width; ++col) {
 					memcpy (dstBuf, srcBuf, bpp);
 					srcBuf += bpp;
-					dstBuf -= dst->pitch;
+					dstBuf -= dst->pitch * bpp;
 				}
 			}
 		}
@@ -771,7 +757,7 @@ Surface *rotozoomSurface(Surface *src, double angle, double zoomx, double zoomy,
 	_rotozoomSurfaceSizeTrig(src->width, src->height, angle, zoomx, zoomy, &dstwidth, &dstheight, &canglezoom, &sanglezoom);
 
 	/* Alloc space to completely contain the zoomed/rotated surface */
-	if (gfx_surfaceCreate(dstwidth, dstheight + GUARD_ROWS, src->format, SF_Staging, &rz_dst))
+	if (gfx_surfaceCreate(dstwidth, dstheight + GUARD_ROWS, src->format, SU_Staging, &rz_dst))
 		return NULL;
 
 	/* Adjust for guard rows */

@@ -42,7 +42,8 @@ typedef struct Frame {
 	int isview:1;    //View of another Frame. NOT true for surface views!
 	int noresize:1;  //(Video pages only.) Don't resize this page to the window size
 
-	struct Surface *surf;      //If not NULL, this is a Surface-backed Frame, and image/mask are NULL.
+	struct Surface *surf;      //If not NULL, this is a Surface-backed Frame, and image/mask are NULL,
+	                           //but all other members are correct (including .pitch), and match the Surface.
 	                           //(View of a WHOLE Surface.) Holds a single reference to surf.
 
 	struct SpriteSet *sprset;  //if not NULL, this Frame array is part of a SpriteSet which
