@@ -1646,6 +1646,23 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     END IF
     a_append menu(), " Transparent: " & yesorno(dat->trans)
     sliceed_rule_tog rules(), "sprite_trans", @(dat->trans), slgrUPDATESPRITE
+
+    IF ses.privileged THEN
+     'None of these actually need slgrUPDATESPRITE, but it's the right thing to do.
+     a_append menu(), " Rotation: " & dat->rotate & " degrees"
+     sliceed_rule rules(), "sprite_rotate", erIntGrabber, @(dat->rotate), 0, 359, slgrUPDATESPRITE
+     a_append menu(), " Zoom: " & format_percent(dat->zoom)
+     sliceed_rule_single rules(), "sprite_zoom", erSinglePercentgrabber, @(dat->zoom), -2000, 2000, slgrUPDATESPRITE
+
+     IF dat->rotate ORELSE dat->zoom <> 1. THEN
+      STATIC SmoothCapts(2) as zstring ptr = {@"None", @"Smooth", @"Smoother (scale_surface)"}
+      DIM msg as string = safe_captionz(SmoothCapts(), dat->rz_smooth)
+      IF dat->rz_smooth ANDALSO vpages_are_32bit = NO THEN msg &= " (ignored: Ctrl-3 to switch to 32bit)"
+      a_append menu(), "  Smoothing: " & msg
+      sliceed_rule rules(), "sprite_smooth_rotozoom", erIntGrabber, @(dat->rz_smooth), 0, 2, slgrUPDATESPRITE
+     END IF
+    END IF
+
     a_append menu(), " Flip horiz.: " & yesorno(dat->flipHoriz)
     sliceed_rule_tog rules(), "sprite_flip", @(dat->flipHoriz),   'slgrUPDATESPRITE
     a_append menu(), " Flip vert.: " & yesorno(dat->flipVert)

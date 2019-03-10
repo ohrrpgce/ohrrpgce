@@ -13,6 +13,7 @@
 #include "reloadext.bi"
 #include "loading.bi"
 #include "slices.bi"
+#include "surface.bi"
 
 #ifdef IS_GAME
  'For plotslices(), next_slice_handle, num_reusable_slice_handles
@@ -1767,6 +1768,36 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
    have_copy = YES
    frame_flip_vert(spr)
   end if
+
+  'Rotozooming
+  if .rotate orelse .zoom <> 1. then
+   'FIXME: have_copy leak! (Ought to add h/v flip options to the rotozoomer to avoid copies)
+   dim as Surface ptr in_surf, out_surf
+   if .rz_smooth > 0 andalso vpages_are_32bit then
+    'Going to perform smoothing
+    'Can't do any smoothing with an 8-bit input Surface, since the rotozoomer
+    'doesn't do 8->32 bit like frame_draw can.
+    in_surf = frame_to_surface32(spr, master(), .img.pal)
+   else
+    if gfx_surfaceCreateFrameView(spr, @in_surf) then exit sub
+   end if
+   if .rz_smooth = 2 andalso vpages_are_32bit then
+    'surface_scale does much better smoothing for zoom levels < 100% (neglible
+    'difference at zoom > 100%), but it's slower and doesn't support rotation.
+    'Dest size axes must be >= 1
+    out_surf = surface_scale(in_surf, large(1, spr->w * .zoom), large(1, spr->h * .zoom))
+   else
+    'Bilinear interpolation or no smoothing
+    'Negate rotation so angle is clockwise
+    out_surf = rotozoomSurface(in_surf, -.rotate, .zoom, .zoom, .rz_smooth)
+   end if
+   BUG_IF(out_surf = NULL, "rotozoom returned NULL")
+   spr = frame_with_surface(out_surf)
+   gfx_surfaceDestroy(@in_surf)
+   gfx_surfaceDestroy(@out_surf)
+   have_copy = YES
+  end if
+
   if .dissolving then
    dim dtime as integer = .d_time
    if dtime = -1 then dtime = (sl->Width + sl->Height) / 10
@@ -1791,7 +1822,7 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
    end if
   end if
 
-  frame_draw spr, .img.pal, sl->screenX, sl->screenY, , .trans, page
+  frame_draw spr, .img.pal, sl->ScreenX, sl->ScreenY, , .trans, page
 
   if have_copy then
    frame_unload(@spr)
@@ -2008,7 +2039,8 @@ Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData)
  d->pal = -1
  d->trans = YES
  d->paletted = YES
- 
+ d->zoom = 1.
+
  ret->SliceType = slSprite
  ret->SliceData = d
  ret->Draw = @DrawSpriteSlice
@@ -2358,6 +2390,8 @@ Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
 
  if s->Clip = NO then
   'no special behaviour
+  'TODO: it would be better to call DefaultChildDraw in all cases, which we could do
+  'if it called a method to get the support of each child.
   DefaultChildDraw s, page
   exit sub
  end if

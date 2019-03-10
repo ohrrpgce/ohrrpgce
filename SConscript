@@ -1000,6 +1000,7 @@ game_modules = ['game',
 # The following are built only once and linked into Game and Custom
 common_modules += ['rasterizer.cpp',
                    'matrixMath.cpp',
+                   'rotozoom.c',
                    'surface.cpp',
                    'lib/gif.cpp',
                    'lib/ujpeg.c']

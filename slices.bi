@@ -427,11 +427,19 @@ Type SpriteSliceData
  pal as integer     '(UNSAVED if unpaletted) Set pal to -1 for the default. Ignored for unpaletted.
                     '-2 if using a custom Palette16 ptr (sprTypeFrame only).
  trans as bool      'Draw transparently?
- flipHoriz as bool  'NO normal, YES horizontally flipped
- flipVert as bool   'NO normal, YES vertically flipped
- scaled as bool     'Scale the sprite to the size of the slice.
  loaded as bool     'UNSAVED: Set to NO to force a re-load on the next draw
  img as GraphicPair 'UNSAVED: No need to manually populate this, done in draw (.pal = NULL for unpaletted)
+
+ 'Transformations
+ flipHoriz as bool  'NO normal, YES horizontally flipped
+ flipVert as bool   'NO normal, YES vertically flipped
+ scaled as bool     'Scale the sprite to the size of the slice. 32-bit only! Cached. SEPARATE to rotozooming.
+ '(experimental rotozoom options:)
+ rotate as integer  'UNSAVED: Clockwise angle in degrees, normally 0-359
+ zoom as single     'UNSAVED. Zoom ratio. Defaults to 1.
+ rz_smooth as integer  'UNSAVED: 0-2 rotozoom smoothness. 0: none, 1: use bi-linear filtering (32-bit only)
+                       '2: use scale_surface, better when shrinking (Non-rotated & 32-bit only)
+
  'dissolve state data
  dissolving as bool
  d_time as integer ' number of ticks that the dissolve should last

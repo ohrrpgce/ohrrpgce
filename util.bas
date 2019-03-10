@@ -1112,7 +1112,7 @@ FUNCTION caption_or_int (captions() as string, n as integer) as string
  RETURN STR(n)
 END FUNCTION
 
-FUNCTION safe_caption(caption_array() as string, index as integer, description as string) as string
+FUNCTION safe_caption(caption_array() as string, index as integer, description as string = "value") as string
  IF index >= LBOUND(caption_array) AND index <= UBOUND(caption_array) THEN
   RETURN caption_array(index)
  ELSE
@@ -1124,7 +1124,7 @@ END FUNCTION
 'those can be initialised (with  = {...}).
 'Because of https://sourceforge.net/p/fbc/bugs/666/ it's not possible to define an overload for
 'safe_caption which takes a zstring ptr array, hence the different name.
-FUNCTION safe_captionz(caption_array() as zstring ptr, index as integer, description as string) as string
+FUNCTION safe_captionz(caption_array() as zstring ptr, index as integer, description as string = "value") as string
  IF index >= LBOUND(caption_array) AND index <= UBOUND(caption_array) THEN
   RETURN *caption_array(index)
  ELSE
