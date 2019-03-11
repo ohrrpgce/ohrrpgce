@@ -95,7 +95,7 @@ int gfx_surfaceCreatePixelsView_SW( void *pixels, int width, int height, int pit
 	}
 	Surface *ret = new Surface {
 	  width: width, height: height, pitch: pitch,
-	  refcount: 1, isview: 1, format: format, usage: SU_Staging, base_surf: NULL
+	  refcount: 1, isview: 1, format: format, usage: SU_Staging
 	};
 	ret->pRawData = pixels;
 
