@@ -77,6 +77,7 @@ end type
 declare sub lodepng_color_mode_init(byval info as LodePNGColorMode ptr)
 declare sub lodepng_color_mode_cleanup(byval info as LodePNGColorMode ptr)
 declare function lodepng_color_mode_copy(byval dest as LodePNGColorMode ptr, byval source as const LodePNGColorMode ptr) as ulong
+declare function lodepng_color_mode_make(byval colortype as LodePNGColorType, byval bitdepth as ulong) as LodePNGColorMode
 declare sub lodepng_palette_clear(byval info as LodePNGColorMode ptr)
 declare function lodepng_palette_add(byval info as LodePNGColorMode ptr, byval r as ubyte, byval g as ubyte, byval b as ubyte, byval a as ubyte) as ulong
 declare function lodepng_get_bpp(byval info as const LodePNGColorMode ptr) as ulong
@@ -120,6 +121,23 @@ type LodePNGInfo
 	phys_x as ulong
 	phys_y as ulong
 	phys_unit as ulong
+	gama_defined as ulong
+	gama_gamma as ulong
+	chrm_defined as ulong
+	chrm_white_x as ulong
+	chrm_white_y as ulong
+	chrm_red_x as ulong
+	chrm_red_y as ulong
+	chrm_green_x as ulong
+	chrm_green_y as ulong
+	chrm_blue_x as ulong
+	chrm_blue_y as ulong
+	srgb_defined as ulong
+	srgb_intent as ulong
+	iccp_defined as ulong
+	iccp_name as zstring ptr
+	iccp_profile as ubyte ptr
+	iccp_profile_size as ulong
 	unknown_chunks_data(0 to 2) as ubyte ptr
 	unknown_chunks_size(0 to 2) as size_t
 end type
@@ -127,15 +145,19 @@ end type
 declare sub lodepng_info_init(byval info as LodePNGInfo ptr)
 declare sub lodepng_info_cleanup(byval info as LodePNGInfo ptr)
 declare function lodepng_info_copy(byval dest as LodePNGInfo ptr, byval source as const LodePNGInfo ptr) as ulong
-declare sub lodepng_clear_text(byval info as LodePNGInfo ptr)
 declare function lodepng_add_text(byval info as LodePNGInfo ptr, byval key as const zstring ptr, byval str as const zstring ptr) as ulong
-declare sub lodepng_clear_itext(byval info as LodePNGInfo ptr)
+declare sub lodepng_clear_text(byval info as LodePNGInfo ptr)
 declare function lodepng_add_itext(byval info as LodePNGInfo ptr, byval key as const zstring ptr, byval langtag as const zstring ptr, byval transkey as const zstring ptr, byval str as const zstring ptr) as ulong
+declare sub lodepng_clear_itext(byval info as LodePNGInfo ptr)
+declare function lodepng_set_icc(byval info as LodePNGInfo ptr, byval name as const zstring ptr, byval profile as const ubyte ptr, byval profile_size as ulong) as ulong
+declare sub lodepng_clear_icc(byval info as LodePNGInfo ptr)
 declare function lodepng_convert(byval out as ubyte ptr, byval in as const ubyte ptr, byval mode_out as const LodePNGColorMode ptr, byval mode_in as const LodePNGColorMode ptr, byval w as ulong, byval h as ulong) as ulong
 
 type LodePNGDecoderSettings
 	zlibsettings as LodePNGDecompressSettings
 	ignore_crc as ulong
+	ignore_critical as ulong
+	ignore_end as ulong
 	color_convert as ulong
 	read_text_chunks as ulong
 	remember_unknown_chunks as ulong
@@ -162,6 +184,7 @@ type LodePNGColorProfile
 	numcolors as ulong
 	palette(0 to 1023) as ubyte
 	bits as ulong
+	numpixels as size_t
 end type
 
 declare sub lodepng_color_profile_init(byval profile as LodePNGColorProfile ptr)
@@ -194,6 +217,7 @@ declare sub lodepng_state_cleanup(byval state as LodePNGState ptr)
 declare sub lodepng_state_copy(byval dest as LodePNGState ptr, byval source as const LodePNGState ptr)
 declare function lodepng_decode(byval out as ubyte ptr ptr, byval w as ulong ptr, byval h as ulong ptr, byval state as LodePNGState ptr, byval in as const ubyte ptr, byval insize as size_t) as ulong
 declare function lodepng_inspect(byval w as ulong ptr, byval h as ulong ptr, byval state as LodePNGState ptr, byval in as const ubyte ptr, byval insize as size_t) as ulong
+declare function lodepng_inspect_chunk(byval state as LodePNGState ptr, byval pos as size_t, byval in as const ubyte ptr, byval insize as size_t) as ulong
 declare function lodepng_encode(byval out as ubyte ptr ptr, byval outsize as size_t ptr, byval image as const ubyte ptr, byval w as ulong, byval h as ulong, byval state as LodePNGState ptr) as ulong
 declare function lodepng_chunk_length(byval chunk as const ubyte ptr) as ulong
 declare sub lodepng_chunk_type(byval type as zstring ptr, byval chunk as const ubyte ptr)
@@ -207,6 +231,8 @@ declare function lodepng_chunk_check_crc(byval chunk as const ubyte ptr) as ulon
 declare sub lodepng_chunk_generate_crc(byval chunk as ubyte ptr)
 declare function lodepng_chunk_next(byval chunk as ubyte ptr) as ubyte ptr
 declare function lodepng_chunk_next_const(byval chunk as const ubyte ptr) as const ubyte ptr
+declare function lodepng_chunk_find(byval chunk as ubyte ptr, byval end as const ubyte ptr, byval type as const zstring ptr) as ubyte ptr
+declare function lodepng_chunk_find_const(byval chunk as const ubyte ptr, byval end as const ubyte ptr, byval type as const zstring ptr) as const ubyte ptr
 declare function lodepng_chunk_append(byval out as ubyte ptr ptr, byval outlength as size_t ptr, byval chunk as const ubyte ptr) as ulong
 declare function lodepng_chunk_create(byval out as ubyte ptr ptr, byval outlength as size_t ptr, byval length as ulong, byval type as const zstring ptr, byval data as const ubyte ptr) as ulong
 declare function lodepng_crc32(byval buf as const ubyte ptr, byval len as size_t) as ulong

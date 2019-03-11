@@ -6682,6 +6682,7 @@ sub pnginfo (filename as string, byref iminfo as ImageFileInfo)
 	'Look at color mode info.
 	'lodepng_inspect doesn't read other chunks, including PLTE, so
 	'can't tell us how large the palette is. It can tell us the color key though
+	'EDIT: lodepng_inspect_chunk has been added, which would now allow loading the palette
 	dim cinfo as LodePNGColorMode ptr = @state.info_png.color
 	iminfo.bpp = lodepng_get_bpp(cinfo)
 	if lodepng_is_palette_type(cinfo) then
@@ -6716,9 +6717,6 @@ function frame_import_paletted_png(filename as string, pal() as RGBcolor) as Fra
 	' The type of image we want to read
 	state.info_raw.colortype = LCT_PALETTE
 	state.info_raw.bitdepth = 8
-	' Workaround bug https://github.com/lvandeve/lodepng/issues/68
-	' where LodePNG unnecessarily remaps colors
-	state.decoder.color_convert = 0
 
 	if PNGCHKERR(lodepng_decode(@pixelbuf, @size.w, @size.h, @state, filebuf, filebufsize)) = 0 then
 		ret = frame_new(size.w, size.h)
@@ -7067,7 +7065,9 @@ function image_load_palette (filename as string, pal() as RGBcolor) as integer
 		case imBMP
 			return loadbmppal(filename, pal())
 		case imPNG
-			'LodePNG doesn't have a way to read just the palette without the image
+			'<s>LodePNG doesn't have a way to read just the palette without the image</s>
+			'EDIT: loadpng_inspect_chunk was added, which can now do that. But it doesn't
+			'look like it's worth the time to switch to that.
 			dim fr as Frame ptr
 			fr = frame_import_paletted_png(filename, pal())
 			if fr = 0 then
