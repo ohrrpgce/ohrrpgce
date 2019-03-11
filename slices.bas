@@ -1605,6 +1605,10 @@ Sub LoadTextSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->outline = LoadPropBool(node, "outline")
  dat->wrap    = LoadPropBool(node, "wrap")
  dat->bgcol   = LoadProp(node, "bgcol")
+
+ 'Ensure that width is correct, because it's currently only set when something changes,
+ 'and I have seen it saved wrong
+ UpdateTextSlice sl
 End Sub
 
 Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as Slice ptr
