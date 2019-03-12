@@ -1789,7 +1789,7 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
     'surface_scale does much better smoothing for zoom levels < 100% (neglible
     'difference at zoom > 100%), but it's slower and doesn't support rotation.
     'Dest size axes must be >= 1
-    out_surf = surface_scale(in_surf, large(1, spr->w * .zoom), large(1, spr->h * .zoom))
+    out_surf = surface_scale(in_surf, large(1., spr->w * .zoom), large(1., spr->h * .zoom))
    else
     'Bilinear interpolation or no smoothing
     'Negate rotation so angle is clockwise
