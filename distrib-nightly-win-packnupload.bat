@@ -23,6 +23,7 @@ support\zip -q distrib\%ZIPFILE% support\oggenc.exe support\LICENSE-oggenc.txt
 support\zip -q distrib\%ZIPFILE% support\zip.exe
 support\zip -q distrib\%ZIPFILE% support\wget.exe
 support\zip -q distrib\%ZIPFILE% support\CrashRpt*.dll support\CrashSender*.exe support\crashrpt_lang.ini
+support\zip -q distrib\%ZIPFILE% support\LICENSE-crashrpt.txt
 copy /y relump.exe support\
 support\zip -q distrib\%ZIPFILE% support\relump.exe
 del support\relump.exe
