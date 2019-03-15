@@ -100,7 +100,7 @@ def get_source_around_line(git_dir, gitrev, filename, lineno, context = 1):
     """Return a few lines of source code around the given line"""
     print('Querying git for source...    ', file=sys.stderr, end='\r')
     contents = subprocess.check_output(['git', '-C', git_dir, 'show', gitrev + ':' + filename]).decode('utf8')
-    lines = contents.split('\n')
+    lines = contents.replace('\r', '').split('\n')
     ret = []
     # Add one extra line before, because lineno is typically the line after the actual one
     for lineidx in range(max(0, lineno - context - 1), lineno + context + 1):
@@ -111,9 +111,10 @@ def get_source_around_line(git_dir, gitrev, filename, lineno, context = 1):
 def analyse_minidump(minidump, pdb, breakpad_cache_dir, git_dir = None, gitrev = None, verbose = False):
     """
     Analyse a minidump file using Breakpad.
-    Returns a pair (stacktrace, info) where:
+    Returns a triple (stacktrace, crash_summary, info) where:
     stacktrace:  a string containing a stacktrace of the signalling thread
-    info:        a string with some additional interesting bits
+    crash_summary:  a one-line string summary of the stacktrace
+    info:        a list of (key,value) pairs with some additional interesting info
 
     minidump:           path to a minidump .dmp file
     pdb:                path to .pdb file
@@ -165,4 +166,8 @@ def analyse_minidump(minidump, pdb, breakpad_cache_dir, git_dir = None, gitrev =
             else:
                 bt.append('@ [%s + %s]' % (module, offset) )
 
-    return bt, info
+    # Just the top three stack frames
+    frames = [line[2:].replace(' ','').replace('\t','') for line in bt if line.startswith('@ ')]
+    crash_summary = ' <- '.join(frames[:3])
+
+    return bt, crash_summary, info

@@ -151,7 +151,7 @@ def download_and_extract_symbols(syms_fname, verbose = False):
 
 def process_minidump(build, reportdir, is_custom, verbose = False):
     """Read a minidump file (producing .sym files as necessary), print info
-    from it, and return a stacktrace."""
+    from it, and return a (stacktrace, crash_summary) pair."""
     if not build:  # Should always be present
         print("build string missing from crashrpt.xml!")
         return
@@ -180,23 +180,27 @@ def process_minidump(build, reportdir, is_custom, verbose = False):
     minidump = pathjoin(reportdir, 'crashdump.dmp')
     pdbname = 'custom' if is_custom else 'game'
     pdb = pathjoin(pdb_dir, pdbname + '.pdb')
-    stacktrace, info = minidump_tools.analyse_minidump(minidump, pdb, breakpad_root, GIT_DIR, gitrev, verbose)
+    stacktrace, crash_summary, info = minidump_tools.analyse_minidump(minidump, pdb, breakpad_root, GIT_DIR, gitrev, verbose)
     for name, value in info:
         print_attr(name, value)
-    return stacktrace
+    return stacktrace, crash_summary
 
 
-def process_crashrpt_report(reportdir, verbose = False):
-    """Print info about an unzipped crashrpt report"""
+def process_crashrpt_report(reportdir, upload_time, verbose = False):
+    """Print info about an unzipped crashrpt report, and return a row for the
+    summary table as a tuple."""
 
     # Print interesting info from the xml file
     xmlfile = pathjoin(reportdir, 'crashrpt.xml')
     tree = ET.parse(xmlfile)
     root = tree.getroot()
 
-    print('\n\n\n######### Report ' + root.find('CrashGUID').text + ' #########')
+    uuid = root.find('CrashGUID').text
+    print('\n\n\n######### Report ' + uuid + ' #########')
+    print_attr('Upload time', time.strftime('%Y-%m-%d %H:%M:%S UTC', upload_time))
+    print_attr('Crash time', root.find('SystemTimeUTC').text.replace('T', ' ').replace('Z', ' UTC'))
 
-    for tagname in ('SystemTimeUTC', 'AppName', 'ExceptionModule', 'ExceptionAddress', 'MemoryUsageKbytes',
+    for tagname in ('AppName', 'ExceptionModule', 'ExceptionAddress', 'MemoryUsageKbytes',
                     'OperatingSystem', 'GeoLocation', 'UserEmail', 'ProblemDescription'):
         elmt = root.find(tagname)
         if elmt is not None and elmt.text:
@@ -263,7 +267,7 @@ def process_crashrpt_report(reportdir, verbose = False):
     #print(time.strptime(root.find('SystemTimeUTC').text, '%Y-%m-%dT%H:%M:%SZ'))
 
     # Get stacktrace and other info from the minidump
-    stacktrace = process_minidump(build, reportdir, is_custom, verbose)
+    stacktrace, crash_summary = process_minidump(build, reportdir, is_custom, verbose)
     # Print the stacktrace later, at the end
 
     # Print errors
@@ -307,6 +311,11 @@ def process_crashrpt_report(reportdir, verbose = False):
         for line in stacktrace:
             print(line)
 
+    # Return summary
+    upload_date = time.strftime('%Y%m%d', upload_time)
+    version_summary = ' '.join(build.split(' ')[1:3])  # ohrvercode, builddate.svnrev
+    return upload_date, uuid[:6] + '...', version_summary, crash_summary
+
 
 def process_crashrpt_reports_directory(reports_dir, verbose = False):
     """Process a directory containing crashrpt .zip reports,
@@ -314,24 +323,31 @@ def process_crashrpt_reports_directory(reports_dir, verbose = False):
 
     uuids = set()
 
-    # First unzip all the report zips, to an <uuid>.unzipped directory
-    for reportzip in os.listdir(reports_dir):
-        uuid, ext = os.path.splitext(reportzip)
+    # First get list of report zips, and unzip them to an <uuid>.unzipped directory if not already
+    for fname in os.listdir(reports_dir):
+        uuid, ext = os.path.splitext(fname)
         if ext == '.zip':
             unzipdir = pathjoin(reports_dir, uuid + '.unzipped')
             if not os.path.isdir(unzipdir):
                 os.mkdir(unzipdir)
                 print('Unzipping...          ', file=sys.stderr, end='\r')
-                subprocess.check_call(['unzip', '-d', unzipdir, reportzip])
-            uuids.add(uuid)
-        if ext == '.unzipped':
-            uuids.add(uuid)
+                subprocess.check_call(['unzip', '-d', unzipdir, fname])
 
-    # Then process each unzipped report directory
-    for uuid in sorted(uuids):
+            upload_time = time.gmtime(os.stat(pathjoin(reports_dir, fname)).st_mtime)
+            uuids.add((upload_time, uuid))
+
+    # Then process each unzipped report directory, sorted by upload date
+    report_summaries = []
+    for upload_time, uuid in sorted(uuids):
         reportdir = pathjoin(reports_dir, uuid + '.unzipped')
-        process_crashrpt_report(reportdir, verbose)
+        report_summaries.append(process_crashrpt_report(reportdir, upload_time, verbose))
 
+    # Then print summaries
+    print('\n\n\n######### Summary #########')
+    print('%-8s  %-9s  %-27s  %s' % ('Uploaded', 'UUID', 'Version', 'Top stack frames'))
+    for items in report_summaries:
+        #upload_date, uuid, version_summary, crash_summary = items
+        print('%s  %-9s  %-27s  %s' % items)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Print summary of CrashRpt reports. See comments at top of file.")
