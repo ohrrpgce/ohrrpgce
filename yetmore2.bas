@@ -1091,7 +1091,7 @@ SUB apply_game_window_settings (reloading as bool = NO)
    NEXT
   END IF
   IF gfx_supports_variable_resolution() = NO THEN
-   notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution. Continuing anyway, but the game will probably be unplayable!"
+   notification "This game requires use of the gfx_sdl/gfx_sdl2 backend; other graphics backends do not support customisable resolution. Continuing anyway, but the game will probably be unplayable!"
   ELSE
    'Changes video page size, but not window size immediately
    set_resolution(gen(genResolutionX), gen(genResolutionY))

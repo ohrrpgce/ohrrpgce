@@ -253,7 +253,7 @@ function try_load_crashrpt_at(crashrpt_dll as string) as bool
 	dim appname as zstring ptr = iif(app_name <> NULL, app_name, strptr(exename))
 	dim add_screenshot as bool = NO '(app_name <> NULL)
 	early_debuginfo "Loading " & crashrpt_dll
-	if crashrpt_setup(strptr(crashrpt_dll), appname, short_version, long_version, _
+	if crashrpt_setup(strptr(crashrpt_dll), appname, short_version, long_version & build_info, _
 			  app_log_filename, app_archive_filename, add_screenshot) then
 		'early_debuginfo "CrashRpt handler installed"
 		return YES
