@@ -99,6 +99,8 @@ September 29 2018 [Fufluns]
       [Ralph]
     * Displaying "x1" after singular items in the inventory is now optional
       (in General Game Settings) [Ralph]
+    * New graphics backend gfx_sdl2 (and music_sdl2). Better fullscreen handling
+      than gfx_sdl. Only available in non-default nightly builds for now [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]
