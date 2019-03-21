@@ -5904,6 +5904,10 @@ SUB mapedit_window_size_updates(st as MapEditState)
  ' maprect.topleft = Type(0, 20)
  ' maprect.wide = small(st.map.wide * 20 - st.mapx, st.viewport.wide)
  ' maprect.high = small(st.map.high * 20 - st.mapy, st.viewport.high)
+
+ 'If the window is enlarged and we're at the bottom or right map edges,
+ 'we should shift the camera to show more of the map
+ mapedit_constrain_camera st
 END SUB
 
 'Return the camera position (topleft corner in map pixel coords) of a viewport onto the map
