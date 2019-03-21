@@ -63,9 +63,9 @@ DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
 DECLARE SUB update_mouse_visibility()
 DECLARE SUB set_forced_mouse_clipping(byval newvalue as bool)
-DECLARE SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+DECLARE SUB internal_set_mouserect(rect as RectPoints)
 DECLARE SUB internal_disable_virtual_gamepad()
-DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer
+DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as KBScancode, byval default_sdl_scancode as integer=0) as integer
 
 DECLARE SUB log_error(failed_call as zstring ptr, funcname as zstring ptr)
 #define CheckOK(condition, otherwise...)  IF condition THEN log_error(#condition, __FUNCTION__) : otherwise
@@ -102,11 +102,9 @@ DIM SHARED framesize as XYPair
 DIM SHARED dest_rect as SDL_Rect
 DIM SHARED mouseclipped as bool = NO   'Whether we are ACTUALLY clipped
 DIM SHARED forced_mouse_clipping as bool = NO
-'These were the args to the last call to io_mouserect
-DIM SHARED remember_mouserect as RectPoints = ((-1, -1), (-1, -1))
-'These are the actual zoomed clip bounds
-DIM SHARED as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
-DIM SHARED as int32 privatemx, privatemy
+DIM SHARED remember_mousebounds as RectPoints = ((-1, -1), (-1, -1)) 'Args at the last call to io_mouserect
+DIM SHARED mousebounds as RectPoints = ((-1, -1), (-1, -1)) 'These are the actual clip bounds, in window coords
+DIM SHARED privatempos as XYPair     'Mouse position in window coords
 DIM SHARED keybdstate(127) as integer  '"real"time keyboard array. See io_sdl2_keybits for docs.
 DIM SHARED input_buffer as ustring
 DIM SHARED mouseclicks as integer    'Bitmask of mouse buttons clicked (SDL order, not OHR), since last io_mousebits
@@ -125,7 +123,7 @@ END EXTERN ' Can't put assignment statements in an extern block
 'it.
 'If there is no ASCII equivalent character, the key has a SDLK_WORLD_## scancode.
 
-DIM SHARED scantrans(0 to SDL_NUM_SCANCODES) as integer
+DIM SHARED scantrans(0 to SDL_NUM_SCANCODES) as KBScancode
 scantrans(SDL_SCANCODE_UNKNOWN) = 0
 scantrans(SDL_SCANCODE_BACKSPACE) = scBackspace
 scantrans(SDL_SCANCODE_TAB) = scTab
@@ -715,13 +713,11 @@ SUB gfx_sdl2_set_zoom(byval value as integer)
 
     'Update the clip rectangle
     'It would probably be easier to just store the non-zoomed clipped rect (mxmin, etc)
-    WITH remember_mouserect
-      IF .p1.x <> -1 THEN
-        internal_set_mouserect .p1.x, .p2.x, .p1.y, .p2.y
-      ELSEIF forced_mouse_clipping THEN
-        internal_set_mouserect 0, framesize.w - 1, 0, framesize.h - 1
-      END IF
-    END WITH
+    IF remember_mousebounds.p1.x <> -1 THEN
+      internal_set_mouserect remember_mousebounds
+    ELSEIF forced_mouse_clipping THEN
+      internal_set_mouserect TYPE<RectPoints>((0, 0), framesize.w - 1, framesize.h - 1)
+    END IF
   END IF
 END SUB
 
@@ -1190,6 +1186,50 @@ SUB io_sdl2_setmousevisibility(visibility as CursorVisibility)
   update_mouse_visibility()
 END SUB
 
+'Get the origin of the displayed image, in unscaled window coordinates,
+'and the actual zoom ratio in use (may differ from 'zoom')
+SUB get_image_origin_and_ratio(byref origin as XYPair, byref ratio as double)
+  DIM windowsz as XYPair
+  SDL_GetWindowSize(mainwindow, @windowsz.w, @windowsz.h)
+  ' Subtract for the origin position since when the window is fullscreened and
+  ' not resizable window the image will be centred on the screen.
+  DIM xratio as double = windowsz.w / framesize.w
+  DIM yratio as double = windowsz.h / framesize.h
+  ratio = small(xratio, yratio)
+  origin = (windowsz - framesize * ratio) / 2
+END SUB
+
+'Convert a position on the client area of the window (e.g. as returned by SDL_GetMouseState)
+'to position in the original unscaled image
+'TODO: do SDL_GetWindowSize and SDL_GetMouseState return in screen coords or pixel coords?
+'Not clear, but they don't agree, this will bread on high-DPI displays
+FUNCTION windowpos_to_pixelpos(windowpos as XYPair, clamp as bool) as XYPair
+  DIM origin as XYPair
+  DIM ratio as double
+  get_image_origin_and_ratio origin, ratio
+  DIM pixelpos as XYPair
+  'Should to use INT here (the floor function), NOT CINT, which is round-to-nearest,
+  'rounding x.5 towards even, making cursor movement un-smooth at pixel-scale.
+  pixelpos.x = INT((windowpos.x - origin.x) / ratio)
+  pixelpos.y = INT((windowpos.y - origin.y) / ratio)
+  IF clamp THEN
+    pixelpos.x = bound(pixelpos.x, 0, framesize.w - 1)
+    pixelpos.y = bound(pixelpos.y, 0, framesize.h - 1)
+  END IF
+  RETURN pixelpos
+END FUNCTION
+
+'Convert a position on the original unscaled image to position in the client area of the window
+'TODO: do SDL_GetWindowSize and SDL_GetMouseState return in screen coords or pixel coords?
+'Not clear, but they don't agree, this will bread on high-DPI displays
+FUNCTION pixelpos_to_windowpos(pixelpos as XYPair) as XYPair
+  DIM origin as XYPair
+  DIM ratio as double
+  get_image_origin_and_ratio origin, ratio
+
+  RETURN origin + pixelpos * ratio + ratio / 2
+END FUNCTION
+
 'Change from SDL to OHR mouse button numbering (swap middle and right)
 PRIVATE FUNCTION fix_buttons(byval buttons as integer) as integer
   DIM mbuttons as integer = 0
@@ -1200,21 +1240,23 @@ PRIVATE FUNCTION fix_buttons(byval buttons as integer) as integer
 END FUNCTION
 
 ' Returns currently down mouse buttons, in SDL order, not OHR order
+' TODO: report mouse position when over the window edge
 PRIVATE FUNCTION update_mouse() as integer
   DIM x as int32
   DIM y as int32
   DIM buttons as int32
 
+  'TODO: do these functions return in screen coords or pixel coords? Not clear,
+  'but it makes a difference on high-DPI displays
+
   IF SDL_GetWindowFlags(mainwindow) AND SDL_WINDOW_MOUSE_FOCUS THEN
     IF mouseclipped THEN
       buttons = SDL_GetRelativeMouseState(@x, @y)
       'debuginfo "gfx_sdl2: relativemousestate " & x & " " & y
-      privatemx = bound(privatemx + x, mxmin, mxmax)
-      privatemy = bound(privatemy + y, mymin, mymax)
+      privatempos.x = bound(privatempos.x + x, mousebounds.p1.x, mousebounds.p2.x)
+      privatempos.y = bound(privatempos.y + y, mousebounds.p1.y, mousebounds.p2.y)
     ELSE
-      buttons = SDL_GetMouseState(@x, @y)
-      privatemx = x
-      privatemy = y
+      buttons = SDL_GetMouseState(@privatempos.x, @privatempos.y)
     END IF
   END IF
   RETURN buttons
@@ -1223,9 +1265,11 @@ END FUNCTION
 SUB io_sdl2_mousebits (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
   DIM buttons as integer
   buttons = update_mouse()
-  mx = privatemx \ zoom
-  my = privatemy \ zoom
 
+  DIM pixelpos as XYPair = windowpos_to_pixelpos(privatempos, YES)  'clamp=YES
+  '?"mouse at " & privatempos & "(window), " & pixelpos & "(px)
+  mx = pixelpos.x
+  my = pixelpos.y
   mwheel = mousewheel
   mclicks = fix_buttons(mouseclicks)
   mbuttons = fix_buttons(buttons or mouseclicks)
@@ -1237,12 +1281,13 @@ SUB io_sdl2_getmouse(byref mx as integer, byref my as integer, byref mwheel as i
 END SUB
 
 SUB io_sdl2_setmouse(byval x as integer, byval y as integer)
+  DIM windowpos as XYPair = pixelpos_to_windowpos(XY(x, y))
+  '?"warp mouse to " & XY(x,y) & "(px) -> " & windowpos & "(window)"
   IF mouseclipped THEN
-    privatemx = x * zoom
-    privatemy = y * zoom
+    privatempos = windowpos
   ELSE
     IF SDL_GetWindowFlags(mainwindow) AND SDL_WINDOW_MOUSE_FOCUS THEN
-      SDL_WarpMouseInWindow mainwindow, x * zoom, y * zoom
+      SDL_WarpMouseInWindow mainwindow, windowpos.x, windowpos.y
       SDL_PumpEvents  'Needed for SDL_WarpMouse to work?
 #IFDEF __FB_DARWIN__
       ' SDL Mac bug (SDL 1.2.14, OS 10.8.5): if the cursor is off the window
@@ -1257,25 +1302,24 @@ SUB io_sdl2_setmouse(byval x as integer, byval y as integer)
   END IF
 END SUB
 
-PRIVATE SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+PRIVATE SUB internal_set_mouserect(rect as RectPoints)
+  'FIXME: enabling clipping causes the mouse position to change.
   'In SDL 1.2 SDL_WM_GrabInput causes most WM key combinations to be blocked
   'Now in SDL 2, keyboard is not grabbed by default (see SDL_HINT_GRAB_KEYBOARD),
   'but I assume switching to relative mouse mode is effectively grabbing anyway.
-  IF mouseclipped = NO AND (xmin >= 0) THEN
+  IF mouseclipped = NO ANDALSO (rect.p1.x >= 0) THEN
     'enter clipping mode
     mouseclipped = YES
-    SDL_GetMouseState(@privatemx, @privatemy)
+    SDL_GetMouseState(@privatempos.x, @privatempos.y)
     SDL_SetRelativeMouseMode YES
-  ELSEIF mouseclipped = YES AND (xmin = -1) THEN
+  ELSEIF mouseclipped = YES ANDALSO (rect.p1.x = -1) THEN
     'exit clipping mode
     mouseclipped = NO
     SDL_SetRelativeMouseMode NO
-    SDL_WarpMouseInWindow mainwindow, privatemx, privatemy
+    SDL_WarpMouseInWindow mainwindow, privatempos.x, privatempos.y
   END IF
-  mxmin = xmin * zoom
-  mxmax = xmax * zoom + zoom - 1
-  mymin = ymin * zoom
-  mymax = ymax * zoom + zoom - 1
+  mousebounds.p1 = pixelpos_to_windowpos(rect.p1)
+  mousebounds.p2 = pixelpos_to_windowpos(rect.p2)
 END SUB
 
 'This turns forced mouse clipping on or off
@@ -1285,33 +1329,27 @@ PRIVATE SUB set_forced_mouse_clipping(byval newvalue as bool)
     forced_mouse_clipping = newvalue
     IF forced_mouse_clipping THEN
       IF mouseclipped = NO THEN
-        internal_set_mouserect 0, framesize.w - 1, 0, framesize.h - 1
+        internal_set_mouserect TYPE<RectPoints>((0, 0), framesize.w - 1, framesize.h - 1)
       END IF
       'If already clipped: nothing to be done
     ELSE
-      WITH remember_mouserect
-        internal_set_mouserect .p1.x, .p2.x, .p1.y, .p2.y
-      END WITH
+      internal_set_mouserect remember_mousebounds
     END IF
   END IF
 END SUB
 
 SUB io_sdl2_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-  WITH remember_mouserect
-    .p1.x = xmin
-    .p1.y = ymin
-    .p2.x = xmax
-    .p2.y = ymax
-  END WITH
+  DIM rect as RectPoints = ((xmin, ymin), (xmax, ymax))
+  remember_mousebounds = rect
   IF forced_mouse_clipping AND xmin = -1 THEN
     'Remember that we are now meant to be unclipped, but clip to the window
-    internal_set_mouserect 0, framesize.w - 1, 0, framesize.h - 1
+    internal_set_mouserect TYPE<RectPoints>((0, 0), framesize.w - 1, framesize.h - 1)
   ELSE
-    internal_set_mouserect xmin, xmax, ymin, ymax
+    internal_set_mouserect rect
   END IF
 END SUB
 
-PRIVATE FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer
+PRIVATE FUNCTION scOHR2SDL(byval ohr_scancode as KBScancode, byval default_sdl_scancode as integer=0) as integer
  'Convert an OHR scancode into an SDL scancode
  '(the reverse can be accomplished just by using the scantrans array)
  IF ohr_scancode = 0 THEN RETURN default_sdl_scancode
