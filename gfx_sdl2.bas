@@ -98,8 +98,7 @@ DIM SHARED remember_windowtitle as string
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
 DIM SHARED debugging_io as bool = NO
 DIM SHARED sdlpalette as SDL_Palette ptr
-DIM SHARED framesize as XYPair
-DIM SHARED dest_rect as SDL_Rect
+DIM SHARED framesize as XYPair       'Size of the unscaled image
 DIM SHARED mouseclipped as bool = NO   'Whether we are ACTUALLY clipped
 DIM SHARED forced_mouse_clipping as bool = NO
 DIM SHARED remember_mousebounds as RectPoints = ((-1, -1), (-1, -1)) 'Args at the last call to io_mouserect
@@ -332,6 +331,9 @@ PRIVATE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
   DIM flags as Uint32 = 0
   IF resizable THEN flags = flags OR SDL_WINDOW_RESIZABLE
   IF windowedmode = NO THEN
+    'TODO: when "true fullscreen" is used and you quit from fullscreen using alt-F4, on linux/KDE at least,
+    'the screen doesn't restore to its original resolution. So need to return to windowed mode when
+    'quitting gfx_sdl2
     'flags = flags OR SDL_WINDOW_FULLSCREEN
     ' This means don't change the resolution, instead create a fullscreen window, like gfx_directx
     flags = flags OR SDL_WINDOW_FULLSCREEN_DESKTOP
@@ -348,15 +350,10 @@ PRIVATE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
   'Start with initial zoom and repeatedly decrease it if it is too large
   '(This is necessary to run in fullscreen in OSX IIRC)
   DO
-    WITH dest_rect
-      .x = 0
-      .y = 0
-      .w = framesize.w * zoom
-      .h = framesize.h * zoom
-    END WITH
-    debuginfo "setvideomode zoom=" & zoom & " w*h = " & dest_rect.w &"*"& dest_rect.h
+    DIM windowsize as XYPair = framesize * zoom
+    debuginfo "setvideomode zoom=" & zoom & " w*h = " & windowsize
     mainwindow = SDL_CreateWindow(remember_windowtitle, windowpos, windowpos, _
-                                  dest_rect.w, dest_rect.h, flags)
+                                  windowsize.w, windowsize.h, flags)
     IF mainwindow = NULL THEN
       'This crude hack won't work for everyone if the SDL error messages are internationalised...
       IF zoom > 1 ANDALSO strstr(SDL_GetError(), "No video mode large enough") THEN
@@ -403,6 +400,8 @@ PRIVATE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
 END FUNCTION
 
 PRIVATE FUNCTION recreate_screen_texture() as bool
+  IF mainrenderer = NULL THEN RETURN NO  'Called before backend init
+
   IF maintexture THEN SDL_DestroyTexture(maintexture)
   maintexture = SDL_CreateTexture(mainrenderer, _
                                SDL_PIXELFORMAT_ARGB8888, _
@@ -412,12 +411,16 @@ PRIVATE FUNCTION recreate_screen_texture() as bool
   RETURN YES
 END FUNCTION
 
-PRIVATE SUB set_window_size(newsize as XYPair, newzoom as integer)
-  framesize = newsize
+PRIVATE SUB set_window_size(newframesize as XYPair, newzoom as integer)
+  framesize = newframesize
   zoom = newzoom
-  'TODO: this doesn't work if fullscreen
-  SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
-  recreate_screen_texture
+  smooth_zoom = IIF(newzoom > 4, 3, newzoom)
+
+  IF mainwindow THEN
+    'TODO: this doesn't work if fullscreen
+    SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
+    recreate_screen_texture
+  END IF
 END SUB
 
 PRIVATE SUB quit_video_subsystem()
@@ -561,7 +564,11 @@ PRIVATE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, p
   'Clearing the screen first is necessary in fullscreen, when the window size may not match the maintexture size
   '(this clears the black bars)
   SDL_RenderClear(mainrenderer)
-  CheckOK(SDL_RenderCopy(mainrenderer, maintexture, NULL, NULL), ret = NO)
+  'FIXME: resizing the window makes the image wobble like jelly, and the solution probably involves
+  'changing the following SDL_RenderCopy call.
+  'But even disabling SDL_RenderSetLogicalSize and passing a dest rect didn't help.
+  'DIM dstrect as SDL_Rect = (0, 0, framesize.w * zoom, framesize.h * zoom) 'imagew, imageh
+  CheckOK(SDL_RenderCopy(mainrenderer, maintexture, NULL, NULL /'@dstrect'/), ret = NO)
   SDL_RenderPresent(mainrenderer)
 
   update_state()
@@ -704,12 +711,8 @@ END SUB
 
 SUB gfx_sdl2_set_zoom(byval value as integer)
   IF value >= 1 AND value <= 16 AND value <> zoom THEN
-    zoom = value
-    smooth_zoom = value
     gfx_sdl2_recenter_window_hint()  'Recenter because the window might go off the screen edge.
-    IF mainwindow THEN
-      set_window_size(framesize, zoom)
-    END IF
+    set_window_size(framesize, zoom)
 
     'Update the clip rectangle
     'It would probably be easier to just store the non-zoomed clipped rect (mxmin, etc)
