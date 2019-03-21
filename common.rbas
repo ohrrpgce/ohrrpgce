@@ -7494,6 +7494,13 @@ FUNCTION enforce_gen_int_limits(nodepath as string, byval v as integer) as integ
  RETURN v
 END FUNCTION
 
+FUNCTION get_gen_str(nodepath as zstring ptr, default as zstring ptr = @"") as string
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM node as NodePtr = NodeByPath(gen_root, nodepath)
+ IF node THEN RETURN GetString(node)
+ RETURN *default
+END FUNCTION
+
 FUNCTION get_gen_bool(nodepath as zstring ptr) as bool
  DIM gen_root as NodePtr = get_general_reld()
  DIM node as NodePtr = NodeByPath(gen_root, nodepath)

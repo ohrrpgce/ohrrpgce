@@ -1848,7 +1848,7 @@ sub SwapNodePrev(byval node as Nodeptr)
 	if node = 0 then exit sub
 	dim sib as NodePtr
 	sib = PrevSibling(node)
-	IF sib = 0 then exit sub
+	if sib = 0 then exit sub
 	SwapSiblingNodes(node, sib)
 end sub
 
@@ -2022,6 +2022,8 @@ end sub
 
 'copynumber: which copy of the item to return. 1 is first, etc,
 Function FindItem(h as HashPtr, key as ZString ptr, copynumber as integer = 1) as intptr_t
+	if key = NULL then return 0
+
 	dim b as ReloadHashItem ptr
 	
 	dim hash as uinteger = h->hashFunc(key)
