@@ -57,8 +57,9 @@ declare function SDL_ANDROID_OUYAReceiptsResult () as zstring ptr
 
 DECLARE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
 DECLARE FUNCTION recreate_screen_texture() as bool
+DECLARE FUNCTION get_buffersize() as XYPair
 DECLARE SUB gfx_sdl2_set_zoom(byval value as integer)
-DECLARE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, pitch as integer, bitdepth as integer) as bool
+DECLARE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, imagesz as XYPair, pitch as integer, bitdepth as integer) as bool
 DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
 DECLARE SUB update_mouse_visibility()
@@ -378,7 +379,8 @@ PRIVATE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
     CheckOK(mainrenderer = NULL, RETURN 0)
   END IF
 
-  SDL_RenderSetLogicalSize(mainrenderer, framesize.w, framesize.h)
+  DIM buffersize as XYPair = get_buffersize
+  SDL_RenderSetLogicalSize(mainrenderer, buffersize.w, buffersize.h)
   #IFDEF SDL_RenderSetIntegerScale
     'Whether to stick to integer scaling amounts. SDL 2.0.5+
     'SDL_RenderSetIntegerScale(mainrenderer, NO)
@@ -403,12 +405,18 @@ PRIVATE FUNCTION recreate_screen_texture() as bool
   IF mainrenderer = NULL THEN RETURN NO  'Called before backend init
 
   IF maintexture THEN SDL_DestroyTexture(maintexture)
+  DIM buffersize as XYPair = get_buffersize
   maintexture = SDL_CreateTexture(mainrenderer, _
                                SDL_PIXELFORMAT_ARGB8888, _
                                SDL_TEXTUREACCESS_STREAMING, _
-                               framesize.w, framesize.h)
+                               buffersize.w, buffersize.h)
   CheckOK(maintexture = NULL, RETURN NO)
   RETURN YES
+END FUNCTION
+
+PRIVATE FUNCTION get_buffersize() as XYPair
+  DIM buffer_zoom as integer = IIF(smooth, smooth_zoom, 1)
+  RETURN framesize * buffer_zoom
 END FUNCTION
 
 PRIVATE SUB set_window_size(newframesize as XYPair, newzoom as integer)
@@ -419,6 +427,8 @@ PRIVATE SUB set_window_size(newframesize as XYPair, newzoom as integer)
   IF mainwindow THEN
     'TODO: this doesn't work if fullscreen
     SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
+    DIM buffersize as XYPair = get_buffersize
+    SDL_RenderSetLogicalSize(mainrenderer, buffersize.w, buffersize.h)
     recreate_screen_texture
   END IF
 END SUB
@@ -442,28 +452,29 @@ END FUNCTION
 
 'Handles smoothing and changes to the frame size, then calls present_internal2
 'to update the screen
-PRIVATE FUNCTION present_internal(raw as any ptr, w as integer, h as integer, bitdepth as integer) as integer
-  'debuginfo "gfx_sdl2_present_internal(w=" & w & ", h=" & h & ", bitdepth=" & bitdepth & ")"
+PRIVATE FUNCTION present_internal(raw as any ptr, imagesz as XYPair, bitdepth as integer) as integer
+  'debuginfo "gfx_sdl2_present_internal(" & imagesz & ", bitdepth=" & bitdepth & ")"
 
   last_bitdepth = bitdepth
 
-  DIM pitch as integer
-
   'variable resolution handling
-  IF framesize.w <> w OR framesize.h <> h THEN
-    'debuginfo "gfx_sdl2_present_internal: framesize changing from " & framesize.w & "*" & framesize.h & " to " & w & "*" & h
-    set_window_size(XY(w, h), zoom)
+  IF framesize <> imagesz THEN
+    'debuginfo "gfx_sdl2_present_internal: framesize changing from " & framesize & " to " & imagesz
+    set_window_size(imagesz, zoom)
   END IF
 
-  pitch = w * IIF(bitdepth = 32, 4, 1)
+  DIM pitch as integer = imagesz.w * IIF(bitdepth = 32, 4, 1)
 
-  IF smooth THEN
-    ' Intermediate step: do an enlarged blit to a surface and then do smoothing
+  'This is zoom ratio from raw to screenbuffer. Unrelated to window zoom.
+  DIM buffer_zoom as integer = IIF(smooth, smooth_zoom, 1)
+  DIM buffersize as XYPair = get_buffersize
+
+  IF smooth ORELSE bitdepth = 8 THEN
+    ' We need screenbuffer. So check it exists and is the right size
 
     IF screenbuffer THEN
-      IF (screenbuffer->w <> w * smooth_zoom OR _
-          screenbuffer->h <> h * smooth_zoom OR _
-          screenbuffer->format->BitsPerPixel <> bitdepth) THEN
+      IF XY(screenbuffer->w, screenbuffer->h) <> buffersize ORELSE _
+          screenbuffer->format->BitsPerPixel <> bitdepth THEN
         SDL_FreeSurface(screenbuffer)
         screenbuffer = NULL
       END IF
@@ -471,23 +482,29 @@ PRIVATE FUNCTION present_internal(raw as any ptr, w as integer, h as integer, bi
 
     IF screenbuffer = NULL THEN
       IF bitdepth = 32 THEN
-        'screenbuffer = SDL_CreateRGBSurfaceWithFormat(0, w * smooth_zoom, h * smooth_zoom, 32, SDL_PIXELFORMAT_ARGB8888)
-        screenbuffer = SDL_CreateRGBSurface(0, w * smooth_zoom, h * smooth_zoom, bitdepth, &h00ff0000, &h0000ff00, &h000000ff, &hff000000)
+        'screenbuffer = SDL_CreateRGBSurfaceFrom(raw, w, h, 8, w, 0,0,0,0)
+
+        'screenbuffer = SDL_CreateRGBSurfaceWithFormat(0, buffersize.w, buffersize.h, 32, SDL_PIXELFORMAT_ARGB8888)
+        screenbuffer = SDL_CreateRGBSurface(0, buffersize.w, buffersize.h, bitdepth, &h00ff0000, &h0000ff00, &h000000ff, &hff000000)
       ELSE
-        screenbuffer = SDL_CreateRGBSurface(0, w * smooth_zoom, h * smooth_zoom, bitdepth, 0,0,0,0)
+        screenbuffer = SDL_CreateRGBSurface(0, buffersize.w, buffersize.h, bitdepth, 0,0,0,0)
       END IF
     END IF
-    'screenbuffer = SDL_CreateRGBSurfaceFrom(raw, w, h, 8, w, 0,0,0,0)
+
     IF screenbuffer = NULL THEN
       debugc errDie, "present_internal: Failed to allocate page wrapping surface, " & *SDL_GetError()
     END IF
+  END IF
+
+  IF smooth THEN
+    ' Intermediate step: do an enlarged blit to a surface and then do smoothing
 
     IF bitdepth = 8 THEN
-      smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, w, h, screenbuffer->pitch, smooth_zoom, smooth)
+      smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, imagesz.w, imagesz.h, screenbuffer->pitch, buffer_zoom, smooth)
     ELSE
       '32 bit surface
       'smoothzoomblit takes the pitch in pixels, not bytes!
-      smoothzoomblit_32_to_32bit(cast(RGBcolor ptr, raw), cast(uint32 ptr, screenbuffer->pixels), w, h, screenbuffer->pitch \ 4, smooth_zoom, smooth)
+      smoothzoomblit_32_to_32bit(cast(RGBcolor ptr, raw), cast(uint32 ptr, screenbuffer->pixels), imagesz.w, imagesz.h, screenbuffer->pitch \ 4, buffer_zoom, smooth)
     END IF
 
     raw = screenbuffer->pixels
@@ -496,26 +513,22 @@ PRIVATE FUNCTION present_internal(raw as any ptr, w as integer, h as integer, bi
   ELSEIF bitdepth = 8 THEN
     'Need to make a copy of the input, in case gfx_setpal is called
 
-    IF screenbuffer = NULL THEN
-      screenbuffer = SDL_CreateRGBSurface(0, w * smooth_zoom, h * smooth_zoom, bitdepth, 0,0,0,0)
-    END IF
-
     'Copy over
     'smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, w, h, screenbuffer->pitch, 1, smooth)
-    SDL_ConvertPixels(w, h, SDL_PIXELFORMAT_INDEX8, raw, pitch, SDL_PIXELFORMAT_INDEX8, screenbuffer->pixels, screenbuffer->pitch)
+    SDL_ConvertPixels(imagesz.w, imagesz.h, SDL_PIXELFORMAT_INDEX8, raw, pitch, SDL_PIXELFORMAT_INDEX8, screenbuffer->pixels, screenbuffer->pitch)
 
   ELSE
-    ' Can copy directly to maintexture
+    ' Can copy directly to maintexture: screenbuffer is not used
   END IF
 
-  RETURN present_internal2(screenbuffer, raw, pitch, bitdepth)
+  RETURN present_internal2(screenbuffer, raw, buffersize, pitch, bitdepth)
 END FUNCTION
 
 'Updates the screen. Assumes all size changes have been handled.
 'If bitdepth=8 then srcsurf is used, otherwise raw is used, and is a block of
 'pixels in SDL_PIXELFORMAT_ARGB8888 with the given pitch.
 'The surface or block of pixels must be the same size as maintexture.
-PRIVATE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, pitch as integer, bitdepth as integer) as bool
+PRIVATE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, imagesz as XYPair, pitch as integer, bitdepth as integer) as bool
   DIM ret as bool = YES
 
   DIM as integer texw, texh
@@ -550,6 +563,7 @@ PRIVATE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, p
     CheckOK(destsurf = NULL)
 
     CheckOK(SDL_BlitSurface(srcsurf, NULL, destsurf, NULL), ret = NO)
+    '? texw, texh, srcsurf->w, srcsurf->h, imagew, imageh
 
     SDL_FreeSurface(destsurf)
   ELSE
@@ -590,7 +604,8 @@ END SUB
 SUB gfx_sdl2_setpal(byval pal as RGBcolor ptr)
   IF last_bitdepth = 8 THEN
     set_palette pal
-    present_internal2(screenbuffer, NULL, 0, last_bitdepth)
+    'Re-render the contents of screenbuffer
+    present_internal2(screenbuffer, NULL, XY(screenbuffer->w, screenbuffer->h), screenbuffer->pitch, 8)
   ELSE
     debuginfo "gfx_sdl2_setpal called after a 32bit present"
   END IF
@@ -603,7 +618,7 @@ FUNCTION gfx_sdl2_present(byval surfaceIn as Surface ptr, byval pal as RGBPalett
       set_palette @pal->col(0)
     END IF
     DIM ret as integer
-    ret = present_internal(.pColorData, .width, .height, IIF(.format = SF_8bit, 8, 32))
+    ret = present_internal(.pColorData, .size, IIF(.format = SF_8bit, 8, 32))
     update_state()
     RETURN ret
   END WITH
