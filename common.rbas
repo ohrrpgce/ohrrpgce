@@ -3213,6 +3213,7 @@ FUNCTION find_helper_app (appname as zstring ptr, try_install as bool=NO, downlo
   'unlump and relump get installed here
   try_app_path(exepath & "/../share/games/ohrrpgce/" & *appname)
   try_app_path("/usr/share/games/ohrrpgce/" & *appname)
+  try_app_path(exepath & "/support/" & *appname)
  #ENDIF
  #IFDEF __FB_WIN32__
   RETURN find_windows_helper_app(*appname, try_install, *download_url)
