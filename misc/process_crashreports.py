@@ -327,13 +327,15 @@ def process_crashrpt_reports_directory(reports_dir, verbose = False):
     for fname in os.listdir(reports_dir):
         uuid, ext = os.path.splitext(fname)
         if ext == '.zip':
+            zipfile = pathjoin(reports_dir, fname)
             unzipdir = pathjoin(reports_dir, uuid + '.unzipped')
             if not os.path.isdir(unzipdir):
                 os.mkdir(unzipdir)
                 print('Unzipping...          ', file=sys.stderr, end='\r')
-                subprocess.check_call(['unzip', '-d', unzipdir, fname])
+                stdout = sys.stderr if verbose else subprocess.DEVNULL
+                subprocess.check_call(['unzip', '-d', unzipdir, zipfile], stdout=stdout)
 
-            upload_time = time.gmtime(os.stat(pathjoin(reports_dir, fname)).st_mtime)
+            upload_time = time.gmtime(os.stat(zipfile).st_mtime)
             uuids.add((upload_time, uuid))
 
     # Then process each unzipped report directory, sorted by upload date
