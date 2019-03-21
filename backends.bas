@@ -506,6 +506,16 @@ function lookup_gfx_backend(name as string) as GfxBackendStuff ptr
 	return NULL
 end function
 
+'If a gfx backend with this name is compiled in. But a shared lib might be missing.
+function have_gfx_backend(name as string) as bool
+	for idx as integer = 0 to ubound(gfx_choices)
+		if gfx_choices(idx)->name = name orelse gfx_choices(idx)->alt_name = name then
+			return YES
+		end if
+	next
+	return NO
+end function
+
 function backends_setoption(opt as string, arg as string) as integer
 	'General backend options.
 	'Note: this function always loads a graphics backend, so should be

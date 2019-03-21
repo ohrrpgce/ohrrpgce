@@ -10,6 +10,7 @@ declare function backends_setoption (opt as string, arg as string) as integer
 declare function switch_gfx_backend (name as string) as bool
 declare sub read_backend_info ()
 declare function valid_gfx_backend (name as string) as bool
+declare function have_gfx_backend (name as string) as bool
 
 declare sub gfx_backend_menu ()
 declare sub music_backend_menu ()
