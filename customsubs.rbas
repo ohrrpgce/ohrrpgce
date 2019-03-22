@@ -1466,6 +1466,7 @@ SUB onetimetog(byref tagnum as integer)
 END SUB
 
 PRIVATE SUB pal16browse_draw_spriteset(sprite as Frame ptr, pal as Palette16 ptr, x as integer, y as integer, page as integer)
+ IF sprite = NULL THEN EXIT SUB
  y -= sprite->h \ 2 - 10
  FOR framenum as integer = 0 TO sprite->arraylen - 1
   frame_draw sprite + framenum, pal, x, y, , , page
@@ -1473,14 +1474,18 @@ PRIVATE SUB pal16browse_draw_spriteset(sprite as Frame ptr, pal as Palette16 ptr
  NEXT
 END SUB
 
+'Browse for a 16-color palette
+'picnum may be -1
 FUNCTION pal16browse (curpal as integer, picset as SpriteType, picnum as integer, show_default as bool=NO) as integer
  DIM sprite as Frame ptr
- sprite = frame_load(picset, picnum)
+ IF picnum >= 0 THEN sprite = frame_load(picset, picnum)
  DIM ret as integer = pal16browse(curpal, sprite, show_default)
  frame_unload @sprite
  RETURN ret
 END FUNCTION
 
+'Browse for a 16-color palette
+'sprite may be NULL
 FUNCTION pal16browse (curpal as integer, sprite as Frame ptr, show_default as bool=NO) as integer
  DIM buf(7) as integer
  REDIM pal16(100) as Palette16 ptr
