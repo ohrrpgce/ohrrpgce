@@ -1344,8 +1344,8 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
 
  debug printmsg
 
- IF modex_initialised = NO THEN
-  debug "showerror: modex_initialised false"
+ IF modex_initialised = NO ORELSE LEN(gfxbackend) = 0 THEN
+  debug "showerror: no display"
   IF isfatal THEN fatal_error_shutdown
   EXIT SUB
  END IF
