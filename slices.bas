@@ -3568,7 +3568,7 @@ Function SlicePossiblyResizable(sl as Slice ptr) as bool
    ' Resizing map slices isn't implemented.
    return NO
   case else
-   debugc errShowBug, "SliceResizable needs to be updated for type " & sl->SliceType
+   showbug "SliceResizable needs to be updated for type " & sl->SliceType
    return NO
  end select
 end Function

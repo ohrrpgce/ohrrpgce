@@ -8554,7 +8554,7 @@ end function
 
 ' Loads a 4-bit or 8-bit sprite/backdrop/tileset from the appropriate game lump. See frame_load.
 function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame ptr
-	if sprtype < 0 or sprtype > sprTypeLastLoadable or record < 0 then
+	if sprtype < 0 orelse sprtype > sprTypeLastLoadable orelse record < 0 then
 		debugc errBug, "frame_load: invalid type=" & sprtype & " and rec=" & record
 		return 0
 	end if

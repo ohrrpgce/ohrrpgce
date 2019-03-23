@@ -1437,7 +1437,7 @@ function inworkingdir(filename as string, writable as boolint, writes_allowed as
 
 #ifdef IS_GAME
 	if ret = FilterActionEnum.hook andalso writable andalso writes_allowed = NO then
-		showbug "Engine bug: Illegally tried to open protected file " & filename & " for writing"
+		showbug "Illegally tried to open protected file " & filename & " for writing"
 		ret = FilterActionEnum.deny
 	end if
 #endif

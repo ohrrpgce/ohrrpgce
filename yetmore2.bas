@@ -1632,7 +1632,7 @@ SUB try_reload_lumps_anywhere ()
    'We correctly handle an update to binsize.bin, but there's no good reason for it
    'to happen while live previewing
    clear_binsize_cache
-   debugc errBug, "Recieved binsize.bin modification, should not happen!"
+   showbug "Recieved binsize.bin modification, should not happen!"
    handled = YES
 
   ELSEIF modified_lumps[i] = "palettes.bin" THEN                          'PALETTES.BIN

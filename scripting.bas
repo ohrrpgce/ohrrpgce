@@ -478,7 +478,7 @@ IF n = 0 THEN
  EXIT FUNCTION
 END IF
 
-IF insideinterpreter = NO AND newcall = NO THEN debugc errShowBug, "runscript: newcall=NO outside interpreter"
+IF insideinterpreter = NO AND newcall = NO THEN showbug "runscript: newcall=NO outside interpreter"
 
 DIM index as integer = nowscript + 1
 
@@ -1125,7 +1125,7 @@ SUB start_fibre_timing
  FOR which as integer = nowscript TO 0 STEP -1
   IF scrat(which).state < 0 THEN EXIT FOR  'Bottom of fibre callstack
   WITH *scrat(which).scr
-   IF .calls_in_stack <> 0 THEN debugc errShowBug, "Garbage calls_in_stack=" & .calls_in_stack & " value for script " & .id
+   IF .calls_in_stack <> 0 THEN showbug "Garbage calls_in_stack=" & .calls_in_stack & " value for script " & .id
   END WITH
  NEXT
 
@@ -1175,7 +1175,7 @@ SUB stop_fibre_timing
  FOR which as integer = nowscript TO 0 STEP -1
   IF scrat(which).state < 0 THEN EXIT FOR  'Bottom of fibre callstack
   WITH *scrat(which).scr
-   IF .calls_in_stack <> 0 THEN debugc errShowBug, "Garbage calls_in_stack=" & .calls_in_stack & " value for script " & .id & " slot " & which
+   IF .calls_in_stack <> 0 THEN showbug "Garbage calls_in_stack=" & .calls_in_stack & " value for script " & .id & " slot " & which
   END WITH
  NEXT
 
@@ -1368,7 +1368,7 @@ END FUNCTION
 'This is called for error messages occurring inside scripts, and gives a description of the current context
 FUNCTION interpreter_context_name() as string
  IF insideinterpreter = NO THEN
-  debugc errShowBug, "interpreter_context_name called outside interpreter"
+  showbug "interpreter_context_name called outside interpreter"
  ELSEIF curcmd->kind = tyfunct THEN
   RETURN commandname(curcmd->value) + ": "
  END IF

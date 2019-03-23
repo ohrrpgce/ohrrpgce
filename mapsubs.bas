@@ -3101,7 +3101,7 @@ SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem 
  gdidx(26) = 14: append_simplemenu_item menu, "Each-Step Script: "
  gdidx(27) = 15: append_simplemenu_item menu, "On-Keypress Script: "
 
- IF UBOUND(gdidx) + 1 <> v_len(menu) THEN debugc errFatalBug, "Wrong gdidx length!"
+ IF UBOUND(gdidx) + 1 <> v_len(menu) THEN fatalbug "Wrong gdidx length!"
  invert_permutation gdidx(), midx()
 
  ' Music
@@ -3676,7 +3676,7 @@ SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector
     state.pt = i
    END IF
   NEXT
-  IF state.pt = 0 THEN debugc errBug, "Layer menu resetpt broken"
+  IF state.pt = 0 THEN showbug "Layer menu resetpt broken"
  END IF
 
  'Load the preview of the map layer or its tileset

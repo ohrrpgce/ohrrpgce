@@ -66,7 +66,7 @@ FUNCTION oldscriptstate_init (index as integer, script as ScriptData ptr) as zst
   .ret = 0
   .depth = 0
   'id negative if stale data
-  IF script->id < 0 THEN debugc errShowBug, "Starting a stale script"
+  IF script->id < 0 THEN showbug "Starting a stale script"
   .id = ABS(script->id)
   .stackbase = -1
   .scr = script
