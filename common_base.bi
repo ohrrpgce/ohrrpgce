@@ -18,10 +18,17 @@ declare sub debuginfo (msg as const zstring ptr)
 declare sub debugerror (msg as const zstring ptr)
 declare sub fatalerror (msg as const zstring ptr)
 declare sub fatalbug (msg as const zstring ptr)
+declare sub visible_debug (msg as const zstring ptr)
+
+extern "C"
+declare sub showerror_internal (callsite as any ptr, msg as const zstring ptr, isfatal as bool = NO, isbug as bool = NO)
+declare sub debugc_internal (callsite as any ptr, errorlevel as errorLevelEnum, msg as const zstring ptr)
+
+'In miscc.c
 declare sub showbug (msg as const zstring ptr)
 declare sub showerror (msg as const zstring ptr, isfatal as bool = NO, isbug as bool = NO)
-declare sub visible_debug (msg as const zstring ptr)
-declare sub debugc cdecl alias "debugc" (errorlevel as errorLevelEnum, msg as const zstring ptr)
+declare sub debugc (errorlevel as errorLevelEnum, msg as const zstring ptr)
+end extern
 
 'Called by fatalerror
 extern cleanup_function as sub ()

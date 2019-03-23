@@ -30,20 +30,24 @@ SUB early_debuginfo (msg as const zstring ptr)
   'print s
 END SUB
 
-SUB debugc cdecl alias "debugc" (byval errorlevel as errorLevelEnum, byval s as const zstring ptr)
+EXTERN "C"
+
+SUB debugc_internal (callsite as any ptr, errorlevel as errorLevelEnum, s as const zstring ptr)
   IF errorlevel >= errFatalError THEN fatalerror s
   IF errorlevel = errBug OR errorlevel = errShowBug OR errorlevel = errFatalBug THEN print "(BUG) ",
   IF errorlevel >= errError THEN print "ERROR: ",
   print *s
 END SUB
 
-SUB showerror (msg as const zstring ptr, isfatal as bool = NO, isbug as bool = NO)
+SUB showerror_internal (callsite as any ptr, msg as const zstring ptr, isfatal as bool = NO, isbug as bool = NO)
  IF isfatal THEN
   fatalerror msg
  ELSE
   print *msg
  END IF
 END SUB
+
+END EXTERN
 
 SUB debugerror (msg as const zstring ptr)
   debugc errError, msg
@@ -63,6 +67,6 @@ SUB fatalbug (msg as const zstring ptr)
   debugc errFatalBug, msg
 END SUB
 
-SUB showbug (msg as const zstring ptr)
-  debugc errShowBug, msg
-END SUB
+' SUB showbug (msg as const zstring ptr)
+'   debugc errShowBug, msg
+' END SUB

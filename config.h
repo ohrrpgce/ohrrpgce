@@ -9,6 +9,9 @@
 #include <stdint.h>
 #include <stdlib.h>  // For __MINGW64_VERSION_MAJOR
 
+#define YES -1
+#define NO  0
+
 // For Windows (changes declarations in windows.h from ANSI to UTF16)
 #define UNICODE 1
 #ifndef _UNICODE

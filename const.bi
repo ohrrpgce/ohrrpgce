@@ -406,8 +406,10 @@ Enum 'ErrorLevelEnum
   errError      'Something is wrong, but it's not necessarily due to a bug. Only log it.
                 '(== debugerror)
   errBug        'Engine bug detected; log but don't interrupt the program. Usually would use errShowBug instead.
+                'This is generally used for minor ignorable bugs we're aware of, so don't want to bother the user.
   errShowError  'Something is wrong and continuing might be dubious, but it's not necessarily due to a bug.
-                'Show error and possibly prompt the user whether they want to quit (doesn't return) or continue
+                'Show error and possibly prompt the user whether they want to quit (doesn't return), ignore, or
+                'continue.
                 '(== showerror)
   errShowBug    'As above, but indicates that it's an engine bug
                 '(== showbug)

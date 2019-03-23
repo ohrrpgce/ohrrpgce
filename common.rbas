@@ -396,11 +396,14 @@ SUB debug (msg as const zstring ptr)
  debuginfo "! " & *msg
 END SUB
 
-SUB debugc CDECL (errorlevel as errorLevelEnum, s as const zstring ptr)
+EXTERN "C"
+SUB debugc_internal (callsite as any ptr, errorlevel as errorLevelEnum, s as const zstring ptr)
  'This both provides a C interface to 'debug', and error levels to distinguish the significance of
  'different messages
  'See enum in const.bi for error level details
- 'Unimplemented: the idea is that 'Bug' error levels could prompt the user to send a bug report somehow
+ 'Note: this is called by the debugc wrapper function in miscc.c, which adds the callsite argument
+ '(which we can only obtain in C), which is used by errShowBug and errShowError to ignore certain
+ 'debugc invocations.
 
  SELECT CASE errorlevel
   CASE errInfo       'aka debuginfo
@@ -417,19 +420,20 @@ SUB debugc CDECL (errorlevel as errorLevelEnum, s as const zstring ptr)
   CASE errBug
    debug "(BUG) " & *s
   CASE errShowError  'aka showerror
-   showerror *s
+   showerror_internal callsite, *s
   CASE errShowBug    'aka showbug
-   showerror *s, NO, YES
+   showerror_internal callsite, *s, NO, YES
   CASE errFatalError 'aka fatalerror
-   showerror *s, YES, NO
+   showerror_internal callsite, *s, YES, NO
   CASE errFatalBug   'aka fatalbug
-   showerror *s, YES, YES
+   showerror_internal callsite, *s, YES, YES
   CASE errDie
    PRINT "DIE: " & *s
    debug "DIE: " & *s
    fatal_error_shutdown
  END SELECT
 END SUB
+END EXTERN
 
 'This is a kludge (the whole debug logging system is a mess)...  debuginfo
 'replacement before start_new_debug has been called, to avoid junk ending up in
@@ -1273,6 +1277,9 @@ SUB fatal_error_shutdown
  #ENDIF
 END SUB
 
+'The following wrapper functions aren't in miscc.c because they aren't ignorable errors, so we
+'don't need to know the 'callsite' for them
+
 SUB visible_debug (msg as const zstring ptr)
  'equivalent to: debugc errShowDebug, msg
  debug *msg
@@ -1294,14 +1301,27 @@ SUB fatalbug (msg as const zstring ptr)
  showerror msg, YES, YES
 END SUB
 
-SUB showbug (msg as const zstring ptr)
- 'equivalent to: debugc errShowBug, msg
- showerror msg, NO, YES
-END SUB
+'showerror and showbug are wrapped in miscc.c, so that they can pass the callsite
+'(which we can only obtain in C) to showerror_internal, which is needed to ignore
+'certain invocations
 
-'Show an error. If isfatal, doesn't return.
+EXTERN "C"
+'Show an error.
 'If multiple errors occur, give the user the option to quit instead of continuing.
-SUB showerror (zmsg as const zstring ptr, byval isfatal as bool = NO, isbug as bool = NO)
+'callsite: some pointer which uniquely identifies this particular call, e.g. return address.
+'  May be NULL if unknown (in which case the error can't be ignored).
+'isfatal: end the program, never return.
+'isbug: this error is a bug, so possibly try to report it.
+SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval isfatal as bool = NO, isbug as bool = NO)
+
+ STATIC num_ignored_callsites as integer
+ STATIC ignored_callsites(9) as any ptr  'list of callsites
+ IF isfatal = NO ANDALSO callsite THEN
+  FOR idx as integer = 0 TO num_ignored_callsites - 1
+   IF callsite = ignored_callsites(idx) THEN EXIT SUB
+  NEXT
+ END IF
+
  DIM printmsg as string
  printmsg = IIF(isbug, "(BUG) ", "") + IIF(isfatal, "FATAL: ", "ERROR: ") + *zmsg
  PRINT printmsg
@@ -1309,8 +1329,7 @@ SUB showerror (zmsg as const zstring ptr, byval isfatal as bool = NO, isbug as b
  STATIC num_errors as integer = 0
  num_errors += 1
 
- STATIC last_error as string, ignore_error as string
- IF *zmsg = ignore_error AND isfatal = NO THEN EXIT SUB
+ STATIC last_error as string
  DIM msg as string = *zmsg
 
  'Don't allow reentry into showerror; the error might be in debug()
@@ -1349,7 +1368,10 @@ SUB showerror (zmsg as const zstring ptr, byval isfatal as bool = NO, isbug as b
  ELSE
   IF msg = last_error THEN
    quitmsg += !"(Error repeated)\n"
-   ignore_error = msg
+   IF callsite ANDALSO num_ignored_callsites <= UBOUND(ignored_callsites) THEN
+    ignored_callsites(num_ignored_callsites) = callsite
+    num_ignored_callsites += 1
+   END IF
   END IF
   IF num_errors >= 3 THEN
    quitmsg += "Press ESC to quit the program, or any other key to ignore and try to continue."
@@ -1422,6 +1444,7 @@ SUB showerror (zmsg as const zstring ptr, byval isfatal as bool = NO, isbug as b
 
  entered = 0
 END SUB
+END EXTERN
 
 'Return the right end of a string, trimming and prepending '...' if longer than wide pixels
 '(Might sometimes want to handle this using text slices instead)

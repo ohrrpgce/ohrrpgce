@@ -12,6 +12,11 @@
 #include <locale.h>
 #include "misc.h"
 
+#ifdef _MSC_VER
+#include <intrin.h>  //for _ReturnAddress
+#pragma intrinsic(_ReturnAddress)  // I have no idea whether this is needed, but it's in MS's example
+#endif
+
 
 // This is here so that FBARRAY gets included in debug info and seen by gdb (it's not used anywhere else)
 extern FBARRAY __dummy_fbarray;
@@ -54,6 +59,25 @@ void _throw_error(enum ErrorLevel errorlevel, const char *srcfile, int linenum, 
 	}
 	*/
 }
+
+#ifdef _MSC_VER  // Microsoft C++
+	#define return_address() _ReturnAddress()
+#else  // GCC or Clang
+	#define return_address() __builtin_return_address(0)
+#endif
+
+void debugc (enum ErrorLevel errorlevel, const char *msg) {
+	debugc_internal(return_address(), errorlevel, msg);
+}
+
+void showerror (const char *msg, boolint isfatal, boolint isbug) {
+	showerror_internal(return_address(), msg, isfatal, isbug);
+}
+
+void showbug (const char *msg) {
+	showerror_internal(return_address(), msg, NO, YES);
+}
+
 
 ///////////////////////////////// FBSTRINGs ///////////////////////////////////
 
