@@ -76,7 +76,7 @@ def expression():           return PLUS, [("(", CHECKPNT, expressionList, ")"),
                                           ("{", CHECKPNT, expressionList, "}"),
                                           nodeSpec, string, genericToken]
 
-def typename():             return STAR, namespace, identifier, STAR, re.compile('ptr|vector', re.I)
+def typename():             return QUES, "const", STAR, namespace, identifier, STAR, re.compile('ptr|vector', re.I)
 #def typename():             return dottedIdentifier, STAR, re.compile('ptr|vector', re.I)
 
 def arrayDimension():       return "(", CHECKPNT, expressionList, ")"
@@ -207,7 +207,7 @@ class FileParsingIterator(object):
                     self.starting_in_comment = True
             return self.lineno, self.line, self.ast
         except ParseError, e:
-            print "On line %d in %s:\n%s" % (self.lineno, self.filename, str(e))
+            print "On line %d of %s:\n%s" % (self.lineno, self.filename, str(e))
             sys.exit(1)
 
     def line_is_blank(self):
