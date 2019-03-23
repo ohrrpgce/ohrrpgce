@@ -1326,9 +1326,6 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
  printmsg = IIF(isbug, "(BUG) ", "") + IIF(isfatal, "FATAL: ", "ERROR: ") + *zmsg
  PRINT printmsg
 
- STATIC num_errors as integer = 0
- num_errors += 1
-
  STATIC last_error as string
  DIM msg as string = *zmsg
 
@@ -1359,38 +1356,22 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
   EXIT SUB
  END IF
 
- DIM prompt_to_quit as bool = NO
  DIM quitmsg as string
- quitmsg = !"\n\n"   '"${K" & uilook(uiMenuItem) & "}"
+
+ IF isbug THEN
+  quitmsg = !"\n\nPlease report this engine bug by sending an e-mail to ohrrpgce-crash@HamsterRepublic.com\n\n"
+ ELSE
+  quitmsg = !"\n\nIf this error is unexpected, please send an e-mail to ohrrpgce-crash@HamsterRepublic.com\n\n"
+ END IF
  IF isfatal THEN
   quitmsg += "Press any key to quit."
-  prompt_to_quit = YES
  ELSE
   IF msg = last_error THEN
    quitmsg += !"(Error repeated)\n"
-   IF callsite ANDALSO num_ignored_callsites <= UBOUND(ignored_callsites) THEN
-    ignored_callsites(num_ignored_callsites) = callsite
-    num_ignored_callsites += 1
-   END IF
   END IF
-  IF num_errors >= 3 THEN
-   quitmsg += "Press ESC to quit the program, or any other key to ignore and try to continue."
-   prompt_to_quit = YES
-  ELSE
-   quitmsg += "Press any key to try to continue."
-  END IF
- END IF
- #IFDEF IS_CUSTOM
-  IF prompt_to_quit ANDALSO cleanup_workingdir_on_error = NO THEN
-   quitmsg += !"\nThe editing state of the game will be preserved"
-   IF isfatal = NO THEN quitmsg += " if you quit immediately"
-   quitmsg += "; run " + CUSTOMEXE + " again and you will be asked whether you want to recover it."
-  END IF
- #ENDIF
- IF isbug THEN
-  quitmsg += !"\nPlease report this engine bug by sending an e-mail to ohrrpgce-crash@HamsterRepublic.com"
- ELSE
-  quitmsg += !"\nIf this error is unexpected, please send an e-mail to ohrrpgce-crash@HamsterRepublic.com"
+  quitmsg += !"* Press ESC to hide occurrences of this error and continue.\n" _
+             !"* Press Alt-F4 to quit immediately.\n" _
+              "* Press any other key to try to continue."
  END IF
 
  last_error = msg
@@ -1398,7 +1379,10 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
   msg = !"        --  FATAL ERROR  --\n" + msg
  ELSEIF isbug THEN
   msg = !"        --  OHRRPGCE BUG  --\n" + msg
+ ELSE
+  msg = !"           --  ERROR  --\n" + msg
  END IF
+ msg += quitmsg
 
  'Reset palette (in case the error happened in a fade-to-black or due to
  'corrupt/missing palette or UI colours)
@@ -1408,21 +1392,44 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
  DefaultUIColors uilook(), boxlook()
  clearpage vpage
  'suppress_borders to avoid needing to load the box border spriteset
- basic_textbox msg + quitmsg, uilook(uiText), vpage, , , , YES  'suppress_borders=YES
+ basic_textbox msg, uilook(uiText), vpage, , , , YES  'suppress_borders=YES
  setvispage vpage, NO
 
  DIM key as KBScancode = waitforanykey
- IF isfatal ORELSE (num_errors >= 3 ANDALSO key = scEsc) THEN  'No way to check for ccCancel...
+
+ IF isfatal ORELSE getquitflag THEN
+  'Quit the program
+  #IFDEF IS_CUSTOM
+   IF cleanup_workingdir_on_error = NO THEN
+    setquitflag NO
+    clearpage vpage
+    basic_textbox "The editing state of the game will be preserved; run " + CUSTOMEXE _
+                  + " again and you will be asked whether you want to recover it.", _
+                  uilook(uiText), vpage, , , , YES  'suppress_borders=YES
+    setvispage vpage, NO
+    waitforanykey
+   END IF
+  #ENDIF
   fatal_error_shutdown
  END IF
- debug "showerror: user continued"
+
+ IF key = scESC ANDALSO callsite ANDALSO num_ignored_callsites <= UBOUND(ignored_callsites) THEN
+  'Ignore the error
+  '(No way to check for ccCancel...)
+  ignored_callsites(num_ignored_callsites) = callsite
+  num_ignored_callsites += 1
+  debug "showerror: hiding this error"
+ END IF
 
  #IFDEF IS_CUSTOM
   'Continuing to edit
-  IF editing_a_game THEN
+  STATIC shown_warning as bool
+  IF editing_a_game ANDALSO shown_warning = NO THEN
+   shown_warning = YES
    clearpage vpage
-   basic_textbox "If you had unsaved changes to your game you may want to backup the old .RPG file " _
-                 "BEFORE attempting to save, because there is a chance that saving will produce a corrupt file.", _
+   basic_textbox "You may want to backup your .RPG file BEFORE attempting to save any " _
+                 "changes, because there is a chance that this error means some kind " _
+                 "of data corruption has happened.", _
                  uilook(uiText), vpage, , , , YES  'suppress_borders=YES
    setvispage vpage
    waitforanykey

@@ -201,14 +201,15 @@ REDIM current_font(1023) as integer
 getdefaultfont current_font()
 
 setmodex
-debuginfo musicbackendinfo  'Preliminary info before initialising backend
-setwindowtitle "O.H.R.RPG.C.E"
-showmousecursor
-unlock_resolution 320, 200   'Minimum window size
 setpal master()
 setfont current_font()
 textcolor uilook(uiText), 0
 
+setwindowtitle "O.H.R.RPG.C.E"
+showmousecursor
+unlock_resolution 320, 200   'Minimum window size
+
+debuginfo musicbackendinfo  'Preliminary info before initialising backend
 setupmusic
 
 'Cleanups/recovers any working.tmp for any crashed copies of Custom; requires graphics up and running
