@@ -562,20 +562,20 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
     END IF
    END WITH
   NEXT
- 
+
   'extra damage
   harmf *= (1.0 + attack.extra_damage / 100)
- 
+
   'Now we convert damage back to integer (for backcompat)
   h = bound(harmf, 1. * LONG_MIN, 1. * LONG_MAX)
 
   ' + or - some amount. (Note: due to how range is programmed, the average
   ' result is 0.5 less than h)
   h = range(h, attack.randomization)
- 
+
   'spread damage
   IF attack.divide_spread_damage = YES THEN h = h / tcount
- 
+
   'cap under
   IF immune ANDALSO prefbit(26) THEN
    '"0 damage when immune to attack elements", even without attack.damage_can_be_zero
@@ -584,15 +584,22 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
    IF attack.damage_can_be_zero = NO THEN h = 1 ELSE h = 0
   END IF
 
+  DIM byref tstat_cur as integer = target.stat.cur.sta(targstat)
+  DIM       tstat_max as integer = target.stat.max.sta(targstat)
+  DIM byref astat_cur as integer = attacker.stat.cur.sta(targstat)
+  DIM       astat_max as integer = attacker.stat.max.sta(targstat)
+
   IF attack.show_damage_without_inflicting = NO THEN
    'resetting
    IF attack.reset_targ_stat_before_hit = YES THEN
-    target.stat.cur.sta(targstat) = target.stat.max.sta(targstat)
+    tstat_cur = tstat_max
    END IF
   END IF
 
-  DIM chp as integer = target.stat.cur.sta(targstat)  'for convenience, not for remembering value
-  DIM mhp as integer = target.stat.max.sta(targstat)
+  'remember target stat
+  DIM tstat_original as integer = tstat_cur
+  DIM astat_original as integer = astat_cur
+
   IF attack.percent_damage_not_set = YES THEN
    'percentage attacks do damage
    'Note that even with this bitset, these damage types ignore lots of stuff like randomization.
@@ -601,10 +608,10 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
    'with the target's stat as Base ATK Stat instead.
    SELECT CASE attack.damage_math
     CASE 5'% of max
-     h = mhp + (attack.extra_damage * mhp / 100)
+     h = tstat_max + (attack.extra_damage * tstat_max / 100)
      elemental_absorb = NO
     CASE 6'% of cur
-     h = chp + (attack.extra_damage * chp / 100)
+     h = tstat_cur + (attack.extra_damage * tstat_cur / 100)
      elemental_absorb = NO
    END SELECT
   END IF
@@ -617,9 +624,9 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
   ELSEIF attack.cure_instead_of_harm = YES AND target.harmed_by_cure = NO THEN
    h *= -1      'cure bit
   END IF
- 
+
   DIM capdamage as bool = YES
- 
+
   IF attack.percent_damage_not_set = NO THEN
    'percentage attacks set stat
    'and by set, we really mean set, ignore nearly all attack settings,
@@ -627,10 +634,10 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
    '...And mine to. - James
    SELECT CASE attack.damage_math
     CASE 5'% of max
-     h = chp - (mhp + (attack.extra_damage * mhp / 100))
+     h = tstat_cur - (tstat_max + (attack.extra_damage * tstat_max / 100))
      capdamage = NO
     CASE 6'% of cur
-     h = chp - (chp + (attack.extra_damage * chp / 100))
+     h = tstat_cur - (tstat_cur + (attack.extra_damage * tstat_cur / 100))
      capdamage = NO
    END SELECT
   END IF
@@ -639,19 +646,15 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
   'Note that unlike the damage cap, this still happens if not inflicting
   IF attack.do_not_exceed_targ_stat AND capdamage THEN
    IF h > 0 THEN 'damage
-    h = small(h, target.stat.cur.sta(targstat))
+    h = small(h, tstat_cur)
    ELSEIF h < 0 THEN ' cure
     'Note: this cure can no exceed max regardless of "allow cure to exceed maximum" bit
-    DIM diff as integer = target.stat.max.sta(targstat) - target.stat.cur.sta(targstat)
+    DIM diff as integer = tstat_max - tstat_cur
     IF diff >= 0 THEN
      h = large(h, diff * -1)
     END IF
    END IF
   END IF
-
-  'remember target stat
-  DIM remtargstat as integer = target.stat.cur.sta(targstat)
-  DIM rematkrstat as integer = attacker.stat.cur.sta(targstat)
 
   'inflict
   IF attack.show_damage_without_inflicting = NO THEN
@@ -660,8 +663,8 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
     IF h > gen(genDamageCap) THEN h = gen(genDamageCap)
     IF h < -gen(genDamageCap) THEN h = -gen(genDamageCap)
    END IF
- 
-   target.stat.cur.sta(targstat) = safesubtract(target.stat.cur.sta(targstat), h)
+
+   tstat_cur = safesubtract(tstat_cur, h)
    IF attack.absorb_damage THEN
     WITH attacker
      '--drain
@@ -696,13 +699,13 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
    END IF
 
    'enforce stat bounds
-   target.stat.cur.sta(targstat) = large(target.stat.cur.sta(targstat), 0)
-   attacker.stat.cur.sta(targstat) = large(attacker.stat.cur.sta(targstat), 0)
+   tstat_cur = large(tstat_cur, 0)
+   astat_cur = large(astat_cur, 0)
    IF target_is_register OR attack.allow_cure_to_exceed_maximum = NO THEN
     'Cap to max. But if the stat was already above max then instead don't allow
     'it to go higher.
-    target.stat.cur.sta(targstat) = small(target.stat.cur.sta(targstat), large(target.stat.max.sta(targstat), remtargstat))
-    attacker.stat.cur.sta(targstat) = small(attacker.stat.cur.sta(targstat), large(attacker.stat.max.sta(targstat), rematkrstat))
+    tstat_cur = small(tstat_cur, large(tstat_max, tstat_original))
+    astat_cur = small(astat_cur, large(astat_max, astat_original))
    END IF
 
    'FIXME: stat caps aren't observed (bug 980)
@@ -712,21 +715,21 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
 
    'remember revenge data
    'NOTE: revenge & thankvenge record difference AFTER "reset target stat to max" takes effect
-   IF remtargstat > target.stat.cur.sta(targstat) THEN
+   IF tstat_original > tstat_cur THEN
     target.revengemask(attackerslot) = YES
     target.revenge = attackerslot
-    target.revengeharm = remtargstat - target.stat.cur.sta(targstat)
-    attacker.repeatharm = remtargstat - target.stat.cur.sta(targstat)
+    target.revengeharm = tstat_original - tstat_cur
+    attacker.repeatharm = tstat_original - tstat_cur
    END IF
 
    'remember thankvenge data
-   IF remtargstat < target.stat.cur.sta(targstat) THEN
+   IF tstat_original < tstat_cur THEN
     target.thankvengemask(attackerslot) = YES
     target.thankvenge = attackerslot
-    target.thankvengecure = ABS(remtargstat - target.stat.cur.sta(targstat))
+    target.thankvengecure = ABS(tstat_original - tstat_cur)
    END IF
   END IF
- 
+
   'set damage display
   IF attack.do_not_display_damage = NO THEN
    target.harm.text = STR(ABS(h))

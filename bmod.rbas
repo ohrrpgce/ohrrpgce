@@ -4652,9 +4652,14 @@ END SUB
 
 SUB active_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  IF battle_time_can_pass(bat) THEN
+  'No attack already happening, not paused for a caption...
   IF battle_meters_can_advance(bat, bslot()) THEN
+   'Advance ready meters, turn delays, poison/regen/etc, and decrement queued attack delays
+   'Note that battle meters always advance at least one tick whenever a queued attack
+   'happens (which was not intentional. See sf#2041)
    battle_meters bat, bslot(), formdata
   END IF
+  'If a queued attack has no delay left, start it
   battle_check_delays bat, bslot()
  END IF
  fulldeathcheck -1, bat, bslot(), formdata
