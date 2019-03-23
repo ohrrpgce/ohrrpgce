@@ -19,7 +19,7 @@ declare function get_windows_version () as string
 
 declare sub os_init ()
 
-declare sub external_log (msg as zstring ptr)
+declare sub external_log (msg as const zstring ptr)
 
 declare function memory_usage() as integer
 declare function memory_usage_string() as string

@@ -391,12 +391,12 @@ SUB end_debug
  importantdebug = NO
 END SUB
 
-SUB debug (msg as zstring ptr)
+SUB debug (msg as const zstring ptr)
  importantdebug = YES
  debuginfo "! " & *msg
 END SUB
 
-SUB debugc CDECL (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
+SUB debugc CDECL (errorlevel as errorLevelEnum, s as const zstring ptr)
  'This both provides a C interface to 'debug', and error levels to distinguish the significance of
  'different messages
  'See enum in const.bi for error level details
@@ -434,7 +434,7 @@ END SUB
 'This is a kludge (the whole debug logging system is a mess)...  debuginfo
 'replacement before start_new_debug has been called, to avoid junk ending up in
 '?_debug_archive.txt when start_new_debug is called.
-SUB early_debuginfo (msg as zstring ptr)
+SUB early_debuginfo (msg as const zstring ptr)
  external_log msg
  IF debug_to_console THEN PRINT *msg
  log_buffer &= *msg & LINE_END
@@ -445,7 +445,7 @@ PRIVATE FUNCTION get_timestamp() as string
  RETURN ""
 END FUNCTION
 
-SUB debuginfo (msg as zstring ptr)
+SUB debuginfo (msg as const zstring ptr)
  'Use for throwaway messages like upgrading
  '(Also this is internally the implementation of debug())
 
@@ -1273,35 +1273,35 @@ SUB fatal_error_shutdown
  #ENDIF
 END SUB
 
-SUB visible_debug (msg as zstring ptr)
+SUB visible_debug (msg as const zstring ptr)
  'equivalent to: debugc errShowDebug, msg
  debug *msg
  notification *msg + !"\nPress any key..."
 END SUB
 
-SUB debugerror (msg as zstring ptr)
+SUB debugerror (msg as const zstring ptr)
  'equivalent to: debugc errError, msg
  debug "Error: " & *msg
 END SUB
 
-SUB fatalerror (msg as zstring ptr)
+SUB fatalerror (msg as const zstring ptr)
  'equivalent to: debugc errFatalError, msg
  showerror msg, YES
 END SUB
 
-SUB fatalbug (msg as zstring ptr)
+SUB fatalbug (msg as const zstring ptr)
  'equivalent to: debugc errFatalBug, msg
  showerror msg, YES, YES
 END SUB
 
-SUB showbug (msg as zstring ptr)
+SUB showbug (msg as const zstring ptr)
  'equivalent to: debugc errShowBug, msg
  showerror msg, NO, YES
 END SUB
 
 'Show an error. If isfatal, doesn't return.
 'If multiple errors occur, give the user the option to quit instead of continuing.
-SUB showerror (zmsg as zstring ptr, byval isfatal as bool = NO, isbug as bool = NO)
+SUB showerror (zmsg as const zstring ptr, byval isfatal as bool = NO, isbug as bool = NO)
  DIM printmsg as string
  printmsg = IIF(isbug, "(BUG) ", "") + IIF(isfatal, "FATAL: ", "ERROR: ") + *zmsg
  PRINT printmsg

@@ -172,7 +172,7 @@ sub os_init ()
 end sub
 
 'Currently Android only
-sub external_log (msg as zstring ptr)
+sub external_log (msg as const zstring ptr)
 end sub
 
 #macro GET_MEMORY_INFO(memctrs, on_error)

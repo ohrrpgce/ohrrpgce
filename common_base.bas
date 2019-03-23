@@ -17,27 +17,27 @@ DIM app_name as zstring ptr = NULL  'NULL, so exename is used instead
 DIM app_log_filename as zstring ptr = NULL
 DIM app_archive_filename as zstring ptr = NULL
 
-SUB debug (msg as zstring ptr)
+SUB debug (msg as const zstring ptr)
   print *msg
 END SUB
 
-SUB debuginfo (msg as zstring ptr)
+SUB debuginfo (msg as const zstring ptr)
   print *msg
 END SUB
 
-SUB early_debuginfo (msg as zstring ptr)
+SUB early_debuginfo (msg as const zstring ptr)
   'Don't want to print startup stuff like setup_exception_handler
   'print s
 END SUB
 
-SUB debugc cdecl alias "debugc" (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
+SUB debugc cdecl alias "debugc" (byval errorlevel as errorLevelEnum, byval s as const zstring ptr)
   IF errorlevel >= errFatalError THEN fatalerror s
   IF errorlevel = errBug OR errorlevel = errShowBug OR errorlevel = errFatalBug THEN print "(BUG) ",
   IF errorlevel >= errError THEN print "ERROR: ",
   print *s
 END SUB
 
-SUB showerror (msg as zstring ptr, isfatal as bool = NO, isbug as bool = NO)
+SUB showerror (msg as const zstring ptr, isfatal as bool = NO, isbug as bool = NO)
  IF isfatal THEN
   fatalerror msg
  ELSE
@@ -45,24 +45,24 @@ SUB showerror (msg as zstring ptr, isfatal as bool = NO, isbug as bool = NO)
  END IF
 END SUB
 
-SUB debugerror (msg as zstring ptr)
+SUB debugerror (msg as const zstring ptr)
   debugc errError, msg
 END SUB
 
-SUB visible_debug (msg as zstring ptr)
+SUB visible_debug (msg as const zstring ptr)
   debugc errShowDebug, msg
 END SUB
 
-SUB fatalerror (msg as zstring ptr)
+SUB fatalerror (msg as const zstring ptr)
   IF LEN(*msg) THEN print "ERROR: " + *msg
   IF cleanup_function THEN cleanup_function()
   SYSTEM 1
 END SUB
 
-SUB fatalbug (msg as zstring ptr)
+SUB fatalbug (msg as const zstring ptr)
   debugc errFatalBug, msg
 END SUB
 
-SUB showbug (msg as zstring ptr)
+SUB showbug (msg as const zstring ptr)
   debugc errShowBug, msg
 END SUB
