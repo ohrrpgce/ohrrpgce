@@ -567,10 +567,11 @@ END FUNCTION
 'Draw a wrapped string in a box, by default at the middle of the page.
 'You can optionally specify a maximum width (default whole screen)
 'If shrink=NO then the textbox extends to maximum width, otherwise its width is minimal.
-SUB basic_textbox (msg as string, col as integer = -1, page as integer, ypos as RelPos = pCentered, width as RelPos = -1, shrink as bool = NO, suppress_borders as bool = NO)
+'Returns the position of the bottom of the box.
+FUNCTION basic_textbox (msg as zstring ptr, col as integer = -1, page as integer, ypos as RelPos = pCentered, width as RelPos = -1, shrink as bool = NO, suppress_borders as bool = NO) as integer
  IF col = -1 THEN col = uilook(uiText)
  IF width = -1 THEN width = small(vpages(page)->w - 20, 450)
- DIM size as XYPair = textsize(msg, width, fontEdged)
+ DIM size as XYPair = textsize(*msg, width, fontEdged)
  ypos = relative_pos(ypos, vpages(page)->h, size.h)  'This line is necessary only to support anchor points
  DIM text_xpos as RelPos = pCentered
  IF shrink = NO THEN
@@ -578,8 +579,9 @@ SUB basic_textbox (msg as string, col as integer = -1, page as integer, ypos as 
   text_xpos = rCenter - size.w \ 2
  END IF
  edgeboxstyle pCentered, ypos - 5, size.w + 10, size.h + 10, 2, page, , suppress_borders
- wrapprint msg, text_xpos, ypos, col, page, width '- rCenter + size.w \ 2
-END SUB
+ wrapprint *msg, text_xpos, ypos, col, page, width '- rCenter + size.w \ 2
+ RETURN ypos + size.h + 10
+END FUNCTION
 
 ' Show a message in a box and wait for the user to advance with a keypress.
 ' Returns the scancode of the keypress (it is cleared!)
@@ -598,7 +600,7 @@ FUNCTION notification (msg as zstring ptr, shrink as bool = NO) as KBScancode
  defaultmousecursor
  DIM holdpage as integer = allocatepage
  copypage vpage, holdpage
- basic_textbox *msg, uilook(uiText), holdpage, , , shrink
+ basic_textbox msg, uilook(uiText), holdpage, , , shrink
  setvispage holdpage
  DIM scancode as KBScancode = waitforanykey()
  freepage holdpage
@@ -1403,8 +1405,8 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
    IF cleanup_workingdir_on_error = NO THEN
     setquitflag NO
     clearpage vpage
-    basic_textbox "The editing state of the game will be preserved; run " + CUSTOMEXE _
-                  + " again and you will be asked whether you want to recover it.", _
+    basic_textbox "The editing state of the game will be preserved; run " CUSTOMEXE _
+                  " again and you will be asked whether you want to recover it.", _
                   uilook(uiText), vpage, , , , YES  'suppress_borders=YES
     setvispage vpage, NO
     waitforanykey
@@ -2925,27 +2927,13 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
  DIM state as MenuState
  DIM menu as MenuDef
  DIM result as integer
- DIM captlines() as string
- DIM maxwidth as integer  'max possible line length, in characters
- DIM wide as integer  'max line length, in pixels
-
- 'TODO: convert to text slices. This is ugly and still can't handle window resizing
- maxwidth = (vpages(vpage)->w - 24) \ 8
- split(wordwrap(*capt, maxwidth), captlines())
- FOR i as integer = 0 TO UBOUND(captlines)
-  wide = large(wide, textwidth(captlines(i)))
- NEXT
 
  FOR i as integer = 0 TO UBOUND(choices)
   append_menu_item menu, choices(i)
  NEXT
 
- DIM boxy as integer  'Y of box top, relative to screen centre
- DIM boxheight as integer = 10 * (UBOUND(captlines) + 1)
- boxy = large(-20 - boxheight \ 2 - 5 * UBOUND(choices), -vpages(vpage)->h \ 2 + 10)
- menu.offset.Y = boxy + boxheight + 5
  menu.anchorvert = alignTop
- menu.maxrows = (vpages(vpage)->h \ 2 - menu.offset.Y - 20) \ 10
+ menu.alignvert = alignTop
  menu.withtags = YES
 
  state.active = YES
@@ -2985,25 +2973,14 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
    result = state.pt
    state.active = NO
   END IF
-  
 
   IF state.active = NO THEN EXIT DO
-  
+
   usemenu state
 
   copypage holdscreen, vpage
-  IF LEN(*capt) > 0 THEN
-   centerbox rCenter, rCenter + boxy + boxheight \ 2, 16 + wide, 6 + boxheight, 2, vpage
-   FOR i as integer = 0 TO UBOUND(captlines)
-    DIM linex as RelPos
-    IF centerlines THEN
-     linex = pCentered
-    ELSE
-     linex = rCenter - wide \ 2
-    END IF
-    edgeprint captlines(i), linex, rCenter + boxy + i * 10, uilook(uiMenuItem), vpage
-   NEXT
-  END IF
+  menu.offset.Y = 2 + basic_textbox(capt, , vpage, pCentered - 15 - UBOUND(choices) * 5 + showTop)
+  menu.maxrows = (vpages(vpage)->h - menu.offset.Y - 20) \ 10
   menu.max_chars = vpages(vpage)->w \ 8 - 2
   draw_menu menu, state, vpage
   IF LEN(*helpkey) > 0 THEN
