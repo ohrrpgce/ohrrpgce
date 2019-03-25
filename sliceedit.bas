@@ -887,7 +887,7 @@ END FUNCTION
 
 SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, edit_separately as bool)
  ' Check for programmer error (doesn't work because of the games slice_editor plays with the draw_root)
- IF ses.editing_existing THEN showerror "slice_editor_load doesn't work when editing existing collection" : EXIT SUB
+ BUG_IF(ses.editing_existing, "Can't load when editing existing collection")
  DIM newcollection as Slice Ptr
  newcollection = NewSlice
  WITH *newcollection  'Defaults only

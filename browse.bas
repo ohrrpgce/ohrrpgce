@@ -923,9 +923,9 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
      browse_add_files "*.jpg",     fileTypeFile, br, tree()
      browse_add_files "*.png",     fileTypeFile, br, tree()
     CASE browseAny
-     showerror "BUG: browse(): browseAny with missing fmask"
+     showbug "browse(): browseAny with missing fmask"
     CASE ELSE
-     showerror "BUG: browse(): unknown file type " & br.filetype
+     showbug "browse(): unknown file type " & br.filetype
    END SELECT
   END IF
  END IF

@@ -1294,10 +1294,7 @@ END SUB
 #MACRO MAKE_ARRAY_INSERT(Typename)
  'Insert a new element into an array at position 'pos'.
  SUB a_insert(array() as Typename, pos as integer, value as Typename)
-  IF pos < LBOUND(array) OR pos > UBOUND(array) + 1 THEN
-   showerror "a_insert out of bounds: " & pos
-   EXIT SUB
-  END IF
+  BUG_IF(pos < LBOUND(array) ORELSE pos > UBOUND(array) + 1, "out of bounds: " & pos)
   REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
   array(UBOUND(array)) = value
   FOR idx as integer = UBOUND(array) - 1 TO pos STEP -1
@@ -2523,11 +2520,11 @@ SUB findfiles (directory as string, namemask as string = "", filetype as FileTyp
   IF directory = "" THEN
    ' For safety and bug catching: for example deletetemps() calls findfiles
    ' and then deletes everything.
-   showerror "findfiles called with empty directory"
+   showbug "findfiles called with empty directory"
    EXIT SUB
   END IF
   IF filetype <> fileTypeDirectory and filetype <> fileTypeFile and filetype <> fileTypeFileOrDir THEN
-   showerror "findfiles: bad filetype"
+   showbug "findfiles: bad filetype"
    EXIT SUB
   END IF
   DIM as string searchdir = add_trailing_slash(directory)
@@ -2685,7 +2682,7 @@ SUB killdir(directory as string, recurse as bool = NO)
   ' writability so we don't recurse if started from e.g. /home until
   ' we hit something deletable (this happened to me)!
   IF LEN(directory) < 5 ORELSE diriswriteable(directory) = NO THEN
-   showerror "killdir: refusing to delete directory '" & directory & "'"
+   showbug "killdir: refusing suspicious attempt to delete directory '" & directory & "'"
    EXIT SUB
   END IF
   DIM filelist() as string

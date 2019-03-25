@@ -139,7 +139,7 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_w
   next direction
 
   'add cursor node to the closed list
-  if cursornode.status <> AStarNodeStatus.OPENED then showerror "A*: open list corrupted"
+  if cursornode.status <> AStarNodeStatus.OPENED then showbug "A*: open list corrupted"
   tiles_closed += 1
   cursornode.status = AStarNodeStatus.CLOSED
   if closed_node_compare(@cursornode, best_closed_node) < 0 then
@@ -160,7 +160,7 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_w
   end if
 
   if tiles_closed > mapsizetiles.x * mapsizetiles.y then
-   showerror "A* infinite loop: " & tiles_closed & " iterations is bigger than mapsize"
+   showbug "A* infinite loop: " & tiles_closed & " iterations is bigger than mapsize"
    exit do
   end if
   
@@ -182,7 +182,7 @@ Sub AStarPathfinder.set_result_path(found_dest as XYPair)
   n = getnode(n.parent)
   safety += 1
   if safety > mapsizetiles.x * mapsizetiles.y then
-   showerror "AStar result path safety check: " & safety & " iterations is bigger than mapsize"
+   showbug "AStar result path safety check: " & safety & " iterations is bigger than mapsize"
    'This would probably mean an endless loop caused by a corrupted parentage chain
    exit do
   end if

@@ -265,7 +265,7 @@ END SUB
 
 'Undoes push_and_reset_gfxio_state
 SUB pop_gfxio_state ()
- IF UBOUND(gfxio_state_stack) < 0 THEN showerror "Unmatched pop_gfxio_state call!" : EXIT SUB
+ BUG_IF(UBOUND(gfxio_state_stack) < 0, "Unmatched call!")
  WITH gfxio_state_stack(UBOUND(gfxio_state_stack))
   restore_previous_palette
   setcursorvisibility(.prev_mouse_vis)
@@ -625,7 +625,7 @@ FUNCTION confirmed_copy (srcfile as string, destfile as string) as bool
   RETURN NO
  END IF
  IF NOT isfile(destfile) THEN
-  visible_debug "BUG: couldn't copy file to " & destfile & ", although copyfile() succeeded"
+  showbug "Couldn't copy file to " & destfile & ", although copyfile() succeeded"
   RETURN NO
  END IF
  #IFDEF __FB_WIN32__
@@ -1186,13 +1186,9 @@ END SUB
 
 FUNCTION getbinsize (byval id as integer) as integer
  'returns the current size in BYTES of the records in the specific binary file you are working with
- IF id < 0 OR id > binLASTENTRY THEN
-  showerror "Request for unknown binsize entry " & id
-  RETURN 0
- ELSE
-  IF binsize_cache_loaded = NO THEN load_binsize_cache
-  RETURN binsize_cache(id)
- END IF
+ BUG_IF(id < 0 ORELSE id > binLASTENTRY, "Request for unknown binsize entry " & id, 0)
+ IF binsize_cache_loaded = NO THEN load_binsize_cache
+ RETURN binsize_cache(id)
 END FUNCTION
 
 'INTS, not bytes!
@@ -1203,13 +1199,10 @@ FUNCTION dimbinsize (byval id as integer) as integer
 END FUNCTION
 
 SUB setbinsize (byval id as integer, byval size as integer)
- IF id < 0 OR id > binLASTENTRY THEN
-  showerror "Tried to set unknown binsize entry " & id
-  RETURN
- END IF
+ BUG_IF(id < 0 ORELSE id > binLASTENTRY, "Unknown binsize entry " & id)
  DIM fh as integer
  IF OPENFILE(workingdir & SLASH & "binsize.bin", FOR_BINARY + ACCESS_READ_WRITE, fh) THEN
-  showerror "Failed to write binsize.bin(" & id & "), will cause data corruption!"
+  showerror "Failed to write binsize.bin(" & id & "), this will definitely cause data corruption!!"
   RETURN
  END IF
  PUT #fh, 1 + id * 2, CAST(short, size)
@@ -3574,7 +3567,7 @@ PRIVATE FUNCTION finddatafile_internal2(filename as string, searchtype as FileTy
  DIM ret as string = finddatafile_internal(filename, searchtype)
  IF LEN(ret) THEN RETURN ret
  IF error_if_missing THEN
-  showerror !"Error: data " & IIF(searchtype = fileTypeFile, "file", "directory") & " data/" & _
+  showerror "Data " & IIF(searchtype = fileTypeFile, "file", "directory") & " data/" & _
             filename & " not found. The OHRRPGCE apparently isn't installed properly. Try reinstalling."
  END IF
 END FUNCTION

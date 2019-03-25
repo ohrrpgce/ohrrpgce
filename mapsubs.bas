@@ -4728,14 +4728,14 @@ END SUB
 
 'If a layer is marked visible but not enabled, it isn't drawn. Call should_draw_layer().
 FUNCTION LayerIsVisible(vis() as integer, byval l as integer) as bool
- IF l < 0 OR l > maplayerMax THEN showerror "Bad map layer " & l
+ BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l, NO)
  'debug "layer #" & l & " is: " & readbit(vis(), 0, l)
  RETURN xreadbit(vis(), l)
 END FUNCTION
 
 'Whether a map layer is visible in-game
 FUNCTION LayerIsEnabled(gmap() as integer, byval l as integer) as bool
- IF l < 0 OR l > maplayerMax THEN showerror "Bad map layer " & l
+ BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l, NO)
  IF l = 0 THEN RETURN YES
  'debug "layer #" & l & " is: " & readbit(gmap(), 19, l-1)
  RETURN xreadbit(gmap(), l - 1, 19)
@@ -4747,23 +4747,23 @@ FUNCTION should_draw_layer(st as MapEditState, l as integer) as bool
 END FUNCTION
 
 SUB SetLayerVisible(vis() as integer, byval l as integer, byval v as bool)
- IF l < 0 OR l > maplayerMax THEN showerror "Bad map layer " & l
+ BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l)
  setbit(vis(), 0, l, v)
 END SUB
 
 SUB SetLayerEnabled(gmap() as integer, byval l as integer, byval v as bool)
- IF l < 0 OR l > maplayerMax THEN showerror "Bad map layer " & l
+ BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l)
  IF l = 0 THEN EXIT SUB
  setbit(gmap(), 19, l - 1, v)
 END SUB
 
 SUB ToggleLayerVisible(vis() as integer, byval l as integer)
- IF l < 0 OR l > maplayerMax THEN showerror "Bad map layer " & l
+ BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l)
  setbit(vis(), 0, l, readbit(vis(), 0, l) XOR 1)
 END SUB
 
 SUB ToggleLayerEnabled(gmap() as integer, byval l as integer)
- IF l < 0 OR l > maplayerMax THEN showerror "Bad map layer " & l
+ BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l)
  IF l = 0 THEN EXIT SUB
  setbit(gmap(), 19, l - 1, readbit(gmap(), 19, l - 1) XOR 1)
 END SUB
@@ -5563,7 +5563,7 @@ SUB add_undo_step(st as MapEditState, byval x as integer, byval y as integer, by
   DIM trim_amount as integer = 0
   WHILE st.history_size > maxMapHistoryMem
    IF v_len(st.history) <= trim_amount THEN
-    showerror "add_undo_step: garbage st.history_size = " & st.history_size
+    showbug "add_undo_step: garbage st.history_size = " & st.history_size
     st.history_size = 0
     EXIT WHILE
    END IF
@@ -5616,7 +5616,7 @@ FUNCTION undo_stroke(st as MapEditState, byval redo as bool = NO) as MapEditUndo
  'debug "undo_stroke(" & redo & ")  history_step=" & st.history_step & " out of " & v_len(st.history)
 
  DIM undostroke as MapEditUndoTile vector = st.history[st.history_step]
- IF v_len(undostroke) = 0 THEN showerror "Strange... empty undo step. Probably harmless"
+ IF v_len(undostroke) = 0 THEN showbug "Strange... empty undo step. Probably harmless"
  undo_stroke_internal st, undostroke, redo
 
  IF redo THEN st.history_step += 1
@@ -5660,7 +5660,7 @@ SUB undo_stroke_internal(st as MapEditState, byref changelist as MapEditUndoTile
     overwrite_value = CheckZoneAtTile(st.map.zmap, .mapid - mapIDZone, .x, .y)
     IF .value THEN
      IF SetZoneTile(st.map.zmap, .mapid - mapIDZone, .x, .y) = NO THEN
-      showerror "SetZoneTile failed during undo: impossible!"
+      showbug "SetZoneTile failed during undo: impossible!"
      END IF
     ELSE
      UnsetZoneTile st.map.zmap, .mapid - mapIDZone, .x, .y
@@ -5670,7 +5670,7 @@ SUB undo_stroke_internal(st as MapEditState, byref changelist as MapEditUndoTile
     'Ignore meta data
     overwrite_value = .value
    ELSE
-    showerror "Undo history is corrupt: unknown map id " & .mapid
+    showbug "Undo history is corrupt: unknown map id " & .mapid
    END IF
 
    'debug "   pos=" & .x & "," & .y & " mapid=" & .mapid & "  " & overwrite_value & " -> " & .value
@@ -5728,7 +5728,7 @@ END FUNCTION
 'offset is the difference between the cursor position (st.x/y) now and when the brush
 'was saved (ie. the x/y coords stored in the changelist items).
 SUB apply_changelist(st as MapEditState, byref changelist as MapEditUndoTile vector, offset as XYPair)
- 'IF v_len(changelist) = 0 THEN showerror "Strange... empty undo step. Probably harmless"
+ 'IF v_len(changelist) = 0 THEN showbug "Strange... empty undo step. Probably harmless"
 
  'debug "apply_changelist len " & v_len(changelist)
 
@@ -5789,7 +5789,7 @@ SUB apply_changelist(st as MapEditState, byref changelist as MapEditUndoTile vec
    ELSEIF .mapid >= mapIDMetaBEGIN THEN
     'Ignore meta data
    ELSE
-    showerror "Mark+clone stamp is corrupt: unknown map id " & .mapid
+    showbug "Mark+clone stamp is corrupt: unknown map id " & .mapid
    END IF
 
    'debug "   pos=" & x & "," & y & " mapid=" & .mapid & "  value=" & .value

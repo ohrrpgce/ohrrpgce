@@ -176,7 +176,7 @@ END SUB
 '(vec is initialised, any existing contents deleted).
 SUB array_to_vector OVERLOAD (byref vec as integer vector, array() as integer)
   IF LBOUND(array) < -1 OR LBOUND(array) > 0 THEN
-    showerror "array_to_vector: bad array size " & LBOUND(array) & " TO " & UBOUND(array)
+    showbug "array_to_vector: bad array size " & LBOUND(array) & " TO " & UBOUND(array)
     v_new vec
     EXIT SUB
   END IF
@@ -190,7 +190,7 @@ END SUB
 '(vec is initialised, any existing contents deleted).
 SUB array_to_vector OVERLOAD (byref vec as string vector, array() as string)
   IF LBOUND(array) < -1 OR LBOUND(array) > 0 THEN
-    showerror "array_to_vector: bad array size " & LBOUND(array) & " TO " & UBOUND(array)
+    showbug "array_to_vector: bad array size " & LBOUND(array) & " TO " & UBOUND(array)
     v_new vec
     EXIT SUB
   END IF

@@ -707,7 +707,7 @@ end function
 
 sub freepage (page as integer)
 	if page < 0 orelse page > ubound(vpages) orelse vpages(page) = NULL then
-		debug "Tried to free unallocated/invalid page " & page
+		showbug "Tried to free unallocated/invalid page " & page
 		exit sub
 	end if
 
@@ -1078,7 +1078,7 @@ sub setvispage (page as integer, skippable as bool = YES)
 		'(Actually gfx_directx appears to accept other sizes, but I can't test)
 		if vpages(page)->w <> 320 or vpages(page)->h <> 200 then
 			resizepage page, 320, 200
-			showerror "setvispage: page was not 320x200 even though gfx backend forbade it"
+			showbug "setvispage: page was not 320x200 even though gfx backend forbade it"
 		end if
 	end if
 
@@ -3007,7 +3007,7 @@ private sub macro_menu ()
 			macfile = browse(browseAny, "", "*.ohrkeys")
 			if len(macfile) then
 				if not copyfile(macfile, macrofile) THEN
-					visible_debug "ERROR: couldn't make a copy of " & macfile
+					showerror "Couldn't make a copy of " & macfile
 				end if
 			end if
 			continue do
@@ -3032,7 +3032,7 @@ private sub macro_menu ()
 			'setkeys
 			if len(macfile) then
 				if not copyfile(macrofile, macfile + ".ohrkeys") THEN
-					visible_debug "ERROR: couldn't write to " & macfile & ".ohrkeys"
+					showerror "Couldn't write to " & macfile & ".ohrkeys"
 				end if
 			end if
 			continue do
@@ -3531,18 +3531,19 @@ end sub
 '                                      Map rendering
 '==========================================================================================
 
+
 function readblock (map as TileMap, x as integer, y as integer, default as integer = 112343211) as integer
-	if x < 0 OR x >= map.wide OR y < 0 OR y >= map.high then
+	if x < 0 orelse x >= map.wide orelse y < 0 orelse y >= map.high then
 		if default <> 112343211 then return default
-		debug "illegal readblock call " & x & " " & y
+		showbug "illegal readblock call " & x & " " & y
 		exit function
 	end if
 	return map.data[x + y * map.wide]
 end function
 
 sub writeblock (map as TileMap, x as integer, y as integer, v as integer)
-	if x < 0 OR x >= map.wide OR y < 0 OR y >= map.high then
-		debug "illegal writeblock call " & x & " " & y
+	if x < 0 orelse x >= map.wide orelse y < 0 orelse y >= map.high then
+		showbug "illegal writeblock call " & x & " " & y
 		exit sub
 	end if
 	map.data[x + y * map.wide] = v
@@ -9018,7 +9019,7 @@ end function
 function frame_reference cdecl(p as Frame ptr) as Frame ptr
 	if p = 0 then return 0
 	if p->refcount = NOREFC then
-		'showerror "tried to reference a non-refcounted sprite!"
+		'showbug "tried to reference a non-refcounted sprite!"
 	else
 		p->refcount += 1
 		TRACE_CACHE(p, "frame_reference")

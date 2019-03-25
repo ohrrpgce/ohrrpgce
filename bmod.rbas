@@ -360,7 +360,7 @@ SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite, battle_res
   '--an underflow is bad. It used to mean that whatever script was on
   '--the top of the stack has been corrupted, but now scripts don't use this stack
   '--but an underflow is still bad in principle.
-  showerror "bstack underflow " & stackpos & " " & bstackstart
+  showbug "bstack underflow " & stackpos & " " & bstackstart
  END IF
 
  IF fatal THEN

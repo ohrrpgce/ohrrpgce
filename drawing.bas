@@ -5019,7 +5019,7 @@ SUB AnimationEditor.edit_animation(anim_name as string)
 
  DIM BYREF anim as Animation = *sprset->find_animation(anim_name)
  IF @anim = NULL THEN
-  visible_debug "Animation Editor: animation " & anim_name & " doesn't exit"
+  visible_debug "Animation Editor: animation " & anim_name & " doesn't exist"
   EXIT SUB
  END IF
 

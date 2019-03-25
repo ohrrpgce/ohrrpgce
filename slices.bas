@@ -1910,7 +1910,7 @@ End Sub
 Sub SetSpriteToFrame(sl as Slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = NULL, pal as integer = -2)
  if sl = 0 then debug "SetSpriteToFrame null ptr": exit sub
 
- if pal = -1 then showerror "SetSpriteToFrame: a default palette can't be used"
+ if pal = -1 then showbug "SetSpriteToFrame: a default palette can't be used" : pal = 0
 
  UnloadSpriteSlice sl
  with *sl->SpriteData

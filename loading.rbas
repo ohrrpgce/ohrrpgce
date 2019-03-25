@@ -3541,7 +3541,7 @@ SUB convert_pt_to_rgfx(dest_type as SpriteType)
 
   FOR sprtype as SpriteType = first_pt to last_pt
     IF isfile(graphics_file(rgfx_lumpnames(sprtype))) THEN
-      showerror "Bug: can't convert PT" & sprtype & ": already done"
+      showbug "Can't convert PT" & sprtype & ": already done"
       EXIT SUB
     END IF
 

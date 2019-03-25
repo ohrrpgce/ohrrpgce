@@ -213,10 +213,7 @@ END FUNCTION
 
 SUB savegame (byval slot as integer, prefix as string="")
 
- IF prefix <> trimpath(prefix) THEN
-  visible_debug "savegame: Not allowed to include path in save prefix!"
-  EXIT SUB
- END IF
+ BUG_IF(prefix <> trimpath(prefix), "Not allowed to include path in save prefix!")
 
  IF prefix = "" ANDALSO slot >= 0 ANDALSO slot <= maxSaveSlotCount - 1 THEN
   'Only remember lastsaveslot for valid normal slots
@@ -250,7 +247,7 @@ FUNCTION new_loadgame(byval slot as integer, prefix as string="") as string
  IF prefix <> trimpath(prefix) THEN
   RETURN "loadgame: save slot prefix is not allowed to include path"
  END IF
- 
+
  DIM filename as string
  filename = savedir & SLASH & prefix & slot & ".rsav"
 

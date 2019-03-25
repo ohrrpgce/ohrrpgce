@@ -553,11 +553,8 @@ END SUB
 'The vector's internal typetable tells the size in bytes of each menu item
 SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions)
 
- IF state.first <> 0 THEN
-  'The following doesn't affect simple string array menus which are converted to BasicMenuItem menus
-  showerror "Programmer error: standardmenu: state.first <> 0 not supported for BasicMenuItem menus!"
-  EXIT SUB
- END IF
+ 'The following doesn't affect simple string array menus which are converted to BasicMenuItem menus
+ BUG_IF(state.first <> 0, "state.first <> 0 not supported for BasicMenuItem menus!")
 
  calc_menustate_size state, menuopts, x, y, page, menu
  DIM wide as integer = state.rect.wide
@@ -1376,7 +1373,7 @@ FUNCTION read_menu_int (menu as MenuDef, byval intoffset_plus1 as integer) as in
    CASE 27: RETURN .itemspacing
    CASE 28: RETURN .disabled_textcolor
    CASE ELSE
-    debug "read_menu_int: " & intoffset_plus1 & " is an invalid integer offset"
+    reporterr "read_menu_int: " & intoffset_plus1 & " is an invalid integer offset"
   END SELECT
  END WITH
  RETURN 0
@@ -1409,7 +1406,7 @@ SUB write_menu_int (menu as MenuDef, byval intoffset_plus1 as integer, byval n a
    CASE 27: .itemspacing = n
    CASE 28: .disabled_textcolor = n
    CASE ELSE
-    debug "write_menu_int: " & intoffset_plus1 & " is an invalid integer offset"
+    reporterr "write_menu_int: " & intoffset_plus1 & " is an invalid integer offset"
   END SELECT
  END WITH
 END SUB
@@ -1433,7 +1430,7 @@ FUNCTION read_menu_item_int (mi as MenuDefItem, byval intoffset as integer) as i
    CASE 32: RETURN .col
    CASE 33: RETURN .disabled_col
    CASE ELSE
-    debug "read_menu_item_int: " & intoffset & " is an invalid integer offset"
+    reporterr "read_menu_item_int: " & intoffset & " is an invalid integer offset"
   END SELECT
  END WITH
  RETURN 0
@@ -1458,7 +1455,7 @@ SUB write_menu_item_int (mi as MenuDefItem, byval intoffset as integer, byval n 
    CASE 32: .col = n
    CASE 33: .disabled_col = n
    CASE ELSE
-    debug "write_menu_item_int: " & intoffset & " is an invalid integer offset"
+    reporterr "write_menu_item_int: " & intoffset & " is an invalid integer offset"
   END SELECT
  END WITH
 END SUB

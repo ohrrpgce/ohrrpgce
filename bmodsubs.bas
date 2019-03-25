@@ -1904,7 +1904,7 @@ END SUB
 
 SUB changefoe(bat as BattleState, byval slot as integer, transmog as TransmogData, formdata as Formation, bslot() as BattleSprite)
  IF formdata.slots(slot).id = -1 THEN
-  showerror "changefoe doesn't work on empty slot " & slot & " (enemy " & transmog.enemy & ")"
+  showbug "changefoe doesn't work on empty slot " & slot & " (enemy " & transmog.enemy & ")"
   EXIT SUB
  END IF
 
@@ -1917,7 +1917,7 @@ SUB changefoe(bat as BattleState, byval slot as integer, transmog as TransmogDat
  formdata.slots(slot).id = transmog.enemy
 
  WITH bspr
-  IF .sl = NULL THEN showerror "changefoe: foe not loaded" : EXIT SUB
+  BUG_IF(.sl = NULL, "foe not loaded")
 
   loadenemydata .enemy, formdata.slots(slot).id, -1
 

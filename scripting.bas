@@ -342,10 +342,7 @@ END SUB
 
 'Kills the currently running script fibre
 SUB killscriptthread
- IF insideinterpreter = NO ORELSE nowscript < 0 THEN
-  showerror "Inappropriate killscriptthread"
-  EXIT SUB
- END IF
+ BUG_IF(insideinterpreter = NO ORELSE nowscript < 0, "Inappropriate call")
 
  debuginfo "Killing script fibre; last script = " & scriptname(scrat(nowscript).id)
 
@@ -803,10 +800,7 @@ END SUB
 'Destruct a ScriptData and remove it from the cache.
 SUB delete_ScriptData (byval scriptd as ScriptData ptr)
  WITH *scriptd
-  IF .refcount THEN
-   showerror "delete_ScriptData: nonzero refcount=" & .refcount & " for " & scriptname(ABS(.id))
-   EXIT SUB
-  END IF
+  BUG_IF(.refcount, "nonzero refcount=" & .refcount & " for " & scriptname(ABS(.id)))
 
   IF .ptr THEN
    'debug "deallocating " & .id & " " & scriptname(ABS(.id)) & " size " & .size
