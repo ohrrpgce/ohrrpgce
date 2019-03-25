@@ -178,7 +178,7 @@ REDIM remembered_menu_pts(0) as integer  'True slot number of the selected menu 
 'Script interpreter
 DIM nowscript as integer = -1
 DIM scriptret as integer
-REDIM retvals(32) as integer
+REDIM retvals(maxScriptArgs - 1) as integer
 DIM scriptctr as uinteger
 DIM numloadedscr as integer    'Number of loaded script headers in script cache (some may not have data loaded)
 DIM totalscrmem as integer     'Total memory used by all loaded scripts, in int32s
@@ -1041,6 +1041,8 @@ SUB doloadgame(byval load_slot as integer, prefix as string="")
  loadgame load_slot, prefix
  interpolatecat()
  IF gen(genLoadGameScript) > 0 THEN
+  'nargs can't be more than maxScriptArgs, because loadfromslot consumes one arg,
+  'and we add one arg.
   DIM nargs as integer = UBOUND(gam.want.script_args) + 2
   trigger_script gen(genLoadGameScript), nargs, YES, "loadgame", "", mainFibreGroup
   '--pass save slot as argument

@@ -169,6 +169,11 @@ DO
       killallscripts
       EXIT DO
      CASE tymath, tyfunct
+      IF curcmd->argc > maxScriptArgs THEN
+       scripterr "More command arguments than supported", serrError
+       killallscripts
+       EXIT DO
+      END IF
       '--complete math and functions, nice and easy.
       FOR i as integer = curcmd->argc - 1 TO 0 STEP -1
        popstack(scrst, retvals(i))
@@ -257,6 +262,7 @@ DO
       '.state = streturn'---return
      CASE tyscript
       DIM argc as integer = curcmd->argc
+      'No need to check argc <= maxScriptArgs; setScriptArg checks OK
       rsr = runscript(curcmd->value, NO, NO, "indirect")
       'WARNING: WITH now points to scrat(nowscript-1)
       IF rsr = 1 THEN

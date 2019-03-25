@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Uc 2019-03-25 Enforce at most 32 args allowed
 --3Ub 2018-11-17 Fix some error messages
 --3Ua 2018-08-18 Script can also have attributes
 --3U  2018-08-12 @obsolete attribute
@@ -180,8 +181,8 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Ub"
-constant COPYRIGHT_DATE="2018"
+constant COMPILER_SUB_VERSION="Uc"
+constant COPYRIGHT_DATE="2019"
 
 --Known single-character commandline options
 constant VALID_OPTIONS="abcdfjknstwuyz"
@@ -331,6 +332,7 @@ constant HSZ_FORMAT_VERSION=3
 
 constant MAXGLOBAL=50000  --largest ID
 constant MAX_LOCALS=100   --max number of locals per script (not including nonlocals)
+constant MAX_AfRGS=32     --max number of arguments to a script, function or builting
 
 constant MAX_NEST_DEPTH=4
 
@@ -2524,6 +2526,9 @@ function parse_define_block(TokenList block, sequence list, integer func_type)
         i+=1
         arglist=append(arglist,try_string_to_number(block[i]))
       end for
+      if args>MAX_ARGS then
+        src_error(sprintf_utf("Number of arguments (%d) is more than allowed (%d)",{args,MAX_ARGS}),block[i][CMD_POS])
+      end if
     end if
     i+=1
 
@@ -4282,6 +4287,7 @@ function binary_compile_recurse(Node tree, VarList vars)
   sequence result
   integer kind
   atom id
+  integer numargs
   integer at
   string s
   sequence kind_and_id
@@ -4341,18 +4347,22 @@ function binary_compile_recurse(Node tree, VarList vars)
         max_used_function=id
       end if
     end if
+    numargs=length(tree[TREE_BRANCHES])
+    if kind!=KIND_FLOW and numargs>MAX_ARGS then
+      src_error(sprintf_utf("Number of arguments being passed (%d) is more than allowed (%d)",{numargs,MAX_ARGS}),cmdpos)
+    end if
     result&=kind
     result&=id
-    result&=length(tree[TREE_BRANCHES])
+    result&=numargs
     --Add placeholders for each argoffset
-    result&=repeat(0,length(tree[TREE_BRANCHES]))
+    result&=repeat(0,numargs)
     if nodeoffset=0 then
       --Special case: Most nodes are added after their children, but the root
       --node needs to have offset 0, so append it already
       compiled_data&=result
     end if
 
-    for i=1 to length(tree[TREE_BRANCHES]) do
+    for i=1 to numargs do
       --actually evaluate each argument and set the real offsets
       recurse_result=binary_compile_recurse(tree[TREE_BRANCHES][i],vars)
       if recurse_result >= nodeoffset then
@@ -4921,7 +4931,7 @@ end function
 --Afterwards all scripts have IDs assigned (in all_scripts)
 procedure check_script_declarations()
   integer at
-  sequence args_and_defaults
+  sequence args_and_defaults, args, defaults
   sequence scripts_found
   sequence src_position, attributes
   string fullname
@@ -4941,10 +4951,13 @@ procedure check_script_declarations()
     at=find_in_column(fullname,script_list,PAIR_NAME)
 
     args_and_defaults=process_arglist(all_scripts[i][SCRIPT_ARG_TOKS])
+    args=args_and_defaults[1]
+    defaults=args_and_defaults[2]
+
     if not at then
       --define script optional, add to script list
       id=pick_script_id(parent_id,all_scripts[i][PAIR_NAME])
-      script_list=create_function(script_list,id,current_script,args_and_defaults[2],KIND_SCRIPT,script_pos,attributes)
+      script_list=create_function(script_list,id,current_script,defaults,KIND_SCRIPT,script_pos,attributes)
       at=length(script_list)
       scripts_found&={true}
     else
@@ -4957,17 +4970,17 @@ procedure check_script_declarations()
       script_list[at][FUNC_POS]=script_pos
       script_list[at][FUNC_ATTRS]&=attributes
 
-      if length(args_and_defaults[1]) != length(script_list[at][FUNC_ARGS]) then
+      if length(args) != length(script_list[at][FUNC_ARGS]) then
         src_error(
           sprintf_utf(
             "Script "&COLYEL&"%s"&COLRED&" has %d arguments named, but has %d arguments in its definescript declaration"
-            ,{current_script,length(args_and_defaults[1]),length(script_list[at][FUNC_ARGS])}
+            ,{current_script,length(args),length(script_list[at][FUNC_ARGS])}
           )
           ,script_pos
         )
       end if
       for j=1 to length(script_list[at][FUNC_ARGS]) do
-        if not equal(args_and_defaults[2][j],NO_DEFAULT) and not equal(args_and_defaults[2][j],script_list[at][FUNC_ARGS][j]) then
+        if not equal(defaults[j],NO_DEFAULT) and not equal(defaults[j],script_list[at][FUNC_ARGS][j]) then
           src_error(
             sprintf_utf(
               "Default value for argument "&COLYEL&"%s"&COLRED&" does not match default given in script definition, %d"
@@ -4978,7 +4991,11 @@ procedure check_script_declarations()
         end if
       end for
     end if
-    all_scripts[i][SCRIPT_ARG_TOKS]=args_and_defaults[1]
+    if length(args)>MAX_ARGS then
+      src_error(sprintf_utf("Number of arguments (%d) is more than allowed (%d)",{length(args),MAX_ARGS}),script_pos)
+    end if
+
+    all_scripts[i][SCRIPT_ARG_TOKS]=args
     all_scripts[i]&={script_list[at][PAIR_NUM]}  --append SCRIPT_ID
   end for
   current_script=""

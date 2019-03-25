@@ -88,7 +88,10 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
   .trigger_loc = trigger_loc
   .double_trigger_check = double_trigger_check
   .argc = numargs
-  IF numargs > UBOUND(.args) + 1 THEN fatalerror "trigger_script: too many args: " & numargs
+  IF numargs > maxScriptArgs THEN
+   showbug "trigger_script: too many args: " & numargs
+   numargs = maxScriptArgs
+  END IF
  END WITH
 END SUB
 
@@ -110,7 +113,7 @@ SUB trigger_script_arg (byval argno as integer, byval value as integer, byval ar
  END IF
 
  WITH *last_queued_script
-  IF argno >= .argc THEN fatalerror .scripttype & " triggering is broken: trigger_script_arg bad arg num " & argno
+  BUG_IF(argno >= .argc, .scripttype & " triggering is broken: bad arg num " & argno)
   .args(argno) = value
   IF gam.script_log.enabled THEN
    IF argno <> 0 THEN .log_line += ", "

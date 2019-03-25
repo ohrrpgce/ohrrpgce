@@ -462,7 +462,7 @@ TYPE ScriptFibre
   double_trigger_check as bool  'Whether to prevent double triggering
   log_line as string    'Debugging aid: Comprised from scripttype, arg names and values and trigger_loc
   argc as integer       'The number of args passed
-  args(3) as integer
+  args(maxScriptArgs - 1) as integer
 END TYPE
 
 DECLARE_VECTOR_OF_TYPE(ScriptFibre ptr, ScriptFibre_ptr)
