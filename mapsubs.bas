@@ -75,8 +75,8 @@ DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, b
 DECLARE FUNCTION count_npc_slots_used(npcs() as NPCInst) as integer
 
 'Undo
-DECLARE SUB add_change_step(byref changelist as MapEditUndoTile vector, byval x as integer, byval y as integer, byval value as integer, byval mapid as integer)
-DECLARE SUB add_undo_step(st as MapEditState, byval x as integer, byval y as integer, byval oldvalue as integer, byval mapid as integer)
+DECLARE SUB add_change_step(byref changelist as MapEditUndoTile vector, byval x as integer, byval y as integer, byval value as integer, byval mapid as MapID)
+DECLARE SUB add_undo_step(st as MapEditState, byval x as integer, byval y as integer, byval oldvalue as integer, byval mapid as MapID)
 DECLARE FUNCTION undo_stroke(st as MapEditState, byval redo as bool = NO) as MapEditUndoTile vector
 DECLARE FUNCTION redo_stroke(st as MapEditState) as MapEditUndoTile vector
 DECLARE SUB undo_stroke_internal(st as MapEditState, byref changelist as MapEditUndoTile vector, byval redo as bool = NO)
@@ -5530,8 +5530,9 @@ SUB mapedit_show_undo_change(st as MapEditState, byval undostroke as MapEditUndo
  END IF
 END SUB
 
+'Add a change to an undo history step (each step is a vector of changes)
 'Note that changelist is byref
-SUB add_change_step(byref changelist as MapEditUndoTile vector, byval x as integer, byval y as integer, byval value as integer, byval mapid as integer)
+SUB add_change_step(byref changelist as MapEditUndoTile vector, byval x as integer, byval y as integer, byval value as integer, byval mapid as MapID)
  WITH *v_expand(changelist)
   .x = x
   .y = y
@@ -5540,7 +5541,7 @@ SUB add_change_step(byref changelist as MapEditUndoTile vector, byval x as integ
  END WITH
 END SUB
 
-SUB add_undo_step(st as MapEditState, byval x as integer, byval y as integer, byval oldvalue as integer, byval mapid as integer)
+SUB add_undo_step(st as MapEditState, byval x as integer, byval y as integer, byval oldvalue as integer, byval mapid as MapID)
  IF st.secondary_undo_buffer THEN
   'Used while previewing a change (pasting a stamp). Note that we don't write metadata
   add_change_step st.secondary_undo_buffer, x, y, oldvalue, mapid

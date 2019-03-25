@@ -51,6 +51,8 @@ DECLARE SUB tilepaste (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB tiletranspaste (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB copymapblock (sx as integer, sy as integer, sp as integer, dx as integer, dy as integer, dp as integer)
 DECLARE SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval toolnum as integer)
+DECLARE SUB tileedit_show_neighbouring_tiles(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)
+DECLARE SUB tileedit_show_tile_tiled(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)
 
 ' Tileset animation editor
 DECLARE SUB testanimpattern (tastuf() as integer, byref taset as integer)
@@ -84,8 +86,6 @@ DECLARE SUB spriteedit_spray_spot(byref ss as SpriteEditState)
 DECLARE SUB spriteedit_replace_col(byref ss as SpriteEditState)
 DECLARE SUB spriteedit_flood_fill(byref ss as SpriteEditState)
 DECLARE SUB spriteedit_sprctrl(byref ss as SpriteEditState)
-DECLARE SUB spriteedit_show_neighbouring_tiles(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)
-DECLARE SUB spriteedit_show_tile_tiled(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)
 DECLARE SUB spriteedit_clip (ss as SpriteEditState)
 DECLARE SUB changepal (ss as SpriteEditState, palchange as integer)
 DECLARE SUB writeundospr (ss as SpriteEditState)
@@ -1712,9 +1712,9 @@ DO
  
  '--Draw tile preview
  IF ts.preview_content = 0 THEN
-  spriteedit_show_neighbouring_tiles(ts, bgcolor, chequer_scroll)
+  tileedit_show_neighbouring_tiles(ts, bgcolor, chequer_scroll)
  ELSE
-  spriteedit_show_tile_tiled(ts, bgcolor, chequer_scroll)
+  tileedit_show_tile_tiled(ts, bgcolor, chequer_scroll)
  END IF
  
  frame_clear overlay
@@ -1825,7 +1825,7 @@ frame_unload @overlay
 palette16_unload @overlaypal
 END SUB
 
-SUB spriteedit_show_tile_tiled(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)
+SUB tileedit_show_tile_tiled(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)
  ' draw current tile tiled as preview on the left of the tile-editor
  DIM as integer row = -1, column = -1
  DIM tilesize as integer = 20
@@ -1846,7 +1846,7 @@ SUB spriteedit_show_tile_tiled(byref ts as TileEditState, byval bgcolor as bgTyp
  
 END SUB
 
-SUB spriteedit_show_neighbouring_tiles(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)
+SUB tileedit_show_neighbouring_tiles(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)
  ' draw neighboring tiles preview area on the left of the tile-editor
  DIM as integer row = -1, column = -1
  DIM tssize as XYPair = (16,10) ' tileset size

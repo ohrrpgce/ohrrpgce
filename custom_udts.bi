@@ -241,7 +241,7 @@ END ENUM
 
 'MapIDs used for undo steps
 'FIXME:a bit of a mess, clean up later
-ENUM MapID
+ENUM 'MapID
   mapIDMetaBEGIN = -11
   mapIDMetaCursor = -11    'Stores cursor position at beginning of stroke
   mapIDMetaEditmode = -10  'to -1. .value is mode specific.
@@ -251,12 +251,13 @@ ENUM MapID
   mapIDFoe = 10001
   mapIDLayer = 10002  'to 10099
 END ENUM
+TYPE MapID as short
 
 TYPE MapEditUndoTile
   x as ushort
   y as ushort
   value as short
-  mapid as short  'as MapID
+  mapid as MapID
 END TYPE
 
 DECLARE_VECTOR_OF_TYPE(MapEditUndoTile, MapEditUndoTile)
@@ -400,8 +401,6 @@ TYPE MapEditState
   zonemenustate as MenuState
   npczone_needupdate as bool
   gauze_ticker as integer = 0  'for hidden zones animation
-
-
 END TYPE
 
 TYPE MapResizeState
@@ -458,14 +457,14 @@ TYPE RecordPreviewer EXTENDS object
 END TYPE
 
 ' Preview a map by showing a minimap. The minimap doesn't try to cover the whole screen:
-' the maximum size of the minimap is the screen size minus screen_margin.
+' the maximum size of the minimap is the screen size minus margin.
 ' Generation of the minimap is delayed, so that it doesn't make controls unresponsive
 TYPE MapPreviewer EXTENDS RecordPreviewer
   PRIVATE:
-    margin as XYPair             'screen margin
+    margin as XYPair             'Screen margin, reduces size of the minimap
     wantminimap as integer       'Map ID or -1 if no minimap calculation pending
     load_minimap_timer as double 'When to load a delayed minimap
-    instant_threshold as integer 'Map size in tiles
+    instant_threshold as integer 'Map size in tiles: if smaller, loading is not delayed
     minimap as Frame ptr
 
   PUBLIC:
