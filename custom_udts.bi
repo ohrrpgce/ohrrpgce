@@ -318,7 +318,6 @@ TYPE MapEditState
   tilesets(maplayerMax) as TilesetData ptr  'Tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
   npc_img(any) as GraphicPair
   defaultwalls as integer vector vector  'indexed by layer (variable length) and then by tile (always 0-159)
-  menustate as MenuState     'The top-level menu state
   temptilemap as TileMap     'A temporary TileMap. Normally remains uninitialised
   moved as integer          'used when detecting cursor movement
   walk as integer           'used for animating NPC walking

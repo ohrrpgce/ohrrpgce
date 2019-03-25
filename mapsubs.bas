@@ -440,7 +440,6 @@ FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as 
 END FUNCTION
 
 SUB mapeditor (byval mapnum as integer)
-STATIC remember_menu_pt as integer = 0
 
 DIM st as MapEditState
 DIM pal16(288) as integer
@@ -640,13 +639,15 @@ mapeditmenu(12) = "Editor Settings..."
 mapeditmenu(13) = "Erase Map Data"
 mapeditmenu(14) = "Import/Export Tilemap..."
 mapeditmenu(15) = "Re-load Default Passability"
-mapeditmenu(16) = "Map name:"
+mapeditmenu(16) = "Map name: "
 
 DIM selectst as SelectTypeState
-st.menustate.size = 24
-st.menustate.last = UBOUND(mapeditmenu)
-st.menustate.pt = remember_menu_pt  'preserved from any other maps for convenience
-st.menustate.need_update = YES
+STATIC remember_menu_pt as integer = 0
+DIM mstate as MenuState
+mstate.size = 24
+mstate.last = UBOUND(mapeditmenu)
+mstate.pt = remember_menu_pt  'preserved from any other maps for convenience
+mstate.need_update = YES
 
 setkeys YES
 DO
@@ -657,12 +658,12 @@ DO
   EXIT DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "mapedit_menu"
- usemenu st.menustate
- IF st.menustate.pt = 16 AND selectst.query = "" THEN
+ usemenu mstate
+ IF mstate.pt = 16 AND selectst.query = "" THEN
   strgrabber st.map.name, 39
-  st.menustate.need_update = YES
+  mstate.need_update = YES
  ELSEIF select_by_typing(selectst) THEN
-  select_on_word_boundary mapeditmenu(), selectst, st.menustate
+  select_on_word_boundary mapeditmenu(), selectst, mstate
  END IF
 
  IF keyval(scCtrl) > 0 AND keyval(scS) > 1 THEN
@@ -671,8 +672,8 @@ DO
   show_overlay_message "Saved.", 0.5
  END IF
 
- IF enter_space_click(st.menustate) THEN
-  SELECT CASE st.menustate.pt
+ IF enter_space_click(mstate) THEN
+  SELECT CASE mstate.pt
    CASE 0
     mapedit_savemap st
     EXIT DO
@@ -683,7 +684,7 @@ DO
    CASE 3
     mapedit_layers st
    CASE 4 TO 6  'Tilemap, Wallmap, Doormap
-    st.seteditmode = st.menustate.pt - 4
+    st.seteditmode = mstate.pt - 4
     mapeditor_mapping st, mode_tools_map()
    CASE 7
     mapedit_savemap st
@@ -692,7 +693,7 @@ DO
     'This may delete NPC instances, and write npc definitions to disk
     npcdef_editor st
    CASE 9 TO 11  'Place NPCs, Foemap, Zonemap
-    st.seteditmode = st.menustate.pt - 6
+    st.seteditmode = mstate.pt - 6
     mapeditor_mapping st, mode_tools_map()
    CASE 12  'Settings
     mapedit_settings_menu st
@@ -719,14 +720,14 @@ DO
   END IF
  END IF
 
- IF st.menustate.need_update THEN
-  mapeditmenu(16) = "Map name:" + st.map.name
-  st.menustate.need_update = NO
+ IF mstate.need_update THEN
+  mapeditmenu(16) = "Map name: " + st.map.name
+  mstate.need_update = NO
  END IF
 
  clearpage vpage
- highlight_menu_typing_selection mapeditmenu(), mapeditmenu_display(), selectst, st.menustate
- standardmenu mapeditmenu_display(), st.menustate, 0, 0, vpage
+ highlight_menu_typing_selection mapeditmenu(), mapeditmenu_display(), selectst, mstate
+ standardmenu mapeditmenu_display(), mstate, 0, 0, vpage
  setvispage vpage
  dowait
 LOOP
@@ -768,7 +769,7 @@ v_free st.zonemenu
 'Remember position
 remem_map_positions(st.map.id) = XY(st.x, st.y)
 
-remember_menu_pt = st.menustate.pt  'preserve for other maps
+remember_menu_pt = mstate.pt  'preserve for other maps
 END SUB
 
 
