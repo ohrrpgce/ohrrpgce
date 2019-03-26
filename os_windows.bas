@@ -52,9 +52,9 @@ include_windows_bi()
 	CONST CURRENT_CRASHRPT_API = 1
 
 	extern "C"
-		'This function is in os_windows2.c
+		'These functions are in os_windows2.c
 		declare function crashrpt_setup(libpath as zstring ptr, appname as zstring ptr, version as zstring ptr, buildstring as zstring ptr, logfile1 as zstring ptr, logfile2 as zstring ptr, add_screenshot as boolint) as boolint
-		declare function crashrpt_send_report(msg as const zstring ptr) as boolint
+		declare function crashrpt_send_report(errmsg as const zstring ptr) as boolint
 	end extern
 
 	dim shared loaded_crashrpt as bool = NO
@@ -214,6 +214,8 @@ extern "windows"
 'A default last-resort exception handler, used only if we haven't loaded an
 'exception handling library.
 function exceptFilterMessageBox(pExceptionInfo as PEXCEPTION_POINTERS) as clong
+	'TODO: if we don't have CrashRpt, create a minidump ourselves and ask the user to send it.
+
 	if want_exception_messagebox then
 		'Avoid calling FB string routines
 		dim msgbuf as string * 301
@@ -267,6 +269,7 @@ function try_load_crashrpt_at(crashrpt_dll as string) as bool
 end function
 
 function find_and_load_crashrpt() as bool
+	'This path is in settings_dir, but we haven't called get_settings_dir yet
 	dim dll_loc_file as string = ENVIRON("APPDATA") & "\OHRRPGCE\crashrpt_loc_api" & CURRENT_CRASHRPT_API & ".txt"
 
 	'First check the support directory.

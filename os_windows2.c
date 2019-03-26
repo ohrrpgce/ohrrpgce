@@ -116,8 +116,8 @@ boolint crashrpt_setup(const char *libpath, const char *appname, const char *ver
 	return YES;
 }
 
-boolint crashrpt_send_report(const char *value) {
-	crpt.crAddPropertyA("error", value);
+boolint crashrpt_send_report(const char *errmsg) {
+	crpt.crAddPropertyA("error", errmsg);
 	CR_EXCEPTION_INFO ei;
 	memset(&ei, 0, sizeof(CR_EXCEPTION_INFO));
 	ei.cb = sizeof(CR_EXCEPTION_INFO);
