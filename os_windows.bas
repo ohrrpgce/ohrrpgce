@@ -54,7 +54,10 @@ include_windows_bi()
 	extern "C"
 		'This function is in os_windows2.c
 		declare function crashrpt_setup(libpath as zstring ptr, appname as zstring ptr, version as zstring ptr, buildstring as zstring ptr, logfile1 as zstring ptr, logfile2 as zstring ptr, add_screenshot as boolint) as boolint
+		declare function crashrpt_send_report(msg as const zstring ptr) as boolint
 	end extern
+
+	dim shared loaded_crashrpt as bool = NO
 #endif
 
 
@@ -256,6 +259,7 @@ function try_load_crashrpt_at(crashrpt_dll as string) as bool
 	if crashrpt_setup(strptr(crashrpt_dll), appname, short_version, long_version & build_info, _
 			  app_log_filename, app_archive_filename, add_screenshot) then
 		'early_debuginfo "CrashRpt handler installed"
+		loaded_crashrpt = YES
 		return YES
 	end if
 	'On failure, crashrpt_setup logs an error itself
@@ -314,7 +318,7 @@ sub setup_exception_handler()
         SetUnhandledExceptionFilter(@exceptFilterMessageBox)
 
 #if defined(WITH_CRASHRPT)
-	'Load CrashRpt, which connects to CrashSender.exe, and out-of-process exception
+	'Load CrashRpt, which connects to CrashSender.exe, an out-of-process exception
 	'handler (meaning, it spawns a separate process to report the crash, so it can work
 	'even if there's severe memory/state corruption).
 	if find_and_load_crashrpt() then exit sub
@@ -355,7 +359,10 @@ sub setup_exception_handler()
 #endif
 end sub
 
-'Called from within fatalerror. Will popup an "Engine crashed" messagebox if show_message true.
+'Unused.
+'Works only if loaded exchndl.dll: will log a backtrace to crash_reportfile.
+'Will popup an "Engine crashed" messagebox if show_message true.
+'Also if CrashRpt was loaded, that will intercept the exception.
 sub save_backtrace(show_message as bool = YES)
 	#if defined(WITH_EXCHNDL)
 		if len(crash_reportfile) = 0 then exit sub  'Don't have exchndl
@@ -371,6 +378,16 @@ sub save_backtrace(show_message as bool = YES)
 	continue_after_exception = NO
 	debug "Done!"
 end sub
+
+'Returns true if we successfully showed a prompt to send a report (even if the user cancelled)
+function send_bug_report (msg as const zstring ptr) as boolint
+#if defined(WITH_CRASHRPT)
+	if loaded_crashrpt then
+		return crashrpt_send_report(msg)
+	end if
+#endif
+	return NO
+end function
 
 ' A breakpoint
 sub interrupt_self ()
@@ -539,7 +556,7 @@ end function
 '==========================================================================================
 ' (Actually mandatory on Windows)
 
-	
+
 private function lock_file_base (byval fh as CFILE_ptr, byval timeout_ms as integer, byval flag as integer, funcname as string) as integer
 	dim fhandle as HANDLE = get_file_handle(fh)
 	dim timeout as integer = GetTickCount() + timeout_ms

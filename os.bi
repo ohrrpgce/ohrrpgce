@@ -26,6 +26,7 @@ declare function memory_usage_string() as string
 
 declare sub setup_exception_handler ()
 declare sub save_backtrace (show_message as bool = YES)
+declare function send_bug_report (msg as const zstring ptr) as boolint
 declare sub interrupt_self ()
 
 'Actually in filelayer.cpp

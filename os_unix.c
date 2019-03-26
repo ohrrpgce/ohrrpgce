@@ -93,8 +93,14 @@ void save_backtrace(boolint show_message) {
 	// Unimplemented (but glibc makes this easy!)
 }
 
+// Returns true if it was possible to try to send a report (even if the user cancelled)
+boolint send_bug_report (const char *msg) {
+	// Unimplemented
+	return NO;
+}
+
 boolint on_main_thread() {
-	return pthread_equal(pthread_self(), main_thread_handle) ? -1 : 0;
+	return pthread_equal(pthread_self(), main_thread_handle) ? YES : NO;
 }
 
 

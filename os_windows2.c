@@ -12,6 +12,16 @@
 #define _CRASHRPT_NO_WRAPPERS  //Exclude C++ wrapper classes
 #include "CrashRpt.h"
 
+struct {
+	CRASHRPTAPI(int) (*crInstallA)(__in PCR_INSTALL_INFOA pInfo);
+	CRASHRPTAPI(int) (*crAddFile2A)(LPCSTR pszFile, LPCSTR pszDestFile, LPCSTR pszDesc, DWORD dwFlags);
+	CRASHRPTAPI(int) (*crAddPropertyA)(LPCSTR pszPropName, LPCSTR pszPropValue);
+	CRASHRPTAPI(int) (*crAddScreenshot2)(DWORD dwFlags, int nJpegQuality);
+	CRASHRPTAPI(int) (*crGetLastErrorMsgA)(LPSTR pszBuffer, UINT uBuffSize);
+	CRASHRPTAPI(int) (*crGenerateErrorReport)(__in_opt CR_EXCEPTION_INFO* pExceptionInfo);
+} crpt;
+
+
 const char* win_error(int errcode) {
 	static char strbuf[256] = "<N/A>";
 	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errcode, 0, strbuf, 255, NULL);
@@ -38,8 +48,8 @@ void os_get_screen_size(int *wide, int *high) {
 }
 
 
-#define lookup_sym(lib, sym) \
-	if (!(sym = (void*)GetProcAddress((HINSTANCE)lib, #sym))) { \
+#define lookup_sym(lib, strct, sym) \
+	if (!(strct.sym = (void*)GetProcAddress((HINSTANCE)lib, #sym))) { \
 		debuginfo("Couldn't load %s: %s", #sym, win_error(GetLastError())); \
 		FreeLibrary((HINSTANCE)lib); \
 		return 0; \
@@ -56,17 +66,12 @@ boolint crashrpt_setup(const char *libpath, const char *appname, const char *ver
 		return 0;
 	}
 
-	CRASHRPTAPI(int) (*crInstallA)(__in PCR_INSTALL_INFOA pInfo);
-	CRASHRPTAPI(int) (*crAddFile2A)(LPCSTR pszFile, LPCSTR pszDestFile, LPCSTR pszDesc, DWORD dwFlags);
-	CRASHRPTAPI(int) (*crAddPropertyA)(LPCSTR pszPropName, LPCSTR pszPropValue);
-	CRASHRPTAPI(int) (*crAddScreenshot2)(DWORD dwFlags, int nJpegQuality);
-	CRASHRPTAPI(int) (*crGetLastErrorMsgA)(LPSTR pszBuffer, UINT uBuffSize);
-
-	lookup_sym(lib, crInstallA)
-	lookup_sym(lib, crAddFile2A)
-	lookup_sym(lib, crAddPropertyA)
-	lookup_sym(lib, crAddScreenshot2)
-	lookup_sym(lib, crGetLastErrorMsgA)
+	lookup_sym(lib, crpt, crInstallA)
+	lookup_sym(lib, crpt, crAddFile2A)
+	lookup_sym(lib, crpt, crAddPropertyA)
+	lookup_sym(lib, crpt, crAddScreenshot2)
+	lookup_sym(lib, crpt, crGetLastErrorMsgA)
+	lookup_sym(lib, crpt, crGenerateErrorReport)
 
 	CR_INSTALL_INFOA info;
 	memset(&info, 0, sizeof(CR_INSTALL_INFOA));
@@ -92,22 +97,37 @@ boolint crashrpt_setup(const char *libpath, const char *appname, const char *ver
 	info.uMiniDumpType = MiniDumpWithHandleData;
 
 	// Install crash reporting
-	int nResult = crInstallA(&info);
-	if (nResult) {
+	if (crpt.crInstallA(&info)) {
 		char szErrorMsg[512] = {0};
-		crGetLastErrorMsgA(szErrorMsg, 512);
+		crpt.crGetLastErrorMsgA(szErrorMsg, 512);
 		debug(errError, "Installing crashrpt failed: %s", szErrorMsg);
 		debug(errError, "continue...");
 		debug(errError, "...");
-		return 0;
+		return NO;
 	}
 
-	crAddFile2A(logfile1, NULL, "Log File", CR_AF_MAKE_FILE_COPY | CR_AF_MISSING_FILE_OK | CR_AF_ALLOW_DELETE);
-	crAddFile2A(logfile2, NULL, "Log File", CR_AF_MAKE_FILE_COPY | CR_AF_MISSING_FILE_OK | CR_AF_ALLOW_DELETE);
+	crpt.crAddFile2A(logfile1, NULL, "Log File", CR_AF_MAKE_FILE_COPY | CR_AF_MISSING_FILE_OK | CR_AF_ALLOW_DELETE);
+	crpt.crAddFile2A(logfile2, NULL, "Log File", CR_AF_MAKE_FILE_COPY | CR_AF_MISSING_FILE_OK | CR_AF_ALLOW_DELETE);
 
 	if (add_screenshot)
-		crAddScreenshot2(CR_AS_MAIN_WINDOW | CR_AS_ALLOW_DELETE, 0);
-	crAddPropertyA("build", buildstring);
+		crpt.crAddScreenshot2(CR_AS_MAIN_WINDOW | CR_AS_ALLOW_DELETE, 0);
+	crpt.crAddPropertyA("build", buildstring);
 
-	return nResult == 0;
+	return YES;
+}
+
+boolint crashrpt_send_report(const char *value) {
+	crpt.crAddPropertyA("error", value);
+	CR_EXCEPTION_INFO ei;
+	memset(&ei, 0, sizeof(CR_EXCEPTION_INFO));
+	ei.cb = sizeof(CR_EXCEPTION_INFO);
+	ei.exctype = CR_CPP_SIGABRT;
+	ei.bManual = TRUE;
+	if (crpt.crGenerateErrorReport(&ei)) {
+		char szErrorMsg[512] = {0};
+		crpt.crGetLastErrorMsgA(szErrorMsg, 512);
+		debug(errError, "crGenerateErrorReport failed: %s", szErrorMsg);
+		return NO;
+	}
+	return YES;
 }

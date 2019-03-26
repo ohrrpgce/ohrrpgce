@@ -93,6 +93,9 @@ DIM log_dir as string
 'While true, debug messages also get appended to log_buffer.
 DIM remember_debug_messages as bool = YES
 
+'True if called send_bug_report already this session
+DIM SHARED reported_a_bug as bool
+
 'Used on Mac to point to the app bundle Resources directory
 DIM app_resources_dir as string
 
@@ -430,6 +433,9 @@ SUB debugc_internal (callsite as any ptr, errorlevel as errorLevelEnum, s as con
   CASE errDie
    PRINT "DIE: " & *s
    debug "DIE: " & *s
+   'It's arguable whether this is a bug and should attempt to report or not.
+   'But it's basically a crash, so let's say yes.
+   IF reported_a_bug = NO THEN send_bug_report s
    fatal_error_shutdown
  END SELECT
 END SUB
@@ -1254,8 +1260,6 @@ FUNCTION maplumpname (byval map_id as integer, oldext as string) as string
 END FUNCTION
 
 SUB fatal_error_shutdown
- save_backtrace
-
  #IFDEF IS_CUSTOM
   IF cleanup_workingdir_on_error ANDALSO LEN(workingdir) ANDALSO isdir(workingdir) THEN
    touchfile workingdir & SLASH & "__danger.tmp"
@@ -1317,6 +1321,14 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
   NEXT
  END IF
 
+ DIM reported_this_bug as bool
+ IF isbug ANDALSO reported_a_bug = NO THEN
+  'Attempt to prompt the users to send a bug report (currently, using CrashRpt),
+  'but not if we've already done so; that would be annoying.
+  reported_this_bug = send_bug_report(zmsg)
+  reported_a_bug = reported_this_bug
+ END IF
+
  DIM printmsg as string
  printmsg = IIF(isbug, "(BUG) ", "") + IIF(isfatal, "FATAL: ", "ERROR: ") + *zmsg
  PRINT printmsg
@@ -1354,7 +1366,14 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
  DIM quitmsg as string
 
  IF isbug THEN
-  quitmsg = !"\n\nPlease report this engine bug by sending an e-mail to ohrrpgce-crash@HamsterRepublic.com\n\n"
+  IF reported_this_bug THEN
+   quitmsg = !"\n\n(Invoked crash reporter)\n\n"
+  ELSEIF reported_a_bug THEN
+   quitmsg = !"\n\n(Not sending another crash report)\n\n"
+  ELSE
+   'Couldn't send a report
+   quitmsg = !"\n\nPlease report this engine bug by sending an e-mail to ohrrpgce-crash@HamsterRepublic.com\n\n"
+  END IF
  ELSE
   quitmsg = !"\n\nIf this error is unexpected, please send an e-mail to ohrrpgce-crash@HamsterRepublic.com\n\n"
  END IF
@@ -1370,7 +1389,9 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
  END IF
 
  last_error = msg
- IF isfatal THEN
+ IF isfatal ANDALSO isbug THEN
+  msg = !"         --  FATAL BUG  --\n" + msg
+ ELSEIF isfatal THEN
   msg = !"        --  FATAL ERROR  --\n" + msg
  ELSEIF isbug THEN
   msg = !"        --  OHRRPGCE BUG  --\n" + msg
