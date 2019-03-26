@@ -2018,7 +2018,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
       maskeddmgbit(62) = ""  'Damage can be zero
       
     ELSE
-      fatalerror "Impossible damage math setting"
+      showbug "Impossible damage math setting"
     END IF
 
     'Add rest of menu items

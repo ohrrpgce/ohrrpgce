@@ -527,7 +527,7 @@ END SUB
 
 'Version which allows items to be "shaded" (they are both disabled/greyed out and unselectable (for purposes of mouse hover))
 SUB standardmenu (menu() as string, byref state as MenuState, shaded() as bool, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions)
- IF LBOUND(shaded) > LBOUND(menu) OR UBOUND(shaded) < UBOUND(menu) THEN fatalerror "standardmenu: shaded() too small"
+ BUG_IF(LBOUND(shaded) > LBOUND(menu) ORELSE UBOUND(shaded) < UBOUND(menu), "shaded() too small")
  DIM basicmenu as BasicMenuItem vector
  standard_to_basic_menu menu(), state, basicmenu, @shaded(0)
  'Shift menu items so that state.first = 0

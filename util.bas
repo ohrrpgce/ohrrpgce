@@ -84,7 +84,7 @@ SUB setup_exx_handler()
   DIM as zstring ptr func_name = ERFN, mod_name = ERMN
   DIM as string message
   message = *format_FB_error_message(err_num, err_line, mod_name, func_name)
-  fatalerror message
+  fatalbug message
 END SUB
 
 SUB remove_exx_handler()
@@ -1009,9 +1009,7 @@ SUB checkoverflow (st as Stack, byval amount as integer = 1)
 END SUB
 
 SUB setstackposition (st as Stack, byval position as integer)
-  IF position < 0 OR position > stackposition(st) THEN
-    fatalerror "setstackposition invalid, " & position
-  END IF
+  BUG_IF(position < 0 ORELSE position > stackposition(st), "invalid, " & position)
   st.pos = st.bottom + position
 END SUB
 

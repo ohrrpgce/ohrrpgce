@@ -1624,7 +1624,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     DIM mintype as SpriteType = IIF(ses.collection_group_number = SL_COLLECT_EDITOR, sprTypeFrame, 0)
     sliceed_rule_enum rules(), "sprite_type", @(dat->spritetype), mintype, sprTypeLastPickable, slgrUPDATESPRITE
     IF dat->spritetype = sprTypeFrame THEN
-     IF dat->assetfile = NULL THEN fatalerror "sliceedit: null dat->assetfile"
+     BUG_IF(dat->assetfile = NULL, "null dat->assetfile")
      a_append menu(), " Asset file: " & *dat->assetfile
      sliceed_rule_str rules(), "sprite_asset", erShortStrgrabber, dat->assetfile, 1024, (slgrUPDATESPRITE OR slgrBROWSESPRITEASSET)
      IF ses.privileged THEN

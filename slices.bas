@@ -588,8 +588,8 @@ end sub
 'contents of array of orphaned child slice pointers.
 'NOTE: children need to be orphans, and that's not checked.
 Sub RelinkChildren(byval parent as Slice Ptr, slice_list() as Slice ptr)
- if parent = 0 then debug "RelinkChildren: null ptr"
- if parent->NumChildren <> 0 then fatalerror "RelinkChildren: already has children"
+ BUG_IF(parent = 0, "null ptr")
+ BUG_IF(parent->NumChildren <> 0, "Already has children")
  dim i as integer
  parent->FirstChild = slice_list(0)
  parent->LastChild = slice_list(ubound(slice_list))
@@ -1842,7 +1842,7 @@ End Function
 ' Actually load the asset for a sprite slice, or load a placeholder Frame
 ' if it's missing. If the assetfile is "", always loads a placeholder with no warning.
 Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
- if sl = 0 then fatalerror "LoadSpriteasset null ptr"
+ BUG_IF(sl = 0, "null ptr")
 
  with *sl->SpriteData
   frame_unload(@.img.sprite)
@@ -1889,7 +1889,7 @@ End Sub
 ' Turn a sprite slice into an 'asset' sprite, meaning it is loaded from an image in the data/ dir.
 ' assetname should be the name of a file in data/, or can be blank if that isn't decided yet (in slice editor).
 Sub SetSpriteToAsset(sl as Slice ptr, assetfile as string, warn_if_missing as bool = YES)
- if sl = 0 then fatalerror "SetSpriteToAsset null ptr"
+ BUG_IF(sl = 0, "null ptr")
 
  'Create temp copy, in case assetfile is dat->assetfile, which we're about to delete
  dim filename as string = assetfile
@@ -4448,10 +4448,10 @@ Sub SliceDebugLinks(sl as Slice Ptr, recurse as bool = NO, prefix as string = ""
  debug prefix & string(indent + 1, " ") & SliceTypeName(sl) & " " & SliceLookupCodename(sl) & " sl=" & sl & " par=" & sl->Parent & " prev=" & sl->PrevSibling & " next=" & sl->NextSibling
  debug prefix & string(indent + 6, " ") & sl->NumChildren & " children, first=" & sl->FirstChild & " last=" & sl->LastChild
  if sl->FirstChild then
-  if sl->FirstChild->Parent <> sl then fatalerror "bad FirstChild"
+  BUG_IF(sl->FirstChild->Parent <> sl, "bad FirstChild")
  end if
  if sl->LastChild then
-  if sl->LastChild->Parent <> sl then fatalerror "bad LastChild"
+  BUG_IF(sl->LastChild->Parent <> sl, "bad LastChild")
  end if
  if recurse then
   SliceDebugLinks sl->FirstChild, recurse, prefix, indent + 1

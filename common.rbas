@@ -705,7 +705,7 @@ FUNCTION getfixbit(byval bitnum as integer) as integer
 END FUNCTION
 
 SUB setfixbit(byval bitnum as integer, byval bitval as integer)
- IF bitnum >= sizeFixBits THEN fatalerror "setfixbit(" & bitnum & "): You forgot sizefixbits!"
+ IF bitnum >= sizeFixBits THEN fatalbug "setfixbit(" & bitnum & "): sizefixbits wrong!"
  DIM f as string
  f = workingdir + SLASH + "fixbits.bin"
  DIM fh as integer
@@ -5155,7 +5155,7 @@ SUB rpg_sanity_checks
   FOR bindex as integer = 0 TO binLASTENTRY
    IF curbinsize(bindex) MOD 2 <> 0 THEN
     'curbinsize is INSANE, scream bloody murder to prevent data corruption!
-    fatalerror "Oh noes! curbinsize(" & bindex & ")=" & curbinsize(bindex) & " Please complain to the devs, who may have just done something stupid!"
+    fatalbug "Oh noes! curbinsize(" & bindex & ")=" & curbinsize(bindex)
    END IF
    DIM binsize as integer = getbinsize(bindex)
    IF binsize > curbinsize(bindex) THEN
