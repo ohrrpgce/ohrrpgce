@@ -364,7 +364,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
     END IF
   END WITH
 
-  reset_console
+  console_reset
   textcolor uilook(uiMenuItem), 0
 
   DIM numscripts as integer = 0
@@ -383,7 +383,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   END IF
 
   'Loop through each script in either scripts.bin or scripts.txt
-  show_message "Imported:  "
+  console_show_message "Imported:  "
   DO
    IF EOF(fptr) THEN EXIT DO
    IF dotbin THEN
@@ -424,8 +424,9 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
 
    'display progress
    IF id < 16384 OR trigger > 0 THEN
-    viscount = viscount + 1
-    IF quickimport = NO THEN append_message scrname & ", "
+    'This is a plotscript
+    viscount += 1
+    IF quickimport = NO THEN console_append_message scrname & ", "
    END IF
   LOOP
   CLOSE plotscr_lsth
@@ -465,19 +466,19 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   load_script_triggers_and_names
 
   '--fix the references to any old-style plotscripts that have been converted to new-style scripts.
-  show_message ""
-  show_message "Scanning script triggers..."
+  console_show_message ""
+  console_show_message "Scanning script triggers..."
   autofix_broken_old_scripts
   safekill tmpdir & "plotscr.lst.old.tmp"
 
   textcolor uilook(uiText), 0
-  show_message "Imported " & viscount & " plotscripts."
+  console_show_message "Imported " & viscount & " plotscripts."
   IF option_nowait THEN
    PRINT "Imported " & viscount & " plotscripts."
   END IF
 
   IF quickimport THEN
-   ' The show_messages above will be gone before the user can see them
+   ' The console_show_messages above will be gone before the user can see them
    show_overlay_message "Imported " & viscount & " plotscripts from " & trimpath(srcfile), 3.
   ELSE
    waitforanykey

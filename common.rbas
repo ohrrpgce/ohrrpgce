@@ -3402,8 +3402,8 @@ SUB upgrade_message (s as string)
  ' Don't black out the screen to show upgrade messages if there aren't any
  IF show_upgrade_messages AND got_upgrade_messages = NO THEN
   got_upgrade_messages = YES
-  reset_console 20, vpages(vpage)->h - 20
-  show_message("Auto-updating game")
+  console_reset 20
+  console_show_message("Auto-updating game")
  END IF
  DIM temptime as double
  IF time_rpg_upgrade THEN
@@ -3414,7 +3414,7 @@ SUB upgrade_message (s as string)
   END IF
  END IF
  debuginfo "rpgfix:" & s
- IF show_upgrade_messages THEN show_message(s)
+ IF show_upgrade_messages THEN console_show_message(s)
  IF time_rpg_upgrade THEN
   temptime = TIMER
   last_upgrade_time = temptime
@@ -3422,33 +3422,46 @@ SUB upgrade_message (s as string)
  END IF
 END SUB
 
-'admittedly, these 'console' functions suck
-SUB reset_console (byval top as integer = 0, byval h as integer = 200, byval c as integer = -1)
- IF c = -1 THEN c = uilook(uiBackground)
+
+'==========================================================================================
+'                                Emulated Console Display
+'==========================================================================================
+
+'Display text which scrolls upwards as more text is added.
+'A simple wrapprint may be a better solution that this old code, which
+'only supports adding one line or part of a line at a time.
+
+'Initialise and clear a fake console. Write to it with console_{show_message,append_message}
+'top, bottom:
+'  Pixels of space to leave at the top and bottom of the screen;
+'  existing contents aren't cleared.
+SUB console_reset (top as integer = 0, bottom as integer = 0)
  WITH console
   .margin = 4
   .top = top
-  .h = h
+  .h = vpages(vpage)->h - top - bottom
   .x = .margin
   .y = top + .margin
-  .c = c
+  .c = uilook(uiBackground)
   DIM tempfr as Frame ptr
   tempfr = frame_new_view(vpages(vpage), 0, .top, vpages(vpage)->w, .h)
-  frame_clear tempfr, c
+  frame_clear tempfr, .c
   frame_unload @tempfr
  END WITH
 END SUB
 
-SUB show_message (s as string)
+'Write a line of text (does not wrap) on a new line
+SUB console_show_message (s as string)
  WITH console
   IF .x > .margin THEN .x = .margin : .y += 8
-  append_message s
+  console_append_message s
  END WITH
 END SUB
 
-SUB append_message (s as string)
- DIM as integer display = YES
- IF RIGHT(TRIM(s), 1) = "," THEN display = NO
+'Write a string at the current cursor position, add a newline first if it won't fit
+SUB console_append_message (s as string)
+ DIM display as bool = YES
+ IF RIGHT(TRIM(s), 1) = "," THEN display = NO  'Kludge for script import... should just convert it to wrapprint
  WITH console
   IF .x > .margin AND textwidth(s) + .x > vpages(vpage)->w - .margin THEN
    .x = .margin
