@@ -220,6 +220,7 @@ September 29 2018 [Fufluns]
       it now hides the HP display/bar in battles too. [Ralph]
     * Test Game often didn't work when run on Mac OS 10.12+ (Sierra) [Ralph]
     * Crash when attack targetting mute/etc register used out-of-battle [Ralph]
+    * "gain hero stat" could divide by zero and set a stat to 2147483647 [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

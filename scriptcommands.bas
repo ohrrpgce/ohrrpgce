@@ -4521,7 +4521,11 @@ SUB script_functions(byval cmdid as integer)
  CASE 649'--multdiv
   'Return int(float(a)*b/c), clamped to a 32-bit int, and rounded
   '(Break ties towards +inf, since that's what JS does; FB/x86 breaks ties towards even)
-  scriptret = INT(bound(CDBL(retvals(0)) * retvals(1) / retvals(2), CDBL(INT_MIN), CDBL(INT_MAX)) + 0.5)
+  IF retvals(2) = 0 THEN
+   scripterr strprintf("division by zero: %d*%d/0", retvals(0), retvals(1)), serrBadOp
+  ELSE
+   scriptret = INT(bound(CDBL(retvals(0)) * retvals(1) / retvals(2), CDBL(INT_MIN), CDBL(INT_MAX)) + 0.5)
+  END IF
  CASE 650 '--set rect raw border
   IF bound_arg(retvals(1), -2, gen(genMaxBoxBorder), "raw border") THEN
    change_rect_plotslice retvals(0), , , , , , , retvals(1)

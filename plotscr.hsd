@@ -791,7 +791,7 @@ script, gainherostat, hsd:who, hsd:stat, hsd:change, hsd:resetcurrent=false, beg
   hsd:newbase := getherostat(hsd:who, hsd:stat, basestat) + hsd:change
   setherostat(hsd:who, hsd:stat, hsd:newbase, basestat)
   hsd:newmax := getherostat(hsd:who, hsd:stat, maximumstat)
-  if (hsd:resetcurrent) then (
+  if (hsd:resetcurrent || hsd:oldmax <= 0) then (
     # Set current to new max
     hsd:newcur := hsd:newmax
   ) else (
