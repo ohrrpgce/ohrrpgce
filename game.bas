@@ -4007,7 +4007,7 @@ SUB refresh_map_slice()
  FOR i as integer = 0 TO UBOUND(maptiles)
   '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
   IF SliceTable.MapLayer(i) = 0 THEN
-   debug "NULL SliceTable.MapLayer(" & i & ") when resetting tilesets in refresh_map_slice()"
+   showbug "NULL SliceTable.MapLayer(" & i & ") when resetting tilesets in refresh_map_slice()"
   ELSE
    ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), @pass
    SliceTable.MapLayer(i)->Visible = IIF(i = 0, YES, readbit(gmap(), 19, i - 1))
@@ -4030,7 +4030,7 @@ SUB refresh_map_slice()
  num_layers_under_walkabouts = bound(gmap(31), 1, UBOUND(maptiles) + 1)
  FOR i as integer = 0 TO UBOUND(maptiles)
   IF SliceTable.Maplayer(i) = 0 THEN
-   debug "Null map layer " & i & " when sorting in refresh_map_slice"
+   showbug "Null map layer " & i & " when sorting in refresh_map_slice"
   ELSE
    SliceTable.MapLayer(i)->Sorter = IIF(i < num_layers_under_walkabouts, i, i + 1)
   END IF
@@ -4835,10 +4835,7 @@ END SUB
 SUB email_save_to_developer(save_slot as integer = -1, prefix as string="", subject as string = "", body as string = "")
  DIM as string file1, file2, file3
  IF save_slot >= 0 THEN 
-  IF prefix <> trimpath(prefix) THEN
-   visible_debug "email_save_to_developer: save slot prefix may not include path"
-   EXIT SUB
-  END IF
+  BUG_IF(prefix <> trimpath(prefix), "save slot prefix may not include path")
   file1 = savedir & SLASH & prefix & save_slot & ".rsav"
   IF isfile(file1) = NO THEN file1 = ""
  END IF

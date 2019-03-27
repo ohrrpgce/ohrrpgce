@@ -276,7 +276,7 @@ SUB xypair_move (v as XYPair, byval direction as integer, byval amount as intege
   CASE 2: v.y += amount
   CASE 3: v.x -= amount
   CASE ELSE
-   debug "xypair_move: invalid direction " & direction 
+   showbug "xypair_move: invalid direction " & direction
  END SELECT
 END SUB
 
@@ -3964,10 +3964,7 @@ END SUB
 SUB write_ini_value (ini() as string, key as string, value as string)
  'Key is case insensitive but case preservative
  'If the key is matched more than once, all copies of it will be changed
- IF LEN(key) = 0 THEN
-  debug "Can't write empty key to ini file"
-  EXIT SUB
- END IF
+ BUG_IF(LEN(key) = 0, "Can't write empty key to ini file")
  DIM found as bool = NO
  FOR i as integer = 0 TO UBOUND(ini)
   IF ini_key_match(ini(i), key) THEN
@@ -3991,10 +3988,7 @@ END FUNCTION
 'Given the content of an .ini as an array of lines, return the value of the
 'first line of form "key = value".
 FUNCTION read_ini_str (ini() as string, key as string, default as string="") as string
- IF LEN(key) = 0 THEN
-  debug "Can't read empty key from ini file"
-  RETURN default
- END IF
+ BUG_IF(LEN(key) = 0, "Can't read empty key from ini file", default)
  DIM value as string
  FOR i as integer = 0 TO UBOUND(ini)
   IF ini_key_match(ini(i), key, value) THEN RETURN value

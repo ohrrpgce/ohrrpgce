@@ -780,7 +780,7 @@ SUB battleoptionsmenu ()
  IF gen(genRegenChar) <= 0 THEN gen(genRegenChar) = 32
  
  IF gen(genBattleMode) < 0 ORELSE gen(genBattleMode) > 1 THEN
-  debug "WARNING: invalid gen(genBattleMode) " & gen(genBattleMode) & " resorting to active mode"
+  visible_debug "WARNING: invalid gen(genBattleMode) " & gen(genBattleMode) & " resorting to active mode"
   gen(genBattleMode) = 0
  END IF
  

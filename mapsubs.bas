@@ -2700,10 +2700,7 @@ FUNCTION mapedit_try_assign_colour_to_zone(byval id as integer, zonecolours() as
 END FUNCTION
 
 SUB zonemenu_add_zone (byref zonemenu as SimpleMenuItem vector, zonecolours() as integer, byval info as ZoneInfo ptr)
- IF info = NULL THEN
-  debug "zonemenu_add_zone: NULL zone"
-  EXIT SUB
- END IF
+ BUG_IF(info = NULL, "NULL zone")
 
  DIM col as integer = a_find(zonecolours(), info->id)
  DIM extra as string

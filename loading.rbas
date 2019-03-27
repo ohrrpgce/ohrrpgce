@@ -1721,7 +1721,7 @@ Sub save_hero_as_old_dt0(filename as string, hero as HeroDef, byval record as in
 		next i
 
 		if getfixbit(fixHeroElementals) = NO then
-			debug "possible corruption: tried to save hero data with fixHeroElementals=0"
+			showbug "possible corruption: tried to save hero data with fixHeroElementals=0"
 		end if
 
 		for i as integer = 0 to gen(genNumElements) - 1
@@ -2620,11 +2620,7 @@ SUB LoadUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() a
 END SUB
 
 SUB SaveUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer)
-
- IF palnum < 0 OR palnum > gen(genMaxMasterPal) THEN
-  debug "SaveUIColors: attempt to save colors out of range " & palnum
-  EXIT SUB
- END IF
+ BUG_IF(palnum < 0 OR palnum > gen(genMaxMasterPal), "attempt to save UIcols for nonexistent palette " & palnum)
 
  DIM gen_root as NodePtr = get_general_reld()
  'Create if doesn't exist

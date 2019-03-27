@@ -411,7 +411,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
      acc = attacker.stat.cur.sta(attack.base_acc_stat - 512)
      accmult = accmult / tcount
     CASE ELSE
-     debug "Invalid aim stat"
+     debug "Invalid Base ACC stat"
    END SELECT
    SELECT CASE attack.base_dog_stat
     CASE -1
@@ -421,7 +421,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
     CASE 256 TO 267
      dog = target.stat.cur.sta(attack.base_acc_stat - 256)
     CASE ELSE
-     debug "Invalid aim stat"
+     debug "Invalid Base DOG stat"
    END SELECT
   END IF
  

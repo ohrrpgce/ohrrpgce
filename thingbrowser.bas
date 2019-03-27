@@ -1068,7 +1068,7 @@ Sub FlexmenuCaptionBrowser.set_list_from_flexmenu(caption() as string, byval cap
   case 2000 to 2999 ' caption only
    capindex = caption_code - 2000
   case else
-   visible_debug "set_list_from_flexmenu: caption_code " & caption_code & " is not in the expected range of 1000 to 2999"
+   showbug "set_list_from_flexmenu: caption_code " & caption_code & " is not in the expected range of 1000 to 2999"
    exit sub
  end select
  redim list(min to max) as string
@@ -1164,7 +1164,7 @@ Function EnemySpriteBrowser.highest_id() as integer
   case 1: return gen(genMaxEnemy2Pic)
   case 2: return gen(genMaxEnemy3Pic)
  end select
- debug "EnemySpriteBrowser.highest_id(): size_group " & size_group & " is not valid"
+ showbug "EnemySpriteBrowser.highest_id(): size_group " & size_group & " is not valid"
  return 0
 End Function
 
@@ -1174,7 +1174,7 @@ Function EnemySpriteBrowser.sprite_kind() as SpriteType
   case 1: return sprTypeMediumEnemy
   case 2: return sprTypeLargeEnemy
  end select
- debug "EnemySpriteBrowser.sprite_kind: size_group " & size_group & " is not valid"
+ showbug "EnemySpriteBrowser.sprite_kind: size_group " & size_group & " is not valid"
  return sprTypeInvalid
 End Function
 
@@ -1319,7 +1319,7 @@ Function SpriteOfTypeBrowser.browse(byref start_id as integer=0, byval or_none a
    dim br as BoxborderSpriteBrowser
    return br.browse(start_id, or_none)
   case else
-   visible_debug "No sprite browser available for sprite type " & spr_type
+   showbug "No sprite browser available for sprite type " & spr_type
  end select
  return start_id
 End Function

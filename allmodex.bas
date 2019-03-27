@@ -3899,7 +3899,7 @@ function readpixel (x as integer, y as integer, p as integer) as integer
 	dim byref cliprect as ClipState = get_cliprect(vpages(p))
 
 	if POINT_CLIPPED(x, y) then
-		debug "attempt to readpixel off-screen " & x & "," & y & " on page " & p
+		'debug "attempt to readpixel off-screen " & x & "," & y & " on page " & p
 		return -1
 	end if
 	return readpixel(vpages(p), x, y)
