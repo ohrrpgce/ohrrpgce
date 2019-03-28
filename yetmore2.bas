@@ -274,13 +274,32 @@ SUB verify_quit
  DIM quityes as string = readglobalstring(57, "Yes", 10)
  DIM quitno as string = readglobalstring(58, "No", 10)
  DIM direction as DirNum = dirSouth
+ DIM box as XYPair = XY(200, 42)
+ DIM walkthreshold as integer
+ DIM usethreshold as integer
  DIM ptr2 as integer = 0
  DIM tog as integer
  DIM wtog as integer
  DIM col as integer
- 
+ DIM holdscreen as integer = allocatepage
+ copypage vpage, holdscreen
+
  show_virtual_gamepad()
- 
+
+ DIM sprsl as Slice ptr
+ sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(0).sl)
+ IF sprsl = NULL THEN
+  showbug "verify_quit: null slice"
+ ELSE
+  box.h = large(sprsl->Height, 20) + 22
+  'Remove foot offset and hero Z; these will immediately be added back next tick
+  sprsl->Y = 0
+ END IF
+
+ box.w = small(200, vpages(vpage)->w - 6)
+ walkthreshold = box.w \ 4
+ usethreshold = box.w \ 10
+
  setkeys
  DO
   setwait speedcontrol
@@ -291,7 +310,7 @@ SUB verify_quit
 
   'Keyboard controls
   IF carray(ccMenu) > 1 THEN EXIT DO
-  IF (carray(ccUse) > 1 AND ABS(ptr2) > 20) OR ABS(ptr2) > 50 THEN
+  IF (carray(ccUse) > 1 AND ABS(ptr2) > usethreshold) OR ABS(ptr2) > walkthreshold THEN
    IF ptr2 < 0 THEN gam.quit = YES: fadeout uilook(uiFadeoutQuit)
    EXIT DO
   END IF
@@ -304,38 +323,41 @@ SUB verify_quit
   IF get_gen_bool("/mouse/mouse_menus") ANDALSO (carray(ccLeft) = 0 ANDALSO carray(ccRight) = 0) THEN
    'Only do the mouse controls when you are not using the arrow keys
    'The hero walks faster in mouseover mode, because we are counting on a click
-   IF rect_collide_point(Type(centerx - 100, centery - 21, 100, 42), readmouse.pos) THEN
-    ptr2 = large(ptr2 - 5, -50)
+   IF rect_collide_point(Type(centerx - box.w \ 2, centery - box.h \ 2, box.w \ 2 - usethreshold, box.h), readmouse.pos) THEN
+    'Yes (to the left)
+    ptr2 = large(ptr2 - 5, -walkthreshold)
     direction = dirLeft
     IF (readmouse.release AND mouseLeft) ANDALSO ptr2 <= 0 THEN
      gam.quit = YES
      fadeout uilook(uiFadeoutQuit)
      EXIT DO
     END IF
-   END IF
-   IF rect_collide_point(Type(centerx, centery - 21, 100, 42), readmouse.pos) THEN
-    ptr2 = small(ptr2 + 5, 50)
+   ELSEIF rect_collide_point(Type(centerx + usethreshold, centery - box.h \ 2, box.w \ 2 - usethreshold, box.h), readmouse.pos) THEN
+    'No (to the right)
+    ptr2 = small(ptr2 + 5, walkthreshold)
     direction = dirRight
    END IF
-   IF (readmouse.release AND mouseLeft) ORELSE (readmouse.release AND mouseRight) THEN
+   IF readmouse.release AND (mouseLeft OR mouseRight) THEN
     'A click anywhere other than the "Yes" area
-    EXIT DO  
+    EXIT DO
    END IF
   END IF
 
-  centerbox centerx, centery - 5, 200, 42, 15, vpage
+  copypage holdscreen, vpage
+  centerbox centerx, centery - 5, box.w, box.h, 15, vpage
   set_walkabout_frame herow(0).sl, direction, wtog \ 2
-  DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(0).sl), centerx - 10 + ptr2, centery - 10, 20, 20, vpage, YES
-  edgeprint quitprompt, pCentered, centery - 20, uilook(uiText), vpage
+  DrawSliceAt herow(0).sl, centerx - 10 + ptr2, centery + box.h \ 2 - 21 - 10, 20, 20, vpage, YES
+  edgeprint quitprompt, pCentered, centery - box.h \ 2 + 1, uilook(uiText), vpage
   col = uilook(uiMenuItem)
-  IF ptr2 < -20 THEN col = uilook(uiSelectedItem + tog)
-  edgeprint quityes, rCenter - 90, centery - 4, col, vpage
+  IF ptr2 < -usethreshold THEN col = uilook(uiSelectedItem + tog)
+  edgeprint quityes, rCenter - box.w \ 2 + 10, centery - 4, col, vpage
   col = uilook(uiMenuItem)
-  IF ptr2 > 20 THEN col = uilook(uiSelectedItem + tog)
-  edgeprint quitno, rCenter + 90 + ancRight, centery - 4, col, vpage
+  IF ptr2 > usethreshold THEN col = uilook(uiSelectedItem + tog)
+  edgeprint quitno, rCenter + box.w \ 2 - 10 + ancRight, centery - 4, col, vpage
   setvispage vpage
   dowait
  LOOP
+ freepage holdscreen
  setkeys
 END SUB
 
