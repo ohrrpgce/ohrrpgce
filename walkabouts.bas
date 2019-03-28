@@ -106,11 +106,8 @@ SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byva
   debug "null container slice in set_walkabout_sprite"
  ELSE
   sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, cont)
-  IF sprsl = 0 THEN
-   debug "null sprite slice in set_walkabout_sprite"
-  ELSE
-   ChangeSpriteSlice sprsl, sprTypeWalkabout, pic, pal
-  END IF
+  BUG_IF(sprsl = NULL, "missing sprite component")
+  ChangeSpriteSlice sprsl, sprTypeWalkabout, pic, pal
  END IF
 END SUB
 
@@ -120,15 +117,12 @@ SUB set_walkabout_frame (byval cont as Slice Ptr, byval direction as DirNum, byv
   debug "null container slice in set_walkabout_frame"
  ELSE
   sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, cont)
-  IF sprsl = 0 THEN
-   debug "null sprite slice in set_walkabout_frame"
-  ELSE
-   ChangeSpriteSlice sprsl, , , , direction * 2 + frame
-  END IF
+  BUG_IF(sprsl = NULL, "missing sprite component")
+  ChangeSpriteSlice sprsl, , , , direction * 2 + frame
  END IF
 END SUB
 
-SUB set_walkabout_vis (byval cont as Slice Ptr, byval vis as integer)
+SUB set_walkabout_vis (byval cont as Slice Ptr, byval vis as bool)
  IF cont = 0 THEN
   debug "null container slice in set_walkabout_vis"
  ELSE
@@ -143,17 +137,14 @@ SUB update_walkabout_pos (byval walkabout_cont as slice ptr, byval x as integer,
  END IF
 
  DIM where as XYPair
- '+ gmap(11)
+ 'Note that it's the sprite component, not the container slice, that's offset by foot offset
  framewalkabout XY(x, y), where, mapsizetiles * 20, gmap(5)
  walkabout_cont->Pos = where + XY(mapx, mapy)
 
  DIM sprsl as Slice Ptr
  sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_cont)
- IF sprsl = 0 THEN
-  debug "update_walkabout_pos: null sprite slice for walkabout slice " & walkabout_cont
- ELSE
-  sprsl->Y = gmap(11) - z
- END IF
+ BUG_IF(sprsl = NULL, "missing sprite component")
+ sprsl->Y = gmap(11) - z
 END SUB
 
 
@@ -172,6 +163,7 @@ SUB reset_npc_graphics ()
   npc_id = npc(i).id - 1
   IF npc_id >= 0 THEN
    IF npc_id > UBOUND(npcs) THEN
+    'I think this could happen while reloading a map, if NPC instances are loaded definitions
     debug "reset_npc_graphics: ignore npc " & i & " because npc def " & npc_id & " is out of range (>" & UBOUND(npcs) & ")"
    ELSE
     'Update/load sprite
@@ -393,9 +385,7 @@ FUNCTION hero_layer() as Slice Ptr
  ELSE ' heroes and NPCs on separate layers
   layer = SliceTable.HeroLayer
  END IF
- IF layer = 0 THEN
-  debug "Warning: null hero layer, gmap(16)=" & gmap(16)
- END IF
+ BUG_IF(layer = NULL, "NULL layer; gmap(16)=" & gmap(16), 0)
  RETURN layer
 END FUNCTION
 
@@ -406,9 +396,7 @@ FUNCTION npc_layer() as Slice Ptr
  ELSE ' heroes and NPCs on separate layers
   layer = SliceTable.NPCLayer
  END IF
- IF layer = 0 THEN
-  debug "Warning: null npc layer, gmap(16)=" & gmap(16)
- END IF
+ BUG_IF(layer = NULL, "NULL layer; gmap(16)=" & gmap(16), 0)
  RETURN layer
 END FUNCTION
 

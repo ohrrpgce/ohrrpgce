@@ -1009,7 +1009,7 @@ PRIVATE FUNCTION thinggrabber (byref datum as integer, state as MenuState, offse
  ELSE
   ' Check this only after checking scPlus, because intgrabber reads it
   IF intgrab THEN
-   IF offset <> 0 AND offset <> 1 THEN showerror "thinggrabber: weird offset " & offset
+   IF offset <> 0 AND offset <> 1 THEN showbug "thinggrabber: weird offset " & offset
    'min and max for zintgrabber are offset by one: -1 means datum=0
    IF (offset = 1 ANDALSO zintgrabber(datum, min - 1, max_record)) OR _
       (offset = 0 ANDALSO intgrabber(datum, min, max_record)) THEN

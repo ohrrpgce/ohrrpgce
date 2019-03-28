@@ -5179,7 +5179,7 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 'tog xor= 1
 'dim t as double = timer
 
-	if dest = null then debug "printstr: NULL dest" : exit sub
+	BUG_IF(dest = null, "NULL dest")
 
 	dim byref cliprect as ClipState = get_cliprect(dest)
 

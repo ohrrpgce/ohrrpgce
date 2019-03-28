@@ -63,24 +63,25 @@ end Type
 '= everything manually. This is abstracted away 
 '===================================================================================================
 
-function RHeapInit(byval doc as docptr) as integer
+function RHeapInit(byval doc as docptr) as bool
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 	doc->heap = HeapCreate(0, 0, 0)
-	return doc->heap <> 0
+	BUG_IF(doc->heap = null, "HeapCreate failed", NO)
+	return YES
 #else
 	'nothing, use the default heap
-	return 1
+	return YES
 #endif
 end function
 
-Function RHeapDestroy(byval doc as docptr) as integer
+Function RHeapDestroy(byval doc as docptr) as bool
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 	HeapDestroy(doc->heap) 'poof
-	doc->heap = 0
-	return 0
+	doc->heap = null
+	return YES
 #else
 	'they need to free memory manually
-	return 1
+	return NO
 #endif
 end function
 
@@ -144,8 +145,7 @@ Function CreateDocument() as DocPtr
 	ret = New Doc
 	
 	if ret then
-		if 0 = RHeapInit(ret) then
-			debug "Unable to create heap on Document :("
+		if RHeapInit(ret) = NO then
 			delete ret
 			return null
 		end if
@@ -174,9 +174,9 @@ End function
 'it associates the node with the given document, and cannot be added to another one!
 Function CreateNode(byval doc as DocPtr, nam as zstring ptr) as NodePtr
 	dim ret as NodePtr
-	
-	if doc = null then return null
-	
+
+	BUG_IF(doc = null, "no doc", null)
+
 	ret = RCallocate(sizeof(Node), doc)
 	
 	ret->doc = doc
@@ -209,10 +209,7 @@ end sub
 
 'Efficiently free the children of a node
 sub FreeChildren(byval nod as NodePtr)
-	if nod = NULL then
-		debug "FreeChildren ptr already null"
-		exit sub
-	end if
+	BUG_IF(nod = NULL, "ptr already null")
 
 	if 0 = (nod->flags and nfNotLoaded) then
 		dim as NodePtr child = nod->children, nextchild
@@ -236,13 +233,10 @@ end sub
 'if it's still attached to another node, it will be removed from it
 '(TODO: node names are never freed from the string table. It doesn't matter)
 sub FreeNode(byval nod as NodePtr)
-	if nod = null then
-		debug "FreeNode ptr already null"
-		exit sub
-	end if
+	BUG_IF(nod = null, "ptr already null")
 
 	FreeChildren(nod)
-	
+
 	'If this node has a parent, we should remove this node from
 	'its list of children
 	if nod->parent <> 0 then
@@ -289,7 +283,7 @@ sub FreeDocument(byval doc as DocPtr)
 	'RDeallocate(doc->nameIndexTableBits, doc)
 	RDeallocate(doc->RBFuncBits, doc)
 
-	if RHeapDestroy(doc) then
+	if RHeapDestroy(doc) = NO then
 		if doc->root then
 			FreeNode(doc->root)
 			doc->root = null
@@ -1804,16 +1798,16 @@ Function NodeName(byval nod as NodePtr) as string
 End Function
 
 Sub SwapSiblingNodes(byval nod1 as NodePtr, byval nod2 as NodePtr)
-	if nod1 = 0 or nod2 = 0 then debug "SwapSiblingNodes: null node": exit sub
-	if nod1 = nod2 then debug "SwapSiblingNodes: don't swap with self": exit sub
-	if NodeParent(nod1) <> NodeParent(nod2) then debug "SwapSiblingNodes: can't swap non-siblings": exit sub
-	
+	BUG_IF(nod1 = 0 orelse nod2 = 0, "null node")
+	BUG_IF(nod1 = nod2, "don't swap with self")
+	BUG_IF(NodeParent(nod1) <> NodeParent(nod2), "can't swap non-siblings")
+
 	dim par as NodePtr
 	par = NodeParent(nod1)
-	if par = 0 then debug "SwapSiblingNodes: null parent" : exit sub
-	
+	BUG_IF(par = 0, "null parent")
+
 	'debug "swap " & NodeName(nod1) & " with sibling " & NodeName(nod2)
-	
+
 	dim holder(par->numChildren - 1) as Nodeptr
 	dim index as integer = 0
 	dim p1 as integer = -1

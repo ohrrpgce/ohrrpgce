@@ -259,10 +259,7 @@ End Function
 '"int" can be optionally overridden.
 'Returns a pointer to the 'value' node, so you can stuff in more data.
 Function SetKeyValueNode (byval parent as NodePtr, keyname as zstring ptr, byval key as integer, byval value as integer = 0, valuename as zstring ptr = @"int") as NodePtr
-	if parent = NULL then
-		debug "SetKeyValueNode: NULL node ptr"
-		return NULL
-	end if
+	BUG_IF(parent = NULL, "NULL node ptr", NULL)
 
 	dim n as NodePtr
 	n = FirstChild(parent, keyname)
@@ -280,10 +277,7 @@ End Function
 
 'See SetKeyValueNode. Returns a pointer to the 'value' node.
 Function GetKeyValueNode (byval parent as NodePtr, keyname as zstring ptr, byval key as integer, valuename as zstring ptr = @"int") as NodePtr
-	if parent = NULL then
-		debug "GetKeyValueNode: NULL node ptr"
-		return NULL
-	end if
+	BUG_IF(parent = NULL, "NULL node ptr", NULL)
 
 	dim n as NodePtr
 	n = FirstChild(parent, keyname)

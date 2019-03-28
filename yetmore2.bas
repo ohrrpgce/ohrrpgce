@@ -89,7 +89,7 @@ SUB innRestore ()
 END SUB
 
 SUB center_camera_on_slice(byval sl as Slice ptr)
- IF sl = NULL THEN debug "NULL slice in center_camera_on_slice" : EXIT SUB
+ BUG_IF(sl = NULL, "NULL slice")
 
  RefreshSliceScreenPos sl
 
