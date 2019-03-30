@@ -2618,6 +2618,9 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 400 '--fill parent
   IF valid_resizeable_slice(retvals(0), YES, YES) THEN
+   'FIXME: need to ensure we don't clash with Cover Children by disabling
+   'that as appropriate. See SliceLegalCoverModes.
+   'TODO: there's no command to change slice fill mode!
    plotslices(retvals(0))->Fill = (retvals(1) <> 0)
   END IF
  CASE 401 '--is filling parent
@@ -4965,6 +4968,10 @@ FUNCTION valid_plotpanelslice(byval handle as integer) as bool
  RETURN NO
 END FUNCTION
 
+SUB unresizable_error(sl as Slice ptr, handle as integer, reason as string, errlvl as scriptErrEnum = serrBadOp)
+ scripterr strprintf("%s: %s slice handle %d cannot be resized%s", current_command_name(), SliceTypeName(sl), handle, reason), errlvl
+END SUB
+
 FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as bool=NO, byval vert_fill_ok as bool=NO) as bool
  IF valid_plotslice(handle) THEN
   DIM sl as Slice Ptr
@@ -4973,13 +4980,20 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as 
    'Text slices are resizable horizontally only if and only if they wrap
    'TODO: they are never resizable vertically, but for backcompat not doing anything about that now...
    IF sl->SliceType = slText THEN
-    scripterr current_command_name() & ": text slice handle " & handle & " cannot be resized unless wrap is enabled", serrBadOp
+    unresizable_error sl, handle, ", unless wrap is enabled"
    ' Scaling sprite slices aren't available in games yet.
    'ELSEIF sl->SliceType = slSprite THEN
    ' scripterr current_command_name() & ": sprite slice handle " & handle & " cannot be resized unless scaling is enabled", serrBadOp
    ELSE
-    scripterr current_command_name() & ": slice handle " & handle & " is not resizeable", serrBadOp
+    unresizable_error sl, handle, ", due to its type"
    END IF
+   RETURN NO
+  END IF
+
+  'This is only for "set slice width/height"; "fill parent" needs to do its own checks
+  IF ((sl->CoverChildren AND coverHoriz) ANDALSO horiz_fill_ok = NO) ORELSE _
+     ((sl->CoverChildren AND coverVert)  ANDALSO vert_fill_ok = NO) THEN
+   unresizable_error sl, handle, " while Covering Children", serrWarn
    RETURN NO
   END IF
 
@@ -4992,7 +5006,8 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as 
    CASE sliceFillVert
     IF vert_fill_ok THEN RETURN YES
   END SELECT
-  scripterr current_command_name() & ": slice handle " & handle & " cannot be resized while filling parent", serrBadOp
+  'Maybe this should be just an info message?
+  unresizable_error sl, handle, " while Filling Parent", serrWarn
  END IF
  RETURN NO
 END FUNCTION
