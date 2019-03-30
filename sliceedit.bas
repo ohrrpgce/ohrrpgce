@@ -1177,6 +1177,9 @@ SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
    disable_vert_fill(sl)
    .CoverChildren AND= NOT coverVert
   END IF
+  'NOTE: Sprite slices can't be resized, unless they Fill Parent.
+  'That restriction is actually enforced in LoadSpriteSliceImage rather than in sliceedit;
+  'ought to be cleaned up (TODO)
 
   'Covering and Filling are mutually exclusive
   IF dataptr = @.Fill OR dataptr = @.FillMode THEN

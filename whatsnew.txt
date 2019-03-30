@@ -158,6 +158,8 @@ September 29 2018 [Fufluns]
     * "suspend box advance" now suspends choicebox selection controls too
     * Sorting inventory "by whether usable" considers battle uses too [Ralph]
     * Shops auto-quit when there's nothing left to buy, as they used to [Ralph]
+    * Sprite slices can no longer be resized in the slice editor (except by
+      setting to Fill Parent -- not recommended) [Ralph]
 
   * Bugfixes
     * Fix a major memory leak while recording .gifs [Ralph]

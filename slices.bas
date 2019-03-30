@@ -947,11 +947,11 @@ End Sub
 'FillMode is so painful to deal with that we need these
 'TODO: find a proper solution
 Function Slice.FillHoriz() as bool
- return Fill andalso FillMode <> sliceFillVert
+ return this.Fill andalso this.FillMode <> sliceFillVert
 End Function
 
 Function Slice.FillVert() as bool
- return Fill andalso FillMode <> sliceFillHoriz
+ return this.Fill andalso this.FillMode <> sliceFillHoriz
 End Function
 
 
@@ -1703,16 +1703,39 @@ Sub LoadSpriteSliceImage(byval sl as Slice ptr, warn_if_missing as bool = NO)
  if sl->SliceData = 0 then exit sub
 
  with *sl->SpriteData
-  'Check whether need to reload the graphic because it needs to be re-scaled
-  if .scaled andalso .img.sprite then
-   if .img.sprite->Size <> sl->Size then .loaded = NO
+  if .img.sprite then
+   '.loaded is true
+   'Check whether need to reload the graphic because it needs to be re-scaled (.scaled),
+   if .scaled then
+    if .img.sprite->Size <> sl->Size then .loaded = NO
+   else
+    'You can't resize a sprite slice, except by using Fill (for backcompat,
+    'yuck). (CoverChildren isn't allowed on sprites.) But a spriteset's size can
+    'change, or fill mode might change, so we need to reset its size. It's too
+    'hard to tell whether a spriteset changed size without storing the old size,
+    'so we just unconditionally reset the size here, which happens on every
+    'DrawSpriteSlice call.
+    'This may not be the ideal place to put this code.
+    'NOTE: it's this code alone that prevents a Sprite slice's size from being changed
+    'in the slice editor. That's pretty ugly.
+    if sl->Fill /'orelse sl->CoverChildren <> coverNone'/ then
+     if sl->FillHoriz() = NO /'andalso (sl->CoverChildren and coverHoriz) = 0'/ then
+      sl->Width = .img.sprite->w
+     end if
+     if sl->FillVert() = NO /'andalso (sl->CoverChildren and coverVert) = 0'/ then
+      sl->Height = .img.sprite->h
+     end if
+    else  'sl->CoverChildren = coverNone and sl->Fill = NO and .scaled = NO and zoom = 1.
+     sl->Size = .img.sprite->size
+    end if
+   end if
   end if
 
   if .loaded then exit sub
   if .spritetype = sprTypeFrame then  'This can happen if you clone a sprite, otherwise shouldn't
    LoadAssetSprite sl, warn_if_missing
   else
-   load_sprite_and_pal .img, .spritetype, .record, .pal
+   load_sprite_and_pal .img, .spritetype, .record, .pal   'Unloads old sprite/pal
   end if
   .loaded = YES  'Set YES even if loading failed, so we don't try again
   if .img.sprite then
@@ -3539,6 +3562,7 @@ Function SliceLegalCoverModes(sl as Slice ptr) as CoverModes
   if .SliceType = slPanel orelse .SliceType = slGrid then return coverNone  'Not implemented
   if .SliceType = slScroll then return coverNone  'That would be daft
   if SlicePossiblyResizable(sl) = NO then return coverNone
+  'TODO: once zooming sprites by resizing them is implemented, allow a Sprite to Cover.
 
   dim ret as CoverModes = coverFull
   if .Fill andalso .FillMode <> sliceFillVert then ret -= coverHoriz    'filling_horiz
@@ -3547,7 +3571,7 @@ Function SliceLegalCoverModes(sl as Slice ptr) as CoverModes
  end with
 end Function
 
-'This function does not consider fill mode! A slice set to fill is not resizable either.
+'This function does not consider fill or cover mode! A slice set to fill/cover is not resizable either.
 Function SlicePossiblyResizable(sl as Slice ptr) as bool
  if sl = 0 then return NO
  select case sl->SliceType
