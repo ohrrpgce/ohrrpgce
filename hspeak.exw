@@ -332,7 +332,7 @@ constant HSZ_FORMAT_VERSION=3
 
 constant MAXGLOBAL=50000  --largest ID
 constant MAX_LOCALS=100   --max number of locals per script (not including nonlocals)
-constant MAX_AfRGS=32     --max number of arguments to a script, function or builting
+constant MAX_ARGS=32     --max number of arguments to a script, function or builting
 
 constant MAX_NEST_DEPTH=4
 
