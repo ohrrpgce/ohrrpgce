@@ -99,11 +99,14 @@ DECLARE SUB draw_fullscreen_scrollbar(state as MenuState, boxstyle as integer=0,
 TYPE ModularMenu EXTENDS Object
  running as bool         'Whether inside run()
  menu(any) as string
+ selectable(any) as bool 'Optional: the selectable menu items
+ shaded(any) as bool     'Optional: the greyed-out menu items
  tooltip as string       'Shown at the bottom of the screen
  title as string         'Shown at the top, like the multichoice() prompt
  state as MenuState
  menuopts as MenuOptions
  floating as bool        'Appears in the center of the screen, like notification, instead of fullscreen
+ use_selectable as bool  'Set to true to make use of selectable()
  helpkey as string
  holdscreen as integer   '0 if none
 

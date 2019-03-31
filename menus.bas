@@ -1847,7 +1847,7 @@ SUB ModularMenu.draw()
   edgeboxstyle pCentered, pCentered, state.rect.wide + 10, state.rect.high + 10, 1, vpage
   where = XY(pCentered, pCentered)
  END IF
- standardmenu menu(), state, where.x, where.y, vpage, menuopts
+ standardmenu menu(), state, shaded(), where.x, where.y, vpage, menuopts
  IF LEN(tooltip) THEN
   edgeprint tooltip, 0, pBottom, uilook(uiText), vpage
  END IF
@@ -1862,8 +1862,11 @@ SUB ModularMenu.run()
   menuopts.wide = 80
   menuopts.calc_size = YES
  END IF
+ state.autosize = YES
  state.autosize_ignore_lines = 1  'For the tooltip
+ IF LEN(title) THEN state.autosize_ignore_lines += 2
  menuopts.scrollbar = YES
+ menuopts.disabled_col = uilook(eduiHeading)
 
  update()
  init_menu_state state, menu()
@@ -1872,13 +1875,29 @@ SUB ModularMenu.run()
  DO
   setwait 55
   setkeys YES
-  usemenu state
+  IF use_selectable THEN
+   usemenu state, selectable()
+  ELSE
+   usemenu state
+  END IF
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF LEN(helpkey) AND keyval(scF1) > 1 THEN show_help helpkey
   IF each_tick() THEN EXIT DO
   IF state.need_update THEN
    state.need_update = NO
    update()
+   correct_menu_state state
+   'Updating shaded() is optional
+   REDIM PRESERVE shaded(UBOUND(menu))
+   IF use_selectable THEN
+    'Move state.pt to a selectable menu item (yuck!)
+    '(This is also normally done by init_menu_state, but we can't call that)
+    WHILE selectable(state.pt) = NO
+     IF state.pt <= state.first THEN EXIT WHILE
+     state.pt -= 1
+    WEND
+    correct_menu_state_top state
+   END IF
   END IF
 
   draw()
