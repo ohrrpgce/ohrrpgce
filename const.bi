@@ -201,6 +201,7 @@ CONST genMinimapAlgorithm = 221  ' How to generate in-game minimaps. MinimapAlgo
 CONST genBits3 = 222'-225        ' More general bitsets
 CONST genDefCounterProvoke = 226 ' CounterProkeEnum value for provokeDefault attacks (Default to provokeAlways if 0)
 CONST genInventSlotx1Display = 227 ' When to display x1 in inventory: 0: always, 1: never, 2: only if stacksize>1
+CONST genCameraOnWalkaboutFocus = 228 ' How to calculate walkabout camera focus: 0: on tile, 1: on sprite, 2: on sprite minus Z/offset
 
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.

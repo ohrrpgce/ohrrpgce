@@ -100,15 +100,26 @@ END SUB
 SUB center_camera_on_walkabout(byval walkabout_cont as Slice ptr)
  IF walkabout_cont = NULL THEN debug "NULL walkabout slice in center_camera_on_walkabout" : EXIT SUB
 
- DIM sprsl as Slice ptr
- sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_cont)
- center_camera_on_slice sprsl
+ 'Note: the sprite component .Y value is equal to the foot-offset minus the hero/NPC Z.
 
- ' For compatibility (maybe some old games use setheroz for falling from the sky?)
- ' ignore the Z component of the sprite slice.
- ' FIXME: Add a bit to disable this.
- IF YES THEN
-  mapy -= sprsl->Y
+ 'Note: genCameraOnWalkaboutFocus 0 and 2 are identical when hero sprites are 20px high.
+ 'Option 0 was the old default (early days of walktall).
+ 'Option 2 became the default in Alectormancy (2012)
+ 'Option 0 made the default in Fufluns (2019), because it means `put camera(hero pixel x, hero pixel y)`
+ 'will not move the camera if it was following the leader.
+
+ IF gen(genCameraOnWalkaboutFocus) = 0 THEN  'Center on the container slice (hitbox)/tile
+  center_camera_on_slice walkabout_cont
+ ELSE  'Center on the walkabout sprite
+  DIM sprsl as Slice ptr
+  sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_cont)
+  center_camera_on_slice sprsl
+
+  IF gen(genCameraOnWalkaboutFocus) = 2 THEN 'Center on sprite minus Z/offset
+   ' For compatibility (maybe some old games use setheroz for falling from the sky?)
+   ' ignore the Z component of the sprite slice, and also the foot offset.
+   mapy -= sprsl->Y
+  END IF
  END IF
 END SUB
 

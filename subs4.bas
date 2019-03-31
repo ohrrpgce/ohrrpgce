@@ -1244,6 +1244,15 @@ SUB GeneralSettingsMenu.update(longname as string, aboutline as string)
  add_item , tmp
  gen_int genMinimapAlgorithm, 0, minimapLAST
 
+ tmp = "Camera following a hero/NPC centers on: "
+ SELECT CASE gen(genCameraOnWalkaboutFocus)
+  CASE 0 : tmp &= "tile"
+  CASE 1 : tmp &= "sprite"
+  CASE 2 : tmp &= "sprite minus Z"
+ END SELECT
+ add_item , tmp
+ gen_int genCameraOnWalkaboutFocus, 0, 2
+
  '-------------------------
  header " Audio"
  add_item 11, "Global Music and Sound Effects..."

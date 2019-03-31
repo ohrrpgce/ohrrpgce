@@ -51,6 +51,13 @@ By default, OHRRPGCE games run at 18.2 frames per second (FPS), which is 55 mill
 Minimap Style:
 This determines how the minimap is generated in-game (how the color of each pixel is determined). The default, "Smoothly scaled down" normally looks the best, but might be blurry. It uses more than the 256 colors in the master palette. "Pick random color" was the method used until Fufluns. The easiest way to try them out is using the Test Game feature (in particular, the Ctrl-F1 teleport tool).
 
+Camera following a hero/NPC centers on:
+You probably don't want to change this.
+-tile: The camera is centered on the walkabout container, i.e. the tie the hero/NPC is standing on. This is the default (since Fufluns), because it makes it easy to avoid camera glitches when switching between tile-based camera positioning (e.g. "focus camera") and camera following an NPC/hero. E.g. "put camera(hero pixel x(me), hero pixel y(me))" won't move the camera.
+But if the hero sprite is really big, the camera will be centered on its feet.
+-sprite: The hero/NPC sprite will be at the screen center.
+-sprite minus Z: The hero/NPC sprite will be at the center of the screen provided the hero/NPC Z is zero (as usual when riding an airship) and the map's foot offset is zero. The camera won't move when Z changes. This used to be the default from Alectormancy to Etheldreme.
+
 
   Audio
 
