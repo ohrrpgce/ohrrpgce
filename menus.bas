@@ -982,13 +982,12 @@ END FUNCTION
 '(Re-)initialise menu state, preserving .pt if valid
 'FIXME: sets state.has_been_drawn = YES although state.rect is wrong
 SUB init_menu_state (byref state as MenuState, menu() as string, menuopts as MenuOptions)
+ IF state.size = 0 THEN state.autosize = YES
  calc_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
 
  WITH state
   .first = LBOUND(menu)
   .last = UBOUND(menu)
-  'FIXME: what is this doing here? It doesn't match what calc_menustate_size does
-  .size = small(.last - .first, cint(int(get_resolution().h / 8)))
  END WITH
  ' Fix .pt and update .top
  correct_menu_state state
@@ -1875,6 +1874,24 @@ SUB ModularMenu.draw()
  END IF
 END SUB
 
+'Additional logic around update()
+SUB ModularMenu.update_wrapper()
+ clear_menu()
+ update()
+ init_menu_state state, menu()  'Updates .size
+ 'Updating shaded() is optional
+ REDIM PRESERVE shaded(UBOUND(menu))
+ IF use_selectable THEN
+  'Move state.pt to a selectable menu item (yuck!)
+  '(This is also normally done by init_menu_state, but we can't call that)
+  WHILE selectable(state.pt) = NO
+   IF state.pt <= state.first THEN EXIT WHILE
+   state.pt -= 1
+  WEND
+  correct_menu_state_top state
+ END IF
+END SUB
+
 SUB ModularMenu.run()
  running = YES
  IF floating THEN
@@ -1886,12 +1903,12 @@ SUB ModularMenu.run()
  END IF
  state.autosize = YES
  state.autosize_ignore_lines = 1  'For the tooltip
- IF LEN(title) THEN state.autosize_ignore_lines += 2
+ 'If floating, the title gets cut off when the menu is small
+ IF floating = NO ANDALSO LEN(title) THEN state.autosize_ignore_lines += 2
  menuopts.scrollbar = YES
  menuopts.disabled_col = uilook(eduiHeading)
 
- update()
- init_menu_state state, menu()
+ update_wrapper()
  IF floating THEN draw()   'To calculate state.rect
 
  DO
@@ -1907,20 +1924,7 @@ SUB ModularMenu.run()
   IF each_tick() THEN EXIT DO
   IF state.need_update THEN
    state.need_update = NO
-   clear_menu()
-   update()
-   correct_menu_state state
-   'Updating shaded() is optional
-   REDIM PRESERVE shaded(UBOUND(menu))
-   IF use_selectable THEN
-    'Move state.pt to a selectable menu item (yuck!)
-    '(This is also normally done by init_menu_state, but we can't call that)
-    WHILE selectable(state.pt) = NO
-     IF state.pt <= state.first THEN EXIT WHILE
-     state.pt -= 1
-    WEND
-    correct_menu_state_top state
-   END IF
+   update_wrapper()
   END IF
 
   draw()

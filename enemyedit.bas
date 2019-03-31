@@ -1261,6 +1261,7 @@ SUB enemy_usage_menu(byref enemyid as integer)
  DIM menu as EnemyUsageMenu
  menu.enemyid = enemyid
  menu.use_selectable = YES
+ menu.title = "(filled later)"
  menu.run()
  enemyid = menu.enemyid
 END SUB

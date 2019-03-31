@@ -140,6 +140,10 @@ TYPE ModularMenu EXTENDS Object
  DECLARE VIRTUAL SUB draw()
 
  DECLARE SUB run()
+
+ PRIVATE:
+
+ DECLARE SUB update_wrapper()
 END TYPE
 
 '' Global variables
