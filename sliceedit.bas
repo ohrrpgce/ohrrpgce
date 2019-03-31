@@ -2038,11 +2038,11 @@ FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as strin
  IF code = 0 THEN RETURN "None"
  IF code < 0 THEN
   '--negative codes are hard-coded slice code
-  s = "[" & SliceLookupCodeName(code) & "]"
+  s = "[sl:" & SliceLookupCodeName(code) & "]"
  ELSE
   s = STR(code)
-  IF code <= UBOUND(slicelookup) THEN
-   s &= " " & slicelookup(code)
+  IF code <= UBOUND(slicelookup) ANDALSO LEN(slicelookup(code)) THEN
+   s &= " sli:" & slicelookup(code)
   ELSE
    s &= " (Unnamed)"
   END IF
