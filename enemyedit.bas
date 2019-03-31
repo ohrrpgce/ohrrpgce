@@ -14,6 +14,7 @@
 #include "slices.bi"
 #include "thingbrowser.bi"
 #include "cglobals.bi"
+#include "bcommon.bi"
 
 #include "uiconst.bi"
 #include "scrconst.bi"
@@ -27,7 +28,23 @@ DECLARE SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState
 DECLARE SUB enemy_edit_load(byval recnum as integer, recbuf() as integer, state as MenuState, caption() as string, byval EnCapElemResist as integer)
 DECLARE SUB enemy_edit_pushmenu (state as MenuState, byref lastptr as integer, byref lasttop as integer, byref menudepth as bool)
 DECLARE SUB enemy_edit_backmenu (state as MenuState, byval lastptr as integer, byval lasttop as integer, byref menudepth as bool, workmenu() as integer, mainMenu() as integer)
+DECLARE SUB enemy_usage_menu(byref enemyid as integer)
 
+DIM SHARED remem_enemy_index as integer = -1   'Record to switch to with TAB
+DIM SHARED show_name_ticks as integer = 0  'Number of ticks to show name (after switching record with TAB)
+
+
+'Returns true if should swap remem_enemy_index and recindex
+FUNCTION handle_tab_to_switch_enemies(recindex as integer) as bool
+ IF keyval(scTab) > 1 THEN
+  IF keyval(scShift) > 0 THEN
+   remem_enemy_index = recindex
+  ELSEIF remem_enemy_index >= 0 ANDALSO remem_enemy_index <= gen(genMaxEnemy) THEN
+   show_name_ticks = 23
+   RETURN YES
+  END IF
+ END IF
+END FUNCTION
 
 SUB update_enemy_editor_for_elementals(recbuf() as integer, caption() as string, byval EnCapElemResist as integer)
  FOR i as integer = 0 TO gen(genNumElements) - 1
@@ -52,7 +69,7 @@ END FUNCTION
 
 CONST EnLimDeathSFX = 26
 
-'recindex: which enemy to show. If -1, same as last time. If >= max, ask to add a new attack,
+'recindex: which enemy to show. If -1, same as last time. If >= max, ask to add a new enemy,
 '(and exit and return -1 if cancelled).
 'Otherwise, returns the enemy number we were last editing.
 'Note: the enemy editor can be entered recursively!
@@ -250,7 +267,7 @@ addcaption caption(), capindex, "All of the above"
 
 '-------------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 268
+CONST MnuItems = 269
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -537,6 +554,10 @@ menutype(EnMenuSpawnAllElementsOnHit) = 2000 + EnCapSpawnAllElementsOnHit
 menuoff(EnMenuSpawnAllElementsOnHit) = EnDatSpawnAllElementsOnHit
 menulimits(EnMenuSpawnAllElementsOnHit) = EnLimSpawnAllElementsOnHit
 
+CONST EnMenuUsageAct = 269
+menu(EnMenuUsageAct) = "Usage..."
+menutype(EnMenuUsageAct) = 1
+
 'Next is 269, don't forget to update MnuItems
 
 '-------------------------------------------------------------------------
@@ -551,7 +572,7 @@ state.need_update = YES
 DIM menuopts as MenuOptions
 menuopts.fullscreen_scrollbar = YES
 
-DIM mainMenu(9) as integer
+DIM mainMenu(10) as integer
 mainMenu(0) = EnMenuBackAct
 mainMenu(1) = EnMenuChooseAct
 mainMenu(2) = EnMenuName
@@ -562,6 +583,7 @@ mainMenu(6) = EnMenuBitsetAct
 mainMenu(7) = EnMenuElementalsAct
 mainMenu(8) = EnMenuSpawnAct
 mainMenu(9) = EnMenuAtkAct
+mainMenu(10) = EnMenuUsageAct
 
 DIM appearMenu(9) as integer
 appearMenu(0) = EnMenuBackAct
@@ -678,9 +700,6 @@ DIM menudepth as bool = NO
 DIM lastptr as integer = 0
 DIM lasttop as integer = 0
 
-STATIC rememberindex as integer = -1   'Record to switch to with TAB
-DIM show_name_ticks as integer = 0  'Number of ticks to show name (after switching record with TAB)
-
 DIM remember_bit as integer = -1
 DIM drawpreview as bool = YES
 
@@ -752,15 +771,11 @@ DO
 
  IF keyval(scF1) > 1 THEN show_help helpkey
 
- IF keyval(scTab) > 1 THEN
-  IF keyval(scShift) > 0 THEN
-   rememberindex = recindex
-  ELSEIF rememberindex >= 0 AND rememberindex <= gen(genMaxEnemy) THEN
-   saveenemydata recbuf(), recindex
-   SWAP rememberindex, recindex
-   enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
-   show_name_ticks = 23
-  END IF
+ 'Shift-Tab to remember index, Tab to swap to remembered index
+ IF handle_tab_to_switch_enemies(recindex) THEN
+  saveenemydata recbuf(), recindex
+  SWAP remem_enemy_index, recindex
+  enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
  END IF
 
  IF enter_space_click(state) THEN
@@ -820,6 +835,15 @@ DO
     setactivemenu workmenu(), elementalMenu(), state
     helpkey = "enemy_elementals"
     drawpreview = NO
+    state.need_update = YES
+   CASE EnMenuUsageAct
+    'Save before-hand because we might enter other editor or recursively enter the enemy editor
+    '(c.f. flexmenu_handle_crossrefs)
+    saveenemydata recbuf(), recindex
+    enemy_usage_menu recindex
+    'recindex may have been changed, but we need to reload even if it wasn't, because might
+    'have recursively edited this enemy
+    enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
     state.need_update = YES
    CASE EnMenuPic
     DIM enemyb as EnemySpriteBrowser
@@ -1042,3 +1066,226 @@ FUNCTION enemy_edit_add_new (recbuf() as integer, preview_box as Slice ptr) as b
   LOOP
 END FUNCTION
 
+
+'==============================================================================
+'                              Enemy Usage Menu
+'==============================================================================
+
+TYPE EnemyUsageMenu EXTENDS ModularMenu
+ enemyid as integer
+ enemyname as string
+ itemtypes(any) as integer  'Type of each menu item
+ itemids(any) as integer  'Menu item formation/map/etc ID
+
+ DECLARE SUB add_item(itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
+ DECLARE SUB header(text as string)
+
+ DECLARE SUB update()
+ DECLARE SUB draw()
+ DECLARE FUNCTION each_tick() as bool
+END TYPE
+
+
+SUB EnemyUsageMenu.add_item(itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
+ a_append this.itemids(), id
+ a_append this.itemtypes(), itemtype
+ a_append this.menu(), text
+ a_append this.selectable(), canselect
+ a_append this.shaded(), heading
+END SUB
+
+SUB EnemyUsageMenu.header(text as string)
+ add_item , , , NO, YES
+ add_item , , text, NO, YES
+END SUB
+
+SUB EnemyUsageMenu.update()
+ ERASE this.menu
+ ERASE this.selectable
+ ERASE this.shaded
+ ERASE this.itemtypes
+ ERASE this.itemids
+
+ DIM enemy as EnemyDef
+ loadenemydata enemy, this.enemyid
+ this.enemyname = enemy.name
+ this.title = "Uses of Enemy " & this.enemyid & " " & enemy.name
+
+ DIM have_any as bool = NO
+
+ add_item -2, , "Previous Menu"
+
+ ' Scan for formations containing this enemy
+ header " Formations"
+ DIM form_counts(gen(genMaxFormation)) as integer  'Count of this enemy in each formation
+ DIM form as Formation
+ FOR formidx as integer = 0 TO gen(genMaxFormation)
+  LoadFormation form, formidx
+  DIM count as integer = 0
+  FOR slotidx as integer = 0 TO UBOUND(form.slots)
+   IF form.slots(slotidx).id = this.enemyid THEN count += 1
+  NEXT
+  IF count THEN
+   have_any = YES
+   add_item 0, formidx, formidx & ": " & describe_formation(form)
+   form_counts(formidx) = count
+  END IF
+ NEXT
+ IF have_any = NO THEN add_item -1, 0, "(None)"
+ have_any = NO
+
+ ' Scan formation sets
+ header " Formation Sets"
+ DIM formset_counts(maxMaxFormation) as integer  'Count of the enemy in the formations
+ DIM formset_encounter_rate(maxMaxFormation) as double  'Rate of encounters per step
+ DIM formset_avg_num(maxMaxFormation) as double  'Average number of the enemy in an encounter
+ DIM formset as FormationSet
+ FOR fsidx as integer = 1 TO maxFormationSet
+  LoadFormationSet formset, fsidx
+  DIM matching_forms as integer = 0  'Number of formations with this enemy
+  DIM total_forms as integer = 0
+  DIM count as integer = 0   'Total number of this enemy
+  FOR slotidx as integer = 0 TO UBOUND(formset.formations)
+   DIM form as integer = formset.formations(slotidx)
+   IF form > -1 THEN
+    count += form_counts(form)
+    total_forms += 1
+    IF form_counts(form) THEN matching_forms += 1
+   END IF
+  NEXT
+  DIM enctr_rate as double = formset_freq_estimate(formset.frequency)
+  IF count THEN
+   have_any = YES
+   add_item 1, fsidx, strprintf("%d: in %2d%% of formations (average num %.1f)  %.3f", _
+                                fsidx, CINT(100 * matching_forms / total_forms), count / total_forms, enctr_rate)
+  END IF
+  formset_encounter_rate(fsidx) = enctr_rate
+  'formset_matching_frac(fsdix) = matching_forms / total_forms
+  formset_avg_num(fsidx) = count / total_forms
+  formset_counts(fsidx) = count
+ NEXT
+ IF have_any = NO THEN add_item -1, 0, "(None)"
+ have_any = NO
+
+ header " Maps (foemaps)"
+ add_item , , "Map |  % of  |   % of    | Chance to see | Avg num per | Form", NO, NO
+ add_item , , "    | tiles  | foe-tiles | per foe-tile  | encounter   | sets", NO, NO
+ FOR mapidx as integer = 0 TO gen(genMaxMap)
+  'First count occurrences of each form set in the foemap
+  DIM foemap as TileMap
+  LoadTilemap foemap, maplumpname(mapidx, "e")
+  DIM occurrences(maxFormationSet) as integer  'Number of tiles on which each formation set occurs
+  DIM total_foe_tiles as integer = 0
+  FOR y as integer = 0 TO foemap.high - 1
+   FOR x as integer = 0 TO foemap.wide - 1
+    DIM foe as integer = readblock(foemap, x, y)
+    occurrences(foe) += 1
+    IF foe THEN total_foe_tiles += 1
+   NEXT
+  NEXT
+
+  'Then compute statistics
+  DIM matching_tiles as integer
+  DIM enctr_rate as double  'Encounter rate
+  DIM total_enctr_rate as double
+  DIM avg_num as double
+  DIM formsets as string
+  FOR fsidx as integer = 1 TO maxFormationSet
+   DIM fsweight as double = formset_encounter_rate(fsidx) * occurrences(fsidx) / total_foe_tiles
+   total_enctr_rate += fsweight
+
+   IF formset_counts(fsidx) ANDALSO occurrences(fsidx) THEN
+    matching_tiles += occurrences(fsidx)
+    enctr_rate += formset_encounter_rate(fsidx) * occurrences(fsidx)
+    avg_num += formset_avg_num(fsidx) * fsweight
+    formsets &= fsidx & " "
+   END IF
+  NEXT
+  enctr_rate /= total_foe_tiles
+  avg_num /= total_enctr_rate
+
+  DIM percent_of_tiles as double = 100 * matching_tiles / (foemap.wide * foemap.high)
+  DIM percent_of_foe_tiles as double = 100 * matching_tiles / total_foe_tiles
+
+  IF matching_tiles THEN
+   have_any = YES
+   add_item 2, mapidx, strprintf("%-3d | %5.1f%% | %8.1f%% | %12.2f%% | %11.3f | %s", _
+                                 mapidx, percent_of_tiles, percent_of_foe_tiles, 100 * enctr_rate, avg_num, @formsets[0])
+  END IF
+  UnloadTilemap foemap
+ NEXT
+ IF have_any = NO THEN add_item -1, 0, "(None)"
+ have_any = NO
+
+ header " Textboxes"
+ DIM box as TextBox
+ FOR boxidx as integer = 0 TO gen(genMaxTextbox)
+  LoadTextBox box, boxidx
+  IF form_counts(box.battle) ANDALSO box.battle_tag <> 0 ANDALSO box.battle_tag <> 1 THEN  'Tag not NEVER
+   have_any = YES
+   DIM taginfo as string
+   IF box.battle_tag <> -1 THEN  'Tag not ALWAYS
+    taginfo = " if " & tag_condition_caption(box.battle_tag, , "", "")
+   END IF
+   add_item 3, boxidx, boxidx & ": fight formation " & box.battle & taginfo
+  END IF
+ NEXT
+ IF have_any = NO THEN add_item -1, 0, "(None)"
+
+ this.state.last = UBOUND(this.menu)
+END SUB
+
+FUNCTION EnemyUsageMenu.each_tick() as bool
+ DIM changed as bool
+
+ IF keyval(scAlt) > 0 THEN
+  changed OR= intgrabber(this.enemyid, 0, gen(genMaxEnemy))
+ END IF
+
+ 'Shift-Tab to remember index, Tab to swap to remembered index
+ IF handle_tab_to_switch_enemies(this.enemyid) THEN
+  SWAP remem_enemy_index, this.enemyid
+  changed = YES
+ END IF
+
+ IF enter_space_click(this.state) THEN 
+  DIM itemtype as integer = this.itemtypes(this.state.pt)
+  DIM itemid as integer = this.itemids(this.state.pt)
+  IF itemtype <> -1 THEN
+   show_name_ticks = 23
+   changed = YES
+   SELECT CASE itemtype
+    CASE -2 'Quit
+     RETURN YES
+    CASE 0  'Formation
+     individual_formation_editor itemid
+    CASE 1  'Formation set
+     formation_set_editor itemid
+    CASE 2  'Map
+     mapeditor itemid
+    CASE 3  'Textbox
+     text_box_editor itemid
+   END SELECT
+  END IF
+ END IF
+
+ this.state.need_update = changed
+END FUNCTION
+
+SUB EnemyUsageMenu.draw()
+ BASE.draw()
+ IF keyval(scAlt) > 0 ORELSE show_name_ticks > 0 THEN 'holding ALT or just pressed TAB
+  show_name_ticks = large(0, show_name_ticks - 1)
+  textcolor uilook(uiText), uilook(uiHighlight)
+  printstr this.enemyname & " " & this.enemyid, pRight, 0, vpage
+ END IF
+END SUB
+
+'Modifies enemyid, e.g. using Alt to switch enemies
+SUB enemy_usage_menu(byref enemyid as integer)
+ DIM menu as EnemyUsageMenu
+ menu.enemyid = enemyid
+ menu.use_selectable = YES
+ menu.run()
+ enemyid = menu.enemyid
+END SUB

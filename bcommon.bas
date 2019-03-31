@@ -179,6 +179,7 @@ FUNCTION describe_formation(formdata as Formation) as string
   num = counts(i).y
   IF id >= 0 THEN
    nam = exclude(readenemyname(id), " ")
+   IF LEN(nam) = 0 THEN nam = "Enemy" & id
    IF result <> "" THEN result &= " "
    result &= nam
    IF num <> 1 THEN result &= "*" & num 

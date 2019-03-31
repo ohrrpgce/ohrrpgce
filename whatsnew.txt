@@ -102,6 +102,8 @@ September 29 2018 [Fufluns]
     * New graphics backend gfx_sdl2 (and music_sdl2). Better fullscreen handling
       than gfx_sdl. Only available in non-default nightly builds for now [Ralph]
     * "Camera following a hero/NPC centers on..." general setting [Ralph]
+    * Enemy Usage menu shows where an enemy is used, and chance of encountering
+      it [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]
