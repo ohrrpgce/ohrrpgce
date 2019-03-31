@@ -95,7 +95,7 @@ FUNCTION exportnames (outdir as string = "") as string
  setvispage 0
  textcolor uilook(uiText), 0
  DIM pl as integer = 0
- printstr "exporting HamsterSpeak Definitions to:", 0, pl * 8, 0: pl = pl + 1
+ printstr "Exporting HamsterSpeak Definitions to:", 0, pl * 8, 0: pl = pl + 1
  printstr RIGHT(outf, 40), 0, pl * 8, 0: pl = pl + 1
  setvispage 0, NO
 
@@ -152,7 +152,7 @@ FUNCTION exportnames (outdir as string = "") as string
 
  printstr "slot names", 0, pl * 8, 0: pl = pl + 1
  REDIM u(0) as string
- IF LCASE(readglobalstring(38, "Weapon")) <> "weapon" THEN
+ IF sanitize_script_identifier(LCASE(readglobalstring(38, "Weapon"))) <> "weapon" THEN
   writeconstant fh, 1, "Weapon", u(), "slot"
  END IF
  writeconstant fh, 1, readglobalstring(38, "Weapon"), u(), "slot"
