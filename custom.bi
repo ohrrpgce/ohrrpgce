@@ -46,6 +46,7 @@ DECLARE FUNCTION importmasterpal (filename as string = "", palnum as integer) as
 DECLARE SUB vehicles ()
 DECLARE SUB scriptman ()
 DECLARE SUB map_picker ()
+DECLARE SUB mapeditor (byval mapnum as integer)
 DECLARE SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
 DECLARE SUB maptile ()
 DECLARE SUB spriteset_editor(sprtype as SpriteType)
@@ -60,6 +61,8 @@ DECLARE SUB global_text_strings_editor ()
 DECLARE SUB item_editor ()
 DECLARE FUNCTION individual_item_editor(item_id as integer) as integer
 DECLARE SUB formation_editor ()
+DECLARE FUNCTION individual_formation_editor (form_id as integer = -1) as integer
+DECLARE FUNCTION formation_set_editor (set_id as integer = -1) as integer
 DECLARE SUB hero_editor_main ()
 DECLARE FUNCTION hero_editor (hero_id as integer) as integer
 DECLARE SUB attack_editor_main ()

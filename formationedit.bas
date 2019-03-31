@@ -17,9 +17,7 @@
 
 
 'Local SUBs
-DECLARE FUNCTION individual_formation_editor (form_id as integer = -1) as integer
 DECLARE SUB formation_editor_main ()
-DECLARE SUB formation_set_editor ()
 DECLARE SUB draw_formation_slices OVERLOAD (eform as Formation, rootslice as Slice ptr, selected_slot as integer, page as integer)
 DECLARE SUB draw_formation_slices OVERLOAD (eform as Formation, hform as HeroFormation, rootslice as Slice ptr, selected_slot as integer, page as integer, byval heromode as bool=NO)
 DECLARE SUB load_formation_slices(ename() as string, form as Formation, rootslice as Slice ptr ptr)
@@ -88,10 +86,19 @@ SUB formation_editor
  LOOP
 END SUB
 
-SUB formation_set_editor
+'set_id: which formation set to show. If -1, same as last time.
+'Returns the formation set number we were last editing.
+FUNCTION formation_set_editor (set_id as integer = -1) as integer
+ STATIC remember_set_id as integer = 1
+ IF set_id <= 0 THEN
+  set_id = remember_set_id
+ ELSE
+  set_id = bound(set_id, 1, maxFormationSet)
+ END IF
+
  DIM form as Formation
  DIM formset as FormationSet
- DIM set_id as integer = 1, form_id as integer
+ DIM form_id as integer
  DIM menu(23) as string
  DIM rootslice as Slice ptr
  DIM state as MenuState
@@ -157,9 +164,9 @@ SUB formation_set_editor
   dowait
  LOOP
  DeleteSlice @rootslice
- EXIT SUB
-
-END SUB
+ remember_set_id = set_id
+ RETURN set_id
+END FUNCTION
 
 SUB formation_set_editor_load_preview(state as MenuState, byref form_id as integer, formset as FormationSet, form as Formation, menu() as string, byref rootslice as slice Ptr)
  IF state.pt >= 4 THEN
@@ -332,26 +339,25 @@ SUB hero_formation_editor ()
  DeleteSlice @rootslice
 END SUB
 
-'form_id: which formation to show. If -1, same as last time. If >= max, ask to add a new formation,
-'(and exit and return -1 if cancelled).
-'Otherwise, returns the formation number we were last editing.
+'form_id: which formation to show. If -1, same as last time. If >= max, adds a new formation (without asking!)
+'Returns the formation number we were last editing.
 FUNCTION individual_formation_editor (form_id as integer = -1) as integer
 
  DIM form as Formation
- 
+
  STATIC remember_form_id as integer = 0
  IF form_id < 0 THEN
   form_id = remember_form_id
  ELSE
   IF form_id > gen(genMaxFormation) THEN
-   'Added a new record
+   'Adding a new record
    gen(genMaxFormation) = form_id
    ClearFormation form
    form.music = gen(genBatMus) - 1
    SaveFormation form, form_id
   END IF
  END IF
- 
+
  DIM ename(7) as string
  DIM rootslice as Slice ptr
  DIM as integer i

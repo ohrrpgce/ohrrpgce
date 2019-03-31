@@ -27,7 +27,6 @@ DIM SHARED remem_map_positions() as XYPair
 '---------------------------- Local subs/functions & types -------------------------------
 
 DECLARE SUB make_map_picker_menu (topmenu() as string, state as MenuState)
-DECLARE SUB mapeditor (byval mapnum as integer)
 DECLARE SUB mapeditor_mapping(st as MapEditState, mode_tools_map() as integer)
 DECLARE SUB mapedit_load_settings (st as MapEditState)
 DECLARE SUB mapedit_settings_menu (st as MapEditState)
@@ -623,7 +622,7 @@ mapedit_move_cursor st, remem_map_positions(st.map.id)
 DIM mapeditmenu(16) as string
 DIM mapeditmenu_display(16) as string
 
-mapeditmenu(0) = "Return to Map Menu"
+mapeditmenu(0) = "Previous Menu"
 mapeditmenu(1) = "Edit General Map Data..."
 mapeditmenu(2) = "Resize Map..."
 mapeditmenu(3) = "Layers and Tilesets..."

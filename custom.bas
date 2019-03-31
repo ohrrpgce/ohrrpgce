@@ -491,7 +491,7 @@ SUB gfx_editor_menu()
  DIM menu(15) as string
  DIM menu_display(UBOUND(menu)) as string
 
- menu(0) = "Back to the main menu"
+ menu(0) = "Return to Main Menu"
  menu(1) = "Edit Tilesets"
  menu(2) = "Import/Export Tilesets"
  menu(3) = "Draw Walkabout Graphics"
