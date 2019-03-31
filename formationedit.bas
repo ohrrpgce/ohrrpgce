@@ -124,7 +124,7 @@ SUB formation_set_editor
   END IF
   IF state.pt = 1 THEN
    DIM remember_id as integer = set_id
-   IF intgrabber(set_id, 1, 255) THEN
+   IF intgrabber(set_id, 1, maxFormationSet) THEN
     SaveFormationSet formset, remember_id
     LoadFormationSet formset, set_id
     formation_set_editor_load_preview state, form_id, formset, form, menu(), rootslice
@@ -173,8 +173,8 @@ SUB formation_set_editor_load_preview(state as MenuState, byref form_id as integ
   END IF
  END IF
  'Also reload the formation descriptions for the menu
- dim each_form as Formation
- FOR i as integer = 0 TO 19
+ DIM each_form as Formation
+ FOR i as integer = 0 TO UBOUND(formset.formations)
   IF formset.formations(i) = -1 THEN
    menu(4 + i) = "Empty"
   ELSE

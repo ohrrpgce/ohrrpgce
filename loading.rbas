@@ -653,6 +653,7 @@ END FUNCTION
 
 SUB LoadTilemap(map as TileMap, filename as string)
   IF map.data THEN DEALLOCATE map.data
+  map.data = NULL
 
   DIM as integer fh
   OPENFILE(filename, FOR_BINARY + ACCESS_READ, fh)
@@ -4246,15 +4247,12 @@ END SUB
 
 'index is formation set number, starting from 1!
 SUB LoadFormationSet (formset as FormationSet, byval index as integer)
- DIM formsetdata(24) as integer
+ BUG_IF(index < 1 ORELSE index > maxFormationSet, "invalid formation set " & index)
 
- IF index < 1 THEN
-  debug "LoadFormationSet: invalid formation set " & index
- ELSE
-  'Not an error to load a nonexistent formation set; happens when
-  'editing for first time and can be used before it is created
-  loadrecord(formsetdata(), game & ".efs", 25, index - 1)
- END IF
+ 'Not an error to load a nonexistent formation set; happens when
+ 'editing for first time and can be used before it is created
+ DIM formsetdata(24) as integer
+ loadrecord formsetdata(), game & ".efs", 25, index - 1, NO  'expectexists=NO
 
  formset.frequency = formsetdata(0)
  FOR i as integer = 0 TO 19
@@ -4264,10 +4262,7 @@ SUB LoadFormationSet (formset as FormationSet, byval index as integer)
 END SUB
 
 SUB SaveFormationSet (formset as FormationSet, byval index as integer)
- IF index < 1 THEN
-  debug "SaveFormationSet: invalid formation set " & index
-  EXIT SUB
- END IF
+ BUG_IF(index < 1 ORELSE index > maxFormationSet, "invalid formation set " & index)
 
  DIM formsetdata(24) as integer
 

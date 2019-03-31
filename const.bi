@@ -301,6 +301,7 @@ CONST maxMaxSong = 32767 ' Max possible value for gen(genMaxSong)
 CONST maxMaxShop = 32767 ' Max possible value for gen(genMaxShop)
 CONST maxSaveSlotCount = 1000 ' highest allowed value for gen(genSaveSlotCount)
 CONST maxMaxFormation = 32767 ' Max possible value for gen(genMaxFormation)
+CONST maxFormationSet = 255 ' The max formation set ID (the number can't be changed)
 
 CONST sizeParty = 41 'The maximum size of the entire party (number of gam.hero() party slots)
 CONST sizeActiveParty = 4 'Maximum size of the active party (this is for CUSTOM, use active_party_slots() in GAME)

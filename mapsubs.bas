@@ -1391,7 +1391,7 @@ DO
    '---FOEMODE--------
   CASE foe_mode
    IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_foemap"
-   intgrabber(st.cur_foe, 0, 255, scLeftCaret, scRightCaret, , , , wheelAlways)
+   intgrabber(st.cur_foe, 0, maxFormationSet, scLeftCaret, scRightCaret, , , , wheelAlways)
    IF keyval(scG) > 1 THEN st.cur_foe = readblock(st.map.foemap, st.x, st.y)
    st.tool_value = st.cur_foe
 
