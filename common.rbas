@@ -2993,9 +2993,11 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
   usemenu state
 
   copypage holdscreen, vpage
-  menu.offset.Y = 2 + basic_textbox(capt, , vpage, pCentered - 15 - UBOUND(choices) * 5 + showTop)
-  menu.maxrows = (vpages(vpage)->h - menu.offset.Y - 20) \ 10
-  menu.max_chars = vpages(vpage)->w \ 8 - 2
+  DIM res as XYPair = get_resolution()
+  menu.offset.Y = 2 + basic_textbox(capt, , vpage, large(6, res.h \ 2 - 10 - UBOUND(choices) * 5))
+  menu.maxrows = (res.h - menu.offset.Y - 10) \ 10
+  menu.max_chars = res.w \ 8 - 2
+  init_menu_state state, menu  'Required after changing menu.maxrows
   draw_menu menu, state, vpage
   IF LEN(*helpkey) > 0 THEN
    edgeprint "F1 Help", pRight, pBottom, uilook(uiMenuItem), vpage
