@@ -98,9 +98,14 @@ DECLARE SUB draw_fullscreen_scrollbar(state as MenuState, boxstyle as integer=0,
 ' should switch to BasicMenuItem at a minimum
 TYPE ModularMenu EXTENDS Object
  running as bool         'Whether inside run()
+
+ 'These arrays contain data for each menu item
  menu(any) as string
- selectable(any) as bool 'Optional: the selectable menu items
- shaded(any) as bool     'Optional: the greyed-out menu items
+ selectable(any) as bool 'Optional: whether selectable
+ shaded(any) as bool     'Optional: whether a header (actually whether greyed-out, but eduiHeading by default
+ itemtypes(any) as integer  'Optional: menu item data (meaning defined by subclass)
+ itemids(any) as integer  'Optional: menu item data (meaning defined by subclass)
+
  tooltip as string       'Shown at the bottom of the screen
  title as string         'Shown at the top, like the multichoice() prompt
  state as MenuState
@@ -109,6 +114,14 @@ TYPE ModularMenu EXTENDS Object
  use_selectable as bool  'Set to true to make use of selectable()
  helpkey as string
  holdscreen as integer   '0 if none
+
+ ' Add an item to the menu
+ ' Virtual because you might want to set more per-item data
+ DECLARE VIRTUAL SUB add_item OVERLOAD(itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
+ DECLARE VIRTUAL SUB add_item OVERLOAD(id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
+
+ ' Add a header to the menu
+ DECLARE SUB header(text as string)
 
  ' Called to create/update 'menu()' and 'state' if state.need_update is true. Also called once at start.
  ' Should correctly set state.last

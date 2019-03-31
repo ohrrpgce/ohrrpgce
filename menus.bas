@@ -1804,6 +1804,23 @@ SUB run_MenuDef(menu as MenuDef, each_tick as FnMenuLogic, dataptr as any ptr = 
  freepage holdscreen
 END SUB
 
+SUB ModularMenu.add_item(id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
+ add_item 0, id, text, canselect, heading
+END SUB
+
+SUB ModularMenu.add_item(itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
+ a_append itemtypes(), itemtype
+ a_append itemids(), id
+ a_append menu(), text
+ a_append selectable(), canselect
+ a_append shaded(), heading
+END SUB
+
+SUB ModularMenu.header(text as string)
+ add_item , , , NO, YES
+ add_item , , text, NO, YES
+END SUB
+
 SUB ModularMenu.update()
 END SUB
 
@@ -1885,6 +1902,11 @@ SUB ModularMenu.run()
   IF each_tick() THEN EXIT DO
   IF state.need_update THEN
    state.need_update = NO
+   ERASE this.menu
+   ERASE this.selectable
+   ERASE this.shaded
+   ERASE this.itemtypes
+   ERASE this.itemids
    update()
    correct_menu_state state
    'Updating shaded() is optional

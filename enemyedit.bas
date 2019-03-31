@@ -1074,38 +1074,13 @@ END FUNCTION
 TYPE EnemyUsageMenu EXTENDS ModularMenu
  enemyid as integer
  enemyname as string
- itemtypes(any) as integer  'Type of each menu item
- itemids(any) as integer  'Menu item formation/map/etc ID
-
- DECLARE SUB add_item(itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
- DECLARE SUB header(text as string)
 
  DECLARE SUB update()
  DECLARE SUB draw()
  DECLARE FUNCTION each_tick() as bool
 END TYPE
 
-
-SUB EnemyUsageMenu.add_item(itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
- a_append this.itemids(), id
- a_append this.itemtypes(), itemtype
- a_append this.menu(), text
- a_append this.selectable(), canselect
- a_append this.shaded(), heading
-END SUB
-
-SUB EnemyUsageMenu.header(text as string)
- add_item , , , NO, YES
- add_item , , text, NO, YES
-END SUB
-
 SUB EnemyUsageMenu.update()
- ERASE this.menu
- ERASE this.selectable
- ERASE this.shaded
- ERASE this.itemtypes
- ERASE this.itemids
-
  DIM enemy as EnemyDef
  loadenemydata enemy, this.enemyid
  this.enemyname = enemy.name
