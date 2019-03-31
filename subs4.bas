@@ -1252,9 +1252,9 @@ SUB GeneralSettingsMenu.update()
  '-------------------------
  header " Inventory"
  IF gen(genMaxInventory) = 0 THEN
-  add_item , , "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
+  add_item 20, , "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
  ELSE
-  add_item , , "Inventory size: " & (last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
+  add_item 20, , "Inventory size: " & (last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
  END IF
  gen_int genMaxInventory, 0, (inventoryMax + 1) \ 3
 
@@ -1295,7 +1295,7 @@ SUB GeneralSettingsMenu.update()
   add_item , , "Game created " & FORMAT(created, "yyyy mmm dd hh:mm"), NO
  END IF
 
- 'Next free ID number: 20
+ 'Next free ID number: 21
 
 END SUB
 
@@ -1314,7 +1314,7 @@ END SUB
 SUB general_data_editor ()
  STATIC shown_framerate_warning as bool = NO
 
- 'make sure genMaxInventory is a valid value (possible in older versions)
+ 'make sure genMaxInventory is a multiple of 3 (other valyes possible in older versions and Fufluns nightlies)
  IF gen(genMaxInventory) THEN gen(genMaxInventory) = last_inv_slot()
 
  DIM genmenu as GeneralSettingsMenu
@@ -1379,7 +1379,7 @@ SUB general_data_editor ()
      enable_strgrabber = YES
      state.need_update OR= strgrabber(genmenu.aboutline, 38)
     END IF
-   CASE genMaxInventory
+   CASE 20 'genMaxInventory
     DIM as integer temp = (gen(genMaxInventory) + 1) \ 3
     IF intgrabber(temp, genmenu.min(state.pt), genmenu.max(state.pt)) THEN
      gen(genMaxInventory) = temp * 3 - 1
