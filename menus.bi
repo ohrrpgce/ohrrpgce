@@ -117,11 +117,13 @@ TYPE ModularMenu EXTENDS Object
 
  ' Add an item to the menu
  ' Virtual because you might want to set more per-item data
- DECLARE VIRTUAL SUB add_item OVERLOAD(itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
- DECLARE VIRTUAL SUB add_item OVERLOAD(id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
+ DECLARE VIRTUAL SUB add_item (itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
 
  ' Add a header to the menu
  DECLARE SUB header(text as string)
+
+ ' Delete all menu items
+ DECLARE SUB clear_menu()
 
  ' Called to create/update 'menu()' and 'state' if state.need_update is true. Also called once at start.
  ' Should correctly set state.last

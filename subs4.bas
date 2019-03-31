@@ -1142,31 +1142,26 @@ SUB startingdatamenu
  LOOP
 END SUB
 
-TYPE GeneralSettingsMenu
- DIM itemids(any) as integer  'Meaningless unique value, or -1
- DIM menutext(any) as string
- DIM index(any) as integer    'gen() index, or -1
- DIM min(any) as integer
- DIM max(any) as integer
- DIM selectable(any) as bool
- DIM shaded(any) as bool      'Indicates headings
 
- DECLARE SUB add_item(id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
+TYPE GeneralSettingsMenu EXTENDS ModularMenu
+ index(any) as integer    'gen() index, or -1
+ min(any) as integer
+ max(any) as integer
+
+ longname as string
+ aboutline as string
+
+ DECLARE SUB add_item(subtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
  DECLARE SUB gen_int(genidx as integer, minvalue as integer, maxvalue as integer)
- DECLARE SUB header(text as string)
-
- DECLARE SUB update(longname as string, aboutline as string)
+ DECLARE SUB update()
  DECLARE SUB update_edit_time()
 END TYPE
 
-SUB GeneralSettingsMenu.add_item(id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
- a_append itemids(), id
- a_append menutext(), text
+SUB GeneralSettingsMenu.add_item(subtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
+ BASE.add_item subtype, id, text, canselect, heading
  a_append index(), 0
  a_append min(), 0
  a_append max(), 0
- a_append selectable(), canselect
- a_append shaded(), heading
 END SUB
 
 'Applies to last add_item()
@@ -1177,51 +1172,44 @@ SUB GeneralSettingsMenu.gen_int(genidx as integer, minvalue as integer, maxvalue
  max(i) = maxvalue
 END SUB
 
-SUB GeneralSettingsMenu.header(text as string)
- add_item , , NO, YES
- add_item , text, NO, YES
-END SUB
 
-SUB GeneralSettingsMenu.update(longname as string, aboutline as string)
+SUB GeneralSettingsMenu.update()
  DIM tmp as string
 
- ERASE itemids
- ERASE menutext
+ clear_menu()
  ERASE index
  ERASE min
  ERASE max
- ERASE selectable
- ERASE shaded
 
- add_item 0,  "Return to Main Menu"
+ add_item 0, ,  "Return to Main Menu"
 
  header " Game Title & Info"
- add_item 1,  "Long name: " + longname
- add_item 2,  "About line: " + aboutline
- add_item 3,  "Title Screen..."
+ add_item 1, ,  "Long name: " + this.longname
+ add_item 2, ,  "About line: " + this.aboutline
+ add_item 3, ,  "Title Screen..."
 
  '-------------------------
  header " Major Settings"
- add_item 4,  "New Games..."
- add_item 5,  "Saved Games..."
- add_item 8,  "Battle System..."
- add_item 6,  "Preference Bitsets..."
- add_item 7,  "Backwards-Compatibility..."
+ add_item 4, ,  "New Games..."
+ add_item 5, ,  "Saved Games..."
+ add_item 8, ,  "Battle System..."
+ add_item 6, ,  "Preference Bitsets..."
+ add_item 7, ,  "Backwards-Compatibility..."
 
  '-------------------------
  header " Controls"
- add_item 16, "Mouse Options..."
- add_item 15, "Platform-Specific Controls..."
+ add_item 16, , "Mouse Options..."
+ add_item 15, , "Platform-Specific Controls..."
 
  '-------------------------
  header " Scripts"
- add_item 9,  "Special Plotscripts..."
- add_item 10, "Error Display..."
+ add_item 9, ,  "Special Plotscripts..."
+ add_item 10, , "Error Display..."
 
  '-------------------------
  header " Graphics"
- add_item 12, "Master Palettes..."
- add_item 14, "Window-Size Options..."
+ add_item 12, , "Master Palettes..."
+ add_item 14, , "Window-Size Options..."
 
  DIM fps as string
  '16ms and 33ms are special-cased to be exactly 60/30fps
@@ -1232,7 +1220,7 @@ SUB GeneralSettingsMenu.update(longname as string, aboutline as string)
  ELSE
   fps = FORMAT(small(60., 1000 / gen(genMillisecPerFrame)), ".#")
  END IF
- add_item , "Framerate: " & fps & " frames/sec (" & gen(genMillisecPerFrame) & "ms/frame)"
+ add_item , , "Framerate: " & fps & " frames/sec (" & gen(genMillisecPerFrame) & "ms/frame)"
  gen_int genMillisecPerFrame, 16, 200
 
  tmp = "Minimap style: "
@@ -1241,7 +1229,7 @@ SUB GeneralSettingsMenu.update(longname as string, aboutline as string)
   CASE minimapScatter :  tmp &= "Pick random color"
   CASE minimapMajority : tmp &= "Pick most common color"
  END SELECT
- add_item , tmp
+ add_item , , tmp
  gen_int genMinimapAlgorithm, 0, minimapLAST
 
  tmp = "Camera following a hero/NPC centers on: "
@@ -1250,23 +1238,23 @@ SUB GeneralSettingsMenu.update(longname as string, aboutline as string)
   CASE 1 : tmp &= "sprite"
   CASE 2 : tmp &= "sprite minus Z"
  END SELECT
- add_item , tmp
+ add_item , , tmp
  gen_int genCameraOnWalkaboutFocus, 0, 2
 
  '-------------------------
  header " Audio"
- add_item 11, "Global Music and Sound Effects..."
- add_item , "Initial music volume: " & gen(genMusicVolume) & "%"
+ add_item 11, , "Global Music and Sound Effects..."
+ add_item , , "Initial music volume: " & gen(genMusicVolume) & "%"
  gen_int genMusicVolume, 0, 100
- add_item , "Initial sound effects volume: " & gen(genSFXVolume) & "%"
+ add_item , , "Initial sound effects volume: " & gen(genSFXVolume) & "%"
  gen_int genSFXVolume, 0, 100
 
  '-------------------------
  header " Inventory"
  IF gen(genMaxInventory) = 0 THEN
-  add_item , "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
+  add_item , , "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
  ELSE
-  add_item , "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
+  add_item , , "Inventory size: " & (last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
  END IF
  gen_int genMaxInventory, 0, (inventoryMax + 1) \ 3
 
@@ -1278,10 +1266,10 @@ SUB GeneralSettingsMenu.update(longname as string, aboutline as string)
   CASE 3: tmp &= "by item ID number"
   CASE 4: tmp &= "no reordering"
  END SELECT
- add_item , tmp
+ add_item , , tmp
  gen_int genAutosortScheme, 0, 4
 
- add_item , "Default maximum item stack size: " & gen(genItemStackSize)
+ add_item , , "Default maximum item stack size: " & gen(genItemStackSize)
  gen_int genItemStackSize, 1, 99
 
  tmp = "Display '" & CHR(1) & "1' in inventory: "  'CHR(1) is the x symbol
@@ -1290,21 +1278,21 @@ SUB GeneralSettingsMenu.update(longname as string, aboutline as string)
   CASE 1: tmp &= "never"
   CASE 2: tmp &= "only if stackable"
  END SELECT
- add_item , tmp
+ add_item , , tmp
  gen_int genInventSlotx1Display, 0, 2
 
  '-------------------------
  header " Misc"
- add_item 17, "In-App Purchases... (experimental)"
- add_item 13, "Password For Editing..."
+ add_item 17, , "In-App Purchases... (experimental)"
+ add_item 13, , "Password For Editing..."
 
  header " Stats"
- add_item  , "Time spent editing...", NO
- add_item 18, " this session:", NO
- add_item 19, " in total:", NO
+ add_item  , , "Time spent editing...", NO
+ add_item 18, , " this session:", NO
+ add_item 19, , " in total:", NO
  DIM created as double = GetChildNodeFloat(get_general_reld, "created", 0.)
  IF created <> 0. THEN
-  add_item , "Game created " & FORMAT(created, "yyyy mmm dd hh:mm"), NO
+  add_item , , "Game created " & FORMAT(created, "yyyy mmm dd hh:mm"), NO
  END IF
 
  'Next free ID number: 20
@@ -1313,14 +1301,14 @@ END SUB
 
 'Update the edit_time display
 SUB GeneralSettingsMenu.update_edit_time()
- menutext(a_find(itemids(), 18)) = " this session: " & format_duration(active_seconds, 0)
+ this.menu(a_find(this.itemtypes(), 18)) = " this session: " & format_duration(active_seconds, 0)
  'Round edit_time to integer so it ticks in sync with 'This session'
  DIM total_edit_time as double = INT(GetChildNodeFloat(get_general_reld, "edit_time")) + active_seconds
  DIM total_text as string = " in total: "
  '"created" was added at the same time as "edit_time", so if it's missing then the total is inaccurate.
  IF GetChildNodeExists(get_general_reld, "created") = NO THEN total_text &= "at least "
  total_text &= format_duration(total_edit_time, 0)
- menutext(a_find(itemids(), 19)) = total_text
+ this.menu(a_find(this.itemtypes(), 19)) = total_text
 END SUB
 
 SUB general_data_editor ()
@@ -1329,18 +1317,17 @@ SUB general_data_editor ()
  'make sure genMaxInventory is a valid value (possible in older versions)
  IF gen(genMaxInventory) THEN gen(genMaxInventory) = last_inv_slot()
 
- DIM aboutline as string = load_aboutline()
- DIM longname as string = load_gamename()
-
  DIM genmenu as GeneralSettingsMenu
- genmenu.update(longname, aboutline)
+ genmenu.aboutline = load_aboutline()
+ genmenu.longname = load_gamename()
+ genmenu.update()
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
  WITH state
   .autosize = YES
   .autosize_ignore_pixels = 4
-  .last = UBOUND(genmenu.menutext)
+  .last = UBOUND(genmenu.menu)
  END WITH
  DIM menuopts as MenuOptions
  menuopts.disabled_col = uilook(eduiHeading)
@@ -1357,7 +1344,7 @@ SUB general_data_editor ()
   usemenu state, genmenu.selectable()
 
   IF enter_space_click(state) THEN
-   SELECT CASE genmenu.itemids(state.pt)
+   SELECT CASE genmenu.itemtypes(state.pt)
     CASE 0:  EXIT DO
     CASE 3
      DIM backdropb as BackdropSpriteBrowser
@@ -1381,16 +1368,16 @@ SUB general_data_editor ()
 
   DIM enable_strgrabber as bool = NO
 
-  SELECT CASE genmenu.itemids(state.pt)
+  SELECT CASE genmenu.itemtypes(state.pt)
    CASE 1  'Long name
     IF LEN(selectst.query) = 0 THEN
      enable_strgrabber = YES
-     state.need_update OR= strgrabber(longname, 38)
+     state.need_update OR= strgrabber(genmenu.longname, 38)
     END IF
    CASE 2  'About line
     IF LEN(selectst.query) = 0 THEN
      enable_strgrabber = YES
-     state.need_update OR= strgrabber(aboutline, 38)
+     state.need_update OR= strgrabber(genmenu.aboutline, 38)
     END IF
    CASE genMaxInventory
     DIM as integer temp = (gen(genMaxInventory) + 1) \ 3
@@ -1412,20 +1399,20 @@ SUB general_data_editor ()
   END SELECT
 
   IF state.need_update THEN
-   genmenu.update(longname, aboutline)
-   state.last = UBOUND(genmenu.menutext)
+   genmenu.update()
+   state.last = UBOUND(genmenu.menu)
    state.need_update = NO
   END IF
   genmenu.update_edit_time()
 
   IF enable_strgrabber = NO ANDALSO select_by_typing(selectst, NO) THEN
-   select_on_word_boundary genmenu.menutext(), selectst, state
+   select_on_word_boundary genmenu.menu(), selectst, state
   END IF
 
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
-  DIM menu_display(UBOUND(genmenu.menutext)) as string
-  highlight_menu_typing_selection genmenu.menutext(), menu_display(), selectst, state
+  DIM menu_display(UBOUND(genmenu.menu)) as string
+  highlight_menu_typing_selection genmenu.menu(), menu_display(), selectst, state
   standardmenu menu_display(), state, genmenu.shaded(), 4, 4, dpage, menuopts
 
   SWAP vpage, dpage
@@ -1434,8 +1421,8 @@ SUB general_data_editor ()
  LOOP
  
  '--write long name and about line
- save_gamename longname
- save_aboutline aboutline
+ save_gamename genmenu.longname
+ save_aboutline genmenu.aboutline
 
  '--Also use the in-game setting for previewing stuff in Custom
  set_music_volume 0.01 * gen(genMusicVolume)
