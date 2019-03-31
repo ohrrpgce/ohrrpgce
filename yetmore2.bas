@@ -962,18 +962,18 @@ SUB npc_debug_display (draw_walls as bool)
       END IF
      END IF
 
-     ' Draw the NPC ID and reference number
-     textcolor IIF(.id < 0, uilook(uiSelectedDisabled), uilook(uiText)), 0
+     ' Draw the NPC ID and negative NPC reference number (e.g 7 instead of -7)
+     DIM col as integer = IIF(.id < 0, uilook(uiSelectedDisabled), uilook(uiText))
      'the numbers can overlap quite badly, try to squeeze them in
      temp = STR(ABS(.id) - 1)
-     printstr MID(temp, 1, 1), where.x, where.y + 4, dpage
-     printstr MID(temp, 2, 1), where.x + 7, where.y + 4, dpage
-     printstr MID(temp, 3, 1), where.x + 14, where.y + 4, dpage
-     textcolor uilook(uiDescription), 0
+     edgeprint MID(temp, 1, 1), where.x, where.y + 3, col, dpage
+     edgeprint MID(temp, 2, 1), where.x + 7, where.y + 3, col, dpage
+     edgeprint MID(temp, 3, 1), where.x + 14, where.y + 3, col, dpage
+     col = uilook(uiDescription)
      temp = STR(i + 1)
-     printstr MID(temp, 1, 1), where.x, where.y + 12, dpage
-     printstr MID(temp, 2, 1), where.x + 7, where.y + 12, dpage
-     printstr MID(temp, 3, 1), where.x + 14, where.y + 12, dpage
+     edgeprint MID(temp, 1, 1), where.x, where.y + 11, col, dpage
+     edgeprint MID(temp, 2, 1), where.x + 7, where.y + 11, col, dpage
+     edgeprint MID(temp, 3, 1), where.x + 14, where.y + 11, col, dpage
      'printstr STR(npc(i).stillticks), where.x, where.y + 20, dpage
     END IF
    END IF
