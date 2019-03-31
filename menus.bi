@@ -109,6 +109,9 @@ TYPE ModularMenu EXTENDS Object
  tooltip as string       'Shown at the bottom of the screen
  title as string         'Shown at the top, like the multichoice() prompt
  state as MenuState
+ selectst as SelectTypeState
+ can_use_strgrabber as bool 'Whether you can use strgrabber (false when selecting-by-typing)
+ using_strgrabber as bool 'Set this true in each_tick() to disable select-by-typing
  menuopts as MenuOptions
  floating as bool        'Appears in the center of the screen, like notification, instead of fullscreen
  use_selectable as bool  'Set to true to make use of selectable()

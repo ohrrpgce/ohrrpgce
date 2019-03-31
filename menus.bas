@@ -1868,7 +1868,11 @@ SUB ModularMenu.draw()
   edgeboxstyle pCentered, pCentered, state.rect.wide + 10, state.rect.high + 10, 1, vpage
   where = XY(pCentered, pCentered)
  END IF
- standardmenu menu(), state, shaded(), where.x, where.y, vpage, menuopts
+
+ DIM menu_display(UBOUND(menu)) as string
+ highlight_menu_typing_selection menu(), menu_display(), selectst, state
+ standardmenu menu_display(), state, shaded(), where.x, where.y, vpage, menuopts
+
  IF LEN(tooltip) THEN
   edgeprint tooltip, 0, pBottom, uilook(uiText), vpage
  END IF
@@ -1921,10 +1925,19 @@ SUB ModularMenu.run()
   END IF
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF LEN(helpkey) AND keyval(scF1) > 1 THEN show_help helpkey
+
+  can_use_strgrabber = (LEN(selectst.query) = 0)
+  using_strgrabber = NO
+
   IF each_tick() THEN EXIT DO
   IF state.need_update THEN
    state.need_update = NO
    update_wrapper()
+   'correct_menu_state state
+  END IF
+
+  IF using_strgrabber = NO ANDALSO select_by_typing(selectst, NO) THEN
+   select_on_word_boundary menu(), selectst, state
   END IF
 
   draw()
