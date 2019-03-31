@@ -3547,6 +3547,8 @@ SUB add_rem_swap_lock_hero (byref box as TextBox)
    i = findhero(-box.hero_addrem - 1, , serrWarn)
    IF i > -1 THEN gam.hero(i).id = -1
    IF active_party_size() = 0 THEN forceparty
+  ELSE
+   reporterr "Couldn't remove hero ID " & (-box.hero_addrem - 1) & " from party: only one hero left", serrWarn
   END IF
  END IF '---end if < 0
  '---SWAP-IN---

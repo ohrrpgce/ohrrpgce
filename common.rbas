@@ -5350,7 +5350,7 @@ SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context a
   EXIT SUB
  END IF
  IF should_display_error_to_user(errlvl) = NO THEN
-  debugc errDebug, full_msg
+  debug full_msg
   EXIT SUB
  END IF
 #ENDIF
@@ -5359,13 +5359,22 @@ SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context a
  ELSEIF errlvl >= serrMajor THEN
   'errlvl >= serrError: Corrupt, unsupported, or unreadable data or interpreter state
   'errlvl = serrMajor: A script error that can't be ignored
-  debugc errShowError, full_msg
+  showerror full_msg
  ELSEIF errlvl >= serrWarn THEN
-  'errlvl = serrBadOp or errlvl = serrWarn: Likely something like out-of-bounds data
-  debugc errShowDebug, full_msg
+  'Likely something like out-of-bounds data
+  DIM header as string
+  IF errlvl >= serrBound THEN   'serrBound, serrBadOp
+   header = "Error:"
+  ELSE  'serrWarn, serrSuspicious
+  header = "Warning:"
+  END IF
+  #IFDEF IS_GAME
+   header &= "  (Hidden in Release Mode)"
+  #ENDIF
+  visible_debug header & !"\n" & full_msg
  ELSE
   'Info or ignore
-  debugc errInfo, full_msg
+  debuginfo full_msg
  END IF
 END SUB
 
