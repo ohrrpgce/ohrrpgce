@@ -3011,10 +3011,10 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   IF tog THEN col = uilook(uiBackground) ELSE col = uilook(uiText)
   IF zoom = 1 THEN
    'A single pixel is too small, so draw the crosshair mouse cursor.
-   'A little bit tricky: we only draw the mouse cursor, and not a separate cursor
-   textcolor col, 0
-   'printstr CHR(5), imagepos.x + pickpos.x - 2, imagepos.y + pickpos.y - 2, dpage
+   textcolor uilook(uiSelectedItem + tog), 0
    printstr CHR(5), mouse.x - 2, mouse.y - 2, dpage
+   textcolor col, 0
+   printstr CHR(5), imagepos.x + pickpos.x - 2, imagepos.y + pickpos.y - 2, dpage
   ELSE
    'Draw both pixel cursor and mouse cursor
    rectangle imagepos.x + pickpos.x * zoom, imagepos.y + pickpos.y * zoom, zoom, zoom, col, dpage
