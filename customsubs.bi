@@ -56,7 +56,8 @@ DECLARE SUB onetimetog(byref tagnum as integer)
 DECLARE FUNCTION pal16browse OVERLOAD (curpal as integer, sprite as Frame ptr, show_default as bool=NO) as integer
 DECLARE FUNCTION pal16browse OVERLOAD (curpal as integer, picset as SpriteType, picnum as integer, show_default as bool=NO) as integer
 
-DECLARE FUNCTION step_estimate(freq as integer, low as integer, high as integer, infix as string="-", suffix as string= "", zero as string="never") as string
+DECLARE FUNCTION formset_step_estimate(freq as integer, suffix as string=" steps") as string
+DECLARE FUNCTION formset_freq_estimate(freq as integer) as double
 DECLARE FUNCTION speed_estimate(speed as integer) as string
 DECLARE FUNCTION seconds_estimate(ticks as integer) as string
 

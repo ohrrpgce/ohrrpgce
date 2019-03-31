@@ -1641,14 +1641,22 @@ FUNCTION pal16browse (curpal as integer, sprite as Frame ptr, show_default as bo
 END FUNCTION
 
 ' Number of steps before a random formation triggers
-FUNCTION step_estimate(freq as integer, low as integer, high as integer, infix as string="-", suffix as string= "", zero as string="never") as string
- IF freq = 0 THEN RETURN zero
+FUNCTION formset_step_estimate(freq as integer, suffix as string=" steps") as string
+ IF freq = 0 THEN RETURN "never"
  ' Round upwards to get the actual number steps required
- DIM low_est  as integer = (low + freq - 1) \ freq
- DIM high_est as integer = (high + freq - 1) \ freq
+ ' gam.random_battle_countdown initialised to range(100, 60), which is 40-160.
+ DIM low_est  as integer = (40 + freq - 1) \ freq
+ DIM high_est as integer = (160 + freq - 1) \ freq
  ' This average is just an estimate. Add 0.5 due to the rounding-up behaviour.
- DIM average as double = (high + low) / 2 / freq + 0.5
- RETURN low_est & infix & high_est & suffix & ", avg~" & format(average, "0.0")
+ DIM average as double = 100 / freq + 0.5
+ RETURN low_est & "-" & high_est & suffix & ", avg~" & format(average, "0.0")
+END FUNCTION
+
+'Average chance to trigger a formation set on each step
+FUNCTION formset_freq_estimate(freq as integer) as double
+ IF freq = 0 THEN RETURN 0.
+ DIM average_steps as double = 100 / freq + 0.5  'See formset_step_estimate
+ RETURN 1. / average_steps
 END FUNCTION
 
 'Explanation for a hero/enemy's speed stat. Only applies to active-time mode

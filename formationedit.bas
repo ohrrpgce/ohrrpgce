@@ -154,7 +154,7 @@ FUNCTION formation_set_editor (set_id as integer = -1) as integer
   END IF
   menu(0) = "Previous Menu"
   menu(1) = CHR(27) & "Formation Set " & set_id & CHR(26)
-  menu(2) = "Battle Frequency: " & formset.frequency & " (" & step_estimate(formset.frequency, 40, 160, "-", " steps") & ")"
+  menu(2) = "Battle Frequency: " & formset.frequency & " (" & formset_step_estimate(formset.frequency, " steps") & ")"
   menu(3) = tag_condition_caption(formset.tag, "Only if tag", "No tag check")
 
   standardmenu menu(), state, 0, 0, dpage, menuopts
