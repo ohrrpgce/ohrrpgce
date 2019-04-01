@@ -267,7 +267,12 @@ def process_crashrpt_report(reportdir, upload_time, verbose = False):
     #print(time.strptime(root.find('SystemTimeUTC').text, '%Y-%m-%dT%H:%M:%SZ'))
 
     # Get stacktrace and other info from the minidump
-    stacktrace, crash_summary = process_minidump(build, reportdir, is_custom, verbose)
+    temp = process_minidump(build, reportdir, is_custom, verbose)
+    if temp is None:
+        stacktrace = None
+        crash_summary = "Can't produce stacktrace"
+    else:
+        stacktrace, crash_summary = temp
     # Print the stacktrace later, at the end
 
     # Print errors
