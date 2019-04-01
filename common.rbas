@@ -578,7 +578,8 @@ FUNCTION basic_textbox (msg as zstring ptr, col as integer = -1, page as integer
  IF col = -1 THEN col = uilook(uiText)
  IF width = -1 THEN width = small(vpages(page)->w - 20, 450)
  DIM size as XYPair = textsize(*msg, width, fontEdged)
- ypos = relative_pos(ypos, vpages(page)->h, size.h)  'This line is necessary only to support anchor points
+ ypos = relative_pos(ypos, vpages(page)->h, size.h)
+ ypos = large(6, ypos)
  DIM text_xpos as RelPos = pCentered
  IF shrink = NO THEN
   size.w = relative_pos(width, vpages(page)->w)
@@ -2994,7 +2995,7 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
 
   copypage holdscreen, vpage
   DIM res as XYPair = get_resolution()
-  menu.offset.Y = 2 + basic_textbox(capt, , vpage, large(6, res.h \ 2 - 10 - UBOUND(choices) * 5))
+  menu.offset.Y = 2 + basic_textbox(capt, , vpage, pCentered - 10 - UBOUND(choices) * 5 + showTop)
   menu.maxrows = (res.h - menu.offset.Y - 10) \ 10
   menu.max_chars = res.w \ 8 - 2
   init_menu_state state, menu  'Required after changing menu.maxrows
