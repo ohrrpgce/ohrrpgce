@@ -1094,16 +1094,16 @@ SUB EnemyUsageMenu.update()
  header " Formations"
  DIM form_counts(gen(genMaxFormation)) as integer  'Count of this enemy in each formation
  DIM form as Formation
- FOR formidx as integer = 0 TO gen(genMaxFormation)
-  LoadFormation form, formidx
+ FOR formid as integer = 0 TO gen(genMaxFormation)
+  LoadFormation form, formid
   DIM count as integer = 0
   FOR slotidx as integer = 0 TO UBOUND(form.slots)
    IF form.slots(slotidx).id = this.enemyid THEN count += 1
   NEXT
   IF count THEN
    have_any = YES
-   add_item 0, formidx, formidx & ": " & describe_formation(form)
-   form_counts(formidx) = count
+   add_item 0, formid, formid & ": " & describe_formation(form)
+   form_counts(formid) = count
   END IF
  NEXT
  IF have_any = NO THEN add_item -1, 0, "(None)"
@@ -1115,8 +1115,8 @@ SUB EnemyUsageMenu.update()
  DIM formset_encounter_rate(maxMaxFormation) as double  'Rate of encounters per step
  DIM formset_avg_num(maxMaxFormation) as double  'Average number of the enemy in an encounter
  DIM formset as FormationSet
- FOR fsidx as integer = 1 TO maxFormationSet
-  LoadFormationSet formset, fsidx
+ FOR fsid as integer = 1 TO maxFormationSet
+  LoadFormationSet formset, fsid
   DIM matching_forms as integer = 0  'Number of formations with this enemy
   DIM total_forms as integer = 0
   DIM count as integer = 0   'Total number of this enemy
@@ -1131,13 +1131,12 @@ SUB EnemyUsageMenu.update()
   DIM enctr_rate as double = formset_freq_estimate(formset.frequency)
   IF count THEN
    have_any = YES
-   add_item 1, fsidx, strprintf("%d: in %2d%% of formations (average num %.1f)  %.3f", _
-                                fsidx, CINT(100 * matching_forms / total_forms), count / total_forms, enctr_rate)
+   add_item 1, fsid, strprintf("%d: in %2d%% of formations (average num %.1f)  %.3f", _
+                               fsid, CINT(100 * matching_forms / total_forms), count / total_forms, enctr_rate)
   END IF
-  formset_encounter_rate(fsidx) = enctr_rate
-  'formset_matching_frac(fsdix) = matching_forms / total_forms
-  formset_avg_num(fsidx) = count / total_forms
-  formset_counts(fsidx) = count
+  formset_encounter_rate(fsid) = enctr_rate
+  formset_avg_num(fsid) = count / total_forms
+  formset_counts(fsid) = count
  NEXT
  IF have_any = NO THEN add_item -1, 0, "(None)"
  have_any = NO
@@ -1145,10 +1144,10 @@ SUB EnemyUsageMenu.update()
  header " Maps (foemaps)"
  add_item , , "Map |  % of  |   % of    | Chance to see | Avg num per | Form", NO, NO
  add_item , , "    | tiles  | foe-tiles | per foe-tile  | encounter   | sets", NO, NO
- FOR mapidx as integer = 0 TO gen(genMaxMap)
+ FOR mapid as integer = 0 TO gen(genMaxMap)
   'First count occurrences of each form set in the foemap
   DIM foemap as TileMap
-  LoadTilemap foemap, maplumpname(mapidx, "e")
+  LoadTilemap foemap, maplumpname(mapid, "e")
   DIM occurrences(maxFormationSet) as integer  'Number of tiles on which each formation set occurs
   DIM total_foe_tiles as integer = 0
   FOR y as integer = 0 TO foemap.high - 1
@@ -1165,15 +1164,15 @@ SUB EnemyUsageMenu.update()
   DIM total_enctr_rate as double
   DIM avg_num as double
   DIM formsets as string
-  FOR fsidx as integer = 1 TO maxFormationSet
-   DIM fsweight as double = formset_encounter_rate(fsidx) * occurrences(fsidx) / total_foe_tiles
+  FOR fsid as integer = 1 TO maxFormationSet
+   DIM fsweight as double = formset_encounter_rate(fsid) * occurrences(fsid) / total_foe_tiles
    total_enctr_rate += fsweight
 
-   IF formset_counts(fsidx) ANDALSO occurrences(fsidx) THEN
-    matching_tiles += occurrences(fsidx)
-    enctr_rate += formset_encounter_rate(fsidx) * occurrences(fsidx)
-    avg_num += formset_avg_num(fsidx) * fsweight
-    formsets &= fsidx & " "
+   IF formset_counts(fsid) ANDALSO occurrences(fsid) THEN
+    matching_tiles += occurrences(fsid)
+    enctr_rate += formset_encounter_rate(fsid) * occurrences(fsid)
+    avg_num += formset_avg_num(fsid) * fsweight
+    formsets &= fsid & " "
    END IF
   NEXT
   enctr_rate /= total_foe_tiles
@@ -1184,8 +1183,9 @@ SUB EnemyUsageMenu.update()
 
   IF matching_tiles THEN
    have_any = YES
-   add_item 2, mapidx, strprintf("%-3d | %5.1f%% | %8.1f%% | %12.2f%% | %11.3f | %s", _
-                                 mapidx, percent_of_tiles, percent_of_foe_tiles, 100 * enctr_rate, avg_num, @formsets[0])
+   add_item 2, mapid, strprintf("%-3d | %5.1f%% | %8.1f%% | %12.2f%% | %11.3f | %s", _
+                                mapid, percent_of_tiles, percent_of_foe_tiles, _
+                                100 * enctr_rate, avg_num, @formsets[0])
   END IF
   UnloadTilemap foemap
  NEXT
@@ -1194,15 +1194,15 @@ SUB EnemyUsageMenu.update()
 
  header " Textboxes"
  DIM box as TextBox
- FOR boxidx as integer = 0 TO gen(genMaxTextbox)
-  LoadTextBox box, boxidx
+ FOR boxid as integer = 0 TO gen(genMaxTextbox)
+  LoadTextBox box, boxid
   IF form_counts(box.battle) ANDALSO box.battle_tag <> 0 ANDALSO box.battle_tag <> 1 THEN  'Tag not NEVER
    have_any = YES
    DIM taginfo as string
    IF box.battle_tag <> -1 THEN  'Tag not ALWAYS
     taginfo = " if " & tag_condition_caption(box.battle_tag, , "", "")
    END IF
-   add_item 3, boxidx, boxidx & ": fight formation " & box.battle & taginfo
+   add_item 3, boxid, boxid & ": fight formation " & box.battle & taginfo
   END IF
  NEXT
  IF have_any = NO THEN add_item -1, 0, "(None)"
@@ -1223,7 +1223,7 @@ FUNCTION EnemyUsageMenu.each_tick() as bool
   changed = YES
  END IF
 
- IF enter_space_click(this.state) THEN 
+ IF enter_space_click(this.state) THEN
   DIM itemtype as integer = this.itemtypes(this.state.pt)
   DIM itemid as integer = this.itemids(this.state.pt)
   IF itemtype <> -1 THEN
