@@ -67,6 +67,7 @@ DECLARE SUB hero_editor_main ()
 DECLARE FUNCTION hero_editor (hero_id as integer) as integer
 DECLARE SUB attack_editor_main ()
 DECLARE SUB enemy_editor_main ()
+DECLARE SUB foemap_stats_menu (foemap as TileMap, title as string)
 DECLARE SUB shop_editor_main()
 DECLARE SUB textbox_editor_main()
 DECLARE SUB menu_editor ()

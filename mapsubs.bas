@@ -619,8 +619,8 @@ REDIM PRESERVE remem_map_positions(gen(genMaxMap))
 mapedit_window_size_updates st  'Needed to set the size of st.viewport
 mapedit_move_cursor st, remem_map_positions(st.map.id)
 
-DIM mapeditmenu(16) as string
-DIM mapeditmenu_display(16) as string
+DIM mapeditmenu(17) as string
+DIM mapeditmenu_display(17) as string
 
 mapeditmenu(0) = "Previous Menu"
 mapeditmenu(1) = "Edit General Map Data..."
@@ -635,10 +635,11 @@ mapeditmenu(9) = "Place NPCs..."
 mapeditmenu(10) = "Edit Foemap..."
 mapeditmenu(11) = "Edit Zones..."
 mapeditmenu(12) = "Editor Settings..."
-mapeditmenu(13) = "Erase Map Data"
+mapeditmenu(13) = "Erase Map Data..."
 mapeditmenu(14) = "Import/Export Tilemap..."
 mapeditmenu(15) = "Re-load Default Passability"
-mapeditmenu(16) = "Map name: "
+mapeditmenu(16) = "Foemap Statistics..."
+mapeditmenu(17) = "Map name: "
 
 DIM selectst as SelectTypeState
 STATIC remember_menu_pt as integer = 0
@@ -658,7 +659,7 @@ DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "mapedit_menu"
  usemenu mstate
- IF mstate.pt = 16 AND selectst.query = "" THEN
+ IF mstate.pt = 17 AND selectst.query = "" THEN
   strgrabber st.map.name, 39
   mstate.need_update = YES
  ELSEIF select_by_typing(selectst) THEN
@@ -713,6 +714,8 @@ DO
       NEXT ty
      NEXT tx
     END IF
+   CASE 16
+    foemap_stats_menu st.map.foemap, "Foemap stats for map " & st.map.id & " " & st.map.name
   END SELECT
   IF slave_channel <> NULL_CHANNEL THEN     'If live previewing, give quick feedback
    mapedit_savemap st
@@ -720,7 +723,7 @@ DO
  END IF
 
  IF mstate.need_update THEN
-  mapeditmenu(16) = "Map name: " + st.map.name
+  mapeditmenu(17) = "Map name: " + st.map.name
   mstate.need_update = NO
  END IF
 

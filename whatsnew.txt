@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-September 29 2018 [Fufluns]
+April ? 2019 [Fufluns]
 
   Highlights:
     * ~~Fill this in later~~
@@ -103,7 +103,7 @@ September 29 2018 [Fufluns]
       than gfx_sdl. Only available in non-default nightly builds for now [Ralph]
     * "Camera following a hero/NPC centers on..." general setting [Ralph]
     * Enemy Usage menu shows where an enemy is used, and chance of encountering
-      it [Ralph]
+      it, and Foemap Statistics menu shows chance of each encounter [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

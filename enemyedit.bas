@@ -1080,6 +1080,18 @@ TYPE EnemyUsageMenu EXTENDS ModularMenu
  DECLARE FUNCTION each_tick() as bool
 END TYPE
 
+'Count number of uses of each form set in a foemap
+SUB tally_foemap(foemap as TileMap, occurrences() as integer, byref total_foe_tiles as integer)
+ total_foe_tiles = 0
+ FOR y as integer = 0 TO foemap.high - 1
+  FOR x as integer = 0 TO foemap.wide - 1
+   DIM foe as integer = readblock(foemap, x, y)
+   occurrences(foe) += 1
+   IF foe THEN total_foe_tiles += 1
+  NEXT
+ NEXT
+END SUB
+
 SUB EnemyUsageMenu.update()
  DIM enemy as EnemyDef
  loadenemydata enemy, this.enemyid
@@ -1149,14 +1161,8 @@ SUB EnemyUsageMenu.update()
   DIM foemap as TileMap
   LoadTilemap foemap, maplumpname(mapid, "e")
   DIM occurrences(maxFormationSet) as integer  'Number of tiles on which each formation set occurs
-  DIM total_foe_tiles as integer = 0
-  FOR y as integer = 0 TO foemap.high - 1
-   FOR x as integer = 0 TO foemap.wide - 1
-    DIM foe as integer = readblock(foemap, x, y)
-    occurrences(foe) += 1
-    IF foe THEN total_foe_tiles += 1
-   NEXT
-  NEXT
+  DIM total_foe_tiles as integer
+  tally_foemap foemap, occurrences(), total_foe_tiles
 
   'Then compute statistics
   DIM matching_tiles as integer
@@ -1264,4 +1270,183 @@ SUB enemy_usage_menu(byref enemyid as integer)
  menu.title = "(filled later)"
  menu.run()
  enemyid = menu.enemyid
+END SUB
+
+
+'==============================================================================
+'                               Foemap Stats Menu
+'==============================================================================
+
+TYPE FoemapStatsMenu EXTENDS ModularMenu
+ foemap as TileMap ptr
+
+ DECLARE SUB update()
+ DECLARE FUNCTION each_tick() as bool
+END TYPE
+
+SUB FoemapStatsMenu.update()
+ ' First count occurrences of each form set in the foemap
+ DIM occurrences(maxFormationSet) as integer  'Number of tiles on which each formation set occurs
+ DIM total_foe_tiles as integer
+ tally_foemap *this.foemap, occurrences(), total_foe_tiles
+
+ DIM have_any as bool = NO
+
+ add_item -2, , "Previous Menu"
+
+ ' Show formation sets
+ header " Formation Sets"
+ add_item , , " ID |  % of  |   % of    |  Steps /  | Guessed % of |    Num   ", NO, NO
+ add_item , , "    | tiles  | foe-tiles | encounter |  encounters  | formations", NO, NO
+ DIM formsets(maxFormationSet) as FormationSet
+ DIM fs_enctr_rates(maxFormationSet) as double 'Encounter chance per random foe-tile step
+ DIM num_forms(maxFormationSet) as integer  'Number of formations in each formation set
+ DIM fs_weights(maxFormationSet) as double 'Weight of each formation set in the combined stats (sums to 1.)
+
+ ' Need to loop twice in order to calculate total_enctr_rate
+ DIM total_enctr_rate as double
+ FOR fsid as integer = 1 TO maxFormationSet
+  IF occurrences(fsid) THEN
+   LoadFormationSet formsets(fsid), fsid
+   WITH formsets(fsid)
+    fs_enctr_rates(fsid) = formset_freq_estimate(.frequency) * occurrences(fsid) / total_foe_tiles
+    total_enctr_rate += fs_enctr_rates(fsid)
+    'Count number of formations
+    FOR idx as integer = 0 TO UBOUND(.formations)
+     IF .formations(idx) >= 0 THEN num_forms(fsid) += 1
+    NEXT
+   END WITH
+  END IF
+ NEXT
+
+ ' Then print
+ FOR fsid as integer = 1 TO maxFormationSet
+  IF occurrences(fsid) THEN
+   WITH formsets(fsid)
+
+    DIM percent_of_tiles as double = 100 * occurrences(fsid) / (this.foemap->wide * this.foemap->high)
+    DIM percent_of_foe_tiles as double = 100 * occurrences(fsid) / total_foe_tiles
+    fs_weights(fsid) = fs_enctr_rates(fsid) / total_enctr_rate
+    DIM percent_of_encounters as double = 100 * fs_weights(fsid)
+    DIM steps as string
+    IF .frequency THEN
+     steps = strprintf("%.1f", 1. / formset_freq_estimate(.frequency))
+    ELSE
+     steps = "never"
+    END IF
+
+    have_any = YES
+    add_item 0, fsid, strprintf("%3d | %5.1f%% | %8.1f%% | %9s | %11.1f%% | %5d", _
+                                 fsid, percent_of_tiles, percent_of_foe_tiles, @steps[0], _
+                                 percent_of_encounters, num_forms(fsid))
+   END WITH
+  END IF
+ NEXT
+ IF have_any = NO THEN add_item -1, 0, "(None)"
+ have_any = NO
+
+ header " Formations"
+
+ ' Get the combined list of formations (build form_weights)
+ DIM form_weights(gen(genMaxFormation)) as double 'Weight of each formation in the combined stats
+ DIM form_enctr_rates(gen(genMaxFormation)) as double 'Encounter chance per random foe-tile step
+ FOR fsid as integer = 1 TO maxFormationSet
+  IF occurrences(fsid) ANDALSO num_forms(fsid) > 0 THEN
+   WITH formsets(fsid)
+    FOR idx as integer = 0 TO UBOUND(.formations)
+     DIM formid as integer = .formations(idx)
+     IF formid >= 0 THEN
+      form_weights(formid) += fs_weights(fsid) / num_forms(fsid)
+      form_enctr_rates(formid) += fs_enctr_rates(fsid) / num_forms(fsid)
+     END IF
+    NEXT
+   END WITH
+  END IF
+ NEXT
+
+ ' Print the formations and tally the enemies in each formation
+ DIM enemy_formations(gen(genMaxEnemy)) as string  'List of formations containing
+ DIM enemy_enctr_rates(gen(genMaxEnemy)) as double  'Chance of encounter containing this enemy per foe-tile
+ DIM enemy_weights(gen(genMaxEnemy)) as double  'Avg number per encounter
+ FOR formid as integer = 0 TO gen(genMaxFormation)
+  IF form_weights(formid) > 0 THEN
+   DIM form as Formation
+   LoadFormation form, formid
+   have_any = YES
+   add_item 1, formid, formid & ": " & describe_formation(form)
+
+   DIM already_seen() as integer
+   FOR slot as integer = 0 TO UBOUND(form.slots)
+    WITH form.slots(slot)
+     IF .id > 0 THEN
+      enemy_weights(.id) += form_weights(formid)
+      IF a_find(already_seen(), .id) = -1 THEN
+       'First occurrence in this formation
+       a_append already_seen(), .id
+       enemy_formations(.id) &= formid & " "
+       enemy_enctr_rates(.id) += form_enctr_rates(formid)
+      END IF
+     END IF
+    END WITH
+   NEXT
+  END IF
+ NEXT
+ IF have_any = NO THEN add_item -1, 0, "(None)"
+ have_any = NO
+
+ header " Enemies"
+ add_item , , "   ID & Name    |  Steps /  | Encounter | Avg num / |    In", NO, NO
+ add_item , , "                | encounter | fraction  | encounter | formations", NO, NO
+ FOR eid as integer = 0 TO gen(genMaxEnemy)
+  IF enemy_weights(eid) THEN
+   DIM enemy as EnemyDef
+   loadenemydata enemy, eid
+
+   DIM enctr_percent as double = 100 * enemy_enctr_rates(eid) / total_enctr_rate
+   DIM enctr_steps as double = 1. / enemy_enctr_rates(eid)
+
+   have_any = YES
+   DIM shortname as string = LEFT(eid & " " & enemy.name, 15)
+   add_item 2, eid, strprintf("%-15s | %9.1f | %8.1f%% | %9.3f | %s", _
+                              @shortname[0], enctr_steps, enctr_percent, enemy_weights(eid), @enemy_formations(eid)[0])
+  END IF
+ NEXT
+ IF have_any = NO THEN add_item -1, 0, "(None)"
+ have_any = NO
+
+ this.state.last = UBOUND(this.menu)
+END SUB
+
+FUNCTION FoemapStatsMenu.each_tick() as bool
+ DIM changed as bool
+
+ IF enter_space_click(this.state) THEN
+  DIM itemtype as integer = this.itemtypes(this.state.pt)
+  DIM itemid as integer = this.itemids(this.state.pt)
+  IF itemtype <> -1 THEN
+   changed = YES
+   SELECT CASE itemtype
+    CASE -2 'Quit
+     RETURN YES
+    CASE 0  'Formation set
+     formation_set_editor itemid
+    CASE 1  'Formation
+     individual_formation_editor itemid
+    CASE 2  'Enemy
+     enemy_editor itemid
+    CASE 3  'Item
+     individual_item_editor itemid
+   END SELECT
+  END IF
+ END IF
+
+ this.state.need_update = changed
+END FUNCTION
+
+SUB foemap_stats_menu(foemap as TileMap, title as string)
+ DIM menu as FoemapStatsMenu
+ menu.foemap = @foemap
+ menu.use_selectable = YES
+ menu.title = title
+ menu.run()
 END SUB
