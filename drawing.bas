@@ -119,8 +119,8 @@ SUB airbrush (spr as Frame ptr, byval x as integer, byval y as integer, byval d 
  ' it works EXCELLENTLY with a mouse on the DTE =)
 
  FOR count as integer = 0 TO randint(m)
-  DIM x2 as integer = randint(d)
-  DIM y2 as integer = randint(d)
+  DIM x2 as integer = randint(d + 1)
+  DIM y2 as integer = randint(d + 1)
   DIM x3 as integer = x - d / 2
   DIM y3 as integer = y - d / 2
   IF ABS((x3 + x2) - x) ^ 2 + ABS((y3 + y2) - y) ^ 2 <= d ^ 2 / 4 THEN
@@ -2451,6 +2451,7 @@ SUB spriteedit_display(ss as SpriteEditState)
  pal16 = palette16_new()
  pal16->col(1) = ss.curcolor
 
+ 'Show previews of tools
  IF ss.hold = YES AND ss.tool = box_tool THEN
   rectangle ss.previewpos.x + select_rect.x, ss.previewpos.y + select_rect.y, select_rect.wide, select_rect.high, ss.curcolor, dpage
   putpixel ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.tog * 15, dpage
@@ -2464,8 +2465,12 @@ SUB spriteedit_display(ss as SpriteEditState)
   ellipse overlay, ss.holdpos.x, ss.holdpos.y, ss.radius, 1, , ss.ellip_minoraxis, ss.ellip_angle
  END IF
  IF ss.tool = airbrush_tool THEN
-  ellipse vpages(dpage), ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.airsize / 2, ss.curcolor
-  ellipse vpages(dpage), 5 + (ss.x * ss.zoom), 2 + (ss.y * ss.zoom), (ss.airsize / 2) * ss.zoom, ss.curcolor
+  ellipse vpages(dpage), ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.airsize / 2 - 0.5, ss.curcolor
+  ' The 0.5,0.5 subtracted here is because ellipse internally adds 0.5,0.5 to draw from the center of a pixel.
+  ' The 0.05 added to the size is in order to put the top/right/etc extents of the ellipse in general position
+  ' with respect to the pixel centers, in other words it makes it look better, avoiding artifacts at the bottom
+  ' and right edges.
+  ellipse vpages(dpage), 4 + (ss.x + 0.5) * ss.zoom - 0.5, 1 + (ss.y + 0.5) * ss.zoom - 0.5, (ss.airsize / 2) * ss.zoom + 0.05, ss.curcolor
  END IF
 
  frame_draw overlay, pal16, 4, 1, ss.zoom, YES, dpage
