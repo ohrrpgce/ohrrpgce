@@ -1076,6 +1076,7 @@ TYPE EnemyUsageMenu EXTENDS ModularMenu
  enemyname as string
 
  DECLARE SUB update()
+ DECLARE FUNCTION check_spawn(eid as integer, enemy as EnemyDef, spawn as integer, description as string) as bool
  DECLARE SUB draw()
  DECLARE FUNCTION each_tick() as bool
 END TYPE
@@ -1212,9 +1213,49 @@ SUB EnemyUsageMenu.update()
   END IF
  NEXT
  IF have_any = NO THEN add_item -1, 0, "(None)"
+ have_any = NO
+
+ DIM elementnames() as string
+ getelementnames elementnames()
+
+ header " Enemy Spawns"
+ FOR eid as integer = 0 TO gen(genMaxEnemy)
+  DIM enemy as EnemyDef
+  loadenemydata enemy, eid
+
+  have_any OR= check_spawn(eid, enemy, enemy.spawn.on_death, "On death")
+  have_any OR= check_spawn(eid, enemy, enemy.spawn.non_elemental_death, "Non-elemental death")
+  have_any OR= check_spawn(eid, enemy, enemy.spawn.when_alone, "When alone")
+  have_any OR= check_spawn(eid, enemy, enemy.spawn.non_elemental_hit, "Non-elemental hit")
+  FOR idx as integer = 0 TO gen(genNumElements) - 1
+   have_any OR= check_spawn(eid, enemy, enemy.spawn.elemental_hit(idx), elementnames(idx) & " hit")
+  NEXT
+ NEXT
+ IF have_any = NO THEN add_item -1, 0, "(None)"
+ have_any = NO
+
+ header " Attack Transmogrification"
+ FOR aid as integer = 0 TO gen(genMaxAttack)
+  DIM attack as AttackData
+  loadattackdata attack, aid
+  IF attack.transmog.enemy = this.enemyid THEN
+   have_any = YES
+   add_item 5, aid, aid & " " & attack.name & " transmogs to " & this.enemyid & " " & this.enemyname
+  END IF
+ NEXT
+ IF have_any = NO THEN add_item -1, 0, "(None)"
+ have_any = NO
 
  this.state.last = UBOUND(this.menu)
 END SUB
+
+FUNCTION EnemyUsageMenu.check_spawn(eid as integer, enemy as EnemyDef, spawn as integer, description as string) as bool
+ IF spawn - 1 = this.enemyid THEN
+  'CHR(1) is 'x'
+  add_item 4, eid, rpad(eid & " " & enemy.name, , 15, clipRight) & " " & enemy.spawn.how_many & CHR(1) & " " & description
+  RETURN YES
+ END IF
+END FUNCTION
 
 FUNCTION EnemyUsageMenu.each_tick() as bool
  DIM changed as bool
@@ -1246,6 +1287,10 @@ FUNCTION EnemyUsageMenu.each_tick() as bool
      mapeditor itemid
     CASE 3  'Textbox
      text_box_editor itemid
+    CASE 4  'Enemy
+     enemy_editor itemid
+    CASE 5  'Attack
+     attack_editor itemid
    END SELECT
   END IF
  END IF
@@ -1268,6 +1313,7 @@ SUB enemy_usage_menu(byref enemyid as integer)
  menu.enemyid = enemyid
  menu.use_selectable = YES
  menu.title = "(filled later)"
+ menu.helpkey = "enemy_usage"
  menu.run()
  enemyid = menu.enemyid
 END SUB
@@ -1448,5 +1494,6 @@ SUB foemap_stats_menu(foemap as TileMap, title as string)
  menu.foemap = @foemap
  menu.use_selectable = YES
  menu.title = title
+ menu.helpkey = "foemap_stats"
  menu.run()
 END SUB
