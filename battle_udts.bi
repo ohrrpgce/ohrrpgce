@@ -254,11 +254,11 @@ END ENUM
 
 'This type is just used by RewardState
 TYPE RewardsStateItem
- id as integer
- num as integer
+ id as integer    'Not offset
+ num as integer   'num = 0 indcates slot not used
 END TYPE
 
-'This type controls the state of rewards gathered in the current battle
+'The rewards gathered in the current battle
 TYPE RewardsState
  plunder as integer
  exper as integer

@@ -280,6 +280,7 @@ END SUB
 
 '==============================================================================
 
+'Returns 0 for fail, id+1 on success. (item and rareitem are non-offset ids)
 FUNCTION checktheftchance (byval item as integer, byval itemP as integer, byval rareitem as integer, byval rareitemP as integer) as integer
 IF randint(100) < itemP THEN
  '--success!
@@ -920,7 +921,7 @@ FUNCTION trytheft (bat as BattleState, byval who as integer, byval targ as integ
   IF attack.can_steal_item THEN
    '--steal bitset is on for this attack
    WITH bslot(targ).enemy.steal
-    IF .thievability >= 0 THEN
+    IF .thievability >= 0 ANDALSO (.item_rate > 0 ORELSE .rare_item_rate > 0) THEN
      '--enemy is theftable
      DIM stole as integer = checktheftchance(.item, .item_rate, .rare_item, .rare_item_rate)
      IF stole THEN

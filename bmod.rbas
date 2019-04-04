@@ -1763,6 +1763,7 @@ FUNCTION distribute_party_experience (byval exper as integer) as integer
 END FUNCTION
 
 'Found an item, add to list of rewards
+'TODO: convert found() to a variable length array
 SUB RewardsState.add_item(itemid as integer, count as integer = 1)
  FOR j as integer = 0 TO UBOUND(found)
   WITH found(j)
@@ -1773,6 +1774,7 @@ SUB RewardsState.add_item(itemid as integer, count as integer = 1)
    END IF
   END WITH
  NEXT j
+ debug "Found items array full!"
 END SUB
 
 FUNCTION should_victory_advance(byref bat as BattleState) as bool
@@ -1984,7 +1986,7 @@ SUB reset_rewards_state (byref rew as RewardsState)
   .plunder = 0
   .exper = 0
   FOR i = 0 TO UBOUND(.found)
-   .found(i).id = 0
+   .found(i).id = 0   'Note: id is not offset; num=0 indicates slot not used
    .found(i).num = 0
   NEXT i
  END WITH

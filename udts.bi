@@ -721,7 +721,7 @@ Type AttackData
 	caption as string
 	caption_delay as integer
 	tagset(1) as AttackDataTag
-	item(2) as AttackDataItem
+	item(2) as AttackDataItem   'Item "costs" (affects heroes reagardless of attacker)
 	elemental_fail_conds(maxElements - 1) as AttackElementCondition
 	sound_effect as integer ' ID + 1
 	chain as AttackDataChain
@@ -874,7 +874,7 @@ TYPE ItemDef
 END TYPE
 
 TYPE EnemyStealDef
-  thievability as integer
+  thievability as integer  '-1: disabled, 0: only once, 1: unlimited
   item as integer
   item_rate as integer
   rare_item as integer
@@ -885,9 +885,9 @@ TYPE EnemyRewardDef
   gold as long
   exper as long
   item as integer
-  item_rate as integer
+  item_rate as integer   'Percent 0-100; 0 to disable
   rare_item as integer
-  rare_item_rate as integer
+  rare_item_rate as integer  'Percent 0-100; only if item_rate check failed; 0 to disable
 END TYPE
 
 TYPE EnemySpawnDef
