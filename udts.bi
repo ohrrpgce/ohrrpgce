@@ -873,21 +873,21 @@ TYPE ItemDef
 	'TODO: all other data is missing
 END TYPE
 
-TYPE EnemyStealDef
-  thievability as integer  '-1: disabled, 0: only once, 1: unlimited
-  item as integer
-  item_rate as integer
-  rare_item as integer
-  rare_item_rate as integer
-END TYPE
-
-TYPE EnemyRewardDef
-  gold as long
-  exper as long
+'This is a common base class only so Enemy{Steal,Reward}Def can be passed to describe_item_chance
+TYPE ItemChance
   item as integer
   item_rate as integer   'Percent 0-100; 0 to disable
   rare_item as integer
   rare_item_rate as integer  'Percent 0-100; only if item_rate check failed; 0 to disable
+END TYPE
+
+TYPE EnemyStealDef EXTENDS ItemChance
+  thievability as integer  '-1: disabled, 0: only once, 1: unlimited
+END TYPE
+
+TYPE EnemyRewardDef EXTENDS ItemChance
+  gold as long
+  exper as long
 END TYPE
 
 TYPE EnemySpawnDef
@@ -912,7 +912,7 @@ TYPE EnemyDef
   cursor_offset as XYPair
   pic as integer
   pal as integer
-  size as integer
+  size as integer        ' 0-2 for small, medium, large
   stat as Stats
   elementals(maxElements - 1) as single
   spawn as EnemySpawnDef

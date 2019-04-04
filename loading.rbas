@@ -3947,6 +3947,10 @@ END SUB
 SUB loadenemydata (enemy as EnemyDef, byval index as integer, byval altfile as bool = NO)
  DIM buf(dimbinsize(binDT1)) as integer
  loadenemydata buf(), index, altfile
+ convertenemydata buf(), enemy
+END SUB
+
+SUB convertenemydata (buf() as integer, enemy as EnemyDef)
  WITH enemy
   .name = readbadbinstring(buf(), 0, 16)
   .steal.thievability = buf(17)

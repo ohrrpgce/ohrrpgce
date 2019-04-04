@@ -24,7 +24,8 @@
 'Defined in this file:
 
 DECLARE FUNCTION enemy_edit_add_new (recbuf() as integer, preview_box as Slice ptr) as bool
-DECLARE SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, menucapoff() as integer, byref preview_sprite as Frame ptr, preview as Slice Ptr, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimAtk as integer, byval EnLimPic as integer, byval EnDatPic as integer, byval EnDatPal as integer, byval EnDatPicSize as integer)
+DECLARE SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, menucapoff() as integer, byref preview_sprite as Frame ptr, preview as Slice Ptr, rewards_preview as string, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimAtk as integer, byval EnLimPic as integer)
+DECLARE FUNCTION describe_item_chance(chance as ItemChance) as string
 DECLARE SUB enemy_edit_load(byval recnum as integer, recbuf() as integer, state as MenuState, caption() as string, byval EnCapElemResist as integer)
 DECLARE SUB enemy_edit_pushmenu (state as MenuState, byref lastptr as integer, byref lasttop as integer, byref menudepth as bool)
 DECLARE SUB enemy_edit_backmenu (state as MenuState, byval lastptr as integer, byval lasttop as integer, byref menudepth as bool, workmenu() as integer, mainMenu() as integer)
@@ -686,6 +687,8 @@ DIM preview_sprite as Frame ptr
 DIM setup_preview_dissolve as bool = NO
 DIM setup_preview_appear as bool = NO
 
+DIM rewards_preview as string
+
 '--dissolve_ticks is >= 0 while playing a dissolve; > dissolve_time while during lag period afterwards
 DIM as integer dissolve_time, dissolve_type, dissolve_ticks
 DIM as bool dissolve_backwards = NO
@@ -928,12 +931,17 @@ DO
 
  IF state.need_update THEN
   state.need_update = NO
-  enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), menucapoff(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimAtk, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+  enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), menucapoff(), preview_sprite, preview, rewards_preview, dissolve_ticks, EnLimSpawn, EnLimAtk, EnLimPic
  END IF
 
  clearpage vpage
  IF drawpreview THEN
   DrawSlice preview_box, vpage
+ END IF
+
+ IF helpkey = "enemy_rewards" THEN
+  'Preview drops and steal chances
+  wrapprint rewards_preview, 0, 112, uilook(uiMenuItem), vpage, , , fontPlain
  END IF
 
  standardmenu dispmenu(), state, 0, 0, vpage, menuopts
@@ -982,7 +990,10 @@ SUB enemy_edit_load(byval recnum as integer, recbuf() as integer, state as MenuS
  state.need_update = YES
 END SUB
 
-SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, menucapoff() as integer, byref preview_sprite as Frame ptr, preview as Slice Ptr, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimAtk as integer, byval EnLimPic as integer, byval EnDatPic as integer, byval EnDatPal as integer, byval EnDatPicSize as integer)
+SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, menucapoff() as integer, byref preview_sprite as Frame ptr, preview as Slice Ptr, rewards_preview as string, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimAtk as integer, byval EnLimPic as integer)
+
+ DIM enemy as EnemyDef
+ convertenemydata recbuf(), enemy
 
  '--in case new enemies/attacks have been added
  max(EnLimSpawn) = gen(genMaxEnemy) + 1
@@ -990,7 +1001,7 @@ SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf
  max(EnLimDeathSFX) = gen(genMaxSFX) + 1
 
  '--in case the PicSize has changed
- max(EnLimPic) = gen(genMaxEnemy1Pic + bound(recbuf(EnDatPicSize), 0, 2))
+ max(EnLimPic) = gen(genMaxEnemy1Pic + bound(enemy.size, 0, 2))
  
  '--re-enforce bounds, as they might have just changed
  enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
@@ -1001,12 +1012,36 @@ SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf
  resetsfx
  '--update the picture and palette preview
  frame_unload @preview_sprite
- preview_sprite = frame_load(sprTypeSmallEnemy + recbuf(EnDatPicSize), recbuf(EnDatPic))
+ preview_sprite = frame_load(sprTypeSmallEnemy + enemy.size, enemy.pic)
  dissolve_ticks = -1
  '--resets if dissolved
- ChangeSpriteSlice preview, sprTypeSmallEnemy + recbuf(EnDatPicSize), recbuf(EnDatPic), recbuf(EnDatPal), ,YES
+ ChangeSpriteSlice preview, sprTypeSmallEnemy + enemy.size, enemy.pic, enemy.pal, ,YES
 
+ '--Rewards preview
+ rewards_preview = !"Drop chances:\n" & describe_item_chance(enemy.reward)
+ IF enemy.steal.thievability >= 0 THEN  'Not Disabled
+  rewards_preview &= !"\nSteal results:\n" & describe_item_chance(enemy.steal)
+ END IF
 END SUB
+
+'Return a string describing enemy drops or stealable item chances
+FUNCTION describe_item_chance(chance as ItemChance) as string
+ WITH chance
+  DIM ret as string
+  DIM rare_percent as double = (1 - .item_rate / 100) * .rare_item_rate
+  DIM nothing_percent as double = 100 - .item_rate - rare_percent
+  IF .item_rate > 0 THEN
+   ret &= strprintf(" %3d   %%: %d ", .item_rate, .item) & readitemname(.item) & !"\n"
+  END IF
+  IF rare_percent > 0. THEN
+   ret &= strprintf(" %6.2f%%: %d ", rare_percent, .rare_item) & readitemname(.rare_item) & !"\n"
+  END IF
+  IF nothing_percent THEN
+   ret &= strprintf(!" %6.2f%%: nothing\n", nothing_percent)
+  END IF
+  RETURN ret
+ END WITH
+END FUNCTION
 
 'Returns YES if a new record was added, or NO if cancelled.
 'When YES, gen(genMaxEnemy) gets updated, and recbuf() will be populated with

@@ -180,6 +180,7 @@ DECLARE SUB loadenemydata OVERLOAD (array() as integer, byval index as integer, 
 DECLARE SUB loadenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, byval altfile as bool = NO)
 DECLARE SUB saveenemydata OVERLOAD (array() as integer, byval index as integer, byval altfile as bool = NO)
 DECLARE SUB saveenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, byval altfile as bool = NO)
+DECLARE SUB convertenemydata (buf() as integer, enemy as EnemyDef)
 
 DECLARE SUB ClearFormation (form as Formation)
 DECLARE SUB LoadFormation OVERLOAD (form as Formation, byval index as integer)
