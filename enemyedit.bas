@@ -1440,8 +1440,13 @@ SUB FoemapStatsMenu.update()
  IF have_any = NO THEN add_item -1, 0, "(None)"
  have_any = NO
 
+ 'Expected items per encounter
+ DIM drops(gen(genMaxItem)) as double
+ DIM steals(gen(genMaxItem)) as double
+ DIM unlimited_steal(gen(genMaxItem)) as bool  'At least one enemy allowing unlimited stealing
+
  header " Enemies"
- add_item , , "   ID & Name    |  Steps /  | Encounter | Avg num / |    In", NO, NO
+ add_item , , "                |  Steps /  | Encounter | Avg num / |    In", NO, NO
  add_item , , "                | encounter | fraction  | encounter | formations", NO, NO
  FOR eid as integer = 0 TO gen(genMaxEnemy)
   IF enemy_weights(eid) THEN
@@ -1455,8 +1460,57 @@ SUB FoemapStatsMenu.update()
    DIM shortname as string = LEFT(eid & " " & enemy.name, 15)
    add_item 2, eid, strprintf("%-15s | %9.1f | %8.1f%% | %9.3f | %s", _
                               @shortname[0], enctr_steps, enctr_percent, enemy_weights(eid), @enemy_formations(eid)[0])
+
+   WITH enemy.reward
+    drops(.item) += enemy_weights(eid) * .item_rate / 100
+    IF .item_rate < 100 THEN
+     drops(.rare_item) += enemy_weights(eid) * (1. - .item_rate / 100) * .rare_item_rate / 100
+    END IF
+   END WITH
+
+   WITH enemy.steal
+    IF .thievability >= 0 THEN  'Not disabled
+     IF .item_rate > 0 THEN
+      unlimited_steal(.item) OR= (.thievability = 1)
+     END IF
+     steals(.item) += enemy_weights(eid) * .item_rate / 100
+     IF .item_rate < 100 THEN
+      IF .rare_item_rate > 0 THEN
+       unlimited_steal(.rare_item) OR= (.thievability = 1)
+      END IF
+      steals(.rare_item) += enemy_weights(eid) * (1. - .item_rate / 100) * .rare_item_rate / 100
+     END IF
+    END IF
+   END WITH
+
   END IF
  NEXT
+ IF have_any = NO THEN add_item -1, 0, "(None)"
+ have_any = NO
+
+ header " Items (drops)"
+ add_item , , "               |  Avg number per encounter", NO, NO
+ FOR iid as integer = 0 TO gen(genMaxItem)
+  IF drops(iid) > 0. THEN
+   have_any = YES
+   add_item 3, iid, rpad(iid & " " & readitemname(iid), , 14) & " | " & strprintf("%5.3f", drops(iid))
+  END IF
+ NEXT
+ IF have_any = NO THEN add_item -1, 0, "(None)"
+ have_any = NO
+
+ header " Items (stealable)"
+ add_item , , "               |  Avg number per encounter", NO, NO
+ DIM have_unlimited_steal as bool
+ FOR iid as integer = 0 TO gen(genMaxItem)
+  IF steals(iid) > 0. THEN
+   have_any = YES
+   add_item 3, iid, rpad(iid & " " & readitemname(iid), , 14) & " | " & strprintf("%5.3f", steals(iid)) _
+                    & IIF(unlimited_steal(iid), " +", "")
+   have_unlimited_steal OR= unlimited_steal(iid)
+  END IF
+ NEXT
+ IF have_unlimited_steal THEN add_item -1, 0, "(+: unlimited stealing possible)"
  IF have_any = NO THEN add_item -1, 0, "(None)"
  have_any = NO
 
