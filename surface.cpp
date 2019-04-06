@@ -13,6 +13,7 @@
 #include "rasterizer.hpp"
 #include "misc.h"
 
+void clampRectToSurface( SurfaceRect* inRect, SurfaceRect* outRect, Surface* pSurf );
 
 #define bound(x, low, high)  std::max(std::min(x, high), low)
 
@@ -73,9 +74,9 @@ int gfx_surfaceCreateView_SW( Surface *pSurfaceIn, int x, int y, int width, int 
 	  refcount: 1, isview: 1, format: pSurfaceIn->format, usage: pSurfaceIn->usage
 	};
 	if(ret->format == SF_8bit)
-		ret->pPaletteData = pSurfaceIn->pPaletteData + ret->pitch * y + x;
+		ret->pPaletteData = &pSurfaceIn->pixel8(x, y);
 	else
-		ret->pColorData = pSurfaceIn->pColorData + ret->pitch * y + x;
+		ret->pColorData = (uint32_t*)&pSurfaceIn->pixel32(x, y);
 
 	ret->base_surf = pSurfaceIn;
 	gfx_surfaceReference_SW(pSurfaceIn);
@@ -180,23 +181,23 @@ int gfx_surfaceGetData_SW( Surface* pSurfaceIn )
 	return 0;
 }
 
-int gfx_surfaceFill_SW( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn )
+// fillColor is either an RGBcolor or a palette index!!
+int gfx_surfaceFill_SW( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurface )
 {//done
-	if( !pSurfaceIn )
+	if( !pSurface )
 		return -1;
 
 	SurfaceRect rect;
-	if (!pRect)
-		pRect = &(rect = {0, 0, pSurfaceIn->width - 1, pSurfaceIn->height - 1});
+	clampRectToSurface(pRect, &rect, pSurface);
 
-	if(pSurfaceIn->format == SF_8bit)
-		for(int i = pRect->top; i <= pRect->bottom; i++)
-			for(int j = pRect->left; j <= pRect->right; j++)
-				pSurfaceIn->pPaletteData[i*pSurfaceIn->pitch + j] = fillColor;
+	if(pSurface->format == SF_8bit)
+		for(int y = rect.top; y <= rect.bottom; y++)
+			for(int x = rect.left; x <= rect.right; x++)
+				pSurface->pixel8(x, y) = fillColor;
 	else
-		for(int i = pRect->top; i <= pRect->bottom; i++)
-			for(int j = pRect->left; j <= pRect->right; j++)
-				pSurfaceIn->pColorData[i*pSurfaceIn->pitch + j] = fillColor;
+		for(int y = rect.top; y <= rect.bottom; y++)
+			for(int x = rect.left; x <= rect.right; x++)
+				pSurface->pixel32(x, y).col = fillColor;
 
 	return 0;
 }
@@ -355,12 +356,17 @@ Surface* surface_scale(Surface *surf, int destWidth, int destHeight) {
 	return dest;
 }
 
-// (Not used.) Modify rect inplace
-void clampRectToSurface( SurfaceRect* pRect, Surface* pSurf ) {
-	pRect->top = bound(pRect->top, 0, pSurf->height - 1);
-	pRect->left = bound(pRect->left, 0, pSurf->width - 1);
-	pRect->bottom = bound(pRect->bottom, pRect->top, pSurf->height - 1);
-	pRect->right = bound(pRect->right, pRect->left, pSurf->width - 1);
+// Clamp *inRect to dimensions of the rect, out in *outRect.
+// inRect and outRect can be the same. inRect can be NULL, for the whole Surface
+void clampRectToSurface( SurfaceRect* inRect, SurfaceRect* outRect, Surface* pSurf ) {
+	if (inRect) {
+		outRect->top = bound(inRect->top, 0, pSurf->height - 1);
+		outRect->left = bound(inRect->left, 0, pSurf->width - 1);
+		outRect->bottom = bound(inRect->bottom, inRect->top, pSurf->height - 1);
+		outRect->right = bound(inRect->right, inRect->left, pSurf->width - 1);
+	} else {
+		*outRect = {0, 0, pSurf->width - 1, pSurf->height - 1};
+	}
 }
 
 // The src and dest rectangles may be different sizes; the image is not
