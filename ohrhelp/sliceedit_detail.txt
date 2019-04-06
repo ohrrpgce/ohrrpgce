@@ -5,3 +5,9 @@ Use the up and down arrow keys to navigate the menu.
 Use the left and right arrow keys to change values, or you can type in numbers.
 
 Press F1 on the other menu items for more detail about each of them.
+
+Press F4 to switch between hiding the menu (so you can see the slice collection unobstructed), hiding the slices, or showing both.
+
+Press F6 to shift around your view of the whole slice collection around. This does not modify the collection, it is only for help while editing.
+
+Press F7 to toggle whether an outline box is drawn around the currently selected slice.

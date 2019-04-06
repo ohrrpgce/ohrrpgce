@@ -162,12 +162,13 @@ DECLARE FUNCTION find_special_lookup_code(specialcodes() as SpecialLookupCode, c
 DECLARE FUNCTION lookup_code_forbidden(specialcodes() as SpecialLookupCode, code as integer) as bool
 DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode) as bool
 DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem, state as MenuState) as Slice ptr
+DECLARE SUB slice_editor_common_function_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState)
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
 DECLARE SUB slice_editor_refresh_delete (byref index as integer, slicemenu() as SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (byref index as integer, slicemenu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
 DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
 DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
-DECLARE SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
+DECLARE SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
 DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
 DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr, byref show_ants as bool)
@@ -501,28 +502,16 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     IF slice_editor_save_when_leaving(ses, edslice) THEN EXIT DO
    END IF
   END IF
+  slice_editor_common_function_keys ses, edslice, state  'F4, F6, F7, Ctrl+3
   #IFDEF IS_CUSTOM
    IF keyval(scF1) > 1 THEN show_help "sliceedit"
   #ELSE
    IF keyval(scF1) > 1 THEN show_help "sliceedit_game"
   #ENDIF
-  IF keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD 3
   IF keyval(scF5) > 1 THEN
    ses.show_root = NOT ses.show_root
    cursor_seek = ses.curslice
    state.need_update = YES
-  END IF
-  IF keyval(scF6) > 1 THEN
-   'Move around our view on this slice collection.
-   'We move around the real rool, not draw_root, as it affects screen positions
-   'even if it's not drawn. The root gets deleted when leaving slice_editor, so
-   'changes are temporary.
-   DIM true_root as Slice ptr = FindRootSlice(edslice)
-   slice_editor_xy true_root->X, true_root->Y, ses.draw_root, edslice, ses.show_ants
-   state.need_update = YES
-  END IF
-  IF keyval(scF7) > 1 THEN
-   ses.show_ants = NOT ses.show_ants
   END IF
 
   IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
@@ -583,7 +572,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     slice_editor_import_file ses, edslice, YES
    ELSE
     cursor_seek = ses.curslice
-    slice_edit_detail ses, ses.curslice
+    slice_edit_detail ses, edslice, ses.curslice
     state.need_update = YES
    END IF
   END IF
@@ -788,6 +777,32 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
  switch_to_8bit_vpages  'In case Ctrl-3 used
  pop_gfxio_state
+END SUB
+
+SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState)
+ IF keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD 3
+ IF keyval(scF6) > 1 THEN
+  'Move around our view on this slice collection.
+  'We move around the real rool, not draw_root, as it affects screen positions
+  'even if it's not drawn. The root gets deleted when leaving slice_editor, so
+  'changes are temporary.
+  DIM true_root as Slice ptr = FindRootSlice(edslice)
+  slice_editor_xy true_root->X, true_root->Y, ses.draw_root, edslice, ses.show_ants
+  state.need_update = YES
+ END IF
+ IF keyval(scF7) > 1 THEN ses.show_ants = NOT ses.show_ants
+ IF keyval(scCtrl) > 0 ANDALSO keyval(sc3) > 1 THEN
+  'Switching to 32 bit color depth allows 32-bit and smooth-scaled sprites,
+  'but breaks sprite dissolves
+  IF vpages_are_32bit THEN
+   switch_to_8bit_vpages
+   show_overlay_message "Switched to 8-bit color"
+  ELSE
+   switch_to_32bit_vpages
+   show_overlay_message "Switched to 32-bit color"
+  END IF
+  state.need_update = YES  'smoothing menu item needs update
+ END IF
 END SUB
 
 FUNCTION SliceEditState.curslice() as Slice ptr
@@ -1065,7 +1080,7 @@ SUB slice_editor_paste(byref ses as SliceEditState, byval putbefore as Slice Ptr
 END SUB
 
 'Editor for an individual slice
-SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
+SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as Slice Ptr)
 
  STATIC remember_pt as integer
  DIM usemenu_flag as bool
@@ -1092,21 +1107,8 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
   setwait 55
   setkeys YES
   IF keyval(ccCancel) > 1 THEN EXIT DO
+  slice_editor_common_function_keys ses, edslice, state  'F4, F7, Ctrl+3
   IF keyval(scF1) > 1 THEN show_help "sliceedit_" & rules(state.pt).helpkey
-  IF keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD 3
-  IF keyval(scF7) > 1 THEN ses.show_ants = NOT ses.show_ants
-  IF keyval(scCtrl) > 0 ANDALSO keyval(sc3) > 1 THEN
-   'Switching to 32 bit color depth allows 32-bit and smooth-scaled sprites,
-   'but breaks sprite dissolves
-   IF vpages_are_32bit THEN
-    switch_to_8bit_vpages
-    show_overlay_message "Switched to 8-bit color"
-   ELSE
-    switch_to_32bit_vpages
-    show_overlay_message "Switched to 32-bit color"
-   END IF
-   state.need_update = YES  'smoothing menu item needs update
-  END IF
 
   IF UpdateScreenSlice() THEN state.need_update = YES
 
