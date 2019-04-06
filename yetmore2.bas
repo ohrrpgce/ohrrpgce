@@ -882,8 +882,15 @@ FUNCTION describe_npcinst(npcnum as NPCIndex) as string
        & describe_npctype(id) & !"\n" _
        & fgcol_text("NPC Inst: ", uilook(uiSelectedItem)) _
        & "At " & .pos & " Z " & .z _
-       & " tile " & (.pos \ 20) & !"\n" _
-       & "Extra 0:" & .extra(0) & " 1:" & .extra(1) & " 2:" & .extra(2) & !"\n" _
+       & " tile " & (.pos \ 20) & " dir " & CHR(("NESW")[.dir])
+  IF .sl THEN
+   DIM sprite as Slice ptr
+   sprite = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, .sl)
+   IF sprite ANDALSO sprite->SliceType = slSprite THEN
+    info &= " frame " & sprite->SpriteData->frame
+   END IF
+  END IF
+  info &= !"\nExtra 0:" & .extra(0) & " 1:" & .extra(1) & " 2:" & .extra(2) & !"\n" _
        & "AI: " & yesorno(NOT .suspend_ai) _
        & " Usable: " & yesorno(NOT .suspend_use) _
        & " Walls: " & yesorno(NOT .ignore_walls) _
@@ -909,6 +916,7 @@ FUNCTION describe_npcinst(npcnum as NPCIndex) as string
 END FUNCTION
 
 'Draw tooltip with info about the NPCs under the mouse cursor
+'Draws to dpage
 PRIVATE SUB npc_debug_display_tooltip ()
  IF readmouse.active = NO THEN EXIT SUB
  DIM pos as XYPair = readmouse.pos + XY(mapx, mapy)
@@ -932,7 +940,7 @@ PRIVATE SUB npc_debug_display_tooltip ()
   IF readmouse.y + 7 + boxsize.h > vpages(dpage)->h THEN
    y = readmouse.y + showTop + ancBottom
   END IF
-  fuzzyrect x, y, boxsize.w, boxsize.h, uilook(uiShadow), dpage, 70
+  trans_rectangle vpages(dpage), Type(x, y, boxsize.w, boxsize.h), master(uilook(uiShadow)), .60
   wrapprint info, x, y, uilook(uiText), dpage, maxwidth, , fontEdged
  END IF
 END SUB
