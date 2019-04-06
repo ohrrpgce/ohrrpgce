@@ -186,7 +186,7 @@ DECLARE SUB drawcube (dest as Frame ptr, rect as RectType, off as XYPair, col as
 DECLARE sub drawants (dest as Frame ptr, x as RelPos, y as RelPos, wide as RelPos, high as RelPos, color as integer = -1)
 DECLARE SUB rectangle OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer, p as integer)
 DECLARE SUB rectangle OVERLOAD (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer)
-DECLARE SUB trans_rectangle (dest as Frame ptr, rect as RectType, byval col as RGBcolor, alpha as double)
+DECLARE SUB trans_rectangle (dest as Frame ptr, byval rect as RectType, byval col as RGBcolor, alpha as double)
 DECLARE SUB fuzzyrect OVERLOAD (x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, p as integer, fuzzfactor as integer = 50, stationary as bool = NO, zoom as integer = 1)
 DECLARE SUB fuzzyrect OVERLOAD (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, fuzzfactor as integer = 50, stationary as bool = NO, zoom as integer = 1)
 DECLARE SUB antifuzzyrect(fr as Frame Ptr, rect as RectType, col as integer, fuzzfactor as integer = 50, zoom as integer = 1)

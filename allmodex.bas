@@ -4002,8 +4002,50 @@ sub drawants(dest as Frame ptr, x as RelPos, y as RelPos, wide as RelPos, high a
 	next idx
 end sub
 
+'Ensure rect is contained within the cliprect and has non-negative width/height.
+'Used by rectangle, trans_rectangle, fuzzyrect.
+'x/y_start tells how many pixels the x/y location was moved by.
+sub clip_rectangle_draw(dest as Frame ptr, byref rect as RectType, byref x_start as integer = 0, byref y_start as integer = 0)
+	dim byref cliprect as ClipState = get_cliprect(dest)
+
+	' Decode relative positions/sizes to absolute
+	rect.wide = relative_pos(rect.wide, dest->w)
+	rect.high = relative_pos(rect.high, dest->h)
+	rect.x = relative_pos(rect.x, dest->w, rect.wide)
+	rect.y = relative_pos(rect.y, dest->h, rect.high)
+
+	if rect.wide < 0 then
+		rect.x = rect.x + rect.wide + 1
+		rect.wide = -rect.wide
+	end if
+	if rect.high < 0 then
+		rect.y = rect.y + rect.high + 1
+		rect.high = -rect.high
+	end if
+
+	'clip
+	if rect.x + rect.wide > cliprect.r then rect.wide = (cliprect.r - rect.x) + 1
+	if rect.y + rect.high > cliprect.b then rect.high = (cliprect.b - rect.y) + 1
+	if rect.x < cliprect.l then
+		x_start = cliprect.l - rect.x
+		rect.wide -= x_start
+		rect.x = cliprect.l
+	end if
+	if rect.y < cliprect.t then
+		y_start = cliprect.t - rect.y
+		rect.high -= y_start
+		rect.y = cliprect.t
+	end if
+end sub
+
 'Draw a transparent rectangle. 8- or 32-bit
-sub trans_rectangle(dest as Frame ptr, rect as RectType, byval col as RGBcolor, alpha as double)
+'alpha is 0 for transparent, 1. for opaque
+sub trans_rectangle(dest as Frame ptr, byval rect as RectType, byval col as RGBcolor, alpha as double)
+	'gfx_surfaceFillAlpha and frame_new_view also clip to the Frame bounds,
+	'but we need to clip by the cliprect anyway.
+	clip_rectangle_draw dest, rect
+	if rect.wide <= 0 orelse rect.high <= 0 then exit sub
+
 	if dest->surf then
 		BUG_IF(dest->surf->format <> SF_32bit, "8-bit Surface backed Frame not supported")
 		dim srect as SurfaceRect = (rect.x, rect.y, rect.x + rect.wide - 1, rect.y + rect.high - 1)
@@ -4014,6 +4056,7 @@ sub trans_rectangle(dest as Frame ptr, rect as RectType, byval col as RGBcolor, 
 		'Draw a piece of the dest frame onto itself, effectively remapping by pal.
 		dim viewfr as Frame ptr = frame_new_view(dest, rect.x, rect.y, rect.wide, rect.high)
 		frame_draw viewfr, pal, 0, 0, , NO, viewfr
+		frame_unload @viewfr
 		palette16_unload @pal
 	end if
 end sub
@@ -4024,39 +4067,24 @@ end sub
 
 'Draw a solid rectangle (use drawbox for a hollow one)
 'Top/left edges are inclusive, bottom/right are exclusive
-sub rectangle (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer)
-	dim byref cliprect as ClipState = get_cliprect(fr)
-
-	' Decode relative positions/sizes to absolute
-	w = relative_pos(w, fr->w)
-	h = relative_pos(h, fr->h)
-	x = relative_pos(x, fr->w, w)
-	y = relative_pos(y, fr->h, h)
-
-	if w < 0 then x = x + w + 1: w = -w
-	if h < 0 then y = y + h + 1: h = -h
-
-	'clip
-	if x + w > cliprect.r then w = (cliprect.r - x) + 1
-	if y + h > cliprect.b then h = (cliprect.b - y) + 1
-	if x < cliprect.l then w -= (cliprect.l - x) : x = cliprect.l
-	if y < cliprect.t then h -= (cliprect.t - y) : y = cliprect.t
-
-	if w <= 0 or h <= 0 then exit sub
+sub rectangle (fr as Frame Ptr, x_ as RelPos, y_ as RelPos, w_ as RelPos, h_ as RelPos, c as integer)
+	dim rect as RectType = (x_, y_, w_, h_)
+	clip_rectangle_draw fr, rect
+	if rect.wide <= 0 orelse rect.high <= 0 then exit sub
 
 	if fr->surf then
-		dim rect as SurfaceRect = (x, y, x + w - 1, y + h - 1)
+		dim srect as SurfaceRect = (rect.x, rect.y, rect.x + rect.wide - 1, rect.y + rect.high - 1)
 		dim col as uint32 = c
 		if fr->surf->format = SF_32bit then
 			col = intpal(c).col
 		end if
-		gfx_surfaceFill(col, @rect, fr->surf)
+		gfx_surfaceFill(col, @srect, fr->surf)
 	else
-		dim sptr as ubyte ptr = fr->image + (y * fr->pitch) + x
-		while h > 0
-			memset(sptr, c, w)
+		dim sptr as ubyte ptr = fr->image + (rect.y * fr->pitch) + rect.x
+		while rect.high > 0
+			memset(sptr, c, rect.wide)
 			sptr += fr->pitch
-			h -= 1
+			rect.high -= 1
 		wend
 	end if
 end sub
@@ -4071,7 +4099,7 @@ end sub
 '  By default if you draw two fuzzy rectangles touching, the patterns
 '  might not match up. Specify YES to force them to match up, but then
 '  changing x,y will not make the pattern appear to shift.
-sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, fuzzfactor as integer = 50, stationary as bool = NO, zoom as integer = 1)
+sub fuzzyrect (fr as Frame Ptr, x_ as RelPos, y_ as RelPos, w_ as RelPos = rWidth, h_ as RelPos = rHeight, c as integer, fuzzfactor as integer = 50, stationary as bool = NO, zoom as integer = 1)
 	'How many magic constants could you wish for?
 	'These were half generated via magic formulas, and half hand picked (with magic criteria)
 	static grain_table(50) as integer = {_
@@ -4081,45 +4109,26 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 	                    21, 28, 11, 16, 20, 22, 18, 17, 19, 32, 17, 16, _
 	                    15, 14, 50}
 
-	dim byref cliprect as ClipState = get_cliprect(fr)
-
 	fuzzfactor = bound(fuzzfactor, 1, 99)
 	zoom = large(zoom, 1)
 
-	' Decode relative positions/sizes to absolute
-	w = relative_pos(w, fr->w)
-	h = relative_pos(h, fr->h)
-	x = relative_pos(x, fr->w, w)
-	y = relative_pos(y, fr->h, h)
-
-	dim grain as integer
-	if fuzzfactor <= 50 then grain = grain_table(fuzzfactor) else grain = grain_table(100 - fuzzfactor)
-	'if w = 99 then grain = h mod 100  'for hand picking
-
-	if w < 0 then x = x + w + 1: w = -w
-	if h < 0 then y = y + h + 1: h = -h
-
-	'clip
-	if x + w > cliprect.r then w = (cliprect.r - x) + 1
-	if y + h > cliprect.b then h = (cliprect.b - y) + 1
+	dim rect as RectType = (x_, y_, w_, h_)
 	dim as integer x_start = 0, y_start = 0
-	if x < cliprect.l then
-		x_start = cliprect.l - x
-		w -= x_start
-		x = cliprect.l
-	end if
-	if y < cliprect.t then
-		y_start = cliprect.t - y
-		h -= y_start
-		y = cliprect.t
-	end if
-
-	if w <= 0 or h <= 0 then exit sub
+	clip_rectangle_draw fr, rect, x_start, y_start
+	if rect.wide <= 0 orelse rect.high <= 0 then exit sub
 
 	if stationary then
-		x_start = x
-		y_start = y
+		x_start = rect.x
+		y_start = rect.y
 	end if
+
+	dim grain as integer
+	if fuzzfactor <= 50 then
+		grain = grain_table(fuzzfactor)
+	else
+		grain = grain_table(100 - fuzzfactor)
+	end if
+	'if w = 99 then grain = h mod 100  'for hand picking
 
 	'startr is the initial value of r, multiplied by zoom, at the top-left of the rect,
 	'and the start of every line thereafter
@@ -4151,9 +4160,9 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 		showbug "fuzzyrect: bad dest Frame"
 		exit sub
 	end if
-	sptr += y * pitch + x * pixelbytes
+	sptr += rect.y * pitch + rect.x * pixelbytes
 
-	while h > 0
+	while rect.high > 0
 		dim r as integer = startr
 		if r < fuzzfactor then r += 100
 
@@ -4170,7 +4179,7 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 		'Number of times left to draw 'drawpix' on this row
 		dim repeats as integer = zoom - x_start
 
-		for i as integer = 0 to w-1
+		for i as integer = 0 to rect.wide - 1
 			if drawpix then
 				if pixformat = SF_8bit then
 					sptr[i] = c
@@ -4188,7 +4197,7 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 				repeats -= 1
 			end if
 		next
-		h -= 1
+		rect.high -= 1
 		sptr += pitch
 	wend
 end sub
