@@ -209,10 +209,11 @@ VertCaptions(2) = "Bottom"
 REDIM SHARED BorderCaptions(-2 TO -1) as string
 BorderCaptions(-2) = "None"
 BorderCaptions(-1) = "Line"
-REDIM SHARED TransCaptions(0 TO 2) as string
-TransCaptions(0) = "Solid"
-TransCaptions(1) = "Fuzzy"
-TransCaptions(2) = "Hollow"
+REDIM SHARED TransCaptions(0 TO 3) as string
+TransCaptions(0) = "Solid"       'transOpaque
+TransCaptions(1) = "Fuzzy"       'transFuzzy
+TransCaptions(2) = "Hollow"      'transHollow
+TransCaptions(3) = "Transparent" 'transTrans
 REDIM SHARED AutoSortCaptions(0 TO 5) as string
 AutoSortCaptions(0) = "None"
 AutoSortCaptions(1) = "Custom"
@@ -1586,7 +1587,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      sliceed_rule_enum rules(), "rect_border", @(dat->border), -2, 14, slgrUPDATERECTCUSTOMSTYLE
     END IF
     a_append menu(), " Translucency: " & TransCaptions(dat->translucent)
-    sliceed_rule_enum rules(), "rect_trans", @(dat->translucent), 0, 2
+    sliceed_rule_enum rules(), "rect_trans", @(dat->translucent), 0, transLAST
     IF dat->translucent = transFuzzy THEN
      a_append menu(), "  Fuzziness: " & dat->fuzzfactor & "%"
      sliceed_rule rules(), "rect_fuzzfact", erIntgrabber, @(dat->fuzzfactor), 0, 99
@@ -1594,6 +1595,9 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      sliceed_rule rules(), "rect_fuzzzoom", erIntgrabber, @(dat->fuzz_zoom), 1, 10000  'No need for upper limit
      a_append menu(), "  Stationary pattern: " & yesorno(dat->fuzz_stationary)
      sliceed_rule_tog rules(), "rect_fuzz_stationary", @(dat->fuzz_stationary)
+    ELSEIF dat->translucent = transTrans THEN
+     a_append menu(), "  Opacity: " & dat->fuzzfactor & "%"
+     sliceed_rule rules(), "rect_transfact", erIntgrabber, @(dat->fuzzfactor), 0, 99
     END IF
 
    CASE slLine

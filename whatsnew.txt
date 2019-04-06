@@ -105,6 +105,7 @@ April ? 2019 [Fufluns]
     * Enemy Usage menu shows where an enemy is used, and chance of encountering
       it, and Foemap Statistics menu shows chance of each encounter [Ralph]
     * "Ignore harmtiles" vehicle bit [Ralph]
+    * Rect slices can now be truly transparent [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

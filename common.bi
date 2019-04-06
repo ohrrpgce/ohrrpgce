@@ -49,8 +49,10 @@ DECLARE FUNCTION readbadgenericname (byval index as integer, filename as string,
 ENUM RectTransTypes
  transUndef = -1
  transOpaque = 0
- transFuzzy
- transHollow
+ transFuzzy = 1
+ transHollow = 2
+ transTrans = 3
+ transLAST = 3
 END ENUM
 
 ENUM RectBorderTypes
