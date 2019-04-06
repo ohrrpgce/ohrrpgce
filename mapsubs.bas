@@ -715,7 +715,7 @@ DO
      NEXT tx
     END IF
    CASE 16
-    foemap_stats_menu st.map.foemap, "Foemap stats for map " & st.map.id & " " & st.map.name
+    foemap_stats_menu st.map.foemap, "Foemap Stats for Map " & st.map.id & " " & st.map.name
   END SELECT
   IF slave_channel <> NULL_CHANNEL THEN     'If live previewing, give quick feedback
    mapedit_savemap st
