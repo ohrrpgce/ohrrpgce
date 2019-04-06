@@ -82,6 +82,7 @@ extern "C"
 	int gfx_surfaceUpdate_SW( Surface* pSurfaceIn );
 	int gfx_surfaceGetData_SW( Surface* pSurfaceIn );
 	int gfx_surfaceFill_SW( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn );
+	int gfx_surfaceFillAlpha_SW( RGBcolor fillColor, double alpha, SurfaceRect* pRect, Surface* pSurface );
 	int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 	Surface* gfx_surfaceShrink_SW( Surface *surf, int destWidth, int destHeight );
 	int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
@@ -99,6 +100,7 @@ extern "C"
 	extern int (*gfx_surfaceUpdate)( Surface* pSurfaceIn );
 	extern int (*gfx_surfaceGetData)( Surface* pSurfaceIn );
 	extern int (*gfx_surfaceFill)( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn );
+	extern int (*gfx_surfaceFillAlpha)( RGBcolor fillColor, double alpha, SurfaceRect* pRect, Surface* pSurfaceIn );
 	extern int (*gfx_surfaceStretch)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 	extern Surface* (*gfx_surfaceShrink)( Surface *surf, int destWidth, int destHeight );
 	extern int (*gfx_surfaceCopy)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );

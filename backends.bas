@@ -108,6 +108,7 @@ dim gfx_surfaceReference as function ( byval pSurfaceIn as Surface ptr ) as Surf
 dim gfx_surfaceUpdate as function ( byval pSurfaceIn as Surface ptr ) as integer
 dim gfx_surfaceGetData as function ( byval pSurfaceIn as Surface ptr ) as integer
 dim gfx_surfaceFill as function ( byval fillColor as integer, byval pRect as SurfaceRect ptr, byval pSurfaceIn as Surface ptr ) as integer
+dim gfx_surfaceFillAlpha as function ( byval fillColor as RGBcolor, byval alpha as double, byval pRect as SurfaceRect ptr, byval pSurfaceIn as Surface ptr ) as integer
 dim gfx_surfaceStretch as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 dim gfx_surfaceCopy as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, pPal8 as Palette16 ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 
@@ -455,6 +456,7 @@ private sub default_gfx_render_procs()
 	gfx_surfaceUpdate = @gfx_surfaceUpdate_SW
 	gfx_surfaceGetData = @gfx_surfaceGetData_SW
 	gfx_surfaceFill = @gfx_surfaceFill_SW
+	gfx_surfaceFillAlpha = @gfx_surfaceFillAlpha_SW
 	gfx_surfaceStretch = @gfx_surfaceStretch_SW
 	gfx_surfaceCopy = @gfx_surfaceCopy_SW
 	gfx_paletteCreate = @gfx_paletteCreate_SW

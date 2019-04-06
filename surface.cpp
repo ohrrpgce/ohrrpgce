@@ -202,6 +202,38 @@ int gfx_surfaceFill_SW( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfac
 	return 0;
 }
 
+// Draw a transparent rect - 32bit only! alpha must be from 0. to 1.
+// pRect may be NUL for the whole Surface.
+int gfx_surfaceFillAlpha_SW( RGBcolor fillColor, double alpha, SurfaceRect* pRect, Surface* pSurface )
+{
+	if (!pSurface)
+		return -1;
+
+	if (pSurface->format == SF_8bit)
+		// Call trans_rectangle instead.
+		return -1;
+
+	SurfaceRect rect;
+	clampRectToSurface(pRect, &rect, pSurface);
+
+	for(int y = rect.top; y <= rect.bottom; y++) {
+		for(int x = rect.left; x <= rect.right; x++) {
+			RGBcolor srcColor = pSurface->pixel32(x, y);
+			int fillA = 256 * alpha, srcA = 256 - fillA;
+
+			//integer method of blending
+			RGBcolor finalColor;
+			finalColor.r = ( srcColor.r * srcA + fillColor.r * fillA ) >> 8;
+			finalColor.g = ( srcColor.g * srcA + fillColor.g * fillA ) >> 8;
+			finalColor.b = ( srcColor.b * srcA + fillColor.b * fillA ) >> 8;
+			finalColor.a = 255;
+			pSurface->pixel32(x, y) = finalColor;
+		}
+	}
+
+	return 0;
+}
+
 int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//needs work
 	return -1;

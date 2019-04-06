@@ -4002,6 +4002,22 @@ sub drawants(dest as Frame ptr, x as RelPos, y as RelPos, wide as RelPos, high a
 	next idx
 end sub
 
+'Draw a transparent rectangle. 8- or 32-bit
+sub trans_rectangle(dest as Frame ptr, rect as RectType, byval col as RGBcolor, alpha as double)
+	if dest->surf then
+		BUG_IF(dest->surf->format <> SF_32bit, "8-bit Surface backed Frame not supported")
+		dim srect as SurfaceRect = (rect.x, rect.y, rect.x + rect.wide - 1, rect.y + rect.high - 1)
+		gfx_surfaceFillAlpha(col, alpha, @srect, dest->surf)
+	else
+		dim pal as Palette16 ptr = palette16_new_identity(256)
+		Palette16_mix_n_match pal, col, alpha, mixBlend
+		'Draw a piece of the dest frame onto itself, effectively remapping by pal.
+		dim viewfr as Frame ptr = frame_new_view(dest, rect.x, rect.y, rect.wide, rect.high)
+		frame_draw viewfr, pal, 0, 0, , NO, viewfr
+		palette16_unload @pal
+	end if
+end sub
+
 sub rectangle (x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer, p as integer)
 	rectangle vpages(p), x, y, w, h, c
 end sub
@@ -9898,7 +9914,7 @@ function Palette16_describe(pal as Palette16 ptr) as string
 	return temp & ">"
 end function
 
-'Modifies a palette in-place, tinting it with a color
+'Modifies a palette in-place, changing each color according to method, e.g. greyscale.
 sub Palette16_transform_n_match(pal as Palette16 ptr, method as ColorOperator)
 	for idx as integer = 0 to pal->numcolors - 1
 		dim as integer r, g, b, temp
@@ -9915,7 +9931,8 @@ sub Palette16_transform_n_match(pal as Palette16 ptr, method as ColorOperator)
 				g = r
 				b = r
 			elseif method = copTintValue then
-				'Like copValue, but better suited for tinting:
+				'Like copValue, but a produces a grey better suited for
+				'being tinted using Palette16_mix_n_match:
 				'only return 255 for pure white for better distrinctions,
 				'and don't return 0 to allow tinting black.
 				temp = iif(.r > .g, .r, .g)
