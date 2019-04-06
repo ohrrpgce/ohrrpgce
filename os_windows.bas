@@ -303,7 +303,7 @@ function find_and_load_crashrpt() as bool
 		end if
 	end if
 
-	early_debuginfo "Couldn't find crashrpt.dll"
+	early_debuginfo "Couldn't find/load crashrpt.dll"
 	return NO
 end function
 
@@ -1118,7 +1118,8 @@ end function
 function open_document (filename as string) as string
 	'Initialise COM; may be necessary. May be called multiple times
 	'as long as the args are the same.
-	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED OR COINIT_DISABLE_OLE1DDE)
+	'CoInitializeEx(NULL, COINIT_APARTMENTTHREADED OR COINIT_DISABLE_OLE1DDE)  'Not available on early Win95
+	CoInitialize(NULL)
 	dim info as SHELLEXECUTEINFO
 	info.cbSize = SIZEOF(SHELLEXECUTEINFO)
 	'SEE_MASK_NOASYNC probably unneeded. Waits for the 'execute operation' to complete (does that
