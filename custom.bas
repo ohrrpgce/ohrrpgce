@@ -458,7 +458,7 @@ SUB main_editor_menu()
    IF state.pt = 9 THEN tags_menu
    IF state.pt = 10 THEN menu_editor
    IF state.pt = 11 THEN slice_editor SL_COLLECT_USERDEFINED
-   IF state.pt = 12 THEN vehicles
+   IF state.pt = 12 THEN vehicle_editor
    IF state.pt = 13 THEN song_editor_main
    IF state.pt = 14 THEN sfx_editor_main
    IF state.pt = 15 THEN global_text_strings_editor

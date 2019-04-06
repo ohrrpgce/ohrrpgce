@@ -43,7 +43,7 @@ DECLARE FUNCTION formation_picker_or_none (recindex as integer = -1) as integer
 
 DECLARE SUB importmxs (f as string, cap as string, byref count as integer, sprtype as SpriteType)
 DECLARE FUNCTION importmasterpal (filename as string = "", palnum as integer) as bool
-DECLARE SUB vehicles ()
+DECLARE SUB vehicle_editor ()
 DECLARE SUB scriptman ()
 DECLARE SUB map_picker ()
 DECLARE SUB mapeditor (byval mapnum as integer)

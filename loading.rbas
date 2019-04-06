@@ -2218,6 +2218,7 @@ SUB LoadVehicle (file as string, vehicle as VehicleData, byval record as integer
     .dismount_ahead        = xreadbit(buf(), 6, 9)
     .pass_walls_while_dismounting = xreadbit(buf(), 7, 9)
     .disable_flying_shadow        = xreadbit(buf(), 8, 9)
+    .ignore_harmtiles             = xreadbit(buf(), 9, 9)
   END WITH
 END SUB
 
@@ -2251,6 +2252,7 @@ SUB SaveVehicle (file as string, byref vehicle as VehicleData, byval record as i
     setbit buf(), 9, 6, .dismount_ahead
     setbit buf(), 9, 7, .pass_walls_while_dismounting
     setbit buf(), 9, 8, .disable_flying_shadow
+    setbit buf(), 9, 9, .ignore_harmtiles
   END WITH
   SaveVehicle file, buf(), vehicle.name, record
 END SUB

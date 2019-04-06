@@ -1300,6 +1300,11 @@ PRIVATE SUB apply_harmtile_to(hero as HeroState)
  END WITH
 END SUB
 
+FUNCTION harmtiles_enabled() as bool
+ IF vstate.active ANDALSO vstate.dat.ignore_harmtiles THEN RETURN NO
+ RETURN YES
+END FUNCTION
+
 SUB update_heroes(force_step_check as bool=NO)
  'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left
  FOR whoi as integer = 0 TO active_party_slots - 1
@@ -1441,7 +1446,7 @@ SUB update_heroes(force_step_check as bool=NO)
 
    '--Check for harm tile
    DIM p as integer = readblock(pass, herotx(whoi), heroty(whoi))
-   IF p AND passHarm THEN
+   IF harmtiles_enabled() ANDALSO (p AND passHarm) THEN
 
     DIM harm_whole_party as bool = NO
 

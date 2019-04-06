@@ -1061,6 +1061,7 @@ TYPE VehicleData
   dismount_ahead        as bool
   pass_walls_while_dismounting as bool
   disable_flying_shadow as bool
+  ignore_harmtiles      as bool
 END TYPE
 
 TYPE VehicleState

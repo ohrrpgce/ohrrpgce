@@ -32,7 +32,7 @@ DECLARE SUB nearestui (byval mimicpal as integer, newpal() as RGBcolor, newui() 
 DECLARE SUB remappalette (oldmaster() as RGBcolor, oldui() as integer, oldbox() as BoxStyle, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)
 
 
-SUB vehicles
+SUB vehicle_editor
 
 DIM menu(15) as string
 DIM veh(39) as integer
@@ -58,6 +58,7 @@ a_append vehbit(), -1, ""
 a_append vehbit(), -1, " Movement"
 a_append vehbit(), 0,  "Pass through walls"
 a_append vehbit(), 1,  "Pass through NPCs"
+a_append vehbit(), 9,  "Ignore harmtiles"
 a_append vehbit(), 6,  "Dismount one space ahead"
 a_append vehbit(), 7,  "Pass walls while dismounting"
 a_append vehbit(), -1, ""
