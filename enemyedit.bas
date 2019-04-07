@@ -1150,7 +1150,7 @@ SUB EnemyUsageMenu.update()
   NEXT
   IF count THEN
    have_any = YES
-   add_item 0, formid, formid & ": " & describe_formation(form)
+   add_item 0, formid, strprintf("%-3d: ", formid) & describe_formation(form)
    form_counts(formid) = count
   END IF
  NEXT
@@ -1179,8 +1179,8 @@ SUB EnemyUsageMenu.update()
   DIM enctr_rate as double = formset_freq_estimate(formset.frequency)
   IF count THEN
    have_any = YES
-   add_item 1, fsid, strprintf("%d: in %2d%% of formations (average num %.1f)  %.3f", _
-                               fsid, CINT(100 * matching_forms / total_forms), count / total_forms, enctr_rate)
+   add_item 1, fsid, strprintf("%-3d: in %2d%% of formations (avg num %.1f)", _
+                               fsid, CINT(100 * matching_forms / total_forms), count / total_forms)
   END IF
   formset_encounter_rate(fsid) = enctr_rate
   formset_avg_num(fsid) = count / total_forms
@@ -1190,8 +1190,8 @@ SUB EnemyUsageMenu.update()
  have_any = NO
 
  header " Maps (foemaps)"
- add_item , , "Map |  % of  |   % of    | Chance to see | Avg num per | Form", NO, NO
- add_item , , "    | tiles  | foe-tiles | per foe-tile  | encounter   | sets", NO, NO
+ add_item , , "Map |  % of  |   % of    | Chance to see | Avg num  | Form", NO, NO
+ add_item , , "    | tiles  | foe-tiles | per foe-tile  | / battle | sets", NO, NO
  FOR mapid as integer = 0 TO gen(genMaxMap)
   'First count occurrences of each form set in the foemap
   DIM foemap as TileMap
@@ -1225,7 +1225,7 @@ SUB EnemyUsageMenu.update()
 
   IF matching_tiles THEN
    have_any = YES
-   add_item 2, mapid, strprintf("%-3d | %5.1f%% | %8.1f%% | %12.2f%% | %11.3f | %s", _
+   add_item 2, mapid, strprintf("%-3d | %5.1f%% | %8.1f%% | %12.2f%% | %8.3f | %s", _
                                 mapid, percent_of_tiles, percent_of_foe_tiles, _
                                 100 * enctr_rate, avg_num, @formsets[0])
   END IF
@@ -1269,7 +1269,7 @@ SUB EnemyUsageMenu.update()
  IF have_any = NO THEN add_item -1, 0, "(None)"
  have_any = NO
 
- header " Attack Transmogrification"
+ header " Attack Transmogrifications"
  FOR aid as integer = 0 TO gen(genMaxAttack)
   DIM attack as AttackData
   loadattackdata attack, aid
@@ -1363,6 +1363,7 @@ TYPE FoemapStatsMenu EXTENDS ModularMenu
  enemies(any) as EnemyDef ptr  'Cache
  from_level as integer = 0
  to_level as integer = 1
+ exp_mult_percent as integer = -1  '-1 is default, 0-100 is 0.00 to 1.00
  num_heroes as integer = 1
 
  DECLARE DESTRUCTOR()
@@ -1406,8 +1407,8 @@ SUB FoemapStatsMenu.update()
 
  ' Show formation sets
  header " Formation Sets"
- add_item , , " ID |  % of  |   % of    |  Steps /  | Guessed % of |    Num   ", NO, NO
- add_item , , "    | tiles  | foe-tiles | encounter |  encounters  | formations", NO, NO
+ add_item , , " ID |  % of  |   % of    | Steps / | Guessed %  |    Num   ", NO, NO
+ add_item , , "    | tiles  | foe-tiles | battle  | of battles | formations", NO, NO
  DIM formsets(maxFormationSet) as FormationSet
  DIM fs_enctr_rates(maxFormationSet) as double 'Encounter chance per random foe-tile step
  DIM num_forms(maxFormationSet) as integer  'Number of formations in each formation set
@@ -1441,14 +1442,14 @@ SUB FoemapStatsMenu.update()
     IF .frequency THEN
      steps_str = strprintf("%.1f", 1. / formset_freq_estimate(.frequency))
      DIM percent_of_encounters as double = 100 * fs_weights(fsid)
-     enctr_str = strprintf("%11.1f%%", percent_of_encounters)
+     enctr_str = strprintf("%9.1f%%", percent_of_encounters)
     ELSE
      steps_str = "never"
      enctr_str = "never"
     END IF
 
     have_any = YES
-    add_item 0, fsid, strprintf("%3d | %5.1f%% | %8.1f%% | %9s | %12s | %5d", _
+    add_item 0, fsid, strprintf("%3d | %5.1f%% | %8.1f%% | %7s | %10s | %5d", _
                                  fsid, percent_of_tiles, percent_of_foe_tiles, @steps_str[0], _
                                  @enctr_str[0], num_forms(fsid))
    END WITH
@@ -1537,8 +1538,8 @@ SUB FoemapStatsMenu.update()
  DIM gold(gen(genMaxFormation)) as integer
 
  header " Enemies"
- add_item , , "                |  Steps /  | Encounter | Avg num / |    In", NO, NO
- add_item , , "                | encounter | fraction  | encounter | formations", NO, NO
+ add_item , , "                |  Steps /  |  % of   | Avg num  |    In", NO, NO
+ add_item , , "                | encounter | battles | / battle | formations", NO, NO
  FOR eid as integer = 0 TO gen(genMaxEnemy)
   IF enemy_weights(eid) THEN
    DIM byref enemy as EnemyDef = get_enemy(eid)
@@ -1547,8 +1548,8 @@ SUB FoemapStatsMenu.update()
    DIM enctr_steps as double = 1. / enemy_enctr_rates(eid)
 
    have_any = YES
-   DIM shortname as string = LEFT(eid & " " & enemy.name, 15)
-   add_item 2, eid, strprintf("%-15s | %9.1f | %8.1f%% | %9.3f | %s", _
+   DIM shortname as string = LEFT(eid & " " & enemy.name, 14)
+   add_item 2, eid, strprintf("%-14s | %9.1f | %6.1f%% | %8.3f | %s", _
                               @shortname[0], enctr_steps, enctr_percent, enemy_weights(eid), _
                               @enemy_formations(eid)[0])
 
@@ -1578,18 +1579,10 @@ SUB FoemapStatsMenu.update()
  IF have_any = NO THEN add_item -1, 0, "(None)"
 
  header " Formation Set Rewards"
- IF have_any THEN
-  'Editable inputs for the preview
-  add_item 10, , "From level: " & this.from_level
-  add_item 11, , "To level: " & this.to_level
-  IF prefbit(30) = NO THEN  '"!Divide experience between heroes"
-   add_item 12, , "For # heroes: " & this.num_heroes
-  END IF
- END IF
  have_any = NO
- add_item , , " ID |  Avg   |   Avg  | Encounters for | Foe-tile steps for", NO, NO
+ add_item , , " ID |  Avg   |   Avg  | Battles for  | Steps for", NO, NO
  add_item , , strprintf(_
-              "    |  Gold  |   XP   |  level %2d->%2d  | level %2d->%2d", _
+              "    |  gold  |   XP   | level %2d->%2d | level %2d->%2d", _
               this.from_level, this.to_level, this.from_level, this.to_level), NO, NO
  FOR fsid as integer = 1 TO maxFormationSet
   IF occurrences(fsid) THEN
@@ -1597,7 +1590,10 @@ SUB FoemapStatsMenu.update()
     'Calculate encounters and steps neede
     DIM enctrs_needed as double
     DIM as string enctr_str, steps_str
-    DIM xp_needed as integer = total_exp_to_level(this.to_level) - total_exp_to_level(this.from_level)
+    DIM exp_mult as double = 0.2
+    IF this.exp_mult_percent >= 0 THEN exp_mult = exp_mult_percent / 100.
+    DIM xp_needed as integer
+    xp_needed = total_exp_to_level(this.to_level, exp_mult) - total_exp_to_level(this.from_level, exp_mult)
     IF prefbit(30) = NO THEN  '"!Divide experience between heroes"
      xp_needed *= this.num_heroes
     END IF
@@ -1609,25 +1605,39 @@ SUB FoemapStatsMenu.update()
      steps_str = "never"
     ELSE
      DIM enctrs_needed as double = xp_needed / fs_exper(fsid)
-     enctr_str = strprintf("%14.1f", enctrs_needed)
+     enctr_str = strprintf("%12.1f", enctrs_needed)
      IF .frequency THEN
-      steps_str = strprintf("%14.1f", enctrs_needed / formset_freq_estimate(.frequency))
+      steps_str = strprintf("%12.1f", enctrs_needed / formset_freq_estimate(.frequency))
      ELSE
       steps_str = "never"
      END IF
     END IF
 
     have_any = YES
-    add_item 0, fsid, strprintf("%3d | %6d | %6d | %14s | %14s ", fsid, fs_gold(fsid), _
+    add_item 0, fsid, strprintf("%3d | %6d | %6d | %12s | %12s ", fsid, fs_gold(fsid), _
                                 fs_exper(fsid), @enctr_str[0], @steps_str[0])
    END WITH
   END IF
  NEXT
  IF have_any = NO THEN add_item -1, 0, "(None)"
+
+ IF have_any THEN
+  'Editable inputs for the preview
+  add_spacer
+  add_item 10, , "From level: " & this.from_level
+  add_item 11, , "To level: " & this.to_level
+  DIM temp as string = "default"
+  IF this.exp_mult_percent >= 0 THEN temp = strprintf("%.2f", this.exp_mult_percent / 100.)
+  add_item 12, , "Experience curve: " & temp
+  IF prefbit(30) = NO THEN  '"!Divide experience between heroes"
+   add_item 13, , "For # heroes: " & this.num_heroes
+  END IF
+ END IF
+
  have_any = NO
 
  header " Items (drops)"
- add_item , , "             |  Avg num per encounter", NO, NO
+ add_item , , "             |  Avg num per battle", NO, NO
  FOR iid as integer = 0 TO gen(genMaxItem)
   IF drops(iid) > 0. THEN
    have_any = YES
@@ -1639,7 +1649,7 @@ SUB FoemapStatsMenu.update()
  have_any = NO
 
  header " Items (stealable)"
- add_item , , "             |  Avg num per encounter", NO, NO
+ add_item , , "             |  Avg num per battle", NO, NO
  DIM have_unlimited_steal as bool
  FOR iid as integer = 0 TO gen(genMaxItem)
   IF steals(iid) > 0. THEN
@@ -1691,6 +1701,8 @@ FUNCTION FoemapStatsMenu.each_tick() as bool
   CASE 11
    changed OR= intgrabber(this.to_level, 0, gen(genMaxLevel))
   CASE 12
+   changed OR= intgrabber(this.exp_mult_percent, -1, 100)
+  CASE 13
    changed OR= intgrabber(this.num_heroes, 1, 4)
  END SELECT
 

@@ -1811,8 +1811,12 @@ SUB ModularMenu.add_item(itemtype as integer = 0, id as integer = -1, text as st
  a_append shaded(), heading
 END SUB
 
-SUB ModularMenu.header(text as string)
+SUB ModularMenu.add_spacer()
  add_item , , , NO, YES
+END SUB
+
+SUB ModularMenu.header(text as string)
+ add_spacer
  add_item , , text, NO, YES
 END SUB
 
