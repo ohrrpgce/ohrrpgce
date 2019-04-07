@@ -1,0 +1,73 @@
+This menu shows some statistics about the random encounters on this map, such as all possible enemies and drops.
+
+You probably want to maximise the window!
+
+Press ENTER/SPACE/CLICK on menu items to jump to the Enemy, Formation, Formation Set, Map, or Item Editor.
+
+== Formation Sets ==
+
+% of tiles:
+What fraction of tiles have this form-set.
+
+% of foe-tiles:
+Like "% of tiles", except this is the fraction of tiles amongst all tiles that have a formation set ("foe-tiles").
+E.g. if only one formation set is used on the map this is only 0% (not shown) or 100%.
+
+Steps / battle:
+Average number of tiles you need to step on to trigger a battle.
+
+Guessed % of battles:
+By assuming that every tile on the map is equally likely to be stepped this, this shows what % of battles will be from this form-set.
+If there's more than one formation set then all the following statistics in this menu (except Formation Set Rewards) are a weighted sum of the different formations, according to this percentage.
+
+Num formations:
+How many formations there are in this foe-set (not necessarily distinct).
+
+== Formations ==
+
+XP:
+Total experience points from the formation. Assumes no spawns.
+
+Gold:
+Total money from the formation. Assumes no spawns.
+
+Enemies:
+In the formation.
+
+== Enemies ==
+
+Steps / encounter:
+The average number of steps on foe-tiles before you see this enemy.
+(This is calculated assuming you walk over a random mixture of form-sets according to "Guessed % of battles")
+
+% of battles:
+The fraction of battles which contain at least one copy of this enemy.
+
+Avg num / battle:
+The average number of this enemy
+
+In formations:
+The list of all formations that can be encountered on this map which contain the enemy.
+Other formations containing the enemy aren't shown.
+
+== Formation Set Rewards ==
+
+Avg gold / Avg XP:
+The average amount of money and experience recieved from a battle in this form-set.
+
+Battles/Steps for level ##->##:
+Shows how many battles or steps on foe-tiles are needed on average to gain one or more levels.
+
+From level / To level / Experience curve / For # heroes:
+These are used to preview the battles/steps needed.
+The "For # heroes" option is the number of heroes in the active party, and isn't shown if the General Preference setting to divide experience between heroes is off.
+
+== Items (drops) ==
+
+Shows all possible items that can be dropped (assuming no spawns) from enemies and the average number obtained per battle.
+
+== Items (stealable) ==
+
+Shows all possible items that can be stolen from enemies (assuming no spawns) and the average number obtained per battle.
+
+If an item can be stolen an unlimited number of times from at least one enemy then it's indicated and counted just once for that enemy.

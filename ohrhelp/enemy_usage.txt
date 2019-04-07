@@ -1,0 +1,48 @@
+This menu shows places in the game where an enemy is used (except for battles triggered by scripts) and some statistics.
+
+Press ENTER/SPACE/CLICK on a usage of the enemy to jump to the Formation, Formation Set, Map, Textbox or Attack Editor.
+
+Hold ALT to show the name of the enemy you are currently editing. While holding ALT, you can press the left and right arrow keys to change which enemy you are editing, or you can type in an enemy ID number.
+
+== Formations ==
+
+Lists all the formations containing this enemy, and all the other enemies in those formations too.
+
+== Formation Sets ==
+
+Lists all the formation sets including a formation containing this enemy, what fraction of those formations include this enemy, and "avg num", the average number of this enemy in those formations.
+
+E.g. a formation set with two formations, of 1 plip and 3 plips, has 2 plips on average and 100% of the formations have plips.
+
+== Maps (foemaps) ==
+
+% of tiles:
+The fraction of tiles on the map that belong to a formation set which has at least one formation containing this enemy.
+
+% of foe-tiles:
+Like "% of tiles", except this is the fraction of tiles amongst all tiles that have a formation set ("foe-tiles").
+E.g. if only one formation set is used on the map this is only 0% (not shown) or 100%.
+
+Chance to see per foe-tile:
+If you step on one of the map's foe-tiles (i.e. might trigger a battle), what's the chance that a battle is triggered containing this enemy?
+This is calculated by assuming all tiles on the map are equally likely to be stepped on, which is probably false.
+
+Avg num / battle:
+If a random encounter happens, what's the average number of this enemy in that battle formation?
+This is calculated by assuming all tiles on the map are equally likely to be stepped on, which is probably false.
+
+Form sets:
+Shows the formation sets on this map which contain this enemy. Other formation sets are excluded.
+
+== Textboxes ==
+
+Shows any textboxes which trigger a battle containing this enemy, and any tag conditions for it.
+
+== Enemy Spawns ==
+
+Lists any enemy spawn settings which spawn this enemy, including the number of enemies spawned and the condition.
+Other spawns of those enemies aren't shown.
+
+== Attack Transmogrifications ==
+
+Lists any attacks which transmogrify their target into this enemy.
