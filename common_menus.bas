@@ -318,7 +318,8 @@ SUB edit_battle_bitsets()
  a_append bits(), -1, ""
  a_append bits(), -1, " Battle Display Options"
  a_append bits(), 6,  "!Show ready-meter"
- a_append bits(), 7,  "!Show health-meter"
+ a_append bits(), 7,  "!Show health meter"
+ a_append bits(), 49, "Show MP meter"
  a_append bits(), 14, "Disable hero cursor"
  a_append bits(), 38, "Never show script timers during battles"
 

@@ -956,7 +956,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
   FOR i = 0 TO 3 '--for each hero
    IF gam.hero(i).id >= 0 THEN '--FIXME: should use some battle state instead of global state to
                        '--determine if the hero is present.
-    IF prefbit(6) = NO THEN  '"Hide ready-meter in battle" off
+    IF prefbit(6) = NO THEN  '"Hide ready-meter" off
      col = uilook(uiTimeBar)
      IF bslot(i).ready = YES THEN col = uilook(uiTimeBarFull)
      edgeboxstyle 1, 4 + i * 10, 132, 11, 0, page, YES, YES
@@ -969,47 +969,65 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
       rectangle 2, 5 + i * 10, j, 9, col, page
      END IF
     END IF
+
+    DIM hp_text_y as integer = 5 + i * 10
     WITH bslot(i)
      DIM hidehp as bool = should_hide_hero_stat(gam.hero(i).id, statHP)
-     IF prefbit(7) = NO ANDALSO hidehp = NO THEN  '"Hide health-meter in battle" off
-      col = uiLook(uiHealthBar)
+     IF prefbit(7) = NO ANDALSO hidehp = NO THEN  '"Hide health meter" off
+
       DIM target_lifemeter_len as integer = 87 * bound(.stat.cur.hp / large(.stat.max.hp, 1), 0., 1.)
       IF .lifemeter < target_lifemeter_len THEN .lifemeter += 1
       IF .lifemeter > target_lifemeter_len THEN .lifemeter -= 1
+      col = uiLook(uiHealthBar)
       IF .lifemeter = 87 ANDALSO .stat.cur.hp > .stat.max.hp THEN
        col = uiLook(uiHealthBar + bat.tog)
       END IF
       edgeboxstyle 136, 4 + i * 10, 89, 11, 0, page, YES, YES
       rectangle 137, 5 + i * 10, .lifemeter, 9, col, page
      END IF
+
+     IF prefbit(49) ANDALSO should_hide_hero_stat(gam.hero(i).id, statMP) = NO THEN  '"Show MP meter"
+      DIM target_mpmeter_len as integer = 87 * bound(.stat.cur.mp / large(.stat.max.mp, 1), 0., 1.)
+      IF .mpmeter < target_mpmeter_len THEN .mpmeter += 1
+      IF .mpmeter > target_mpmeter_len THEN .mpmeter -= 1
+      col = uiLook(uiMPBar)
+      IF .mpmeter = 87 ANDALSO .stat.cur.mp > .stat.max.mp THEN
+       col = uiLook(uiMPBar + bat.tog)
+      END IF
+      rectangle 137, 12 + i * 10, .mpmeter, 2, col, page  'Overlaps the HP meter
+
+      'Move the hp text up a pixel so that it doesn't completely cover the MP meter
+      hp_text_y -= 1
+     END IF
+
      '--name--
      col = uilook(IIF(i = bat.hero_turn, uiSelectedItem + bat.tog, uiMenuItem))
      edgeprint .name, 128 - LEN(.name) * 8, 5 + i * 10, col, page
      '--hp--
      IF hidehp = NO THEN
-      edgeprint .stat.cur.hp & "/" & .stat.max.hp, 136, 5 + i * 10, col, page
+      edgeprint .stat.cur.hp & "/" & .stat.max.hp, 136, hp_text_y, col, page
      END IF
     END WITH
     WITH bslot(i).stat
      DIM indicatorpos as integer = 217
      'poison indicator
      IF .cur.poison < .max.poison THEN
-      edgeprint CHR(gen(genPoisonChar)), indicatorpos, 5 + i * 10, col, page
+      edgeprint CHR(gen(genPoisonChar)), indicatorpos, hp_text_y, col, page
       indicatorpos -= 8
      END IF
      'stun indicator
      IF .cur.stun < .max.stun THEN
-      edgeprint CHR(gen(genStunChar)), indicatorpos, 5 + i * 10, col, page
+      edgeprint CHR(gen(genStunChar)), indicatorpos, hp_text_y, col, page
       indicatorpos -= 8
      END IF
      'mute indicator
      IF .cur.mute < .max.mute THEN
-      edgeprint CHR(gen(genMuteChar)), indicatorpos, 5 + i * 10, col, page
+      edgeprint CHR(gen(genMuteChar)), indicatorpos, hp_text_y, col, page
       indicatorpos -= 8
      END IF
      'regen indicator
      IF .cur.regen < .max.regen THEN
-      edgeprint CHR(gen(genRegenChar)), indicatorpos, 5 + i * 10, col, page
+      edgeprint CHR(gen(genRegenChar)), indicatorpos, hp_text_y, col, page
      END IF
     END WITH
    END IF
@@ -1555,6 +1573,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
    bslot(i).frame = frameDEAD
   END IF
   bslot(i).lifemeter = (88 / large(bslot(i).stat.max.hp, 1)) * bslot(i).stat.cur.hp
+  bslot(i).mpmeter = (88 / large(bslot(i).stat.max.mp, 1)) * bslot(i).stat.cur.mp
  NEXT i
 
  'trigger fades for dead enemies

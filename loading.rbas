@@ -2370,6 +2370,8 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarr
  fixeddefaults(uiFadeOutEnterBattle)  = &hF0F0F0
  fixeddefaults(uiFadeOutWonBattle)    = &h000000
  fixeddefaults(uiFadeOutExitBattle)   = &h000000
+ fixeddefaults(uiMPBar)               = &h00E0E0
+ fixeddefaults(uiMPBarFlash)          = &h80FFFF
 
  FOR i as integer = 0 TO uiColorLast
   c.col = fixeddefaults(i)
@@ -2455,7 +2457,7 @@ FUNCTION UiColorCaption(byval n as integer) as string
   CASE uiTimeBar: RETURN "Time bar"
   CASE uiTimeBarFull: RETURN "Time bar full"
   CASE uiHealthBar: RETURN "Health bar"
-  CASE uiHealthBarFlash: RETURN "Health bar full"
+  CASE uiHealthBarFlash: RETURN "Health bar overfull"
   CASE uiText: RETURN "Text"
   CASE uiOutline: RETURN "Text outline"
   CASE uiDescription: RETURN "Spell description"
@@ -2495,6 +2497,8 @@ FUNCTION UiColorCaption(byval n as integer) as string
   CASE uiFadeOutEnterBattle: RETURN "Fadeout: enter battle"
   CASE uiFadeOutWonBattle: RETURN "Fadeout: won battle"
   CASE uiFadeOutExitBattle: RETURN "Fadeout: exit/flee battle"
+  CASE uiMPBar: RETURN "MP bar"
+  CASE uiMPBarFlash: RETURN "MP bar overfull"
 
  END SELECT
  'Invalid values still print, but !?

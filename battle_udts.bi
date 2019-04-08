@@ -148,6 +148,7 @@ TYPE BattleSprite
   '--
   lifemeter as integer 'FIXME: this can be replaced by the width property of the lifemeter slice
                         'when lifemeters have been converted to slices
+  mpmeter as integer
   bequesting as bool     ' YES/NO if true, this character is triggering a final attack before
                          ' they die. Death is delayed until the bequest attack happens.
                          ' A bequesting character cannot be targeted by new

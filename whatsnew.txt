@@ -106,6 +106,8 @@ April ? 2019 [Fufluns]
       it, and Foemap Statistics menu shows chance of each encounter [Ralph]
     * "Ignore harmtiles" vehicle bit [Ralph]
     * Rect slices can now be truly transparent [Ralph]
+    * Hero MP meter, along bottom of the HP meter. Disabled by default in
+      existing games. [Sword, Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

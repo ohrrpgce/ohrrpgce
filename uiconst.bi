@@ -5,7 +5,7 @@
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
-CONST uiColorLast = 51
+CONST uiColorLast = 53
 CONST uiColorOldLast = 17 ' the last uilook saved in uicolors.bin
 CONST uiBoxLast = 14
 CONST uiBoxOldLast = 14 ' the last boxlook saved in uicolors.bin
@@ -22,7 +22,7 @@ CONST uiHighlight2 = 8			'background used in equip menu
 CONST uiTimeBar = 9				'hero's time bar
 CONST uiTimeBarFull = 10		'time bar when full
 CONST uiHealthBar = 11			'hero's health bar
-CONST uiHealthBarFlash = 12		'health bar flash colour (?)
+CONST uiHealthBarFlash = 12		'health bar flash colour (when higher than max)
 CONST uiText = 13				'Default text colour
 CONST uiOutline = 14			'Text outline colour
 CONST uiDescription = 15		'Spell description
@@ -64,6 +64,8 @@ CONST uiFadeOutInn = 48
 CONST uiFadeOutEnterBattle = 49
 CONST uiFadeOutWonBattle = 50
 CONST uiFadeOutExitBattle = 51
+CONST uiMPBar = 52               'hero's mp bar
+CONST uiMPBarFlash = 53          'mp bar flash colour (when higher than max)
 
 'When you add more constants you will need to update GuessDefaultUIColors
 'and UiColorCaption, and possibly FillMissingUIColor, in loading.rbas.
