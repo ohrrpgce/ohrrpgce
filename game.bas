@@ -628,12 +628,6 @@ releasestack
 setupstack
 v_new mainFibreGroup
 
-SetupGameSlices
-'beginplay
-
-'This is called BEFORE the loop, because when the game is quit or a save is loaded, this will be called again there
-reset_game_state
-
 'Fade out before resizing the window
 fadeout 0, 0, 0
 
@@ -641,6 +635,13 @@ fadeout 0, 0, 0
 apply_game_window_settings NO
 set_safe_zone_margin read_ini_int(config_file, "gfx.margin", default_margin_for_game())
 
+'beginplay
+
+'Slices should be created after the resolution is set so sizes are correct on the first tick
+SetupGameSlices
+
+'This is called BEFORE the loop, because when the game is quit or a save is loaded, this will be called again there
+reset_game_state
 
 '===================== Stuff reinitialised each new/load-game ==================
 

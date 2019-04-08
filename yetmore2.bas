@@ -1136,9 +1136,11 @@ SUB apply_game_window_settings (reloading as bool = NO)
   ELSE
    'Changes video page size, but not window size immediately
    set_resolution(gen(genResolutionX), gen(genResolutionY))
-   'When resolution changes, change Slice Root too
-   SliceTable.Root->width = gen(genResolutionX)
-   SliceTable.Root->height = gen(genResolutionY)
+   IF SliceTable.Root THEN  'This SUB gets called before SetupGameSlices
+    'When resolution changes, change Slice Root too
+    SliceTable.Root->width = gen(genResolutionX)
+    SliceTable.Root->height = gen(genResolutionY)
+   END IF
    'Always recenter (need to call setvispage immediately, or the hint may be lost by calling e.g. set_safe_zone_margin)
    gfx_recenter_window_hint()
    setvispage vpage, NO
