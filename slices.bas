@@ -2653,7 +2653,26 @@ Sub LayoutChildrenRefresh(byval par as Slice ptr)
 
  dat->_previous_row_spacing = 0
 
- dim as Slice ptr ch = dat->SkipForward(par->FirstChild)
+ 'Initial loop over children to process Fill (TODO: maybe clamp should be handled here as well)
+ '(Unlike normal Fill, we don't ignore the .X/.Y members of a filling child)
+ dim support as RectType = any
+ support.wide = par->Width - par->paddingLeft - par->paddingRight
+ support.high = par->Height - par->paddingTop - par->paddingBottom
+ dim as Slice ptr ch = par->FirstChild
+ while ch
+  if ch->Visible andalso ch->Fill then
+   if ch->FillMode = sliceFillFull ORELSE ch->FillMode = sliceFillHoriz then
+    ch->Width = support.wide
+   end if
+   if ch->FillMode = sliceFillFull ORELSE ch->FillMode = sliceFillVert then
+    ch->Height = support.high
+   end if
+  end if
+  ch = ch->NextSibling
+ wend
+
+ 'Now calculate positions of each visible child
+ ch = dat->SkipForward(par->FirstChild)
  while ch
   dat->SpaceRow(par, ch, axis0, dir0, offsets, breadth)
 
