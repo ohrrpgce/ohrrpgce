@@ -965,7 +965,7 @@ Function TextboxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  LoadTextBox box, id
 
  'Most of the text will not be visible, but we still do want to use it for search and filter
- dim text as string = textbox_lines_to_string(box, " ") 'Concat with spaces instead of newlines
+ dim text as string = textbox_preview_line(box, 800)
 
  if plank_template = 0 then
   plank_template = load_plank_from_file(finddatafile("textbox_browser_plank.slice"))
@@ -994,9 +994,6 @@ Function TextboxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  else
   ChangeRectangleSlice rect, , boxlook(box.boxstyle).bgcol, , borderNone, iif(box.opaque, transOpaque, transFuzzy)
  end if
-
- 'Adjust to current screen width
- plank->Width = vpages(vpage)->w - 16
 
  return plank
 End Function

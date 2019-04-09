@@ -2870,7 +2870,7 @@ SUB ClearTextBox (byref box as TextBox)
  box.Constructor()
 END SUB
 
-'Concatenate textbox lines into a string
+'Concatenate textbox lines into a string. Preserves all whitespace.
 FUNCTION textbox_lines_to_string(byref box as TextBox, join_char as string = !"\n") as string
  DIM ret as string
  FOR idx as integer = 0 TO text_box_last_line(box)
@@ -2880,6 +2880,7 @@ FUNCTION textbox_lines_to_string(byref box as TextBox, join_char as string = !"\
  RETURN ret
 END FUNCTION
 
+'Concatenate textbox lines into a string, removing whitespace and truncating.
 ' maxwidth is in pixels
 FUNCTION textbox_preview_line(boxnum as integer, maxwidth as integer = 700) as string
  IF boxnum <= 0 OR boxnum > gen(genMaxTextBox) THEN RETURN ""
