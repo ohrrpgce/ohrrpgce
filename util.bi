@@ -550,6 +550,10 @@ UNION XYPair
    w as integer
    h as integer
   END TYPE
+  TYPE
+   wide as integer
+   high as integer
+  END TYPE
   n(1) as integer
   xy as XYSimple  'This is to allow LET(posx,posy) = pos.xy
   wh as XYSimple
@@ -618,8 +622,16 @@ UNION RectType
   TYPE
     x as integer
     y as integer
-    wide as integer
-    high as integer
+    UNION
+      TYPE
+        wide as integer
+        high as integer
+      END TYPE
+      TYPE
+        w as integer
+        h as integer
+      END TYPE
+    END UNION
   END TYPE
   TYPE
     topleft as XYPair
