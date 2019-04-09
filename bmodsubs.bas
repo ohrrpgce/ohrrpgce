@@ -267,10 +267,13 @@ END SUB
 SUB subtract_attack_costs(attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer)
  DIM byref attacker as HeroState = gam.hero(attackerslot)
 
- '--deduct MP
+ '--deduct/add MP
  DIM cost as integer
- cost = focuscost(attack.mp_cost, attacker.stat.cur.focus)
- attacker.stat.cur.mp = small(large(attacker.stat.cur.mp - cost, 0), attacker.stat.max.mp)
+ WITH attacker.stat
+  cost = focuscost(attack.mp_cost, .cur.focus)
+  'Don't increase MP past max, but if it is already past max don't clamp it.
+  .cur.mp = bound(.cur.mp - cost, 0, large(.max.mp, .cur.mp))
+ END WITH
  IF spclass = 1 THEN
   '--deduct LMP
   attacker.levelmp(lmplev) -= 1
