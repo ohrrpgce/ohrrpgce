@@ -1572,14 +1572,16 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  '--This checks weak/dead status for heroes
  '-- who are already weak/dead at the beginning of battle
  FOR i = 0 TO 3
-  enforce_weak_picture i, bslot(), bat
-  IF gam.hero(i).id >= 0 AND bslot(i).stat.cur.hp = 0 THEN
-   '--hero starts the battle dead
-   bslot(i).dissolve = 1 'Keeps the dead hero from vanishing
-   bslot(i).frame = frameDEAD
-  END IF
-  bslot(i).lifemeter = (88 / large(bslot(i).stat.max.hp, 1)) * bslot(i).stat.cur.hp
-  bslot(i).mpmeter = (88 / large(bslot(i).stat.max.mp, 1)) * bslot(i).stat.cur.mp
+  WITH bslot(i)
+   enforce_weak_picture i, bslot(), bat
+   IF gam.hero(i).id >= 0 AND .stat.cur.hp = 0 THEN
+    '--hero starts the battle dead
+    .dissolve = 1 'Keeps the dead hero from vanishing
+    .frame = frameDEAD
+   END IF
+   .lifemeter = 87 * bound(.stat.cur.hp / large(.stat.max.hp, 1), 0., 1.)
+   .mpmeter = 87 * bound(.stat.cur.mp / large(.stat.max.mp, 1), 0., 1.)
+  END WITH
  NEXT i
 
  'trigger fades for dead enemies
