@@ -945,6 +945,19 @@ SUB hero_attack_targetting_done(byref bat as BattleState, bslot() as BattleSprit
  bat.targ.hit_dead = NO
 END SUB
 
+'Update HP or MP meter
+'Cause meter to grow/shrink to the true value, and set col to the color to draw it.
+SUB update_stat_meter(bat as BattleState, byref meter as double, length as integer, curstat as integer, maxstat as integer, uicol as integer, byref col as integer)
+ DIM target_len as double = length * bound(curstat / large(maxstat, 1), 0., 1.)
+ IF meter < target_len THEN meter = small(target_len, meter + 1 + (target_len - meter) / 15)
+ IF meter > target_len THEN meter = large(target_len, meter - 1 - (meter - target_len) / 15)
+ col = uiLook(uicol)
+ IF meter = length ANDALSO curstat > maxstat THEN
+  'Don't do any flickering if we might draw a transparent menu on top, it can look very bad
+  col = uiLook(uicol + IIF(bat.menu_mode = batMENUHERO, bat.tog, 0))
+ END IF
+END SUB
+
 SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, page as integer)
  'display:
  '--this sub currently draws the user-interface. In the future it will update
@@ -974,29 +987,14 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
     WITH bslot(i)
      DIM hidehp as bool = should_hide_hero_stat(gam.hero(i).id, statHP)
      IF prefbit(7) = NO ANDALSO hidehp = NO THEN  '"Hide health meter" off
-
-      DIM target_lifemeter_len as integer = 87 * bound(.stat.cur.hp / large(.stat.max.hp, 1), 0., 1.)
-      IF .lifemeter < target_lifemeter_len THEN .lifemeter += 1
-      IF .lifemeter > target_lifemeter_len THEN .lifemeter -= 1
-      col = uiLook(uiHealthBar)
-      IF .lifemeter = 87 ANDALSO .stat.cur.hp > .stat.max.hp THEN
-       'Don't do any flickering if we might draw a transparent menu on top, it can look very bad
-       col = uiLook(uiHealthBar + IIF(bat.menu_mode = batMENUHERO, bat.tog, 0))
-      END IF
+      update_stat_meter bat, .lifemeter, 87, .stat.cur.hp, .stat.max.hp, uiHealthBar, col
       edgeboxstyle 136, 4 + i * 10, 89, 11, 0, page, YES, YES
       rectangle 137, 5 + i * 10, .lifemeter, 9, col, page
      END IF
 
      IF prefbit(49) ANDALSO should_hide_hero_stat(gam.hero(i).id, statMP) = NO THEN  '"Show MP meter"
-      DIM target_mpmeter_len as integer = 87 * bound(.stat.cur.mp / large(.stat.max.mp, 1), 0., 1.)
-      IF .mpmeter < target_mpmeter_len THEN .mpmeter += 1
-      IF .mpmeter > target_mpmeter_len THEN .mpmeter -= 1
-      col = uiLook(uiMPBar)
-      IF .mpmeter = 87 ANDALSO .stat.cur.mp > .stat.max.mp THEN
-       col = uiLook(uiMPBar + bat.tog)
-      END IF
+      update_stat_meter bat, .mpmeter, 87, .stat.cur.mp, .stat.max.mp, uiMPBar, col
       rectangle 137, 12 + i * 10, .mpmeter, 2, col, page  'Overlaps the HP meter
-
       'Move the hp text up a pixel so that it doesn't completely cover the MP meter
       hp_text_y -= 1
      END IF

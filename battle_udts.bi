@@ -146,9 +146,8 @@ TYPE BattleSprite
   '--
   enemy as EnemyDef '--only populated if this slot holds an enemy
   '--
-  lifemeter as integer 'FIXME: this can be replaced by the width property of the lifemeter slice
-                        'when lifemeters have been converted to slices
-  mpmeter as integer
+  lifemeter as double    'Width of the (filled part of the) HP meter in pixels
+  mpmeter as double      'Width of the (filled part of the) MP meter in pixels
   bequesting as bool     ' YES/NO if true, this character is triggering a final attack before
                          ' they die. Death is delayed until the bequest attack happens.
                          ' A bequesting character cannot be targeted by new
@@ -241,7 +240,7 @@ END ENUM
 
 '--Used by BattleState.menu_mode
 ENUM BattleMenuMode
- batMENUHERO = 0
+ batMENUHERO = 0   'Also used when no hero is acting
  batMENUSPELL = 1
  batMENUITEM = 2
 END ENUM
