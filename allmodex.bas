@@ -3624,9 +3624,15 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 'ystart is the distance from the top to start drawing, yheight the number of lines. yheight=-1 indicates extend to bottom of screen
 'There are no options in the X direction because they've never been used, and I don't forsee them being (can use Frames or slices instead)
 	dim mapview as Frame ptr
+	'Drawing onto the view Frame will reset the cliprect. Also we need to shift the cliprect by ystart.
+	'TODO: it would be more efficient to shrink mapview to the cliprect. Then we could also avoid having
+	'to clip each individual tile.
+	dim saveclip as ClipState = get_cliprect()
 	mapview = frame_new_view(vpages(p), 0, ystart, vpages(p)->w, iif(yheight = -1, vpages(p)->h, yheight))
+	setclip saveclip.l, saveclip.t - ystart, saveclip.r, saveclip.b - ystart, mapview
 	drawmap tmap, x, y, tilesetsprite, mapview, trans, overheadmode, pmapptr, largetileset, pal
 	frame_unload @mapview
+	get_cliprect() = saveclip
 end sub
 
 sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame ptr, dest as Frame ptr, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, largetileset as bool = NO, pal as Palette16 ptr = NULL)
@@ -4053,11 +4059,14 @@ sub trans_rectangle(dest as Frame ptr, byval rect as RectType, byval col as RGBc
 	else
 		dim pal as Palette16 ptr = palette16_new_identity(256)
 		Palette16_mix_n_match pal, col, alpha, mixBlend
+		'Drawing onto the view Frame will reset the cliprect
+		dim saveclip as ClipState = get_cliprect()
 		'Draw a piece of the dest frame onto itself, effectively remapping by pal.
 		dim viewfr as Frame ptr = frame_new_view(dest, rect.x, rect.y, rect.wide, rect.high)
 		frame_draw viewfr, pal, 0, 0, , NO, viewfr
 		frame_unload @viewfr
 		palette16_unload @pal
+		get_cliprect() = saveclip
 	end if
 end sub
 
