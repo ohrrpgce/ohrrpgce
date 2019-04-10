@@ -80,6 +80,8 @@ extern "C"
 dim shared GetProcessMemoryInfo as function (byval Process as HANDLE, byval ppsmemCounters as PPROCESS_MEMORY_COUNTERS, byval cb as DWORD) as WINBOOL
 #undef GetProcessImageFileNameA
 dim shared GetProcessImageFileNameA as function (byval hProcess as HANDLE, byval lpImageFileName as LPSTR, byval nSize as DWORD) as DWORD
+#undef SHGetSpecialFolderPathA
+dim shared SHGetSpecialFolderPathA as function (byval hwnd as HWND, byval pszPath as LPSTR, byval csidl as long, byval fCreate as WINBOOL) as WINBOOL
 end extern
 
 
@@ -171,6 +173,13 @@ sub os_init ()
 	if psapi then
 		GetProcessMemoryInfo = dylibsymbol(psapi, "GetProcessMemoryInfo")
 		GetProcessImageFileNameA = dylibsymbol(psapi, "GetProcessImageFileNameA")
+	end if
+
+	' SHGetSpecialFolderPathA was added in 98+, or 95 with IE 4 'Active Desktop' installed
+	' (Maybe should use SHGetKnownFolderPath on Vista+ as recommended)
+	dim shell32 as any ptr = dylibload("shell32")
+	if shell32 then
+		SHGetSpecialFolderPathA = dylibsymbol(shell32, "SHGetSpecialFolderPathA")
 	end if
 end sub
 
@@ -455,32 +464,42 @@ end function
 
 function os_get_documents_dir() as string
 	dim buf as string * MAX_PATH
-	' This is a very deprecated function; SHGetFolderPath is slightly more modern but apparently Win 2000+ only.
-        ' Doesn't set an error code!
-	if SHGetSpecialFolderPath(0, strptr(buf), CSIDL_PERSONAL, 0) then  'Documents
-		if diriswriteable(buf) then
-			return buf
-		else
-			debug "Can't write to CSIDL_PERSONAL directory " & buf
+	if SHGetSpecialFolderPathA then
+		' This is a very deprecated function; SHGetFolderPath is slightly more modern but apparently Win 2000+ only.
+		' Might be missing on Win95, and the Documents folder was only added in Win98 anyway.
+		' Doesn't set an error code!
+		if SHGetSpecialFolderPathA(0, strptr(buf), CSIDL_PERSONAL, 0) then  'Documents
+			if diriswriteable(buf) then
+				return buf
+			else
+				debug "Can't write to CSIDL_PERSONAL directory " & buf
+			end if
 		end if
-	end if
-	if SHGetSpecialFolderPath(0, strptr(buf), CSIDL_DESKTOPDIRECTORY, 0) then  'Desktop
-		if diriswriteable(buf) then
-			return buf
-		else
-			debug "Can't write to CSIDL_DESKTOPDIRECTORY " & buf
+		if SHGetSpecialFolderPathA(0, strptr(buf), CSIDL_DESKTOPDIRECTORY, 0) then  'Desktop
+			if diriswriteable(buf) then
+				return buf
+			else
+				debug "Can't write to CSIDL_DESKTOPDIRECTORY " & buf
+			end if
 		end if
 	end if
 
-	' On older systems (if SHGetSpecialFolderPath is not available) the following fallback should be used,
-	' however the .exe would probably simple fail to load there.
-	' (Incorrect in non-english versions of Windows)
 	dim ret as string
-	ret = environ("USERPROFILE") & SLASH & "Documents"  ' Vista and later
-	if not isdir(ret) then
-		ret = environ("USERPROFILE") & SLASH & "My Documents"  ' XP and earlier
+	if len(environ("USERPROFILE")) then
+		' %USERPROFILE% doesn't exist on 95/98/ME
+		' (This is incorrect in non-English versions of Windows)
+		ret = environ("USERPROFILE") & SLASH & "Documents"  ' Vista and later
+		if isdir(ret) then return ret
+		ret = environ("USERPROFILE") & SLASH & "My Documents"  ' XP and 2000
+		if isdir(ret) then return ret
 	end if
-	return ret
+
+	' C:\My Documents was added in Win98 (or Win95 w/ IE4 Desktop)
+	' See https://en.wikipedia.org/wiki/Special_folder
+	if isdir("C:\My Documents") then return "C:\My Documents"
+	ret = environ("windir") & "\Desktop"
+	if isdir(ret) then return ret
+	return "C:\"
 end function
 
 function drivelist (drives() as string) as integer

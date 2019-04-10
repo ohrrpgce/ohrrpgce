@@ -812,6 +812,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   ' Special handling of user home dir (I think this is pretty pointless):
   ' Show username\ as the topmost parent directory, rather than c:\, Users\, username\
   ' This works on all OSes, only do this on Windows, because it's weird
+  ' (Note Win 95/98/ME doesn't have a home dir)
   DIM home_dir as string = add_trailing_slash(get_home_dir())
   IF LEN(home_dir) > 0 AND INSTR(br.nowdir, home_dir) = 1 THEN
    append_tree_record br, tree()

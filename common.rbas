@@ -6631,8 +6631,11 @@ FUNCTION get_settings_dir () as string
  RETURN settings_dir
 END FUNCTION
 
+'May return "".
 FUNCTION get_home_dir() as string
  #IFDEF __FB_WIN32__
+  'USERPROFILE only exists in Windows NT. 98 and ME store most directories like
+  'My Documents under C:\. Win95 lacks those, but does have %windir%\Desktop.
   RETURN ENVIRON("USERPROFILE")
  #ELSE
   RETURN ENVIRON("HOME")
