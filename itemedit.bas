@@ -517,18 +517,6 @@ SUB item_editor_stat_bonuses(itembuf() as integer)
  state.size = 24
  state.need_update = YES
 
- DIM sbmax(statLast) as integer
- FOR i as integer = 0 TO 1
-  sbmax(i) = 9999
- NEXT i
- FOR i as integer = 2 TO 8
-  sbmax(i) = 999
- NEXT i
- FOR i as integer = 9 TO 10
-  sbmax(i) = 100
- NEXT i
- sbmax(11) = 10
-
  setkeys YES
  DO
   setwait 55
@@ -540,7 +528,7 @@ SUB item_editor_stat_bonuses(itembuf() as integer)
    IF state.pt = -1 THEN EXIT DO
   END IF
   IF state.pt >= 0 THEN
-   IF intgrabber(itembuf(54 + state.pt), sbmax(state.pt) * -1, sbmax(state.pt)) THEN
+   IF intgrabber(itembuf(54 + state.pt), -32768, 32767) THEN
     state.need_update = YES
    END IF
   END IF
@@ -549,6 +537,10 @@ SUB item_editor_stat_bonuses(itembuf() as integer)
    state.need_update = NO
    FOR i as integer = 0 TO statLast
     menu(i) = statnames(i) + " Bonus: " & itembuf(54 + i)
+    DIM cap as integer = gen(genStatCap + i)
+    IF cap > 0 ANDALSO itembuf(54 + i) > cap THEN
+     menu(i) &= " [stat capped to " & cap & "]"
+    END IF
    NEXT
   END IF
   IF select_by_typing(selectst, NO) THEN

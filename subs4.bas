@@ -894,10 +894,8 @@ SUB statcapsmenu
  'Stat caps
  '(note: you can use setherostat to set stats to anything, even above 32767)
  FOR i as integer = 2 TO 2 + statLast
-  max(i) = 32767  'By default
+  max(i) = 32767
  NEXT
- max(2 + statFocus) = 100
- max(2 + statHitX) = 20  'Extra Hits
  max(14) = gen(genMaxLevel)  'Level cap is capped to Max Level
  max(15) = 99  'Max Level is capped to 99 ... FIXME: this could go higher!
  DO

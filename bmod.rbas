@@ -3242,6 +3242,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  IF prefbit(29) = NO AND attack.ignore_extra_hits = NO THEN
   numhits += randint(bslot(bat.acting).stat.cur.hits + 1)
  END IF
+ IF numhits > 20 THEN numhits = 20
 
  DIM atkimgdirection as integer
  atkimgdirection = pdir
