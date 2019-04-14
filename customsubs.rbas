@@ -1218,12 +1218,14 @@ SUB ui_boxstyle_editor(palnum as integer)
  make_ui_boxstyle_editor_menu color_menu(), boxlook()
 
  DIM state as MenuState
- state.size = 22
  state.top = -1
  state.pt = -1
  state.first = -1
  state.last = UBOUND(color_menu)
- state.autosize_ignore_pixels = 16
+ state.autosize = YES
+ state.autosize_ignore_pixels = 12
+ DIM menuopts as MenuOptions
+ menuopts.scrollbar = YES
 
  setkeys
  DO
@@ -1293,7 +1295,7 @@ SUB ui_boxstyle_editor(palnum as integer)
 
   '--draw screen
   clearpage dpage
-  draw_menu sample_menu, sample_state, dpage
+  IF state.pt >= 0 THEN draw_menu sample_menu, sample_state, dpage
   standardmenu color_menu(), state, 10, 0, dpage, menuopts
   FOR i as integer = large(state.top, 0) TO small(state.top + state.size, state.last)
    WITH boxlook(i \ NUM_BOXSTYLE_OPTIONS)
