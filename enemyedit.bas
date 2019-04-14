@@ -1538,8 +1538,8 @@ SUB FoemapStatsMenu.update()
  DIM gold(gen(genMaxFormation)) as integer
 
  header " Enemies"
- add_item , , "                |  Steps /  |  % of   | Avg num  |    In", NO, NO
- add_item , , "                | encounter | battles | / battle | formations", NO, NO
+ add_item , , "               |  Steps /  |  % of   | Avg num  |    In", NO, NO
+ add_item , , "               | encounter | battles | / battle | formations", NO, NO
  FOR eid as integer = 0 TO gen(genMaxEnemy)
   IF enemy_weights(eid) THEN
    DIM byref enemy as EnemyDef = get_enemy(eid)
@@ -1582,7 +1582,7 @@ SUB FoemapStatsMenu.update()
  have_any = NO
  add_item , , " ID |  Avg   |   Avg  | Battles for  | Steps for", NO, NO
  add_item , , strprintf(_
-              "    |  gold  |   XP   | level %2d->%2d | level %2d->%2d", _
+              "    |  gold  |   XP   | level %-2d->%2d | level %-2d->%2d", _
               this.from_level, this.to_level, this.from_level, this.to_level), NO, NO
  FOR fsid as integer = 1 TO maxFormationSet
   IF occurrences(fsid) THEN

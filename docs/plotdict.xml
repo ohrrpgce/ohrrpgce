@@ -3025,12 +3025,12 @@ end</example>
 		<command id="getlevelmp">
 			<canon>get level MP (who, mp level slot, type)</canon>
 			<shortname>get level MP</shortname>
-			<description>Returns a hero's level MP (FF1-style MP). The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>mp level slot</p> is a number from 0 to 7 that represents a row of spells in the hero's spell list. The optional third argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave out the type <ref>currentstat</ref> will be assumed. Pass <ref>maximumstat</ref> instead to get the hero's maximum amount of level MP for that slot. The maximum depends only on the hero's experience level.</description>
+			<description>Returns a hero's level MP (FF1-style MP). The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>mp level slot</p> is a number from 0 to 7 that represents a row of spells in the hero's spell list (the level is NOT counted from 1 to 8, as it's displayed in-game and in the spell-list editor!) The optional third argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave out the type <ref>currentstat</ref> will be assumed. Pass <ref>maximumstat</ref> instead to get the hero's maximum amount of level MP for that slot. The maximum depends only on the hero's experience level.</description>
 		</command>
 		<command id="setlevelmp">
 			<canon>set level MP (who, mp level slot, new value)</canon>
 			<shortname>get level MP</shortname>
-			<description>Changes a hero's level MP (FF1-style MP). The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>mp level slot</p> is a number from 0 to 7 that represents a row of spells in the hero's spell list. The argument <p>new value</p> is the new number of level MP points. Each point represents one spell from that row.</description>
+			<description>Changes a hero's level MP (FF1-style MP). The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>mp level slot</p> is a number from 0 to 7 that represents a row of spells in the hero's spell list (the level is NOT counted from 1 to 8, as it's displayed in-game and in the spell-list editor!) The argument <p>new value</p> is the new number of level MP points. Each point represents one spell from that row.</description>
 		</command>
 		<command id="herobaseelementalresistasint">
 			<canon>hero base elemental resist as int (who, element)</canon>

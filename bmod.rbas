@@ -1609,8 +1609,10 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
  ClearMenuData menu
  
  WITH menu
-  .offset.x = 152
-  .offset.y = -95
+  .offset.x = -8
+  .offset.y = 5
+  .alignhoriz = alignRight
+  .alignvert = alignTop
   .anchorhoriz = alignRight
   .anchorvert = alignTop
   .textalign = alignLeft
