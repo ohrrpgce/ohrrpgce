@@ -1130,10 +1130,10 @@ SUB ui_color_editor(palnum as integer)
     'This is a hack. Unfortunately ellipse slice border and fill colors can't be 0 as that
     'counts as transparent. This is a design mistake in ellipse slices, but is too much trouble to fix
     uilook(uiShadow) = nearcolor(master(), 0, 1)
-    make_ui_color_editor_menu color_menu(), uilook() 
+    state.need_update = YES
    END IF
   END IF
-  
+
   index = state.pt
 
   IF enter_space_click(state) THEN
@@ -1142,21 +1142,23 @@ SUB ui_color_editor(palnum as integer)
    ELSE
     'Color browser
     uilook(index) = color_browser_256(uilook(index))
-    make_ui_color_editor_menu color_menu(), uilook() 
+    state.need_update = YES
    END IF
   END IF
 
   IF index >= 0 THEN
-   IF intgrabber(uilook(index), 0, 255) THEN
-    make_ui_color_editor_menu color_menu(), uilook()
-    SaveUIColors uilook(), boxlook(), palnum
-   END IF
+   state.need_update OR= intgrabber(uilook(index), 0, 255)
 
    IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN ' Ctrl+D
     uilook(index) = default_colors(index)
-    make_ui_color_editor_menu color_menu(), uilook()
-    SaveUIColors uilook(), boxlook(), palnum
+    state.need_update = YES
    END IF
+  END IF
+
+  IF state.need_update THEN
+   state.need_update = NO
+   make_ui_color_editor_menu color_menu(), uilook()
+   SaveUIColors uilook(), boxlook(), palnum
   END IF
 
   '--update sample according to what you have highlighted
@@ -1180,7 +1182,6 @@ SUB ui_color_editor(palnum as integer)
   setvispage vpage
   dowait
  LOOP
- SaveUIColors uilook(), boxlook(), palnum
 END SUB
 
 SUB make_ui_color_editor_menu(m() as string, colors() as integer)
@@ -1189,6 +1190,8 @@ SUB make_ui_color_editor_menu(m() as string, colors() as integer)
   m(i) = UiColorCaption(i) & ": " & colors(i)
  NEXT i
 END SUB
+
+CONST NUM_BOXSTYLE_OPTIONS = 3
 
 SUB ui_boxstyle_editor(palnum as integer)
  DIM index as integer
@@ -1204,7 +1207,7 @@ SUB ui_boxstyle_editor(palnum as integer)
 
  LoadUIColors uilook(), boxlook(), palnum
 
- DIM color_menu(-1 TO uiBoxLast * 3 + 2) as string
+ DIM color_menu(-1 TO (uiBoxLast + 1) * NUM_BOXSTYLE_OPTIONS - 1) as string
  make_ui_boxstyle_editor_menu color_menu(), boxlook()
 
  DIM state as MenuState
@@ -1221,69 +1224,51 @@ SUB ui_boxstyle_editor(palnum as integer)
   setkeys
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "ui_boxstyle_editor"
-  IF usemenu(state) THEN
-  END IF
+  usemenu(state)
 
-  index = INT(state.pt / 3)
-  kind = state.pt MOD 3 ' 0=bgcol, 1=edgecol, 2=border
+  index = state.pt \ NUM_BOXSTYLE_OPTIONS
+  kind = state.pt MOD NUM_BOXSTYLE_OPTIONS ' 0=bgcol, 1=edgecol, 2=border
 
-  IF enter_space_click(state) THEN
-   IF state.pt = -1 THEN
-    EXIT DO
-   ELSEIF kind = 0 THEN
-    'Color browser for bgcol
-    boxlook(index).bgcol = color_browser_256(boxlook(index).bgcol)
-    make_ui_boxstyle_editor_menu color_menu(), boxlook() 
-   ELSEIF kind = 1 THEN
-    'Color browser for edgecol
-    boxlook(index).edgecol = color_browser_256(boxlook(index).edgecol)
-    make_ui_boxstyle_editor_menu color_menu(), boxlook() 
-   ELSEIF kind = 2 THEN
-    'Box border browser
-    DIM boxborderb as BoxborderSpriteBrowser
-    boxlook(index).border = boxborderb.browse(boxlook(index).border - 1, YES) + 1
-    make_ui_boxstyle_editor_menu color_menu(), boxlook() 
+  WITH boxlook(index)
+
+   IF enter_space_click(state) THEN
+    IF state.pt = -1 THEN
+     EXIT DO
+    ELSEIF kind = 0 THEN
+     'Color browser for bgcol
+     .bgcol = color_browser_256(.bgcol)
+    ELSEIF kind = 1 THEN
+     'Color browser for edgecol
+     .edgecol = color_browser_256(.edgecol)
+    ELSEIF kind = 2 THEN
+     'Box border browser
+     DIM boxborderb as BoxborderSpriteBrowser
+     .border = boxborderb.browse(.border - 1, YES) + 1
+    END IF
+    state.need_update = YES
    END IF
-  END IF
 
-  IF index >= 0 THEN
-   SELECT CASE kind
-    CASE 0:
-     IF intgrabber(boxlook(index).bgcol, 0, 255) THEN
-      make_ui_boxstyle_editor_menu color_menu(), boxlook()
-      SaveUIColors uilook(), boxlook(), palnum
-     END IF
-    CASE 1:
-     IF intgrabber(boxlook(index).edgecol, 0, 255) THEN
-      make_ui_boxstyle_editor_menu color_menu(), boxlook()
-      SaveUIColors uilook(), boxlook(), palnum
-     END IF
-    CASE 2:
-     IF zintgrabber(boxlook(index).border, -1, gen(genMaxBoxBorder)) THEN
-      make_ui_boxstyle_editor_menu color_menu(), boxlook()
-      SaveUIColors uilook(), boxlook(), palnum
-     END IF
-   END SELECT
-  END IF
-
-  IF index >= 0 THEN
-   IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN ' Ctrl+D
+   IF state.pt >= 0 THEN
     SELECT CASE kind
      CASE 0:
-      boxlook(index).bgcol = default_boxes(index).bgcol
-      make_ui_boxstyle_editor_menu color_menu(), boxlook()
-      SaveUIColors uilook(), boxlook(), palnum
+      state.need_update OR= intgrabber(.bgcol, 0, 255)
      CASE 1:
-      boxlook(index).edgecol = default_boxes(index).edgecol
-      make_ui_boxstyle_editor_menu color_menu(), boxlook()
-      SaveUIColors uilook(), boxlook(), palnum
+      state.need_update OR= intgrabber(.edgecol, 0, 255)
      CASE 2:
-      boxlook(index).border = default_boxes(index).border
-      make_ui_boxstyle_editor_menu color_menu(), boxlook()
-      SaveUIColors uilook(), boxlook(), palnum
+      state.need_update OR= zintgrabber(.border, -1, gen(genMaxBoxBorder))
     END SELECT
+
+    IF keyval(scCtrl) > 0 ANDALSO keyval(scD) > 1 THEN ' Ctrl+D
+     SELECT CASE kind
+      CASE 0: .bgcol = default_boxes(index).bgcol
+      CASE 1: .edgecol = default_boxes(index).edgecol
+      CASE 2: .border = default_boxes(index).border
+     END SELECT
+     state.need_update = YES
+    END IF
    END IF
-  END IF
+
+  END WITH
 
   '--update sample according to what you have highlighted
   sample_menu.boxstyle = 0
@@ -1292,17 +1277,25 @@ SUB ui_boxstyle_editor(palnum as integer)
    sample_menu.boxstyle = index
   END IF
 
+  IF state.need_update THEN
+   state.need_update = NO
+   make_ui_boxstyle_editor_menu color_menu(), boxlook()
+   SaveUIColors uilook(), boxlook(), palnum
+  END IF
+
   '--draw screen
   clearpage dpage
   draw_menu sample_menu, sample_state, dpage
   standardmenu color_menu(), state, 10, 0, dpage
   FOR i as integer = large(state.top, 0) TO small(state.top + state.size, state.last)
-   IF i MOD 3 = 0 THEN
-    rectangle 0, 8 * (i - state.top), 8, 8, boxlook(INT(i / 3)).bgcol, dpage
-   END IF
-   IF i MOD 3 = 1 THEN
-    rectangle 0, 8 * (i - state.top), 8, 8, boxlook(INT(i / 3)).edgecol, dpage
-   END IF
+   WITH boxlook(i \ NUM_BOXSTYLE_OPTIONS)
+    DIM itemtype as integer = i MOD NUM_BOXSTYLE_OPTIONS
+    IF itemtype = 0 THEN
+     rectangle 0, 8 * (i - state.top), 8, 8, .bgcol, dpage
+    ELSEIF itemtype = 1 THEN
+     rectangle 0, 8 * (i - state.top), 8, 8, .edgecol, dpage
+    END IF
+   END WITH
   NEXT i
   DIM msg as string = "Ctrl+D to revert to default"
   edgeprint msg, pCentered, pBottom, uilook(uiText), dpage
@@ -1311,15 +1304,17 @@ SUB ui_boxstyle_editor(palnum as integer)
   setvispage vpage
   dowait
  LOOP
- SaveUIColors uilook(), boxlook(), palnum
 END SUB
 
 SUB make_ui_boxstyle_editor_menu(m() as string, boxes() as BoxStyle)
  m(-1) = "Previous Menu"
  FOR i as integer = 0 TO uiBoxLast
-  m(i * 3) = "Box style " & i & " color:  " & boxes(i).bgcol
-  m(i * 3 + 1) = "Box style " & i & " edge: " & boxes(i).edgecol
-  m(i * 3 + 2) = "Box style " & i & " border image: " & defaultint(boxes(i).border - 1, "none", -1)
+  WITH boxes(i)
+   DIM off as integer = i * NUM_BOXSTYLE_OPTIONS
+   m(off) = "Box style " & i & " color:  " & .bgcol
+   m(off + 1) = "Box style " & i & " edge: " & .edgecol
+   m(off + 2) = "Box style " & i & " border image: " & defaultint(.border - 1, "none", -1)
+  END WITH
  NEXT i
 END SUB
 
