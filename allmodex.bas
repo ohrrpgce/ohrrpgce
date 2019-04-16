@@ -82,6 +82,7 @@ declare sub snapshot_check()
 declare function calcblock(tmap as TileMap, x as integer, y as integer, overheadmode as integer, pmapptr as TileMap ptr) as integer
 
 declare sub screen_size_update ()
+declare sub intpal_changed()
 
 declare sub pollingthread(as any ptr)
 declare sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
@@ -454,6 +455,9 @@ dim shared global_sfx_volume as single = 1.
 private sub modex_init()
 	tlsKeyClipRect = tls_alloc_key()
 	gfxmutex = mutexcreate
+
+	'Just to ensure nearcolor_kdtree isn't NULL. intpal() is probably empty
+	intpal_changed
 
 	redim vpages(3)
 	'redim fixedsize_vpages(3)  'Initially all NO
@@ -7273,7 +7277,7 @@ function color_distance(pal() as RGBcolor, index1 as integer, index2 as integer)
 end function
 
 function nearcolor(pal() as RGBcolor, red as integer, green as integer, blue as integer, firstindex as integer = 0, indexhint as integer = -1, avoidcol as integer = -1) as ubyte
-'Figure out nearest palette colour in range [firstindex..255] using a very approximate perceptual distance
+'Figure out nearest palette colour in range [firstindex..255] using an approximate perceptual color distance
 'A perfect match against pal(indexhint) is tried first
 'Never returns avoidcol.
 	dim as integer i, diff, best, save, rdif, bdif, gdif, cappedred, rmean
@@ -7302,9 +7306,11 @@ function nearcolor(pal() as RGBcolor, red as integer, green as integer, blue as 
 			gdif = green - .g
 			bdif = blue - .b
 		end with
-		'diff = abs(rdif) + abs(gdif) + abs(bdif)
-		'diff = 3*rdif*rdif + 4*gdif*gdif + 2*bdif*bdif
 		'Formula taken from https://www.compuphase.com/cmetric.htm
+		'It is an interpolation between
+		'diff = 3*rdif*rdif + 4*gdif*gdif + 2*bdif*bdif
+		' and
+		'diff = 2*rdif*rdif + 4*gdif*gdif + 3*bdif*bdif
 		diff = (((512 + rmean)*rdif*rdif) shr 8) + 4*gdif*gdif + (((767-rmean)*bdif*bdif) shr 8)
 
 		if diff = 0 then
@@ -7326,6 +7332,24 @@ function nearcolor(pal() as RGBcolor, index as integer, firstindex as integer = 
 		return nearcolor(pal(), .r, .g, .b, firstindex)
 	end with
 end function
+
+'Find the nearest color in the current palette (intpal() - set by setpal). Alpha ignored.
+'This may produce slightly worse results than nearcolor because it uses a slightly different
+'color distance function. However it's over 10x faster.
+function nearcolor_fast(col as RGBcolor) as ubyte
+	return query_KDTree(nearcolor_kdtree, col)
+end function
+
+'Version which supports out-of-bounds r/g/b values. Note that this behaves
+'differently to nearcolor, which can search for a color "bluer than blue".
+function nearcolor_fast(r as integer, g as integer, b as integer) as ubyte
+	dim col as RGBcolor = any
+	col.b = iif(b > 255, 255, iif(b < 0, 0, b))
+	col.g = iif(g > 255, 255, iif(g < 0, 0, g))
+	col.r = iif(r > 255, 255, iif(r < 0, 0, r))
+	return query_KDTree(nearcolor_kdtree, col)
+end function
+
 
 'Find the nearest match palette mapping from inputpal() into
 'the master palette masterpal(), and store it in mapping(), an array of masterpal() indices.
@@ -9971,7 +9995,7 @@ sub Palette16_transform_n_match(pal as Palette16 ptr, method as ColorOperator)
 			end if
 
 		end with
-		pal->col(idx) = nearcolor(intpal(), r, g, b)
+		pal->col(idx) = nearcolor_fast(r, g, b)
 	next
 end sub
 
@@ -9991,7 +10015,7 @@ sub Palette16_mix_n_match(pal as Palette16 ptr, byval col as RGBcolor, colfrac a
 				mixb = scale * .b * (nonmult + col.b * colfrac) / 255
 			end if
 		end with
-		pal->col(idx) = nearcolor(intpal(), mixr, mixg, mixb)
+		pal->col(idx) = nearcolor_fast(mixr, mixg, mixb)
 	next
 end sub
 
