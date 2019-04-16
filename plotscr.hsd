@@ -709,6 +709,8 @@ define function, begin
 680,joystickaxiscount,1,0     # Number of axes a joystick has (joynum)
 681,joystickhatcount,1,0      # Number of hats (eg dpads) a joystick has (joynum)
 682,findcolor,4,0,0,0,0       # Index of nearest match in palette (r, g, b, searchstart)
+683,overridetickmilliseconds,1,0  # change game tick speed
+684,canceloverridetickmilliseconds,0 # revert tick speed back to the game default
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

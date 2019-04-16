@@ -4704,7 +4704,15 @@ SUB script_functions(byval cmdid as integer)
  CASE 682 '--find color(r, g, b, searchstart)
   'r, g, b don't have to be in the range 0-255.
   scriptret = nearcolor(master(), retvals(0), retvals(1), retvals(2), retvals(3))
-
+ CASE 683 '--override tick milliseconds(ms)
+  IF bound_arg(retvals(0), 16, 200, "milliseconds (must be in the range 16 to 200)") THEN
+   set_speedcontrol retvals(0)
+   set_animation_framerate retvals(0)
+  END IF
+ CASE 684 '--cancel override tick milliseconds
+  set_speedcontrol gen(genMillisecPerFrame)
+  set_animation_framerate gen(genMillisecPerFrame)
+  
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
   scripterr "Unsupported script command " & cmdid & " " & commandname(cmdid) & ". " _
