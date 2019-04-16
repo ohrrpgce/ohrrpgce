@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2019-03-07)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2019-04-15)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -671,6 +671,9 @@
 		
 	
 		<a href="#about-cancelnpcwalk">cancel NPC walk (who)</a><br>
+		
+	
+		<a href="#about-canceloverridetickmilliseconds">cancel override tick milliseconds (ms)</a><br>
 		
 	
 		<a href="#about-canlearnspell">can learn spell (hero,attack)</a><br>
@@ -2015,6 +2018,9 @@
 		<a href="#about-tileconstants">overhead tile</a><br>
 	
 		<a href="#about-overlayissuspended">overlay is suspended</a><br>
+		
+	
+		<a href="#about-overridetickmilliseconds">override tick milliseconds (ms)</a><br>
 		
 	
 		<a href="#about-pancamera">pan camera (direction,distance,pixelstep)</a><br>
@@ -8090,7 +8096,7 @@ end</pre>
 <a name="about-getlevelmp"></a>
 		<h4>get level MP (who, mp level slot, type)</h4>
 <p>
-			Returns a hero's level MP (FF1-style MP). The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">mp level slot</span> is a number from 0 to 7 that represents a row of spells in the hero's spell list. The optional third argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a>. If you leave out the type <a href="#about-currentstat" class="ref">current stat</a> will be assumed. Pass <a href="#about-maximumstat" class="ref">maximum stat</a> instead to get the hero's maximum amount of level MP for that slot. The maximum depends only on the hero's experience level.
+			Returns a hero's level MP (FF1-style MP). The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">mp level slot</span> is a number from 0 to 7 that represents a row of spells in the hero's spell list (the level is NOT counted from 1 to 8, as it's displayed in-game and in the spell-list editor!) The optional third argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a>. If you leave out the type <a href="#about-currentstat" class="ref">current stat</a> will be assumed. Pass <a href="#about-maximumstat" class="ref">maximum stat</a> instead to get the hero's maximum amount of level MP for that slot. The maximum depends only on the hero's experience level.
 			
 			
 			
@@ -8100,7 +8106,7 @@ end</pre>
 <a name="about-setlevelmp"></a>
 		<h4>set level MP (who, mp level slot, new value)</h4>
 <p>
-			Changes a hero's level MP (FF1-style MP). The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">mp level slot</span> is a number from 0 to 7 that represents a row of spells in the hero's spell list. The argument <span class="param">new value</span> is the new number of level MP points. Each point represents one spell from that row.
+			Changes a hero's level MP (FF1-style MP). The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">mp level slot</span> is a number from 0 to 7 that represents a row of spells in the hero's spell list (the level is NOT counted from 1 to 8, as it's displayed in-game and in the spell-list editor!) The argument <span class="param">new value</span> is the new number of level MP points. Each point represents one spell from that row.
 			
 			
 			
@@ -16850,6 +16856,26 @@ The third argument is the total number of ticks that the animation should run. Y
 		<h4>microseconds</h4>
 		<p><a href="#about-microseconds">Defined in the Advanced Functions section.</a></p>
 		</div>
+		<div class="command">
+<a name="about-overridetickmilliseconds"></a>
+		<h4>override tick milliseconds (ms)</h4>
+<p>
+			Changes the number of milliseconds in a game tick. The <span class="param">ms</span> argument is a number of milliseconds in the range of 16 to 200
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-canceloverridetickmilliseconds"></a>
+		<h4>cancel override tick milliseconds (ms)</h4>
+<p>
+			Resets the number of milliseconds in a game tick to whatever default is set up in the "Edit General Game Settings" menu.
+			
+			
+			
+		</p>
+</div>
 		<hr>
 		</div>
 		<div class="section">
@@ -19979,7 +20005,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 864 commands (of which 52 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 866 commands (of which 52 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

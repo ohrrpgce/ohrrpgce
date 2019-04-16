@@ -156,6 +156,7 @@ April ? 2019 [Fufluns]
       aliases to "suspend/resume box advance" and "box advance is suspended"
     * "find color" [Ralph]
     * "set selected child", "get selected child" (only for convenience) [Ralph]
+    * "override tick milliseconds" and "cancel override tick milliseconds" [James]
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"

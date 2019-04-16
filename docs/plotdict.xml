@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2019-03-07">
+<plotscript version="wip" datecode="2019-04-15">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -8572,6 +8572,16 @@ The third argument is the total number of ticks that the animation should run. Y
 		</command>
 		<reference ref="milliseconds" />
 		<reference ref="microseconds" />
+		<command id="overridetickmilliseconds">
+			<canon>override tick milliseconds (ms)</canon>
+			<shortname>override tick milliseconds</shortname>
+			<description>Changes the number of milliseconds in a game tick. The <p>ms</p> argument is a number of milliseconds in the range of 16 to 200</description>
+		</command>
+		<command id="canceloverridetickmilliseconds">
+			<canon>cancel override tick milliseconds (ms)</canon>
+			<shortname>cancel override tick milliseconds</shortname>
+			<description>Resets the number of milliseconds in a game tick to whatever default is set up in the "Edit General Game Settings" menu.</description>
+		</command>
 	</section>
 
 	<section title="Tweaking Maps">
