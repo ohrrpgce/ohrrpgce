@@ -1187,9 +1187,9 @@ SUB apply_game_window_settings (reloading as bool = NO)
  END IF
 END SUB
 
-SUB set_speedcontrol ()
+SUB set_speedcontrol (byval millisec_per_frame as integer)
  ' See also set_animation_framerate
- speedcontrol = bound(gen(genMillisecPerFrame), 16, 200)
+ speedcontrol = bound(millisec_per_frame, 16, 200)
  IF gfx_vsync_supported() = NO THEN
   ' 16ms and 33ms are special-cased to be exactly 60/30fps rather than 62.5/30.3
   ' Disabled under gfx_directx, where have to try to run slightly faster than 60/30
@@ -1364,7 +1364,7 @@ SUB reload_gen()
     CASE genResolutionX, genResolutionY, genWindowSize, genLivePreviewWindowSize, genRungameFullscreenIndependent
      should_reset_window = YES
     CASE genMillisecPerFrame
-     set_speedcontrol
+     set_speedcontrol gen(genMillisecPerFrame)
      set_animation_framerate gen(genMillisecPerFrame)
     CASE genInventSlotx1Display
      'Reset inventory slot names

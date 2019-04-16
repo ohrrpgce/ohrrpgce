@@ -651,7 +651,7 @@ DO' This loop encloses the playable game for a specific RPG file
 gam.current_master_palette = gen(genMasterPal)
 loadpalette master(), gam.current_master_palette
 LoadUIColors uilook(), boxlook(), gam.current_master_palette
-set_speedcontrol
+set_speedcontrol gen(genMillisecPerFrame)
 set_animation_framerate gen(genMillisecPerFrame)
 
 initgamedefaults

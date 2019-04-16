@@ -4,7 +4,7 @@
 #include "reload.bi"
 
 DECLARE SUB apply_game_window_settings (reloading as bool = NO)
-DECLARE SUB set_speedcontrol ()
+DECLARE SUB set_speedcontrol (byval millisec_per_frame as integer)
 
 DECLARE SUB initgamedefaults
 DECLARE SUB innRestore ()
