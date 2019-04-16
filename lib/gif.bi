@@ -15,6 +15,8 @@ type GifPalette
 	colors(0 to 255) as GifRGBA
 end type
 
+type GifKDTree as GifKDTreeFwd
+
 type GifWriter
 	f as FILE ptr
 	oldImage as ubyte ptr
@@ -35,7 +37,14 @@ declare function GifWriteFrame8(byval writer as GifWriter ptr, byval image as co
 declare sub GifOverwriteLastDelay(byval writer as GifWriter ptr, byval delay as ulong)
 declare function GifEnd(byval writer as GifWriter ptr) as bool
 
+declare sub GifGetClosestPaletteColor(byval tree as GifKDTree ptr, byval color as GifRGBA, byval bestInd as long ptr, byval bestDiff as long ptr, byval nodeIndex as long = 0)
+
+
 ' In gif.cpp, not part of gif.h itself
 declare sub dither_image(byval image as const GifRGBA ptr, byval width as ulong, byval height as ulong, byval result as ubyte ptr, byval palette as const GifRGBA ptr, byval bitDepth as long, byval firstindex as long)
+
+declare function make_KDTree_for_palette(byval palette as const RGBcolor ptr, byval bitDepth as long, byval firstindex as long) as GifKDTree ptr
+declare sub delete_KDTree(byval tree as GifKDTree ptr)
+declare function query_KDTree(byval tree as GifKDTree ptr, byval color as RGBcolor) as long
 
 end extern

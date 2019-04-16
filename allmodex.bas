@@ -400,6 +400,7 @@ dim shared textbg as integer
 
 dim shared intpal(0 to 255) as RGBcolor	 'current palette
 dim shared updatepal as bool             'setpal called, load new palette at next setvispage
+dim shared nearcolor_kdtree as GifKDTree ptr  'Use for fast nearest-color lookups
 
 dim shared fps_draw_frames as integer = 0 'Frames drawn since fps_time_start
 dim shared fps_real_frames as integer = 0 'Frames sent to gfx backend since fps_time_start
@@ -1177,10 +1178,15 @@ private sub present_internal_surface(drawpage as integer)
 	gfx_paletteDestroy(@surface_pal)
 end sub
 
+private sub intpal_changed()
+	delete_KDTree(nearcolor_kdtree)
+	nearcolor_kdtree = make_KDTree_for_palette(@intpal(0), 8, 0)
+end sub
+
 ' Change the palette at the NEXT setvispage call (or before next screen fade).
 sub setpal(pal() as RGBcolor)
 	memcpy(@intpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
-
+	intpal_changed
 	updatepal = YES
 end sub
 
@@ -1246,6 +1252,7 @@ sub fadeto (red as integer, green as integer, blue as integer)
 				intpal(j).b -= iif(diff <= -8, -8, diff)
 			end if
 		next
+		intpal_changed
 		maybe_do_gfx_setpal
 
 		if i mod 3 = 0 then
@@ -1303,6 +1310,8 @@ sub fadetopal (pal() as RGBcolor)
 				intpal(j).b -= iif(diff <= -8, -8, diff)
 			end if
 		next
+		intpal_changed
+		maybe_do_gfx_setpal
 
 		if i mod 3 = 0 then
 			' We're assuming that the page hasn't been modified since the last setvispage
@@ -1311,7 +1320,6 @@ sub fadetopal (pal() as RGBcolor)
 			end if
 		end if
 
-		maybe_do_gfx_setpal
 		dowait
 	next
 
