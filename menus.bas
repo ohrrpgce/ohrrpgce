@@ -1840,11 +1840,6 @@ SUB ModularMenu.draw_underlays()
 END SUB
 
 SUB ModularMenu.draw()
- IF floating THEN
-  copypage holdscreen, vpage
- ELSE
-  clearpage vpage
- END IF
  draw_underlays()
 
  DIM where as XYPair = (4, 4)
@@ -1923,9 +1918,9 @@ SUB ModularMenu.run()
   setwait 55
   setkeys YES
   IF use_selectable THEN
-   usemenu state, selectable()
+   usemenu_ret = usemenu(state, selectable())
   ELSE
-   usemenu state
+   usemenu_ret = usemenu(state)
   END IF
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF LEN(helpkey) AND keyval(scF1) > 1 THEN show_help helpkey
@@ -1944,6 +1939,11 @@ SUB ModularMenu.run()
    select_on_word_boundary menu(), selectst, state
   END IF
 
+  IF floating THEN
+   copypage holdscreen, vpage
+  ELSE
+   clearpage vpage
+  END IF
   draw()
   setvispage vpage
   dowait

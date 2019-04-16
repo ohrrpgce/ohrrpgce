@@ -7361,6 +7361,7 @@ function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options 
 		if surf->pitch <> surf->width or ret->pitch <> surf->width then
 			showbug "Can't call dither_image due to pitch mismatch"
 		else
+			kGifMaxAccumError = options.dither_maxerror
 			dither_image(surf->pColorData, surf->width, surf->height, ret->image, @pal(0), 8, options.firstindex)
 			'Handle options.transparency
 			quantize_surface_threshold(surf, ret, pal(), options, NO)

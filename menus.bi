@@ -115,6 +115,7 @@ TYPE ModularMenu EXTENDS Object
  menuopts as MenuOptions
  floating as bool        'Appears in the center of the screen, like notification, instead of fullscreen
  use_selectable as bool  'Set to true to make use of selectable()
+ usemenu_ret as bool     'The return value of usemenu for this tick
  helpkey as string
  holdscreen as integer   '0 if none
 

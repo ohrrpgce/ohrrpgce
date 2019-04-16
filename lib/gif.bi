@@ -47,4 +47,6 @@ declare function make_KDTree_for_palette(byval palette as const RGBcolor ptr, by
 declare sub delete_KDTree(byval tree as GifKDTree ptr)
 declare function query_KDTree(byval tree as GifKDTree ptr, byval color as RGBcolor) as long
 
+extern kGifMaxAccumError as integer
+
 end extern

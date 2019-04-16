@@ -526,6 +526,84 @@ FUNCTION importimage_change_background_color(img as Frame ptr, pal as Palette16 
  RETURN YES
 END FUNCTION
 
+
+TYPE DitherMenu EXTENDS ModularMenu
+ filename as string
+ pmask(255) as RGBcolor
+ imported as Frame ptr
+ accept as bool
+ dither_amount as integer
+ DECLARE SUB update()
+ DECLARE SUB draw()
+ DECLARE FUNCTION each_tick() as bool
+END TYPE
+
+SUB DitherMenu.update()
+ REDIM menu(5)
+ menu(0) = "With dithering"
+ menu(1) = "Less dithering"
+ menu(2) = "Minimal dithering"
+ menu(3) = "Custom dither amount: " & dither_amount
+ menu(4) = "No dithering"
+ menu(5) = "View original (can't be imported)"
+END SUB
+
+SUB DitherMenu.draw()
+ IF imported THEN frame_draw imported, , 35*8 + showLeft, 20 + showTop, , NO, vpage
+ BASE.draw()
+END SUB
+
+FUNCTION DitherMenu.each_tick() as bool
+ IF state.pt = 3 ANDALSO intgrabber(dither_amount, 0, 300) THEN state.need_update = YES
+
+ IF state.need_update ORELSE imported = NULL ORELSE usemenu_ret THEN
+  IF state.pt = 5 THEN
+   frame_assign @imported, image_import_as_frame_32bit(filename)
+  ELSE
+   DIM options as QuantizeOptions
+   options.firstindex = 1
+   options.transparency = TYPE(-1)  'No transparent color
+   options.dither = (state.pt <> 4)
+   SELECT CASE state.pt
+    CASE 0:  options.dither_maxerror = 180
+    CASE 1:  options.dither_maxerror = 24
+    CASE 2:  options.dither_maxerror = 5
+    CASE 3:  options.dither_maxerror = dither_amount
+   END SELECT
+
+   'Since the source image is not paletted, we don't know what the background colour
+   'is (if any: not all backdrops and tilesets are transparent). Import it, disallowing anything to
+   'be remapped to colour 0 (unfortunately colour 0 is the only pure black in the default palette),
+   'then let the user pick.
+   '(If it's a BMP with an alpha channel, transparent pixels are also automatically mapped to 0)
+   frame_assign @imported, image_import_as_frame_quantized(filename, pmask(), options)
+  END IF
+ END IF
+
+ IF keyval(ccUse) > 1 ANDALSO state.pt <> 5 THEN
+  accept = YES
+  RETURN YES
+ END IF
+
+ RETURN NO
+END FUNCTION
+
+' A menu asking the user how much dithering to do while importing an image
+FUNCTION importimage_dither_menu(filename as string, pmask() as RGBcolor) as Frame ptr
+ switch_to_32bit_vpages
+ DIM menu as DitherMenu
+ menu.helpkey = "importimage_dithering"
+ menu.filename = filename
+ menu.menuopts.edged = YES
+ memcpy @menu.pmask(0), @pmask(0), 256 * sizeof(RGBcolor)
+ menu.title = "This image is unpaletted, and needs to be converted to your master palette. " _
+              "How do you want to convert it?"
+ menu.run()
+ IF menu.accept = NO THEN frame_unload @menu.imported
+ switch_to_8bit_vpages
+ RETURN menu.imported
+END FUNCTION
+
 ' Read an image file, check the bitdepth and palette and perform any necessary
 ' remapping, possibly create a new master palette (and change activepalette),
 ' and return the resulting (unsaved) Frame, or NULL if cancelled.
@@ -611,26 +689,8 @@ FUNCTION importimage_process(filename as string, pmask() as RGBcolor) as Frame p
   END IF
 
  ELSE
-  DIM menu(1) as string
-  menu(0) = "Dither image (better color matching)"
-  menu(1) = "No dithering"
-  DIM paloption as integer
-  paloption = multichoice("This image is unpaletted, and needs to be converted to your master palette. " _
-                          "How do you want to convert it?", _
-                          menu(), , , "importimage_dithering")
-  IF paloption = -1 THEN RETURN NULL
-
-  DIM options as QuantizeOptions
-  options.firstindex = 1
-  options.transparency = TYPE(-1)  'No transparent color
-  options.dither = (paloption = 0)
-
-  'Since the source image is not paletted, we don't know what the background colour
-  'is (if any: not all backdrops and tilesets are transparent). Import it, disallowing anything to
-  'be remapped to colour 0 (unfortunately colour 0 is the only pure black in the default palette),
-  'then let the user pick.
-  '(If it's a BMP with an alpha channel, transparent pixels are also automatically mapped to 0)
-  img = image_import_as_frame_quantized(filename, pmask(), options)
+  img = importimage_dither_menu(filename, pmask())
+  IF img = NULL THEN RETURN NULL
   importimage_change_background_color img
  END IF
 
