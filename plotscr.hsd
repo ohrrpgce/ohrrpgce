@@ -1951,6 +1951,7 @@ define constant, begin
 9,NPCstat:tag1
 10,NPCstat:tag2
 11,NPCstat:onetimeusetag
+11,NPCstat:onetimeuseflag
 12,NPCstat:script
 13,NPCstat:scriptargument
 14,NPCstat:vehicle

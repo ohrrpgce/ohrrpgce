@@ -99,8 +99,8 @@ When Activated: This controls whether or not the NPC changes directions to face 
 
 Usable Repeatedly/Usable Only Once: This allows you to make an NPC disappear permanently after being activated once. This is most often used for treasure chests or for one-time plotscript triggers.
 NOTE: All copies of an NPC will disappear when any of them is activated! Use multiple NPC definitions, or the "delete NPC" script command to remove a single NPC.
-"(onetime #)" indicates the ID number of the flag, which you can set or check with a script.
-If the NPC also shows a textbox, then the NPC won't disappear until that textbox is closed.
+"(onetime #)" indicates the ID number of the flag, which you can set or check with a script using the "set onetime"/"check onetime" commands.
+If the NPC also shows a textbox, then the NPC won't disappear until that chain of textboxes is closed.
 
 
 Appears when...:
