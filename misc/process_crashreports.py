@@ -105,6 +105,8 @@ def print_matching_line(line, key, regex = None):
             print_attr(key, line[match.end():].strip())
 
 
+class NoBacktraceError(ValueError): pass
+
 def symbols_filename_from_build(build):
     """Work out what the name of the symbols file (as uploaded to SYMBOLS_ARCHIVE_URL)
     for this build is. Or return None if unknown.
@@ -115,11 +117,11 @@ def symbols_filename_from_build(build):
     backends = build.split(' ')[3]
 
     if 'vampirecell' not in build:
-        print("Not built on official Windows build machine, don't know where to get symbols!")
+        raise NoBacktraceError("Not built on official Windows build machine, don't know where to get symbols!")
     elif 'pdb' not in build:
-        print("Not built with pdb symbols!")
+        raise NoBacktraceError("Not built with pdb symbols!")
     elif backends not in BACKENDS_SYMSNAME:
-        print("Not a standard build (unrecognised backends combination)")
+        raise NoBacktraceError("Not a standard build (unrecognised backends combination)")
     else:
         buildtag = BACKENDS_SYMSNAME[backends]
         if '-exx' in build:
@@ -155,15 +157,13 @@ def download_and_extract_symbols(syms_fname, verbose = False):
 
 def process_minidump(build, reportdir, is_custom, verbose = False):
     """Read a minidump file (producing .sym files as necessary), print info
-    from it, and return a (stacktrace, crash_summary) pair."""
+    from it, and return a (stacktrace, crash_summary) pair.
+    Raises NoBacktraceError if not possible."""
     if not build:  # Should always be present
-        print("build string missing from crashrpt.xml!")
-        return
+        raise NoBacktraceError("build string missing from crashrpt.xml!")
 
     # Get the symbols .7z archive
     syms_fname = symbols_filename_from_build(build)
-    if not syms_fname:
-        return
 
     pdb_dir = download_and_extract_symbols(syms_fname, verbose)
 
@@ -271,12 +271,12 @@ def process_crashrpt_report(reportdir, upload_time, verbose = False):
     #print(time.strptime(root.find('SystemTimeUTC').text, '%Y-%m-%dT%H:%M:%SZ'))
 
     # Get stacktrace and other info from the minidump
-    temp = process_minidump(build, reportdir, is_custom, verbose)
-    if temp is None:
+    try:
+        stacktrace, crash_summary = process_minidump(build, reportdir, is_custom, verbose)
+    except NoBacktraceError as err:
+        print(err)
         stacktrace = None
-        crash_summary = "Can't produce stacktrace"
-    else:
-        stacktrace, crash_summary = temp
+        crash_summary = "No stacktrace: " + str(err)
     # Print the stacktrace later, at the end
 
     # Print errors
@@ -303,7 +303,7 @@ def process_crashrpt_report(reportdir, upload_time, verbose = False):
         for errnum in range(max(ERROR_LINES, len(errors) - ERROR_LINES), len(errors)):
             print_err(errnum)
         if errors[-1][0] >= len(loglines) - TAIL_LINES:
-            print('...see tail')
+            print('...more in tail')
 
     # Print tail of log file
     if loglines:

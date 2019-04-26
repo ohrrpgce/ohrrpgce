@@ -163,6 +163,7 @@ def analyse_minidump(minidump, pdb, breakpad_cache_dir, git_dir = None, gitrev =
 
     info = []
     bt = []
+    shortbt = []
     crash_thread_prefix = '%DUMMY'
 
     if verbose:
@@ -189,19 +190,31 @@ def analyse_minidump(minidump, pdb, breakpad_cache_dir, git_dir = None, gitrev =
                 break
             if linenum:
                 bt.append('@ %-20s \t(%s:%s + %s)' % (function, filename, linenum, offset) )
+                shortbt.append('%s(%s:%s)' % (function, filename, linenum) )
                 if git_dir:
                     bt += get_source_around_line(git_dir, gitrev, filename, int(linenum), 1)
             elif function:
                 tmp = '(%s)' % (filename,) if filename else ''
                 bt.append('@ %s + %s %s' % (function, offset, tmp) )
+                shortbt.append('%s%s' % (function, tmp) )
             elif filename:
                 # Don't know whether this ever happens
                 bt.append('@ [%s + %s (%s)]' % (module, offset, filename) )
+                shortbt.append('[%s+%s(%s)]' % (module, offset, filename) )
             else:
                 bt.append('@ [%s + %s]' % (module, offset) )
+                shortbt.append('[%s+%s]' % (module, offset) )
 
-    # Just the top three stack frames
-    frames = [line[2:].replace(' ','').replace('\t','') for line in bt if line.startswith('@ ')]
-    crash_summary = ' <- '.join(frames[:3])
+    # Form the summary: just the top three stack frames
+    if any(fr[0] != '[' for fr in shortbt):
+        # If we have some frames with proper line info but the top frames are
+        # inside libraries with no info, skip over them except the first one called
+        deleted_frames = False
+        while shortbt[0][0] == '[' and shortbt[1][0] == '[':
+            del shortbt[0]
+            deleted_frames = True
+        if deleted_frames:
+            shortbt[0] = '... <- ' + shortbt[0]
+    crash_summary = ' <- '.join(shortbt[:3])
 
     return bt, crash_summary, info
