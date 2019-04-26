@@ -10,6 +10,10 @@ Requirements:
 -minidump_stacktrace (a copy for linux x86_64 is provided)
 -7za
 
+Optional:
+-c++filt
+-git and a copy of the OHRRPGCE git repo (which this file should be part of)
+
 This utility was written to run on Linux, but should run on Windows too with
 some simple changes.
 

@@ -24,6 +24,39 @@ if platform.system() == 'Linux' and platform.machine() == 'x86_64':
 else:
     STACKWALK = 'minidump_stackwalk'  # it'll need to be in your $PATH
 
+cxxfilt_missing = False
+
+def demangle_name(name):
+    """Demangle a C++ function name using c++filt, also used for overloaded FB
+    functions, or return unchanged if not mangled."""
+    global cxxfilt_missing
+    if cxxfilt_missing:
+        return name
+
+    # Somehow a leading underscore gets stripped from the name, which prevents
+    # c++filt from recognising the mangling
+    if not name.startswith('_'):
+        cleaned = '_' + name
+    else:
+        cleaned = name
+
+    try:
+        cleaned = subprocess.check_output(['c++filt', cleaned]).strip().decode('utf8')
+    except FileNotFoundError:  # c++filt not found
+        cxxfilt_missing = True
+        return name
+
+    if not name.startswith('_') and cleaned.startswith('_'):
+        cleaned = cleaned[1:]
+
+    # The list of argument types can be really long, if so trim them off
+    if '(' in cleaned:
+        param_start = cleaned.index('(')
+        params = cleaned[param_start+1 : -1]
+        if len(params) > 8:
+            cleaned = cleaned[:param_start]
+
+    return cleaned
 
 def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, tag = '', verbose = False):
     """Produce a Breakpad .sym file from a .pdb or non-stripped .exe file, if it
@@ -150,6 +183,7 @@ def analyse_minidump(minidump, pdb, breakpad_cache_dir, git_dir = None, gitrev =
         elif line.startswith(crash_thread_prefix):
             # One stack in the stacktrace for the signalling thread
             thread, framenum, module, function, filename, linenum, offset = line.split('|')
+            function = demangle_name(function)
             if int(framenum) == 12:
                 bt.append('[Truncated further frames]')
                 break
