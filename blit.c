@@ -18,7 +18,7 @@ void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, int w, 
 void smoothzoomblit_32_to_32bit(RGBcolor *srcbuffer, RGBcolor *destbuffer, int w, int h, int pitch, int zoom, int smooth, RGBcolor dummypal[]);
 
 
-inline uint8_t *get_frame_buf(Frame *spr) {
+static inline uint8_t *get_frame_buf(Frame *spr) {
 	if (spr->surf) {
 		if (spr->surf->format != SF_8bit) {
 			debug(errShowBug, "blitohr[scaled]: 32bit sprite!");
