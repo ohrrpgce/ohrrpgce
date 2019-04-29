@@ -2849,14 +2849,17 @@ private sub allmodex_controls()
 #endif
 
 	' Crash the program! For testing
-	if keyval(scPageup) > 0 and keyval(scPagedown) > 0 and keyval(scF4) > 1 then
-		dim invalid as integer ptr
-		*invalid = 0
+	if keyval(scTab) > 0 and keyval(scShift) > 0 and keyval(scF3) > 1 then
+		*cast(integer ptr, &hff) = 42
 	end if
 
 	' A breakpoint. If not running under gdb, this will terminate the program
 	if keyval(scTab) > 0 and keyval(scShift) > 0 and keyval(scF4) > 1 then
 		interrupt_self ()
+	end if
+
+	if keyval(scTab) > 0 and keyval(scShift) > 0 and keyval(scF5) > 1 then
+		fatalerror "User hit Tab-Shift-F5"
 	end if
 
 	if keyval(scCtrl) > 0 and keyval(scF8) > 1 then
