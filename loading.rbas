@@ -3188,7 +3188,8 @@ END SUB
 ' Other functions for working with tile animations are in common.rbas
 
 SUB load_tile_anims (byval tileset_num as integer, tastuf() as integer)
- loadrecord tastuf(), game & ".tap", 80 \ 2, tileset_num
+ 'Not all tilesets may have .tap records
+ loadrecord tastuf(), game & ".tap", 80 \ 2, tileset_num, NO
 END SUB
 
 SUB save_tile_anims (byval tileset_num as integer, tastuf() as integer)
