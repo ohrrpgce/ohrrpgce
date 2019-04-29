@@ -881,7 +881,7 @@ END SUB
 
 
 FUNCTION MenuDefItem.visible() as bool
- RETURN disabled = NO OR hide_if_disabled = NO
+ RETURN disabled = NO ORELSE hide_if_disabled = NO ORELSE override_hide = YES
 END FUNCTION
 
 CONSTRUCTOR MenuDef()
@@ -1642,6 +1642,7 @@ FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as string
  END IF
  IF menu.edit_mode = YES THEN
   IF LEN(TRIM(cap)) = 0 THEN cap = "[BLANK]"
+  IF mi.disabled ANDALSO mi.hide_if_disabled THEN cap &= " [hidden]"
   cap &= get_menu_item_editing_annotation(mi)
  END IF
  #IFDEF IS_GAME

@@ -407,6 +407,9 @@ SUB update_edited_menu(menudata as MenuDef)
    IF .t = mtypeLabel AND .sub_t = lbDisabled THEN .disabled = YES
    'Check only for tags conditions set to 'Never'
    IF .tag1 = 1 OR .tag2 = 1 THEN .disabled = YES
+   'Make sure menu items don't disappear, or we can't edit them!
+   '(This is NOT saved)
+   .override_hide = menudata.edit_mode
   END WITH
  NEXT
 END SUB

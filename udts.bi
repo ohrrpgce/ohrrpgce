@@ -73,6 +73,7 @@ TYPE MenuDefItem EXTENDS BasicMenuItem
   togtag    as integer
   extra(2)  as integer
   hide_if_disabled  as bool
+  override_hide as bool 'If true, ignore hide_if_disabled. Not saved. Used by menu editor only.
   close_when_activated as bool
   skip_close_script as bool
   dataptr   as any ptr  'Use this with caution!
