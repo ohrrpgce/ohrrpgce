@@ -555,8 +555,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   END IF
 
   ' Highlighting and selecting slices with the mouse
-  DIM topmost as Slice ptr = 0
   IF state.need_update = NO THEN
+   DIM topmost as Slice ptr
    topmost = slice_editor_mouse_over(edslice, ses.slicemenu(), state)
    IF topmost ANDALSO (readmouse().release AND mouseLeft) THEN
     cursor_seek = topmost
@@ -716,6 +716,9 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
   ' Window size change
   IF UpdateScreenSlice() THEN state.need_update = YES
+
+  DIM topmost as Slice ptr
+  topmost = slice_editor_mouse_over(edslice, ses.slicemenu(), state)
 
   IF state.need_update THEN
    slice_editor_refresh(ses, edslice, cursor_seek)
@@ -1881,6 +1884,7 @@ FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slic
 END FUNCTION
 
 'Update slice states and the menu listing the slices
+'NOTE: cursor_seek may be an invalid pointer, e.g. after switching to another slice collection!
 SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
  FOR i as integer = 0 TO UBOUND(ses.slicemenu)
   ses.slicemenu(i).s = ""
