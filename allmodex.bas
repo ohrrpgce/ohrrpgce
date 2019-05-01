@@ -176,6 +176,7 @@ dim shared tlsKeyClipRect as TLSKey
 'Should only be modified via set_resolution and unlock_resolution
 dim shared windowsize as XYPair = (320, 200)
 'Minimum window size; can't resize width or height below this. Default to (0,0): no bound
+'Also equal to (0,0) when window isn't resizeable.
 dim shared minwinsize as XYPair
 dim shared resizing_enabled as bool = NO  'keeps track of backend state
 
@@ -895,8 +896,7 @@ end sub
 'Makes the window resizeable, and sets a minimum size.
 'Whenever the window is resized all videopages (except compatpages) are resized to match.
 sub unlock_resolution (min_w as integer, min_h as integer)
-	minwinsize.w = min_w
-	minwinsize.h = min_h
+	minwinsize = XY(min_w, min_h)
 	if gfx_supports_variable_resolution() = NO then
 		exit sub
 	end if
@@ -911,6 +911,7 @@ end sub
 sub lock_resolution ()
 	debuginfo "lock_resolution()"
 	resizing_enabled = gfx_set_resizable(NO, 0, 0)
+	minwinsize = XY(0, 0)
 end sub
 
 function resolution_unlocked () as bool
