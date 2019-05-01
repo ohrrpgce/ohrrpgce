@@ -17,6 +17,11 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
+2019-05-01:
+If you've placed an enemy target cursor position with a nightly since
+19 Jan 2019 you need to fix it, because the enemy editor wasn't drawing
+cursors in the actual positions as they appear in-game.
+
 2018-11-06:
 Nightlies since 2018-09-29 (SVN r10523) were affected by a **nasty bug**
 that deleted some hero data if you either created a new hero (either as a

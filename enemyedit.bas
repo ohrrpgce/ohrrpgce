@@ -868,7 +868,13 @@ DO
    CASE EnMenuDissolveIn, EnMenuDissolveInTime
     setup_preview_appear = YES
    CASE EnMenuCursorOffset
+    'The offset is relative to the top-center edge, and horiz-flipped, because
+    'originally the sprite was shown flipped.
+    recbuf(EnDatCursorX) *= -1
+    recbuf(EnDatCursorX) += preview->Size.x \ 2
     xy_position_on_sprite_slice preview, recbuf(EnDatCursorX), recbuf(EnDatCursorY), "Targetting Cursor Offset", "xy_target_cursor"
+    recbuf(EnDatCursorX) -= preview->Size.x \ 2
+    recbuf(EnDatCursorX) *= -1
   END SELECT
  END IF
 
