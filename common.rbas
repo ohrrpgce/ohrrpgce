@@ -2604,7 +2604,7 @@ SUB show_help(helpkey as zstring ptr)
   setkeys YES
 
   'The necessity of this would be eliminated by using a root slice set to fill (filling the screen slice)
-  UpdateRootSliceSize(help_root)
+  UpdateRootSliceSize(help_root, vpage)
 
   DIM scroll_to_y as integer = -1
 

@@ -3784,16 +3784,16 @@ Sub DrawSliceAt(byval s as Slice ptr, byval x as integer, byval y as integer, by
  end if
 end sub
 
-Function UpdateRootSliceSize(sl as Slice ptr) as bool
- 'Update the size of a slice to match the window size.
+Function UpdateRootSliceSize(sl as Slice ptr, page as integer) as bool
+ 'Update the size of a slice to match the size of a video page.
  'Normally the root slice is set to fill; calling this function is only needed
  'when it isn't.
  'Returns true if the size changed.
  if sl = 0 then return NO
  dim changed as bool
  with *sl
-  changed = get_resolution() <> .Size
-  .Size = get_resolution()
+  changed = vpages(page)->size <> .Size
+  .Size = vpages(page)->size
  end with
  return changed
 end function
@@ -3802,7 +3802,7 @@ Function UpdateScreenSlice(clear_changed_flag as bool = YES) as bool
  'Match ScreenSlice size to window size; returns true if the size changed
  'since the last call with clear_changed_flag=YES.
  static changed as bool = NO
- if UpdateRootSliceSize(ScreenSlice) then changed = yes
+ if UpdateRootSliceSize(ScreenSlice, vpage) then changed = yes
  if clear_changed_flag and changed then
   changed = NO
   return YES

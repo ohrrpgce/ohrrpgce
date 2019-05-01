@@ -227,6 +227,7 @@ FUNCTION battle (byval form as integer) as bool
 
   clearpage vpage
   '--display the backdrop and BattleSprites
+  UpdateRootSliceSize bat.root_sl, page  'Match size of page, not vpage
   update_battle_slices bslot()
   DrawSlice bat.root_sl, page
   'Not converted to slices yet
@@ -376,7 +377,7 @@ END SUB
 SUB battle_pause ()
  DIM pause as string = readglobalstring(54, "PAUSE", 10)
  fuzzyrect 0, 0, , , boxlook(0).bgcol, vpage
- edgeprint pause, pCentered, 95, uilook(uiText), vpage
+ edgeprint pause, pCentered, pCentered, uilook(uiText), vpage
  setvispage vpage
  waitforanykey
 END SUB
@@ -1406,7 +1407,8 @@ END SUB
 SUB setup_battle_slices(byref bat as BattleState)
  WITH bat
   .root_sl = NewSliceOfType(slContainer)
-  .root_sl->Fill = YES
+  'root_sl not set to Fill because it should fill the page, not the screen slice
+  '(UpdateRootSliceSize called instead)
 
   .backdrop_sl = NewSliceOfType(slSprite, .root_sl)
   CenterSlice .backdrop_sl

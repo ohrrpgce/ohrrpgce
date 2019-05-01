@@ -565,7 +565,7 @@ DECLARE Function NextDescendent(desc as Slice ptr, parent as Slice ptr) as Slice
 DECLARE Function IsAncestor(byval sl as slice ptr, byval ancestor as slice ptr) as bool
 DECLARE Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as bool
 DECLARE Function CalcContextStack(byval sl as Slice ptr) as SliceContext ptr vector
-DECLARE Function UpdateRootSliceSize(sl as slice ptr) as bool
+DECLARE Function UpdateRootSliceSize(sl as slice ptr, page as integer) as bool
 DECLARE Function UpdateScreenSlice(clear_changed_flag as bool = YES) as bool
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
 DECLARE Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
