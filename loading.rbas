@@ -4186,6 +4186,9 @@ END SUB
 '                                Formations & Formation Sets
 '==========================================================================================
 
+CONSTRUCTOR Formation()
+ music = gen(genBatMus) - 1
+END CONSTRUCTOR
 
 'This stub exists only so noone forgets to update ClearFormation if Formation gains a destructor later
 DESTRUCTOR Formation()

@@ -36,6 +36,40 @@ CONST SL_FORMEDITOR_HERO = 400  '+0 to +3 for 4 slots
 'What hero sprites to use as placeholders, or -1 for a rectangle
 DIM SHARED hero_placeholder_sprites(3) as integer = {-1, -1, -1, -1}
 
+
+'==========================================================================================
+'                                  Formation previewer
+'==========================================================================================
+
+TYPE FormationPreviewer EXTENDS RecordPreviewer
+ eform as Formation
+ hform as HeroFormation
+ rootslice as Slice ptr
+
+ DECLARE DESTRUCTOR()
+ DECLARE SUB update(form_id as integer)
+ DECLARE SUB draw(xpos as RelPos, ypos as RelPos, page as integer)
+END TYPE
+
+DESTRUCTOR FormationPreviewer
+ DeleteSlice @rootslice
+END DESTRUCTOR
+
+SUB FormationPreviewer.update(form_id as integer)
+ LoadFormation eform, form_id
+ load_hero_formation hform, eform.hero_form
+ DIM ename(7) as string  'Unused
+ load_formation_slices ename(), eform, @rootslice
+END SUB
+
+SUB FormationPreviewer.draw(xpos as RelPos, ypos as RelPos, page as integer)
+ draw_formation_slices eform, hform, rootslice, -1, page
+END SUB
+
+'==========================================================================================
+'                             Top-level formation editor menu
+'==========================================================================================
+
 SUB formation_editor_main ()
  DIM b as FormationBrowser
  b.browse(-1, , @individual_formation_editor)
@@ -85,6 +119,10 @@ SUB formation_editor
   dowait
  LOOP
 END SUB
+
+'==========================================================================================
+'                                   Formation Set Editor
+'==========================================================================================
 
 'set_id: which formation set to show. If -1, same as last time.
 'Returns the formation set number we were last editing.
@@ -190,6 +228,10 @@ SUB formation_set_editor_load_preview(state as MenuState, byref form_id as integ
   END IF
  NEXT i
 END SUB
+
+'==========================================================================================
+'                                   Hero Formation Editor
+'==========================================================================================
 
 SUB hero_formation_editor ()
  DIM hero_form_id as integer = 0
@@ -339,6 +381,34 @@ SUB hero_formation_editor ()
  DeleteSlice @rootslice
 END SUB
 
+'==========================================================================================
+'                                 Individual Formation editor
+'==========================================================================================
+
+'Prompt user how to add a new formation, or cancel, and update form_id
+SUB formation_add_new(byref form_id as integer)
+ IF form_id <= gen(genMaxFormation) THEN showbug "Bad formation_add_new call"
+
+ DIM how as integer
+ DIM previewer as FormationPreviewer
+ how = generic_add_new("formation", gen(genMaxFormation), @describe_formation_by_id, @previewer, "add_formation_how")
+ '-- -2  =Cancel
+ '-- -1  =New blank
+ '-- >=0 =Copy
+
+ DIM form as Formation
+ IF how = -1 THEN
+  gen(genMaxFormation) += 1
+  ClearFormation form
+  SaveFormation form, form_id
+ ELSEIF how >= 0 THEN
+  gen(genMaxFormation) += 1
+  LoadFormation form, how
+  SaveFormation form, form_id
+ END IF
+ form_id = gen(genMaxFormation)
+END SUB
+
 'form_id: which formation to show. If -1, same as last time. If >= max, adds a new formation (without asking!)
 'Returns the formation number we were last editing.
 FUNCTION individual_formation_editor (form_id as integer = -1) as integer
@@ -348,14 +418,9 @@ FUNCTION individual_formation_editor (form_id as integer = -1) as integer
  STATIC remember_form_id as integer = 0
  IF form_id < 0 THEN
   form_id = remember_form_id
- ELSE
-  IF form_id > gen(genMaxFormation) THEN
-   'Adding a new record
-   gen(genMaxFormation) = form_id
-   ClearFormation form
-   form.music = gen(genBatMus) - 1
-   SaveFormation form, form_id
-  END IF
+ ELSEIF form_id > gen(genMaxFormation) THEN
+  formation_add_new form_id
+  LoadFormation form, form_id
  END IF
 
  DIM ename(7) as string
@@ -510,12 +575,7 @@ FUNCTION individual_formation_editor (form_id as integer = -1) as integer
     DIM as integer remember_id = form_id
     IF intgrabber_with_addset(form_id, 0, gen(genMaxFormation), maxMaxFormation, "formation") THEN
      SaveFormation form, remember_id
-     IF form_id > gen(genMaxFormation) THEN
-      gen(genMaxFormation) = form_id
-      ClearFormation form
-      form.music = gen(genBatMus) - 1
-      SaveFormation form, form_id
-     END IF
+     IF form_id > gen(genMaxFormation) THEN formation_add_new form_id
      LoadFormation form, form_id
      load_formation_slices ename(), form, @rootslice
      state.need_update = YES
@@ -622,10 +682,14 @@ SUB formation_init_added_enemy(byref slot as FormationSlot)
  END IF
 END SUB
 
+'==========================================================================================
+'                             Shared formation display code
+'==========================================================================================
+
 'Deletes previous rootslice if any, then creates a bunch of sprite slices for enemies
-'(but doesn't position them: that's done in draw_formation_slices), and rectangles for
-'hero positions.
-'Also loads enemy names.
+'and rectangles for hero positions, but doesn't position them: that's done in
+'draw_formation_slices.
+'Also loads enemy names into ename().
 SUB load_formation_slices(ename() as string, form as Formation, rootslice as Slice ptr ptr)
  DIM sl as Slice ptr
  DeleteSlice rootslice
@@ -637,6 +701,9 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
  sl->Lookup = SL_FORMEDITOR_BACKDROP
  'sl->AutoSort = slAutoSortBottomY
  sl->AutoSort = slAutoSortCustom
+ RealignSlice sl, alignRight, alignBottom, alignRight, alignBottom
+ sl->ClampHoriz = alignLeft
+ sl->ClampVert = alignTop
 
  ' Heroes
  FOR i as integer = 0 TO 3

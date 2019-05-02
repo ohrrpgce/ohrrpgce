@@ -955,6 +955,7 @@ TYPE Formation
   death_action as integer       '-1: continue game, 0: gameover
   hero_form as integer
 
+  Declare Constructor()
   Declare Destructor()  'Does nothing
 END TYPE
 
