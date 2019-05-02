@@ -1229,11 +1229,18 @@ Sub ChangeRectangleSlice(byval sl as Slice ptr,_
                       byval raw_box_border as RectBorderTypes=borderUndef)
  if sl = 0 then debug "ChangeRectangleSlice null ptr" : exit sub
  if sl->SliceType <> slRectangle then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a rectangle" : exit sub
- if style > -2 andalso border > -3 then
-  debug "WARNING: attempted to simultaneously set style and border on a rectangle slice"
- end if
  dim dat as RectangleSliceData Ptr = sl->SliceData
  with *dat
+  'First load the style, if any
+  if style > -2 then
+   .use_raw_box_border = NO
+   .style = style
+   .style_loaded = NO
+  end if
+  if .style >= 0 andalso .style_loaded = NO then
+   UpdateRectangleSliceStyle dat
+  end if
+  'Then consider all other data as style overrides
   if bgcol > -99 then
    .bgcol = bgcol
    .style = -1
@@ -1259,19 +1266,11 @@ Sub ChangeRectangleSlice(byval sl as Slice ptr,_
    .style = -1
    .style_loaded = NO
   end if
-  if style > -2 then
-   .use_raw_box_border = NO
-   .style = style
-   .style_loaded = NO
-  end if
   if translucent <> transUndef then .translucent = translucent
   if fuzzfactor > 0 then
    .fuzzfactor = fuzzfactor
   end if
  end with
- if dat->style >= 0 and dat->style_loaded = NO then
-  UpdateRectangleSliceStyle dat
- end if
 end sub
 
 '--Line-------------------------------------------------------------------
