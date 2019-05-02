@@ -38,10 +38,12 @@ DIM SHARED hero_placeholder_sprites(3) as integer = {-1, -1, -1, -1}
 
 
 '==========================================================================================
-'                                  Formation previewer
+'                                  Formation Previewer
 '==========================================================================================
 
+'Preview a hero or enemy formation. Select which by setting heromode.
 TYPE FormationPreviewer EXTENDS RecordPreviewer
+ heromode as bool       'True if previewing hero rather than enemy formations
  eform as Formation
  hform as HeroFormation
  rootslice as Slice ptr
@@ -56,14 +58,19 @@ DESTRUCTOR FormationPreviewer
 END DESTRUCTOR
 
 SUB FormationPreviewer.update(form_id as integer)
- LoadFormation eform, form_id
- load_hero_formation hform, eform.hero_form
+ IF heromode THEN
+  eform.background = -1  'Show just a rect
+  load_hero_formation hform, form_id
+ ELSE
+  LoadFormation eform, form_id
+  load_hero_formation hform, eform.hero_form
+ END IF
  DIM ename(7) as string  'Unused
  load_formation_slices ename(), eform, @rootslice
 END SUB
 
 SUB FormationPreviewer.draw(xpos as RelPos, ypos as RelPos, page as integer)
- draw_formation_slices eform, hform, rootslice, -1, page
+ draw_formation_slices eform, hform, rootslice, -1, page, heromode
 END SUB
 
 '==========================================================================================
@@ -233,6 +240,30 @@ END SUB
 '                                   Hero Formation Editor
 '==========================================================================================
 
+'Prompt user how to add a new formation, or cancel, and update hero_form_id
+SUB hero_formation_add_new(byref hero_form_id as integer)
+ IF hero_form_id <> last_hero_formation_id() + 1 THEN showbug "Bad hero_formation_add_new call"
+
+ DIM how as integer
+ DIM previewer as FormationPreviewer
+ previewer.heromode = YES
+ how = generic_add_new("hero formation", last_hero_formation_id(), , @previewer, "add_hero_formation_how")
+ '-- -2  =Cancel
+ '-- -1  =New blank
+ '-- >=0 =Copy
+
+ DIM hform as HeroFormation
+ IF how = -1 THEN
+  default_hero_formation hform
+  save_hero_formation hform, hero_form_id
+ ELSEIF how >= 0 THEN
+  load_hero_formation hform, how
+  save_hero_formation hform, hero_form_id
+ ELSE
+  hero_form_id = last_hero_formation_id()
+ END IF
+END SUB
+
 SUB hero_formation_editor ()
  DIM hero_form_id as integer = 0
  DIM test_form_id as integer = 0
@@ -241,7 +272,6 @@ SUB hero_formation_editor ()
  DIM hform as HeroFormation
  DIM default_hform as HeroFormation
  DIM rootslice as Slice ptr
- DIM as integer i
  DIM positioning_mode as bool = NO
  DIM as integer bgwait, bgctr
 
@@ -333,8 +363,9 @@ SUB hero_formation_editor ()
     DIM as integer remember_id = hero_form_id
     IF intgrabber_with_addset(hero_form_id, 0, last_hero_formation_id(), 32767, "hero formation") THEN
      save_hero_formation hform, remember_id
+     IF hero_form_id > last_hero_formation_id() THEN hero_formation_add_new hero_form_id
      load_hero_formation hform, hero_form_id
-     save_hero_formation hform, hero_form_id
+     save_hero_formation hform, hero_form_id  'Only needed when adding new
     END IF
    END IF
    IF slot <> -1 THEN
@@ -391,6 +422,7 @@ SUB formation_add_new(byref form_id as integer)
 
  DIM how as integer
  DIM previewer as FormationPreviewer
+ previewer.heromode = NO
  how = generic_add_new("formation", gen(genMaxFormation), @describe_formation_by_id, @previewer, "add_formation_how")
  '-- -2  =Cancel
  '-- -1  =New blank
@@ -695,15 +727,23 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
  DeleteSlice rootslice
 
  ' Root is backdrop
- *rootslice = NewSliceOfType(slSprite)
- sl = *rootslice
- ChangeSpriteSlice sl, sprTypeBackdrop, form.background
+ IF form.background < 0 THEN
+  'Used by FormationPreviewer when previewing a hero formation: show a backdrop
+  sl = NewSliceOfType(slRectangle)
+  sl->Size = XY(320, 200)  'TODO: update when battle resolution can be increased
+  ChangeRectangleSlice sl, 0, , , borderLine, transOpaque
+ ELSE
+  sl = NewSliceOfType(slSprite)
+  ChangeSpriteSlice sl, sprTypeBackdrop, form.background
+ END IF
  sl->Lookup = SL_FORMEDITOR_BACKDROP
  'sl->AutoSort = slAutoSortBottomY
  sl->AutoSort = slAutoSortCustom
  RealignSlice sl, alignRight, alignBottom, alignRight, alignBottom
  sl->ClampHoriz = alignLeft
  sl->ClampVert = alignTop
+
+ *rootslice = sl
 
  ' Heroes
  FOR i as integer = 0 TO 3

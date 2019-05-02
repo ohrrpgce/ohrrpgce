@@ -109,7 +109,7 @@ April ? 2019 [Fufluns]
     * Hero MP meter, along bottom of the HP meter. Disabled by default in
       existing games. [Sword, Ralph]
     * All stat caps and equipment stat bonuses can now be up to 32767 [Ralph]
-    * Can create a formation as a copy of an existing one [Ralph]
+    * Can create an enemy/hero formation as a copy of an existing one [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]
