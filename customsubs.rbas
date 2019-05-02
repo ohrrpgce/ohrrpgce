@@ -1330,16 +1330,21 @@ END SUB
 
 '==========================================================================================
 
+FUNCTION RecordPreviewer.getname() as string
+ RETURN ""
+END FUNCTION
+
 'Ask how to add a new record to an editor.
 'what:     Type of a record, like "map"
 'maxindex: Max valid ID of an existing record
-'getname:  Returns the name or description of a record
+'getname:  Returns the name or description of a record, or NULL. Alternative to implementing
+'          previewer->getname() method, if you already have a function to get the name
 'Return value:
 ' -2  =Cancel
 ' -1  =New blank
 ' >=0 =Copy existing
 'TODO: this is duplicated in a number of places. Search for 'generic_add_new'
-FUNCTION generic_add_new (what as string, maxindex as integer, getname as FnRecordName, previewer as RecordPreviewer ptr = NULL, helpkey as string = "") as integer
+FUNCTION generic_add_new (what as string, maxindex as integer, getname as FnRecordName = NULL, previewer as RecordPreviewer ptr = NULL, helpkey as string = "") as integer
  DIM menu(2) as string
  DIM whichtocopy as integer = 0
  DIM state as MenuState
@@ -1376,13 +1381,15 @@ FUNCTION generic_add_new (what as string, maxindex as integer, getname as FnReco
   END IF
   IF state.need_update THEN
    state.need_update = NO
+   IF previewer THEN previewer->update(whichtocopy)
+   DIM name as string
+   name = IIF(getname, getname(whichtocopy), previewer->getname)
    menu(0) = "Cancel"
    menu(1) = "New blank " & what
-   menu(2) = "Copy of " & what & " " & whichtocopy & " " & getname(whichtocopy)
-   IF previewer THEN previewer->update(whichtocopy)
+   menu(2) = "Copy of " & what & " " & whichtocopy & " " & name
   END IF
   clearpage vpage
-  IF previewer THEN previewer->draw(pRight, pBottom, vpage)
+  IF previewer ANDALSO state.pt = 2 THEN previewer->draw(pRight, pBottom, vpage)
   edgeprint "Adding new " & what, pCentered, 4, uilook(uiMenuItem), vpage
   standardmenu menu(), state, 20, 16, vpage, menuopts
 

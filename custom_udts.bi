@@ -453,6 +453,8 @@ TYPE RecordPreviewer EXTENDS object
   'update() might be called with the same record as last time, if the screen size has changed.
   DECLARE ABSTRACT SUB update(recordidx as integer)
   DECLARE ABSTRACT SUB draw(xpos as RelPos, ypos as RelPos, page as integer)
+  'Optional. Name of the current record.
+  DECLARE VIRTUAL FUNCTION getname() as string
 END TYPE
 
 ' Preview a map by showing a minimap. The minimap doesn't try to cover the whole screen:
