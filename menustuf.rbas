@@ -3366,22 +3366,22 @@ SUB equip_menu_setup (byref st as EquipMenuState)
  NEXT i
  
  DIM itembuf(dimbinsize(binITM)) as integer
- DIM eq_slot as integer = 0
  FOR i as integer = 0 TO last_inv_slot()
   IF inventory(i).used THEN
    '--load item data
    loaditemdata itembuf(), inventory(i).id
-   eq_slot = itembuf(49) - 1
-   IF eq_slot >= 0 THEN
-    '--if this item is equipable
-    IF item_read_equipbit(itembuf(), herost.id) THEN
-     '--if this item is equipable by this hero
-     WITH st.eq(eq_slot)
-      .offset(.count) = i
-      .count += 1
-     END WITH
+   FOR eq_slot as integer = 0 to 4
+    IF item_is_equippable_in_slot(itembuf(), eq_slot) THEN
+     '--if this item is equipable in this slot
+     IF item_read_equipbit(itembuf(), herost.id) THEN
+      '--if this item is equipable by this hero
+      WITH st.eq(eq_slot)
+       .offset(.count) = i
+       .count += 1
+      END WITH
+     END IF
     END IF
-   END IF
+   NEXT eq_slot
   END IF
  NEXT i
 
