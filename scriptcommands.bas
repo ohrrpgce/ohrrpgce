@@ -1457,8 +1457,10 @@ SUB script_functions(byval cmdid as integer)
     DIM hero_id as integer = gam.hero(retvals(0)).id
     IF hero_id >= 0 THEN
      IF item_read_equipbit(buffer(), hero_id) THEN
-      ' It's equippable; return slot+1
-      scriptret = buffer(49)
+      ' It's equippable; return slot+1 for the first equippable slot
+      FOR i as integer = 0 to 4
+       IF item_is_equippable_in_slot(buffer(), i) THEN scriptret = i + 1
+      NEXT i
      END IF
     END IF
    END IF
