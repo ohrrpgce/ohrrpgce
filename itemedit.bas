@@ -81,11 +81,10 @@ FUNCTION individual_item_editor(item_id as integer) as integer
  DIM wep_img as GraphicPair
  DIM box_preview as string = ""
 
- DIM eqst(5) as string
- eqst(0) = "NEVER EQUIPPED"
- eqst(1) = readglobalstring(38, "Weapon", 10)
+ DIM eqst(4) as string
+ eqst(0) = readglobalstring(38, "Weapon", 10)
  FOR i as integer = 0 TO 3
-  eqst(i + 2) = readglobalstring(25 + i, "Armor" & i+1)
+  eqst(i + 1) = readglobalstring(25 + i, "Armor" & i+1)
  NEXT i
 
  loaditemdata itembuf(), item_id
@@ -116,7 +115,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
  DIM iidx(menusize) as integer
  iidx(3)  = 46 'value
  iidx(4)  = 210 'stack size
- iidx(5)  = 49 'equippable as
+ 'iidx(5)  = 49 'equippable as (obsolete, replaced by bitsets in int 239)
  iidx(6)  = 47 'in battle use
  iidx(7)  = 48 'weapon use
  iidx(8)  = 50 'teach spell
@@ -188,7 +187,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
   END IF
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
-   IF itembuf(49) = 1 THEN
+   IF item_is_equippable_in_slot(itembuf(), 0) THEN
     IF state.pt = 17 THEN
      xy_position_on_sprite wep_img, itembuf(80), itembuf(81), 0, "Weapon handle position", "xy_weapon_handle"
      state.need_update = YES
@@ -198,7 +197,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
      state.need_update = YES
     END IF
    END IF
-   IF itembuf(49) > 0 THEN
+   IF item_is_equippable(itembuf()) THEN
     IF state.pt = 19 THEN
      item_editor_stat_bonuses itembuf()
      state.need_update = YES
@@ -221,8 +220,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
     state.need_update = YES
    END IF
    IF state.pt = 5 THEN
-    DIM b as ArrayBrowser = ArrayBrowser(eqst(), "Equipability Types")
-    itembuf(49) = b.browse(itembuf(49))
+    editbitset itembuf(), 239, eqst()
     state.need_update = YES
    END IF
    IF state.pt = 10 THEN
@@ -241,7 +239,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
     IF enable_strgrabber ANDALSO strgrabber(info, 36) THEN
      state.need_update = YES
     END IF
-   CASE 3, 4, 5, 10, 15, 16
+   CASE 3, 4, 10, 15, 16
     IF intgrabber(itembuf(iidx(state.pt)), min(state.pt), max(state.pt)) THEN
      state.need_update = YES
     END IF
@@ -296,7 +294,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
   standardmenu menu_display(), state, shaded(), 0, 0, dpage, menuopts
-  IF itembuf(49) = 1 THEN
+  IF item_is_equippable_in_slot(itembuf(), 0) THEN
    'Is a weapon
    DIM frame as integer = 0
    IF state.pt = 17 THEN frame = 1
@@ -348,7 +346,20 @@ SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as in
  menu(2) = "Info:" & info_string
  menu(3) = "Value: " & itembuf(46)
  menu(4) = "Maximum stack size: " & defaultint(itembuf(210), "Default (" & gen(genItemStackSize) & ")", 0)
- menu(5) = "Equippable as: " & equip_types(bound(itembuf(49), 0, 5))
+
+ DIM is_equippable as bool = NO
+ DIM is_weapon as bool = item_is_equippable_in_slot(itembuf(), 0)
+ menu(5) = "Equippable as:"
+ DIM sep as string = " "
+ FOR i as integer = 0 TO 4
+  IF item_is_equippable_in_slot(itembuf(), i) THEN
+   menu(5) &= sep & equip_types(i)
+   sep = "/"
+   is_equippable = YES
+  END IF
+ NEXT i
+ IF NOT is_equippable THEN menu(5) &= " NEVER EQUIPPED"
+ 
  menu(6) = "When used in battle: " & item_attack_name(itembuf(47))
  menu(7) = "When used as a " & weapon & ": " & item_attack_name(itembuf(48))
  menu(8) = "Teach Spell: " & item_attack_name(itembuf(50))
@@ -381,7 +392,7 @@ SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as in
  FOR i as integer = 0 TO UBOUND(shaded)
   shaded(i) = NO
  NEXT
- IF itembuf(49) <> 1 THEN  'Not a weapon
+ IF NOT is_weapon THEN
   menu(7) = "When used as a " & weapon & ": N/A"
   shaded(7) = YES
   menu(15) = "Weapon Picture: N/A"
@@ -391,7 +402,7 @@ SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as in
   shaded(17) = YES
   shaded(18) = YES
  END IF
- IF itembuf(49) = 0 THEN  'Not equipable
+ IF NOT is_equippable THEN
   'Don't N/A the tags, because they still take effect
   shaded(13) = YES
   shaded(14) = YES

@@ -1166,7 +1166,7 @@ FUNCTION curbinsize (byval id as integer) as integer
  IF id = binN          THEN RETURN 38  '.n##
  IF id = binDT0        THEN RETURN 858 '.dt0
  IF id = binDT1        THEN RETURN 744 '.dt1
- IF id = binITM        THEN RETURN 478 '.itm
+ IF id = binITM        THEN RETURN 480 '.itm
  RETURN 0
 END FUNCTION
 

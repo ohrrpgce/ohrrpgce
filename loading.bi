@@ -171,6 +171,8 @@ DECLARE SUB LoadItemElementals (byval index as integer, itemresists() as single)
 DECLARE FUNCTION get_item_stack_size (byval item_id as integer) as integer
 DECLARE FUNCTION item_read_equipbit(itembuf() as integer, hero_id as integer) as bool
 DECLARE SUB item_write_equipbit(itembuf() as integer, hero_id as integer, value as bool)
+DECLARE FUNCTION item_is_equippable(itembuf() as integer) as bool
+DECLARE FUNCTION item_is_equippable_in_slot(itembuf() as integer, byval slot as integer) as bool
 
 DECLARE FUNCTION backcompat_element_dmg (byval weak as integer, byval strong as integer, byval absorb as integer) as double
 DECLARE FUNCTION loadoldenemyresist (array() as integer, byval element as integer) as single

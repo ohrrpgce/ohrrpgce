@@ -3807,6 +3807,14 @@ SUB loaditemdata (array() as integer, byval index as integer)
   debug "loaditemdata:" & index & " loadrecord failed"
   EXIT SUB
  END IF
+ 'Auto-update equipability bits if needed
+ IF NOT xreadbit(array(), 15, 239) THEN
+  IF array(49) > 0 ANDALSO array(49) <= 5 THEN
+   setbit array(), 239, array(49) - 1, 1
+  END IF
+  'Mark the bits as being initialized
+  setbit array(), 239, 15, 1
+ END IF
 END SUB
 
 'Fill in a ItemDefTags from an ITM record
@@ -3816,6 +3824,17 @@ SUB item_tags_from_buf(tags as ItemDefTags, itembuf() as integer)
  tags.is_equipped_tag = itembuf(76)
  tags.is_actively_equipped_tag = itembuf(77)
 END SUB
+
+FUNCTION item_is_equippable(itembuf() as integer) as bool
+ FOR i as integer = 0 TO 4
+  IF item_is_equippable_in_slot(itembuf(), i) THEN RETURN YES
+ NEXT i
+ RETURN NO
+END FUNCTION
+
+FUNCTION item_is_equippable_in_slot(itembuf() as integer, byval slot as integer) as bool
+ RETURN xreadbit(itembuf(), slot, 239)
+END FUNCTION
 
 SUB loaditemdata (item as ItemDef, item_id as integer)
  DIM itembuf(dimbinsize(binITM)) as integer
@@ -3830,11 +3849,26 @@ SUB loaditemdata (item as ItemDef, item_id as integer)
    .wep_handle(i).y = itembuf(81 - i * 2)
   NEXT
   item_tags_from_buf .tags, itembuf()
+  FOR i as integer = 0 TO 4
+   .eqslots(i) = xreadbit(itembuf(), 239, i)
+  NEXT i
   'TODO: very incomplete!
  END WITH
 END SUB
 
 SUB saveitemdata (array() as integer, byval index as integer)
+ 'Back-port the first equip slot
+ 'We do not support downgrading, but it does not hurt to minimize the damage of downgrading
+ IF xreadbit(array(), 15, 239) THEN
+  array(49) = 0
+  FOR i as integer = 0 TO 4
+   IF xreadbit(array(), i, 239) THEN
+    array(49) = i + 1
+    EXIT FOR
+   END IF
+  NEXT i
+ END IF
+ 'Actually write the itm lump
  storerecord array(), game & ".itm", getbinsize(binITM) \ 2, index
 END SUB
 
