@@ -1116,7 +1116,7 @@ SUB guessdefaultpals(byval fileset as SpriteType, poffset() as integer)
   REDIM buf(dimbinsize(binITM)) as integer
   FOR j as integer = 0 TO gen(genMaxItem)
    loaditemdata buf(), j
-   IF buf(49) = 1 THEN
+   IF item_is_equippable_in_slot(buf(), 0) THEN
     IF buf(52) >= 0 AND buf(52) <= UBOUND(poffset) THEN poffset(buf(52)) = buf(53)
    END IF
   NEXT
