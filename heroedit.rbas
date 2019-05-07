@@ -1662,7 +1662,7 @@ SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer
  DIM nextbit as integer = 0
  FOR i as integer = 0 TO gen(genMaxItem)
   loaditemdata itembuf(), i
-  IF itembuf(49) = equip_type THEN
+  IF item_is_equippable_in_slot(itembuf(), equip_type - 1) THEN
    itemname(nextbit) = readitemname(i)
    'Blank menu items would be hidden in editbitset
    IF LEN(itemname(nextbit)) = 0 THEN itemname(nextbit) = "Item " & i
