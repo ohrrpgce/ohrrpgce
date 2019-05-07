@@ -2436,6 +2436,7 @@ END FUNCTION
 ' This translates a filename, e.g. returned from browse() or findfiles() to
 ' Latin-1 so it can be displayed normally.
 ' FIXME: check the font type instead of assuming Latin-1.
+' FIXME: check the Windows ANSI codepage instead of assuming 1252 (extension of Latin-1).
 '
 ' Filenames may be in various encodings depending on OS, filesystem, and locale.
 ' In practice, on Unix the encoding might be anything, and is determined by
@@ -2444,8 +2445,8 @@ END FUNCTION
 ' on which variant of winapi functions get called; FB uses the ANSI ones
 ' meaning filenames are encoded in the system codepage, often Windows-1252
 ' (an extension of Latin1).
-' FIXME: it appears that ANSI filenames on Windows can't be used to open
-' files that can't be encoded in the ANSI codepage; Windows does lossy conversion.
+' FIXME: filenames stored as 8-bit (ANSI) strings on Windows can't be used to open
+' filenames that can't be encoded in the ANSI codepage; FindNextFileA does lossy conversion.
 '
 ' The engine recieves filenames in the unknown encoding, treats them as byte
 ' strings (aside from dependable ASCII characters like / \ .) and then hands
@@ -2491,8 +2492,9 @@ FUNCTION decode_filename(filename as string) as string
 
 #elseif defined(__FB_WIN32__)
 
-  'Internally FB uses legacy ANSI file IO functions, so Windows
-  'converts everything to the system codepage for us, typically Windows-1252.
+  'Internally FB uses legacy ANSI file IO functions, so all filenames are in
+  'the system ANSI codepage, if possible (they might contain ?'s and be impossible to open!)
+  'FIXME: we assume the system codepage is Windows-1252, which is extremely wrong!
   'Convert Windows-1252 to Latin-1 by removing the extra characters
   '(There's little point doing this)
   DIM ret as string = filename
@@ -2559,10 +2561,14 @@ SUB findfiles (directory as string, namemask as string = "", filetype as FileTyp
   v_free filenames
 
 #else
-  'On Windows, non-unicode-enabled programs automatically get their filenames downconverted to Windows-1252,
-  'so we only restrict further, to Latin-1.
-  'However, once we want to support more than just Latin-1 filenames, we will have to rewrite
-  'this properly, using winapi calls, because FB's DIR has no support.
+  'FIXME: On Windows, non-unicode-enabled programs automatically get their filenames downconverted to the current
+  '"ANSI" codepage. If any character in the filename isn't in that codepage, then opening the file is impossible,
+  'and DIR will return a useless filename containing ?'s. (If we're searching for directories, the
+  'extra DIR call to test the filetype will then filter it out).
+  'If the filename does fit in the codepage we can open it, but we use Latin-1 internally (a subset
+  'of Windows-1252), and if the filename has characters not in Latin-1 then they'll display wrong, as something
+  'else. Ee want to support more than just Latin-1 filenames, we will have to rewrite
+  'this properly, using winapi calls, because FB's DIR has no support. Or fix FB itself.
 
   DIM foundfile as string
   DIM attrib as integer

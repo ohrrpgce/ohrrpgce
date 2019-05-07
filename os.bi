@@ -15,6 +15,7 @@ extern "C"
 declare function is_windows_9x () as bool
 #ifdef __FB_WIN32__
 declare function get_windows_version () as string
+declare function get_windows_runtime_info () as string
 #endif
 
 declare sub os_init ()

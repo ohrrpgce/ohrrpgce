@@ -164,6 +164,10 @@ function get_windows_version () as string
 	return ret
 end function
 
+function get_windows_runtime_info () as string
+	return get_windows_version() & ", ANSI codepage: " & GetACP()
+end function
+
 sub os_init ()
 	main_thread_id = GetCurrentThreadId()
 

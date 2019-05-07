@@ -457,7 +457,6 @@ FUNCTION individual_formation_editor (form_id as integer = -1) as integer
 
  DIM ename(7) as string
  DIM rootslice as Slice ptr
- DIM as integer i
  DIM positioning_mode as bool = NO
  DIM as integer bgwait, bgctr
 

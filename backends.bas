@@ -697,7 +697,7 @@ sub read_backend_info()
 	#endif
 
 	#ifdef __FB_WIN32__
-		systeminfo = get_windows_version()
+		systeminfo = get_windows_runtime_info()
 	#endif
 end sub
 
