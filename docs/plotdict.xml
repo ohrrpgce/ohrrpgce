@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2019-04-15">
+<plotscript version="wip" datecode="2019-05-06">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -2495,6 +2495,7 @@ gain hero stat(who, stat:mp, 0)</example>
 				(Use <ref>findhero</ref> if you want to refer to the hero by name).
 				The second argument is the item to check the equipability of.
 				You can use the item's number or the item:name constants from your .hsi file.
+				If the item can be quipped in more than one different slot, this command only returns the first valid slot
 				<note>
 					When a hero's equipment changes, their current HP and MP stats aren't updated.
 					See the Note at <ref>unequip</ref> for more information.

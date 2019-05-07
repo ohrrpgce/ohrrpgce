@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2019-04-15)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2019-05-06)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -7167,6 +7167,7 @@ gain hero stat(who, stat:mp, 0)</pre>
 				(Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name).
 				The second argument is the item to check the equipability of.
 				You can use the item's number or the item:name constants from your .hsi file.
+				If the item can be quipped in more than one different slot, this command only returns the first valid slot
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					When a hero's equipment changes, their current HP and MP stats aren't updated.
