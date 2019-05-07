@@ -343,12 +343,14 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
   buyst.hire_box->Visible = NO
   buyst.portrait_box->Visible = NO
   loaditemdata itembuf(), thing_id
-  IF itembuf(49) > 0 THEN
+  IF item_is_equippable(itembuf()) THEN
    'This item is equippable
    buyst.hero_box->Visible = YES
    DIM eqprefix as string = readglobalstring(99, "Equip:", 10)
-   IF itembuf(49) = 1 THEN append_menu_item buyst.info, eqprefix & " " & readglobalstring(38, "Weapon", 10)
-   IF itembuf(49) > 1 THEN append_menu_item buyst.info, eqprefix & " " & readglobalstring(23 + itembuf(49), "Armor" & itembuf(49)-1)
+   IF item_is_equippable_in_slot(itembuf(), 0) THEN append_menu_item buyst.info, eqprefix & " " & readglobalstring(38, "Weapon", 10)
+   FOR i as integer = 1 to 4
+    IF item_is_equippable_in_slot(itembuf(), i) THEN append_menu_item buyst.info, eqprefix & " " & readglobalstring(24 + i, "Armor" & i)
+   NEXT i 
    DIM bonus as integer
    FOR i as integer = 0 to 11
     bonus = itembuf(54 + i)
@@ -2670,8 +2672,13 @@ SUB inventory_autosort()
     inventory(slot).sortorder = 20
    ELSEIF itemdata(50) THEN  'Teach spell
     inventory(slot).sortorder = 30
-   ELSEIF itemdata(49) THEN  'Equippable
-    inventory(slot).sortorder = 40 + itemdata(49)
+   ELSEIF item_is_equippable(itemdata()) THEN  'Equippable
+    FOR i as integer = 0 to 4
+     IF item_is_equippable_in_slot(itemdata(), i) THEN
+      inventory(slot).sortorder = 40 + i
+      EXIT FOR
+     END IF
+    NEXT i
    ELSE
     inventory(slot).sortorder = 50
    END IF
