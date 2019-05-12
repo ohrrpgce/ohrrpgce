@@ -4830,6 +4830,9 @@ private function layout_line_fragment(z as string, endchar as integer, byval sta
 	'chars_to_add counts the number of delayed characters
 	dim chars_to_add as integer = 0
 
+        'Avoid overflow
+	if state.rightmargin = INT_MAX then state.rightmargin = 999999
+
 	with state
 'debug "layout '" & z & "' from " & .charnum & " at " & .x & "," & .y
 		line_height = .thefont->h

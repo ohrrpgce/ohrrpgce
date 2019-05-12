@@ -482,6 +482,16 @@ startTest(RelPos)
   testEqual(anchor, alignRight)
   testEqual(show, alignLeft)
 
+  'Test that these values close to a power of 10 aren't treated as containing flags, as documented
+  DIM testvals(...) as integer = {INT_MAX, 99999, 999999, 9999999, 999999999, 1050000, -60050000}
+  FOR i as integer = 0 TO UBOUND(testvals)
+    RelPos_decode testvals(i), offset, align, anchor, show
+    testEqual(offset, testvals(i))
+    testEqual(align, alignLeft)
+    testEqual(anchor, alignLeft)
+    testEqual(show, alignCenter)
+  NEXT
+
   testEqual(rCenter + rCenter, rRight)
   testEqual(rRight - rLeft, rRight)
   testEqual((rRight + 100) \ 2, rCenter + 50)

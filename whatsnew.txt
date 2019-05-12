@@ -158,6 +158,7 @@ April ? 2019 [Fufluns]
     * "find color" [Ralph]
     * "set selected child", "get selected child" (only for convenience) [Ralph]
     * "override tick milliseconds" and "cancel override tick milliseconds" [James]
+    * "show string at" now respects newlines (\n in strings) [Ralph]
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"

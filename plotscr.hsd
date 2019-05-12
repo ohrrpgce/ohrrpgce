@@ -854,7 +854,9 @@ script,showstringat,hsd:stringID,hsd:x=0,hsd:y=0,begin
   positionstring(hsd:stringID,hsd:x,hsd:y)
 end
 
-script,centerstringat,hsd:stringID,hsd:x=160,hsd:y=100,begin
+script,centerstringat,hsd:stringID,hsd:x=-654321,hsd:y=-654321,begin
+  if(hsd:x == -654321) then(hsd:x := get screen width / 2)
+  if(hsd:y == -654321) then(hsd:y := get screen height / 2)
   setstringbit(hsd:stringID,0,1)
   positionstring(hsd:stringID,hsd:x--(stringlength(hsd:stringID)*4),hsd:y)
 end

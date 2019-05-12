@@ -192,14 +192,10 @@ SUB showplotstrings
     '-- only display visible strings
     DIM col as integer = .col
     IF col = -1 THEN col = uilook(uiText)
-    IF .bits AND 2 THEN
-     '-- flat text
-     textcolor col, .bgcol
-     printstr .s, .x, .y, dpage
-    ELSE
-     '-- with outline
-     edgeprint .s, .x, .y, col, dpage
-    END IF
+    textcolor col, .bgcol
+    DIM fontnum as integer = IIF(.bits AND 2, fontPlain, fontEdged)
+    'Don't autowrap (infinite width), but do support newlines
+    wrapprint .s, .x, .y, , dpage, INT_MAX, NO, fontnum  'withtags=NO
    END IF
   END WITH
  NEXT i

@@ -679,6 +679,8 @@ CONST _rMargin = 50000
 ' are not usable as slice or menu positions.
 ' You can add together at most one r*, one anc* and one show* constant...
 ' with the exception that you can assume rCenter + rCenter = rRight, and rLeft = 0.
+' Note that INT_MAX, 99999, 999999, 9999999 (other large values close to power of 10)
+' get passed through unchanged, without being interpreted as having any flags.
 
 ' r* constants say which edge of the screen this RelPos position is relative to.
 CONST rLeft =   0

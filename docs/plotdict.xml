@@ -4286,18 +4286,23 @@ There is no limit on string length.<lb/>
 		<command id="__setstring__">
 			<canon>$id="some text"</canon>
 			<shortname>$id="..."</shortname>
-			<description>Sets the contents of a string variable given by <p>id</p>, which can be a constant like 0 or 1, a variable, or even an expression like a call to a script, to a piece of text. The previous contents are erased. The whole statement must be on a single line; you can't split the text onto multiple lines (use multiple <ref>__appendstring__</ref> statements instead). The value of the whole statement is equal to <p>id</p> for convenience (see the example). The text (which is called a string literal) can contain certain escape codes:<lb/>
+			<description>Sets the contents of a string variable given by <p>id</p>, which can be a constant like 0 or 1, a variable, or even an expression like a call to a script, to a piece of text. The previous contents are erased. The whole statement must be on a single line; you can't split the text onto multiple lines (use multiple <ref>__appendstring__</ref> statements instead). The value of the whole statement is equal to <p>id</p> for convenience (see the example). The text (which is called a string literal) can contain certain escape codes (see examples below):<lb/>
 \\ turns into a single \<lb/>
 \" turns into a single " without signalling the end of the literal<lb/>
-\n is a new line character, which is useful in a textslice but doesn't cause a new line in textboxes or on-screen strings.<lb/>
-\t is a tab character (which isn't useful at all as it doesn't actually cause a tab)<lb/>
+\n is a new line character, which can be used in text slices, <ref>showstring</ref>, <ref>showstringat</ref> and <ref>trace</ref>.<lb/>
+\t is a tab character (which isn't useful at all as it doesn't actually cause a tab except when printing to a file with <ref>trace</ref>).<lb/>
 \x## where ## is a two digit hexidecimal number adds an ASCII character to the string. For example \x4b is the letter K.</description>
 			<example># This displays Some text! in the corner of the screen
 $1 = "Some text!"
 showstring(1)
 
-# This displays "A quote" in the corner of the screen
-showstring($1="\"A quote\"")</example>
+# This displays
+# Guard:
+#   "Halt!"
+# near the bottom left corner of the screen (at 30,150) for a moment
+show string at ($1="Guard:\n  \"Halt!\"", 30, 150)
+wait (40)
+hide string (1)</example>
 		</command>
 		<command id="__appendstring__">
 			<canon>$id+"some text"</canon>
@@ -4503,12 +4508,27 @@ get hero name (1, find hero (leader))
 		<command id="showstringat">
 			<canon>show string at (ID, x, y)</canon>
 			<shortname>show string at</shortname>
-			<description>Displays string #<p>ID</p> on the screen, positioning its top left corner at the given (<p>x</p>,<p>y</p>) coordinates. Unlike <ref>showstring</ref>, changes to the string will be displayed in real-time.</description>
+			<description>Displays string #<p>ID</p> on the screen, positioning its top left corner at the given (<p>x</p>,<p>y</p>) coordinates. Unlike <ref>showstring</ref>, changes to the string will be displayed in real-time.
+			The string will not auto-wrap at the edge of the screen, but it can contain new lines (<tt>\n</tt>). </description>
 		</command>
 		<command id="centerstringat">
 			<canon>center string at (ID, x, y)</canon>
 			<shortname>center string at</shortname>
-			<description>Displays string #<p>ID</p> on the screen, positioning its top-middle at the given (<p>x</p>,<p>y</p>) coordinates. Unlike <ref>showstring</ref>, changes to the string will be displayed in real-time.<note>The string is not re-centered automatically if its length changes. If you change the string and want to keep it centered, call showstringat again. Otherwise, its topleft corner will stay fixed.</note></description>
+			<description>
+				Displays string #<p>ID</p> on the screen, positioning its top-middle at the
+				given (<p>x</p>,<p>y</p>) coordinates.
+				Unlike <ref>showstring</ref>, changes to the string will be displayed in real-time.
+				<p>x</p>,<p>y</p> are optional: if they are missing then the string is centered
+				in the center of the screen.
+				<note>
+					The string is not re-centered automatically if its length changes.
+					If you change the string and want to keep it centered, call showstringat again.
+					Otherwise, its top-left corner will stay fixed.
+				</note>
+				<warn>
+					The string position will be miscalculated if it contains newlines (\n characters).
+				</warn>
+			</description>
 		</command>
 		<command id="hidestring">
 			<canon>hide string (ID)</canon>
