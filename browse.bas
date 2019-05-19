@@ -951,20 +951,9 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  '--alphabetize
  FOR i as integer = sortstart TO br.mstate.last - 1
   FOR j as integer = br.mstate.last TO i + 1 STEP -1
-   DIM k as integer = 0
-   DIM chara as integer
-   DIM charb as integer
-   DO
-    chara = tolower(tree(i).caption[k])
-    charb = tolower(tree(j).caption[k])
-    IF chara < charb THEN
-     EXIT DO
-    ELSEIF chara > charb THEN
-     SWAP tree(i), tree(j)
-     EXIT DO
-    END IF
-    k += 1
-   LOOP WHILE chara OR charb
+   IF numeric_string_compare(tree(i).caption, tree(j).caption, YES) > 0 THEN  'case_insen=YES
+    SWAP tree(i), tree(j)
+   END IF
   NEXT
  NEXT
 

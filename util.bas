@@ -1430,22 +1430,24 @@ FUNCTION integerptr_compare CDECL (byval a as integer ptr ptr, byval b as intege
 END FUNCTION
 
 'a string ptr is a pointer to a FB string descriptor
-FUNCTION string_compare CDECL (byval a as string ptr, byval b as string ptr) as long
+FUNCTION string_compare CDECL (a as string, b as string) as integer
  'This is equivalent, but the code below can be adapted for case insensitive compare (and is faster (what, how?!))
- 'RETURN fb_StrCompare( *a, -1, *b, -1)
+ 'Yep, still twice as fast as of 2019.
+ 'RETURN fb_StrCompare(a, -1, b, -1)
 
- DIM as long ret = 0, somenull = 0
- 'Ah, brings back happy memories of C hacking, doesn'it?
- IF @((*a)[0]) = 0 THEN ret -= 1: somenull = 1
- IF @((*b)[0]) = 0 THEN ret += 1: somenull = 1
+ DIM ret as integer = 0
+ DIM somenull as bool = NO
+ 'Zero-length strings in FB may have either a NULL data pointer or a pointer to a '\0', deal with that.
+ IF @a[0] = 0 THEN ret -= 1: somenull = YES
+ IF @b[0] = 0 THEN ret += 1: somenull = YES
  IF somenull THEN RETURN ret
 
  DIM k as integer = 0
  DIM chara as ubyte
  DIM charb as ubyte
  DO
-  chara = (*a)[k]
-  charb = (*b)[k]
+  chara = a[k]
+  charb = b[k]
   IF chara < charb THEN
    RETURN -1
   ELSEIF chara > charb THEN
@@ -1457,8 +1459,71 @@ FUNCTION string_compare CDECL (byval a as string ptr, byval b as string ptr) as 
 END FUNCTION
 
 FUNCTION stringptr_compare CDECL (byval a as string ptr ptr, byval b as string ptr ptr) as long
- RETURN string_compare(*a, *b)
+ RETURN string_compare(**a, **b)
 END FUNCTION
+
+FUNCTION numeric_string_compare CDECL (a as string, b as string, case_insen as bool = NO) as integer
+ DIM ptra as zstring ptr = @a[0]
+ DIM ptrb as zstring ptr = @b[0]
+ DO
+  DIM as ubyte chara, charb
+  IF ptra THEN chara = *ptra  'On the first iteration one of the strings might be NULL
+  IF ptrb THEN charb = *ptrb
+  IF case_insen THEN
+   chara = tolower(chara)
+   charb = tolower(charb)
+  END IF
+
+  IF chara = 0 ANDALSO charb = 0 THEN
+   RETURN 0
+  ELSEIF chara <> ASC("0") ANDALSO isdigit(chara) ANDALSO charb <> ASC("0") ANDALSO isdigit(charb) THEN
+   'Two numbers which both don't start with a leading zero.
+   'If either number has a leading zero, then the one with the most leading zeroes
+   'is first, eg "09" before "1". Avoids having to check length if the values are equal.
+   DIM as integer numa, numb
+   DIM as zstring ptr aftera, afterb
+   'strtol is quite similar to VALINT
+   numa = strtol(ptra, @aftera, 10)
+   numb = strtol(ptrb, @afterb, 10)
+   IF numa < numb THEN
+    RETURN -1
+   ELSEIF numa > numb THEN
+    RETURN 1
+   ELSEIF numa = LONG_MAX THEN
+    'If overflowed, don't compare by value. (Can't overflow, because we ignore negative signs)
+   ELSE
+    'Skip over the
+    ptra = aftera
+    ptrb = afterb
+    CONTINUE DO
+   END IF
+  END IF
+  IF chara < charb THEN
+   RETURN -1
+  ELSEIF chara > charb THEN
+   RETURN 1
+  END IF
+  ptra += 1
+  ptrb += 1
+ LOOP
+END FUNCTION
+
+#IFDEF __FB_MAIN__
+startTest(numeric_string_compare)
+ DIM nul as string, notnul as string = "x"
+ notnul[0] = 0
+ IF numeric_string_compare(notnul, nul) <> 0 THEN fail
+ IF numeric_string_compare("a", "0") <> 1 THEN fail
+ IF numeric_string_compare("0", "0") <> 0 THEN fail
+ IF numeric_string_compare("abc", "aBc", YES) <> 0 THEN fail
+ IF numeric_string_compare("abc", "aBc", NO) <> 1 THEN fail
+ IF numeric_string_compare("ab5c", "ab0d") <> 1 THEN fail
+ IF numeric_string_compare("ab5c", "ab5d") <> -1 THEN fail
+ IF numeric_string_compare("12345678900", "12345678900") <> 0 THEN fail
+ IF numeric_string_compare("123456789000", "12345678900") <> 1 THEN fail
+ IF numeric_string_compare("09", "1") <> -1 THEN fail
+endTest
+#ENDIF
 
 'CRT Quicksort. Running time is *usually* O(n*log(n)). NOT STABLE
 'See sort_integer_indices.

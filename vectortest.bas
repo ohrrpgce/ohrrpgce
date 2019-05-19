@@ -79,7 +79,7 @@ sub VecMap_destruct cdecl (byref this as VecMap)
 end sub
 
 function VecMap_compare cdecl (byref lhs as VecMap, byref rhs as VecMap) as integer
-	return string_compare(@lhs.name, @rhs.name)
+	return string_compare(lhs.name, rhs.name)
 end function
 
 function VecMap_string cdecl (byref this as VecMap) as string
@@ -467,7 +467,7 @@ startTest(stringSort)
 	v_sort arr
 	for i = 0 to 398
 		'print arr[i],
-		if string_compare(@arr[i], @arr[i+1]) > 0 then fail
+		if string_compare(arr[i], arr[i+1]) > 0 then fail
 	next
 	v_free arr
 endTest

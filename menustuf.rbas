@@ -2708,7 +2708,7 @@ SUB inventory_autosort()
     CASE 1 'use
      IF inventory(slot).sortorder > inventory(slot + 1).sortorder THEN disordered = YES
     CASE 2 'alphabetical
-     IF string_compare(@inventory(slot).text, @inventory(slot + 1).text) > 0 THEN disordered = YES
+     IF string_compare(inventory(slot).text, inventory(slot + 1).text) > 0 THEN disordered = YES
     CASE 3 'id
      IF inventory(slot).id > inventory(slot + 1).id THEN disordered = YES
     CASE 4 'nothing
