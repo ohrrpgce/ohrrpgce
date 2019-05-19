@@ -131,7 +131,7 @@ def symbols_filename_from_build(build):
         return 'ohrrpgce-symbols-win-%s-r%s-%s-%s.7z' % (buildtag, svnrev, split_date, ohrvercode)
 
 
-def download_and_extract_symbols(syms_fname, verbose = False):
+def download_and_extract_symbols(syms_fname, args):
     """Downloads a file from SYMBOLS_ARCHIVE_URL to SYMS_CACHE_DIR and extracts it,
     if it hasn't already been.
     Returns directory it was extracted to."""
@@ -150,12 +150,12 @@ def download_and_extract_symbols(syms_fname, verbose = False):
         exe = '7za'
         if HOST_WIN32:
             exe = pathjoin(SUPPORT_DIR, '7za.exe')
-        stdout = sys.stderr if verbose else subprocess.DEVNULL
+        stdout = sys.stderr if args.verbose else subprocess.DEVNULL
         print('Extracting...           ', file=sys.stderr, end='\r')
         subprocess.check_call([exe, 'x', '-o' + cachedir, syms_7z], stdout=stdout)
     return cachedir
 
-def process_minidump(build, reportdir, is_custom, verbose = False):
+def process_minidump(build, reportdir, is_custom, args):
     """Read a minidump file (producing .sym files as necessary), print info
     from it, and return a (stacktrace, crash_summary) pair.
     Raises NoBacktraceError if not possible."""
@@ -165,7 +165,7 @@ def process_minidump(build, reportdir, is_custom, verbose = False):
     # Get the symbols .7z archive
     syms_fname = symbols_filename_from_build(build)
 
-    pdb_dir = download_and_extract_symbols(syms_fname, verbose)
+    pdb_dir = download_and_extract_symbols(syms_fname, args)
 
     breakpad_root = pathjoin(SYMS_CACHE_DIR, 'breakpad')
 
@@ -184,13 +184,13 @@ def process_minidump(build, reportdir, is_custom, verbose = False):
     minidump = pathjoin(reportdir, 'crashdump.dmp')
     pdbname = 'custom' if is_custom else 'game'
     pdb = pathjoin(pdb_dir, pdbname + '.pdb')
-    stacktrace, crash_summary, info = minidump_tools.analyse_minidump(minidump, pdb, breakpad_root, GIT_DIR, gitrev, verbose)
+    stacktrace, crash_summary, info = minidump_tools.analyse_minidump(minidump, pdb, breakpad_root, GIT_DIR, gitrev, args.verbose, args.stack_detail)
     for name, value in info:
         print_attr(name, value)
     return stacktrace, crash_summary
 
 
-def process_crashrpt_report(reportdir, uuid, upload_time, verbose = False):
+def process_crashrpt_report(reportdir, uuid, upload_time, args):
     """Print info about an unzipped crashrpt report, and return a row for the
     summary table as a tuple."""
 
@@ -284,7 +284,7 @@ def process_crashrpt_report(reportdir, uuid, upload_time, verbose = False):
 
     # Get stacktrace and other info from the minidump
     try:
-        stacktrace, crash_summary = process_minidump(build, reportdir, is_custom, verbose)
+        stacktrace, crash_summary = process_minidump(build, reportdir, is_custom, args)
     except NoBacktraceError as err:
         print(err)
         stacktrace = None
@@ -337,7 +337,7 @@ def process_crashrpt_report(reportdir, uuid, upload_time, verbose = False):
     return report_summary + (version_summary, crash_summary)
 
 
-def process_crashrpt_reports_directory(reports_dir, verbose = False):
+def process_crashrpt_reports_directory(reports_dir, args):
     """Process a directory containing crashrpt .zip reports,
     printing information about each one."""
 
@@ -352,7 +352,7 @@ def process_crashrpt_reports_directory(reports_dir, verbose = False):
             if not os.path.isdir(reportdir):
                 os.mkdir(reportdir)
                 print('Unzipping...          ', file=sys.stderr, end='\r')
-                stdout = sys.stderr if verbose else subprocess.DEVNULL
+                stdout = sys.stderr if args.verbose else subprocess.DEVNULL
                 try:
                     subprocess.check_call(['unzip', '-d', reportdir, zipfile], stdout=stdout)
                 except Exception as err:
@@ -365,7 +365,7 @@ def process_crashrpt_reports_directory(reports_dir, verbose = False):
     report_summaries = []
     for upload_time, uuid in sorted(uuids):
         reportdir = pathjoin(reports_dir, uuid + '.unzipped')
-        report_summaries.append(process_crashrpt_report(reportdir, uuid, upload_time, verbose))
+        report_summaries.append(process_crashrpt_report(reportdir, uuid, upload_time, args))
 
     # Then print summaries
     print('\n\n\n######### Summary #########')
@@ -379,7 +379,10 @@ if __name__ == '__main__':
     parser.add_argument("report_dir", help="A directory containing either crashrpt .zip files, or a single unzipped report (must contain crashrpt.xml).")
     parser.add_argument("syms_cache_dir", help="Directory to which to download and"
                         " extract build symbols to. Will be created if it doesn't exist.")
-    parser.add_argument("-v", help="Verbose output: show stderr output of invoked programs", action="store_true")
+    parser.add_argument("-v", "--verbose", help="Verbose output: show stderr output of invoked programs", action="store_true")
+    parser.add_argument("-d", "--stack_detail", help="Show details of stack contents in stacktraces, including function pointers. "
+                        "Might help to decipher corrupt stacks or when the crash is in a Windows system dll. "
+                        "(Source code will not be intermingled and stacktrace summaries won't be produced.)", action="store_true")
     args = parser.parse_args()
 
     SYMS_CACHE_DIR = args.syms_cache_dir  # Global
@@ -387,6 +390,6 @@ if __name__ == '__main__':
     xmlfile = os.path.join(args.report_dir, 'crashrpt.xml')
     if os.path.isfile(xmlfile):
         upload_time = time.gmtime(os.stat(xmlfile).st_mtime)
-        process_crashrpt_report(args.report_dir, "???", upload_time, verbose = args.v)
+        process_crashrpt_report(args.report_dir, "???", upload_time, args)
     else:
-        process_crashrpt_reports_directory(args.report_dir, verbose = args.v)
+        process_crashrpt_reports_directory(args.report_dir, args)

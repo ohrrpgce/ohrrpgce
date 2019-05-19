@@ -141,7 +141,7 @@ def get_source_around_line(git_dir, gitrev, filename, lineno, context = 1):
         ret.append(cursor + '%4d ' % lineidx + lines[lineidx])
     return ret
 
-def analyse_minidump(minidump, pdb, breakpad_cache_dir, git_dir = None, gitrev = None, verbose = False):
+def analyse_minidump(minidump, pdb, breakpad_cache_dir, git_dir = None, gitrev = None, verbose = False, stack_detail = False):
     """
     Analyse a minidump file using Breakpad.
     Returns a triple (stacktrace, crash_summary, info) where:
@@ -154,12 +154,20 @@ def analyse_minidump(minidump, pdb, breakpad_cache_dir, git_dir = None, gitrev =
     breakpad_cache_dir: where Breakpad .sym files should be cached
     git_dir:            path to git repo containing the source code
     gitrev:             git hash of the commit
+    stack_detail:       if true return all the output from minidump_stackwalk
+                        including stack contents, but no crash_summary or info.
     """
     produce_breakpad_symbols_windows(pdb, breakpad_cache_dir)
 
     print('Reading minidump...          ', file=sys.stderr, end='\r')
+    stackwalk_args = [STACKWALK, '-m', minidump, breakpad_cache_dir]
+    if stack_detail:
+        # Instead of -m for machine-readable, produce human-readable output including stack contents
+        stackwalk_args[1] = '-s'
     stderr = sys.stderr if verbose else subprocess.DEVNULL
-    output = subprocess.check_output([STACKWALK, '-m', minidump, breakpad_cache_dir], stderr=stderr).decode('latin-1')
+    output = subprocess.check_output(stackwalk_args, stderr=stderr).decode('latin-1')
+    if stack_detail:
+        return [output], '', ''  # Can't produce summary
 
     info = []
     bt = []
@@ -185,13 +193,13 @@ def analyse_minidump(minidump, pdb, breakpad_cache_dir, git_dir = None, gitrev =
             # One stack in the stacktrace for the signalling thread
             thread, framenum, module, function, filename, linenum, offset = line.split('|')
             function = demangle_name(function)
-            if int(framenum) == 12:
+            if int(framenum) == 20:
                 bt.append('[Truncated further frames]')
                 break
             if linenum:
                 bt.append('@ %-20s \t(%s:%s + %s)' % (function, filename, linenum, offset) )
                 shortbt.append('%s(%s:%s)' % (function, filename, linenum) )
-                if git_dir:
+                if int(framenum) < 10 and git_dir:
                     bt += get_source_around_line(git_dir, gitrev, filename, int(linenum), 1)
             elif function:
                 tmp = '(%s)' % (filename,) if filename else ''
