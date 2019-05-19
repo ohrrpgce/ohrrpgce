@@ -741,7 +741,10 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
 
  IF bat.targ.mode = targAUTO THEN
   'battle_confirm_targets doesn't get called, so some logic from that needs to be duplicated here
-  update_turn_delays_in_attack_queue bat.hero_turn
+  'NOTE: battle_confirm_targets should be updated to match, if this block is changed.
+  IF bat.turn.mode = turnACTIVE THEN
+   update_turn_delays_in_attack_queue bat.hero_turn
+  END IF
   autotarget bat.hero_turn, bslot(bat.hero_turn).attack - 1, bslot()
   hero_attack_targetting_done bat, bslot()
   EXIT SUB
