@@ -1,7 +1,7 @@
 #!/bin/env python3
 """
 This is a utility for analyzing crashrpt crash/bug reports, which are .zip
-files containing a Windows minidump, crashrpt xml file, {c,g}_debug.txt, a and
+files containing a Windows minidump, crashrpt xml file, {c,g}_debug.txt, and
 possibly more.  The minidump is analyzed using Breakpad (see
 minidump_stacktrace.py).
 
@@ -15,7 +15,7 @@ Optional:
 -git and a copy of the OHRRPGCE git repo (which this file should be part of)
 
 This utility was written to run on Linux, but should run on Windows too with
-some simple changes.
+some simple changes (untested).
 
 Obtain the crash reports from hamsterrepublic.com if you have ssh access,
 or just ask for them.
@@ -209,10 +209,10 @@ def process_crashrpt_report(reportdir, uuid, upload_time, verbose = False):
     root = tree.getroot()
 
     real_uuid = root.find('CrashGUID').text
-    if real_uuid != uuid:
+    if real_uuid != uuid and uuid != '???':
         print('Warning! UUID ' + real_uuid + ' found in report ' + reportdir)
 
-    print('\n\n\n######### Report ' + uuid + ' #########')
+    print('\n\n\n######### Report ' + real_uuid + ' #########')
     print_attr('Upload time', time.strftime('%Y-%m-%d %H:%M:%S UTC', upload_time))
     print_attr('Crash time', root.find('SystemTimeUTC').text.replace('T', ' ').replace('Z', ' UTC'))
 
@@ -375,8 +375,8 @@ def process_crashrpt_reports_directory(reports_dir, verbose = False):
         print('%-6s  %s  %-27s  %s' % items)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Print summary of CrashRpt reports. See comments at top of file.")
-    parser.add_argument("reports_dir", help="A directory containing crashrpt .zip files.")
+    parser = argparse.ArgumentParser(description="Print summary of one or more CrashRpt reports. See comments at top of file.")
+    parser.add_argument("report_dir", help="A directory containing either crashrpt .zip files, or a single unzipped report (must contain crashrpt.xml).")
     parser.add_argument("syms_cache_dir", help="Directory to which to download and"
                         " extract build symbols to. Will be created if it doesn't exist.")
     parser.add_argument("-v", help="Verbose output: show stderr output of invoked programs", action="store_true")
@@ -384,4 +384,9 @@ if __name__ == '__main__':
 
     SYMS_CACHE_DIR = args.syms_cache_dir  # Global
 
-    process_crashrpt_reports_directory(args.reports_dir, verbose = args.v)
+    xmlfile = os.path.join(args.report_dir, 'crashrpt.xml')
+    if os.path.isfile(xmlfile):
+        upload_time = time.gmtime(os.stat(xmlfile).st_mtime)
+        process_crashrpt_report(args.report_dir, "???", upload_time, verbose = args.v)
+    else:
+        process_crashrpt_reports_directory(args.report_dir, verbose = args.v)
