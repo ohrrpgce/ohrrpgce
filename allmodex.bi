@@ -44,6 +44,7 @@ Type Frame
 	mask as ubyte ptr  'Same shape as image. If not NULL, nonzero bytes in mask are opaque, rather
 	                   'than nonzero bytes in image. Most Frames don't have a mask.
 	refcount as int32  'see frame_unload in particular for documentation
+			   'Must be NOREFC if allocated on stack rather than heap (frame_load/etc)
 	arraylen as int32  'how many frames were contiguously allocated in this frame array
 	frameid as int32   'Used by frames in a frameset (always in increasing order): alternative to frame number
 	base as Frame ptr    'if a view, the Frame which actually owns this memory

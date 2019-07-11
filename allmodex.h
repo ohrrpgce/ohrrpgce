@@ -33,6 +33,7 @@ typedef struct Frame {
 	unsigned char *mask;  //Same shape as image. If not NULL, nonzero bytes in mask are opaque, rather
 	                      //than nonzero bytes in image. Most Frames don't have a mask.
 	int refcount;  //see sprite_unload in particular for documentation
+		       //Must be NOREFC if allocated on stack rather than heap (frame_load/etc)
 	int arraylen;  //how many frames were contiguously allocated in this frame array
 	int frameid;   //Used by frames in a frameset (always in increasing order): alternative to frame number
 	Frame *base;   //the Frame which actually owns this memory

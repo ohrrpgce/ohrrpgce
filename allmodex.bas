@@ -3673,7 +3673,7 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 	dim ty as integer
 	dim tx as integer
 	dim todraw as integer
-	dim tileframe as frame
+	dim tileframe as Frame
 
 	get_cliprect(dest)  'Set clipping Frame
 
@@ -3695,6 +3695,7 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 	xoff = -calc
 	xstart = xpos
 
+	tileframe.refcount = NOREFC
 	tileframe.w = 20
 	tileframe.h = 20
 	tileframe.pitch = 20
