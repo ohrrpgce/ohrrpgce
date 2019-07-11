@@ -1480,19 +1480,20 @@ FUNCTION numeric_string_compare CDECL (a as string, b as string, case_insen as b
    'Two numbers which both don't start with a leading zero.
    'If either number has a leading zero, then the one with the most leading zeroes
    'is first, eg "09" before "1". Avoids having to check length if the values are equal.
-   DIM as integer numa, numb
+   DIM as longint numa, numb
    DIM as zstring ptr aftera, afterb
    'strtol is quite similar to VALINT
-   numa = strtol(ptra, @aftera, 10)
-   numb = strtol(ptrb, @afterb, 10)
+   numa = strtoll(ptra, @aftera, 10)
+   numb = strtoll(ptrb, @afterb, 10)
    IF numa < numb THEN
     RETURN -1
    ELSEIF numa > numb THEN
     RETURN 1
-   ELSEIF numa = LONG_MAX THEN
-    'If overflowed, don't compare by value. (Can't overflow, because we ignore negative signs)
+   ELSEIF numa = LLONG_MAX THEN
+    'If overflowed, don't compare by value, but by digits.
+    '(Can't allow numa/numb to overflow, because we ignore negative signs)
    ELSE
-    'Skip over the
+    'Skip over the number
     ptra = aftera
     ptrb = afterb
     CONTINUE DO
@@ -1519,8 +1520,11 @@ startTest(numeric_string_compare)
  IF numeric_string_compare("abc", "aBc", NO) <> 1 THEN fail
  IF numeric_string_compare("ab5c", "ab0d") <> 1 THEN fail
  IF numeric_string_compare("ab5c", "ab5d") <> -1 THEN fail
- IF numeric_string_compare("12345678900", "12345678900") <> 0 THEN fail
- IF numeric_string_compare("123456789000", "12345678900") <> 1 THEN fail
+ IF numeric_string_compare("12345678900", "12345678900") <> 0 THEN fail  '32-bit int
+ IF numeric_string_compare("1234567890000", "1234567890000") <> 0 THEN fail  '64-bit int
+ IF numeric_string_compare("1234567890000", "10000000000000") <> -1 THEN fail  '64-bit int
+ 'Note: huge integers aren't compared by value
+ IF numeric_string_compare("9223372036854775809", "9223372036854775808") <> 1 THEN fail  '>64-bit int
  IF numeric_string_compare("09", "1") <> -1 THEN fail
 endTest
 #ENDIF
