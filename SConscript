@@ -528,6 +528,11 @@ if gengcc:
         # (The following is not in gcc 4.2)
         # Ignore warnings due to using an array lbound > 0
         GENGCC_CFLAGS.append ('-Wno-array-bounds')
+    if gccversion >= 900:
+        # Workaround an error. See https://sourceforge.net/p/fbc/bugs/904/
+        GENGCC_CFLAGS.append ('-Wno-format')
+    # Ignore annoying warning which is an fbc bug
+    GENGCC_CFLAGS.append ('-Wno-missing-braces')
     # Make sure we can print stack traces
     # Also -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
     GENGCC_CFLAGS.append ('-fno-omit-frame-pointer')

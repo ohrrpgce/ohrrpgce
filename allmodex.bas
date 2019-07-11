@@ -6417,8 +6417,9 @@ private sub loadbmp24(bf as integer, surf as Surface ptr)
 		sptr = surf->pColorData + y * surf->pitch
 		for x as integer = 0 to surf->width - 1
 			get #bf, , pix
-			'First 3 bytes of RGBTRIPLE are the same as RGBcolor
-			*sptr = *cast(RGBcolor ptr, @pix)
+			sptr->r = pix.rgbtRed
+			sptr->g = pix.rgbtGreen
+			sptr->b = pix.rgbtBlue
 			sptr->a = 255
 			sptr += 1
 		next

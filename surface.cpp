@@ -29,7 +29,7 @@ mutex surfaceMutex;
 
 // Print out all Surfaces, return the number
 int gfx_debugSurfaces_SW() {
-	debuginfo("%d Surfaces:", g_surfaces.size());
+	debuginfo("%d Surfaces:", (int)g_surfaces.size());
 	for (auto pSurf : g_surfaces) {
 		debuginfo("%p %d*%d refc=%d view=%d 32bit=%d base_surf=%p", pSurf, pSurf->width, pSurf->height, pSurf->refcount, pSurf->isview, (pSurf->format == SF_32bit), pSurf->base_surf);
 	}
