@@ -51,7 +51,10 @@ Type Frame
 	cacheentry as SpriteCacheEntryFwd ptr  'First Frame in array only
 	cached:1 as int32  '(not set for views onto cached sprites) integer, NOT bool! First Frame in array only.
 	arrayelem:1 as int32  'not the first frame in a Frame array
-	isview:1 as int32  'View of another Frame. NOT true for surface views!
+	isview:1 as int32  'View of another Frame (which might be backed by a Surface, in which we will be
+	                   'backed by a Surface too, created with gfx_surfaceCreateView).
+	                   'Aside from that, this is NOT true for Surface-backed Frames which aren't views!
+	                   'If this is a view, then 'image' and 'mask' mustn't be freed, but 'surf' must be.
 	noresize:1 as int32  '(Video pages only.) Don't resize this page to the window size
 
 	surf as Surface ptr  'If not NULL, this is a Surface-backed Frame, and image/mask are NULL,

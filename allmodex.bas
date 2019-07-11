@@ -24,11 +24,11 @@
 using Reload
 
 #ifdef IS_GAME
- #include "game.bi"  'For exit_gracefully
+	#include "game.bi"  'For exit_gracefully
 #endif
 
 #ifdef IS_CUSTOM
- #include "cglobals.bi"  'For slave_channel
+	#include "cglobals.bi"  'For slave_channel
 #endif
 
 #ifdef __FB_ANDROID__
@@ -3219,6 +3219,10 @@ private function draw_allmodex_overlays (page as integer) as bool
 		basic_textbox overlay_message, uilook(uiText), page, rBottom + ancBottom - 2, , YES
 		dirty = YES
 	end if
+
+	' For chasing Surface memory leaks
+	'edgeprint gfx_debugSurfaces_SW() & " surfaces", pLeft, pBottom, uilook(uiText), page
+	'dirty = YES
 
 	return dirty
 end function
@@ -8433,11 +8437,13 @@ function frame_new_view(spr as Frame ptr, x as integer, y as integer, w as integ
 		.pitch = spr->pitch
 
 		if spr->surf then
+			'.surf must be destroyed (refcount decremented) when this Frame is unloaded
 			if gfx_surfaceCreateView(spr->surf, x, y, .w, .h, @.surf) then
 				deallocate ret
 				return NULL
 			end if
 		else
+			'These must not be freed when this Frame is unloaded
 			.image = spr->image + .pitch * y + x
 			if spr->mask then
 				.mask = spr->mask + .pitch * y + x
@@ -8534,9 +8540,9 @@ end sub
 private sub frame_delete_members(f as Frame ptr)
 	if f->arrayelem then debug "can't free arrayelem!": exit sub
 	for i as integer = 0 to f->arraylen - 1
-		deallocate(f[i].image)
+		deallocate(f[i].image)  'May be NULL
 		f[i].image = NULL
-		deallocate(f[i].mask)
+		deallocate(f[i].mask)  'May be NULL
 		f[i].mask = NULL
 		if f[i].surf then gfx_surfaceDestroy(@f[i].surf)
 		f[i].refcount = FREEDREFC  'help to detect double free
@@ -8915,6 +8921,10 @@ sub frame_unload cdecl(ppfr as Frame ptr ptr)
 				exit sub
 			end if
 			if .isview then
+				if .surf then
+					'View onto surf, so decrement its refcount
+					gfx_surfaceDestroy(@.surf)
+				end if
 				frame_unload @.base
 				deallocate(fr)
 			else
@@ -8926,6 +8936,7 @@ sub frame_unload cdecl(ppfr as Frame ptr ptr)
 				if .cached then
 					sprite_to_B_cache(fr->cacheentry)
 				else
+					'Frees .surf
 					frame_freemem(fr)
 				end if
 			end if

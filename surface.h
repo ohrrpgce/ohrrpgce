@@ -74,6 +74,7 @@ extern "C"
 #endif
 
 	// Software implementation
+	int gfx_debugSurfaces_SW( );
 	int gfx_surfaceCreate_SW( int32_t width, int32_t height, enum SurfaceFormat format, enum SurfaceUsage usage, Surface** ppSurfaceOut );
 	int gfx_surfaceCreateView_SW( Surface *pSurfaceIn, int x, int y, int width, int height, Surface** ppSurfaceOut );
 	int gfx_surfaceCreatePixelsView_SW( void *pixels, int width, int height, int pitch, enum SurfaceFormat format, Surface** ppSurfaceOut );

@@ -40,7 +40,10 @@ typedef struct Frame {
 	SpriteCacheEntry *cacheentry;  //First Frame in array only
 	int cached:1;  //(not set for views onto cached sprites) integer, NOT bool! First Frame in array only.
 	int arrayelem:1; //not the first frame in a frame array
-	int isview:1;    //View of another Frame. NOT true for surface views!
+	int isview:1;    //View of another Frame (which might be backed by a Surface, in which we will be
+	                 //backed by a Surface too, created with gfx_surfaceCreateView).
+	                 //Aside from that, this is NOT true for Surface-backed Frames which aren't views!
+	                 //If this is a view, then 'image' and 'mask' mustn't be freed, but 'surf' must be.
 	int noresize:1;  //(Video pages only.) Don't resize this page to the window size
 
 	Surface *surf;   //If not NULL, this is a Surface-backed Frame, and image/mask are NULL,

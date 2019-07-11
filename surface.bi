@@ -145,6 +145,7 @@ extern "C"
 	declare function rotateSurface90Degrees(src as Surface ptr, numClockwiseTurns as integer) as Surface ptr
 
 	'' The following software-rasterised implementation of the above interface is in surface.cpp.
+	declare function gfx_debugSurfaces_SW ( ) as integer
 	declare function gfx_surfaceCreate_SW ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr ) as integer
 	declare function gfx_surfaceCreatePixelsView_SW ( byval pixels as any ptr, byval width as integer, byval height as integer, byval pitch as integer, byval format as SurfaceFormat, byval ppSurfaceOut as Surface ptr ptr) as integer
 	declare function gfx_surfaceCreateFrameView_SW ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
