@@ -17,6 +17,7 @@ FBC=fbc
 
 #ARCH=x86
 ARCH=arm
+#ARCH=arm64
 
 NDK=/opt/android-ndk-r8e
 #NDK=/opt/android-ndk-r12b
@@ -34,14 +35,15 @@ TOOLCHAIN=$HOME/local/android-toolchain-r8e-api4-arm
 #TOOLCHAIN=$HOME/local/android-toolchain-r12b-api17-x86
 # Otherwise, set to location of toolchain inside the NDK, e.g.
 #TOOLCHAIN=$NDK/toolchains/arm-linux-androideabi-4.6/prebuilt/$HOST
+#TOOLCHAIN=$NDK/toolchains/aarch64-linux-androideabi-4.9/prebuilt/$HOST
 #TOOLCHAIN=$NDK/toolchains/x86-4.6/prebuilt/$HOST
 
 echo $TOOLCHAIN
 
 # For new NDKs, e.g. r12
-#OLDNDK=
+OLDNDK=
 # For older NDKs, e.g. r8
-OLDNDK=YES
+#OLDNDK=YES
 
 ########################## Install stand-alone toolchain if it hasn't been already
 
@@ -49,18 +51,20 @@ OLDNDK=YES
 if [ $ARCH = "arm" ]; then
     TARGET=arm-linux-androideabi
     API=4
+    if [ ! $OLDNDK ]; then
+        # For newer NDKs, eg r12b
+        # r12b supports api 9 at a minimum
+        API=9
+    fi
+elif [ $ARCH = "arm64" ]; then
+    TARGET=aarch64-linux-androideabi
+    API=21  # Introduced aarch64
 elif [ $ARCH = "x86" ]; then
     TARGET=i686-linux-android
-    API=9
+    API=9   # Introduced x86
 else
     echo "Bad ARCH value"
     exit 1
-fi
-
-if [ ! $OLDNDK ]; then
-    # For newer NDKs, eg r12b
-    # r12b supports api 9 at a minimum
-    API=9
 fi
 
 if [ $STANDALONE ]; then

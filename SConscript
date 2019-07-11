@@ -84,9 +84,10 @@ if 'android-source' in ARGUMENTS:
     FBFLAGS += ["-r"]
     if target:
         print "Don't use 'target' and 'android-source' together. Use only 'target' for real cross-compiling."
-        # You can use arch however, since it is passed to the .apk build system.
+        print "You can use arch=arm|arm64|x86|x86_64|etc however."
         Exit(1)
     target = 'android'
+    default_arch = 'arm'
     android_source = True
     linkgcc = False
 
@@ -120,7 +121,9 @@ if target.count('-') >= 2:
     target_prefix = target + '-'
 
 if arch == '32':
-    if 'x86' in default_arch:
+    if android:
+        arch = 'armeabi'  # This might be obsolete?
+    elif 'x86' in default_arch:
         arch = 'x86'
     else:
         arch = 'armv7-a'
@@ -136,6 +139,9 @@ if arch in ('armeabi', 'androideabi'):
 if arch in ('arm', 'armv7a', 'armeabi-v7a'):
     # Again, armeabi-v7a is an android abi.
     arch = 'armv7-a'
+if arch in ('arm64', 'aarch64', 'arm64-v8a'):
+    # arm64-v8a is an android abi. aarch64 is the arch name recognised by FB.
+    arch = 'aarch64'
 if not arch:
     if target_prefix:
         # The arch is implied in the target triple. Let fbc handle it, parsing the
@@ -484,8 +490,10 @@ if arch == 'armv5te':
     FBFLAGS += ["-arch", arch]
 elif arch == 'armv7-a':
     FBFLAGS += ["-arch", arch]
+elif arch == 'aarch64':
+    FBFLAGS += ["-arch", arch]
 elif arch == 'x86':
-    FBFLAGS += ["-arch", "686"]  # "x86" alias will only be added in FB 1.06
+    FBFLAGS += ["-arch", "686"]  # "x86" alias not recognised by FB yet
     CFLAGS.append ('-m32')
     if not clang:
         # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
@@ -721,8 +729,8 @@ if android_source:
         # It would be better to change that.
         NDK_CFLAGS = CFLAGS[:]
         NDK_CFLAGS.append('--std=c99')  # Needed for compiling array.c, blit.c
-        NDK_CFLAGS += ('-Wno-unused-label -Wno-unused-but-set-variable '
-                       '-Wno-unused-variable -Wno-unused-function'.split())
+        NDK_CFLAGS += ('-Wno-unused-label -Wno-unused-but-set-variable -Wno-maybe-uninitialized '
+                       '-Wno-unused-variable -Wno-unused-function -Wno-missing-braces'.split())
         if arch in ('x86', 'x86_64'):
             NDK_CFLAGS.append("-masm=intel")  # for fbc's generated inline assembly
         fil.write('AppCflags="%s"\n' % ' '.join(NDK_CFLAGS))
@@ -731,6 +739,12 @@ if android_source:
             abi = 'armeabi'
         elif arch == 'armv7-a':
             abi = 'armeabi-v7a'
+        elif arch == 'aarch64':
+            abi = 'arm64-v8a'
+            # TODO: To support both 32 and 64 bit ARM apparently need this:
+            #abi = 'arm64-v8a,armeabi'
+            # to set APP_ABI in project/jni/Settings.mk to that value, but that
+            # won't work, need to separately cross-compile FB to C for each arch.
         else:
             abi = arch
         fil.write('MultiABI="%s"\n' % abi)
@@ -1376,8 +1390,9 @@ Options:
 Experimental options:
   linkgcc=0           Link using fbc instead of g++ (this only works for a
                       few targets).
-  android-source=1    Used as part of the Android build process for Game/Custom
-                      (see wiki)
+  android-source=1    Used as part of the Android build process for Game/Custom.
+                      (See wiki for explanation.) Note: defaults to the original
+                      armeabi ABI, which is becoming obsolete, c.f. 'arch='.
   glibc=0|1           Override automatic detection (just checks for Linux).
   target=...          Set cross-compiling target. Passed through to fbc. Either
                       a toolchain prefix triplet such as arm-linux-androideabi
@@ -1387,13 +1402,15 @@ Experimental options:
                       linux-arm). Current (default) value: """ + target + """
   arch=ARCH           Specify target CPU type. Overrides 'target'. Options
                       include:
-                       x86, x86_64
-                       arm or armeabi     Older 32bit ARM devices w/o FPUs.
+                       x86, x86_64        x86 Desktop PCs, Android devices.
+                       arm or armeabi     Older 32-bit ARM devices w/o FPUs.
                            or arm5vte     (Android default.)
-                       armv7-a            Newer 32 bit ARM devices w/ FPUs,
+                       armv7-a            Newer 32-bit ARM devices w/ FPUs,
                                           like RPi2+.
+                       arm64 or aarch64   64-bit ARM devices.
+                         or arm64-v8a
                        32 or 64           32 or 64 bit variant of the default
-                                          arch.
+                                          arch (x86 or ARM).
                       Current (default) value: """ + arch + """
   portable=1          (For Linux) Try to build portable binaries, and test them.
 
