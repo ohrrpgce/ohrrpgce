@@ -9,6 +9,7 @@
 
 #include "mutex.hpp"
 #include "surface.h"
+#include "allmodex.h"
 #include "gfxRender.hpp"
 #include "rasterizer.hpp"
 #include "misc.h"

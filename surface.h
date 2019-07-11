@@ -2,7 +2,6 @@
 #define SURFACE_H
 
 #include <stdint.h>
-#include "allmodex.h"
 
 typedef union {
 	struct {
@@ -27,6 +26,8 @@ enum SurfaceUsage
 };
 
 typedef struct Surface Surface;
+typedef struct Frame Frame;
+typedef struct Palette16 Palette16;
 
 struct Surface
 {

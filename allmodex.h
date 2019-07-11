@@ -4,7 +4,7 @@
 #define ALLMODEX_H
 
 #include <stdint.h>
-//#include "surface.h"
+#include "surface.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,14 +15,14 @@ typedef struct {
 	int h;
 } XYPair;
 
-typedef struct {
+typedef struct Palette16 {
 	int numcolors;
 	int refcount;            //private
 	unsigned char col[256];  //indices into the master palette
 } Palette16;
 
-struct SpriteCacheEntry;
-struct SpriteSet;
+typedef struct SpriteCacheEntry SpriteCacheEntry;
+typedef struct SpriteSet SpriteSet;
 
 typedef struct Frame {
 	int w;
@@ -35,20 +35,20 @@ typedef struct Frame {
 	int refcount;  //see sprite_unload in particular for documentation
 	int arraylen;  //how many frames were contiguously allocated in this frame array
 	int frameid;   //Used by frames in a frameset (always in increasing order): alternative to frame number
-	struct _Frame *base;   //the Frame which actually owns this memory
-	struct SpriteCacheEntry *cacheentry;  //First Frame in array only
+	Frame *base;   //the Frame which actually owns this memory
+	SpriteCacheEntry *cacheentry;  //First Frame in array only
 	int cached:1;  //(not set for views onto cached sprites) integer, NOT bool! First Frame in array only.
-	int arrayelem:1;  //not the first frame in a frame array
+	int arrayelem:1; //not the first frame in a frame array
 	int isview:1;    //View of another Frame. NOT true for surface views!
 	int noresize:1;  //(Video pages only.) Don't resize this page to the window size
 
-	struct Surface *surf;      //If not NULL, this is a Surface-backed Frame, and image/mask are NULL,
-	                           //but all other members are correct (including .pitch), and match the Surface.
-	                           //(View of a WHOLE Surface.) Holds a single reference to surf.
+	Surface *surf;   //If not NULL, this is a Surface-backed Frame, and image/mask are NULL,
+	                 //but all other members are correct (including .pitch), and match the Surface.
+	                 //(View of a WHOLE Surface.) Holds a single reference to surf.
 
-	struct SpriteSet *sprset;  //if not NULL, this Frame array is part of a SpriteSet which
-	                           //will need to be freed at the same time
-	                           //First Frame in array only.
+	SpriteSet *sprset;  //if not NULL, this Frame array is part of a SpriteSet which
+	                    //will need to be freed at the same time
+	                    //First Frame in array only.
 } Frame;
 
 Frame* frame_reference(Frame *p);
