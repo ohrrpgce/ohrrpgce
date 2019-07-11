@@ -134,9 +134,11 @@ FUNCTION individual_item_editor(item_id as integer) as integer
  DIM bitnames(0 TO 47) as string
  FOR i as integer = 0 TO 7
   'Lots of obsolete elemental bits
-  bitnames(i) = "##Weak against " & elementnames(i) & " (obsolete)"
-  bitnames(i + 8) = "##Strong against " & elementnames(i) & " (obsolete)"
-  bitnames(i + 16) = "##Absorbs " & elementnames(i) & " (obsolete)"
+  DIM elname as string
+  elname = IIF(i <= UBOUND(elementnames), elementnames(i), "element" & i)
+  bitnames(i) = "##Weak against " & elname & " (obsolete)"
+  bitnames(i + 8) = "##Strong against " & elname & " (obsolete)"
+  bitnames(i + 16) = "##Absorbs " & elname & " (obsolete)"
  NEXT
 
  DIM selectst as SelectTypeState
