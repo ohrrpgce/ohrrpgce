@@ -1378,22 +1378,20 @@ function find_include_file_globally(string include_name)
   if file_exists(compiler_dir&"../share/games/ohrrpgce/"&include_name) then
     return normalize_filename(compiler_dir&"../share/games/ohrrpgce/"&include_name)
   end if
-  return ""
+  --Failure: return filename, used for error messages
+  return include_name
 end function
 
 ---------------------------------------------------------------------------
 
 --Search for an include file
 function find_include_file(string include_name)
+  sequence ret
   if equal(include_name,"plotscr.hsd") or equal(include_name,"scancode.hsi") then
     --Prefer to use fundamental include files found in global locations, because
     --plotscr.hsd and scancode.hsi will be exported too, when exporting scripts
     --from Custom.
-    sequence ret
-    ret=find_include_file_globally(include_name)
-    if length(ret) then
-      return ret
-    end if
+    return find_include_file_globally(include_name)
   end if
   --try source directory
   if file_exists(path_only(source_file)&include_name) then
