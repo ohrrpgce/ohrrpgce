@@ -778,7 +778,7 @@ FUNCTION widget_editor_edit_node(byref st as WEState, byval kind as integer, byv
    END IF
   CASE wedBOOL:
    DIM b as integer = GetInteger(node) <> 0
-   IF keyval(ccLeft) > 1 ORELSE keyval(ccRight) > 1 ORELSE enter_or_space() THEN
+   IF toggle_item(st.state) THEN
     SetContent node, (NOT b)
     changed = YES
    END IF

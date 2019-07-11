@@ -433,7 +433,7 @@ END FUNCTION
 FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
  DIM num as integer = 0
  FOR i as integer = 0 to UBOUND(st.map.npc)
-  IF ABS(st.map.npc(i).id) - 1 = id THEN num += 1
+  IF st.map.npc(i).id - 1 = id THEN num += 1
  NEXT i
  RETURN num
 END FUNCTION
@@ -1295,12 +1295,12 @@ DO
     NEXT i
    END IF
 
-   'Jump between NPCS
+   'Jump between NPC copies
    IF keyval(scCtrl) = 0 ANDALSO keyval(scC) > 1 THEN
-    FOR i as integer = 0 to UBOUND(st.map.npc)
+    FOR i as integer = 0 TO UBOUND(st.map.npc)
      loopvar st.npc_inst_iter, 0, UBOUND(st.map.npc)
      WITH st.map.npc(st.npc_inst_iter)
-      IF ABS(.id) - 1 = st.cur_npc THEN
+      IF .id - 1 = st.cur_npc THEN
        mapedit_move_cursor st, .pos \ tilesize
        EXIT FOR
       END IF
@@ -1366,6 +1366,7 @@ DO
     IF npc_d = -1 THEN
      DIM npci as NPCIndex = mapedit_npc_at_spot(st, st.pos)
      IF npci > -1 THEN
+      'Delete
       WITH st.map.npc(npci)
        .id = 0
        .x = 0
@@ -2405,7 +2406,7 @@ PRIVATE SUB mapedit_list_npcs_by_tile_update (st as MapEditState, pos as XYPair,
  FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
    IF .id > 0 THEN
-    IF .x = pos.x * 20 AND .y = pos.y * 20 THEN
+    IF .pos = pos * tilesize THEN
      DIM s as string
      s = "NPC ID=" & (.id - 1) & " facing " & dir_str(.dir)
      a_append menu(), s
@@ -2479,7 +2480,7 @@ FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as NPCIndex
  FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
    IF .id > 0 THEN
-    IF .x = pos.x * 20 AND .y = pos.y * 20 THEN RETURN i
+    IF .pos = pos * tilesize THEN RETURN i
    END IF
   END WITH
  NEXT i
@@ -5688,6 +5689,7 @@ END SUB
 '==========================================================================================
 
 
+'Copy all tiles in a rect in tilemap (all visible layers), passmap, foemap, zonemap into a changelist
 FUNCTION create_changelist(st as MapEditState, rect as RectType) as MapEditUndoTile vector
  DIM changelist as MapEditUndoTile vector
  v_new changelist
@@ -6141,7 +6143,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
    CASE 10'--tag conditionals
     tag_grabber npcdata.tag2, ed.state
    CASE 11'--one-time-use tag
-    IF keyval(ccLeft) > 1 OR keyval(ccRight) > 1 OR enter_space_click(ed.state) THEN
+    IF toggle_item(ed.state) THEN
      onetimetog npcdata.usetag
     END IF
    CASE 12'--script

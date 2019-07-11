@@ -299,7 +299,8 @@ TYPE NPCInst
     pos as XYPair
   END UNION
   z as integer      '            Does not include foot offset
-  id as integer     'npcl+600    0 if unused, ID + 1 for normal NPCs, -ID - 1 for hidden NPCs
+  id as integer     'npcl+600    0 if unused, ID + 1 for normal NPCs, -ID - 1 for hidden NPCs;
+                    '            negative IDs occur in Game only, never Custom or on disk.
                     '  (So NOT an NPCTypeID)
                     '  NOTE: NPCs with invalidly high ID numbers (on incompletely loaded maps)
                     '        are automatically hidden (and obviously unsafe to unhide)

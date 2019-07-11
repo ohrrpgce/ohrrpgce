@@ -25,7 +25,7 @@ DECLARE SUB shop_init_stf (byval shop_id as integer, stuf as ShopStuffState, stu
 DECLARE FUNCTION read_shop_stuff_count (byval shop_id as integer) as integer
 DECLARE SUB write_shop_stuff_count (byval shop_id as integer, byval thing_last_id as integer)
 DECLARE SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_last_id as integer)
-DECLARE SUB update_shop_stuff_type (byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name_and_price as integer=NO)
+DECLARE SUB update_shop_stuff_type (byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name_and_price as bool=NO)
 DECLARE SUB shop_menu_update (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
@@ -437,7 +437,7 @@ SUB shop_init_stf(byval shop_id as integer, stuf as ShopStuffState, stufbuf() as
  shop_save_stf shop_id, stuf, stufbuf()
 END SUB
 
-SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name_and_price as integer=NO)
+SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name_and_price as bool=NO)
  '--Re-load default names and default prices
  '--also reloads all limits
  SELECT CASE stufbuf(17)
