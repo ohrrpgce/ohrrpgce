@@ -13,7 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
---3Ud 2019-06-23 Windows: double-include detection now case-insensitive
+--3Ud 2019-07-12 Windows: double-include detection now case-insensitive
 --3Uc 2019-03-25 Enforce at most 32 args allowed
 --3Ub 2018-11-17 Fix some error messages
 --3Ua 2018-08-18 Script can also have attributes
