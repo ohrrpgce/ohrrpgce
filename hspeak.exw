@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ud 2019-06-23 Windows: double-include detection now case-insensitive
 --3Uc 2019-03-25 Enforce at most 32 args allowed
 --3Ub 2018-11-17 Fix some error messages
 --3Ua 2018-08-18 Script can also have attributes
@@ -181,7 +182,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Uc"
+constant COMPILER_SUB_VERSION="Ud"
 constant COPYRIGHT_DATE="2019"
 
 --Known single-character commandline options
@@ -1345,15 +1346,20 @@ end procedure
 
 --Load and lex, recursively finding includes
 procedure load_and_lex_source(string filename, string reading_how, srcpos pos, sequence include_stack)
-  integer include_num
+  string canon_filename
 
-  if find(filename,include_stack) then
+  --We don't really support \ in paths on Unix.
+  canon_filename=normalize_filename(filename)
+  ifdef WINDOWS then
+    canon_filename=hs_lower(canon_filename)
+  end ifdef
+
+  if find(canon_filename,include_stack) then
     src_error(sprintf_utf("File "&COLPNK&"%s"&COLRED&" is being included recursively",{filename}),pos)
   end if
-  include_stack&={filename}
+  include_stack&={canon_filename}
 
-  include_num=find(filename,column(file_list,FILE_NAME))
-  if include_num then
+  if find(canon_filename,column(file_list,FILE_NAME)) then
     --This exact same include file has already been included.
     --Silently ignore this include. Double includes are allowed because of automatic inclusion.
     --src_warn(sprintf_utf("File "&COLPNK&"%s"&COLRED&" is being included multiple times",{include_name}),pos)
