@@ -799,10 +799,10 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
   'but breaks sprite dissolves
   IF vpages_are_32bit THEN
    switch_to_8bit_vpages
-   show_overlay_message "Switched to 8-bit color"
+   show_overlay_message "Switched to 8-bit color", 1.2
   ELSE
    switch_to_32bit_vpages
-   show_overlay_message "Switched to 32-bit color"
+   show_overlay_message "Switched to 32-bit color", 1.2
   END IF
   state.need_update = YES  'smoothing menu item needs update
  END IF
@@ -1244,10 +1244,10 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    END IF
   CASE erPercentgrabber
    DIM n as double ptr = rule.dataptr
-   state.need_update OR= percent_grabber(*n, "", rule.lower, rule.upper, 4, YES)
+   state.need_update OR= percent_grabber(*n, "", 0.01 * rule.lower, 0.01 * rule.upper, 4, YES)
   CASE erSinglePercentgrabber
    DIM n as single ptr = rule.dataptr
-   state.need_update OR= percent_grabber(*n, "", rule.lower, rule.upper, 4, YES)
+   state.need_update OR= percent_grabber(*n, "", 0.01 * rule.lower, 0.01 * rule.upper, 4, YES)
   CASE erLookupgrabber
    DIM n as integer ptr = rule.dataptr
    state.need_update OR= lookup_code_grabber(*n, ses, rule.lower, rule.upper)
@@ -1475,10 +1475,12 @@ SUB sliceed_rule_enum (rules() as EditRule, helpkey as string, dataptr as ssize_
  sliceed_rule rules(), helpkey, erEnumgrabber, cast(integer ptr, dataptr), lower, upper, group
 END SUB
 
+'lower and upper are in percent
 SUB sliceed_rule_double (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as double ptr, lower as integer=0, upper as integer=100, group as integer = 0)
  sliceed_rule rules(), helpkey, mode, cast(integer ptr, dataptr), lower, upper, group
 END SUB
 
+'lower and upper are in percent
 SUB sliceed_rule_single (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as single ptr, lower as integer=0, upper as integer=100, group as integer = 0)
  sliceed_rule rules(), helpkey, mode, cast(integer ptr, dataptr), lower, upper, group
 END SUB
