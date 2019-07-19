@@ -64,6 +64,8 @@ except (ImportError, NotImplementedError):
 
 ################ Decide the target/OS and cpu arch
 
+# Note: default_arch will be one of x86, x86_64, arm, aarch64, not more specific.
+# default_target will be one of win32, dos, linux, freebsd, darwin, etc
 fbc_binary, fbcversion, fullfbcversion, default_target, default_arch = ohrbuild.get_fb_info(fbc)
 if verbose:
     print "Using fbc", fbc_binary #, " version:", fbcversion
@@ -511,6 +513,11 @@ elif arch == 'x86_64':
     # (therefore we don't need to pass -mpreferred-stack-boundary=2)
 elif arch == '(see target)':
     pass  # We let fbc figure it out from the target
+elif arch == default_arch:
+    # This happens on 32bit arm platforms, where default_arch == 'arm'.
+    # We don't need to know a more specific CPU arch, we only need that
+    # for the ABI when compiling for Android.
+    pass
 else:
     print "Error: Unknown architecture %s" % arch
     Exit(1)

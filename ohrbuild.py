@@ -232,11 +232,14 @@ def get_fb_info(fbc = 'fbc'):
         if len(fbtarget) == 0:
             raise Exception("Couldn't determine fbc default target")
     fbtarget = fbtarget[0]
-    if '-' in fbtarget:
+    if fbtarget == 'win64':
+        # Special case (including new versions of fbc)
+        default_target, default_arch = 'win32', 'x86_64'
+    elif '-' in fbtarget:
         # New versions of fbc
         default_target, default_arch = fbtarget.split('-')
     else:
-        # Old versions
+        # Old versions of fbc, and special case for dos, win32, xbox
         default_target, default_arch = fbtarget, 'x86'
 
     return fbc, fbcversion, fullfbcversion, default_target, default_arch
