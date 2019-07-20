@@ -110,9 +110,11 @@ a_append enemybits(), 54, "Harmed by cure"
 a_append enemybits(), -1, "##"
 a_append enemybits(), -1, "## Obsolete"
 FOR i as integer = 0 TO 7
- a_append enemybits(), i + 0,  "##Weak against " & elementnames(i) & " (obsolete)"
- a_append enemybits(), i + 8,  "##Strong against " & elementnames(i) & " (obsolete)"
- a_append enemybits(), i + 16, "##Absorbs " & elementnames(i) & " (obsolete)"
+ DIM elname as string
+ elname = IIF(i <= UBOUND(elementnames), elementnames(i), "element" & i)
+ a_append enemybits(), i + 0,  "##Weak against " & elname & " (obsolete)"
+ a_append enemybits(), i + 8,  "##Strong against " & elname & " (obsolete)"
+ a_append enemybits(), i + 16, "##Absorbs " & elname & " (obsolete)"
  a_append enemybits(), i + 24, "##Enemy type " & readglobalstring(9 + i, "EnemyType" & i+1) & " (obsolete)"
 NEXT
 
