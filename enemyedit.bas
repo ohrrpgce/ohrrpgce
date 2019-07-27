@@ -717,7 +717,7 @@ ELSE
   IF enemy_edit_add_new(recbuf(), preview_box) THEN
    'Added a new record (blank or copy)
    saveenemydata recbuf(), recindex
-   recindex = gen(genMaxEnemy) + 1
+   recindex = gen(genMaxEnemy)
   ELSE
    DeleteSlice @preview_box
    RETURN -1
