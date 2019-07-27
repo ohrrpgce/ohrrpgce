@@ -1291,7 +1291,7 @@ ELSE
   IF atk_edit_add_new(recbuf(), preview_box) THEN
    'Added a new record (blank or copy)
    saveattackdata recbuf(), recindex
-   recindex = gen(genMaxAttack) + 1
+   recindex = gen(genMaxAttack)
   ELSE
    DeleteSlice @preview_box
    RETURN -1
