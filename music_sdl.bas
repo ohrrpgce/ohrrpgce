@@ -1,7 +1,10 @@
 ''
-'' music_sdl.bas - External music functions implemented with SDL 1.2 + SDL_mixer 1.2
+'' music_sdl.bas - This compiles to both music_sdl and music_sdl2 audio backends,
+''  music_sdl: SDL 1.2 + SDL_mixer 1.2 (when SDL_MIXER2 not defined)
+''  music_sdl2: SDL 2 + SDL_mixer 2 (when SDL_MIXER2 defined)
+'' It isn't possible to link both backends into the engine at once.
 ''
-'' part of OHRRPGCE - see elsewhere for license details
+'' Part of the OHRRPGCE - See LICENSE.txt for GNU GPL License details and disclaimer of liability
 ''
 
 #include "config.bi"
@@ -63,6 +66,12 @@ dim shared _ModPlug_SetSettings as sub (byval settings as const ModPlug_Settings
 #if __FB_VERSION__ < "1.04"
 	declare function Mix_LoadMUS_RW (byval rw as SDL_RWops ptr) as Mix_Music ptr
 	' Mix_GetMusicDecoder etc also missing
+#endif
+
+#ifndef MIX_INIT_MID
+	'Exists in SDL_mixer 2 only (but missing from FB's header).
+	'Equal to MIX_INIT_FLUIDSYNTH in SDL_mixer 1.2.
+	#define MIX_INIT_MID &h00000020
 #endif
 
 end extern
@@ -156,7 +165,8 @@ function music_get_info() as string
 				'Mix_GetChunkDecoder only lists file formats, not decoders.
 				if form = "MPG123" or form = "MAD" then
 					'Is linked to libmad or libmpg123, rather than smpeg,
-					'which is totally broken for non-44.1kHz MP3s.
+					'which is totally broken for non-44.1kHz MP3s,
+					'so intentionally NOT checking for "MP3"
 					supported_formats or= FORMAT_MP3
 				elseif form = "OGG" then
 					supported_formats or= FORMAT_OGG
@@ -246,6 +256,13 @@ sub music_init()
 		music_vol = 64
 		music_status = musicOn
 		music_paused = NO
+
+		'Kludge, just for Mix_GetChunkDecoder/Mix_GetMusicDecoder: these don't tell
+		'about all supported formats until the dynamic libraries are actually
+		'loaded. So force loading them. (SDL_mixer 2.0.2 only, earlier versions always
+		'loaded everything from Mix_OpenAudio). Increasing startup time just to get
+		'supported_formats is sad, but at least it prevents pauses later.
+		Mix_Init(MIX_INIT_MID or MIX_INIT_OGG or MIX_INIT_MP3 or MIX_INIT_MOD)
 	end if
 end sub
 

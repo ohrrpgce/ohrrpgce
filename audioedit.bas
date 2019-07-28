@@ -523,7 +523,7 @@ SUB importsong_get_song_info (songname as string, songfile as string, bamfile as
   metadata &= extended_metadata
 
   IF (getmusictype(songfile) AND music_supported_formats()) = 0 THEN
-   metadata &= !"This engine build can't play this file\n"
+   metadata &= !"The music backend can't play this file type.\n"
   END IF
  END IF
 
