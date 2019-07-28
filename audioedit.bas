@@ -252,8 +252,12 @@ END SUB
 '==========================================================================================
 
 SUB song_editor_main ()
- DIM b as SongBrowser
- b.browse(-1, , @importsong)
+ IF read_config_bool("thingbrowser.enable_top_level", YES) THEN
+  DIM b as SongBrowser
+  b.browse(-1, , @importsong)
+ ELSE
+  importsong 0
+ END IF
  music_stop
 END SUB
 
@@ -595,8 +599,12 @@ END SUB
 '==========================================================================================
 
 SUB sfx_editor_main ()
- DIM b as SfxBrowser
- b.browse(-1, , @importsfx)
+ IF read_config_bool("thingbrowser.enable_top_level", YES) THEN
+  DIM b as SfxBrowser
+  b.browse(-1, , @importsfx)
+ ELSE
+  importsfx 0
+ END IF
 END SUB
 
 FUNCTION sfx_picker (recindex as integer = -1) as integer

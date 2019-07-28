@@ -78,8 +78,12 @@ END SUB
 '==========================================================================================
 
 SUB formation_editor_main ()
- DIM b as FormationBrowser
- b.browse(-1, , @individual_formation_editor)
+ IF read_config_bool("thingbrowser.enable_top_level", YES) THEN
+  DIM b as FormationBrowser
+  b.browse(-1, , @individual_formation_editor)
+ ELSE
+  individual_formation_editor 0
+ END IF
 END SUB
 
 FUNCTION formation_picker (recindex as integer = -1) as integer

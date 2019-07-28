@@ -50,8 +50,12 @@ DECLARE FUNCTION tag_range_check_string(byval check as TagRangeCheck) as string
 DECLARE SUB edit_tag_range_check (byref check as TagRangeCheck)
 
 SUB hero_editor_main ()
- DIM b as HeroBrowser
- b.browse(-1, , @hero_editor)
+ IF read_config_bool("thingbrowser.enable_top_level", YES) THEN
+  DIM b as HeroBrowser
+  b.browse(-1, , @hero_editor)
+ ELSE
+  hero_editor 0
+ END IF
 END SUB
 
 FUNCTION hero_picker (recindex as integer = -1) as integer

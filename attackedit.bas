@@ -216,8 +216,12 @@ CONST AtkDatCounterProvoke = 340
 'anything past this requires expanding the data
 
 SUB attack_editor_main ()
- DIM attackb as AttackBrowser
- attackb.browse(-1, , @attack_editor)
+ IF read_config_bool("thingbrowser.enable_top_level", YES) THEN
+  DIM attackb as AttackBrowser
+  attackb.browse(-1, , @attack_editor)
+ ELSE
+  attack_editor 0
+ END IF
 END SUB
 
 FUNCTION attack_picker (recindex as integer = -1) as integer

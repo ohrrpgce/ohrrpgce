@@ -74,8 +74,12 @@ DIM SHARED browse_default as string
 
 
 SUB textbox_editor_main ()
- DIM b as TextboxBrowser
- b.browse(-1, , @text_box_editor)
+ IF read_config_bool("thingbrowser.enable_top_level", YES) THEN
+  DIM b as TextboxBrowser
+  b.browse(-1, , @text_box_editor)
+ ELSE
+  text_box_editor 0
+ END IF
 END SUB
 
 FUNCTION textbox_picker (recindex as integer = -1) as integer

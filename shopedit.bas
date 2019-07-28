@@ -35,8 +35,12 @@ DIM SHARED shop_stuff_context_id as integer
 
 
 SUB shop_editor_main()
- DIM b as ShopBrowser
- b.browse(-1, , @shop_editor)
+ IF read_config_bool("thingbrowser.enable_top_level", YES) THEN
+  DIM b as ShopBrowser
+  b.browse(-1, , @shop_editor)
+ ELSE
+  shop_editor 0
+ END IF
 END SUB
 
 FUNCTION shop_picker (recindex as integer = -1) as integer
@@ -234,9 +238,13 @@ SUB shop_add_new (shopst as ShopEditState)
 END SUB
 
 SUB shop_stuff_editor_main (byval shop_id as integer)
- DIM b as ShopStuffBrowser = ShopStuffBrowser(shop_id)
- shop_stuff_context_id = shop_id
- b.browse(-1, , @shop_stuff_edit_wrapper)
+ IF read_config_bool("thingbrowser.enable_top_level", YES) THEN
+  DIM b as ShopStuffBrowser = ShopStuffBrowser(shop_id)
+  shop_stuff_context_id = shop_id
+  b.browse(-1, , @shop_stuff_edit_wrapper)
+ ELSE
+  shop_stuff_edit_wrapper 0
+ END IF
 END SUB
 
 FUNCTION shop_stuff_edit_wrapper (byval stuff_id as integer) as integer

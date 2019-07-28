@@ -54,8 +54,12 @@ SUB update_enemy_editor_for_elementals(recbuf() as integer, caption() as string,
 END SUB
 
 SUB enemy_editor_main ()
- DIM b as EnemyBrowser
- b.browse(-1, , @enemy_editor)
+ IF read_config_bool("thingbrowser.enable_top_level", YES) THEN
+  DIM b as EnemyBrowser
+  b.browse(-1, , @enemy_editor)
+ ELSE
+  enemy_editor 0
+ END IF
 END SUB
 
 FUNCTION enemy_picker (recindex as integer = -1) as integer
