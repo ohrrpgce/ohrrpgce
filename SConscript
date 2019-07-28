@@ -1092,13 +1092,10 @@ base_objects_without_util = [a for a in base_objects if str(a) != 'util.o']
 if win32:
     gamename = 'game'
     editname = 'custom'
-    if linkgcc:
-        # FIXME: This is a stopgap, it only works if the .rc files have previously been compiled
-        gamesrc += gameenv.RC('gicon.rc')
-        editsrc += editenv.RC('cicon.rc')
-    else:
-        gamesrc += ['gicon.rc']
-        editsrc += ['cicon.rc']
+    # The .rc file includes game.ico or custom.ico and is compiled to an .o file
+    # (If linkgcc=0, could just pass the .rc to fbc)
+    gamesrc += Depends(gameenv.RC('gicon.o', 'gicon.rc'), 'game.ico')
+    editsrc += Depends(editenv.RC('cicon.o', 'cicon.rc'), 'custom.ico')
 else:
     gamename = 'ohrrpgce-game'
     editname = 'ohrrpgce-custom'
