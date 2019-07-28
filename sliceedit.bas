@@ -610,7 +610,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   '--Overwriting import can't be allowed when there are certain slices expected by the engine,
   '--and no point allowing editing external files in-game, so just disable in-game.
   '--Furthermore, loading new collections when .editing_existing is unimplemented anyway.
-  IF keyval(scF3) > 1 AND ses.editing_existing = NO THEN
+  IF keyval(scCtrl) = 0 ANDALSO keyval(scF3) > 1 ANDALSO ses.editing_existing = NO THEN
    DIM choice as integer
    DIM choices(...) as string = {"Import, overwriting this collection", "Edit it separately"}
    choice = multichoice("Loading a .slice file. Do you want to import it over the existing collection?", choices(), IIF(ses.collection_group_number = SL_COLLECT_EDITOR, 1, 0))
@@ -795,7 +795,7 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
   state.need_update = YES
  END IF
  IF keyval(scF7) > 1 THEN ses.show_ants = NOT ses.show_ants
- IF keyval(scCtrl) > 0 ANDALSO keyval(sc3) > 1 THEN
+ IF keyval(scCtrl) > 0 ANDALSO keyval(scF3) > 1 THEN
   'Switching to 32 bit color depth allows 32-bit and smooth-scaled sprites,
   'but breaks sprite dissolves
   IF vpages_are_32bit THEN
