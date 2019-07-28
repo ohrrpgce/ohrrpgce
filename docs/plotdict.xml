@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2019-05-12">
+<plotscript version="wip" datecode="2019-07-29">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -8659,7 +8659,7 @@ The third argument is the total number of ticks that the animation should run. Y
 
 		<section title="Tilemap and Wallmap">
 		<command id="readmapblock">
-			<canon>read map block (x,y,layer)</canon>
+			<canon>read map block (x, y, layer)</canon>
 			<shortname>read map block</shortname>
 			<description>Returns the value of a map tile on the current map at the specified X,Y position. Normal map tiles return values from 0-159, animating maptiles from set 1 return 160-207 and animating maptiles from set 2 return 208-255. The optional layer argument defaults to 0 for the bottom layer, but can be any layer number that is valid for the current map.</description>
 			<seealso>
@@ -8667,28 +8667,76 @@ The third argument is the total number of ticks that the animation should run. Y
 			</seealso>
 		</command>
 		<command id="writemapblock">
-			<canon>write map block (x,y,value,layer)</canon>
+			<canon>write map block (x, y, value, layer)</canon>
 			<shortname>write map block</shortname>
 			<description>Writes a new tile to the specified X,Y position on the current map. This change will only persist until you leave the map or fight a battle. The optional layer argument defaults to 0 for the bottom layer, but can be any layer number that is valid for the current map.</description>
 		</command>
-		<command id="readpassblock">
-			<canon>read pass block (x,y)</canon>
-			<shortname>read pass block</shortname>
-			<description>Returns the value of a passability (wallmap) tile on the current map at the specified X,Y position. The return value will be from 0 to 255 and consists of eight flag bits.<lb/><lb/>bit 1 = <ref>northwall</ref><lb/>bit 2 = <ref>eastwall</ref><lb/>bit 4 = <ref>southwall</ref><lb/>bit 8 = <ref>westwall</ref><lb/>bit 16 = <ref>vehiclea</ref><lb/>bit 32 = <ref>vehicleb</ref><lb/>bit 64 = <ref>harmtile</ref><lb/>bit 128 = <ref>overheadtile</ref><lb/><lb/>To check the value of a specific bit, use the <ref>and</ref> operator. For example:  </description>
-			<example>  variable (pass)
-  pass := read pass block(hero X(me),hero Y(me))
-  if (pass,and,harm tile) then (
-    # this checks if the hero is standing
-    # on a harm tile
-  )</example>
+
+		<command id="readwallbit">
+			<canon>read wall bit (x, y, bit)</canon>
+			<shortname>read wall bit</shortname>
+			<description>
+				Check the value of a single bit of one tile of the wallmap of the current map.
+				Returns <tt>true</tt> or <tt>false</tt>.
+				<lb/>
+				<p>x</p>, <p>y</p> is the position in tiles.
+				<lb/>
+				<p>bit</p> can be <ref>northwall</ref>, <ref>eastwall</ref>, <ref>southwall</ref>,
+				or <ref>westwall</ref> to check of the four possible walls on the tile,
+				or <ref>vehiclea</ref>, <ref>vehicleb</ref>, <ref>harmtile</ref> or
+				<ref>overheadtile</ref> to check one of the other bits.
+				<lb/>
+				See <ref>readpassblock</ref> for an example.
+			</description>
 			<seealso>
+				<ref>readpassblock</ref>
+			</seealso>
+		</command>
+		<command id="writewallbit">
+			<canon>write wall bit (x, y, bit, value)</canon>
+			<shortname>write wall bit</shortname>
+			<description>
+				Set the value of a single bit of one tile of the wallmap of the current map.
+				<lb/>
+				<p>x</p>, <p>y</p> is the position in tiles.
+				<lb/>
+				<p>bit</p> can be <ref>northwall</ref>, <ref>eastwall</ref>, <ref>southwall</ref>,
+				or <ref>westwall</ref> to set the presense of the four possible walls on the tile,
+				or <ref>vehiclea</ref>, <ref>vehicleb</ref>, <ref>harmtile</ref> or
+				<ref>overheadtile</ref>.
+				<lb/>
+				<p>value</p> is optional should be either <tt>false</tt> or <tt>true</tt> (or any other non-zero
+				value). The default is <tt>true</tt>.
+			</description>
+			<seealso>
+				<ref>writepassblock</ref>
+			</seealso>
+		</command>
+
+		<command id="readpassblock">
+			<canon>read pass block (x, y)</canon>
+			<shortname>read pass block</shortname>
+			<description>Returns the value of a passability (wallmap) tile on the current map at the specified <p>x</p>, <p>y</p> position. The return value will be from 0 to 255 and consists of eight flag bits.<lb/><lb/>bit 1 = <ref>northwall</ref><lb/>bit 2 = <ref>eastwall</ref><lb/>bit 4 = <ref>southwall</ref><lb/>bit 8 = <ref>westwall</ref><lb/>bit 16 = <ref>vehiclea</ref><lb/>bit 32 = <ref>vehicleb</ref><lb/>bit 64 = <ref>harmtile</ref><lb/>bit 128 = <ref>overheadtile</ref><lb/><lb/>To check the value of a specific bit, use the <ref>and</ref> operator as in the following example, or just use the <ref>readwallbit</ref> command instead.</description>
+			<example>  variable (pass)
+  pass := read pass block(hero X(me), hero Y(me))
+  if (pass, and, harm tile) then (
+    # The hero is standing on a harm tile
+  )
+
+  # The following is equivalent:
+  if (read wall bit(hero X(me), hero Y(me), harm tile)) then (
+    # The hero is standing on a harm tile
+  )
+</example>
+			<seealso>
+				<ref>readwallbit</ref>
 				<ref>checkwallcollisionxy</ref>
 			</seealso>
 		</command>
 		<command id="writepassblock">
 			<canon>write pass block (x,y,value)</canon>
 			<shortname>write pass block</shortname>
-			<description>Writes a new passability (wallmap) information to the specified X,Y position on the current map. This change will only persist until you leave the map or fight a battle. The value is a number from from 0 to 255 that consists of eight flag bits.<lb/><lb/>bit 1 = <ref>northwall</ref><lb/>bit 2 = <ref>eastwall</ref><lb/>bit 4 = <ref>southwall</ref><lb/>bit 8 = <ref>westwall</ref><lb/>bit 16 = <ref>vehiclea</ref><lb/>bit 32 = <ref>vehicleb</ref><lb/>bit 64 = <ref>harmtile</ref><lb/>bit 128 = <ref>overheadtile</ref><lb/><lb/>You can <ref>add</ref> the constants together. For example:</description>
+			<description>Writes a new passability (wallmap) information to the specified <p>x</p>, <p>y</p> position on the current map. This change will only persist until you leave the map or fight a battle. The value is a number from from 0 to 255 that consists of eight flag bits.<lb/><lb/>bit 1 = <ref>northwall</ref><lb/>bit 2 = <ref>eastwall</ref><lb/>bit 4 = <ref>southwall</ref><lb/>bit 8 = <ref>westwall</ref><lb/>bit 16 = <ref>vehiclea</ref><lb/>bit 32 = <ref>vehicleb</ref><lb/>bit 64 = <ref>harmtile</ref><lb/>bit 128 = <ref>overheadtile</ref><lb/><lb/>You can <ref>add</ref> the constants together (but it might be easier to use <ref>writewallbit</ref> instead). For example:</description>
 			<example>variable (pass)
 pass := northwall+southwall+eastwall+westwall
 write pass block(15,3,pass)
@@ -8697,6 +8745,9 @@ write pass block(15,3,pass)
 
 write pass block(15,3,none)
 # Use 0 or none to remove walls from a tile</example>
+			<seealso>
+				<ref>writewallbit</ref>
+			</seealso>
 		</command>
 
 		<section title="Tile Animations">

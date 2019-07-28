@@ -4924,6 +4924,15 @@ script, maptile tests, begin
   assert(read pass block(3, 2) == 255)
   write pass block(3, 2, 0)
 
+  # Read/write wall bit
+  write pass block(3, 2, east wall + harm tile)
+  assert(read wall bit(3, 2, east wall) == true)
+  assert(read wall bit(3, 2, west wall) == false)
+  write wall bit(3, 2, east wall, false)
+  write wall bit(3, 2, vehicle a, true)
+  assert(read pass block(3, 2) == vehicle a + harm tile)
+  write pass block(3, 2, 0)
+
   # Test tile animations
   # An animated tile (water
   assert(read map block(3, 3, 0) == 192)

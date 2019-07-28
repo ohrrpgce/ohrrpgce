@@ -1311,6 +1311,20 @@ script,draw npcs above heroes,hsd:setting=1,begin
 end
 
 #--------------------------------------------------------------------------
+# read/write pass block wrappers
+
+script, read wall bit, hsd:x, hsd:y, hsd:bit, begin
+  return ((read pass block(hsd:x, hsd:y), and, hsd:bit) <> 0)
+end
+
+script, write wall bit, hsd:x, hsd:y, hsd:bit, hsd:new value = true, begin
+  variable (hsd:val)
+  hsd:val := read pass block (hsd:x, hsd:y), and, (-1 -- hsd:bit)
+  if (hsd:new value) then (hsd:val += hsd:bit)
+  write pass block (hsd:x, hsd:y, hsd:val)
+end
+
+#--------------------------------------------------------------------------
 # new wrappers/re-inventing of the wheel commands
 
 script, days of play, begin

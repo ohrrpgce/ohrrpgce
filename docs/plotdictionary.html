@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2019-05-12)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2019-07-29)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -2128,13 +2128,13 @@
 		<a href="#about-readglobal">read global (id)</a><br>
 		
 	
-		<a href="#about-readmapblock">read map block (x,y,layer)</a><br>
+		<a href="#about-readmapblock">read map block (x, y, layer)</a><br>
 		
 	
 		<a href="#about-readnpc">read NPC (who, NPCstat)</a><br>
 		
 	
-		<a href="#about-readpassblock">read pass block (x,y)</a><br>
+		<a href="#about-readpassblock">read pass block (x, y)</a><br>
 		
 	
 		<a href="#about-readpreferencebit">read preference bit (bitnum)</a><br>
@@ -2144,6 +2144,9 @@
 		
 	
 		<a href="#about-readtimer">read timer (id)</a><br>
+		
+	
+		<a href="#about-readwallbit">read wall bit (x, y, bit)</a><br>
 		
 	
 		<a href="#about-readzone">read zone (zone id, x, y)</a><br>
@@ -3346,7 +3349,7 @@
 		<a href="#about-writeglobal">write global (id,value)</a><br>
 		
 	
-		<a href="#about-writemapblock">write map block (x,y,value,layer)</a><br>
+		<a href="#about-writemapblock">write map block (x, y, value, layer)</a><br>
 		
 	
 		<a href="#about-writepassblock">write pass block (x,y,value)</a><br>
@@ -3356,6 +3359,9 @@
 		
 	
 		<a href="#about-writespell">write spell (hero, list, slot, attack)</a><br>
+		
+	
+		<a href="#about-writewallbit">write wall bit (x, y, bit, value)</a><br>
 		
 	
 		<a href="#about-writezone">write zone (zone id, x, y, value)</a><br>
@@ -10022,19 +10028,24 @@ There is no limit on string length.<br>
 <a name="about-__setstring__"></a>
 		<h4>$id="some text"</h4>
 <p>
-			Sets the contents of a string variable given by <span class="param">id</span>, which can be a constant like 0 or 1, a variable, or even an expression like a call to a script, to a piece of text. The previous contents are erased. The whole statement must be on a single line; you can't split the text onto multiple lines (use multiple <a href="#about-__appendstring__" class="ref">$id+"..."</a> statements instead). The value of the whole statement is equal to <span class="param">id</span> for convenience (see the example). The text (which is called a string literal) can contain certain escape codes:<br>
+			Sets the contents of a string variable given by <span class="param">id</span>, which can be a constant like 0 or 1, a variable, or even an expression like a call to a script, to a piece of text. The previous contents are erased. The whole statement must be on a single line; you can't split the text onto multiple lines (use multiple <a href="#about-__appendstring__" class="ref">$id+"..."</a> statements instead). The value of the whole statement is equal to <span class="param">id</span> for convenience (see the example). The text (which is called a string literal) can contain certain escape codes (see examples below):<br>
 \\ turns into a single \<br>
 \" turns into a single " without signalling the end of the literal<br>
-\n is a new line character, which is useful in a textslice but doesn't cause a new line in textboxes or on-screen strings.<br>
-\t is a tab character (which isn't useful at all as it doesn't actually cause a tab)<br>
+\n is a new line character, which can be used in text slices, <a href="#about-showstring" class="ref">show string</a>, <a href="#about-showstringat" class="ref">show string at</a> and <a href="#about-trace" class="ref">trace</a>.<br>
+\t is a tab character (which isn't useful at all as it doesn't actually cause a tab except when printing to a file with <a href="#about-trace" class="ref">trace</a>).<br>
 \x## where ## is a two digit hexidecimal number adds an ASCII character to the string. For example \x4b is the letter K.
 			
 			<pre># This displays Some text! in the corner of the screen
 $1 = "Some text!"
 showstring(1)
 
-# This displays "A quote" in the corner of the screen
-showstring($1="\"A quote\"")</pre>
+# This displays
+# Guard:
+#   "Halt!"
+# near the bottom left corner of the screen (at 30,150) for a moment
+show string at ($1="Guard:\n  \"Halt!\"", 30, 150)
+wait (40)
+hide string (1)</pre>
 			
 		</p>
 </div>
@@ -10375,6 +10386,7 @@ get hero name (1, find hero (leader))
 		<h4>show string at (ID, x, y)</h4>
 <p>
 			Displays string #<span class="param">ID</span> on the screen, positioning its top left corner at the given (<span class="param">x</span>,<span class="param">y</span>) coordinates. Unlike <a href="#about-showstring" class="ref">show string</a>, changes to the string will be displayed in real-time.
+			The string will not auto-wrap at the edge of the screen, but it can contain new lines (<span class="code">\n</span>). 
 			
 			
 			
@@ -10384,8 +10396,23 @@ get hero name (1, find hero (leader))
 <a name="about-centerstringat"></a>
 		<h4>center string at (ID, x, y)</h4>
 <p>
-			Displays string #<span class="param">ID</span> on the screen, positioning its top-middle at the given (<span class="param">x</span>,<span class="param">y</span>) coordinates. Unlike <a href="#about-showstring" class="ref">show string</a>, changes to the string will be displayed in real-time.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">The string is not re-centered automatically if its length changes. If you change the string and want to keep it centered, call showstringat again. Otherwise, its topleft corner will stay fixed.</div>
+			
+				Displays string #<span class="param">ID</span> on the screen, positioning its top-middle at the
+				given (<span class="param">x</span>,<span class="param">y</span>) coordinates.
+				Unlike <a href="#about-showstring" class="ref">show string</a>, changes to the string will be displayed in real-time.
+				<span class="param">x</span>,<span class="param">y</span> are optional: if they are missing then the string is centered
+				in the center of the screen.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					The string is not re-centered automatically if its length changes.
+					If you change the string and want to keep it centered, call showstringat again.
+					Otherwise, its top-left corner will stay fixed.
+				</div>
+				<div style="background-color:#CCB;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+					The string position will be miscalculated if it contains newlines (\n characters).
+				</div>
+			
 			
 			
 			
@@ -17032,7 +17059,7 @@ The third argument is the total number of ticks that the animation should run. Y
 		
 		<div class="command">
 <a name="about-readmapblock"></a>
-		<h4>read map block (x,y,layer)</h4>
+		<h4>read map block (x, y, layer)</h4>
 <p>
 			Returns the value of a map tile on the current map at the specified X,Y position. Normal map tiles return values from 0-159, animating maptiles from set 1 return 160-207 and animating maptiles from set 2 return 208-255. The optional layer argument defaults to 0 for the bottom layer, but can be any layer number that is valid for the current map.
 			
@@ -17043,7 +17070,7 @@ The third argument is the total number of ticks that the animation should run. Y
 </div>
 		<div class="command">
 <a name="about-writemapblock"></a>
-		<h4>write map block (x,y,value,layer)</h4>
+		<h4>write map block (x, y, value, layer)</h4>
 <p>
 			Writes a new tile to the specified X,Y position on the current map. This change will only persist until you leave the map or fight a battle. The optional layer argument defaults to 0 for the bottom layer, but can be any layer number that is valid for the current map.
 			
@@ -17052,18 +17079,73 @@ The third argument is the total number of ticks that the animation should run. Y
 		</p>
 </div>
 		<div class="command">
-<a name="about-readpassblock"></a>
-		<h4>read pass block (x,y)</h4>
+<a name="about-readwallbit"></a>
+		<h4>read wall bit (x, y, bit)</h4>
 <p>
-			Returns the value of a passability (wallmap) tile on the current map at the specified X,Y position. The return value will be from 0 to 255 and consists of eight flag bits.<br><br>bit 1 = <a href="#about-tileconstants" class="ref">north wall</a><br>bit 2 = <a href="#about-tileconstants" class="ref">east wall</a><br>bit 4 = <a href="#about-tileconstants" class="ref">south wall</a><br>bit 8 = <a href="#about-tileconstants" class="ref">west wall</a><br>bit 16 = <a href="#about-tileconstants" class="ref">vehicle A</a><br>bit 32 = <a href="#about-tileconstants" class="ref">vehicle B</a><br>bit 64 = <a href="#about-tileconstants" class="ref">harm tile</a><br>bit 128 = <a href="#about-tileconstants" class="ref">overhead tile</a><br><br>To check the value of a specific bit, use the <a href="#about-and" class="ref">and</a> operator. For example:  
+			
+				Check the value of a single bit of one tile of the wallmap of the current map.
+				Returns <span class="code">true</span> or <span class="code">false</span>.
+				<br>
+				<span class="param">x</span>, <span class="param">y</span> is the position in tiles.
+				<br>
+				<span class="param">bit</span> can be <a href="#about-tileconstants" class="ref">north wall</a>, <a href="#about-tileconstants" class="ref">east wall</a>, <a href="#about-tileconstants" class="ref">south wall</a>,
+				or <a href="#about-tileconstants" class="ref">west wall</a> to check of the four possible walls on the tile,
+				or <a href="#about-tileconstants" class="ref">vehicle A</a>, <a href="#about-tileconstants" class="ref">vehicle B</a>, <a href="#about-tileconstants" class="ref">harm tile</a> or
+				<a href="#about-tileconstants" class="ref">overhead tile</a> to check one of the other bits.
+				<br>
+				See <a href="#about-readpassblock" class="ref">read pass block</a> for an example.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-readpassblock" class="ref">read pass block</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-writewallbit"></a>
+		<h4>write wall bit (x, y, bit, value)</h4>
+<p>
+			
+				Set the value of a single bit of one tile of the wallmap of the current map.
+				<br>
+				<span class="param">x</span>, <span class="param">y</span> is the position in tiles.
+				<br>
+				<span class="param">bit</span> can be <a href="#about-tileconstants" class="ref">north wall</a>, <a href="#about-tileconstants" class="ref">east wall</a>, <a href="#about-tileconstants" class="ref">south wall</a>,
+				or <a href="#about-tileconstants" class="ref">west wall</a> to set the presense of the four possible walls on the tile,
+				or <a href="#about-tileconstants" class="ref">vehicle A</a>, <a href="#about-tileconstants" class="ref">vehicle B</a>, <a href="#about-tileconstants" class="ref">harm tile</a> or
+				<a href="#about-tileconstants" class="ref">overhead tile</a>.
+				<br>
+				<span class="param">value</span> is optional should be either <span class="code">false</span> or <span class="code">true</span> (or any other non-zero
+				value). The default is <span class="code">true</span>.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-writepassblock" class="ref">write pass block</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-readpassblock"></a>
+		<h4>read pass block (x, y)</h4>
+<p>
+			Returns the value of a passability (wallmap) tile on the current map at the specified <span class="param">x</span>, <span class="param">y</span> position. The return value will be from 0 to 255 and consists of eight flag bits.<br><br>bit 1 = <a href="#about-tileconstants" class="ref">north wall</a><br>bit 2 = <a href="#about-tileconstants" class="ref">east wall</a><br>bit 4 = <a href="#about-tileconstants" class="ref">south wall</a><br>bit 8 = <a href="#about-tileconstants" class="ref">west wall</a><br>bit 16 = <a href="#about-tileconstants" class="ref">vehicle A</a><br>bit 32 = <a href="#about-tileconstants" class="ref">vehicle B</a><br>bit 64 = <a href="#about-tileconstants" class="ref">harm tile</a><br>bit 128 = <a href="#about-tileconstants" class="ref">overhead tile</a><br><br>To check the value of a specific bit, use the <a href="#about-and" class="ref">and</a> operator as in the following example, or just use the <a href="#about-readwallbit" class="ref">read wall bit</a> command instead.
 			
 			<pre>  variable (pass)
-  pass := read pass block(hero X(me),hero Y(me))
-  if (pass,and,harm tile) then (
-    # this checks if the hero is standing
-    # on a harm tile
-  )</pre>
-			<div class="seealso">See also: <ul><li><a href="#about-checkwallcollisionxy" class="ref">check wall collision x/y</a></li></ul>
+  pass := read pass block(hero X(me), hero Y(me))
+  if (pass, and, harm tile) then (
+    # The hero is standing on a harm tile
+  )
+
+  # The following is equivalent:
+  if (read wall bit(hero X(me), hero Y(me), harm tile)) then (
+    # The hero is standing on a harm tile
+  )
+</pre>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-readwallbit" class="ref">read wall bit</a>, </li>
+<li><a href="#about-checkwallcollisionxy" class="ref">check wall collision x/y</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -17071,7 +17153,7 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-writepassblock"></a>
 		<h4>write pass block (x,y,value)</h4>
 <p>
-			Writes a new passability (wallmap) information to the specified X,Y position on the current map. This change will only persist until you leave the map or fight a battle. The value is a number from from 0 to 255 that consists of eight flag bits.<br><br>bit 1 = <a href="#about-tileconstants" class="ref">north wall</a><br>bit 2 = <a href="#about-tileconstants" class="ref">east wall</a><br>bit 4 = <a href="#about-tileconstants" class="ref">south wall</a><br>bit 8 = <a href="#about-tileconstants" class="ref">west wall</a><br>bit 16 = <a href="#about-tileconstants" class="ref">vehicle A</a><br>bit 32 = <a href="#about-tileconstants" class="ref">vehicle B</a><br>bit 64 = <a href="#about-tileconstants" class="ref">harm tile</a><br>bit 128 = <a href="#about-tileconstants" class="ref">overhead tile</a><br><br>You can <a href="#about-add" class="ref">add</a> the constants together. For example:
+			Writes a new passability (wallmap) information to the specified <span class="param">x</span>, <span class="param">y</span> position on the current map. This change will only persist until you leave the map or fight a battle. The value is a number from from 0 to 255 that consists of eight flag bits.<br><br>bit 1 = <a href="#about-tileconstants" class="ref">north wall</a><br>bit 2 = <a href="#about-tileconstants" class="ref">east wall</a><br>bit 4 = <a href="#about-tileconstants" class="ref">south wall</a><br>bit 8 = <a href="#about-tileconstants" class="ref">west wall</a><br>bit 16 = <a href="#about-tileconstants" class="ref">vehicle A</a><br>bit 32 = <a href="#about-tileconstants" class="ref">vehicle B</a><br>bit 64 = <a href="#about-tileconstants" class="ref">harm tile</a><br>bit 128 = <a href="#about-tileconstants" class="ref">overhead tile</a><br><br>You can <a href="#about-add" class="ref">add</a> the constants together (but it might be easier to use <a href="#about-writewallbit" class="ref">write wall bit</a> instead). For example:
 			
 			<pre>variable (pass)
 pass := northwall+southwall+eastwall+westwall
@@ -17081,7 +17163,8 @@ write pass block(15,3,pass)
 
 write pass block(15,3,none)
 # Use 0 or none to remove walls from a tile</pre>
-			
+			<div class="seealso">See also: <ul><li><a href="#about-writewallbit" class="ref">write wall bit</a></li></ul>
+</div>
 		</p>
 </div>
 		<hr>
@@ -17157,7 +17240,7 @@ write pass block(15,3,none)
 		
 		
 		<div class="command">
-		<h4>read pass block (x,y)</h4>
+		<h4>read pass block (x, y)</h4>
 		<p><a href="#about-readpassblock">Defined in the Tilemap and Wallmap section.</a></p>
 		</div>
 		<div class="command">
@@ -20017,7 +20100,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 866 commands (of which 52 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 868 commands (of which 52 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
