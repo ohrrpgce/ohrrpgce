@@ -766,7 +766,7 @@ env['CFLAGS'] += CFLAGS + TRUE_CFLAGS
 env['CXXFLAGS'] += CFLAGS + CXXFLAGS
 env['CXXLINKFLAGS'] = CXXLINKFLAGS
 env['FBLINKFLAGS'] = FBLINKFLAGS
-env['FBLINKERFLAGS'] = FBLINKFLAGS
+env['FBLINKERFLAGS'] = FBLINKERFLAGS
 
 # These no longer have any effect.
 del FBFLAGS, TRUE_CFLAGS, GENGCC_CFLAGS, CFLAGS, CXXFLAGS
@@ -855,8 +855,10 @@ if win32:
     # winmm needed for MIDI, used by music backends but also by miditest
     # psapi.dll needed just for get_process_path() and memory_usage(). Not present on Win98 unfortunately,
     # so now we dynamically link it.
-    # ole32.dll needed just for open_document()
-    base_libraries += ['winmm', 'ole32', 'wsock32' if win95 else 'ws2_32']
+    # ole32.dll and shell32.dll needed just for open_document()
+    # advapi32 is needed by libfb[mt]
+    # Strangely advapi32 and shell32 are automatically added by ld when using linkgcc=1 but not linkgcc=0
+    base_libraries += ['winmm', 'ole32', 'gdi32', 'shell32', 'advapi32', 'wsock32' if win95 else 'ws2_32']
     if win95:
         env['CFLAGS'] += ['-D', 'USE_WINSOCK1']
     common_libraries += [libfbgfx]
