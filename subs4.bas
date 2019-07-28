@@ -30,6 +30,7 @@ DECLARE SUB update_masterpalette_menu(menu() as string, shaded() as bool, palnum
 DECLARE SUB inputpasw ()
 DECLARE SUB nearestui (byval mimicpal as integer, newpal() as RGBcolor, newui() as integer, newbox() as BoxStyle)
 DECLARE SUB remappalette (oldmaster() as RGBcolor, oldui() as integer, oldbox() as BoxStyle, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)
+DECLARE SUB toggle_top_level_thingbrowsers ()
 
 
 SUB vehicle_editor
@@ -1284,6 +1285,7 @@ SUB GeneralSettingsMenu.update()
  header " Misc"
  add_item 17, , "In-App Purchases... (experimental)"
  add_item 13, , "Password For Editing..."
+ add_item 21, , "Top-level thingbrowsers: " & yesorno(read_config_bool("thingbrowser.enable_top_level", YES), "YES (reccomended)", "NO (for editing on very slow computers)")
 
  header " Stats"
  add_item  , , "Time spent editing...", NO
@@ -1362,6 +1364,9 @@ SUB general_data_editor ()
     CASE 15: edit_platform_controls
     CASE 16: edit_mouse_options
     CASE 17: edit_purchase_options
+    CASE 21:
+     toggle_top_level_thingbrowsers
+     state.need_update = YES
    END SELECT
   END IF
 
@@ -1426,4 +1431,10 @@ SUB general_data_editor ()
  '--Also use the in-game setting for previewing stuff in Custom
  set_music_volume 0.01 * gen(genMusicVolume)
  set_global_sfx_volume 0.01 * gen(genSFXVolume)
+END SUB
+
+SUB toggle_top_level_thingbrowsers ()
+ DIM b as bool
+ b = NOT read_config_bool("thingbrowser.enable_top_level", YES)
+ write_config "thingbrowser.enable_top_level", yesorno(b)
 END SUB
