@@ -46,6 +46,7 @@ DECLARE SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height a
 DECLARE SUB drawwall(walldir as DirNum, byval pos as XYPair, offset as integer, thickness as integer, col as integer)
 
 DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as NPCIndex
+DECLARE FUNCTION mapedit_npcs_at_spot(st as MapEditState, pos as XYPair) as NPCIndex vector
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, tile as XYPair) as bool
 DECLARE FUNCTION mapedit_partially_on_screen(st as MapEditState, tile as XYPair) as bool
 DECLARE FUNCTION mapedit_clamp_tile_to_screen(st as MapEditState, tile as XYPair) as XYPair
@@ -1308,6 +1309,28 @@ DO
     NEXT i
    END IF
 
+   'Select NPC type under the cursor
+   IF keyval(scG) > 1 THEN
+    'If there are multiple NPC types on this tile, select the next one
+    'after the selected one. So first get a list of NPC IDs.
+    DIM idlist as NPCTypeID vector
+    v_new idlist
+    FOR i as integer = 0 TO UBOUND(st.map.npc)
+     WITH st.map.npc(i)
+      IF .id > 0 ANDALSO .pos = st.pos * tilesize THEN
+       IF v_find(idlist, .id - 1) = -1 THEN v_append idlist, .id - 1
+      END IF
+     END WITH
+    NEXT i
+
+    IF v_len(idlist) THEN
+     DIM where as integer = v_find(idlist, st.cur_npc)
+     st.cur_npc = idlist[(where + 1) MOD v_len(idlist)]  'If where = -1, take idlist[0]
+    END IF
+
+    v_free idlist
+   END IF
+
    'Mouse controls
    DIM npc_d as DirNum = -1  'If not -1, create an NPC facing this direction
    IF st.mouse_attention = focusTopBar then
@@ -2485,6 +2508,17 @@ FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as NPCIndex
   END WITH
  NEXT i
  RETURN -1
+END FUNCTION
+
+FUNCTION mapedit_npcs_at_spot(st as MapEditState, pos as XYPair) as NPCIndex vector
+ DIM ret as NPCIndex vector
+ v_new ret
+ FOR i as integer = 0 TO UBOUND(st.map.npc)
+  WITH st.map.npc(i)
+   IF .id > 0 ANDALSO .pos = pos * tilesize THEN v_append ret, i
+  END WITH
+ NEXT i
+ RETURN ret
 END FUNCTION
 
 '==========================================================================================
