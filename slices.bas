@@ -875,6 +875,17 @@ Function SliceIndexAmongSiblings(sl as Slice Ptr) as integer
  return 0
 End function
 
+'Returns a path like "/Container[1]/Sprite", similiar to an RELOAD node path, from the root slice to this one.
+Function SlicePath(sl as Slice ptr) as string
+ dim ret as string
+ if sl->Parent then
+  ret = SlicePath(sl->Parent) & "[" & SliceIndexAmongSiblings(sl) & "]"
+ end if
+ ret &= "/" & SliceTypeName(sl)
+ if sl->Lookup then ret &= "(" & SliceLookupCodename(sl->Lookup) & ")"
+ return ret
+end function
+
 'slice accessors
 Function SliceGetParent( byval s as Slice ptr ) as Slice ptr
  return s->Parent
