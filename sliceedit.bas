@@ -299,6 +299,7 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
    append_specialcode ses, SL_STATUS_PORTRAIT, kindlimitSPRITE
    append_specialcode ses, SL_STATUS_WALKABOUT, kindlimitSPRITE
    append_specialcode ses, SL_STATUS_BATTLESPRITE, kindlimitSPRITE
+   append_specialcode ses, SL_STATUS_HIDE_IF_NO_HP, kindlimitANYTHING
    append_specialcode ses, SL_STATUS_HIDE_IF_NO_MP, kindlimitANYTHING
    append_specialcode ses, SL_STATUS_HIDE_IF_NO_LMP, kindlimitANYTHING
    append_specialcode ses, SL_STATUS_HIDE_IF_MAX_LEV, kindlimitANYTHING
