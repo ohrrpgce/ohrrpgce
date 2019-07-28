@@ -1389,9 +1389,11 @@ DO
 
   'Obsolete bits
   FOR i = 0 TO 7
-   allbits(i + 5) = "##" & elementnames(i) & " Damage (obsolete)" '05-12
+   DIM elname as string
+   elname = IIF(i <= UBOUND(elementnames), elementnames(i), "element" & i)
+   allbits(i + 5) = "##" & elname & " Damage (obsolete)" '05-12
    allbits(i + 13) = "##Bonus vs " & readglobalstring(9 + i, "EnemyType (obsolete)" & i+1) '13-20
-   allbits(i + 21) = "##Fail vs " & elementnames(i) & " resistance (obsolete)" '21-28
+   allbits(i + 21) = "##Fail vs " & elname & " resistance (obsolete)" '21-28
    allbits(i + 29) = "##Fail vs " & readglobalstring(9 + i, "EnemyType" & i+1) & " (obsolete)" '29-36
   NEXT i
 
