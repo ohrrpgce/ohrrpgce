@@ -160,7 +160,7 @@ DECLARE SUB SliceAdoptNiece (byval sl as Slice Ptr)
 'Functions only used locally
 DECLARE FUNCTION find_special_lookup_code(specialcodes() as SpecialLookupCode, code as integer) as integer
 DECLARE FUNCTION lookup_code_forbidden(specialcodes() as SpecialLookupCode, code as integer) as bool
-DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode) as bool
+DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode, errorstr as string = "") as bool
 DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem, state as MenuState) as Slice ptr
 DECLARE SUB slice_editor_common_function_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState)
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
@@ -891,11 +891,20 @@ FUNCTION lookup_code_forbidden(specialcodes() as SpecialLookupCode, code as inte
 END FUNCTION
 
 '--Returns whether one of the descendents is forbidden
-FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode) as bool
+FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode, errorstr as string = "") as bool
  IF sl = 0 THEN RETURN NO
- IF sl->Protect THEN RETURN YES
- IF lookup_code_forbidden(specialcodes(), sl->Lookup) THEN RETURN YES
- IF a_find(editable_slice_types(), cint(sl->SliceType)) < 0 THEN RETURN YES
+ IF sl->Protect THEN
+  errorstr = SlicePath(sl) & " is protected"
+  RETURN YES
+ END IF
+ IF lookup_code_forbidden(specialcodes(), sl->Lookup) THEN
+  errorstr = SlicePath(sl) & " has forbidden lookup code '" & SliceLookupCodename(sl->Lookup) & "'"
+  RETURN YES
+ END IF
+ IF a_find(editable_slice_types(), cint(sl->SliceType)) < 0 THEN
+  errorstr = SlicePath(sl) & " is a disallowed slice type"
+  RETURN YES
+ END IF
  DIM ch as Slice ptr = sl->FirstChild
  WHILE ch
   IF slice_editor_forbidden_search(ch, specialcodes()) THEN RETURN YES
@@ -928,27 +937,29 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
  '--You can export slice collections from the in-game slice debugger. These
  '--collections are full of forbidden slices, so we must detect these and
  '--prevent importing. Attempting to do so instead will open a new editor.
- IF slice_editor_forbidden_search(newcollection, ses.specialcodes()) _
-    AND edit_separately = NO AND ses.privileged = NO THEN
+ DIM forbidden_error as string
+ IF edit_separately = NO ANDALSO ses.privileged = NO ANDALSO _
+    slice_editor_forbidden_search(newcollection, ses.specialcodes(), forbidden_error) THEN
   IF ses.collection_file = "" THEN
    'Trying to import a tree into an in-game collection
+   '(TODO: Yes, this solution really sucks, maybe clean away special slices instead)
    DIM msg as string
-   msg = "The slice collection you are trying to load includes protected or special " _
-         "slices (either due to their type or lookup code), probably " _
-         "because it has been exported from a game. You can't import this " _
-         "collection, but it will be now be opened in a new copy of the " _
+   msg = "The slice collection you're trying to import includes a disallowed " _
+         "slice (see below), probably because it's been exported from a game " _
+         "or is the wrong type of collection. You can't import this " _
+         "collection, but it will be now be opened in a new instance of the " _
          "slice collection editor so that you may view, edit, and reexport " _
          "it. Exit the editor to go back to your previous slice collection. " _
          "Try removing the special slices and exporting the collection; " _
-         "you'll then be able to import normally."
+         !"you'll then be able to import normally.\n\n" & forbidden_error
    notification msg
    slice_editor newcollection, ses.collection_group_number
    EXIT SUB
   ELSE
    'If it's already been imported into the game, only warn
-   notification "Hmm, your slice collection includes protected or special " _
-                "slices (either due to their type or lookup code). This " _
-                "shouldn't happen, and may be an engine bug! Please report it."
+   notification "Hmm, your slice collection includes protected/special slices. This " _
+                "shouldn't happen, and may be an engine bug! Please report it.\n\n" _
+                & forbidden_error
   END IF
  END IF
  IF ses.draw_root THEN
