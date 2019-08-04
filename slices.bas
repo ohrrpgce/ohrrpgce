@@ -3756,42 +3756,22 @@ end sub
 
 'Draw a slice tree (usually a subtree of the full tree) as if it were parented
 'to a container slice with given position and size.
+'ignore_offset causes the slice's offset from its parent to be ignored
 Sub DrawSliceAt(byval s as Slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as bool = NO)
- 'ignore_offset causes the slice's offset from its parent to be ignored
-
- if s = 0 then debug "DrawSliceAt null ptr": exit sub
- if s->Visible then
-  v_new context_stack
-
-  'calc the slice's X,Y
-
-  DIM dummyparent as Slice Ptr
-  dummyparent = NewSliceOfType(slContainer)
-  dummyparent->ScreenX = x
-  dummyparent->ScreenY = y
-  dummyparent->Width = w
-  dummyparent->Height = h
-  DIM oldpos as XYPair
-  if ignore_offset then
-   oldpos = s->Pos
-   s->X = 0
-   s->Y = 0
-  end if
-  DefaultChildRefresh(dummyparent, s, -1)
-
-  if s->Draw then
-   NumDrawnSlices += 1
-   s->Draw(s, page)
-  end if
-  AutoSortChildren(s)
-  s->ChildDraw(s, page)
-
-  if ignore_offset then
-   s->Pos = oldpos
-  end if
-  DeleteSlice @dummyparent
-  v_free context_stack
+ BUG_IF(s = 0, "null ptr")
+ dim dummyparent as Slice Ptr
+ dummyparent = NewSliceOfType(slContainer)
+ dummyparent->ScreenPos = XY(x, y)
+ dummyparent->Size = XY(w, h)
+ dummyparent->Visible = YES
+ dim oldpos as XYPair
+ if ignore_offset then
+  oldpos = s->Pos
+  s->Pos = 0
  end if
+ DrawSlice dummyparent, page
+ if ignore_offset then s->Pos = oldpos
+ DeleteSlice @dummyparent
 end sub
 
 Function UpdateRootSliceSize(sl as Slice ptr, page as integer) as bool
