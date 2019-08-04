@@ -5811,20 +5811,36 @@ end
 				<ref>getslicelookup</ref>
 			</seealso>
 		</command>
+
 		<command id="getheroslice">
 			<canon>get hero slice (rank)</canon>
 			<shortname>get hero slice</shortname>
 			<description>
-				Get the slice for a hero walkabout, which is a container slice.
-				The argument is the hero's rank in the walkabout caterpillar.
-				You will not be able to manually reposition this slice (e.g. <ref>putslice</ref> does not work).
-				The main purpose of getting this slice is so you can access the sprite slice attached to it
-				(use <ref>lookupslice</ref><tt>(sl:walkabout sprite component, get hero slice(rank))</tt> to get it),
-				or if you want to attach other slices to a hero walkabout.
+				Get a hero walkabout container slice (the parent of all slices for the hero).
+				<p>rank</p> is the hero's rank in the walkabout caterpillar.
+				You will not be able to manually reposition this slice (e.g. <ref>putslice</ref> does not work) - use <ref>puthero</ref> instead.
+				<lb/>
+				Once you have this slice you can access any other slices attached to the hero, such as the sprite slice
+				(e.g. <ref>lookupslice</ref><tt>(sl:walkabout sprite component, get hero slice(rank))</tt>, which is equivalent to <ref>getherosprite</ref><tt>(rank)</tt>),
+				or attach other slices to a hero walkabout.
+				See <ref>lookupslice</ref> for the different walkabout components.
 			</description>
 			<seealso>
 				<ref>herorankfromslice</ref>
 				<ref>getnpcslice</ref>
+			</seealso>
+		</command>
+		<command id="getherosprite">
+			<canon>get hero sprite (rank)</canon>
+			<shortname>get hero sprite</shortname>
+			<description>
+				Get the walkabout sprite slice for a hero.
+				<p>rank</p> is the hero's rank in the walkabout caterpillar.
+				This is equivalent to
+				<ref>lookupslice</ref><tt>(sl:walkabout sprite component, get hero slice(rank))</tt>.
+			</description>
+			<seealso>
+				<ref>getheroslice</ref>
 			</seealso>
 		</command>
 		<command id="herorankfromslice">
@@ -5832,7 +5848,7 @@ end
 			<shortname>hero rank from slice</shortname>
 			<description>
 				The opposite of <ref>getheroslice</ref>:
-				Given a slice <p>handle</p>, check whether it's the walkabout slice of some hero,
+				Given a slice <p>handle</p>, check whether it's the walkabout container slice of some hero,
 				and if so, returns the hero walkabout rank (a number between 0 and 3).
 				If it doesn't belong to any hero, returns -1, <b>not</b> 0/false, like
 				<ref>npcreferencefromslice</ref> does!
@@ -5854,20 +5870,37 @@ end
 				<ref>npcreferencefromslice</ref>
 			</seealso>
 		</command>
+
 		<command id="getnpcslice">
 			<canon>get npc slice (npc)</canon>
 			<shortname>get npc slice</shortname>
 			<description>
-				Get the slice for an NPC walkabout, which is a container slice.
+				Get an NPC walkabout container slice (the parent of all slices for the NPC).
 				The argument is the NPC id or an <ref>npcreference</ref>.
-				You will not be able to manually reposition this slice (e.g. <ref>putslice</ref> does not work).
-				The main purpose of getting this slice is so you can access the sprite slice attached to it
-				(use <ref>lookupslice</ref><tt>(sl:walkabout sprite component, get npc slice(npc))</tt> to get it),
-				or if you want to attach other slices to an NPC.
+				If the NPC is tag-disabled, it has no slice so this command returns 0/false.
+				If there are no copies of an NPC ID on the map, an error is thrown.
+				You will not be able to manually reposition this slice (e.g. <ref>putslice</ref> does not work) - use <ref>putnpc</ref> instead.
+				<lb/>
+				Once you have this slice you can access any other slices attached to the npc, such as the sprite slice
+				(e.g. <ref>lookupslice</ref><tt>(sl:walkabout sprite component, get npc slice(npc))</tt>, which is equivalent to <ref>getnpcsprite</ref><tt>(npc)</tt>),
+				or attach other slices to an npc walkabout.
 			</description>
 			<seealso>
 				<ref>npcreferencefromslice</ref>
 				<ref>getheroslice</ref>
+			</seealso>
+		</command>
+		<command id="getnpcsprite">
+			<canon>get npc sprite (npc)</canon>
+			<shortname>get npc sprite</shortname>
+			<description>
+				Get the walkabout sprite slice for a npc.
+				<p>npc</p> is an NPC id or <ref>npcreference</ref>.
+				This is equivalent to
+				<ref>lookupslice</ref><tt>(sl:walkabout sprite component, get npc slice(npc))</tt>.
+			</description>
+			<seealso>
+				<ref>getnpcslice</ref>
 			</seealso>
 		</command>
 		<command id="npcreferencefromslice">
@@ -5875,7 +5908,7 @@ end
 			<shortname>npc reference from slice</shortname>
 			<description>
 				The opposite of <ref>getnpcslice</ref>:
-				Given a slice <p>handle</p>, check whether it's the walkabout slice of some NPC,
+				Given a slice <p>handle</p>, check whether it's the walkabout container slice of some NPC,
 				and if so, returns the <ref>npcreference</ref> number.
 				If it doesn't belong to any NPC, returns 0.
 				<lb/>

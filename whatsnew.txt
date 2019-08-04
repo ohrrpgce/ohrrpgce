@@ -161,6 +161,7 @@ April ? 2019 [Fufluns]
     * "override tick milliseconds" and "cancel override tick milliseconds" [James]
     * "show string at" now respects newlines (\n in strings) [Ralph]
     * "read wall bit", "write wall bit" [Ralph]
+    * "get npc sprite", "get hero sprite" convenience wrappers [Ralph]
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"

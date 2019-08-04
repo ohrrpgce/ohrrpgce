@@ -1608,6 +1608,18 @@ end
 #--------------------------------------------------------------------------
 # slice commands
 
+script, get npc sprite, hsd:npc, begin
+  variable (hsd:sl)
+  hsd:sl := get npc slice(hsd:npc)
+  if (hsd:sl) then (return (lookup slice(sl:walkabout sprite component, hsd:sl)))
+end
+
+script, get hero sprite, hsd:who, begin
+  variable (hsd:sl)
+  hsd:sl := get hero slice(hsd:who)
+  if (hsd:sl) then (return (lookup slice(sl:walkabout sprite component, hsd:sl)))
+end
+
 script, load sprite, hsd:type, hsd:number, hsd:pal = -1, begin
   if(hsd:type == spritetype:hero)        then(return(load hero sprite         (hsd:number, hsd:pal)))
   if(hsd:type == spritetype:smallenemy)  then(return(load small enemy sprite  (hsd:number, hsd:pal)))

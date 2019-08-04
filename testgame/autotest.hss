@@ -4627,6 +4627,7 @@ script, slice correspondence tests, begin
     assert(slice y(sl) == npc pixel y(npc))
     sl2 := lookup slice(sl:walkabout sprite component, sl)
     assert(sl2)
+    assert(sl2 == get npc sprite(npc))
     assert(npc reference from slice(sl2) == 0)
 
     npc := next npc reference(npc)
@@ -4648,7 +4649,9 @@ script, slice correspondence tests, begin
   assert(slice x(sl) == hero pixel x(0))
   assert(slice y(sl) == hero pixel y(0))
   assert(hero rank from slice(sl) == 0)
-  assert(lookup slice(sl:walkabout sprite component, sl))
+  sl2 := lookup slice(sl:walkabout sprite component, sl)
+  assert(sl2)
+  assert(sl2 == get hero sprite(0))
 
   # Defaults to -1
   assert(hero rank from slice(get npc slice(next npc reference)) == -1)
