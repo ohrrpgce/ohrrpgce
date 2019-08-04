@@ -4635,10 +4635,12 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   herow(0).xygo = 0
  END IF
 
+ /'
  IF dbg.def( , , "(Experimental) Load translations") THEN
   DIM fname as string = browse(browseAny, , "*.txt")
   IF LEN(fname) THEN load_translations fname
  END IF
+ '/
 
  IF dbg.def( , , "Edit general preference bitsets") THEN edit_general_bitsets
  IF dbg.def( , , "Edit backcompat bitsets") THEN edit_backcompat_bitsets
