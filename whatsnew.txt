@@ -242,6 +242,8 @@ April ? 2019 [Fufluns]
     * "gain hero stat" could divide by zero and set a stat to 2147483647 [Ralph]
     * If stealing has 0% chance but isn't "Disabled", show "Has Nothing" message
     * Crash or freeze when switching between slice collections [Sword/Ralph]
+    * Sometimes, the icon for game.exe didn't get replaced when Distributing
+      Game for Windows [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced
