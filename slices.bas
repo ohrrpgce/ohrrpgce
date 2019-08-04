@@ -10,8 +10,6 @@
 '
 'DrawSliceRecurse(sl):
 '
-'  If sl->Context: push onto context_stack
-'
 '  attach->ChildRefresh(attach, sl)
 '   (attach == parent of sl, except for the root slice, then attach == ScreenSlice.
 '    sl->Attached is currently unused.)
@@ -21,6 +19,8 @@
 '  If sl->Visible:
 '
 '    If sl->CoverChildren: UpdateCoverSize(sl)
+'
+'    If sl->Context: push onto context_stack
 '
 '    sl->Draw(): (eg DrawSpriteSlice)  [if present]
 '     -Type-specific drawing of a single slice
@@ -40,7 +40,7 @@
 '      Restore cliprect
 '      Maybe draw something over all children (Scroll)
 '
-'  Pop context_stack
+'    Pop context_stack
 '
 '
 'So unrolling that, each slice `sl` is processed in this order:
@@ -52,10 +52,10 @@
 'After parent is drawn:
 ' -AutoSortChildren() modifies order amongst siblings
 ' -parent->ChildrenRefresh() updates sl->Pos/sl->Size
-' -push sl->Context onto context_stack
 ' -parent->ChildRefresh() & ChildRefresh() update sl->ScreenPos/sl->Size/sl->Visible
 ' If sl->Visible:
 '   -If sl->CoverChildren, update sl->Size
+'   -push sl->Context onto context_stack
 '   -sl->Draw()
 '   -children autosorted
 '   -sl->ChildDraw():
@@ -66,7 +66,7 @@
 '         -DrawSliceRecurse(child)
 '           -sl->ChildRefresh(child)
 '     -draw scrollbars/etc over children
-' -pop context_stack
+'   -pop context_stack
 '
 '[[FIXME: the above reveals several problems
 ' -parent->CoverChildren happens before most updates to children
@@ -3821,8 +3821,6 @@ end function
 Private Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
  if s = 0 then debug "DrawSliceRecurse null ptr": exit sub
 
- if s->Context then v_append context_stack, s->Context
-
  'Refresh the slice: calc the size and screen X,Y and possibly visibility (select slices)
  'or other attributes. Refreshing is skipped if the slice isn't visible.
  '(Note: if ChildrenRefresh is set, it was already called from the parent's
@@ -3834,18 +3832,22 @@ Private Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childi
  if s->Visible then
   if s->CoverChildren then UpdateCoverSize(s)
 
+  if s->Context then v_append context_stack, s->Context
+
   if s->Draw then
    NumDrawnSlices += 1
    s->Draw(s, page)
   end if
+
   AutoSortChildren(s)
+
   'ChildDraw normally calls ChildrenRefresh, if it exists, draws children by
   'calling DrawSliceRecurse, and may also draw anything that appears above all
   'children (eg scroll bars).
   s->ChildDraw(s, page)
- end if
 
- if s->Context then v_shrink context_stack
+  if s->Context then v_shrink context_stack
+ end if
 end sub
 
 'Draw a slice tree
