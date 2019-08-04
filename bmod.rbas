@@ -4026,6 +4026,7 @@ END FUNCTION
 
 'Try to spawn a chained attack. The new attack might either immediately become the
 'active attack (bat.atk.id), or be put on atkq.
+'Returns true if we spawned (queued) an attack.
 FUNCTION spawn_chained_attack(byref ch as AttackDataChain, instead_chain as bool, byref attack as AttackData, byref bat as battlestate, bslot() as BattleSprite) as bool
  IF ch.atk_id <= 0 THEN RETURN NO '--no chain defined
  IF bslot(bat.acting).stat.cur.hp <= 0 THEN RETURN NO '--attacker is dead
@@ -4344,6 +4345,7 @@ END SUB
 SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
  'If an attack in the attack queue is ready, start it.
  '--check the attack queue delays
+ 'NOTE: code here is partially duplicated with battle_reevaluate_dead_targets!
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF atkq_attack_active(atkq(i), bslot()) THEN
@@ -4519,6 +4521,7 @@ END FUNCTION
 
 SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as BattleState, bslot() as BattleSprite)
  '--check for queued attacks that target the dead target
+ 'NOTE: code here is partially duplicated with battle_check_delays!
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN

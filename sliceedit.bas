@@ -1599,7 +1599,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     sliceed_rule rules(), "rect_style", erIntgrabber, @(dat->style), -1, 14, slgrUPDATERECTSTYLE
     a_append menu(), "  Background color: " & slice_color_caption(dat->bgcol)
     sliceed_rule rules(), "rect_bg", erIntgrabber, @(dat->bgcol), LowColorCode(), 255, (slgrUPDATERECTCUSTOMSTYLE OR slgrPICKCOL)
-    a_append menu(), "  Foreground color: " & slice_color_caption(dat->fgcol)
+    a_append menu(), "  Foreground (line) color: " & slice_color_caption(dat->fgcol)
     sliceed_rule rules(), "rect_fg", erIntgrabber, @(dat->fgcol), LowColorCode(), 255, (slgrUPDATERECTCUSTOMSTYLE OR slgrPICKCOL)
     a_append menu(), "  Border type: " & IIF(dat->use_raw_box_border, "Spriteset", "Box Style")
     sliceed_rule_tog rules(), "rect_use_raw_box_border", @(dat->use_raw_box_border), slgrUPDATERECTCUSTOMSTYLE

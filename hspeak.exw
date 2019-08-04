@@ -1573,7 +1573,7 @@ function lexer_read_number(string s, integer i, integer stop, srcpos pos)
   if digits=0 then
     --Encountered just '-' or '0x' or '-0x' (etc)
     if equal(text,"-") then
-      src_error(COLYEL&"-"&COLRED&" can only be used to take the negation of a number, not other values/expressions (sorry!). Write "&COLYEL&"-1 * ..."&COLRED&" instead.",pos+starti)
+      src_error(COLYEL&"-"&COLRED&" can only be used to take the negation of a number, not other values/expressions (sorry!). Write "&COLYEL&"-1 * ..."&COLRED&" instead. Write "&COLYEL&"x -- y"&COLRED&" for subtraction.",pos+starti)
     else
       src_error(sprintf_utf(COLYEL&"%s"&COLRED&" looks like the start of a number, but there are no digits!",{s[starti..i-1]}),pos+starti)
     end if

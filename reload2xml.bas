@@ -20,7 +20,7 @@ while command(i) <> ""
 	i += 1
 wend
 
-if isfile(filename) = 0 or validargs = NO then
+if len(filename) = 0 orelse isfile(filename) = NO orelse validargs = NO then
 	print "Convert a RELOAD file into XML. Specify - as outfile to print to console."
 	print "Add --debug to print strings unambiguously."
 	print "Add --short to leave out long strings and binary data."

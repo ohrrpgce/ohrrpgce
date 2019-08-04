@@ -877,7 +877,7 @@ void cleanup_process (ProcessHandle *processp) {
 #ifndef __ANDROID__
 	if (processp && *processp) {
 		if ((*processp)->file)
-			pclose((*processp)->file);
+			pclose((*processp)->file); //FIXME: don't use popen/close, parent will freeze if the child does
 		free(*processp);
 		*processp = NULL;
 	}

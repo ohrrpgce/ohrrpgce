@@ -1712,7 +1712,7 @@ Sub LoadTextSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->bgcol   = LoadProp(node, "bgcol")
 
  'Ensure that width is correct, because it's currently only set when something changes,
- 'and I have seen it saved wrong
+ 'and I have seen it saved wrong (e.g. due to a bug in etheldreme)
  UpdateTextSlice sl
 End Sub
 
