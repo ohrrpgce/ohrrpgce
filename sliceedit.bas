@@ -21,8 +21,10 @@
 
 ENUM HideMode
  hideNothing = 0
- hideSlices = 1
- hideMenu = 2
+ hideMenuBG = 1
+ hideSlices = 2
+ hideMenu = 3
+ hideLAST = 3
 END ENUM
 
 TYPE SliceEditMenuItem
@@ -766,9 +768,10 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     END IF
    NEXT i
 
+   menuopts.drawbg = (ses.hide_mode <> hideMenuBG)
    standardmenu plainmenu(), state, 8, 0, dpage, menuopts
    draw_fullscreen_scrollbar state, 0, dpage, alignLeft
-   edgeprint "+ to add a slice. SHIFT+arrows to sort", 8, pBottom, uilook(uiText), dpage
+   wrapprintbg "+ to add a slice. SHIFT+arrows to sort", 8, pBottom, uilook(uiText), dpage, menuopts.drawbg
   END IF
 
   SWAP vpage, dpage
@@ -784,7 +787,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 END SUB
 
 SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState)
- IF keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD 3
+ IF keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD (hideLAST + 1)
  IF keyval(scF6) > 1 THEN
   'Move around our view on this slice collection.
   'We move around the real rool, not draw_root, as it affects screen positions
@@ -1147,6 +1150,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
    DrawSliceAnts sl, dpage
   END IF
   IF ses.hide_mode <> hideMenu THEN
+   menuopts.drawbg = (ses.hide_mode <> hideMenuBG)
    standardmenu menu(), state, 0, 0, dpage, menuopts
   END IF
 
