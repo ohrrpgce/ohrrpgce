@@ -5555,6 +5555,17 @@ sub wrapprint (text as string, x as RelPos, y as RelPos, col as integer = -1, pa
 	render_text (vpages(page), state, text, , x, y, wide, , withtags, YES)
 end sub
 
+'Like wrapprint except (optionally, by default) a transparent rectangle is drawn
+'behind the text.
+'TODO: this is a temporary solution, this ought to be handled by the standard
+'text drawing functions, and there ought to be a markup code to enable it.
+sub wrapprintbg (text as string, x as RelPos, y as RelPos, col as integer = -1, page as integer, drawbg as bool = YES, wrapx as RelPos = rWidth, withtags as bool = YES, fontnum as integer = fontEdged)
+	if drawbg then
+		trans_rectangle vpages(page), TYPE(x, y, textwidth(text), 10), master(uilook(uiBackground)), 0.55
+	end if
+	wrapprint text, x, y, col, page, wrapx, withtags, fontnum
+end sub
+
 sub textcolor (fg as integer, bg as integer)
 	textfg = fg
 	textbg = bg

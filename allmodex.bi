@@ -308,6 +308,7 @@ DECLARE FUNCTION parse_tag (z as string, offset as integer, byref action as stri
 DECLARE SUB printstr (text as string, x as RelPos, y as RelPos, page as integer, withtags as bool = NO, fontnum as integer = fontPlain)
 DECLARE SUB edgeprint (text as string, x as RelPos, y as RelPos, col as integer, page as integer, withtags as bool = NO, withnewlines as bool = NO)
 DECLARE SUB wrapprint (text as string, x as RelPos, y as RelPos, col as integer = -1, page as integer, wrapx as RelPos = rWidth, withtags as bool = YES, fontnum as integer = fontEdged)
+DECLARE SUB wrapprintbg (text as string, x as RelPos, y as RelPos, col as integer = -1, page as integer, drawbg as bool = YES, wrapx as RelPos = rWidth, withtags as bool = YES, fontnum as integer = fontEdged)
 DECLARE SUB textcolor (fg as integer, bg as integer)
 
 DECLARE SUB text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as integer = 999999, maxlines as integer = 999999, wide as integer = 999999, fontp as Font ptr, withtags as bool = YES, withnewlines as bool = YES)
