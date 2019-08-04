@@ -2737,33 +2737,46 @@ FUNCTION save_current_game (byval genDebugMode_override as integer=-1) as bool
  '--lump data to SAVE rpg file
  IF write_rpg_or_rpgdir(workingdir, sourcerpg) THEN
   write_session_info  'Update sourcerpg mtime and reset editing start time
-  automatic_backup sourcerpg
+  IF automatic_backup(sourcerpg) = NO THEN
+   visible_debug "Successfully saved the game, but couldn't write automatic backup to autobackups folder"
+  ELSE
+   show_overlay_message "Saved, and copied to autobackups", 0.6
+  END IF
   RETURN YES
  END IF
 END FUNCTION
 
-SUB automatic_backup (rpgfile as string)
+'Returns true on success
+FUNCTION automatic_backup (rpgfile as string) as bool
  DIM keep_how_many as integer = 10 'FIXME: this could be customized per-game
 
  DIM backupdir as string = trimfilename(rpgfile) & SLASH & "autobackups"
  IF NOT isdir(backupdir) THEN makedir backupdir
  IF NOT diriswriteable(backupdir) THEN
   debug "Can't do automatic backups: """ & backupdir & """ is not writeable"
+  RETURN NO
  END IF
  DIM warnfile as string = backupdir & SLASH & "README-WARNING-automatic-backups.txt"
  IF NOT isfile(warnfile) THEN
-  string_to_file !"WARNING! These automatic backups are no substitute for manual backups!\nThey are just here to save your slime that one time you forget!\n\nIf you don't have any other backup plan, at least remember to e-mail\na copy of your .rpg file to yourself once a week.", warnfile
+  string_to_file !"This folder contains automatic backups. A copy of your game is made here\n" _
+                 "every time that CUSTOM saves a game. At most 10 copies per game are kept.\n" _
+                 "WARNING! These automatic backups are no substitute for manual backups!\n" _
+                 "They are just here to save your slime that one time you forget!\n\n" _
+                 "If you don't have any other backup plan, at least remember to e-mail\n" _
+                 "a copy of your .rpg file to yourself once a week.", warnfile
  END IF
 
  'Copy the backup
  DIM datestr as string = MID(DATE, 7, 4) & "-" & MID(DATE, 1, 2) & "-" & MID(DATE, 4, 2)
  DIM destfile as string = backupdir & SLASH & trimextension(trimpath(rpgfile)) & "-" & datestr & "." & justextension(rpgfile)
+ DIM ret as bool
  IF isdir(rpgfile) THEN
   IF isdir(destfile) THEN killdir destfile
-  confirmed_copydirectory(rpgfile, destfile)
+  ret = confirmed_copydirectory(rpgfile, destfile)
  ELSE
-  writeablecopyfile rpgfile, destfile
+  ret = writeablecopyfile(rpgfile, destfile)
  END IF
+ IF ret = NO THEN RETURN NO
 
  'Cull old backups to avoid bloatclutter.
  REDIM oldfiles() as string
@@ -2788,8 +2801,9 @@ SUB automatic_backup (rpgfile as string)
    safekill oldrpg
   END IF
  NEXT i
- v_free old 
-END SUB
+ v_free old
+ RETURN YES
+END FUNCTION
 
 ' Save all lumps in lumpsdir, except for *.tmp, as a lumped file or .rpgdir directory.
 ' Returns true on success.
