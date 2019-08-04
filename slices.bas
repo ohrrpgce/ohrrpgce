@@ -3,7 +3,93 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 'Except, this module isn't very crappy
+
+
+'  ==== Explanation of how slice drawing works ====
+'DrawSlice simply calls DrawSliceRecurse, which is the central drawing function.
 '
+'DrawSliceRecurse(sl):
+'
+'  If sl->Context: push onto context_stack
+'
+'  attach->ChildRefresh(attach, sl)
+'   (attach == parent of sl, except for the root slice, then attach == ScreenSlice.
+'    sl->Attached is currently unused.)
+'   Recomputes sl->ScreenPos from sl->Pos.
+'   (Can also adjust sl->Size (if sl->Fill) and sl->Visible, see ChildRefresh details below.)
+'
+'  If sl->Visible:
+'
+'    If sl->CoverChildren: UpdateCoverSize(sl)
+'
+'    sl->Draw(): (eg DrawSpriteSlice)  [if present]
+'     -Type-specific drawing of a single slice
+'     (If something has to be drawn over the children instead, done in sl->ChildDraw)
+'
+'    AutoSortChildren(sl)
+'
+'    sl->ChildDraw() (eg GridChildDraw, DefaultChildDraw):
+'      (Called once to draw all children.)
+'      sl->ChildrenRefresh() [if present]
+'        (Recomputes Pos, Size and ScreenPos for each child)
+'      If sl->Clip: call shrinkclip (either for all children or for each child separately)
+'      DrawSliceRecurse(child, page, childindex)
+'        ...draw the child recursively...
+'      Restore cliprect
+'      Maybe draw something over all children (Scroll)
+'
+'  Pop context_stack
+'
+'
+'So unrolling that, each slice `sl` is processed in this order:
+'Before DrawSlice called:
+' -[NPC, hero, etc, slices] - positions & visibility updated based on in-game logic (done separately)
+' -AdvanceSlice() - update position based on movement (done separately - in-game wandering on map only!)
+'Before parent is drawn:
+' -If parent->CoverChildren sl->Size/sl->Pos are used to update the parent's size
+'After parent is drawn:
+' -AutoSortChildren() modifies order amongst siblings
+' -parent->ChildrenRefresh() updates sl->Pos/sl->Size
+' -push sl->Context onto context_stack
+' -parent->ChildRefresh() & ChildRefresh() update sl->ScreenPos/sl->Size/sl->Visible
+' If sl->Visible:
+'   -If sl->CoverChildren, update sl->Size
+'   -sl->Draw()
+'   -children autosorted
+'   -sl->ChildDraw():
+'     -sl->ChildrenRefresh()
+'     -shrinkclip to sl's support (size minus padding)
+'     -DrawSliceRecurse() draws children
+'        -sl->ChildRefresh() called on each child
+'     -draw scrollbars/etc over children
+' -pop context_stack
+'
+'[[FIXME: the above reveals several problems
+' -parent->CoverChildren happens before most updates to children
+' -CoverChildren updates Size after Size has already been used to update ScreenPos
+' -it's really hard to see the process order from the code
+']]
+'
+'  ==== Slice refreshing details ====
+'
+'sl->ChildRefresh (called by the slice refresh functions like RefreshSliceScreenPos,
+'and called directly or indirectly in lots of places) is responsible for translating a slice's .Pos
+'to its .ScreenPos (including effects of clamping), and also applying .Fill (which
+'modifies .Size). As an exception, SelectChildRefresh also modified .Visible. (These
+'last two effects are very probably in the wrong place!)
+'All sl->ChildRefresh methods calculate the 'support' rect for a child then call ChildRefresh()
+'to do the actual update. Grid and Panel slices have non-standard supports (each child
+'gets its own instead of all sharing the same one).
+'As an exception, if sl->ChildrenRefresh is defined, sl->ChildRefresh isn't (this is probably
+'a mistake, and may be changed.)
+'
+'sl->ChildrenRefresh is used for recomputing child X,Y positions if they are determined
+'by the parent slice. Currently only LayoutChildrenRefresh exists. There are no
+'Panel/GridChildrenRefresh subs because X,Y positions of children of those aren't relative
+'to a certain point.
+'sl->ChildrenRefresh is NOT called by slice refresh or collision detection functions.
+
+
 #include "config.bi"
 #include "allmodex.bi"
 #include "common.bi"
@@ -2628,7 +2714,7 @@ end Sub
 
 'Layout slices work
 Sub LayoutChildrenRefresh(byval par as Slice ptr)
- if par = 0 then debug "LayoutChildRefresh null ptr": exit sub
+ if par = 0 then debug "LayoutChildrenRefresh null ptr": exit sub
 
  dim dat as LayoutSliceData ptr
  dat = par->SliceData
@@ -3718,6 +3804,7 @@ Function CalcContextStack(byval sl as Slice ptr) as SliceContext ptr vector
 end function
 
 'The central slice drawing function, called regardless of what slice-specific methods have been set.
+'(See comments at the top of this file for an overview of slice drawing.)
 'childindex is index of s among its siblings. Pass childindex -1 if not known,
 'which saves computing it if it's not needed.
 Private Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
@@ -3741,6 +3828,9 @@ Private Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childi
    s->Draw(s, page)
   end if
   AutoSortChildren(s)
+  'ChildDraw normally calls ChildrenRefresh, if it exists, draws children by
+  'calling DrawSliceRecurse, and may also draw anything that appears above all
+  'children (eg scroll bars).
   s->ChildDraw(s, page)
  end if
 
