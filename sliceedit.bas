@@ -749,9 +749,10 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    END IF
   END IF
   IF ses.hide_mode <> hideMenu THEN
-   'Determine the colour for each menu item
+
+   'Determine the colour for each menu item: copy the visible part of the menu into plainmenu()
    REDIM plainmenu(state.last) as string
-   FOR i as integer = 0 TO UBOUND(plainmenu)
+   FOR i as integer = state.top TO small(UBOUND(plainmenu), state.top + state.size)
     plainmenu(i) = ses.slicemenu(i).s
     DIM sl as Slice ptr = ses.slicemenu(i).handle
     DIM col as integer = -1
@@ -1846,6 +1847,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    a_append menu(), " extra" & i & ": " & .Extra(i)
    sliceed_rule rules(), "extra", erIntgrabber, @.Extra(i), -2147483648, 2147483647
   NEXT
+
   sliceed_rule_enum rules(), "autosort", @.AutoSort, 0, 5
   a_append menu(), "Auto-sort children: " & AutoSortCaptions(.AutoSort)
   sliceed_rule rules(), "sortorder", erIntgrabber, @.Sorter, INT_MIN, INT_MAX
