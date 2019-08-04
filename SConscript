@@ -698,11 +698,18 @@ if linkgcc:
     env['BUILDERS']['BASEXE'] = basexe_gcc
 
 if not linkgcc:
-    # At the moment we don't link C++ into any utilities, so this is actually only needed in commonenv
-    FBLINKFLAGS += ['-l','stdc++'] #, '-l','gcc_s']
+    if fbcversion >= 1060:
+        # Ignore #inclib directives (specifically, so we can include modplug.bi)
+        FBLINKFLAGS += ['-noobjinfo']
+    if win32:
+        # Link statically
+        FBLINKFLAGS += ['-l', ':libstdc++.a']  # Yes, fbc accepts this argument form
+    else:
+        FBLINKFLAGS += ['-l','stdc++'] #, '-l','gcc_s']
     if mac and fbcversion > 220:
         # libgcc_eh (a C++ helper library) is only needed when linking/compiling with old versions of Apple g++
         # including v4.2.1; for most compiler versions and configuration I tried it is unneeded
+        # (Normally fbc links with gcc_eh if required, I wonder what goes wrong here?)
         FBLINKFLAGS += ['-l','gcc_eh']
     if portable:
         # TODO: force link to libncurses.so.5 or libtinfo.so.5
@@ -1394,8 +1401,7 @@ Options:
   v=1                 Be verbose.
 
 Experimental options:
-  linkgcc=0           Link using fbc instead of g++ (this only works for a
-                      few targets).
+  linkgcc=0           Link using fbc instead of g++
   android-source=1    Used as part of the Android build process for Game/Custom.
                       (See wiki for explanation.) Note: defaults to the original
                       armeabi ABI, which is becoming obsolete, c.f. 'arch='.
