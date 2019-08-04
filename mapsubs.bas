@@ -270,7 +270,7 @@ SUB map_picker ()
  DIM menuopts as MenuOptions
  menuopts.edged = YES
  menuopts.highlight = YES
- menuopts.bgfuzz = YES
+ menuopts.drawbg = YES
 
  DIM previewer as MapPreviewer
 

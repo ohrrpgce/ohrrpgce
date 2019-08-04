@@ -1352,7 +1352,7 @@ FUNCTION generic_add_new (what as string, maxindex as integer, getname as FnReco
  state.size = 24
  DIM menuopts as MenuOptions
  menuopts.edged = YES
- menuopts.bgfuzz = YES
+ menuopts.drawbg = YES
 
  state.need_update = YES
  setkeys YES

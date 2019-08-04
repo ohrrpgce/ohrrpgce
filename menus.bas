@@ -582,13 +582,13 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
     DIM linewidth as integer = textwidth(.text, IIF(menuopts.edged, fontEdged, fontPlain))
     IF .bgcol THEN
      'Note that BasicMenuItem.bgcol draws a rectangle across the width of the menu, while
-     'menuopts.highlight/.bgfuzz or a text bg color is across the width of the text
+     'menuopts.highlight/.drawbg or a text bg color is across the width of the text
      rectangle x + 0, y, wide, state.spacing, .bgcol, page
     END IF
     IF state.pt = i AND state.active AND menuopts.highlight THEN
      rectangle x + 0, y, IIF(linewidth, linewidth, 9999), state.spacing, uilook(uiHighlight), page
-    ELSEIF menuopts.bgfuzz THEN
-     fuzzyrect vpages(page), x, y, IIF(linewidth, linewidth, 9999), state.spacing, uilook(uiBackground), , YES
+    ELSEIF menuopts.drawbg THEN
+     trans_rectangle vpages(page), TYPE(x, y, IIF(linewidth, linewidth, 9999), state.spacing), master(uilook(uiBackground)), 0.55
     END IF
 
     DIM col as integer

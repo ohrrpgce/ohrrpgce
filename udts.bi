@@ -166,7 +166,7 @@ END TYPE
 TYPE MenuOptions
   edged as bool
   highlight as bool       'Display a uiHighlight-colored rectangle behind the selected item
-  bgfuzz as bool          'Draw a fuzzyrect behind the text of each menu item
+  drawbg as bool          'Draw a transparent rect behind the text of each menu item
   normal_col as integer   'Default color/UIcol for items without .col. Defaults to uilook(uiMenuItem)
   disabled_col as integer 'Default color/UIcol for items without .disabled_col. Defaults to uilook(uiDisabledItem)
 
