@@ -879,6 +879,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
      browse_add_files "*.s3m",     fileTypeFile, br, tree()
      browse_add_files "*.ogg",     fileTypeFile, br, tree()
      browse_add_files "*.mp3",     fileTypeFile, br, tree()
+     browse_add_files "*.wav",     fileTypeFile, br, tree()
     CASE browseSfx
      '--disregard fmask. one call per extension
      browse_add_files "*.wav",     fileTypeFile, br, tree()

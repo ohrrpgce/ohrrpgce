@@ -176,6 +176,7 @@ April ? 2019 [Fufluns]
     * Camera is now focused by default on hero walkabout container instead of
       sprite (see "Camera following a hero/NPC centers on" setting) to fix
       glitches when using camera script commands with large walkabouts [Ralph]
+    * Can import .wav files as music
 
   * Bugfixes
     * Fix a major memory leak while recording .gifs [Ralph]
