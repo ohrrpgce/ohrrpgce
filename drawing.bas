@@ -4250,7 +4250,7 @@ SUB SpriteSetBrowser.rebuild_menu()
     'So this is a grid
     DIM fr_holder as Slice ptr = edsl(ssed_frame_holder, ss_sl)
     IF fr_holder = 0 THEN EXIT SUB
-    fr_holder->Width = (sprset->w + 1) * sprset->arraylen
+    fr_holder->Width = (sprset->w + 1) * sprset->arraylen + 1
     fr_holder->Height = sprset->h + 2
     ChangeGridSlice fr_holder, 1, sprset->arraylen
 
@@ -4741,7 +4741,7 @@ SUB SpriteSetBrowser.run()
         rebuild_menu
         CONTINUE DO
       ELSE
-        slice_editor root, SL_COLLECT_EDITOR, , YES
+        slice_editor root, SL_COLLECT_EDITOR, , , YES
       END IF
     END IF
 

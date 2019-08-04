@@ -401,6 +401,7 @@ Sub ThingBrowser.build_thing_list()
    showbug "create_thing_plank returned NULL!"
    exit for  'Probably something is really broken
   end if
+  plank->Clip = YES  'Optimisation: don't draw off-screen planks
   if check_plank_filter(plank) then
    SetSliceParent(plank, thinglist)
    plank->Lookup = SL_PLANK_HOLDER
