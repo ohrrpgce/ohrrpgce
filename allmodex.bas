@@ -7951,7 +7951,8 @@ sub setclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as inte
 end sub
 
 'Shrinks clipping area, never grows it
-sub shrinkclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr = 0)
+'Returns true if the next cliprect still has nonzero size
+function shrinkclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr = 0) as bool
 	dim byref cliprect as ClipState = get_cliprect()
 	if fr andalso cliprect.frame <> fr then
 		cliprect.frame = fr
@@ -7966,7 +7967,9 @@ sub shrinkclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as i
 		cliprect.r = bound(small(cliprect.r, r), 0, .w - 1)
 		cliprect.b = bound(small(cliprect.b, b), 0, .h - 1)
 	end with
-end sub
+
+	return cliprect.r >= cliprect.l andalso cliprect.b >= cliprect.t
+end function
 
 'Blit a Frame with setclip clipping.
 'trans: draw transparently, either using ->mask if available, or otherwise use colour 0 as transparent

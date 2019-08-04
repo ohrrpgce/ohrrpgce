@@ -32,9 +32,11 @@
 '      (Called once to draw all children.)
 '      sl->ChildrenRefresh() [if present]
 '        (Recomputes Pos, Size and ScreenPos for each child)
-'      If sl->Clip: call shrinkclip (either for all children or for each child separately)
-'      DrawSliceRecurse(child, page, childindex)
-'        ...draw the child recursively...
+'      For each child:
+'        shrinkclip to child's support (size minus padding); usually done once for all children
+'        If not clipped off:
+'          DrawSliceRecurse(child, page, childindex)
+'            ...draw the child recursively...
 '      Restore cliprect
 '      Maybe draw something over all children (Scroll)
 '
@@ -58,16 +60,18 @@
 '   -children autosorted
 '   -sl->ChildDraw():
 '     -sl->ChildrenRefresh()
-'     -shrinkclip to sl's support (size minus padding)
-'     -DrawSliceRecurse() draws children
-'        -sl->ChildRefresh() called on each child
+'     -For each child:
+'       -shrinkclip to child's support (size minus padding); usually done once for all children
+'       -If not clipped off:
+'         -DrawSliceRecurse(child)
+'           -sl->ChildRefresh(child)
 '     -draw scrollbars/etc over children
 ' -pop context_stack
 '
 '[[FIXME: the above reveals several problems
 ' -parent->CoverChildren happens before most updates to children
 ' -CoverChildren updates Size after Size has already been used to update ScreenPos
-' -it's really hard to see the process order from the code
+' -it's really hard to see the order things happen from the code
 ']]
 '
 '  ==== Slice refreshing details ====
@@ -87,7 +91,8 @@
 'by the parent slice. Currently only LayoutChildrenRefresh exists. There are no
 'Panel/GridChildrenRefresh subs because X,Y positions of children of those aren't relative
 'to a certain point.
-'sl->ChildrenRefresh is NOT called by slice refresh or collision detection functions.
+'sl->ChildrenRefresh is called by slice refresh functions but not by collision detection
+'functions!
 
 
 #include "config.bi"
@@ -231,11 +236,15 @@ Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
 
   if .Clip then
    rememclip = get_cliprect()
-   shrinkclip .ScreenX + .paddingLeft, _
-              .ScreenY + .paddingTop, _
-              .ScreenX + .Width - .paddingRight - 1, _
-              .ScreenY + .Height - .paddingBottom - 1, _
-              vpages(page)
+   if shrinkclip(.ScreenX + .paddingLeft, _
+                 .ScreenY + .paddingTop, _
+                 .ScreenX + .Width - .paddingRight - 1, _
+                 .ScreenY + .Height - .paddingBottom - 1, _
+                 vpages(page)) = NO then
+    'All children are clipped
+    get_cliprect() = rememclip
+    exit sub
+   end if
   end if
 
   'draw the slice's children
@@ -2538,13 +2547,14 @@ Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
     clippos.x = .ScreenX + xslot * w
     clippos.y = .ScreenY + yslot * h
     dim rememclip as ClipState = get_cliprect()
-    shrinkclip clippos.x + .paddingLeft, _
-               clippos.y + .paddingTop, _
-               clippos.x + w - .paddingRight - 1, _
-               clippos.y + h - .paddingBottom - 1, _
-               vpages(page)
-
-    DrawSliceRecurse(ch, page, childindex)
+    if shrinkclip(clippos.x + .paddingLeft, _
+                  clippos.y + .paddingTop, _
+                  clippos.x + w - .paddingRight - 1, _
+                  clippos.y + h - .paddingBottom - 1, _
+                  vpages(page)) then
+     'This child isn't clipped
+     DrawSliceRecurse(ch, page, childindex)
+    end if
 
     get_cliprect() = rememclip
 
@@ -3444,16 +3454,17 @@ Sub PanelChildDraw(byval s as Slice Ptr, byval page as integer)
   dim index as integer = 0
   dim ch as Slice ptr = .FirstChild
   do while ch <> 0
+   dim needdraw as bool = YES
    if .Clip then
     CalcPanelSupport cliprect, s, index
 
     rememclip = get_cliprect()
-    shrinkclip cliprect.x, cliprect.y, _
-               cliprect.x + cliprect.wide - 1, cliprect.y + cliprect.high - 1, _
-               vpages(page)
+    needdraw = shrinkclip(cliprect.x, cliprect.y, _
+                          cliprect.x + cliprect.wide - 1, _
+                          cliprect.y + cliprect.high - 1, vpages(page))
    end if
 
-   DrawSliceRecurse(ch, page, index)
+   if needdraw then DrawSliceRecurse(ch, page, index)
 
    if .Clip then get_cliprect() = rememclip
 
@@ -4083,6 +4094,7 @@ Function SliceIsInvisible(byval sl as Slice Ptr) as bool
  return NO
 End Function
 
+'Check whether a slice is *actually* visible.
 Function SliceIsInvisibleOrClipped(byval sl as Slice Ptr) as bool
  if SliceIsInvisible(sl) then return YES
  'Check for any parents that are clipping this slice
