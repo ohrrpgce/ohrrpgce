@@ -159,6 +159,8 @@ DECLARE SUB mapedit_append_new_layers(st as MapEditState, howmany as integer)
 DECLARE SUB mapedit_insert_new_layer(st as MapEditState, byval where as integer)
 DECLARE SUB mapedit_delete_layer(st as MapEditState, byval which as integer)
 DECLARE SUB mapedit_swap_layers(st as MapEditState, byval l1 as integer, byval l2 as integer)
+DECLARE SUB mapedit_wipe_layer_settings(st as MapEditState, layernum as integer, reset_tilesets as bool = YES)
+DECLARE SUB mapedit_wipe_all_layer_settings(st as MapEditState, reset_tilesets as bool = YES)
 DECLARE SUB mapedit_gmapdata(st as MapEditState)
 DECLARE SUB mapedit_draw_icon(st as MapEditState, icon as string, x as RelPos, y as RelPos, highlight as bool = NO)
 DECLARE SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
@@ -3981,13 +3983,27 @@ SUB mapedit_append_new_layers(st as MapEditState, howmany as integer)
  REDIM PRESERVE st.map.tiles(UBOUND(st.map.tiles) + howmany)
  FOR i as integer = old_maxlayer + 1 to UBOUND(st.map.tiles)
   CleanTilemap st.map.tiles(i), st.map.wide, st.map.high, i
-  SetLayerEnabled(st.map.gmap(), i, YES)
-  SetLayerVisible(st.visible(), i, YES)
-  st.map.gmap(layer_tileset_index(i)) = 0  'Tileset = default
-  write_map_layer_name(st.map.gmap(), i, "")
+  mapedit_wipe_layer_settings st, i
  NEXT
  fix_tilemaps st.map
  mapedit_load_tilesets st
+END SUB
+
+'Reset all layer settings for one layer, but not the tilemap itself
+SUB mapedit_wipe_layer_settings(st as MapEditState, layernum as integer, reset_tilesets as bool = YES)
+ SetLayerEnabled(st.map.gmap(), layernum, YES)
+ SetLayerVisible(st.visible(), layernum, YES)
+ write_map_layer_name(st.map.gmap(), layernum, "")
+ IF reset_tilesets THEN
+  st.map.gmap(layer_tileset_index(layernum)) = 0  'Tileset = default
+ END IF
+END SUB
+
+'Reset all layer settings, but not the tilemap itself
+SUB mapedit_wipe_all_layer_settings(st as MapEditState, reset_tilesets as bool = YES)
+ FOR layernum as integer = 0 TO UBOUND(st.map.tiles)
+  mapedit_wipe_layer_settings st, layernum, reset_tilesets
+ NEXT
 END SUB
 
 'where is the index the new layer is to be placed at
@@ -4011,9 +4027,8 @@ SUB mapedit_delete_layer(st as MapEditState, byval which as integer)
    mapedit_swap_layers st, i, i + 1
   NEXT
   UnloadTilemap .tiles(UBOUND(.tiles))
-  'currently (temporarily) tilesets for unused layers are still loaded, so reset to default
-  .gmap(layer_tileset_index(UBOUND(.tiles))) = 0
-  write_map_layer_name(.gmap(), UBOUND(.tiles), "")
+  'currently (temporarily) tilesets for unused layers are still loaded, so those should be reset to default
+  mapedit_wipe_layer_settings st, UBOUND(.tiles)
   REDIM PRESERVE .tiles(UBOUND(.tiles) - 1)
  END WITH
  fix_tilemaps st.map
@@ -4240,6 +4255,7 @@ SUB mapedit_append_imported_tilemaps(st as MapEditState, newlayers() as TileMap,
  IF appending = NO THEN
   'Preserve the map size here; the resize menu is needed to change that.
   CleanTilemaps st.map.tiles(), st.map.wide, st.map.high, UBOUND(newlayers) + 1
+  mapedit_wipe_all_layer_settings st, NO  'reset_tilesets=NO
   dest_layer = 0
  ELSE
   'We already checked layer limit maplayerMax is respected
@@ -4294,11 +4310,13 @@ SUB mapedit_import_tilemaps(st as MapEditState, appending as bool)
   ELSE
    'keep a single layer
    SWAP newlayers(choice), newlayers(0)
+   newlayers(0).layernum = 0  'Not actually used, but doesn't hurt
    FOR i as integer = 1 TO UBOUND(newlayers)
     UnloadTilemap newlayers(i)
    NEXT
    REDIM PRESERVE newlayers(0)
   END IF
+  num_new_layers = 1
  END IF
 
  '--- Then we check the size and handle any problems
