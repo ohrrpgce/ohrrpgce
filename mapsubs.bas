@@ -4242,9 +4242,10 @@ SUB mapedit_append_imported_tilemaps(st as MapEditState, newlayers() as TileMap,
   CleanTilemaps st.map.tiles(), st.map.wide, st.map.high, UBOUND(newlayers) + 1
   dest_layer = 0
  ELSE
-  mapedit_append_new_layers st, 1
-  dest_layer = UBOUND(st.map.tiles)
- END IF 
+  'We already checked layer limit maplayerMax is respected
+  dest_layer = UBOUND(st.map.tiles) + 1
+  mapedit_append_new_layers st, UBOUND(newlayers) + 1
+ END IF
  DIM as integer src_layer, x, y
  FOR src_layer = 0 TO UBOUND(newlayers)
   FOR x = 0 TO small(st.map.wide, newlayers(src_layer).wide) - 1
