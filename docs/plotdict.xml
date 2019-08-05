@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2019-07-29">
+<plotscript version="wip" datecode="2019-08-05">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -2630,7 +2630,39 @@ gain hero stat(who, stat:mp, 0)</example>
 		</command>
 		</section>
 
-                <section title="Master Palette">
+		<section title="Master Palette and Screen Fades">
+		<description>
+			Everything displayed on-screen uses colors from a 256-color master palette.
+			Screen fading works by momentarily changing the colors in the palette,
+			for example shifting them all to black.
+			The screen fade commands are a very common source of confusion because they pause
+			the engine during the fade, and don't redraw the screen at all.
+			Instead, what is already on-screen (which was drawn in the <b>previous</b> game tick)
+			is re-displayed with a new palette. So
+			<example>fade screen out
+show backdrop (1)
+fade screen out</example>
+			will <b>not</b> work as expected: the screen fades out, then it fades back in,
+			then the backdrop appears instantly.
+			You need to add a <ref>wait</ref><tt>(1)</tt> immediately after the <ref>showbackdrop</ref>
+			so that the engine repaints the screen (still entirely black) with the backdrop
+			before it fades the backdrop into view.
+			<lb/>
+			This works because there's both a 'visible' master palette and a 'loaded' one.
+			<ref>fadescreenout</ref> smoothly changes the visible one to be all the same color
+			but doesn't modified the loaded one.
+			<ref>fadescreenin</ref> changes the visible one smoothly back to the loaded one.
+			<ref>loadpalette</ref>, <ref>tweakpalette</ref>, <ref>writecolor</ref>, etc
+			modify the loaded palette but not the visible one.
+			You need to call either <ref>fadescreenin</ref> or <ref>updatepalette</ref>
+			to copy the loaded palette to the visible one to make your changes visible.
+			<ref>updatepalette</ref> instantly changes the visible palette to the loaded one.
+			<lb/>
+			For example, this means you can fade between two different master palettes like so:
+			<example>load palette(2)
+fade screen in</example>
+		</description>
+
 		<command id="fadescreenout">
 			<canon>fade screen out (red, green, blue)</canon>
 			<shortname>fade screen out</shortname>
@@ -2669,8 +2701,12 @@ gain hero stat(who, stat:mp, 0)</example>
 		<command id="readcolor">
 			<canon>read color (index, element)</canon>
 			<shortname>read color</shortname>
-			<description>Returns a color value from the master palette. The first argument is the index in the palette to read from, 0 to 255. The second argument is the color value to read, red, green, or blue. You can use 0,1, and 2, or you can use the predefined constants <ref>colorred</ref>, <ref>colorgreen</ref>, and <ref>colorblue</ref>. The counterpart to this is <ref>writecolor</ref>.
-			<note>This command operates on values from 0-63. For operation on full color values (0-255), used <ref>getcolor</ref>.</note>
+			<description>Returns a color value from the master palette, in the range 0 to 63. The first argument is the index in the palette to read from, 0 to 255. The second argument is the color value to read, red, green, or blue. You can use 0,1, and 2, or you can use the predefined constants <ref>colorred</ref>, <ref>colorgreen</ref>, and <ref>colorblue</ref>. The counterpart to this is <ref>writecolor</ref>.
+			<note>
+				This command converts color components from the usual 0-255 down to 0-63,
+				for compatibility with old OHRRPGCE versions which ran on DOS!
+				For operation on full color values (0-255), use <ref>getcolor</ref>.
+			</note>
 			</description>
 			<seealso>
 				<ref>getcolor</ref>
@@ -5827,7 +5863,21 @@ end
 		<command id="setslicelookup">
 			<canon>set slice lookup (handle, code)</canon>
 			<shortname>set slice lookup</shortname>
-			<description>Changes the lookup code of a slice. The first argument is the <ref>slicehandle</ref>, the second is the new <ref>slicelookupcode</ref>. You can pass <ref>false</ref> as the second argument to remove a slice's lookup code. This command works with the <p>sli:</p> slice lookup values in your hsi file. It does not work with the <p>sl:</p> special builtin lookup values, nor can it modify the lookup code of slices that already have special lookup codes. Only user-defined lookup codes can be changed. Built-in special lookup codes cannot.</description>
+			<description>
+				Changes the lookup code of a slice.
+				The first argument is the <ref>slicehandle</ref>, the second is the new <ref>lookupcode</ref>.
+				You can pass <ref>false</ref> as the lookup code to remove it.
+				The <p>code</p> can be either a lookup code you named in the slice editor,
+				which is available as a constant with a <tt>sli:</tt> prefix added (e.g. "menubg" becomes <tt>sli:menubg</tt>),
+				or any positive number - you don't have to give a name to a lookup code
+				before using it!
+				(The values of <tt>sli:</tt> codes count up from 1, so use large numbers for unnamed
+				lookup codes, to avoid clashing).
+				<lb/>
+				You can't use <tt>sl:</tt> special builtin lookup codes,
+				nor can you modify the lookup code of slices that already have special lookup codes.
+				Only user-defined lookup codes can be changed. Built-in special lookup codes cannot.
+			</description>
 			<seealso>
 				<ref>lookupslice</ref>
 				<ref>getslicelookup</ref>
@@ -10303,7 +10353,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				There are two types.
 				User defined slice lookup codes are
 				defined (named) in the slice collection editor.
-				You will find them as constants in your .hsi file with sli: prefixes.
+				You will find them as constants in your .hsi file with sli: prefixes, and they count up from 1.
 				You can also use any non-negative value, even if you haven't named it in the editor.
 				There are also many special slice lookup codes with names that start with sl: prefixes.
 				See <ref>lookupslice</ref> for the list. They are always negative.

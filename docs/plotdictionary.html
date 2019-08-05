@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2019-07-29)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2019-08-05)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -260,7 +260,7 @@
 		<ul></ul>
 </li>
 		<li>
-<a href="#Master%20Palette">Master Palette</a><br>
+<a href="#Master%20Palette%20and%20Screen%20Fades">Master Palette and Screen Fades</a><br>
 		<ul></ul>
 </li>
 		<li>
@@ -1183,6 +1183,9 @@
 		<a href="#about-getherospeed">get hero speed (who)</a><br>
 		
 	
+		<a href="#about-getherosprite">get hero sprite (rank)</a><br>
+		
+	
 		<a href="#about-getherostat">get hero stat (who, stat, type)</a><br>
 		
 	
@@ -1343,6 +1346,9 @@
 		
 	
 		<a href="#about-getnpcspeed">get NPC speed (who)</a><br>
+		
+	
+		<a href="#about-getnpcsprite">get npc sprite (npc)</a><br>
 		
 	
 		<a href="#about-getnpcusable">get NPC usable (who)</a><br>
@@ -2263,8 +2269,8 @@
 		
 		<a href="#about-resumerandomenemies">resume random enemys</a><br>
 	
+		<a href="#about-resumetextboxcontrols">resume text box controls</a><br>
 		
-		<a href="#about-resumeboxadvance">resume textbox controls</a><br>
 	
 		<a href="#about-resumetimers">resume timers</a><br>
 		
@@ -3115,8 +3121,8 @@
 		
 		<a href="#about-suspendrandomenemies">suspend random enemys</a><br>
 	
+		<a href="#about-suspendtextboxcontrols">suspend text box controls</a><br>
 		
-		<a href="#about-suspendboxadvance">suspend textbox controls</a><br>
 	
 		<a href="#about-suspendtimers">suspend timers</a><br>
 		
@@ -3166,8 +3172,8 @@
 		<a href="#about-teleporttomap">teleport to map (map, x, y)</a><br>
 		
 	
+		<a href="#about-textboxcontrolsaresuspended">textbox controls are suspended</a><br>
 		
-		<a href="#about-boxadvanceissuspended">textbox controls are suspended</a><br>
 	
 		<a href="#about-textboxline">textbox line (string ID, textbox, line, expand, strip)</a><br>
 		
@@ -4795,10 +4801,21 @@ resume random enemies # back to normal</pre>
 		<h4>suspend box advance</h4>
 <p>
 			
-				Prevents the player from advancing or clearing text boxes by pressing keys, or moving the cursor in choice boxes. In other words, suspends text box controls. While this is active, the only way to make a text box advance is with the <a href="#about-advancetextbox" class="ref">advance text box</a> command (or <a href="#about-showtextbox" class="ref">show text box</a>) or using the "Advance text box when menu closes" menu bit. Useful for cut scenes that play out like a movie, where the player just watches the dialogue unfold. Be very careful with this command, since you do not want to leave the player stuck on a text box forever.
+				Prevents the player from advancing text boxes by pressing the 'use' key.
+				While this is active, the only way to make a text box advance is with the
+				<a href="#about-advancetextbox" class="ref">advance text box</a> command (or <a href="#about-showtextbox" class="ref">show text box</a>)
+				or using the "Advance text box when menu closes" menu bit.
+				Useful for cut-scenes that play out like a movie,
+				where the player just watches the dialogue unfold.
+				Be very careful with this command,
+				since you do not want to leave the player stuck on a text box forever.
+				Undo with <a href="#about-resumeboxadvance" class="ref">resume box advance</a>.
+				<br>
+				Note that the player can still move the cursor in choiceboxes while this
+				is active, use <a href="#about-suspendtextboxcontrols" class="ref">suspend text box controls</a> to disable that.
 				<div style="background-color:#CCB;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
-					<a href="#about-waitfortextbox" class="ref">wait for text box</a> doesn't wait while <span class="code">suspend box advance</span> is active!
+					<a href="#about-waitfortextbox" class="ref">wait for text box</a> does't wait while <span class="code">suspend box advance</span> is active!
 				</div>
 			
 			
@@ -4811,36 +4828,49 @@ resume box advance # go back to normal</pre>
 		</p>
 </div>
 		<div class="command">
-<a name="about-suspendtextboxcontrols"></a>
-		
-				<h4>suspend textbox controls</h4>
-				See <a href="#about-suspendboxadvance">suspend box advance</a>
-			</div>
-		<div class="command">
 <a name="about-resumeboxadvance"></a>
 		<h4>resume box advance</h4>
 <p>
-			Undoes the <a href="#about-suspendboxadvance" class="ref">suspend box advance</a> command and allows the player to advance and clear text boxes by pressing keys as normal.
+			Undoes the <a href="#about-suspendboxadvance" class="ref">suspend box advance</a> command, allowing the player to advance text boxes by pressing the use key, as normal.
 			
-			<pre>suspend box advance # stop players from mucking things up
-show text box(2)   # Show a text box
-wait(45)           # Wait about 3 seconds
-advance text box   # Next text box. Maybe it ends with "Press USE key to continue"
-resume box advance # go back to normal</pre>
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-boxadvanceissuspended"></a>
+		<h4>box advance is suspended</h4>
+<p>
+			Returns true if <a href="#about-suspendboxadvance" class="ref">suspend box advance</a> is active.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-suspendtextboxcontrols"></a>
+		<h4>suspend text box controls</h4>
+<p>
+			
+				Prevents the player from moving the cursor in choice boxes.
+				In future this will also prevent the player from skipping pauses
+				and fade-in animations for text boxes, once they are implemented.
+				This does not prevent the player from advancing the text box,
+				use <a href="#about-suspendboxadvance" class="ref">suspend box advance</a> for that.
+				Undo with <a href="#about-resumetextboxcontrols" class="ref">resume text box controls</a>.
+			
+			
+			
 			
 		</p>
 </div>
 		<div class="command">
 <a name="about-resumetextboxcontrols"></a>
-		
-				<h4>resume textbox controls</h4>
-				See <a href="#about-resumeboxadvance">resume box advance</a>
-			</div>
-		<div class="command">
-<a name="about-boxadvanceissuspended"></a>
-		<h4>box advance is suspended</h4>
+		<h4>resume text box controls</h4>
 <p>
-			Returns true if <a href="#about-suspendboxadvance" class="ref">suspend box advance</a> (aka <a href="#about-suspendboxadvance" class="ref">suspend textbox controls</a>) is active.
+			
+				Undoes the <a href="#about-suspendtextboxcontrols" class="ref">suspend text box controls</a> command, allowing the player to control choice boxes, as normal.
+			
 			
 			
 			
@@ -4848,10 +4878,14 @@ resume box advance # go back to normal</pre>
 </div>
 		<div class="command">
 <a name="about-textboxcontrolsaresuspended"></a>
-		
-				<h4>textbox controls are suspended</h4>
-				See <a href="#about-boxadvanceissuspended">box advance is suspended</a>
-			</div>
+		<h4>textbox controls are suspended</h4>
+<p>
+			Returns true if <a href="#about-suspendtextboxcontrols" class="ref">suspend text box controls</a> is active.
+			
+			
+			
+		</p>
+</div>
 		<div class="command">
 <a name="about-suspendoverlay"></a>
 		<h4>suspend overlay</h4>
@@ -7248,7 +7282,7 @@ gain hero stat(who, stat:mp, 0)</pre>
 		<ul></ul>
 </li>
 		<li>
-<a href="#Master%20Palette">Master Palette</a><br>
+<a href="#Master%20Palette%20and%20Screen%20Fades">Master Palette and Screen Fades</a><br>
 		<ul></ul>
 </li>
 		<li>
@@ -7383,12 +7417,42 @@ gain hero stat(who, stat:mp, 0)</pre>
 		<hr>
 		</div>
 		<div class="subsection">
-<a name="Master%20Palette"></a>
+<a name="Master%20Palette%20and%20Screen%20Fades"></a>
 		<h3>
 <span class="backlink"><a href="#Effects">Effects</a> →
-			</span>Master Palette</h3>
+			</span>Master Palette and Screen Fades</h3>
 		<ul></ul>
-<p></p>
+<p>
+			Everything displayed on-screen uses colors from a 256-color master palette.
+			Screen fading works by momentarily changing the colors in the palette,
+			for example shifting them all to black.
+			The screen fade commands are a very common source of confusion because they pause
+			the engine during the fade, and don't redraw the screen at all.
+			Instead, what is already on-screen (which was drawn in the <b>previous</b> game tick)
+			is re-displayed with a new palette. So
+			<pre>fade screen out
+show backdrop (1)
+fade screen out</pre>
+			will <b>not</b> work as expected: the screen fades out, then it fades back in,
+			then the backdrop appears instantly.
+			You need to add a <a href="#about-wait" class="ref">wait</a><span class="code">(1)</span> immediately after the <a href="#about-showbackdrop" class="ref">show backdrop</a>
+			so that the engine repaints the screen (still entirely black) with the backdrop
+			before it fades the backdrop into view.
+			<br>
+			This works because there's both a 'visible' master palette and a 'loaded' one.
+			<a href="#about-fadescreenout" class="ref">fade screen out</a> smoothly changes the visible one to be all the same color
+			but doesn't modified the loaded one.
+			<a href="#about-fadescreenin" class="ref">fade screen in</a> changes the visible one smoothly back to the loaded one.
+			<a href="#about-loadpalette" class="ref">load palette</a>, <a href="#about-tweakpalette" class="ref">tweak palette</a>, <a href="#about-writecolor" class="ref">write color</a>, etc
+			modify the loaded palette but not the visible one.
+			You need to call either <a href="#about-fadescreenin" class="ref">fade screen in</a> or <a href="#about-updatepalette" class="ref">update palette</a>
+			to copy the loaded palette to the visible one to make your changes visible.
+			<a href="#about-updatepalette" class="ref">update palette</a> instantly changes the visible palette to the loaded one.
+			<br>
+			For example, this means you can fade between two different master palettes like so:
+			<pre>load palette(2)
+fade screen in</pre>
+		</p>
 		
 		
 		<div class="command">
@@ -7465,9 +7529,13 @@ gain hero stat(who, stat:mp, 0)</pre>
 <a name="about-readcolor"></a>
 		<h4>read color (index, element)</h4>
 <p>
-			Returns a color value from the master palette. The first argument is the index in the palette to read from, 0 to 255. The second argument is the color value to read, red, green, or blue. You can use 0,1, and 2, or you can use the predefined constants <a href="#about-colorconstants" class="ref">color:red</a>, <a href="#about-colorconstants" class="ref">color:green</a>, and <a href="#about-colorconstants" class="ref">color:blue</a>. The counterpart to this is <a href="#about-writecolor" class="ref">write color</a>.
+			Returns a color value from the master palette, in the range 0 to 63. The first argument is the index in the palette to read from, 0 to 255. The second argument is the color value to read, red, green, or blue. You can use 0,1, and 2, or you can use the predefined constants <a href="#about-colorconstants" class="ref">color:red</a>, <a href="#about-colorconstants" class="ref">color:green</a>, and <a href="#about-colorconstants" class="ref">color:blue</a>. The counterpart to this is <a href="#about-writecolor" class="ref">write color</a>.
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">This command operates on values from 0-63. For operation on full color values (0-255), used <a href="#about-getcolor" class="ref">get color</a>.</div>
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+				This command converts color components from the usual 0-255 down to 0-63,
+				for compatibility with old OHRRPGCE versions which ran on DOS!
+				For operation on full color values (0-255), use <a href="#about-getcolor" class="ref">get color</a>.
+			</div>
 			
 			
 			
@@ -12333,7 +12401,21 @@ end
 <a name="about-setslicelookup"></a>
 		<h4>set slice lookup (handle, code)</h4>
 <p>
-			Changes the lookup code of a slice. The first argument is the <a href="#about-slicehandle" class="ref">slice handle</a>, the second is the new <a href="#slicelookupcode" class="undef">slicelookupcode</a>. You can pass <a href="#about-booleanconstants" class="ref">false</a> as the second argument to remove a slice's lookup code. This command works with the <span class="param">sli:</span> slice lookup values in your hsi file. It does not work with the <span class="param">sl:</span> special builtin lookup values, nor can it modify the lookup code of slices that already have special lookup codes. Only user-defined lookup codes can be changed. Built-in special lookup codes cannot.
+			
+				Changes the lookup code of a slice.
+				The first argument is the <a href="#about-slicehandle" class="ref">slice handle</a>, the second is the new <a href="#about-lookupcode" class="ref">slice lookup code</a>.
+				You can pass <a href="#about-booleanconstants" class="ref">false</a> as the lookup code to remove it.
+				The <span class="param">code</span> can be either a lookup code you named in the slice editor,
+				which is available as a constant with a <span class="code">sli:</span> prefix added (e.g. "menubg" becomes <span class="code">sli:menubg</span>),
+				or any positive number - you don't have to give a name to a lookup code
+				before using it!
+				(The values of <span class="code">sli:</span> codes count up from 1, so use large numbers for unnamed
+				lookup codes, to avoid clashing).
+				<br>
+				You can't use <span class="code">sl:</span> special builtin lookup codes,
+				nor can you modify the lookup code of slices that already have special lookup codes.
+				Only user-defined lookup codes can be changed. Built-in special lookup codes cannot.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -12349,12 +12431,14 @@ end
 		<h4>get hero slice (rank)</h4>
 <p>
 			
-				Get the slice for a hero walkabout, which is a container slice.
-				The argument is the hero's rank in the walkabout caterpillar.
-				You will not be able to manually reposition this slice (e.g. <a href="#about-putslice" class="ref">put slice</a> does not work).
-				The main purpose of getting this slice is so you can access the sprite slice attached to it
-				(use <a href="#about-lookupslice" class="ref">lookup slice</a><span class="code">(sl:walkabout sprite component, get hero slice(rank))</span> to get it),
-				or if you want to attach other slices to a hero walkabout.
+				Get a hero walkabout container slice (the parent of all slices for the hero).
+				<span class="param">rank</span> is the hero's rank in the walkabout caterpillar.
+				You will not be able to manually reposition this slice (e.g. <a href="#about-putslice" class="ref">put slice</a> does not work) - use <a href="#about-puthero" class="ref">put hero</a> instead.
+				<br>
+				Once you have this slice you can access any other slices attached to the hero, such as the sprite slice
+				(e.g. <a href="#about-lookupslice" class="ref">lookup slice</a><span class="code">(sl:walkabout sprite component, get hero slice(rank))</span>, which is equivalent to <a href="#about-getherosprite" class="ref">get hero sprite</a><span class="code">(rank)</span>),
+				or attach other slices to a hero walkabout.
+				See <a href="#about-lookupslice" class="ref">lookup slice</a> for the different walkabout components.
 			
 			
 			
@@ -12367,12 +12451,28 @@ end
 		</p>
 </div>
 		<div class="command">
+<a name="about-getherosprite"></a>
+		<h4>get hero sprite (rank)</h4>
+<p>
+			
+				Get the walkabout sprite slice for a hero.
+				<span class="param">rank</span> is the hero's rank in the walkabout caterpillar.
+				This is equivalent to
+				<a href="#about-lookupslice" class="ref">lookup slice</a><span class="code">(sl:walkabout sprite component, get hero slice(rank))</span>.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getheroslice" class="ref">get hero slice</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
 <a name="about-herorankfromslice"></a>
 		<h4>hero rank from slice (handle)</h4>
 <p>
 			
 				The opposite of <a href="#about-getheroslice" class="ref">get hero slice</a>:
-				Given a slice <span class="param">handle</span>, check whether it's the walkabout slice of some hero,
+				Given a slice <span class="param">handle</span>, check whether it's the walkabout container slice of some hero,
 				and if so, returns the hero walkabout rank (a number between 0 and 3).
 				If it doesn't belong to any hero, returns -1, <b>not</b> 0/false, like
 				<a href="#about-npcreferencefromslice" class="ref">npc reference from slice</a> does!
@@ -12405,12 +12505,15 @@ end
 		<h4>get npc slice (npc)</h4>
 <p>
 			
-				Get the slice for an NPC walkabout, which is a container slice.
+				Get an NPC walkabout container slice (the parent of all slices for the NPC).
 				The argument is the NPC id or an <a href="#about-npcreference" class="ref">NPC reference</a>.
-				You will not be able to manually reposition this slice (e.g. <a href="#about-putslice" class="ref">put slice</a> does not work).
-				The main purpose of getting this slice is so you can access the sprite slice attached to it
-				(use <a href="#about-lookupslice" class="ref">lookup slice</a><span class="code">(sl:walkabout sprite component, get npc slice(npc))</span> to get it),
-				or if you want to attach other slices to an NPC.
+				If the NPC is tag-disabled, it has no slice so this command returns 0/false.
+				If there are no copies of an NPC ID on the map, an error is thrown.
+				You will not be able to manually reposition this slice (e.g. <a href="#about-putslice" class="ref">put slice</a> does not work) - use <a href="#about-putnpc" class="ref">put npc</a> instead.
+				<br>
+				Once you have this slice you can access any other slices attached to the npc, such as the sprite slice
+				(e.g. <a href="#about-lookupslice" class="ref">lookup slice</a><span class="code">(sl:walkabout sprite component, get npc slice(npc))</span>, which is equivalent to <a href="#about-getnpcsprite" class="ref">get npc sprite</a><span class="code">(npc)</span>),
+				or attach other slices to an npc walkabout.
 			
 			
 			
@@ -12423,12 +12526,28 @@ end
 		</p>
 </div>
 		<div class="command">
+<a name="about-getnpcsprite"></a>
+		<h4>get npc sprite (npc)</h4>
+<p>
+			
+				Get the walkabout sprite slice for a npc.
+				<span class="param">npc</span> is an NPC id or <a href="#about-npcreference" class="ref">NPC reference</a>.
+				This is equivalent to
+				<a href="#about-lookupslice" class="ref">lookup slice</a><span class="code">(sl:walkabout sprite component, get npc slice(npc))</span>.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getnpcslice" class="ref">get npc slice</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
 <a name="about-npcreferencefromslice"></a>
 		<h4>npc reference from slice (handle)</h4>
 <p>
 			
 				The opposite of <a href="#about-getnpcslice" class="ref">get npc slice</a>:
-				Given a slice <span class="param">handle</span>, check whether it's the walkabout slice of some NPC,
+				Given a slice <span class="param">handle</span>, check whether it's the walkabout container slice of some NPC,
 				and if so, returns the <a href="#about-npcreference" class="ref">NPC reference</a> number.
 				If it doesn't belong to any NPC, returns 0.
 				<br>
@@ -19282,7 +19401,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				There are two types.
 				User defined slice lookup codes are
 				defined (named) in the slice collection editor.
-				You will find them as constants in your .hsi file with sli: prefixes.
+				You will find them as constants in your .hsi file with sli: prefixes, and they count up from 1.
 				You can also use any non-negative value, even if you haven't named it in the editor.
 				There are also many special slice lookup codes with names that start with sl: prefixes.
 				See <a href="#about-lookupslice" class="ref">lookup slice</a> for the list. They are always negative.
@@ -20100,7 +20219,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 868 commands (of which 52 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 870 commands (of which 49 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
