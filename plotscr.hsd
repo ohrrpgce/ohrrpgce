@@ -104,10 +104,8 @@ define function, begin
 81,setherospeed,2,0,4       # changes a heros walking speed
 82,inventory,1,0            # returns the count of a given item
 83,setherostat,4,0,0,1,0    # alters a hero's stats (who,stat,value,cur/max)
-84,suspendboxadvance,0      # prevents user from advancing text boxes/using choiceboxes
-84,suspendtextboxcontrols,0 # prevents user from advancing text boxes/using choiceboxes
+84,suspendboxadvance,0      # prevents user from advancing text boxes
 85,resumeboxadvance,0       # reverses suspendboxadvance
-85,resumetextboxcontrols,0  # reverses suspendboxadvance
 86,advancetextbox,0         # as if the user had pressed a key
 87,setheroposition,3,0,0,0  # arbitrarily set x,y
 88,setNPCposition,3,0,0,0   # arbitrarily set x,y
@@ -665,7 +663,6 @@ define function, begin
 637,doorsaresuspended,0       # return true if "suspend doors" is active
 638,randomenemiesaresuspended,0  # return true if "suspend random enemies" is active
 639,boxadvanceissuspended,0   # return true if "suspend box advance" is active
-639,textboxcontrolsaresuspended,0 # return true if "suspend box advance" is active
 640,overlayissuspended,0      # return true if "suspend overlay" is active
 641,mapmusicissuspended,0     # return true if "suspend map music" is active
 642,timersaresuspended,0      # return true if "suspend timers" is active
@@ -711,6 +708,9 @@ define function, begin
 682,findcolor,4,0,0,0,0       # Index of nearest match in palette (r, g, b, searchstart)
 683,overridetickmilliseconds,1,0  # change game tick speed
 684,canceloverridetickmilliseconds,0 # revert tick speed back to the game default
+685,suspendtextboxcontrols,0  # Prevents player from using choiceboxes
+686,resumetextboxcontrols,0   # Reverses suspendtextboxcontrols
+687,textboxcontrolsaresuspended,0 # Return true if "suspend textbox control" is active
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

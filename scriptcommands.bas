@@ -4714,7 +4714,13 @@ SUB script_functions(byval cmdid as integer)
  CASE 684 '--cancel override tick milliseconds
   set_speedcontrol gen(genMillisecPerFrame)
   set_animation_framerate gen(genMillisecPerFrame)
-  
+ CASE 685'--suspend textbox controls
+  setbit gen(), genSuspendBits, suspendtextboxcontrols, 1
+ CASE 686'--resume textbox controls
+  setbit gen(), genSuspendBits, suspendtextboxcontrols, 0
+ CASE 687'--textbox controls are suspended
+  scriptret = readbit(gen(), genSuspendBits, suspendtextboxcontrols)
+
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
   scripterr "Unsupported script command " & cmdid & " " & commandname(cmdid) & ". " _

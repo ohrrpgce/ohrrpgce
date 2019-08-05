@@ -848,12 +848,12 @@ DO
  NEXT i
 
  'Textbox controls
- IF readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
-  IF txt.fully_shown = YES THEN
+ IF txt.fully_shown = YES THEN
+  IF readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
    IF user_textbox_advance() THEN advance_text_box
   END IF
-  IF txt.fully_shown = YES ANDALSO txt.box.choice_enabled THEN
-   choicebox_controls
+  IF readbit(gen(), genSuspendBits, suspendtextboxcontrols) = 0 THEN
+   IF txt.box.choice_enabled THEN choicebox_controls
   END IF
  END IF
 

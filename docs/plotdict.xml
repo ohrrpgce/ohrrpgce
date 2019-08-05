@@ -1075,9 +1075,20 @@ resume random enemies # back to normal</example>
 			<canon>suspend box advance</canon>
 			<shortname>suspend box advance</shortname>
 			<description>
-				Prevents the player from advancing or clearing text boxes by pressing keys, or moving the cursor in choice boxes. In other words, suspends text box controls. While this is active, the only way to make a text box advance is with the <ref>advancetextbox</ref> command (or <ref>showtextbox</ref>) or using the "Advance text box when menu closes" menu bit. Useful for cut scenes that play out like a movie, where the player just watches the dialogue unfold. Be very careful with this command, since you do not want to leave the player stuck on a text box forever.
+				Prevents the player from advancing text boxes by pressing the 'use' key.
+				While this is active, the only way to make a text box advance is with the
+				<ref>advancetextbox</ref> command (or <ref>showtextbox</ref>)
+				or using the "Advance text box when menu closes" menu bit.
+				Useful for cut-scenes that play out like a movie,
+				where the player just watches the dialogue unfold.
+				Be very careful with this command,
+				since you do not want to leave the player stuck on a text box forever.
+				Undo with <ref>resumeboxadvance</ref>.
+				<lb/>
+				Note that the player can still move the cursor in choiceboxes while this
+				is active, use <ref>suspendtextboxcontrols</ref> to disable that.
 				<warn>
-					<ref>waitfortextbox</ref> doesn't wait while <tt>suspend box advance</tt> is active!
+					<ref>waitfortextbox</ref> does't wait while <tt>suspend box advance</tt> is active!
 				</warn>
 			</description>
 
@@ -1087,28 +1098,39 @@ wait(45)           # Wait about 3 seconds
 advance text box   # Next text box. Maybe it ends with "Press USE key to continue"
 resume box advance # go back to normal</example>
 		</command>
-		<command id="suspendtextboxcontrols">
-			<alias>suspendboxadvance</alias>
-			<shortname>suspend textbox controls</shortname>
-		</command>
 		<command id="resumeboxadvance">
 			<canon>resume box advance</canon>
 			<shortname>resume box advance</shortname>
-			<description>Undoes the <ref>suspendboxadvance</ref> command and allows the player to advance and clear text boxes by pressing keys as normal.</description>
-			<example c="suspendboxadvance" />
-		</command>
-		<command id="resumetextboxcontrols">
-			<alias>resumeboxadvance</alias>
-			<shortname>resume textbox controls</shortname>
+			<description>Undoes the <ref>suspendboxadvance</ref> command, allowing the player to advance text boxes by pressing the use key, as normal.</description>
 		</command>
 		<command id="boxadvanceissuspended">
 			<canon>box advance is suspended</canon>
 			<shortname>box advance is suspended</shortname>
-			<description>Returns true if <ref>suspendboxadvance</ref> (aka <ref>suspendtextboxcontrols</ref>) is active.</description>
+			<description>Returns true if <ref>suspendboxadvance</ref> is active.</description>
+		</command>
+		<command id="suspendtextboxcontrols">
+			<canon>suspend text box controls</canon>
+			<shortname>suspend text box controls</shortname>
+			<description>
+				Prevents the player from moving the cursor in choice boxes.
+				In future this will also prevent the player from skipping pauses
+				and fade-in animations for text boxes, once they are implemented.
+				This does not prevent the player from advancing the text box,
+				use <ref>suspendboxadvance</ref> for that.
+				Undo with <ref>resumetextboxcontrols</ref>.
+			</description>
+		</command>
+		<command id="resumetextboxcontrols">
+			<canon>resume text box controls</canon>
+			<shortname>resume text box controls</shortname>
+			<description>
+				Undoes the <ref>suspendtextboxcontrols</ref> command, allowing the player to control choice boxes, as normal.
+			</description>
 		</command>
 		<command id="textboxcontrolsaresuspended">
-			<alias>boxadvanceissuspended</alias>
+			<canon>textbox controls are suspended</canon>
 			<shortname>textbox controls are suspended</shortname>
+			<description>Returns true if <ref>suspendtextboxcontrols</ref> is active.</description>
 		</command>
 		<command id="suspendoverlay">
 			<canon>suspend overlay</canon>

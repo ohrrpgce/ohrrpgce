@@ -17,6 +17,13 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
+2019-08-05:
+"suspend box advance" had been changed to suspend choicebox selection
+controls too, but that change is now undone because it broke some games.
+"suspend/resume textbox controls" and "textbox controls are suspended"
+were added as aliases for "suspend/resume box advance" and "box advance is
+suspended", but they are now completely distinct commands.
+
 2019-05-01:
 If you've placed an enemy target cursor position with a nightly since
 19 Jan 2019 you need to fix it, because the enemy editor wasn't drawing
