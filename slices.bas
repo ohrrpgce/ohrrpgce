@@ -3860,20 +3860,28 @@ end sub
 'Draw a slice tree (usually a subtree of the full tree) as if it were parented
 'to a container slice with given position and size.
 'ignore_offset causes the slice's offset from its parent to be ignored
-Sub DrawSliceAt(byval s as Slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as bool = NO)
- BUG_IF(s = 0, "null ptr")
- dim dummyparent as Slice Ptr
+Sub DrawSliceAt(byval sl as Slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as bool = NO)
+ BUG_IF(sl = 0, "null ptr")
+ dim as Slice ptr dummyparent, prevparent = sl->Parent, prevnextsibling = sl->NextSibling
  dummyparent = NewSliceOfType(slContainer)
- dummyparent->ScreenPos = XY(x, y)
+ dummyparent->Pos = XY(x, y)
  dummyparent->Size = XY(w, h)
  dummyparent->Visible = YES
+ SetSliceParent sl, dummyparent
  dim oldpos as XYPair
  if ignore_offset then
-  oldpos = s->Pos
-  s->Pos = 0
+  oldpos = sl->Pos
+  sl->Pos = 0
  end if
  DrawSlice dummyparent, page
- if ignore_offset then s->Pos = oldpos
+ 'Restore sl
+ if prevnextsibling then
+  InsertSliceBefore sl, prevnextsibling
+ else
+  'Was the last child, can use SetSliceParent
+  SetSliceParent sl, prevparent
+ end if
+ if ignore_offset then sl->Pos = oldpos
  DeleteSlice @dummyparent
 end sub
 
