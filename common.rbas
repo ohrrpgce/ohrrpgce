@@ -5476,7 +5476,7 @@ FUNCTION describe_tag_autoset_places(byval tag_id as integer) as string
   END WITH
  NEXT i
 
- FOR i as integer = 0 TO maxMaxItems
+ FOR i as integer = 0 TO small(gen(genMaxItem), UBOUND(itemtags))
   WITH itemtags(i)
    IF tag_id = .have_tag THEN ret += "Item " & i & !" have tag\n"
    IF tag_id = .in_inventory_tag THEN ret += "Item " & i & !" in inventory tag\n"
