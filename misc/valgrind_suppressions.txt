@@ -207,6 +207,17 @@
    fun:fb_hInitConsole
 }
 
+{
+   ld
+   Memcheck:Cond
+   obj:/lib/ld-*.so
+}
+{
+   tgetent
+   Memcheck:Cond
+   obj:/lib/libc-*.so
+}
+
 
 ###############################################################################
 # INTERESTING STUFF
