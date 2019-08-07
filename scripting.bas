@@ -1411,7 +1411,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  initialize_static_dynamic_array(ignorelist)
 
  DIM as string errtext()
- DIM as integer scriptcmdhash
+ DIM as integer scriptcmdhash, errmsghash
 
  'err_suppress_lvl is always at least serrIgnore
  IF errorlevel <= err_suppress_lvl THEN EXIT SUB
@@ -1422,10 +1422,14 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
 
  IF NOT should_display_error_to_user(errorlevel) THEN EXIT SUB
 
+ 'Is the error ignored? Match errors in two different ways (throw location,
+ 'error message) to improve odds of the match working.
  IF nowscript >= 0 THEN
-  scriptcmdhash = scrat(nowscript).id * 100000 + scrat(nowscript).ptr * 10 + scrat(nowscript).depth
+  scriptcmdhash = scrat(nowscript).id * 100000 + scrat(nowscript).ptr
   IF a_find(ignorelist(), scriptcmdhash) <> -1 THEN EXIT SUB
  END IF
+ errmsghash = strhash(e)
+ IF a_find(ignorelist(), errmsghash) <> -1 THEN EXIT SUB
 
  ' OK, decided to show the error
  stop_fibre_timing
@@ -1449,7 +1453,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  append_menu_item menu, "Don't display any more script errors"
  'append_menu_item menu, "Set error suppression level to " & errorlevel
  append_menu_item menu, "Stop this script"
- append_menu_item menu, "Suppress errors from this source"
+ append_menu_item menu, "Hide this error"
  append_menu_item menu, "Exit game (without saving)"
  append_menu_item menu, "Enter slice debugger"
  IF recursivecall = 1 THEN  'don't reenter the debugger if possibly already inside!
@@ -1488,8 +1492,9 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
     CASE 2
      killscriptthread
      EXIT DO
-    CASE 3 'hide errors from this command
+    CASE 3 'hide this error
      a_append(ignorelist(), scriptcmdhash)
+     a_append(ignorelist(), errmsghash)
      EXIT DO
     CASE 4
      debug "scripterr: User opted to quit"
