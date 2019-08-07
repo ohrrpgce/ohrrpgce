@@ -86,6 +86,9 @@ FUNCTION individual_item_editor(item_id as integer) as integer
  FOR i as integer = 0 TO 3
   eqst(i + 1) = readglobalstring(25 + i, "Armor" & i+1)
  NEXT i
+ FOR i as integer = 0 TO UBOUND(eqst)
+  IF LEN(eqst(i)) = 0 THEN eqst(i) = "Equip slot " & i
+ NEXT
 
  loaditemdata itembuf(), item_id
  DIM item_name as string, info as string
