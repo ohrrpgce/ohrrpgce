@@ -3876,7 +3876,7 @@ Sub DrawSliceAt(byval sl as Slice ptr, byval x as integer, byval y as integer, b
  DrawSlice dummyparent, page
  'Restore sl
  if prevnextsibling then
-  InsertSliceBefore sl, prevnextsibling
+  InsertSliceBefore prevnextsibling, sl
  else
   'Was the last child, can use SetSliceParent
   SetSliceParent sl, prevparent
