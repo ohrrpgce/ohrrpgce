@@ -139,7 +139,15 @@ sub bam2mid(infile as string, outfile as string)
 			chan = ub and &h0f
 			select case cmd
 				case 0: 'stop song
-						exit do
+					'Command 0 is documented as stop song, and the Euphoria and
+					'QB players in the BAM Dev Kit treat it that way, but
+					'the asm implementation does not - it's unimplemented.
+					'The final (2002-11-21) version of fm.asm added a bug where
+					'it's misinterpreted as a "start note" command, but earlier
+					'(<= 2000-12-12) versions properly ignored it.
+					'testfiles/GURGU.BAM is an example of a BAM in the wild
+					'(from Timestream Saga) that contains a cmd 0 at the beginning.
+					'exit do
 				case 16: 'start note
 					get #f1, , ub 'get freq
 					'write midi note on

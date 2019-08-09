@@ -244,6 +244,8 @@ April ? 2019 [Fufluns]
     * Sometimes, the icon for game.exe didn't get replaced when Distributing
       Game for Windows [Ralph]
     * "Import tilemap, as new layers" crashed when importing 2+ layers [Ralph]
+    * A few BAMs were cut off early when converted to MIDI, possibly right at
+      the beginning, which could trigger a MIDI playback crash [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced
