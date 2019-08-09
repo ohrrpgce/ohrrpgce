@@ -12,10 +12,13 @@
 ''
 
 #include "util.bi"
+#include "common_base.bi"
 #include "banks.bi"
 #include "crt/stddef.bi"
 #include "lumpfile.bi"
 
+#define LOG_BAM(msg)
+'#define LOG_BAM(msg) ? msg
 
 #define VELOCITY 		96
 
@@ -66,23 +69,21 @@ sub bam2mid(infile as string, outfile as string)
 	end if
 
 	'open both files
-	openfile(infile, for_binary, f1)
-	if err <> 0 then
+	if openfile(infile, for_binary, f1) then
 		'debug "File " + infile + " could not be opened."
 		exit sub
 	end if
 
 	get #f1, , magic
 	if magic <> "CBMF" then
-		'debug "File " + infile + " is not a BAM."
+		debug "File " + infile + " is not a BAM."
 		close #f1
 		exit sub
 	end if
 
 	kill outfile
 
-	openfile(outfile, for_binary, f2)
-	if err <> 0 then
+	if openfile(outfile, for_binary, f2) then
 		'debug "Output file " + outfile + " could not be opened."
 		close #f1
 		exit sub
@@ -137,6 +138,7 @@ sub bam2mid(infile as string, outfile as string)
 		if ub < 128 then
 			cmd = ub and &hf0
 			chan = ub and &h0f
+			LOG_BAM(seek(f1) & " cmd " &  cmd & " " & chan)
 			select case cmd
 				case 0: 'stop song
 					'Command 0 is documented as stop song, and the Euphoria and
@@ -190,6 +192,13 @@ sub bam2mid(infile as string, outfile as string)
 				case 80: 'set label
 					'save file position
 					if chan = 0 then
+						'Label 0 is used for looping from the end of the BAM.
+						'Its position defaults to the start, but many BAMs
+						'explicitly place it at the beginning (after instrument
+						'definitions), but it could be elsewhere.
+
+						'Set Controller 111: set loop point (RPG Maker-compatible
+						'supported by music_native, music_native2 and SDL Mixer X).
 						bc = setvarval(delta)
 						fput f2, , @bignum(0), bc	'variable length delta time
 						tracklen += bc
@@ -205,6 +214,7 @@ sub bam2mid(infile as string, outfile as string)
 					labelpos(chan) = seek(f1) + 1
 				case 96: 'jump
 					get #f1, , ub 'loop control
+					LOG_BAM("  loop " & ub & iif(ub=255, " chorus", iif(ub=254, " jump", " times")))
 					if labelpos(chan) > 0 then
 						if ub = 255 then
 							'chorus loop, but only if not already
@@ -225,18 +235,21 @@ sub bam2mid(infile as string, outfile as string)
 								seek f1, labelpos(chan)
 							end if
 						end if
+					else
+						LOG_BAM("bad loop!")
 					end if
 				case 112: 'end of chorus
 					if returnpos > -1 then
 						seek f1, returnpos
 						returnpos = -1
 					end if
-				case else: 'ignore
+				case else: 'reserved: ignore
 					'nothing
 			end select
 		else
 			'wait
 			delta = delta + ((ub - 127) * 4)
+			LOG_BAM(seek(f1) & " wait " &  (ub - 127))
 		end if
 
 		get #f1, , ub
@@ -263,6 +276,7 @@ sub bam2mid(infile as string, outfile as string)
 
 end sub
 
+'Convert int32 to big-endian
 sub setbigval(byval value as integer)
 	bignum(3) = value and &hff
 	bignum(2) = (value shr 8) and &hff
@@ -270,6 +284,7 @@ sub setbigval(byval value as integer)
 	bignum(0) = (value shr 24) and &hff
 end sub
 
+'Convert int16 to big-endian
 sub setsmallval(byval value as integer)
 	smallnum(1) = value and &hff
 	smallnum(0) = (value shr 8) and &hff
@@ -283,8 +298,7 @@ function setvarval(byval value as integer) as integer
 
 	if value = 0 then
 		bignum(0) = 0
-		setvarval = 1
-		exit function
+		return 1
 	end if
 
 	tmp = value
@@ -300,60 +314,38 @@ function setvarval(byval value as integer) as integer
 		tmp = tmp \ 128
 	next
 
-	setvarval = bytes
+	return bytes
 end function
 
 function getvoice(bamvoice as voice) as integer
 'returns GM program number for this instrument
-	dim voicenum as integer
-	dim found as integer
-	dim check as integer
 	dim as integer i, j
 
-	voicenum = 0	'default = acoustic grand piano
-
-	found = 0
 	'check gm voices
 	for i = 0 to 127
-		check = 1
 		for j = 0 to 10
 			if gm_voice(i,j) <> bamvoice.vbyte(j) then
-				check = 0
-				exit for
+				continue for, for
 			end if
 		next
-		if check = 1 then
-			'if we get here, then we are good
-			found = 1
-			voicenum = i
-			exit for
-		end if
+		return i
 	next
 
-	if found <> 1 then
-		'check ibank voices
-		for i = 0 to 127
-			check = 1
-			for j = 0 to 10
-				if ibank_voice(i,j) <> bamvoice.vbyte(j) then
-					check = 0
-					exit for
-				end if
-			next
-			if check = 1 then
-				'if we get here, then we are good
-				found = 1
-				voicenum = ibank_map(i)
-				exit for
+	'check ibank voices
+	for i = 0 to 127
+		for j = 0 to 10
+			if ibank_voice(i,j) <> bamvoice.vbyte(j) then
+				continue for, for
 			end if
 		next
-	end if
+		return ibank_map(i)
+	next
 
-	getvoice = voicenum
+	return 0	'default = acoustic grand piano
 end function
 
-#ifndef IS_GAME
-#ifndef IS_CUSTOM
+
+#ifdef __FB_MAIN__
 
 dim infile as string, outfile as string
 
@@ -366,7 +358,6 @@ if infile = "" then
 	system
 end if
 
-
 if outfile = "" then
 	outfile = infile
 	if right(lcase(outfile), 4) = ".bam" then
@@ -378,8 +369,4 @@ end if
 
 bam2mid(infile, outfile)
 
-
-
-
-#endif
 #endif

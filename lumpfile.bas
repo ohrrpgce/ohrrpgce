@@ -1163,8 +1163,7 @@ function lumpfiles (filelist() as string, lumpfile as string, path as string) as
 			continue for
 		end if
 
-		openfile(path + filelist(i), for_binary + access_read, tl)
-		if err <> 0 then
+		if openfile(path + filelist(i), for_binary + access_read, tl) then
 			ret = "Failed to open " + path + lname + " for lumping"
 			exit for
 		end if
