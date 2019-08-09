@@ -9271,7 +9271,7 @@ function frame_dissolved(spr as Frame ptr, tlength as integer, t as integer, sty
 	'by default, sprites use colourkey transparency instead of masks.
 	'We could easily not use a mask here, but by using one, this function can be called on 8-bit graphics
 	'too; just in case you ever want to fade out a backdrop or something?
-	dim startblank as integer = (style = 8 or style = 9)
+	dim startblank as integer = (style = 8 or style = 9 or style = 11)
 	dim cpy as Frame ptr
 	cpy = frame_duplicate(spr, startblank, 1)
 	if cpy = 0 then return 0
@@ -9477,7 +9477,7 @@ function frame_dissolved(spr as Frame ptr, tlength as integer, t as integer, sty
 					poffset += 1
 				next
 			next
-		case 9 'shrink (horizontal+vertical squash)
+		case 9 'shrink (horizontal+vertical squash) centered on bottom center
 			dim destx(spr->w - 1) as integer
 			for sx = 0 to spr->w - 1
 				destx(sx) = sx * (1 - t / tlength) + 0.5 * (spr->w - 1) * (t / tlength)
@@ -9508,6 +9508,23 @@ function frame_dissolved(spr as Frame ptr, tlength as integer, t as integer, sty
 				end if
 			next
 			if state then frame_clear(cpy)
+		case 11 'shrink (horizontal+vertical squash) centered
+			dim destx(spr->w - 1) as integer
+			for sx = 0 to spr->w - 1
+				destx(sx) = sx * (1 - t / tlength) + 0.5 * (spr->w - 1) * (t / tlength)
+			next
+			for sy = 0 to spr->h - 1
+				dim desty as integer = sy * (1 - t / tlength) + 0.5 * (spr->h - 1) * (t / tlength)
+				dim destimage as ubyte ptr = cpy->image + desty * cpy->pitch
+				dim destmask as ubyte ptr = cpy->mask + desty * cpy->pitch
+				dim srcmask as ubyte ptr = iif(spr->mask, spr->mask, spr->image)
+				dim poffset as integer = sy * cpy->pitch
+				for sx = 0 to spr->w - 1
+					destimage[destx(sx)] = spr->image[poffset]
+					destmask[destx(sx)] = srcmask[poffset]
+					poffset += 1
+				next
+			next
 	end select
 
 	return cpy
@@ -9517,7 +9534,7 @@ end function
 'dissolving slices set to default dissolve length!
 function default_dissolve_time(style as integer, w as integer, h as integer) as integer
 	'squash, vapourise, phase out, squeeze
-	if style = 4 or style = 6 or style = 7 or style = 8 or style = 9 then
+	if style = 4 or style = 6 or style = 7 or style = 8 or style = 9 or style = 11 then
 		return w / 5
 	else
 		return w / 2

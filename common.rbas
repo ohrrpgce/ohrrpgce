@@ -7464,6 +7464,7 @@ FUNCTION dissolve_type_caption(n as integer) as string
   CASE 8: RETURN "Squeeze"
   CASE 9: RETURN "Shrink"
   CASE 10: RETURN "Flicker"
+  CASE 11: RETURN "Shrink to Center"
   CASE ELSE: RETURN n & " Invalid!"
  END SELECT
 END FUNCTION
@@ -7483,6 +7484,7 @@ FUNCTION appear_type_caption(n as integer) as string
   CASE 8: RETURN "Un-Squeeze"
   CASE 9: RETURN "Expand"
   CASE 10: RETURN "Flicker"
+  CASE 11: RETURN "Expand from Center"
   CASE ELSE: RETURN n & " Invalid!"
  END SELECT
 END FUNCTION

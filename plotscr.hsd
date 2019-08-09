@@ -2153,6 +2153,7 @@ define constant, begin
 8,dissolve:squeeze
 9,dissolve:shrink
 10,dissolve:flicker
+11,dissolve:shrink to center
 -1,dissolvetime:default
 50000,maximum global id
 99,maximum string id
