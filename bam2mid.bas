@@ -63,6 +63,9 @@ sub bam2mid(infile as string, outfile as string)
 		labelpos(i) = -1
 		loopcount(i) = -1
 	next
+	'Label 0 defaults to the beginning of the file, but it's only used for
+	'looping from the end, and we stop instead of processing that loop.
+	labelpos(0) = 5  'Past header
 
 	if outfile = "" then
 		outfile = infile + ".mid"
@@ -196,6 +199,9 @@ sub bam2mid(infile as string, outfile as string)
 						'Its position defaults to the start, but many BAMs
 						'explicitly place it at the beginning (after instrument
 						'definitions), but it could be elsewhere.
+						'BUG: actually, we might perform a jump to a label other
+						'than 0. E.g. ARIEDUET.BAM jumps to label 2 at the end.
+						'This is pretty annoying to support, though.
 
 						'Set Controller 111: set loop point (RPG Maker-compatible
 						'supported by music_native, music_native2 and SDL Mixer X).
@@ -211,7 +217,7 @@ sub bam2mid(infile as string, outfile as string)
 						tracklen += 3
 						delta = 0
 					end if
-					labelpos(chan) = seek(f1) + 1
+					labelpos(chan) = seek(f1)
 				case 96: 'jump
 					get #f1, , ub 'loop control
 					LOG_BAM("  loop " & ub & iif(ub=255, " chorus", iif(ub=254, " jump", " times")))
@@ -220,9 +226,16 @@ sub bam2mid(infile as string, outfile as string)
 							'chorus loop, but only if not already
 							'in a chorus
 							if returnpos = -1 then
-								returnpos = seek(f1) + 1
+								returnpos = seek(f1)
 								seek f1, labelpos(chan)
 							end if
+						end if
+						if ub = 254 then
+							'Infinite loop.
+							'An infinite loop to marker 0 always appears at the
+							'end of the file. It effectively marks the end of
+							'the song. It could appear earlier (e.g. in ARIEDUET.BAM)
+							exit do
 						end if
 						if ub < 254 then
 							if loopcount(chan) = -1 then

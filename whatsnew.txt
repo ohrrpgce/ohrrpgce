@@ -245,7 +245,8 @@ April ? 2019 [Fufluns]
       Game for Windows [Ralph]
     * "Import tilemap, as new layers" crashed when importing 2+ layers [Ralph]
     * A few BAMs were cut off early when converted to MIDI, possibly right at
-      the beginning, which could trigger a MIDI playback crash [Ralph]
+      the beginning, which could trigger a MIDI playback crash. Also fixed lost
+      notes after loop points. [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced
