@@ -11,7 +11,7 @@ if [ -n "True" ] ; then
   echo ""
   ./distrib-nightly-linux.sh 2>&1
 fi | tee ~/wrap-nightly-linux-output.txt
-/usr/sbin/sendmail < ~/wrap-nightly-linux-output.txt
+~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-linux-output.txt
 
 echo "------------------"
 echo "WILL SHUT DOWN NOW"

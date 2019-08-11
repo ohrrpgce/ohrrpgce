@@ -11,7 +11,7 @@ if [ -n "True" ] ; then
   echo ""
   ./distrib-nightly-android.sh 2>&1
 fi | tee ~/wrap-nightly-android-output.txt
-/usr/sbin/sendmail < ~/wrap-nightly-android-output.txt
+~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-android-output.txt
 
 echo "------------------"
 echo "WILL SHUT DOWN NOW"

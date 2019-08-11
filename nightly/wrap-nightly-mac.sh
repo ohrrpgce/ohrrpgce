@@ -5,17 +5,15 @@ sleep 10
 cd ~/src/ohr/wip
 
 if [ -n "True" ] ; then
+  echo "From: cron@rpg.hamsterrepublic.com"
+  echo "To: cron@rpg.hamsterrepublic.com"
+  echo "Subject: OHRRPGCE Mac nightly build ($(uname -n))"
+  echo ""
   # This hard-codes some paths specific to James's setup
   CC=clang GCC=/opt/local/bin/gcc-mp-4.7 EUDIR=~james/misc/euphoria/ ./distrib-nightly-mac.sh 2>&1
 fi | tee ~/wrap-nightly-mac-output.txt
 
-# You must configure postfix on your mac before the mail command will work.
-# The following instructions worked for me:
-# http://www.anujgakhar.com/2011/12/09/using-macosx-lion-command-line-mail-with-gmail-as-smtp/
-mail \
-  -s "Subject: OHRRPGCE Mac nightly build ($(uname -n))" \
-  cron@rpg.hamsterrepublic.com \
-  < ~/wrap-nightly-mac-output.txt
+~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-mac-output.txt
 
 echo "------------------"
 echo "WILL SHUT DOWN NOW"
