@@ -242,25 +242,33 @@ else:
     CFLAGS.append ('-O0')
 
 # Backend selection.
-# Defaults:
-if mac:
+if 'gfx' in ARGUMENTS:
+    gfx = ARGUMENTS['gfx']
+elif 'OHRGFX' in os.environ:
+    gfx = os.environ['OHRGFX']
+elif mac:
     gfx = 'sdl'
 elif android:
     gfx = 'sdl'
-elif unix:
-    gfx = 'sdl+fb'
 elif win32:
     gfx = 'directx+sdl+fb'
-gfx = ARGUMENTS.get ('gfx', os.environ.get ('OHRGFX', gfx))
-gfx = gfx.split ("+")
-gfx = [g.lower () for g in gfx]
-music = ARGUMENTS.get ('music', os.environ.get ('OHRMUSIC','sdl'))
-music = [music.lower ()]
+else: # unix
+    gfx = 'sdl+fb'
+gfx = [g.lower() for g in gfx.split("+")]
+if 'music' in ARGUMENTS:
+    music = ARGUMENTS['music']
+elif 'OHRMUSIC' in os.environ:
+    music = os.environ['OHRMUSIC']
+elif 'sdl2' in gfx:
+    music = 'sdl2'
+else:
+    music = 'sdl'
+music = [music.lower()]
 
 # You can link both gfx_sdl and gfx_sdl2, but one of SDL 1.2, SDL 2 will
 # be partially shadowed by the other and will crash. Need to use dynamic linking. WIP.
 if 'sdl' in music+gfx and 'sdl2' in music+gfx:
-    print "Can't both sdl and sdl2 music or graphics backends at same time"
+    print "Can't link both sdl and sdl2 music or graphics backends at same time"
     Exit(1)
 
 
