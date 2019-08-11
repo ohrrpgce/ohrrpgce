@@ -776,8 +776,8 @@ FUNCTION gfx_sdl2_get_safe_zone_margin() as single
 END FUNCTION
 
 SUB gfx_sdl2_set_safe_zone_margin(margin as single)
+ 'FIXME: Not implemented!
  safe_zone_margin = margin
- recreate_window()
 END SUB
 
 FUNCTION gfx_sdl2_supports_safe_zone_margin() as bool
@@ -954,7 +954,10 @@ SUB gfx_sdl2_process_events()
           debuginfo "SDL_MOUSEWHEEL " & evnt.wheel.x & "," & evnt.wheel.y & " mouse=" & evnt.wheel.which
           'SDL 2.0.4+:  & " dir=" & evnt.wheel.direction
         END IF
-        mousewheel += evnt.wheel.y  ' * 120
+        'I'm surprised that SDL reports only 1 or -1 per wheel click... how does it reports wheels with
+        'higher resolutions?
+        mousewheel += evnt.wheel.y * 120
+        'TODO: report evnt.wheel.x too
 
       CASE SDL_WINDOWEVENT
         IF debugging_io THEN
