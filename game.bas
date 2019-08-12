@@ -794,7 +794,7 @@ DO
  IF normal_controls_disabled() = NO AND vstate.active = NO THEN
   'Menu key is enabled (provided you're stationary)
   update_hero_pathfinding_menu_queue()
-  IF (user_triggered_main_menu() ORELSE gam.hero_pathing(0).queued_menu) AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
+  IF (user_triggered_main_menu() ORELSE gam.hero_pathing(0).queued_menu) ANDALSO herow(0).xygo = 0 THEN
    gam.hero_pathing(0).queued_menu = NO
    IF gen(genEscMenuScript) > 0 THEN
     trigger_script gen(genEscMenuScript), 0, NO, "", "", mainFibreGroup
@@ -814,7 +814,7 @@ DO
     user_trigger_hero_pathfinding()
    END IF
   END IF
-  IF herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
+  IF herow(0).xygo = 0 THEN
    DIM setdir as DirNum = -1
    IF carray(ccUp) > 0 THEN
     herow(0).ygo = 20
@@ -842,7 +842,7 @@ DO
   END IF
  END IF
  FOR i as integer = 0 TO 3
-  IF herow(i).xgo = 0 ANDALSO herow(i).ygo = 0 THEN
+  IF herow(i).xygo = 0 THEN
    update_hero_pathfinding(i)
   END IF
  NEXT i
@@ -1308,7 +1308,7 @@ END FUNCTION
 
 SUB update_heroes(force_step_check as bool=NO)
  'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left
- FOR whoi as integer = 0 TO active_party_slots - 1
+ FOR whoi as integer = 0 TO active_party_slots() - 1
   IF herow(whoi).speed = 0 THEN
    '--cancel movement, or some of the following code misbehaves
    herow(whoi).xgo = 0
@@ -1370,7 +1370,7 @@ SUB update_heroes(force_step_check as bool=NO)
  ' then make other heroes trail along by updating the caterpillar history
  IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN
   'Normal caterpillar
-  IF herow(0).xgo ORELSE herow(0).ygo THEN
+  IF herow(0).xygo <> 0 THEN
    updatecaterpillarhistory
   END IF
   IF herow(0).xgo ORELSE herow(0).ygo ORELSE prefbit(42) THEN  '"Heroes use Walk in Place animation while idle"
@@ -1394,22 +1394,23 @@ SUB update_heroes(force_step_check as bool=NO)
  NEXT whoi
 
  'Non-caterpillar (normal [xy]go-based) hero movement
- DIM didgo(0 TO active_party_slots - 1) as bool
- FOR whoi as integer = 0 TO active_party_slots - 1
+ DIM didgo(0 TO active_party_slots() - 1) as bool
+ FOR whoi as integer = 0 TO active_party_slots() - 1
   'NOTE: this loop covers the max caterpillar size, and not the current
   ' return value of caterpillar_size() because empty hero slots still
   ' need to be movable on the map. Scripts sometimes want to move a hero
   ' and wait for that hero without first checking if the slot is occupied
-  didgo(whoi) = NO
-  IF herow(whoi).xgo OR herow(whoi).ygo THEN
-   '--this actually updates the hero's coordinates
-   'NOTE: if the caterpillar is enabled, then only the leader has nonzero xgo, ygo
-   IF herow(whoi).xgo > 0 THEN herow(whoi).xgo -= herow(whoi).speed: herox(whoi) -= herow(whoi).speed
-   IF herow(whoi).xgo < 0 THEN herow(whoi).xgo += herow(whoi).speed: herox(whoi) += herow(whoi).speed
-   IF herow(whoi).ygo > 0 THEN herow(whoi).ygo -= herow(whoi).speed: heroy(whoi) -= herow(whoi).speed
-   IF herow(whoi).ygo < 0 THEN herow(whoi).ygo += herow(whoi).speed: heroy(whoi) += herow(whoi).speed
-   didgo(whoi) = YES
-  END IF
+
+  'This actually updates the hero's coordinates (but not trailing heroes when caterpiller is enabled)
+  'NOTE: if the caterpillar is enabled, then only the leader has nonzero xgo, ygo
+  'unless you use "walk hero", etc, which will work only as long as the leader is still
+  didgo(whoi) = (herow(whoi).xygo <> 0)
+  IF herow(whoi).xgo > 0 THEN herow(whoi).xgo -= herow(whoi).speed: herox(whoi) -= herow(whoi).speed
+  IF herow(whoi).xgo < 0 THEN herow(whoi).xgo += herow(whoi).speed: herox(whoi) += herow(whoi).speed
+  IF herow(whoi).ygo > 0 THEN herow(whoi).ygo -= herow(whoi).speed: heroy(whoi) -= herow(whoi).speed
+  IF herow(whoi).ygo < 0 THEN herow(whoi).ygo += herow(whoi).speed: heroy(whoi) += herow(whoi).speed
+  'Always crop to map bounds (or wrap around map) even if walls are disabled
+  '(if they aren't, then movement was already cropped by wrappass)
   cropmovement heropos(whoi), herow(whoi).xygo
  NEXT whoi
 
@@ -1460,7 +1461,7 @@ SUB update_heroes(force_step_check as bool=NO)
     END IF
 
     IF harm_whole_party THEN
-     FOR party_slot as integer = 0 TO active_party_slots - 1
+     FOR party_slot as integer = 0 TO active_party_slots() - 1
       IF gam.hero(party_slot).id >= 0 THEN
        apply_harmtile_to gam.hero(party_slot)
       END IF
@@ -2029,8 +2030,10 @@ END SUB
 FUNCTION perform_npc_move(byval npcnum as NPCIndex, npci as NPCInst, npcdata as NPCType) as bool
  '--npcnum is the npc() index of npci.
  '--Here we attempt to actually update the coordinates for this NPC, checking obstructions
- '--Return true if we finished a step (didgo)
- DIM didgo as bool = NO
+ '--Return true if we finished a step
+ DIM finished_step as bool = NO
+ 'Inconsistency: NPCs advance walk frame when they try to walk into a wall (which must be
+ 'preserved) but heroes don't (probably doesn't matter)
  loopvar npci.frame, 0, 3
  DIM hit_something as bool = NO
  IF movdivis(npci.xgo) OR movdivis(npci.ygo) THEN
@@ -2064,7 +2067,7 @@ FUNCTION perform_npc_move(byval npcnum as NPCIndex, npci as NPCInst, npcdata as 
     IF npci.xgo < 0 THEN npci.xgo += npcdata.speed: npci.x += npcdata.speed
     IF npci.ygo > 0 THEN npci.ygo -= npcdata.speed: npci.y -= npcdata.speed
     IF npci.ygo < 0 THEN npci.ygo += npcdata.speed: npci.y += npcdata.speed
-    IF npci.xygo MOD 20 = 0 THEN didgo = YES
+    IF npci.xygo MOD 20 = 0 THEN finished_step = YES
    END IF
   ELSE
    '--no speed, kill wantgo
@@ -2073,6 +2076,8 @@ FUNCTION perform_npc_move(byval npcnum as NPCIndex, npci as NPCInst, npcdata as 
    '--also kill pathfinding override
    cancel_npc_movement_override (npci)
   END IF
+  'Always crop to map bounds (or wrap around map) even if walls are disabled
+  '(if they aren't, then movement was already cropped)
   IF cropmovement(npci.pos, npci.xygo) THEN npchitwall(npci, npcdata, collideWall)
  END IF
 
@@ -2083,7 +2088,7 @@ FUNCTION perform_npc_move(byval npcnum as NPCIndex, npci as NPCInst, npcdata as 
   END IF
  END IF
 
- RETURN didgo
+ RETURN finished_step
 END FUNCTION
 
 'WARNING: this function returns false if the NPC is blocked by both a wall/zone and an npc/hero
@@ -2162,7 +2167,7 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
  'the xgo and ygo passed in, but we don't want to alter npci.xgo and npci.ygo if we are just
  'checking whether collision could possibly happen.
 
- 'NPC xgo and ygo are backwards from what you might expect! xgo=-1 means the hero wants to 1 pixel right
+ 'NPC xgo and ygo are backwards from what you might expect! xgo=-1 means the NPC wants to go 1 pixel right
 
  'Collision type optionally communicates which type of collision was detected first.
  'If two types of collision are possible for a single move, only the first will ever be indicated 
@@ -2173,7 +2178,7 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
  DIM pixelpos as XYPair 'Tile top left corner pixel pos for passing to wrapzonecheck
  pixelpos = tilepos * 20
 
- IF readbit(gen(), genSuspendBits, suspendnpcwalls) = 0 AND npci.ignore_walls = 0 THEN
+ IF readbit(gen(), genSuspendBits, suspendnpcwalls) = 0 ANDALSO npci.ignore_walls = NO THEN
   '--this only happens if NPC walls on
   IF wrappass(tilepos.x, tilepos.y, xgo, ygo, NO, npcdata.ignore_passmap) THEN
    collision_type = collideWall
@@ -4263,9 +4268,10 @@ FUNCTION party_size () as integer
  RETURN count
 END FUNCTION
 
+'DO NOT CONFUSE with active_party_slots
 FUNCTION active_party_size () as integer
  DIM count as integer = 0
- FOR i as integer = 0 TO active_party_slots - 1
+ FOR i as integer = 0 TO active_party_slots() - 1
   IF gam.hero(i).id >= 0 THEN count += 1
  NEXT i
  RETURN count
@@ -4294,6 +4300,7 @@ END FUNCTION
 
 'This defines the max size of the active party
 '(Eventually; we can't change this yet)
+'DO NOT CONFUSE with active_party_size
 FUNCTION active_party_slots() as integer
  RETURN 4
 END FUNCTION
@@ -4312,7 +4319,7 @@ FUNCTION loop_active_party_slot(byval slot as integer, byval direction as intege
   RETURN slot
  END IF
  DO
-  loopvar slot, 0, active_party_slots - 1, direction
+  loopvar slot, 0, active_party_slots() - 1, direction
   IF gam.hero(slot).id >= 0 THEN RETURN slot
  LOOP
 END FUNCTION
