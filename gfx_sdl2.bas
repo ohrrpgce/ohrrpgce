@@ -500,11 +500,11 @@ PRIVATE FUNCTION present_internal(raw as any ptr, imagesz as XYPair, bitdepth as
     ' Intermediate step: do an enlarged blit to a surface and then do smoothing
 
     IF bitdepth = 8 THEN
-      smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, imagesz.w, imagesz.h, screenbuffer->pitch, buffer_zoom, smooth)
+      smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, imagesz, screenbuffer->pitch, buffer_zoom, smooth)
     ELSE
       '32 bit surface
       'smoothzoomblit takes the pitch in pixels, not bytes!
-      smoothzoomblit_32_to_32bit(cast(RGBcolor ptr, raw), cast(uint32 ptr, screenbuffer->pixels), imagesz.w, imagesz.h, screenbuffer->pitch \ 4, buffer_zoom, smooth)
+      smoothzoomblit_32_to_32bit(cast(RGBcolor ptr, raw), cast(uint32 ptr, screenbuffer->pixels), imagesz, screenbuffer->pitch \ 4, buffer_zoom, smooth)
     END IF
 
     raw = screenbuffer->pixels
@@ -514,7 +514,7 @@ PRIVATE FUNCTION present_internal(raw as any ptr, imagesz as XYPair, bitdepth as
     'Need to make a copy of the input, in case gfx_setpal is called
 
     'Copy over
-    'smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, w, h, screenbuffer->pitch, 1, smooth)
+    'smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, imagesz, screenbuffer->pitch, 1, smooth)
     SDL_ConvertPixels(imagesz.w, imagesz.h, SDL_PIXELFORMAT_INDEX8, raw, pitch, SDL_PIXELFORMAT_INDEX8, screenbuffer->pixels, screenbuffer->pitch)
 
   ELSE

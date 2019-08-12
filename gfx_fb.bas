@@ -192,13 +192,13 @@ function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette 
 			gfx_fb_setpal(cast(RGBcolor ptr, @pal->col(0)))
 
 			if depth = 8 then
-				smoothzoomblit_8_to_8bit(.pPaletteData, screenpixels, .width, .height, .width * zoom, zoom, smooth)
+				smoothzoomblit_8_to_8bit(.pPaletteData, screenpixels, .size, .width * zoom, zoom, smooth)
 			elseif depth = 32 then
-				smoothzoomblit_8_to_32bit(.pPaletteData, cast(uint32 ptr, screenpixels), .width, .height, .width * zoom, zoom, smooth, @truepal(0))
+				smoothzoomblit_8_to_32bit(.pPaletteData, cast(uint32 ptr, screenpixels), .size, .width * zoom, zoom, smooth, @truepal(0))
 			end if
 		else  '32 bit
 			if depth = 32 then
-				smoothzoomblit_32_to_32bit(.pColorData, cast(uint32 ptr, screenpixels), .width, .height, .width * zoom, zoom, smooth)
+				smoothzoomblit_32_to_32bit(.pColorData, cast(uint32 ptr, screenpixels), .size, .width * zoom, zoom, smooth)
 			else
 				ret = 1
 			end if

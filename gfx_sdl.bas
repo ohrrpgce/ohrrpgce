@@ -533,17 +533,16 @@ FUNCTION gfx_sdl_getversion() as integer
   RETURN 1
 END FUNCTION
 
-FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
+FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval imagesz as XYPair, byval bitdepth as integer) as integer
   'debuginfo "gfx_sdl_present_internal(w=" & w & ", h=" & h & ", bitdepth=" & bitdepth & ")"
 
   'variable resolution handling
   '(We also test the size of screensurface, because sometimes SDL resizes the
   'window without telling us with an event! This happens on X11 when dragging
   'the window, if we try to change window size mid-drag)
-  IF framesize.w <> w OR framesize.h <> h OR XY(screensurface->w, screensurface->h) <> lastwindowsize THEN
-    'debuginfo "gfx_sdl_present_internal: framesize changing from " & framesize.w & "*" & framesize.h & " to " & w & "*" & h
-    framesize.w = w
-    framesize.h = h
+  IF framesize <> imagesz OR XY(screensurface->w, screensurface->h) <> lastwindowsize THEN
+    'debuginfo "gfx_sdl_present_internal: framesize changing from " & framesize & " to " & imagesz
+    framesize = imagesz
     'A bitdepth of 0 indicates 'same as previous, otherwise default (native)'. Not sure if it's best to use
     'a native or 8 bit screen surface when we're drawing 8 bit; simply going to preserve the status quo for now.
     'Silence debug output here, or we get a raft of resize messages when resizing the window w/ the mouse
@@ -560,20 +559,20 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byva
     'and then smooth it (since it's also a SW surface)
     'Or what we actually do: smoothzoom first to screenbuffer, with smoothzoomblit_8_to_8bit, and then blit to screensurface
 
-    IF screenbuffer ANDALSO (screenbuffer->w <> w * zoom OR screenbuffer->h <> h * zoom) THEN
+    IF screenbuffer ANDALSO XY(screenbuffer->w, screenbuffer->h) <> imagesz * zoom THEN
       SDL_FreeSurface(screenbuffer)
       screenbuffer = NULL
     END IF
 
     IF screenbuffer = NULL THEN
-      screenbuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, w * zoom, h * zoom, 8, 0,0,0,0)
+      screenbuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, imagesz.w * zoom, imagesz.h * zoom, 8, 0,0,0,0)
     END IF
     'screenbuffer = SDL_CreateRGBSurfaceFrom(raw, w, h, 8, w, 0,0,0,0)
     IF screenbuffer = NULL THEN
       debugc errDie, "gfx_sdl_present_internal: Failed to allocate page wrapping surface, " & *SDL_GetError
     END IF
 
-    smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, w, h, screenbuffer->pitch, zoom, smooth)
+    smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, imagesz, screenbuffer->pitch, zoom, smooth)
     gfx_sdl_8bit_update_screen()
 
   ELSE
@@ -588,7 +587,7 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byva
     END IF
 
     'smoothzoomblit takes the pitch in pixels, not bytes!
-    smoothzoomblit_32_to_32bit(cast(RGBcolor ptr, raw), cast(uint32 ptr, screensurface->pixels), w, h, screensurface->pitch \ 4, zoom, smooth)
+    smoothzoomblit_32_to_32bit(cast(RGBcolor ptr, raw), cast(uint32 ptr, screensurface->pixels), imagesz, screensurface->pitch \ 4, zoom, smooth)
     IF SDL_Flip(screensurface) THEN
       debug "gfx_sdl_present_internal: SDL_Flip failed: " & *SDL_GetError
     END IF
@@ -607,7 +606,7 @@ FUNCTION gfx_sdl_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette
         sdlpalette(i).b = pal->col(i).b
       NEXT
     END IF
-    RETURN gfx_sdl_present_internal(.pColorData, .width, .height, IIF(.format = SF_8bit, 8, 32))
+    RETURN gfx_sdl_present_internal(.pColorData, .size, IIF(.format = SF_8bit, 8, 32))
   END WITH
 END FUNCTION
 
@@ -764,6 +763,8 @@ SUB gfx_sdl_recenter_window_hint()
 #ENDIF
 END SUB
 
+'change_windowsize = NO: Results in (eventually) changing framesize (set_scale_factor())
+'change_windowsize = YES: Change the actual window size instead of framesize.
 SUB gfx_sdl_set_zoom(value as integer, change_windowsize as bool)
   IF value >= 1 AND value <= 16 AND value <> zoom THEN
     zoom = value

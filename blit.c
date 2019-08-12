@@ -13,9 +13,9 @@
 #include "surface.h"
 #include "misc.h"
 
-void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, int w, int h, int pitch, int zoom, int smooth, RGBcolor dummypal[]);
-void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, int w, int h, int pitch, int zoom, int smooth, RGBcolor pal[]);
-void smoothzoomblit_32_to_32bit(RGBcolor *srcbuffer, RGBcolor *destbuffer, int w, int h, int pitch, int zoom, int smooth, RGBcolor dummypal[]);
+void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor dummypal[]);
+void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor pal[]);
+void smoothzoomblit_32_to_32bit(RGBcolor *srcbuffer, RGBcolor *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor dummypal[]);
 
 
 static inline uint8_t *get_frame_buf(Frame *spr) {
@@ -204,11 +204,11 @@ void blitohrscaled(Frame *spr, Frame *destspr, Palette16 *pal, int x, int y, int
 	}
 }
 
-typedef void (*smoothblitfunc_t)(void *srcbuffer, void *destbuffer, int w, int h, int pitch, int zoom, int smooth, RGBcolor pal[]);
+typedef void (*smoothblitfunc_t)(void *srcbuffer, void *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor pal[]);
 
 // The smoothzoomblit functions implement smoothing at 2x, 3x and 4x zooms.
 // This implements smoothing at other zooms by chaining together calls to those functions
-bool multismoothblit(int srcbitdepth, int destbitdepth, void *srcbuffer, void *destbuffer, int w, int h, int pitch, int zoom, int *smooth, RGBcolor pal[]) {
+bool multismoothblit(int srcbitdepth, int destbitdepth, void *srcbuffer, void *destbuffer, XYPair size, int pitch, int zoom, int *smooth, RGBcolor pal[]) {
 	if (zoom < 4 || !*smooth)
 		return false;
 
@@ -244,46 +244,46 @@ bool multismoothblit(int srcbitdepth, int destbitdepth, void *srcbuffer, void *d
 	int zoom01 = zoom0 * zoom1;
 
 	void *intermediate_buffer;
-	intermediate_buffer = malloc(w * h * zoom01 * zoom01 * srcbitdepth / 8);
+	intermediate_buffer = malloc(size.w * size.h * zoom01 * zoom01 * srcbitdepth / 8);
 	if (!intermediate_buffer)
 		debugc(errFatalError, "multismoothblit: malloc failed");
 	void *first_buffer = srcbuffer;
 
 	if (zoom0 > 1) {
 		first_buffer = destbuffer;
-		func1(srcbuffer, first_buffer, w, h, w * zoom0, zoom0, 1, pal);
+		func1(srcbuffer, first_buffer, size, size.w * zoom0, zoom0, 1, pal);
 	}
-	func1(first_buffer, intermediate_buffer, w * zoom0, h * zoom0, w * zoom01, zoom1, 1, pal);
-	func2(intermediate_buffer, destbuffer, w * zoom01, h * zoom01, pitch, zoom2, finalsmooth, pal);
+	func1(first_buffer, intermediate_buffer, (XYPair){size.w * zoom0, size.h * zoom0}, size.w * zoom01, zoom1, 1, pal);
+	func2(intermediate_buffer, destbuffer, (XYPair){size.w * zoom01, size.h * zoom01}, pitch, zoom2, finalsmooth, pal);
 	free(intermediate_buffer);
 	return true;
 }
 
-void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, int w, int h, int pitch, int zoom, int smooth, RGBcolor dummypal[]) {
+void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor dummypal[]) {
 //srcbuffer: source w x h buffer paletted 8 bit
 //destbuffer: destination scaled buffer pitch x h*zoom also 8 bit
 //supports zoom 1 to 16
 
-	if (multismoothblit(8, 8, srcbuffer, destbuffer, w, h, pitch, zoom, &smooth, dummypal))
+	if (multismoothblit(8, 8, srcbuffer, destbuffer, size, pitch, zoom, &smooth, dummypal))
 		return;
 
 	uint8_t *sptr;
 	int i, j;
-	int wide = w * zoom, high = h * zoom;
+	int wide = size.w * zoom, high = size.h * zoom;
 
 	sptr = destbuffer;
 
 	if (zoom == 1) {
-		for (i = 0; i <= h - 1; i++) {
-			memcpy(sptr, srcbuffer, w);
-			srcbuffer += w;
+		for (i = 0; i <= size.h - 1; i++) {
+			memcpy(sptr, srcbuffer, size.w);
+			srcbuffer += size.w;
 			sptr += pitch;
 		}
 	} else {
-		for (j = 0; j <= h - 1; j++) {
+		for (j = 0; j <= size.h - 1; j++) {
 			// Write up to 4 copies of a pixel at a time.
 			// Skip last 4 pixels so that we can never write off the end of the image buffer.
-			for (i = w; i >= 4; i--) {
+			for (i = size.w; i >= 4; i--) {
 				uint32_t temp = *srcbuffer++;
 				temp *= 0x1010101;
 				//temp |= temp << 16;
@@ -349,23 +349,23 @@ void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, int w, in
 	}
 }
 
-void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, int w, int h, int pitch, int zoom, int smooth, RGBcolor pal[]) {
+void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor pal[]) {
 //srcbuffer: source w x h buffer paletted 8 bit
 //destbuffer: destination scaled buffer pitch x h*zoom 32 bit (so pitch is in pixels, not bytes)
 //supports any positive zoom
 
-	if (multismoothblit(8, 32, srcbuffer, destbuffer, w, h, pitch, zoom, &smooth, pal))
+	if (multismoothblit(8, 32, srcbuffer, destbuffer, size, pitch, zoom, &smooth, pal))
 		return;
 
 	uint32_t *sptr;
 	uint32_t pixel;
 	int i, j;
-	int wide = w * zoom, high = h * zoom;
+	int wide = size.w * zoom, high = size.h * zoom;
 
 	sptr = (uint32_t *)destbuffer;
 
-	for (j = 0; j <= h - 1; j++) {
-		for (i = 0; i <= w - 1; i++) {
+	for (j = 0; j <= size.h - 1; j++) {
+		for (i = 0; i <= size.w - 1; i++) {
 			//get colour
 			pixel = pal[*srcbuffer].col;
 			//zoom sptrs for each srcbuffer
@@ -417,23 +417,23 @@ void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, int w, 
 	}
 }
 
-void smoothzoomblit_32_to_32bit(RGBcolor *srcbuffer, RGBcolor *destbuffer, int w, int h, int pitch, int zoom, int smooth, RGBcolor dummypal[]) {
+void smoothzoomblit_32_to_32bit(RGBcolor *srcbuffer, RGBcolor *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor dummypal[]) {
 //srcbuffer: source w*h buffer, 32 bit
 //destbuffer: destination scaled buffer (pitch*zoom)*(h*zoom), 32 bit (so pitch is in pixels, not bytes)
 //supports any positive zoom
 
-	if (multismoothblit(32, 32, srcbuffer, destbuffer, w, h, pitch, zoom, &smooth, dummypal))
+	if (multismoothblit(32, 32, srcbuffer, destbuffer, size, pitch, zoom, &smooth, dummypal))
 		return;
 
 	uint32_t *sptr;
 	uint32_t pixel;
 	int i, j;
-	int wide = w * zoom, high = h * zoom;
+	int wide = size.w * zoom, high = size.h * zoom;
 
 	sptr = (uint32_t *)destbuffer;
 
-	for (j = 0; j <= h - 1; j++) {
-		for (i = 0; i <= w - 1; i++) {
+	for (j = 0; j <= size.h - 1; j++) {
+		for (i = 0; i <= size.w - 1; i++) {
 			pixel = (*srcbuffer++).col;
 			for (int k = zoom; k > 0; k--) {
 				*sptr++ = pixel;
