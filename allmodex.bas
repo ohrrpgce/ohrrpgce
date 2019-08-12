@@ -979,15 +979,18 @@ sub set_scale_factor (scale as integer, change_windowsize as bool = YES)
 			end if
 		end if
 	end if
-	if change_windowsize = NO then
-		' Only supported by gfx_sdl currently
-		if gfx_setoption("zoomonly", str(scale)) then exit sub
-	end if
-	if gfx_setoption("zoom", str(scale)) = 0 then
+	' zoomonly only supported by gfx_sdl currently
+	if change_windowsize = NO andalso gfx_setoption("zoomonly", str(scale)) then
+	elseif gfx_setoption("zoom", str(scale)) then
+	else
 		' Old versions of gfx_directx don't support zoom (TODO: delete this)
 		gfx_setoption("width", str(windowsize.w * scale))
 		gfx_setoption("height", str(windowsize.h * scale))
 	end if
+
+	'The resolution might have changed size (probably only if change_windowsize=NO)
+	'so update to avoid a one-tick flicker.
+	screen_size_update
 end sub
 
 'Returns true if successfully queries the fullscreen state, in which case 'fullscreen' is set.

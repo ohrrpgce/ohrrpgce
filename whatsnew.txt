@@ -248,6 +248,7 @@ April ? 2019 [Fufluns]
     * A few BAMs were cut off early when converted to MIDI, possibly right at
       the beginning, which could trigger a MIDI playback crash. Also fixed lost
       notes after loop points. [Ralph]
+    * Crash when changing window zoom in certain editors/menus [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

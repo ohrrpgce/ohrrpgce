@@ -539,8 +539,9 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval imagesz as XYPair,
   'variable resolution handling
   '(We also test the size of screensurface, because sometimes SDL resizes the
   'window without telling us with an event! This happens on X11 when dragging
-  'the window, if we try to change window size mid-drag)
-  IF framesize <> imagesz OR XY(screensurface->w, screensurface->h) <> lastwindowsize THEN
+  'the window, if we try to change window size mid-drag. In that case we try to
+  'override the change, and don't set resize_requested.)
+  IF framesize <> imagesz ORELSE XY(screensurface->w, screensurface->h) <> lastwindowsize THEN
     'debuginfo "gfx_sdl_present_internal: framesize changing from " & framesize & " to " & imagesz
     framesize = imagesz
     'A bitdepth of 0 indicates 'same as previous, otherwise default (native)'. Not sure if it's best to use
@@ -553,8 +554,13 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval imagesz as XYPair,
     END IF
   END IF
 
-  IF bitdepth = 8 THEN
+  'Warning: Should not rely on zoom, imagesz, screenbuffer and screensurface (actual window size)
+  'matching even after above block because zoom might be "out of date". I'm not aware of any case in
+  'which that actually happens, but easily possible. E.g. changing zoom can cause a resize request
+  'which the engine might not have processed yet.  bitdepth=8 path is OK due to the SDL_BlitSurface
+  'in gfx_sdl_8bit_update_screen, bitdepth=32 path has a safety check.
 
+  IF bitdepth = 8 THEN
     'We could conceivably either blit to screensurface (doing 8 bit -> display pixel format conversion) first
     'and then smooth it (since it's also a SW surface)
     'Or what we actually do: smoothzoom first to screenbuffer, with smoothzoomblit_8_to_8bit, and then blit to screensurface
@@ -583,6 +589,13 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval imagesz as XYPair,
     END IF
     IF screensurface = NULL THEN
       debug "gfx_sdl_present_internal: no screen!"
+      RETURN 1
+    END IF
+
+    'Safety check to avoid a crash (see Warning above)
+    IF screensurface->w < imagesz.w * zoom ORELSE screensurface->h < imagesz.h * zoom THEN
+    'IF XY(screensurface->w, screensurface->h) \ zoom <> imagesz THEN
+      debug "gfx_sdl_present_internal: bad zoom " & zoom & " imagesz " & imagesz & " screen size " & XY(screensurface->w, screensurface->h) & ", skipping draw"
       RETURN 1
     END IF
 
@@ -1072,7 +1085,7 @@ SUB gfx_sdl_process_events()
           'Round upwards
           resize_request.w = (evnt.resize.w + zoom - 1) \ zoom
           resize_request.h = (evnt.resize.h + zoom - 1) \ zoom
-          IF framesize.w <> resize_request.w OR framesize.h <> resize_request.h THEN
+          IF framesize <> resize_request THEN
             'On Windows (XP), changing the window size causes an SDL_VIDEORESIZE event
             'to be sent with the size you just set... this would produce annoying overlay
             'messages in screen_size_update() if we don't filter them out.
