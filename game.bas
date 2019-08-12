@@ -1373,33 +1373,18 @@ SUB update_heroes(force_step_check as bool=NO)
   IF herow(0).xygo <> 0 THEN
    updatecaterpillarhistory
   END IF
-  IF herow(0).xgo ORELSE herow(0).ygo ORELSE prefbit(42) THEN  '"Heroes use Walk in Place animation while idle"
-   FOR whoi as integer = 0 TO active_party_slots - 1
-    loopvar herow(whoi).wtog, 0, 3
-   NEXT whoi
-  END IF
- ELSE
-  'Suspended caterpillar
-  FOR whoi as integer = 0 TO active_party_slots - 1
-   IF herow(whoi).xgo ORELSE herow(whoi).ygo ORELSE prefbit(42) THEN
-    loopvar herow(whoi).wtog, 0, 3
-   END IF
-  NEXT whoi
  END IF
-
- 'save position before move. use this later when updating stillticks
- DIM oldpos(0 TO active_party_slots - 1) as XYPair
- FOR whoi as integer = 0 TO active_party_slots - 1
-  oldpos(whoi) = heropos(whoi)
- NEXT whoi
 
  'Non-caterpillar (normal [xy]go-based) hero movement
  DIM didgo(0 TO active_party_slots() - 1) as bool
+ DIM notmidstep(0 TO active_party_slots() - 1) as bool
  FOR whoi as integer = 0 TO active_party_slots() - 1
   'NOTE: this loop covers the max caterpillar size, and not the current
   ' return value of caterpillar_size() because empty hero slots still
   ' need to be movable on the map. Scripts sometimes want to move a hero
   ' and wait for that hero without first checking if the slot is occupied
+
+  DIM oldpos as XYPair = heropos(whoi)
 
   'This actually updates the hero's coordinates (but not trailing heroes when caterpiller is enabled)
   'NOTE: if the caterpillar is enabled, then only the leader has nonzero xgo, ygo
@@ -1412,13 +1397,27 @@ SUB update_heroes(force_step_check as bool=NO)
   'Always crop to map bounds (or wrap around map) even if walls are disabled
   '(if they aren't, then movement was already cropped by wrappass)
   cropmovement heropos(whoi), herow(whoi).xygo
- NEXT whoi
+  notmidstep(whoi) = (herow(whoi).xygo MOD 20 = 0)
 
- FOR whoi as integer = 0 TO caterpillar_size() - 1
-  IF oldpos(whoi) = heropos(whoi) THEN
+  'If caterpillar is not suspended, only the leader's motion determines a step
+  '(a limitation of the caterpillar party).
+  IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN
+   didgo(whoi) = didgo(0)
+   notmidstep(whoi) = notmidstep(0)
+  END IF
+
+  'gam.stillticks() just contains garbage while a hero isn't pathfinding
+  IF oldpos = heropos(whoi) THEN
    gam.stillticks(whoi) += 1
   ELSE
    gam.stillticks(whoi) = 0
+  END IF
+ NEXT whoi
+
+ 'Walk animations
+ FOR whoi as integer = 0 TO active_party_slots() - 1
+  IF didgo(whoi) ORELSE prefbit(42) THEN  '"Heroes use Walk in Place animation while idle"
+   loopvar herow(whoi).wtog, 0, 3
   END IF
  NEXT whoi
 
@@ -1430,17 +1429,12 @@ SUB update_heroes(force_step_check as bool=NO)
  FOR whoi as integer = 0 TO caterpillar_size() - 1
   update_hero_zones whoi
  NEXT
- 
+
  FOR whoi as integer = 0 TO caterpillar_size() - 1
-
-  DIM steppingslot as integer = whoi
-  '--If caterpillar is not suspended, only the leader's motion determines a step
-  '--(a limitation of the caterpillar party.)
   '--BUG: if the caterpillar isn't properly interpolated, will get weird results like
-  '--jumping over tiles without damage.
-  IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN steppingslot = 0
+  '--trailing heroes jumping over tiles without damage, when caterpillar is enabled.
 
-  IF didgo(steppingslot) = YES AND herow(steppingslot).xygo MOD 20 = 0 THEN
+  IF didgo(whoi) ANDALSO notmidstep(whoi) THEN
    '--Stuff that should only happen when a hero finishs a step
 
    '--Run each-step zone triggers
@@ -1481,7 +1475,7 @@ SUB update_heroes(force_step_check as bool=NO)
  NEXT whoi
 
  'If the leader finished a step, check triggers
- IF (herow(0).xygo MOD 20 = 0) AND (didgo(0) = YES OR force_step_check = YES) THEN
+ IF notmidstep(0) ANDALSO (didgo(0) ORELSE force_step_check) THEN
 
   'Trigger step-on NPCs
   IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 THEN
