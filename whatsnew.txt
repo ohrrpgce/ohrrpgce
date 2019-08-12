@@ -111,6 +111,7 @@ April ? 2019 [Fufluns]
     * All stat caps and equipment stat bonuses can now be up to 32767 [Ralph]
     * Can create an enemy/hero formation as a copy of an existing one [Ralph]
     * Press G in NPC placement mode to select NPC type under cursor [Ralph]
+    * "Shrink to Center" dissolve animation [James]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]
