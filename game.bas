@@ -808,6 +808,7 @@ DO
   gam.hero_pathing(0).queued_menu = NO
  END IF
  IF normal_controls_disabled() = NO AND menus_allow_player() THEN
+  'Hero movement and NPC activation
   IF get_gen_bool("/mouse/move_hero") THEN
    IF readmouse().buttons AND mouseLeft THEN
     cancel_hero_pathfinding(0)
@@ -816,7 +817,10 @@ DO
   END IF
   IF herow(0).xygo = 0 THEN
    DIM setdir as DirNum = -1
-   IF carray(ccUp) > 0 THEN
+   'While on a vehicle, menu and use keys are handled in update_vehicle_state()
+   IF carray(ccUse) > 1 ANDALSO vstate.active = NO ANDALSO usenpc(0, find_useable_npc()) THEN
+    cancel_hero_pathfinding(0)
+   ELSEIF carray(ccUp) > 0 THEN
     herow(0).ygo = 20
     setdir = dirUp
    ELSEIF carray(ccDown) > 0 THEN
@@ -832,12 +836,6 @@ DO
    IF setdir <> -1 THEN
     (herodir(0)) = setdir
     cancel_hero_pathfinding(0)
-   ELSE
-    'While on a vehicle, menu and use keys are handled in update_vehicle_state()
-    IF carray(ccUse) > 1 AND vstate.active = NO THEN
-     cancel_hero_pathfinding(0)
-     usenpc 0, find_useable_npc()
-    END IF
    END IF
   END IF
  END IF
@@ -4120,13 +4118,14 @@ FUNCTION find_useable_npc() as NPCIndex
  RETURN -1
 END FUNCTION
 
-'Activate npc(npcnum)
-SUB usenpc(byval cause as integer, byval npcnum as NPCIndex)
+'Activate npc(npcnum). Returns true if actually activated.
+'(Returns true even if the NPC didn't do anything.)
+FUNCTION usenpc(byval cause as integer, byval npcnum as NPCIndex) as bool
  'cause = 0: normal use key
  'cause = 1: touch and step-on
  'cause = 2: scripted
- IF npcnum < 0 THEN EXIT SUB
- IF npc(npcnum).suspend_use ANDALSO cause <> 2 THEN EXIT SUB
+ IF npcnum < 0 THEN RETURN NO
+ IF npc(npcnum).suspend_use ANDALSO cause <> 2 THEN RETURN NO
  DIM id as NPCTypeID = npc(npcnum).id - 1
 
  '---Item from NPC---
@@ -4169,7 +4168,8 @@ SUB usenpc(byval cause as integer, byval npcnum as NPCIndex)
   'Several different ways to modify tags in this sub
   tag_updates
  END IF
-END SUB
+ RETURN YES
+END FUNCTION
 
 FUNCTION want_to_check_for_walls(byval who as integer) as bool
  'Check hero is at beginning of a movement to a new tile (aligned in at least one direction)...

@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2019-08-08">
+<plotscript version="wip" datecode="2019-08-12">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -1970,7 +1970,19 @@ wait for text box # wait until the player continues</example>
 		<command id="usenpc">
 			<canon>use NPC (who)</canon>
 			<shortname>use NPC</shortname>
-			<description>Remotely trigger an NPC. You can use either an <ref>npcreference</ref> or an NPC ID number. Whatever actions are associated with triggering that NPC will be taken, text box, script, vehicle, item, whatever. <note>An automatic <ref>wait</ref>(1) occurs immediately after this command.</note></description>
+			<description>
+				Remotely trigger an NPC.
+				You can use either an <ref>npcreference</ref> or an NPC ID number.
+				Whatever actions are associated with triggering that NPC will be taken,
+				text box, script, vehicle, item, whatever.
+				<lb/>
+				This command works even if the NPC has been made un-usable with <ref>setnpcusable</ref>
+				and regardless of any "suspend" commands.
+				However you can't activate an NPC that's tag-disabled (including one-time-use flags).
+				<note>
+					An automatic <ref>wait</ref><tt>(1)</tt> occurs immediately after this command.
+				</note>
+			</description>
 		</command>
 		<reference ref="usedoor"/>
 		<command id="useshop">

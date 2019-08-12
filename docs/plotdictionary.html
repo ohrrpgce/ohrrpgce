@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2019-08-08)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2019-08-12)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -6248,8 +6248,20 @@ resume box advance # go back to normal</pre>
 <a name="about-usenpc"></a>
 		<h4>use NPC (who)</h4>
 <p>
-			Remotely trigger an NPC. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number. Whatever actions are associated with triggering that NPC will be taken, text box, script, vehicle, item, whatever. <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.</div>
+			
+				Remotely trigger an NPC.
+				You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number.
+				Whatever actions are associated with triggering that NPC will be taken,
+				text box, script, vehicle, item, whatever.
+				<br>
+				This command works even if the NPC has been made un-usable with <a href="#about-setnpcusable" class="ref">set NPC usable</a>
+				and regardless of any "suspend" commands.
+				However you can't activate an NPC that's tag-disabled (including one-time-use flags).
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					An automatic <a href="#about-wait" class="ref">wait</a><span class="code">(1)</span> occurs immediately after this command.
+				</div>
+			
 			
 			
 			

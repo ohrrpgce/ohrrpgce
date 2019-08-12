@@ -69,7 +69,7 @@ DECLARE FUNCTION is_rpgdir(path as string) as bool
 DECLARE FUNCTION select_rpg_or_rpgdir(path as string) as bool
 DECLARE FUNCTION seek_rpg_or_rpgdir_and_select_it(where as string, gamename as string) as bool
 
-DECLARE SUB usenpc(byval cause as integer, byval npcnum as NPCIndex)
+DECLARE FUNCTION usenpc(byval cause as integer, byval npcnum as NPCIndex) as bool
 
 DECLARE SUB forceparty ()
 DECLARE FUNCTION findhero (byval id as integer, byval direction as integer = 1, errlvl as scriptErrEnum = serrIgnore) as integer
