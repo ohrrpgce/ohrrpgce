@@ -358,6 +358,9 @@ def process_crashrpt_reports_directory(reports_dir, args):
                 except Exception as err:
                     # If unzipping failed, process_crashrpt_report will notice that the dir is missing
                     print(err)
+            elif args.new:
+                # Skip already unzipped reports
+                continue
             upload_time = time.gmtime(os.stat(zipfile).st_mtime)
             uuids.add((upload_time, uuid))
 
@@ -379,6 +382,7 @@ if __name__ == '__main__':
     parser.add_argument("report_dir", help="A directory containing either crashrpt .zip files, or a single unzipped report (must contain crashrpt.xml).")
     parser.add_argument("syms_cache_dir", help="Directory to which to download and"
                         " extract build symbols to. Will be created if it doesn't exist.")
+    parser.add_argument("-n", "--new", help="Process new reports only (not yet unzipped)", action="store_true")
     parser.add_argument("-v", "--verbose", help="Verbose output: show stderr output of invoked programs", action="store_true")
     parser.add_argument("-d", "--stack_detail", help="Show details of stack contents in stacktraces, including function pointers. "
                         "Might help to decipher corrupt stacks or when the crash is in a Windows system dll. "
