@@ -3136,6 +3136,10 @@ destructor HashTable()
   this.destruct()
 end destructor
 
+function HashTable.constructed() as bool
+  return this.tablesize > 0
+end function
+
 'Look for a key in a bucket vector, return NULL on failure
 private function hash_search_bucket(this as HashTable, bucket as HashBucketItem vector, hash as integer, key as any ptr = NULL) as HashBucketItem ptr
   for bucketidx as integer = 0 to v_len(bucket) - 1
@@ -3168,6 +3172,7 @@ function HashTable.hash_key(key as any ptr) as integer
 end function
 
 sub HashTable.add(hash as integer, value as any ptr, _key as any ptr = NULL)
+  BUG_IF(this.table = NULL, "construct() not called")
   dim byref bucket as HashBucketItem vector = this.table[cuint(hash) mod this.tablesize]
   dim item as HashBucketItem ptr = any
   if bucket = NULL then
@@ -3195,6 +3200,7 @@ sub HashTable.add(key as any ptr, value as integer)
 end sub
 
 sub HashTable.set(hash as integer, value as any ptr, _key as any ptr = NULL)
+  BUG_IF(this.table = NULL, "construct() not called")
   dim bucket as HashBucketItem vector = this.table[cuint(hash) mod this.tablesize]
   dim it as HashBucketItem ptr = hash_search_bucket(this, bucket, hash, _key)
   if it then
@@ -3218,6 +3224,7 @@ sub HashTable.set(key as any ptr, value as integer)
 end sub
 
 function HashTable.get(hash as integer, default as any ptr = NULL, _key as any ptr = NULL) as any ptr
+  BUG_IF(this.table = NULL, "construct() not called", NULL)
   dim bucket as HashBucketItem vector = this.table[cuint(hash) mod this.tablesize]
   dim it as HashBucketItem ptr = hash_search_bucket(this, bucket, hash, _key)
   if it = NULL then return default
@@ -3551,12 +3558,20 @@ sub StrHashTable.add(key as string, value as integer)
   base.add(stringhash(strptr(key), len(key)), canyptr(value), @key)
 end sub
 
+sub StrHashTable.add(key as string, value as string)
+  base.add(stringhash(strptr(key), len(key)), canyptr(@value), @key)
+end sub
+
 sub StrHashTable.set(key as string, value as any ptr)
   base.set(stringhash(strptr(key), len(key)), value, @key)
 end sub
 
 sub StrHashTable.set(key as string, value as integer)
   base.set(stringhash(strptr(key), len(key)), canyptr(value), @key)
+end sub
+
+sub StrHashTable.set(key as string, value as string)
+  base.set(stringhash(strptr(key), len(key)), canyptr(@value), @key)
 end sub
 
 function StrHashTable.get(key as string, default as any ptr = NULL) as any ptr
@@ -3578,6 +3593,31 @@ function StrHashTable.remove(key as string) as bool
   return base.remove(stringhash(strptr(key), len(key)), @key)
 end function
 
+#ifdef __FB_MAIN__
+
+startTest(StrStrHashTable)
+  dim tbl as StrHashTable
+  tbl.construct(32, type_table(string), YES)
+
+  dim as string a = "A", q = "q"
+  tbl.add a, "42"
+  if tbl.get_str("A") <> "42" then fail
+  if tbl.get_str("A", "default") <> "42" then fail
+  if tbl.get_str("B") <> "" then fail
+  a = "B"
+  if tbl.get_str(a) <> "" then fail
+  tbl.set "A", q
+  if tbl.get_str("A") <> "q" then fail
+  q = "not q"
+  if tbl.get_str("A") <> "q" then fail
+  if tbl.get_str("B", "default") <> "default" then fail
+  tbl.set "Q", " "
+  if tbl.numitems <> 2 then fail
+  tbl.remove "A"
+  if tbl.numitems <> 1 then fail
+endTest
+
+#endif
 
 '------------- Old allmodex stuff -------------
 

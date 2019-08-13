@@ -5107,7 +5107,7 @@ END SUB
 
 'I don't like running code before main()
 SUB init_translations()
-  translations.construct(64) ', type_table(any_ptr), NO)
+  translations.construct(64, type_table(any_ptr), NO)
   translations.value_delete = CAST(FnDelete, @TranslationString_delete) 'We want it to auto-delete but not copy
 END SUB
 

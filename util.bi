@@ -354,6 +354,9 @@ Type HashTable
   declare sub destruct()
   declare destructor()
 
+  'Whether construct() has been called
+  declare function constructed() as bool
+
   'Remove and everything in the table and call the dtors, if provided
   declare sub clear()
 
@@ -418,11 +421,14 @@ end Type
 
 'This convenience class is a HashTable with 'string' key, and has method overloads for that.
 Type StrHashTable Extends HashTable
-  declare sub construct(tablesize as integer = 31, value_type as TypeTable = type_table(any_ptr), copy_and_delete_values as bool = NO)
+  'REMEMBER: almost certainly you want copy_and_delete_values=YES if the value type is string
+  declare sub construct(tablesize as integer = 31, value_type as TypeTable = type_table(any_ptr), copy_and_delete_values as bool)
   declare sub add(key as string, value as any ptr)
   declare sub add(key as string, value as integer)
+  declare sub add(key as string, value as string)
   declare sub set(key as string, value as any ptr)
   declare sub set(key as string, value as integer)
+  declare sub set(key as string, value as string)
   declare function get(key as string, default as any ptr = NULL) as any ptr
   declare function get_int(key as string, default as integer = 0) as integer
   declare function get_str(key as string, default as zstring ptr = @"") as string
