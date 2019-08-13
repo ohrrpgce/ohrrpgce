@@ -136,7 +136,7 @@ def get_source_around_line(git_dir, gitrev, filename, lineno, context = 1):
     lines = contents.replace('\r', '').split('\n')
     ret = []
     # Add one extra line before, because lineno is typically the line after the actual one
-    for lineidx in range(max(0, lineno - context - 1), lineno + context + 1):
+    for lineidx in range(max(0, lineno - context - 1), min(len(lines), lineno + context + 1)):
         cursor = ' ->' if lineidx == lineno else '   '
         ret.append(cursor + '%4d ' % lineidx + lines[lineidx])
     return ret
