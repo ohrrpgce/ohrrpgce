@@ -845,17 +845,21 @@ SUB debug_npcs ()
 END SUB
 
 FUNCTION describe_npctype(npcid as NPCTypeID) as string
- DIM info as string
+ DIM info as string, appearinfo as string
  WITH npcs(npcid)
   info &= fgcol_text("NPC Type: ", uilook(uiSelectedItem)) _
-       & "Pic " & .picture & " Pal " & .palette _
-       & " Speed " & .speed _
-       & " MOVETYPE: " & npc_movetypes(.movetype) _
-       & ", ACTIVATION: " & npc_usetypes(.activation) _
-       & ", FACE: " & npc_facetypes(.facetype) _
-       & ", PUSH: " & npc_pushtypes(.pushtype)
+       & "Pic `" & .picture & "` Pal `" & .palette _
+       & "` Speed `" & .speed _
+       & "` MOVETYPE: `" & npc_movetypes(.movetype) _
+       & "`, ACTIVATION: `" & npc_usetypes(.activation) _
+       & "`, FACE: `" & npc_facetypes(.facetype) _
+       & "`, PUSH: `" & npc_pushtypes(.pushtype) & "`"
+  IF .tag1 THEN appearinfo &= " tag `" & ABS(.tag1) & "=" & onoroff(.tag1) & "`"
+  IF .tag2 THEN appearinfo &= " tag `" & ABS(.tag2) & "=" & onoroff(.tag2) & "`"
+  IF .usetag THEN appearinfo &= " Onetime-use flag `" & .usetag & "`"
+  IF LEN(appearinfo) THEN info &= " APPEAR:" & appearinfo
  END WITH
- RETURN info
+ RETURN ticklite(info, findrgb(160,210,160))
 END FUNCTION
 
 FUNCTION describe_npcinst(npcnum as NPCIndex) as string
@@ -868,47 +872,47 @@ FUNCTION describe_npcinst(npcnum as NPCIndex) as string
    IF npc(i).id - 1 = id THEN copynum += 1
   NEXT
 
-  info = "ID " & id
+  info = "ID `" & id & "`"
   IF .id < 0 THEN
    info &= " (DISABLED)"
   ELSE
-   info &= " copy " & copynum
+   info &= " copy `" & copynum & "`"
   END IF
-  info &= " npcref " & (-1 - npcnum) & !"\n" _
+  info &= " npcref `" & (-1 - npcnum) & !"`\n" _
        & describe_npctype(id) & !"\n" _
        & fgcol_text("NPC Inst: ", uilook(uiSelectedItem)) _
-       & "At " & .pos & " Z " & .z _
-       & " tile " & (.pos \ 20) & " dir " & CHR(("NESW")[.dir])
+       & "At `" & .pos & "` Z `" & .z _
+       & "` tile `" & (.pos \ 20) & "` dir `" & CHR(("NESW")[.dir]) & "`"
   IF .sl THEN
    DIM sprite as Slice ptr
    sprite = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, .sl)
    IF sprite ANDALSO sprite->SliceType = slSprite THEN
-    info &= " frame " & sprite->SpriteData->frame
+    info &= " frame `" & sprite->SpriteData->frame & "`"
    END IF
   END IF
-  info &= !"\nExtra 0:" & .extra(0) & " 1:" & .extra(1) & " 2:" & .extra(2) & !"\n" _
-       & "AI: " & yesorno(NOT .suspend_ai) _
-       & " Usable: " & yesorno(NOT .suspend_use) _
-       & " Walls: " & yesorno(NOT .ignore_walls) _
-       & " Obstruction: " & yesorno(NOT .not_obstruction) _
-       & !"\nXYgo: " & .xygo _
-       & " Pathing: "
+  info &= !"\nExtra 0:`" & .extra(0) & "` 1:`" & .extra(1) & "` 2:`" & .extra(2) & !"`\n" _
+       & "AI: `" & yesorno(NOT .suspend_ai) _
+       & "` Usable: `" & yesorno(NOT .suspend_use) _
+       & "` Walls: `" & yesorno(NOT .ignore_walls) _
+       & "` Obstruction: `" & yesorno(NOT .not_obstruction) _
+       & !"`\nXYgo: `" & .xygo _
+       & "` Pathing: "
   WITH .pathover
    IF .override <> NPCOverrideMove.NONE THEN
     IF .override = NPCOverrideMove.NPC THEN
-     info &= "to NPC " & .dest_npc & " stop when reached: " & yesorno(.stop_when_npc_reached)
+     info &= "to NPC `" & .dest_npc & "` stop when reached: `" & yesorno(.stop_when_npc_reached)
     ELSEIF .override = NPCOverrideMove.POS THEN
-     info &= "to " & .dest_pos
+     info &= "to `" & .dest_pos
     END IF
-    info &= !"\nCooldown: " & .cooldown _
-         & " Stillticks: " & npc(npcnum).stillticks _
-         & ", Stops after: " & .stop_after_stillticks
+    info &= !"`\nCooldown: `" & .cooldown _
+         & "` Stillticks: `" & npc(npcnum).stillticks _
+         & "`, Stops after: `" & .stop_after_stillticks & "`"
    ELSE
-    info &= "N/A."
+    info &= "`N/A`"
    END IF
   END WITH
  END WITH
- RETURN info
+ RETURN ticklite(info, findrgb(160,210,160))
 END FUNCTION
 
 'Draw tooltip with info about the NPCs under the mouse cursor
