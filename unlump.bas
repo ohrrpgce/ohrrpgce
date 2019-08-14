@@ -130,9 +130,8 @@ END IF
 unlumpfile lumped, "archinym.lmp", dest + SLASH
 
 '--set game according to the archinym
-IF isfile(dest + SLASH + "archinym.lmp") THEN
- DIM fh as integer = FREEFILE
- OPEN dest + SLASH + "archinym.lmp" FOR INPUT AS #fh
+DIM fh as integer
+IF OPENFILE(dest + SLASH + "archinym.lmp", FOR_INPUT, fh) = 0 THEN
  DIM a as string
  LINE INPUT #fh, a
  CLOSE #fh

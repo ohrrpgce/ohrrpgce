@@ -316,6 +316,8 @@ sub music_play(filename as string, byval fmt as MusicFormatEnum)
 
 		music_stop
 
+		log_openfile songname
+
 		'Versions of SDL_mixer 1.2 before 1.2.12 (the final release) failed to
 		'close the file when playing MOD or WAV music files using Mix_LoadMUS!
 		'(Bugs 1021, 1168).
@@ -646,6 +648,7 @@ function sound_load overload(filename as string, num as integer = -1) as integer
 	'	return -1
 	'end if
 
+	log_openfile filename
 	sfx = Mix_LoadWAV(@filename[0])
 	if sfx = NULL then
 		debug "Couldn't Mix_LoadWAV " & filename

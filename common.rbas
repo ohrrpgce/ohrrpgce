@@ -333,6 +333,7 @@ END SUB
 
 ' Append logfile to archivefile and delete it.
 PRIVATE SUB archive_log_file(logfile as string, archivefile as string)
+ '(Don't call log_openfile)
  DIM dlog as integer = FREEFILE
  OPEN logfile FOR BINARY as dlog
  DIM archive as integer = FREEFILE

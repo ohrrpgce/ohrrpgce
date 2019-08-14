@@ -6781,6 +6781,7 @@ function frame_import_paletted_png(filename as string, pal() as RGBcolor) as Fra
 
 	dim filebuf as byte ptr
 	dim filebufsize as size_t
+	log_openfile filename
 	if PNGCHKERR(lodepng_load_file(@filebuf, @filebufsize, strptr(filename))) then
 		deallocate filebuf
 		return NULL
@@ -6843,6 +6844,7 @@ function surface_import_png(filename as string, always_32bit as bool) as Surface
 	if iminfo.paletted = NO orelse always_32bit then
 		dim buf as byte ptr
 		dim size as XYPair
+		log_openfile filename
 		if PNGCHKERR(lodepng_decode_file(@buf, @size.w, @size.h, strptr(filename), LCT_RGB, 8)) then
 			return NULL
 		end if
@@ -6974,6 +6976,7 @@ sub jpeginfo (filename as string, byref iminfo as ImageFileInfo)
 	dim jpeg as ujImage
 	jpeg = ujCreate()
 	ujDisableDecoding(jpeg)
+	log_openfile filename
 	ujDecodeFile(jpeg, strptr(filename))
 	dim errcode as integer = ujGetError()
 
@@ -7036,6 +7039,7 @@ end function
 function surface_import_jpeg(filename as string) as Surface ptr
 	dim jpeg as ujImage
 	jpeg = ujCreate()
+	log_openfile filename
 	ujDecodeFile(jpeg, strptr(filename))
 
 	if ujGetError() = UJ_PROGRESSIVE then

@@ -1843,8 +1843,8 @@ DIM buf((last - first + 1) * 2) as integer = ANY
 IF isfile(old_savefile) THEN
  'debuginfo "loadglobalvars from slot " & slot & " of boring old " & old_savefile
 
- DIM fh as integer = FREEFILE
- OPEN old_savefile FOR BINARY as #fh
+ DIM fh as integer
+ OPENFILE old_savefile, FOR_BINARY, fh
 
  IF first <= 1024 THEN
   'grab first-final
@@ -1968,8 +1968,8 @@ END SUB
 FUNCTION old_save_slot_used (byval slot as integer) as bool
  IF isfile(old_savefile) = 0 THEN RETURN NO
  DIM as short saveversion
- DIM savh as integer = FREEFILE
- OPEN old_savefile FOR BINARY as #savh
+ DIM savh as integer
+ OPENFILE old_savefile, FOR_BINARY, savh
  GET #savh, 1 + 60000 * slot, saveversion
  CLOSE #savh
  RETURN (saveversion = 3)
@@ -1980,8 +1980,8 @@ SUB old_erase_save_slot (byval slot as integer)
  'It seems that no game was affected by that back-compat break.
  DIM as short saveversion = 0
  IF fileisreadable(old_savefile) = NO THEN EXIT SUB
- DIM savh as integer = FREEFILE
- OPEN old_savefile FOR BINARY as #savh
+ DIM savh as integer
+ OPENFILE old_savefile, FOR_BINARY, savh
  IF LOF(savh) > 60000 * slot THEN
   PUT #savh, 1 + 60000 * slot, saveversion
  END IF

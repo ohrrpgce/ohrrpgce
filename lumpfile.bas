@@ -36,7 +36,11 @@ LMPVTAB(LT_FILE,   FileLump_,    QLMP(destruct),       QLMP(open), QLMP(close), 
  #include "common.bi"  'For running_as_slave
 #endif
 
-DIM can_write_to_workingdir as bool = YES
+dim can_write_to_workingdir as bool = YES
+
+'Log of recently opened files, and when they were opened (TIMER value)
+dim shared recent_files(5) as string
+dim shared recent_file_times(5) as double
 
 
 '----------------------------------------------------------------------
@@ -470,6 +474,7 @@ sub FileLump_open(byref this as FileLump)
 	if this.fhandle = 0 then
 		dim fname as string = this.filename
 		if fname = "" then fname = this.index->unlumpeddir + this.lumpname
+		log_openfile fname
 		this.fhandle = freefile
 		open fname for binary as #this.fhandle
 	end if
@@ -593,6 +598,7 @@ function indexlumpfile (lumpfile as string, byval keepopen as bool = YES) as Lum
 	index = callocate(sizeof(LumpIndex))
 	construct_LumpIndex(*index)
 
+	log_openfile lumpfile
 	lf = freefile
 	open lumpfile for binary access read lock write as #lf
 	if keepopen then index->fhandle = lf
@@ -1424,7 +1430,7 @@ end sub
 'Returns whether the file is a normal lump file in workingdir.
 'This is used to determine whether the file should be hooked.
 'writable: whether attempting to *explicitly* open with write access
-function inworkingdir(filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
+function inworkingdir cdecl (filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
 	if RIGHT(filename, 10) = "_debug.txt" then return FilterActionEnum.dont_hook
 	'if RIGHT(filename, 12) = "_archive.txt" then return FilterActionEnum.dont_hook
 	'Uncomment this for OPEN tracing (or you could just use strace...)
@@ -1476,3 +1482,34 @@ function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as st
 		debug "warning: channel_wait_for_msg discarding message: " & line_in
 	loop
 end function
+
+extern "C"
+
+'Register a file as being opened, updating the recently opened files log,
+'which can be used for debugging.
+'This is called by OPENFILE on a successful open. Call it manually if not usng
+'OPENFILE (e.g. using an external library to read/process a file).
+'There are a few places where we OPEN FOR OUTPUT/APPEND (not OPENFILE) or export
+'something (e.g. png/gif) that aren't hooked, including debug log writes, but
+'I don't care much about file writes.
+'Also, not called when copying, moving, renaming or deleting a file.
+sub log_openfile(filename as zstring ptr)
+	dim oldest as double = 1e99
+	dim oldest_idx as integer
+
+	for idx as integer = 0 to ubound(recent_files)
+		if recent_files(idx) = *filename then
+			recent_file_times(idx) = TIMER
+			exit sub
+		end if
+		if recent_file_times(idx) < oldest then
+			oldest = recent_file_times(idx)
+			oldest_idx = idx
+		end if
+	next
+
+	recent_files(oldest_idx) = *filename
+	recent_file_times(oldest_idx) = TIMER
+end sub
+
+end extern

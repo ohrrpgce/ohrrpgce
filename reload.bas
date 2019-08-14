@@ -457,7 +457,8 @@ Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as 
 	dim starttime as double = timer
 	dim ret as DocPtr
 	dim f as FILE ptr
-	
+
+	log_openfile fil
 	f = fopen(fil, "rb")
 	if f = 0 then
 		if (options and optIgnoreMissing) = 0 then

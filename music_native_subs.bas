@@ -360,6 +360,7 @@ function CreateMIDIEventList(filename as string, division as short ptr) as MIDI_
  	end if
 
 ' 	/* Open the file */
+	log_openfile filename
 	fp = fopen(filename, "rb")
  	if fp <> 0 then
 

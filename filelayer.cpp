@@ -12,6 +12,7 @@
 #include "misc.h"
 #include "errno.h"
 #include "mutex.hpp"
+#include "lumpfile.h"
 
 // This array stores information about any open file that was opened using OPENFILE.
 // Indexed by index into FB's __fb_ctx.fileTB, NOT by file number as returned by FREEFILE.
@@ -356,6 +357,9 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 		infop = NULL;
 		openfiles_mutex.unlock();
 	} else {
+		// Add to log of recently files
+		log_openfile(cfilename);
+
 		// HACK: hook CLOSE for all files, by permanently modifying FB's internal
 		// file hooks tables, so that we can be sure that FileInfo will get deleted.
 		// This will affect files opened with OPEN instead of OPENFILE too!

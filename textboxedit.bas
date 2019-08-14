@@ -1587,8 +1587,8 @@ SUB import_save_textbox(box as TextBox, byref index as integer, byref warn_appen
 END SUB
 
 FUNCTION import_textboxes (filename as string, byref warn as string) as bool
- DIM fh as integer = FREEFILE
- IF OPEN(filename FOR INPUT as #fh) THEN
+ DIM fh as integer
+ IF OPENFILE(filename, FOR_INPUT, fh) THEN
   import_textboxes_warn warn, "Failed to open """ & decode_filename(filename) & """."
   RETURN NO
  END IF

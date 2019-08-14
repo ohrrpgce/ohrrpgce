@@ -121,7 +121,7 @@ sub music_play(filename as string, fmt as MusicFormatEnum)
 			flen = flen and &h0fff
 			midname = tmpdir & trimpath(songname) & "-" & lcase(hex(flen)) & ".bmd"
 			'check if already converted
-			if isfile(midname) = 0 then
+			if isfile(midname) = NO then
 				bam2mid(songname, midname)
 				'add to list of temp files
 				dim ditem as delitem ptr
@@ -152,6 +152,7 @@ sub music_play(filename as string, fmt as MusicFormatEnum)
 			music_paused = 0
 		end if
 
+		log_openfile(songname)
 		music_song = load_midi(songname)
 		if music_song = 0 then
 			debug "Could not load song " + songname
@@ -296,6 +297,7 @@ function sound_load(slot as integer, f as string, num as integer) as integer
     
     .used = YES
     .effectID = num
+    log_openfile(f)
     .buf = load_wav(f)
     
     if .buf = NULL then

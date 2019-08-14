@@ -13,6 +13,8 @@ void FileWrapper_close(FileWrapper*);
 int FileWrapper_seek(FileWrapper*, int offset, int whence);
 int FileWrapper_read(FileWrapper*, void* buffer, int size, int maxnum);
 
+void log_openfile(const char *filename);
+
 #ifdef __cplusplus
 }
 #endif

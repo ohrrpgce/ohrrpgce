@@ -184,6 +184,7 @@ function sound_load(fname as string, num as integer = -1) as integer
 
   dim extn as string = justextension(fname)
   dim audslot as integer  'Audiere sound number
+  log_openfile fname
   if extn = "mp3" or extn = "ogg" then 'intended for streaming
     audslot = AudLoadSound(fname, 1)
   else

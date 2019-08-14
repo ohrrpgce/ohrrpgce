@@ -202,6 +202,7 @@ function read_ogg_metadata(songfile as string) as string
 '#ifdef HAVE_VORBISFILE
 	dim oggfile as OggVorbis_File
 	dim errcode as integer
+	log_openfile songfile
 	errcode = ov_fopen(songfile, @oggfile)
 	if errcode then
 		dim msg as string
@@ -425,25 +426,26 @@ function find_music_lump(songnum as integer) as string
   songbase = workingdir & SLASH & "song" & songnum
   songfile = ""
 
-  IF isfile(songbase & ".mp3") THEN
+  IF real_isfile(songbase & ".mp3") THEN
     songfile = songbase & ".mp3"
-  ELSEIF isfile(songbase & ".ogg") THEN
+  ELSEIF real_isfile(songbase & ".ogg") THEN
     songfile = songbase & ".ogg"
-  ELSEIF isfile(songbase & ".mod") THEN
+  ELSEIF real_isfile(songbase & ".mod") THEN
     songfile = songbase & ".mod"
-  ELSEIF isfile(songbase & ".xm") THEN
+  ELSEIF real_isfile(songbase & ".xm") THEN
     songfile = songbase & ".xm"
-  ELSEIF isfile(songbase & ".s3m") THEN
+  ELSEIF real_isfile(songbase & ".s3m") THEN
     songfile = songbase & ".s3m"
-  ELSEIF isfile(songbase & ".it") THEN
+  ELSEIF real_isfile(songbase & ".it") THEN
     songfile = songbase & ".it"
-  ELSEIF isfile(songbase & ".mid") THEN
+  ELSEIF real_isfile(songbase & ".mid") THEN
     songfile = songbase & ".mid"
-  ELSEIF isfile(songbase & ".bam") THEN
+  ELSEIF real_isfile(songbase & ".bam") THEN
     songfile = songbase & ".bam"
-  ELSEIF isfile(game & "." & songnum) THEN
+  ELSEIF real_isfile(game & "." & songnum) THEN
     songfile = game & "." & songnum ' old-style BAM naming scheme
   END IF
+  'Can import wav (converting to ogg), but don't need to look for it
   RETURN songfile
 END FUNCTION
 
@@ -452,11 +454,11 @@ function find_sfx_lump (sfxnum as integer) as string
 	dim as string sfxbase
 
 	sfxbase = workingdir & SLASH & "sfx" & sfxnum
-	if isfile(sfxbase & ".ogg") THEN
+	if real_isfile(sfxbase & ".ogg") THEN
 		return sfxbase & ".ogg"
-	elseif isfile(sfxbase & ".mp3") then
+	elseif real_isfile(sfxbase & ".mp3") then
 		return sfxbase & ".mp3"
-	elseif isfile(sfxbase & ".wav") then
+	elseif real_isfile(sfxbase & ".wav") then
 		return sfxbase & ".wav"
 	else
 		return ""

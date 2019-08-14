@@ -258,7 +258,7 @@ sub music_play(filename as string, byval fmt as MusicFormatEnum)
 			flen = flen and &h0fff
 			midname = tmpdir & trimpath(songname) & "-" & lcase(hex(flen)) & ".bmd"
 			'check if already converted
-			if isfile(midname) = 0 then
+			if isfile(midname) = NO then
 				bam2mid(songname, midname)
 				'add to list of temp files
 				dim ditem as delitem ptr
