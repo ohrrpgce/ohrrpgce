@@ -226,7 +226,7 @@ enum OPENBits
 	FOR_INPUT =         &h0020000  ' Text files only! Reading only, not opened if doesn't exist.
 	FOR_OUTPUT =        &h0040000  ' Text files only! Write only. File created, or truncated if exists.
 	FOR_APPEND =        &h0080000  ' Text files only! Write only. All writes always happen at the end
-	FOR_MASK =          &h00F0000
+	FOR_BITMASK =       &h00F0000
 	' ACCESS flags can only be used with FOR_BINARY
 	' FB's OPEN defaults to ACCESS ANY.
 	' Which sounds like a misfeature to me, so let's default to ACCESS_READ_WRITE instead.
@@ -235,13 +235,13 @@ enum OPENBits
 	ACCESS_WRITE =      &h0400000  ' Write only. Create if needed, truncate to zero length otherwise.
 	ACCESS_READ_WRITE = &h0800000  ' [Default] Read+Write. Create if needed, does not truncate
         'ACCESS_RW_NO_CREATE=&h0A00000  ' Not implemented
-	ACCESS_MASK =       &h0F00000
+	ACCESS_BITMASK =    &h0F00000
 	' Not implemented yet for hooked files, so no point using these
 	'ENCODING_ASCII =   &h1000000  ' default
 	'ENCODING_UTF8 =    &h2000000
 	'ENCODING_UTF16 =   &h4000000
 	'ENCODING_UTF32 =   &h8000000
-	'ENCODING_MASK =    &hF000000
+	'ENCODING_BITMASK = &hF000000
 	' LOCK not supported... in fact it's not even properly supported by FB!
 	' However it could be added (since we already have file locking implemented in os.bi)
 	' if it were useful.

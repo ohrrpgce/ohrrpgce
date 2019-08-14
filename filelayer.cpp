@@ -201,18 +201,18 @@ int lump_file_opener(FB_FILE *handle, const char *filename, size_t filename_len)
 // fberrNOTFOUND/2 if file not found.
 // (This enum and constants are named differently in C, eg. FB_RTERROR_FILENOTFOUND.)
 // Also sets fnum to 0 if the file couldn't be opened.
-FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
+FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int *fnum) {
 	unsigned int mode, access;
 	FB_FILE_ENCOD encod;
 
-	fnum = 0;
+	*fnum = 0;
 
 	if (!filename || !filename->data) {
 		debug(errBug, "OPENFILE: empty filename");
 		return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
-	switch(openbits & FOR_MASK) {
+	switch(openbits & FOR_BITMASK) {
 		case 0:  // Default
 		case FOR_BINARY:
 			mode = FB_FILE_MODE_BINARY;
@@ -231,12 +231,12 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
-	if ((openbits & FOR_MASK) != FOR_BINARY && (openbits & ACCESS_MASK)) {
+	if ((openbits & FOR_BITMASK) != FOR_BINARY && (openbits & ACCESS_BITMASK)) {
 		debug(errShowBug, "OPENFILE: bad flags (ACCESS_* only valid with FOR_BINARY): %x", openbits);
 		return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
-	switch(openbits & ACCESS_MASK) {
+	switch(openbits & ACCESS_BITMASK) {
 		case ACCESS_ANY:
 			// Try to open for writing, then for reading if that fails
 			access = FB_FILE_ACCESS_ANY;
@@ -256,7 +256,7 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
-	switch(openbits & ENCODING_MASK) {
+	switch(openbits & ENCODING_BITMASK) {
 		case 0:  // Default
 		case ENCODING_ASCII:
 			encod = FB_FILE_ENCOD_ASCII;
@@ -320,13 +320,13 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 	// can use it to prevent other threads from calling FREEFILE.
 	FB_LOCK();
 
-	if ((fnum = fb_FileFree()) == 0) {
+	if ((*fnum = fb_FileFree()) == 0) {
 		FB_UNLOCK();
 		debug(errShowError, "OPENFILE: too many open files");
 		return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
-	FileInfo *&infop = get_fileinfo(fnum);
+	FileInfo *&infop = get_fileinfo(*fnum);
 	assert(!infop);
 	openfiles_mutex.lock();
 	infop = new FileInfo();
@@ -335,7 +335,7 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 	openfiles_mutex.unlock();
 
 	errno = 0;
-	FB_FILE *handle = FB_FILE_TO_HANDLE(fnum);
+	FB_FILE *handle = FB_FILE_TO_HANDLE(*fnum);
 	int ret = fb_FileOpenVfsEx(handle, &file_to_open, mode, access,
 	                           FB_FILE_LOCK_SHARED, 0, encod, fnOpen);
 	int C_err = errno;
@@ -351,7 +351,7 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 		debug(errShowError, "Couldn't open file %s: %s", cfilename, strerror(C_err));
 	}
 	if (ret != FB_RTERROR_OK) {
-		fnum = 0;
+		*fnum = 0;
 		openfiles_mutex.lock();
 		delete infop;
 		infop = NULL;

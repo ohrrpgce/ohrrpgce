@@ -1,12 +1,14 @@
 #ifndef LUMPFILE_H
 #define LUMPFILE_H
 
+// NOTE: much of the declarations in lumpfile.bi are in filelayer.hpp on the C side
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct Lump;
-struct FileWrapper;
+typedef struct Lump Lump;
+typedef struct FileWrapper FileWrapper;
 
 FileWrapper* FileWrapper_open(Lump* lump);
 void FileWrapper_close(FileWrapper*);
