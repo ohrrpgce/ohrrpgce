@@ -97,7 +97,7 @@ int CALLBACK crashrpt_callback(CR_CRASH_CALLBACK_INFOA* pInfo) {
 
 		long long fsize = get_filesize(fname);
 		const char *note = "";
-		if (fsize < 30000) {
+		if (fsize < 60000) {
 			crpt.crAddFile2A(fname, NULL, "Recently opened file", CR_AF_MAKE_FILE_COPY |
 					 CR_AF_FILE_MUST_EXIST | CR_AF_ALLOW_DELETE);
 		} else {
