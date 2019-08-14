@@ -160,8 +160,6 @@ DIM SHARED lastlogfile as string
 'Prevent two threads from writing to debug log at once
 DIM SHARED debug_log_mutex as any ptr
 debug_log_mutex = mutexcreate
-DIM program_start_timer as double
-program_start_timer = TIMER
 
 TYPE SavedGfxIOState
  prev_mouse_vis as CursorVisibility

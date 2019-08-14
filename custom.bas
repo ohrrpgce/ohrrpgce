@@ -996,7 +996,7 @@ SUB write_session_info ()
   text(10) = format_date(modified)
   text(11) = STR(modified)
  END IF
- lines_to_file text(), workingdir + SLASH + "session_info.txt.tmp"
+ lines_to_file text(), workingdir + SLASH + "session_info.txt.tmp", LINE_END
 END SUB
 
 ' Collect data about a previous (or ongoing) editing session from a dirty working.tmp

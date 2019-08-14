@@ -10,8 +10,6 @@
 #include "config.bi"
 #include "const.bi"
 
-declare function get_app_name() as zstring ptr
-
 declare sub debug (msg as const zstring ptr)
 declare sub early_debuginfo (msg as const zstring ptr)
 declare sub debuginfo (msg as const zstring ptr)

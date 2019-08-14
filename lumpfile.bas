@@ -1497,6 +1497,8 @@ sub log_openfile(filename as zstring ptr)
 	dim oldest as double = 1e99
 	dim oldest_idx as integer
 
+	'If this file is already in the list, update its open time,
+	'otherwise replace oldest file
 	for idx as integer = 0 to ubound(recent_files)
 		if recent_files(idx) = *filename then
 			recent_file_times(idx) = TIMER
@@ -1511,5 +1513,14 @@ sub log_openfile(filename as zstring ptr)
 	recent_files(oldest_idx) = *filename
 	recent_file_times(oldest_idx) = TIMER
 end sub
+
+'Called from crash reporter to iterate recent_files.
+'MUST NOT do any memory allocation (e.g. manipulate FB strings)
+function read_recent_files_list(idx as integer, byref filename as zstring ptr, byref opentime as double) as boolint
+	if idx > ubound(recent_files) then return NO
+	filename = strptr(recent_files(idx))
+	opentime = recent_file_times(idx) - program_start_timer
+	return YES
+end function
 
 end extern

@@ -891,6 +891,8 @@ EXTERN tmpdir as string
 'Ideally would not be in this module
 EXTERN orig_dir as string
 EXTERN exename as string
-
+EXTERN "C"
+EXTERN program_start_timer as double
+END EXTERN
 
 #ENDIF

@@ -46,6 +46,8 @@ DIM tmpdir as string
 
 DIM exename as string
 
+DIM program_start_timer as double
+program_start_timer = TIMER
 
 '---------------- Initialization -----------------
 

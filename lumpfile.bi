@@ -285,6 +285,7 @@ declare sub clear_OPEN_hook()
 declare function get_filename(fnum as integer) as string
 
 declare sub log_openfile(filename as zstring ptr)
+declare function read_recent_files_list(idx as integer, byref filename as zstring ptr, byref opentime as double) as boolint
 
 end extern
 

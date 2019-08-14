@@ -397,6 +397,5 @@ EXTERN lookup1_bin_cache() as TriggerData
 EXTERN script_names() as IntStrPair
 EXTERN debug_to_console as bool
 EXTERN remember_debug_messages as bool
-EXTERN program_start_timer as double
 
 #endif
