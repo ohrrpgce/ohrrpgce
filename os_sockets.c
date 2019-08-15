@@ -15,7 +15,9 @@
     // OHR build machine currently doesn't have the necessary headers for IPv6
     // support, we might as well use winsock 1 and support vanilla Win95 for now.
     #include <winsock.h>
-    #define SD_SEND 1
+    #ifndef SD_SEND
+      #define SD_SEND 1
+    #endif
     #define NO_IPv6
   #else
     #include <winsock2.h>
@@ -277,7 +279,7 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 	}
 	hdrptr += snprintf(hdrptr, hdrend - hdrptr, "\r\n");
 	int hdrlen = hdrend - hdrptr;
-	debuginfo(hdrbuf);
+	debuginfo("%s", hdrbuf);
 
 	// Send the data
 	if (!send_on_socket(sock, hdrbuf, hdrlen, req, server))

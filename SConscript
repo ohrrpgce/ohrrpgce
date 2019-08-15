@@ -25,7 +25,7 @@ GENGCC_CFLAGS = []
 # Use gnu99 dialect instead of c99. c99 causes GCC to define __STRICT_ANSI__
 # which causes types like off_t and off64_t to be renamed to _off_t and _off64_t
 # under MinGW. (See bug 951)
-TRUE_CFLAGS = ['--std=gnu99']
+TRUE_CFLAGS = ['--std=gnu11']
 # Flags used only for C++ (in addition to CFLAGS)
 # Can add -fno-exceptions, but only removes ~2KB
 CXXFLAGS = '--std=c++0x -Wno-non-virtual-dtor'.split()
