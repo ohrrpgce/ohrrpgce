@@ -27,6 +27,10 @@
 
 #include "SDL2\SDL.bi"
 
+#ifndef KMOD_META
+#define KMOD_META  KMOD_GUI  'Renamed in SDL2
+#endif
+
 EXTERN "C"
 
 #define USE_SDL2
@@ -70,15 +74,6 @@ DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as KBScancode, byval default_sdl_s
 
 DECLARE SUB log_error(failed_call as zstring ptr, funcname as zstring ptr)
 #define CheckOK(condition, otherwise...)  IF condition THEN log_error(#condition, __FUNCTION__) : otherwise
-
-#IFDEF __FB_DARWIN__
-
-'--These wrapper functions in mac/SDLMain.m call various Cocoa methods
-DECLARE SUB sdlCocoaHide()
-DECLARE SUB sdlCocoaHideOthers()
-DECLARE SUB sdlCocoaMinimise()
-
-#ENDIF
 
 DIM SHARED zoom as integer = 2  'Window size
 DIM SHARED smooth_zoom as integer = 2  'Amount to zoom before applying smoothing
@@ -852,34 +847,24 @@ PRIVATE SUB keycombos_logic(evnt as SDL_Event)
   END IF
 
 #IFDEF __FB_DARWIN__
-  'We have to handle menu item key combinations here: SDLMain.m only handles the case that you actually click on them
-  '(many of those actually generate an SDL keypress event, which is then handled here)
-  'Note: these can NOT be handled in allmodex because the modifier keys won't appear to be pressed there,
-  'no events are generated to fake those keypresses.
+  'Unlike SDL 1.2, shortcuts likes Cmd-Q, Cmd-M, Cmd-H and Cmd-Shift-H (Quit, Minimise, Hide, Hide Others)
+  'which are attached to items in the menu bar just work without us having to do anything.
 
   IF evnt.key.keysym.mod_ AND KMOD_META THEN  'Command key
-    IF evnt.key.keysym.sym = SDLK_m THEN
-      sdlCocoaMinimise()
-    END IF
-    IF evnt.key.keysym.sym = SDLK_h THEN
-      IF evnt.key.keysym.mod_ AND KMOD_SHIFT THEN
-        sdlCocoaHideOthers()  'Cmd-Shift-H
-      ELSE
-        sdlCocoaHide()  'Cmd-H
-      END IF
-    END IF
-    IF evnt.key.keysym.sym = SDLK_q THEN
-      post_terminate_signal
-    END IF
+    'The shortcut (in the menubar) for fullscreen is Ctrl-Cmd-F, but also
+    'support Cmd-F, which is what gfx_sdl uses.
     IF evnt.key.keysym.sym = SDLK_f THEN
       gfx_sdl2_setwindowed(windowedmode XOR YES)
       post_event(eventFullscreened, windowedmode = NO)
-      ' Includes Cmd+F to fullscreen
     END IF
     'SDL doesn't actually seem to send SDLK_QUESTION...
+    'FIXME: this doesn't work properly, the Apple menu is opened,
+    'and only when it closes does this get sent... but then the
+    'keys get stuck!!
     IF evnt.key.keysym.sym = SDLK_SLASH AND evnt.key.keysym.mod_ AND KMOD_SHIFT THEN
       keybdstate(scF1) = 2
     END IF
+    '(Note: gfx_sdl2 doesn't support set_scale_factor yet)
     FOR i as integer = 1 TO 4
       IF evnt.key.keysym.sym = SDLK_0 + i THEN
         #IFDEF IS_CUSTOM

@@ -431,6 +431,10 @@ if mac:
         CXXLINKFLAGS += ['-F', FRAMEWORKS_PATH]
     # This is also the version used by the current FB 1.06 mac branch
     macosx_version_min = '10.4'
+    if 'sdl2' in gfx+music:
+        # The minimum target supported by SDL 2 is 10.5 for x86 (and 10.6 introduced and x86_64),
+        # requires SDK 10.7+ to compile.
+        macosx_version_min = '10.5'
     if macsdk:
         if macsdk == '10.4':
             # 10.4 has a different naming scheme
@@ -900,7 +904,7 @@ elif mac:
         else:
             commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
     if 'sdl2' in gfx:
-        # SDLmain is gone
+        # SDL2 does not have SDLmain
         if env.WhereIs('sdl2-config'):
             commonenv.ParseConfig('sdl2-config --cflags')
         else:
@@ -947,7 +951,7 @@ for lib in base_libraries:
     env['FBLINKFLAGS'] += ['-l', lib]
 
 for lib in base_libraries + common_libraries:
-    if mac and lib in ('SDL', 'SDL_mixer', 'Cocoa'):
+    if mac and lib in ('SDL', 'SDL_mixer', 'SDL2', 'SDL2_mixer', 'Cocoa'):
         # Use frameworks rather than normal unix libraries
         # (Note: linkgcc=0 does not work on Mac because the #inclib "SDL" in the
         # SDL headers causes fbc to pass -lSDL to the linker, which can't be
