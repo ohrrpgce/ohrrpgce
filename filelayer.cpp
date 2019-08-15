@@ -288,7 +288,7 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int *fnum) {
 
 	FilterActionEnum action = DONT_HOOK;
 	if (pfnLumpfileFilter)
-		action = pfnLumpfileFilter(&file_to_open, explicit_write ? -1 : 0, allow_lump_writes ? -1 : 0);
+		action = pfnLumpfileFilter(&file_to_open, explicit_write ? YES : NO, allow_lump_writes ? YES : NO);
 
 	if (action == HOOK) {
 		if (!allow_lump_writes) {
@@ -377,11 +377,11 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int *fnum) {
 boolint copyfile(FBSTRING *source, FBSTRING *destination) {
 	FilterActionEnum action = DONT_HOOK;
 	if (pfnLumpfileFilter)
-		action = pfnLumpfileFilter(destination, -1, allow_lump_writes ? -1 : 0);
+		action = pfnLumpfileFilter(destination, YES, allow_lump_writes ? YES : NO);
 	if (action == DENY) {
 		// The filter ought to have already shown an error
 		debug(errError, "copyfile(%s, %s) denied by filter", source->data, destination->data);
-		return 0;
+		return NO;
 	}
 	int ret = copy_file_replacing(source->data, destination->data);
 	if (ret && action == HOOK)
@@ -396,34 +396,34 @@ boolint copyfile(FBSTRING *source, FBSTRING *destination) {
 boolint renamefile(FBSTRING *source, FBSTRING *destination) {
 	FilterActionEnum actionsrc = DONT_HOOK, actiondest = DONT_HOOK;
 	if (pfnLumpfileFilter) {
-		actionsrc = pfnLumpfileFilter(source, -1, allow_lump_writes ? -1 : 0);
-		actiondest = pfnLumpfileFilter(destination, -1, allow_lump_writes ? -1 : 0);
+		actionsrc = pfnLumpfileFilter(source, YES, allow_lump_writes ? YES : NO);
+		actiondest = pfnLumpfileFilter(destination, YES, allow_lump_writes ? YES : NO);
 	}
 	if (actionsrc == DENY || actiondest == DENY) {
 		// The filter ought to have already shown an error
 		debug(errError, "renamefile(%s, %s) denied by filter", source->data, destination->data);
-		return 0;
+		return NO;
 	}
 	if (rename(source->data, destination->data)) {
 		dump_openfiles();  // On Windows rename() typically fails because the file is open
 		debug(errShowError, "rename(%s, %s) failed: %s", source->data, destination->data, strerror(errno));
-		return 0;
+		return NO;
 	}
 	if (actionsrc == HOOK)
 		send_lump_modified_msg(source->data);
 	if (actiondest == HOOK)
 		send_lump_modified_msg(destination->data);
-	return -1;
+	return YES;
 }
 
 // TODO: there's no reason to pass lump_writes_allowed; instead the filter function
-// ought to return whether a file should be write-protection.
+// ought to return whether a file should be write-protected.
 void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, IPCChannel *channel) {
 	pfnLumpfileFilter = lumpfile_filter;
 #ifndef _WIN32
 	lock_lumps = true;
 #endif
-	allow_lump_writes = lump_writes_allowed;
+	allow_lump_writes = !!lump_writes_allowed;
 	lump_updates_channel = channel;
 }
 

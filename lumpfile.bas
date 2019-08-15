@@ -1425,11 +1425,14 @@ end sub
 '----------------------------------------------------------------------
 '                     filelayer.cpp support stuff
 
-'This is called on EVERY OPEN call once the OPEN hook is registered!
+'This is called on EVERY OPENFILE call after set_OPEN_hook is called!
 'See filelayer.cpp (where it is registered as pfnLumpfileFilter)
-'Returns whether the file is a normal lump file in workingdir.
-'This is used to determine whether the file should be hooked.
+'Returns whether the file should be hooked or not, or not opened:
+'normal lump files in workingdir are hooked so that any changes to
+'them are noticed.
 'writable: whether attempting to *explicitly* open with write access
+'    (false for generic OPENFILE FOR_BINARY calls, which allows reading+writing)
+'writes_allowed: arg passed to set_OPEN_hook: true in Custom, false in Game.
 function inworkingdir cdecl (filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
 	if RIGHT(filename, 10) = "_debug.txt" then return FilterActionEnum.dont_hook
 	'if RIGHT(filename, 12) = "_archive.txt" then return FilterActionEnum.dont_hook
@@ -1440,12 +1443,10 @@ function inworkingdir cdecl (filename as string, writable as boolint, writes_all
 	if strncmp(strptr(filename), strptr(workingdir), len(workingdir)) <> 0 then ret = FilterActionEnum.dont_hook
 	if right(filename, 4) = ".tmp" then ret = FilterActionEnum.dont_hook
 
-#ifdef IS_GAME
 	if ret = FilterActionEnum.hook andalso writable andalso writes_allowed = NO then
 		showbug "Illegally tried to open protected file " & filename & " for writing"
 		ret = FilterActionEnum.deny
 	end if
-#endif
 
 	return ret
 end function

@@ -973,19 +973,18 @@ base_modules +=   ['util.bas',
                    'lib/lodepng.c',  # Only for lodepng_gzip.c
                    'lib/lodepng_gzip.c',  # Only for filetest
                    'filelayer.cpp',
+                   'lumpfile.bas',
                    'vector.bas']
 
 # Modules shared by the reload utilities, additional to base_modules
 reload_modules =  ['reload.bas',
-                   'reloadext.bas',
-                   'lumpfile.bas']
+                   'reloadext.bas']
 
 # The following are built twice, for Game and Custom, so may use #ifdef to change behaviour
 # (.bas files only) 
 shared_modules += ['allmodex',
                    'audiofile',
                    'backends',
-                   'lumpfile',
                    'misc',
                    'bam2mid',
                    'common.rbas',
@@ -1126,8 +1125,8 @@ GAME = GAME[0]  # first element of NodeList is the executable
 CUSTOM = CUSTOM[0]
 env_exe ('bam2mid', source = ['bam2mid.bas'] + base_objects)
 env_exe ('miditest')
-env_exe ('unlump', source = ['unlump.bas', 'lumpfile.o'] + base_objects)
-env_exe ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)
+env_exe ('unlump', source = ['unlump.bas'] + base_objects)
+env_exe ('relump', source = ['relump.bas'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
 
 # Put this into a function so that we only call get_euphoria_version() when compiling
