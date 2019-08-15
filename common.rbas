@@ -6309,7 +6309,7 @@ FUNCTION escape_nonprintable_ascii(istr as string) as string
  END IF
  FOR idx as integer = 1 TO LEN(istr)
   DIM ch as string = MID(istr, idx, 1)
-  SELECT CASE ASC(ch)
+  SELECT CASE CAST(integer, ASC(ch))
    CASE 92 '--Backslash
     result &= "\\"
    CASE 10

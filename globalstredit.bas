@@ -350,7 +350,7 @@ FUNCTION escape_str_for_web_translation(istr as string) as string
  END IF
  FOR idx as integer = 1 TO LEN(istr)
   DIM ch as string = MID(istr, idx, 1)
-  SELECT CASE ASC(ch)
+  SELECT CASE CAST(integer, ASC(ch))
    CASE 10  'New line
     result &= LINE_END
    CASE 0 TO 31, icons_low TO icons_high

@@ -175,8 +175,8 @@ declare sub a_append overload (array() as integer, value as integer)
 declare sub a_append overload (array() as IntStrPair, byval k as integer, s as zstring ptr)
 declare sub a_insert overload (array() as string,  pos as integer, value as string)
 declare sub a_insert overload (array() as integer, pos as integer, value as integer)
-declare sub a_pop overload (array() as string,  which as integer = &hE2D0FD15)
-declare sub a_pop overload (array() as integer, which as integer = &hE2D0FD15)
+declare sub a_pop overload (array() as string,  which as integer = -&h7FFFFFFF)
+declare sub a_pop overload (array() as integer, which as integer = -&h7FFFFFFF)
 declare function a_remove overload (array() as string,  value as string)  as integer
 declare function a_remove overload (array() as integer, value as integer) as integer
 declare sub a_copy overload (fromarray() as integer, toarray() as integer)

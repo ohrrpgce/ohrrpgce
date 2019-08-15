@@ -1318,9 +1318,9 @@ MAKE_ARRAY_INSERT(integer)
 
 #MACRO MAKE_ARRAY_POP(Typename)
  ' Remove array(which) (default last), shuffling everything else down
- SUB a_pop (array() as Typename, which as integer = &hE2D0FD15)
-  IF which = &hE2D0FD15 THEN which = UBOUND(array)
-  IF which >= LBOUND(array) AND which <= UBOUND(array) THEN
+ SUB a_pop (array() as Typename, which as integer = -&h7FFFFFFF)
+  IF which = -&h7FFFFFFF THEN which = UBOUND(array)
+  IF which >= LBOUND(array) ANDALSO which <= UBOUND(array) THEN
    a_shuffle_to_end array(), which
    REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) - 1)
   END IF
@@ -1365,8 +1365,8 @@ MAKE_ARRAY_SHUFFLE_TO_END(integer)
  'Returns the index of the item if it was found, or -1 if not
  FUNCTION a_remove (array() as TypeName, value as TypeName) as integer
   DIM idx as integer
-  idx = a_find(array(), value, &he110b0b1)
-  IF idx = &he110b0b1 THEN RETURN -1
+  idx = a_find(array(), value, -&h7FFFFFFF)
+  IF idx = -&h7FFFFFFF THEN RETURN -1
   a_pop array(), idx
   RETURN idx
  END FUNCTION
@@ -1388,6 +1388,35 @@ SUB a_copy (fromarray() as string, toarray() as string)
   toarray(i) = fromarray(i)
  NEXT
 END SUB
+
+'Only have tests for some of the above functions here...
+#IFDEF __FB_MAIN__
+startTest(array_operators)
+ REDIM arr() as integer
+ IF UBOUND(arr) <> -1 THEN fail
+ a_append arr(), 100
+ IF UBOUND(arr) <> 0 THEN fail
+ IF arr(0) <> 100 THEN fail
+ a_insert arr(), 0, 101
+ a_append arr(), 103
+ a_insert arr(), 3, 102 'Insert 1 past end
+ IF UBOUND(arr) <> 3 THEN fail
+ IF arr(0) <> 101 THEN fail
+ IF arr(1) <> 100 THEN fail
+ IF arr(2) <> 103 THEN fail
+ IF arr(3) <> 102 THEN fail
+ a_pop arr(), 1         'Remove 100
+ IF UBOUND(arr) <> 2 THEN fail
+ IF a_remove(arr(), 100) <> -1 THEN fail  'Does nothing
+ IF arr(1) <> 103 THEN fail
+ a_pop arr()            'Remove arr(2)=102
+ IF UBOUND(arr) <> 1 THEN fail
+ IF arr(1) <> 103 THEN fail
+ IF a_remove(arr(), 101) <> 0 THEN fail  'Remove arr(0)
+ IF UBOUND(arr) <> 0 THEN fail
+ IF arr(0) <> 103 THEN fail
+endTest
+#ENDIF
 
 'I've compared the speed of the following two. For random integers, the quicksort is faster
 'for arrays over length about 80. For arrays which are 90% sorted appended with 10% random data,
@@ -3295,7 +3324,7 @@ sub HashTable.clear()
 end sub
 
 function HashTable.iter(byref state as uinteger, prev_value as any ptr, byref key as any ptr = NULL) as any ptr
-  if state = -1 then
+  if state = &hFFFFFFFF then
     key = NULL
     return NULL
   end if
@@ -3321,7 +3350,7 @@ function HashTable.iter(byref state as uinteger, prev_value as any ptr, byref ke
     wend
     if bucketidx < 0 then
       showbug "HashTable.iter: item has been deleted from the table"
-      state = -1
+      state = &hFFFFFFFF
       return NULL
     end if
     'Increment past prev_value
@@ -3334,7 +3363,7 @@ function HashTable.iter(byref state as uinteger, prev_value as any ptr, byref ke
     bucketidx = 0
     if bucketnum >= this.tablesize then
       key = NULL
-      state = -1
+      state = &hFFFFFFFF
       return NULL
     end if
   wend
