@@ -417,7 +417,7 @@ Sub ThingBrowser.build_thing_list()
  if thinglist->SliceType = slGrid then ChangeGridSlice thinglist, , thinglist->Width \ plank_size.x
  DrawSlice root, vpage 'refresh screen positions
  timing = TIMER - timing
- if timing > 0.2 then
+ if timing > 0.25 then
   debuginfo thing_kind_name() & ": build_thing_list() took " & cint(timing * 1000) & "ms"
  end if
 End Sub

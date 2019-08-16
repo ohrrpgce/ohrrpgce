@@ -94,7 +94,7 @@ extern "C"
 function get_windows_error (byval errcode as integer) as string
 	dim strbuf as string * 256
 	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errcode, 0, strptr(strbuf), 255, NULL)
-	return strbuf
+	return trim(strbuf)
 end function
 end extern
 

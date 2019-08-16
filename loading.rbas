@@ -5314,8 +5314,8 @@ END FUNCTION
 
 FUNCTION translate(original as string, code as zstring ptr) as string
   DIM trans as TranslationString ptr = get_translation(code)
-  debug "translate " & *code
-  IF trans THEN debug "found '''" & trans->text & "'''" : RETURN trans->text
+  'debug "translate " & *code
+  IF trans THEN /' debug "found '''" & trans->text & "'''" :  '/ RETURN trans->text
   RETURN original
 END FUNCTION
 

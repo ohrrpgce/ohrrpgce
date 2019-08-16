@@ -5340,9 +5340,11 @@ SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
   FOR i as integer = 0 TO 159
    defaults[i] = buf(i)
   NEXT
+ ELSEIF buf(160) = 0 THEN
+  'This record was uninitialised (see savepasdefaults)
  ELSE
   'I wonder what this old unsupported file format was?
-  debug "Unsupported default tile passability format"
+  debug "Unsupported default tile passability format, magic=" & buf(160)
  END IF
 END SUB
 
@@ -5350,10 +5352,12 @@ SUB savepasdefaults (byref defaults as integer vector, tilesetnum as integer)
  DIM buf(160) as integer
  FOR i as integer = 0 TO 159
   buf(i) = defaults[i]
- NEXT  
+ NEXT
  '--set magic number
  buf(160) = 4444
  '--write defaults into tile set defaults file
+ 'NOTE: we might be writing past the end of the file, and so records for
+ 'earlier tilesets will (I hope) be zeroed out, missing the magic number
  storerecord buf(), workingdir & SLASH & "defpass.bin", 322 \ 2, tilesetnum
 END SUB
 

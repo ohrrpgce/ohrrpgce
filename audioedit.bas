@@ -281,6 +281,7 @@ IF songnum > gen(genMaxSong) THEN
   'Cancelled
   RETURN -1
  END IF
+ importsong_save_song_data "", songnum
 END IF
 
 REDIM menu(6) as string
@@ -334,7 +335,10 @@ DO
   IF keyval(ccRight) > 1 AND songnum < 32767 THEN
    importsong_save_song_data songname, songnum
    songnum += 1
-   IF needaddset(songnum, gen(genMaxSong), "song") THEN songname = ""
+   IF needaddset(songnum, gen(genMaxSong), "song") THEN
+    songname = ""
+    importsong_save_song_data songname, songnum
+   END IF
    state.need_update = YES
   END IF
  END IF
