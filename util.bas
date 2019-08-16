@@ -1416,6 +1416,37 @@ startTest(array_operators)
  IF UBOUND(arr) <> 0 THEN fail
  IF arr(0) <> 103 THEN fail
 endTest
+
+'Test how static dynamic behave in FB, especially before they are first REDIMed.
+'This behaviour was different in older versions (0.90?)
+
+#MACRO STATIC_TEST_FUNC(Typename)
+FUNCTION test_static_##Typename##_array (push as Typename, expectubound as integer) as Typename
+  STATIC array() as Typename
+  DIM ret as Typename
+  IF LBOUND(array) <> 0 THEN RETURN push            'This will cause a fail
+  IF UBOUND(array) <> expectubound THEN RETURN push 'ditto
+  IF a_find(array(), push) <> -1 THEN RETURN push   'ditto
+  IF UBOUND(array) >= 0 THEN ret = array(UBOUND(array))
+  a_append array(), push
+  'After 3 pushes, reset
+  IF UBOUND(array) = 2 THEN ERASE array
+  RETURN ret
+END FUNCTION
+#ENDMACRO
+
+STATIC_TEST_FUNC(integer)
+STATIC_TEST_FUNC(string)
+
+startTest(staticDynamicArray)
+ IF test_static_integer_array(30, -1) <> 0 THEN fail
+ IF test_static_integer_array(31, 0) <> 30 THEN fail
+ IF test_static_integer_array(32, 1) <> 31 THEN fail  'Erases the array
+ IF test_static_integer_array(33, -1) <> 0 THEN fail
+ IF test_static_integer_array(34, 0) <> 33 THEN fail
+ IF test_static_string_array("a", -1) <> "" THEN fail
+ IF test_static_string_array("ab", 0) <> "a" THEN fail
+endTest
 #ENDIF
 
 'I've compared the speed of the following two. For random integers, the quicksort is faster

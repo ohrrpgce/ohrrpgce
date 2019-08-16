@@ -1408,7 +1408,6 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  STATIC as integer recursivecall
 
  STATIC as integer ignorelist()
- initialize_static_dynamic_array(ignorelist)
 
  DIM as string errtext()
  DIM as integer scriptcmdhash, errmsghash

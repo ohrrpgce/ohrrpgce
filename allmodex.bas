@@ -7815,7 +7815,6 @@ end function
 'NOTE: global variables like tmpdir can change between calls, have to be lenient
 private sub snapshot_check()
 	static as string backlog()
-	initialize_static_dynamic_array(backlog)
 	' The following are just for the overlay message
 	static as integer num_screenshots_taken
 	static as string first_screenshot
@@ -7827,11 +7826,11 @@ private sub snapshot_check()
 
 	if F12bits = 0 then
 		' If key repeat never occurred then delete the backlog.
-		for n = 1 to ubound(backlog)
+		for n = 0 to ubound(backlog)
 			'debug "killing " & backlog(n)
 			safekill backlog(n)
 		next
-		redim backlog(0)
+		erase backlog
 		' Tell what we did
 		if num_screenshots_taken = 1 then
 			show_overlay_message "Saved screenshot " & first_screenshot, 1.5
@@ -7843,18 +7842,18 @@ private sub snapshot_check()
 
 		if F12bits = 1 then
 			' Take a screenshot, but maybe delete it later
-			shot = tmpdir & get_process_id() & "_tempscreen" & ubound(backlog)
+			shot = tmpdir & get_process_id() & "_tempscreen" & (ubound(backlog) + 1)
 			a_append(backlog(), screenshot(shot))
 			'debug "temp save " & backlog(ubound(backlog))
 		else
 			' Key repeat has kicked in, so move our backlog of screenshots to the visible location.
-			for n = 1 to ubound(backlog)
+			for n = 0 to ubound(backlog)
 				shot = next_unused_screenshot_filename() & "." & justextension(backlog(n))
 				'debug "moving " & backlog(n) & " to " & shot
 				os_shell_move backlog(n), shot
 				num_screenshots_taken += 1
 			next
-			redim backlog(0)
+			erase backlog
 
 			' Take the new screenshot
 			dim temp as string = screenshot()
