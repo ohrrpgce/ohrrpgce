@@ -2965,7 +2965,7 @@ FUNCTION update_menu_item (mi as MenuDefItem) as bool
   DIM remem_unselectable as bool = .unselectable
   .disabled = NO
   .unselectable = NO
-  IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
+  IF NOT (istag(.tag1, YES) ANDALSO istag(.tag2, YES)) THEN .disabled = YES
   IF .t = mtypeLabel THEN
    IF .sub_t = lbDisabled THEN .disabled = YES
    'lbUnselectable: don't disable, so that the text color is normal
@@ -2973,12 +2973,12 @@ FUNCTION update_menu_item (mi as MenuDefItem) as bool
   END IF
   IF .t = mtypeSpecial THEN
    ' Minimap and Save may be disabled on this map
-   IF .sub_t = spMapMaybe AND gmap(2) = 0 THEN .disabled = YES
-   IF .sub_t = spSaveMaybe AND gmap(3) = 0 THEN .disabled = YES
+   IF .sub_t = spMapMaybe ANDALSO gmap(2) = 0 THEN .disabled = YES
+   IF .sub_t = spSaveMaybe ANDALSO gmap(3) = 0 THEN .disabled = YES
    ' TV Safe Margin disabled on backends that don't support it
-   IF .sub_t = spMargins AND NOT supports_safe_zone_margin() THEN .disabled = YES
+   IF .sub_t = spMargins ANDALSO NOT supports_safe_zone_margin() THEN .disabled = YES
    ' Purchases disabled on platforms that don't have a supported store
-   IF .sub_t = spPurchases AND NOT supports_in_app_purchases() THEN .disabled = YES
+   IF .sub_t = spPurchases ANDALSO NOT supports_in_app_purchases() THEN .disabled = YES
    IF .sub_t = spWindowed OR .sub_t = spFullscreen THEN
     .disabled = YES
     IF supports_fullscreen_well() THEN

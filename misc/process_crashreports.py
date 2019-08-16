@@ -255,7 +255,7 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
                 # Game: the .rpg file (but ignore '----Loading a game----' line printed by Custom)
                 print_matching_line(line, 'Playing game', 'Loading (.*rpg.*)----')
                 # Game: getdisplayname()
-                print_matching_line(line, 'Game name', 'Name: (.+)')
+                print_matching_line(line, 'Game name', '[ 0-9.:]+ Name: (.+)')
                 # Game: run via Test Game, show the Custom version info message
                 print_matching_line(line, 'Spawned from Custom', 'Received message from Custom: (V.*)')
                 #print_matching_line(line, 'settings_dir', 'settings_dir: (.*)')

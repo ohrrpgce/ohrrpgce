@@ -290,14 +290,15 @@ END FUNCTION
 
 FUNCTION sanity_check_store_name(storename as string) as string
  SELECT CASE storename
-  CASE "ouya":
+  CASE "", "disabled"  'Can "" actually happen?
+  CASE "ouya"
    IF running_on_ouya() THEN RETURN storename
-  CASE "paypal":
+  CASE "paypal"
    IF NOT running_on_ouya() THEN RETURN storename
+  CASE ELSE
+   'This function can get called every tick, so we shouldn't spam the debug log
+   'debuginfo "Unknown store name: """ & storename & """"
  END SELECT
- IF storename <> "" THEN
-  debuginfo "Unknown store name: """ & storename & """"
- END IF
  RETURN "disabled"
 END FUNCTION
 
@@ -305,9 +306,10 @@ FUNCTION product_enabled_for_current_store(byval prod as NodePtr) as bool
  'Returns YES if there is enough information to *attempt* to buy this product
  'from the current store. Can't guarantee that the information is correct.
  DIM storename as string = get_enabled_store_name()
- IF storename = "disabled" THEN RETURN NO
  SELECT CASE storename
-  CASE "paypal":
+  CASE "disabled"
+   RETURN NO
+  CASE "paypal"
    IF prod."paypal".exists THEN
     DIM paypal as NodePtr = prod."paypal".ptr
     IF paypal."button_id".exists THEN
@@ -316,7 +318,7 @@ FUNCTION product_enabled_for_current_store(byval prod as NodePtr) as bool
      END IF
     END IF
    END IF
-  CASE "ouya":
+  CASE "ouya"
    IF prod."ouya".exists THEN
     DIM ouya as NodePtr = prod."ouya".ptr
     IF ouya."identifier".exists THEN
