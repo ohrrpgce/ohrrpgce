@@ -429,12 +429,21 @@ if mac:
     if os.path.isdir(FRAMEWORKS_PATH):
         FBLINKERFLAGS += ['-F', FRAMEWORKS_PATH]
         CXXLINKFLAGS += ['-F', FRAMEWORKS_PATH]
-    # This is also the version used by the current FB 1.06 mac branch
+    # OS 10.4 is the minimum version supported by SDL 1.2.14 on x86 (README.MacOSX
+    # in the SDL source tree seems to be out of date, it doesn't even mention x86_64)
+    # and OS 10.6 is the minimum for x86_64. 10.6 was released 2009
+    # (See https://playcontrol.net/ewing/jibberjabber/big_behind-the-scenes_chang.html)
+    # Note: if we wanted to build a x86/x86_64 fat binary that runs on < 10.6, we need
+    # to add LSMinimumSystemVersionByArchitecture to the plist, see above link.
+    # Our FB Mac fork also currently targets OS 10.4.
     macosx_version_min = '10.4'
     if 'sdl2' in gfx+music:
-        # The minimum target supported by SDL 2 is 10.5 for x86 (and 10.6 introduced and x86_64),
+        # The minimum target supported by SDL 2 is 10.5 for x86 and 10.6 for x86_64
+        # (although OS 10.5 is the first to support x86_64 Cocoa apps),
         # requires SDK 10.7+ to compile.
         macosx_version_min = '10.5'
+    if arch == 'x86_64':
+        macosx_version_min = '10.6'  # Both SDL 1.2 & 2.0
     if macsdk:
         if macsdk == '10.4':
             # 10.4 has a different naming scheme
