@@ -467,10 +467,13 @@ SUB main_editor_menu()
    IF state.pt = 18 THEN distribute_game
    IF state.pt = 19 THEN spawn_game_menu(keyval(scShift) > 0, keyval(scCtrl) > 0)
    IF state.pt = 20 THEN prompt_for_save_and_quit
-   '--always resave the .GEN lump after any menu
+   '--always resave .GEN and general.reld after any menu
+   '(I don't know whether saving GEN is necessary, but saving general.reld
+   'is just in case we forget wherever it should have been saved)
    xbsave game + ".gen", gen(), 1000
+   write_general_reld()
   END IF
- 
+
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
   standardmenu menu_display(), state, 0, 0, dpage, menuopts

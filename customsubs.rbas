@@ -3704,6 +3704,7 @@ SUB edit_purchase_options ()
   dowait
  LOOP
 
+ write_general_reld()
 END SUB
 
 SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval purchase_root as NodePtr)
