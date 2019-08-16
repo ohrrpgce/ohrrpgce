@@ -1910,7 +1910,7 @@ SUB saveherodata (hero as HeroDef, byval index as integer)
  '--save the new way
  DIM filename as string = workingdir & SLASH & "heroes.reld"
  DIM doc as DocPtr
- doc = LoadDocument(filename, optNoDelay AND optIgnoreMissing)
+ doc = LoadDocument(filename, optNoDelay OR optIgnoreMissing)
  IF doc = 0 THEN
   debuginfo "heroes doc not found, create it"
   doc = CreateDocument()
