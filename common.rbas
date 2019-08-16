@@ -399,6 +399,19 @@ SUB debug (msg as const zstring ptr)
 END SUB
 
 EXTERN "C"
+
+'A debug message which is only logged/printed once. Use if would otherwise be to spammy.
+'You don't have to use this instead of showerror/showbug, because those
+'always give the user the option of silencing a message (it won't even be logged),
+'but you can if you want to save the user the trouble of ignoring.
+SUB onetime_debug (errorlevel as errorLevelEnum = errDebug, msg as const zstring ptr)
+ STATIC silenced_messages() as string
+ IF a_find(silenced_messages(), *CAST(zstring ptr, msg)) <> -1 THEN EXIT SUB
+ 'Mustn't call debugc here. Instead give debugc_internal no callsite so can't ignore.
+ debugc_internal NULL, errorlevel, msg
+ a_append silenced_messages(), *msg
+END SUB
+
 SUB debugc_internal (callsite as any ptr, errorlevel as errorLevelEnum, s as const zstring ptr)
  'This both provides a C interface to 'debug', and error levels to distinguish the significance of
  'different messages
@@ -438,6 +451,7 @@ SUB debugc_internal (callsite as any ptr, errorlevel as errorLevelEnum, s as con
    fatal_error_shutdown
  END SELECT
 END SUB
+
 END EXTERN
 
 'This is a kludge (the whole debug logging system is a mess)...  debuginfo

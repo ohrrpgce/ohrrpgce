@@ -22,14 +22,15 @@ char *escape_filenamec (const char *filename);
 // in filelayer.cpp
 const char *trimpath(const char *filename);
 
-// in common.rbas (NOTE: debugc also defined separately in gfx_directx.cpp)
+// in common.rbas
+void onetime_debug(enum ErrorLevel errorlevel, const char *msg);
 void debugc_internal(void *callsite, enum ErrorLevel errorlevel, const char *msg);
 void showerror_internal(void *callsite, const char *msg, boolint isfatal, boolint isbug);
 
 // libfb.a
 void _noreturn (*fb_ErrorThrowAt(int line_num, const char *mod_name, void *res_label, void *resnext_label))(void);
 
-// in miscc.c (NOTE: _throw_error also defined separately in gfx_directx.cpp)
+// in miscc.c (NOTE: debugc, _throw_error also defined separately in gfx_directx.cpp)
 void debugc(enum ErrorLevel errorlevel, const char *msg);
 void showbug(const char *msg);
 void showerror(const char *msg, boolint isfatal, boolint isbug);

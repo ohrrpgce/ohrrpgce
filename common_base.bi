@@ -19,6 +19,8 @@ declare sub fatalbug (msg as const zstring ptr)
 declare sub visible_debug (msg as const zstring ptr)
 
 extern "C"
+declare sub onetime_debug (errorlevel as errorLevelEnum = errDebug, msg as const zstring ptr)
+
 declare sub showerror_internal (callsite as any ptr, msg as const zstring ptr, isfatal as bool = NO, isbug as bool = NO)
 declare sub debugc_internal (callsite as any ptr, errorlevel as errorLevelEnum, msg as const zstring ptr)
 

@@ -297,7 +297,7 @@ FUNCTION sanity_check_store_name(storename as string) as string
    IF NOT running_on_ouya() THEN RETURN storename
   CASE ELSE
    'This function can get called every tick, so we shouldn't spam the debug log
-   'debuginfo "Unknown store name: """ & storename & """"
+   onetime_debug , "Unknown store name: """ & storename & """"
  END SELECT
  RETURN "disabled"
 END FUNCTION

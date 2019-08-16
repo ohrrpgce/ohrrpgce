@@ -7,6 +7,7 @@
 
 #include "config.bi"
 #include "common_base.bi"
+#include "util.bi"
 #include "file.bi"
 
 DIM workingdir as string
@@ -31,6 +32,13 @@ SUB early_debuginfo (msg as const zstring ptr)
 END SUB
 
 EXTERN "C"
+
+SUB onetime_debug (errorlevel as errorLevelEnum = errDebug, msg as const zstring ptr)
+  STATIC silenced_messages() as string
+  IF a_find(silenced_messages(), *CAST(zstring ptr, msg)) <> -1 THEN EXIT SUB
+  debugc_internal NULL, errorlevel, msg
+  a_append silenced_messages(), *msg
+END SUB
 
 SUB debugc_internal (callsite as any ptr, errorlevel as errorLevelEnum, s as const zstring ptr)
   IF errorlevel >= errFatalError THEN fatalerror s
