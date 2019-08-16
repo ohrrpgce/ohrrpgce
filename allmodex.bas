@@ -9873,21 +9873,21 @@ function Palette16_new_from_indices(pal() as integer) as Palette16 ptr
 end function
 
 'Loads and returns a palette from the current game (resolving -1 to default palette),
-'returning a blank palette if it didn't exist, or returning NULL if default_blank=NO.
+'returning a blank palette if it didn't exist.
 '(Note that the blank palette isn't put in the cache, so if that palette is later
 'added to the game, it won't auto-update.)
 'autotype, spr: spriteset type and id, for default palette lookup.
-function Palette16_load(num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0, default_blank as bool = YES) as Palette16 ptr
+function Palette16_load(num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0, expect_exists as bool = YES) as Palette16 ptr
 	dim as Palette16 ptr ret = Palette16_load(graphics_file("pal"), num, autotype, spr)
 	if ret = 0 then
-		if num >= 0 andalso default_blank then
+		if num >= 0 andalso expect_exists then
 			' Only bother to warn if a specific palette failed to load.
 			' Avoids debug noise when default palette load fails because of a non-existant defpal file
 			debug "failed to load palette " & num
 		end if
-		if default_blank then
-			return Palette16_new()
-		end if
+		' Is it a problem that this isn't put in the cache, so you can load a
+		' this palette multiple times and get different ptrs?
+		return Palette16_new()
 	end if
 	return ret
 end function

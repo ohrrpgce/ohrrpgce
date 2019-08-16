@@ -136,7 +136,7 @@ SUB changepal OVERLOAD (ss as SpriteEditState, palchange as integer)
  'sprite editor increases gen(genMaxPal) whenever you reach the end
  ss.pal_num = bound(ss.pal_num + palchange, 0, 32767)
  palette16_unload @ss.palette
- ss.palette = palette16_load(ss.pal_num)
+ ss.palette = palette16_load(ss.pal_num, , , NO)  'expect_exists=NO
 END SUB
 
 FUNCTION pal_num_intgrabber (ss as SpriteEditState, lesskey as KBScancode=ccLeft, morekey as KBScancode=ccRight) as bool
@@ -144,7 +144,7 @@ FUNCTION pal_num_intgrabber (ss as SpriteEditState, lesskey as KBScancode=ccLeft
  IF intgrabber(ss.pal_num, 0, gen(genMaxPal) + 1, lesskey, morekey) THEN
   palette16_save ss.palette, old
   palette16_unload @ss.palette
-  ss.palette = palette16_load(ss.pal_num)
+  ss.palette = palette16_load(ss.pal_num, , , NO)  'expect_exists=NO
   RETURN YES
  END IF
 END FUNCTION
@@ -155,9 +155,9 @@ SUB spriteedit_pal16_browser (ss as SpriteEditState, sprite as Frame ptr)
  ss.save_callback(ss.sprite, ss.save_callback_context, ss.pal_num)
  '--save current palette
  palette16_save ss.palette, ss.pal_num
- ss.pal_num = pal16browse(ss.pal_num, sprite)
+ ss.pal_num = pal16browse(ss.pal_num, sprite)  'Can return > genMaxPal
  palette16_unload @ss.palette
- ss.palette = palette16_load(ss.pal_num)
+ ss.palette = palette16_load(ss.pal_num, , , NO)  'expect_exists=NO
 END SUB
 
 'Copy a tile from one vpage to another
@@ -4657,7 +4657,7 @@ END SUB
 'Change the default palette of the current spriteset by 'diff'
 SUB SpriteSetBrowser.change_def_pal(diff as integer)
   IF cur_setnum < 0 THEN EXIT SUB
-  defpalettes(cur_setnum) = bound(defpalettes(cur_setnum) + diff, 0, gen(genMaxPal) + 1)
+  defpalettes(cur_setnum) = bound(defpalettes(cur_setnum) + diff, 0, gen(genMaxPal))
   savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
   rebuild_menu()
 END SUB

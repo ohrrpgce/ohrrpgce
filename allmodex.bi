@@ -595,7 +595,7 @@ end enum
 declare function palette16_new(numcolors as integer = 16) as Palette16 ptr
 declare function Palette16_new_identity(numcolors as integer = 16) as Palette16 ptr
 declare function palette16_new_from_indices(pal() as integer) as Palette16 ptr
-declare function palette16_load overload(num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0, default_blank as bool = YES) as Palette16 ptr
+declare function palette16_load overload(num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0, expect_exists as bool = YES) as Palette16 ptr
 declare function palette16_load overload(fil as string, num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0) as Palette16 ptr
 declare sub palette16_unload(p as Palette16 ptr ptr)
 declare function palette16_duplicate(pal as Palette16 ptr) as Palette16 ptr

@@ -1500,7 +1500,7 @@ END FUNCTION
 'sprite may be NULL
 FUNCTION pal16browse (curpal as integer, sprite as Frame ptr, show_default as bool=NO) as integer
  DIM buf(7) as integer
- REDIM pal16(100) as Palette16 ptr
+ REDIM pal16(100) as Palette16 ptr  'At most 100 palettes visible on-screen
 
  DIM as integer i, j
 
