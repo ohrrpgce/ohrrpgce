@@ -58,6 +58,9 @@ FUNCTION find_oggenc () as string
 END FUNCTION
 
 'Read ID3 tags from an mp3 and return them as a list of strings in the form "key=value"
+'NOTE: This invokes madplay to get the ID3 tags, but we already have
+'read_mp3_metadata(), which could be extended to the do the same without madplay.
+'However, madplay does translated various ID codes like "TPUB" to "Publisher" for us.
 SUB mp3_ID3_tags (in_file as string, comments() as string)
  ERASE comments
 
@@ -85,15 +88,40 @@ SUB mp3_ID3_tags (in_file as string, comments() as string)
  split stderr_s, lines()
 
  'Each line is of the form "           Year: 2009"
+ 'but might be word-wrapped.
+ 'Also the "Copyright (C)" and "Produced (P)" lines are
+ 'are exceptions for some reason (they have no 'Key:' part), and it looks like there
+ 'can be other tags with no 'key' too.
  FOR idx as integer = 0 TO UBOUND(lines)
   DIM tag as string = TRIM(lines(idx))
-  DIM where as integer
-  where = INSTR(tag, ": ")
-  IF where = 0 THEN
-   debug "mp3_ID3_tags: line not understood: " & tag
+  IF LEN(tag) = 0 THEN CONTINUE FOR
+  DIM colon as integer = INSTR(tag, ": ")
+  DIM as string key, text
+
+  'Copyright and Produced special cases (start with 17 spaces)
+  IF INSTR(tag, "Copyright ") = 1 THEN
+   key = "Copyright"
+   text = MID(tag, 11)
+  ELSEIF INSTR(tag, "Produced ") = 1 THEN
+   key = "Produced"
+   text = MID(tag, 10)
+  ELSEIF colon = 0 THEN
+   'Other lines are generally garbage, a repeat of the previous line
    CONTINUE FOR
+  ELSE
+   key = LEFT(tag, colon - 1)
+   text = MID(tag, colon + 2)
   END IF
-  a_append comments(), LEFT(tag, where - 1) & "=" & MID(tag, where + 2)
+
+  'Concatenate apparent wrapped lines
+  WHILE LEN(lines(idx)) > 65 ANDALSO idx + 1 <= UBOUND(lines) ANDALSO LEFT(lines(idx + 1), 17) = SPACE(17)
+   idx += 1
+   text += " " + TRIM(lines(idx))
+  WEND
+
+  IF key = "Encoder" THEN CONTINUE FOR  'We're reencoding, ditch that
+
+  a_append comments(), key & "=" & text
  NEXT
 END SUB
 
