@@ -292,7 +292,10 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
 
     # Get stacktrace and other info from the minidump
     try:
-        stacktrace, crash_summary = process_minidump(build, reportdir, is_custom, args)
+        if args.no_stacktrace:
+            stacktrace, crash_summary = None, 'N/A'
+        else:
+            stacktrace, crash_summary = process_minidump(build, reportdir, is_custom, args)
     except NoBacktraceError as err:
         print(err)
         stacktrace = None
@@ -372,9 +375,13 @@ def process_crashrpt_reports_directory(reports_dir, args):
             upload_time = time.gmtime(os.stat(zipfile).st_mtime)
             uuids.add((upload_time, uuid))
 
+    uuids = sorted(uuids)
+    if args.last:
+        uuids = uuids[-args.last:]
+
     # Then process each unzipped report directory, sorted by upload date
     report_summaries = []
-    for upload_time, uuid in sorted(uuids):
+    for upload_time, uuid in uuids:
         reportdir = pathjoin(reports_dir, uuid + '.unzipped')
         report_summaries.append(process_crashrpt_report(reportdir, uuid, upload_time, args))
 
@@ -395,8 +402,10 @@ if __name__ == '__main__':
                         " extract build symbols to. Will be created if it doesn't exist.")
     parser.add_argument("-f", "--fetch", help="Download Microsoft .pdbs (slow)", action="store_true")
     parser.add_argument("-n", "--new", help="Process new reports only (not yet unzipped)", action="store_true")
+    parser.add_argument("-l", "--last", help="Process only at most the last N reports", type=int)
     parser.add_argument("-v", "--verbose", help="Verbose output: show stderr output of invoked programs", action="store_true")
-    parser.add_argument("-d", "--stack_detail", help="Show details of stack contents in stacktraces, including function pointers. "
+    parser.add_argument("--no-stacktrace", help="Don't produce stacktraces. No external tools needed.", action="store_true")
+    parser.add_argument("-d", "--stack-detail", help="Show details of stack contents in stacktraces, including function pointers. "
                         "Might help to decipher corrupt stacks or when the crash is in a Windows system dll. "
                         "(Source code will not be intermingled and stacktrace summaries won't be produced.)", action="store_true")
     args = parser.parse_args()
