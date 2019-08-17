@@ -102,11 +102,11 @@ def argList():              return "(", CHECKPNT, [")", (argumentDecl, STAR, (",
 def functionDecorators():   return QUES, ["cdecl", "overload", "pascal", "stdcall", ("alias", identifier)]
 
 # starttest/endtest are special cases for the macros defined in testing.bi
-def functionStart():        return QUES, "private", [(["function", "property", "operator"], CHECKPNT, dottedIdentifier, functionDecorators, QUES, argList, "as", typename),
+def functionStart():        return QUES, ["private", "local", "static"], [(["function", "property", "operator"], CHECKPNT, dottedIdentifier, functionDecorators, QUES, argList, "as", typename),
                                                      ("starttest", CHECKPNT, "(", dottedIdentifier, ")")]
 def functionEnd():          return [("end", ["function", "property", "operator"]), "endtest"]
 
-def subStart():             return QUES, "private", ["sub", "constructor", "destructor"], CHECKPNT, dottedIdentifier, functionDecorators, QUES, argList
+def subStart():             return QUES, ["private", "local", "static"], ["sub", "constructor", "destructor"], CHECKPNT, dottedIdentifier, functionDecorators, QUES, argList
 def subEnd():               return "end", ["sub", "constructor", "destructor"]
 
 def readNode():             return "readnode", CHECKPNT, [(nodeSpec, "as", identifier), identifier], STAR, (",", re.compile("default|ignoreall"))
@@ -125,7 +125,7 @@ def directive():            return "#", re.compile("warn_func|error_func"), CHEC
 # Grammar for any line of RB source. Matches empty lines too (including those with comments)
 # The AND element requires the regex to match before most patterns are checked.
 # Ignore DIM lines which definitely don't declare Node ptrs
-def lineGrammar():          return [(AND(re.compile('(end\s+)?(dim.*node|readnode|withnode|loadarray|private|sub|function|constructor|destructor|property|operator|starttest|endtest|#)', re.I)),
+def lineGrammar():          return [(AND(re.compile('(end\s+)?(dim.*node|readnode|withnode|loadarray|private|local|static|sub|function|constructor|destructor|property|operator|starttest|endtest|#)', re.I)),
                                      [dimStatement, readNode, readNodeEnd, withNode, withNodeEnd,
                                       functionStart, functionEnd, subStart, subEnd, loadArray, directive]),
                                     tokenList]

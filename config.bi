@@ -129,6 +129,16 @@ CONST NO = 0
 #DEFINE NULL 0
 #ENDIF
 
+'Marking a function PRIVATE indicates that the function is internal and
+'shouldn't/ can't be called from outside the file. But it also tells the
+'compiler not to export that symbol, so that on GNU/Linux backtrace_symbols()
+'won't know it, and can also result in .pdb debug symbols not being produced
+'when using cv2pdb.  It also encourages the compiler to inline the function.  So
+'use LOCAL instead of PRIVATE to indicate the same thing (as documentation only)
+'without debug symbol problems.
+#UNDEF LOCAL  'LOCAL is a FB keyword used only in ON LOCAL ERROR GOTO
+#DEFINE LOCAL
+
 
 '================================= 32/64 bit differences ==================================
 
