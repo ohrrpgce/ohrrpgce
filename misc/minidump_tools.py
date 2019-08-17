@@ -361,7 +361,10 @@ def _parse_stackwalk_output(sw_out, sw_err, git_dir, gitrev):
                 if framenum < 10 and git_dir:
                     bt += get_source_around_line(git_dir, gitrev, filename, int(linenum), 1)
             elif function:
-                tmp = '(%s)' % (filename,) if filename else ''
+                if filename or module:
+                    tmp = '(%s)' % (filename or module,)
+                else:
+                    tmp = ''
                 bt.append('@ %s + %s %s' % (function, offset, tmp) )
                 shortbt.append('%s%s' % (function, tmp) )
             elif filename:
@@ -375,15 +378,40 @@ def _parse_stackwalk_output(sw_out, sw_err, git_dir, gitrev):
     return info, bt, shortbt, missing_pdbs, wanted_modules
 
 def _crash_summary(shortbt):
+    "Form the stack summary: just the top few relevant stack frames"
     shortbt = shortbt.copy()
-    # Form the summary: just the top three stack frames
+    deleted_frames = ''
+
+    # Trim frames due to calling crashrpt_send_report() (OK, this bit is OHRRPGCE-specific)
+    for idx, fr in reversed(list(enumerate(shortbt))):
+        if 'crashrpt_send_report' in fr or 'showbug' in fr or 'fatalbug' in fr:
+            del shortbt[:idx+1]
+            deleted_frames = '...' + fr.split('(')[0]
+            break
+
     if any(fr[0] != '[' for fr in shortbt):
-        # If we have some frames with proper line info but the top frames are
-        # inside libraries with no info, skip over them except the first one called
-        deleted_frames = False
-        while shortbt[0][0] == '[' and shortbt[1][0] == '[':
+    #if any(':' not in fr for fr in shortbt):
+        # If we have some frames with function names but the top frames don't,
+        # skip over them except the first one
+        while shortbt[0][0] == '[':  # and shortbt[1][0] == '[':
+            if not deleted_frames:
+                deleted_frames = shortbt[0] + ' ...nosyms'
             del shortbt[0]
-            deleted_frames = True
-        if deleted_frames:
-            shortbt[0] = '... <- ' + shortbt[0]
-    return ' <- '.join(shortbt[:3])
+
+    # Remove filenames + line numbers or module names behind function names,
+    # or addresses inside modules, for all but top frame to shorten the summary
+    for idx, fr in enumerate(shortbt):
+        if idx > 0:
+            fr = fr.split('(')[0]
+            if '+0x' in fr:  # [MODULE+0xADDRESS]
+                fr = fr.split('+0x')[0] + ']'
+            shortbt[idx] = fr
+
+    # Join with ' <- ' until too long
+    ret = deleted_frames
+    for fr in shortbt[:7]:
+        if ret:
+            ret += ' <- '
+        ret += fr
+        if len(ret) > 100: break
+    return ret
