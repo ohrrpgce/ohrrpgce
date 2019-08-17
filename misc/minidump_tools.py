@@ -13,6 +13,7 @@ This module is not specific to the OHRRPGCE, except for the tool paths
 
 import os
 from os.path import join as pathjoin
+import ntpath
 import sys
 import platform
 import subprocess
@@ -175,7 +176,7 @@ def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, from_git_rev = Non
     # We don't know where to put the .sym file yet, because we need to produce
     # it and read it to get the id, so write it at $indicator_symfile for now
 
-    print('Converting to .sym...         ', file=sys.stderr, end='\r')
+    print('Converting to .sym...                  ', file=sys.stderr, end='\r')
     cmd = [SUPPORT_DIR + 'dump_syms.exe', pdb_checkedout]
     if not HOST_WIN32:
         cmd = ['wine'] + cmd
@@ -242,7 +243,7 @@ def get_source_around_line(git_dir, gitrev, filename, lineno, context = 1):
         ret.append(cursor + '%4d ' % lineidx + lines[lineidx])
     return ret
 
-def analyse_minidump(minidump, breakpad_cache_dir, git_dir = None, gitrev = None, verbose = False, stack_detail = False):
+def analyse_minidump(minidump, breakpad_cache_dir, git_dir = None, gitrev = None, verbose = False, stack_detail = False, ignore_pdbs = []):
     """
     Analyse a minidump file using Breakpad.
     This automatically downloads Microsoft .pdb files, but you will first want to
@@ -259,52 +260,76 @@ def analyse_minidump(minidump, breakpad_cache_dir, git_dir = None, gitrev = None
     gitrev:             git hash of the commit
     stack_detail:       if true return all the output from minidump_stackwalk
                         including stack contents, but no crash_summary or info.
+    ignore_pdbs:        list of pdb filenames not to try to download, because
+                        they aren't Microsoft modules (this simply saves time)
     """
     print('Reading minidump...          ', file=sys.stderr, end='\r')
     stackwalk_args = [STACKWALK, '-m', minidump, breakpad_cache_dir]
-    stderr = sys.stderr if verbose else subprocess.DEVNULL
-    output = subprocess.check_output(stackwalk_args, stderr=stderr).decode('latin-1')
+    # Capture stderr to find out which pdbs are missing
+    proc = subprocess.run(stackwalk_args, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    sw_out = proc.stdout.decode('latin-1')
+    sw_err = proc.stderr.decode('latin-1')
 
-    info, bt, shortbt, missing_modules = _parse_stackwalk_output(output, git_dir, gitrev)
-    #print(missing_modules)
+    stderr = subprocess.DEVNULL
+    if verbose >= 2:
+        print(sw_err, file=sys.stderr)
+        stderr = sys.stderr
+
+    info, bt, shortbt, missing_pdbs, wanted_modules = _parse_stackwalk_output(sw_out, sw_err, git_dir, gitrev)
+    if verbose:
+        print("missing_pdbs:", missing_pdbs)
+        print("wanted_modules:", wanted_modules)
+    missing_pdbs.difference_update(ignore_pdbs)
 
     # First, try to download any needed pdb files from the Windows symbols server.
     # Downloading is slow, so only download .pdbs for modules actually in the stack trace.
     newsyms = False
-    for line in output.split('\n'):
+    for line in sw_out.split('\n'):
         if line.startswith('Module'):
             _, module, version, pdb_name, pdb_id, memstart, memend, ismain = line.split('|')
             # pdb_id is 33 chars long, the GUID with a one-char age suffix.
-            if module in missing_modules and pdb_name and pdb_id:
+            if module in wanted_modules and pdb_name in missing_pdbs and pdb_id:
                 pdb_path = download_windows_symbols(pdb_name, pdb_id, breakpad_cache_dir, verbose)
                 if pdb_path:
                     if produce_breakpad_symbols_windows(pdb_path, breakpad_cache_dir, verbose=verbose):
                         newsyms = True
 
+    if newsyms:
+        # Should get better stacktraces this time
+        sw_out = subprocess.check_output(stackwalk_args, stderr=stderr).decode('latin-1')
+        info, bt, shortbt, _, _ = _parse_stackwalk_output(sw_out, '', git_dir, gitrev)
+
     if stack_detail:
         # Replace -m (machine-readable) with -s, for human-readable output with stack contents
         stackwalk_args[1] = '-s'
-        output = subprocess.check_output(stackwalk_args, stderr=stderr).decode('latin-1')
-        return [output], '', ''  # Can't produce summary
-
-    if newsyms:
-        # Should get better stacktraces this time
-        output = subprocess.check_output(stackwalk_args, stderr=stderr).decode('latin-1')
-        info, bt, shortbt, missing_modules = _parse_stackwalk_output(output, git_dir, gitrev)
-
-    if verbose:
-        print(output, file=sys.stderr)
+        sw_out = subprocess.check_output(stackwalk_args, stderr=stderr).decode('latin-1')
+        bt = [sw_out]
+    elif verbose:
+        print(sw_out, file=sys.stderr)
 
     return bt, _crash_summary(shortbt), info
 
-def _parse_stackwalk_output(output, git_dir, gitrev):
+def _parse_stackwalk_output(sw_out, sw_err, git_dir, gitrev):
+    """Parse the stdout and stderr of minidump_stackwalk"""
     info = []
     bt = []
     shortbt = []
-    missing_modules = set()   # .exe/.dll/etc files for which the .sym file appears to be missing
-    crash_thread_prefix = '%DUMMY'
+    # .pdb files for which the .sym file wasn't loaded.
+    missing_pdbs = set()
+    # .exe/.dll/etc files which appear to be missing. Not a subset of missing_pdbs.
+    wanted_modules = set()
 
-    for line in output.split('\n'):
+    for line in sw_err.split('\n'):
+        if "Couldn't load symbols for: " in line:
+            # Printed to stderr. Each line ends in e.g.
+            # "Couldn't load symbols for: dsound.pdb|F38F478065E247C68EDA699606F56EED2"
+            pdb = line[line.rfind(':') + 2:].split('|')[0]
+            pdb = ntpath.basename(pdb)
+            if len(pdb):  # Don't know why that happens
+                missing_pdbs.add(pdb)
+
+    crash_thread_prefix = '%DUMMY'
+    for line in sw_out.split('\n'):
         if line.startswith('CPU'):
             _, arch, description, cpus = line.split('|')
             info.append( ('CPU', '%s %s, %s cores' % (arch, description, cpus)) )
@@ -320,11 +345,12 @@ def _parse_stackwalk_output(output, git_dir, gitrev):
             # One stack in the stacktrace for the signalling thread
             thread, framenum, module, function, filename, linenum, offset = line.split('|')
             framenum = int(framenum)
-            if not function and framenum <= 6:
-                # Strictly, the function name may be missing even if the .sym is present because
-                # the stack is corrupt.
-                # Only try to download symbols for top frames, because it's horribly slow.
-                missing_modules.add(module)
+            if not function and module and framenum <= 6:
+                # The function name may be missing even if the .sym is present,
+                # e.g. for a static function, but we will match against
+                # missing_pdbs to filter out false-positives.  Only try to
+                # download symbols for top frames, because it's horribly slow.
+                wanted_modules.add(module)
             function = demangle_name(function)
             if framenum == 20:
                 bt.append('[Truncated further frames]')
@@ -346,7 +372,7 @@ def _parse_stackwalk_output(output, git_dir, gitrev):
                 bt.append('@ [%s + %s]' % (module, offset) )
                 shortbt.append('[%s+%s]' % (module, offset) )
 
-    return info, bt, shortbt, missing_modules
+    return info, bt, shortbt, missing_pdbs, wanted_modules
 
 def _crash_summary(shortbt):
     shortbt = shortbt.copy()

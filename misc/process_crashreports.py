@@ -183,12 +183,14 @@ def process_minidump(build, reportdir, is_custom, args):
     else:
         gitrev = None
 
+    ignore_pdbs = ['CrashRpt1403.pdb', 'game.pdb', 'custom.pdb']  # SDL.dll doesn't even have a .pdb
+
     pdbname = 'custom' if is_custom else 'game'
     pdb = pathjoin(pdb_dir, pdbname + '.pdb')
     minidump_tools.produce_breakpad_symbols_windows(pdb, breakpad_root, verbose=args.verbose)
 
     minidump = pathjoin(reportdir, 'crashdump.dmp')
-    stacktrace, crash_summary, info = minidump_tools.analyse_minidump(minidump, breakpad_root, GIT_DIR, gitrev, args.verbose, args.stack_detail)
+    stacktrace, crash_summary, info = minidump_tools.analyse_minidump(minidump, breakpad_root, GIT_DIR, gitrev, args.verbose, args.stack_detail, ignore_pdbs)
     for name, value in info:
         print_attr(name, value)
     return stacktrace, crash_summary
