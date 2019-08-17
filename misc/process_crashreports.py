@@ -215,8 +215,10 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
     root = tree.getroot()
 
     real_uuid = root.find('CrashGUID').text
-    if real_uuid != uuid and uuid != '???':
-        print('Warning! UUID ' + real_uuid + ' found in report ' + reportdir)
+    if real_uuid != uuid:
+        if uuid != '???':
+            print('Warning! UUID ' + real_uuid + ' found in report ' + reportdir)
+        report_summary = (real_uuid[:6], upload_date)
 
     print('\n\n\n######### Report ' + real_uuid + ' #########')
     print_attr('Upload time', time.strftime('%Y-%m-%d %H:%M:%S UTC', upload_time))
@@ -377,6 +379,9 @@ def process_crashrpt_reports_directory(reports_dir, args):
         report_summaries.append(process_crashrpt_report(reportdir, uuid, upload_time, args))
 
     # Then print summaries
+    print_summary_table(report_summaries)
+
+def print_summary_table(report_summaries):
     print('\n\n\n######### Summary #########')
     print('%-6s  %-8s  %-27s  %s' % ('UUID', 'Uploaded', 'Version', 'Top stack frames'))
     for items in report_summaries:
@@ -400,6 +405,7 @@ if __name__ == '__main__':
     xmlfile = pathjoin(args.report_dir, 'crashrpt.xml')
     if os.path.isfile(xmlfile):
         upload_time = time.gmtime(os.stat(xmlfile).st_mtime)
-        process_crashrpt_report(args.report_dir, "???", upload_time, args)
+        summary = process_crashrpt_report(args.report_dir, "???", upload_time, args)
+        print_summary_table([summary])
     else:
         process_crashrpt_reports_directory(args.report_dir, args)
