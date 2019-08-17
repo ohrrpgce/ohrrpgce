@@ -58,75 +58,143 @@ def demangle_name(name):
 
     return cleaned
 
-def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, tag = '', verbose = False):
-    """Produce a Breakpad .sym file from a .pdb or non-stripped .exe file, if it
-    doesn't already exist, and store it organised in a file hierarchy like
-    $breakpad_cache_dir/custom.pdb/A3CE56E9574946E7889C371E95F63D331/custom.sym
-    which is how minidump_stackwalk wants its .sym files.
+def copy_file_from_git(git_dir, gitrev, path, outpath):
+    """Copy a file from a git repo at a specific revision, and write it to `outpath`"""
+    print('Copying ' + path + ' from git...    ', file=sys.stderr, end='\r')
+    with open(outpath, "wb") as fil:
+        subprocess.check_call(['git', '-C', git_dir, 'show', gitrev + ':' + path], stdout=fil)
 
+def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, from_git_rev = None, git_dir = None, verbose = False):
+    """Produce a Breakpad .sym file from a .pdb or non-stripped .exe file, if it
+    doesn't already exist, and store it in a "symbol store" hierarchy like
+    $breakpad_cache_dir/custom.pdb/A3CE56E9574946E7889C371E95F63D331/custom.sym
+    which is how minidump_stackwalk wants its .sym files (symbol stores/servers
+    are used by Microsoft debug tools and numerous others including BreakPad).
+
+    Indicator files:
     Also, a second .sym 'indicator' file is created to indicate that the .sym
     already exists: it's either a symlink to the real .sym file on Unix, or an
-    text file on with the same on Windows.  If `tag` is empty, this second file
-    is created next to the .pdb/.exe file, otherwise it's created in
-    `breakpad_cache_dir` with `tag` added to its name.  `tag` is useful for
-    producing .sym files for .pdb files checked into git: the tag can be the git
-    commit hash of the particular version of the .pdb we're processing.
+    text file on with the same on Windows (because symlinks are Vista+ NTFS
+    only).  If `from_git_rev` is empty, this indicator file is created next to
+    the .pdb/.exe file, otherwise it's created at the root of
+    `breakpad_cache_dir` with `from_git_rev` added to its name.
+    (Indicator files are an optimisation, ideally we should extract the GUID/age
+    from the pdb and search for that in the cache, but it would require yet
+    another wine invoke.)
+    The indicator file isn't created if the pdb is already in the symbol store.
 
-    pdb:    path to .pdb or non-stripped .exe file.
+    The .pdb is also copied into the symbol store, so that it can be found
+    by other tools like the Visual Studio debugger.
+
+    Returns True if created a .sym file, False if didn't (probably already
+    existed).
+
+    pdb:     path to .pdb or non-stripped .exe file.
+             Might be either inside the symbol store, or elsewhere.
     breakpad_cache_dir:
-            root of tree of Breakpad .sym files
-    tag:    a version string, in case the path `pdb is not uniquely identifying
+             root of "symbol store" tree of Breakpad .sym files
+             (doesn't need to exist yet.)
+    from_git_rev:
+             use a pdb file checked into a git repo, at this git commit
+             ('pdb' is a path inside a git working tree, but we pull the file
+             from git instead of using the currently checked-out copy)
+    git_dir: only used if from_git_rev given. pdb must be under this directory.
 
     Note (verbose=True only): you'll see a message "Couldn't locate EXE or DLL
     file." if the original exe/dll isn't next to the .pdb, but this doesn't
     matter, the only effect is that a line like "INFO CODE_ID 5B8FB86D53000
     gfx_directx.dll" will be missing from the .sym file, which is not used for
     anything.
+    However, if we built 64-bit binaries then having the .exe/.dll next to would
+    be mandatory, because stack-unwinding metadata isn't in the .pdb.
+    (Alternatively, we could fork dump_syms and add an arg to add a call to
+    PDBSourceLineWriter::SetCodeFile().)
+
     """
+
+    os.makedirs(breakpad_cache_dir, exist_ok = True)
 
     pdb_dir, pdb_fullname = os.path.split(pdb)
     pdb_basename = os.path.splitext(pdb_fullname)[0]
-    if tag:
-        os.makedirs(breakpad_cache_dir, exist_ok = True)
-        indicator_symfile = pathjoin(breakpad_cache_dir, pdb_basename + tag + '.sym')
+    if from_git_rev:
+        indicator_symfile = pathjoin(breakpad_cache_dir, pdb_basename + '-' + from_git_rev + '.sym')
     else:
         # Put the indicator file next to `pdb`
         indicator_symfile = os.path.splitext(pdb)[0] + '.sym'
-    if os.path.isfile(indicator_symfile) or os.path.islink(indicator_symfile):
+
+    if os.path.exists(indicator_symfile):  # (false for broken symlinks)
         # Already done. If this local file exists, then the one in
         # breakpad_cache_dir should too.
         if verbose:
-            print("Already generated", cache_symfile, file=sys.stderr)
-        return
+            print("Already generated", pdb_basename + '.sym', file=sys.stderr)
+        return False
+    if os.path.islink(indicator_symfile):
+        # Broken symlink
+        os.remove(indicator_symfile)
 
-    print('Converting to .sym...      ', file=sys.stderr, end='\r')
-    cmd = [SUPPORT_DIR + 'dump_syms.exe', pdb]
+    if from_git_rev:
+        # We can't use just `pdb`, which might be the wrong version, get it from git
+        pdb_checkedout = pathjoin(breakpad_cache_dir, '_' + pdb_fullname)  # temp filename
+        copy_file_from_git(git_dir, from_git_rev, os.path.relpath(pdb, git_dir), pdb_checkedout)
+    else:
+        pdb_checkedout = pdb
+
+    # We don't know where to put the .sym file yet, because we need to produce
+    # it and read it to get the id, so write it at $indicator_symfile for now
+
+    print('Converting to .sym...         ', file=sys.stderr, end='\r')
+    cmd = [SUPPORT_DIR + 'dump_syms.exe', pdb_checkedout]
     if not HOST_WIN32:
         cmd = ['wine'] + cmd
-    with open(indicator_symfile, 'w') as fil:
-        stderr = sys.stderr if verbose else subprocess.DEVNULL
-        subprocess.check_call(cmd, stdout=fil, stderr=stderr)
+    try:
+        with open(indicator_symfile, 'w') as fil:
+            stderr = sys.stderr if verbose else subprocess.DEVNULL
+            subprocess.check_call(cmd, stdout=fil, stderr=stderr)
+    except:
+        if os.path.isfile(indicator_symfile):
+            os.unlink(indicator_symfile)
+        raise
     # Wipe previous line
     #print(' ' * 79, end='\r')
 
-    # We have to get the pdb hash out of the .sym file
+    # Get pdb id (GUID+age) out of the .sym file
     with open(indicator_symfile, 'r') as fil:
-        pdb_hash = fil.readline().split(' ')[3]
+        pdb_id = fil.readline().split(' ')[3]
 
-    # Move the file to the cache dir
-    symdir = pathjoin(breakpad_cache_dir, pdb_fullname, pdb_hash)
-    os.makedirs(symdir, exist_ok = True)
+    # Move the .pdb and .sym file into the symbol store unless they're already
+    # there because `pdb` is there.
+    symdir = pathjoin(breakpad_cache_dir, pdb_fullname, pdb_id)
     cache_symfile = pathjoin(symdir, pdb_basename + '.sym')
-    os.rename(indicator_symfile, cache_symfile)
+    #if os.path.realpath(indicator_symfile) != os.path.realpath(cache_symfile):
+    if os.path.realpath(pdb_dir) != os.path.realpath(symdir):
+        os.makedirs(symdir, exist_ok = True)
 
-    if HOST_WIN32:
-        # Avoid use of symlinks
-        with open(indicator_symfile, 'w') as fil:
-            fil.write(cache_symfile)
-    else:
-        os.symlink(os.path.relpath(cache_symfile, os.path.dirname(indicator_symfile)), indicator_symfile)
+        # Move .sym
+        os.rename(indicator_symfile, cache_symfile)
+
+        # Copy/move/symlink .pdb
+        symdir_pdb_path = pathjoin(symdir, pdb_fullname)
+        if from_git_rev:
+            os.rename(pdb_checkedout, symdir_pdb_path)
+            if verbose:
+                print("Moving", pdb_checkedout, "to", symdir_pdb_path, file=sys.stderr)
+        else:
+            if HOST_WIN32: # Avoid symlink
+                shutil.copy2(pdb, symdir_pdb_path)
+            else:
+                os.symlink(os.path.relpath(pdb, symdir), symdir_pdb_path)
+
+        # Add indicator file (elsewhere)
+        if HOST_WIN32:
+            # Avoid use of symlinks
+            with open(indicator_symfile, 'w') as fil:
+                fil.write(cache_symfile)
+        else:
+            os.symlink(os.path.relpath(cache_symfile, os.path.dirname(indicator_symfile)), indicator_symfile)
+
     if verbose:
         print("Generated", cache_symfile, file=sys.stderr)
+    return True
 
 @functools.lru_cache(maxsize = None)
 def get_source_around_line(git_dir, gitrev, filename, lineno, context = 1):

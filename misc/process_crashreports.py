@@ -174,10 +174,12 @@ def process_minidump(build, reportdir, is_custom, args):
         gitrev = svn_to_git_rev(svnrev)
         print_attr('Git commit', gitrev[:9])
 
-        # Make sure we've produced .sym files for the .pdb files checked into git
-        # rather then in the symbols .7z archive
+        # Make sure we've produced the .sym files for any .pdb files checked into
+        # git rather than included in the symbols .7z archive.
+        # (SDL.pdb, SDL2.pdb are missing, not provided by SDL, would need to
+        # rebuild them ourselves)
         for pdb in ('win32/gfx_directx.pdb', 'win32/SDL_mixer.pdb', 'win32/SDL2_mixer.pdb'):
-            minidump_tools.produce_breakpad_symbols_windows(pdb, breakpad_root, '-' + file_lastchange_git_rev(GIT_DIR, pdb, gitrev))
+            minidump_tools.produce_breakpad_symbols_windows(pathjoin(GIT_DIR, pdb), breakpad_root, file_lastchange_git_rev(GIT_DIR, pdb, gitrev), GIT_DIR, verbose=args.verbose)
     else:
         gitrev = None
 
