@@ -183,10 +183,12 @@ def process_minidump(build, reportdir, is_custom, args):
     else:
         gitrev = None
 
-    minidump = pathjoin(reportdir, 'crashdump.dmp')
     pdbname = 'custom' if is_custom else 'game'
     pdb = pathjoin(pdb_dir, pdbname + '.pdb')
-    stacktrace, crash_summary, info = minidump_tools.analyse_minidump(minidump, pdb, breakpad_root, GIT_DIR, gitrev, args.verbose, args.stack_detail)
+    minidump_tools.produce_breakpad_symbols_windows(pdb, breakpad_root, verbose=args.verbose)
+
+    minidump = pathjoin(reportdir, 'crashdump.dmp')
+    stacktrace, crash_summary, info = minidump_tools.analyse_minidump(minidump, breakpad_root, GIT_DIR, gitrev, args.verbose, args.stack_detail)
     for name, value in info:
         print_attr(name, value)
     return stacktrace, crash_summary
@@ -393,7 +395,7 @@ if __name__ == '__main__':
 
     SYMS_CACHE_DIR = args.syms_cache_dir  # Global
 
-    xmlfile = os.path.join(args.report_dir, 'crashrpt.xml')
+    xmlfile = pathjoin(args.report_dir, 'crashrpt.xml')
     if os.path.isfile(xmlfile):
         upload_time = time.gmtime(os.stat(xmlfile).st_mtime)
         process_crashrpt_report(args.report_dir, "???", upload_time, args)

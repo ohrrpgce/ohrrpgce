@@ -1,8 +1,10 @@
 #!/bin/env python3
 """
-Routines, using Breakpad to:
+Routines, using Breakpad and other utilities to:
 -generate a Breakpad .sym file from a .pdb file using dump_syms.exe
  (requires Windows or Wine)
+-populate/generate/download a "symbol store" hierarchy of .pdb, executable (.exe,
+ .dll, etc), and .sym files, which can be used by Breakpad or Microsoft debuggers
 -generate a backtrace and other useful info from a minidump and a .sym file
  using minidump_stackwalk.
 
@@ -57,6 +59,37 @@ def demangle_name(name):
             cleaned = cleaned[:param_start]
 
     return cleaned
+
+def download_windows_symbols(pdb_name, pdb_id, breakpad_cache_dir, verbose = False):
+    """Download a .pdb file for a Microsoft module (.dll, .drv). Slow!
+    Returns the path to the .pdb or None."""
+    pdb_path = pathjoin(breakpad_cache_dir, pdb_name, pdb_id, pdb_name)
+    if os.path.isfile(pdb_path) or os.path.islink(pdb_path):
+        # (We might have created a symlink to the pdb in produce_breakpad_symbols_windows())
+        if verbose:
+            print("Already downloaded", pdb_id + '/' + pdb_name, file=sys.stderr)
+        return pdb_path
+
+    print('Downloading ' + pdb_name + ' (slow!)...       ', file=sys.stderr, end='\r')
+
+    env = {'_NT_SYMBOL_PATH': 'srv*' + breakpad_cache_dir + '*http://msdl.microsoft.com/download/symbols'}
+    # Split id into GUID and age
+    cmd = [SUPPORT_DIR + 'RetrieveSymbols.exe', pdb_id[:32], pdb_id[32:], pdb_name]
+    # Also possible to use MS's symchk instead of RetrieveSymbols.exe
+    # cmd = [SUPPORT_DIR + 'symchk.exe', '/id', minidump,
+    #        '/s', 'srv*' + breakpad_cache_dir + '*http://msdl.microsoft.com/download/symbols',
+    #        '/od', '/ov', '/ob', '/v' if verbose else '/q', '/fm', pdb_name.replace('pdb', 'dll')]
+    if not HOST_WIN32:
+        env['WINEDLLOVERRIDES'] = 'dbghelp,dbgeng=n'  # Use our copy of dbghelp, not wine's stub one
+        env['WINEDEBUG'] = '-all'
+        cmd = ['wine'] + cmd
+    stderr = sys.stderr if verbose else subprocess.DEVNULL
+    try:
+        subprocess.check_call(cmd, stdout=stderr, stderr=stderr, env=env)
+    except subprocess.CalledProcessError:
+        # Couldn't fetch the dll.
+        return None
+    return pdb_path
 
 def copy_file_from_git(git_dir, gitrev, path, outpath):
     """Copy a file from a git repo at a specific revision, and write it to `outpath`"""
@@ -209,41 +242,67 @@ def get_source_around_line(git_dir, gitrev, filename, lineno, context = 1):
         ret.append(cursor + '%4d ' % lineidx + lines[lineidx])
     return ret
 
-def analyse_minidump(minidump, pdb, breakpad_cache_dir, git_dir = None, gitrev = None, verbose = False, stack_detail = False):
+def analyse_minidump(minidump, breakpad_cache_dir, git_dir = None, gitrev = None, verbose = False, stack_detail = False):
     """
     Analyse a minidump file using Breakpad.
+    This automatically downloads Microsoft .pdb files, but you will first want to
+    call produce_breakpad_symbols_windows() with additional application-specific
+    .pdb files, to add them to the cache/symbol store.
     Returns a triple (stacktrace, crash_summary, info) where:
     stacktrace:  a string containing a stacktrace of the signalling thread
     crash_summary:  a one-line string summary of the stacktrace
     info:        a list of (key,value) pairs with some additional interesting info
 
     minidump:           path to a minidump .dmp file
-    pdb:                path to .pdb file
     breakpad_cache_dir: where Breakpad .sym files should be cached
     git_dir:            path to git repo containing the source code
     gitrev:             git hash of the commit
     stack_detail:       if true return all the output from minidump_stackwalk
                         including stack contents, but no crash_summary or info.
     """
-    produce_breakpad_symbols_windows(pdb, breakpad_cache_dir)
-
     print('Reading minidump...          ', file=sys.stderr, end='\r')
     stackwalk_args = [STACKWALK, '-m', minidump, breakpad_cache_dir]
-    if stack_detail:
-        # Instead of -m for machine-readable, produce human-readable output including stack contents
-        stackwalk_args[1] = '-s'
     stderr = sys.stderr if verbose else subprocess.DEVNULL
     output = subprocess.check_output(stackwalk_args, stderr=stderr).decode('latin-1')
+
+    info, bt, shortbt, missing_modules = _parse_stackwalk_output(output, git_dir, gitrev)
+    #print(missing_modules)
+
+    # First, try to download any needed pdb files from the Windows symbols server.
+    # Downloading is slow, so only download .pdbs for modules actually in the stack trace.
+    newsyms = False
+    for line in output.split('\n'):
+        if line.startswith('Module'):
+            _, module, version, pdb_name, pdb_id, memstart, memend, ismain = line.split('|')
+            # pdb_id is 33 chars long, the GUID with a one-char age suffix.
+            if module in missing_modules and pdb_name and pdb_id:
+                pdb_path = download_windows_symbols(pdb_name, pdb_id, breakpad_cache_dir, verbose)
+                if pdb_path:
+                    if produce_breakpad_symbols_windows(pdb_path, breakpad_cache_dir, verbose=verbose):
+                        newsyms = True
+
     if stack_detail:
+        # Replace -m (machine-readable) with -s, for human-readable output with stack contents
+        stackwalk_args[1] = '-s'
+        output = subprocess.check_output(stackwalk_args, stderr=stderr).decode('latin-1')
         return [output], '', ''  # Can't produce summary
 
-    info = []
-    bt = []
-    shortbt = []
-    crash_thread_prefix = '%DUMMY'
+    if newsyms:
+        # Should get better stacktraces this time
+        output = subprocess.check_output(stackwalk_args, stderr=stderr).decode('latin-1')
+        info, bt, shortbt, missing_modules = _parse_stackwalk_output(output, git_dir, gitrev)
 
     if verbose:
         print(output, file=sys.stderr)
+
+    return bt, _crash_summary(shortbt), info
+
+def _parse_stackwalk_output(output, git_dir, gitrev):
+    info = []
+    bt = []
+    shortbt = []
+    missing_modules = set()   # .exe/.dll/etc files for which the .sym file appears to be missing
+    crash_thread_prefix = '%DUMMY'
 
     for line in output.split('\n'):
         if line.startswith('CPU'):
@@ -260,14 +319,20 @@ def analyse_minidump(minidump, pdb, breakpad_cache_dir, git_dir = None, gitrev =
         elif line.startswith(crash_thread_prefix):
             # One stack in the stacktrace for the signalling thread
             thread, framenum, module, function, filename, linenum, offset = line.split('|')
+            framenum = int(framenum)
+            if not function and framenum <= 6:
+                # Strictly, the function name may be missing even if the .sym is present because
+                # the stack is corrupt.
+                # Only try to download symbols for top frames, because it's horribly slow.
+                missing_modules.add(module)
             function = demangle_name(function)
-            if int(framenum) == 20:
+            if framenum == 20:
                 bt.append('[Truncated further frames]')
                 break
             if linenum:
                 bt.append('@ %-20s \t(%s:%s + %s)' % (function, filename, linenum, offset) )
                 shortbt.append('%s(%s:%s)' % (function, filename, linenum) )
-                if int(framenum) < 10 and git_dir:
+                if framenum < 10 and git_dir:
                     bt += get_source_around_line(git_dir, gitrev, filename, int(linenum), 1)
             elif function:
                 tmp = '(%s)' % (filename,) if filename else ''
@@ -281,6 +346,10 @@ def analyse_minidump(minidump, pdb, breakpad_cache_dir, git_dir = None, gitrev =
                 bt.append('@ [%s + %s]' % (module, offset) )
                 shortbt.append('[%s+%s]' % (module, offset) )
 
+    return info, bt, shortbt, missing_modules
+
+def _crash_summary(shortbt):
+    shortbt = shortbt.copy()
     # Form the summary: just the top three stack frames
     if any(fr[0] != '[' for fr in shortbt):
         # If we have some frames with proper line info but the top frames are
@@ -291,6 +360,4 @@ def analyse_minidump(minidump, pdb, breakpad_cache_dir, git_dir = None, gitrev =
             deleted_frames = True
         if deleted_frames:
             shortbt[0] = '... <- ' + shortbt[0]
-    crash_summary = ' <- '.join(shortbt[:3])
-
-    return bt, crash_summary, info
+    return ' <- '.join(shortbt[:3])
