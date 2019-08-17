@@ -49,7 +49,7 @@ sub GraphSlice.Initialize(sl as Slice ptr)
  field_sl->Protect = YES
 end sub
 
-private sub set_min_and_max(byref minv as double, byref maxv as double, vals() as double, defaultmax as double)
+local sub set_min_and_max(byref minv as double, byref maxv as double, vals() as double, defaultmax as double)
  minv = 1e99
  maxv = -1e99
  for i as integer = 0 to ubound(vals)
@@ -88,7 +88,7 @@ function GraphSlice.point_to_screen(pointx as double, pointy as double) as XYPai
  return origin() + XY((pointx - minx) * xscale, -(pointy - miny) * yscale)
 end function
 
-private sub draw_label(label as string, pos as XYPair, col as integer, highlightcol as integer = -1, page as integer)
+local sub draw_label(label as string, pos as XYPair, col as integer, highlightcol as integer = -1, page as integer)
  if highlightcol > -1 then
   'Unfortunately, just drawing a normal background behind the text doesn't provide any margin.
   'Maybe should add another setting to render_text or Font to tweak that

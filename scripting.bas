@@ -123,7 +123,7 @@ SUB trigger_script_arg (byval argno as integer, byval value as integer, byval ar
  END WITH
 END SUB
 
-PRIVATE SUB run_queued_script (script as ScriptFibre)
+LOCAL SUB run_queued_script (script as ScriptFibre)
  DIM rsr as integer
  rsr = runscript(script.id, YES, script.double_trigger_check, script.scripttype)
  IF rsr = 1 THEN
@@ -571,7 +571,7 @@ RETURN 1 '--success
 END FUNCTION
 
 'Returns an open file handle to an hsz lump, or 0 if not found (which isn't a valid handle).
-PRIVATE FUNCTION loadscript_open_script (n as integer, expect_exists as bool = YES) as integer
+LOCAL FUNCTION loadscript_open_script (n as integer, expect_exists as bool = YES) as integer
  DIM scriptfile as string = tmpdir & n & ".hsz"
  IF NOT isfile(scriptfile) THEN
   scriptfile = tmpdir & n & ".hsx"
@@ -632,7 +632,7 @@ END FUNCTION
 
 'Load a script header from a hsz into a new ScriptData. id is the script id.
 'Returns true on success
-PRIVATE FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptData ptr
+LOCAL FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptData ptr
  DIM shortvar as short
 
  DIM ret as ScriptData ptr = NEW ScriptData
@@ -737,7 +737,7 @@ END FUNCTION
 
 'Load the data from a file into the .ptr field of a ScriptData.
 'Returns true on success.
-PRIVATE FUNCTION loadscript_read_data(header as ScriptData ptr, fh as integer) as bool
+LOCAL FUNCTION loadscript_read_data(header as ScriptData ptr, fh as integer) as bool
  DIM shortvar as short
 
  WITH *header
@@ -769,7 +769,7 @@ PRIVATE FUNCTION loadscript_read_data(header as ScriptData ptr, fh as integer) a
  RETURN YES
 END FUNCTION
 
-PRIVATE FUNCTION scriptcache_find(id as integer) as ScriptData ptr
+LOCAL FUNCTION scriptcache_find(id as integer) as ScriptData ptr
  '-- script() is a hashtable with doubly linked lists as buckets, storing the loaded scripts
  DIM as ScriptData Ptr scrnode = script(id MOD scriptTableSize)
  WHILE scrnode
@@ -782,7 +782,7 @@ PRIVATE FUNCTION scriptcache_find(id as integer) as ScriptData ptr
 END FUNCTION
 
 'Add a loaded ScriptData ptr to the cache.
-PRIVATE SUB scriptcache_add(id as integer, thisscr as ScriptData ptr)
+LOCAL SUB scriptcache_add(id as integer, thisscr as ScriptData ptr)
  IF thisscr->ptr THEN
   'Script data is loaded
   totalscrmem += thisscr->size
@@ -1179,13 +1179,13 @@ SUB stop_fibre_timing
 END SUB
 
 'Sort by total time
-PRIVATE FUNCTION profiling_script_totaltime_scorer(byref script as ScriptData) as double
+LOCAL FUNCTION profiling_script_totaltime_scorer(byref script as ScriptData) as double
  'RETURN (script.totaltime - script.entered * timeroverhead) * -100000
  RETURN -script.totaltime
 END FUNCTION
 
 'Sort by child time
-PRIVATE FUNCTION profiling_script_childtime_scorer(byref script as ScriptData) as double
+LOCAL FUNCTION profiling_script_childtime_scorer(byref script as ScriptData) as double
  RETURN -script.childtime
 END FUNCTION
 

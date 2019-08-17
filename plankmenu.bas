@@ -81,7 +81,7 @@ END FUNCTION
 'axis:  0 for left/right, 1 for up/down
 'd:     1 for right or bottom edge, -1 for left or top edge
 'rearedge: use the edge opposite the forward direction rather than the forward one
-PRIVATE SUB slice_forward_edge(sl as Slice ptr, axis as integer, d as integer, rearedge as bool, byref pos as FwdSide, byref edgelen as integer)
+LOCAL SUB slice_forward_edge(sl as Slice ptr, axis as integer, d as integer, rearedge as bool, byref pos as FwdSide, byref edgelen as integer)
  DIM right_or_bottom_edge as bool = (d = 1) XOR rearedge
  pos.fwd = sl->ScreenPos.n(axis) + IIF(right_or_bottom_edge, sl->Size.n(axis), 0)
  pos.fwd *= d
@@ -89,7 +89,7 @@ PRIVATE SUB slice_forward_edge(sl as Slice ptr, axis as integer, d as integer, r
  edgelen = large(1, sl->Size.n(axis XOR 1))
 END SUB
 
-PRIVATE SUB slice_forward_center(sl as Slice ptr, axis as integer, d as integer, byref center as FwdSide)
+LOCAL SUB slice_forward_center(sl as Slice ptr, axis as integer, d as integer, byref center as FwdSide)
  center.fwd = (sl->ScreenPos + sl->Size \ 2).n(axis)
  center.fwd *= d
  center.side = (sl->ScreenPos + sl->Size \ 2).n(axis XOR 1)

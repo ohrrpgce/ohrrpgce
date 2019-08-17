@@ -235,7 +235,7 @@ end extern
 'Those are set to defaults, most of which do nothing.
 'In addition other functions are only allowed to be missing when loading old dynamic
 'libraries from before they existed; handled in gfx_load_library[_new]
-private sub set_default_gfx_function_ptrs
+local sub set_default_gfx_function_ptrs
 	default_gfx_render_procs()
 	gfx_getversion = NULL
 	gfx_Initialize = NULL
@@ -278,7 +278,7 @@ private sub set_default_gfx_function_ptrs
 	io_get_joystick_state = NULL
 end sub
 
-private function hTRYLOAD(byval hFile as any ptr, byval procedure as any ptr ptr, funcname as string) as bool
+local function hTRYLOAD(byval hFile as any ptr, byval procedure as any ptr ptr, funcname as string) as bool
 	dim tempptr as any ptr = dylibsymbol(hfile, funcname)
 	if tempptr <> NULL then *procedure = tempptr
 	'Otherwise leave default value of procedure intact
@@ -296,7 +296,7 @@ end function
 #endmacro
 
 'Load a dynamically linked gfx backend. Returns true on success
-private function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as string) as bool
+local function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as string) as bool
 	dim hFile as any ptr = backendinfo->dylib
 	dim needpolling as bool = NO
 	if hFile <> NULL then return YES
@@ -397,7 +397,7 @@ end function
 'Returns true on success
 'filename is the name of the file, ie. "gfx_directx.dll" 
 'backendinfo is modified with relevant data
-private function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, filename as string) as bool
+local function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, filename as string) as bool
 	Dim hFile As any ptr
 	hFile = dylibload(filename)
 	If hFile = NULL Then Return NO
@@ -446,7 +446,7 @@ private function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, 
 	Return YES
 End Function
 
-private sub default_gfx_render_procs()
+local sub default_gfx_render_procs()
 	gfx_surfaceCreate = @gfx_surfaceCreate_SW
 	gfx_surfaceCreateView = @gfx_surfaceCreateView_SW
 	gfx_surfaceCreatePixelsView = @gfx_surfaceCreatePixelsView_SW
@@ -471,7 +471,7 @@ private sub default_gfx_render_procs()
 	gfx_renderTriangleTextureColor = @gfx_renderTriangleTextureColor_SW
 end sub
 
-private sub prefer_gfx_backend(b as GfxBackendStuff ptr)
+local sub prefer_gfx_backend(b as GfxBackendStuff ptr)
 	for i as integer = ubound(gfx_choices) - 1 to 0 step -1
 		if gfx_choices(i + 1) = b then swap gfx_choices(i), gfx_choices(i + 1)
 	next
@@ -558,7 +558,7 @@ function backends_setoption(opt as string, arg as string) as integer
 end function
 
 'Returns true on success
-private function load_backend(which as GFxBackendStuff ptr) as bool
+local function load_backend(which as GFxBackendStuff ptr) as bool
 	if currentgfxbackend = which then return YES
 	if currentgfxbackend <> NULL then
 		unload_backend(currentgfxbackend)
@@ -594,7 +594,7 @@ private function load_backend(which as GFxBackendStuff ptr) as bool
 end function
 
 ' Does not shut down the backend!
-private sub unload_backend(which as GFxBackendStuff ptr)
+local sub unload_backend(which as GFxBackendStuff ptr)
 	if which->dylib then
 		dylibfree(which->dylib)
 		which->dylib = NULL

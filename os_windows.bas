@@ -100,11 +100,11 @@ end extern
 
 #define error_string get_windows_error(GetLastError())
 
-private function get_file_handle (byval fh as CFILE_ptr) as HANDLE
+local function get_file_handle (byval fh as CFILE_ptr) as HANDLE
 	return cast(HANDLE, _get_osfhandle(_fileno(fh)))
 end function
 
-private function file_handle_to_readable_FILE (byval fhandle as HANDLE, funcname as string) as FILE ptr
+local function file_handle_to_readable_FILE (byval fhandle as HANDLE, funcname as string) as FILE ptr
 	dim fd as integer = _open_osfhandle(cast(integer, fhandle), 0)
 	if fd = -1 then
 		debug funcname + ": _open_osfhandle failed"
@@ -583,7 +583,7 @@ end function
 ' (Actually mandatory on Windows)
 
 
-private function lock_file_base (byval fh as CFILE_ptr, byval timeout_ms as integer, byval flag as integer, funcname as string) as integer
+local function lock_file_base (byval fh as CFILE_ptr, byval timeout_ms as integer, byval flag as integer, funcname as string) as integer
 	dim fhandle as HANDLE = get_file_handle(fh)
 	dim timeout as integer = GetTickCount() + timeout_ms
 	dim overlappedop as OVERLAPPED
@@ -741,7 +741,7 @@ function channel_open_client (byref channel as NamedPipeInfo ptr, chan_name as s
 	return YES
 end function
 
-private sub channel_delete (byval channel as NamedPipeInfo ptr)
+local sub channel_delete (byval channel as NamedPipeInfo ptr)
 	with *channel
 		if .cfile then
 			fclose(.cfile)  'Closes .readfh too
@@ -1023,7 +1023,7 @@ function open_console_process (program as string, args as string) as ProcessHand
 end function
 
 'If exitcode is nonnull and the process exited, the exit code will be placed in it
-private function _process_running (process as ProcessHandle, exitcode as integer ptr = NULL, timeoutms as integer) as boolint
+local function _process_running (process as ProcessHandle, exitcode as integer ptr = NULL, timeoutms as integer) as boolint
 	if process = NULL then return NO
 	dim waitret as integer = WaitForSingleObject(process->hProcess, timeoutms)
 	if waitret = WAIT_FAILED then

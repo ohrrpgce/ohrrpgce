@@ -923,7 +923,7 @@ FUNCTION replacestr (byref buffer as string, replacewhat as string, replacefunc 
  RETURN count
 END FUNCTION
 
-PRIVATE FUNCTION _get_replacement(original as string, arg as any ptr) as string
+LOCAL FUNCTION _get_replacement(original as string, arg as any ptr) as string
  RETURN *CAST(string ptr, arg)
 END FUNCTION
 
@@ -1593,7 +1593,7 @@ endTest
 
 'CRT Quicksort. Running time is *usually* O(n*log(n)). NOT STABLE
 'See sort_integer_indices.
-PRIVATE SUB qsort_indices(indices() as integer, byval start as any ptr, byval number as integer, byval stride as integer, byval compare_fn as FnCompare)
+LOCAL SUB qsort_indices(indices() as integer, byval start as any ptr, byval number as integer, byval stride as integer, byval compare_fn as FnCompare)
  IF number = 0 THEN number = UBOUND(indices) + 1
 
  DIM keys(number - 1) as any ptr
@@ -3203,7 +3203,7 @@ function HashTable.constructed() as bool
 end function
 
 'Look for a key in a bucket vector, return NULL on failure
-private function hash_search_bucket(this as HashTable, bucket as HashBucketItem vector, hash as integer, key as any ptr = NULL) as HashBucketItem ptr
+local function hash_search_bucket(this as HashTable, bucket as HashBucketItem vector, hash as integer, key as any ptr = NULL) as HashBucketItem ptr
   for bucketidx as integer = 0 to v_len(bucket) - 1
     dim it as HashBucketItem ptr = @bucket[bucketidx]
     if it->hash = hash then
@@ -3453,7 +3453,7 @@ end function
 
 dim shared HashTable_key_compare as FnCompare
 
-private function HashBucketItem_compare cdecl (a as HashBucketItem ptr, b as HashBucketItem ptr) as long
+local function HashBucketItem_compare cdecl (a as HashBucketItem ptr, b as HashBucketItem ptr) as long
   if HashTable_key_compare then return HashTable_key_compare(a->key, b->key)
   if a->hash < b->hash then return -1
   if a->hash > b->hash then return 1
@@ -4073,7 +4073,7 @@ function commandline_flag(opt as string) as bool
 end function
 
 'Read commandline arguments from actual commandline and from args_file
-private sub get_commandline_args(cmdargs() as string, args_file as string = "")
+local sub get_commandline_args(cmdargs() as string, args_file as string = "")
 	if len(args_file) andalso isfile(args_file) then
 		debuginfo "Reading additional commandline arguments from " & args_file 
 		lines_from_file cmdargs(), args_file

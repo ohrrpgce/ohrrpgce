@@ -2420,7 +2420,7 @@ END FUNCTION
 
 '==========================================================================================
 
-PRIVATE SUB mapedit_list_npcs_by_tile_update (st as MapEditState, pos as XYPair, menu() as string, npcrefs() as integer)
+LOCAL SUB mapedit_list_npcs_by_tile_update (st as MapEditState, pos as XYPair, menu() as string, npcrefs() as integer)
  DIM dir_str(...) as string = {"north", "east", "south", "west"}
 
  REDIM npcrefs(0) as integer

@@ -103,7 +103,7 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 	return 1
 end function
 
-private sub gfx_fb_screenres
+local sub gfx_fb_screenres
 	if window_state.fullscreen = YES then
 		screenres screenmodex, screenmodey, depth, 1, GFX_FULLSCREEN
 	else

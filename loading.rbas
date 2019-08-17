@@ -768,7 +768,7 @@ SUB CopyTilemap(dest as TileMap, src as TileMap)
   END WITH
 END SUB
 
-PRIVATE SUB MergeTileMapData(mine as TileMap, theirs as TileMap, tmbase as TileMap)
+LOCAL SUB MergeTileMapData(mine as TileMap, theirs as TileMap, tmbase as TileMap)
   FOR i as integer = 0 TO mine.wide * mine.high - 1
     IF theirs.data[i] <> tmbase.data[i] THEN
       mine.data[i] = theirs.data[i]
@@ -968,7 +968,7 @@ SUB DebugZoneMap(zmap as ZoneMap, byval x as integer = -1, byval y as integer = 
   END WITH
 END SUB
 
-PRIVATE FUNCTION ZoneMapAddZoneInfo(zmap as ZoneMap) as ZoneInfo ptr
+LOCAL FUNCTION ZoneMapAddZoneInfo(zmap as ZoneMap) as ZoneInfo ptr
   'ZoneInfo contains a FB string, so have to use this function to properly zero out new records
   DIM info as ZoneInfo ptr
   WITH zmap
@@ -994,13 +994,13 @@ FUNCTION GetZoneInfo(zmap as ZoneMap, byval id as integer) as ZoneInfo ptr
   END WITH
 END FUNCTION
 
-PRIVATE SUB ZoneInfoBookkeeping(zmap as ZoneMap, byval id as integer, byval delta as integer = 0)
+LOCAL SUB ZoneInfoBookkeeping(zmap as ZoneMap, byval id as integer, byval delta as integer = 0)
   DIM info as ZoneInfo ptr
   info = GetZoneInfo(zmap, id)
   info->numtiles += delta
 END SUB
 
-PRIVATE FUNCTION ZoneMapAddExtraSegment(zmap as ZoneMap, byval x as integer, byval y as integer) as ZoneHashedSegment ptr
+LOCAL FUNCTION ZoneMapAddExtraSegment(zmap as ZoneMap, byval x as integer, byval y as integer) as ZoneHashedSegment ptr
   DIM tiledescriptor as ZoneHashedSegment ptr = CALLOCATE(SIZEOF(ZoneHashedSegment))
   zmap.extraID_hash.add((x SHL 16) OR y, tiledescriptor)
   RETURN tiledescriptor
@@ -1123,7 +1123,7 @@ FUNCTION WriteZoneTile(zmap as ZoneMap, id as integer, x as integer, y as intege
   RETURN YES
 END FUNCTION
 
-PRIVATE FUNCTION ZoneBitmaskFromIDMap(byval IDmap as ushort ptr, byval id as integer) as uinteger
+LOCAL FUNCTION ZoneBitmaskFromIDMap(byval IDmap as ushort ptr, byval id as integer) as uinteger
   FOR i as integer = 0 TO 14
     IF IDmap[i] = id THEN RETURN 1 SHL i
   NEXT
@@ -1171,7 +1171,7 @@ END SUB
 
 'Adds 'rows' node to a .Z## root RELOAD node describing the tile data.
 'rect.x/y give an offset, and rect.w/h a size to trim to; used for resizing a map.
-PRIVATE SUB SerializeZoneTiles(zmap as ZoneMap, byval root as NodePtr, rect as RectType)
+LOCAL SUB SerializeZoneTiles(zmap as ZoneMap, byval root as NodePtr, rect as RectType)
   'DIM t as double = TIMER
 
   DIM as NodePtr rowsnode, rownode, idnode, spannode
@@ -1236,7 +1236,7 @@ PRIVATE SUB SerializeZoneTiles(zmap as ZoneMap, byval root as NodePtr, rect as R
 END SUB
 
 'Set zone tiles according to a .Z document ('rows' node)
-PRIVATE SUB DeserializeZoneTiles(zmap as ZoneMap, byval root as NodePtr)
+LOCAL SUB DeserializeZoneTiles(zmap as ZoneMap, byval root as NodePtr)
   DIM as NodePtr rowsnode, rownode, idnode
   rowsnode = GetChildByName(root, "rows")
   IF rowsnode = NULL THEN
@@ -5101,7 +5101,7 @@ END FUNCTION
 
 DIM translations as StrHashTable
 
-PRIVATE SUB TranslationString_delete CDECL (p as TranslationString ptr)
+LOCAL SUB TranslationString_delete CDECL (p as TranslationString ptr)
   DELETE p
 END SUB
 

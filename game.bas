@@ -1291,7 +1291,7 @@ SUB updatecaterpillarhistory ()
  NEXT i
 END SUB
 
-PRIVATE SUB apply_harmtile_to(hero as HeroState)
+LOCAL SUB apply_harmtile_to(hero as HeroState)
  WITH hero.stat
   .cur.hp = large(.cur.hp - gmap(9), 0)
   ' If "!Negative-damage harmtiles can cure above max HP" is off
@@ -4692,7 +4692,7 @@ SUB debug_menu()
  debug_menu_functions(dbg)
 END SUB
 
-PRIVATE SUB battle_formation_testing_menu_add(menu as MenuDef, form_num as integer)
+LOCAL SUB battle_formation_testing_menu_add(menu as MenuDef, form_num as integer)
  IF form_num >= 0 THEN
   DIM formdata as Formation
   LoadFormation formdata, form_num

@@ -317,7 +317,7 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   RETURN recreate_window()
 END FUNCTION
 
-PRIVATE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
+LOCAL FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
   IF mainrenderer THEN SDL_DestroyRenderer(mainrenderer)  'Also destroys textures
   mainrenderer = NULL
   maintexture = NULL
@@ -396,7 +396,7 @@ PRIVATE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
   RETURN 1
 END FUNCTION
 
-PRIVATE FUNCTION recreate_screen_texture() as bool
+LOCAL FUNCTION recreate_screen_texture() as bool
   IF mainrenderer = NULL THEN RETURN NO  'Called before backend init
 
   IF maintexture THEN SDL_DestroyTexture(maintexture)
@@ -409,12 +409,12 @@ PRIVATE FUNCTION recreate_screen_texture() as bool
   RETURN YES
 END FUNCTION
 
-PRIVATE FUNCTION get_buffersize() as XYPair
+LOCAL FUNCTION get_buffersize() as XYPair
   DIM buffer_zoom as integer = IIF(smooth, smooth_zoom, 1)
   RETURN framesize * buffer_zoom
 END FUNCTION
 
-PRIVATE SUB set_window_size(newframesize as XYPair, newzoom as integer)
+LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
   framesize = newframesize
   zoom = newzoom
   smooth_zoom = IIF(newzoom > 4, 3, newzoom)
@@ -428,7 +428,7 @@ PRIVATE SUB set_window_size(newframesize as XYPair, newzoom as integer)
   END IF
 END SUB
 
-PRIVATE SUB quit_video_subsystem()
+LOCAL SUB quit_video_subsystem()
   IF mainrenderer THEN SDL_DestroyRenderer(mainrenderer)  'Also destroys textures
   mainrenderer = NULL
   maintexture = NULL
@@ -447,7 +447,7 @@ END FUNCTION
 
 'Handles smoothing and changes to the frame size, then calls present_internal2
 'to update the screen
-PRIVATE FUNCTION present_internal(raw as any ptr, imagesz as XYPair, bitdepth as integer) as integer
+LOCAL FUNCTION present_internal(raw as any ptr, imagesz as XYPair, bitdepth as integer) as integer
   'debuginfo "gfx_sdl2_present_internal(" & imagesz & ", bitdepth=" & bitdepth & ")"
 
   last_bitdepth = bitdepth
@@ -523,7 +523,7 @@ END FUNCTION
 'If bitdepth=8 then srcsurf is used, otherwise raw is used, and is a block of
 'pixels in SDL_PIXELFORMAT_ARGB8888 with the given pitch.
 'The surface or block of pixels must be the same size as maintexture.
-PRIVATE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, imagesz as XYPair, pitch as integer, bitdepth as integer) as bool
+LOCAL FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, imagesz as XYPair, pitch as integer, bitdepth as integer) as bool
   DIM ret as bool = YES
 
   DIM as integer texw, texh
@@ -586,7 +586,7 @@ PRIVATE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, i
 END FUNCTION
 
 'Copies an RGBColor[256] array to sdlpalette
-PRIVATE SUB set_palette(pal as RGBColor ptr)
+LOCAL SUB set_palette(pal as RGBColor ptr)
   DIM cols(255) as SDL_Color
   FOR i as integer = 0 TO 255
     cols(i).r = pal[i].r
@@ -833,7 +833,7 @@ SUB io_sdl2_init
   'nothing needed at the moment...
 END SUB
 
-PRIVATE SUB keycombos_logic(evnt as SDL_Event)
+LOCAL SUB keycombos_logic(evnt as SDL_Event)
   'Check for platform-dependent key combinations
 
   IF evnt.key.keysym.mod_ AND KMOD_ALT THEN
@@ -994,7 +994,7 @@ SUB gfx_sdl2_process_events()
 END SUB
 
 'may only be called from the main thread
-PRIVATE SUB update_state()
+LOCAL SUB update_state()
   SDL_PumpEvents()
   update_mouse()
   gfx_sdl2_process_events()
@@ -1099,7 +1099,7 @@ SUB io_sdl2_hide_virtual_gamepad()
 #ENDIF
 END SUB
 
-PRIVATE SUB internal_disable_virtual_gamepad()
+LOCAL SUB internal_disable_virtual_gamepad()
  'Does nothing on other platforms
 #IFDEF __FB_ANDROID__
  io_sdl2_hide_virtual_gamepad
@@ -1247,7 +1247,7 @@ END FUNCTION
 
 ' Returns currently down mouse buttons, in SDL order, not OHR order
 ' TODO: report mouse position when over the window edge
-PRIVATE FUNCTION update_mouse() as integer
+LOCAL FUNCTION update_mouse() as integer
   DIM x as int32
   DIM y as int32
   DIM buttons as int32
@@ -1308,7 +1308,7 @@ SUB io_sdl2_setmouse(byval x as integer, byval y as integer)
   END IF
 END SUB
 
-PRIVATE SUB internal_set_mouserect(rect as RectPoints)
+LOCAL SUB internal_set_mouserect(rect as RectPoints)
   'FIXME: enabling clipping causes the mouse position to change.
   'In SDL 1.2 SDL_WM_GrabInput causes most WM key combinations to be blocked
   'Now in SDL 2, keyboard is not grabbed by default (see SDL_HINT_GRAB_KEYBOARD),
@@ -1329,7 +1329,7 @@ PRIVATE SUB internal_set_mouserect(rect as RectPoints)
 END SUB
 
 'This turns forced mouse clipping on or off
-PRIVATE SUB set_forced_mouse_clipping(byval newvalue as bool)
+LOCAL SUB set_forced_mouse_clipping(byval newvalue as bool)
   newvalue = (newvalue <> 0)
   IF newvalue <> forced_mouse_clipping THEN
     forced_mouse_clipping = newvalue

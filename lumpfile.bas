@@ -189,7 +189,7 @@ end sub
 'Not intended to be called on a Lump ptr, instead is used as default destructor of subclasses
 'FIXME: broken, destructor not called!
 'FIXME: this isn't used, and shouldn't be, I think
-private sub Lump_destruct(byref this as Lump)
+local sub Lump_destruct(byref this as Lump)
 	if this.opencount then
 		debug this.lumpname + " at destruction had nonzero opencount " & this.opencount
 	end if
@@ -542,7 +542,7 @@ end function
 
 'Not intended to be called on a Lump ptr, instead is used as default destructor of subclasses
 'FIXME: broken, destructor not called!
-private sub LumpedLump_destruct(byref this as LumpedLump)
+local sub LumpedLump_destruct(byref this as LumpedLump)
 	if this.opencount then
 		debug this.lumpname + " at destruction had nonzero opencount " & this.opencount
 	end if

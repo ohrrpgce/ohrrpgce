@@ -5425,7 +5425,7 @@ SUB write_checkpoint ()
 END SUB
 
 ' Implementation of "check game exists"
-PRIVATE FUNCTION check_game_exists () as integer
+LOCAL FUNCTION check_game_exists () as integer
  IF valid_plotstr(retvals(0), serrBadOp) = NO THEN RETURN 0
  ' Parse the path
  DIM path as string = plotstr(retvals(0)).s
@@ -5438,7 +5438,7 @@ PRIVATE FUNCTION check_game_exists () as integer
 END FUNCTION
 
 ' Implementation of "run game".
-PRIVATE SUB run_game ()
+LOCAL SUB run_game ()
  ' Not being able to load the game should always show an error (use serrMajor for everything)
  IF valid_plotstr(retvals(0), serrMajor) = NO THEN RETURN
 

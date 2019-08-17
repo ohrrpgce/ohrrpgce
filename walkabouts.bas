@@ -198,7 +198,7 @@ END SUB
 '==========================================================================================
 
 
-PRIVATE FUNCTION should_hide_hero_caterpillar() as integer
+LOCAL FUNCTION should_hide_hero_caterpillar() as integer
  RETURN vstate.active = YES _
    ANDALSO vstate.mounting = NO _
    ANDALSO vstate.trigger_cleanup = NO _
@@ -207,12 +207,12 @@ PRIVATE FUNCTION should_hide_hero_caterpillar() as integer
    ANDALSO vstate.dat.do_not_hide_party = NO
 END FUNCTION
 
-PRIVATE FUNCTION should_show_normal_caterpillar() as integer
+LOCAL FUNCTION should_show_normal_caterpillar() as integer
  '"Enable Caterpillar Party"
  RETURN prefbit(1) ANDALSO (vstate.active = NO ORELSE vstate.dat.do_not_hide_leader = NO)
 END FUNCTION
 
-PRIVATE SUB update_walkabout_hero_slices()
+LOCAL SUB update_walkabout_hero_slices()
 
  DIM should_hide as integer = should_hide_hero_caterpillar()
  FOR i as integer = 0 TO UBOUND(herow)
@@ -254,7 +254,7 @@ PRIVATE SUB update_walkabout_hero_slices()
  NEXT cat_rank
 END SUB
 
-PRIVATE SUB update_walkabout_npc_slices()
+LOCAL SUB update_walkabout_npc_slices()
  DIM shadow as Slice Ptr
 
  FOR i as integer = 0 TO UBOUND(npc)
@@ -837,7 +837,7 @@ END FUNCTION
 
 'Called on the X or Y coordinate of a screen position to wrap it around the map
 'so that's it's as close as possible to being on the screen.
-PRIVATE FUNCTION closestwrappedpos (byval coord as integer, byval screenlen as integer, byval maplen as integer) as integer
+LOCAL FUNCTION closestwrappedpos (byval coord as integer, byval screenlen as integer, byval maplen as integer) as integer
  'consider two possibilities: one negative but as large as possible; and the one after that
  DIM as integer lowposs, highposs
  lowposs = (coord MOD maplen) + 10 'center of tile

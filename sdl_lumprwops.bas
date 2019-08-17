@@ -66,7 +66,7 @@ dim shared live_RWops_closefuncs as any ptr vector
 ' Initialise globals. But don't a module constructor (module-level code) because
 ' it might get run before vector.bas's module constructor which initialises the
 ' 'any ptr vector' type table.
-private sub sdl_lumprwops_constructor ()
+local sub sdl_lumprwops_constructor ()
 	v_new live_RWops
 	v_new live_RWops_closefuncs
 end sub
@@ -79,7 +79,7 @@ end sub
 
 'The intent of this function is remove the RWops from live_RWops when it is closed:
 'actually calling SDL_RWclose twice is definitely an error
-private function safe_RW_close_wrap cdecl (byval context as SDL_RWops ptr) as int32
+local function safe_RW_close_wrap cdecl (byval context as SDL_RWops ptr) as int32
 	dim num as integer = v_find(live_RWops, context)
 	if num > -1 then
 		'It is live, close it

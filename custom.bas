@@ -791,7 +791,7 @@ END SUB
 '==========================================================================================
 
 
-PRIVATE FUNCTION volume_controls_callback(menu as MenuDef, state as MenuState, dataptr as any ptr) as bool
+LOCAL FUNCTION volume_controls_callback(menu as MenuDef, state as MenuState, dataptr as any ptr) as bool
  ' This code is duplicated from player_menu_keys :(
  IF keyval(scF1) > 1 THEN show_help("editor_volume")
  DIM BYREF mi as MenuDefItem = *menu.items[state.pt]

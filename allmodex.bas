@@ -453,7 +453,7 @@ dim shared global_sfx_volume as single = 1.
 
 
 ' Initialise anything in this module that's independent from the gfx backend
-private sub modex_init()
+local sub modex_init()
 	tlsKeyClipRect = tls_alloc_key()
 	gfxmutex = mutexcreate
 
@@ -480,7 +480,7 @@ private sub modex_init()
 end sub
 
 ' Initialise stuff specific to the backend (this is called after gfx_init())
-private sub after_backend_init()
+local sub after_backend_init()
 	'Polling thread variables
 	pollthread.wantquit = NO
 	pollthread.mouselastbuttons = 0
@@ -517,7 +517,7 @@ sub setmodex()
 end sub
 
 ' Cleans up anything in this module which is independent of the graphics backend
-private sub modex_quit()
+local sub modex_quit()
 	stop_recording_input
 	stop_recording_video
 
@@ -539,7 +539,7 @@ private sub modex_quit()
 end sub
 
 ' Cleans up everything that ought to be done before calling gfx_close()
-private sub before_backend_quit()
+local sub before_backend_quit()
 	'clean up io stuff
 	if pollthread.threadptr then
 		pollthread.wantquit = YES
@@ -786,7 +786,7 @@ sub resizepage (page as integer, w as integer, h as integer)
 	frame_assign @vpages(page), frame_resized(vpages(page), w, h, 0, 0, uilook(uiBackground))
 end sub
 
-private function compatpage_internal(pageframe as Frame ptr) as Frame ptr
+local function compatpage_internal(pageframe as Frame ptr) as Frame ptr
 	return frame_new_view(vpages(vpage), (vpages(vpage)->w - 320) / 2, (vpages(vpage)->h - 200) / 2, 320, 200)
 end function
 
@@ -814,7 +814,7 @@ end function
 'then if windowsize has changed (possibly by a call to unlock_resolution/set_resolution)
 'resize all videopages (except compatpages) to the new window size.
 'The videopages are either trimmed or extended with colour 0.
-private sub screen_size_update ()
+local sub screen_size_update ()
 	'Changes windowsize if user tried to resize, otherwise does nothing
 	if gfx_get_resize(windowsize) then
 		'debuginfo "User window resize to " & windowsize.w & "*" & windowsize.h
@@ -1153,7 +1153,7 @@ sub setvispage (page as integer, skippable as bool = YES)
 end sub
 
 'setvispage internal function for presenting a regular Frame page on the screen
-private sub present_internal_frame(drawpage as integer)
+local sub present_internal_frame(drawpage as integer)
 	dim surf as Surface ptr
 	if gfx_surfaceCreateFrameView(vpages(drawpage), @surf) then return
 
@@ -1171,7 +1171,7 @@ private sub present_internal_frame(drawpage as integer)
 end sub
 
 'setvispage internal function for presenting a Surface-backed page on the screen
-private sub present_internal_surface(drawpage as integer)
+local sub present_internal_surface(drawpage as integer)
 	dim drawsurf as Surface ptr = vpages(drawpage)->surf
 
 	dim surface_pal as RGBPalette ptr
@@ -1186,7 +1186,7 @@ private sub present_internal_surface(drawpage as integer)
 	gfx_paletteDestroy(@surface_pal)
 end sub
 
-private sub intpal_changed()
+local sub intpal_changed()
 	delete_KDTree(nearcolor_kdtree)
 	nearcolor_kdtree = make_KDTree_for_palette(@intpal(0), 8, 0)
 end sub
@@ -1199,7 +1199,7 @@ sub setpal(pal() as RGBcolor)
 end sub
 
 ' A gfx_setpal wrapper which may perform frameskipping to limit fps
-private sub maybe_do_gfx_setpal()
+local sub maybe_do_gfx_setpal()
 	updatepal = YES
 	if timer - lastframe < 1. / max_display_fps then
 		update_fps_counter YES
@@ -1351,7 +1351,7 @@ end sub
 'even if speedcontrol is disabled. (If we're not trying to go fast then this waiting
 'is OK, because it only happens if we displayed a frame earlier than necessary.)
 'So this is only useful if we are frame skipping to run at more than the refresh rate!
-private function time_draw_calls_from_finish() as bool
+local function time_draw_calls_from_finish() as bool
 	if blocking_draws = NO then
 		' Normally this is undesirable
 		return NO
@@ -1783,7 +1783,7 @@ end function
 
 ' Returns text input from the backend since the last call.
 ' Always returns real input, even if replaying input.
-private function read_inputtext () as string
+local function read_inputtext () as string
 	if disable_native_text_input then
 		return get_ascii_inputtext()
 	end if
@@ -2527,7 +2527,7 @@ function getcursorvisibility () as CursorVisibility
 	return cursorvisibility
 end function
 
-private sub check_for_released_mouse_button(buttonnum as MouseButton)
+local sub check_for_released_mouse_button(buttonnum as MouseButton)
 	if (mouse_state.last_buttons and buttonnum) andalso (mouse_state.buttons and buttonnum) = 0 then
 		'If the button was released since the last tick, turn on .release
 		mouse_state.release or= buttonnum
@@ -2780,7 +2780,7 @@ end sub
 'Input: a key array with bit 3 (1<<3 == 8) set for currently pressed keys (from io_updatekeys)
 '       and bit 0 set for keys pressed last tick
 'Output: key array with only bits 0 and 1 set (like io_keybits)
-private sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
+local sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
 	for scancode as integer = 0 to ubound(keystate)
 		dim byref key as KeyBits = keystate(scancode)
 		if (key and 9) = 8 then
@@ -2792,7 +2792,7 @@ private sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
 	next
 end sub
 
-private sub pollingthread(unused as any ptr)
+local sub pollingthread(unused as any ptr)
 	with pollthread
 		while .wantquit = NO
 			mutexlock gfxmutex
@@ -2829,7 +2829,7 @@ end sub
 
 'Called from setkeys. This handles keypresses which are global throughout the engine.
 '(Note that backends also have some hooks, especially gfx_sdl.bas for OSX-specific stuff)
-private sub allmodex_controls()
+local sub allmodex_controls()
 	'Check to see if the backend has received a request
 	'to close the window (eg. clicking the window frame's X).
 	'This form of input isn't recorded, but the ESCs fired in Custom will be recorded,
@@ -2933,7 +2933,7 @@ private sub allmodex_controls()
 end sub
 
 'Show the menu that comes up when pressing ESC while replaying
-private sub replay_menu ()
+local sub replay_menu ()
 	dim menu(...) as string = {"Resume Replay", "End Replay"}
 	dim choice as integer
 	pause_replaying_input
@@ -2953,7 +2953,7 @@ end sub
 'Controls available while replaying input.
 'Called from inside setkeys; but it's OK to call setkeys from here if
 'pause_replaying_input is called first. If FB had co-routines, this would be implemented as one.
-private sub replay_controls ()
+local sub replay_controls ()
 	'We call show_help which calls setkeys which calls us.
 	static reentering as bool = NO
 	BUG_IF(reentering, "Reentry shouldn't happen")
@@ -2991,7 +2991,7 @@ private sub replay_controls ()
 end sub
 
 ' Menu of options for playback/recording of macros
-private sub macro_menu ()
+local sub macro_menu ()
 	pause_replaying_input
 	pause_recording_input
 	ensure_normal_palette
@@ -3098,16 +3098,16 @@ function overlay_message_visible () as bool
 end function
 
 'Show the overlay for replaying input
-private sub show_replay_overlay ()
+local sub show_replay_overlay ()
 	overlay_replay_display = YES
 end sub
 
-private sub hide_overlays ()
+local sub hide_overlays ()
 	overlay_message = ""
 	overlay_replay_display = NO
 end sub
 
-private function ms_to_string (ms as integer) as string
+local function ms_to_string (ms as integer) as string
 	return seconds2str(cint(ms * 0.001), "%h:%M:%S")
 end function
 
@@ -3117,7 +3117,7 @@ end sub
 
 ' Called every time a frame is drawn.
 ' skipped: true if this frame was frameskipped.
-private sub update_fps_counter (skipped as bool)
+local sub update_fps_counter (skipped as bool)
 	fps_draw_frames += 1
 	if not skipped then
 		fps_real_frames += 1
@@ -3135,7 +3135,7 @@ end sub
 'Draw stuff on top of the video page about to be shown; specially those things
 'that are included in .gifs/screenshots even without --recordoverlays
 'Returns true if something was drawn.
-private function draw_allmodex_recordable_overlays (page as integer) as bool
+local function draw_allmodex_recordable_overlays (page as integer) as bool
 	dim dirty as bool = NO
 
 	if gif_show_mouse then
@@ -3185,7 +3185,7 @@ end function
 
 'Draw stuff on top of the video page about to be shown.
 'Returns true if something was drawn.
-private function draw_allmodex_overlays (page as integer) as bool
+local function draw_allmodex_overlays (page as integer) as bool
 	if overlays_enabled = NO then return NO
 
 	'show_overlay_message "mouse over:" & gfx_getwindowstate()->mouse_over & " at " & mouse_state.pos
@@ -3417,7 +3417,7 @@ end sub
 
 ' Scan the replay file to find its length, setting replay.length_ms and replay.length_ticks
 ' Assumes replay.file is at start of the data stream.
-private sub read_replay_length ()
+local sub read_replay_length ()
 	dim as integer tick, nexttick
 	dim as ubyte tick_ms = 55, presses, input_len
 	dim initial_pos as integer = LOC(replay.file)
@@ -3573,7 +3573,7 @@ sub writeblock (map as TileMap, x as integer, y as integer, v as integer)
 end sub
 
 'Calculate which tile to display
-private function calcblock (tmap as TileMap, x as integer, y as integer, overheadmode as integer, pmapptr as TileMap ptr) as integer
+local function calcblock (tmap as TileMap, x as integer, y as integer, overheadmode as integer, pmapptr as TileMap ptr) as integer
 'returns -1 to draw no tile
 'overheadmode = 0 : ignore overhead tile bit; draw normally;
 'overheadmode = 1 : draw non overhead tiles only (to avoid double draw)
@@ -4824,7 +4824,7 @@ end destructor
 'expensive. However, .x, .y and .charnum are updated at the end.
 'If updatecharnum is true, it is updated only when .charnum jumps; you still need to
 'increment after every printing character yourself.
-private function layout_line_fragment(z as string, endchar as integer, byval state as PrintStrState, byref line_width as integer, byref line_height as integer, wide as integer, withtags as bool, withnewlines as bool, updatecharnum as bool = NO) as string
+local function layout_line_fragment(z as string, endchar as integer, byval state as PrintStrState, byref line_width as integer, byref line_height as integer, wide as integer, withtags as bool, withnewlines as bool, updatecharnum as bool = NO) as string
 	dim lastspace as integer = -1
 	dim lastspace_x as integer
 	dim lastspace_outbuf_len as integer
@@ -6109,7 +6109,7 @@ end sub
 
 'Creates a new file and writes the bmp headers to it.
 'Returns a file handle, or -1 on error.
-private function write_bmp_header(filen as string, w as integer, h as integer, bitdepth as integer) as integer
+local function write_bmp_header(filen as string, w as integer, h as integer, bitdepth as integer) as integer
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 
@@ -6367,7 +6367,7 @@ end function
 
 'Given a mask with 8 consecutive bits such as &hff00 returns the number of zero
 'bits to the right of the bits. Returns -1 if the mask isn't of this form.
-private function decode_bmp_bitmask(mask as uint32) as integer
+local function decode_bmp_bitmask(mask as uint32) as integer
 	for shift as integer = 0 to 24
 		if mask shr shift = &hFF then
 			return shift
@@ -6377,7 +6377,7 @@ private function decode_bmp_bitmask(mask as uint32) as integer
 end function
 
 'Takes an open file handle pointing at start of pixel data and an already sized Surface to load into
-private sub loadbmp32(bf as integer, surf as Surface ptr, infohd as BITMAPV3INFOHEADER)
+local sub loadbmp32(bf as integer, surf as Surface ptr, infohd as BITMAPV3INFOHEADER)
 	dim bitspix as uint32
 	dim quadpix as RGBQUAD
 	dim sptr as RGBcolor ptr
@@ -6417,7 +6417,7 @@ private sub loadbmp32(bf as integer, surf as Surface ptr, infohd as BITMAPV3INFO
 end sub
 
 'Takes an open file handle pointing at start of pixel data and an already sized Surface to load into
-private sub loadbmp24(bf as integer, surf as Surface ptr)
+local sub loadbmp24(bf as integer, surf as Surface ptr)
 	dim pix as RGBTRIPLE
 	dim ub as ubyte
 	dim sptr as RGBcolor ptr
@@ -6444,7 +6444,7 @@ private sub loadbmp24(bf as integer, surf as Surface ptr)
 	next
 end sub
 
-private sub loadbmp8(bf as integer, fr as Frame ptr)
+local sub loadbmp8(bf as integer, fr as Frame ptr)
 'takes an open file handle and an already size Frame pointer, should only be called within loadbmp
 	dim ub as ubyte
 	dim as integer w, h
@@ -6470,7 +6470,7 @@ private sub loadbmp8(bf as integer, fr as Frame ptr)
 	next
 end sub
 
-private sub loadbmp4(bf as integer, fr as Frame ptr)
+local sub loadbmp4(bf as integer, fr as Frame ptr)
 'takes an open file handle and an already size Frame pointer, should only be called within loadbmp
 	dim ub as ubyte
 	dim as integer w, h
@@ -6502,7 +6502,7 @@ private sub loadbmp4(bf as integer, fr as Frame ptr)
 	next
 end sub
 
-private sub loadbmprle4(bf as integer, fr as Frame ptr)
+local sub loadbmprle4(bf as integer, fr as Frame ptr)
 'takes an open file handle and an already size Frame pointer, should only be called within loadbmp
 	dim pix as ubyte
 	dim ub as ubyte
@@ -6565,7 +6565,7 @@ private sub loadbmprle4(bf as integer, fr as Frame ptr)
 
 end sub
 
-private sub loadbmprle8(bf as integer, fr as Frame ptr)
+local sub loadbmprle8(bf as integer, fr as Frame ptr)
 'takes an open file handle and an already size Frame pointer, should only be called within loadbmp
 	dim pix as ubyte
 	dim ub as ubyte
@@ -6616,7 +6616,7 @@ private sub loadbmprle8(bf as integer, fr as Frame ptr)
 
 end sub
 
-private sub loadbmp1(bf as integer, fr as Frame ptr)
+local sub loadbmp1(bf as integer, fr as Frame ptr)
 'takes an open file handle and an already sized Frame pointer, should only be called within loadbmp
 	dim ub as ubyte
 	dim as integer w, h
@@ -7431,7 +7431,7 @@ end function
 
 'If quantizing=YES, converting the image to 8 bit, otherwise only post-processing result from dither_image
 'to handle options.transparency.
-private sub quantize_surface_threshold(surf as Surface ptr, ret as Frame ptr, pal() as RGBcolor, options as QuantizeOptions, quantizing as bool)
+local sub quantize_surface_threshold(surf as Surface ptr, ret as Frame ptr, pal() as RGBcolor, options as QuantizeOptions, quantizing as bool)
 	dim inptr as RGBcolor ptr
 	dim outptr as ubyte ptr
 	for y as integer = 0 to surf->height - 1
@@ -7642,14 +7642,14 @@ sub toggle_recording_gif()
 	end if
 end sub
 
-private sub _gif_pitch_fail(what as string)
+local sub _gif_pitch_fail(what as string)
 	showbug "Can't record gif from " & what & " with extra pitch"
 	'This will cause the following GifWriteFrame* call to fail
 	recordvid->stop()
 end sub
 
 'Stack two images, one of them loaded from a file; our on top and other underneath
-private function combined_screen(our as Frame ptr, our_pal() as RGBcolor, other_path as string) as Frame ptr
+local function combined_screen(our as Frame ptr, our_pal() as RGBcolor, other_path as string) as Frame ptr
 	'Since the editor and player palettes might be different, or one might be running
 	'at 32 bitdepth, easiest to always convert to 32bit.
 	dim other as Surface ptr
@@ -7727,7 +7727,7 @@ end sub
 'All extensions that might be used for screenshots or recordings (including by gfx_screenshot)
 dim shared as string*4 screenshot_exts(...) => {".bmp", ".png", ".jpg", ".dds", ".gif"}
 
-private sub load_screenshot_settings()
+local sub load_screenshot_settings()
 	loaded_screenshot_settings = YES
 
 	dim temp as string = "." & lcase(read_config_str("gfx.screenshot_format", "png"))
@@ -7778,7 +7778,7 @@ end sub
 ' Find an available screenshot name in the current directory.
 ' Returns filename without extension, and ensures it doesn't collide regardless of the
 ' extension selected from screenshot_extns.
-private function next_unused_screenshot_filename() as string
+local function next_unused_screenshot_filename() as string
 	static search_start as integer
 	static search_gamename as string
 
@@ -7813,7 +7813,7 @@ end function
 'moved, in order to 'debounce' F12 if you only press it for a short while.
 '(Hmm, now that we can record gifs directly, it probably makes sense to remove the ability to hold F12)
 'NOTE: global variables like tmpdir can change between calls, have to be lenient
-private sub snapshot_check()
+local sub snapshot_check()
 	static as string backlog()
 	' The following are just for the overlay message
 	static as integer num_screenshots_taken
@@ -7983,7 +7983,7 @@ end function
 'write_mask:
 '    If the destination has a mask, sets the mask for the destination rectangle
 '    equal to the mask (or color-key) for the source rectangle. Does not OR them.
-private sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
+local sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 	dim as integer startx, starty, endx, endy
 	dim as integer srcoffset
 
@@ -8018,7 +8018,7 @@ private sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as int
 end sub
 
 ' Blit a Frame with setclip clipping and scale <> 1.
-private sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
+local sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 	dim byref cliprect as ClipState = get_cliprect()
 	dim as integer sxfrom, sxto, syfrom, syto
 
@@ -8032,7 +8032,7 @@ private sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x
 end sub
 
 ' Blit a Surface with setclip clipping.
-private sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Surface ptr)
+local sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Surface ptr)
 
 	dim byref cliprect as ClipState = get_cliprect()
 
@@ -8113,7 +8113,7 @@ CONST SPRCACHE_BASE_SZ = 4096  'bytes
 #endif
 
 ' removes a sprite from the cache, and frees it.
-private sub sprite_remove_cache(entry as SpriteCacheEntry ptr)
+local sub sprite_remove_cache(entry as SpriteCacheEntry ptr)
 	TRACE_CACHE(entry->p, "freeing from cache")
 	if entry->p->refcount <> 1 then
 		debugc errBug, "invalidly uncaching sprite " & entry->hash & " " & frame_describe(entry->p)
@@ -8134,7 +8134,7 @@ end sub
 
 'Free some sprites from the end of the B cache
 'Returns true if enough space was freed
-private function sprite_cacheB_shrink(amount as integer) as bool
+local function sprite_cacheB_shrink(amount as integer) as bool
 	sprite_cacheB_shrink = (amount <= SPRCACHEB_SZ)
 	if sprcacheB_used + amount <= SPRCACHEB_SZ then exit function
 
@@ -8172,7 +8172,7 @@ end sub
 
 'Unlike sprite_empty_cache, this reloads (in-use) sprites from file, without changing the pointers
 'to them. Any sprite that's not actually in use is removed from the cache as it's unnecessary to reload.
-private sub sprite_update_cache_range(minkey as integer, maxkey as integer)
+local sub sprite_update_cache_range(minkey as integer, maxkey as integer)
 	dim iterstate as uinteger = 0
 	dim as SpriteCacheEntry ptr pt, nextpt
 
@@ -8288,7 +8288,7 @@ sub sprite_debug_cache()
 end sub
 
 'a sprite has no references, move it to the B cache
-private sub sprite_to_B_cache(entry as SpriteCacheEntry ptr)
+local sub sprite_to_B_cache(entry as SpriteCacheEntry ptr)
 	dim pt as SpriteCacheEntry ptr
 
 	if sprite_cacheB_shrink(entry->cost) = NO then
@@ -8313,7 +8313,7 @@ private sub sprite_to_B_cache(entry as SpriteCacheEntry ptr)
 end sub
 
 ' move a sprite out of the B cache
-private sub sprite_from_B_cache(entry as SpriteCacheEntry ptr)
+local sub sprite_from_B_cache(entry as SpriteCacheEntry ptr)
 	dlist_remove(sprcacheB.generic, entry)
 	entry->Bcached = NO
 	#ifndef COMBINED_SPRCACHE_LIMIT
@@ -8322,7 +8322,7 @@ private sub sprite_from_B_cache(entry as SpriteCacheEntry ptr)
 end sub
 
 ' search cache, update as required if found
-private function sprite_fetch_from_cache(sprtype as SpriteType, record as integer) as Frame ptr
+local function sprite_fetch_from_cache(sprtype as SpriteType, record as integer) as Frame ptr
 	dim entry as SpriteCacheEntry ptr
 	entry = sprcache.get(SPRITE_CACHE_KEY(sprtype, record))
 
@@ -8338,7 +8338,7 @@ private function sprite_fetch_from_cache(sprtype as SpriteType, record as intege
 end function
 
 ' adds a newly loaded frame to the cache with a given type/record
-private sub sprite_add_cache(sprtype as SpriteType, record as integer, p as Frame ptr)
+local sub sprite_add_cache(sprtype as SpriteType, record as integer, p as Frame ptr)
 	if p = 0 then exit sub
 
 	dim entry as SpriteCacheEntry ptr
@@ -8496,7 +8496,7 @@ function frame_with_surface(surf as Surface ptr) as Frame ptr
 end function
 
 'ret is a Frame without image/mask allocated
-private sub init_frame_with_surface(ret as Frame ptr, surf as Surface ptr)
+local sub init_frame_with_surface(ret as Frame ptr, surf as Surface ptr)
 	surf = gfx_surfaceReference(surf)
 	with *ret
 		.surf = surf
@@ -8558,7 +8558,7 @@ sub frame_drop_surface(fr as Frame ptr)
 	end if
 end sub
 
-private sub frame_delete_members(f as Frame ptr)
+local sub frame_delete_members(f as Frame ptr)
 	if f->arrayelem then debug "can't free arrayelem!": exit sub
 	for i as integer = 0 to f->arraylen - 1
 		deallocate(f[i].image)  'May be NULL
@@ -8578,7 +8578,7 @@ end sub
 ' You should never need to call this: use frame_unload
 ' Should only be called on the head of an array (and not a view, obv)!
 ' Warning: not all code calls frame_freemem to free sprites! Grrr!
-private sub frame_freemem(f as Frame ptr)
+local sub frame_freemem(f as Frame ptr)
 	if f = 0 then exit sub
 	frame_delete_members f
 	deallocate(f)
@@ -8800,7 +8800,7 @@ function frameset_to_node(fr as Frame ptr, parent as Node ptr) as Node ptr
 end function
 
 'Write a single Frame in an array as a "frame" node
-private sub write_frame_node(fr as Frame ptr, fs_node as Node ptr, bits as integer)
+local sub write_frame_node(fr as Frame ptr, fs_node as Node ptr, bits as integer)
 	dim as Node ptr frame_node, image_node
 	frame_node = AppendChildNode(fs_node, "frame")
 	AppendChildNode(frame_node, "id", fr->frameid)
@@ -8869,7 +8869,7 @@ end function
 
 'Loads a single "frame" node in a frameset
 'lastid: frameid for previous Frame
-private sub read_frame_node(fr as Frame ptr, fr_node as Node ptr, bitdepth as integer, byref lastid as integer)
+local sub read_frame_node(fr as Frame ptr, fr_node as Node ptr, bitdepth as integer, byref lastid as integer)
 	fr->frameid = GetChildNodeInt(fr_node, "id", fr->frameid)
 	ERROR_IF(fr->frameid <= lastid, "corrupt .rgfx file; frameids not in order: " & fr->frameid & " follows " & lastid)
 	lastid = fr->frameid
@@ -9045,7 +9045,7 @@ end function
 
 'Add a mask. NOTE: Only valid on Frames with pitch == w!
 'clr: is true, blank mask, otherwise copy image
-private sub frame_add_mask(fr as Frame ptr, clr as bool = NO)
+local sub frame_add_mask(fr as Frame ptr, clr as bool = NO)
 	CHECK_FRAME_8BIT(fr)
 	if fr->mask then exit sub
 	if clr = NO then
@@ -9151,7 +9151,7 @@ sub surface_assign cdecl(ptr_to_replace as Surface ptr ptr, new_value as Surface
 end sub
 
 ' This is for the Frame ptr vector typetable. Ignore.
-private sub _frame_copyctor cdecl(dest as Frame ptr ptr, src as Frame ptr ptr)
+local sub _frame_copyctor cdecl(dest as Frame ptr ptr, src as Frame ptr ptr)
 	*dest = frame_reference(*src)
 end sub
 
@@ -9184,7 +9184,7 @@ sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palet
 	frame_draw_internal src, masterpal(), pal, x, y, scale, trans, dest, write_mask
 end sub
 
-private sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
+local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 
 	if (src->surf andalso src->surf->format <> SF_8bit) orelse _
 	   (dest->surf andalso dest->surf->format <> SF_8bit) then
@@ -9548,7 +9548,7 @@ function default_dissolve_time(style as integer, w as integer, h as integer) as 
 end function
 
 'Used by frame_flip_horiz and frame_flip_vert
-private sub flip_image(pixels as ubyte ptr, d1len as integer, d1stride as integer, d2len as integer, d2stride as integer)
+local sub flip_image(pixels as ubyte ptr, d1len as integer, d1stride as integer, d2len as integer, d2stride as integer)
 	for x1 as integer = 0 to d1len - 1
 		dim as ubyte ptr pixelp = pixels + x1 * d1stride
 		for offset as integer = (d2len - 1) * d2stride to 0 step -2 * d2stride
@@ -9563,7 +9563,7 @@ end sub
 'not-in-place isometric transformation of a pixel buffer
 'dimensions/strides of source is taken from src, but srcpixels specifies the actual pixel buffer
 'destorigin points to the pixel in the destination buffer where the pixel at the (top left) origin should be put
-private sub transform_image(src as Frame ptr, srcpixels as ubyte ptr, destorigin as ubyte ptr, d1stride as integer, d2stride as integer)
+local sub transform_image(src as Frame ptr, srcpixels as ubyte ptr, destorigin as ubyte ptr, d1stride as integer, d2stride as integer)
 	for y as integer = 0 to src->h - 1
 		dim as ubyte ptr sptr = srcpixels + y * src->pitch
 		dim as ubyte ptr dptr = destorigin + y * d1stride
@@ -9728,7 +9728,7 @@ end sub
 ' end function
 
 /'
-private sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
+local sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 'this isn't used anywhere anymore, was used to grab tiles from the tileset videopage before loadtileset
 'maybe some possible future use?
 'ibuf should be pre-allocated
@@ -9781,7 +9781,7 @@ end type
 
 redim shared palcache(50) as Palette16Cache
 
-private sub Palette16_delete(f as Palette16 ptr ptr)
+local sub Palette16_delete(f as Palette16 ptr ptr)
 	if f = 0 then exit sub
 	if *f = 0 then exit sub
 	(*f)->refcount = FREEDREFC  'help detect double frees
@@ -10170,7 +10170,7 @@ function empty_spriteset() as SpriteSet ptr
 	return new SpriteSet(fr)
 end function
 
-private function load_global_animations_uncached(sprtype as SpriteType) as SpriteSet ptr
+local function load_global_animations_uncached(sprtype as SpriteType) as SpriteSet ptr
 	dim rgfxdoc as Doc ptr
 	rgfxdoc = rgfx_open(sprtype, NO)
 	if rgfxdoc = NULL then
@@ -10205,7 +10205,7 @@ end function
 
 'Called when updating the sprite cache. Updates a SpriteSet in-place.
 'Variant on rgfx_load_global_animations.
-private sub reload_global_animations(def_anim as SpriteSet ptr, sprtype as SpriteType)
+local sub reload_global_animations(def_anim as SpriteSet ptr, sprtype as SpriteType)
 	dim rgfxdoc as Doc ptr = rgfx_open(sprtype, YES)
 	FAIL_IF(rgfxdoc = NULL, "failed")
 	'This overwrites the existing animations

@@ -363,7 +363,7 @@ FUNCTION escape_str_for_web_translation(istr as string) as string
 END FUNCTION
 
 'Function for sortint
-PRIVATE FUNCTION compare_translations(a as HashBucketItem ptr, b as HashBucketItem ptr) as integer
+LOCAL FUNCTION compare_translations(a as HashBucketItem ptr, b as HashBucketItem ptr) as integer
   #DEFINE item_sortorder(x) CAST(TranslationString ptr, x->value)->sortorder
   RETURN item_sortorder(a) - item_sortorder(b)
 END FUNCTION

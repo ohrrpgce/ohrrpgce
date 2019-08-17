@@ -100,7 +100,7 @@ end function
 	end if
 #endmacro
 
-private function _load_libvorbisfile(libfile as string) as bool
+local function _load_libvorbisfile(libfile as string) as bool
 	libvorbisfile = dylibload(libfile)
 	if libvorbisfile = NULL then
 		debuginfo "Couldn't find " & libfile & ", skipping (not an error)"
@@ -125,7 +125,7 @@ end function
 ' -on Mac you're trying to run ohrrpgce-custom directly without bundling
 '  (compiling instructions on the wiki tell you to install a standard SDL_mixer.framework in /Library/Frameworks)
 ' -libvorbisfile isn't installed, on a Unix machine
-private function load_vorbisfile() as bool
+local function load_vorbisfile() as bool
 	if libvorbisfile = BADPTR then return NO
 	if libvorbisfile then return YES
 	' Unix
@@ -139,7 +139,7 @@ private function load_vorbisfile() as bool
 	return NO
 end function
 
-private function _load_libmad(libfile as string) as bool
+local function _load_libmad(libfile as string) as bool
 	libmad = dylibload(libfile)
 	if libmad = NULL then
 		debuginfo "Couldn't find " & libfile & ", skipping (not an error)"
@@ -158,7 +158,7 @@ private function _load_libmad(libfile as string) as bool
 end function
 
 ' Dynamically load functions from libmad
-private function load_libmad() as bool
+local function load_libmad() as bool
 	if libmad = BADPTR then return NO
 	if libmad then return YES
 	' Unix

@@ -980,7 +980,7 @@ FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as i
  n = temp
 END FUNCTION
 
-PRIVATE SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
+LOCAL SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
  'Helper function to find the next script ID/trigger assigned to a script that exists.
  'temp = -1 means scroll to last script
  'returns 0 when scrolled past first script, -1 when went past last
@@ -1165,7 +1165,7 @@ DIM SHARED plotscript_order() as integer
 DIM SHARED script_usage_menu() as IntStrPair
 
 'Internal to script_usage_list
-PRIVATE FUNCTION script_usage_visitor(byref trig as integer, description as string, caption as string) as bool
+LOCAL FUNCTION script_usage_visitor(byref trig as integer, description as string, caption as string) as bool
  IF trig = 0 THEN RETURN NO
  '--See script_usage_list about rank calculation
  DIM rank as integer = trig
@@ -1328,7 +1328,7 @@ END SUB
 '--For script_broken_trigger_list and check_broken_script_trigger
 DIM SHARED missing_script_trigger_list() as string
 
-PRIVATE FUNCTION check_broken_script_trigger(byref trig as integer, description as string, caption as string) as bool
+LOCAL FUNCTION check_broken_script_trigger(byref trig as integer, description as string, caption as string) as bool
  IF trig <= 0 THEN RETURN NO ' No script trigger
  '--decode script trigger
  DIM id as integer

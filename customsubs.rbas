@@ -93,7 +93,7 @@ FUNCTION tag_id_grabber (byref n as integer, state as MenuState) as bool
  RETURN tag_grabber(n, state, NO, , NO)  'allowneg=NO
 END FUNCTION
 
-PRIVATE SUB tag_autoset_warning(byval tag_id as integer)
+LOCAL SUB tag_autoset_warning(byval tag_id as integer)
  notification !"This tag is automatically set or unset on the following conditions:\n" + describe_tag_autoset_places(tag_id) + !"\nThis means that you should not attempt to set or unset the tag in any other way, because your changes will be erased -- unpredictably!"
 END SUB
 
@@ -993,7 +993,7 @@ END FUNCTION
 '"none" option, or offset-1 if there is. (Not the same as min for zintgrabber!)
 'max_record is the maximum object ID, not the upper range of datum.
 'add_new_if_none: pass YES only if Enter/Space/Click already was diverted to ThingBrowser.
-PRIVATE FUNCTION thinggrabber (byref datum as integer, state as MenuState, offset as integer, min as integer, max_record as integer, intgrab as bool = YES, editor_func as FnEditor, add_new_if_none as bool = NO) as bool
+LOCAL FUNCTION thinggrabber (byref datum as integer, state as MenuState, offset as integer, min as integer, max_record as integer, intgrab as bool = YES, editor_func as FnEditor, add_new_if_none as bool = NO) as bool
  DIM editor_arg as integer  'What to pass to editor_func.
  IF keyval(scPlus) > 1 OR keyval(scInsert) > 1 THEN
   editor_arg = max_record + 1
@@ -1027,7 +1027,7 @@ PRIVATE FUNCTION thinggrabber (byref datum as integer, state as MenuState, offse
  RETURN YES
 END FUNCTION
 
-PRIVATE FUNCTION want_to_enter_browser(state as MenuState) as bool
+LOCAL FUNCTION want_to_enter_browser(state as MenuState) as bool
  RETURN keyval(scCtrl) = 0 ANDALSO keyval(scShift) = 0 ANDALSO enter_space_click(state)
 END FUNCTION
 
@@ -1477,7 +1477,7 @@ SUB onetimetog(byref tagnum as integer)
  gen(genOneTimeNPC) = i
 END SUB
 
-PRIVATE SUB pal16browse_draw_spriteset(sprite as Frame ptr, pal as Palette16 ptr, x as integer, y as integer, page as integer)
+LOCAL SUB pal16browse_draw_spriteset(sprite as Frame ptr, pal as Palette16 ptr, x as integer, y as integer, page as integer)
  IF sprite = NULL THEN EXIT SUB
  y -= sprite->h \ 2 - 10
  FOR framenum as integer = 0 TO sprite->arraylen - 1
@@ -1831,7 +1831,7 @@ END SUB
 
 'Returns  "prefix ABS(n) suffix [AUTOSET] (<tagname or zero/one/negonecap>)"
 'where everything except the ABS(n) is optional.
-PRIVATE FUNCTION base_tag_caption(byval n as integer, prefix as string, suffix as string, zerocap as string, onecap as string, negonecap as string, byval allowspecial as bool) as string
+LOCAL FUNCTION base_tag_caption(byval n as integer, prefix as string, suffix as string, zerocap as string, onecap as string, negonecap as string, byval allowspecial as bool) as string
  DIM ret as string
  ret = prefix
  IF LEN(ret) > 0 THEN ret &= " "

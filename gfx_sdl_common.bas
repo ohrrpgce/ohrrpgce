@@ -33,7 +33,7 @@ DIM SHARED joystickhandles(maxJoysticks - 1) as SDL_Joystick ptr
 DIM SHARED joystickinfo(maxJoysticks - 1) as JoystickInfo
 
 
-PRIVATE SUB quit_joystick_subsystem()
+LOCAL SUB quit_joystick_subsystem()
   FOR i as integer = 0 TO small(SDL_NumJoysticks(), maxJoysticks) - 1
     IF joystickhandles(i) <> NULL THEN SDL_JoystickClose(joystickhandles(i))
     joystickhandles(i) = NULL
@@ -43,7 +43,7 @@ END SUB
 
 'Check a joystick is valid, and open it if not open yet, reading info
 'Same return values as io_get_joystick_state in gfx.bi
-PRIVATE FUNCTION get_joystick(byval joynum as integer) as integer
+LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
   'SDL1 & 2 report joystick state even when the app isn't focused (under both Linux and Windows)
   #ifdef USE_SDL2
     IF (SDL_GetWindowFlags(mainwindow) AND SDL_WINDOW_INPUT_FOCUS) = 0 THEN RETURN 3

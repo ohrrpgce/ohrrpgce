@@ -1082,7 +1082,7 @@ Function NewClassSlice(parent as Slice ptr, inst as ClassSlice ptr) as Slice ptr
 End Function
 
 'This is called only from SliceLoadFromNode
-Private Function InitClassSliceByName(sl as Slice ptr, classname as string) as bool
+Local Function InitClassSliceByName(sl as Slice ptr, classname as string) as bool
  dim inst as ClassSlice ptr
  'if classname = "thing" then
  ' inst = new ThingClass()
@@ -1136,7 +1136,7 @@ Sub ClassChildDraw(sl as Slice ptr, page as integer)
  sl->ClassInst->ChildDraw sl, page
 End Sub
 
-Private Sub InitClassSlicePtrs(sl as Slice ptr)
+Local Sub InitClassSlicePtrs(sl as Slice ptr)
  sl->Draw = @DrawClassSlice
  sl->Dispose = @DisposeClassSlice
  sl->Clone = @CloneClassSlice
@@ -1491,7 +1491,7 @@ Sub WrapTextSlice(byval sl as Slice ptr, lines() as string)
 End sub
 
 'Get the 'wide' parameter to render_text, etc
-Private Function TextSliceRenderTextWide(sl as Slice ptr, dat as TextSliceData ptr, x as integer) as integer
+Local Function TextSliceRenderTextWide(sl as Slice ptr, dat as TextSliceData ptr, x as integer) as integer
  if dat->Wrap then
   if sl->Width > 7 then
    return x + sl->Width
@@ -1660,7 +1660,7 @@ Function TextSliceCharPos(sl as Slice ptr, charnum as integer) as XYPair
  return charpos.pos
 end function
 
-Private Sub UpdateTextSliceHeight(byval sl as Slice ptr, lines() as string)
+Local Sub UpdateTextSliceHeight(byval sl as Slice ptr, lines() as string)
  dim dat as TextSliceData ptr = sl->SliceData
  dim high as integer
  high = dat->line_count
@@ -1969,7 +1969,7 @@ End Function
 
 ' Actually load the asset for a sprite slice, or load a placeholder Frame
 ' if it's missing. If the assetfile is "", always loads a placeholder with no warning.
-Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
+Local Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
  BUG_IF(sl = 0, "null ptr")
 
  with *sl->SpriteData
@@ -3628,7 +3628,7 @@ End Function
 'size and alignment?
 'position is the X or Y of the top-left corner of the slice relative to its align point,
 'size is the width or height, align is AlignHoriz or AlignVert.
-Private Function SliceExtent(position as integer, size as integer, align as AlignType) as integer
+Local Function SliceExtent(position as integer, size as integer, align as AlignType) as integer
  if align = alignLeft then
   return position + size
  elseif align = alignRight then
@@ -3818,7 +3818,7 @@ end function
 '(See comments at the top of this file for an overview of slice drawing.)
 'childindex is index of s among its siblings. Pass childindex -1 if not known,
 'which saves computing it if it's not needed.
-Private Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
+Local Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
  if s = 0 then debug "DrawSliceRecurse null ptr": exit sub
 
  'Refresh the slice: calc the size and screen X,Y and possibly visibility (select slices)
@@ -3928,7 +3928,7 @@ Sub RefreshSliceScreenPos(slc as Slice ptr)
 end sub
 
 'Refresh all descendents of slc
-Private Sub SliceRefreshRecurse(slc as Slice ptr)
+Local Sub SliceRefreshRecurse(slc as Slice ptr)
  if slc->ChildrenRefresh then slc->ChildrenRefresh(slc)
 
  dim attach as Slice Ptr

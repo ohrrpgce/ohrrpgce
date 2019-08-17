@@ -330,7 +330,7 @@ SUB start_new_debug(title as string)
 END SUB
 
 ' Append logfile to archivefile and delete it.
-PRIVATE SUB archive_log_file(logfile as string, archivefile as string)
+LOCAL SUB archive_log_file(logfile as string, archivefile as string)
  '(Don't call log_openfile)
  DIM dlog as integer = FREEFILE
  OPEN logfile FOR BINARY as dlog
@@ -463,7 +463,7 @@ SUB early_debuginfo (msg as const zstring ptr)
  log_buffer &= *msg & LINE_END
 END SUB
 
-PRIVATE FUNCTION get_timestamp() as string
+LOCAL FUNCTION get_timestamp() as string
  IF program_start_timer <> 0.0 THEN RETURN strprintf("%4.1f  ", TIMER - program_start_timer)
  RETURN ""
 END FUNCTION
@@ -489,7 +489,7 @@ SUB debuginfo (msg as const zstring ptr)
  mutexunlock debug_log_mutex
 END SUB
 
-PRIVATE FUNCTION open_logfile() as integer
+LOCAL FUNCTION open_logfile() as integer
  STATIC sizeerror as bool = NO
  DIM filename as string
  #IFDEF IS_GAME
@@ -513,7 +513,7 @@ PRIVATE FUNCTION open_logfile() as integer
  RETURN fh
 END FUNCTION
 
-PRIVATE SUB append_to_logfile(s as string)
+LOCAL SUB append_to_logfile(s as string)
  DIM fh as integer = open_logfile()
  IF fh = 0 THEN EXIT SUB
  PRINT #fh, normalize_newlines(s, LINE_END)
@@ -1183,7 +1183,7 @@ FUNCTION curbinsize (byval id as integer) as integer
  RETURN 0
 END FUNCTION
 
-PRIVATE SUB load_binsize_cache ()
+LOCAL SUB load_binsize_cache ()
  FOR i as integer = 0 TO binLASTENTRY
   binsize_cache(i) = defbinsize(i)
  NEXT
@@ -1675,7 +1675,7 @@ END TYPE
 'number of occurrences of all colors, which would be very slow.
 'Instead, do a single pass through all pixels while maintaining a 'reservoir' of candidates
 'for most common color, kept approximately sorted by decreasing count.
-PRIVATE FUNCTION minimap_pixel_reservoir(x as integer, y as integer, zoom as integer, composed_tile as Frame ptr) as ubyte
+LOCAL FUNCTION minimap_pixel_reservoir(x as integer, y as integer, zoom as integer, composed_tile as Frame ptr) as ubyte
  '1 or 2 bins leads to a lot of artifacts. More bins is slower.
  CONST lastbin = 2
  DIM res(lastbin) as ReservoirBin
@@ -1723,14 +1723,14 @@ PRIVATE FUNCTION minimap_pixel_reservoir(x as integer, y as integer, zoom as int
 END FUNCTION
 
 'Pick a random pixel from the original tile piece to use in the minimap
-PRIVATE FUNCTION minimap_pixel_scatter(x as integer, y as integer, fraction as single, byref prng_state as uinteger, composed_tile as Frame ptr) as ubyte
+LOCAL FUNCTION minimap_pixel_scatter(x as integer, y as integer, fraction as single, byref prng_state as uinteger, composed_tile as Frame ptr) as ubyte
  DIM as integer i, j
  i = INT((x + simple_rand(prng_state)) * fraction)
  j = INT((y + simple_rand(prng_state)) * fraction)
  RETURN composed_tile->image[j * 20 + i]
 END FUNCTION
 
-PRIVATE FUNCTION minimap_tile_scaled(composed_tile as Frame ptr, zoom as integer) as Frame ptr
+LOCAL FUNCTION minimap_tile_scaled(composed_tile as Frame ptr, zoom as integer) as Frame ptr
  DIM as Surface ptr composed_surf, scaled
  composed_surf = frame_to_surface32(composed_tile, master())
  scaled = surface_scale(composed_surf, zoom, zoom)
@@ -2102,7 +2102,7 @@ END FUNCTION
 ' On Mac, Option- (which is Alt) Backspace/Delete are used instead of Ctrl-Backspace/Delete
 ' so we support that too. (Note Backspace and Delete are called Delete and Forward Delete on Mac).
 ' pre is the part of the text before the insert point, and post is after.
-PRIVATE SUB stredit_delete_keys(pre as string, post as string)
+LOCAL SUB stredit_delete_keys(pre as string, post as string)
  IF keyval(scCtrl) > 0 OR keyval(scAlt) > 0 THEN
   DIM spacepos as integer
 
@@ -2466,7 +2466,7 @@ FUNCTION prompt_for_string (byref retstring as string, caption as string, limit 
  DeleteSlice @root
 END FUNCTION
 
-PRIVATE FUNCTION _highlight_text(original as string, arg as any ptr) as string
+LOCAL FUNCTION _highlight_text(original as string, arg as any ptr) as string
  DIM col as integer = *CAST(integer ptr, arg)
  RETURN bgtag(col, original)
 END FUNCTION
@@ -3574,7 +3574,7 @@ END SUB
 '                                Finding data files, directories
 '==========================================================================================
 
-PRIVATE FUNCTION get_file_type_logged(path as string) as FileTypeEnum
+LOCAL FUNCTION get_file_type_logged(path as string) as FileTypeEnum
  DIM ret as FileTypeEnum = get_file_type(path)
  #ifdef DEBUG_FILE_IO
   debuginfo "try_data_path(" & path & ") = " & ret
@@ -3587,7 +3587,7 @@ END FUNCTION
  IF get_file_type_logged(temp) = searchtype THEN RETURN temp
 #ENDMACRO
 
-PRIVATE FUNCTION finddatafile_internal(filename as string, searchtype as FileTypeEnum) as string
+LOCAL FUNCTION finddatafile_internal(filename as string, searchtype as FileTypeEnum) as string
  DIM temp as string
  'Current dir
  try_data_path(filename)
@@ -3611,7 +3611,7 @@ PRIVATE FUNCTION finddatafile_internal(filename as string, searchtype as FileTyp
  RETURN ""
 END FUNCTION
 
-PRIVATE FUNCTION finddatafile_internal2(filename as string, searchtype as FileTypeEnum, error_if_missing as bool) as string
+LOCAL FUNCTION finddatafile_internal2(filename as string, searchtype as FileTypeEnum, error_if_missing as bool) as string
  IF LEN(filename) = 0 THEN
   IF error_if_missing THEN showbug "finddatafile/dir: blank filename"
   RETURN ""
@@ -5064,14 +5064,14 @@ SUB fix_record_count(byref last_rec_index as integer, record_byte_size as intege
  adjust_record_count last_rec_index, records, lumpname, info, count_offset
 END SUB
 
-PRIVATE SUB adjust_spriteset_record_count(sprtype as SpriteType, records as integer)
+LOCAL SUB adjust_spriteset_record_count(sprtype as SpriteType, records as integer)
  WITH sprite_sizes(sprtype)
   adjust_record_count gen(.genmax), records, rgfx_lumpnames(sprtype), .name & " sprites", .genmax_offset
  END WITH
 END SUB
 
 'Check a gen() entry for number of spritesets is correct, for spritesets in .pt# format
-PRIVATE SUB fix_pt_record_count(pt_num as SpriteType)
+LOCAL SUB fix_pt_record_count(pt_num as SpriteType)
  WITH sprite_sizes(pt_num)
   DIM bytes as integer = .size.x * .size.y * .frames \ 2 '--we divide by 2 because there are 2 pixels per byte
   DIM lump as string = game & ".pt" & pt_num
@@ -5082,7 +5082,7 @@ PRIVATE SUB fix_pt_record_count(pt_num as SpriteType)
 END SUB
 
 'Check a gen() entry for number of spritesets is correct, for spritesets in .rgfx format
-PRIVATE SUB fix_rgfx_record_count(rgfxdoc as DocPtr, sprtype as SpriteType)
+LOCAL SUB fix_rgfx_record_count(rgfxdoc as DocPtr, sprtype as SpriteType)
   adjust_spriteset_record_count sprtype, rgfx_num_spritesets(rgfxdoc, sprtype)
 END SUB
 

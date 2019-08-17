@@ -169,7 +169,7 @@ SUB copymapblock (sx as integer, sy as integer, sp as integer, dx as integer, dy
 END SUB
 
 'Used inside select_disabled_import_colors
-PRIVATE SUB toggle_pmask (pmask() as RGBcolor, master() as RGBcolor, index as integer)
+LOCAL SUB toggle_pmask (pmask() as RGBcolor, master() as RGBcolor, index as integer)
  pmask(index).r xor= master(index).r
  pmask(index).g xor= master(index).g
  pmask(index).b xor= master(index).b
@@ -411,7 +411,7 @@ END SUB
 
 ' Display an image and select which colours in a copy
 ' of the master palette to set to black.
-PRIVATE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
+LOCAL SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
  DIM tog as integer
  DIM prev_menu_selected as bool  ' "Previous Menu" is current selection
  DIM cx as integer
@@ -2169,7 +2169,7 @@ END SUB
 
 'Loads a tileset or backdrop to a video page
 '(Note: vpage 2 and 3 are locked (lock_page_size) to 320x200)
-PRIVATE SUB tilecut_load_source(ts as TileEditState, page as integer)
+LOCAL SUB tilecut_load_source(ts as TileEditState, page as integer)
  DIM sprtype as SpriteType
  sprtype = IIF(ts.cuttileset, sprTypeTileset, sprTypeBackdrop)
  DIM temp as Frame ptr

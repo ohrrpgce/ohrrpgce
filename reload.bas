@@ -1049,7 +1049,7 @@ sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 end sub
 
 'This is from xml2reload: is a node representable as a longint?
-private function NodeCompressible(byval node as nodeptr) as integer
+local function NodeCompressible(byval node as nodeptr) as integer
 	if (ValLng(GetString(node)) <> 0 AND ValLng(GetString(node) & "1") <> ValLng(GetString(node))) or GetString(node) = "0" then
 		return 1
 	elseif (Val(GetString(node)) <> 0 AND Val(GetString(node) & "1") <> Val(GetString(node))) or GetString(node) = "0" then
@@ -1063,7 +1063,7 @@ end function
 ' 1 - Lead/trailing whitespace, and if debugging = YES whether type will be lost, eg "" -> null
 ' 2 - Binary
 ' 3 - Long string or data, print hash
-private function NodeNeedsEncoding(byval node as nodeptr, byval debugging as bool, byval shortform as bool) as integer
+local function NodeNeedsEncoding(byval node as nodeptr, byval debugging as bool, byval shortform as bool) as integer
 	if node = null then return 0
 
 	if node->nodeType <> rltString then
@@ -1094,7 +1094,7 @@ private function NodeNeedsEncoding(byval node as nodeptr, byval debugging as boo
 end function
 
 'Escape < and & characters in a string
-private function EscapeXMLString(s as string) as string
+local function EscapeXMLString(s as string) as string
 	dim ret as string
 
 	for i as integer = 0 to len(s) - 1
@@ -1111,7 +1111,7 @@ private function EscapeXMLString(s as string) as string
 end function
 
 'Returns a Base64 encoded string, for XML serialization
-private function GetBase64EncodedString(byval node as nodeptr) as string
+local function GetBase64EncodedString(byval node as nodeptr) as string
 	if node = null orelse node->nodeType <> rltString then return ""
 
 	dim outbuf as zstring ptr

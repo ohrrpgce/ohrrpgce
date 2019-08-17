@@ -39,12 +39,12 @@ FUNCTION item_picker_or_none (recindex as integer = -1) as integer
  RETURN itemb.browse(recindex - 1, YES , @individual_item_editor, NO) + 1
 END FUNCTION
 
-PRIVATE SUB read_item_strings(itembuf() as integer, byref item_name as string, byref info as string)
+LOCAL SUB read_item_strings(itembuf() as integer, byref item_name as string, byref info as string)
  item_name = readbadbinstring(itembuf(), 0, 8)
  info = readbadbinstring(itembuf(), 9, 36)
 END SUB
 
-PRIVATE SUB write_item_strings(itembuf() as integer, item_name as string, info as string)
+LOCAL SUB write_item_strings(itembuf() as integer, item_name as string, info as string)
  writebadbinstring item_name, itembuf(), 0, 8
  writebadbinstring info, itembuf(), 9, 36
 END SUB
