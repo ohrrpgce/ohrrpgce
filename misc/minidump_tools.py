@@ -243,10 +243,10 @@ def get_source_around_line(git_dir, gitrev, filename, lineno, context = 1):
         ret.append(cursor + '%4d ' % lineidx + lines[lineidx])
     return ret
 
-def analyse_minidump(minidump, breakpad_cache_dir, git_dir = None, gitrev = None, verbose = False, stack_detail = False, ignore_pdbs = []):
+def analyse_minidump(minidump, breakpad_cache_dir, git_dir = None, gitrev = None, verbose = False, fetch = True, stack_detail = False, ignore_pdbs = []):
     """
     Analyse a minidump file using Breakpad.
-    This automatically downloads Microsoft .pdb files, but you will first want to
+    Can automatically download Microsoft .pdb files, but you will first want to
     call produce_breakpad_symbols_windows() with additional application-specific
     .pdb files, to add them to the cache/symbol store.
     Returns a triple (stacktrace, crash_summary, info) where:
@@ -258,6 +258,7 @@ def analyse_minidump(minidump, breakpad_cache_dir, git_dir = None, gitrev = None
     breakpad_cache_dir: where Breakpad .sym files should be cached
     git_dir:            path to git repo containing the source code
     gitrev:             git hash of the commit
+    fetch:              whether to download pdbs
     stack_detail:       if true return all the output from minidump_stackwalk
                         including stack contents, but no crash_summary or info.
     ignore_pdbs:        list of pdb filenames not to try to download, because
@@ -289,10 +290,14 @@ def analyse_minidump(minidump, breakpad_cache_dir, git_dir = None, gitrev = None
             _, module, version, pdb_name, pdb_id, memstart, memend, ismain = line.split('|')
             # pdb_id is 33 chars long, the GUID with a one-char age suffix.
             if module in wanted_modules and pdb_name in missing_pdbs and pdb_id:
-                pdb_path = download_windows_symbols(pdb_name, pdb_id, breakpad_cache_dir, verbose)
-                if pdb_path:
-                    if produce_breakpad_symbols_windows(pdb_path, breakpad_cache_dir, verbose=verbose):
-                        newsyms = True
+                if fetch:
+                    pdb_path = download_windows_symbols(pdb_name, pdb_id, breakpad_cache_dir, verbose)
+                    if pdb_path:
+                        if produce_breakpad_symbols_windows(pdb_path, breakpad_cache_dir, verbose=verbose):
+                            newsyms = True
+                else:
+                    bt += ['(Run with --fetch to download missing symbols)']
+                    break
 
     if newsyms:
         # Should get better stacktraces this time

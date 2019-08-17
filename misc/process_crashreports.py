@@ -190,7 +190,7 @@ def process_minidump(build, reportdir, is_custom, args):
     minidump_tools.produce_breakpad_symbols_windows(pdb, breakpad_root, verbose=args.verbose)
 
     minidump = pathjoin(reportdir, 'crashdump.dmp')
-    stacktrace, crash_summary, info = minidump_tools.analyse_minidump(minidump, breakpad_root, GIT_DIR, gitrev, args.verbose, args.stack_detail, ignore_pdbs)
+    stacktrace, crash_summary, info = minidump_tools.analyse_minidump(minidump, breakpad_root, GIT_DIR, gitrev, args.verbose, args.fetch, args.stack_detail, ignore_pdbs)
     for name, value in info:
         print_attr(name, value)
     return stacktrace, crash_summary
@@ -393,6 +393,7 @@ if __name__ == '__main__':
     parser.add_argument("report_dir", help="A directory containing either crashrpt .zip files, or a single unzipped report (must contain crashrpt.xml).")
     parser.add_argument("syms_cache_dir", help="Directory to which to download and"
                         " extract build symbols to. Will be created if it doesn't exist.")
+    parser.add_argument("-f", "--fetch", help="Download Microsoft .pdbs (slow)", action="store_true")
     parser.add_argument("-n", "--new", help="Process new reports only (not yet unzipped)", action="store_true")
     parser.add_argument("-v", "--verbose", help="Verbose output: show stderr output of invoked programs", action="store_true")
     parser.add_argument("-d", "--stack_detail", help="Show details of stack contents in stacktraces, including function pointers. "
