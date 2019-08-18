@@ -192,6 +192,9 @@ def process_minidump(build, reportdir, is_custom, args):
     else:
         gitrev = None
 
+    for pdb in args.pdb:
+        minidump_tools.produce_breakpad_symbols_windows(pdb, breakpad_root, verbose=args.verbose, add_indicator=False)
+
     ignore_pdbs = ['CrashRpt1403.pdb', 'game.pdb', 'custom.pdb']  # SDL.dll doesn't even have a .pdb
 
     if syms_fname:
@@ -445,6 +448,7 @@ if __name__ == '__main__':
     parser.add_argument("-f", "--fetch", help="Download Microsoft .pdbs (slow)", action="store_true")
     parser.add_argument("-n", "--new", help="Process new reports only (not yet unzipped)", action="store_true")
     parser.add_argument("-l", "--last", help="Process only at most the last N reports", type=int)
+    parser.add_argument("-p", "--pdb", help="Add extra .pdb, useful for unofficial builds", type=str, nargs='*', default=[])
     parser.add_argument("-v", "--verbose", help="Verbose output: show stderr output of invoked programs", action="store_true")
     parser.add_argument("-e", "--email", help="Don't mask emails", action="store_true")
     parser.add_argument("--no-stacktrace", help="Don't produce stacktraces. No external tools needed.", action="store_true")

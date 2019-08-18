@@ -98,7 +98,7 @@ def copy_file_from_git(git_dir, gitrev, path, outpath):
     with open(outpath, "wb") as fil:
         subprocess.check_call(['git', '-C', git_dir, 'show', gitrev + ':' + path], stdout=fil)
 
-def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, from_git_rev = None, git_dir = None, verbose = False):
+def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, from_git_rev = None, git_dir = None, verbose = False, add_indicator = True):
     """Produce a Breakpad .sym file from a .pdb or non-stripped .exe file, if it
     doesn't already exist, and store it in a "symbol store" hierarchy like
     $breakpad_cache_dir/custom.pdb/A3CE56E9574946E7889C371E95F63D331/custom.sym
@@ -115,7 +115,8 @@ def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, from_git_rev = Non
     (Indicator files are an optimisation, ideally we should extract the GUID/age
     from the pdb and search for that in the cache, but it would require yet
     another wine invoke.)
-    The indicator file isn't created if the pdb is already in the symbol store.
+    The indicator file isn't created if the pdb is already in the symbol store,
+    or if add_indicator=False.
 
     The .pdb is also copied into the symbol store, so that it can be found
     by other tools like the Visual Studio debugger.
@@ -212,19 +213,20 @@ def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, from_git_rev = Non
             os.rename(pdb_checkedout, symdir_pdb_path)
             if verbose:
                 print("Moving", pdb_checkedout, "to", symdir_pdb_path, file=sys.stderr)
-        else:
+        elif not os.path.lexists(symdir_pdb_path):
             if HOST_WIN32: # Avoid symlink
                 shutil.copy2(pdb, symdir_pdb_path)
             else:
                 os.symlink(os.path.relpath(pdb, symdir), symdir_pdb_path)
 
         # Add indicator file (elsewhere)
-        if HOST_WIN32:
-            # Avoid use of symlinks
-            with open(indicator_symfile, 'w') as fil:
-                fil.write(cache_symfile)
-        else:
-            os.symlink(os.path.relpath(cache_symfile, os.path.dirname(indicator_symfile)), indicator_symfile)
+        if add_indicator:
+            if HOST_WIN32:
+                # Avoid use of symlinks
+                with open(indicator_symfile, 'w') as fil:
+                    fil.write(cache_symfile)
+            else:
+                os.symlink(os.path.relpath(cache_symfile, os.path.dirname(indicator_symfile)), indicator_symfile)
 
     if verbose:
         print("Generated", cache_symfile, file=sys.stderr)
