@@ -711,6 +711,8 @@ define function, begin
 685,suspendtextboxcontrols,0  # Prevents player from using choiceboxes
 686,resumetextboxcontrols,0   # Reverses suspendtextboxcontrols
 687,textboxcontrolsaresuspended,0 # Return true if "suspend textbox control" is active
+688,menuitemcount,1,0         # Number of menu items in a menu, including invisible ones
+689,visiblemenuitemcount,1,0  # Number of visible menu items in a menu
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
@@ -1364,6 +1366,18 @@ end
 
 script, first menu item, hsd:menuhandle, begin
   exit returning(menu item by slot(hsd:menuhandle, 0))
+end
+
+script, last menu item, hsd:menuhandle, hsd:visible only=true, begin
+  variable(hsd:idx)
+  if (hsd:visible only) then (
+    hsd:idx := visible menu item count(hsd:menuhandle) -- 1
+  ) else (
+    hsd:idx := menu item count(hsd:menuhandle) -- 1
+  )
+  if (hsd:idx >= 0) then (
+    exit returning(menu item by slot(hsd:menuhandle, hsd:idx, false))
+  )
 end
 
 script, wait for menu, hsd:menuhandle, begin

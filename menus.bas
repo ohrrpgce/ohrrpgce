@@ -998,7 +998,7 @@ END SUB
 SUB init_menu_state (byref state as MenuState, menu as MenuDef)
  WITH state
   .first = 0
-  .last = count_menu_items(menu) - 1
+  .last = count_visible_menu_items(menu) - 1
   .size = menu.maxrows - 1
   IF .size = -1 THEN .size = 17  'FIXME: this is so wrong
  END WITH
@@ -1611,7 +1611,8 @@ FUNCTION anchor_point(byval anchor as AlignType, byval size as integer) as integ
  END SELECT
 END FUNCTION
 
-FUNCTION count_menu_items (menu as MenuDef) as integer
+'Number visible items -- menu.numitems is total number.
+FUNCTION count_visible_menu_items (menu as MenuDef) as integer
  DIM i as integer
  DIM count as integer = 0
  FOR i = 0 TO menu.numitems - 1

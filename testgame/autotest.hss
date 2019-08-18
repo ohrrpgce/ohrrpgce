@@ -2809,7 +2809,7 @@ end
 script, menu scroll tests, begin
   $0="menu scroll tests"
 
-  variable (main, mi, next, i, numitems)
+  variable (main, mi, next, i, numitems, numvisitems)
   main := open menu, w
   set menu bit(main, 1, false), w #show scrollbar
   allow minimap(true), w #make sure there are no hidden items
@@ -2831,9 +2831,11 @@ script, menu scroll tests, begin
       assert (mi == previous menu item(next))
     )
     set menu item extra(mi, 0, numitems)
-    mi := next
     numitems += 1
+    mi := next
   )
+  assert(numitems == 9)
+
   $err arg string=""
 
   # menu item iteration edge cases
@@ -2878,6 +2880,10 @@ script, menu scroll tests, begin
   $1="a new item!"
   set menu item caption(mi, 1), w
 
+  assert (numitems == menu item count(main))
+  numvisitems := numitems -- 3
+  assert (numvisitems == visible menu item count(main))
+
   # 3. check visible items in correct order
   variable (temp, extra, mi2)
   temp := -1
@@ -2903,6 +2909,12 @@ script, menu scroll tests, begin
     assert (menu item true slot(mi) == i)
     assert (get menu item extra(mi, 0) == i)
   )
+
+  # 6. test "last menu item"
+  assert (last menu item(main) == menu item by slot(main, numvisitems -- 1))
+  assert (last menu item(main, false) == menu item by slot(main, numitems -- 1, false))
+  assert (next menu item(last menu item(main)) == 0)  # Don't return first invisible item
+  assert (next menu item(last menu item(main), false) <> 0)  # Do return first invisible item
 
   # test scrolling again
   scroll through menu(main, numitems -- 3)

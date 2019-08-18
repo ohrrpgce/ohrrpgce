@@ -162,6 +162,7 @@ April ? 2019 [Fufluns]
     * "show string at" now respects newlines (\n in strings) [Ralph]
     * "read wall bit", "write wall bit" [Ralph]
     * "get npc sprite", "get hero sprite" convenience wrappers [Ralph]
+    * "last menu item", "menu item count", "visible menu item count" [Ralph]
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"

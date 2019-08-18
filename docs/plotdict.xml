@@ -4832,16 +4832,50 @@ end</example>
 		<command id="firstmenuitem">
 			<canon>first menu item(menu handle)</canon>
 			<shortname>first menu item</shortname>
-			<description>Given a <ref>menuhandle</ref>, return a menu item handle for the menu item at the top of the menu.</description>
+			<description>
+				Given a <ref>menuhandle</ref>, return a menu item handle for the menu item at the
+				top of the menu, or 0 (false) if there are no visible menu items.
+				<note>
+					This is NOT the handle for the first menu item defined in the menu editor.
+					Use <tt><ref>menuitembytrueslot</ref>(menu, 0)</tt> to get that one.
+				</note>
+			</description>
 		</command>
+		<command id="lastmenuitem">
+			<canon>last menu item(menu handle, visible only)</canon>
+			<shortname>last menu item</shortname>
+			<description>
+				Given a <ref>menuhandle</ref>, by default returns a menu item handle for the
+				last visible menu item, at the bottom of the menu.
+				<p>visible only</p> defaults to <tt>true</tt>.
+				If you pass <p>false</p> as the <p>visible only</p> argument,
+				then returns the last visible or invisible menu item
+				(last as seen by <ref>menuitembyslot</ref> or <ref>nextmenuitem</ref>).
+				<note>
+					<tt>last menu item(menu, false)</tt> does NOT return the handle for the
+					last menu item that appears in the menu editor, because menu items are
+					sorted based on visibility: all invisible items to the end.
+					Use <tt><ref>menuitembytrueslot</ref>(menu, <ref>menuitemcount</ref>(menu) -- 1)</tt>
+					to get that one.
+				</note>
+			</description>
+		</command>
+
 		<command id="nextmenuitem">
 			<canon>next menu item(menu item handle, visible only)</canon>
 			<shortname>next menu item</shortname>
-			<description>Given a <ref>menuitemhandle</ref>, return a menu item handle for the menu item below the specified one, or <ref>false</ref> there is no next menu item. You can optionally include invisible items by using the optional argument <p>visible only</p>, which defaults to <ref>true</ref>. Note that invisible menu items are always at the end of the menu, after the last visible menu item. See <ref>menuitembytrueslot</ref> if that's undesirable.</description>
+			<description>Given a <ref>menuitemhandle</ref>, return a menu item handle for the menu item below the specified one, or <ref>false</ref> there is no next menu item. You can optionally include invisible items by using the optional argument <p>visible only</p>, which defaults to <ref>true</ref>.
+				<note>
+					Invisible menu items are always at the end of the menu,
+					after the last visible menu item,
+					not in the order in which they are defined in the menu editor!
+					See <ref>menuitembytrueslot</ref> if that's undesirable.
+				</note>
+			</description>
 			<example>variable(mi)
 mi := first menu item
 while(mi) do, begin
-  # do things to each menu item
+  # do things to each visible menu item
   mi := next menu item(mi)
 end
 </example>
@@ -4853,6 +4887,29 @@ end
 			<example>variable(m)
 m := previous menu item(selected menu item)</example>
 		</command>
+
+		<command id="menuitemcount">
+			<canon>menu item count(menu handle)</canon>
+			<shortname>menu item count</shortname>
+			<description>
+				Returns the total number of menu items in a menu,
+				both visible and invisible (disabled).
+			</description>
+			<seealso>
+				<ref>visiblemenuitemcount</ref>
+			</seealso>
+		</command>
+		<command id="visiblemenuitemcount">
+			<canon>visible menu item count(menu handle)</canon>
+			<shortname>visible menu item count</shortname>
+			<description>
+				Returns the number of visible menu items in a menu.
+			</description>
+			<seealso>
+				<ref>menuitemcount</ref>
+			</seealso>
+		</command>
+
 		<command id="menuitembytrueslot">
 			<canon>menu item by true slot(menu handle, slot)</canon>
 			<shortname>menu item by true slot</shortname>
@@ -4877,6 +4934,8 @@ m := previous menu item(selected menu item)</example>
 			<seealso>
 				<ref>menuitemslot</ref>
 				<ref>menuitembytrueslot</ref>
+				<ref>menuitemcount</ref>
+				<ref>visiblemenuitemcount</ref>
 			</seealso>
 		</command>
 		<command id="menuitemslot">

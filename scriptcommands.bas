@@ -4720,6 +4720,14 @@ SUB script_functions(byval cmdid as integer)
   setbit gen(), genSuspendBits, suspendtextboxcontrols, 0
  CASE 687'--textbox controls are suspended
   scriptret = readbit(gen(), genSuspendBits, suspendtextboxcontrols)
+ CASE 688'--menu item count (menu)
+  IF valid_menu_handle(retvals(0), menuslot) THEN
+   scriptret = menus(menuslot).numitems
+  END IF
+ CASE 689'--visible menu item count (menu)
+  IF valid_menu_handle(retvals(0), menuslot) THEN
+   scriptret = count_visible_menu_items(menus(menuslot))
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
