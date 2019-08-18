@@ -1433,7 +1433,7 @@ end sub
 'writable: whether attempting to *explicitly* open with write access
 '    (false for generic OPENFILE FOR_BINARY calls, which allows reading+writing)
 'writes_allowed: arg passed to set_OPEN_hook: true in Custom, false in Game.
-function inworkingdir cdecl (filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
+function inworkingdir (filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
 	if RIGHT(filename, 10) = "_debug.txt" then return FilterActionEnum.dont_hook
 	'if RIGHT(filename, 12) = "_archive.txt" then return FilterActionEnum.dont_hook
 	'Uncomment this for OPEN tracing (or you could just use strace...)

@@ -255,7 +255,7 @@ Enum FilterActionEnum Explicit
 	hide = 4      ' Don't open the file, return file not found
 End Enum
 
-type FnOpenCallback as function cdecl (filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
+type FnOpenCallback as function (filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
 
 extern "C"
 
@@ -292,7 +292,7 @@ end extern
 'This is always true except in Game when live previewing (running off Custom's workingdir)
 extern can_write_to_workingdir as bool
 
-declare function inworkingdir cdecl (filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
+declare function inworkingdir (filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
 declare function hook_all_files(filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
 
 declare function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as string, line_in as string = "", timeout_ms as integer = 500) as integer

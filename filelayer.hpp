@@ -63,7 +63,6 @@ struct FileInfo {
 extern "C" {
 #endif
 
-	typedef FBCALL boolint (*FnStringPredicate)(FBSTRING *filename);
 	typedef FBCALL enum FilterActionEnum (*FnOpenCallback)(FBSTRING *filename, boolint writable, boolint writes_allowed);
 
 	void send_lump_modified_msg(const char *filename);
