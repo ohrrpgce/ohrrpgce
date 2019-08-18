@@ -111,23 +111,27 @@ def print_matching_line(line, key, regex = None, groupnum = 1):
         return value
     return ''
 
-class NoBacktraceError(ValueError): pass
+class NoSymbolsError(ValueError): pass
 
 def symbols_filename_from_build(build):
     """Work out what the name of the symbols file (as uploaded to SYMBOLS_ARCHIVE_URL)
-    for this build is. Or return None if unknown.
+    for this build is, or raise NoSymbolsError if there is none.
 
     build is a string, long_version + build_info in the FB source.
     """
+    if not build:  # Should always be present
+        raise NoSymbolsError("build string missing from crashrpt.xml!")
+        syms_fname = None
+
     ohrvercode = build.split(' ')[1]  # This is 'wip' for a nightly, or else the version
     backends = build.split(' ')[3]
 
     if 'vampirecell' not in build:
-        raise NoBacktraceError("Not built on official Windows build machine, don't know where to get symbols!")
+        raise NoSymbolsError("No symbols: not an official build!")
     elif 'pdb' not in build:
-        raise NoBacktraceError("Not built with pdb symbols!")
+        raise NoSymbolsError("Not built with pdb symbols!")
     elif backends not in BACKENDS_SYMSNAME:
-        raise NoBacktraceError("Not a standard build (unrecognised backends combination)")
+        raise NoSymbolsError("No symbols: unrecognised build backends")
     else:
         buildtag = BACKENDS_SYMSNAME[backends]
         if '-exx' in build:
@@ -163,19 +167,18 @@ def download_and_extract_symbols(syms_fname, args):
 
 def process_minidump(build, reportdir, is_custom, args):
     """Read a minidump file (producing .sym files as necessary), print info
-    from it, and return a (stacktrace, crash_summary) pair.
-    Raises NoBacktraceError if not possible."""
-    if not build:  # Should always be present
-        raise NoBacktraceError("build string missing from crashrpt.xml!")
-
-    # Get the symbols .7z archive
-    syms_fname = symbols_filename_from_build(build)
-
-    pdb_dir = download_and_extract_symbols(syms_fname, args)
+    from it, and return a (stacktrace, crash_summary) pair."""
+    # Try to determine the symbols .7z archive
+    try:
+        syms_fname = symbols_filename_from_build(build)
+        error_note = ""
+    except NoSymbolsError as err:
+        syms_fname = None
+        error_note = str(err)
 
     breakpad_root = pathjoin(SYMS_CACHE_DIR, 'breakpad')
 
-    if GIT_DIR:
+    if GIT_DIR and build:
         date, svnrev = build.split(' ')[2].split('.')
         gitrev = svn_to_git_rev(svnrev)
         print_attr('Git commit', gitrev[:9])
@@ -191,14 +194,20 @@ def process_minidump(build, reportdir, is_custom, args):
 
     ignore_pdbs = ['CrashRpt1403.pdb', 'game.pdb', 'custom.pdb']  # SDL.dll doesn't even have a .pdb
 
-    pdbname = 'custom' if is_custom else 'game'
-    pdb = pathjoin(pdb_dir, pdbname + '.pdb')
-    minidump_tools.produce_breakpad_symbols_windows(pdb, breakpad_root, verbose=args.verbose)
+    if syms_fname:
+        pdb_dir = download_and_extract_symbols(syms_fname, args)
+
+        pdbname = 'custom' if is_custom else 'game'
+        pdb = pathjoin(pdb_dir, pdbname + '.pdb')
+        minidump_tools.produce_breakpad_symbols_windows(pdb, breakpad_root, verbose=args.verbose)
 
     minidump = pathjoin(reportdir, 'crashdump.dmp')
     stacktrace, crash_summary, info = minidump_tools.analyse_minidump(minidump, breakpad_root, GIT_DIR, gitrev, args.verbose, args.fetch, args.stack_detail, ignore_pdbs)
     for name, value in info:
         print_attr(name, value)
+    if error_note:
+        stacktrace += [error_note]
+        crash_summary += ' ' + error_note
     return stacktrace, crash_summary
 
 class ReportSummary:
@@ -328,15 +337,10 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
     #print(time.strptime(root.find('SystemTimeUTC').text, '%Y-%m-%dT%H:%M:%SZ'))
 
     # Get stacktrace and other info from the minidump
-    try:
-        if args.no_stacktrace:
-            stacktrace, summary.crash_summary = None, 'N/A'
-        else:
-            stacktrace, summary.crash_summary = process_minidump(build, reportdir, is_custom, args)
-    except NoBacktraceError as err:
-        print(err)
-        stacktrace = None
-        summary.crash_summary = "No stacktrace: " + str(err)
+    if args.no_stacktrace:
+        stacktrace, summary.crash_summary = None, 'N/A'
+    else:
+        stacktrace, summary.crash_summary = process_minidump(build, reportdir, is_custom, args)
     # Print the stacktrace later, at the end
 
     # Print errors
