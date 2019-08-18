@@ -75,7 +75,7 @@ dim shared main_thread_id as integer
 	declare function CopyFile_ alias "CopyFileA" (byval as LPCSTR, byval as LPCSTR, byval as BOOL) as BOOL
 #endif
 
-extern "C"
+extern "Windows"
 #undef GetProcessMemoryInfo
 dim shared GetProcessMemoryInfo as function (byval Process as HANDLE, byval ppsmemCounters as PPROCESS_MEMORY_COUNTERS, byval cb as DWORD) as WINBOOL
 #undef GetProcessImageFileNameA
