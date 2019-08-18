@@ -26,6 +26,7 @@ Run with --help for usage info.
 import sys
 import os
 from os.path import join as pathjoin
+import ntpath
 import platform
 import subprocess
 import re
@@ -92,18 +93,23 @@ def print_attr(name, value):
     """Print an attribute of a report"""
     print("%22s %s" % (name, value))
 
-def print_matching_line(line, key, regex = None):
-    """If a line matches a regex, print match for group 1, or whatever follows if no groups.
-    `key`: name of the printed attribute"""
+def print_matching_line(line, key, regex = None, groupnum = 1):
+    """If a line matches a regex, print match for group `groupnum`, or whatever
+    follows if no groups, and also return it.
+
+    `key`: name of the printed attribute
+    """
     if not regex:
         regex = key
     match = re.search(regex, line, re.I)
     if match:
         if len(match.groups()):
-            print_attr(key, match.group(1))
+            value = match.group(groupnum)
         else:
-            print_attr(key, line[match.end():].strip())
-
+            value = line[match.end():].strip()
+        print_attr(key, value)
+        return value
+    return ''
 
 class NoBacktraceError(ValueError): pass
 
@@ -195,30 +201,36 @@ def process_minidump(build, reportdir, is_custom, args):
         print_attr(name, value)
     return stacktrace, crash_summary
 
+class ReportSummary:
+    def __getattr__(self, attr):
+        return ''
 
 def process_crashrpt_report(reportdir, uuid, upload_time, args):
     """Print info about an unzipped crashrpt report, and return a row for the
-    summary table as a tuple."""
+    summary table as a ReportSummary instance."""
 
-    upload_date = time.strftime('%Y%m%d', upload_time)
-    report_summary = (uuid[:6], upload_date)
+    summary = ReportSummary()
+    summary.uuid = uuid[:6]
+    summary.upload_date = time.strftime('%Y%m%d', upload_time)
 
     if not os.path.isdir(reportdir):
-        return report_summary + ('', 'Could not unzip')
+        summary.crash_summary = 'Could not unzip'
+        return summary
 
     # Print interesting info from the xml file
     xmlfile = pathjoin(reportdir, 'crashrpt.xml')
     try:
         tree = ET.parse(xmlfile)
     except FileNotFoundError:
-        return report_summary + ('', 'crashrpt.xml missing')
+        summary.crash_summary = 'crashrpt.xml missing'
+        return summary
     root = tree.getroot()
 
     real_uuid = root.find('CrashGUID').text
     if real_uuid != uuid:
         if uuid != '???':
             print('Warning! UUID ' + real_uuid + ' found in report ' + reportdir)
-        report_summary = (real_uuid[:6], upload_date)
+        summary.uuid = real_uuid[:6]
 
     print('\n\n\n######### Report ' + real_uuid + ' #########')
     print_attr('Upload time', time.strftime('%Y-%m-%d %H:%M:%S UTC', upload_time))
@@ -228,6 +240,15 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
                     'OperatingSystem', 'GeoLocation', 'UserEmail', 'ProblemDescription'):
         elmt = root.find(tagname)
         if elmt is not None and elmt.text:
+            if tagname == 'UserEmail':
+                # Censor emails
+                if args.email == False and '@' in elmt.text:
+                    user, domain = elmt.text.split('@')
+                    elmt.text = user[:5] + '***@' + domain
+                summary.email = elmt.text
+            if tagname == 'ProblemDescription':
+                elmt.text = elmt.text.replace('\n', ' ').replace('\r', '')
+                summary.description = elmt.text
             print_attr(tagname, elmt.text)
     build = None
     for x in root.iter('Prop'):
@@ -236,6 +257,7 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
             build = x.attrib['value']
 
     is_custom = (root.find('AppName').text == 'OHRRPGCE-Custom')
+    summary.program = 'Custom' if is_custom else 'Game'
 
     # List any extra files attached to the report. Log files can be deleted by users, or the can add
     # more, and c/g_debug_archive.txt might not exist
@@ -258,12 +280,18 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
         with open(logfname, 'r', encoding='latin-1') as logfile:
             loglines = logfile.readlines()
             for lineidx, line in enumerate(loglines):
-                # Custom: the .rpg file and getdisplayname()
-                print_matching_line(line, 'Editing game')
+                # Custom: Editing game <.rpg> (<getdisplayname()>)
+                game = print_matching_line(line, 'Editing game')
+                if game:
+                    summary.game = ntpath.basename(game)
                 # Game: the .rpg file (but ignore '----Loading a game----' line printed by Custom)
-                print_matching_line(line, 'Playing game', 'Loading (.*rpg.*)----')
+                game = print_matching_line(line, 'Playing game', 'Loading (.*rpg.*)----')
+                if game:
+                    summary.game += ntpath.basename(game) + ' '
                 # Game: getdisplayname()
-                print_matching_line(line, 'Game name', '[ 0-9.:]+ Name: (.+)')
+                game = print_matching_line(line, 'Game name', '[ 0-9.:]+ Name: (.+)')
+                if game:
+                    summary.game += game
                 # Game: run via Test Game, show the Custom version info message
                 print_matching_line(line, 'Spawned from Custom', 'Received message from Custom: (V.*)')
                 #print_matching_line(line, 'settings_dir', 'settings_dir: (.*)')
@@ -272,6 +300,15 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
                 # gfx_directx doesn't, it prints directly to debug log, and there's no
                 # one-line summary, so just show this
                 print_matching_line(line, 'Backend init info', 'Initialising (gfx_directx)')
+
+                if not summary.username:
+                    user = print_matching_line(line, 'Username', r'settings_dir: .*(Documents and Settings|Users)\\([^\\]+)\\', 2)
+                    if user:
+                        summary.username = user
+                    # Fallback determination of username, if the crash happens during Test Game startup
+                    user = print_matching_line(line, 'Username', r'message from Custom: W .*(Documents and Settings|Users)\\([^\\]+)\\', 2)
+                    if user:
+                        summary.username = user
 
                 err = re.match(error_regex, line)
                 if err:
@@ -293,13 +330,13 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
     # Get stacktrace and other info from the minidump
     try:
         if args.no_stacktrace:
-            stacktrace, crash_summary = None, 'N/A'
+            stacktrace, summary.crash_summary = None, 'N/A'
         else:
-            stacktrace, crash_summary = process_minidump(build, reportdir, is_custom, args)
+            stacktrace, summary.crash_summary = process_minidump(build, reportdir, is_custom, args)
     except NoBacktraceError as err:
         print(err)
         stacktrace = None
-        crash_summary = "No stacktrace: " + str(err)
+        summary.crash_summary = "No stacktrace: " + str(err)
     # Print the stacktrace later, at the end
 
     # Print errors
@@ -344,8 +381,8 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
             print(line)
 
     # Return summary
-    version_summary = ' '.join(build.split(' ')[1:3])  # ohrvercode, builddate.svnrev
-    return report_summary + (version_summary, crash_summary)
+    summary.version = ' '.join(build.split(' ')[1:3])  # ohrvercode, builddate.svnrev
+    return summary
 
 
 def process_crashrpt_reports_directory(reports_dir, args):
@@ -390,10 +427,11 @@ def process_crashrpt_reports_directory(reports_dir, args):
 
 def print_summary_table(report_summaries):
     print('\n\n\n######### Summary #########')
-    print('%-6s  %-8s  %-27s  %s' % ('UUID', 'Uploaded', 'Version', 'Top stack frames'))
-    for items in report_summaries:
-        #uuid, upload_date, version_summary, crash_summary = items
-        print('%-6s  %s  %-27s  %s' % items)
+    print('%-6s  %-8s  %-6s  %-27s  %s' % ('UUID', 'Uploaded', 'Prog', 'Version', 'Top stack frames'))
+    print('%-6s  %-8s  %-6s  %-27s  %s' % ('Who', '', 'User', 'Game', 'Description'))
+    for rpt in report_summaries:
+        print(f'{rpt.uuid:<6}  {rpt.upload_date:8}  {rpt.program:<6}  {rpt.version:<27.27}  {rpt.crash_summary}\n'
+              f'{rpt.email:16.16}  {rpt.username:6.6}  {rpt.game:<27.27}  {rpt.description}\n')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Print summary of one or more CrashRpt reports. See comments at top of file.")
@@ -404,6 +442,7 @@ if __name__ == '__main__':
     parser.add_argument("-n", "--new", help="Process new reports only (not yet unzipped)", action="store_true")
     parser.add_argument("-l", "--last", help="Process only at most the last N reports", type=int)
     parser.add_argument("-v", "--verbose", help="Verbose output: show stderr output of invoked programs", action="store_true")
+    parser.add_argument("-e", "--email", help="Don't mask emails", action="store_true")
     parser.add_argument("--no-stacktrace", help="Don't produce stacktraces. No external tools needed.", action="store_true")
     parser.add_argument("-d", "--stack-detail", help="Show details of stack contents in stacktraces, including function pointers. "
                         "Might help to decipher corrupt stacks or when the crash is in a Windows system dll. "
