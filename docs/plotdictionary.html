@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2019-08-12)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2019-08-18)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1657,6 +1657,9 @@
 		<a href="#about-lastformation">last formation</a><br>
 		
 	
+		<a href="#about-lastmenuitem">last menu item(menu handle, visible only)</a><br>
+		
+	
 		<a href="#about-lastsaveslot">last save slot</a><br>
 		
 	
@@ -1787,6 +1790,9 @@
 		
 	
 		<a href="#about-menuitembytrueslot">menu item by true slot(menu handle, slot)</a><br>
+		
+	
+		<a href="#about-menuitemcount">menu item count(menu handle)</a><br>
 		
 	
 		<a href="#about-menuitemdisabled">menu item disabled(menu item handle)</a><br>
@@ -3278,6 +3284,9 @@
 		<a href="#about-tileconstants">vehicle B</a><br>
 	
 		<a href="#about-vertflipsprite">vert flip sprite (handle, flip)</a><br>
+		
+	
+		<a href="#about-visiblemenuitemcount">visible menu item count(menu handle)</a><br>
 		
 	
 		<a href="#about-wait">wait (ticks)</a><br>
@@ -10883,7 +10892,40 @@ end</pre>
 <a name="about-firstmenuitem"></a>
 		<h4>first menu item(menu handle)</h4>
 <p>
-			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return a menu item handle for the menu item at the top of the menu.
+			
+				Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return a menu item handle for the menu item at the
+				top of the menu, or 0 (false) if there are no visible menu items.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					This is NOT the handle for the first menu item defined in the menu editor.
+					Use <span class="code"><a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a>(menu, 0)</span> to get that one.
+				</div>
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-lastmenuitem"></a>
+		<h4>last menu item(menu handle, visible only)</h4>
+<p>
+			
+				Given a <a href="#about-menuhandle" class="ref">menu handle</a>, by default returns a menu item handle for the
+				last visible menu item, at the bottom of the menu.
+				<span class="param">visible only</span> defaults to <span class="code">true</span>.
+				If you pass <span class="param">false</span> as the <span class="param">visible only</span> argument,
+				then returns the last visible or invisible menu item
+				(last as seen by <a href="#about-menuitembyslot" class="ref">menu item by slot</a> or <a href="#about-nextmenuitem" class="ref">next menu item</a>).
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					<span class="code">last menu item(menu, false)</span> does NOT return the handle for the
+					last menu item that appears in the menu editor, because menu items are
+					sorted based on visibility: all invisible items to the end.
+					Use <span class="code"><a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a>(menu, <a href="#about-menuitemcount" class="ref">menu item count</a>(menu) -- 1)</span>
+					to get that one.
+				</div>
+			
 			
 			
 			
@@ -10893,12 +10935,20 @@ end</pre>
 <a name="about-nextmenuitem"></a>
 		<h4>next menu item(menu item handle, visible only)</h4>
 <p>
-			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, return a menu item handle for the menu item below the specified one, or <a href="#about-booleanconstants" class="ref">false</a> there is no next menu item. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item. See <a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a> if that's undesirable.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, return a menu item handle for the menu item below the specified one, or <a href="#about-booleanconstants" class="ref">false</a> there is no next menu item. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					Invisible menu items are always at the end of the menu,
+					after the last visible menu item,
+					not in the order in which they are defined in the menu editor!
+					See <a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a> if that's undesirable.
+				</div>
+			
 			
 			<pre>variable(mi)
 mi := first menu item
 while(mi) do, begin
-  # do things to each menu item
+  # do things to each visible menu item
   mi := next menu item(mi)
 end
 </pre>
@@ -10914,6 +10964,33 @@ end
 			<pre>variable(m)
 m := previous menu item(selected menu item)</pre>
 			
+		</p>
+</div>
+		<div class="command">
+<a name="about-menuitemcount"></a>
+		<h4>menu item count(menu handle)</h4>
+<p>
+			
+				Returns the total number of menu items in a menu,
+				both visible and invisible (disabled).
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-visiblemenuitemcount" class="ref">visible menu item count</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-visiblemenuitemcount"></a>
+		<h4>visible menu item count(menu handle)</h4>
+<p>
+			
+				Returns the number of visible menu items in a menu.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-menuitemcount" class="ref">menu item count</a></li></ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -10952,7 +11029,11 @@ m := previous menu item(selected menu item)</pre>
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-menuitemslot" class="ref">menu item slot</a>, </li>
-<li><a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a></li>
+<li>
+<a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a>, </li>
+<li>
+<a href="#about-menuitemcount" class="ref">menu item count</a>, </li>
+<li><a href="#about-visiblemenuitemcount" class="ref">visible menu item count</a></li>
 </ul>
 </div>
 		</p>
@@ -20232,7 +20313,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 870 commands (of which 49 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 873 commands (of which 49 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

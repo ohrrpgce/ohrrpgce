@@ -33,7 +33,7 @@
 	<!ATTLIST a            href CDATA #IMPLIED>
 	<!ELEMENT lb           (#PCDATA)>
 	<!ELEMENT p            (#PCDATA)>
-	<!ELEMENT tt           (#PCDATA)>
+	<!ELEMENT tt           ANY>
 	<!ELEMENT b            (#PCDATA)>
 ]>
 <!--
@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2019-08-12">
+<plotscript version="wip" datecode="2019-08-18">
 
 	<section title="Declarations">
 		<command id="plotscript">
