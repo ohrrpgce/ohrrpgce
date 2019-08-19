@@ -187,12 +187,17 @@ def process_minidump(build, reportdir, is_custom, args):
         # git rather than included in the symbols .7z archive.
         # (SDL.pdb, SDL2.pdb are missing, not provided by SDL, would need to
         # rebuild them ourselves)
-        for pdb in ('win32/gfx_directx.pdb', 'win32/SDL_mixer.pdb', 'win32/SDL2_mixer.pdb'):
-            minidump_tools.produce_breakpad_symbols_windows(pathjoin(GIT_DIR, pdb), breakpad_root, file_lastchange_git_rev(GIT_DIR, pdb, gitrev), GIT_DIR, verbose=args.verbose)
+        for dllname in ('gfx_directx', 'SDL_mixer', 'SDL2_mixer'):
+            pdbname = pathjoin('win32', dllname + '.pdb')
+            pdb = pathjoin(GIT_DIR, pdbname)
+            dll = pathjoin(GIT_DIR, dllname + '.dll')
+            pdbgitrev = file_lastchange_git_rev(GIT_DIR, pdbname, gitrev)
+            minidump_tools.produce_breakpad_symbols_windows(pdb, breakpad_root, dll, pdbgitrev, GIT_DIR, verbose=args.verbose)
     else:
         gitrev = None
 
     for pdb in args.pdb:
+        # Don't add indicator files, are a nuiscance inside a build directory
         minidump_tools.produce_breakpad_symbols_windows(pdb, breakpad_root, verbose=args.verbose, add_indicator=False)
 
     ignore_pdbs = ['CrashRpt1403.pdb', 'game.pdb', 'custom.pdb']  # SDL.dll doesn't even have a .pdb

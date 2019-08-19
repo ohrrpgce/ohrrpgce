@@ -98,7 +98,7 @@ def copy_file_from_git(git_dir, gitrev, path, outpath):
     with open(outpath, "wb") as fil:
         subprocess.check_call(['git', '-C', git_dir, 'show', gitrev + ':' + path], stdout=fil)
 
-def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, from_git_rev = None, git_dir = None, verbose = False, add_indicator = True):
+def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, exe = None, from_git_rev = None, git_dir = None, verbose = False, add_indicator = True):
     """Produce a Breakpad .sym file from a .pdb or non-stripped .exe file, if it
     doesn't already exist, and store it in a "symbol store" hierarchy like
     $breakpad_cache_dir/custom.pdb/A3CE56E9574946E7889C371E95F63D331/custom.sym
@@ -126,6 +126,9 @@ def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, from_git_rev = Non
 
     pdb:     path to .pdb or non-stripped .exe file.
              Might be either inside the symbol store, or elsewhere.
+    exe:     Matching exe/dll to the pdb file. Don't need to pass this if it's
+             next to the .pdb. Will be installed into the symbol store.
+             Optional, but good to install for other debuggers.
     breakpad_cache_dir:
              root of "symbol store" tree of Breakpad .sym files
              (doesn't need to exist yet.)
@@ -136,10 +139,8 @@ def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, from_git_rev = Non
     git_dir: only used if from_git_rev given. pdb must be under this directory.
 
     Note (verbose=True only): you'll see a message "Couldn't locate EXE or DLL
-    file." if the original exe/dll isn't next to the .pdb, but this doesn't
-    matter, the only effect is that a line like "INFO CODE_ID 5B8FB86D53000
-    gfx_directx.dll" will be missing from the .sym file, which is not used for
-    anything.
+    file." if the original exe/dll isn't next to the .pdb and `exe` isn't
+    provided, which is a problem for VC++'s debugger but not breakpad.
     However, if we built 64-bit binaries then having the .exe/.dll next to would
     be mandatory, because stack-unwinding metadata isn't in the .pdb.
     (Alternatively, we could fork dump_syms and add an arg to add a call to
@@ -168,11 +169,19 @@ def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, from_git_rev = Non
         os.remove(indicator_symfile)
 
     if from_git_rev:
+        tempdir = pathjoin(breakpad_cache_dir, 'temp')
+        os.makedirs(tempdir, exist_ok = True)
+
         # We can't use just `pdb`, which might be the wrong version, get it from git
-        pdb_checkedout = pathjoin(breakpad_cache_dir, '_' + pdb_fullname)  # temp filename
+        pdb_checkedout = pathjoin(tempdir, pdb_fullname)  # temp filename
         copy_file_from_git(git_dir, from_git_rev, os.path.relpath(pdb, git_dir), pdb_checkedout)
+        if exe:
+            _, exe_fullname = os.path.split(exe)
+            exe_checkedout = pathjoin(tempdir, exe_fullname)  # temp filename
+            copy_file_from_git(git_dir, from_git_rev, os.path.relpath(exe, git_dir), exe_checkedout)
     else:
         pdb_checkedout = pdb
+        exe_checkedout = exe
 
     # We don't know where to put the .sym file yet, because we need to produce
     # it and read it to get the id, so write it at $indicator_symfile for now
@@ -192,9 +201,41 @@ def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, from_git_rev = Non
     # Wipe previous line
     #print(' ' * 79, end='\r')
 
-    # Get pdb id (GUID+age) out of the .sym file
+    # Get pdb id (GUID+age) and module id out of the .sym file
+    exe_id = None
     with open(indicator_symfile, 'r') as fil:
         pdb_id = fil.readline().split(' ')[3]
+        toks = fil.readline().split(' ')
+        # The INFO line is missing if the module wasn't next to the .pdb
+        # If it's here, I assume that means it IS next to the pdb
+        if toks[:2] == ['INFO', 'CODE_ID']:
+            exe_id = toks[2]
+            exe_name = toks[3].strip()
+            if not exe:
+                # Explicit path not given, so pdb_checkedout is in pdb_dir
+                exe_checkedout = pathjoin(pdb_dir, exe_name)
+
+
+    def install_file_in_store(cache_dir, srcfile):
+        "Copy/move/symlink srcfile into cache_dir, as appropriate"
+        os.makedirs(cache_dir, exist_ok = True)
+        _, filename = os.path.split(srcfile)
+        cache_file = pathjoin(cache_dir, filename)
+        if os.path.exists(cache_file):
+            return
+
+        if os.path.islink(cache_file):  #Stale symlink?
+            os.remove(cache_file)
+
+        if from_git_rev:
+            os.rename(srcfile, cache_file)
+            if verbose:
+                print("Moving", srcfile, "to", cache_file, file=sys.stderr)
+        elif not os.path.lexists(cache_file):
+            if HOST_WIN32: # Avoid symlink
+                shutil.copy2(srcfile, cache_file)
+            else:
+                os.symlink(os.path.relpath(srcfile, cache_dir), cache_file)
 
     # Move the .pdb and .sym file into the symbol store unless they're already
     # there because `pdb` is there.
@@ -202,22 +243,11 @@ def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, from_git_rev = Non
     cache_symfile = pathjoin(symdir, pdb_basename + '.sym')
     #if os.path.realpath(indicator_symfile) != os.path.realpath(cache_symfile):
     if os.path.realpath(pdb_dir) != os.path.realpath(symdir):
-        os.makedirs(symdir, exist_ok = True)
+        # Copy/move/symlink .pdb
+        install_file_in_store(symdir, pdb_checkedout)
 
         # Move .sym
         os.rename(indicator_symfile, cache_symfile)
-
-        # Copy/move/symlink .pdb
-        symdir_pdb_path = pathjoin(symdir, pdb_fullname)
-        if from_git_rev:
-            os.rename(pdb_checkedout, symdir_pdb_path)
-            if verbose:
-                print("Moving", pdb_checkedout, "to", symdir_pdb_path, file=sys.stderr)
-        elif not os.path.lexists(symdir_pdb_path):
-            if HOST_WIN32: # Avoid symlink
-                shutil.copy2(pdb, symdir_pdb_path)
-            else:
-                os.symlink(os.path.relpath(pdb, symdir), symdir_pdb_path)
 
         # Add indicator file (elsewhere)
         if add_indicator:
@@ -227,6 +257,12 @@ def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, from_git_rev = Non
                     fil.write(cache_symfile)
             else:
                 os.symlink(os.path.relpath(cache_symfile, os.path.dirname(indicator_symfile)), indicator_symfile)
+
+    if exe_id:
+        # Symlink/copy the module to the symbol store
+        exedir = pathjoin(breakpad_cache_dir, exe_name, exe_id)
+        # Copy/move/symlink exe
+        install_file_in_store(exedir, exe_checkedout)
 
     if verbose:
         print("Generated", cache_symfile, file=sys.stderr)
@@ -240,9 +276,9 @@ def get_source_around_line(git_dir, gitrev, filename, lineno, context = 1):
     lines = contents.replace('\r', '').split('\n')
     ret = []
     # Add one extra line before, because lineno is typically the line after the actual one
-    for lineidx in range(max(0, lineno - context - 1), min(len(lines), lineno + context + 1)):
+    for lineidx in range(max(1, lineno - context - 1), min(len(lines), lineno + context + 1)):
         cursor = ' ->' if lineidx == lineno else '   '
-        ret.append(cursor + '%4d ' % lineidx + lines[lineidx])
+        ret.append(cursor + '%4d ' % lineidx + lines[lineidx - 1])
     return ret
 
 def analyse_minidump(minidump, breakpad_cache_dir, git_dir = None, gitrev = None, verbose = False, fetch = True, stack_detail = False, ignore_pdbs = []):
