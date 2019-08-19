@@ -1397,7 +1397,8 @@ SUB secret_menu ()
    IF st.pt = 16 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
    IF st.pt = 17 THEN
     DIM options(...) as string = {"Hero", "Small Enemy", "Medium Enemy", "Large Enemy", "Walkabouts", "Weapons", "Attack", "Boxborder", "Portrait", "Backdrop", "Enemy"}
-    spriteset_editor multichoice("Edit what?", options())
+    DIM sprtype as SpriteType = multichoice("Edit what?", options())
+    IF sprtype > -1 THEN spriteset_editor sprtype
    END IF
    IF st.pt = 18 THEN backdrop_browser
    IF st.pt = 19 THEN new_graphics_tests
