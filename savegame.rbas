@@ -782,13 +782,9 @@ END SUB
 
 SUB gamestate_inventory_from_reload(byval node as Reload.NodePtr)
  DIM i as integer
- 
- gen(genMaxInventory) = node."size"
- IF gen(genMaxInventory) > inventoryMax THEN
-  rsav_warn "inventory size exceeds limit: " & gen(genMaxInventory)
-  gen(genMaxInventory) = inventoryMax
- END IF
 
+ gen(genMaxInventory) = node."size"
+ 'Calling last_inv_slot clamps gen(genMaxInventory) to a valid value
  DIM last as integer
  last = last_inv_slot()
 
@@ -1247,12 +1243,11 @@ SUB gamestate_inventory_to_reload(byval parent as Reload.NodePtr)
  node = SetChildNode(parent, "inventory")
  DIM ch as NodePtr 'used for sub-containers
  DIM n as NodePtr 'used for numbered containers
- 
- SetChildNode(node, "size", gen(genMaxInventory))
+
+ DIM last as integer = last_inv_slot()
+ SetChildNode(node, "size", last)
 
  ch = SetChildNode(node, "slots")
- DIM last as integer
- last = small(inventoryMax, UBOUND(inventory))
  FOR i as integer = 0 TO last
   WITH inventory(i)
    IF .used THEN

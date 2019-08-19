@@ -6051,7 +6051,13 @@ FUNCTION last_inv_slot() as integer
  IF gen(genMaxInventory) = 0 THEN RETURN inventoryMax
  '--Otherwise round genMaxInventory up to the nearest
  '-- multiple of three (counting the zero-slot) and return it.
- RETURN ((gen(genMaxInventory) + 3) \ 3) * 3 - 1
+ DIM ret as integer = ((gen(genMaxInventory) + 3) \ 3) * 3 - 1
+ IF NOT in_bound(ret, 0, inventoryMax) THEN ret = inventoryMax
+ IF ret <> gen(genMaxInventory) THEN
+  debug "Invalid max inventory slot " & gen(genMaxInventory) & ", changing to " & ret
+  gen(genMaxInventory) = ret
+ END IF
+ RETURN ret
 END FUNCTION
 
 FUNCTION SpriteSize.lastrec() as integer
