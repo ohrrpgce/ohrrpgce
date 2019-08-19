@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2019-08-18">
+<plotscript version="wip" datecode="2019-08-19">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -4691,9 +4691,15 @@ get hero name (1, find hero (leader))
 			<description>Create a new empty menu. You can add menu items to it with the <ref>addmenuitem</ref> command. The return value is a menu handle that you should save in a variable for use with other menu related commands. Menus created with this command have the "Allow gameplay and scripts" bitset turned on by default.</description>
 		</command>
 		<command id="closemenu">
-			<canon>close menu(menu handle)</canon>
+			<canon>close menu(menu handle, run close script)</canon>
 			<shortname>close menu</shortname>
-			<description>Close a menu. The argument is a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref> or <ref>topmenu</ref>).</description>
+			<description>
+				Close a menu.
+				The first argument is a <p>menu handle</p>
+				(for example, the one returned by <ref>openmenu</ref> or <ref>topmenu</ref>).
+				The second argument <p>run close script</p>, which defaults to <ref>false</ref>,
+				states whether to run the menu's on-close script, if there is one.
+			</description>
 		</command>
 		<command id="topmenu">
 			<canon>top menu</canon>

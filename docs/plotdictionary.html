@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2019-08-18)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2019-08-19)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -736,7 +736,7 @@
 		<a href="#about-clonesprite">clone sprite (handle)</a><br>
 		
 	
-		<a href="#about-closemenu">close menu(menu handle)</a><br>
+		<a href="#about-closemenu">close menu(menu handle, run close script)</a><br>
 		
 	
 		
@@ -10647,9 +10647,15 @@ get hero name (1, find hero (leader))
 </div>
 		<div class="command">
 <a name="about-closemenu"></a>
-		<h4>close menu(menu handle)</h4>
+		<h4>close menu(menu handle, run close script)</h4>
 <p>
-			Close a menu. The argument is a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a> or <a href="#about-topmenu" class="ref">top menu</a>).
+			
+				Close a menu.
+				The first argument is a <span class="param">menu handle</span>
+				(for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a> or <a href="#about-topmenu" class="ref">top menu</a>).
+				The second argument <span class="param">run close script</span>, which defaults to <a href="#about-booleanconstants" class="ref">false</a>,
+				states whether to run the menu's on-close script, if there is one.
+			
 			
 			
 			

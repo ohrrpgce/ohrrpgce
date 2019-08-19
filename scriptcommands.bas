@@ -886,9 +886,9 @@ SUB script_functions(byval cmdid as integer)
  CASE 279'--create menu
   scriptret = add_menu(-1)
   menus(topmenu).allow_gameplay = YES
- CASE 280'--close menu
+ CASE 280'--close menu (menu, run close script)
   IF valid_menu_handle(retvals(0), menuslot) THEN
-   remove_menu menuslot, NO
+   remove_menu menuslot, get_optional_arg(1, NO) <> 0
   END IF
  CASE 281'--top menu
   IF topmenu >= 0 THEN

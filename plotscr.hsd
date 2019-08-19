@@ -299,7 +299,7 @@ define function, begin
 277,readmenuitemint,2,0,0     #read menu item int(menuitemhandle,intid)
 278,writemenuitemint,3,0,0,0  #write menu item int(menuitemhandle,intid,n)
 279,createmenu,0              #create a blank menu
-280,closemenu,1,0             #close menu(handle)
+280,closemenu,2,0,0           #close menu(handle, run close script)
 281,topmenu,0                 #return a handle to the topmost menu
 282,bringmenuforward,1,0      #bring menu forward(menu handle)
 283,addmenuitem,1,0           #add menu item(menuhandle) appends, returns menuitemhandle
