@@ -255,6 +255,7 @@ DO
         scrst.pos -= 3
         scriptret = 0
         .state = streturn
+       'When adding new flow control remember to update flowname(), etc, in scriptstate
        CASE ELSE
         '--do, then, etc... terminate normally
         dumpandreturn()
@@ -869,6 +870,7 @@ SUB scriptmath
    ELSE
     scriptret = SQRT(retvals(0))
    END IF
+  'When adding more math types remember to update mathname() in scriptstate
   CASE ELSE
    scripterr "unsupported math function id " & curcmd->value, serrError
  END SELECT
@@ -1490,10 +1492,11 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
  flowtype(14) = 1:	flowname(14) = "exitreturn"
  flowtype(15) = 3:	flowname(15) = "switch"
 
- DIM mathname(22) as string = {_
+ DIM mathname(25) as string = {_
          "random", "exponent", "mod", "divide", "multiply", "subtract"_
          ,"add", "xor", "or", "and", "equal", "!equal", "<<", ">>"_
          ,"<=", ">=", "setvar", "inc", "dec", "not", "&&", "||", "^^"_
+         ,"abs", "sign", "sqrt"_
  }
 
  DIM stkbottom as integer = -(scrst.pos - scrst.bottom)  'pointer arithmetic seems to be 31-bit signed (breakage on negative diff)!
@@ -1568,6 +1571,9 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
      outstr = STR(node.value)
      hidearg = -1
     CASE tyflow
+     IF node.value < 0 ORELSE node.value > UBOUND(flowname) THEN
+      RETURN "CORRUPT SCRIPT DATA: flow " & node.value
+     END IF
      cmd = flowname(node.value)
      hidearg = -3
      IF state.depth = 0 THEN cmd = scriptname(state.id)
@@ -1613,6 +1619,9 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
      outstr = localvariablename(node.value, scrinst.scr->args)
      hidearg = -1
     CASE tymath
+     IF node.value < 0 ORELSE node.value > UBOUND(mathname) THEN
+      RETURN "CORRUPT SCRIPT DATA: math " & node.value
+     END IF
      cmd = mathname(node.value)
     CASE tyfunct
      cmd = commandname(node.value)
