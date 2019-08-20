@@ -826,7 +826,9 @@ SUB draw_box_back (fr as Frame ptr, pos as XYPair, size as XYPair, col as intege
 END SUB
 
 SUB draw_box_border (fr as Frame ptr, pos as XYPair, size as XYPair, bordercol as integer, borderindex as RectBorderTypes, trans as RectTransTypes = transHollow)
-DIM byref as integer x = pos.x, y = pos.y, w = size.w, h = size.h
+DIM as integer x = pos.x, y = pos.y, w = size.w, h = size.h
+IF w < 0 THEN x = x + w + 1: w = -w
+IF h < 0 THEN y = y + h + 1: h = -h
 
 IF borderindex = borderLine THEN
  '--Simple line border
