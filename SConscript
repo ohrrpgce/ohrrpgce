@@ -681,10 +681,17 @@ if linkgcc:
         return target, map(to_o, enumerate(source))
 
     if pdb:
-        # Note: to run cv2pdb you need Visual Studio installed, but not necessarily in PATH.
-        # By default cv2pdb modifies the exe in-place, stripping it
+        # Note: to run cv2pdb you need Visual Studio or Visual C++ Build Tools installed,
+        # but not necessarily in PATH. (Only a few dlls and mspdbsrv.exe actually needed.)
+        # By default cv2pdb modifies the exe in-place, stripping DWARF debug info,
+        # pass NUL as second argument to throw away the stripped copy.
         handle_symbols = os.path.join('support', 'cv2pdb') + ' $TARGET '
-        if debug > 0:
+        # Actually, we need to always strip the debug info, because cv2pdb puts the GUID
+        # of the .pdb in the exe at the same time, without which the .pdb doesn't work.
+        # It would be possible to modify cv2pdb to add the GUID without stripping
+        # (by modifying PEImage::replaceDebugSection())
+        strip = True  #debug > 0
+        if strip == False:
             # Do not strip
             handle_symbols += 'NUL'
         else:
@@ -1381,21 +1388,22 @@ Options:
   debug=0|1|2|3|4     Debug level:
                                   -exx |     debug info      | optimisation
                                  ------+---------------------+--------------
-                       debug=0:    no  | minimal syms or pdb |    yes   <--Releases
+                       debug=0:    no  |    minimal syms     |    yes   <--Releases
                        debug=1:    no  |        yes          |    yes
                        debug=2:    yes |        yes          |    yes   <--Default
                        debug=3:    yes |        yes          |    no
                        debug=4:    no  |        yes          |    no
+                      (pdb=1:          always stripped to pdb         )
                       -exx builds have array, pointer and file error checking
-                      (they abort immediately on errors!), and are slow.
-                      debug info: "minimal syms or pdb" means: if pdb=1 then exes
-                      are totally stripped (the .pdb files contain the symbols),
-                      otherwise exes are mostly-stripped, with only function
-                      symbols present (to allow basic stacktraces); adds ~300KB.
-                      (Note: if gengcc=0, then debug=0 is completely unstripped)
-  pdb=1               Produce .pdb debug info files, for Microsoft debug tools.
-                      Visual Studio must be installed.
-                      Forces gengcc=1.
+                        (they abort immediately on errors!), and are slow.
+                      debug info: "minimal syms" means: only function
+                        symbols present (to allow basic stacktraces); adds ~300KB.
+                        (Note: if gengcc=0, then debug=0 is completely unstripped)
+  pdb=1               (Windows only.) Produce .pdb debug info files, for CrashRpt
+                      and BreakPad crash analysis. .pdb files are put in win32/.
+                      Visual Studio or Visual C++ Build Tools must be installed.
+                      Forces gengcc=1. Doesn't support linkgcc=0.
+                      Requires wine if cross-compiling to Windows.
   lto=1               Do link-time optimisation, for a faster, smaller build
                       (about 2-300KB for Game/Custom) but longer compile time.
                       Use with gengcc=1.
