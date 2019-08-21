@@ -3391,7 +3391,7 @@ sub record_input_tick ()
 	if presses = 0 andalso keys_down = 0 andalso len(real_input.kb.inputtext) = 0 then exit sub
 
 	dim debugstr as string
-	if record.debug then debugstr = "L:" & LOC(record.file) & " T:" & record.tick & " ms:" & real_input.elapsed_ms & " ("
+	if record.debug then debugstr = "L:" & (SEEK(record.file) - 1) & " T:" & record.tick & " ms:" & real_input.elapsed_ms & " ("
 
 	put #record.file,, record.tick
 	put #record.file,, cubyte(real_input.elapsed_ms)
@@ -3420,7 +3420,7 @@ end sub
 local sub read_replay_length ()
 	dim as integer tick, nexttick
 	dim as ubyte tick_ms = 55, presses, input_len
-	dim initial_pos as integer = LOC(replay.file)
+	dim initial_pos as integer = seek(replay.file)
 	replay.length_ms = 0
 
 	do
@@ -3447,14 +3447,14 @@ local sub read_replay_length ()
 			exit do
 		end if
 
-		seek #replay.file, 1 + loc(replay.file) + 2 * presses
+		seek #replay.file, seek(replay.file) + 2 * presses
 		GET #replay.file,, input_len
 		if input_len then
-			seek #replay.file, 1 + loc(replay.file) + input_len
+			seek #replay.file, seek(replay.file) + input_len
 		end if
 	loop
 	replay.length_ticks = tick
-	seek #replay.file, 1 + initial_pos
+	seek #replay.file, initial_pos
 end sub
 
 sub replay_input_tick ()
@@ -3475,7 +3475,7 @@ sub replay_input_tick ()
 		'Check whether it's time to play the next recorded tick in the replay file
 		'(ticks on which nothing happened aren't saved)
 		if replay.nexttick = -1 then
-			replay.fpos = LOC(replay.file)
+			replay.fpos = seek(replay.file) - 1
 			GET #replay.file,, replay.nexttick
 			' Grab the next tick_ms already, because for some reason it gives far more accurate .play_position_ms estimation
 			dim tick_ms as ubyte
