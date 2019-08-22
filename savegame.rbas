@@ -146,10 +146,9 @@ SUB loadgame (byval slot as integer, prefix as string="")
  DIM errmsg as string = "Save slot empty"
  DIM filename as string
  filename = savedir & SLASH & prefix & slot & ".rsav"
- IF keyval(scShift) = 0 ANDALSO isfile(filename) THEN
-  'bypass new loading if shift is held down when you load
+ IF isfile(filename) THEN
   errmsg = new_loadgame(slot, prefix)
- ELSE
+ ELSEIF isfile(old_savefile) THEN
   'Fall back to old save format
   IF prefix = "" THEN
    errmsg = old_loadgame(slot)
@@ -168,17 +167,13 @@ SUB loadglobalvars (byval slot as integer, byval first as integer, byval last as
  NEXT i
 
  'see also saveslot_global() if you just need a very simple function to read a single global from a save slot
- IF keyval(scShift) = 0 THEN
-  'bypass new loading if shift is held down when you load
-  DIM filename as string
-  filename = savedir & SLASH & slot & ".rsav"
-  IF isfile(filename) THEN
-   'debuginfo "loading awesome new loadglobalvars from " & filename
-   new_loadglobalvars slot, first, last
-   EXIT SUB
-  END IF
+ DIM filename as string
+ filename = savedir & SLASH & slot & ".rsav"
+ IF isfile(filename) THEN
+  new_loadglobalvars slot, first, last
+ ELSE
+  old_loadglobalvars slot, first, last
  END IF
- old_loadglobalvars slot, first, last
 END SUB
 
 SUB get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
