@@ -3693,12 +3693,18 @@ SUB array2str (arr() as integer, byval o as integer, dest as string)
 	dim bi as integer
 	dim bp as integer ptr
 	dim toggle as integer
+	dim size as integer = len(dest)
 
 	bp = @arr(0)
 	bi = o \ 2 'offset is in bytes
 	toggle = o mod 2
 
-	for i = 0 to len(dest) - 1
+	if bi < lbound(arr) orelse o + len(dest) > (ubound(arr) + 1) * 2 then
+		showbug "array2str: input array too small: " & ubound(arr)
+		size = (ubound(arr) + 1) * 2 - o
+	end if
+
+	for i = 0 to size - 1
 		if toggle = 0 then
 			dest[i] = bp[bi] and &hff
 			toggle = 1
@@ -3717,13 +3723,19 @@ SUB str2array (src as string, arr() as integer, byval o as integer)
 	dim bi as integer
 	dim bp as integer ptr
 	dim toggle as integer
+	dim size as integer = len(src)
 
 	bp = @arr(0)
 	bi = o \ 2 'offset is in bytes
 	toggle = o mod 2
 
+	if bi < lbound(arr) orelse o + len(src) > (ubound(arr) + 1) * 2 then
+		showbug "str2array: input array too small: " & ubound(arr)
+		size = (ubound(arr) + 1) * 2 - o
+	end if
+
 	'debug "String is " + str(len(src)) + " chars"
-	for i = 0 to len(src) - 1
+	for i = 0 to size - 1
 		if toggle = 0 then
 			bp[bi] = src[i] and &hff
 			toggle = 1
@@ -3828,8 +3840,9 @@ SUB setbit (bitwords() as integer, wordnum as integer, bitnum as integer, value 
 	wordoff = wordnum + (bitnum \ 16)
 	wordbit = bitnum mod 16
 
-	if wordoff > ubound(bitwords) then
-		debugc errBug, "setbit overflow: ub " & ubound(bitwords) & ", wordnum " & wordnum & ", bitnum " & bitnum & ", v " & value
+	if wordoff < lbound(bitwords) orelse wordoff > ubound(bitwords) then
+		showbug strprintf("setbit overflow: ub %d, wordnum %d, bitnum %d, v %d", _
+                                  ubound(bitwords), wordnum, bitnum, value)
 		exit sub
 	end if
 
@@ -3845,8 +3858,9 @@ FUNCTION readbit (bitwords() as integer, wordnum as integer = 0, bitnum as integ
 	wordoff = wordnum + (bitnum \ 16)
 	wordbit = bitnum mod 16
 
-	if wordoff > ubound(bitwords) then
-		debugc errBug, "readbit overflow: ub " & ubound(bitwords) & ", wordnum " & wordnum & ", bitnum " & bitnum
+	if wordoff < lbound(bitwords) orelse wordoff > ubound(bitwords) then
+		showbug strprintf("readbit overflow: ub %d, wordnum %d, bitnum %d", _
+                                  ubound(bitwords), wordnum, bitnum)
 		return 0
 	end if
 
