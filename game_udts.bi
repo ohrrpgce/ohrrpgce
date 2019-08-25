@@ -217,6 +217,7 @@ TYPE GameState
   non_elemental_elements(maxElements - 1) as bool 'Loaded by load_non_elemental_elements()
   hero_pathing(3) as HeroPathing
   stillticks(3) as integer           'keeps track of how long a hero has been standing still
+  pathing_click_start as double
 END TYPE
 
 'Note that .showing, .fully_shown, .sayer need to be always correct even if no box is up

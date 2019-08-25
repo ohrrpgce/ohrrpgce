@@ -810,7 +810,12 @@ DO
  IF normal_controls_disabled() = NO AND menus_allow_player() THEN
   'Hero movement and NPC activation
   IF get_gen_bool("/mouse/move_hero") THEN
-   IF readmouse().buttons AND mouseLeft THEN
+   IF readmouse.clicks AND mouseLeft THEN
+    cancel_hero_pathfinding(0)
+    user_trigger_hero_pathfinding()
+    gam.pathing_click_start = TIMER
+   END IF
+   IF readmouse.buttons AND mouseLeft ANDALSO TIMER - gam.pathing_click_start > .75 THEN
     cancel_hero_pathfinding(0)
     user_trigger_hero_pathfinding()
    END IF
