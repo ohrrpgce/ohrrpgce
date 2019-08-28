@@ -41,7 +41,7 @@ DECLARE SUB mapedit_draw_walls_drag(st as MapEditState, p1 as XYPair, p2 as XYPa
 DECLARE SUB fill_map_area(st as MapEditState, byval x as integer, byval y as integer, reader as FnReader)
 DECLARE SUB fill_with_other_area(st as MapEditState, byval x as integer, byval y as integer, reader as FnReader)
 
-DECLARE FUNCTION mapedit_layer_offset(st as MapEditState, i as integer) as XYPair
+DECLARE FUNCTION mapedit_layer_offset(st as MapEditState, layernum as integer, i as integer) as XYPair
 DECLARE SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height as integer, overhead as bool = NO, pal as Palette16 ptr = NULL)
 DECLARE SUB drawwall(walldir as DirNum, byval pos as XYPair, offset as integer, thickness as integer, col as integer)
 
@@ -2556,9 +2556,9 @@ END SUB
 
 
 'The amount to offset the position of a map layer due to jiggling and other cues
-FUNCTION mapedit_layer_offset(st as MapEditState, i as integer) as XYPair
+FUNCTION mapedit_layer_offset(st as MapEditState, layernum as integer, i as integer) as XYPair
  DIM offset as XYPair
- IF readbit(st.jiggle(), 0, i) AND global_tog THEN
+ IF readbit(st.jiggle(), 0, layernum) ANDALSO global_tog THEN
   IF (i mod 8) >= 1 AND (i mod 8) <= 3 THEN offset.x = 1
   IF (i mod 8) >= 5 THEN offset.x = -1
   IF (i mod 8) <= 1 OR (i mod 8) = 7 THEN offset.y = -1
@@ -2572,7 +2572,7 @@ END FUNCTION
 
 'overhead: draw the overhead layer (layernum should be 0)
 SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height as integer, overhead as bool = NO, pal as Palette16 ptr = NULL)
- DIM pos as XYPair = st.camera + mapedit_layer_offset(st, height)
+ DIM pos as XYPair = st.camera + mapedit_layer_offset(st, layernum, height)
  DIM trans as bool
  DIM overheadmode as integer
  IF overhead THEN
