@@ -79,10 +79,12 @@ HOST_WIN32 = platform.system() == 'Windows'
 def svn_to_git_rev(rev):
     print('Querying git for svn rev...  ', file=sys.stderr, end='\r')
     gitrev = subprocess.check_output(['git', '-C', GIT_DIR, 'svn', 'find-rev', 'r' + rev]).decode('utf8').strip()
+    if not gitrev:
+        raise Exception('git-svn could not find r%s. Check that git-svn is up-to-date (e.g. "git svn fetch")' % rev)
     return gitrev
 
 @functools.lru_cache(maxsize = None)
-def file_lastchange_git_rev(git_dir, path, as_of_commit = ''):
+def file_lastchange_git_rev(git_dir, path, as_of_commit = None):
     """Return the (abbreviated) hash of the last git commit to modify a file,
     either in HEAD or as of the given commit/branch."""
     print('Querying git log...        ', file=sys.stderr, end='\r')
