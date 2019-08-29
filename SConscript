@@ -207,6 +207,11 @@ if ARGUMENTS.get('lto'):
     GENGCC_CFLAGS.append('-flto')
     CXXLINKFLAGS.append('-flto')
 
+# Make sure we can print stack traces
+# Also -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
+CFLAGS.append('-fno-omit-frame-pointer')
+GENGCC_CFLAGS.append('-fno-omit-frame-pointer')
+
 portable = False
 if release and unix and not mac and not android:
     portable = True
@@ -569,9 +574,6 @@ if gengcc:
         GENGCC_CFLAGS.append ('-Wno-format')
     # Ignore annoying warning which is an fbc bug
     GENGCC_CFLAGS.append ('-Wno-missing-braces')
-    # Make sure we can print stack traces
-    # Also -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
-    GENGCC_CFLAGS.append ('-fno-omit-frame-pointer')
     if asan:
         # Use AddressSanitizer in C files produced by fbc
         GENGCC_CFLAGS.append ('-fsanitize=address')
