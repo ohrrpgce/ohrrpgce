@@ -62,7 +62,7 @@ filetype_names(fileTypeError)       = "unreadable"
 
 'Set up an error handler for the errors FB throws when compiled with -exx. The
 'default handler prints a message which is lost on Windows.
-SUB setup_exx_handler()
+SUB setup_fb_error_handler()
   'There seems to be a gengcc bug at play: passing the address of a label to a
   'function doesn't work (gcc docs say it's undefined behaviour) and the address
   'of this function gets passed instead. So we see this function reentering if
@@ -84,12 +84,12 @@ SUB setup_exx_handler()
   'unless compiling with -gen gcc, because the function prologue hasn't occurred!
   DIM as integer err_num = ERR, err_line = ERL
   DIM as zstring ptr func_name = ERFN, mod_name = ERMN
-  DIM as string message
-  message = *format_FB_error_message(err_num, err_line, mod_name, func_name)
+  DIM as zstring ptr message = ANY
+  message = format_FB_error_message(err_num, err_line, mod_name, func_name)
   fatalbug message
 END SUB
 
-SUB remove_exx_handler()
+SUB remove_fb_error_handler()
   ON ERROR GOTO 0
 END SUB
 

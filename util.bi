@@ -22,7 +22,8 @@
 
 
 declare sub lowlevel_init()
-declare sub remove_exx_handler()
+declare sub setup_fb_error_handler()
+declare sub remove_fb_error_handler()
 
 
 'Ensure that all executables call lowlevel_init at the top of main().  Want this

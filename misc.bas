@@ -125,7 +125,7 @@ function global_setoption(opt as string, arg as string) as integer
 	elseif opt = "rawexx" then
 		' The purpose of this flag is that ON ERROR GOTO causes the topmost stack frame
 		' (where the error actually occurred) to be lost.
-		remove_exx_handler  'setup_exx_handler already called
+		remove_fb_error_handler  'setup_fb_error_handler already called
 		' Could also uninstall the Windows exception handler, if that's useful?
 		return 1
 	end if

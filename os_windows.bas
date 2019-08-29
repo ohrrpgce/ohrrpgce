@@ -323,7 +323,8 @@ end function
 #endif
 
 'Installs one or two of three different possible handlers for unhandled exceptions.
-sub setup_exception_handler()
+'Returns true if we installed an exception handler
+function setup_exception_handler() as boolint
 	'Install a default exception handler to show a useful message on a crash.
 	'If we're using crashrpt:
 	'CrashRpt will handle the crash - if we successfully found and loaded it -
@@ -337,7 +338,7 @@ sub setup_exception_handler()
 	'Load CrashRpt, which connects to CrashSender.exe, an out-of-process exception
 	'handler (meaning, it spawns a separate process to report the crash, so it can work
 	'even if there's severe memory/state corruption).
-	if find_and_load_crashrpt() then exit sub
+	if find_and_load_crashrpt() then return YES
 #endif
 
 #if defined(WITH_EXCHNDL)
@@ -350,19 +351,19 @@ sub setup_exception_handler()
 	dll = exepath & "\exchndl.dll"
 	if real_isfile(dll) = NO then
 		early_debuginfo "exchndl.dll not found"
-		exit sub
+		return NO
 	end if
 	early_debuginfo "Loading " & dll
 	dim handle as any ptr
 	handle = dylibload(dll)
 	if handle = NULL then
 		debug "exchndl.dll load failed! lasterr: " & error_string
-		exit sub
+		return NO
 	end if
 	ExcHndlSetLogFileNameA = dylibsymbol(handle, "ExcHndlSetLogFileNameA")
 	if ExcHndlSetLogFileNameA = NULL then
 		debug "ExcHndlSetLogFileNameA missing"
-		exit sub
+		return NO
 	end if
 #else
 	' If statically linked to libexchndl.a/exchndl.dll
@@ -371,9 +372,9 @@ sub setup_exception_handler()
 	crash_reportfile = trimextension(exename) + "-crash-report.txt"
 	early_debuginfo "exchndl will log to " & crash_reportfile
 	ExcHndlSetLogFileNameA(strptr(crash_reportfile))
-
+	return YES
 #endif
-end sub
+end function
 
 'Unused.
 'Works only if loaded exchndl.dll: will log a backtrace to crash_reportfile.

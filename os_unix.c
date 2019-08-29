@@ -85,8 +85,9 @@ FBSTRING *memory_usage_string() {
 #endif
 }
 
-void setup_exception_handler() {
+boolint setup_exception_handler() {
 	// Unimplemented (but glibc makes this easy!)
+	return NO;
 }
 
 void save_backtrace(boolint show_message) {
