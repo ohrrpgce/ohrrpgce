@@ -109,6 +109,9 @@ local sub gfx_fb_screenres
 	else
 		screenres screenmodex, screenmodey, depth, 1, GFX_WINDOWED
 	end if
+	'hook_fb_End is a kludge that works by setting the gfxlib2 exit hook,
+	'which screenres sets, so have to reset it afterwards. See miscc.c
+	hook_fb_End()
 	update_mouse_visibility()
 end sub
 

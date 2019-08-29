@@ -1349,10 +1349,11 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
 
  DIM printmsg as string
  printmsg = IIF(isbug, "(BUG) ", "") + IIF(isfatal, "FATAL: ", "ERROR: ") + *zmsg
- PRINT printmsg
+ 'Don't use PRINT, doesn't go to the terminal under gfx_fb
+ fprintf(stderr, !"%s\n", STRPTR(printmsg))
 
  STATIC last_error as string
- DIM msg as string = *zmsg
+ DIM msg as string = RTRIM(*zmsg, !"\n")
 
  'Don't allow reentry into showerror; the error might be in debug()
  STATIC entered as integer = 0

@@ -86,16 +86,31 @@ SUB setup_fb_error_handler()
   DIM as zstring ptr func_name = ERFN, mod_name = ERMN
   DIM as zstring ptr message = ANY
   message = format_FB_error_message(err_num, err_line, mod_name, func_name)
-  fatalbug message
+  fb_error_hook message
 END SUB
 
 SUB remove_fb_error_handler()
   ON ERROR GOTO 0
 END SUB
 
+'Called if FB catches a fatal error, signal, or exception, such as (if compiled
+'with -exx) array out-of-bounds read, bad REDIM call, SIGSEGV. (Unless
+'CrashRpt/etc is installed, then it catches signals.)  This hook is installed in
+'one of two different ways by calling hook_fb_End or setup_fb_error_handler (not
+'both!) Called on ASSERT failure only if fb_End hooked.
+EXTERN "C"
+SUB fb_error_hook(message as const zstring ptr)
+  'Yes, this function is redundant, but it makes the control flow clearer.
+  fatalbug message
+END SUB
+END EXTERN
+
 'Gets called at the top of the main module for each executable just by including util.bi.
 'This is the place to put initialisation code common to everything.
 SUB lowlevel_init()
+  'Note: if compiled with -e, FB will insert a call to fb_InitSignals()
+  'at the top of main(), installing signals handlers for SIGSEGV, etc.
+
   'Android only
   external_log "main() started..."
 
@@ -103,7 +118,19 @@ SUB lowlevel_init()
 
   os_init
 
-  setup_exx_handler
+  'Install FB error handler, either by hooking fb_End (which is a kludge)
+  'or using ON ERROR GOTO (which is so yuck it's also a kludge).
+  'Hooking fb_End is preferred (but only works in FB 1.02+) because how ON ERROR
+  'GOTO works as of FB 1.07, the topmost frame gets clobbered by a computed
+  'goto, bad for debugging: though we would still be able to read the line
+  'number from g/c_debug.txt in that case, we can't inspect locals.
+  'It also catches fb_Assert().
+  'If nothing if hooked then the program would terminate without an exception
+  'when the rtlib throws an error, and CrashRpt would not be invoked!
+  IF hook_fb_End() = NO THEN
+   setup_fb_error_handler
+   'Note: if --rawexx cmdline arg given, we later call remove_fb_error_handler.
+  END IF
 
   exename = trimextension(trimpath(COMMAND(0)))
 

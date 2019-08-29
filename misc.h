@@ -60,6 +60,12 @@ void disable_extended_precision();
 
 void init_crt();
 
+boolint hook_fb_End();
+void unhook_fb_End();
+
+// in util.bas
+void fb_error_hook(const char *message);
+
 #ifdef __cplusplus
 }
 #endif

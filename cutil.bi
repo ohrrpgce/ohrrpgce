@@ -20,6 +20,9 @@ declare sub init_crt ()
 
 declare sub disable_extended_precision ()
 
+declare function hook_fb_End() as boolint
+declare sub unhook_fb_End()
+
 
 'In base64.c
 declare function isbase64 (byval ch as byte) as bool

@@ -24,7 +24,9 @@
 declare sub lowlevel_init()
 declare sub setup_fb_error_handler()
 declare sub remove_fb_error_handler()
-
+extern "C"
+  declare sub fb_error_hook (message as const zstring ptr)
+end extern
 
 'Ensure that all executables call lowlevel_init at the top of main().  Want this
 'in main() so COMMAND is initialised and the module constructor ordering doesn't
