@@ -1350,7 +1350,10 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
  DIM printmsg as string
  printmsg = IIF(isbug, "(BUG) ", "") + IIF(isfatal, "FATAL: ", "ERROR: ") + *zmsg
  'Don't use PRINT, doesn't go to the terminal under gfx_fb
+ 'also printing to stdout doesn't work on android
+#IFNDEF __FB_ANDROID__
  fprintf(stderr, !"%s\n", STRPTR(printmsg))
+#ENDIF
 
  STATIC last_error as string
  DIM msg as string = RTRIM(*zmsg, !"\n")
