@@ -77,6 +77,16 @@ CONST build_info as string = "" _GSTR _ESTR _GENSTR _PSTR _BSTR
 #ifdef __FB_LINUX__
  #define __GNU_LINUX__
 #endif
+
+'We need to include CRT headers (specifically, just crt/stdio.bi at the moment)
+'before we muck with __FB_LINUX__, which will cause wrong OS-specific header to
+'be included.
+#include once "crt.bi"
+#include once "crt/limits.bi"
+#undef rand
+#include once "crt/stddef.bi"
+#include once "crt/sys/types.bi"
+
 #ifdef __FB_UNIX__
  #define __FB_LINUX__
 #endif
@@ -224,19 +234,12 @@ TYPE fb_uinteger as uinteger
 # ENDIF
 #ENDMACRO
 
-'included only for $inclib?
-#include once "crt.bi"
-#include once "crt/limits.bi"
-#undef rand
-#undef bound
-'Need to include these before redefining the size of 'integer'
-#include "crt/stddef.bi"
-#include "crt/sys/types.bi"
 #ifndef intptr_t
  ' Old FB headers
  TYPE intptr_t as size_t
 #endif
 
+'Note: we already included crt.bi, need to do so before redefining the size of 'integer'
 use_32bit_integer()
 
 
