@@ -6164,8 +6164,8 @@ SUB setup_sprite_sizes ()
  END WITH
  WITH sprite_sizes(sprTypeEnemy)  '10
   .name = "Enemy"
-  .size.x = 0
-  .size.y = 0
+  .size.x = 50  'This is the default size when adding a new Enemy
+  .size.y = 50
   .frames = 1
   .directions = 1
   .genmax = genMaxEnemyPic

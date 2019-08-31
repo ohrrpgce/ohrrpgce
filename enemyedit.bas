@@ -855,12 +855,13 @@ DO
     enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
     state.need_update = YES
    CASE EnMenuPic
-    DIM enemyb as EnemySpriteBrowser
-    enemyb.size_group = recbuf(EnDatPicSize)
+    DIM sprtype as SpriteType = recbuf(EnDatPicSize) + sprTypeSmallEnemy
+    DIM enemyb as EnemySpriteBrowser = EnemySpriteBrowser(sprtype)
     recbuf(EnDatPic) = enemyb.browse(recbuf(EnDatPic))
     state.need_update = YES
    CASE EnMenuPal
-    recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), CAST(SpriteType, recbuf(EnDatPicSize) + sprTypeSmallEnemy), recbuf(EnDatPic), YES)
+    DIM sprtype as SpriteType = recbuf(EnDatPicSize) + sprTypeSmallEnemy
+    recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), sprtype, recbuf(EnDatPic), YES)
     state.need_update = YES
    CASE EnMenuDeathSFX
     DIM old_sfx as integer = recbuf(EnDatDeathSFX)

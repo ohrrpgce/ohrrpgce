@@ -221,59 +221,53 @@ End Type
 'Sprite browsers
 
 Type SpriteBrowser extends ThingBrowser
+ sprtype as SpriteType
+ declare constructor()
+ declare constructor(spr_kind as SpriteType)
  declare virtual function thing_kind_name() as string
- declare virtual function sprite_kind() as SpriteType
  declare virtual function sprite_frame() as integer
+ declare virtual function highest_id() as integer
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
 End Type
 
 Type HeroSpriteBrowser extends SpriteBrowser
- declare virtual function highest_id() as integer
- declare virtual function sprite_kind() as SpriteType
+ declare constructor()
  declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
 End Type
 
 Type WalkaboutSpriteBrowser extends SpriteBrowser
- declare virtual function highest_id() as integer
+ declare constructor()
  declare virtual function sprite_frame() as integer
- declare virtual function sprite_kind() as SpriteType
  declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
 End Type
 
 Type PortraitSpriteBrowser extends SpriteBrowser
- declare virtual function highest_id() as integer
- declare virtual function sprite_kind() as SpriteType
+ declare constructor()
 End Type
 
 Type EnemySpriteBrowser extends SpriteBrowser
- size_group as integer = -1
- declare virtual function highest_id() as integer
- declare virtual function sprite_kind() as SpriteType
+ declare constructor(spr_kind as SpriteType)
 End Type
 
 Type AttackSpriteBrowser extends SpriteBrowser
- declare virtual function highest_id() as integer
- declare virtual function sprite_kind() as SpriteType
+ declare constructor()
  declare virtual sub each_tick_each_plank(byval plank as Slice Ptr)
 End Type
 
 Type WeaponSpriteBrowser extends SpriteBrowser
- declare virtual function highest_id() as integer
- declare virtual function sprite_kind() as SpriteType
+ declare constructor()
  declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
 End Type
 
 Type BackdropSpriteBrowser extends SpriteBrowser
- declare virtual function highest_id() as integer
- declare virtual function sprite_kind() as SpriteType
+ declare constructor()
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
  declare virtual sub enter_browser()
  declare virtual sub leave_browser()
 End Type
 
 Type BoxborderSpriteBrowser extends SpriteBrowser
- declare virtual function highest_id() as integer
- declare virtual function sprite_kind() as SpriteType
+ declare constructor()
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
 End Type
 

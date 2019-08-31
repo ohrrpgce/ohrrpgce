@@ -1077,13 +1077,18 @@ End Sub
 
 '-----------------------------------------------------------------------
 
+Constructor SpriteBrowser(sprtype as SpriteType)
+ this.sprtype = sprtype
+End Constructor
+
 Function SpriteBrowser.thing_kind_name() as string
- return sprite_sizes(sprite_kind()).name & " Sprites"
+ return sprite_sizes(this.sprtype).name & " Sprites"
 End Function
 
-Function SpriteBrowser.sprite_kind() as SpriteType
- 'This should be overridden by a child class
- return sprTypeInvalid
+Function SpriteBrowser.highest_id() as integer
+ with sprite_sizes(this.sprtype)
+  return gen(.genmax) + .genmax_offset
+ end with
 End Function
 
 Function SpriteBrowser.sprite_frame() as integer
@@ -1101,10 +1106,10 @@ Function SpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  if id <> none_id then
   dim spr as Slice Ptr
   spr = NewSliceOfType(slSprite, plank, SL_EDITOR_THINGBROWSER_PLANK_SPRITE)
-  ChangeSpriteSlice spr, sprite_kind(), id, , sprite_frame()
+  ChangeSpriteSlice spr, this.sprtype, id, , sprite_frame()
   plank->size = spr->size
  else
-  plank->size = XY(40, sprite_sizes(sprite_kind()).size.h)
+  plank->size = XY(40, sprite_sizes(this.sprtype).size.h)
  end if
  dim txt as Slice Ptr
  txt = NewSliceOfType(slText, plank, SL_PLANK_MENU_SELECTABLE)
@@ -1117,26 +1122,18 @@ End Function
 '-----------------------------------------------------------------------
 
 'HERO
-Function HeroSpriteBrowser.highest_id() as integer
- return gen(genMaxHeroPic)
-End Function
-
-Function HeroSpriteBrowser.sprite_kind() as SpriteType
- return sprTypeHero
-End Function
+Constructor HeroSpriteBrowser()
+ Base(sprTypeHero)
+End Constructor
 
 Sub HeroSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
  loop_sprite_helper plank, 0, 1
 End Sub
 
 'WALKABOUT
-Function WalkaboutSpriteBrowser.highest_id() as integer
- return gen(genMaxNPCPic)
-End Function
-
-Function WalkaboutSpriteBrowser.sprite_kind() as SpriteType
- return sprTypeWalkabout
-End Function
+Constructor WalkaboutSpriteBrowser()
+ Base(sprTypeWalkabout)
+End Constructor
 
 Function WalkaboutSpriteBrowser.sprite_frame() as integer
  return 4
@@ -1147,62 +1144,38 @@ Sub WalkaboutSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
 End Sub
 
 'PORTRAIT
-Function PortraitSpriteBrowser.highest_id() as integer
- return gen(genMaxPortrait)
-End Function
-
-Function PortraitSpriteBrowser.sprite_kind() as SpriteType
- return sprTypePortrait
-End Function
+Constructor PortraitSpriteBrowser()
+ Base(sprTypePortrait)
+End Constructor
 
 'ENEMY
-Function EnemySpriteBrowser.highest_id() as integer
- select case size_group
-  case 0: return gen(genMaxEnemy1Pic)
-  case 1: return gen(genMaxEnemy2Pic)
-  case 2: return gen(genMaxEnemy3Pic)
- end select
- showbug "EnemySpriteBrowser.highest_id(): size_group " & size_group & " is not valid"
- return 0
-End Function
-
-Function EnemySpriteBrowser.sprite_kind() as SpriteType
- select case size_group
-  case 0: return sprTypeSmallEnemy
-  case 1: return sprTypeMediumEnemy
-  case 2: return sprTypeLargeEnemy
- end select
- showbug "EnemySpriteBrowser.sprite_kind: size_group " & size_group & " is not valid"
- return sprTypeInvalid
-End Function
+Constructor EnemySpriteBrowser(sprtype as SpriteType)
+ Base(sprtype)
+End Constructor
 
 'ATTACK
-Function AttackSpriteBrowser.highest_id() as integer
- return gen(genMaxAttackPic)
-End Function
-
-Function AttackSpriteBrowser.sprite_kind() as SpriteType
- return sprTypeAttack
-End Function
+Constructor AttackSpriteBrowser()
+ Base(sprTypeAttack)
+End Constructor
 
 Sub AttackSpriteBrowser.each_tick_each_plank(byval plank as Slice Ptr)
  loop_sprite_helper plank, 0, 2
 End Sub
 
 'WEAPON
-Function WeaponSpriteBrowser.highest_id() as integer
- return gen(genMaxWeaponPic)
-End Function
-
-Function WeaponSpriteBrowser.sprite_kind() as SpriteType
- return sprTypeWeapon
-End Function
+Constructor WeaponSpriteBrowser()
+ Base(sprTypeWeapon)
+End Constructor
 
 Sub WeaponSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
  loop_sprite_helper plank, 0, 1
 End Sub
 
 'BACKDROP
+Constructor BackdropSpriteBrowser()
+ Base(sprTypeBackdrop)
+End Constructor
+
 Sub BackdropSpriteBrowser.enter_browser()
  switch_to_32bit_vpages
 End Sub
@@ -1210,14 +1183,6 @@ End Sub
 Sub BackdropSpriteBrowser.leave_browser()
  switch_to_8bit_vpages
 End Sub
-
-Function BackdropSpriteBrowser.highest_id() as integer
- return gen(genNumBackdrops) - 1
-End Function
-
-Function BackdropSpriteBrowser.sprite_kind() as SpriteType
- return sprTypeBackdrop
-End Function
 
 Function BackdropSpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim plank as Slice Ptr
@@ -1240,13 +1205,9 @@ Function BackdropSpriteBrowser.create_thing_plank(byval id as integer) as Slice 
 End Function
 
 'BOX BORDER
-Function BoxborderSpriteBrowser.highest_id() as integer
- return gen(genMaxBoxBorder)
-End Function
-
-Function BoxborderSpriteBrowser.sprite_kind() as SpriteType
- return sprTypeBoxBorder
-End Function
+Constructor BoxborderSpriteBrowser()
+ Base(sprTypeBoxBorder)
+End Constructor
 
 Function BoxborderSpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim plank as Slice Ptr
@@ -1286,17 +1247,8 @@ Function SpriteOfTypeBrowser.browse(byref start_id as integer=0, byval or_none a
   case sprTypeHero
    dim br as HeroSpriteBrowser
    return br.browse(start_id, or_none)
-  case sprTypeSmallEnemy
-   dim br as EnemySpriteBrowser
-   br.size_group = 0
-   return br.browse(start_id, or_none)
-  case sprTypeMediumEnemy
-   dim br as EnemySpriteBrowser
-   br.size_group = 1
-   return br.browse(start_id, or_none)
-  case sprTypeLargeEnemy
-   dim br as EnemySpriteBrowser
-   br.size_group = 2
+  case sprTypeEnemy, sprTypeSmallEnemy, sprTypeMediumEnemy, sprTypeLargeEnemy
+   dim br as EnemySpriteBrowser = EnemySpriteBrowser(spr_type)
    return br.browse(start_id, or_none)
   case sprTypeWalkabout
    dim br as WalkaboutSpriteBrowser
