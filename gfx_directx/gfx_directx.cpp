@@ -1,5 +1,6 @@
 #define ISOLATION_AWARE_ENABLED 1
 
+#include "../config.h"
 #include "../gfx.h"
 #include "debugmsg.hpp"
 #include "window.hpp"
@@ -62,8 +63,9 @@ void ::_throw_error(ErrorLevel errlvl, const char *srcfile, int linenum, const c
 		strcpy_s(buf, BUFLEN, "gfx_directx: ");
 		int emitted = strlen(buf);
 		if (srcfile)
-			emitted += _snprintf_s(buf + emitted, BUFLEN - emitted, _TRUNCATE, "On line %d in %s: ", linenum, srcfile);
-		vsnprintf_s(buf + emitted, BUFLEN - emitted, _TRUNCATE, szMessage, vl);
+			emitted += snprintf(buf + emitted, BUFLEN - emitted, "On line %d in %s: ", linenum, srcfile);
+		if (emitted < BUFLEN)
+			vsnprintf(buf + emitted, BUFLEN - emitted, szMessage, vl);
 		va_end(vl);
 		g_State.DebugMsg(errlvl, buf);
 	}

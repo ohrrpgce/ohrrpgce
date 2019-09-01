@@ -5,6 +5,7 @@
 #include "fb/fb_stub.h"
 
 #include <windows.h>
+#include <inttypes.h>  // for PRId64
 
 #include "os.h"
 #include "misc.h"
@@ -98,7 +99,7 @@ int CALLBACK crashrpt_callback(CR_CRASH_CALLBACK_INFOA* pInfo) {
 			note = "omitting=toobig";
 		}
 		snprintf(buf, 50, "Recent file %d", idx);
-		snprintf(buf2, MAX_PATH + 80, "opened=%.7f size=%I64d %s path=%s", opentime, fsize, note, fname);
+		snprintf(buf2, MAX_PATH + 80, "opened=%.7f size=%" PRId64 " %s path=%s", opentime, fsize, note, fname);
 		crpt.crAddPropertyA(buf, buf2);
 	}
 

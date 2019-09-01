@@ -52,6 +52,18 @@ extern "C" {
 
  #define DLLEXPORT __declspec(dllexport)
 
+ // MS only implemented standards-compliant [v]snprintf in VC++ 2015/Win10! So
+ // much for caring about security! _[v]snprintf is available but is NOT
+ // equivalent to [v]snprintf: if the buffer is too short it doesn't add a null
+ // byte, and returns -1 instead of the required buffer size.
+ #if _MSC_VER < 1900
+  // Defined in lib/msvcrt_compat.c
+  int c99_vsnprintf(char *outBuf, size_t size, const char *format, va_list ap);
+  int c99_snprintf(char *outBuf, size_t size, const char *format, ...);
+  #define vsnprintf c99_vsnprintf
+  #define snprintf c99_snprintf
+ #endif
+
 #else
  /* standard C++ compiler/MinGW/MinGW-w64 */
 
@@ -60,6 +72,16 @@ extern "C" {
  #ifndef __cdecl
   // #define __cdecl __attribute__((__cdecl__))
   #define __cdecl
+ #endif
+
+ #if defined(IS_MINGW) || defined(IS_MINGW_W64)
+  // As noted above, [v]snprintf in msvcrt.dll is non-standard before Windows 10
+  // (VC++ 2015).  Luckily mingw[w-64] provide replacements. vsnprintf is
+  // redirected to __mingw_vsnprintf if this is defined, which mingw does by
+  // default but mingw-w64 doesn't.
+  #ifndef __USE_MINGW_ANSI_STDIO
+   #define __USE_MINGW_ANSI_STDIO 1
+  #endif
  #endif
 
  /* Replacements for Microsoft extensions (no guarantees about correctness) */
@@ -149,7 +171,14 @@ typedef int boolint;
 #endif
 
 #if __has_attribute(format)
-# define format_chk(fmt_arg) __attribute__ ((__format__ (__printf__, fmt_arg, fmt_arg + 1)))
+// Under MinGW, depending on __USE_MINGW_ANSI_STDIO (printf provided by mingw or
+// msvcrt) printf accepts different format codes; __MINGW_PRINTF_FORMAT is set
+// to the correct style.
+# ifdef __MINGW_PRINTF_FORMAT
+#  define format_chk(fmt_arg) __attribute__ ((__format__ (__MINGW_PRINTF_FORMAT, fmt_arg, fmt_arg + 1)))
+# else
+#  define format_chk(fmt_arg) __attribute__ ((__format__ (__printf__, fmt_arg, fmt_arg + 1)))
+# endif
 #else
 # define format_chk(fmt_arg)
 #endif

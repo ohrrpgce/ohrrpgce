@@ -888,7 +888,8 @@ del fb_defines
 base_modules += ['os_sockets.c']
 
 if win32:
-    base_modules += ['os_windows.bas', 'os_windows2.c', 'lib/win98_compat.bas', 'gfx_common/win_error.c']
+    base_modules += ['os_windows.bas', 'os_windows2.c', 'lib/win98_compat.bas',
+                     'lib/msvcrt_compat.c', 'gfx_common/win_error.c']
     # winmm needed for MIDI, used by music backends but also by miditest
     # psapi.dll needed just for get_process_path() and memory_usage(). Not present on Win98 unfortunately,
     # so now we dynamically link it.
@@ -1215,7 +1216,8 @@ if platform.system () == 'Windows':
     directx_sources = ['d3d.cpp', 'didf.cpp', 'gfx_directx.cpp', 'joystick.cpp', 'keyboard.cpp',
                        'midsurface.cpp', 'mouse.cpp', 'window.cpp']
     directx_sources = [os.path.join('gfx_directx', f) for f in directx_sources]
-    directx_sources += ['gfx_common/ohrstring.cpp', 'gfx_common/win_error.c', 'lib/SDL/SDL_windowsclipboard.c']
+    directx_sources += ['gfx_common/ohrstring.cpp', 'gfx_common/win_error.c',
+                        'lib/msvcrt_compat.c', 'lib/SDL/SDL_windowsclipboard.c']
 
     # Create environment for compiling gfx_directx.dll
     # $OBJPREFIX is prefixed to the name of each object file, to ensure there are no clashes

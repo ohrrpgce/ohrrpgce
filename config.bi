@@ -91,6 +91,18 @@ CONST build_info as string = "" _GSTR _ESTR _GENSTR _PSTR _BSTR
  #define __FB_LINUX__
 #endif
 
+#ifdef __FB_WIN32__
+ 'These are broken in msvcrt.dll, use mingw's overrides instead. See config.h.
+ #undef snprintf
+ #undef vsnprintf
+ extern "C"
+ declare function __mingw_snprintf (byval as zstring ptr, byval as size_t, byval as zstring ptr, ...) as long
+ declare function __mingw_vsnprintf (byval as zstring ptr, byval as size_t, byval as zstring ptr, byval as va_list) as long
+ end extern
+ #define snprintf __mingw_snprintf
+ #define vsnprintf __mingw_vsnprint
+#endif
+
 'Universal Windows Platform (Windows Store and XBox One)
 '#define UWP
 
