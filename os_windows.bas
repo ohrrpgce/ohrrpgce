@@ -89,17 +89,6 @@ end extern
 '                                Utility/general functions
 '==========================================================================================
 
-extern "C"
-'FormatMessage is such an awfully complex function
-function get_windows_error (byval errcode as integer) as string
-	dim strbuf as string * 256
-	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errcode, 0, strptr(strbuf), 255, NULL)
-	return trim(strbuf)
-end function
-end extern
-
-#define error_string get_windows_error(GetLastError())
-
 local function get_file_handle (byval fh as CFILE_ptr) as HANDLE
 	return cast(HANDLE, _get_osfhandle(_fileno(fh)))
 end function
@@ -195,7 +184,8 @@ end sub
 	' This requires psapi.dll
 	if GetProcessMemoryInfo = NULL then return on_error
 	if GetProcessMemoryInfo(GetCurrentProcess(), @memctrs, sizeof(memctrs)) = 0 then
-		debug "GetProcessMemoryInfo failed: " & error_string
+		dim errstr as string = *win_error_str()
+		debug "GetProcessMemoryInfo failed: " & errstr
 		return on_error
 	end if
 #endmacro
@@ -357,7 +347,8 @@ function setup_exception_handler() as boolint
 	dim handle as any ptr
 	handle = dylibload(dll)
 	if handle = NULL then
-		debug "exchndl.dll load failed! lasterr: " & error_string
+		dim errstr as string = *win_error_str()
+		debug "exchndl.dll load failed! lasterr: " & errstr
 		return NO
 	end if
 	ExcHndlSetLogFileNameA = dylibsymbol(handle, "ExcHndlSetLogFileNameA")
@@ -426,7 +417,7 @@ function get_file_type (fname as string) as FileTypeEnum
 			return fileTypeNonexistent
 		else
 			' Returns an error for folders which are network shares (but not subdirs thereof)
-			dim errstr as string = error_string
+			dim errstr as string = *win_error_str()
 			debug "get_file_type(" & fname & "): " & errc & " " & errstr
 			return fileTypeError
 		end if
@@ -445,7 +436,7 @@ function get_file_type2 (fname as string) as bool
 	dim hdl as HANDLE
 	hdl = CreateFile(strptr(fname), 0, FILE_SHARE_READ + FILE_SHARE_WRITE + FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)
 	if hdl = INVALID_HANDLE_VALUE then
-		? error_string
+		? *win_error_str()
 		return NO
 	end if
 	CloseHandle hdl
@@ -545,7 +536,7 @@ end function
 function setwriteable (fname as string, towhat as bool) as bool
 	dim attr as integer = GetFileAttributes(strptr(fname))
 	if attr = INVALID_FILE_ATTRIBUTES then
-		dim errstr as string = error_string
+		dim errstr as string = *win_error_str()
 		debug "GetFileAttributes(" & fname & ") failed: " & errstr
 		return NO
 	end if
@@ -556,7 +547,7 @@ function setwriteable (fname as string, towhat as bool) as bool
 	end if
 	'attr = attr or FILE_ATTRIBUTE_TEMPORARY  'Try to avoid writing to harddisk
 	if SetFileAttributes(strptr(fname), attr) = 0 then
-		dim errstr as string = error_string
+		dim errstr as string = *win_error_str()
 		debug "SetFileAttributes(" & fname & ", " & towhat & ") failed: " & errstr
 		return NO
 	end if
@@ -570,7 +561,7 @@ function copy_file_replacing(byval source as zstring ptr, byval destination as z
 
 	'Overwrites existing files
 	if CopyFile_(source, destination, 0) = 0 then
-		dim errstr as string = error_string
+		dim errstr as string = *win_error_str()
 		debugerror "copy_file_replacing(" & *source & "," & *destination & ") failed: " & errstr
 		return NO
 	end if
@@ -596,7 +587,7 @@ local function lock_file_base (byval fh as CFILE_ptr, byval timeout_ms as intege
 			return YES
 		end if
 		if GetLastError() <> ERROR_IO_PENDING then
-			dim errstr as string = error_string
+			dim errstr as string = *win_error_str()
 			debug funcname & ": LockFile() failed: " & errstr
 			return NO
 		end if
@@ -650,7 +641,7 @@ function channel_open_server (byref channel as NamedPipeInfo ptr, chan_name as s
 	pipeh = CreateNamedPipe(strptr(chan_name), PIPE_ACCESS_DUPLEX OR FILE_FLAG_OVERLAPPED, _
 	                        PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE, 1, 4096, 4096, 0, NULL)
 	if pipeh = -1 then
-		dim errstr as string = error_string
+		dim errstr as string = *win_error_str()
 		debug "Could not open IPC channel: " + errstr
 		return NO
 	end if
@@ -672,7 +663,7 @@ function channel_open_server (byref channel as NamedPipeInfo ptr, chan_name as s
 	if errcode = ERROR_PIPE_CONNECTED then
 		pipeinfo->hasconnected = YES
 	elseif errcode <> ERROR_IO_PENDING then
-		dim errstr as string = error_string
+		dim errstr as string = *win_error_str()
 		debug "ConnectNamedPipe error: " + errstr
 		channel_delete(pipeinfo)
 		return NO
@@ -703,7 +694,7 @@ function channel_wait_for_client_connection (byref channel as NamedPipeInfo ptr,
 		elseif res = WAIT_OBJECT_0 then
 			channel->hasconnected = YES
 		else
-			dim errstr as string = error_string
+			dim errstr as string = *win_error_str()
 			debug "error waiting for channel connection: " + errstr
 			return NO
 		end if
@@ -720,7 +711,7 @@ function channel_open_client (byref channel as NamedPipeInfo ptr, chan_name as s
 	pipeh = CreateFile(strptr(chan_name), GENERIC_READ OR GENERIC_WRITE, 0, NULL, _
 	                   OPEN_EXISTING, 0, NULL)
 	if pipeh = -1 then
-		dim errstr as string = error_string
+		dim errstr as string = *win_error_str()
 		debug "channel_open_client: could not open: " + errstr
 		return NO
 	end if
@@ -770,12 +761,12 @@ function channel_write (byref channel as NamedPipeInfo ptr, byval buf as any ptr
 	res = WriteFile(channel->fh, buf, buflen, @written, NULL)
 	if res = 0 or written < buflen then
 		'should actually check errno instead; hope this works
-		dim errstr as string = error_string
+		dim errstr as string = *win_error_str()
 		debuginfo "channel_write error (closing) (wrote " & written & " of " & buflen & "): " & errstr
 		channel_close(channel)
 		return NO
 	end if
-	'debuginfo "channel_write: " & written & " of " & buflen & " " & error_string
+	'debuginfo "channel_write: " & written & " of " & buflen & " " & *win_error_str()
 	return YES
 end function
 
@@ -802,7 +793,7 @@ function channel_input_line (byref channel as NamedPipeInfo ptr, line_in as stri
 		'recheck whether more data is available
 		dim bytesbuffered as integer
 		if PeekNamedPipe(channel->readfh, NULL, 0, NULL, @bytesbuffered, NULL) = 0 then
-			dim errstr as string = error_string
+			dim errstr as string = *win_error_str()
 			debuginfo "PeekNamedPipe error (closing) : " + errstr
 			channel_close(channel)
 			return 0
@@ -819,7 +810,7 @@ function channel_input_line (byref channel as NamedPipeInfo ptr, line_in as stri
 	do
 		res = fgets(@buf(0), 512, channel->cfile)
 		if res = NULL then
-			dim errstr as string = error_string
+			dim errstr as string = *win_error_str()
 			debuginfo "pipe read error (closing): " + errstr  'should actually check errno instead; hope this works
 			channel_close(channel)
 			return 0
@@ -905,7 +896,7 @@ function open_process (program as string, args as string, waitable as boolint, g
 	'token in argstemp to be used, and to search for the program in standard
 	'paths. If lpApplicationName is provided then searching doesn't happen.
 	if CreateProcess(NULL, strptr(argstemp), NULL, NULL, 0, flags, NULL, NULL, @sinfo, pinfop) = 0 then
-		dim errstr as string = error_string
+		dim errstr as string = *win_error_str()
 		debug "CreateProcess(" & program & ", " & args & ") failed: " & errstr
 		Deallocate(pinfop)
 		return 0
@@ -955,7 +946,7 @@ function open_piped_process (program as string, args as string, byval iopipe as 
 
 	'Make this pipe handle inheritable
 	if SetHandleInformation(clientpipe->fh, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) = 0 then
-		dim errstr as string = error_string
+		dim errstr as string = *win_error_str()
 		debug "SetHandleInformation failure: " & errstr
 		goto error_out
 	end if
@@ -974,7 +965,7 @@ function open_piped_process (program as string, args as string, byval iopipe as 
 	'token in argstemp to be used, and to search for the program in standard
 	'paths. If lpApplicationName is provided then searching doesn't happen.
 	if CreateProcess(NULL, strptr(argstemp), NULL, NULL, 1, flags, NULL, NULL, @sinfo, pinfop) = 0 then
-		dim errstr as string = error_string
+		dim errstr as string = *win_error_str()
 		debug "CreateProcess(" & program & ", " & args & ") failed: " & errstr
 		goto error_out
 	end if
@@ -1014,7 +1005,7 @@ function open_console_process (program as string, args as string) as ProcessHand
 
 	dim pinfop as ProcessHandle = Callocate(sizeof(PROCESS_INFORMATION))
 	if CreateProcess(strptr(program), strptr(argstemp), NULL, NULL, 0, flags, NULL, NULL, @sinfo, pinfop) = 0 then
-		dim errstr as string = error_string
+		dim errstr as string = *win_error_str()
 		debug "CreateProcess(" & program & ", " & args & ") failed: " & errstr
 		Deallocate(pinfop)
 		return 0
@@ -1028,13 +1019,13 @@ local function _process_running (process as ProcessHandle, exitcode as integer p
 	if process = NULL then return NO
 	dim waitret as integer = WaitForSingleObject(process->hProcess, timeoutms)
 	if waitret = WAIT_FAILED then
-		dim errstr as string = error_string
+		dim errstr as string = *win_error_str()
 		debug "process_running failed: " & errstr
 		return NO
 	end if
 	if exitcode <> NULL and waitret = 0 then
 		if GetExitCodeProcess(process->hProcess, exitcode) = 0 then
-			dim errstr as string = error_string
+			dim errstr as string = *win_error_str()
 			debuginfo "GetExitCodeProcess failed: " & errstr
 		end if
 	end if
@@ -1062,7 +1053,7 @@ sub kill_process (byval process as ProcessHandle)
 	'Isn't there some way to signal the process to quit? This kills it immediately.
 	'TODO: yes, ExitProcess() asks it nicely.
 	if TerminateProcess(process->hProcess, 1) = 0 then
-		dim errstr as string = error_string
+		dim errstr as string = *win_error_str()
 		debug "TerminateProcess failed: " & errstr
 	end if
 
@@ -1074,7 +1065,7 @@ sub kill_process (byval process as ProcessHandle)
 	dim waitret as integer = WaitForSingleObject(process->hProcess, 500)  'wait up to 500ms
 	if waitret <> 0 then
 		dim errstr as string
-		if waitret = WAIT_FAILED then errstr = error_string
+		if waitret = WAIT_FAILED then errstr = *win_error_str()
 		debug "couldn't wait for process to quit: " & waitret & " " & errstr
 	end if
 end sub
@@ -1103,7 +1094,7 @@ function get_process_path (pid as integer) as string
 		dim errcode as integer = GetLastError()
 		' OpenProcess sets "Invalid parameter" error if the pid doesn't exist
 		if errcode <> ERROR_INVALID_PARAMETER then
-			debug "get_process_path: OpenProcess(pid=" & pid & ") err " & errcode & " " & get_windows_error(errcode)
+			debug "get_process_path: OpenProcess(pid=" & pid & ") err " & errcode & " " & *win_error_str(errcode)
 			return "<unknown>"
 		end if
 		return ""
@@ -1115,7 +1106,7 @@ function get_process_path (pid as integer) as string
 		ret = "<unknown>"
 	elseif GetProcessImageFileNameA(proc, ret, 256) = 0 then
 		dim errcode as integer = GetLastError()
-		debug "get_process_path: GetProcessImageFileName err " & errcode & " " & get_windows_error(errcode)
+		debug "get_process_path: GetProcessImageFileName err " & errcode & " " & *win_error_str()
 		ret = "<unknown>"
 	elseif len(ret) then
 		'If a process crashes or is killed (but not if it closes normally), Windows apparently keeps some
@@ -1124,7 +1115,7 @@ function get_process_path (pid as integer) as string
 		dim exitcode as DWORD
 		if GetExitCodeProcess(proc, @exitcode) = 0 then
 			dim errcode as integer = GetLastError()
-			debug "get_process_path: GetExitCodeProcess err " & errcode & " " & get_windows_error(errcode)
+			debug "get_process_path: GetExitCodeProcess err " & errcode & " " & *win_error_str()
 		end if
 		if exitcode <> STILL_ACTIVE then
 			debuginfo "pid " & pid & " image " & ret & " may have crashed, exitcode " & exitcode
@@ -1155,7 +1146,7 @@ function open_document (filename as string) as string
 	info.lpFile = STRPTR(filename)
 	info.nShow = SW_SHOWNORMAL
 	if ShellExecuteEx(@info) = 0 then
-		return error_string
+		return *win_error_str()
 	end if
 	return ""
 end function
@@ -1172,7 +1163,8 @@ end function
 function tls_alloc_key() as TLSKey
 	dim key as DWORD = TlsAlloc()
 	if key = 0 then
-		debugerror "TlsAlloc failed: " & get_windows_error(GetLastError())
+		dim errstr as string = *win_error_str()
+		debugerror "TlsAlloc failed: " & errstr
 	end if
 	return cast(TLSKey, key)
 end function

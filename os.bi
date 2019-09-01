@@ -16,6 +16,7 @@ declare function is_windows_9x () as bool
 #ifdef __FB_WIN32__
 declare function get_windows_version () as string
 declare function get_windows_runtime_info () as string
+declare function win_error_str(errcode as integer = -1) as zstring ptr
 #endif
 
 declare sub os_init ()

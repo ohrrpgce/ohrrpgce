@@ -26,12 +26,6 @@ struct {
 } crpt;
 
 
-const char* win_error(int errcode) {
-	static char strbuf[256] = "<N/A>";
-	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errcode, 0, strbuf, 255, NULL);
-	return strbuf;
-}
-
 // (This could have been written in os_windows.bas and there's no special reason it isn't)
 void os_get_screen_size(int *wide, int *high) {
 	//*wide = *high = 0;
@@ -44,7 +38,7 @@ void os_get_screen_size(int *wide, int *high) {
 	// which is the part of the screen not obscured by taskbar and similar toolbars
 	RECT rect;
 	if (!SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0)) {
-		debug(errError, "get_screen_size failed: %s", win_error(GetLastError()));
+		debug(errError, "get_screen_size failed: %s", win_error_str(GetLastError()));
 		return;
 	}
 	*wide = rect.right - rect.left;
@@ -114,7 +108,7 @@ int CALLBACK crashrpt_callback(CR_CRASH_CALLBACK_INFOA* pInfo) {
 
 #define lookup_sym(lib, strct, sym) \
 	if (!(strct.sym = (void*)GetProcAddress((HINSTANCE)lib, #sym))) { \
-		debuginfo("Couldn't load %s: %s", #sym, win_error(GetLastError())); \
+		debuginfo("Couldn't load %s: %s", #sym, win_error_str(GetLastError())); \
 		FreeLibrary((HINSTANCE)lib); \
 		return 0; \
 	}
@@ -125,7 +119,7 @@ boolint crashrpt_setup(const char *libpath, const char *appname, const char *ver
 	// First, have to find the dll
 	void *lib = LoadLibrary(libpath);
 	if (!lib) {
-		debuginfo("LoadLibrary(%s) failed: %s", libpath, win_error(GetLastError()));
+		debuginfo("LoadLibrary(%s) failed: %s", libpath, win_error_str(GetLastError()));
 		return 0;
 	}
 

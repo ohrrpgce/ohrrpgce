@@ -30,6 +30,7 @@
 #include "SDL_windowsclipboard.h"
 #include "internal.h"
 #include "../../misc.h"
+#include "../../os.h"
 #include "../../gfx_common/ohrstring.hpp"
 
 int clipboard_count = 0;
@@ -40,7 +41,7 @@ int clipboard_count = 0;
 int
 WIN_SetError(const char *prefix)
 {
-    debug(errInfo, "%s: %s", prefix, win_error(GetLastError()));
+    debug(errInfo, "%s: %s", prefix, win_error_str(GetLastError()));
     return -1;
 }
 

@@ -1,17 +1,20 @@
-//OHRRPGCE COMMON - Generic Unix versions of OS-specific routines
+//OHRRPGCE - routines for abstracting away OS differences
 //Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 
 #ifndef OS_H
 #define OS_H
 
+#include "config.h"
+#include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "config.h"
-#include <stdio.h>
-
 #ifdef _WIN32
+
+// in gfx_common/win_error.c
+const char* win_error_str(int errcode);
 
 typedef int IPCChannel;  //dummy types
 #define NULL_CHANNEL 0

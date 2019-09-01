@@ -51,7 +51,7 @@
 
 static const char *lasterror() {
 #ifdef _WIN32
-	return win_error(WSAGetLastError());
+	return win_error_str(WSAGetLastError());
 #else
 	return strerror(errno);
 #endif
@@ -146,7 +146,7 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 	WSADATA wsaData;
 	result = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (result) {
-		debug(errError, "WSAStartup failed: %s", win_error(result));
+		debug(errError, "WSAStartup failed: %s", win_error_str(result));
 		req->failed = true;
 		return false;
 	}

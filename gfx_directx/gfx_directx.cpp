@@ -9,6 +9,7 @@
 #include "joystick.hpp"
 #include "version.h"
 #include "util.hpp"
+#include "../os.h"
 #include "../lib/SDL/SDL_windowsclipboard.h"
 #include <dbt.h>
 
@@ -73,28 +74,12 @@ void ::debugc(ErrorLevel errlvl, const char* szMessage)
 	debug(errlvl, szMessage);
 }
 
-static void _TrimTrailingNewline(char *buf)
-{
-	char *last = buf + strlen(buf) - 1;
-	while (last >= buf && (*last == '\n' || *last == '\r'))
-		*last-- = '\0';
-}
-
-const char *gfx::LastErrorString()
-{
-	const int BUFLEN = 256;
-	static char buf[BUFLEN];
-	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 0, buf, BUFLEN, NULL);
-	_TrimTrailingNewline(buf);
-	return buf;
-}
-
 // Try to translate an HRESULT into a string
 const char *gfx::HRESULTString(HRESULT hresult)
 {
 	const int BUFLEN = 256;
 	static char buf[BUFLEN];
-	int len = sprintf_s(buf, BUFLEN, "0x%08x ", hresult);
+	int len = sprintf_s(buf, BUFLEN, "ret=0x%08x ", hresult);
 	// Check whether this is a win32 error code
 	// Update: Starting in Windows 8, FormatMessage can now print DirectX errors.
 	// Before Win8, you had to use DXGetErrorString and link DXERR.LIB, but
@@ -102,8 +87,7 @@ const char *gfx::HRESULTString(HRESULT hresult)
 	// Look up error codes in the DX headers.
 	//if (HRESULT_FACILITY(hresult) == FACILITY_WIN32 || hresult == 0)
 	//{
-		FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, HRESULT_CODE(hresult), 0, buf + len, BUFLEN - len, NULL);
-		_TrimTrailingNewline(buf);
+		strcat_s(buf, BUFLEN, win_error_str(HRESULT_CODE(hresult)));
 	//}
 	// HRESULTS with FACILITY_ITF (0x8004xxxx) in particular are library/interface specific, not universal.
 	return buf;
