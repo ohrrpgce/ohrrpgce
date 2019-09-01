@@ -96,11 +96,15 @@ const char *gfx::HRESULTString(HRESULT hresult)
 	static char buf[BUFLEN];
 	int len = sprintf_s(buf, BUFLEN, "0x%08x ", hresult);
 	// Check whether this is a win32 error code
-	if (HRESULT_FACILITY(hresult) == FACILITY_WIN32 || hresult == 0)
-	{
+	// Update: Starting in Windows 8, FormatMessage can now print DirectX errors.
+	// Before Win8, you had to use DXGetErrorString and link DXERR.LIB, but
+	// DXERR.LIB has been removed from the SDK, so won't attempt that.
+	// Look up error codes in the DX headers.
+	//if (HRESULT_FACILITY(hresult) == FACILITY_WIN32 || hresult == 0)
+	//{
 		FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, HRESULT_CODE(hresult), 0, buf + len, BUFLEN - len, NULL);
 		_TrimTrailingNewline(buf);
-	}
+	//}
 	// HRESULTS with FACILITY_ITF (0x8004xxxx) in particular are library/interface specific, not universal.
 	return buf;
 }
