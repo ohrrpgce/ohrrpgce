@@ -64,6 +64,11 @@ extern "C" {
   #define snprintf c99_snprintf
  #endif
 
+ // VC++: disable warnings for not using *_s functions, many of those _s
+ // functions have their own alternative security problems, and we should avoid
+ // them because they aren't available in MinGW.
+ #pragma warning(disable:4996)
+
 #else
  /* standard C++ compiler/MinGW/MinGW-w64 */
 
@@ -84,19 +89,24 @@ extern "C" {
   #endif
  #endif
 
- /* Replacements for Microsoft extensions (no guarantees about correctness) */
- /* Recent versions of MinGW-w64 declare these, so check for that */
+ /* Microsoft secure _s extension functions are not present in older versions of
+    msvcrt.dll (I think they are Vista+), so we can't use them even on Windows.
+    However, recent versions of MinGW-w64 declare them #ifdef
+    MINGW_HAS_SECURE_API, which is declared by default. So disable that to avoid
+    accidents. */
  #ifdef __MINGW32__  // Defined by MinGW and MinGW-w64
   #include <_mingw.h>
+  #undef MINGW_HAS_SECURE_API
  #endif
- #ifndef MINGW_HAS_SECURE_API
-  #define memcpy_s(dest, destsize, src, count)  memcpy(dest, src, count)
-  #define strcpy_s(dest, destsize, src)  strcpy(dest, src)
-  #define wcstombs_s(pReturnValue, mbstr, sizeInBytes, wcstr, count) \
-    ((*(pReturnValue) = wcstombs(mbstr, wcstr, count), (*(int *)(pReturnValue) == -1) ? EINVAL : 0))
-  #define mbstowcs_s(pReturnValue, wcstr, sizeInWords, mbstr, count) \
-    ((*(pReturnValue) = mbstowcs(wcstr, mbstr, count), (*(int *)(pReturnValue) == -1) ? EINVAL : 0))
- #endif
+ // Replacements (no guarantees about correctness). Avoid use.
+ /*
+ #define memcpy_s(dest, destsize, src, count)  memcpy(dest, src, count)
+ #define strcpy_s(dest, destsize, src)  strcpy(dest, src)
+ #define wcstombs_s(pReturnValue, mbstr, sizeInBytes, wcstr, count) \
+   ((*(pReturnValue) = wcstombs(mbstr, wcstr, count), (*(int *)(pReturnValue) == -1) ? EINVAL : 0))
+ #define mbstowcs_s(pReturnValue, wcstr, sizeInWords, mbstr, count) \
+   ((*(pReturnValue) = mbstowcs(wcstr, mbstr, count), (*(int *)(pReturnValue) == -1) ? EINVAL : 0))
+ */
 
 #endif
 
