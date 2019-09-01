@@ -610,11 +610,12 @@ DFI_IMPLEMENT_CDECL(void, gfx_GetWindowState, int nID, WindowState *pState)
 	if (pState->structsize >= 7)
 	{
 		SIZE sz = g_Window.getClientSize();
-		pState->windowsize = {sz.cx, sz.cy};
-	}
-	if (pState->structsize >= 8)
-	{
-		SIZE res = g_Window.getResolution();
+		pState->windowsize.w = sz.cx;
+		pState->windowsize.h = sz.cy;
+        }
+        if (pState->structsize >= 8)
+        {
+		SIZE res = g_DirectX.getResolution();
 		pState->zoom = min(res.cx / 320, res.cy / 200);
 	}
 	pState->structsize = min(pState->structsize, WINDOWSTATE_SZ);

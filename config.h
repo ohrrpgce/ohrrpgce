@@ -67,6 +67,8 @@ extern "C" {
  // VC++: disable warnings for not using *_s functions, many of those _s
  // functions have their own alternative security problems, and we should avoid
  // them because they aren't available in MinGW.
+ // We can use them even on older Windows, because VC++-compiled code doesn't
+ // use the system msvcrt.dll (in fact, gfx_directx.dll statically links the CRT)
  #pragma warning(disable:4996)
 
 #else

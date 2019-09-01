@@ -95,9 +95,10 @@ WIN_SetClipboardText(HWND hWindow, const char *text)
             // But also save the text in ASCII, for Win 95/98 which don't know about
             // Unicode! (Win98 with Unicode layer installed doesn't work either).
             // CF_TEXT is technically system codepage, not ASCII, eh.
+            // size may be larger than needed, since not adding extra \r's.
             hMem = GlobalAlloc(GMEM_MOVEABLE, size+1);
             if (hMem) {
-                char *dst = GlobalLock(hMem);
+                char *dst = (char *)GlobalLock(hMem);
                 if (dst) {
                     strcpy(dst, text);
                     GlobalUnlock(hMem);

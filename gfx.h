@@ -12,6 +12,7 @@
 #include "errorlevel.h"
 
 #include "surface.h"
+#include "allmodex.h"  // for XYPair
 
 // See documentation of this constant in gfx.bi
 #define CURRENT_GFX_API_VERSION 2
