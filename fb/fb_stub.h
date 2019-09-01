@@ -19,7 +19,7 @@ extern "C" {
 
 /* Must be included before any system headers due to certain #defines */
 #include "fb_config.h"
-
+#include "../config.h"
 
 #include <stdarg.h>
 #include <stdio.h>

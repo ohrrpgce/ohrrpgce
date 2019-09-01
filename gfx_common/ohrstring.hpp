@@ -33,6 +33,7 @@ std::wstring OHRToWstring(const char *str);
 // if you have an ASCII string, then don't call TstringToOHR
 #ifdef _UNICODE
 // _UNICODE controls TCHAR, UNICODE controls winapi *W/*A selection
+// gfx_directx.dll is compiled with UNICODE, and everything else isn't!
 
 inline std::string TstringToOHR(const wchar_t *tstr) {
 	return WstringToOHR(tstr);
@@ -44,9 +45,7 @@ inline std::wstring OHRToTstring(const char *str) {
 
 #else
 
-#error _UNICODE must be #defined; ANSI encoding is not supported.
-
-// No point implementing these, we will never compile without UNICODE
+//Not bothering to implement these, please don't use Tstring/TCHAR.
 //inline std::string TstringToOHR(const char *str) {}
 //inline std::wstring OHRToTstring(const char *str) {}
 
