@@ -114,7 +114,7 @@ else:
 exe_suffix = ''
 if win32:
     exe_suffix = '.exe'
-    # Force use of gcc instead of MSVC++, so compiler flags are understood
+    # Force use of gcc instead of MSVC++, which we don't support (e.g. different compiler flags)
     envextra = {'tools': ['mingw']}
 else:
     unix = True
@@ -1179,7 +1179,7 @@ def compile_hspeak(target, source, env):
     Action(actions)(target, source, env)
 
 # HSpeak is built by translating to C, generating a Makefile, and running make.
-HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'),
+HSPEAK = env.Command (rootdir + 'hspeak' + exe_suffix, source = ['hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'),
                       action = Action(compile_hspeak, "Compiling hspeak"))
 
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
