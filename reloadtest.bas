@@ -679,7 +679,7 @@ startTest(nodeAppendingSpeedTest1)
 	dim root as NodePtr = DocumentRoot(doc)
 	dim hub as NodePtr = AppendChildNode(root, "bigtree")
 	dim nod as NodePtr
-	for i as integer = 0 to 40000
+	for i as integer = 0 to 10000
 		AppendChildNode(hub, "null")
 		AppendChildNode(hub, "int", 42)
 		if i mod 1000 = 0 then
@@ -692,7 +692,7 @@ startTest(nodeFindingSpeedTest1)
 	dim root as NodePtr = DocumentRoot(doc)
 	dim hub as NodePtr = GetChildByName(root, "bigtree")
 	dim nod as NodePtr
-	for i as integer = 0 to 40000 step 1000
+	for i as integer = 0 to 10000 step 1000
 		nod = GetChildByName(hub, "marker" & i)
 	next
 endTest
@@ -720,7 +720,7 @@ endTest
 startTest(nodeAppendingSpeedTest2)
 	dim hub as NodePtr = NodeByPath(doc, "/bigtree")
 	dim nod as NodePtr
-	for i as integer = 0 to 4999
+	for i as integer = 0 to 1999
 		nod = AppendChildNode(hub, "something")
 		AppendChildNode(nod, "datum1", i)
 		AppendChildNode(nod, "datum2", i)
@@ -738,7 +738,7 @@ endTest
 startTest(nodeFindingSpeedTest3)
 	dim nod as NodePtr = NodeByPath(doc, "/bigtree/something")
 	if nod = NULL then fail
-	for i as integer = 0 to 4999
+	for i as integer = 0 to 1999
 		if nod = NULL then fail
 		if GetChildNodeInt(nod, "datum1") <> i then fail
 		GetChildNodeInt(nod, "datum2")

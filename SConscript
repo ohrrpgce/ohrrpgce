@@ -52,6 +52,7 @@ FRAMEWORKS_PATH = os.path.expanduser("~/Library/Frameworks")  # Frameworks searc
 destdir = ARGUMENTS.get ('destdir', '')
 prefix =  ARGUMENTS.get ('prefix', '/usr')
 dry_run = int(ARGUMENTS.get ('dry_run', '0'))  # Only used by uninstall
+buildtests = int(ARGUMENTS.get ('buildtests', True))
 
 base_libraries = []  # libraries shared by all utilities (except bam2mid)
 
@@ -1297,8 +1298,11 @@ if platform.system () == 'Windows':
 
 ################ Non-file/action targets
 
-def Phony(name, source, action, message = None):
-    """Define a target which performs some action (e.g. a Python function) unconditionally"""
+def Phony(name, source, action, message = None, buildsource = True):
+    """Define a target which performs some action (e.g. a Python function) unconditionally.
+    If buildsource is False, don't rebuild sources."""
+    if not buildsource:
+        source = []
     if message:
         action = env.Action(action, message)
     node = env.Alias(name, source = source, action = action)
@@ -1325,19 +1329,24 @@ def RPGWithScripts(rpg, main_script):
     SideEffect (Alias ('c_debug.txt'), node)  # Prevent more than one copy of Custom from running at once
     return node
 
+### Test .rpgs
 T = 'testgame/'
+# Avoid gfx_directx when running test games, it doesn't skip frames
+_gfx = sorted(gfx, key=lambda x: x == 'directx')
+test_args = GAME.abspath + ' --gfx ' + _gfx[0] + ' --log . --runfast -z 2 '
 AUTOTEST = Phony ('autotest_rpg',
                   source = [GAME, RPGWithScripts(T+'autotest.rpg', T+'autotest.hss')],
                   action =
-                  [GAME.abspath + ' --log . --runfast testgame/autotest.rpg -z 2',
-                   'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
+                  [test_args + T+'autotest.rpg',
+                   'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'],
+                  buildsource = buildtests)
 env.Alias ('autotest', source = AUTOTEST)
 INTERTEST = Phony ('interactivetest',
                    source = [GAME, RPGWithScripts(T+'interactivetest.rpg', T+'interactivetest.hss')],
                    action =
-                   [GAME.abspath + ' --log . --runfast testgame/interactivetest.rpg -z 2'
-                    ' --replayinput testgame/interactivetest.ohrkey',
-                    'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
+                   [test_args + T+'interactivetest.rpg --replayinput ' + T+'interactivetest.ohrkey',
+                    'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'],
+                   buildsource = buildtests)
 # This prevents more than one copy of Game from being run at once
 # (doesn't matter where g_debug.txt is actually placed).
 # The Alias prevents scons . from running the tests.
@@ -1348,7 +1357,9 @@ HSPEAKTEST = Phony ('hspeaktest', source = HSPEAK, action =
 
 # Note: does not include hspeaktest, because it fails, and Euphoria may not be installed
 tests = [exe.abspath for exe in Flatten([RELOADTEST, RBTEST, VECTORTEST, UTILTEST, FILETEST])]
-TESTS = Phony ('test', source = tests + [AUTOTEST, INTERTEST], action = tests)
+test_srcs = tests[:] if buildtests else []
+test_srcs += [AUTOTEST, INTERTEST]  # These are Nodes so can't be used as actions
+TESTS = Phony ('test', source = test_srcs, action = tests)
 Alias ('tests', TESTS)
 
 def packager(target, source, env):
@@ -1430,6 +1441,8 @@ Options:
                       install into a staging area, for a package creation tool.
                       Default: ''
   dry_run=1           For 'uninstall' only. Print files that would be deleted.
+  buildtests=0        Affects test targets only: run tests without recompiling
+                      anything or reimporting scripts.
   v=1                 Be verbose.
 
 Experimental options:
@@ -1509,7 +1522,7 @@ Other targets/actions:
   interactivetest     Runs interactivetest.rpg with recorded input.
   test (or tests)     Compile and run all automated tests, including
                       autotest.rpg.
-  .                   Compile everything (but doesn't run tests)
+  .                   Compile everything and run all tests
 
 With no targets specified, compiles game and custom.
 
