@@ -760,7 +760,8 @@ Type AttackData
 	do_not_display_damage as bool
 	reset_targ_stat_before_hit as bool
 	allow_cure_to_exceed_maximum as bool
-	useable_outside_battle as bool
+	useable_outside_battle as bool    'Affects out-of-battle Spells menu only
+	useable_inside_battle as bool  'Affects in-battle spell-list menus only
 	obsolete_damage_mp as bool
 	do_not_randomize as bool       'Obsolete, replaced by .randomization
 	damage_can_be_zero as bool

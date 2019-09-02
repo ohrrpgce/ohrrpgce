@@ -311,7 +311,8 @@ a_append atkbit(), 81, "Re-check costs after attack delay"
 
 a_append atkbit(), -1, ""
 a_append atkbit(), -1, " Misc"
-a_append atkbit(), 59, "Useable outside of battle (from Spells menu)"
+a_append atkbit(), 89, "!Useable in battle from spell lists"
+a_append atkbit(), 59, "Useable outside battle from Spells menu"
 a_append atkbit(), 84, "Delay doesn't block further actions"
 a_append atkbit(), 71, "Don't chain if attack misses or fails"
 

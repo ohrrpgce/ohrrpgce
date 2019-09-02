@@ -3158,6 +3158,7 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .force_battle_exit              = xreadbit(buf(), 22, 65)
   .never_trigger_elemental_counterattacks = xreadbit(buf(), 23, 65)
   .poison_is_negative_regen       = xreadbit(buf(), 24, 65)
+  .useable_inside_battle          = NOT xreadbit(buf(), 25, 65)
 
   ' If didn't do a full upgrade, then these aren't initialised
   IF getfixbit(fixAttackMultipliers) = 0 THEN

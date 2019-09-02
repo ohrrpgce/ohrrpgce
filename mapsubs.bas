@@ -2217,8 +2217,7 @@ DO
  END IF
 
  IF st.tool = clone_tool THEN
-  textcolor uilook(uiText), 0
-  printstr hilite("Ctrl+M: ") & IIF(st.clone_merge, "Tile Merging On", "Tile Merging Off"), st.viewport_p2.x - 196, st.viewport_p2.y - 16, dpage, YES
+  edgeprint hilite("Ctrl+M: ") & IIF(st.clone_merge, "Tile Merging On", "Tile Merging Off"), st.viewport_p2.x - 196, st.viewport_p2.y - 16, uilook(uiText), dpage, YES
  END IF
 
  IF st.editmode = door_mode THEN

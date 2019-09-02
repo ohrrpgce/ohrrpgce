@@ -2764,7 +2764,7 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
   '--init spell menu
   bat.menu_mode = batMENUSPELL
   bat.sptr = 0
-  FOR i = 0 TO 23 '-- loop through the spell list setting up menu items for each
+  FOR i = 0 TO UBOUND(bat.spell.slot) '-- loop through the spell list setting up menu items for each
    WITH bat.spell.slot(i)
     .name = ""
     .desc = ""
@@ -2781,7 +2781,7 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
     bat.spell.slot(i).cost = bslot_attack_cost_info(bslot(), atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), i \ 3)
     IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), i \ 3, bslot()) THEN
      '-- check whether or not the spell is allowed
-     bat.spell.slot(i).enable = YES
+     bat.spell.slot(i).enable = atk.useable_inside_battle
     END IF
    END IF
    bat.spell.slot(i).name = rpad(bat.spell.slot(i).name, " ", 10)
@@ -2792,7 +2792,11 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
   v_new spells
   FOR i = 0 TO UBOUND(bat.spell.slot)
    DIM atkid as integer = gam.hero(bat.hero_turn).spells(bat.listslot, i) - 1
-   IF atkid >= 0 THEN v_append spells, atkid
+   IF atkid >= 0 THEN
+    loadattackdata atk, atkid
+    'FIXME (bug sf#2039): why don't we even call atkallowed here??
+    IF atk.useable_inside_battle THEN v_append spells, atkid
+   END IF
   NEXT i
   IF v_len(spells) > 0 THEN
    bslot(bat.hero_turn).attack = spells[randint(v_len(spells))] + 1
@@ -2803,6 +2807,8 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
  END IF
 END SUB
 
+'Handle player controls while a spell menu is open.
+'The menu is setup in init_spell_menu and actually drawn in battle_display.
 SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprite)
  
  DIM do_pick as bool = NO
@@ -2905,7 +2911,8 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
    menusound gen(genCancelSFX)
   ELSE
    loadattackdata atk, bat.spell.slot(bat.sptr).atk_id
-   IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), bat.sptr \ 3, bslot()) THEN
+   IF atk.useable_inside_battle ANDALSO _
+      atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), bat.sptr \ 3, bslot()) THEN
     '--attack is allowed
     menusound gen(genAcceptSFX)
     '--if lmp then set lmp consume flag
@@ -2924,6 +2931,8 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
  END IF
 END SUB
 
+'Handle player controls while the items menu is open.
+'The menu is setup in init_spell_menu and actually drawn in battle_display.
 SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
 
  DIM do_pick as bool = NO
