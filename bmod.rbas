@@ -2756,36 +2756,34 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef
  END WITH
 END SUB
 
+'Called when a spell menu is opened, either setting up the menu or picking a
+'spell from a Random menu
 SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
  DIM atk as AttackData
  DIM i as integer
  DIM list_type as integer = st(bat.hero_turn).list_type(bat.listslot)
  IF list_type < 2 THEN '--the type of this spell list is one that displays a menu
-  '--init spell menu
   bat.menu_mode = batMENUSPELL
   bat.sptr = 0
-  FOR i = 0 TO UBOUND(bat.spell.slot) '-- loop through the spell list setting up menu items for each
+  '--Set up menu items
+  FOR i = 0 TO UBOUND(bat.spell.slot)
    WITH bat.spell.slot(i)
     .name = ""
     .desc = ""
     .cost = ""
-    .atk_id = -1
-   END WITH
-   bat.spell.slot(i).enable = NO
-   DIM atkid as integer = gam.hero(bat.hero_turn).spells(bat.listslot, i) - 1
-   IF atkid >= 0 THEN '--there is a spell in this slot
-    bat.spell.slot(i).atk_id = atkid
-    loadattackdata atk, atkid
-    bat.spell.slot(i).name = atk.name
-    bat.spell.slot(i).desc = atk.description
-    bat.spell.slot(i).cost = bslot_attack_cost_info(bslot(), atk, bat.hero_turn, list_type, i \ 3)
-    IF atk.useable_inside_battle ANDALSO atkallowed(atk, bat.hero_turn, list_type, i \ 3, bslot()) THEN
-     '-- check whether or not the spell is allowed
-     bat.spell.slot(i).enable = YES
+    .enable = NO
+    .atk_id = gam.hero(bat.hero_turn).spells(bat.listslot, i) - 1
+    IF .atk_id >= 0 THEN '--there is a spell in this slot
+     loadattackdata atk, .atk_id
+     .name = atk.name
+     .desc = atk.description
+     .cost = bslot_attack_cost_info(bslot(), atk, bat.hero_turn, list_type, i \ 3)
+     .enable = atk.useable_inside_battle ANDALSO atkallowed(atk, bat.hero_turn, list_type, i \ 3, bslot())
     END IF
-   END IF
-   bat.spell.slot(i).name = rpad(bat.spell.slot(i).name, " ", 10)
+    .name = rpad(.name, " ", 10)
+   END WITH
   NEXT i
+
  ELSEIF list_type = 2 THEN '-- this is a random spell list
   '-- loop through the spell list storing attack ID numbers
   DIM spells as integer vector
