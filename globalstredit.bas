@@ -170,9 +170,7 @@ CONSTRUCTOR GlobalTextStringsMenu ()
  add_item 326, "Equipped (itemcount)",       "Equipped", 20
 
  header        " Buy/Hire Menu"
- add_item 85,  "Buy trade prefix",           "Trade for", 20
- add_item 81,  "($) and a (item)",           "and a", 10
- add_item 153, "($) and (number) (item)",    "and", 10
+ add_item 85,  "Trade for (items, no $)",    "Trade for", 20, "trade_for_prefix"
  add_item 87,  "Hire price prefix",          "Joins for", 20
  add_item 97,  "(#) in stock",               "in stock", 20
  add_item 99,  "Equipability prefix",        "Equip:", 10
@@ -185,10 +183,12 @@ CONSTRUCTOR GlobalTextStringsMenu ()
  add_item 309, "The shop is empty",          "The shop is empty", 30
 
  header        " Sell Menu"
- add_item 75,  "Unsellable item warning",    "CANNOT SELL", 20
- add_item 77,  "Sell value prefix",          "Worth", 20
- add_item 79,  "Sell trade prefix",          "Trade for", 20
+ add_item 77,  "Value: Worth ($) (and...)",  "Worth", 20
+ add_item 81,  "($) and a (item)",           "and a", 10
+ add_item 153, "($) and (number) (item)",    "and", 10
+ add_item 79,  "Value: Trade for (item)",    "Trade for", 20
  add_item 82,  "Worthless item warning",     "Worth Nothing", 20
+ add_item 75,  "Unsellable item warning",    "CANNOT SELL", 20
  add_item 84,  "Sell alert",                 "Sold", 10
 
  header        " Inns"

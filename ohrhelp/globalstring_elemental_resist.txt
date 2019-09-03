@@ -1,4 +1,4 @@
-Unlike other global text strings, this one may contain tags which are replaced with other text in-game, similar to tags in textboxes.
+Unlike most other global text strings, this one may contain embed codes which are replaced with other text in-game, similar to textboxes.
 
 This string is used on the second screen of the Status menu, for each element from which a hero takes less or more damage than the normal 100%. The available tags are:
 

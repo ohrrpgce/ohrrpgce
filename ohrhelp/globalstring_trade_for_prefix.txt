@@ -1,0 +1,3 @@
+This string prefixes the cost of an item that requires no money, only trade-in items.
+
+For example "Trade for" might become "Trade for IronSwrd".
