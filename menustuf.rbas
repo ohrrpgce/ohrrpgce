@@ -459,6 +459,12 @@ SUB buystuff_refresh_empty (buyst as ShopBuyState)
 
  ChangeTextSlice buyst.price_sl, readglobalstring(309, "The shop is empty", 30)
  buyst.price_box->Width = buyst.price_sl->Width + 16
+ 'Move the box up so it's not hidden behind the 'Bought...' alert box: once the
+ 'alert disappears, the menu will close.
+ WITH *buyst.price_box
+  .AnchorVert = alignCenter
+  .AlignVert = alignCenter
+ END WITH
 
  init_menu_state buyst.info_st, buyst.info
  buyst.info_st.active = NO
