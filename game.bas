@@ -4218,7 +4218,9 @@ FUNCTION findhero (byval id as integer, byval direction as integer = 1, errlvl a
  DIM as integer first, last
  IF direction = -1 THEN first = UBOUND(gam.hero) ELSE last = UBOUND(gam.hero)
  FOR i as integer = first TO last STEP direction
-  IF gam.hero(i).id = id ORELSE (id = -1 ANDALSO gam.hero(i).id >= 0) THEN
+  IF id = -1 THEN
+   IF gam.hero(i).id >= 0 THEN RETURN i
+  ELSEIF gam.hero(i).id = id THEN
    RETURN i
   END IF
  NEXT i
