@@ -136,7 +136,7 @@ FUNCTION standard_embed_codes(act as string, byval arg as integer) as string
     insert = getheroname(arg, NO)  'Don't default to "Hero #" if blank name
    END IF
   CASE "P": '--Hero name by Party position
-   IF arg < 40 THEN
+   IF arg >= 0 ANDALSO arg <= UBOUND(gam.hero) THEN
     '--defaults blank if not found
     insert = ""
     IF gam.hero(arg).id >= 0 THEN
@@ -147,13 +147,13 @@ FUNCTION standard_embed_codes(act as string, byval arg as integer) as string
    '--defaults blank if not found
    insert = ""
    DIM where as integer = rank_to_party_slot(arg)
-   IF where >= 0 AND where <= 3 THEN
+   IF where >= 0 ANDALSO where <= active_party_slots() - 1 THEN
     insert = gam.hero(where).name
    END IF
   CASE "V": '--global variable by ID
    '--defaults blank if out-of-range
    insert = ""
-   IF arg >= 0 AND arg <= maxScriptGlobals THEN
+   IF arg >= 0 ANDALSO arg <= maxScriptGlobals THEN
     insert = STR(global(arg))
    END IF
   CASE "S": '--string variable by ID
@@ -186,31 +186,25 @@ FUNCTION saveslot_embed_codes(byval saveslot as integer, act as string, byval ar
     insert = getheroname(arg, NO)  'Don't default to "Hero #" if blank name
    END IF
   CASE "P": '--Hero name by Party position
-   IF arg < 40 THEN
-    '--defaults blank if not found
-    insert = ""
-    IF saveslot_hero_id_by_slot(node, arg) >= 0 THEN
-     insert = saveslot_hero_name_by_slot(node, arg)
-    END IF
-   END IF
+   '--defaults blank if not found
+   '--Don't have to check validity of arg here. Don't assume UBOUND(gam.hero) is fixed.
+   insert = saveslot_hero_name_by_slot(node, arg)
   CASE "C": '--Hero name by caterpillar position
    '--defaults blank if not found
    insert = ""
    DIM where as integer = saveslot_rank_to_party_slot(node, arg)
-   IF where >= 0 AND where <= 3 THEN
+   IF where >= 0 ANDALSO where <= active_party_slots() - 1 THEN
     insert = saveslot_hero_name_by_slot(node, where)
    END IF
   CASE "V": '--global variable by ID
    '--defaults blank if out-of-range
    insert = ""
-   IF arg >= 0 AND arg <= maxScriptGlobals THEN
+   IF arg >= 0 ANDALSO arg <= maxScriptGlobals THEN
     insert = STR(saveslot_global(node, arg))
    END IF
   CASE "S": '--string variable by ID
-   insert = ""
-   IF in_bound(arg, 0, UBOUND(plotstr)) THEN
-    insert = saveslot_plotstr(node, arg)
-   END IF
+   '--Don't have to check validity of arg here
+   insert = saveslot_plotstr(node, arg)
  END SELECT
 
  FreeDocument(GetDocument(node))
@@ -1482,7 +1476,8 @@ SUB script_functions(byval cmdid as integer)
   gen(genGameoverScript) = large(retvals(0), 0)
  CASE 75'--fade screen out
   FOR i as integer = 0 TO 2
-   retvals(i) = bound(iif(retvals(i), retvals(i) * 4 + 3, 0), 0, 255)
+   'Convert from 0-63 -> 0-255
+   retvals(i) = bound(IIF(retvals(i), retvals(i) * 4 + 3, 0), 0, 255)
   NEXT
   stop_fibre_timing
   fadeout retvals(0), retvals(1), retvals(2)
