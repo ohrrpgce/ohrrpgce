@@ -417,6 +417,9 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
     price_str &= readitemname(GetInteger(trade))
     DIM count as integer = trade."count".default(0).integer
     IF count > 1 THEN price_str &= CHR(1) & count
+    DIM own as string = readglobalstring(328, " (have $N)", 20)
+    replacestr own, "$N", STR(countitem(GetInteger(trade)))
+    price_str &= own
    END WITHNODE
   END READNODE
   'Set price text but don't wrap yet

@@ -1,0 +1,5 @@
+This global text string is used when you have to trade in some items to buy something from the shop, to tell how many of those trade-in items you own. You can blank out the string to not tell the player how many they own.
+
+This string can contain $N which is replaced with the number of items owned.
+
+For example, " (have $N)" might become "10 gold, Iron2 (have 8)" or "Trade for Iron2 (have 8), 1 wood (have 0)". And "" (blank) might become "10 gold, Iron2".

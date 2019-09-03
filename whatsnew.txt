@@ -113,6 +113,7 @@ April ? 2019 [Fufluns]
     * Press G in NPC placement mode to select NPC type under cursor [Ralph]
     * "Shrink to Center" dissolve animation [James]
     * "Useable in battle from spell lists" attack bit (default on) [Ralph]
+    * Shops requiring trade-ins tell how many of the item you have [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

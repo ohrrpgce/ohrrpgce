@@ -171,6 +171,7 @@ CONSTRUCTOR GlobalTextStringsMenu ()
 
  header        " Buy/Hire Menu"
  add_item 85,  "Trade for (items, no $)",    "Trade for", 20, "trade_for_prefix"
+ add_item 328, "Trade-in amount you have",   " (have $N)", 20, "trade_item_owned"
  add_item 87,  "Hire price prefix",          "Joins for", 20
  add_item 97,  "(#) in stock",               "in stock", 20
  add_item 99,  "Equipability prefix",        "Equip:", 10
@@ -221,7 +222,7 @@ CONSTRUCTOR GlobalTextStringsMenu ()
  add_item 135, "Plotscript: pick hero",      "Which Hero?", 20
  add_item 137, "Hero name prompt",           "Name the Hero", 20
 
- '**** next unused index is 328
+ '**** next unused index is 330
 
  'NOTE: if you add global strings here, technically you should update the limit-checking on
  'the implementation of the "get global string" plotscripting command
