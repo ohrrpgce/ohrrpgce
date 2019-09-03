@@ -223,7 +223,6 @@ TYPE VictoryState
  exp_caption as string
  item_caption as string
  plural_item_caption as string
- gold_name as string
  exp_name as string
  level_up_caption as string
  levels_up_caption as string

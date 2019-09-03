@@ -539,7 +539,7 @@ SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, 
  stuf.menu(7) = tag_condition_caption(stufbuf(21), "Sell Require Tag", "Always")
  stuf.menu(8) = tag_set_caption(stufbuf(22), "Buy Set Tag")
  stuf.menu(9) = tag_set_caption(stufbuf(23), "Sell Set Tag")
- stuf.menu(10) = "Cost: " & stufbuf(24) & " " & readglobalstring(32, "$")
+ stuf.menu(10) = "Cost: " & price_string(stufbuf(24))
  IF stufbuf(17) = 0 AND stuf.item_value THEN  'item
   stuf.menu(10) &= " (" & CINT(100.0 * stufbuf(24) / stuf.item_value) & "% of Value)"
  END IF
@@ -566,7 +566,7 @@ SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, 
    CASE ELSE: stuf.menu(19) = "Sell type: " & stufbuf(26) & " ???"
   END SELECT
 
-  stuf.menu(20) = "Sell for: " & stufbuf(27) & " " & readglobalstring(32, "$")
+  stuf.menu(20) = "Sell for: " & price_string(stufbuf(27))
   IF stuf.item_value THEN
    stuf.menu(20) &= " (" & CINT(100.0 * stufbuf(27) / stuf.item_value) & "% of Value)"
   END IF

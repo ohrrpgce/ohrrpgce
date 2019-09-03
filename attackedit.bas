@@ -796,7 +796,7 @@ menutype(AtkHPCost) = 0
 menuoff(AtkHPCost) = AtkDatHPCost
 menulimits(AtkHPCost) = AtkLimInt
 
-menu(AtkMoneyCost) = readglobalstring(32, "$") & " Cost:"
+menu(AtkMoneyCost) = money_name() & " Cost:"
 menutype(AtkMoneyCost) = 0
 menuoff(AtkMoneyCost) = AtkDatMoneyCost
 menulimits(AtkMoneyCost) = AtkLimInt

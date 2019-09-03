@@ -156,6 +156,9 @@ DECLARE SUB fix_record_count(byref last_rec_index as integer, record_byte_size a
 DECLARE SUB loadglobalstrings ()
 DECLARE FUNCTION readglobalstring (byval index as integer, default as zstring ptr, byval maxlen as integer=10) as string
 
+DECLARE FUNCTION price_string (cost as integer) as string
+DECLARE FUNCTION money_name () as string
+
 DECLARE SUB load_default_master_palette (master_palette() as RGBColor)
 DECLARE SUB dump_integer_array_as_hex (arraydim as string, byval start as uinteger ptr, byval _ubound as integer, byval nibbles as integer = 8)
 

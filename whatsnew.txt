@@ -114,6 +114,7 @@ April ? 2019 [Fufluns]
     * "Shrink to Center" dissolve animation [James]
     * "Useable in battle from spell lists" attack bit (default on) [Ralph]
     * Shops requiring trade-ins tell how many of the item you have [Ralph]
+    * More flexible Money global text string, e.g. "$9" instead of "9 $" [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

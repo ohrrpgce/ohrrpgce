@@ -582,11 +582,11 @@ Sub default_status_screen (byval sl1 as Slice Ptr)
          SetSliceParent(sl9, sl8)
          sl9 = NewSliceOfType(slText)
          sl9->y = 101
-         sl9->width = 176
+         sl9->width = 64
          sl9->height = 10
          sl9->alignhoriz = 1
          sl9->anchorhoriz = 1
-         ChangeTextSlice sl9, !"${MONEY} ${MONEYLABEL}", -17, , , 
+         ChangeTextSlice sl9, !"${MONEY}", -17, , , 
          SetSliceParent(sl9, sl8)
         SetSliceParent(sl8, sl7)
        SetSliceParent(sl7, sl6)

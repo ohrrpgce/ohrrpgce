@@ -289,8 +289,8 @@ END SUB
 
 'thing is either "hero" or "item" node of a shop thing, in the new RELOAD respresentation of STF
 SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
- ChangeTextSlice buyst.money_sl, readglobalstring(145, "You have", 20) & " " & gold & " " & readglobalstring(32, "$", 10)
- 
+ ChangeTextSlice buyst.money_sl, readglobalstring(145, "You have", 20) & " " & price_string(gold)
+
  DIM thing_kind as string = NodeName(thing)
  DIM thing_id as integer = GetInteger(thing)
  DIM buy as NodePtr
@@ -405,7 +405,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
   DIM price as integer = buy."price".default(0).integer
   DIM price_str as string = ""
   IF price THEN
-   price_str = price & " " & readglobalstring(32, "$", 10)
+   price_str = price_string(price)
   END IF
   READNODE buy, ignoreall
    WITHNODE buy."trade" as trade
@@ -450,10 +450,10 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
 END SUB
 
 SUB buystuff_refresh_empty (buyst as ShopBuyState)
- ChangeTextSlice buyst.money_sl, readglobalstring(145, "You have", 20) & " " & gold & " " & readglobalstring(32, "$", 10)
- 
+ ChangeTextSlice buyst.money_sl, readglobalstring(145, "You have", 20) & " " & price_string(gold)
+
  buystuff_init_info_menu buyst
- 
+
  buyst.hero_box->Visible = NO
  buyst.hire_box->Visible = NO
 
@@ -1780,7 +1780,7 @@ DO
  NEXT i
  centerbox 160, 192, 312, 14, 4, page
  edgeprint info, pCenteredLeft, 187, uilook(uiText), page
- edgeprint gold & " " & readglobalstring(32, "$"), pRight - 10, 1, uilook(uiGold), page
+ edgeprint price_string(gold), pRight - 10, 1, uilook(uiGold), page
  IF alert THEN
   alert -= 1
   centerbox 160, 178, textwidth(alert_str) + 8, 14, 4, page
@@ -1808,7 +1808,7 @@ SUB sellstuff_infostr(byval ic as integer, info as string, b() as integer, perma
  info = ""
  IF inventory(ic).used = 0 THEN RETURN
  IF readbit(permask(), 0, ic) = 1 THEN info = cannotsell: RETURN
- IF price(ic) > 0 THEN info = worth & " " & price(ic) & " " & readglobalstring(32, "$")
+ IF price(ic) > 0 THEN info = worth & " " & price_string(price(ic))
  FOR i as integer = 0 TO stuff_count
   IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
    IF b(i * recordsize + 28) > 0 THEN
@@ -2007,8 +2007,7 @@ SUB ExpandTextHeroSlot (code as string, result as string, byval arg0 as ANY ptr=
    CASE "FORNEXT": result = readglobalstring(47, "for next", 10)
    CASE "LEVMPLABEL": result = readglobalstring(160, "Level MP", 20)
    CASE "ELEMENTS": result = get_elemental_info_text(hero_slot)
-   CASE "MONEY": result = STR(gold)
-   CASE "MONEYLABEL": result = readglobalstring(32, "$", 10)
+   CASE "MONEY": result = price_string(gold)
   END SELECT
   
   DIM her as HeroDef

@@ -1832,7 +1832,7 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
     '--print acquired gold and experience
     IF bat.rew.plunder > 0 OR bat.rew.exper > 0 THEN .box = YES: centerfuz 160, 30, 280, 50, 1, page
     IF bat.rew.plunder > 0 THEN
-     tempstr = .gold_caption & " " & bat.rew.plunder & " " & .gold_name & "!"
+     tempstr = .gold_caption & " " & price_string(bat.rew.plunder) & "!"
      edgeprint tempstr, pCentered, 16, uilook(uiText), page
     END IF
     IF bat.rew.exper > 0 THEN
@@ -2041,7 +2041,6 @@ SUB reset_victory_state (byref vic as VictoryState)
   .exp_caption  = readglobalstring(126, "Gained", 10)
   .item_caption = readglobalstring(139, "Found a", 20)
   .plural_item_caption = readglobalstring(141, "Found", 20)
-  .gold_name    = readglobalstring(32, "$", 10)
   .exp_name     = readglobalstring(33, "Experience", 10)
   .level_up_caption  = readglobalstring(149, "Level up for", 20)
   .levels_up_caption = readglobalstring(151, "levels for", 20)

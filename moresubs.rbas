@@ -1799,8 +1799,8 @@ DO
  centerfuz 160, 90, 200, 60, 1, page
  DIM menuwidth as integer = large(textwidth(menu(0)), textwidth(menu(1))) + 8
  rectangle 160 + ancCenter, 92, menuwidth, 22, uilook(uiHighlight), page 'orig colour 20
- edgeprint inncost & " " & price & " " & readglobalstring(32, "$"), pCentered, 70, uilook(uiText), page
- edgeprint youhave & " " & gold & " " & readglobalstring(32, "$"), pCentered, 80, uilook(uiText), page
+ edgeprint inncost & " " & price_string(price), pCentered, 70, uilook(uiText), page
+ edgeprint youhave & " " & price_string(gold), pCentered, 80, uilook(uiText), page
  FOR i as integer = 0 TO 1
   DIM col as integer
   col = uilook(uiMenuItem)

@@ -5284,6 +5284,25 @@ ELSE
 END IF
 END FUNCTION
 
+LOCAL FUNCTION _price_string(cost as string) as string
+ DIM as string ret, default
+ default = "# " & readglobalstring(32, "$")
+ IF default = "# $" THEN default = "$#"  'Special case magic!
+ ret = readglobalstring(330, default, 16)
+ replacestr ret, "#", cost
+ RETURN ret
+END FUNCTION
+
+'Format a price, like "10 gold", "$10"
+FUNCTION price_string(cost as integer) as string
+ RETURN _price_string(STR(cost))
+END FUNCTION
+
+'Name of the currency, like "Gold", "$"
+FUNCTION money_name() as string
+ RETURN titlecase(TRIM(_price_string("")))
+END FUNCTION
+
 PRIVATE SUB add_item_to_(menu as MenuDef, subtype as integer, hide_if_disabled as bool = NO)
  append_menu_item(menu, "", mtypeSpecial, subtype)
  menu.last->hide_if_disabled = hide_if_disabled

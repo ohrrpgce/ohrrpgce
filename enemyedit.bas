@@ -338,7 +338,7 @@ menuoff(EnMenuPicSize) = EnDatPicSize
 menulimits(EnMenuPicSize) = EnLimPicSize
 
 CONST EnMenuGold = 12
-menu(EnMenuGold) = "Gold:"
+menu(EnMenuGold) = money_name() & ":"
 menutype(EnMenuGold) = 0
 menuoff(EnMenuGold) = EnDatGold
 menulimits(EnMenuGold) = EnLimUInt

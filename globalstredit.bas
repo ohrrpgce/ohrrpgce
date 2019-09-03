@@ -117,7 +117,9 @@ CONSTRUCTOR GlobalTextStringsMenu ()
  add_item 43,  "Level",                      "Level", 10
  add_item 33,  "Experience",                 "Experience", 10
  add_item 47,  "(exp) for next (level)",     "for next", 10
- add_item 32,  "Money",                      "$", 10
+ DIM moneydefault as string = "# " & readglobalstring(32, "$")
+ IF moneydefault = "# $" THEN moneydefault = "$#"  'Special case magic!
+ add_item 330, "Money/Price",                moneydefault, 16, "money"
  add_item 160, "Level MP",                   "Level MP", 20
 
  header        " Status Second Screen"
@@ -193,8 +195,8 @@ CONSTRUCTOR GlobalTextStringsMenu ()
  add_item 84,  "Sell alert",                 "Sold", 10
 
  header        " Inns"
- add_item 143, "THE INN COSTS (# gold)",     "THE INN COSTS", 20
- add_item 145, "You have (# gold)",          "You have", 20
+ add_item 143, "THE INN COSTS ($)",          "THE INN COSTS", 20
+ add_item 145, "You have ($)",               "You have", 20
  add_item 49,  "Pay at Inn",                 "Pay", 10
  add_item 50,  "Cancel Inn",                 "Cancel", 10
 
@@ -213,7 +215,7 @@ CONSTRUCTOR GlobalTextStringsMenu ()
  add_item 124, "(hero) learned (spell)",     "learned", 10
  add_item 139, "Found a (item)",             "Found a", 20
  add_item 141, "Found (number) (items)",     "Found", 20
- add_item 125, "Found (gold)",               "Found", 10
+ add_item 125, "Found ($)",                  "Found", 10
 
  header        " Misc"
  add_item 104, "Status Prompt",              "Whose Status?", 20
@@ -222,7 +224,7 @@ CONSTRUCTOR GlobalTextStringsMenu ()
  add_item 135, "Plotscript: pick hero",      "Which Hero?", 20
  add_item 137, "Hero name prompt",           "Name the Hero", 20
 
- '**** next unused index is 330
+ '**** next unused index is 332
 
  'NOTE: if you add global strings here, technically you should update the limit-checking on
  'the implementation of the "get global string" plotscripting command

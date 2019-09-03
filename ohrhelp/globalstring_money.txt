@@ -1,0 +1,7 @@
+This global text string is used to display amounts of money such as prices and how much you have.
+
+The string should contain # which is replaced with the amount.
+
+For example "$#" can become "$10", "# gold" can become "10 gold".
+
+The string is also used to display the name of the currency in some editors, like attack "Gold Cost: ..."
