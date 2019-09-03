@@ -1181,6 +1181,7 @@ def compile_hspeak(target, source, env):
 # HSpeak is built by translating to C, generating a Makefile, and running make.
 HSPEAK = env.Command (rootdir + 'hspeak' + exe_suffix, source = ['hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'),
                       action = Action(compile_hspeak, "Compiling hspeak"))
+Alias('hspeak', HSPEAK)
 
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
 x2rsrc = ['xml2reload.bas'] + reload_objects
