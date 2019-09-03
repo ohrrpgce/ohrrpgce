@@ -386,6 +386,7 @@ FUNCTION user_textbox_advance() as bool
 END FUNCTION
 
 SUB evalherotags ()
+ 'Note: this funciton can be called in a middle of changing a party, with no heroes in the active party
  DIM leaderid as integer = herobyrank(0)
 
  FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags)) '--for each available hero

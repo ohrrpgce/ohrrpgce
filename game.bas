@@ -4200,34 +4200,34 @@ END FUNCTION
 
 SUB forceparty ()
  '---MAKE SURE YOU HAVE AN ACTIVE PARTY---
- DIM fpi as integer = findhero(-1)
- IF fpi > -1 THEN
-  FOR fpo as integer = 0 TO 3
-   IF gam.hero(fpo).id = -1 THEN
-    doswap fpi, fpo
-    EXIT FOR
-   END IF
-  NEXT fpo
+ DIM fpi as integer = first_used_slot_in_party()
+ DIM fpo as integer = first_free_slot_in_active_party()
+ IF fpi > -1 ANDALSO fpo > -1 THEN
+  doswap fpi, fpo
  END IF
 END SUB
 
 ' Find hero by ID, returning party slot or -1.
 ' direction: 1 to find the first matching hero, or -1 to find the last.
-' Pass id = -1 to find any hero. Otherwise id is the real hero ID, >= 0.
 FUNCTION findhero (byval id as integer, byval direction as integer = 1, errlvl as scriptErrEnum = serrIgnore) as integer
  DIM as integer first, last
  IF direction = -1 THEN first = UBOUND(gam.hero) ELSE last = UBOUND(gam.hero)
  FOR i as integer = first TO last STEP direction
-  IF id = -1 THEN
-   IF gam.hero(i).id >= 0 THEN RETURN i
-  ELSEIF gam.hero(i).id = id THEN
-   RETURN i
-  END IF
+  IF gam.hero(i).id = id THEN RETURN i
  NEXT i
  IF errlvl > serrIgnore THEN
   reporterr "Couldn't find hero with ID " & id & " in the party", errlvl
  END IF
  RETURN -1 'not found
+END FUNCTION
+
+'Returns the slot containing the first hero in the party. Should always succeed.
+FUNCTION first_used_slot_in_party() as integer
+ FOR i as integer = 0 TO UBOUND(gam.hero)
+  IF gam.hero(i).id >= 0 THEN RETURN i
+ NEXT
+ showbug "Empty hero party! This should never happen"
+ RETURN -1
 END FUNCTION
 
 FUNCTION first_free_slot_in_party() as integer

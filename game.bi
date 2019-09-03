@@ -73,6 +73,7 @@ DECLARE FUNCTION usenpc(byval cause as integer, byval npcnum as NPCIndex) as boo
 
 DECLARE SUB forceparty ()
 DECLARE FUNCTION findhero (byval id as integer, byval direction as integer = 1, errlvl as scriptErrEnum = serrIgnore) as integer
+DECLARE FUNCTION first_used_slot_in_party() as integer
 DECLARE FUNCTION first_free_slot_in_party() as integer
 DECLARE FUNCTION first_free_slot_in_active_party() as integer
 DECLARE FUNCTION first_free_slot_in_reserve_party() as integer
