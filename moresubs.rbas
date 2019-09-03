@@ -1533,7 +1533,7 @@ DIM storebuf(40) as integer
 DIM menu(10) as string
 DIM menuid(10) as integer
 DIM sn as string
-DIM autopick as integer
+DIM autopick as bool
 DIM w as integer
 DIM temp as integer
 DIM tog as integer
@@ -1577,7 +1577,7 @@ FOR i as integer = 0 TO 7
 NEXT i
 
 IF st.last = -1 THEN EXIT SUB
-IF st.last = 0 THEN autopick = 1
+IF st.last = 0 THEN autopick = YES
 st.last += 1
 menu(st.last) = readglobalstring(74, "Exit", 10)
 menuid(st.last) = 8
@@ -1607,14 +1607,14 @@ DO
  playtimer
  usemenu st
  usemenusounds
- 
+
  DIM do_quit as bool = NO
  DIM do_pick as bool = NO
 
  IF carray(ccMenu) > 1 THEN do_quit = YES
  IF carray(ccUse) > 1 THEN do_pick = YES
- 
- IF get_gen_bool("/mouse/mouse_menus") ANDALSO NOT autopick THEN
+
+ IF get_gen_bool("/mouse/mouse_menus") ANDALSO autopick = NO THEN
   IF rect_collide_point(box, readmouse.pos) THEN
    DIM hover as integer = -1
    FOR i as integer = 0 TO st.last
@@ -1748,7 +1748,7 @@ DO
   state.pt = state.pt XOR 1
  END IF
  IF carray(ccUse) > 1 THEN do_pick = YES
- 
+
  IF get_gen_bool("/mouse/mouse_menus") THEN
   IF rect_collide_point(Type(60, 60, 200, 60), readmouse.pos) THEN
    DIM hover as integer = -1
@@ -1764,14 +1764,14 @@ DO
   END IF
   IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_quit = YES
  END IF
- 
+
  IF do_quit THEN
   menusound gen(genCancelSFX)
   EXIT DO
  END IF
- 
+
  IF do_pick THEN
-  IF state.pt = 0 AND gold >= price THEN
+  IF state.pt = 0 AND gold >= price THEN  'Pay
    gold -= price
    useinn = YES
    menusound gen(genAcceptSFX)
@@ -1779,7 +1779,7 @@ DO
   ELSE
    menusound gen(genCancelSFX)
   END IF
-  IF state.pt = 1 THEN EXIT DO
+  IF state.pt = 1 THEN EXIT DO  'Cancel
  END IF
 
  'Draw screen
@@ -1787,22 +1787,25 @@ DO
  edgeboxstyle 0, 3, 218, active_party_size() * 10 + 4, 0, page
  DIM y as integer = 0
  FOR i as integer = 0 TO active_party_slots - 1
-  IF gam.hero(i).id >= 0 THEN
-   DIM col as integer = uilook(uiText)
-   edgeprint gam.hero(i).name, 128 - LEN(gam.hero(i).name) * 8, 5 + y * 10, col, page
-   edgeprint STR(gam.hero(i).stat.cur.hp) + "/" + STR(gam.hero(i).stat.max.hp), 136, 5 + y * 10, col, page
-   y = y + 1
-  END IF
+  WITH gam.hero(i)
+   IF .id >= 0 THEN
+    DIM col as integer = uilook(uiText)
+    edgeprint .name, 128 + ancRight, 5 + y * 10, col, page
+    edgeprint .stat.cur.hp & "/" & .stat.max.hp, 136, 5 + y * 10, col, page
+    y += 1
+   END IF
+  END WITH
  NEXT i
  centerfuz 160, 90, 200, 60, 1, page
- rectangle 130, 92, 60, 22, uilook(uiHighlight), page 'orig colour 20
- edgeprint inncost & " " & price & " " & readglobalstring(32, "$"), 160 - LEN(inncost & price & " " & readglobalstring(32, "$")) * 4, 70, uilook(uiText), page
- edgeprint youhave & " " & gold & " " & readglobalstring(32, "$"), 160 - LEN(youhave & gold & " " & readglobalstring(32, "$")) * 4, 80, uilook(uiText), page
+ DIM menuwidth as integer = large(textwidth(menu(0)), textwidth(menu(1))) + 8
+ rectangle 160 + ancCenter, 92, menuwidth, 22, uilook(uiHighlight), page 'orig colour 20
+ edgeprint inncost & " " & price & " " & readglobalstring(32, "$"), pCentered, 70, uilook(uiText), page
+ edgeprint youhave & " " & gold & " " & readglobalstring(32, "$"), pCentered, 80, uilook(uiText), page
  FOR i as integer = 0 TO 1
   DIM col as integer
   col = uilook(uiMenuItem)
   IF state.pt = i THEN col = uilook(uiSelectedItem + tog)
-  edgeprint menu(i), 160 - LEN(menu(i)) * 4, 94 + i * 8, col, page
+  edgeprint menu(i), pCentered, 94 + i * 8, col, page
  NEXT i
 
  setvispage vpage
@@ -1813,6 +1816,7 @@ freepage page
 party_change_updates
 END FUNCTION
 
+'Tag debug menu
 SUB tagdisplay (page as integer)
 STATIC st as MenuState
 DIM lineh as integer = lineheight()

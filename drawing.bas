@@ -2331,9 +2331,9 @@ DO
  ELSE
   temp = "Backdop " & ts.cutfrom
  END IF
- printstr temp, 320\2 - LEN(temp) * 4, ypos, dpage
+ printstr temp, 320\2 + ancCenter, ypos, dpage
  temp = "X=" & ts.x & " Y=" & ts.y
- printstr temp, 320\2 - LEN(temp) * 4, ypos + 10, dpage
+ printstr temp, 320\2 + ancCenter, ypos + 10, dpage
 
  temp = hilite("G") & "ridsnap:" & yesorno(snap_to_grid, "On", "Off")
  printstr temp, 4, ypos, dpage, YES

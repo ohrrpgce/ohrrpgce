@@ -3213,7 +3213,7 @@ DO
  centerbox 84, 18, 140, 16, 4, page    'hero name
  centerbox 84, 102, 140, 130, 4, page  'stats
  centerbox 236, 75, 80, 78, 4, page    'equipment
- edgeprint gam.hero(st.who).name, 84 - LEN(gam.hero(st.who).name) * 4, 13, uilook(uiText), page
+ edgeprint gam.hero(st.who).name, 84 + ancCenter, 13, uilook(uiText), page
  DIM stat_v_offset as integer = 0
  FOR i = 0 TO statLast
   'Draw stats and bonuses

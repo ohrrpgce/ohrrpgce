@@ -1481,7 +1481,7 @@ SUB draw_damage_text(bslot() as BattleSprite, page as integer)
     ELSE
      harm_text_offset = 0 'Avoid div by zero (which shouldn't be possible anyway)
     END IF
-    edgeprint .text, .pos.x - LEN(.text) * 4, .pos.y - harm_text_offset, .col, page
+    edgeprint .text, .pos.x + ancCenter, .pos.y - harm_text_offset, .col, page
     .ticks -= 1
     IF .ticks = 0 THEN .col = uilook(uiBattleDamage) 'reset color when the timer finishes
    END IF
