@@ -3,6 +3,10 @@
 #ifndef CONFIG_H__
 #define CONFIG_H__
 
+// This causes MinGW and MinGW-w64 to switch to C99-compliant printf- and scanf-family
+// functions (causes __USE_MINGW_ANSI_STDIO to be defined). See below.
+#define _POSIX_SOURCE
+
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"
 #include "errorlevel.h"
@@ -58,6 +62,9 @@ extern "C" {
  // much for caring about security! _[v]snprintf is available but is NOT
  // equivalent to [v]snprintf: if the buffer is too short it doesn't add a null
  // byte, and returns -1 instead of the required buffer size.
+ // NOTE: MinGW provides replacements for all printf and scanf functions,
+ // to use standard formatting codes. I'm not aware whether there are other
+ // behaviour changes aside from [v]snprintf.
  #if _MSC_VER < 1900
   // Defined in lib/msvcrt_compat.c
   int c99_vsnprintf(char *outBuf, size_t size, const char *format, va_list ap);
@@ -88,9 +95,14 @@ extern "C" {
   // (VC++ 2015).  Luckily mingw[w-64] provide replacements. vsnprintf is
   // redirected to __mingw_vsnprintf if this is defined, which mingw does by
   // default but mingw-w64 doesn't.
+  // But apparently MinGW no longer want people to define __USE_MINGW_ANSI_STDIO
+  // (although that was what they explicitly told people to do in the past),
+  // so we instead #define _POSIX_SOURCE, above.
+  /*
   #ifndef __USE_MINGW_ANSI_STDIO
    #define __USE_MINGW_ANSI_STDIO 1
   #endif
+  */
  #endif
 
  /* Microsoft secure _s extension functions are not present in older versions of
