@@ -351,7 +351,7 @@ def verprint (used_gfx, used_music, fbc, arch, gccversion, asan, portable, pdb, 
 
 def android_source_actions (sourcelist, rootdir, destdir):
     """Returns a pair (source_nodes, actions) for android-source=1 builds.
-    The actions copy a set of C and C++ files to destdir (which is android/tmp/),
+    The actions symlink & copy a set of C and C++ files to destdir (which is android/tmp/),
     including all C/C++ sources and C-translations of .bas files.
     """
     source_files = []
@@ -374,23 +374,26 @@ def android_source_actions (sourcelist, rootdir, destdir):
     # by the SDL port selects too much.
     # The more correct way to do this would be to use VariantDir to get scons
     # to automatically copy all sources to destdir, but that requires teaching it
-    # that -gen gcc generates .c files.
-    # (This links lib/gif.cpp as gif.cpp, so copy lib/gif.h to gif.h)
-    # (also do the same with ./fb/*.h to ./*.h for the same reason)
-    actions = [
-        'rm -fr %s/*' % destdir,
-        'mkdir -p %s/fb' % destdir,
-        # This actually creates the symlinks before the C/C++ files are generated, but that's OK
-        'ln -s ' + ' '.join(source_files) + ' ' + destdir,
-        'cp %s/*.h %s/' % (rootdir, destdir),
-        'cp %s/*.hpp %s/' % (rootdir, destdir),
-        'cp %s/fb/*.h %s/fb/' % (rootdir, destdir),
-        'cp %s/fb/*.h %s/' % (rootdir, destdir),
-        'cp %s/lib/*.h %s/' % (rootdir, destdir),
-        'cp %s/android/sdlmain.c %s' % (rootdir, destdir),
-        # Cause build.sh to re-generate Settings.mk, since extraconfig.cfg may have changed
-        'touch %s/android/AndroidAppSettings.cfg' % (rootdir),
-    ]
+    # that -gen gcc generates .c files. (Actually, I think it knows that now)
+    actions = ['rm -fr %s/*' % destdir]
+    # This actually creates the symlinks before the C/C++ files are generated, but that's OK
+    processed_dirs = set()
+    for src in source_files:
+        relsrc = src.replace(rootdir, '').replace('build' + os.path.sep, '')
+        srcdir, _ = os.path.split(relsrc)
+        newdir = os.path.join(destdir, srcdir)
+        if srcdir not in processed_dirs:
+            # Create directory and copy all headers in it
+            processed_dirs.add(srcdir)
+            actions += [
+                'mkdir -p ' + newdir,
+                # Copy instead of link so don't need to bother making relative path.
+                # *.h* causes other files like .hsi to be copied, not worth fixing.
+                'cp %s %s/' % (os.path.join(srcdir, '*.h*'), newdir),
+            ]
+        actions += ['ln -s %s %s' % (src, newdir)]
+    # Cause build.sh to re-generate Settings.mk, since extraconfig.cfg may have changed
+    actions += ['touch %s/android/AndroidAppSettings.cfg' % rootdir]
     return source_nodes, actions
 
 ########################################################################
