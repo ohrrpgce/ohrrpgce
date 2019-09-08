@@ -246,10 +246,10 @@ ENUM 'MapID
   mapIDMetaCursor = -11    'Stores cursor position at beginning of stroke
   mapIDMetaEditmode = -10  'to -1. .value is mode specific.
   mapIDMetaEditmodeEND = -1
-  mapIDZone = 0   'to 9999
-  mapIDPass = 10000
-  mapIDFoe = 10001
-  mapIDLayer = 10002  'to 10099
+  mapIDZone = 0   'to zoneLASTREADABLE (10000)
+  mapIDPass = 20000
+  mapIDFoe = 20001
+  mapIDLayer = 20002  'to 20099
 END ENUM
 TYPE MapID as short
 

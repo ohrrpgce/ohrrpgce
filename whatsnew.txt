@@ -256,6 +256,8 @@ April ? 2019 [Fufluns]
       notes after loop points. [Ralph]
     * Crash when changing window zoom in certain editors/menus [Ralph]
     * Possible crash in script debugger [Sword, Ralph]
+    * Bug gh#32: Lots of map editor problems when mixing one-way walls with
+      undo or mark+clone tools [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

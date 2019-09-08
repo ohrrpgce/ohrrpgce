@@ -1147,7 +1147,8 @@ DO
   CASE pass_mode
    IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
 
-   IF keyval(scCtrl) = 0 AND keyval(scW) > 1 THEN  'One-way tiles
+   IF st.tool <> mark_tool ANDALSO st.tool <> clone_tool ANDALSO _
+      keyval(scCtrl) = 0 ANDALSO keyval(scW) > 1 THEN  'One-way tiles
     zonebrush st, st.x, st.y, (CheckZoneAtTile(st.map.zmap, zoneOneWayExit, st.x, st.y) XOR YES), zoneOneWayExit
    END IF
 
@@ -2211,7 +2212,7 @@ DO
    printstr "Placing Wall: " & wallname, 0, 16, dpage
   END IF
 
-  IF CheckZoneAtTile(st.map.zmap, zoneOneWayExit, st.x, st.y) THEN
+  IF st.tool <> clone_tool ANDALSO CheckZoneAtTile(st.map.zmap, zoneOneWayExit, st.x, st.y) THEN
    edgeprint hilite("W") + ": one-way walls", st.viewport_p2.x - 196, st.viewport_p2.y - 8, uilook(uiText), dpage, YES
   END IF
  END IF

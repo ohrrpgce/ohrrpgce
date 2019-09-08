@@ -313,7 +313,6 @@ CONST mapTilesMax = 100000 'Maximum map size, in tiles (note also a limit of 327
 CONST dissolveTypeMax = 11 'Highest numbered frame dissolve effect
 CONST maxMPLevel = 7   'Max level of FF1-style level-MP, 0-based (Note: the spell-list editor shows 1-based levels)
 CONST maxElements = 64 'Maximum selectable number of elements
-CONST tempZone = 10000 'ID (and up) to use for temporary zones
 CONST maxDoorsPerMap = 99 '0 thru 99
 CONST maxMapHistoryMem = 2000000 'In number of MapEditUndoTiles (8 bytes)
 CONST maxSpriteHistoryMem = 16000000  'Max size of sprite undo history, in bytes
