@@ -3091,29 +3091,39 @@ FUNCTION open_url (url as string) as bool
 #ENDIF
 END FUNCTION
 
-FUNCTION spawn_and_wait (app as string, args as string) as string
+FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as bool = YES) as string
  'Run a commandline program in a terminal emulator and wait for it to finish.
+ 'WARNING: in general can't check whether it succeeded! Can check the exit code
+ 'only on Windows, and don't check stderr anywhere (except gfx_console).
+ '
  'On Windows the program is run asynchronously and users are offered the option to kill it.
- 'On other platforms the program just freezes.
+ 'On other platforms this is synchronous: we freeze.
  'You can of course also kill the program on all platforms with Ctrl+C
+ '
  'app should be a path to an executable (not escaped), while args should be escaped as needed.
- 'Returns an error message, or "" if no apparent failure
+ 'Returns an error message, or "" if no apparent failure.
+ 'If expect_exitcode_0 and the exitcode isn't 0, then returns a failure message.
  'NOTE: you should display the error with visible_debug, because this function doesn't write
  'it to the debug log (TODO: change that)
-
- 'It may be better to pass arguments in an array (the Unix way), so that
- 'we can do all the necessary quoting required for Windows here.
 
  debuginfo "spawn_and_wait " & escape_filename(app) + " " + args
 
  IF gfxbackend = "console" THEN
   CLS
-  safe_shell escape_filename(app) & " " & args
+  DIM res as integer
+  res = safe_shell(escape_filename(app) & " " & args)
   'Sync actual and backend-internal screens
   CLS
   clearpage vpage
   setvispage vpage, NO
-  RETURN ""
+  'res is < 0 if there was a problem running it, > 0 is an exit code from the program
+  IF res < 0 THEN
+   RETURN "Failed to run " & trimpath(app) & ", errorcode " & res
+  ELSEIF res > 0 ANDALSO expect_exitcode_0 THEN
+   RETURN trimpath(app) & " reported failure, errorcode " & res
+  ELSE
+   RETURN ""
+  END IF
  END IF
 
 #IF defined(__FB_DARWIN__)
@@ -3161,7 +3171,7 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
   setkeys
   IF process_running(handle, @exitcode) = NO THEN
    cleanup_process @handle
-   IF exitcode THEN
+   IF expect_exitcode_0 ANDALSO exitcode <> 0 THEN
     'Error, or the user might have killed the program some other way
     RETURN trimpath(app) + " reported failure, errorcode " & exitcode
    END IF
@@ -3199,8 +3209,12 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
 
  DIM cmd as string, outbuffer as string, stderr_s as string
  cmd = "xterm -bg black -fg gray90 -e """ & escape_string(escape_filename(app) & " " & args, """\") & """"
- ' Capture stdout and stderr
+ ' Capture stdout and stderr (Why?! It's from xterm, not the program, and xterm
+ ' prints nothing even if it couldn't run the program!)
  DIM res as integer = run_and_get_output(cmd, outbuffer, stderr_s)
+ 'res is < 0 if there was a problem running xterm, while > 0 are exitcodes returned from xterm,
+ 'NOT from the program. There's no way to get xterm to report the program's exitcode :(
+ 'outbuffer and stderr_s will probably be blank.
  IF res THEN
   IF LEN(outbuffer) = 0 THEN outbuffer = "Error code " & res
   RETURN "Could not run " & app & !":\n" & outbuffer & " " & stderr_s

@@ -258,6 +258,8 @@ April ? 2019 [Fufluns]
     * Possible crash in script debugger [Sword, Ralph]
     * Bug gh#32: Lots of map editor problems when mixing one-way walls with
       undo or mark+clone tools [Ralph]
+    * Bug gh#33: On Windows you can now import scripts even if HSpeak showed a
+      warning. Been broken many years but no one thought to complain! [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced
