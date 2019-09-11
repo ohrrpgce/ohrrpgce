@@ -3,9 +3,13 @@
 #ifndef CONFIG_H__
 #define CONFIG_H__
 
+#ifdef __MINGW32__  // MinGW or MinGW-w64
 // This causes MinGW and MinGW-w64 to switch to C99-compliant printf- and scanf-family
 // functions (causes __USE_MINGW_ANSI_STDIO to be defined). See below.
-#define _POSIX_C_SOURCE 200809L
+// According to https://svn.python.org/projects/python/trunk/configure
+// defining _POSIX_C_SOURCE causes lots of broken stuff on virtually every Unix, so avoid it.
+# define _POSIX_C_SOURCE 200809L
+#endif
 
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"
