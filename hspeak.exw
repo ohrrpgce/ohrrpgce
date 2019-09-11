@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ue 2019-09-09 Windows: fix double-inclusion detection
 --3Ud 2019-07-12 Windows: double-include detection now case-insensitive
 --3Uc 2019-03-25 Enforce at most 32 args allowed
 --3Ub 2018-11-17 Fix some error messages
@@ -182,7 +183,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Ud"
+constant COMPILER_SUB_VERSION="Ue"
 constant COPYRIGHT_DATE="2019"
 
 --Known single-character commandline options
@@ -1368,7 +1369,7 @@ procedure load_and_lex_source(string filename, string reading_how, srcpos pos, s
 
   --Reads one additional file
   reenter_timing_zone("load_and_lex_source/reading")
-  load_source(filename,reading_how,pos)
+  load_source(canon_filename,reading_how,pos)
   exit_timing_zone()
   --Lex that file, and load and lex all included files
   lex_file(length(file_list), include_stack)
