@@ -1393,10 +1393,12 @@ SUB update_heroes(force_step_check as bool=NO)
   'NOTE: if the caterpillar is enabled, then only the leader has nonzero xgo, ygo
   'unless you use "walk hero", etc, which will work only as long as the leader is still
   didgo(whoi) = (herow(whoi).xygo <> 0)
-  IF herow(whoi).xgo > 0 THEN herow(whoi).xgo -= herow(whoi).speed: herox(whoi) -= herow(whoi).speed
-  IF herow(whoi).xgo < 0 THEN herow(whoi).xgo += herow(whoi).speed: herox(whoi) += herow(whoi).speed
-  IF herow(whoi).ygo > 0 THEN herow(whoi).ygo -= herow(whoi).speed: heroy(whoi) -= herow(whoi).speed
-  IF herow(whoi).ygo < 0 THEN herow(whoi).ygo += herow(whoi).speed: heroy(whoi) += herow(whoi).speed
+  DIM speedx as integer = small(herow(whoi).speed, ABS(herow(whoi).xgo))
+  DIM speedy as integer = small(herow(whoi).speed, ABS(herow(whoi).ygo))
+  IF herow(whoi).xgo > 0 THEN herow(whoi).xgo -= speedx: herox(whoi) -= speedx
+  IF herow(whoi).xgo < 0 THEN herow(whoi).xgo += speedx: herox(whoi) += speedx
+  IF herow(whoi).ygo > 0 THEN herow(whoi).ygo -= speedy: heroy(whoi) -= speedy
+  IF herow(whoi).ygo < 0 THEN herow(whoi).ygo += speedy: heroy(whoi) += speedy
   'Always crop to map bounds (or wrap around map) even if walls are disabled
   '(if they aren't, then movement was already cropped by wrappass)
   cropmovement heropos(whoi), herow(whoi).xygo
@@ -2060,10 +2062,12 @@ FUNCTION perform_npc_move(byval npcnum as NPCIndex, npci as NPCInst, npcdata as 
   IF npcdata.speed THEN
    '--change x,y and decrement wantgo by speed
    IF npci.xgo OR npci.ygo THEN
-    IF npci.xgo > 0 THEN npci.xgo -= npcdata.speed: npci.x -= npcdata.speed
-    IF npci.xgo < 0 THEN npci.xgo += npcdata.speed: npci.x += npcdata.speed
-    IF npci.ygo > 0 THEN npci.ygo -= npcdata.speed: npci.y -= npcdata.speed
-    IF npci.ygo < 0 THEN npci.ygo += npcdata.speed: npci.y += npcdata.speed
+    DIM speedx as integer = small(npcdata.speed, ABS(npci.xgo))
+    DIM speedy as integer = small(npcdata.speed, ABS(npci.ygo))
+    IF npci.xgo > 0 THEN npci.xgo -= speedx: npci.x -= speedx
+    IF npci.xgo < 0 THEN npci.xgo += speedx: npci.x += speedx
+    IF npci.ygo > 0 THEN npci.ygo -= speedy: npci.y -= speedy
+    IF npci.ygo < 0 THEN npci.ygo += speedy: npci.y += speedy
     IF npci.xygo MOD 20 = 0 THEN finished_step = YES
    END IF
   ELSE

@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-April ? 2019 [Fufluns]
+Septemtober ? 2019 [Fufluns]
 
   Highlights:
     * ~~Fill this in later~~
@@ -260,6 +260,10 @@ April ? 2019 [Fufluns]
       undo or mark+clone tools [Ralph]
     * Bug gh#33: On Windows you can now import scripts even if HSpeak showed a
       warning. Been broken many years but no one thought to complain! [Ralph]
+    * Changing hero or NPC speed while in the middle of a step, or using a
+      speed value that doesn't divide into 20, no longer causes misalignment.
+      Should have fixed that decades ago! Note, only speeds 3 and 7 are
+      reasonable, other previously-forbidden ones cause jerky movement. [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

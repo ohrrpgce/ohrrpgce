@@ -1361,7 +1361,34 @@ resume player</example>
 		<command id="setherospeed">
 			<canon>set hero speed (who, speed)</canon>
 			<shortname>set hero speed</shortname>
-			<description>Changes the walking speed of the specified hero. If you do not specify a speed, the hero&apos;s speed will return to the default, 4. Be careful with using speeds that do not divide evenly into 20, because tiles are 20 pixels in size, and an irregular walking speed may cause your hero to become misaligned with the tiles.</description>
+			<description>
+				Changes the walking speed (pixels per tick) of the specified hero, from 0 to 20.
+				<p>who</p> is a caterpillar slot; use <ref>me</ref> to refer to the leader.
+				Normally only the speed of the leader matters,
+				unless you use <ref>suspendcaterpillar</ref>,
+				because the whole party moves at the leader's speed.
+				<p>speed</p> defaults to 4.
+				Tiles are 20 pixels in size, and speeds that do not divide evenly or nearly
+				evenly into 20 will result in jerky movement.
+				So only use speeds 0, 1, 2, 3, 4, 5, 7, 10, or 20.
+				<note>
+					Changes to hero speed aren't saved in saved games!
+				</note>
+				<note>
+					Hero speed is weird.
+					It isn't actually a property of the hero, but of the caterpillar slot.
+					So if you change the leader's speed and then a different hero is swapped
+					into the leader position, the leader (and party) speed doesn't change.
+					That's usually a good thing!
+				</note>
+				<warn>
+					Don't set speed to zero while a hero is moving,
+					it will cause the hero to stop mid-step and become misaligned with the grid
+					and stuck.
+					Wait for the hero to stop first or check with <ref>heroiswalking</ref>.
+					(You probably shouldn't use speed 0 at all.)
+				</warn>
+			</description>
 			<seealso>
 				<ref>getherospeed</ref>
 			</seealso>
@@ -1706,9 +1733,25 @@ while (npcref) do (
 		<command id="setnpcspeed">
 			<canon>set NPC speed (who, speed)</canon>
 			<shortname>set NPC speed</shortname>
-			<description>Changes the walking speed of the specified NPC. If you do not specify a speed, the NPC&apos;s speed will return to the default, 4. Be careful with using speeds that do not divide evenly into 20, because tiles are 20 pixels in size, and an irregular walking speed may cause the NPC to become misaligned with the tiles.<lb/>Normally you would only give an NPC ID number to set NPC speed, but if you want to use an <ref>npcreference</ref> it will still work. Just remember that set NPC speed changes every copy of the NPC on the map, not just the specific one you referenced.
+			<description>
+				Changes the walking speed of the specified NPC.
+				<p>speed</p> defaults to 4.
+				Tiles are 20 pixels in size, and speeds that do not divide evenly or nearly
+				evenly into 20 will result in jerky movement.
+				So only use speeds 0, 1, 2, 3, 4, 5, 7, 10, or 20.
+				<lb/>
+				Normally you would only use an NPC ID number for <p>who</p>,
+				but if you want to use an <ref>npcreference</ref> it will still work.
+				Just remember that <tt>set NPC speed</tt> changes every copy of the NPC on the map,
+				not just the specific one you referenced.
 				<lb/>
 				(This is just an alias for <ref>alternpc</ref><tt>(who, NPCstat:movespeed, speed)</tt>).
+				<warn>
+					Don't set speed to zero while an NPC is moving,
+					it will cause the NPC to stop mid-step and become misaligned with the grid.
+					Get all instances of the NPC to stop first and wait for them,
+					or check with <ref>npciswalking</ref>.
+				</warn>
 			</description>
 		</command>
 		<command id="npciswalking">
