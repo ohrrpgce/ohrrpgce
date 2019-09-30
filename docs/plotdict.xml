@@ -1231,12 +1231,27 @@ resume player # OK, done</example>
 		<command id="cancelherowalk">
 			<canon>cancel hero walk (who)</canon>
 			<shortname>cancel hero walk</shortname>
-			<description>If the specified hero is walking with a command like <ref>walkhero</ref> or pathfinding with a command like <ref>pathfindheroto</ref>, they will stop. They are allowed to finish their current step, so they will not end up misaligned with the tiles.</description>
+			<description>
+				If the specified hero is walking with a command like <ref>walkhero</ref>
+				or pathfinding (due to a command like <ref>pathfindheroto</ref>
+				or because the player clicked somewhere), they will stop.
+				They are allowed to finish their current step to the next tile,
+				so they will not end up misaligned with the tile grid.
+				<note>
+					If you want to stop a hero immediately without letting them finish their
+					step, use <ref>walkhero</ref> with a distance of zero tiles, like:
+					<example>cancel hero walk(who) # Cancel any pathfinding
+walk hero(who, hero direction(hero), 0)</example>
+					This will misalign the hero with the tile grid, breaking movement and
+					wall and collision checking! You are responsible for realigning the hero
+					afterwards somehow.
+				</note>
+			</description>
 			<seealso>
 				<ref>pathfindheroto</ref>
 				<ref>herochasesnpc</ref>
 				<ref>walkhero</ref>
-				<ref>cancelherowalk</ref>
+				<ref>cancelnpcwalk</ref>
 			</seealso>
 		</command>
 		<command id="setherodirection">
@@ -1613,8 +1628,8 @@ while (npcref) do (
 				<note>
 					If you want to stop an NPC immediately without letting them finish their
 					step, use <ref>walknpc</ref> with a distance of zero tiles, like:
-					<tt>walk NPC(npc, NPC direction(npc), 0)</tt>
-					<lb/>
+					<example>cancel NPC walk(npc)  # Cancel any pathfinding
+walk NPC(npc, NPC direction(npc), 0)</example>
 					This will misalign the NPC with the tile grid, breaking movement and
 					wall and collision checking! You are responsible for realigning the NPC
 					afterwards somehow.
@@ -1624,7 +1639,7 @@ while (npcref) do (
 				<ref>pathfindnpcto</ref>
 				<ref>npcchasesnpc</ref>
 				<ref>walknpc</ref>
-				<ref>cancelnpcwalk</ref>
+				<ref>cancelherowalk</ref>
 			</seealso>
 		</command>
 		<command id="npcdirection">
