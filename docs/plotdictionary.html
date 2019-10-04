@@ -3448,7 +3448,7 @@
 				Scripts that are defined as plotscripts can be called directly from "trigger" events in your game,
 				or by name within other scripts.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					What's the difference between <span class="param">plotscript</span> and <a href="#about-script" class="ref">script</a>?
 					<br>
 					The only difference is that plotscripts are listed in the game editor,
@@ -3932,7 +3932,7 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 				(which is useful only if you've previously called <span class="code">seed random(...)</span> to put it into
 				a predictable sequence.)
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					You don't need to call this command before using <a href="#about-random" class="ref">random</a>.
 					In fact, this command is useful only if you <b>don't</b> want completely random numbers.
 				</div>
@@ -4191,7 +4191,7 @@ end</pre>
 <p>
 			
 <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon"><span class="param">return</span> in HamsterSpeak is completely different from <span class="param">return</span> in nearly all other programming languages!</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon"><span class="param">return</span> in HamsterSpeak is completely different from <span class="param">return</span> in nearly all other programming languages!</div>
 Sets the value to be returned by the script. This is only useful when the script has been called as a function from another script. It is irrelevant to scripts called directly from your RPG, for example, text box scripts or menu scripts. This command only matters when you are calling one script from another script. This command does NOT cause the script to terminate, it just sets the return value. If you never use the <span class="param">return</span> command, the script will return zero. If return is used more than once in the same script, only the last one executed matters.
 <pre>
 script, key wait, ticks, begin
@@ -4378,7 +4378,7 @@ Besides readability, there is one other important difference between using switc
 			For example, "wait for textbox" waits for one tick even if there is no textbox.
 			<br>
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 				If a battle occurs, a menu is entered (unless it 'Allows Scripts') or
 				another script is triggered, your script will be paused until the other
 				thing finishes.
@@ -4441,7 +4441,7 @@ advance text box # "hit spacebar"</pre>
 				Makes the script wait until there is no text box displaying on the screen.
 				Useful to know when to move on after using a <a href="#about-showtextbox" class="ref">show text box</a> command.
 				<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
 					<span class="code">wait for text box</span> doesn't wait if <a href="#about-suspendboxadvance" class="ref">suspend box advance</a> has been used, because it's impossible for the player to advance the textbox!
 				</div>
 			
@@ -4493,7 +4493,7 @@ wait for hero (me) # wait until he stops</pre>
 				If and only if <span class="code">anykey</span> is used, then <span class="param">waitforkey</span> will return the scancode of the keyboard or joystick key that was pressed,
 				but won't ever be a constant like <span class="code">usekey</span>.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Previously you couldn't use scancodes like <span class="code">key:x</span>,
 					and there was a separate <a href="#about-waitforscancode" class="ref">wait for scancode</a> command for those,
 					but now you can use any scancode with <span class="code">wait for key</span>, and use any
@@ -4522,7 +4522,7 @@ wait for key(cancel key)</pre>
 <p>
 			Waits for the specified NPC to stop walking. The argument is either an NPC reference, or an NPC ID (if more than one copy of that NPC exists on the map, it only waits for the first one). Be aware that this command has the potention to wait forever, if the NPC will continue moving forever.
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 				If the NPC ceases to exist, or if you move to a different map, then <span class="param">wait for npc</span> stops waiting (continues).
 			</div>
 			
@@ -4561,7 +4561,7 @@ wait for camera # wait until he's on screen</pre>
 				as well as movement due to <a href="#about-walknpc" class="ref">walk NPC</a>/<a href="#about-walknpctox" class="ref">walk NPC to X</a>/<a href="#about-walknpctoy" class="ref">walk NPC to Y</a> are ignored!
 				That means that NPCs might still be partway between tiles.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					<span class="param">wait for all</span> does NOT wait for text boxes.
 				</div>
 			
@@ -4965,7 +4965,7 @@ resume hero walls # back to mortality...</pre>
 				Use <a href="#about-resumenpcwalls" class="ref">resume NPC walls</a> to restore normal wall behavior.
 				Use <a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a>(who, true) instead to allow a single NPC to walk through walls.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If you use this command on a map with NPCs walking about normally
 					you should use <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> first, otherwise NPCs will
 					start walking into walls and get stuck there when you call
@@ -4975,7 +4975,7 @@ resume hero walls # back to mortality...</pre>
 					to allow just a specific NPC to walk through walls.
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					NPCs will still be unable to walk through each other, or to walk through
 					the hero.
 					Use <a href="#about-suspendobstruction" class="ref">suspend obstruction</a> to allow that.
@@ -5015,7 +5015,7 @@ resume NPC walls # back to mortality...</pre>
 		<h4>suspend caterpillar</h4>
 <p>
 			Stops your other heroes from following the leader. This is useful when you want to control them individually with <a href="#about-walkhero" class="ref">walk hero</a> commands. In earlier versions this was misspelled as suspend catapillar. The old spelling still works for backwards compatibility. <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If you want to set whether the other heroes in the party are visible, use <a href="#about-setcaterpillarmode" class="ref">set caterpillar mode</a>.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If you want to set whether the other heroes in the party are visible, use <a href="#about-setcaterpillarmode" class="ref">set caterpillar mode</a>.</div>
 			
 			<pre>suspend caterpillar # cutscene
 # move heroes, probably fight a battle or two...
@@ -5151,7 +5151,7 @@ resume random enemies # back to normal</pre>
 				Note that the player can still move the cursor in choiceboxes while this
 				is active, use <a href="#about-suspendtextboxcontrols" class="ref">suspend text box controls</a> to disable that.
 				<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
 					<a href="#about-waitfortextbox" class="ref">wait for text box</a> does't wait while <span class="code">suspend box advance</span> is active!
 				</div>
 			
@@ -5471,7 +5471,7 @@ resume player # OK, done</pre>
 				They are allowed to finish their current step to the next tile,
 				so they will not end up misaligned with the tile grid.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If you want to stop a hero immediately without letting them finish their
 					step, use <a href="#about-walkhero" class="ref">walk hero</a> with a distance of zero tiles, like:
 					<pre>cancel hero walk(who) # Cancel any pathfinding
@@ -5666,7 +5666,7 @@ resume player</pre>
 				Returns true if there is a wall blocking the hero from moving in the specified direction.
 				No actual movement takes place.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					This command should only be used when the hero is standing still and aligned with the tile grid.
 					You can use the <a href="#about-checkwallcollisionxy" class="ref">check wall collision x/y</a> commands for much
 					more flexible wall-checking, which works from any starting position on the map.
@@ -5703,11 +5703,11 @@ resume player</pre>
 				evenly into 20 will result in jerky movement.
 				So only use speeds 0, 1, 2, 3, 4, 5, 7, 10, or 20.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Changes to hero speed aren't saved in saved games!
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Hero speed is weird.
 					It isn't actually a property of the hero, but of the caterpillar slot.
 					So if you change the leader's speed and then a different hero is swapped
@@ -5715,7 +5715,7 @@ resume player</pre>
 					That's usually a good thing!
 				</div>
 				<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
 					Don't set speed to zero while a hero is moving,
 					it will cause the hero to stop mid-step and become misaligned with the grid
 					and stuck.
@@ -5734,7 +5734,7 @@ resume player</pre>
 		<h4>teleport to map (map, x, y)</h4>
 <p>
 			An alternative to <a href="#about-usedoor" class="ref">use door</a>, teleport to map moves you to a given x,y position on the specified map without the need to create a door-link on the map. Teleport to map does not fade to black. <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.</div>
 			
 			
 			
@@ -5798,11 +5798,11 @@ resume player</pre>
 				to the same map), and fade back in one tick later.
 				Otherwise, there are no automatic screen fades.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If you call <a href="#about-fadescreenout" class="ref">fade screen out</a> immediately after <span class="code">use door</span>,
 					then the screen won't fade back in afterwards.
 					(But you might have to do this in the map autorun script, if there is one,
@@ -5851,7 +5851,7 @@ resume player</pre>
 		<h4>get door destination id (number, map)</h4>
 <p>
 			Returns the door ID of the door currently linked to by the door with ID <span class="param">number</span> on the specified <span class="param">map</span>. If you leave out the map number, the current map will be assumed. To get the door's location, use <a href="#about-getdoorx" class="ref">get door x</a> and <a href="#about-getdoory" class="ref">get door y</a>. If door <span class="param">number</span> does not exist, or is not currently linked to any other door, then -1 is returned. <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">A door's destination can vary depending on tags. Check your doorlinks if you get unexpected results! There's no script command to get information about doorlinks currently inactive due to tags.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">A door's destination can vary depending on tags. Check your doorlinks if you get unexpected results! There's no script command to get information about doorlinks currently inactive due to tags.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -5869,7 +5869,7 @@ resume player</pre>
 		<h4>get door destination map (number, map)</h4>
 <p>
 			Returns the map ID of the destination door currently linked to by the door with ID <span class="param">number</span> on the specified <span class="param">map</span>. If you leave out the map number, the current map will be assumed. If door <span class="param">number</span> does not exist, or is not currently linked to any other door, then -1 is returned. <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">A door's destination can vary depending on tags. Check your doorlinks if you get unexpected results! There's no script command to get information about doorlinks currently inactive due to tags.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">A door's destination can vary depending on tags. Check your doorlinks if you get unexpected results! There's no script command to get information about doorlinks currently inactive due to tags.</div>
 			
 			
 			
@@ -6106,7 +6106,7 @@ while (npcref) do (
 		<h4>NPC at spot (x, y, number)</h4>
 <p>
 			This command returns a reference to the NPC at the given X and Y coordinate, in tiles, on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <a href="#about-booleanconstants" class="ref">false</a> is returned if there is no NPC there, or <span class="param">number</span> is too large (greater than or equal to the number of NPCs). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of NPCs on that tile. <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">An NPC's tile is the tile its top left corner is on.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">An NPC's tile is the tile its top left corner is on.</div>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-npcreference" class="ref">NPC reference</a></li></ul>
@@ -6191,7 +6191,7 @@ while (npcref) do (
 <p>
 			If the specified NPC is walking with a command like <a href="#about-walknpc" class="ref">walk NPC</a> or pathfinding with a command like <a href="#about-pathfindnpcto" class="ref">pathfind NPC to</a>, they will stop. They are allowed to finish their current step, so they will not end up misaligned with the tiles. This command has no effect on automatic NPC movement patterns, it only stops scripted movement.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If you want to stop an NPC immediately without letting them finish their
 					step, use <a href="#about-walknpc" class="ref">walk NPC</a> with a distance of zero tiles, like:
 					<pre>cancel NPC walk(npc)  # Cancel any pathfinding
@@ -6359,7 +6359,7 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 				No actual movement takes place.
 				It does not matter whether the NPC is set to ignore walls or ignore the passmap.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					This command should only be used when the NPC is standing still and aligned with the tile grid.
 					You can use the <a href="#about-checkwallcollisionxy" class="ref">check wall collision x/y</a> commands for much
 					more flexible wall-checking, which works from any starting position on the map.
@@ -6402,7 +6402,7 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 				<br>
 				(This is just an alias for <a href="#about-alternpc" class="ref">alter NPC</a><span class="code">(who, NPCstat:movespeed, speed)</span>).
 				<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
 					Don't set speed to zero while an NPC is moving,
 					it will cause the NPC to stop mid-step and become misaligned with the grid.
 					Get all instances of the NPC to stop first and wait for them,
@@ -6440,7 +6440,7 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 		<h4>set NPC extra (who, which, value)</h4>
 <p>
 			Sets the npc instance-specific extra data field requested in <span class="param">which</span>, a number from 0 to 2. You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them.  If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Unlike other NPC instance data, the extra data for NPCs on the current map is not saved in save games! However, it is saved in mapstate NPC saves (see <a href="#about-savemapstate" class="ref">save map state</a>)</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Unlike other NPC instance data, the extra data for NPCs on the current map is not saved in save games! However, it is saved in mapstate NPC saves (see <a href="#about-savemapstate" class="ref">save map state</a>)</div>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-npcextra" class="ref">NPC extra</a></li></ul>
@@ -6493,7 +6493,7 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 				on the map by looping over them.
 				Generally this is used together with the <a href="#about-npcreference" class="ref">NPC reference</a> command.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					This command does not count tag-disabled NPCs.
 					So if there are four copies of NPC 2 on a map, but they only appear
 					when tag 5 is on, then <span class="code">npc copy count(2)</span> returns
@@ -6548,8 +6548,8 @@ end</pre>
 		<h4>destroy NPC (reference)</h4>
 <p>
 			This command will erase the specified NPC. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The deletion is not permanent. Unless this is an NPC that you created with <a href="#about-createnpc" class="ref">create NPC</a>, the NPC will be back again next time the map gets loaded. If you need to permanently remove an NPC, use tags. <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">This only deletes the one NPC you specify. If you use an NPC ID number as the argument, only the first copy of the NPC on the map will be deleted.</div><div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">This command can be also be written as <span class="param">delete NPC</span>.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">This only deletes the one NPC you specify. If you use an NPC ID number as the argument, only the first copy of the NPC on the map will be deleted.</div><div style="background-color:#BCC;" class="notice">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">This command can be also be written as <span class="param">delete NPC</span>.</div>
 			
 			
 			
@@ -6797,7 +6797,7 @@ resume box advance # go back to normal</pre>
 <p>
 			Loads one of the <span class="param">line</span>s of a <span class="param">textbox</span> into a string <span class="param">ID</span>. Valid numbers for <span class="param">line</span> are 0-7. Trailing and leading whitespace is stripped from the line, and embedded codes like ${H1} in the string are automatically substituted.
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">This command is obsolete and exists only for compatibility with old games: It has been replaced with <a href="#about-textboxline" class="ref">textbox line</a>. The fourth argument does nothing.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">This command is obsolete and exists only for compatibility with old games: It has been replaced with <a href="#about-textboxline" class="ref">textbox line</a>. The fourth argument does nothing.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -6897,7 +6897,7 @@ resume box advance # go back to normal</pre>
 					<li>The end-battle-instantly debug key is used</li>
 				</ul>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.</div>
 			
 			
 			
@@ -6919,7 +6919,7 @@ resume box advance # go back to normal</pre>
 				and regardless of any "suspend" commands.
 				However you can't activate an NPC that's tag-disabled (including one-time-use flags).
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					An automatic <a href="#about-wait" class="ref">wait</a><span class="code">(1)</span> occurs immediately after this command.
 				</div>
 			
@@ -7002,13 +7002,13 @@ resume box advance # go back to normal</pre>
 				or exiting to the operating system),
 				while <a href="#about-resetgame" class="ref">reset game</a> starts a new game.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					The game will instantly transition to the title screen (or load menu, if the title is disabled)
 					without a screen fade.
 					So you probably want to call <a href="#about-fadescreenout" class="ref">fade screen out</a> beforehand.
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					By using <a href="#about-resetgame" class="ref">reset game</a> or <a href="#about-loadfromslot" class="ref">load from slot</a> instead,
 					you can pass arguments to the newgame and loadgame scripts.
 				</div>
@@ -7033,13 +7033,13 @@ resume box advance # go back to normal</pre>
 				For an example, see <a href="#about-loadfromslot" class="ref">load from slot</a>, which passes its arguments
 				to the loadgame script in the same way.
 				<div style="background-color:#DCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
 					The default arguments of a newgame script (and all other triggered scripts)
 					are currently ignored.
 					If you don't pass enough <span class="param">args</span>, then the remaining arguments default to zero.
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Unlike <a href="#about-gameover" class="ref">game over</a>, the screen will always automatically
 					fade out to black when calling <span class="code">reset game</span>.
 				</div>
@@ -7146,7 +7146,7 @@ resume box advance # go back to normal</pre>
 				<br>
 				Whether and which backdrop is displaying is saved in save games.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">It's also possible to display backdrops as sprite slices using <a href="#about-loadbackdropsprite" class="ref">load backdrop sprite</a>.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">It's also possible to display backdrops as sprite slices using <a href="#about-loadbackdropsprite" class="ref">load backdrop sprite</a>.</div>
 			
 			
 			
@@ -7215,7 +7215,7 @@ resume box advance # go back to normal</pre>
 				If menu 0 is already open, it is brought to the top.
 				Returns the menu handle of the new or existing instance of menu 0.
 				<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
 					If menu 0 does NOT have the "Allow gameplay &amp; scripts" bit set,
 					then your script will pause as soon as the menu opens, until either
 					it's closed or another menu with that bit ON is opened.
@@ -7243,7 +7243,7 @@ resume box advance # go back to normal</pre>
 <p>
 			Takes you directly to the items menu. Note that if the player uses an item that calls up a text box, the items menu command will behave like a <a href="#about-showtextbox" class="ref">show text box</a> command for that text box.
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If the player uses a item which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <a href="#about-wait" class="ref">wait</a>).</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If the player uses a item which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <a href="#about-wait" class="ref">wait</a>).</div>
 			
 			
 			
@@ -7265,7 +7265,7 @@ resume box advance # go back to normal</pre>
 <p>
 			Takes you directly to a hero's spells menu. Specify the hero using its position in the party 0-3. Use <a href="#about-findhero" class="ref">find hero</a> if you want to specify the hero by name. The <a href="#about-pickhero" class="ref">pick hero</a> command can also be useful.
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If the player uses a spell which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <a href="#about-wait" class="ref">wait</a>).</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If the player uses a spell which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <a href="#about-wait" class="ref">wait</a>).</div>
 			
 			
 			
@@ -7361,7 +7361,7 @@ resume box advance # go back to normal</pre>
 <span class="backlink"></span>The Party</h3>
 		<p>
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 			You should definitely read <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
 			Ways to refer to a hero in a script</a> to understand the differences between hero ID numbers
 			(including <span class="code">hero:name</span> constants), hero party slots, and walkabout rank!
@@ -7746,7 +7746,7 @@ end</pre>
 <p>
 			Attempts to use an item as if you had selected it in the items menu. The argument is the item's ID number, or one of the <span class="param">item:name</span> constants in your .hsi file. This command will only work if the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. This command does not care if you actually have any of the item in your inventory, and if it is a consumable item, you will not lose any. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If the item causes an attack to happen which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <a href="#about-wait" class="ref">wait</a>).</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If the item causes an attack to happen which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <a href="#about-wait" class="ref">wait</a>).</div>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-useiteminslot" class="ref">use item in slot</a></li></ul>
@@ -7913,7 +7913,7 @@ end</pre>
 <p>
 			Attempts to use whatever item is in a given inventory slot as if you had selected it in the items menu. The argument is the inventory slot number. This command will only work if there is actually an item in the slot, and the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If the item causes an attack to happen which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <a href="#about-wait" class="ref">wait</a>).</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If the item causes an attack to happen which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <a href="#about-wait" class="ref">wait</a>).</div>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-useitem" class="ref">use item</a></li></ul>
@@ -7973,7 +7973,7 @@ end</pre>
 				The second argument is the slot to unequip. Use the slot:weapon, slot:armor,
 				etc. constants from your .hsi file.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					When a hero's equipment changes, the current values of all stats other than
 					HP and MP for the hero are reset to their new maximum values.
 					The current values of the HP and MP stats are capped to the new maximums
@@ -8009,7 +8009,7 @@ gain hero stat(who, stat:mp, 0)</pre>
 				The third argument is the item to equip.
 				You can use the item's number or the item:name constants from your .hsi file. The item quipped will be taken from your inventory, but if you <span class="param">force equip</span> an item that you do not already have then a free copy of it will be created.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					When a hero's equipment changes, their current HP and MP stats aren't updated.
 					See the Note at <a href="#about-unequip" class="ref">unequip</a> for more information.
 				</div>
@@ -8042,7 +8042,7 @@ gain hero stat(who, stat:mp, 0)</pre>
 				<br>
 				If the item can be equipped in more than one different slot, this command only returns the first valid slot.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					When a hero's equipment changes, their current HP and MP stats aren't updated.
 					See the Note at <a href="#about-unequip" class="ref">unequip</a> for more information.
 				</div>
@@ -8295,7 +8295,7 @@ gain hero stat(who, stat:mp, 0)</pre>
 				you should take note of the original volume that the player has set and return to this later.
 				The default volume is not the maximum 255, so you should not hardcode fades to begin at volume 255.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					The actual resolution at which the volume is set is not necessarily 1/255th
 					of full volume but depends on the engine version.
 					For example, music_sdl only supports 128 different volume levels.
@@ -8436,7 +8436,7 @@ fade screen in</pre>
 <p>
 			Returns a color value from the master palette, in the range 0 to 63. The first argument is the index in the palette to read from, 0 to 255. The second argument is the color value to read, red, green, or blue. You can use 0,1, and 2, or you can use the predefined constants <a href="#about-colorconstants" class="ref">color:red</a>, <a href="#about-colorconstants" class="ref">color:green</a>, and <a href="#about-colorconstants" class="ref">color:blue</a>. The counterpart to this is <a href="#about-writecolor" class="ref">write color</a>.
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 				This command converts color components from the usual 0-255 down to 0-63,
 				for compatibility with old OHRRPGCE versions which ran on DOS!
 				For operation on full color values (0-255), use <a href="#about-getcolor" class="ref">get color</a>.
@@ -9080,18 +9080,18 @@ fade screen in</pre>
 <p>
 			A command that changes one of a hero's stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are defined in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a> or <a href="#about-basestat" class="ref">base stat</a>. Follow those links for explanations. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed. You can set the current value of a stat to more than the maximum value. If you want to permanently change a stat you would change both the current value and just one of either the maximum value or the base value.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Cap stats are ignored by this command.
 					Use <a href="#about-setcappedherostat" class="ref">set capped hero stat</a> if you want to limit the current or maximum value of a stat to a cap.
 					But the stat will be capped later due to certain events such as equipping or unequipping an item, levelling up, or using <a href="#about-setherostatcap" class="ref">set hero stat cap</a>. Caps don't apply to base stats.
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					The maximum and base values of a stat are tied together.
 					Modifying the max will always modify the other by the same amount.
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If you want to increase or decrease a stat by a certain amount, just use <a href="#about-gainherostat" class="ref">gain hero stat</a>.
 				</div>
 			
@@ -9202,7 +9202,7 @@ end</pre>
 <p>
 			Set the maximum allowed value for a hero stat. The <span class="param">stat</span> argument is the stat to affect; one of the stat:name constants defined in your HSI file. The <span class="param">value</span> argument should be either greater than zero to set a cap, or 0/false to remove the cap for that stat.
 <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">The new cap comes into immediate force: the current and maximum values of all stats of all heroes in the party are capped according to the caps. In addition, the current values of all stats other than HP and MP for all heroes are reset to their new maximum values. The current values of the HP and MP stats are not otherwise changed aside from being capped, so you might like to check and scale up HP and MP of heroes if the new max is more than the old cap.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">The new cap comes into immediate force: the current and maximum values of all stats of all heroes in the party are capped according to the caps. In addition, the current values of all stats other than HP and MP for all heroes are reset to their new maximum values. The current values of the HP and MP stats are not otherwise changed aside from being capped, so you might like to check and scale up HP and MP of heroes if the new max is more than the old cap.</div>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getherostatcap" class="ref">get hero stat cap</a></li></ul>
@@ -9234,7 +9234,7 @@ end</pre>
 		<h4>hero base elemental resist as int (who, element)</h4>
 <p>
 			Gets the 'intrinsic' amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. (That is, the value entered in the 'Elemental Resistances' menu in Custom. Equipment elemental modifiers are added onto this value.) The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">element</span> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the hero takes 2.6% damage (1/40 normal), then the result will be 3.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">When floating point support is added to HamsterSpeak, an alternative to this command will be added.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">When floating point support is added to HamsterSpeak, an alternative to this command will be added.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -9250,7 +9250,7 @@ end</pre>
 		<h4>set hero base elemental resist (who, element, percent)</h4>
 <p>
 			Sets the 'intrinsic' amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. (That is, the value entered in the 'Elemental Resistances' menu in Custom. Equipment elemental modifiers are added onto this value.) The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">element</span> is a number from 0 to whatever the highest enabled element is. The argument <span class="param">percent</span> is the percentage (written without a percent sign). For example -50 means the hero is healed by 50% of the attack damage instead of being hurt.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Unlike the elemental resist editors in Custom, you can't use fractions of a percent here.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Unlike the elemental resist editors in Custom, you can't use fractions of a percent here.</div>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-herobaseelementalresistasint" class="ref">hero base elemental resist as int</a></li></ul>
@@ -9262,7 +9262,7 @@ end</pre>
 		<h4>hero total elemental resist as int (who, element)</h4>
 <p>
 			Gets the amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">element</span> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the hero takes 2.6% damage (1/40 normal), then the result will be 3. This is the value calculated from the hero's 'intrinsic' resistances combined with the equipment they are wearing.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">When floating point support is added to HamsterSpeak, an alternative to this command will be added.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">When floating point support is added to HamsterSpeak, an alternative to this command will be added.</div>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-herobaseelementalresistasint" class="ref">hero base elemental resist as int</a></li></ul>
@@ -9482,7 +9482,7 @@ if (herolevelled (find hero (hero: Bob))) then (
 <p>
 			Returns the id numbers (+1) of spells the hero learned from the last battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targeted either this hero or the whole party. If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 to get the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.</div>
 			
 			
 			<pre># the following script uses strings 0, 1, 2 for its use (will be overwritten)
@@ -9540,11 +9540,11 @@ end</pre>
 <p>
 			Uses an attack on a hero outside of battle as if you had used it from an item or cast it as a spell. In spite of the name, it works for both cure spells and damage spells. The first argument, <span class="param">attack</span> is name of the attack from your HSI file in the form atk:name. (You may also use the attack's ID number. This is the number you see in the attack editor + 1.) The second argument, <span class="param">target</span> is the position in the party of the hero to cure (or harm). The third optional argument, <span class="param">attacker</span> is the position in the party of the hero who is using the attack. If this argument is omitted or set to -1, then the average stats of the active party will be used, just like when the attack is used from an item. The return value is <a href="#about-booleanconstants" class="ref">true</a> if the cure/attack succeeded, and <a href="#about-booleanconstants" class="ref">false</a> if it did nothing.
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">The <span class="param">map cure</span> command replaces the old command <span class="param">outside battle cure</span> which had a bug which required you to use <span class="param">atk:name -- 1</span> instead of <span class="param">atk:name</span> for the <span class="param">attack</span> argument.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">The <span class="param">map cure</span> command replaces the old command <span class="param">outside battle cure</span> which had a bug which required you to use <span class="param">atk:name -- 1</span> instead of <span class="param">atk:name</span> for the <span class="param">attack</span> argument.</div>
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If the attack results in all the heroes in the party being dead (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <a href="#about-wait" class="ref">wait</a>).</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If the attack results in all the heroes in the party being dead (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <a href="#about-wait" class="ref">wait</a>).</div>
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 				If you want to cure a hero that has 0 HP with an attack, then the attack's Target Class
 				needs to be set to something that allows targetting dead heroes.
 				Otherwise the attack doesn't happen and this command returns <span class="code">false</span>.
@@ -9753,7 +9753,7 @@ end</pre>
 		<h4>read NPC (who, NPCstat)</h4>
 <p>
 			Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <a href="#about-alternpc" class="ref">alter NPC</a>. <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If you use this command to read the give item number, the result is offset + 1. A zero means no item.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If you use this command to read the give item number, the result is offset + 1. A zero means no item.</div>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-alternpc" class="ref">alter NPC</a></li></ul>
@@ -9776,7 +9776,7 @@ end</pre>
 				This command is just like <a href="#about-suspendnpcwalls" class="ref">suspend NPC walls</a>/<a href="#about-resumenpcwalls" class="ref">resume NPC walls</a>,
 				but only affects a single npc.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Don't confuse this with <a href="#about-alternpc" class="ref">alter NPC</a><span class="code">(who, NPCstat:ignore passmap, value)</span>,
 					which sets whether an NPC ID can pass through walls on the wallmap,
 					but doesn't allow it to ignore zones or walk off the map.
@@ -9804,7 +9804,7 @@ end</pre>
 				Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used),
 				returns whether that NPC can walk through walls.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Don't confuse this with <a href="#about-readnpc" class="ref">read NPC</a><span class="code">(who, NPCstat:ignore passmap)</span>,
 					which tells whether an NPC ID can pass through walls on the wallmap,
 					but doesn't allow it to ignore zones or walk off the map.
@@ -9834,7 +9834,7 @@ end</pre>
 				This command is just like <a href="#about-suspendnpcs" class="ref">suspend NPCs</a>/<a href="#about-resumenpcs" class="ref">resume NPCs</a>,
 				but only affects a single npc.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If you set an NPC to not move by itself, it will still complete
 					its current step, moving the rest of the way to the next tile.
 				</div>
@@ -10050,7 +10050,7 @@ end</pre>
 		<h4>set enemy stat(enemy, stat, value)</h4>
 <p>
 			Sets the selected stat of the selected enemy to the value you supply. The first argument is the number of the enemy whose stats you want to set. The second argument is the name of the stat that you want to set. The names of the stats are defined in your HSI file in the form stat:name. The third is the new value of the stat.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Enemy stat changes are temporary. They are not saved in the game save.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Enemy stat changes are temporary. They are not saved in the game save.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10068,7 +10068,7 @@ end</pre>
 		<h4>enemy elemental resist as int (enemy, element)</h4>
 <p>
 			Gets the amount of damage that an enemy receives from attacks of a certain element, as a percentage of normal. The argument <span class="param">enemy</span> is the enemy's ID number. The argument <span class="param">element</span> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the enemy takes 2.6% damage (1/40th normal), then the result will be 3.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">When floating point support is added to HamsterSpeak, an alternative to this command will be added.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">When floating point support is added to HamsterSpeak, an alternative to this command will be added.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10095,7 +10095,7 @@ end</pre>
 		<h4>set enemy name (enemyid, stringid)</h4>
 <p>
 			Lets you set the enemy name from a string, the string length cannot be more then 16 characters, if it is more then 16 the name will be truncated.  The first argument is the number of the enemy's name you want to change, second argument is the number of the string that you supply the name of the enemy from.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Enemy name changes are temporary. They are not saved in the game save.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Enemy name changes are temporary. They are not saved in the game save.</div>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getenemyname" class="ref">get enemy name</a></li></ul>
@@ -10135,7 +10135,7 @@ end</pre>
 				Value can is the new number that you want to assign, constants enemysize:small,
 				enemysize:medium, or enemysize:large when changing picture size, or palette number when changing palette.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Enemy appearance changes are temporary. They are not saved in the save game.
 				</div>
 			
@@ -10178,7 +10178,7 @@ end</pre>
 		<h4>write enemy data (enemyid, data, value)</h4>
 <p>
 			Lets you set items of an enemy's data. Enemyid is the number of enemy, data is a predefined constant for the data you want to change. Value is the new value given to that setting. Use the same constants as are given at <a href="#about-readenemydata" class="ref">read enemy data</a>.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Enemy data changes are temporary. They are not saved in saved games.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Enemy data changes are temporary. They are not saved in saved games.</div>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-readenemydata" class="ref">read enemy data</a></li></ul>
@@ -10209,7 +10209,7 @@ end</pre>
 				If you omit <span class="param">slot</span> or <span class="param">slot</span> isn't empty, the enemy is put in the first empty slot.
 				The actual slot number used is returned, or -1 if the enemy couldn't be added.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Changes to enemy formations are temporary: they are not saved in save files.
 				</div>
 			
@@ -10224,7 +10224,7 @@ end</pre>
 		<h4>delete enemy from formation (formation, slot)</h4>
 <p>
 			Deletes an enemy in the given <span class="param">slot</span> (as returned by <a href="#about-findenemyinformation" class="ref">find enemy in formation</a> for example) in the <span class="param">formation</span>.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Changes to enemy formations are temporary: they are not saved in save files.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Changes to enemy formations are temporary: they are not saved in save files.</div>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-addenemytoformation" class="ref">add enemy to formation</a></li></ul>
@@ -10314,7 +10314,7 @@ end
 		<h4>set formation background (formation, background, animation frames, animation ticks)</h4>
 <p>
 			Sets the background and the background animation for a <span class="param">formation</span>. The animation arguments do not need to be given, producing a static background. <span class="param">animation frames</span>, optional, is the number of frames (1 to 50) to use for the background animation. 1 is non-animating. <span class="param">animation ticks</span>, also optional, is the number of ticks to display each backdrop for. The engine normally (but not reliably) runs at 18 ticks per second.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Changes to enemy formations are temporary: they are not saved in save files.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Changes to enemy formations are temporary: they are not saved in save files.</div>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getformationbackground" class="ref">get formation background</a></li></ul>
@@ -10337,7 +10337,7 @@ end
 		<h4>set formation song (formation, song)</h4>
 <p>
 			Changes an enemy formation to use <span class="param">song</span> as its music. Use the constants of the form <span class="param">song:songname</span> from your exported .hsi file, or the special constants <a href="#about-song:silence" class="ref">song: silence</a> or <a href="#about-song:sameaslastmap" class="ref">song: same as map</a><div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Changes to enemy formations are temporary: they are not saved in save files.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Changes to enemy formations are temporary: they are not saved in save files.</div>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getformationsong" class="ref">get formation song</a></li></ul>
@@ -10631,7 +10631,7 @@ end
 			or to use a special ability such throwing a ball.
 			Use <a href="#about-newkeypress" class="ref">new keypress</a> instead of <a href="#about-keypress" class="ref">keypress</a> if you don't want key repeat.
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 				You can NOT wait for the player to press a key by continually polling <a href="#about-keyispressed" class="ref">key is pressed</a>, etc,
 				in a <a href="#about-while" class="ref">while</a> loop unless you stick a <a href="#about-wait" class="ref">wait</a> in your loop.
 				That's because key, joystick and mouse commands don't return real time data,
@@ -10654,13 +10654,13 @@ end
 				It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
 				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Previously you couldn't use virtual scancodes like <a href="#about-keyconstants" class="ref">use key</a>,
 					which could only be used with <a href="#about-waitforkey" class="ref">wait for key</a>.
 					Now all key commands accept any kind of constant; what a relief!
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					You can't rely on the behaviour of the caps-, scroll- and num-lock keys.
 					They might report on/off state instead of pressed/not pressed,
 					depending on the graphics backend, operating system, and engine version.
@@ -10696,7 +10696,7 @@ end
 				It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
 				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
 				<div style="background-color:#DCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
 					It's not a good idea to rely on the key repeat rate for things that affect gameplay such as the rate at which you can shoot bullets!
 					The repeat rate is once every 55 milliseconds (18 times a second), independent of the frames per second (fps) that
 					the game is running at.
@@ -10772,7 +10772,7 @@ end
 			2 = the player pressed the key and released it, all in the same tick<br>
 			3 = new keypress (or typematic repeat)
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 				Previously you couldn't use virtual scancodes like <a href="#about-keyconstants" class="ref">use key</a>,
 				which could only be used with <a href="#about-waitforkey" class="ref">wait for key</a>.
 				Now all key commands accept any kind of constant; what a relief!
@@ -10904,7 +10904,7 @@ end
 				Most of the time, you will want to use joystick #0,
 				so that is what <span class="param">joystick</span> defaults to.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If you want to check for new button presses, or want key-repeat to happen,
 					use the <a href="#about-keypress" class="ref">keypress</a> or <a href="#about-newkeypress" class="ref">new keypress</a> commands instead.
 				</div>
@@ -10943,7 +10943,7 @@ end
 		<h4>init mouse</h4>
 <p>
 			Informs the engine that you intend to use the mouse. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, and causes mouse buttons to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<br><div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Running this command does not draw a cursor onscreen. Either you can enable the default mouse cursor with <a href="#about-unhidemousecursor" class="ref">unhidemousecursor</a>, or your script may display the cursor itself by placing a slice at the appropriate location. If you use a slice, your cursor will appear below menus and text and strings shown with <a href="#about-showvalue" class="ref">show value</a>, <a href="#about-showstringat" class="ref">show string at</a>, etc., which is currently unavoidable.</div> Here is an example:
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Running this command does not draw a cursor onscreen. Either you can enable the default mouse cursor with <a href="#about-unhidemousecursor" class="ref">unhidemousecursor</a>, or your script may display the cursor itself by placing a slice at the appropriate location. If you use a slice, your cursor will appear below menus and text and strings shown with <a href="#about-showvalue" class="ref">show value</a>, <a href="#about-showstringat" class="ref">show string at</a>, etc., which is currently unavoidable.</div> Here is an example:
 			
 			<pre>#Simple Mouse cursor example
 
@@ -11005,7 +11005,7 @@ end</pre>
 				Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button is currently pressed down.
 				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a>, <a href="#about-mouseconstants" class="ref">middle button</a> or <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
 					wait for the player to click the mouse with a while loop that doesn't contain
 					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated once per frame.
@@ -11029,7 +11029,7 @@ end</pre>
 				Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button has been 'clicked' down in the last tick.
 				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a>, <a href="#about-mouseconstants" class="ref">middle button</a> or <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
 					wait for the player to click the mouse with a while loop that doesn't contain
 					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated once per frame.
@@ -11053,7 +11053,7 @@ end</pre>
 				Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button has been released since the last tick.
 				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a>, <a href="#about-mouseconstants" class="ref">middle button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
 					wait for the player to click the mouse with a while loop that doesn't contain
 					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated once per frame.
@@ -11174,9 +11174,9 @@ end</pre>
 You can set the value of a string directly with <a href="#about-__setstring__" class="ref">$id="..."</a> and append to an existing string with <a href="#about-__appendstring__" class="ref">$id+"..."</a>.
 There is no limit on string length.<br>
 <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Unlike almost all other indices in the OHRRPGCE, when referring to a position in a string, <span class="param">position</span> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This means that position 0 is invalid. Beware!</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Unlike almost all other indices in the OHRRPGCE, when referring to a position in a string, <span class="param">position</span> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This means that position 0 is invalid. Beware!</div>
 <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Strings are not saved in saved games by default, but this can be enabled in the Saved Game Settings menu.</div></p>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Strings are not saved in saved games by default, but this can be enabled in the Saved Game Settings menu.</div></p>
 <ul>
 		<a href="#about-expandstring">expand string(ID, saveslot)</a><br>
 		
@@ -11441,7 +11441,7 @@ append number(1, -65, -4)      # Appends "-65 " to string 1.</pre>
 <span class="param">%%</span>: substituted with a single %. In this case an argument is NOT used up.<br>
 More sophisticated formatting codes like %-04d that are possible in other programming languages are not supported yet.
 <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 	Modifiers like field width and precision which are available in other programming languages,
 	e.g. "%4d" or "%.2f", aren't available. But <a href="#about-appendnumber" class="ref">append number</a> has extra options for these.
 </div>
@@ -11600,7 +11600,7 @@ show string(0)</pre>
 		<h4>get hero name (ID, hero)</h4>
 <p>
 			This command will take the name of the hero in the party slot #<span class="param">hero</span>, and stick it in string #<span class="param">ID</span>, overwriting its contents. <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Remember that this command expects the hero's position in the party, not the hero:name constants nor the hero's position in the walkabout party. If you want to get the name of a hero according to their position in the walkabout party, you should use <a href="#about-herobyrank" class="ref">hero by rank</a> and <a href="#about-findhero" class="ref">find hero</a>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Remember that this command expects the hero's position in the party, not the hero:name constants nor the hero's position in the walkabout party. If you want to get the name of a hero according to their position in the walkabout party, you should use <a href="#about-herobyrank" class="ref">hero by rank</a> and <a href="#about-findhero" class="ref">find hero</a>
 </div>
 			
 			<pre># This example gets the name of the leader and stores it in string ID 1
@@ -11650,9 +11650,9 @@ get hero name (1, find hero (leader))
 <p>
 			This command will take the name of <span class="param">attack</span> and stick it in string #<span class="param">ID</span>, overwriting its contents. Use the <span class="param">atk:name</span> constants from your HSI file.
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.</div>
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">This command replaces the old <span class="param">get attack name</span> which required you to use <span class="param">atk:name -- 2</span> or the attack id number <span class="param">-- 1</span>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">This command replaces the old <span class="param">get attack name</span> which required you to use <span class="param">atk:name -- 2</span> or the attack id number <span class="param">-- 1</span>
 </div>
 			
 			
@@ -11666,7 +11666,7 @@ get hero name (1, find hero (leader))
 <p>
 			This command will take the caption of <span class="param">attack</span> and stick it in string #<span class="param">ID</span>, overwriting its contents. Use the <span class="param">atk:name</span> constants from your HSI file.
 			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.</div>
 			
 			
 			
@@ -11726,13 +11726,13 @@ get hero name (1, find hero (leader))
 				<span class="param">x</span>,<span class="param">y</span> are optional: if they are missing then the string is centered
 				in the center of the screen.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					The string is not re-centered automatically if its length changes.
 					If you change the string and want to keep it centered, call showstringat again.
 					Otherwise, its top-left corner will stay fixed.
 				</div>
 				<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
 					The string position will be miscalculated if it contains newlines (\n characters).
 				</div>
 			
@@ -11830,7 +11830,7 @@ get hero name (1, find hero (leader))
 				If the string is not long enough, the rest of the globals in this "field" are padded with the value 256.
 				If the string is too long, then only part of it is saved.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					This command is deprecated.
 					The Saved Game Settings menu now has an option to store strings in saved games.
 					There is no reason to use this command in new games,
@@ -11856,7 +11856,7 @@ get hero name (1, find hero (leader))
 				if you don't know the length of the string.
 				If a global has a value greater than 255, the value will be ignored.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					This command is deprecated.
 					The Saved Game Settings menu now has an option to store strings in saved games.
 					There is no reason to use this command in new games,
@@ -12171,7 +12171,7 @@ get hero name (1, find hero (leader))
 				<br>
 				If <span class="param">ID</span> isn't a valid menu, this acts like <a href="#about-createmenu" class="ref">create menu</a>.
 				<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
 					If menu 0 does NOT have the "Allow gameplay &amp; scripts" bit set,
 					then your script will pause as soon as the menu opens, until either
 					it's closed or another menu with that bit ON is opened.
@@ -12448,7 +12448,7 @@ end</pre>
 				Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return a menu item handle for the menu item at the
 				top of the menu, or 0 (false) if there are no visible menu items.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					This is NOT the handle for the first menu item defined in the menu editor.
 					Use <span class="code"><a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a>(menu, 0)</span> to get that one.
 				</div>
@@ -12470,7 +12470,7 @@ end</pre>
 				then returns the last visible or invisible menu item
 				(last as seen by <a href="#about-menuitembyslot" class="ref">menu item by slot</a> or <a href="#about-nextmenuitem" class="ref">next menu item</a>).
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					<span class="code">last menu item(menu, false)</span> does NOT return the handle for the
 					last menu item that appears in the menu editor, because menu items are
 					sorted based on visibility: all invisible items to the end.
@@ -12489,7 +12489,7 @@ end</pre>
 <p>
 			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, return a menu item handle for the menu item below the specified one, or <a href="#about-booleanconstants" class="ref">false</a> there is no next menu item. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Invisible menu items are always at the end of the menu,
 					after the last visible menu item,
 					not in the order in which they are defined in the menu editor!
@@ -12632,7 +12632,7 @@ end</pre>
 				If multiple menus overlap at that location the top-most one is returned.
 				You can find the menu that the menu item belongs to with <a href="#about-parentmenu" class="ref">parent menu</a>.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					The menu item might not actually be selectable. Check with <a href="#about-menuitemselectable" class="ref">menu item selectable</a>.
 				</div>
 			
@@ -14388,7 +14388,7 @@ set menu on close script(m, @my menu exit handler)
 				Returns true if the given <span class="param">id</span> is a valid slice handle to some existing slice.
 				However this tells you nothing about whether the slice it points to is the original one.
 				<div style="background-color:#DCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
 					<b>You should almost never use this command.</b>
 					Just because a slice handle is valid doesn't mean it points to the slice that you expected.
 					After a slice is deleted, its handle can be reused for new slices!
@@ -14658,15 +14658,15 @@ end
 				You can optionally specify a slice for the <span class="param">lookup slice</span> command to start searching from,
 				but if you do not, the whole slice tree will be searched.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					You can use a number as a lookup code, but usually you use a builtin code constant, starting with <span class="code">sl:</span>
 					(see below), or name a code in the slice editor, in which case the constant will start with <span class="code">sli:</span>.
 					Don't mix them up!
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Although the user-defined slice lookup codes are always safe to use for any purpose, there is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, like reordering, reparenting, or god forbid freeing the special slice, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! Deleting or reparenting special slices generally won't work. You may parent your own slices to these special slices, though.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Although the user-defined slice lookup codes are always safe to use for any purpose, there is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, like reordering, reparenting, or god forbid freeing the special slice, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! Deleting or reparenting special slices generally won't work. You may parent your own slices to these special slices, though.</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Be aware that when there is more than one slice with the same lookup code, the <span class="param">lookup slice</span> command will only return the first one it finds in a depth-first search. If you need to find multiple slices with the same lookup code, you must search manually using <a href="#about-getslicelookup" class="ref">get slice lookup</a>.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Be aware that when there is more than one slice with the same lookup code, the <span class="param">lookup slice</span> command will only return the first one it finds in a depth-first search. If you need to find multiple slices with the same lookup code, you must search manually using <a href="#about-getslicelookup" class="ref">get slice lookup</a>.</div>
 			You may <a href="#about-setparent" class="ref">set parent</a> a slice to a map layer to make it move with the camera just like heroes and NPCs do.
 			
 			
@@ -14883,7 +14883,7 @@ end
 				(e.g. using <a href="#about-findcollidingslice" class="ref">find colliding slice</a>), such as a projectile and another slice,
 				and you want to check whether the projectile hit a hero, and which one.
 				<div style="background-color:#DCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
 					There are always four hero walkabout slices, even if there aren't that
 					many heroes in the active party!
 					The extra hero slices are set to hidden.
@@ -15818,7 +15818,7 @@ end
 		<h4>set slice velocity x (handle, pixels per tick, ticks)</h4>
 <p>
 			Cause slice <span class="param">handle</span> to start moving horizontally. A negative value for <span class="param">pixels per tick</span> moves left, and a positive value for <span class="param">pixels per tick</span> moves right. The <span class="param">ticks</span> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed. <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Movement in horizontal and vertical directions is independent, and can timeout after different numbers of ticks. For example if you set a slice's x velocity to 10 for 5 ticks, and y velocity to 10 for 2 ticks, it'll move diagonally down-right for 2 ticks and then right for 3 ticks.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Movement in horizontal and vertical directions is independent, and can timeout after different numbers of ticks. For example if you set a slice's x velocity to 10 for 5 ticks, and y velocity to 10 for 2 ticks, it'll move diagonally down-right for 2 ticks and then right for 3 ticks.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -15850,7 +15850,7 @@ end
 		<h4>set slice velocity y (handle, pixels per tick, ticks)</h4>
 <p>
 			Cause slice <span class="param">handle</span> to start moving vertically. A negative value for <span class="param">pixels per tick</span> moves up, and a positive value for <span class="param">pixels per tick</span> moves down. The <span class="param">ticks</span> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Movement in horizontal and vertical directions is independent, and can timeout after different numbers of ticks. For example if you set a slice's x velocity to 10 for 5 ticks, and y velocity to 10 for 2 ticks, it'll move diagonally down-right for 2 ticks and then right for 3 ticks.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Movement in horizontal and vertical directions is independent, and can timeout after different numbers of ticks. For example if you set a slice's x velocity to 10 for 5 ticks, and y velocity to 10 for 2 ticks, it'll move diagonally down-right for 2 ticks and then right for 3 ticks.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -16018,7 +16018,7 @@ end
 				<span class="param">x</span> and <span class="param">y</span> position over a given number of <span class="param">ticks</span>.
 				(As always, the position is an offset relative to its parent.)
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If you change the slice's position manually during that time (eg. with <a href="#about-putslice" class="ref">put slice</a>),
 					it'll continue to move towards the original target in a straight line.
 					Use <a href="#about-setslicevelocity" class="ref">set slice velocity</a> instead if you don't want this.
@@ -16063,7 +16063,7 @@ end
 				A negative <span class="param">relative y</span> moves up.
 				A positive <span class="param">relative y</span> moves down.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If you change the slice's position manually during that time (eg. with <a href="#about-putslice" class="ref">put slice</a>),
 					it'll continue to move towards the original target in a straight line.
 					Use <a href="#about-setslicevelocity" class="ref">set slice velocity</a> instead if you don't want this.
@@ -16930,7 +16930,7 @@ end
 		<p>
 				For a description of the different slice types, see the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices#Slice_types">Slices</a> article on the wiki.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					There are two types of slice used by the engine for which there are no commands:
 					'special' slices (such as <a href="#sprite%20layer" class="undef">sprite layer</a>),
 					and 'map' slices (which are map layers).
@@ -17284,7 +17284,7 @@ set horiz align(sl, edge:right)
 		<h4>load hero sprite (num, palette)</h4>
 <p>
 			Loads hero battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceherosprite" class="ref">replace hero sprite</a>!</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceherosprite" class="ref">replace hero sprite</a>!</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17300,7 +17300,7 @@ set horiz align(sl, edge:right)
 		<h4>replace hero sprite (handle, num, palette)</h4>
 <p>
 			Given an existing sprite <span class="param">handle</span>, changes it to hero battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadherosprite" class="ref">load hero sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadherosprite" class="ref">load hero sprite</a>.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadherosprite" class="ref">load hero sprite</a>.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17316,7 +17316,7 @@ set horiz align(sl, edge:right)
 		<h4>load walkabout sprite (num, palette)</h4>
 <p>
 			Loads walkabout sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacewalkaboutsprite" class="ref">replace walkabout sprite</a>!</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacewalkaboutsprite" class="ref">replace walkabout sprite</a>!</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17332,7 +17332,7 @@ set horiz align(sl, edge:right)
 		<h4>replace walkabout sprite (handle, num, palette)</h4>
 <p>
 			Given an existing sprite <span class="param">handle</span>, changes it to walkabout sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadwalkaboutsprite" class="ref">load walkabout sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadwalkaboutsprite" class="ref">load walkabout sprite</a>.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadwalkaboutsprite" class="ref">load walkabout sprite</a>.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17348,7 +17348,7 @@ set horiz align(sl, edge:right)
 		<h4>load small enemy sprite (num, palette)</h4>
 <p>
 			Loads small enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacesmallenemysprite" class="ref">replace small enemy sprite</a>!</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacesmallenemysprite" class="ref">replace small enemy sprite</a>!</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17364,7 +17364,7 @@ set horiz align(sl, edge:right)
 		<h4>replace small enemy sprite (handle, num, palette)</h4>
 <p>
 			Given an existing sprite <span class="param">handle</span>, changes it to small enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadsmallenemysprite" class="ref">load small enemy sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadsmallenemysprite" class="ref">load small enemy sprite</a>.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadsmallenemysprite" class="ref">load small enemy sprite</a>.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17380,7 +17380,7 @@ set horiz align(sl, edge:right)
 		<h4>load medium enemy sprite (num, palette)</h4>
 <p>
 			Loads medium enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacemediumenemysprite" class="ref">replace medium enemy sprite</a>!</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacemediumenemysprite" class="ref">replace medium enemy sprite</a>!</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17396,7 +17396,7 @@ set horiz align(sl, edge:right)
 		<h4>replace medium enemy sprite (handle, num, palette)</h4>
 <p>
 			Given an existing sprite <span class="param">handle</span>, changes it to medium enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadmediumenemysprite" class="ref">load medium enemy sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadmediumenemysprite" class="ref">load medium enemy sprite</a>.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadmediumenemysprite" class="ref">load medium enemy sprite</a>.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17412,7 +17412,7 @@ set horiz align(sl, edge:right)
 		<h4>load large enemy sprite (num, palette)</h4>
 <p>
 			Loads large enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacelargeenemysprite" class="ref">replace large enemy sprite</a>!</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacelargeenemysprite" class="ref">replace large enemy sprite</a>!</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17428,7 +17428,7 @@ set horiz align(sl, edge:right)
 		<h4>replace large enemy sprite (handle, num, palette)</h4>
 <p>
 			Given an existing sprite <span class="param">handle</span>, changes it to large enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadlargeenemysprite" class="ref">load large enemy sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadlargeenemysprite" class="ref">load large enemy sprite</a>.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadlargeenemysprite" class="ref">load large enemy sprite</a>.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17444,7 +17444,7 @@ set horiz align(sl, edge:right)
 		<h4>load attack sprite (num, palette)</h4>
 <p>
 			Loads attack battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceattacksprite" class="ref">replace attack sprite</a>!</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceattacksprite" class="ref">replace attack sprite</a>!</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17460,7 +17460,7 @@ set horiz align(sl, edge:right)
 		<h4>replace attack sprite (handle, num, palette)</h4>
 <p>
 			Given an existing sprite <span class="param">handle</span>, changes it to attack battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadattacksprite" class="ref">load attack sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadattacksprite" class="ref">load attack sprite</a>.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadattacksprite" class="ref">load attack sprite</a>.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17476,7 +17476,7 @@ set horiz align(sl, edge:right)
 		<h4>load weapon sprite (num, palette)</h4>
 <p>
 			Loads weapon battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceweaponsprite" class="ref">replace weapon sprite</a>!</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceweaponsprite" class="ref">replace weapon sprite</a>!</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17492,7 +17492,7 @@ set horiz align(sl, edge:right)
 		<h4>replace weapon sprite (handle, num, palette)</h4>
 <p>
 			Given an existing sprite <span class="param">handle</span>, changes it to weapon battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadweaponsprite" class="ref">load weapon sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadweaponsprite" class="ref">load weapon sprite</a>.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadweaponsprite" class="ref">load weapon sprite</a>.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17508,7 +17508,7 @@ set horiz align(sl, edge:right)
 		<h4>load border sprite (num, palette)</h4>
 <p>
 			Loads border battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacebordersprite" class="ref">replace border sprite</a>!</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacebordersprite" class="ref">replace border sprite</a>!</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17524,7 +17524,7 @@ set horiz align(sl, edge:right)
 		<h4>replace border sprite (handle, num, palette)</h4>
 <p>
 			Given an existing sprite <span class="param">handle</span>, changes it to border battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadbordersprite" class="ref">load border sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadbordersprite" class="ref">load border sprite</a>.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadbordersprite" class="ref">load border sprite</a>.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17540,7 +17540,7 @@ set horiz align(sl, edge:right)
 		<h4>load portrait sprite (num, palette)</h4>
 <p>
 			Loads portrait battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceportraitsprite" class="ref">replace portrait sprite</a>!</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceportraitsprite" class="ref">replace portrait sprite</a>!</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17556,7 +17556,7 @@ set horiz align(sl, edge:right)
 		<h4>replace portrait sprite (handle, num, palette)</h4>
 <p>
 			Given an existing sprite <span class="param">handle</span>, changes it to portrait battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadportraitsprite" class="ref">load portrait sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadportraitsprite" class="ref">load portrait sprite</a>.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadportraitsprite" class="ref">load portrait sprite</a>.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17572,7 +17572,7 @@ set horiz align(sl, edge:right)
 		<h4>load backdrop sprite (num)</h4>
 <p>
 			Loads backdrop #<span class="param">num</span> as a sprite, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacebackdropsprite" class="ref">replace backdrop sprite</a>!</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacebackdropsprite" class="ref">replace backdrop sprite</a>!</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17590,7 +17590,7 @@ set horiz align(sl, edge:right)
 		<h4>replace backdrop sprite (handle, num)</h4>
 <p>
 			Given an existing sprite <span class="param">handle</span>, changes it to backdrop #<span class="param">num</span>. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadbackdropsprite" class="ref">load backdrop sprite</a>.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadbackdropsprite" class="ref">load backdrop sprite</a>.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17622,7 +17622,7 @@ set horiz align(sl, edge:right)
 <p>
 			Duplicates a sprite slice, returning a handle to it. The new sprite inherits only the sprite-related data; in all other ways it is like a freshly created new slice. For example, the parent of the new slice is <a href="#about-spritelayer" class="ref">sprite layer</a> and it starts out visible, with default anchoring, is at position 0,0, has no children, etc.. If you clone a sprite, remember that you will need to call <a href="#about-freesprite" class="ref">free sprite</a> on both the original and the clone.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If you want to copy a non-sprite slice, copy all the properties of the slice,
 					or copy its children, then use the <a href="#about-cloneslice" class="ref">clone slice</a> command instead.
 				</div>
@@ -18167,7 +18167,7 @@ The third argument is the total number of ticks that the animation should run. Y
 				(You can't use <span class="param">border:raw</span>.)
 				This command overrides both <a href="#about-setrectstyle" class="ref">set rect style</a> and <a href="#about-setrectrawborder" class="ref">set rect raw border</a>.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					<span class="param">border</span> is <b>not</b> a box border spriteset number, it's a box style number!
 					If you want to specify the box border spriteset directly, use <a href="#about-setrectrawborder" class="ref">set rect raw border</a>.
 				</div>
@@ -18865,14 +18865,14 @@ The third argument is the total number of ticks that the animation should run. Y
 				Causes all the children of the <span class="param">parent</span> slice to be scrolled until the screen position of <span class="param">sl</span>,
 				a child or descendent of <span class="param">parent</span>, fits inside the parent.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					This is mainly intended for scroll slices, such as those created with the <a href="#about-createscroll" class="ref">create scroll</a> command,
 					but it can be used on any type of slice.
 					(Children that are set to fill their parents, or children that are automatically
 					positioned by a grid parent will be unaffected, and an error or warning may be shown.)
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					This command is misnamed, as it works for all descendent slices, not just children!
 					It only changes the positions of the children of <span class="param">parent</span>,
 					but that causes the screen position of <span class="param">sl</span> to also change.
@@ -19049,7 +19049,7 @@ The third argument is the total number of ticks that the animation should run. Y
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Slice Collision Testing</h3>
 		<p><div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">For the purposes of collision testing, all slices are treated as solid rectangles, even if they are text slices, sprites, ellipses, or invisible. A point right on the boundary of this rectangle counts as a collision.</div></p>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">For the purposes of collision testing, all slices are treated as solid rectangles, even if they are text slices, sprites, ellipses, or invisible. A point right on the boundary of this rectangle counts as a collision.</div></p>
 <ul></ul>
 		<div class="command">
 <a name="about-slicecollidepoint"></a>
@@ -19062,7 +19062,7 @@ The third argument is the total number of ticks that the animation should run. Y
 				such as the ones returned by <a href="#about-mousepixelx" class="ref">mouse pixel X</a> and <a href="#about-mousepixely" class="ref">mouse pixel Y</a>
 				(but can also be off the screen).
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Unlike <a href="#about-sliceatpixel" class="ref">slice at pixel</a>, this command ignores slice clipping.
 				</div>
 			
@@ -19134,14 +19134,14 @@ The third argument is the total number of ticks that the animation should run. Y
 				<br>
 				This command never returns Special slices, such as the <a href="#about-spritelayer" class="ref">sprite layer</a> slice.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					A point on the left or top edge of a slice counts as inside the slice,
 					while one on the bottom or right edges counts as outside.
 					If a slice has zero width or zero height, then there are no points inside it,
 					and slice at pixel will never return it!
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If a slice clips its children, then any parts of those children
 					that are clipped off are ignored when looking for <span class="param">x</span>, <span class="param">y</span>.
 					However, it doesn't matter whether <span class="param">parent</span> or any of its ancestors
@@ -19185,7 +19185,7 @@ The third argument is the total number of ticks that the animation should run. Y
 				<br>
 				This command never returns Special slices, such as the <a href="#about-spritelayer" class="ref">sprite layer</a> slice, nor will it return <span class="param">slice</span> or any of its descendants.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If a slice clips its children, then any parts of those children
 					that are clipped off are ignored when checking collisions.
 					However, it doesn't matter whether <span class="param">parent</span> or any of its ancestors
@@ -19651,7 +19651,7 @@ The third argument is the total number of ticks that the animation should run. Y
 		<h4>load tileset (tileset, layer)</h4>
 <p>
 			Temporarily loads a different default or layer tileset for the currently displaying map.<br>Use <span class="param">load tileset</span> (with no arguments) to restore the old tilesets after using load tileset (this has no effect after <a href="#about-changetileset" class="ref">change tileset</a>).<br>Use <span class="param">load tileset (tileset)</span> to load a new default tileset. <span class="param">tileset</span> is the ID number of the tileset to load. This affects tilesets for all layers that are set to 'Tileset: default'. This effectively changes the map's tileset if you haven't done anything fancy with layer tilesets.<br>Use <span class="param">load tileset (tileset, layer)</span> to load in a new a tileset for a single layer. <span class="param">layer</span> is the layer number (0-2) to target.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">This command has a temporary effect: even if the map state is saved, the new tilesets will not persist if you leave the map and come back. <a href="#about-changetileset" class="ref">change tileset</a> is a more powerful command for this.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">This command has a temporary effect: even if the map state is saved, the new tilesets will not persist if you leave the map and come back. <a href="#about-changetileset" class="ref">change tileset</a> is a more powerful command for this.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -19841,7 +19841,7 @@ write pass block(15,3,none)
 		<h4>get tile animation offset (animation pattern, layer)</h4>
 <p>
 			Returns the offset from the starting tile that the <span class="param">animation pattern</span> (either 0 or 1) of the tileset in use by the <span class="param">layer</span> (0 to 2) is currently at. For example, if the pattern has stepped 1 to the right, the offset is 1, if it has moved down 2 and 1 to the left, it is 31 (2 * 16 - 1). Because different layers can have different tilesets, you might need to specify the layer with the tileset to examine; otherwise layer 0 is assumed.<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Layers that use the same tileset do NOT have different copies of the tileset. Layers with the same tileset will always have the same tile animation offsets.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Layers that use the same tileset do NOT have different copies of the tileset. Layers with the same tileset will always have the same tile animation offsets.</div>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -19857,7 +19857,7 @@ write pass block(15,3,none)
 		<h4>set tile animation offset (animation pattern, offset, layer)</h4>
 <p>
 			Sets the offset from the starting tile that an <span class="param">animation pattern</span> (either 0 or 1) of a tileset in use by a <span class="param">layer</span> (0 to 2) is currently at. If there is a pattern defined, it will continue to step left, right, up and down from the offset you give it, until the end of the animation is reached, when the offset is reset to 0. Because different layers can have different tilesets, you might need to specify the layer with the tileset to examine; otherwise layer 0 is assumed. <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Layers that use the same tileset do NOT have different copies of the tileset. Layers with the same tileset will always have the same tile animation offsets, you can not change them independently.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Layers that use the same tileset do NOT have different copies of the tileset. Layers with the same tileset will always have the same tile animation offsets, you can not change them independently.</div>
 			
 			
 			
@@ -19919,18 +19919,18 @@ write pass block(15,3,none)
 				(unless the map wraps around).
 				However, if the hitbox starting position already overlaps any walls they will be ignored.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					<a href="#about-moveslicewithwallchecking" class="ref">move slice with wallchecking</a> is a more convenient way to check walls
 					if you want to move a slice, e.g. when scripting a platformer.
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If you're moving diagonally, you'll need to call both
 					<span class="code">check wall collision x</span> and <span class="code">check wall collision y</span> with identical
 					arguments to find the x,y position of the collision point.
 				</div>
 				<div style="background-color:#DCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
 					This command hasn't been updated to support one-way walls yet.
 					Running into a one-way wall edge-on will give strange results.
 				</div>
@@ -19996,7 +19996,7 @@ write pass block(15,3,none)
 				<br>
 				You can check for walls without needing a slice using the alternative <a href="#about-checkwallcollisionxy" class="ref">check wall collision x/y</a> commands.
 				<div style="background-color:#DCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
 					This command hasn't been updated to support one-way walls yet.
 					Running into a one-way wall edge-on will give strange results.
 				</div>
@@ -20044,7 +20044,7 @@ end</pre>
 				<span class="param">zone id</span> is a valid ID number (see <a href="#about-readzone" class="ref">read zone</a>),
 				and <span class="param">value</span> is interpreted as either <span class="param">true</span> (non-zero) or <span class="param">false</span> (zero).
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Only up to 15 zones may overlap at each tile.
 					If you try to place 16 zones at one tile, write zone will fail,
 					returning <a href="#about-booleanconstants" class="ref">false</a>. Normally it returns <a href="#about-booleanconstants" class="ref">true</a>.
@@ -20052,7 +20052,7 @@ end</pre>
 					you will also get a warning message.
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Changes to zones are not stored in saved games,
 					and are erased when you leave the map unless "Tile Data State" is "saved
 					when leaving" (in the General Map Data settings).
@@ -20102,7 +20102,7 @@ end</pre>
 				If <span class="param">count</span> too large (greater than or equal to the number of zones),
 				0 (<a href="#about-booleanconstants" class="ref">false</a>) is returned.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">The order in which the ID numbers are returned is completely arbitrary.</div>
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">The order in which the ID numbers are returned is completely arbitrary.</div>
 			
 			
 			
@@ -20146,7 +20146,7 @@ end</pre>
 				which is a number from 0 to 2.
 				You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Changes to zones are not stored in saved games,
 					and are erased when you leave the map unless "Tile Data State" is saved when
 					leaving in the General Map Data settings.
@@ -20478,14 +20478,14 @@ end</pre>
 				</ul>
 				<br>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Timers start counting down not from the current game 'tick', but from next one.
 					So if you want to trigger something next tick (eg. run a script every frame)
 					you need to pass <span class="param">count</span> as 0 and <span class="param">speed</span> as 1.
 					A timer count set to 1 would counter-intuitively trigger in 2 ticks time.
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Timer settings are not saved in game saves.
 				</div>
 			
@@ -20627,11 +20627,11 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				The argument is the script's ID number, NOT the script's name.
 				Calling set load script with no argument disables the load script.
 				<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
 					This command has no effect if the "Save gameover/loadgame script IDs" Preference Bitset is turned off!
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Setting the load script and then loading an existing saved game has no effect, because the load game script
 					already stored in that saved game is used instead.
 					Unless "Save gameover/loadgame script IDs" is off, in which case the default one is used.
@@ -20822,7 +20822,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the whole active (battle) party will be
 				displayed and will normally walk behind the leader.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Do not confuse this with the <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a>
 					and <a href="#about-resumecaterpillar" class="ref">resume caterpillar</a> commands,
 					which only apply when caterpillar mode is ON.
@@ -20957,7 +20957,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				Get the value of <span class="param">bitnum</span>
 				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Some bits are shown with the opposite names on the wiki and in the editor!
 					If that's the case, you need to set the bit off instead of on and vice versa.
 					They might also have slightly different names.
@@ -20986,7 +20986,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
 
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Some bits are shown with the opposite names on the wiki and in the editor!
 					If that's the case, you need to set the bit off instead of on and vice versa.
 					They might also have slightly different names.
@@ -20995,7 +20995,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 					because bit 22 is documented as "Don't randomize battle ready-meters".
 				</div>
 				<div style="background-color:#DCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
 					Use common sense. Some bits, such as "Limit maximum tags to 999" might be disastrous
 					to change in the middle of a game!
 					Or they might have no effect.
@@ -21241,7 +21241,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				(<span class="param">slot</span> is also always passed as the first argument to the loadgame script,
 				so <span class="param">args</span> are the 2nd and later arguments.)
 				<div style="background-color:#DCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
 					The default arguments of a loadgame script (and all other triggered scripts)
 					are currently ignored.
 					If you don't pass enough <span class="param">args</span>, then the remaining arguments default to zero,
@@ -21319,7 +21319,7 @@ end</pre>
 				<span class="code">last save slot</span> returns the last save slot used, even if the save
 				in it has since been deleted (e.g. with <a href="#about-deletesave" class="ref">delete save</a>).
 				<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
 					In versions before Callipygous, <a href="#about-saveinslot" class="ref">save in slot</a> didn't change
 					the value returned by <span class="code">last save slot</span>, but
 					<a href="#about-savemenu" class="ref">save menu</a><span class="code">(false)</span> and <a href="#about-loadmenu" class="ref">load menu</a><span class="code">(false)</span>
@@ -21425,7 +21425,7 @@ plotscript, check game finished, begin
   wait for textbox
 end</pre>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					You can import globals from an empty save slot; it's not an error to do so.
 					This reads the value of all of the globals as zero.
 					You can also export/import globals to/from an empty save slot
@@ -21455,7 +21455,7 @@ end</pre>
 				<span class="param">first</span> defaults to 0, and <span class="param">last</span> defaults to 50000.
 				Therefore, if you pass no range, all the globals will be written.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					You can export globals to an empty slot!
 					This doesn't create a visible save game that the player can load
 					(and <a href="#about-saveslotused" class="ref">save slot used</a> will still return <span class="code">false</span> for that slot),
@@ -21463,7 +21463,7 @@ end</pre>
 					You can delete these globals using <a href="#about-deletesave" class="ref">delete save</a>.
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Unlike importglobals, <span class="code">export globals (slot, first)</span> does
 					NOT export a single global variable!
 				</div>
@@ -21557,7 +21557,7 @@ end</pre>
 				For example, using <a href="#about-setsliceextra" class="ref">set slice extra</a> you might want to store the ID
 				of a script that should be run when the player clicks on a slice.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If you pass too few arguments, the unspecified ones will have value zero
 					<b>regardless</b> of any default values given in the script declaration.
 					<br>
@@ -21645,7 +21645,7 @@ run game(0)</pre>
 				Saves a screenshot, as if the player pressed F12.
 				A popup will appear telling the filename of the screenshot.
 				<div style="background-color:#CCB;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
 					The screenshot might be taken either of the previous frame or the next one.
 					To be safe, if you're displaying something and then taking a screenshot of
 					it, put a <span class="code">wait(1)</span> in between.
@@ -21708,7 +21708,7 @@ trace value (hero X (me), hero Y (me))</pre>
 				<span class="param">slice</span> is optional; if omitted the whole tree is printed out,
 				which is the same as pressing the <span class="param">Ctrl+F8</span> debug key.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Most of the slice data isn't printed; if you want to inspect it the easiest
 					way to do so is either to press <span class="param">Ctrl+F4</span> to view the slice editor/debugger,
 					or to call <a href="#about-scripterror" class="ref">script error</a> at the exact moment you want to check the slice tree;
@@ -21819,7 +21819,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <p>
 			
 				<div style="background-color:#DCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
 					As of Callipygous, this command is only implemented on Android!
 					Calling it on other platforms does nothing.
 				</div>
@@ -22111,7 +22111,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				A handle is <span class="param">valid</span> if it currently refers to an existing slice.
 				<a href="#about-booleanconstants" class="ref">false</a> (zero) is never a valid slice handle, so slice commands return 0 to indicate "no slice found" or similar failures.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					<a href="#about-lookupcode" class="ref">slice lookup code</a>s like "sl:map layer 0" or "sli:quit button" are NOT slice handles;
 					they can only be used by the <a href="#about-lookupslice" class="ref">lookup slice</a> command.
 				</div>
@@ -22370,12 +22370,12 @@ menu key           # Alt or Esc, or Menu button on any joystick
 run key            # Esc or Tab, or Run button on any joystick (Hold to run from battle)
 </pre>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Previously it was necessary to <span class="code">include, scancode.hsi</span>
 					to use the <span class="code">key:</span> constants, but no longer.
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If the "Map joystick controls to keyboard keys for scripts" general preference
 					bitset is ON (which it is by default), then checking the
 					<span class="code">key:up</span>, <span class="code">key:down</span>, <span class="code">key:left</span>, <span class="code">key:right</span>,
@@ -22383,7 +22383,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 					if the corresponding button on any joystick is pressed.
 				</div>
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2)
 					which were previously the same scancode are now distinct (read scancode.hsi for the complete list).
 					However for backwards compatibility, the old behaviour is emulated

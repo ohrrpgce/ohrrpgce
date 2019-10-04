@@ -349,21 +349,21 @@
 
 	<xsl:template match="note">
 		<div style="background-color:#BCC;" class="notice">
-			<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon"/>
+			<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon"/>
 			<xsl:apply-templates /><!-- <br clear="all" /> -->
 		</div>
 	</xsl:template>
 
 	<xsl:template match="warn">
 		<div style="background-color:#CCB;" class="notice">
-			<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon"/>
+			<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon"/>
 			<xsl:apply-templates /><!-- <br clear="all" /> -->
 		</div>
 	</xsl:template>
 
 	<xsl:template match="danger">
 		<div style="background-color:#DCC;" class="notice">
-			<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon"/>
+			<img src="http://rpg.hamsterrepublic.com/wiki-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon"/>
 			<xsl:apply-templates /><!-- <br clear="all" /> -->
 		</div>
 	</xsl:template>
