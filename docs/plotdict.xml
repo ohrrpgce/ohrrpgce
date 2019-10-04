@@ -255,7 +255,20 @@ variable+=1 # add one to it</example>
 		<command id="defineconstant">
 			<canon>define constant (number,name)</canon>
 			<shortname>define constant</shortname>
-			<description>Creates a global constant. The first argument is the number that the constant will represent, and the second argument is the name of the constant. Use constants to replace commonly used numbers with friendly names. The following are some general purpose constants have been defined for you (there are hundreds more intended for specific commands):<lb /><ref>zero</ref> <ref>one</ref> <ref>two</ref> <ref>three</ref> <ref>four</ref> <ref>five</ref> <ref>six</ref> <ref>seven</ref> <ref>eight</ref> <ref>nine</ref> <ref>ten</ref> <ref>false</ref> <ref>true</ref> <ref>off</ref> <ref>on</ref> <ref>north</ref> <ref>east</ref> <ref>south</ref> <ref>west</ref> <ref>up</ref> <ref>down</ref> <ref>left</ref> <ref>right</ref> <ref>me</ref> <ref>none</ref></description>
+			<description>
+				Creates a global constant.
+				The first argument is the number that the constant will represent, and the second argument is the name of the constant.
+				Use constants to replace commonly used numbers with friendly names.
+				The following are some general purpose constants have been defined for you
+				(there are hundreds more intended for specific commands):
+				<lb />
+				<tt>zero</tt> <tt>one</tt> <tt>two</tt> <tt>three</tt> <tt>four</tt> <tt>five</tt> <tt>six</tt> <tt>seven</tt> <tt>eight</tt> <tt>nine</tt> <tt>ten</tt>
+				<ref>false</ref> <ref>true</ref> <ref>off</ref> <ref>on</ref>
+				<ref>north</ref> <ref>east</ref> <ref>south</ref> <ref>west</ref>
+				<ref>up</ref> <ref>down</ref> <ref>left</ref> <ref>right</ref>
+				<ref>me</ref>
+				<ref>none</ref>
+			</description>
 		</command>
 		<command id="include">
 			<canon>include, filename</canon>
@@ -2318,7 +2331,7 @@ wait for text box # wait until the player continues</example>
 		<command id="roominactiveparty">
 			<canon>room in active party</canon>
 			<shortname>room in active party</shortname>
-			<description>A function that returns the number of available spaces in your active party. It will return <ref>zero</ref> or <ref>false</ref> if there is no room.</description>
+			<description>A function that returns the number of available spaces in your active party. It will return zero or <ref>false</ref> if there is no room.</description>
 		</command>
 		</section>		<!-- Inspecting the Party-->
 
@@ -2507,7 +2520,7 @@ end</example>
 		<command id="inventory">
 			<canon>inventory (item)</canon>
 			<shortname>inventory</shortname>
-			<description>Returns a count of how many of the specified item are in your inventory. If you do not have the item, it returns <ref>zero</ref> or <ref>false</ref>. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name</description>
+			<description>Returns a count of how many of the specified item are in your inventory. If you do not have the item, it returns zero or <ref>false</ref>. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name</description>
 		</command>
 		<command id="getinventorysize">
 			<canon>get inventory size</canon>
