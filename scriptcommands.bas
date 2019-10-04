@@ -2259,7 +2259,9 @@ SUB script_functions(byval cmdid as integer)
  CASE 322'--load hero sprite
   scriptret = load_sprite_plotslice(0, retvals(0), retvals(1))
  CASE 323'--free sprite
-  IF valid_plotslice(retvals(0), 2) THEN
+  IF retvals(0) = 0 THEN
+   'No warning
+  ELSEIF valid_plotslice(retvals(0), serrWarn) THEN
    IF plotslices(retvals(0))->SliceType = slSprite THEN
     DeleteSlice @plotslices(retvals(0))
    ELSE
@@ -2396,7 +2398,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 360 '--sprite layer
   scriptret = find_plotslice_handle(SliceTable.ScriptSprite)
  CASE 361 '--free slice
-  IF valid_plotslice(retvals(0), 2) THEN
+  IF valid_plotslice(retvals(0), serrWarn) THEN
    DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Protect THEN

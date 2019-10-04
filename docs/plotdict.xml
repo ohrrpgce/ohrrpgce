@@ -5741,7 +5741,19 @@ end
 		<command id="freeslice">
 			<canon>free slice (handle)</canon>
 			<shortname>free slice</shortname>
-			<description>Unloads a slice and any child slices. This works on any type of slice. This removes the slice from the screen and removes it from memory. You should free your slices after you are completely done with them.</description>
+			<description>
+				Deletes a slice and any child slices.
+				This works on any type of slice.
+				This removes the slice from the screen and removes it from memory.
+				You should free your slices after you are completely done with them.
+				<lb/>
+				Freeing the same slice handle twice shows a warning
+				(if slice error reporting is enabled, e.g. while testing your game).
+				However, <tt>free slice (0)</tt> is fine.
+				It's good practice to set a variable containing a slice handle to 0
+				after you free it, so that the script can test whether the slice
+				exists or not. (<ref>sliceisvalid</ref> is not reliable.)
+			</description>
 			<example>
 script, simple example, begin
   variable(sl)
