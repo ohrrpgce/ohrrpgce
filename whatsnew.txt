@@ -167,6 +167,7 @@ Septemtober ? 2019 [Fufluns]
     * "get npc sprite", "get hero sprite" convenience wrappers [Ralph]
     * "last menu item", "menu item count", "visible menu item count" [Ralph]
     * "close menu" gains "run close script" argument [Ralph]
+    * Plotscripting Dictionary shows list of commands in each section [Ralph]
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"

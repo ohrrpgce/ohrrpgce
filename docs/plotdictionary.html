@@ -3409,10 +3409,29 @@
 <a name="Declarations"></a>
 		<h3>
 <span class="backlink"></span>Declarations</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-plotscript">plotscript, name, argumentnames (statements)</a><br>
 		
+	
+		<a href="#about-script">script, name, argumentnames (statements)</a><br>
 		
+	
+		<a href="#about-subscript">subscript, name, argumentnames (statements)</a><br>
+		
+	
+		<a href="#about-globalvariable">global variable (id,name)</a><br>
+		
+	
+		<a href="#about-variable">variable (name)</a><br>
+		
+	
+		<a href="#about-defineconstant">define constant (number,name)</a><br>
+		
+	
+		<a href="#about-include">include, filename</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-plotscript"></a>
 		<h4>plotscript, name, argumentnames (statements)</h4>
@@ -3558,15 +3577,101 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 <a name="Math,%20Comparison,%20and%20Logic%20Operators"></a>
 		<h3>
 <span class="backlink"></span>Math, Comparison, and Logic Operators</h3>
-		<ul>
+		<p></p>
+<ul>
+		<a href="#about-add">number + number</a><br>
+		
+	
+		<a href="#about-subtract">number -- number</a><br>
+		
+	
+		<a href="#about-multiply">number * number</a><br>
+		
+	
+		<a href="#about-divide">number / number</a><br>
+		
+	
+		<a href="#about-modulus">number,mod,number</a><br>
+		
+	
+		<a href="#about-exponent">number ^ power</a><br>
+		
+	
+		<a href="#about-abs">abs (number)</a><br>
+		
+	
+		<a href="#about-sign">sign (number)</a><br>
+		
+	
+		<a href="#about-sqrt">sqrt (number)</a><br>
+		
+	
+		<a href="#about-equal">number == number</a><br>
+		
+	
+		<a href="#about-notequal">number &lt;&gt; number</a><br>
+		
+	
+		<a href="#about-lessthan">number &lt; number</a><br>
+		
+	
+		<a href="#about-greaterthan">number &gt; number</a><br>
+		
+	
+		<a href="#about-lessthanorequalto">number &lt;= number</a><br>
+		
+	
+		<a href="#about-greaterthanorequalto">number &gt;= number</a><br>
+		
+	
+		<a href="#about-and">value,and,value</a><br>
+		
+	
+		<a href="#about-or">value,or,value</a><br>
+		
+	
+		<a href="#about-xor">value,xor,value</a><br>
+		
+	
+		<a href="#about-logicaland">value &amp;&amp; value</a><br>
+		
+	
+		<a href="#about-logicalor">value || value</a><br>
+		
+	
+		<a href="#about-logicalxor">value ^^ value</a><br>
+		
+	
+		<a href="#about-not">not (value)</a><br>
+		
+	
+		<a href="#about-random">random (lownumber, highnumber)</a><br>
+		
+	
+		<a href="#about-seedrandom">seed random (seed)</a><br>
+		
+	
 		<li>
 <a href="#Working%20with%20Variables">Working with Variables</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-setvariable">variable := value</a><br>
+		
+	
+		<a href="#about-increment">increment (variable,amount)</a><br>
+		
+	
+		<a href="#about-decrement">decrement (variable,amount)</a><br>
+		
+	
+		<a href="#about-readglobal">read global (id)</a><br>
+		
+	
+		<a href="#about-writeglobal">write global (id,value)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 </ul>
-<p></p>
-		
-		
 		<div class="command">
 <a name="about-add"></a>
 		<h4>number + number</h4>
@@ -3832,10 +3937,8 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 		<h3>
 <span class="backlink"><a href="#Math,%20Comparison,%20and%20Logic%20Operators">Math, Comparison, and Logic Operators</a> →
 			</span>Working with Variables</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-setvariable"></a>
 		<h4>variable := value</h4>
@@ -3919,10 +4022,56 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 <a name="Flow%20Control"></a>
 		<h3>
 <span class="backlink"></span>Flow Control</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-begin">begin,other commands,end</a><br>
 		
+	
 		
+		<a href="#about-begin">end</a><br>
+	
+		<a href="#about-if">if(condition) then(commands) else(commands)</a><br>
+		
+	
+		<a href="#about-elseif">... else if(condition) then(commands) ...</a><br>
+		
+	
+		
+		<a href="#about-if">then</a><br>
+	
+		
+		<a href="#about-if">else</a><br>
+	
+		<a href="#about-while">while(condition) do(commands)</a><br>
+		
+	
+		<a href="#about-do">do</a><br>
+		
+	
+		<a href="#about-for">for(counter,start,finish,step) do(commands)</a><br>
+		
+	
+		<a href="#about-return">return(value)</a><br>
+		
+	
+		<a href="#about-exitreturning">exit returning(value)</a><br>
+		
+	
+		<a href="#about-exitscript">exit script</a><br>
+		
+	
+		<a href="#about-break">break</a><br>
+		
+	
+		<a href="#about-continue">continue</a><br>
+		
+	
+		<a href="#about-switch">switch(expression)</a><br>
+		
+	
+		<a href="#about-case">case(value)</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-begin"></a>
 		<h4>begin,other commands,end</h4>
@@ -4209,8 +4358,7 @@ Besides readability, there is one other important difference between using switc
 <a name="Wait%20Commands"></a>
 		<h3>
 <span class="backlink"></span>Wait Commands</h3>
-		<ul></ul>
-<p>
+		<p>
 			Note that all of the wait commands wait for at least one tick,
 			even if the thing they are waiting for is false
 			(unless you call a command with invalid arguments, causing a script error instead).
@@ -4228,8 +4376,34 @@ Besides readability, there is one other important difference between using switc
 				before it the script resumes.
 			</div>
 		</p>
+<ul>
+		<a href="#about-wait">wait (ticks)</a><br>
 		
+	
+		<a href="#about-waitfortextbox">wait for text box</a><br>
 		
+	
+		<a href="#about-waitformenu">wait for menu (menu handle)</a><br>
+		
+	
+		<a href="#about-waitforhero">wait for hero (who)</a><br>
+		
+	
+		<a href="#about-waitforkey">wait for key (key)</a><br>
+		
+	
+		<a href="#about-waitforscancode">wait for scancode (key)</a><br>
+		
+	
+		<a href="#about-waitfornpc">wait for NPC (who)</a><br>
+		
+	
+		<a href="#about-waitforcamera">wait for camera</a><br>
+		
+	
+		<a href="#about-waitforall">wait for all</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-wait"></a>
 		<h4>wait (ticks)</h4>
@@ -4412,10 +4586,20 @@ resume NPCs</pre>
 <a name="Working%20with%20Tags"></a>
 		<h3>
 <span class="backlink"></span>Working with Tags</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-settag">set tag (tag,value)</a><br>
 		
+	
+		<a href="#about-checktag">check tag (tag)</a><br>
 		
+	
+		<a href="#about-setonetime">set onetime (onetime,value)</a><br>
+		
+	
+		<a href="#about-checkonetime">check onetime (onetime)</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-settag"></a>
 		<h4>set tag (tag,value)</h4>
@@ -4473,10 +4657,137 @@ resume NPCs</pre>
 <a name="Suspend%20and%20Resume"></a>
 		<h3>
 <span class="backlink"></span>Suspend and Resume</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-suspendplayer">suspend player</a><br>
 		
+	
+		<a href="#about-resumeplayer">resume player</a><br>
 		
+	
+		<a href="#about-playerissuspended">player is suspended</a><br>
+		
+	
+		<a href="#about-suspendnpcs">suspend NPCs</a><br>
+		
+	
+		<a href="#about-resumenpcs">resume NPCs</a><br>
+		
+	
+		<a href="#about-npcsaresuspended">npcs are suspended</a><br>
+		
+	
+		<a href="#about-suspendobstruction">suspend obstruction</a><br>
+		
+	
+		<a href="#about-resumeobstruction">resume obstruction</a><br>
+		
+	
+		<a href="#about-obstructionissuspended">obstruction is suspended</a><br>
+		
+	
+		<a href="#about-suspendherowalls">suspend hero walls</a><br>
+		
+	
+		<a href="#about-resumeherowalls">resume hero walls</a><br>
+		
+	
+		<a href="#about-herowallsaresuspended">hero walls are suspended</a><br>
+		
+	
+		<a href="#about-suspendnpcwalls">suspend NPC walls</a><br>
+		
+	
+		<a href="#about-resumenpcwalls">resume NPC walls</a><br>
+		
+	
+		<a href="#about-npcwallsaresuspended">npc walls are suspended</a><br>
+		
+	
+		<a href="#about-suspendcaterpillar">suspend caterpillar</a><br>
+		
+	
+		<a href="#about-resumecaterpillar">resume caterpillar</a><br>
+		
+	
+		<a href="#about-caterpillarissuspended">caterpillar is suspended</a><br>
+		
+	
+		
+		<a href="#about-suspendcaterpillar">suspend catapillar</a><br>
+	
+		
+		<a href="#about-resumecaterpillar">resume catapillar</a><br>
+	
+		<a href="#about-suspenddoors">suspend doors</a><br>
+		
+	
+		<a href="#about-resumedoors">resume doors</a><br>
+		
+	
+		<a href="#about-doorsaresuspended">doors are suspended</a><br>
+		
+	
+		<a href="#about-suspendrandomenemies">suspend random enemies</a><br>
+		
+	
+		<a href="#about-resumerandomenemies">resume random enemies</a><br>
+		
+	
+		<a href="#about-randomenemiesaresuspended">random enemies are suspended</a><br>
+		
+	
+		
+		<a href="#about-suspendrandomenemies">suspend random enemys</a><br>
+	
+		
+		<a href="#about-resumerandomenemies">resume random enemys</a><br>
+	
+		<a href="#about-suspendboxadvance">suspend box advance</a><br>
+		
+	
+		<a href="#about-resumeboxadvance">resume box advance</a><br>
+		
+	
+		<a href="#about-boxadvanceissuspended">box advance is suspended</a><br>
+		
+	
+		<a href="#about-suspendtextboxcontrols">suspend text box controls</a><br>
+		
+	
+		<a href="#about-resumetextboxcontrols">resume text box controls</a><br>
+		
+	
+		<a href="#about-textboxcontrolsaresuspended">textbox controls are suspended</a><br>
+		
+	
+		<a href="#about-suspendoverlay">suspend overlay</a><br>
+		
+	
+		<a href="#about-resumeoverlay">resume overlay</a><br>
+		
+	
+		<a href="#about-overlayissuspended">overlay is suspended</a><br>
+		
+	
+		<a href="#about-suspendmapmusic">suspend map music</a><br>
+		
+	
+		<a href="#about-resumemapmusic">resume map music</a><br>
+		
+	
+		<a href="#about-mapmusicissuspended">map music is suspended</a><br>
+		
+	
+		<a href="#about-suspendtimers">suspend timers</a><br>
+		
+	
+		<a href="#about-resumetimers">resume timers</a><br>
+		
+	
+		<a href="#about-timersaresuspended">timers are suspended</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-suspendplayer"></a>
 		<h4>suspend player</h4>
@@ -5015,10 +5326,77 @@ play song (get ambient music)</pre>
 <a name="Moving%20Heroes"></a>
 		<h3>
 <span class="backlink"></span>Moving Heroes</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-walkhero">walk hero (who, direction, distance)</a><br>
 		
+	
+		<a href="#about-pathfindheroto">pathfind hero to (who, x, y, stuck ticks)</a><br>
 		
+	
+		<a href="#about-herochasesnpc">hero chases hero (who, npc, stop when reached, stuck ticks)</a><br>
+		
+	
+		<a href="#about-cancelherowalk">cancel hero walk (who)</a><br>
+		
+	
+		<a href="#about-setherodirection">set hero direction (who, direction)</a><br>
+		
+	
+		<a href="#about-herodirection">hero direction (who)</a><br>
+		
+	
+		<a href="#about-setheroframe">set hero frame (who, frame)</a><br>
+		
+	
+		<a href="#about-heroframe">hero frame (who)</a><br>
+		
+	
+		<a href="#about-setheroposition">set hero position (who, x, y)</a><br>
+		
+	
+		<a href="#about-puthero">put hero (who, x, y)</a><br>
+		
+	
+		<a href="#about-herox">hero X (who)</a><br>
+		
+	
+		<a href="#about-heroy">hero Y (who)</a><br>
+		
+	
+		<a href="#about-heropixelx">hero pixel X (who)</a><br>
+		
+	
+		<a href="#about-heropixely">hero pixel Y (who)</a><br>
+		
+	
+		<a href="#about-heroz">hero Z (who)</a><br>
+		
+	
+		<a href="#about-setheroz">set hero z (who, z)</a><br>
+		
+	
+		<a href="#about-walkherotox">walk hero to x (who,x)</a><br>
+		
+	
+		<a href="#about-walkherotoy">walk hero to y (who,x)</a><br>
+		
+	
+		<a href="#about-checkherowall">check hero wall (who,direction)</a><br>
+		
+	
+		<a href="#about-getherospeed">get hero speed (who)</a><br>
+		
+	
+		<a href="#about-setherospeed">set hero speed (who, speed)</a><br>
+		
+	
+		<a href="#about-teleporttomap">teleport to map (map, x, y)</a><br>
+		
+	
+		<a href="#about-heroiswalking">hero is walking (who)</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-walkhero"></a>
 		<h4>walk hero (who, direction, distance)</h4>
@@ -5369,10 +5747,29 @@ resume player</pre>
 <a name="Doors"></a>
 		<h3>
 <span class="backlink"></span>Doors</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-usedoor">use door (number, fade screen)</a><br>
 		
+	
+		<a href="#about-doorexists">door exists (number, map)</a><br>
 		
+	
+		<a href="#about-getdoorx">get door x (number, map)</a><br>
+		
+	
+		<a href="#about-getdoory">get door y (number, map)</a><br>
+		
+	
+		<a href="#about-getdoordestinationid">get door destination id (number, map)</a><br>
+		
+	
+		<a href="#about-getdoordestinationmap">get door destination map (number, map)</a><br>
+		
+	
+		<a href="#about-dooratspot">door at spot (x, y)</a><br>
+		
+	</ul>
 		<div class="command">
 		<h4>teleport to map (map, x, y)</h4>
 		<p><a href="#about-teleporttomap">Defined in the Moving Heroes section.</a></p>
@@ -5486,10 +5883,116 @@ resume player</pre>
 <a name="Moving%20NPCs"></a>
 		<h3>
 <span class="backlink"></span>Moving NPCs</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-npcreference">NPC reference (ID, copy, allow disabled?)</a><br>
 		
+	
+		<a href="#about-nextnpcreference">next NPC reference (npcref)</a><br>
 		
+	
+		<a href="#about-npcatspot">NPC at spot (x, y, number)</a><br>
+		
+	
+		<a href="#about-npcatpixel">NPC at pixel (x, y, number)</a><br>
+		
+	
+		<a href="#about-walknpc">walk NPC (who, direction, distance)</a><br>
+		
+	
+		<a href="#about-setnpcdirection">set NPC direction (who, direction)</a><br>
+		
+	
+		<a href="#about-pathfindnpcto">pathfind NPC to (who, x, y, stuck ticks)</a><br>
+		
+	
+		<a href="#about-npcchasesnpc">NPC chases NPC (who, other who, stop when reached, stuck ticks)</a><br>
+		
+	
+		<a href="#about-cancelnpcwalk">cancel NPC walk (who)</a><br>
+		
+	
+		<a href="#about-npcdirection">NPC direction (who)</a><br>
+		
+	
+		<a href="#about-setnpcframe">set NPC frame (who, frame)</a><br>
+		
+	
+		<a href="#about-npcframe">NPC frame (who)</a><br>
+		
+	
+		<a href="#about-setnpcposition">set NPC position (who, X, Y)</a><br>
+		
+	
+		<a href="#about-putnpc">put npc (who,x,y)</a><br>
+		
+	
+		<a href="#about-npcx">NPC X (who)</a><br>
+		
+	
+		<a href="#about-npcy">NPC Y (who)</a><br>
+		
+	
+		<a href="#about-npcpixelx">NPC pixel X (who)</a><br>
+		
+	
+		<a href="#about-npcpixely">NPC pixel Y (who)</a><br>
+		
+	
+		<a href="#about-npcz">npc Z (who)</a><br>
+		
+	
+		<a href="#about-setnpcz">set npc z (npc, z)</a><br>
+		
+	
+		<a href="#about-walknpctox">walk NPC to X (who, X)</a><br>
+		
+	
+		<a href="#about-walknpctoy">walk NPC to Y (who, Y)</a><br>
+		
+	
+		<a href="#about-checknpcwall">check NPC wall (who, direction)</a><br>
+		
+	
+		<a href="#about-getnpcspeed">get NPC speed (who)</a><br>
+		
+	
+		<a href="#about-setnpcspeed">set NPC speed (who, speed)</a><br>
+		
+	
+		<a href="#about-npciswalking">NPC is walking (who)</a><br>
+		
+	
+		<a href="#about-npcextra">NPC extra (who, which)</a><br>
+		
+	
+		<a href="#about-setnpcextra">set NPC extra (who, which, value)</a><br>
+		
+	
+		<a href="#about-getnpcid">get NPC ID (reference)</a><br>
+		
+	
+		<a href="#about-npccopynumber">NPC copy number (reference)</a><br>
+		
+	
+		<a href="#about-npccopycount">NPC copy count (ID)</a><br>
+		
+	
+		<a href="#about-changenpcid">change NPC ID (reference,new ID)</a><br>
+		
+	
+		<a href="#about-createnpc">create NPC (ID,X,Y,direction)</a><br>
+		
+	
+		<a href="#about-destroynpc">destroy NPC (reference)</a><br>
+		
+	
+		
+		<a href="#about-destroynpc">delete NPC (reference)</a><br>
+	
+		<a href="#about-npcisdisabled">NPC is disabled (reference)</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-npcreference"></a>
 		<h4>NPC reference (ID, copy, allow disabled?)</h4>
@@ -6061,10 +6564,35 @@ end</pre>
 <a name="The%20Camera"></a>
 		<h3>
 <span class="backlink"></span>The Camera</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-camerapixelx">camera pixel X</a><br>
 		
+	
+		<a href="#about-camerapixely">camera pixel Y</a><br>
 		
+	
+		<a href="#about-camerafollowshero">camera follows hero (who)</a><br>
+		
+	
+		<a href="#about-camerafollowsnpc">camera follows NPC (who)</a><br>
+		
+	
+		<a href="#about-camerafollowsslice">camera follows slice (slice)</a><br>
+		
+	
+		<a href="#about-pancamera">pan camera (direction,distance,pixelstep)</a><br>
+		
+	
+		<a href="#about-focuscamera">focus camera (x,y,speed)</a><br>
+		
+	
+		<a href="#about-pixelfocuscamera">pixel focus camera (x,y,speed)</a><br>
+		
+	
+		<a href="#about-putcamera">put camera (x,y)</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-camerapixelx"></a>
 		<h4>camera pixel X</h4>
@@ -6165,10 +6693,29 @@ end</pre>
 <a name="Text%20Boxes"></a>
 		<h3>
 <span class="backlink"></span>Text Boxes</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-showtextbox">show text box (number)</a><br>
 		
+	
+		<a href="#about-advancetextbox">advance text box</a><br>
 		
+	
+		<a href="#about-currenttextbox">current text box</a><br>
+		
+	
+		<a href="#about-speakingnpc">speaking npc</a><br>
+		
+	
+		<a href="#about-stringfromtextbox">string from textbox (ID, textbox, line, ignored)</a><br>
+		
+	
+		<a href="#about-textboxline">textbox line (string ID, textbox, line, expand, strip)</a><br>
+		
+	
+		<a href="#about-textboxtext">textbox text (string ID, textbox, expand, strip)</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-showtextbox"></a>
 		<h4>show text box (number)</h4>
@@ -6284,10 +6831,35 @@ resume box advance # go back to normal</pre>
 <a name="Triggering%20Stuff"></a>
 		<h3>
 <span class="backlink"></span>Triggering Stuff</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-fightformation">fight formation (number)</a><br>
 		
+	
+		<a href="#about-usenpc">use NPC (who)</a><br>
 		
+	
+		<a href="#about-useshop">use shop (shop)</a><br>
+		
+	
+		<a href="#about-forcemountvehicle">force mount vehicle (npc)</a><br>
+		
+	
+		<a href="#about-currentvehicleid">current vehicle id</a><br>
+		
+	
+		<a href="#about-currentvehiclenpc">current vehicle npc</a><br>
+		
+	
+		<a href="#about-dismountvehicle">dismount vehicle</a><br>
+		
+	
+		<a href="#about-gameover">game over</a><br>
+		
+	
+		<a href="#about-resetgame">reset game(args...)</a><br>
+		
+	</ul>
 		<div class="command">
 		<h4>show text box (number)</h4>
 		<p><a href="#about-showtextbox">Defined in the Text Boxes section.</a></p>
@@ -6479,10 +7051,26 @@ resume box advance # go back to normal</pre>
 <a name="Basic%20Display%20Commands"></a>
 		<h3>
 <span class="backlink"></span>Basic Display Commands</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-showvalue">show value (number)</a><br>
 		
+	
+		<a href="#about-showstring">show string (ID)</a><br>
 		
+	
+		<a href="#about-shownovalue">show no value</a><br>
+		
+	
+		<a href="#about-cancelmapnamedisplay">cancel map name display</a><br>
+		
+	
+		<a href="#about-showbackdrop">show backdrop (number)</a><br>
+		
+	
+		<a href="#about-showmap">show map</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-showvalue"></a>
 		<h4>show value (number)</h4>
@@ -6573,10 +7161,38 @@ resume box advance # go back to normal</pre>
 <a name="Opening%20Built-in%20Menus"></a>
 		<h3>
 <span class="backlink"></span>Opening Built-in Menus</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-mainmenu">main menu</a><br>
 		
+	
+		<a href="#about-showminimap">show mini map</a><br>
 		
+	
+		<a href="#about-itemsmenu">items menu</a><br>
+		
+	
+		<a href="#about-statusscreen">status screen (who)</a><br>
+		
+	
+		<a href="#about-spellsmenu">spells menu (who)</a><br>
+		
+	
+		<a href="#about-equipmenu">equip menu (who, allow switching)</a><br>
+		
+	
+		<a href="#about-savemenu">save menu (reallysave)</a><br>
+		
+	
+		<a href="#about-loadmenu">load menu (reallyload, show new game)</a><br>
+		
+	
+		<a href="#about-ordermenu">order menu</a><br>
+		
+	
+		<a href="#about-teammenu">team menu</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-mainmenu"></a>
 		<h4>main menu</h4>
@@ -6730,17 +7346,7 @@ resume box advance # go back to normal</pre>
 <a name="The%20Party"></a>
 		<h3>
 <span class="backlink"></span>The Party</h3>
-		<ul>
-		<li>
-<a href="#Inspecting%20the%20Party">Inspecting the Party</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Changing%20the%20Party">Changing the Party</a><br>
-		<ul></ul>
-</li>
-</ul>
-<p>
+		<p>
 			<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 			You should definitely read <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
@@ -6748,8 +7354,60 @@ resume box advance # go back to normal</pre>
 			(including <span class="code">hero:name</span> constants), hero party slots, and walkabout rank!
 			</div>
 		</p>
+<ul>
+		<li>
+<a href="#Inspecting%20the%20Party">Inspecting the Party</a><br>
+		<ul>
+		<a href="#about-leader">leader</a><br>
 		
+	
+		<a href="#about-findhero">find hero (who)</a><br>
 		
+	
+		<a href="#about-herobyslot">hero by slot (where)</a><br>
+		
+	
+		<a href="#about-rankincaterpillar">rank in caterpillar (who)</a><br>
+		
+	
+		<a href="#about-herobyrank">hero by rank (where)</a><br>
+		
+	
+		<a href="#about-roominactiveparty">room in active party</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Changing%20the%20Party">Changing the Party</a><br>
+		<ul>
+		<a href="#about-addhero">add hero (who)</a><br>
+		
+	
+		<a href="#about-deletehero">delete hero (who)</a><br>
+		
+	
+		<a href="#about-swapinhero">swap in hero (who)</a><br>
+		
+	
+		<a href="#about-swapouthero">swap out hero (who)</a><br>
+		
+	
+		<a href="#about-lockhero">lock hero (who)</a><br>
+		
+	
+		<a href="#about-unlockhero">unlock hero (who)</a><br>
+		
+	
+		<a href="#about-swapbyname">swap by name (name,name)</a><br>
+		
+	
+		<a href="#about-swapbyposition">swap by position (slot1, slot2)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+</ul>
 		<hr>
 		</div>
 		<div class="subsection">
@@ -6757,10 +7415,8 @@ resume box advance # go back to normal</pre>
 		<h3>
 <span class="backlink"><a href="#The%20Party">The Party</a> →
 			</span>Inspecting the Party</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-leader"></a>
 		<h4>leader</h4>
@@ -6830,10 +7486,8 @@ resume box advance # go back to normal</pre>
 		<h3>
 <span class="backlink"><a href="#The%20Party">The Party</a> →
 			</span>Changing the Party</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-addhero"></a>
 		<h4>add hero (who)</h4>
@@ -6922,10 +7576,23 @@ resume box advance # go back to normal</pre>
 <a name="Money"></a>
 		<h3>
 <span class="backlink"></span>Money</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-partymoney">party money</a><br>
 		
+	
+		<a href="#about-getmoney">get money (amount)</a><br>
 		
+	
+		<a href="#about-losemoney">lose money (amount)</a><br>
+		
+	
+		<a href="#about-setmoney">set money (amount)</a><br>
+		
+	
+		<a href="#about-paymoney">pay money (amount)</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-partymoney"></a>
 		<h4>party money</h4>
@@ -6987,19 +7654,79 @@ end</pre>
 <a name="Items"></a>
 		<h3>
 <span class="backlink"></span>Items</h3>
-		<ul>
+		<p>Currently there are almost no script commands to get or set any item data, except for the name and description of an item.</p>
+<ul>
+		<a href="#about-useitem">use item (item)</a><br>
+		
+	
+		<a href="#about-getitemname">get item name (ID, item)</a><br>
+		
+	
+		<a href="#about-getitemdescription">get item description (ID, item)</a><br>
+		
+	
+		<a href="#about-getitemmaximumstacksize">get item maximum stack size (item)</a><br>
+		
+	
 		<li>
 <a href="#Inventory">Inventory</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-getitem">get item (item, number)</a><br>
+		
+	
+		<a href="#about-deleteitem">delete item (item, number)</a><br>
+		
+	
+		<a href="#about-iteminslot">item in slot (slot)</a><br>
+		
+	
+		<a href="#about-setiteminslot">set item in slot (slot, item)</a><br>
+		
+	
+		<a href="#about-itemcountinslot">item count in slot (slot)</a><br>
+		
+	
+		<a href="#about-setitemcountinslot">set item count in slot (slot, count)</a><br>
+		
+	
+		<a href="#about-useiteminslot">use item in slot (slot)</a><br>
+		
+	
+		<a href="#about-inventory">inventory (item)</a><br>
+		
+	
+		<a href="#about-getinventorysize">get inventory size</a><br>
+		
+	
+		<a href="#about-setinventorysize">set inventory size (new size)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 		<li>
 <a href="#Equipment">Equipment</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-unequip">unequip (hero, slot)</a><br>
+		
+	
+		<a href="#about-forceequip">force equip (hero, slot, item)</a><br>
+		
+	
+		<a href="#about-equipwhere">equip where (hero, item)</a><br>
+		
+	
+		<a href="#about-checkequipment">check equipment (hero, slot)</a><br>
+		
+	
+		<a href="#about-getdefaultweapon">get default weapon (hero)</a><br>
+		
+	
+		<a href="#about-setdefaultweapon">set default weapon (hero, item)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 </ul>
-<p>Currently there are almost no script commands to get or set any item data, except for the name and description of an item.</p>
-		
-		
 		<div class="command">
 <a name="about-useitem"></a>
 		<h4>use item (item)</h4>
@@ -7059,10 +7786,8 @@ end</pre>
 		<h3>
 <span class="backlink"><a href="#Items">Items</a> →
 			</span>Inventory</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-getitem"></a>
 		<h4>get item (item, number)</h4>
@@ -7221,10 +7946,8 @@ end</pre>
 		<h3>
 <span class="backlink"><a href="#Items">Items</a> →
 			</span>Equipment</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-unequip"></a>
 		<h4>unequip (hero, slot)</h4>
@@ -7364,23 +8087,108 @@ gain hero stat(who, stat:mp, 0)</pre>
 <a name="Effects"></a>
 		<h3>
 <span class="backlink"></span>Effects</h3>
-		<ul>
+		<p></p>
+<ul>
 		<li>
 <a href="#Music">Music</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-playsong">play song (song)</a><br>
+		
+	
+		<a href="#about-currentsong">current song</a><br>
+		
+	
+		<a href="#about-stopsong">stop song</a><br>
+		
+	
+		<a href="#about-setvictorymusic">set victory music (song)</a><br>
+		
+	
+		<a href="#about-getvictorymusic">get victory music</a><br>
+		
+	
+		<a href="#about-setambientmusic">set ambient music (song)</a><br>
+		
+	
+		<a href="#about-getambientmusic">get ambient music</a><br>
+		
+	
+		<a href="#about-setmusicvolume">set music volume (volume)</a><br>
+		
+	
+		<a href="#about-getmusicvolume">get music volume</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 		<li>
 <a href="#Master%20Palette%20and%20Screen%20Fades">Master Palette and Screen Fades</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-fadescreenout">fade screen out (red, green, blue)</a><br>
+		
+	
+		<a href="#about-fadescreenin">fade screen in</a><br>
+		
+	
+		<a href="#about-loadpalette">load palette (palette number)</a><br>
+		
+	
+		<a href="#about-updatepalette">update palette</a><br>
+		
+	
+		<a href="#about-greyscalepalette">greyscale palette (first, last)</a><br>
+		
+	
+		<a href="#about-tweakpalette">tweak palette (red, green, blue, first, last)</a><br>
+		
+	
+		<a href="#about-resetpalette">reset palette</a><br>
+		
+	
+		<a href="#about-readcolor">read color (index, element)</a><br>
+		
+	
+		<a href="#about-writecolor">write color (index, element, value)</a><br>
+		
+	
+		<a href="#about-getcolor">get color (index)</a><br>
+		
+	
+		<a href="#about-setcolor">set color (index, value)</a><br>
+		
+	
+		<a href="#about-findcolor">find color (r, g, b, searchstart)</a><br>
+		
+	
+		<a href="#about-rgb">RGB (red, green, blue)</a><br>
+		
+	
+		<a href="#about-extractcolor">extract color (color, component)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 		<li>
 <a href="#Sound%20Effects">Sound Effects</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-playsound">play sound (num, loop, preempt)</a><br>
+		
+	
+		<a href="#about-stopsound">stop sound (num)</a><br>
+		
+	
+		<a href="#about-pausesound">pause sound (num)</a><br>
+		
+	
+		<a href="#about-soundisplaying">sound is playing (num)</a><br>
+		
+	
+		<a href="#about-waitforsound">wait for sound (num)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 </ul>
-<p></p>
-		
-		
 		<hr>
 		</div>
 		<div class="subsection">
@@ -7388,10 +8196,8 @@ gain hero stat(who, stat:mp, 0)</pre>
 		<h3>
 <span class="backlink"><a href="#Effects">Effects</a> →
 			</span>Music</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-playsong"></a>
 		<h4>play song (song)</h4>
@@ -7509,8 +8315,7 @@ gain hero stat(who, stat:mp, 0)</pre>
 		<h3>
 <span class="backlink"><a href="#Effects">Effects</a> →
 			</span>Master Palette and Screen Fades</h3>
-		<ul></ul>
-<p>
+		<p>
 			Everything displayed on-screen uses colors from a 256-color master palette.
 			Screen fading works by momentarily changing the colors in the palette,
 			for example shifting them all to black.
@@ -7541,8 +8346,7 @@ fade screen out</pre>
 			<pre>load palette(2)
 fade screen in</pre>
 		</p>
-		
-		
+<ul></ul>
 		<div class="command">
 <a name="about-fadescreenout"></a>
 		<h4>fade screen out (red, green, blue)</h4>
@@ -7726,10 +8530,8 @@ fade screen in</pre>
 		<h3>
 <span class="backlink"><a href="#Effects">Effects</a> →
 			</span>Sound Effects</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-playsound"></a>
 		<h4>play sound (num, loop, preempt)</h4>
@@ -7804,36 +8606,172 @@ fade screen in</pre>
 <a name="Hero%20Data"></a>
 		<h3>
 <span class="backlink"></span>Hero Data</h3>
-		<ul>
+		<p></p>
+<ul>
+		<a href="#about-renamehero">rename hero (who)</a><br>
+		
+	
+		<a href="#about-renameherobyslot">rename hero by slot (who)</a><br>
+		
+	
 		<li>
 <a href="#Hero%20Graphics">Hero Graphics</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-setheropicture">set hero picture (who, picture, type)</a><br>
+		
+	
+		<a href="#about-setheropalette">set hero palette (who, palette, type)</a><br>
+		
+	
+		<a href="#about-getheropicture">get hero picture (who, type)</a><br>
+		
+	
+		<a href="#about-getheropalette">get hero palette (who, type)</a><br>
+		
+	
+		<a href="#about-resetheropicture">reset hero picture (who, type)</a><br>
+		
+	
+		<a href="#about-resetheropalette">reset hero palette (who, type)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 		<li>
 <a href="#Hero%20Hand%20Position">Hero Hand Position</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-getherohandx">get hero hand x (who, frame)</a><br>
+		
+	
+		<a href="#about-getherohandy">get hero hand y (who, frame)</a><br>
+		
+	
+		<a href="#about-setherohandx">set hero hand x (who, frame, new x)</a><br>
+		
+	
+		<a href="#about-setherohandy">set hero hand y (who, frame, new y)</a><br>
+		
+	
+		<a href="#about-getdefaultherohandx">get default hero hand x (who, frame)</a><br>
+		
+	
+		<a href="#about-getdefaultherohandy">get default hero hand y (who, frame)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 		<li>
 <a href="#Hero%20Stats">Hero Stats</a><br>
 		<ul>
+		<a href="#about-getherostat">get hero stat (who, stat, type)</a><br>
+		
+	
+		<a href="#about-setherostat">set hero stat (who, stat, value, type)</a><br>
+		
+	
+		<a href="#about-gainherostat">gain hero stat (who, stat, amount, reset to max)</a><br>
+		
+	
+		<a href="#about-setcappedherostat">set capped hero stat (who, stat, value, type)</a><br>
+		
+	
+		<a href="#about-getherostatcap">get hero stat cap (stat)</a><br>
+		
+	
+		<a href="#about-setherostatcap">set hero stat cap (stat, value)</a><br>
+		
+	
+		<a href="#about-getlevelmp">get level MP (who, mp level slot, type)</a><br>
+		
+	
+		<a href="#about-setlevelmp">set level MP (who, mp level slot, new value)</a><br>
+		
+	
+		<a href="#about-herobaseelementalresistasint">hero base elemental resist as int (who, element)</a><br>
+		
+	
+		<a href="#about-setherobaseelementalresist">set hero base elemental resist (who, element, percent)</a><br>
+		
+	
+		<a href="#about-herototalelementalresistasint">hero total elemental resist as int (who, element)</a><br>
+		
+	</ul>
+<ul>
 		<li>
 <a href="#Experience%20and%20Levels">Experience and Levels</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-getherolevel">get hero level (who)</a><br>
+		
+	
+		<a href="#about-setherolevel">set hero level (who, level, forgetspells)</a><br>
+		
+	
+		<a href="#about-setexperience">set experience (who, experience, allowforget)</a><br>
+		
+	
+		<a href="#about-herolevelled">hero levelled (who)</a><br>
+		
+	
+		<a href="#about-totalexperience">total experience (who)</a><br>
+		
+	
+		<a href="#about-experiencetonextlevel">experience to next level (who)</a><br>
+		
+	
+		<a href="#about-experiencetolevel">experience to level (level, hero slot)</a><br>
+		
+	
+		<a href="#about-giveexperience">give experience (hero, amount)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 </ul>
 </li>
 		<li>
 <a href="#Hero's%20Spells">Hero's Spells</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-teachspell">teach spell (hero, attack)</a><br>
+		
+	
+		<a href="#about-forgetspell">forget spell (hero, attack)</a><br>
+		
+	
+		<a href="#about-readspell">read spell (hero, list, slot)</a><br>
+		
+	
+		<a href="#about-writespell">write spell (hero, list, slot, attack)</a><br>
+		
+	
+		<a href="#about-knowsspell">knows spell (hero, attack)</a><br>
+		
+	
+		<a href="#about-canlearnspell">can learn spell (hero, attack)</a><br>
+		
+	
+		<a href="#about-spellslearnt">spells learnt (hero, number)</a><br>
+		
+	
+		<a href="#about-spellslearned">spells learned (hero, number)</a><br>
+		
+	
+		<a href="#about-updateleveluplearning">update level up learning(who, allowforget)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 		<li>
 <a href="#Out-of-battle%20Attacks">Out-of-battle Attacks</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-outsidebattlecure">outside battle cure (attack minus 1, target, attacker)</a><br>
+		
+	
+		<a href="#about-mapcure">map cure (attack, target, attacker)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 </ul>
-<p></p>
-		
-		
 		<div class="command">
 <a name="about-renamehero"></a>
 		<h4>rename hero (who)</h4>
@@ -7869,10 +8807,8 @@ fade screen in</pre>
 		<h3>
 <span class="backlink"><a href="#Hero%20Data">Hero Data</a> →
 			</span>Hero Graphics</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-setheropicture"></a>
 		<h4>set hero picture (who, picture, type)</h4>
@@ -7944,10 +8880,8 @@ fade screen in</pre>
 		<h3>
 <span class="backlink"><a href="#Hero%20Data">Hero Data</a> →
 			</span>Hero Hand Position</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-getherohandx"></a>
 		<h4>get hero hand x (who, frame)</h4>
@@ -8093,15 +9027,13 @@ fade screen in</pre>
 		<h3>
 <span class="backlink"><a href="#Hero%20Data">Hero Data</a> →
 			</span>Hero Stats</h3>
-		<ul>
+		<p></p>
+<ul>
 		<li>
 <a href="#Experience%20and%20Levels">Experience and Levels</a><br>
 		<ul></ul>
 </li>
 </ul>
-<p></p>
-		
-		
 		<div class="command">
 <a name="about-getherostat"></a>
 		<h4>get hero stat (who, stat, type)</h4>
@@ -8332,10 +9264,8 @@ end</pre>
 <span class="backlink"><a href="#Hero%20Data">Hero Data</a> →
 			<a href="#Hero%20Stats">Hero Stats</a> →
 			</span>Experience and Levels</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-getherolevel"></a>
 		<h4>get hero level (who)</h4>
@@ -8461,10 +9391,8 @@ if (herolevelled (find hero (hero: Bob))) then (
 		<h3>
 <span class="backlink"><a href="#Hero%20Data">Hero Data</a> →
 			</span>Hero's Spells</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-teachspell"></a>
 		<h4>teach spell (hero, attack)</h4>
@@ -8578,10 +9506,8 @@ end</pre>
 		<h3>
 <span class="backlink"><a href="#Hero%20Data">Hero Data</a> →
 			</span>Out-of-battle Attacks</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-outsidebattlecure"></a>
 		<h4>outside battle cure (attack minus 1, target, attacker)</h4>
@@ -8630,10 +9556,38 @@ end</pre>
 <a name="NPC%20Data"></a>
 		<h3>
 <span class="backlink"></span>NPC Data</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-alternpc">alter NPC (who, NPCstat, value)</a><br>
 		
+	
+		<a href="#about-readnpc">read NPC (who, NPCstat)</a><br>
 		
+	
+		<a href="#about-setnpcignoreswalls">set NPC ignores walls (who, value)</a><br>
+		
+	
+		<a href="#about-getnpcignoreswalls">get NPC ignores walls (who)</a><br>
+		
+	
+		<a href="#about-setnpcmoves">set NPC moves (who, value)</a><br>
+		
+	
+		<a href="#about-getnpcmoves">get NPC moves (who)</a><br>
+		
+	
+		<a href="#about-setnpcobstructs">set NPC obstructs (who, value)</a><br>
+		
+	
+		<a href="#about-getnpcobstructs">get NPC obstructs (who)</a><br>
+		
+	
+		<a href="#about-setnpcusable">set NPC usable (who, value)</a><br>
+		
+	
+		<a href="#about-getnpcusable">get NPC usable (who)</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-alternpc"></a>
 		<h4>alter NPC (who, NPCstat, value)</h4>
@@ -8970,15 +9924,95 @@ end</pre>
 <a name="Enemy%20and%20Formation%20Functions"></a>
 		<h3>
 <span class="backlink"></span>Enemy and Formation Functions</h3>
-		<ul>
+		<p></p>
+<ul>
+		<a href="#about-getenemystat">get enemy stat(enemy, stat)</a><br>
+		
+	
+		<a href="#about-setenemystat">set enemy stat(enemy, stat, value)</a><br>
+		
+	
+		<a href="#about-enemyelementalresistasint">enemy elemental resist as int (enemy, element)</a><br>
+		
+	
+		<a href="#about-getenemyname">get enemy name (enemyid, stringid)</a><br>
+		
+	
+		<a href="#about-setenemyname">set enemy name (enemyid, stringid)</a><br>
+		
+	
+		<a href="#about-getenemyappearance">get enemy appearance (enemyid, appearance)</a><br>
+		
+	
+		<a href="#about-setenemyappearance">set enemy appearance (enemyid, appearance,value)</a><br>
+		
+	
+		<a href="#about-readenemydata">read enemy data (enemyid, data)</a><br>
+		
+	
+		<a href="#about-writeenemydata">write enemy data (enemyid, data, value)</a><br>
+		
+	
 		<li>
 <a href="#Formations">Formations</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-addenemytoformation">add enemy to formation (formation, enemy id, x, y, slot)</a><br>
+		
+	
+		<a href="#about-deleteenemyfromformation">delete enemy from formation (formation, slot)</a><br>
+		
+	
+		<a href="#about-findenemyinformation">find enemy in formation (formation, enemy id, copy number)</a><br>
+		
+	
+		<a href="#about-formationslotenemy">formation slot enemy (formation, slot)</a><br>
+		
+	
+		<a href="#about-formationslotx">formation slot x (formation, slot)</a><br>
+		
+	
+		<a href="#about-formationsloty">formation slot y (formation, slot)</a><br>
+		
+	
+		<a href="#about-setformationbackground">set formation background (formation, background, animation frames, animation ticks)</a><br>
+		
+	
+		<a href="#about-getformationbackground">get formation background (formation)</a><br>
+		
+	
+		<a href="#about-setformationsong">set formation song (formation, song)</a><br>
+		
+	
+		<a href="#about-getformationsong">get formation song (formation)</a><br>
+		
+	
+		<a href="#about-resetformation">reset formation (formation)</a><br>
+		
+	
+		<a href="#about-resetformationslot">reset formation slot (formation, slot)</a><br>
+		
+	
+		<a href="#about-lastformation">last formation</a><br>
+		
+	
+		<a href="#about-randomformation">random formation (formation set)</a><br>
+		
+	
+		<a href="#about-formationsetfrequency">formation set frequency (formation set)</a><br>
+		
+	
+		<a href="#about-getbattlecountdown">get battle countdown</a><br>
+		
+	
+		<a href="#about-setbattlecountdown">set battle countdown (value)</a><br>
+		
+	
+		<a href="#about-formationprobability">formation probability (formation set, formation)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 </ul>
-<p></p>
-		
-		
 		<div class="command">
 <a name="about-getenemystat"></a>
 		<h4>get enemy stat(enemy, stat)</h4>
@@ -9145,10 +10179,8 @@ end</pre>
 		<h3>
 <span class="backlink"><a href="#Enemy%20and%20Formation%20Functions">Enemy and Formation Functions</a> →
 			</span>Formations</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-addenemytoformation"></a>
 		<h4>add enemy to formation (formation, enemy id, x, y, slot)</h4>
@@ -9443,28 +10475,102 @@ end
 <a name="Getting%20Player%20Input"></a>
 		<h3>
 <span class="backlink"></span>Getting Player Input</h3>
-		<ul>
+		<p></p>
+<ul>
+		<a href="#about-pickhero">pick hero (message, skip if alone)</a><br>
+		
+	
 		<li>
 <a href="#Keyboard%20Input">Keyboard Input</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-keyispressed">key is pressed (scancode, joystick num)</a><br>
+		
+	
+		<a href="#about-keypress">keypress (scancode, joystick num)</a><br>
+		
+	
+		<a href="#about-newkeypress">new keypress (scancode, joystick num)</a><br>
+		
+	
+		<a href="#about-keyval">keyval (scancode, joystick num)</a><br>
+		
+	
+		<a href="#about-lastascii">last ascii</a><br>
+		
+	
+		<a href="#about-enableinputtext">enable input text (enable)</a><br>
+		
+	
+		<a href="#about-getinputtext">get input text (string id)</a><br>
+		
+	
+		<a href="#about-inputstring">input string (ID, maxlength, use current, center, position x, position y)</a><br>
+		
+	
+		<a href="#about-inputstringwithvirtualkeyboard">input string with virtual keyboard (ID, maxlength, onlyplayer)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 		<li>
 <a href="#Joystick%20Input">Joystick Input</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-joystickbutton">joystick button (button, joystick)</a><br>
+		
+	
+		<a href="#about-joystickaxis">joystick axis (axis, multiplier, joystick)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 		<li>
 <a href="#Mouse%20Input">Mouse Input</a><br>
 		<ul>
+		<a href="#about-initmouse">init mouse</a><br>
+		
+	
+		<a href="#about-mousepixelx">mouse pixel X</a><br>
+		
+	
+		<a href="#about-mousepixely">mouse pixel Y</a><br>
+		
+	
+		<a href="#about-mousebutton">mouse button (which)</a><br>
+		
+	
+		<a href="#about-mouseclick">mouse click (which)</a><br>
+		
+	
+		<a href="#about-mouserelease">mouse release (which)</a><br>
+		
+	
+		<a href="#about-putmouse">put mouse (X, Y)</a><br>
+		
+	
+		<a href="#about-mouseregion">mouse region (x min, x max, y min, y max)</a><br>
+		
+	
+		<a href="#about-inputstringwithmousekeyboard">input string with mouse keyboard (ID, maxlength)</a><br>
+		
+	
+		<a href="#about-unhidemousecursor">unhide mouse cursor</a><br>
+		
+	
+		<a href="#about-hidemousecursor">hide mouse cursor</a><br>
+		
+	
+		
+		<a href="#about-unhidemousecursor">show mouse cursor</a><br>
+	</ul>
+<ul>
 		<li>
 <a href="#Helpful%20Related%20Commands">Helpful Related Commands</a><br>
 		<ul></ul>
+<ul></ul>
 </li>
 </ul>
 </li>
 </ul>
-<p></p>
-		
-		
 		<div class="command">
 <a name="about-pickhero"></a>
 		<h4>pick hero (message, skip if alone)</h4>
@@ -9503,8 +10609,7 @@ end
 		<h3>
 <span class="backlink"><a href="#Getting%20Player%20Input">Getting Player Input</a> →
 			</span>Keyboard Input</h3>
-		<ul></ul>
-<p>
+		<p>
 			There are two main commands for checking for keypresses: <a href="#about-keypress" class="ref">keypress</a> and <a href="#about-keyispressed" class="ref">key is pressed</a>.
 			Use <a href="#about-keyispressed" class="ref">key is pressed</a> (which checks whether a key is down) when you want the player to do something continually,
 			such as if they're controlling a character's movement or jumping.
@@ -9520,8 +10625,7 @@ end
 				but the state of the devices at the beginning of the current game tick.
 			</div>
 		</p>
-		
-		
+<ul></ul>
 		<div class="command">
 <a name="about-keyispressed"></a>
 		<h4>key is pressed (scancode, joystick num)</h4>
@@ -9765,8 +10869,7 @@ end
 		<h3>
 <span class="backlink"><a href="#Getting%20Player%20Input">Getting Player Input</a> →
 			</span>Joystick Input</h3>
-		<ul></ul>
-<p>
+		<p>
 			Joystick buttons and up/down/left/right directions can also be read using the
 			<a href="#about-keypress" class="ref">keypress</a>, <a href="#about-newkeypress" class="ref">new keypress</a>, <a href="#about-keyispressed" class="ref">key is pressed</a> and <a href="#about-waitforkey" class="ref">wait for key</a>
 			commands, by using the <span class="code">joy:...</span> constants instead of keyboard scancodes.
@@ -9775,8 +10878,7 @@ end
 			instead of keyboard scancodes, e.g. write <span class="code">if (keypress(use key))</span> instead of
 			<span class="code">if (keypress(key:space) || keypress(key:enter) || keypress(key:ctrl))</span>.
 		</p>
-		
-		
+<ul></ul>
 		<div class="command">
 <a name="about-joystickbutton"></a>
 		<h4>joystick button (button, joystick)</h4>
@@ -9816,15 +10918,13 @@ end
 		<h3>
 <span class="backlink"><a href="#Getting%20Player%20Input">Getting Player Input</a> →
 			</span>Mouse Input</h3>
-		<ul>
+		<p></p>
+<ul>
 		<li>
 <a href="#Helpful%20Related%20Commands">Helpful Related Commands</a><br>
 		<ul></ul>
 </li>
 </ul>
-<p></p>
-		
-		
 		<div class="command">
 <a name="about-initmouse"></a>
 		<h4>init mouse</h4>
@@ -10025,10 +11125,8 @@ end</pre>
 <span class="backlink"><a href="#Getting%20Player%20Input">Getting Player Input</a> →
 			<a href="#Mouse%20Input">Mouse Input</a> →
 			</span>Helpful Related Commands</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 		<h4>camera pixel X</h4>
 		<p><a href="#about-camerapixelx">Defined in the The Camera section.</a></p>
@@ -10059,33 +11157,140 @@ end</pre>
 <a name="String%20Functions"></a>
 		<h3>
 <span class="backlink"></span>String Functions</h3>
-		<ul>
-		<li>
-<a href="#Basic%20String%20Commands">Basic String Commands</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Get/Set%20Names%20of%20Things">Get/Set Names of Things</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Showing%20Plotstrings">Showing Plotstrings</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Obsolete%20Commands">Obsolete Commands</a><br>
-		<ul></ul>
-</li>
-</ul>
-<p>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings variables can be displayed onscreen directly, or alternatively embedded in textboxes or displayed with text slices. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<br>
+		<p>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings variables can be displayed onscreen directly, or alternatively embedded in textboxes or displayed with text slices. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<br>
 You can set the value of a string directly with <a href="#about-__setstring__" class="ref">$id="..."</a> and append to an existing string with <a href="#about-__appendstring__" class="ref">$id+"..."</a>.
 There is no limit on string length.<br>
 <div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Unlike almost all other indices in the OHRRPGCE, when referring to a position in a string, <span class="param">position</span> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This means that position 0 is invalid. Beware!</div>
 <div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Strings are not saved in saved games by default, but this can be enabled in the Saved Game Settings menu.</div></p>
+<ul>
+		<a href="#about-expandstring">expand string(ID, saveslot)</a><br>
 		
+	
+		<li>
+<a href="#Basic%20String%20Commands">Basic String Commands</a><br>
+		<ul>
+		<a href="#about-__setstring__">$id="some text"</a><br>
 		
+	
+		<a href="#about-__appendstring__">$id+"some text"</a><br>
+		
+	
+		<a href="#about-clearstring">clear string(ID)</a><br>
+		
+	
+		<a href="#about-appendnumber">append number (ID, number, min length, pad with zeros)</a><br>
+		
+	
+		<a href="#about-stringsprintf">string sprintf (dest string ID, format string ID, arguments...)</a><br>
+		
+	
+		<a href="#about-numberfromstring">number from string (ID, default)</a><br>
+		
+	
+		<a href="#about-copystring">copy string (dest, source)</a><br>
+		
+	
+		<a href="#about-concatenatestrings">concatenate strings (dest, source)</a><br>
+		
+	
+		<a href="#about-stringlength">string length (ID)</a><br>
+		
+	
+		<a href="#about-stringcompare">string compare (ID1, ID2)</a><br>
+		
+	
+		<a href="#about-searchstring">search string (ID1, ID2, start)</a><br>
+		
+	
+		<a href="#about-trimstring">trim string (ID, start, length)</a><br>
+		
+	
+		<a href="#about-appendascii">append ascii (ID, char)</a><br>
+		
+	
+		<a href="#about-replacechar">replace char (ID, position, char)</a><br>
+		
+	
+		<a href="#about-deletechar">delete char (ID, position)</a><br>
+		
+	
+		<a href="#about-asciifromstring">ascii from string (ID, position)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Get/Set%20Names%20of%20Things">Get/Set Names of Things</a><br>
+		<ul>
+		<a href="#about-getheroname">get hero name (ID, hero)</a><br>
+		
+	
+		<a href="#about-setheroname">set hero name (ID, hero)</a><br>
+		
+	
+		<a href="#about-getmapname">get map name (ID, map)</a><br>
+		
+	
+		
+		<a href="#about-readattackname">get attack name</a><br>
+	
+		<a href="#about-readattackname">read attack name (ID, attack)</a><br>
+		
+	
+		<a href="#about-getattackcaption">get attack caption (ID, attack)</a><br>
+		
+	
+		<a href="#about-getsongname">get song name (ID, song)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Showing%20Plotstrings">Showing Plotstrings</a><br>
+		<ul>
+		<a href="#about-showstringat">show string at (ID, x, y)</a><br>
+		
+	
+		<a href="#about-centerstringat">center string at (ID, x, y)</a><br>
+		
+	
+		<a href="#about-hidestring">hide string (ID)</a><br>
+		
+	
+		<a href="#about-stringisvisible">string is visible (ID)</a><br>
+		
+	
+		<a href="#about-stringstyle">string style (ID, style)</a><br>
+		
+	
+		<a href="#about-stringcolor">string color (ID, foreground color, background color)</a><br>
+		
+	
+		<a href="#about-positionstring">positionstring (ID, x, y)</a><br>
+		
+	
+		<a href="#about-stringx">string X (ID)</a><br>
+		
+	
+		<a href="#about-stringy">string Y (ID)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Obsolete%20Commands">Obsolete Commands</a><br>
+		<ul>
+		<a href="#about-stringtoglobals">string to globals (ID, starting global, length)</a><br>
+		
+	
+		<a href="#about-globalstostring">globals to string(ID, starting global, length)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+</ul>
 		<div class="command">
 		<h4>show string (ID)</h4>
 		<p><a href="#about-showstring">Defined in the Basic Display Commands section.</a></p>
@@ -10111,10 +11316,8 @@ There is no limit on string length.<br>
 		<h3>
 <span class="backlink"><a href="#String%20Functions">String Functions</a> →
 			</span>Basic String Commands</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-__setstring__"></a>
 		<h4>$id="some text"</h4>
@@ -10377,10 +11580,8 @@ show string(0)</pre>
 		<h3>
 <span class="backlink"><a href="#String%20Functions">String Functions</a> →
 			</span>Get/Set Names of Things</h3>
-		<ul></ul>
-<p>This section is a catch-all for commands that get or set bits of game data that are strings, however a number of such commands, like <a href="#about-getmenuitemcaption" class="ref">get menu item caption</a> live elsewhere, in more sensible sections!</p>
-		
-		
+		<p>This section is a catch-all for commands that get or set bits of game data that are strings, however a number of such commands, like <a href="#about-getmenuitemcaption" class="ref">get menu item caption</a> live elsewhere, in more sensible sections!</p>
+<ul></ul>
 		<div class="command">
 <a name="about-getheroname"></a>
 		<h4>get hero name (ID, hero)</h4>
@@ -10484,10 +11685,8 @@ get hero name (1, find hero (leader))
 		<h3>
 <span class="backlink"><a href="#String%20Functions">String Functions</a> →
 			</span>Showing Plotstrings</h3>
-		<ul></ul>
-<p>These commands are an old (and largely obsolete) method of showing strings on the screen. They completely separate to, and superceded by <a href="Text%20Slices">Text Slices</a>. The <a href="#about-showstring" class="ref">show string</a> command is yet another separate way to display a string.</p>
-		
-		
+		<p>These commands are an old (and largely obsolete) method of showing strings on the screen. They completely separate to, and superceded by <a href="Text%20Slices">Text Slices</a>. The <a href="#about-showstring" class="ref">show string</a> command is yet another separate way to display a string.</p>
+<ul></ul>
 		<div class="command">
 		<h4>show string (ID)</h4>
 		<p><a href="#about-showstring">Defined in the Basic Display Commands section.</a></p>
@@ -10606,10 +11805,8 @@ get hero name (1, find hero (leader))
 		<h3>
 <span class="backlink"><a href="#String%20Functions">String Functions</a> →
 			</span>Obsolete Commands</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-stringtoglobals"></a>
 		<h4>string to globals (ID, starting global, length)</h4>
@@ -10665,24 +11862,280 @@ get hero name (1, find hero (leader))
 <a name="Menu%20Functions"></a>
 		<h3>
 <span class="backlink"></span>Menu Functions</h3>
-		<ul>
+		<p></p>
+<ul>
+		<a href="#about-openmenu">open menu (ID, allow duplicate)</a><br>
+		
+	
+		<a href="#about-createmenu">create menu</a><br>
+		
+	
+		<a href="#about-closemenu">close menu(menu handle, run close script)</a><br>
+		
+	
+		<a href="#about-topmenu">top menu</a><br>
+		
+	
+		<a href="#about-bottommenu">bottom menu</a><br>
+		
+	
+		<a href="#about-previousmenu">previous menu(menu handle)</a><br>
+		
+	
+		<a href="#about-nextmenu">next menu(menu handle)</a><br>
+		
+	
+		<a href="#about-bringmenuforward">bring menu forward(menu handle)</a><br>
+		
+	
+		<a href="#about-findmenuid">find menu ID(menu ID)</a><br>
+		
+	
+		<a href="#about-menuisopen">menu is open(menu handle)</a><br>
+		
+	
+		<a href="#about-parentmenu">parent menu(menu item handle)</a><br>
+		
+	
+		<a href="#about-getmenuid">get menu ID(menu handle)</a><br>
+		
+	
 		<li>
 <a href="#Menu%20Items">Menu Items</a><br>
 		<ul>
+		<a href="#about-addmenuitem">add menu item(menu handle)</a><br>
+		
+	
+		<a href="#about-deletemenuitem">delete menu item(menu item handle)</a><br>
+		
+	
+		<a href="#about-swapmenuitems">swap menu items(handle1, handle2)</a><br>
+		
+	
+		<a href="#about-selectmenuitem">select menu item(menu item handle)</a><br>
+		
+	
+		<a href="#about-selectedmenuitem">selected menu item(menu handle)</a><br>
+		
+	
+		<a href="#about-menuitemdisabled">menu item disabled(menu item handle)</a><br>
+		
+	
+		<a href="#about-menuitemvisible">menu item visible(menu item handle)</a><br>
+		
+	
+		<a href="#about-menuitemselectable">menu item selectable(menu item handle)</a><br>
+		
+	
+		<a href="#about-usemenuitem">use menu item(menu item handle)</a><br>
+		
+	
+		<a href="#about-firstmenuitem">first menu item(menu handle)</a><br>
+		
+	
+		<a href="#about-lastmenuitem">last menu item(menu handle, visible only)</a><br>
+		
+	
+		<a href="#about-nextmenuitem">next menu item(menu item handle, visible only)</a><br>
+		
+	
+		<a href="#about-previousmenuitem">previous menu item(menu item handle, visible only)</a><br>
+		
+	
+		<a href="#about-menuitemcount">menu item count(menu handle)</a><br>
+		
+	
+		<a href="#about-visiblemenuitemcount">visible menu item count(menu handle)</a><br>
+		
+	
+		<a href="#about-menuitembytrueslot">menu item by true slot(menu handle, slot)</a><br>
+		
+	
+		<a href="#about-menuitemtrueslot">menu item true slot(menu item handle)</a><br>
+		
+	
+		<a href="#about-menuitembyslot">menu item by slot(menu handle, slot, visible only)</a><br>
+		
+	
+		<a href="#about-menuitemslot">menu item slot(menu item handle)</a><br>
+		
+	
+		<a href="#about-findmenuitemcaption">find menu item caption(menu handle, string ID, search after handle, visible only)</a><br>
+		
+	
+		<a href="#about-menuitematpixel">menu item at pixel(x, y)</a><br>
+		
+	</ul>
+<ul>
 		<li>
 <a href="#Menu%20Item%20Data">Menu Item Data</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-getmenuitemcaption">get menu item caption(menu item handle, string ID)</a><br>
+		
+	
+		<a href="#about-setmenuitemcaption">set menu item caption(menu item handle, string ID)</a><br>
+		
+	
+		<a href="#about-getmenuitemtype">get menu item type(menu item handle)</a><br>
+		
+	
+		<a href="#about-setmenuitemtype">set menu item type(menu item handle, new type)</a><br>
+		
+	
+		<a href="#about-getmenuitemsubtype">get menu item subtype(menu item handle)</a><br>
+		
+	
+		<a href="#about-setmenuitemsubtype">set menu item subtype(menu item handle, new subtype)</a><br>
+		
+	
+		<a href="#about-getmenuitemtag">get menu item tag(menu item handle, whichtag)</a><br>
+		
+	
+		<a href="#about-setmenuitemtag">set menu item tag(menu item handle, new tag, whichtag)</a><br>
+		
+	
+		<a href="#about-getmenuitemsettag">get menu item settag(menu item handle)</a><br>
+		
+	
+		<a href="#about-setmenuitemsettag">set menu item settag(menu item handle, new settag)</a><br>
+		
+	
+		<a href="#about-getmenuitemtogtag">get menu item togtag(menu item handle)</a><br>
+		
+	
+		<a href="#about-setmenuitemtogtag">set menu item togtag(menu item handle, new settag)</a><br>
+		
+	
+		<a href="#about-getmenuitembit">get menu item bit(menu item handle, bit)</a><br>
+		
+	
+		<a href="#about-setmenuitembit">set menu item bit(menu item handle, bit, value)</a><br>
+		
+	
+		<a href="#about-getmenuitemextra">get menu item extra(menu item handle, extra)</a><br>
+		
+	
+		<a href="#about-setmenuitemextra">set menu item extra(menu item handle, extra, num)</a><br>
+		
+	
+		<a href="#about-getmenuitemcolor">get menu item color(menu item handle)</a><br>
+		
+	
+		<a href="#about-setmenuitemcolor">set menu item color(menu item handle, colorcode)</a><br>
+		
+	
+		<a href="#about-getmenuitemdisabledcolor">get menu item disabled color(menu item handle)</a><br>
+		
+	
+		<a href="#about-setmenuitemdisabledcolor">set menu item disabled color(menu item handle, colorcode)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 </ul>
 </li>
 		<li>
 <a href="#Menu%20Data">Menu Data</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-getmenubit">get menu bit(menu handle, bit)</a><br>
+		
+	
+		<a href="#about-setmenubit">set menu bit(menu handle, bit, value)</a><br>
+		
+	
+		<a href="#about-getmenuboxstyle">get menu boxstyle(menu handle)</a><br>
+		
+	
+		<a href="#about-setmenuboxstyle">set menu boxstyle(menu handle, new box style)</a><br>
+		
+	
+		<a href="#about-getmenutextcolor">get menu textcolor(menu handle)</a><br>
+		
+	
+		<a href="#about-setmenutextcolor">set menu textcolor(menu handle, new textcolor)</a><br>
+		
+	
+		<a href="#about-getmenudisabledtextcolor">get menu disabled textcolor(menu handle)</a><br>
+		
+	
+		<a href="#about-setmenudisabledtextcolor">set menu disabled textcolor(menu handle, new textcolor)</a><br>
+		
+	
+		<a href="#about-getmenumaxrows">get menu max rows(menu handle)</a><br>
+		
+	
+		<a href="#about-setmenumaxrows">set menu max rows(menu handle, new max rows)</a><br>
+		
+	
+		<a href="#about-getmenuoffsetx">get menu offset x(menu handle)</a><br>
+		
+	
+		<a href="#about-getmenuoffsety">get menu offset y(menu handle)</a><br>
+		
+	
+		<a href="#about-setmenuoffsetx">set menu offset x(menu handle, new x)</a><br>
+		
+	
+		<a href="#about-setmenuoffsety">set menu offset y(menu handle, new y)</a><br>
+		
+	
+		<a href="#about-getmenuanchorx">get menu anchor x(menu handle)</a><br>
+		
+	
+		<a href="#about-getmenuanchory">get menu anchor y(menu handle)</a><br>
+		
+	
+		<a href="#about-setmenuanchorx">set menu anchor x(menu handle, new anchor)</a><br>
+		
+	
+		<a href="#about-setmenuanchory">set menu anchor y(menu handle, new anchor)</a><br>
+		
+	
+		<a href="#about-getmenutextalign">get menu text align(menu handle)</a><br>
+		
+	
+		<a href="#about-setmenutextalign">set menu text align(menu handle, new align)</a><br>
+		
+	
+		<a href="#about-getmenuminchars">get menu min chars(menu handle)</a><br>
+		
+	
+		<a href="#about-setmenuminchars">set menu min chars(menu handle, new min)</a><br>
+		
+	
+		<a href="#about-getmenumaxchars">get menu max chars(menu handle)</a><br>
+		
+	
+		<a href="#about-setmenumaxchars">set menu max chars(menu handle, new max)</a><br>
+		
+	
+		<a href="#about-getmenuborder">get menu border(menu handle)</a><br>
+		
+	
+		<a href="#about-setmenuborder">set menu border(menu handle, new border)</a><br>
+		
+	
+		<a href="#about-getmenuonclosescript">get menu on close script(menu handle)</a><br>
+		
+	
+		<a href="#about-setmenuonclosescript">set menu on close script(menu handle, script id)</a><br>
+		
+	
+		<a href="#about-getmenucancelbuttonmenu">get menu cancel button menu(menu handle)</a><br>
+		
+	
+		<a href="#about-setmenucancelbuttonmenu">set menu cancel button menu(menu handle, menu)</a><br>
+		
+	
+		<a href="#about-getmenuitemspacing">get menu item spacing(menu handle)</a><br>
+		
+	
+		<a href="#about-setmenuitemspacing">set menu item spacing(menu handle, spacing)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 </ul>
-<p></p>
-		
-		
 		<div class="command">
 <a name="about-openmenu"></a>
 		<h4>open menu (ID, allow duplicate)</h4>
@@ -10850,15 +12303,13 @@ end</pre>
 		<h3>
 <span class="backlink"><a href="#Menu%20Functions">Menu Functions</a> →
 			</span>Menu Items</h3>
-		<ul>
+		<p></p>
+<ul>
 		<li>
 <a href="#Menu%20Item%20Data">Menu Item Data</a><br>
 		<ul></ul>
 </li>
 </ul>
-<p></p>
-		
-		
 		<div class="command">
 <a name="about-addmenuitem"></a>
 		<h4>add menu item(menu handle)</h4>
@@ -11186,10 +12637,8 @@ end</pre>
 <span class="backlink"><a href="#Menu%20Functions">Menu Functions</a> →
 			<a href="#Menu%20Items">Menu Items</a> →
 			</span>Menu Item Data</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-getmenuitemcaption"></a>
 		<h4>get menu item caption(menu item handle, string ID)</h4>
@@ -11590,10 +13039,8 @@ end</pre>
 		<h3>
 <span class="backlink"><a href="#Menu%20Functions">Menu Functions</a> →
 			</span>Menu Data</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-getmenubit"></a>
 		<h4>get menu bit(menu handle, bit)</h4>
@@ -12045,107 +13492,7 @@ set menu on close script(m, @my menu exit handler)
 <a name="Slices"></a>
 		<h3>
 <span class="backlink"></span>Slices</h3>
-		<ul>
-		<li>
-<a href="#Getting%20Slices">Getting Slices</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Slice%20Sizing">Slice Sizing</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Positioning%20Slices">Positioning Slices</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Visibility%20and%20Clipping">Visibility and Clipping</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Alignment%20and%20Anchor%20Points">Alignment and Anchor Points</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Padding">Padding</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Moving%20Slices">Moving Slices</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Moving%20Around%20the%20Slice%20Tree">Moving Around the Slice Tree</a><br>
-		<ul>
-		<li>
-<a href="#Type-specific%20iteration%20commands">Type-specific iteration commands</a><br>
-		<ul></ul>
-</li>
-</ul>
-</li>
-		<li>
-<a href="#Reordering%20Slices">Reordering Slices</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Slice%20Types">Slice Types</a><br>
-		<ul>
-		<li>
-<a href="#Checking%20Slice%20Type">Checking Slice Type</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Container%20Slices">Container Slices</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Sprite%20Slices">Sprite Slices</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Rect%20Slices">Rect Slices</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Line%20Slices">Line Slices</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Ellipse%20Slices">Ellipse Slices</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Text%20Slices">Text Slices</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Grid%20Slices">Grid Slices</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Select%20Slices">Select Slices</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Scroll%20Slices">Scroll Slices</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Panel%20Slices">Panel Slices</a><br>
-		<ul></ul>
-</li>
-		<li>
-<a href="#Map%20Layer%20Slices">Map Layer Slices</a><br>
-		<ul></ul>
-</li>
-</ul>
-</li>
-		<li>
-<a href="#Slice%20Collision%20Testing">Slice Collision Testing</a><br>
-		<ul></ul>
-</li>
-</ul>
-<p>
+		<p>
 			To learn what a slice is, read the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices">Slices article</a> on the wiki,
 			or a tutorial linked to from it.
 			Although there are many commands here for manipulating slices, it's much easier to create slices
@@ -12153,8 +13500,856 @@ set menu on close script(m, @my menu exit handler)
 			<br>
 			Slices are referred to with <a href="#about-slicehandle" class="ref">slice handle</a>s.
 		</p>
+<ul>
+		<a href="#about-setparent">set parent (handle, parent handle)</a><br>
 		
+	
+		<a href="#about-sliceisvalid">slice is valid (id)</a><br>
 		
+	
+		<a href="#about-freeslice">free slice (handle)</a><br>
+		
+	
+		<a href="#about-freeslicechildren">free slice children (handle)</a><br>
+		
+	
+		<a href="#about-cloneslice">clone slice (handle, recurse)</a><br>
+		
+	
+		<a href="#about-setsliceextra">set slice extra (handle, extra, value)</a><br>
+		
+	
+		<a href="#about-getsliceextra">get slice extra (handle, extra)</a><br>
+		
+	
+		<a href="#about-reparenttonpc">reparent to npc (handle, npc)</a><br>
+		
+	
+		<a href="#about-reparenttohero">reparent to hero (handle, hero)</a><br>
+		
+	
+		<li>
+<a href="#Getting%20Slices">Getting Slices</a><br>
+		<ul>
+		<a href="#about-loadslicecollection">load slice collection (id)</a><br>
+		
+	
+		<a href="#about-lookupslice">lookup slice (lookup code, start slice)</a><br>
+		
+	
+		<a href="#about-spritelayer">sprite layer</a><br>
+		
+	
+		<a href="#about-getslicelookup">get slice lookup (handle)</a><br>
+		
+	
+		<a href="#about-setslicelookup">set slice lookup (handle, code)</a><br>
+		
+	
+		<a href="#about-getheroslice">get hero slice (rank)</a><br>
+		
+	
+		<a href="#about-getherosprite">get hero sprite (rank)</a><br>
+		
+	
+		<a href="#about-herorankfromslice">hero rank from slice (handle)</a><br>
+		
+	
+		<a href="#about-getnpcslice">get npc slice (npc)</a><br>
+		
+	
+		<a href="#about-getnpcsprite">get npc sprite (npc)</a><br>
+		
+	
+		<a href="#about-npcreferencefromslice">npc reference from slice (handle)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Slice%20Sizing">Slice Sizing</a><br>
+		<ul>
+		<a href="#about-slicewidth">slice width (handle)</a><br>
+		
+	
+		<a href="#about-sliceheight">slice height (handle)</a><br>
+		
+	
+		<a href="#about-setslicewidth">set slice width (handle, width)</a><br>
+		
+	
+		<a href="#about-setsliceheight">set slice height (handle, height)</a><br>
+		
+	
+		<a href="#about-setslicesize">set slice size (handle, width, height)</a><br>
+		
+	
+		<a href="#about-clampslice">clamp slice (handle1, handle2)</a><br>
+		
+	
+		<a href="#about-fillparent">fill parent (handle, true_or_false)</a><br>
+		
+	
+		<a href="#about-isfillingparent">is filling parent (handle)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Positioning%20Slices">Positioning Slices</a><br>
+		<ul>
+		<a href="#about-slicex">slice x (handle)</a><br>
+		
+	
+		<a href="#about-slicey">slice y (handle)</a><br>
+		
+	
+		<a href="#about-putslice">put slice (handle, X, Y)</a><br>
+		
+	
+		<a href="#about-setslicex">set slice x (handle, X)</a><br>
+		
+	
+		<a href="#about-setslicey">set slice y (handle, Y)</a><br>
+		
+	
+		<a href="#about-slicescreenx">slice screen x (handle)</a><br>
+		
+	
+		<a href="#about-slicescreeny">slice screen y (handle)</a><br>
+		
+	
+		<a href="#about-putslicescreen">put slice screen (handle, x, y)</a><br>
+		
+	
+		<a href="#about-setslicescreenx">set slice screen x (handle, x)</a><br>
+		
+	
+		<a href="#about-setslicescreeny">set slice screen y (handle, y)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Visibility%20and%20Clipping">Visibility and Clipping</a><br>
+		<ul>
+		<a href="#about-setslicevisible">set slice visible (handle, vis)</a><br>
+		
+	
+		
+		<a href="#about-setslicevisible">set sprite visible</a><br>
+	
+		<a href="#about-getslicevisible">get slice visible (handle)</a><br>
+		
+	
+		<a href="#about-setsliceclipping">set slice clipping (handle, clip)</a><br>
+		
+	
+		<a href="#about-getsliceclipping">get slice clipping (handle)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Alignment%20and%20Anchor%20Points">Alignment and Anchor Points</a><br>
+		<ul>
+		<a href="#about-sliceedgex">slice edge x (handle, edge)</a><br>
+		
+	
+		<a href="#about-sliceedgey">slice edge y (handle, edge)</a><br>
+		
+	
+		<a href="#about-setsliceedgex">set slice edge x (handle, edge, value)</a><br>
+		
+	
+		<a href="#about-setsliceedgey">set slice edge y (handle, edge, value)</a><br>
+		
+	
+		<a href="#about-sethorizalign">set horiz align (handle, edge)</a><br>
+		
+	
+		<a href="#about-setvertalign">set vert align (handle, edge)</a><br>
+		
+	
+		<a href="#about-sethorizanchor">set horiz anchor (handle, edge)</a><br>
+		
+	
+		<a href="#about-setvertanchor">set vert anchor (handle, edge)</a><br>
+		
+	
+		<a href="#about-gethorizalign">get horiz align (handle)</a><br>
+		
+	
+		<a href="#about-getvertalign">get vert align (handle)</a><br>
+		
+	
+		<a href="#about-gethorizanchor">get horiz anchor (handle)</a><br>
+		
+	
+		<a href="#about-getvertanchor">get vert anchor (handle)</a><br>
+		
+	
+		<a href="#about-realignslice">realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)</a><br>
+		
+	
+		<a href="#about-centerslice">center slice (handle)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Padding">Padding</a><br>
+		<ul>
+		<a href="#about-setpadding">set padding (handle, pixels)</a><br>
+		
+	
+		<a href="#about-gettoppadding">get top padding (handle)</a><br>
+		
+	
+		<a href="#about-settoppadding">set top padding (handle, pixels)</a><br>
+		
+	
+		<a href="#about-getleftpadding">get left padding (handle)</a><br>
+		
+	
+		<a href="#about-setleftpadding">set left padding (handle, pixels)</a><br>
+		
+	
+		<a href="#about-getrightpadding">get right padding (handle)</a><br>
+		
+	
+		<a href="#about-setrightpadding">set right padding (handle, pixels)</a><br>
+		
+	
+		<a href="#about-getbottompadding">get bottom padding (handle)</a><br>
+		
+	
+		<a href="#about-setbottompadding">set bottom padding (handle, pixels)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Moving%20Slices">Moving Slices</a><br>
+		<ul>
+		<a href="#about-setslicevelocityx">set slice velocity x (handle, pixels per tick, ticks)</a><br>
+		
+	
+		<a href="#about-setslicevelocityy">set slice velocity y (handle, pixels per tick, ticks)</a><br>
+		
+	
+		<a href="#about-getslicevelocityx">get slice velocity x (handle)</a><br>
+		
+	
+		<a href="#about-getslicevelocityy">get slice velocity y (handle)</a><br>
+		
+	
+		<a href="#about-setslicevelocity">set slice velocity (handle, horiz pixels per tick, vert pixels per tick, ticks)</a><br>
+		
+	
+		<a href="#about-stopslice">stop slice (handle)</a><br>
+		
+	
+		<a href="#about-movesliceto">move slice to (handle, x, y, ticks)</a><br>
+		
+	
+		<a href="#about-movesliceby">move slice by (handle, relative x, relative y, ticks)</a><br>
+		
+	
+		<a href="#about-waitforslice">wait for slice (handle)</a><br>
+		
+	
+		<a href="#about-sliceismoving">slice is moving (handle)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Moving%20Around%20the%20Slice%20Tree">Moving Around the Slice Tree</a><br>
+		<ul>
+		<a href="#about-slicechild">slice child (handle, number)</a><br>
+		
+	
+		<a href="#about-childcount">child count (handle)</a><br>
+		
+	
+		<a href="#about-slicechildindex">slice child index (handle)</a><br>
+		
+	
+		<a href="#about-firstchild">first child (handle)</a><br>
+		
+	
+		<a href="#about-lastchild">last child (handle)</a><br>
+		
+	
+		<a href="#about-nextsibling">next sibling (handle)</a><br>
+		
+	
+		<a href="#about-previoussibling">previous sibling (handle)</a><br>
+		
+	
+		
+		<a href="#about-parentslice">slice parent</a><br>
+	
+		<a href="#about-parentslice">parent slice (handle)</a><br>
+		
+	
+		<a href="#about-checkparentage">check parentage (handle, parent handle)</a><br>
+		
+	</ul>
+<ul>
+		<li>
+<a href="#Type-specific%20iteration%20commands">Type-specific iteration commands</a><br>
+		<ul>
+		<a href="#about-firstchildoftype">first child of type(handle, type)</a><br>
+		
+	
+		<a href="#about-nextsiblingoftype">next sibling of type (handle, type)</a><br>
+		
+	
+		<a href="#about-firstcontainerchild">first container child (handle)</a><br>
+		
+	
+		<a href="#about-nextcontainersibling">next container sibling (handle)</a><br>
+		
+	
+		<a href="#about-firstrectchild">first rect child (handle)</a><br>
+		
+	
+		<a href="#about-nextrectsibling">next rect sibling (handle)</a><br>
+		
+	
+		<a href="#about-firstspritechild">first sprite child (handle)</a><br>
+		
+	
+		<a href="#about-nextspritesibling">next sprite sibling (handle)</a><br>
+		
+	
+		<a href="#about-firsttextchild">first text child (handle)</a><br>
+		
+	
+		<a href="#about-nexttextsibling">next text sibling (handle)</a><br>
+		
+	
+		<a href="#about-firstellipsechild">first ellipse child (handle)</a><br>
+		
+	
+		<a href="#about-nextellipsesibling">next ellipse sibling (handle)</a><br>
+		
+	
+		<a href="#about-firstgridchild">first grid child (handle)</a><br>
+		
+	
+		<a href="#about-nextgridsibling">next grid sibling (handle)</a><br>
+		
+	
+		<a href="#about-firstscrollchild">first scroll child (handle)</a><br>
+		
+	
+		<a href="#about-nextscrollsibling">next scroll sibling (handle)</a><br>
+		
+	
+		<a href="#about-firstselectchild">first select child (handle)</a><br>
+		
+	
+		<a href="#about-nextselectsibling">next select sibling (handle)</a><br>
+		
+	
+		<a href="#about-firstpanelchild">first panel child (handle)</a><br>
+		
+	
+		<a href="#about-nextpanelsibling">next panel sibling (handle)</a><br>
+		
+	
+		<a href="#about-firstlinechild">first line child (handle)</a><br>
+		
+	
+		<a href="#about-nextlinesibling">next line sibling (handle)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+</ul>
+</li>
+		<li>
+<a href="#Reordering%20Slices">Reordering Slices</a><br>
+		<ul>
+		<a href="#about-slicetofront">slice to front (handle)</a><br>
+		
+	
+		<a href="#about-slicetoback">slice to back (handle)</a><br>
+		
+	
+		<a href="#about-movesliceabove">move slice above (handle, above what handle)</a><br>
+		
+	
+		<a href="#about-moveslicebelow">move slice below (handle, below what handle)</a><br>
+		
+	
+		<a href="#about-ysortchildren">Y sort children (handle)</a><br>
+		
+	
+		<a href="#about-setsortorder">set sort order (handle, order)</a><br>
+		
+	
+		<a href="#about-getsortorder">get sort order (handle)</a><br>
+		
+	
+		<a href="#about-sortchildren">sort children (handle, wipe)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Slice%20Types">Slice Types</a><br>
+		<ul></ul>
+<ul>
+		<li>
+<a href="#Checking%20Slice%20Type">Checking Slice Type</a><br>
+		<ul>
+		<a href="#about-slicetype">slice type (handle)</a><br>
+		
+	
+		<a href="#about-sliceiscontainer">slice is container (handle)</a><br>
+		
+	
+		<a href="#about-sliceissprite">slice is sprite (handle)</a><br>
+		
+	
+		<a href="#about-sliceisrect">slice is rect (handle)</a><br>
+		
+	
+		<a href="#about-sliceisline">slice is line (handle)</a><br>
+		
+	
+		<a href="#about-sliceisellipse">slice is ellipse (handle)</a><br>
+		
+	
+		<a href="#about-sliceistext">slice is text (handle)</a><br>
+		
+	
+		<a href="#about-sliceisgrid">slice is grid (handle)</a><br>
+		
+	
+		<a href="#about-sliceisselect">slice is select (handle)</a><br>
+		
+	
+		<a href="#about-sliceisscroll">slice is scroll (handle)</a><br>
+		
+	
+		<a href="#about-sliceispanel">slice is panel (handle)</a><br>
+		
+	
+		<a href="#about-sliceismaplayer">slice is map layer (handle)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Container%20Slices">Container Slices</a><br>
+		<ul>
+		<a href="#about-createcontainer">create container (width, height)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Sprite%20Slices">Sprite Slices</a><br>
+		<ul>
+		<a href="#about-loadsprite">load sprite (sprite type, num, palette)</a><br>
+		
+	
+		<a href="#about-replacesprite">replace sprite (slice, sprite type, num, palette)</a><br>
+		
+	
+		<a href="#about-loadherosprite">load hero sprite (num, palette)</a><br>
+		
+	
+		<a href="#about-replaceherosprite">replace hero sprite (handle, num, palette)</a><br>
+		
+	
+		<a href="#about-loadwalkaboutsprite">load walkabout sprite (num, palette)</a><br>
+		
+	
+		<a href="#about-replacewalkaboutsprite">replace walkabout sprite (handle, num, palette)</a><br>
+		
+	
+		<a href="#about-loadsmallenemysprite">load small enemy sprite (num, palette)</a><br>
+		
+	
+		<a href="#about-replacesmallenemysprite">replace small enemy sprite (handle, num, palette)</a><br>
+		
+	
+		<a href="#about-loadmediumenemysprite">load medium enemy sprite (num, palette)</a><br>
+		
+	
+		<a href="#about-replacemediumenemysprite">replace medium enemy sprite (handle, num, palette)</a><br>
+		
+	
+		<a href="#about-loadlargeenemysprite">load large enemy sprite (num, palette)</a><br>
+		
+	
+		<a href="#about-replacelargeenemysprite">replace large enemy sprite (handle, num, palette)</a><br>
+		
+	
+		<a href="#about-loadattacksprite">load attack sprite (num, palette)</a><br>
+		
+	
+		<a href="#about-replaceattacksprite">replace attack sprite (handle, num, palette)</a><br>
+		
+	
+		<a href="#about-loadweaponsprite">load weapon sprite (num, palette)</a><br>
+		
+	
+		<a href="#about-replaceweaponsprite">replace weapon sprite (handle, num, palette)</a><br>
+		
+	
+		<a href="#about-loadbordersprite">load border sprite (num, palette)</a><br>
+		
+	
+		<a href="#about-replacebordersprite">replace border sprite (handle, num, palette)</a><br>
+		
+	
+		<a href="#about-loadportraitsprite">load portrait sprite (num, palette)</a><br>
+		
+	
+		<a href="#about-replaceportraitsprite">replace portrait sprite (handle, num, palette)</a><br>
+		
+	
+		<a href="#about-loadbackdropsprite">load backdrop sprite (num)</a><br>
+		
+	
+		<a href="#about-replacebackdropsprite">replace backdrop sprite (handle, num)</a><br>
+		
+	
+		<a href="#about-freesprite">free sprite (handle)</a><br>
+		
+	
+		<a href="#about-clonesprite">clone sprite (handle)</a><br>
+		
+	
+		<a href="#about-putsprite">put sprite (handle, x, y)</a><br>
+		
+	
+		
+		<a href="#about-putsprite">place sprite</a><br>
+	
+		<a href="#about-getspritetype">get sprite type (handle)</a><br>
+		
+	
+		<a href="#about-setspritesetnumber">set sprite set number (handle, record)</a><br>
+		
+	
+		<a href="#about-getspritesetnumber">get sprite set number (handle)</a><br>
+		
+	
+		<a href="#about-setspritepalette">set sprite palette (handle, num)</a><br>
+		
+	
+		<a href="#about-getspritepalette">get sprite palette (handle)</a><br>
+		
+	
+		<a href="#about-getspritedefaultpal">get sprite default pal (handle)</a><br>
+		
+	
+		<a href="#about-setspriteframe">set sprite frame (handle, num)</a><br>
+		
+	
+		<a href="#about-getspriteframe">get sprite frame (handle)</a><br>
+		
+	
+		<a href="#about-spriteframecount">sprite frame count (handle)</a><br>
+		
+	
+		<a href="#about-horizflipsprite">horiz flip sprite (handle, flip)</a><br>
+		
+	
+		<a href="#about-vertflipsprite">vert flip sprite (handle, flip)</a><br>
+		
+	
+		<a href="#about-spriteishorizflipped">sprite is horiz flipped (handle)</a><br>
+		
+	
+		<a href="#about-spriteisvertflipped">sprite is vert flipped (handle)</a><br>
+		
+	
+		<a href="#about-getspritetrans">get sprite trans (handle)</a><br>
+		
+	
+		<a href="#about-setspritetrans">set sprite trans (handle, drawtransparent)</a><br>
+		
+	
+		<a href="#about-dissolvesprite">dissolve sprite (handle, dissolve type, total ticks, start tick, backwards, automatic)</a><br>
+		
+	
+		<a href="#about-canceldissolve">cancel dissolve (handle)</a><br>
+		
+	
+		<a href="#about-spriteisdissolving">sprite is dissolving (handle)</a><br>
+		
+	
+		<a href="#about-waitfordissolve">wait for dissolve (handle)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Rect%20Slices">Rect Slices</a><br>
+		<ul>
+		<a href="#about-createrect">create rect (width, height, style)</a><br>
+		
+	
+		<a href="#about-getrectstyle">get rect style (handle)</a><br>
+		
+	
+		<a href="#about-setrectstyle">set rect style (handle, style)</a><br>
+		
+	
+		<a href="#about-getrectbgcol">get rect bgcol (handle)</a><br>
+		
+	
+		<a href="#about-setrectbgcol">set rect bgcol (handle, color)</a><br>
+		
+	
+		<a href="#about-getrectfgcol">get rect fgcol (handle)</a><br>
+		
+	
+		<a href="#about-setrectfgcol">set rect fgcol (handle, color)</a><br>
+		
+	
+		<a href="#about-getrectborder">get rect border (handle)</a><br>
+		
+	
+		<a href="#about-getrectrawborder">get rect raw border (handle)</a><br>
+		
+	
+		<a href="#about-setrectborder">set rect border (handle, border)</a><br>
+		
+	
+		<a href="#about-setrectrawborder">set rect raw border (handle, border)</a><br>
+		
+	
+		<a href="#about-getrecttrans">get rect trans (handle)</a><br>
+		
+	
+		<a href="#about-setrecttrans">set rect trans (handle, transparency setting)</a><br>
+		
+	
+		<a href="#about-getrectfuzziness">get rect fuzziness (handle)</a><br>
+		
+	
+		<a href="#about-setrectfuzziness">set rect fuzziness (handle, percent)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Line%20Slices">Line Slices</a><br>
+		<ul>
+		<a href="#about-createline">create line (width, height, color)</a><br>
+		
+	
+		<a href="#about-getlinecolor">get line color (handle)</a><br>
+		
+	
+		<a href="#about-setlinecolor">set line color (handle, color)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Ellipse%20Slices">Ellipse Slices</a><br>
+		<ul>
+		<a href="#about-createellipse">create ellipse (width, height, border color, fill color)</a><br>
+		
+	
+		<a href="#about-getellipsebordercol">get ellipse border col (handle)</a><br>
+		
+	
+		<a href="#about-setellipsebordercol">set ellipse border col (handle, color)</a><br>
+		
+	
+		<a href="#about-getellipsefillcol">get ellipse fill col (handle)</a><br>
+		
+	
+		<a href="#about-setellipsefillcol">set ellipse fill col (handle, color)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Text%20Slices">Text Slices</a><br>
+		<ul>
+		<a href="#about-createtext">create text</a><br>
+		
+	
+		<a href="#about-setslicetext">set slice text(handle, string id)</a><br>
+		
+	
+		<a href="#about-getslicetext">get slice text(string id, slice handle)</a><br>
+		
+	
+		<a href="#about-gettextcolor">get text color(handle)</a><br>
+		
+	
+		<a href="#about-settextcolor">set text color(handle, color)</a><br>
+		
+	
+		<a href="#about-gettextbg">get text bg(handle)</a><br>
+		
+	
+		<a href="#about-settextbg">set text bg(handle, color)</a><br>
+		
+	
+		<a href="#about-getoutline">get outline(handle)</a><br>
+		
+	
+		<a href="#about-setoutline">set outline(handle, outline)</a><br>
+		
+	
+		<a href="#about-getwrap">get wrap(handle)</a><br>
+		
+	
+		<a href="#about-setwrap">set wrap(handle, wrap)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Grid%20Slices">Grid Slices</a><br>
+		<ul>
+		<a href="#about-creategrid">create grid (width, height, rows, columns)</a><br>
+		
+	
+		<a href="#about-setgridcolumns">set grid columns (handle, columns)</a><br>
+		
+	
+		<a href="#about-getgridcolumns">get grid columns (handle)</a><br>
+		
+	
+		<a href="#about-setgridrows">set grid rows (handle, rows)</a><br>
+		
+	
+		<a href="#about-getgridrows">get grid rows (handle)</a><br>
+		
+	
+		<a href="#about-showgrid">show grid (handle, shown)</a><br>
+		
+	
+		<a href="#about-gridisshown">grid is shown (handle)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Select%20Slices">Select Slices</a><br>
+		<ul>
+		<a href="#about-createselect">create select (width, height)</a><br>
+		
+	
+		<a href="#about-setselectsliceindex">set select slice index (handle, index)</a><br>
+		
+	
+		<a href="#about-getselectsliceindex">get select slice index (handle)</a><br>
+		
+	
+		<a href="#about-setselectedchild">set selected child (select, child)</a><br>
+		
+	
+		<a href="#about-getselectedchild">get selected child (handle)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Scroll%20Slices">Scroll Slices</a><br>
+		<ul>
+		<a href="#about-createscroll">create scroll (width, height)</a><br>
+		
+	
+		<a href="#about-setscrollbarstyle">set scroll bar style (handle, style)</a><br>
+		
+	
+		<a href="#about-getscrollbarstyle">get scroll bar style (handle)</a><br>
+		
+	
+		<a href="#about-setscrollcheckdepth">set scroll check depth (handle, depth)</a><br>
+		
+	
+		<a href="#about-getscrollcheckdepth">get scroll check depth (handle)</a><br>
+		
+	
+		<a href="#about-scrolltochild">scroll to child (parent, sl)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Panel%20Slices">Panel Slices</a><br>
+		<ul>
+		<a href="#about-createpanel">create panel (width, height)</a><br>
+		
+	
+		<a href="#about-getpanelisvertical">get panel is vertical (handle)</a><br>
+		
+	
+		<a href="#about-setpanelisvertical">set panel is vertical (handle, value)</a><br>
+		
+	
+		<a href="#about-getpanelprimaryindex">get panel primary index (handle)</a><br>
+		
+	
+		<a href="#about-setpanelprimaryindex">set panel primary index (handle, zero or one)</a><br>
+		
+	
+		<a href="#about-getpanelpercentasint">get panel percent as int (handle)</a><br>
+		
+	
+		<a href="#about-setpanelpercent">set panel percent (handle, percent)</a><br>
+		
+	
+		<a href="#about-getpanelpixels">get panel pixels (handle)</a><br>
+		
+	
+		<a href="#about-setpanelpixels">set panel pixels (handle, pixels)</a><br>
+		
+	
+		<a href="#about-getpanelpadding">get panel padding (handle)</a><br>
+		
+	
+		<a href="#about-setpanelpadding">set panel padding (handle, padding)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Map%20Layer%20Slices">Map Layer Slices</a><br>
+		<ul></ul>
+<ul></ul>
+</li>
+</ul>
+</li>
+		<li>
+<a href="#Slice%20Collision%20Testing">Slice Collision Testing</a><br>
+		<ul>
+		<a href="#about-slicecollidepoint">slice collide point (handle, x, y)</a><br>
+		
+	
+		<a href="#about-slicecollide">slice collide (handle1, handle2)</a><br>
+		
+	
+		<a href="#about-slicecontains">slice contains (handle1, handle2)</a><br>
+		
+	
+		<a href="#about-sliceatpixel">slice at pixel (parent, x, y, number, check descendants, visible only)</a><br>
+		
+	
+		<a href="#about-findcollidingslice">find colliding slice (parent, slice, number, check descendants, visible only)</a><br>
+		
+	</ul>
+<ul></ul>
+</li>
+</ul>
 		<div class="command">
 <a name="about-setparent"></a>
 		<h4>set parent (handle, parent handle)</h4>
@@ -12429,10 +14624,8 @@ end
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Getting Slices</h3>
-		<ul></ul>
-<p>This section describes commands to find existing slices or load them from a defined slice collection. Commands to create slices are in other sections.</p>
-		
-		
+		<p>This section describes commands to find existing slices or load them from a defined slice collection. Commands to create slices are in other sections.</p>
+<ul></ul>
 		<div class="command">
 <a name="about-loadslicecollection"></a>
 		<h4>load slice collection (id)</h4>
@@ -12768,10 +14961,8 @@ end
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Slice Sizing</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-slicewidth"></a>
 		<h4>slice width (handle)</h4>
@@ -12906,10 +15097,8 @@ end
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Positioning Slices</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-slicex"></a>
 		<h4>slice x (handle)</h4>
@@ -13105,10 +15294,8 @@ end
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Visibility and Clipping</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-setslicevisible"></a>
 		<h4>set slice visible (handle, vis)</h4>
@@ -13162,10 +15349,8 @@ end
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Alignment and Anchor Points</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-sliceedgex"></a>
 		<h4>slice edge x (handle, edge)</h4>
@@ -13433,10 +15618,8 @@ end
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Padding</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-setpadding"></a>
 		<h4>set padding (handle, pixels)</h4>
@@ -13615,10 +15798,8 @@ end
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Moving Slices</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-setslicevelocityx"></a>
 		<h4>set slice velocity x (handle, pixels per tick, ticks)</h4>
@@ -13974,15 +16155,13 @@ end
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Moving Around the Slice Tree</h3>
-		<ul>
+		<p></p>
+<ul>
 		<li>
 <a href="#Type-specific%20iteration%20commands">Type-specific iteration commands</a><br>
 		<ul></ul>
 </li>
 </ul>
-<p></p>
-		
-		
 		<div class="command">
 <a name="about-slicechild"></a>
 		<h4>slice child (handle, number)</h4>
@@ -14186,10 +16365,8 @@ end
 <span class="backlink"><a href="#Slices">Slices</a> →
 			<a href="#Moving%20Around%20the%20Slice%20Tree">Moving Around the Slice Tree</a> →
 			</span>Type-specific iteration commands</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-firstchildoftype"></a>
 		<h4>first child of type(handle, type)</h4>
@@ -14477,10 +16654,8 @@ end
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Reordering Slices</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-slicetofront"></a>
 		<h4>slice to front (handle)</h4>
@@ -14739,7 +16914,19 @@ end
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Slice Types</h3>
-		<ul>
+		<p>
+				For a description of the different slice types, see the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices#Slice_types">Slices</a> article on the wiki.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					There are two types of slice used by the engine for which there are no commands:
+					'special' slices (such as <a href="#sprite%20layer" class="undef">sprite layer</a>),
+					and 'map' slices (which are map layers).
+					However you can use <a href="#about-lookupslice" class="ref">lookup slice</a> to find each instance of these.
+					Special slices are nothing but container slices with special purposes (but not special behaviour).
+					None of these kinds of slices can be created or manipulated in the slice collection editor either.
+				</div>
+			</p>
+<ul>
 		<li>
 <a href="#Checking%20Slice%20Type">Checking Slice Type</a><br>
 		<ul></ul>
@@ -14789,20 +16976,6 @@ end
 		<ul></ul>
 </li>
 </ul>
-<p>
-				For a description of the different slice types, see the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices#Slice_types">Slices</a> article on the wiki.
-				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
-					There are two types of slice used by the engine for which there are no commands:
-					'special' slices (such as <a href="#sprite%20layer" class="undef">sprite layer</a>),
-					and 'map' slices (which are map layers).
-					However you can use <a href="#about-lookupslice" class="ref">lookup slice</a> to find each instance of these.
-					Special slices are nothing but container slices with special purposes (but not special behaviour).
-					None of these kinds of slices can be created or manipulated in the slice collection editor either.
-				</div>
-			</p>
-		
-		
 		<hr>
 		</div>
 		<div class="subsection">
@@ -14811,10 +16984,8 @@ end
 <span class="backlink"><a href="#Slices">Slices</a> →
 			<a href="#Slice%20Types">Slice Types</a> →
 			</span>Checking Slice Type</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-slicetype"></a>
 		<h4>slice type (handle)</h4>
@@ -14961,10 +17132,8 @@ end
 <span class="backlink"><a href="#Slices">Slices</a> →
 			<a href="#Slice%20Types">Slice Types</a> →
 			</span>Container Slices</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-createcontainer"></a>
 		<h4>create container (width, height)</h4>
@@ -14997,10 +17166,8 @@ set horiz align(sl, edge:right)
 <span class="backlink"><a href="#Slices">Slices</a> →
 			<a href="#Slice%20Types">Slice Types</a> →
 			</span>Sprite Slices</h3>
-		<ul></ul>
-<p>Unlike the other types of slices, sprite slices come in different subtypes for each of the different sprite sizes. A sprite slice of one subtype can be turned into another subtype with the <span class="param">replace*sprite</span> commands.</p>
-		
-		
+		<p>Unlike the other types of slices, sprite slices come in different subtypes for each of the different sprite sizes. A sprite slice of one subtype can be turned into another subtype with the <span class="param">replace*sprite</span> commands.</p>
+<ul></ul>
 		<div class="command">
 		<h4>slice is sprite (handle)</h4>
 		<p><a href="#about-sliceissprite">Defined in the Checking Slice Type section.</a></p>
@@ -15805,10 +17972,8 @@ The third argument is the total number of ticks that the animation should run. Y
 <span class="backlink"><a href="#Slices">Slices</a> →
 			<a href="#Slice%20Types">Slice Types</a> →
 			</span>Rect Slices</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-createrect"></a>
 		<h4>create rect (width, height, style)</h4>
@@ -16098,8 +18263,7 @@ The third argument is the total number of ticks that the animation should run. Y
 <span class="backlink"><a href="#Slices">Slices</a> →
 			<a href="#Slice%20Types">Slice Types</a> →
 			</span>Line Slices</h3>
-		<ul></ul>
-<p>
+		<p>
 			Line slices are slighty different; their size doesn't exactly define the size of the rectangular part of the
 			screen which they stretch across,
 			but is instead used as the offset between their ends.
@@ -16112,8 +18276,7 @@ The third argument is the total number of ticks that the animation should run. Y
 			So you can give line slices a negative width or height too, to draw a line at any angle.
 			The "top-left" alignment point of a line slice is its start point, and the "bottom-right" is its end point.
 		</p>
-		
-		
+<ul></ul>
 		<div class="command">
 <a name="about-createline"></a>
 		<h4>create line (width, height, color)</h4>
@@ -16169,10 +18332,8 @@ The third argument is the total number of ticks that the animation should run. Y
 <span class="backlink"><a href="#Slices">Slices</a> →
 			<a href="#Slice%20Types">Slice Types</a> →
 			</span>Ellipse Slices</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-createellipse"></a>
 		<h4>create ellipse (width, height, border color, fill color)</h4>
@@ -16263,10 +18424,8 @@ The third argument is the total number of ticks that the animation should run. Y
 <span class="backlink"><a href="#Slices">Slices</a> →
 			<a href="#Slice%20Types">Slice Types</a> →
 			</span>Text Slices</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-createtext"></a>
 		<h4>create text</h4>
@@ -16422,10 +18581,8 @@ The third argument is the total number of ticks that the animation should run. Y
 <span class="backlink"><a href="#Slices">Slices</a> →
 			<a href="#Slice%20Types">Slice Types</a> →
 			</span>Grid Slices</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-creategrid"></a>
 		<h4>create grid (width, height, rows, columns)</h4>
@@ -16538,10 +18695,8 @@ The third argument is the total number of ticks that the animation should run. Y
 <span class="backlink"><a href="#Slices">Slices</a> →
 			<a href="#Slice%20Types">Slice Types</a> →
 			</span>Select Slices</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-createselect"></a>
 		<h4>create select (width, height)</h4>
@@ -16625,10 +18780,8 @@ The third argument is the total number of ticks that the animation should run. Y
 <span class="backlink"><a href="#Slices">Slices</a> →
 			<a href="#Slice%20Types">Slice Types</a> →
 			</span>Scroll Slices</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-createscroll"></a>
 		<h4>create scroll (width, height)</h4>
@@ -16725,13 +18878,11 @@ The third argument is the total number of ticks that the animation should run. Y
 <span class="backlink"><a href="#Slices">Slices</a> →
 			<a href="#Slice%20Types">Slice Types</a> →
 			</span>Panel Slices</h3>
-		<ul></ul>
-<p>
+		<p>
 			Panel slices split up their area between their first two children in various ways,
 			and don't display any other children.
 		</p>
-		
-		
+<ul></ul>
 		<div class="command">
 <a name="about-createpanel"></a>
 		<h4>create panel (width, height)</h4>
@@ -16861,8 +19012,7 @@ The third argument is the total number of ticks that the animation should run. Y
 <span class="backlink"><a href="#Slices">Slices</a> →
 			<a href="#Slice%20Types">Slice Types</a> →
 			</span>Map Layer Slices</h3>
-		<ul></ul>
-<p>
+		<p>
 			Map Layer slices (also called Map slices) are special slices which display one of the
 			tilemap layers of the current map.
 			You can't create them; they always exist. Use <a href="#about-lookupslice" class="ref">lookup slice</a> to get a handle
@@ -16873,8 +19023,7 @@ The third argument is the total number of ticks that the animation should run. Y
 			such as move them about to create parallax effects,
 			make them invisible, reorder them, change their autosort mode, and so forth.
 		</p>
-		
-		
+<ul></ul>
 		<div class="command">
 		<h4>slice is map layer (handle)</h4>
 		<p><a href="#about-sliceismaplayer">Defined in the Checking Slice Type section.</a></p>
@@ -16886,11 +19035,9 @@ The third argument is the total number of ticks that the animation should run. Y
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Slice Collision Testing</h3>
-		<ul></ul>
-<p><div style="background-color:#BCC;" class="notice">
+		<p><div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">For the purposes of collision testing, all slices are treated as solid rectangles, even if they are text slices, sprites, ellipses, or invisible. A point right on the boundary of this rectangle counts as a collision.</div></p>
-		
-		
+<ul></ul>
 		<div class="command">
 <a name="about-slicecollidepoint"></a>
 		<h4>slice collide point (handle, x, y)</h4>
@@ -17056,10 +19203,56 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="Time%20Functions"></a>
 		<h3>
 <span class="backlink"></span>Time Functions</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-daysofplay">days of play</a><br>
 		
+	
+		<a href="#about-setdaysofplay">set days of play (days)</a><br>
 		
+	
+		<a href="#about-hoursofplay">hours of play</a><br>
+		
+	
+		<a href="#about-sethoursofplay">set hours of play (hours)</a><br>
+		
+	
+		<a href="#about-minutesofplay">minutes of play</a><br>
+		
+	
+		<a href="#about-setminutesofplay">set minutes of play (min)</a><br>
+		
+	
+		<a href="#about-secondsofplay">seconds of play</a><br>
+		
+	
+		<a href="#about-setsecondssofplay">set seconds of play (sec)</a><br>
+		
+	
+		<a href="#about-systemyear">system year</a><br>
+		
+	
+		<a href="#about-systemmonth">system month</a><br>
+		
+	
+		<a href="#about-systemday">system day</a><br>
+		
+	
+		<a href="#about-systemhour">system hour</a><br>
+		
+	
+		<a href="#about-systemminute">system minute</a><br>
+		
+	
+		<a href="#about-systemsecond">system second</a><br>
+		
+	
+		<a href="#about-overridetickmilliseconds">override tick milliseconds (ms)</a><br>
+		
+	
+		<a href="#about-canceloverridetickmilliseconds">cancel override tick milliseconds (ms)</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-daysofplay"></a>
 		<h4>days of play</h4>
@@ -17234,36 +19427,157 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="Tweaking%20Maps"></a>
 		<h3>
 <span class="backlink"></span>Tweaking Maps</h3>
-		<ul>
+		<p></p>
+<ul>
+		<a href="#about-currentmap">current map</a><br>
+		
+	
+		<a href="#about-mapwidth">map width (map)</a><br>
+		
+	
+		<a href="#about-mapheight">map height (map)</a><br>
+		
+	
+		<a href="#about-getmaptileset">get map tileset</a><br>
+		
+	
+		<a href="#about-layertileset">layer tileset (layer)</a><br>
+		
+	
+		<a href="#about-loadtileset">load tileset (tileset, layer)</a><br>
+		
+	
+		<a href="#about-changetileset">change tileset (tileset, layer)</a><br>
+		
+	
 		<li>
 <a href="#Tilemap%20and%20Wallmap">Tilemap and Wallmap</a><br>
 		<ul>
+		<a href="#about-readmapblock">read map block (x, y, layer)</a><br>
+		
+	
+		<a href="#about-writemapblock">write map block (x, y, value, layer)</a><br>
+		
+	
+		<a href="#about-readwallbit">read wall bit (x, y, bit)</a><br>
+		
+	
+		<a href="#about-writewallbit">write wall bit (x, y, bit, value)</a><br>
+		
+	
+		<a href="#about-readpassblock">read pass block (x, y)</a><br>
+		
+	
+		<a href="#about-writepassblock">write pass block (x,y,value)</a><br>
+		
+	</ul>
+<ul>
 		<li>
 <a href="#Tile%20Animations">Tile Animations</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-currentdisplaytile">current display tile (tile number, layer)</a><br>
+		
+	
+		<a href="#about-animationstarttile">animation start tile (tile number, layer)</a><br>
+		
+	
+		<a href="#about-gettileanimationoffset">get tile animation offset (animation pattern, layer)</a><br>
+		
+	
+		<a href="#about-settileanimationoffset">set tile animation offset (animation pattern, offset, layer)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 		<li>
 <a href="#Wall%20checking">Wall checking</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-checkwallcollisionxy">check wall collision x (x, y, width, height, relative x, relative y, friction%)</a><br>
+		
+	
+		<a href="#about-moveslicewithwallchecking">move slice with wallchecking (sl, relative x, relative y, friction%)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 </ul>
 </li>
 		<li>
 <a href="#Zonemaps">Zonemaps</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-writezone">write zone (zone id, x, y, value)</a><br>
+		
+	
+		<a href="#about-readzone">read zone (zone id, x, y)</a><br>
+		
+	
+		<a href="#about-zoneatspot">zone at spot (x, y, count)</a><br>
+		
+	
+		<a href="#about-getzonename">get zone name (string id, zone id)</a><br>
+		
+	
+		<a href="#about-getzoneextra">get zone extra (zone id, extra num)</a><br>
+		
+	
+		<a href="#about-setzoneextra">set zone extra (zone id, extra num, value)</a><br>
+		
+	
+		<a href="#about-zonenumberoftiles">zone number of tiles (zone id)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 		<li>
 <a href="#General%20Map%20Settings">General Map Settings</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-allowminimap">allow minimap (setting)</a><br>
+		
+	
+		<a href="#about-allowsaveanywhere">allow save anywhere (setting)</a><br>
+		
+	
+		<a href="#about-setharmtiledamage">set harm tile damage (amount)</a><br>
+		
+	
+		<a href="#about-setharmtileflash">set harm tile flash (color)</a><br>
+		
+	
+		<a href="#about-setfootoffset">set foot offset (offset)</a><br>
+		
+	
+		<a href="#about-getfootoffset">get foot offset</a><br>
+		
+	
+		<a href="#about-drawnpcsaboveheroes">draw NPCs above heroes (setting)</a><br>
+		
+	
+		<a href="#about-setmapedgemode">set map edge mode (mode, default tile)</a><br>
+		
+	
+		<a href="#about-getmapedgemode">get map edge mode</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 		<li>
 <a href="#Map%20State">Map State</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-savemapstate">save map state (whichdata, customid)</a><br>
+		
+	
+		<a href="#about-loadmapstate">load map state (whichdata, customid)</a><br>
+		
+	
+		<a href="#about-resetmapstate">reset map state (whichdata)</a><br>
+		
+	
+		<a href="#about-deletemapstate">delete map state (whichdata)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 </ul>
-<p></p>
-		
-		
 		<div class="command">
 <a name="about-currentmap"></a>
 		<h4>current map</h4>
@@ -17357,7 +19671,8 @@ The third argument is the total number of ticks that the animation should run. Y
 		<h3>
 <span class="backlink"><a href="#Tweaking%20Maps">Tweaking Maps</a> →
 			</span>Tilemap and Wallmap</h3>
-		<ul>
+		<p></p>
+<ul>
 		<li>
 <a href="#Tile%20Animations">Tile Animations</a><br>
 		<ul></ul>
@@ -17367,9 +19682,6 @@ The third argument is the total number of ticks that the animation should run. Y
 		<ul></ul>
 </li>
 </ul>
-<p></p>
-		
-		
 		<div class="command">
 <a name="about-readmapblock"></a>
 		<h4>read map block (x, y, layer)</h4>
@@ -17488,10 +19800,8 @@ write pass block(15,3,none)
 <span class="backlink"><a href="#Tweaking%20Maps">Tweaking Maps</a> →
 			<a href="#Tilemap%20and%20Wallmap">Tilemap and Wallmap</a> →
 			</span>Tile Animations</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-currentdisplaytile"></a>
 		<h4>current display tile (tile number, layer)</h4>
@@ -17548,10 +19858,8 @@ write pass block(15,3,none)
 <span class="backlink"><a href="#Tweaking%20Maps">Tweaking Maps</a> →
 			<a href="#Tilemap%20and%20Wallmap">Tilemap and Wallmap</a> →
 			</span>Wall checking</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 		<h4>read pass block (x, y)</h4>
 		<p><a href="#about-readpassblock">Defined in the Tilemap and Wallmap section.</a></p>
@@ -17712,10 +20020,8 @@ end</pre>
 		<h3>
 <span class="backlink"><a href="#Tweaking%20Maps">Tweaking Maps</a> →
 			</span>Zonemaps</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-writezone"></a>
 		<h4>write zone (zone id, x, y, value)</h4>
@@ -17858,10 +20164,8 @@ end</pre>
 		<h3>
 <span class="backlink"><a href="#Tweaking%20Maps">Tweaking Maps</a> →
 			</span>General Map Settings</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-allowminimap"></a>
 		<h4>allow minimap (setting)</h4>
@@ -17994,10 +20298,8 @@ end</pre>
 		<h3>
 <span class="backlink"><a href="#Tweaking%20Maps">Tweaking Maps</a> →
 			</span>Map State</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-savemapstate"></a>
 		<h4>save map state (whichdata, customid)</h4>
@@ -18104,10 +20406,20 @@ end</pre>
 <a name="Timers"></a>
 		<h3>
 <span class="backlink"></span>Timers</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-settimer">set timer (id, count, speed, trigger, string, flags)</a><br>
 		
+	
+		<a href="#about-stoptimer">stop timer (id)</a><br>
 		
+	
+		<a href="#about-allocatetimers">allocate timers (number)</a><br>
+		
+	
+		<a href="#about-readtimer">read timer (id)</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-settimer"></a>
 		<h4>set timer (id, count, speed, trigger, string, flags)</h4>
@@ -18235,10 +20547,38 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="Script%20Triggers"></a>
 		<h3>
 <span class="backlink"></span>Script Triggers</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-setdeathscript">set death script (id)</a><br>
 		
+	
+		<a href="#about-getdeathscript">get death script</a><br>
 		
+	
+		<a href="#about-setloadscript">set load script (id)</a><br>
+		
+	
+		<a href="#about-getloadscript">get load script</a><br>
+		
+	
+		<a href="#about-setonkeypressscript">set on keypress script (id)</a><br>
+		
+	
+		<a href="#about-getonkeypressscript">get on keypress script</a><br>
+		
+	
+		<a href="#about-seteachstepscript">set each step script (id)</a><br>
+		
+	
+		<a href="#about-geteachstepscript">get each step script</a><br>
+		
+	
+		<a href="#about-setinsteadofbattlescript">set instead of battle script (id)</a><br>
+		
+	
+		<a href="#about-getinsteadofbattlescript">get instead of battle script</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-setdeathscript"></a>
 		<h4>set death script (id)</h4>
@@ -18382,19 +20722,82 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="General%20Game%20Settings"></a>
 		<h3>
 <span class="backlink"></span>General Game Settings</h3>
-		<ul>
+		<p>These commands access data in the General Game Settings menu.</p>
+<ul>
+		<a href="#about-setcaterpillarmode">set caterpillar mode (state)</a><br>
+		
+	
+		<a href="#about-sethpleveluprestore">set HP level up restore (state)</a><br>
+		
+	
+		<a href="#about-setnompleveluprestore">set MP level up restore (state)</a><br>
+		
+	
+		<a href="#about-setinnnorevivemode">set inn revive mode (state)</a><br>
+		
+	
+		<a href="#about-setfullheroswapmode">set full hero swap mode (state)</a><br>
+		
+	
+		<a href="#about-setdebugkeysdisable">set debug keys disable (state)</a><br>
+		
+	
+		<a href="#about-extendedscancodesenabled">extended scancodes enabled</a><br>
+		
+	
+		<a href="#about-getscreenwidth">get screen width</a><br>
+		
+	
+		<a href="#about-getscreenheight">get screen height</a><br>
+		
+	
+		<a href="#about-readpreferencebit">read preference bit (bitnum)</a><br>
+		
+	
+		<a href="#about-writepreferencebit">write preference bit (bitnum, value)</a><br>
+		
+	
 		<li>
 <a href="#Battle%20System%20Settings">Battle System Settings</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-setbattlewaitmode">set battle wait mode (state)</a><br>
+		
+	
+		<a href="#about-getactivebattlepauseonallmenus">get active battle pause on all menus</a><br>
+		
+	
+		<a href="#about-setactivebattlepauseonallmenus">set active battle pause on all menus (value)</a><br>
+		
+	
+		<a href="#about-showbattlereadymeter">show battle ready meter (state)</a><br>
+		
+	
+		<a href="#about-showbattlehealthmeter">show battle health meter (state)</a><br>
+		
+	
+		<a href="#about-setdeadheroesgainexperience">set dead heroes gain experience (state)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 		<li>
 <a href="#Caps">Caps</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-getdamagecap">get damage cap</a><br>
+		
+	
+		<a href="#about-setdamagecap">set damage cap (cap)</a><br>
+		
+	
+		<a href="#about-getlevelcap">get level cap</a><br>
+		
+	
+		<a href="#about-setlevelcap">set level cap (cap)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 </ul>
-<p>These commands access data in the General Game Settings menu.</p>
-		
-		
 		<div class="command">
 <a name="about-setcaterpillarmode"></a>
 		<h4>set caterpillar mode (state)</h4>
@@ -18598,13 +21001,11 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<h3>
 <span class="backlink"><a href="#General%20Game%20Settings">General Game Settings</a> →
 			</span>Battle System Settings</h3>
-		<ul></ul>
-<p>
+		<p>
 			These commands access data either in the Battle Settings submenu in General Game Settings menu,
 			or in the Preference Bitsets submenu.
 		</p>
-		
-		
+<ul></ul>
 		<div class="command">
 <a name="about-setbattlewaitmode"></a>
 		<h4>set battle wait mode (state)</h4>
@@ -18696,10 +21097,8 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<h3>
 <span class="backlink"><a href="#General%20Game%20Settings">General Game Settings</a> →
 			</span>Caps</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-getdamagecap"></a>
 		<h4>get damage cap</h4>
@@ -18755,10 +21154,35 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="Saved%20Games"></a>
 		<h3>
 <span class="backlink"></span>Saved Games</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-autosave">autosave</a><br>
 		
+	
+		<a href="#about-saveinslot">save in slot (slot)</a><br>
 		
+	
+		<a href="#about-loadfromslot">load from slot (slot, args...)</a><br>
+		
+	
+		<a href="#about-deletesave">delete save (slot)</a><br>
+		
+	
+		<a href="#about-lastsaveslot">last save slot</a><br>
+		
+	
+		<a href="#about-setlastsaveslot">set last save slot (slot)</a><br>
+		
+	
+		<a href="#about-saveslotused">save slot used (slot)</a><br>
+		
+	
+		<a href="#about-importglobals">import globals (slot, first, last)</a><br>
+		
+	
+		<a href="#about-exportglobals">export globals (slot, first, last)</a><br>
+		
+	</ul>
 		<div class="command">
 		<h4>load menu (reallyload, show new game)</h4>
 		<p><a href="#about-loadmenu">Defined in the Opening Built-in Menus section.</a></p>
@@ -19047,15 +21471,59 @@ end</pre>
 <a name="Advanced%20Functions"></a>
 		<h3>
 <span class="backlink"></span>Advanced Functions</h3>
-		<ul>
+		<p></p>
+<ul>
+		<a href="#about-runscriptbyid">run script by ID (id, argument1, argument2, argument3...)</a><br>
+		
+	
+		<a href="#about-rungame">run game(file string id)</a><br>
+		
+	
+		<a href="#about-checkgameexists">check game exists (file string id)</a><br>
+		
+	
+		<a href="#about-milliseconds">milliseconds</a><br>
+		
+	
+		<a href="#about-microseconds">microseconds</a><br>
+		
+	
+		<a href="#about-savescreenshot">save screenshot</a><br>
+		
+	
 		<li>
 <a href="#Debugging">Debugging</a><br>
-		<ul></ul>
+		<ul>
+		<a href="#about-trace">trace (string)</a><br>
+		
+	
+		<a href="#about-tracevalue">trace value (expression, ...)</a><br>
+		
+	
+		<a href="#about-dumpslicetree">dump slice tree (slice)</a><br>
+		
+	
+		<a href="#about-scripterror">script error (string id)</a><br>
+		
+	
+		<a href="#about-debugmenu">debug menu</a><br>
+		
+	
+		<a href="#about-assert">assert (expression)</a><br>
+		
+	
+		<a href="#about-getscriptname">get script name (string id, script id)</a><br>
+		
+	
+		<a href="#about-getcallingscriptid">get calling script id (depth)</a><br>
+		
+	
+		<a href="#about-sendemail">send email (save slot, subject string id, message string id)</a><br>
+		
+	</ul>
+<ul></ul>
 </li>
 </ul>
-<p></p>
-		
-		
 		<div class="command">
 <a name="about-runscriptbyid"></a>
 		<h4>run script by ID (id, argument1, argument2, argument3...)</h4>
@@ -19182,10 +21650,8 @@ run game(0)</pre>
 		<h3>
 <span class="backlink"><a href="#Advanced%20Functions">Advanced Functions</a> →
 			</span>Debugging</h3>
-		<ul></ul>
-<p></p>
-		
-		
+		<p></p>
+<ul></ul>
 		<div class="command">
 <a name="about-trace"></a>
 		<h4>trace (string)</h4>
@@ -19387,10 +21853,38 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="Platform%20Specific"></a>
 		<h3>
 <span class="backlink"></span>Platform Specific</h3>
-		<ul></ul>
-<p></p>
+		<p></p>
+<ul>
+		<a href="#about-runningondesktop">running on desktop</a><br>
 		
+	
+		<a href="#about-runningonwindows">running on Windows</a><br>
 		
+	
+		<a href="#about-runningonmac">running on Mac</a><br>
+		
+	
+		<a href="#about-runningonlinux">running on Linux</a><br>
+		
+	
+		<a href="#about-runningonmobile">running on mobile</a><br>
+		
+	
+		<a href="#about-runningonconsole">running on console</a><br>
+		
+	
+		<a href="#about-runningonouya">running on ouya</a><br>
+		
+	
+		<a href="#about-hidevirtualgamepad">hide virtual gamepad</a><br>
+		
+	
+		<a href="#about-showvirtualgamepad">show virtual gamepad</a><br>
+		
+	
+		<a href="#about-autovirtualgamepad">auto virtual gamepad</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-runningondesktop"></a>
 		<h4>running on desktop</h4>
@@ -19497,8 +21991,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="Types%20and%20Handles"></a>
 		<h3>
 <span class="backlink"></span>Types and Handles</h3>
-		<ul></ul>
-<p>
+		<p>
 			This section documents many of the different types of values that are used by various script
 			commands, such as NPC references.
 			Note that in HamsterSpeak everything is a number, so there are no types
@@ -19531,8 +22024,37 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				</li>
 			</ul>
 		</p>
+<ul>
+		<a href="#about-npcid">NPC IDs</a><br>
 		
+	
+		<a href="#about-npcref">NPC references</a><br>
 		
+	
+		<a href="#about-slicehandle">Slice handles</a><br>
+		
+	
+		<a href="#about-lookupcode">Slice lookup codes</a><br>
+		
+	
+		<a href="#about-menuhandle">Menu handles</a><br>
+		
+	
+		<a href="#about-menuitemhandle">Menu item handles</a><br>
+		
+	
+		<a href="#about-scriptid">Script IDs</a><br>
+		
+	
+		<a href="#about-colorcode">Color codes</a><br>
+		
+	
+		<a href="#about-scancode">Scancodes</a><br>
+		
+	
+		<a href="#about-keyconstants">Key constants</a><br>
+		
+	</ul>
 		<div class="command">
 <a name="about-npcid"></a>
 		<h4>NPC IDs</h4>
@@ -19892,12 +22414,205 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 <a name="Predefined%20Constants"></a>
 		<h3>
 <span class="backlink"></span>Predefined Constants</h3>
-		<ul></ul>
-<p>
+		<p>
 			This section isn't complete; there are <b>zillions</b> of other builtin constants!
 		</p>
+<ul>
+		<a href="#about-numericconstants">Numeric Constants</a><br>
 		
+	
 		
+		<a href="#about-keyconstants">any key</a><br>
+	
+		
+		<a href="#about-keyconstants">up key</a><br>
+	
+		
+		<a href="#about-keyconstants">down key</a><br>
+	
+		
+		<a href="#about-keyconstants">left key</a><br>
+	
+		
+		<a href="#about-keyconstants">right key</a><br>
+	
+		
+		<a href="#about-keyconstants">use key</a><br>
+	
+		
+		<a href="#about-keyconstants">menu key</a><br>
+	
+		
+		<a href="#about-keyconstants">cancel key</a><br>
+	
+		
+		<a href="#about-keyconstants">run key</a><br>
+	
+		<a href="#about-booleanconstants">Boolean Constants</a><br>
+		
+	
+		
+		<a href="#about-booleanconstants">true</a><br>
+	
+		
+		<a href="#about-booleanconstants">false</a><br>
+	
+		
+		<a href="#about-booleanconstants">on</a><br>
+	
+		
+		<a href="#about-booleanconstants">off</a><br>
+	
+		<a href="#about-directionconstants">Direction Constants</a><br>
+		
+	
+		
+		<a href="#about-directionconstants">north</a><br>
+	
+		
+		<a href="#about-directionconstants">south</a><br>
+	
+		
+		<a href="#about-directionconstants">east</a><br>
+	
+		
+		<a href="#about-directionconstants">west</a><br>
+	
+		
+		<a href="#about-directionconstants">up</a><br>
+	
+		
+		<a href="#about-directionconstants">down</a><br>
+	
+		
+		<a href="#about-directionconstants">right</a><br>
+	
+		
+		<a href="#about-directionconstants">left</a><br>
+	
+		<a href="#about-me">me</a><br>
+		
+	
+		<a href="#about-none">none</a><br>
+		
+	
+		<a href="#about-autonumber">autonumber</a><br>
+		
+	
+		<a href="#about-currentstat">current stat</a><br>
+		
+	
+		<a href="#about-maximumstat">maximum stat</a><br>
+		
+	
+		<a href="#about-basestat">base stat</a><br>
+		
+	
+		<a href="#about-insidebattle">inside battle</a><br>
+		
+	
+		<a href="#about-outsidebattle">outside battle</a><br>
+		
+	
+		<a href="#about-heroportrait">hero portrait</a><br>
+		
+	
+		<a href="#about-colorconstants">Color Constants</a><br>
+		
+	
+		
+		<a href="#about-colorconstants">color:red</a><br>
+	
+		
+		<a href="#about-colorconstants">color:green</a><br>
+	
+		
+		<a href="#about-colorconstants">color:blue</a><br>
+	
+		<a href="#about-mouseconstants">Mouse Constants</a><br>
+		
+	
+		
+		<a href="#about-mouseconstants">left button</a><br>
+	
+		
+		<a href="#about-mouseconstants">middle button</a><br>
+	
+		
+		<a href="#about-mouseconstants">right button</a><br>
+	
+		<a href="#about-getcount">get count</a><br>
+		
+	
+		<a href="#about-tileconstants">Tile Constants</a><br>
+		
+	
+		
+		<a href="#about-tileconstants">north wall</a><br>
+	
+		
+		<a href="#about-tileconstants">east wall</a><br>
+	
+		
+		<a href="#about-tileconstants">west wall</a><br>
+	
+		
+		<a href="#about-tileconstants">south wall</a><br>
+	
+		
+		<a href="#about-tileconstants">vehicle A</a><br>
+	
+		
+		<a href="#about-tileconstants">vehicle B</a><br>
+	
+		
+		<a href="#about-tileconstants">harm tile</a><br>
+	
+		
+		<a href="#about-tileconstants">overhead tile</a><br>
+	
+		<a href="#about-crop">crop</a><br>
+		
+	
+		<a href="#about-wrap">wrap</a><br>
+		
+	
+		<a href="#about-defaulttile">default tile</a><br>
+		
+	
+		<a href="#about-party">party</a><br>
+		
+	
+		<a href="#about-xaxis">x axis</a><br>
+		
+	
+		<a href="#about-yaxis">y axis</a><br>
+		
+	
+		<a href="#about-timer:default">timer: default</a><br>
+		
+	
+		<a href="#about-timer:gameover">timer: game over</a><br>
+		
+	
+		<a href="#about-timerflag:critical">timer flag: critical</a><br>
+		
+	
+		<a href="#about-timerflag:battle">timer flag: battle</a><br>
+		
+	
+		<a href="#about-timerflag:menu">timer flag: menu</a><br>
+		
+	
+		<a href="#about-song:silence">song: silence</a><br>
+		
+	
+		<a href="#about-song:sameaslastmap">song: same as last map</a><br>
+		
+	
+		
+		<a href="#about-song:sameaslastmap">song: same as map</a><br>
+	</ul>
 		<div class="command">
 <a name="about-numericconstants"></a>
 		<h4>Numeric Constants</h4>

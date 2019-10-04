@@ -203,6 +203,7 @@
 		</html>
 	</xsl:template>
 
+	<!-- Nested list of subsection links -->
 	<xsl:template match="section" mode="sections"><xsl:text>
 		</xsl:text><!--<xsl:if test='@subsection_of'><div class="subsection-header-spacer" /></xsl:if>-->
 		<li><a href="#{@title}"><xsl:value-of select="@title" /></a>
@@ -213,6 +214,19 @@
 		</li>
 	</xsl:template>
 
+	<!-- Nested list of subsection links and all commands there-in -->
+	<xsl:template match="section" mode="sections-and-commands"><xsl:text>
+		</xsl:text><!--<xsl:if test='@subsection_of'><div class="subsection-header-spacer" /></xsl:if>-->
+		<li><a href="#{@title}"><xsl:value-of select="@title" /></a>
+		<br/><xsl:text>
+		</xsl:text>
+		<ul><xsl:apply-templates select="command" mode="alphalist" /></ul>
+		<!-- Recurse on subsections -->
+		<ul><xsl:apply-templates select="section" mode="sections-and-commands" /></ul>
+		</li>
+	</xsl:template>
+
+	<!-- A link to a command -->
 	<xsl:template match="command" mode="alphalist"><xsl:text>
 		</xsl:text><xsl:if test='boolean(canon)'>
 			<a href="#about-{@id}"><xsl:value-of select="canon" /></a><br/>
@@ -234,12 +248,23 @@
 		<!-- <xsl:if test="parent::section"> -->
 		<!-- 	<div class="backlink">(Back to <a href="#{../@title}"><xsl:value-of select="../@title" /></a>.)</div> -->
 		<!-- </xsl:if> -->
-		<!-- Show links to subsections-->
-		<ul><xsl:apply-templates select="section" mode="sections" /></ul>
+
 		<!-- Show section description-->
-		<p><xsl:apply-templates select="description"/></p><xsl:text>
+		<p><xsl:apply-templates select="description"/></p>
+		<ul>
+			<xsl:if test="not(parent::section)">
+				<!-- Top-level section: show all subsections and commands -->
+				<xsl:apply-templates select="command" mode="alphalist" />
+				<xsl:apply-templates select="section" mode="sections-and-commands" />
+			</xsl:if>
+			<xsl:if test="parent::section">
+				<!-- Subsection: only show links to nested subsections-->
+				<xsl:apply-templates select="section" mode="sections" />
+			</xsl:if>
+		</ul>
+
 		<!-- Show commands-->
-		</xsl:text><xsl:apply-templates select="command|reference" mode="full" /><xsl:text>
+		<xsl:apply-templates select="command|reference" mode="full" /><xsl:text>
 		</xsl:text><hr></hr><xsl:text>
 		</xsl:text></div>
 		<!-- Followed by subsections (outside section div) -->
