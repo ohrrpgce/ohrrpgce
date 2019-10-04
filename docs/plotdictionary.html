@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2019-08-19)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2019-10-04)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -347,6 +347,10 @@
 </li>
 		<li>
 <a href="#Showing%20Plotstrings">Showing Plotstrings</a><br>
+		<ul></ul>
+</li>
+		<li>
+<a href="#Obsolete%20Commands">Obsolete Commands</a><br>
 		<ul></ul>
 </li>
 </ul>
@@ -5069,7 +5073,23 @@ resume player # OK, done</pre>
 <a name="about-cancelherowalk"></a>
 		<h4>cancel hero walk (who)</h4>
 <p>
-			If the specified hero is walking with a command like <a href="#about-walkhero" class="ref">walk hero</a> or pathfinding with a command like <a href="#about-pathfindheroto" class="ref">pathfind hero to</a>, they will stop. They are allowed to finish their current step, so they will not end up misaligned with the tiles.
+			
+				If the specified hero is walking with a command like <a href="#about-walkhero" class="ref">walk hero</a>
+				or pathfinding (due to a command like <a href="#about-pathfindheroto" class="ref">pathfind hero to</a>
+				or because the player clicked somewhere), they will stop.
+				They are allowed to finish their current step to the next tile,
+				so they will not end up misaligned with the tile grid.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					If you want to stop a hero immediately without letting them finish their
+					step, use <a href="#about-walkhero" class="ref">walk hero</a> with a distance of zero tiles, like:
+					<pre>cancel hero walk(who) # Cancel any pathfinding
+walk hero(who, hero direction(hero), 0)</pre>
+					This will misalign the hero with the tile grid, breaking movement and
+					wall and collision checking! You are responsible for realigning the hero
+					afterwards somehow.
+				</div>
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -5079,7 +5099,7 @@ resume player # OK, done</pre>
 <a href="#about-herochasesnpc" class="ref">hero chases NPC</a>, </li>
 <li>
 <a href="#about-walkhero" class="ref">walk hero</a>, </li>
-<li><a href="#about-cancelherowalk" class="ref">cancel hero walk</a></li>
+<li><a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a></li>
 </ul>
 </div>
 		</p>
@@ -5281,7 +5301,37 @@ resume player</pre>
 <a name="about-setherospeed"></a>
 		<h4>set hero speed (who, speed)</h4>
 <p>
-			Changes the walking speed of the specified hero. If you do not specify a speed, the hero's speed will return to the default, 4. Be careful with using speeds that do not divide evenly into 20, because tiles are 20 pixels in size, and an irregular walking speed may cause your hero to become misaligned with the tiles.
+			
+				Changes the walking speed (pixels per tick) of the specified hero, from 0 to 20.
+				<span class="param">who</span> is a caterpillar slot; use <a href="#about-me" class="ref">me</a> to refer to the leader.
+				Normally only the speed of the leader matters,
+				unless you use <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a>,
+				because the whole party moves at the leader's speed.
+				<span class="param">speed</span> defaults to 4.
+				Tiles are 20 pixels in size, and speeds that do not divide evenly or nearly
+				evenly into 20 will result in jerky movement.
+				So only use speeds 0, 1, 2, 3, 4, 5, 7, 10, or 20.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					Changes to hero speed aren't saved in saved games!
+				</div>
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					Hero speed is weird.
+					It isn't actually a property of the hero, but of the caterpillar slot.
+					So if you change the leader's speed and then a different hero is swapped
+					into the leader position, the leader (and party) speed doesn't change.
+					That's usually a good thing!
+				</div>
+				<div style="background-color:#CCB;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+					Don't set speed to zero while a hero is moving,
+					it will cause the hero to stop mid-step and become misaligned with the grid
+					and stuck.
+					Wait for the hero to stop first or check with <a href="#about-heroiswalking" class="ref">hero is walking</a>.
+					(You probably shouldn't use speed 0 at all.)
+				</div>
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getherospeed" class="ref">get hero speed</a></li></ul>
@@ -5628,8 +5678,8 @@ while (npcref) do (
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					If you want to stop an NPC immediately without letting them finish their
 					step, use <a href="#about-walknpc" class="ref">walk NPC</a> with a distance of zero tiles, like:
-					<span class="code">walk NPC(npc, NPC direction(npc), 0)</span>
-					<br>
+					<pre>cancel NPC walk(npc)  # Cancel any pathfinding
+walk NPC(npc, NPC direction(npc), 0)</pre>
 					This will misalign the NPC with the tile grid, breaking movement and
 					wall and collision checking! You are responsible for realigning the NPC
 					afterwards somehow.
@@ -5644,7 +5694,7 @@ while (npcref) do (
 <a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a>, </li>
 <li>
 <a href="#about-walknpc" class="ref">walk NPC</a>, </li>
-<li><a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a></li>
+<li><a href="#about-cancelherowalk" class="ref">cancel hero walk</a></li>
 </ul>
 </div>
 		</p>
@@ -5822,9 +5872,26 @@ while (npcref) do (
 <a name="about-setnpcspeed"></a>
 		<h4>set NPC speed (who, speed)</h4>
 <p>
-			Changes the walking speed of the specified NPC. If you do not specify a speed, the NPC's speed will return to the default, 4. Be careful with using speeds that do not divide evenly into 20, because tiles are 20 pixels in size, and an irregular walking speed may cause the NPC to become misaligned with the tiles.<br>Normally you would only give an NPC ID number to set NPC speed, but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work. Just remember that set NPC speed changes every copy of the NPC on the map, not just the specific one you referenced.
+			
+				Changes the walking speed of the specified NPC.
+				<span class="param">speed</span> defaults to 4.
+				Tiles are 20 pixels in size, and speeds that do not divide evenly or nearly
+				evenly into 20 will result in jerky movement.
+				So only use speeds 0, 1, 2, 3, 4, 5, 7, 10, or 20.
+				<br>
+				Normally you would only use an NPC ID number for <span class="param">who</span>,
+				but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work.
+				Just remember that <span class="code">set NPC speed</span> changes every copy of the NPC on the map,
+				not just the specific one you referenced.
 				<br>
 				(This is just an alias for <a href="#about-alternpc" class="ref">alter NPC</a><span class="code">(who, NPCstat:movespeed, speed)</span>).
+				<div style="background-color:#CCB;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+					Don't set speed to zero while an NPC is moving,
+					it will cause the NPC to stop mid-step and become misaligned with the grid.
+					Get all instances of the NPC to stop first and wait for them,
+					or check with <a href="#about-npciswalking" class="ref">NPC is walking</a>.
+				</div>
 			
 			
 			
@@ -10005,6 +10072,10 @@ end</pre>
 <a href="#Showing%20Plotstrings">Showing Plotstrings</a><br>
 		<ul></ul>
 </li>
+		<li>
+<a href="#Obsolete%20Commands">Obsolete Commands</a><br>
+		<ul></ul>
+</li>
 </ul>
 <p>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings variables can be displayed onscreen directly, or alternatively embedded in textboxes or displayed with text slices. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<br>
 You can set the value of a string directly with <a href="#about-__setstring__" class="ref">$id="..."</a> and append to an existing string with <a href="#about-__appendstring__" class="ref">$id+"..."</a>.
@@ -10020,78 +10091,9 @@ There is no limit on string length.<br>
 		<p><a href="#about-showstring">Defined in the Basic Display Commands section.</a></p>
 		</div>
 		<div class="command">
-<a name="about-stringtoglobals"></a>
-		<h4>string to globals (ID, starting global, length)</h4>
-<p>
-			
-				This command will fill global variables (starting with #<span class="param">starting global</span>),
-				up to <span class="param">length</span> globals, with the ascii values of the characters in string #<span class="param">ID</span>.
-				If the string is not long enough, the rest of the globals in this "field" are padded with the value 256.
-				If the string is too long, then only part of it is saved.
-				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
-					This command is deprecated.
-					The Saved Game Settings menu now has an option to store strings in saved games.
-					There is no reason to use this command in new games,
-					unless you're using <a href="#about-importglobals" class="ref">import globals</a>/<a href="#about-exportglobals" class="ref">export globals</a>.
-				</div>
-			
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-globalstostring" class="ref">globals to string</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-globalstostring"></a>
-		<h4>globals to string(ID, starting global, length)</h4>
-<p>
-			
-				This command is the opposite of <a href="#about-stringtoglobals" class="ref">string to globals</a>.
-				It will build a new string in slot #<span class="param">ID</span>,
-				using the ascii values from the global variables #<span class="param">starting global</span>
-				and <span class="param">length</span> globals thereafter.
-				Pass the same value for <span class="param">length</span> as you did to <a href="#about-stringtoglobals" class="ref">string to globals</a>
-				if you don't know the length of the string.
-				If a global has a value greater than 255, the value will be ignored.
-				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
-					This command is deprecated.
-					The Saved Game Settings menu now has an option to store strings in saved games.
-					There is no reason to use this command in new games,
-					unless you're using <a href="#about-importglobals" class="ref">import globals</a>/<a href="#about-exportglobals" class="ref">export globals</a>.
-				</div>
-			
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-stringtoglobals" class="ref">string to globals</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
 		<h4>input string (ID, maxlength, use current, center, position x, position y)</h4>
 		<p><a href="#about-inputstring">Defined in the Keyboard Input section.</a></p>
 		</div>
-		<div class="command">
-<a name="about-searchstring"></a>
-		<h4>search string (ID1, ID2, start)</h4>
-<p>
-			Searches the string for a specified string, returns the position at which the string was found. <span class="param">start</span> is the position at which you want to start looking, default is 1. <span class="param">ID1</span> is the the string you want to search, <span class="param">ID2</span> is the string expression you want to find. Returns <a href="#about-booleanconstants" class="ref">false</a> if the string wasn't found
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-<a name="about-trimstring"></a>
-		<h4>trim string (ID, start, length)</h4>
-<p>
-			Cuts the string to the specified length, OR removes blank space from the beginning and ends of the string. <span class="param">ID</span> is the string you want to be cut. If you wish to cut <span class="param">ID</span> to a certain length, you must specify <span class="param">start</span> and <span class="param">length</span>. <span class="param">start</span> is the position at which you want to start cutting, anything to the left of this number will be deleted in a string. <span class="param">length</span> is the size of the string you want to preserve, anything to the right of this number will be deleted in a string. If you leave these parameters blank, it will trim whitespace from the beginning and ends of <span class="param">ID</span>.
-			
-			
-			
-		</p>
-</div>
 		<div class="command">
 <a name="about-expandstring"></a>
 		<h4>expand string(ID, saveslot)</h4>
@@ -10156,21 +10158,6 @@ hide string (1)</pre>
 			
 			
 			
-		</p>
-</div>
-		<div class="command">
-<a name="about-appendascii"></a>
-		<h4>append ascii (ID, char)</h4>
-<p>
-			Appends the character with ASCII code 'ascii' to the string with ID #ID. The font editor lists ASCII codes. For example numbers are 48 - 57, uppercase letters are 65 - 90, lowercase letters are 97 - 122.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-stringsprintf" class="ref">string sprintf</a>, </li>
-<li><a href="#about-appendnumber" class="ref">append number</a></li>
-</ul>
-</div>
 		</p>
 </div>
 		<div class="command">
@@ -10316,6 +10303,41 @@ show string(0)</pre>
 			
 			
 			
+		</p>
+</div>
+		<div class="command">
+<a name="about-searchstring"></a>
+		<h4>search string (ID1, ID2, start)</h4>
+<p>
+			Searches the string for a specified string, returns the position at which the string was found. <span class="param">start</span> is the position at which you want to start looking, default is 1. <span class="param">ID1</span> is the the string you want to search, <span class="param">ID2</span> is the string expression you want to find. Returns <a href="#about-booleanconstants" class="ref">false</a> if the string wasn't found
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-trimstring"></a>
+		<h4>trim string (ID, start, length)</h4>
+<p>
+			Cuts the string to the specified length, OR removes blank space from the beginning and ends of the string. <span class="param">ID</span> is the string you want to be cut. If you wish to cut <span class="param">ID</span> to a certain length, you must specify <span class="param">start</span> and <span class="param">length</span>. <span class="param">start</span> is the position at which you want to start cutting, anything to the left of this number will be deleted in a string. <span class="param">length</span> is the size of the string you want to preserve, anything to the right of this number will be deleted in a string. If you leave these parameters blank, it will trim whitespace from the beginning and ends of <span class="param">ID</span>.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-appendascii"></a>
+		<h4>append ascii (ID, char)</h4>
+<p>
+			Appends the character with ASCII code 'ascii' to the string with ID #ID. The font editor lists ASCII codes. For example numbers are 48 - 57, uppercase letters are 65 - 90, lowercase letters are 97 - 122.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-stringsprintf" class="ref">string sprintf</a>, </li>
+<li><a href="#about-appendnumber" class="ref">append number</a></li>
+</ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -10575,6 +10597,66 @@ get hero name (1, find hero (leader))
 			
 			
 			
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="subsection">
+<a name="Obsolete%20Commands"></a>
+		<h3>
+<span class="backlink"><a href="#String%20Functions">String Functions</a> →
+			</span>Obsolete Commands</h3>
+		<ul></ul>
+<p></p>
+		
+		
+		<div class="command">
+<a name="about-stringtoglobals"></a>
+		<h4>string to globals (ID, starting global, length)</h4>
+<p>
+			
+				This command will fill global variables (starting with #<span class="param">starting global</span>),
+				up to <span class="param">length</span> globals, with the ascii values of the characters in string #<span class="param">ID</span>.
+				If the string is not long enough, the rest of the globals in this "field" are padded with the value 256.
+				If the string is too long, then only part of it is saved.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					This command is deprecated.
+					The Saved Game Settings menu now has an option to store strings in saved games.
+					There is no reason to use this command in new games,
+					unless you're using <a href="#about-importglobals" class="ref">import globals</a>/<a href="#about-exportglobals" class="ref">export globals</a>.
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-globalstostring" class="ref">globals to string</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-globalstostring"></a>
+		<h4>globals to string(ID, starting global, length)</h4>
+<p>
+			
+				This command is the opposite of <a href="#about-stringtoglobals" class="ref">string to globals</a>.
+				It will build a new string in slot #<span class="param">ID</span>,
+				using the ascii values from the global variables #<span class="param">starting global</span>
+				and <span class="param">length</span> globals thereafter.
+				Pass the same value for <span class="param">length</span> as you did to <a href="#about-stringtoglobals" class="ref">string to globals</a>
+				if you don't know the length of the string.
+				If a global has a value greater than 255, the value will be ignored.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					This command is deprecated.
+					The Saved Game Settings menu now has an option to store strings in saved games.
+					There is no reason to use this command in new games,
+					unless you're using <a href="#about-importglobals" class="ref">import globals</a>/<a href="#about-exportglobals" class="ref">export globals</a>.
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-stringtoglobals" class="ref">string to globals</a></li></ul>
+</div>
 		</p>
 </div>
 		<hr>
@@ -12182,7 +12264,19 @@ end
 <a name="about-freeslice"></a>
 		<h4>free slice (handle)</h4>
 <p>
-			Unloads a slice and any child slices. This works on any type of slice. This removes the slice from the screen and removes it from memory. You should free your slices after you are completely done with them.
+			
+				Deletes a slice and any child slices.
+				This works on any type of slice.
+				This removes the slice from the screen and removes it from memory.
+				You should free your slices after you are completely done with them.
+				<br>
+				Freeing the same slice handle twice shows a warning
+				(if slice error reporting is enabled, e.g. while testing your game).
+				However, <span class="code">free slice (0)</span> is fine.
+				It's good practice to set a variable containing a slice handle to 0
+				after you free it, so that the script can test whether the slice
+				exists or not. (<a href="#about-sliceisvalid" class="ref">slice is valid</a> is not reliable.)
+			
 			
 			<pre>
 script, simple example, begin

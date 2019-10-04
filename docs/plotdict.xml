@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2019-08-19">
+<plotscript version="wip" datecode="2019-10-04">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -4371,44 +4371,14 @@ There is no limit on string length.<lb/>
 <note>Strings are not saved in saved games by default, but this can be enabled in the Saved Game Settings menu.</note></description>
 
 		<reference ref="showstring" />
-		<command id="stringtoglobals">
-			<canon>string to globals (ID, starting global, length)</canon>
-			<shortname>string to globals</shortname>
-			<description>
-				This command will fill global variables (starting with #<p>starting global</p>),
-				up to <p>length</p> globals, with the ascii values of the characters in string #<p>ID</p>.
-				If the string is not long enough, the rest of the globals in this "field" are padded with the value 256.
-				If the string is too long, then only part of it is saved.
-				<note>
-					This command is deprecated.
-					The Saved Game Settings menu now has an option to store strings in saved games.
-					There is no reason to use this command in new games,
-					unless you're using <ref>importglobals</ref>/<ref>exportglobals</ref>.
-				</note>
-			</description>
-			<seealso><ref>globalstostring</ref></seealso>
-		</command>
-		<command id="globalstostring">
-			<canon>globals to string(ID, starting global, length)</canon>
-			<shortname>globals to string</shortname>
-			<description>
-				This command is the opposite of <ref>stringtoglobals</ref>.
-				It will build a new string in slot #<p>ID</p>,
-				using the ascii values from the global variables #<p>starting global</p>
-				and <p>length</p> globals thereafter.
-				Pass the same value for <p>length</p> as you did to <ref>stringtoglobals</ref>
-				if you don't know the length of the string.
-				If a global has a value greater than 255, the value will be ignored.
-				<note>
-					This command is deprecated.
-					The Saved Game Settings menu now has an option to store strings in saved games.
-					There is no reason to use this command in new games,
-					unless you're using <ref>importglobals</ref>/<ref>exportglobals</ref>.
-				</note>
-			</description>
-			<seealso><ref>stringtoglobals</ref></seealso>
-		</command>
 		<reference ref="inputstring" />
+
+
+		<command id="expandstring">
+			<canon>expand string(ID, saveslot)</canon>
+			<shortname>expand string</shortname>
+			<description>Expands codes in <p>ID</p> such as ${H1}. This does the same thing that textboxes do automatically. The <p>saveslot</p> argument is optional. If you leave it out, the string's codes will be expanded based on the currently running game state. If you specify a save slot number from 1-1000 then the string will be expanded based on hero names, variables, and strings in that save slot.</description>
+		</command>
 
 		<section title="Basic String Commands">
 		<command id="__setstring__">
@@ -4441,15 +4411,6 @@ hide string (1)</example>
 			<canon>clear string(ID)</canon>
 			<shortname>clear string</shortname>
 			<description>Erases the string buffer #ID to the empty string (""). That's all.</description>
-		</command>
-		<command id="appendascii">
-			<canon>append ascii (ID, char)</canon>
-			<shortname>append ascii</shortname>
-			<description>Appends the character with ASCII code 'ascii' to the string with ID #ID. The font editor lists ASCII codes. For example numbers are 48 - 57, uppercase letters are 65 - 90, lowercase letters are 97 - 122.</description>
-			<seealso>
-				<ref>stringsprintf</ref>
-				<ref>appendnumber</ref>
-			</seealso>
 		</command>
 		<command id="appendnumber">
 			<canon>append number (ID, number, min length, pad with zeros)</canon>
@@ -4560,6 +4521,27 @@ show string(0)</example>
 			<canon>string compare (ID1, ID2)</canon>
 			<shortname>string compare</shortname>
 			<description>Returns true if the two strings #<p>ID1</p> and #<p>ID2</p> are identical, case sensitive.</description>
+		</command>
+
+		<command id="searchstring">
+			<canon>search string (ID1, ID2, start)</canon>
+			<shortname>search string</shortname>
+			<description>Searches the string for a specified string, returns the position at which the string was found. <p>start</p> is the position at which you want to start looking, default is 1. <p>ID1</p> is the the string you want to search, <p>ID2</p> is the string expression you want to find. Returns <ref>false</ref> if the string wasn't found</description>
+		</command>
+		<command id="trimstring">
+			<canon>trim string (ID, start, length)</canon>
+			<shortname>trim string</shortname>
+			<description>Cuts the string to the specified length, OR removes blank space from the beginning and ends of the string. <p>ID</p> is the string you want to be cut. If you wish to cut <p>ID</p> to a certain length, you must specify <p>start</p> and <p>length</p>. <p>start</p> is the position at which you want to start cutting, anything to the left of this number will be deleted in a string. <p>length</p> is the size of the string you want to preserve, anything to the right of this number will be deleted in a string. If you leave these parameters blank, it will trim whitespace from the beginning and ends of <p>ID</p>.</description>
+		</command>
+
+		<command id="appendascii">
+			<canon>append ascii (ID, char)</canon>
+			<shortname>append ascii</shortname>
+			<description>Appends the character with ASCII code 'ascii' to the string with ID #ID. The font editor lists ASCII codes. For example numbers are 48 - 57, uppercase letters are 65 - 90, lowercase letters are 97 - 122.</description>
+			<seealso>
+				<ref>stringsprintf</ref>
+				<ref>appendnumber</ref>
+			</seealso>
 		</command>
 		<command id="replacechar">
 			<canon>replace char (ID, position, char)</canon>
@@ -4694,24 +4676,50 @@ get hero name (1, find hero (leader))
 			<description>Returns the vertical Y position of the top left corner of string #<p>ID</p></description>
 		</command>
 
-		</section>
+		</section>   <!-- Basic string commands -->
 
-		<command id="searchstring">
-			<canon>search string (ID1, ID2, start)</canon>
-			<shortname>search string</shortname>
-			<description>Searches the string for a specified string, returns the position at which the string was found. <p>start</p> is the position at which you want to start looking, default is 1. <p>ID1</p> is the the string you want to search, <p>ID2</p> is the string expression you want to find. Returns <ref>false</ref> if the string wasn't found</description>
+		<section title="Obsolete Commands">
+
+		<command id="stringtoglobals">
+			<canon>string to globals (ID, starting global, length)</canon>
+			<shortname>string to globals</shortname>
+			<description>
+				This command will fill global variables (starting with #<p>starting global</p>),
+				up to <p>length</p> globals, with the ascii values of the characters in string #<p>ID</p>.
+				If the string is not long enough, the rest of the globals in this "field" are padded with the value 256.
+				If the string is too long, then only part of it is saved.
+				<note>
+					This command is deprecated.
+					The Saved Game Settings menu now has an option to store strings in saved games.
+					There is no reason to use this command in new games,
+					unless you're using <ref>importglobals</ref>/<ref>exportglobals</ref>.
+				</note>
+			</description>
+			<seealso><ref>globalstostring</ref></seealso>
 		</command>
-		<command id="trimstring">
-			<canon>trim string (ID, start, length)</canon>
-			<shortname>trim string</shortname>
-			<description>Cuts the string to the specified length, OR removes blank space from the beginning and ends of the string. <p>ID</p> is the string you want to be cut. If you wish to cut <p>ID</p> to a certain length, you must specify <p>start</p> and <p>length</p>. <p>start</p> is the position at which you want to start cutting, anything to the left of this number will be deleted in a string. <p>length</p> is the size of the string you want to preserve, anything to the right of this number will be deleted in a string. If you leave these parameters blank, it will trim whitespace from the beginning and ends of <p>ID</p>.</description>
+		<command id="globalstostring">
+			<canon>globals to string(ID, starting global, length)</canon>
+			<shortname>globals to string</shortname>
+			<description>
+				This command is the opposite of <ref>stringtoglobals</ref>.
+				It will build a new string in slot #<p>ID</p>,
+				using the ascii values from the global variables #<p>starting global</p>
+				and <p>length</p> globals thereafter.
+				Pass the same value for <p>length</p> as you did to <ref>stringtoglobals</ref>
+				if you don't know the length of the string.
+				If a global has a value greater than 255, the value will be ignored.
+				<note>
+					This command is deprecated.
+					The Saved Game Settings menu now has an option to store strings in saved games.
+					There is no reason to use this command in new games,
+					unless you're using <ref>importglobals</ref>/<ref>exportglobals</ref>.
+				</note>
+			</description>
+			<seealso><ref>stringtoglobals</ref></seealso>
 		</command>
 
-		<command id="expandstring">
-			<canon>expand string(ID, saveslot)</canon>
-			<shortname>expand string</shortname>
-			<description>Expands codes in <p>ID</p> such as ${H1}. This does the same thing that textboxes do automatically. The <p>saveslot</p> argument is optional. If you leave it out, the string's codes will be expanded based on the currently running game state. If you specify a save slot number from 1-1000 then the string will be expanded based on hero names, variables, and strings in that save slot.</description>
-		</command>
+		</section>     <!-- Obsolete Commands -->
+
 	</section>
 
 	<section title="Menu Functions">
