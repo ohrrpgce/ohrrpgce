@@ -15,7 +15,6 @@
 'basic subs and functions
 DECLARE FUNCTION editstr (stri as string, key as string, byref cur as integer, byref max as integer, byref number as integer) as string
 DECLARE SUB fatalcleanup ()
-DECLARE FUNCTION checkpassword (pass as string) as integer
 
 cleanup_function = @fatalcleanup
 
@@ -39,7 +38,6 @@ SUB showusage ()
  PRINT "A utility to extract the contents of an RPG file or other lumped"
  PRINT "file to a directory so that advanced users can hack the delicious"
  PRINT "morsels inside."
- PRINT "If a password is required, you will be prompted to enter it."
  PRINT ""
  PRINT "syntax:"
  PRINT "  unlump [-v] [--recover] filename.rpg [directory]"
@@ -115,7 +113,6 @@ createddir = -1
 IF NOT isdir(dest) THEN fatalerror "unable to create destination directory `" + dest + "'"
 
 IF recover THEN
- ' We skip checking the password, but who cares?
  recover_lumped_file lumped, dest + SLASH
  SYSTEM
 END IF
@@ -147,38 +144,7 @@ xbload dest + SLASH + game + ".gen", gen(), "unable to open general data"
 
 killfile dest + SLASH + game + ".gen"
 
-DIM passokay as integer = -1
-
-IF checkpassword("") = 0 THEN
- passokay = 0
- '-----get inputed password-----
- print "Password Required"
- DIM pas as string = ""
- DIM w as string
- DO
-  w = readkey
-  IF w = CHR(13) THEN
-   PRINT ""
-   IF checkpassword(pas) = 0 THEN fatalerror "password mismatch"
-   passokay = -1
-   EXIT DO
-  END IF
-  LOCATE , 1
-  FOR i as integer = 1 TO LEN(pas)
-   PRINT " "; 
-  NEXT i
-  pas = editstr(pas, w, cur, 17, 0)
-  LOCATE , 1
-  FOR i as integer = 1 TO LEN(pas)
-   PRINT "*"; 
-  NEXT i
-  sleep 80,1
- LOOP
-END IF
-
-IF passokay THEN
- unlump lumped, dest + SLASH, YES, verbose
-END IF
+unlump lumped, dest + SLASH, YES, verbose
 
 CHDIR olddir
 PRINT "Done."
@@ -214,7 +180,6 @@ END SELECT
 
 RETURN pre + post
 
-
 END FUNCTION
 
 SUB fatalcleanup ()
@@ -223,80 +188,3 @@ SUB fatalcleanup ()
  IF createddir THEN killdir dest
  SYSTEM
 END SUB
-
-FUNCTION passwordhash (p as string) as ushort
- 'Just a simple stupid 9-bit hash.
- 'The idea is just to make the password unretrieveable, without using a cryptographic hash.
- IF p = "" THEN RETURN 0
- DIM hash as ushort
- FOR i as integer = 0 TO LEN(p) - 1
-  hash = hash * 3 + p[i] * 31
- NEXT
- RETURN (hash AND 511) OR 512  'Never return 0
-END FUNCTION
-
-'Read old-old-old password (very similar to PW3)
-FUNCTION read_PW1_password () as string
- DIM rpas as string
- FOR i as integer = 1 TO gen(genPW1Length)
-  IF gen(4 + i) >= 0 AND gen(4 + i) <= 255 THEN
-   rpas &= CHR(POSMOD(gen(4 + i) - gen(genPW1Offset), 256))
-  END IF
- NEXT i
- RETURN rpas
-END FUNCTION
-
-'Read old-old scattertable password format
-FUNCTION read_PW2_password () as string
- DIM stray(10) as integer
- DIM pass as string = STRING(20, "!")
-
- FOR i as integer = 0 TO gen(genPW2Length)
-  setbit stray(), 0, i, readbit(gen(), 200 - 1, gen(200 + i))
- NEXT i
-
- array2str stray(), 0, pass
- pass = LEFT(pass, INT((gen(genPW2Length) + 1) / 8))
-
- RETURN rotascii(pass, gen(genPW2Offset) * -1)
-END FUNCTION
-
-FUNCTION read_PW3_password () as string
- '--read a 17-byte string from GEN at word offset 7
- '--(Note that array2str uses the byte offset not the word offset)
- DIM pass as STRING
- pass = STRING(17, 0)
- array2str gen(), 14, pass
-
- '--reverse ascii rotation / weak obfuscation
- pass = rotascii(pass, gen(genPW3Rot) * -1)
-
- '-- discard ascii chars lower than 32
- DIM pass2 as string = ""
- FOR i as integer = 1 TO 17
-  DIM c as string = MID(pass, i, 1)
-  IF ASC(c) >= 32 THEN pass2 += c
- NEXT i
-
- RETURN pass2
-END FUNCTION
-
-'Return true if it passes.
-'Supports all password formats, because this is called before upgrade
-FUNCTION checkpassword (pass as string) as integer
- IF gen(genPassVersion) > 257 THEN
-  'Please let this never happen
-  RETURN NO
- ELSEIF gen(genPassVersion) = 257 THEN
-  RETURN (passwordhash(pass) = gen(genPW4Hash))
- ELSEIF gen(genPassVersion) = 256 THEN
-  '--new format password
-  RETURN (pass = read_PW3_password)
- ELSEIF gen(genVersion) >= 3 THEN
-  '--old scattertable format
-  RETURN (pass = read_PW2_password)
- ELSE
-  '--ancient format
-  RETURN (pass = read_PW1_password)
- END IF
-END FUNCTION

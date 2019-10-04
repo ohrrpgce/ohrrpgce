@@ -184,6 +184,7 @@ Septemtober ? 2019 [Fufluns]
     * Can import .wav files as music
     * You can activate NPCs while holding down an arrow key [Ralph]
     * "free slice(0)" no longer shows a warning
+    * unlump no longer asks for game password
 
   * Bugfixes
     * Fix a major memory leak while recording .gifs [Ralph]
