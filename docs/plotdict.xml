@@ -4557,10 +4557,15 @@ show string(0)</example>
 			<description>
 				Replace occurrences in string ID <p>in string</p> of a substring (ID <p>replace what</p>)
 				with a different string (ID <p>with what</p>).
-				By default, replaces all occurrences of <p>replace what</p>,
+				<lb/>
+				By default, replaces all occurrences of <tt>replace what</tt>,
 				but optionally you can limit the number of times to do the replacement by passing <p>max replacements</p>;
 				there's no limit if it's &lt; 0.
 				Inserted text is not eligible for further replacements (see examples).
+				<lb/>
+				If you pass <tt>true</tt> as the optional argument <p>case insensitive</p> (which defaults to false),
+				then the search for <tt>replace what</tt> is case-insensitive.
+				For example, "hi" matches "hi", "Hi", "HI" and "hI".
 				<lb/>
 				Returns the number of replacements done.
 			</description>

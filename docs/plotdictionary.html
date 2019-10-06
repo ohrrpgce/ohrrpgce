@@ -11566,10 +11566,15 @@ show string(0)</pre>
 			
 				Replace occurrences in string ID <span class="param">in string</span> of a substring (ID <span class="param">replace what</span>)
 				with a different string (ID <span class="param">with what</span>).
-				By default, replaces all occurrences of <span class="param">replace what</span>,
+				<br>
+				By default, replaces all occurrences of <span class="code">replace what</span>,
 				but optionally you can limit the number of times to do the replacement by passing <span class="param">max replacements</span>;
 				there's no limit if it's &lt; 0.
 				Inserted text is not eligible for further replacements (see examples).
+				<br>
+				If you pass <span class="code">true</span> as the optional argument <span class="param">case insensitive</span> (which defaults to false),
+				then the search for <span class="code">replace what</span> is case-insensitive.
+				For example, "hi" matches "hi", "Hi", "HI" and "hI".
 				<br>
 				Returns the number of replacements done.
 			
