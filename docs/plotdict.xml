@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2019-10-04">
+<plotscript version="wip" datecode="2019-10-06">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -4549,6 +4549,34 @@ show string(0)</example>
 			<canon>trim string (ID, start, length)</canon>
 			<shortname>trim string</shortname>
 			<description>Cuts the string to the specified length, OR removes blank space from the beginning and ends of the string. <p>ID</p> is the string you want to be cut. If you wish to cut <p>ID</p> to a certain length, you must specify <p>start</p> and <p>length</p>. <p>start</p> is the position at which you want to start cutting, anything to the left of this number will be deleted in a string. <p>length</p> is the size of the string you want to preserve, anything to the right of this number will be deleted in a string. If you leave these parameters blank, it will trim whitespace from the beginning and ends of <p>ID</p>.</description>
+		</command>
+
+		<command id="replacesubstring">
+			<canon>replace substring (in string, replace what, with what, max replacements, case insensitive)</canon>
+			<shortname>replace substring</shortname>
+			<description>
+				Replace occurrences in string ID <p>in string</p> of a substring (ID <p>replace what</p>)
+				with a different string (ID <p>with what</p>).
+				By default, replaces all occurrences of <p>replace what</p>,
+				but optionally you can limit the number of times to do the replacement by passing <p>max replacements</p>;
+				there's no limit if it's &lt; 0.
+				Inserted text is not eligible for further replacements (see examples).
+				<lb/>
+				Returns the number of replacements done.
+			</description>
+			<example>$1 = "This is an example of replace substring"
+# Shows '2'
+show value (replace substring (1, $2="is", $3="iiss"))
+wait for key
+# Note that although "iiss" contains "is", it isn't replaced again with "iiisss"
+show string (1)  # "Thiiss iiss an example of replace substring"
+wait for key
+
+$1 = "AaabaAaa"
+replace substring (1, $2="AA", $3="CA", 2, true)  # Do only 2 replacements, case insensitively
+# Again, Aaab becomes CAab but the new Aa isn't replaced, because part of it was a replacement
+show string (1)  # "CAabCAaa"
+</example>
 		</command>
 
 		<command id="appendascii">

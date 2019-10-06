@@ -929,7 +929,7 @@ END FUNCTION
 
 'Replace occurrences of a substring with the result of replacefun. Modifies 'buffer'!
 'Returns the number of replacements done. Inserted text is not eligible for further replacements.
-'Optionally limit the number of times to do with replacement by passing maxtimes; no limit if < 0
+'Optionally limit the number of times to do the replacement by passing maxtimes; no limit if < 0
 FUNCTION replacestr (byref buffer as string, replacewhat as string, replacefunc as FnReplacement, arg as any ptr, maxtimes as integer = -1, caseinsensitive as bool = NO) as integer
  DIM pt as integer
  DIM count as integer

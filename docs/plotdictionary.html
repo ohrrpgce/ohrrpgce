@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2019-10-04)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2019-10-06)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -2213,6 +2213,9 @@
 		<a href="#about-replacesprite">replace sprite (slice, sprite type, num, palette)</a><br>
 		
 	
+		<a href="#about-replacesubstring">replace substring (in string, replace what, with what, max replacements, case insensitive)</a><br>
+		
+	
 		<a href="#about-replacewalkaboutsprite">replace walkabout sprite (handle, num, palette)</a><br>
 		
 	
@@ -3059,7 +3062,10 @@
 		<a href="#about-stringcolor">string color (ID, foreground color, background color)</a><br>
 		
 	
-		<a href="#about-stringcompare">string compare (ID1, ID2)</a><br>
+		
+		<a href="#about-stringequal">string compare</a><br>
+	
+		<a href="#about-stringequal">string equal (ID1, ID2)</a><br>
 		
 	
 		<a href="#about-stringfromtextbox">string from textbox (ID, textbox, line, ignored)</a><br>
@@ -11211,13 +11217,19 @@ There is no limit on string length.<br>
 		<a href="#about-stringlength">string length (ID)</a><br>
 		
 	
-		<a href="#about-stringcompare">string compare (ID1, ID2)</a><br>
+		<a href="#about-stringequal">string equal (ID1, ID2)</a><br>
 		
+	
+		
+		<a href="#about-stringequal">string compare</a><br>
 	
 		<a href="#about-searchstring">search string (ID1, ID2, start)</a><br>
 		
 	
 		<a href="#about-trimstring">trim string (ID, start, length)</a><br>
+		
+	
+		<a href="#about-replacesubstring">replace substring (in string, replace what, with what, max replacements, case insensitive)</a><br>
 		
 	
 		<a href="#about-appendascii">append ascii (ID, char)</a><br>
@@ -11512,8 +11524,8 @@ show string(0)</pre>
 		</p>
 </div>
 		<div class="command">
-<a name="about-stringcompare"></a>
-		<h4>string compare (ID1, ID2)</h4>
+<a name="about-stringequal"></a>
+		<h4>string equal (ID1, ID2)</h4>
 <p>
 			Returns true if the two strings #<span class="param">ID1</span> and #<span class="param">ID2</span> are identical, case sensitive.
 			
@@ -11521,6 +11533,12 @@ show string(0)</pre>
 			
 		</p>
 </div>
+		<div class="command">
+<a name="about-stringcompare"></a>
+		
+				<h4>string compare</h4>
+				See <a href="#about-stringequal">string equal</a>
+			</div>
 		<div class="command">
 <a name="about-searchstring"></a>
 		<h4>search string (ID1, ID2, start)</h4>
@@ -11538,6 +11556,37 @@ show string(0)</pre>
 			Cuts the string to the specified length, OR removes blank space from the beginning and ends of the string. <span class="param">ID</span> is the string you want to be cut. If you wish to cut <span class="param">ID</span> to a certain length, you must specify <span class="param">start</span> and <span class="param">length</span>. <span class="param">start</span> is the position at which you want to start cutting, anything to the left of this number will be deleted in a string. <span class="param">length</span> is the size of the string you want to preserve, anything to the right of this number will be deleted in a string. If you leave these parameters blank, it will trim whitespace from the beginning and ends of <span class="param">ID</span>.
 			
 			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-replacesubstring"></a>
+		<h4>replace substring (in string, replace what, with what, max replacements, case insensitive)</h4>
+<p>
+			
+				Replace occurrences in string ID <span class="param">in string</span> of a substring (ID <span class="param">replace what</span>)
+				with a different string (ID <span class="param">with what</span>).
+				By default, replaces all occurrences of <span class="param">replace what</span>,
+				but optionally you can limit the number of times to do the replacement by passing <span class="param">max replacements</span>;
+				there's no limit if it's &lt; 0.
+				Inserted text is not eligible for further replacements (see examples).
+				<br>
+				Returns the number of replacements done.
+			
+			
+			<pre>$1 = "This is an example of replace substring"
+# Shows '2'
+show value (replace substring (1, $2="is", $3="iiss"))
+wait for key
+# Note that although "iiss" contains "is", it isn't replaced again with "iiisss"
+show string (1)  # "Thiiss iiss an example of replace substring"
+wait for key
+
+$1 = "AaabaAaa"
+replace substring (1, $2="AA", $3="CA", 2, true)  # Do only 2 replacements, case insensitively
+# Again, Aaab becomes CAab but the new Aa isn't replaced, because part of it was a replacement
+show string (1)  # "CAabCAaa"
+</pre>
 			
 		</p>
 </div>
@@ -23141,7 +23190,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 873 commands (of which 49 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 875 commands (of which 50 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

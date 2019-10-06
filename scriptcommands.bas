@@ -4725,6 +4725,12 @@ SUB script_functions(byval cmdid as integer)
   IF valid_menu_handle(retvals(0), menuslot) THEN
    scriptret = count_visible_menu_items(menus(menuslot))
   END IF
+ CASE 690 '-- replace substring (in string ID, replace what ID, with what ID, max replacements, case insensitive)
+  IF valid_plotstr(retvals(0), serrBadOp) ANDALSO _
+     valid_plotstr(retvals(1), serrBadOp) ANDALSO _
+     valid_plotstr(retvals(2), serrBadOp) THEN
+   scriptret = replacestr(plotstr(retvals(0)).s, plotstr(retvals(1)).s, plotstr(retvals(2)).s, retvals(3), (retvals(4) <> 0))
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

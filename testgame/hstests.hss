@@ -340,6 +340,23 @@ script, string tests, begin
   append number(2, 65, -4, true) , $3="65  ", assert(check())
   append number(2, -65, -4)      , $3="-65 ", assert(check())
   append number(2, -65, -4)      , $3="-65 ", assert(check())
+
+  # replace substring
+
+  $1 = "This is an example of replace substring"
+  assert(replace substring (1, $2="is", $3="iiss") == 2)
+  # Note that although "example" contains "exampl", it isn't replaced again with "examplee"
+  assert(string equal(1, $4="Thiiss iiss an example of replace substring"))
+
+  $1 = "AAABaaAA"
+  assert(replace substring (1, $2="AA", $3="CA", 2) == 2)  # Do only 2 replacements
+  # Again, Aaab becomes CAab but the new Aa isn't replaced, because part of it was a replacement
+  assert(string equal(1, $4="CAABaaCA"))
+
+  $1 = "AaabaAaa"
+  assert(replace substring (1, $2="AA", $3="CA", -1, true) == 3) # Case insensitive
+  assert(string equal(1, $4="CAabCACA"))
+
 end
 
 ########################################################################
