@@ -18,6 +18,10 @@ svn cleanup
 svn update | tee nightly-temp.txt || exit 1
 UPDATE=`grep "Updated to revision" nightly-temp.txt`
 rm nightly-temp.txt
+if [ "$1" = "--force" ] ; then
+  echo "Forcing a build, even if nothing has changed..."
+  UPDATE="forced"
+fi
 
 if [ -z "$UPDATE" ] ; then
   echo No changes, no need to update nightly.
