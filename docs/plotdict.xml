@@ -4530,10 +4530,14 @@ show string(0)</example>
 			<shortname>string length</shortname>
 			<description>Returns the length of string #<p>ID</p>.</description>
 		</command>
-		<command id="stringcompare">
-			<canon>string compare (ID1, ID2)</canon>
-			<shortname>string compare</shortname>
+		<command id="stringequal">
+			<canon>string equal (ID1, ID2)</canon>
+			<shortname>string equal</shortname>
 			<description>Returns true if the two strings #<p>ID1</p> and #<p>ID2</p> are identical, case sensitive.</description>
+		</command>
+		<command id="stringcompare">
+			<alias>stringequal</alias>
+			<shortname>string compare</shortname>
 		</command>
 
 		<command id="searchstring">
