@@ -6111,6 +6111,7 @@ SUB setup_sprite_sizes ()
   .size.y = 16
   .frames = 1
   .directions = 1
+  .paletted = YES  'Note this doesn't apply when using SetSpriteToFrame
   .genmax = -1
  END WITH
  WITH sprite_sizes(sprTypeHero)  '0
@@ -6119,6 +6120,7 @@ SUB setup_sprite_sizes ()
   .size.y = 40
   .frames = 8
   .directions = 4
+  .paletted = YES
   .genmax = genMaxHeroPic
  END WITH
  WITH sprite_sizes(sprTypeSmallEnemy)  '1
@@ -6127,6 +6129,7 @@ SUB setup_sprite_sizes ()
   .size.y = 34
   .frames = 1
   .directions = 1
+  .paletted = YES
   .genmax = genMaxEnemy1Pic
  END WITH
  WITH sprite_sizes(sprTypeMediumEnemy)  '2
@@ -6135,6 +6138,7 @@ SUB setup_sprite_sizes ()
   .size.y = 50
   .frames = 1
   .directions = 1
+  .paletted = YES
   .genmax = genMaxEnemy2Pic
  END WITH
  WITH sprite_sizes(sprTypeLargeEnemy)  '3
@@ -6143,6 +6147,7 @@ SUB setup_sprite_sizes ()
   .size.y = 80
   .frames = 1
   .directions = 1
+  .paletted = YES
   .genmax = genMaxEnemy3Pic
  END WITH
  WITH sprite_sizes(sprTypeWalkabout)  '4
@@ -6151,6 +6156,7 @@ SUB setup_sprite_sizes ()
   .size.y = 20
   .frames = 8
   .directions = 4
+  .paletted = YES
   .genmax = genMaxNPCPic
  END WITH
  WITH sprite_sizes(sprTypeWeapon)  '5
@@ -6159,6 +6165,7 @@ SUB setup_sprite_sizes ()
   .size.y = 24
   .frames = 2
   .directions = 1
+  .paletted = YES
   .genmax = genMaxWeaponPic
  END WITH
  WITH sprite_sizes(sprTypeAttack)  '6
@@ -6167,6 +6174,7 @@ SUB setup_sprite_sizes ()
   .size.y = 50
   .frames = 3
   .directions = 1
+  .paletted = YES
   .genmax = genMaxAttackPic
  END WITH
  WITH sprite_sizes(sprTypeBoxBorder)  '7
@@ -6176,6 +6184,7 @@ SUB setup_sprite_sizes ()
   .fixed_size = YES
   .frames = 16
   .directions = 1
+  .paletted = YES
   .genmax = genMaxBoxBorder
  END WITH
  WITH sprite_sizes(sprTypePortrait)  '8
@@ -6184,6 +6193,7 @@ SUB setup_sprite_sizes ()
   .size.y = 50
   .frames = 1
   .directions = 1
+  .paletted = YES
   .genmax = genMaxPortrait
  END WITH
  WITH sprite_sizes(sprTypeBackdrop)  '9
@@ -6192,6 +6202,7 @@ SUB setup_sprite_sizes ()
   .size.y = 200
   .frames = 1
   .directions = 1
+  .paletted = NO
   .genmax = genNumBackdrops
   .genmax_offset = -1
  END WITH
@@ -6201,6 +6212,7 @@ SUB setup_sprite_sizes ()
   .size.y = 50
   .frames = 1
   .directions = 1
+  .paletted = YES
   .genmax = genMaxEnemyPic
  END WITH
  WITH sprite_sizes(sprTypeTileset)  '11
@@ -6210,6 +6222,7 @@ SUB setup_sprite_sizes ()
   .fixed_size = YES
   .frames = 1
   .directions = 1
+  .paletted = NO
   .genmax = genMaxTile
  END WITH
  WITH sprite_sizes(sprTypeTilesetStrip)  '12
@@ -6219,18 +6232,19 @@ SUB setup_sprite_sizes ()
   .fixed_size = YES
   .frames = 1
   .directions = 1
+  .paletted = NO
   .genmax = genMaxTile
  END WITH
 END SUB
 
 SUB load_sprite_and_pal (byref img as GraphicPair, byval spritetype as SpriteType, byval index as integer, byval palnum as integer=-1)
  unload_sprite_and_pal img
- IF spritetype = sprTypeBackdrop THEN
+ IF spritetype >= sprTypeFirstLoadable ANDALSO spritetype <= sprTypeLastLoadable THEN
   img.sprite = frame_load(spritetype, index)
- ELSEIF spritetype >= 0 AND spritetype <= sprTypeLastLoadable THEN
-  img.sprite = frame_load(spritetype, index)
-  IF spritetype <> sprTypeTileset AND spritetype <> sprTypeTilesetStrip THEN
+  IF sprite_sizes(spritetype).paletted THEN
    img.pal    = palette16_load(palnum, spritetype, index)
+  ELSEIF palnum <> -1 THEN
+   debug "load_sprite_and_pal: spritetype " & spritetype & " with pal " & palnum
   END IF
  ELSE
   debug "load_sprite_and_pal: bad spritetype " & spritetype & " (index " & index & " pal " & palnum & ")"

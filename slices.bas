@@ -2135,7 +2135,7 @@ Sub LoadSpriteSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
   reporterr "LoadSpriteSlice: Unknown type " & dat->spritetype, serrError
  end if
  dat->record     = LoadProp(node, "rec")
- dat->paletted   = (dat->spritetype <> sprTypeBackdrop)
+ dat->paletted   = sprite_sizes(dat->spritetype).paletted
  dat->pal        = LoadProp(node, "pal", -1)
  dat->frame      = LoadProp(node, "frame")
  dat->flipHoriz  = LoadProp(node, "fliph")
@@ -2198,7 +2198,7 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
  with *sl->SpriteData
   if spritetype <> sprTypeInvalid then
    ' This should never happen
-   if spritetype < 0 or sprTypeFirst > sprTypeLastLoadable then reporterr "Invalid sprite type " & spritetype, serrBug : exit sub
+   if spritetype < sprTypeFirstLoadable or sprTypeFirst > sprTypeLastLoadable then reporterr "Invalid sprite type " & spritetype, serrBug : exit sub
    .spritetype = spritetype
    .loaded = NO
   end if
@@ -2234,7 +2234,7 @@ Sub SpriteSliceUpdate(sl as Slice ptr)
  end if
 
  with *sl->SpriteData
-  .paletted = (.spritetype <> sprTypeBackdrop)
+  .paletted = sprite_sizes(.spritetype).paletted   'Note this doesn't apply when using SetSpriteToFrame
   if .spritetype = sprTypeFrame then
    ' Aside from reloading if edited, .assetfile is initially NULL
    ' when switching to sprTypeFrame, so needs to be initialised to "".

@@ -1089,6 +1089,7 @@ TYPE SpriteSize
  fixed_size as bool        'Sizes other than the default not allowed
  frames as integer
  directions as integer
+ paletted as bool          'Whether it should use a Palette16
  genmax as integer         'Offset in gen() where max record index is stored
  genmax_offset as integer  'if gen() actually stores num instead of max, this is -1
  DECLARE FUNCTION lastrec() as integer  'Max valid record number
