@@ -44,7 +44,7 @@ SCRIPTDIR="${0%/*}"
 cd "${SCRIPTDIR}"
 cd ..
 
-scons fbc="${FBCARM}" debug=0 android-source=1 game
+scons fbc="${FBCARM}" release=1 android-source=1 game
 cd "${PROJDIR}"
 git checkout "${BRANCHBASE}"
 git checkout "${BRANCHBASE}"_"${BRANCHSUFFIX}"
