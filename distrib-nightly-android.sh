@@ -2,6 +2,9 @@
 
 FORCE=false
 UPLOAD=true
+
+# NOTE: "both" means compile two apks, one 32 bit and one 64 bit
+# We do not yet have the ability to compile multi-arch
 ARCH=both
 
 POSITIONAL=()
@@ -31,6 +34,22 @@ do
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
+case $ARCH in
+  32)
+    ARCHLIST=( 32 )
+    ;;
+  64)
+    ARCHLIST=( 64 )
+    ;;
+  both)
+    ARCHLIST=( 32 64 )
+    ;;
+  *)
+    echo "Valid values for the --arch argument are '32' '64' and 'both'"
+    exit 1
+    ;;
+esac
+
 if [ ! -f "${FBCARM}" ] ; then
   echo "The FBCARM env variable should point to the fbc compiler for arm"
   exit 1
@@ -42,6 +61,23 @@ if [ ! -d "${SDLANDROID}" ] ; then
 fi
 
 SCRIPTDIR="${0%/*}"
+
+for CUR_ARCH in ${ARCHLIST[@]} ; do
+
+case $CUR_ARCH in
+  32)
+    ARCHARGS=""
+    ARCHSUFFIX=""
+    ;;
+  64)
+    ARCHARGS="arch=arm64"
+    ARCHSUFFIX="_arm64"
+    ;;
+  *)
+    echo "Invalid CUR_ARCH $CUR_ARCH"
+    exit 1
+    ;;
+esac
 
 cd "${SCRIPTDIR}"
 
@@ -59,7 +95,8 @@ if [ -z "$UPDATE" ] ; then
   exit
 fi
 
-scons fbc="${FBCARM}" release=1 android-source=1 game
+rm -Rf "{$SDLANDROID}"/project/obj/local/*
+scons fbc="${FBCARM}" release=1 android-source=1 "${ARCH_ARGS}" game
 cd "${SDLANDROID}"/project/jni/application
 
 # Make sure we are on the ohrrpgce branch
@@ -72,12 +109,16 @@ ln -s ohrrpgce src
 cd "${SDLANDROID}"
 rm project/bin/MainActivity-debug.apk
 ./build.sh
+if [ ! -f project/bin/MainActivity-debug.apk ] ; then
+  echo "Failed to build Android apk for arch $CUR_ARCH"
+  exit 1
+fi
 
 if [ "$UPLOAD" = "false" ] ; then
   echo "skipping upload."
-  exit
+  continue
 fi
+scp -pr project/bin/MainActivity-debug.apk james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-game-android-debug"${ARCHSUFFIX}".apk
 
-if [ -f project/bin/MainActivity-debug.apk ] ; then
-  scp -pr project/bin/MainActivity-debug.apk james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-game-android-debug.apk
-fi
+done
+echo "Finished building arch $ARCH"
