@@ -3068,7 +3068,13 @@ END SUB
 'a certain target. This position might instead be used as a waypoint for projectiles.
 'Called from within generate_atkscript.
 FUNCTION attack_placement_over_target(attack as AttackData, targslot as integer, bat as BattleState, bslot() as BattleSprite) as XYZTriple
- DIM as integer attackw = 50, attackh = 50
+ 'Load the size of the sprite
+ DIM temp_sl as Slice Ptr
+ temp_sl = NewSliceOfType(slSprite)
+ ChangeSpriteSlice temp_sl, sprTypeAttack, attack.picture
+ DIM as integer attackw = temp_sl->width, attackh = temp_sl->height
+ DeleteSlice @temp_sl
+
  DIM as integer xt, yt, zt
  IF prefbit(36) THEN  ' "Old attack positioning at bottom-left of target"
   ' Position attack animation aligned with bottom-left of target (?!) and down 2 pixels
