@@ -1,4 +1,35 @@
-#!/bin/sh
+#!/bin/bash
+
+FORCE=false
+UPLOAD=true
+ARCH=both
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+  key="$1"
+  
+  case $key in
+    -force|--force)
+    FORCE=true
+    shift # past argument
+    ;;
+    -noupload|--noupload)
+    UPLOAD=false
+    shift # past argument
+    ;;
+    -arch|--arch)
+    ARCH="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+  esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
 
 if [ ! -f "${FBCARM}" ] ; then
   echo "The FBCARM env variable should point to the fbc compiler for arm"
@@ -18,7 +49,7 @@ svn cleanup
 svn update | tee nightly-temp.txt || exit 1
 UPDATE=`grep "Updated to revision" nightly-temp.txt`
 rm nightly-temp.txt
-if [ "$1" = "--force" ] ; then
+if [ "$FORCE" = "true" ] ; then
   echo "Forcing a build, even if nothing has changed..."
   UPDATE="forced"
 fi
@@ -42,7 +73,7 @@ cd "${SDLANDROID}"
 rm project/bin/MainActivity-debug.apk
 ./build.sh
 
-if [ "$1" = "-noupload" ] ; then
+if [ "$UPLOAD" = "false" ] ; then
   echo "skipping upload."
   exit
 fi
