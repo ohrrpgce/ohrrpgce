@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This is the script that James uses to build Android apk files for specific
 # games. It probably won't be useful to you directly, but might serve as a useful
@@ -41,16 +41,49 @@ if [ ! -d "${PROJDIR}"/"${PROJECT}" ] ; then
 fi
 
 SCRIPTDIR="${0%/*}"
+
+ARCHLIST=( 32 64 )
+
+for CUR_ARCH in ${ARCHLIST[@]} ; do
+
+case $CUR_ARCH in
+  32)
+    ARCHARGS=""
+    ARCHSUFFIX="_arm32"
+    ;;
+  64)
+    ARCHARGS="arch=arm64"
+    ARCHSUFFIX="_arm64"
+    ;;
+  *)
+    echo "Invalid CUR_ARCH $CUR_ARCH"
+    exit 1
+    ;;
+esac
+
 cd "${SCRIPTDIR}"
 cd ..
 
-scons fbc="${FBCARM}" release=1 android-source=1 game
+rm -Rf "{$SDLANDROID}"/project/obj/local/*
+scons fbc="${FBCARM}" release=1 android-source=1 "${ARCHARGS}" game
+
+# Use the "ohrrpgce" branch of sdl-android by default,
+# but if ohrrpgce_gamename branch exists, use that instead.
 cd "${PROJDIR}"
 git checkout "${BRANCHBASE}"
 git checkout "${BRANCHBASE}"_"${BRANCHSUFFIX}"
+
 rm src
 ln -s "${PROJECT}" src
 cd "${SDLANDROID}"
 rm project/bin/MainActivity-debug.apk
 ./build.sh release
+if [ ! -f project/bin/MainActivity-debug.apk ] ; then
+  echo "Failed to build apk for game $PROJECT with arch $CUR_ARCH"
+  exit 1
+fi
+cp project/bin/MainActivity-debug.apk project/bin/MainActivity-debug_"$ARCHSUFFIX".apk
+
+done
+echo "Finished building $PROJECT"
 #src/ohrsign.sh
