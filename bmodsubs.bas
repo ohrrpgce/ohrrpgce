@@ -1332,7 +1332,6 @@ END SUB
 SUB anim_advance (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
  DIM d as integer
  ' Enemy faces right, hero faces left
- IF is_enemy(who) THEN d = -1 ELSE d = 1
 
  DIM target as BattleSprite ptr = @bslot(t(0))
 
@@ -1349,13 +1348,21 @@ SUB anim_advance (byval who as integer, attack as AttackData, bslot() as BattleS
   ' Don't backstab yourself.
   IF t(0) = who THEN EXIT SUB
   anim_walktoggle who
-  anim_absmove who, target->x + target->w * d, target->y + target->h - bslot(who).h + 2, 6, 6
+  IF is_enemy(who) THEN
+   anim_absmove who, target->x - bslot(who).w, target->y + target->h - bslot(who).h + 2, 6, 6
+  ELSE
+   anim_absmove who, target->x + target->w, target->y + target->h - bslot(who).h + 2, 6, 6
+  END IF
   anim_waitforall
  
  CASE atkrAnimTeleport
   ' Don't backstab yourself.
   IF t(0) = who THEN EXIT SUB
-  anim_setpos who, target->x + target->w * d, target->y + target->h - bslot(who).h, 0
+  IF is_enemy(who) THEN
+   anim_setpos who, target->x - bslot(who).w, target->y + target->h - bslot(who).h, 0
+  ELSE
+   anim_setpos who, target->x + target->w, target->y + target->h - bslot(who).h, 0
+  END IF
 
  CASE atkrAnimLand, atkrAnimNull, atkrAnimStandingCast, atkrAnimStandingStrike
   ' Do nothing
