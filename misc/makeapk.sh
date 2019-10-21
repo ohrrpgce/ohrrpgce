@@ -65,7 +65,7 @@ cd "${SCRIPTDIR}"
 cd ..
 
 rm -Rf "{$SDLANDROID}"/project/obj/local/*
-scons fbc="${FBCARM}" release=1 android-source=1 "${ARCHARGS}" game
+scons fbc="${FBCARM}" release=1 android-source=1 "${ARCHARGS}" game || exit 1
 
 # Use the "ohrrpgce" branch of sdl-android by default,
 # but if ohrrpgce_gamename branch exists, use that instead.
