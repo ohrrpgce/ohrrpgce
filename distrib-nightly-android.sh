@@ -62,6 +62,24 @@ fi
 
 SCRIPTDIR="${0%/*}"
 
+cd "${SCRIPTDIR}"
+
+# Check if a new nightly build is actually needed. Only if there are new changes
+svn cleanup
+svn update | tee nightly-temp.txt || exit 1
+UPDATE=`grep "Updated to revision" nightly-temp.txt`
+rm nightly-temp.txt
+if [ "$FORCE" = "true" ] ; then
+  echo "Forcing a build, even if nothing has changed..."
+  UPDATE="forced"
+fi
+
+if [ -z "$UPDATE" ] ; then
+  echo No changes, no need to update nightly.
+  exit
+fi
+
+# Loop through the architectures we want to build
 for CUR_ARCH in ${ARCHLIST[@]} ; do
 
 case $CUR_ARCH in
@@ -81,22 +99,11 @@ esac
 
 cd "${SCRIPTDIR}"
 
-svn cleanup
-svn update | tee nightly-temp.txt || exit 1
-UPDATE=`grep "Updated to revision" nightly-temp.txt`
-rm nightly-temp.txt
-if [ "$FORCE" = "true" ] ; then
-  echo "Forcing a build, even if nothing has changed..."
-  UPDATE="forced"
-fi
-
-if [ -z "$UPDATE" ] ; then
-  echo No changes, no need to update nightly.
-  exit
-fi
-
+# Cleanup old files
 rm -Rf "{$SDLANDROID}"/project/obj/local/*
-scons fbc="${FBCARM}" release=1 android-source=1 "${ARCH_ARGS}" game
+
+# Compile the source
+scons fbc="${FBCARM}" release=1 android-source=1 "${ARCH_ARGS}" game || exit 1
 cd "${SDLANDROID}"/project/jni/application
 
 # Make sure we are on the ohrrpgce branch
