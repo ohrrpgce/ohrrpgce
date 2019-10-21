@@ -41,6 +41,13 @@ if [ ! -d "${PROJDIR}"/"${PROJECT}" ] ; then
 fi
 
 SCRIPTDIR="${0%/*}"
+SCRIPTDIR="$(realpath $SCRIPTDIR)"
+
+echo "=== Building OHRRPGCE apks for $PROJECT ==="
+echo "PROJDIR=$PROJDIR"
+echo "BRANCHSUFFIX=$BRANCHSUFFIX"
+echo "BRANCHBASE=$BRANCHBASE"
+echo "SCRIPTDIR=$SCRIPTDIR"
 
 ARCHLIST=( 32 64 )
 
@@ -61,11 +68,22 @@ case $CUR_ARCH in
     ;;
 esac
 
+echo "Will build apk for arch $CUR_ARCH"
+
 cd "${SCRIPTDIR}"
 cd ..
 
-rm -Rf "{$SDLANDROID}"/project/obj/local/*
-scons fbc="${FBCARM}" release=1 android-source=1 "${ARCHARGS}" game || exit 1
+echo "Current working dir=$(pwd)"
+
+echo "Removing stale files in ${SDLANDROID}/project/obj/local/"
+rm -Rf "${SDLANDROID}"/project/obj/local/*
+
+echo "=== ENV before scons call ==="
+set
+echo "============================="
+
+echo "Calling scons to compile ohrrpgce sources for android..."
+scons fbc="${FBCARM}" release=1 android-source=1 "${ARCHARGS}" v=1 game || exit 1
 
 # Use the "ohrrpgce" branch of sdl-android by default,
 # but if ohrrpgce_gamename branch exists, use that instead.
