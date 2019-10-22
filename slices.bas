@@ -115,6 +115,16 @@
 
 '==============================================================================
 
+
+Declare Sub report_slice_type_err(sl as Slice ptr, expected as SliceTypes)
+
+#macro ASSERT_SLTYPE(sl, expected, retwhat...)
+	if sl->SliceType <> expected then
+		report_slice_type_err sl, expected
+		return retwhat  'If retwhat isn't given, just "return"
+	end if
+#endmacro
+
 'Reload helper functions used by saving/loading
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, byval value as integer)
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, byval value as double)
@@ -512,10 +522,10 @@ End Function
     if plotslices(sl->TableSlot) = sl then
      return YES
     else
-     reporterr "TableSlot mismatch! Slice " & sl & " slot is " & sl->TableSlot & " which has " & plotslices(sl->TableSlot), serrBug
+     reporterr "TableSlot mismatch! Slice " & SlicePath(sl) & " slot is " & sl->TableSlot & " which has " & plotslices(sl->TableSlot), serrBug
     end if
    else
-    reporterr "TableSlot for " & sl & " is invalid: " & sl->TableSlot, serrBug
+    reporterr "TableSlot for " & SlicePath(sl) & " is invalid: " & sl->TableSlot, serrBug
    end if
   end if
   return NO
@@ -1334,7 +1344,7 @@ Sub ChangeRectangleSlice(byval sl as Slice ptr,_
                       byval fuzzfactor as integer=0,_
                       byval raw_box_border as RectBorderTypes=borderUndef)
  if sl = 0 then debug "ChangeRectangleSlice null ptr" : exit sub
- if sl->SliceType <> slRectangle then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a rectangle" : exit sub
+ ASSERT_SLTYPE(sl, slRectangle)
  dim dat as RectangleSliceData Ptr = sl->SliceData
  with *dat
   'First load the style, if any
@@ -1746,7 +1756,7 @@ Sub ChangeTextSlice(byval sl as Slice ptr,_
                       byval wrap as integer=-2,_
                       byval bgcol as integer=-1)
  if sl = 0 then debug "ChangeTextSlice null ptr" : exit sub
- if sl->SliceType <> slText then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as text" : exit sub
+ ASSERT_SLTYPE(sl, slText)
  dim dat as TextSliceData Ptr = sl->SliceData
  with *dat
   if s <> CHR(1) & CHR(255) then
@@ -1770,7 +1780,7 @@ end sub
 
 Function GetTextSliceString(byval sl as Slice ptr) as string
  if sl = 0 then debug "GetTextSliceString null ptr" : return ""
- if sl->SliceType <> slText then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as text" : return ""
+ ASSERT_SLTYPE(sl, slText, "")
  dim dat as TextSliceData Ptr = sl->SliceData
  with *dat
   return .s
@@ -1877,7 +1887,7 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
   end if
 
   if .frame >= spr->arraylen or .frame < 0 then
-   reporterr "out of range frame " & .frame & " for slice " & sl, serrBug
+   reporterr "out of range frame " & .frame & " for slice " & SlicePath(sl), serrBug
    .frame = 0
   end if
   spr = @spr[.frame]
@@ -2194,7 +2204,7 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
                       byval flipv as integer = -2,_
                       byval trans as integer = -2)
  if sl = 0 then debug "ChangeSpriteSlice null ptr" : exit sub
- if sl->SliceType <> slSprite then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a sprite" : exit sub
+ ASSERT_SLTYPE(sl, slSprite)
  with *sl->SpriteData
   if spritetype <> sprTypeInvalid then
    ' This should never happen
@@ -2271,7 +2281,7 @@ end sub
 'Size can't be negative (Maybe handle negatives by setting flipVert and flipHoriz?)
 Sub ScaleSpriteSlice(sl as Slice ptr, size as XYPair)
  if sl = 0 then debug "ScaleSpriteSlice null ptr" : exit sub
- if sl->SliceType <> slSprite then reporterr "ScaleSpriteSlice: only works on sprites, not " & SliceTypeName(sl) : exit sub
+ ASSERT_SLTYPE(sl, slSprite)
  with *sl->SpriteData
   .loaded = NO
   unload_sprite_and_pal .img
@@ -2284,7 +2294,7 @@ end sub
 
 Sub DissolveSpriteSlice(byval sl as Slice ptr, byval dissolve_type as integer, byval over_ticks as integer=-1, byval start_tick as integer=0, byval backwards as bool=NO, byval auto_animate as bool=YES)
  if sl = 0 then debug "DissolveSpriteSlice null ptr" : exit sub
- if sl->SliceType <> slSprite then reporterr "Attempt to dissolve " & SliceTypeName(sl) & " slice " & sl & " as a sprite" : exit sub
+ ASSERT_SLTYPE(sl, slSprite)
  with *sl->SpriteData
   .dissolving = YES
   '(Note that the bounds checking here and in LoadSpriteSlice is bypassed by the slice editor)
@@ -2299,7 +2309,7 @@ end sub
 
 Sub CancelSpriteSliceDissolve(sl as Slice ptr)
  if sl = 0 then debug "CancelSpriteSliceDissolve null ptr" : exit sub
- if sl->SliceType <> slSprite then reporterr "CancelSpriteSliceDissolve: bad slice type" : exit sub
+ ASSERT_SLTYPE(sl, slSprite)
  with *sl->SpriteData
   .dissolving = NO
   .d_auto = NO
@@ -2308,7 +2318,7 @@ end sub
 
 Function SpriteSliceIsDissolving(byval sl as Slice ptr, byval only_auto as bool=YES) as bool
  if sl = 0 then debug "SpriteSliceIsDissolving null ptr" : return NO
- if sl->SliceType <> slSprite then return NO
+ if sl->SliceType <> slSprite then return NO  'Not an error
  with *sl->SpriteData
   if only_auto andalso not .d_auto then return NO
   return .dissolving <> 0
@@ -2316,10 +2326,11 @@ Function SpriteSliceIsDissolving(byval sl as Slice ptr, byval only_auto as bool=
 end function
 
 Function SpriteSliceNumFrames(sl as Slice ptr) as integer
- if sl = 0 orelse sl->SliceData = 0 orelse sl->SliceType <> slSprite then
+ if sl = 0 orelse sl->SliceData = 0 then
   debug "SpriteSliceNumFrames: invalid ptr"
   return 0
  end if
+ ASSERT_SLTYPE(sl, slSprite, 0)
 
  with *sl->SpriteData
   if .loaded = NO then LoadSpriteSliceImage sl
@@ -2395,7 +2406,7 @@ end function
 
 Sub ChangeMapSliceTileset(byval sl as Slice ptr, byval tileset as TilesetData ptr)
  if sl = 0 then debug "ChangeMapSliceTileset null ptr" : exit sub
- if sl->SliceType <> slMap then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a map" : exit sub
+ ASSERT_SLTYPE(sl, slMap)
  dim dat as MapSliceData Ptr = sl->SliceData
  dat->tileset = tileset 'NOTE: *shiver* pointers make me cringe.
 end sub
@@ -2406,7 +2417,7 @@ Sub ChangeMapSlice(byval sl as Slice ptr,_
                    byval transparent as integer=-2,_
                    byval overlay as integer=-1)
  if sl = 0 then debug "ChangeMapSlice null ptr" : exit sub
- if sl->SliceType <> slMap then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a map" : exit sub
+ ASSERT_SLTYPE(sl, slMap)
  with *sl->MapData
   if tiles <> cast(TileMap ptr, 1) then
    .tiles = tiles
@@ -2600,7 +2611,7 @@ Sub ChangeGridSlice(byval sl as Slice ptr,_
                       byval cols as integer=0,_
                       byval show as integer=-2)
  if sl = 0 then debug "ChangeGridSlice null ptr" : exit sub
- if sl->SliceType <> slGrid then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a grid" : exit sub
+ ASSERT_SLTYPE(sl, slGrid)
  dim dat as GridSliceData Ptr = sl->SliceData
  if rows > 0 then
   dat->rows = rows
@@ -2935,7 +2946,7 @@ Sub DrawEllipseSlice(byval sl as Slice ptr, byval p as integer)
   end if
 
   if .frame = 0 then
-   reporterr "null frame ptr for ellipse slice " & sl, serrBug
+   reporterr "null frame ptr for ellipse slice " & SlicePath(sl), serrBug
    exit sub
   end if
 
@@ -3003,7 +3014,7 @@ Sub ChangeEllipseSlice(byval sl as Slice ptr,_
                       byval bordercol as integer=-1,_
                       byval fillcol as integer=-1)
  if sl = 0 then debug "ChangeEllipseSlice null ptr" : exit sub
- if sl->SliceType <> slEllipse then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as an ellipse" : exit sub
+ ASSERT_SLTYPE(sl, slEllipse)
  dim dat as EllipseSliceData Ptr = sl->SliceData
  with *dat
   if bordercol >= 0 then
@@ -3157,7 +3168,7 @@ Sub ChangeScrollSlice(byval sl as Slice ptr,_
                       byval style as integer=-1,_
                       byval check_depth as integer=-1)
  if sl = 0 then debug "ChangeScrollSlice null ptr" : exit sub
- if sl->SliceType <> slScroll then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a scroll" : exit sub
+ ASSERT_SLTYPE(sl, slScroll)
  dim dat as ScrollSliceData Ptr = sl->SliceData
  with *dat
   if style >= 0 then
@@ -3302,7 +3313,7 @@ Sub ChangeSelectSlice(byval sl as Slice ptr,_
                       byval index as integer=-2,_
                       byval override as integer=-2)
  if sl = 0 then debug "ChangeSelectSlice null ptr" : exit sub
- if sl->SliceType <> slSelect then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a select" : exit sub
+ ASSERT_SLTYPE(sl, slSelect)
  dim dat as SelectSliceData Ptr = sl->SliceData
  with *dat
   if index >= -1 then
@@ -3316,7 +3327,7 @@ end sub
 
 Sub SelectSliceNext(byval sl as Slice ptr, byval can_loop as bool=YES)
  if sl = 0 then debug "SelectSliceNext null ptr" : exit sub
- if sl->SliceType <> slSelect then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a select" : exit sub
+ ASSERT_SLTYPE(sl, slSelect)
  dim dat as SelectSliceData Ptr = sl->SliceData
  dat->index += 1
  if dat->index >= sl->NumChildren then
@@ -3511,7 +3522,7 @@ Sub ChangePanelSlice(byval sl as Slice ptr,_
                       byval percent as double=-1.0,_
                       byval padding as integer=-1)
  if sl = 0 then debug "ChangePanelSlice null ptr" : exit sub
- if sl->SliceType <> slPanel then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a panel" : exit sub
+ ASSERT_SLTYPE(sl, slPanel)
  dim dat as PanelSliceData Ptr = sl->SliceData
  if vertical <> -2 then
   dat->vertical = vertical <> 0
@@ -4515,6 +4526,10 @@ End sub
 '==============================================================================
 '                              Slice Debugging
 
+Sub report_slice_type_err(sl as Slice ptr, expected as SliceTypes)
+ reporterr "Attempt to treat slice " & SliceTypeName(sl) & " slice (" & SlicePath(sl) & ") " & sl & " as a " & SliceTypeName(expected)
+End Sub
+
 SUB SliceDebugRemember(sl as Slice Ptr)
  if ENABLE_SLICE_DEBUG = NO then exit sub
  if sl = 0 then debug "SliceDebugRemember null ptr": exit sub
@@ -4542,7 +4557,7 @@ SUB SliceDebugForget(sl as Slice Ptr)
    exit sub
   end if
  next i
- debug "WARNING: tried to delete slice " & sl & " without any record of creating it!"
+ debug "WARNING: tried to delete slice " & SlicePath(sl) & " without any record of creating it!"
 END SUB
 
 'This is used for hunting down leaked slices
