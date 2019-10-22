@@ -1649,6 +1649,10 @@ script, load sprite, hsd:type, hsd:number, hsd:pal = -1, begin
   if(hsd:type == spritetype:backdrop)    then(return(load backdrop sprite     (hsd:number)))
 end
 
+script, create sprite, hsd:type, hsd:number, hsd:pal = -1, begin
+  load sprite(hsd:type, hsd:number, hsd:pal)
+end
+
 script, replace sprite, hsd:sl, hsd:type, hsd:number, hsd:pal = -1, begin
   if(hsd:type == spritetype:hero)        then(replace hero sprite         (hsd:sl, hsd:number, hsd:pal))
   if(hsd:type == spritetype:smallenemy)  then(replace small enemy sprite  (hsd:sl, hsd:number, hsd:pal))

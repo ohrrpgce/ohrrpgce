@@ -169,6 +169,7 @@ Septemtober ? 2019 [Fufluns]
     * "close menu" gains "run close script" argument [Ralph]
     * Plotscripting Dictionary shows list of commands in each section [Ralph]
     * "string equal" as alias for "string compare"
+    * "create sprite" as alias for "load sprite"
     * "replace substring" [Ralph]
 
   * Changes

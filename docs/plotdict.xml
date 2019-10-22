@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2019-10-06">
+<plotscript version="wip" datecode="2019-10-12">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -7577,6 +7577,10 @@ set horiz align(sl, edge:right)
 				<ref>getspritesetnumber</ref>
 				<ref>freesprite</ref>
 			</seealso>
+		</command>
+		<command id="createsprite">
+			<alias>loadsprite</alias>
+			<shortname>create sprite</shortname>
 		</command>
 		<command id="replacesprite">
 			<canon>replace sprite (slice, sprite type, num, palette)</canon>
