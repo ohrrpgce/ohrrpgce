@@ -55,7 +55,7 @@ for CUR_ARCH in ${ARCHLIST[@]} ; do
 
 case $CUR_ARCH in
   32)
-    ARCHARGS=""
+    ARCHARGS="arch=armeabi"
     ARCHSUFFIX="_arm32"
     ;;
   64)
