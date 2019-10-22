@@ -1202,10 +1202,9 @@ Extern "C"
 '--Rectangle--------------------------------------------------------------
 Sub DisposeRectangleSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- dim dat as RectangleSliceData ptr = sl->SliceData
- delete dat
- sl->SliceData = 0
+ if sl->RectData = 0 then exit sub
+ delete sl->RectData
+ sl->RectData = 0
 end sub
 
 Sub UpdateRectangleSliceStyle(byval dat as RectangleSliceData ptr)
@@ -1345,8 +1344,7 @@ Sub ChangeRectangleSlice(byval sl as Slice ptr,_
                       byval raw_box_border as RectBorderTypes=borderUndef)
  if sl = 0 then debug "ChangeRectangleSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slRectangle)
- dim dat as RectangleSliceData Ptr = sl->SliceData
- with *dat
+ with *sl->RectData
   'First load the style, if any
   if style > -2 then
    .use_raw_box_border = NO
@@ -1354,7 +1352,7 @@ Sub ChangeRectangleSlice(byval sl as Slice ptr,_
    .style_loaded = NO
   end if
   if .style >= 0 andalso .style_loaded = NO then
-   UpdateRectangleSliceStyle dat
+   UpdateRectangleSliceStyle sl->RectData
   end if
   'Then consider all other data as style overrides
   if bgcol > -99 then
@@ -1393,20 +1391,18 @@ end sub
 
 Sub DisposeLineSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- dim dat as LineSliceData ptr = sl->SliceData
- delete dat
- sl->SliceData = 0
+ if sl->LineData = 0 then exit sub
+ delete sl->LineData
+ sl->LineData = 0
 end sub
 
 Sub DrawLineSlice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- dim dat as LineSliceData ptr = sl->SliceData
 
  dim point2 as XYPair = sl->ScreenPos + sl->Size
- dim col as integer = ColorIndex(dat->col)
- 'if dat->flipped then
+ dim col as integer = ColorIndex(sl->LineData->col)
+ 'if sl->LineData->flipped then
  ' drawline sl->ScreenX, point2.y, point2.x, sl->ScreenY, col, p
  'else
   drawline sl->ScreenX, sl->ScreenY, point2.x, point2.y, col, p
@@ -1415,7 +1411,7 @@ end sub
 
 Function GetLineSliceData(byval sl as Slice ptr) as LineSliceData ptr
  if sl = 0 then return 0
- return sl->SliceData
+ return sl->LineData
 End Function
 
 Sub LineSliceData.SetColor(color as integer)
@@ -1757,8 +1753,7 @@ Sub ChangeTextSlice(byval sl as Slice ptr,_
                       byval bgcol as integer=-1)
  if sl = 0 then debug "ChangeTextSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slText)
- dim dat as TextSliceData Ptr = sl->SliceData
- with *dat
+ with *sl->TextData
   if s <> CHR(1) & CHR(255) then
    .s = s
   end if
@@ -1781,10 +1776,7 @@ end sub
 Function GetTextSliceString(byval sl as Slice ptr) as string
  if sl = 0 then debug "GetTextSliceString null ptr" : return ""
  ASSERT_SLTYPE(sl, slText, "")
- dim dat as TextSliceData Ptr = sl->SliceData
- with *dat
-  return .s
- end with 
+ return sl->TextData->s
 End Function
 
 '--Sprite-----------------------------------------------------------------
@@ -2407,8 +2399,7 @@ end function
 Sub ChangeMapSliceTileset(byval sl as Slice ptr, byval tileset as TilesetData ptr)
  if sl = 0 then debug "ChangeMapSliceTileset null ptr" : exit sub
  ASSERT_SLTYPE(sl, slMap)
- dim dat as MapSliceData Ptr = sl->SliceData
- dat->tileset = tileset 'NOTE: *shiver* pointers make me cringe.
+ sl->MapData->tileset = tileset
 end sub
 
 Sub ChangeMapSlice(byval sl as Slice ptr,_
@@ -2445,10 +2436,9 @@ end sub
 '--Grid-------------------------------------------------------------------
 Sub DisposeGridSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- dim dat as GridSliceData ptr = sl->SliceData
- delete dat
- sl->SliceData = 0
+ if sl->GridData = 0 then exit sub
+ delete sl->GridData
+ sl->GridData = 0
 end sub
 
 Sub DrawGridSlice(byval sl as Slice ptr, byval p as integer)
@@ -2504,9 +2494,7 @@ Sub GridChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex a
  if ch = 0 then debug "GridChildRefresh null ptr": exit sub
  if visibleonly and (ch->Visible = NO) then exit sub
 
- '--get grid data
- dim dat as GridSliceData ptr
- dat = par->SliceData
+ dim dat as GridSliceData ptr = par->GridData
  dim w as integer = par->Width \ large(1, dat->cols)
  dim h as integer = par->Height \ large(1, dat->rows)
  '--Figure out which child this is
@@ -2542,8 +2530,7 @@ Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
  with *s
   'if .ChildrenRefresh then .ChildrenRefresh(s)  'Always NULL
 
-  dim dat as GridSliceData ptr
-  dat = .SliceData
+  dim dat as GridSliceData ptr = .GridData
   dim w as integer = .Width \ large(1, dat->cols)
   dim h as integer = .Height \ large(1, dat->rows)
 
@@ -2906,20 +2893,17 @@ end function
 
 Sub DisposeEllipseSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- dim dat as EllipseSliceData ptr = sl->SliceData
- frame_unload @dat->frame
- delete dat
- sl->SliceData = 0
+ if sl->EllipseData = 0 then exit sub
+ frame_unload @sl->EllipseData->frame
+ delete sl->EllipseData
+ sl->EllipseData = 0
 end sub
 
 Sub DrawEllipseSlice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- 
- dim dat as EllipseSliceData ptr = sl->SliceData
 
- with *dat
+ with *sl->EllipseData
 
   dim w as integer = ABS(sl->Width)
   dim h as integer = ABS(sl->Height)
@@ -2932,13 +2916,13 @@ Sub DrawEllipseSlice(byval sl as Slice ptr, byval p as integer)
    frame_unload @.frame
    'debug "create new ellipse frame " & w & "x" & h
    .frame = frame_new(w, h, , YES)
-   'fuzzyrect .frame, 0, 0, w, h, dat->fillcol, 37
-   dim fillcol as integer = dat->fillcol
+   'fuzzyrect .frame, 0, 0, w, h, .fillcol, 37
+   dim fillcol as integer = .fillcol
    'EllipseSliceData.fillcol 0 means transparent, while ellipse() uses -1 to mean transparent
    'NOTE: Drawing bordercol or fillcol 0 will be transparent anyway, because when .frame
    'gets drawn to the videopage, colour 0 counts as transparent. So fillcol=-1 is just an optimisation.
    if fillcol = 0 then fillcol = -1 else fillcol = ColorIndex(fillcol)
-   ellipse .frame, w / 2 - 0.5, h / 2 - 0.5 , w / 2 - 0.5, ColorIndex(dat->bordercol), fillcol, h / 2 - 0.5
+   ellipse .frame, w / 2 - 0.5, h / 2 - 0.5 , w / 2 - 0.5, ColorIndex(.bordercol), fillcol, h / 2 - 0.5
    .last_draw_size.X = w
    .last_draw_size.Y = h
    .last_draw_bordercol = .bordercol
@@ -2952,7 +2936,7 @@ Sub DrawEllipseSlice(byval sl as Slice ptr, byval p as integer)
 
   frame_draw .frame, , small(sl->screenX, sl->screenX + sl->Width), small(sl->screenY, sl->screenY + sl->Height), , , p
 
-' ellipse vpages(p), small(sl->screenX, sl->screenX + sl->Width) + w / 2 - 0.5, small(sl->screenY, sl->screenY + sl->Height) + h / 2 - 0.5 , w / 2 - 0.5, dat->bordercol, fillcol, h / 2 - 0.5
+' ellipse vpages(p), small(sl->screenX, sl->screenX + sl->Width) + w / 2 - 0.5, small(sl->screenY, sl->screenY + sl->Height) + h / 2 - 0.5 , w / 2 - 0.5, .bordercol, fillcol, h / 2 - 0.5
  end with
 end sub
 
@@ -3015,8 +2999,7 @@ Sub ChangeEllipseSlice(byval sl as Slice ptr,_
                       byval fillcol as integer=-1)
  if sl = 0 then debug "ChangeEllipseSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slEllipse)
- dim dat as EllipseSliceData Ptr = sl->SliceData
- with *dat
+ with *sl->EllipseData
   if bordercol >= 0 then
    .bordercol = bordercol
   end if
@@ -3030,10 +3013,9 @@ end sub
 
 Sub DisposeScrollSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- dim dat as ScrollSliceData ptr = sl->SliceData
- delete dat
- sl->SliceData = 0
+ if sl->ScrollData = 0 then exit sub
+ delete sl->ScrollData
+ sl->ScrollData = 0
 end sub
 
 'This function works for any type of slice
@@ -3169,8 +3151,7 @@ Sub ChangeScrollSlice(byval sl as Slice ptr,_
                       byval check_depth as integer=-1)
  if sl = 0 then debug "ChangeScrollSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slScroll)
- dim dat as ScrollSliceData Ptr = sl->SliceData
- with *dat
+ with *sl->ScrollData
   if style >= 0 then
    .style = style
   end if
@@ -3227,10 +3208,9 @@ end sub
 '--Select--------------------------------------------------------------
 Sub DisposeSelectSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- dim dat as SelectSliceData ptr = sl->SliceData
- delete dat
- sl->SliceData = 0
+ if sl->SelectData = 0 then exit sub
+ delete sl->SelectData
+ sl->SelectData = 0
 end sub
 
 'Updates the Visible property of a child, and then does the default refreshing of
@@ -3314,8 +3294,7 @@ Sub ChangeSelectSlice(byval sl as Slice ptr,_
                       byval override as integer=-2)
  if sl = 0 then debug "ChangeSelectSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slSelect)
- dim dat as SelectSliceData Ptr = sl->SliceData
- with *dat
+ with *sl->SelectData
   if index >= -1 then
    .index = index
   end if
@@ -3328,24 +3307,24 @@ end sub
 Sub SelectSliceNext(byval sl as Slice ptr, byval can_loop as bool=YES)
  if sl = 0 then debug "SelectSliceNext null ptr" : exit sub
  ASSERT_SLTYPE(sl, slSelect)
- dim dat as SelectSliceData Ptr = sl->SliceData
- dat->index += 1
- if dat->index >= sl->NumChildren then
-  if can_loop then
-   dat->index = 0
-  else
-   dat->index = sl->NumChildren - 1
+ with *sl->SelectData
+  .index += 1
+  if .index >= sl->NumChildren then
+   if can_loop then
+    .index = 0
+   else
+    .index = sl->NumChildren - 1
+   end if
   end if
- end if
+ end with
 end sub
 
 '--Panel-------------------------------------------------------------------
 Sub DisposePanelSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- dim dat as PanelSliceData ptr = sl->SliceData
- delete dat
- sl->SliceData = 0
+ if sl->PanelData = 0 then exit sub
+ delete sl->PanelData
+ sl->PanelData = 0
 end sub
 
 Sub ClonePanelSlice(byval sl as Slice ptr, byval cl as Slice ptr)
@@ -3398,10 +3377,8 @@ Sub CalcPanelSupport (byref support as RectType, byval par as Slice ptr, byval i
   support = TYPE(par->ScreenX, par->ScreenY, 0, 0)
   exit sub
  end if
- 
- '--get panel data
- dim dat as PanelSliceData ptr
- dat = par->SliceData
+
+ dim dat as PanelSliceData ptr = par->PanelData
 
  dim axis as integer = 0
  if dat->vertical then axis = 1
@@ -3523,22 +3500,23 @@ Sub ChangePanelSlice(byval sl as Slice ptr,_
                       byval padding as integer=-1)
  if sl = 0 then debug "ChangePanelSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slPanel)
- dim dat as PanelSliceData Ptr = sl->SliceData
- if vertical <> -2 then
-  dat->vertical = vertical <> 0
- end if
- if primary >= 0 then
-  dat->primary = small(primary, 1)
- end if
- if pixels >= 0 then
-  dat->pixels = pixels
- end if
- if percent <> -1.0 then
-  dat->percent = percent
- end if
- if padding >= 0 then
-  dat->padding = padding
- end if
+ with *sl->PanelData
+  if vertical <> -2 then
+   .vertical = vertical <> 0
+  end if
+  if primary >= 0 then
+   .primary = small(primary, 1)
+  end if
+  if pixels >= 0 then
+   .pixels = pixels
+  end if
+  if percent <> -1.0 then
+   .percent = percent
+  end if
+  if padding >= 0 then
+   .padding = padding
+  end if
+ end with
 end sub
 
 
@@ -4173,14 +4151,13 @@ Function FindTextSliceStringRecursively(sl as slice ptr, query as string) as Sli
  'Check to see if query is a substring inside any TextString values.
  'Returns the first TextSlice where a match is found, or 0 if no march is found.
  'Compares strings case-insensitively
- 
+
  'If there is no query, exit immediately
  if query = "" then return 0
- 
+
  if sl->SliceType = slText then
-  dim dat as TextSliceData Ptr = sl->SliceData
   'If this slice is text, and the text includes the filter string, Success!
-  if instr(lcase(dat->s), lcase(query)) then return sl
+  if instr(lcase(sl->TextData->s), lcase(query)) then return sl
  end if
  'Check all children recursively too until we find one that succeeds
  dim ch as Slice Ptr = sl->FirstChild
