@@ -884,7 +884,18 @@ resume NPCs</example>
 		<command id="suspendplayer">
 			<canon>suspend player</canon>
 			<shortname>suspend player</shortname>
-			<description>Blocks the player from controlling the game, so the plotscript can have exclusive control. The one exception to this is text boxes. The player can advance text boxes no matter what, unless you use <ref>suspendboxadvance</ref>.</description>
+			<description>
+				Blocks the player from controlling the game, so the plotscript can have exclusive control.
+				The exceptions to this are text boxes and menus.
+				<lb/>
+				The player can advance text boxes no matter what, unless you use <ref>suspendboxadvance</ref>.
+				<lb/>
+				<tt>suspend player</tt> prevents the player from opening the main menu using the menu key (ESC/etc),
+				but it doesn't suspend controls on any menu or the player's ability to close menus with
+				the menu key.
+				(You can change that with <ref>setmenubit</ref><tt>(menu handle, menubit:no controls, true)</tt>
+				where <tt>menu handle</tt> might for example be <ref>topmenu</ref>.)
+			</description>
 			<example>suspend player
 # do stuff
 resume player</example>
@@ -5429,6 +5440,10 @@ end</example>
 				and bit number <p>bit</p>, sets the bitset is ON or OFF depending on <p>value</p>.
 				For the <p>bit</p> bit number you should use one of the <p>menubit:...</p> constants.
 				See <ref>getmenubit</ref> for the available constants.
+				<lb/>
+				Note that this command only changes an open instance of a menu, it doesn't
+				change the menu definition, so if the menu is closed and reopened any
+				edits are reverted.
 			</description>
 		</command>
 		<command id="getmenuboxstyle">
