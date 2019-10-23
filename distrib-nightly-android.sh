@@ -61,6 +61,7 @@ if [ ! -d "${SDLANDROID}" ] ; then
 fi
 
 SCRIPTDIR="${0%/*}"
+SCRIPTDIR="$(realpath $SCRIPTDIR)"
 
 cd "${SCRIPTDIR}"
 
@@ -84,7 +85,7 @@ for CUR_ARCH in ${ARCHLIST[@]} ; do
 
 case $CUR_ARCH in
   32)
-    ARCHARGS=""
+    ARCHARGS="arch=armeabi"
     ARCHSUFFIX=""
     ;;
   64)
@@ -100,10 +101,10 @@ esac
 cd "${SCRIPTDIR}"
 
 # Cleanup old files
-rm -Rf "{$SDLANDROID}"/project/obj/local/*
+rm -Rf "${SDLANDROID}"/project/obj/local/*
 
 # Compile the source
-scons fbc="${FBCARM}" release=1 android-source=1 "${ARCH_ARGS}" game || exit 1
+scons fbc="${FBCARM}" release=1 android-source=1 "${ARCHARGS}" game || exit 1
 cd "${SDLANDROID}"/project/jni/application
 
 # Make sure we are on the ohrrpgce branch
