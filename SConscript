@@ -937,7 +937,7 @@ elif android:
     # liblog for __android_log_print/write
     base_libraries += ['log']
     base_modules += ['os_unix.c', 'os_unix2.bas']
-    common_modules += ['os_unix_wm.c']
+    common_modules += ['os_unix_wm.c', 'android/sdlmain.c']
 elif unix:  # Unix+X11 systems: Linux & BSD
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c', 'lib/x11_printerror.c']
@@ -1203,9 +1203,9 @@ Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
 if android_source:
     # android_source is a hack:
     # Don't produce any .o files, just produce and copy .c/.cpp files to a directory for sdl-android's build system
-    srcs, actions = ohrbuild.android_source_actions (gamesrc, rootdir, rootdir + 'android/tmp')
+    srcs, actions = ohrbuild.android_source_actions (gameenv, gamesrc, rootdir, rootdir + 'android/tmp')
     Alias('game', source = srcs, action = actions)
-    srcs, actions = ohrbuild.android_source_actions (editsrc, rootdir, rootdir + 'android/tmp')
+    srcs, actions = ohrbuild.android_source_actions (editenv, editsrc, rootdir, rootdir + 'android/tmp')
     Alias('custom', source = srcs, action = actions)
     if 'game' not in COMMAND_LINE_TARGETS and 'custom' not in COMMAND_LINE_TARGETS:
         raise Exception("Specify either 'game' or 'custom' as a target with android-source=1")

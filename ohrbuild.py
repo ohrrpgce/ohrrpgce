@@ -7,6 +7,7 @@ used by other tools.
 
 import os
 import sys
+from os.path import join as pathjoin
 import subprocess
 import platform
 import re
@@ -23,7 +24,7 @@ except ImportError:
                 path = os.path.join(p, exename + ext)
                 if os.path.exists(path):
                     return path
-
+#from SCons.Tool import SourceFileScanner
 
 host_win32 = platform.system() == 'Windows'
 
@@ -349,7 +350,7 @@ def verprint (used_gfx, used_music, fbc, arch, gccversion, asan, portable, pdb, 
 ########################################################################
 # Android
 
-def android_source_actions (sourcelist, rootdir, destdir):
+def android_source_actions (env, sourcelist, rootdir, destdir):
     """Returns a pair (source_nodes, actions) for android-source=1 builds.
     The actions symlink & copy a set of C and C++ files to destdir (which is android/tmp/),
     including all C/C++ sources and C-translations of .bas files.
@@ -370,6 +371,7 @@ def android_source_actions (sourcelist, rootdir, destdir):
             # node.sources[0] itself is a path in build/ (to a nonexistent file)
             source_files.append (node.sources[0].srcnode().abspath)
             source_nodes += node.sources
+
     # hacky. Copy the right source files to a temp directory because the Android.mk used
     # by the SDL port selects too much.
     # The more correct way to do this would be to use VariantDir to get scons
@@ -385,12 +387,11 @@ def android_source_actions (sourcelist, rootdir, destdir):
         if srcdir not in processed_dirs:
             # Create directory and copy all headers in it
             processed_dirs.add(srcdir)
-            actions += [
-                'mkdir -p ' + newdir,
-                # Copy instead of link so don't need to bother making relative path.
-                # *.h* causes other files like .hsi to be copied, not worth fixing.
-                'cp %s %s/' % (os.path.join(srcdir, '*.h*'), newdir),
-            ]
+            actions += ['mkdir -p ' + newdir]
+            # Glob doesn't support {,} syntax
+            # I couldn't figure out how to use SourceFileScanner to find headers
+            for header in env.Glob(pathjoin(srcdir, '*.h')) + env.Glob(pathjoin(srcdir + '*.hpp')):
+                actions += ['ln -s %s %s/' % (header, newdir)]
         actions += ['ln -s %s %s' % (src, newdir)]
     # Cause build.sh to re-generate Settings.mk, since extraconfig.cfg may have changed
     actions += ['touch %s/android/AndroidAppSettings.cfg' % rootdir]
