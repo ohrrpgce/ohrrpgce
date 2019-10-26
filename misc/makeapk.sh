@@ -78,9 +78,9 @@ echo "Current working dir=$(pwd)"
 echo "Removing stale files in ${SDLANDROID}/project/obj/local/"
 rm -Rf "${SDLANDROID}"/project/obj/local/*
 
-echo "=== ENV before scons call ==="
-set
-echo "============================="
+#echo "=== ENV before scons call ==="
+#set
+#echo "============================="
 
 echo "Calling scons to compile ohrrpgce sources for android..."
 scons fbc="${FBCARM}" release=1 android-source=1 "${ARCHARGS}" v=1 game || exit 1
@@ -94,13 +94,14 @@ git checkout "${BRANCHBASE}"_"${BRANCHSUFFIX}"
 rm src
 ln -s "${PROJECT}" src
 cd "${SDLANDROID}"
-rm project/bin/MainActivity-debug.apk
+UNSIGNED="${SDLANDROID}"/project/bin/MainActivity-release-unsigned.apk
+rm "${UNSIGNED}"
 ./build.sh release
-if [ ! -f project/bin/MainActivity-debug.apk ] ; then
+if [ ! -f "${UNSIGNED}" ] ; then
   echo "Failed to build apk for game $PROJECT with arch $CUR_ARCH"
   exit 1
 fi
-cp project/bin/MainActivity-debug.apk project/bin/MainActivity-debug_"$ARCHSUFFIX".apk
+cp "${UNSIGNED}" "${PROJDIR}"/"${PROJECT}"/"${PROJECT}"-release-unsigned"$ARCHSUFFIX".apk
 
 done
 echo "Finished building $PROJECT"
