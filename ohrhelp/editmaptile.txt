@@ -76,4 +76,6 @@ P or left mouse button on preview
   left between neighbouring tiles and
   single tile preview. 
 
+Press `/~ (backtick/tilde) to toggle whether the cursor displays normally or as a single pixel.
+
 CTRL+S saves the tile immediately without exiting, which is useful if you are live-previewing the game.

@@ -72,6 +72,8 @@ C Clone tool. This tool paints using
 
 Press backspace to horizontally flip the sprite. You can vertically flip a sprite if you rotate it, then flip it, then rotate it back, but that is kind of a pain, isn't it?
 
+Press `/~ (backtick/tilde) to toggle whether the cursor displays normally or as a single pixel.
+
 Press I to import from an external image file, overwriting the current frame.
 
 Press E to export the sprite to a 16-color BMP image.
