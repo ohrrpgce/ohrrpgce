@@ -57,10 +57,12 @@ case $CUR_ARCH in
   32)
     ARCHARGS="arch=armeabi"
     ARCHSUFFIX="_arm32"
+    ArchVersionCode=0
     ;;
   64)
     ARCHARGS="arch=arm64"
     ARCHSUFFIX="_arm64"
+    ArchVersionCode=1
     ;;
   *)
     echo "Invalid CUR_ARCH $CUR_ARCH"
@@ -91,8 +93,16 @@ cd "${PROJDIR}"
 git checkout "${BRANCHBASE}"
 git checkout "${BRANCHBASE}"_"${BRANCHSUFFIX}"
 
+# Update src symlink
 rm src
 ln -s "${PROJECT}" src
+
+# generate src/versioninfo.cfg based on src/gamespecific.cfg
+BaseAppVersionCode=$(grep "^BaseAppVersionCode=" src/gamespecific.cfg | cut -d "=" -f 2)
+PatchVersionCode=$(grep "^PatchVersionCode=" src/gamespecific.cfg | cut -d "=" -f 2)
+AppVersionCode=$(expr "${BaseAppVersionCode}" '*' 1000 + "${ArchVersionCode}" '*' 100 + "${PatchVersionCode}" )
+echo "AppVersionCode=${AppVersionCode}" > src/versioninfo.cfg
+
 cd "${SDLANDROID}"
 UNSIGNED="${SDLANDROID}"/project/bin/MainActivity-release-unsigned.apk
 rm "${UNSIGNED}"
