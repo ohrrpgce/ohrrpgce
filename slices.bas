@@ -116,15 +116,6 @@
 '==============================================================================
 
 
-Declare Sub report_slice_type_err(sl as Slice ptr, expected as SliceTypes)
-
-#macro ASSERT_SLTYPE(sl, expected, retwhat...)
-	if sl->SliceType <> expected then
-		report_slice_type_err sl, expected
-		return retwhat  'If retwhat isn't given, just "return"
-	end if
-#endmacro
-
 'Reload helper functions used by saving/loading
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, byval value as integer)
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, byval value as double)
@@ -148,6 +139,15 @@ DECLARE Function SliceYAlign(sl as Slice Ptr, supporth as integer) as integer
 DECLARE Sub RefreshChild(ch as Slice ptr, support as RectType)
 DECLARE Sub ApplySliceVelocity(byval s as Slice ptr)
 DECLARE Sub SeekSliceTarg(byval s as Slice ptr)
+
+DECLARE Sub report_slice_type_err(sl as Slice ptr, expected as SliceTypes)
+
+#macro ASSERT_SLTYPE(sl, expected, retwhat...)
+	if sl->SliceType <> expected then
+		report_slice_type_err sl, expected
+		return retwhat  'If retwhat isn't given, just "return"
+	end if
+#endmacro
 
 END EXTERN
 
