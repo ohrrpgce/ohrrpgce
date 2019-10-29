@@ -13,6 +13,7 @@
 #include "surface.bi"
 #include "lib/lodepng.bi"
 #include "lib/ujpeg.bi"
+#include "lib/jo_jpeg.bi"
 #include "music.bi"
 #include "reload.bi"
 #include "util.bi"
@@ -7078,6 +7079,38 @@ function surface_import_jpeg(filename as string) as Surface ptr
 	return ret
 end function
 
+function surface_export_jpeg(surf as Surface ptr, filename as string, quality as integer = 95) as bool
+	BUG_IF(surf->format = SF_8bit, "8-bit surfaces not supported", NO) 'TODO. Use frame_export_jpeg instead.
+	BUG_IF(surf->width <> surf->pitch, "Unsupported image pitch", NO)
+
+	dim pixelbuf as byte ptr
+	'BGRA to RGB
+	pixelbuf = surface32_to_pixels(surf, PIXFMT_RGB)
+
+	dim ret as bool = YES
+	if jo_write_jpg(strptr(filename), pixelbuf, surf->width, surf->height, 3, quality) = 0 then
+		'Only other possible error condition is a zero size image or null ptr
+		debug "Couldn't write to " & filename
+		ret = NO
+	end if
+
+	deallocate pixelbuf
+	return ret
+end function
+
+'Write a Frame to a paletted .png file, preserving palette indices. pal is optional.
+function frame_export_jpeg(fr as Frame ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, quality as integer = 95) as bool
+	dim surf as Surface ptr
+	surf = frame_to_surface32(fr, masterpal(), pal)
+	if surf = NULL then return NO
+
+	dim ret as bool
+	ret = surface_export_jpeg(surf, filename, quality)
+
+	gfx_surfaceDestroy(@surf)
+	return ret
+end function
+
 
 '==========================================================================================
 '                               Generic image file interface
@@ -7267,6 +7300,8 @@ sub frame_export_image (fr as Frame ptr, filename as string, masterpal() as RGBc
 			frame_export_png fr, filename, masterpal(), pal
 		case imGIF
 			frame_export_gif fr, filename, masterpal(), pal, NO  'transparent = NO
+		case imJPEG
+			frame_export_jpeg fr, filename, masterpal(), pal
 		'Update load_screenshot_settings when adding more formats
 		case else
 			debug "Can't write image: unknown or unsupported file extension: " & filename
@@ -7285,6 +7320,9 @@ sub surface_export_image (surf as Surface ptr, filename as string)
 		case imGIF
 			'Doesn't support 8bit
 			surface_export_gif surf, filename
+		case imJPEG
+			'Doesn't support 8bit
+			surface_export_jpeg surf, filename
 		case else
 			debug "Can't write image: unknown or unsupported file extension: " & filename
 	end select

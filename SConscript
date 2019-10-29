@@ -1069,6 +1069,7 @@ common_modules += ['rasterizer.cpp',
                    'rotozoom.c',
                    'surface.cpp',
                    'lib/gif.cpp',
+                   'lib/jo_jpeg.cpp',
                    'lib/ujpeg.c']
 
 

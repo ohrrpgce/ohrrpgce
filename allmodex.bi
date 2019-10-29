@@ -389,12 +389,17 @@ DECLARE SUB toggle_recording_gif()
 DECLARE SUB start_forwarding_screen(outfile as string)
 DECLARE SUB stop_recording_video()
 
+'Note order of Frame/Surface ptr and filename varies!
+
 DECLARE SUB frame_export_bmp4 (f as string, fr as Frame Ptr, maspal() as RGBcolor, pal as Palette16 ptr)
 DECLARE SUB frame_export_bmp8 (f as string, fr as Frame Ptr, maspal() as RGBcolor)
 DECLARE SUB surface_export_bmp24 (f as string, surf as Surface Ptr)
 DECLARE SUB frame_export_bmp (fname as string, fr as Frame ptr, maspal() as RGBcolor, pal as Palette16 ptr = NULL)
 
 DECLARE FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
+
+DECLARE FUNCTION surface_export_jpeg(surf as Surface ptr, filename as string, quality as integer = 95) as bool
+DECLARE FUNCTION frame_export_jpeg(fr as Frame ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, quality as integer = 95) as bool
 
 'Read BMP info or palette
 DECLARE FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
