@@ -1,4 +1,5 @@
 /* public domain Simple, Minimalistic JPEG writer - http://jonolick.com
+ * (Modified version from https://github.com/jpcy/jo_jpeg)
  *
  * Quick Notes:
  * 	Based on a javascript jpeg writer
@@ -6,6 +7,7 @@
  * 	Supports 1, 3 or 4 component input. (luminance, RGB or RGBX)
  *
  * Latest revisions:
+ *      1.** (2015-12-15) Added write callback
  *	1.52 (2012-22-11) Added support for specifying Luminance, RGB, or RGBA via comp(onents) argument (1, 3 and 4 respectively). 
  *	1.51 (2012-19-11) Fixed some warnings
  *	1.50 (2012-18-11) MT safe. Simplified. Optimized. Reduced memory requirements. Zero allocations. No namespace polution. Approx 340 lines code.
@@ -19,24 +21,7 @@
  * 	
  * */
 
-#ifndef JO_INCLUDE_JPEG_H
-#define JO_INCLUDE_JPEG_H
-
-// To get a header file for this, either cut and paste the header,
-// or create jo_jpeg.h, #define JO_JPEG_HEADER_FILE_ONLY, and
-// then include jo_jpeg.c from it.
-
-typedef void jo_write_func(void *context, const void *data, int size);
-
-// Returns false on failure
-extern bool jo_write_jpg(const char *filename, const void *data, int width, int height, int comp, int quality);
-
-// Returns false on failure
-extern bool jo_write_jpg_to_func(jo_write_func *func, void *context, const void *data, int width, int height, int comp, int quality);
-
-#endif // JO_INCLUDE_JPEG_H
-
-#ifndef JO_JPEG_HEADER_FILE_ONLY
+#include "jo_jpeg.h"
 
 #if defined(_MSC_VER) && _MSC_VER >= 0x1400
 #define _CRT_SECURE_NO_WARNINGS // suppress warnings about fopen()
@@ -345,7 +330,7 @@ bool jo_write_jpg_to_func(jo_write_func *func, void *context, const void *data, 
 			DCV = jo_processDU(func, context, bitBuf, bitCnt, VDU, fdtbl_UV, DCV, UVDC_HT, UVAC_HT);
 		}
 	}
-	
+
 	// Do the bit alignment of the EOI marker
 	static const unsigned short fillBits[] = {0x7F, 7};
 	jo_writeBits(func, context, bitBuf, bitCnt, fillBits);
@@ -356,6 +341,3 @@ bool jo_write_jpg_to_func(jo_write_func *func, void *context, const void *data, 
 
 	return true;
 }
-
-#endif
-
