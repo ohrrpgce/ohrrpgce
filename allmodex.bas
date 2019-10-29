@@ -7763,13 +7763,13 @@ end sub
 
 
 'All extensions that might be used for screenshots or recordings (including by gfx_screenshot)
-dim shared as string*4 screenshot_exts(...) => {".bmp", ".png", ".jpg", ".dds", ".gif"}
+dim shared as string*5 screenshot_exts(...) => {".bmp", ".png", ".jpg", ".jpeg", ".dds", ".gif"}
 
 local sub load_screenshot_settings()
 	loaded_screenshot_settings = YES
 
 	dim temp as string = "." & lcase(read_config_str("gfx.screenshot_format", "png"))
-	if temp = ".bmp" orelse temp = ".png" orelse temp = ".gif" then
+	if temp = ".bmp" orelse temp = ".png" orelse temp = ".gif" orelse temp = ".jpg" orelse temp = ".jpeg" then
 		screenshot_format = temp
 	else
 		debug "Unrecognised/unsupported screenshot_format in config file: " & temp
