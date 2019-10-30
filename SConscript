@@ -335,7 +335,11 @@ if CXX:
 #gcc = env['ENV'].get('GCC', env['ENV'].get('CC', 'gcc'))
 #gcc = CC or WhereIs(target + "-gcc") or WhereIs("gcc")
 
-fullgccversion = get_command_output(GCC, "-dumpversion")
+
+# GCC can be configured to print only the major version number on -dumpversion,
+# -dumpfullversion always prints in #.#.# format... but is missing in older GCC.
+# GCC will process the first -dump* arg it recognises, and ignores others.
+fullgccversion = get_command_output(GCC, ["-dumpfullversion", "-dumpversion"])
 gccversion = int(fullgccversion.replace('.', ''))  # Convert e.g. 4.9.2 to 492
 
 EUC = WhereIs("euc")  # Euphoria compiler
