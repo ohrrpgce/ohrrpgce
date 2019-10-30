@@ -41,7 +41,7 @@ declare sub GifGetClosestPaletteColor(byval tree as GifKDTree ptr, byval color a
 
 
 ' In gif.cpp, not part of gif.h itself
-declare sub dither_image(byval image as const GifRGBA ptr, byval width as ulong, byval height as ulong, byval result as ubyte ptr, byval palette as const GifRGBA ptr, byval bitDepth as long, byval firstindex as long)
+declare sub dither_image(byval image as const GifRGBA ptr, byval width as ulong, byval height as ulong, byval result as ubyte ptr, byval palette as const GifRGBA ptr, byval bitDepth as long, byval firstIndex as long)
 
 declare function make_KDTree_for_palette(byval palette as const RGBcolor ptr, byval bitDepth as long, byval firstindex as long) as GifKDTree ptr
 declare sub delete_KDTree(byval tree as GifKDTree ptr)

@@ -7,7 +7,7 @@ extern "C" {
 
 
 // Internal only
-void indexed_tree_from_palette(GifKDTree& tree, const GifRGBA* palette, int bitDepth, int firstindex) {
+void indexed_tree_from_palette(GifKDTree& tree, const GifRGBA* palette, int bitDepth, int firstIndex) {
     // Copy 'palette', storing the original palette index into alpha, so
     // we can identify the colors after they're reordered by GifMakePalette
     GifRGBA* indexedPalette = (GifRGBA*)GIF_MALLOC((1 << bitDepth) * sizeof(GifRGBA));
@@ -17,8 +17,8 @@ void indexed_tree_from_palette(GifKDTree& tree, const GifRGBA* palette, int bitD
     }
 
     // Remove disallowed colors
-    for (int idx = 0; idx < firstindex; idx++) {
-        indexedPalette[idx] = indexedPalette[firstindex];
+    for (int idx = 0; idx < firstIndex; idx++) {
+        indexedPalette[idx] = indexedPalette[firstIndex];
     }
 
     // Create the KDTree for the palette by treating palette as an image
@@ -30,16 +30,16 @@ void indexed_tree_from_palette(GifKDTree& tree, const GifRGBA* palette, int bitD
 // Convert from 32-bit 'image' to 8-bit 'result' using Floyd-Steinberg dithering.
 // firstindex is the lowest allowed palette index in the output. A value of 0
 // allows the whole palette, a value of 1 excludes palette[0].
-void dither_image(const GifRGBA* image, uint32_t width, uint32_t height, uint8_t* result, const GifRGBA* palette, int bitDepth, int firstindex) {
+void dither_image(const GifRGBA* image, uint32_t width, uint32_t height, uint8_t* result, const GifRGBA* palette, int bitDepth, int firstIndex) {
 
     uint32_t numPixels = width*height;
     GifKDTree tree;
 
     if (palette) {
-        // Compute a tree from palette, excluding firstindex colors
-        indexed_tree_from_palette(tree, palette, bitDepth, firstindex);
+        // Compute a tree from palette, excluding firstIndex colors
+        indexed_tree_from_palette(tree, palette, bitDepth, firstIndex);
     } else {
-        // Compute a palette. firstindex is ignored - It is always taken as 1.
+        // Compute a palette. firstIndex is ignored - It is always taken as 1.
         GifMakePalette(NULL, image, width, height, bitDepth, true, &tree);
     }
 
@@ -50,11 +50,11 @@ void dither_image(const GifRGBA* image, uint32_t width, uint32_t height, uint8_t
 
     if (palette) {
         for (uint32_t ii = 0; ii < numPixels; ++ii) {
-            result[ii] = tree.pal.colors[resultRGBA[ii].a].a;
+            result[ii] = tree.pal.colors[resultRGBA[ii].a].a;  // Original palette index
         }
     } else {
         for (uint32_t ii = 0; ii < numPixels; ++ii) {
-            result[ii] = resultRGBA[ii].a;
+            result[ii] = resultRGBA[ii].a;  // Palette index
         }
     }
 
@@ -63,11 +63,11 @@ void dither_image(const GifRGBA* image, uint32_t width, uint32_t height, uint8_t
 
 // Build a data structure (k-d tree) that allows fast querying of the
 // nearest-match color in a palette. Delete the tree with delete_KDTree().
-GifKDTree *make_KDTree_for_palette(const GifRGBA* palette, int bitDepth, int firstindex) {
+GifKDTree *make_KDTree_for_palette(const GifRGBA* palette, int bitDepth, int firstIndex) {
     GifKDTree *tree = (GifKDTree*)GIF_MALLOC(sizeof(GifKDTree));
 
-    // Compute a tree from palette, excluding firstindex colors
-    indexed_tree_from_palette(*tree, palette, bitDepth, firstindex);
+    // Compute a tree from palette, excluding firstIndex colors
+    indexed_tree_from_palette(*tree, palette, bitDepth, firstIndex);
 
     // GifMakePalette creates a tree->pal palette with reordered colors.
     // The original indices in *palette are stored in the alpha component
@@ -82,7 +82,7 @@ GifKDTree *make_KDTree_for_palette(const GifRGBA* palette, int bitDepth, int fir
     }
 
     // Instead of sorting the palette inplace, just overwrite it.
-    memcpy(tree->pal.colors, palette + firstindex, sizeof(GifRGBA) << bitDepth);
+    memcpy(tree->pal.colors, palette + firstIndex, sizeof(GifRGBA) << bitDepth);
 
     return tree;
 }
