@@ -3954,11 +3954,13 @@ static unsigned readChunk_bKGD(LodePNGInfo* info, const unsigned char* data, siz
     /*error: this chunk must be 1 byte for indexed color image*/
     if(chunkLength != 1) return 43;
 
-    /*error: invalid palette index, or maybe this chunk appeared before PLTE*/
-    if(data[0] >= info->color.palettesize) return 103;
-
-    info->background_defined = 1;
-    info->background_r = info->background_g = info->background_b = data[0];
+    if(data[0] >= info->color.palettesize) {
+      /*error: invalid palette index, or maybe this chunk appeared before PLTE*/
+      //return 103;  // Just ignore it
+    } else {
+      info->background_defined = 1;
+      info->background_r = info->background_g = info->background_b = data[0];
+    }
   } else if(info->color.colortype == LCT_GREY || info->color.colortype == LCT_GREY_ALPHA) {
     /*error: this chunk must be 2 bytes for greyscale image*/
     if(chunkLength != 2) return 44;
