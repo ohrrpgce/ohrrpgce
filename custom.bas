@@ -79,19 +79,7 @@ DECLARE SUB gfx_editor_menu()
 
 '=================================== Globals ==================================
 
-REDIM gen(499)
-DIM gen_reld_doc as DocPtr
-REDIM buffer(16384)
-REDIM master(255) as RGBcolor
-REDIM uilook(uiColorLast) as integer
-REDIM boxlook(uiBoxLast) as BoxStyle
-DIM statnames() as string
-REDIM herotags() as HeroTagsCache
-REDIM itemtags() as ItemDefTags
-DIM vpage as integer = 0
-DIM dpage as integer = 1
 DIM activepalette as integer = -1
-DIM fadestate as bool = YES
 'The following are set from commandline options
 DIM auto_distrib as string 'Which distribution option to package automatically
 DIM option_nowait as bool  'Currently only used when importing scripts from the commandline: don't wait
@@ -99,16 +87,9 @@ DIM export_translations_to as string
 
 DIM editing_a_game as bool
 DIM last_active_seconds as double
-DIM game as string
-DIM sourcerpg as string
-DIM documents_dir as string
-DIM workingdir as string
-DIM app_dir as string
 
 DIM slave_channel as IPCChannel = NULL_CHANNEL
 DIM slave_process as ProcessHandle = 0
-
-DIM running_as_slave as bool = NO  'This is just for the benefit of gfx_sdl
 
 'Should we delete workingdir when quitting normally?
 'False if relumping workingdir failed.
@@ -197,7 +178,6 @@ processcommandline cmdline_args(), @gamecustom_setoption, orig_dir & SLASH & "oh
 
 load_default_master_palette master()
 DefaultUIColors uilook(), boxlook()
-REDIM current_font(1023) as integer
 getdefaultfont current_font()
 
 setmodex

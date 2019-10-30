@@ -83,15 +83,9 @@ DIM SHARED harmtileflash as bool = NO
 DIM gam as GameState
 gam.timer_offset = TIMER
 DIM txt as TextBoxState
-REDIM gen(499) as integer
-DIM gen_reld_doc as DocPtr
 DIM persist_reld_doc as DocPtr
 REDIM tag(1000) as integer '16000 bitsets
 REDIM onetime(1000) as integer '16000 bitsets
-
-REDIM herotags() as HeroTagsCache
-REDIM itemtags() as ItemDefTags
-REDIM statnames() as string
 
 'Party stuff
 REDIM inventory(inventoryMax) as InventSlot
@@ -125,20 +119,9 @@ DIM foemap as TileMap
 DIM zmap as ZoneMap
 REDIM tilesets(maplayerMax) as TilesetData ptr  'tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
 
-'Graphics
-DIM vpage as integer
-DIM dpage as integer
-REDIM master(255) as RGBcolor
-REDIM uilook(uiColorLast) as integer
-REDIM boxlook(uiBoxLast) as BoxStyle
-REDIM current_font(1023) as integer
-
 'Everything
 DIM SliceTable as SliceTableType
 
-REDIM buffer(16384) as integer 'FIXME: when can we get rid of this?
-
-DIM fadestate as bool = YES
 DIM presentsong as integer
 DIM backcompat_sound_slot_mode as bool
 REDIM backcompat_sound_slots(7) as integer
@@ -149,14 +132,9 @@ DIM lastformation as integer
 DIM lastsaveslot as integer
 
 DIM usepreunlump as bool
-DIM game as string
-DIM sourcerpg as string
 DIM savefile as string
-DIM workingdir as string
-DIM documents_dir as string
 DIM prefsdir as string
 DIM config_file as string
-DIM app_dir as string
 
 DIM lump_reloading as LumpReloadOptions
 lump_reloading.gmap.mode = loadmodeAlways
@@ -271,12 +249,12 @@ DIM autotestmode as bool = NO
 DIM always_enable_debug_keys as bool = NO
 DIM speedcontrol as double = 55
 DIM autosnap as integer = 0   'Number of ticks
-DIM running_as_slave as bool = NO
 DIM custom_version as string  'when running as slave
 DIM master_channel as IPCChannel = NULL_CHANNEL  'when running as slave
 DIM modified_lumps as string vector  'when running as slave
 v_new modified_lumps
 DIM force_prefsdir_save as bool = NO  'Whether to put save files in prefsdir rather than next to .rpg
+'And also running_as_slave
 
 REDIM cmdline_args() as string
 ' This can modify log_dir and restart the debug log

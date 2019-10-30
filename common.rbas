@@ -57,8 +57,20 @@ DECLARE SUB archive_log_file(logfile as string, archivefile as string)
 
 DEFINE_VECTOR_OF_TYPE(TagRangeCheck, TagRangeCheck)
 
-''''' Global variables (anything else in common.bi missing here will be in game.bas or custom.bas)
 
+'============================== Global variables ============================='
+
+'=== Graphics globals ==='
+
+DIM vpage as integer = 0
+DIM dpage as integer = 1
+REDIM master(255) as RGBcolor
+REDIM uilook(uiColorLast) as integer
+REDIM boxlook(uiBoxLast) as BoxStyle
+REDIM current_font(1023) as integer
+DIM fadestate as bool = YES   'Fades are only used in Game, but implemented in common.rbas
+
+'=== Debug logging ==='
 
 'app_name is used only by the crash handler
 #IFDEF IS_CUSTOM
@@ -75,11 +87,6 @@ DEFINE_VECTOR_OF_TYPE(TagRangeCheck, TagRangeCheck)
  DIM app_log_filename as zstring ptr = @"u_debug.txt"
  DIM app_archive_filename as zstring ptr = @"u_debug_archive.txt"
 #ENDIF
-
-'Used for search_string_cache. Should change every time the current game changes; changing
-'it on reloading some lumps while live previewing also useful, to clear certain caches
-'(Always blank in Custom)
-DIM game_unique_id as string
 
 'Allocate sprite size table
 REDIM sprite_sizes(sprTypeFirst TO sprTypeLast) as SpriteSize
@@ -101,8 +108,16 @@ DIM remember_debug_messages as bool = YES
 'True if called send_bug_report already this session
 DIM SHARED reported_a_bug as bool
 
+'=== Other global dirs and files ==='
+
+'Where the exe is, or on Mac, where the .app is
+DIM app_dir as string
+
 'Used on Mac to point to the app bundle Resources directory
 DIM app_resources_dir as string
+
+'User's documents directory (if it exists, otherwise another suitable writeable default location)
+DIM documents_dir as string
 
 'This is for application-wide settings, and prefsdir for games will be a subdirectory of it.
 DIM settings_dir as string
@@ -117,19 +132,48 @@ DIM global_config_file as string
 'Defines the current context. E.g. "edit.game_(gamename)."
 DIM config_prefix as string
 
-'Used by intgrabber, reset by reset_menu_edit_state (called by usemenu etc)
-DIM SHARED negative_zero as bool = NO
+'=== Game data ==='
 
-'Used by percent_grabber and format_percent, reset by usemenu
-DIM SHARED editing_percent as any ptr  'Ptr to a single or double which was last passed to percent_grabber
-DIM SHARED editing_percent_repr as string
+'Current game
+DIM game as string
+DIM sourcerpg as string
+DIM workingdir as string
+
+'Has been spawned from Custom. This is a common global for the benefit of gfx_sdl
+DIM running_as_slave as bool = NO
+
+'Used for search_string_cache. Should change every time the current game changes; changing
+'it on reloading some lumps while live previewing also useful, to clear certain caches
+'(Always blank in Custom)
+DIM game_unique_id as string
+
+'General game data array and Doc
+REDIM gen(499)
+DIM gen_reld_doc as DocPtr
 
 'The global reload document acts as a parent to any misc reload data structures (e.g. hero data) kept in memory.
 DIM global_reload_doc as reload.DocPtr
 global_reload_doc = reload.CreateDocument()
 reload.SetRootNode(global_reload_doc, reload.CreateNode(global_reload_doc, ""))
 
-''''' Module-local variables
+'Data caches
+DIM statnames() as string
+REDIM herotags() as HeroTagsCache
+REDIM itemtags() as ItemDefTags
+
+'TODO: when can we get rid of this?
+REDIM buffer(16384) as integer
+
+
+'=========================== Module-local variables =========================='
+
+
+'Used by intgrabber, reset by reset_menu_edit_state (called by usemenu etc)
+DIM SHARED negative_zero as bool = NO
+
+'Used by percent_grabber and format_percent, reset by usemenu
+DIM SHARED editing_percent as any ptr  'Ptr to a single or double which was last passed to percent_grabber
+DIM SHARED editing_percent_repr as string
 
 'a primitive system for printing messages that scroll
 TYPE ConsoleData
@@ -166,6 +210,7 @@ DIM SHARED lastlogfile as string
 DIM SHARED debug_log_mutex as any ptr
 debug_log_mutex = mutexcreate
 
+
 TYPE SavedGfxIOState
  prev_mouse_vis as CursorVisibility
  resolution_was_unlocked as bool
@@ -184,6 +229,9 @@ DIM SHARED master_remembered as bool = NO
 'binsize.bin cache
 DIM SHARED binsize_cache(binLASTENTRY) as integer
 DIM SHARED binsize_cache_loaded as bool = NO
+
+'============================================================================='
+
 
 
 FUNCTION common_setoption(opt as string, arg as string) as integer
