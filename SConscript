@@ -1100,6 +1100,7 @@ gameenv = commonenv.Clone (VAR_PREFIX = 'game-', FBFLAGS = commonenv['FBFLAGS'] 
                       ['-d','IS_GAME', '-m','game'])
 editenv = commonenv.Clone (VAR_PREFIX = 'edit-', FBFLAGS = commonenv['FBFLAGS'] + \
                       ['-d','IS_CUSTOM', '-m','custom'])
+allmodexenv = commonenv.Clone (VAR_PREFIX = 'util-', FBFLAGS = commonenv['FBFLAGS'])
 
 #now... GAME and CUSTOM
 
@@ -1114,6 +1115,10 @@ for item in edit_modules:
     editsrc.extend (editenv.BASO (item))
 for item in shared_modules:
     editsrc.extend (editenv.VARIANT_BASO (item))
+
+allmodex_objects = common_objects[:]
+for item in shared_modules:
+    allmodex_objects.extend (allmodexenv.VARIANT_BASO (item))
 
 # Sort RB modules to the front so they get built first, to avoid bottlenecks
 gamesrc.sort (key = lambda node: 0 if '.rbas' in node.path else 1)
@@ -1140,7 +1145,7 @@ else:
     gamename = 'ohrrpgce-game'
     editname = 'ohrrpgce-custom'
 
-def env_exe(name, **kwargs):
+def env_exe(name, env=env, **kwargs):
     ret = env.BASEXE (rootdir + name, **kwargs)
     Alias (name, ret)
     return ret
@@ -1154,6 +1159,7 @@ env_exe ('miditest')
 env_exe ('unlump', source = ['unlump.bas'] + base_objects)
 env_exe ('relump', source = ['relump.bas'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
+env_exe ('imageconv', env = allmodexenv, source = ['imageconv.bas'] + allmodex_objects)
 
 # Put this into a function so that we only call get_euphoria_version() when compiling
 def compile_hspeak(target, source, env):
@@ -1498,6 +1504,7 @@ Targets (executables to build):
   hspeak              HamsterSpeak compiler (note: arch and target ignored)
   dumpohrkey          Convert .ohrkeys to text
   bam2mid             Convert .bam to .mid
+  imageconv           Convert between png/bmp/jpg/gif (note: use gfx=dummy)
   slice2bas           For embedding .slice files
   reload2xml
   xml2reload          Requires libxml2 to build.
