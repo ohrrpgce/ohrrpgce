@@ -131,6 +131,7 @@ type FnGfxLoad as function cdecl () as integer
 
 declare function gfx_alleg_setprocptrs() as integer
 declare function gfx_fb_setprocptrs() as integer
+declare function gfx_dummy_setprocptrs() as integer
 declare function gfx_sdl_setprocptrs() as integer
 declare function gfx_sdl2_setprocptrs() as integer
 declare function gfx_console_setprocptrs() as integer
@@ -154,6 +155,9 @@ dim shared as GfxBackendStuff alleg_stuff = ("alleg", "", "", @gfx_alleg_setproc
 #ifdef GFX_DIRECTX_BACKEND
 dim shared as GfxBackendStuff directx_stuff = ("directx", "", "gfx_directx", NULL)  'work out wantpolling when loading
 #endif
+#ifdef GFX_DUMMY_BACKEND
+dim shared as GfxBackendStuff dummy_stuff = ("dummy", "", "", @gfx_dummy_setprocptrs, NO)
+#endif
 #ifdef GFX_FB_BACKEND
 dim shared as GfxBackendStuff fb_stuff = ("fb", "", "", @gfx_fb_setprocptrs, YES)
 #endif
@@ -167,12 +171,12 @@ dim shared as GfxBackendStuff sdl2_stuff = ("sdl2", "", "", @gfx_sdl2_setprocptr
 dim shared as GfxBackendStuff console_stuff = ("console", "", "", @gfx_console_setprocptrs, NO)
 #endif
 #ifdef GFX_SDLPP_BACKEND
-dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "sdlpp", "gfx_sdl", NULL)
+dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "sdlpp", "gfx_sdl", NULL, NO)
 'dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "", @gfx_sdlpp_setprocptrs)
 #endif
 
 ' Alternative spellings allowed
-dim shared valid_gfx_backends(...) as string * 10 = {"alleg", "directx", "fb", "sdl", "sdl2", "console", "sdlpp", "sdl++"}
+dim shared valid_gfx_backends(...) as string * 10 = {"alleg", "directx", "dummy", "fb", "sdl", "sdl2", "console", "sdlpp", "sdl++"}
 
 dim shared gfx_choices() as GfxBackendStuff ptr
 'Initialises gfx_choices with pointers to *_stuff variables, in some build-dependent order
@@ -194,6 +198,27 @@ dim as string systeminfo
 dim allegro_initialised as bool = NO
 
 extern "C"
+
+#ifdef GFX_DUMMY_BACKEND
+
+'Init functions for gfx_dummy backend. This does NOT set most of the mandatory function pointers,
+'so will crash Game/Custom! This backend is only for commandline utilities that need access to allmodex/etc.
+'gfx_dummy_init/gfx_dummy_setprocptrs/io_dummy_init are used only by gfx_dummy
+function gfx_dummy_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
+	return 1
+end function
+
+sub io_dummy_init ()
+end sub
+
+function gfx_dummy_setprocptrs() as integer
+	'Just enough to be able to call setmodex() and get working gfx_Surface* interface.
+	gfx_init = @gfx_dummy_init
+	io_init = @io_dummy_init
+	return 1
+end function
+
+#endif
 
 sub gfx_dummy_get_screen_size(wide as integer ptr, high as integer ptr) : *wide = 0 : *high = 0 : end sub
 function gfx_dummy_supports_variable_resolution() as bool : return NO : end function
@@ -706,6 +731,9 @@ sub gfx_backend_menu ()
 	redim menu() as string
 	for idx as integer = 0 to ubound(gfx_choices)
 		dim item as string = "gfx_" & gfx_choices(idx)->name
+		'You shouldn't compile Game/Custom with gfx_dummy, it will crash.
+		'But in case you make that mistake, hide it.
+		if item = "gfx_dummy" then continue for
 		if gfx_choices(idx) = currentgfxbackend then
 			item &= " (Current)"
 		elseif gfx_choices(idx)->name = default_backend then

@@ -844,6 +844,7 @@ gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'common_libraries': libfbgfx},
            'sdl' : {'shared_modules': 'gfx_sdl.bas', 'common_libraries': 'SDL'},
            'sdl2' : {'shared_modules': 'gfx_sdl2.bas', 'common_libraries': 'SDL2'},
            'console' : {'shared_modules': 'gfx_console.bas', 'common_modules': 'curses_wrap.c'},
+           'dummy' : {},
            'directx' : {}, # nothing needed
            'sdlpp': {}     # nothing needed
            }
@@ -1390,6 +1391,7 @@ Usage:  scons [SCons options] [options] [targets]
 Options:
   gfx=BACKENDS        Graphics backends, concatenated with +. Options:
                         """ + " ".join (gfx_map.keys ()) + """
+                      (Don't try to use gfx_dummy!)
                       At runtime, backends are tried in the order specified.
                       Current (default) value: """ + "+".join (gfx) + """
   music=BACKEND       Music backend. Options:

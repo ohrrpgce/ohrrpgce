@@ -286,7 +286,7 @@ def verprint (used_gfx, used_music, fbc, arch, gccversion, asan, portable, pdb, 
     # Backends
     supported_gfx = []
     for gfx in used_gfx:
-        if gfx in ('sdl','sdl2','fb','alleg','directx','sdlpp','console'):
+        if gfx in ('sdl','sdl2','fb','alleg','directx','sdlpp','console','dummy'):
             results.append ('#DEFINE GFX_%s_BACKEND' % gfx.upper())
             supported_gfx.append (gfx)
         else:
