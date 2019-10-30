@@ -2279,10 +2279,10 @@ SUB InternalDefaultUIColors (colarray() as integer, uidef() as integer, boxarray
  FOR i as integer = 0 TO uiBoxLast
   boxarray(i).bgcol = boxdef(i * 2)
   boxarray(i).edgecol = boxdef(i * 2 + 1)
-  #IFDEF IS_CUSTOM
-   boxarray(i).border = 1  'Use border 0 (loaded from data/defaultgfx/ohrrpgce.pt7)
-  #ELSE
+  #IFDEF IS_GAME
    boxarray(i).border = 0  'No borders, because data/ isn't shipped with Game
+  #ELSE
+   boxarray(i).border = 1  'Use border 0 (loaded from data/defaultgfx/ohrrpgce.pt7)
   #ENDIF
  NEXT i
 END SUB

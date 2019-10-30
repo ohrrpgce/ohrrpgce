@@ -2448,12 +2448,14 @@ sub setkeys (enable_inputtext as bool = NO)
 	end if
 
 	' Custom/Game-specific global controls, done last so that there can't be interference
-	static entered as bool
-	if entered = NO then
-		entered = YES
-		global_setkeys_hook
-		entered = NO
-	end if
+	#if defined(IS_GAME) or defined(IS_CUSTOM)
+		static entered as bool
+		if entered = NO then
+			entered = YES
+			global_setkeys_hook
+			entered = NO
+		end if
+	#endif
 end sub
 
 sub setquitflag (newstate as bool = YES)
@@ -2678,7 +2680,7 @@ sub mouserect (xmin as integer, xmax as integer, ymin as integer, ymax as intege
 			settemporarywindowtitle remember_title & " (F14 to free mouse)"
 #ELSE
 			settemporarywindowtitle remember_title & " (ScrlLock to free mouse)"
-#endIF
+#ENDIF
 		end if
 	end if
 	GFX_ENTER

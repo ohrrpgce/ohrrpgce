@@ -506,10 +506,10 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    END IF
   END IF
   slice_editor_common_function_keys ses, edslice, state  'F4, F6, F7, Ctrl+3
-  #IFDEF IS_CUSTOM
-   IF keyval(scF1) > 1 THEN show_help "sliceedit"
-  #ELSE
+  #IFDEF IS_GAME
    IF keyval(scF1) > 1 THEN show_help "sliceedit_game"
+  #ELSE
+   IF keyval(scF1) > 1 THEN show_help "sliceedit"
   #ENDIF
   IF keyval(scF5) > 1 THEN
    ses.show_root = NOT ses.show_root

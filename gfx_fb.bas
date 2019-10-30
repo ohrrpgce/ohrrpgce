@@ -120,10 +120,10 @@ private sub update_mouse_visibility
 	if mouse_visibility = cursorDefault then
 		' window_state.fullscreen is an approximation (see process_events()),
 		' and because it's so unreliable we need a constant default.
-#ifdef IS_CUSTOM
-		vis = 1
-#else
+#ifdef IS_GAME
 		vis = 0
+#else
+		vis = 1
 #endif
 		'if window_state.fullscreen = YES then vis = 0 else vis = 1
 	elseif mouse_visibility = cursorVisible then

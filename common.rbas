@@ -65,10 +65,15 @@ DEFINE_VECTOR_OF_TYPE(TagRangeCheck, TagRangeCheck)
  DIM app_name as zstring ptr = @"OHRRPGCE-Custom"
  DIM app_log_filename as zstring ptr = @"c_debug.txt"
  DIM app_archive_filename as zstring ptr = @"c_debug_archive.txt"
-#ELSE
+#ELSEIF DEFINED(IS_GAME)
  DIM app_name as zstring ptr = @"OHRRPGCE-Game"
  DIM app_log_filename as zstring ptr = @"g_debug.txt"
  DIM app_archive_filename as zstring ptr = @"g_debug_archive.txt"
+#ELSE
+ 'Utilities
+ DIM app_name as zstring ptr = NULL  'Use executable name
+ DIM app_log_filename as zstring ptr = @"u_debug.txt"
+ DIM app_archive_filename as zstring ptr = @"u_debug_archive.txt"
 #ENDIF
 
 'Used for search_string_cache. Should change every time the current game changes; changing
@@ -309,13 +314,8 @@ END FUNCTION
 ' title is what message to write at the top
 SUB start_new_debug(title as string)
  DIM as string logfile, archivefile
- #IFDEF IS_GAME
-   logfile = log_dir & "g_debug.txt"
-   archivefile = log_dir & "g_debug_archive.txt"
- #ELSE
-   logfile = log_dir & "c_debug.txt"
-   archivefile = log_dir & "c_debug_archive.txt"
- #ENDIF
+ logfile = log_dir & *app_log_filename
+ archivefile = log_dir & *app_archive_filename
  ' Don't archive if we're already writing to this logfile
  IF lastlogfile <> absolute_path(logfile) THEN
   IF isfile(logfile) THEN
@@ -376,19 +376,13 @@ END SUB
 
 ' Delete the log file if there were no important error messages.
 SUB end_debug
- DIM filename as string
- #IFDEF IS_GAME
-   filename = "g_debug.txt"
- #ELSE
-   filename = "c_debug.txt"
- #ENDIF
  IF NOT importantdebug THEN
-   safekill log_dir & filename
+   safekill log_dir & *app_log_filename
    lastlogfile = ""
    log_buffer &= "end_debug: no debug/error messages during startup (skipping rest of startup)" LINE_END
  ELSE
    'Remember not to archive the log if we restart the log in the same directory
-   lastlogfile = absolute_path(log_dir & filename)
+   lastlogfile = absolute_path(log_dir & *app_log_filename)
  END IF
  importantdebug = NO
 END SUB
@@ -491,12 +485,7 @@ END SUB
 
 LOCAL FUNCTION open_logfile() as integer
  STATIC sizeerror as bool = NO
- DIM filename as string
- #IFDEF IS_GAME
-   filename = log_dir & "g_debug.txt"
- #ELSE
-   filename = log_dir & "c_debug.txt"
- #ENDIF
+ DIM filename as string = log_dir & *app_log_filename
  DIM fh as integer = FREEFILE
  IF OPEN(filename FOR APPEND as #fh) THEN
   external_log "Couldn't open debug log " & filename
@@ -1289,8 +1278,13 @@ SUB fatal_error_shutdown
 
   'no need for end_debug
   SYSTEM 1
- #ELSE
+ #ELSEIF DEFINED(IS_GAME)
   exitprogram NO, 1
+ #ELSE
+  closemusic
+  restoremode
+
+  SYSTEM 1
  #ENDIF
 END SUB
 
@@ -1477,8 +1471,8 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
    loadpalette master(), activepalette
    LoadUIColors uilook(), boxlook(), activepalette
   END IF
- #ELSE
 
+ #ELSEIF DEFINED(IS_GAME)
   'Restore game's master palette and ui colors
   IF gam.current_master_palette > -1 THEN
    loadpalette master(), gam.current_master_palette
@@ -2167,7 +2161,7 @@ FUNCTION strgrabber (text as string, maxl as integer = 9999999) as bool
 
  stredit_delete_keys text, ""
 
- #IFDEF IS_CUSTOM
+ #IFNDEF IS_GAME
   '--copy+paste support
   handle_text_copy_paste text, clip
   text = LEFT(text, maxl)

@@ -137,8 +137,10 @@ type USTRING as STRING
 'This is useful as a prefix in ohrrpgce_config.ini
 #ifdef IS_GAME
  #define EXEPREFIX "game."
-#else
+#elseif defined(IS_CUSTOM)
  #define EXEPREFIX "edit."
+#else
+ #define EXEPREFIX
 #endif
 
 '---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved

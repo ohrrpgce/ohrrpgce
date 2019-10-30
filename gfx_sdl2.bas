@@ -253,7 +253,7 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
 
   'Not needed, seems to work without
   'SDL_SetHint(SDL_HINT_WINDOWS_INTRESOURCE_ICON, windowicon)
-  #ifdef IS_CUSTOM
+  #ifndef IS_GAME
     'By default SDL prevents the screensaver (new in SDL 2.0.2)
     SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1")
   #endif

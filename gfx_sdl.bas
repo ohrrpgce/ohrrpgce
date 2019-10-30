@@ -341,7 +341,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
 
   gfx_sdl_recenter_window_hint()
 
-#ifdef IS_CUSTOM
+#ifndef IS_GAME
   'By default SDL prevents screensaver (new in SDL 1.2.10)
   putenv("SDL_VIDEO_ALLOW_SCREENSAVER=1")
 #endif

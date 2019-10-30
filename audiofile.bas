@@ -8,7 +8,7 @@
 #include "string.bi"
 #include "audiofile.bi"
 
-#ifdef IS_CUSTOM
+#ifndef IS_GAME
 
 '#ifdef HAVE_VORBISFILE
 #include "vorbis/vorbisfile.bi"
@@ -343,7 +343,7 @@ function read_mp3_metadata(songfile as string, byref filetype as string = "") as
 end function
 
 
-#endif  'IS_CUSTOM
+#endif  'not IS_GAME
 
 
 ' Check that an audio file really is the format it appears to be
