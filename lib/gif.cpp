@@ -27,15 +27,21 @@ void indexed_tree_from_palette(GifKDTree& tree, const GifRGBA* palette, int bitD
     GIF_FREE(indexedPalette);
 }
 
-// Convert from 32-bit 'image' to 8-bit 'result' using Floyd-Steinberg dithering.
-// firstindex is the lowest allowed palette index in the output. A value of 0
-// allows the whole palette, a value of 1 excludes palette[0].
-void dither_image(const GifRGBA* image, uint32_t width, uint32_t height, uint8_t* result, const GifRGBA* palette, int bitDepth, int firstIndex) {
+// Quantize from 32-bit 'image' to 8-bit 'result', using Floyd-Steinberg dithering (or not).
+// computePalette:  If true, 'palette' is an output, it is filled with a computed palette,
+//             otherwise it is an input palette.
+// bitDepth:   Gives the size of the palette, from 1 to 8
+// firstIndex: Is the lowest allowed palette index in the output. A value of 0
+//             allows the whole palette, a value of 1 excludes palette[0].
+// maxerror:   Adjust max error propagation while dithering. Default 50, 0 disables dithering.
+void dither_image(const GifRGBA* image, uint32_t width, uint32_t height, uint8_t* result, int computePalette, GifRGBA* palette, int bitDepth, int firstIndex, int maxerror) {
+
+    kGifMaxAccumError = maxerror;  // It's a global, yuck.
 
     uint32_t numPixels = width*height;
     GifKDTree tree;
 
-    if (palette) {
+    if (!computePalette) {
         // Compute a tree from palette, excluding firstIndex colors
         indexed_tree_from_palette(tree, palette, bitDepth, firstIndex);
     } else {
@@ -48,7 +54,7 @@ void dither_image(const GifRGBA* image, uint32_t width, uint32_t height, uint8_t
     // The alpha component of each pixel in the result is the index into
     // tree.pal.colors, which is a reordered version of 'palette'.
 
-    if (palette) {
+    if (!computePalette) {
         for (uint32_t ii = 0; ii < numPixels; ++ii) {
             result[ii] = tree.pal.colors[resultRGBA[ii].a].a;  // Original palette index
         }
@@ -56,9 +62,15 @@ void dither_image(const GifRGBA* image, uint32_t width, uint32_t height, uint8_t
         for (uint32_t ii = 0; ii < numPixels; ++ii) {
             result[ii] = resultRGBA[ii].a;  // Palette index
         }
+        for (int idx = 0; idx < 1 << bitDepth; idx++) {
+            palette[idx] = tree.pal.colors[idx];
+            palette[idx].a = 255;
+        }
     }
 
     GIF_FREE(resultRGBA);
+
+    kGifMaxAccumError = 50;  // Reset to default
 }
 
 // Build a data structure (k-d tree) that allows fast querying of the

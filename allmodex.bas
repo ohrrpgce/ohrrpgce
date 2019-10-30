@@ -11,6 +11,7 @@
 #include "allmodex.bi"
 #include "gfx.bi"
 #include "surface.bi"
+#include "lib/gif.bi"
 #include "lib/lodepng.bi"
 #include "lib/ujpeg.bi"
 #include "lib/jo_jpeg.bi"
@@ -7213,7 +7214,9 @@ function image_import_as_surface(filename as string, always_32bit as bool) as Su
 	end select
 end function
 
-'Loads and palettises a non-paletted image, mapped to palette pal().
+'Loads a 24/32-bit image as 8-bit Frame.
+'pal() is an output if options.compute_palette=YES, otherwise an input.
+'See quantize_surface() for full documentation.
 'It doesn't make sense to call this on paletted images, as it's unnecessarily very slow.
 'If there is an alpha channel, fully transparent pixels are mapped to index 0.
 function image_import_as_frame_quantized(filename as string, pal() as RGBcolor, options as QuantizeOptions = TYPE(0, -1)) as Frame ptr
@@ -7438,10 +7441,12 @@ declare sub quantize_surface_threshold(surf as Surface ptr, ret as Frame ptr, pa
 
 'Convert a 32 bit Surface to a paletted Frame.
 'Frees surf.
-'Only colours firstindex..255 in pal() are used.
+'If options.compute_palette=NO (the default) the palette to use should be given as pal(),
+'otherwise a suitable palette is computed and returned in pal().
+'Only colours options.firstindex..255 in pal() are used.
 'Any pixels with alpha=0 are mapped to 0; otherwise alpha is ignored.
-'Optionally, any RGB colour matching 'transparency' gets mapped to index 0 (by default none);
-'the Surface's alpha is ignored and transparency.a must be 0 or it won't be matched.
+'Optionally, any RGB colour matching options.transparency gets mapped to index 0 (by default none);
+'the Surface's alpha is ignored and options.transparency.a must be 0 or it won't be matched.
 function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options as QuantizeOptions) as Frame ptr
 	if surf->format <> SF_32bit then
 		showbug "quantize_surface only works on 32 bit Surfaces (bad image_import_as_frame_quantized call?)"
@@ -7452,16 +7457,22 @@ function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options 
 	dim ret as Frame ptr
 	ret = frame_new(surf->width, surf->height)
 
-	if options.dither then
+	if options.dither orelse options.compute_palette then
 		if surf->pitch <> surf->width or ret->pitch <> surf->width then
 			showbug "Can't call dither_image due to pitch mismatch"
 		else
-			kGifMaxAccumError = options.dither_maxerror
-			dither_image(surf->pColorData, surf->width, surf->height, ret->image, @pal(0), 8, options.firstindex)
+			'We can set the max error to 0 to disable dithering
+			dim maxerr as integer = iif(options.dither, options.dither_maxerror, 0)
+
+			dither_image(surf->pColorData, surf->width, surf->height, ret->image, _
+				     options.compute_palette, @pal(0), 8, options.firstindex, maxerr)
 			'Handle options.transparency
 			quantize_surface_threshold(surf, ret, pal(), options, NO)
 		end if
 	else
+		'This is not the same as options.dither_maxerror = 0, because it
+		'uses nearcolor, which is slower but maybe slightly better results,
+		'compared to the less "perceptual" comparison done in lib/gif.h.
 		quantize_surface_threshold(surf, ret, pal(), options, YES)
 	end if
 
