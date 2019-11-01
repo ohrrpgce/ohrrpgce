@@ -76,6 +76,14 @@ declare sub SDL_ANDROID_SetScreenKeyboardShown (byval shown as integer)
 declare function SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput() as integer 
 'WARNING: SDL_ANDROID_IsScreenKeyboardShown seems unreliable. Don't use it! It is only declared here to document its existance. see the virtual_keyboard_shown variable instead
 declare function SDL_ANDROID_IsScreenKeyboardShown() as bool
+'This function brings up the keyboard to edit an existing piece of text. Key events will not be sent, but instead the buffer will be modified (in real time?). Always returns 1.
+declare function SDL_ANDROID_GetScreenKeyboardTextInput(textBuf as zstring ptr, textBufSize as integer) as integer
+'Like above this function brings up the keyboard to edit an existing piece of text (it doesn't hide it!). Afterwards, fake key events will be sent to type out the final text.
+'Bug: meant to send backspace keypresses, but it doesn't.
+'Bug: if any key is down when this is called, it'll get stuck.
+'Warning: previousText is limited to length 254
+'Always returns 1.
+declare function SDL_ANDROID_ToggleScreenKeyboardTextInput(previousText as zstring ptr) as integer
 declare function SDL_ANDROID_IsRunningOnConsole () as bool
 declare function SDL_ANDROID_IsRunningOnOUYA () as bool
 declare sub SDL_ANDROID_set_java_gamepad_keymap(byval A as integer, byval B as integer, byval C as integer, byval X as integer, byval Y as integer, byval Z as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer, byval LT as integer, byval RT as integer)
