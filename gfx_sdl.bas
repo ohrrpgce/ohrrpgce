@@ -164,6 +164,10 @@ DIM SHARED mousewheel as integer     'Position of the wheel. A multiple of 120
 DIM SHARED virtual_keyboard_shown as bool = NO
 DIM SHARED allow_virtual_gamepad as bool = YES
 DIM SHARED safe_zone_margin as single = 0.0
+#IFDEF __FB_ANDROID__
+DIM SHARED warped_mouse as bool = NO  'No mouse movement since last SDL_WarpMouse?
+#ENDIF
+
 
 END EXTERN ' Can't put assignment statements in an extern block
 
@@ -1048,6 +1052,11 @@ SUB gfx_sdl_process_events()
           END IF
         END WITH
 
+#IFDEF __FB_ANDROID__
+      'SDL_WarpMouse doesn't work, this is part of workaround
+      CASE SDL_MOUSEMOTION : warped_mouse = NO
+#ENDIF
+
 'Warning: I don't know which one FB versions between 0.91 and 1.04 need
 #IF __FB_VERSION__ < "0.91" OR __FB_VERSION__ >= "1.04"
       CASE SDL_ACTIVEEVENT
@@ -1346,6 +1355,11 @@ LOCAL FUNCTION update_mouse() as integer
   DIM buttons as Uint8
 
   buttons = SDL_GetMouseState(@x, @y)
+#IFDEF __FB_ANDROID__
+  'SDL_WarpMouse doesn't work, so reimplement it: don't update mouse position until it's moved/clicked
+  IF buttons <> 0 THEN warped_mouse = NO
+  IF warped_mouse THEN RETURN buttons
+#ENDIF
   IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
     IF mouseclipped THEN
       'Not moving the mouse back to the centre of the window rapidly is widely recommended, but I haven't seen (nor looked for) evidence that it's bad.
@@ -1404,6 +1418,12 @@ SUB io_sdl_setmouse(byval x as integer, byval y as integer)
     IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
       SDL_WarpMouse x * zoom, y * zoom
       SDL_PumpEvents
+#IFDEF __FB_ANDROID__
+      ' SDL_WarpMouse doesn't work
+      warped_mouse = YES
+      privatemx = x * zoom
+      privatemy = y * zoom
+#ENDIF
 #IFDEF __FB_DARWIN__
       ' SDL Mac bug (SDL 1.2.14, OS 10.8.5): if the cursor is off the window
       ' when SDL_WarpMouse is called then the mouse gets moved onto the window,
