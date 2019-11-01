@@ -797,6 +797,8 @@ if android_source:
         else:
             abi = arch
         fil.write('MultiABI="%s"\n' % abi)
+        if 'custom' in COMMAND_LINE_TARGETS:
+            fil.write('. project/jni/application/src/EditorSettings.cfg')
 
 
 # With the exception of base_libraries, now have determined all shared variables
