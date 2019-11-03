@@ -4300,11 +4300,13 @@ SUB SpriteSetBrowser.update()
   DIM info_text_right as Slice ptr = edsl(ssed_info_text_right, root)
   IF info_text = NULL ORELSE info_text_right = NULL ORELSE ps.cur = NULL THEN EXIT SUB
   DIM as TextSliceData ptr info_text_dat = info_text->SliceData
+  DIM caption_text as Slice ptr = edsl(ssed_caption_text, root)
 
   DIM pal_root as Slice ptr = edsl(ssed_palette_root, root)
   IF pal_root = NULL THEN EXIT SUB
 
   DIM info_str as string
+  DIM caption_str as string = ""
   IF cur_setnum = -1 THEN  'Add new
     info_str = "ENTER to add a new spriteset"
     info_text_dat->show_insert = NO
@@ -4327,8 +4329,64 @@ SUB SpriteSetBrowser.update()
     IF cur_frameid < 0 THEN
       'Whole spriteset selected rather than a frame
       'info_str &= "  ENTER to edit"
+      caption_str = "Entire spriteset"
     ELSE
       info_str &= "  Frame ID " & cur_frameid & "  " & frame_name(cur_setnum, cur_frameid)
+      'FIXME: Replace these hard-coded names with frame group names later
+      SELECT CASE sprtype
+       CASE sprTypeHero
+        SELECT CASE cur_frameid
+         CASE 0: caption_str = "Standing"
+         CASE 1: caption_str = "Stepping"
+         CASE 100: caption_str = "Attack A"
+         CASE 101: caption_str = "Attack B"
+         CASE 200: caption_str = "Casting"
+         CASE 300: caption_str = "Hurt"
+         CASE 400: caption_str = "Weak"
+         CASE 500: caption_str = "Dead"
+        END SELECT
+       CASE sprTypeWalkabout
+        SELECT CASE cur_frameid
+         CASE 0: caption_str = "Up 0"
+         CASE 1: caption_str = "Up 1"
+         CASE 100: caption_str = "Right 0"
+         CASE 101: caption_str = "Right 1"
+         CASE 200: caption_str = "Down 0"
+         CASE 201: caption_str = "Down 1"
+         CASE 300: caption_str = "Left 0"
+         CASE 301: caption_str = "Left 1"
+        END SELECT
+       CASE sprTypeWeapon
+        SELECT CASE cur_frameid
+         CASE 0: caption_str = "Frame A"
+         CASE 1: caption_str = "Frame B"
+        END SELECT
+       CASE sprTypeAttack
+        SELECT CASE cur_frameid
+         CASE 0: caption_str = "Frame 0"
+         CASE 1: caption_str = "Frame 1"
+         CASE 2: caption_str = "Frame 2"
+        END SELECT
+       CASE sprTypeBoxBorder
+        SELECT CASE cur_frameid
+         CASE 0: caption_str = "Top left corner"
+         CASE 1: caption_str = "Top edge left connector"
+         CASE 2: caption_str = "Top edge"
+         CASE 3: caption_str = "Top edge right connector"
+         CASE 4: caption_str = "Top right corner"
+         CASE 5: caption_str = "Left edge top connector"
+         CASE 6: caption_str = "Right edge top connector"
+         CASE 7: caption_str = "Left edge"
+         CASE 8: caption_str = "Right edge"
+         CASE 9: caption_str = "Left edge bottom connector"
+         CASE 10: caption_str = "Right edge bottom connector"
+         CASE 11: caption_str = "Bottom left corner"
+         CASE 12: caption_str = "Bottom edge left connector"
+         CASE 13: caption_str = "Bottom edge"
+         CASE 14: caption_str = "Bottom edge right connector"
+         CASE 15: caption_str = "Bottom right corner"
+        END SELECT
+      END SELECT
     END IF
 
     ChangeTextSlice edsl(ssed_palette_text, root), "Def pal " & defpalettes(cur_setnum)
@@ -4354,6 +4412,7 @@ SUB SpriteSetBrowser.update()
   END IF
 
   ChangeTextSlice info_text, info_str
+  ChangeTextSlice caption_text, caption_str
 
   'TODO: This is here to update the positioning of the palette box,
   'and can be removed when CoverChildren is fixed to compute the size
