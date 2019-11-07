@@ -6805,7 +6805,7 @@ FUNCTION get_help_dir(helpfile as string="") as string
  'platform-specific relative data files path (Mac OS X bundles)
  IF help_dir_helper(app_resources_dir & SLASH & "ohrhelp", helpfile) THEN RETURN app_resources_dir & SLASH & "ohrhelp"
  #IFDEF __FB_UNIX__
-  DIM datafiles as string = "../share/games/ohrrpgce/ohrhelp"
+  DIM datafiles as string = exepath & "/../share/games/ohrrpgce/ohrhelp"
   IF help_dir_helper(datafiles, helpfile) THEN RETURN datafiles
  #ENDIF
  '-- if all else fails, use exepath even if invalid
