@@ -3311,10 +3311,14 @@ FUNCTION find_helper_app (appname as zstring ptr, try_install as bool=NO, downlo
   'where is empty on failure
   where = RTRIM(where, !"\n")
   IF LEN(where) THEN RETURN where
+  'support/ might be used if running from a source tree?
+  try_app_path(exepath & "/support/" & *appname)
   'unlump and relump get installed here
   try_app_path(exepath & "/../share/games/ohrrpgce/" & *appname)
-  try_app_path("/usr/share/games/ohrrpgce/" & *appname)
-  try_app_path(exepath & "/support/" & *appname)
+  '/usr/share/games is optional in the Linux FHS standard, so try share/ohrrpgce too (Not seen in the wild)
+  try_app_path(exepath & "/../share/ohrrpgce/" & *appname)
+  try_app_path(exepath & "/usr/share/games/ohrrpgce/" & *appname)
+  try_app_path(exepath & "/usr/share/ohrrpgce/" & *appname)
  #ENDIF
  #IFDEF __FB_WIN32__
   RETURN find_windows_helper_app(*appname, try_install, *download_url)
@@ -3665,10 +3669,15 @@ LOCAL FUNCTION finddatafile_internal(filename as string, searchtype as FileTypeE
   '~/.ohrrpgce/
   try_data_path(settings_dir & SLASH & filename)
   ' Assuming the binary is in $prefix/games or $prefix/bin
-  DIM DATAFILES as string = exepath & "/../share/games/ohrrpgce/"
+  DIM datafiles as string
+  datafiles = exepath & "/../share/games/ohrrpgce/"
   ' In this case the packaging script could avoid putting anything in a subdirectory
-  try_data_path(DATAFILES & "data/" & filename)
-  try_data_path(DATAFILES & filename)
+  try_data_path(datafiles & filename)
+  try_data_path(datafiles & "data/" & filename)
+  '/usr/share/games is optional in the Linux FHS standard, so try share/ohrrpgce too (Not seen in the wild)
+  datafiles = exepath & "/../share/ohrrpgce/"
+  try_data_path(datafiles & filename)
+  try_data_path(datafiles & "data/" & filename)
  #ENDIF
  RETURN ""
 END FUNCTION
@@ -6805,7 +6814,10 @@ FUNCTION get_help_dir(helpfile as string="") as string
  'platform-specific relative data files path (Mac OS X bundles)
  IF help_dir_helper(app_resources_dir & SLASH & "ohrhelp", helpfile) THEN RETURN app_resources_dir & SLASH & "ohrhelp"
  #IFDEF __FB_UNIX__
-  DIM datafiles as string = exepath & "/../share/games/ohrrpgce/ohrhelp"
+  DIM datafiles as string
+  datafiles = exepath & "/../share/games/ohrrpgce/ohrhelp"
+  IF help_dir_helper(datafiles, helpfile) THEN RETURN datafiles
+  datafiles = exepath & "/../share/ohrrpgce/ohrhelp"
   IF help_dir_helper(datafiles, helpfile) THEN RETURN datafiles
  #ENDIF
  '-- if all else fails, use exepath even if invalid
