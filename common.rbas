@@ -3711,15 +3711,19 @@ END FUNCTION
 FUNCTION get_data_dir() as string
  DIM temp as string
  DIM searchtype as FileTypeEnum = fileTypeDirectory
- 'Unlike finddatafile, try exepath first
+ 'Unlike finddatafile, try exepath first because we want to prefer writeable
+ 'locations, and this is present if run from a source tree.
  try_data_path(exepath & SLASH & "data")
  try_data_path("data")
  'Contents of data/ are copied into Resources dir in Mac OS X app bundles
  IF LEN(app_resources_dir) THEN
   try_data_path(app_resources_dir)
  END IF
- 'Don't bother with DATAFILES, probably read-only
- IF makedir("data") = 0 THEN RETURN "data"
+ #IFDEF __FB_UNIX__
+  try_data_path(exepath & "/../share/games/ohrrpgce/data")
+  try_data_path(exepath & "/../share/ohrrpgce/data")
+ #ENDIF
+ IF makedir("data") = 0 THEN RETURN "data" 'Success
 END FUNCTION
 
 ' Given a path to a file or subdir inside the data/ directory, return a portable
