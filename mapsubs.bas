@@ -69,6 +69,8 @@ DECLARE FUNCTION layer_shadow_palette() as Palette16 ptr
 DECLARE SUB mapedit_free_layer_palettes(st as MapEditState)
 DECLARE SUB mapedit_update_layer_palettes(st as MapEditState)
 
+DECLARE FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, framenum as integer, screenpos as XYPair) as bool
+
 DECLARE SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
 DECLARE SUB npcdef_editor (st as MapEditState)
 DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
@@ -1291,7 +1293,7 @@ DO
   CASE npc_mode
    IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_npc_placement"
    IF keyval(scDelete) > 1 THEN
-    FOR i as integer = 0 TO 299
+    FOR i as integer = 0 TO UBOUND(st.map.npc)
      WITH st.map.npc(i)
       IF .id > 0 THEN
        IF .pos = st.pos * 20 THEN .id = 0
@@ -1836,13 +1838,10 @@ DO
  '--hero start location display--
  IF gen(genStartMap) = st.map.id THEN
   DIM start_tile_pos as XYPair = XY(gen(genStartX), gen(genStartY))
-  IF mapedit_tile_visible(st, start_tile_pos) THEN
-   DIM screen_pos as XYPair = map_to_screen(st, tilesize * start_tile_pos)
-   ' TODO: hardcoding 4th frame, which is normally Down
-   DIM hero_sprite as Frame ptr = st.hero_gfx.sprite + small(4, st.hero_gfx.sprite->arraylen - 1)
-   frame_draw hero_sprite, st.hero_gfx.pal, screen_pos.x, screen_pos.y, , , dpage
-   edgeprint "Hero", screen_pos.x, screen_pos.y + tileh \ 2, uilook(uiText), dpage
-  END IF
+  DIM screen_pos as XYPair = map_to_screen(st, tilesize * start_tile_pos)
+  ' TODO: hardcoding 4th frame, which is normally Down
+  mapedit_draw_walkabout st, st.hero_gfx, 4, screen_pos
+  edgeprint "Hero", screen_pos.x, screen_pos.y + tileh \ 2, uilook(uiText), dpage
  END IF
 
  '--point out overhead tiles so that you can see what's wrong if you accidentally use them
@@ -2011,19 +2010,17 @@ DO
   FOR i as integer = 0 TO UBOUND(st.map.npc)
    WITH st.map.npc(i)
     IF .id > 0 THEN
-     ' +/-20 Y must be for the footoffset
-     IF .x >= st.mapx AND .x < st.mapx + st.viewport.wide AND .y >= st.mapy - 20 AND .y < st.mapy + st.viewport.high + 20 THEN
-      DIM image as GraphicPair = st.npc_img(.id - 1)
-      frame_draw image.sprite + (2 * .dir) + st.walk \ 2, image.pal, .x - st.mapx, .y + 20 - st.mapy + st.map.gmap(11), 1, -1, dpage
+     DIM standpos as XYPair = map_to_screen(st, .pos)  'Position in pixels of the tile the NPC is standing on
+     DIM framenum as integer = (2 * .dir) + st.walk \ 2
+     IF mapedit_draw_walkabout(st, st.npc_img(.id - 1), framenum, standpos) THEN
       DIM col as integer = uilook(uiSelectedItem + tog)
-      edgeprint STR(.id - 1), .x - st.mapx, .y + 20 - st.mapy + 2, col, dpage
-      edgeprint STR(npcnum(.id - 1)), .x - st.mapx, .y + 20 - st.mapy + 11, col, dpage
+      edgeprint (.id - 1) & !"\n" & npcnum(.id - 1), standpos.x, standpos.y + 2, col, dpage, , YES
      END IF
      npcnum(.id - 1) += 1
     END IF
    END WITH
   NEXT
-  
+
   edgeprint count_npc_slots_used(st.map.npc()) & "/" & (UBOUND(st.map.npc) + 1) & " Used", pRight, pBottom, uilook(uiText), dpage
  END IF
 
@@ -2362,9 +2359,7 @@ SUB mapedit_draw_cursor(st as MapEditState)
 
   CASE npc_tool
    'Draw an NPC instead of a square cursor
-   WITH st.npc_img(st.cur_npc)
-    frame_draw .sprite + st.npc_cursor_frame, .pal, tool_rect.x, tool_rect.y + st.map.gmap(11), 1, -1, dpage
-   END WITH
+   mapedit_draw_walkabout st, st.npc_img(st.cur_npc), st.npc_cursor_frame, tool_rect.topleft
    edgeprint STR(st.cur_npc), tool_rect.x, tool_rect.y + 8, uilook(uiSelectedItem + global_tog), dpage
    EXIT SUB
  END SELECT
@@ -2553,6 +2548,20 @@ SUB load_npc_graphics(npc_def() as NPCType, npc_img() as GraphicPair)
   load_sprite_and_pal npc_img(i), sprTypeWalkabout, npc_def(i).picture, npc_def(i).palette
  NEXT i
 END SUB
+
+'Returns true if on screen.
+'screenpos is position in screen pixels of tile the NPC/hero stands on.
+FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, framenum as integer, screenpos as XYPair) as bool
+ DIM spritepos as XYPair = screenpos
+ 'Align to bottom-center of tile
+ spritepos.x += tilew \ 2 - img.sprite->w \ 2
+ spritepos.y += tileh - img.sprite->h + st.map.gmap(11)
+ IF rect_collide_rect(st.viewport, XY_WH(spritepos, img.sprite->size)) THEN
+  framenum = small(framenum, img.sprite->arraylen - 1)
+  frame_draw img.sprite + framenum, img.pal, spritepos.x, spritepos.y, , , dpage
+  RETURN YES
+ END IF
+END FUNCTION
 
 
 '==========================================================================================
