@@ -100,6 +100,8 @@ SUB distribute_game ()
 
  append_simplemenu_item menu, "Edit distribution info...", , , distmenuINFO
 
+ #IFNDEF __FB_ANDROID__
+
  append_simplemenu_item menu, "Export Windows .ZIP", , , distmenuZIP
 
  IF can_run_windows_exes() THEN
@@ -133,6 +135,8 @@ SUB distribute_game ()
  IF NOT can_make_debian_packages() THEN
   append_simplemenu_item menu, " (requires ar+tar+gzip)", YES, uilook(uiDisabledItem)
  END IF
+
+ #ENDIF
 
  append_simplemenu_item menu, "Export README text file", , , distmenuREADME
 
