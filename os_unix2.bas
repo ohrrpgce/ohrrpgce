@@ -17,7 +17,7 @@ extern "C"
 ' (Should return "<unknown>" if the pid exists but we can't get the path)
 function get_process_path (pid as integer) as string
 	dim cmdname as string
-#if defined(__GNU_LINUX__) or defined(__FB_ANDROID__)  ' I'm guessing about Android...
+#if defined(__GNU_LINUX__)
 	' With GNU ps, "-o command" and "-o cmd" return the name and arguments it was called with,
 	' and "-o comm" is just the first 15 characters of the command name after stripping the path.
 	' It appears to be impossible to get the non-truncated command name and path without also getting
@@ -26,6 +26,17 @@ function get_process_path (pid as integer) as string
         ' which makes it unreliable for checking if the same pid and exe pair are still running.
 	run_and_get_output("ps -p " & pid & " -o comm=", cmdname)
 	'run_and_get_output("readlink /proc/" & pid & "/exe", cmdname)
+#elseif  defined(__FB_ANDROID__)
+	' On Android 4.4.2, ps doesn't support -o comm= option, and the output looks like
+	'USER     PID   PPID  VSIZE  RSS   PRIO  NICE  RTPRI SCHED   WCHAN    PC         NAME
+	'u0_a115   9481  159   380324 27624 20    0     0     0     ffffffff 00000000 S com.hamsterrepublic.ohrrpgce.custom
+	run_and_get_output("ps -p " & pid, cmdname)
+	dim where as integer = instrrev(cmdname, " ")
+	if where then
+		cmdname = mid(cmdname, where + 1)
+	else
+		cmdname = "<unknown>"
+	end if
 #else
 	' On OSX (BSD) "-o comm" returns the name the command was called with (which may or may not include a path),
 	' "-o command" adds the arguments, and "-o cmd" does not work.
