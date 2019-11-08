@@ -743,6 +743,7 @@ declare function small overload (byval n1 as double, byval n2 as double) as doub
 declare sub corners_to_rect (p1 as XYPair, p2 as XYPair, result as RectType)
 declare sub corners_to_rect_inclusive (p1 as XYPair, p2 as XYPair, result as RectType)
 declare function rect_collide_point (r as RectType, p as XYPair) as bool
+declare function rect_collide_rect (r1 as RectType, r2 as RectType) as bool
 declare function rect_collide_point_vertical_chunk (r as RectType, p as XYPair, chunk_spacing as integer) as integer
 declare sub reseed_prng (seed as double)
 declare function rando () as double

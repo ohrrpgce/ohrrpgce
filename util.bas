@@ -574,6 +574,12 @@ FUNCTION rect_collide_point (r as RectType, p as XYPair) as bool
  RETURN p.x >= r.x ANDALSO p.y >= r.y ANDALSO p.x < r.x + r.wide ANDALSO p.y < r.y + r.high
 END FUNCTION
 
+FUNCTION rect_collide_rect (r1 as RectType, r2 as RectType) as bool
+ IF r1.w + r2.w <= ABS(2 * r1.x + r1.w - 2 * r2.x - r2.w) THEN RETURN NO
+ IF r1.h + r2.h <= ABS(2 * r1.y + r1.h - 2 * r2.y - r2.h) THEN RETURN NO
+ RETURN YES
+END FUNCTION
+
 FUNCTION rect_collide_point_vertical_chunk (r as RectType, p as XYPair, chunk_spacing as integer) as integer
  'Divide a rect into vertical chunks (like a menu) and return the
  'index of the one the point collides with. Returns -1 if none collide

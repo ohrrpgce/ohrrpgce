@@ -3959,10 +3959,9 @@ Function SliceCollidePoint(byval sl as Slice Ptr, byval point as XYPair) as bool
  'Check if a point collides with a slice's screen position
  'Note RefreshSliceScreenPos not called here
  if sl = 0 then return NO
- if point.x >= sl->ScreenX and point.x < sl->ScreenX + sl->Width then
-  if point.y >= sl->ScreenY and point.y < sl->ScreenY + sl->Height then
-   return YES
-  end if
+ if point.x >= sl->ScreenX andalso point.x < sl->ScreenX + sl->Width andalso _
+    point.y >= sl->ScreenY andalso point.y < sl->ScreenY + sl->Height then
+  return YES
  end if
  return NO
 end function
