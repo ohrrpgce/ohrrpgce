@@ -366,9 +366,9 @@ main_editor_menu
 '=======================================================================
 
 SUB main_editor_menu()
- DIM menu(20) as string
+ REDIM menu(20) as string
  DIM menu_display(UBOUND(menu)) as string
- 
+
  menu(0) = "Edit Graphics"
  menu(1) = "Edit Maps"
  menu(2) = "Edit Heroes"
@@ -388,9 +388,14 @@ SUB main_editor_menu()
  menu(16) = "Edit General Game Settings"
  menu(17) = "Script Management"
  menu(18) = "Distribute Game"
- menu(19) = "Test Game"
- menu(20) = "Quit or Save"
- 
+ #IFDEF __FB_ANDROID__
+  menu(19) = "Quit or Save"
+  REDIM PRESERVE menu(19)
+ #ELSE
+  menu(19) = "Test Game"
+  menu(20) = "Quit or Save"
+ #ENDIF
+
  DIM selectst as SelectTypeState
  DIM state as MenuState
  state.last = UBOUND(menu)
@@ -445,8 +450,12 @@ SUB main_editor_menu()
    IF state.pt = 16 THEN general_data_editor
    IF state.pt = 17 THEN scriptman
    IF state.pt = 18 THEN distribute_game
-   IF state.pt = 19 THEN spawn_game_menu(keyval(scShift) > 0, keyval(scCtrl) > 0)
-   IF state.pt = 20 THEN prompt_for_save_and_quit
+   #IFDEF __FB_ANDROID__
+    IF state.pt = 19 THEN prompt_for_save_and_quit
+   #ELSE
+    IF state.pt = 19 THEN spawn_game_menu(keyval(scShift) > 0, keyval(scCtrl) > 0)
+    IF state.pt = 20 THEN prompt_for_save_and_quit
+   #ENDIF
    '--always resave .GEN and general.reld after any menu
    '(I don't know whether saving GEN is necessary, but saving general.reld
    'is just in case we forget wherever it should have been saved)
@@ -822,7 +831,9 @@ SUB Custom_global_menu
    'TODO: maybe this should also be disallowed from inside scriptbrowse, etc?
    menu.append 0, "Reimport scripts"
   END IF
-  menu.append 1, "Test Game"
+  #IFNDEF __FB_ANDROID__
+   menu.append 1, "Test Game"
+  #ENDIF
   'menu.append 10, "Save Game"
  END IF
  menu.append 2, "Volume"
@@ -1356,6 +1367,9 @@ SUB secret_menu ()
  DIM st as MenuState
  st.autosize = YES
  st.last = UBOUND(menu)
+ #IFDEF __FB_ANDROID__
+  st.last -= 2  'Remove the "Test Game" options
+ #ENDIF
 
  DO
   setwait 55
