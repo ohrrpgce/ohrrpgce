@@ -47,8 +47,9 @@ DECLARE SUB drawwall(walldir as DirNum, byval pos as XYPair, offset as integer, 
 
 DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as NPCIndex
 DECLARE FUNCTION mapedit_npcs_at_spot(st as MapEditState, pos as XYPair) as NPCIndex vector
-DECLARE FUNCTION mapedit_on_screen(st as MapEditState, tile as XYPair) as bool
-DECLARE FUNCTION mapedit_partially_on_screen(st as MapEditState, tile as XYPair) as bool
+DECLARE FUNCTION mapedit_tile_well_visible(st as MapEditState, tile as XYPair) as bool
+DECLARE FUNCTION mapedit_tile_visible(st as MapEditState, tile as XYPair) as bool
+DECLARE FUNCTION mapedit_rect_visible(st as MapEditState, rect as RectType) as bool
 DECLARE FUNCTION mapedit_clamp_tile_to_screen(st as MapEditState, tile as XYPair) as XYPair
 DECLARE SUB mapedit_focus_camera(st as MapEditState, tile as XYPair)
 DECLARE SUB mapedit_move_cursor(st as MapEditState, tile as XYPair)
@@ -1522,7 +1523,7 @@ DO
   'Don't ensure the cursor is on-screen
  ELSE
   'After finishing a pan, ensure cursor on the screen
-  IF mapedit_on_screen(st, st.pos) = NO THEN
+  IF mapedit_tile_well_visible(st, st.pos) = NO THEN
    'Move to mouse, if possible (might not be over the map)
    DIM mappos as XYPair = screen_to_map(st, mouse.pos)
    IF mappos.x >= 0 THEN st.pos = mappos \ 20
@@ -1835,7 +1836,7 @@ DO
  '--hero start location display--
  IF gen(genStartMap) = st.map.id THEN
   DIM start_tile_pos as XYPair = XY(gen(genStartX), gen(genStartY))
-  IF mapedit_partially_on_screen(st, start_tile_pos) THEN
+  IF mapedit_tile_visible(st, start_tile_pos) THEN
    DIM screen_pos as XYPair = map_to_screen(st, tilesize * start_tile_pos)
    ' TODO: hardcoding 4th frame, which is normally Down
    DIM hero_sprite as Frame ptr = st.hero_gfx.sprite + small(4, st.hero_gfx.sprite->arraylen - 1)
@@ -1953,7 +1954,7 @@ DO
   textcolor uilook(uiBackground), 0
   FOR i as integer = 0 TO UBOUND(st.map.door)
    WITH st.map.door(i)
-    IF .exists ANDALSO mapedit_partially_on_screen(st, .pos) THEN
+    IF .exists ANDALSO mapedit_tile_visible(st, .pos) THEN
      DIM where as XYPair = map_to_screen(st, .pos * tilesize)
      rectangle where.x, where.y, tilew, tileh, uilook(uiSelectedItem + tog), dpage
      where += tilesize \ 2
@@ -2501,6 +2502,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
  LOOP
 END SUB
 
+'Return first NPC on a tile, or -1.
 FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as NPCIndex
  FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
@@ -2512,6 +2514,7 @@ FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as NPCIndex
  RETURN -1
 END FUNCTION
 
+'Return vector of all NPCs on a tile.
 FUNCTION mapedit_npcs_at_spot(st as MapEditState, pos as XYPair) as NPCIndex vector
  DIM ret as NPCIndex vector
  v_new ret
@@ -5573,7 +5576,7 @@ SUB mapedit_show_undo_change(st as MapEditState, byval undostroke as MapEditUndo
     CASE mapIDMetaEditmode TO mapIDMetaEditmodeEND
      st.seteditmode = .mapid - mapIDMetaEditmode
     CASE ELSE
-     IF seen_change = NO THEN seen_change = mapedit_on_screen(st, XY(.x, .y))
+     IF seen_change = NO THEN seen_change = mapedit_tile_well_visible(st, XY(.x, .y))
    END SELECT
   END WITH
  NEXT
@@ -5583,7 +5586,7 @@ SUB mapedit_show_undo_change(st as MapEditState, byval undostroke as MapEditUndo
   IF cursorpos THEN
    st.x = cursorpos->x
    st.y = cursorpos->y
-   IF mapedit_on_screen(st, st.pos) = NO THEN mapedit_focus_camera st, st.pos
+   IF mapedit_tile_well_visible(st, st.pos) = NO THEN mapedit_focus_camera st, st.pos
   END IF
  END IF
 END SUB
@@ -5896,8 +5899,8 @@ FUNCTION mapedit_mouse_over_what(st as MapEditState) as MapMouseAttention
  END IF
 END FUNCTION
 
-'Can a tile be seen? (Specifically, the centre of the tile)
-FUNCTION mapedit_on_screen(st as MapEditState, tile as XYPair) as bool
+'Can a tile be seen well? (Specifically, is the centre of the tile visible)
+FUNCTION mapedit_tile_well_visible(st as MapEditState, tile as XYPair) as bool
  'Visible portion of the map
  DIM mapview as RectType
  mapview.topleft = st.camera
@@ -5906,11 +5909,16 @@ FUNCTION mapedit_on_screen(st as MapEditState, tile as XYPair) as bool
 END FUNCTION
 
 'Is a tile at least partially visisble on-screen?
-FUNCTION mapedit_partially_on_screen(st as MapEditState, tile as XYPair) as bool
+FUNCTION mapedit_tile_visible(st as MapEditState, tile as XYPair) as bool
+ RETURN mapedit_rect_visible(st, XY_WH(tile * tilesize, tilesize))
+END FUNCTION
+
+'Is a rectangle (position/size measured in pixels!) at least partially visible on-screen?
+FUNCTION mapedit_rect_visible(st as MapEditState, rect as RectType) as bool
  DIM mapview as RectType
- mapview.topleft = st.camera - tilesize + 1
- mapview.size = st.viewport.size + tilesize - 1
- RETURN rect_collide_point(mapview, tile * tilesize)
+ mapview.topleft = st.camera
+ mapview.size = st.viewport.size
+ RETURN rect_collide_rect(mapview, rect)
 END FUNCTION
 
 'Given a map coordinate in tiles, return nearest tile that is totally on-screen
