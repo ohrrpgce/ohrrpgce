@@ -110,10 +110,14 @@ DIM SHARED reported_a_bug as bool
 
 '=== Other global dirs and files ==='
 
-'Where the exe is, or on Mac, where the .app is
+'Replacement for exepath: Where the exe is, or on Mac, where the .app is, and on Android,
+'where the extracted .apk contents are (actually the files/ subdirectory).
+'This should often be used instead of exepath for compatibility with Mac and Android
+'(exepath is garbage on Android).
+'Always has a trailing slash.
 DIM app_dir as string
 
-'Used on Mac to point to the app bundle Resources directory
+'Used on Mac to point to the app bundle Resources directory (if running an .app). Otherwise empty.
 DIM app_resources_dir as string
 
 'User's documents directory (if it exists, otherwise another suitable writeable default location)
@@ -122,7 +126,7 @@ DIM documents_dir as string
 'This is for application-wide settings, and prefsdir for games will be a subdirectory of it.
 DIM settings_dir as string
 
-'ohrrpgce_config.ini. This is stored in either EXEPATH or settings_dir.
+'ohrrpgce_config.ini. This is stored in either app_dir or settings_dir.
 'Contains global settings. Custom could also put game-specific settings here, using a different
 'key for each, which I think is better than loads of ini files, but there are no such settings yet.
 'On the other hand, Game uses a different ini file for each game (that's the game_config global).
@@ -3275,7 +3279,7 @@ FUNCTION find_support_dir () as string
  'and it is only used to hold utilities downloaded for distributing games (currently just rcedit.exe).
  '(Downloaded versions of Game itself are stored in $settings_dir/_gameplayer instead)
  DIM suppdir as string
- suppdir = exepath & SLASH "support"
+ suppdir = exepath & SLASH "support"  'For Mac .app bundles: don't use app_dir
  IF isdir(suppdir) THEN RETURN suppdir
  IF makedir(suppdir) = 0 THEN RETURN suppdir
  suppdir = settings_dir & SLASH "support"
@@ -3299,9 +3303,10 @@ FUNCTION find_helper_app (appname as zstring ptr, try_install as bool=NO, downlo
  DIM temp as string
 
  'Look in the same folder as CUSTOM/GAME
- try_app_path(exepath & SLASH & *appname & DOTEXE)
+ try_app_path(app_dir & *appname & DOTEXE)
 
  #IFDEF __FB_DARWIN__
+  'Inside an .app, support/ is next to the executable
   try_app_path(exepath & "/support/" & *appname)
  #ENDIF
  #IFDEF __FB_UNIX__
@@ -3311,14 +3316,14 @@ FUNCTION find_helper_app (appname as zstring ptr, try_install as bool=NO, downlo
   'where is empty on failure
   where = RTRIM(where, !"\n")
   IF LEN(where) THEN RETURN where
-  'support/ might be used if running from a source tree?
-  try_app_path(exepath & "/support/" & *appname)
+  'Downloaded utilities are put here
+  try_app_path(app_dir & "support/" & *appname)
   'unlump and relump get installed here
   try_app_path(exepath & "/../share/games/ohrrpgce/" & *appname)
   '/usr/share/games is optional in the Linux FHS standard, so try share/ohrrpgce too (Not seen in the wild)
   try_app_path(exepath & "/../share/ohrrpgce/" & *appname)
-  try_app_path(exepath & "/usr/share/games/ohrrpgce/" & *appname)
-  try_app_path(exepath & "/usr/share/ohrrpgce/" & *appname)
+  try_app_path("/usr/share/games/ohrrpgce/" & *appname)
+  try_app_path("/usr/share/ohrrpgce/" & *appname)
  #ENDIF
  #IFDEF __FB_WIN32__
   RETURN find_windows_helper_app(*appname, try_install, *download_url)
@@ -3663,8 +3668,8 @@ LOCAL FUNCTION finddatafile_internal(filename as string, searchtype as FileTypeE
   try_data_path(app_resources_dir & SLASH & filename)
  END IF
  'same folder as executable
- try_data_path(exepath & SLASH & filename)
- try_data_path(exepath & SLASH & "data" & SLASH & filename)
+ try_data_path(app_dir & filename)
+ try_data_path(app_dir & "data" SLASH & filename)
  #IFDEF __FB_UNIX__
   '~/.ohrrpgce/
   try_data_path(settings_dir & SLASH & filename)
@@ -3711,9 +3716,9 @@ END FUNCTION
 FUNCTION get_data_dir() as string
  DIM temp as string
  DIM searchtype as FileTypeEnum = fileTypeDirectory
- 'Unlike finddatafile, try exepath first because we want to prefer writeable
+ 'Unlike finddatafile, try app_dir first because we want to prefer writeable
  'locations, and this is present if run from a source tree.
- try_data_path(exepath & SLASH & "data")
+ try_data_path(app_dir & "data")
  try_data_path("data")
  'Contents of data/ are copied into Resources dir in Mac OS X app bundles
  IF LEN(app_resources_dir) THEN
@@ -3729,7 +3734,7 @@ END FUNCTION
 ' Given a path to a file or subdir inside the data/ directory, return a portable
 ' relative path to it that can be passed to finddatafile, or "" if not possible.
 ' This function is only really intended for use for engine development,
-' so we assume exepath & "/data/" specifically.
+' so we could assume data/ is next to the executable.
 ' (Also converts to Unix / path separators)
 FUNCTION filename_relative_to_datadir(filename as string) as string
  DIM ret as string
@@ -6733,7 +6738,7 @@ FUNCTION get_settings_dir () as string
 'And sharing the same tmpdir for all instances of Custom may cause problems.)
  DIM settings_dir as string
  #IFDEF __FB_ANDROID__
-  settings_dir = CURDIR & SLASH & "settings"
+  settings_dir = app_dir & "settings"
  #ELSEIF defined(__FB_DARWIN__)
   'FIXME: on OSX we should not use ~/.ohrrpgce, but instead ~/Library/Application Support/OHRRPGCE (settings and data),
   'or ~/Library/Caches/OHRRPGCE (temp files). See
@@ -6814,9 +6819,11 @@ END FUNCTION
 FUNCTION get_help_dir(helpfile as string="") as string
  'what happened to prefsdir? [James: prefsdir only exists for game not custom right now]
  IF help_dir_helper(documents_dir & SLASH & "ohrhelp", helpfile) THEN RETURN documents_dir & SLASH & "ohrhelp"
- IF help_dir_helper(exepath & SLASH & "ohrhelp", helpfile) THEN RETURN exepath & SLASH & "ohrhelp"
- 'platform-specific relative data files path (Mac OS X bundles)
- IF help_dir_helper(app_resources_dir & SLASH & "ohrhelp", helpfile) THEN RETURN app_resources_dir & SLASH & "ohrhelp"
+ IF help_dir_helper(app_dir & SLASH & "ohrhelp", helpfile) THEN RETURN app_dir & SLASH & "ohrhelp"
+ IF LEN(app_resources_dir) THEN
+  'platform-specific relative data files path (Mac OS X bundles)
+  IF help_dir_helper(app_resources_dir & SLASH & "ohrhelp", helpfile) THEN RETURN app_resources_dir & SLASH & "ohrhelp"
+ END IF
  #IFDEF __FB_UNIX__
   DIM datafiles as string
   datafiles = exepath & "/../share/games/ohrrpgce/ohrhelp"
@@ -6824,8 +6831,8 @@ FUNCTION get_help_dir(helpfile as string="") as string
   datafiles = exepath & "/../share/ohrrpgce/ohrhelp"
   IF help_dir_helper(datafiles, helpfile) THEN RETURN datafiles
  #ENDIF
- '-- if all else fails, use exepath even if invalid
- RETURN exepath & SLASH & "ohrhelp"
+ '-- if all else fails, place next to executable even if invalid
+ RETURN app_dir & "ohrhelp"
 END FUNCTION
 
 FUNCTION load_help_file(helpkey as string) as string
@@ -7735,7 +7742,7 @@ END FUNCTION
 '   Functions for reading/writing ohrrpgce_config.ini
 
 SUB set_global_config_file()
- global_config_file = EXEPATH & SLASH & "ohrrpgce_config.ini"
+ global_config_file = app_dir & "ohrrpgce_config.ini"
  IF NOT isfile(global_config_file) THEN
   global_config_file = settings_dir & SLASH & "ohrrpgce_config.ini"
  END IF

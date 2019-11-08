@@ -2565,7 +2565,7 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
   END IF
  END IF
 #else
- executable = EXEPATH & SLASH & GAMEEXE
+ executable = app_dir & GAMEEXE
 #endif
  IF isfile(executable) = NO THEN
 #ifdef __FB_DARWIN__

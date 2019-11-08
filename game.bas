@@ -190,8 +190,6 @@ retvalsp = @retvals(0)
 '======================== Setup directories & debug log =======================
 ' This is almost identical to startup code in Custom; please don't unnecessarily diverge.
 
-'Note: On Android exename is "sdl" and exepath is "" (currently unimplemented in FB and meaningless for an app anyway)
-
 orig_dir = CURDIR
 'Note: debug log messages go in CURDIR until log_dir set below
 
@@ -203,6 +201,10 @@ app_dir = add_trailing_slash(EXEPATH)  'FreeBasic builtin
   app_resources_dir = parentdir(app_dir, 1) + "Resources"
   app_dir = parentdir(app_dir, 3)
  END IF
+#ELSEIF DEFINED(__FB_ANDROID__)
+ 'On Android EXENAME is "sdl" and EXEPATH is "/system/bin" (or "" in ancient Android?),
+ 'while orig_dir is where the .app contents are.
+ app_dir = add_trailing_slash(orig_dir)
 #ENDIF
 
 #IFDEF __FB_ANDROID__

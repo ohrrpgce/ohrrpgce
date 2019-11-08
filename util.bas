@@ -4054,7 +4054,7 @@ FUNCTION get_tmpdir () as string
   'Windows only behavior
   tmp = environ("TEMP")
   IF NOT diriswriteable(tmp) THEN tmp = environ("TMP")
-  IF NOT diriswriteable(tmp) THEN tmp = exepath
+  IF NOT diriswriteable(tmp) THEN tmp = app_dir
   IF NOT diriswriteable(tmp) THEN tmp = CURDIR
   IF NOT diriswriteable(tmp) THEN fatalerror "Unable to find any writable temp dir"
  #ELSEIF DEFINED(__FB_ANDROID__)
