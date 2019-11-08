@@ -193,19 +193,7 @@ retvalsp = @retvals(0)
 orig_dir = CURDIR
 'Note: debug log messages go in CURDIR until log_dir set below
 
-app_dir = add_trailing_slash(EXEPATH)  'FreeBasic builtin
-
-#IFDEF __FB_DARWIN__
- 'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside
- IF LCASE(RIGHT(app_dir, 20)) = ".app/contents/macos/" THEN
-  app_resources_dir = parentdir(app_dir, 1) + "Resources"
-  app_dir = parentdir(app_dir, 3)
- END IF
-#ELSEIF DEFINED(__FB_ANDROID__)
- 'On Android EXENAME is "sdl" and EXEPATH is "/system/bin" (or "" in ancient Android?),
- 'while orig_dir is where the .app contents are.
- app_dir = add_trailing_slash(orig_dir)
-#ENDIF
+set_app_dir
 
 #IFDEF __FB_ANDROID__
  'Prevent log_dir from being changed to the .rpg directory

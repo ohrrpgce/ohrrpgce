@@ -282,6 +282,7 @@ DECLARE FUNCTION sanitize_script_identifier (ident as string, allow_whitespace a
 DECLARE FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref directory as string, helpkey as zstring ptr, default as zstring ptr=@"", allow_overwrite as bool=YES) as string
 DECLARE FUNCTION prompt_for_string (byref retstring as string, caption as string, limit as integer = 40) as bool
 
+DECLARE SUB set_app_dir()
 DECLARE FUNCTION get_home_dir() as string
 DECLARE FUNCTION get_settings_dir () as string
 DECLARE FUNCTION get_documents_dir() as string
