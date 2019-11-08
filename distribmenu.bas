@@ -784,8 +784,7 @@ SELECT CASE which_arch
   RETURN ""
 END SELECT
 
-#IFDEF __FB_UNIX__
-#IFNDEF __FB_DARWIN__
+#IFDEF __GNU_LINUX__
 
  '--If this is Linux, we might already have the correct version of ohrrpgce-game
  IF maybe_use_installed THEN
@@ -812,8 +811,7 @@ END SELECT
    dist_info "ERROR: ohrrpgce-game wasn't found in the same directory as ohrrpgce-custom. (This probably shouldn't happen!)" : RETURN ""
   END IF
  END IF
- 
-#ENDIF
+
 #ENDIF
 
  '--For Non-Linux platforms, we need to download ohrrpgce-game
