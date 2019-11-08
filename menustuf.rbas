@@ -1681,7 +1681,7 @@ DO
    'Inside the inventory box
    DIM hover as integer = -1
    FOR i as integer = top TO top + pagesize - 1
-    IF rect_collide_point(Type(20 + 96 * (i MOD rowsize), 12 + rowheight * ((i - top) \ rowsize), 96, rowheight), readmouse.pos) THEN hover = i
+    IF rect_collide_point(XYWH(20 + 96 * (i MOD rowsize), 12 + rowheight * ((i - top) \ rowsize), 96, rowheight), readmouse.pos) THEN hover = i
    NEXT i
    IF hover >= 0 THEN
     IF (readmouse.release AND mouseLeft) THEN
@@ -3626,7 +3626,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   IF get_gen_bool("/mouse/mouse_menus") THEN
    DIM hover as integer = -1
    FOR i as integer = 0 to 3
-    IF rect_collide_point(Type(84 + x_offset, 8 + 20 * i, 152, 20), readmouse.pos) THEN hover = i
+    IF rect_collide_point(XYWH(84 + x_offset, 8 + 20 * i, 152, 20), readmouse.pos) THEN hover = i
    NEXT i
 
    IF hover = -1 ANDALSO ((readmouse.release AND mouseLeft) ORELSE (readmouse.release AND mouseRight)) THEN
@@ -3850,9 +3850,9 @@ FUNCTION spells_menu_control_hover() as integer
  FOR i as integer = 0 to 23
   DIM x as integer = (i MOD 3)
   DIM y as integer = (i \ 3)
-  IF rect_collide_point(Type(12 + x * 104, 90 + y * 8, 96, 8), readmouse.pos) THEN RETURN i
+  IF rect_collide_point(XYWH(12 + x * 104, 90 + y * 8, 96, 8), readmouse.pos) THEN RETURN i
  NEXT i
- IF rect_collide_point(Type(9, 171, 96, 8), readmouse.pos) THEN RETURN 24 'The cancel button
+ IF rect_collide_point(XYWH(9, 171, 96, 8), readmouse.pos) THEN RETURN 24 'The cancel button
  RETURN -1
 END FUNCTION
 
@@ -3882,7 +3882,7 @@ SUB spells_menu_control_which_list(sp as SpellsMenuState)
  IF get_gen_bool("/mouse/mouse_menus") THEN
   DIM hover as integer = -1
   DIM old_listnum as integer = sp.listnum
-  IF rect_collide_point(Type(6, 86, 308, 96), readmouse.pos) THEN
+  IF rect_collide_point(XYWH(6, 86, 308, 96), readmouse.pos) THEN
    'Mouse click over the spell area switches to that mode
    IF (readmouse.release AND mouseLeft) ORELSE (readmouse.release AND mouseRight) THEN
     sp.mset = 1
@@ -3890,10 +3890,10 @@ SUB spells_menu_control_which_list(sp as SpellsMenuState)
     IF sp.cursor = -1 THEN sp.cursor = 0
     EXIT SUB
    END IF
-  ELSEIF rect_collide_point(Type(14, 20, 84, 60), readmouse.pos) THEN
+  ELSEIF rect_collide_point(XYWH(14, 20, 84, 60), readmouse.pos) THEN
    'Mouse over list of spell lists
    FOR i as integer = 0 TO sp.last
-    IF rect_collide_point(Type(16, 25 + i * 10, 16 * 8, 10), readmouse.pos) THEN hover = i
+    IF rect_collide_point(XYWH(16, 25 + i * 10, 16 * 8, 10), readmouse.pos) THEN hover = i
    NEXT i
    IF (readmouse.release AND mouseLeft) ANDALSO hover >= 0 THEN
     IF sp.listnum = hover ORELSE hover = sp.last THEN do_pick = YES
@@ -3901,7 +3901,7 @@ SUB spells_menu_control_which_list(sp as SpellsMenuState)
    IF (readmouse.buttons AND mouseLeft) ANDALSO hover >= 0 THEN
     sp.listnum = hover
    END IF
-  ELSEIF rect_collide_point(Type(106, 28, 200, 17), readmouse.pos) THEN
+  ELSEIF rect_collide_point(XYWH(106, 28, 200, 17), readmouse.pos) THEN
    IF (readmouse.release AND mouseLeft) THEN
     'Clicked on hero name box
     DO
@@ -3990,20 +3990,20 @@ SUB spells_menu_control_pick_spell(sp as SpellsMenuState)
  IF get_gen_bool("/mouse/mouse_menus") ANDALSO NOT sp.re_use THEN
   DIM hover as integer = spells_menu_control_hover()
   DIM old_cursor as integer = sp.cursor
-  IF rect_collide_point(Type(6, 86, 308, 96), readmouse.pos) THEN
+  IF rect_collide_point(XYWH(6, 86, 308, 96), readmouse.pos) THEN
    ' Mouse is over the spell area
    IF hover >= 0 THEN
     IF (readmouse.release AND mouseLeft) ANDALSO (sp.cursor = hover ORELSE hover = 24) THEN do_pick = YES
     IF (readmouse.release AND mouseLeft) THEN sp.cursor = hover
    END IF
-  ELSEIF rect_collide_point(Type(14, 20, 84, 60), readmouse.pos) THEN
+  ELSEIF rect_collide_point(XYWH(14, 20, 84, 60), readmouse.pos) THEN
    'Mouse over list of spell lists
    IF (readmouse.release AND mouseLeft) THEN
     'Click back into the spell list picker
     sp.mset = 0
     EXIT SUB
    END IF
-  ELSEIF rect_collide_point(Type(106, 28, 200, 17), readmouse.pos) THEN
+  ELSEIF rect_collide_point(XYWH(106, 28, 200, 17), readmouse.pos) THEN
    IF (readmouse.release AND mouseLeft) THEN
     'Clicked on hero name box
     sp.mset = 0

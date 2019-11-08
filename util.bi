@@ -648,6 +648,9 @@ UNION RectType
   DECLARE OPERATOR CAST () as string
 END UNION
 
+#DEFINE XYWH(x, y, w, h)  TYPE<RectType>(x, y, w, h)   'Just TYPE will nearly always do too.
+#DEFINE XY_WH(xy, wh)  TYPE<RectType>((xy).x, (xy).y, (wh).w, (wh).h)
+
 DECLARE OPERATOR = (lhs as RectType, rhs as RectType) as bool
 DECLARE OPERATOR <> (lhs as RectType, rhs as RectType) as bool
 DECLARE OPERATOR + (lhs as RectType, rhs as XYPair) as RectType

@@ -820,7 +820,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  IF get_gen_bool("/mouse/mouse_battles") ANDALSO bat.targ.mode = targMANUAL THEN
   FOR i as integer = 0 TO 11
    WITH bslot(i)
-    IF rect_collide_point(Type(.x, .y - .z, .w, .h), readmouse.pos) ANDALSO bslot(i).vis = YES THEN
+    IF rect_collide_point(XYWH(.x, .y - .z, .w, .h), readmouse.pos) ANDALSO bslot(i).vis THEN
      bat.targ.hover = i
     END IF
    END WITH
@@ -2851,9 +2851,9 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
   IF rect_collide_point(Type(5, 6, 310, 95), readmouse.pos) THEN
    'In spell menu box
    FOR i as integer = 0 to 23
-    IF rect_collide_point(Type(16 + (i MOD 3) * 104, 8 + (i \ 3) * 8, 104, 8), readmouse.pos) THEN bat.sptr_hover = i
+    IF rect_collide_point(XYWH(16 + (i MOD 3) * 104, 8 + (i \ 3) * 8, 104, 8), readmouse.pos) THEN bat.sptr_hover = i
    NEXT i
-   IF rect_collide_point(Type(9, 90, 104, 8), readmouse.pos) THEN bat.sptr_hover = 24
+   IF rect_collide_point(XYWH(9, 90, 104, 8), readmouse.pos) THEN bat.sptr_hover = 24
    IF bat.sptr_hover >= 0 THEN
     IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
      IF bat.sptr = bat.sptr_hover ORELSE bat.sptr_hover = 24 THEN
@@ -2974,7 +2974,7 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
   IF rect_collide_point(Type(8, 4, 304, inv_height), readmouse.pos) THEN
    FOR i as integer = bat.item.top TO small(bat.item.top + 26, last_inv_slot())
     if i < lbound(inventory) or i > ubound(inventory) then continue for
-    IF rect_collide_point(Type(20 + 96 * (i MOD 3), 8 + 8 * ((i - bat.item.top) \ 3), 96, 8), readmouse.pos) THEN bat.item.hover = i
+    IF rect_collide_point(XYWH(20 + 96 * (i MOD 3), 8 + 8 * ((i - bat.item.top) \ 3), 96, 8), readmouse.pos) THEN bat.item.hover = i
    NEXT i
    IF bat.item.hover >= 0 THEN
     IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN

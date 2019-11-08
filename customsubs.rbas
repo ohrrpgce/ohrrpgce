@@ -825,7 +825,7 @@ FUNCTION charpicker() as string
   
   DIM hover as integer = -1
   FOR i = 0 TO last
-   IF rect_collide_point(Type(offset.x + (i MOD linesize) * 9, offset.y + (i \ linesize) * 9, 9, 9), readmouse.pos) THEN hover = i
+   IF rect_collide_point(XYWH(offset.x + (i MOD linesize) * 9, offset.y + (i \ linesize) * 9, 9, 9), readmouse.pos) THEN hover = i
   NEXT i
   IF hover >= 0 THEN
    IF (readmouse.buttons AND mouseLeft) ORELSE (readmouse.buttons AND mouseRight) THEN

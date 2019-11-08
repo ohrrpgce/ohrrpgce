@@ -330,7 +330,7 @@ SUB verify_quit
   IF get_gen_bool("/mouse/mouse_menus") ANDALSO (carray(ccLeft) = 0 ANDALSO carray(ccRight) = 0) THEN
    'Only do the mouse controls when you are not using the arrow keys
    'The hero walks faster in mouseover mode, because we are counting on a click
-   IF rect_collide_point(Type(centerx - box.w \ 2, centery - box.h \ 2, box.w \ 2 - usethreshold, box.h), readmouse.pos) THEN
+   IF rect_collide_point(XYWH(centerx - box.w \ 2, centery - box.h \ 2, box.w \ 2 - usethreshold, box.h), readmouse.pos) THEN
     'Yes (to the left)
     ptr2 = large(ptr2 - 5, -walkthreshold)
     direction = dirLeft
@@ -339,7 +339,7 @@ SUB verify_quit
      fadeout uilook(uiFadeoutQuit)
      EXIT DO
     END IF
-   ELSEIF rect_collide_point(Type(centerx + usethreshold, centery - box.h \ 2, box.w \ 2 - usethreshold, box.h), readmouse.pos) THEN
+   ELSEIF rect_collide_point(XYWH(centerx + usethreshold, centery - box.h \ 2, box.w \ 2 - usethreshold, box.h), readmouse.pos) THEN
     'No (to the right)
     ptr2 = small(ptr2 + 5, walkthreshold)
     direction = dirRight

@@ -3375,7 +3375,7 @@ Sub CalcPanelSupport (byref support as RectType, byval par as Slice ptr, byval i
 
  if index > 1 then
   'Panel only expects 2 children
-  support = TYPE(par->ScreenX, par->ScreenY, 0, 0)
+  support = XY_WH(par->ScreenPos, XY(0, 0))
   exit sub
  end if
 

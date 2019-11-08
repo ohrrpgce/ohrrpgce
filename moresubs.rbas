@@ -630,16 +630,16 @@ SUB hero_swap_menu_mouse_control (st as OrderTeamState)
  DIM old_swapme as integer = st.swapme
  DIM centerx as integer = vpages(st.page)->w \ 2
  DIM centery as integer = vpages(st.page)->h \ 2
- DIM order_box as RectType = Type(centerx - 130\2, centery - 38\2 - 34, 130, 38)
+ DIM order_box as RectType = XYWH(centerx - 130\2, centery - 38\2 - 34, 130, 38)
  DIM reserve_w as integer = st.charsize.x * 8 + 16
  DIM reserve_h as integer = small(st.charsize.y, 8) * 10 + 10
- DIM reserve_box as RectType = Type(centerx - reserve_w\2, centery - reserve_h\2 + small(st.charsize.y, 8) * 5, reserve_w, reserve_h)
+ DIM reserve_box as RectType = XYWH(centerx - reserve_w\2, centery - reserve_h\2 + small(st.charsize.y, 8) * 5, reserve_w, reserve_h)
  IF rect_collide_point(order_box, readmouse.pos) THEN
   'In the order box
   DIM hover as integer = -1
   FOR i as integer = 0 TO 3
    DIM as integer xpos = centerx - 55 + (30 * i), ypos = centery - 40
-   IF rect_collide_point(Type(xpos, ypos, 30, 30), readmouse.pos) THEN hover = i
+   IF rect_collide_point(XYWH(xpos, ypos, 30, 30), readmouse.pos) THEN hover = i
   NEXT i
   IF hover >= 0 THEN
    IF (readmouse.release AND mouseLeft) THEN
@@ -660,7 +660,7 @@ SUB hero_swap_menu_mouse_control (st as OrderTeamState)
   'In the reserve box
   DIM r_hover as integer = -1
   FOR i as integer = st.reserve.top TO small(st.reserve.top + 7, st.reserve.last)
-   IF rect_collide_point(Type(centerx - reserve_w\2, centery + (i - st.reserve.top) * 10, reserve_w, 10), readmouse.pos) THEN r_hover = i
+   IF rect_collide_point(XYWH(centerx - reserve_w\2, centery + (i - st.reserve.top) * 10, reserve_w, 10), readmouse.pos) THEN r_hover = i
   NEXT i
   IF r_hover >= 0 THEN
    IF (readmouse.release AND mouseLeft) THEN
@@ -1106,7 +1106,7 @@ DO
   DIM old_who as integer = who
   DIM hover as integer = -1
   FOR i as integer = 0 TO 3
-   IF rect_collide_point(Type(100 + i * 30 - 5, 100 - 5, 30, 30), readmouse.pos) THEN
+   IF rect_collide_point(XYWH(100 + i * 30 - 5, 100 - 5, 30, 30), readmouse.pos) THEN
     hover = i
    END IF
   NEXT i
@@ -1618,7 +1618,7 @@ DO
   IF rect_collide_point(box, readmouse.pos) THEN
    DIM hover as integer = -1
    FOR i as integer = 0 TO st.last
-    IF rect_collide_point(Type(box.x, box.y + 5 + i * 10, box.wide, 10), readmouse.pos) THEN hover = i
+    IF rect_collide_point(XYWH(box.x, box.y + 5 + i * 10, box.wide, 10), readmouse.pos) THEN hover = i
    NEXT i
    IF hover >= 0 THEN
     IF (readmouse.buttons AND mouseLeft) THEN
@@ -1753,7 +1753,7 @@ DO
   IF rect_collide_point(Type(60, 60, 200, 60), readmouse.pos) THEN
    DIM hover as integer = -1
    FOR i as integer = 0 TO 1
-    IF rect_collide_point(Type(160 - 60\2, 94 + i * 8, 60, 8), readmouse.pos) THEN hover = i
+    IF rect_collide_point(XYWH(160 - 60\2, 94 + i * 8, 60, 8), readmouse.pos) THEN hover = i
    NEXT i
    IF hover >= 0 THEN
     IF (readmouse.buttons AND mouseLeft) THEN state.pt = hover

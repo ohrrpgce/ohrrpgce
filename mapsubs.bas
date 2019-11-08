@@ -5795,7 +5795,7 @@ SUB apply_changelist(st as MapEditState, byref changelist as MapEditUndoTile vec
   'First remove all existing tile data
 
   DIM as RectType clone_box
-  clone_box = TYPE(st.x - st.clone_offset.x, st.y - st.clone_offset.y, st.clone_size.w, st.clone_size.h)
+  clone_box = XY_WH(st.pos - st.clone_offset, st.clone_size)
 
   FOR xoff as integer = 0 TO clone_box.wide - 1
    DIM x as integer = xoff + clone_box.x
