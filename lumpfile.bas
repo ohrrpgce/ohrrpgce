@@ -1519,6 +1519,7 @@ end sub
 'MUST NOT do any memory allocation (e.g. manipulate FB strings)
 function read_recent_files_list(idx as integer, byref filename as zstring ptr, byref opentime as double) as boolint
 	if idx > ubound(recent_files) then return NO
+	if len(recent_files(idx)) = 0 then return NO
 	filename = strptr(recent_files(idx))
 	opentime = recent_file_times(idx) - program_start_timer
 	return YES
