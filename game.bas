@@ -1238,8 +1238,14 @@ SUB interpolatecat (byval old_speed as integer = -1)
  IF old_speed <> sp THEN
   'Remap the hero positions from the old speed to the new speed
   DIM cattemp(3) as CaterpillarHistory
+  DIM temp_index as integer
   FOR i as integer = 0 to 3
-   cattemp(i) = cats(i * (20 / old_speed))
+   temp_index = i * (20 / old_speed)
+   IF temp_index >= 0 ANDALSO temp_index <= UBOUND(cats) THEN
+    cattemp(i) = cats(temp_index)
+   ELSE
+    visible_debug "interpolatecat: cats() array access out of bounds (" & temp_index & ")"
+   END IF
   NEXT i
   FOR i as integer = 0 to 3
    cats(i * (20 / sp)) = cattemp(i)
