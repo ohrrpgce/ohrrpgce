@@ -663,7 +663,7 @@ SUB hero_swap_menu_mouse_control (st as OrderTeamState)
    IF rect_collide_point(XYWH(centerx - reserve_w\2, centery + (i - st.reserve.top) * 10, reserve_w, 10), readmouse.pos) THEN r_hover = i
   NEXT i
   IF r_hover >= 0 THEN
-   IF (readmouse.release AND mouseLeft) THEN
+   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
     IF st.reserve.pt = r_hover THEN
      'Pick selected
      st.do_pick = YES

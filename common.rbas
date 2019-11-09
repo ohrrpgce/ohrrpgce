@@ -5845,7 +5845,7 @@ FUNCTION menu_click (state as MenuState) as bool
  use_mouse = get_gen_bool("/mouse/mouse_menus") OR (force_use_mouse > 0)
 #ENDIF
  IF use_mouse THEN
-  IF (readmouse.release AND mouseleft) THEN
+  IF (readmouse.release AND mouseleft) ANDALSO readmouse.drag_dist < 10 THEN
    IF overlay_message_visible() THEN
     'If an allmodex overlay message is visible, dismiss it <s>instead</s>.
     'NOTE: because code tends to keep a copy of MouseInfo returned from readmouse,

@@ -77,7 +77,7 @@ DECLARE FUNCTION plank_menu_scroll(byref ps as PlankState, byval scroll_move as 
 'Handles mouse wheel scrolling, updates PlankState.cur, and returns true if changed
 DECLARE FUNCTION plank_menu_mouse_wheel(byref ps as PlankState, byval dist as integer=30) as bool
 'Handles right-drag scrolling and/or two-finger-touch scrolling
-DECLARE FUNCTION plank_menu_drag_scroll(byref ps as PlankState, byval which_button as MouseButton=mouseRight, byval min_threshold as integer=10) as bool
+DECLARE FUNCTION plank_menu_drag_scroll(byref ps as PlankState, byval which_button as MouseButton=mouseLeft, byval min_threshold as integer=10) as bool
 'Search for the matching string in all text children of each plank, and return YES if the cursor changed
 
 DECLARE FUNCTION plank_select_by_string(byref ps as PlankState, query as string) as bool

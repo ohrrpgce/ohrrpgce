@@ -180,9 +180,9 @@ END FUNCTION
 SUB mouse_update_selection (state as MenuState)
  DIM buttons as integer = (readmouse.buttons OR readmouse.release)
  IF state.select_by_mouse_release THEN buttons = readmouse.release
- IF buttons AND mouseleft THEN
+ IF (buttons AND mouseLeft) ANDALSO readmouse.drag_dist < 10  THEN
   state.pt = state.hover
- ELSEIF (buttons AND mouseright) ANDALSO readmouse.drag_dist < 10 THEN
+ ELSEIF (buttons AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
   'Right button only selects if this is NOT a drag
   state.pt = state.hover
  END IF
@@ -226,7 +226,7 @@ SUB mouse_scroll_menu(byref state as MenuState)
  END WITH
 END SUB
 
-SUB mouse_drag_menu(byref state as MenuState, byval button as MouseButton=mouseRight, byval threshold as integer=10, byval magnify as double=1.0)
+SUB mouse_drag_menu(byref state as MenuState, byval button as MouseButton=mouseLeft, byval threshold as integer=10, byval magnify as double=1.0)
  WITH state
   IF .spacing = 0 THEN
    EXIT SUB

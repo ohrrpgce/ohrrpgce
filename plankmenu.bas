@@ -268,7 +268,7 @@ FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice 
  RETURN result
 END FUNCTION
 
-FUNCTION plank_menu_drag_scroll(byref ps as PlankState, byval which_button as MouseButton=mouseRight, byval min_threshold as integer=10) as bool
+FUNCTION plank_menu_drag_scroll(byref ps as PlankState, byval which_button as MouseButton=mouseLeft, byval min_threshold as integer=10) as bool
  IF (readmouse.dragging AND which_button) THEN
   IF readmouse.drag_dist > min_threshold THEN
    DIM amount as integer = readmouse.pos.y - readmouse.lastpos.y

@@ -137,7 +137,7 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
    ELSEIF rect_collide_point(st.rect, readmouse.pos) THEN
     'In the list of stuff
     IF st.hover >= 0 THEN
-     IF (readmouse.release AND mouseLeft) ANDALSO st.pt = st.hover THEN do_pick = YES
+     IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 ANDALSO st.pt = st.hover THEN do_pick = YES
     END IF
     mouse_drag_menu st
    ELSE
@@ -1336,7 +1336,7 @@ DO
   IF carray(ccRight) > 1 THEN st.pt = -2: MenuSound gen(genCursorSFX)
  END IF
 
- IF carray(ccUse) > 1 ORELSE (get_gen_bool("/mouse/mouse_menus") ANDALSO (readmouse.release AND mouseLeft) ANDALSO (readmouse.buttons AND mouseRight) = 0 ) THEN
+ IF carray(ccUse) > 1 ORELSE (get_gen_bool("/mouse/mouse_menus") ANDALSO (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 ANDALSO (readmouse.buttons AND mouseRight) = 0 ) THEN
   IF newgame_opt AND st.pt = -1 THEN
    'Selected "New Game"
    MenuSound gen(genAcceptSFX)
@@ -1554,9 +1554,9 @@ SUB picksave_update_mouse(st as MenuState, byval newgame_opt as bool, byref drag
 
  'Now handle scrolling
  IF st.pt >= 0 THEN
-  'Check for right-drag scrolling
-  IF (readmouse.dragging AND mouseRight) THEN
-   IF readmouse.drag_dist > 15 ANDALSO drag_start_top = -10 THEN
+  'Check for left-drag scrolling
+  IF (readmouse.dragging AND mouseLeft) THEN
+   IF readmouse.drag_dist > 10 ANDALSO drag_start_top = -10 THEN
     drag_start_top = st.top
    END IF
    IF drag_start_top > -10 THEN
@@ -1684,7 +1684,7 @@ DO
     IF rect_collide_point(XYWH(20 + 96 * (i MOD rowsize), 12 + rowheight * ((i - top) \ rowsize), 96, rowheight), readmouse.pos) THEN hover = i
    NEXT i
    IF hover >= 0 THEN
-    IF (readmouse.release AND mouseLeft) THEN
+    IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
      IF ic = hover THEN
       do_pick = YES
      ELSE
@@ -1692,11 +1692,11 @@ DO
      END IF
     END IF
    END IF
-   IF (readmouse.dragging AND mouseRight) THEN
+   IF (readmouse.dragging AND mouseLeft) THEN
     IF drag_top = -1 THEN drag_top = top
     IF readmouse.drag_dist > 10 THEN
      DIM dist as integer = (readmouse.clickstart.y - readmouse.pos.y) / rowheight
-     top = drag_top + dist * rowsize * 3
+     top = drag_top + dist * rowsize
     END IF
    END IF
    top += readmouse.wheel_clicks * rowsize * 3
@@ -1705,7 +1705,7 @@ DO
    IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN do_quit = YES
   END IF
   IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_quit = YES
-  IF (readmouse.dragging AND mouseRight) = 0 THEN drag_top = -1
+  IF (readmouse.dragging AND mouseLeft) = 0 THEN drag_top = -1
  END IF
 
  'Clamp the top of the scrollable area into the safe range
@@ -2528,7 +2528,7 @@ SUB item_screen_mouse_handler(byref st as ItemScreenState)
   
  DIM oldcur as Slice Ptr = st.ps.cur
  IF st.ps.hover THEN
-  IF (readmouse.release AND mouseLeft) ORELSE (readmouse.clicks AND mouseRight) THEN
+  IF ((readmouse.release AND mouseLeft) ORELSE (readmouse.clicks AND mouseRight)) ANDALSO readmouse.drag_dist < 10 THEN
    'Selecting the hovered plank
    'and deselect the old selection
    st.ps.cur = st.ps.hover
@@ -3100,13 +3100,13 @@ SUB equip_menu_controls_equip_change (st as EquipMenuState)
    FOR i as integer = st.eq_cursor.top TO small(list_bottom, list_last)
     IF rect_collide_point(Type(192, 28 + (i - st.eq_cursor.top) * 8, 11 * 8, 8), readmouse.pos) THEN hover = i
    NEXT i
-   IF hover >= 0 THEN
+   IF hover >= 0 ANDALSO readmouse.drag_dist < 10 THEN
     IF (readmouse.release AND mouseLeft) ANDALSO hover = st.eq_cursor.pt THEN do_pick = YES
     IF (readmouse.release AND mouseLeft) THEN st.eq_cursor.pt = hover
    END IF
   ELSE
    'Anywhere else
-   IF (readmouse.release AND mouseLeft) THEN
+   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
     do_cancel = YES
    END IF
   END IF
