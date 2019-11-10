@@ -5089,6 +5089,9 @@ SUB user_trigger_hero_pathfinding()
  ELSE
   clickpos.y -= gmap(11) 'adjust for foot-offset
   DIM clicktile as XYPair = clickpos \ 20
+  IF xypair_manhattan_distance(clicktile, herotpos(0)) = 1 THEN
+   (herodir(0)) = xypair_direction_to(herotpos(0), clicktile)
+  END IF
   gam.hero_pathing(0).mode = HeroPathingMode.POS
   gam.hero_pathing(0).dest_pos = clicktile
  END IF
