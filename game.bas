@@ -1244,7 +1244,7 @@ SUB interpolatecat (byval old_speed as integer = -1)
    IF temp_index >= 0 ANDALSO temp_index <= UBOUND(cats) THEN
     cattemp(i) = cats(temp_index)
    ELSE
-    visible_debug "interpolatecat: cats() array access out of bounds (" & temp_index & ")"
+    showbug "interpolatecat: cats() array access out of bounds (" & temp_index & ")"
    END IF
   NEXT i
   FOR i as integer = 0 to 3
