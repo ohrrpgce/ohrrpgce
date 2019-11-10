@@ -5136,6 +5136,14 @@ SUB update_hero_pathfinding(byval rank as integer)
    cancel_hero_pathfinding(rank, YES)
   EXIT SUB
  END IF
+ 
+ IF rank = 0 ANDALSO vstate.active = YES ANDALSO vstate.dat.dismount_ahead THEN
+  'Some special handling when riding a vehicle that dismounts ahead
+  IF gam.stillticks(rank) >= 5 ANDALSO NOT vehicle_is_animating() THEN
+   (herodir(rank)) = xypair_direction_to(herotpos(rank), gam.hero_pathing(rank).dest_pos)
+   vehicle_graceful_dismount
+  END IF
+ END IF
 
  IF gam.hero_pathing(rank).stop_after_stillticks > 0 ANDALSO gam.stillticks(rank) >= gam.hero_pathing(rank).stop_after_stillticks then
   cancel_hero_pathfinding(rank)
