@@ -2626,7 +2626,7 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as bool=NO) as
  REDIM PRESERVE mstates(topmenu) as MenuState
  mstates(topmenu).pt = 0
  mstates(topmenu).top = 0
- mstates(topmenu).select_by_mouse_release = YES
+ mstates(topmenu).select_by_mouse_release = NO
  IF record <> -1 THEN
   LoadMenuData menu_set, menus(topmenu), record
   IF menus(topmenu).remember_selection THEN
