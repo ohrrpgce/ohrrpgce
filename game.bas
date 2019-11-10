@@ -2791,8 +2791,12 @@ SUB player_menu_keys ()
     write_ini_value config_file, "gfx.margin", get_safe_zone_margin()
    END IF
   END IF
-  IF carray(ccUse) > 1 ORELSE menu_click(mstates(topmenu)) THEN
+  IF carray(ccUse) > 1 THEN
    activate_menu_item mi, topmenu
+  ELSEIF menu_click(mstates(topmenu)) THEN
+   IF readmouse.left_click_age <= menus(topmenu).age THEN
+    activate_menu_item mi, topmenu
+   END IF
   END IF
  END IF
 END SUB
