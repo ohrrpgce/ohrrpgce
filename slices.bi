@@ -553,7 +553,7 @@ DECLARE Sub InsertSliceAfter(byval sl as Slice ptr, byval newsl as Slice ptr)
 DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
 
 DECLARE Sub YSortChildSlices(byval parent as slice ptr)
-DECLARE Sub EdgeYSortChildSlices(byval parent as slice ptr, byval edge as integer)
+DECLARE Sub EdgeYSortChildSlices(byval parent as slice ptr, byval edge as AlignType)
 DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as bool)
 DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
 

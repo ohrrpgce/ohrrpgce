@@ -663,11 +663,11 @@ Sub AutoSortChildren(byval s as Slice Ptr)
   case slAutoSortY:
    YSortChildSlices s
   case slAutoSortTopY:
-   EdgeYSortChildSlices s, 0
+   EdgeYSortChildSlices s, alignTop
   case slAutoSortCenterY:
-   EdgeYSortChildSlices s, 1
+   EdgeYSortChildSlices s, alignCenter
   case slAutoSortBottomY:
-   EdgeYSortChildSlices s, 2
+   EdgeYSortChildSlices s, alignBottom
  end select
 End sub
 
@@ -772,7 +772,7 @@ Sub CustomSortChildSlices(byval parent as Slice ptr, byval wipevals as bool)
  RelinkChildren parent, slice_list()
 End sub
 
-Sub EdgeYSortChildSlices(byval parent as Slice ptr, byval edge as integer)
+Sub EdgeYSortChildSlices(byval parent as Slice ptr, byval edge as AlignType)
  if parent = 0 then debug "EdgeYSortChildSlices: null ptr" : exit sub
  if parent->NumChildren = 0 then exit sub
  dim slice_list(parent->NumChildren - 1) as Slice ptr

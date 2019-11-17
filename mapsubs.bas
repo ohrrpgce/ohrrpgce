@@ -157,6 +157,8 @@ DECLARE FUNCTION mapedit_pick_layer(st as MapEditState, message as string, other
 DECLARE SUB mapedit_layers (st as MapEditState)
 DECLARE SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector, state as MenuState, byval resetpt as bool, byval selectedlayer as integer = 0, byref layerpreview as Frame ptr)
 
+DECLARE SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as integer, img as GraphicPair, framenum as integer, mappos as XYPair)
+
 DECLARE SUB mapedit_copy_layer(st as MapEditState, byval src as integer, byval dest as integer)
 DECLARE SUB mapedit_append_new_layers(st as MapEditState, howmany as integer)
 DECLARE SUB mapedit_insert_new_layer(st as MapEditState, byval where as integer)
@@ -2004,17 +2006,34 @@ DO
   '--Draw NPC zones
   drawmap st.zoneoverlaymap, st.mapx, st.mapy, st.overlaytileset, dpage, YES, , , 20
 
-  '--Draw npcs
-  REDIM npcnum(UBOUND(st.map.npc_def)) as integer  'Clear counts to 0
+  '--Draw npcs (as sprite slices)
   st.walk = (st.walk + 1) MOD 4
+  DIM npclayer as Slice ptr
+  npclayer = NewSliceOfType(slContainer)
   FOR i as integer = 0 TO UBOUND(st.map.npc)
    WITH st.map.npc(i)
     IF .id > 0 THEN
-     DIM standpos as XYPair = map_to_screen(st, .pos)  'Position in pixels of the tile the NPC is standing on
      DIM framenum as integer = (2 * .dir) + st.walk \ 2
-     IF mapedit_draw_walkabout(st, st.npc_img(.id - 1), framenum, standpos) THEN
+     mapedit_create_npc_slice st, npclayer, .id - 1, st.npc_img(.id - 1), framenum, .pos
+    END IF
+   END WITH
+  NEXT
+  IF st.map.gmap(16) = 2 THEN ' Heroes and NPCs Together
+   EdgeYSortChildSlices npclayer, alignBottom
+   'Otherwise NPCs are ordered by reference number
+  END IF
+  DrawSlice npclayer, dpage
+  DeleteSlice @npclayer
+
+  '--Then draw the ID/copy numbers
+  REDIM npcnum(UBOUND(st.map.npc_def)) as integer  'Clear counts to 0
+  FOR i as integer = 0 TO UBOUND(st.map.npc)
+   WITH st.map.npc(i)
+    IF .id > 0 THEN
+     DIM tilepos as XYPair = map_to_screen(st, .pos)  'Position in pixels of the tile the NPC is standing on
+     IF rect_collide_rect(st.viewport, XY_WH(tilepos, tilesize)) THEN
       DIM col as integer = uilook(uiSelectedItem + tog)
-      edgeprint (.id - 1) & !"\n" & npcnum(.id - 1), standpos.x, standpos.y + 2, col, dpage, , YES
+      edgeprint (.id - 1) & !"\n" & npcnum(.id - 1), tilepos.x, tilepos.y + 2, col, dpage, , YES
      END IF
      npcnum(.id - 1) += 1
     END IF
@@ -2547,6 +2566,23 @@ SUB load_npc_graphics(npc_def() as NPCType, npc_img() as GraphicPair)
  FOR i as integer = 0 TO UBOUND(npc_def)
   load_sprite_and_pal npc_img(i), sprTypeWalkabout, npc_def(i).picture, npc_def(i).palette
  NEXT i
+END SUB
+
+'Create a sprite slice and parent it to 'parent'
+'Skips creating the NPC slice if it's off-screen
+SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as integer, img as GraphicPair, framenum as integer, mappos as XYPair)
+ DIM screenpos as XYPair = map_to_screen(st, mappos)  'Position in pixels of the tile the NPC is standing on
+ DIM spritepos as XYPair = screenpos
+ spritepos.x += tilew \ 2 - img.sprite->w \ 2
+ spritepos.y += tileh - img.sprite->h + st.map.gmap(11)
+ IF rect_collide_rect(st.viewport, XY_WH(spritepos, img.sprite->size)) THEN  'Just a speed-up
+  DIM sl as Slice ptr = NewSliceOfType(slSprite)
+  WITH st.map.npc_def(npcid)
+   ChangeSpriteSlice sl, sprTypeWalkabout, .picture, .palette, framenum
+  END WITH
+  SetSliceParent sl, parent
+  sl->Pos = spritepos
+ END IF
 END SUB
 
 'Returns true if on screen.
@@ -5922,7 +5958,7 @@ FUNCTION mapedit_tile_visible(st as MapEditState, tile as XYPair) as bool
  RETURN mapedit_rect_visible(st, XY_WH(tile * tilesize, tilesize))
 END FUNCTION
 
-'Is a rectangle (position/size measured in pixels!) at least partially visible on-screen?
+'Is a rectangular area (position/size measured in map coords in pixels!) at least partially visible on-screen?
 FUNCTION mapedit_rect_visible(st as MapEditState, rect as RectType) as bool
  DIM mapview as RectType
  mapview.topleft = st.camera
