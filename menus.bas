@@ -588,7 +588,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
     IF state.pt = i AND state.active AND menuopts.highlight THEN
      rectangle x + 0, y, IIF(linewidth, linewidth, 9999), state.spacing, uilook(uiHighlight), page
     ELSEIF menuopts.drawbg THEN
-     trans_rectangle vpages(page), TYPE(x, y, IIF(linewidth, linewidth, 9999), state.spacing), master(uilook(uiBackground)), 0.55
+     trans_rectangle vpages(page), XYWH(x, y, IIF(linewidth, linewidth, 9999), IIF(menuopts.edged, 10, 8)), master(uilook(uiBackground)), 0.55
     END IF
 
     DIM col as integer

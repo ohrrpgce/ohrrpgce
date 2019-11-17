@@ -2119,7 +2119,7 @@ DO
 
  '--position finder--
  IF st.tiny THEN
-  fuzzyrect 0, 35, st.map.wide, st.map.high, findrgb(0,0,170), dpage
+  trans_rectangle vpages(dpage), XY_WH(XY(0,35), st.map.size), TYPE<RGBColor>(&h0000AA), 0.5   'rgb=0,0,170
   DIM screct as RectType  'Position and size of the rectangle showing the screen position
   screct.topleft = st.camera \ 20  'Position relative to the minimap
   screct.size = st.viewport.size \ 20
@@ -3419,6 +3419,7 @@ SUB mapedit_layers (st as MapEditState)
  menuopts.itemspacing = -1
  menuopts.showright = YES
  menuopts.fullscreen_scrollbar = YES
+ menuopts.drawbg = YES
  DIM menu as LayerMenuItem vector
  
  DIM layerno as integer
@@ -3750,7 +3751,6 @@ SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector
    layerpreview = frame_load_mxs(game + ".til", wanttileset)
   END IF
  END IF
- IF layerpreview THEN fuzzyrect layerpreview, 0, 0, , , uilook(uiBackground)
 END SUB
 
 '==========================================================================================
