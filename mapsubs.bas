@@ -2010,11 +2010,16 @@ DO
   st.walk = (st.walk + 1) MOD 4
   DIM npclayer as Slice ptr
   npclayer = NewSliceOfType(slContainer)
+  DIM npcs_on_tile as HashTable  'Number of NPCs at each position. XYPair -> int map
+  npcs_on_tile.construct(31, type_table(XYPair), YES, type_table(integer), NO)
   FOR i as integer = 0 TO UBOUND(st.map.npc)
    WITH st.map.npc(i)
     IF .id > 0 THEN
      DIM framenum as integer = (2 * .dir) + st.walk \ 2
      mapedit_create_npc_slice st, npclayer, .id - 1, st.npc_img(.id - 1), framenum, .pos
+     'Increment "NPCs here" count
+     DIM tile as XYPair = .pos \ tilesize
+     npcs_on_tile.set(@tile, npcs_on_tile.get_int(@tile, 0) + 1)
     END IF
    END WITH
   NEXT
@@ -2026,21 +2031,38 @@ DO
   DeleteSlice @npclayer
 
   '--Then draw the ID/copy numbers
-  REDIM npcnum(UBOUND(st.map.npc_def)) as integer  'Clear counts to 0
+  REDIM npc_copy_num(UBOUND(st.map.npc_def)) as integer  'Clear counts to 0
   FOR i as integer = 0 TO UBOUND(st.map.npc)
    WITH st.map.npc(i)
     IF .id > 0 THEN
      DIM tilepos as XYPair = map_to_screen(st, .pos)  'Position in pixels of the tile the NPC is standing on
      IF rect_collide_rect(st.viewport, XY_WH(tilepos, tilesize)) THEN
+      DIM tile as XYPair = .pos \ tilesize
+      DIM count as integer = npcs_on_tile.get_int(@tile)
+      DIM text as string
+      IF count = 1 THEN
+       text = (.id - 1) & !"\n" & npc_copy_num(.id - 1)
+      ELSE
+       'In this case we will draw the same string multiple times, doesn't matter.
+       text = !"..\n" & CHR(1) & count  'Three dot ellipsis won't fit!
+      END IF
       DIM col as integer = uilook(uiSelectedItem + tog)
-      edgeprint (.id - 1) & !"\n" & npcnum(.id - 1), tilepos.x, tilepos.y + 2, col, dpage, , YES
+      edgeprint text, tilepos.x, tilepos.y + 2, col, dpage, , YES   'withnewlines=YES
      END IF
-     npcnum(.id - 1) += 1
+     npc_copy_num(.id - 1) += 1
     END IF
    END WITH
   NEXT
 
-  edgeprint count_npc_slots_used(st.map.npc()) & "/" & (UBOUND(st.map.npc) + 1) & " Used", pRight, pBottom, uilook(uiText), dpage
+  '--Draw tooltip+NPC usage count at bottom of screen
+  DIM text as string
+  IF npcs_on_tile.get_int(@st.pos) >= 2 THEN
+   text = ticklite("`Enter`: view  ")
+  END IF
+  text &= count_npc_slots_used(st.map.npc()) & "/" & (UBOUND(st.map.npc) + 1) & " Used"
+  edgeprint text, pRight, pBottom, uilook(uiText), dpage, YES  'withtags=YES
+
+  npcs_on_tile.destruct()
  END IF
 
  '--show foemap--
@@ -2443,15 +2465,18 @@ LOCAL SUB mapedit_list_npcs_by_tile_update (st as MapEditState, pos as XYPair, m
  REDIM menu(0) as string
  menu(0) = "Back to the map editor..."
 
+ REDIM npc_copy_num(UBOUND(st.map.npc_def)) as integer
+
  FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
    IF .id > 0 THEN
     IF .pos = pos * tilesize THEN
      DIM s as string
-     s = "NPC ID=" & (.id - 1) & " facing " & dir_str(.dir)
+     s = "NPC ID=" & (.id - 1) & " copy=" & npc_copy_num(.id - 1) & " facing " & dir_str(.dir)
      a_append menu(), s
      a_append npcrefs(), i
     END IF
+    npc_copy_num(.id - 1) += 1
    END IF
   END WITH
  NEXT i
