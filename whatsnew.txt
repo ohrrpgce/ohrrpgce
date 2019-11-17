@@ -1,31 +1,40 @@
 WHAT IS NEW?
 
-Septemtober ? 2019 [Fufluns]
+Septotobvember ? 2019 [Fufluns]
 
   Highlights:
     * ~~Fill this in later~~
 
-  * New Features
-    * New spriteset editor [Ralph]
-    * Backdrops can now be any size [Ralph]
-    * You can now import PNG and JPG files as well as BMP (they're
+  *** New Features
+
+   * Graphics and Slices
+    * Spritesets and backdrops can be any size! E.g. walkabouts can be larger
+      than 20x20 [Ralph]
+    * You can now import PNG and JPG images as well as BMP (they're
       decompressed on import, so beware of importing large images) [Ralph]
-    * When importing a backdrop or tileset from an unpaletted image you can use
+    * Screenshots saved as PNGs instead of BMPs (but when using gfx_directx
+      the Screenshot setting in the Options menu has priority) [Ralph]
+    * When importing a backdrop or tileset from an unpaletted image, can use
       dithering for hopefully-better conversion to your master palette [Ralph]
-    * Added a "wall display style" setting to the passmap editor; walls now
-      pulse rather than flash, and there's a new "outlined" style [Ralph]
-    * Heroes can have intrinsic counter-attacks just like Enemies [James]
-    * Add the ability to browse for Attacks, Enemies, Heroes, Textboxes,
-      Shops, stuff in shops, Sound Effects, Songs.
-    * You can press Ctrl+F or click the "Filter" button to filter/search the
-      thingbrowser screen by name. [James]
+    * Minimaps look much better. Also, you can change the minimap generation
+      method in the General Game Settings menu, with three options [Ralph]
+    * Rect slices can now be "truly" alpha-transparent (but blend results are
+      still limited to the master palette) [Ralph]
+    * Added fuzzy rect slice settings: fuzzy zoom, stationary pattern [Ralph]
     * Line slices [Ralph]
-    * New attack target class: "Counter (last to hit attacker)", which you
-      should normally use for counterattacks instead of Revenge [Ralph]
-    * Previewing MP3 files in the file browser reenabled (Windows only) [Ralph]
-    * New bitset "Cap minimum stats to zero" can prevent equipment with
-      negative stat bonuses from making a hero's stats negative [James]
-    * Maximum Shop ID has been raised from 99 to 32767 [James]
+    * "Camera following a hero/NPC centers on..." general setting to control
+      which part of a tall walkabout to center on [Ralph]
+
+   * In-game User Interface, Controls
+    * Mouse Options menu allows you to enable built-in mouse support for
+      walking around on maps, activating NPCs, using menus and special
+      screens and in battles. [James]
+    * Joystick controls should now work everywhere in-game again - been broken
+      for over a decade! [Ralph]
+      * New general bitset "Map joystick controls to keyboard keys for scripts"
+        (ON by default) allows existing scripts which check keyboard keys
+        key:enter, key:esc, and key:left/right/up/down to work when the
+        player uses a joystick.
     * Added a general bitset to hide empty save slots at the bottom of the
       save/load menu. (Won't shows less than 4 slots unless you specifically
       set a max lower than 4) [James]
@@ -35,35 +44,30 @@ Septemtober ? 2019 [Fufluns]
       subtype is renamed "Disabled") [Ralph]
     * In user-defined menus each menu item can now have its own color and
       'disabled' color [Ralph]
-    * Mouse Options menu allows you to enable built-in mouse support for
-      walking around on maps, activating NPCs, using menus and special
-      screens and in battles. [James] 
-    * Ctrl-F2 and Ctrl-F3 debug keys to access save/load menus [Ralph]
-    * You can now pick the color used to display damage, healing, absorb
-      poison and regen in battle. You can also override the color
-      in the attack editor. [James]
+    * All the fade-out colors are now customisable User Interface Colors [Ralph]
+    * Displaying "x1" after singular items in the inventory is now optional
+      (in General Game Settings) [Ralph]
+    * Shops requiring trade-ins tell how many of the item you have [Ralph]
+    * More flexible Money global text string, e.g. "$9" instead of "9 $" [Ralph]
+
+   * Map Editor Features
+    * Added a "wall display style" setting to the passmap editor; walls now
+      pulse rather than flash, and there's a new "outlined" style [Ralph]
     * Option to show outline of the in-game screen size in the map editor so
       you can check what will be visible. Press Ctrl-O once/twice or toggle in
       the Map Editor Settings menu. [Ralph]
-    * All the fade-out colors are now customisable User Interface Colors [Ralph]
-    * Option to give rewards from an enemy before it is transmogrified [Ralph]
-    * You can preview hero formations with hero sprites [Ralph]
-    * You can share save files between games by overriding the name of the
-      .saves folder (useful if you create additional .rpg files which are
-      sequels, variants (eg a Hardtype) or have bonus content) [Ralph]
-    * Screenshots saved as PNGs instead of BMPs (but when using gfx_directx
-      the Screenshot setting in the Options menu has priority) [Ralph]
-    * While using Test Game, a "Record combined editor+player .gif" option
-      appears in the editor's F9 Global Options menu [Ralph]
-    * Minimaps look much better. Also, you can change the minimap generation
-      method in the General Game Settings menu, with three options [Ralph]
-    * The map editor's map picker shows a preview of each map [Ralph]
-    * In turn-based mode negative attack delays are now allowed, to make the
-      attack jump ahead in the turn-order queue [Ralph]
-    * Enemy spawning option to allow multi-elemental attacks to trigger multiple
-      on-hit elemental spawning conditions, not just the first [Ralph]
-    * Attack option to control whether counterattacks are triggered on a hit,
-      miss or fail, with a global default in Battle System Options menu [Ralph]
+    * The map picker shows a preview of each map [Ralph]
+    * Press G in NPC placement mode to select NPC type under cursor, and C to
+      cycle through NPC instances [Ralph]
+    * Can delete NPCs from the NPCs-on-this-tile menu [Ralph]
+    * Foemap Statistics submenu (see below)
+
+   * Other Editors
+    * New spriteset editor [Ralph]
+    * Add the ability to browse for Attacks, Enemies, Heroes, Textboxes,
+      Shops, stuff in shops, Sound Effects, Songs. [James]
+    * You can press Ctrl+F or click the "Filter" button to filter/search the
+      'thingbrowser' screen by name. [James]
     * Re-organised various menus, especially Attack Bitsets menu and the
       General Game Settings menu:
       * General Preference/Battle/Backcompat bitsets rearranged - all battle-
@@ -71,59 +75,75 @@ Septemtober ? 2019 [Fufluns]
         Some bits have been renamed and now all Backcompat Bits are
         off by default in new games; if one of them is on then you know you're
         missing out on some feature or bugfix [Ralph]
+    * Much nicer interactive stat preview graph in the Hero Stats menu [Ralph]
+    * Can create an enemy/hero formation as a copy of an existing one [Ralph]
+    * Copy/pasting of item definitions [Ralph] 
+    * Copy/pasting of palettes inside the palette browser [Ralph]
     * See how long you've been working on your game in General Game Settings
       (starts counting from zero with Fufluns) [Ralph]
+    * Previewing MP3 files in the file browser reenabled (Windows only) [Ralph]
+    * You can preview hero formations with hero sprites [Ralph]
+    * Enemy Usage menu shows where an enemy is used, and chance of encountering
+      it, and Foemap Statistics menu shows chance of each encounter [Ralph]
+
+   * Battle Features
+    * Hero MP meter, along bottom of the HP meter. Disabled by default in
+      existing games. [Sword, Ralph]
+    * You can now pick the color used to display damage, healing, absorb
+      poison and regen in battle. You can also override the color
+      in the attack editor. [James]
+    * "Shrink to Center" dissolve animation [James]
+    * "Screen Center" attack animation [James]
+    * Heroes can have intrinsic counter-attacks just like Enemies [James]
+    * Attack option to control whether counterattacks are triggered on a hit,
+      miss or fail, with a global default in Battle System Options menu [Ralph]
+    * New attack target class: "Counter (last to hit attacker)", which you
+      should normally use for counterattacks instead of "Revenge" [Ralph]
     * Added missing attack target class "All (including dead heroes)" [Ralph]
-    * C to cycle through NPC instances in map editor [Ralph]
-    * Preference bitset "Negative-damage harmtiles can cure above max HP"
-      (defaults to on) [Ralph]
-    * Added fuzzy rect slice settings: fuzzy zoom, stationary pattern [Ralph]
-    * Much nicer interactive stat preview graph in the Hero Stats menu [Ralph]
-    * New F8 debug option "Show/test any battle formation" [Ralph]
-    * You can copy & paste palettes inside the palette browser [Ralph]
+    * New bitset "Cap minimum stats to zero" can prevent equipment with
+      negative stat bonuses from making a hero's stats negative [James]
+    * All stat caps and equipment stat bonuses can now be up to 32767 [Ralph]
+    * Option to give rewards from an enemy before it is transmogrified [Ralph]
+    * In turn-based mode negative attack delays are now allowed, to make the
+      attack jump ahead in the turn-order queue [Ralph]
+    * Turn-based battles bitset to disallow cancelling/changing a hero's attack
+      [Ralph]
+    * Enemy spawning option to allow multi-elemental attacks to trigger multiple
+      on-hit elemental spawning conditions, not just the first [Ralph]
+    * "Useable in battle from spell lists" attack bit (default on) [Ralph]
+
+   * Live-previewing (Test Game) Features
     * Shop stock levels in saved games and when Testing Game are now updated if
       you edit the things in a shop - reset if needed, or increased/decreased
       to reflect the change [Ralph]
-    * Copy/pasting of item definitions [Ralph]
-    * New attack animation "Screen Center" [James]
+    * Vehicles are reloaded while using Test Game [Ralph]
+    * While using Test Game, a "Record combined editor+player .gif" option
+      appears in the editor's F9 Global Options menu [Ralph]
+
+   * Debug Keys
+    * Ctrl-F2 and Ctrl-F3 debug keys to access save/load menus [Ralph]
+    * F8 debug key "Show/test any battle formation" [Ralph]
+
+  * Misc Features
+    * Maximum Shop ID has been raised from 99 to 32767 [James]
+    * You can share save files between games by overriding the name of the
+      .saves folder (useful if you create additional .rpg files which are
+      sequels, variants (eg a Hardtype) or have bonus content) [Ralph]
     * Windows 95 is supported again! (But hspeak doesn't run on 95; upgrade to
       Windows 98) [Ralph]
-    * Joystick controls should now work everywhere in-game again - been broken
-      for over a decade! [Ralph]
-      * New general bitset "Map joystick controls to keyboard keys for scripts"
-        (ON by default) allows existing scripts which check keyboard keys
-        key:enter, key:esc, and key:left/right/up/down to work when the
-        player uses a joystick.
-    * Vehicles are reloaded while using Test Game [Ralph]
-    * Turn-based battles bitset to disallow cancelling/changing a hero's attack
-      [Ralph]
-    * Displaying "x1" after singular items in the inventory is now optional
-      (in General Game Settings) [Ralph]
     * New graphics backend gfx_sdl2 (and music_sdl2). Better fullscreen handling
       than gfx_sdl. Only available in non-default nightly builds for now [Ralph]
-    * "Camera following a hero/NPC centers on..." general setting [Ralph]
-    * Enemy Usage menu shows where an enemy is used, and chance of encountering
-      it, and Foemap Statistics menu shows chance of each encounter [Ralph]
     * "Ignore harmtiles" vehicle bit [Ralph]
-    * Rect slices can now be "truly" transparent (uses nearest-color) [Ralph]
-    * Hero MP meter, along bottom of the HP meter. Disabled by default in
-      existing games. [Sword, Ralph]
-    * All stat caps and equipment stat bonuses can now be up to 32767 [Ralph]
-    * Can create an enemy/hero formation as a copy of an existing one [Ralph]
-    * Press G in NPC placement mode to select NPC type under cursor [Ralph]
-    * Can delete NPCs from the NPCs-on-this-tile menu [Ralph]
-    * "Shrink to Center" dissolve animation [James]
-    * "Useable in battle from spell lists" attack bit (default on) [Ralph]
-    * Shops requiring trade-ins tell how many of the item you have [Ralph]
-    * More flexible Money global text string, e.g. "$9" instead of "9 $" [Ralph]
+    * Preference bitset "Negative-damage harmtiles can cure above max HP"
+      (defaults to on) [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]
     * "append number": added "min length" and "pad with zeroes" args [Ralph]
     * "use door": added "fade screen" argument, so you can use a door without
       fading [Ralph]
-    * "npc copy number" (opposite to "npc reference") [Ralph]
-    * "npc reference" can find tag-disabled npcs with "allow disabled" arg
+    * "npc copy number" (inverse of "npc reference") [Ralph]
+    * "npc reference" can find tag-disabled NPCs with new "allow disabled" arg
       [Ralph]
     * "create line", "slice is line", "get line color", "set line color" [Ralph]
     * "force mount vehicle", "current vehicle id", "current vehicle npc" [James]
@@ -139,14 +159,16 @@ Septemtober ? 2019 [Fufluns]
     * "menu item disabled", "menu item visible", "menu item selectable" [Ralph]
     * "get/set menu disabled textcolor", "get/set menu item color",
       "get/set menu item disabled color" [Ralph]
+    * "last menu item", "menu item count", "visible menu item count" [Ralph]
+    * "close menu" gains "run close script" argument [Ralph]
     * "pathfind hero to", "hero chases npc" and "cancel hero walk" [James]
     * NPCstat:pathfindingrule constant for "read npc"/"alter npc"
+    * "speaking npc" [Ralph]
     * "read preference bit", "write preference bit" [Ralph]
     * "pick hero" has two new args to let you pick the prompt message, and to
       auto-pick if there's only one active hero [Ralph]
     * hspeak is several times faster when compiling very large scripts [Ralph]
     * "set last save slot" [Ralph]
-    * "speaking npc" [Ralph]
     * All key commands accept all key constants - no more hassles! You can pass
       "any key", "use key", etc, to "key is pressed", "keyval" and "wait for
       scancode", and pass key: and joy: constants to "wait for key" [Ralph]
@@ -166,15 +188,14 @@ Septemtober ? 2019 [Fufluns]
     * "show string at" now respects newlines (\n in strings) [Ralph]
     * "read wall bit", "write wall bit" [Ralph]
     * "get npc sprite", "get hero sprite" convenience wrappers [Ralph]
-    * "last menu item", "menu item count", "visible menu item count" [Ralph]
-    * "close menu" gains "run close script" argument [Ralph]
     * Plotscripting Dictionary shows list of commands in each section [Ralph]
+    * "replace substring" [Ralph]
     * "string equal" as alias for "string compare"
     * "create sprite" as alias for "load sprite"
-    * "replace substring" [Ralph]
 
-  * Changes
+  *** Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"
+    * Various general/battle/backcompat bitsets renamed or moved (see above)
     * "Caption" menu item type renamed to "Label", the "Unselectable" subtype
       of Labels renamed to "Disabled", and the "Close menu if selected" bit
       renamed to "Close menu when activated"
@@ -191,7 +212,7 @@ Septemtober ? 2019 [Fufluns]
     * "free slice(0)" no longer shows a warning
     * unlump no longer asks for game password
 
-  * Bugfixes
+  *** Bugfixes
     * Fix a major memory leak while recording .gifs [Ralph]
     * Couldn't copy-paste text containing characters above ASCII 127 [Ralph]
     * Panel slices set to clip had broken child clipping and positioning
@@ -272,7 +293,7 @@ Septemtober ? 2019 [Fufluns]
       Should have fixed that decades ago! Note, only speeds 3 and 7 are
       reasonable, other previously-forbidden ones cause jerky movement. [Ralph]
 
-  * Stuff Only Developers Will Notice
+  *** Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced
       with a new RELOAD-based rgfx file format [Ralph]
 
