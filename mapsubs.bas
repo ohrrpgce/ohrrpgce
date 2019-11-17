@@ -2491,8 +2491,11 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
  DIM npcdef as NPCType ptr = NULL
 
  DIM state as MenuState
- state.size = 20
+ state.autosize = YES
+ state.autosize_ignore_lines = 6
  state.need_update = YES
+ DIM menuopts as MenuOptions
+ menuopts.scrollbar = YES
 
  setkeys
  DO
@@ -2501,6 +2504,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
 
   IF keyval(scF1) > 1 THEN show_help "mapedit_npcs_by_tile"
   IF keyval(ccCancel) > 1 THEN EXIT DO
+  'Edit NPC def
   IF enter_space_click(state) THEN
    clearkey(scSpace)
    IF state.pt = 0 THEN
@@ -2510,6 +2514,11 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
     state.need_update = YES
    END IF
   END IF
+  'Delete NPC inst
+  IF npcinst ANDALSO (keyval(scDelete) > 1 ORELSE keyval(scBackspace) > 1) THEN
+   st.map.npc(npcrefs(state.pt)).id = 0
+   state.need_update = YES
+  END IF
 
   state.need_update OR= usemenu(state)
 
@@ -2517,6 +2526,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
    state.need_update = NO
    mapedit_list_npcs_by_tile_update st, pos, menu(), npcrefs()
    state.last = UBOUND(menu)
+   correct_menu_state state   'In case deleting last NPC
    npcinst = NULL
    npcdef = NULL
    IF state.pt > 0 AND state.pt <= UBOUND(npcrefs) THEN
@@ -2528,9 +2538,9 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
 
   clearpage dpage
   edgeprint UBOUND(npcrefs) & " NPCs at tile X=" & pos.x & " Y=" & pos.y, 0, 0, uilook(uiSelectedDisabled), dpage
-  standardmenu menu(), state, 0, 10, dpage
+  standardmenu menu(), state, 0, 10, dpage, menuopts
   IF npcdef THEN
-   edgeprint "Enter/Space/Click to edit", 0, pBottom - 21, uilook(uiSelectedDisabled), dpage
+   edgeprint !"Enter/Space/Click to edit\nDelete to remove", 0, pBottom - 21, uilook(uiSelectedDisabled), dpage, , YES
    'Display a frame in right direction
    npcdefedit_preview_npc *npcdef, st.npc_img(npcinst->id - 1), boxpreview, npcinst->dir * 2
   END IF

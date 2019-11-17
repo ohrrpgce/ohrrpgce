@@ -1,3 +1,5 @@
 This screen displays a list of NPCs on the current tile, showing their ID number and the direction they are facing.
 
 Press ENTER/SPACE/CTRL or click on an NPC to edit its type/definition (which is shared with all instances of this NPC.)
+
+Press DELETE to delete the selected copy of an NPC.
