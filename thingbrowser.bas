@@ -29,15 +29,28 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  dim result as integer = start_id
  this.or_none = or_none
  this.skip_zero = skip_zero
- 
+
  dim holdscreen as integer = allocatepage
  copypage vpage, holdscreen
 
- root = NewSliceOfType(slContainer)
- SliceLoadFromFile root, finddatafile("thingbrowser.slice")
- 
  can_edit = (editor_func <> 0)
  helpkey = init_helpkey() 'Do this after we know if editing is available
+
+ dim do_add as bool = NO  'Always NO if can_edit=NO
+ dim do_edit as bool = NO 'Always NO if can_edit=NO
+ dim do_filter as bool = NO
+ dim quit_if_add_cancelled as bool = NO
+
+ 'If start_id is > highest id then .browse should try to add a new item, and return -1 if cancelled
+ if start_id > highest_id() then
+  do_add = YES
+  quit_if_add_cancelled = YES
+ end if
+
+ ' Build slice tree
+
+ root = NewSliceOfType(slContainer)
+ SliceLoadFromFile root, finddatafile("thingbrowser.slice")
 
  set_up_sub_buttons
  enter_browser
@@ -72,18 +85,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  dim cursor_moved as bool = YES
 
  dim selectst as SelectTypeState
- 
- dim do_add as bool = NO
- dim do_edit as bool = NO
- dim do_filter as bool = NO
- dim quit_if_add_cancelled as bool = NO
- 
- 'If start_id is > highest id then .browse should try to add a new item, and return -1 if cancelled
- if start_id > highest_id() then
-  do_add = YES
-  quit_if_add_cancelled = YES
- end if
- 
+
  do
   setwait 55
   setkeys YES
