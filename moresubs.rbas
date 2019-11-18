@@ -404,7 +404,8 @@ SUB evalherotags ()
  'scan party
  FOR i as integer = 0 TO UBOUND(gam.hero)
   DIM byref hero as HeroState = gam.hero(i)
-  IF hero.id >= 0 THEN
+  'Don't crash if the hero definition has been deleted since!
+  IF hero.id >= 0 ANDALSO hero.id <= UBOUND(herotags) THEN
    WITH herotags(hero.id)
     settag .have_tag, YES
     IF hero.stat.cur.hp > 0 THEN settag .alive_tag, YES
@@ -451,7 +452,7 @@ SUB evalitemtags
  FOR j as integer = 0 TO last_inv_slot()
   'get item ID
   id = inventory(j).id
-  IF id <= UBOUND(itemtags) ANDALSO inventory(j).used THEN 'there is an item in this slot
+  IF inventory(j).used ANDALSO id <= UBOUND(itemtags) THEN 'there is an item in this slot
    WITH itemtags(id)
     settag .have_tag, YES
     settag .in_inventory_tag, YES

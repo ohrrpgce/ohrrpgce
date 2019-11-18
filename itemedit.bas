@@ -71,6 +71,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
   saveitemdata itembuf(), item_id
  END IF
  IF item_id > UBOUND(itemtags) THEN
+  'REDIMs itemtags
   load_special_tag_caches
  END IF
 
