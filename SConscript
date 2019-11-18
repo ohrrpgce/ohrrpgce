@@ -758,7 +758,7 @@ if portable and (unix and not mac):
     if glibc:
         # For compatibility with older glibc when linking with glibc >= 2.28 (2018-08-01),
         # redirect certain functions like fcntl (used in libfb) to __wrap_fcntl, which
-        # are defined in lib/wrap_fcntl.c.
+        # are defined in lib/glibc_compat.c.
         # See https://rpg.hamsterrepublic.com/ohrrpgce/Portable_GNU-Linux_binaries
         syms = "fcntl", "fcntl64", "pow", "exp", "log"
         CXXFLAGS.append ("-Wl," + ",".join("--wrap=" + x for x in syms))
@@ -953,7 +953,7 @@ elif unix:  # Unix+X11 systems: Linux & BSD
         # To support old libstdc++.so versions
         base_modules += ['lib/stdc++compat.cpp']
         if glibc:
-            base_modules += ['lib/wrap_fcntl.c']
+            base_modules += ['lib/glibc_compat.c']
     if 'sdl' in gfx or 'fb' in gfx:
         common_modules += ['lib/SDL/SDL_x11clipboard.c', 'lib/SDL/SDL_x11events.c']
     if gfx != ['console']:
