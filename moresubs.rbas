@@ -40,6 +40,15 @@ DECLARE SUB hero_swap_menu_mouse_control (st as OrderTeamState)
 SUB addhero (byval who as integer, byval slot as integer, byval forcelevel as integer=-1)
 DIM her as HeroDef
 
+IF who > gen(genMaxHero) THEN
+ showerror "Can't add hero " & who & ", no such hero!"
+ IF party_size() > 0 THEN EXIT SUB
+ 'Adding an initial hero to the party
+ '(upgrade() normally ensures gen(genStartHero) is valid, but if live-previewing
+ 'things can became invalid, and upgrade() isn't called anyway)
+ who = 0
+END IF
+
 '--load hero's data
 loadherodata her, who
 

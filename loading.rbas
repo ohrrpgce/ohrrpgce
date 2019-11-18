@@ -1623,7 +1623,7 @@ Sub load_hero_from_old_dt0(filename as string, hero as HeroDef, byval record as 
 	'because dt0 does not contain all hero data!
 	ClearHeroData hero, record
 
-	if record < 0 or record > gen(genMaxHero) then debug "load_hero_from_old_dt0: fail on record:" & record : exit sub
+	if record < 0 or record > gen(genMaxHero) then debug "load_hero_from_old_dt0: out of bounds record " & record : exit sub
 
 	'Currently .dt0 always exists, but in future we might delete it
 	if openfile(filename, for_binary + access_read, f) then exit sub
