@@ -3713,9 +3713,7 @@ SUB script_functions(byval cmdid as integer)
     npc(i).x = retvals(1) * 20
     npc(i).y = retvals(2) * 20
     npc(i).dir = ABS(retvals(3)) MOD 4
-    npc(i).sl = create_walkabout_slices(npc_layer())
-    set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
-    set_walkabout_vis npc(i).sl, YES
+    npc(i).sl = create_npc_slices(i)  'Calls set_walkabout_sprite
     'debug "npc(" & i & ").sl=" & npc(i).sl & " [create npc(" & retvals(0) & ")]"
     update_npc_zones i
     scriptret = (i + 1) * -1

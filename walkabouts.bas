@@ -27,12 +27,13 @@
 
 DECLARE FUNCTION user_triggered_vehicle_use_action() as bool
 
+
 '==========================================================================================
 '                          Creating/modifying walkabout slices
 '==========================================================================================
 
 
-FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
+LOCAL FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
  DIM sl as Slice Ptr
  sl = NewSliceOfType(slContainer, parent)
  WITH *sl
@@ -51,6 +52,39 @@ FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
   .Protect = YES
  END WITH
  RETURN sl
+END FUNCTION
+
+FUNCTION create_hero_slices(byval rank as integer) as Slice Ptr
+ DIM sl as Slice ptr
+ sl = create_walkabout_slices(hero_layer())
+ DIM meta as HeroSliceContext ptr = NEW HeroSliceContext
+ meta->rank = rank
+ sl->Context = meta
+ 'Do not set the sprite, because that depends on the party slot, and that
+ 'hero may not exist! We always create 4 hero walkabout slices.
+ RETURN sl
+END FUNCTION
+
+FUNCTION create_npc_slices(byval npcidx as NPCIndex) as Slice Ptr
+ DIM sl as Slice ptr
+ sl = create_walkabout_slices(npc_layer())
+ DIM meta as NPCSliceContext ptr = NEW NPCSliceContext
+ meta->npcindex = npcidx
+ sl->Context = meta
+ WITH npcs(npc(npcidx).id - 1)
+  set_walkabout_sprite sl, .picture, .palette
+ END WITH
+ RETURN sl
+END FUNCTION
+
+FUNCTION HeroSliceContext.description() as string
+ DIM slot as integer = rank_to_party_slot(rank)
+ IF slot = -1 THEN RETURN "Hero rank " & rank & " (doesn't exist)"  'FIXME: why do we create unused hero slices???
+ RETURN "Hero rank " & rank & ": ID " & gam.hero(slot).id & " " & gam.hero(slot).name
+END FUNCTION
+
+FUNCTION NPCSliceContext.description() as string
+ RETURN "NPC ID " & (npc(npcindex).id - 1) & " ref " & -(1 + npcindex)
 END FUNCTION
 
 SUB create_walkabout_shadow (byval walkabout_cont as Slice Ptr)
@@ -342,13 +376,8 @@ SUB visnpc()
   IF npc(i).id > 0 THEN
    '--NPC exists and is visible
    IF npc(i).sl = 0 THEN
-    npc(i).sl = create_walkabout_slices(npc_layer())
-    DIM meta as NPCSliceContext ptr = NEW NPCSliceContext
-    meta->npcindex = i
-    npc(i).sl->Context = meta
+    npc(i).sl = create_npc_slices(i)  'Calls set_walkabout_sprite
     'debug "npc(" & i & ").sl=" & npc(i).sl & " [visnpc]"
-    '--set sprite
-    set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
    END IF
   ELSE
    '--hidden
@@ -361,16 +390,6 @@ SUB visnpc()
 
  NEXT i
 END SUB
-
-FUNCTION NPCSliceContext.description() as string
- RETURN "NPC ID " & npc(npcindex).id & " ref " & -(1 + npcindex)
-END FUNCTION
-
-FUNCTION HeroSliceContext.description() as string
- DIM slot as integer = rank_to_party_slot(rank)
- IF slot = -1 THEN RETURN "Hero rank " & rank & " (doesn't exist)"  'FIXME: why do we create unused hero slices???
- RETURN "Hero rank " & rank & ": ID " & gam.hero(slot).id & " " & gam.hero(slot).name
-END FUNCTION
 
 
 '==========================================================================================

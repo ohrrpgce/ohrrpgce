@@ -6,7 +6,8 @@
 DECLARE SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byval pal as integer=-2)
 DECLARE SUB set_walkabout_frame (byval cont as Slice Ptr, byval direction as DirNum, byval frame as integer)
 DECLARE SUB set_walkabout_vis (byval cont as Slice Ptr, byval vis as bool)
-DECLARE FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
+DECLARE FUNCTION create_hero_slices(byval rank as integer) as Slice Ptr
+DECLARE FUNCTION create_npc_slices(byval npcref as NPCIndex) as Slice Ptr
 DECLARE SUB create_walkabout_shadow (byval walkabout_cont as Slice Ptr)
 DECLARE SUB delete_walkabout_shadow (byval walkabout_cont as Slice Ptr)
 DECLARE SUB reset_npc_graphics ()

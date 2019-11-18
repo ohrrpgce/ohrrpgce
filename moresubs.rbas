@@ -1424,10 +1424,7 @@ SUB reset_game_state ()
  'If we are resetting, the old slices will have already been destroyed
  'by cleanup_game_slices() so we just re-assign herow().sl
  FOR i as integer = 0 TO UBOUND(herow)
-  herow(i).sl = create_walkabout_slices(hero_layer())
-  DIM meta as HeroSliceContext ptr = NEW HeroSliceContext
-  meta->rank = i
-  herow(i).sl->Context = meta
+  herow(i).sl = create_hero_slices(i)
  NEXT i
  
  DIM root as NodePtr = get_general_reld()
