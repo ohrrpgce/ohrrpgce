@@ -3516,7 +3516,7 @@ SUB mapedit_layers (st as MapEditState)
   IF fakelayerno >= map.gmap(31) THEN fakelayerno += 1
   'Warning: gen(31) (#layers below heroes/npcs) might be larger than the number of layers
 
-  IF keyval(ccCancel) > 1 THEN setkeys: EXIT DO
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_layers"
   IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND UBOUND(map.tiles) < maplayerMax THEN
    DIM layer_to_copy as integer
@@ -3588,7 +3588,7 @@ SUB mapedit_layers (st as MapEditState)
     state.need_update = YES
    END IF
 
-  ELSE
+  ELSEIF state.need_update = NO THEN
    'Normal controls
    IF usemenu(state, cast(BasicMenuItem vector, menu)) THEN
     state.need_update = YES
@@ -3596,7 +3596,7 @@ SUB mapedit_layers (st as MapEditState)
    END IF
   END IF
 
-  IF resetpt = NO THEN
+  IF state.need_update = NO THEN
    SELECT CASE menu[state.pt].role
     CASE ltPreviousMenu
      IF enter_space_click(state) THEN
@@ -3675,6 +3675,7 @@ SUB mapedit_layers (st as MapEditState)
   setvispage vpage
   dowait
  LOOP
+ setkeys
  mapedit_load_tilesets st  'Reload default passability
  IF layerisenabled(map.gmap(), st.layer) = 0 THEN st.layer = 0
  v_free menu
