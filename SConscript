@@ -756,11 +756,12 @@ if portable and (unix and not mac):
     # and https://gcc.gnu.org/onlinedocs/libstdc%2B%2B/manual/using_dual_abi.html
     CXXFLAGS.append ("-D_GLIBCXX_USE_CXX11_ABI=0")
     if glibc:
-        # For compatibility with glibc < 2.28 when linking with glibc >= 2.28 (2018-08-01)
-        # This redirects fcntl (used in libfb) to __wrap_fcntl, defined in lib/wrap_fcntl.c
-        # If libfb was compiled against >= 2.28 we need to wrap fcntl64, otherwise fcntl.
-        CXXFLAGS.append ("-Wl,--wrap=fcntl")
-        CXXFLAGS.append ("-Wl,--wrap=fcntl64")
+        # For compatibility with older glibc when linking with glibc >= 2.28 (2018-08-01),
+        # redirect certain functions like fcntl (used in libfb) to __wrap_fcntl, which
+        # are defined in lib/wrap_fcntl.c.
+        # See https://rpg.hamsterrepublic.com/ohrrpgce/Portable_GNU-Linux_binaries
+        syms = "fcntl", "fcntl64", "pow", "exp", "log"
+        CXXFLAGS.append ("-Wl," + ",".join("--wrap=" + x for x in syms))
 
 # As long as exceptions aren't used anywhere and don't have to be propagated between libraries,
 # we can link libgcc_s statically, which avoids one more thing that might be incompatible
