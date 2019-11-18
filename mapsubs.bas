@@ -3487,7 +3487,7 @@ SUB mapedit_layers (st as MapEditState)
  DIM state as MenuState
  DIM menuopts as MenuOptions
  menuopts.edged = YES
- menuopts.itemspacing = -1
+ 'menuopts.itemspacing = -1
  menuopts.showright = YES
  menuopts.fullscreen_scrollbar = YES
  menuopts.drawbg = YES
