@@ -3,14 +3,22 @@ WHAT IS NEW?
 Septotobvember ? 2019 [Fufluns]
 
   Highlights:
-    * ~~Fill this in later~~
+    * Games can be played with mouse or (mostly working) joystick
+    * Spritesets and backdrops can be any size
+    * Hero counter-attacks
+    * Hero MP meters
+    * Graphical browsers for sprites, attacks, enemies, maps, textboxes, etc.
+    * Enemy Usage and Foemap Statistics screens
+    * Menu item colors and real unselectable menu items
+    * Line slices
+    * PNG, JPEG importing
 
   *** New Features
 
    * Graphics and Slices
     * Spritesets and backdrops can be any size! E.g. walkabouts can be larger
       than 20x20 [Ralph]
-    * You can now import PNG and JPG images as well as BMP (they're
+    * You can now import PNG and JPEG images as well as BMP (they're
       decompressed on import, so beware of importing large images) [Ralph]
     * Screenshots saved as PNGs instead of BMPs (but when using gfx_directx
       the Screenshot setting in the Options menu has priority) [Ralph]
@@ -30,7 +38,8 @@ Septotobvember ? 2019 [Fufluns]
       walking around on maps, activating NPCs, using menus and special
       screens and in battles. [James]
     * Joystick controls should now work everywhere in-game again - been broken
-      for over a decade! [Ralph]
+      for over a decade! However not all gamepads are supported yet: only ones
+      with ABXY buttons numbered 0-3. [Ralph]
       * New general bitset "Map joystick controls to keyboard keys for scripts"
         (ON by default) allows existing scripts which check keyboard keys
         key:enter, key:esc, and key:left/right/up/down to work when the
@@ -75,6 +84,8 @@ Septotobvember ? 2019 [Fufluns]
         Some bits have been renamed and now all Backcompat Bits are
         off by default in new games; if one of them is on then you know you're
         missing out on some feature or bugfix [Ralph]
+    * Most editors updated to display better at resolutions > 320x200. Sprite
+      editor still the glaring omission. [James, Ralph]
     * Much nicer interactive stat preview graph in the Hero Stats menu [Ralph]
     * Can create an enemy/hero formation as a copy of an existing one [Ralph]
     * Copy/pasting of item definitions [Ralph] 
@@ -112,7 +123,9 @@ Septotobvember ? 2019 [Fufluns]
       on-hit elemental spawning conditions, not just the first [Ralph]
     * "Useable in battle from spell lists" attack bit (default on) [Ralph]
 
-   * Live-previewing (Test Game) Features
+   * Debug Keys and Live-previewing
+    * Ctrl-F2 and Ctrl-F3 debug keys to access save/load menus [Ralph]
+    * F8 debug key "Show/test any battle formation" [Ralph]
     * Shop stock levels in saved games and when Testing Game are now updated if
       you edit the things in a shop - reset if needed, or increased/decreased
       to reflect the change [Ralph]
@@ -120,11 +133,10 @@ Septotobvember ? 2019 [Fufluns]
     * While using Test Game, a "Record combined editor+player .gif" option
       appears in the editor's F9 Global Options menu [Ralph]
 
-   * Debug Keys
-    * Ctrl-F2 and Ctrl-F3 debug keys to access save/load menus [Ralph]
-    * F8 debug key "Show/test any battle formation" [Ralph]
-
   * Misc Features
+    * Added a crash reporter (CrashRpt) on Windows (not included when
+      distributing a game), which makes it trivial for you to send a report if
+      a crash or a bug is detected. Towards a bug-free future! [Ralph]
     * Maximum Shop ID has been raised from 99 to 32767 [James]
     * You can share save files between games by overriding the name of the
       .saves folder (useful if you create additional .rpg files which are
@@ -253,9 +265,9 @@ Septotobvember ? 2019 [Fufluns]
       other improvements too [Ralph]
     * NPCs could walk through pushable NPCs being pushed against a wall. (Fix
       only enabled if "Simulate Pushable NPC obstruction bug" is off) [Ralph]
-    * Bug 2037: "Attacker must know chained attack" didn't work correctly for
+    * Bug sf#2037: "Attacker must know chained attack" didn't work correctly for
       known attacks in spell lists (it searched for attack ID+1) [Ralph]
-    * Bug 2038: If the last enemy has the "Ignored for "Alone" AI" bit set,
+    * Bug sf#2038: If the last enemy has the "Ignored for "Alone" AI" bit set,
       it doesn't count as alone [Ralph]
     * In turn-based mode, delaying an attack didn't always delay long enough.
       E.g. setting the delay to 1 attack could have no effect. [Ralph]
@@ -296,6 +308,7 @@ Septotobvember ? 2019 [Fufluns]
   *** Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced
       with a new RELOAD-based rgfx file format [Ralph]
+    * Much more bug checking and display of previously silent errors
 
 Dec 3 2017 [Etheldreme]
 
