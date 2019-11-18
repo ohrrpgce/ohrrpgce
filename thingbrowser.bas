@@ -81,7 +81,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  'If start_id is > highest id then .browse should try to add a new item, and return -1 if cancelled
  if start_id > highest_id() then
   do_add = YES
-  quit_if_add_cancelled = NO
+  quit_if_add_cancelled = YES
  end if
  
  do
