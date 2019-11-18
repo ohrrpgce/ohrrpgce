@@ -43,8 +43,14 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
 
  'If start_id is > highest id then .browse should try to add a new item, and return -1 if cancelled
  if start_id > highest_id() then
-  do_add = YES
-  quit_if_add_cancelled = YES
+   do_add = YES
+   quit_if_add_cancelled = YES
+  else
+   'If we can't call an editor, then we can't add new records.
+   'This isn't a bug, as it might happen after deleting data records.
+   debuginfo thing_kind_name() & " thingbrowser entered with out-of-range start_id=" & start_id
+   start_id = highest_id()
+  end if
  end if
 
  ' Build slice tree
@@ -211,6 +217,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     'Open the Filter window
     do_filter = YES
    elseif can_edit andalso isAncestor(ps.cur, new_holder) then
+    '+New button
     do_add = YES
    end if
   end if
