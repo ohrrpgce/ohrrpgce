@@ -410,17 +410,21 @@ def strip_nonfunction_symbols(binary, target_prefix, builddir, env):
     syms = get_command_output(nm, [binary], False)
     symfilename = os.path.relpath(builddir + binary + '.unwanted_symbols')
     with open(symfilename, 'w') as symfile:
-        for sym in syms.split('\n'):
-            if len(sym) > 11:
-                symtype = sym[9]
-                # Remove the following symbols:
-                # U: undefined symbols
-                # b/B, d/D, r/R: local/global variables (uninitialised, initalised, readonly)
-                #    These are no use to the crash handler, only to gdb.
-                # i: DLL junk (Windows only), not needed in a linked binary
-                if symtype in 'UbBdDrRi':
-                    if sym[11:] not in keep_symbols:
-                        symfile.write('%s\n' % sym[11:])
+        for line in syms.split('\n'):
+            toks = line.strip().split(' ')
+            if len(toks) == 3:
+                address, symtype, symbol = toks
+            else:
+                symtype, symbol = toks
+            assert len(symtype) == 1
+            # Remove the following symbols:
+            # U: undefined symbols
+            # b/B, d/D, r/R: local/global variables (uninitialised, initalised, readonly)
+            #    These are no use to the crash handler, only to gdb.
+            # i: DLL junk (Windows only), not needed in a linked binary
+            if symtype in 'UbBdDrRi':
+                if symbol not in keep_symbols:
+                    symfile.write(symbol + '\n')
     objcopy = WhereIs(target_prefix + "objcopy")
     env.Execute(objcopy + ' --strip-symbols ' + symfilename + ' ' + binary)
 

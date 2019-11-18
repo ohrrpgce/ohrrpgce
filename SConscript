@@ -713,7 +713,8 @@ if linkgcc:
     else:
         # Untested on mac. And I would guess not needed, due to -dead_strip
         if GCC_strip and not mac:
-            # This strips ~330KB from each of Game and Custom, leaving ~280KB of symbols
+            # This strips ~330kB from each of game.exe and custom.exe, leaving ~280kB of symbols
+            # The size reduction is more like 60kB on Linux.
             def strip_unwanted_syms(source, target, env):
                 # source are the source objects for the executable and target is the exe
                 ohrbuild.strip_nonfunction_symbols(target[0].path, target_prefix, builddir, env)
