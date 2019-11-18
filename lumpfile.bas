@@ -1000,7 +1000,9 @@ function unlumpfile_internal (lumpfile as string, fmask as string, path as strin
 		original_lname = lname
 		lname = lcase(lname)
 
-		if lname <> exclusive(lname, "abcdefghijklmnopqrstuvwxyz0123456789_-~. ") then
+		'Because arbitrary files can get included e.g. when adding source code to
+		'source.lumped in an .hs, strange stuff might appear in the name. Don't reject it, preserve it.
+		if lump_filename_valid(lname) = NO then
 			errmsg = "unallowable lump name '" + lname + "'"
 			exit while
 		end if
@@ -1014,6 +1016,9 @@ function unlumpfile_internal (lumpfile as string, fmask as string, path as strin
 
 			if verbose then
 				print "lump '" + original_lname + !"'\t at " & seek(lf) & !"\t len " & size
+				if lname <> original_lname then
+					print "  (renamed to '" + lname + "')"
+				end if
 			end if
 
 			dim skiplump as bool = YES

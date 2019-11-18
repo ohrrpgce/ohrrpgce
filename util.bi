@@ -468,6 +468,7 @@ declare function anycase (filename as string) as string
 declare function escape_filename (filename as string) as string
 declare function escape_filenamec cdecl alias "escape_filenamec" (byval filename as zstring ptr) as zstring ptr
 declare function fixfilename (filename as string) as string
+declare function lump_filename_valid (filename as string) as bool
 declare function url_hostname (url as string) as string
 declare function decode_filename (filename as string) as string
 declare sub touchfile (filename as string)

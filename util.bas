@@ -2453,6 +2453,17 @@ FUNCTION fixfilename (filename as string) as string
   RETURN result
 END FUNCTION
 
+'This is called to check whether the name of lump file is valid. fixfilename is
+'too restrictive for that, because script source files lumped into source.lumped
+'are unrestricted.
+FUNCTION lump_filename_valid (filename as string) as bool
+  IF INSTR(filename, ANY "/\") THEN RETURN NO
+  FOR i as integer = 0 TO LEN(filename) - 1
+    IF filename[i] < 32 THEN RETURN NO
+  NEXT
+  RETURN YES
+END FUNCTION
+
 'The hostname part of a URL, eg HamsterRepublic.com
 FUNCTION url_hostname (url as string) as string
   DIM ret as string = url
