@@ -3910,9 +3910,9 @@ END SUB
 '  Can be called before/after/separately from refresh_map_slice().
 
 SUB recreate_map_slices()
- 'this destroys and re-creates the map slices. it should only happen when
- 'moving from one map to another, but not when a battle ends. (same as when
- 'the map autorun script is triggered)
+ 'Called when moving from one map to another but should not be called otherwise,
+ 'eg. when a battle ends. Updates all map slices, including Map slices
+ '(possibly recreated based on backcompat bit) and walkabouts.
 
  'First free all NPC slices because we need to make sure the npc(i).sl's
  'don't point to deleted memory, though they would all be deleted anyway,
@@ -3980,7 +3980,8 @@ END SUB
 SUB refresh_map_slice()
  'This updates the size, tilemaps, sort order, and visibility of the map slices
  'and the sorting of walkabout layers and slices,
- 'but does NOT update tilesets or recreate map slices - that's done by recreate_map_slices.
+ 'but does NOT update tilesets, recreate map slices, or update the number of map layers:
+ 'the latter is done by update_map_slices_for_new_tilemap.
 
  'debuginfo "refresh_map_slice() there are " & UBOUND(maptiles) + 1 & " map layers on map " & gam.map.id
 
@@ -3998,7 +3999,7 @@ SUB refresh_map_slice()
  SliceTable.MapOverlay->Size = mapsizetiles * 20
 
  FOR i as integer = 0 TO UBOUND(maptiles)
-  '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
+  '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets)
   IF SliceTable.MapLayer(i) = 0 THEN
    showbug "NULL SliceTable.MapLayer(" & i & ") when resetting tilesets in refresh_map_slice()"
   ELSE

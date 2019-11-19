@@ -455,7 +455,6 @@ End Type
 'Doesn't yet have the ability to load other non-current maps.
 'Can NOT be saved, loaded or cloned. (Hmm... cloning could be useful...)
 Type MapSliceData
- map as integer 'Currently read-only informational
  transparent as bool 'Whether or not color 0 in the tileset is transparent
  overlay as integer  '0, 1, or 2. For backcompat with layers affect by obsolete overhead bits.
  tileset as TilesetData ptr 'NOTE: ptr to the same memory pointed to by the ptrs in the tilesets() array in game.bas (Not owned!)

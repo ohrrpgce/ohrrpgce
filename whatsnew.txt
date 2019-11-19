@@ -304,6 +304,8 @@ Septotobvember ? 2019 [Fufluns]
       speed value that doesn't divide into 20, no longer causes misalignment.
       Should have fixed that decades ago! Note, only speeds 3 and 7 are
       reasonable, other previously-forbidden ones cause jerky movement. [Ralph]
+    * Bug gh#41: Corrupt tileset graphics and crash in Test Game after changing
+      tilesets or reordering layers [Ralph]
 
   *** Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

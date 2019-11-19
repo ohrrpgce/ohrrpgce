@@ -630,7 +630,12 @@ END FUNCTION
 
 #DEFINE debug_reloadmap(what)  debuginfo __FUNCTION__ " " #what ".dirty=" & lump_reloading.what.dirty & " " #what ".changed=" & lump_reloading.what.changed & " " #what ".mode=" & lump_reloading.what.mode
 
-'Called from reload_MAP_lump. See also reloadmap_tilemap_and_tilesets.
+'Reload gmap() but don't update map layer slices or tilesets. See also reloadmap_tilemap_and_tilesets.
+'Ignores changes to tilesets and to enabled layers because:
+'1) it must be done after we have the correct number of tilemap layers
+'   (when called from reload_MAP_lump)
+'2) When called from Live Preview debug menu, maybe only want to update gmap,
+'   not tilemaps/tilesets.
 SUB reloadmap_gmap_no_tilesets()
  debug_reloadmap(gmap)
  lump_reloading.gmap.dirty = NO
@@ -735,10 +740,12 @@ SUB reloadmap_tilemap_and_tilesets(merge as bool)
    IF gmap_index_affects_tiles(i) THEN gmap(i) = gmaptmp(i)
   NEXT
 
-  loadmaptilesets tilesets(), gmap()
-
-  'Also updates map slice tilesets
+  'Calls refresh_map_slice, updating number of layers, tilemaps,
+  'layer visibility (gmap(19)) and position of walkabout layer (gmap(31))
   update_map_slices_for_new_tilemap
+
+  loadmaptilesets tilesets(), gmap()
+  refresh_map_slice_tilesets
  END IF
 END SUB
 
@@ -1424,8 +1431,13 @@ END SUB
 SUB reload_MAP_lump()
  WITH lump_reloading
 
+  'Here we only mark stuff to be reloaded (or state to be deleted), actual
+  'reloading is in reloadmap_gmap_no_tilesets.
+
   'Only compare part of each MAP record... OK, this is getting really perfectionist
-  'Thank goodness this will be simpler when the map file format is replaced.
+  'Thank goodness this will be simpler when the map file format is replaced...
+  'We ignore changes to tilesets and to enabled layers as this gets called before all
+  'map lumps have been reloaded. Tilemaps must be loaded first, so we have right number of Map slices.
 
   REDIM compare_mask(dimbinsize(binMAP)) as bool
   FOR i as integer = 0 TO UBOUND(compare_mask)
@@ -1442,7 +1454,7 @@ SUB reload_MAP_lump()
   FOR mapno as integer = 0 TO UBOUND(changed_records)
    'delete saved state
    IF changed_records(mapno) <> 0 THEN
-    IF .gmap.mode <> loadmodeNever THEN
+    IF .gmap.mode <> loadmodeNever THEN  'Merge/always/if unchanged only
      safekill mapstatetemp(mapno, "map") + "_map.tmp"
     END IF
    END IF
@@ -1664,7 +1676,7 @@ SUB try_reload_lumps_anywhere ()
    'We correctly handle an update to binsize.bin, but there's no good reason for it
    'to happen while live previewing
    clear_binsize_cache
-   showbug "Recieved binsize.bin modification, should not happen!"
+   showbug "Received binsize.bin modification, should not happen!"
    handled = YES
 
   ELSEIF modified_lumps[i] = "palettes.bin" THEN                          'PALETTES.BIN
@@ -1927,7 +1939,7 @@ SUB live_preview_menu ()
     st1.need_update OR= intgrabber(lump_reloading.hsp.mode, 0, 1)
    CASE 100  '--force gmap reload
     IF enter_space_click(st1) THEN
-     'User asked to reload general map data, not tilemaps, so don't load tilesets
+     'User asked to reload general map data, not tilemaps, so don't update tilesets and map layers
      reloadmap_gmap_no_tilesets
     END IF
    CASE 101  '--force tile reload
