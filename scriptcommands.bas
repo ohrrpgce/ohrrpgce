@@ -737,7 +737,7 @@ SUB script_functions(byval cmdid as integer)
     'Change tileset for an individual layer (-1 changes it to default tilesets)
     gmap(layer_tileset_index(retvals(1))) = large(0, retvals(0) + 1)
    END IF
-   lump_reloading.gmap.dirty = YES
+   lump_reloading.maptiles.dirty = YES  'Tilesets are treated as part of tilemap data, not gmap
    'load while trying to preserve animation states
    loadmaptilesets tilesets(), gmap(), NO
    refresh_map_slice_tilesets
