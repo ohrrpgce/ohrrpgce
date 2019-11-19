@@ -1469,6 +1469,19 @@ SUB reload_MAP_lump()
     IF .gmap.mode <> loadmodeNever THEN reloadmap_gmap_no_tilesets
    END IF
   END IF
+
+  'Check whether layer settings (eg tilesets) have changed, so
+  'we will need to reload .T## even if it hasn't changed
+  REDIM gmaptmp(dimbinsize(binMAP)) as integer
+  loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) \ 2, gam.map.id
+  FOR i as integer = 0 TO UBOUND(gmap)
+   IF gmap(i) <> gmaptmp(i) ANDALSO gmap_index_affects_tiles(i) THEN
+    debuginfo "reload_MAP_lump: layers changed"
+    lump_reloading.maptiles.changed = YES
+    EXIT FOR
+   END IF
+  NEXT
+
  END WITH
 END SUB
 
@@ -1557,7 +1570,14 @@ FUNCTION try_reload_map_lump(basename as string, extn as string) as bool
 
   SELECT CASE typecode
    CASE "t"  '--all modes supported
-    IF .maptiles.hash = newhash THEN RETURN YES
+    IF .maptiles.changed = NO THEN
+     'reload_MAP_lump sets .maptiles.changed = YES if
+     'the tilesets have changed and we need to reload.
+     '(Warning: this assumes that the .t lump will always be rewritten by the map
+     'editor after modifying .map... which is currently the case. We'll replace
+     'the map file formats before that assumption is violated)
+     IF .maptiles.hash = newhash THEN debug ".t hash is identical" : RETURN YES  'fIXME
+    END IF
     .maptiles.changed = YES
     IF .maptiles.dirty THEN
      IF .maptiles.mode = loadmodeAlways THEN reloadmap_tilemap_and_tilesets NO
