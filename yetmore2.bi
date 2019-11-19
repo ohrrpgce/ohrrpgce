@@ -35,7 +35,6 @@ DECLARE SUB loadmapstate_passmap (mapnum as integer, prefix as string, dontfallb
 DECLARE SUB loadmapstate_zonemap (mapnum as integer, prefix as string, dontfallback as bool = NO)
 DECLARE SUB loadmapstate_bitmask (mapnum as integer, loadmask as integer, prefix as string, dontfallback as bool = NO)
 DECLARE SUB deletemapstate (mapnum as integer, killmask as integer, prefix as string)
-DECLARE FUNCTION gmap_index_affects_tiles(byval index as integer) as bool
 DECLARE SUB reloadmap_gmap_no_tilesets()
 DECLARE SUB reloadmap_npcd()
 DECLARE SUB reloadmap_npcl(merge as bool)

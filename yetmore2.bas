@@ -628,17 +628,6 @@ FUNCTION tilemap_is_same_size (lumptype as string, what as string) as bool
  RETURN YES
 END FUNCTION
 
-'gmap is a mess; some of it is data that belongs in a replacement lump .T (eg. tileset stuff).
-'So several functions segregate the data.
-FUNCTION gmap_index_affects_tiles(byval index as integer) as bool
- SELECT CASE index
-  CASE 0, 19, 22 TO 24, 26 TO 31
-   RETURN YES
-  CASE ELSE
-   RETURN NO
- END SELECT
-END FUNCTION
-
 #DEFINE debug_reloadmap(what)  debuginfo __FUNCTION__ " " #what ".dirty=" & lump_reloading.what.dirty & " " #what ".changed=" & lump_reloading.what.changed & " " #what ".mode=" & lump_reloading.what.mode
 
 'Called from reload_MAP_lump. See also reloadmap_tilemap_and_tilesets.

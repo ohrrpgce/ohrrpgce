@@ -131,6 +131,7 @@ DECLARE SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integ
 DECLARE SUB reloadtileanimations (tilesets() as TilesetData ptr, gmap() as integer)
 DECLARE SUB unloadtilesetdata (byref tileset as TilesetData ptr)
 DECLARE FUNCTION layer_tileset_index(byval layer as integer) as integer
+DECLARE FUNCTION gmap_index_affects_tiles(byval index as integer) as bool
 DECLARE SUB loadmaptilesets (tilesets() as TilesetData ptr, gmap() as integer, resetanimations as bool = YES)
 DECLARE SUB unloadmaptilesets (tilesets() as TilesetData ptr)
 DECLARE SUB set_map_edge_draw_mode(gmap() as integer, wrap_layers_over_edge_of_crop_maps as bool = NO)

@@ -6043,6 +6043,23 @@ FUNCTION layer_tileset_index(byval layer as integer) as integer
  ELSE
   showbug "layer_tileset_index: Bad map layer " & layer
  END IF
+ 'Update gmap_index_affects_tiles if this function changes
+END FUNCTION
+
+'Whether a change to an element of gmap() should cause tilemap slices to be updated.
+'gmap is a mess; some of it is data that belongs in a replacement lump .T (eg. tileset stuff).
+'So several functions segregate the data.
+FUNCTION gmap_index_affects_tiles(byval index as integer) as bool
+ SELECT CASE index
+  CASE 0, 22 TO 24, 26 TO 30, 370 TO 377  'Default tileset, tilesets for layers 0-15
+   RETURN YES
+  CASE 19  'Enabled layers bitset
+   RETURN YES
+  CASE 31  'Position of walkabouts layer
+   RETURN YES
+  CASE ELSE
+   RETURN NO
+ END SELECT
 END FUNCTION
 
 SUB loadmaptilesets (tilesets() as TilesetData ptr, gmap() as integer, resetanimations as bool = YES)
@@ -6053,7 +6070,7 @@ SUB loadmaptilesets (tilesets() as TilesetData ptr, gmap() as integer, resetanim
 
  FOR i as integer = 0 TO UBOUND(tilesets)
   tileset = gmap(layer_tileset_index(i))
-  IF tileset <> 0 THEN
+  IF tileset > 0 THEN
    tileset = tileset - 1
   ELSE
    tileset = gmap(0)
