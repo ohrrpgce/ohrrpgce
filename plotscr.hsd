@@ -165,7 +165,7 @@ define function, begin
 141,npcpixely,1,0           # (who) get npc pixel y
 142,camerapixelx,0          #? get camera pixel x
 143,camerapixely,0          #? get camera pixel y
-144,loadtileset,2,-1,-1     # load a new tileset for the current map
+144,loadtileset,2,-1,-1     # load a new tileset for a map layer [](tileset, layer), or change the default tileset [](tileset), or reset tilesets []().
 145,pickhero,2,-1,0         # lets you manually pick a hero (message string, skip if alone)
 146,renameherobyslot,1,0    # lets you manually rename a hero
 147,readgeneral,1,0         # directly read from the in-memory array of general game data
@@ -325,7 +325,7 @@ define function, begin
 302,menuisopen,1,0            #menu is open(menu handle) # return true as long as the handle is still valid
 303,menuitemslot,1,0          #menu item slot(menu item handle) returns a menu slot number
 304,outsidebattlecure,3,0,0,-1 #backcompat only, should prefer "map cure"
-305,changetileset,2,-1,-1     #similar to loadtileset. (tileset,layer)
+305,changetileset,2,-1,-1     #similar to loadtileset. load a new tileset for a map layer [](tileset, layer), or change the default tileset [](tileset), or reset tilesets []().
 306,layertileset,1,0          #layer tileset(layer) returns tileset number in use
 307,getformationsong,1,0      #returns the song associated with a given formation
 308,addenemytoformation,5,0,0,85,95,-1 #add enemy to formation(formation, enemy id, x, y, slot = -1) returns slot or -1

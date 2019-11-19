@@ -8971,7 +8971,7 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="loadtileset">
 			<canon>load tileset (tileset, layer)</canon>
 			<shortname>load tileset</shortname>
-			<description>Temporarily loads a different default or layer tileset for the currently displaying map.<lb/>Use <p>load tileset</p> (with no arguments) to restore the old tilesets after using load tileset (this has no effect after <ref>changetileset</ref>).<lb/>Use <p>load tileset (tileset)</p> to load a new default tileset. <p>tileset</p> is the ID number of the tileset to load. This affects tilesets for all layers that are set to 'Tileset: default'. This effectively changes the map's tileset if you haven't done anything fancy with layer tilesets.<lb/>Use <p>load tileset (tileset, layer)</p> to load in a new a tileset for a single layer. <p>layer</p> is the layer number (0-2) to target.<note>This command has a temporary effect: even if the map state is saved, the new tilesets will not persist if you leave the map and come back. <ref>changetileset</ref> is a more powerful command for this.</note></description>
+			<description>Temporarily loads a different default or layer tileset for the currently displaying map.<lb/>Use <p>load tileset</p> (with no arguments) to restore the old tilesets after using load tileset (this has no effect after <ref>changetileset</ref>).<lb/>Use <p>load tileset (tileset)</p> to load a new default tileset. <p>tileset</p> is the ID number of the tileset to load. This changes the tileset for all layers that are set to 'Tileset: default'.<lb/>Use <p>load tileset (tileset, layer)</p> to load in a new a tileset for a single layer. <p>layer</p> is the layer number to target.<note>This command has a temporary effect: even if the map state is saved, the new tilesets will not persist if you leave the map and come back. <ref>changetileset</ref> is a more powerful command for this.</note></description>
 			<seealso>
 				<ref>getmaptileset</ref>
 				<ref>layertileset</ref>
@@ -8980,7 +8980,11 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="changetileset">
 			<canon>change tileset (tileset, layer)</canon>
 			<shortname>change tileset</shortname>
-			<description>An alternative to <ref>loadtileset</ref>: Changes and loads in the default or a map layer tileset for the current map. Unlike load tileset, this command's effects last to the next time you come back to this map if you save the map state (in General Map Settings, or mapstate:mapsettings with <ref>savemapstate</ref>). To undo the effects, you'll need to use <ref>resetmapstate</ref>. <p>tileset</p> is the ID number of the tileset to load. You can use the constant <p>tileset:default</p> to set a layer to use the default tileset. <p>layer</p> is the layer number (0-2) to change, or the constant <p>tileset:default</p> which changes the default tileset. It defaults to <p>tileset:default</p> if omitted. <p>change tileset</p> with no arguments restores the set tilesets after using load tileset. </description>
+			<description>An alternative to <ref>loadtileset</ref>: Changes and loads in the default or a map layer tileset for the current map. Unlike <ref>loadtileset</ref>, this command's effects last to the next time you come back to this map if you save the map state (in General Map Settings, or mapstate:mapsettings with <ref>savemapstate</ref>). To undo the effects, you'll need to use <ref>resetmapstate</ref>. <p>tileset</p> is the ID number of the tileset to load. You can use the constant <p>tileset:default</p> to set a layer to use the map's default tileset. <p>layer</p> is the layer number to change, or the constant <p>tileset:default</p> which changes the map's default tileset. It defaults to <p>tileset:default</p> if omitted. <p>change tileset</p> with no arguments undoes any changes to tilesets made using <ref>loadtileset</ref> (<b>not</b> <tt>change tileset</tt>).
+				<note>
+					Any call to <tt>change tileset</tt> undoes all changes made by <ref>loadtileset</ref>.
+				</note>
+			</description>
 			<seealso>
 				<ref>getmaptileset</ref>
 				<ref>layertileset</ref>

@@ -702,39 +702,39 @@ SUB script_functions(byval cmdid as integer)
  CASE 100'--write pass block
   writeblock pass, bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), bound(retvals(2), 0, 255)
   lump_reloading.passmap.dirty = YES
- CASE 144'--load tileset
-  'version that doesn't modify gmap
+ CASE 144'--load tileset(tileset, map layer) or load tileset(tileset) or load tileset()
+  'Unlike "change tileset", doesn't modify gmap
   IF retvals(0) <= gen(genMaxTile) THEN
-   IF retvals(1) < 0 OR curcmd->argc <= 1 THEN
-    '0 or 1 args given
+   IF get_optional_arg(1, -1) < 0 THEN
     IF retvals(0) < 0 THEN
-     'reload all defaults, try to preserve animation states
+     'Reload all layers back to tilesets defined in gmap(), try to preserve animation states
      loadmaptilesets tilesets(), gmap(), NO
     ELSE
-     'change default
+     'Change default tileset. Scan for layers set to use default.
      FOR i = 0 TO mapLayerMax
       IF gmap(layer_tileset_index(i)) = 0 THEN loadtilesetdata tilesets(), i, retvals(0)
      NEXT
     END IF
    ELSEIF valid_map_layer(retvals(1), serrWarn) AND retvals(0) >= 0 THEN
-    'load tileset for an individual layer.
+    'Load different tileset for an individual layer.
     loadtilesetdata tilesets(), retvals(1), retvals(0)
    END IF
-   '--important to refresh map slices regardless of how the tileset was changed
+   'Important to refresh map slices regardless of how the tileset was changed
    refresh_map_slice_tilesets
   END IF
- CASE 305'--change tileset
-  'this version of load tileset modifies gmap() for persistent (given map state saving) effects
+ CASE 305'--change tileset(tileset, layer) or change tileset(tileset) or change tileset()
+  'Unlike "load tileset" this modifies gmap() for persistent (given map state saving) effects
   IF retvals(0) <= gen(genMaxTile) THEN
    IF retvals(1) < 0 THEN
     IF retvals(0) < 0 THEN
-     'reload all defaults
+     'Reset all tilesets changes made with "load tileset", by reloading from gmap()
+     'Does NOT reset changes made by "change tileset".
     ELSE
-     'change default
+     'Change default tileset
      gmap(0) = retvals(0)
     END IF
    ELSEIF valid_map_layer(retvals(1), serrWarn) THEN
-    'load tileset for an individual layer
+    'Change tileset for an individual layer (-1 changes it to default tilesets)
     gmap(layer_tileset_index(retvals(1))) = large(0, retvals(0) + 1)
    END IF
    lump_reloading.gmap.dirty = YES
