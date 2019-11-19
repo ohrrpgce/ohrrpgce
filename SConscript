@@ -762,7 +762,7 @@ if portable and (unix and not mac):
         # are defined in lib/glibc_compat.c.
         # See https://rpg.hamsterrepublic.com/ohrrpgce/Portable_GNU-Linux_binaries
         syms = "fcntl", "fcntl64", "pow", "exp", "log"
-        CXXFLAGS.append ("-Wl," + ",".join("--wrap=" + x for x in syms))
+        CXXLINKFLAGS.append ("-Wl," + ",".join("--wrap=" + x for x in syms))
 
 # As long as exceptions aren't used anywhere and don't have to be propagated between libraries,
 # we can link libgcc_s statically, which avoids one more thing that might be incompatible
