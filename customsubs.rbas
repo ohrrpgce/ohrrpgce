@@ -2644,7 +2644,7 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
  'Instead we test Game is still running with slave_channel <> NULL_CHANNEL
 
  'Need Game to connect before we can safely write to the pipe; wait up to 3000ms
- DIM waitms as integer = IIF(valgrind, 9000, 3000)
+ DIM waitms as integer = IIF(valgrind, 9000, IIF(gdb, 5000, 3000))
  IF channel_wait_for_client_connection(slave_channel, waitms) = 0 THEN
   notification "Error communicating with " & gameexename & !" (couldn't connect); aborting\n(Press a key)"
   channel_close slave_channel
