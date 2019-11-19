@@ -777,7 +777,14 @@ SUB gfx_sdl_recenter_window_hint()
   IF running_as_slave = NO THEN   'Don't display the window straight on top of Custom's
     putenv("SDL_VIDEO_CENTERED=1")
   ELSE
-    putenv("SDL_VIDEO_WINDOW_POS=5,5")
+    #IFDEF __FB_WIN32__
+      'On Windows (at least XP and 10), SDL measures window position from the
+      'top-left of the client area, so need to add allowance for window frame.
+      putenv("SDL_VIDEO_WINDOW_POS=10,36")
+    #ELSE
+      'At least in X11/KDE, window position is measured from the top-left of the window frame
+      putenv("SDL_VIDEO_WINDOW_POS=5,5")
+    #ENDIF
   END IF
 
 #IFDEF __FB_WIN32__
