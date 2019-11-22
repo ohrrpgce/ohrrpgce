@@ -47,6 +47,7 @@ function zip_and_upload {
   zip -q distrib/"${ZIPFILE}" game.exe custom.exe hspeak.exe
   zip -q -r distrib/"${ZIPFILE}" data
   zip -q -r distrib/"${ZIPFILE}" ohrhelp
+  zip -q distrib/"${ZIPFILE}" docs/plotdictionary.html docs/*.png docs/more-docs.txt
   zip -q distrib/"${ZIPFILE}" support/madplay.exe support/LICENSE-madplay.txt
   zip -q distrib/"${ZIPFILE}" support/oggenc.exe support/LICENSE-oggenc.txt
   zip -q distrib/"${ZIPFILE}" support/zip.exe

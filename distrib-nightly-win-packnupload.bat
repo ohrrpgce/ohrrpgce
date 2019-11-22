@@ -18,6 +18,7 @@ support\zip -q distrib\%ZIPFILE% game.exe custom.exe hspeak.exe
 support\zip -q -r distrib\%ZIPFILE% data
 support\zip -q distrib\%ZIPFILE% whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd scancode.hsi svninfo.txt
 support\zip -q -r distrib\%ZIPFILE% ohrhelp
+support\zip -q distrib\%ZIPFILE% docs\plotdictionary.html docs\*.png docs\more-docs.txt
 support\zip -q distrib\%ZIPFILE% support\madplay.exe support\LICENSE-madplay.txt
 support\zip -q distrib\%ZIPFILE% support\oggenc.exe support\LICENSE-oggenc.txt
 support\zip -q distrib\%ZIPFILE% support\zip.exe

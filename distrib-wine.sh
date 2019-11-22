@@ -23,6 +23,7 @@ function ohrrpgce_common_files {
  cp IMPORTANT-nightly.txt tmpdist
  cp LICENSE.txt tmpdist
  cp LICENSE-binary.txt tmpdist
+ cp whatsnew.txt tmpdist
  cp SDL.dll tmpdist
  cp SDL_mixer.dll tmpdist
  cp gfx_directx.dll tmpdist
