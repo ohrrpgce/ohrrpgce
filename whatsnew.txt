@@ -44,6 +44,7 @@ Septotobvember ? 2019 [Fufluns]
         (ON by default) allows existing scripts which check keyboard keys
         key:enter, key:esc, and key:left/right/up/down to work when the
         player uses a joystick.
+    * In General Map Settings you can disable access to the main menu [Ralph]
     * Added a general bitset to hide empty save slots at the bottom of the
       save/load menu. (Won't shows less than 4 slots unless you specifically
       set a max lower than 4) [James]

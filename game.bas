@@ -757,10 +757,12 @@ DO
  'DEBUG debug "increment script timers"
  dotimer(TIMER_NORMAL)
 
- 'DEBUG debug "keyboard handling"
+ 'DEBUG debug "Player controls"
+
+ 'Main menu controls
  'NOTE: while on a vehicle, menu and use keys are handled in update_vehicle_state()
- IF normal_controls_disabled() = NO AND vstate.active = NO THEN
-  'Menu key is enabled (provided you're stationary)
+ IF normal_controls_disabled() = NO ANDALSO gmap(379) <= 0 ANDALSO vstate.active = NO THEN  'gmap(379): menu available
+  'Menu key/click/joy button is enabled (provided you're stationary)
   update_hero_pathfinding_menu_queue()
   IF (user_triggered_main_menu() ORELSE gam.hero_pathing(0).queued_menu) ANDALSO herow(0).xygo = 0 THEN
    gam.hero_pathing(0).queued_menu = NO
@@ -775,8 +777,9 @@ DO
   'Edge case: don't allow a queued menu to be delayed indefinitely
   gam.hero_pathing(0).queued_menu = NO
  END IF
+
+ 'Hero movement and NPC activation
  IF normal_controls_disabled() = NO AND menus_allow_player() THEN
-  'Hero movement and NPC activation
   IF get_gen_bool("/mouse/move_hero") THEN
    IF readmouse.clicks AND mouseLeft THEN
     cancel_hero_pathfinding(0)
@@ -828,6 +831,7 @@ DO
   END IF
  END IF
 
+ 'Vehicle logic and special use/menu controls
  IF vstate.active THEN
   'DEBUG debug "evaluate vehicles"
   update_vehicle_state()
@@ -2986,6 +2990,7 @@ FUNCTION game_usemenu (state as MenuState, menu as MenuDef) as bool
  RETURN usemenu(state, menu, ccUp, ccDown)
 END FUNCTION
 
+'Note that this only affects opening a menu, not triggering the ESC script.
 FUNCTION allowed_to_open_main_menu () as bool
  DIM i as integer
  IF find_menu_id(0) >= 0 THEN RETURN NO 'Already open

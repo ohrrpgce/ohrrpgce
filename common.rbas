@@ -1214,7 +1214,7 @@ FUNCTION curbinsize (byval id as integer) as integer
  IF id = binSTF        THEN RETURN 84  '.stf
  IF id = binSONGDATA   THEN RETURN 32  'songdata.bin
  IF id = binSFXDATA    THEN RETURN 34  'sfxdata.bin
- IF id = binMAP        THEN RETURN 758 '.map
+ IF id = binMAP        THEN RETURN 760 '.map
  IF id = binMENUS      THEN RETURN 56  'menus.bin
  IF id = binMENUITEM   THEN RETURN 68  'menuitem.bin
  IF id = binUICOLORS   THEN RETURN 126 'uicolors.bin

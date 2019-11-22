@@ -1044,7 +1044,7 @@ SUB update_vehicle_state ()
  END IF
 
  'Handle Use and Menu keys according to vehicle-specific settings
- IF vstate.active = YES AND normal_controls_disabled() = NO THEN
+ IF vstate.active = YES ANDALSO normal_controls_disabled() = NO ANDALSO herow(0).xygo = 0 THEN
   REDIM button(1) as integer
   REDIM user_trigger(1) as integer
   button(0) = vstate.dat.use_button
@@ -1052,13 +1052,15 @@ SUB update_vehicle_state ()
   user_trigger(0) = user_triggered_vehicle_use_action()
   user_trigger(1) = user_triggered_main_menu()
   FOR i as integer = 0 TO 1
-   IF user_trigger(i) ANDALSO herow(0).xgo = 0 ANDALSO herow(0).ygo = 0 THEN
+   IF user_trigger(i) THEN
     SELECT CASE button(i)
      CASE -2
       '-disabled
      CASE -1
-      add_menu 0
-      menusound gen(genAcceptSFX)
+      IF gmap(379) <= 0 THEN 'Main menu available
+       add_menu 0
+       menusound gen(genAcceptSFX)
+      END IF
      CASE 0
       '--dismount
       vehicle_graceful_dismount

@@ -3185,41 +3185,42 @@ END FUNCTION
 SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem vector, gmap() as integer, gdidx() as integer, midx() as integer, script_defaults() as integer)
 
  v_new menu
- REDIM gdidx(27)
+ REDIM gdidx(28)
  gdidx(0)  = -1: append_simplemenu_item menu, "Previous Menu"
  gdidx(1)  = 1:  append_simplemenu_item menu, "Ambient Music: "
- gdidx(2)  = 2:  append_simplemenu_item menu, "Minimap Available: "
- gdidx(3)  = 3:  append_simplemenu_item menu, "Save Anywhere: "
- gdidx(4)  = 18: append_simplemenu_item menu, "Tile Data: "
- gdidx(5)  = 17: append_simplemenu_item menu, "NPC Data: "
+ gdidx(2)  = 379:append_simplemenu_item menu, "Main Menu Available: "
+ gdidx(3)  = 2:  append_simplemenu_item menu, "Minimap Available: "
+ gdidx(4)  = 3:  append_simplemenu_item menu, "Save Anywhere: "
+ gdidx(5)  = 18: append_simplemenu_item menu, "Tile Data: "
+ gdidx(6)  = 17: append_simplemenu_item menu, "NPC Data: "
 
- gdidx(6) = -1:  append_simplemenu_item menu, "", YES
- gdidx(7) = -1:  append_simplemenu_item menu, " NPC Defaults", YES, uilook(eduiHeading)
+ gdidx(7) = -1:  append_simplemenu_item menu, "", YES
+ gdidx(8) = -1:  append_simplemenu_item menu, " NPC Defaults", YES, uilook(eduiHeading)
 
- gdidx(8)  = 32: append_simplemenu_item menu, "Default NPC Move Zone: "
- gdidx(9)  = 33: append_simplemenu_item menu, "Default NPC Avoid Zone: "
- gdidx(10) = 378:append_simplemenu_item menu, "Default Pathfinding Rule: "
+ gdidx(9)  = 32: append_simplemenu_item menu, "Default NPC Move Zone: "
+ gdidx(10) = 33: append_simplemenu_item menu, "Default NPC Avoid Zone: "
+ gdidx(11) = 378:append_simplemenu_item menu, "Default Pathfinding Rule: "
 
- gdidx(11) = -1: append_simplemenu_item menu, "", YES
- gdidx(12) = -1: append_simplemenu_item menu, " Display", YES, uilook(eduiHeading)
+ gdidx(12) = -1: append_simplemenu_item menu, "", YES
+ gdidx(13) = -1: append_simplemenu_item menu, " Display", YES, uilook(eduiHeading)
 
- gdidx(13) = 11: append_simplemenu_item menu, "Foot Offset: "
- gdidx(14) = 16: append_simplemenu_item menu, "Walkabout Layering: "
- gdidx(15) = 4:  append_simplemenu_item menu, "Display Map Name: "
- gdidx(16) = 10: append_simplemenu_item menu, "Harm-Tile Flash: "   'flash colour drawn here
- gdidx(17) = 9:  append_simplemenu_item menu, "Harm-Tile Damage: "
- gdidx(18) = 5:  append_simplemenu_item menu, "Map Edge Mode: "
- gdidx(19) = 6:  append_simplemenu_item menu, "Default Edge Tile: " 'edge tile drawn here
+ gdidx(14) = 11: append_simplemenu_item menu, "Foot Offset: "
+ gdidx(15) = 16: append_simplemenu_item menu, "Walkabout Layering: "
+ gdidx(16) = 4:  append_simplemenu_item menu, "Display Map Name: "
+ gdidx(17) = 10: append_simplemenu_item menu, "Harm-Tile Flash: "   'flash colour drawn here
+ gdidx(18) = 9:  append_simplemenu_item menu, "Harm-Tile Damage: "
+ gdidx(19) = 5:  append_simplemenu_item menu, "Map Edge Mode: "
+ gdidx(20) = 6:  append_simplemenu_item menu, "Default Edge Tile: " 'edge tile drawn here
  'Extra gap is needed here for the edge tile preview anyway
- gdidx(20) = -1: append_simplemenu_item menu, "", YES
+ gdidx(21) = -1: append_simplemenu_item menu, "", YES
 
- gdidx(21) = -1: append_simplemenu_item menu, " Scripts", YES, uilook(eduiHeading)
- gdidx(22) = 7:  append_simplemenu_item menu, "Autorun Script: "
- gdidx(23) = 8:  append_simplemenu_item menu, "Autorun Script Argument: "
- gdidx(24) = 12: append_simplemenu_item menu, "After-Battle Script: "
- gdidx(25) = 13: append_simplemenu_item menu, "Instead-of-Battle Script: "
- gdidx(26) = 14: append_simplemenu_item menu, "Each-Step Script: "
- gdidx(27) = 15: append_simplemenu_item menu, "On-Keypress Script: "
+ gdidx(22) = -1: append_simplemenu_item menu, " Scripts", YES, uilook(eduiHeading)
+ gdidx(23) = 7:  append_simplemenu_item menu, "Autorun Script: "
+ gdidx(24) = 8:  append_simplemenu_item menu, "Autorun Script Argument: "
+ gdidx(25) = 12: append_simplemenu_item menu, "After-Battle Script: "
+ gdidx(26) = 13: append_simplemenu_item menu, "Instead-of-Battle Script: "
+ gdidx(27) = 14: append_simplemenu_item menu, "Each-Step Script: "
+ gdidx(28) = 15: append_simplemenu_item menu, "On-Keypress Script: "
 
  IF UBOUND(gdidx) + 1 <> v_len(menu) THEN fatalbug "Wrong gdidx length!"
  invert_permutation gdidx(), midx()
@@ -3232,7 +3233,8 @@ SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem 
  ELSE
   menu[midx(1)].text &= (gmap(1) - 1) & " " & getsongname(gmap(1) - 1)
  END IF
- ' Minimap available and save anywhere
+ ' Menu menu available, minimap available, save anywhere
+ menu[midx(379)].text &= yesorno(gmap(379) XOR 1)
  menu[midx(2)].text &= yesorno(gmap(2))
  menu[midx(3)].text &= yesorno(gmap(3))
  ' Show map name
@@ -3363,6 +3365,7 @@ SUB mapedit_gmapdata(st as MapEditState)
  gdmax(32) = zoneLASTUSER:        gdmin(32) = 0
  gdmax(33) = zoneLASTUSER:        gdmin(33) = 0
  gdmax(378) = 2:                  gdmin(378) = 0
+ gdmax(379) = 1:                  gdmin(379) = 0
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
@@ -3406,6 +3409,8 @@ SUB mapedit_gmapdata(st as MapEditState)
      state.need_update = YES
      IF map.gmap(idx) > 0 THEN playsongnum map.gmap(idx) - 1
     END IF
+   CASE 2, 3, 379 'single-bit fields
+    state.need_update OR= bitgrabber(map.gmap(idx), 1, state)
    CASE 7, 12 TO 15 'scripts
     IF enter_space_click(state) THEN
      scriptbrowse(map.gmap(idx), plottrigger, "plotscript", YES, script_defaults(idx))
