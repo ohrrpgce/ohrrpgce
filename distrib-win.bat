@@ -32,12 +32,19 @@ IF NOT EXIST vikings.rpg (
 
 REM ------------------------------------------
 ECHO Erasing old distrib files ...
+support\rm -f distrib\ohrrpgce-player-win.zip
 support\rm -f distrib\ohrrpgce-minimal.zip
 support\rm -f distrib\ohrrpgce.zip
 support\rm -f distrib\ohrrpgce-win-installer.exe
 
 REM ------------------------------------------
-ECHO Packaging minimalist ohrrpgce-minimal.zip ...
+ECHO Packaging game player ohrrpgce-player-win.zip ...
+support\zip -9 -q distrib\ohrrpgce-player-win.zip game.exe SDL.dll SDL_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt
+
+REM ------------------------------------------
+ECHO Packaging minimal-but-complete ohrrpgce-minimal.zip ...
+REM Note: linux and mac "minimal" .tar.gz files contain only the player, while
+REM windows "minimal" .zip files contain nearly everything except vikings and import.
 support\cp game.exe tmpdist
 support\cp custom.exe tmpdist
 support\cp hspeak.exe tmpdist
@@ -184,6 +191,7 @@ rmdir /s /q tmpdist
 REM ------------------------------------------
 ECHO Rename results...
 ECHO %OHRVERDATE%-%OHRVERCODE%
+move distrib\ohrrpgce-player-win.zip distrib\ohrrpgce-player-win-%OHRVERDATE%-%OHRVERCODE%.zip
 move distrib\ohrrpgce-minimal.zip distrib\ohrrpgce-minimal-%OHRVERDATE%-%OHRVERCODE%.zip
 move distrib\ohrrpgce.zip distrib\ohrrpgce-%OHRVERDATE%-%OHRVERCODE%.zip
 move distrib\ohrrpgce-win-installer.exe distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe

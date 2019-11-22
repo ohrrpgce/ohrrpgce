@@ -95,17 +95,23 @@ rm -f vikings.rpg
 wine ./relump.exe vikings/vikings.rpgdir vikings.rpg
 mustexist "vikings.rpg"
 
+rm -f distrib/ohrrpgce-player-win.zip
 rm -f distrib/ohrrpgce-minimal.zip
 rm -f distrib/ohrrpgce.zip
 rm -f distrib/ohrrpgce-win-installer.exe
+
+echo "Packaging game player ohrrpgce-player-win.zip ..."
+zip -9 -q distrib/ohrrpgce-player-win.zip game.exe SDL.dll SDL_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt
 
 echo "Make temporary folder..."
 rm -Rf tmpdist
 mkdir tmpdist
 
-echo "Packaging minimalist ohrrpgce-minimal.zip ..."
+echo "Packaging minimal-but-complete ohrrpgce-minimal.zip ..."
 # Note: this does not match contents of ohrrpgce-minimal.zip created
 # by distrib.bat, which e.g. excludes all support/ utils except wget.
+# Note: linux and mac "minimal" .tar.gz files contain only the player, while
+# windows "minimal" .zip files contain nearly everything except vikings and import.
 ohrrpgce_common_files
 
 cd tmpdist
@@ -185,6 +191,7 @@ echo "Rename results..."
 SUFFIX="${OHRVERDATE}-${OHRVERCODE}"
 echo "${SUFFIX}"
 cd distrib
+mv ohrrpgce-player-win.zip    ohrrpgce-player-win-"${SUFFIX}".zip
 mv ohrrpgce-minimal.zip       ohrrpgce-minimal-"${SUFFIX}".zip
 mv ohrrpgce.zip               ohrrpgce-"${SUFFIX}".zip
 mv ohrrpgce-win-installer.exe ohrrpgce-win-installer-"${SUFFIX}".exe

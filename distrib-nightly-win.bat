@@ -43,6 +43,11 @@ IF EXIST distrib\ohrrpgce-win-installer-wip.exe (
     pscp -q distrib\ohrrpgce-win-installer-wip.exe %SCPHOST%:%SCPDEST%
 )
 
+ECHO Packaging game player ohrrpgce-player-win-wip.zip ...
+support\rm -f distrib\ohrrpgce-player-win-wip.zip
+support\zip -9 -q distrib\ohrrpgce-player-win-wip.zip game.exe SDL.dll SDL_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt svninfo.txt
+pscp -q distrib\ohrrpgce-player-win-wip.zip %SCPHOST%:%SCPDEST%
+
 support\rm -f game.exe custom.exe
 call scons music=native %SCONS_ARGS%
 call distrib-nightly-win-packnupload music_native gfx_directx.dll SDL.dll audiere.dll
