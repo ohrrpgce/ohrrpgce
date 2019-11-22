@@ -94,7 +94,7 @@ package_for_arch() {
   echo "Prepare minimal $ARCH player zip"
   cp ohrrpgce-game tmp/
   strip tmp/ohrrpgce-game
-  zip -j distrib/ohrrpgce-player-linux-bin-minimal-$TODAY-$CODE-$ARCH.zip tmp/ohrrpgce-game LICENSE-binary.txt README-linux-bin-minimal.txt
+  zip -j distrib/ohrrpgce-player-linux-bin-minimal-$TODAY-$CODE-$ARCH.zip tmp/ohrrpgce-game LICENSE-binary.txt README-player-only.txt
   rm tmp/ohrrpgce-game
 }
 

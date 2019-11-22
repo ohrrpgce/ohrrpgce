@@ -70,7 +70,7 @@ echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
 
 echo "Create minimal player tarball"
-gnutar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$CODE.tar.gz OHRRPGCE-Game.app README-mac-minimal.txt LICENSE-binary.txt
+gnutar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$CODE.tar.gz OHRRPGCE-Game.app README-player-only.txt LICENSE-binary.txt
 
 echo "Creating utilities archive"
 zip distrib/ohrrpgce-mac-util.zip unlump relump hspeak plotscr.hsd scancode.hsi LICENSE-binary.txt
