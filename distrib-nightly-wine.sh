@@ -160,6 +160,7 @@ zip_and_upload music_sdl-debug gfx_directx.dll SDL.dll SDL_mixer.dll misc/gdbcmd
 
 # Note that this is duplicated in distrib-nightly-linux.sh
 echo "uploading plotscripting docs"
+scp docs/*.png "${SCPHOST}":"${SCPDOCS}"
 scp docs/plotdict.xml "${SCPHOST}":"${SCPDOCS}"
 scp docs/htmlplot.xsl "${SCPHOST}":"${SCPDOCS}"
 docs/update-html.sh

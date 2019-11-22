@@ -58,6 +58,7 @@ support\cp -r data tmpdist\data
 support\cp -r ohrhelp tmpdist\ohrhelp
 mkdir tmpdist\docs
 support\cp docs\*.URL tmpdist\docs
+support\cp docs\*.png tmpdist\docs
 support\cp docs\plotdictionary.html tmpdist\docs
 support\cp docs\more-docs.txt tmpdist\docs
 
@@ -97,6 +98,7 @@ mkdir tmpdist\docs
 support\cp docs\FAQ.URL tmpdist\docs
 support\cp docs\HOWTO.URL tmpdist\docs
 support\cp docs\*.html tmpdist\docs
+support\cp docs\*.png tmpdist\docs
 support\cp docs\plotdict.xml tmpdist\docs
 support\cp docs\htmlplot.xsl tmpdist\docs
 support\cp docs\more-docs.txt tmpdist\docs

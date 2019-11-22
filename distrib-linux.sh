@@ -73,6 +73,7 @@ package_for_arch() {
   echo "  Including docs"
   mkdir -p tmp/docs &&
   cp -p docs/*.html tmp/docs &&
+  cp -p docs/*.png tmp/docs &&
   cp -p docs/plotdict.xml tmp/docs &&
   cp -p docs/htmlplot.xsl tmp/docs &&
   cp -p docs/more-docs.txt tmp/docs || return 1

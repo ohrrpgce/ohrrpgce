@@ -69,6 +69,7 @@ call distrib-nightly-win-packnupload music_sdl-debug gfx_directx.dll SDL.dll SDL
 
 REM Note that this is duplicated in distrib-nightly-linux.sh
 Echo upload plotdict.xml
+pscp -q docs\*.png %SCPHOST%:%SCPDOCS%
 pscp -q docs\plotdict.xml %SCPHOST%:%SCPDOCS%
 pscp -q docs\htmlplot.xsl %SCPHOST%:%SCPDOCS%
 

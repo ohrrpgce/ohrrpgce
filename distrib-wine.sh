@@ -45,6 +45,7 @@ function ohrrpgce_common_files {
  cp -r ohrhelp tmpdist/ohrhelp
  mkdir tmpdist/docs
  cp docs/*.URL tmpdist/docs
+ cp docs/*.png tmpdist/docs
  cp docs/plotdictionary.html tmpdist/docs
  cp docs/more-docs.txt tmpdist/docs
  unix2dos -q tmpdist/*.txt tmpdist/*.hsd tmpdist/*.hsi tmpdist/support/*.txt tmpdist/docs/*.txt
@@ -123,6 +124,7 @@ rm -Rf tmpdist
 mkdir tmpdist
 ohrrpgce_common_files
 # extra docs
+cp docs/*.png tmpdist/docs
 cp docs/plotdict.xml tmpdist/docs
 cp docs/htmlplot.xsl tmpdist/docs
 # Vikings

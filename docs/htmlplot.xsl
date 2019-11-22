@@ -120,6 +120,7 @@
 					div.notice {
 					  border:thin black solid;
 					  padding:5px;
+					  padding-left:42px;
 					  color:black;
 					  margin:3px;
 					  min-height: 32px;
@@ -133,15 +134,23 @@
 					  color: #888800;
 					}
 
-					.icon {
-						float:left;
-						padding-right: 5px;
+					div.note {
+						background-color: #BCC;
 					}
 
-					div.indent {
-						padding-left: 20px;
-						/*display: inline-block;*/
+					div.warn {
+						background-color: #CCB;
 					}
+
+					div.danger {
+						background-color: #DCC;
+					}
+
+					.icon {
+						position: absolute;
+						left: 16px;
+					}
+
 					.sectionlist ul {
 						margin:0;
 						/* Hide bullets for sectionlinks at top */
@@ -348,23 +357,23 @@
 	<xsl:template match="b"><b><xsl:apply-templates /></b></xsl:template>
 
 	<xsl:template match="note">
-		<div style="background-color:#BCC;" class="notice">
-			<img src="http://rpg.hamsterrepublic.com/wiki-images/0/01/Plotnote.png" alt="[Notice]" class="icon"/>
-			<xsl:apply-templates /><!-- <br clear="all" /> -->
+		<div class="notice note">
+			<img src="Plotnote.png" alt="[Notice]" class="icon"/>
+			<xsl:apply-templates />
 		</div>
 	</xsl:template>
 
 	<xsl:template match="warn">
-		<div style="background-color:#CCB;" class="notice">
-			<img src="http://rpg.hamsterrepublic.com/wiki-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon"/>
-			<xsl:apply-templates /><!-- <br clear="all" /> -->
+		<div class="notice warn">
+			<img src="Plotwarn.png" alt="[Warning]" class="icon"/>
+			<xsl:apply-templates />
 		</div>
 	</xsl:template>
 
 	<xsl:template match="danger">
-		<div style="background-color:#DCC;" class="notice">
-			<img src="http://rpg.hamsterrepublic.com/wiki-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon"/>
-			<xsl:apply-templates /><!-- <br clear="all" /> -->
+		<div class="notice danger" title="Danger">
+			<img src="Plotdanger.png" alt="[Danger]" class="icon"/>
+			<xsl:apply-templates />
 		</div>
 	</xsl:template>
 
