@@ -492,9 +492,9 @@ SUB calc_menustate_size(state as MenuState, menuopts as MenuOptions, x as RelPos
   ' Height
   DIM num_menu_items as integer
   IF menuopts.calc_size THEN
-   num_menu_items = .last - .first + 1
+   num_menu_items = small(.size, .last - .first) + 1
   ELSE
-   num_menu_items = .size + 1
+   num_menu_items = .size + 1  'Might be larger than actual number of items
   END IF
   .rect.high = small(vpages(page)->h, num_menu_items * .spacing)
 
@@ -1844,6 +1844,7 @@ END SUB
 SUB ModularMenu.draw()
  draw_underlays()
 
+ DIM titlesize as XYPair
  DIM where as XYPair = (4, 4)
 
  IF floating THEN
@@ -1854,16 +1855,20 @@ SUB ModularMenu.draw()
   DIM basicmenu as BasicMenuItem vector
   standard_to_basic_menu menu(), state, basicmenu
   where = XY(pCentered, pCentered)
+  IF LEN(title) THEN
+   titlesize = textsize(title, rWidth - 20, fontEdged)
+   where.y += 8 + titlesize.h \ 2
+   state.autosize_ignore_pixels = 12 + titlesize.h
+  END IF
   calc_menustate_size state, menuopts, where.x, where.y, vpage, basicmenu
   v_free basicmenu
-  edgeboxstyle pCentered, pCentered, state.rect.wide + 10, state.rect.high + 10, 1, vpage
+  edgeboxstyle where.x, where.y, state.rect.wide + 10, state.rect.high + 10, 1, vpage
  END IF
 
  IF LEN(title) THEN
   IF floating THEN
-   DIM titlesize as XYPair = textsize(title, rWidth - 20, fontEdged)
-   DIM titley as integer = rCenter - state.rect.high \ 2 - titlesize.h - 14
-   centerbox rCenter, titley + titlesize.h \ 2, titlesize.w + 12, titlesize.h + 6, 1, vpage
+   DIM titley as integer = where.y - state.rect.high \ 2 - titlesize.h - 8
+   centerbox rCenter, titley + (titlesize.h + 6) \ 2, titlesize.w + 12, titlesize.h + 6, 1, vpage
    wrapprint title, pCentered, titley, uilook(uiText), vpage, rWidth - 20
    'where.y += titlesize.h + 2
   ELSE
