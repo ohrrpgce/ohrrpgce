@@ -69,7 +69,7 @@ DECLARE FUNCTION layer_shadow_palette() as Palette16 ptr
 DECLARE SUB mapedit_free_layer_palettes(st as MapEditState)
 DECLARE SUB mapedit_update_layer_palettes(st as MapEditState)
 
-DECLARE SUB mapedit_draw_npcs(st as MapEditState)
+DECLARE SUB mapedit_draw_npcs(st as MapEditState, drawing_whole_map as bool = NO, including_conditional as bool, page as integer)
 DECLARE FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, framenum as integer, screenpos as XYPair) as bool
 
 DECLARE SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
@@ -158,7 +158,7 @@ DECLARE FUNCTION mapedit_pick_layer(st as MapEditState, message as string, other
 DECLARE SUB mapedit_layers (st as MapEditState)
 DECLARE SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector, state as MenuState, byval resetpt as bool, byval selectedlayer as integer = 0, byref layerpreview as Frame ptr)
 
-DECLARE SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as integer, img as GraphicPair, framenum as integer, mappos as XYPair)
+DECLARE SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as integer, img as GraphicPair, framenum as integer, mappos as XYPair, drawing_whole_map as bool)
 
 DECLARE SUB mapedit_copy_layer(st as MapEditState, byval src as integer, byval dest as integer)
 DECLARE SUB mapedit_append_new_layers(st as MapEditState, howmany as integer)
@@ -1833,7 +1833,7 @@ DO
 
   'Possibly draw NPCs
   IF draw_npcs_between_layers ANDALSO i = bound(st.map.gmap(31) - 1, 0, UBOUND(st.map.tiles)) THEN
-   mapedit_draw_npcs st
+   mapedit_draw_npcs st, , YES, dpage
   END IF
  NEXT
 
@@ -1845,7 +1845,7 @@ DO
 
  '--Possibly draw npcs (in NPC mode we draw them a bit later)
  IF draw_npcs_overlaid ANDALSO st.editmode <> npc_mode THEN
-  mapedit_draw_npcs st
+  mapedit_draw_npcs st, , YES, dpage
  END IF
 
  '--hero start location display--
@@ -2040,7 +2040,7 @@ DO
 
   '--Draw npcs, if not done already
   IF draw_npcs_overlaid THEN
-   mapedit_draw_npcs st
+   mapedit_draw_npcs st, , YES, dpage
   END IF
 
   '--Then draw the ID/copy numbers
@@ -2631,13 +2631,19 @@ SUB load_npc_graphics(npc_def() as NPCType, npc_img() as GraphicPair)
 END SUB
 
 'Create a sprite slice and parent it to 'parent'
-'Skips creating the NPC slice if it's off-screen
-SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as integer, img as GraphicPair, framenum as integer, mappos as XYPair)
- DIM screenpos as XYPair = map_to_screen(st, mappos)  'Position in pixels of the tile the NPC is standing on
- DIM spritepos as XYPair = screenpos
+'drawing_whole_map is true when exporting a map image, false if drawing to the screen.
+'Skips creating the NPC slice if it's off-screen:
+'until the editor is more completely converted to slices, we are recreating the slice every tick
+SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as integer, img as GraphicPair, framenum as integer, mappos as XYPair, drawing_whole_map as bool)
+ DIM spritepos as XYPair
+ IF drawing_whole_map THEN
+  spritepos = mappos
+ ELSE
+  spritepos = map_to_screen(st, mappos)  'Position in pixels of the tile the NPC is standing on
+ END IF
  spritepos.x += tilew \ 2 - img.sprite->w \ 2
  spritepos.y += tileh - img.sprite->h + st.map.gmap(11)
- IF rect_collide_rect(st.viewport, XY_WH(spritepos, img.sprite->size)) THEN  'Just a speed-up
+ IF drawing_whole_map ORELSE rect_collide_rect(st.viewport, XY_WH(spritepos, img.sprite->size)) THEN  'Just a speed-up
   DIM sl as Slice ptr = NewSliceOfType(slSprite)
   WITH st.map.npc_def(npcid)
    ChangeSpriteSlice sl, sprTypeWalkabout, .picture, .palette, framenum
@@ -2662,23 +2668,28 @@ FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, framenu
 END FUNCTION
 
 'Draw all NPCs.
-SUB mapedit_draw_npcs(st as MapEditState)
+'drawing_whole_map: true when exporting a map image, false if drawing to the screen.
+'including_conditional: whether to draw tag-conditional NPCS
+SUB mapedit_draw_npcs(st as MapEditState, drawing_whole_map as bool = NO, including_conditional as bool, page as integer)
  st.walk = (st.walk + 1) MOD 4
  DIM npclayer as Slice ptr
  npclayer = NewSliceOfType(slContainer)
  FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
-   IF .id > 0 THEN
-    DIM framenum as integer = (2 * .dir) + st.walk \ 2
-    mapedit_create_npc_slice st, npclayer, .id - 1, st.npc_img(.id - 1), framenum, .pos
-   END IF
+   IF .id <= 0 THEN CONTINUE FOR
+   WITH st.map.npc_def(.id - 1)
+    IF including_conditional = NO ANDALSO (.tag1 ORELSE .tag2) THEN CONTINUE FOR
+   END WITH
+
+   DIM framenum as integer = (2 * .dir) + st.walk \ 2
+   mapedit_create_npc_slice st, npclayer, .id - 1, st.npc_img(.id - 1), framenum, .pos, drawing_whole_map
   END WITH
  NEXT
  IF st.map.gmap(16) = 2 THEN ' Heroes and NPCs Together
   EdgeYSortChildSlices npclayer, alignBottom
   'Otherwise NPCs are ordered by reference number
  END IF
- DrawSlice npclayer, dpage
+ DrawSlice npclayer, page
  DeleteSlice @npclayer
 END SUB
 
@@ -4601,20 +4612,6 @@ SUB mapedit_export_tilemap_image(st as MapEditState)
  IF LEN(outfile) THEN layer_to_bmp st, outfile + ".bmp", choice - 1
 END SUB
 
-'Simplified, used only when exporting a map image
-SUB draw_all_npcs(st as MapEditState, dest as Frame ptr, including_conditional as bool)
- FOR i as integer = 0 TO UBOUND(st.map.npc)
-  WITH st.map.npc(i)
-   IF .id <= 0 THEN CONTINUE FOR
-   WITH st.map.npc_def(.id - 1)
-    IF including_conditional = NO ANDALSO (.tag1 ORELSE .tag2) THEN CONTINUE FOR
-   END WITH
-   DIM image as GraphicPair = st.npc_img(.id - 1)
-   frame_draw image.sprite + (2 * .dir) + st.walk \ 2, image.pal, .x, .y + st.map.gmap(11), , , dest
-  END WITH
- NEXT
-END SUB
-
 'Export the map at full resolution
 SUB mapedit_export_map_image(st as MapEditState)
  DIM filename as string
@@ -4628,6 +4625,8 @@ SUB mapedit_export_map_image(st as MapEditState)
 
  DIM dest as Frame ptr
  dest = frame_new(st.map.wide * 20, st.map.high * 20)
+ DIM page as integer
+ page = registerpage(dest)
 
  'Need to make sure this has been called at least once
  animatetilesets st.tilesets()
@@ -4640,7 +4639,7 @@ SUB mapedit_export_map_image(st as MapEditState)
   END IF
   'Draw NPCs?
   IF layer = bound(st.map.gmap(31) - 1, 0, UBOUND(st.map.tiles)) THEN
-   IF npc_choice < 2 THEN draw_all_npcs st, dest, (npc_choice = 1)
+   IF npc_choice < 2 THEN mapedit_draw_npcs st, YES, (npc_choice = 1), page
   END IF
  NEXT
  IF LayerIsEnabled(st.map.gmap(), 0) THEN
@@ -4651,6 +4650,7 @@ SUB mapedit_export_map_image(st as MapEditState)
 
  frame_export_image dest, filename, master()
  frame_unload @dest
+ freepage page
  show_overlay_message "Saved as " & trimpath(filename)
 END SUB
 
