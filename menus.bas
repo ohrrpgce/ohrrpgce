@@ -1845,18 +1845,7 @@ SUB ModularMenu.draw()
  draw_underlays()
 
  DIM where as XYPair = (4, 4)
- IF LEN(title) THEN
-  IF floating THEN
-   DIM titlesize as XYPair = textsize(title, rWidth - 20, fontEdged)
-   where.y = rCenter - state.rect.high \ 2 - titlesize.h - 14
-   centerbox rCenter, where.y + titlesize.h \ 2, titlesize.w + 12, titlesize.h + 6, 1, vpage
-   wrapprint title, pCentered, where.y, uilook(uiText), vpage, rWidth - 20
-   'where.y += titlesize.h + 2
-  ELSE
-   wrapprint title, where.x, where.y, uilook(uiText), vpage
-   where.y += textsize(title, rWidth - where.x).h + 4
-  END IF
- END IF
+
  IF floating THEN
   'state.rect wouldn't be calculated until standardmenu is called, so need
   'to pre-calculate to prevent flicker....
@@ -1864,10 +1853,23 @@ SUB ModularMenu.draw()
   'So this should probably be replaced with MenuDef draw_menu
   DIM basicmenu as BasicMenuItem vector
   standard_to_basic_menu menu(), state, basicmenu
+  where = XY(pCentered, pCentered)
   calc_menustate_size state, menuopts, where.x, where.y, vpage, basicmenu
   v_free basicmenu
   edgeboxstyle pCentered, pCentered, state.rect.wide + 10, state.rect.high + 10, 1, vpage
-  where = XY(pCentered, pCentered)
+ END IF
+
+ IF LEN(title) THEN
+  IF floating THEN
+   DIM titlesize as XYPair = textsize(title, rWidth - 20, fontEdged)
+   DIM titley as integer = rCenter - state.rect.high \ 2 - titlesize.h - 14
+   centerbox rCenter, titley + titlesize.h \ 2, titlesize.w + 12, titlesize.h + 6, 1, vpage
+   wrapprint title, pCentered, titley, uilook(uiText), vpage, rWidth - 20
+   'where.y += titlesize.h + 2
+  ELSE
+   wrapprint title, where.x, where.y, uilook(uiText), vpage
+   where.y += textsize(title, rWidth - where.x).h + 4
+  END IF
  END IF
 
  DIM menu_display(UBOUND(menu)) as string
