@@ -69,6 +69,7 @@ DECLARE FUNCTION layer_shadow_palette() as Palette16 ptr
 DECLARE SUB mapedit_free_layer_palettes(st as MapEditState)
 DECLARE SUB mapedit_update_layer_palettes(st as MapEditState)
 
+DECLARE SUB mapedit_draw_npcs(st as MapEditState)
 DECLARE FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, framenum as integer, screenpos as XYPair) as bool
 
 DECLARE SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
@@ -2007,30 +2008,23 @@ DO
   drawmap st.zoneoverlaymap, st.mapx, st.mapy, st.overlaytileset, dpage, YES, , , 20
 
   '--Draw npcs (as sprite slices)
-  st.walk = (st.walk + 1) MOD 4
-  DIM npclayer as Slice ptr
-  npclayer = NewSliceOfType(slContainer)
+  mapedit_draw_npcs st
+
+  '--Then draw the ID/copy numbers
+
+  'First count number of NPC on each tile
   DIM npcs_on_tile as HashTable  'Number of NPCs at each position. XYPair -> int map
   npcs_on_tile.construct(31, type_table(XYPair), YES, type_table(integer), NO)
   FOR i as integer = 0 TO UBOUND(st.map.npc)
    WITH st.map.npc(i)
     IF .id > 0 THEN
-     DIM framenum as integer = (2 * .dir) + st.walk \ 2
-     mapedit_create_npc_slice st, npclayer, .id - 1, st.npc_img(.id - 1), framenum, .pos
-     'Increment "NPCs here" count
      DIM tile as XYPair = .pos \ tilesize
      npcs_on_tile.set(@tile, npcs_on_tile.get_int(@tile, 0) + 1)
     END IF
    END WITH
   NEXT
-  IF st.map.gmap(16) = 2 THEN ' Heroes and NPCs Together
-   EdgeYSortChildSlices npclayer, alignBottom
-   'Otherwise NPCs are ordered by reference number
-  END IF
-  DrawSlice npclayer, dpage
-  DeleteSlice @npclayer
 
-  '--Then draw the ID/copy numbers
+  'Then draw the overlay
   REDIM npc_copy_num(UBOUND(st.map.npc_def)) as integer  'Clear counts to 0
   FOR i as integer = 0 TO UBOUND(st.map.npc)
    WITH st.map.npc(i)
@@ -2634,6 +2628,26 @@ FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, framenu
  END IF
 END FUNCTION
 
+'Draw all NPCs.
+SUB mapedit_draw_npcs(st as MapEditState)
+ st.walk = (st.walk + 1) MOD 4
+ DIM npclayer as Slice ptr
+ npclayer = NewSliceOfType(slContainer)
+ FOR i as integer = 0 TO UBOUND(st.map.npc)
+  WITH st.map.npc(i)
+   IF .id > 0 THEN
+    DIM framenum as integer = (2 * .dir) + st.walk \ 2
+    mapedit_create_npc_slice st, npclayer, .id - 1, st.npc_img(.id - 1), framenum, .pos
+   END IF
+  END WITH
+ NEXT
+ IF st.map.gmap(16) = 2 THEN ' Heroes and NPCs Together
+  EdgeYSortChildSlices npclayer, alignBottom
+  'Otherwise NPCs are ordered by reference number
+ END IF
+ DrawSlice npclayer, dpage
+ DeleteSlice @npclayer
+END SUB
 
 '==========================================================================================
 
