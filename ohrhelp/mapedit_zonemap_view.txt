@@ -40,3 +40,5 @@ Pressing TAB toggles a minimap showing the selected zone, and what part of the m
 CTRL+Z undoes a change to the tilemap, wallmap, foemap or zonemap. Changes to NPCs and doors are not undoable. The undo history buffer is near-infinite, but certain things cause it to be cleared: resizing the map, deleting or swapping map layers, erasing map data, and leaving the map editor.
 
 CTRL+Y redoes an undone change.
+
+CTRL+N toggles whethers NPCs are visible.

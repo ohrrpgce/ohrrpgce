@@ -97,3 +97,5 @@ Pressing DELETE removes the selected tile from the zone.
 Pressing TAB toggles a minimap that shows the selected zone, and what part of the map you are currently looking at.
 
 ~ shows a preview of the entire map.
+
+CTRL+N toggles whethers NPCs are visible.

@@ -103,3 +103,5 @@ Press G to set the selected formation set to the one under the cursor (eyedroppe
 TAB toggles a blue rectangle that shows roughly what area of the map you are currently looking at.
 
 ~ shows a minimap of the entire map.
+
+CTRL+N toggles whethers NPCs are visible.

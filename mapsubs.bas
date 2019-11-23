@@ -1003,8 +1003,8 @@ DO
  END IF
 
  IF keyval(scTab) > 1 THEN st.tiny XOR= YES
- IF keyval(scTilde) > 1 AND keyval(scAlt) = 0 THEN show_minimap st
- IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
+ IF keyval(scTilde) > 1 ANDALSO keyval(scAlt) = 0 THEN show_minimap st
+ IF keyval(scCtrl) > 0 ANDALSO keyval(scBackspace) > 1 THEN
    'delete tile
    FOR i as integer = 0 TO UBOUND(st.map.tiles)
     tilebrush st, st.x, st.y, 0, i
@@ -1028,13 +1028,16 @@ DO
    END IF
    'zones not deleted
  END IF
- IF keyval(scCtrl) > 0 AND keyval(scH) > 1 THEN 'Ctrl+H for hero start position
+ IF keyval(scCtrl) > 0 ANDALSO keyval(scH) > 1 THEN 'Ctrl+H for hero start position
   gen(genStartMap) = st.map.id
   gen(genStartX) = st.x
   gen(genStartY) = st.y
   st.show_hero = YES  'Got to see what you just did
  END IF
- IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN st.defpass = st.defpass XOR YES
+ IF keyval(scCtrl) > 0 ANDALSO keyval(scD) > 1 THEN st.defpass XOR= YES
+ IF keyval(scCtrl) > 0 ANDALSO keyval(scG) > 1 THEN st.show_grid XOR= YES
+ IF keyval(scCtrl) > 0 ANDALSO keyval(scN) > 1 THEN st.always_show_npcs XOR= YES
+
 
  SELECT CASE st.editmode
   '---TILEMODE------
@@ -1053,7 +1056,7 @@ DO
    '...via selecting from the map
    'G or right click to select
    IF (normal_right_release ANDALSO st.mouse_attention = focusMap) _
-      ORELSE keyval(scG) > 1 THEN 'grab tile
+      ORELSE (keyval(scCtrl) = 0 ANDALSO keyval(scG) > 1) THEN 'grab tile
     set_usetile st, readblock(st.map.tiles(st.layer), st.x, st.y)
    END IF
    '...via scrolling
@@ -1320,7 +1323,7 @@ DO
    END IF
 
    'Select NPC type under the cursor
-   IF keyval(scG) > 1 THEN
+   IF keyval(scCtrl) = 0 ANDALSO keyval(scG) > 1 THEN
     'If there are multiple NPC types on this tile, select the next one
     'after the selected one. So first get a list of NPC IDs.
     DIM idlist as NPCTypeID vector
@@ -1426,9 +1429,11 @@ DO
 
    '---FOEMODE--------
   CASE foe_mode
-   IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_foemap"
+   IF keyval(scCtrl) = 0 THEN
+    IF keyval(scF1) > 1 THEN show_help "mapedit_foemap"
+    IF keyval(scG) > 1 THEN st.cur_foe = readblock(st.map.foemap, st.x, st.y)
+   END IF
    intgrabber(st.cur_foe, 0, maxFormationSet, scLeftCaret, scRightCaret, , , , wheelAlways)
-   IF keyval(scG) > 1 THEN st.cur_foe = readblock(st.map.foemap, st.x, st.y)
    st.tool_value = st.cur_foe
 
    '---ZONEMODE--------
@@ -1487,7 +1492,7 @@ DO
       END IF
       st.zones_needupdate = YES
      END IF
-     IF keyval(scH) > 1 THEN
+     IF keyval(scCtrl) = 0 ANDALSO keyval(scH) > 1 THEN
       st.cur_zinfo->hidden XOR= YES
       a_remove(st.lockedzonelist(), st.cur_zone)  'Doesn't make sense for a zone to be hidden and locked
       st.zones_needupdate = YES
@@ -1505,7 +1510,7 @@ DO
     IF keyval(scS) > 1 THEN  'Show other zones
      st.showzonehints XOR= YES
     END IF
-    IF keyval(scG) > 1 THEN  'Let the user choose the tileset used to display zones in multi-view
+    IF keyval(scCtrl) = 0 ANDALSO keyval(scG) > 1 THEN  'Let the user choose the tileset used to display zones in multi-view
      loopvar st.zoneviewtileset, 0, 2
     END IF
    END IF
@@ -6604,7 +6609,7 @@ END TYPE
 
 SUB MapSettingsMenu.update ()
  add_item 0 , , "[Close]"
- add_item 14, , "Show NPCs in all modes: " & yesorno(st->always_show_npcs)
+ add_item 14, , "Show NPCs in all modes (Ctrl-N): " & yesorno(st->always_show_npcs)
  DIM overlaid_npcs_options(2) as string = {"Never", "Always", "In NPC mode"}  'NPCDrawOverlaidEnum -> string
  add_item 15, , "Draw NPCs over map layers: " & safe_caption(overlaid_npcs_options(), st->draw_npcs_overlaid)
  add_item 1 , , "Cursor SHIFT-move speed X: " & st->shift_speed.x
@@ -6619,7 +6624,7 @@ SUB MapSettingsMenu.update ()
  add_item 9 , , "Mouse pan speed: " & pan_mult_str
  add_item 10, , "Show layer shadows when skewing: " & yesorno(st->shadows_when_skewing)
  add_item 16, , "Show hero start location: " & yesorno(st->show_hero)
- add_item 11, , "Show grid: " & yesorno(st->show_grid)
+ add_item 11, , "Show grid (Ctrl-G): " & yesorno(st->show_grid)
  DIM tmp as string
  IF st->show_grid THEN
   tmp = IIF(st->grid_color = 0, "Flash", STR(st->grid_color))
