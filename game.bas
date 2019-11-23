@@ -4026,6 +4026,7 @@ SUB refresh_map_slice()
  '--now fix up the order of the slices
  DIM num_layers_under_walkabouts as integer
  '--It's possible for gmap(31) to be larger than the number of map layers
+ '--(can't enforce this at gmap load time, since map layers not loaded)
  num_layers_under_walkabouts = bound(gmap(31), 1, UBOUND(maptiles) + 1)
  FOR i as integer = 0 TO UBOUND(maptiles)
   IF SliceTable.Maplayer(i) = 0 THEN

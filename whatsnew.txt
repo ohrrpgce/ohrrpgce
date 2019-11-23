@@ -71,6 +71,8 @@ Septotobvember ? 2019 [Fufluns]
       cycle through NPC instances [Ralph]
     * Can delete NPCs from the NPCs-on-this-tile menu [Ralph]
     * Foemap Statistics submenu (see below)
+    * Editor Settings to show NPCs in all edit modes, draw NPCs below overhead
+      layers, and hide the Hero start location [Ralph]
 
    * Other Editors
     * New spriteset editor [Ralph]

@@ -1032,6 +1032,7 @@ DO
   gen(genStartMap) = st.map.id
   gen(genStartX) = st.x
   gen(genStartY) = st.y
+  st.show_hero = YES  'Got to see what you just did
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN st.defpass = st.defpass XOR YES
 
@@ -1785,6 +1786,20 @@ DO
  st.last_pos = st.pos
 
  '--Draw Screen
+
+ 'Figure out when to draw the NPCs...
+ DIM as bool draw_npcs_between_layers = NO, draw_npcs_overlaid = NO
+ IF st.editmode = npc_mode THEN
+  draw_npcs_overlaid = (st.draw_npcs_overlaid <> npcsOverlaidNever)
+  draw_npcs_between_layers = (st.draw_npcs_overlaid = npcsOverlaidNever)
+ ELSEIF st.always_show_npcs THEN
+  IF st.draw_npcs_overlaid = npcsOverlaidAlways THEN
+   draw_npcs_overlaid = YES
+  ELSE  'Never, Only in NPC mode
+   draw_npcs_between_layers = YES
+  END IF
+ END IF
+
  clearpage dpage
 
  '--draw map
@@ -1810,11 +1825,31 @@ DO
     END IF
    END IF
   END IF
+
+  'Possibly draw NPCs
+  IF draw_npcs_between_layers ANDALSO i = bound(st.map.gmap(31) - 1, 0, UBOUND(st.map.tiles)) THEN
+   mapedit_draw_npcs st
+  END IF
  NEXT
+
  'Draw obsolete overhead tiles
  IF should_draw_layer(st, 0) THEN
   DIM height as integer = UBOUND(st.map.tiles) + 1
   mapedit_draw_layer st, 0, height, YES, st.layerpals(height)
+ END IF
+
+ '--Possibly draw npcs (in NPC mode we draw them a bit later)
+ IF draw_npcs_overlaid ANDALSO st.editmode <> npc_mode THEN
+  mapedit_draw_npcs st
+ END IF
+
+ '--hero start location display--
+ IF st.show_hero ANDALSO gen(genStartMap) = st.map.id THEN
+  DIM start_tile_pos as XYPair = XY(gen(genStartX), gen(genStartY))
+  DIM screen_pos as XYPair = map_to_screen(st, tilesize * start_tile_pos)
+  ' TODO: hardcoding 4th frame, which is normally Down
+  mapedit_draw_walkabout st, st.hero_gfx, 4, screen_pos
+  edgeprint "Hero", screen_pos.x, screen_pos.y + tileh \ 2, uilook(uiText), dpage
  END IF
 
  '--Grid lines
@@ -1836,15 +1871,6 @@ DO
    DIM start as XYPair = st.viewport.topleft + XY(x, 0)
    drawline start.x, start.y, start.x, start.y + mapedge.h, col, dpage, 8, 2
   NEXT
- END IF
-
- '--hero start location display--
- IF gen(genStartMap) = st.map.id THEN
-  DIM start_tile_pos as XYPair = XY(gen(genStartX), gen(genStartY))
-  DIM screen_pos as XYPair = map_to_screen(st, tilesize * start_tile_pos)
-  ' TODO: hardcoding 4th frame, which is normally Down
-  mapedit_draw_walkabout st, st.hero_gfx, 4, screen_pos
-  edgeprint "Hero", screen_pos.x, screen_pos.y + tileh \ 2, uilook(uiText), dpage
  END IF
 
  '--point out overhead tiles so that you can see what's wrong if you accidentally use them
@@ -2007,8 +2033,10 @@ DO
   '--Draw NPC zones
   drawmap st.zoneoverlaymap, st.mapx, st.mapy, st.overlaytileset, dpage, YES, , , 20
 
-  '--Draw npcs (as sprite slices)
-  mapedit_draw_npcs st
+  '--Draw npcs, if not done already
+  IF draw_npcs_overlaid THEN
+   mapedit_draw_npcs st
+  END IF
 
   '--Then draw the ID/copy numbers
 
@@ -4606,7 +4634,7 @@ SUB mapedit_export_map_image(st as MapEditState)
            layer > 0, IIF(layer > 0, 0, 1), @st.map.pass
   END IF
   'Draw NPCs?
-  IF layer = small(st.map.gmap(31) - 1, UBOUND(st.map.tiles)) THEN
+  IF layer = bound(st.map.gmap(31) - 1, 0, UBOUND(st.map.tiles)) THEN
    IF npc_choice < 2 THEN draw_all_npcs st, dest, (npc_choice = 1)
   END IF
  NEXT
@@ -6576,6 +6604,9 @@ END TYPE
 
 SUB MapSettingsMenu.update ()
  add_item 0 , , "[Close]"
+ add_item 14, , "Show NPCs in all modes: " & yesorno(st->always_show_npcs)
+ DIM overlaid_npcs_options(2) as string = {"Never", "Always", "In NPC mode"}  'NPCDrawOverlaidEnum -> string
+ add_item 15, , "Draw NPCs over map layers: " & safe_caption(overlaid_npcs_options(), st->draw_npcs_overlaid)
  add_item 1 , , "Cursor SHIFT-move speed X: " & st->shift_speed.x
  add_item 2 , , "Cursor SHIFT-move speed Y: " & st->shift_speed.y
  add_item 3 , , "Show 'O' for Overhead tiles: " & yesorno(st->show_overhead_bit)
@@ -6587,6 +6618,7 @@ SUB MapSettingsMenu.update ()
  add_item 8 , , "Cursor follows mouse: " & yesorno(st->cursor_follows_mouse)
  add_item 9 , , "Mouse pan speed: " & pan_mult_str
  add_item 10, , "Show layer shadows when skewing: " & yesorno(st->shadows_when_skewing)
+ add_item 16, , "Show hero start location: " & yesorno(st->show_hero)
  add_item 11, , "Show grid: " & yesorno(st->show_grid)
  DIM tmp as string
  IF st->show_grid THEN
@@ -6597,7 +6629,7 @@ SUB MapSettingsMenu.update ()
  add_item 12, , "Grid color: " & tmp
  add_item 13, , "Show in-game screen size (Ctrl-O): " & _
      IIF(st->screen_outline = outlineFollowsCursor, "Follow cursor", yesorno(st->screen_outline))
- 'Next free item type is 14
+ 'Next free item type is 17
 END SUB
 
 FUNCTION MapSettingsMenu.each_tick () as bool
@@ -6644,6 +6676,12 @@ FUNCTION MapSettingsMenu.each_tick () as bool
    END IF
   CASE 13
    changed = intgrabber(st->screen_outline, 0, outlineLAST)
+  CASE 14
+   changed = boolgrabber(st->always_show_npcs, state)
+  CASE 15
+   changed = intgrabber(st->draw_npcs_overlaid, 0, npcsOverlaidLAST)
+  CASE 16
+   changed = boolgrabber(st->show_hero, state)
 
  END SELECT
  state.need_update OR= changed
@@ -6660,6 +6698,8 @@ SUB mapedit_settings_menu (st as MapEditState)
  menu.run()
 
  'Save settings
+ write_config "mapedit.always_show_npcs", st.always_show_npcs
+ write_config "mapedit.draw_npcs_overlaid", st.draw_npcs_overlaid
  write_config "mapedit.shift_speed_x", st.shift_speed.x
  write_config "mapedit.shift_speed_y", st.shift_speed.y
  write_config "mapedit.cursor_follows_mouse", yesorno(st.cursor_follows_mouse)
@@ -6670,12 +6710,15 @@ SUB mapedit_settings_menu (st as MapEditState)
  write_config "mapedit.tile_animations_enabled", yesorno(st.animations_enabled)
  write_config "mapedit.mouse_pan_multiplier", FORMAT(st.mouse_pan_mult, "0.00")
  write_config "mapedit.shadows_when_skewing", st.shadows_when_skewing
+ write_config "mapedit.show_hero", yesorno(st.show_hero)
  write_config "mapedit.show_grid", yesorno(st.show_grid)
  write_config "mapedit.grid_color", IIF(st.grid_color, rgb_to_string(master(st.grid_color)), "0")
  'st.screen_outline is not saved
 END SUB
 
 SUB mapedit_load_settings (st as MapEditState)
+ st.always_show_npcs = read_config_bool("mapedit.always_show_npcs", NO)
+ st.draw_npcs_overlaid = bound(read_config_int("mapedit.draw_npcs_overlaid", npcsOverlaidNPCMode), 0, npcsOverlaidLAST)
  st.shift_speed.x = read_config_int("mapedit.shift_speed_x", 8)
  st.shift_speed.y = read_config_int("mapedit.shift_speed_y", 5)
  st.show_overhead_bit = read_config_bool("mapedit.show_overhead", YES)
@@ -6689,6 +6732,7 @@ SUB mapedit_load_settings (st as MapEditState)
  st.cursor_follows_mouse = read_config_bool("mapedit.cursor_follows_mouse", YES)
  st.mouse_pan_mult = bound(CDBL(read_config_str("mapedit.mouse_pan_multiplier", "1")), 0.1, 20.0)
  st.shadows_when_skewing = read_config_bool("mapedit.shadows_when_skewing", YES)
+ st.show_hero = read_config_bool("mapedit.show_hero", YES)
  st.show_grid = read_config_bool("mapedit.show_grid", NO)
  st.grid_color = string_to_color(read_config_str("mapedit.grid_color", "rgb(0,190,190)"), 0)
  'st.screen_outline is not loaded

@@ -239,6 +239,13 @@ ENUM ScreenOutlineMode
   outlineLAST = 2
 END ENUM
 
+ENUM NPCDrawOverlaidEnum
+  npcsOverlaidNever = 0
+  npcsOverlaidAlways = 1
+  npcsOverlaidNPCMode = 2
+  npcsOverlaidLAST = 2
+END ENUM
+
 'MapIDs used for undo steps
 'FIXME:a bit of a mess, clean up later
 ENUM 'MapID
@@ -342,7 +349,7 @@ TYPE MapEditState
   message as string          'Message shown at the top of the screen
   message_ticks as integer   'Remaining ticks to display message
 
-  'Editor customisation options
+  'Editor customisation settings
   shift_speed as XYPair      'Cursor move speen when holding Shift
   cursor_follows_mouse as bool 'st.pos follows the mouse
   wall_style as WallStylesEnum  'How walls appear
@@ -354,6 +361,9 @@ TYPE MapEditState
   shadows_when_skewing as bool
   show_grid as bool
   grid_color as integer      'Master pal color index, or 0 to flash instead
+  always_show_npcs as bool   'Show NPCs even outside NPC mode
+  draw_npcs_overlaid as NPCDrawOverlaidEnum 'When to draw NPCs above overhead layers
+  show_hero as bool          'Show player start location
 
   'Tool stuff
   tool as integer            'Tool ID (index in toolinfo), or -1 if none (meaning none available)
