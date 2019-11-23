@@ -6561,30 +6561,29 @@ TYPE MapSettingsMenu EXTENDS ModularMenu
 END TYPE
 
 SUB MapSettingsMenu.update ()
- REDIM menu(13)
- state.last = UBOUND(menu)
-
- menu(0) = "[Close]"
- menu(1) = "Cursor SHIFT-move speed X: " & st->shift_speed.x
- menu(2) = "Cursor SHIFT-move speed Y: " & st->shift_speed.y
- menu(3) = "Show 'O' for Overhead tiles: " & yesorno(st->show_overhead_bit)
- menu(4) = "Wall display style: " & *wall_styles(st->wall_style).name
- menu(5) = "Wall thickness (+/- adjusts): " & _
+ add_item 0 , , "[Close]"
+ add_item 1 , , "Cursor SHIFT-move speed X: " & st->shift_speed.x
+ add_item 2 , , "Cursor SHIFT-move speed Y: " & st->shift_speed.y
+ add_item 3 , , "Show 'O' for Overhead tiles: " & yesorno(st->show_overhead_bit)
+ add_item 4 , , "Wall display style: " & *wall_styles(st->wall_style).name
+ add_item 5 , , "Wall thickness (+/- adjusts): " & _
      IIF(st->wall_style = wallStyleAnts, "N/A", STR(st->wallthickness))
- menu(6) = "Tile animations: " & yesorno(st->animations_enabled)
- menu(7) = "Current tile is per-tileset: " & yesorno(st->layers_share_usetile)
- menu(8) = "Cursor follows mouse: " & yesorno(st->cursor_follows_mouse)
- menu(9) = "Mouse pan speed: " & pan_mult_str
- menu(10) = "Show layer shadows when skewing: " & yesorno(st->shadows_when_skewing)
- menu(11) = "Show grid: " & yesorno(st->show_grid)
- menu(12) = "Grid color: "
+ add_item 6 , , "Tile animations: " & yesorno(st->animations_enabled)
+ add_item 7 , , "Current tile is per-tileset: " & yesorno(st->layers_share_usetile)
+ add_item 8 , , "Cursor follows mouse: " & yesorno(st->cursor_follows_mouse)
+ add_item 9 , , "Mouse pan speed: " & pan_mult_str
+ add_item 10, , "Show layer shadows when skewing: " & yesorno(st->shadows_when_skewing)
+ add_item 11, , "Show grid: " & yesorno(st->show_grid)
+ DIM tmp as string
  IF st->show_grid THEN
-  menu(12) &= IIF(st->grid_color = 0, "Flash", STR(st->grid_color))
+  tmp = IIF(st->grid_color = 0, "Flash", STR(st->grid_color))
  ELSE
-  menu(12) &= "N/A"
+  tmp = "N/A"
  END IF
- menu(13) = "Show in-game screen size (Ctrl-O): " & _
+ add_item 12, , "Grid color: " & tmp
+ add_item 13, , "Show in-game screen size (Ctrl-O): " & _
      IIF(st->screen_outline = outlineFollowsCursor, "Follow cursor", yesorno(st->screen_outline))
+ 'Next free item type is 14
 END SUB
 
 FUNCTION MapSettingsMenu.each_tick () as bool
@@ -6596,7 +6595,7 @@ FUNCTION MapSettingsMenu.each_tick () as bool
  END IF
 
  DIM changed as bool
- SELECT CASE state.pt
+ SELECT CASE itemtypes(state.pt)
   CASE 0
    IF enter_space_click(state) THEN RETURN YES
   CASE 1
