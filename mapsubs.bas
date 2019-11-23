@@ -1036,7 +1036,7 @@ DO
  END IF
  IF keyval(scCtrl) > 0 ANDALSO keyval(scD) > 1 THEN st.defpass XOR= YES
  IF keyval(scCtrl) > 0 ANDALSO keyval(scG) > 1 THEN st.show_grid XOR= YES
- IF keyval(scCtrl) > 0 ANDALSO keyval(scN) > 1 THEN st.always_show_npcs XOR= YES
+ IF keyval(scCtrl) > 0 ANDALSO keyval(scN) > 1 THEN loopvar st.show_npcs_all_modes, 0, showNpcsLAST
 
 
  SELECT CASE st.editmode
@@ -1793,16 +1793,18 @@ DO
  '--Draw Screen
 
  'Figure out when to draw the NPCs...
- DIM as bool draw_npcs_between_layers = NO, draw_npcs_overlaid = NO
+ DIM as bool draw_npcs_between_layers = NO, draw_npcs_overlaid = NO, draw_conditional_npcs = NO
  IF st.editmode = npc_mode THEN
   draw_npcs_overlaid = (st.draw_npcs_overlaid <> npcsOverlaidNever)
   draw_npcs_between_layers = (st.draw_npcs_overlaid = npcsOverlaidNever)
- ELSEIF st.always_show_npcs THEN
+  draw_conditional_npcs = YES
+ ELSEIF st.show_npcs_all_modes <> showNpcsOff THEN
   IF st.draw_npcs_overlaid = npcsOverlaidAlways THEN
    draw_npcs_overlaid = YES
   ELSE  'Never, Only in NPC mode
    draw_npcs_between_layers = YES
   END IF
+  draw_conditional_npcs = (st.show_npcs_all_modes = showNpcsAll)
  END IF
 
  clearpage dpage
@@ -1833,7 +1835,7 @@ DO
 
   'Possibly draw NPCs
   IF draw_npcs_between_layers ANDALSO i = bound(st.map.gmap(31) - 1, 0, UBOUND(st.map.tiles)) THEN
-   mapedit_draw_npcs st, , YES, dpage
+   mapedit_draw_npcs st, , draw_conditional_npcs, dpage
   END IF
  NEXT
 
@@ -1845,7 +1847,7 @@ DO
 
  '--Possibly draw npcs (in NPC mode we draw them a bit later)
  IF draw_npcs_overlaid ANDALSO st.editmode <> npc_mode THEN
-  mapedit_draw_npcs st, , YES, dpage
+  mapedit_draw_npcs st, , draw_conditional_npcs, dpage
  END IF
 
  '--hero start location display--
@@ -2040,7 +2042,7 @@ DO
 
   '--Draw npcs, if not done already
   IF draw_npcs_overlaid THEN
-   mapedit_draw_npcs st, , YES, dpage
+   mapedit_draw_npcs st, , draw_conditional_npcs, dpage
   END IF
 
   '--Then draw the ID/copy numbers
@@ -6609,9 +6611,14 @@ END TYPE
 
 SUB MapSettingsMenu.update ()
  add_item 0 , , "[Close]"
- add_item 14, , "Show NPCs in all modes (Ctrl-N): " & yesorno(st->always_show_npcs)
+ DIM show_npcs_options(2) as string = {"No", "All", "Not tag-conditional"}  'ShowNPCsEnum -> string
+ IF st->editmode = npc_mode THEN
+  add_item 14, , "Show NPCs (Ctrl-N): N/A (Yes)"
+ ELSE
+  add_item 14, , "Show NPCs (Ctrl-N): " & show_npcs_options(st->show_npcs_all_modes)
+ END IF
  DIM overlaid_npcs_options(2) as string = {"Never", "Always", "In NPC mode"}  'NPCDrawOverlaidEnum -> string
- add_item 15, , "Draw NPCs over map layers: " & safe_caption(overlaid_npcs_options(), st->draw_npcs_overlaid)
+ add_item 15, , "Draw NPCs over map layers: " & overlaid_npcs_options(st->draw_npcs_overlaid)
  add_item 1 , , "Cursor SHIFT-move speed X: " & st->shift_speed.x
  add_item 2 , , "Cursor SHIFT-move speed Y: " & st->shift_speed.y
  add_item 3 , , "Show 'O' for Overhead tiles: " & yesorno(st->show_overhead_bit)
@@ -6682,7 +6689,7 @@ FUNCTION MapSettingsMenu.each_tick () as bool
   CASE 13
    changed = intgrabber(st->screen_outline, 0, outlineLAST)
   CASE 14
-   changed = boolgrabber(st->always_show_npcs, state)
+   changed = intgrabber(st->show_npcs_all_modes, 0, showNpcsLAST)
   CASE 15
    changed = intgrabber(st->draw_npcs_overlaid, 0, npcsOverlaidLAST)
   CASE 16
@@ -6703,7 +6710,7 @@ SUB mapedit_settings_menu (st as MapEditState)
  menu.run()
 
  'Save settings
- write_config "mapedit.always_show_npcs", st.always_show_npcs
+ write_config "mapedit.show_npcs", st.show_npcs_all_modes
  write_config "mapedit.draw_npcs_overlaid", st.draw_npcs_overlaid
  write_config "mapedit.shift_speed_x", st.shift_speed.x
  write_config "mapedit.shift_speed_y", st.shift_speed.y
@@ -6722,7 +6729,7 @@ SUB mapedit_settings_menu (st as MapEditState)
 END SUB
 
 SUB mapedit_load_settings (st as MapEditState)
- st.always_show_npcs = read_config_bool("mapedit.always_show_npcs", NO)
+ st.show_npcs_all_modes = bound(read_config_int("mapedit.show_npcs", showNpcsOff), 0, showNpcsLAST)
  st.draw_npcs_overlaid = bound(read_config_int("mapedit.draw_npcs_overlaid", npcsOverlaidNPCMode), 0, npcsOverlaidLAST)
  st.shift_speed.x = read_config_int("mapedit.shift_speed_x", 8)
  st.shift_speed.y = read_config_int("mapedit.shift_speed_y", 5)

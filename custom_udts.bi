@@ -246,6 +246,13 @@ ENUM NPCDrawOverlaidEnum
   npcsOverlaidLAST = 2
 END ENUM
 
+ENUM ShowNPCsEnum
+  showNpcsOff = 0
+  showNpcsAll = 1
+  showNpcsNotConditional = 2
+  showNpcsLAST = 2
+END ENUM
+
 'MapIDs used for undo steps
 'FIXME:a bit of a mess, clean up later
 ENUM 'MapID
@@ -361,7 +368,7 @@ TYPE MapEditState
   shadows_when_skewing as bool
   show_grid as bool
   grid_color as integer      'Master pal color index, or 0 to flash instead
-  always_show_npcs as bool   'Show NPCs even outside NPC mode
+  show_npcs_all_modes as ShowNPCsEnum 'When to show NPCs outside NPC mode
   draw_npcs_overlaid as NPCDrawOverlaidEnum 'When to draw NPCs above overhead layers
   show_hero as bool          'Show player start location
 
