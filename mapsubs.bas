@@ -215,6 +215,8 @@ END DESTRUCTOR
 
 'If force_reload=NO, doesn't regenerate if the map_id and the zoom haven't changed
 SUB MapPreviewer.update(map_id as integer, force_reload as bool = NO)
+ IF read_config_bool("mapedit.preview_with_minimaps", YES) = NO THEN EXIT SUB
+
  IF map.id <> map_id ORELSE force_reload THEN
   loaded = NO
   IF generator THEN
