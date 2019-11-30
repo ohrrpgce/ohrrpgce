@@ -5643,9 +5643,9 @@ FUNCTION format_float(byval float as double, byval sigfigs as integer = 5) as st
  IF deciplaces < -4 THEN RETURN strprintf("%." & sigfigs & "g", float)
  IF deciplaces > sigfigs THEN deciplaces = sigfigs
  DIM repr as string = FORMAT(float, "0." & STRING(deciplaces, "#"))
- 'Unlike STR, FORMAT will add a trailing point
- IF repr[LEN(repr) - 1] = ASC(".") THEN repr = LEFT(repr, LEN(repr) - 1)
- RETURN repr
+ 'Unlike STR, FORMAT will add a trailing point (which might be . , or ٫). Note also
+ 'https://sourceforge.net/p/fbc/bugs/915/ which causes FORMAT to add a single malformed UTF8 byte.
+ RETURN RTRIM(repr, ANY ".,٫")  'Future proof for utf8: ٫ is two bytes
 END FUNCTION
 
 'This is mostly equivalent to '(float * 100) & "%"', however it doesn't show
