@@ -3762,13 +3762,14 @@ end sub
 
 ' Draws all map layers at a single tile coordinate. Used for drawing the minimap.
 ' Respects setoutside. Changes the setanim (current tileset animation) state.
-sub draw_layers_at_tile(composed_tile as Frame ptr, tiles() as TileMap, tilesets() as TilesetData ptr, tx as integer, ty as integer, pmapptr as TileMap ptr = NULL)
-	for idx as integer = 0 to ubound(tiles)
+sub draw_layers_at_tile(composed_tile as Frame ptr, tiles as TileMap ptr vector, tilesets as TilesetData ptr vector, tx as integer, ty as integer, pmapptr as TileMap ptr = NULL)
+	BUG_IF(v_len(tiles) <> v_len(tilesets), "mismatched vectors")
+	for idx as integer = 0 to v_len(tiles) - 1
 		'It's possible that layer <> idx if for example drawing a minimap of a single map layer
-		dim layer as integer = tiles(idx).layernum
-		setanim tilesets(idx)
-		with *tilesets(idx)
-			dim todraw as integer = calcblock(tiles(idx), tx, ty, 0, 0)
+		dim layer as integer = tiles[idx]->layernum
+		setanim tilesets[idx]
+		with *tilesets[idx]
+			dim todraw as integer = calcblock(*tiles[idx], tx, ty, 0, 0)
 			if todraw < 0 then continue for
 			todraw = translate_animated_tile(todraw)
 

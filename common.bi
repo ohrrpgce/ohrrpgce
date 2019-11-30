@@ -122,6 +122,25 @@ ENUM MinimapAlgorithmEnum
  minimapLAST = 2
 END ENUM
 
+DECLARE_VECTOR_OF_TYPE(TileMap ptr, TileMap_ptr)
+DECLARE_VECTOR_OF_TYPE(TilesetData ptr, TilesetData_ptr)
+
+TYPE MinimapGenerator
+ DECLARE CONSTRUCTOR (tiles_arr() as TileMap, tilesets_arr() as TilesetData ptr, pmapptr as TileMap ptr = NULL, zoom_in as integer = -1, algorithm as MinimapAlgorithmEnum = minimapScaled)
+ DECLARE FUNCTION run() as Frame ptr
+ DECLARE DESTRUCTOR()
+
+ zoom as integer
+ minimap as Frame Ptr
+
+ PRIVATE:
+ algorithm as MinimapAlgorithmEnum
+ pmapptr as TileMap ptr
+ tiles as TileMap ptr vector
+ tilesets as TilesetData ptr vector
+ composed_tile as Frame Ptr
+END TYPE
+
 DECLARE FUNCTION minimap_zoom_amount(mapsize as XYPair, margin as XYPair = XY(0,0)) as integer
 DECLARE FUNCTION createminimap OVERLOAD (tiles() as TileMap, tilesets() as TilesetData ptr, pmapptr as TileMap ptr = NULL, byref zoom as integer = -1, algorithm as MinimapAlgorithmEnum = minimapScaled) as Frame ptr
 DECLARE FUNCTION createminimap OVERLOAD (layer as TileMap, tileset as TilesetData ptr, byref zoom as integer = -1, algorithm as MinimapAlgorithmEnum = minimapScaled) as Frame ptr
