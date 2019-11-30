@@ -1117,14 +1117,12 @@ sub setvispage (page as integer, skippable as bool = YES)
 		draw_allmodex_overlays drawpage
 	end if
 
-	starttime += timer  'Stop timer
-	dim starttime2 as double
+	starttime -= timer  'Stop timer
+	dim starttime2 as double = timer
 
 	'fb_gfx may deadlock if it collides with the polling thread because of
 	'FB bug https://sourceforge.net/p/fbc/bugs/885/
 	GFX_ENTER
-
-	starttime2 = timer
 
 	if vpages(page)->surf then
 		present_internal_surface drawpage
@@ -1134,8 +1132,8 @@ sub setvispage (page as integer, skippable as bool = YES)
 
 	' This gets triggered a lot under Win XP because the program freezes while moving
 	' the window (in all backends, although in gfx_fb it freezes readmouse instead)
-	if log_slow then debug_if_slow(starttime2, 0.017, "gfx_present")
-	starttime -= timer  'Restart timer
+	if log_slow then debug_if_slow(starttime2, 0.008, "gfx_present")
+	starttime += timer  'Restart timer
 
 	GFX_EXIT
 
@@ -1151,7 +1149,7 @@ sub setvispage (page as integer, skippable as bool = YES)
 	'After presenting the page this is a good time to check for window size changes and
 	'resize the videopages as needed before the next frame is rendered.
 	screen_size_update
-	if log_slow then debug_if_slow(starttime, 0.017, "")
+	if log_slow then debug_if_slow(starttime, 0.005, "")
 end sub
 
 'setvispage internal function for presenting a regular Frame page on the screen
@@ -1375,8 +1373,15 @@ sub setwait (ms as double, flagms as double = 0)
 	'flagms /= fps_multiplier
 	requested_framerate = 1. / ms
 	dim thetime as double = timer
-	dim target as double = waittime + ms / 1000
-	waittime = bound(target, thetime + 0.5 * ms / 1000, thetime + 1.5 * ms / 1000)
+	dim target as double
+	target = bound(waittime + ms / 1000, thetime + 0.5 * ms / 1000, thetime + 1.5 * ms / 1000)
+	/'
+	if thetime > waittime + 0.001 then
+		debuginfo strprintf("Missed setwait by %.1fms. Waiting %.1fms", _
+				    1e3 * (thetime - waittime), 1e3 * (target - thetime))
+	end if
+	'/
+	waittime = target
 	if flagms <= 0 then
 		flagms = ms
 	end if
@@ -1385,6 +1390,12 @@ sub setwait (ms as double, flagms as double = 0)
 	end if
 	setwait_called = YES
 end sub
+
+'Returns seconds left until the deadline set by the last setwait. Will
+'be negative if it's already been missed.
+function setwait_time_remaining() as double
+	return waittime - timer
+end function
 
 ' Returns number of dowait calls
 function get_tickcount() as integer
@@ -1398,12 +1409,10 @@ function dowait () as bool
 'be exited by a keypress, so sleep for 5ms until timer > waittime.
 	tickcount += 1
 	global_tog XOR= 1
-	dim i as integer
 	dim starttime as double = timer
 	do while timer <= waittime - 0.0005
-		i = bound((waittime - timer) * 1000, 1, 5)
-		sleep i
 		io_waitprocessing()
+		sleep bound((waittime - timer) * 1000, 1, 5)
 	loop
 	' dowait might be called after waittime has already passed, ignore that
         ' (the time printed is the unwanted delay).

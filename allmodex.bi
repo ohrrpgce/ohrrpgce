@@ -237,6 +237,7 @@ DECLARE FUNCTION mxs_frame_to_tileset(spr as Frame ptr) as Frame ptr
 
 DECLARE SUB setwait (ms as double, flagms as double = 0)
 DECLARE FUNCTION dowait () as bool
+DECLARE FUNCTION setwait_time_remaining() as double
 DECLARE FUNCTION get_tickcount() as integer
 
 '==========================================================================================
