@@ -116,10 +116,11 @@ DECLARE FUNCTION string_to_rgb(text as string, byref col as RGBcolor) as bool
 DECLARE FUNCTION string_to_color(text as string, default as integer = -1) as integer
 
 ENUM MinimapAlgorithmEnum
- minimapScaled   'Proper scaling. Returns a 32 bit Frame; auto-fallback to minimapMajority
+ minimapScaled   'Proper scaling. Returns a 32 bit Frame; auto-fallback to minimapScaledQuant in 8-bit mode.
  minimapScatter  'Original, noisy minimap algorithm - randomly pick a color
  minimapMajority 'Approximately selects the most common color for each pixel
- minimapLAST = 2
+ minimapScaledQuant 'minimapScaled but quantised to an 8 bit Frame.
+ minimapLAST = 3
 END ENUM
 
 DECLARE_VECTOR_OF_TYPE(TileMap ptr, TileMap_ptr)

@@ -5294,16 +5294,18 @@ END SUB
 
 SUB show_minimap(st as MapEditState)
  DIM algorithm as MinimapAlgorithmEnum
- IF keyval(scShift) > 0 THEN
+ IF keyval(scRightShift) > 0 THEN
   algorithm = minimapMajority
  ELSEIF keyval(scContext) > 0 THEN
   algorithm = minimapScatter
+ ELSEIF keyval(scLeftShift) > 0 THEN
+  algorithm = minimapScaledQuant
  ELSE
   switch_to_32bit_vpages()
   algorithm = minimapScaled
  END IF
 
- 'Because people very often take screenshots of the minimap
+ 'Because people very often take screenshots of the minimap, hide after a second
  show_overlay_message "Press Any Key", 1.
 
  DO

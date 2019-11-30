@@ -1784,14 +1784,22 @@ LOCAL FUNCTION minimap_pixel_scatter(x as integer, y as integer, fraction as sin
  RETURN composed_tile->image[j * 20 + i]
 END FUNCTION
 
-LOCAL FUNCTION minimap_tile_scaled(composed_tile as Frame ptr, zoom as integer) as Frame ptr
+'quant: whether to return 8-bit Frame insteaad of 32-bit one.
+LOCAL FUNCTION minimap_tile_scaled(composed_tile as Frame ptr, zoom as integer, quant as bool) as Frame ptr
  DIM as Surface ptr composed_surf, scaled
  composed_surf = frame_to_surface32(composed_tile, master())
  scaled = surface_scale(composed_surf, zoom, zoom)
  gfx_surfaceDestroy(@composed_surf)
 
- DIM scaledfr as Frame ptr = frame_with_surface(scaled)
- gfx_surfaceDestroy(@scaled)
+ DIM scaledfr as Frame ptr
+ IF quant THEN
+  DIM opts as QuantizeOptions
+  opts.to_intpal = YES  'Use nearcolor_fast
+  scaledfr = quantize_surface(scaled, master(), opts)  'Frees scaled
+ ELSE
+  scaledfr = frame_with_surface(scaled)
+  gfx_surfaceDestroy(@scaled)
+ END IF
  RETURN scaledfr
 END FUNCTION
 
@@ -1806,9 +1814,7 @@ CONSTRUCTOR MinimapGenerator (tiles_arr() as TileMap, tilesets_arr() as TilesetD
 
  pmapptr = pmapptr_in
  algorithm = algorithm_in
- IF vpages_are_32bit = NO ANDALSO algorithm = minimapScaled THEN algorithm = minimapMajority
-
- 'DIM drawtime as double = TIMER
+ IF vpages_are_32bit = NO ANDALSO algorithm = minimapScaled THEN algorithm = minimapScaledQuant
 
  'Currently, tilesets arrays are always dimmed to maplayerMax
  BUG_IF(UBOUND(tilesets_arr) < UBOUND(tiles_arr), "tilesets array short")
@@ -1845,6 +1851,7 @@ END DESTRUCTOR
 FUNCTION MinimapGenerator.run(runtime as double) as Frame ptr
  DIM fraction as single = 20 / zoom
  DIM stoptime as double = TIMER + runtime
+ 'DIM drawtime as double = TIMER
 
  FOR ty as integer = nextrow TO tiles[0]->high - 1
   FOR tx as integer = 0 TO tiles[0]->wide - 1
@@ -1855,8 +1862,8 @@ FUNCTION MinimapGenerator.run(runtime as double) as Frame ptr
 
    draw_layers_at_tile(composed_tile, tiles, tilesets, tx, ty, pmapptr)
 
-   IF algorithm = minimapScaled THEN
-    DIM tile as Frame ptr = minimap_tile_scaled(composed_tile, zoom)
+   IF algorithm = minimapScaled ORELSE algorithm = minimapScaledQuant THEN
+    DIM tile as Frame ptr = minimap_tile_scaled(composed_tile, zoom, (algorithm = minimapScaledQuant))
     frame_draw tile, master(), NULL, tx * zoom, ty * zoom, , NO, minimap   'master() not used
     frame_unload @tile
    ELSE
@@ -1879,8 +1886,8 @@ FUNCTION MinimapGenerator.run(runtime as double) as Frame ptr
   IF TIMER > stoptime THEN EXIT FOR
  NEXT
 
- ' drawtime = (TIMER - drawtime)
- ' debug "createminimap (algorithm " & algorithm & ") in " & drawtime & " -- " & (1e6 * drawtime / mini->w / mini->h)  & "us/pix"
+ 'drawtime = (TIMER - drawtime)
+ '? "createminimap (algorithm " & algorithm & ") in " & drawtime & " -- " & (1e6 * drawtime / minimap->w / minimap->h)  & "us/pix"
 
  RETURN minimap
 END FUNCTION

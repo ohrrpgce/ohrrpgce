@@ -49,7 +49,7 @@ Framerate:
 By default, OHRRPGCE games run at 18.2 frames per second (FPS), which is 55 milliseconds (ms) per frame. Increasing the framerate is highly desirable if you want to use the mouse or create an action game. HOWEVER, increasing the framerate is not recommended for RPGs because the walk animation will become very fast (this is an unfinished feature). Battles are NOT affected by this setting (so you're safe there!)
 
 Minimap Style:
-This determines how the minimap is generated in-game (how the color of each pixel is determined). The default, "Smoothly scaled down" normally looks the best, but might be blurry. It uses more than the 256 colors in the master palette. "Pick random color" was the method used until Fufluns. The easiest way to try them out is using the Test Game feature (in particular, the Ctrl-F1 teleport tool).
+This determines how the minimap is generated in-game (how the color of each pixel is determined). The default, "Smoothly scaled down (true-color)" normally looks the best, but might be blurry. It uses more than the 256 colors in the master palette. "Smoothly scaled down (256 color)" limits to the master palette. "Pick random color" was the method used until Fufluns. The easiest way to try them out is using the Test Game feature (in particular, the Ctrl-F1 teleport debug key).
 
 Camera following a hero/NPC centers on:
 You probably don't want to change this.

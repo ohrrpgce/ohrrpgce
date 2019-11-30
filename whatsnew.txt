@@ -25,7 +25,7 @@ Septotobvember ? 2019 [Fufluns]
     * When importing a backdrop or tileset from an unpaletted image, can use
       dithering for hopefully-better conversion to your master palette [Ralph]
     * Minimaps look much better. Also, you can change the minimap generation
-      method in the General Game Settings menu, with three options [Ralph]
+      method in the General Game Settings menu, with four options [Ralph]
     * Rect slices can now be "truly" alpha-transparent (but blend results are
       still limited to the master palette) [Ralph]
     * Added fuzzy rect slice settings: fuzzy zoom, stationary pattern [Ralph]

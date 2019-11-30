@@ -1225,9 +1225,10 @@ SUB GeneralSettingsMenu.update()
 
  tmp = "Minimap style: "
  SELECT CASE gen(genMinimapAlgorithm)
-  CASE minimapScaled :   tmp &= "Smoothly scaled down"
+  CASE minimapScaled :   tmp &= "Smoothly scaled down (true-color)"
   CASE minimapScatter :  tmp &= "Pick random color"
   CASE minimapMajority : tmp &= "Pick most common color"
+  CASE minimapScaledQuant : tmp &= "Smoothly scaled down (256 color)"
  END SELECT
  add_item , , tmp
  gen_int genMinimapAlgorithm, 0, minimapLAST
