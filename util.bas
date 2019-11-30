@@ -1512,6 +1512,12 @@ SUB sort_integers_indices(indices() as integer, byval start as integer ptr, byva
  NEXT
 END SUB
 
+FUNCTION ptr_compare CDECL (byval a as any ptr ptr, byval b as any ptr ptr) as long
+ IF *a < *b THEN RETURN -1
+ IF *a > *b THEN RETURN 1
+ 'implicitly RETURN 0 (it's faster to omit the RETURN :-)
+END FUNCTION
+
 FUNCTION integer_compare CDECL (byval a as integer ptr, byval b as integer ptr) as long
  IF *a < *b THEN RETURN -1
  IF *a > *b THEN RETURN 1

@@ -853,6 +853,7 @@ declare sub flusharray (array() as integer, byval size as integer=-1, byval valu
 declare sub sort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer = 0, byval stride as integer = SIZEOF(integer))
 declare sub qsort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer, byval stride as integer)
 declare sub qsort_strings_indices(indices() as integer, byval start as string ptr, byval number as integer, byval stride as integer)
+declare function ptr_compare cdecl (byval a as any ptr ptr, byval b as any ptr ptr) as long
 declare function integer_compare cdecl (byval a as integer ptr, byval b as integer ptr) as long
 declare function string_compare cdecl (a as string, b as string) as integer
 declare function numeric_string_compare cdecl (a as string, b as string, case_insen as bool = NO) as integer
