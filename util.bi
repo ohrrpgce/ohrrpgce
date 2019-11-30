@@ -731,16 +731,19 @@ declare function ceiling (byval n as integer) as integer
 declare function bound overload (byval n as integer, byval lowest as integer, byval highest as integer) as integer
 declare function bound overload (byval n as longint, byval lowest as longint, byval highest as longint) as longint
 declare function bound overload (byval n as double, byval lowest as double, byval highest as double) as double
+declare function bound overload (point as XYPair, lefttop as XYPair, rightbottom as XYPair) as XYPair
 declare function in_bound (byval n as integer, byval lowest as integer, byval highest as integer) as integer
 declare sub clamp_value (byref value as integer, byval min as integer, byval max as integer, argname as string)
 declare function large overload (byval n1 as integer, byval n2 as integer) as integer
 declare function large overload (byval n1 as longint, byval n2 as longint) as longint
 declare function large overload (byval n1 as double, byval n2 as double) as double
+declare function large overload (xy1 as XYPair, xy2 as XYPair) as XYPair
 declare sub loopvar overload (byref value as integer, min as integer, max as integer, inc as integer = 1)
 declare sub loopvar overload (byref value as longint, min as longint, max as longint, inc as longint = 1)
 declare function small overload (byval n1 as integer, byval n2 as integer) as integer
 declare function small overload (byval n1 as longint, byval n2 as longint) as longint
 declare function small overload (byval n1 as double, byval n2 as double) as double
+declare function small overload (xy1 as XYPair, xy2 as XYPair) as XYPair
 declare sub corners_to_rect (p1 as XYPair, p2 as XYPair, result as RectType)
 declare sub corners_to_rect_inclusive (p1 as XYPair, p2 as XYPair, result as RectType)
 declare function rect_collide_point (r as RectType, p as XYPair) as bool

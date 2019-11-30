@@ -403,6 +403,13 @@ FUNCTION bound (byval n as double, byval lowest as double, byval highest as doub
  IF n > highest THEN bound = highest
 END FUNCTION
 
+FUNCTION bound (point as XYPair, lefttop as XYPair, rightbottom as XYPair) as XYPair
+ DIM ret as XYPair = any
+ ret.x = IIF(point.x > rightbottom.x, rightbottom.x, IIF(point.y < lefttop.x, lefttop.x, point.x))
+ ret.y = IIF(point.y > rightbottom.y, rightbottom.y, IIF(point.y < lefttop.y, lefttop.y, point.y))
+ RETURN ret
+END FUNCTION
+
 FUNCTION in_bound (byval n as integer, byval lowest as integer, byval highest as integer) as integer
  RETURN (n >= lowest) AND (n <= highest)
 END FUNCTION
@@ -429,6 +436,13 @@ FUNCTION large (byval n1 as double, byval n2 as double) as double
  IF n2 > n1 THEN RETURN n2 ELSE RETURN n1
 END FUNCTION
 
+FUNCTION large (xy1 as XYPair, xy2 as XYPair) as XYPair
+ DIM ret as XYPair = any
+ ret.x = IIF(xy1.x < xy2.x, xy2.x, xy1.x)
+ ret.y = IIF(xy1.y < xy2.y, xy2.y, xy1.y)
+ RETURN ret
+END FUNCTION
+
 SUB loopvar (byref value as integer, min as integer, max as integer, inc as integer = 1)
  value = POSMOD((value + inc) - min, (max - min) + 1) + min
 END SUB
@@ -449,6 +463,13 @@ END FUNCTION
 
 FUNCTION small (byval n1 as double, byval n2 as double) as double
  IF n2 < n1 THEN RETURN n2 ELSE RETURN n1
+END FUNCTION
+
+FUNCTION small (xy1 as XYPair, xy2 as XYPair) as XYPair
+ DIM ret as XYPair = any
+ ret.x = IIF(xy1.x > xy2.x, xy2.x, xy1.x)
+ ret.y = IIF(xy1.y > xy2.y, xy2.y, xy1.y)
+ RETURN ret
 END FUNCTION
 
 ' Split a RelPos into offset, alignment, and anchor.
