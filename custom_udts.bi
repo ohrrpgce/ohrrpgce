@@ -467,8 +467,9 @@ END TYPE
 TYPE RecordPreviewer EXTENDS object
   DECLARE VIRTUAL DESTRUCTOR()
   'Passing an invalid recordidx should result in no preview and is not an error.
-  'update() might be called with the same record as last time, if the screen size has changed.
-  DECLARE ABSTRACT SUB update(recordidx as integer)
+  'update() might be called with the same record as last time, if the screen size has changed,
+  'in which cause force_reload is NO. force_reload=YES means assume the data has changed.
+  DECLARE ABSTRACT SUB update(recordidx as integer, force_reload as bool = NO)
   DECLARE ABSTRACT SUB draw(xpos as RelPos, ypos as RelPos, page as integer)
   'Optional. Name of the current record.
   DECLARE VIRTUAL FUNCTION getname() as string
@@ -497,7 +498,7 @@ TYPE MapPreviewer EXTENDS RecordPreviewer
   PUBLIC:
     DECLARE CONSTRUCTOR(screen_margin as XYPair = XY(22 * 8, 0))
     DECLARE DESTRUCTOR()
-    DECLARE SUB update(map_id as integer)
+    DECLARE SUB update overload(map_id as integer, force_reload as bool = NO)
     DECLARE SUB draw(xpos as RelPos, ypos as RelPos, page as integer)
 END TYPE
 

@@ -49,7 +49,7 @@ TYPE FormationPreviewer EXTENDS RecordPreviewer
  rootslice as Slice ptr
 
  DECLARE DESTRUCTOR()
- DECLARE SUB update(form_id as integer)
+ DECLARE SUB update(form_id as integer, force_reload as bool = NO)
  DECLARE SUB draw(xpos as RelPos, ypos as RelPos, page as integer)
 END TYPE
 
@@ -57,7 +57,7 @@ DESTRUCTOR FormationPreviewer
  DeleteSlice @rootslice
 END DESTRUCTOR
 
-SUB FormationPreviewer.update(form_id as integer)
+SUB FormationPreviewer.update(form_id as integer, force_reload as bool = NO)
  IF heromode THEN
   eform.background = -1  'Show just a rect
   load_hero_formation hform, form_id

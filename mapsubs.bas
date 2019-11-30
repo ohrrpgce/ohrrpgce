@@ -213,14 +213,19 @@ DESTRUCTOR MapPreviewer()
  IF generator THEN DELETE generator
 END DESTRUCTOR
 
-'Always causes a map reload even if the same map is already loaded
-SUB MapPreviewer.update(map_id as integer)
- IF generator THEN
-  DELETE generator
-  generator = NULL
+'If force_reload=NO, doesn't regenerate if the map_id and the zoom haven't changed
+SUB MapPreviewer.update(map_id as integer, force_reload as bool = NO)
+ IF map.id <> map_id ORELSE force_reload THEN
+  loaded = NO
+  IF generator THEN
+   DELETE generator
+   generator = NULL
+  END IF
+ ELSE
+  'Because we set fullsize_started = NO, start_generation() will be called,
+  'which will skip regenerating if the zoom hasn't changed.
  END IF
 
- loaded = NO
  want_map_id = -1
  fullsize_started = NO
  IF map_id >= 0 ANDALSO map_id <= gen(genMaxMap) THEN
@@ -278,8 +283,8 @@ SUB MapPreviewer.draw(xpos as RelPos, ypos as RelPos, page as integer)
    start_generation
   ELSEIF generator = NULL ANDALSO setwait_time_remaining > 0.025 THEN
    'Start small-scale generation when there is available time for it.
-   'Loading the map typically only takes a few milliseconds but better to avoid
-   'it while scrolling through maps on slow machines.
+   'Loading the map typically only takes a few milliseconds on Windows, <<1ms on Linux,
+   'but better to avoid any possible lag while scrolling through maps on slow machines.
    start_generation
   END IF
  END IF
@@ -331,13 +336,15 @@ SUB map_picker ()
   setkeys YES
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_choose_map"
-  IF UpdateScreenSlice() THEN state.need_update = YES  'Regenerate minimap on window resize
   IF usemenu(state) THEN state.need_update = YES
   IF select_by_typing(selectst) THEN
    select_on_word_boundary_excluding topmenu(), selectst, state, "map"
    state.need_update = YES
   END IF
   DIM map_id as integer = state.pt - 1
+
+  'Regenerate minimap on window resize, but only if zoom changes
+  IF UpdateScreenSlice() THEN previewer.update(map_id, NO)
 
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
@@ -354,7 +361,7 @@ SUB map_picker ()
 
   IF state.need_update THEN
    state.need_update = NO
-   previewer.update(map_id)
+   previewer.update(map_id, YES)
   END IF
 
   clearpage vpage
