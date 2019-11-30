@@ -202,55 +202,95 @@ DIM SHARED wall_styles(2) as WallStyle = {(@"ants", 1, 1), (@"outlined", 0, 3), 
 '                                     Map previewing
 '==========================================================================================
 
-FUNCTION get_map_minimap(map_id as integer, margin as XYPair) as Frame ptr
- DIM map as MapData
- DIM tilesets(maplayerMax) as TilesetData ptr
- map.load_for_minimap(map_id)
- loadmaptilesets tilesets(), map.gmap()
-
- 'Pick a zoom amount that prevents too much overlap with the menu
- DIM zoom as integer = minimap_zoom_amount(map.size, margin)
- DIM minimap as Frame ptr
- minimap = createminimap(map.tiles(), tilesets(), @map.pass, zoom, minimapScaled)
-
- unloadmaptilesets tilesets()
- RETURN minimap
-END FUNCTION
-
-CONSTRUCTOR MapPreviewer(screen_margin as XYPair = XY(14 * 8, 0))
+CONSTRUCTOR MapPreviewer(screen_margin as XYPair = XY(22 * 8, 0))
  margin = screen_margin
- instant_threshold = read_config_int("mapedit.instant_minimap_threshold", 10000)
- wantminimap = -1
+ want_map_id = -1
+ fullsize_started = NO
 END CONSTRUCTOR
 
 DESTRUCTOR MapPreviewer()
- frame_unload @minimap
+ unloadmaptilesets tilesets()
+ IF generator THEN DELETE generator
 END DESTRUCTOR
 
+'Always causes a map reload even if the same map is already loaded
 SUB MapPreviewer.update(map_id as integer)
- IF map_id >= 0 AND map_id <= gen(genMaxMap) THEN
-  wantminimap = map_id
-  'How large is the map? Delay loading if it would make the menu sluggish
-  IF filelen(maplumpname(map_id, "t")) < instant_threshold THEN
-   'load immediately
-   load_minimap_timer = TIMER
-  ELSE
-   load_minimap_timer = TIMER + 0.2
-  END IF
-  'Keep the old minimap momentarily instead of blacking out, to lessen flicker
- ELSE
-  wantminimap = -1
-  frame_unload @minimap
+ IF generator THEN
+  DELETE generator
+  generator = NULL
  END IF
+
+ loaded = NO
+ want_map_id = -1
+ fullsize_started = NO
+ IF map_id >= 0 ANDALSO map_id <= gen(genMaxMap) THEN
+  want_map_id = map_id
+
+  IF TIMER < last_update + 0.25 ANDALSO map.id <> map_id THEN
+   'Looks like we're flicking through maps.
+   'Create a small scale preview first, if the framerate is acceptable, or else delay
+   'entirely, then switch to full-size in 0.25s.
+   delay_fullsize_until = TIMER + 0.25
+  ELSE
+   'Immediately start on full-size preview
+   delay_fullsize_until = TIMER
+  END IF
+ END IF
+
+ last_update = TIMER
+END SUB
+
+SUB MapPreviewer.load_map(map_id as integer)
+ IF loaded THEN EXIT SUB
+ 'DIM ttt as double = TIMER
+ map.load_for_minimap(map_id)
+ loadmaptilesets tilesets(), map.gmap()
+ 'debuginfo "loaded in " & cint((timer - ttt)*1e6)
+ loaded = YES
+END SUB
+
+SUB MapPreviewer.start_generation()
+ load_map want_map_id
+
+ DIM increased_margin as XYPair
+ IF fullsize_started THEN
+  'Pick a zoom amount that prevents too much overlap with the menu
+  increased_margin = margin
+ ELSE
+  'Use a much smaller zoom so that only a small part of the screen is covered.
+  'Reduces painful flickering while flicking through maps
+  increased_margin = large(margin, vpages(vpage)->size * 7 \ 10)
+ END IF
+ DIM zoom as integer = minimap_zoom_amount(map.size, increased_margin)
+
+ IF generator THEN
+  IF generator->zoom = zoom THEN EXIT SUB  'No change
+  DELETE generator
+ END IF
+
+ generator = NEW MinimapGenerator(map.tiles(), tilesets(), @map.pass, zoom, minimapScaled)
 END SUB
 
 SUB MapPreviewer.draw(xpos as RelPos, ypos as RelPos, page as integer)
- IF wantminimap > -1 ANDALSO TIMER >= load_minimap_timer THEN
-  frame_assign @minimap, get_map_minimap(wantminimap, margin)
-  wantminimap = -1
+ IF want_map_id > -1 ANDALSO fullsize_started = NO THEN
+  IF TIMER >= delay_fullsize_until THEN
+   fullsize_started = YES
+   start_generation
+  ELSEIF generator = NULL ANDALSO setwait_time_remaining > 0.025 THEN
+   'Start small-scale generation when there is available time for it.
+   'Loading the map typically only takes a few milliseconds but better to avoid
+   'it while scrolling through maps on slow machines.
+   start_generation
+  END IF
  END IF
 
- IF minimap THEN frame_draw minimap, , xpos, ypos, , , page
+ IF generator THEN
+  'If we use up all the time, no problem: if the setwait target is missed there will be less time
+  'allocated next frame so we can still hit the target FPS. No-op if finished.
+  DIM runtime as double = large(setwait_time_remaining() - 0.008, 0.020)
+  generator->run(runtime)
+  frame_draw generator->minimap, , xpos, ypos, , , page
+ END IF
 END SUB
 
 

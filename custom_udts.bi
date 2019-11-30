@@ -476,17 +476,26 @@ END TYPE
 
 ' Preview a map by showing a minimap. The minimap doesn't try to cover the whole screen:
 ' the maximum size of the minimap is the screen size minus margin.
-' Generation of the minimap is delayed, so that it doesn't make controls unresponsive
+' Generation of the minimap may be delayed to prevent lag, and it might initially be
+' generated very small to prevent flicker.
 TYPE MapPreviewer EXTENDS RecordPreviewer
   PRIVATE:
     margin as XYPair             'Screen margin, reduces size of the minimap
-    wantminimap as integer       'Map ID or -1 if no minimap calculation pending
-    load_minimap_timer as double 'When to load a delayed minimap
-    instant_threshold as integer 'Map size in tiles: if smaller, loading is not delayed
-    minimap as Frame ptr
+    want_map_id as integer       'Map ID to load, or -1 if update() has been called
+    loaded as bool               'load_map() has been called
+    fullsize_started as bool     'Whether we've started generating a full size minimap
+    delay_fullsize_until as double 'When to start generating a full-size minimap, if it's been delayed. <=TIMER if not delayed.
+    last_update as double        'When update() was last called
+
+    map as MapData
+    tilesets(maplayerMax) as TilesetData ptr
+    generator as MinimapGenerator ptr
+
+    DECLARE SUB load_map(map_id as integer)
+    DECLARE SUB start_generation()
 
   PUBLIC:
-    DECLARE CONSTRUCTOR(screen_margin as XYPair = XY(14 * 8, 0))
+    DECLARE CONSTRUCTOR(screen_margin as XYPair = XY(22 * 8, 0))
     DECLARE DESTRUCTOR()
     DECLARE SUB update(map_id as integer)
     DECLARE SUB draw(xpos as RelPos, ypos as RelPos, page as integer)

@@ -556,7 +556,7 @@ SUB MapData.load_for_minimap(map_id as integer)
   id = map_id
   'gmap is needed for the tilesets
   loadrecord gmap(), game & ".map", getbinsize(binMAP) \ 2, id
-  IF gmap(31) = 0 THEN gmap(31) = 2
+  IF gmap(31) = 0 THEN gmap(31) = 2  'Num layers below walkabouts layer
   LoadTilemaps tiles(), maplumpname(id, "t")
   size = tiles(0).size
   LoadTilemap pass, maplumpname(id, "p")
@@ -607,8 +607,7 @@ END SUB
 
 SUB UnloadTilemaps(layers() as TileMap)
   FOR i as integer = 0 TO UBOUND(layers)
-    DEALLOCATE layers(i).data
-    layers(i).data = NULL
+    UnloadTilemap layers(i)
   NEXT
 END SUB
 
@@ -676,10 +675,7 @@ END SUB
 'This will cause extra spurious map layers to be loaded!
 FUNCTION LoadTilemaps(layers() as TileMap, filename as string, allowfail as bool = NO) as bool
   DIM as integer fh, numlayers, i, wide, high
-  FOR i = 0 TO UBOUND(layers)
-    IF layers(i).data THEN DEALLOCATE layers(i).data
-    layers(i).data = NULL
-  NEXT
+  UnloadTilemaps layers()
 
   IF OPENFILE(filename, FOR_BINARY + ACCESS_READ, fh) THEN
     IF allowfail = NO THEN showerror "Couldn't open tilemaps file " & filename

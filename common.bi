@@ -127,8 +127,9 @@ DECLARE_VECTOR_OF_TYPE(TilesetData ptr, TilesetData_ptr)
 
 TYPE MinimapGenerator
  DECLARE CONSTRUCTOR (tiles_arr() as TileMap, tilesets_arr() as TilesetData ptr, pmapptr as TileMap ptr = NULL, zoom_in as integer = -1, algorithm as MinimapAlgorithmEnum = minimapScaled)
- DECLARE FUNCTION run() as Frame ptr
  DECLARE DESTRUCTOR()
+ DECLARE FUNCTION run(runtime as double) as Frame ptr
+ DECLARE FUNCTION finished() as bool
 
  zoom as integer
  minimap as Frame Ptr
@@ -138,7 +139,9 @@ TYPE MinimapGenerator
  pmapptr as TileMap ptr
  tiles as TileMap ptr vector
  tilesets as TilesetData ptr vector
+ prng_state as uinteger
  composed_tile as Frame Ptr
+ nextrow as integer
 END TYPE
 
 DECLARE FUNCTION minimap_zoom_amount(mapsize as XYPair, margin as XYPair = XY(0,0)) as integer

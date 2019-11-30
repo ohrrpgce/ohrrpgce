@@ -1827,21 +1827,26 @@ CONSTRUCTOR MinimapGenerator (tiles_arr() as TileMap, tilesets_arr() as TilesetD
 
  DIM with_surface32 as bool = (algorithm = minimapScaled)
  minimap = frame_new(zoom * tiles[0]->wide, zoom * tiles[0]->high, , , , with_surface32)
+ frame_clear minimap, uilook(uiBackground)
 
  composed_tile = frame_new(20, 20, , YES)
 END CONSTRUCTOR
 
 DESTRUCTOR MinimapGenerator()
+ frame_unload @minimap
  frame_unload @composed_tile
  v_free tiles
  v_free tilesets
 END DESTRUCTOR
 
-FUNCTION MinimapGenerator.run() as Frame ptr
+'Compute more of the minimap, if not done yet, but stop after 'runtime' seconds.
+'Returns the minimap, whether finished or not. If you want to keep the minimap
+'after the MinimapGenerator is destructed, use frame_reference.
+FUNCTION MinimapGenerator.run(runtime as double) as Frame ptr
  DIM fraction as single = 20 / zoom
- DIM prng_state as uinteger = 0
+ DIM stoptime as double = TIMER + runtime
 
- FOR ty as integer = 0 TO tiles[0]->high - 1
+ FOR ty as integer = nextrow TO tiles[0]->high - 1
   FOR tx as integer = 0 TO tiles[0]->wide - 1
    'Clearing is only necessary if map layer 0 isn't in tiles(), so the maplayer stack may be transparent
    IF tiles[0]->layernum <> 0 THEN
@@ -1870,8 +1875,9 @@ FUNCTION MinimapGenerator.run() as Frame ptr
 
    END IF
   NEXT
+  nextrow = ty + 1
+  IF TIMER > stoptime THEN EXIT FOR
  NEXT
-
 
  ' drawtime = (TIMER - drawtime)
  ' debug "createminimap (algorithm " & algorithm & ") in " & drawtime & " -- " & (1e6 * drawtime / mini->w / mini->h)  & "us/pix"
@@ -1879,10 +1885,15 @@ FUNCTION MinimapGenerator.run() as Frame ptr
  RETURN minimap
 END FUNCTION
 
+FUNCTION MinimapGenerator.finished() as bool
+ RETURN nextrow >= tiles[0]->high
+END FUNCTION
+
 FUNCTION createminimap (tiles() as TileMap, tilesets() as TilesetData ptr, pmapptr as TileMap ptr = NULL, byref zoom as integer = -1, algorithm as MinimapAlgorithmEnum = minimapScaled) as Frame ptr
  DIM job as MinimapGenerator = MinimapGenerator(tiles(), tilesets(), pmapptr, zoom, algorithm)
  zoom = job.zoom
- RETURN job.run()
+ 'I think it's better to return an unfinished minimap than to freeze for too long
+ RETURN frame_reference(job.run(5))
 END FUNCTION
 
 FUNCTION createminimap (layer as TileMap, tileset as TilesetData ptr, byref zoom as integer = -1, algorithm as MinimapAlgorithmEnum = minimapScaled) as Frame ptr
