@@ -720,10 +720,13 @@ CONST pCenteredRight = rCenter + ancCenter + showRight 'AKA xstringright
 CONST pBottom =        rBottom + ancBottom
 CONST pRight =         rRight  + ancRight
 
-' Type of a relative coordinate, use this to indicate whether a function supports them!
+' Type of a relative coordinate or relative XYPair, use this to indicate whether a function supports them!
+' (However RelPosXY is hardly used anywhere currently)
 TYPE RelPos as integer
+TYPE RelPosXY as XYPair
 
-declare function relative_pos (pos as RelPos, pagewidth as integer, objwidth as integer = 0) as integer
+declare function relative_pos overload (pos as RelPos, pagewidth as integer, objwidth as integer = 0) as integer
+declare function relative_pos overload (pos as RelPosXY, pagesize as XYPair, objsize as XYPair = XY(0,0)) as XYPair
 declare sub RelPos_decode (pos as RelPos, byref offset as integer, byref align as AlignType, byref anchor as AlignType, byref show as AlignType)
 
 declare function bitcount (byval v as unsigned integer) as integer

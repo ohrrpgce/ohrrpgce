@@ -522,6 +522,13 @@ FUNCTION relative_pos(pos as RelPos, pagewidth as integer, objwidth as integer =
  RETURN offset
 END FUNCTION
 
+FUNCTION relative_pos(pos as RelPosXY, pagesize as XYPair, objsize as XYPair = XY(0,0)) as XYPair
+ DIM ret as XYPair = pos
+ ret.x = relative_pos(pos.x, pagesize.x, objsize.x)
+ ret.y = relative_pos(pos.y, pagesize.y, objsize.y)
+ RETURN ret
+END FUNCTION
+
 #IFDEF __FB_MAIN__
 startTest(RelPos)
   DIM offset as integer
@@ -573,6 +580,9 @@ startTest(RelPos)
   testEqual(relative_pos(rCenter + showRight, 100, 1000), -900)
   testEqual(relative_pos(rRight + ancRight - 120 + showLeft, 100, 1000), 0)
   testEqual(relative_pos(rRight + ancRight - 120 + showRight, 100, 1000), -900)
+
+  'Test RelPosXY overload
+  testEqual(relative_pos(XY(rLeft + 1312334, rCenter + 50000), XY(1000, 20000)), XY(1312334, 60000))
 endtest
 #ENDIF
 
