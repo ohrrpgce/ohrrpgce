@@ -308,12 +308,12 @@ SUB map_picker ()
    ELSEIF map_id > gen(genMaxMap) THEN
     mapedit_addmap
    END IF
+   make_map_picker_menu topmenu(), state
    state.need_update = YES
   END IF
 
   IF state.need_update THEN
    state.need_update = NO
-   make_map_picker_menu topmenu(), state
    previewer.update(map_id)
   END IF
 
