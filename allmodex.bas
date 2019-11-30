@@ -7505,7 +7505,11 @@ local sub quantize_surface_threshold(surf as Surface ptr, ret as Frame ptr, pal(
 			elseif inptr->a = 0 then
 				*outptr = 0
 			elseif quantizing then
-				*outptr = nearcolor(pal(), inptr->r, inptr->g, inptr->b, options.firstindex)
+				if options.to_intpal then
+					*outptr = nearcolor_fast(*inptr)
+				else
+					*outptr = nearcolor(pal(), inptr->r, inptr->g, inptr->b, options.firstindex)
+				end if
 			end if
 			inptr += 1
 			outptr += 1
