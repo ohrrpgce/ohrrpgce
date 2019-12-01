@@ -81,6 +81,8 @@ autobackups/
 joyset.ini
 android/tmp/
 android/extraconfig.cfg
+# Mac sdl frameworks
+mac/mac_sdl_framework_downloads
 
 ohr.geany
 
