@@ -39,21 +39,31 @@ svn update || exit 1
 
 cd wip
 
-./distrib-mac.sh ${MORE_ARGS} || exit 1
+for ARCH in i386 x86_64; do
+  export ARCH
 
-if [ ! -f ohrrpgce-game -o ! -f ohrrpgce-custom ] ; then
-  echo Aborting distrib-nightly script because distrib script failed
-  exit 1
-fi
+  if [ $ARCH = "x86_64" ]; then
+    SUFFIX=-x86_64
+  else
+    SUFFIX=
+    # For consistency with linux builds, really want SUFFIX=-x86
+  fi
 
-mv distrib/OHRRPGCE-*-wip.dmg distrib/OHRRPGCE-wip.dmg
-scp -p distrib/OHRRPGCE-wip.dmg $UPLOAD_DEST/ohrrpgce/nightly/
-rm distrib/OHRRPGCE-wip.dmg
+  ./distrib-mac.sh ${MORE_ARGS} || exit 1
 
-mv distrib/ohrrpgce-mac-minimal-*-wip.tar.gz distrib/ohrrpgce-mac-minimal.tar.gz
-scp -p distrib/ohrrpgce-mac-minimal.tar.gz $UPLOAD_DEST/ohrrpgce/nightly/
-rm distrib/ohrrpgce-mac-minimal.tar.gz
+  if [ ! -f ohrrpgce-game -o ! -f ohrrpgce-custom ] ; then
+    echo Aborting distrib-nightly script because distrib script failed
+    exit 1
+  fi
 
-scp -p distrib/ohrrpgce-mac-util.zip $UPLOAD_DEST/ohrrpgce/nightly/
-rm distrib/ohrrpgce-mac-util.zip
+  mv distrib/OHRRPGCE-*-wip$SUFFIX.dmg distrib/OHRRPGCE-wip$SUFFIX.dmg
+  scp -p distrib/OHRRPGCE-wip$SUFFIX.dmg $UPLOAD_DEST/ohrrpgce/nightly/
+  rm distrib/OHRRPGCE-wip$SUFFIX.dmg
 
+  mv distrib/ohrrpgce-mac-minimal-*-wip$SUFFIX.tar.gz distrib/ohrrpgce-mac-minimal$SUFFIX.tar.gz
+  scp -p distrib/ohrrpgce-mac-minimal$SUFFIX.tar.gz $UPLOAD_DEST/ohrrpgce/nightly/
+  rm distrib/ohrrpgce-mac-minimal$SUFFIX.tar.gz
+
+  scp -p distrib/ohrrpgce-mac-util$SUFFIX.zip $UPLOAD_DEST/ohrrpgce/nightly/
+  rm distrib/ohrrpgce-mac-util$SUFFIX.zip
+done

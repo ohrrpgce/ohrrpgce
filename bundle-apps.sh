@@ -2,8 +2,8 @@
 # This script creates the Mac OSX OHRRPGCE-Custom.app and OHRRPGCE-Game.app apps.
 # It should called only after running scons to compile the ohrrpgce-game and
 # ohrrpgce-custom binaries.
-# Note: only x86 apps are supported currently, because mac/Frameworks.tar.gz
-# only contains x86 libraries.
+#
+# Usage: ./bundle-apps.sh [i386|x86_64]"
 
 TODAY=`date "+%Y%m%d"`
 CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
@@ -19,7 +19,7 @@ rm -rf OHRRPGCE-Game.app
 rm -rf OHRRPGCE-Custom.app
 
 # Sanity checks
-for BINARY in ohrrpgce-game ohrrpgce-custom hpeak; do
+for BINARY in ohrrpgce-game ohrrpgce-custom; do  #omit hspeak, currently broken
   if ! file $BINARY | grep $ARCH ; then
     echo "$BINARY is missing or not compiled for $ARCH"
     exit 1
@@ -28,15 +28,37 @@ done
 
 find_framework() {
   NAME=$1
-  temp="~/Library/Frameworks/$NAME"
-  [ -d "$temp" ] && return "$temp"
-  temp="/System/Library/Frameworks/$NAME"
-  [ -d "$temp" ] && return "$temp"
+  SRC="$HOME/Library/Frameworks/$NAME"
+  [ -d "$SRC" ] && return 0
+  SRC="/System/Library/Frameworks/$NAME"
+  [ -d "$SRC" ] && return 0
   echo "Can't find $NAME"
   exit 1
 }
 
+thin_binary() {
+  # Remove all archs from a fat binary except $ARCH
+  #echo thin $1
+  lipo "$1" -thin $ARCH -output "$1.temp" &&
+  mv "$1.temp" "$1" || exit 1
+}
+
+thin_framework() {
+  # Run thin_binary on all binaries in a framework.
+  FWORK=$1
+  FNAME=${FWORK##*/}  # trim path
+  BINARY=$1/Versions/A/${FNAME%.framework}  # trim .framework
+  thin_binary $BINARY
+  SUBDIR=$1/Versions/A/Frameworks
+  if [ -d $SUBDIR ]; then
+    for FWORK in $SUBDIR/*; do
+      thin_framework $FWORK
+    done
+  fi
+}
+
 add_frameworks() {
+  # Add SDL.framework and SDL_mixer.framework to an .app
   APP=$1
   if [ $ARCH = "i386" ]; then
     # Use our own SDL* 1.2 frameworks, because there are some small differences:
@@ -46,17 +68,21 @@ add_frameworks() {
     # However, it is missing other fixes because it's not the latest SDL_mixer version
     tar xf mac/Frameworks.tar.gz -C $APP/Contents || exit 1
   else
-    SRC=find_framework SDL.framework
-    mkdir $APP/Contents/Frameworks
-    cp -ra $SRC $APP/Contents/Frameworks/
+    mkdir -p $APP/Contents/Frameworks
 
-    SRC=find_framework SDL_mixer.framework
-    mkdir $APP/Contents/Frameworks
-    cp -ra $SRC $APP/Contents/Frameworks/
+    find_framework SDL.framework && # sets $SRC
+    cp -ra $SRC $APP/Contents/Frameworks/ &&
+    thin_framework $APP/Contents/Frameworks/SDL.framework || exit 1
+
+    find_framework SDL_mixer.framework && # sets $SRC
+    cp -ra $SRC $APP/Contents/Frameworks/ &&
+    thin_framework $APP/Contents/Frameworks/SDL_mixer.framework &&
+
     # We don't use FLAC
-    rm -rf $APP/Contents/Frameworks/SDL_mixer.framework/Versions/A/Frameworks/FLAC.framework
+    rm -rf $APP/Contents/Frameworks/SDL_mixer.framework/Versions/A/Frameworks/FLAC.framework &&
 
-    # TODO: remove unwanted archs from fat binaries
+    # Delete header files. They're about 330kB zipped (SDL 1.2)
+    find $APP -name "*.h" -exec rm "{}" ";" || exit 1
   fi
 }
 
@@ -91,7 +117,8 @@ cp -R ohrhelp/* OHRRPGCE-Custom.app/Contents/Resources/ohrhelp &&
 cp -R data/* OHRRPGCE-Custom.app/Contents/Resources/ &&
 cp support/Terminal_wrapper.sh OHRRPGCE-Custom.app/Contents/MacOS/support/ &&
 cp plotscr.hsd scancode.hsi OHRRPGCE-Custom.app/Contents/MacOS/support/ &&
-tar xf mac/utilities.tar.gz -C OHRRPGCE-Custom.app/Contents/MacOS/support/ && 
+# TODO: ensure correct arch for hspeak, madplay and oggenc are encluded and lipo'd
+tar xf mac/utilities.tar.gz -C OHRRPGCE-Custom.app/Contents/MacOS/support/ &&
 cp hspeak OHRRPGCE-Custom.app/Contents/MacOS/support/ || exit 1
 
 add_frameworks OHRRPGCE-Custom.app

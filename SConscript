@@ -135,6 +135,10 @@ if arch == '64':
         arch = 'x86_64'
     else:
         arch = 'aarch64'
+if arch in ('i386',):
+    arch = 'x86'
+if arch in ('x64',):
+    arch = 'x86_64'
 if arch in ('armeabi', 'androideabi'):
     # armeabi is an android abi name. ARM EABI is a family of ABIs.
     # For example, in debian ARM EABI (called armel) allows armv4t+.

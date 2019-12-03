@@ -1,5 +1,16 @@
 #!/bin/sh
 
+# Call with $ARCH set to i386 or x86_64 to change arch
+
+ARCH=${ARCH:-i386}
+
+if [ $ARCH = "x86_64" ]; then
+  SUFFIX=-x86_64
+else
+  SUFFIX=
+  # For consistency with linux builds, really want SUFFIX=-x86
+fi
+
 EXTRA_SCONS_OPTIONS=$*
 
 TODAY=`date "+%Y-%m-%d"`
@@ -10,23 +21,23 @@ if [ ! -f distrib-mac.sh ] ; then
   exit 1
 fi
 
-echo Building binaries
+echo "Building binaries for ARCH=$ARCH"
 
 rm ohrrpgce-game ohrrpgce-custom
 
-scons release=1 ${EXTRA_SCONS_OPTIONS} arch=32 game custom hspeak unlump relump || exit 1
+scons release=1 ${EXTRA_SCONS_OPTIONS} arch=$ARCH game custom hspeak unlump relump || exit 1
 
-echo Bundling apps
-./bundle-apps.sh || exit 1
+echo "Bundling apps"
+./bundle-apps.sh $ARCH || exit 1
 
 echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
 mkdir -p tmp
 mkdir -p distrib
 
-echo Erasing old distribution files
-rm -f distrib/OHRRPGCE*.dmg
-rm -f distrib/ohrrpgce-mac-minimal*.zip
+#echo "Erasing old distribution files"
+#rm -f distrib/OHRRPGCE*.dmg
+#rm -f distrib/ohrrpgce-mac-*.zip
 
 echo "Packaging binary distribution of CUSTOM"
 
@@ -61,16 +72,16 @@ cp -p docs/htmlplot.xsl tmp/docs &&
 cp -p docs/more-docs.txt tmp/docs || exit 1
 
 echo "Creating disk image"
-mv tmp OHRRPGCE-$CODE
-#tar -jcf distrib/ohrrpgce-mac-x86-$TODAY-$CODE.tar.bz2 ohrrpgce --exclude .svn
-hdiutil create -srcfolder OHRRPGCE-$CODE/ -fs HFS+ distrib/OHRRPGCE-$TODAY-$CODE.dmg || exit 1
-mv OHRRPGCE-$CODE tmp
+mv tmp OHRRPGCE-$CODE$SUFFIX
+#tar -jcf distrib/ohrrpgce-mac-$TODAY-$CODE$SUFFIX.tar.bz2 ohrrpgce --exclude .svn
+hdiutil create -srcfolder OHRRPGCE-$CODE$SUFFIX/ -fs HFS+ distrib/OHRRPGCE-$TODAY-$CODE$SUFFIX.dmg || exit 1
+mv OHRRPGCE-$CODE$SUFFIX tmp
 
 echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
 
 echo "Create minimal player tarball"
-gnutar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$CODE.tar.gz OHRRPGCE-Game.app README-player-only.txt LICENSE-binary.txt
+gnutar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$CODE$SUFFIX.tar.gz OHRRPGCE-Game.app README-player-only.txt LICENSE-binary.txt
 
 echo "Creating utilities archive"
-zip distrib/ohrrpgce-mac-util.zip unlump relump hspeak plotscr.hsd scancode.hsi LICENSE-binary.txt
+zip distrib/ohrrpgce-mac-util$SUFFIX.zip unlump relump hspeak plotscr.hsd scancode.hsi LICENSE-binary.txt
