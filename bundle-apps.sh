@@ -2,17 +2,20 @@
 # This script creates the Mac OSX OHRRPGCE-Custom.app and OHRRPGCE-Game.app apps.
 # It should called only after running scons to compile the ohrrpgce-game and
 # ohrrpgce-custom binaries.
-#
-# Usage: ./bundle-apps.sh [i386|x86_64]"
+
+usage() {
+  echo "Usage: ./bundle-apps.sh [i386|x86_64] [SDL|SDL2]"
+  exit 1
+}
 
 TODAY=`date "+%Y%m%d"`
 CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
 
 ARCH=${1:-i386}
-if [ $ARCH != "i386" -a $ARCH != "x86_64" ]; then
-  echo "Usage: ./bundle-apps.sh [i386|x86_64]"
-  exit 1
-fi
+[ $ARCH = "i386" -o $ARCH = "x86_64" ] || usage
+
+SDL=${2:-SDL}
+[ $SDL = "SDL" -o $SDL = "SDL2" ] || usage
 
 echo Deleting old apps
 rm -rf OHRRPGCE-Game.app
@@ -38,7 +41,7 @@ find_framework() {
 
 thin_binary() {
   # Remove all archs from a fat binary except $ARCH
-  #echo thin $1
+  echo thin_binary $1
   lipo "$1" -thin $ARCH -output "$1.temp" &&
   mv "$1.temp" "$1" || exit 1
 }
@@ -58,10 +61,10 @@ thin_framework() {
 }
 
 add_frameworks() {
-  # Add SDL.framework and SDL_mixer.framework to an .app
+  # Add ${SDL}.framework and ${SDL}_mixer.framework to an .app
   APP=$1
-  if [ $ARCH = "i386" ]; then
-    # Use our own SDL* 1.2 frameworks, because there are some small differences:
+  if [ $ARCH = "i386" -a $SDL = "SDL" ]; then
+    # Use our own SDL* 1.2 i386 frameworks, because there are some small differences:
     # SDL_mixer is compiled for OS 10.4+ instead of 10.5+
     # SDL_mixer uses libmad instead of smpeg, which is smaller and doesn't crash on certain mp3s
     # A couple patches have been applied to SDL_mixer, notably to enable module loop points.
@@ -70,16 +73,16 @@ add_frameworks() {
   else
     mkdir -p $APP/Contents/Frameworks
 
-    find_framework SDL.framework && # sets $SRC
+    find_framework ${SDL}.framework && # sets $SRC
     cp -ra $SRC $APP/Contents/Frameworks/ &&
-    thin_framework $APP/Contents/Frameworks/SDL.framework || exit 1
+    thin_framework $APP/Contents/Frameworks/${SDL}.framework || exit 1
 
-    find_framework SDL_mixer.framework && # sets $SRC
+    find_framework ${SDL}_mixer.framework && # sets $SRC
     cp -ra $SRC $APP/Contents/Frameworks/ &&
-    thin_framework $APP/Contents/Frameworks/SDL_mixer.framework &&
+    thin_framework $APP/Contents/Frameworks/${SDL}_mixer.framework &&
 
     # We don't use FLAC
-    rm -rf $APP/Contents/Frameworks/SDL_mixer.framework/Versions/A/Frameworks/FLAC.framework &&
+    rm -rf $APP/Contents/Frameworks/${SDL}_mixer.framework/Versions/A/Frameworks/FLAC.framework &&
 
     # Delete header files. They're about 330kB zipped (SDL 1.2)
     find $APP -name "*.h" -exec rm "{}" ";" || exit 1

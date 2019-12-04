@@ -39,13 +39,18 @@ svn update || exit 1
 
 cd wip
 
-for ARCH in i386 x86_64; do
-  export ARCH
+build_package() {
+  export ARCH=$1
+  export SDL=$2
 
   if [ $ARCH = "x86_64" ]; then
     SUFFIX=-x86_64
   else
     SUFFIX=-x86
+  fi
+
+  if [ $SDL = "SDL2" ]; then
+    SUFFIX=${SUFFIX}-sdl2
   fi
 
   ./distrib-mac.sh ${MORE_ARGS} || exit 1
@@ -65,4 +70,9 @@ for ARCH in i386 x86_64; do
 
   scp -p distrib/ohrrpgce-mac-util$SUFFIX.zip $UPLOAD_DEST/ohrrpgce/nightly/
   rm distrib/ohrrpgce-mac-util$SUFFIX.zip
-done
+}
+
+
+build_package i386 SDL
+build_package x86_64 SDL
+build_package x86_64 SDL2

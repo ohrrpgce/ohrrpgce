@@ -1,13 +1,22 @@
 #!/bin/sh
 
-# Call with $ARCH set to i386 or x86_64 to change arch
+# Call with $ARCH set to i386 or x86_64 to change arch,
+# and $SDL set to SDL or SDL2 to select gfx backend
 
 ARCH=${ARCH:-i386}
+SDL=${SDL:-SDL}
 
 if [ $ARCH = "x86_64" ]; then
   SUFFIX=-x86_64
 else
   SUFFIX=-x86
+fi
+
+if [ $SDL = "SDL2" ]; then
+  GFX=sdl2
+  SUFFIX=${SUFFIX}-sdl2
+else
+  GFX=sdl
 fi
 
 EXTRA_SCONS_OPTIONS=$*
@@ -20,14 +29,14 @@ if [ ! -f distrib-mac.sh ] ; then
   exit 1
 fi
 
-echo "Building binaries for ARCH=$ARCH"
+echo "Building binaries for ARCH=$ARCH GFX=$GFX"
 
 rm ohrrpgce-game ohrrpgce-custom
 
-scons release=1 ${EXTRA_SCONS_OPTIONS} arch=$ARCH game custom hspeak unlump relump || exit 1
+scons release=1 ${EXTRA_SCONS_OPTIONS} arch=$ARCH gfx=$GFX game custom hspeak unlump relump || exit 1
 
 echo "Bundling apps"
-./bundle-apps.sh $ARCH || exit 1
+./bundle-apps.sh $ARCH $SDL || exit 1
 
 echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
