@@ -7,8 +7,7 @@ ARCH=${ARCH:-i386}
 if [ $ARCH = "x86_64" ]; then
   SUFFIX=-x86_64
 else
-  SUFFIX=
-  # For consistency with linux builds, really want SUFFIX=-x86
+  SUFFIX=-x86
 fi
 
 EXTRA_SCONS_OPTIONS=$*

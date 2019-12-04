@@ -4144,7 +4144,7 @@ END SUB
 FUNCTION custom_setoption(opt as string, arg as string) as integer
  IF opt = "distrib" THEN
   SELECT CASE arg
-   CASE "zip", "win", "mac", "tarball", "tarball64", "tarball32", "debian", "debian64", "debian32", "all"
+   CASE "zip", "win", "mac", "mac32", "mac64", "tarball", "tarball64", "tarball32", "debian", "debian64", "debian32", "all"
     auto_distrib = arg
     RETURN 2
   END SELECT

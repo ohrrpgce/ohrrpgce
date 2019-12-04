@@ -195,7 +195,7 @@ Septotobvember ? 2019 [Fufluns]
     * "keyval" now takes the joystick number as a second argument (for use
       with joy: key constants), like "key is pressed" did [Ralph]
     * "get joystick name", "joystick button count", "joystick axis count",
-      "joystick hat count" [Ralph]
+      "joystick hat count" (only works with gfx_sdl/gfx_sdl2 currently) [Ralph]
     * "suspend/resume textbox controls" and "textbox controls are suspended"
     * "find color" [Ralph]
     * "set selected child", "get selected child" (only for convenience) [Ralph]

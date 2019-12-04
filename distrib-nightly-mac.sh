@@ -45,8 +45,7 @@ for ARCH in i386 x86_64; do
   if [ $ARCH = "x86_64" ]; then
     SUFFIX=-x86_64
   else
-    SUFFIX=
-    # For consistency with linux builds, really want SUFFIX=-x86
+    SUFFIX=-x86
   fi
 
   ./distrib-mac.sh ${MORE_ARGS} || exit 1

@@ -23,7 +23,7 @@ DECLARE SUB distribute_game_as_windows_installer ()
 DECLARE SUB distribute_game_as_linux_tarball (which_arch as string)
 DECLARE FUNCTION get_windows_gameplayer() as string
 DECLARE FUNCTION get_linux_gameplayer(which_arch as string) as string
-DECLARE FUNCTION get_mac_gameplayer() as string
+DECLARE FUNCTION get_mac_gameplayer(which_arch as string) as string
 DECLARE FUNCTION find_or_download_innosetup () as string
 DECLARE FUNCTION find_innosetup () as string
 DECLARE FUNCTION win_or_wine_drive(letter as string) as string
@@ -67,7 +67,7 @@ DECLARE SUB maybe_write_license_text_file (filename as string)
 DECLARE FUNCTION is_known_license(license_code as string) as integer
 DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
 DECLARE FUNCTION browse_licenses(old_license as string) as string
-DECLARE SUB distribute_game_as_mac_app ()
+DECLARE SUB distribute_game_as_mac_app (which_arch as string)
 DECLARE FUNCTION running_64bit() as bool
 
 CONST distmenuEXIT as integer = 1
@@ -80,6 +80,7 @@ CONST distmenuINFO as integer = 7
 CONST distmenuREADME as integer = 8
 CONST distmenuLINUXSETUP as integer = 9
 CONST distmenuLINUX64SETUP as integer = 10
+CONST distmenuMAC64SETUP as integer = 11
 
 DECLARE FUNCTION dist_yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
 DECLARE SUB dist_info (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
@@ -111,7 +112,12 @@ SUB distribute_game ()
   append_simplemenu_item menu, " (requires Windows or wine)", YES, uilook(uiDisabledItem)
  END IF
 
- append_simplemenu_item menu, "Export Mac OS X App Bundle", , , distmenuMACSETUP
+ append_simplemenu_item menu, "Export Mac OS X App Bundle (64bit)", , , distmenuMAC64SETUP
+ IF NOT can_make_mac_packages() THEN
+  append_simplemenu_item menu, " (requires tar+gzip)", YES, uilook(uiDisabledItem)
+ END IF
+
+ append_simplemenu_item menu, "Export Mac OS X App Bundle (old 32bit Macs)", , , distmenuMACSETUP
  IF NOT can_make_mac_packages() THEN
   append_simplemenu_item menu, " (requires tar+gzip)", YES, uilook(uiDisabledItem)
  END IF
@@ -158,9 +164,12 @@ SUB distribute_game ()
     CASE distmenuWINSETUP:
      save_current_game 0
      distribute_game_as_windows_installer
+    CASE distmenuMAC64SETUP:
+     save_current_game 0
+     distribute_game_as_mac_app "x86_64"
     CASE distmenuMACSETUP:
      save_current_game 0
-     distribute_game_as_mac_app
+     distribute_game_as_mac_app "x86"
     CASE distmenuDEB64SETUP:
      save_current_game 0
      distribute_game_as_debian_package "x86_64"
@@ -1395,6 +1404,7 @@ FUNCTION gzip_file (filename as string) as integer
  IF LEN(spawn_ret) THEN dist_info spawn_ret : RETURN NO
  IF NOT isfile(filename & ".gz") THEN
   dist_info "ERROR: gzip completed but " & filename & ".gz was not created"
+  RETURN NO
  END IF
 
  RETURN YES
@@ -1412,6 +1422,7 @@ FUNCTION gunzip_file (filename as string) as integer
  IF LEN(spawn_ret) THEN dist_info spawn_ret : RETURN NO
  IF NOT isfile(trimextension(filename)) THEN
   dist_info "ERROR: gzip -d completed but " & filename & ".gz was not uncompressed"
+  RETURN NO
  END IF
 
  RETURN YES
@@ -1526,12 +1537,18 @@ IF find_helper_app("gzip") = "" THEN RETURN NO
 RETURN YES
 END FUNCTION
 
-SUB distribute_game_as_mac_app ()
+SUB distribute_game_as_mac_app (which_arch as string)
 
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
- DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & "-mac.zip"
+ DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname
+ IF which_arch = "x86" THEN
+  'This is an obsolete arch, add a suffix
+  destname &= "-mac-32bit.zip"
+ ELSE
+  destname &= "-mac.zip"
+ END IF
  DIM destshortname as string = trimpath(destname)
 
  IF isfile(destname) THEN
@@ -1551,8 +1568,8 @@ SUB distribute_game_as_mac_app ()
 
   debuginfo "Rename mac game player" 
   DIM gameplayer as string
-  gameplayer = get_mac_gameplayer()
-  IF gameplayer = "" THEN dist_info "ERROR: OHRRPGCE-Game.app is not available" : EXIT DO
+  gameplayer = get_mac_gameplayer(which_arch)
+  IF gameplayer = "" THEN dist_info "ERROR: OHRRPGCE-Game.app for " & which_arch & " is not available" : EXIT DO
   DIM app as string = apptmp & SLASH & distinfo.pkgname & ".app"
 #IFDEF __FB_WIN32__
   IF confirmed_copydirectory(gameplayer, app) = NO THEN dist_info "Couldn't copy " & gameplayer & " to " & app : EXIT DO
@@ -1656,10 +1673,19 @@ FUNCTION prepare_mac_app_zip(zipfile as string, gamename as string) as bool
 END FUNCTION
 '/
 
-FUNCTION get_mac_gameplayer() as string
+FUNCTION get_mac_gameplayer(which_arch as string) as string
  'Download OHRRPGCE-Game.app,
  'unzip it, and return the full path.
  'Returns "" for failure.
+
+ DIM arch_suffix as string
+ SELECT CASE which_arch
+  CASE "x86", "x86_64":
+   arch_suffix = "-" & which_arch
+  CASE ELSE:
+   dist_info "Unknown arch """ & which_arch & """; should be one of x86 or x86_64"
+   RETURN ""
+ END SELECT
 
  '--Find the folder that we are going to download OHRRPGCE-Game.app into
  DIM dldir as string = settings_dir & SLASH & "_gameplayer"
@@ -1669,7 +1695,7 @@ FUNCTION get_mac_gameplayer() as string
  '--Decide which url to download
  DIM url as string
  DIM dlfile as string
- dlfile = "ohrrpgce-mac-minimal.tar.gz"
+ dlfile = "ohrrpgce-mac-minimal" & arch_suffix & ".tar.gz"
 
  IF version_branch = "wip" THEN
   'If using any wip release, get the latest wip release
@@ -1719,12 +1745,10 @@ SUB distribute_game_as_linux_tarball (which_arch as string)
 
  DIM arch_suffix as string
  SELECT CASE which_arch
-  CASE "x86":
-   arch_suffix = "-x86"
-  CASE "x86_64":
-   arch_suffix = "-x86_64"
+  CASE "x86", "x86_64":
+   arch_suffix = "-" & which_arch
   CASE ELSE:
-   dist_info "Unknown arch """ & which_arch & """ should be one of x86 or x86_64"
+   dist_info "Unknown arch """ & which_arch & """; should be one of x86 or x86_64"
    EXIT SUB
  END SELECT
 
@@ -1822,11 +1846,18 @@ SUB auto_export_distribs (distrib_type as string)
    dist_info "auto distrib: windows installer export unavailable"
   END IF
  END IF
- IF distrib_type = "mac" ORELSE distrib_type = "all" THEN
+ IF distrib_type = "mac32" ORELSE distrib_type = "all" THEN
   IF can_make_mac_packages() THEN
-   distribute_game_as_mac_app
+   distribute_game_as_mac_app "x86"
   ELSE
-   dist_info "auto distrib: mac app export unavailable"
+   dist_info "auto distrib: mac 32-bit app export unavailable"
+  END IF
+ END IF
+ IF distrib_type = "mac64" ORELSE distrib_type = "mac" ORELSE distrib_type = "all" THEN
+  IF can_make_mac_packages() THEN
+   distribute_game_as_mac_app "x86_64"
+  ELSE
+   dist_info "auto distrib: mac 64-bit app export unavailable"
   END IF
  END IF
  IF distrib_type = "debian32" ORELSE distrib_type = "all" THEN
