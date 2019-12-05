@@ -186,13 +186,8 @@ svninfo.txt should have been included with the source code if you downloaded a
 
 ########################################################################
 
-def get_euphoria_version():
+def get_euphoria_version(EUC):
     """Returns an integer like 40103 meaning 4.1.3"""
-    # WARNING! I still have not found any way to capture euc's stderr.
-    # This currently just lies on windows, and returns a fake version number
-    # (currently the version number installed on the nightly build machine)
-    if host_win32: return 40005
-    
     # euc does something really weird when you try to capture stderr. Seems to
     # duplicate stdout to stderr.
     # Using stderr=subprocess.STDOUT to merge stderr back into stdout works around it
@@ -200,7 +195,7 @@ def get_euphoria_version():
     # This works even if you are redirecting:
     #    scons hspeak 2>&1 | tee
     # Which is important because the nightly builds need to do that
-    eucver = subprocess.check_output(["euc", "--version"], stderr=subprocess.STDOUT)
+    eucver = subprocess.check_output([EUC, "--version"], stderr=subprocess.STDOUT)
     eucver = re.findall(" v([0-9.]+)", eucver)[0]
     print "Euphoria version", eucver
     x,y,z = eucver.split('.')

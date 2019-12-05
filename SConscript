@@ -71,6 +71,8 @@ fbc_binary, fbcversion, fullfbcversion, default_target, default_arch = ohrbuild.
 if verbose:
     print "Using fbc", fbc_binary #, " version:", fbcversion
 
+host_win32 = platform.system() == 'Windows'
+
 win32 = False
 unix = False  # True on mac and android
 mac = False
@@ -297,7 +299,7 @@ for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR', 'GCC', 'AS', 'CC', 'CXX':
     if var in os.environ:
         env['ENV'][var] = os.environ[var]
 
-def findtool(envvar, toolname):
+def findtool(envvar, toolname, always_expand = False):
     if os.environ.get (envvar):
         ret = os.environ.get (envvar)
     elif WhereIs (target_prefix + toolname):
@@ -306,7 +308,7 @@ def findtool(envvar, toolname):
         ret = toolname
     # standalone builds of FB on Windows do not search $PATH for binaries,
     # so we have to do so for it!
-    if win32:
+    if win32 or always_expand:
         ret = WhereIs (ret)
     return ret
 
@@ -316,6 +318,7 @@ def findtool(envvar, toolname):
 GCC = findtool ('GCC', "gcc")
 CC = findtool ('CC', "gcc")
 CXX = findtool ('CXX', "g++")
+EUC = findtool ('EUC', "euc", True) # Euphoria to C compiler. Expand path because listed as dependency
 MAKE = findtool ('MAKE', 'make')
 if not MAKE and win32:
     MAKE = findtool ('MAKE', 'mingw32-make')
@@ -345,8 +348,6 @@ if CXX:
 # GCC will process the first -dump* arg it recognises, and ignores others.
 fullgccversion = get_command_output(GCC, ["-dumpfullversion", "-dumpversion"])
 gccversion = int(fullgccversion.replace('.', ''))  # Convert e.g. 4.9.2 to 492
-
-EUC = WhereIs("euc")  # Euphoria compiler
 
 
 ################ Define Builders and Scanners for FreeBASIC and ReloadBasic
@@ -1184,7 +1185,9 @@ def compile_hspeak(target, source, env):
     # copy of Euphoria is installed system-wide
     if 'EUDIR' in env['ENV']:
         euc_extra_args += ' -eudir ' + env['ENV']['EUDIR']
-    if ohrbuild.get_euphoria_version() >= 40100 and NO_PIE and not mac:
+    # We have not found any way to capture euc's stderr on Windows so can't check version there
+    # (But currently the nightly build machine runs 4.0.5)
+    if not host_win32 and ohrbuild.get_euphoria_version(EUC) >= 40100 and NO_PIE and not mac:
         # On some systems (not including mac) gcc defaults to building PIE
         # executables, but the linux euphoria 4.1.0 builds aren't built for PIE/PIC,
         # resulting in a "recompile with -fPIC" error.
@@ -1193,13 +1196,13 @@ def compile_hspeak(target, source, env):
 
     actions = [
         # maxsize: cause euc to split hspeak.exw to multiple .c files
-        "euc -con -gcc hspeak.exw -verbose -maxsize 5000 -makefile -build-dir %s " % hspeak_builddir + euc_extra_args,
+        EUC + " -con -gcc hspeak.exw -verbose -maxsize 5000 -makefile -build-dir %s " % hspeak_builddir + euc_extra_args,
         "%s -j%d -C %s -f hspeak.mak" % (MAKE, GetOption('num_jobs'), hspeak_builddir)
     ]
     Action(actions)(target, source, env)
 
 # HSpeak is built by translating to C, generating a Makefile, and running make.
-HSPEAK = env.Command (rootdir + 'hspeak' + exe_suffix, source = ['hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'),
+HSPEAK = env.Command (rootdir + 'hspeak' + exe_suffix, source = [EUC, 'hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'),
                       action = Action(compile_hspeak, "Compiling hspeak"))
 Alias('hspeak', HSPEAK)
 
@@ -1504,6 +1507,7 @@ The following environmental variables are also important:
   OHRGFX, OHRMUSIC    Specify default gfx, music backends
   DXSDK_DIR, Lib,
      Include          For compiling gfx_directx.dll
+  EUC                 euc Euphoria-to-C compiler, for compiling hspeak
   EUDIR               Override location of the Euphoria installation, for
                       compiling hspeak (not needed if installed system-wide)
 
