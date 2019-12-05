@@ -10,6 +10,13 @@ if [ $ARCH = "x86_64" ]; then
   SUFFIX=-x86_64
 else
   SUFFIX=-x86
+  # Unfortunately a single euphoria installation can only target one arch, so
+  # need a second one outside of $PATH. Mac nightly build machine has 64-bit
+  # euphoria in PATH
+  if [ -d ~/misc/eu32]; then
+    export EUDIR=~/misc/eu32
+    export EUC=$EUDIR/bin/euc
+  fi
 fi
 
 if [ $SDL = "SDL2" ]; then
