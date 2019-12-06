@@ -3576,7 +3576,7 @@ SUB script_functions(byval cmdid as integer)
 
  CASE 26'--set NPC frame
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN npc(npcref).frame = bound(retvals(1), 0, WALKFRAMES - 1) * wtog_ticks()
+  IF npcref >= 0 THEN npc(npcref).wtog = bound(retvals(1), 0, WALKFRAMES - 1) * wtog_ticks()
  CASE 39'--camera follows NPC
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
@@ -3752,7 +3752,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 192'--NPC frame
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN scriptret = npc(npcref).frame \ 2
+  IF npcref >= 0 THEN scriptret = wtog_to_frame(npc(npcref).wtog)
  CASE 193'--NPC extra
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN

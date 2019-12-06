@@ -7129,8 +7129,9 @@ FUNCTION max_wtog() as integer
 END FUNCTION
 
 FUNCTION wtog_to_frame(wtog as integer) as integer
- 'The reason for this wrapper is to ensure frame numbers don't go out of buonds if
+ 'The reason for this wrapper is to ensure frame numbers don't go out of bounds if
  'you change genTicksPerWalkFrame while live previewing (or even "write general")
+ 'or loading an old save
  RETURN small(wtog \ wtog_ticks(), WALKFRAMES - 1)
 END FUNCTION
 

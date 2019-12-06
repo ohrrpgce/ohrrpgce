@@ -1616,7 +1616,7 @@ SUB update_npcs ()
      npc(o).z = heroz(0) 'NPC Z value is matched to the hero in update_vehicle_state for simplicity, but
                          'this is here in case of setheroz or setnpcz or loaded map state or other funkiness happens
      npc(o).dir = herodir(0)
-     npc(o).frame = herow(0).wtog
+     npc(o).wtog = herow(0).wtog
     END IF
    ELSE
     '--For all NPCs except the active vehicle
@@ -1706,7 +1706,7 @@ SUB npcmove_meandering_avoid(npci as NPCInst)
 END SUB
 
 SUB npcmove_walk_in_place(npci as NPCInst)
- loopvar npci.frame, 0, max_wtog()
+ loopvar npci.wtog, 0, max_wtog()
 END SUB
 
 SUB npcmove_direct_chase(npci as NPCInst, npcdata as NPCType)
@@ -2011,7 +2011,7 @@ FUNCTION perform_npc_move(byval npcnum as NPCIndex, npci as NPCInst, npcdata as 
  DIM finished_step as bool = NO
  'Inconsistency: NPCs advance walk frame when they try to walk into a wall (which must be
  'preserved) but heroes don't (probably doesn't matter)
- loopvar npci.frame, 0, max_wtog()
+ loopvar npci.wtog, 0, max_wtog()
  DIM hit_something as bool = NO
  IF movdivis(npci.xgo) OR movdivis(npci.ygo) THEN
   'This check only happens when the NPC is about to start moving to a new tile
@@ -2020,11 +2020,12 @@ FUNCTION perform_npc_move(byval npcnum as NPCIndex, npci as NPCInst, npcdata as 
    npci.xgo = 0
    npci.ygo = 0
    IF collision_type = collideHero THEN
-    '--a 0-3 tick delay before pacing enemies bounce off hero
+    '--a random 0 to max_wtog() tick delay before pacing enemies bounce off hero
     'James: "This delay feels like something I must have done by mistake in the late 90's"
     'Any delay here will break Follow walls stop for others, so disable the delay.
     'Yuck, maybe we should just remove this.
-    IF npci.frame = max_wtog() ORELSE (npcdata.movetype = 13 OR npcdata.movetype = 14) THEN
+    'TODO: well now with variable walk toggle speed this makes much less sense
+    IF npci.wtog = max_wtog() ORELSE (npcdata.movetype = 13 OR npcdata.movetype = 14) THEN
      npchitwall(npci, npcdata, collision_type)
      hit_something = YES
     END IF

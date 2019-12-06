@@ -229,7 +229,7 @@ SUB LoadNPCL(file as string, dat() as NPCInst)
     dat(i).dir = ReadShort(f,-1)
   NEXT
   FOR i = 0 to 299
-    dat(i).frame = ReadShort(f,-1)
+    dat(i).wtog = ReadShort(f,-1)
   NEXT
   CLOSE #f
 END SUB
@@ -253,7 +253,7 @@ SUB SaveNPCL(file as string, dat() as NPCInst)
     WriteShort f, -1, dat(i).dir
   NEXT
   FOR i = 0 to 299
-    WriteShort f, -1, dat(i).frame
+    WriteShort f, -1, dat(i).wtog
   NEXT
   CLOSE #f
 END SUB
@@ -276,7 +276,7 @@ SUB DeserNPCL(npc() as NPCInst, byref z as integer, buffer() as integer, byval n
     npc(i).dir = buffer(z): z = z + 1
   NEXT
   FOR i = 0 to num - 1
-    npc(i).frame = buffer(z): z = z + 1
+    npc(i).wtog = buffer(z): z = z + 1
   NEXT
   FOR i = 0 to num - 1
     npc(i).xgo = buffer(z): z = z + 1
@@ -340,7 +340,7 @@ SUB save_npc_instance (byval parent as NodePtr, byval index as NPCIndex, npc as 
   SetChildNode(n, "y", .y - map_offset.y * 20)
   SetChildNode(n, "z", .z)
   SetChildNode(n, "d", .dir)
-  SetChildNode(n, "fr", .frame)
+  SetChildNode(n, "fr", .wtog)
   IF .xgo THEN SetChildNode(n, "xgo", .xgo)
   IF .ygo THEN SetChildNode(n, "ygo", .ygo)
   FOR j as integer = 0 TO 2
@@ -405,7 +405,7 @@ SUB load_npc_instance (byval n as NodePtr, npc as NPCInst, map_offset as XYPair)
    .y = GetChildNodeInt(n, "y") + map_offset.y * 20
    .z = GetChildNodeInt(n, "z")
    .dir = GetChildNodeInt(n, "d")
-   .frame = GetChildNodeInt(n, "fr")
+   .wtog = GetChildNodeInt(n, "fr")
    .xgo = GetChildNodeInt(n, "xgo")
    .ygo = GetChildNodeInt(n, "ygo")
    flusharray .extra()

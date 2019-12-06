@@ -314,7 +314,7 @@ TYPE NPCInst
     xygo as XYPair
   END UNION
   dir as DirNum     'npcl+900
-  frame as integer  'npcl+1200   0-3: ticks in walk animation loop (2 ticks per frame)
+  wtog as integer   'npcl+1200   tick in walk animation: the frame number is computed from this
   extra(2) as integer
   ignore_walls as bool  'ignore passmap, zones and map edges (but not NPC/hero obstructions)
   not_obstruction as bool 'can walk through npcs+heroes and vice-versa

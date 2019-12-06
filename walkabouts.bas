@@ -319,7 +319,7 @@ LOCAL SUB update_walkabout_npc_slices()
  '--now apply sprite frame changes
  FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN '-- if visible
-   set_walkabout_frame npc(i).sl, npc(i).dir, wtog_to_frame(npc(i).frame)
+   set_walkabout_frame npc(i).sl, npc(i).dir, wtog_to_frame(npc(i).wtog)
   END IF
  NEXT i
 END SUB
