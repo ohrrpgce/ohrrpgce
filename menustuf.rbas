@@ -1463,9 +1463,9 @@ SUB picksave_draw(menu() as string, byval loading as bool, byval newgame_opt as 
  IF loading THEN boxstyle = 1 ELSE boxstyle = 0
 
  STATIC tog as integer
- STATIC walk as integer
+ STATIC wtog as integer
  tog = tog XOR 1
- walk = walk XOR tog
+ loopvar wtog, 0, max_wtog()
 
  DIM last_slot as integer = UBOUND(pv)
  
@@ -1495,7 +1495,9 @@ SUB picksave_draw(menu() as string, byval loading as bool, byval newgame_opt as 
    setclip 5, yoff + 22, 315, yoff + 63, vpages(page)
    FOR o as integer = 3 TO 0 STEP -1
     IF sprites(i, o).sprite THEN
-     frame_draw sprites(i, o).sprite + iif(st.pt = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + yoff, 1, -1, page
+     DIM wframe as integer = 0
+     IF st.pt = i THEN wframe = wtog_to_frame(wtog)
+     frame_draw sprites(i, o).sprite + wframe, sprites(i, o).pal, 140 + (o * 42), 24 + yoff, 1, -1, page
     END IF
    NEXT o
    setclip , , , , vpages(page)
@@ -3549,7 +3551,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  holdscreen = allocatepage
  copypage page, holdscreen
 
- DIM wtogl as integer
+ DIM wtog as integer
  DIM tog as integer
  DIM col as integer
  DIM atk as AttackData
@@ -3588,7 +3590,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   setwait speedcontrol
   setkeys
   tog = tog XOR 1
-  loopvar wtogl, 0, 3
+  loopvar wtog, 0, max_wtog()
 
   playtimer
   do_effect = NO
@@ -3726,7 +3728,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   FOR i as integer = 0 TO 3
    IF gam.hero(i).id >= 0 THEN
     DIM frame as integer = 0
-    IF targ = i THEN frame = wtogl \ 2
+    IF targ = i THEN frame = wtog_to_frame(wtog)
     set_walkabout_frame herow(cater_slot).sl, dirDown, frame
     DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 89 + x_offset, 8 + i * 20, 20, 20, page, YES
     col = uilook(uiMenuItem)
@@ -4086,13 +4088,11 @@ SUB old_spells_menu (byval who as integer)
  copypage sp.page, holdscreen
 
  menusound gen(genAcceptSFX)
- DIM wtogl as integer = 0
  setkeys
  DO
   setwait speedcontrol
   setkeys
   sp.tog = sp.tog XOR 1
-  loopvar wtogl, 0, 3
   playtimer
   spells_menu_control sp
   IF sp.quit THEN EXIT DO

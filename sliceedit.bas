@@ -848,11 +848,10 @@ FUNCTION slice_editor_mouse_over (edslice as Slice ptr, slicemenu() as SliceEdit
  DIM topmost as Slice ptr = NULL
  DIM idx as integer = 0
  DO
-  DIM temp as integer = idx
   ' Search for visible slices
   ' (FindSliceAtPoint returns slices starting from the bottommost. We loop through every
   ' slice at this point (indexed by 'idx'))
-  DIM sl as Slice ptr = FindSliceAtPoint(parent, mouse.pos, temp, YES, YES)
+  DIM sl as Slice ptr = FindSliceAtPoint(parent, mouse.pos, idx, YES, YES)
   IF sl = 0 THEN EXIT DO
 
   'Ignore various invisible types of slices. Don't ignore Scroll slices because they may have a scrollbar.

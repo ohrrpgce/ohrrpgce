@@ -7110,6 +7110,30 @@ FUNCTION ideal_ticks_per_second() as double
  RETURN 18.3
 END FUNCTION
 
+'Ticks per walk frame, including walk-in-place.
+'This is temporary until walking animations are handled by the animation system.
+FUNCTION wtog_ticks() as integer
+ DIM ret as integer = gen(genTicksPerWalkFrame)
+ IF ret <= 0 THEN
+  ret = 55 * 2 / gen(genMillisecPerFrame)
+  IF ret = 0 THEN ret = 1
+ END IF
+ RETURN ret
+END FUNCTION
+
+'Value that wtog (for walking animation) loops up to:
+'ticks to complete a walking animation loop minus 1.
+'This is temporary until walking animations are handled by the animation system.
+FUNCTION max_wtog() as integer
+ RETURN WALKFRAMES * wtog_ticks() - 1
+END FUNCTION
+
+FUNCTION wtog_to_frame(wtog as integer) as integer
+ 'The reason for this wrapper is to ensure frame numbers don't go out of buonds if
+ 'you change genTicksPerWalkFrame while live previewing (or even "write general")
+ RETURN small(wtog \ wtog_ticks(), WALKFRAMES - 1)
+END FUNCTION
+
 SUB cleanup_global_reload_doc ()
  DIM rnod as reload.NodePtr = reload.DocumentRoot(global_reload_doc)
  DIM num as integer = reload.NumChildren(rnod)

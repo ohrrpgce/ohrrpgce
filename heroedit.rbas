@@ -136,7 +136,7 @@ FUNCTION hero_editor (hero_id as integer) as integer
 
  setkeys YES
  DO
-  setwait 55
+  setwait gen(genMillisecPerFrame)
   setkeys YES
   animate_hero_preview st
   IF keyval(ccCancel) > 1 THEN EXIT DO
@@ -1448,25 +1448,34 @@ SUB clear_hero_preview_pics(byref st as HeroEditState)
 END SUB
 
 SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
+ 'Note that hero menu runs as genMillisecPerFrame, so use same number of ticks as in-game...
+ 'BUT battles still are 18.3fps and 2 ticks per frame so need to convert.
+ DIM battle_wtog_ticks as integer = large(1, 55 * 2 / gen(genMillisecPerFrame))
+
+ STATIC as integer wtog, battle_wtog
+ loopvar wtog, 0, max_wtog()
+ loopvar battle_wtog, 0, 2 * battle_wtog_ticks - 1
+
  STATIC tog as integer
- loopvar tog, 0, 3
- 
+ tog = tog XOR 1
+
  DIM frame as integer
  IF st.previewframe <> -1 THEN
-  frame = st.previewframe + 2
+  frame = frameATTACKA + st.previewframe
  ELSE
-  frame = tog \ 2
+  frame = battle_wtog \ battle_wtog_ticks
  END IF
- frame_draw st.battle.sprite + frame, st.battle.pal, 250, 25,,,dpage
- frame = st.preview_walk_direction * 2 + tog \ 2
+ frame_draw st.battle.sprite + frame, st.battle.pal, 250, 25, , , dpage
+
+ frame = st.preview_walk_direction * WALKFRAMES + wtog_to_frame(wtog)
  frame_draw st.walkabout.sprite + frame, st.walkabout.pal, 230 + st.preview_walk_pos.x, 5 + st.preview_walk_pos.y, , , dpage
- DIM col as integer = uilook(uiSelectedItem + tog \ 2)
+ DIM col as integer = uilook(uiSelectedItem + tog)
  IF st.previewframe <> -1 THEN
   DIM hand as XYPair = her.hand_pos(st.previewframe)
-  drawline 248 + hand.x,25 + hand.y,249 + hand.x, 25 + hand.y, col, dpage
-  drawline 250 + hand.x,23 + hand.y,250 + hand.x, 24 + hand.y, col, dpage
-  drawline 251 + hand.x,25 + hand.y,252 + hand.x, 25 + hand.y, col, dpage
-  drawline 250 + hand.x,26 + hand.y,250 + hand.x, 27 + hand.y, col, dpage
+  drawline 248 + hand.x, 25 + hand.y, 249 + hand.x, 25 + hand.y, col, dpage
+  drawline 250 + hand.x, 23 + hand.y, 250 + hand.x, 24 + hand.y, col, dpage
+  drawline 251 + hand.x, 25 + hand.y, 252 + hand.x, 25 + hand.y, col, dpage
+  drawline 250 + hand.x, 26 + hand.y, 250 + hand.x, 27 + hand.y, col, dpage
  END IF
  IF st.portrait.sprite THEN frame_draw st.portrait.sprite, st.portrait.pal, 240, 110, , , dpage
 END SUB
@@ -1515,7 +1524,7 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
  st.changed = NO
  setkeys
  DO
-  setwait 55
+  setwait gen(genMillisecPerFrame)
   setkeys
   animate_hero_preview st
   IF keyval(ccCancel) > 1 THEN EXIT DO

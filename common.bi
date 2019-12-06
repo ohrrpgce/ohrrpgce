@@ -337,6 +337,9 @@ DECLARE FUNCTION atlevel_quadratic (byval lev as double, byval a0 as double, byv
 DECLARE FUNCTION max_tag() as integer
 
 DECLARE FUNCTION ideal_ticks_per_second() as double
+DECLARE FUNCTION wtog_ticks() as integer
+DECLARE FUNCTION max_wtog() as integer
+DECLARE FUNCTION wtog_to_frame(wtog as integer) as integer
 
 DECLARE SUB cleanup_global_reload_doc ()
 DECLARE FUNCTION get_reload_copy (byval n as NodePtr) as NodePtr

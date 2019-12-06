@@ -307,13 +307,15 @@ SUB verify_quit
  walkthreshold = box.w \ 4
  usethreshold = box.w \ 10
 
+ DIM walkspeed as integer = large(2, herow(0).speed)
+
  setkeys
  DO
   setwait speedcontrol
   setkeys
   tog = tog XOR 1
   playtimer
-  loopvar wtog, 0, 3
+  loopvar wtog, 0, max_wtog()
 
   'Keyboard controls
   IF carray(ccMenu) > 1 THEN EXIT DO
@@ -321,8 +323,8 @@ SUB verify_quit
    IF ptr2 < 0 THEN gam.quit = YES: fadeout uilook(uiFadeoutQuit)
    EXIT DO
   END IF
-  IF carray(ccLeft) > 0 THEN ptr2 = ptr2 - 5: direction = dirLeft
-  IF carray(ccRight) > 0 THEN ptr2 = ptr2 + 5: direction = dirRight
+  IF carray(ccLeft) > 0 THEN ptr2 = ptr2 - walkspeed: direction = dirLeft
+  IF carray(ccRight) > 0 THEN ptr2 = ptr2 + walkspeed: direction = dirRight
 
   DIM centerx as integer = vpages(vpage)->w \ 2
   DIM centery as integer = vpages(vpage)->h \ 2
@@ -352,7 +354,7 @@ SUB verify_quit
 
   copypage holdscreen, vpage
   centerbox centerx, centery - 5, box.w, box.h, 15, vpage
-  set_walkabout_frame herow(0).sl, direction, wtog \ 2
+  set_walkabout_frame herow(0).sl, direction, wtog_to_frame(wtog)
   DrawSliceAt herow(0).sl, centerx - 10 + ptr2, centery + box.h \ 2 - 21 - 10, 20, 20, vpage, YES
   edgeprint quitprompt, pCentered, centery - box.h \ 2 + 1, uilook(uiText), vpage
   col = uilook(uiMenuItem)

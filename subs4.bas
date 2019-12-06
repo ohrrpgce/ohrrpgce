@@ -1223,6 +1223,18 @@ SUB GeneralSettingsMenu.update()
  add_item , , "Framerate: " & fps & " frames/sec (" & gen(genMillisecPerFrame) & "ms/frame)"
  gen_int genMillisecPerFrame, 16, 200
 
+ DIM ticks as integer = gen(genTicksPerWalkFrame)
+ tmp = "Walk animation rate: "
+ IF ticks = 0 THEN
+  ticks = wtog_ticks()
+  tmp &= "default (" & ticks & " ticks/frame, "
+ ELSE
+  tmp &= ticks & " ticks/frame ("
+ END IF
+ tmp &= (ticks * gen(genMillisecPerFrame)) & "ms/frame)"
+ add_item , , tmp
+ gen_int genTicksPerWalkFrame, 0, 20
+
  tmp = "Minimap style: "
  SELECT CASE gen(genMinimapAlgorithm)
   CASE minimapScaled :   tmp &= "Smoothly scaled down (true-color)"
@@ -1286,7 +1298,7 @@ SUB GeneralSettingsMenu.update()
  header " Misc"
  add_item 17, , "In-App Purchases... (experimental)"
  add_item 13, , "Password For Editing..."
- add_item 21, , "Top-level thingbrowsers: " & yesorno(read_config_bool("thingbrowser.enable_top_level", YES), "YES (reccomended)", "NO (for editing on very slow computers)")
+ add_item 21, , "Top-level thingbrowsers: " & yesorno(read_config_bool("thingbrowser.enable_top_level", YES), "YES (recommended)", "NO (for slow computers)")
 
  header " Stats"
  add_item  , , "Time spent editing...", NO

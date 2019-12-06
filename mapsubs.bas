@@ -2722,6 +2722,10 @@ END FUNCTION
 'drawing_whole_map: true when exporting a map image, false if drawing to the screen.
 'including_conditional: whether to draw tag-conditional NPCS
 SUB mapedit_draw_npcs(st as MapEditState, drawing_whole_map as bool = NO, including_conditional as bool, page as integer)
+ 'TODO: this still uses two ticks per frame instead of wtog_to_frames, etc.,
+ 'because the map editor runs at 18fps and has a lot of other animations.
+ 'Using fixed animation speed doesn't seem so bad.
+ 'Tile animations run at the wrong speed too, that is very bad.
  st.walk = (st.walk + 1) MOD 4
  DIM npclayer as Slice ptr
  npclayer = NewSliceOfType(slContainer)
@@ -6297,7 +6301,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  DIM ed as NPCEditState
  DIM menu_display as BasicMenuItem vector
 
- DIM walk as integer = 0
+ DIM wtog as integer = 0
  DIM tog as integer = 0
 
  DIM selectst as SelectTypeState
@@ -6322,10 +6326,10 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
 
  setkeys YES
  DO
-  setwait 55
+  setwait gen(genMillisecPerFrame)
   setkeys YES
   tog = tog XOR 1
-  IF npcdata.movetype > 0 THEN walk = (walk + 1) MOD 4
+  IF npcdata.movetype > 0 THEN loopvar wtog, 0, max_wtog()
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "edit_npc"
   usemenu ed.state, cast(BasicMenuItem vector, ed.menu)
@@ -6432,7 +6436,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   clearpage dpage
   highlight_menu_typing_selection cast(BasicMenuItem vector, ed.menu), menu_display, selectst, ed.state
   standardmenu menu_display, ed.state, 0, 0, dpage, menuopts
-  npcdefedit_preview_npc npcdata, npc_img, ed.boxpreview, 4 + (walk \ 2), (itemid = 4)
+  npcdefedit_preview_npc npcdata, npc_img, ed.boxpreview, 4 + wtog_to_frame(wtog), (itemid = 4)
 
   SWAP vpage, dpage
   setvispage vpage

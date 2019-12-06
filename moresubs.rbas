@@ -1089,7 +1089,7 @@ menusound gen(genAcceptSFX)
 copypage vpage, dpage
 DIM page as integer = compatpage
 DIM tog as integer
-DIM walktoggle as integer
+DIM wtog as integer
 
 show_virtual_gamepad()
 
@@ -1099,7 +1099,7 @@ DO
  setkeys
  tog = tog XOR 1
  playtimer
- loopvar walktoggle, 0, 3, 1
+ loopvar wtog, 0, max_wtog()
  DIM do_exit as bool = NO
  IF carray(ccMenu) > 1 THEN do_exit = YES
  IF carray(ccLeft) > 1 THEN
@@ -1160,7 +1160,7 @@ DO
  FOR party_slot as integer = 0 TO 3
   IF gam.hero(party_slot).id >= 0 THEN
    DIM walkframe as integer
-   IF who = party_slot THEN walkframe = walktoggle \ 2 ELSE walkframe = 0
+   IF who = party_slot THEN walkframe = wtog_to_frame(wtog) ELSE walkframe = 0
    set_walkabout_frame herow(cater_slot).sl, dirDown, walkframe
    DrawSliceAt LookupSliceSafe(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 100 + party_slot * 30, 100, 20, 20, page, YES
    cater_slot += 1

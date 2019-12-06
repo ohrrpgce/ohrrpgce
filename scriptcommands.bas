@@ -1377,7 +1377,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 25'--set hero frame
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
-   herow(retvals(0)).wtog = bound(retvals(1), 0, 1) * 2
+   herow(retvals(0)).wtog = bound(retvals(1), 0, WALKFRAMES - 1) * wtog_ticks()
   END IF
  CASE 27'--suspend overlay
   setbit gen(), genSuspendBits, suspendoverlay, 1
@@ -1778,7 +1778,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 191'--hero frame
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
-   scriptret = herow(retvals(0)).wtog \ 2
+   scriptret = wtog_to_frame(herow(retvals(0)).wtog)
   END IF
  CASE 195'--load sound (BACKWARDS COMPATABILITY HACK )
   'This opcode is not exposed in plotscr.hsd and should not be used in any new scripts
@@ -3576,7 +3576,7 @@ SUB script_functions(byval cmdid as integer)
 
  CASE 26'--set NPC frame
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN npc(npcref).frame = bound(retvals(1), 0, 1) * 2
+  IF npcref >= 0 THEN npc(npcref).frame = bound(retvals(1), 0, WALKFRAMES - 1) * wtog_ticks()
  CASE 39'--camera follows NPC
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN

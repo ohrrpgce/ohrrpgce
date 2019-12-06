@@ -26,6 +26,8 @@ Septotobvember ? 2019 [Fufluns]
       dithering for hopefully-better conversion to your master palette [Ralph]
     * Minimaps look much better. Also, you can change the minimap generation
       method in the General Game Settings menu, with four options [Ralph]
+    * You can adjust the number of ticks per walkabout animation frame in
+      General Game Settings [Ralph]
     * Rect slices can now be "truly" alpha-transparent (but blend results are
       still limited to the master palette) [Ralph]
     * Added fuzzy rect slice settings: fuzzy zoom, stationary pattern [Ralph]
@@ -209,6 +211,8 @@ Septotobvember ? 2019 [Fufluns]
     * "create sprite" as alias for "load sprite"
 
   *** Changes
+    * Default walking animation speed is 110ms/frame (like games running at
+      the default 18fps) instead of 2 ticks/frame
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"
     * Various general/battle/backcompat bitsets renamed or moved (see above)
     * "Caption" menu item type renamed to "Label", the "Unselectable" subtype

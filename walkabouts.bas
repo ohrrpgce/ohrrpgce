@@ -261,7 +261,7 @@ LOCAL SUB update_walkabout_hero_slices()
   DIM cat_slot as integer = 0
   FOR party_slot as integer = 0 TO 3
    IF gam.hero(party_slot).id >= 0 THEN
-    set_walkabout_frame herow(cat_slot).sl, herodir(cat_slot), (herow(cat_slot).wtog \ 2)
+    set_walkabout_frame herow(cat_slot).sl, herodir(cat_slot), wtog_to_frame(herow(cat_slot).wtog)
     cat_slot += 1
    END IF
   NEXT party_slot
@@ -272,7 +272,7 @@ LOCAL SUB update_walkabout_hero_slices()
  ELSE
   '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
   update_walkabout_pos herow(0).sl, herox(0), heroy(0), heroz(0)
-  set_walkabout_frame herow(0).sl, herodir(0), (herow(0).wtog \ 2)
+  set_walkabout_frame herow(0).sl, herodir(0), wtog_to_frame(herow(0).wtog)
   FOR i as integer = 1 TO UBOUND(herow)
    set_walkabout_vis herow(i).sl, NO
   NEXT i
@@ -319,7 +319,7 @@ LOCAL SUB update_walkabout_npc_slices()
  '--now apply sprite frame changes
  FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN '-- if visible
-   set_walkabout_frame npc(i).sl, npc(i).dir, npc(i).frame \ 2
+   set_walkabout_frame npc(i).sl, npc(i).dir, wtog_to_frame(npc(i).frame)
   END IF
  NEXT i
 END SUB
