@@ -3784,7 +3784,9 @@ sub draw_layers_at_tile(composed_tile as Frame ptr, tiles as TileMap ptr vector,
 
 			frame_draw .spr, , 0, -todraw * 20, 1, (layer > 0), composed_tile
 
-			if layer = 0 andalso pmapptr andalso (readblock(*pmapptr, tx, ty) and passOverhead) then
+			'Note: readblock() must be called with a default for OOB reads, because
+			'a number of ancient .rpgs have passmaps that are 2 rows shorter than the tilemap
+			if layer = 0 andalso pmapptr andalso (readblock(*pmapptr, tx, ty, 0) and passOverhead) then
 				' If an overhead tile, return just the layer 0 tile
 				exit for
 			end if
