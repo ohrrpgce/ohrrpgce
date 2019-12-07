@@ -38,7 +38,7 @@ fi
 
 echo "Building binaries for ARCH=$ARCH GFX=$GFX"
 
-rm ohrrpgce-game ohrrpgce-custom
+rm -f ohrrpgce-game ohrrpgce-custom
 
 scons release=1 ${EXTRA_SCONS_OPTIONS} arch=$ARCH gfx=$GFX game custom hspeak unlump relump || exit 1
 
@@ -96,7 +96,7 @@ echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
 
 echo "Create minimal player tarball"
-gnutar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$CODE$SUFFIX.tar.gz OHRRPGCE-Game.app README-player-only.txt LICENSE-binary.txt
+gnutar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$CODE$SUFFIX.tar.gz OHRRPGCE-Game.app README-player-only.txt LICENSE-binary.txt || exit 1
 
 echo "Creating utilities archive"
-zip distrib/ohrrpgce-mac-util$SUFFIX.zip unlump relump hspeak plotscr.hsd scancode.hsi LICENSE-binary.txt
+zip distrib/ohrrpgce-mac-util$SUFFIX.zip unlump relump hspeak plotscr.hsd scancode.hsi LICENSE-binary.txt || exit 1

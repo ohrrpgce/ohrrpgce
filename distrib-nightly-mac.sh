@@ -53,22 +53,17 @@ build_package() {
     SUFFIX=${SUFFIX}-sdl2
   fi
 
-  ./distrib-mac.sh ${MORE_ARGS} || exit 1
+  ./distrib-mac.sh ${MORE_ARGS} || return
 
-  if [ ! -f ohrrpgce-game -o ! -f ohrrpgce-custom ] ; then
-    echo Aborting distrib-nightly script because distrib script failed
-    exit 1
-  fi
-
-  mv distrib/OHRRPGCE-*-wip$SUFFIX.dmg distrib/OHRRPGCE-wip$SUFFIX.dmg
+  mv distrib/OHRRPGCE-*-wip$SUFFIX.dmg distrib/OHRRPGCE-wip$SUFFIX.dmg &&
   scp -p distrib/OHRRPGCE-wip$SUFFIX.dmg $UPLOAD_DEST/ohrrpgce/nightly/
   rm distrib/OHRRPGCE-wip$SUFFIX.dmg
 
-  mv distrib/ohrrpgce-mac-minimal-*-wip$SUFFIX.tar.gz distrib/ohrrpgce-mac-minimal$SUFFIX.tar.gz
+  mv distrib/ohrrpgce-mac-minimal-*-wip$SUFFIX.tar.gz distrib/ohrrpgce-mac-minimal$SUFFIX.tar.gz &&
   scp -p distrib/ohrrpgce-mac-minimal$SUFFIX.tar.gz $UPLOAD_DEST/ohrrpgce/nightly/
   rm distrib/ohrrpgce-mac-minimal$SUFFIX.tar.gz
 
-  scp -p distrib/ohrrpgce-mac-util$SUFFIX.zip $UPLOAD_DEST/ohrrpgce/nightly/
+  scp -p distrib/ohrrpgce-mac-util$SUFFIX.zip $UPLOAD_DEST/ohrrpgce/nightly/ &&
   rm distrib/ohrrpgce-mac-util$SUFFIX.zip
 }
 
