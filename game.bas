@@ -853,16 +853,18 @@ DO
   debuginfo "  Loadgame requested; resetgame"
   load_slot = gam.want.loadgame - 1
   load_slot_prefix = gam.want.loadgame_prefix
-  gam.want.loadgame = 0
-  gam.want.loadgame_prefix = ""
   IF prefbit(40) = NO THEN  '"Don't stop music when starting/loading game"
    queue_music_change -1  'stop music (unless new map has same music)
   END IF
   ' Don't stop sound effects, because if used from the Load menu this would cut off
   ' the Accept sfx unplesantly. (However, would be ideal to stop longer ones)
   'resetsfx
-  fadeout uilook(uiFadeoutLoadGame)
-  queue_fade_in 1, YES
+  IF gam.want.loadgame_prefix <> "quick" THEN
+   fadeout uilook(uiFadeoutLoadGame)
+   queue_fade_in 1, YES
+  END IF
+  gam.want.loadgame = 0
+  gam.want.loadgame_prefix = ""
   resetgame
   initgamedefaults
   doloadgame load_slot, load_slot_prefix
@@ -4468,9 +4470,11 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   END IF
 
   IF dbg.def(      , scF2, "Quick-save (F2)") THEN
-   savegame 0, "quick"
-   gam.showtext = "Quick-saved. Press F3 to quick-load"
-   gam.showtext_ticks = 20
+   IF yesno("Quick-save game?") THEN
+    savegame 0, "quick"
+    gam.showtext = "Quick-saved. Press F3 to quick-load"
+    gam.showtext_ticks = 20
+   END IF
   END IF
 
   IF dbg.def(scCtrl, scF2, "Save menu (Ctrl-F2)") THEN
