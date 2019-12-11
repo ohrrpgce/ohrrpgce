@@ -9298,15 +9298,20 @@ local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as 
 	end if
 end sub
 
-
-'Return a copy which has been clipped or extended. Extended portions are filled with bgcol.
+'Return a copy of a single Frame or a Frame array, each frame clipped or extended.
+'Extended portions are filled with bgcol.
 'Can also be used to scroll (does not wrap around)
 'Turns an 8-bit Surface-backed Frame into a regular Frame, and works on 32-bit Surface-backed ones too.
+'Like all functions that return new Frames, the new Frame doesn't have a SpriteSet ptr.
 function frame_resized(spr as Frame ptr, wide as integer, high as integer, shiftx as integer = 0, shifty as integer = 0, bgcol as integer = 0) as Frame ptr
 	dim as Frame ptr ret
-	ret = frame_new(wide, high, , NO, (spr->mask <> NULL), (spr->surf <> NULL andalso spr->surf->format = SF_32bit))
-	frame_clear ret, bgcol
-	frame_draw spr, NULL, shiftx, shifty, 1, NO, ret, (spr->surf = NULL)  'trans=NO, write_mask=not for Surfaces
+	dim with_surface32 as bool = (spr->surf <> NULL andalso spr->surf->format = SF_32bit)
+	ret = frame_new(wide, high, spr->arraylen, NO, (spr->mask <> NULL), with_surface32)
+	for fridx as integer = 0 to spr->arraylen - 1
+		frame_clear @ret[fridx], bgcol
+		frame_draw @spr[fridx], NULL, shiftx, shifty, , NO, @ret[fridx], (spr->surf = NULL)  'trans=NO, write_mask=not for Surfaces
+		ret[fridx].frameid = spr[fridx].frameid
+	next
 	return ret
 end function
 
@@ -10215,7 +10220,7 @@ end sub
 
 ' This should only be called from within allmodex
 constructor SpriteSet(frameset as Frame ptr)
-	BUG_IF(frameset->arrayelem, "need first Frame in array")
+	BUG_IF(frameset = NULL orelse frameset->arrayelem, "need first Frame in array")
 	'redim animations(0 to -1)
 	frames = frameset
 	frameset->sprset = @this
