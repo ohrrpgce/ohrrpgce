@@ -74,11 +74,11 @@ add_frameworks() {
     mkdir -p $APP/Contents/Frameworks
 
     find_framework ${SDL}.framework && # sets $SRC
-    cp -ra $SRC $APP/Contents/Frameworks/ &&
+    cp -R $SRC $APP/Contents/Frameworks/ &&
     thin_framework $APP/Contents/Frameworks/${SDL}.framework || exit 1
 
     find_framework ${SDL}_mixer.framework && # sets $SRC
-    cp -ra $SRC $APP/Contents/Frameworks/ &&
+    cp -R $SRC $APP/Contents/Frameworks/ &&
     thin_framework $APP/Contents/Frameworks/${SDL}_mixer.framework &&
 
     # We don't use FLAC
