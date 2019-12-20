@@ -4331,7 +4331,8 @@ SUB SpriteSetBrowser.update()
       'info_str &= "  ENTER to edit"
       caption_str = "Entire spriteset"
     ELSE
-      info_str &= "  Frame ID " & cur_frameid & "  " & frame_name(cur_setnum, cur_frameid)
+      'info_str &= "  Frame ID " & cur_frameid & "  " & frame_name(cur_setnum, cur_frameid)
+      info_str &= "  Frame " & cur_framenum
       'FIXME: Replace these hard-coded names with frame group names later
       SELECT CASE sprtype
        CASE sprTypeHero
