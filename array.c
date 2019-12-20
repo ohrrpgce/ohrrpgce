@@ -165,7 +165,7 @@ static inline void mem_free(array_t array) {
 // it's resized to check that everyone correctly handles this.
 #define FORCE_REALLOC 0
 
-static array_t mem_resize(array_t array, unsigned int len) warn_unused_result;
+static array_t mem_resize(array_t array, unsigned int len) warn_if_result_unused;
 
 // Lowest-level resize routine. Does not destruct/construct elements
 static array_t mem_resize(array_t array, unsigned int len) {

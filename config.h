@@ -175,7 +175,7 @@ typedef int boolint;
 #if __has_attribute(pure)
 # define pure __attribute__ ((__pure__))
 #else
-# define warn_unused_result
+# define pure
 #endif
 
 // _noreturn: does not return. Not the same as C++11 [[noreturn]], which can't be applied to function pointers.
@@ -193,11 +193,11 @@ typedef int boolint;
 # define restrict __restrict
 #endif
 
-// warn_unused_result: like [[nodiscard]] in C++11
+// warn_if_result_unused: like [[nodiscard]] in C++11
 #if __has_attribute(warn_unused_result)
-# define warn_unused_result __attribute__ ((__warn_unused_result__))
+# define warn_if_result_unused __attribute__ ((__warn_unused_result__))
 #else
-# define warn_unused_result
+# define warn_if_result_unused
 #endif
 
 #if __has_attribute(format)
