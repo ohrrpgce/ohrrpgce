@@ -218,10 +218,10 @@ END FUNCTION
 
 SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer, byval start_parent as Slice Ptr=0)
 
- IF ps.cur = 0 THEN
+ IF ps.cur = NULL THEN
   'No cursor yet, guess a default one
   ps.cur = top_left_plank(ps)
-  IF ps.cur = 0 THEN debug "plank_menu_scroll_page: No cursor, and can't find one" : EXIT SUB
+  BUG_IF(ps.cur = NULL, "No cursor, and can't find one")
  END IF
 
  DIM scroll as Slice ptr = find_plank_scroll(ps.m)
@@ -403,7 +403,7 @@ FUNCTION bottom_right_plank(byref ps as PlankState) as Slice Ptr
 END FUNCTION
 
 FUNCTION default_is_plank(byval sl as Slice Ptr) as bool
- IF sl = 0 THEN debug "default_is_plank: null slice ptr" : RETURN NO
+ BUG_IF(sl = NULL, "null slice ptr", NO)
  IF sl->Lookup = SL_PLANK_HOLDER THEN
   IF SliceIsInvisible(sl) THEN RETURN NO
   RETURN YES
@@ -414,11 +414,11 @@ END FUNCTION
 ' Fill planks() with all descendents of m that are planks (according to the callback)
 ' By default this excludes invisible planks (also planks with invisible parents)
 SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Slice Ptr)
- IF m = 0 THEN debug "find_all_planks: null m ptr" : EXIT SUB
+ BUG_IF(m = NULL, "null m ptr")
 
  DIM plank_checker as FnIsPlank
  plank_checker = ps.is_plank_callback
- IF plank_checker = 0 THEN plank_checker = @default_is_plank
+ IF plank_checker = NULL THEN plank_checker = @default_is_plank
 
  REDIM planks(-1 TO -1)
  DIM planks_found as integer = 0
@@ -466,7 +466,7 @@ END SUB
 
 ' Set the state (using the callback) of each descendent of sl with lookup=SL_PLANK_MENU_SELECTABLE
 SUB set_plank_state (byref ps as PlankState, byval sl as Slice Ptr, byval state as PlankItemState = plankNORMAL)
- IF sl = 0 THEN debug "set_plank_state: null slice ptr": EXIT SUB
+ BUG_IF(sl = NULL, "null slice ptr")
 
  DIM desc as Slice ptr = sl
  DO WHILE desc
@@ -484,7 +484,7 @@ END SUB
 FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice Ptr
  DIM collection as Slice Ptr = NewSliceOfType(slContainer)
  load_slice_collection collection, collection_kind
- IF collection = 0 THEN debug "plank_menu_append: plank collection not found " & collection_kind : RETURN 0
+ BUG_IF(collection = NULL, "plank collection not found " & collection_kind, NULL)
  DIM result as Slice Ptr
  result = plank_menu_append(sl, lookup, collection, callback, arg0, arg1, arg2)
  DeleteSlice @collection
@@ -494,10 +494,10 @@ END FUNCTION
 'Add a new plank child, copied from 'collection' to the 'LookupSlice(lookup, sl)' slice
 'Other args: passed to expand_slice_text_insert_codes
 FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection as Slice Ptr, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice Ptr
- IF sl = 0 THEN debug "plank_menu_append: null slice ptr": RETURN 0
+ BUG_IF(sl = NULL, "null slice ptr", NULL)
  DIM m as Slice ptr = LookupSlice(lookup, sl)
- IF m = 0 THEN debug "plank_menu_append: menu not found " & lookup : RETURN 0
- IF collection = 0 THEN debug "plank_menu_append: plank collection null ptr" : RETURN 0
+ BUG_IF(m = NULL, "menu not found: " & lookup, NULL)
+ BUG_IF(collection = NULL, "plank collection null ptr", NULL)
  DIM holder as Slice Ptr
  holder = LookupSlice(SL_PLANK_HOLDER, collection)
  DIM cl as Slice Ptr
@@ -521,10 +521,10 @@ END FUNCTION
 'For use when you're using a template slice instead of a separate slice collection.
 '(Template slices aren't implemented yet, but for now just use normal slices as templates.)
 FUNCTION plank_menu_clone_template (byval templatesl as Slice ptr) as Slice ptr
- IF templatesl = 0 THEN debug "plank_menu_clone_template: null template" : RETURN 0
+ BUG_IF(templatesl = NULL, "null template", NULL)
  DIM sl as Slice ptr
  sl = CloneSliceTree(templatesl)
- IF sl = 0 THEN debug "plank_menu_clone_template: unclonable" : RETURN 0
+ BUG_IF(sl = NULL, "unclonable", NULL)
  InsertSliceBefore templatesl, sl
  sl->Visible = YES
  sl->Lookup = SL_PLANK_HOLDER
@@ -532,12 +532,9 @@ FUNCTION plank_menu_clone_template (byval templatesl as Slice ptr) as Slice ptr
 END FUNCTION
 
 SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
- IF sl = 0 THEN debug "plank_menu_clear: null slice ptr": EXIT SUB
+ BUG_IF(sl = NULL, "null slice ptr")
  DIM m as Slice ptr = LookupSlice(lookup, sl)
- IF m = 0 THEN
-  debug "plank_menu_clear: menu not found " & lookup
-  EXIT SUB
- END IF
+ BUG_IF(m = NULL, "menu not found: " & lookup)
  DeleteSliceChildren m
 END SUB
 
@@ -545,7 +542,7 @@ SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as FnE
  'Starting with children of the given container slice, iterate through
  ' all children and expand any ${} codes found in any TextSlice
  ' Do not descend into child slices marked with SL_PLANK_HOLDER because planks are responsible for their own text codes
- IF sl = 0 THEN debug "expand_slice_text_insert_codes: null slice ptr": EXIT SUB
+ BUG_IF(sl = NULL, "null slice ptr")
  DIM ch as Slice Ptr = sl->FirstChild
  DIM dat as TextSliceData Ptr
  DO WHILE ch <> 0
@@ -567,7 +564,7 @@ SUB hide_slices_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, 
  ' Starting with a given container slice, iterate through
  ' all descendents and set the visibility of any slices with a specific lookup code
  ' (Note: the argument is whether to set hidden, opposite of Slice.Visible)
- IF sl = 0 THEN debug "hide_slices_by_lookup_code: null slice ptr": EXIT SUB
+ BUG_IF(sl = NULL, "null slice ptr")
 
  DIM desc as Slice ptr = sl
  DO WHILE desc
@@ -579,7 +576,7 @@ END SUB
 SUB set_sprites_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval sprtype as SpriteType, byval picnum as integer, byval palnum as integer=-1)
  'Starting with children of the given container slice, iterate through
  ' all children and change any sprites matching the lookup code
- IF sl = 0 THEN debug "set_sprites_by_lookup_code: null slice ptr": EXIT SUB
+ BUG_IF(sl = NULL, "null slice ptr")
 
  DIM desc as Slice ptr = sl
  DO WHILE desc
@@ -590,8 +587,8 @@ SUB set_sprites_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, 
  LOOP
 END SUB
 
-FUNCTION find_plank_scroll (byval sl as Slice Ptr) as slice ptr
- IF sl = 0 THEN debug "find_plank_scroll: null slice ptr" : RETURN 0
+FUNCTION find_plank_scroll (byval sl as Slice Ptr) as Slice ptr
+ BUG_IF(sl = NULL, "null slice ptr", NULL)
 
  DIM desc as Slice ptr = sl
  DO WHILE desc
@@ -602,7 +599,7 @@ FUNCTION find_plank_scroll (byval sl as Slice Ptr) as slice ptr
 END FUNCTION
 
 SUB update_plank_scrolling (byref ps as PlankState)
- IF ps.m = 0 THEN debug "update_plank_scrolling: null m slice ptr" : EXIT SUB
+ BUG_IF(ps.m = NULL, "null m slice ptr")
 
  DIM scroll as slice ptr = find_plank_scroll(ps.m)
  IF scroll ANDALSO ps.cur ANDALSO IsAncestor(ps.cur, scroll) THEN
@@ -702,6 +699,6 @@ Function plank_select_by_string(byref ps as PlankState, query as string) as bool
   reset_menu_edit_state
   RETURN YES
  END IF
-End Function
+END FUNCTION
 
 
