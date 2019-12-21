@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2019-11-22">
+<plotscript version="wip" datecode="2019-12-22">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -2874,8 +2874,11 @@ fade screen in</example>
 				Pass <ref>true</ref> to <p>loop</p> if you want the sound effect to start over when it finishes
 				instead of stopping (it defaults to false).
 				Pass <ref>true</ref> to <p>preempt</p> if you want to automatically stop the sound before playing it.
-				If <p>preempt</p> is <ref>false</ref> (which is the default), and the sound is already playing,
-				this command will do nothing.
+				If <p>preempt</p> is <ref>false</ref> (which is the default), and the sound is already playing
+				(and not paused) then this command will do nothing.
+				<note>
+					There isn't yet a way to play a sound effect twice at the same time.
+				</note>
 			</description>
 			<seealso>
 				<ref>stopsound</ref>
@@ -2892,7 +2895,7 @@ fade screen in</example>
 		<command id="pausesound">
 			<canon>pause sound (num)</canon>
 			<shortname>pause sound</shortname>
-			<description>Temporarily stops a sound effect. It can be resumed with <ref>playsound</ref>, wherein it will continue from whence it left off.</description>
+			<description>Temporarily stops a sound effect. It can be resumed with <ref>playsound</ref>, which causes it to continue from whence it left off.</description>
 			<seealso>
 				<ref>playsound</ref>
 			</seealso>
@@ -2900,7 +2903,7 @@ fade screen in</example>
 		<command id="soundisplaying">
 			<canon>sound is playing (num)</canon>
 			<shortname>sound is playing</shortname>
-			<description>Checks to see whether a sound effect is playing or not. Useful for synchronization, etc.</description>
+			<description>Checks to see whether a sound effect is playing or not. Useful for synchronization, etc. Returns true if the sound is paused but not stopped.</description>
 			<seealso>
 				<ref>playsound</ref>
 				<ref>stopsound</ref>

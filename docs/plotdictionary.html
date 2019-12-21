@@ -155,7 +155,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2019-11-22)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2019-12-22)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -8583,8 +8583,12 @@ fade screen in</pre>
 				Pass <a href="#about-booleanconstants" class="ref">true</a> to <span class="param">loop</span> if you want the sound effect to start over when it finishes
 				instead of stopping (it defaults to false).
 				Pass <a href="#about-booleanconstants" class="ref">true</a> to <span class="param">preempt</span> if you want to automatically stop the sound before playing it.
-				If <span class="param">preempt</span> is <a href="#about-booleanconstants" class="ref">false</a> (which is the default), and the sound is already playing,
-				this command will do nothing.
+				If <span class="param">preempt</span> is <a href="#about-booleanconstants" class="ref">false</a> (which is the default), and the sound is already playing
+				(and not paused) then this command will do nothing.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					There isn't yet a way to play a sound effect twice at the same time.
+				</div>
 			
 			
 			
@@ -8607,7 +8611,7 @@ fade screen in</pre>
 <a name="about-pausesound"></a>
 		<h4>pause sound (num)</h4>
 <p>
-			Temporarily stops a sound effect. It can be resumed with <a href="#about-playsound" class="ref">play sound</a>, wherein it will continue from whence it left off.
+			Temporarily stops a sound effect. It can be resumed with <a href="#about-playsound" class="ref">play sound</a>, which causes it to continue from whence it left off.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-playsound" class="ref">play sound</a></li></ul>
@@ -8618,7 +8622,7 @@ fade screen in</pre>
 <a name="about-soundisplaying"></a>
 		<h4>sound is playing (num)</h4>
 <p>
-			Checks to see whether a sound effect is playing or not. Useful for synchronization, etc.
+			Checks to see whether a sound effect is playing or not. Useful for synchronization, etc. Returns true if the sound is paused but not stopped.
 			
 			
 			<div class="seealso">See also: <ul>
