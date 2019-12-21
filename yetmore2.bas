@@ -1056,6 +1056,10 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
   debuginfo "--debugkeys used"
   always_enable_debug_keys = YES
   RETURN 1 'arg not used
+ ELSEIF opt = "nojoy" THEN
+  debuginfo "Joystick/gamepad disabled by -nojoy"
+  disable_joystick_input()
+  RETURN 1 'arg not used
  ELSEIF opt = "autosnap" then
   IF parse_int(arg, @autosnap) THEN
    debug "Autosnap mode enabled every " & autosnap & " ticks"

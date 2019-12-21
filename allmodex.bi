@@ -452,6 +452,8 @@ DECLARE FUNCTION joystick_axis (axis as integer, joynum as integer = 0) as integ
 DECLARE FUNCTION joystick_info (joynum as integer) as JoystickInfo ptr
 DECLARE FUNCTION keybd_to_joy_scancode (key as KBScancode) as JoyScancode
 DECLARE FUNCTION num_joysticks () as integer
+DECLARE SUB disable_joystick_input()
+DECLARE SUB enable_joystick_input() 'defaults to enabled, so this doesn't necessarily need to be called
 
 DECLARE SUB setquitflag (newstate as bool = YES)
 DECLARE FUNCTION getquitflag () as bool
@@ -777,5 +779,6 @@ extern use_speed_control as bool
 extern user_toggled_fullscreen as bool
 extern active_seconds as double
 extern idle_time_threshold as double
+extern joysticks_globally_disabled as bool
 
 #ENDIF

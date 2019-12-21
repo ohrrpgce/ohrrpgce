@@ -138,6 +138,8 @@ dim idle_time_threshold as double = 30.
 'When last input arrived
 dim shared last_active_time as double
 
+dim joysticks_globally_disabled as bool = NO
+
 redim fonts(3) as Font ptr
 
 'Toggles 0-1 every time dowait is called
@@ -2233,6 +2235,7 @@ end sub
 'Basically it does a similar thing to the pollingthread, emulating new-keypress
 'bits since the backend may not report them.
 sub JoystickState.update_keybits(joynum as integer)
+	if joysticks_globally_disabled then exit sub
 	memset(@state, 0, SIZEOF(state))
 	state.structsize = IOJOYSTICKSTATE_SZ
 
@@ -2496,6 +2499,14 @@ sub post_terminate_signal cdecl ()
 	closerequest = YES
 end sub
 
+
+sub disable_joystick_input ()
+  joysticks_globally_disabled = YES
+end sub
+
+sub enable_joystick_input ()
+  joysticks_globally_disabled = NO
+end sub
 
 '==========================================================================================
 '                                          Mouse

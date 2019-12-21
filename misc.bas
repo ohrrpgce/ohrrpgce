@@ -68,6 +68,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-v -version         Show version and build info" & LINE_END
 		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
 #IFDEF IS_GAME
+		help = help & "-nojoy              Disable joystick/gamepad support" & LINE_END
 		help = help & "-full-upgrade       Upgrade game data completely, as Custom does (only useful for bughunting)" & LINE_END
 		help = help & "-autosnap N         Automatically save a screen snapshot every N ticks" & LINE_END
 		help = help & "-autotest           Run quickly and write screenshots on _checkpoints" & LINE_END
