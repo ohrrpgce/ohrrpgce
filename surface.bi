@@ -15,6 +15,12 @@ Union RGBcolor
 	end type
 End Union
 
+'Masks for components of RGBcolor
+const RGB_Rmask = &hFF0000
+const RGB_Gmask = &hFF00
+const RGB_Bmask = &hFF
+const RGB_Amask = &hFF000000
+
 Enum SurfaceFormat
 	SF_8bit = 0
 	SF_32bit = 1

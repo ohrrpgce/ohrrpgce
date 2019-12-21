@@ -138,7 +138,8 @@ DIM SHARED zoom_has_been_changed as bool = NO
 DIM SHARED remember_zoom as integer = -1   'We may change the zoom when fullscreening, so remember it
 DIM SHARED smooth as integer = 0
 DIM SHARED screensurface as SDL_Surface ptr = NULL  'The output surface (the window)
-DIM SHARED screenbuffer as SDL_Surface ptr = NULL
+DIM SHARED screenbuffer as SDL_Surface ptr = NULL  'Drawn to instead of screensurface if format conversion needed
+DIM SHARED screensurface_is_RGBColor as bool  'screensurface format is same pixel format as RGBColor
 DIM SHARED wminfo as SDL_SysWMinfo   'Must call load_wminfo() to load this global
 DIM SHARED windowedmode as bool = YES
 DIM SHARED screen_width as integer = 0  'Size of the desktop/monitor (virtual size)
@@ -327,6 +328,10 @@ scantrans(SDLK_UNDO) = 0
 EXTERN "C"
 
 
+FUNCTION gfx_sdl_getversion() as integer
+  RETURN 1
+END FUNCTION
+
 FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 /' Trying to load the resource as a SDL_Surface, Unfinished - the winapi has lost me
 #ifdef __FB_WIN32__
@@ -415,7 +420,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   RETURN gfx_sdl_set_screen_mode()
 END FUNCTION
 
-FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as integer
+LOCAL FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as integer
   DIM flags as Uint32 = 0
   IF resizable THEN flags = flags OR SDL_RESIZABLE
   IF windowedmode = NO THEN
@@ -508,14 +513,16 @@ FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as
   'Workaround for apparent SDL bug (see gfx_sdl_present_internal)
   lastwindowsize = XY(screensurface->w, screensurface->h)
 
-  IF quiet = NO THEN
-    WITH *screensurface->format
-     debuginfo "gfx_sdl: created screensurface size=" & screensurface->w & "*" & screensurface->h _
-               & " depth=" & .BitsPerPixel & " flags=0x" & HEX(screensurface->flags) _
-               & " R=0x" & hex(.Rmask) & " G=0x" & hex(.Gmask) & " B=0x" & hex(.Bmask)
-     'FIXME: should handle the screen surface not being BGRA, or ask SDL for a surface in that encoding
-    END WITH
-  END IF
+  WITH *screensurface->format
+    screensurface_is_RGBColor = (.Rmask = RGB_Rmask andalso .Gmask = RGB_Gmask andalso .Bmask = RGB_Bmask)
+
+    IF quiet = NO THEN
+      debuginfo strprintf("gfx_sdl: created screensurface size=%d*%d depth=%d flags=%x R=%x G=%x B=%x A=%x is_RGBcolor=%d", _
+                          screensurface->w, screensurface->h, .BitsPerPixel, screensurface->flags, _
+                          .Rmask, .Gmask, .Bmask, .Amask, screensurface_is_RGBColor)
+
+    END IF
+  END WITH
 
 #IFDEF __FB_DARWIN__
   ' SDL on OSX forgets the Unicode input state after a setvideomode
@@ -541,9 +548,23 @@ LOCAL SUB quit_video_subsystem()
   SDL_QuitSubSystem(SDL_INIT_VIDEO)
 END SUB
 
-FUNCTION gfx_sdl_getversion() as integer
-  RETURN 1
-END FUNCTION
+'Ensure screenbuffer exists and has this size/bitdepth
+LOCAL SUB create_or_update_screenbuffer(size as XYPair, bitdepth as integer)
+  IF screenbuffer THEN
+    IF XY(screenbuffer->w, screenbuffer->h) <> size ORELSE screenbuffer->format->BitsPerPixel <> bitdepth THEN
+      SDL_FreeSurface(screenbuffer)
+      screenbuffer = NULL
+    END IF
+  END IF
+
+  IF screenbuffer = NULL THEN
+    'These masks are ignored if bitdepth=8
+    screenbuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, size.w, size.h, bitdepth, RGB_Rmask, RGB_Gmask, RGB_Bmask, 0)
+    IF screenbuffer = NULL THEN
+      debugc errDie, "gfx_sdl_present_internal: Failed to allocate screenbuffer, " & *SDL_GetError
+    END IF
+  END IF
+END SUB
 
 FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval imagesz as XYPair, byval bitdepth as integer) as integer
   'debuginfo "gfx_sdl_present_internal(w=" & w & ", h=" & h & ", bitdepth=" & bitdepth & ")"
@@ -577,18 +598,7 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval imagesz as XYPair,
     'and then smooth it (since it's also a SW surface)
     'Or what we actually do: smoothzoom first to screenbuffer, with smoothzoomblit_8_to_8bit, and then blit to screensurface
 
-    IF screenbuffer ANDALSO XY(screenbuffer->w, screenbuffer->h) <> imagesz * zoom THEN
-      SDL_FreeSurface(screenbuffer)
-      screenbuffer = NULL
-    END IF
-
-    IF screenbuffer = NULL THEN
-      screenbuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, imagesz.w * zoom, imagesz.h * zoom, 8, 0,0,0,0)
-    END IF
-    'screenbuffer = SDL_CreateRGBSurfaceFrom(raw, w, h, 8, w, 0,0,0,0)
-    IF screenbuffer = NULL THEN
-      debugc errDie, "gfx_sdl_present_internal: Failed to allocate page wrapping surface, " & *SDL_GetError
-    END IF
+    create_or_update_screenbuffer imagesz * zoom, 8
 
     smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, imagesz, screenbuffer->pitch, zoom, smooth)
     gfx_sdl_8bit_update_screen()
@@ -596,7 +606,7 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval imagesz as XYPair,
   ELSE
     '32 bit surface
 
-    IF screensurface->format->BitsPerPixel <> 32 THEN
+    IF screensurface->format->BitsPerPixel <= 8 THEN  'Might get 16bit surface if that's all the HW supports?
       gfx_sdl_set_screen_mode(32)
     END IF
     IF screensurface = NULL THEN
@@ -611,8 +621,22 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval imagesz as XYPair,
       RETURN 1
     END IF
 
-    'smoothzoomblit takes the pitch in pixels, not bytes!
-    smoothzoomblit_32_to_32bit(cast(RGBcolor ptr, raw), cast(uint32 ptr, screensurface->pixels), imagesz, screensurface->pitch \ 4, zoom, smooth)
+    IF screensurface_is_RGBColor THEN
+      'Can avoid an extra copy to screenbuffer
+
+      'smoothzoomblit takes the pitch in pixels, not bytes!
+      smoothzoomblit_32_to_32bit(cast(RGBcolor ptr, raw), cast(uint32 ptr, screensurface->pixels), imagesz, screensurface->pitch \ 4, zoom, smooth)
+    ELSE
+      'Need to get SDL to convert from RGBColor to screen format
+      create_or_update_screenbuffer imagesz * zoom, 32
+
+      smoothzoomblit_32_to_32bit(cast(RGBcolor ptr, raw), cast(uint32 ptr, screenbuffer->pixels), imagesz, screenbuffer->pitch \ 4, zoom, smooth)
+
+      IF SDL_BlitSurface(screenbuffer, NULL, screensurface, NULL) THEN
+        debug "gfx_sdl_8bit_update_screen: SDL_BlitSurface failed: " & *SDL_GetError
+      END IF
+    END If
+
     IF SDL_Flip(screensurface) THEN
       debug "gfx_sdl_present_internal: SDL_Flip failed: " & *SDL_GetError
     END IF
