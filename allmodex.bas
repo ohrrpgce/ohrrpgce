@@ -138,8 +138,6 @@ dim idle_time_threshold as double = 30.
 'When last input arrived
 dim shared last_active_time as double
 
-dim joysticks_globally_disabled as bool = NO
-
 redim fonts(3) as Font ptr
 
 'Toggles 0-1 every time dowait is called
@@ -273,6 +271,8 @@ dim shared inputtext_enabled as bool = NO   'Whether to fetch real_input.kb.inpu
 #ELSE
 	dim shared disable_native_text_input as bool = NO
 #ENDIF
+
+dim shared joysticks_globally_disabled as bool = NO
 
 type JoystickState extends KeyArray
 	state as IOJoystickState
@@ -655,6 +655,10 @@ function allmodex_setoption(opt as string, arg as string) as integer
 			display_help_string "input cannot be replayed from """ & fname & """ because the file is not readable." & LINE_END
 			return 1
 		end if
+	elseif opt = "nojoy" then
+		debuginfo "Joystick/gamepad disabled by -nojoy"
+		joysticks_globally_disabled = YES
+		return 1 'arg not used
 	elseif opt = "showkeys" then
 		gif_show_keys = YES
 		return 1
