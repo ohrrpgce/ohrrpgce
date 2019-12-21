@@ -286,7 +286,7 @@ setfont current_font()
 clearpage vpage
 setvispage vpage, NO
 
-gen(genJoy) = 1  'joystick enabled by default
+gen(genJoy) = 1  'This used to mean joystick enabled by default, but is not completely obsolete. Not used at all
 
 DIM gp as GamePadMap
 gp.A = scEnter
