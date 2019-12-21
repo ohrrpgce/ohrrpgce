@@ -458,7 +458,6 @@ DECLARE sub SDL_done_playing cdecl(byval channel as int32)
 TYPE SoundEffectSlot EXTENDS SFXCommonData
 	used as bool        'whether this slot is free
 
-	paused as bool
 	playing as bool     'Set to false by a callback when the channel finishes
 
 	buf as Mix_Chunk ptr
@@ -514,7 +513,7 @@ function next_free_slot() as integer
 	for i = 0 to ubound(sfx_slots)
 		retake_slot = (retake_slot + 1) mod (ubound(sfx_slots)+1)
 		with sfx_slots(retake_slot)
-			if .playing = NO and .paused = NO then
+			if .playing = NO then
 				Mix_FreeChunk(.buf)
 				.used = NO
 				return retake_slot
@@ -525,6 +524,7 @@ function next_free_slot() as integer
 	return -1 ' no slot found
 end function
 
+'Resumes a sfx if it's paused
 sub sound_play(slot as integer, loopcount as integer, volume as single = 1.)
 	if slot = -1 then exit sub
 
@@ -536,11 +536,6 @@ sub sound_play(slot as integer, loopcount as integer, volume as single = 1.)
 			exit sub
 		end if
 
-		if .paused then
-			Mix_Resume(slot)
-			.paused = NO
-		end if
-
 		if .playing = NO then
 			' Note that the i-th sfx slot is played on the i-th SDL_mixer channel,
 			' which is just a simplification.
@@ -549,6 +544,12 @@ sub sound_play(slot as integer, loopcount as integer, volume as single = 1.)
 				exit sub
 			end if
 			.playing = YES
+		end if
+
+		if Mix_Paused(slot) then
+			' Haven't tested, but it looks like SDL_mixer doesn't clear its paused flag
+			' when a channel stops
+			Mix_Resume(slot)
 		end if
 
 		' SDL_mixer has separate channel and chunk volumes and multiples them.
@@ -562,8 +563,7 @@ end sub
 sub sound_pause(slot as integer)
 	if slot = -1 then exit sub
 	with sfx_slots(slot)
-		if .playing <> NO and .paused = NO then
-			.paused = YES
+		if .playing then
 			Mix_Pause(slot)
 		end if
 	end with
@@ -572,10 +572,9 @@ end sub
 sub sound_stop(slot as integer)
 	if slot = -1 then exit sub
 	with sfx_slots(slot)
-		if .playing <> NO then
+		if .playing then
 			Mix_HaltChannel(slot)
 			.playing = NO
-			.paused = NO
 		end if
 	end with
 end sub
@@ -620,7 +619,7 @@ end function
 function sound_slot_with_id(num as integer) as integer
 	for slot as integer = 0 to ubound(sfx_slots)
 		with sfx_slots(slot)
-			if .used AND .effectID = num then return slot
+			if .used andalso .effectID = num then return slot
 		end with
 	next
 
@@ -666,7 +665,6 @@ function sound_load overload(filename as string, num as integer = -1) as integer
 			.effectID = num
 			.buf = sfx
 			.playing = NO
-			.paused = NO
 		end with
 	end if
 
@@ -675,10 +673,9 @@ end function
 
 'Unloads a sound loaded in a slot. TAKES A CACHE SLOT, NOT AN SFX ID NUMBER!
 sub sound_unload(slot as integer)
-	if sfx_slots(slot).used = NO then exit sub
 	with sfx_slots(slot)
+		if .used = NO then exit sub
 		Mix_FreeChunk(.buf)
-		.paused = NO
 		.playing = NO
 		.used = NO
 		.effectID = 0
@@ -693,7 +690,8 @@ end sub
 '-- for debugging
 function sfx_slot_info (byval slot as integer) as string
 	with sfx_slots(slot)
-		return .used & " " & .effectID & " " & .paused & " " & .playing & " " & .buf
+		return strprintf("slot %d used=%d sfx=%d playing=%d paused=%d buf=%x", _
+				 slot, .used, .effectID, .playing, Mix_Paused(slot), .buf)
 	end with
 end function
 
