@@ -42,8 +42,11 @@ find_framework() {
 thin_binary() {
   # Remove all archs from a fat binary except $ARCH
   echo thin_binary $1
-  lipo "$1" -thin $ARCH -output "$1.temp" &&
-  mv "$1.temp" "$1" || exit 1
+  # Check it's a fat ("universal") binary, otherwise lipo throws an error
+  if file "$1" | grep -q universal ; then
+    lipo "$1" -thin $ARCH -output "$1.temp" &&
+    mv "$1.temp" "$1" || exit 1
+  fi
 }
 
 thin_framework() {
