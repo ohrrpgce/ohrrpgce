@@ -36,6 +36,8 @@ if [ ! -f distrib-mac.sh ] ; then
   exit 1
 fi
 
+echo
+echo
 echo "Building binaries for ARCH=$ARCH GFX=$GFX"
 
 rm -f ohrrpgce-game ohrrpgce-custom
@@ -100,3 +102,10 @@ gnutar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$CODE$SUFFIX.tar.gz OHRRPGCE-Gam
 
 echo "Creating utilities archive"
 zip distrib/ohrrpgce-mac-util$SUFFIX.zip unlump relump hspeak plotscr.hsd scancode.hsi LICENSE-binary.txt || exit 1
+
+echo "distrib-mac.sh done."
+echo
+echo "ls distrib"
+ls -l distrib
+echo
+echo "Wildcard match:" distrib/ohrrpgce-mac-minimal-*-wip$SUFFIX.tar.gz
