@@ -63,7 +63,7 @@ build_package() {
   scp -p distrib/ohrrpgce-mac-minimal$SUFFIX.tar.gz $UPLOAD_DEST/ohrrpgce/nightly/
   rm distrib/ohrrpgce-mac-minimal$SUFFIX.tar.gz
 
-  scp -p distrib/ohrrpgce-mac-util$SUFFIX.zip $UPLOAD_DEST/ohrrpgce/nightly/ &&
+  scp -p distrib/ohrrpgce-mac-util$SUFFIX.zip $UPLOAD_DEST/ohrrpgce/nightly/
   rm distrib/ohrrpgce-mac-util$SUFFIX.zip
 }
 

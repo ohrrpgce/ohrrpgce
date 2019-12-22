@@ -52,9 +52,10 @@ rm -Rf tmp/*
 mkdir -p tmp
 mkdir -p distrib
 
-#echo "Erasing old distribution files"
-#rm -f distrib/OHRRPGCE*.dmg
-#rm -f distrib/ohrrpgce-mac-*.zip
+echo "Erasing old $SUFFIX distribution files"
+rm -f distrib/OHRRPGCE-*$SUFFIX.dmg
+rm -f distrib/ohrrpgce-mac-minimal-*$SUFFIX.tar.gz
+rm -f distrib/ohrrpgce-mac-util$SUFFIX.zip
 
 echo "Packaging binary distribution of CUSTOM"
 
@@ -90,7 +91,6 @@ cp -p docs/more-docs.txt tmp/docs || exit 1
 
 echo "Creating disk image"
 mv tmp OHRRPGCE-$CODE$SUFFIX
-#tar -jcf distrib/ohrrpgce-mac-$TODAY-$CODE$SUFFIX.tar.bz2 ohrrpgce --exclude .svn
 hdiutil create -srcfolder OHRRPGCE-$CODE$SUFFIX/ -fs HFS+ distrib/OHRRPGCE-$TODAY-$CODE$SUFFIX.dmg || exit 1
 mv OHRRPGCE-$CODE$SUFFIX tmp
 
@@ -107,5 +107,3 @@ echo "distrib-mac.sh done."
 echo
 echo "ls distrib"
 ls -l distrib
-echo
-echo "Wildcard match:" distrib/ohrrpgce-mac-minimal-*-wip$SUFFIX.tar.gz
