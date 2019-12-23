@@ -3993,8 +3993,12 @@ END SUB
 '                                   Spriteset Browser
 '==========================================================================================
 
+CONST MINSIZE = 1  'Must be at least 1
+CONST MAXSIZE = 512
+
 '=====================================================================
 '                      Add New Spriteset prompt
+
 
 TYPE AddNewSpritesetMenu EXTENDS ModularMenu
   framesize as XYPair
@@ -4016,14 +4020,14 @@ END SUB
 
 FUNCTION AddNewSpritesetMenu.each_tick () as bool
   IF state.pt <> 1 THEN
-   IF framesize.w < 4 THEN
-    framesize.w = 4
+   IF framesize.w < MINSIZE THEN
+    framesize.w = MINSIZE
     state.need_update = YES
    END IF
   END IF
   IF state.pt <> 2 THEN
-   IF framesize.h < 4 THEN
-    framesize.h = 4
+   IF framesize.h < MINSIZE THEN
+    framesize.h = MINSIZE
     state.need_update = YES
    END IF
   END IF
@@ -4043,11 +4047,10 @@ FUNCTION AddNewSpritesetMenu.each_tick () as bool
   END IF
 
   IF state.pt = 1 THEN
-    state.need_update OR= intgrabber(framesize.w, 0, 512)
+    state.need_update OR= intgrabber(framesize.w, 0, MAXSIZE)
   ELSEIF state.pt = 2 THEN
-    state.need_update OR= intgrabber(framesize.h, 0, 512)
+    state.need_update OR= intgrabber(framesize.h, 0, MAXSIZE)
   END IF
-  
 END FUNCTION
 
 'framesize should be passed in with its default size
@@ -4060,7 +4063,7 @@ FUNCTION input_new_spriteset_info (byref framesize as XYPair) as bool
  menu.title = "Select desired size of each frame in the spriteset and press ENTER."
  menu.framesize = framesize
  menu.run()
- framesize = menu.framesize
+ framesize = large(XY(MINSIZE, MINSIZE), menu.framesize)
  RETURN menu.confirmed
 END FUNCTION
 
