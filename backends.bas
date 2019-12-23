@@ -488,12 +488,14 @@ local sub default_gfx_render_procs()
 	gfx_paletteFromRGB = @gfx_paletteFromRGB_SW
 	gfx_paletteDestroy = @gfx_paletteDestroy_SW
 	gfx_paletteUpdate = @gfx_paletteUpdate_SW
+#ifdef USE_RASTERIZER
 	gfx_renderQuadColor = @gfx_renderQuadColor_SW
 	gfx_renderQuadTexture = @gfx_renderQuadTexture_SW
 	gfx_renderQuadTextureColor = @gfx_renderQuadTextureColor_SW
 	gfx_renderTriangleColor = @gfx_renderTriangleColor_SW
 	gfx_renderTriangleTexture = @gfx_renderTriangleTexture_SW
 	gfx_renderTriangleTextureColor = @gfx_renderTriangleTextureColor_SW
+#endif
 end sub
 
 local sub prefer_gfx_backend(b as GfxBackendStuff ptr)

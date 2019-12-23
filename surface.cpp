@@ -592,6 +592,8 @@ int gfx_paletteUpdate_SW( RGBPalette* pPaletteIn )
 	return 0;
 }
 
+#ifdef USE_RASTERIZER
+
 int gfx_renderQuadColor_SW( VertexPC* pQuad, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( pSurfaceDest->format == SF_8bit )
@@ -663,3 +665,5 @@ int gfx_renderTriangleTextureColor_SW( VertexPTC* pTriangle, Surface* pTexture, 
 	g_rasterizer.drawTriangleTextureColor(pTriangle, pTexture, pPalette, bUseColorKey0, argbModifier, pRectDest, pSurfaceDest);
 	return 0;
 }
+
+#endif

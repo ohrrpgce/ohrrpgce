@@ -1078,15 +1078,18 @@ game_modules = ['game',
                 'pathfinding.bas']
 
 # The following are built only once and linked into Game and Custom
-common_modules += ['rasterizer.cpp',
-                   'matrixMath.cpp',
-                   'rotozoom.c',
+common_modules += ['rotozoom.c',
                    'surface.cpp',
                    'lib/gif.cpp',
                    'lib/jo_jpeg.cpp',
                    'lib/ujpeg.c']
 
-
+if 'raster' in ARGUMENTS:
+    common_modules += ['rasterizer.cpp',
+                       'matrixMath.cpp']
+    commonenv['FBFLAGS'] += ['-d', 'USE_RASTERIZER']
+    commonenv['CFLAGS'] += ['-DUSE_RASTERIZER']
+    commonenv['CXXFLAGS'] += ['-DUSE_RASTERIZER']
 
 ################ ver.txt (version info) build rule
 
@@ -1495,6 +1498,8 @@ Experimental options:
                                           arch (x86 or ARM).
                       Current (default) value: """ + arch + """
   portable=1          (For Linux) Try to build portable binaries, and test them.
+  raster=1            Include software triangle rasterizer (rasterizer.cpp).
+                      Not used for anything!
 
 The following environmental variables are also important:
   FBFLAGS             Pass more flags to fbc
