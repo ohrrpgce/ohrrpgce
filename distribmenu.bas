@@ -622,7 +622,13 @@ END FUNCTION
 SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
  IF NOT isfile(exe_name) THEN debuginfo exe_name & " not found, ignoring attempt to change its icon" : EXIT SUB
  IF NOT isfile(ico_name) THEN debuginfo ico_name & " does not exist" : EXIT SUB
- 
+
+ IF dist_yesno("Unfortunately (as of 12/2019) many virus scanners misdetect game.exe as " _
+               "containing a virus if we embed an icon into it. For now, we strongly recommend " _
+               !"that you do NOT embed an icon.\nEmbed " & trimpath(ico_name) & "?", NO, NO) = NO THEN
+  EXIT SUB
+ END IF
+
  DIM rcedit as string = find_windows_helper_app("rcedit", YES)
  IF rcedit = "" THEN EXIT SUB
 
@@ -630,8 +636,6 @@ SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
  DIM spawn_ret as string
  spawn_ret = win_or_wine_spawn_and_wait(rcedit, args)
  IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: rcedit failed when trying to update the icon: " & spawn_ret : EXIT SUB
-
-
 END SUB
 
 SUB find_required_dlls(gameplayer as string, byref files as string vector)
