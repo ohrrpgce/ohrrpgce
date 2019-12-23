@@ -50,7 +50,7 @@ dumpohrkey
 bam2mid
 miditest
 slice2bas
-verprint
+imageconv
 
 # Created by reloadtest
 unittest.rld
@@ -88,9 +88,12 @@ ohr.geany
 
 # Location-specific exclusions
 *.rpg
+*.rpgdir
 !testgame/**/*.rpg
 *.bmp
 *.gif
 *.png
+*.jpg
+*.jpeg
 # Don't ignore anything under data/
 !data/**
