@@ -2985,10 +2985,10 @@ SUB edit_platform_controls ()
     InitLikeStandardMenu menu
     append_menu_item menu, "Previous menu..."
     menu.last->t = platformoptEXIT
- 
-    append_menu_item menu, "Disable Virtual Gamepad: " & yesorno(mobile."disable_virtual_gamepad".exists)
+
+    append_menu_item menu, "Phone/Tablet Virtual Gamepad: " & IIF(mobile."disable_virtual_gamepad".exists, "Disabled", "Enabled")
     menu.last->t = platformoptTOGGLEVGAMEPAD
- 
+
     IF NOT mobile."disable_virtual_gamepad".exists THEN
 
      append_menu_item menu, "Hide V.Gamepad when suspendplayer: " & yesorno(mobile."hide_virtual_gamepad_when_suspendplayer".integer.default(NO))
@@ -3055,13 +3055,13 @@ SUB edit_platform_controls ()
     append_menu_item menu, ""
     menu.last->unselectable = YES
  
-    append_menu_item menu, " Gamepad Buttons"
+    append_menu_item menu, " Gamepad Buttons (Android only)"
     menu.last->unselectable = YES
     menu.last->col = uilook(eduiHeading)
 
     platform_options_append_gamepad_button_menu_items gamepad, menu, NO, buttons(), default_scancodes()
 
-    append_menu_item menu, " Multiplayer Options"
+    append_menu_item menu, " Multiplayer Gamepad Options"
     menu.last->unselectable = YES
     menu.last->col = uilook(eduiHeading)
 
