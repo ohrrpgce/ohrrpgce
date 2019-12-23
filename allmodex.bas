@@ -5467,7 +5467,9 @@ sub find_text_char_position(retsize as StringCharPos ptr, text as string, charnu
 	end with
 end sub
 
-'xpos and ypos passed to use same cached state
+'Calculate character position in string from pixel position.
+'xpos and ypos are where the text was drawn... redundant to subtracting that out of seekx/seeky,
+'but in future we might cache render_text state.
 sub find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as integer, z as string, wide as integer = 999999, xpos as integer = 0, ypos as integer = 0, fontnum as integer, withtags as bool = YES, withnewlines as bool = YES)
 	dim state as PrintStrState
 	with state
