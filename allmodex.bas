@@ -4895,6 +4895,10 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 					'this if block (and much more work).
 					'However, it's difficult to change that, due to other functions depending
 					'this one.
+
+					'FIXME: On the other hand when wrapping with wide=8, currently we will add
+					'a blank line every time we encounter a space, but text slices don't! We
+					'shouldn't add spaces.
 					outbuf = left(outbuf, endchar_outbuf_len)
 					line_width = endchar_x
 					UPDATE_STATE(outbuf, x, endchar_x)
@@ -5255,7 +5259,6 @@ end sub
 'If you specify a page width (the default is "infinite"), then text automatically wraps according
 'to current margins. Otherwise there is no limit on the right (not even the edge of the screen).
 'xpos is the left limit, and xpos+wide is the right limit from which margins are measured (inwards).
-'(FIXME: why is wide measured relative to xpos?)
 'Drawn text is NOT clipped to this region, use setclip or frame_new_view for that.
 'This region may be larger than the clip area.
 'If withnewlines is true, then newlines (ASCII character 10) are respected

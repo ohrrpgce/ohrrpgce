@@ -1483,10 +1483,14 @@ Sub WrapTextSlice(byval sl as Slice ptr, lines() as string)
 
  dim dat as TextSliceData ptr = sl->SliceData
  dim d as string
- if dat->wrap AND sl->width > 7 then
-  d = wordwrap(dat->s, int(sl->width / 8))
- elseif dat->wrap AND sl->width <= 7 then
-  d = wordwrap(dat->s, int((get_resolution().w - sl->X) / 8))
+ if dat->wrap then
+  dim wide as integer
+  if sl->Width > 7 then
+   wide = sl->Width \ 8
+  else
+   wide = large(1, (get_resolution().w - sl->ScreenX) \ 8)
+  end if
+  d = wordwrap(dat->s, wide)
  else
   d = dat->s
  end if
@@ -1498,12 +1502,12 @@ Sub WrapTextSlice(byval sl as Slice ptr, lines() as string)
 End sub
 
 'Get the 'wide' parameter to render_text, etc
-Local Function TextSliceRenderTextWide(sl as Slice ptr, dat as TextSliceData ptr, x as integer) as integer
+Local Function TextSliceRenderTextWide(sl as Slice ptr, dat as TextSliceData ptr) as integer
  if dat->Wrap then
-  if sl->Width > 7 then
-   return x + sl->Width
+  if sl->Width > 7 then  'FIXME: this should be reduced for smaller fonts
+   return sl->Width
   else
-   return get_resolution().w
+   return large(1, get_resolution().w - sl->ScreenX)
   end if
  else
   return 999999999
@@ -1524,8 +1528,7 @@ Sub NewDrawTextSlice(byval sl as Slice ptr, byval p as integer, col as integer)
  NewUpdateTextSlice sl
 
  dim text as string = dat->s
- 'The wide argument to render_text/wrapprint/etc is really messed up...
- dim wide as integer = TextSliceRenderTextWide(sl, dat, sl->ScreenX)
+ dim wide as integer = TextSliceRenderTextWide(sl, dat)
  dim fontnum as integer = iif(dat->outline, fontEdged, fontPlain)
 
  dat->insert_tog = dat->insert_tog xor 1
@@ -1622,7 +1625,7 @@ Sub NewUpdateTextSlice(byval sl as Slice ptr)
 
  'dat->line_limit not supported yet
  dim fontnum as integer = iif(dat->outline, fontEdged, fontPlain)
- dim wide as integer = TextSliceRenderTextWide(sl, dat, 0)
+ dim wide as integer = TextSliceRenderTextWide(sl, dat)
  dim size as XYPair = textsize(dat->s, wide, fontnum, YES)
  sl->Height = size.h
  if dat->Wrap = NO then sl->Width = size.w
@@ -1660,7 +1663,7 @@ Function TextSliceCharPos(sl as Slice ptr, charnum as integer) as XYPair
  if sl = 0 orelse sl->SliceData = 0 then return XY(0, 0)
  dim dat as TextSliceData ptr = sl->SliceData
 
- dim wide as integer = TextSliceRenderTextWide(sl, dat, 0)
+ dim wide as integer = TextSliceRenderTextWide(sl, dat)
  dim fontnum as integer = iif(dat->outline, fontEdged, fontPlain)
  dim charpos as StringCharPos
  find_text_char_position(@charpos, dat->s, charnum, wide, fontnum)

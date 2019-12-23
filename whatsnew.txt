@@ -313,6 +313,8 @@ Septotobvember ? 2019 [Fufluns]
       reasonable, other previously-forbidden ones cause jerky movement. [Ralph]
     * Bug gh#41: Corrupt tileset graphics and crash in Test Game after changing
       tilesets or reordering layers [Ralph]
+    * Wrapping text slices with width < 8 are meant to wrap to the right edge
+      of the screen but wrapped at wrong point [Ralph]
 
   *** Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced
