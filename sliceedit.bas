@@ -1655,9 +1655,13 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     DIM mintype as SpriteType = IIF(ses.collection_group_number = SL_COLLECT_EDITOR, sprTypeFrame, 0)
     sliceed_rule_enum rules(), "sprite_type", @(dat->spritetype), mintype, sprTypeLastPickable, slgrUPDATESPRITE
     IF dat->spritetype = sprTypeFrame THEN
-     BUG_IF(dat->assetfile = NULL, "null dat->assetfile")
-     a_append menu(), " Asset file: " & *dat->assetfile
-     sliceed_rule_str rules(), "sprite_asset", erShortStrgrabber, dat->assetfile, 1024, (slgrUPDATESPRITE OR slgrBROWSESPRITEASSET)
+     IF dat->assetfile = NULL THEN
+      a_append menu(), " Raw Frame: " & frame_describe(dat->img.sprite)
+      sliceed_rule_none rules(), ""
+     ELSE
+      a_append menu(), " Asset file: " & *dat->assetfile
+      sliceed_rule_str rules(), "sprite_asset", erShortStrgrabber, dat->assetfile, 1024, (slgrUPDATESPRITE OR slgrBROWSESPRITEASSET)
+     END IF
      IF ses.privileged THEN
       a_append menu(), "  Load as 32bit Frame: " & yesorno(dat->load_asset_as_32bit)
       sliceed_rule_tog rules(), "sprite_32bit_asset", @(dat->load_asset_as_32bit), slgrUPDATESPRITE
