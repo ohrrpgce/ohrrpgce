@@ -3059,8 +3059,10 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
   append_menu_item menu, choices(i)
  NEXT
 
- menu.anchorvert = alignTop
- menu.alignvert = alignTop
+ IF LEN(*capt) THEN
+  menu.anchorvert = alignTop
+  menu.alignvert = alignTop
+ END IF
  menu.withtags = YES
 
  state.active = YES
@@ -3107,7 +3109,9 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
 
   copypage holdscreen, vpage
   DIM res as XYPair = get_resolution()
-  menu.offset.Y = 2 + basic_textbox(capt, , vpage, pCentered - 10 - UBOUND(choices) * 5 + showTop)
+  IF LEN(*capt) THEN
+   menu.offset.y = 2 + basic_textbox(capt, , vpage, pCentered - 10 - UBOUND(choices) * 5 + showTop)
+  END IF
   menu.maxrows = (res.h - menu.offset.Y - 10) \ 10
   menu.max_chars = res.w \ 8 - 2
   init_menu_state state, menu  'Required after changing menu.maxrows
