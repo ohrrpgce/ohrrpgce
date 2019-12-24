@@ -4184,6 +4184,7 @@ SUB SpriteSetBrowser.build_menu()
   loaddefaultpals sprtype, defpalettes()
 
   ' Build slice collection
+  DeleteSlice @root  'When using Ctrl-F6
   root = NewSliceOfType(slContainer)
   SliceLoadFromFile root, finddatafile("spriteset_browser.slice")
 
@@ -4208,8 +4209,9 @@ SUB SpriteSetBrowser.delete_menu_items()
   WEND
 END SUB
 
-'Called every time a spriteset changes.
 'Deletes and recreates just the spriteset slices.
+'Called every time a spriteset changes in a way that requires slices to be recreated
+'(which includes changes in size or number of frames or frame IDs, but not contents).
 SUB SpriteSetBrowser.rebuild_menu()
   DIM starttime as double = TIMER
 
@@ -4488,7 +4490,7 @@ END SUB
 SUB SpriteSetBrowser_save_callback(spr as Frame ptr, context as any ptr, defpal as integer)
  DIM byref this as SpriteSetBrowser = *cast(SpriteSetBrowser ptr, context)
  'DIM tt as double = TIMER
- 'Copy back into editing_spriteset
+ 'Copy back into editing_spriteset, overwriting existing frame (trans=NO)
  frame_draw spr, NULL, 0, 0, , NO, this.editing_frame
 
  this.defpalettes(this.editing_setnum) = defpal
@@ -4502,6 +4504,7 @@ SUB SpriteSetBrowser_save_callback_fullset(spr as Frame ptr, context as any ptr,
  DIM split_ss as Frame ptr = spriteset_from_basic_spritesheet(spr, this.sprtype, sprite_sizes(this.sprtype).frames)
 
  this.defpalettes(this.editing_setnum) = defpal
+ 'TODO: any animations that were part of the original SpriteSet would be lost!
  rgfx_save_spriteset split_ss, this.sprtype, this.editing_setnum, this.defpalettes(this.editing_setnum)
  frame_unload @split_ss
 END SUB
@@ -4569,10 +4572,8 @@ SUB SpriteSetBrowser.edit_any(setnum as integer, framenum as integer)
 
   IF fullset THEN
     'Unlike editing a single frame, in which the cached Frame is modified in-place,
-    'when editing a whole spriteset we're replacing it (writing out directly to .rgfx),
-    'so need to remove the spriteset from the cache.
-    delete_menu_items()   'Required in order to empty cache
-    sprite_empty_cache sprtype, setnum
+    'when editing a whole spriteset we're replacing it
+    replace_spriteset setnum  'Deletes menu items
   END IF
 
   'All palettes might have been modified, but they would have been modified
@@ -4612,7 +4613,7 @@ END SUB
 
 'Import an image/palette over current frame or spriteset
 SUB SpriteSetBrowser.import_any()
-  DIM as integer setnum = cur_setnum, framenum = cur_framenum  'Cache for after delete_menu_items
+  DIM as integer setnum = cur_setnum, framenum = cur_framenum
   DIM fullset as bool = (framenum < 0)  'Whole spriteset?
 
   editing_spriteset = frame_load(sprtype, setnum)
@@ -4640,11 +4641,10 @@ SUB SpriteSetBrowser.import_any()
 
   cleanup_editstate edstate, fullset
 
-  'Unlike editing a single frame, in which the cached Frame is modified in-place,
-  'when importing a whole spriteset we're replacing it, so need to empty the cache.
-  delete_menu_items()   'Required in order to empty cache
-  sprite_empty_cache sprtype, setnum
-  rebuild_menu()
+  IF fullset THEN
+    replace_spriteset setnum
+    rebuild_menu()
+  END IF
 END SUB
 
 'Delete a frame from a spriteset
@@ -4707,6 +4707,7 @@ END SUB
 'If ss is given: Save ss, empty the cache, and free ss.
 'Otherwise, just does cleanup needed when a spriteset needs to be reloaded.
 'This is needed when a sprite set can't be modified in-place, eg because number of frames changed.
+'Note: rebuild_menu() must be called afterwards!
 SUB SpriteSetBrowser.replace_spriteset(setnum as integer, ss as Frame ptr = NULL)
   IF ss THEN
     rgfx_save_spriteset ss, sprtype, setnum, defpalettes(setnum)
@@ -4801,7 +4802,7 @@ SUB SpriteSetBrowser.run()
     IF keyval(scF6) > 1 THEN
       IF keyval(scCtrl) > 0 THEN
         slice_editor SL_COLLECT_EDITOR, finddatafile("spriteset_browser.slice"), YES
-        rebuild_menu
+        build_menu
         CONTINUE DO
       ELSE
         slice_editor root, SL_COLLECT_EDITOR, , , YES
