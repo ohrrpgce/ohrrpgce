@@ -4188,8 +4188,12 @@ TYPE SpriteSetBrowser
   genmax as integer               'Index in gen()
   defpalettes(any) as integer
   palettes(any) as Palette16 ptr
-  copy_buffer as Frame ptr vector
+
+  'Copy/paste:
+  copy_buffer as Frame ptr vector 'One or more copied frames
+  copied_whole_set as bool        'Copied a spriteset rather than a single frame (ignore if nothing copied)
   copied_defpal as integer        'The default palette of the copied spriteset, or -1 for none
+
   'The following are only set inside and immediately after calling edit_frame() or import_any();
   'they're used for SpriteSetBrowser_save_callback*
   editing_spriteset as Frame ptr  'The whole spriteset (as a single spritesheet in fullset mode)
@@ -4695,7 +4699,7 @@ SUB SpriteSetBrowser.edit_any(setnum as integer, framenum as integer)
 END SUB
 
 SUB SpriteSetBrowser.edit_spriteset(setnum as integer)
-  DIM choices(...) as string = {"Draw full spritesheet", "Export spritesheet", "Import spritesheet", "Resize"}
+  DIM choices(...) as string = {"Draw spritesheet", "Export spritesheet", "Import spritesheet", "Resize"}
   DIM choice as integer = multichoice("", choices())
   SELECT CASE choice
    CASE 0
@@ -4862,6 +4866,7 @@ SUB SpriteSetBrowser.copy_any()
     v_append copy_buffer, fr  'incremenets refc
     frame_unload @fr
     copied_defpal = -1
+    copied_whole_set = NO
   ELSE  'Whole set
     'Make a copy of each frame (frame_duplicate only copies a single frame)
     FOR framenum as integer = 0 TO editing_spriteset->arraylen - 1
@@ -4870,6 +4875,7 @@ SUB SpriteSetBrowser.copy_any()
       frame_unload @fr
     NEXT
     copied_defpal = defpalettes(cur_setnum)
+    copied_whole_set = YES
   END IF
   frame_unload @editing_spriteset
 END SUB
@@ -4887,22 +4893,28 @@ SUB SpriteSetBrowser.paste_any(transparent as bool)
   editing_spriteset = frame_load(sprtype, cur_setnum)
 
   IF cur_framenum = -1 THEN  'Whole spriteset
-    FOR idx as integer = 0 TO small(v_len(copy_buffer), editing_spriteset->arraylen) - 1
-      paste_frame(copy_buffer[idx], @editing_spriteset[idx], transparent)
-    NEXT
-    'Also copy over the default palette
-    IF copied_defpal > -1 THEN
-      defpalettes(cur_setnum) = copied_defpal
-      savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
-      rebuild_menu()
+    'copy_buffer might be either a single frame or a while spriteset.
+    IF transparent ORELSE copied_whole_set = NO THEN
+      'Paste each frame individually, keeping the original frame size and frame IDs
+      FOR idx as integer = 0 TO small(v_len(copy_buffer), editing_spriteset->arraylen) - 1
+        paste_frame(copy_buffer[idx], @editing_spriteset[idx], transparent)
+      NEXT
+    ELSE
+      'Overwrite the original spriteset completely
+      frame_assign @editing_spriteset, frame_vector_to_array(copy_buffer)
+
+      'Also copy over the default palette
+      IF copied_defpal > -1 THEN
+        defpalettes(cur_setnum) = copied_defpal
+        savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
+      END IF
     END IF
   ELSE
     paste_frame(copy_buffer[0], @editing_spriteset[cur_framenum], transparent)
   END IF
 
-  rgfx_save_spriteset editing_spriteset, sprtype, cur_setnum, defpalettes(cur_setnum)
-
-  frame_unload @editing_spriteset
+  replace_spriteset cur_setnum, editing_spriteset  'Unloads editing_spriteset
+  rebuild_menu()
 END SUB
 
 SUB SpriteSetBrowser.run()

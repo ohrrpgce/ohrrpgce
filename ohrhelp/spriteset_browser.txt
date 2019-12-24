@@ -18,5 +18,8 @@ CTRL+T pastes a sprite or spriteset using color 0 as transparent.
 Select "Set #" and hit CTRL+C/V/T to copy/paste the whole spriteset.
 Copying and pasting works between different spriteset types.
 
+You can copy a frame and paste it onto a spriteset and vice versa, in which case only one frame is pasted.
+If you copy a whole spriteset and paste it onto another spriteset, it will completely replace the original.
+
 Press E to export the currently selected frame or spriteset to a BMP file.
 Press I to import a frame or spriteset from a BMP, PNG or JPEG file, overwriting the currently selected one. You can import from an image of any size. It will be cropped/expanded to the expected size.
