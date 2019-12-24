@@ -4079,11 +4079,11 @@ END FUNCTION
 TYPE ResizeSpritesetMenu EXTENDS ModularMenu
   original as Frame ptr
   resized as Frame ptr
-
   framesize as XYPair
   shift as XYPair
   root as Slice ptr
   pal as integer
+  confirmed as bool  'Didn't cancel
 
   DECLARE SUB update ()
   DECLARE FUNCTION each_tick () as bool
@@ -4131,13 +4131,14 @@ FUNCTION ResizeSpritesetMenu.each_tick () as bool
 
   IF enter_space_click(state) THEN
     IF state.pt = 5 THEN
+      confirmed = YES
       RETURN YES 'Confirmed
     ELSEIF state.pt = 0 THEN
-      frame_unload @resized
       RETURN YES 'Cancel
     END IF
     IF state.pt > 0 ANDALSO enter_or_space() THEN
       'Enter or space should confirm on the numbers, even though click should not
+      confirmed = YES
       RETURN YES 'Confirmed
     END IF
   END IF
@@ -4163,11 +4164,16 @@ FUNCTION spriteset_resize_menu(sprtype as SpriteType, setnum as integer, pal as 
   menu.menuopts.edged = YES
   menu.helpkey = "resize_spriteset"
   menu.title = "Resize each frame to:"
+  menu.menuopts.wide = 90
   menu.original = frame_load(sprtype, setnum)
   menu.framesize = menu.original->size
   menu.pal = pal
   menu.run()
   frame_unload @menu.original
+  IF menu.confirmed = NO THEN
+    frame_unload @menu.resized
+    RETURN NULL
+  END IF
   RETURN menu.resized
 END FUNCTION
 
