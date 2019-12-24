@@ -4182,7 +4182,6 @@ END FUNCTION
 '                                   Spriteset Browser
 '==========================================================================================
 
-
 TYPE SpriteSetBrowser
   sprtype as SpriteType
   genmax as integer               'Index in gen()
@@ -4561,17 +4560,7 @@ SUB SpriteSetBrowser.set_focus(setnum as integer, framenum as integer)
   END IF
 END SUB
 
-'Append and save a new spriteset, using the FrameGroupInfo as a template
-SUB SpriteSetBrowser.add_spriteset()
-  DIM framesize as XYPair
-
-  WITH sprite_sizes(sprtype)
-   framesize = .size   'Default size
-   IF .fixed_size = NO THEN
-    IF input_new_spriteset_info(framesize) = NO THEN EXIT SUB
-   END IF
-  END WITH
-
+LOCAL FUNCTION create_spriteset(sprtype as SpriteType, framesize as XYPair) as Frame ptr
   DIM info() as FrameGroupInfo
   default_frame_group_info sprtype, info()
 
@@ -4590,10 +4579,25 @@ SUB SpriteSetBrowser.add_spriteset()
       fridx += 1
     NEXT
   NEXT
+  RETURN newfr
+END FUNCTION
+
+'Append and save a new spriteset, using the FrameGroupInfo as a template
+SUB SpriteSetBrowser.add_spriteset()
+  DIM framesize as XYPair
+  WITH sprite_sizes(sprtype)
+   framesize = .size   'Default size
+   IF .fixed_size = NO THEN
+    IF input_new_spriteset_info(framesize) = NO THEN EXIT SUB
+   END IF
+  END WITH
+
+  DIM newss as Frame ptr = create_spriteset(sprtype, framesize)
 
   gen(genmax) += 1
   REDIM PRESERVE defpalettes(gen(genmax))
-  rgfx_save_spriteset newfr, sprtype, gen(genmax), 0
+  rgfx_save_spriteset newss, sprtype, gen(genmax), 0
+  frame_unload @newss
 
   rebuild_menu()
   set_focus(gen(genmax), 0)
