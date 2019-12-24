@@ -63,8 +63,6 @@ DECLARE SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byv
 DECLARE SUB tile_animation(byval tilesetnum as integer)
 DECLARE SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref bgcolor as bgType)
 
-DECLARE SUB edit_animations(sprset as SpriteSet ptr, pal as Palette16 ptr)
-
 ' Sprite editor
 DECLARE SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
 DECLARE SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Frame ptr)
@@ -96,6 +94,11 @@ DECLARE SUB readredospr (ss as SpriteEditState)
 DECLARE FUNCTION spriteedit_import16(byref ss as SpriteEditState) as Frame ptr
 DECLARE SUB spriteedit_export (default_name as string, spr as Frame ptr, pal as Palette16 ptr)
 DECLARE FUNCTION default_export_name (sprtype as SpriteType, setnum as integer, framenum as integer = 0, fullset as bool) as string
+
+' Spriteset editor
+DECLARE SUB edit_animations(sprset as SpriteSet ptr, pal as Palette16 ptr)
+DECLARE SUB spriteset_resize_menu_rebuild(byref root as Slice ptr, ss as Frame ptr, pal as integer)
+
 
 ' Locals
 DIM SHARED ss_save as SpriteEditStatic
@@ -3244,6 +3247,8 @@ FUNCTION spriteedit_import16_split_spriteset(ss as SpriteEditState, impsprite as
     RETURN NULL
    ELSEIF choice = 0 THEN
     DIM resized as Frame ptr
+    'The following looks like a noop, but what it accomplishes is rounding up/down
+    'the frame size if numframes doesn't divide evenly into impsprite->w
     resized = spriteset_from_basic_spritesheet(impsprite, ss.fileset, numframes)
     frame_assign @impsprite, spriteset_to_basic_spritesheet(resized)
     frame_unload @resized
@@ -4067,6 +4072,105 @@ FUNCTION input_new_spriteset_info (byref framesize as XYPair) as bool
  RETURN menu.confirmed
 END FUNCTION
 
+'=====================================================================
+'                      Resize Spriteset screen
+
+
+TYPE ResizeSpritesetMenu EXTENDS ModularMenu
+  original as Frame ptr
+  resized as Frame ptr
+
+  framesize as XYPair
+  shift as XYPair
+  root as Slice ptr
+  pal as integer
+
+  DECLARE SUB update ()
+  DECLARE FUNCTION each_tick () as bool
+  DECLARE SUB draw_underlays()
+END TYPE
+
+SUB ResizeSpritesetMenu.update ()
+  REDIM menu(5)
+  state.last = UBOUND(menu)
+
+  menu(0) = "[Cancel]"
+  menu(1) = "Width: " & framesize.w
+  menu(2) = "Height: " & framesize.h
+  menu(3) = "Shift X: " & shift.x
+  menu(4) = "Shift Y: " & shift.y
+  menu(5) = "[Done]"
+
+  frame_unload @resized
+  resized = frame_resized(original, large(MINSIZE, framesize.w), large(MINSIZE, framesize.h), shift.x, shift.y)
+  spriteset_resize_menu_rebuild root, resized, pal
+END SUB
+
+FUNCTION ResizeSpritesetMenu.each_tick () as bool
+  IF keyval(scF6) > 1 THEN
+    IF keyval(scCtrl) > 0 THEN
+      slice_editor SL_COLLECT_EDITOR, finddatafile("spriteset_editor.slice"), YES
+      state.need_update = YES
+    ELSE
+      slice_editor root, SL_COLLECT_EDITOR, , , YES
+    END IF
+  END IF
+
+  IF state.pt <> 1 THEN
+    IF framesize.w < MINSIZE THEN
+      framesize.w = MINSIZE
+      state.need_update = YES
+    END IF
+  END IF
+  IF state.pt <> 2 THEN
+    IF framesize.h < MINSIZE THEN
+      framesize.h = MINSIZE
+      state.need_update = YES
+    END IF
+  END IF
+
+  IF enter_space_click(state) THEN
+    IF state.pt = 5 THEN
+      RETURN YES 'Confirmed
+    ELSEIF state.pt = 0 THEN
+      frame_unload @resized
+      RETURN YES 'Cancel
+    END IF
+    IF state.pt > 0 ANDALSO enter_or_space() THEN
+      'Enter or space should confirm on the numbers, even though click should not
+      RETURN YES 'Confirmed
+    END IF
+  END IF
+
+  IF state.pt = 1 THEN
+    state.need_update OR= intgrabber(framesize.w, 0, MAXSIZE)
+  ELSEIF state.pt = 2 THEN
+    state.need_update OR= intgrabber(framesize.h, 0, MAXSIZE)
+  ELSEIF state.pt = 3 THEN
+    state.need_update OR= intgrabber(shift.x, -framesize.w, framesize.w)
+  ELSEIF state.pt = 4 THEN
+    state.need_update OR= intgrabber(shift.y, -framesize.h, framesize.h)
+  END IF
+END FUNCTION
+
+SUB ResizeSpritesetMenu.draw_underlays()
+  DrawSlice root, vpage
+END SUB
+
+'Returns resized sprite set, or NULL. Does not free or modify 'spriteset'.
+FUNCTION spriteset_resize_menu(sprtype as SpriteType, setnum as integer, pal as integer) as Frame ptr
+  DIM menu as ResizeSpritesetMenu
+  menu.menuopts.edged = YES
+  menu.helpkey = "resize_spriteset"
+  menu.title = "Resize each frame to:"
+  menu.original = frame_load(sprtype, setnum)
+  menu.framesize = menu.original->size
+  menu.pal = pal
+  menu.run()
+  frame_unload @menu.original
+  RETURN menu.resized
+END FUNCTION
+
 
 '==========================================================================================
 '                                   Spriteset Browser
@@ -4130,7 +4234,6 @@ END TYPE
 DECLARE SUB export_gif(ss as SpriteSet ptr, pal as Palette16 ptr, fname as string, anim as string, transparent as bool = NO)
 
 DECLARE SUB spriteset_detail_editor(sprtype as SpriteType, setnum as integer)
-
 
 SUB spriteset_editor(sprtype as SpriteType)
   DIM editor as SpriteSetBrowser
@@ -4586,9 +4689,23 @@ SUB SpriteSetBrowser.edit_any(setnum as integer, framenum as integer)
 END SUB
 
 SUB SpriteSetBrowser.edit_spriteset(setnum as integer)
-  spriteset_detail_editor sprtype, setnum
-  replace_spriteset setnum
-  rebuild_menu
+  DIM choices(...) as string = {"Draw full spritesheet", "Export spritesheet", "Import spritesheet", "Resize"}
+  DIM choice as integer = multichoice("", choices())
+  SELECT CASE choice
+   CASE 0
+    edit_any setnum, -1
+   CASE 1
+    export_any
+   CASE 2
+    import_any
+   CASE 3
+    DIM resized as Frame ptr
+    resized = spriteset_resize_menu(sprtype, setnum, defpalettes(setnum))
+    IF resized THEN
+      replace_spriteset setnum, resized
+      rebuild_menu
+    END IF
+  END SELECT
 END SUB
 
 'Export current frame or spriteset
@@ -4855,8 +4972,9 @@ SUB SpriteSetBrowser.run()
     IF enter_or_space() ORELSE ((readmouse.release AND mouseLeft) ANDALSO hover = ps.cur) then
       IF cur_setnum = -1 THEN  'Add new
         add_spriteset()
-      ELSE
-        'Editing either a single frame or whole spriteset
+      ELSEIF cur_framenum = -1 THEN  'Whole spriteset: Spriteset menu
+        edit_spriteset(cur_setnum)
+      ELSE  'Single frame
         edit_any(cur_setnum, cur_framenum)
       END IF
     END IF
@@ -4900,6 +5018,34 @@ SUB SpriteSetBrowser.run()
 END SUB
 
 '-------------------------------------------------------------------------------
+
+'Temporary, will probably become part of SpriteSetEditor
+SUB spriteset_resize_menu_rebuild(byref root as Slice ptr, sprset as Frame ptr, pal as integer)
+  DeleteSlice @root
+  root = NewSliceOfType(slContainer)
+  SliceLoadFromFile root, finddatafile("spriteset_editor.slice")
+
+  DIM as Slice ptr fr_templ, fr_sl
+
+  ' Add the frames
+  fr_templ = edsl(ssed_frame_templ, root)
+  FOR framenum as integer = 0 TO sprset->arraylen - 1
+    DIM frameid as integer = sprset[framenum].frameid
+    fr_sl = plank_menu_clone_template(fr_templ)
+    fr_sl->Extra(0) = 0
+    fr_sl->Extra(1) = framenum
+    fr_sl->Extra(2) = frameid
+    DIM spr_sl as Slice ptr = edsl(ssed_frame_sprite, fr_sl)
+    SetSpriteToFrame spr_sl, frame_reference(sprset), , pal
+    ChangeSpriteSlice spr_sl, , , , framenum
+    spr_sl->Visible = YES
+  NEXT
+
+  ' FIXME: CoverChildren is a bit broken, just refreshing doesn't properly position
+  ' everything, and even have to draw multiple times due to nested CoverChildren.
+  DrawSlice root, vpage
+  DrawSlice root, vpage
+END SUB
 
 SUB spriteset_detail_editor(sprtype as SpriteType, setnum as integer)
  DIM editor as SpriteSetEditor

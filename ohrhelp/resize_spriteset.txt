@@ -1,0 +1,6 @@
+All the frames of a spriteset have the same size. Here, you can resize them.
+
+Press ENTER when finished, or select [Done].
+Careful! There's no way to undo after you accept changes!
+
+It isn't necessary to resize a spriteset before importing an image file overwriting the whole spriteset.

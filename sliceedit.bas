@@ -1601,7 +1601,8 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     sliceed_rule rules(), "rect_bg", erIntgrabber, @(dat->bgcol), LowColorCode(), 255, (slgrUPDATERECTCUSTOMSTYLE OR slgrPICKCOL)
     a_append menu(), "  Foreground (line) color: " & slice_color_caption(dat->fgcol)
     sliceed_rule rules(), "rect_fg", erIntgrabber, @(dat->fgcol), LowColorCode(), 255, (slgrUPDATERECTCUSTOMSTYLE OR slgrPICKCOL)
-    a_append menu(), "  Border type: " & IIF(dat->use_raw_box_border, "Spriteset", "Box Style")
+    'TODO: Line and None should be border types, not appear under Box Style
+    a_append menu(), "  Border type: " & IIF(dat->use_raw_box_border, "Spriteset", "Box Style/Line/None")
     sliceed_rule_tog rules(), "rect_use_raw_box_border", @(dat->use_raw_box_border), slgrUPDATERECTCUSTOMSTYLE
     IF dat->use_raw_box_border THEN
      a_append menu(), "   Raw Spriteset: " & dat->raw_box_border

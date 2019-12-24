@@ -2052,7 +2052,7 @@ Sub SetSpriteToFrame(sl as Slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = 
   .img.sprite = fr
   .record = -1
   .frame = 0
-  .trans = YES
+  '.trans preserved
 
   if pal16 then
    .img.pal = pal16

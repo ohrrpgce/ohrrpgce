@@ -1,9 +1,8 @@
-Here you can choose which sprite you want to edit. Each box is a sprite set. Different types of sprites have different sizes and different numbers of frames in each sprite set.
+This is the spriteset browser and editor, which shows all the spritesets of one type and lets you edit or add then. Each box is a sprite set. Different types of sprites have different default sizes and different numbers of frames in each set.
 
-Use the arrow keys (or PgUp, PgDn, Home, and End) or mousewheel to navigate,
-or type in a spriteset number to jump to it.
+Use the arrow keys (or PgUp, PgDn, Home, and End) or mousewheel to navigate, or type in a spriteset number to jump to it.
 
-Select the box at the front of a spriteset that says "Set #" in order to do an operation on a whole spriteset, such as copying, pasting, importing, exporting, or editing the whole spriteset at once (useful for replacing colors or shifting all frames).
+Select the box at the front of a spriteset that says "Set #" in order to do an operation on a whole spriteset, such as copying, pasting, importing, exporting, resizing, or drawing the whole spriteset at once (useful for replacing colors or shifting all frames).
 
 Press ENTER, SPACE or CLICK to start editing a single frame sprite or the whole spriteset.
 

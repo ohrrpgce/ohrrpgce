@@ -1,3 +1,4 @@
-All frames of a spriteset have the same size.
+All the frames of a spriteset have the same size. For now, you can't change the number of frames.
 
-For now, you can't change the number of frames, and can't change the frame size after creating. But you can copy-paste between spritesets with different sizes, and resize that way.
+You can resize a spriteset after creating it from the Spriteset menu (press ENTER or CLICK on the "Set ###" button).
+

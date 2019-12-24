@@ -1872,7 +1872,7 @@ SUB ModularMenu.draw()
    wrapprint title, pCentered, titley, uilook(uiText), vpage, rWidth - 20
    'where.y += titlesize.h + 2
   ELSE
-   wrapprint title, where.x, where.y, uilook(uiText), vpage
+   wrapprint title, where.x, where.y, uilook(uiText), vpage, rWidth - where.x - 4
    where.y += textsize(title, rWidth - where.x).h + 4
   END IF
  END IF
