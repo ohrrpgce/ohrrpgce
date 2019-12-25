@@ -4429,15 +4429,17 @@ SUB SpriteSetBrowser.update()
 
   DIM info_str as string
   DIM caption_str as string = ""
+  info_text_right->Visible = NO
   IF cur_setnum = -1 THEN  'Add new
     info_str = "ENTER to add a new spriteset"
     info_text_dat->show_insert = NO
-    info_text_right->Visible = NO
     pal_root->Visible = NO
   ELSE
-    info_text_right->Visible = YES
-    CAST(TextSliceData ptr, info_text_right->SliceData)->use_render_text = YES
-    ChangeTextSlice info_text_right, ticklite("`I`mport/`E`xport", uilook(uiMenuItem))
+    IF cur_framenum = -1 OR get_resolution.x >= 380 THEN  'Only if there's room
+      info_text_right->Visible = YES
+      CAST(TextSliceData ptr, info_text_right->SliceData)->use_render_text = YES
+      ChangeTextSlice info_text_right, "SHIFT: move by spriteset"
+    END IF
 
     info_str = "Spriteset " & cur_setnum
 
@@ -4958,11 +4960,26 @@ SUB SpriteSetBrowser.run()
     IF ps.cur THEN set_plank_state ps, ps.cur, plankNORMAL
     IF hover THEN set_plank_state ps, hover, plankNORMAL
 
-    IF plank_menu_arrows(ps) THEN
+    DIM setnum as integer = cur_setnum
+    IF keyval(scShift) THEN
+      'Move by spriteset
+      cursor_moved = YES
+      IF keyval(scLeft) > 1 THEN
+        setnum -= 1
+      ELSEIF keyval(scRight) > 1 THEN
+        setnum += 1
+      ELSEIF keyval(scEnd) > 1 THEN
+        setnum = gen(genmax)
+      ELSEIF plank_menu_arrows(ps) THEN  'Up/down/pageup/pagedown/home
+        setnum = cur_setnum
+      ELSE
+        cursor_moved = NO
+      END IF
+      IF cursor_moved THEN set_focus(setnum, -1)
+    ELSEIF plank_menu_arrows(ps) THEN
       cursor_moved = YES
     END IF
     plank_menu_mouse_wheel(ps)
-    DIM setnum as integer = cur_setnum
     IF intgrabber(setnum, 0, gen(genmax), scNone, scNone, YES, NO) THEN
       set_focus(setnum, cur_framenum)
       cursor_moved = YES
