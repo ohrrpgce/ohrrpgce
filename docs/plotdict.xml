@@ -8614,11 +8614,19 @@ The third argument is the total number of ticks that the animation should run. Y
 			</seealso>
 		</command>
 		<command id="scrolltochild">
-			<canon>scroll to child (parent, sl)</canon>
+			<alias>scrolltoslice</alias>
 			<shortname>scroll to child</shortname>
+		</command>
+		<command id="scrolltoslice">
+			<canon>scroll to slice (parent, sl, apply padding)</canon>
+			<shortname>scroll to slice</shortname>
 			<description>
-				Causes all the children of the <p>parent</p> slice to be scrolled until the screen position of <p>sl</p>,
-				a child or descendent of <p>parent</p>, fits inside the parent.
+				Causes all the children of the <p>parent</p> slice to be shifted by the same offset
+				so the screen position of <p>sl</p> (any child or descendent of <p>parent</p>) fits inside the parent.
+				<lb/>
+				If <p>apply padding</p> is true (the default is <tt>false</tt>),
+				then <p>sl</p> is scrolled within the area of <p>parent</p>
+				with padding subtracted (the area covered by a child set to Fill Parent).
 				<note>
 					This is mainly intended for scroll slices, such as those created with the <ref>createscroll</ref> command,
 					but it can be used on any type of slice.
@@ -8626,7 +8634,7 @@ The third argument is the total number of ticks that the animation should run. Y
 					positioned by a grid parent will be unaffected, and an error or warning may be shown.)
 				</note>
 				<note>
-					This command is misnamed, as it works for all descendent slices, not just children!
+					This works for all descendent slices <p>sl</p>, not just children!
 					It only changes the positions of the children of <p>parent</p>,
 					but that causes the screen position of <p>sl</p> to also change.
 				</note>

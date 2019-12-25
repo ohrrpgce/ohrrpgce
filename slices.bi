@@ -592,7 +592,7 @@ DECLARE Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref nu
 DECLARE Function SliceIsInvisible(byval sl as Slice Ptr) as bool
 DECLARE Function SliceIsInvisibleOrClipped(byval sl as Slice Ptr) as bool
 
-DECLARE Sub ScrollToChild(byval sl as slice ptr, byval ch as slice ptr)
+DECLARE Sub ScrollToChild(byval sl as Slice ptr, byval desc as Slice ptr, byval apply_padding as bool = YES)
 DECLARE Sub ScrollAllChildren(byval sl as slice ptr, byval xmove as integer, byval ymove as integer)
 DECLARE Sub CalcSliceContentsSize(sl as Slice ptr, byref min as XYPair, byref max as XYPair, check_depth as integer, cur_depth as integer=0)
 

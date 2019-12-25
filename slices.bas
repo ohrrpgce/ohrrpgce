@@ -3180,28 +3180,36 @@ Sub ScrollAllChildren(byval sl as Slice ptr, byval xmove as integer, byval ymove
  loop
 end sub
 
-Sub ScrollToChild(byval sl as Slice ptr, byval ch as Slice ptr)
- 'Similar to SliceClamp, but shifts all children of sl so that ch (which is any desendent
- 'of sl) is within the bounds of sl. Ignores padding.
+Sub ScrollToChild(byval sl as Slice ptr, byval desc as Slice ptr, byval apply_padding as bool = YES)
+ 'Similar to SliceClamp, but shifts all children of sl so that desc (which is any desendent
+ 'of sl) is within the bounds of sl. Ignores padding if apply_padding=NO.
  'This is intended for ScrollSlice, but can actually work on any type except Grid.
  if sl = 0 then debug "ScrollToChild: null scroll slice ptr": exit sub
- if ch = 0 then debug "ScrollToChild: null child slice ptr": exit sub
- if not IsAncestor(ch, sl) then reporterr "ScrollToChild: can't scroll to a slice that's not a descendant": exit sub
- 'If the child of sl which ch is a descendent of is set to Fill, then
+ if desc = 0 then debug "ScrollToChild: null descendent slice ptr": exit sub
+ if not IsAncestor(desc, sl) then reporterr "ScrollToChild: can't scroll to a slice that's not a descendant": exit sub
+ 'If the child of sl which desc is a descendent of is set to Fill, then
  'this function won't work. Too much trouble to check for though.
 
- RefreshSliceScreenPos ch
+ RefreshSliceScreenPos desc
+
+ dim support as RectType = XY_WH(sl->ScreenPos, sl->Size)
+ if apply_padding then
+  support.x += sl->paddingLeft
+  support.y += sl->paddingTop
+  support.wide -= sl->paddingLeft + sl->paddingRight
+  support.high -= sl->paddingTop + sl->paddingBottom
+ end if
 
  dim xmove as integer = 0
  dim ymove as integer = 0
  dim diff as integer
- diff = (sl->ScreenY + sl->Height) - (ch->ScreenY + ch->Height)
+ diff = (support.y + support.high) - (desc->ScreenY + desc->Height)
  if diff < 0 then ymove = diff
- diff = sl->ScreenY - ch->ScreenY
+ diff = support.y - desc->ScreenY
  if diff > 0 then ymove = diff
- diff = (sl->ScreenX + sl->Width) - (ch->ScreenX + ch->Width)
+ diff = (support.x + support.wide) - (desc->ScreenX + desc->Width)
  if diff < 0 then xmove = diff
- diff = sl->ScreenX - ch->ScreenX
+ diff = support.x - desc->ScreenX
  if diff > 0 then xmove = diff
 
  if xmove <> 0 orelse ymove <> 0 then

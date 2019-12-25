@@ -3943,9 +3943,9 @@ SUB script_functions(byval cmdid as integer)
    dat = GetScrollSliceData(plotslices(retvals(0)))
    scriptret = dat->check_depth
   END IF
- CASE 594'--scroll to child
+ CASE 594'--scroll to child (parent, descendent, apply_padding) aka scroll to slice
   IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
-   ScrollToChild plotslices(retvals(0)), plotslices(retvals(1))
+   ScrollToChild plotslices(retvals(0)), plotslices(retvals(1)), get_optional_arg(2, NO)
   END IF
  CASE 598'--next npc reference
   'Argument should be 0 or an NPC reference (< 0)

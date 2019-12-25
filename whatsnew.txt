@@ -209,6 +209,7 @@ Septotobvember ? 2019 [Fufluns]
     * "replace substring" [Ralph]
     * "string equal" as alias for "string compare"
     * "create sprite" as alias for "load sprite"
+    * Add 'apply padding' arg to "scroll to child" and add alias "scroll to slice"
 
   *** Changes
     * Default walking animation speed is 110ms/frame (like games running at
