@@ -5053,6 +5053,12 @@ SUB SpriteSetBrowser.run()
     cursor_moved = NO
 
     clearpage vpage
+
+    'Kludge: We want the layout slice to stretch across the screen but it can't be set to fill horizontally
+    'or scrolling won't work. TODO: FillParent sucks, we need width-as-%-of-parent settings.
+    DIM as Slice ptr list_sl = edsl(ssed_list, root)
+    IF list_sl THEN list_sl->Width = list_sl->Parent->Width
+
     DrawSlice root, vpage
     setvispage vpage
     dowait
