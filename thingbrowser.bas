@@ -66,17 +66,22 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  ChangeTextSlice mode_indicator, "Browsing " & thing_kind_name()
  if can_edit andalso edit_by_default then ChangeTextSlice mode_indicator, "Editing " & thing_kind_name()
 
+ thinglist = LookupSlice(SL_EDITOR_THINGBROWSER_THINGLIST, root)
+ RefreshSliceScreenPos thinglist
+ build_thing_list()
+
  dim noscroll_area as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_NOSCROLL_AREA, root)
  dim back_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_BACK_HOLDER, root)
  dim new_holder as Slice Ptr = LookupSliceSafe(SL_EDITOR_THINGBROWSER_NEW_HOLDER, root)
- if not can_edit then new_holder->Visible = NO
+ dim add_new_holder as Slice Ptr = LookupSliceSafe(SL_EDITOR_THINGBROWSER_NEW_HOLDER, thinglist)
+ if not can_edit then
+  new_holder->Visible = NO
+  add_new_holder->Visible = NO
+ end if
  dim filter_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_FILTER_HOLDER, root)
  dim type_query_sl as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_TYPE_QUERY, root)
  dim filter_text_sl as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_FILTER_TEXT, root)
 
- thinglist = LookupSlice(SL_EDITOR_THINGBROWSER_THINGLIST, root)
- RefreshSliceScreenPos thinglist
- build_thing_list()
 
  dim ps as PlankState
  ps.m = root
@@ -200,7 +205,10 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   'The hover=ps.cur test here is to ensure that clicking and dragging off the selection does not activate it.
   if ps.cur andalso enter_or_space() orelse _
      ((readmouse.release AND mouseLeft) andalso hover = ps.cur andalso confirm_plank_click(hover)) then
-   if IsAncestor(ps.cur, thinglist) then
+   if can_edit andalso (isAncestor(ps.cur, new_holder) orelse isAncestor(ps.cur, add_new_holder)) then
+    '+New menubar button or Add New button at end
+    do_add = YES
+   elseif IsAncestor(ps.cur, thinglist) then
     if can_edit = NO orelse edit_by_default = NO then
      'Selected a thing
      result = ps.cur->Extra(0)
@@ -217,9 +225,6 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    elseif IsAncestor(ps.cur, filter_holder) then
     'Open the Filter window
     do_filter = YES
-   elseif can_edit andalso isAncestor(ps.cur, new_holder) then
-    '+New button
-    do_add = YES
    end if
   end if
 
@@ -400,9 +405,13 @@ End Function
 
 Sub ThingBrowser.build_thing_list()
  dim timing as double = TIMER
+
+ dim add_new_holder as Slice ptr = LookupSliceSafe(SL_EDITOR_THINGBROWSER_NEW_HOLDER, thinglist)
+ dim add_new_text as Slice ptr = LookupSliceSafe(SL_PLANK_MENU_SELECTABLE, add_new_holder, slText)
+ ChangeTextSlice add_new_text, "Add new " & lcase(thing_kind_name_singular())
+ OrphanSlice add_new_holder  'So plank_menu_clear doesn't delete it
+
  plank_menu_clear root, SL_EDITOR_THINGBROWSER_THINGLIST
- dim thinglist as slice ptr
- thinglist = LookupSliceSafe(SL_EDITOR_THINGBROWSER_THINGLIST, root)
  plank_size = XY(1,1)  'Avoid divide-by-zero
  dim plank as slice ptr
  for id as integer = lowest_id() to highest_id()
@@ -423,9 +432,19 @@ Sub ThingBrowser.build_thing_list()
    DeleteSlice @(plank)
   end if
  next id
- thinglist->Height = plank_size.y  'Only needed if a Grid: Height of one row
- if thinglist->SliceType = slGrid then ChangeGridSlice thinglist, , thinglist->Width \ plank_size.x
+ thinglist->Height = plank_size.y  'Only needed if a Grid: Height of one row (FIXME: this can't be right)
+ if thinglist->SliceType = slGrid then
+  'Not tested
+  ChangeGridSlice thinglist, , thinglist->Width \ plank_size.x
+  'Can't parent this to the Grid, put after and under
+  InsertSliceAfter thinglist, add_new_holder
+  add_new_holder->y = thinglist->Height
+ else
+  'thinglist is a Layout slice
+  SetSliceParent add_new_holder, thinglist
+ end if
  DrawSlice root, vpage 'refresh screen positions
+
  timing = TIMER - timing
  if timing > 0.25 then
   debuginfo thing_kind_name() & ": build_thing_list() took " & cint(timing * 1000) & "ms"
