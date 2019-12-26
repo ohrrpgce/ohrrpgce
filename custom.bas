@@ -1971,7 +1971,7 @@ SUB plankmenu_cursor_move_tests
    update = NO
   END IF
 
-  set_plank_state ps, ps.cur, plankNORMAL
+  IF ps.cur THEN set_plank_state ps, ps.cur, plankNORMAL
 
   IF keyval(scShift) > 0 THEN
    ' movex = 0
@@ -1984,7 +1984,7 @@ SUB plankmenu_cursor_move_tests
    plank_menu_arrows(ps)
   END IF
   IF keyval(scSpace) > 0 THEN movex = 0 : movey = 0
-  set_plank_state ps, ps.cur, plankSEL
+  IF ps.cur THEN set_plank_state ps, ps.cur, plankSEL
 
   clearpage vpage
   DrawSlice root, vpage
