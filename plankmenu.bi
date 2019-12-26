@@ -101,6 +101,7 @@ DECLARE FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as i
 DECLARE SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer, byval start_parent as Slice Ptr=0)
 DECLARE FUNCTION plank_menu_home(byref ps as PlankState) as bool
 DECLARE FUNCTION plank_menu_end(byref ps as PlankState) as bool
+DeCLARE FUNCTION plank_menu_select_prev_next(byref ps as PlankState, offset as integer) as bool
 
 'Find the best plank at a specific screen location (like a mouse click)
 DECLARE FUNCTION find_plank_at_screen_pos(byref ps as PlankState, byval targpos as XYPair, byval start_parent as Slice Ptr=0) as Slice Ptr

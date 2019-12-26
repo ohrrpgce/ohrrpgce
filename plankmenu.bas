@@ -256,8 +256,13 @@ FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice 
  DIM result as bool = NO
  'IF keyval(scA) > 1 THEN slice_editor m
  IF start_parent = 0 THEN start_parent = ps.m
- IF carray(ccLeft) > 1  ANDALSO plank_menu_move_cursor(ps, 0, -1, start_parent) THEN result = YES
- IF carray(ccRight) > 1 ANDALSO plank_menu_move_cursor(ps, 0, 1, start_parent)  THEN result = YES
+ IF carray(ccLeft) > 1 THEN
+  'Try moving normally, otherwise try moving forward/back in tree traversal order
+  result OR= plank_menu_move_cursor(ps, 0, -1, start_parent) ORELSE plank_menu_select_prev_next(ps, -1)
+ END IF
+ IF carray(ccRight) > 1 THEN
+  result OR= plank_menu_move_cursor(ps, 0, 1, start_parent) ORELSE plank_menu_select_prev_next(ps, 1)
+ END IF
  IF carray(ccUp) > 1    ANDALSO plank_menu_move_cursor(ps, 1, -1, start_parent) THEN result = YES
  IF carray(ccDown) > 1  ANDALSO plank_menu_move_cursor(ps, 1, 1, start_parent)  THEN result = YES
  IF keyval(scPageUp) > 1 THEN plank_menu_scroll_page ps, -1, start_parent : result = YES
@@ -409,6 +414,24 @@ FUNCTION default_is_plank(byval sl as Slice Ptr) as bool
   RETURN YES
  END IF
  RETURN NO
+END FUNCTION
+
+'offset=1: select next plank in slice-tree-traversal order, offset=-1: select previous plank
+FUNCTION plank_menu_select_prev_next(byref ps as PlankState, offset as integer) as bool
+ IF ps.cur = NULL THEN RETURN NO
+
+ REDIM planks(any) as Slice Ptr
+ find_all_planks ps, ps.m, planks()
+
+ DIM idx as integer = -1
+ FOR idx = 0 TO UBOUND(planks)
+  IF planks(idx) = ps.cur THEN EXIT FOR
+ NEXT
+ IF idx = -1 THEN RETURN NO
+ idx += offset
+ IF idx < 0 ORELSE idx > UBOUND(planks) THEN RETURN NO
+ ps.cur = planks(idx)
+ RETURN YES
 END FUNCTION
 
 ' Fill planks() with all descendents of m that are planks (according to the callback)
