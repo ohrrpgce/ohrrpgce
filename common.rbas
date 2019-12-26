@@ -100,16 +100,6 @@ setup_sprite_sizes
 'NOTE: you must remember to reset this to "" when leaving a context!
 DIM context_string as string
 
-'The directory to write logs like g/c_debug[_archive].txt
-'(Should have a slash. For very short time during initialisation equal to "" to write to CWD)
-DIM log_dir as string
-
-'While true, debug messages also get appended to log_buffer.
-DIM remember_debug_messages as bool = YES
-
-'True if called send_bug_report already this session
-DIM SHARED reported_a_bug as bool
-
 '=== Other global dirs and files ==='
 
 'Replacement for exepath: Where the exe is, or on Mac, where the .app is, and on Android,
@@ -216,6 +206,20 @@ DIM SHARED lastlogfile as string
 DIM SHARED debug_log_mutex as any ptr
 debug_log_mutex = mutexcreate
 
+'The directory to write logs like g/c_debug[_archive].txt
+'(Should have a slash. For very short time during initialisation equal to "" to write to CWD)
+DIM log_dir as string
+
+'While true, debug messages also get appended to log_buffer.
+DIM remember_debug_messages as bool = YES
+
+'How many errors ('debug' or higher, so anything but debuginfo) have been logged
+DIM num_logged_errors as integer = 0
+'And how many have been logged to log_buffer specifically
+DIM SHARED num_log_buffer_errors as integer = 0
+
+'True if called send_bug_report already this session
+DIM SHARED reported_a_bug as bool
 
 TYPE SavedGfxIOState
  prev_mouse_vis as CursorVisibility
@@ -379,6 +383,14 @@ SUB start_new_debug(title as string)
    ' Write internal buffer, which contains a lot of useful info printed during startup.
    append_to_logfile log_buffer
   END IF
+  IF num_log_buffer_errors = num_logged_errors ANDALSO LEN(lastlogfile) > 0 THEN
+   'If errors, if any, only occurred during startup and are already saved
+   'in a different log file, then we don't need to mark this new one
+   'to be preserved.
+   importantdebug = NO
+  END IF
+  num_logged_errors = num_log_buffer_errors
+  'num_log_buffer_errors doesn't get reset, because log_buffer doesn't.
  END IF
  debuginfo " ----" & title & "----"
 END SUB
@@ -438,11 +450,14 @@ SUB end_debug
    'Remember not to archive the log if we restart the log in the same directory
    lastlogfile = absolute_path(log_dir & *app_log_filename)
  END IF
- importantdebug = NO
 END SUB
 
 SUB debug (msg as const zstring ptr)
  importantdebug = YES
+ num_logged_errors += 1
+ IF remember_debug_messages THEN
+  num_log_buffer_errors += 1
+ END IF
  debuginfo "! " & *msg
 END SUB
 
