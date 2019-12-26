@@ -835,7 +835,7 @@ SUB Custom_global_menu
  menu.append 5, "Zoom 2x"
  menu.append 6, "Zoom 3x"
  menu.append 7, "Zoom 4x"
- menu.append 8, "Switch graphics backend (Ctrl-F8)"
+ menu.append 8, "Switch graphics backend (Ctrl-F7)"
  'menu.append 9, "Music backend settings"
  IF slave_channel <> NULL_CHANNEL THEN
   IF recording_gif() THEN
@@ -844,6 +844,9 @@ SUB Custom_global_menu
    menu.append 11, "Record combined editor+player .gif"
   END IF
  END IF
+ DIM note as string
+ IF num_logged_errors THEN note = ": " & num_logged_errors & " errors" ELSE note = " log"
+ menu.append 13, "View c_debug.txt" & note & " (Ctrl-F8)"
 
  DIM choice as integer
  choice = multichoice("Global Editor Options (F9)", menu.items())
@@ -876,6 +879,8 @@ SUB Custom_global_menu
   start_recording_combined_gif
  ELSEIF choice = 12 THEN
   stop_recording_video
+ ELSEIF choice = 13 THEN
+  open_document log_dir & *app_log_filename
  END IF
 END SUB
 
@@ -884,8 +889,8 @@ END SUB
 ' not have loaded a game yet!
 SUB global_setkeys_hook
  IF keyval(scF9) > 1 THEN Custom_global_menu
+ 'The other keys documented in Custom_global_menu are checked in allmodex_controls
 END SUB
-
 
 '==========================================================================================
 '                    Creating/cleaning working.tmp and creating games

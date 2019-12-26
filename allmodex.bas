@@ -2894,8 +2894,12 @@ local sub allmodex_controls()
 		fatalerror "User hit Tab-Shift-F5"
 	end if
 
-	if keyval(scCtrl) > 0 and keyval(scF8) > 1 then
+	if real_keyval(scCtrl) > 0 andalso (real_keyval(scF7) and 4) then
 		gfx_backend_menu
+	end if
+
+	if real_keyval(scCtrl) > 0 andalso (real_keyval(scF8) and 4) then
+		open_document log_dir & *app_log_filename
 	end if
 
 	' F12 screenshots are handled in setvispage, not here.
@@ -2905,7 +2909,7 @@ local sub allmodex_controls()
 		toggle_recording_gif
 	end if
 
-	if real_keyval(scCtrl) > 0 and real_keyval(scTilde) and 4 then
+	if real_keyval(scCtrl) > 0 andalso real_keyval(scTilde) and 4 then
 		toggle_fps_display
 	end if
 

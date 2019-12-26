@@ -4431,13 +4431,15 @@ END DESTRUCTOR
 FUNCTION DebugMenuDef.def(combining_scancode as integer = 0, scancode as integer = 0, menuitem as zstring ptr = @"") as bool
  IF menu = NULL THEN
   'Only check keys
+  'FIXME: should debug menus check real_keyval instead? But then all the controls within each
+  'debug menu will need changing, not just these.
   IF combining_scancode THEN
    IF keyval(combining_scancode) = 0 THEN RETURN NO
   ELSE
    IF keyval(scCtrl) > 0 THEN RETURN NO
   END IF
   IF scancode = 0 THEN RETURN NO
-  RETURN keyval(scancode) > 1
+  RETURN keyval(scancode) AND 4
  ELSEIF LEN(selected_item) THEN
   RETURN *menuitem = selected_item
  ELSEIF LEN(*menuitem) THEN
@@ -4527,11 +4529,16 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   gam.debug_camera_pan XOR= YES
  END IF
 
+ 'Ctrl+F7 handled in allmodex
+ IF dbg.def(      ,     , "Switch graphics backend (Ctrl-F7)") THEN gfx_backend_menu
+
  IF dbg.def(      , scF8) THEN debug_menu
  dbg.def(      ,     , "Debug menu (F8)")  'Does nothing, but document F8.
 
  'Ctrl+F8 handled in allmodex
- IF dbg.def(      ,     , "Switch graphics backend (Ctrl-F8)") THEN gfx_backend_menu
+ DIM note as string
+ IF num_logged_errors THEN note = ": " & num_logged_errors & " errors" ELSE note = " log"
+ IF dbg.def(      ,     , "View g_debug.txt" & note & " (Ctrl-F8)") THEN open_document log_dir & *app_log_filename
 
  IF dbg.def(scCtrl, scF9, IIF(scriptprofiling, "Stop", "Start") & " script profiling (Ctrl-F9)") THEN
   scriptprofiling XOR= YES

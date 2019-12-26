@@ -130,7 +130,11 @@ Septotobvember ? 2019 [Fufluns]
 
    * Debug Keys and Live-previewing
     * Ctrl-F2 and Ctrl-F3 debug keys to access save/load menus [Ralph]
-    * F8 debug key "Show/test any battle formation" [Ralph]
+    * Ctrl-F8 to view debug log (works everywhere in Game/Custom)
+      (Changing graphics backend now Ctrl-F7 instead of Ctrl-F8).  [Ralph]
+    * In-battle instant-run debug key moved from Ctrl-F4 to Ctrl-F5, because
+      Ctrl-F4 now shows slice debug menu in battles (not useful yet)
+    * Debug menu option "Show/test any battle formation" [Ralph]
     * Shop stock levels in saved games and when Testing Game are now updated if
       you edit the things in a shop - reset if needed, or increased/decreased
       to reflect the change [Ralph]
@@ -219,7 +223,6 @@ Septotobvember ? 2019 [Fufluns]
     * "Caption" menu item type renamed to "Label", the "Unselectable" subtype
       of Labels renamed to "Disabled", and the "Close menu if selected" bit
       renamed to "Close menu when activated"
-    * In-battle instant-run debug key moved from Ctrl-F4 to Ctrl-F5
     * Sorting inventory "by whether usable" considers battle uses too [Ralph]
     * Shops auto-quit when there's nothing left to buy, as they used to [Ralph]
     * Sprite slices can no longer be resized in the slice editor (except by
