@@ -3152,38 +3152,40 @@ SUB playsongnum (byval songnum as integer)
   loadsong songfile
 END SUB
 
-' Open a URL using default system handler, which must start with a protocol like
-' http:// or https://.
-' Would return NO to indicate failure (no web browser installed), except we can't
-' detect failure on most platforms. Definitely no error for a bad URL.
-FUNCTION open_url (url as string) as bool
- DIM cmd as string
- DIM result as string
-#IFDEF __FB_DARWIN__
- safe_shell "open '" & url & "'"
- 'Don't have a way of detecting if that worked
- RETURN YES
-#ENDIF
+'(Alias: open_url)
+' Open a file or URL using default system handler (URLs must start with a protocol like
+' http:// or https://).
+' Would return NO to indicate failure (e.g. no web browser installed), but we might
+' not detect failure on some platforms. Definitely no error for a bad URL.
+FUNCTION open_document (file_or_url as string) as bool
+ #IFDEF __FB_WIN32__
+  ' safe_shell "START """ & file_or_url & """"
 
-#IFDEF __FB_WIN32__
- ' safe_shell "START """ & url & """"
- ' 'Well, Dang, I don't know how to check this for success either!
- ' RETURN YES
+  'Alternative way to open file/URL using winapi call, which doesn't involve
+  'running cmd.exe, and returns whether it succeeds, but is untested
+  DIM result as string = os_open_document(file_or_url)
+  IF LEN(result) = 0 THEN RETURN YES
+  visible_debug "Couldn't open " & file_or_url & ": " & result
+  RETURN NO
+ #ELSE
 
- 'Alternative way to open an HTML using winapi call, which doesn't involve
- 'running cmd.exe, and returns whether it succeeds, but is untested
- result = open_document(url)
- IF LEN(result) = 0 THEN RETURN YES
- visible_debug "Couldn't open " & url & ": " & result
- RETURN NO
-#ENDIF
+  DIM exitcode as integer
 
-#IFDEF __FB_UNIX__
- '--Try the unix way
- safe_shell "xdg-open '" & url & "'"
- '-Unfortunately we can't test if it worked, so just pretend that it did.
- RETURN YES
-#ENDIF
+  #IFDEF __FB_DARWIN__
+   exitcode = safe_shell("open '" & file_or_url & "'")
+   'I don't know whether we can actually detect whether that worked
+  #ELSE
+   'Unix.
+   'xdg-open is part of freedesktop.org so will be present on almost every Linux
+   'distro with a WM, and Exists on at least some BSDs too.
+   exitcode = safe_shell("xdg-open '" & file_or_url & "'")
+  #ENDIF
+
+  IF exitcode = 0 THEN RETURN YES
+  visible_debug "Couldn't open " & file_or_url
+  RETURN NO
+
+ #ENDIF
 END FUNCTION
 
 FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as bool = YES) as string

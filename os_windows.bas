@@ -1130,7 +1130,7 @@ end function
 'Opens a file (or URL, starting with a protocol like http://) with default handler.
 'If successful returns "", otherwise returns an error message (in practice only returns error messages for
 'files, you never get an error message for an invalid or malformed URL)
-function open_document (filename as string) as string
+function os_open_document (filename as string) as string
 	'Initialise COM; may be necessary. May be called multiple times
 	'as long as the args are the same.
 	'CoInitializeEx(NULL, COINIT_APARTMENTTHREADED OR COINIT_DISABLE_OLE1DDE)  'Not available on early Win95

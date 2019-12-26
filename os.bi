@@ -82,7 +82,7 @@ type ProcessHandle as PROCESS_INFORMATION ptr
 type IPCChannel as NamedPipeInfoFwd ptr
 #define NULL_CHANNEL NULL
 
-declare function open_document (filename as string) as string
+declare function os_open_document (filename as string) as string
 
 #else
 
