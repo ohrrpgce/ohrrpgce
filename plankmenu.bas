@@ -216,12 +216,18 @@ FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, 
  RETURN ps.cur <> old_cur
 END FUNCTION
 
+LOCAL FUNCTION plankscroll_dist(sl as Slice ptr, targpos as XYPair) as integer
+ DIM xdist as integer  'Min distance between targpos.x and any point inside sl
+ xdist = large(0, large(sl->ScreenX - targpos.x, targpos.x - (sl->ScreenX + sl->Width)))
+ RETURN xdist ^ 2 + (sl->ScreenY + sl->Height / 2 - targpos.y) ^ 2
+END FUNCTION
+
 SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer, byval start_parent as Slice Ptr=0)
 
  IF ps.cur = NULL THEN
   'No cursor yet, guess a default one
   ps.cur = top_left_plank(ps)
-  BUG_IF(ps.cur = NULL, "No cursor, and can't find one")
+  FAIL_IF(ps.cur = NULL, "No cursor, and can't find one")
  END IF
 
  DIM scroll as Slice ptr = find_plank_scroll(ps.m)
@@ -237,12 +243,10 @@ SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer, 
  IF UBOUND(planks) < 0 THEN EXIT SUB
 
  DIM best_sl as Slice Ptr = ps.cur
- DIM best as integer = (best_sl->ScreenX + best_sl->Width / 2 - targpos.x) ^ 2 + (best_sl->ScreenY + best_sl->Height / 2 - targpos.y) ^ 2
- DIM dist as integer
- DIM sl as Slice Ptr
+ DIM best as integer = plankscroll_dist(best_sl, targpos)
  FOR i as integer = 0 TO UBOUND(planks)
-  sl = planks(i)
-  dist = (sl->ScreenX + sl->Width / 2 - targpos.x) ^ 2 + (sl->ScreenY + sl->Height / 2 - targpos.y) ^ 2
+  DIM sl as Slice ptr = planks(i)
+  DIM dist as integer = plankscroll_dist(sl, targpos)
   IF dist < best THEN
    best = dist
    best_sl = sl
