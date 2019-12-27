@@ -130,7 +130,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
      ps.cur = first_thing
      cursor_moved = YES
     end if
-   elseif plank_menu_arrows(ps, thinglist) then
+   elseif plank_menu_arrows(ps, thinglist, YES) then  'linear_left_right=YES
     'Give priority to the thinglist
     cursor_moved = YES
    end if
@@ -151,7 +151,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    end if
   end if
   if not cursor_moved then
-   if plank_menu_arrows(ps) then
+   if plank_menu_arrows(ps, , YES) then  'linear_left_right=YES
    'Only if no movement happened in one of the areas do we consider global movement
     cursor_moved = YES
    end if

@@ -4976,7 +4976,7 @@ SUB SpriteSetBrowser.run()
         cursor_moved = NO
       END IF
       IF cursor_moved THEN set_focus(setnum, -1)
-    ELSEIF plank_menu_arrows(ps) THEN
+    ELSEIF plank_menu_arrows(ps, , YES) THEN  'linear_left_right=YES
       cursor_moved = YES
     END IF
     plank_menu_mouse_wheel(ps)

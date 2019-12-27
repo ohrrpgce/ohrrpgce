@@ -256,17 +256,20 @@ SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer, 
  ps.cur = best_sl
 END SUB
 
-FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice Ptr=0) as bool
+FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice Ptr=0, byval linear_left_right as bool = NO) as bool
  DIM result as bool = NO
  'IF keyval(scA) > 1 THEN slice_editor m
  IF start_parent = 0 THEN start_parent = ps.m
- IF carray(ccLeft) > 1 THEN
-  'Try moving normally, otherwise try moving forward/back in tree traversal order
-  result OR= plank_menu_move_cursor(ps, 0, -1, start_parent) ORELSE plank_menu_select_prev_next(ps, -1)
+
+ DIM left_right as integer
+ IF carray(ccLeft) > 1 THEN left_right = -1
+ IF carray(ccRight) > 1 THEN left_right = 1
+ IF left_right THEN
+  'Try moving by position (unless disabled), otherwise try moving forward/back in tree traversal order
+  IF linear_left_right = NO THEN result = plank_menu_move_cursor(ps, 0, left_right, start_parent)
+  IF result = NO THEN result = plank_menu_select_prev_next(ps, left_right)
  END IF
- IF carray(ccRight) > 1 THEN
-  result OR= plank_menu_move_cursor(ps, 0, 1, start_parent) ORELSE plank_menu_select_prev_next(ps, 1)
- END IF
+
  IF carray(ccUp) > 1    ANDALSO plank_menu_move_cursor(ps, 1, -1, start_parent) THEN result = YES
  IF carray(ccDown) > 1  ANDALSO plank_menu_move_cursor(ps, 1, 1, start_parent)  THEN result = YES
  IF keyval(scPageUp) > 1 THEN plank_menu_scroll_page ps, -1, start_parent : result = YES

@@ -70,7 +70,7 @@ TYPE PlankViewpoint 'PlankCursorComparator
 END TYPE
 
 'plank_menu_arrows handles arrow key movement, and updates PlankState.cur and returns true .cur has changed, so you can update the visuals
-DECLARE FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice Ptr=0) as bool
+DECLARE FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice Ptr=0, byval linear_left_right as bool = NO) as bool
 
 'Scrolls the scrollable area of the plank menu by a given amount
 DECLARE FUNCTION plank_menu_scroll(byref ps as PlankState, byval scroll_move as integer, byval mouse_must_be_in_scroll as bool=YES) as bool
