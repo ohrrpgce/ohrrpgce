@@ -120,18 +120,15 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    'Things that only happen when the selection is in the thinglist
    if keyval(scHome) > 1 then
     'special handling of the home button
-    if ps.cur->PrevSibling = 0 then
-     'already on the first
-     plank_menu_home(ps)
+    dim first_thing as Slice Ptr
+    first_thing = find_plank_by_extra_id(ps, , lowest_id(), thinglist)
+    if ps.cur = first_thing then
+     'Already on the first
+     cursor_moved = plank_menu_home(ps)
+    elseif first_thing then
+     'Select the first
+     ps.cur = first_thing
      cursor_moved = YES
-    else
-     'select the first
-     dim first_thing as Slice Ptr
-     first_thing = find_plank_by_extra_id(ps, , lowest_id(), thinglist)
-     if first_thing then
-      ps.cur = first_thing
-      cursor_moved = YES
-     end if
     end if
    elseif plank_menu_arrows(ps, thinglist) then
     'Give priority to the thinglist
