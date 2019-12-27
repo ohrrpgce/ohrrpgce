@@ -4987,11 +4987,17 @@ SUB SpriteSetBrowser.run()
     ELSEIF anykeypressed() THEN
       highlight_ss_id = NO
     END IF
-    hover = find_plank_at_screen_pos(ps, readmouse.pos)
-    IF (hover ANDALSO (readmouse.clicks AND mouseLeft)) _
-       ORELSE (readmouse.release AND mouseRight) THEN
-      cursor_moved = ps.cur <> hover
-      ps.cur = hover
+    DIM byref mouse as MouseInfo = readmouse
+    hover = find_plank_at_screen_pos(ps, mouse.pos)
+    IF hover THEN
+      IF (mouse.clicks AND mouseLeft) ORELSE (mouse.release AND mouseRight) THEN
+        cursor_moved = ps.cur <> hover
+        ps.cur = hover
+      END IF
+    ELSE
+      IF (mouse.release AND mouseRight) ANDALSO mouse.drag_dist < 10 THEN
+        EXIT DO
+      END IF
     END IF
 
     /'
@@ -5014,7 +5020,7 @@ SUB SpriteSetBrowser.run()
     END IF
     '/
 
-    IF enter_or_space() ORELSE ((readmouse.release AND mouseLeft) ANDALSO hover = ps.cur) then
+    IF enter_or_space() ORELSE ((mouse.release AND mouseLeft) ANDALSO hover = ps.cur) then
       IF cur_setnum = -1 THEN  'Add new
         add_spriteset()
       ELSEIF cur_framenum = -1 THEN  'Whole spriteset: Spriteset menu
