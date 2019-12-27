@@ -121,7 +121,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    if keyval(scHome) > 1 then
     'special handling of the home button
     dim first_thing as Slice Ptr
-    first_thing = find_plank_by_extra_id(ps, , lowest_id(), thinglist)
+    first_thing = top_left_plank(ps, thinglist)
     if ps.cur = first_thing then
      'Already on the first
      cursor_moved = plank_menu_home(ps)
@@ -130,8 +130,19 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
      ps.cur = first_thing
      cursor_moved = YES
     end if
+   elseif keyval(ccLeft) > 1 andalso ps.cur->Extra(0) = lowest_id() then
+    'From first thing, wrap around to end of thinglist instead of Filter menubar button
+    cursor_moved = plank_menu_end(ps)
    elseif plank_menu_arrows(ps, thinglist, YES) then  'linear_left_right=YES
     'Give priority to the thinglist
+    cursor_moved = YES
+   elseif keyval(ccUp) > 1 then
+    'When moving up to the menubar, always move to back button
+    ps.cur = top_left_plank(ps)
+    cursor_moved = YES
+   elseif keyval(ccDown) > 1 orelse keyval(ccRight) > 1 then
+    'Moving off the bottom, wrap to first thing
+    ps.cur = top_left_plank(ps, thinglist)
     cursor_moved = YES
    end if
    if not cursor_moved andalso cropafter_keycombo() then
@@ -148,6 +159,9 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    if keyval(scPageUp) > 1 orelse keyval(scPageDown) > 1 then start_from = thinglist
    if plank_menu_arrows(ps, start_from) then
     cursor_moved = YES
+   elseif keyval(ccUp) > 1 orelse keyval(ccLeft) > 1 then
+    'Wrap to bottom of the menu (Add new thing)
+    cursor_moved = plank_menu_end(ps)
    end if
   end if
   if not cursor_moved then

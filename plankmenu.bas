@@ -378,9 +378,10 @@ FUNCTION find_plank_at_screen_pos(byref ps as PlankState, byval targpos as XYPai
  RETURN 0
 END FUNCTION
 
-FUNCTION top_left_plank(byref ps as PlankState) as Slice Ptr
+FUNCTION top_left_plank(byref ps as PlankState, byval start_parent as Slice Ptr=0) as Slice Ptr
  REDIM planks(any) as Slice Ptr
- find_all_planks ps, ps.m, planks()
+ IF start_parent = 0 THEN start_parent = ps.m
+ find_all_planks ps, start_parent, planks()
 
  IF UBOUND(planks) < 0 THEN RETURN 0
 
@@ -396,9 +397,10 @@ FUNCTION top_left_plank(byref ps as PlankState) as Slice Ptr
  RETURN best
 END FUNCTION
 
-FUNCTION bottom_right_plank(byref ps as PlankState) as Slice Ptr
+FUNCTION bottom_right_plank(byref ps as PlankState, byval start_parent as Slice Ptr=0) as Slice Ptr
  REDIM planks(any) as Slice Ptr
- find_all_planks ps, ps.m, planks()
+ IF start_parent = 0 THEN start_parent = ps.m
+ find_all_planks ps, start_parent, planks()
 
  IF UBOUND(planks) < 0 THEN RETURN 0
 
