@@ -95,12 +95,20 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
 
  dim hover as Slice Ptr = 0
  dim cursor_moved as bool = YES
+ dim last_resolution as XYPair
 
  dim selectst as SelectTypeState
 
  do
   setwait 55
   setkeys YES
+
+  'Update scroll after resolution change (not otherwise, or scrollwheel won't work)
+  if get_resolution() <> last_resolution then
+    RefreshSliceTreeScreenPos root
+    update_plank_scrolling ps
+    last_resolution = get_resolution()
+  end if
 
   if keyval(ccCancel) > 1 then
    'cancel out of the browser

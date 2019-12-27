@@ -4200,6 +4200,10 @@ TYPE SpriteSetBrowser
   editing_setnum as integer
   editing_framenum as integer
 
+  'The following are only for saving/restoring cursor before/after delete_menu_items/rebuild_menu.
+  remem_setnum as integer
+  remem_framenum as integer
+
   root as Slice ptr
   hover as Slice ptr              'Slice hovering over
   highlight_ss_id as bool         'Highlight the spriteset number, while typing
@@ -4311,10 +4315,8 @@ SUB SpriteSetBrowser.build_menu()
 END SUB
 
 SUB SpriteSetBrowser.delete_menu_items()
-  'If ps.cur = NULL, deletes selection. Avoid that if delete_menu_items()
-  'already called (eg from delete_frame())
-  IF ps.cur THEN save_plank_selection ps
-
+  remem_setnum = cur_setnum
+  remem_framenum = cur_framenum
   hover = NULL
   ps.cur = NULL
   'Delete the old spriteset slices, if any
@@ -4332,7 +4334,6 @@ END SUB
 SUB SpriteSetBrowser.rebuild_menu()
   DIM starttime as double = TIMER
 
-  ' Calls save_plank_selection
   delete_menu_items()
 
   DIM ss_templ as Slice ptr = edsl(ssed_set_templ, root)  'Template for a spriteset
@@ -4400,15 +4401,14 @@ SUB SpriteSetBrowser.rebuild_menu()
   '(update_plank_scrolling also refreshes the tree, without which
   'the positions will be wrong!)
   DrawSlice root, vpage
-  'FIXME: Have to then also refresh a second time, otherwise restore_plank_selection
-  'has the wrong screen positions and doesn't work...
-  RefreshSliceTreeScreenPos root
 
   ps.m = root
-  IF ps.selection_saved THEN
-   restore_plank_selection ps
-  ELSE
-   ps.cur = top_left_plank(ps)
+  set_focus(remem_setnum, remem_framenum)
+  IF ps.cur = NULL THEN
+    'FIXME: Have to then also refresh a second time, otherwise top_left_plank
+    'has the wrong screen positions and doesn't work...
+    RefreshSliceTreeScreenPos root
+    ps.cur = top_left_plank(ps)
   END IF
   update_plank_scrolling ps
   update()
@@ -4938,11 +4938,20 @@ SUB SpriteSetBrowser.run()
 
   DIM cursor_moved as bool = YES
   DIM selected_frame as integer = 0
+  DIM last_resolution as XYPair
 
   setkeys
   DO
     setwait 55
     setkeys
+
+    'Update scroll after resolution change (not otherwise, or scrollwheel won't work)
+    IF get_resolution() <> last_resolution THEN
+      RefreshSliceTreeScreenPos root  'Doesn't seem to be sufficient always
+      ScrollToChild find_plank_scroll(ps.m), top_left_plank(ps)  'Scroll all the way to the left
+      update_plank_scrolling ps
+      last_resolution = get_resolution()
+    END IF
 
     IF keyval(ccCancel) > 1 THEN EXIT DO
     IF keyval(scF1) > 1 THEN show_help "spriteset_browser"

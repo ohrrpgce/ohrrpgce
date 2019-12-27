@@ -641,6 +641,7 @@ END SUB
 
 SUB save_plank_selection (byref ps as PlankState)
  'Attempt to save the current selection and scroll position without any slice references
+ 'NOTE: save/restore_plank_selection shouldn't be used if the window might be resized in-between
  ps.selection_saved = NO
  IF ps.cur = 0 THEN EXIT SUB
  ps._saved_pos.x = ps.cur->ScreenX + ps.cur->Width / 2
