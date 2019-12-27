@@ -4973,9 +4973,9 @@ SUB SpriteSetBrowser.run()
     IF keyval(scShift) THEN
       'Move by spriteset
       cursor_moved = YES
-      IF keyval(scLeft) > 1 THEN
+      IF keyval(ccLeft) > 1 THEN
         setnum -= 1
-      ELSEIF keyval(scRight) > 1 THEN
+      ELSEIF keyval(ccRight) > 1 THEN
         setnum += 1
       ELSEIF keyval(scEnd) > 1 THEN
         setnum = gen(genmax)
@@ -4987,6 +4987,10 @@ SUB SpriteSetBrowser.run()
       IF cursor_moved THEN set_focus(setnum, -1)
     ELSEIF plank_menu_arrows(ps, , YES) THEN  'linear_left_right=YES
       cursor_moved = YES
+    ELSEIF keyval(ccLeft) > 1 ORELSE keyval(ccUp) > 1 THEN  'Wrap to end
+      cursor_moved = plank_menu_end(ps)
+    ELSEIF keyval(ccRight) > 1 ORELSE keyval(ccDown) > 1 THEN  'Wrap to start
+      cursor_moved = plank_menu_home(ps)
     END IF
     plank_menu_mouse_wheel(ps)
     IF intgrabber(setnum, 0, gen(genmax), scNone, scNone, YES, NO) THEN
