@@ -3839,9 +3839,12 @@ SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersi
    END IF
 
    DIM inputf as integer
-   OPENFILE(tempf, FOR_BINARY, inputf)
    DIM outputf as integer
-   OPENFILE(lumpf, FOR_BINARY, outputf)
+   IF OPENFILE(tempf, FOR_BINARY + ACCESS_READ, inputf) ORELSE _
+      OPENFILE(lumpf, FOR_BINARY + ACCESS_WRITE, outputf) THEN
+    fatalerror "Impossible to upgrade game: Could not open " & lumpf & "[.resize.tmp]"
+   END IF
+
 
    'Round up record count. Due to various bugs a record might be short. Will be zero-extended.
    '(Note that if a partial record is not extended here, then fix_record_count will do so)
@@ -4688,7 +4691,7 @@ END IF
 IF getfixbit(fixAttackitems) = 0 THEN
   upgrade_message "Zero new ammunition data..."
   setfixbit(fixAttackitems, 1)
-  OPENFILE(workingdir + SLASH + "attack.bin", FOR_BINARY, fh)
+  OPENFILE(workingdir + SLASH + "attack.bin", FOR_BINARY + ACCESS_READ_WRITE, fh)
   REDIM dat(dimbinsize(binATTACK)) as short
   DIM record_pos as integer = 1
   FOR idx as integer = 0 to gen(genMaxAttack)
@@ -4706,7 +4709,7 @@ IF getfixbit(fixWeapPoints) = 0 THEN
  upgrade_message "Reset hero hand points..."
  DO
   setfixbit(fixWeapPoints, 1)
-  OPENFILE(game + ".dt0", FOR_BINARY, fh)
+  OPENFILE(game + ".dt0", FOR_BINARY + ACCESS_READ_WRITE, fh)
   REDIM dat(dimbinsize(binDT0)) as short
   FOR i as integer = 0 to gen(genMaxHero)
    GET #fh, , dat()

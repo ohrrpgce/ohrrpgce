@@ -608,7 +608,7 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
    IF br.filetype = browseMasterPal THEN
     IF LCASE(justextension(filepath)) = "mas" THEN
      DIM masfh as integer
-     OPENFILE(filepath, FOR_BINARY, masfh)
+     OPENFILE(filepath, FOR_BINARY + ACCESS_READ, masfh)
      DIM a as string = "       "
      GET #masfh, 1, a
      CLOSE #masfh

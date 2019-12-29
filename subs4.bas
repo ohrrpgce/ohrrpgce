@@ -1106,7 +1106,7 @@ SUB startingdatamenu
    max(6) = gen(genMaxTextbox)
    IF lastmap <> gen(genStartMap) THEN
     DIM fh as integer
-    OPENFILE(maplumpname(gen(genStartMap), "t"), FOR_BINARY, fh)
+    OPENFILE(maplumpname(gen(genStartMap), "t"), FOR_BINARY + ACCESS_READ, fh)
     SEEK #fh, 8
     max(1) = Readshort(fh, -1) - 1 'map width
     max(2) = ReadShort(fh, -1) - 1 'map height

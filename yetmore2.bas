@@ -406,7 +406,7 @@ END FUNCTION
 
 SUB savemapstate_gmap(mapnum as integer, prefix as string)
  DIM fh as integer
- OPENFILE(mapstatetemp(mapnum, prefix) & "_map.tmp", FOR_BINARY, fh)
+ OPENFILE(mapstatetemp(mapnum, prefix) & "_map.tmp", FOR_BINARY + ACCESS_WRITE, fh)
  PUT #fh, , gmap()
  CLOSE #fh
 END SUB
@@ -464,7 +464,7 @@ SUB loadmapstate_gmap (mapnum as integer, prefix as string, dontfallback as bool
  lump_reloading.gmap.dirty = NO  'Not correct, but too much trouble to do correctly
  lump_reloading.gmap.changed = NO
 
- OPENFILE(filebase & "_map.tmp", FOR_BINARY, fh)
+ OPENFILE(filebase & "_map.tmp", FOR_BINARY + ACCESS_READ, fh)
  GET #fh, , gmap()
  CLOSE #fh
 

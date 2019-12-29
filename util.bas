@@ -1760,7 +1760,7 @@ END SUB
 'Return the SHA1 hash of a file.
 SUB file_hash_SHA1(filename as string, result_out as SHA160 ptr)
   DIM fh as integer
-  IF OPENFILE(filename, FOR_BINARY, fh) THEN
+  IF OPENFILE(filename, FOR_BINARY + ACCESS_READ, fh) THEN
     debug "file_hash: couldn't open " & filename
     memset result_out, 0, 20
     EXIT SUB

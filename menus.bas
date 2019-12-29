@@ -1100,7 +1100,7 @@ SUB LoadMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer, b
  ClearMenuData dat
  IF record > gen(genMaxMenu) OR record < 0 THEN EXIT SUB
  DIM f as integer
- OPENFILE(menu_set.menufile, FOR_BINARY, f)
+ OPENFILE(menu_set.menufile, FOR_BINARY + ACCESS_READ, f)
  SEEK #f, record * getbinsize(binMENUS) + 1
  WITH dat
   .record = record
@@ -1143,7 +1143,7 @@ SUB LoadMenuItems(menu_set as MenuSet, menu as MenuDef, byval record as integer)
  'we find the, first we store them in this temp array:
  REDIM itemarray(0) as MenuDefItem ptr
 
- OPENFILE(menu_set.itemfile, FOR_BINARY, f)
+ OPENFILE(menu_set.itemfile, FOR_BINARY + ACCESS_READ, f)
  'FIXME: this shouldn't be here, it's covered in upgrade() (but commented out currently)
  actual_record_count = LOF(f) / getbinsize(binMENUITEM)
  IF actual_record_count <> gen(genMaxMenuItem) + 1 THEN

@@ -588,7 +588,7 @@ LOCAL FUNCTION loadscript_open_script (n as integer, expect_exists as bool = YES
  END IF
 
  DIM fh as integer
- OPENFILE(scriptfile, FOR_BINARY, fh)
+ OPENFILE(scriptfile, FOR_BINARY + ACCESS_READ, fh)
  RETURN fh
 END FUNCTION
 

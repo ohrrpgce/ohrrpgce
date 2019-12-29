@@ -72,7 +72,7 @@ sub bam2mid(infile as string, outfile as string)
 	end if
 
 	'open both files
-	if openfile(infile, for_binary, f1) then
+	if openfile(infile, for_binary + access_read, f1) then
 		'debug "File " + infile + " could not be opened."
 		exit sub
 	end if
@@ -86,7 +86,7 @@ sub bam2mid(infile as string, outfile as string)
 
 	kill outfile
 
-	if openfile(outfile, for_binary, f2) then
+	if openfile(outfile, for_binary + access_write, f2) then
 		'debug "Output file " + outfile + " could not be opened."
 		close #f1
 		exit sub

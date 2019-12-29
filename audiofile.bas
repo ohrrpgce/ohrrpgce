@@ -367,7 +367,7 @@ FUNCTION valid_audio_file (filepath as string) as bool
  END SELECT
 
  IF LEN(hdmask) THEN
-  OPENFILE(filepath, FOR_BINARY, musfh)
+  OPENFILE(filepath, FOR_BINARY + ACCESS_READ, musfh)
   GET #musfh, 1, hdmask
   CLOSE #musfh
   IF hdmask <> realhd THEN return NO
