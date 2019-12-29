@@ -563,7 +563,7 @@ end function
 
 'A file copy function which deals safely with the case where the file is open already (why do we need that?)
 'Returns true on success.
-function copy_file_replacing(byval source as zstring ptr, byval destination as zstring ptr) as bool
+function copy_file_replacing(byval source as zstring ptr, byval destination as zstring ptr) as boolint
 	'Replacing an open file does not work on Windows.
 
 	'Overwrites existing files
@@ -573,6 +573,19 @@ function copy_file_replacing(byval source as zstring ptr, byval destination as z
 		return NO
 	end if
 	return YES
+end function
+
+'Wrapper around rename() which attempts to emulate Unix semantics on Windows
+'(But unlike rename() returns YES on success)
+function os_rename(source as zstring ptr, destination as zstring ptr) as boolint
+	'rename() failes with "Permission denied" error if the source is open (by us or
+	'any other program) and with a "File exists" error if destination exists.
+	safekill *destination
+
+	if rename(source, destination) then
+		showerror strprintf("rename(%s, %s) failed: %s", source, destination, strerror(errno))
+		return NO
+	end if
 end function
 
 

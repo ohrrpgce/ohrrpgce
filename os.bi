@@ -35,7 +35,8 @@ declare sub interrupt_self ()
 declare function copyfile(source as string, destination as string) as boolint
 declare function renamefile(source as string, destination as string) as boolint
 
-declare function copy_file_replacing(source as zstring ptr, destination as zstring ptr) as bool
+declare function copy_file_replacing(source as zstring ptr, destination as zstring ptr) as boolint
+declare function os_rename(source as zstring ptr, destination as zstring ptr) as boolint
 
 enum FileTypeEnum
   fileTypeNonexistent ' Doesn't exist (or parent directory doesn't exist)

@@ -40,6 +40,7 @@ int memory_usage();
 FBSTRING *memory_usage_string();
 
 int copy_file_replacing(const char *source, const char *destination);
+boolint os_rename(const char *source, const char *destination);
 
 typedef enum {
 	fileTypeNonexistent, // Doesn't exist

@@ -389,10 +389,12 @@ boolint copyfile(FBSTRING *source, FBSTRING *destination) {
 	return ret;
 }
 
-// Rename a file, while respecting the filter/hook fnction.
+// Rename and/or move a file, while respecting the filter/hook function
+// (sending lump modification messages and doing error reporting).
 // Returns true for success.
-// Warning! rename() is quite different on Windows and Unix. Call the
-// local_file_move wrapper in util.bas instead; this is a lower level function.
+// The new and old locations must be on the same filesystem, so only move
+// between "nearby" locations (e.g. into a subdirectory)!
+// NOTE: Call os_shell_move to move between filesystems.
 boolint renamefile(FBSTRING *source, FBSTRING *destination) {
 	FilterActionEnum actionsrc = DONT_HOOK, actiondest = DONT_HOOK;
 	if (pfnLumpfileFilter) {
@@ -404,9 +406,11 @@ boolint renamefile(FBSTRING *source, FBSTRING *destination) {
 		debug(errError, "renamefile(%s, %s) denied by filter", source->data, destination->data);
 		return NO;
 	}
-	if (rename(source->data, destination->data)) {
-		dump_openfiles();  // On Windows rename() typically fails because the file is open
-		debug(errShowError, "rename(%s, %s) failed: %s", source->data, destination->data, strerror(errno));
+	// rename() is quite different on Windows and Unix, use a wrapper
+	// (BTW, FB's NAME is translated directly to a rename() call)
+	if (os_rename(source->data, destination->data) == NO) {
+		// os_rename already showed/logged the error
+		dump_openfiles();  //On Windows rename() typically fails because the file is open
 		return NO;
 	}
 	if (actionsrc == HOOK)

@@ -296,6 +296,16 @@ int copy_file_replacing(const char *source, const char *destination) {
 	return 0;
 }
 
+// Wrapper around rename() which attempts to emulate Unix semantics on Windows
+// (But unlike rename() returns YES on success)
+boolint os_rename(const char *source, const char *destination) {
+	if (rename(source, destination)) {
+		debug(errShowError, "rename(%s, %s) failed: %s", source, destination, strerror(errno));
+		return NO;
+	}
+	return YES;
+}
+
 
 //==========================================================================================
 //                                    Advisory locking
