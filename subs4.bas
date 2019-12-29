@@ -1105,12 +1105,10 @@ SUB startingdatamenu
    max(4) = gen(genMaxHero)
    max(6) = gen(genMaxTextbox)
    IF lastmap <> gen(genStartMap) THEN
-    DIM fh as integer
-    OPENFILE(maplumpname(gen(genStartMap), "t"), FOR_BINARY + ACCESS_READ, fh)
-    SEEK #fh, 8
-    max(1) = Readshort(fh, -1) - 1 'map width
-    max(2) = ReadShort(fh, -1) - 1 'map height
-    CLOSE #fh
+    DIM mapinfo as TilemapInfo
+    GetTilemapInfo maplumpname(gen(genStartMap), "t"), mapinfo
+    max(1) = mapinfo.wide
+    max(2) = mapinfo.high
     gen(genStartX) = small(gen(genStartX), max(1))
     gen(genStartY) = small(gen(genStartY), max(2))
     lastmap = gen(genStartMap)
