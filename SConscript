@@ -1222,6 +1222,8 @@ VECTORTEST = env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
 # Compile util.bas as a main module to utiltest.o to prevent its linkage in other binaries
 UTILTEST = env_exe ('utiltest', source = env.BASMAINO('utiltest.o', 'util.bas') + base_objects_without_util)
 FILETEST = env_exe ('filetest', source = ['filetest.bas'] + base_objects)
+Depends(FILETEST,          env_exe ('filetest_helper', source = ['filetest_helper.bas'] + base_objects))
+#env.BASEXE (rootdir + name, **kwargs)
 env_exe ('slice2bas', source = ['slice2bas.bas'] + reload_objects)
 
 Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])

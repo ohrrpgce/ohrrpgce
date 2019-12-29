@@ -3,6 +3,7 @@
 ' mechanism, or ACCESS_READ_WRITE, or ACCESS_ANY, etc)
 
 #include "config.bi"
+#include "common_base.bi"
 #include "testing.bi"
 #include "lumpfile.bi"
 #include "util.bi"
@@ -289,7 +290,7 @@ endTest
 ' Partial test only
 startTest(killDir)
 	? !"\nIgnore 1 error:"
-	killdir("_testfile.tmp")  'Is a sub
+	killdir("_testfile.tmp")  'Is a file
 	if real_isfile("_testfile.tmp") = NO then fail
 endTest
 
@@ -310,8 +311,10 @@ startTest(canWriteAgain)
 	if num_errors <> 0 then fail
 endTest
 
+set_debug_hook(NULL)
+
 dim shared as string gz_infile, gz_outfile, gz_outfile2
-gz_infile = command(0)
+gz_infile = trimextension(command(0)) & DOTEXE
 gz_outfile = "_testfile.tmp.gz"
 gz_outfile2 = "_testfile.tmp"
 
@@ -364,5 +367,102 @@ startTest(gzipWrite)
 	if indata <> indata2 then fail
 	safekill(gz_outfile2)
 endTest
+
+startTest(touchfile)
+        touchfile "_testfile.tmp"
+        if real_isfile("_testfile.tmp") = NO then fail
+endTest
+
+startTest(rename)
+        string_to_file "output", "_testfile.tmp"
+        if filelen("_testfile.tmp") <> 6 then fail
+        'Test replacing an existing file
+        touchfile "_testfile2.tmp"
+        if renamefile("_testfile.tmp", "_testfile2.tmp") = NO then fail
+        if real_isfile("_testfile.tmp") then fail
+        if real_isfile("_testfile2.tmp") = NO then fail
+        if filelen("_testfile2.tmp") <> 6 then fail
+endTest
+
+#ifdef __FB_WIN32__
+        CONST procwait = 300   'Starting a process can take quite a while on Windows
+#else
+        CONST procwait = 150
+#endif
+
+startTest(renameReplaceOpenFile)
+        'Precond: _testfile2.tmp contains "output"
+
+        open_process("." SLASH "filetest_helper" DOTEXE, "_testfile3.tmp 300 -write -q", NO, YES)  'show_output=YES
+        sleep procwait
+
+        #ifdef __FB_WIN32__
+                print "Ignore one error (access denied)"
+                'Should fall back to a copy+delete, with delete succeeding
+        #endif
+        dim ttt as double = timer
+        if renamefile("_testfile2.tmp", "_testfile3.tmp") = NO then fail
+        print "renamefile took " & cint(1e3 * (timer - ttt)) & "ms"
+
+        if filelen("_testfile3.tmp") <> 6 then fail
+        if real_isfile("_testfile2.tmp") then fail
+endTest
+
+startTest(renameMoveOpenFile)
+        'Precond: _testfile3.tmp contains "output"
+
+        open_process("." SLASH "filetest_helper" DOTEXE, "_testfile3.tmp 400 -readonly -q", NO, YES)
+        sleep procwait
+
+        #ifdef __FB_WIN32__
+                print "Ignore two errors (MoveFile & DeleteFile: cannot access)"
+                'Should fall back to a copy+delete, with delete failing
+        #endif
+        if renamefile("_testfile3.tmp", "_testfile4.tmp") = NO then fail
+
+        if filelen("_testfile4.tmp") <> 6 then fail
+        #ifdef __FB_UNIX__
+                if real_isfile("_testfile3.tmp") then fail   'Will still exist on Windows
+        #endif
+endTest
+
+startTest(renameShareDeleteFile)
+        'Precond: _testfile4.tmp contains "output"
+
+        'FILE_SHARE_DELETE files can be moved without error on Windows
+        open_process("." SLASH "filetest_helper" DOTEXE, "_testfile4.tmp 300 -sharedelete -q", NO, YES)
+        sleep procwait
+
+        if renamefile("_testfile4.tmp", "_testfile5.tmp") = NO then fail
+
+        if filelen("_testfile5.tmp") <> 6 then fail
+        'On Windows this produces an Access denied error if filetest_helper still running, but doesn't fail
+        if real_isfile("_testfile4.tmp") then fail
+endTest
+
+#ifdef __FB_WIN32__
+'This only tests renaming a locked file on Windows;
+'renamefile doesn't work on locked files on Unix, and filetest_helper doesn't lock them.
+startTest(renameLockedFile)
+        'Precond: _testfile5.tmp contains "output"
+
+        open_process("." SLASH "filetest_helper" DOTEXE, "_testfile5.tmp 500 -lock -q", NO, YES)
+        sleep procwait
+
+        #ifdef __FB_WIN32__
+                print "Ignore many errors (MoveFile & copy: cannot access)"
+        #endif
+        dim ttt as double = timer
+        if renamefile("_testfile5.tmp", "_testfile6.tmp") = NO then fail
+        print "renamefile took " & cint(1e3 * (timer - ttt)) & "ms"
+
+        if filelen("_testfile6.tmp") <> 6 then fail
+        if real_isfile("_testfile5.tmp") then fail
+
+        safekill "_testfile6.tmp"
+        safekill "_testfile3.tmp"
+endTest
+#endif
+
 
 ? "All tests passed."
