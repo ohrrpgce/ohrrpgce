@@ -564,7 +564,7 @@ end function
 'A file copy function which deals safely with the case where the file is open already (why do we need that?)
 'Returns true on success.
 function copy_file_replacing(byval source as zstring ptr, byval destination as zstring ptr) as boolint
-	'Replacing an open file does not work on Windows.
+	'Apparently replacing an open file works on Windows (but it is dependent on how it was opened).
 
 	'Overwrites existing files
 	if CopyFile_(source, destination, 0) = 0 then
@@ -577,15 +577,37 @@ end function
 
 'Wrapper around rename() which attempts to emulate Unix semantics on Windows
 '(But unlike rename() returns YES on success)
+'Moving across filesystems works.
 function os_rename(source as zstring ptr, destination as zstring ptr) as boolint
-	'rename() failes with "Permission denied" error if the source is open (by us or
-	'any other program) and with a "File exists" error if destination exists.
-	safekill *destination
+	for attempt as integer = 1 to 4
+		'MOVEFILE_REPLACE_EXISTING (which isn't used by MoveFile or rename) means
+		'we don't have to delete first. DeleteFile returns success if someone
+		'opened the file with FILE_SHARE_DELETE, in which case the file will still
+		'exist until everyone closes it, but it can't be opened anymore, so MoveFile
+		'and CopyFile would fail. MoveFile with MOVEFILE_REPLACE_EXISTING has the
+		'same problem. On the other hand it can move a file opened FILE_SHARE_DELETE.
+		'MOVEFILE_COPY_ALLOWED flag means moves across filesystems are done using
+		'a copy+delete.  Otherwise would get ERROR_NOT_SAME_DEVICE.
+		if MoveFileEx(source, destination, MOVEFILE_REPLACE_EXISTING or MOVEFILE_COPY_ALLOWED) then
+			return YES
+		end if
+		debugerror strprintf("MoveFileEx(%s, %s) failed: %s", source, destination, win_error_str())
 
-	if rename(source, destination) then
-		showerror strprintf("rename(%s, %s) failed: %s", source, destination, strerror(errno))
-		return NO
-	end if
+		'Try copy+delete (maybe skip this on the first attempt because it'd be faster to wait 50ms?)
+		if copy_file_replacing(source, destination) then
+			debuginfo " ...copied file instead"
+			if DeleteFile(source) = 0 then
+				debugerror strprintf(" ...but DeleteFile(%s) failed: %s", source, win_error_str())
+				'We return success because the file now exists with the desired name
+			end if
+			return YES
+		end if
+
+		if attempt = 4 then exit for
+		sleep 50 * attempt * attempt
+		debuginfo " ...trying again"
+	next
+	return NO
 end function
 
 

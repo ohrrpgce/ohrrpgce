@@ -2974,6 +2974,8 @@ FUNCTION killfile (filename as string) as bool
 
     'NOTE: on Windows, even if deletion doesn't happen because the file is open, the file will be marked
     'to be deleted once everyone closes it. Also, it will no longer be possible to open it.
+    'However if someone opened the file without FILE_SHARE_DELETE access, it can't be deleted.
+    'Note that FB's OPEN and OPENFILE don't open with FILE_SHARE_DELETE!
     'On Unix, you can unlink a file even when someone else has it open.
     RETURN NO
   END IF

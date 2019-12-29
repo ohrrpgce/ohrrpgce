@@ -391,7 +391,8 @@ boolint copyfile(FBSTRING *source, FBSTRING *destination) {
 
 // Rename and/or move a file, while respecting the filter/hook function
 // (sending lump modification messages and doing error reporting).
-// Returns true for success.
+// Returns true for success. (Note: returns true if fell back to copy+delete
+// but the delete failed).
 // The new and old locations must be on the same filesystem, so only move
 // between "nearby" locations (e.g. into a subdirectory)!
 // NOTE: Call os_shell_move to move between filesystems.
@@ -410,7 +411,7 @@ boolint renamefile(FBSTRING *source, FBSTRING *destination) {
 	// (BTW, FB's NAME is translated directly to a rename() call)
 	if (os_rename(source->data, destination->data) == NO) {
 		// os_rename already showed/logged the error
-		dump_openfiles();  //On Windows rename() typically fails because the file is open
+		//dump_openfiles();
 		return NO;
 	}
 	if (actionsrc == HOOK)
