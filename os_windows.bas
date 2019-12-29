@@ -157,6 +157,13 @@ function get_windows_runtime_info () as string
 	return get_windows_version() & ", ANSI codepage: " & GetACP()
 end function
 
+/'
+'Returns true for commandline program,s false for Game/Custom
+function is_console_program () as boolint
+	return (GetConsoleWindow() <> NULL)
+end function
+'/
+
 sub os_init ()
 	main_thread_id = GetCurrentThreadId()
 
@@ -841,16 +848,17 @@ dim CreateProc_opts as integer
 'program is an unescaped path. Any paths in the arguments should be escaped.
 'Allows only killing or waiting for the program, not communicating with it unless that is
 'done some other way (e.g. using channels)
-'graphical: if true, launch a graphical process (displays a console for commandline programs on
-'           Windows, does nothing on Unix).
+'show_output: Unix: does nothing. The process's stdout/stderr always goes to our stdout/stderr.
+'           Windows: if true, displays a console for commandline programs, or output to our console
+'           if we're a commandline process. If false, the output of the program goes nowhere.
 'waitable is true if you want process_cleanup to wait for the command to finish (ignored on
 '           Windows: always waitable)
-function open_process (program as string, args as string, waitable as boolint, graphical as boolint) as ProcessHandle
+function open_process (program as string, args as string, waitable as boolint, show_output as boolint) as ProcessHandle
 	dim argstemp as string = escape_filename(program) + " " + args
 	dim flags as integer = 0
 	dim sinfo as STARTUPINFO
 	sinfo.cb = sizeof(STARTUPINFO)
-	if graphical = NO then
+	if show_output = NO then
 		'I wrote originally that
 		'"Apparently CREATE_NO_WINDOW doesn't work unless you also set standard input and output handle"
 		'however now I can't reproduce that problem (on Windows XP).
@@ -858,16 +866,19 @@ function open_process (program as string, args as string, waitable as boolint, g
 		'to not work when passed to cmd.exe as a commandline, breaking run_and_get_output.
 		'I can't understand why cmd.exe should care!
 		'sinfo.dwFlags or= STARTF_USESTDHANDLES 'OR STARTF_USESHOWWINDOW
-		'Note: On Windows 9X, this doesn't work, and a window always pops up, whether 'program'
+		'Note: On Windows 9X, CREATE_NO_WINDOW doesn't work, and a window always pops up, whether 'program'
 		'is command.com or not. The only way to avoid a window being created is to set
 		'flags or= DETACHED_PROCESS, and call the program directly instead of running it via
 		'command.com.
+
+		'Also, CREATE_NO_WINDOW results in the process not being attached to our console if we are a
+		'console program, so we won't see the output. Assumably we want to see the output in that case.
 		flags or= CREATE_NO_WINDOW
 	end if
 
 	/' Test code activated by CreateProcess_tests() '/
 	if CreateProc_opts <> 0 then flags = 0
-	if CreateProc_opts = 0 then flags or= CREATE_NO_WINDOW
+	'if CreateProc_opts = 0 then flags or= CREATE_NO_WINDOW   'DEFAULT (added above)
 	if CreateProc_opts = 1 then flags or= DETACHED_PROCESS
 	if CreateProc_opts = 2 then flags or= CREATE_NEW_CONSOLE
 	if CreateProc_opts = 3 then

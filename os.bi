@@ -139,7 +139,7 @@ declare sub tls_set(key as TLSKey, value as any ptr)
 
 'Processes
 
-declare function open_process (program as string, args as string, waitable as boolint, graphical as boolint) as ProcessHandle
+declare function open_process (program as string, args as string, waitable as boolint, show_output as boolint) as ProcessHandle
 declare function open_piped_process (program as string, args as string, byval iopipe as IPCChannel ptr) as ProcessHandle
 ' run_process_and_get_output is Unix only
 declare function run_process_and_get_output(program as string, args as string, outdata as string) as integer

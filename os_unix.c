@@ -734,11 +734,12 @@ int checked_system(const char* cmdline) {
 //Partial implementation. The returned process handle can't be used for much
 //aside from passing to cleanup_process (which you should do).
 //program is an unescaped path. Any paths in the arguments should be escaped
-//graphical: if true, launch a graphical process (displays a console for commandline programs on
-//           Windows, does nothing on Unix).
+//show_output: Unix: does nothing. The process's stdout/stderr always goes to our stdout/stderr.
+//           Windows: if true, displays a console for commandline programs, or output to our console
+//           if we're a commandline process. If false, the output of the program goes nowhere.
 //waitable is true if you want cleanup_process to wait for the command to finish (ignored on
 //           Windows: always waitable)
-ProcessHandle open_process (FBSTRING *program, FBSTRING *args, boolint waitable, boolint graphical) {
+ProcessHandle open_process (FBSTRING *program, FBSTRING *args, boolint waitable, boolint show_output) {
 #ifdef __ANDROID__
 	// Early versions of the NDK don't have popen
 	return 0;

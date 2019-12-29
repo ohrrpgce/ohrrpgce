@@ -80,7 +80,7 @@ void tls_set(TLSKey key, void *value);
 
 //Processes
 
-ProcessHandle open_process (FBSTRING *program, FBSTRING *args, boolint waitable, boolint graphical);
+ProcessHandle open_process (FBSTRING *program, FBSTRING *args, boolint waitable, boolint show_output);
 ProcessHandle open_piped_process (FBSTRING *program, FBSTRING *args, IPCChannel *iopipe);
 // run_process_and_get_output is Unix only
 int run_process_and_get_output(FBSTRING *program, FBSTRING *args, FBSTRING *output);
