@@ -19,7 +19,9 @@ const char *win_error_str(int errcode) {
         buf[0] = '\0';
 	if (errcode == -1)
 		errcode = GetLastError();
-        if (!FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errcode, 0, buf, BUFLEN, NULL)) {
+        // The message might contain insert codes like %1, but we don't provide any args, so it
+        // would fail if we didn't ignore.
+        if (!FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errcode, 0, buf, BUFLEN, NULL)) {
 		snprintf(buf, BUFLEN, "error 0x%x; FormatMessage failed: error 0x%lx", errcode, GetLastError());
         }
 	_TrimTrailingNewline(buf);
