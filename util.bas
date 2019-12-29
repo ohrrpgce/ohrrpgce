@@ -4048,9 +4048,10 @@ SUB string_to_file (string_to_write as string, filename as string)
  DIM s as string = string_to_write
  replacestr string_to_write, !"\n", LINE_END
  DIM fh as integer
- OPENFILE(filename, FOR_BINARY, FH)
- PUT #fh, , s
- CLOSE #fh
+ IF OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh) = fberrOK then  'truncate to 0 length
+  PUT #fh, , s
+  CLOSE #fh
+ END IF
 END SUB
 
 'Read each line of a file into a string array. Return true on success
@@ -4078,7 +4079,7 @@ END FUNCTION
 'The specified line endings will automatically be added (you can pass "" if not needed)
 FUNCTION lines_to_file(strarray() as string, filename as string, lineending as string = !"\n") as bool
  DIM fh as integer
- IF OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh) THEN
+ IF OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh) THEN  'truncate to 0 length
   showerror "lines_to_file: Couldn't open " & filename
   RETURN NO
  END IF
