@@ -7941,6 +7941,7 @@ local sub snapshot_check()
 			for n = 0 to ubound(backlog)
 				shot = next_unused_screenshot_filename() & "." & justextension(backlog(n))
 				'debug "moving " & backlog(n) & " to " & shot
+				'Might be on a different filesystem, can't use renamefile
 				os_shell_move backlog(n), shot
 				num_screenshots_taken += 1
 			next

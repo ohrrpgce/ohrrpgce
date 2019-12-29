@@ -712,7 +712,7 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	end if
 
 	safekill file
-	if local_file_move(file & ".tmp", file) = NO then
+	if renamefile(file & ".tmp", file) = NO then
 		showerror "SerializeBin: could not rename " & file & ".tmp to " & file
 		exit sub  'don't delete the data
 	end if

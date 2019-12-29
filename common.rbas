@@ -733,7 +733,7 @@ FUNCTION os_shell_move(src as string, dest as string) as bool
  'When used to move a directory on Windows this should just be a dang ol' move... except it doesn't work at all :(
  'Returns YES for success or NO for failure
  'Warning: doesn't send lump modification messages! So don't use to move lumps!
- 'Use local_file_move() if possible to send those message, and for more robust error reporting.
+ 'Use renamefile() instead (if renaming, not moving) to send those message, and for more robust error reporting.
 
  IF isfile(dest) THEN
   safekill dest
@@ -3834,8 +3834,7 @@ SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersi
 
    DIM tempf as string = lumpf & ".resize.tmp"
 
-   'This tends to break (it's a C/unix system call), hence all the paranoia
-   IF local_file_move(lumpf, tempf) = NO THEN
+   IF renamefile(lumpf, tempf) = NO THEN
     fatalerror "Impossible to upgrade game: Could not move " & lumpf
    END IF
 

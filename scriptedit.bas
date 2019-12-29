@@ -456,9 +456,9 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   '--No error has occurred, so commit changes
   writeablecopyfile hsfile, game + ".hsp"
   '--Make a copy of the old plotscr.lst, used by autofix_broken_old_scripts
-  local_file_move workingdir + SLASH + "plotscr.lst", workingdir + SLASH + "plotscr.lst.old.tmp"
-  local_file_move workingdir + SLASH + "plotscr.lst.tmp", workingdir + SLASH + "plotscr.lst"
-  local_file_move workingdir + SLASH + "lookup1.bin.tmp", workingdir + SLASH + "lookup1.bin"
+  renamefile workingdir + SLASH + "plotscr.lst", workingdir + SLASH + "plotscr.lst.old.tmp"
+  renamefile workingdir + SLASH + "plotscr.lst.tmp", workingdir + SLASH + "plotscr.lst"
+  renamefile workingdir + SLASH + "lookup1.bin.tmp", workingdir + SLASH + "lookup1.bin"
   gen(genNumPlotscripts) = numscripts
   gen(genMaxRegularScript) = maxscriptid
 

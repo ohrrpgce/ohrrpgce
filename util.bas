@@ -2972,13 +2972,13 @@ FUNCTION killfile (filename as string) as bool
     DIM err_string as string = *get_sys_err_string()
     debug "Could not remove(" & filename & "): " & err_string
 
-    'NOTE: on Windows, even if deletion fails because the file is open, the file will be marked
+    'NOTE: on Windows, even if deletion doesn't happen because the file is open, the file will be marked
     'to be deleted once everyone closes it. Also, it will no longer be possible to open it.
     'On Unix, you can unlink a file even when someone else has it open.
     RETURN NO
   END IF
   ' FIXME: send a message to Game if live-previewing, or else special case all
-  ' places where it matters ie. music/sfx (like we do for RELOAD's use of local_file_move)
+  ' places where it matters ie. music/sfx (like we do for RELOAD's use of renamefile)
   RETURN YES
 END FUNCTION
 
@@ -2993,19 +2993,7 @@ FUNCTION safekill (filename as string) as bool
   RETURN YES
 END FUNCTION
 
-
-'FIXME/NOTE: On Unix this can not move between different filesystems, so only use between "nearby" locations!
-'NOTE: An alternative function is os_shell_move 
-'Returns true on success.
-FUNCTION local_file_move(frompath as string, topath as string) as bool
-  'On Windows, rename() doesn't replace an existing file
-  #IFDEF __FB_WIN32__
-    safekill topath
-  #ENDIF
-  'FB's NAME is translated directly to a rename() call, so is no better.
-  'renamefile calls rename(), while handling lump modification messages and error reporting.
-  RETURN renamefile(frompath, topath)
-END FUNCTION
+'Looking for local_file_move? Now called renamefile, in filelayer.cpp
 
 FUNCTION fileisreadable(filename as string) as bool
   if len(filename) = 0 then debug "fileisreadable: no filename" : return NO
