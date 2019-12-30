@@ -8,7 +8,6 @@
 #include "config.bi"
 #include "util.bi"
 #include "const.bi"
-#include "file.bi"
 #include "lumpfile.bi"
 #include "common_base.bi"
 

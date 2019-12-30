@@ -8,7 +8,6 @@
 
 #include "config.bi"
 #include "crt/stddef.bi"
-#include "file.bi"   'FB header, for FILELEN
 #include "cutil.bi"  'To make strprintf always available
 
 #include "lib/sha1.bi"

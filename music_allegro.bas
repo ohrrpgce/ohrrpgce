@@ -13,7 +13,6 @@
 #include "music.bi"
 #include "util.bi"
 #include "common.bi"
-#include "file.bi"   'for filelen
 
 
 #undef font

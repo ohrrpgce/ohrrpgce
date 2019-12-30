@@ -8,7 +8,6 @@
 #include "config.bi"
 #include "common_base.bi"
 #include "util.bi"
-#include "file.bi"
 
 DIM workingdir as string
 

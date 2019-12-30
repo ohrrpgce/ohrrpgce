@@ -3,7 +3,6 @@
 #include "testing.bi"
 #include "reload.bi"
 #include "reloadext.bi"
-#include "file.bi"  'for filelen
 
 Using Reload
 Using Reload.Ext

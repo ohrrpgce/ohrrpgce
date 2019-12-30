@@ -9,7 +9,6 @@
 
 CONST STACK_SIZE_INC = 512 ' in integers
 
-#include "file.bi"   'FB header
 #include "datetime.bi" 'FB header
 #include "string.bi"  'FB header
 #include "config.bi"
