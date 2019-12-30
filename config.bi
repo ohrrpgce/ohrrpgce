@@ -253,6 +253,10 @@ TYPE fb_uinteger as uinteger
  TYPE intptr_t as size_t
 #endif
 
+'Needs to be included with native integer. Easiest to just include it here to
+'avoid mistakes, since it's included a lot, directly or indirectly.
+#include "file.bi"
+
 'Note: we already included crt.bi, need to do so before redefining the size of 'integer'
 use_32bit_integer()
 
