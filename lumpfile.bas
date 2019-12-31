@@ -322,7 +322,7 @@ function loadrecord (buf() as integer, filen as string, recordsize as integer, r
 	end if
 
 	loadrecord = loadrecord(buf(), fh, recordsize, record, expectexists, partial_retval)
-	close #fh
+	lazyclose fh
 end function
 
 sub storerecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
@@ -352,7 +352,7 @@ sub storerecord (buf() as integer, filen as string, recordsize as integer, recor
 		exit sub
 	end if
 	storerecord buf(), fh, recordsize, record
-	close #fh
+	lazyclose fh
 end sub
 
 'Compares two files record-by-record, setting each element of the difference array to:
