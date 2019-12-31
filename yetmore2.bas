@@ -1580,7 +1580,7 @@ FUNCTION try_reload_map_lump(basename as string, extn as string) as bool
      '(Warning: this assumes that the .t lump will always be rewritten by the map
      'editor after modifying .map... which is currently the case. We'll replace
      'the map file formats before that assumption is violated)
-     IF .maptiles.hash = newhash THEN debug ".t hash is identical" : RETURN YES  'fIXME
+     IF .maptiles.hash = newhash THEN RETURN YES
     END IF
     .maptiles.changed = YES
     IF .maptiles.dirty THEN
