@@ -203,8 +203,9 @@ DIM SHARED log_buffer as string
 'When restarting the log, the previous path if significant
 DIM SHARED lastlogfile as string
 'Prevent two threads from writing to debug log at once
-DIM SHARED debug_log_mutex as any ptr
-debug_log_mutex = mutexcreate
+'Disabled for now, because it needs to be recursive to allow OPENFILE to write to log file.
+'DIM SHARED debug_log_mutex as any ptr
+'debug_log_mutex = mutexcreate
 
 'The directory to write logs like g/c_debug[_archive].txt
 '(Should have a slash. For very short time during initialisation equal to "" to write to CWD)
@@ -536,7 +537,7 @@ SUB debuginfo (msg as const zstring ptr)
  '(Also this is internally the implementation of debug())
 
  'If the mutex hasn't been created yet this is a noop
- mutexlock debug_log_mutex
+ 'mutexlock debug_log_mutex
 
  'For now, on Android log everything to the kernel log for convenience
  external_log msg
@@ -549,7 +550,7 @@ SUB debuginfo (msg as const zstring ptr)
 
  append_to_logfile tagged_msg
 
- mutexunlock debug_log_mutex
+ 'mutexunlock debug_log_mutex
 END SUB
 
 LOCAL FUNCTION open_logfile() as integer
