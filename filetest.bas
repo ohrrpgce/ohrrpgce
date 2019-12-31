@@ -28,6 +28,7 @@ startTest(OPEN)
 	fh = freefile
 	' Need to be in a writable dir
 	if open("_writetest.tmp" access write as fh) then fail
+	print #fh, "text"
 	if close(fh) then fail
 endTest
 
@@ -313,6 +314,48 @@ endTest
 
 set_debug_hook(NULL)
 
+startTest(touchfile)
+	touchfile "_writetest.tmp"
+	if real_isfile("_writetest.tmp") = NO then fail
+endTest
+
+startTest(lazyclose)
+	string_to_file "text", "_writetest.tmp"
+
+	if openfile("_writetest.tmp", for_binary + access_read, fh) then fail
+	seek fh, 3
+	if seek(fh) <> 3 then fail
+	if lazyclose(fh) then fail
+
+	'Reopen resets position
+	if openfile("_writetest.tmp", for_binary + access_read, fh) then fail
+	if seek(fh) <> 1 then fail
+	dim istr as string
+	input #fh, istr
+	if istr <> "text" then fail
+	if lazyclose(fh) then fail
+
+	'Check double-close detection
+	print "Ignore two errors:"
+	if lazyclose(fh) = 0 then fail
+	if close(fh) = 0 then fail
+
+	'Will open a new file since the mode differs (fh will be closed).
+	dim fh2 as integer
+	if openfile("_writetest.tmp", for_binary + access_write, fh2) then fail  'truncates
+	if lof(fh2) <> 0 then fail
+	put #fh2, , "output"
+	if lazyclose(fh2) then fail
+
+	'Check lazyclosing a file written to flushes changes
+	fh = freefile
+	if open("_writetest.tmp" for binary access read as fh) then fail
+	if lof(fh) <> 6 then fail
+	input #fh, istr
+	if istr <> "output" then fail
+	if close(fh) then fail
+endTest
+
 dim shared as string gz_infile, gz_outfile, gz_outfile2
 gz_infile = trimextension(command(0)) & DOTEXE
 gz_outfile = "_testfile.tmp.gz"
@@ -366,11 +409,6 @@ startTest(gzipWrite)
 	dim indata2 as string = read_file(gz_outfile2)
 	if indata <> indata2 then fail
 	safekill(gz_outfile2)
-endTest
-
-startTest(touchfile)
-        touchfile "_testfile.tmp"
-        if real_isfile("_testfile.tmp") = NO then fail
 endTest
 
 startTest(rename)

@@ -40,6 +40,8 @@ enum OPENBits {
 	// However it could be added (since we already have file locking implemented in os.bi)
 	// if it were useful.
 	// LEN (record length) not supported.
+
+	SAVE_OPENBITS_MASK = (FOR_BITMASK | ACCESS_BITMASK | ENCODING_BITMASK),
 };
 
 
@@ -56,8 +58,10 @@ struct FileInfo {
 	bool hooked;          // Send lump modified messages if dirty, and is locked, if locking enabled.
 	bool dirty;           // File has been written to
 	bool reported_error;  // Don't show more than one error
+	enum OPENBits openbits;  // Mode/access/encoding bits it was opened with; other bits excluded.
+	int in_use;           // Hasn't been lazyclosed
 
-	FileInfo() : hooked(false), dirty(false), reported_error(false) {};
+	FileInfo() : hooked(false), dirty(false), reported_error(false), openbits(), in_use(false) {};
 };
 
 extern "C" {
@@ -73,6 +77,8 @@ extern "C" {
 	void clear_OPEN_hook();
 
 	FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int *fnum);
+	FB_RTERROR lazyclose(int fnum);
+	void close_lazy_files();
 
 	FBSTRING *get_filename(int fnum);
 #ifdef __cplusplus

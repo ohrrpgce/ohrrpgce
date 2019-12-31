@@ -2896,6 +2896,7 @@ SUB killdir(directory as string, recurse as bool = NO)
 #ifdef DEBUG_FILE_IO
   debuginfo "killdir(" & directory & ", recurse = " & recurse & ")"
 #endif
+  close_lazy_files
   DIM filetype as FileTypeEnum = get_file_type(directory)
   IF filetype <> fileTypeDirectory THEN
     DIM msg as string
@@ -2967,6 +2968,7 @@ FUNCTION killfile (filename as string) as bool
 #ifdef DEBUG_FILE_IO
   debuginfo "killfile(" & filename & ")"
 #endif
+  close_lazy_files
   IF remove(strptr(filename)) THEN
     DIM err_string as string = *get_sys_err_string()
     debug "Could not remove(" & filename & "): " & err_string

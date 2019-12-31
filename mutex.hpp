@@ -3,6 +3,8 @@
 
 // Use FB's mutexes instead of C++'s to avoid pulling in more of the C++ runtime library
 // You must include fb/fb_stub.h before this or any other include!
+// FB mutexes are NOT recursive: they can't be locked more than once, although
+// the internal global mutexes used by the rtlib and gfxlib are recursive.
 
 class mutex {
 	FBMUTEX *fbmutex;

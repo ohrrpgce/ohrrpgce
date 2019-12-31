@@ -279,6 +279,18 @@ Type FBErrorEnum as integer  'For compatibility with C
 'All access flags are optional; you can pass 0.
 declare function OPENFILE(filename as string, open_bits as OPENBits, byref fh as integer) as FBErrorEnum
 
+'Replacement for CLOSE which temporarily leaves the file open so it can be reused by OPENFILE
+'Call close_lazy_files to ensure closed.
+'It's OK to lazyclose files opened for writing (they will flushed, unlocked if needed, and
+'lump modified messages sent).
+'After you've called lazyclose it's an error to call close (because the file number might already
+'be closed and reused!)
+declare function lazyclose(fh as integer) as FBErrorEnum
+
+'Really close all files that are lazyclose'd.
+'Shouldn't be needed before quitting, because FB closes all files itself.
+declare sub close_lazy_files()
+
 declare sub send_lump_modified_msg(byval filename as zstring ptr)
 declare sub set_OPEN_hook(lumpfile_filter as FnOpenCallback, lump_writes_allowed as boolint, channel as IPCChannel ptr)
 declare sub clear_OPEN_hook()
