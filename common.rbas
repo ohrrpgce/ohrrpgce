@@ -1336,23 +1336,21 @@ FUNCTION maplumpname (byval map_id as integer, oldext as string) as string
 END FUNCTION
 
 SUB fatal_error_shutdown
- #IFDEF IS_CUSTOM
-  IF cleanup_workingdir_on_error ANDALSO LEN(workingdir) ANDALSO isdir(workingdir) THEN
-   touchfile workingdir & SLASH & "__danger.tmp"
-   killdir workingdir
-  END IF
+ #IFDEF IS_GAME
+  exitprogram NO, 1
+ #ELSE
+  #IFDEF IS_CUSTOM
+   IF cleanup_workingdir_on_error ANDALSO LEN(workingdir) ANDALSO isdir(workingdir) THEN
+    touchfile workingdir & SLASH & "__danger.tmp"
+    killdir workingdir
+   END IF
+  #ENDIF
 
   closemusic
   restoremode
 
   'no need for end_debug
-  SYSTEM 1
- #ELSEIF DEFINED(IS_GAME)
-  exitprogram NO, 1
- #ELSE
-  closemusic
-  restoremode
-
+  close_lazy_files  'Only needed to avoid "Double close" warnings
   SYSTEM 1
  #ENDIF
 END SUB

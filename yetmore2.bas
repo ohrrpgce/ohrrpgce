@@ -272,6 +272,7 @@ v_free modified_lumps
 restoremode
 debuginfo "End."
 IF errorout = 0 THEN end_debug
+close_lazy_files  'Only needed to avoid "Double close" warnings
 SYSTEM errorout
 
 END SUB

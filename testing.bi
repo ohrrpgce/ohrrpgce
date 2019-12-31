@@ -3,6 +3,7 @@
 #include "string.bi"
 #include "const.bi"
 #include "util.bi"  'Ensures all tests call lowlevel_init
+#include "lumpfile.bi"
 
 extern "C"
 	type FnDebugHook as sub (byval errorlevel as ErrorLevelEnum, byval msg as zstring ptr)
@@ -48,6 +49,7 @@ sub doTest(t as string, byval theTest as testPtr)
 	
 	if ret > 0 then
 		print "FAIL (on line " & errorpos & " in " & errorfile & ")"
+		close_lazy_files  'Avoid "double close" messages
 		end num
 	elseif ret = 0 then
 		print "Pass"
