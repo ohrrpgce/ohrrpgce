@@ -4376,7 +4376,7 @@ SUB load_script_triggers_and_names()
 
  ' Load lookup1.bin (script trigger -> script ID and name)
  DIM fh as integer
- IF OPENFILE(workingdir + SLASH + "lookup1.bin", FOR_BINARY, fh) THEN
+ IF OPENFILE(workingdir + SLASH + "lookup1.bin", FOR_BINARY + ACCESS_READ, fh) THEN
   debuginfo "lookup1.bin missing"
   REDIM lookup1_bin_cache(-1 TO -1)
  ELSE

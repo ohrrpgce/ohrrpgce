@@ -1233,7 +1233,7 @@ SUB script_usage_list ()
  'First, a detour: determine the alphabetic rank of each plotscript
  REDIM plotscripts(0) as string
  IF OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
-  WHILE loadrecord(buf(), fh, 20)
+  WHILE loadrecord(buf(), fh, 20, , NO)  'expectexists=NO
    s = readbinstring(buf(), 1, 38)
    a_append plotscripts(), s
   WEND
