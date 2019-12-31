@@ -14,11 +14,15 @@
 #include "mutex.hpp"
 #include "lumpfile.h"
 
+// Max value returned by FREEFILE. Equal to 255.
+#define MAX_FNUM FB_MAX_FILES - FB_RESERVED_FILES
+
 // This array stores information about any open file that was opened using OPENFILE.
-// Indexed by index into FB's __fb_ctx.fileTB, NOT by file number as returned by FREEFILE.
+// Indexed by file number as returned by FREEFILE, not by the index used internally in rtlib
+// to index __fb_ctx.fileTB (which is offset by FB_RESERVED_FILES). So openfiles[0] is never used.
 // When quitting FB closes all files from within a destructor, so globals may have already
 // been deleted. So it would be a bad idea to define openfiles as array of file-scope objects instead of pointers.
-FileInfo *openfiles[FB_MAX_FILES];
+FileInfo *openfiles[MAX_FNUM + 1];
 
 // Mutex for creating or deleting entries in openfiles (if there's a risk another thread
 // might close a file) - ONLY needed for dump_openfiles, because it's assumed a thread
@@ -59,27 +63,28 @@ void send_lump_modified_msg(const char *filename) {
 }
 
 static FileInfo *&get_fileinfo(int fnum) {
-	return openfiles[fnum + (FB_RESERVED_FILES - 1)];
+	return openfiles[fnum];
 }
 
 static FileInfo *&get_fileinfo(FB_FILE *handle) {
-	// equivalent to openfiles[handle - __fb_ctx.fileTB];
 	return get_fileinfo(FB_FILE_FROM_HANDLE(handle));
 }
 
 // Unlike the other wrappers, this one is used for non-hooked files too,
 // so that we can maintain openfiles[].
 int file_wrapper_close(FB_FILE *handle) {
+	// Don't need to hold openfiles_mutex to read from array
 	FileInfo *&infop = get_fileinfo(handle);
 	// infop will be NULL if this file was not opened with OPENFILE: see HACK below
 	if (infop) {
-		//debuginfo("closing %s, read-lock:%d write-lock:%d", info.name.c_str(), test_locked(info.name.c_str(), 0), test_locked(info.name.c_str(), 1));
+		//debuginfo("closing %s, read-lock:%d write-lock:%d", infop->name.c_str(),
+		//          test_locked(infop->name.c_str(), 0), test_locked(infop->name.c_str(), 1));
 		if (infop->hooked) {
 			if (infop->dirty) {
-				//fprintf(stderr, "%s was dirty\n", info.name.c_str());
+				//fprintf(stderr, "%s was dirty\n", infop->name.c_str());
 				send_lump_modified_msg(infop->name.c_str());
 			}
-			//debuginfo("unlocking %s", info.name.c_str());
+			//debuginfo("unlocking %s", infop->name.c_str());
 			unlock_file((FILE *)handle->opaque);  // Only needed on Windows
 		}
 		openfiles_mutex.lock();
@@ -147,19 +152,19 @@ static FB_FILE_HOOKS lumpfile_hooks = {
 
 void dump_openfiles() {
 	int numopen = 0;
-	for (int fidx = 0; fidx < FB_MAX_FILES; fidx++) {
+	for (int fnum = 0; fnum <= MAX_FNUM; fnum++) {
 		openfiles_mutex.lock();
-		if (!openfiles[fidx]) {
+		if (!openfiles[fnum]) {
 			openfiles_mutex.unlock();
 			continue;
 		}
-		FileInfo info = *openfiles[fidx];  // Copy so can release lock
+		FileInfo info = *openfiles[fnum];  // Copy so can release lock and call debug()
 		openfiles_mutex.unlock();
 
 		numopen++;
 		const char *fname = info.name.c_str();
-		debug(errDebug, " %d (%s) hooked=%d dirty=%d error=%d",
-		      fidx + (FB_RESERVED_FILES - 1), fname, info.hooked, info.dirty, info.reported_error);
+		debug(errDebug, " fnum=%d (%s) hooked=%d dirty=%d error=%d",
+		      fnum, fname, info.hooked, info.dirty, info.reported_error);
 		if (lock_lumps)
 			debug(errDebug, "   read-lock:%d write-lock:%d", test_locked(fname, 0), test_locked(fname, 1));
 	}
