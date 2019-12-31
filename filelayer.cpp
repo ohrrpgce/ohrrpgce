@@ -84,8 +84,10 @@ int file_wrapper_close(FB_FILE *handle) {
 				//fprintf(stderr, "%s was dirty\n", infop->name.c_str());
 				send_lump_modified_msg(infop->name.c_str());
 			}
-			//debuginfo("unlocking %s", infop->name.c_str());
-			unlock_file((FILE *)handle->opaque);  // Only needed on Windows
+			if (lock_lumps) {
+				//debuginfo("unlocking %s", infop->name.c_str());
+				unlock_file((FILE *)handle->opaque);  // Only needed on Windows
+			}
 		}
 		openfiles_mutex.lock();
 		delete infop;
@@ -362,7 +364,7 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int *fnum) {
 		infop = NULL;
 		openfiles_mutex.unlock();
 	} else {
-		// Add to log of recently files
+		// Add to log of recent files
 		log_openfile(cfilename);
 
 		// HACK: hook CLOSE for all files, by permanently modifying FB's internal

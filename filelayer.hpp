@@ -53,8 +53,8 @@ enum FilterActionEnum {
 #ifdef __cplusplus
 struct FileInfo {
 	string name;
-	bool hooked;          // We hooked this file (if false, name is still valid)
-	bool dirty;
+	bool hooked;          // Send lump modified messages if dirty, and is locked, if locking enabled.
+	bool dirty;           // File has been written to
 	bool reported_error;  // Don't show more than one error
 
 	FileInfo() : hooked(false), dirty(false), reported_error(false) {};
