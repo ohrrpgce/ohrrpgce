@@ -2890,7 +2890,8 @@ FUNCTION textbox_preview_line(box as TextBox, maxwidth as integer = 700) as stri
  FOR i as integer = 0 TO UBOUND(box.text)
   IF LEN(ret) THEN ret &= " "
   ret &= TRIM(box.text(i))
-  IF textwidth(ret) >= maxwidth THEN EXIT FOR
+  'IF textwidth(ret) >= maxwidth THEN EXIT FOR  'FIXME: disabled for now because textwidth is slow
+  IF LEN(ret) * 8 >= maxwidth THEN EXIT FOR
  NEXT i
  ret = RTRIM(ret)  ' Remove spaces due to trailing blank lines
  RETURN shorten_to_right(ret, maxwidth)
