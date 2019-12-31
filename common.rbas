@@ -773,9 +773,8 @@ END FUNCTION
 FUNCTION getfixbit(byval bitnum as integer) as integer
  DIM f as string
  f = workingdir + SLASH + "fixbits.bin"
- IF NOT isfile(f) THEN RETURN 0
  DIM fh as integer
- IF OPENFILE(f, FOR_BINARY + ACCESS_READ, fh) THEN debug "Could not read " & f : RETURN 0
+ IF OPENFILE(f, FOR_BINARY + ACCESS_READ, fh) THEN RETURN 0
  DIM ub as UBYTE
  GET #fh, (bitnum \ 8) + 1, ub
  CLOSE #fh
@@ -7903,7 +7902,7 @@ END FUNCTION
 'See read_config_str
 FUNCTION read_ini_prefixed_str (filename as string, prefixed_key as string, default as string="") as string
  REDIM ini(-1 TO -1) as string
- IF isfile(filename) = NO THEN RETURN default
+ IF real_isfile(filename) = NO THEN RETURN default
  lines_from_file ini(), filename
 
  'prefix and prefix2 either end in . or are blank

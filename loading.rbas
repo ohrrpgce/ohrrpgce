@@ -3573,7 +3573,7 @@ END SUB
 
 'Opens a rgfx document and checks it's in order
 FUNCTION rgfx_open(filename as string, expect_exists as bool = NO) as DocPtr
-  IF isfile(filename) = NO THEN
+  IF real_isfile(filename) = NO THEN
     IF expect_exists THEN reporterr filename & " not found", serrError
     RETURN NULL
   END IF
