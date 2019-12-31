@@ -1259,8 +1259,11 @@ SUB handshake_with_master ()
  NEXT
 
  'Set this hook to throw an error on any detected write in workingdir;
- 'also needed to set a shared lock when reading a file
- set_OPEN_hook @inworkingdir, NO, NULL
+ 'also needed to set a shared lock when reading a file.
+ 'Also, we disallow LAZYCLOSE to ensure we don't interfere with Custom
+ 'trying to delete/replace files on Windows (although renamefile
+ 'should work anyway, so we could allow lazyclose).
+ set_OPEN_hook @inworkingdir, NO, NO
  can_write_to_workingdir = NO
 END SUB
 

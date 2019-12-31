@@ -44,7 +44,7 @@ function openhook_filter(filename as string, writable as boolint, writes_allowed
 end function
 
 ' Allow writing to hooked files
-set_OPEN_hook @openhook_filter, YES, NULL
+set_OPEN_hook @openhook_filter, YES
 
 startTest(explicitReadNonexistentFiles)
 	' Cleanup from previous failure
@@ -259,7 +259,7 @@ end sub
 set_debug_hook(@error_counter)
 
 ' Now disallow writes
-set_OPEN_hook @openhook_filter, NO, NULL
+set_OPEN_hook @openhook_filter, NO
 
 startTest(openForWriteFails)
 	if openfile("_testfile.tmp", for_binary + access_write, fh) = 0 then

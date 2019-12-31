@@ -2665,7 +2665,7 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
 
  IF slave_channel <> NULL_CHANNEL THEN
   'If we got this far, start sending lump updates and locking files before writing
-  set_OPEN_hook @inworkingdir, YES, @slave_channel
+  set_OPEN_hook @inworkingdir, YES, YES, @slave_channel
  ELSE
   notification "Error communicating with " & gameexename & !" (channel write failure); aborting\n(Press a key)"
   channel_close slave_channel

@@ -73,7 +73,7 @@ extern "C" {
 	boolint copyfile(FBSTRING *source, FBSTRING *destination);
 	boolint renamefile(FBSTRING *source, FBSTRING *destination);
 
-	void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, IPCChannel *channel);
+	void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, boolint lazyclose_allowed, IPCChannel *channel);
 	void clear_OPEN_hook();
 
 	FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int *fnum);

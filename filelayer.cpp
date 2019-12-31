@@ -634,12 +634,13 @@ boolint renamefile(FBSTRING *source, FBSTRING *destination) {
 
 // TODO: there's no reason to pass lump_writes_allowed; instead the filter function
 // ought to return whether a file should be write-protected.
-void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, IPCChannel *channel) {
+void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, boolint lazyclose_allowed, IPCChannel *channel) {
 	pfnLumpfileFilter = lumpfile_filter;
 #ifndef _WIN32
 	lock_hooked_files = true;
 #endif
 	allow_lump_writes = !!lump_writes_allowed;
+	allow_lazyclose = !!lazyclose_allowed;
 	lump_updates_channel = channel;
 	// lazyclosed files will have stale .hooked values
 	close_lazy_files();
@@ -648,6 +649,7 @@ void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, 
 void clear_OPEN_hook() {
 	lock_hooked_files = false;
 	allow_lump_writes = true;
+	allow_lazyclose = true;
 	lump_updates_channel = NULL_CHANNEL;
 }
 

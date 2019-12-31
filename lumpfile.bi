@@ -292,7 +292,7 @@ declare function lazyclose(fh as integer) as FBErrorEnum
 declare sub close_lazy_files()
 
 declare sub send_lump_modified_msg(byval filename as zstring ptr)
-declare sub set_OPEN_hook(lumpfile_filter as FnOpenCallback, lump_writes_allowed as boolint, channel as IPCChannel ptr)
+declare sub set_OPEN_hook(lumpfile_filter as FnOpenCallback, lump_writes_allowed as boolint = YES, lazyclose_allowed as boolint = YES, channel as IPCChannel ptr = NULL)
 declare sub clear_OPEN_hook()
 declare function get_filename(fnum as integer) as string
 

@@ -204,7 +204,7 @@ set_app_dir
  log_dir = CURDIR & SLASH
 #ENDIF
 
-'set_OPEN_hook @hook_all_files, YES, NULL  'For debugging
+'set_OPEN_hook @hook_all_files  'For debugging
 
 'Once log_dir is set, can create debug log.
 external_log "starting debug log..."
