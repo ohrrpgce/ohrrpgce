@@ -312,46 +312,51 @@ boolint os_rename(const char *source, const char *destination) {
 //==========================================================================================
 
 
-static int lock_file_base(FILE *fh, int timeout_ms, int flag, char *funcname) {
+static int lock_file_base(FILE *fh, int timeout_ms, int flag, const char *funcname, const char *filename) {
 	int fd = fileno(fh);
 	long long timeout = milliseconds() + timeout_ms;
 	do {
 		if (!flock(fd, flag | LOCK_NB))
 			return 1;
 		if (errno != EWOULDBLOCK && errno != EINTR) {
-			debuginfo("%s: error: %s", funcname, strerror(errno));
+			debuginfo("%s(%s): error: %s", funcname, filename, strerror(errno));
 			return 0;
 		}
 		usleep(10000);
 	} while (milliseconds() < timeout);
-	debuginfo("%s: timed out", funcname);
+	debuginfo("%s(%s): timed out", funcname, filename);
 	return 0;
 }
 
 //For debugging
+//writable: if true, returns whether trying to get a write lock would block.
+//          otherwise, whether getting a read lock would block.
+//NOTE: if a file is locked for read, getting a write lock blocks.
+//If locked for write, both block.
 int test_locked(const char *filename, int writable) {
 	int fd = open(filename, O_RDONLY);
-	if (!flock(fd, LOCK_NB | (writable ? LOCK_EX : LOCK_SH))) {
+	if (fd != -1 && !flock(fd, LOCK_NB | (writable ? LOCK_EX : LOCK_SH))) {
+		// Successfully opened and locked
 		close(fd);
 		return 0;
 	}
-	if (errno != EWOULDBLOCK && errno != EINTR) {
+	int err = errno;
+	if (err != EWOULDBLOCK && err != EINTR)
 		debuginfo("test_locked: error: %s", strerror(errno));
+	if (fd != -1)
 		close(fd);
-		return 0;
-	}
-	close(fd);
-	return 1;
+	// Can't be bothered to handle EINTR properly
+	return err == EWOULDBLOCK;
 }
 
 //Returns true on success
-int lock_file_for_write(FILE *fh, int timeout_ms) {
-	return lock_file_base(fh, timeout_ms, LOCK_EX, "lock_file_for_write");
+int lock_file_for_write(FILE *fh, const char *filename, int timeout_ms) {
+	return lock_file_base(fh, timeout_ms, LOCK_EX, "lock_file_for_write", filename);
 }
 
 //Returns true on success
-int lock_file_for_read(FILE *fh, int timeout_ms) {
-	return lock_file_base(fh, timeout_ms, LOCK_SH, "lock_file_for_read");
+int lock_file_for_read(FILE *fh, const char *filename, int timeout_ms) {
+	return lock_file_base(fh, timeout_ms, LOCK_SH, "lock_file_for_read", filename);
 }
 
 void unlock_file(FILE *fh) {

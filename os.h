@@ -53,8 +53,8 @@ typedef enum {
 FileTypeEnum get_file_type(FBSTRING *fname);
 
 //Advisory locking (actually mandatory on Windows)
-int lock_file_for_write(FILE *fh, int timeout_ms);
-int lock_file_for_read(FILE *fh, int timeout_ms);
+int lock_file_for_write(FILE *fh, const char *filename, int timeout_ms);
+int lock_file_for_read(FILE *fh, const char *filename, int timeout_ms);
 void unlock_file(FILE *fh);
 int test_locked(const char *filename, int writable);
 

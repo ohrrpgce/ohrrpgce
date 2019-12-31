@@ -77,8 +77,8 @@ int file_wrapper_close(FB_FILE *handle) {
 	FileInfo *&infop = get_fileinfo(handle);
 	// infop will be NULL if this file was not opened with OPENFILE: see HACK below
 	if (infop) {
-		//debuginfo("closing %s, read-lock:%d write-lock:%d", infop->name.c_str(),
-		//          test_locked(infop->name.c_str(), 0), test_locked(infop->name.c_str(), 1));
+		//debuginfo("closing %s, locks: can-read:%d  can-write:%d", infop->name.c_str(),
+		//          1 - test_locked(infop->name.c_str(), 0), 1 - test_locked(infop->name.c_str(), 1));
 		if (infop->hooked) {
 			if (infop->dirty) {
 				//fprintf(stderr, "%s was dirty\n", infop->name.c_str());
@@ -168,7 +168,7 @@ void dump_openfiles() {
 		debug(errDebug, " fnum=%d (%s) hooked=%d dirty=%d error=%d",
 		      fnum, fname, info.hooked, info.dirty, info.reported_error);
 		if (lock_lumps)
-			debug(errDebug, "   read-lock:%d write-lock:%d", test_locked(fname, 0), test_locked(fname, 1));
+			debug(errDebug, "  locks: can-read:%d  can-write:%d", 1 - test_locked(fname, 0), 1 - test_locked(fname, 1));
 	}
 	debug(errDebug, "%d open OPENFILE files", numopen);
 }
@@ -190,12 +190,12 @@ int lump_file_opener(FB_FILE *handle, const char *filename, size_t filename_len)
 	if (lock_lumps) {
 		if (handle->access & FB_FILE_ACCESS_WRITE) {
 			//debuginfo("write-locking %s", filename);
-			lock_file_for_write((FILE *)handle->opaque, 1000);
+			lock_file_for_write((FILE *)handle->opaque, filename, 1000);
 		} else {
 			//debuginfo("read-locking %s", filename);
-			lock_file_for_read((FILE *)handle->opaque, 1000);
+			lock_file_for_read((FILE *)handle->opaque, filename, 1000);
 		}
-		//debuginfo("read-lock:%d write-lock:%d", test_locked(filename, 0), test_locked(filename, 1));
+		//debuginfo("locks: can-read:%d  can-write:%d", 1 - test_locked(filename, 0), 1 - test_locked(filename, 1));
 	}
 	return 0;
 }

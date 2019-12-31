@@ -616,8 +616,8 @@ end function
 '==========================================================================================
 ' (Actually mandatory on Windows)
 
-
-local function lock_file_base (byval fh as CFILE_ptr, byval timeout_ms as integer, byval flag as integer, funcname as string) as integer
+'filename is only for debugging
+local function lock_file_base (fh as CFILE_ptr, timeout_ms as integer, flag as integer, funcname as zstring ptr, filename as zstring ptr) as integer
 	dim fhandle as HANDLE = get_file_handle(fh)
 	dim timeout as integer = GetTickCount() + timeout_ms
 	dim overlappedop as OVERLAPPED
@@ -629,22 +629,21 @@ local function lock_file_base (byval fh as CFILE_ptr, byval timeout_ms as intege
 			return YES
 		end if
 		if GetLastError() <> ERROR_IO_PENDING then
-			dim errstr as string = *win_error_str()
-			debug funcname & ": LockFile() failed: " & errstr
+			debug strprintf("%s(%s): LockFile() failed: %s", funcname, filename, win_error_str())
 			return NO
 		end if
 		Sleep(0)
 	loop while GetTickCount() < timeout
-	debug funcname & ": timed out"
+	debug strprintf("%s(%s): timed out", funcname, filename)
 	return NO
 end function
 
-function lock_file_for_write (byval fh as CFILE_ptr, byval timeout_ms as integer) as integer
-	return lock_file_base(fh, timeout_ms, LOCKFILE_EXCLUSIVE_LOCK, "lock_file_for_write")
+function lock_file_for_write (fh as CFILE_ptr, filename as zstring ptr, timeout_ms as integer) as integer
+	return lock_file_base(fh, timeout_ms, LOCKFILE_EXCLUSIVE_LOCK, "lock_file_for_write", filename)
 end function
 
-function lock_file_for_read (byval fh as CFILE_ptr, byval timeout_ms as integer) as integer
-	return lock_file_base(fh, timeout_ms, 0, "lock_file_for_read")
+function lock_file_for_read (fh as CFILE_ptr, filename as zstring ptr, timeout_ms as integer) as integer
+	return lock_file_base(fh, timeout_ms, 0, "lock_file_for_read", filename)
 end function
 
 sub unlock_file (byval fh as CFILE_ptr)
