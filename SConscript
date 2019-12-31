@@ -1183,11 +1183,11 @@ def compile_hspeak(target, source, env):
         print "Euphoria is required to compile HSpeak but is not installed (euc is not in the PATH)"
         Exit(1)
     hspeak_builddir = builddir + "hspeak"
-    euc_extra_args = ''
+    euc_extra_args = []
     # Work around Euphoria bug (in 4.0/4.1), where $EUDIR is ignored if another
     # copy of Euphoria is installed system-wide
     if 'EUDIR' in env['ENV']:
-        euc_extra_args += ' -eudir ' + env['ENV']['EUDIR']
+        euc_extra_args += ['-eudir', env['ENV']['EUDIR']]
     # We have not found any way to capture euc's stderr on Windows so can't check version there
     # (But currently the nightly build machine runs 4.0.5)
     if not host_win32 and ohrbuild.get_euphoria_version(EUC) >= 40100 and NO_PIE and not mac:
@@ -1195,11 +1195,11 @@ def compile_hspeak(target, source, env):
         # executables, but the linux euphoria 4.1.0 builds aren't built for PIE/PIC,
         # resulting in a "recompile with -fPIC" error.
         # But the -extra-lflags option is new in Eu 4.1.
-        euc_extra_args += ' -extra-lflags ' + NO_PIE
+        euc_extra_args += ['-extra-lflags', NO_PIE]
 
     actions = [
         # maxsize: cause euc to split hspeak.exw to multiple .c files
-        EUC + " -con -gcc hspeak.exw -verbose -maxsize 5000 -makefile -build-dir %s " % hspeak_builddir + euc_extra_args,
+        Action([[EUC] + "-con -gcc hspeak.exw -verbose -maxsize 5000 -makefile -build-dir".split() + [hspeak_builddir] + euc_extra_args]),
         "%s -j%d -C %s -f hspeak.mak" % (MAKE, GetOption('num_jobs'), hspeak_builddir)
     ]
     Action(actions)(target, source, env)
