@@ -3710,7 +3710,8 @@ FUNCTION rgfx_load_spriteset(rgfxdoc as DocPtr, sprtype as SpriteType, setnum as
   DIM sprset as SpriteSet ptr
   sprset = spriteset_for_frame(fr)
 
-  'TODO: default palette
+  'Default palette
+  fr->defpal = ss_node."defpal".default(-1)
 
   'Animations, if they exist
   load_animations_node(ss_node, sprset)
@@ -3760,6 +3761,7 @@ SUB rgfx_save_spriteset(rgfxdoc as DocPtr, fr as Frame ptr, sprtype as SpriteTyp
   frameset_to_node fr, ss_node
 
   'Default palette
+  IF defpal = -1 THEN defpal = fr->defpal  'This might also be -1
   IF defpal > -1 THEN
     AppendChildNode(ss_node, "defpal", defpal)
   END IF

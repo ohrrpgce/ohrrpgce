@@ -8534,6 +8534,7 @@ function frame_new(w as integer, h as integer, frames as integer = 1, clr as boo
 			'By default, use contiguous frameids
 			.frameid = i
 			if i > 0 then .arrayelem = 1
+			.defpal = -1
 			.w = w
 			.h = h
 			.pitch = w
@@ -8605,6 +8606,7 @@ function frame_new_view(spr as Frame ptr, x as integer, y as integer, w as integ
 		end if
 		.refcount = 1
 		.arraylen = 1 'at the moment not actually used anywhere on sprites with isview = 1
+		.defpal = -1
 		.isview = 1
 		'we point .base at the 'root' frame which really owns these pixel buffer(s)
 		if spr->isview then
@@ -9219,6 +9221,7 @@ function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO)
 	ret->mask = 0
 	ret->arraylen = 1
 	ret->frameid = p->frameid
+	ret->defpal = p->defpal
 
 	if p->image then
 		if clr = 0 then

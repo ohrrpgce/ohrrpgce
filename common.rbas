@@ -1096,6 +1096,19 @@ FUNCTION getdefaultpal(byval fileset as SpriteType, byval index as integer) as i
   debugc errBug, "getdefaultpal: bad fileset " & fileset
   RETURN -1
  END IF
+ /'
+ IF LEN(game) THEN
+  'Read from spriteset
+  'defpal#.bin will be obsoleted, and default palettes stored in .rgfx.
+  'Unfortunately some spritesets are missing their default palettes due to a bug.
+  DIM fr as Frame ptr = frame_load(fileset, index)
+  IF fr THEN
+   DIM ret as integer = fr->defpal
+   frame_unload @fr
+   IF ret > -1 THEN RETURN ret
+  END IF
+ END IF
+ '/
  DIM as string lumpsdir, fname
  ' Use a default if no game has been loaded
  lumpsdir = IIF(LEN(game), workingdir, finddatadir("defaultgfx"))
@@ -6385,6 +6398,7 @@ SUB load_sprite_and_pal (byref img as GraphicPair, byval spritetype as SpriteTyp
  IF spritetype >= sprTypeFirstLoadable ANDALSO spritetype <= sprTypeLastLoadable THEN
   img.sprite = frame_load(spritetype, index)
   IF sprite_sizes(spritetype).paletted THEN
+   IF palnum = -1 THEN palnum = img.sprite->defpal  'sprite->defpal might be missing (-1)
    img.pal    = palette16_load(palnum, spritetype, index)
   ELSEIF palnum <> -1 THEN
    debug "load_sprite_and_pal: spritetype " & spritetype & " with pal " & palnum
