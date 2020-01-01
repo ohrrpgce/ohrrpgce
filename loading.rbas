@@ -4491,67 +4491,38 @@ END FUNCTION
 '                                        General data
 '==========================================================================================
 
-
-FUNCTION load_gamename (filename as string="") as string
+LOCAL FUNCTION load_browse_record(filename as string, record as integer) as string
  DIM f as string
- IF filename = "" THEN
-  '-default filename
-  f = workingdir & SLASH & "browse.txt"
- ELSE
-  f = filename
- END IF
- IF NOT isfile(f) THEN RETURN ""
- DIM tempbuf(79) as integer
- IF loadrecord(tempbuf(), f, 40) THEN
+ f = IIF(LEN(filename), filename, workingdir & SLASH & "browse.txt")
+ DIM tempbuf(19) as integer
+ IF loadrecord(tempbuf(), f, 20, record, NO) THEN  'expectexists=NO
   RETURN readbinstring(tempbuf(), 0, 38)
  END IF
- debug "Couldn't read browse.txt"
  RETURN ""
+END FUNCTION
+
+LOCAL SUB store_browse_record(filename as string, record as integer, newstr as string)
+ DIM f as string
+ f = IIF(LEN(filename), filename, workingdir & SLASH & "browse.txt")
+ DIM tempbuf(19) as integer
+ writebinstring newstr, tempbuf(), 0, 38
+ storerecord tempbuf(), f, 20, record
+END SUB
+
+FUNCTION load_gamename (filename as string="") as string
+ RETURN load_browse_record(filename, 0)
 END FUNCTION
 
 FUNCTION load_aboutline (filename as string="") as string
- DIM f as string
- IF filename = "" THEN
-  '-default filename
-  f = workingdir & SLASH & "browse.txt"
- ELSE
-  f = filename
- END IF
- IF NOT isfile(f) THEN RETURN ""
- DIM tempbuf(79) as integer
- IF loadrecord(tempbuf(), f, 40) THEN
-  RETURN readbinstring(tempbuf(), 20, 38)
- END IF
- debug "Couldn't read browse.txt"
- RETURN ""
+ RETURN load_browse_record(filename, 1)
 END FUNCTION
 
 SUB save_gamename (s as string, filename as string="")
- DIM f as string
- IF filename = "" THEN
-  '-default filename
-  f = workingdir & SLASH & "browse.txt"
- ELSE
-  f = filename
- END IF
- DIM tempbuf(79) as integer
- loadrecord tempbuf(), f, 40
- writebinstring s, tempbuf(), 0, 38
- storerecord tempbuf(), f, 40
+ store_browse_record(filename, 0, s)
 END SUB
 
 SUB save_aboutline (s as string, filename as string="")
- DIM f as string
- IF filename = "" THEN
-  '-default filename
-  f = workingdir & SLASH & "browse.txt"
- ELSE
-  f = filename
- END IF
- DIM tempbuf(79) as integer
- loadrecord tempbuf(), f, 40
- writebinstring s, tempbuf(), 20, 38
- storerecord tempbuf(), f, 40
+ store_browse_record(filename, 1, s)
 END SUB
 
 'Create the editor_version (general.reld) or game_client (RSAV) node.
