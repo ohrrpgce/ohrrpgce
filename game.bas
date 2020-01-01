@@ -983,6 +983,7 @@ SUB reset_game_final_cleanup()
  cleanup_global_reload_doc
  close_general_reld
  clear_binsize_cache
+ clear_fixbits_cache
  stopsong
  resetsfx
  cleanup_other_temp_files

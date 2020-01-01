@@ -91,6 +91,7 @@ DECLARE SUB guessdefaultpals (byval fileset as SpriteType, poffset() as integer)
 DECLARE FUNCTION getdefaultpal(byval fileset as SpriteType, byval index as integer) as integer
 DECLARE FUNCTION abs_pal_num(byval num as integer, byval sprtype as SpriteType, byval spr as integer) as integer
 
+DECLARE SUB clear_fixbits_cache ()
 DECLARE FUNCTION getfixbit(byval bitnum as integer) as integer
 DECLARE SUB setfixbit(byval bitnum as integer, byval bitval as integer)
 DECLARE SUB clear_binsize_cache ()

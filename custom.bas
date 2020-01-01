@@ -753,6 +753,7 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
  palette16_empty_cache
  cleanup_global_reload_doc
  clear_binsize_cache
+ clear_fixbits_cache
  IF show_quit_msg ANDALSO read_config_bool("show_quit_msg", YES) ANDALSO getquitflag() = NO THEN
   clearpage vpage
   ' Don't let Spoonweaver's cat near your power cord!

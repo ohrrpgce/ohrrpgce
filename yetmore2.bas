@@ -1700,11 +1700,16 @@ SUB try_reload_lumps_anywhere ()
    reload_general_reld()
    handled = YES
 
+  'We correctly handle binsize.bin & fixbits.bin updates, but there's no good reason for
+  'them to happen while live previewing
   ELSEIF modified_lumps[i] = "binsize.bin" THEN                           'BINSIZE.BIN
-   'We correctly handle an update to binsize.bin, but there's no good reason for it
-   'to happen while live previewing
    clear_binsize_cache
    showbug "Received binsize.bin modification, should not happen!"
+   handled = YES
+
+  ELSEIF modified_lumps[i] = "fixbits.bin" THEN                           'FIXBITS.BIN
+   clear_fixbits_cache
+   showbug "Received fixbits.bin modification, should not happen!"
    handled = YES
 
   ELSEIF modified_lumps[i] = "palettes.bin" THEN                          'PALETTES.BIN

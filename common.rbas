@@ -237,9 +237,11 @@ DIM SHARED global_strings_buffer as string
 DIM SHARED remember_master(255) as RGBcolor
 DIM SHARED master_remembered as bool = NO
 
-'binsize.bin cache
+'binsize.bin, fixbits.bin cache
 DIM SHARED binsize_cache(binLASTENTRY) as integer
 DIM SHARED binsize_cache_loaded as bool = NO
+REDIM SHARED fixbits_cache() as ubyte
+DIM SHARED fixbits_cache_loaded as bool = NO
 
 '============================================================================='
 
@@ -771,15 +773,31 @@ FUNCTION os_shell_move(src as string, dest as string) as bool
  RETURN success
 END FUNCTION
 
-FUNCTION getfixbit(byval bitnum as integer) as integer
- DIM f as string
- f = workingdir + SLASH + "fixbits.bin"
+LOCAL SUB load_fixbits_cache ()
  DIM fh as integer
- IF OPENFILE(f, FOR_BINARY + ACCESS_READ, fh) THEN RETURN 0
- DIM ub as UBYTE
- GET #fh, (bitnum \ 8) + 1, ub
- LAZYCLOSE fh
- RETURN BIT(ub, bitnum MOD 8)  'BIT is a standard macro
+ ' No error if missing
+ IF OPENFILE(workingdir + SLASH + "fixbits.bin", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
+  REDIM fixbits_cache(LOF(fh))   'dim 1 larger than file - doesn't matter
+  DIM bytesread as size_t
+  GET #fh, , fixbits_cache(), , bytesread
+  IF bytesread <> LOF(fh) THEN showerror "Couldn't read fixbits! Data will load corrupted"
+  CLOSE #fh
+ ELSE
+  REDIM fixbits_cache(0)
+ END IF
+ fixbits_cache_loaded = YES
+END SUB
+
+SUB clear_fixbits_cache ()
+ fixbits_cache_loaded = NO
+END SUB
+
+'Returns 0 or 1, not NO/YES!
+FUNCTION getfixbit(byval bitnum as integer) as integer
+ BUG_IF(bitnum < 0, "Bad fixbit " & bitnum, 0)
+ IF fixbits_cache_loaded = NO THEN load_fixbits_cache
+ IF bitnum >= UBOUND(fixbits_cache) * 8 THEN RETURN 0
+ RETURN BIT(fixbits_cache(bitnum \ 8), bitnum MOD 8)
 END FUNCTION
 
 SUB setfixbit(byval bitnum as integer, byval bitval as integer)
@@ -794,6 +812,7 @@ SUB setfixbit(byval bitnum as integer, byval bitval as integer)
  IF bitval THEN ub = BITSET(ub, bitnum MOD 8) ELSE ub = BITRESET(ub, bitnum MOD 8)
  PUT #fh, (bitnum \ 8) + 1, ub
  CLOSE #fh
+ clear_fixbits_cache
 END SUB
 
 'Value of a general preference/backcompat bitset
@@ -1260,7 +1279,7 @@ LOCAL SUB load_binsize_cache ()
  FOR i as integer = 0 TO binLASTENTRY
   binsize_cache(i) = defbinsize(i)
  NEXT
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  ' No error if missing
  IF OPENFILE(workingdir + SLASH + "binsize.bin", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
   DIM as short recordsize
