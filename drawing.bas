@@ -4200,7 +4200,7 @@ TYPE SpriteSetBrowser
   editing_setnum as integer
   editing_framenum as integer
 
-  'The following are only for saving/restoring cursor before/after delete_menu_items/rebuild_menu.
+  'The following are for restoring the cursor after rebuild_menu.
   remem_setnum as integer
   remem_framenum as integer
 
@@ -4317,8 +4317,6 @@ SUB SpriteSetBrowser.build_menu()
 END SUB
 
 SUB SpriteSetBrowser.delete_menu_items()
-  remem_setnum = cur_setnum
-  remem_framenum = cur_framenum
   hover = NULL
   ps.cur = NULL
   'Delete the old spriteset slices, if any
@@ -4547,7 +4545,7 @@ SUB SpriteSetBrowser.update()
   RefreshSliceTreeScreenPos root
 END SUB
 
-'Move the cursor to a frame or a spriteset
+'Move the cursor to a frame or a spriteset (does nothing if not found)
 SUB SpriteSetBrowser.set_focus(setnum as integer, framenum as integer)
   'Needed because focus_plank_by_extra_id returns false if didn't move
   IF cur_setnum = setnum AND cur_framenum = framenum THEN EXIT SUB
@@ -4567,6 +4565,9 @@ SUB SpriteSetBrowser.set_focus(setnum as integer, framenum as integer)
     'That frame doesn't exist? Focus the spriteset then
     focus_plank_by_extra_id(ps, 1, -1, ss)
   END IF
+
+  remem_setnum = setnum
+  remem_framenum = framenum
 END SUB
 
 LOCAL FUNCTION create_spriteset(sprtype as SpriteType, framesize as XYPair) as Frame ptr
@@ -4609,7 +4610,7 @@ SUB SpriteSetBrowser.add_spriteset()
   frame_unload @newss
 
   rebuild_menu()
-  set_focus(gen(genmax), 0)
+  set_focus(gen(genmax), -1)
 END SUB
 
 'Callback for sprite_editor
@@ -5078,6 +5079,8 @@ SUB SpriteSetBrowser.run()
     END IF
 
     IF cursor_moved THEN
+      remem_setnum = cur_setnum
+      remem_framenum = cur_framenum
       update_plank_scrolling ps
       update()
     END IF
