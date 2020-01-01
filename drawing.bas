@@ -4620,7 +4620,8 @@ SUB SpriteSetBrowser_save_callback(spr as Frame ptr, context as any ptr, defpal 
  frame_draw spr, NULL, 0, 0, , NO, this.editing_frame
 
  this.defpalettes(this.editing_setnum) = defpal
- rgfx_save_spriteset this.editing_spriteset, this.sprtype, this.editing_setnum, this.defpalettes(this.editing_setnum)
+ this.editing_spriteset->defpal = defpal
+ rgfx_save_spriteset this.editing_spriteset, this.sprtype, this.editing_setnum
  '? "saved in " & (TIMER - tt)
 END SUB
 
@@ -4630,8 +4631,10 @@ SUB SpriteSetBrowser_save_callback_fullset(spr as Frame ptr, context as any ptr,
  DIM split_ss as Frame ptr = spriteset_from_basic_spritesheet(spr, this.sprtype, sprite_sizes(this.sprtype).frames)
 
  this.defpalettes(this.editing_setnum) = defpal
+ spr->defpal = defpal
+ split_ss->defpal = defpal
  'TODO: any animations that were part of the original SpriteSet would be lost!
- rgfx_save_spriteset split_ss, this.sprtype, this.editing_setnum, this.defpalettes(this.editing_setnum)
+ rgfx_save_spriteset split_ss, this.sprtype, this.editing_setnum
  frame_unload @split_ss
 END SUB
 
@@ -4689,12 +4692,14 @@ SUB SpriteSetBrowser.edit_any(setnum as integer, framenum as integer)
   'sprite_editor calls the save callback on quitting, which writes to rgfx,
   'and modifies editing_frame/editing_spriteset unless fullset=YES.
 
-  cleanup_editstate edstate, fullset
-
+  editing_spriteset->defpal = edstate.pal_num
   defpalettes(setnum) = edstate.pal_num
   'Save default palettes immediately for live previewing
   '(TODO: should really be handled in the save_callback instead)
+  '(Note: this saves defpal#.bin only, actually the callback already saved the defpal to .rgfx)
   savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
+
+  cleanup_editstate edstate, fullset
 
   IF fullset THEN
     'Unlike editing a single frame, in which the cached Frame is modified in-place,
@@ -4774,6 +4779,7 @@ SUB SpriteSetBrowser.import_any()
    palette16_save edstate.palette, edstate.pal_num
 
    'Need to save the default palette ourselves (changed by SpriteSetBrowser_save_callback*)
+   editing_spriteset->defpal = defpalettes(setnum)
    savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
   END IF
 
@@ -4863,6 +4869,9 @@ SUB SpriteSetBrowser.change_def_pal(diff as integer)
   IF cur_setnum < 0 THEN EXIT SUB
   defpalettes(cur_setnum) = bound(defpalettes(cur_setnum) + diff, 0, gen(genMaxPal))
   savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
+  editing_spriteset = frame_load(sprtype, cur_setnum)
+  editing_spriteset->defpal = defpalettes(cur_setnum)
+  frame_unload @editing_spriteset
   rebuild_menu()
 END SUB
 
@@ -4915,6 +4924,7 @@ SUB SpriteSetBrowser.paste_any(transparent as bool)
 
       'Also copy over the default palette
       IF copied_defpal > -1 THEN
+        editing_spriteset->defpal = copied_defpal
         defpalettes(cur_setnum) = copied_defpal
         savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
       END IF
