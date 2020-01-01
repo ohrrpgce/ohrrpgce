@@ -271,7 +271,6 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 'in which case buf() is filled with zeroes.).
 'Even if the file is too short, reads as much as possible, regardless of partial_retval.
 
-	dim starttime as double = timer
 	dim idx as integer
 	if recordsize <= 0 then return NO
 	if ubound(buf) < recordsize - 1 then
@@ -284,10 +283,12 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 		seek #fh, recordsize * 2 * record + 1
 	end if
 	dim ret as bool = YES
-	if seek(fh) - 1 + 2 * recordsize > lof(fh) then
+	dim bytesread as integer
+	get #fh, , readbuf(), , bytesread
+	if bytesread <> recordsize * 2 then
 		' The record is at least partially missing
 		dim partially as string
-		if seek(fh) - 1 < lof(fh) then
+		if bytesread > 0 then
 			partially = "partially "
 			ret = partial_retval
 		else
@@ -296,13 +297,13 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 		if expectexists andalso ret = NO then
 			' Filename will be unknown if OPENFILE wasn't used
 			debug "loadrecord: record " & record & " is " & partially & "off the end of " & get_filename(fh)
+			debug " read " & bytesread & " instead of " & (recordsize*2)
 		end if
 	end if
-	get #fh, , readbuf()
+
 	for idx = 0 to small(recordsize - 1, ubound(buf))
 		buf(idx) = readbuf(idx)
 	next
-	debug_if_slow(starttime, 0.1, get_filename(fh))
 	return ret
 end function
 
