@@ -16,6 +16,7 @@
 
 #define OPENDBG(...)
 //#define OPENDBG(...) printf(__VA_ARGS__)
+//#define OPENDBG(...) printf("%s: ", __FUNCTION__), printf(__VA_ARGS__)
 
 // Max value returned by FREEFILE. Equal to 255.
 #define MAX_FNUM FB_MAX_FILES - FB_RESERVED_FILES
@@ -251,7 +252,10 @@ static int try_reuse_open_file(const char* filename, enum OPENBits openbits) {
 			// So filetest will fail without this check.
 			if (info->openbits != openbits) {
 				OPENDBG("Closing lazy file %d to reopen with new openbits %x: %s\n", fnum, openbits, filename);
+				openfiles_mutex.lock();
 				info->in_use = true;  // Silence warning
+				num_lazy_files--;
+				openfiles_mutex.unlock();
 				fb_FileClose(fnum);
 				return 0;
 			}
@@ -519,7 +523,7 @@ FB_RTERROR lazyclose(int fnum) {
 		return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
-	OPENDBG("lazyclose %d %s hooked=%d dirty=%d\n", fnum, info->name.c_str(), info->hooked, info->dirty);
+	OPENDBG("lazyclose %d %s hooked=%d dirty=%d num_lazy_files=%d\n", fnum, info->name.c_str(), info->hooked, info->dirty, num_lazy_files);
 
 	// No point using an LRU list, just close all the files occasionally!
 	// (Race conditions reading num_lazy_files here aren't harmful.)
@@ -577,6 +581,8 @@ void close_lazy_files() {
 		}
 	}
 	openfiles_mutex.unlock();
+	if (num_lazy_files)
+		OPENDBG(" ...but num_lazy_files=%d!\n", num_lazy_files);
 }
 
 
