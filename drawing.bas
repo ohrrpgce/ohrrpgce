@@ -4200,9 +4200,9 @@ TYPE SpriteSetBrowser
   editing_setnum as integer
   editing_framenum as integer
 
-  'The following are for restoring the cursor after rebuild_menu.
-  remem_setnum as integer
-  remem_framenum as integer
+  'The following are for restoring the cursor after rebuild_menu, and saving it when exiting.
+  STATIC remem_setnum(sprTypeLastPickable) as integer
+  STATIC remem_framenum(sprTypeLastPickable) as integer
 
   root as Slice ptr
   hover as Slice ptr              'Slice hovering over
@@ -4238,6 +4238,8 @@ END TYPE
 DIM SpriteSetBrowser.copy_buffer as Frame ptr vector
 DIM SpriteSetBrowser.copied_whole_set as bool
 DIM SpriteSetBrowser.copied_defpal as integer = -1
+DIM SpriteSetBrowser.remem_setnum(sprTypeLastPickable) as integer
+DIM SpriteSetBrowser.remem_framenum(sprTypeLastPickable) as integer
 
 TYPE SpriteSetEditor
   ss as SpriteSet ptr
@@ -4403,7 +4405,7 @@ SUB SpriteSetBrowser.rebuild_menu()
   DrawSlice root, vpage
 
   ps.m = root
-  set_focus(remem_setnum, remem_framenum)
+  set_focus(remem_setnum(sprtype), remem_framenum(sprtype))
   IF ps.cur = NULL THEN
     'FIXME: Have to then also refresh a second time, otherwise top_left_plank
     'has the wrong screen positions and doesn't work...
@@ -4566,8 +4568,8 @@ SUB SpriteSetBrowser.set_focus(setnum as integer, framenum as integer)
     focus_plank_by_extra_id(ps, 1, -1, ss)
   END IF
 
-  remem_setnum = setnum
-  remem_framenum = framenum
+  remem_setnum(sprtype) = setnum
+  remem_framenum(sprtype) = framenum
 END SUB
 
 LOCAL FUNCTION create_spriteset(sprtype as SpriteType, framesize as XYPair) as Frame ptr
@@ -5079,8 +5081,8 @@ SUB SpriteSetBrowser.run()
     END IF
 
     IF cursor_moved THEN
-      remem_setnum = cur_setnum
-      remem_framenum = cur_framenum
+      remem_setnum(sprtype) = cur_setnum
+      remem_framenum(sprtype) = cur_framenum
       update_plank_scrolling ps
       update()
     END IF
