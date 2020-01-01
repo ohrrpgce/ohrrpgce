@@ -1128,7 +1128,7 @@ SUB LoadMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer, b
   .itemspacing = ReadShort(f)
   .disabled_textcolor = ReadShort(f)
  END WITH
- CLOSE #f
+ lazyclose f
  IF ignore_items = NO THEN 'This is disableable for performance when all you care about loading is the menu's name
   LoadMenuItems menu_set, dat, record
  END IF
@@ -1157,7 +1157,7 @@ SUB LoadMenuItems(menu_set as MenuSet, menu as MenuDef, byval record as integer)
    LoadMenuItem f, itemarray(), i
   END IF
  NEXT i
- CLOSE #f
+ lazyclose f
 
  'build the item list
  FOR i = 0 TO UBOUND(itemarray)

@@ -3884,7 +3884,7 @@ function frame_load_mxs (filen as string, record as integer) as Frame ptr
 
 	if lof(fh) < (record + 1) * 64000 then
 		debugerror "frame_load_mxs: wanted page " & record & "; " & filen & " is only " & lof(fh) & " bytes"
-		close #fh
+		lazyclose fh
 		return dest
 	end if
 
@@ -3906,7 +3906,7 @@ function frame_load_mxs (filen as string, record as integer) as Frame ptr
 		next
 	next
 
-	close #fh
+	lazyclose fh
 	debug_if_slow(starttime, 0.1, filen)
 	return dest
 end function
@@ -8891,7 +8891,7 @@ function frame_load_4bit(filen as string, rec as integer, numframes as integer, 
 		end with
 	next
 
-	close #fh
+	lazyclose fh
 	return ret
 end function
 
@@ -10067,7 +10067,7 @@ function Palette16_load(fil as string, num as integer, autotype as SpriteType = 
 		' File is in new file format
 		get #fh, , mag
 		if num > mag then
-			close #fh
+			lazyclose fh
 			return 0
 		end if
 
@@ -10092,7 +10092,7 @@ function Palette16_load(fil as string, num as integer, autotype as SpriteType = 
 		ret->col(idx) = byt
 	next
 
-	close #fh
+	lazyclose fh
 
 	ret->refcount = 1
 	Palette16_add_cache(hashstring, ret)
