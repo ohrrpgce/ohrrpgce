@@ -322,7 +322,7 @@ Septotobvember ? 2019 [Fufluns]
 
   *** Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced
-      with a new RELOAD-based rgfx file format [Ralph]
+      with a new RELOAD-based rgfx file format (old lumps are deleted) [Ralph]
     * Much more bug checking and display of previously silent errors
 
 Dec 3 2017 [Etheldreme]

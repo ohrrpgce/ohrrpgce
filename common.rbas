@@ -4120,15 +4120,13 @@ SUB try_upgrade_pt(sprtype as SpriteType)
   convert_pt_to_rgfx sprtype
  END IF
  'Delete the old .pt file too. Far too much bloat to keep.
- /' TODO: I'm keeping this disabled for a short while.
  IF sprtype = sprTypeEnemy THEN
   safekill game + ".pt1"
   safekill game + ".pt2"
   safekill game + ".pt3"
  ELSE
-  safekill game + ".pt" + sprtype
+  safekill game + ".pt" & sprtype
  END IF
-'/
 END SUB
 
 SUB upgrade (show_messages as bool)
@@ -4686,9 +4684,8 @@ IF full_upgrade THEN
  IF NOT isfile(workingdir + SLASH + "backdrops.rgfx") THEN
   upgrade_message "Converting backdrops to backdrops.rgfx"
   convert_mxs_to_rgfx game + ".mxs", workingdir + SLASH + "backdrops.rgfx", sprTypeBackdrop
-  'TODO: delete the old lump after a lag time
-  'safekill game + ".mxs"
  END IF
+ safekill game + ".mxs"
  sprite_empty_cache
 END IF
 
