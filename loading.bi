@@ -144,8 +144,8 @@ DECLARE SUB convert_mxs_to_rgfx(infile as string, outfile as string, sprtype as 
 DECLARE SUB convert_pt_to_rgfx(dest_type as SpriteType)
 DECLARE SUB initialise_backcompat_pt_frameids (fr as Frame ptr, sprtype as SpriteType)
 
-DECLARE FUNCTION rgfx_open OVERLOAD (filename as string, expect_exists as bool = NO) as DocPtr
-DECLARE FUNCTION rgfx_open OVERLOAD (sprtype as SpriteType, expect_exists as bool = NO) as DocPtr
+DECLARE FUNCTION rgfx_open OVERLOAD (filename as string, expect_exists as bool = NO, options as Reload.LoadOptions = optNone) as DocPtr
+DECLARE FUNCTION rgfx_open OVERLOAD (sprtype as SpriteType, expect_exists as bool = NO, options as Reload.LoadOptions = optNone) as DocPtr
 DECLARE FUNCTION rgfx_find_spriteset (rgfxdoc as DocPtr, sprtype as SpriteType, setnum as integer) as Node ptr
 DECLARE FUNCTION rgfx_num_spritesets (rgfxdoc as DocPtr, sprtype as SpriteType) as integer
 DECLARE FUNCTION rgfx_load_spriteset OVERLOAD (rgfxdoc as Reload.DocPtr, sprtype as SpriteType, setnum as integer, cache_def_anims as bool = NO) as Frame ptr

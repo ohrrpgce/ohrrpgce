@@ -3572,14 +3572,14 @@ SUB convert_pt_to_rgfx(dest_type as SpriteType)
 END SUB
 
 'Opens a rgfx document and checks it's in order
-FUNCTION rgfx_open(filename as string, expect_exists as bool = NO) as DocPtr
+FUNCTION rgfx_open(filename as string, expect_exists as bool = NO, options as Reload.LoadOptions = optNone) as DocPtr
   IF real_isfile(filename) = NO THEN
     IF expect_exists THEN reporterr filename & " not found", serrError
     RETURN NULL
   END IF
 
   DIM doc as DocPtr
-  doc = LoadDocument(filename)
+  doc = LoadDocument(filename, options)
   IF doc = NULL THEN
     reporterr "Couldn't open graphics file " & filename, serrError
     RETURN NULL
@@ -3606,8 +3606,8 @@ FUNCTION rgfx_open(filename as string, expect_exists as bool = NO) as DocPtr
   RETURN NULL
 END FUNCTION
 
-FUNCTION rgfx_open(sprtype as SpriteType, expect_exists as bool = NO) as DocPtr
-  RETURN rgfx_open(graphics_file(rgfx_lumpnames(sprtype)), expect_exists)
+FUNCTION rgfx_open(sprtype as SpriteType, expect_exists as bool = NO, options as Reload.LoadOptions = optNone) as DocPtr
+  RETURN rgfx_open(graphics_file(rgfx_lumpnames(sprtype)), expect_exists, options)
 END FUNCTION
 
 CONST TRANSLATION_MULT = 1000000

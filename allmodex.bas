@@ -8187,8 +8187,8 @@ CONST SPRCACHE_BASE_SZ = 4096  'bytes
  CONST SPRCACHEB_SZ = 2048  'in SPRITE_BASE_SZ units
  #DEFINE COMBINED_SPRCACHE_LIMIT 1
 #ELSE
- 'Max cache size of 16MB, but actual limit will be less due to items smaller than 4KB
- CONST SPRCACHEB_SZ = 4096  'in SPRITE_BASE_SZ units
+ 'Max cache size of 32MB, but actual limit will be less due to items smaller than 4KB
+ CONST SPRCACHEB_SZ = 8192  'in SPRITE_BASE_SZ units
 #ENDIF
 
 #if 0
@@ -8451,6 +8451,47 @@ local sub sprite_add_cache(sprtype as SpriteType, record as integer, p as Frame 
 	#ifdef COMBINED_SPRCACHE_LIMIT
 		sprcacheB_used += entry->cost
 	#endif
+end sub
+
+local sub _cache_sprtype(byref doc as DocPtr, sprtype as SpriteType)
+	for record as integer = 0 TO sprite_sizes(sprtype).lastrec()
+		dim fr as Frame ptr
+		fr = sprite_fetch_from_cache(sprtype, record)
+		if fr = NULL then
+			if doc = NULL then
+				doc = rgfx_open(sprtype, NO, optNoDelay)
+				if doc = NULL then exit sub
+			end if
+			fr = rgfx_load_spriteset(doc, sprtype, record, YES)
+			if fr then
+				sprite_add_cache(sprtype, record, fr)
+			end if
+		end if
+		frame_unload @fr
+	next
+	if doc then
+		load_global_animations sprtype, doc  'Doesn't have to be freed.
+	end if
+end sub
+
+'Equivalent to loading and freeing all graphics of one type, but vastly faster.
+'Does nothing if graphics haven't been converted to rgfx.
+'sprtype can sprTypeBackdrop too, but not sprTypeTileset
+'TODO: we should just hold the .rgfx files open instead and this will become obsolete
+sub cache_all_spritesets(sprtype as SpriteType)
+	BUG_IF(sprtype > sprTypeEnemy, "Must be an rgfx sprite type")
+	dim starttime as double = timer
+	dim doc as DocPtr
+	'FIXME: the sprite cache doesn't know that each enemy sprite has two sprtypes & idss
+	if sprtype = sprTypeEnemy then
+		_cache_sprtype doc, sprTypeSmallEnemy
+		_cache_sprtype doc, sprTypeMediumEnemy
+		_cache_sprtype doc, sprTypeLargeEnemy
+	else
+		_cache_sprtype doc, sprtype
+	end if
+	FreeDocument doc
+	debuginfo "sprtype " & sprtype & " cached in " & cint((timer - starttime) * 1e3) & "ms"
 end sub
 
 
