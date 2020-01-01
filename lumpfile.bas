@@ -283,7 +283,7 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 		seek #fh, recordsize * 2 * record + 1
 	end if
 	dim ret as bool = YES
-	dim bytesread as integer
+	dim bytesread as size_t
 	get #fh, , readbuf(), , bytesread
 	if bytesread <> recordsize * 2 then
 		' The record is at least partially missing
