@@ -4254,6 +4254,8 @@ DECLARE SUB export_gif(ss as SpriteSet ptr, pal as Palette16 ptr, fname as strin
 DECLARE SUB spriteset_detail_editor(sprtype as SpriteType, setnum as integer)
 
 SUB spriteset_editor(sprtype as SpriteType)
+  'First time we enter the browser can be very slow without precaching
+  cache_all_spritesets sprtype
   DIM editor as SpriteSetBrowser
   editor.sprtype = sprtype
   editor.genmax = sprite_sizes(sprtype).genmax

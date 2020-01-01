@@ -636,6 +636,10 @@ End Function
 
 '-----------------------------------------------------------------------
 
+Sub AttackBrowser.enter_browser()
+ cache_all_spritesets sprTypeAttack
+End Sub
+
 Function AttackBrowser.thing_kind_name() as string
  return "Attacks"
 End Function
@@ -686,6 +690,10 @@ Sub AttackBrowser.handle_cropafter(byval id as integer)
 End Sub
 
 '-----------------------------------------------------------------------
+
+Sub EnemyBrowser.enter_browser()
+ cache_all_spritesets sprTypeEnemy
+End Sub
 
 Function EnemyBrowser.thing_kind_name() as string
  return "Enemies"
@@ -1126,6 +1134,8 @@ End Sub
 '-----------------------------------------------------------------------
 
 Constructor SpriteBrowser(sprtype as SpriteType)
+ 'Avoid a large lag the first time we browse for a sprite type
+ cache_all_spritesets sprtype
  this.sprtype = sprtype
 End Constructor
 
@@ -1134,9 +1144,7 @@ Function SpriteBrowser.thing_kind_name() as string
 End Function
 
 Function SpriteBrowser.highest_id() as integer
- with sprite_sizes(this.sprtype)
-  return gen(.genmax) + .genmax_offset
- end with
+ return sprite_sizes(this.sprtype).lastrec()
 End Function
 
 Function SpriteBrowser.sprite_frame() as integer

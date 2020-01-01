@@ -106,6 +106,7 @@ Type ShopStuffBrowser extends ThingBrowser
 End Type
 
 Type AttackBrowser extends ThingBrowser
+ declare virtual sub enter_browser()
  declare virtual function thing_kind_name() as string
  declare virtual function init_helpkey() as string
  declare virtual function highest_id() as integer
@@ -116,6 +117,7 @@ Type AttackBrowser extends ThingBrowser
 End Type
 
 Type EnemyBrowser extends ThingBrowser
+ declare virtual sub enter_browser()
  declare virtual function thing_kind_name() as string
  declare virtual function thing_kind_name_singular() as string
  declare virtual function init_helpkey() as string
