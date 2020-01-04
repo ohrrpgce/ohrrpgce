@@ -155,7 +155,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2019-12-22)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2020-01-04)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -2375,7 +2375,10 @@
 		<a href="#about-scriptid">Script IDs</a><br>
 		
 	
-		<a href="#about-scrolltochild">scroll to child (parent, sl)</a><br>
+		
+		<a href="#about-scrolltoslice">scroll to child</a><br>
+	
+		<a href="#about-scrolltoslice">scroll to slice (parent, sl, apply padding)</a><br>
 		
 	
 		<a href="#about-searchstring">search string (ID1, ID2, start)</a><br>
@@ -5652,7 +5655,11 @@ resume player</pre>
 			Returns the specified hero's Z position in pixels. The Z value is the number of pixels they are above the tile that they are 'standing' on, not including the map's foot offset. All heroes normally have a Z value of 0 (even on maps with a foot offset) unless they are riding a vehicle which rises.
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-setheroz" class="ref">set hero z</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setheroz" class="ref">set hero z</a>, </li>
+<li><a href="#about-npcz" class="ref">npc Z</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -5660,10 +5667,24 @@ resume player</pre>
 <a name="about-setheroz"></a>
 		<h4>set hero z (who, z)</h4>
 <p>
-			Sets the Z location of the specified hero. The Z value is the number of pixels they are above the tile that they are 'standing' on. Useful for scripts where you want a hero to jump or levitate. All heroes normally have a Z value of 0 (even on maps with a foot offset) unless they are riding a vehicle which rises.
+			
+				Sets the Z location of the specified hero.
+				The Z value is the number of pixels they are above the tile that they are 'standing' on.
+				Useful for scripts where you want a hero to jump or levitate.
+				All heroes normally have a Z value of 0 (even on maps with a foot offset:
+				the foot offset is added to the Z value) unless they are riding a vehicle which rises.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Hero Z values are reset to 0 when you change map or dismount a vehicle, and aren't saved in saved games.
+				</div>
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-heroz" class="ref">hero Z</a></li></ul>
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-heroz" class="ref">hero Z</a>, </li>
+<li><a href="#about-setnpcz" class="ref">set npc z</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -6344,7 +6365,11 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 			Returns the specified NPC's Z position in pixels. The Z value is the number of pixels they are above the tile that they are 'standing' on, not including the map's foot offset. All NPCs normally have a Z value of 0 (even on maps with a foot offset) unless they are used as a vehicle which rises.
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-setnpcz" class="ref">set npc z</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setnpcz" class="ref">set npc z</a>, </li>
+<li><a href="#about-heroz" class="ref">hero Z</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -6355,7 +6380,11 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 			Sets the Z location of the specified NPC. The Z value is the number of pixels they are above the tile that they are 'standing' on. Useful for scripts where you want a NPC to jump or levitate. All NPCs normally have a Z value of 0 (even on maps with a foot offset) unless they are a vehicle which rises.
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-npcz" class="ref">npc Z</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-npcz" class="ref">npc Z</a>, </li>
+<li><a href="#about-setheroz" class="ref">set hero z</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -14380,7 +14409,10 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-getscrollcheckdepth">get scroll check depth (handle)</a><br>
 		
 	
-		<a href="#about-scrolltochild">scroll to child (parent, sl)</a><br>
+		
+		<a href="#about-scrolltoslice">scroll to child</a><br>
+	
+		<a href="#about-scrolltoslice">scroll to slice (parent, sl, apply padding)</a><br>
 		
 	</ul>
 <ul></ul>
@@ -18953,11 +18985,21 @@ The third argument is the total number of ticks that the animation should run. Y
 </div>
 		<div class="command">
 <a name="about-scrolltochild"></a>
-		<h4>scroll to child (parent, sl)</h4>
+		
+				<h4>scroll to child</h4>
+				See <a href="#about-scrolltoslice">scroll to slice</a>
+			</div>
+		<div class="command">
+<a name="about-scrolltoslice"></a>
+		<h4>scroll to slice (parent, sl, apply padding)</h4>
 <p>
 			
-				Causes all the children of the <span class="param">parent</span> slice to be scrolled until the screen position of <span class="param">sl</span>,
-				a child or descendent of <span class="param">parent</span>, fits inside the parent.
+				Causes all the children of the <span class="param">parent</span> slice to be shifted by the same offset
+				so the screen position of <span class="param">sl</span> (any child or descendent of <span class="param">parent</span>) fits inside the parent.
+				<br>
+				If <span class="param">apply padding</span> is true (the default is <span class="code">false</span>),
+				then <span class="param">sl</span> is scrolled within the area of <span class="param">parent</span>
+				with padding subtracted (the area covered by a child set to Fill Parent).
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					This is mainly intended for scroll slices, such as those created with the <a href="#about-createscroll" class="ref">create scroll</a> command,
@@ -18967,7 +19009,7 @@ The third argument is the total number of ticks that the animation should run. Y
 				</div>
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
-					This command is misnamed, as it works for all descendent slices, not just children!
+					This works for all descendent slices <span class="param">sl</span>, not just children!
 					It only changes the positions of the children of <span class="param">parent</span>,
 					but that causes the screen position of <span class="param">sl</span> to also change.
 				</div>
@@ -23240,7 +23282,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 876 commands (of which 51 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 877 commands (of which 52 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

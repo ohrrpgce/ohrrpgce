@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2019-12-22">
+<plotscript version="wip" datecode="2020-01-04">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -1356,14 +1356,25 @@ resume player</example>
 			<description>Returns the specified hero&apos;s Z position in pixels. The Z value is the number of pixels they are above the tile that they are 'standing' on, not including the map's foot offset. All heroes normally have a Z value of 0 (even on maps with a foot offset) unless they are riding a vehicle which rises.</description>
 			<seealso>
 				<ref>setheroz</ref>
+				<ref>npcz</ref>
 			</seealso>
 		</command>
 		<command id="setheroz">
 			<canon>set hero z (who, z)</canon>
 			<shortname>set hero z</shortname>
-			<description>Sets the Z location of the specified hero. The Z value is the number of pixels they are above the tile that they are 'standing' on. Useful for scripts where you want a hero to jump or levitate. All heroes normally have a Z value of 0 (even on maps with a foot offset) unless they are riding a vehicle which rises.</description>
+			<description>
+				Sets the Z location of the specified hero.
+				The Z value is the number of pixels they are above the tile that they are 'standing' on.
+				Useful for scripts where you want a hero to jump or levitate.
+				All heroes normally have a Z value of 0 (even on maps with a foot offset:
+				the foot offset is added to the Z value) unless they are riding a vehicle which rises.
+				<note>
+					Hero Z values are reset to 0 when you change map or dismount a vehicle, and aren't saved in saved games.
+				</note>
+			</description>
 			<seealso>
 				<ref>heroz</ref>
+				<ref>setnpcz</ref>
 			</seealso>
 		</command>
 		<command id="walkherotox">
@@ -1726,6 +1737,7 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 			<description>Returns the specified NPC&apos;s Z position in pixels. The Z value is the number of pixels they are above the tile that they are 'standing' on, not including the map's foot offset. All NPCs normally have a Z value of 0 (even on maps with a foot offset) unless they are used as a vehicle which rises.</description>
 			<seealso>
 				<ref>setnpcz</ref>
+				<ref>heroz</ref>
 			</seealso>
 		</command>
                 <command id="setnpcz">
@@ -1734,6 +1746,7 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 			<description>Sets the Z location of the specified NPC. The Z value is the number of pixels they are above the tile that they are 'standing' on. Useful for scripts where you want a NPC to jump or levitate. All NPCs normally have a Z value of 0 (even on maps with a foot offset) unless they are a vehicle which rises.</description>
 			<seealso>
 				<ref>npcz</ref>
+				<ref>setheroz</ref>
 			</seealso>
 		</command>
 		<command id="walknpctox">
