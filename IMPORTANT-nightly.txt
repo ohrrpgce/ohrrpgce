@@ -17,6 +17,13 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
+2020-01-04:
+If you changed the default palette of a spriteset in the Fufluns release
+candidate (2020-01-01) it might have been saved incorrectly (it's stored in two
+places and they could be inconsistent). When you enter "Draw Walkabouts", etc,
+for the first time, the default palettes will be checked you'll be told if any
+of them had to be fixed.
+
 2019-08-05:
 "suspend box advance" had been changed to suspend choicebox selection
 controls too, but that change is now undone because it broke some games.

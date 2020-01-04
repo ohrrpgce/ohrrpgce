@@ -4351,6 +4351,16 @@ SUB SpriteSetBrowser.rebuild_menu()
     sprset = frame_load(sprtype, setnum)
     IF sprset = NULL THEN showerror "rebuild(): frame_load failed" : EXIT SUB
 
+    'Check for inconsistent default palette values stored in .rgfx and defpal#.bin
+    '(bug introduced in r11542/r11543, fixed r11554)
+    IF sprset->defpal > -1 ANDALSO sprset->defpal <> defpalettes(setnum) THEN
+     sprset->defpal = defpalettes(setnum)
+     visible_debug "Due to a bug in the Fufluns release candidate, spriteset " & setnum & _
+                   " had an inconsistent default palette. It's been changed to palette " & sprset->defpal & _
+                   !".\nCheck this is what you want."
+     rgfx_save_spriteset sprset, sprtype, setnum
+    END IF
+
     'ss_sl = plank_menu_clone_template(ss_templ)
     'ss_sl is not a plank
     ss_sl = CloneSliceTree(ss_templ)
@@ -4607,7 +4617,9 @@ SUB SpriteSetBrowser.add_spriteset()
   DIM newss as Frame ptr = create_spriteset(sprtype, framesize)
 
   gen(genmax) += 1
+  'New default palette == 0
   REDIM PRESERVE defpalettes(gen(genmax))
+  savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
   rgfx_save_spriteset newss, sprtype, gen(genmax), 0
   frame_unload @newss
 
@@ -4874,6 +4886,7 @@ SUB SpriteSetBrowser.change_def_pal(diff as integer)
   savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
   editing_spriteset = frame_load(sprtype, cur_setnum)
   editing_spriteset->defpal = defpalettes(cur_setnum)
+  rgfx_save_spriteset editing_spriteset, sprtype, cur_setnum
   frame_unload @editing_spriteset
   rebuild_menu()
 END SUB
@@ -4978,6 +4991,13 @@ SUB SpriteSetBrowser.run()
       ELSE
         slice_editor root, SL_COLLECT_EDITOR, , , YES
       END IF
+    END IF
+
+    'Debug key Ctrl-R, reload sprite cache
+    IF keyval(scCtrl) > 0 ANDALSO keyval(scR) > 1 THEN
+     delete_menu_items
+     sprite_empty_cache sprtype
+     rebuild_menu
     END IF
 
     'Clear selection indicators
