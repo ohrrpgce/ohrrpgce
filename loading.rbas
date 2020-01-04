@@ -3781,7 +3781,7 @@ SUB rgfx_save_spriteset(rgfxdoc as DocPtr, fr as Frame ptr, sprtype as SpriteTyp
 END SUB
 
 SUB rgfx_save_spriteset(fr as Frame ptr, sprtype as SpriteType, setnum as integer, defpal as integer = -1)
-  DIM rgfxdoc as Doc ptr = rgfx_open(sprtype, YES)
+  DIM rgfxdoc as Doc ptr = rgfx_open(sprtype, YES, optNoDelay)
   IF rgfxdoc = NULL THEN EXIT SUB
   rgfx_save_spriteset(rgfxdoc, fr, sprtype, setnum, defpal)
   SerializeBin graphics_file(rgfx_lumpnames(sprtype)), rgfxdoc

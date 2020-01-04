@@ -8480,9 +8480,9 @@ end sub
 'TODO: we should just hold the .rgfx files open instead and this will become obsolete
 sub cache_all_spritesets(sprtype as SpriteType)
 	BUG_IF(sprtype > sprTypeEnemy, "Must be an rgfx sprite type")
-	dim starttime as double = timer
+	'dim starttime as double = timer
 	dim doc as DocPtr
-	'FIXME: the sprite cache doesn't know that each enemy sprite has two sprtypes & idss
+	'FIXME: the sprite cache doesn't know that each enemy sprite has two sprtypes
 	if sprtype = sprTypeEnemy then
 		_cache_sprtype doc, sprTypeSmallEnemy
 		_cache_sprtype doc, sprTypeMediumEnemy
@@ -8491,7 +8491,7 @@ sub cache_all_spritesets(sprtype as SpriteType)
 		_cache_sprtype doc, sprtype
 	end if
 	FreeDocument doc
-	debuginfo "sprtype " & sprtype & " cached in " & cint((timer - starttime) * 1e3) & "ms"
+	'debuginfo "sprtype " & sprtype & " cached in " & cint((timer - starttime) * 1e3) & "ms"
 end sub
 
 
