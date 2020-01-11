@@ -226,6 +226,8 @@ TYPE SavedGfxIOState
  prev_mouse_vis as CursorVisibility
  resolution_was_unlocked as bool
  use_speed_control as bool
+ vpage as integer
+ dpage as integer
 END TYPE
 
 REDIM SHARED gfxio_state_stack(-1 TO -1) as SavedGfxIOState  '-1th element unused
@@ -327,6 +329,10 @@ SUB push_and_reset_gfxio_state ()
   #ENDIF
   .use_speed_control = use_speed_control
   use_speed_control = YES
+  'Save vpage/dpage because some menus use compatpage, drawing to a view of vpage,
+  'but still need to "setvispage vpage". This only works if vpage doesn't change.
+  .vpage = vpage
+  .dpage = dpage
  END WITH
 END SUB
 
@@ -345,6 +351,8 @@ SUB pop_gfxio_state ()
    END IF
   #ENDIF
   use_speed_control = .use_speed_control
+  vpage = .vpage
+  dpage = .dpage
  END WITH
  REDIM PRESERVE gfxio_state_stack(-1 TO UBOUND(gfxio_state_stack) - 1)
 END SUB
