@@ -10,6 +10,6 @@ You can give the shop a name here.
 
 The first submenu you should enter will probably be the Edit Shop Bitsets menu, where you can decide what services are available at this shop.
 
-Choose Edit Available Stuff to choose the shop's stock if the shop sells things (marked with Buy, Sell, or Hire in the Edit Shop Bitsets menu).
+Choose Edit Available Stuff to choose the shop's stock if the shop sells things (when Buy, Sell, or Hire are available in the Shop Menu Items menu).
 
-If the shop includes an inn (marked with Inn in the Edit Shop Bitsets menu), then you can set the price here, and optionally set a script to be run if the player stays here.
+If the shop includes an inn (under Select Shop Menu Items) then you can set the price here, and optionally set a script to be run if the player stays here.

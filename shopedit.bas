@@ -117,7 +117,7 @@ FUNCTION shop_editor (shop_id as integer) as integer
     shop_stuff_editor_main shopst.id
     shop_load shopst, shopbuf()
    END IF
-   IF shopst.st.pt = 4 THEN editbitset shopbuf(), 17, sbit(): shopst.st.need_update = YES
+   IF shopst.st.pt = 4 THEN editbitset shopbuf(), 17, sbit(), "shop_menu_items": shopst.st.need_update = YES
    IF shopst.st.pt = 6 THEN
     shopst.menu(6) = "Inn Script: " & scriptbrowse(shopbuf(19), plottrigger, "Inn Plotscript")
    END IF

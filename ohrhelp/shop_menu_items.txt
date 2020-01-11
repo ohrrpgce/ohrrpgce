@@ -1,0 +1,8 @@
+Shops can provide multiple services, and here you can select which are available.
+Shops can be used for a lot more than just buying items. For example, a save point might have only "Save" and possibly "Team". "Buy" can be used to trade items.
+
+"Hire" is actually the same as "Buy", except it shows the shop 'stuff'/'things' that are heroes rather than items.
+
+"Inn" is a simple menu where the player gets their active party healed to 100%, and possibly MP restored too (according to a General Preference bit) in exchange for gold. Textboxes can also give the player an Inn option.
+
+"Team" lets the player swap heroes to/from their reserve party.

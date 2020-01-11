@@ -600,6 +600,10 @@ Function ShopStuffBrowser.thing_kind_name() as string
  return "Shop Stuff"
 End Function
 
+Function ShopStuffBrowser.thing_kind_name_singular() as string
+ return "Item/hero"
+End Function
+
 Function ShopStuffBrowser.init_helpkey() as string
  return "shop_stuff_browser"
 End Function
@@ -753,10 +757,6 @@ End Sub
 
 Function FormationBrowser.thing_kind_name() as string
  return "Formations"
-End Function
-
-Function FormationBrowser.thing_kind_name_singular() as string
- return "Formation"
 End Function
 
 Function FormationBrowser.init_helpkey() as string
