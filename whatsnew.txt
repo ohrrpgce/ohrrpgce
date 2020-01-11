@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-Septotobvember ? 2019 [Fufluns]
+January 12 2020 [Fufluns]
 
   Highlights:
     * Games can be played with mouse or (mostly working) joystick
