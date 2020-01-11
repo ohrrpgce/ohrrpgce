@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Editor              (WIP version)
+ O.H.R.RPG.C.E Editor          (2020-01-12 fufluns version)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
