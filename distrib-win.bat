@@ -18,8 +18,7 @@ REM "scons pdb=1" will continue even if it can't produce these
 FOR %%X IN (win32\game.pdb win32\custom.pdb) DO (
     IF NOT EXIST "%%X" (
         ECHO "ERROR: build result %%X is missing. Unable to continue."
-        ECHO "ERROR IGNORED AS A WORKAROUND FOR FUFLUNS"
-        REM GOTO SANITYFAIL
+        GOTO SANITYFAIL
     )
 )
 
