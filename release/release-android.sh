@@ -26,7 +26,7 @@ ln -s ../../../../ohr/rel/"${CODENAME}"/android ohrrpgce
 cd "${RELDIR}"
 
 # Now build the apk
-./distrib-nightly-android.sh -noupload
+./distrib-nightly-android.sh -noupload -force
 
 # Try to upload the result
 cd "${SDLANDROID}"
