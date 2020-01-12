@@ -1,7 +1,7 @@
 CD ..
 
 REM grab a copy of the pdb tools from the wip/support folder
-support\cp ../../wip/support/mspdbsrc.exe ./../wip/support/ms*.dll ./support/
+support\cp ../../wip/support/mspdbsrv.exe ../../wip/support/ms*.dll support
 
 REM Build the release
 CALL distrib-win.bat
