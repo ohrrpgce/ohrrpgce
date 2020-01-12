@@ -93,9 +93,15 @@ updatelink "${REL}" "${VER}" "ohrrpgce-win-installer" ".exe" "" ""
 updatelink "${REL}" "${VER}" "ohrrpgce"               ".zip" "custom" ""
 updatelink "${REL}" "${VER}" "ohrrpgce-minimal"       ".zip" "ohrrpgce-floppy" "ohrrpgce_play"
 
-# Mac files
-updatelink "${REL}" "${VER}" "OHRRPGCE"               ".dmg" "" ""
-updatelink "${REL}" "${VER}" "ohrrpgce-mac-minimal"   ".tar.gz" "" ""
+# Old Mac files for versions <= etheldreme
+#updatelink "${REL}" "${VER}" "OHRRPGCE"               ".dmg" "" ""
+#updatelink "${REL}" "${VER}" "ohrrpgce-mac-minimal"   ".tar.gz" "" ""
+
+# New Mac files >= fufluns
+updatelink "${REL}" "${VER}" "OHRRPGCE"               "-x86_64.dmg" "" ""
+updatelink "${REL}" "${VER}" "ohrrpgce-mac-minimal"   "-x86_64.tar.gz" "" ""
+updatelink "${REL}" "${VER}" "OHRRPGCE"               "-x86.dmg" "" ""
+updatelink "${REL}" "${VER}" "ohrrpgce-mac-minimal"   "-x86.tar.gz" "" ""
 
 # Android files
 updatelink "${REL}" "${VER}" "ohrrpgce-game-android-debug" ".apk" "" ""
