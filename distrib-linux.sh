@@ -85,7 +85,7 @@ package_for_arch() {
   TODAY=`date "+%Y-%m-%d"`
   CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
   mv tmp ohrrpgce
-  tar -jcf distrib/ohrrpgce-linux-$TODAY-$CODE-$ARCH.tar.bz2 ./ohrrpgce --exclude .svn || return 1
+  tar -jcf distrib/ohrrpgce-linux-$TODAY-$CODE-$ARCH.tar.bz2 --exclude .svn ./ohrrpgce || return 1
   mv ohrrpgce tmp
 
   echo "Erasing contents of temporary directory"
