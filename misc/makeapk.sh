@@ -5,6 +5,45 @@
 # example. See instead the distrib-nightly-android.sh script if you are just
 # interested in building a standalone Android OHRRPGCE game player.
 
+# NOTE: "both" means compile two apks, one 32 bit and one 64 bit
+# We do not yet have the ability to compile multi-arch
+ARCH=both
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+  key="$1"
+  
+  case $key in
+    -arch|--arch)
+    ARCH="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+  esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+case $ARCH in
+  32)
+    ARCHLIST=( 32 )
+    ;;
+  64)
+    ARCHLIST=( 64 )
+    ;;
+  both)
+    ARCHLIST=( 32 64 )
+    ;;
+  *)
+    echo "Valid values for the --arch argument are '32' '64' and 'both'"
+    exit 1
+    ;;
+esac
+
 if [ ! -f "${FBCARM}" ] ; then
   echo "The FBCARM env variable should point to the fbc compiler for arm"
   exit 1
@@ -48,8 +87,6 @@ echo "PROJDIR=$PROJDIR"
 echo "BRANCHSUFFIX=$BRANCHSUFFIX"
 echo "BRANCHBASE=$BRANCHBASE"
 echo "SCRIPTDIR=$SCRIPTDIR"
-
-ARCHLIST=( 32 64 )
 
 for CUR_ARCH in ${ARCHLIST[@]} ; do
 
