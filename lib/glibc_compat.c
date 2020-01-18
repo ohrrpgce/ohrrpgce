@@ -4,6 +4,8 @@
    Functions like fcntl are redirected by ld to __wrap_fcntl etc (see
    SConscript), defined in this file, which are wrappers around a shadowed but
    still present symbol in libc.so or libm.so.
+   (The .symver lines below could instead be placed in a header included everywhere
+   if we weren't linking to any libraries compiled without the header, eg libfb)
 
    See https://rpg.hamsterrepublic.com/ohrrpgce/Portable_GNU-Linux_binaries
    for more info and instructions for updating.
@@ -18,13 +20,15 @@
 
 #ifdef HOST_64BIT
 // x86_64 glibc... I'm guessing ARM64, etc, has the same versioned symbols
-asm (".symver fcntl, fcntl@GLIBC_2.2.5");
+asm (".symver fcntl64, fcntl@GLIBC_2.2.5");  // Used when compiling with newer glibc headers
+asm (".symver fcntl, fcntl@GLIBC_2.2.5");    // Used when compiling with older glibc headers
 asm (".symver pow, pow@GLIBC_2.2.5");
 asm (".symver exp, exp@GLIBC_2.2.5");
 asm (".symver log, log@GLIBC_2.2.5");
 #else
 // x86 glibc... I'm guessing ARM32, etc, has the same versioned symbols
-asm (".symver fcntl, fcntl@GLIBC_2.0");
+asm (".symver fcntl64, fcntl@GLIBC_2.0");  // As above
+asm (".symver fcntl, fcntl@GLIBC_2.0");    // As above
 asm (".symver pow, pow@GLIBC_2.0");
 asm (".symver exp, exp@GLIBC_2.0");
 asm (".symver log, log@GLIBC_2.0");
