@@ -264,7 +264,7 @@ DO
      CASE tyscript
       DIM argc as integer = curcmd->argc
       'No need to check argc <= maxScriptArgs; setScriptArg checks OK
-      rsr = runscript(curcmd->value, NO, NO, "indirect")
+      rsr = runscript(curcmd->value, NO, NO, "called")
       'WARNING: WITH now points to scrat(nowscript-1)
       IF rsr = 1 THEN
        '--fill heap with arguments
