@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """Main scons build script for OHRRPGCE
 Run "scons -h" to print help (and "scons -H" for options to scons itself).
 

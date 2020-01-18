@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 """
 Extract all release dates from whatsnew.txt, and print number of days between releases.
 """

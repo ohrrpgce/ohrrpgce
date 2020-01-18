@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 """
 This is a tool for automated testing of HSpeak, specifically checking

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 """
 Routines both for installing packages on a Unix, and for creating .deb packages
