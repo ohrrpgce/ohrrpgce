@@ -662,14 +662,12 @@ if linkgcc:
         if not android:
             # The following are required by libfb (not libfbgfx)
             CXXLINKFLAGS += ['-lpthread']
-            if portable and not mac:
-                #CXXLINKFLAGS += ['/usr/lib/libncurses.5.dylib']  # Mac: -l: syntax not supported
-                # FIXME: linking against this older version when libfb was compiled
-                # against a newer version seems to cause problems: in programs like unlump
-                # waiting for a keypress doesn't work.
-                CXXLINKFLAGS += ['-l:libncurses.so.5']
-            else:
-                CXXLINKFLAGS += ['-lncurses']  # would be libncurses.so.6 since ~2015
+            # Some Linux systems have only libncurses.so.5, others only libncurses.so.6
+            # (since ~2015), and some have libtinfo.so while others don't. Probably same mess on BSD.
+            # So don't link to libncurses/libtinfo. Instead we link to lib/termcap_stub.c below.
+            # Don't know about Mac situation.
+            if not portable or mac:
+                CXXLINKFLAGS += ['-lncurses']
 
     if mac:
         if fbcversion <= 220:
@@ -753,8 +751,8 @@ if not linkgcc:
         # (Normally fbc links with gcc_eh if required, I wonder what goes wrong here?)
         FBLINKFLAGS += ['-l','gcc_eh']
     if portable:
-        # TODO: force link to libncurses.so.5 or libtinfo.so.5
-        print "WARNING: can't force libtinfo.so.5\n"
+        print "WARNING: portable=1 probably won't work in combination with linkgcc=0"
+        # E.g. fbc will link to libtinfo/libncurses.
 
 if portable and (unix and not mac):
     # For compatibility with libstdc++ before GCC 5
@@ -768,6 +766,7 @@ if portable and (unix and not mac):
         # See https://rpg.hamsterrepublic.com/ohrrpgce/Portable_GNU-Linux_binaries
         syms = "fcntl", "fcntl64", "pow", "exp", "log"
         CXXLINKFLAGS.append ("-Wl," + ",".join("--wrap=" + x for x in syms))
+        FBLINKERFLAGS += ["--wrap=" + x for x in syms]
 
 # As long as exceptions aren't used anywhere and don't have to be propagated between libraries,
 # we can link libgcc_s statically, which avoids one more thing that might be incompatible
@@ -856,7 +855,7 @@ gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'common_libraries': libfbgfx},
            'alleg' : {'shared_modules': 'gfx_alleg.bas', 'common_libraries': 'alleg'},
            'sdl' : {'shared_modules': 'gfx_sdl.bas', 'common_libraries': 'SDL'},
            'sdl2' : {'shared_modules': 'gfx_sdl2.bas', 'common_libraries': 'SDL2'},
-           'console' : {'shared_modules': 'gfx_console.bas', 'common_modules': 'curses_wrap.c'},
+           'console' : {'shared_modules': 'gfx_console.bas', 'common_modules': 'lib/curses_wrap.c'},
            'dummy' : {},
            'directx' : {}, # nothing needed
            'sdlpp': {}     # nothing needed
@@ -958,6 +957,8 @@ elif unix:  # Unix+X11 systems: Linux & BSD
     if portable:
         # To support old libstdc++.so versions
         base_modules += ['lib/stdc++compat.cpp']
+        if not mac:  # Don't know about Mac
+            base_modules += ['lib/termcap_stub.c']
         if glibc:
             base_modules += ['lib/glibc_compat.c']
     if 'sdl' in gfx or 'fb' in gfx:
@@ -965,6 +966,9 @@ elif unix:  # Unix+X11 systems: Linux & BSD
     if gfx != ['console']:
         # All graphical gfx backends need the X11 libs
         common_libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')
+    if 'console' in gfx and portable:
+        print "gfx=console is not compatible with portable=1, which doesn't link to ncurses."
+        Exit(1)
     # common_libraries += ['vorbisfile']
     # commonenv['FBFLAGS'] += ['-d','HAVE_VORBISFILE']
 

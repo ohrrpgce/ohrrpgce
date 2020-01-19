@@ -1,5 +1,20 @@
 WHAT IS NEW?
 
+April ? 2020 [Gorgonzola]
+
+  *** New Features
+
+   * New Plotscripting Features
+
+  *** Changes
+
+  *** Bugfixes
+    * Linux builds should now hopefully work on all Linux systems since 2011
+      (as long as SDL & SDL_mixer are installed) [Ralph]
+
+  *** Stuff Only Developers Will Notice
+
+
 January 12 2020 [Fufluns]
 
   Highlights:
