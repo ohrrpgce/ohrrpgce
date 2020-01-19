@@ -3965,3 +3965,92 @@ June 18 1999
     of a particular item, have that item in your inventory, have that
     item equiped, or have that item equiped on a hero you are currently
     using
+
+
+[...release notes lost...]
+
+
+October 4 1998
+
+  * Heroswapping is done!!! (see HOWTO.TXT for details)
+
+  * Fixed bug that generated "Path not found" error when running from DOS
+
+  * Fixed levelup calculation.
+    You will now have the correct stats at level 99
+
+  * Fixed bug that sometimes scrambled maptiles after a dialogue box
+    with a background
+
+  * Supports "catapillar-walkabout" parties as used in Dragon Warrior
+    or Breath of Fire
+
+  * Improved Joystick Support... it still isnt quite right, but at least it
+    doesnt act with a mind of it's own anymore :)
+
+  * Sprites are now correctly cropped on all edges of the screen.
+
+  * "Rename Game" no longer erases the original file. It creates a new
+    file under a new name, but the old one stays there for backup purposes
+
+  * the "Edit NPC" option on the main menu is now a submenu under "Edit Maps"
+
+  * "Erase Map Data" now also erases door links, door loactions and NPC
+    locations.
+
+  * "Resize Map" is greatly improved. (see howto.txt, line 173)
+
+  * Maps are now stored more space-efficiently
+
+  * Fixed the bug that created a line on the right side of imported sprites
+
+  * You can disable the HP/MP restoration of a levelup
+
+  * Fixed the bug that allowed you to buy an item you couldnt afford when
+    the item requires both money and an exchange
+
+  * NPC positions are preserved when you fight a battle
+
+  * Fixed bug that prevented values greater than 500 on the Dialogue
+    conditionals screen
+
+
+[...release notes lost...]
+
+
+July 27 1998
+
+  * Small, but important bugfix. In the July 26 copy, your
+    extended text box data gets flushed if you do not modify
+    any "General Game Data" If you are not losing text box data,
+    you dont need to bother with this update.
+
+July 26 1998
+
+  * Fixed Step-on NPCs. they now activate when stepped on, not when stepped
+    off
+
+  * Lost of great Text-Box enhancements. Added:
+    If Tag Then get/lose item
+    If Tag Then get/lose money
+    If Tag The teleport (auto-use door)
+    Customisable sise, position, and color for text box display, optional
+    backdrop image, music change, and Choice-box
+
+  * Detects if CUSTOM.EXE crashed while unlumping, and forbids you from
+    relumping the dammaged game-- several people have lost data because of
+    that.
+
+  * No longer crashes if you press ENTER or SPACE in the wrong place
+    while editing enemy formations
+
+  * Updated HOWTO.TXT (not much new, mostly just updated the old information)
+
+  * Tags are now displayed as OFF and ON instead of 0 and 1
+
+  * You can now Import 320x200 24-Bit BMP files from _any_ drawing program,
+    not just the ones that save them correctly... Gasp! You can even import
+    them from Windows Paintbrush!
+
+
+[...release notes lost...]
