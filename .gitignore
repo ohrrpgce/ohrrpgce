@@ -43,6 +43,7 @@ vectortest
 rbtest
 utiltest
 filetest
+filetest_helper
 xml2reload
 reload2xml
 reloadutil
@@ -55,6 +56,9 @@ imageconv
 # Created by reloadtest
 unittest.rld
 unittest.xml
+# Created by filetest (usually cleaned up)
+_testfile*.tmp
+_writetest.tmp
 import/Music
 import/Sound Effects
 support/*.zip
