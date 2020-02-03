@@ -502,7 +502,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
    CASE 61
     ap = target.stat.max.mp - target.stat.cur.mp
    CASE 62
-    ap = target.stat.cur.hp - target.stat.max.hp
+    ap = target.stat.max.hp - target.stat.cur.hp
    CASE IS >= 63
     debug "Unknown base stat " & attack.base_atk_stat & " for attack " & attack.id
   END SELECT
