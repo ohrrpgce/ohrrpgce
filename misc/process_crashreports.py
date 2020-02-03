@@ -78,9 +78,15 @@ HOST_WIN32 = platform.system() == 'Windows'
 @functools.lru_cache(maxsize = None)
 def svn_to_git_rev(rev):
     print('Querying git for svn rev...  ', file=sys.stderr, end='\r')
-    gitrev = subprocess.check_output(['git', '-C', GIT_DIR, 'svn', 'find-rev', 'r' + rev]).decode('utf8').strip()
+    # Unfortunately git svn find-rev only searches the current branch by default
+    # and we have to explicitly provide a list of branches to search...
+    #gitrev = subprocess.check_output(['git', '-C', GIT_DIR, 'svn', 'find-rev', 'r' + rev]).decode('utf8').strip()
+    # ...so use git log --grep instead
+    gitrev = subprocess.check_output(
+        ['git', '-C', GIT_DIR, 'log', '--all', '--format=%H', '--grep', 'git-svn-id:.*@' + rev + ' ']
+      ).decode('utf8').strip()
     if not gitrev:
-        raise Exception('git-svn could not find r%s. Check that git-svn is up-to-date (e.g. "git svn fetch")' % rev)
+        raise Exception('Could not find svn revision %s. Check that git-svn is up-to-date (e.g. "git svn fetch")' % rev)
     return gitrev
 
 @functools.lru_cache(maxsize = None)
