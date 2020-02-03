@@ -14,6 +14,8 @@ April ? 2020 [Gorgonzola]
     * On Windows, copy-pasting text caused spaces to be added at line ends,
       and near-full textboxes couldn't be copy-pasted [Ralph]
     * sf#2045: "Lost HP (target)" base attack stat was always 0 [Ralph]
+    * Weapon pictures/palettes didn't update in saved games and Test Game
+      after a weapon was edited [Ralph]
 
   *** Stuff Only Developers Will Notice
 

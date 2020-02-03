@@ -3843,6 +3843,8 @@ SUB loaditemdata (item as ItemDef, item_id as integer)
   .name = readbadbinstring(itembuf(), 0, 8)
   .info = readbadbinstring(itembuf(), 9, 36)
   .stacksize = itembuf(210)
+  .wep_pic = itembuf(52)
+  .wep_pal = itembuf(53)
   FOR i as integer = 0 TO 1
    'Second handle point is before the first one!
    .wep_handle(i).x = itembuf(80 - i * 2)

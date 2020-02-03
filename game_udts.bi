@@ -55,8 +55,6 @@ TYPE HeroState
                                           '(Not affected by script commands)
  exp_cur as integer
  exp_next as integer
- wep_pic as integer
- wep_pal as integer
  battle_pic as integer
  battle_pal as integer
  exp_mult as double

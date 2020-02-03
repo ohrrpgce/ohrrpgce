@@ -872,6 +872,8 @@ TYPE ItemDef
 	info as string
 	stacksize as integer      'Max per inventory slot. 0 means default, genItemStackSize
 	wep_handle(1) as XYPair   'Handle points
+	wep_pic as integer
+	wep_pal as integer
 	tags as ItemDefTags
 	eqslots(4) as bool
 	'TODO: all other data is missing

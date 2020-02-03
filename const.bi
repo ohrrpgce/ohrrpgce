@@ -38,7 +38,7 @@ CONST CURRENT_RPG_VERSION = 21
 CONST CURRENT_RGFX_VERSION = 1
 ' Version number embedded in each .rgfx file.
 
-CONST CURRENT_RSAV_VERSION = 3
+CONST CURRENT_RSAV_VERSION = 4
 ' Increment this number any time that loading and resaving a game in either
 ' new or old versions of Game leads to data-loss, or major new features are
 ' added.
@@ -49,6 +49,7 @@ CONST CURRENT_RSAV_VERSION = 3
 ' 3 - stopped writing obsolete battle_menus node
 ' unversioned - optional saving of slices
 ' 4 - callipygous added optional saving of strings
+' 5 - g*** removed hero weapon pic/pal
 
 CONST CURRENT_TESTING_IPC_VERSION = 4
 ' Version of the IPC protocol used when live-previewing

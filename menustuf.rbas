@@ -957,14 +957,6 @@ SUB doequip (toequip as integer, who as integer, where as integer)
 
  update_hero_max_and_cur_stats who
 
- '--special handling for weapons
- IF where = 0 THEN
-  DIM itembuf(dimbinsize(binITM)) as integer
-  loaditemdata itembuf(), toequip
-  gam.hero(who).wep_pic = itembuf(52) 'remember weapon pic
-  gam.hero(who).wep_pal = itembuf(53) 'remember weapon pal
- END IF
-
  '--equipping the default weapon does not delete it from inventory
  IF toequip = gam.hero(who).def_wep - 1 AND where = 0 THEN
  ELSE

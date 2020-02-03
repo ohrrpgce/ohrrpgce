@@ -80,12 +80,6 @@ WITH gam.hero(slot).stat
  NEXT
 END WITH
 
-'--weapon picture and palette
-DIM wbuf(dimbinsize(binITM)) as integer
-loaditemdata wbuf(), her.def_weapon
-gam.hero(slot).wep_pic = wbuf(52)
-gam.hero(slot).wep_pal = wbuf(53)
-
 '--put spells in spell list
 FOR i as integer = 0 TO 3
  FOR o as integer = 0 TO 23
@@ -1300,8 +1294,6 @@ FOR i as integer = 0 TO 40
  NEXT j
  gam.hero(i).lev = 0
  gam.hero(i).lev_gain = 0
- gam.hero(i).wep_pic = 0
- gam.hero(i).wep_pal = 0
  gam.hero(i).battle_pic = 0
  gam.hero(i).battle_pal = 0
  gam.hero(i).pic = 0

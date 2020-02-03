@@ -649,11 +649,6 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
        .exp_mult = slot."exp_mult".default(her.exp_mult).double
        .def_wep = slot."def_wep"
 
-       READNODE slot."wep".warn as ch, default
-        .wep_pic = ch."pic"
-        .wep_pal = ch."pal"
-       END READNODE
-
        READNODE slot."in_battle".warn as ch, default
         .battle_pic = ch."pic"
         .battle_pal = ch."pal"
@@ -1160,11 +1155,7 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
      NEXT j
     END IF
    END IF
-   
-   ch = SetChildNode(slot, "wep")
-   SetChildNode(ch, "pic", .wep_pic)
-   SetChildNode(ch, "pal", .wep_pal)
-   
+
    ch = SetChildNode(slot, "in_battle")
    SetChildNode(ch, "pic", .battle_pic)
    SetChildNode(ch, "pal", .battle_pal)
@@ -1590,12 +1581,12 @@ FOR i = 0 TO 40
   gam.hero(i).stat.cur.sta(j) = buffer(z): z = z + 1
  NEXT j
  gam.hero(i).lev = buffer(z): z = z + 1
- gam.hero(i).wep_pic = buffer(z): z = z + 1
+ z = z + 1  'Used to be hero weapon pic (.wep_pic)
  FOR j = 0 TO 11  'statLast
   gam.hero(i).stat.max.sta(j) = buffer(z): z = z + 1
  NEXT j
  gam.hero(i).lev_gain = buffer(z): z = z + 1
- gam.hero(i).wep_pal = buffer(z): z = z + 1
+ z = z + 1  'Used to be hero weapon palette (.wep_pal)
 NEXT i
 show_load_index z, "bmenu"
 FOR i = 0 TO 40

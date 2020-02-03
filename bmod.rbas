@@ -3243,16 +3243,17 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     .hand(0) = attack.wep_handle(0)
     .hand(1) = attack.wep_handle(1)
    ELSE
-    wpic = gam.hero(bat.acting).wep_pic
-    wpal = gam.hero(bat.acting).wep_pal
     DIM weapon as integer = gam.hero(bat.acting).equip(0).id
     IF weapon >= 0 THEN
      DIM item as ItemDef
      loaditemdata item, weapon
      .hand(0) = item.wep_handle(0)
      .hand(1) = item.wep_handle(1)
+     wpic = item.wep_pic
+     wpal = item.wep_pal
     ELSE
      'I don't know whether resetting this here is actually necessary, just duplicating old beheviour
+     'This is impossible, due to default weapons, right?
      .hand(0) = 0
      .hand(1) = 0
     END IF
