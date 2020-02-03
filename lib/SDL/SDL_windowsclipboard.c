@@ -149,6 +149,10 @@ WIN_GetClipboardText(HWND hWindow)
             }
         }
         CloseClipboard();
+
+        // WIN_SetClipboardText converts to \r\n; convert back
+        //if (text)
+        //    strip_carriage_returns(text);
     }
     if (!text) {
         text = strdup("");

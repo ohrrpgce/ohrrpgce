@@ -11,6 +11,8 @@ April ? 2020 [Gorgonzola]
   *** Bugfixes
     * Linux builds should now hopefully work on all Linux systems since 2011
       (as long as SDL & SDL_mixer are installed) [Ralph]
+    * On Windows, copy-pasting text caused spaces to be added at line ends,
+      and near-full textboxes couldn't be copy-pasted [Ralph]
 
   *** Stuff Only Developers Will Notice
 

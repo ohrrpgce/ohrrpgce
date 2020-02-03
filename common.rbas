@@ -2295,6 +2295,12 @@ SUB handle_text_copy_paste (byref text as string, byref clip as string)
  IF paste_keychord() THEN
   DIM osclip as zstring ptr  'ustring
   osclip = io_get_clipboard_text()
+  #IFDEF __FB_WIN32__
+   'On Windows text in the clipboard uses \r\n line ends, so
+   'io_set_clipboard_text() converts to that, but io_get_clipboard_text()
+   'doesn't automatically convert back.
+   strip_carriage_returns osclip  'Modify in-place
+  #ENDIF
   'Intentionally using utf8_to_latin1 instead of utf8_to_ohr here, so that
   'round trips of text from OHR -> clipboard/other programs -> OHR don't lose
   'icon characters.

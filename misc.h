@@ -50,6 +50,8 @@ FBSTRING *return_fbstring(FBSTRING *fbstr);
 FBSTRING *empty_fbstring();
 void delete_fbstring(FBSTRING *str);
 
+void strip_carriage_returns(char *text);
+
 uint32_t stringhash(const unsigned char *strp, int length);
 
 void disable_extended_precision();

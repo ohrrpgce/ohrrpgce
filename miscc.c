@@ -204,6 +204,24 @@ FBSTRING *strprintf (const char *fmtstr, ...) {
 }
 
 
+////////////////////////////// String funcs ///////////////////////////////////
+
+
+// Strip out the carriage return (\r) chars in a string in-place.
+void strip_carriage_returns(char *text) {
+    char *src = text, *dst = text;
+    for (; *src; ++src) {
+        if (*src == '\r') {
+            if (src[1] == '\n')
+                continue;  // Skip over the \r
+            *dst++ = '\n';  // If a lone \r occurs, convert to \n
+        } else
+            *dst++ = *src;
+    }
+    *dst = '\0';
+}
+
+
 ///////////////////////////////// Hashing /////////////////////////////////////
 
 
