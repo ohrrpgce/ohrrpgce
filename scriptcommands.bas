@@ -3965,40 +3965,35 @@ SUB script_functions(byval cmdid as integer)
    NEXT i
   END IF
  CASE 64'--get hero stat (hero, stat, type)
-  'FIXME: unfortunately this can also access hero level and more
-  'which will suck when we want to add more stats
-  DIM slot as integer = bound(retvals(0), 0, 40)
-  WITH gam.hero(slot)
-   IF retvals(2) = 0 THEN  'current stat
-    DIM statnum as integer = bound(retvals(1), 0, 13)
-    IF statnum = 13 THEN
-     'This is just backcompat for a very undocumented bugfeature
-     scriptret = .wep_pic
-    ELSEIF statnum = 12 THEN
-     'This is backcompat for a somewhat documented feature
-     scriptret = .lev
+  'TODO: unfortunately this can also access hero level which will suck
+  'when we want to add more stats. Backcompat bit needed.
+  DIM slot as integer = bound(retvals(0), 0, 40)  'Might want to keep this bound() for backcompat?
+  IF valid_stat(retvals(1)) THEN
+   DIM statnum as integer = retvals(1)
+   WITH gam.hero(slot)
+    IF retvals(2) = 0 THEN  'current stat
+     IF statnum = 12 THEN
+      'This is backcompat for a somewhat documented feature (used in a lot of games)
+      scriptret = .lev
+     ELSE
+      scriptret = .stat.cur.sta(statnum)
+     END IF
+    ELSEIF retvals(2) = 1 THEN  'maximum stat
+     IF statnum = 12 THEN
+      'This is backcompat for a barely documented feature (used in a lot of games)
+      scriptret = .lev_gain
+     ELSE
+      scriptret = .stat.max.sta(statnum)
+     END IF
+    ELSEIF retvals(2) = 2 THEN  'base stat
+     IF valid_stat(retvals(1)) THEN
+      scriptret = .stat.base.sta(retvals(1))
+     END IF
     ELSE
-     scriptret = .stat.cur.sta(statnum)
+     scripterr "get hero stat: stat type not 'current stat', 'maximum stat' or 'base stat'"
     END IF
-   ELSEIF retvals(2) = 1 THEN  'maximum stat
-    DIM statnum as integer = bound(retvals(1), 0, 13)
-    IF statnum = 13 THEN
-     'This is just backcompat for a very undocumented bugfeature
-     scriptret = .wep_pal
-    ELSEIF statnum = 12 THEN
-     'This is backcompat for a barely documented feature
-     scriptret = .lev_gain
-    ELSE
-     scriptret = .stat.max.sta(statnum)
-    END IF
-   ELSEIF retvals(2) = 2 THEN  'base stat
-    IF valid_stat(retvals(1)) THEN
-     scriptret = .stat.base.sta(retvals(1))
-    END IF
-   ELSE
-    scripterr "get hero stat: stat type not 'current stat', 'maximum stat' or 'base stat'"
-   END IF
-  END WITH
+   END WITH
+  END IF
  CASE 66'--add hero
   IF bound_arg(retvals(0), 0, gen(genMaxHero), "hero ID") THEN
    DIM slot as integer = first_free_slot_in_party()
@@ -4036,46 +4031,41 @@ SUB script_functions(byval cmdid as integer)
    NEXT o
   END IF
  CASE 83'--set hero stat (hero, stat, value, type)
-  'FIXME: this command can also set hero level (without updating stats)
-  ' which sucks for when we want to add more stats.
-  DIM slot as integer = bound(retvals(0), 0, 40)
-  WITH gam.hero(slot)
-   IF retvals(3) = 0 THEN  'current stat
-    DIM statnum as integer = bound(retvals(1), 0, 13)
-    IF statnum = 13 THEN
-     'This is just backcompat for a very undocumented bugfeature
-     .wep_pic = retvals(2)
-    ELSEIF statnum = 12 THEN
-     'This is backcompat for a mostly undocumented feature
-     .lev = retvals(2)
-    ELSE
-     .stat.cur.sta(statnum) = retvals(2)
-     IF statnum = statHP THEN
-      evalherotags
-      tag_updates
+  'TODO: this command can also set hero level (without updating stats)
+  ' which sucks for when we want to add more stats. Need backcompat bit.
+  DIM slot as integer = bound(retvals(0), 0, 40)  'Might want to keep this bound() for backcompat?
+  IF valid_stat(retvals(1)) THEN
+   DIM statnum as integer = retvals(1)
+   WITH gam.hero(slot)
+    IF retvals(3) = 0 THEN  'current stat
+     IF statnum = 12 THEN
+      'This is backcompat for a mostly undocumented feature (used in several games)
+      .lev = retvals(2)
+     ELSE
+      .stat.cur.sta(statnum) = retvals(2)
+      IF statnum = statHP THEN
+       evalherotags
+       tag_updates
+      END IF
      END IF
-    END IF
-   ELSEIF retvals(3) = 1 THEN  'maximum stat
-    DIM statnum as integer = bound(retvals(1), 0, 13)
-    IF statnum = 13 THEN
-     'This is backcompat for a very undocumented bugfeature
-     .wep_pal = retvals(2)
-    ELSEIF statnum = 12 THEN
-     'This is backcompat for an undocumented feature
-     .lev_gain = retvals(2)
+    ELSEIF retvals(3) = 1 THEN  'maximum stat
+     IF statnum = 12 THEN
+      'This is backcompat for an undocumented feature (nonetheless used in several games)
+      .lev_gain = retvals(2)
+     ELSE
+      .stat.base.sta(statnum) += retvals(2) - .stat.max.sta(statnum)
+      .stat.max.sta(statnum) = retvals(2)
+     END IF
+    ELSEIF retvals(3) = 2 THEN  'base stat
+     IF valid_stat(retvals(1)) THEN
+      .stat.base.sta(retvals(1)) = retvals(2)
+      recompute_hero_max_stats slot
+     END IF
     ELSE
-     .stat.base.sta(statnum) += retvals(2) - .stat.max.sta(statnum)
-     .stat.max.sta(statnum) = retvals(2)
+     scripterr "set hero stat: stat type not 'current stat', 'maximum stat' or 'base stat'"
     END IF
-   ELSEIF retvals(3) = 2 THEN  'base stat
-    IF valid_stat(retvals(1)) THEN
-     .stat.base.sta(retvals(1)) = retvals(2)
-     recompute_hero_max_stats slot
-    END IF
-   ELSE
-    scripterr "set hero stat: stat type not 'current stat', 'maximum stat' or 'base stat'"
-   END IF
-  END WITH
+   END WITH
+  END IF
  CASE 89'--swap by position
   doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40)
  CASE 110'--set hero picture
