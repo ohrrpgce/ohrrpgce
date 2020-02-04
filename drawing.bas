@@ -4381,11 +4381,15 @@ SUB SpriteSetBrowser.rebuild_menu()
     'ChangeTextSlice edsl(ssed_set_info, ss_sl)->FirstChild, "Set " & setnum '& !"\nPal " & defpalettes(setnum)
     ChangeTextSlice edsl(ssed_set_info, ss_sl)->LastChild, !"Set\n" & setnum
 
-    'Would just use a layout slice set either to Fill or Cover Children, they aren't implemented for Layout slices yet
-    'So this is a grid
+    'Might have just used a layout slice set either to Fill or Cover Children, they aren't implemented for Layout slices yet,
+    'and might need to override the width anyway. So this is a grid.
     DIM fr_holder as Slice ptr = edsl(ssed_frame_holder, ss_sl)
     IF fr_holder = 0 THEN EXIT SUB
-    fr_holder->Width = (sprset->w + 1) * sprset->arraylen + 1
+    'fr_holder->Width = (sprset->w + 1) * sprset->arraylen + 1
+    var min_width = small(10, sprset->w + 1)
+    var available_width = large(10, ss_templ->Parent->Width - ss_ed_plank->Width)
+    fr_holder->Width = large(min_width, small(available_width \ sprset->arraylen, sprset->w + 1)) * sprset->arraylen + 1
+
     fr_holder->Height = sprset->h + 2
     ChangeGridSlice fr_holder, 1, sprset->arraylen
 
