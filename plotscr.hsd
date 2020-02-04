@@ -908,7 +908,7 @@ end
 script, last ascii, begin
 	variable(hsd:code, hsd:shift)
 
-	hsd:shift := keyispressed(42) || keyispressed(54)
+	hsd:shift := keyispressed(key:shift)
 
 	if(keyval(30) >> 1) then (hsd:code := 65) #A...
 	if(keyval(48) >> 1) then (hsd:code := 66)
@@ -957,7 +957,7 @@ script, last ascii, begin
 	if(keyval(52) >> 1) then (if(hsd:shift) then (hsd:code := 62) else (hsd:code := 46)) # . >
 	if(keyval(53) >> 1) then (if(hsd:shift) then (hsd:code := 63) else (hsd:code := 47)) # / ?
 	if(keyval(43) >> 1) then (if(hsd:shift) then (hsd:code := 124) else (hsd:code := 92)) # \ |
-	#if(keyval(40) >> 1) then (hsd:code := 47) # Num / WTF? What's the hsd:code for the other "/"?
+	if(keyval(102) >> 1) then (hsd:code := 47) # Num /
 	if(keyval(55) >> 1) then (hsd:code := 42) # Num *
 	if(keyval(71) >> 1) then (hsd:code := 55) # Num 7
 	if(keyval(72) >> 1) then (hsd:code := 56) # Num 8
