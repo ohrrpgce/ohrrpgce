@@ -1,0 +1,72 @@
+\-*- mode: org; eval: (hl-line-mode) -*-
+
+<<<<>>>>
+This file is just an example input file for update_bughunters.py and exists just to test that script.
+The real input file, which is exported to https://rpg.hamsterrepublic.com/ohrrpgce/Bughunters_League_Table
+exists only on TMC's harddisk and updated frequently (but anyone is welcome to have it).
+
+(Text in this file aside from the org-mode table immediately after START_TABLE is ignored.)
+<<<<>>>>
+
+=Bug reports=
+
+Scoring is by type of bug:
+*0.5: glitch or annoyance or documentation error, compile errors
+*1: normal bugs (e.g. something doesn't work)
+*1.5: harmless crash/freeze/state or data corruption or harmless BUG message
+*2: data loss/corruption or harmful crash/freeze (any crash while editing or playing a game is harmful)
+Everyone in the 'Reporter' column gets the points.
+
+''Fixed?'' shows whether and when it was fixed:
+*'''X/#''' (letter/number) shows it was fixed in version X (E: [[etheldreme]], F: [[fufluns]], etc), i.e. in nightlies ''before'' X. ''#'' is the [[SVN]] revision(s) fixing it
+*'''X/yes''' means it was fixed for version X but I didn't note down the SVN revision
+*'''X/part''' means partially fixed for X
+*'''no''' means I was busy fixing some other bug
+*'''no (unmerged)''' means it's nearly fixed, but hasn't been merged into svn yet, so isn't in nightlies
+*'''notabug''' means it's not our fault, but thought someone deserved a reward
+
+''Version'' tracks the version the bug was ''reported'' in and whether the bug is new or not:
+*'''X''': present in version X, unknown whether it was in version X-1
+*'''X!''': present and new in version X, wasn't in version X-1
+*'''X-''': reported in version X, was also present in X-1
+*'''X+''': present and new in nightly builds since X, wasn't in X
+*'''?''' suffix: only a guess
+(This differs from system used on github: the table shows when the bug was reported not when it was introduced; plus also whether new in nightlies.)
+Categorisation might not be 100% accurate.
+
+START_TABLE
+| Reporter                  | Pts | Version | Fixed?        | Bug                                                                                                                         |
+| kylekrack                 | 0.5 | D+      | E/yes         | Mapedit layer skew keys misdocumented                                                                                       |
+| LieMurderProfit           |   1 | E       | F/yes         | x86_64 linux packages included hspeak for x86                                                                               |
+| FnrrfYgmSchnish           |   1 | E       | G/11582       | gh#3 Whitespace appended to every line when copy/pasting text on Windows                                                    |
+| Ichiro                    | 0.5 | E       | F/9906        | Can't compile hspeak on Arch Linux                                                                                          |
+| FnrrfYgmSchnish/BE        |   1 | E       | notabug       | gh#7 fullscreen is broken in gfx_directx on Windows 10 Creators Update                                                      |
+| sheamkennedy              | 0.5 | E       | F/yes         | Missing NPCmovetype:chaseyoupathfinding constant                                                                            |
+| sotrain515/Sword          |   2 | E       | F/11141       | #2036 Random freeze or crash when switching collections in slice collection editor while a slice is under the mouse         |
+| Gaplan                    | 0.5 | E       | F/10452/part  | Enter key stuck after switching backend to gfx_sdl (I think this is fixed on linux, def not on windows)                     |
+| RMZ                       |   1 | E+      | F/part        | Weapons appear behind heroes                                                                                                |
+| Ichiro/Spoonweaver/Foxley |   1 | E       | no            | Wandering Hamster on Android: Can't move the cursor into the third column in the item menu. And Trash not selectable either |
+| Fenrir                    |   2 | E       | F/10846       | Hero XP curve setting defaults to 0.00 instead of 0.20 in old games (or if hero data lost due to next bug...)               |
+| Feenick                   | 0.5 | E       | no (unmerged) | [Fixed in git branch] Menus not always redrawn after tags are renamed in the tag browser                                    |
+| Bird                      | 0.5 | E       | wontfix       | HSpeak keyboard input problems on Win98                                                                                     |
+| Charbile                  | 1.5 | E       | F/11045/11056 | Crash due to attempting to switch to gfx_sdl even if not available (ignoring gfx_sdl2), when playing a non-320x200 game     |
+| Sword                     |   2 | E?      | no            | SIGSEGV inside slice_editor_mouse_over while switching between collections. Could not reproduce.                            |
+| tmc/Wobbler               |   1 | E       | no            | gh#43 On-death bequest attacks happen slightly after the enemy starts to fade out, which is then cancelled                  |
+| Sword                     |   2 | E+      | F/11408       | Crash when entering spriteset thingbrowser with too-high set number (e.g. after importing .slices from another game)        |
+| Sword                     |   1 | E       | F/11413       | "create npc" creates NPC slices not associated with an NPC: "npc reference from slice" doesn't work                         |
+| kylekrack                 |   1 | E?      | no            | Scrollwheel doesn't work in Custom on Mac                                                                                   |
+| MirceaKitsune             | 0.5 | E       | F/11367       | gcc -dumpversion is unreliable, can break compiles                                                                          |
+| moonrune                  |   1 | E+      | F/11377       | Android Custom: data and help files not found for .rpgs in subdirectories                                                   |
+| moonrune                  |   1 | E+      | no            | Android Custom: caps-lock and typing with shift don't work (with real keyboard)                                             |
+| Sword                     |   1 | E+?     | no            | (unconfirmed) In Witch DX: first item in spells menu in-battle doesn't highlight when you select it                         |
+| Sword                     |   1 | E       | F/11410       | ERROR when exporting scripts if a script filename contained '(', etc                                                        |
+| Bena                      |   1 | E       | no            | gh#39 Temporary folders sometimes not cleaned up on Windows (observed while packaging for 32 bit linux).                    |
+| Chalkflower               | 0.5 | E       | F/11420       | gfx_sdl/Windows: Test Game window was placed slightly off the top of the screen                                             |
+| Bird                      | 0.5 | E       | F/11436       | Trailing , on integer-valued percentages in some locales e.g. in Status meu (format_float/format_percent)                   |
+| Feenick                   | 0.5 | E       | no (unmerged) | [Fixed in git] Weapon picture/palette not reloaded until equipment changed (saved games/Test Game)                          |
+| Sword                     |   2 | E+      | F/11555       | Default palettes not being saved correctly sometimes                                                                        |
+| DWRL                      |   1 | F-      | G/11578       | Linux binaries don't run on modern distros like Arch because libncurses.so.5 missing                                        |
+| DWRL                      |   1 | F-      | no            | scons doesn't work at all if euc missing                                                                                    |
+| Chalkflower               | 0.5 | F-      | G/11584       | Stable version of Plotscripting dictionary on website was missing icons [retroactively fixed in fufluns]                    |
+| Feenick                   |   1 | F-?     | no            | On-death bequest attacks not chaining                                                                                       |
+
