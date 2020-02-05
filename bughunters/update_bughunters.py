@@ -96,9 +96,8 @@ class LeagueTableUpdater:
                     # Change "yes (git)" to "yes"
                     if fixed.startswith('yes'):
                         fixed = 'yes'
-                    fixed = fixed.replace('?', '')
                     reported_version = None  # Version it was reported in
-                    fixed_version = None  # Version it was fixed in
+                    fixed_version = None  # Version it was fixed in (note this doesn't end up in any summary table)
                     # If fixed is prefixed with the version it was fixed in, like "F/", split that out.
                     if len(fixed) > 2 and fixed[1] == '/':
                         fixed_version = fixed[0]
@@ -112,7 +111,10 @@ class LeagueTableUpdater:
                         pass
                     if version != 'N/A' and fixed not in ('notabug', 'wontfix'):
                         # Tally bugs by version and status into 'self.counts' and 'self.totalcounts'
-                        reported_version = version.replace('?','')
+                        # Merge the following classes:
+                        # X X! X? X-  -> X
+                        # X+ X+! X+?   -> X+
+                        reported_version = version.replace('?','').replace('!','').replace('-','')
                         self.counts[(reported_version,fixed)] += 1
                         self.totalcounts[reported_version] += 1
                         if len(fixed_revs) >= 1 and fixed_revs[0] >= self.fixed_since_rev:
@@ -129,7 +131,7 @@ class LeagueTableUpdater:
                         bugnum, rest = parts[5].split(' ', 1)
                         parts[5] = '{{bug|%s}} ' % bugnum[1:] + rest
                     elif parts[5].startswith('gh#'):
-                        # Bug number
+                        # GitHub Bug number
                         bugnum, rest = parts[5].split(' ', 1)
                         parts[5] = '{{ghbug|%s}} ' % bugnum[3:] + rest
                     del parts[0]
@@ -140,10 +142,11 @@ class LeagueTableUpdater:
         return bugstbl.getvalue()
 
     def print_summary(self):
-        """Print out a summary (to commandline) of bugs and bugfixes."""
-        print("Version |     Status     | Count")
+        """Print out a summary (to stdout) of bugs and bugfixes."""
+        print("Reported |                |      ")
+        print("Version  |     Status     | Count")
         for (version, status), count in sorted(self.counts.items()):
-            print("%7s | %14s | %s" % (version, status, count))
+            print("%8s | %14s | %s" % (version, status, count))
 
         if self.fixed_since_rev:
             print("Since r%d fixed bugs: %s" % (self.fixed_since_rev, list(self.fixed_since.items())))
@@ -194,19 +197,27 @@ class LeagueTableUpdater:
     def summary_table(self):
         counts = self.counts
         totalcounts = self.totalcounts
-        return """{| class=wikitable
+        ret = """{| class=wikitable
 |-
-!  !! Fixed !! Partially fixed !! Not fixed !! Total reported
+! Reported in !! Fixed !! Partially fixed !! Unmerged fix !! Not fixed !! Total reported"""
+
+        for version in ("Etheldreme", "Fufluns"):
+            code = version[0]
+
+            def row(code):
+                return "|                %2d    || %2d              || %2d           || %2d        || %2d" % (
+                    counts[code,'yes'], counts[code,'part'], counts[code,'no (unmerged)'], counts[code,'no'], totalcounts[code]
+                )
+
+            ret += """
 |-
-! [[Etheldreme]]
-|     %d    || %d              || %d        || %d
+! [[%s]]
+%s
 |-
-! Post-[[Etheldreme]] [[nightly builds]]
-|     %d    || %d              || %d        || %d
-|}""" % (
-            counts['E','yes'], counts['E','part'], counts['E','no'] + counts['E','no (unmerged)'], totalcounts['E'],
-            counts['E+','yes'], counts['E+','part'], counts['E+','no'] + counts['E+','no (unmerged)'], totalcounts['E+']
-        )
+! Post-[[%s]] [[nightly builds]]
+%s""" % (version, row(code), version, row(code+'+'))
+        ret += "\n|}"
+        return ret
 
     def update_article(self):
 
