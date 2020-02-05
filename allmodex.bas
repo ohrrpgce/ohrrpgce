@@ -4157,8 +4157,8 @@ sub rectangle (fr as Frame Ptr, x_ as RelPos, y_ as RelPos, w_ as RelPos, h_ as 
 	end if
 end sub
 
-sub fuzzyrect (x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, p as integer, fuzzfactor as integer = 50, stationary as bool = NO, zoom as integer = 1)
-	fuzzyrect vpages(p), x, y, w, h, c, fuzzfactor, stationary, zoom
+sub fuzzyrect (x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, p as integer, fuzzfactor as integer = 50, stationary as bool = NO, zoom as integer = 1, offset as integer = 0)
+	fuzzyrect vpages(p), x, y, w, h, c, fuzzfactor, stationary, zoom, offset
 end sub
 
 'Draw a dithered rectangle
@@ -4167,7 +4167,12 @@ end sub
 '  By default if you draw two fuzzy rectangles touching, the patterns
 '  might not match up. Specify YES to force them to match up, but then
 '  changing x,y will not make the pattern appear to shift.
-sub fuzzyrect (fr as Frame Ptr, x_ as RelPos, y_ as RelPos, w_ as RelPos = rWidth, h_ as RelPos = rHeight, c as integer, fuzzfactor as integer = 50, stationary as bool = NO, zoom as integer = 1)
+'zoom:
+'  Amount to scale up the pattern by (size of each pixel)
+'offset:
+'  Used for animating scrolling patterns by offseting them; non-negative
+'  (see draw_background()).
+sub fuzzyrect (fr as Frame Ptr, x_ as RelPos, y_ as RelPos, w_ as RelPos = rWidth, h_ as RelPos = rHeight, c as integer, fuzzfactor as integer = 50, stationary as bool = NO, zoom as integer = 1, offset as integer = 0)
 	'How many magic constants could you wish for?
 	'These were half generated via magic formulas, and half hand picked (with magic criteria)
 	static grain_table(50) as integer = {_
@@ -4189,6 +4194,8 @@ sub fuzzyrect (fr as Frame Ptr, x_ as RelPos, y_ as RelPos, w_ as RelPos = rWidt
 		x_start = rect.x
 		y_start = rect.y
 	end if
+	x_start += offset
+	y_start += offset
 
 	dim grain as integer
 	if fuzzfactor <= 50 then
@@ -4292,7 +4299,7 @@ sub draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byr
 	const zoom = 3  'Chequer pattern zoom, fixed
 	const rate = 4  'ticks per pixel scrolled, fixed
 	'static chequer_scroll as integer
-	chequer_scroll = POSMOD(chequer_scroll, (zoom * rate * 2))
+	'chequer_scroll = POSMOD(chequer_scroll, (zoom * rate * 6))
 
 	wide = relative_pos(wide, dest->w)
 	high = relative_pos(high, dest->h)
@@ -4302,8 +4309,10 @@ sub draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byr
 	if bgcolor >= 0 then
 		rectangle dest, x, y, wide, high, bgcolor
 	else
+		dim offset as integer = 0
+		if bgcolor = bgChequerScroll then offset = chequer_scroll \ rate
 		rectangle dest, x, y, wide, high, uilook(uiBackground)
-		fuzzyrect dest, x, y, wide, high, uilook(uiDisabledItem), 25, , zoom
+		fuzzyrect dest, x, y, wide, high, uilook(uiDisabledItem), 25, , zoom, offset
 	end if
 end sub
 
