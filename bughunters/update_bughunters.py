@@ -110,11 +110,14 @@ class LeagueTableUpdater:
                         fixed_revs = []
                         pass
                     if version != 'N/A' and fixed not in ('notabug', 'wontfix'):
-                        # Tally bugs by version and status into 'self.counts' and 'self.totalcounts'
-                        # Merge the following classes:
-                        # X X! X? X-  -> X
-                        # X+ X+! X+?   -> X+
+                        # Tally bugs by version and status ('fixed') into 'self.counts' and 'self.totalcounts'
+                        # Remove '?' suffix and merge version codes:
+                        # X X! X- => X
+                        # X+      => X+
                         reported_version = version.replace('?','').replace('!','').replace('-','')
+                        next_version = chr(ord(reported_version[0]) + 1)
+                        if fixed == 'yes' and fixed_version > next_version:
+                            fixed = 'later'  # Fixed in later release
                         self.counts[(reported_version,fixed)] += 1
                         self.totalcounts[reported_version] += 1
                         if len(fixed_revs) >= 1 and fixed_revs[0] >= self.fixed_since_rev:
@@ -195,20 +198,27 @@ class LeagueTableUpdater:
         #print("Bugs:", self.bugs.most_common())
 
     def summary_table(self):
-        counts = self.counts
-        totalcounts = self.totalcounts
+        """Return mediawiki table of bugs tallied by reported release and status"""
         ret = """{| class=wikitable
+!rowspan="2"|  Reported in
+!colspan="3"| Fixed  <!--Unmerged !! In later release !!  For next release-->
+!rowspan="2"|  Partly fixed
+!rowspan="2"|  Not fixed
+!rowspan="2"|  Total reported
 |-
-! Reported in !! Fixed !! Partially fixed !! Unmerged fix !! Not fixed !! Total reported"""
+! Unmerged !! In later release !!  For next release"""
+
+        def row(code):
+            def c(status):
+                return self.counts[code, status]
+
+            return ("<!--unmerged  later   yes   part    no     total-->\n"
+                    "|       %3d || %3d || %3d || %3d || %3d || %3d" % (
+                c('unmerged'), c('later'), c('yes'), c('part'), c('no'), self.totalcounts[code]
+            ))
 
         for version in ("Etheldreme", "Fufluns"):
             code = version[0]
-
-            def row(code):
-                return "|                %2d    || %2d              || %2d           || %2d        || %2d" % (
-                    counts[code,'yes'], counts[code,'part'], counts[code,'no (unmerged)'], counts[code,'no'], totalcounts[code]
-                )
-
             ret += """
 |-
 ! [[%s]]
@@ -222,7 +232,7 @@ class LeagueTableUpdater:
     def update_article(self):
 
         def skiptable(it):
-            """Skip rest of an org-mode-formatted table"""
+            """Skip rest of a mediawiki-formatted table"""
             while True:
                 line = next(it)
                 if line == "|}": break
