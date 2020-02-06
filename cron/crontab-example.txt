@@ -8,4 +8,4 @@ MAILTO=Bob-cron@HamsterRepublic.com
 30 *    * * *   /path/to/script/wiki-spamwords
 
 # Run every 20 min
-10,30,50 *    * * *   /path/to/script/git-svn.sh
+10,30,50 *    * * *   ionice -n 7 /path/to/script/git-svn.sh
