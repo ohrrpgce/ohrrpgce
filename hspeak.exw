@@ -1,6 +1,6 @@
 -- HamsterSpeak Compiler
 
---(C) Copyright 2001-2017 James Paige and Hamster Republic Productions
+--(C) Copyright 2001-2020 James Paige and Hamster Republic Productions
 -- Please read LICENSE.txt for GPL License details and disclaimer of liability
 
 -- This is a compiler for HamsterSpeak scripts used for plotscripting in
@@ -184,7 +184,7 @@ constant COMPILER_VERSION="3"
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
 constant COMPILER_SUB_VERSION="Ue"
-constant COPYRIGHT_DATE="2019"
+constant COPYRIGHT_DATE="2020"
 
 --Known single-character commandline options
 constant VALID_OPTIONS="abcdfjknstwuyz"
@@ -915,8 +915,9 @@ end procedure
 --prints out usage info if not enough arguments
 procedure check_arg_count(sequence args)
   if length(args)=2 then
-    wrap_print("HamsterSpeak semicompiler v%s%s (C)%s James Paige&Hamster Republic Productions\n",{COMPILER_VERSION,COMPILER_SUB_VERSION,COPYRIGHT_DATE})
-    wrap_print("Please read LICENSE.txt for GPL License details and disclaimer of liability",{})
+    wrap_print("HamsterSpeak Compiler v%s%s\n",{COMPILER_VERSION,COMPILER_SUB_VERSION})
+    wrap_print("(C)2001-%s James Paige & Hamster Republic Productions\n",{COPYRIGHT_DATE})
+    wrap_print("Please read LICENSE.txt for GNU GPL license details and disclaimer of liability",{})
     wrap_print(COLYEL&"%s [-%s] [long-options] source.hss [dest.hs]"&COLWHI&"\n\n",{VALID_OPTIONS,hs_upper(file_only(args[2]))})
     color_print("   -f fast mode. Disables some optimization\n",{})
     color_print("   -j don't wait for a keypress when finished if there's no error or warning\n",{})
@@ -1007,6 +1008,9 @@ procedure init()
   args=command_line()
   compiler_dir=path_only(args[2])
   check_arg_count(args)
+
+  wrap_print("HamsterSpeak Compiler v%s%s\n",{COMPILER_VERSION,COMPILER_SUB_VERSION})
+
   optlist={}
   index=3
   while index<=length(args) do
@@ -1015,7 +1019,7 @@ procedure init()
       simple_colorcodes=true
       args=delete_element(args,index)
     elsif equal(args[index],"--reuse-ids") and index+1<=length(args) then
-      color_print("Reusing script ID numbers from previous compile\n",{})
+      color_print(COLWHI&"Reading script IDs from previous compile\n",{})
       reuse_ids=read_scripts_dot_bin(args[index+1])
       args=delete_slice(args,index,index+1)
     elsif equal(args[index],"--include") and index+1<=length(args) then
@@ -1066,8 +1070,7 @@ procedure init()
     end if
   end if
 
-  wrap_print("HamsterSpeak semicompiler v%s%s\n",{COMPILER_VERSION,COMPILER_SUB_VERSION})
-  wrap_print("Semicompiling "&COLBWHI&"%s"&COLWHI&" to "&COLBWHI&"%s"&COLWHI&"\n",{source_file,dest_file})
+  wrap_print("Compiling "&COLBWHI&"%s"&COLWHI&" to "&COLBWHI&"%s"&COLWHI&"\n",{source_file,dest_file})
   if file_exists(dest_file) then
     if find(extension_only(dest_file),{"hss","txt"}) then
       simple_error("Refusing to write output to "&dest_file&" because only input files should have hss/txt extension!")
@@ -2390,7 +2393,6 @@ function pick_script_id(integer parent_id, string name)
     end if
   end if
 
-  id=autonumber_id
   loop do
     autonumber_id-=1
     id=autonumber_id
