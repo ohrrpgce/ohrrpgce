@@ -3968,11 +3968,11 @@ SUB script_functions(byval cmdid as integer)
    NEXT i
   END IF
  CASE 64'--get hero stat (hero, stat, type)
-  'TODO: unfortunately this can also access hero level which will suck
+  'TODO: unfortunately this can also access hero level & "hero levelled" which will suck
   'when we want to add more stats. Backcompat bit needed.
   DIM slot as integer = bound(retvals(0), 0, 40)  'Might want to keep this bound() for backcompat?
-  IF valid_stat(retvals(1)) THEN
-   DIM statnum as integer = retvals(1)
+  DIM statnum as integer = retvals(1)
+  IF statnum = 12 ORELSE valid_stat(statnum) THEN
    WITH gam.hero(slot)
     IF retvals(2) = 0 THEN  'current stat
      IF statnum = 12 THEN
@@ -3989,8 +3989,8 @@ SUB script_functions(byval cmdid as integer)
       scriptret = .stat.max.sta(statnum)
      END IF
     ELSEIF retvals(2) = 2 THEN  'base stat
-     IF valid_stat(retvals(1)) THEN
-      scriptret = .stat.base.sta(retvals(1))
+     IF statnum <> 12 THEN
+      scriptret = .stat.base.sta(statnum)
      END IF
     ELSE
      scripterr "get hero stat: stat type not 'current stat', 'maximum stat' or 'base stat'"
@@ -4037,8 +4037,8 @@ SUB script_functions(byval cmdid as integer)
   'TODO: this command can also set hero level (without updating stats)
   ' which sucks for when we want to add more stats. Need backcompat bit.
   DIM slot as integer = bound(retvals(0), 0, 40)  'Might want to keep this bound() for backcompat?
-  IF valid_stat(retvals(1)) THEN
-   DIM statnum as integer = retvals(1)
+  DIM statnum as integer = retvals(1)
+  IF statnum = 12 ORELSE valid_stat(statnum) THEN
    WITH gam.hero(slot)
     IF retvals(3) = 0 THEN  'current stat
      IF statnum = 12 THEN
@@ -4060,8 +4060,8 @@ SUB script_functions(byval cmdid as integer)
       .stat.max.sta(statnum) = retvals(2)
      END IF
     ELSEIF retvals(3) = 2 THEN  'base stat
-     IF valid_stat(retvals(1)) THEN
-      .stat.base.sta(retvals(1)) = retvals(2)
+     IF statnum <> 12 THEN
+      .stat.base.sta(statnum) = retvals(2)
       recompute_hero_max_stats slot
      END IF
     ELSE
