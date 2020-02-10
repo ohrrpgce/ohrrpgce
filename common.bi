@@ -78,7 +78,7 @@ DECLARE SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as 
 DECLARE SUB draw_box_back (fr as Frame ptr, pos as XYPair, size as XYPair, col as integer, trans as RectTransTypes, fuzzfactor as integer=50, fuzz_stationary as bool=NO, fuzz_zoom as integer=1)
 DECLARE SUB draw_box_border (fr as Frame ptr, pos as XYPair, size as XYPair, bordercol as integer, borderindex as RectBorderTypes, trans as RectTransTypes = transHollow)
 
-DECLARE FUNCTION decodetrigger (byval trigger as integer) as integer
+DECLARE FUNCTION decodetrigger (trigger as integer, showerr as bool = YES) as integer
 DECLARE FUNCTION trigger_or_default(trigger as integer, default as integer) as integer
 DECLARE FUNCTION scriptname (byval num as integer) as string
 DECLARE FUNCTION scriptname_default(id_or_trigger as integer, default_trigger as integer) as string

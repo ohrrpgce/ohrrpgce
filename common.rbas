@@ -1031,17 +1031,17 @@ FUNCTION readbadgenericname (byval index as integer, filename as string, byval r
  RETURN ""  'failure
 END FUNCTION
 
-' Given a trigger or script ID, return a script ID. If the script is missing,
-' show an error (Game only), and return 0.
-FUNCTION decodetrigger (byval trigger as integer) as integer
+' Given a trigger or script ID, return a script ID. If the script is missing
+' show an error (Game only) if showerr, and return 0.
+FUNCTION decodetrigger (trigger as integer, showerr as bool = YES) as integer
  'debug "decoding " + STR(trigger)
- IF trigger >= 16384 AND trigger - 16384 <= UBOUND(lookup1_bin_cache) THEN
+ IF trigger >= 16384 ANDALSO trigger - 16384 <= UBOUND(lookup1_bin_cache) THEN
   WITH lookup1_bin_cache(trigger - 16384)
    'debug "  id " & .id & " name " & .name
 #ifdef IS_GAME
-   IF .id = 0 THEN
+   IF .id = 0 ANDALSO showerr THEN
     ' Not an error in Custom as we're not trying to actually run it
-    scripterr "Script " + .name + " is used but is missing (no script with that name)", serrMajor
+    scripterr "Tried to use script '" + .name + "' but none with that name. (It was missing last time scripts were re-imported. Use ""Find broken script triggers"" in the editor.)", serrMajor
    END IF
 #endif
    RETURN .id

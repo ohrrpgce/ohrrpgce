@@ -82,6 +82,7 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
  'Save information about this script, for use by trigger_script_arg()
  WITH *last_queued_script
   id = decodetrigger(id)
+  'If the script was missing, id is now 0, but still queue the script so trigger_script_arg works.
   .id = id
   .scripttype = scripttype
   .log_line = scriptname(id) & "("
@@ -124,6 +125,9 @@ SUB trigger_script_arg (byval argno as integer, byval value as integer, byval ar
 END SUB
 
 LOCAL SUB run_queued_script (script as ScriptFibre)
+ 'If the script is missing then .id = 0 and decodetrigger already showed an error
+ IF script.id = 0 THEN EXIT SUB
+
  DIM rsr as integer
  rsr = runscript(script.id, YES, script.double_trigger_check, script.scripttype)
  IF rsr = 1 THEN
