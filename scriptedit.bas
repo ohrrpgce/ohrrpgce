@@ -628,12 +628,14 @@ FUNCTION compilescripts(fname as string, hsifile as string, quickimport as bool 
   END IF
  END IF
 
- IF slave_channel <> NULL_CHANNEL THEN
-  IF isfile(game & ".hsp") THEN
-   'Try to reuse script IDs from existing scripts if any, so that currently running scripts
-   'don't start calling the wrong scripts due to ID remapping
-   IF strcmp(STRPTR(hspeak_ver), STRPTR("3Pa")) >= 0 THEN
-    unlumpfile game & ".hsp", "scripts.bin", tmpdir
+ IF isfile(game & ".hsp") THEN
+  'Try to reuse script IDs from existing scripts if any, so that 1) during live
+  'preview, currently running scripts don't start calling the wrong scripts due
+  'to ID remapping; 2) you can store script IDs in saved games and still have them
+  'work later.
+  IF strcmp(STRPTR(hspeak_ver), STRPTR("3Pa")) >= 0 THEN
+   unlumpfile game & ".hsp", "scripts.bin", tmpdir
+   IF real_isfile(tmpdir & "scripts.bin") THEN
     'scripts.bin will be missing in scripts compiled with very old HSpeak versions
     args += " --reuse-ids " & escape_filename(tmpdir & "scripts.bin")
    END IF
