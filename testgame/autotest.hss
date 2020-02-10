@@ -1182,6 +1182,7 @@ script, hero exp and levels tests, begin
   set hero level(0, 0, false)
   assert(get hero level(0) == 0)
   assert(hero levelled(0) == -10)
+  assert(get hero stat(0, 12, 1) == -10)  # Undocumented use of stat 12
   assert(knows spell (0, 2) == true) # Freki should not forget L.10 Wolf because of how we deleveled
   update level up learning(0, true)
   assert(knows spell (0, 2) == false) # Now Freki should forget L.10 Wolf.
@@ -1282,6 +1283,23 @@ script, hero exp and levels tests, begin
   set hero level(0, 20, true), w
   assert(check tag(tag: freki level 0) == false)
   assert(check tag(tag: freki level teens) == false)
+
+  # Undocumented stat 12 stuff
+  assert(hero levelled(0) == 1)  # Precondition
+  assert(get hero level(0) == 20)  # Precondition
+  assert(get hero stat(0, 12, 1) == 1)  # == hero levelled
+  assert(get hero stat(0, 12, 0) == 20)  # == getherolevel
+  variable(temp)
+  temp := get hero stat(0, 0, maximum stat)
+  set hero stat(0, 12, 42, 0)  # Set hero level = 42 (but don't change stats)
+  assert(get hero level(0) == 42)
+  assert(get hero stat(0, 12, 0) == 42)
+  assert(get hero stat(0, 0, maximum stat) == temp)  # Doesn't change stats
+  assert(hero levelled(0) == 1)  # Doesn't change "hero levelled"
+  set hero stat(0, 12, 3, 1)  # Set "hero levelled" = 3
+  assert(hero levelled(0) == 3)
+  set hero stat(0, 12, 20, 0)  # Reset
+
   # reset
   set hero level(0, 0, true)
   set hero level(1, 0, true)
