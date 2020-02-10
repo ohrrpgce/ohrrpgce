@@ -3711,20 +3711,17 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   '--draw the targ picker menu
   copypage holdscreen, page
   centerbox 160 + x_offset, 47, 160, 88, 2, page
-  IF spread = NO AND targ >= 0 THEN
-   rectangle 84 + x_offset, 8 + targ * 20, 152, 20, uilook(uiHighlight2), page
-  ELSEIF spread THEN
-   rectangle 84 + x_offset, 8, 152, 80, uilook(uiHighlight2 * tog), page
-  END IF
   DIM cater_slot as integer = 0
   FOR i as integer = 0 TO 3
    IF gam.hero(i).id >= 0 THEN
+    DIM targetted as bool = (targ = i ORELSE (spread ANDALSO chkOOBtarg(i, attack_id)))
+    IF targetted THEN rectangle 84 + x_offset, 8 + i * 20, 152, 20, uilook(uiHighlight2), page
     DIM frame as integer = 0
-    IF targ = i THEN frame = wtog_to_frame(wtog)
+    IF targetted THEN frame = wtog_to_frame(wtog)
     set_walkabout_frame herow(cater_slot).sl, dirDown, frame
     DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 89 + x_offset, 8 + i * 20, 20, 20, page, YES
     col = uilook(uiMenuItem)
-    IF i = targ THEN col = uilook(uiSelectedItem + tog)
+    IF targetted THEN col = uilook(uiSelectedItem + tog)
     IF attack_id >= 0 THEN
      IF atk.targ_stat = statHP or atk.targ_stat = statMP THEN
       caption = gam.hero(i).stat.cur.sta(atk.targ_stat) & "/" & gam.hero(i).stat.max.sta(atk.targ_stat) & " " & statnames(atk.targ_stat)
