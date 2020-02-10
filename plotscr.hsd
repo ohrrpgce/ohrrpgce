@@ -716,6 +716,7 @@ define function, begin
 688,menuitemcount,1,0         # Number of menu items in a menu, including invisible ones
 689,visiblemenuitemcount,1,0  # Number of visible menu items in a menu
 690,replacesubstring,5,-1,-1,-1,-1,0  # Replace text in a string (in string ID, replace what ID, with what ID, max replacements, case insensitive)
+691,decodetrigger,1,0         # (Undocumented) Decode a script trigger to a script ID. Script IDs and 0 passed through. Missing scripts return 0.
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
@@ -1086,11 +1087,11 @@ script,get victory music,begin
 end
 
 script,get death script,begin
-  return(read general(42))
+  return(decode trigger(read general(42)))
 end
 
 script,get load script,begin
-  return(read general(57))
+  return(decode trigger(read general(57)))
 end
 
 script,set load script,hsd:ID=0,begin
@@ -1288,7 +1289,7 @@ script,set footoffset,hsd:offset=0,begin
 end
 
 script,get instead of battle script,begin
-  return (read gmap(13))
+  return (decode trigger(read gmap(13)))
 end
 
 script,set instead of battle script,hsd:ID=0,begin
@@ -1296,7 +1297,7 @@ script,set instead of battle script,hsd:ID=0,begin
 end
 
 script,get each step script,begin
-  return (read gmap(14))
+  return (decode trigger(read gmap(14)))
 end
 
 script,set each step script,hsd:ID=0,begin
@@ -1304,7 +1305,7 @@ script,set each step script,hsd:ID=0,begin
 end
 
 script,get on keypress script,begin
-  return (read gmap(15))
+  return (decode trigger(read gmap(15)))
 end
 
 script,set on keypress script,hsd:ID=0,begin
@@ -1487,7 +1488,7 @@ script, set menu border, hsd:menuhandle, hsd:n=0, begin
 end
 
 script, get menu on close script, hsd:menuhandle, begin
-  exit returning(read menu int(hsd:menuhandle, 24))
+  exit returning(decode trigger(read menu int(hsd:menuhandle, 24)))
 end
 
 script, set menu on close script, hsd:menuhandle, hsd:n=0, begin

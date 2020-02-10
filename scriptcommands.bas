@@ -3748,6 +3748,9 @@ SUB script_functions(byval cmdid as integer)
    DIM npcid as NPCTypeID = get_valid_npc_id(retvals(0), serrBound)
    IF npcid <> -1 THEN
     scriptret = GetNPCD(npcs(npcid), retvals(1))
+    IF retvals(1) = 12 THEN  'NPCstat:script
+     scriptret = decodetrigger(scriptret, NO)  'showerr=NO
+    END IF
    END IF
   END IF
  CASE 192'--NPC frame
@@ -4719,6 +4722,8 @@ SUB script_functions(byval cmdid as integer)
      valid_plotstr(retvals(2), serrBadOp) THEN
    scriptret = replacestr(plotstr(retvals(0)).s, plotstr(retvals(1)).s, plotstr(retvals(2)).s, retvals(3), (retvals(4) <> 0))
   END IF
+ CASE 691 '--decode trigger
+  scriptret = decodetrigger(retvals(0), NO)  'showerr=NO
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
