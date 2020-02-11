@@ -8208,13 +8208,8 @@ CONST SPRCACHE_BASE_SZ = 4096  'bytes
 ' removes a sprite from the cache, and frees it.
 local sub sprite_remove_cache(entry as SpriteCacheEntry ptr)
 	TRACE_CACHE(entry->p, "freeing from cache")
-	if entry->p->refcount <> 1 then
-		debugc errBug, "invalidly uncaching sprite " & entry->hash & " " & frame_describe(entry->p)
-	end if
 	dlist_remove(sprcacheB.generic, entry)
 	sprcache.remove(entry->hash)
-	entry->p->cacheentry = NULL  'help to detect double free
-	frame_freemem(entry->p)
 	#ifdef COMBINED_SPRCACHE_LIMIT
 		sprcacheB_used -= entry->cost
 	#else
@@ -8222,6 +8217,13 @@ local sub sprite_remove_cache(entry as SpriteCacheEntry ptr)
 			sprcacheB_used -= entry->cost
 		end if
 	#endif
+	if entry->p->refcount <> 1 then
+		debugc errBug, "sprite cache leak/invalid sprite_remove_cache(): " & entry->hash & " " & frame_describe(entry->p)
+		'Leak instead of deleting the Frame, to avoid crashes
+	else
+		entry->p->cacheentry = NULL  'help to detect double free
+		frame_freemem(entry->p)
+	end if
 	delete entry
 end sub
 
@@ -8241,8 +8243,7 @@ local function sprite_cacheB_shrink(amount as integer) as bool
 	wend
 end function
 
-'freeleaks = YES will causes a crash if those pointers are accessed
-sub sprite_empty_cache_range(minkey as integer, maxkey as integer, leakmsg as string, freeleaks as bool = NO)
+sub sprite_empty_cache_range(minkey as integer, maxkey as integer, leakmsg as string)
 	dim iterstate as uinteger = 0
 	dim as SpriteCacheEntry ptr pt, nextpt
 
@@ -8251,13 +8252,7 @@ sub sprite_empty_cache_range(minkey as integer, maxkey as integer, leakmsg as st
 	while pt
 		nextpt = sprcache.iter(iterstate, pt)
 		if pt->hash >= minkey andalso pt->hash <= maxkey then
-			'recall that the cache counts as a reference
-			if pt->p->refcount <> 1 then
-				debug "warning: " & leakmsg & pt->hash & " with " & pt->p->refcount & " references"
-				if freeleaks then sprite_remove_cache(pt)
-			else
-				sprite_remove_cache(pt)
-			end if
+			sprite_remove_cache(pt)
 		end if
 		pt = nextpt
 	wend
@@ -9929,8 +9924,10 @@ local sub Palette16_empty_cache()
 		'Palettes in the cache but unused have refc=1
 		if palcache(idx) andalso palcache(idx)->refcount <> 1 then
 			debugc errBug, "Palette16 leak/bad refc: " & palette16_describe(palcache(idx))
+			palcache(idx) = NULL
+		else
+			Palette16_delete(@palcache(idx))
 		end if
-		Palette16_delete(@palcache(idx))
 	next
 	erase palcache
 end sub
@@ -10083,12 +10080,16 @@ sub Palette16_unload(palptr as Palette16 ptr ptr)
 	if pal = 0 then exit sub
 	if pal->refcount > 0 then
 		pal->refcount -= 1
-	else
-		showbug "Too many frees of " & palette16_describe(pal)
 	end if
-	if pal->refcount <= 0 andalso pal->palnum < 0 then
-		'--noncached palettes should be deleted when they are unloaded
-		Palette16_delete(palptr)
+	if pal->refcount <= 0 then
+		if pal->refcount < 0 orelse pal->palnum >= 0 then
+			'Cached palettes should never reach refc=0
+			showbug "Too many frees of " & palette16_describe(pal)
+		end if
+		if pal->palnum < 0 then
+			'Uncached palettes should be deleted when they are unloaded
+			Palette16_delete(palptr)
+		end if
 	end if
 	*palptr = 0
 end sub
