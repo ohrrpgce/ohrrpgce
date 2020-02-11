@@ -109,6 +109,8 @@ declare function time_draw_calls_from_finish() as bool
 declare function hexptr(p as any ptr) as string
 
 declare sub Palette16_delete(f as Palette16 ptr ptr)
+declare function palette16_load_pal_single(fh as integer) as Palette16 ptr
+
 
 #define POINT_CLIPPED(x, y) ((x) < cliprect.l orelse (x) > cliprect.r orelse (y) < cliprect.t orelse (y) > cliprect.b)
 
@@ -463,6 +465,8 @@ local sub modex_init()
 
 	'Just to ensure nearcolor_kdtree isn't NULL. intpal() is probably empty
 	intpal_changed
+
+	palette16_reload_cache   'read data/defaultgfx/ohrrpgce.pal
 
 	redim vpages(3)
 	'redim fixedsize_vpages(3)  'Initially all NO
@@ -4796,20 +4800,11 @@ sub PrintStrState.duplicate_from(rhs as PrintStrState)
 	memcpy(@this, @rhs, sizeof(PrintStrState))
 	if localpal then
 		this.localpal = Palette16_duplicate(rhs.localpal)
-		this.localpal->refcount = 1
 	end if
 end sub
 
 destructor PrintStrState()
-	' Palette16_unload wouldn't actually delete localpal, because it thinks
-	' it's cached, so sadly we reimplement it
-	'Palette16_unload @localpal
-	if localpal then
-		localpal->refcount -= 1
-		if localpal->refcount <= 0 then
-			Palette16_delete @localpal
-		end if
-	end if
+	Palette16_unload @localpal
 end destructor
 
 'Special signalling characters
@@ -5115,10 +5110,7 @@ end function
 sub build_text_palette(byref state as PrintStrState, srcpal as Palette16 ptr)
 	with state
 		if state.localpal = NULL then
-			' FIXME: This returns a non-refcounted palette16, but we want
-			' a refcount, which we're forced to manage ourselves (see destructor)
 			state.localpal = Palette16_new()
-			state.localpal->refcount = 1
 		end if
 		if srcpal then
 			memcpy(@.localpal->col(0), @srcpal->col(0), srcpal->numcolors)
@@ -7401,7 +7393,7 @@ function nearcolor(pal() as RGBcolor, red as integer, green as integer, blue as 
 'Never returns avoidcol.
 	dim as integer i, diff, best, save, rdif, bdif, gdif, cappedred, rmean
 
-	if indexhint > -1 and indexhint <= UBOUND(pal) and indexhint >= firstindex then
+	if indexhint > -1 and indexhint <= ubound(pal) and indexhint >= firstindex then
 		with pal(indexhint)
 			if red = .r and green = .g and blue = .b then return indexhint
 		end with
@@ -9919,17 +9911,9 @@ end sub
 '==========================================================================================
 
 
-'This should be replaced with a real hash
-'Note that the palette cache works completely differently to the sprite cache,
-'and the palette refcounting system too!
-
-type Palette16Cache
-	s as string
-	p as Palette16 ptr
-end type
-
-
-redim shared palcache(50) as Palette16Cache
+'Note that the palette cache works completely differently to the sprite cache:
+'we simply load all palettes into memory. Each cache entry will have refcount 1 if it's unused.
+redim shared palcache() as Palette16 ptr
 
 local sub Palette16_delete(f as Palette16 ptr ptr)
 	if f = 0 then exit sub
@@ -9940,58 +9924,15 @@ local sub Palette16_delete(f as Palette16 ptr ptr)
 end sub
 
 'Completely empty the Palette16 cache
-'palettes aren't uncached either when they hit 0 references
-sub Palette16_empty_cache()
-	dim i as integer
-	for i = 0 to ubound(palcache)
-		with palcache(i)
-			if .p <> 0 then
-				'debug "warning: leaked palette: " & .s & " with " & .p->refcount & " references"
-				Palette16_delete(@.p)
-			'elseif .s <> "" then
-				'debug "warning: phantom cached palette " & .s
-			end if
-			.s = ""
-		end with
+local sub Palette16_empty_cache()
+	for idx as integer = 0 to ubound(palcache)
+		'Palettes in the cache but unused have refc=1
+		if palcache(idx) andalso palcache(idx)->refcount <> 1 then
+			debugc errBug, "Palette16 leak/bad refc: " & palette16_describe(palcache(idx))
+		end if
+		Palette16_delete(@palcache(idx))
 	next
-end sub
-
-function Palette16_find_cache(s as string) as Palette16Cache ptr
-	dim i as integer
-	for i = 0 to ubound(palcache)
-		if palcache(i).s = s then return @palcache(i)
-	next
-	return NULL
-end function
-
-sub Palette16_add_cache(s as string, p as Palette16 ptr, fr as integer = 0)
-	if p = 0 then exit sub
-	BUG_IF(p->refcount = NOREFC, "Tried to add a non-refcounted Palette16 to the palette cache!")
-
-	dim as integer i, sec = -1
-	for i = fr to ubound(palcache)
-		with palcache(i)
-			if .s = "" then
-				.s = s
-				.p = p
-				exit sub
-			elseif .p->refcount <= 0 then
-				sec = i
-			end if
-		end with
-	next
-
-	if sec > 0 then
-		Palette16_delete(@palcache(sec).p)
-		palcache(sec).s = s
-		palcache(sec).p = p
-		exit sub
-	end if
-
-	'no room? pah.
-	redim preserve palcache(ubound(palcache) * 1.3 + 5)
-
-	Palette16_add_cache(s, p, i)
+	erase palcache
 end sub
 
 'Create a new palette which is not connected to any data file
@@ -9999,8 +9940,8 @@ function Palette16_new(numcolors as integer = 16) as Palette16 ptr
 	dim ret as Palette16 ptr
 	ret = new Palette16
 	ret->numcolors = numcolors
-	'--noncached palettes should be deleted when they are unloaded
-	ret->refcount = NOREFC
+	ret->refcount = 1
+	ret->palnum = -1  'Uncached
 	return ret
 end function
 
@@ -10028,101 +9969,128 @@ end function
 'added to the game, it won't auto-update.)
 'autotype, spr: spriteset type and id, for default palette lookup.
 function Palette16_load(num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0, expect_exists as bool = YES) as Palette16 ptr
-	dim as Palette16 ptr ret = Palette16_load(graphics_file("pal"), num, autotype, spr)
-	if ret = 0 then
-		if num >= 0 andalso expect_exists then
-			' Only bother to warn if a specific palette failed to load.
-			' Avoids debug noise when default palette load fails because of a non-existant defpal file
-			debug "failed to load palette " & num
-		end if
-		' Is it a problem that this isn't put in the cache, so you can load a
-		' this palette multiple times and get different ptrs?
-		return Palette16_new()
-	end if
-	return ret
-end function
-
-'Loads and returns a palette from a file (resolving -1 to default palette),
-'Returns NULL if the palette doesn't exist!
-'autotype, spr: spriteset type and id, for default palette lookup.
-function Palette16_load(fil as string, num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0) as Palette16 ptr
-	dim starttime as double = timer
-	dim hashstring as string
-	dim cache as Palette16Cache ptr
 	if num <= -1 then
 		if autotype = sprTypeInvalid then
 			return 0
 		end if
 		num = getdefaultpal(autotype, spr)
-		if num = -1 then
-			return 0
-		end if
-	end if
-	hashstring = trimpath(fil) & "#" & num
-
-	'debug "Loading: " & hashstring
-	cache = Palette16_find_cache(hashstring)
-	if cache <> 0 then
-		cache->p->refcount += 1
-		return cache->p
+		'Returns num = -1 if the defpal file is missing
 	end if
 
-	dim fh as integer
-	if openfile(fil, for_binary + access_read, fh) then return 0
+	if num >= 0 andalso num <= ubound(palcache) then
+		palcache(num)->refcount += 1
+		return palcache(num)
+	end if
+
+	if num >= 0 andalso expect_exists then
+		' Only bother to warn if a specific palette failed to load.
+		' Avoids debug noise when default palette load fails because of a non-existant defpal file
+		debug "failed to load palette " & num
+	end if
+	' Is it a problem that this isn't put in the cache, so you can load
+	' this palette multiple times and get different ptrs?
+	return Palette16_new()
+end function
+
+'Open a .PAL file and pass back file handle, number of palettes, header size.
+'Returns true on success.
+local function open_pal_and_read_header(fname as string, byref fh as integer, byref numpalettes as integer, byref headersize as integer) as bool
+	if openfile(fname, for_binary + access_read + or_error, fh) then return NO
 
 	dim mag as short
 	get #fh, 1, mag
 	if mag = 4444 then
 		' File is in new file format
+		headersize = 16
 		get #fh, , mag
-		if num > mag then
-			lazyclose fh
-			return 0
+		numpalettes = mag + 1
+		if LOF(fh) <> 16 + 16 * numpalettes then
+			debug "Mismatched .pal header (last=" & mag & ") and size " & LOF(fh)
 		end if
-
-		seek #fh, 17 + 16 * num
 	else
 		' .pal file is still in ancient BSAVE format, with exactly 100
 		' palettes. This shouldn't happen because upgrade() upgrades it.
 		' Skip 7-byte BSAVE header.
-		seek #fh, 8 + 16 * num
+		headersize = 7
+		numpalettes = 100
 	end if
+	return YES
+end function
 
-	dim ret as Palette16 ptr = Palette16_new()
-	if ret = 0 then
-		close #fh
-		debug "Could not create palette, no memory"
-		return 0
+'Load all palettes into the cache that aren't already cached.
+'(Using during live-previewing because it leaves in-use entries alone)
+local sub palette16_fill_cache()
+	dim fh as integer
+	dim numpalettes as integer
+	dim headersize as integer
+	if open_pal_and_read_header(graphics_file("pal"), fh, numpalettes, headersize) = NO then exit sub
+
+	seek #fh, 1 + headersize
+
+	if numpalettes >= 1 then
+		redim preserve palcache(large(ubound(palcache), numpalettes - 1))
+		for idx as integer = 0 to numpalettes - 1
+			if palcache(idx) = NULL then
+				seek #fh, 1 + headersize + 16 * idx
+				palcache(idx) = palette16_load_pal_single(fh)
+				palcache(idx)->palnum = idx
+			end if
+		next
 	end if
+	lazyclose fh
+end sub
 
+'Load all palettes into the cache, throwing out old cache if any.
+sub palette16_reload_cache()
+	dim starttime as double = timer
+	palette16_empty_cache
+	palette16_fill_cache
+	debug_if_slow(starttime, 0.1, "")
+end sub
+
+'Loads and returns a palette from a .pal file. num can not be -1.
+'Returns NULL if the palette doesn't exist!
+function palette16_load_pal_uncached(fil as string, num as integer) as Palette16 ptr
+	BUG_IF(num < 0, "negative pal num", NULL)
+
+	dim fh as integer
+	dim numpalettes as integer
+	dim headersize as integer
+	if open_pal_and_read_header(fil, fh, numpalettes, headersize) = NO then return NULL
+
+	dim ret as Palette16 ptr
+	if num <= numpalettes - 1 then
+		seek #fh, 1 + headersize + 16 * num
+		ret = palette16_load_pal_single(fh)
+	end if
+	lazyclose fh
+	return ret
+end function
+
+local function palette16_load_pal_single(fh as integer) as Palette16 ptr
+	dim ret as Palette16 ptr = Palette16_new(16)
 	for idx as integer = 0 to 15
 		dim byt as ubyte
 		get #fh, , byt
 		ret->col(idx) = byt
 	next
-
-	lazyclose fh
-
-	ret->refcount = 1
-	Palette16_add_cache(hashstring, ret)
-
-	debug_if_slow(starttime, 0.1, fil)
 	return ret
 end function
 
-sub Palette16_unload(p as Palette16 ptr ptr)
-	if p = 0 then exit sub
-	if *p = 0 then exit sub
-	if (*p)->refcount = NOREFC then
-		'--noncached palettes should be deleted when they are unloaded
-		Palette16_delete(p)
+sub Palette16_unload(palptr as Palette16 ptr ptr)
+	if palptr = 0 then exit sub
+	dim pal as Palette16 ptr = *palptr
+	if pal = 0 then exit sub
+	if pal->refcount > 0 then
+		pal->refcount -= 1
 	else
-		(*p)->refcount -= 1
-		'debug "unloading palette (" & ((*p)->refcount) & " more copies!)"
-		'Don't delete: it stays in the cache. Unlike the sprite cache, the much simpler
-		'palette cache doesn't count as a reference
+		showbug "Too many frees of " & palette16_describe(pal)
 	end if
-	*p = 0
+	if pal->refcount <= 0 andalso pal->palnum < 0 then
+		'--noncached palettes should be deleted when they are unloaded
+		Palette16_delete(palptr)
+	end if
+	*palptr = 0
 end sub
 
 function Palette16_duplicate(pal as Palette16 ptr) as Palette16 ptr
@@ -10130,41 +10098,35 @@ function Palette16_duplicate(pal as Palette16 ptr) as Palette16 ptr
 	for i as integer = 0 to ubound(pal->col)
 		ret->col(i) = pal->col(i)
 	next
+	'Result is uncached.
 	return ret
 end function
 
-'update a .pal-loaded palette even while in use elsewhere.
-'(Won't update localpal in a cached PrintStrState... but caching isn't implemented yet)
-sub Palette16_update_cache(fil as string, num as integer)
-	dim oldpal as Palette16 ptr
-	dim hashstring as string
-	dim cache as Palette16Cache ptr
+'Update a palette in the cache (or add to the cache if missing) even while possibly in use.
+'(Won't update localpal in a cached PrintStrState... but PrintStrState caching isn't implemented yet)
+sub Palette16_update_cache(record as integer)
+	dim as Palette16 ptr oldpal, newpal
 
-	hashstring = trimpath(fil) & "#" & num
-	cache = Palette16_find_cache(hashstring)
-
-	if cache then
-		oldpal = cache->p
-
-		'force a reload, creating a temporary new palette
-		cache->s = ""
-		cache->p = NULL
-		Palette16_load(num)
-		cache = Palette16_find_cache(hashstring)
+	if record > ubound(palcache) then
+		palette16_fill_cache
+	else
+		oldpal = palcache(record)
+		newpal = palette16_load_pal_uncached(graphics_file("pal"), record)
 
 		'copy to old palette structure
 		dim as integer oldrefcount = oldpal->refcount
-		memcpy(oldpal, cache->p, sizeof(Palette16))
+		memcpy(oldpal, newpal, sizeof(Palette16))
 		oldpal->refcount = oldrefcount
-		'this sub is silly
-		Palette16_delete(@cache->p)
-		cache->p = oldpal
+		oldpal->palnum = record
+
+		Palette16_delete(@newpal)
 	end if
 end sub
 
 function Palette16_describe(pal as Palette16 ptr) as string
 	if pal = 0 then return "'(null)'"
-	dim temp as string = "<Palette16 numcolors=" & pal->numcolors & " ref=" & pal->refcount & " "
+	dim temp as string
+	temp = strprintf("<Palette16 num=%d numcolors=%d refc=%d ", pal->palnum, pal->numcolors, pal->refcount)
 	for idx as integer = 0 to pal->numcolors - 1
 		if idx then temp &= ","
 		temp &= hex(pal->col(idx))

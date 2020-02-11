@@ -312,9 +312,9 @@ upgrade YES
 set_music_volume 0.01 * gen(genMusicVolume)
 set_global_sfx_volume 0.01 * gen(genSFXVolume)
 
-'Unload any default graphics (from data/defaultgfx) that might have been cached
+'Unload any default graphics (from data/defaultgfx) that might have been cached, load palettes
 sprite_empty_cache
-palette16_empty_cache
+palette16_reload_cache
 
 'Load the game's palette, uicolors, font
 activepalette = gen(genMasterPal)
@@ -748,12 +748,15 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
   cleanup_process @slave_process
  END IF
  closemusic
- 'catch sprite leaks
- sprite_empty_cache
- palette16_empty_cache
  cleanup_global_reload_doc
  clear_binsize_cache
  clear_fixbits_cache
+ game = ""
+ sourcerpg = ""
+ 'catch sprite leaks
+ sprite_empty_cache
+ palette16_reload_cache   'Read default palettes (now that game="")
+
  IF show_quit_msg ANDALSO read_config_bool("show_quit_msg", YES) ANDALSO getquitflag() = NO THEN
   clearpage vpage
   ' Don't let Spoonweaver's cat near your power cord!

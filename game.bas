@@ -574,9 +574,9 @@ set_global_sfx_volume 0.01 * gen(genSFXVolume)
 
 REDIM gmap(dimbinsize(binMAP)) 'this must be sized here, after the binsize file exists!
 
-'Unload any default graphics (from data/defaultgfx) that might have been cached
+'Unload any default graphics (from data/defaultgfx) that might have been cached, load palettes
 sprite_empty_cache
-palette16_empty_cache
+palette16_reload_cache
 
 setfont current_font()
 loadglobalstrings
@@ -977,9 +977,6 @@ SUB reset_game_final_cleanup()
  DeleteZonemap zmap
  cleanup_game_slices
  SliceDebugDump YES
- 'checks for leaks and deallocates them
- sprite_empty_cache
- palette16_empty_cache
  cleanup_global_reload_doc
  close_general_reld
  clear_binsize_cache
@@ -987,10 +984,13 @@ SUB reset_game_final_cleanup()
  stopsong
  resetsfx
  cleanup_other_temp_files
- 'We bypass exit_gracefully() because we already called save_game_config
- IF gam.return_to_browser = NO AND LEN(gam.want.rungame) = 0 THEN exitprogram YES
  game = ""
  sourcerpg = ""
+ 'checks for leaks and deallocates them
+ sprite_empty_cache
+ palette16_reload_cache   'Read default palettes (now that game="")
+ 'We bypass exit_gracefully() because we already called save_game_config
+ IF gam.return_to_browser = NO AND LEN(gam.want.rungame) = 0 THEN exitprogram YES
  debuginfo "Recreating " & tmpdir
  killdir tmpdir, YES  'recursively deletes playing.tmp if it exists
  makedir tmpdir

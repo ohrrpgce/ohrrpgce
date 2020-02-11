@@ -17,7 +17,9 @@ typedef struct {
 
 typedef struct Palette16 {
 	int numcolors;
-	int refcount;            //private
+	int refcount;            //Always >= 1 (palcache counts as a reference). Can not be NOREFC.
+	int palnum;              //>= 0: numbered palette, cached. -1: not loaded from file, uncached.
+
 	unsigned char col[256];  //indices into the master palette
 } Palette16;
 

@@ -3236,8 +3236,8 @@ END FUNCTION
 '                                     16-color palettes
 '==========================================================================================
 
-' Save palette to old .pal lump
-SUB Palette16_save_to_PAL(pal as Palette16 ptr, fname as string, pal_num as integer)
+' Save palette to .pal lump
+LOCAL SUB Palette16_save_to_PAL(pal as Palette16 ptr, fname as string, pal_num as integer)
  DIM buf(8) as integer
  loadrecord buf(), fname, 8, 0
 
@@ -3271,9 +3271,8 @@ SUB Palette16_save_to_PAL(pal as Palette16 ptr, fname as string, pal_num as inte
 END SUB
 
 SUB Palette16_save(pal as Palette16 ptr, pal_num as integer)
- DIM fname as string = game & ".pal"
- Palette16_save_to_PAL pal, fname, pal_num
- Palette16_update_cache fname, pal_num
+ Palette16_save_to_PAL pal, game & ".pal", pal_num
+ Palette16_update_cache pal_num
  #IFDEF IS_CUSTOM
   IF slave_channel <> NULL_CHANNEL THEN channel_write_line slave_channel, "PAL " & pal_num
  #ENDIF

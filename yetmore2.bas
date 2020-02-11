@@ -1296,7 +1296,7 @@ SUB receive_file_updates ()
 
   ELSEIF pieces(0) = "PAL" THEN  'palette changed (path of least resistance...)
    DIM palnum as integer = str2int(pieces(1))
-   palette16_update_cache(game + ".pal", palnum)
+   palette16_update_cache(palnum)
 
   ELSEIF pieces(0) = "SCREEN" THEN  'Write a screenshot to file every tick
    IF pieces(1) = "STOP" THEN
