@@ -76,22 +76,34 @@ void ::debugc(ErrorLevel errlvl, const char* szMessage)
 	debug(errlvl, szMessage);
 }
 
+bool Win8OrLater()
+{
+	OSVERSIONINFO verinfo = {0};
+	verinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+	if (GetVersionEx(&verinfo))
+		return verinfo.dwPlatformId * 10000 + verinfo.dwMajorVersion * 100 + verinfo.dwMinorVersion >= 20602;
+	return false;
+}
+
 // Try to translate an HRESULT into a string
 const char *gfx::HRESULTString(HRESULT hresult)
 {
 	const int BUFLEN = 256;
 	static char buf[BUFLEN];
 	int len = sprintf_s(buf, BUFLEN, "ret=0x%08x ", hresult);
+
 	// Check whether this is a win32 error code
 	// Update: Starting in Windows 8, FormatMessage can now print DirectX errors.
 	// Before Win8, you had to use DXGetErrorString and link DXERR.LIB, but
 	// DXERR.LIB has been removed from the SDK, so won't attempt that.
 	// Look up error codes in the DX headers.
-	//if (HRESULT_FACILITY(hresult) == FACILITY_WIN32 || hresult == 0)
-	//{
+	// HRESULTs with FACILITY_ITF (0x8004xxxx) in particular are library/interface specific, not universal.
+	// FormatMessage returns wrong error pre-Win8 if hresult is a DirectX error code.
+	// DirectX uses HRESULTs with a factility code of _FACD3D (0x876), apparently renamed _FACDD in DirectX11
+	if (HRESULT_FACILITY(hresult) == FACILITY_WIN32 || hresult == 0 || Win8OrLater())
+	{
 		strcat_s(buf, BUFLEN, win_error_str(HRESULT_CODE(hresult)));
-	//}
-	// HRESULTS with FACILITY_ITF (0x8004xxxx) in particular are library/interface specific, not universal.
+	}
 	return buf;
 }
 
