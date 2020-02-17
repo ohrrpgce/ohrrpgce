@@ -3676,12 +3676,13 @@ function translate_animated_tile(todraw as integer) as integer
 	end if
 end function
 
-sub drawmap (tmap as TileMap, x as integer, y as integer, tileset as TilesetData ptr, p as integer, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, ystart as integer = 0, yheight as integer = -1, pal as Palette16 ptr = NULL)
+sub drawmap (tmap as TileMap, x as integer, y as integer, tileset as TilesetData ptr, p as integer, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, ystart as integer = 0, yheight as integer = -1, pal as Palette16 ptr = NULL, opts as DrawOptions = def_drawoptions)
 	setanim tileset
-	drawmap tmap, x, y, tileset->spr, p, trans, overheadmode, pmapptr, ystart, yheight, , pal
+	drawmap tmap, x, y, tileset->spr, p, trans, overheadmode, pmapptr, ystart, yheight, , pal, opts
 end sub
 
-sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame ptr, p as integer, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, ystart as integer = 0, yheight as integer = -1, largetileset as bool = NO, pal as Palette16 ptr = NULL)
+sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame ptr, p as integer, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, ystart as integer = 0, yheight as integer = -1, largetileset as bool = NO, pal as Palette16 ptr = NULL, opts as DrawOptions = def_drawoptions)
+'Draw a single map layer; see overload below for args.
 'ystart is the distance from the top to start drawing, yheight the number of lines. yheight=-1 indicates extend to bottom of screen
 'There are no options in the X direction because they've never been used, and I don't forsee them being (can use Frames or slices instead)
 	dim mapview as Frame ptr
@@ -3691,20 +3692,23 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 	dim saveclip as ClipState = get_cliprect()
 	mapview = frame_new_view(vpages(p), 0, ystart, vpages(p)->w, iif(yheight = -1, vpages(p)->h, yheight))
 	setclip saveclip.l, saveclip.t - ystart, saveclip.r, saveclip.b - ystart, mapview
-	drawmap tmap, x, y, tilesetsprite, mapview, trans, overheadmode, pmapptr, largetileset, pal
+	drawmap tmap, x, y, tilesetsprite, mapview, trans, overheadmode, pmapptr, largetileset, pal, opts
 	frame_unload @mapview
 	get_cliprect() = saveclip
 end sub
 
-sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame ptr, dest as Frame ptr, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, largetileset as bool = NO, pal as Palette16 ptr = NULL)
+sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame ptr, dest as Frame ptr, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, largetileset as bool = NO, pal as Palette16 ptr = NULL, opts as DrawOptions = def_drawoptions)
+'Draw a single map layer.
 'This version of drawmap paints over the entire dest Frame given to it.
 'x and y are the camera position at the top left corner of the Frame, not
 'the position at which the top left of the map is drawn: this is the OPPOSITE
 'to all other drawing commands!
+'trans : Whether color 0 is transparent; doesn't affect treatment of tile 0.
 'overheadmode = 0 : draw all tiles normally
 'overheadmode = 1 : draw non overhead tiles only (to avoid double draw)
 'overheadmode = 2 : draw overhead tiles only
 'largetileset : A hack which disables tile animation, instead using tilesets with 256 tiles
+'opts : Note that DrawOptions.scale is not yet supported
 
 	dim sptr as ubyte ptr
 	dim plane as integer
@@ -3765,7 +3769,7 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 				end if
 
 				'draw it on the map
-				frame_draw_internal(@tileframe, intpal(), pal, tx, ty, trans, dest)
+				frame_draw_internal(@tileframe, intpal(), pal, tx, ty, trans, dest, opts)
 			end if
 
 			tx = tx + 20
