@@ -33,13 +33,16 @@ static inline uint8_t *get_frame_buf(Frame *spr) {
 
 // 8 bit blitting routine. Supports 8-bit Surface-backed Frames too.
 // The arguments must already be clipped to the destination (done in draw_clipped())
-// write_mask:
-//    If the destination has a mask, sets the mask for the destination rectangle
-//    equal to the mask (or color-key) for the source rectangle. Does not OR them.
-void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int startx, int starty, int endx, int endy, boolint trans, boolint write_mask) {
+// opts should be a ptr to def_drawoptions if no extra options are needed.
+void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int startx, int starty, int endx, int endy, boolint trans, DrawOptions *opts) {
 	int i, j;
 	unsigned char *maskp, *srcp, *original_srcp, *restrict destp;
 	int srclineinc, destlineinc;
+
+	if (!opts) {
+		debug(errShowBug, "blitohr: opts not optional!");
+		return;
+	}
 
 	original_srcp = srcp = get_frame_buf(spr);
 
@@ -130,7 +133,7 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 	}
 
 	// Set the destination mask
-	if (write_mask && destspr->mask) {
+	if (opts->write_mask && destspr->mask) {
 		srcp = (spr->mask ? spr->mask : original_srcp) + startoffset;
 		destp = destspr->mask + startx + starty * destspr->pitch;
 		for (i = starty; i <= endy; i++) {
@@ -144,19 +147,26 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 // 8 bit scaled blitting routine. Supports 8-bit Surface-backed Frames too.
 // The arguments must already be clipped to the destination (done in draw_clipped_scaled())
 //horribly slow; keep putting off doing something about it
-// write_mask:
-//    If the destination has a mask, sets the mask for the destination rectangle
-//    equal to the mask (or color-key) for the source rectangle. Does not OR them.
-void blitohrscaled(Frame *spr, Frame *destspr, Palette16 *pal, int x, int y, int startx, int starty, int endx, int endy, boolint trans, boolint write_mask, int scale) {
+//(This function will be replaced with rotozoomSurface(), which has a fast path for scaling)
+// opts should be a ptr to def_drawoptions if no extra options are needed.
+void blitohrscaled(Frame *spr, Frame *destspr, Palette16 *pal, int x, int y, int startx, int starty, int endx, int endy, boolint trans, DrawOptions *opts) {
 	unsigned char *restrict destbuf;
 	unsigned char *restrict maskbuf;
 	unsigned char *restrict srcp;
 	int tx, ty;
 	int pix, spix;
 
+	if (!opts) {
+		debug(errShowBug, "blitohrscaled: opts not optional!");
+		return;
+	}
+
 	srcp = get_frame_buf(spr);
 	destbuf = get_frame_buf(destspr);
 
+	int scale = opts->scale;
+
+	bool write_mask = opts->write_mask;
 	maskbuf = spr->mask;
 	if (maskbuf == 0) {
 		maskbuf = srcp;

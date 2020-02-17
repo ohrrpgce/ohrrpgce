@@ -306,7 +306,7 @@ Surface* surface_duplicate( Surface* surf ) {
 	Surface *ret;
 	if (gfx_surfaceCreate( surf->width, surf->height, surf->format, surf->usage, &ret ))
 		return NULL;
-	gfx_surfaceCopy( NULL, surf, NULL, NULL, false, NULL, ret);
+	gfx_surfaceCopy(NULL, surf, NULL, NULL, false, NULL, ret, &def_drawoptions);
 
 	return ret;
 }
@@ -416,9 +416,9 @@ void clampRectToSurface( SurfaceRect* inRect, SurfaceRect* outRect, Surface* pSu
 // the edge of the respective Surfaces; they are clamped. Negative width or
 // height means the draw is a noop.
 // bUseColorKey0 says whether color 0 in 8-bit source images is transparent
-int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest ) {
-	if (!pSurfaceSrc || !pSurfaceDest) {
-		debug(errShowBug, "surfaceCopy_SW: NULL ptr %p %p", pSurfaceSrc, pSurfaceDest);
+int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts ) {
+	if (!pSurfaceSrc || !pSurfaceDest || !pOpts) {
+		debug(errShowBug, "surfaceCopy_SW: NULL ptr %p %p %p", pSurfaceSrc, pSurfaceDest, pOpts);
 		return -1;
 	}
 	if (pSurfaceSrc->format == SF_32bit && pSurfaceDest->format == SF_8bit) {

@@ -306,8 +306,8 @@ declare sub Io_amx_mousebits (byref mx as integer, byref my as integer, byref mw
 '=============================== Blitting API =================================
 ' functions in blit.c
 
-declare sub blitohr(byval spr as FrameFwd ptr, byval destspr as FrameFwd ptr, byval pal as Palette16Fwd ptr, byval startoffset as int32, byval startx as int32, byval starty as int32, byval endx as int32, byval endy as int32, byval trans as boolint, byval write_mask as boolint)
-declare sub blitohrscaled(byval spr as FrameFwd ptr, byval destspr as FrameFwd ptr, byval pal as Palette16Fwd ptr, byval x as int32, byval y as int32, byval startx as int32, byval starty as int32, byval endx as int32, byval endy as int32, byval trans as boolint, byval write_mask as boolint, byval scale as int32)
+declare sub blitohr(byval spr as FrameFwd ptr, byval destspr as FrameFwd ptr, byval pal as Palette16Fwd ptr, byval startoffset as int32, byval startx as int32, byval starty as int32, byval endx as int32, byval endy as int32, byval trans as boolint, byref opts as DrawOptions)
+declare sub blitohrscaled(byval spr as FrameFwd ptr, byval destspr as FrameFwd ptr, byval pal as Palette16Fwd ptr, byval x as int32, byval y as int32, byval startx as int32, byval starty as int32, byval endx as int32, byval endy as int32, byval trans as boolint, byref opts as DrawOptions)
 
 declare sub smoothzoomblit_8_to_8bit(byval srcbuffer as ubyte ptr, byval destbuffer as ubyte ptr, byval size as XYPair, byval pitch as int32, byval zoom as int32, byval smooth as int32)
 declare sub smoothzoomblit_8_to_32bit(byval srcbuffer as ubyte ptr, byval destbuffer as uint32 ptr, byval size as XYPair, byval pitch as int32, byval zoom as int32, byval smooth as int32, byval pal as int32 ptr)

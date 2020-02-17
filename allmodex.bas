@@ -62,10 +62,10 @@ declare sub _frame_copyctor cdecl(dest as Frame ptr ptr, src as Frame ptr ptr)
 declare sub init_frame_with_surface(ret as Frame ptr, surf as Surface ptr)
 declare sub reload_global_animations(def_anim as SpriteSet ptr, sprtype as SpriteType)
 
-declare sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
-declare sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
-declare sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
-declare sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Surface ptr)
+declare sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
+declare sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions)
+declare sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions)
+declare sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Surface ptr, opts as DrawOptions = def_drawoptions)
 
 'declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(filen as string, w as integer, h as integer, bitdepth as integer) as integer
@@ -139,6 +139,8 @@ dim active_seconds as double
 dim idle_time_threshold as double = 30.
 'When last input arrived
 dim shared last_active_time as double
+
+dim def_drawoptions as DrawOptions
 
 redim fonts(3) as Font ptr
 
@@ -3763,7 +3765,7 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 				end if
 
 				'draw it on the map
-				frame_draw_internal(@tileframe, intpal(), pal, tx, ty, , trans, dest)
+				frame_draw_internal(@tileframe, intpal(), pal, tx, ty, trans, dest)
 			end if
 
 			tx = tx + 20
@@ -5215,7 +5217,7 @@ sub draw_line_fragment(dest as Frame ptr, byref state as PrintStrState, layer as
 							'(2-layer fonts would need layer 0 to be opaque)
 							'ALSO, this would stuff up ${KB#} on 2-layer fonts
 							if layer = 1 and state.not_transparent then trans = NO
-							frame_draw_internal(@charframe, intpal(), state.localpal, state.x + .offx, state.y + .offy - state.thefont->h, , trans, dest)
+							frame_draw_internal(@charframe, intpal(), state.localpal, state.x + .offx, state.y + .offy - state.thefont->h, trans, dest)
 						end with
 					end if
 				end if
@@ -8076,7 +8078,7 @@ end function
 'write_mask:
 '    If the destination has a mask, sets the mask for the destination rectangle
 '    equal to the mask (or color-key) for the source rectangle. Does not OR them.
-local sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
+local sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions)
 	dim as integer startx, starty, endx, endy
 	dim as integer srcoffset
 
@@ -8107,25 +8109,25 @@ local sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integ
 
 	if starty > endy or startx > endx then exit sub
 
-	blitohr(src, dest, pal, srcoffset, startx, starty, endx, endy, trans, write_mask)
+	blitohr(src, dest, pal, srcoffset, startx, starty, endx, endy, trans, opts)
 end sub
 
-' Blit a Frame with setclip clipping and scale <> 1.
-local sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
+' Blit a Frame with setclip clipping and opts->scale <> 1. opts can not be NULL!
+local sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions)
 	dim byref cliprect as ClipState = get_cliprect()
 	dim as integer sxfrom, sxto, syfrom, syto
 
 	sxfrom = large(cliprect.l, x)
-	sxto = small(cliprect.r, x + (src->w * scale) - 1)
+	sxto = small(cliprect.r, x + (src->w * opts.scale) - 1)
 
 	syfrom = large(cliprect.t, y)
-	syto = small(cliprect.b, y + (src->h * scale) - 1)
+	syto = small(cliprect.b, y + (src->h * opts.scale) - 1)
 
-	blitohrscaled (src, dest, pal, x, y, sxfrom, syfrom, sxto, syto, trans, write_mask, scale)
+	blitohrscaled (src, dest, pal, x, y, sxfrom, syfrom, sxto, syto, trans, opts)
 end sub
 
 ' Blit a Surface with setclip clipping.
-local sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Surface ptr)
+local sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Surface ptr, opts as DrawOptions)
 
 	dim byref cliprect as ClipState = get_cliprect()
 
@@ -8145,7 +8147,7 @@ local sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pa
 
 	dim destRect as SurfaceRect = (x, y, cliprect.r, cliprect.b)
 
-	if gfx_surfaceCopy(@srcRect, src, master_pal, pal, trans, @destRect, dest) then
+	if gfx_surfaceCopy(@srcRect, src, master_pal, pal, trans, @destRect, dest, opts) then
 		debug "gfx_surfaceCopy error"
 	end if
 end sub
@@ -9287,43 +9289,47 @@ local sub _frame_copyctor cdecl(dest as Frame ptr ptr, src as Frame ptr ptr)
 	*dest = frame_reference(*src)
 end sub
 
+constructor DrawOptions(scale as integer = 1)
+	this.scale = scale
+end constructor
+
 'Public:
 ' draws a sprite to a page. scale must be greater than or equal to 1. if trans is false, the
 ' mask will be wholly ignored. Just like draw_clipped, masks are optional, otherwise use colourkey 0
 ' write_mask:
 '    If the destination has a mask, sets the mask for the destination rectangle
 '    equal to the mask (or color-key) for the source rectangle. Does not OR them.
-sub frame_draw(src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, page as integer, write_mask as bool = NO)
-	frame_draw src, intpal(), pal, x, y, scale, trans, vpages(page), write_mask
+sub frame_draw(src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, page as integer, opts as DrawOptions = def_drawoptions)
+	frame_draw src, intpal(), pal, x, y, trans, vpages(page), opts
 end sub
 
-sub frame_draw(src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
-	frame_draw src, intpal(), pal, x, y, scale, trans, dest, write_mask
+sub frame_draw(src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
+	frame_draw src, intpal(), pal, x, y, trans, dest, opts
 end sub
 
 ' Explicitly specify the master palette to use - it is only used if the src is 8-bit
 ' and the dest is 32-bit.
 ' Also, the mask if any is ignored.
-sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
+sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
 	BUG_IF(src = NULL orelse dest = NULL, "trying to draw from/to null frame")
 	get_cliprect(dest)  'Set clipping Frame
 
 	x = relative_pos(x, dest->w, src->w)
 	y = relative_pos(y, dest->h, src->h)
-	x += src->offset.x * scale
-	y += src->offset.y * scale
+	x += src->offset.x * opts.scale
+	y += src->offset.y * opts.scale
 
-	frame_draw_internal src, masterpal(), pal, x, y, scale, trans, dest, write_mask
+	frame_draw_internal src, masterpal(), pal, x, y, trans, dest, opts
 end sub
 
-local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
+local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
 
 	if (src->surf andalso src->surf->format <> SF_8bit) orelse _
 	   (dest->surf andalso dest->surf->format <> SF_8bit) then
 		' Have to use gfx_surfaceCopy, so translate everything to Surfaces
 
 		BUG_IF(dest->surf = NULL, "trying to draw a 32-bit Frame to a regular Frame")
-		BUG_IF(write_mask orelse scale <> 1, "write_mask and scale not supported with 32-bit Frames")
+		BUG_IF(opts.write_mask orelse opts.scale <> 1, "write_mask and scale not supported with 32-bit Frames")
 
 		dim src_surface as Surface ptr
 		if src->surf then
@@ -9344,7 +9350,7 @@ local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as 
 
 		' TODO: this ignores the src mask, if the src is 8-bit, which means dissolved Frames
 		' aren't drawn correctly
-		draw_clipped_surf src_surface, master_pal, pal, x, y, trans, dest->surf
+		draw_clipped_surf src_surface, master_pal, pal, x, y, trans, dest->surf, opts
 
 	cleanup:
 		if master_pal then
@@ -9354,11 +9360,11 @@ local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as 
 			gfx_surfaceDestroy(@src_surface)
 		end if
 	else
-		if scale = 1 then
-			draw_clipped src, pal, x, y, trans, dest
-		else
+		if opts.scale <> 1 then
 			BUG_IF(src->surf orelse dest->surf, "32-bit Frames don't support scale<>1")
-			draw_clipped_scaled src, pal, x, y, scale, trans, dest, write_mask
+			draw_clipped_scaled src, pal, x, y, trans, dest, opts
+		else
+			draw_clipped src, pal, x, y, trans, dest, opts
 		end if
 	end if
 end sub
@@ -10560,11 +10566,11 @@ function SpriteState.animate() as bool
 end function
 
 /'
-sub SpriteState.draw(x as integer, y as integer, scale as integer = 1, trans as bool = YES, page as integer)
+sub SpriteState.draw(x as integer, y as integer, trans as bool = YES, page as integer)
 	dim as integer realx, realy
 	realx = x + offset.x
 	realy = y + offset.y
-	frame_draw(cur_frame(), pal, realx, realy, scale, trans, page)
+	frame_draw(cur_frame(), pal, realx, realy, trans, page)
 end sub
 '/
 

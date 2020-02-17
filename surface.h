@@ -1,7 +1,7 @@
 #ifndef SURFACE_H
 #define SURFACE_H
 
-#include <stdint.h>
+#include "config.h"
 
 typedef union {
 	struct {
@@ -67,6 +67,21 @@ typedef struct
 	RGBcolor col[256];
 } RGBPalette;
 
+// frame_draw additional draw options
+typedef struct
+{
+	// Default 1.
+	// (Not implemented for Surfaces)
+	int scale;
+
+	// If the destination has a mask, sets the mask for the destination rectangle
+	// equal to the mask (or color-key) for the source rectangle. Does not OR them.
+	// (Not implemented for Surfaces)
+	boolint write_mask;
+} DrawOptions;
+
+extern DrawOptions def_drawoptions;
+
 //interfaces
 #ifdef __cplusplus
 extern "C"
@@ -87,7 +102,7 @@ extern "C"
 	int gfx_surfaceFillAlpha_SW( RGBcolor fillColor, double alpha, SurfaceRect* pRect, Surface* pSurface );
 	int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 	Surface* gfx_surfaceShrink_SW( Surface *surf, int destWidth, int destHeight );
-	int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* opts );
 
 	int gfx_paletteCreate_SW( RGBPalette** ppPaletteOut );
 	int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut );
@@ -105,7 +120,7 @@ extern "C"
 	extern int (*gfx_surfaceFillAlpha)( RGBcolor fillColor, double alpha, SurfaceRect* pRect, Surface* pSurfaceIn );
 	extern int (*gfx_surfaceStretch)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 	extern Surface* (*gfx_surfaceShrink)( Surface *surf, int destWidth, int destHeight );
-	extern int (*gfx_surfaceCopy)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	extern int (*gfx_surfaceCopy)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* opts );
 
 	extern int (*gfx_paletteCreate)( RGBPalette** ppPaletteOut );
 	extern int (*gfx_paletteFromRGB)( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut );

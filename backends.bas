@@ -110,7 +110,7 @@ dim gfx_surfaceGetData as function ( byval pSurfaceIn as Surface ptr ) as intege
 dim gfx_surfaceFill as function ( byval fillColor as integer, byval pRect as SurfaceRect ptr, byval pSurfaceIn as Surface ptr ) as integer
 dim gfx_surfaceFillAlpha as function ( byval fillColor as RGBcolor, byval alpha as double, byval pRect as SurfaceRect ptr, byval pSurfaceIn as Surface ptr ) as integer
 dim gfx_surfaceStretch as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
-dim gfx_surfaceCopy as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, pPal8 as Palette16 ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
+dim gfx_surfaceCopy as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, pPal8 as Palette16 ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr, byref opts as DrawOptions ) as integer
 
 dim gfx_paletteCreate as function ( byval ppPaletteOut as RGBPalette ptr ptr) as integer
 dim gfx_paletteFromRGB as function ( byval pColorsIn as RGBcolor ptr, byval ppPaletteOut as RGBPalette ptr ptr) as integer

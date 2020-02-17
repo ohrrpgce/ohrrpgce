@@ -564,9 +564,9 @@ declare function frame_reference (p as Frame ptr) as Frame ptr
 declare sub frame_assign(ptr_to_replace as Frame ptr ptr, new_value as Frame ptr)
 declare sub frame_unload (p as Frame ptr ptr)
 end extern
-declare sub frame_draw overload (src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, page as integer, write_mask as bool = NO)
-declare sub frame_draw overload (src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
-declare sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
+declare sub frame_draw overload (src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, page as integer, opts as DrawOptions = def_drawoptions)
+declare sub frame_draw overload (src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
+declare sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
 declare function frame_dissolved(spr as Frame ptr, tlength as integer, t as integer, style as integer) as Frame ptr
 declare function default_dissolve_time(style as integer, w as integer, h as integer) as integer
 declare sub frame_flip_horiz(spr as Frame ptr)
