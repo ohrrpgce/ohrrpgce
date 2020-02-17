@@ -1960,7 +1960,7 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
    end if
   end if
 
-  frame_draw spr, .img.pal, sl->ScreenX, sl->ScreenY, , .trans, page
+  frame_draw spr, .img.pal, sl->ScreenX, sl->ScreenY, .trans, page
 
   if have_copy then
    frame_unload(@spr)
@@ -2938,7 +2938,7 @@ Sub DrawEllipseSlice(byval sl as Slice ptr, byval p as integer)
    exit sub
   end if
 
-  frame_draw .frame, , small(sl->screenX, sl->screenX + sl->Width), small(sl->screenY, sl->screenY + sl->Height), , , p
+  frame_draw .frame, , small(sl->screenX, sl->screenX + sl->Width), small(sl->screenY, sl->screenY + sl->Height), , p
 
 ' ellipse vpages(p), small(sl->screenX, sl->screenX + sl->Width) + w / 2 - 0.5, small(sl->screenY, sl->screenY + sl->Height) + h / 2 - 0.5 , w / 2 - 0.5, .bordercol, fillcol, h / 2 - 0.5
  end with

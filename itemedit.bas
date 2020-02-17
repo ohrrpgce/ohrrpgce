@@ -304,7 +304,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
    'Is a weapon
    DIM frame as integer = 0
    IF state.pt = 17 THEN frame = 1
-   frame_draw wep_img.sprite + 1 - frame, wep_img.pal, 280, 160, , , dpage
+   frame_draw wep_img.sprite + 1 - frame, wep_img.pal, 280, 160, , dpage
    DIM handle as XYPair
    handle.x = 280 + itembuf(78 + frame * 2)
    handle.y = 160 + itembuf(79 + frame * 2)

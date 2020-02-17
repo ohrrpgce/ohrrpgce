@@ -852,7 +852,7 @@ SUB minimap (playerpos as XYPair)
  offset.y = rCenter - mini->h / 2
 
  edgeboxstyle offset.x - 2, offset.y - 2, mini->w + 4, mini->h + 4, 0, vpage
- frame_draw mini, NULL, offset.x, offset.y, 1, NO, vpage
+ frame_draw mini, NULL, offset.x, offset.y, NO, vpage
  frame_unload @mini
 
  MenuSound gen(genAcceptSFX)
@@ -1012,7 +1012,7 @@ FUNCTION teleporttool () as bool
   ' Draw screen
   copypage holdscreen, vpage
   edgeboxstyle offset.x - 2, offset.y - 2, minisize.x + 4, minisize.y + 4, 0, vpage
-  frame_draw mini, NULL, offset.x - camera.x, offset.y - camera.y, 1, NO, vpage
+  frame_draw mini, NULL, offset.x - camera.x, offset.y - camera.y, NO, vpage
   'Hero cursor
   DIM cursor as XYPair = offset + dest * zoom - camera
   rectangle cursor.x, cursor.y, zoom, zoom, uilook(uiSelectedItem) * toggle, vpage

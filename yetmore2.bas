@@ -392,7 +392,7 @@ FUNCTION titlescreen () as bool
   END IF
 
   clearpage vpage
-  frame_draw backdrop, , pCentered, pCentered, , NO, vpage
+  frame_draw backdrop, , pCentered, pCentered, NO, vpage
   setvispage vpage
   check_for_queued_fade_in
   dowait

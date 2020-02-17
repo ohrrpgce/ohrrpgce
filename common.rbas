@@ -932,77 +932,77 @@ ELSEIF borderindex >= 0 AND borderindex <= gen(genMaxBoxBorder) THEN
    '--Top and bottom edges
    FOR i as integer = x + 8 TO x + w - 24 STEP 16
     shrinkclip , , , y + h - 1
-    frame_draw .sprite + 2, .pal, i, y - 8, 1, YES, fr
+    frame_draw .sprite + 2, .pal, i, y - 8, , fr
     cliprect = oldclip
     shrinkclip , y, ,
-    frame_draw .sprite + 13, .pal, i, y + h - 8, 1, YES, fr
+    frame_draw .sprite + 13, .pal, i, y + h - 8, , fr
     cliprect = oldclip
    NEXT i
    '--Left and right edges
    FOR i as integer = y + 8 TO y + h - 24 STEP 16
     shrinkclip , , x + w - 1,
-    frame_draw .sprite + 7, .pal, x - 8, i, 1, YES, fr
+    frame_draw .sprite + 7, .pal, x - 8, i, , fr
     cliprect = oldclip
     shrinkclip x, , ,
-    frame_draw .sprite + 8, .pal, x + w - 8, i, 1, YES, fr
+    frame_draw .sprite + 8, .pal, x + w - 8, i, , fr
     cliprect = oldclip
    NEXT i
    'Draw end-pieces
    IF w > 26 THEN
     '--Top end pieces
     shrinkclip , , , y + h - 1
-    frame_draw .sprite + 3, .pal, x + w - 24, y - 8, 1, YES, fr
-    frame_draw .sprite + 1, .pal, x + 8, y - 8, 1, YES, fr
+    frame_draw .sprite + 3, .pal, x + w - 24, y - 8, , fr
+    frame_draw .sprite + 1, .pal, x + 8, y - 8, , fr
     cliprect = oldclip
     '--Bottom end pieces
     shrinkclip , y, ,
-    frame_draw .sprite + 14, .pal, x + w - 24, y + h - 8, 1, YES, fr
-    frame_draw .sprite + 12, .pal, x + 8, y + h - 8, 1, YES, fr
+    frame_draw .sprite + 14, .pal, x + w - 24, y + h - 8, , fr
+    frame_draw .sprite + 12, .pal, x + 8, y + h - 8, , fr
     cliprect = oldclip
    ELSEIF w > 16 THEN
     '--Not enough space for the end pieces, have to draw part of the edge after all
     '--Top and bottom edges
     shrinkclip x + 8, , x + w - 9, y + h - 1
-    frame_draw .sprite + 2, .pal, x + 8, y - 8, 1, YES, fr
+    frame_draw .sprite + 2, .pal, x + 8, y - 8, , fr
     cliprect = oldclip
     shrinkclip x + 8, y, x + w - 9,
-    frame_draw .sprite + 13, .pal, x + 8, y + h - 8, 1, YES, fr
+    frame_draw .sprite + 13, .pal, x + 8, y + h - 8, , fr
     cliprect = oldclip
    END IF
    IF h > 26 THEN
     '--Left side end pieces
     shrinkclip , , x + w - 1,
-    frame_draw .sprite + 9, .pal, x - 8, y + h - 24, 1, YES, fr
-    frame_draw .sprite + 5, .pal, x - 8, y + 8, 1, YES, fr
+    frame_draw .sprite + 9, .pal, x - 8, y + h - 24, , fr
+    frame_draw .sprite + 5, .pal, x - 8, y + 8, , fr
     cliprect = oldclip
     '--Right side end pieces
     shrinkclip x, , ,
-    frame_draw .sprite + 10, .pal, x + w - 8, y + h - 24, 1, YES, fr
-    frame_draw .sprite + 6, .pal, x + w - 8, y + 8, 1, YES, fr
+    frame_draw .sprite + 10, .pal, x + w - 8, y + h - 24, , fr
+    frame_draw .sprite + 6, .pal, x + w - 8, y + 8, , fr
     cliprect = oldclip
    ELSEIF h > 16 THEN
     '--Not enough space for the end pieces, have to draw part of the edge after all
     '--Left and right edges
     shrinkclip , y + 8, x + w - 1, y + h - 9
-    frame_draw .sprite + 7, .pal, x - 8, y + 8, 1, YES, fr
+    frame_draw .sprite + 7, .pal, x - 8, y + 8, , fr
     cliprect = oldclip
     shrinkclip x, y + 8, , y + h - 9
-    frame_draw .sprite + 8, .pal, x + w - 8, y + 8, 1, YES, fr
+    frame_draw .sprite + 8, .pal, x + w - 8, y + 8, , fr
     cliprect = oldclip
    END IF
    'Draw corners
    'If the box is really tiny, we need to only draw part of each corner
    shrinkclip , , x + w - 1, y + h - 1
-   frame_draw .sprite, .pal, x - 8, y - 8, 1, YES, fr
+   frame_draw .sprite, .pal, x - 8, y - 8, , fr
    cliprect = oldclip
    shrinkclip x, , , y + h - 1
-   frame_draw .sprite + 4, .pal, x + w - 8, y - 8, 1, YES, fr
+   frame_draw .sprite + 4, .pal, x + w - 8, y - 8, , fr
    cliprect = oldclip
    shrinkclip , y, x + w - 1,
-   frame_draw .sprite + 11, .pal, x - 8, y + h - 8, 1, YES, fr
+   frame_draw .sprite + 11, .pal, x - 8, y + h - 8, , fr
    cliprect = oldclip
    shrinkclip x, y, ,
-   frame_draw .sprite + 15, .pal, x + w - 8, y + h - 8, 1, YES, fr
+   frame_draw .sprite + 15, .pal, x + w - 8, y + h - 8, , fr
    cliprect = oldclip
   END IF
  END WITH
@@ -1917,7 +1917,7 @@ FUNCTION MinimapGenerator.run(runtime as double) as Frame ptr
 
    IF algorithm = minimapScaled ORELSE algorithm = minimapScaledQuant THEN
     DIM tile as Frame ptr = minimap_tile_scaled(composed_tile, zoom, (algorithm = minimapScaledQuant))
-    frame_draw tile, master(), NULL, tx * zoom, ty * zoom, , NO, minimap   'master() not used
+    frame_draw tile, master(), NULL, tx * zoom, ty * zoom, NO, minimap   'master() not used
     frame_unload @tile
    ELSE
 
@@ -3673,7 +3673,7 @@ SUB console_append_message (s as string)
    tempfr = frame_new_view(vpages(vpage), 0, .top + 16, vpages(vpage)->w, .h - 16)
    copied = frame_duplicate(tempfr)
    frame_clear tempfr, .c
-   frame_draw copied, , 0, .top, , NO, vpage
+   frame_draw copied, , 0, .top, NO, vpage
    .y -= 16
    frame_unload @copied
    frame_unload @tempfr

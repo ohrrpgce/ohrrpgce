@@ -626,7 +626,7 @@ SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, pa
   edgeboxstyle 4 + box.portrait_pos.x, ypos  + box.portrait_pos.y, 50, 50, box.boxstyle, page, YES
  END IF
  WITH st.portrait
-  IF .sprite THEN frame_draw .sprite, .pal, 4 + box.portrait_pos.x, ypos + box.portrait_pos.y, , , page
+  IF .sprite THEN frame_draw .sprite, .pal, 4 + box.portrait_pos.x, ypos + box.portrait_pos.y, , page
  END WITH
 END SUB
 
@@ -641,7 +641,7 @@ SUB textbox_draw_with_background(byref box as TextBox, byref st as TextboxEditSt
  viewport = frame_new_view(fr, large(0, fr->w - gen(genResolutionX)), large(0, fr->h - gen(genResolutionY)), gen(genResolutionX), gen(genResolutionY))
  draw_background viewport, bgChequer
  fuzzyrect viewport, 0, 0, , , uilook(uiBackground), 50  'Make the chequer less glaring underneath text
- IF backdrop THEN frame_draw backdrop, , 0, 0, , box.backdrop_trans, viewport
+ IF backdrop THEN frame_draw backdrop, , 0, 0, box.backdrop_trans, viewport
  DIM viewport_page as integer = registerpage(viewport)
  textbox_edit_preview box, st, viewport_page
  freepage viewport_page

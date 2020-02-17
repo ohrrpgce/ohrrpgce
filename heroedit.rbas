@@ -1465,10 +1465,10 @@ SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
  ELSE
   frame = battle_wtog \ battle_wtog_ticks
  END IF
- frame_draw st.battle.sprite + frame, st.battle.pal, 250, 25, , , dpage
+ frame_draw st.battle.sprite + frame, st.battle.pal, 250, 25, , dpage
 
  frame = st.preview_walk_direction * WALKFRAMES + wtog_to_frame(wtog)
- frame_draw st.walkabout.sprite + frame, st.walkabout.pal, 230 + st.preview_walk_pos.x, 5 + st.preview_walk_pos.y, , , dpage
+ frame_draw st.walkabout.sprite + frame, st.walkabout.pal, 230 + st.preview_walk_pos.x, 5 + st.preview_walk_pos.y, , dpage
  DIM col as integer = uilook(uiSelectedItem + tog)
  IF st.previewframe <> -1 THEN
   DIM hand as XYPair = her.hand_pos(st.previewframe)
@@ -1477,7 +1477,7 @@ SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
   drawline 251 + hand.x, 25 + hand.y, 252 + hand.x, 25 + hand.y, col, dpage
   drawline 250 + hand.x, 26 + hand.y, 250 + hand.x, 27 + hand.y, col, dpage
  END IF
- IF st.portrait.sprite THEN frame_draw st.portrait.sprite, st.portrait.pal, 240, 110, , , dpage
+ IF st.portrait.sprite THEN frame_draw st.portrait.sprite, st.portrait.pal, 240, 110, , dpage
 END SUB
 
 SUB animate_hero_preview(byref st as HeroEditState)

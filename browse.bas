@@ -377,9 +377,9 @@ DELETE br.previewer
 
 'Restore held copies of page 2 and 3 (because the tileset editor still needs them)
 ' and they were clobbered by bit depth changing
-frame_draw holdpage2, , 0, 0, , NO, vpages(2)
+frame_draw holdpage2, , 0, 0, NO, vpages(2)
 frame_unload @holdpage2
-frame_draw holdpage3, , 0, 0, , NO, vpages(3)
+frame_draw holdpage3, , 0, 0, NO, vpages(3)
 frame_unload @holdpage3
 
 setkeys
@@ -485,7 +485,7 @@ END SUB
 SUB ImagePreviewer.draw_preview()
  IF image_preview THEN
   drawbox 320, 0, image_preview->w + 2, image_preview->h + 2, uilook(uiText), , dpage
-  frame_draw image_preview, , 321, 1, , NO, dpage
+  frame_draw image_preview, , 321, 1, NO, dpage
   edgeprint preview_footer, pRight, image_preview->h + 3, uilook(uiDisabledItem), dpage
  END IF
 END SUB

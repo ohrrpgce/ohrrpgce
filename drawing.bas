@@ -167,7 +167,7 @@ END SUB
 SUB copymapblock (sx as integer, sy as integer, sp as integer, dx as integer, dy as integer, dp as integer)
  DIM srctile as Frame ptr
  srctile = frame_new_view(vpages(sp), sx, sy, 20, 20)
- frame_draw srctile, NULL, dx, dy, , NO, dp
+ frame_draw srctile, NULL, dx, dy, NO, dp
  frame_unload @srctile
 END SUB
 
@@ -275,7 +275,7 @@ SUB importmxs (f as string, cap as string, byref count as integer, sprtype as Sp
    END IF
   END IF  '--end enter_space_click()
   clearpage dpage
-  frame_draw_with_background vpages(2), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
+  frame_draw_with_background vpages(2), , 0, 0, bgcolor, chequer_scroll, vpages(dpage)
   IF mstate.pt <> 8 THEN
    standardmenu menu(), mstate, 0, 0, dpage, menuopts
   END IF
@@ -399,7 +399,7 @@ SUB backdrop_browser ()
   clearpage vpage
   'Show the size of the backdrop by outlining it
   drawbox pRight + 1, pBottom + 1, backdrop->w + 2, backdrop->h + 2, uilook(uiMenuItem), 1, vpage
-  frame_draw_with_background backdrop, , pRight + showLeft, pBottom + showTop, , bgcolor, chequer_scroll, vpages(vpage)
+  frame_draw_with_background backdrop, , pRight + showLeft, pBottom + showTop, bgcolor, chequer_scroll, vpages(vpage)
   IF mstate.pt <> 8 THEN
    standardmenu menu(), mstate, 0, 0, vpage, menuopts
   END IF
@@ -478,7 +478,7 @@ LOCAL SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
   END IF
 
   clearpage dpage
-  frame_draw image, , image_pos.x, image_pos.y, , NO, dpage
+  frame_draw image, , image_pos.x, image_pos.y, NO, dpage
   textcolor uilook(uiMenuItem), 0
   IF prev_menu_selected THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr "Previous Menu", 0, 0, dpage
@@ -552,7 +552,7 @@ SUB DitherMenu.update()
 END SUB
 
 SUB DitherMenu.draw()
- IF imported THEN frame_draw imported, , 35*8 + showLeft, 20 + showTop, , NO, vpage
+ IF imported THEN frame_draw imported, , 35*8 + showLeft, 20 + showTop, NO, vpage
  BASE.draw()
 END SUB
 
@@ -716,10 +716,9 @@ END FUNCTION
 'bgcolor is either between 0 and 255 (a colour), bgChequerScroll (a scrolling chequered
 'background), or bgChequer (a non-scrolling chequered background)
 'chequer_scroll is a counter variable which the calling function should increment once per tick.
-SUB frame_draw_with_background (src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer = 1, bgcolor as bgType, byref chequer_scroll as integer, dest as Frame ptr)
- draw_background dest, bgcolor, chequer_scroll, x, y, src->w * scale, src->h * scale
- 'Draw transparently
- frame_draw src, pal, x, y, scale, YES, dest
+SUB frame_draw_with_background (src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, bgcolor as bgType, byref chequer_scroll as integer, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
+ draw_background dest, bgcolor, chequer_scroll, x, y, src->w * opts.scale, src->h * opts.scale
+ frame_draw src, pal, x, y, , dest, opts
 END SUB
 
 ' Describe a bgType value (usually append to "Background: ")
@@ -801,7 +800,7 @@ DO
  END IF
 
  clearpage dpage
- frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
+ frame_draw_with_background vpages(3), , 0, 0, bgcolor, chequer_scroll, vpages(dpage)
  DIM menuopts as MenuOptions
  menuopts.edged = YES
  standardmenu menu(), state, 10, 4, dpage, menuopts
@@ -860,7 +859,7 @@ SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref 
   END IF
   IF state.pt = 5 THEN intgrabber(bgcolor, bgFIRST, 255)
   clearpage dpage
-  frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
+  frame_draw_with_background vpages(3), , 0, 0, bgcolor, chequer_scroll, vpages(dpage)
   menu(5) = "View with background: " & bgcolor_caption(bgcolor)
   standardmenu menu(), state, 10, 8, dpage, menuopt
   SWAP vpage, dpage
@@ -1394,7 +1393,7 @@ DO
  END IF
 
  clearpage dpage
- frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
+ frame_draw_with_background vpages(3), , 0, 0, bgcolor, chequer_scroll, vpages(dpage)
 
  DIM msg as string
  IF tmode = 1 OR tmode = 2 THEN
@@ -1444,7 +1443,7 @@ END SUB
 
 SUB refreshtileedit (state as TileEditState)
  copymapblock state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
- frame_draw vpages(3), NULL, -state.tilex * 20, -state.tiley * 20, , NO, state.drawframe  'Blit the tile onto state.drawframe
+ frame_draw vpages(3), NULL, -state.tilex * 20, -state.tiley * 20, NO, state.drawframe  'Blit the tile onto state.drawframe
 END SUB
 
 SUB writeundoblock (state as TileEditState)
@@ -1550,7 +1549,7 @@ overlaypal = palette16_new()
 DIM chequer_scroll as integer = 0
 DIM tog as integer = 0
 DIM tick as integer = 0
-ts.lastcpos = TYPE(ts.x, ts.y)
+ts.lastcpos = XY(ts.x, ts.y)
 ts.justpainted = 0
 ts.didscroll = NO
 ts.undo = 0
@@ -1771,7 +1770,9 @@ DO
  '--Draw screen (Some of the editor is predrawn to page 2)
  clearpage dpage
  copypage 2, dpage
- frame_draw_with_background ts.drawframe, NULL, 80, 0, 8, bgcolor, chequer_scroll, vpages(dpage)  'Draw the tile, at 8x zoom with background
+ DIM scale8 as DrawOptions
+ scale8.scale = 8
+ frame_draw_with_background ts.drawframe, NULL, 80, 0, bgcolor, chequer_scroll, vpages(dpage), scale8  'Draw the tile, at 8x zoom with background
  
  '--Draw tile preview
  IF ts.preview_content = 0 THEN
@@ -1830,7 +1831,8 @@ DO
     overlaypal->col(15) = randint(10)
   END SELECT
  END IF
- frame_draw overlay, iif(overlay_use_palette, overlaypal, NULL), 80, 0, 8, YES, dpage  'Draw tool overlay, at 8x zoom
+ 'Draw tool overlay, at 8x zoom
+ frame_draw overlay, iif(overlay_use_palette, overlaypal, NULL), 80, 0, YES, dpage, scale8
 
  textcolor uilook(uiText), uilook(uiHighlight)
  printstr toolinfo(ts.tool).name, 8, 8, dpage
@@ -1902,7 +1904,7 @@ SUB tileedit_show_tile_tiled(byref ts as TileEditState, byval bgcolor as bgType,
   FOR row = -1 TO 1
   
    ' draw the edited tile as a block of 9
-   frame_draw_with_background ts.drawframe, NULL, area.x+((1+column)*tilesize), area.y+((1+row)*tilesize), 1, bgcolor, chequer_scroll, vpages(dpage)
+   frame_draw_with_background ts.drawframe, NULL, area.x+((1+column)*tilesize), area.y+((1+row)*tilesize), bgcolor, chequer_scroll, vpages(dpage)
    
   NEXT row
  NEXT column
@@ -1924,7 +1926,7 @@ SUB tileedit_show_neighbouring_tiles(byref ts as TileEditState, byval bgcolor as
  ' draw white background square (plus a border of 1px)
  rectangle area.x-1, area.y-1, area.wide+2, area.high+2, uilook(uiText), dpage
  ' draw the edited tile as preview at the centre
- frame_draw_with_background ts.drawframe, NULL, area.x+tilesize, area.y+tilesize, 1, bgcolor, chequer_scroll, vpages(dpage)
+ frame_draw_with_background ts.drawframe, NULL, area.x+tilesize, area.y+tilesize, bgcolor, chequer_scroll, vpages(dpage)
  
  ' draw neighboring tiles in a circle around the middle tile 
  FOR column = -1 TO 1
@@ -1943,9 +1945,9 @@ SUB tileedit_show_neighbouring_tiles(byref ts as TileEditState, byval bgcolor as
    IF temp_tilepos.y >= 200 THEN temp_tilepos.y = 0
    
    ' create a temporary copy of the tile from the tile page
-   frame_draw vpages(3), NULL, -temp_tilepos.x, -temp_tilepos.y, , NO, temp_frame
+   frame_draw vpages(3), NULL, -temp_tilepos.x, -temp_tilepos.y, NO, temp_frame
    ' draw the tile on the display page
-   frame_draw_with_background temp_frame, NULL, area.x+((1+column)*tilesize), area.y+((1+row)*tilesize), 1, bgcolor, chequer_scroll, vpages(dpage)
+   frame_draw_with_background temp_frame, NULL, area.x+((1+column)*tilesize), area.y+((1+row)*tilesize), bgcolor, chequer_scroll, vpages(dpage)
    
   NEXT row
  NEXT column
@@ -2179,7 +2181,7 @@ LOCAL SUB tilecut_load_source(ts as TileEditState, page as integer)
  temp = frame_load(sprtype, ts.cutfrom)
  frame_clear vpages(page)
  IF temp THEN
-  frame_draw temp, , 0, 0, , NO, vpages(page)
+  frame_draw temp, , 0, 0, NO, vpages(page)
   frame_unload @temp
  END IF
 END SUB
@@ -2300,12 +2302,12 @@ DO
   copypage 2, dpage
   IF ts.y < 100 THEN
    'preview 59 pixels of tileset at bottom of screen
-   frame_draw preview, , 0, 141, , NO, dpage
+   frame_draw preview, , 0, 141, NO, dpage
    rectangle 0, 139, 320, 2, uilook(uiSelectedItem + tog), dpage
    drawbox ts.tilex * 20, 141 + ts.tiley * 20 - previewy, 20, 20, uilook(uiSelectedItem + tog), 1, dpage
   ELSE
    'tileset preview at top of screen
-   frame_draw preview, , 0, 0, , NO, dpage
+   frame_draw preview, , 0, 0, NO, dpage
    rectangle 0, 59, 320, 2, uilook(uiSelectedItem + tog), dpage
    drawbox ts.tilex * 20, ts.tiley * 20 - previewy, 20, 20, uilook(uiSelectedItem + tog), 1, dpage
   END IF
@@ -2460,9 +2462,9 @@ END SUB
 ' Draw the zoomed and unzoomed sprite areas
 SUB spriteedit_draw_sprite_area(ss as SpriteEditState, sprite as Frame ptr, pal as Palette16 ptr, page as integer)
  drawbox ss.area(0).x - 1, ss.area(0).y - 1, ss.area(0).w + 2, ss.area(0).h + 2, uilook(uiText), 1, page
- frame_draw sprite, pal, 4, 1, ss.zoom, NO, page
+ frame_draw sprite, pal, 4, 1, NO, page, DrawOptions(ss.zoom)
  drawbox ss.previewpos.x - 1, ss.previewpos.y - 1, ss.wide + 2, ss.high + 2, uilook(uiText), 1, page
- frame_draw sprite, pal, ss.previewpos.x, ss.previewpos.y, 1, NO, page
+ frame_draw sprite, pal, ss.previewpos.x, ss.previewpos.y, NO, page
 END SUB
 
 ' Draw sprite editor
@@ -2536,7 +2538,7 @@ SUB spriteedit_display(ss as SpriteEditState)
   ellipse vpages(dpage), 4 + (ss.x + 0.5) * ss.zoom - 0.5, 1 + (ss.y + 0.5) * ss.zoom - 0.5, (ss.airsize / 2) * ss.zoom + 0.05, ss.curcolor
  END IF
 
- frame_draw overlay, pal16, 4, 1, ss.zoom, YES, dpage
+ frame_draw overlay, pal16, 4, 1, , dpage, DrawOptions(ss.zoom)
  frame_unload @overlay
  palette16_unload @pal16
 
@@ -2558,8 +2560,8 @@ SUB spriteedit_display(ss as SpriteEditState)
    temppos.x += (ss.adjustpos.x - ss.x)
    temppos.y += (ss.adjustpos.y - ss.y)
   END IF
-  frame_draw ss_save.clone_brush, ss.palette, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, ss.zoom, , dpage
-  frame_draw ss_save.clone_brush, ss.palette, ss.previewpos.x + temppos.x, ss.previewpos.y + temppos.y, , , dpage
+  frame_draw ss_save.clone_brush, ss.palette, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, , dpage, DrawOptions(ss.zoom)
+  frame_draw ss_save.clone_brush, ss.palette, ss.previewpos.x + temppos.x, ss.previewpos.y + temppos.y, , dpage
  END IF
  textcolor uilook(uiMenuItem), 0
  printstr "x=" & ss.x & " y=" & ss.y, 0, 190, dpage
@@ -2884,9 +2886,9 @@ FUNCTION spriteedit_import16_cut_custom_frames(byref ss as SpriteEditState, imps
 
   IF last_fileset <> ss.fileset THEN
    frame_size = .size
-   first_offset = TYPE(0, 0)
-   frame_offset = TYPE(.size.w, 0)
-   direction_offset = TYPE(.size.w * frames_per_dir, 0)
+   first_offset = XY(0, 0)
+   frame_offset = XY(.size.w, 0)
+   direction_offset = XY(.size.w * frames_per_dir, 0)
   END IF
   last_fileset = ss.fileset
 
@@ -2952,7 +2954,7 @@ FUNCTION spriteedit_import16_cut_custom_frames(byref ss as SpriteEditState, imps
    '--Draw screen
    clearpage dpage
    drawbox image_pos.x - 1, image_pos.y - 1, zoom * impsprite->w + 2, zoom * impsprite->h + 2, uilook(uiMenuItem), 1, dpage
-   frame_draw impsprite, pal16, image_pos.x, image_pos.y, zoom, NO, dpage
+   frame_draw impsprite, pal16, image_pos.x, image_pos.y, NO, dpage, DrawOptions(zoom)
 
    DIM framenum as integer = 0
    FOR direction as integer = 0 TO .directions - 1
@@ -2985,7 +2987,7 @@ FUNCTION spriteedit_import16_cut_custom_frames(byref ss as SpriteEditState, imps
     x = first_offset.x + direction * direction_offset.x + dirframe * frame_offset.x
     y = first_offset.y + direction * direction_offset.y + dirframe * frame_offset.y
     DIM impview as Frame ptr = frame_new_view(impsprite, x, y, frame_size.w, frame_size.h)
-    frame_draw impview, , (.size.w - frame_size.w) \ 2 + framenum * .size.w, .size.h - frame_size.h, , NO, flattened_set
+    frame_draw impview, , (.size.w - frame_size.w) \ 2 + framenum * .size.w, .size.h - frame_size.h, NO, flattened_set
     frame_unload @impview
     framenum += 1
    NEXT
@@ -3057,7 +3059,7 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   END IF
 
   clearpage dpage
-  frame_draw image, pal16, imagepos.x, imagepos.y, zoom, NO, dpage
+  frame_draw image, pal16, imagepos.x, imagepos.y, NO, dpage, DrawOptions(zoom)
   'Draw box around the selectable proportion of the image
   drawbox imagepos.x - 1, imagepos.y - 1, picksize.x * zoom + 2, picksize.y * zoom + 2, uilook(uiText), 1, dpage
 
@@ -3601,13 +3603,13 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
  IF paste_keychord() AND ss_save.spriteclip <> NULL THEN
   writeundospr ss
   spriteedit_clip ss
-  frame_draw ss_save.spriteclip, NULL, 0, 0, , NO, ss.sprite
+  frame_draw ss_save.spriteclip, NULL, 0, 0, NO, ss.sprite
  END IF
  '--TRANSPARENT PASTE (CTRL+T)
  IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) AND ss_save.spriteclip <> NULL THEN
   writeundospr ss
   spriteedit_clip ss
-  frame_draw ss_save.spriteclip, NULL, 0, 0, , YES, ss.sprite
+  frame_draw ss_save.spriteclip, NULL, 0, 0, YES, ss.sprite
  END IF
 
  '--COPY PALETTE (ALT+C)
@@ -3824,7 +3826,7 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
        writeundospr ss
       END IF
       spriteedit_clip ss
-      frame_draw ss_save.clone_brush, , ss.x - ss_save.clonepos.x, ss.y - ss_save.clonepos.y, , , ss.sprite
+      frame_draw ss_save.clone_brush, , ss.x - ss_save.clonepos.x, ss.y - ss_save.clonepos.y, , ss.sprite
       ss.lastpos.x = ss.x
       ss.lastpos.y = ss.y
      ELSE
@@ -3924,7 +3926,7 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
   palette16_save ss.palette, ss.pal_num  'Save palette in case it has changed
   spriteedit_export ss.default_export_filename, ss.sprite, ss.palette
  END IF
- ss.lastcpos = TYPE(ss.x, ss.y)
+ ss.lastcpos = XY(ss.x, ss.y)
 END SUB
 
 SUB spriteedit_flood_fill(byref ss as SpriteEditState)
@@ -4634,7 +4636,7 @@ SUB SpriteSetBrowser_save_callback(spr as Frame ptr, context as any ptr, defpal 
  DIM byref this as SpriteSetBrowser = *cast(SpriteSetBrowser ptr, context)
  'DIM tt as double = TIMER
  'Copy back into editing_spriteset, overwriting existing frame (trans=NO)
- frame_draw spr, NULL, 0, 0, , NO, this.editing_frame
+ frame_draw spr, NULL, 0, 0, NO, this.editing_frame
 
  'Save default palettes immediately for live previewing
  this.defpalettes(this.editing_setnum) = defpal
@@ -4919,7 +4921,9 @@ END SUB
 
 SUB paste_frame(src as Frame ptr, dest as Frame ptr, transparent as bool)
   IF transparent = NO THEN frame_clear dest
-  frame_draw src, , 0, 0, , YES, dest, YES
+  DIM opts as DrawOptions
+  opts.write_mask = YES
+  frame_draw src, , 0, 0, YES, dest, opts
 END SUB
 
 'Paste onto the current frame or spriteset
@@ -5190,11 +5194,11 @@ SUB SpriteSetEditor.display()
 
  DIM as integer x, y
  FOR idx as integer = 0 to ss->num_frames - 1
-  frame_draw @ss->frames[idx], pal, x, y, , , vpage
+  frame_draw @ss->frames[idx], pal, x, y, , vpage
   x += ss->frames[idx].w
  NEXT
 
- frame_draw anim_preview->cur_frame(), pal, 0, 100, , , vpage
+ frame_draw anim_preview->cur_frame(), pal, 0, 100, , vpage
 
  '--screen update
  setvispage vpage
@@ -5346,7 +5350,7 @@ SUB AnimationEditor.toplevel()
     clearpage vpage
     textcolor uilook(uiMenuItem), 0
     printstr ticklite("e`x`port"), pRight, pBottom, vpage, YES
-    frame_draw sprstate->cur_frame(), pal, pCentered, pBottom - 30, , , vpage
+    frame_draw sprstate->cur_frame(), pal, pCentered, pBottom - 30, , vpage
     standardmenu topmenu(), topstate, 0, 0, vpage
     setvispage vpage
     dowait
@@ -5514,7 +5518,7 @@ SUB AnimationEditor.edit_animation(anim_name as string)
   ' Draw screen
   clearpage vpage
   draw_background vpages(vpage), bgChequer
-  frame_draw @sprset->frames[framenum], pal, pCentered, pBottom - 30, , , vpage
+  frame_draw @sprset->frames[framenum], pal, pCentered, pBottom - 30, , vpage
 
   WITH state.rect
    fuzzyrect vpages(vpage), .x, .y, .wide, .high, uilook(uiBackground)

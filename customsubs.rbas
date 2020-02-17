@@ -1481,7 +1481,7 @@ LOCAL SUB pal16browse_draw_spriteset(sprite as Frame ptr, pal as Palette16 ptr, 
  IF sprite = NULL THEN EXIT SUB
  y -= sprite->h \ 2 - 10
  FOR framenum as integer = 0 TO sprite->arraylen - 1
-  frame_draw sprite + framenum, pal, x, y, , , page
+  frame_draw sprite + framenum, pal, x, y, , page
   x += (sprite + framenum)->w
  NEXT
 END SUB
@@ -1814,7 +1814,7 @@ SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as in
 
   clearpage dpage
   drawbox topleft.x - 1, topleft.y - 1, fr->w * zoom + 2, fr->h * zoom + 2, uilook(uiSelectedDisabled), 1, dpage
-  frame_draw fr, spr.pal, topleft.x, topleft.y, zoom, , dpage
+  frame_draw fr, spr.pal, topleft.x, topleft.y, , dpage, DrawOptions(zoom)
   col = uilook(uiBackground)
   IF tog = 0 THEN col = uilook(uiSelectedItem)
   draw_crosshairs topleft + XY(x, y) * zoom, 1, zoom, col, dpage

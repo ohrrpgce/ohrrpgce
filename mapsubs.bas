@@ -296,7 +296,7 @@ SUB MapPreviewer.draw(xpos as RelPos, ypos as RelPos, page as integer)
   'allocated next frame so we can still hit the target FPS. No-op if finished.
   DIM runtime as double = large(setwait_time_remaining() - 0.008, 0.020)
   generator->run(runtime)
-  frame_draw generator->minimap, , xpos, ypos, , , page
+  frame_draw generator->minimap, , xpos, ypos, , page
  END IF
 END SUB
 
@@ -1985,12 +1985,12 @@ DO
 
       ' Draw a circle in the center, to indicate the bit is set even if there are no walls
       IF (wallbits AND passAllWalls) = 0 THEN
-       frame_draw st.arrow_icons(frameoffset + 4), @temppal, pixelx, pixely, , , dpage
+       frame_draw st.arrow_icons(frameoffset + 4), @temppal, pixelx, pixely, , dpage
       END IF
 
       FOR direc as DirNum = 0 TO 3
        IF wallbits AND (1 SHL direc) THEN
-        frame_draw st.arrow_icons(frameoffset + direc), @temppal, pixelx, pixely, , , dpage
+        frame_draw st.arrow_icons(frameoffset + direc), @temppal, pixelx, pixely, , dpage
        END IF
       NEXT
 
@@ -2233,7 +2233,7 @@ DO
 
  '--menubar cursor
  IF st.editmode = tile_mode THEN
-  frame_draw st.cursor.sprite + tog, st.cursor.pal, ((st.usetile(st.layer) - st.menubarstart(st.layer)) * 20), 0, , , dpage
+  frame_draw st.cursor.sprite + tog, st.cursor.pal, ((st.usetile(st.layer) - st.menubarstart(st.layer)) * 20), 0, , dpage
  END IF
 
  '--position finder--
@@ -2247,7 +2247,7 @@ DO
   screct.high = small(screct.high, st.map.high - screct.y)
   rectangle screct.x, screct.y + 35, screct.wide, screct.high, findrgb(0,220,0), dpage
   IF st.editmode = zone_mode THEN
-   frame_draw st.zoneminimap, NULL, 0, 35, , , dpage
+   frame_draw st.zoneminimap, NULL, 0, 35, , dpage
   END IF
  END IF
 
@@ -2486,7 +2486,7 @@ SUB mapedit_draw_cursor(st as MapEditState)
  'Normal cursor
  drawcube vpages(dpage), tool_rect, tool_cube_offset(st), uilook(uiMenuItem)
  tool_rect += st.per_layer_skew * st.layer / 10
- frame_draw st.cursor.sprite + global_tog, st.cursor.pal, tool_rect.x, tool_rect.y, , , dpage
+ frame_draw st.cursor.sprite + global_tog, st.cursor.pal, tool_rect.x, tool_rect.y, , dpage
 END SUB
 
 FUNCTION mapedit_tool_rect(st as MapEditState) as RectType
@@ -2713,7 +2713,7 @@ FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, framenu
  spritepos.y += tileh - img.sprite->h + st.map.gmap(11)
  IF rect_collide_rect(st.viewport, XY_WH(spritepos, img.sprite->size)) THEN
   framenum = small(framenum, img.sprite->arraylen - 1)
-  frame_draw img.sprite + framenum, img.pal, spritepos.x, spritepos.y, , , dpage
+  frame_draw img.sprite + framenum, img.pal, spritepos.x, spritepos.y, , dpage
   RETURN YES
  END IF
 END FUNCTION
@@ -3764,7 +3764,7 @@ SUB mapedit_layers (st as MapEditState)
   clearpage dpage
   IF layerpreview THEN
    'Shift over 6 pixels to avoid the scrollbar if any
-   frame_draw layerpreview, , pRight + showLeft - 6, pTop, , NO, dpage
+   frame_draw layerpreview, , pRight + showLeft - 6, pTop, NO, dpage
   END IF
   standardmenu cast(BasicMenuItem vector, menu), state, 0, 0, dpage, menuopts
 
@@ -5225,7 +5225,7 @@ SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
   clearpage dpage
   drawoff.x = large(0, -rs.rect.x * rs.zoom)
   drawoff.y = large(0, -rs.rect.y * rs.zoom)
-  frame_draw rs.minimap, NULL, drawoff.x, drawoff.y, 1, NO, dpage
+  frame_draw rs.minimap, NULL, drawoff.x, drawoff.y, NO, dpage
   drawbox drawoff.x + rs.zoom * rs.rect.x, drawoff.y + rs.zoom * rs.rect.y, rs.zoom * rs.rect.wide, rs.zoom * rs.rect.high, 14 + state.tog, 1, dpage
   draw_menu rs.menu, state, dpage
 
@@ -5316,7 +5316,7 @@ SUB show_minimap(st as MapEditState)
   DIM minimap as Frame Ptr
   minimap = createminimap(st.map.tiles(), st.tilesets(), @st.map.pass, , algorithm)
   clearpage vpage
-  frame_draw minimap, NULL, 0, 0, 1, NO, vpage
+  frame_draw minimap, NULL, 0, 0, NO, vpage
   frame_unload @minimap
   setvispage vpage
 
@@ -5722,7 +5722,7 @@ SUB mapedit_pickblock(st as MapEditState)
            select_rect.wide * 20, select_rect.high * 20, _
            uilook(uiHighlight + tog), 2, vpage
   ELSE
-   frame_draw st.cursor.sprite + tog, st.cursor.pal, tilepick.x * 20, tilepick.y * 20 - scrolly, , , vpage
+   frame_draw st.cursor.sprite + tog, st.cursor.pal, tilepick.x * 20, tilepick.y * 20 - scrolly, , vpage
   END IF
   setvispage vpage
   IF dowait THEN
@@ -6453,7 +6453,7 @@ END SUB
 ' (Default to displaying south1 frame)
 SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4, thinggrabber_hint as bool = NO)
  edgebox pRight - 15, pBottom - 23, npc_img.sprite->w + 2, npc_img.sprite->h + 2, uilook(uiDisabledItem), uilook(uiText), dpage
- frame_draw npc_img.sprite + framenum, npc_img.pal, pRight - 16, pBottom - 24, 1, YES, dpage
+ frame_draw npc_img.sprite + framenum, npc_img.pal, pRight - 16, pBottom - 24, , dpage
  textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
  printstr boxpreview, 0, pBottom - 10, dpage
  textcolor uilook(uiSelectedItem2), 0
@@ -6631,7 +6631,7 @@ DO
    printstr "" & i, 0, y + 5, dpage
    WITH st.npc_img(i)
     '--Down A frame
-    frame_draw .sprite + 4, .pal, 32, (i - state.top) * 25, 1, -1, dpage
+    frame_draw .sprite + 4, .pal, 32, (i - state.top) * 25, , dpage
    END WITH
    textcol = uilook(uiMenuItem)
    textbg = uilook(uiHighlight)

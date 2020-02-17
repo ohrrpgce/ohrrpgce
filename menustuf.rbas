@@ -1489,7 +1489,7 @@ SUB picksave_draw(menu() as string, byval loading as bool, byval newgame_opt as 
     IF sprites(i, o).sprite THEN
      DIM wframe as integer = 0
      IF st.pt = i THEN wframe = wtog_to_frame(wtog)
-     frame_draw sprites(i, o).sprite + wframe, sprites(i, o).pal, 140 + (o * 42), 24 + yoff, 1, -1, page
+     frame_draw sprites(i, o).sprite + wframe, sprites(i, o).pal, 140 + (o * 42), 24 + yoff, , page
     END IF
    NEXT o
    setclip , , , , vpages(page)

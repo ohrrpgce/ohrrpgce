@@ -1600,7 +1600,7 @@ SUB quad_transforms_menu ()
      load_sprite_and_pal tempsprite, spritemode, 0, -1
      with tempsprite
       testframe = frame_new(.sprite->w, .sprite->h, , YES)
-      frame_draw .sprite, .pal, 0, 0, , , testframe
+      frame_draw .sprite, .pal, 0, 0, , testframe
      end with
      unload_sprite_and_pal tempsprite
     case else
@@ -1640,7 +1640,9 @@ SUB quad_transforms_menu ()
   standardmenu menu(), st, 0, 0, vpage8
   ' We have to draw onto a temp 8-bit Surface, because frame_draw with scale
   ' isn't supported with Surfaces yet
-  frame_draw testframe, , 20, 50, 2, , vpages(vpage8)  'drawn at 2x scale
+  DIM opts as DrawOptions
+  opts.scale = 2
+  frame_draw testframe, , 20, 50, , vpages(vpage8), opts
 
   'Can only display the previous frame's time to draw, since we don't currently
   'have any functions to print text to surfaces
@@ -1649,7 +1651,7 @@ SUB quad_transforms_menu ()
 
   pagecopytime = TIMER
   'Copy from vpage8 (8 bit Frame) to the render target surface
-  frame_draw vpages(vpage8), NULL, 0, 0, , NO, vpage
+  frame_draw vpages(vpage8), NULL, 0, 0, NO, vpage
   pagecopytime = TIMER - pagecopytime
 
   DIM starttime as double = TIMER
@@ -1735,7 +1737,7 @@ SUB rotozoom_test_with (img as GraphicPair, rotate as double, zoomx as double, z
  NEXT
 
  DIM spr as Frame ptr = frame_with_surface(out_surf)
- frame_draw spr, img.pal, pCentered, pCentered - 50, , NO, vpage
+ frame_draw spr, img.pal, pCentered, pCentered - 50, NO, vpage
  setvispage vpage
  notification strprintf("zoom %.2fx%.2f (size %d*%d) rotate %.1f smooth %d: %.1fus", zoomx, zoomy, out_surf->width, out_surf->height, rotate, smooth, (rzmin * 1e6))
 
@@ -1824,7 +1826,7 @@ SUB new_graphics_tests
   IF doc = NULL THEN doc = rgfx_open(ofile)
   fr = rgfx_load_spriteset(doc, sprTypeBackdrop, i)
   rgfx_time += timer - starttime
-  frame_draw fr, , 0, 0, 1, NO, vpage
+  frame_draw fr, , 0, 0, NO, vpage
   setvispage vpage
   ' waitforanykey
   frame_unload @fr

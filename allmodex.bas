@@ -786,7 +786,7 @@ sub copypage (src as integer, dest as integer)
 	'if vpages(src)->w <> vpages(dest)->w or vpages(src)->h <> vpages(dest)->h then
 	'	debug "warning, copied to page of unequal size"
 	'end if
-	frame_draw vpages(src), , 0, 0, , NO, vpages(dest)
+	frame_draw vpages(src), , 0, 0, NO, vpages(dest)
 end sub
 
 sub clearpage (page as integer, colour as integer = -1)
@@ -3807,7 +3807,7 @@ sub draw_layers_at_tile(composed_tile as Frame ptr, tiles as TileMap ptr vector,
 			if todraw < 0 then continue for
 			todraw = translate_animated_tile(todraw)
 
-			frame_draw .spr, , 0, -todraw * 20, 1, (layer > 0), composed_tile
+			frame_draw .spr, , 0, -todraw * 20, (layer > 0), composed_tile
 
 			'Note: readblock() must be called with a default for OOB reads, because
 			'a number of ancient .rpgs have passmaps that are 2 rows shorter than the tilemap
@@ -3860,7 +3860,7 @@ sub loadmxs (filen as string, record as integer, dest as Frame ptr)
 	temp = frame_load_mxs(filen, record)
 	frame_clear dest
 	if temp then
-		frame_draw temp, , 0, 0, , NO, dest
+		frame_draw temp, , 0, 0, NO, dest
 		frame_unload @temp
 	end if
 end sub
@@ -4128,7 +4128,7 @@ sub trans_rectangle(dest as Frame ptr, byval rect as RectType, byval col as RGBc
 		dim saveclip as ClipState = get_cliprect()
 		'Draw a piece of the dest frame onto itself, effectively remapping by pal.
 		dim viewfr as Frame ptr = frame_new_view(dest, rect.x, rect.y, rect.wide, rect.high)
-		frame_draw viewfr, pal, 0, 0, , NO, viewfr
+		frame_draw viewfr, pal, 0, 0, NO, viewfr
 		frame_unload @viewfr
 		palette16_unload @pal
 		get_cliprect() = saveclip
@@ -5976,7 +5976,7 @@ function font_load_16x16 (filename as string) as Font ptr
 			dim tempview as Frame ptr
 			tempview = frame_new_view(image, charw * (i mod 16), charh * (i \ 16), charw, charh)
 			'setclip , charh * i, , charh * (i + 1) - 1, newfont->layers(1)->spr
-			frame_draw tempview, , 0, charh * i, 1, NO, newfont->layers(1)->spr
+			frame_draw tempview, , 0, charh * i, NO, newfont->layers(1)->spr
 			frame_unload @tempview
 		end with
 	next
@@ -7760,9 +7760,9 @@ local function combined_screen(our as Frame ptr, our_pal() as RGBcolor, other_pa
 	dim ret as Frame ptr
 	ret = frame_new(large(our->w, other->width), our->h + other->height, 1, NO, NO, YES)
 	frame_clear ret, uilook(uiBackground)
-	frame_draw our, our_pal(), , 0, 0, , NO, ret
+	frame_draw our, our_pal(), , 0, 0, NO, ret
 	dim other_fr as Frame ptr = frame_with_surface(other)  'TODO: get rid of this
-	frame_draw other_fr, , 0, our->h, , NO, ret
+	frame_draw other_fr, , 0, our->h, NO, ret
 	frame_unload @other_fr
 
 	gfx_surfaceDestroy(@other)
@@ -8659,7 +8659,7 @@ function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor, pal as Pal
 	end if
 	dim wrapper as Frame ptr  'yuck
 	wrapper = frame_with_surface(surf)
-	frame_draw fr, masterpal(), pal, 0, 0, , NO, wrapper
+	frame_draw fr, masterpal(), pal, 0, 0, NO, wrapper
 	frame_unload @wrapper
 	return surf
 end function
@@ -8737,7 +8737,9 @@ function frame_vector_to_array(frames as Frame ptr vector) as Frame ptr
 	ret = frame_new(frames[0]->w, frames[0]->h, v_len(frames), , frames[0]->mask <> NULL)
 
 	for idx as integer = 0 TO v_len(frames) - 1
-		frame_draw frames[idx], , 0, 0, , NO, @ret[idx], YES
+		dim opts as DrawOptions
+		opts.write_mask = YES
+		frame_draw frames[idx], , 0, 0, NO, @ret[idx], opts
 		ret[idx].frameid = frames[idx]->frameid
 	next
 	return ret
@@ -9378,9 +9380,11 @@ function frame_resized(spr as Frame ptr, wide as integer, high as integer, shift
 	dim as Frame ptr ret
 	dim with_surface32 as bool = (spr->surf <> NULL andalso spr->surf->format = SF_32bit)
 	ret = frame_new(wide, high, spr->arraylen, NO, (spr->mask <> NULL), with_surface32)
+	dim opts as DrawOptions
+	opts.write_mask = (spr->surf = NULL)  'FIXME: not supported for Surfaces
 	for fridx as integer = 0 to spr->arraylen - 1
 		frame_clear @ret[fridx], bgcol
-		frame_draw @spr[fridx], NULL, shiftx, shifty, , NO, @ret[fridx], (spr->surf = NULL)  'trans=NO, write_mask=not for Surfaces
+		frame_draw @spr[fridx], NULL, shiftx, shifty, NO, @ret[fridx], opts
 		ret[fridx].frameid = spr[fridx].frameid
 	next
 	return ret

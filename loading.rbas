@@ -3290,7 +3290,7 @@ FUNCTION spriteset_to_basic_spritesheet(ss as Frame ptr) as Frame ptr
   spritesheet = frame_new(ss->w * ss->arraylen, ss->h, , YES)
 
   FOR fridx as integer = 0 TO ss->arraylen - 1
-    frame_draw @ss[fridx], , fridx * ss->w, 0, 1, NO, spritesheet
+    frame_draw @ss[fridx], , fridx * ss->w, 0, NO, spritesheet
   NEXT
 
   RETURN spritesheet
@@ -3302,7 +3302,7 @@ FUNCTION spriteset_from_basic_spritesheet(sheet as Frame ptr, sprtype as SpriteT
   ss = frame_new(large(1, sheet->w \ numframes), sheet->h, numframes, YES)
 
   FOR fridx as integer = 0 TO ss->arraylen - 1
-    frame_draw sheet, , -fridx * ss->w, 0, 1, NO, @ss[fridx]
+    frame_draw sheet, , -fridx * ss->w, 0, NO, @ss[fridx]
   NEXT
   initialise_backcompat_pt_frameids ss, sprtype
 
