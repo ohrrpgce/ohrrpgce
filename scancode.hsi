@@ -200,4 +200,10 @@ define constant,begin
 147,joy:y down
 147,joy:down
 
+# These are only returned by waitforkey(anykey)! You can't use them elsewhere!
+# Don't confuse these with "left button", etc, which are used for "mouse click", etc.
+#180,mouse:left
+#181,mouse:right
+#182,mouse:middle
+
 end

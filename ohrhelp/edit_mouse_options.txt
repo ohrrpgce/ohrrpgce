@@ -1,3 +1,6 @@
 These options allow you to enable built-in mouse support features.
 
-If you are doing your own mouse control with plotscripts, you may want to disable some of these.
+If you are scripting your own mouse controls, you may want to disable some of these.
+
+* "any key", etc, includes mouse
+ This causes the anykey code (for waitforkey, keypress, keyispressed, etc) to also check mouse buttons, usekey checks for left button, and menukey and cancelkey check for right mouse button. It also makes mouse buttons trigger on-keypress scripts (calling "init mouse" does the same).

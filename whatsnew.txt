@@ -5,6 +5,7 @@ April ? 2020 [Gorgonzola]
   *** New Features
 
    * New Plotscripting Features
+    * ""any key", etc, includes mouse" option in Mouse Controls menu [Ralph]
 
   *** Changes
 

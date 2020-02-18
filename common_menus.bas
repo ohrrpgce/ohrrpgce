@@ -395,10 +395,13 @@ SUB edit_mouse_options ()
    menu.last->t = 10
    append_menu_item menu, "Click to advance text boxes: " & yesorno(get_gen_bool("/mouse/click_textboxes"))
    menu.last->t = 20
+   append_menu_item menu, """any key"", etc, include mouse: " & yesorno(get_gen_bool("/mouse/click_keys"))
+   menu.last->t = 13
    append_menu_item menu, "Mouse support on menus: " & yesorno(get_gen_bool("/mouse/mouse_menus"))
    menu.last->t = 11
    append_menu_item menu, "Mouse support in battles: " & yesorno(get_gen_bool("/mouse/mouse_battles"))
    menu.last->t = 12
+
    init_menu_state st, menu
   END IF
 
@@ -455,6 +458,9 @@ SUB edit_mouse_options ()
      st.need_update = YES
     CASE 12:
      toggle_gen_bool("/mouse/mouse_battles")
+     st.need_update = YES
+    CASE 13:
+     toggle_gen_bool("/mouse/click_keys")
      st.need_update = YES
     CASE 20:
      toggle_gen_bool("/mouse/click_textboxes")

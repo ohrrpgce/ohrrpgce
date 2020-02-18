@@ -766,15 +766,22 @@ wait for hero (me) # wait until he stops</example>
 			<shortname>wait for key</shortname>
 			<description>
 				Waits for the player to press a key.
+				(Specially, new keypresses or mouse button release.)
 				<p>key</p> is an optional <ref>scancode</ref> such as a keyboard key (e.g. <tt>key:ctrl</tt>)
 				a joystick button (e.g. <tt>joy:left</tt>), or a virtual scancode such as
 				<ref>usekey</ref>.
-				If you do not specify <p>key</p>, then <ref>anykey</ref> will be used,
-				which waits for any keyboard or joystick button.
-				<p>usekey</p> will wait for Space, Ctrl or Enter; and <p>cancelkey</p> and <p>menukey</p> (which are identical) both wait for Alt or Esc.
+				If you do not specify <p>key</p>, then <ref>anykey</ref> will be used.
+				<lb/>
+				<ref>anykey</ref> waits for any keyboard or joystick button,
+				and also waits for a mouse click if "'any key', etc, include mouse clicks" is
+				turned on in the Mouse Controls menu.
+				<p>usekey</p> will wait for Space, Ctrl or Enter, joystick use key, and optionally left click;
+				and <p>cancelkey</p> and <p>menukey</p> (which are identical) both wait for Alt or Esc,
+				joystick cancel, and optionally right click.
 				<lb/>
 				If and only if <tt>anykey</tt> is used, then <p>waitforkey</p> will return the scancode of the keyboard or joystick key that was pressed,
 				but won't ever be a constant like <tt>usekey</tt>.
+				It returns a value >= 180 if a mouse button was released (see scancode.hsi).
 				<note>
 					Previously you couldn't use scancodes like <tt>key:x</tt>,
 					and there was a separate <ref>waitforscancode</ref> command for those,
@@ -10815,14 +10822,17 @@ joy:up             # aka joy:y up
 joy:down           # aka joy:y down
 
 #  Virtual scancodes:
-any key            # Any keyboard key or joystick button (including joystick left/right/up/down)
+any key            # Any keyboard key or joystick button (including joystick left/right/up/down),
+                   # and also any mouse button if "'any key', etc, include mouse clicks" is turned on in
+		   # the Mouse Controls menu.
 up key             # Up key on the keyboard, or on any joystick
 down key           # ...ditto
 left key
 right key
-use key            # Space, Ctrl or Enter, or Use button on any joystick
-cancel key         # Alt or Esc, or Cancel button on any joystick
-menu key           # Alt or Esc, or Menu button on any joystick
+use key            # Space, Ctrl or Enter, or Use button on any joystick. Includes left clicks
+                   # if "'any key', etc, include mouse" turned on in Mouse Controls menu.
+cancel key         # Alt or Esc, or Cancel button on any joystick. Optionally includes right clicks as above.
+menu key           # Alt or Esc, or Menu button on any joystick. Optionally includes right clicks as above.
 run key            # Esc or Tab, or Run button on any joystick (Hold to run from battle)
 </example>
 				<note>
@@ -10854,6 +10864,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 			<shortname>key constants</shortname>
 			<description>
 				A constant specifying a keyboard key or joystick button by its function.
+				(Possibly included mouse buttons too, if enabled in the Mouse Controls menu.)
 				They can be passed to <ref>keyispressed</ref>, <ref>keyval</ref>, <ref>waitforkey</ref>,
 				<ref>keypress</ref>, <ref>newkeypress</ref> and <ref>waitforscancode</ref>.
 				<lb />

@@ -187,12 +187,16 @@ CONST scJoyLAST = 163
 CONST scMouseLeft = 180
 CONST scMouseRight = 181
 CONST scMouseMiddle = 182
+'...Up to 16 mouse buttons
+
 'The following are only returned by waitforkey!
-CONST scResize = 183   'The window was resized
+CONST scResize = 200   'The window was resized
 
 CONST scAny = -1   'Any key - can NOT be used to index into carray(), only passed to keyval().
                    'Warning: not 100% equivalent to "any key" in scripts, because it excludes
                    'scUnfilteredAlt, and joystick buttons not mapped into carray aren't checked
+                   'Also, in scripts this (and ccUse and ccMenu) will include mouse clicks if
+                   '"'anykey', etc, includes mouse" is turned on, but keyval(scAny), etc don't.
 
 '--- Scancodes shared with carray()
 CONST ccHIGHEST = -2

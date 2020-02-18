@@ -360,7 +360,27 @@ FUNCTION script_keyval (byval key as KBScancode, byval joynum as integer = 0) as
  IF key <= scLAST THEN
   ret = keyval(key)
  ELSE
+  'keyval does this anyway, but always only checks joystick 0
   ret = joykeyval(keybd_to_joy_scancode(key), joynum)
+ END IF
+
+ IF gam.click_keys THEN
+  DIM mask as integer
+  SELECT CASE key
+   CASE scAny    : mask = -1
+   CASE ccUse    : mask = mouseLeft
+   CASE ccCancel : mask = mouseRight
+   CASE ccMenu   : mask = mouseRight
+   'CASE ccRun
+  END SELECT
+
+  IF mask THEN
+   DIM byref mouse as MouseInfo = readmouse()
+   'Check for release, not click, because that's how all builtin
+   'use/menu/cancel/textbox advance controls work.
+   IF mouse.release AND mask THEN ret OR= 6
+   IF mouse.buttons AND mask THEN ret OR= 1
+  END IF
  END IF
 
  IF prefbit(24) = NO THEN  'If improved scancodes not enabled
@@ -402,13 +422,15 @@ SUB trigger_onkeypress_script ()
 
  'Checks whether keyboard and joystick keys are down, and optionally the mouse
  '(we check keys are down, not whether they're held/released.)
- '(mouse is checked if "init mouse" has been run at least once, or if hero mouse controls are enabled)
- IF get_gen_bool("/mouse/move_hero") THEN gam.mouse_enabled = YES
- IF anykeypressed(YES, gam.mouse_enabled, 1) THEN doit = YES  'trigger_level=1
+ '(Mouse is checked if "init mouse" has been run at least once, or if one of these settings enabled)
+ DIM checkmouse as bool = gam.mouse_enabled
+ gam.click_keys = get_gen_bool("/mouse/click_keys")
+ IF gam.click_keys ORELSE get_gen_bool("/mouse/move_hero") THEN checkmouse = YES
+ IF anykeypressed(YES, checkmouse, 1) THEN doit = YES  'trigger_level=1
 
  'Because anykeypressed doesn't check it, and we don't want to break scripts looking for key:alt (== scUnfilteredAlt)
  IF keyval(scUnfilteredAlt) > 0 THEN doit = YES
- 
+
  IF nowscript >= 0 THEN
   IF scriptinsts(nowscript).waiting = waitingOnCmd AND scriptinsts(nowscript).curvalue = 9 THEN
    '--never trigger a onkey script when the previous script
@@ -511,16 +533,17 @@ SUB process_wait_conditions()
       a_script_wants_keys()
      END IF
      IF .waitarg <> scAny THEN
-      IF keyval(.waitarg) > 1 THEN
+      IF script_keyval(.waitarg) > 1 THEN
        script_stop_waiting()
        EXIT SUB
       END IF
+
       'Because carray(ccMenu) doesn't include it, and we don't want to break scripts
       'doing waitforkey(menu key) followed by looking for key:alt (== scUnfilteredAlt)
       IF .waitarg = ccMenu AND keyval(scUnfilteredAlt) > 1 THEN script_stop_waiting()
      ELSE
       '.waitarg == scAny
-      DIM temp as KBScancode = anykeypressed(YES, NO)  'Check joysticks but not mouse clicks
+      DIM temp as KBScancode = anykeypressed(YES, gam.click_keys)  'check joystick, maybe mouse
       'Because anykeypressed doesn't check it, and we don't want to break scripts
       'doing waitforkey(any key) followed by looking for key:alt (== scUnfilteredAlt)
       IF keyval(scUnfilteredAlt) > 1 THEN temp = scUnfilteredAlt
