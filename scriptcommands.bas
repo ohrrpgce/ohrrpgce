@@ -401,9 +401,10 @@ SUB trigger_onkeypress_script ()
  DIM doit as bool = NO
 
  'Checks whether keyboard and joystick keys are down, and optionally the mouse
+ '(we check keys are down, not whether they're held/released.)
  '(mouse is checked if "init mouse" has been run at least once, or if hero mouse controls are enabled)
  IF get_gen_bool("/mouse/move_hero") THEN gam.mouse_enabled = YES
- IF anykeypressed(YES, gam.mouse_enabled, 0) THEN doit = YES
+ IF anykeypressed(YES, gam.mouse_enabled, 1) THEN doit = YES  'trigger_level=1
 
  'Because anykeypressed doesn't check it, and we don't want to break scripts looking for key:alt (== scUnfilteredAlt)
  IF keyval(scUnfilteredAlt) > 0 THEN doit = YES

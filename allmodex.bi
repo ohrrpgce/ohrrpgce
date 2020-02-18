@@ -440,7 +440,7 @@ DECLARE FUNCTION carray alias "KEYVAL" (key as KBScancode) as KeyBits
 DECLARE FUNCTION slowkey (key as KBScancode, ms as integer) as bool
 DECLARE FUNCTION getinputtext () as string
 DECLARE FUNCTION interrupting_keypress () as bool
-DECLARE FUNCTION anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as KeyBits = 1) as KBScancode
+DECLARE FUNCTION anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as KeyBits = 2) as KBScancode
 DECLARE FUNCTION waitforanykey (wait_for_resize as bool = NO) as KBScancode
 DECLARE SUB waitforkeyrelease ()
 DECLARE SUB setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)

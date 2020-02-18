@@ -1942,11 +1942,12 @@ end function
 
 
 'Checks the keyboard and optionally joystick for keypress events.
-'trigger_level: 0 to trigger on a held key,
-'               1 to trigger only on new keypress or repeat.
+'trigger_level: 1 to trigger on a held key,
+'               2 to trigger on keypress (inc. repeat)
+'               4 to trigger only on new keypress.
 'Returns scancode if one is found, 0 otherwise.
 'Use this instead of looping over all keys, to make sure alt filtering and joysticks work
-function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as KeyBits = 1) as KBScancode
+function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as KeyBits = 2) as KBScancode
 	for i as KBScancode = 0 to scLAST
 		'check scAlt only, so Alt-filtering (see setkeys) works
 		if i = scLeftAlt or i = scRightAlt or i = scUnfilteredAlt then continue for
@@ -1957,7 +1958,7 @@ function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, t
 		' wait every tick, while on linux it seems to behave like a normal key
 		if i = scCapsLock or i = scNumLock or i = scScrollLock then continue for
 
-		if keyval(i) > trigger_level then
+		if keyval(i) >= trigger_level then
 			return i
 		end if
 	next
@@ -1965,7 +1966,7 @@ function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, t
 	if checkjoystick then
 		for joynum as integer = 0 to num_joysticks() - 1
 			for key as integer = scJoyFIRST to scJoyLAST
-				if joykeyval(keybd_to_joy_scancode(key), joynum) > trigger_level then
+				if joykeyval(keybd_to_joy_scancode(key), joynum) >= trigger_level then
 					return key
 				end if
 			next
@@ -1973,7 +1974,10 @@ function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, t
 	end if
 
 	if checkmouse then
-		dim bitvec as integer = iif(trigger_level >= 1, mouse_state.release, mouse_state.buttons)
+		'If trigger_level=1, check both release or currently down, eg. to ensure
+		'waitforkeyrelease hides mouse button release.
+		dim bitvec as integer = mouse_state.release
+		if trigger_level = 1 then bitvec or= mouse_state.buttons
 		for button as integer = 0 to 15
 			if bitvec and (1 shl button) then
 				return scMouseLeft + button
@@ -1996,7 +2000,7 @@ function waitforanykey (wait_for_resize as bool = NO) as KBScancode
 		setwait 60, 200
 		io_pollkeyevents()
 		setkeys
-		key = anykeypressed(sleepjoymouse = 0, sleepjoymouse = 0, 3)  'New keypresses only
+		key = anykeypressed(sleepjoymouse = 0, sleepjoymouse = 0, 4)  'New keypresses only
 		if key then
 			snapshot_check  'In case F12 pressed, otherwise it wouldn't work
 			setkeys  'Clear the keypress
@@ -2024,7 +2028,7 @@ end function
 sub waitforkeyrelease ()
 	setkeys
 	'anykeypressed checks scAlt instead of scUnfilteredAlt
-	while anykeypressed(YES, YES, 0) or keyval(scUnfilteredAlt)
+	while anykeypressed(YES, YES, 1) or keyval(scUnfilteredAlt)
 		if getquitflag() then exit sub
 		io_pollkeyevents()
 		setwait 15
