@@ -448,13 +448,16 @@ SUB process_wait_conditions()
    SELECT CASE .curvalue
     CASE 15, 35, 61'--use door, use NPC, teleport to map
      script_stop_waiting()
+
     CASE 16'--fight formation
      script_stop_waiting(IIF(gam.wonbattle, 1, 0))
+
     CASE 1'--wait number of ticks
      .waitarg -= 1
      IF .waitarg < 1 THEN
       script_stop_waiting()
      END IF
+
     CASE 2'--wait for all
      DIM unpause as bool = YES
      FOR i as integer = 0 TO 3
@@ -473,6 +476,7 @@ SUB process_wait_conditions()
      IF unpause THEN
       script_stop_waiting()
      END IF
+
     CASE 3'--wait for hero
      IF .waitarg < 0 OR .waitarg > 3 THEN
       scripterr "waiting for nonexistant hero " & .waitarg, serrBug  'should be bound by waitforhero
@@ -482,6 +486,7 @@ SUB process_wait_conditions()
        script_stop_waiting()
       END IF
      END IF
+
     CASE 4'--wait for NPC
      DIM npcref as NPCIndex = getnpcref(.waitarg, 0)
      IF npcref >= 0 ANDALSO .waitarg2 = gam.map.id THEN
@@ -492,12 +497,14 @@ SUB process_wait_conditions()
       '--no reference found, why wait for a non-existant npc?
       script_stop_waiting()
      END IF
+
     CASE 9, 244'--wait for key, wait for scancode
      IF txt.showing ANDALSO use_touch_textboxes() THEN
       'If a touch textbox is currently being displayed, we make a special
       'exception and treat any touch as the key we are waiting for
       IF readmouse().release AND mouseLeft THEN
        script_stop_waiting()
+       EXIT SUB
       END IF
      ELSE
       a_script_wants_keys()
@@ -505,6 +512,7 @@ SUB process_wait_conditions()
      IF .waitarg <> scAny THEN
       IF keyval(.waitarg) > 1 THEN
        script_stop_waiting()
+       EXIT SUB
       END IF
       'Because carray(ccMenu) doesn't include it, and we don't want to break scripts
       'doing waitforkey(menu key) followed by looking for key:alt (== scUnfilteredAlt)
@@ -519,13 +527,17 @@ SUB process_wait_conditions()
        script_stop_waiting(temp)
       END IF
      END IF
+
     CASE 42'--wait for camera
      IF gen(genCameraMode) <> pancam ANDALSO gen(genCameraMode) <> focuscam THEN script_stop_waiting()
+
     CASE 59'--wait for text box
      IF txt.showing = NO OR readbit(gen(), genSuspendBits, suspendboxadvance) = 1 THEN
       script_stop_waiting()
      END IF
+
     CASE 73, 234, 438'--game over, quit from loadmenu, reset game
+
     CASE 508'--wait for slice
      IF valid_plotslice(.waitarg, serrWarn) THEN
       IF plotslices(.waitarg)->Velocity.X = 0 ANDALSO plotslices(.waitarg)->Velocity.Y = 0 ANDALSO plotslices(.waitarg)->TargTicks = 0 THEN
@@ -535,6 +547,7 @@ SUB process_wait_conditions()
       'If the slice ceases to exist, we should stop waiting for it (after throwing our minor warning)
       script_stop_waiting()
      END IF
+
     CASE 575'--wait for dissolve
      IF valid_plotslice(.waitarg, serrWarn) THEN
       IF NOT SpriteSliceIsDissolving(plotslices(.waitarg), YES) THEN
@@ -544,6 +557,7 @@ SUB process_wait_conditions()
       'If the slice ceases to exist, we should stop waiting for it (after throwing our minor warning)
       script_stop_waiting()
      END IF
+
     CASE ELSE
      scripterr "illegal wait substate " & .curvalue, serrBug
      script_stop_waiting()
