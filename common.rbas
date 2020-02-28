@@ -7820,6 +7820,7 @@ FUNCTION default_gen_bool(nodepath as string) as bool
   CASE "/mouse/mouse_menus": RETURN NO
   CASE "/mouse/mouse_battles": RETURN NO
   CASE "/mouse/click_textboxes": RETURN NO
+  CASE "/mouse/click_keys": RETURN NO
   CASE "/mouse/show_cursor": RETURN NO
   CASE "/mobile_options/touch_textboxes/enabled": RETURN YES
   CASE ELSE
