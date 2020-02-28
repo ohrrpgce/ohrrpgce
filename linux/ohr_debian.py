@@ -7,7 +7,10 @@ import sys
 import os
 import shutil
 
-sys.path.append('..')
+# Location of ohrbuild.py, codename.txt, etc
+rootdir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+sys.path.append(rootdir)
 import ohrbuild
 
 ############################################################################
@@ -21,8 +24,8 @@ def calculate_size(files, executables):
   return size / 1000
 
 def read_version():
-  codename, branch_rev = ohrbuild.read_codename_and_branchrev('..')
-  rev, date = ohrbuild.query_svn_rev_and_date('..')
+  codename, branch_rev = ohrbuild.read_codename_and_branchrev(rootdir)
+  rev, date = ohrbuild.query_svn_rev_and_date(rootdir)
   year = date[0:4]
   month = date[4:6]
   day = date[6:8]
@@ -152,6 +155,6 @@ def relump(lumpdir, rpgfile):
   except(OSError):
     # don't care if the file does not already exist
     pass
-  os.system('../relump "' + lumpdir + '" "' + rpgfile + '"')
+  os.system(rootdir + '/relump "' + lumpdir + '" "' + rpgfile + '"')
 
 ############################################################################
