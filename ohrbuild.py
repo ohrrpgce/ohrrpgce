@@ -210,7 +210,8 @@ def get_fb_info(fbc = 'fbc'):
     if not os.path.isfile (fbc):
         fbc = WhereIs (fbc)
         if not fbc:
-            raise Exception("FreeBasic compiler is not installed!")
+            print("FreeBasic compiler is not installed! (Couldn't find fbc)")
+            sys.exit(1)
     # Newer versions of fbc (1.0+) print e.g. "FreeBASIC Compiler - Version $VER ($DATECODE), built for linux-x86 (32bit)"
     # older versions printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux"
     # older still printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux (target:linux)"

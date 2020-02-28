@@ -309,7 +309,7 @@ def findtool(envvar, toolname, always_expand = False):
     # standalone builds of FB on Windows do not search $PATH for binaries,
     # so we have to do so for it!
     if win32 or always_expand:
-        ret = WhereIs (ret)
+        ret = WhereIs(ret)
     return ret
 
 
@@ -318,7 +318,7 @@ def findtool(envvar, toolname, always_expand = False):
 GCC = findtool ('GCC', "gcc")
 CC = findtool ('CC', "gcc")
 CXX = findtool ('CXX', "g++")
-EUC = findtool ('EUC', "euc", True) # Euphoria to C compiler. Expand path because listed as dependency
+EUC = findtool ('EUC', "euc", True)  # Euphoria to C compiler (None if not found)
 MAKE = findtool ('MAKE', 'make')
 if not MAKE and win32:
     MAKE = findtool ('MAKE', 'mingw32-make')
@@ -335,9 +335,12 @@ if CC:
         # fbc does not support -gen gcc using clang
         env['ENV']['GCC'] = CC  # fbc only checks GCC variable, not CC
         GCC = CC
-    env.Replace (CC = CC)
-if CXX:
-    env.Replace (CXX = CXX)
+
+# This may look redundant, but it's so $MAKE, etc in command strings work, as opposed to setting envvars.
+for tool in ('CC', 'GCC', 'CXX', 'MAKE', 'EUC'):
+    val = globals()[tool]
+    if val:
+        env[tool] = val
 
 #gcc = env['ENV'].get('GCC', env['ENV'].get('CC', 'gcc'))
 #gcc = CC or WhereIs(target + "-gcc") or WhereIs("gcc")
@@ -777,6 +780,8 @@ if portable and (unix and not mac):
 # if unix:
 #     CXXLINKFLAGS += ['-static-libgcc']
 
+#################### Generate extraconfig.cfg for Android
+
 if android_source:
     with open(rootdir + 'android/extraconfig.cfg', 'w+') as fil:
         # Unfortunately the commandergenius port only has a single CFLAGS,
@@ -806,6 +811,7 @@ if android_source:
         if 'custom' in COMMAND_LINE_TARGETS:
             fil.write('. project/jni/application/src/EditorSettings.cfg')
 
+####################
 
 # With the exception of base_libraries, now have determined all shared variables
 # so put them in the shared Environment env. After this point need to modify one of
@@ -1181,11 +1187,15 @@ env_exe ('relump', source = ['relump.bas'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
 env_exe ('imageconv', env = allmodexenv, source = ['imageconv.bas'] + allmodex_objects)
 
-# Put this into a function so that we only call get_euphoria_version() when compiling
-def compile_hspeak(target, source, env):
+####################  Compiling Euphoria (HSpeak)
+
+def check_have_euc(target, source, env):
     if not EUC:
-        print "Euphoria is required to compile HSpeak but is not installed (euc is not in the PATH)"
+        print("Euphoria is required to compile HSpeak but is not installed (euc is not in the PATH)")
         Exit(1)
+
+def setup_eu_vars():
+    "Set the necessary variables on env for the euphoria EUEXE Builder."
     hspeak_builddir = builddir + "hspeak"
     euc_extra_args = []
     # Work around Euphoria bug (in 4.0/4.1), where $EUDIR is ignored if another
@@ -1194,25 +1204,28 @@ def compile_hspeak(target, source, env):
         euc_extra_args += ['-eudir', env['ENV']['EUDIR']]
     # We have not found any way to capture euc's stderr on Windows so can't check version there
     # (But currently the nightly build machine runs 4.0.5)
-    if not host_win32 and ohrbuild.get_euphoria_version(EUC) >= 40100 and NO_PIE and not mac:
+    if NO_PIE and not host_win32 and not mac and EUC and ohrbuild.get_euphoria_version(EUC) >= 40100:
         # On some systems (not including mac) gcc defaults to building PIE
         # executables, but the linux euphoria 4.1.0 builds aren't built for PIE/PIC,
         # resulting in a "recompile with -fPIC" error.
         # But the -extra-lflags option is new in Eu 4.1.
         euc_extra_args += ['-extra-lflags', NO_PIE]
 
-    actions = [
-        # maxsize: cause euc to split hspeak.exw to multiple .c files
-        Action([[EUC] + "-con -gcc hspeak.exw -verbose -maxsize 5000 -makefile -build-dir".split() + [hspeak_builddir] + euc_extra_args]),
-        "%s -j%d -C %s -f hspeak.mak" % (MAKE, GetOption('num_jobs'), hspeak_builddir)
-    ]
-    Action(actions)(target, source, env)
+    env['EUFLAGS'] = euc_extra_args
+    env['EUBUILDDIR'] = hspeak_builddir
+
+setup_eu_vars()
 
 # HSpeak is built by translating to C, generating a Makefile, and running make.
-HSPEAK = env.Command (rootdir + 'hspeak' + exe_suffix, source = [EUC, 'hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'),
-                      action = Action(compile_hspeak, "Compiling hspeak"))
-Alias('hspeak', HSPEAK)
+euexe = Builder(action = [Action(check_have_euc, None),
+                          '$EUC -con -gcc $SOURCES $EUFLAGS -verbose -maxsize 5000 -makefile -build-dir $EUBUILDDIR',
+                          '$MAKE -j%d -C $EUBUILDDIR -f hspeak.mak' % (GetOption('num_jobs'),)],
+                suffix = exe_suffix, src_suffix = '.exw')
+env.Append(BUILDERS = {'EUEXE': euexe})
 
+####################
+
+HSPEAK = env.EUEXE(rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'))
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
 x2rsrc = ['xml2reload.bas'] + reload_objects
 if win32:
