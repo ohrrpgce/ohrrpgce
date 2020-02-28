@@ -1,4 +1,9 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+"""
+The RELOADBasic-to-FreeBASIC transpiler.
+"""
+
+from __future__ import print_function
 import os
 import sys
 import re
@@ -188,7 +193,10 @@ class FileParsingIterator(object):
         return self
 
     def next(self):
-        self.lineno, self.line = self.source.next()
+        return self.__next__()
+
+    def __next__(self):
+        self.lineno, self.line = next(self.source)
         try:
             parse_line = self.line
             offset = 0
@@ -206,8 +214,8 @@ class FileParsingIterator(object):
                 if last_comment[0].startswith("/'") and not last_comment[0].endswith("'/"):
                     self.starting_in_comment = True
             return self.lineno, self.line, self.ast
-        except ParseError, e:
-            print "On line %d of %s:\n%s" % (self.lineno, self.filename, str(e))
+        except ParseError as e:
+            print("On line %d of %s:\n%s" % (self.lineno, self.filename, e))
             sys.exit(1)
 
     def line_is_blank(self):
@@ -224,8 +232,11 @@ class TranslationIteratorWrapper(FileParsingIterator):
         FileParsingIterator.__init__(self, filename)
 
     def next(self):
+        return self.__next__()
+
+    def __next__(self):
         while True:
-            lineno, line, node = FileParsingIterator.next(self)
+            lineno, line, node = FileParsingIterator.__next__(self)
             if self.hook:
                 self.hook.cur_filepos = "%s:%s, in %s" % (self.hook.filename, lineno, self.hook.name)
                 self.hook.cur_lineno = lineno
@@ -329,6 +340,7 @@ class FileMarker(object):
 class DelayedFileWriter(FileMarker):
     """
     A wrapper around a file, allowing inserting lines later between already written lines.
+    flush() must be called to actually write.
     """
 
     def __init__(self, file):
@@ -341,9 +353,6 @@ class DelayedFileWriter(FileMarker):
         self.lines.sort()
         for index, line in self.lines:
             self.file.write(line)
-
-    def __del__(self):
-        self.flush()
 
 
 ################################# NodeSpecs ####################################
@@ -1066,14 +1075,14 @@ class ReloadBasicFunction(object):
         always_run = (nodespec.type == "exists" or readnode.default or nodespec.default != None)
         # Whether to record this node's presence
         if node.name != "loadArray" and not nodespec.ignore and (always_run or nodespec.warn or nodespec.required):
-            result.append("%s(%s) OR= 1 SHL %s" % (readnode.check_array, len(readnode.checks)/32, len(readnode.checks)%32))
+            result.append("%s(%s) OR= 1 SHL %s" % (readnode.check_array, len(readnode.checks)//32, len(readnode.checks)%32))
             readnode.checks.append((nodespec, self.cur_filepos, child, always_run))
 
         if nodespec.ignore:
             if len(nodespec.indices) > 1:
                 raise LanguageError("You can't ignore descendants, only children of " + readnode.parent_nodeptr + " inside this ReadNode block", nodespec.node)
             if readnode.ignoreall:
-                print "%s: Warning: redundant .ignore inside an ignoreall ReadNode" % self.cur_filepos
+                print("%s: Warning: redundant .ignore inside an ignoreall ReadNode" % self.cur_filepos)
             result.append("'ignore")
         else:
             # Note: invalidates nodespec._index_var_index
@@ -1174,7 +1183,7 @@ class ReloadBasicFunction(object):
                 raise ParseError("Unexpected inside a ReadNode block:\n" + line)
 
         if len(readnode.checks):
-            readnode.prologue += "DIM %s(%s) as uinteger\n" % (readnode.check_array, len(readnode.checks) / 32)
+            readnode.prologue += "DIM %s(%s) as uinteger\n" % (readnode.check_array, len(readnode.checks) // 32)
 
         output.append(readnode.prologue)
 
@@ -1184,7 +1193,7 @@ class ReloadBasicFunction(object):
 
         checks_text = []
         for i, (nodespec, filepos, child, always_run) in enumerate(readnode.checks):
-            msg = 'IF (%s(%s) AND (1 SHL %s)) = 0 THEN' % (readnode.check_array, i/32, i%32)
+            msg = 'IF (%s(%s) AND (1 SHL %s)) = 0 THEN' % (readnode.check_array, i//32, i%32)
             msg2 = ' {func} "%s:{what} Did not see expected node %s/%s"' % (filepos, node_path, child)
 
             if nodespec.required:
@@ -1339,7 +1348,7 @@ class ReloadBasicFunction(object):
 
         if len(self.nodenames):
             out = "STATIC _nodenames(...) as RBNodeName => {%s}\n"
-            nodenames = ((self.global_scope.nameindex(name), reload_HashZString(name), name) for name in self.nodenames)
+            nodenames = ((self.global_scope.nameindex(name), reload_HashZString(name), name) for name in sorted(self.nodenames))
             out = out % ", ".join('(%s, %s, @"%s")' % n for n in nodenames)
             self.start_mark.write(out + "#line %d\n" % (start_lineno - 1))
 
@@ -1402,14 +1411,14 @@ class ReloadBasicTranslator(object):
                 else:
                     raise ParseError("Found unexpected " + nodetype + " outside any function")
 
-            except ParseError, e:
+            except ParseError as e:
                 if hasattr(e, "node"):
                     e.message += "\n" + pyPEG.pointToError(iterator.line, e.node.start, e.node.end)
-                print "On line %d of %s:\n%s" % (iterator.lineno, filename, str(e))
+                print("On line %d of %s:\n%s" % (iterator.lineno, filename, e))
                 sys.exit(1)
 
         #header_mark.write("#define NUM_RB_FUNCS %s\n" % self.num_functions)
-        header_mark.write("#define RB_FUNC_BITS_ARRAY_SZ %s\n" % ((self.num_functions / 32 + 1) * 4))
+        header_mark.write("#define RB_FUNC_BITS_ARRAY_SZ %s\n" % ((self.num_functions // 32 + 1) * 4))
         header_mark.write("#define RB_NUM_NAMES %s\n" % (len(self.nodenames)))
         header_mark.write("#define INVALID_INDEX %s\n" % (len(self.nodenames) + 1))
         outfile.flush()
@@ -1432,7 +1441,7 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.print_help()
-        print
+        print()
         sys.exit("Error: Expected exactly one input file.")
     pyPEG.print_trace = options.trace
 

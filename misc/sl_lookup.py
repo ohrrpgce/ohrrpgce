@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 """To use this script, start in the source dir where plotscr.hsd and slices.bi
    are loacted, and run:
@@ -11,7 +11,7 @@
    if you wish.
 """
 
-
+from __future__ import print_function
 import re
 
 ########################################################################
@@ -91,7 +91,7 @@ class Lookup_Updater(object):
 class Reader(object):
   
     def __init__(self, filename, look):
-        print filename
+        print(filename)
         f = open(filename, "r")
         txt = f.read()
         f.close()
@@ -107,7 +107,7 @@ class Reader(object):
             if match:
                 name = match.group(1)
                 code = int(match.group(2))
-                print name, code
+                print(name, code)
                 look.add(name, code)
 
 #-----------------------------------------------------------------------
@@ -118,7 +118,7 @@ class Replacer(object):
     replace = "#<SLICE LOOKUP CODES>\n%s#</SLICE LOOKUP CODES>"
   
     def __init__(self, filename, replacement):
-        print filename
+        print(filename)
         f = open(filename, "r")
         txt = f.read()
         f.close()

@@ -1,9 +1,10 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 """
 For creating the ohrrpgce .deb package, and also installing the OHRRPGCE locally system-wide.
 """
 
+from __future__ import print_function
 import os
 from ohr_debian import *
 
@@ -83,7 +84,7 @@ def uninstall(destdir = '', prefix = '/usr', dry_run = False):
     Pass destdir to remove a staging area instead of writing to / (probably useless)"""
     if not os.path.isdir(destdir + prefix + "/share/games/" + package_name):
         # We might still remove other files, if it's partially installed for some reason
-        print "uninstall: " + package_name + " doesn't seem to be installed. Did you specify the right prefix and destdir?"
+        print("uninstall: " + package_name + " doesn't seem to be installed. Did you specify the right prefix and destdir?")
     rm_tree(destdir, package_name, files, executables, icons, prefix = prefix, dry_run=dry_run)
     remove_menu_entry(destdir, package_name, desktop_file_suffix="-game", prefix=prefix, dry_run=dry_run)
     remove_menu_entry(destdir, package_name, desktop_file_suffix="-custom", prefix=prefix, dry_run=dry_run)

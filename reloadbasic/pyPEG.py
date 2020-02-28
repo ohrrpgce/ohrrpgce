@@ -1,3 +1,4 @@
+# coding=utf-8
 # A fork of pyPEG by Volker Birk, licensed under the GNU GPL v2
 # 
 # Changelog:
@@ -12,18 +13,23 @@
 #                   * LineParser class replaces parseLine function
 #                   * Added caseInsensitive option
 #                   (Ralph Versteegen)
+# 2020-02-28 1.4.3: Support both Python 2 and 3. Py2 Unicode support untested
+#                   (Daniel Würl, Ralph Versteegen)
 
 import re
-import sys, codecs
-import exceptions
-import types
+import sys
 
-word_regex = re.compile(ur"\w+")
-whole_word_regex = re.compile(ur"\w+$")
-rest_regex = re.compile(ur".*")
+if sys.version_info.major == 2:
+    StringTypes = (str, unicode)
+else:
+    StringTypes = (str,)
 
-class keyword(unicode): pass
-class code(unicode): pass
+word_regex = re.compile(r"\w+")
+whole_word_regex = re.compile(r"\w+$")
+rest_regex = re.compile(r".*")
+
+class keyword(str): pass
+class code(str): pass
 class ignore(object):
     def __init__(self, display, regex_text, flags = 0):
         """display is what is used for description in error messages.
@@ -63,9 +69,9 @@ class ASTNode(object):
     def __eq__(self, rhs):
         return isinstance(rhs, ASTNode) and self.name == rhs.name and self.what == rhs.what
     def __unicode__(self):
-        return u'ASTNode(' + repr(self.name) + ', ' + repr(self.what) + u')'
+        return 'ASTNode(' + repr(self.name) + ', ' + repr(self.what) + ')'
     def __repr__(self):
-        return unicode(self)
+        return str(self)
 
 
 class ParseError(Exception):
@@ -91,16 +97,16 @@ class FatalParseError(ParseError):
                 else:
                     n += 1
             expected = expected[0]
-        if isinstance(expected, types.StringTypes):  # includes keywords
-            return u"'" + u(expected) + u"'"
+        if isinstance(expected, StringTypes):  # includes keywords
+            return "'" + expected + "'"
         elif isinstance(expected, list):
-            return u"one of: " + u", ".join(self.describePattern(elem) for elem in expected)
+            return "one of: " + ", ".join(self.describePattern(elem) for elem in expected)
         elif type(expected) == type(word_regex):
-            return u"<Regex>"
+            return "<Regex>"
         elif type(expected) == ignore:
             return expected.display
         elif callable(expected):
-            return unicode(expected.__name__)
+            return str(expected.__name__)
 
 class ParseFailure(ParseError):
     "Failure to match a pattern"
@@ -108,18 +114,6 @@ class ParseFailure(ParseError):
         self.offset = offset
 
 print_trace = False
-
-def u(text):
-    if isinstance(text, exceptions.BaseException):
-        text = text.args[0]
-    if type(text) is unicode:
-        return text
-    if isinstance(text, str):
-        if sys.stdin.encoding:
-            return codecs.decode(text, sys.stdin.encoding)
-        else:
-            return codecs.decode(text, "utf-8")
-    return unicode(text)
 
 def skip(skipper, text, skipWS, skipComments):
     if skipWS:
@@ -159,7 +153,7 @@ class parser(object):
         If needed, convert all strings within this pattern to keyword instances (if they look like keywords),
         and/or make things case insensitive.
         """
-        if isinstance(pattern, types.StringTypes):
+        if isinstance(pattern, StringTypes):
             # This cache is not to speed up transformPattern (the result is cached anyway),
             # instead it's used so that identical patterns are transformed to the same pattern,
             # improving memoization
@@ -218,7 +212,7 @@ class parser(object):
                 if print_trace:
                     if hasattr(_pattern, '__name__'):
                         if _pattern.__name__ != "comment":
-                            sys.stderr.write(u"match: " + _pattern.__name__ + u"\n")
+                            sys.stderr.write("match: " + _pattern.__name__ + "\n")
 
             if self.restlen == -1:
                 self.restlen = len(text)
@@ -274,7 +268,7 @@ class parser(object):
                 if print_trace:
                     if hasattr(_pattern, '__name__'):
                         if pattern.__name__ != "comment":
-                            sys.stderr.write(u"testing with " + pattern.__name__ + u": " + textline[:40] + u"\n")
+                            sys.stderr.write("testing with " + pattern.__name__ + ": " + textline[:40] + "\n")
 
             if pattern.__name__[0] != "_":
                 name = pattern.__name__
@@ -293,7 +287,7 @@ class parser(object):
 
         pattern_type = type(pattern)
 
-        if pattern_type is str or pattern_type is unicode:
+        if pattern_type in StringTypes:
             if text.startswith(pattern):
                 text = text[len(pattern):]
                 return R(None, text)
@@ -345,7 +339,7 @@ class parser(object):
                         # This only throws out memoized results we might use again if we're inside a _not or _and
                         #self.memory = {}
                     else:
-                        raise SyntaxError(u"unrecognised integer in grammar: " + u(p))
+                        raise SyntaxError("unrecognised integer in grammar: " + str(p))
                 else:
                     if n>0:
                         try:
@@ -353,9 +347,9 @@ class parser(object):
                                 result, newText = self.parseLine(text, p, result, skipWS, skipComments, newOffset, rulename)
                                 newOffset += len(text) - len(newText)
                                 text = newText
-                        except ParseFailure, e:
+                        except ParseFailure as e:
                             if checkpointed:
-                                raise FatalParseError(u"while parsing " + rulename + u", expected ", e.offset, expected = p)
+                                raise FatalParseError("while parsing " + rulename + ", expected ", e.offset, expected = p)
                             raise
                     elif n==0:
                         if text == "":
@@ -378,7 +372,7 @@ class parser(object):
                                 break
                         if n == -2 and not(found):
                             if checkpointed:
-                                raise FatalParseError(u"while parsing " + rulename + u", expected ", newOffset, expected = p)
+                                raise FatalParseError("while parsing " + rulename + ", expected ", newOffset, expected = p)
                             syntaxError()
                     n = 1
             return R(result, text)
@@ -400,11 +394,11 @@ class parser(object):
                 syntaxError()
 
         else:
-            raise SyntaxError(u"illegal type in grammar: " + u(pattern_type))
+            raise SyntaxError("illegal type in grammar: " + str(pattern_type))
 
     def lineNo(self):
-        if not(self.lines): return u""
-        if self.restlen == -1: return u""
+        if not(self.lines): return ""
+        if self.restlen == -1: return ""
         parsed = self.textlen - self.restlen
 
         left, right = 0, len(self.lines)
@@ -415,20 +409,20 @@ class parser(object):
                 try:
                     if self.lines[mid + 1][0] >= parsed:
                         try:
-                            return u(self.lines[mid + 1][1]) + u":" + u(self.lines[mid + 1][2])
+                            return "%s:%d" % (self.lines[mid + 1][1], self.lines[mid + 1][2])
                         except:
-                            return u""
+                            return ""
                     else:
                         left = mid + 1
                 except:
                     try:
-                        return u(self.lines[mid + 1][1]) + u":" + u(self.lines[mid + 1][2])
+                        return "%s:%d" % (self.lines[mid + 1][1], self.lines[mid + 1][2])
                     except:
-                        return u""
+                        return ""
             else:
                 right = mid - 1
             if left > right:
-                return u""
+                return ""
 
 def visualColumn(text, offset):
     """
@@ -444,13 +438,13 @@ def visualColumn(text, offset):
 
 def pointToError(text, offset1, offset2 = None):
     message = text
-    if not message.endswith(u"\n"):
-        message += u"\n"
+    if not message.endswith("\n"):
+        message += "\n"
     col1 = visualColumn(text, offset1)
     col2 = col1 + 1
     if offset2 != None:
         col2 = visualColumn(text, offset2)
-    return message + u" " * col1 + u"^" * max(1, col2 - col1)
+    return message + " " * col1 + "^" * max(1, col2 - col1)
 
 
 # plain module API
@@ -472,9 +466,9 @@ class LineParser(object):
             ast, text = self.p.parseLine(textline, pattern, [], self.skipWS, self.skipComments, offset)
             text = skip(self.p.skipper, text, self.skipWS, self.skipComments)
             if matchAll and len(text) > 0:
-                raise FatalParseError(u"garbage at end of line", len(textline) - len(text))
-        except ParseError, e:
-            e.message = u"Syntax error: " + e.message + u"\n" + pointToError(textline, e.offset)
+                raise FatalParseError("garbage at end of line", len(textline) - len(text))
+        except ParseError as e:
+            e.message = "Syntax error: " + e.message + "\n" + pointToError(textline, e.offset)
             raise e
         return ast, text
 
@@ -501,14 +495,17 @@ def parse(language, lineSource, skipWS = True, skipComments = None, packrat = Fa
     while callable(language):
         language = language()
 
-    orig, ld = u"", 0
+    is_py2 = (sys.version_info.major == 2)
+    orig, ld = "", 0
     for line in lineSource:
         if lineSource.isfirstline():
             ld = 1
         else:
             ld += 1
         lines.append((len(orig), lineSource.filename(), lineSource.lineno() - 1))
-        orig += u(line)
+        if is_py2:
+            line = unicode(line)
+        orig += line
 
     textlen = len(orig)
 
@@ -522,12 +519,12 @@ def parse(language, lineSource, skipWS = True, skipComments = None, packrat = Fa
         result, text = p.parseLine(orig, language, [], skipWS, skipComments)
         text = skip(p.skipper, text, skipWS, skipComments)
         if text:
-            raise FatalParseError(u"garbage at end of line", len(orig) - len(text))
+            raise FatalParseError("garbage at end of line", len(orig) - len(text))
 
-    except ParseError, e:
+    except ParseError as e:
         parsed = textlen - p.restlen
         textlen = 0
-        nn, lineNo, file = 0, 0, u""
+        nn, lineNo, file = 0, 0, ""
         for n, ld, l in lines:
             if n >= parsed:
                 break
@@ -541,7 +538,8 @@ def parse(language, lineSource, skipWS = True, skipComments = None, packrat = Fa
         lineCont = orig.splitlines()[nn]
         column = e.offset - lines[nn][0]
 
-        e.message = u"Syntax error at " + u(file) + u":" + u(lineNo) + u":" + u(column) + u": " + e.message + u"\n" + pointToError(lineCont, column)
+        e.message = "Syntax error at %s:%s:%s: %s\n%s" % (
+            file, lineNo, column, e.message, pointToError(lineCont, column))
         raise e
 
     return result

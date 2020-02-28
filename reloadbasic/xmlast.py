@@ -1,29 +1,35 @@
+import sys
 from xml.sax.saxutils import escape
 from pyPEG import ASTNode
 
+if sys.version_info.major == 2:
+    StringTypes = (str, unicode)
+else:
+    StringTypes = (str,)
+
 def _pyAST2XML(pyAST, indent = 0, forcenl = False, realxml = False):
-    space = u"  " * indent
-    if isinstance(pyAST, unicode) or isinstance(pyAST, str):
+    space = "  " * indent
+    if isinstance(pyAST, StringTypes):
         result = space + escape(pyAST)
         if forcenl:
             result += "\n"
         return result
     if type(pyAST) is ASTNode:
-        result = space + u"<" + pyAST.name.replace("_", "-")
+        result = space + "<" + pyAST.name.replace("_", "-")
         if realxml:
-            result += u' start="%s" end="%s">' % (pyAST.start, pyAST.end)
+            result += ' start="%s" end="%s">' % (pyAST.start, pyAST.end)
         else:
-            result += u" start=%s end=%s>" % (pyAST.start, pyAST.end)
-        if len(pyAST.what) == 1 and type(pyAST.what[0]) in (unicode, str):
+            result += " start=%s end=%s>" % (pyAST.start, pyAST.end)
+        if len(pyAST.what) == 1 and isinstance(pyAST.what[0], StringTypes):
             result += escape(pyAST.what[0])
         else:
             result += "\n"
             for e in pyAST:
                 result += _pyAST2XML(e, indent + 1, True, realxml)
             result += space
-        result += u"</" + pyAST.name.replace("_", "-") + u">\n"
+        result += "</" + pyAST.name.replace("_", "-") + ">\n"
     else:
-        result = u""
+        result = ""
         for e in pyAST:
             result += _pyAST2XML(e, indent + 1, False, realxml)
         result += "\n"

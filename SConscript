@@ -1,9 +1,10 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 """Main scons build script for OHRRPGCE
 Run "scons -h" to print help (and "scons -H" for options to scons itself).
 
 cf. SConstruct, ohrbuild.py
 """
+from __future__ import print_function
 import sys
 import os
 import platform
@@ -69,7 +70,7 @@ except (ImportError, NotImplementedError):
 # default_target will be one of win32, dos, linux, freebsd, darwin, etc
 fbc_binary, fbcversion, fullfbcversion, default_target, default_arch = ohrbuild.get_fb_info(fbc)
 if verbose:
-    print "Using fbc", fbc_binary #, " version:", fbcversion
+    print("Using fbc", fbc_binary) #, " version:", fbcversion
 
 host_win32 = platform.system() == 'Windows'
 
@@ -88,8 +89,8 @@ if 'android-source' in ARGUMENTS:
     # (We could do with build targets for compiling to .asm/.c but not assembling+linking)
     FBFLAGS += ["-r"]
     if target:
-        print "Don't use 'target' and 'android-source' together. Use only 'target' for real cross-compiling."
-        print "You can use arch=arm|arm64|x86|x86_64|etc however."
+        print("Don't use 'target' and 'android-source' together. Use only 'target' for real cross-compiling.")
+        print("You can use arch=arm|arm64|x86|x86_64|etc however.")
         Exit(1)
     target = 'android'
     default_arch = 'arm'
@@ -111,7 +112,7 @@ elif 'linux' in target or 'bsd' in target or 'unix' in target:
     if 'linux' in target:
         glibc = True
 else:
-    print "!! WARNING: target '%s' not recognised!" % target
+    print("!! WARNING: target '%s' not recognised!" % target)
 
 exe_suffix = ''
 if win32:
@@ -188,7 +189,7 @@ if pdb:
     # fbc -gen gas outputs STABS debug info, gcc outputs DWARF; cv2pdb requires DWARF
     gengcc = True
     if not win32:
-        print "pdb=1 only makes sense when targeting Windows"
+        print("pdb=1 only makes sense when targeting Windows")
         Exit(1)
 
 # There are five levels of debug here: 0, 1, 2, 3, 4 (ugh!). See the help.
@@ -280,7 +281,7 @@ music = [music.lower()]
 # You can link both gfx_sdl and gfx_sdl2, but one of SDL 1.2, SDL 2 will
 # be partially shadowed by the other and will crash. Need to use dynamic linking. WIP.
 if 'sdl' in music+gfx and 'sdl2' in music+gfx:
-    print "Can't link both sdl and sdl2 music or graphics backends at same time"
+    print("Can't link both sdl and sdl2 music or graphics backends at same time")
     Exit(1)
 
 
@@ -558,16 +559,16 @@ elif arch == default_arch:
     # for the ABI when compiling for Android.
     pass
 else:
-    print "Error: Unknown architecture %s" % arch
+    print("Error: Unknown architecture %s" % arch)
     Exit(1)
 
 # If cross compiling, do a sanity test
 if not android_source:
     gcctarget = get_command_output(GCC, "-dumpmachine")
-    print "Using target:", target, " arch:", arch, " gcc:", GCC, " cc:", CC, " gcctarget:", gcctarget, " gccversion:", gccversion, " fbcversion:", fbcversion
+    print("Using target:", target, " arch:", arch, " gcc:", GCC, " cc:", CC, " gcctarget:", gcctarget, " gccversion:", gccversion, " fbcversion:", fbcversion)
     # If it contains two dashes it looks like a target triple
     if target_prefix and target_prefix != gcctarget + '-':
-        print "Error: This GCC doesn't target " + target_prefix
+        print("Error: This GCC doesn't target " + target_prefix)
         print ("You need to either pass 'target' as a target triple (e.g. target=arm-linux-androideabi) and "
                "ensure that the toolchain executables (e.g. arm-linux-androideabi-gcc) "
                "are in your PATH, or otherwise set CC, CXX, and AS environmental variables.")
@@ -615,7 +616,7 @@ if linkgcc:
         libpath = get_command_output (fbc, ["-print", "fblibdir"] + FBFLAGS).split('\n')[-1]
         checkfile = os.path.join (libpath, 'fbrt0.o')
         if not os.path.isfile (checkfile):
-            print "Error: This installation of FreeBASIC doesn't support this target-arch combination;\n" + repr(checkfile) + " is missing."
+            print("Error: This installation of FreeBASIC doesn't support this target-arch combination;\n" + repr(checkfile) + " is missing.")
             Exit(1)
     else:
         # Manually determine library location (TODO: delete this if certainly not supporting FB 1.02 any more)
@@ -631,7 +632,7 @@ if linkgcc:
 
         for path, targetdir in itertools.product(fblibpaths, targetdirs):
             libpath = os.path.join(*(path + targetdir))
-            print "Looking for FB libs in", libpath
+            print("Looking for FB libs in", libpath)
             if os.path.isfile(os.path.join(libpath, 'fbrt0.o')):
                 break
         else:
@@ -684,14 +685,13 @@ if linkgcc:
         This is the emitter for BASEXE when using linkgcc: it compiles sources if needed, where
         the first specified module is the main module (-m flag), and rest are regular modules.
         """
-        def to_o((i, obj)):
+        for i, obj in enumerate(source):
             if str(obj).endswith('.bas'):
                 if i == 0:
-                    return env.BASMAINO (obj)
+                    source[i] = env.BASMAINO(obj)
                 else:
-                    return env.BASO (obj)
-            return obj
-        return target, map(to_o, enumerate(source))
+                    source[i] = env.BASO(obj)
+        return target, source
 
     if pdb:
         # Note: to run cv2pdb you need Visual Studio or Visual C++ Build Tools installed,
@@ -754,7 +754,7 @@ if not linkgcc:
         # (Normally fbc links with gcc_eh if required, I wonder what goes wrong here?)
         FBLINKFLAGS += ['-l','gcc_eh']
     if portable:
-        print "WARNING: portable=1 probably won't work in combination with linkgcc=0"
+        print("WARNING: portable=1 probably won't work in combination with linkgcc=0")
         # E.g. fbc will link to libtinfo/libncurses.
 
 if portable and (unix and not mac):
@@ -892,12 +892,12 @@ music_map = {'native':
 fb_defines = []
 
 for k in gfx:
-    for k2, v2 in gfx_map[k].items ():
-        globals()[k2] += v2.split (' ')
+    for k2, v2 in gfx_map[k].items():
+        globals()[k2] += v2.split(' ')
 
 for k in music:
-    for k2, v2 in music_map[k].items ():
-        globals()[k2] += v2.split (' ')
+    for k2, v2 in music_map[k].items():
+        globals()[k2] += v2.split(' ')
 
 commonenv['FBFLAGS'] += fb_defines
 del fb_defines
@@ -973,7 +973,7 @@ elif unix:  # Unix+X11 systems: Linux & BSD
         # All graphical gfx backends need the X11 libs
         common_libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')
     if 'console' in gfx and portable:
-        print "gfx=console is not compatible with portable=1, which doesn't link to ncurses."
+        print("gfx=console is not compatible with portable=1, which doesn't link to ncurses.")
         Exit(1)
     # common_libraries += ['vorbisfile']
     # commonenv['FBFLAGS'] += ['-d','HAVE_VORBISFILE']
@@ -1289,8 +1289,8 @@ if platform.system () == 'Windows':
             # MicroProfiler is MIT licensed, but you need to install it using
             # regsvr32 (with admin privileges) for it to work, so there's little
             # benefit to distributing the library ourselves.
-            print "MicroProfiler is not installed. You can install it from"
-            print "https://visualstudiogallery.msdn.microsoft.com/800cc437-8cb9-463f-9382-26bedff7cdf0"
+            print("MicroProfiler is not installed. You can install it from")
+            print("https://visualstudiogallery.msdn.microsoft.com/800cc437-8cb9-463f-9382-26bedff7cdf0")
             Exit(1)
 
         # if optimisations == False:
@@ -1411,10 +1411,10 @@ Alias ('tests', TESTS)
 def packager(target, source, env):
     action = str(target[0])  # eg 'install'
     if mac or android or not unix:
-        print "The '%s' action is only implemented on Unix systems." % action
+        print("The '%s' action is only implemented on Unix systems." % action)
         return 1
     if action == 'install' and dry_run:
-        print "dry_run option not implemented for 'install' action"
+        print("dry_run option not implemented for 'install' action")
         return 1
     sys.path += ['linux']
     import ohrrpgce
@@ -1433,13 +1433,13 @@ Usage:  scons [SCons options] [options] [targets]
 
 Options:
   gfx=BACKENDS        Graphics backends, concatenated with +. Options:
-                        """ + " ".join (gfx_map.keys ()) + """
+                        """ + " ".join(gfx_map.keys()) + """
                       (Don't try to use gfx_dummy!)
                       At runtime, backends are tried in the order specified.
-                      Current (default) value: """ + "+".join (gfx) + """
+                      Current (default) value: """ + "+".join(gfx) + """
   music=BACKEND       Music backend. Options:
-                        """ + " ".join (music_map.keys ()) + """
-                      Current (default) value: """ + "+".join (music) + """
+                        """ + " ".join(music_map.keys()) + """
+                      Current (default) value: """ + "+".join(music) + """
   release=1           Sets the default settings used for releases, including
                       nightly builds (which you can override):
                       Equivalent to debug=0 gengcc=1, and also portable=1

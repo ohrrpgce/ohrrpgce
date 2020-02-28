@@ -1,9 +1,8 @@
-#!/usr/bin/env python2
-
 """
 Routines both for installing packages on a Unix, and for creating .deb packages
 """
 
+from __future__ import print_function
 import sys
 import os
 import shutil
@@ -75,14 +74,14 @@ def build_tree(destdir, package_name, files, executables, icons, prefix = "/usr"
 def safe_rm(path, dry_run = False):
   assert len(path) > 5
   if os.path.isfile(path):
-    print "rm", path
+    print("rm", path)
     if not dry_run:
       os.remove(path)
 
 def safe_rmtree(path, dry_run = False):
   assert len(path) > 5
   if os.path.isdir(path):
-    print "rmtree", path
+    print("rmtree", path)
     if not dry_run:
       shutil.rmtree(path)
 

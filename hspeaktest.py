@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 """
 This is a tool for automated testing of HSpeak, specifically checking
@@ -17,19 +17,24 @@ Lines beginning with ## are not passed to hspeak.
 (All OK tests could actually be tested at once by checking for the line number
 of any errors, and rerunning with erroring lines removed)
 """
+from __future__ import print_function
 import sys
 import os
 import re
 import subprocess
 import optparse
 
+if hasattr(sys, 'intern'):
+    # Python 3
+    intern = sys.intern
+
 def command_output_and_exitcode(cmd, args):
-    """Runsa  program and returns (stdout, exitcode) pair."""
+    """Runs a program and returns (stdout, exitcode) pair."""
     assert isinstance(args, (list, tuple))
     proc = subprocess.Popen([cmd] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     proc.wait()  # Needed to fetch the returncode
-    outtext = proc.stdout.read()
-    errtext = proc.stderr.read()
+    outtext = proc.stdout.read().decode()
+    errtext = proc.stderr.read().decode()
     if errtext:
         # HSpeak never writes anything to stderr
         print('%s\n%s\n%s\n%s' % ('-'*40, outtext, errtext, '-'*40))

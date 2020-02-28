@@ -1,4 +1,5 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+from __future__ import print_function
 from dateutil import parser
 import sys
 
@@ -7,8 +8,8 @@ if len(sys.argv) > 1:
     if sys.argv[1] == '--skip-bugfix':
         bugfix_releases = False
     else:
-        print "Extracts all release dates from whatsnew.txt, and print number of days between releases."
-        print "Usage: misc/releases.py [--skip-bugfix]"
+        print("Extracts all release dates from whatsnew.txt, and print number of days between releases.")
+        print("Usage: misc/releases.py [--skip-bugfix]")
         sys.exit()
 
 last_release_line = -999
@@ -36,11 +37,11 @@ for release, lastrelease in zip(releases, releases[1:] + [None]):
     if date:
         datestr = date.strftime("%Y-%m-%d")
         if lastrelease and lastrelease[0]:
-            print datestr, name.rjust(18), str((date - lastrelease[0]).days).rjust(4), "days"
+            print(datestr, name.rjust(18), str((date - lastrelease[0]).days).rjust(4), "days")
         else:
-            print datestr, name
+            print(datestr, name)
     else:
-        print 'Lost...'
+        print('Lost...')
 
 if False:
     # This generates some markup for the timeline on the wikipedia article,

@@ -21,6 +21,8 @@ April ? 2020 [Gorgonzola]
       IDs stored in saved games (didn't affect Test Game) [Ralph]
 
   *** Stuff Only Developers Will Notice
+    * All .py build scripts and utilities will run under Python 3 as well as
+      Python 2 [Daniel Würl, Ralph]
 
 
 January 12 2020 [Fufluns]

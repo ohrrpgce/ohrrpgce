@@ -1,5 +1,6 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
+from __future__ import print_function
 import optparse
 import subprocess
 import re
@@ -19,7 +20,7 @@ def handle_stderr(s, exitcode=None):
         # Ignore these annoying warnings
         return
     if len(s):
-        raise ExecError(exitcode, "subprocess.Popen().communicate() returned stderr:\n'%s'" % (s))
+        raise ExecError(exitcode, "subprocess.Popen().communicate() returned stderr:\n'%s'" % s)
 
 def get_run_command(cmd, exitcode = None):
     """
@@ -28,8 +29,8 @@ def get_run_command(cmd, exitcode = None):
     """
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     com = proc.communicate()
-    result = com[0].split("\n")
-    handle_stderr(com[1], exitcode)
+    result = com[0].decode().split("\n")
+    handle_stderr(com[1].decode(), exitcode)
     return result
 
 def run_command_exitcode(cmd):
@@ -42,7 +43,7 @@ def run_command_exitcode(cmd):
 def run_command(cmd, exitcode = None):
     proc = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
     com = proc.communicate()
-    handle_stderr(com[1], exitcode)
+    handle_stderr(com[1].decode(), exitcode)
 
 class ExceptWithExitCode(Exception):
     exitcode = 125
@@ -75,7 +76,7 @@ def move_pattern(filename_pattern, dest_dir):
         shutil.move(filename, dest_dir)
         moved += 1
     if moved == 0:
-        print 'NOTICE: No files moved using move_pattern("%s", "%s")' % (filename_pattern, dest_dir)
+        print('NOTICE: No files moved using move_pattern("%s", "%s")' % (filename_pattern, dest_dir))
 
 ########################################################################
 
@@ -186,7 +187,7 @@ class AutoTest(object):
 
     def quithelp(self, message):
         self.opt.parser.print_help()
-        print "\nERROR:", message
+        print("\nERROR:", message)
         raise SystemExit(125)
     
     def run_tests(self):
@@ -259,7 +260,7 @@ class AutoTest(object):
             if oldrev != absolute_rev:
                 wc_dirty = run_command_exitcode("git diff --quiet") or run_command_exitcode("git diff --cached --quiet")
                 if wc_dirty:
-                    print "Your working copy or index is dirty; stashing your changes..."
+                    print("Your working copy or index is dirty; stashing your changes...")
                     run_command("git stash save -q 'Changes to %s saved by autotest.py'" % self.context.rev)
                 else:
                     if absolute_rev == self.context.absolute_rev:
@@ -277,7 +278,7 @@ class AutoTest(object):
                 finally:
                     run_command("git checkout -q " + self.context.rev)
                     if wc_dirty:
-                        print "Popping stashed changes to the working copy..."
+                        print("Popping stashed changes to the working copy...")
                         run_command("git stash pop --index -q")
             revfile.close()
 
@@ -285,9 +286,9 @@ class AutoTest(object):
         run_command("scons game")
     
     def run_rpg(self, rpg, dump_dir):
-        print "======"
-        print "running %s in %s and putting checkpoints in %s" % (rpg, os.getcwd(), dump_dir)
-        print "------"
+        print("======")
+        print("running %s in %s and putting checkpoints in %s" % (rpg, os.getcwd(), dump_dir))
+        print("------")
         delete_pattern(os.path.join(dump_dir, "checkpoint*.bmp"))
         replay = ''
         if self.opt.replay:
@@ -301,7 +302,7 @@ class AutoTest(object):
     
     def compare_output(self, rpg, olddir, newdir):
         checked = []
-        print "verifying checkpoints in %s..." % (rpg)
+        print("verifying checkpoints in %s..." % (rpg))
         oldfiles = glob.glob(os.path.join(olddir, "checkpoint*.bmp"))
         oldfiles.sort()
         for oldfile in oldfiles:
@@ -311,7 +312,7 @@ class AutoTest(object):
                 self.fail(rpg, "checkpoint missing in new file", [oldfile])
             old = open(oldfile, "rb").read()
             new = open(newfile, "rb").read()
-            if old <> new:
+            if old != new:
                 self.fail(rpg, "checkpoints are different!", [oldfile, newfile])
             checked.append(newfile)
         newfiles = glob.glob(os.path.join(newdir, "checkpoint*.bmp"))
@@ -319,17 +320,17 @@ class AutoTest(object):
         for newfile in newfiles:
             if newfile not in checked:
                 self.fail(rpg, "checkpoint missing in old file??", [newfile])
-        print "  all checkpoints passed in %s" % (rpg)
+        print("  all checkpoints passed in %s" % (rpg))
 
     def fail(self, rpg, message, screenshots=[]):
         ExceptWithExitCode.exitcode = 1  # in case some exception occurs
-        print "*****************************************"
-        print rpg, "-", message
+        print("*****************************************")
+        print(rpg, "-", message)
         if len(screenshots) == 2 and self.opt.anim:
             self.show_animating_gif(rpg, screenshots)
         else:
             for ss in screenshots:
-                print ss
+                print(ss)
                 startfile(ss)
         raise SystemExit(1)
 
@@ -337,7 +338,7 @@ class AutoTest(object):
         animfile = os.path.join("autotest", rpg, "difference.gif")
         cmd = "convert -delay 20 -loop 0"
         for ss in screenshots:
-            print ss
+            print(ss)
             cmd += ' "%s"' % (ss)
         cmd += ' "%s"' % (animfile)
         run_command(cmd)

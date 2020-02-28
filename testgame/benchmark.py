@@ -1,7 +1,8 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 #
 # This is a port of a few of the microbenchmarks in benchmark.hss to Python for comparison
 #
+from __future__ import print_function
 import timeit
 
 NUM_RUNS = 100
@@ -24,7 +25,7 @@ def benchmark_continue_loop():
 
 def benchmark_addition():
   x, y = 0, 0
-  for i in range(MICRO_LOOPCOUNT / 10 + 1):
+  for i in range(MICRO_LOOPCOUNT // 10 + 1):
       x + y
       x + y
       x + y
@@ -43,7 +44,7 @@ def empty_multiarg_script(a, b, c, d):
     pass
 
 def benchmark_call_script():
-  for i in range(MICRO_LOOPCOUNT / 10 + 1):
+  for i in range(MICRO_LOOPCOUNT // 10 + 1):
       empty_script()
       empty_script()
       empty_script()
@@ -57,7 +58,7 @@ def benchmark_call_script():
       empty_script()
 
 def benchmark_call_multiarg_script():
-  for i in range(MICRO_LOOPCOUNT / 10 + 1):
+  for i in range(MICRO_LOOPCOUNT // 10 + 1):
       empty_multiarg_script (i, i, i, i)
       empty_multiarg_script (i, i, i, i)
       empty_multiarg_script (i, i, i, i)
@@ -112,11 +113,11 @@ def crappy_sqrt(fi):
                                     else:
                                         start = 10
             divi = start ** 2
-            if fi / 3 > divi / 2:
-                start = (start / 5) * 6
+            if fi // 3 > divi // 2:
+                start = (start // 5) * 6
                 divi = start ** 2
-            if fi / 4 > divi / 3:
-                start = (start / 7) * 8
+            if fi // 4 > divi // 3:
+                start = (start // 7) * 8
                 divi = start ** 2
         while approx == -1:
             if divi >= fi:
@@ -130,7 +131,7 @@ def crappy_sqrt(fi):
             if (divi - approx) == fi:
                 return approx - 1
             else:
-                return fi / approx + 1
+                return fi // approx + 1
 
 # Test flow control
 def benchmark_crappy_sqrt():
@@ -141,11 +142,11 @@ def benchmark_crappy_sqrt():
 
 def run_benchmark(script, loops):
     times = timeit.repeat(script, repeat=NUM_RUNS, number=1)
-    print script.__name__
+    print(script.__name__)
     #print times
-    print " Best microseconds per run:", min(times) * 1e6
-    times = sorted(times)[:len(times)/2]
-    print " average microseconds (excl. outliers):", 1e6 * sum(times) / len(times)
+    print(" Best microseconds per run:", min(times) * 1e6)
+    times = sorted(times)[:len(times)//2]
+    print(" average microseconds (excl. outliers):", 1e6 * sum(times) / len(times))
 
 ########################################################################
 

@@ -1,10 +1,11 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 """
 Various utility functions used by SConscript while building, but could also be
 used by other tools.
 """
 
+from __future__ import print_function
 import os
 import sys
 from os.path import join as pathjoin
@@ -46,10 +47,10 @@ def get_command_output(cmd, args, shell = True, ignore_stderr = False):
         errtext = ""
     else:
         proc = subprocess.Popen(cmdargs, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    outtext = proc.stdout.read()
+    outtext = proc.stdout.read().decode()
     proc.wait()  # To get returncode
     if not ignore_stderr:
-        errtext = proc.stderr.read()
+        errtext = proc.stderr.read().decode()
         # Annoyingly fbc prints (at least some) error messages to stdout instead of stderr
     if proc.returncode or errtext:
         exit("subprocess.Popen(%s) failed:\n%s\nstderr:%s" % (cmdargs, outtext, errtext))
@@ -105,7 +106,7 @@ def hssfile_scan(node, env, path):
 # Querying svn, git
 
 def missing (name, message):
-    print "%r executable not found. It may not be in the PATH, or simply not installed.\n%s" % (name, message)
+    print("%r executable not found. It may not be in the PATH, or simply not installed.\n%s" % (name, message))
 
 def query_revision (rootdir, revision_regex, date_regex, ignore_error, *command):
     "Get the SVN revision and date (YYYYMMDD format) from the output of a command using regexps"
@@ -115,10 +116,10 @@ def query_revision (rootdir, revision_regex, date_regex, ignore_error, *command)
     output = None
     try:
         f = subprocess.Popen (command, stdout = subprocess.PIPE, stderr = subprocess.PIPE, cwd = rootdir)
-        output = f.stdout.read()
-        errmsg = f.stderr.read()
+        output = f.stdout.read().decode()
+        errmsg = f.stderr.read().decode()
         if errmsg and not ignore_error:
-            print errmsg
+            print(errmsg)
     except OSError:
         missing (command[0], '')
         output = ''
@@ -162,16 +163,16 @@ def query_svn_rev_and_date(rootdir):
     if rev == 0:
         date, rev = query_svn (rootdir, 'svn info')
     if rev == 0:
-        print "Falling back to reading svninfo.txt"
+        print("Falling back to reading svninfo.txt")
         date, rev = query_svn (rootdir, 'cat svninfo.txt')
     if rev == 0:
-        print
-        print """ WARNING!!
+        print()
+        print(""" WARNING!!
 Could not determine SVN revision, which will result in RPG files without full
 version info and could lead to mistakes when upgrading .rpg files. A file called
 svninfo.txt should have been included with the source code if you downloaded a
-.zip instead of using svn or git."""
-        print
+.zip instead of using svn or git.""")
+        print()
 
     # Discard git/svn date and use current date instead because it doesn't reflect when
     # the source was actually last modified.
@@ -195,9 +196,9 @@ def get_euphoria_version(EUC):
     # This works even if you are redirecting:
     #    scons hspeak 2>&1 | tee
     # Which is important because the nightly builds need to do that
-    eucver = subprocess.check_output([EUC, "--version"], stderr=subprocess.STDOUT)
+    eucver = subprocess.check_output([EUC, "--version"], stderr=subprocess.STDOUT).decode()
     eucver = re.findall(" v([0-9.]+)", eucver)[0]
-    print "Euphoria version", eucver
+    print("Euphoria version", eucver)
     x,y,z = eucver.split('.')
     return int(x)*10000 + int(y)*100 + int(z)
 
@@ -246,11 +247,11 @@ def get_fb_info(fbc = 'fbc'):
 def read_codename_and_branchrev(rootdir):
     """Retrieve branch name and svn revision.
     Note: if branch_rev is -1, the current svn revision should be used."""
-    f = open (os.path.join (rootdir, 'codename.txt'),'rb')
+    f = open(os.path.join(rootdir, 'codename.txt'), 'r')
     lines = []
     for line in f:
-        if not line.startswith ('#'):
-            lines.append (line.rstrip())
+        if not line.startswith('#'):
+            lines.append(line.rstrip())
     f.close()
     if len(lines) != 2:
         exit('Expected two noncommented lines in codename.txt')
@@ -269,7 +270,7 @@ def verprint (used_gfx, used_music, fbc, arch, gccversion, asan, portable, pdb, 
     def openw (whichdir, filename):
         if not os.path.isdir (whichdir):
             os.mkdir (whichdir)
-        return open (os.path.join (whichdir, filename), 'wb')
+        return open (os.path.join (whichdir, filename), 'w')
 
     rev, date = query_svn_rev_and_date(rootdir)
 
@@ -338,7 +339,7 @@ def verprint (used_gfx, used_music, fbc, arch, gccversion, asan, portable, pdb, 
     f.write ('AppVerName=%(name)s %(codename)s %(date)s\n' % data)
     f.write ('VersionInfoVersion=%s.%s\n' % (tmpdate, rev))
     f.close ()
-    f = openw (rootdir, 'distver.bat')
+    f = openw(rootdir, 'distver.bat')
     f.write('SET OHRVERCODE=%s\nSET OHRVERDATE=%s\nSET SVNREV=%s'
             % (codename, tmpdate.replace('.', '-'), rev))
     f.close()
@@ -593,7 +594,7 @@ def check_lib_requirements(binary):
         gcc_req = 'and libs for gcc ' + gcc_req
 
     glibc_release = lookup_version(req['GLIBC'], glibc_release_dates)
-    print ">>  %s requires glibc %s (released %s) %s" % (
-        binary, verstring(req['GLIBC']), glibc_release, gcc_req)
+    print(">>  %s requires glibc %s (released %s) %s" % (
+        binary, verstring(req['GLIBC']), glibc_release, gcc_req))
 
 #check_lib_requirements("ohrrpgce-game")
