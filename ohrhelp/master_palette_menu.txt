@@ -24,9 +24,13 @@ Master palettes can be imported from:
 
 The Export option on this menu saves a palette as a 16x16 24-bit .BMP.
 
-Each color used as a UI color is outlined when selecting a relevant menu option.
+Each color used as a UI color or as part of a Box Style is outlined when selecting a relevant menu option.
 
-When a master palette is imported, its UI colors are automatically selected to be as similar as possible to the UI colors of the active editing palette.
-"Nearest-match active palette's UI colors" lets you repeat this process, to copy changes from one palette to another.
+When a master palette is imported, its UI colors and Box Styles are automatically selected to be as similar as possible to the UI colors/styles of the active editing palette.
+"Nearest-match active palette's UI data" lets you repeat this process, to copy changes from one palette to another.
 
-"Copy active palette's UI data" basically copy-pastes UI color indices between palettes without remapping, for when you want to do something like create a darkened version of a palette and affect the user interface as well.
+"Copy active palette's UI data" basically copy-pastes UI color indices (and Box Styles) between palettes without remapping, for when you want to do something like create a darkened version of a palette and affect the user interface as well.
+
+"Reset UI Colors to defaults" (hotkey: F4) resets all UI Colors to the nearest matches to the default colors. Use this (or press F4) if the menu text becomes unreadable.
+
+"Reset Box Styles to defaults" resets the Box Style colors to defaults, but leaves box borders alone.

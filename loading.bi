@@ -102,7 +102,7 @@ declare Sub LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval p
 declare Sub DefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
 declare Sub OldDefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
 declare Sub GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer)
-declare Sub GuessDefaultBoxStyles (masterpal() as RGBcolor, boxarray() as BoxStyle)
+declare Sub GuessDefaultBoxStyles (masterpal() as RGBcolor, boxarray() as BoxStyle, colors_only as bool = NO)
 declare Function UiColorCaption(byval n as integer) as string
 DECLARE FUNCTION LowColorCode () as integer
 declare Function ColorIndex(byval n as integer) as integer

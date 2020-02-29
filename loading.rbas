@@ -2377,9 +2377,10 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer)
  NEXT i
 END SUB
 
-SUB GuessDefaultBoxStyles (masterpal() as RGBcolor, boxarray() as BoxStyle)
+SUB GuessDefaultBoxStyles (masterpal() as RGBcolor, boxarray() as BoxStyle, colors_only as bool = NO)
  'This is used for resetting box styles in the editor, and for when
  'the styles are completely missing.
+ 'colors_only=YES: reset style data other than border colors
  DIM boxdefaults(uiBoxLast * 2 + 1) as integer = _
     {&h001D48,&h8084D0,&h123D12,&h98FA90,&h500000,&hFF7F7F,&h4F7A54,&hD3F88E,&h5E4600,&hF1EA89,&h471747,_
      &hDF90FF,&h76352C,&hD3A560,&h2D2200,&hD7A100,&h4D3836,&hF6D2B6,&h2179D3,&h0E2059,&h3CB23A,&h0E300E,_
@@ -2390,8 +2391,10 @@ SUB GuessDefaultBoxStyles (masterpal() as RGBcolor, boxarray() as BoxStyle)
   boxarray(i).bgcol = nearcolor(masterpal(), c.r, c.g, c.b)
   c.col = boxdefaults(i * 2 + 1)
   boxarray(i).edgecol = nearcolor(masterpal(), c.r, c.g, c.b)
-  'Box border pictures default to zero (none)
-  boxarray(i).border = 0
+  IF colors_only = NO THEN
+   'Box border pictures default to zero (none)
+   boxarray(i).border = 0
+  END IF
  NEXT
 END SUB
 

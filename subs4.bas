@@ -419,10 +419,18 @@ SUB export_master_palette ()
  gfx_surfaceDestroy(@outsurf)
 END SUB
 
+'Position of master palette in masterpalettemenu
+CONST colgridx = 33, colgridy = 100
+CONST cellheight = 6
+
+PRIVATE SUB highlight_col(colidx as integer, state as MenuState)
+ drawbox colgridx + (colidx MOD 16) * 16, colgridy + (colidx \ 16) * cellheight, 16, cellheight, uilook(uiHighlight + state.tog), 1, dpage
+END SUB
+
 SUB masterpalettemenu
-DIM menu(9) as string
-DIM menu_display(9) as string
-DIM shaded(9) as bool
+DIM menu(11) as string
+DIM menu_display(11) as string
+DIM shaded(11) as bool
 DIM oldpal as integer
 DIM palnum as integer = activepalette
 loadpalette master(), palnum
@@ -431,7 +439,7 @@ LoadUIColors uilook(), boxlook(), palnum
 
 DIM selectst as SelectTypeState
 DIM state as MenuState
-state.size = 10
+state.size = 12
 state.last = UBOUND(menu)
 state.pt = 1
 
@@ -453,7 +461,7 @@ DO
    IF importmasterpal("", palnum) THEN
     setpal master()
     LoadUIColors uilook(), boxlook(), palnum
-    state.need_update = YES     
+    state.need_update = YES
    ELSE
     palnum -= 1
     gen(genMaxMasterPal) = palnum
@@ -475,6 +483,12 @@ DO
   state.need_update = YES
  END IF
 
+ IF keyval(scF4) > 1 THEN
+  'Rescue key
+  GuessDefaultUIColors master(), uilook()
+  SaveUIColors uilook(), boxlook(), palnum
+ END IF
+
  IF enter_space_click(state) THEN
   SELECT CASE state.pt
   CASE 0
@@ -493,19 +507,28 @@ DO
     nearestui activepalette, master(), uilook(), boxlook()
     SaveUIColors uilook(), boxlook(), palnum
   CASE 6
+    notification "Copying UI colors without remapping often leads to bad colors. Normally you want to use ""Nearest-match active palette's UI colors"" instead. Press F4 to reset UI colors if the menu becomes unreadable."
     LoadUIColors uilook(), boxlook(), activepalette
     SaveUIColors uilook(), boxlook(), palnum
   CASE 7
+   'Reset UI colors
+   GuessDefaultUIColors master(), uilook()
+   SaveUIColors uilook(), boxlook(), palnum
+  CASE 8
+   'Reset box styles
+   GuessDefaultBoxStyles master(), boxlook(), YES  'colors_only=YES
+   SaveUIColors uilook(), boxlook(), palnum
+  CASE 9
     gen(genMasterPal) = palnum
     ' Keep obsolete .MAS lump up to date
     unconvertpalette
     'Instant live-previewing
     xbsave game + ".gen", gen(), 1000
     state.need_update = YES
-  CASE 8
+  CASE 10
     activepalette = palnum
     state.need_update = YES
-  CASE 9
+  CASE 11
     ui_boxstyle_editor palnum
   END SELECT
  END IF
@@ -524,22 +547,23 @@ DO
  highlight_menu_typing_selection menu(), menu_display(), selectst, state
  standardmenu menu_display(), state, shaded(), 0, 0, dpage 
 
- DIM as integer colgridx = 33, colgridy = 82
-
  FOR i as integer = 0 TO 255
-  rectangle colgridx + (i MOD 16) * 16, colgridy + (i \ 16) * 7, 16, 7, i, dpage
+  rectangle colgridx + (i MOD 16) * 16, colgridy + (i \ 16) * cellheight, 16, cellheight, i, dpage
  NEXT
- IF state.pt = 4 ORELSE state.pt = 5 ORELSE state.pt = 6 THEN
-  FOR i as integer = 0 TO uiColorLast
-   drawbox colgridx + (uilook(i) MOD 16) * 16, colgridy + (uilook(i) \ 16) * 7, 16, 7, uilook(uiHighlight + state.tog), 1, dpage
-  NEXT i
- END IF
- IF state.pt = 5 ORELSE state.pt = 6 ORELSE state.pt = 9 THEN
-  FOR i as integer = 0 TO uiBoxLast
-   drawbox colgridx + (boxlook(i).bgcol MOD 16) * 16, colgridy + (boxlook(i).bgcol \ 16) * 7, 16, 7, uilook(uiHighlight + state.tog), 1, dpage
-   drawbox colgridx + (boxlook(i).edgecol MOD 16) * 16, colgridy + (boxlook(i).edgecol \ 16) * 7, 16, 7, uilook(uiHighlight + state.tog), 1, dpage
-  NEXT i
- END IF
+ 'Highlight uilook colors
+ SELECT CASE state.pt
+  CASE 4, 5, 6, 7
+   FOR i as integer = 0 TO uiColorLast
+    highlight_col uilook(i), state
+   NEXT i
+ END SELECT
+ 'Highlight box style colors
+ SELECT CASE state.pt
+  CASE 5, 6, 8, 11
+   FOR i as integer = 0 TO uiBoxLast
+    highlight_col boxlook(i).bgcol, state
+   NEXT i
+ END SELECT
 
  SWAP vpage, dpage
  setvispage vpage
@@ -560,19 +584,21 @@ SUB update_masterpalette_menu(menu() as string, shaded() as bool, palnum as inte
  menu(2) = "Replace this Master Palette"
  menu(3) = "Export this palette"
  menu(4) = "Edit User Interface Colors..."
- menu(5) = "Nearest-match active palette's UI colors"
+ menu(5) = "Nearest-match active palette's UI data"
  menu(6) = "Copy active palette's UI data"
+ menu(7) = "Reset UI Colors to defaults"
+ menu(8) = "Reset Box Styles to defaults"
  IF palnum = gen(genMasterPal) THEN
-  menu(7) = "Current default in-game Master Palette"
+  menu(9) = "Current default in-game Master Palette"
  ELSE
-  menu(7) = "Set as in-game Master Palette"
+  menu(9) = "Set as in-game Master Palette"
  END IF
  IF palnum = activepalette THEN
-  menu(8) = "Current active editing palette"
+  menu(10) = "Current active editing palette"
  ELSE
-  menu(8) = "Set as active editing palette"
+  menu(10) = "Set as active editing palette"
  END IF
- menu(9) = "Edit Box Styles..."
+ menu(11) = "Edit Box Styles..."
 
  FOR i as integer = 0 TO UBOUND(shaded)
   shaded(i) = NO
@@ -580,10 +606,10 @@ SUB update_masterpalette_menu(menu() as string, shaded() as bool, palnum as inte
  IF palnum = activepalette THEN
   shaded(5) = YES
   shaded(6) = YES
-  shaded(8) = YES
+  shaded(10) = YES
  END IF
  IF palnum = gen(genMasterPal) THEN
-  shaded(7) = YES
+  shaded(9) = YES
  END IF
 END SUB
 
