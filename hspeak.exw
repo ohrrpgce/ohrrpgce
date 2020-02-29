@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Uf 2020-02-29 Accept non-breaking space as whitespace
 --3Ue 2019-09-09 Windows: fix double-inclusion detection
 --3Ud 2019-07-12 Windows: double-include detection now case-insensitive
 --3Uc 2019-03-25 Enforce at most 32 args allowed
@@ -183,7 +184,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Ue"
+constant COMPILER_SUB_VERSION="Uf"
 constant COPYRIGHT_DATE="2020"
 
 --Known single-character commandline options
@@ -959,8 +960,9 @@ procedure init_lexer()
   sequence table_insert
 
   --main table
-  table_insert={" (),\n#\t\"[]{}.",
-                {LEX_SPACE,LEX_BEGIN,LEX_END,LEX_COMMA,LEX_NEWLINE,LEX_COMMENT,LEX_SPACE,LEX_STRING,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN}}
+  --(\xa0 is non-breaking space)
+  table_insert={" (),\n#\t\"[]{}.\xa0",
+                {LEX_SPACE,LEX_BEGIN,LEX_END,LEX_COMMA,LEX_NEWLINE,LEX_COMMENT,LEX_SPACE,LEX_STRING,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN,LEX_SPACE}}
   --by default each character is either binary, or an allowed identifier
   --character. This is for backwards compatibility
   --NOTE the +1!
