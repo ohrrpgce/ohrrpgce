@@ -779,7 +779,7 @@ wait for hero (me) # wait until he stops</example>
 				and <p>cancelkey</p> and <p>menukey</p> (which are identical) both wait for Alt or Esc,
 				joystick cancel, and optionally right click.
 				<lb/>
-				If and only if <tt>anykey</tt> is used, then <p>waitforkey</p> will return the scancode of the keyboard or joystick key that was pressed,
+				If and only if <tt>anykey</tt> is used, then <p>waitforkey(anykey)</p> will return the scancode of the keyboard or joystick key that was pressed,
 				but won't ever be a constant like <tt>usekey</tt>.
 				It returns a value >= 180 if a mouse button was released (see scancode.hsi).
 				<note>
@@ -2331,12 +2331,12 @@ wait for text box # wait until the player continues</example>
 		<command id="leader">
 			<canon>leader</canon>
 			<shortname>leader</shortname>
-			<description>Returns the hero ID number (as given in the Edit Hero Stats menu) of the current caterpillar party leader.</description>
+			<description>Returns the hero ID number (as given in the Edit Heroes menu) of the current caterpillar party leader.</description>
 		</command>
 		<command id="findhero">
 			<canon>find hero (who)</canon>
 			<shortname>find hero</shortname>
-			<description>Searches through your (battle) party to see if the specified hero is there, and returns the position where the hero was found, or -1 if the hero was not found. The position in the party is needed by most commands operating on heroes. You can use the names defined in your HSI file in the format hero:name for the ID number of the hero (as it has in the Edit Hero Stats menu). Not only does this tell you if a hero is in your party, but you can also use it to tell whether or not the hero is in your active party. find hero will return 0, 1, 2 or 3 if the hero is in the active party, and 4 or higher if the hero is in the reserve. Note that position in the battle party is not the same as position in the caterpillar: the leader is not necessarily hero 0. The opposite to find hero is <ref>herobyslot</ref>.</description>
+			<description>Searches through your (battle) party to see if the specified hero is there, and returns the position where the hero was found, or -1 if the hero was not found. The position in the party is needed by most commands operating on heroes. You can use the names (constants) defined in your HSI file in the format <tt>hero:name</tt> for the ID number of the hero (as it has in the Edit Heroes menu). Not only does this tell you if a hero is in your party, but you can also use it to tell whether or not the hero is in your active party. find hero will return 0, 1, 2 or 3 if the hero is in the active party, and 4 or higher if the hero is in the reserve. Note that position in the battle party is not the same as position in the caterpillar: the leader is not necessarily hero 0. The opposite to find hero is <ref>herobyslot</ref>.</description>
 			<seealso>
 				<ref>rankincaterpillar</ref>
 			</seealso>
@@ -2344,12 +2344,12 @@ wait for text box # wait until the player continues</example>
 		<command id="herobyslot">
 			<canon>hero by slot (where)</canon>
 			<shortname>hero by slot</shortname>
-			<description>This command is the reverse of <ref>findhero</ref>. Given a position in your party, it will tell you which hero is in that slot, or -1 if no hero is in that slot. The number returned can be compared with the names defined in your HSI file in the format hero:name.</description>
+			<description>This command is the reverse of <ref>findhero</ref>. Given a position in your party, it will tell you which hero is in that slot, or -1 if no hero is in that slot. The number returned can be compared with the names (constants) defined in your HSI file in the format <tt>hero:name</tt>.</description>
 		</command>
 		<command id="rankincaterpillar">
 			<canon>rank in caterpillar (who)</canon>
 			<shortname>rank in caterpillar</shortname>
-			<description>Searches through your active party to see if the specified hero is there, and returns the position int the walkabout caterpillar where the hero was found, or -1 if the hero was not found. Use the names defined in your HSI file in the format hero:name. This is particularly useful if you need to use a command like walk hero but you are not sure which position the hero is in.</description>
+			<description>Searches through your active party to see if the specified hero is there, and returns the position in the walkabout caterpillar where the hero was found, or -1 if the hero was not found. Use the names (constants) defined in your HSI file in the format <tt>hero:name</tt>. This is particularly useful if you need to use a command like <ref>walkhero</ref> but you are not sure which position the hero is in.</description>
 			<seealso>
 				<ref>findhero</ref>
 			</seealso>
@@ -2357,7 +2357,7 @@ wait for text box # wait until the player continues</example>
 		<command id="herobyrank">
 			<canon>hero by rank (where)</canon>
 			<shortname>hero by rank</shortname>
-			<description>This command is the reverse of <ref>rankincaterpillar</ref>. Given a position in your walkabout party, it will tell you which hero is in that position, or -1 if no hero is in that position. The number returned can be compared with the names defined in your HSI file in the format hero:name.</description>
+			<description>This command is the reverse of <ref>rankincaterpillar</ref>. Given a position in your walkabout party, it will tell you which hero is in that position, or -1 if no hero is in that position. The number returned can be compared with the names (constants) defined in your HSI file in the format <tt>hero:name</tt>.</description>
 		</command>
 		<command id="roominactiveparty">
 			<canon>room in active party</canon>
