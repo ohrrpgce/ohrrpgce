@@ -2268,7 +2268,8 @@ SUB InternalDefaultUIColors (colarray() as integer, uidef() as integer, boxarray
  'This sub just exists because I didn't want to copy-and-paste to implement
  'OldDefaultUIColors() and DefaultUIColors()
  'First we call GuessDefaultUIColors to initialise any colours above uiColorOldLast, which aren't in uidef()
- GuessDefaultUIColors master(), colarray(), boxarray()
+ GuessDefaultUIColors master(), colarray()
+ GuessDefaultBoxStyles master(), boxarray()
  FOR i as integer = 0 TO uiColorOldLast
   colarray(i) = uidef(i)
  NEXT i
@@ -2307,11 +2308,10 @@ SUB DefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
  InternalDefaultUIColors colarray(), uidef(), boxarray(), boxdef()
 END SUB
 
-SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarray() as BoxStyle)
+SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer)
  'This is used for resetting default colors in the editor, and for when
  'the uicolor data is completely missing.
  'See also FillMissingUIColor which is used in different situations
- DIM c as RGBcolor
  DIM as integer fixeddefaults(uiColorLast)
  '                                    &hRRGGBB
  fixeddefaults(uiBackground)        = &h000000
@@ -2369,16 +2369,22 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarr
  fixeddefaults(uiMPBar)               = &h00E0E0
  fixeddefaults(uiMPBarFlash)          = &h80FFFF
 
+ DIM c as RGBcolor
  FOR i as integer = 0 TO uiColorLast
   c.col = fixeddefaults(i)
   DIM firstindex as integer = IIF(i = uiShadow, 1, 0)   'Shadow color can't be 0
   colarray(i) = nearcolor(masterpal(), c.r, c.g, c.b, firstindex)
  NEXT i
+END SUB
 
+SUB GuessDefaultBoxStyles (masterpal() as RGBcolor, boxarray() as BoxStyle)
+ 'This is used for resetting box styles in the editor, and for when
+ 'the styles are completely missing.
  DIM boxdefaults(uiBoxLast * 2 + 1) as integer = _
     {&h001D48,&h8084D0,&h123D12,&h98FA90,&h500000,&hFF7F7F,&h4F7A54,&hD3F88E,&h5E4600,&hF1EA89,&h471747,_
      &hDF90FF,&h76352C,&hD3A560,&h2D2200,&hD7A100,&h4D3836,&hF6D2B6,&h2179D3,&h0E2059,&h3CB23A,&h0E300E,_
      &hBF0000,&h340000,&hFFDD30,&hCD8316,&h8236AC,&h5F1F5F,&h2F342E,&hBAABC1}
+ DIM c as RGBcolor
  FOR i as integer = 0 TO uiBoxLast
   c.col = boxdefaults(i * 2)
   boxarray(i).bgcol = nearcolor(masterpal(), c.r, c.g, c.b)
@@ -2433,8 +2439,7 @@ FUNCTION FillMissingUIColor(byval index as integer, colarray() as integer) as in
   CASE ELSE
    'Return defaults for all other colors
    DIM defaults(uiColorLast) as integer
-   DIM throwawaybox(uiBoxLast) as BoxStyle 'Not used
-   GuessDefaultUIColors master(), defaults(), throwawaybox()
+   GuessDefaultUIColors master(), defaults()
    RETURN defaults(index)
  END SELECT
 END FUNCTION

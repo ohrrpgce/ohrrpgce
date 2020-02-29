@@ -4686,7 +4686,8 @@ IF uirecords < gen(genMaxMasterPal) + 1 THEN
   ELSE
    'Otherwise, missing records is a bug. Do nearest match with default
    loadpalette master_temp(), i
-   GuessDefaultUIColors master_temp(), uilook_temp(), boxlook_temp()
+   GuessDefaultUIColors master_temp(), uilook_temp()
+   GuessDefaultBoxStyles master_temp(), boxlook_temp()
    SaveUIColors uilook_temp(), boxlook_temp(), i
   END IF
  NEXT
