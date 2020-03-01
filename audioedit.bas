@@ -16,9 +16,9 @@
 
 '''' Local functions
 
-DECLARE FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
+DECLARE FUNCTION mp3_to_ogg (in_file as string, out_file as string, quality as integer = 4, filter_high_freq as bool = YES) as string
 DECLARE FUNCTION mp3_to_wav (in_file as string, out_file as string) as string
-DECLARE FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as integer = 4, comments() as string) as string
+DECLARE FUNCTION wav_to_ogg (in_file as string, out_file as string, quality as integer = 4, filter_high_freq as bool = YES, comments() as string) as string
 
 DECLARE SUB export_songlist()
 
@@ -126,7 +126,7 @@ SUB mp3_ID3_tags (in_file as string, comments() as string)
 END SUB
 
 'Returns error message, or "" on success
-FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
+FUNCTION mp3_to_ogg (in_file as string, out_file as string, quality as integer = 4, filter_high_freq as bool = YES) as string
  DIM as string tempwav
  DIM as string ret
  tempwav = tmpdir & "temp." & randint(100000) & ".wav"
@@ -134,7 +134,7 @@ FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval quality as int
  IF LEN(ret) THEN RETURN ret
  DIM comments() as string
  mp3_ID3_tags in_file, comments()
- ret = wav_to_ogg(tempwav, out_file, quality, comments())
+ ret = wav_to_ogg(tempwav, out_file, quality, filter_high_freq, comments())
  safekill tempwav
  RETURN ret
 END FUNCTION
@@ -158,13 +158,16 @@ FUNCTION mp3_to_wav (in_file as string, out_file as string) as string
 END FUNCTION
 
 'Returns error message, or "" on success
-FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as integer = 4, comments() as string) as string
+FUNCTION wav_to_ogg (in_file as string, out_file as string, quality as integer = 4, filter_high_freq as bool = YES, comments() as string) as string
  DIM as string app, args, ret
  IF NOT isfile(in_file) THEN RETURN "wav to ogg conversion: " & in_file & " does not exist"
  app = find_oggenc()
  IF app = "" THEN RETURN "Can not convert to OGG: " + missing_helper_message("oggenc" DOTEXE " and oggenc2" DOTEXE)
 
  args = " -q " & quality & " -o " & escape_filename(out_file) & " " & escape_filename(in_file)
+ IF filter_high_freq = NO THEN
+  args &= " --advanced-encode-option lowpass_frequency=22"
+ END IF
  FOR idx as integer = 0 TO UBOUND(comments)
   args &= " -c " & escape_filename(comments(idx))
  NEXT
@@ -185,7 +188,8 @@ END FUNCTION
 
 
 'Returns true and sets 'quality' if not cancelled
-FUNCTION pick_ogg_quality(byref quality as integer) as bool
+FUNCTION pick_ogg_quality(byref quality as integer, byref filter_high_freq as bool) as bool
+ filter_high_freq = YES
  STATIC q as integer = 2
  DIM i as integer
  DIM descrip as string
@@ -197,14 +201,21 @@ FUNCTION pick_ogg_quality(byref quality as integer) as bool
    RETURN NO  'cancelled
   END IF
   IF keyval(scF1) > 1 THEN show_help "pick_ogg_quality"
+  IF keyval(scTab) > 1 THEN
+   filter_high_freq = yesno("Filter out high-pitched noise? YES is default, NO increases file size " _
+                            "without improving audio quality, but suitable for hissing noise sfx", YES, YES)
+  END IF
   IF enter_or_space() THEN EXIT DO
-  intgrabber q, -1, 10
+  CONST MINQ = -1
+  CONST MAXQ = 9
+  intgrabber q, MINQ, MAXQ
   clearpage vpage
   centerbox rCenter, 105, 300, 54, 4, vpage
   'We don't know the number of channels, so assume 2...
   edgeprint "Pick Ogg quality level: " & q & " (~" & oggenc_quality_levels(2, q) & "kbps)", pCentered, 86, uilook(uiText), vpage
+  CONST thipsize = 23
   FOR i = 0 TO q + 1
-   rectangle rCenter - (12 * 21) \ 2 + 21 * i, 100, 20, 16, uilook(uiText), vpage
+   rectangle rCenter - ((MAXQ - MINQ + 1) * thipsize) \ 2 + thipsize * i, 100, thipsize - 1, 16, uilook(uiText), vpage
   NEXT i
   SELECT CASE q
    CASE -1: descrip = "scratchy, smallest"
@@ -221,6 +232,7 @@ FUNCTION pick_ogg_quality(byref quality as integer) as bool
    CASE 10: descrip = "flagrantly excessive and wasteful"
   END SELECT
   edgeprint descrip, pCentered, 118, uilook(uiText), vpage
+  edgeprint "TAB: advanced options", pLeft, pBottom, uilook(uiMenuItem), vpage
   setvispage vpage
   dowait
  LOOP
@@ -230,12 +242,13 @@ END FUNCTION
 
 SUB import_convert_mp3(byref mp3 as string, byref oggtemp as string)
  DIM ogg_quality as integer
- IF pick_ogg_quality(ogg_quality) = NO THEN mp3 = "" : EXIT SUB
+ DIM filter_high_freq as bool
+ IF pick_ogg_quality(ogg_quality, filter_high_freq) = NO THEN mp3 = "" : EXIT SUB
  oggtemp = tmpdir & "temp." & randint(100000) & ".ogg"
  clearpage vpage
  basic_textbox "Please wait, converting to OGG...", uilook(uiText), vpage
  setvispage vpage, NO
- DIM ret as string = mp3_to_ogg(mp3, oggtemp, ogg_quality)
+ DIM ret as string = mp3_to_ogg(mp3, oggtemp, ogg_quality, filter_high_freq)
  IF LEN(ret) THEN
   visible_debug ret
   mp3 = ""
@@ -252,14 +265,15 @@ END SUB
 
 SUB import_convert_wav(byref wav as string, byref oggtemp as string)
  DIM ogg_quality as integer
- IF pick_ogg_quality(ogg_quality) = NO THEN wav = "" : EXIT SUB
+ DIM filter_high_freq as bool
+ IF pick_ogg_quality(ogg_quality, filter_high_freq) = NO THEN wav = "" : EXIT SUB
  oggtemp = tmpdir & "temp." & randint(100000) & ".ogg"
  clearpage vpage
  basic_textbox "Please wait, converting to OGG...", uilook(uiText), vpage
  setvispage vpage, NO
  'WAV files don't contain any comments
  DIM comments() as string
- DIM ret as string = wav_to_ogg(wav, oggtemp, ogg_quality, comments())
+ DIM ret as string = wav_to_ogg(wav, oggtemp, ogg_quality, filter_high_freq, comments())
  IF LEN(ret) THEN
   visible_debug ret
   wav = ""

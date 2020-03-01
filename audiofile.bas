@@ -247,6 +247,8 @@ function read_ogg_metadata(songfile as string) as string
 		msg &= cint(info->bitrate_nominal / 1000) & "kbps (Nominal)"
 	end if
 	if info andalso info->bitrate_nominal > 0 andalso in_bound(info->channels, 1, 2) then
+		'Compute the quality from the nominal (target) rather than actual quality level
+		'because it tells what it was encoded with, which is useful to know.
 		msg &= " (quality ~" & oggenc_quality(info->channels, info->bitrate_nominal \ 1000) & ")"
 	end if
 	if msg <> "" then ret &= "Bitrate:  " & msg & !"\n"
