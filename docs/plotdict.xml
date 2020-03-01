@@ -6741,7 +6741,26 @@ end
 		<command id="setslicevelocityx">
 			<canon>set slice velocity x (handle, pixels per tick, ticks)</canon>
 			<shortname>set slice velocity x</shortname>
-			<description>Cause slice <p>handle</p> to start moving horizontally. A negative value for <p>pixels per tick</p> moves left, and a positive value for <p>pixels per tick</p> moves right. The <p>ticks</p> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed. <note>Movement in horizontal and vertical directions is independent, and can timeout after different numbers of ticks. For example if you set a slice's x velocity to 10 for 5 ticks, and y velocity to 10 for 2 ticks, it'll move diagonally down-right for 2 ticks and then right for 3 ticks.</note></description>
+			<description>
+				Cause slice <p>handle</p> to start moving horizontally.
+				A negative value for <p>pixels per tick</p> moves left,
+				and a positive value for <p>pixels per tick</p> moves right.
+				The <p>ticks</p> argument is optional.
+				If you do not specify the number of ticks, the slice will keep moving indefinitely.
+				If you specify the number of ticks, the velocity will expire and be set back to
+				zero automatically after that number of ticks has passed.
+				<lb/>
+				Calling this command causes movement due to <ref>movesliceby</ref> or
+				<ref>movesliceto</ref>
+				to be cancelled.
+				<note>
+					Movement in horizontal and vertical directions is independent,
+					and can timeout after different numbers of ticks.
+					For example if you set a slice's x velocity to 10 for 5 ticks,
+					and y velocity to 10 for 2 ticks, it'll move diagonally down-right for
+					2 ticks and then right for 3 ticks.
+				</note>
+			</description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
 				<ref>setslicevelocityy</ref>
@@ -6758,7 +6777,25 @@ end
 		<command id="setslicevelocityy">
 			<canon>set slice velocity y (handle, pixels per tick, ticks)</canon>
 			<shortname>set slice velocity y</shortname>
-			<description>Cause slice <p>handle</p> to start moving vertically. A negative value for <p>pixels per tick</p> moves up, and a positive value for <p>pixels per tick</p> moves down. The <p>ticks</p> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.<note>Movement in horizontal and vertical directions is independent, and can timeout after different numbers of ticks. For example if you set a slice's x velocity to 10 for 5 ticks, and y velocity to 10 for 2 ticks, it'll move diagonally down-right for 2 ticks and then right for 3 ticks.</note></description>
+			<description>
+				Cause slice <p>handle</p> to start moving vertically.
+				A negative value for <p>pixels per tick</p> moves up,
+				and a positive value for <p>pixels per tick</p> moves down.
+				The <p>ticks</p> argument is optional.
+				If you do not specify the number of ticks, the slice will keep moving indefinitely.
+				If you specify the number of ticks, the velocity will expire and be set
+				back to zero automatically after that number of ticks has passed.
+				<lb/>
+				Calling this command causes movement due to <ref>movesliceby</ref> or
+				<ref>movesliceto</ref> to be cancelled.
+				<note>
+					Movement in horizontal and vertical directions is independent,
+					and can timeout after different numbers of ticks.
+					For example if you set a slice's x velocity to 10 for 5 ticks,
+					and y velocity to 10 for 2 ticks, it'll move diagonally down-right
+					for 2 ticks and then right for 3 ticks.
+				</note>
+			</description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
 				<ref>setslicevelocityy</ref>
@@ -6812,11 +6849,14 @@ end
 			<description>
 				Cause slice <p>handle</p> to start moving.
 				This is similar to using both <ref>setslicevelocityx</ref> and
-				<ref>setslicevelocityy</ref> at the same time.
+				<ref>setslicevelocityy</ref> at the same time (except that those let you use
+				different <p>ticks</p> for the X and Y velocities).
 				The <p>ticks</p> argument is optional.
 				If you do not specify the number of ticks, the slice will keep moving indefinitely.
 				If you specify the number of ticks, the velocity will expire and be set back to
 				zero automatically after that number of ticks has passed.
+				<lb/>
+				Calling this command causes movement due to <ref>movesliceby</ref> or <ref>movesliceto</ref> to be cancelled.
 			</description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
@@ -6855,9 +6895,13 @@ end
 				Instruct slice <p>handle</p> to move in a straight line to a specific
 				<p>x</p> and <p>y</p> position over a given number of <p>ticks</p>.
 				(As always, the position is an offset relative to its parent.)
+				<lb/>
+				If the slice had velocity set with <ref>setslicevelocity</ref>,
+				<ref>setslicevelocityx</ref> or <ref>setslicevelocityy</ref> it will be cancelled.
 				<note>
 					If you change the slice's position manually during that time (eg. with <ref>putslice</ref>),
-					it'll continue to move towards the original target in a straight line.
+					it'll continue to move towards the original target in a straight line
+					(but now with a different velocity), until <tt>ticks</tt> is up.
 					Use <ref>setslicevelocity</ref> instead if you don't want this.
 				</note>
 			</description>
@@ -6880,17 +6924,21 @@ end
 			<description>
 				Instruct slice <p>handle</p> to move in a straight line to an <p>x</p> and <p>y</p>
 				offset relative to its current position over a given number of <p>ticks</p>.
-				(As always, the position is an offset relative to its parent.)
-				A negative <p>relative x</p> moves left.
-				A positive <p>relative x</p> moves right.
-				A negative <p>relative y</p> moves up.
+				<lb/>
+				A negative <p>relative x</p> moves left.<lb/>
+				A positive <p>relative x</p> moves right.<lb/>
+				A negative <p>relative y</p> moves up.<lb/>
 				A positive <p>relative y</p> moves down.
+				<lb/>
+				If the slice had velocity set with <ref>setslicevelocity</ref>,
+				<ref>setslicevelocityx</ref> or <ref>setslicevelocityy</ref> it will be cancelled.
 				<note>
 					If you change the slice's position manually during that time (eg. with <ref>putslice</ref>),
-					it'll continue to move towards the original target in a straight line.
+					it'll continue to move towards the original target in a straight line
+					(but now with a different velocity), until <tt>ticks</tt> is up.
 					Use <ref>setslicevelocity</ref> instead if you don't want this.
 				</note>
-</description>
+			</description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
 				<ref>setslicevelocityy</ref>
