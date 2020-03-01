@@ -427,10 +427,12 @@ SUB importsong_import_song_file (songname as string, songfile as string, bamfile
  'Get song name
  DIM newname as string = decode_filename(trimextension(trimpath(sourcesong)))
 
- 'Convert MP3
+ 'Convert WAV/MP3
  DIM oggtemp as string
  IF getmusictype(sourcesong) = FORMAT_MP3 THEN
   import_convert_mp3 sourcesong, oggtemp
+ ELSEIF getmusictype(sourcesong) = FORMAT_WAV THEN
+  import_convert_wav sourcesong, oggtemp
  ELSE
   oggtemp = ""
  END IF

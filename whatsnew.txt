@@ -19,6 +19,7 @@ April ? 2020 [Gorgonzola]
       after a weapon was edited [Ralph]
     * Script IDs could change when you reimported scripts, breaking script
       IDs stored in saved games (didn't affect Test Game) [Ralph]
+    * OK, now you can *actually* import .wav files as music.
 
   *** Stuff Only Developers Will Notice
     * All .py build scripts and utilities will run under Python 3 as well as
