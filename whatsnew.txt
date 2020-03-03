@@ -22,6 +22,8 @@ April ? 2020 [Gorgonzola]
     * Script IDs could change when you reimported scripts, breaking script
       IDs stored in saved games (didn't affect Test Game) [Ralph]
     * OK, now you can *actually* import .wav files as music.
+    * You couldn't import .wav or .mp3 files on Mac OS 10.15 (the utilities
+      were still 32-bit) [Ralph]
 
   *** Stuff Only Developers Will Notice
     * All .py build scripts and utilities will run under Python 3 as well as

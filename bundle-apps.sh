@@ -22,7 +22,7 @@ rm -rf OHRRPGCE-Game.app
 rm -rf OHRRPGCE-Custom.app
 
 # Sanity checks
-for BINARY in ohrrpgce-game ohrrpgce-custom; do  #omit hspeak, currently broken
+for BINARY in ohrrpgce-game ohrrpgce-custom hspeak; do
   if ! file $BINARY | grep $ARCH ; then
     echo "$BINARY is missing or not compiled for $ARCH"
     exit 1
@@ -127,8 +127,12 @@ cp -R ohrhelp/* OHRRPGCE-Custom.app/Contents/Resources/ohrhelp &&
 cp -R data/* OHRRPGCE-Custom.app/Contents/Resources/ &&
 cp support/Terminal_wrapper.sh OHRRPGCE-Custom.app/Contents/MacOS/support/ &&
 cp plotscr.hsd scancode.hsi OHRRPGCE-Custom.app/Contents/MacOS/support/ &&
-# TODO: ensure correct arch for hspeak, madplay and oggenc are encluded and lipo'd
-tar xf mac/utilities.tar.gz -C OHRRPGCE-Custom.app/Contents/MacOS/support/ &&
 cp hspeak OHRRPGCE-Custom.app/Contents/MacOS/support/ || exit 1
+
+if [ $ARCH = "i386" ]; then
+  tar xf mac/utilities.tar.gz -C OHRRPGCE-Custom.app/Contents/MacOS/support/ || exit 1
+else
+  tar xf mac/utilities-x86_64.tar.gz -C OHRRPGCE-Custom.app/Contents/MacOS/support/ || exit 1
+fi
 
 add_frameworks OHRRPGCE-Custom.app
