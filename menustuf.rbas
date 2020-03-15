@@ -43,11 +43,15 @@ DECLARE FUNCTION equip_menu_available_item_id(st as EquipMenuState) as integer
 DECLARE FUNCTION equip_menu_available_item_caption(st as EquipMenuState, byval menuslot as integer) as string
 DECLARE FUNCTION equip_menu_equipped_item_info(st as EquipMenuState) as string
 DECLARE FUNCTION equip_menu_available_item_info(st as EquipMenuState) as string
+
 DECLARE FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, byval attacker as integer, use_caption as string, byval x_offset as integer=0, byval really_use_attack as bool=YES) as bool
+DECLARE FUNCTION getOOBtarg (byval search_direction as integer, byval attacker as integer, byref target as integer, byval atk as integer) as bool
+
 DECLARE SUB spells_menu_refresh_list(sp as SpellsMenuState)
 DECLARE SUB spells_menu_refresh_hero(sp as SpellsMenuState)
 DECLARE SUB spells_menu_control(sp as SpellsMenuState)
 DECLARE SUB spells_menu_paint (byref sp as SpellsMenuState)
+
 DECLARE FUNCTION picksaveload (byval loading as bool, byval newgame_opt as bool = YES, byval beep_if_no_saves as bool = NO) as integer
 DECLARE SUB picksave_draw(menu() as string, byval loading as bool, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval page as integer)
 DECLARE FUNCTION picksave_confirm(menu() as string, byval loading as bool, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as bool
@@ -900,9 +904,11 @@ SUB buystuff_set_alert(buyst as ShopBuyState, alert as string, byval ticks as in
  buyst.alert_ticks = ticks
 END SUB
 
-FUNCTION chkOOBtarg (byval target as integer, byval atk as integer) as bool
-'true if valid, false if not valid
-'atk id can be -1 for when no attack is relevant (when we are learning an attack, not using it)
+FUNCTION chkOOBtarg (byval attacker as integer, byval target as integer, byval atk as integer) as bool
+ 'Out-of-battle attack target class evaluation: Whether 'target' is a valid target.
+ 'attacker is -1 when no specific attacker, e.g. using an item or not passed to "map cure".
+ 'atk id can be -1 for when no attack is relevant (when we are learning an attack, not using it)
+
  IF target < 0 OR target > UBOUND(gam.hero) THEN RETURN NO
  IF gam.hero(target).id = -1 THEN RETURN NO
  IF atk < -1 OR atk > gen(genMaxAttack) THEN RETURN NO
@@ -969,15 +975,14 @@ SUB doequip (toequip as integer, who as integer, where as integer)
  tag_updates
 END SUB
 
-FUNCTION getOOBtarg (byval search_direction as integer, byref target as integer, byval atk as integer, byval recheck as bool=NO) as bool
+LOCAL FUNCTION getOOBtarg (byval search_direction as integer, byval attacker as integer, byref target as integer, byval atk as integer) as bool
  'Move the hero selection cursor for the target picker for an OOB attack/learning attack.
  '--return true on success, false on failure
  '--atk id can be -1 for when no attack is relevant (when we are learning an attack, not using it)
- IF recheck THEN target -= 1 ' For a re-check, back the cursor up so if the current target is still valid, it won't change
  DIM safety as integer = 0
  DO
   loopvar target, 0, 3, search_direction
-  IF chkOOBtarg(target, atk) THEN RETURN YES
+  IF chkOOBtarg(attacker, target, atk) THEN RETURN YES
   safety += 1
   IF safety >= 4 THEN EXIT DO
  LOOP
@@ -2936,31 +2941,27 @@ FUNCTION count_available_spells(byval who as integer, byval list as integer) as 
  RETURN n
 END FUNCTION
 
-FUNCTION outside_battle_cure (byval atk as integer, byref target as integer, byval attacker as integer, byval spread as bool) as bool
+FUNCTION outside_battle_cure (byval atk as integer, byval target as integer, byval attacker as integer, byval spread as bool) as bool
  DIM i as integer
  DIM didcure as bool = NO
 
  IF spread = NO THEN
-  IF chkOOBtarg(target, atk) THEN
+  IF chkOOBtarg(attacker, target, atk) THEN
    oobcure attacker, target, atk, 1
    didcure = YES
   END IF
  ELSE
   DIM target_count as integer = 0
   FOR i = 0 TO 3
-   IF chkOOBtarg(i, atk) THEN target_count += 1
+   IF chkOOBtarg(attacker, i, atk) THEN target_count += 1
   NEXT i
 
   FOR i = 0 TO 3
-   IF chkOOBtarg(i, atk) THEN
+   IF chkOOBtarg(attacker, i, atk) THEN
     oobcure attacker, i, atk, target_count
     didcure = YES
    END IF 
   NEXT i
- END IF
- IF didcure THEN
-  're-check validify of target
-  getOOBtarg 1, target, atk, YES
  END IF
  checkfatal = YES
  evalherotags
@@ -3525,7 +3526,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  'Lets the player pick a target, and then performs an attack or teaches a spell
  'attack_id: attack to be used, -1 otherwise
  'learn_id: attack to be learnt, -1 otherwise
- '(FIXME: should move to separate function!)
+ '(FIXME: should move to separate function! Why not just use pickhero for learning spells??)
  'attacker == -1 when not using an attack from a spell list. In that case, use party's avg stats
  'Returns true if the attack/spell was actually used/learned
  
@@ -3563,10 +3564,10 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  END IF
 
  '--make sure the default target is okay
- IF chkOOBtarg(targ, attack_id) = NO THEN
+ IF chkOOBtarg(attacker, targ, attack_id) = NO THEN
   targ = -1
   FOR i as integer = 0 TO 3
-   IF chkOOBtarg(i, attack_id) THEN
+   IF chkOOBtarg(attacker, i, attack_id) THEN
     targ = i
     EXIT FOR
    END IF
@@ -3594,11 +3595,11 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   END IF
   IF spread = NO THEN
    IF carray(ccUp) > 1 THEN
-    getOOBtarg -1, targ, attack_id
+    getOOBtarg -1, attacker, targ, attack_id
     MenuSound gen(genCursorSFX)
    END IF
    IF carray(ccDown) > 1 THEN
-    getOOBtarg 1, targ, attack_id
+    getOOBtarg 1, attacker, targ, attack_id
     MenuSound gen(genCursorSFX)
    END IF
   END IF
@@ -3656,7 +3657,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
       'Only proceed if we have not just switched to spread mode
       IF hover <> targ ANDALSO (readmouse.release AND mouseLeft) THEN
        'Change focus
-       IF chkOOBtarg(hover, attack_id) THEN
+       IF chkOOBtarg(attacker, hover, attack_id) THEN
         targ = hover
         spread = NO
        ELSE
@@ -3701,6 +3702,11 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
    '--do attack outside of battle (cure)
    IF attack_id >= 0 ANDALSO really_use_attack THEN
     IF outside_battle_cure(attack_id, targ, attacker, spread) THEN
+     'Re-check validity of target
+     IF chkOOBtarg(attacker, targ, attack_id) = NO THEN
+      getOOBtarg 1, attacker, targ, attack_id
+     END IF
+     'We will return success, but don't leave menu yet; you might be able to use the attack again
      menu_attack_targ_picker = YES
     END IF
    END IF
@@ -3714,7 +3720,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   DIM cater_slot as integer = 0
   FOR i as integer = 0 TO 3
    IF gam.hero(i).id >= 0 THEN
-    DIM targetted as bool = (targ = i ORELSE (spread ANDALSO chkOOBtarg(i, attack_id)))
+    DIM targetted as bool = (targ = i ORELSE (spread ANDALSO chkOOBtarg(attacker, i, attack_id)))
     IF targetted THEN rectangle 84 + x_offset, 8 + i * 20, 152, 20, uilook(uiHighlight2), page
     DIM frame as integer = 0
     IF targetted THEN frame = wtog_to_frame(wtog)
