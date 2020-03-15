@@ -181,6 +181,8 @@ FUNCTION atkallowed (attack as AttackData, attackerslot as integer, spclass as i
 END FUNCTION
 
 'Out-of-battle function
+'Note: this function is used only for the OOB Spells menu, not for "map cure", etc.
+'See also chkOOBtarg, which is used for "map cure".
 'attackerslot = party slot of hero who wants to cast the spell
 'spclass  = 0 for normal attacks, 1 for level-MP spells
 FUNCTION atkallowed(attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer) as bool
@@ -194,7 +196,7 @@ FUNCTION atkallowed(attack as AttackData, attackerslot as integer, spclass as in
  IF spclass = 1 AND attacker.levelmp(lmplev) = 0 THEN
   RETURN NO
  END IF
- IF attacker.stat.cur.hp = 0 THEN
+ IF attacker.stat.cur.hp <= 0 THEN
   RETURN NO
  END IF
 
@@ -1263,7 +1265,7 @@ SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackDa
  CASE 10 'dead-ally (hero only)
   IF is_hero(who) THEN
    FOR i = 0 TO 3
-    IF gam.hero(i).id >= 0 AND bslot(i).stat.cur.hp = 0 THEN tmask(i) = YES
+    IF gam.hero(i).id >= 0 AND bslot(i).stat.cur.hp <= 0 THEN tmask(i) = YES
    NEXT i
   END IF
 

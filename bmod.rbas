@@ -619,7 +619,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
   END IF
   checkTagCond attack.tagset(0), atktagOnHit
   checkTagCond attack.tagset(1), atktagOnHit
-  IF bslot(targ).stat.cur.hp = 0 THEN
+  IF bslot(targ).stat.cur.hp <= 0 THEN
    checkTagCond attack.tagset(0), atktagOnKill
    checkTagCond attack.tagset(1), atktagOnKill
   END IF
@@ -1375,7 +1375,7 @@ SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as BattleSprite)
  IF bat.flee > 4 THEN
   FOR i = 0 TO 3
    '--if alive turn around
-   IF bslot(i).stat.cur.hp THEN bslot(i).d = 1
+   IF bslot(i).stat.cur.hp > 0 THEN bslot(i).d = 1
    bslot(i).walk = 1
    bslot(i).attack = 0
    bslot(i).ready = NO
@@ -1578,7 +1578,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  FOR i = 0 TO 3
   WITH bslot(i)
    enforce_weak_picture i, bslot(), bat
-   IF gam.hero(i).id >= 0 AND .stat.cur.hp = 0 THEN
+   IF gam.hero(i).id >= 0 AND .stat.cur.hp <= 0 THEN
     '--hero starts the battle dead
     .dissolve = 1 'Keeps the dead hero from vanishing
     .frame = frameDEAD
@@ -1726,7 +1726,7 @@ SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot()
  dead_enemies = 0
  FOR deadguy = 4 TO 11
   WITH bslot(deadguy)
-   IF (.stat.cur.hp = 0 ANDALSO .bequesting = NO ANDALSO .self_bequesting = NO) OR .hero_untargetable = YES OR .death_unneeded = YES THEN dead_enemies += 1
+   IF (.stat.cur.hp <= 0 ANDALSO .bequesting = NO ANDALSO .self_bequesting = NO) OR .hero_untargetable = YES OR .death_unneeded = YES THEN dead_enemies += 1
   END WITH
  NEXT
  IF dead_enemies >= 8 THEN bat.death_mode = deathENEMIES
@@ -2399,7 +2399,7 @@ END FUNCTION
 'Start death/flee animation or switch to dead hero frame
 SUB triggerfade(byval who as integer, bslot() as BattleSprite)
  'If the target is really dead...
- IF bslot(who).stat.cur.hp = 0 THEN
+ IF bslot(who).stat.cur.hp <= 0 THEN
   IF is_hero(who) THEN
    '--for heroes, a .dissolve > 1 is used to trigger the animate code
    '  to force the hero to use their death frame
