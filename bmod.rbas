@@ -4580,7 +4580,7 @@ SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as Battl
     .pointer = 0
     WHILE .mask(.pointer) = NO
      .pointer += 1
-     IF .pointer > 11 THEN
+     IF .pointer > UBOUND(.mask) THEN
       .mode = targNONE
       EXIT WHILE
      END IF
