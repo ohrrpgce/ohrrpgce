@@ -920,13 +920,20 @@ FUNCTION chkOOBtarg (byval attacker as integer, byval target as integer, byval a
   DIM attack as AttackData
   loadattackdata attack, atk
 
-  IF hp <= 0 ANDALSO attack_can_hit_dead(0, attack) THEN RETURN YES  'Fake attacker 0, indicating a hero
-  'Dead-ally
-  IF hp > 0 ANDALSO attack.targ_class = 10 THEN RETURN NO
-  'TODO: Why not handle Self and Ally-not-self?
- END IF
+  SELECT CASE attack.targ_class
+   CASE 2 'Self
+    IF attacker > -1 ANDALSO attacker <> target THEN RETURN NO
+   CASE 5 'Ally-not-self
+    IF attacker > -1 ANDALSO attacker = target THEN RETURN NO
+   CASE 10  'Dead-ally
+    RETURN (hp <= 0)
+  END SELECT
+  'Most target classes are treated equivalent to "All (not dead)"
 
- IF hp <= 0 THEN RETURN NO
+  IF hp <= 0 THEN RETURN attack_can_hit_dead(0, attack)  'Fake attacker 0, indicating a hero
+ ELSE
+  IF hp <= 0 THEN RETURN NO
+ END IF
 
  RETURN YES
 END FUNCTION

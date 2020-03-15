@@ -25,7 +25,9 @@ April ? 2020 [Gorgonzola]
     * You couldn't import .wav or .mp3 files on Mac OS 10.15 (the utilities
       were still 32-bit) [Ralph]
     * A few fixes for heroes with negative HP not counting as dead when using
-      spells out of battle [Ralph]
+      spells outside of battle [Ralph]
+    * Bug 1105 "Self"- and "Ally not Self"-target attacks are treated as
+      "Ally"-target attacks outside of battle [Ralph]
 
   *** Stuff Only Developers Will Notice
     * All .py build scripts and utilities will run under Python 3 as well as
