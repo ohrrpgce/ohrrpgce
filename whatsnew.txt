@@ -8,6 +8,7 @@ April ? 2020 [Gorgonzola]
     * ""any key", etc, includes mouse" option in Mouse Controls menu [Ralph]
     * While encoding .ogg files, add an advanced option not to filter out
       very high frequencies. Useful for certain hissing sfx [Ralph]
+    * "scancode name" [Ralph]
 
   *** Changes
 

@@ -4762,6 +4762,11 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 691 '--decode trigger
   scriptret = decodetrigger(retvals(0), NO)  'showerr=NO
+ CASE 692 '--scancode name (string id, scancode, long name)
+  'TODO: doesn't support joystick scancodes
+  IF valid_plotstr(retvals(0)) ANDALSO bound_arg(retvals(1), ccLOWEST, scLAST, "keyboard scancode") THEN
+   plotstr(retvals(0)).s = scancodename(retvals(1), retvals(2) <> 0)
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

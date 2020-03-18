@@ -5369,6 +5369,26 @@ script, string load tests, begin
   $2=" This box is for testing textboxline\n and stringfromtextbox\n.\n\n ## \n ,-1234. ,<embedded>  "
   textboxtext(1, 8, true, false)
   assert(string compare(1, 2))
+
+  # scancode name tests
+  $1="Left Bracket"
+  scancode name(2, key:leftbracket)
+  assert(string compare(1,2))
+  $1="["
+  scancode name(2, key:leftbracket, false)
+  assert(string compare(1,2))
+  $1="Run"
+  scancode name(2, run key)
+  assert(string compare(1,2))
+  $1="Scancode 0"
+  scancode name(2, 0)
+  assert(string compare(1,2))
+  $1="Space"
+  scancode name(2, key:space, false)
+  assert(string compare(1,2))
+  $1="Left Shift"
+  scancode name(2, key:left shift, false)
+  assert(string compare(1,2))
 end
 
 ########################################################################

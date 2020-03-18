@@ -3,7 +3,17 @@
 'Please read LICENSE.txt for GNU GPL license details and disclaimer of liability
 '
 
-static scancodenames(...) as string * 18  = { _
+#include "scancodes.bi"
+
+static scancodenames(ccRun to ...) as string * 18  = { _
+  "Run",                       /' -8 '/ _
+  "Menu",                      /' -7 '/ _
+  "Use",                       /' -6 '/ _
+  "Right",                     /' -5 '/ _
+  "Left",                      /' -4 '/ _
+  "Down",                      /' -3 '/ _
+  "Up",                        /' -2 '/ _
+  "",                          /' -1 '/ _
   "",                          /' 0 '/ _
   "Esc",                       /' 01 '/ _
   "1",                         /' 02 '/ _
@@ -149,5 +159,7 @@ static scancodenames(...) as string * 18  = { _
   "Numpad Period",             /' 116 '/ _
   "Print Screen",              /' 117 '/ _
   "Pause",                     /' 118 '/ _
-  "Alt"                        /' 119 '/ _
+  "Alt",                       /' 119 '/ _
+  "Any Enter",                 /' 120 '/ _
+  "Command/Win"                /' 121 '/ _
 }

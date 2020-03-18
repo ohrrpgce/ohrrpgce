@@ -164,6 +164,8 @@ CONST scWinLogo = 121
 CONST scCommand = 121
 CONST scMeta = 121
 
+'Update scancodenames.bi if you add more
+
 'Used for size of arrays - does NOT include joystick/mouse scancodes
 'NOTE: 127 is also hardcoded into gfx.bi API and backends.
 'Can't be increased anyway, due to joystick scancodes
@@ -209,7 +211,7 @@ CONST ccCancel = -7
 CONST ccMenu = -7
 CONST ccRun = -8
 CONST ccLOWEST = -8
-
+'Update scancodenames.bi if you add more
 
 'These are the range of scancodes which can be passed to keyval().
 CONST scKEYVAL_FIRST = ccLOWEST
