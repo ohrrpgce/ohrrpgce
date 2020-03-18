@@ -804,7 +804,7 @@ declare function replacestr overload (byref buffer as string, replacewhat as str
 declare function normalize_newlines (buffer as string, newline as string = LINE_END) as string
 declare function exclude (s as string, x as string) as string
 declare function exclusive (s as string, x as string) as string
-declare function scancodename (byval k as KBScancode) as string
+declare function scancodename (k as KBScancode, longname as bool = NO) as string
 declare function special_char_sanitize(s as string) as string
 
 declare function sign_string (n as integer, neg_str as string, zero_str as string, pos_str as string) as string

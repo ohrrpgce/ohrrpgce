@@ -87,7 +87,6 @@ DECLARE FUNCTION reorderable_node(byval node as NodePtr) as integer
 
 DECLARE SUB edit_platform_controls ()
 DECLARE FUNCTION prompt_for_scancode () as KBScancode
-DECLARE FUNCTION scancode_to_name(byval sc as KBScancode) as string
 DECLARE SUB edit_purchase_options ()
 DECLARE SUB edit_purchase_details (byval prod as NodePtr)
 

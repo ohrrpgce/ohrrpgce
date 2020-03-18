@@ -3204,17 +3204,20 @@ local function draw_allmodex_recordable_overlays (page as integer) as bool
 			for idx as KBScancode = 0 to ubound(.keys)
 				if .keys(idx) = 0 then continue for
 				dim keyname as string = scancodename(idx)
+				replacestr keyname, "Left", "L"  'Shorten the name
+				replacestr keyname, "Right", "R"
+				replacestr keyname, " ", ""
 				select case idx
 				case scLeftShift, scRightShift, scLeftAlt, scRightAlt, scLeftCtrl, scRightCtrl
-					modifiers &= "+" & scancodename(idx)
+					modifiers &= " " & keyname
 				case scShift, scAlt, scUnfilteredAlt, scCtrl, scAnyEnter
 					'Ignore these duplicates
 				case else
-					keys &= "+" & scancodename(idx)
+					keys &= " " & keyname
 				end select
 			next idx
 		end with
-		dim keysmsg as string = mid(modifiers & keys, 2)  'trim leading + if any
+		dim keysmsg as string = trim(modifiers & keys)
 		if len(keysmsg) then
 			rectangle pRight, pTop, textwidth(keysmsg) + 2, 10, uilook(uiBackground), page
 			edgeprint keysmsg, pRight - 1, pTop, uilook(uiText), page
@@ -3443,7 +3446,7 @@ sub record_input_tick ()
 		if real_input.kb.keys(i) <> record.last_kb.keys(i) then
 			PUT #record.file,, i
 			PUT #record.file,, cubyte(real_input.kb.keys(i))
-			if record.debug then debugstr &= " " & scancodename(i) & "=" & real_input.kb.keys(i)
+			if record.debug then debugstr &= " " & scancodename(i, YES) & "=" & real_input.kb.keys(i)
 		end if
 	next i
 	'Currently inputtext is Latin-1, format will need changing in future

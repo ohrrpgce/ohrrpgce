@@ -3948,16 +3948,28 @@ FUNCTION xreadbit (bitwords() as integer, bitnum as integer, wordoffset as integ
 	RETURN readbit(bitwords(), wordoffset, bitnum) <> 0
 END FUNCTION
 
-'Prehaps doesn't belong here because scancodes are OHR-specific. However, OHR
+'Returns what a scancode is if Shift isn't pressed.
+'longname: if false, a one-character string for the character that the key
+'  inserts is returned if available, e.g. "[" instead of "Left Bracket", with
+'  exception of "Space" and "Enter" and numpad keys like "Numpad Minus" which
+'  always returned as long names.
+'Perhaps doesn't belong here because scancodes are OHR-specific. However, OHR
 'scancodes are 95% the same as FB scancodes
-FUNCTION scancodename (byval k as KBScancode) as string
- 'static scancodenames(...) as string * 14 = { ... }
+FUNCTION scancodename (k as KBScancode, longname as bool = NO) as string
+ 'static scancodenames(...) as string * 18 = { ... }
  #INCLUDE "scancodenames.bi"
 
  IF k >= LBOUND(scancodenames) ANDALSO k <= UBOUND(scancodenames) THEN
-  IF scancodenames(k) <> "" THEN RETURN scancodenames(k)
+  DIM scname as string = scancodenames(k)
+  'scname is either "" or formatted like "Long Name" or "X Long Name"
+  IF LEN(scname) THEN
+   IF LEN(scname) >= 3 ANDALSO scname[1] = ASC(" ") THEN
+    IF longname THEN scname = MID(scname, 3) ELSE scname = LEFT(scname, 1)
+   END IF
+   RETURN scname
+  END IF
  END IF
- RETURN "scancode" & k
+ RETURN "Scancode " & k
 END FUNCTION
 
 FUNCTION special_char_sanitize(s as string) as string
