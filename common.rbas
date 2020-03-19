@@ -2010,6 +2010,8 @@ FUNCTION getsfxname (byval num as integer) as string
  RETURN readbinstring (sfxd(), 0, 30)
 END FUNCTION
 
+'==========================================================================================
+
 'Hook called when the selected menu item changes, so that any
 'edit state stored in global variables can be reset.
 'You can NOT rely on this always being called immediately! For

@@ -3,6 +3,9 @@ WHAT IS NEW?
 April ? 2020 [Gorgonzola]
 
   *** New Features
+    * Numlock is now respected in both Game and Custom; when it's off numpad
+      keys are also mapped to other keys, so you can use the numpad for
+      movement.  When it's on, no remapping happens. [Ralph]
 
    * New Plotscripting Features
     * ""any key", etc, includes mouse" option in Mouse Controls menu [Ralph]

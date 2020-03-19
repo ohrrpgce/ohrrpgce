@@ -1596,16 +1596,46 @@ end function
 '==========================================================================================
 
 
+'Numpad scancode that's an alias to this key
+local function numpad_alias_key(key as KBScancode, real_keys as bool) as KBScancode
+	if (keyval_ex(scNumLock, , , real_keys) and 1) xor (keyval_ex(scShift, , , real_keys) and 1) then
+		return 0
+	end if
+	select case key
+		'Should ccLeft etc be handled or when building carray?
+		case scLeft, ccLeft:   return scNumpad4
+		case scRight, ccRight: return scNumpad6
+		case scUp, ccUp:       return scNumpad8
+		case scDown, ccDown:   return scNumpad2
+		case scHome:           return scNumpad7
+		case scEnd:            return scNumpad1
+		case scPageUp:         return scNumpad9
+		case scPageDown:       return scNumpad3
+		case scDelete:         return scNumpadPeriod
+		case scInsert:         return scNumpad0
+		'Skip - + (already handled in intgrabber) * / Enter (already handled by AnyEnter)
+		'(no good reason to do so).
+	end select
+	return 0
+end function
+
+function keyval_or_numpad_ex (key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
+	dim ret as KeyBits = keyval_ex(key, repeat_wait, repeat_rate, real_keys)
+	dim key2 as KBScancode = numpad_alias_key(key, real_keys)
+	if key2 then ret or= keyval_ex(key2, repeat_wait, repeat_rate, real_keys)
+	return ret
+end function
+
 function real_keyval (key as KBScancode) as KeyBits
-	return keyval_ex(key, 0, 0, YES)
+	return keyval_or_numpad_ex(key, 0, 0, YES)
 end function
 
 function keyval (key as KBScancode) as KeyBits
-	return keyval_ex(key, 0, 0, NO)
+	return keyval_or_numpad_ex(key, 0, 0, NO)
 end function
 
 function slowkey (key as KBScancode, ms as integer) as bool
-	return keyval_ex(key, ms, ms, NO) > 1
+	return keyval_or_numpad_ex(key, ms, ms, NO) > 1
 end function
 
 function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
@@ -1712,6 +1742,7 @@ sub setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
 end sub
 
 'Erase a keypress event from the keyboard state, and optionally cancel key repeat. Does not affect key-down state.
+'FIXME: have to clear numpad keys too, if remapped!
 sub clearkey(k as KBScancode, clear_key_repeat as bool = YES)
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
 	inputst->kb.keys(k) and= 1
@@ -1777,23 +1808,29 @@ function get_ascii_inputtext () as string
 		end if
 	next i
 
-	' A few keys missing from key2text
+	' Space and numpad are missing from key2text
 	if real_keyval(scSpace) > 1 then ret &= " "
-	if real_keyval(scNumpadAsterisk) > 1 then ret &= "*"
-	if real_keyval(scNumpadMinus) > 1 then ret &= "-"
-	if real_keyval(scNumpadPlus) > 1 then ret &= "+"
-	' (Bug: gfx_fb reports both scSlash and scNumpadSlash)
-	if gfxbackend <> "fb" and real_keyval(scNumpadSlash) > 1 then ret &= "/"
 
-	' Numpad is missing from key2text
-	' (Bug: gfx_fb on Windows never reports scNumpad5 at all!)
-	for i as integer = 0 to ubound(numpad2text)
-		if real_keyval(scNumpad7 + i) > 1 then
-			ret &= numpad2text(i)
-		end if
-        next
-	' Note, we ignore numlock/shift, because backends/OSes differ on when
-	' they report text input from numpad keys anyway:
+	if (real_keyval(scNumLock) and 1) xor (shift and 1) then
+		'NOTE: When NumLock is off, numpad is mapped to Left, Home, etc, by keyval
+		'but when it's on we *don't* map it to 1, +, etc!  That's because we want
+		'the option of having numpad separate. And you should ideally be reading
+		'text input rather than checking sc1, etc.
+		if real_keyval(scNumpadAsterisk) > 1 then ret &= "*"
+		if real_keyval(scNumpadMinus) > 1 then ret &= "-"
+		if real_keyval(scNumpadPlus) > 1 then ret &= "+"
+		' (Bug: gfx_fb reports both scSlash and scNumpadSlash)
+		if gfxbackend <> "fb" and real_keyval(scNumpadSlash) > 1 then ret &= "/"
+
+		' (Bug: gfx_fb on Windows never reports scNumpad5 at all!)
+		for i as integer = 0 to ubound(numpad2text)
+			if real_keyval(scNumpad7 + i) > 1 then
+				ret &= numpad2text(i)
+			end if
+		next
+	end if
+	' Note, backends/OSes differ on when they report text input from numpad keys:
+	' (See bug #45; the following description may be out of date)
 	' X11 (both FB and SDL): when numlock XOR shift is pressed
 	' Windows (both FB and SDL): only when numlock on and shift not pressed
 	' gfx_directx: when numlock is on
@@ -3202,6 +3239,8 @@ local function draw_allmodex_recordable_overlays (page as integer) as bool
 		dim as string modifiers, keys
 		with iif(replay.active, @replay_input, @real_input)->kb
 			for idx as KBScancode = 0 to ubound(.keys)
+				'TODO: Would be nice to show "Left" instead of "Numpad 4" if
+				'numlock is off and that's what it's acting as.
 				if .keys(idx) = 0 then continue for
 				dim keyname as string = scancodename(idx)
 				replacestr keyname, "Left", "L"  'Shorten the name

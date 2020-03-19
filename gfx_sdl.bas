@@ -1244,6 +1244,9 @@ SUB io_sdl_textinput (byval buf as wstring ptr, byval bufsize as integer)
   'Both FB and SDL only support UCS2, which doesn't have variable len wchars.
   DIM buflen as integer = bufsize \ 2 - 1
   *buf = LEFT(input_buffer, buflen)
+  IF debugging_io ANDALSO LEN(*buf) THEN
+    debuginfo "io_sdl_textinput: " & *buf
+  END IF
   input_buffer = MID(input_buffer, buflen)
 END SUB
 
