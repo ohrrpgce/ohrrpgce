@@ -4180,12 +4180,12 @@ end
 			<shortname>last ascii</shortname>
 			<description>This command is obsolete. Use <ref>getinputtext</ref> instead, if possible.<lb/>Returns the character code of any currently pressed key, or 0 if none are. If more than one key corresponding to an ascii character is being pressed, then only one can be returned.</description>
 			<seealso>
-				<ref>scancodename</ref>
+				<ref>getscancodename</ref>
 			</seealso>
 		</command>
-		<command id="scancodename">
-			<canon>scancode name(string id, scancode, long name)</canon>
-			<shortname>scancode name</shortname>
+		<command id="getscancodename">
+			<canon>get scancode name(string id, scancode, long name)</canon>
+			<shortname>get scancode name</shortname>
 			<description>
 				Get a name for a <ref>scancode</ref>, what the key does if Shift isn't pressed,
 				and put it in <p>string id</p>.

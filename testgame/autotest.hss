@@ -5370,24 +5370,24 @@ script, string load tests, begin
   textboxtext(1, 8, true, false)
   assert(string compare(1, 2))
 
-  # scancode name tests
+  # get get scancode name tests
   $1="Left Bracket"
-  scancode name(2, key:leftbracket)
+  get scancode name(2, key:leftbracket)
   assert(string compare(1,2))
   $1="["
-  scancode name(2, key:leftbracket, false)
+  get scancode name(2, key:leftbracket, false)
   assert(string compare(1,2))
   $1="Run"
-  scancode name(2, run key)
+  get scancode name(2, run key)
   assert(string compare(1,2))
   $1="Scancode 0"
-  scancode name(2, 0)
+  get scancode name(2, 0)
   assert(string compare(1,2))
   $1="Space"
-  scancode name(2, key:space, false)
+  get scancode name(2, key:space, false)
   assert(string compare(1,2))
   $1="Left Shift"
-  scancode name(2, key:left shift, false)
+  get scancode name(2, key:left shift, false)
   assert(string compare(1,2))
 end
 

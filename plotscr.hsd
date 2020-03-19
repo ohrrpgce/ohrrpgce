@@ -717,7 +717,7 @@ define function, begin
 689,visiblemenuitemcount,1,0  # Number of visible menu items in a menu
 690,replacesubstring,5,-1,-1,-1,-1,0  # Replace text in a string (in string ID, replace what ID, with what ID, max replacements, case insensitive)
 691,decodetrigger,1,0         # (Undocumented) Decode a script trigger to a script ID. Script IDs and 0 passed through. Missing scripts return 0.
-692,scancodename,3,0,0,1      # Get the name of a scancode in a string (string id, scancode, long name)
+692,getscancodename,3,0,0,1   # Get the name of a scancode in a string (string id, scancode, long name)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
