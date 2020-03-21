@@ -317,8 +317,16 @@ FUNCTION SliceTypeName (t as SliceTypes) as string
  RETURN "Unknown"
 END FUNCTION
 
+'Called from sliceedit.
+FUNCTION SliceLookupCodename (code as integer, slicelookup() as string) as string
+ IF code > 0 ANDALSO code <= UBOUND(slicelookup) ANDALSO LEN(TRIM(slicelookup(code))) THEN
+  RETURN slicelookup(code)
+ ELSE
+  RETURN SliceLookupCodeName(code)  'Special lookup codes
+ END IF
+END FUNCTION
+
 FUNCTION SliceLookupCodename (sl as Slice Ptr) as string
- '--Used for debugging
  IF sl = 0 THEN RETURN "[null]"
  RETURN SliceLookupCodename(sl->Lookup)
 END FUNCTION
@@ -421,10 +429,16 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE SL_STATUS_HIDE_IF_NO_HP: RETURN "status_hide_if_no_hp"
   CASE SL_PATHFIND_DEST_DISPLAY: RETURN "pathfind_dest_display"
 '</SLICE LOOKUP NAMES>
-  CASE ELSE
-   RETURN STR(code)
+  CASE IS > 0
+   'TODO: cache slicelookup() in memory.
+   'This codepath currently only gets called from debug and error reporting code, so it's not much of a problem.
+   DIM slicelookup() as string
+   load_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"
+   IF code <= UBOUND(slicelookup) ANDALSO LEN(TRIM(slicelookup(code))) THEN
+    RETURN slicelookup(code)
+   END IF
  END SELECT
- RETURN ""
+ RETURN "Lookup" & code
 END FUNCTION
 
 EXTERN "C"

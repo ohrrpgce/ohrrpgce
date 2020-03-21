@@ -606,6 +606,7 @@ DECLARE FUNCTION SliceTypeName OVERLOAD (sl as Slice Ptr) as string
 DECLARE FUNCTION SliceTypeName OVERLOAD (t as SliceTypes) as string
 DECLARE FUNCTION SliceLookupCodename OVERLOAD (sl as Slice Ptr) as string
 DECLARE FUNCTION SliceLookupCodename OVERLOAD (byval code as integer) as string
+DECLARE FUNCTION SliceLookupCodename OVERLOAD (code as integer, slicelookup() as string) as string
 
 Extern "C"
 

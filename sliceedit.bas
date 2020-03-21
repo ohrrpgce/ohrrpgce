@@ -1898,12 +1898,7 @@ FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slic
   END IF
   s &= "${K" & uilook(uiText) & "} "
   IF sl->Context THEN s &= sl->Context->description()
-  'Show the lookup code name instead of the ID, provided it doesn't have a blank name
-  IF .Lookup > 0 ANDALSO .Lookup <= UBOUND(slicelookup) ANDALSO LEN(TRIM(slicelookup(.Lookup))) THEN
-   s &= slicelookup(.Lookup)
-  ELSE
-   s &= SliceLookupCodeName(.Lookup)  'returns STR(.Lookup) if not recognied
-  END IF
+  s &= SliceLookupCodeName(.Lookup, slicelookup())  'returns "Lookup" & .Lookup if not recognied
  END WITH
  RETURN s
 END FUNCTION
@@ -2076,7 +2071,7 @@ FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as strin
   s = "[sl:" & SliceLookupCodeName(code) & "]"
  ELSE
   s = STR(code)
-  IF code <= UBOUND(slicelookup) ANDALSO LEN(slicelookup(code)) THEN
+  IF code <= UBOUND(slicelookup) ANDALSO LEN(TRIM(slicelookup(code))) THEN
    s &= " sli:" & slicelookup(code)
   ELSE
    s &= " (Unnamed)"
