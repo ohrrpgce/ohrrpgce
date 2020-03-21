@@ -2807,8 +2807,8 @@ SUB show_help(helpkey as zstring ptr)
 
    IF editing THEN
     IF keyval(scCtrl) > 0 AND keyval(scS) > 1 THEN
-     'Because while editing we don't use_render_text so can't do text highlighting,
-     'so use this old search implementation
+     'Previously we didn't use_render_text while editing so couldn't do text highlighting,
+     'so use this old search implementation. TODO: Ctrl-S to start incremental search.
      IF prompt_for_string(searchstring, "Search") THEN
       DIM idx as integer = INSTR(dat->insert + 2, LCASE(dat->s), LCASE(searchstring))
       IF idx = 0 THEN  'wrap
@@ -2850,9 +2850,6 @@ SUB show_help(helpkey as zstring ptr)
    IF keyval(scCtrl) > 0 AND keyval(scE) > 1 THEN
     IF diriswriteable(get_help_dir()) THEN
      editing = YES
-     'Displaying the cursor doesn't work properly with use_render_text :(
-     help_text->TextData->use_render_text = NO
-     ChangeTextSlice help_text, help_str
      'Hide footer
      help_outer_box->paddingBottom = 4
      footer_text->Visible = NO
