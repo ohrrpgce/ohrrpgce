@@ -1520,6 +1520,9 @@ FUNCTION attack_can_hit_dead(attacker as integer, atk_id as integer, stored_targ
 END FUNCTION
 
 FUNCTION attack_can_hit_dead(attacker as integer, attack as AttackData, stored_targs_can_be_dead as bool=NO) as bool
+ 'AFAICT, the reason for the is_hero/is_enemy checks here is to ensure that
+ 'check_for_unhittable_invisible_foe only cancels attacks against dead enemies,
+ 'not dead heroes. Which is obtuse.
 
  SELECT CASE attack.targ_class
   CASE 4 'ally-including-dead (hero only)

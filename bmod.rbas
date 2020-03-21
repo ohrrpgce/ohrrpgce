@@ -101,7 +101,7 @@ DECLARE SUB populate_battle_menu_menudef (byval hero_id as integer, menu as Menu
 DECLARE SUB update_battle_menu (bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE FUNCTION enemy_is_weak(byval who as integer, bslot() as BattleSprite) as bool
-DECLARE FUNCTION check_for_unhittable_invisible_foe(byval index as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer) as bool
+DECLARE FUNCTION check_for_unhittable_invisible_foe(attacker as integer, target as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE FUNCTION is_among_targets(byval slot as integer, t() as integer) as bool
 DECLARE FUNCTION should_victory_advance(byref bat as BattleState) as bool
 
@@ -3118,13 +3118,13 @@ FUNCTION projectile_start_position(attack as AttackData, attacker as integer, ba
  RETURN ret
 END FUNCTION
 
-'Return true if target 't(index)' is unhittable and invisible
-FUNCTION check_for_unhittable_invisible_foe(byval index as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer) as bool
- IF bslot(t(index)).vis THEN RETURN NO
- IF attack_can_hit_dead(t(index), attack, bslot(bat.acting).stored_targs_can_be_dead) THEN RETURN NO 'Attack can hit dead targets
- IF bslot(bat.acting).self_bequesting THEN
+'Return true if target is unhittable and invisible
+FUNCTION check_for_unhittable_invisible_foe(attacker as integer, target as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
+ IF bslot(target).vis THEN RETURN NO
+ IF attack_can_hit_dead(attacker, attack, bslot(attacker).stored_targs_can_be_dead) THEN RETURN NO 'Attack can hit dead targets
+ IF bslot(attacker).self_bequesting THEN
   'This is a self-bequest attack
-  IF bat.acting = t(index) THEN RETURN NO 'Bequesting attacker is always allowed to hit self
+  IF attacker = target THEN RETURN NO 'Bequesting attacker is always allowed to hit self
  END IF
  RETURN YES
 END FUNCTION
@@ -3188,7 +3188,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  'CANNOT HIT INVISIBLE FOES
  FOR i = 0 TO 11
   IF t(i) > -1 THEN
-   IF check_for_unhittable_invisible_foe(i, attack, bat, bslot(), t()) THEN
+   IF check_for_unhittable_invisible_foe(bat.acting, t(i), attack, bat, bslot()) THEN
     t(i) = -1
    END IF
   END IF
@@ -3203,7 +3203,12 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  FOR i = 0 TO 11
   IF t(i) > -1 THEN tcount += 1
  NEXT i
- 
+ 'ABORT IF TARGETLESS
+ IF tcount = 0 THEN
+  bat.atk.id = -1
+  EXIT SUB
+ END IF
+
  bat.atk.non_elemental = YES
  FOR i = 0 TO gen(genNumElements) - 1
   bat.atk.elemental(i) = NO
@@ -3214,13 +3219,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    END IF
   END IF
  NEXT i
- 
- 'ABORT IF TARGETLESS
- IF tcount = 0 THEN
-  bat.atk.id = -1
-  EXIT SUB
- END IF
- 
+
  'Kill old target history
  FOR i = 0 TO 11
   bslot(bat.acting).last_targs(i) = NO
