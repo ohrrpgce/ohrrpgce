@@ -188,13 +188,17 @@ FUNCTION formation_set_editor (set_id as integer = -1) as integer
   IF state.pt = 3 THEN tag_grabber formset.tag, state
   IF state.pt >= 4 THEN
    '--have form selected
-   form_id = formset.formations(state.pt - 4)
-   IF intgrabber(form_id, -1, gen(genMaxFormation)) THEN
+   'The form number is not normally offset, but we offset it so 0 is none.
+   form_id = formset.formations(state.pt - 4) + 1
+   IF zintgrabber(form_id, -1, gen(genMaxFormation)) THEN
     state.need_update = YES
    ELSEIF enter_space_click(state) THEN
-    form_id = formation_picker_or_none(form_id + 1) - 1
+    form_id = formation_picker_or_none(form_id)
+   ELSEIF keyval(scDelete) > 1 THEN
+    form_id = 0
     state.need_update = YES
    END IF
+   form_id -= 1 'Un-offset
    formset.formations(state.pt - 4) = form_id
   ELSE
    form_id = -1
