@@ -912,7 +912,7 @@ FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as 
  END IF
  DIM ch as Slice ptr = sl->FirstChild
  WHILE ch
-  IF slice_editor_forbidden_search(ch, specialcodes()) THEN RETURN YES
+  IF slice_editor_forbidden_search(ch, specialcodes(), errorstr) THEN RETURN YES
   ch = ch->NextSibling
  WEND
  RETURN NO
