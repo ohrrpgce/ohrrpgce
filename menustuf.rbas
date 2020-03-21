@@ -925,7 +925,7 @@ FUNCTION chkOOBtarg (byval attacker as integer, byval target as integer, byval a
     IF attacker > -1 ANDALSO attacker <> target THEN RETURN NO
    CASE 5 'Ally-not-self
     IF attacker > -1 ANDALSO attacker = target THEN RETURN NO
-   CASE 10  'Dead-ally
+   CASE 10, 15  'Dead Ally, Dead Foe
     RETURN (hp <= 0)
   END SELECT
   'Most target classes are treated equivalent to "All (not dead)"

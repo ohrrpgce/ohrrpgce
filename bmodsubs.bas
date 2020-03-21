@@ -1293,6 +1293,13 @@ SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackDa
   NEXT i
   FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
 
+ CASE 15 'dead foe (enemy only)
+  IF is_enemy(who) THEN
+   FOR i = 0 TO 3
+    IF gam.hero(i).id >= 0 ANDALSO bslot(i).stat.cur.hp <= 0 THEN tmask(i) = YES
+   NEXT i
+  END IF
+
  'Consider updating chkOOBtarg when adding new target classes concerning dead allies...
  'but OOB nearly all are treated as 'All'.
 
@@ -1522,9 +1529,13 @@ FUNCTION attack_can_hit_dead(attacker as integer, attack as AttackData, stored_t
     IF stored_targs_can_be_dead THEN RETURN YES
    END IF
   CASE 10 'dead-ally (hero only)
+   'Is this really necessary? Can't we just RETURN YES?
    IF is_hero(attacker) THEN RETURN YES
   CASE 14 'all-including-dead
    RETURN YES
+  CASE 15 'dead foe (enemy only)
+   'As above, just RETURN YES?
+   IF is_enemy(attacker) THEN RETURN YES
  END SELECT
 
  RETURN NO
