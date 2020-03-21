@@ -24,7 +24,7 @@ DECLARE SUB load_formation_slices(ename() as string, form as Formation, rootslic
 DECLARE SUB hero_formation_editor ()
 DECLARE SUB formation_init_added_enemy(byref slot as FormationSlot)
 
-DECLARE SUB formation_set_editor_load_preview(state as MenuState, byref form_id as integer, formset as FormationSet, form as Formation, ename() as string, byref rootslice as Slice Ptr)
+DECLARE SUB formation_set_editor_load_preview(state as MenuState, form_id as integer, formset as FormationSet, form as Formation, ename() as string, byref rootslice as Slice Ptr)
 
 ' Formation editor slice lookup codes
 CONST SL_FORMEDITOR_BACKDROP = 100
@@ -153,12 +153,12 @@ FUNCTION formation_set_editor (set_id as integer = -1) as integer
  DIM state as MenuState
  state.last = UBOUND(menu)
  state.size = 24
+ state.need_update = YES
  DIM menuopts as MenuOptions
  menuopts.edged = YES
  menuopts.itemspacing = -1
 
  LoadFormationSet formset, set_id
- formation_set_editor_load_preview state, form_id, formset, form, menu(), rootslice
 
  setkeys
  DO
@@ -169,9 +169,7 @@ FUNCTION formation_set_editor (set_id as integer = -1) as integer
    EXIT DO
   END IF
   IF keyval(scF1) > 1 THEN show_help "formation_sets"
-  IF usemenu(state) THEN 
-   formation_set_editor_load_preview state, form_id, formset, form, menu(), rootslice
-  END IF
+  state.need_update OR= usemenu(state)
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN
     SaveFormationSet formset, set_id
@@ -183,20 +181,29 @@ FUNCTION formation_set_editor (set_id as integer = -1) as integer
    IF intgrabber(set_id, 1, maxFormationSet) THEN
     SaveFormationSet formset, remember_id
     LoadFormationSet formset, set_id
-    formation_set_editor_load_preview state, form_id, formset, form, menu(), rootslice
+    state.need_update = YES
    END IF
   END IF
   IF state.pt = 2 THEN intgrabber formset.frequency, 0, 200
   IF state.pt = 3 THEN tag_grabber formset.tag, state
   IF state.pt >= 4 THEN
-   IF intgrabber(formset.formations(state.pt - 4), -1, gen(genMaxFormation)) THEN
-    formation_set_editor_load_preview state, form_id, formset, form, menu(), rootslice
+   '--have form selected
+   form_id = formset.formations(state.pt - 4)
+   IF intgrabber(form_id, -1, gen(genMaxFormation)) THEN
+    state.need_update = YES
    ELSEIF enter_space_click(state) THEN
-    formset.formations(state.pt - 4) = formation_picker_or_none(form_id + 1) - 1
-    formation_set_editor_load_preview state, form_id, formset, form, menu(), rootslice
+    form_id = formation_picker_or_none(form_id + 1) - 1
+    state.need_update = YES
    END IF
+   formset.formations(state.pt - 4) = form_id
+  ELSE
+   form_id = -1
   END IF
-  IF state.pt >= 4 AND form_id >= 0 THEN
+  IF state.need_update THEN
+   state.need_update = NO
+   formation_set_editor_load_preview state, form_id, formset, form, menu(), rootslice
+  END IF
+  IF rootslice THEN
    draw_formation_slices form, rootslice, -1, dpage
   ELSE
    clearpage dpage
@@ -217,16 +224,14 @@ FUNCTION formation_set_editor (set_id as integer = -1) as integer
  RETURN set_id
 END FUNCTION
 
-SUB formation_set_editor_load_preview(state as MenuState, byref form_id as integer, formset as FormationSet, form as Formation, menu() as string, byref rootslice as slice Ptr)
- IF state.pt >= 4 THEN
-  '--have form selected
-  form_id = formset.formations(state.pt - 4)
-  IF form_id >= 0 THEN
-   '--form not empty
-   LoadFormation form, form_id
-   DIM as string ename(7) 'not used here, but that is okay
-   load_formation_slices ename(), form, @rootslice
-  END IF
+SUB formation_set_editor_load_preview(state as MenuState, form_id as integer, formset as FormationSet, form as Formation, menu() as string, byref rootslice as slice Ptr)
+ IF form_id >= 0 THEN
+  '--form not empty
+  LoadFormation form, form_id
+  DIM as string ename(7) 'not used here, but that is okay
+  load_formation_slices ename(), form, @rootslice
+ ELSE
+  DeleteSlice @rootslice
  END IF
  'Also reload the formation descriptions for the menu
  DIM each_form as Formation
