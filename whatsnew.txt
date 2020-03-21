@@ -14,6 +14,8 @@ April ? 2020 [Gorgonzola]
     * "get scancode name" [Ralph]
 
   *** Changes
+    * Renamed "Enemy" target class to "Foe (not dead)", and "Ally" to
+      "Ally (not dead)"
 
   *** Bugfixes
     * Linux builds should now hopefully work on all Linux systems since 2011

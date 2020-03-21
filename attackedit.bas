@@ -401,8 +401,8 @@ addcaption caption(), capindex, "Random"
 CONST AtkLimTargClass = 3
 max(AtkLimTargClass) = 14
 menucapoff(AtkTargClass) = capindex
-addcaption caption(), capindex, "Enemy"
-addcaption caption(), capindex, "Ally"
+addcaption caption(), capindex, "Foe (not dead)"
+addcaption caption(), capindex, "Ally (not dead)"
 addcaption caption(), capindex, "Self"
 addcaption caption(), capindex, "All (not dead)"
 addcaption caption(), capindex, "Ally (including dead)"

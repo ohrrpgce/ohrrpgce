@@ -36,15 +36,19 @@ Aim Math: Determines the chance for the attack to hit the target. For Normal, Po
 
 Target Class: This controls who the attack can be used on.
 
-* Enemy - For heroes this means the
-  attack is targetted to enemies. For
-  enemies this means that the attack
-  is targetted to heroes.
+NOTE: When an attack is used outside of battle, most target classes are treated equivalent to "Ally (not dead)". The exceptions are Self, Ally not self, Ally (including dead), Dead Ally and All (including dead).
 
-* Ally - For heroes this means that
-  the attack is targeted to heroes.
-  For enemies this means that the
-  attack is targetted to enemies.
+* Foe (not dead) - For heroes this
+  means the attack is targetted to
+  enemies. For enemies this means
+  that the attack is targetted to
+  heroes.
+
+* Ally (not dead) - For heroes this
+  means that the attack is targeted
+  to heroes.  For enemies this means
+  that the attack is targetted to
+  enemies.
 
 * Self - This means the attack can
   only be targetted to the attacker.
@@ -114,7 +118,9 @@ Target Class: This controls who the attack can be used on.
   attack can only target dead heroes.
   If no heroes are dead, the attack
   will be unusable. The attack cannot
-  be used by enemies.
+  be used by enemies because unlike
+  heroes, dead enemies are totally
+  removed from the battle.
 
 * Thankvenge (last to cure attacker)
   This means the attack will only be
