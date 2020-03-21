@@ -1914,7 +1914,7 @@ SUB reset_enemy_state(byref bspr as BattleSprite)
   .d = 0
   .dissolve = 0
   .dissolve_appear = 0
-  .flee = 0
+  .fleeing = NO
   .bequesting = NO
   .self_bequesting = NO
  END WITH

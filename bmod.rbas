@@ -415,7 +415,7 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
      (bslot(i).pos) = bslot(i).basepos
     NEXT i
     FOR i = 0 TO 7
-     IF bslot(4 + i).flee = 0 THEN
+     IF bslot(4 + i).fleeing = NO THEN
       (bslot(4 + i).pos) = bslot(4 + i).basepos
      END IF
     NEXT i
@@ -1302,7 +1302,7 @@ SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
    IF .dissolve > 0 THEN
     'ENEMIES DEATH THROES
     IF is_enemy(i) THEN
-     IF .flee THEN  'running away
+     IF .fleeing THEN  'running away
       .x = .x - 10
       .d = 1
      END IF
@@ -1456,7 +1456,7 @@ SUB update_battle_slices(bslot() as BattleSprite)
     IF is_enemy(i) andalso .appeartype >= 0 andalso .dissolve_appear <= .appeartime then
      'TODO: switch to auto-animating dissolve instead of manually setting the current tick
      DissolveSpriteSlice .sprite, .appeartype, .appeartime, .appeartime - .dissolve_appear, , NO
-    ELSEIF is_enemy(i) andalso .dissolve > 0 andalso .flee = 0 then
+    ELSEIF is_enemy(i) andalso .dissolve > 0 andalso .fleeing = NO then
      DissolveSpriteSlice .sprite, .deathtype, .deathtime, .deathtime - .dissolve, , NO
     ELSE
      CancelSpriteSliceDissolve .sprite
@@ -2401,7 +2401,7 @@ SUB triggerfade(byval who as integer, bslot() as BattleSprite)
  'If the target is really dead...
  IF bslot(who).stat.cur.hp <= 0 THEN
   IF is_hero(who) THEN
-   '--for heroes, a .dissolve > 1 is used to trigger the animate code
+   '--for heroes, a .dissolve > 0 is used to trigger the animate code
    '  to force the hero to use their death frame
    bslot(who).dissolve = 1
   END IF
@@ -2410,8 +2410,8 @@ SUB triggerfade(byval who as integer, bslot() as BattleSprite)
    IF bslot(who).dissolve > 0 OR bslot(who).vis = NO THEN EXIT SUB
    bslot(who).dissolve = bslot(who).deathtime
    '--flee as alternative to death
-   IF bslot(who).flee_instead_of_die = YES THEN
-    bslot(who).flee = 1
+   IF bslot(who).flee_instead_of_die THEN
+    bslot(who).fleeing = YES
     'the number of ticks it takes an enemy to run away is based on its distance
     'from the left side of the screen and its width. Enemys flee at 10 pixels per tick
     bslot(who).dissolve = (bslot(who).w + bslot(who).x) / 10
@@ -2501,7 +2501,7 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
      .self_bequesting = is_among_targets(deadguy, beq_t())
      .vis = YES
      .dissolve = 0
-     .flee = 0
+     .fleeing = NO
     END IF
     EXIT SUB
    END IF
@@ -5071,14 +5071,14 @@ SUB dump_bslot(bat as BattleState, bslot() as BattleSprite, formdata as Formatio
  FOR slot as integer = 0 TO 11
   WITH bslot(slot)
    'I don't know whether this is the right way to exclude empty slots or not...
-   IF .vis = NO ANDALSO .dissolve = 0 ANDALSO .flee = 0 ANDALSO .stat.cur.hp <= 0 ANDALSO .bequesting = NO THEN CONTINUE FOR
+   IF .vis = NO ANDALSO .dissolve = 0 ANDALSO .fleeing = NO ANDALSO .stat.cur.hp <= 0 ANDALSO .bequesting = NO THEN CONTINUE FOR
 
    info &= !"\nSlot " & slot & IIF(is_hero(slot), " (hero)", " (enemy)")
    IF is_enemy(slot) THEN info &= !"\n orig. formation enemy = " & formdata.slots(slot - 4).id
    info &= !"\n name = " & .name & _
            !"\n vis = " & .vis & _
            !"\n dissolve = " & .dissolve & _
-           !"\n flee = " & .flee & _
+           !"\n fleeing = " & yesorno(.fleeing) & _
            !"\n bequesting = " & yesorno(.bequesting) & _
            !"\n attack = " & .attack - 1
    IF bat.turn.mode = turnACTIVE THEN

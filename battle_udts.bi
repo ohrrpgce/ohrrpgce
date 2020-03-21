@@ -71,7 +71,13 @@ TYPE BattleSprite
   xspeed as integer
   yspeed as integer
   zspeed as integer
-  vis as bool
+  vis as bool   'Roughly, but not exactly, visibility:
+                'For combatants: Is alive (or dying interruptted) and visible (didn't jump).
+                '  Gets set to YES while an enemy is performing an on-death attack.
+                '  Gets set to NO while it's dissolving or fleeing after death, or
+                '  or if jumped off-screen
+                '  If true, treated as a valid target for attacks that can't hit dead.
+                'For other BattleSprites: is visible
 
   '--stats
   stat as BattleStats
@@ -86,9 +92,10 @@ TYPE BattleSprite
   batmenu as MenuDef
   menust as MenuState
   '--misc
-  dissolve as integer
-  dissolve_appear as integer
-  flee as integer ' used to indicate when a sprite animates running away (not to be confused with BattleState.flee)
+  dissolve as integer      'Ticks left in death dissolving animation (for enemies).
+                           'Set to 1 for dead heroes, to make them visible and use death frame, and does not count down (yuck)
+  dissolve_appear as integer 'Counts ticks *up* to appeartime while enemy appears
+  fleeing as bool          'Sprite is animating running away (not to be confused with BattleState.flee)
   attack_succeeded as bool
   walk as integer 'used by heroes when animating walking
   anim_pattern as integer 'used by attack sprites
@@ -337,7 +344,7 @@ TYPE BattleState
  level_mp_caption as string
  cannot_run_caption as string
  cancel_spell_caption as string
- flee as integer            'Used by the crappy running system, not to be confused with BattleSprite.flee
+ flee as integer            'Used by the crappy running system, not to be confused with BattleSprite.fleeing
  away as integer            'Used by the crappy running system.
  mouse_running as integer   'Counts the number of ticks the right mouse button has been held for the crappy running system
  alert_ticks as integer     'Number of ticks remaining to display .alert
