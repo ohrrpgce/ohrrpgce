@@ -927,8 +927,11 @@ FUNCTION chkOOBtarg (byval attacker as integer, byval target as integer, byval a
     IF attacker > -1 ANDALSO attacker = target THEN RETURN NO
    CASE 10, 15  'Dead Ally, Dead Foe
     RETURN (hp <= 0)
+   CASE 16  'Foe-including-dead
+    RETURN YES  'attack_can_hit_dead() would return NO because heroes can't hit dead enemies
   END SELECT
-  'Most target classes are treated equivalent to "All (not dead)"
+  'Other target classes are treated equivalent to "Ally (not dead)", or
+  'to Ally-including-dead if they can hit dead.
 
   IF hp <= 0 THEN RETURN attack_can_hit_dead(0, attack)  'Fake attacker 0, indicating a hero
  ELSE
@@ -3609,6 +3612,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
     getOOBtarg 1, attacker, targ, attack_id
     MenuSound gen(genCursorSFX)
    END IF
+   'FIXME: should use usemenu() with unselectable menu items, so pgup/pgdn/home/end work... and mouse too
   END IF
   
   IF allow_spread THEN

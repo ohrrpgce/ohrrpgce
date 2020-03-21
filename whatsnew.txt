@@ -6,8 +6,8 @@ April ? 2020 [Gorgonzola]
     * Numlock is now respected in both Game and Custom; when it's off numpad
       keys are also mapped to other keys, so you can use the numpad for
       movement.  When it's on, no remapping happens. [Ralph]
-    * "Dead Foe (enemies only)" attack target class (so enemies can target
-      dead heroes specifically) [Ralph]
+    * "Dead Foe (dead heroes only)" and "Foe (including dead heroes)" attack
+      target classes [Ralph]
 
    * New Plotscripting Features
     * ""any key", etc, includes mouse" option in Mouse Controls menu [Ralph]

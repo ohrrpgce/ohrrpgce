@@ -1189,6 +1189,7 @@ SUB import_battle_hero_stats (bslot() as BattleSprite)
  NEXT i
 END SUB
 
+'who: attacker
 SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackData, bslot() as BattleSprite)
  DIM i as integer
 
@@ -1297,6 +1298,15 @@ SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackDa
   IF is_enemy(who) THEN
    FOR i = 0 TO 3
     IF gam.hero(i).id >= 0 ANDALSO bslot(i).stat.cur.hp <= 0 THEN tmask(i) = YES
+   NEXT i
+  END IF
+
+ CASE 16 'foe-including-dead
+  IF is_hero(who) THEN
+   FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
+  ELSEIF is_enemy(who) THEN
+   FOR i = 0 TO 3
+    IF gam.hero(i).id >= 0 THEN tmask(i) = YES
    NEXT i
   END IF
 
@@ -1536,7 +1546,7 @@ FUNCTION attack_can_hit_dead(attacker as integer, attack as AttackData, stored_t
    IF is_hero(attacker) THEN RETURN YES
   CASE 14 'all-including-dead
    RETURN YES
-  CASE 15 'dead foe (enemy only)
+  CASE 15, 16 'dead foe (enemy only), foe-incluidng-dead
    'As above, just RETURN YES?
    IF is_enemy(attacker) THEN RETURN YES
  END SELECT
