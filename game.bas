@@ -1162,7 +1162,7 @@ FUNCTION catleaderspeed() as integer
 END FUNCTION
 
 FUNCTION catindex(byval rank as integer) as integer
- RETURN rank * (20 \ catleaderspeed())
+ RETURN rank * CEIL(20 / catleaderspeed())
 END FUNCTION
 
 FUNCTION heropos(byval rank as integer) byref as XYPair
@@ -1202,7 +1202,7 @@ END FUNCTION
 SUB resetcaterpillar_for_one_hero (byval rank as integer, byval newx as integer, byval newy as integer)
  'FIXME: this is still hardcoded for leader speed 4
  DIM sp as integer = catleaderspeed()
- DIM gap as integer = 20 / sp
+ DIM gap as integer = CEIL(20 / sp)
  FOR i as integer = 0 TO gap - 1
   DIM index as integer = small(rank * gap + i, UBOUND(cats))
   cats(index).x = newx
@@ -1247,7 +1247,7 @@ SUB interpolatecat (byval old_speed as integer = -1)
   DIM cattemp(3) as CaterpillarHistory
   DIM temp_index as integer
   FOR i as integer = 0 to 3
-   temp_index = i * (20 / old_speed)
+   temp_index = i * CEIL(20 / old_speed)
    IF temp_index >= 0 ANDALSO temp_index <= UBOUND(cats) THEN
     cattemp(i) = cats(temp_index)
    ELSE
@@ -1255,11 +1255,11 @@ SUB interpolatecat (byval old_speed as integer = -1)
    END IF
   NEXT i
   FOR i as integer = 0 to 3
-   cats(i * (20 / sp)) = cattemp(i)
+   cats(i * CEIL(20 / sp)) = cattemp(i)
   NEXT i
  END IF
 
- DIM gap as integer = 20 / sp
+ DIM gap as integer = CEIL(20 / sp)
  FOR o as integer = 0 TO UBOUND(cats) - gap STEP gap
   FOR i as integer = o + 1 TO o + gap - 1
    cats(i).pos = cats(i - 1).pos + ((cats(o + gap).pos - cats(o).pos) / gap)

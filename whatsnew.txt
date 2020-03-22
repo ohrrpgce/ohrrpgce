@@ -36,6 +36,8 @@ April ? 2020 [Gorgonzola]
       spells outside of battle [Ralph]
     * Bug 1105 "Self"- and "Ally not Self"-target attacks are treated as
       "Ally"-target attacks outside of battle [Ralph]
+    * Caterpillar party heroes overlapped when hero speed didn't divide evenly
+      into 20, even with "Keep caterpillar length the same" on [Ralph]
 
   *** Stuff Only Developers Will Notice
     * All .py build scripts and utilities will run under Python 3 as well as
