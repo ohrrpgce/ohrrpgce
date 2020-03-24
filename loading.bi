@@ -222,6 +222,8 @@ DECLARE FUNCTION load_gamename (filename as string="") as string
 DECLARE FUNCTION load_aboutline (filename as string="") as string
 DECLARE SUB save_gamename (s as string, filename as string="")
 DECLARE SUB save_aboutline (s as string, filename as string="")
+DECLARE FUNCTION load_titletext () as string
+DECLARE SUB save_titletext (s as string)
 DECLARE SUB write_engine_version_node (byval parent as NodePtr, nodename as string)
 DECLARE FUNCTION read_engine_version_node (vernode as Node ptr) as EngineVersion
 DECLARE FUNCTION read_last_editor_version () as EngineVersion

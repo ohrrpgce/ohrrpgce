@@ -4536,6 +4536,20 @@ SUB save_aboutline (s as string, filename as string="")
  store_browse_record(filename, 1, s)
 END SUB
 
+FUNCTION load_titletext () as string
+ DIM root_node as NodePtr
+ root_node = get_general_reld()
+ RETURN GetString(NodeByPath(root_node, "/title_options/titletext", YES))
+END FUNCTION
+
+SUB save_titletext (s as string)
+ DIM root_node as NodePtr
+ root_node = get_general_reld()
+ DIM n as NodePtr = NodeByPath(root_node, "/title_options/titletext", YES)
+ SetContent(n, s)
+ write_general_reld()
+END SUB
+
 'Create the editor_version (general.reld) or game_client (RSAV) node.
 'If if already exists, only modify it if the previous version wasn't newer.
 SUB write_engine_version_node(byval parent as NodePtr, nodename as string)

@@ -13,6 +13,7 @@ About Line: Type in some info about your game to appear when the game is selecte
 
 Title Screen: Choose a fullscreen backdrop to appear when the game is opened by the player (before choosing a save file).  You must import the backdrop in the Graphics Editor first.
 
+Title Screen Text: This optional text will be displayed at the bottom of the title screen. This is a quick and easy way to display information like a version number
 
   Major Settings
 

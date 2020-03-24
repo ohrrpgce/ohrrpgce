@@ -1174,6 +1174,7 @@ TYPE GeneralSettingsMenu EXTENDS ModularMenu
 
  longname as string
  aboutline as string
+ titletext as string
 
  DECLARE SUB add_item(subtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
  DECLARE SUB gen_int(genidx as integer, minvalue as integer, maxvalue as integer)
@@ -1211,6 +1212,7 @@ SUB GeneralSettingsMenu.update()
  add_item 1, ,  "Long name: " + this.longname
  add_item 2, ,  "About line: " + this.aboutline
  add_item 3, ,  "Title Screen..."
+ add_item 22,,  "Title screen text: " + this.titletext
 
  '-------------------------
  header " Major Settings"
@@ -1333,7 +1335,7 @@ SUB GeneralSettingsMenu.update()
   add_item , , "Game created " & FORMAT(created, "yyyy mmm dd hh:mm"), NO
  END IF
 
- 'Next free ID number: 21
+ 'Next free ID number: 23
 
 END SUB
 
@@ -1358,6 +1360,7 @@ SUB general_data_editor ()
  DIM genmenu as GeneralSettingsMenu
  genmenu.aboutline = load_aboutline()
  genmenu.longname = load_gamename()
+ genmenu.titletext = load_titletext()
  genmenu.update()
 
  DIM selectst as SelectTypeState
@@ -1427,6 +1430,11 @@ SUB general_data_editor ()
      IF temp = 0 THEN gen(genMaxInventory) = 0
      state.need_update = YES
     END IF
+   CASE 22  'Title screen text
+    IF LEN(selectst.query) = 0 THEN
+     enable_strgrabber = YES
+     state.need_update OR= strgrabber(genmenu.titletext, 38)
+    END IF
    CASE ELSE
     WITH genmenu
      IF .index(state.pt) ANDALSO intgrabber(gen(.index(state.pt)), .min(state.pt), .max(state.pt)) THEN
@@ -1464,6 +1472,7 @@ SUB general_data_editor ()
  '--write long name and about line
  save_gamename genmenu.longname
  save_aboutline genmenu.aboutline
+ save_titletext genmenu.titletext
 
  '--Also use the in-game setting for previewing stuff in Custom
  set_music_volume 0.01 * gen(genMusicVolume)
