@@ -375,6 +375,7 @@ FUNCTION titlescreen () as bool
  DIM ret as bool = YES
  DIM backdrop as Frame ptr
  backdrop = frame_load(sprTypeBackdrop, gen(genTitle))
+ DIM titletext as string = load_titletext()
 
  IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
  setkeys
@@ -393,6 +394,7 @@ FUNCTION titlescreen () as bool
 
   clearpage vpage
   frame_draw backdrop, , pCentered, pCentered, NO, vpage
+  edgeprint titletext, 8, 190, uilook(uiText), vpage
   setvispage vpage
   check_for_queued_fade_in
   dowait

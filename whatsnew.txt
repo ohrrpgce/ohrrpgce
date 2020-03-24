@@ -8,6 +8,8 @@ April ? 2020 [Gorgonzola]
       movement.  When it's on, no remapping happens. [Ralph]
     * "Dead Foe (dead heroes only)" and "Foe (including dead heroes)" attack
       target classes [Ralph]
+    * Title Screen Text; a quick and easy way to put a line of text like
+      a version number at the bottom of the title screen [James]
 
    * New Plotscripting Features
     * ""any key", etc, includes mouse" option in Mouse Controls menu [Ralph]
