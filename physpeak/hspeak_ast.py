@@ -23,6 +23,9 @@ class _AST_state:
 
         self.root = None
         self.error = None
+        self.last_error_lineno = None
+        self.text = None
+        self.initial_lineno = None
 
         # -- pass 1 -- global state
 
@@ -57,19 +60,50 @@ class _AST_state:
         self.strings = None
         self.strings_table = None
 
-    def build(self, _data, _name = None):
+    def build(self, text, lineno = None, _name = None):
 
+        self.text = text
         self.script_name = _name
 
         self.root = None
         self.error = None
+        self.last_error_lineno = None
 
-        hspeak_parse.yacc.parse(_data)
+        if lineno:
+            hspeak_parse.lexer.lineno = lineno  # Reset line number
+        self.initial_lineno = hspeak_parse.lexer.lineno
+
+        hspeak_parse.yacc.parse(text, tracking = True)
 
         if not self.root or self.error:
             return False
 
         return True
+
+    def show_error_line(self, lexpos, lineno):
+        "Return a two-line string displaying a line of self.text"
+        line_start = self.text.rfind('\n', 0, lexpos) + 1
+        line_end = self.text.find('\n', lexpos)
+        if line_end == -1:
+            line_end = len(self.text)
+        assert line_start <= lexpos <= line_end
+        return (self.text[line_start : line_end] + "\n"
+                + " " * (lexpos - line_start) + "^\n")
+
+    def add_error(self, lexpos, lineno, message):
+        if lineno == self.last_error_lineno:
+            # Hide multiple errors on a line, since following errors likely caused by the first
+            return
+        self.last_error_lineno = lineno
+        if self.error is None:
+            self.error = ""
+        self.error += "\n" + self.show_error_line(lexpos, lineno)
+        self.error += "Line %d: %s\n" % (lineno, message)
+
+    def eof(self):
+        "Called when an EOF error occurs"
+        if AST_state.error is None:
+            AST_state.error = "continue"
 
     def reset_locals(self):
 
@@ -186,7 +220,7 @@ if __name__ == "__main__":
         if not s1:
             continue
 
-        rv = AST_state.build(s1)
+        rv = AST_state.build(s1, 1)
 
         # if the parser reported an error at the end of the line
         # then add another line and see if things improve

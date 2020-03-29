@@ -33,32 +33,31 @@ def parse_hss(fn, cpass):
 
     # current line number
     cline = 0
+    # Line number where the current block begins
+    blockstart = 0
 
     for line in fd:
+        trimmed_line = line
 
         # remove comment
-        i = line.find("#")
+        i = trimmed_line.find("#")
         if i > -1:
-            line = line[:i]
+            trimmed_line = trimmed_line[:i]
 
-        line = line.strip()
+        trimmed_line = trimmed_line.strip()
         cline += 1
-
-        # skip empty lines
-        if not line:
-            continue
 
         if csection == "script":
 
-            if line == "end":
+            if trimmed_line == "end":
 
                 if cpass == 2:
 
                     # attempt to compile the script body
 
-                    print("---- script ---- %s ---- %s ---- %d" % (cname, fn, cline))
+                    print("---- script ---- %s ---- %s ---- %d-%d" % (cname, fn, blockstart, cline))
 
-                    if AST_state.build(cbuffer, cname):
+                    if AST_state.build(cbuffer, blockstart, cname):
 
                         data = hspeak_post.compile()
                         hspeak_hs.write_hsz(data)
@@ -84,22 +83,26 @@ def parse_hss(fn, cpass):
                 continue
 
             if cbuffer:
-                cbuffer += ",\n" + line
+                cbuffer += "," + line
             else:
                 cbuffer = line
 
             continue
 
+        # Skip empty lines except inside scripts
+        if not trimmed_line:
+            continue
+
         if csection == "defineconstant":
 
-            if line == "end":
+            if trimmed_line == "end":
                 csection = None
                 continue
 
             if cpass == 2:
                 continue
 
-            if not AST_state.build(line):
+            if not AST_state.build(line, cline):
                 print("---> in %s %d" % (fn, cline))
                 print(AST_state.error)
                 continue
@@ -113,14 +116,14 @@ def parse_hss(fn, cpass):
 
         if csection == "definefunction":
 
-            if line == "end":
+            if trimmed_line == "end":
                 csection = None
                 continue
 
             if cpass == 2:
                 continue
 
-            if not AST_state.build(line):
+            if not AST_state.build(line, cline):
                 print("---> in %s %d" % (fn, cline))
                 print(AST_state.error)
                 continue
@@ -138,7 +141,7 @@ def parse_hss(fn, cpass):
 
             # skip this section
 
-            if line == "end":
+            if trimmed_line == "end":
                 csection = None
                 continue
 
@@ -148,7 +151,7 @@ def parse_hss(fn, cpass):
 
             # skip this section
 
-            if line == "end":
+            if trimmed_line == "end":
                 csection = None
                 continue
 
@@ -156,10 +159,12 @@ def parse_hss(fn, cpass):
 
         # -- not in any section --
 
-        if not AST_state.build(line):
+        if not AST_state.build(line, cline):
             print("---> in %s %d" % (fn, cline))
             print(AST_state.error)
             continue
+
+        blockstart = cline + 1  # The text passed to build() begins next line
 
         nodes = AST_state.root.children
 

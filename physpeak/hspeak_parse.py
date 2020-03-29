@@ -57,6 +57,8 @@ t_BITWISE_XOR = r'(?i),\s*XOR\s*,'
 t_BOOL_XOR = r'\^\^'
 t_REMINDER = r'(?i),\s*MOD\s*,'
 
+t_ignore_COMMENT = r'\#.*'
+
 def t_NAME(t):
     r'[a-zA-Z_][a-zA-Z0-9_ ]*'
     t.value = t.value.replace(' ', '')
@@ -88,14 +90,14 @@ def t_newline(t):
     t.lexer.lineno += 1
 
 def t_error(t):
-    print("Illegal character '%s' at line %d" % (t.value[0], t.lineno))
+    AST_state.add_error(t.lexpos, t.lineno, "Illegal character '%s'" % (t.value[0],))
     t.lexer.skip(1)
 
 t_ignore = ' \t'
 
 # Build the lexer
 import ply.lex as lex
-lex.lex()
+lexer = lex.lex()
 
 # Parsing rules
 
@@ -331,10 +333,10 @@ def p_string_binop(p):
 
 def p_error(p):
     if p:
-        AST_state.error = "Syntax error at '%s'" % (p.value)
+        AST_state.add_error(p.lexpos, p.lineno, "Syntax error at '%s'" % (p.value,))
     else:
         # the error is recoverable
-        AST_state.error = "continue"
+        AST_state.eof()
 
 # Build the parser
 import ply.yacc as yacc
