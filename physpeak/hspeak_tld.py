@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import argparse
 import os
 from os import path
@@ -13,7 +14,11 @@ main_args = None
 
 include_once = None
 
+n_failed_scripts = 0
+n_scripts = 0
+
 def parse_hss(fn, cpass):
+    global n_failed_scripts, n_scripts
 
     if fn in include_once:
         return
@@ -61,6 +66,7 @@ def parse_hss(fn, cpass):
 
                         data = hspeak_post.compile()
                         hspeak_hs.write_hsz(data)
+                        n_scripts += 1
 
                         if main_args.d:
                             AST_state.print()
@@ -72,6 +78,7 @@ def parse_hss(fn, cpass):
                         )
 
                     else:
+                        n_failed_scripts += 1
                         print(AST_state.error)
 
                 csection = None
@@ -260,10 +267,15 @@ if __name__ == "__main__":
     hspeak_hs.hs_cache = fn + ".cache"
     hspeak_hs.hs_begin()
 
+    print("Pass 1...", file=sys.stderr)
     include_once = set()
     parse_hss(main_args.hss, 1)
 
+    print("Pass 2...", file=sys.stderr)
     include_once = set()
     parse_hss(main_args.hss, 2)
 
+    print("Writing %s..." % hspeak_hs.hs_fn, file=sys.stderr)
     hspeak_hs.hs_end()
+
+    print("Compiled %d scripts, %d failed" % (n_scripts, n_failed_scripts))
