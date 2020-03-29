@@ -72,9 +72,9 @@ def AST_post_3(node):
                 continue
 
             if child.leaf in AST_state.scripts:
-                p_func = AST_state.scripts[node.leaf]
+                p_func = AST_state.scripts[child.leaf]
             elif child.leaf in AST_state.functions:
-                p_func = AST_state.functions[node.leaf]
+                p_func = AST_state.functions[child.leaf]
             else:
                 continue
 
