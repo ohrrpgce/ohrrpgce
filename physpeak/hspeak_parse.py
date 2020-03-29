@@ -15,6 +15,8 @@ reserved = {
     'break': 'BREAK',
     'continue': 'CONTINUE',
     'return': 'RETURN',
+    'switch': 'SWITCH',
+    'case': 'CASE',
 }
 
 tokens = [
@@ -201,6 +203,67 @@ def p_while(p):
     "void : WHILE condition flow_do"
     p[0] = AST_node("flow", p[2:], p[1])
 
+## The actions for the SWITCH/CASE grammar directly builds the AST in the
+## (rather unintuitive) HSZ format, instead of building an AST that
+## reflects the syntax and then post-processing it later.
+
+def p_case_list_0(p):
+    """
+    case_list : CASE '(' expression_list ')'
+    """
+    p[0] = p[3]
+
+def p_case_list_01(p):
+    """
+    case_list : ',' CASE '(' expression_list ')'
+    """
+    p[0] = p[4]
+
+# Each expression is added as a child of 'switch'
+def p_case_list_1(p):
+    """
+    case_list : case_list CASE '(' expression_list ')'
+    """
+    p[0] = p[1] + p[4]
+
+# Expressions not in a 'case' get packed into a do()
+def p_case_list_2(p):
+    """
+    case_list : case_list expression_list
+    """
+    p[0] = p[1] + [AST_node("flow", p[2], "do")]
+
+# Kludge mostly for newlines
+def p_case_list_3(p):
+    """
+    case_list : case_list ','
+    """
+    p[0] = p[1]
+
+## The last arg to 'switch' is a do() which is the else() case
+
+def p_finalised_case_list1(p):
+    """
+    case_else_list : case_list
+    """
+    p[0] = p[1] + [AST_node("flow", [], "do")]
+
+def p_finalised_case_list2(p):
+    """
+    case_else_list : case_list ELSE block
+    """
+    p[0] = p[1] + [AST_node("flow", p[3], "do")]
+
+def p_finalised_case_list3(p):
+    """
+    case_else_list : case_list CASE '(' ELSE ')' expression_list
+    """
+    p[0] = p[1] + [AST_node("flow", p[6], "do")]
+
+def p_switch(p):
+    "void : SWITCH condition DO '(' case_else_list ')'"
+    p[0] = AST_node("flow", [p[2]] + p[5], p[1])
+
 def p_flow_1(p):
     """
     void : BREAK
@@ -220,6 +283,11 @@ def p_flow_2(p):
 def p_function(p):
     "expression : reference block"
     p[0] = AST_node("function", p[2], p[1].leaf)
+
+# Either a function call or a variable
+def p_value(p):
+    "expression : reference"
+    p[0] = AST_node("value", None, p[1].leaf)
 
 def p_binop(p):
     """
@@ -267,6 +335,8 @@ def p_name_concat_1(p):
                 | name_concat DO
                 | name_concat BREAK
                 | name_concat CONTINUE
+                | name_concat SWITCH
+                | name_concat CASE
                 | name_concat ':'
                 | name_concat '.'
     """
@@ -283,10 +353,6 @@ def p_name_concat_3(p):
 def p_name_concat_4(p):
     "name_concat : NAME"
     p[0] = p[1].lower()
-
-def p_variable(p):
-    "expression : name_concat"
-    p[0] = AST_node("value", None, p[1])
 
 def p_number(p):
     """
