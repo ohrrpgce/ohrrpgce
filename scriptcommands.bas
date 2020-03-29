@@ -5143,21 +5143,26 @@ SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
  sl->TableSlot = handle
 END SUB
 
+FUNCTION valid_spriteset(spritetype as SpriteType, record as integer) as bool
+ RETURN bound_arg(record, 0, sprite_sizes(spritetype).lastrec, "spriteset number", , serrBadOp)
+END FUNCTION
+
 'By default, no palette set
 FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2) as integer
- IF bound_arg(record, 0, sprite_sizes(spritetype).lastrec, "sprite record number") THEN
+ IF valid_spriteset(spritetype, record) THEN
   DIM sl as Slice Ptr
   sl = NewSliceOfType(slSprite, SliceTable.scriptsprite)
   ChangeSpriteSlice sl, spritetype, record, pal
   RETURN create_plotslice_handle(sl)
+ ELSE
+  RETURN 0 'Failure, return zero handle
  END IF
- RETURN 0 'Failure, return zero handle
 END FUNCTION
 
 'By default, no palette change
 SUB replace_sprite_plotslice(byval handle as integer, byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2)
  IF valid_plotsprite(handle) THEN
-  IF bound_arg(record, 0, sprite_sizes(spritetype).lastrec, "sprite record number") THEN
+  IF valid_spriteset(spritetype, record) THEN
    ChangeSpriteSlice plotslices(handle), spritetype, record, pal
   END IF
  END IF

@@ -41,6 +41,7 @@ DECLARE FUNCTION valid_plotselectslice(byval handle as integer) as bool
 DECLARE FUNCTION valid_plotscrollslice(byval handle as integer) as bool
 DECLARE FUNCTION valid_plotpanelslice(byval handle as integer) as bool
 DECLARE FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as bool=NO, byval vert_fill_ok as bool=NO) as bool
+
 DECLARE FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
 DECLARE FUNCTION find_plotslice_handle(byval sl as Slice Ptr) as integer
 DECLARE SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
@@ -78,6 +79,7 @@ DECLARE FUNCTION valid_map_layer(layer as integer, byval errlvl as scriptErrEnum
 DECLARE FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as bool
 DECLARE FUNCTION valid_save_slot(slot as integer) as bool
 DECLARE FUNCTION valid_color(index as integer) as bool
+DECLARE FUNCTION valid_spriteset(spritetype as SpriteType, record as integer) as bool
 
 DECLARE SUB greyscalepal
 DECLARE SUB tweakpalette (byval r as integer, byval g as integer, byval b as integer, byval first as integer = 0, byval last as integer = 255)

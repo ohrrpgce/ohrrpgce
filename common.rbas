@@ -5548,7 +5548,9 @@ SUB create_volume_menu(menu as MenuDef)
  ClearMenuData mainmenu
 END SUB
 
-FUNCTION bound_arg(n as integer, min as integer, max as integer, argname as zstring ptr, context as zstring ptr = NULL, errlvl as scriptErrEnum = serrBound) as integer
+'Check whether 'n' is within bounds.
+'See reporterr below.
+FUNCTION bound_arg(n as integer, min as integer, max as integer, argname as zstring ptr, context as zstring ptr = NULL, errlvl as scriptErrEnum = serrBound) as bool
  'This function takes zstring ptr arguments because passing strings is actually really expensive
  '(it performs an allocation, copy, delete), and would be easily noticeable by scripts.
  IF n < min OR n > max THEN
