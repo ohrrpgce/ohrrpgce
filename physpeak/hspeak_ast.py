@@ -205,6 +205,20 @@ hspeak_parse.AST_state = AST_state
 
 if __name__ == "__main__":
 
+    # Use readline with a history
+    try:
+        import readline  # Not available in all Python builds
+        histfile = ".hspeak_history"
+        try:
+            readline.read_history_file(histfile)
+            readline.set_history_length(100)
+        except IOError:
+            pass
+        import atexit
+        atexit.register(readline.write_history_file, histfile)
+    except ImportError:
+        pass
+
     AST_state.reset_locals()
 
     while True:
