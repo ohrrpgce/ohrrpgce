@@ -1668,9 +1668,11 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 			'Note: repeat_wait and repeat_rate are ignored!
 			dim ret as KeyBits
 			for key as KBScancode = scKEYVAL_FIRST to scLAST
-				if key <> scAny then
-					ret or= keyval_ex(key, , , real_keys)
-				end if
+				select case key
+					case scAny, scNumLock, scCapsLock, scScrollLock
+					case else
+						ret or= keyval_ex(key, , , real_keys)
+				end select
 			next
 			return ret
 		elseif repeat_wait <> 0 orelse repeat_rate <> 0 then
