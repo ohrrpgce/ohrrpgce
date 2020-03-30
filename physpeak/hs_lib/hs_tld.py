@@ -67,11 +67,11 @@ def parse_hss_2(fn, cpass):
                         if main_args.d:
                             AST_state._print()
 
-                        print(
-                            "toHSZ:", len(data),
-                            "locals:", len(AST_state.locals),
-                            "strings:", len(AST_state.strings)
-                        )
+                            print(
+                                "toHSZ:", len(data),
+                                "locals:", len(AST_state.locals),
+                                "strings:", len(AST_state.strings)
+                            )
 
                     else:
                         n_failed_scripts += 1
@@ -111,6 +111,8 @@ def parse_hss_2(fn, cpass):
                 continue
 
             nodes = AST_state.root.children
+            if not nodes:
+                continue
 
             AST_state._constants[nodes[1].leaf] = \
                 nodes[0].leaf
@@ -132,6 +134,8 @@ def parse_hss_2(fn, cpass):
                 continue
 
             nodes = AST_state.root.children
+            if not nodes:
+                continue
 
             AST_state.alloc_function(
                 nodes[1].leaf, nodes[0].leaf,
@@ -170,6 +174,8 @@ def parse_hss_2(fn, cpass):
         blockstart = cline + 1  # The text passed to build() begins next line
 
         nodes = AST_state.root.children
+        if not nodes:
+            continue
 
         # list-like section headers outside of scripts
         if nodes[0].type == "value":

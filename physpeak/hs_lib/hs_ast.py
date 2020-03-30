@@ -11,7 +11,10 @@ class AST_node:
         return '<"%s", %s, "%s">' % (self.type, self.children, self.leaf)
 
 class AST_call_signature:
-    pass
+
+    def __init__(self, _id, _n_args):
+        self.id = _id
+        self.n_args = _n_args
 
 class AST_local_variable:
 
@@ -37,7 +40,7 @@ class _AST_state:
             "plotscript": 1,
         }
 
-        # name: value
+        # name: number
         self._constants = {}
 
         # name: AST_call_signature
@@ -52,7 +55,7 @@ class _AST_state:
 
         # -- pass 2 -- per script state
 
-        # name: id
+        # name: AST_local_variable
         self.locals = None
         self.locals_last_id = None
 
@@ -117,24 +120,22 @@ class _AST_state:
 
     def alloc_function(self, name, _id, n_args, _args):
 
-        sig = AST_call_signature()
-
-        sig.id = _id
-        sig.n_args = n_args
+        sig = AST_call_signature(_id, n_args)
         sig.args = _args
-
         self.functions[name] = sig
 
     def alloc_script(self, name, trigger, n_args, _args):
 
         self.scripts_last_id -= 1
 
-        sig = AST_call_signature()
+        sig = AST_call_signature(
+            self.scripts_last_id, n_args
+        )
 
-        sig.id = self.scripts_last_id
         sig.trigger = trigger
-        sig.n_args = n_args
         sig.args = []
+
+        # get arguments default value
 
         for node in _args:
             if node.children:
