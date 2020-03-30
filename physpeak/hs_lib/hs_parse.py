@@ -1,4 +1,4 @@
-# AST_node and AST_state are given to this module by hspeak_ast.py
+# AST_node and AST_state are given to this module by hs_ast.py
 AST_node = None
 AST_state = None
 
@@ -17,17 +17,19 @@ reserved = {
     'return': 'RETURN',
     'switch': 'SWITCH',
     'case': 'CASE',
+    'variable': 'VARIABLE',
 }
 
 tokens = [
-    'NAME', 'BINARY', 'NUMBER', 'STRING',
+    'NAME', 'STRING',
+    'BINARY', 'HEX', 'NUMBER',
     'ASSIGN', 'PLUS_EQUAL', 'MINUS_EQUAL',
     'LT_EQUAL', 'GT_EQUAL',
     'BOOL_AND', 'BOOL_OR',
     'BITWISE_AND', 'BITWISE_OR',
     'EQUAL_EQUAL', 'MINUS_MINUS', 'MORE_LESS',
     'BOOL_XOR', 'BITWISE_XOR',
-    'REMINDER', 'HEX',
+    'REMINDER',
     'LESS_THAN', 'GREATER_THAN',
 ] + list(reserved.values())
 
@@ -104,7 +106,7 @@ lexer = lex.lex()
 # Parsing rules
 
 precedence = (
-    ('left', '=', 'ASSIGN', 'PLUS_EQUAL', 'MINUS_EQUAL', ),
+    ('left', 'ASSIGN', 'PLUS_EQUAL', 'MINUS_EQUAL', ),
     ('left', 'BOOL_OR', ),
     ('left', 'BOOL_XOR', ),
     ('left', 'BOOL_AND', ),
@@ -127,17 +129,23 @@ def p_expr_list_1(p):
     """
     expression_list : expression_list ',' expression
                     | expression_list ',' void
-                    | expression_list ',' empty
     """
     p[0] = p[1] + [p[3]]
 
 def p_expr_list_2(p):
+    "expression_list : expression_list ',' empty"
+    p[0] = p[1]
+
+def p_expr_list_3(p):
     """
     expression_list : expression
                     | void
-                    | empty
     """
     p[0] = [p[1]]
+
+def p_expr_list_4(p):
+    "expression_list : empty"
+    p[0] = []
 
 def p_expr_group(p):
     "expression : '(' expression ')'"
@@ -148,8 +156,14 @@ def p_expr_block(p):
     p[0] = p[2]
 
 def p_default_value(p):
-    "void : reference '=' expression"
-    p[0] = AST_node("value", [p[3]], p[1].leaf)
+    "void : name_concat '=' expression"
+    p[0] = AST_node("value", [p[3]], p[1])
+
+def p_define(p):
+    "empty : VARIABLE block"
+    p[0] = AST_node("empty")
+    for arg in p[2]:
+        AST_state.alloc_local(arg.leaf)
 
 def p_assign(p):
     """
@@ -320,15 +334,16 @@ def p_binop(p):
 
 def p_unop(p):
     "expression : '-' expression %prec UMINUS"
-    try:
-        p[0] = AST_node('number', None, -int(p[2].leaf))
-    except:
+    if p[2].type == "number":
+        p[0] = AST_node('number', None, -p[2].leaf)
+    else:
         p[0] = AST_node('unop', [p[2]], p[1])
 
 def p_name_concat_1(p):
     """
     name_concat : name_concat IF
                 | name_concat THEN
+                | name_concat ELSEIF
                 | name_concat ELSE
                 | name_concat FOR
                 | name_concat WHILE
@@ -367,8 +382,8 @@ def p_condition(p):
     p[0] = p[2]
 
 def p_pointer(p):
-    "expression : '@' reference"
-    p[0] = AST_node("reference", None, p[2].leaf)
+    "expression : '@' name_concat"
+    p[0] = AST_node("reference", None, p[2])
 
 def p_reference(p):
     "reference : name_concat"
@@ -379,23 +394,28 @@ def p_empty(p):
     p[0] = AST_node('empty')
 
 def p_string_ref_1(p):
-    "string_ref : reference"
-    p[0] = AST_node("string_ref_1", None, p[1].leaf)
+    "string_ref : name_concat"
+    p[0] = AST_node('value', None, p[1])
 
 def p_string_ref_2(p):
     "string_ref : NUMBER"
-    p[0] = AST_node("string_ref_2", None, int(p[1]))
+    p[0] = AST_node('number', None, p[1])
+
+def p_string_ref_3(p):
+    "string_ref : condition"
+    p[0] = p[1]
 
 def p_string_val(p):
     "string_val : STRING"
-    p[0] = AST_node('string_val', None, p[1])
+    p[0] = AST_node("string_val", None, p[1])
 
-def p_string_binop(p):
-    """
-    void : '$' string_ref '=' string_val
-         | '$' string_ref '+' string_val
-    """
-    p[0] = AST_node("string_op", [p[2], p[4]], p[1] + p[3])
+def p_string_op_1(p):
+    "void : '$' string_ref '=' string_val"
+    p[0] = AST_node("function", [p[2], p[4]], "setstringfromtable")
+
+def p_string_op_2(p):
+    "void : '$' string_ref '+' string_val"
+    p[0] = AST_node("function", [p[2], p[4]], "appendstringfromtable")
 
 def p_error(p):
     if p:

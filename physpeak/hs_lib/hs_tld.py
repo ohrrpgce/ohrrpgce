@@ -1,13 +1,8 @@
-#!/usr/bin/env python3
-
 import sys
-import argparse
-import os
-from os import path
-
-from hspeak_ast import AST_state
-import hspeak_post
-import hspeak_hs
+from hs_ast import AST_state
+import hs_post
+import hs_gen
+import hs_file
 
 # command line options
 main_args = None
@@ -17,7 +12,7 @@ include_once = None
 n_failed_scripts = 0
 n_scripts = 0
 
-def parse_hss(fn, cpass):
+def parse_hss_2(fn, cpass):
     global n_failed_scripts, n_scripts
 
     if fn in include_once:
@@ -64,12 +59,13 @@ def parse_hss(fn, cpass):
 
                     if AST_state.build(cbuffer, blockstart, cname):
 
-                        data = hspeak_post.compile()
-                        hspeak_hs.write_hsz(data)
+                        hs_post.AST_post()
+                        data = hs_gen.toHSZ(cname)
+                        hs_file.write_hsz(cname, data)
                         n_scripts += 1
 
                         if main_args.d:
-                            AST_state.print()
+                            AST_state._print()
 
                         print(
                             "toHSZ:", len(data),
@@ -179,7 +175,7 @@ def parse_hss(fn, cpass):
         if nodes[0].type == "value":
 
             if nodes[0].leaf == "include":
-                parse_hss(nodes[1].leaf, cpass)
+                parse_hss_2(nodes[1].leaf, cpass)
                 continue
 
             # script and plotscript
@@ -243,39 +239,16 @@ def parse_hss(fn, cpass):
 
             continue
 
-# --
+def parse_hss(fn):
 
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description = "HSpeak compiler")
-    parser.add_argument("-d", type = int, default = 0, help = "Debug")
-    parser.add_argument("hss", type = str, help = "Input hss file name")
-    main_args = parser.parse_args()
-
-    fn = main_args.hss
-
-    # remove extension
-    i = fn.rfind(".")
-    if i > -1:
-        fn = fn[:i]
-
-    if not path.isfile(main_args.hss):
-        print(main_args.hss, "not found")
-        exit()
-
-    hspeak_hs.hs_fn = fn + ".hs"
-    hspeak_hs.hs_cache = fn + ".cache"
-    hspeak_hs.hs_begin()
+    global include_once
 
     print("Pass 1...", file=sys.stderr)
     include_once = set()
-    parse_hss(main_args.hss, 1)
+    parse_hss_2(fn, 1)
 
     print("Pass 2...", file=sys.stderr)
     include_once = set()
-    parse_hss(main_args.hss, 2)
+    parse_hss_2(fn, 2)
 
-    print("Writing %s..." % hspeak_hs.hs_fn, file=sys.stderr)
-    hspeak_hs.hs_end()
-
-    print("Compiled %d scripts, %d failed" % (n_scripts, n_failed_scripts))
+    print("Compiled %d scripts, %d failed" % (n_scripts, n_failed_scripts), file=sys.stderr)

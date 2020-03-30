@@ -1,7 +1,7 @@
 import array
 import struct
 
-from hspeak_ast import AST_state
+from hs_ast import AST_state
 
 KIND_NUMBER = 1 # int32. ID is the value
 KIND_FLOW = 2 # Flow control (flow_table), including begin and end.
@@ -61,11 +61,6 @@ flow_table = {
     "switch": 15,
 }
 
-string_op_table = {
-    "$=": 251, # setstringfromtable
-    "$+": 252, # appendstringfromtable
-}
-
 def kind_and_id(node):
     "Returns a pair"
 
@@ -102,7 +97,7 @@ def kind_and_id(node):
     if node.type == "reference":
 
         if node.leaf in AST_state.locals:
-            return KIND_NUMBER, -1 - AST_state.locals[node.leaf]
+            return KIND_NUMBER, -1 - AST_state.locals[node.leaf].id
         if node.leaf in AST_state.globals:
             return KIND_NUMBER, AST_state.globals[node.leaf]
         if node.leaf in AST_state.scripts:
@@ -111,7 +106,7 @@ def kind_and_id(node):
     if node.type == "value":
 
         if node.leaf in AST_state.locals:
-            return KIND_LOCAL, AST_state.locals[node.leaf]
+            return KIND_LOCAL, AST_state.locals[node.leaf].id
         if node.leaf in AST_state.globals:
             return KIND_GLOBAL, AST_state.globals[node.leaf]
         if node.leaf in AST_state.scripts:
@@ -178,11 +173,11 @@ def compile_recurse(node, cmddata):
         cmddata[childptrs + idx] = len(cmddata)
         compile_recurse(child, cmddata)
 
-def toHSZ():
+def toHSZ(name):
     "Return a compiled .hsz lump as a bytes array"
 
     num_locals = len(AST_state.locals)
-    num_args = AST_state.scripts[AST_state.script_name].n_args
+    num_args = AST_state.scripts[name].n_args
     num_nonlocals = 0
     parent_script = 0
     nesting_depth = 0

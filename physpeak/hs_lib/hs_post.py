@@ -1,34 +1,5 @@
-from hspeak_ast import AST_node, AST_state
-import hspeak_gen
-
-def AST_post_1(node):
-
-    if node.children:
-
-        p_children = []
-
-        for child in node.children:
-
-            if child.type == "function":
-
-                if child.leaf == "variable":
-                    for arg in child.children:
-                        AST_state.alloc_local(arg.leaf)
-                    continue
-
-            if child.type == "empty":
-                continue
-
-            p_children.append(child)
-
-        if p_children:
-            node.children = p_children
-        else:
-            node.children = None
-
-    if node.children:
-        for child in node.children:
-            AST_post_1(child)
+from hs_ast import AST_node, AST_state
+import hs_gen
 
 def AST_post_2(node):
 
@@ -67,8 +38,8 @@ def AST_post_3(node):
         for child in node.children:
 
             if \
-            child.leaf != "function" and \
-            child.leaf != "value":
+            child.type != "function" and \
+            child.type != "value":
                 continue
 
             if child.leaf in AST_state.scripts:
@@ -90,21 +61,19 @@ def AST_post_3(node):
                 for i in range(min(len(p_args), len(child.children))):
                     p_args[i] = child.children[i]
 
-            child.children = p_args
+            if p_args:
+                child.children = p_args
+            else:
+                child.children = None
 
     if node.children:
         for child in node.children:
             AST_post_3(child)
 
-def compile():
+def AST_post():
 
-    # interpret and remove "variable" and "empty"
-    AST_post_1(AST_state.root)
-
-    # fix arguments for flow calls
+    # patch flow calls
     AST_post_2(AST_state.root)
 
-    # default arguments for function calls
+    # default arguments for calls
     AST_post_3(AST_state.root)
-
-    return hspeak_gen.toHSZ()

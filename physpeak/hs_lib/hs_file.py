@@ -1,21 +1,20 @@
-# hs_fn and hs_cache are given to this module by hspeak_tld.py
-hs_fn = None
-hs_cache = None
-
 import struct
 import os
 from os import path
 
-from hspeak_ast import AST_state
-import hspeak_gen
+from hs_ast import AST_state
+import hs_gen
+
+hs_fn = None
+hs_cache = None
 
 def scripts_bin_enc(_id, trigger, name):
     name = bytes(name, "latin-1")
     return struct.pack('<3H36sH', _id, trigger, len(name), name, 0)
 
-def write_hsz(data):
+def write_hsz(name, data):
 
-    script = AST_state.scripts[AST_state.script_name]
+    script = AST_state.scripts[name]
 
     fn = path.join(hs_cache, "%d.hsz" % (script.id))
     fd = open(fn, "wb")
@@ -35,12 +34,19 @@ def write_lump(fd, fn):
 
     # in PDP-endian format
     fd.write(struct.pack(
-        '<2H', len(data) >> 16, len(data) & 0xffff
+        '<2H', len(data) >> 16, len(data)
     ))
 
     fd.write(data)
 
-def hs_begin():
+def hs_begin(fn):
+
+    global hs_fn, hs_cache
+
+    bn, ext = path.splitext(fn)
+    
+    hs_fn = bn + ".hs"
+    hs_cache = bn + ".cache"
 
     if not path.isdir(hs_cache):
         os.mkdir(hs_cache)
@@ -73,7 +79,7 @@ def hs_end():
         fd.write(str(len(script.args)) + "\n")
 
         for arg in script.args:
-            kind, _id = hspeak_gen.kind_and_id(arg)
+            kind, _id = hs_gen.kind_and_id(arg)
             fd.write(str(_id) + "\n")
 
     fd.close()
