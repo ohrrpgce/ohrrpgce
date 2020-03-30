@@ -9,6 +9,8 @@ sys.path.insert(0,
 )
 
 from hs_ast import AST_state
+import hs_post
+import hs_gen
 
 # --
 
@@ -30,6 +32,7 @@ if __name__ == "__main__":
 
     import logging
     log = None
+    print_what = "post"
 
     AST_state.reset_locals()
 
@@ -66,6 +69,16 @@ if __name__ == "__main__":
             print("Logging level set to", logging.getLevelName(log.level))
             continue
 
+        if s1.startswith("@print"):
+            what = s1[6:].strip()
+            if what not in ('pre', 'post', 'hsz', 'off'):
+                print("Select whether to print parse, post-process or compile result, or nothing. Initially 'post'.\n"
+                      "Usage: @print pre|post|hsz|off|help")
+            else:
+                print("Print:", what)
+                print_what = what
+            continue
+
         rv = AST_state.build(s1, 1, debuglog = log)
 
         # if the parser reported an error at the end of the line
@@ -88,6 +101,23 @@ if __name__ == "__main__":
             rv = AST_state.build(s1, debuglog = log)
 
         if rv:
-            AST_state._print()
+            if print_what == 'pre':
+                AST_state._print()
+                continue
+            hs_post.AST_post()
+            if print_what == 'post':
+                AST_state._print()
+                continue
+            if print_what == 'hsz':
+
+                _args = []
+                AST_state.alloc_script(
+                    "REPL",
+                    AST_state.triggers["script"],
+                    len(_args), _args
+                )
+
+                data = hs_gen.toHSZ("REPL", debug = True)
+
         else:
             print(AST_state.error)

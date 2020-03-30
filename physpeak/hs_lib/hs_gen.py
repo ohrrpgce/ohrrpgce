@@ -12,6 +12,8 @@ KIND_FUNCTION = 6 # Builtin command
 KIND_SCRIPT = 7 # Call to script
 KIND_NONLOCAL = 8 # Nonlocal variable
 
+kind_names = ('NOOP', 'NUM', 'FLOW', 'GLOBAL', 'LOCAL', 'MATH', 'FUNC', 'SCRIPT', 'NONLOCAL')
+
 binop_table = {
     "random": 0,
     "exponent": 1, "^": 1,
@@ -146,7 +148,7 @@ def kind_and_id(node):
     print("unknown", node.type, node.leaf)
     return 0, 0
 
-def compile_recurse(node, cmddata):
+def compile_recurse(node, cmddata, debug_depth):
 
     kind, _id = kind_and_id(node)
 
@@ -157,6 +159,10 @@ def compile_recurse(node, cmddata):
             cmddata.append(len(node.children))
         else:
             cmddata.append(0)
+
+    if debug_depth is not None:
+        print("hsz: %s%s %d: %s  \t[node type %s]" % ("  " * debug_depth, kind_names[kind], _id, node.leaf, node.type))
+        debug_depth += 1
 
     if not node.children:
         return
@@ -171,9 +177,9 @@ def compile_recurse(node, cmddata):
         # Now we know where the child will go
         # (because we don't bother to compress the output)
         cmddata[childptrs + idx] = len(cmddata)
-        compile_recurse(child, cmddata)
+        compile_recurse(child, cmddata, debug_depth)
 
-def toHSZ(name):
+def toHSZ(name, debug = False):
     "Return a compiled .hsz lump as a bytes array"
 
     num_locals = len(AST_state.locals)
@@ -185,8 +191,13 @@ def toHSZ(name):
     CODE_START_BYTE_OFFSET = 18
     HSZ_FORMAT_VERSION = 3
 
+    if debug:
+        debug_depth = 0
+    else:
+        debug_depth = None
+
     cmddata = array.array('i')
-    compile_recurse(AST_state.root, cmddata)
+    compile_recurse(AST_state.root, cmddata, debug_depth)
     cmddata = cmddata.tobytes()
 
     str_table = AST_state.strings_table
@@ -207,5 +218,8 @@ def toHSZ(name):
     )
 
     data = header + cmddata + str_table
+
+    if debug:
+        print("toHSZ: commands: %d bytes, strings: %d bytes" % (len(cmddata), len(str_table)))
 
     return data
