@@ -60,7 +60,7 @@ class _AST_state:
         self.strings = None
         self.strings_table = None
 
-    def build(self, text, lineno = None, _name = None):
+    def build(self, text, lineno = None, _name = None, debuglog = None):
 
         self.text = text
         self.script_name = _name
@@ -73,7 +73,7 @@ class _AST_state:
             hspeak_parse.lexer.lineno = lineno  # Reset line number
         self.initial_lineno = hspeak_parse.lexer.lineno
 
-        hspeak_parse.yacc.parse(text, tracking = True)
+        hspeak_parse.yacc.parse(text, tracking = True, debug = debuglog)
 
         if not self.root or self.error:
             return False
@@ -219,6 +219,9 @@ if __name__ == "__main__":
     except ImportError:
         pass
 
+    import logging
+    log = None
+
     AST_state.reset_locals()
 
     while True:
@@ -234,7 +237,27 @@ if __name__ == "__main__":
         if not s1:
             continue
 
-        rv = AST_state.build(s1, 1)
+        if s1.startswith("@debug"):
+            if "help" in s1:
+                print("Print yacc debug message. Usage: @debug [error|info|full|off|help] (default to info)")
+                continue
+            if not log:
+                logging.basicConfig()
+                log = logging.getLogger()
+            if "error" in s1:
+                log.setLevel(logging.ERROR)
+            elif "full" in s1:
+                log.setLevel(logging.DEBUG)
+            elif "off" in s1:
+                log = None
+                print("Logging disabled")
+                continue
+            else: #if "info" in s1:
+                log.setLevel(logging.INFO)
+            print("Logging level set to", logging.getLevelName(log.level))
+            continue
+
+        rv = AST_state.build(s1, 1, debuglog = log)
 
         # if the parser reported an error at the end of the line
         # then add another line and see if things improve
@@ -253,7 +276,7 @@ if __name__ == "__main__":
             # a newline implictily adds a ','
             s1 += ',\n' + s2
 
-            rv = AST_state.build(s1)
+            rv = AST_state.build(s1, debuglog = log)
 
         if rv:
             AST_state.print()
