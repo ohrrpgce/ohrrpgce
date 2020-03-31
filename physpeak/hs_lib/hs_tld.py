@@ -1,4 +1,5 @@
 import sys
+import re
 from hs_ast import AST_state
 import hs_post
 import hs_gen
@@ -20,6 +21,9 @@ def parse_hss_2(fn, cpass):
 
     include_once.add(fn)
 
+    if cpass == 1:
+        print("Including", fn)
+
     fd = open(fn, "r")
 
     # current section
@@ -36,6 +40,8 @@ def parse_hss_2(fn, cpass):
     # Line number where the current block begins
     blockstart = 0
 
+    include_re = re.compile('include\s*,\s* ( ([^"#]+) | "([^"]+)" \s* ([^#]*) )', re.I + re.X)
+
     for line in fd:
         trimmed_line = line
 
@@ -46,6 +52,14 @@ def parse_hss_2(fn, cpass):
 
         trimmed_line = trimmed_line.strip()
         cline += 1
+
+        match = include_re.match(trimmed_line)
+        if match:
+            if match.group(4):
+                print("Line", cline, "garbage after include filename:", match.group(4))
+            include_file = match.group(3) or match.group(2).rstrip()
+            parse_hss_2(include_file, cpass)
+            continue
 
         if csection == "script":
 
@@ -179,10 +193,6 @@ def parse_hss_2(fn, cpass):
 
         # list-like section headers outside of scripts
         if nodes[0].type == "value":
-
-            if nodes[0].leaf == "include":
-                parse_hss_2(nodes[1].leaf, cpass)
-                continue
 
             # script and plotscript
             if nodes[0].leaf in AST_state.triggers:
