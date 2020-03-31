@@ -100,7 +100,7 @@ def parse_hss_2(fn, cpass):
                 continue
 
             if cbuffer:
-                cbuffer += "," + line
+                cbuffer += line
             else:
                 cbuffer = line
 

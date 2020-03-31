@@ -159,31 +159,55 @@ precedence = (
     ('right', 'UMINUS', ),
 )
 
-def p_statement_expr(p):
-    "statement : expression_list"
+def p_start(p):
+    "start : statement_list"
     AST_state.root = AST_node("flow", p[1], "do")
 
-def p_expr_list_1(p):
+def p_statement(p):
     """
-    expression_list : expression_list ',' expression
-                    | expression_list ',' void
-    """
-    p[0] = p[1] + [p[3]]
-
-def p_expr_list_2(p):
-    "expression_list : expression_list ',' empty"
-    p[0] = p[1]
-
-def p_expr_list_3(p):
-    """
-    expression_list : expression
-                    | void
+    statement : expression
+              | void
     """
     p[0] = [p[1]]
 
-def p_expr_list_4(p):
-    "expression_list : empty"
+def p_statement_2(p):
+    "statement : variable"
     p[0] = []
+
+symdesc['nonempty_statement_list'] = "one or more statements"
+
+def p_ne_statement_list(p):
+    "nonempty_statement_list : statement"
+    p[0] = p[1]
+
+def p_ne_statement_list_2(p):
+    "nonempty_statement_list : nonempty_statement_list statement"
+    p[0] = p[1] + p[2]
+
+def p_ne_statement_list_3(p):
+    "nonempty_statement_list : nonempty_statement_list ',' statement"
+    p[0] = p[1] + p[3]
+
+symdesc['statement_list'] = "a list of statements"
+
+def p_empty(p):
+    "empty : "
+    p[0] = []
+
+def p_statement_list(p):
+    """
+    statement_list : empty
+                   | nonempty_statement_list
+    """
+    p[0] = p[1]
+
+def p_expr_list_0(p):
+    "expression_list : expression"
+    p[0] = [p[1]]
+
+def p_expr_list_1(p):
+    "expression_list : expression_list ',' expression"
+    p[0] = p[1] + [p[3]]
 
 def p_expr_group(p):
     "expression : '(' expression ')'"
@@ -192,26 +216,35 @@ def p_expr_group(p):
 symdesc['block'] = "bracketed block of statements '(...)'"
 
 def p_expr_block(p):
-    "block : '(' expression_list ')'"
+    "block : '(' statement_list ')'"
     p[0] = p[2]
 
 def p_default_value(p):
     "void : NAME '=' expression"
     p[0] = AST_node("value", [p[3]], p[1])
 
+symdesc['name_list'] = "list of variable names"
+
+def p_name_list_0(p):
+    "name_list : NAME"
+    p[0] = [p[1]]
+
+def p_name_list_1(p):
+    "name_list : name_list ',' NAME"
+    p[0] = p[1] + [p[3]]
+
 def p_define(p):
-    "empty : VARIABLE block"
-    p[0] = AST_node("empty")
-    for arg in p[2]:
-        AST_state.alloc_local(arg.leaf)
+    "variable : VARIABLE '(' name_list ')'"
+    for varname in p[3]:
+        AST_state.alloc_local(varname)
 
 symdesc['void'] = "statement"
 
 def p_assign(p):
     """
-    void : reference ASSIGN expression
-         | reference PLUS_EQUAL expression
-         | reference MINUS_EQUAL expression
+    expression : reference ASSIGN expression
+               | reference PLUS_EQUAL expression
+               | reference MINUS_EQUAL expression
     """
     p[0] = AST_node("binop", [p[1], p[3]], p[2])
 
@@ -291,7 +324,7 @@ def p_case_list_1(p):
 # Expressions not in a 'case' get packed into a do()
 def p_case_list_2(p):
     """
-    case_list : case_list expression_list
+    case_list : case_list nonempty_statement_list
     """
     p[0] = p[1] + [AST_node("flow", p[2], "do")]
 
@@ -320,7 +353,7 @@ def p_finalised_case_list2(p):
 
 def p_finalised_case_list3(p):
     """
-    case_else_list : case_list CASE '(' ELSE ')' expression_list
+    case_else_list : case_list CASE '(' ELSE ')' statement_list
     """
     p[0] = p[1] + [AST_node("flow", p[6], "do")]
 
@@ -345,8 +378,12 @@ def p_flow_2(p):
     p[0] = AST_node("flow", [p[2]], p[1])
 
 def p_function(p):
-    "expression : reference block"
-    p[0] = AST_node("function", p[2], p[1].leaf)
+    "expression : reference '(' expression_list ')'"
+    p[0] = AST_node("function", p[3], p[1].leaf)
+
+def p_function_2(p):
+    "expression : reference '(' ')'"
+    p[0] = AST_node("function", [], p[1].leaf)
 
 # Either a function call or a variable
 def p_value(p):
@@ -406,10 +443,6 @@ def p_reference(p):
     "reference : NAME"
     p[0] = AST_node("reference", None, p[1])
 
-def p_empty(p):
-    "empty : "
-    p[0] = AST_node('empty')
-
 def p_string_ref_1(p):
     "string_ref : NAME"
     p[0] = AST_node('value', None, p[1])
@@ -427,11 +460,11 @@ def p_string_val(p):
     p[0] = AST_node("string_val", None, p[1])
 
 def p_string_op_1(p):
-    "void : '$' string_ref '=' string_val"
+    "expression : '$' string_ref '=' string_val"
     p[0] = AST_node("function", [p[2], p[4]], "setstringfromtable")
 
 def p_string_op_2(p):
-    "void : '$' string_ref '+' string_val"
+    "expression : '$' string_ref '+' string_val"
     p[0] = AST_node("function", [p[2], p[4]], "appendstringfromtable")
 
 

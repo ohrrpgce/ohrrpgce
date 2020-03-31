@@ -96,8 +96,7 @@ if __name__ == "__main__":
             if not s2:
                 break
 
-            # a newline implictily adds a ','
-            s1 += ',\n' + s2
+            s1 += '\n' + s2
 
             rv = AST_state.build(s1, debuglog = log)
 
