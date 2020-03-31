@@ -1,8 +1,17 @@
+
+from hs_parser_utils import describe_parser_expectation, tell_error
+
 # AST_node and AST_state are given to this module by hs_ast.py
 AST_node = None
 AST_state = None
 
-# Lexing rules
+# Human-readable description of symbols used when reporting errors
+symdesc = {}
+
+
+##############################################################################
+#                               Lexing rules
+
 
 reserved = {
     'if': 'IF',
@@ -29,7 +38,7 @@ tokens = [
     'BITWISE_AND', 'BITWISE_OR',
     'EQUAL_EQUAL', 'MINUS_MINUS', 'MORE_LESS',
     'BOOL_XOR', 'BITWISE_XOR',
-    'REMINDER',
+    'REMAINDER',
     'LESS_THAN', 'GREATER_THAN',
 ] + list(reserved.values())
 
@@ -59,7 +68,11 @@ t_LESS_THAN = r'<<'
 t_GREATER_THAN = r'>>'
 t_BITWISE_XOR = r'(?i),\s*XOR\s*,'
 t_BOOL_XOR = r'\^\^'
-t_REMINDER = r'(?i),\s*MOD\s*,'
+t_REMAINDER = r'(?i),\s*MOD\s*,'
+
+# This list of operators is used only while printing syntax errors.
+# It should match the list of operators valid in an expression
+operator_list = "- * / + MINUS_MINUS LESS_THAN GREATER_THAN < LT_EQUAL > GT_EQUAL EQUAL_EQUAL MORE_LESS & BITWISE_AND | BITWISE_OR BOOL_AND BOOL_OR ^ BITWISE_XOR BOOL_XOR % REMAINDER".split()
 
 t_ignore_COMMENT = r'\#.*'
 
@@ -101,9 +114,12 @@ t_ignore = ' \t'
 
 # Build the lexer
 import ply.lex as lex
-lexer = lex.lex()
+lexer = lex.lex() #optimize = True)
 
-# Parsing rules
+
+##############################################################################
+#                               Parsing rules
+
 
 precedence = (
     ('left', 'ASSIGN', 'PLUS_EQUAL', 'MINUS_EQUAL', ),
@@ -116,7 +132,7 @@ precedence = (
     ('left', 'EQUAL_EQUAL', 'MORE_LESS', ),
     ('left', '<', 'LESS_THAN', 'LT_EQUAL', '>', 'GREATER_THAN', 'GT_EQUAL', ),
     ('left', '+', '-', 'MINUS_MINUS', ),
-    ('left', '*', '/', '%', 'REMINDER', ),
+    ('left', '*', '/', '%', 'REMAINDER', ),
     ('left', '^', ),
     ('right', 'UMINUS', ),
 )
@@ -151,6 +167,8 @@ def p_expr_group(p):
     "expression : '(' expression ')'"
     p[0] = p[2]
 
+symdesc['block'] = "bracketed block of statements '(...)'"
+
 def p_expr_block(p):
     "block : '(' expression_list ')'"
     p[0] = p[2]
@@ -164,6 +182,8 @@ def p_define(p):
     p[0] = AST_node("empty")
     for arg in p[2]:
         AST_state.alloc_local(arg.leaf)
+
+symdesc['void'] = "statement"
 
 def p_assign(p):
     """
@@ -181,6 +201,8 @@ def p_if_2(p):
     "void : IF condition flow_then"
     p[0] = AST_node("flow", p[2:], "if")
 
+symdesc['flow_else'] = "else() block or elseif()..."
+
 def p_else_1(p):
     "flow_else : ELSEIF condition flow_then flow_else"
     p[0] = AST_node("flow", p[2:], "if")
@@ -193,6 +215,8 @@ def p_else_3(p):
     "flow_else : ELSE block"
     p[0] = AST_node("flow", p[2], "else")
 
+symdesc['flow_then'] = "then() block"
+
 def p_then(p):
     "flow_then : THEN block"
     p[0] = AST_node("flow", p[2], "then")
@@ -200,6 +224,8 @@ def p_then(p):
 def p_do_1(p):
     "void : DO block"
     p[0] = AST_node("flow", p[2], p[1])
+
+symdesc['flow_do'] = "do() block"
 
 def p_do_2(p):
     "flow_do : DO block"
@@ -255,6 +281,8 @@ def p_case_list_3(p):
     p[0] = p[1]
 
 ## The last arg to 'switch' is a do() which is the else() case
+
+symdesc['case_else_list'] = "case list"
 
 def p_finalised_case_list1(p):
     """
@@ -328,7 +356,7 @@ def p_binop(p):
                | expression BITWISE_XOR expression
                | expression BOOL_XOR expression
                | expression '%' expression
-               | expression REMINDER expression
+               | expression REMAINDER expression
     """
     p[0] = AST_node('binop', [p[1], p[3]], p[2])
 
@@ -338,6 +366,8 @@ def p_unop(p):
         p[0] = AST_node('number', None, -p[2].leaf)
     else:
         p[0] = AST_node('unop', [p[2]], p[1])
+
+symdesc['name_concat'] = "identifier"
 
 def p_name_concat_1(p):
     """
@@ -419,11 +449,14 @@ def p_string_op_2(p):
 
 def p_error(p):
     if p:
-        AST_state.add_error(p.lexpos, p.lineno, "Syntax error at '%s'" % (p.value,))
+        msg = describe_parser_expectation(parser)
+        if msg:
+            msg = ": " + msg
+        AST_state.add_error(p.lexpos, p.lineno, "Syntax error at '%s'%s" % (p.value, msg))
     else:
-        # the error is recoverable
+        # The error is recoverable
         AST_state.eof()
 
 # Build the parser
 import ply.yacc as yacc
-yacc.yacc()
+parser = yacc.yacc()
