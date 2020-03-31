@@ -1,5 +1,5 @@
 
-from hs_parser_utils import describe_parser_expectation, tell_error
+from hs_parser_utils import describe_parser_expectation, tell_error, inclusive_span
 
 # AST_node and AST_state are given to this module by hs_ast.py
 AST_node = None
@@ -31,7 +31,7 @@ reserved = {
 
 tokens = [
     'NAME', 'STRING',
-    'BINARY', 'HEX', 'NUMBER',
+    'NUMBER',
     'ASSIGN', 'PLUS_EQUAL', 'MINUS_EQUAL',
     'LT_EQUAL', 'GT_EQUAL',
     'BOOL_AND', 'BOOL_OR',
@@ -82,19 +82,31 @@ def t_NAME(t):
     t.type = reserved.get(t.value, 'NAME')
     return t
 
-def t_BINARY(t):
-    r'0b[01][01 ]*'
-    t.value = int(t.value[2:].replace(' ', ''), 2)
-    return t
-
-def t_HEX(t):
-    r'0x[0-9a-f][0-9a-f ]*'
-    t.value = int(t.value[2:].replace(' ', ''), 16)
-    return t
+#numeric_bases = {'x': 16, 'X': 16, 'o': 8, 'O': 8, 'b': 2, 'B': 2}
 
 def t_NUMBER(t):
-    r'[0-9][0-9 ]*'
-    t.value = int(t.value.replace(' ', ''))
+    r'(0x[0-9a-f][0-9a-f ]*|(0[ob])?[0-9][0-9 ]*)(?P<unit>[a-z:]+)?'
+
+    # Check for trailing garbage (in future this would be used for units,
+    # currently it's not necessary)
+    unitgroup = t.lexer.lexmatch.group('unit')
+    if unitgroup:
+        span = inclusive_span(t.lexer.lexmatch.span('unit'))
+        AST_state.add_error(span, t.lineno, "Garbage following a number; expected a separator like ',' or an operator to follow it.")
+        t.value = t.value.replace(unitgroup, '')
+
+    value = t.value.replace(' ', '')
+    # base = 10
+    # if len(value) > 2:
+    #     base = numeric_bases.get(value[1], 10)
+
+    try:
+        t.value = int(value, base=0)
+    except Exception as ex:
+        span = inclusive_span(t.lexer.lexmatch.span())
+        AST_state.add_error(span, t.lineno, "Malformed number: %s" % ex)
+        t.value = 0
+
     return t
 
 def t_STRING(t):
@@ -410,8 +422,6 @@ def p_name_concat_4(p):
 def p_number(p):
     """
     expression : NUMBER
-               | BINARY
-               | HEX
     """
     p[0] = AST_node('number', None, p[1])
 

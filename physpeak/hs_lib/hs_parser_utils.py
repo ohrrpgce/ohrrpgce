@@ -139,3 +139,9 @@ def tell_error(p, erridx, msg = "", tell_token = False):
     #     # The end point of the span will be where the bad token starts
     #     span = span[0], span[1] - 1
     AST_state.add_error(span, p.lineno(erridx), msg, caret)
+
+
+def inclusive_span(span):
+    "Convert end-exclusive span to end-inclusive"
+    start, end = span
+    return start, end - 1
