@@ -492,9 +492,8 @@ def p_assign_err(p):
     raise SyntaxError
 
 def p_expr_string_err(p):
-    "expression : STRING"
-    tell_error(p, 1, """Strings can't be used as expressions; they can only appear as part of $...="..." or $...+"...".""")
-    raise SyntaxError
+    "expression : error STRING"
+    tell_error(p, 2, """Strings can't be used as expressions; they can only appear as part of $...="..." or $...+"...".""")
 
 def p_expr_err(p):
     "expression_list : expression error ','"
@@ -512,14 +511,6 @@ def p_condition_err(p):
 def p_expr_block_err(p):
     "block : '(' error ')'"
     tell_error(p, 0, "Block doesn't contain valid list of statements")
-
-def p_if_err(p):
-    "void : IF condition error"
-    tell_error(p, 0, "if() should be followed by then() block")
-
-def p_if_err2(p):
-    "void : IF error"
-    tell_error(p, 0, "'if' should be followed by a condition")
 
 
 ##############################################################################

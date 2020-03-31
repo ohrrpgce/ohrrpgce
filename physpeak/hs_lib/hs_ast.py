@@ -29,6 +29,7 @@ class _AST_state:
         self.root = None
         self.error = None
         self.last_error_lineno = None
+        self.last_error_lexpos = None
         self.text = None
         self.initial_lineno = None
 
@@ -71,6 +72,7 @@ class _AST_state:
         self.root = None
         self.error = None
         self.last_error_lineno = None
+        self.last_error_lexpos = None
 
         if lineno:
             hs_parse.lexer.lineno = lineno  # Reset line number
@@ -109,7 +111,13 @@ class _AST_state:
         self.last_error_lineno = lineno
         if self.error is None:
             self.error = ""
-        self.error += "\n" + self.show_error_line(lexpos_or_span, lineno, caret)
+
+        if isinstance(lexpos_or_span, int):
+            lexpos_or_span = lexpos_or_span, lexpos_or_span
+        if lexpos_or_span != self.last_error_lexpos:
+            self.last_error_lexpos = lexpos_or_span
+
+            self.error += "\n" + self.show_error_line(lexpos_or_span, lineno, caret)
         self.error += "%s\n" % (message)
 
     def eof(self):

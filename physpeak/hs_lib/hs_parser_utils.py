@@ -99,7 +99,7 @@ def describe_parser_expectation(parser):
     if len(nonterms):
         msg += if_multiple(nonterms, " one of") + " " + ", ".join(nonterms)
         if len(terms):
-            msg += " beginning with"
+            msg += ", which would begin with"
     if len(terms):
         msg += if_multiple(terms, " one of") + ": " + " ".join(terms)
     return msg
