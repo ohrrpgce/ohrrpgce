@@ -449,28 +449,18 @@ def p_reference(p):
     "reference : NAME"
     p[0] = AST_node("reference", None, p[1])
 
-def p_string_ref_1(p):
-    "string_ref : NAME"
-    p[0] = AST_node('value', None, p[1])
-
-def p_string_ref_2(p):
-    "string_ref : NUMBER"
-    p[0] = AST_node('number', None, p[1])
-
-def p_string_ref_3(p):
-    "string_ref : condition"
-    p[0] = p[1]
+symdesc['string_val'] = 'string'
 
 def p_string_val(p):
     "string_val : STRING"
     p[0] = AST_node("string_val", None, p[1])
 
 def p_string_op_1(p):
-    "expression : '$' string_ref '=' string_val"
+    "expression : '$' expression '=' string_val"
     p[0] = AST_node("function", [p[2], p[4]], "setstringfromtable")
 
 def p_string_op_2(p):
-    "expression : '$' string_ref '+' string_val"
+    "expression : '$' expression '+' string_val"
     p[0] = AST_node("function", [p[2], p[4]], "appendstringfromtable")
 
 
