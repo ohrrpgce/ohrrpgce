@@ -46,8 +46,7 @@ literals = (
     '+', '-', '*', '/', '^',
     '<', '>', '$', '^', '@',
     ',', '(', ')', '=', ':',
-    '.', '?', '#', '&', '|',
-    '%',
+    '.', '#', '|', '%',
 )
 
 # Tokens
@@ -72,13 +71,16 @@ t_REMAINDER = r'(?i),\s*MOD\s*,'
 
 # This list of operators is used only while printing syntax errors.
 # It should match the list of operators valid in an expression
-operator_list = "- * / + MINUS_MINUS LESS_THAN GREATER_THAN < LT_EQUAL > GT_EQUAL EQUAL_EQUAL MORE_LESS & BITWISE_AND | BITWISE_OR BOOL_AND BOOL_OR ^ BITWISE_XOR BOOL_XOR % REMAINDER".split()
+operator_list = "- * / + MINUS_MINUS LESS_THAN GREATER_THAN < LT_EQUAL > GT_EQUAL EQUAL_EQUAL MORE_LESS BITWISE_AND | BITWISE_OR BOOL_AND BOOL_OR ^ BITWISE_XOR BOOL_XOR % REMAINDER".split()
 
 t_ignore_COMMENT = r'\#.*'
 
 def t_NAME(t):
-    r'[a-zA-Z_][a-zA-Z0-9_ ]*'
-    t.value = t.value.replace(' ', '')
+    # \w also matches 0-9 and _, so we reverse \W instead for the first letter
+    # Grab :'s unless they are part of := and &'s except for &&
+    r"[^\W0-9]([\w0-9_'~?! ]|:(?!=)|&(?!&))*"
+    t.original = t.value
+    t.value = t.value.replace(' ', '').lower()
     t.type = reserved.get(t.value, 'NAME')
     return t
 
@@ -148,7 +150,7 @@ precedence = (
     ('left', 'BOOL_AND', ),
     ('left', '|', 'BITWISE_OR', ),
     ('left', 'BITWISE_XOR', ),
-    ('left', '&', 'BITWISE_AND', ),
+    ('left', 'BITWISE_AND', ),
     ('left', 'EQUAL_EQUAL', 'MORE_LESS', ),
     ('left', '<', 'LESS_THAN', 'LT_EQUAL', '>', 'GREATER_THAN', 'GT_EQUAL', ),
     ('left', '+', '-', 'MINUS_MINUS', ),
@@ -194,7 +196,7 @@ def p_expr_block(p):
     p[0] = p[2]
 
 def p_default_value(p):
-    "void : name_concat '=' expression"
+    "void : NAME '=' expression"
     p[0] = AST_node("value", [p[3]], p[1])
 
 def p_define(p):
@@ -366,7 +368,6 @@ def p_binop(p):
                | expression GT_EQUAL expression
                | expression EQUAL_EQUAL expression
                | expression MORE_LESS expression
-               | expression '&' expression
                | expression BITWISE_AND expression
                | expression '|' expression
                | expression BITWISE_OR expression
@@ -387,38 +388,6 @@ def p_unop(p):
     else:
         p[0] = AST_node('unop', [p[2]], p[1])
 
-symdesc['name_concat'] = "identifier"
-
-def p_name_concat_1(p):
-    """
-    name_concat : name_concat IF
-                | name_concat THEN
-                | name_concat ELSEIF
-                | name_concat ELSE
-                | name_concat FOR
-                | name_concat WHILE
-                | name_concat DO
-                | name_concat BREAK
-                | name_concat CONTINUE
-                | name_concat SWITCH
-                | name_concat CASE
-                | name_concat ':'
-                | name_concat '.'
-    """
-    p[0] = p[1] + p[2]
-
-def p_name_concat_2(p):
-    "name_concat : name_concat NUMBER"
-    p[0] = p[1] + str(p[2])
-
-def p_name_concat_3(p):
-    "name_concat : name_concat NAME"
-    p[0] = p[1] + p[2].lower()
-
-def p_name_concat_4(p):
-    "name_concat : NAME"
-    p[0] = p[1].lower()
-
 def p_number(p):
     """
     expression : NUMBER
@@ -430,11 +399,11 @@ def p_condition(p):
     p[0] = p[2]
 
 def p_pointer(p):
-    "expression : '@' name_concat"
+    "expression : '@' NAME"
     p[0] = AST_node("reference", None, p[2])
 
 def p_reference(p):
-    "reference : name_concat"
+    "reference : NAME"
     p[0] = AST_node("reference", None, p[1])
 
 def p_empty(p):
@@ -442,7 +411,7 @@ def p_empty(p):
     p[0] = AST_node('empty')
 
 def p_string_ref_1(p):
-    "string_ref : name_concat"
+    "string_ref : NAME"
     p[0] = AST_node('value', None, p[1])
 
 def p_string_ref_2(p):
