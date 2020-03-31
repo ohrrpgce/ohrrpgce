@@ -84,7 +84,7 @@ def t_NAME(t):
     t.type = reserved.get(t.value, 'NAME')
     return t
 
-#numeric_bases = {'x': 16, 'X': 16, 'o': 8, 'O': 8, 'b': 2, 'B': 2}
+numeric_bases = {'x': 16, 'X': 16, 'o': 8, 'O': 8, 'b': 2, 'B': 2}
 
 def t_NUMBER(t):
     r'(0x[0-9a-f][0-9a-f ]*|(0[ob])?[0-9][0-9 ]*)(?P<unit>[a-z:]+)?'
@@ -98,12 +98,13 @@ def t_NUMBER(t):
         t.value = t.value.replace(unitgroup, '')
 
     value = t.value.replace(' ', '')
-    # base = 10
-    # if len(value) > 2:
-    #     base = numeric_bases.get(value[1], 10)
+    # Can't use int( ,base=0), it doesn't accept '01'
+    base = 10
+    if len(value) > 2:
+        base = numeric_bases.get(value[1], 10)
 
     try:
-        t.value = int(value, base=0)
+        t.value = int(value, base)
     except Exception as ex:
         span = inclusive_span(t.lexer.lexmatch.span())
         AST_state.add_error(span, t.lineno, "Malformed number: %s" % ex)
