@@ -102,6 +102,14 @@ def t_STRING(t):
     t.value = t.value[1:-1]
     return t
 
+def t_bad_string(t):
+    r'\"([^\\\n]|(\\.))*'
+    span = t.lexpos, t.lexer.lexpos - 1
+    AST_state.add_error(span, t.lineno, 'String missing closing "')
+    t.type = 'STRING'
+    t.value = t.value[1:]
+    return t
+
 def t_newline(t):
     r'\n'
     t.lexer.lineno += 1
@@ -447,6 +455,11 @@ def p_string_op_2(p):
     "void : '$' string_ref '+' string_val"
     p[0] = AST_node("function", [p[2], p[4]], "appendstringfromtable")
 
+
+##############################################################################
+#                          Error messages & recovery
+
+
 def p_error(p):
     if p:
         msg = describe_parser_expectation(parser)
@@ -456,6 +469,48 @@ def p_error(p):
     else:
         # The error is recoverable
         AST_state.eof()
+
+def p_assign_err(p):
+    """
+    void : expression ASSIGN
+         | expression PLUS_EQUAL
+         | expression MINUS_EQUAL
+    """
+    tell_error(p, 2, "The left-hand-side of :=/+=/-= must be a variable name, not an expression.")
+    raise SyntaxError
+
+def p_expr_string_err(p):
+    "expression : STRING"
+    tell_error(p, 1, """Strings can't be used as expressions; they can only appear as part of $...="..." or $...+"...".""")
+    raise SyntaxError
+
+def p_expr_err(p):
+    "expression_list : expression error ','"
+    tell_error(p, 0, "Error while parsing an expression.")
+
+def p_condition_err(p):
+    "condition : '(' error ')'"
+    tell_error(p, 0, "Condition should be a (single) expression.")
+
+# def p_condition_err2(p):
+#     "condition : '(' expression_list ')'"
+#     tell_error(p, 2, "xCondition should be a (single) expression.")
+#     raise SyntaxError
+
+def p_expr_block_err(p):
+    "block : '(' error ')'"
+    tell_error(p, 0, "Block doesn't contain valid list of statements")
+
+def p_if_err(p):
+    "void : IF condition error"
+    tell_error(p, 0, "if() should be followed by then() block")
+
+def p_if_err2(p):
+    "void : IF error"
+    tell_error(p, 0, "'if' should be followed by a condition")
+
+
+##############################################################################
 
 # Build the parser
 import ply.yacc as yacc

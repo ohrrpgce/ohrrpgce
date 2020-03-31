@@ -61,6 +61,7 @@ if __name__ == "__main__":
             elif "full" in s1:
                 log.setLevel(logging.DEBUG)
             elif "off" in s1:
+                log.setLevel(999)
                 log = None
                 print("Logging disabled")
                 continue
