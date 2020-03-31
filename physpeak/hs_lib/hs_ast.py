@@ -83,25 +83,34 @@ class _AST_state:
 
         return True
 
-    def show_error_line(self, lexpos, lineno):
+    def show_error_line(self, lexpos_or_span, lineno, caret = '^'):
         "Return a two-line string displaying a line of self.text"
+        # lexposend is inclusive, but points to the beginning of a token, NOT the end of it!
+        try:
+            lexpos, lexposend = lexpos_or_span
+        except:
+            lexpos = lexpos_or_span
+            lexposend = lexpos
+
         line_start = self.text.rfind('\n', 0, lexpos) + 1
         line_end = self.text.find('\n', lexpos)
         if line_end == -1:
             line_end = len(self.text)
         assert line_start <= lexpos <= line_end
-        return (self.text[line_start : line_end] + "\n"
-                + " " * (lexpos - line_start) + "^\n")
+        prefix = "Line %-4d " % lineno
+        return (prefix + self.text[line_start : line_end] + "\n"
+                + " " * (len(prefix) + lexpos - line_start) + caret * (lexposend - lexpos + 1) + "\n")
 
-    def add_error(self, lexpos, lineno, message):
-        if lineno == self.last_error_lineno:
-            # Hide multiple errors on a line, since following errors likely caused by the first
-            return
+    def add_error(self, lexpos_or_span, lineno, message, caret = '^'):
+        "Add an error, to print along with the source line, after parsing is done"
+        # if lineno == self.last_error_lineno:
+        #     # Hide multiple errors on a line, since following errors likely caused by the first
+        #     return
         self.last_error_lineno = lineno
         if self.error is None:
             self.error = ""
-        self.error += "\n" + self.show_error_line(lexpos, lineno)
-        self.error += "Line %d: %s\n" % (lineno, message)
+        self.error += "\n" + self.show_error_line(lexpos_or_span, lineno, caret)
+        self.error += "%s\n" % (message)
 
     def eof(self):
         "Called when an EOF error occurs"
