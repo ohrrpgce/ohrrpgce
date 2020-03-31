@@ -46,6 +46,13 @@ unop_table = {
     "sqrt": 25,
 }
 
+# These are the only standard operators which are functions
+# (builtin commands) rather math functions
+binop_function_table = {
+    "$+": "concatenatestrings",
+    "$=": "copystring",
+}
+
 flow_table = {
     "do": 0,
     "begin": 1,
@@ -90,6 +97,13 @@ def kind_and_id(node):
         canonical = node.leaf.upper().replace(' ', '')
         if canonical in binop_table:
             return KIND_MATH, binop_table[canonical]
+        if canonical in binop_function_table:
+            # Non-math operators like $+ (and user-defined operators, if we ever support them)
+            func = binop_function_table[canonical]
+            if func in AST_state.scripts:
+                return KIND_SCRIPT, AST_state.scripts[func].id
+            if func in AST_state.functions:
+                return KIND_FUNCTION, AST_state.functions[func].id
 
     if node.type == 'unop':
 

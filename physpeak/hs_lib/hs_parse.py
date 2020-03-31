@@ -40,6 +40,7 @@ tokens = [
     'BOOL_XOR', 'BITWISE_XOR',
     'REMAINDER',
     'LESS_THAN', 'GREATER_THAN',
+    'DOLLAR_EQUAL', 'DOLLAR_PLUS',
 ] + list(reserved.values())
 
 literals = (
@@ -68,10 +69,12 @@ t_GREATER_THAN = r'>>'
 t_BITWISE_XOR = r'(?i),\s*XOR\s*,'
 t_BOOL_XOR = r'\^\^'
 t_REMAINDER = r'(?i),\s*MOD\s*,'
+t_DOLLAR_PLUS = r'\$\+'
+t_DOLLAR_EQUAL = r'\$='
 
 # This list of operators is used only while printing syntax errors.
 # It should match the list of operators valid in an expression
-operator_list = "- * / + MINUS_MINUS LESS_THAN GREATER_THAN < LT_EQUAL > GT_EQUAL EQUAL_EQUAL MORE_LESS BITWISE_AND | BITWISE_OR BOOL_AND BOOL_OR ^ BITWISE_XOR BOOL_XOR % REMAINDER".split()
+operator_list = "- * / + MINUS_MINUS LESS_THAN GREATER_THAN < LT_EQUAL > GT_EQUAL EQUAL_EQUAL MORE_LESS BITWISE_AND | BITWISE_OR BOOL_AND BOOL_OR ^ BITWISE_XOR BOOL_XOR % REMAINDER DOLLAR_EQUAL DOLLAR_PLUS".split()
 
 t_ignore_COMMENT = r'\#.*'
 
@@ -145,7 +148,7 @@ lexer = lex.lex() #optimize = True)
 
 
 precedence = (
-    ('left', 'ASSIGN', 'PLUS_EQUAL', 'MINUS_EQUAL', ),
+    ('left', 'ASSIGN', 'PLUS_EQUAL', 'MINUS_EQUAL', 'DOLLAR_EQUAL', 'DOLLAR_PLUS', ),
     ('left', 'BOOL_OR', ),
     ('left', 'BOOL_XOR', ),
     ('left', 'BOOL_AND', ),
@@ -416,6 +419,8 @@ def p_binop(p):
                | expression BOOL_XOR expression
                | expression '%' expression
                | expression REMAINDER expression
+               | expression DOLLAR_PLUS expression
+               | expression DOLLAR_EQUAL expression
     """
     p[0] = AST_node('binop', [p[1], p[3]], p[2])
 
