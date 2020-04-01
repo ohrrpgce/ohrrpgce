@@ -9,13 +9,7 @@ def AST_post_2(node):
 
             if child.type == "flow":
 
-                if child.leaf == "if":
-                    if len(child.children) == 2:
-                        child.children.append(
-                            AST_node("flow", None, "else")
-                        )
-
-                elif child.leaf == "continue":
+                if child.leaf == "continue":
                     if not child.children:
                         child.children = [AST_node("number", None, 1)]
 

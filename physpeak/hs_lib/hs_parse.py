@@ -252,25 +252,17 @@ def p_assign(p):
     """
     p[0] = AST_node("binop", [p[1], p[3]], p[2])
 
-def p_if_1(p):
-    "void : IF condition flow_then flow_else"
-    p[0] = AST_node("flow", p[2:], "if")
 
-def p_if_2(p):
-    "void : IF condition flow_then"
-    p[0] = AST_node("flow", p[2:], "if")
+def p_if(p):
+    """
+    void      : IF condition then_else
+    flow_else : ELSEIF condition then_else
+    """
+    p[0] = AST_node("flow", [p[2]] + p[3], "if")
 
 symdesc['flow_else'] = "else() block or elseif()..."
 
-def p_else_1(p):
-    "flow_else : ELSEIF condition flow_then flow_else"
-    p[0] = AST_node("flow", p[2:], "if")
-
-def p_else_2(p):
-    "flow_else : ELSEIF condition flow_then"
-    p[0] = AST_node("flow", p[2:], "if")
-
-def p_else_3(p):
+def p_else(p):
     "flow_else : ELSE block"
     p[0] = AST_node("flow", p[2], "else")
 
@@ -280,11 +272,26 @@ def p_then(p):
     "flow_then : THEN block"
     p[0] = AST_node("flow", p[2], "then")
 
-def p_do_1(p):
-    "void : DO block"
-    p[0] = AST_node("flow", p[2], p[1])
+symdesc['then_else'] = "then() and/or else() block"
+
+def p_then_else_1(p):
+    "then_else : flow_then flow_else"
+    p[0] = p[1:]
+
+def p_then_else_2(p):
+    "then_else : flow_then"
+    p[0] = [p[1], AST_node("flow", None, "else")]
+
+def p_then_else_3(p):
+    "then_else : flow_else"
+    p[0] = [AST_node("flow", None, "then"), p[1]]
+
 
 symdesc['flow_do'] = "do() block"
+
+def p_do_1(p):
+    "void : flow_do"
+    p[0] = p[1]
 
 def p_do_2(p):
     "flow_do : DO block"
