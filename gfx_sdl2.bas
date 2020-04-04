@@ -100,7 +100,7 @@ DIM SHARED forced_mouse_clipping as bool = NO
 DIM SHARED remember_mousebounds as RectPoints = ((-1, -1), (-1, -1)) 'Args at the last call to io_mouserect
 DIM SHARED mousebounds as RectPoints = ((-1, -1), (-1, -1)) 'These are the actual clip bounds, in window coords
 DIM SHARED privatempos as XYPair     'Mouse position in window coords
-DIM SHARED keybdstate(127) as integer  '"real"time keyboard array. See io_sdl2_keybits for docs.
+DIM SHARED keybdstate(127) as KeyBits  '"real"time keyboard array. See io_sdl2_keybits for docs.
 DIM SHARED input_buffer as ustring
 DIM SHARED mouseclicks as integer    'Bitmask of mouse buttons clicked (SDL order, not OHR), since last io_mousebits
 DIM SHARED mousewheel as integer     'Position of the wheel. A multiple of 120
@@ -912,7 +912,7 @@ SUB gfx_sdl2_process_events()
       CASE SDL_KEYUP
         DIM as integer key = scantrans(evnt.key.keysym.scancode)
         IF debugging_io THEN
-          debuginfo "SDY_KEYUP scan=" & evnt.key.keysym.scancode & " key=" & evnt.key.keysym.sym & " -> ohr=" & key & " (" & scancodename(key) & ") prev_keystate=" & keybdstate(key)
+          debuginfo "SDL_KEYUP scan=" & evnt.key.keysym.scancode & " key=" & evnt.key.keysym.sym & " -> ohr=" & key & " (" & scancodename(key) & ") prev_keystate=" & keybdstate(key)
         END IF
         'Clear 2nd bit (new keypress) and turn on 3rd bit (keyup)
         IF key THEN keybdstate(key) = (keybdstate(key) AND 2) OR 4
@@ -1017,7 +1017,7 @@ SUB io_sdl2_waitprocessing()
   update_state()
 END SUB
 
-SUB io_sdl2_keybits (byval keybdarray as integer ptr)
+SUB io_sdl2_keybits (byval keybdarray as KeyBits ptr)
   'keybdarray bits:
   ' bit 0 - key down
   ' bit 1 - new keypress event
@@ -1027,7 +1027,7 @@ SUB io_sdl2_keybits (byval keybdarray as integer ptr)
   ' bit 2 - keyup event
 
   DIM msg as string
-  FOR a as integer = 0 TO &h7f
+  FOR a as KBScancode = 0 TO &h7f
     keybdstate(a) = keybdstate(a) and 3  'Clear key-up bit
     keybdarray[a] = keybdstate(a)
     IF debugging_io ANDALSO keybdarray[a] THEN
@@ -1042,7 +1042,7 @@ SUB io_sdl2_keybits (byval keybdarray as integer ptr)
   keybdarray[scCtrl] = keybdarray[scLeftCtrl] OR keybdarray[scRightCtrl]
 END SUB
 
-SUB io_sdl2_updatekeys(byval keybd as integer ptr)
+SUB io_sdl2_updatekeys(byval keybd as KeyBits ptr)
   'supports io_keybits instead
 END SUB
 

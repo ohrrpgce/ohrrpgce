@@ -211,9 +211,9 @@ end function
 sub io_alleg_init
 end sub
 
-sub io_alleg_updatekeys(byval keybd as integer ptr)
+sub io_alleg_updatekeys(byval keybd as KeyBits ptr)
 	dim a as integer
-	for a = 0 to &h7f
+	for a = KBScancode to &h7f
 		if key(a) then
 			keybd[scantrans(a)] = keybd[scantrans(a)] or 8
 		end if

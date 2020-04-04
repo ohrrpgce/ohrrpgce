@@ -65,7 +65,7 @@ dim shared mouse_visibility as CursorVisibility = cursorDefault
 dim shared remember_windowtitle as string
 dim shared as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 dim shared inputtext as string
-dim shared extrakeys(127) as integer
+dim shared extrakeys(127) as KeyBits
 
 'internal palette for 32-bit mode, with RGB colour components packed into a int
 dim shared truepal(255) as int32
@@ -336,7 +336,7 @@ end function
 sub io_fb_init
 end sub
 
-sub process_key_event(e as Event, byval value as integer)
+sub process_key_event(e as Event, byval value as KeyBits)
 	'NOTE: numpad 5 seems to be broken on Windows, events for that key have scancode = 0 regardless of numlock state!
 
 	'On linux, Pause, PrintScreen, and WindowsKey keypresses send events with scancode 0, and multikey shows nothing.
@@ -429,10 +429,10 @@ sub io_fb_waitprocessing()
 	'not needed by this backend
 end sub
 
-sub io_fb_updatekeys(byval keybd as integer ptr)
+sub io_fb_updatekeys(byval keybd as KeyBits ptr)
 	process_events()
 
-	for key as integer = 0 to 127
+	for key as KBScancode = 0 to 127
 		select case key
 			case 0 to scHome - 1, scNumpadMinus, scNumpadPlus, scDelete + 1 to scContext
 				if multikey(key) then
