@@ -259,7 +259,10 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   #endif
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest")
   'We don't need shaders
-  SDL_SetHint(SDL_HINT_RENDER_OPENGL_SHADERS, "0")
+  'NOTE: commented out, because this caused the window to be stuck white under X11. It used to work fine in
+  'SDL 2.0.10 but is broken in SDL 2.0.14.
+  'SDL_SetHint(SDL_HINT_RENDER_OPENGL_SHADERS, "0")
+  'I guess this sets the render driver?
   'SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "0") 'software, opengl, direct3d, opengles2, opengles, metal
   'Maybe want to set SDL_HINT_VIDEO_X11_NET_WM_PING off, since we detect hung scripts ourselves?
   'Make Ctrl-click on Mac send a right-click event
