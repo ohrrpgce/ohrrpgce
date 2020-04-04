@@ -1017,6 +1017,10 @@ SUB io_sdl2_waitprocessing()
   update_state()
 END SUB
 
+LOCAL SUB keymod_to_keybdstate(modstate as integer, key as KBScancode)
+  keybdstate(key) = (keybdstate(key) AND 6) OR IIF(modstate, 1, 0)
+END SUB
+
 SUB io_sdl2_keybits (byval keybdarray as KeyBits ptr)
   'keybdarray bits:
   ' bit 0 - key down
@@ -1025,6 +1029,16 @@ SUB io_sdl2_keybits (byval keybdarray as KeyBits ptr)
   ' bit 0 - key down
   ' bit 1 - new keypress event
   ' bit 2 - keyup event
+
+  'In SDL2, unlike SDL 1.2 (unless SDL_DISABLE_LOCK_KEYS is set), the *lock
+  'keys act like normal keys instead of telling whether the respective lock is on.
+  '(Pause/Break still doesn't act as a normal key).
+  'Maybe we should just report modifier state separately from button state, the same
+  'way SDL2 does it.
+  DIM kmod as SDL_Keymod = SDL_GetModState()
+  keymod_to_keybdstate kmod AND KMOD_NUM,  scNumlock
+  keymod_to_keybdstate kmod AND KMOD_CAPS, scCapslock
+  'scScrollLock: No way to check scoll lock state?
 
   DIM msg as string
   FOR a as KBScancode = 0 TO &h7f
