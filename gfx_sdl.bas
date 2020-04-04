@@ -1198,6 +1198,10 @@ SUB io_sdl_waitprocessing()
   update_state()
 END SUB
 
+LOCAL SUB keymod_to_keybdstate(modstate as integer, key as KBScancode)
+  keybdstate(key) = (keybdstate(key) AND 6) OR IIF(modstate, 1, 0)
+END SUB
+
 SUB io_sdl_keybits (byval keybdarray as KeyBits ptr)
   'keybdarray bits:
   ' bit 0 - key down
@@ -1206,6 +1210,27 @@ SUB io_sdl_keybits (byval keybdarray as KeyBits ptr)
   ' bit 0 - key down
   ' bit 1 - new keypress event
   ' bit 2 - keyup event
+
+  'Get numlock and capslock state
+  #IFDEF __FB_WIN32__
+    'On Windows, if numlock and capslock are on when the program starts, then SDL 1.2
+    'reports them as off, and keeps them inverted form the ral state from then on.
+    'Work around this bug by using the winapi to get the real state.
+    '(Note: we can't use SDL_SetModState() to fix the state because that triggers
+    'another bug, it confuses SDL_PrivateKeyboard() into dropping all numlock/capslock
+    'events and the keys become stuck)
+    keymod_to_keybdstate GetKeyState(VK_NUMLOCK) AND 1, scNumlock
+    keymod_to_keybdstate GetKeyState(VK_CAPITAL) AND 1, scCapslock
+  #ELSE
+    'On X11, similar problem except the state is always off to begin with, then
+    'corrects after the first capslock/numlock keypress.
+    'It's not an SDL bug, it's our bug - we initialise keybdstate to zero.
+    'Could move the following code to gfx_sdl_init, but this is more robust.
+    '(Note: gfx_sdl2 has code identical to the following, but for a different reason!)
+    DIM kmod as integer = SDL_GetModState()
+    keymod_to_keybdstate kmod AND KMOD_NUM,  scNumlock
+    keymod_to_keybdstate kmod AND KMOD_CAPS, scCapslock
+  #ENDIF
 
   DIM msg as string
   FOR a as KBScancode = 0 TO &h7f
