@@ -267,6 +267,7 @@ end type
 
 dim shared last_setkeys_time as double      'Used to compute real_input.elapsed_ms
 dim shared inputtext_enabled as bool = NO   'Whether to fetch real_input.kb.inputtext, not applied to replay_input.kb
+dim shared remap_numpad as bool = YES       'If YES, then when numlock is off remap numpad .0-9 to arrows/home/etc
 
 #IFDEF USE_X11
 	'As a workaround for bug 2005, we disable native text input by default
@@ -664,6 +665,10 @@ function allmodex_setoption(opt as string, arg as string) as integer
 	elseif opt = "nojoy" then
 		debuginfo "Joystick/gamepad disabled by -nojoy"
 		joysticks_globally_disabled = YES
+		return 1 'arg not used
+	elseif opt = "nonumpad" then
+		debuginfo "Numpad remapping disabled by -nonumpad"
+		remap_numpad = NO
 		return 1 'arg not used
 	elseif opt = "showkeys" then
 		gif_show_keys = YES
@@ -1596,8 +1601,9 @@ end function
 '==========================================================================================
 
 
-'Numpad scancode that's an alias to this key
+'Return numpad scancode that's an alias to 'key'
 local function numpad_alias_key(key as KBScancode, real_keys as bool) as KBScancode
+	if remap_numpad = NO then return 0
 	if (keyval_ex(scNumLock, , , real_keys) and 1) xor (keyval_ex(scShift, , , real_keys) and 1) then
 		return 0
 	end if
@@ -1813,6 +1819,10 @@ function get_ascii_inputtext () as string
 	' Space and numpad are missing from key2text
 	if real_keyval(scSpace) > 1 then ret &= " "
 
+	' Note: On Windows, if numlock is on and you press Shift and 0-9 or . on the numpad
+	' then Shift will appear unpressed! Backend independent, happens in Win XP and 10.
+	' Not a keyboard artifact.
+	' We do this even if remap_numpad = NO, because that's how native text input works.
 	if (real_keyval(scNumLock) and 1) xor (shift and 1) then
 		'NOTE: When NumLock is off, numpad is mapped to Left, Home, etc, by keyval
 		'but when it's on we *don't* map it to 1, +, etc!  That's because we want
@@ -1831,11 +1841,10 @@ function get_ascii_inputtext () as string
 			end if
 		next
 	end if
-	' Note, backends/OSes differ on when they report text input from numpad keys:
-	' (See bug #45; the following description may be out of date)
+	' Note, OSes differ on when they report text input from numpad keys (this seems
+	' to be backend-independent):
 	' X11 (both FB and SDL): when numlock XOR shift is pressed
-	' Windows (both FB and SDL): only when numlock on and shift not pressed
-	' gfx_directx: when numlock is on
+	' Windows (FB, SDL, directx): only when numlock on and shift not pressed
 	' (Also, on Windows, status of numlock is buggy: for gfx_sdl and gfx_directx,
 	' after user turns it off, state doesn't update until next keypress,
 	' while gfx_fb doesn't report it at all)
@@ -2945,6 +2954,12 @@ local sub allmodex_controls()
 
 	if real_keyval(scCtrl) > 0 andalso (real_keyval(scF7) and 4) then
 		gfx_backend_menu
+	end if
+
+	'Ctrl-Shift-N: toggle numpad remapping
+	if real_keyval(scCtrl) > 0 andalso real_keyval(scShift) > 0 andalso (real_keyval(scN) and 4) then
+		remap_numpad xor= YES
+		show_overlay_message "Numpad remapping " & onoroff(remap_numpad xor YES)
 	end if
 
 	if real_keyval(scCtrl) > 0 andalso (real_keyval(scF8) and 4) then

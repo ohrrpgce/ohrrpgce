@@ -5,7 +5,8 @@ April ? 2020 [Gorgonzola]
   *** New Features
     * Numlock is now respected in both Game and Custom; when it's off numpad
       keys are also mapped to other keys, so you can use the numpad for
-      movement.  When it's on, no remapping happens. [Ralph]
+      movement.  When it's on, no remapping happens. (You can disable
+      remapping with Ctrl-Shift-N.) [Ralph]
     * "Dead Foe (dead heroes only)" and "Foe (including dead heroes)" attack
       target classes [Ralph]
     * Title Screen Text; a quick and easy way to put a line of text like

@@ -89,7 +89,6 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-rawexx             Don't catch -exx fatal errors, let gdbgame/gdbcustom.sh/bat catch them" & LINE_END
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
 		help = help & "-replayinput file   Replay keyboard input from a previously recorded file" & LINE_END
-		help = help & "-nojoy              Disable joystick/gamepad support" & LINE_END
 		help = help & "-runfast            Run as quickly as possible (no FPS throttling)" & LINE_END
 		help = help & "-logslow            Log to c/g_debug.txt when certain backend calls took a long time" & LINE_END
 		help = help & "-maxfps fps         The maximum frames-per-second before starting to skip frames (default " & max_display_fps & ")" & LINE_END
@@ -100,6 +99,8 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-showmouse          Show mouse position while recording a .gif" & LINE_END
 		help = help & "-gfx backendname    Select graphics backend. This build supports:" & LINE_END
 		help = help & "                      " & SUPPORTED_GFX & " (tried in that order)" & LINE_END
+		help = help & "-nojoy              Disable joystick/gamepad support" & LINE_END
+		help = help & "-nonumpad           Disable remapping numpad .0-9 to arrows/pageup/insert/etc. Can also toggle with Ctrl-Shift-N" & LINE_END
 		help = help & "-no-native-kbd      Use US keyboard layout instead of OS-based text input (Default under X11 (ie. Linux, BSD))" & LINE_END
 		help = help & "-native-kbd         Use OS-based text input instead of US keyboard layout (Default on Windows, Mac OS X, Android)" & LINE_END
 		help = help & "-f -fullscreen      Start in full-screen mode if possible" & LINE_END
