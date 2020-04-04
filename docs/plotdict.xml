@@ -10761,14 +10761,14 @@ key:F1
 key:F2
 key:F3
 ...
-key:F15
+key:F15          # Mac keyboards usually have 15 instead of 12 F# buttons
 
-key:Num Lock
-key:Scroll Lock
-key:Caps Lock
+key:Num Lock     # Tells whether numlock is on, not whether the key is down.
+key:Caps Lock    # Tells whether capslock is on, not whether the key is down.
+key:Scroll Lock  # Unreliable across different OSes/backends, avoid.
 
-key:Print Screen
-key:Pause
+key:Print Screen # Unreliable across different OSes/backends, avoid
+key:Pause        # Works for "keypress" and "new keypress" but not "key is pressed"
 
 key:1
 key:Exclamation
@@ -10837,8 +10837,8 @@ key:Right
 key:Down
 
 key:Meta           # Either Command/Windows key
-key:Win Logo       # equal to key:Meta
-key:Command        # equal to key:Meta
+key:Win Logo       # Equal to key:Meta
+key:Command        # Equal to key:Meta
 key:Left Meta      # Left Command/Windows key
 key:Right Meta     # Right Command/Windows key
 key:Left Win Logo  # equal to key:Left Meta
