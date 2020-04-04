@@ -1,9 +1,8 @@
 'OHRRPGCE RELUMP - RPG File relumping utility
 '(C) Copyright 2006 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
-'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-' Compile with makeutil.sh or makeutil.bat
+' Compile with 'scons relump'
 
 #include "config.bi"
 #include "util.bi"
@@ -17,12 +16,12 @@ IF COMMAND = "" THEN
  PRINT "O.H.R.RPG.C.E. lumping utility"
  PRINT ""
  PRINT "syntax:"
- PRINT "relump folder filename"
+ PRINT " relump folder [filename]"
  PRINT ""
  PRINT "A utility to package the contents of a folder into an OHRRPGCE"
- PRINT "lumpfile, such as an .RPG file"
+ PRINT "lumpfile, such as an .rpg or .hs file"
  PRINT ""
- PRINT "Windows users can drag-and-drop their rpgdir folder onto this program"
+ PRINT "You can drag-and-drop a rpgdir folder onto this program"
  PRINT "to relump it."
  PRINT ""
  PRINT "[Press a Key]"
@@ -38,14 +37,14 @@ src = trim_trailing_slashes(src)
 
 IF NOT isdir(src) THEN
   IF isfile(src) THEN fatalerror src + "' is a file, not a folder"
-  fatalerror "rpgdir folder `" + src + "' was not found"
+  fatalerror "source folder `" + src + "' was not found"
 END IF
 
 IF dest = "" THEN
  IF RIGHT(src,7) = ".rpgdir" THEN
   dest = trimextension(src) + ".rpg"
  ELSE
-  fatalerror "please specify an output folder"
+  fatalerror "please specify an output filename"
  END IF
 END IF
 

@@ -1,9 +1,8 @@
 'OHRRPGCE UNLUMP - RPG File unlumping utility
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
-'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-' Compile with makeutil.sh or makeutil.bat
+' Compile with 'scons unlump'
 '
 
 #include "config.bi"
@@ -13,7 +12,6 @@
 #include "common_base.bi"
 
 'basic subs and functions
-DECLARE FUNCTION editstr (stri as string, key as string, byref cur as integer, byref max as integer, byref number as integer) as string
 DECLARE SUB fatalcleanup ()
 
 cleanup_function = @fatalcleanup
@@ -95,10 +93,6 @@ IF NOT isfile(lumped) THEN fatalerror "lump file `" + lumped + "' was not found"
 
 PRINT "From " + lumped + " to " + dest
 
-'--Get old-style game (only matters for ancient RPG files that are missing the archinym.lmp)
-dim game as string
-game = trimextension(trimpath(lumped))
-
 IF isdir(dest) THEN
  PRINT "Destination directory `" + dest + "' already exists. Delete it? (y/n)"
  DIM w as string = readkey
@@ -117,70 +111,13 @@ IF recover THEN
  SYSTEM
 END IF
 
-IF NOT isrpg THEN
- unlump lumped, dest + SLASH
- CHDIR olddir
- PRINT "Done."
- SYSTEM
-END IF
- 
-unlumpfile lumped, "archinym.lmp", dest + SLASH
-
-'--set game according to the archinym
-DIM fh as integer
-IF OPENFILE(dest + SLASH + "archinym.lmp", FOR_INPUT, fh) = 0 THEN
- DIM a as string
- LINE INPUT #fh, a
- CLOSE #fh
- IF LEN(a) <= 8 THEN
-  game = LCASE(a)
- END IF
- killfile dest + SLASH + "archinym.lmp"
-END IF
-
-unlumpfile lumped, game + ".gen", dest + SLASH
-DIM SHARED gen(360) as integer
-xbload dest + SLASH + game + ".gen", gen(), "unable to open general data"
-
-killfile dest + SLASH + game + ".gen"
-
 unlump lumped, dest + SLASH, YES, verbose
 
-CHDIR olddir
 PRINT "Done."
 SYSTEM
 
 
 '------------------------------------------------------------------------------
-
-
-FUNCTION editstr (stri as string, key as string, byref cur as integer, byref max as integer, byref number as integer) as string
-
-DIM pre as string = LEFT(stri, cur)
-DIM post as string = RIGHT(stri, LEN(stri) - cur)
-
-SELECT CASE key
- CASE CHR(8)
-  'backspace
-  IF LEN(pre) > 0 THEN pre = LEFT(pre, LEN(pre) - 1): cur = cur - 1
- CASE CHR(0) + CHR(83)
-  'delete
-  IF LEN(post) > 0 THEN post = RIGHT(post, LEN(post) - 1)
- CASE ELSE
-  IF LEN(key) > 0 THEN
-   IF (ASC(key) >= 32 AND ASC(key) < 127 AND key <> "," AND key <> "~" AND number = 0) OR (ASC(key) >= 48 AND ASC(key) <= 57 AND number) THEN
-    IF LEN(post) = 0 AND LEN(pre) < max THEN post = " "
-    IF LEN(post) > 0 THEN
-     MID(post, 1, 1) = key
-     cur = bound(cur + 1, 0, LEN(pre + post))
-    END IF
-   END IF
-  END IF
-END SELECT
-
-RETURN pre + post
-
-END FUNCTION
 
 SUB fatalcleanup ()
  'RMDIR does not work unless isdir is called first. If I tried to figure out why, my brain would explode

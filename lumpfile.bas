@@ -1016,10 +1016,12 @@ function unlumpfile_internal (lumpfile as string, fmask as string, path as strin
 			end if
 
 			if verbose then
-				print "lump '" + original_lname + !"'\t at " & seek(lf) & !"\t len " & size
+				dim note as string
 				if lname <> original_lname then
-					print "  (renamed to '" + lname + "')"
+					note = !"\t (renamed to '" + lname + "')"
 				end if
+
+				print "lump '" + original_lname + !"'\t at " & seek(lf) & !"\t len " & size & note
 			end if
 
 			dim skiplump as bool = YES
