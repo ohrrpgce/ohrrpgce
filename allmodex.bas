@@ -505,6 +505,11 @@ local sub after_backend_init()
 	io_init()
 	'mouserect(-1,-1,-1,-1)
 
+	'gfx_fb has bad numpad support and already remaps the numpad anyway,
+	'so our remapping isn't useful. Also it doesn't report numlock state,
+	'so remapping would cause text input "4" and scLeft at the same time.
+	if gfxbackend = "fb" then remap_numpad = NO
+
 	fps_time_start = TIMER
 	fps_draw_frames = 0
 	fps_real_frames = 0
