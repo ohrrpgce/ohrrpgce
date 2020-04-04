@@ -429,19 +429,30 @@ sub io_fb_waitprocessing()
 	'not needed by this backend
 end sub
 
+#ifdef __FB_WIN32__
+'vkey: winapi virtual keycode
+'is_toggle: read toggle state of the key
+local sub vkey_to_keybits(vkey as integer, is_toggle as bool, byref key as KeyBits)
+	dim mask as integer = iif(is_toggle, 1, &h8000)
+	key = (key and not 8) or iif(GetKeyState(vkey) and mask, 8, 0)
+end sub
+#endif
+
 sub io_fb_updatekeys(byval keybd as KeyBits ptr)
 	process_events()
 
 	for key as KBScancode = 0 to 127
 		select case key
-			case 0 to scHome - 1, scNumpadMinus, scNumpadPlus, scDelete + 1 to scContext
+			'Pressing PrntScr causes multikey(0) to return true
+			case 1 to scHome - 1, scNumpadMinus, scNumpadPlus, scDelete + 1 to scContext
 				if multikey(key) then
 					keybd[key] or= 8
 				end if
 
 			case scNumpad5
-				'Events for this key are broken on Windows, luckily can fall back to multikey
-				if multikey(76) then
+				'Events for this key are broken, luckily on X11 can fall back to this.
+				'This doesn't work on Windows, but we handle Numpad5 there below.
+				if multikey(76) then  'Not an OHR scancode
 					keybd[key] or= 8
 				end if
 
@@ -466,6 +477,21 @@ sub io_fb_updatekeys(byval keybd as KeyBits ptr)
 	keybd[scNumpadEnter] or= keybd[scEnter] and 8
 	keybd[scPrintScreen] or= keybd[scNumpadAsterisk] and 8
 	keybd[scPause] or= keybd[scNumlock] and 8
+
+	#ifdef __FB_WIN32__
+		'Lots of keys broken in fbgfx, but at least on Windows it's easy to
+		'workaround the problem by calling the winapi.
+		'ScrollLock works in fbgfx, but it doesn't act as a toggle.
+		vkey_to_keybits VK_SCROLL, YES, keybd[scScrollLock]
+		'Numpad5 broken on Windows, OK on X11
+		'(VK_NUMPAD5 only appears presses when numlock is on, but that's consistent)
+		vkey_to_keybits VK_NUMPAD5, NO, keybd[scNumpad5]
+		'None of the following work properly on any OS
+		vkey_to_keybits VK_NUMLOCK, YES, keybd[scNumlock]
+		vkey_to_keybits VK_SNAPSHOT, NO, keybd[scPrintScreen]
+		'This doesn't work well, it misses most keypresses. Pause is weird.
+		vkey_to_keybits VK_PAUSE, NO, keybd[scPause]
+	#endif
 end sub
 
 sub io_fb_textinput (byval buf as wstring ptr, byval bufsize as integer)
