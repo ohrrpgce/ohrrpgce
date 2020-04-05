@@ -1861,7 +1861,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
   workmenu(2) = AtkDamageEq  'Damage equation
   DIM nextslot as integer = 3
 
-  ' "Attacks will ignore extra hits stat" gen bitset
+  ' "Attacks ignore extra hits stat" gen bitset
   IF prefbit(29) THEN
     maskeddmgbit(49) = ""  'Ignore attacker's extra hits
   END IF

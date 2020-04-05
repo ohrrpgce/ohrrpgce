@@ -326,7 +326,7 @@ SUB edit_battle_bitsets()
  a_append bits(), -1, ""
  a_append bits(), -1, " General Options"
  a_append bits(), 26, "0 damage when immune to attack elements"
- a_append bits(), 29, "Attacks will ignore extra hits stat"
+ a_append bits(), 29, "Attacks ignore extra hits stat"
 
  a_append bits(), -1, ""
  IF gen(genBattleMode) = 0 THEN

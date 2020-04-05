@@ -24,8 +24,9 @@ Will: Like "Defense", this reduces the damage done by attacks that are based on 
 
 Speed: This determines how fast the enemy can attack in battle. Smaller numbers are slower, and larger numbers are faster.
 
-Counter: This does not currently have any specifically defined purpose, but you can use it as a base stat for your attacks in various ways.
+Counter: This is a spare stat with no built-in purpose, but you can use it as a base stat for your attacks in various ways.
 
-Focus: This is a percentage by which the enemy's MP consuption is reduced. Normally this should be 0.
+Focus: This is a percentage by which the enemy's MP consuption is reduced. Normally this should be 0. If 100, all MP costs are reduced to 0.
 
-Extra Hit: This stat causes the enemy to get extra attacks every turn. You almost always want to keep this at 0.
+Extra Hit: This stat causes the enemy to randomly hit additional times every time they use an attack. For example, if it's 2 then the attack will hit 0-2 extra times (1-3 in total), on average 2 time. You almost always want to keep this at 0.
+But that doesn't happen (the stat is  ignored) if either the "Ignore attacker's extra hits" attack bit or "Attacks ignores extra hits" battle system bit are on.

@@ -3263,7 +3263,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  
  DIM numhits as integer
  numhits = attack.hits
- ' "Attacks will ignore extra hits stat" gen bitset
+ ' "Attacks ignore extra hits stat" gen bitset
  IF prefbit(29) = NO AND attack.ignore_extra_hits = NO THEN
   numhits += randint(bslot(bat.acting).stat.cur.hits + 1)
  END IF
