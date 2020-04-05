@@ -101,8 +101,8 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "                      " & SUPPORTED_GFX & " (tried in that order)" & LINE_END
 		help = help & "-nojoy              Disable joystick/gamepad support" & LINE_END
 		help = help & "-nonumpad           Disable remapping numpad .0-9 to arrows/pageup/insert/etc. Can also toggle with Ctrl-Shift-N" & LINE_END
-		help = help & "-no-native-kbd      Use US keyboard layout instead of OS-based text input (Default under X11 (ie. Linux, BSD))" & LINE_END
-		help = help & "-native-kbd         Use OS-based text input instead of US keyboard layout (Default on Windows, Mac OS X, Android)" & LINE_END
+		help = help & "-no-native-kbd      Use US keyboard layout instead of OS-based text input (Default under gfx_sdl+X11 (ie. Linux, BSD))" & LINE_END
+		help = help & "-native-kbd         Use OS-based text input instead of US keyboard layout (Default everywhere else)" & LINE_END
 		help = help & "-f -fullscreen      Start in full-screen mode if possible" & LINE_END
 		help = help & "-w -windowed        Start in windowed mode (default)" & LINE_END
 		help = help & " Backend-specific options for gfx_" & gfxbackend & ": (use -gfx XYX -help to see others)" & LINE_END

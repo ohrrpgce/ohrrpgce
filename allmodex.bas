@@ -269,13 +269,11 @@ dim shared last_setkeys_time as double      'Used to compute real_input.elapsed_
 dim shared inputtext_enabled as bool = NO   'Whether to fetch real_input.kb.inputtext, not applied to replay_input.kb
 dim shared remap_numpad as bool = YES       'If YES, then when numlock is off remap numpad .0-9 to arrows/home/etc
 
-#IFDEF USE_X11
-	'As a workaround for bug 2005, we disable native text input by default
-	'on X11 (Linux/BSD). This can be removed when we figure out a better fix for that bug
-	dim shared disable_native_text_input as bool = YES
-#ELSE
-	dim shared disable_native_text_input as bool = NO
-#ENDIF
+'If true, assume a US keyboard layout (use get_ascii_inputtext instead of calling io_enable_textinput + io_textinput).
+'Used as workaround for #1064.
+dim shared disable_native_text_input as bool = NO
+'True if disable_native_text_input set by a commandline or config option
+dim shared overrode_native_text_input as bool = NO
 
 dim shared joysticks_globally_disabled as bool = NO
 
@@ -505,6 +503,18 @@ local sub after_backend_init()
 	io_init()
 	'mouserect(-1,-1,-1,-1)
 
+	if overrode_native_text_input = NO then
+		disable_native_text_input = NO
+		#ifdef USE_X11
+			if gfxbackend = "sdl" then
+				'As a workaround for bug #1064, we disable native text input by default
+				'on X11 (Linux/BSD) when using gfx_sdl, avoiding SDL_EnableUNICODE
+				disable_native_text_input = YES
+			end if
+		#endif
+	end if
+	debuginfo "disable_native_text_input=" & disable_native_text_input
+
 	'gfx_fb has bad numpad support and already remaps the numpad anyway,
 	'so our remapping isn't useful. Also it doesn't report numlock state,
 	'so remapping would cause text input "4" and scLeft at the same time.
@@ -615,10 +625,12 @@ end sub
 function allmodex_setoption(opt as string, arg as string) as integer
 	if opt = "no-native-kbd" then
 		disable_native_text_input = YES
+		overrode_native_text_input = YES
 		debuginfo "Native text input disabled"
 		return 1
 	elseif opt = "native-kbd" then
 		disable_native_text_input = NO
+		overrode_native_text_input = YES
 		debuginfo "Native text input enabled"
 		return 1
 	elseif opt = "runfast" then
@@ -1936,6 +1948,8 @@ local function read_inputtext () as string
 					select case ch
 						'FIXME: it would be better to loop through the key2text array
 						'here, but it fails to initialize on Android
+						'(But both this and key2text assume US keyboard so really shouldn't
+						'be doing this. Is SDL 1.2 text input on Android just plain broken?)
 						case "1": ch = "!"
 						case "2": ch = "@"
 						case "3": ch = "#"
