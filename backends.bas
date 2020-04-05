@@ -747,8 +747,8 @@ sub gfx_backend_menu ()
 
 	dim choice as integer
 	choice = multichoice(!"Switch to which graphics backend?\n" _
-			     !"(EXPERIMENTAL! Switching may crash the program!)\n" _
-			     "Your selection will be remembered for " & exename, menu())
+			     !"(Experimental, does not work for non-320x200 games)\n" _
+			     "Your selection will be remembered for " & exename & DOTEXE, menu())
 	if choice > -1 then
 		' Due to a FB fixed-len string bug, passing this fixstr directly corrupts it
 		dim backendname as string = gfx_choices(choice)->name

@@ -43,6 +43,7 @@ April ? 2020 [Gorgonzola]
       into 20, even with "Keep caterpillar length the same" on [Ralph]
     * "any key" was pressed when numlock/scrolllock/capslock were on [Ralph]
     * State of numlock and capslock keys was wrong in various cases [Ralph]
+    * Crash when switching between gfx backends (switching to gfx_sdl) [Ralph]
 
   *** Stuff Only Developers Will Notice
     * All .py build scripts and utilities will run under Python 3 as well as

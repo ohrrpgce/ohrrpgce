@@ -278,6 +278,9 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   'to triple buffer (adding a frame of latency) - only some drivers
   'SDL_SetHint("SDL_VIDEO_DOUBLE_BUFFER", "1")  'SDL_HINT_VIDEO_DOUBLE_BUFFER not in FB's header yet
 
+  'Possibly useful in future:
+  'SDL_SetHint(SDL_HINT_RENDER_LOGICAL_SIZE_MODE, "overscan")  'Causes left/right of screen to be clipped instead of letterboxing
+
   DIM ver as SDL_version
   SDL_GetVersion(@ver)
   DIM ret as string

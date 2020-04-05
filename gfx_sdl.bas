@@ -574,7 +574,8 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval imagesz as XYPair,
   'window without telling us with an event! This happens on X11 when dragging
   'the window, if we try to change window size mid-drag. In that case we try to
   'override the change, and don't set resize_requested.)
-  IF framesize <> imagesz ORELSE XY(screensurface->w, screensurface->h) <> lastwindowsize THEN
+  '(screensurface may be NULL after switching back to gfx_sdl, I'm not sure why!)
+  IF screensurface = NULL ORELSE framesize <> imagesz ORELSE XY(screensurface->w, screensurface->h) <> lastwindowsize THEN
     'debuginfo "gfx_sdl_present_internal: framesize changing from " & framesize & " to " & imagesz
     framesize = imagesz
     'A bitdepth of 0 indicates 'same as previous, otherwise default (native)'. Not sure if it's best to use
