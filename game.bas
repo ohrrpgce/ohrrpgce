@@ -3890,6 +3890,7 @@ SUB SetupMapSlices(byval to_max as integer)
  SliceTable.MapOverlay->Protect = YES
 
  'Note: the order of this slice in relation to the .MapLayer siblings will change each time a map is loaded
+ 'Note: refresh_walkabout_layer_sort will delete or recreate as needed HeroLayer & NPCLayer. Pretty redundant!
  SliceTable.Walkabout = NewSliceOfType(slContainer, SliceTable.MapRoot, SL_WALKABOUT_LAYER)
  SliceTable.Walkabout->Fill = YES
  SliceTable.Walkabout->Protect = YES

@@ -1801,26 +1801,30 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr, byval id as 
    WITHNODE spell_lists."list" as list
     DIM i as integer = GetInteger(list)
     SELECT CASE i
-     CASE 0 TO 3
+     CASE 0 TO UBOUND(hero.spell_lists, 1)
       hero.list_name(i) = list."name".string
       IF list."use_lmp".exists THEN hero.list_type(i) = 1
       IF list."random".exists THEN hero.list_type(i) = 2
       READNODE list."spells" as spells
        WITHNODE spells."spell" as spell
         DIM slot as integer = GetInteger(spell)
-        WITH hero.spell_lists(i, slot)
-         .attack = spell."attack".integer + 1
-         IF spell."itemlearn".exists THEN
-          .learned = 0
-         ELSE
-          .learned = spell."learnlev".integer + 1
-         END IF
-         'spell."tag"
-        END WITH
+        IF slot > UBOUND(hero.spell_lists, 2) THEN
+         debug "out-of-bounds spell slot " & slot
+        ELSE
+         WITH hero.spell_lists(i, slot)
+          .attack = spell."attack".integer + 1
+          IF spell."itemlearn".exists THEN
+           .learned = 0
+          ELSE
+           .learned = spell."learnlev".integer + 1
+          END IF
+          'spell."tag"
+         END WITH
+        END IF
        END WITHNODE
       END READNODE
      CASE ELSE
-      debug "unknown spell list " & i & " for hero " & hero.name
+      debug "out-of-bounds spell list " & i & " for hero " & hero.name
     END SELECT
    END WITHNODE
   END READNODE
@@ -1831,7 +1835,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr, byval id as 
      CASE 0 TO maxElements - 1
       hero.elementals(i) = CAST(single, element."damage".default(1.0).double)
      CASE ELSE
-      debug "unknown elemental " & i & " for hero " & hero.name
+      debug "out-of-bounds elemental " & i & " for hero " & hero.name
     END SELECT
    END WITHNODE
   END READNODE
@@ -1872,7 +1876,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr, byval id as 
       CASE 0 TO maxElements - 1
        hero.elem_counter_attack(i) = element."attack".integer + 1
       CASE ELSE
-       debug "unknown elemental " & i & " for hero " & hero.name & " counter attacks"
+       debug "out-of-bounds elemental " & i & " for hero " & hero.name & " counter attacks"
      END SELECT
     END WITHNODE
    END READNODE
@@ -1883,7 +1887,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr, byval id as 
       CASE 0 TO maxElements - 1
        hero.stat_counter_attack(i) = stat."attack".integer + 1
       CASE ELSE
-       debug "unknown stat " & i & " for hero " & hero.name & " counter attacks"
+       debug "out-of-bounds stat " & i & " for hero " & hero.name & " counter attacks"
      END SELECT
     END WITHNODE
    END READNODE
