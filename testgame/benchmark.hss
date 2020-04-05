@@ -101,6 +101,10 @@ plotscript, main, begin
 
   $1 = "recursive fibonacci"
   score += run benchmark (@benchmark: recursive fibonacci, 1) * 2
+  $1 = "fixedmul"
+  score += run benchmark (@benchmark: fixedmul, 1)
+  $1 = "string iter"
+  score += run benchmark (@benchmark: string iter, 1)
   $1 = "create and delete lotsa slices"
   score2 += run benchmark (@benchmark: create and delete lotsa slices, 1) * 2 / 3
   $1 = "eat soap mania"
@@ -724,6 +728,48 @@ end
 script, benchmark: recursive fibonacci, begin
   fibonacci (14)
 end
+
+#----
+
+# a and b are 16 bit fixed point numbers, where b >= 1.0
+# Return a*b
+script, FixedMul, a, b (
+  if (a >= 0) then (
+    return((a / 0x10000) * b + ((a, and, 0xffff) * b + 0x8000) / 0x10000 )
+  ) else (
+    #trace value( (a / 0x10000), (a / 0x10000) * b,  (a, and, 0xffff))
+    # Recall HS rounds to zero
+    # fixme: not sure the rounding here is correct
+    return((a / 0x10000) * b -- (((0 -- a), and, 0xffff) * b + 0x8000) / 0x10000 )
+  )
+)
+
+script, benchmark: fixedmul, begin
+  variable (i, j, total)
+  for (i, -100 000, 100 000, 8000) do (
+    for (j, -100 000, 100 000, 8000) do (
+      total += FixedMul(i, j)
+    )
+  )
+end
+
+#----
+
+script, benchmark: string iter, begin
+  variable (it, i, ch, words, hash)
+  for (it, 1, 8) do (
+    $5="The quick onyx goblin jumps over the lazy dwarf. Bright vixens jump, lazy fowl quack. Amazingly few discotheques provide jukeboxes."
+    words := 0
+    hash := 0
+    for (i, 1, string length(5)) do (
+      ch := ascii from string(5, i)
+      if (ch == 32) then (words += 1)
+      hash := hash * 31 + ch
+    )
+  )
+end
+
+#----
 
 script, benchmark: create and delete lotsa slices, begin
   variable (i, parent, sl)

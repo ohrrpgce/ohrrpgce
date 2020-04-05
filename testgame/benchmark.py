@@ -80,6 +80,33 @@ def benchmark_recursive_fibonacci():
     fibonacci (14)
 
 
+# a and b are 16 bit fixed point numbers, where b >= 1.0
+# Return a*b
+def FixedMul(a, b):
+    if a >= 0:
+        return (a / 0x10000) * b + ((a & 0xffff) * b + 0x8000) / 0x10000
+    else:
+        # fixme: not sure the rounding here is correct
+        return (a / 0x10000) * b - ((-a & 0xffff) * b + 0x8000) / 0x10000
+
+def benchmark_fixedmul():
+    total = 0
+    for i in range(-100000, 100000, 8000):
+        for j in range(-100000, 100000, 8000):
+            total += FixedMul(i, j)
+
+#----
+
+def benchmark_string_iter():
+    for i in range(8):
+        s = "The quick onyx goblin jumps over the lazy dwarf. Bright vixens jump, lazy fowl quack. Amazingly few discotheques provide jukeboxes."
+        words = 0
+        hsh = 0
+        for ch in s:
+            ch = ord(ch)
+            if ch == 32: words += 1
+            hsh = hsh * 31 + ch
+
 def crappy_sqrt(fi):
   approx = -1
   if fi >= 32581:
@@ -160,4 +187,6 @@ run_benchmark(benchmark_addition, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_call_script, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_call_multiarg_script, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_recursive_fibonacci, 1)
+run_benchmark(benchmark_fixedmul, 1)
+run_benchmark(benchmark_string_iter, 1)
 run_benchmark(benchmark_crappy_sqrt, 1)
