@@ -3850,6 +3850,11 @@ SUB SetupGameSlices ()
 
  'Not used yet either, actually 
  SliceTable.ScriptString = NewSliceOfType(slSpecial, SliceTable.Root, SL_STRING_LAYER)
+
+ SliceTable.Reserve = NewSliceOfType(slSpecial, SliceTable.Root, SL_RESERVE)
+ SliceTable.Reserve->Visible = NO
+ SliceTable.Reserve->Paused = YES
+ SliceTable.Reserve->EditorHideChildren = YES
 End Sub
 
 Sub DestroyGameSlices (dumpdebug as bool = NO)
@@ -3867,6 +3872,7 @@ Sub DestroyGameSlices (dumpdebug as bool = NO)
  SliceTable.TextBox = 0
  SliceTable.Menu = 0
  SliceTable.ScriptString = 0
+ SliceTable.Reserve = 0
 
  'Correct accounting of these globals is unnecessary! I guess
  'it's good for determinism though
@@ -4025,7 +4031,7 @@ SUB refresh_map_slice()
   '--if slices exist for the unused layers that this map doesn't have
   '--(which occurs when "recreate map slices" is off),
   '--we should make them display no tiles
-  IF Slicetable.MapLayer(i) <> 0 THEN
+  IF SliceTable.MapLayer(i) <> 0 THEN
    ChangeMapSlice SliceTable.MapLayer(i), NULL, NULL
    SliceTable.MapLayer(i)->Visible = NO
   END IF

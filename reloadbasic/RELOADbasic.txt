@@ -34,7 +34,7 @@ Nodespecs on a 'LoadArray' line can also contain an index, see the LoadArray sec
 .required       : Print an error message using error_func if the node doesn't exist, then exit
 				  the sub or function (with return value 0)
 .default(value) : A default value if the node does not exist (NOT a default value for 'Null' nodes).
-				  The default value is evaluated lazily (only if required) EXCEPT if it's a string!
+				  The default value is evaluated lazily (only if required).
 				  This also causes a line inside a ReadNode to always be processed, with the default
 				  value, even if the node is missing. See below.
 .ignore         : The resulting nodespec is a directive, not an expression. It may only appear
@@ -97,7 +97,7 @@ Example:
 If node."damage_cap" is missing, then gen(genDamageCap) is uninitialised, while gen(genLevelCap)
 defaults to 99. You can't add a line that looks like
   txt.id = node."textbox"."id"
-to this block, inside you would have to add
+to this block, instead you would have to add
   WITHNODE node."textbox" as tb
    txt.id = tb."id"
    gen(genTextboxBackdrop) = tb."backdrop"

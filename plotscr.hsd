@@ -2196,6 +2196,7 @@ define constant, begin
 -100005, sl:script layer
 -100006, sl:textbox layer
 -100007, sl:string layer
+-100021, sl:reserve
 -100008, sl:maproot
 -100009, sl:obsolete overhead
 -100020, sl:map overlay

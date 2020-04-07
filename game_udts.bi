@@ -21,6 +21,7 @@ TYPE SliceTableType
   textbox as Slice Ptr
   menu as Slice Ptr
   scriptstring as Slice Ptr
+  reserve as Slice Ptr
 END TYPE
 
 TYPE MapModeState

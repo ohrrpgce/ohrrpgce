@@ -373,6 +373,7 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE SL_SCRIPT_LAYER: RETURN "script_layer"
   CASE SL_TEXTBOX_LAYER: RETURN "textbox_layer"
   CASE SL_STRING_LAYER: RETURN "string_layer"
+  CASE SL_RESERVE: RETURN "reserve"
   CASE SL_MAPROOT: RETURN "maproot"
   CASE SL_OBSOLETE_OVERHEAD: RETURN "obsolete_overhead"
   CASE SL_MAP_OVERLAY: RETURN "map_overlay"

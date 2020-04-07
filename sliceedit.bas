@@ -2214,6 +2214,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
   append_simplemenu_item menu, "script_layer", , , -100005
   append_simplemenu_item menu, "textbox_layer", , , -100006
   append_simplemenu_item menu, "string_layer", , , -100007
+  append_simplemenu_item menu, "reserve", , , -100021
   append_simplemenu_item menu, "maproot", , , -100008
   append_simplemenu_item menu, "obsolete_overhead", , , -100009
   append_simplemenu_item menu, "map_overlay", , , -100020
