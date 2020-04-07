@@ -55,6 +55,7 @@ April ? 2020 [Gorgonzola]
     * When heroes are swapped between active party slots their slices are
       now swapped too, instead of just the sprites changing [Ralph]
     * "create sprite" always returned 0 [Bena, Ralph]
+    * --scriptlog commandline arg didn't work
 
   *** Stuff Only Developers Will Notice
     * All .py build scripts and utilities will run under Python 3 as well as

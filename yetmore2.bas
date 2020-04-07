@@ -1055,6 +1055,7 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
   RETURN 1 'arg not used
  ELSEIF opt = "scriptlog" THEN
   gam.script_log.enabled = YES
+  RETURN 1
  ELSEIF opt = "debugkeys" THEN
   'Undocumented
   debuginfo "--debugkeys used"
