@@ -1653,7 +1653,7 @@ script, load sprite, hsd:type, hsd:number, hsd:pal = -1, begin
 end
 
 script, create sprite, hsd:type, hsd:number, hsd:pal = -1, begin
-  load sprite(hsd:type, hsd:number, hsd:pal)
+  return(load sprite(hsd:type, hsd:number, hsd:pal))
 end
 
 script, replace sprite, hsd:sl, hsd:type, hsd:number, hsd:pal = -1, begin
