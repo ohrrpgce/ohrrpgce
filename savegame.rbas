@@ -591,7 +591,7 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
      WITH gam.hero(i)
 
       IF slot."id".exists THEN
-       addhero slot."id", i, slot."lev", NO
+       addhero slot."id", i, slot."lev", NO, YES  'allow_rename=NO, loading=YES
       END IF
 
       'Other data must be loaded even if the hero slot is empty, for compatibility

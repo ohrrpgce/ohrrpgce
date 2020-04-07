@@ -8,5 +8,23 @@ The load-game plotscript is run whenever the player loads from a save-slot.
 
 The menu-action plotscript is run whenever the player presses the ESC or ALT buttons to open the menu. The script will be run instead of the menu. This can be useful if you want to script your own customized menu, or if you want to disable the menu entirely. If this is not specified, then menu 0 will be opened.
 
+The add-hero plotscript is run after each hero is added to the party, including the initial hero when starting a new game (the script will run before the new-game and map autorun scripts).
+It's also run for each hero in the party when a game is loaded, so that you can do any hero set-up you want here (eg. creating slices).
+It takes up to three arguments:
+-party slot
+-hero ID
+-loading: true if being run while a game is loading, false for 'real' additions.
+You might want to put
+ if (loading) then (exit script)
+at the top of your script.
+
+The remove-hero plotscript is run after a hero is deleted from the party. They are already gone. It takes up to two arguments:
+-party slot: that the hero was in
+-hero ID
+
+The swap-hero plotscript is run after every time a hero is moved to a different party slot. If two heroes are swapped then it's run twice: for each hero. It takes up to two arguments:
+-slot: the new party slot of the hero
+-previous slot: where they came from
+
 The map default scripts are run only if a map has "[default]" selected for a script trigger. If you want the default script to run along with a script set in the map's settings, then you need to explicitly call the default script from that other script.
 See the help page for the General Map Data menu for descriptions of the triggers.

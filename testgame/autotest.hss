@@ -47,6 +47,8 @@ global variable(118, called resetgame)
 global variable(119, hook loadgame)
 global variable(120, timer checkpoint interval)
 global variable(121, saveglobal)
+global variable(122, observed hero count)
+global variable(123, move hero count)
 global variable(50000, the global with the biggest id)
 
 # 200-500 used in hstests.hss
@@ -483,6 +485,36 @@ end
 #hero total elemental resist as int (who, element)
 #set hero base elemental resist (who, element, percent)
 
+plotscript, add hero hook, slot, who, begin
+  assert(hero by slot(slot) == who)
+  observed hero count += 1
+end
+
+plotscript, remove hero hook, slot, who, begin
+  assert(hero by slot(slot) == -1)
+  observed hero count -= 1
+end
+
+plotscript, move hero hook, slot, old slot, loading, begin
+  # This script only does something on three specific calls, see below,
+  if (testing script triggers) then (
+    move hero count += 1
+    assert(loading == false)
+  )
+  if (testing script triggers == 1) then (
+    # Swapping slots 2 and 3, both occupied
+    assert(slot == 2 || slot == 3)
+    assert(slot + old slot == 5)
+  )
+  if (testing script triggers == 2) then (
+    # Swapping hero into an empty slot
+    assert(slot == 20)
+    assert(old slot >= 4)
+    assert(hero by slot(slot) == hero:Kitt)
+    assert(hero by slot(old slot) == -1)
+  )
+end
+
 script, hero party management tests, begin
   $0="hero party management tests"
   # Preconditions
@@ -493,10 +525,12 @@ script, hero party management tests, begin
   h0speed := get hero speed(0)
   h0d := hero direction(0)
 
+  assert(observed hero count == 1)
   add hero(hero:Helga)
   add hero(hero:Olaf)
   add hero(hero:Frumpy)
   assert(room in active party == 0)
+  assert(observed hero count == 4)
   assert(hero by rank(0) == hero:Freki)
   assert(hero by rank(1) == hero:Helga)
   assert(hero by rank(2) == hero:Olaf)
@@ -508,6 +542,7 @@ script, hero party management tests, begin
   assert(hero by rank(3) == hero by slot(3))
   # now delete the leader
   delete hero(hero:Freki)
+  assert(observed hero count == 3)
   assert(room in active party == 1)
   assert(hero by rank(0) == 1)
   assert(hero by rank(1) == 2)
@@ -596,6 +631,19 @@ script, hero party management tests, begin
   assert(hero by slot(2) == hero:Olaf)
   swap by position(3, find hero(hero:Frumpy))
   assert(hero by slot(3) == hero:Frumpy)
+
+  # Test "move hero hook"
+  testing script triggers := 1  # Tell the hook script to pay attention
+  assert(move hero count == 0)
+  # Swapping two occupied slots
+  swap by position (2, 3)
+  assert(move hero count == 2)
+  testing script triggers := 2
+  # Swap occupied and empty
+  swap by position(find hero(hero:Kitt), 20)
+  assert(move hero count == 3)
+  testing script triggers := false
+  swap by position (2, 3)
 end
 
 script, hero appearance tests, begin

@@ -94,8 +94,8 @@ CONST genMaxFormation = 37      'max formation number in .FOR
 CONST genMaxPal = 38            'max palette number in .PAL
 CONST genMaxTextbox = 39        'max text box number in .SAY
 CONST genNumPlotscripts = 40    'number of scripts of any kind (number of records in PLOTSCR.LST)
-CONST genNewGameScript = 41     'id of new-game plotscript
-CONST genGameoverScript = 42    'id of game-over plotscript
+CONST genNewGameScript = 41     'new-game script trigger
+CONST genGameoverScript = 42    'game-over script trigger
 CONST genMaxRegularScript = 43  'id of highest numbered non-autonumbered plotscript
 CONST genSuspendBits = 44       'suspend stuff bits (suspend* constants)
 CONST genCameraMode = 45        'camera mode: see the (*cam constants, e.g. herocam)
@@ -173,7 +173,7 @@ CONST genBattleMode = 192       'Battle mode 0=Active-time, 1=Turn-based
 CONST genItemStackSize = 193    'Default item stack size
 CONST genResolutionX = 194      'Screen resolution (unzoomed). (Upgrade code changes 0 to default 320)
 CONST genResolutionY = 195      ' " (default 200)
-CONST genEscMenuScript = 196     'id of plotscript called instead of the default menu
+CONST genEscMenuScript = 196    'plotscript called instead of the default menu, or 0
 CONST genSaveSlotCount = 197    'The number of available save slots, 1 to maxSaveSlotCount. If 0, the default of 4 will be used
 CONST genMillisecPerFrame = 198 'Milliseconds per frame; upgrade() ensures not 0.
 CONST genStealSuccessSFX = 199  'Sound effect numbers for steal attacks in addition to normal sfx (+1)
@@ -204,6 +204,9 @@ CONST genDefCounterProvoke = 226 ' CounterProkeEnum value for provokeDefault att
 CONST genInventSlotx1Display = 227 ' When to display x1 in inventory: 0: always, 1: never, 2: only if stacksize>1
 CONST genCameraOnWalkaboutFocus = 228 ' How to calculate walkabout camera focus: 0: on tile, 1: on sprite, 2: on sprite minus Z/offset
 CONST genTicksPerWalkFrame = 229 ' Number of ticks per walking frame. 0 = default (110ms/frame)
+CONST genAddHeroScript = 230     ' Script trigger called when hero added
+CONST genRemoveHeroScript = 231  ' Script trigger called when hero deleted/removed
+CONST genMoveHeroScript = 232    ' Script trigger called when hero moved to a different slot
 
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.

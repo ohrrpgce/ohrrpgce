@@ -38,7 +38,7 @@ DECLARE SUB hero_swap_menu_mouse_control (st as OrderTeamState)
 
 
 'who is the hero id
-SUB addhero (who as integer, slot as integer, forcelevel as integer = -1, allow_rename as bool = YES)
+SUB addhero (who as integer, slot as integer, forcelevel as integer = -1, allow_rename as bool = YES, loading as bool = NO)
 DIM her as HeroDef
 
 IF who > gen(genMaxHero) THEN
@@ -143,14 +143,30 @@ END IF
 
 '--update hero auto-set tags and herow
 party_change_updates
+
+IF gen(genAddHeroScript) > 0 THEN
+ 'Prioritise to ensure it runs before the newgame script
+ trigger_script gen(genAddHeroScript), 3, NO, "add hero", context_string, mainFibreGroup, 100
+ trigger_script_arg 0, slot, "slot"
+ trigger_script_arg 1, who, "hero ID"
+ trigger_script_arg 2, IIF(loading, 1, 0), "loading"
+END IF
+
 END SUB
 
-'call_forceparty=NO only when resetting/quitting the game.
+'resetting_game=NO only when cleaning up while resetting/quitting.
 'In that case, the caller should wipe Slice ptrs in herow()!
-SUB deletehero(slot as integer, call_forceparty as bool = YES)
+SUB deletehero(slot as integer, resetting_game as bool = NO)
+ IF resetting_game = NO ANDALSO gen(genRemoveHeroScript) > 0 THEN
+  trigger_script gen(genRemoveHeroScript), 2, NO, "delete hero", context_string, mainFibreGroup, 100
+  trigger_script_arg 0, slot, "slot"
+  trigger_script_arg 1, gam.hero(slot).id, "hero ID"
+ END IF
+
  gam.hero(slot).id = -1
+ gam.hero(slot).name &= "(deleted)"
  DeleteSlice @gam.hero(slot).sl
- IF call_forceparty THEN
+ IF resetting_game = NO THEN
   IF active_party_size() = 0 THEN forceparty
   party_change_updates
  END IF
@@ -299,8 +315,10 @@ LOCAL SUB update_HeroSliceContext(byval party_slot as integer)
  END WITH
 END SUB
 
-'Swap two party slots
+'Swap two party slots, occupied or not. There's no significance to the order of the args.
 SUB doswap (byval s as integer, byval d as integer)
+ IF s = d THEN EXIT SUB
+
  '---hero state and stats
  SWAP gam.hero(s), gam.hero(d)
 
@@ -310,6 +328,18 @@ SUB doswap (byval s as integer, byval d as integer)
 
  '--set tags, reload hero pictures and palettes, update herow(), etc
  party_change_updates
+
+ '--Trigger scripts
+ IF gen(genMoveHeroScript) > 0 THEN
+  FOR i as integer = 0 TO 1
+   IF gam.hero(s).id >= 0 THEN
+    trigger_script gen(genMoveHeroScript), 2, NO, "move hero", context_string, mainFibreGroup, 100
+    trigger_script_arg 0, s, "slot"
+    trigger_script_arg 1, d, "previous slot"
+   END IF
+   SWAP s, d
+  NEXT i
+ END IF
 END SUB
 
 SUB update_textbox ()
@@ -1325,7 +1355,7 @@ flusharray tag()
 flusharray onetime()
 FOR i as integer = 0 TO 40
  'TODO: use HeroState.Constructor instead
- deletehero i, NO   'Don't forceparty
+ deletehero i, YES   'Don't forceparty or run triggers
  gam.hero(i).locked = NO
  FOR j as integer = 0 TO statLast
   gam.hero(i).stat.cur.sta(j) = 0

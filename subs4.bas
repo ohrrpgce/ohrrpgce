@@ -234,30 +234,33 @@ SaveVehicle game + ".veh", veh(), vehname, vehicle_id
 END SUB
 
 SUB generalscriptsmenu ()
- CONST menusize = 13
+ CONST menusize = 16
  DIM menu(menusize) as string
  DIM menu_display(menusize) as string
  DIM selectable(menusize) as bool
  flusharray selectable(), , YES
  DIM scripttype(menusize) as string
  selectable(1) = NO
- selectable(2) = NO
- 'Global script triggers:
+ selectable(2) = NO  'Global script triggers:
  scripttype(3) = "New game"
  scripttype(4) = "Game over"
  scripttype(5) = "Load game"
  scripttype(6) = "Menu action"
- selectable(7) = NO
- selectable(8) = NO
- 'Map default scripts:
- scripttype(9) = "Map autorun"
- scripttype(10) = "After battle"
- scripttype(11) = "Instead of battle"
- scripttype(12) = "Each-step"
- scripttype(13) = "On-keypress"
+ scripttype(7) = "Add hero"
+ scripttype(8) = "Remove hero"
+ scripttype(9) = "Swap hero"
+
+ selectable(10) = NO
+ selectable(11) = NO  'Map default scripts:
+ scripttype(12) = "Map autorun"
+ scripttype(13) = "After battle"
+ scripttype(14) = "Instead of battle"
+ scripttype(15) = "Each-step"
+ scripttype(16) = "On-keypress"
 
  DIM scriptgenoff(menusize) as integer = { _
      0, 0, 0, genNewGameScript, genGameoverScript, genLoadGameScript, genEscMenuScript, _
+     genAddHeroScript, genRemoveHeroScript, genMoveHeroScript, _
      0, 0, genDefMapAutorunScript, genDefAfterBattleScript, genDefInsteadOfBattleScript, _
      genDefEachStepScript, genDefOnKeypressScript _
  }
@@ -288,7 +291,7 @@ SUB generalscriptsmenu ()
 
   menu(0) = "Previous Menu"
   menu(2) = fgtag(uilook(eduiHeading)) + " Global script triggers"
-  menu(8) = fgtag(uilook(eduiHeading)) + " Map default scripts"
+  menu(11) = fgtag(uilook(eduiHeading)) + " Map default scripts"
   FOR i as integer = 1 TO menusize
    IF scriptgenoff(i) THEN
     menu(i) = scripttype(i) + ": " + scriptname(gen(scriptgenoff(i)))

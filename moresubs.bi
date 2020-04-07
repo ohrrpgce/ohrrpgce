@@ -3,8 +3,8 @@
 
 #include "gfx.bi"
 
-DECLARE SUB addhero (who as integer, slot as integer, forcelevel as integer = -1, allow_rename as bool = YES)
-DECLARE SUB deletehero (slot as integer, call_forceparty as bool = YES)
+DECLARE SUB addhero (who as integer, slot as integer, forcelevel as integer = -1, allow_rename as bool = YES, loading as bool = NO)
+DECLARE SUB deletehero (slot as integer, resetting_game as bool = NO)
 DECLARE SUB doswap (byval s as integer, byval d as integer)
 DECLARE SUB party_change_updates ()
 DECLARE SUB evalherotags ()
