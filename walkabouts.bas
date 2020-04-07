@@ -21,10 +21,6 @@
 #include "moresubs.bi"
 #include "walkabouts.bi"
 
-'local subs and functions
-' DECLARE FUNCTION should_hide_hero_caterpillar() as integer
-' DECLARE FUNCTION should_show_normal_caterpillar() as integer
-
 DECLARE FUNCTION user_triggered_vehicle_use_action() as bool
 
 
@@ -232,7 +228,7 @@ END SUB
 '==========================================================================================
 
 
-LOCAL FUNCTION should_hide_hero_caterpillar() as integer
+LOCAL FUNCTION should_hide_hero_caterpillar() as bool
  RETURN vstate.active = YES _
    ANDALSO vstate.mounting = NO _
    ANDALSO vstate.trigger_cleanup = NO _
@@ -241,51 +237,39 @@ LOCAL FUNCTION should_hide_hero_caterpillar() as integer
    ANDALSO vstate.dat.do_not_hide_party = NO
 END FUNCTION
 
-LOCAL FUNCTION should_show_normal_caterpillar() as integer
+LOCAL FUNCTION should_show_normal_caterpillar() as bool
  '"Enable Caterpillar Party"
  RETURN prefbit(1) ANDALSO (vstate.active = NO ORELSE vstate.dat.do_not_hide_leader = NO)
 END FUNCTION
 
 LOCAL SUB update_walkabout_hero_slices()
+ DIM lastrank as integer = active_party_size - 1
+ DIM should_hide as bool = should_hide_hero_caterpillar()
 
- DIM should_hide as integer = should_hide_hero_caterpillar()
- FOR i as integer = 0 TO UBOUND(herow)
-  set_walkabout_vis herow(i).sl, NOT should_hide
- NEXT i
-
+ DIM rank as integer, lastvisrank as integer
  IF should_show_normal_caterpillar() THEN
-  FOR i as integer = 0 TO UBOUND(herow)
-   update_walkabout_pos herow(i).sl, herox(i), heroy(i), heroz(i)
-  NEXT i
-
-  DIM cat_slot as integer = 0
-  FOR party_slot as integer = 0 TO 3
-   IF gam.hero(party_slot).id >= 0 THEN
-    set_walkabout_frame herow(cat_slot).sl, herodir(cat_slot), wtog_to_frame(herow(cat_slot).wtog)
-    cat_slot += 1
-   END IF
-  NEXT party_slot
-  FOR i as integer = cat_slot TO UBOUND(herow)
-   set_walkabout_vis herow(i).sl, NO
-  NEXT i
-
+  lastvisrank = lastrank
  ELSE
   '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
-  update_walkabout_pos herow(0).sl, herox(0), heroy(0), heroz(0)
-  set_walkabout_frame herow(0).sl, herodir(0), wtog_to_frame(herow(0).wtog)
-  FOR i as integer = 1 TO UBOUND(herow)
-   set_walkabout_vis herow(i).sl, NO
-  NEXT i
+  lastvisrank = 0
  END IF
+ FOR rank = 0 TO lastvisrank
+  update_walkabout_pos herow(rank).sl, herox(rank), heroy(rank), heroz(rank)
+  set_walkabout_frame herow(rank).sl, herodir(rank), wtog_to_frame(herow(rank).wtog)
+  set_walkabout_vis herow(rank).sl, NOT should_hide
+ NEXT rank
+ FOR rank = lastvisrank + 1 TO UBOUND(herow)
+  set_walkabout_vis herow(rank).sl, NO
+ NEXT rank
 
  '--Move the heroes to the end of their walkabout layer sibling list.
  '--This forces tie-breaking of heroes and NPCs with equal Y coord so that the
  '--leader is on top, then 2nd hero, etc, then NPCs if they're on the same layer.
- FOR cat_rank as integer = 3 TO 0 STEP -1
-  IF herow(cat_rank).sl <> 0 THEN
-   SetSliceParent herow(cat_rank).sl, SliceGetParent(herow(cat_rank).sl)
-  END IF
- NEXT cat_rank
+ FOR rank = UBOUND(herow) TO 0 STEP -1
+  WITH herow(rank)
+   IF .sl THEN SetSliceParent .sl, .sl->Parent
+  END WITH
+ NEXT rank
 END SUB
 
 LOCAL SUB update_walkabout_npc_slices()
