@@ -312,6 +312,7 @@ END FUNCTION
 FUNCTION party_slot_to_rank (byval slot as integer) as integer
  'Returns the rank of the hero in a party slot (not just caterpillar party), or -1 if invalid
  IF slot < -1 OR slot > UBOUND(gam.hero) THEN RETURN -1
+ FAIL_IF(gam.hero(slot).id < 0, "empty slot", -1)
  DIM heronum as integer = 0
  FOR party_slot as integer = 0 TO slot - 1
   IF gam.hero(party_slot).id >= 0 THEN heronum += 1
@@ -4045,10 +4046,8 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 67'--delete hero (hero ID)
   IF party_size() > 1 AND retvals(0) >= 0 THEN
-   DIM i as integer = findhero(retvals(0), , serrWarn)
-   IF i > -1 THEN gam.hero(i).id = -1
-   IF active_party_size() = 0 THEN forceparty
-   party_change_updates
+   DIM slot as integer = findhero(retvals(0), , serrWarn)
+   IF slot > -1 THEN deletehero slot
   END IF
  CASE 68'--swap out hero
   DIM i as integer = findhero(retvals(0), , serrWarn)
