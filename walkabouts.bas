@@ -320,12 +320,12 @@ END SUB
 
 'Reload party walkabout graphics
 SUB vishero ()
- DIM cater_slot as integer = 0
- FOR party_slot as integer = 0 TO 3
-  IF gam.hero(party_slot).id >= 0 THEN
-   set_walkabout_sprite herow(cater_slot).sl, gam.hero(party_slot).pic, gam.hero(party_slot).pal
-   cater_slot += 1
-  END IF
+ FOR slot as integer = 0 TO active_party_slots - 1
+  WITH gam.hero(slot)
+   IF .id >= 0 THEN
+    set_walkabout_sprite .sl, .pic, .pal
+   END IF
+  END WITH
  NEXT
 END SUB
 

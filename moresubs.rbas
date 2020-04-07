@@ -767,15 +767,13 @@ SUB hero_swap_menu_display (st as OrderTeamState)
  DIM centerx as integer = vpages(st.page)->w \ 2
  DIM centery as integer = vpages(st.page)->h \ 2
  centerbox centerx, centery - 34, 130, 38, 1, st.page
- DIM cater_slot as integer = 0
- FOR i as integer = 0 TO 3
+ FOR i as integer = 0 TO active_party_slots - 1
   DIM as integer xpos = centerx - 55 + (30 * i), ypos = centery - 40
   IF i = st.swapme OR gam.hero(i).id >= 0 THEN rectangle xpos, ypos, 20, 20, boxlook(0).bgcol, st.page
   IF gam.hero(i).id >= 0 THEN
-   set_walkabout_frame herow(cater_slot).sl, dirDown, 0
+   set_walkabout_frame gam.hero(i).sl, dirDown, 0
    IF i = st.swapme THEN ypos -= 6
-   DrawSliceAt LookupSliceSafe(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), xpos, ypos, 20, 20, st.page, YES
-   cater_slot += 1
+   DrawSliceAt LookupSliceSafe(SL_WALKABOUT_SPRITE_COMPONENT, gam.hero(i).sl), xpos, ypos, 20, 20, st.page, YES
   END IF
  NEXT i
  IF st.reserve.pt < 0 THEN edgeprint CHR(24), centerx - 49 + 30 * st.party.pt, centery - 48, uilook(uiSelectedItem + st.party.tog), st.page
@@ -1210,14 +1208,12 @@ DO
  END IF
 
  centerbox 160, 100, 140, 52, 1, page
- DIM cater_slot as integer = 0
- FOR party_slot as integer = 0 TO 3
+ FOR party_slot as integer = 0 TO active_party_slots - 1
   IF gam.hero(party_slot).id >= 0 THEN
    DIM walkframe as integer
    IF who = party_slot THEN walkframe = wtog_to_frame(wtog) ELSE walkframe = 0
-   set_walkabout_frame herow(cater_slot).sl, dirDown, walkframe
-   DrawSliceAt LookupSliceSafe(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 100 + party_slot * 30, 100, 20, 20, page, YES
-   cater_slot += 1
+   set_walkabout_frame gam.hero(party_slot).sl, dirDown, walkframe
+   DrawSliceAt LookupSliceSafe(SL_WALKABOUT_SPRITE_COMPONENT, gam.hero(party_slot).sl), 100 + party_slot * 30, 100, 20, 20, page, YES
   END IF
  NEXT
  edgeprint CHR(25), 106 + who * 30, 90, uilook(uiSelectedItem + tog), page

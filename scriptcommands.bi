@@ -13,7 +13,7 @@ DECLARE FUNCTION embed_text_codes (text_in as string, byval saveslot as integer=
 DECLARE FUNCTION standard_embed_codes(act as string, byval arg as integer) as string
 DECLARE FUNCTION saveslot_embed_codes(byval saveslot as integer, act as string, byval arg as integer) as string
 
-DECLARE FUNCTION herobyrank (byval slot as integer) as integer
+DECLARE FUNCTION herobyrank (byval rank as integer) as integer
 DECLARE FUNCTION rank_to_party_slot (byval rank as integer) as integer
 DECLARE FUNCTION party_slot_to_rank (byval slot as integer) as integer
 DECLARE FUNCTION rankincaterpillar (byval heroid as integer) as integer

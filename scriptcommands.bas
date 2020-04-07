@@ -1436,10 +1436,10 @@ SUB script_functions(byval cmdid as integer)
   scriptret = rankincaterpillar(retvals(0))
  CASE 38'--camera follows hero
   gen(genCameraMode) = herocam
-  gen(genCameraArg1) = bound(retvals(0), 0, 3)
+  gen(genCameraArg1) = bound(retvals(0), 0, active_party_slots - 1)
  CASE 40'--pan camera
   gen(genCameraMode) = pancam
-  gen(genCameraArg1) = small(large(retvals(0), 0), 3)
+  gen(genCameraArg1) = bound(retvals(0), 0, active_party_slots - 1)
   gen(genCameraArg2) = large(retvals(1), 0) * (20 / large(retvals(2), 1))
   gen(genCameraArg3) = large(retvals(2), 1)
  CASE 41'--focus camera
