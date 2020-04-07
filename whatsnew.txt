@@ -11,6 +11,8 @@ April ? 2020 [Gorgonzola]
       target classes [Ralph]
     * Title Screen Text; a quick and easy way to put a line of text like
       a version number at the bottom of the title screen [James]
+    * "Reset UI Colors/Box Styles to defaults" options in the Master Palettes
+      menu, and F4 rescue key [Ralph]
 
    * New Plotscripting Features
     * ""any key", etc, includes mouse" option in Mouse Controls menu [Ralph]
@@ -21,6 +23,7 @@ April ? 2020 [Gorgonzola]
   *** Changes
     * Renamed "Enemy" target class to "Foe (not dead)", and "Ally" to
       "Ally (not dead)"
+    * Empty active party slots no longer have hidden dummy hero slices
 
   *** Bugfixes
     * Linux builds should now hopefully work on all Linux systems since 2011
@@ -44,6 +47,8 @@ April ? 2020 [Gorgonzola]
     * "any key" was pressed when numlock/scrolllock/capslock were on [Ralph]
     * State of numlock and capslock keys was wrong in various cases [Ralph]
     * Crash when switching between gfx backends (switching to gfx_sdl) [Ralph]
+    * When heroes are swapped between active party slots their slices are
+      now swapped too, instead of just the sprites changing [Ralph]
 
   *** Stuff Only Developers Will Notice
     * All .py build scripts and utilities will run under Python 3 as well as

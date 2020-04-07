@@ -3335,7 +3335,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 519 '--get hero slice
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
-   scriptret = find_plotslice_handle(herow(retvals(0)).sl)
+   scriptret = find_plotslice_handle(herow(retvals(0)).sl)  'May be NULL
   END IF
  CASE 520 '--get NPC slice
   npcref = get_valid_npc(retvals(0))
@@ -4108,6 +4108,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 89'--swap by position
   doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40)
+  'FIXME: missing forceparty call! (bug #1111)
  CASE 110'--set hero picture
   IF valid_hero_party(retvals(0)) THEN
    DIM heronum as integer = bound(retvals(0), 0, 40)
@@ -4614,7 +4615,9 @@ SUB script_functions(byval cmdid as integer)
   IF valid_plotslice(retvals(0)) THEN
    DIM sl as Slice ptr = plotslices(retvals(0))
    scriptret = -1
-   IF *sl->Context IS HeroSliceContext THEN scriptret = CAST(HeroSliceContext ptr, sl->Context)->rank
+   IF *sl->Context IS HeroSliceContext THEN
+    scriptret = party_slot_to_rank(CAST(HeroSliceContext ptr, sl->Context)->slot)
+   END IF
   END IF
  CASE 658 '--slice type
   IF valid_plotslice(retvals(0)) THEN

@@ -50,14 +50,15 @@ LOCAL FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
  RETURN sl
 END FUNCTION
 
-FUNCTION create_hero_slices(byval rank as integer) as Slice Ptr
+FUNCTION create_hero_slices(byval party_slot as integer) as Slice Ptr
  DIM sl as Slice ptr
  sl = create_walkabout_slices(hero_layer())
  DIM meta as HeroSliceContext ptr = NEW HeroSliceContext
- meta->rank = rank
+ meta->slot = party_slot
  sl->Context = meta
- 'Do not set the sprite, because that depends on the party slot, and that
- 'hero may not exist! We always create 4 hero walkabout slices.
+ WITH gam.hero(party_slot)
+  set_walkabout_sprite sl, .pic, .pal
+ END WITH
  RETURN sl
 END FUNCTION
 
@@ -74,9 +75,8 @@ FUNCTION create_npc_slices(byval npcidx as NPCIndex) as Slice Ptr
 END FUNCTION
 
 FUNCTION HeroSliceContext.description() as string
- DIM slot as integer = rank_to_party_slot(rank)
- IF slot = -1 THEN RETURN "Hero rank " & rank & " (doesn't exist)"  'FIXME: why do we create unused hero slices???
- RETURN "Hero rank " & rank & ": ID " & gam.hero(slot).id & " " & gam.hero(slot).name
+ DIM rank as integer = party_slot_to_rank(slot)
+ RETURN "Hero rank " & rank & "/slot " & slot &": ID " & gam.hero(slot).id & " " & gam.hero(slot).name
 END FUNCTION
 
 FUNCTION NPCSliceContext.description() as string
@@ -258,7 +258,7 @@ LOCAL SUB update_walkabout_hero_slices()
   set_walkabout_frame herow(rank).sl, herodir(rank), wtog_to_frame(herow(rank).wtog)
   set_walkabout_vis herow(rank).sl, NOT should_hide
  NEXT rank
- FOR rank = lastvisrank + 1 TO UBOUND(herow)
+ FOR rank = lastvisrank + 1 TO lastrank
   set_walkabout_vis herow(rank).sl, NO
  NEXT rank
 
@@ -308,7 +308,11 @@ LOCAL SUB update_walkabout_npc_slices()
  NEXT i
 END SUB
 
-'Does not create or delete NPC/hero slices (vishero/visnpc), but only updates their graphical state.
+'Update state of NPC and hero slices: position, sprite frame, vis, sort order, shadow
+'(except heroes, they don't have shadows).
+'Does not create or delete NPC/hero slices (done by visnpc and party_change_updates)
+'or update walkabout sprite/palette (done by vishero and reset_npc_graphics --
+'called when loading map NPC data)
 SUB update_walkabout_slices()
  update_walkabout_hero_slices()
  update_walkabout_npc_slices()
@@ -405,13 +409,13 @@ END FUNCTION
 
 SUB reparent_hero_slices()
  FOR i as integer = 0 TO UBOUND(herow)
-  SetSliceParent herow(i).sl, hero_layer()
+  IF herow(i).sl THEN SetSliceParent herow(i).sl, hero_layer()
  NEXT i
 END SUB
 
 SUB orphan_hero_slices()
  FOR i as integer = 0 TO UBOUND(herow)
-  OrphanSlice herow(i).sl
+  IF herow(i).sl THEN OrphanSlice herow(i).sl
  NEXT i
 END SUB
 

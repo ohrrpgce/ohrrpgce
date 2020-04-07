@@ -17,6 +17,7 @@
 #include "savegame.bi"
 
 #include "game.bi"
+#include "game_udts.bi"
 #include "walkabouts.bi"
 #include "scriptcommands.bi"
 #include "yetmore2.bi"
@@ -127,6 +128,11 @@ WITH gam.hero(slot)
  .hand_pos_overridden = NO
  .portrait_pic = her.portrait
  .portrait_pal = her.portrait_pal
+
+ IF slot < active_party_slots THEN
+  'Currently only active heroes get slices
+  .sl = create_hero_slices(slot)
+ END IF
 END WITH
 
 '--name
@@ -139,11 +145,12 @@ IF readbit(her.bits(), 0, 24) THEN
  renamehero slot, NO
 END IF
 
-'--update tags
+'--update hero auto-set tags and herow
 party_change_updates
 END SUB
 
 'call_forceparty=NO only when resetting/quitting the game.
+'In that case, the caller should wipe Slice ptrs in herow()!
 SUB deletehero(slot as integer, call_forceparty as bool = YES)
  gam.hero(slot).id = -1
  DeleteSlice @gam.hero(slot).sl
@@ -287,12 +294,25 @@ SUB delitem (byval item_id as integer, byval amount as integer=1)
  NEXT o
 END SUB
 
+'This only needs to be called from doswap
+LOCAL SUB update_HeroSliceContext(byval party_slot as integer)
+ WITH gam.hero(party_slot)
+  IF .sl ANDALSO *.sl->Context IS HeroSliceContext THEN
+   CAST(HeroSliceContext ptr, .sl->Context)->slot = party_slot
+  END IF
+ END WITH
+END SUB
+
 'Swap two party slots
 SUB doswap (byval s as integer, byval d as integer)
  '---hero state and stats
  SWAP gam.hero(s), gam.hero(d)
 
- '--set tags, reload hero pictures and palettes, etc
+ '--The hero slice tells which slot the hero is in, needs updating
+ update_HeroSliceContext s
+ update_HeroSliceContext d
+
+ '--set tags, reload hero pictures and palettes, update herow(), etc
  party_change_updates
 END SUB
 
@@ -440,8 +460,38 @@ SUB evalherotags ()
  NEXT i
 END SUB
 
+'Copy data from party list (gam.hero()) to caterpillar (herow())
+LOCAL SUB update_herow_on_party_change()
+ 'Only heroes in the active party have slices. Since heroes might
+ 'have been swapped in/out of the party we need to check all heroes
+ DIM as integer rank, slot
+ FOR slot = 0 TO UBOUND(gam.hero)
+  WITH gam.hero(slot)
+   IF slot < active_party_slots THEN
+    IF .id >= 0 ANDALSO .sl = NULL THEN .sl = create_hero_slices(slot)
+   ELSE
+    DeleteSlice @.sl
+   END IF
+  END WITH
+ NEXT
+
+ FOR rank = 0 TO UBOUND(herow)
+  herow(rank).sl = NULL
+  herow(rank).party_slot = -1
+ NEXT
+ rank = 0
+ FOR slot = 0 TO active_party_slots - 1
+  IF gam.hero(slot).id >= 0 THEN
+   herow(rank).sl = gam.hero(slot).sl
+   herow(rank).party_slot = slot
+   rank += 1
+  END IF
+ NEXT
+END SUB
+
 'Call this after a change to the party
 SUB party_change_updates
+ update_herow_on_party_change
  evalherotags
  evalitemtags  'Because of items with 'actively equipped' tags
  vishero
@@ -1422,12 +1472,6 @@ SUB reset_game_state ()
  'Resize these after we have loaded gen()
  REDIM gam.stock(gen(genMaxShop), 49)
  REDIM gam.original_stock(gen(genMaxShop), 49)
-
- 'If we are resetting, the old slices will have already been destroyed
- 'by cleanup_game_slices() so we just re-assign herow().sl
- FOR i as integer = 0 TO UBOUND(herow)
-  herow(i).sl = create_hero_slices(i)
- NEXT i
  
  DIM root as NodePtr = get_general_reld()
 

@@ -4698,12 +4698,9 @@ script, slice correspondence tests, begin
   assert(sl)
   assert(hero rank from slice(sl) == 1)
 
-  # Test hero slices belonging to non-existent heroes! There are always 4 hero slices!!
-  # I don't really want to lock in this weird behaviour. Probably we should add a general bitset to disable it.
-  sl := get hero slice(2)
-  assert(sl)
-  assert(get slice visible(sl) == false)
-  assert(hero rank from slice(sl) == 2)
+  # Hero slices belonging to non-existent heroes shouldn't exist, but before
+  # gorgonzola they did exist.
+  assert(get hero slice(2) == 0)
 
   # Restore
   delete hero(hero:Bram)

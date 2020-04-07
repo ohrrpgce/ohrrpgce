@@ -58,7 +58,8 @@ TYPE HeroState
  battle_pic as integer
  battle_pal as integer
  exp_mult as double
- def_wep as integer  'default weapon; item ID + 1, 0 is meaningless?
+ def_wep as integer         'default weapon; item ID + 1, 0 is meaningless?
+ sl as Slice ptr            'NULL if the hero is not in the active party. Also copied into herow()
  pic as integer
  pal as integer
  portrait_pic as integer
@@ -70,7 +71,8 @@ TYPE HeroState
 END TYPE
 
 TYPE HeroWalkabout
-  sl as Slice Ptr
+  party_slot as integer  'The gam.hero() index of this hero, or -1 if empty
+  sl as Slice ptr        'Alias to gam.hero(.party_slot).sl, or NULL
   UNION
     TYPE
       xgo as integer
@@ -90,7 +92,7 @@ END TYPE
 
 TYPE HeroSliceContext EXTENDS SliceContext
   DECLARE VIRTUAL FUNCTION description() as string
-  rank as integer
+  slot as integer
 END TYPE
 
 TYPE NPCSliceContext EXTENDS SliceContext

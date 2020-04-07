@@ -1007,8 +1007,13 @@ SUB exit_gracefully(need_fade_out as bool = NO)
 END SUB
 
 SUB cleanup_game_slices ()
+ 'Deleting hero slices here should be unnecessary because it should have
+ 'happened when resetgame called deletehero
+ FOR i as integer = 0 TO UBOUND(gam.hero)
+  DeleteSlice @gam.hero(i).sl
+ NEXT i
  FOR i as integer = 0 TO UBOUND(herow)
-  DeleteSlice @herow(i).sl
+  herow(i).sl = NULL
  NEXT i
  FOR i as integer = 0 TO UBOUND(npc)
   DeleteSlice @npc(i).sl
