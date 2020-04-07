@@ -462,6 +462,7 @@ TYPE ScriptFibre
   scripttype as string
   trigger_loc as string 'More information about how it was triggered
   double_trigger_check as bool  'Whether to prevent double triggering
+  priority as integer   'Determines ordering when multiple scripts are triggered at once
   log_line as string    'Debugging aid: Comprised from scripttype, arg names and values and trigger_loc
   argc as integer       'The number of args passed
   args(maxScriptArgs - 1) as integer

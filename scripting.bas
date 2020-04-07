@@ -76,7 +76,15 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
   last_queued_script = @dummy_queued_script
  ELSE
   last_queued_script = NEW ScriptFibre
-  v_append fibregroup, last_queued_script
+  'Insert into the queue according to priority
+  'Note that the script at the top of the queue is the first to run,
+  'so ties are broken by the last triggered being the first to run.
+  DIM insertpos as integer = -1
+  FOR insertpos = v_len(fibregroup) - 1 TO 0 STEP -1
+   IF fibregroup[insertpos]->priority <= priority THEN EXIT FOR
+  NEXT
+  insertpos += 1
+  v_insert fibregroup, insertpos, last_queued_script
  END IF
 
  'Save information about this script, for use by trigger_script_arg()
@@ -88,6 +96,7 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
   .log_line = scriptname(id) & "("
   .trigger_loc = trigger_loc
   .double_trigger_check = double_trigger_check
+  .priority = priority
   .argc = numargs
   IF numargs > maxScriptArgs THEN
    showbug "trigger_script: too many args: " & numargs
