@@ -4769,6 +4769,20 @@ SUB script_functions(byval cmdid as integer)
   IF valid_plotstr(retvals(0)) ANDALSO bound_arg(retvals(1), ccLOWEST, scLAST, "keyboard scancode") THEN
    plotstr(retvals(0)).s = scancodename(retvals(1), retvals(2) <> 0)
   END IF
+ CASE 693 '--get hero slice by slot
+  'Empty party slots are OK, returns 0
+  IF valid_hero_party(retvals(0)) THEN
+   scriptret = find_plotslice_handle(gam.hero(retvals(0)).sl)
+  END IF
+ CASE 694 '--hero slot from slice
+  IF valid_plotslice(retvals(0)) THEN
+   DIM sl as Slice ptr = plotslices(retvals(0))
+   scriptret = -1
+   IF *sl->Context IS HeroSliceContext THEN
+    scriptret = CAST(HeroSliceContext ptr, sl->Context)->slot
+   END IF
+  END IF
+
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

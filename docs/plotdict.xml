@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-01-04">
+<plotscript version="wip" datecode="2020-04-07">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -6159,8 +6159,15 @@ end
 			<shortname>get hero slice</shortname>
 			<description>
 				Get a hero walkabout container slice (the parent of all slices for the hero).
-				<p>rank</p> is the hero's rank in the walkabout caterpillar.
-				You will not be able to manually reposition this slice (e.g. <ref>putslice</ref> does not work) - use <ref>puthero</ref> instead.
+				<p>rank</p> is the hero's rank in the walkabout caterpillar, from 0-3,
+				e.g. <ref>me</ref> for the leader.
+				Returns 0 if there is no hero in that rank in the active party,
+				but still returns the slice even if the caterpillar party is disabled
+				(the slice will be hidden).
+				You can use <ref>getheroslicebyslot</ref> instead, which works for heroes
+				in the reserve party too.
+				<lb/>
+				You won't be able to manually reposition this slice (e.g. <ref>putslice</ref> does not work) - use <ref>puthero</ref> instead.
 				<lb/>
 				Once you have this slice you can access any other slices attached to the hero, such as the sprite slice
 				(e.g. <ref>lookupslice</ref><tt>(sl:walkabout sprite component, get hero slice(rank))</tt>, which is equivalent to <ref>getherosprite</ref><tt>(rank)</tt>),
@@ -6168,30 +6175,70 @@ end
 				See <ref>lookupslice</ref> for the different walkabout components.
 			</description>
 			<seealso>
+				<ref>getheroslicebyslot</ref>
 				<ref>herorankfromslice</ref>
 				<ref>getnpcslice</ref>
 			</seealso>
 		</command>
+		<command id="getheroslicebyslot">
+			<canon>get hero slice by slot (slot)</canon>
+			<shortname>get hero slice by slot</shortname>
+			<description>
+				Get a hero walkabout container slice (the parent of all slices for the hero),
+				from the <p>slot</p> in the hero party.
+				Returns 0 if there is no hero in that slot.
+				<lb/>
+				This is an alternative to <ref>getheroslice</ref>, see that command for more info.
+				<lb/>
+				<p>slot</p> can even be in the reserve party: all heroes have slices.
+				Slices for heroes in the reserve party are parented to the special 'Reserve'
+				slice (<tt>lookup slice(sl:reserve)</tt>) instead of to a walktabout layer.
+			</description>
+			<seealso>
+				<ref>getheroslice</ref>
+				<ref>heroslotfromslice</ref>
+				<ref>getherospritebyslot</ref>
+			</seealso>
+		</command>
+
 		<command id="getherosprite">
 			<canon>get hero sprite (rank)</canon>
 			<shortname>get hero sprite</shortname>
 			<description>
 				Get the walkabout sprite slice for a hero.
-				<p>rank</p> is the hero's rank in the walkabout caterpillar.
+				<p>rank</p> is the hero's rank in the walkabout caterpillar (0-3),
+				e.g. <ref>me</ref> for the leader.
 				This is equivalent to
 				<ref>lookupslice</ref><tt>(sl:walkabout sprite component, get hero slice(rank))</tt>.
 			</description>
 			<seealso>
 				<ref>getheroslice</ref>
+				<ref>getherospritebyslot</ref>
 			</seealso>
 		</command>
+		<command id="getherospritebyslot">
+			<canon>get hero sprite by slot (slot)</canon>
+			<shortname>get hero sprite by slot</shortname>
+			<description>
+				Get the walkabout sprite slice for a hero.
+				<p>slot</p> is the hero's slot in the party, including reserve party slots.
+				This is equivalent to
+				<ref>lookupslice</ref><tt>(sl:walkabout sprite component, get hero slice by slot(slot))</tt>.
+			</description>
+			<seealso>
+				<ref>getherosprite</ref>
+				<ref>getheroslice</ref>
+			</seealso>
+		</command>
+
 		<command id="herorankfromslice">
 			<canon>hero rank from slice (handle)</canon>
 			<shortname>hero rank from slice</shortname>
 			<description>
 				The opposite of <ref>getheroslice</ref>:
 				Given a slice <p>handle</p>, check whether it's the walkabout container slice of some hero,
-				and if so, returns the hero walkabout rank (a number between 0 and 3).
+				and if so, returns the hero rank in the party
+				(always a number between 0 and 3 if the hero is in the active party).
 				If it doesn't belong to any hero, returns -1, <b>not</b> 0/false, like
 				<ref>npcreferencefromslice</ref> does!
 				<lb/>
@@ -6201,14 +6248,28 @@ end
 				This command is useful if you've detected a collision between two slices
 				(e.g. using <ref>findcollidingslice</ref>), such as a projectile and another slice,
 				and you want to check whether the projectile hit a hero, and which one.
-				<danger>
-					There are always four hero walkabout slices, even if there aren't that
-					many heroes in the active party!
-					The extra hero slices are set to hidden.
-				</danger>
 			</description>
 			<seealso>
+				<ref>heroslotfromslice</ref>
 				<ref>getheroslice</ref>
+				<ref>npcreferencefromslice</ref>
+			</seealso>
+		</command>
+		<command id="heroslotfromslice">
+			<canon>hero slot from slice (handle)</canon>
+			<shortname>hero slot from slice</shortname>
+			<description>
+				The opposite of <ref>getheroslicebyslot</ref>:
+				Given a slice <p>handle</p>, check whether it's the walkabout container slice of some hero,
+				and if so, returns the hero's party slot (0 or higher).
+				If it doesn't belong to any hero, returns -1, <b>not</b> 0/false, like
+				<ref>npcreferencefromslice</ref> does!
+				<lb/>
+				See <ref>herorankfromslice</ref> for more information.
+			</description>
+			<seealso>
+				<ref>herorankfromslice</ref>
+				<ref>getheroslicebyslot</ref>
 				<ref>npcreferencefromslice</ref>
 			</seealso>
 		</command>
@@ -11061,7 +11122,14 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 		<command id="me">
 			<canon>me</canon>
 			<shortname>me</shortname>
-			<description><tt>me</tt> is a constant that can be used to refer to the first hero in your party (hero zero) in any command that takes a hero number as an argument. It is equal to zero.</description>
+			<description>
+                        	<tt>me</tt> is a constant that can be used to refer to the first hero in your caterpillar party
+                                (hero zero) in any command that takes a caterpillar party rank as an argument.
+                                It is equal to zero.
+                                You can't write <tt>me</tt> where a hero party slot or hero ID is needed!
+                                See <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
+				Ways to refer to a hero in a script</a>.
+                        </description>
 		</command>
 		<command id="none">
 			<canon>none</canon>

@@ -682,7 +682,7 @@ define function, begin
 654,resetformationslot,2,0,0  # resets scripted modifications to a specific slot in a battle formation
 655,sliceismaplayer,1,0       # Check slice type
 656,npcreferencefromslice,1,0 # Return the NPC reference for an NPC slice, or else 0
-657,herorankfromslice,1,0     # Return the hero rank for a hero slice, or else 0
+657,herorankfromslice,1,0     # Return the hero rank for a hero slice, or else -1
 658,slicetype,1,0             # Returns a slicetype:* constant
 659,_asserteq,4,0,0,0,0       # Used in the macro expansion of assert(x==y)
 660,savescreenshot,0          # Save a screenshot
@@ -718,6 +718,8 @@ define function, begin
 690,replacesubstring,5,-1,-1,-1,-1,0  # Replace text in a string (in string ID, replace what ID, with what ID, max replacements, case insensitive)
 691,decodetrigger,1,0         # (Undocumented) Decode a script trigger to a script ID. Script IDs and 0 passed through. Missing scripts return 0.
 692,getscancodename,3,0,0,1   # Get the name of a scancode in a string (string id, scancode, long name)
+693,getheroslicebyslot,1,0    # Get the slice representing a hero walkabout
+694,heroslotfromslice,1,0     # Return the hero party slot for a hero slice, or else -1
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
@@ -1636,6 +1638,12 @@ end
 script, get hero sprite, hsd:who, begin
   variable (hsd:sl)
   hsd:sl := get hero slice(hsd:who)
+  if (hsd:sl) then (return (lookup slice(sl:walkabout sprite component, hsd:sl)))
+end
+
+script, get hero sprite by slot, hsd:who, begin
+  variable (hsd:sl)
+  hsd:sl := get hero slice by slot(hsd:who)
   if (hsd:sl) then (return (lookup slice(sl:walkabout sprite component, hsd:sl)))
 end
 

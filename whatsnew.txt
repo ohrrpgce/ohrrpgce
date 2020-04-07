@@ -19,6 +19,8 @@ April ? 2020 [Gorgonzola]
     * While encoding .ogg files, add an advanced option not to filter out
       very high frequencies. Useful for certain hissing sfx [Ralph]
     * "get scancode name" [Ralph]
+    * "get hero slice by slot", "get hero sprite by slot",
+      "hero slot from slice" [Ralph]
 
   *** Changes
     * Renamed "Enemy" target class to "Foe (not dead)", and "Ally" to

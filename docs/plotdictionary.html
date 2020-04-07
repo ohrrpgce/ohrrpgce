@@ -155,7 +155,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2020-01-04)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2020-04-07)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1196,10 +1196,16 @@
 		<a href="#about-getheroslice">get hero slice (rank)</a><br>
 		
 	
+		<a href="#about-getheroslicebyslot">get hero slice by slot (slot)</a><br>
+		
+	
 		<a href="#about-getherospeed">get hero speed (who)</a><br>
 		
 	
 		<a href="#about-getherosprite">get hero sprite (rank)</a><br>
+		
+	
+		<a href="#about-getherospritebyslot">get hero sprite by slot (slot)</a><br>
 		
 	
 		<a href="#about-getherostat">get hero stat (who, stat, type)</a><br>
@@ -1415,6 +1421,9 @@
 		<a href="#about-getrightpadding">get right padding (handle)</a><br>
 		
 	
+		<a href="#about-getscancodename">get scancode name(string id, scancode, long name)</a><br>
+		
+	
 		<a href="#about-getscreenheight">get screen height</a><br>
 		
 	
@@ -1569,6 +1578,9 @@
 		
 	
 		<a href="#about-herorankfromslice">hero rank from slice (handle)</a><br>
+		
+	
+		<a href="#about-heroslotfromslice">hero slot from slice (handle)</a><br>
 		
 	
 		<a href="#about-herototalelementalresistasint">hero total elemental resist as int (who, element)</a><br>
@@ -4504,15 +4516,22 @@ wait for hero (me) # wait until he stops</pre>
 <p>
 			
 				Waits for the player to press a key.
+				(Specially, new keypresses or mouse button release.)
 				<span class="param">key</span> is an optional <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
 				a joystick button (e.g. <span class="code">joy:left</span>), or a virtual scancode such as
 				<a href="#about-keyconstants" class="ref">use key</a>.
-				If you do not specify <span class="param">key</span>, then <a href="#about-keyconstants" class="ref">any key</a> will be used,
-				which waits for any keyboard or joystick button.
-				<span class="param">usekey</span> will wait for Space, Ctrl or Enter; and <span class="param">cancelkey</span> and <span class="param">menukey</span> (which are identical) both wait for Alt or Esc.
+				If you do not specify <span class="param">key</span>, then <a href="#about-keyconstants" class="ref">any key</a> will be used.
 				<br>
-				If and only if <span class="code">anykey</span> is used, then <span class="param">waitforkey</span> will return the scancode of the keyboard or joystick key that was pressed,
+				<a href="#about-keyconstants" class="ref">any key</a> waits for any keyboard or joystick button,
+				and also waits for a mouse click if "'any key', etc, include mouse clicks" is
+				turned on in the Mouse Controls menu.
+				<span class="param">usekey</span> will wait for Space, Ctrl or Enter, joystick use key, and optionally left click;
+				and <span class="param">cancelkey</span> and <span class="param">menukey</span> (which are identical) both wait for Alt or Esc,
+				joystick cancel, and optionally right click.
+				<br>
+				If and only if <span class="code">anykey</span> is used, then <span class="param">waitforkey(anykey)</span> will return the scancode of the keyboard or joystick key that was pressed,
 				but won't ever be a constant like <span class="code">usekey</span>.
+				It returns a value &gt;= 180 if a mouse button was released (see scancode.hsi).
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					Previously you couldn't use scancodes like <span class="code">key:x</span>,
@@ -7492,7 +7511,7 @@ resume box advance # go back to normal</pre>
 <a name="about-leader"></a>
 		<h4>leader</h4>
 <p>
-			Returns the hero ID number (as given in the Edit Hero Stats menu) of the current caterpillar party leader.
+			Returns the hero ID number (as given in the Edit Heroes menu) of the current caterpillar party leader.
 			
 			
 			
@@ -7502,7 +7521,7 @@ resume box advance # go back to normal</pre>
 <a name="about-findhero"></a>
 		<h4>find hero (who)</h4>
 <p>
-			Searches through your (battle) party to see if the specified hero is there, and returns the position where the hero was found, or -1 if the hero was not found. The position in the party is needed by most commands operating on heroes. You can use the names defined in your HSI file in the format hero:name for the ID number of the hero (as it has in the Edit Hero Stats menu). Not only does this tell you if a hero is in your party, but you can also use it to tell whether or not the hero is in your active party. find hero will return 0, 1, 2 or 3 if the hero is in the active party, and 4 or higher if the hero is in the reserve. Note that position in the battle party is not the same as position in the caterpillar: the leader is not necessarily hero 0. The opposite to find hero is <a href="#about-herobyslot" class="ref">hero by slot</a>.
+			Searches through your (battle) party to see if the specified hero is there, and returns the position where the hero was found, or -1 if the hero was not found. The position in the party is needed by most commands operating on heroes. You can use the names (constants) defined in your HSI file in the format <span class="code">hero:name</span> for the ID number of the hero (as it has in the Edit Heroes menu). Not only does this tell you if a hero is in your party, but you can also use it to tell whether or not the hero is in your active party. find hero will return 0, 1, 2 or 3 if the hero is in the active party, and 4 or higher if the hero is in the reserve. Note that position in the battle party is not the same as position in the caterpillar: the leader is not necessarily hero 0. The opposite to find hero is <a href="#about-herobyslot" class="ref">hero by slot</a>.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-rankincaterpillar" class="ref">rank in caterpillar</a></li></ul>
@@ -7513,7 +7532,7 @@ resume box advance # go back to normal</pre>
 <a name="about-herobyslot"></a>
 		<h4>hero by slot (where)</h4>
 <p>
-			This command is the reverse of <a href="#about-findhero" class="ref">find hero</a>. Given a position in your party, it will tell you which hero is in that slot, or -1 if no hero is in that slot. The number returned can be compared with the names defined in your HSI file in the format hero:name.
+			This command is the reverse of <a href="#about-findhero" class="ref">find hero</a>. Given a position in your party, it will tell you which hero is in that slot, or -1 if no hero is in that slot. The number returned can be compared with the names (constants) defined in your HSI file in the format <span class="code">hero:name</span>.
 			
 			
 			
@@ -7523,7 +7542,7 @@ resume box advance # go back to normal</pre>
 <a name="about-rankincaterpillar"></a>
 		<h4>rank in caterpillar (who)</h4>
 <p>
-			Searches through your active party to see if the specified hero is there, and returns the position int the walkabout caterpillar where the hero was found, or -1 if the hero was not found. Use the names defined in your HSI file in the format hero:name. This is particularly useful if you need to use a command like walk hero but you are not sure which position the hero is in.
+			Searches through your active party to see if the specified hero is there, and returns the position in the walkabout caterpillar where the hero was found, or -1 if the hero was not found. Use the names (constants) defined in your HSI file in the format <span class="code">hero:name</span>. This is particularly useful if you need to use a command like <a href="#about-walkhero" class="ref">walk hero</a> but you are not sure which position the hero is in.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-findhero" class="ref">find hero</a></li></ul>
@@ -7534,7 +7553,7 @@ resume box advance # go back to normal</pre>
 <a name="about-herobyrank"></a>
 		<h4>hero by rank (where)</h4>
 <p>
-			This command is the reverse of <a href="#about-rankincaterpillar" class="ref">rank in caterpillar</a>. Given a position in your walkabout party, it will tell you which hero is in that position, or -1 if no hero is in that position. The number returned can be compared with the names defined in your HSI file in the format hero:name.
+			This command is the reverse of <a href="#about-rankincaterpillar" class="ref">rank in caterpillar</a>. Given a position in your walkabout party, it will tell you which hero is in that position, or -1 if no hero is in that position. The number returned can be compared with the names (constants) defined in your HSI file in the format <span class="code">hero:name</span>.
 			
 			
 			
@@ -10573,6 +10592,9 @@ end
 		<a href="#about-lastascii">last ascii</a><br>
 		
 	
+		<a href="#about-getscancodename">get scancode name(string id, scancode, long name)</a><br>
+		
+	
 		<a href="#about-enableinputtext">enable input text (enable)</a><br>
 		
 	
@@ -10859,7 +10881,37 @@ end
 			This command is obsolete. Use <a href="#about-getinputtext" class="ref">get input text</a> instead, if possible.<br>Returns the character code of any currently pressed key, or 0 if none are. If more than one key corresponding to an ascii character is being pressed, then only one can be returned.
 			
 			
+			<div class="seealso">See also: <ul><li><a href="#about-getscancodename" class="ref">get scancode name</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getscancodename"></a>
+		<h4>get scancode name(string id, scancode, long name)</h4>
+<p>
 			
+				Get a name for a <a href="#about-scancode" class="ref">scancode</a>, what the key does if Shift isn't pressed,
+				and put it in <span class="param">string id</span>.
+				For example, "7", "Q", "Space", "Caps Lock".
+				<br>
+				<span class="param">scancode</span> can be any <span class="code">key:...</span> scancode or <a href="#about-keyconstants" class="ref">use key</a>, <a href="#about-keyconstants" class="ref">menu key</a>,
+				etc, but not a <span class="code">joy:...</span> scancode.
+				<br>
+				Normally a long name like "Left Shift" is returned, but if
+				optional argument <span class="param">long name</span> is false, then
+				a one-character string for what the key inserts
+				is returned if available, for example "[" instead of "Left Bracket",
+				with the exception of "Space" and "Enter" and numpad keys like "Numpad Minus" which
+				are always returned as long names.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getinputtext" class="ref">get input text</a>, </li>
+<li><a href="#about-lastascii" class="ref">last ascii</a></li>
+</ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -13676,10 +13728,19 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-getheroslice">get hero slice (rank)</a><br>
 		
 	
+		<a href="#about-getheroslicebyslot">get hero slice by slot (slot)</a><br>
+		
+	
 		<a href="#about-getherosprite">get hero sprite (rank)</a><br>
 		
 	
+		<a href="#about-getherospritebyslot">get hero sprite by slot (slot)</a><br>
+		
+	
 		<a href="#about-herorankfromslice">hero rank from slice (handle)</a><br>
+		
+	
+		<a href="#about-heroslotfromslice">hero slot from slice (handle)</a><br>
 		
 	
 		<a href="#about-getnpcslice">get npc slice (npc)</a><br>
@@ -14819,6 +14880,7 @@ lookup slice(sl:textbox root)
 lookup slice(sl:script layer)
 lookup slice(sl:textbox layer)
 lookup slice(sl:string layer)
+lookup slice(sl:reserve)
 lookup slice(sl:maproot)
 lookup slice(sl:obsolete overhead)
 lookup slice(sl:map overlay)
@@ -14951,8 +15013,15 @@ end
 <p>
 			
 				Get a hero walkabout container slice (the parent of all slices for the hero).
-				<span class="param">rank</span> is the hero's rank in the walkabout caterpillar.
-				You will not be able to manually reposition this slice (e.g. <a href="#about-putslice" class="ref">put slice</a> does not work) - use <a href="#about-puthero" class="ref">put hero</a> instead.
+				<span class="param">rank</span> is the hero's rank in the walkabout caterpillar, from 0-3,
+				e.g. <a href="#about-me" class="ref">me</a> for the leader.
+				Returns 0 if there is no hero in that rank in the active party,
+				but still returns the slice even if the caterpillar party is disabled
+				(the slice will be hidden).
+				You can use <a href="#about-getheroslicebyslot" class="ref">get hero slice by slot</a> instead, which works for heroes
+				in the reserve party too.
+				<br>
+				You won't be able to manually reposition this slice (e.g. <a href="#about-putslice" class="ref">put slice</a> does not work) - use <a href="#about-puthero" class="ref">put hero</a> instead.
 				<br>
 				Once you have this slice you can access any other slices attached to the hero, such as the sprite slice
 				(e.g. <a href="#about-lookupslice" class="ref">lookup slice</a><span class="code">(sl:walkabout sprite component, get hero slice(rank))</span>, which is equivalent to <a href="#about-getherosprite" class="ref">get hero sprite</a><span class="code">(rank)</span>),
@@ -14963,8 +15032,37 @@ end
 			
 			<div class="seealso">See also: <ul>
 <li>
+<a href="#about-getheroslicebyslot" class="ref">get hero slice by slot</a>, </li>
+<li>
 <a href="#about-herorankfromslice" class="ref">hero rank from slice</a>, </li>
 <li><a href="#about-getnpcslice" class="ref">get npc slice</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getheroslicebyslot"></a>
+		<h4>get hero slice by slot (slot)</h4>
+<p>
+			
+				Get a hero walkabout container slice (the parent of all slices for the hero),
+				from the <span class="param">slot</span> in the hero party.
+				Returns 0 if there is no hero in that slot.
+				<br>
+				This is an alternative to <a href="#about-getheroslice" class="ref">get hero slice</a>, see that command for more info.
+				<br>
+				<span class="param">slot</span> can even be in the reserve party: all heroes have slices.
+				Slices for heroes in the reserve party are parented to the special 'Reserve'
+				slice (<span class="code">lookup slice(sl:reserve)</span>) instead of to a walktabout layer.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getheroslice" class="ref">get hero slice</a>, </li>
+<li>
+<a href="#about-heroslotfromslice" class="ref">hero slot from slice</a>, </li>
+<li><a href="#about-getherospritebyslot" class="ref">get hero sprite by slot</a></li>
 </ul>
 </div>
 		</p>
@@ -14975,13 +15073,38 @@ end
 <p>
 			
 				Get the walkabout sprite slice for a hero.
-				<span class="param">rank</span> is the hero's rank in the walkabout caterpillar.
+				<span class="param">rank</span> is the hero's rank in the walkabout caterpillar (0-3),
+				e.g. <a href="#about-me" class="ref">me</a> for the leader.
 				This is equivalent to
 				<a href="#about-lookupslice" class="ref">lookup slice</a><span class="code">(sl:walkabout sprite component, get hero slice(rank))</span>.
 			
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-getheroslice" class="ref">get hero slice</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getheroslice" class="ref">get hero slice</a>, </li>
+<li><a href="#about-getherospritebyslot" class="ref">get hero sprite by slot</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getherospritebyslot"></a>
+		<h4>get hero sprite by slot (slot)</h4>
+<p>
+			
+				Get the walkabout sprite slice for a hero.
+				<span class="param">slot</span> is the hero's slot in the party, including reserve party slots.
+				This is equivalent to
+				<a href="#about-lookupslice" class="ref">lookup slice</a><span class="code">(sl:walkabout sprite component, get hero slice by slot(slot))</span>.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getherosprite" class="ref">get hero sprite</a>, </li>
+<li><a href="#about-getheroslice" class="ref">get hero slice</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -14992,7 +15115,8 @@ end
 			
 				The opposite of <a href="#about-getheroslice" class="ref">get hero slice</a>:
 				Given a slice <span class="param">handle</span>, check whether it's the walkabout container slice of some hero,
-				and if so, returns the hero walkabout rank (a number between 0 and 3).
+				and if so, returns the hero rank in the party
+				(always a number between 0 and 3 if the hero is in the active party).
 				If it doesn't belong to any hero, returns -1, <b>not</b> 0/false, like
 				<a href="#about-npcreferencefromslice" class="ref">npc reference from slice</a> does!
 				<br>
@@ -15002,18 +15126,39 @@ end
 				This command is useful if you've detected a collision between two slices
 				(e.g. using <a href="#about-findcollidingslice" class="ref">find colliding slice</a>), such as a projectile and another slice,
 				and you want to check whether the projectile hit a hero, and which one.
-				<div class="notice danger" title="Danger">
-<img src="Plotdanger.png" alt="[Danger]" class="icon">
-					There are always four hero walkabout slices, even if there aren't that
-					many heroes in the active party!
-					The extra hero slices are set to hidden.
-				</div>
 			
 			
 			
 			<div class="seealso">See also: <ul>
 <li>
+<a href="#about-heroslotfromslice" class="ref">hero slot from slice</a>, </li>
+<li>
 <a href="#about-getheroslice" class="ref">get hero slice</a>, </li>
+<li><a href="#about-npcreferencefromslice" class="ref">npc reference from slice</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-heroslotfromslice"></a>
+		<h4>hero slot from slice (handle)</h4>
+<p>
+			
+				The opposite of <a href="#about-getheroslicebyslot" class="ref">get hero slice by slot</a>:
+				Given a slice <span class="param">handle</span>, check whether it's the walkabout container slice of some hero,
+				and if so, returns the hero's party slot (0 or higher).
+				If it doesn't belong to any hero, returns -1, <b>not</b> 0/false, like
+				<a href="#about-npcreferencefromslice" class="ref">npc reference from slice</a> does!
+				<br>
+				See <a href="#about-herorankfromslice" class="ref">hero rank from slice</a> for more information.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-herorankfromslice" class="ref">hero rank from slice</a>, </li>
+<li>
+<a href="#about-getheroslicebyslot" class="ref">get hero slice by slot</a>, </li>
 <li><a href="#about-npcreferencefromslice" class="ref">npc reference from slice</a></li>
 </ul>
 </div>
@@ -15937,8 +16082,27 @@ end
 <a name="about-setslicevelocityx"></a>
 		<h4>set slice velocity x (handle, pixels per tick, ticks)</h4>
 <p>
-			Cause slice <span class="param">handle</span> to start moving horizontally. A negative value for <span class="param">pixels per tick</span> moves left, and a positive value for <span class="param">pixels per tick</span> moves right. The <span class="param">ticks</span> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed. <div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">Movement in horizontal and vertical directions is independent, and can timeout after different numbers of ticks. For example if you set a slice's x velocity to 10 for 5 ticks, and y velocity to 10 for 2 ticks, it'll move diagonally down-right for 2 ticks and then right for 3 ticks.</div>
+			
+				Cause slice <span class="param">handle</span> to start moving horizontally.
+				A negative value for <span class="param">pixels per tick</span> moves left,
+				and a positive value for <span class="param">pixels per tick</span> moves right.
+				The <span class="param">ticks</span> argument is optional.
+				If you do not specify the number of ticks, the slice will keep moving indefinitely.
+				If you specify the number of ticks, the velocity will expire and be set back to
+				zero automatically after that number of ticks has passed.
+				<br>
+				Calling this command causes movement due to <a href="#about-movesliceby" class="ref">move slice by</a> or
+				<a href="#about-movesliceto" class="ref">move slice to</a>
+				to be cancelled.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Movement in horizontal and vertical directions is independent,
+					and can timeout after different numbers of ticks.
+					For example if you set a slice's x velocity to 10 for 5 ticks,
+					and y velocity to 10 for 2 ticks, it'll move diagonally down-right for
+					2 ticks and then right for 3 ticks.
+				</div>
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -15969,8 +16133,26 @@ end
 <a name="about-setslicevelocityy"></a>
 		<h4>set slice velocity y (handle, pixels per tick, ticks)</h4>
 <p>
-			Cause slice <span class="param">handle</span> to start moving vertically. A negative value for <span class="param">pixels per tick</span> moves up, and a positive value for <span class="param">pixels per tick</span> moves down. The <span class="param">ticks</span> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">Movement in horizontal and vertical directions is independent, and can timeout after different numbers of ticks. For example if you set a slice's x velocity to 10 for 5 ticks, and y velocity to 10 for 2 ticks, it'll move diagonally down-right for 2 ticks and then right for 3 ticks.</div>
+			
+				Cause slice <span class="param">handle</span> to start moving vertically.
+				A negative value for <span class="param">pixels per tick</span> moves up,
+				and a positive value for <span class="param">pixels per tick</span> moves down.
+				The <span class="param">ticks</span> argument is optional.
+				If you do not specify the number of ticks, the slice will keep moving indefinitely.
+				If you specify the number of ticks, the velocity will expire and be set
+				back to zero automatically after that number of ticks has passed.
+				<br>
+				Calling this command causes movement due to <a href="#about-movesliceby" class="ref">move slice by</a> or
+				<a href="#about-movesliceto" class="ref">move slice to</a> to be cancelled.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Movement in horizontal and vertical directions is independent,
+					and can timeout after different numbers of ticks.
+					For example if you set a slice's x velocity to 10 for 5 ticks,
+					and y velocity to 10 for 2 ticks, it'll move diagonally down-right
+					for 2 ticks and then right for 3 ticks.
+				</div>
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -16066,11 +16248,14 @@ end
 			
 				Cause slice <span class="param">handle</span> to start moving.
 				This is similar to using both <a href="#about-setslicevelocityx" class="ref">set slice velocity x</a> and
-				<a href="#about-setslicevelocityy" class="ref">set slice velocity y</a> at the same time.
+				<a href="#about-setslicevelocityy" class="ref">set slice velocity y</a> at the same time (except that those let you use
+				different <span class="param">ticks</span> for the X and Y velocities).
 				The <span class="param">ticks</span> argument is optional.
 				If you do not specify the number of ticks, the slice will keep moving indefinitely.
 				If you specify the number of ticks, the velocity will expire and be set back to
 				zero automatically after that number of ticks has passed.
+				<br>
+				Calling this command causes movement due to <a href="#about-movesliceby" class="ref">move slice by</a> or <a href="#about-movesliceto" class="ref">move slice to</a> to be cancelled.
 			
 			
 			
@@ -16137,10 +16322,14 @@ end
 				Instruct slice <span class="param">handle</span> to move in a straight line to a specific
 				<span class="param">x</span> and <span class="param">y</span> position over a given number of <span class="param">ticks</span>.
 				(As always, the position is an offset relative to its parent.)
+				<br>
+				If the slice had velocity set with <a href="#about-setslicevelocity" class="ref">set slice velocity</a>,
+				<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a> or <a href="#about-setslicevelocityy" class="ref">set slice velocity y</a> it will be cancelled.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					If you change the slice's position manually during that time (eg. with <a href="#about-putslice" class="ref">put slice</a>),
-					it'll continue to move towards the original target in a straight line.
+					it'll continue to move towards the original target in a straight line
+					(but now with a different velocity), until <span class="code">ticks</span> is up.
 					Use <a href="#about-setslicevelocity" class="ref">set slice velocity</a> instead if you don't want this.
 				</div>
 			
@@ -16177,18 +16366,22 @@ end
 			
 				Instruct slice <span class="param">handle</span> to move in a straight line to an <span class="param">x</span> and <span class="param">y</span>
 				offset relative to its current position over a given number of <span class="param">ticks</span>.
-				(As always, the position is an offset relative to its parent.)
-				A negative <span class="param">relative x</span> moves left.
-				A positive <span class="param">relative x</span> moves right.
-				A negative <span class="param">relative y</span> moves up.
+				<br>
+				A negative <span class="param">relative x</span> moves left.<br>
+				A positive <span class="param">relative x</span> moves right.<br>
+				A negative <span class="param">relative y</span> moves up.<br>
 				A positive <span class="param">relative y</span> moves down.
+				<br>
+				If the slice had velocity set with <a href="#about-setslicevelocity" class="ref">set slice velocity</a>,
+				<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a> or <a href="#about-setslicevelocityy" class="ref">set slice velocity y</a> it will be cancelled.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					If you change the slice's position manually during that time (eg. with <a href="#about-putslice" class="ref">put slice</a>),
-					it'll continue to move towards the original target in a straight line.
+					it'll continue to move towards the original target in a straight line
+					(but now with a different velocity), until <span class="code">ticks</span> is up.
 					Use <a href="#about-setslicevelocity" class="ref">set slice velocity</a> instead if you don't want this.
 				</div>
-
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -22365,14 +22558,14 @@ key:F1
 key:F2
 key:F3
 ...
-key:F15
+key:F15          # Mac keyboards usually have 15 instead of 12 F# buttons
 
-key:Num Lock
-key:Scroll Lock
-key:Caps Lock
+key:Num Lock     # Tells whether numlock is on, not whether the key is down.
+key:Caps Lock    # Tells whether capslock is on, not whether the key is down.
+key:Scroll Lock  # Unreliable across different OSes/backends, avoid.
 
-key:Print Screen
-key:Pause
+key:Print Screen # Unreliable across different OSes/backends, avoid
+key:Pause        # Works for "keypress" and "new keypress" but not "key is pressed"
 
 key:1
 key:Exclamation
@@ -22441,8 +22634,8 @@ key:Right
 key:Down
 
 key:Meta           # Either Command/Windows key
-key:Win Logo       # equal to key:Meta
-key:Command        # equal to key:Meta
+key:Win Logo       # Equal to key:Meta
+key:Command        # Equal to key:Meta
 key:Left Meta      # Left Command/Windows key
 key:Right Meta     # Right Command/Windows key
 key:Left Win Logo  # equal to key:Left Meta
@@ -22500,14 +22693,17 @@ joy:up             # aka joy:y up
 joy:down           # aka joy:y down
 
 #  Virtual scancodes:
-any key            # Any keyboard key or joystick button (including joystick left/right/up/down)
+any key            # Any keyboard key or joystick button (including joystick left/right/up/down),
+                   # and also any mouse button if "'any key', etc, include mouse clicks" is turned on in
+		   # the Mouse Controls menu.
 up key             # Up key on the keyboard, or on any joystick
 down key           # ...ditto
 left key
 right key
-use key            # Space, Ctrl or Enter, or Use button on any joystick
-cancel key         # Alt or Esc, or Cancel button on any joystick
-menu key           # Alt or Esc, or Menu button on any joystick
+use key            # Space, Ctrl or Enter, or Use button on any joystick. Includes left clicks
+                   # if "'any key', etc, include mouse" turned on in Mouse Controls menu.
+cancel key         # Alt or Esc, or Cancel button on any joystick. Optionally includes right clicks as above.
+menu key           # Alt or Esc, or Menu button on any joystick. Optionally includes right clicks as above.
 run key            # Esc or Tab, or Run button on any joystick (Hold to run from battle)
 </pre>
 				<div class="notice note">
@@ -22545,6 +22741,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 <p>
 			
 				A constant specifying a keyboard key or joystick button by its function.
+				(Possibly included mouse buttons too, if enabled in the Mouse Controls menu.)
 				They can be passed to <a href="#about-keyispressed" class="ref">key is pressed</a>, <a href="#about-keyval" class="ref">keyval</a>, <a href="#about-waitforkey" class="ref">wait for key</a>,
 				<a href="#about-keypress" class="ref">keypress</a>, <a href="#about-newkeypress" class="ref">new keypress</a> and <a href="#about-waitforscancode" class="ref">wait for scancode</a>.
 				<br>
@@ -22927,7 +23124,14 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 <a name="about-me"></a>
 		<h4>me</h4>
 <p>
-			<span class="code">me</span> is a constant that can be used to refer to the first hero in your party (hero zero) in any command that takes a hero number as an argument. It is equal to zero.
+			
+                        	<span class="code">me</span> is a constant that can be used to refer to the first hero in your caterpillar party
+                                (hero zero) in any command that takes a caterpillar party rank as an argument.
+                                It is equal to zero.
+                                You can't write <span class="code">me</span> where a hero party slot or hero ID is needed!
+                                See <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
+				Ways to refer to a hero in a script</a>.
+                        
 			
 			
 			
@@ -23282,7 +23486,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 877 commands (of which 52 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 881 commands (of which 52 are aliases), 65 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

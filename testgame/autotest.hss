@@ -4678,28 +4678,37 @@ script, slice correspondence tests, begin
   assert(slice parent(sl) == lookup slice(sl:hero layer))
   assert(slice x(sl) == hero pixel x(0))
   assert(slice y(sl) == hero pixel y(0))
+  assert(sl == get hero slice by slot(0))
   assert(hero rank from slice(sl) == 0)
+  assert(hero slot from slice(sl) == 0)
   sl2 := lookup slice(sl:walkabout sprite component, sl)
   assert(sl2)
   assert(sl2 == get hero sprite(0))
 
   # Defaults to -1
   assert(hero rank from slice(get npc slice(next npc reference)) == -1)
+  assert(hero slot from slice(get npc slice(next npc reference)) == -1)
 
   # Check it returns rank, not party slot
   swap by position(0, 1)
   sl := get hero slice(0)
   assert(sl)
   assert(hero rank from slice(sl) == 0)
+  assert(hero slot from slice(sl) == 1)
+  # Compare with 'by slot'
+  assert(get hero slice by slot(0) == 0)
+  assert(get hero slice by slot(1) == sl)
 
   # Test rank > 0
   add hero(hero:Bram)
   sl := get hero slice(1)
   assert(sl)
+  assert(get hero slice by slot(1) == sl)
   assert(hero rank from slice(sl) == 1)
+  assert(hero slot from slice(sl) == 1)
 
   # Hero slices belonging to non-existent heroes shouldn't exist, but before
-  # gorgonzola they did exist.
+  # gorgonzola they did exist. (Already tested "get hero slice by slot")
   assert(get hero slice(2) == 0)
 
   # Restore
