@@ -60,7 +60,7 @@ TYPE HeroState
  battle_pal as integer
  exp_mult as double
  def_wep as integer         'default weapon; item ID + 1, 0 is meaningless?
- sl as Slice ptr            'NULL if the hero is not in the active party. Also copied into herow()
+ sl as Slice ptr            'Also copied into herow()
  pic as integer
  pal as integer
  portrait_pic as integer

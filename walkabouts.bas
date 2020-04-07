@@ -51,8 +51,10 @@ LOCAL FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
 END FUNCTION
 
 FUNCTION create_hero_slices(byval party_slot as integer) as Slice Ptr
- DIM sl as Slice ptr
- sl = create_walkabout_slices(hero_layer())
+ DIM as Slice ptr sl, parent
+ 'Reserve hero slices go elsewhere
+ parent = IIF(party_slot >= active_party_slots, SliceTable.Reserve, hero_layer())
+ sl = create_walkabout_slices(parent)
  DIM meta as HeroSliceContext ptr = NEW HeroSliceContext
  meta->slot = party_slot
  sl->Context = meta
@@ -262,14 +264,26 @@ LOCAL SUB update_walkabout_hero_slices()
   set_walkabout_vis herow(rank).sl, NO
  NEXT rank
 
+ 'Ensure heroes in the active party (even if caterpillar is disabled, for
+ 'backcompat) have slices in hero_layer and others are parented to Reserve.
+
  '--Move the heroes to the end of their walkabout layer sibling list.
  '--This forces tie-breaking of heroes and NPCs with equal Y coord so that the
  '--leader is on top, then 2nd hero, etc, then NPCs if they're on the same layer.
  FOR rank = UBOUND(herow) TO 0 STEP -1
   WITH herow(rank)
-   IF .sl THEN SetSliceParent .sl, .sl->Parent
+   IF .sl THEN SetSliceParent .sl, hero_layer()
   END WITH
  NEXT rank
+
+ FOR slot as integer = active_party_slots TO UBOUND(gam.hero)
+  WITH gam.hero(slot)
+   IF .sl THEN
+    SetSliceParent .sl, SliceTable.Reserve
+    .sl->Pos = XY(-999, -999)  'So doesn't appear over the map in the slice editor
+   END IF
+  END WITH
+ NEXT slot
 END SUB
 
 LOCAL SUB update_walkabout_npc_slices()
@@ -318,9 +332,9 @@ SUB update_walkabout_slices()
  update_walkabout_npc_slices()
 END SUB
 
-'Reload party walkabout graphics
+'Reload party walkabout graphics (may as well update reserve party too for consistency)
 SUB vishero ()
- FOR slot as integer = 0 TO active_party_slots - 1
+ FOR slot as integer = 0 TO UBOUND(gam.hero)
   WITH gam.hero(slot)
    IF .id >= 0 THEN
     set_walkabout_sprite .sl, .pic, .pal

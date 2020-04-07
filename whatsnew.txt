@@ -23,7 +23,10 @@ April ? 2020 [Gorgonzola]
   *** Changes
     * Renamed "Enemy" target class to "Foe (not dead)", and "Ally" to
       "Ally (not dead)"
-    * Empty active party slots no longer have hidden dummy hero slices
+    * Empty active party slots no longer have hidden dummy hero slices, while
+      reserve party heroes *do* have slices, so hero slices are now preserved
+      until you save and reload the game. They're parented to a new hidden
+      'Reserve' special slice [Ralph]
 
   *** Bugfixes
     * Linux builds should now hopefully work on all Linux systems since 2011

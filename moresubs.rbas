@@ -128,11 +128,7 @@ WITH gam.hero(slot)
  .hand_pos_overridden = NO
  .portrait_pic = her.portrait
  .portrait_pal = her.portrait_pal
-
- IF slot < active_party_slots THEN
-  'Currently only active heroes get slices
-  .sl = create_hero_slices(slot)
- END IF
+ .sl = create_hero_slices(slot)
 END WITH
 
 '--name
@@ -462,19 +458,7 @@ END SUB
 
 'Copy data from party list (gam.hero()) to caterpillar (herow())
 LOCAL SUB update_herow_on_party_change()
- 'Only heroes in the active party have slices. Since heroes might
- 'have been swapped in/out of the party we need to check all heroes
  DIM as integer rank, slot
- FOR slot = 0 TO UBOUND(gam.hero)
-  WITH gam.hero(slot)
-   IF slot < active_party_slots THEN
-    IF .id >= 0 ANDALSO .sl = NULL THEN .sl = create_hero_slices(slot)
-   ELSE
-    DeleteSlice @.sl
-   END IF
-  END WITH
- NEXT
-
  FOR rank = 0 TO UBOUND(herow)
   herow(rank).sl = NULL
   herow(rank).party_slot = -1
