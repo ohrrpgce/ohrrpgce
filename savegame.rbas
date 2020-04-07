@@ -580,7 +580,6 @@ END SUB
 
 SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
  DIM as integer i, j
- DIM her as HeroDef 'used to provide default values when missing
  
  READNODE node
   WITHNODE node."slot" as slot
@@ -588,40 +587,23 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
    i = GetInteger(slot)
    SELECT CASE i
     CASE 0 TO 40
-    
+
      WITH gam.hero(i)
 
       IF slot."id".exists THEN
-       gam.hero(i).id = slot."id"
-       loadherodata her, gam.hero(i).id      
-
-       'Load defaults (for older saves which don't contain elemental data)
-       FOR j = 0 TO gen(genNumElements) - 1
-        .elementals(j) = her.elementals(j)
-       NEXT
-       
-       'Load defaults for hand position
-       FOR j = 0 TO 1
-        .hand_pos(j) = her.hand_pos(j)
-       NEXT j
-       .hand_pos_overridden = NO
-       
-       'Defaults for portrait
-       .portrait_pic = her.portrait
-       .portrait_pal = her.portrait_pal
-
+       addhero slot."id", i, slot."lev", NO
       END IF
 
       'Other data must be loaded even if the hero slot is empty, for compatibility
 
       DIM base_stats_missing as bool = NO
 
-      READNODE slot, default
+      READNODE slot
        slot."id".ignore
 
-       gam.hero(i).name = slot."name".string
+       .name = slot."name".string
 
-       gam.hero(i).locked = slot."locked".exists
+       .locked = slot."locked".exists
 
        READNODE slot."stats".warn as ch
         WITHNODE ch."stat" as n
@@ -646,22 +628,22 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
        .lev_gain = slot."lev_gain"
        .exp_cur = slot."exp"
        .exp_next = slot."exp_next"
-       .exp_mult = slot."exp_mult".default(her.exp_mult).double
+       .exp_mult = slot."exp_mult".double
        .def_wep = slot."def_wep"
 
-       READNODE slot."in_battle".warn as ch, default
+       READNODE slot."in_battle".warn as ch
         .battle_pic = ch."pic"
         .battle_pal = ch."pal"
        END READNODE
 
-       READNODE slot."walkabout".warn as ch, default
+       READNODE slot."walkabout".warn as ch
         .pic = ch."pic"
         .pal = ch."pal"
        END READNODE
 
-       READNODE slot."portrait" as ch, default
-        .portrait_pic = ch."pic".integer.default(.portrait_pic)
-        .portrait_pal = ch."pal".integer.default(.portrait_pal)
+       READNODE slot."portrait" as ch
+        .portrait_pic = ch."pic".integer
+        .portrait_pal = ch."pal".integer
        END READNODE
 
        READNODE slot."hand" as hand
@@ -713,7 +695,7 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
          j = GetInteger(n)
          SELECT CASE j
           CASE 0 TO maxMPLevel
-           gam.hero(i).levelmp(j) = n."val"
+           .levelmp(j) = n."val"
           CASE ELSE
            rsav_warn "invalid level mp slot " & j
          END SELECT
@@ -725,7 +707,7 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
          j = GetInteger(n)
          SELECT CASE j
           CASE 0 TO 4
-           gam.hero(i).equip(j).id = n."item".default(-1)
+           .equip(j).id = n."item".default(-1)
           CASE ELSE
            rsav_warn "invalid equip slot " & j
          END SELECT
@@ -1106,6 +1088,8 @@ SUB gamestate_onetime_to_reload(byval parent as Reload.NodePtr)
  SaveBitsetArray(ch, buf(), UBOUND(buf))
 END SUB
 
+'TODO: a lot of hero data should only be saved if it differs from the hero
+'definition, so that it will update if the hero definition is edited.
 SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
  DIM node as NodePtr
  node = SetChildNode(parent, "party")
