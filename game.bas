@@ -4025,7 +4025,7 @@ SUB refresh_map_slice()
    showbug "NULL SliceTable.MapLayer(" & i & ") when resetting tilesets in refresh_map_slice()"
   ELSE
    ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), @pass
-   SliceTable.MapLayer(i)->Visible = IIF(i = 0, YES, readbit(gmap(), 19, i - 1))
+   SliceTable.MapLayer(i)->Visible = IIF(i = 0, YES, xreadbit(gmap(), i - 1, 19))
   END IF
  NEXT i
  FOR i as integer = UBOUND(maptiles) + 1 TO UBOUND(SliceTable.MapLayer)
