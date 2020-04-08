@@ -16,14 +16,30 @@ Child slices are grouped together with their parent, and they move as a group.
 
 While holding Ctrl you can press up and down to move to the previous and next siblings of a slice; and press left and right to select the parent and the first child.
 
+Press V to toggle a slice visible/invisible. This doesn't work on the children of Select slices. Invisible slices have a different colour in the menu.
+
+Press H to hide the children of a slice in the editor menu, but the children can still be visible in the collection
+
+Press R to reset a slice's position: to position 0,0, aligned and anchored to top-left corner, and not filling.
+
 Press Delete if you want to remove a slice.
 
-Press Ctrl+C to copy a slice and its children. Press Ctrl+V to paste a copied slice before the current one.
+Press Ctrl+C to copy a slice and its children. Press Ctrl+V to paste a copied slice before the current one. Press Ctrl+C while no slice is selected to copy all slices in the collection.
 
-Press F2 to export this slice collection to a file.
+Press F2 to export your slice collection to a file.
+
+Press Ctrl+F2 to save (export) to the same file that you loaded from (using F3),
+if any.
+
+Press F3 to import a slice collection (the collection you are currently working on will be replaced.)
 
 Press CTRL+F to edit the children of the currently selected slice in full-screen.
 
-Press F4 to hide the menu, so you can see the slice collection unobstructed. Press F4 again to display the menu.
+Press F4 to switch between hiding the menu background, hiding the menu (so you can see the slice collection unobstructed), hiding the slices, or showing both.
 
-Press F5 to toggle whether the Root slice is shown.
+Press F5 to toggle whether the root slice is shown. For a slice collection, the root slice is by default a container set to fill its parent (which results in it filling the whole screen in the editor). "load slice collection" returns a handle to this root slice. You can freely change any of the properties of the root slice or even turn it into something else if you don't want an extra container.
+NOTE: if you add no children to the root slice, it won't be saved!
+
+Press F6 to shift around your view of the whole slice collection around. This does not modify the collection, it is only for help while editing.
+
+Press F7 to toggle whether outline boxes are drawn around the currently selected slice and the one under the mouse.
