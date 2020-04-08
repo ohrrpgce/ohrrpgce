@@ -412,28 +412,44 @@ void clampRectToSurface( SurfaceRect* inRect, SurfaceRect* outRect, Surface* pSu
 
 // Blend between two pixels.
 // Alpha channel-based blending isn't implemented yet; this blends using fixed alpha
-// alpha is 0-256
-static RGBcolor alpha_blend(RGBcolor &c1, RGBcolor &c2, int alpha, BlendMode mode) {
-	RGBcolor dest;
-	if (mode == blendModeAdditive) {
-		int r, g, b;
-		r = c1.r * alpha / 256 + c2.r;
-		if (r > 255) r = 255;
-		g = c1.g * alpha / 256 + c2.g;
-		if (g > 255) g = 255;
-		b = c1.b * alpha / 256 + c2.b;
-		if (b > 255) b = 255;
-		dest.r = r;
-		dest.g = g;
-		dest.b = b;
-	} else {
+// alpha is 0-256, except for blendModeMultiply which uses 0-255!
+static RGBcolor alpha_blend(RGBcolor &src, RGBcolor &dest, int alpha, BlendMode mode) {
+	RGBcolor res;
+	// See blitohr() for how to extend the following to per-pixel alpha
+	if (mode == blendModeNormal) {
 		int alpha2 = 256 - alpha;
-		dest.r = (c1.r * alpha + c2.r * alpha2) / 256;
-		dest.g = (c1.g * alpha + c2.g * alpha2) / 256;
-		dest.b = (c1.b * alpha + c2.b * alpha2) / 256;
-		dest.a = c1.a;
+		res.r = (src.r * alpha + dest.r * alpha2) / 256;
+		res.g = (src.g * alpha + dest.g * alpha2) / 256;
+		res.b = (src.b * alpha + dest.b * alpha2) / 256;
+		res.a = dest.a;  // Wrong, see blitohr
+	} else if (mode == blendModeAdd) {
+		int r, g, b;
+		r = src.r * alpha / 256 + dest.r;
+		if (r > 255) r = 255;
+		g = src.g * alpha / 256 + dest.g;
+		if (g > 255) g = 255;
+		b = src.b * alpha / 256 + dest.b;
+		if (b > 255) b = 255;
+		res.r = r;
+		res.g = g;
+		res.b = b;
+		res.a = dest.a;
+	} else { // (mode == blendModeMultiply) {
+		int r, g, b;
+		int alpha2 = 255 - alpha;
+		//r = (src.r * dest.r + dest.r * alpha2) / 255;   // premultiplied alpha
+		r = (src.r * dest.r * alpha / 256 + dest.r * alpha2) / 256;
+		if (r > 255) r = 255;
+		g = (src.g * dest.g * alpha / 256 + dest.g * alpha2) / 256;
+		if (g > 255) g = 255;
+		b = (src.b * dest.b * alpha / 256 + dest.b * alpha2) / 256;
+		if (b > 255) b = 255;
+		res.r = r;
+		res.g = g;
+		res.b = b;
+		res.a = dest.a;  // Wrong, see blitohr
 	}
-	return dest;
+	return res;
 }
 
 // Draw a Surface, optionally with transparency or palette, but without scaling/stretching/rotation.

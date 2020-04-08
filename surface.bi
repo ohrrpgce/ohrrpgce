@@ -78,8 +78,9 @@ End Type
 
 Enum 'BlendMode
 	blendModeNormal = 0
-	blendModeAdditive = 1
-	blendModeLAST = 1
+	blendModeAdd = 1
+	blendModeMultiply = 2
+	blendModeLAST = 2
 End Enum
 Type BlendMode as integer
 

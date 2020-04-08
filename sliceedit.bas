@@ -238,9 +238,10 @@ DirectionCaptions(0) = "Up"
 DirectionCaptions(1) = "Right"
 DirectionCaptions(2) = "Down"
 DirectionCaptions(3) = "Left"
-REDIM SHARED BlendModeCaptions(1) as string
+REDIM SHARED BlendModeCaptions(2) as string
 BlendModeCaptions(0) = "Normal"    'blendModeNormal
-BlendModeCaptions(1) = "Additive"  'blendModeAdditive
+BlendModeCaptions(1) = "Add"       'blendModeAdd
+BlendModeCaptions(2) = "Multiply"  'blendModeMultiply
 
 '==============================================================================
 

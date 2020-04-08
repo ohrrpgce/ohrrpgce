@@ -80,18 +80,38 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 					srcc = pintpal[*srcp];
 
 				// Blend source and dest pixels in 24-bit colour space (.a ignored)
+				// In future to support srcc.a replace opacity with src_a:
+				// src_a = opts->opacity * srcc.a / 255;
+				// and uncomment the commented lines.
 				int r, g, b;
-				if (opts->blend_mode == blendModeAdditive) {
+				if (opts->blend_mode == blendModeNormal) {
+					// Equivalent to SDL2's SDL_BLENDMODE_BLEND
+					r = srcc.r * opacity + destc.r * (1. - opacity);
+					g = srcc.g * opacity + destc.g * (1. - opacity);
+					b = srcc.b * opacity + destc.b * (1. - opacity);
+					//a = 255 * opacity + destc.a * (1. - opacity);
+				} else if (opts->blend_mode == blendModeAdd) {
+					// Equivalent to SDL2's SDL_BLENDMODE_ADD
 					r = srcc.r * opacity + destc.r;
 					if (r > 255) r = 255;
 					g = srcc.g * opacity + destc.g;
 					if (g > 255) g = 255;
 					b = srcc.b * opacity + destc.b;
 					if (b > 255) b = 255;
-				} else { // opts->blend_mode == blendModeNormal
-					r = srcc.r * opacity + destc.r * (1. - opacity);
-					g = srcc.g * opacity + destc.g * (1. - opacity);
-					b = srcc.b * opacity + destc.b * (1. - opacity);
+					//a = destc.a;
+				} else { // (opts->blend_mode == blendModeMultiply) {
+					// Equivalent to SDL2's new SDL_BLENDMODE_MUL, except that
+					// requires pre-multiplied alpha, unlike other modes!
+					// (SDL2 bug?)
+					//r = srcc.r * destc.r / 255 + destc.r * (1. - opacity);  // premultiplied alpha
+					r = srcc.r * opacity * destc.r / 255 + destc.r * (1. - opacity);
+					if (r > 255) r = 255;
+					g = srcc.g * opacity * destc.g / 255 + destc.g * (1. - opacity);
+					if (g > 255) g = 255;
+					b = srcc.b * opacity * destc.b / 255 + destc.b * (1. - opacity);
+					if (b > 255) b = 255;
+					//a = src_a * destc.a / 255 + destc.a * (1. - opacity);
+					//if (a > 255) a = 255;
 				}
 
 				// Convert back to master palette (at last setpal())

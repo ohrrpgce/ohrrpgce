@@ -70,8 +70,9 @@ typedef struct
 enum BlendMode
 {
 	blendModeNormal = 0,
-	blendModeAdditive = 1,
-	blendModeLAST = 1
+	blendModeAdd = 1,
+	blendModeMultiply = 2,
+	blendModeLAST = 2
 };
 
 // frame_draw additional draw options
