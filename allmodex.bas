@@ -408,6 +408,11 @@ dim shared textfg as integer
 dim shared textbg as integer
 
 dim shared intpal(0 to 255) as RGBcolor	 'current palette
+extern "C"
+extern pintpal as RGBcolor ptr  'Global which is accessible from C/C++
+dim pintpal as RGBcolor ptr = @intpal(0)
+end extern
+
 dim shared updatepal as bool             'setpal called, load new palette at next setvispage
 dim shared nearcolor_kdtree as GifKDTree ptr  'Use for fast nearest-color lookups
 
@@ -7535,9 +7540,11 @@ end function
 'Find the nearest color in the current palette (intpal() - set by setpal). Alpha ignored.
 'This may produce slightly worse results than nearcolor because it uses a slightly different
 'color distance function. However it's over 10x faster.
-function nearcolor_fast(col as RGBcolor) as ubyte
+extern "C"
+function nearcolor_fast(byval col as RGBcolor) as ubyte
 	return query_KDTree(nearcolor_kdtree, col)
 end function
+end extern
 
 'Version which supports out-of-bounds r/g/b values. Note that this behaves
 'differently to nearcolor, which can search for a color "bluer than blue".

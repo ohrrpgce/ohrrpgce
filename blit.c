@@ -61,6 +61,54 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 	destp = get_frame_buf(destspr) + startx + starty * destspr->pitch;
 	destlineinc = destspr->pitch - (endx - startx + 1);
 
+	if (opts->with_blending && (opts->opacity < 1. || opts->blend_mode != blendModeNormal)) {
+		double opacity = opts->opacity;
+
+		for (i = starty; i <= endy; i++) {
+			for (j = endx - startx; j >= 0; j--) {
+				if (trans && *maskp == 0) {
+					destp++;
+					maskp++;
+					srcp++;
+					continue;
+				}
+
+				RGBcolor srcc, destc = pintpal[*destp];
+				if (pal)
+					srcc = pintpal[pal->col[*srcp]];
+				else
+					srcc = pintpal[*srcp];
+
+				// Blend source and dest pixels in 24-bit colour space (.a ignored)
+				int r, g, b;
+				if (opts->blend_mode == blendModeAdditive) {
+					r = srcc.r * opacity + destc.r;
+					if (r > 255) r = 255;
+					g = srcc.g * opacity + destc.g;
+					if (g > 255) g = 255;
+					b = srcc.b * opacity + destc.b;
+					if (b > 255) b = 255;
+				} else { // opts->blend_mode == blendModeNormal
+					r = srcc.r * opacity + destc.r * (1. - opacity);
+					g = srcc.g * opacity + destc.g * (1. - opacity);
+					b = srcc.b * opacity + destc.b * (1. - opacity);
+				}
+
+				// Convert back to master palette (at last setpal())
+				int res;
+				RGBcolor searchcol = {{b, g, r, 0}};
+				res = nearcolor_fast(searchcol);
+
+				destp[0] = res;
+				destp++;
+				maskp++;
+				srcp++;
+			}
+			destp += destlineinc;
+			maskp += srclineinc;
+			srcp += srclineinc;
+		}
+	} else
 	if (pal != NULL && trans != 0) {
 		for (i = starty; i <= endy; i++) {
 			//loop unrolling copied from below, but not nearly as effective
