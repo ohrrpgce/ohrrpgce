@@ -24,7 +24,7 @@ DECLARE SUB reparent_hero_slices()
 DECLARE SUB orphan_hero_slices()
 DECLARE SUB reparent_npc_slices()
 DECLARE SUB orphan_npc_slices()
-DECLARE FUNCTION hero_layer() as Slice Ptr
+DECLARE FUNCTION hero_layer(party_slot as integer) as Slice Ptr
 DECLARE FUNCTION npc_layer() as Slice Ptr
 
 DECLARE FUNCTION npc_at_spot(tilepos as XYPair, byval copynum as integer=0) as NPCIndex
