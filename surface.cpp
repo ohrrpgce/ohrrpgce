@@ -410,6 +410,33 @@ void clampRectToSurface( SurfaceRect* inRect, SurfaceRect* outRect, Surface* pSu
 	}
 }
 
+// Blend between two pixels.
+// Alpha channel-based blending isn't implemented yet; this blends using fixed alpha
+// alpha is 0-256
+static RGBcolor alpha_blend(RGBcolor &c1, RGBcolor &c2, int alpha, BlendMode mode) {
+	RGBcolor dest;
+	if (mode == blendModeAdditive) {
+		int r, g, b;
+		r = c1.r * alpha / 256 + c2.r;
+		if (r > 255) r = 255;
+		g = c1.g * alpha / 256 + c2.g;
+		if (g > 255) g = 255;
+		b = c1.b * alpha / 256 + c2.b;
+		if (b > 255) b = 255;
+		dest.r = r;
+		dest.g = g;
+		dest.b = b;
+	} else {
+		int alpha2 = 256 - alpha;
+		dest.r = (c1.r * alpha + c2.r * alpha2) / 256;
+		dest.g = (c1.g * alpha + c2.g * alpha2) / 256;
+		dest.b = (c1.b * alpha + c2.b * alpha2) / 256;
+		dest.a = c1.a;
+	}
+	return dest;
+}
+
+// Draw a Surface, optionally with transparency or palette, but without scaling/stretching/rotation.
 // The src and dest rectangles may be different sizes; the image is not
 // stretched over the rectangle.  Instead the top-left corner of the source rect
 // is drawn at the top-left corner of the dest rect.  The rectangles may be over
@@ -463,6 +490,16 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 	if (itX_max <= 0 || itY_max <= 0)
 		return 0;
 
+	int alpha = 256;
+	bool with_blending = pOpts->with_blending;
+	if (with_blending) {
+		alpha = pOpts->opacity * 256;
+		if (pOpts->opacity <= 0.)
+			return 0;  //TODO: remove this if write_mask is implemented!
+		if (pOpts->opacity >= 1. && pOpts->blend_mode == blendModeNormal)
+			with_blending = false;
+	}
+
 	// Number of pixels skipped from the end of one row to start of next
 	int srcLineEnd = pSurfaceSrc->pitch - itX_max;
 	int destLineEnd = pSurfaceDest->pitch - itX_max;
@@ -470,16 +507,30 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 	// Two of these are invalid
 	uint8_t *restrict srcp8 = &pSurfaceSrc->pixel8(srcX, srcY);
 	uint8_t *restrict destp8 = &pSurfaceDest->pixel8(destX, destY);
-	uint32_t *restrict srcp32 = (uint32_t*)&pSurfaceSrc->pixel32(srcX, srcY);
-	uint32_t *restrict destp32 = (uint32_t*)&pSurfaceDest->pixel32(destX, destY);
+	RGBcolor *restrict srcp32 = &pSurfaceSrc->pixel32(srcX, srcY);
+	RGBcolor *restrict destp32 = &pSurfaceDest->pixel32(destX, destY);
 
 	if (pSurfaceSrc->format == SF_32bit) { //both are 32bit (since already validated destination target)
-		for (int itY = 0; itY < itY_max; itY++) {
-			memcpy(destp32, srcp32, 4 * itX_max);
-			srcp32 += pSurfaceSrc->pitch;
-			destp32 += pSurfaceDest->pitch;
+		// TODO: implement alpha channel-based blending and colorkeying
+
+		if (with_blending) {
+			for (int itY = 0; itY < itY_max; itY++) {
+				for (int itX = 0; itX < itX_max; itX++) {
+					*destp32 = alpha_blend(*srcp32++, *destp32, alpha, pOpts->blend_mode);
+					destp32++;
+				}
+				srcp32 += srcLineEnd;
+				destp32 += destLineEnd;
+			}
+		} else {
+			for (int itY = 0; itY < itY_max; itY++) {
+				memcpy(destp32, srcp32, 4 * itX_max);
+				srcp32 += pSurfaceSrc->pitch;
+				destp32 += pSurfaceDest->pitch;
+			}
 		}
 	} else if (pSurfaceDest->format == SF_8bit) { //both are 8bit
+		// alpha/opacity ignored, not supported. Handled by blitohr in blit.c
 		if (bUseColorKey0) {
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
@@ -529,10 +580,13 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 
 		if (bUseColorKey0) {
 			for (int itY = 0; itY < itY_max; itY++) {
-				for (int itX = 0; itX < itX_max; itX++)
-				{
-					if (*srcp8)
-						*destp32 = pal32[*srcp8].col;
+				for (int itX = 0; itX < itX_max; itX++) {
+					if (*srcp8) {
+						if (with_blending)
+							*destp32 = alpha_blend(pal32[*srcp8], *destp32, alpha, pOpts->blend_mode);
+						else
+							*destp32 = pal32[*srcp8];
+					}
 					srcp8++;
 					destp32++;
 				}
@@ -542,7 +596,12 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 		} else {
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
-					*destp32++ = pal32[*srcp8++].col;
+					if (with_blending)
+						*destp32 = alpha_blend(pal32[*srcp8], *destp32, alpha, pOpts->blend_mode);
+					else
+						*destp32 = pal32[*srcp8];
+					srcp8++;
+					destp32++;
 				}
 				srcp8 += srcLineEnd;
 				destp32 += destLineEnd;

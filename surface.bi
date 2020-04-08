@@ -76,6 +76,13 @@ Type RGBPalette
 	col(255) as RGBcolor
 End Type
 
+Enum 'BlendMode
+	blendModeNormal = 0
+	blendModeAdditive = 1
+	blendModeLAST = 1
+End Enum
+Type BlendMode as integer
+
 'frame_draw additional draw options
 Type DrawOptions
 	' Size multiplier.
@@ -86,6 +93,13 @@ Type DrawOptions
 	' equal to the mask (or color-key) for the source rectangle. Does not OR them.
 	' (Not implemented for Surfaces)
 	write_mask as bool
+
+	' If false, all blending/modulation options are ignored. Used as an early-out
+	with_blending as bool
+
+	blend_mode as BlendMode
+
+	opacity as single
 
 	declare constructor (scale as integer = 1)
 End Type

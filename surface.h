@@ -67,6 +67,13 @@ typedef struct
 	RGBcolor col[256];
 } RGBPalette;
 
+enum BlendMode
+{
+	blendModeNormal = 0,
+	blendModeAdditive = 1,
+	blendModeLAST = 1
+};
+
 // frame_draw additional draw options
 typedef struct
 {
@@ -78,6 +85,13 @@ typedef struct
 	// equal to the mask (or color-key) for the source rectangle. Does not OR them.
 	// (Not implemented for Surfaces)
 	boolint write_mask;
+
+	// If false, all blending/modulation options are ignored. Used as an early-out
+	boolint with_blending;
+
+	enum BlendMode blend_mode;
+
+	float opacity;
 } DrawOptions;
 
 extern DrawOptions def_drawoptions;
