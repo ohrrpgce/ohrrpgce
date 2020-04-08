@@ -73,7 +73,8 @@ END TYPE
 
 TYPE HeroWalkabout
   party_slot as integer  'The gam.hero() index of this hero, or -1 if empty
-  sl as Slice ptr        'Alias to gam.hero(.party_slot).sl, or NULL
+  sl as Slice ptr        'Alias to gam.hero(.party_slot).sl, or NULL. Even if sl is parented
+                         'to the Reserve layer, it isn't NULL.
   UNION
     TYPE
       xgo as integer

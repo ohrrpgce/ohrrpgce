@@ -142,7 +142,7 @@ SUB setmapxy
   SELECT CASE gen(genCameraMode)
    CASE herocam
     DIM sl as Slice ptr = herow(gen(genCameraArg1)).sl
-    IF sl THEN center_camera_on_walkabout sl
+    IF sl ANDALSO sl->Parent <> SliceTable.Reserve THEN center_camera_on_walkabout sl
    CASE npccam
     IF gen(genCameraArg1) > UBOUND(npc) ORELSE npc(gen(genCameraArg1)).id <= 0 THEN
      gen(genCameraMode) = stopcam

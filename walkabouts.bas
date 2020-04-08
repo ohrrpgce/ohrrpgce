@@ -237,30 +237,26 @@ LOCAL FUNCTION should_hide_hero_caterpillar() as bool
    ANDALSO vstate.dat.do_not_hide_party = NO
 END FUNCTION
 
-LOCAL FUNCTION should_show_normal_caterpillar() as bool
+LOCAL FUNCTION should_show_leader() as bool
+ RETURN vstate.active = NO ORELSE vstate.dat.do_not_hide_leader ORELSE vstate.dat.do_not_hide_party
+END FUNCTION
+
+LOCAL FUNCTION caterpillar_enabled() as bool
  '"Enable Caterpillar Party"
  RETURN prefbit(1) ANDALSO (vstate.active = NO ORELSE vstate.dat.do_not_hide_leader = NO)
 END FUNCTION
 
 LOCAL SUB update_walkabout_hero_slices()
- DIM lastrank as integer = active_party_size - 1
- DIM should_hide as bool = should_hide_hero_caterpillar()
-
- DIM rank as integer, lastvisrank as integer
- IF should_show_normal_caterpillar() THEN
-  lastvisrank = lastrank
- ELSE
-  '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
-  lastvisrank = 0
- END IF
- FOR rank = 0 TO lastvisrank
-  update_walkabout_pos herow(rank).sl, herox(rank), heroy(rank), heroz(rank)
-  set_walkabout_frame herow(rank).sl, herodir(rank), wtog_to_frame(herow(rank).wtog)
-  set_walkabout_vis herow(rank).sl, NOT should_hide
+ 'Might as well update walkabout frame for all hero slices even if hidden.
+ DIM show_caterpillar as bool = caterpillar_enabled() ANDALSO should_hide_hero_caterpillar() = NO
+ FOR rank as integer = 0 TO active_party_size - 1
+  WITH herow(rank)
+   update_walkabout_pos .sl, herox(rank), heroy(rank), heroz(rank)
+   set_walkabout_frame .sl, herodir(rank), wtog_to_frame(.wtog)
+   set_walkabout_vis .sl, show_caterpillar
+  END WITH
  NEXT rank
- FOR rank = lastvisrank + 1 TO lastrank
-  set_walkabout_vis herow(rank).sl, NO
- NEXT rank
+ IF should_show_leader() THEN set_walkabout_vis herow(0).sl, YES
 
  'Move hero slices to the right layer, decided by hero_layer().
  'Active party heroes (even if caterpillar is disabled, for backcompat) have
@@ -271,9 +267,11 @@ LOCAL SUB update_walkabout_hero_slices()
  FOR slot as integer = UBOUND(gam.hero) TO 0 STEP -1
   WITH gam.hero(slot)
    IF .sl THEN
-    SetSliceParent .sl, hero_layer(slot)
-    IF slot >= active_party_slots THEN
+    DIM parent as Slice ptr = hero_layer(slot)
+    SetSliceParent .sl, parent
+    IF parent = SliceTable.Reserve THEN
      .sl->Pos = XY(-999, -999)  'So doesn't appear over the map in the slice editor
+     .sl->Visible = NO  'Good for backcompat
     END IF
    END IF
   END WITH
@@ -317,7 +315,7 @@ LOCAL SUB update_walkabout_npc_slices()
 END SUB
 
 'Update state of NPC and hero slices: position, sprite frame, vis, sort order, shadow
-'(except heroes, they don't have shadows).
+'(vehicle NPCs only), and slice layer (heroes only).
 'Called before drawing each frame.
 'Does not create or delete NPC/hero slices (done by visnpc and party_change_updates)
 'or update walkabout sprite/palette (done by vishero and reset_npc_graphics --
@@ -399,6 +397,9 @@ FUNCTION hero_layer(party_slot as integer) as Slice Ptr
  IF party_slot >= active_party_slots THEN
   'Reserve hero slices go elsewhere
   layer = SliceTable.Reserve
+ ' ELSEIF party_slot_to_rank(party_slot) > 0 ANDALSO caterpillar_enabled() = NO THEN
+ '  '--Only the leader appears on the map, other heroes vanish
+ '  layer = SliceTable.Reserve
  ELSEIF gmap(16) = 2 THEN ' heroes and NPCs together
   layer = SliceTable.Walkabout
  ELSE ' heroes and NPCs on separate layers

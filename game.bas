@@ -1440,6 +1440,7 @@ SUB update_heroes(force_step_check as bool=NO)
     IF whoi = 0 AND prefbit(1) = NO THEN  '"Enable Caterpillar Party" off
      'The caterpillar is disabled, so maybe harm the whole party when the leader steps on a harm tile
      'if backcompat sit, otherwise old buggy behaviour: just the leader
+     '(Note we ignore whether a vehicle has disabled the caterpillar)
      IF prefbit(28) THEN  'Harm tiles harm non-caterpillar heroes
       harm_whole_party = YES
      END IF
