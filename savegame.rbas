@@ -1552,7 +1552,8 @@ FOR i = 0 TO 1031
 NEXT i
 show_load_index z, "heroes"
 FOR i = 0 TO 40
- gam.hero(i).id = buffer(z) - 1 : z = z + 1
+ DIM who as integer = buffer(z) - 1: z = z + 1
+ IF who > -1 THEN addhero who, i, , NO, YES  'allow_rename=NO, loading=YES
 NEXT i
 show_load_index z, "unused a"
 FOR i = 0 TO 500
