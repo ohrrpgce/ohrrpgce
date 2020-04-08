@@ -58,6 +58,8 @@ April ? 2020 [Gorgonzola]
       now swapped too, instead of just the sprites changing [Ralph]
     * "create sprite" always returned 0 [Bena, Ralph]
     * --scriptlog commandline arg didn't work
+    * If "Do not hide leader" vehicle bit was on, "Do not hide party" was
+      ignored [Ralph]
 
   *** Stuff Only Developers Will Notice
     * All .py build scripts and utilities will run under Python 3 as well as

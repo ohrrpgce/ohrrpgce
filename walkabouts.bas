@@ -233,7 +233,6 @@ LOCAL FUNCTION should_hide_hero_caterpillar() as bool
    ANDALSO vstate.mounting = NO _
    ANDALSO vstate.trigger_cleanup = NO _
    ANDALSO vstate.ahead = NO _
-   ANDALSO vstate.dat.do_not_hide_leader = NO _
    ANDALSO vstate.dat.do_not_hide_party = NO
 END FUNCTION
 
@@ -241,22 +240,26 @@ LOCAL FUNCTION should_show_leader() as bool
  RETURN vstate.active = NO ORELSE vstate.dat.do_not_hide_leader ORELSE vstate.dat.do_not_hide_party
 END FUNCTION
 
+'Unused
 LOCAL FUNCTION caterpillar_enabled() as bool
  '"Enable Caterpillar Party"
- RETURN prefbit(1) ANDALSO (vstate.active = NO ORELSE vstate.dat.do_not_hide_leader = NO)
+ RETURN prefbit(1) ANDALSO (vstate.active = NO ORELSE vstate.dat.do_not_hide_party)
 END FUNCTION
 
 LOCAL SUB update_walkabout_hero_slices()
  'Might as well update walkabout frame for all hero slices even if hidden.
- DIM show_caterpillar as bool = caterpillar_enabled() ANDALSO should_hide_hero_caterpillar() = NO
+ DIM show_caterpillar as bool = should_hide_hero_caterpillar() = NO
  FOR rank as integer = 0 TO active_party_size - 1
   WITH herow(rank)
    update_walkabout_pos .sl, herox(rank), heroy(rank), heroz(rank)
    set_walkabout_frame .sl, herodir(rank), wtog_to_frame(.wtog)
-   set_walkabout_vis .sl, show_caterpillar
+   IF rank = 0 THEN
+    set_walkabout_vis .sl, show_caterpillar ORELSE should_show_leader()
+   ELSE
+    set_walkabout_vis .sl, show_caterpillar ANDALSO prefbit(1)  '"Enable Caterpillar Party"
+   END IF
   END WITH
  NEXT rank
- IF should_show_leader() THEN set_walkabout_vis herow(0).sl, YES
 
  'Move hero slices to the right layer, decided by hero_layer().
  'Active party heroes (even if caterpillar is disabled, for backcompat) have
