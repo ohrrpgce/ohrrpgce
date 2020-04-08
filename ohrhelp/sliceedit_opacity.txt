@@ -1,0 +1,1 @@
+Opacity is the opposite of transparency. At 100% the slice is solid, at 0% it's invisible.

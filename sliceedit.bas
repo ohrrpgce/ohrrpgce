@@ -238,6 +238,9 @@ DirectionCaptions(0) = "Up"
 DirectionCaptions(1) = "Right"
 DirectionCaptions(2) = "Down"
 DirectionCaptions(3) = "Left"
+REDIM SHARED BlendModeCaptions(1) as string
+BlendModeCaptions(0) = "Normal"    'blendModeNormal
+BlendModeCaptions(1) = "Additive"  'blendModeAdditive
 
 '==============================================================================
 
@@ -1520,6 +1523,19 @@ SUB sliceed_header(menu() as string, rules() as EditRule, text as string, helpke
  sliceed_rule_none rules(), helpkey
 END SUB
 
+SUB sliceed_add_blend_edit_rules(menu() as string, rules() as EditRule, drawopts as DrawOptions ptr)
+ WITH *drawopts
+  a_append menu(), " Blending: " & iif(.with_blending, "Enabled", "Disabled")
+  sliceed_rule_tog rules(), "blending", @(.with_blending)
+  IF .with_blending THEN
+   a_append menu(), "  Opacity: " & format_percent(.opacity)
+   sliceed_rule_single rules(), "opacity", erSinglePercentgrabber, @(.opacity), 0, 100
+   a_append menu(), "  Blend mode: " & BlendModeCaptions(.blend_mode)
+   sliceed_rule rules(), "blend_mode", erIntgrabber, @(.blend_mode), 0, blendModeLAST
+  END IF
+ END WITH
+END SUB
+
 SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
  DIM prev_item as string
  IF state.pt <= UBOUND(menu) THEN prev_item = menu(state.pt)
@@ -1587,7 +1603,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   END IF
 
   SELECT CASE .SliceType
-   CASE slMap, slSpecial, slContainer
+   CASE slSpecial, slContainer
    CASE ELSE
     sliceed_header menu(), rules(), "[" & SliceTypeName(sl) & " settings]"
   END SELECT
@@ -1625,6 +1641,10 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      sliceed_rule rules(), "rect_transfact", erIntgrabber, @(dat->fuzzfactor), 0, 99
     END IF
 
+   CASE slMap
+    DIM dat as MapSliceData ptr = .SliceData
+    sliceed_add_blend_edit_rules menu(), rules(), @dat->drawopts
+
    CASE slLine
     DIM dat as LineSliceData ptr = .SliceData
     a_append menu(), "  Color: " & slice_color_caption(dat->col)
@@ -1633,8 +1653,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     ' sliceed_rule_tog rules(), "line_flipped", @dat->flipped
 
    CASE slText
-    DIM dat as TextSliceData Ptr
-    dat = .SliceData
+    DIM dat as TextSliceData Ptr = .SliceData
     a_append menu(), " Text: " & dat->s
     sliceed_rule_str rules(), "text_text", erStrgrabber, @(dat->s), 128000  'Arbitrary limit
     a_append menu(), " Color: " & slice_color_caption(dat->col, "Default")
@@ -1649,8 +1668,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     sliceed_rule_tog rules(), "text_wrap", @(dat->wrap)
 
    CASE slSprite
-    DIM dat as SpriteSliceData Ptr
-    dat = .SliceData
+    DIM dat as SpriteSliceData Ptr = .SliceData
     DIM byref sizeinfo as SpriteSize = sprite_sizes(dat->spritetype)
     a_append menu(), " Type: " & sizeinfo.name
     DIM mintype as SpriteType = IIF(ses.collection_group_number = SL_COLLECT_EDITOR, sprTypeFrame, 0)
@@ -1682,6 +1700,8 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     END IF
     a_append menu(), " Transparent: " & yesorno(dat->trans)
     sliceed_rule_tog rules(), "sprite_trans", @(dat->trans), slgrUPDATESPRITE
+
+    sliceed_add_blend_edit_rules menu(), rules(), @dat->drawopts
 
     IF ses.privileged THEN
      'None of these actually need slgrUPDATESPRITE, but it's the right thing to do.

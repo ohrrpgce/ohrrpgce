@@ -132,6 +132,9 @@ DECLARE Function LoadProp(node as Reload.Nodeptr, propname as zstring ptr, byval
 DECLARE Function LoadPropBool(node as Reload.Nodeptr, propname as zstring ptr, byval defaultval as bool=NO) as bool
 DECLARE Function LoadPropFloat(node as Reload.Nodeptr, propname as zstring ptr, byval defaultval as double=0.0) as double
 
+DECLARE Sub SaveDrawOpts(drawopts as DrawOptions, node as Reload.Nodeptr)
+DECLARE Sub LoadDrawOpts(drawopts as DrawOptions, node as Reload.Nodeptr)
+
 'Other local subs and functions
 DECLARE Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
 DECLARE Function SliceXAlign(sl as Slice Ptr, supportw as integer) as integer
@@ -1975,7 +1978,7 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
    end if
   end if
 
-  frame_draw spr, .img.pal, sl->ScreenX, sl->ScreenY, .trans, page
+  frame_draw spr, .img.pal, sl->ScreenX, sl->ScreenY, .trans, page, .drawopts
 
   if have_copy then
    frame_unload(@spr)
@@ -2114,7 +2117,17 @@ Sub CloneSpriteSlice(byval sl as Slice ptr, byval cl as Slice ptr)
   .d_tick     = dat->d_tick
   .d_back     = dat->d_back
   .d_auto     = dat->d_auto
+  .drawopts   = dat->drawopts
   '.img and .loaded remain NULLs, NO  (for no reason. FIXME: what about Frame sprites?)
+ end with
+end sub
+
+Local Sub SaveDrawOpts(drawopts as DrawOptions, node as Reload.Nodeptr)
+ with drawopts
+  SaveProp node, "blend", .with_blending
+  SaveProp node, "blend_mode", .blend_mode
+  if .opacity < 1. then SavePropAlways node, "opacity", .opacity
+  'scale: not saved yet
  end with
 end sub
 
@@ -2145,6 +2158,16 @@ Sub SaveSpriteSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "d_tick", dat->d_tick
  SaveProp node, "d_back", dat->d_back
  SaveProp node, "d_auto", dat->d_auto
+ SaveDrawOpts dat->drawopts, node
+end sub
+
+Local Sub LoadDrawOpts(drawopts as DrawOptions, node as Reload.Nodeptr)
+ with drawopts
+  .with_blending = LoadProp(node, "blend")
+  .blend_mode = bound(LoadProp(node, "blend_mode"), 0, blendModeLAST)
+  .opacity = bound(LoadPropFloat(node, "opacity", 1.0), 0., 1.)
+  'scale: not loaded yet
+ end with
 end sub
 
 Sub LoadSpriteSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
@@ -2169,6 +2192,7 @@ Sub LoadSpriteSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->d_tick     = bound(LoadProp(node, "d_tick"), -1, large(dat->d_time + 1, 0))
  dat->d_back     = LoadPropBool(node, "d_back")
  dat->d_auto     = LoadPropBool(node, "d_auto")
+ LoadDrawOpts dat->drawopts, node
 
  if dat->spritetype = sprTypeFrame then
   dat->load_asset_as_32bit = LoadPropBool(node, "32bit_asset")
@@ -2359,7 +2383,7 @@ Sub DisposeMapSlice(byval sl as Slice ptr)
  sl->MapData = 0
 end sub
 
-Sub DrawMapSlice(byval sl as Slice ptr, byval p as integer)
+Sub DrawMapSlice(byval sl as Slice ptr, byval page as integer)
  ' MapSlices are sadly exceptions to the slice system. Their size is ignored.
  ' Instead, they are drawn to cover the whole current clipping region.
  ' Their position corresponds to the camera offset.
@@ -2371,12 +2395,12 @@ Sub DrawMapSlice(byval sl as Slice ptr, byval p as integer)
 
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- 
+
  with *sl->MapData
   if .tiles = 0 then exit sub 'tilemap ptr null if the layer doesn't exist. This slice probably shouldn't either.
   if .tileset = 0 then exit sub 'quit silently on a null tileset ptr
   '2nd, 3rd arguments to drawmap are "camera position" of upper left of the screen.
-  drawmap *.tiles, sl->ScreenX * -1, sl->ScreenY * -1, .tileset, p, .transparent, .overlay, .pass
+  drawmap *.tiles, sl->ScreenX * -1, sl->ScreenY * -1, .tileset, page, .transparent, .overlay, .pass, , , , .drawopts
  end with
 end sub
 

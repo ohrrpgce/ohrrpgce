@@ -428,7 +428,7 @@ Type SpriteSliceData
  paletted as bool   'UNSAVED: YES: 4-bit, NO: 8-bit  (could remove this when 256-colour palettes added, or change meaning)
  pal as integer     '(UNSAVED if unpaletted) Set pal to -1 for the default. Ignored for unpaletted.
                     '-2 if using a custom Palette16 ptr (sprTypeFrame only).
- trans as bool      'Draw transparently?
+ trans as bool      'Draw with color 0 as transparent?
  loaded as bool     'UNSAVED: Set to NO to force a re-load on the next draw
  img as GraphicPair 'UNSAVED: No need to manually populate this, done in draw (.pal = NULL for unpaletted)
 
@@ -441,6 +441,10 @@ Type SpriteSliceData
  zoom as single     'UNSAVED. Zoom ratio. Defaults to 1.
  rz_smooth as integer  'UNSAVED: 0-2 rotozoom smoothness. 0: none, 1: use bi-linear filtering (32-bit only)
                        '2: use scale_surface, better when shrinking (Non-rotated & 32-bit only)
+
+ 'Blending/transparency settings
+ 'drawopts.scale and drawopts.write_mask are unused.
+ drawopts as DrawOptions = def_drawoptions
 
  'dissolve state data
  dissolving as bool
@@ -457,6 +461,7 @@ End Type
 'Can NOT be saved, loaded or cloned. (Hmm... cloning could be useful...)
 Type MapSliceData
  transparent as bool 'Whether or not color 0 in the tileset is transparent
+ drawopts as DrawOptions = def_drawoptions
  overlay as integer  '0, 1, or 2. For backcompat with layers affect by obsolete overhead bits.
  tileset as TilesetData ptr 'NOTE: ptr to the same memory pointed to by the ptrs in the tilesets() array in game.bas (Not owned!)
  tiles as TileMap ptr 'NOTE: ptr to one of maptiles() in game.bas (Not owned!)
@@ -690,7 +695,7 @@ DECLARE Function SpriteSliceIsDissolving(byval sl as slice ptr, byval only_auto 
 DECLARE Function SpriteSliceNumFrames(sl as Slice ptr) as integer
 
 DECLARE Sub DisposeMapSlice(byval sl as slice ptr)
-DECLARE Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)
+DECLARE Sub DrawMapSlice(byval sl as slice ptr, byval page as integer)
 DECLARE Function GetMapSliceData(byval sl as slice ptr) as MapSliceData ptr
 DECLARE Function NewMapSlice(byval parent as Slice ptr, byref dat as MapSliceData) as slice ptr
 DECLARE Sub ChangeMapSliceTileset (byval sl as slice ptr, byval tileset as TilesetData ptr)

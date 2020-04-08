@@ -99,7 +99,7 @@ Type DrawOptions
 
 	blend_mode as BlendMode
 
-	opacity as single
+	opacity as single = 1.
 
 	declare constructor (scale as integer = 1)
 End Type

@@ -1,0 +1,8 @@
+There are two blend modes:
+
+Normal: ordinary transparent objects, for example glass and water (eg. rain).
+
+Additive: This adds to the red, green and blue (RGB) values of each pixel instead of mixing  with the slice being drawn. Therefore it always brightens what's already on the screen. Parts of the slice that are black (RGB 0,0,0) will have no effect.
+Additive blending causes color (hue) shifting unless the sprite you're drawing is greyscale.
+This is useful for ghostly effects, tinting without fading, and clouds.
+It's also useful when you want to imitate a sprite with an alpha channel (such as a cloud), since effectively you can control pixel by pixel how much is drawn to the screen.

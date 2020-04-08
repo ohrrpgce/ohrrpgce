@@ -1,0 +1,5 @@
+"Blending" enables the transparency and blending settings. It provides an easy way to turn all blending off.
+
+Blending results look much better in 32-bit color depth than 8-bit. 32-bit mode isn't available for games yet, but you can preview it in the slice editor by pressing Ctrl-F3.
+
+Blending for a slice is automatically enabled whenever a script command changes the opacity or blend mode of the slice to a non-default value.

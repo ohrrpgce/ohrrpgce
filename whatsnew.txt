@@ -3,6 +3,11 @@ WHAT IS NEW?
 April ? 2020 [Gorgonzola]
 
   *** New Features
+    * True transparent sprite and map slices!
+      You can control opacity and blend mode: normal or additive. Blending
+      works by mapping to the nearest master palette color, so it's not super
+      fast. (Press Ctrl-F3 in the slice editor to preview what 32-bit
+      blending will look like) [Ralph]
     * Numlock is now respected in both Game and Custom; when it's off numpad
       keys are also mapped to other keys, so you can use the numpad for
       movement.  When it's on, no remapping happens. (You can disable
@@ -13,8 +18,8 @@ April ? 2020 [Gorgonzola]
       a version number at the bottom of the title screen [James]
     * "Reset UI Colors/Box Styles to defaults" options in the Master Palettes
       menu, and F4 rescue key [Ralph]
-    * While encoding .ogg files, add an advanced option not to filter out
-      very high frequencies. Useful for certain hissing sfx [Ralph]
+    * While encoding .ogg files, added an advanced option not to filter out
+      very high frequencies. Useful for sfx (eg rain) with hiss noises [Ralph]
 
    * New Plotscripting Features
     * ""any key", etc, includes mouse" option in Mouse Controls menu [Ralph]
