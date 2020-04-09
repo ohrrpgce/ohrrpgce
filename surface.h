@@ -77,8 +77,8 @@ enum BlendMode
 
 enum BlendAlgo
 {
-	blendAlgoDitherSlow = 0,
-	blendAlgoDitherFast = 1,
+	blendAlgoDither = 0,
+	blendAlgoLessDither = 1,
 	blendAlgoNoDither = 2,
 	blendAlgoLAST = 2
 };
@@ -105,7 +105,7 @@ typedef struct
 
 // In blit.c
 extern enum BlendAlgo blend_algo;
-extern uint8_t nearcolor_cache[32768];
+extern uint8_t nearcolor_cache[65536];
 
 // In allmodex.bas
 extern DrawOptions def_drawoptions;

@@ -243,8 +243,8 @@ BlendModeCaptions(blendModeNormal)   = "Normal"
 BlendModeCaptions(blendModeAdd)      = "Add"
 BlendModeCaptions(blendModeMultiply) = "Multiply"
 REDIM SHARED BlendAlgoCaptions(blendAlgoLAST) as string
-BlendAlgoCaptions(blendAlgoDitherSlow) = "Dither (better)"
-BlendAlgoCaptions(blendAlgoDitherFast) = "Dither (faster)"
+BlendAlgoCaptions(blendAlgoDither)     = "Dither"
+BlendAlgoCaptions(blendAlgoLessDither) = "Less dither"
 BlendAlgoCaptions(blendAlgoNoDither)   = "No dithering"
 
 '==============================================================================

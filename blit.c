@@ -20,18 +20,18 @@ void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, XYPair 
 void smoothzoomblit_32_to_32bit(RGBcolor *srcbuffer, RGBcolor *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor dummypal[]);
 
 //// Globals
-enum BlendAlgo blend_algo = blendAlgoDitherSlow;
+enum BlendAlgo blend_algo = blendAlgoDither;
 // This cache is wiped as needed in intpal_changed()
-uint8_t nearcolor_cache[32768] = {0};
+uint8_t nearcolor_cache[65536] = {0};
 
 
 // Memoize nearcolor_fast, dropping 3 least-significant bits per channel
 int nearcolor_faster(RGBcolor searchcol) {
-	int idx = ((searchcol.r >> 3) << 10) | ((searchcol.g >> 3) << 5) | (searchcol.b >> 3);
+	int idx = ((searchcol.r >> 3) << 11) | ((searchcol.g >> 2) << 5) | (searchcol.b >> 3);
 	int res = nearcolor_cache[idx];
 	if (!res) {
 		searchcol.r = (searchcol.r & 0xf8) + 3;
-		searchcol.g = (searchcol.g & 0xf8) + 3;
+		searchcol.g = (searchcol.g & 0xfc) + 1;
 		searchcol.b = (searchcol.b & 0xf8) + 3;
 		res = nearcolor_fast(searchcol);
 		if (!res)
@@ -132,12 +132,9 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 					else if (b < 0) b = 0;
 
 					RGBcolor searchcol = {{b, g, r, 0}};
-					if (blend_algo == blendAlgoDitherFast)
-						res = nearcolor_faster(searchcol);
-					else // blendAlgoDitherSlow
-						res = nearcolor_fast(searchcol);
+					res = nearcolor_faster(searchcol);
 
-					// The following is a chequered dither where we wipe the
+					// blendAlgoDither is a chequered dither where we wipe the
 					// error every 2nd pixel, propagate just 1/2 the error from 1/4
 					// of the pixelsand propagate 3/4 from the other 1/4.
 					// This creates quarter-dither patterns so that as opacity
@@ -147,7 +144,11 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 					if (tog) {  // (i^j)&1
 						errr = errg = errb = 0;
 					} else {
-						int m = 2 + ((i&j)&1);  // 2 or 3
+						int m;
+						if (blend_algo == blendAlgoDither)
+							m = 2 + ((i&j)&1);  // 2 or 3
+						else // blendAlgoLessDither
+							m = 1;
 						errr = m * (r - pintpal[res].r) / 4;
 						errg = m * (g - pintpal[res].g) / 4;
 						errb = m * (b - pintpal[res].b) / 4;

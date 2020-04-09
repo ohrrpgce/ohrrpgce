@@ -85,8 +85,8 @@ End Enum
 Type BlendMode as integer
 
 Enum 'BlendAlgo
-	blendAlgoDitherSlow = 0
-	blendAlgoDitherFast = 1
+	blendAlgoDither = 0
+	blendAlgoLessDither = 1
 	blendAlgoNoDither = 2
 	blendAlgoLAST = 2
 End Enum
@@ -117,7 +117,7 @@ extern "C"
 
 'In blit.c
 extern blend_algo as BlendAlgo
-extern nearcolor_cache(32767) as ubyte
+extern nearcolor_cache(65535) as ubyte
 
 'In allmodex.bas
 extern def_drawoptions as DrawOptions
