@@ -2364,7 +2364,7 @@ Function SpriteSliceIsDissolving(byval sl as Slice ptr, byval only_auto as bool=
  if sl->SliceType <> slSprite then return NO  'Not an error
  with *sl->SpriteData
   if only_auto andalso not .d_auto then return NO
-  return .dissolving <> 0
+  return .dissolving
  end with
 end function
 

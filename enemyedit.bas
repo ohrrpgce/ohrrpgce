@@ -24,7 +24,8 @@
 'Defined in this file:
 
 DECLARE FUNCTION enemy_edit_add_new (recbuf() as integer, preview_box as Slice ptr) as bool
-DECLARE SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, menucapoff() as integer, byref preview_sprite as Frame ptr, preview as Slice Ptr, rewards_preview as string, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimAtk as integer, byval EnLimPic as integer)
+DECLARE SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, menucapoff() as integer, preview as Slice Ptr, rewards_preview as string, byval EnLimSpawn as integer, byval EnLimAtk as integer, byval EnLimPic as integer)
+DECLARE FUNCTION start_preview_dissolve(preview as Slice ptr, dissolve_type as integer, dissolve_time as integer, dissolve_backwards as bool) as integer
 DECLARE FUNCTION describe_item_chance(chance as ItemChance) as string
 DECLARE SUB enemy_edit_load(byval recnum as integer, recbuf() as integer, state as MenuState, caption() as string, byval EnCapElemResist as integer)
 DECLARE SUB enemy_edit_pushmenu (state as MenuState, byref lastptr as integer, byref lasttop as integer, byref menudepth as bool)
@@ -688,16 +689,11 @@ WITH *preview
  .AlignVert = alignBottom
 END WITH
 
-'--Need a copy of the sprite to call frame_dissolved on
-DIM preview_sprite as Frame ptr
-DIM setup_preview_dissolve as bool = NO
-DIM setup_preview_appear as bool = NO
-
 DIM rewards_preview as string
 
-'--dissolve_ticks is >= 0 while playing a dissolve; > dissolve_time while during lag period afterwards
-DIM as integer dissolve_time, dissolve_type, dissolve_ticks
-DIM as bool dissolve_backwards = NO
+'--dissolve_ticks is >= 0 and <= dissolve_stop_at while playing a dissolve;
+'--continues past > dissolve_time during lag period afterwards.
+DIM as integer dissolve_ticks, dissolve_stop_at
 dissolve_ticks = -1
 
 '--default starting menu
@@ -871,9 +867,14 @@ DO
    CASE EnMenuBitsetAct
     editbitset recbuf(), EnDatBitset, enemybits(), "enemy_bitsets", remember_bit
    CASE EnMenuDissolve, EnMenuDissolveTime
-    setup_preview_dissolve = YES
+    DIM dissolve_type as integer = IIF(recbuf(EnDatDissolve), recbuf(EnDatDissolve) - 1, gen(genEnemyDissolve))
+    dissolve_stop_at = start_preview_dissolve(preview, dissolve_type, recbuf(EnDatDissolveTime), NO)
+    dissolve_ticks = 0
    CASE EnMenuDissolveIn, EnMenuDissolveInTime
-    setup_preview_appear = YES
+    IF recbuf(EnDatDissolveIn) > 0 THEN  'Not 'Appears Instantly'
+     dissolve_stop_at = start_preview_dissolve(preview, recbuf(EnDatDissolveIn) - 1, recbuf(EnDatDissolveInTime), YES)
+     dissolve_ticks = 0
+    END IF
    CASE EnMenuCursorOffset
     'The offset is relative to the top-center edge, and horiz-flipped, because
     'originally the sprite was shown flipped.
@@ -896,25 +897,6 @@ DO
   edit_all_bits recbuf(), EnDatBitset, enemybits(), 80, "enemy_bitsets", remember_bit
  END IF
 
- IF setup_preview_dissolve THEN
-  IF recbuf(EnDatDissolve) THEN dissolve_type = recbuf(EnDatDissolve) - 1 ELSE dissolve_type = gen(genEnemyDissolve)
-  dissolve_time = recbuf(EnDatDissolveTime) 
-  IF dissolve_time = 0 THEN dissolve_time = default_dissolve_time(dissolve_type, preview_sprite->w, preview_sprite->h)
-  dissolve_ticks = 0
-  dissolve_backwards = NO
-  setup_preview_dissolve = NO
- END IF 
- IF setup_preview_appear THEN
-  IF recbuf(EnDatDissolveIn) > 0 THEN
-   dissolve_type = recbuf(EnDatDissolveIn) - 1
-   dissolve_time = recbuf(EnDatDissolveInTime) 
-   IF dissolve_time = 0 THEN dissolve_time = default_dissolve_time(dissolve_type, preview_sprite->w, preview_sprite->h)
-   dissolve_ticks = 0
-  END IF
-  dissolve_backwards = YES
-  setup_preview_appear = NO
- END IF
-
  IF flexmenu_handle_crossrefs(state, workmenu(state.pt), menutype(), menuoff(), recindex, recbuf(), NO) THEN
   'Reload this enemy in case it was changed in recursive call to the editor (in fact, this record might be deleted!)
   recindex = small(recindex, gen(genMaxEnemy))
@@ -924,27 +906,20 @@ DO
  END IF
 
  IF dissolve_ticks >= 0 THEN
+  'Sprite would otherwise reappear instantly when the dissolve ends
+  preview->Visible = SpriteSliceIsDissolving(preview)
   dissolve_ticks += 1
-  DIM stop_at as integer = dissolve_time + 15
-  IF dissolve_backwards THEN stop_at = dissolve_time
-  IF dissolve_ticks > stop_at THEN
+  IF dissolve_ticks >= dissolve_stop_at THEN
    dissolve_ticks = -1
-   state.need_update = YES
-  ELSE
-   IF dissolve_ticks <= dissolve_time THEN
-    DIM dticks as integer = dissolve_ticks
-    IF dissolve_backwards THEN dticks = dissolve_time - dissolve_ticks
-    SetSpriteToFrame preview, frame_dissolved(preview_sprite, dissolve_time, dticks, dissolve_type), , _
-                     abs_pal_num(recbuf(EnDatPal), sprTypeSmallEnemy + recbuf(EnDatPicSize), recbuf(EnDatPic))
-   END IF
+   CancelSpriteSliceDissolve preview
   END IF
+ ELSE
+  preview->Visible = YES
  END IF
- 'lag time after fading out, to give a more realistic preview
- preview->Visible = (dissolve_ticks <= dissolve_time)
 
  IF state.need_update THEN
   state.need_update = NO
-  enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), menucapoff(), preview_sprite, preview, rewards_preview, dissolve_ticks, EnLimSpawn, EnLimAtk, EnLimPic
+  enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), menucapoff(), preview, rewards_preview, EnLimSpawn, EnLimAtk, EnLimPic
  END IF
 
  clearpage vpage
@@ -976,7 +951,6 @@ saveenemydata recbuf(), recindex
 
 resetsfx
 DeleteSlice @preview_box
-frame_unload @preview_sprite
 
 remember_recindex = recindex
 RETURN recindex
@@ -1003,7 +977,7 @@ SUB enemy_edit_load(byval recnum as integer, recbuf() as integer, state as MenuS
  state.need_update = YES
 END SUB
 
-SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, menucapoff() as integer, byref preview_sprite as Frame ptr, preview as Slice Ptr, rewards_preview as string, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimAtk as integer, byval EnLimPic as integer)
+SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, menucapoff() as integer, preview as Slice Ptr, rewards_preview as string, byval EnLimSpawn as integer, byval EnLimAtk as integer, byval EnLimPic as integer)
 
  DIM enemy as EnemyDef
  convertenemydata recbuf(), enemy
@@ -1023,11 +997,7 @@ SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf
  
  '--stop sounds
  resetsfx
- '--update the picture and palette preview
- frame_unload @preview_sprite
- preview_sprite = frame_load(sprTypeSmallEnemy + enemy.size, enemy.pic)
- dissolve_ticks = -1
- '--resets if dissolved
+ '--update the picture and palette preview (also resets if dissolved)
  ChangeSpriteSlice preview, sprTypeSmallEnemy + enemy.size, enemy.pic, enemy.pal, ,YES
 
  '--Rewards preview
@@ -1036,6 +1006,15 @@ SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf
   rewards_preview &= !"\nSteal results:\n" & describe_item_chance(enemy.steal)
  END IF
 END SUB
+
+FUNCTION start_preview_dissolve(preview as Slice ptr, dissolve_type as integer, dissolve_time as integer, dissolve_backwards as bool) as integer
+ IF dissolve_time = 0 THEN dissolve_time = default_dissolve_time(dissolve_type, preview->Size.w, preview->Size.h)
+ DissolveSpriteSlice preview, dissolve_type, dissolve_time, 0, dissolve_backwards, YES
+ DIM stop_at as integer = dissolve_time
+ 'Lag time after fading out, to give a more realistic preview
+ IF NOT dissolve_backwards THEN stop_at += 12
+ RETURN stop_at
+END FUNCTION
 
 'Return a string describing enemy drops or stealable item chances
 FUNCTION describe_item_chance(chance as ItemChance) as string
