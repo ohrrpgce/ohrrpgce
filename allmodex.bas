@@ -9804,6 +9804,33 @@ function default_dissolve_time(style as integer, w as integer, h as integer) as 
 	end if
 end function
 
+function frame_rotozoom(src as Frame ptr, pal as Palette16 ptr = NULL, angle as double, zoomx as double, zoomy as double, smooth as integer = 0) as Frame ptr
+	dim as Surface ptr in_surf, out_surf
+	if smooth > 0 andalso vpages_are_32bit then
+		'Going to perform smoothing
+		'Can't do any smoothing with an 8-bit input Surface, since the rotozoomer
+		'doesn't do 8->32 bit like frame_draw can.
+		in_surf = frame_to_surface32(src, intpal(), pal)
+	else
+		if gfx_surfaceCreateFrameView(src, @in_surf) then return NULL
+	end if
+	if smooth = 2 andalso vpages_are_32bit then
+		'surface_scale does much better smoothing for zoom levels < 100% (neglible
+		'difference at zoom > 100%), but it's slower and doesn't support rotation.
+		'Dest size axes must be >= 1
+		out_surf = surface_scale(in_surf, large(1., src->w * zoomx), large(1., src->h * zoomy))
+	else
+		'Bilinear interpolation or no smoothing
+		'Negate rotation so angle is clockwise
+		out_surf = rotozoomSurface(in_surf, angle, zoomx, zoomy, smooth)
+	end if
+	BUG_IF(out_surf = NULL, "rotozoom returned NULL", NULL)
+	dim ret as Frame ptr = frame_with_surface(out_surf)
+	gfx_surfaceDestroy(@in_surf)
+	gfx_surfaceDestroy(@out_surf)
+	return ret
+end function
+
 'Used by frame_flip_horiz and frame_flip_vert
 local sub flip_image(pixels as ubyte ptr, d1len as integer, d1stride as integer, d2len as integer, d2stride as integer)
 	for x1 as integer = 0 to d1len - 1

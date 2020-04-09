@@ -572,6 +572,7 @@ declare sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal 
 declare function frame_dissolved(spr as Frame ptr, tlength as integer, t as integer, style as integer) as Frame ptr
 declare sub frame_draw_dissolved (src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions, tlength as integer, tick as integer, style as integer)
 declare function default_dissolve_time(style as integer, w as integer, h as integer) as integer
+declare function frame_rotozoom(src as Frame ptr, pal as Palette16 ptr = NULL, angle as double, hzoom as double, vzoom as double, smooth as integer = 0) as Frame ptr
 declare sub frame_flip_horiz(spr as Frame ptr)
 declare sub frame_flip_vert(spr as Frame ptr)
 declare function frame_rotated_90(spr as Frame ptr) as Frame ptr

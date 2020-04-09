@@ -1928,29 +1928,9 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
   'Rotozooming
   if .rotate orelse .zoom <> 1. then
    'FIXME: have_copy leak! (Ought to add h/v flip options to the rotozoomer to avoid copies)
-   dim as Surface ptr in_surf, out_surf
-   if .rz_smooth > 0 andalso vpages_are_32bit then
-    'Going to perform smoothing
-    'Can't do any smoothing with an 8-bit input Surface, since the rotozoomer
-    'doesn't do 8->32 bit like frame_draw can.
-    in_surf = frame_to_surface32(spr, master(), .img.pal)
-   else
-    if gfx_surfaceCreateFrameView(spr, @in_surf) then exit sub
-   end if
-   if .rz_smooth = 2 andalso vpages_are_32bit then
-    'surface_scale does much better smoothing for zoom levels < 100% (neglible
-    'difference at zoom > 100%), but it's slower and doesn't support rotation.
-    'Dest size axes must be >= 1
-    out_surf = surface_scale(in_surf, large(1., spr->w * .zoom), large(1., spr->h * .zoom))
-   else
-    'Bilinear interpolation or no smoothing
-    'Negate rotation so angle is clockwise
-    out_surf = rotozoomSurface(in_surf, -.rotate, .zoom, .zoom, .rz_smooth)
-   end if
-   BUG_IF(out_surf = NULL, "rotozoom returned NULL")
-   spr = frame_with_surface(out_surf)
-   gfx_surfaceDestroy(@in_surf)
-   gfx_surfaceDestroy(@out_surf)
+   'Negate rotation so angle is clockwise
+   spr = frame_rotozoom(spr, .img.pal, -.rotate, .zoom, .zoom, .rz_smooth)
+   if spr = 0 then exit sub
    have_copy = YES
   end if
 
