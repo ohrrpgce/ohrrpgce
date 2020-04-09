@@ -9509,7 +9509,9 @@ function frame_scaled32(src as Frame ptr, wide as integer, high as integer, mast
 end function
 
 'Public:
-' Returns a (copy of the) sprite (any bitdepth) in the midst of a given fade out.
+' Returns a copy of a sprite in the midst of a given fade or distort effect.
+' This only supports a subset of effects; frame_draw_dissolved should normally be used instead.
+' Note that the result has a mask, which is very unusual for Frames.
 ' tlength is the desired length of the transition (in any time units you please),
 ' t is the number of elasped time units. style is the specific transition.
 function frame_dissolved(spr as Frame ptr, tlength as integer, t as integer, style as integer) as Frame ptr
@@ -9524,9 +9526,9 @@ function frame_dissolved(spr as Frame ptr, tlength as integer, t as integer, sty
 	'by default, sprites use colourkey transparency instead of masks.
 	'We could easily not use a mask here, but by using one, this function can be called on 8-bit graphics
 	'too; just in case you ever want to fade out a backdrop or something?
-	dim startblank as integer = (style = 8 or style = 9 or style = 11)
+	dim startblank as bool = (style = 8 or style = 9 or style = 11)
 	dim cpy as Frame ptr
-	cpy = frame_duplicate(spr, startblank, 1)
+	cpy = frame_duplicate(spr, startblank, YES) 'addmask = YES
 	if cpy = 0 then return 0
 
 	dim as integer i, j, sx, sy, tog
@@ -9778,13 +9780,88 @@ function frame_dissolved(spr as Frame ptr, tlength as integer, t as integer, sty
 					poffset += 1
 				next
 			next
+		case else
+			debug "frame_dissolved: unsupported effect " & style
 	end select
 
 	return cpy
 end function
 
+'Draw a Frame with a dissolve/distort effect.
+'This supports all effects, unlike frame_dissolved.
 sub frame_draw_dissolved (src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions, tlength as integer, tick as integer, style as integer)
+
+	dim fadeopts as DrawOptions
+	fadeopts.with_blending = YES
+	fadeopts.blend_mode = blendModeNormal
+
 	select case style
+		case 12  'Fade out
+			'We respect the baseline opts.opacity but not the blend_mode
+			fadeopts.opacity = opts.opacity * (tlength - tick) / tlength
+			frame_draw src, pal, x, y, trans, dest, fadeopts
+
+		case 13  'Ghost fade
+			'Fade out (normal blending) 100% to 0% at half time
+			dim t_to_halfway as double = 1. - tick / (tlength / 2.)  'Goes from 1 to -1
+			if t_to_halfway > 0. then
+				fadeopts.opacity = opts.opacity * t_to_halfway
+				frame_draw src, pal, x, y, trans, dest, fadeopts
+			end if
+			'...while also fade in (add blending) from 0% to 100% at half time to 0%
+			fadeopts.opacity = opts.opacity * (1 - abs(t_to_halfway))
+			fadeopts.blend_mode = blendModeAdd
+			frame_draw src, pal, x, y, trans, dest, fadeopts
+
+		case 14  'Fade through white
+			FAIL_IF(pal = NULL, "Fade through white needs palette")
+
+			dim tfrac as double = tick / tlength
+			dim white as RGBcolor
+			white.col = &hffffffff
+			dim fadepal as Palette16 ptr = palette16_duplicate(pal)
+			Palette16_mix_n_match fadepal, white, small(1., tfrac * 2), mixBlend
+
+			fadeopts.opacity = opts.opacity * large(0., 2. - tfrac * 2)
+			frame_draw src, fadepal, x, y, trans, dest, fadeopts
+			palette16_unload @fadepal
+
+		case 15, 16  'Evaporate/Condense, Evaporate Up/Condense Down
+			'Zoom out at same time as fading out
+			dim as double zoomx = 1., zoomy = 1.
+			if style = 15 then
+				zoomx = 1. + 0.6 * (tick / tlength) ^ 2
+				zoomy = zoomx
+			else
+				zoomy = 1. + 1.2 * (tick / tlength) ^ 2
+			end if
+
+			dim scaled as Frame ptr = frame_rotozoom(src, pal, 0, zoomx, zoomy)
+
+			'Recenter
+			if style = 15 then
+				x += (src->w - scaled->w) / 2
+				y += 3 * (src->h - scaled->h) / 4
+			else
+				y += (src->h - scaled->h)
+			end if
+
+			fadeopts.opacity = opts.opacity * (tlength - tick) / tlength
+			frame_draw scaled, pal, x, y, trans, dest, fadeopts
+			frame_unload @scaled
+
+		case 17  'Blip
+			dim as double zoomx = 1., zoomy = 1.
+			dim tfrac as double = (tick / tlength)
+			zoomx = (1 - tfrac) ^ 2
+			zoomy = 2. - (1 - tfrac ^ 2)
+
+			dim scaled as Frame ptr = frame_rotozoom(src, pal, 0, zoomx, zoomy)
+			x += (src->w - scaled->w) / 2
+			y += 5 * (src->h - scaled->h) / 4  'move upwards slightly
+			frame_draw scaled, pal, x, y, trans, dest, opts
+			frame_unload @scaled
+
 		case else
 			dim dissolved as Frame ptr
 			dissolved = frame_dissolved(src, tlength, tick, style)
@@ -9796,12 +9873,19 @@ end sub
 'Warning: this is used ONLY for battle appear/death animations, it is NOT used by
 'dissolving slices set to default dissolve length! (They use (w+h)/10)
 function default_dissolve_time(style as integer, w as integer, h as integer) as integer
-	'squash, vapourise, phase out, squeeze
-	if style = 4 or style = 6 or style = 7 or style = 8 or style = 9 or style = 11 then
-		return w / 5
-	else
-		return w / 2
-	end if
+	select case style
+		case 4, 6, 7, 8, 9, 11, 15, 16
+			'squash, vapourise, phase out, squeeze, shrink, shrink centered, evaporate [up]
+			return w / 5
+		case 12  'fade
+			return w / 4
+		case 13, 14  'ghost fade, fade to white
+			return w / 3
+		case 17  'blip
+			return 9
+		case else
+			return w / 2
+	end select
 end function
 
 function frame_rotozoom(src as Frame ptr, pal as Palette16 ptr = NULL, angle as double, zoomx as double, zoomy as double, smooth as integer = 0) as Frame ptr

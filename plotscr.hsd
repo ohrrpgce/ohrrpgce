@@ -2185,6 +2185,12 @@ define constant, begin
 9,dissolve:shrink
 10,dissolve:flicker
 11,dissolve:shrink to center
+12,dissolve:fade
+13,dissolve:ghostly fade
+14,dissolve:fade to white
+15,dissolve:evaporate
+16,dissolve:evaporate up
+17,dissolve:blip
 -1,dissolvetime:default
 50000,maximum global id
 99,maximum string id

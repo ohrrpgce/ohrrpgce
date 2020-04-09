@@ -9,6 +9,8 @@ April ? 2020 [Gorgonzola]
       is fast-enough but sometimes looks poor; there's a global setting to
       control how that's done. (Press Ctrl-F3 in the slice editor to preview
       what future 32-bit blending will look like!) [Ralph]
+    * New dissolve/appear animations: Fade, Ghostly fade, Fade to white,
+      Evaporate/Condense, Evaporate up/Condense down, Blip [Ralph]
     * Numlock is now respected in both Game and Custom; when it's off numpad
       keys are also mapped to other keys, so you can use the numpad for
       movement.  When it's on, no remapping happens. (You can disable

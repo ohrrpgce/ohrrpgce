@@ -7782,6 +7782,12 @@ FUNCTION dissolve_type_caption(n as integer) as string
   CASE 9: RETURN "Shrink"
   CASE 10: RETURN "Flicker"
   CASE 11: RETURN "Shrink to Center"
+  CASE 12: RETURN "Fade"
+  CASE 13: RETURN "Ghostly fade"
+  CASE 14: RETURN "Fade to white"
+  CASE 15: RETURN "Evaporate"
+  CASE 16: RETURN "Evaporate up"
+  CASE 17: RETURN "Blip"
   CASE ELSE: RETURN n & " Invalid!"
  END SELECT
 END FUNCTION
@@ -7802,6 +7808,12 @@ FUNCTION appear_type_caption(n as integer) as string
   CASE 9: RETURN "Expand"
   CASE 10: RETURN "Flicker"
   CASE 11: RETURN "Expand from Center"
+  CASE 12: RETURN "Fade"
+  CASE 13: RETURN "Ghostly fade"
+  CASE 14: RETURN "Fade from white"
+  CASE 15: RETURN "Condense"
+  CASE 16: RETURN "Condense down"
+  CASE 17: RETURN "Blip"
   CASE ELSE: RETURN n & " Invalid!"
  END SELECT
 END FUNCTION
