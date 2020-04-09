@@ -238,10 +238,14 @@ DirectionCaptions(0) = "Up"
 DirectionCaptions(1) = "Right"
 DirectionCaptions(2) = "Down"
 DirectionCaptions(3) = "Left"
-REDIM SHARED BlendModeCaptions(2) as string
-BlendModeCaptions(0) = "Normal"    'blendModeNormal
-BlendModeCaptions(1) = "Add"       'blendModeAdd
-BlendModeCaptions(2) = "Multiply"  'blendModeMultiply
+REDIM SHARED BlendModeCaptions(blendModeLAST) as string
+BlendModeCaptions(blendModeNormal)   = "Normal"
+BlendModeCaptions(blendModeAdd)      = "Add"
+BlendModeCaptions(blendModeMultiply) = "Multiply"
+REDIM SHARED BlendAlgoCaptions(blendAlgoLAST) as string
+BlendAlgoCaptions(blendAlgoDitherSlow) = "Dither (better)"
+BlendAlgoCaptions(blendAlgoDitherFast) = "Dither (faster)"
+BlendAlgoCaptions(blendAlgoNoDither)   = "No dithering"
 
 '==============================================================================
 
@@ -509,7 +513,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     IF slice_editor_save_when_leaving(ses, edslice) THEN EXIT DO
    END IF
   END IF
-  slice_editor_common_function_keys ses, edslice, state  'F4, F6, F7, Ctrl+3
+  slice_editor_common_function_keys ses, edslice, state  'F4, F6, F7, Ctrl+F3, Ctrl+F4
   #IFDEF IS_GAME
    IF keyval(scF1) > 1 THEN show_help "sliceedit_game"
   #ELSE
@@ -792,7 +796,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 END SUB
 
 SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState)
- IF keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD (hideLAST + 1)
+ IF keyval(scCtrl) = 0 ANDALSO keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD (hideLAST + 1)
  IF keyval(scF6) > 1 THEN
   'Move around our view on this slice collection.
   'We move around the real rool, not draw_root, as it affects screen positions
@@ -814,6 +818,11 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
    show_overlay_message "Switched to 32-bit color", 1.2
   END IF
   state.need_update = YES  'smoothing menu item needs update
+ END IF
+ IF keyval(scCtrl) > 0 ANDALSO keyval(scF4) > 1 ANDALSO NOT vpages_are_32bit THEN
+  loopvar gen(gen8bitBlendAlgo), 0, blendAlgoLAST
+  show_overlay_message "Blending with " & BlendAlgoCaptions(gen(gen8bitBlendAlgo)), 1.2
+  state.need_update = YES
  END IF
 END SUB
 
@@ -1130,8 +1139,10 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   setwait 55
   setkeys YES
   IF keyval(ccCancel) > 1 THEN EXIT DO
-  slice_editor_common_function_keys ses, edslice, state  'F4, F7, Ctrl+3
-  IF keyval(scF1) > 1 THEN show_help "sliceedit_" & rules(state.pt).helpkey
+  slice_editor_common_function_keys ses, edslice, state  'F4, F6, F7, Ctrl+F3, Ctrl+F4
+  IF keyval(scF1) > 1 ANDALSO LEN(rules(state.pt).helpkey) THEN
+   show_help "sliceedit_" & rules(state.pt).helpkey
+  END IF
 
   IF UpdateScreenSlice() THEN state.need_update = YES
 
@@ -1533,6 +1544,11 @@ SUB sliceed_add_blend_edit_rules(menu() as string, rules() as EditRule, drawopts
    sliceed_rule_single rules(), "opacity", erSinglePercentgrabber, @(.opacity), 0, 100
    a_append menu(), "  Blend mode: " & BlendModeCaptions(.blend_mode)
    sliceed_rule rules(), "blend_mode", erIntgrabber, @(.blend_mode), 0, blendModeLAST
+   IF vpages_are_32bit = NO THEN
+    sliceed_header menu(), rules(), "  [Global]"
+    a_append menu(), "   Algorithm: " & BlendAlgoCaptions(gen(gen8bitBlendAlgo))
+    sliceed_rule rules(), "blend_algo", erIntgrabber, @gen(gen8bitBlendAlgo), 0, blendAlgoLAST
+   END IF
   END IF
  END WITH
 END SUB

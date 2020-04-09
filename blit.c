@@ -19,6 +19,7 @@ void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, XYPair 
 void smoothzoomblit_32_to_32bit(RGBcolor *srcbuffer, RGBcolor *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor dummypal[]);
 
 //// Globals
+enum BlendAlgo blend_algo = blendAlgoDitherSlow;
 // This cache is wiped as needed in intpal_changed()
 uint8_t nearcolor_cache[32768] = {0};
 
@@ -82,11 +83,15 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 	destp = get_frame_buf(destspr) + startx + starty * destspr->pitch;
 	destlineinc = destspr->pitch - (endx - startx + 1);
 
+	int tog = 0;
+
 	if (opts->with_blending && (opts->opacity < 1. || opts->blend_mode != blendModeNormal)) {
 		double opacity = opts->opacity;
 
 		for (i = starty; i <= endy; i++) {
+			int errr = 0, errg = 0, errb = 0;
 			for (j = endx - startx; j >= 0; j--) {
+				tog ^= 1;
 				if (trans && *maskp == 0) {
 					destp++;
 					maskp++;
@@ -135,10 +140,49 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 					//if (a > 255) a = 255;
 				}
 
-				// Convert back to master palette (at last setpal())
+				// Convert back to master palette, possibly performing error diffusion.
 				int res;
-				RGBcolor searchcol = {{b, g, r, 0}};
-				res = nearcolor_fast(searchcol);
+				/* if (blend_algo == -1) {
+					res = *destp;
+				} else */
+				if (blend_algo == blendAlgoNoDither) {
+					RGBcolor searchcol = {{b, g, r, 0}};
+					res = nearcolor_fast(searchcol);
+				} else {
+					r += errr;
+					g += errg;
+					b += errb;
+					if (r > 255) r = 255;
+					else if (r < 0) r = 0;
+					if (g > 255) g = 255;
+					else if (g < 0) g = 0;
+					if (b > 255) b = 255;
+					else if (b < 0) b = 0;
+
+					if (blend_algo == blendAlgoDitherFast) {
+						RGBcolor searchcol = {{b, g, r, 0}};
+						res = nearcolor_faster(searchcol);
+					} else { // blendAlgoDitherSlow
+						RGBcolor searchcol = {{b, g, r, 0}};
+						res = nearcolor_fast(searchcol);
+					}
+
+					// The following is a chequered dither where we wipe the
+					// error every 2nd pixel, propagate just 1/2 the error from 1/4
+					// of the pixelsand propagate 3/4 from the other 1/4.
+					// This creates quarter-dither patterns so that as opacity
+					// is faded there are smaller, smoother steps. The low amount
+					// of error propagation reduces grain and artifacts at the cost
+					// of color accuracy, which is unimportant.
+					if (tog) {  // (i^j)&1
+						errr = errg = errb = 0;
+					} else {
+						int m = 2 + ((i&j)&1);  // 2 or 3
+						errr = m * (r - pintpal[res].r) / 4;
+						errg = m * (g - pintpal[res].g) / 4;
+						errb = m * (b - pintpal[res].b) / 4;
+					}
+				}
 
 				destp[0] = res;
 				destp++;
@@ -148,6 +192,8 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 			destp += destlineinc;
 			maskp += srclineinc;
 			srcp += srclineinc;
+			tog ^= srclineinc & 1;
+			tog ^= 1;
 		}
 	} else
 	if (pal != NULL && trans != 0) {

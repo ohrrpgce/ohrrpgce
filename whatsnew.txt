@@ -6,9 +6,9 @@ April ? 2020 [Gorgonzola]
     * True transparent sprite and map slices!
       You can control opacity and blend mode: normal, add or multiply.
       Blending works by mapping to the nearest master palette color, so it's
-      not super fast. (Press Ctrl-F3 in the slice editor to preview what
-      32-bit blending will look like) [Ralph]
-
+      not super fast and sometimes looks poor, but there's a global setting
+      to control how that's done. (Press Ctrl-F3 in the slice editor to
+      preview what future 32-bit blending will look like!) [Ralph]
     * Numlock is now respected in both Game and Custom; when it's off numpad
       keys are also mapped to other keys, so you can use the numpad for
       movement.  When it's on, no remapping happens. (You can disable

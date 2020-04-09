@@ -3892,6 +3892,7 @@ end sub
 
 'Draw a slice tree
 Sub DrawSlice(byval s as Slice ptr, byval page as integer)
+ blend_algo = gen(gen8bitBlendAlgo)  'Bit kludgy, but easiest to set this here
  v_new context_stack
  DrawSliceRecurse s, page
  v_free context_stack

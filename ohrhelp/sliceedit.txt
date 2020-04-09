@@ -48,3 +48,7 @@ NOTE: if you add no children to the root slice, it won't be saved!
 Press F6 to shift around your view of the whole slice collection around. This does not modify the collection, it is only for help while editing.
 
 Press F7 to toggle whether outline boxes are drawn around the currently selected slice and the one under the mouse.
+
+Press Ctrl+F3 to toggle between 8-bit and 32-bit color mode. This affects transparency/blending in the slice editor only. You can't yet run your game in 32-bit color mode.
+
+Press Ctrl+F5 to switch between the different blending algorithms (8-bit color mode only). You can also change this from a slice's blending settings.
