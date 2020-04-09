@@ -275,7 +275,7 @@ addcaption caption(), capindex, "All of the above"
 
 '-------------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 269
+CONST MnuItems = 270
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -568,7 +568,11 @@ CONST EnMenuUsageAct = 269
 menu(EnMenuUsageAct) = "Usage..."
 menutype(EnMenuUsageAct) = 1
 
-'Next is 269, don't forget to update MnuItems
+CONST EnMenuPreviewBackdrop = 270
+menu(EnMenuPreviewBackdrop) = "Preview Background..."
+menutype(EnMenuPreviewBackdrop) = 1
+
+'Next is 271, don't forget to update MnuItems
 
 '-------------------------------------------------------------------------
 '--menu structure
@@ -595,17 +599,18 @@ mainMenu(8) = EnMenuSpawnAct
 mainMenu(9) = EnMenuAtkAct
 mainMenu(10) = EnMenuUsageAct
 
-DIM appearMenu(9) as integer
+DIM appearMenu(10) as integer
 appearMenu(0) = EnMenuBackAct
 appearMenu(1) = EnMenuPicSize
 appearMenu(2) = EnMenuPic
 appearMenu(3) = EnMenuPal
 appearMenu(4) = EnMenuDissolve
 appearMenu(5) = EnMenuDissolveTime
-appearMenu(6) = EnMenuDeathSFX
-appearMenu(7) = EnMenuDissolveIn
-appearMenu(8) = EnMenuDissolveInTime
+appearMenu(6) = EnMenuDissolveIn
+appearMenu(7) = EnMenuDissolveInTime
+appearMenu(8) = EnMenuDeathSFX
 appearMenu(9) = EnMenuCursorOffset
+appearMenu(10) = EnMenuPreviewBackdrop
 
 DIM rewardMenu(11) as integer
 rewardMenu(0) = EnMenuBackAct
@@ -678,6 +683,20 @@ WITH *preview_box
  .AnchorVert = alignBottom
  .AlignVert = alignBottom
 END WITH
+
+DIM clip_box as Slice Ptr
+clip_box = NewSliceOfType(slContainer, preview_box)
+clip_box->Clip = YES
+clip_box->Fill = YES
+
+'The preview backdrop, or none if -1
+STATIC preview_backdrop_id as integer = -1
+preview_backdrop_id = small(preview_backdrop_id, gen(genNumBackdrops) - 1)
+DIM preview_backdrop as Slice Ptr
+preview_backdrop = NewSliceOfType(slSprite, clip_box)
+preview_backdrop->Visible = preview_backdrop_id >= 0
+ChangeSpriteSlice preview_backdrop, sprTypeBackdrop, preview_backdrop_id
+RealignSlice preview_backdrop, alignCenter, alignCenter, alignCenter, alignCenter
 
 '--Create the preview sprite. It will be updated before it is drawn.
 DIM preview as Slice Ptr
@@ -877,6 +896,14 @@ DO
     xy_position_on_sprite_slice preview, recbuf(EnDatCursorX), recbuf(EnDatCursorY), "Targetting Cursor Offset", "xy_target_cursor"
     recbuf(EnDatCursorX) -= preview->Size.x \ 2
     recbuf(EnDatCursorX) *= -1
+   CASE EnMenuPreviewBackdrop
+    'Pick preview backdrop
+    DIM backdropb as BackdropSpriteBrowser
+    preview_backdrop_id = backdropb.browse(preview_backdrop_id, YES)  'or_none=YES
+    preview_backdrop->Visible = preview_backdrop_id >= 0
+    IF preview_backdrop_id >= 0 THEN
+     ChangeSpriteSlice preview_backdrop, , preview_backdrop_id
+    END IF
   END SELECT
  END IF
 

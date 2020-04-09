@@ -19,3 +19,5 @@ Death Animation Ticks: Allows you to adjust the length of the death animation. 1
 Death Sound Effect: This sound will be played when the enemy dies.
 
 Cursor Offset: This changes the position of the player's cursor when they are targetting this enemy.
+
+Preview Backdrop: Pick a backdrop to appear behind the enemy sprite; possibly useful for viewing dissolves.
