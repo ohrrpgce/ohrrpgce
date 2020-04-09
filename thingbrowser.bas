@@ -519,7 +519,7 @@ Function ThingBrowser.create_thing_plank(byval id as integer) as Slice Ptr
  dim txt as Slice Ptr
  txt = NewSliceOfType(slText, plank, SL_PLANK_MENU_SELECTABLE)
  ChangeTextSlice txt, thing_text_for_id(id), uilook(uiMenuItem), YES
- plank->size = txt->size + XY(2, 0) ' Plank is 2 pixels wider than the text
+ plank->size = txt->size + XY(5, 0) ' Plank is 5 pixels wider than the text
  return plank
 End Function
 
@@ -1087,7 +1087,7 @@ Function ConstantListBrowser.thing_text_for_id(byval id as integer) as string
  else
   text = "NOVALUE"
  end if
- return rpad(text, " ", longest)
+ return rpad(text, " ", longest + 1)  'Extra padding
 End Function
 
 Sub ConstantListBrowser.handle_cropafter(byval id as integer)
