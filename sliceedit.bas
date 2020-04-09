@@ -1745,7 +1745,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     IF dat->dissolving THEN
      a_append menu(), "  Type: " & dissolve_type_caption(dat->d_type)
      sliceed_rule rules(), "sprite_d_type", erIntGrabber, @(dat->d_type), 0, dissolveTypeMax
-     a_append menu(), "  Over Num. ticks: " & defaultint(dat->d_time, "Default (W+H)/10=" & (.Width * .Height / 10))
+     a_append menu(), "  Over Num. ticks: " & defaultint(dat->d_time, "Default (W+H)/10=" & (.Width + .Height) / 10)
      sliceed_rule rules(), "sprite_d_time", erIntGrabber, @(dat->d_time), -1, 999999
      a_append menu(), "  Current tick: " & dat->d_tick
      sliceed_rule rules(), "sprite_d_tick", erIntGrabber, @(dat->d_tick), 0, 999999
