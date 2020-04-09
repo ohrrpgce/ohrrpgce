@@ -13,6 +13,7 @@
 #include "allmodex.h"
 #include "surface.h"
 #include "misc.h"
+#include "blend.h"
 
 void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor dummypal[]);
 void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor pal[]);
@@ -86,7 +87,9 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 	int tog = 0;
 
 	if (opts->with_blending && (opts->opacity < 1. || opts->blend_mode != blendModeNormal)) {
-		double opacity = opts->opacity;
+		int alpha = 256 * opts->opacity;
+		if (alpha <= 0)
+			goto no_draw;
 
 		for (i = starty; i <= endy; i++) {
 			int errr = 0, errg = 0, errb = 0;
@@ -105,40 +108,8 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 				else
 					srcc = pintpal[*srcp];
 
-				// Blend source and dest pixels in 24-bit colour space (.a ignored)
-				// In future to support srcc.a replace opacity with src_a:
-				// src_a = opts->opacity * srcc.a / 255;
-				// and uncomment the commented lines.
-				int r, g, b;
-				if (opts->blend_mode == blendModeNormal) {
-					// Equivalent to SDL2's SDL_BLENDMODE_BLEND
-					r = srcc.r * opacity + destc.r * (1. - opacity);
-					g = srcc.g * opacity + destc.g * (1. - opacity);
-					b = srcc.b * opacity + destc.b * (1. - opacity);
-					//a = 255 * opacity + destc.a * (1. - opacity);
-				} else if (opts->blend_mode == blendModeAdd) {
-					// Equivalent to SDL2's SDL_BLENDMODE_ADD
-					r = srcc.r * opacity + destc.r;
-					if (r > 255) r = 255;
-					g = srcc.g * opacity + destc.g;
-					if (g > 255) g = 255;
-					b = srcc.b * opacity + destc.b;
-					if (b > 255) b = 255;
-					//a = destc.a;
-				} else { // (opts->blend_mode == blendModeMultiply) {
-					// Equivalent to SDL2's new SDL_BLENDMODE_MUL, except that
-					// requires pre-multiplied alpha, unlike other modes!
-					// (SDL2 bug?)
-					//r = srcc.r * destc.r / 255 + destc.r * (1. - opacity);  // premultiplied alpha
-					r = srcc.r * opacity * destc.r / 255 + destc.r * (1. - opacity);
-					if (r > 255) r = 255;
-					g = srcc.g * opacity * destc.g / 255 + destc.g * (1. - opacity);
-					if (g > 255) g = 255;
-					b = srcc.b * opacity * destc.b / 255 + destc.b * (1. - opacity);
-					if (b > 255) b = 255;
-					//a = src_a * destc.a / 255 + destc.a * (1. - opacity);
-					//if (a > 255) a = 255;
-				}
+				// Blend source and dest pixels in 24-bit colour space (.a ignored for now)
+				RGBcolor blended = alpha_blend(srcc, destc, alpha, opts->blend_mode);
 
 				// Convert back to master palette, possibly performing error diffusion.
 				int res;
@@ -146,14 +117,13 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 					res = *destp;
 				} else */
 				if (blend_algo == blendAlgoNoDither) {
-					RGBcolor searchcol = {{b, g, r, 0}};
 					// Use faster lookup, because you don't care about color accuracy
 					// anyway if you're using this.
-					res = nearcolor_faster(searchcol);
+					res = nearcolor_faster(blended);
 				} else {
-					r += errr;
-					g += errg;
-					b += errb;
+					int r = blended.r + errr;
+					int g = blended.g + errg;
+					int b = blended.b + errb;
 					if (r > 255) r = 255;
 					else if (r < 0) r = 0;
 					if (g > 255) g = 255;
@@ -161,13 +131,11 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 					if (b > 255) b = 255;
 					else if (b < 0) b = 0;
 
-					if (blend_algo == blendAlgoDitherFast) {
-						RGBcolor searchcol = {{b, g, r, 0}};
+					RGBcolor searchcol = {{b, g, r, 0}};
+					if (blend_algo == blendAlgoDitherFast)
 						res = nearcolor_faster(searchcol);
-					} else { // blendAlgoDitherSlow
-						RGBcolor searchcol = {{b, g, r, 0}};
+					else // blendAlgoDitherSlow
 						res = nearcolor_fast(searchcol);
-					}
 
 					// The following is a chequered dither where we wipe the
 					// error every 2nd pixel, propagate just 1/2 the error from 1/4
@@ -268,6 +236,7 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 			srcp += srclineinc;
 		}
 	}
+  no_draw:
 
 	// Set the destination mask
 	if (opts->write_mask && destspr->mask) {

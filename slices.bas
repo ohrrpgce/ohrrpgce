@@ -1978,7 +1978,12 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
    end if
   end if
 
+  'static watch as SmoothedTimer
+  'if .drawopts.with_blending then watch.start()
+
   frame_draw spr, .img.pal, sl->ScreenX, sl->ScreenY, .trans, page, .drawopts
+
+  'if .drawopts.with_blending then watch.stop_and_print()
 
   if have_copy then
    frame_unload(@spr)
@@ -2400,7 +2405,13 @@ Sub DrawMapSlice(byval sl as Slice ptr, byval page as integer)
   if .tiles = 0 then exit sub 'tilemap ptr null if the layer doesn't exist. This slice probably shouldn't either.
   if .tileset = 0 then exit sub 'quit silently on a null tileset ptr
   '2nd, 3rd arguments to drawmap are "camera position" of upper left of the screen.
+
+  'static watch as SmoothedTimer
+  'if .drawopts.with_blending then watch.start()
+
   drawmap *.tiles, sl->ScreenX * -1, sl->ScreenY * -1, .tileset, page, .transparent, .overlay, .pass, , , , .drawopts
+
+  'if .drawopts.with_blending then watch.stop_and_print()
  end with
 end sub
 

@@ -4,9 +4,12 @@ Since the OHRRPGCE, for now, still runs in 8-bit color mode, graphics are limite
 This setting controls how the results of blending are mapped back into the palette.
 
 Dither (better): Default. Use dithering (error diffusion) to get resonable results in most circumstances.
-Might flicker when slices move, and is slower, so don't use this if you have lots of transparent sprites.
+Might flicker when slices move, and is slow, so don't use this if you want to blend backdrops or map layers.
 
-Dither (faster): Same as above but cuts corners on the color matching, so looks slightly worse but is 2-3x faster. Differences are most noticeable when the master palette doesn't have nearby colors.
+Dither (faster): Same as above but cuts corners on the color matching, so looks slightly worse but is about 10x faster. Differences are most noticeable when the master palette doesn't have nearby colors.
 
 No dithering: Tends to look bad as you fade sprites in/out, but avoids flickering dither patterns as slices move about. Sprites with very low opacity tend to disappear completely.
-This option is the fastest.
+This option is a bit faster than fast dithering.
+
+
+When running in 32-bit color mode, blending is 2-3x faster than "No dithering".

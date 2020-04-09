@@ -168,6 +168,8 @@ extern "C"
 	Surface* surface_duplicate( Surface* surf );
 	Surface* surface32_from_pixels( char *input, int w, int h, enum PixelFormat format );
 	char *surface32_to_pixels( Surface *surf, enum PixelFormat format );
+	// In blend.h
+	//RGBcolor alpha_blend( RGBcolor src, RGBcolor dest, int alpha, enum BlendMode mode );
 
 	// Roto-zooming functions (implemented in rotozoom.c)
 	Surface *rotozoomSurface(Surface * src, double angle, double zoomx, double zoomy, int smooth);

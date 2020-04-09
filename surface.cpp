@@ -13,6 +13,7 @@
 #include "gfxRender.hpp"
 #include "rasterizer.hpp"
 #include "misc.h"
+#include "blend.h"
 
 void clampRectToSurface( SurfaceRect* inRect, SurfaceRect* outRect, Surface* pSurf );
 
@@ -408,48 +409,6 @@ void clampRectToSurface( SurfaceRect* inRect, SurfaceRect* outRect, Surface* pSu
 	} else {
 		*outRect = {0, 0, pSurf->width - 1, pSurf->height - 1};
 	}
-}
-
-// Blend between two pixels.
-// Alpha channel-based blending isn't implemented yet; this blends using fixed alpha
-// alpha is 0-256, except for blendModeMultiply which uses 0-255!
-static RGBcolor alpha_blend(RGBcolor &src, RGBcolor &dest, int alpha, BlendMode mode) {
-	RGBcolor res;
-	// See blitohr() for how to extend the following to per-pixel alpha
-	if (mode == blendModeNormal) {
-		int alpha2 = 256 - alpha;
-		res.r = (src.r * alpha + dest.r * alpha2) / 256;
-		res.g = (src.g * alpha + dest.g * alpha2) / 256;
-		res.b = (src.b * alpha + dest.b * alpha2) / 256;
-		res.a = dest.a;  // Wrong, see blitohr
-	} else if (mode == blendModeAdd) {
-		int r, g, b;
-		r = src.r * alpha / 256 + dest.r;
-		if (r > 255) r = 255;
-		g = src.g * alpha / 256 + dest.g;
-		if (g > 255) g = 255;
-		b = src.b * alpha / 256 + dest.b;
-		if (b > 255) b = 255;
-		res.r = r;
-		res.g = g;
-		res.b = b;
-		res.a = dest.a;
-	} else { // (mode == blendModeMultiply) {
-		int r, g, b;
-		int alpha2 = 255 - alpha;
-		//r = (src.r * dest.r + dest.r * alpha2) / 255;   // premultiplied alpha
-		r = (src.r * dest.r * alpha / 256 + dest.r * alpha2) / 256;
-		if (r > 255) r = 255;
-		g = (src.g * dest.g * alpha / 256 + dest.g * alpha2) / 256;
-		if (g > 255) g = 255;
-		b = (src.b * dest.b * alpha / 256 + dest.b * alpha2) / 256;
-		if (b > 255) b = 255;
-		res.r = r;
-		res.g = g;
-		res.b = b;
-		res.a = dest.a;  // Wrong, see blitohr
-	}
-	return res;
 }
 
 // Draw a Surface, optionally with transparency or palette, but without scaling/stretching/rotation.
