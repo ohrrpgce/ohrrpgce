@@ -18,6 +18,27 @@ void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, XYPair si
 void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor pal[]);
 void smoothzoomblit_32_to_32bit(RGBcolor *srcbuffer, RGBcolor *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor dummypal[]);
 
+//// Globals
+// This cache is wiped as needed in intpal_changed()
+uint8_t nearcolor_cache[32768] = {0};
+
+
+// Memoize nearcolor_fast, dropping 3 least-significant bits per channel
+int nearcolor_faster(RGBcolor searchcol) {
+	int idx = ((searchcol.r >> 3) << 10) | ((searchcol.g >> 3) << 5) | (searchcol.b >> 3);
+	int res = nearcolor_cache[idx];
+	if (!res) {
+		searchcol.r = (searchcol.r & 0xf8) + 3;
+		searchcol.g = (searchcol.g & 0xf8) + 3;
+		searchcol.b = (searchcol.b & 0xf8) + 3;
+		res = nearcolor_fast(searchcol);
+		if (!res)
+			// nearcolor_fast can't exclude color 0, fallback to slower function
+			res = nearcolor_intpal(searchcol, 1);
+		nearcolor_cache[idx] = res;
+	}
+	return res;
+}
 
 static inline uint8_t *get_frame_buf(Frame *spr) {
 	if (spr->surf) {

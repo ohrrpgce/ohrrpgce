@@ -409,7 +409,7 @@ dim shared textbg as integer
 
 dim shared intpal(0 to 255) as RGBcolor	 'current palette
 extern "C"
-extern pintpal as RGBcolor ptr  'Global which is accessible from C/C++
+'Global which is accessible from C/C++
 dim pintpal as RGBcolor ptr = @intpal(0)
 end extern
 
@@ -1228,6 +1228,7 @@ end sub
 local sub intpal_changed()
 	delete_KDTree(nearcolor_kdtree)
 	nearcolor_kdtree = make_KDTree_for_palette(@intpal(0), 8, 0)
+	memset(@nearcolor_cache(0), 0, ubound(nearcolor_cache) + 1)
 end sub
 
 ' Change the palette at the NEXT setvispage call (or before next screen fade).
@@ -7537,13 +7538,19 @@ function nearcolor(pal() as RGBcolor, index as integer, firstindex as integer = 
 	end with
 end function
 
+extern "C"
+
+function nearcolor_intpal(byval col as RGBcolor, firstindex as integer = 0) as ubyte
+	return nearcolor(intpal(), col.r, col.g, col.b, firstindex)
+end function
+
 'Find the nearest color in the current palette (intpal() - set by setpal). Alpha ignored.
 'This may produce slightly worse results than nearcolor because it uses a slightly different
 'color distance function. However it's over 10x faster.
-extern "C"
 function nearcolor_fast(byval col as RGBcolor) as ubyte
 	return query_KDTree(nearcolor_kdtree, col)
 end function
+
 end extern
 
 'Version which supports out-of-bounds r/g/b values. Note that this behaves

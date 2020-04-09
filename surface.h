@@ -95,6 +95,10 @@ typedef struct
 	float opacity;
 } DrawOptions;
 
+// In blit.c
+extern uint8_t nearcolor_cache[32768];
+
+// In allmodex.bas
 extern DrawOptions def_drawoptions;
 
 //interfaces

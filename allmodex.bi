@@ -786,5 +786,8 @@ extern user_toggled_fullscreen as bool
 extern active_seconds as double
 extern idle_time_threshold as double
 extern joysticks_globally_disabled as bool
+extern "C"
+extern pintpal as RGBcolor ptr
+end extern
 
 #ENDIF

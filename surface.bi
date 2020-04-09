@@ -106,7 +106,14 @@ Type DrawOptions
 End Type
 
 extern "C"
+
+'In blit.c
+extern nearcolor_cache(32767) as ubyte
+
+'In allmodex.bas
 extern def_drawoptions as DrawOptions
+extern pintpal as RGBcolor ptr
+
 end extern
 
 'Vertices
