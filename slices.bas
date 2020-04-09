@@ -1954,6 +1954,8 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
    have_copy = YES
   end if
 
+  dim drew as bool = NO
+
   if .dissolving then
    dim dtime as integer = .d_time
    if dtime = -1 then dtime = (sl->Width + sl->Height) / 10
@@ -1964,9 +1966,8 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
     else
      dtick = .d_tick
     end if
-    if have_copy = NO then frame_reference spr
-    frame_assign @spr, frame_dissolved(spr, dtime, dtick, .d_type)
-    have_copy = YES
+    frame_draw_dissolved spr, .img.pal, sl->ScreenX, sl->ScreenY, .trans, vpages(page), .drawopts, dtime, dtick, .d_type
+    drew = YES
     'FIXME: d_auto shouldn't take effect here, but when the slice is 'advanced'
     if .d_auto then
      .d_tick += 1
@@ -1981,7 +1982,9 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
   'static watch as SmoothedTimer
   'if .drawopts.with_blending then watch.start()
 
-  frame_draw spr, .img.pal, sl->ScreenX, sl->ScreenY, .trans, page, .drawopts
+  if drew = NO then
+   frame_draw spr, .img.pal, sl->ScreenX, sl->ScreenY, .trans, page, .drawopts
+  end if
 
   'if .drawopts.with_blending then watch.stop_and_print()
 

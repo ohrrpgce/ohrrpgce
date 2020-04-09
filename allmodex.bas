@@ -9783,6 +9783,16 @@ function frame_dissolved(spr as Frame ptr, tlength as integer, t as integer, sty
 	return cpy
 end function
 
+sub frame_draw_dissolved (src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions, tlength as integer, tick as integer, style as integer)
+	select case style
+		case else
+			dim dissolved as Frame ptr
+			dissolved = frame_dissolved(src, tlength, tick, style)
+			frame_draw dissolved, pal, x, y, trans, dest, opts
+			frame_unload @dissolved
+	end select
+end sub
+
 'Warning: this is used ONLY for battle appear/death animations, it is NOT used by
 'dissolving slices set to default dissolve length! (They use (w+h)/10)
 function default_dissolve_time(style as integer, w as integer, h as integer) as integer
