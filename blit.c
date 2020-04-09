@@ -147,7 +147,9 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 				} else */
 				if (blend_algo == blendAlgoNoDither) {
 					RGBcolor searchcol = {{b, g, r, 0}};
-					res = nearcolor_fast(searchcol);
+					// Use faster lookup, because you don't care about color accuracy
+					// anyway if you're using this.
+					res = nearcolor_faster(searchcol);
 				} else {
 					r += errr;
 					g += errg;
