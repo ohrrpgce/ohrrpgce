@@ -9830,7 +9830,7 @@ sub frame_draw_dissolved (src as Frame ptr, pal as Palette16 ptr = NULL, x as Re
 			'Zoom out at same time as fading out
 			dim as double zoomx = 1., zoomy = 1.
 			if style = 15 then
-				zoomx = 1. + 0.6 * (tick / tlength) ^ 2
+				zoomx = 1. + 0.6 * (tick / tlength) ^ 0.5
 				zoomy = zoomx
 			else
 				zoomy = 1. + 1.2 * (tick / tlength) ^ 2
@@ -9839,14 +9839,15 @@ sub frame_draw_dissolved (src as Frame ptr, pal as Palette16 ptr = NULL, x as Re
 			dim scaled as Frame ptr = frame_rotozoom(src, pal, 0, zoomx, zoomy)
 
 			'Recenter
+			fadeopts.opacity = (tlength - tick) / tlength
 			if style = 15 then
 				x += (src->w - scaled->w) / 2
 				y += 3 * (src->h - scaled->h) / 4
+				fadeopts.opacity ^= 2
 			else
 				y += (src->h - scaled->h)
 			end if
-
-			fadeopts.opacity = opts.opacity * (tlength - tick) / tlength
+			fadeopts.opacity *= opts.opacity
 			frame_draw scaled, pal, x, y, trans, dest, fadeopts
 			frame_unload @scaled
 
