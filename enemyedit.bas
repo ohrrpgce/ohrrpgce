@@ -282,6 +282,8 @@ DIM menuoff(MnuItems) as integer
 DIM menulimits(MnuItems) as integer
 DIM menucapoff(MnuItems) as integer
 
+CONST EnMenuInvalid = -1
+
 CONST EnMenuBackAct = 0
 menu(EnMenuBackAct) = "Previous Menu"
 menutype(EnMenuBackAct) = 1
@@ -783,8 +785,9 @@ DO
   enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
  END IF
 
+ DIM nowindex as integer = EnMenuInvalid
  IF enter_space_click(state) THEN
-  DIM nowindex as integer = workmenu(state.pt)
+  nowindex = workmenu(state.pt)
   SELECT CASE menutype(nowindex)
    CASE 8 ' Item
     recbuf(menuoff(nowindex)) = item_picker(recbuf(menuoff(nowindex)))
@@ -866,15 +869,6 @@ DO
     IF recbuf(EnDatDeathSFX) = 0 THEN playsfx gen(genDefaultDeathSFX) - 1
    CASE EnMenuBitsetAct
     editbitset recbuf(), EnDatBitset, enemybits(), "enemy_bitsets", remember_bit
-   CASE EnMenuDissolve, EnMenuDissolveTime
-    DIM dissolve_type as integer = IIF(recbuf(EnDatDissolve), recbuf(EnDatDissolve) - 1, gen(genEnemyDissolve))
-    dissolve_stop_at = start_preview_dissolve(preview, dissolve_type, recbuf(EnDatDissolveTime), NO)
-    dissolve_ticks = 0
-   CASE EnMenuDissolveIn, EnMenuDissolveInTime
-    IF recbuf(EnDatDissolveIn) > 0 THEN  'Not 'Appears Instantly'
-     dissolve_stop_at = start_preview_dissolve(preview, recbuf(EnDatDissolveIn) - 1, recbuf(EnDatDissolveInTime), YES)
-     dissolve_ticks = 0
-    END IF
    CASE EnMenuCursorOffset
     'The offset is relative to the top-center edge, and horiz-flipped, because
     'originally the sprite was shown flipped.
@@ -891,6 +885,19 @@ DO
    state.need_update = YES
   END IF
  END IF
+
+ 'Some menu item enter_space_click actions have to happen after editflexmenu
+ SELECT CASE nowindex  'Set if enter_space_click(state)
+  CASE EnMenuDissolve, EnMenuDissolveTime
+   DIM dissolve_type as integer = IIF(recbuf(EnDatDissolve), recbuf(EnDatDissolve) - 1, gen(genEnemyDissolve))
+   dissolve_stop_at = start_preview_dissolve(preview, dissolve_type, recbuf(EnDatDissolveTime), NO)
+   dissolve_ticks = 0
+  CASE EnMenuDissolveIn, EnMenuDissolveInTime
+   IF recbuf(EnDatDissolveIn) > 0 THEN  'Not 'Appears Instantly'
+    dissolve_stop_at = start_preview_dissolve(preview, recbuf(EnDatDissolveIn) - 1, recbuf(EnDatDissolveInTime), YES)
+    dissolve_ticks = 0
+   END IF
+ END SELECT
 
  'Debug key CTRL-B: edit all bitsets
  IF keyval(scCtrl) > 0 AND keyval(scB) > 1 THEN
