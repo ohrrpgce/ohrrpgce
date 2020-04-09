@@ -4315,3 +4315,40 @@ FUNCTION readkey () as string
     IF w <> "" THEN RETURN w
   LOOP
 END FUNCTION
+
+'----------------------------------------------------------------------
+
+
+destructor SmoothedTimer()
+  v_free times
+end destructor
+
+Sub SmoothedTimer.start()
+  timing = timer
+end sub
+
+'Returns true if smoothed value was updated
+function SmoothedTimer.stop() as bool
+  timing = timer - timing
+  if times = NULL then v_new times
+  v_append times, timing
+  if v_len(times) = 9 then
+    'Update with median buffer value
+    v_sort times
+    if smoothtime > times[4] * 4/3 orelse smoothtime < times[4] * 3/4 then
+      smoothtime = times[4]   'Reset
+    else
+      smoothtime = smoothtime * 0.8 + 0.2 * times[4]
+    end if
+    v_new times  'Clear buffer
+    return YES
+  end if
+end function
+
+function SmoothedTimer.tell() as string
+  return "done in " & cint(1e6 * timing) & !"us;\tsmoothed: " & cint(1e6 * smoothtime) & "us"
+end function
+
+sub SmoothedTimer.stop_and_print()
+  if stop() then ? tell()
+end sub

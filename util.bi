@@ -874,6 +874,21 @@ declare function readkey () as string
     debuginfo __FUNCTION__ "(" & extrainfo & ") took " & CINT((TIMER - starttime) * 1000) & "ms"
 #endmacro
 
+'This throws out outliers and smooths over many repeated start() to stop() timings.
+'Instances of this should tpyically be static or globals
+type SmoothedTimer
+   timing as double        'Current timing
+   times as double vector  'Buffer
+   smoothtime as double    'Smoothed timing value
+
+   declare destructor()
+   declare sub start()
+   declare function stop() as bool
+   declare function tell() as string
+   declare sub stop_and_print()
+end Type
+
+
 '----------------------------------------------------------------------
 '                        Old allmodex functions
 
