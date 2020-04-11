@@ -208,6 +208,7 @@ CONST genAddHeroScript = 230     ' Script trigger called when hero added
 CONST genRemoveHeroScript = 231  ' Script trigger called when hero deleted/removed
 CONST genMoveHeroScript = 232    ' Script trigger called when hero moved to a different slot
 CONST gen8bitBlendAlgo = 233     ' Algorithm to use for palette lookups for blending in 8-bit color mode; a BlendAlgo value
+CONST genPreviewBackdrop = 234   ' 0 or ID+1 of backdrop to use for enemy previews (and maybe more in future)
 
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.

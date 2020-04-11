@@ -689,13 +689,15 @@ clip_box = NewSliceOfType(slContainer, preview_box)
 clip_box->Clip = YES
 clip_box->Fill = YES
 
-'The preview backdrop, or none if -1
-STATIC preview_backdrop_id as integer = -1
+'The preview backdrop + 1, or none if 0
+DIM byref preview_backdrop_id as integer = gen(genPreviewBackdrop)
 preview_backdrop_id = small(preview_backdrop_id, gen(genNumBackdrops) - 1)
 DIM preview_backdrop as Slice Ptr
 preview_backdrop = NewSliceOfType(slSprite, clip_box)
-preview_backdrop->Visible = preview_backdrop_id >= 0
-ChangeSpriteSlice preview_backdrop, sprTypeBackdrop, preview_backdrop_id
+preview_backdrop->Visible = (preview_backdrop_id > 0)
+IF preview_backdrop_id > 0 THEN
+ ChangeSpriteSlice preview_backdrop, sprTypeBackdrop, preview_backdrop_id - 1
+END IF
 RealignSlice preview_backdrop, alignCenter, alignCenter, alignCenter, alignCenter
 
 '--Create the preview sprite. It will be updated before it is drawn.
@@ -899,10 +901,10 @@ DO
    CASE EnMenuPreviewBackdrop
     'Pick preview backdrop
     DIM backdropb as BackdropSpriteBrowser
-    preview_backdrop_id = backdropb.browse(preview_backdrop_id, YES)  'or_none=YES
-    preview_backdrop->Visible = preview_backdrop_id >= 0
-    IF preview_backdrop_id >= 0 THEN
-     ChangeSpriteSlice preview_backdrop, , preview_backdrop_id
+    preview_backdrop_id = backdropb.browse(preview_backdrop_id - 1, YES) + 1  'or_none=YES
+    preview_backdrop->Visible = (preview_backdrop_id > 0)
+    IF preview_backdrop_id > 0 THEN
+     ChangeSpriteSlice preview_backdrop, sprTypeBackdrop, preview_backdrop_id - 1
     END IF
   END SELECT
  END IF
