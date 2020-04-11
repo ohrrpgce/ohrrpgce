@@ -9791,14 +9791,20 @@ end function
 'This supports all effects, unlike frame_dissolved.
 sub frame_draw_dissolved (src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions, tlength as integer, tick as integer, style as integer)
 
+	'Trivial cases
+	if tick > tlength then exit sub
+	if tick <= 0 then frame_draw src, pal, x, y, trans, dest, opts
+
 	dim fadeopts as DrawOptions
 	fadeopts.with_blending = YES
 	fadeopts.blend_mode = blendModeNormal
 
+	dim tfrac as double = tick / tlength
+
 	select case style
 		case 12  'Fade out
 			'We respect the baseline opts.opacity but not the blend_mode
-			fadeopts.opacity = opts.opacity * (tlength - tick) / tlength
+			fadeopts.opacity = opts.opacity * (1 - tfrac)
 			frame_draw src, pal, x, y, trans, dest, fadeopts
 
 		case 13  'Ghost fade
@@ -9816,7 +9822,6 @@ sub frame_draw_dissolved (src as Frame ptr, pal as Palette16 ptr = NULL, x as Re
 		case 14  'Fade through white
 			FAIL_IF(pal = NULL, "Fade through white needs palette")
 
-			dim tfrac as double = tick / tlength
 			dim white as RGBcolor
 			white.col = &hffffffff
 			dim fadepal as Palette16 ptr = palette16_duplicate(pal)
@@ -9830,16 +9835,16 @@ sub frame_draw_dissolved (src as Frame ptr, pal as Palette16 ptr = NULL, x as Re
 			'Zoom out at same time as fading out
 			dim as double zoomx = 1., zoomy = 1.
 			if style = 15 then
-				zoomx = 1. + 0.6 * (tick / tlength) ^ 0.5
+				zoomx = 1. + 0.6 * tfrac ^ 0.5
 				zoomy = zoomx
 			else
-				zoomy = 1. + 1.2 * (tick / tlength) ^ 2
+				zoomy = 1. + 1.2 * tfrac ^ 2
 			end if
 
 			dim scaled as Frame ptr = frame_rotozoom(src, pal, 0, zoomx, zoomy)
 
 			'Recenter
-			fadeopts.opacity = (tlength - tick) / tlength
+			fadeopts.opacity = 1 - tfrac
 			if style = 15 then
 				x += (src->w - scaled->w) / 2
 				y += 3 * (src->h - scaled->h) / 4
@@ -9853,7 +9858,6 @@ sub frame_draw_dissolved (src as Frame ptr, pal as Palette16 ptr = NULL, x as Re
 
 		case 17  'Blip
 			dim as double zoomx = 1., zoomy = 1.
-			dim tfrac as double = (tick / tlength)
 			zoomx = (1 - tfrac) ^ 2
 			zoomy = 2. - (1 - tfrac ^ 2)
 
