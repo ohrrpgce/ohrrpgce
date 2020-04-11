@@ -1455,6 +1455,7 @@ SUB update_battle_slices(bslot() as BattleSprite)
 
     IF is_enemy(i) andalso .appeartype >= 0 andalso .dissolve_appear <= .appeartime then
      'TODO: switch to auto-animating dissolve instead of manually setting the current tick
+     '(but make sure to preserve the one tick delay at start of battle before appear starts)
      DissolveSpriteSlice .sprite, .appeartype, .appeartime, .appeartime - .dissolve_appear, , NO
     ELSEIF is_enemy(i) andalso .dissolve > 0 andalso .fleeing = NO then
      DissolveSpriteSlice .sprite, .deathtype, .deathtime, .deathtime - .dissolve, , NO

@@ -1913,7 +1913,7 @@ SUB reset_enemy_state(byref bspr as BattleSprite)
   .vis = YES
   .d = 0
   .dissolve = 0
-  .dissolve_appear = 0
+  .dissolve_appear = -1  'One tick delay before starting to appear, to happen after battle fade-in
   .fleeing = NO
   .bequesting = NO
   .self_bequesting = NO
