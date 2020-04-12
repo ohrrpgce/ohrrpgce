@@ -84,7 +84,7 @@ declare sub snapshot_check()
 declare function calcblock(tmap as TileMap, x as integer, y as integer, overheadmode as integer, pmapptr as TileMap ptr) as integer
 
 declare sub screen_size_update ()
-declare sub intpal_changed()
+declare sub masterpal_changed()
 
 declare sub pollingthread(as any ptr)
 declare sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
@@ -407,14 +407,16 @@ dim shared cursorvisibility as CursorVisibility = cursorDefault
 dim shared textfg as integer
 dim shared textbg as integer
 
-dim shared intpal(0 to 255) as RGBcolor	 'current palette
+'master() is usually equal to these two, but does not take effect until setpal() is called.
+'In most cases intpal should be used, including when drawing to a 32-bit vpage, but curmasterpal
+'should be used when drawing to a 8-bit vpage (e.g. drawing with blending).
+dim shared intpal(0 to 255) as RGBcolor       'Current palette, with any screen fading applied
 extern "C"
-'Global which is accessible from C/C++
-dim pintpal as RGBcolor ptr = @intpal(0)
+dim shared curmasterpal(0 to 255) as RGBcolor 'Palette at last setpal(), excludes any screen fades
 end extern
 
 dim shared updatepal as bool             'setpal called, load new palette at next setvispage
-dim shared nearcolor_kdtree as GifKDTree ptr  'Use for fast nearest-color lookups
+dim shared nearcolor_kdtree as GifKDTree ptr  'Use for fast nearest-color lookups into curmasterpal()
 
 dim shared fps_draw_frames as integer = 0 'Frames drawn since fps_time_start
 dim shared fps_real_frames as integer = 0 'Frames sent to gfx backend since fps_time_start
@@ -469,8 +471,8 @@ local sub modex_init()
 	tlsKeyClipRect = tls_alloc_key()
 	gfxmutex = mutexcreate
 
-	'Just to ensure nearcolor_kdtree isn't NULL. intpal() is probably empty
-	intpal_changed
+	'Just to ensure nearcolor_kdtree isn't NULL. curmasterpal() is probably empty
+	masterpal_changed
 
 	palette16_reload_cache   'read data/defaultgfx/ohrrpgce.pal
 
@@ -1225,7 +1227,7 @@ local sub present_internal_surface(drawpage as integer)
 	gfx_paletteDestroy(@surface_pal)
 end sub
 
-local sub intpal_changed()
+local sub masterpal_changed()
 	delete_KDTree(nearcolor_kdtree)
 	'Build tree which excludes color 0 (callers to nearcolor_fast rely on this)
 	nearcolor_kdtree = make_KDTree_for_palette(@intpal(0), 8, 1)
@@ -1235,7 +1237,8 @@ end sub
 ' Change the palette at the NEXT setvispage call (or before next screen fade).
 sub setpal(pal() as RGBcolor)
 	memcpy(@intpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
-	intpal_changed
+	memcpy(@curmasterpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
+	masterpal_changed
 	updatepal = YES
 end sub
 
@@ -1301,7 +1304,6 @@ sub fadeto (red as integer, green as integer, blue as integer)
 				intpal(j).b -= iif(diff <= -8, -8, diff)
 			end if
 		next
-		intpal_changed
 		maybe_do_gfx_setpal
 
 		if i mod 3 = 0 then
@@ -1359,7 +1361,6 @@ sub fadetopal (pal() as RGBcolor)
 				intpal(j).b -= iif(diff <= -8, -8, diff)
 			end if
 		next
-		intpal_changed
 		maybe_do_gfx_setpal
 
 		if i mod 3 = 0 then
@@ -7541,13 +7542,13 @@ end function
 
 extern "C"
 
-function nearcolor_intpal(byval col as RGBcolor, firstindex as integer = 0) as ubyte
-	return nearcolor(intpal(), col.r, col.g, col.b, firstindex)
+function nearcolor_master(byval col as RGBcolor, firstindex as integer = 0) as ubyte
+	return nearcolor(curmasterpal(), col.r, col.g, col.b, firstindex)
 end function
 
-'Find the nearest color in the current palette (intpal() - set by setpal). Alpha ignored.
+'Find the nearest color in the current palette (curmasterpal(), set by setpal). Alpha ignored.
 'This may produce slightly worse results than nearcolor because it uses a slightly different
-'color distance function. However it's over 10x faster.
+'color distance function. However it's over 10x faster. (Try nearcolor_faster if you need more.)
 function nearcolor_fast(byval col as RGBcolor) as ubyte
 	return query_KDTree(nearcolor_kdtree, col)
 end function
@@ -7635,7 +7636,7 @@ local sub quantize_surface_threshold(surf as Surface ptr, ret as Frame ptr, pal(
 			elseif inptr->a = 0 then
 				*outptr = 0
 			elseif quantizing then
-				if options.to_intpal then
+				if options.to_master then
 					*outptr = nearcolor_fast(*inptr)  'Never 0
 				else
 					*outptr = nearcolor(pal(), inptr->r, inptr->g, inptr->b, options.firstindex)
@@ -7772,10 +7773,10 @@ end sub
 
 constructor GIFRecorder(outfile as string, secondscreen as string = "")
 	dim gifpal as GifPalette
-	' Use master() rather than actual palette (intpal()), because
+	' Use curmasterpal() rather than actual palette (intpal()), because
 	' intpal() is affected by fades. We want the master palette,
 	' because that's likely to be the palette for most frames.
-	GifPalette_from_pal gifpal, master()
+	GifPalette_from_pal gifpal, curmasterpal()
 	this.fname = outfile
 	this.secondscreen = secondscreen
 	dim file as FILE ptr = fopen(this.fname, "wb")
@@ -8645,7 +8646,7 @@ function frame_new(w as integer, h as integer, frames as integer = 1, clr as boo
 					return NULL
 				end if
 				if clr then
-					gfx_surfaceFill(intpal(0).col, NULL, .surf)
+					gfx_surfaceFill(curmasterpal(0).col, NULL, .surf)
 				end if
 			else
 				if clr then
@@ -10014,7 +10015,7 @@ end function
 'frame_duplicate with clr=1 does the same
 sub frame_clear(spr as Frame ptr, colour as integer = 0)
 	if spr->surf then
-		gfx_surfaceFill(intpal(colour).col, NULL, spr->surf)
+		gfx_surfaceFill(curmasterpal(colour).col, NULL, spr->surf)
 		exit sub
 	end if
 	if spr->image then
@@ -10373,10 +10374,11 @@ function Palette16_describe(pal as Palette16 ptr) as string
 end function
 
 'Modifies a palette in-place, changing each color according to method, e.g. greyscale.
+'Calculated using the master palette ignoring screen fades.
 sub Palette16_transform_n_match(pal as Palette16 ptr, method as ColorOperator)
 	for idx as integer = 0 to pal->numcolors - 1
 		dim as integer r, g, b, temp
-		with intpal(pal->col(idx))
+		with curmasterpal(pal->col(idx))
 			if method = copLuminance then
 				'Best choice for converting to grey
 				r = .r * 0.3 + .g * 0.59 + .b * 0.11
@@ -10407,10 +10409,11 @@ sub Palette16_transform_n_match(pal as Palette16 ptr, method as ColorOperator)
 end sub
 
 'Modifies a palette in-place, tinting it with a color
+'Calculated using the master palette ignoring screen fades.
 sub Palette16_mix_n_match(pal as Palette16 ptr, byval col as RGBcolor, colfrac as double, method as ColorMixMethod, scale as double = 1.0)
 	for idx as integer = 0 to pal->numcolors - 1
 		dim as integer mixr, mixg, mixb
-		with intpal(pal->col(idx))
+		with curmasterpal(pal->col(idx))
 			if method = mixBlend then
 				mixr = scale * .r * (1 - colfrac) + col.r * colfrac
 				mixg = scale * .g * (1 - colfrac) + col.g * colfrac

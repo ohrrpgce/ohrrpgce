@@ -346,7 +346,7 @@ TYPE QuantizeOptions
 	dither as bool
 	dither_maxerror as integer 'How much dithering to do (kGifMaxAccumError); 0 means no dither. (Default 50)
 	compute_palette as bool  'If true, pal() is output rather than input!
-	to_intpal as bool        'pal() is intpal() (set by last setpal call). Allows use of nearcolor_fast
+	to_master as bool        'pal() is curmasterpal() (set by last setpal call). Allows use of nearcolor_fast
 	                         '(currently only implemented if dither=NO compute_palette=NO).
 	                         'firstindex will be ignored! Always taken as 1.
 END TYPE
@@ -789,7 +789,7 @@ extern active_seconds as double
 extern idle_time_threshold as double
 extern joysticks_globally_disabled as bool
 extern "C"
-extern pintpal as RGBcolor ptr
+extern curmasterpal(255) as RGBcolor
 end extern
 
 #ENDIF

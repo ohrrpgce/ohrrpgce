@@ -99,11 +99,11 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 					continue;
 				}
 
-				RGBcolor srcc, destc = pintpal[*destp];
+				RGBcolor srcc, destc = curmasterpal[*destp];
 				if (pal)
-					srcc = pintpal[pal->col[*srcp]];
+					srcc = curmasterpal[pal->col[*srcp]];
 				else
-					srcc = pintpal[*srcp];
+					srcc = curmasterpal[*srcp];
 
 				// Blend source and dest pixels in 24-bit colour space (.a ignored for now)
 				RGBcolor blended = alpha_blend(srcc, destc, alpha, opts->blend_mode);
@@ -146,9 +146,9 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 							m = 2 + ((i&j)&1);  // 2 or 3
 						else // blendAlgoLessDither
 							m = 1;
-						errr = m * (r - pintpal[res].r) / 4;
-						errg = m * (g - pintpal[res].g) / 4;
-						errb = m * (b - pintpal[res].b) / 4;
+						errr = m * (r - curmasterpal[res].r) / 4;
+						errg = m * (g - curmasterpal[res].g) / 4;
+						errb = m * (b - curmasterpal[res].b) / 4;
 					}
 				}
 

@@ -121,7 +121,7 @@ extern nearcolor_cache(65535) as ubyte
 
 'In allmodex.bas
 extern def_drawoptions as DrawOptions
-extern pintpal as RGBcolor ptr
+extern curmasterpal(255) as RGBcolor
 
 end extern
 

@@ -61,10 +61,10 @@ typedef struct Frame {
 Frame* frame_reference(Frame *p);
 void frame_unload(Frame** p);
 uint8_t nearcolor_fast(RGBcolor col);
-uint8_t nearcolor_intpal(RGBcolor col, int firstindex);
+uint8_t nearcolor_master(RGBcolor col, int firstindex);
 
 // Master palette
-extern RGBcolor *pintpal;
+extern RGBcolor curmasterpal[256];
 
 #ifdef __cplusplus
 }

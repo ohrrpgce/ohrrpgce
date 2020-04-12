@@ -1847,7 +1847,7 @@ LOCAL FUNCTION minimap_tile_scaled(composed_tile as Frame ptr, zoom as integer, 
  DIM scaledfr as Frame ptr
  IF quant THEN
   DIM opts as QuantizeOptions
-  opts.to_intpal = YES  'Use nearcolor_fast
+  opts.to_master = YES  'Use nearcolor_fast
   scaledfr = quantize_surface(scaled, master(), opts)  'Frees scaled
  ELSE
   scaledfr = frame_with_surface(scaled)
