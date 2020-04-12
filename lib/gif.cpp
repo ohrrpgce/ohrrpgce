@@ -75,6 +75,10 @@ void dither_image(const GifRGBA* image, uint32_t width, uint32_t height, uint8_t
 
 // Build a data structure (k-d tree) that allows fast querying of the
 // nearest-match color in a palette. Delete the tree with delete_KDTree().
+// The first 'firstIndex' colors in 'palette' will never be returned.
+// (The k-d tree has at most 255 colors, since space is reserved for kGifTransIndex.
+// But if firstIndex == 0, the color that will be omitted can be any, not just color 0.
+// It will be the color that is most similar to another color in the palette.)
 GifKDTree *make_KDTree_for_palette(const GifRGBA* palette, int bitDepth, int firstIndex) {
     GifKDTree *tree = (GifKDTree*)GIF_MALLOC(sizeof(GifKDTree));
 
@@ -94,7 +98,7 @@ GifKDTree *make_KDTree_for_palette(const GifRGBA* palette, int bitDepth, int fir
     }
 
     // Instead of sorting the palette inplace, just overwrite it.
-    memcpy(tree->pal.colors, palette + firstIndex, sizeof(GifRGBA) << bitDepth);
+    memcpy(tree->pal.colors, palette, sizeof(GifRGBA) << bitDepth);
 
     return tree;
 }
