@@ -33,10 +33,7 @@ int nearcolor_faster(RGBcolor searchcol) {
 		searchcol.r = (searchcol.r & 0xf8) + 3;
 		searchcol.g = (searchcol.g & 0xfc) + 1;
 		searchcol.b = (searchcol.b & 0xf8) + 3;
-		res = nearcolor_fast(searchcol);
-		if (!res)
-			// nearcolor_fast can't exclude color 0, fallback to slower function
-			res = nearcolor_intpal(searchcol, 1);
+		res = nearcolor_fast(searchcol);  // Never returns 0
 		nearcolor_cache[idx] = res;
 	}
 	return res;

@@ -1227,7 +1227,8 @@ end sub
 
 local sub intpal_changed()
 	delete_KDTree(nearcolor_kdtree)
-	nearcolor_kdtree = make_KDTree_for_palette(@intpal(0), 8, 0)
+	'Build tree which excludes color 0 (callers to nearcolor_fast rely on this)
+	nearcolor_kdtree = make_KDTree_for_palette(@intpal(0), 8, 1)
 	memset(@nearcolor_cache(0), 0, ubound(nearcolor_cache) + 1)
 end sub
 
@@ -7635,7 +7636,7 @@ local sub quantize_surface_threshold(surf as Surface ptr, ret as Frame ptr, pal(
 				*outptr = 0
 			elseif quantizing then
 				if options.to_intpal then
-					*outptr = nearcolor_fast(*inptr)
+					*outptr = nearcolor_fast(*inptr)  'Never 0
 				else
 					*outptr = nearcolor(pal(), inptr->r, inptr->g, inptr->b, options.firstindex)
 				end if
@@ -10401,7 +10402,7 @@ sub Palette16_transform_n_match(pal as Palette16 ptr, method as ColorOperator)
 			end if
 
 		end with
-		pal->col(idx) = nearcolor_fast(r, g, b)
+		pal->col(idx) = nearcolor_fast(r, g, b)  'Never 0
 	next
 end sub
 
@@ -10421,7 +10422,7 @@ sub Palette16_mix_n_match(pal as Palette16 ptr, byval col as RGBcolor, colfrac a
 				mixb = scale * .b * (nonmult + col.b * colfrac) / 255
 			end if
 		end with
-		pal->col(idx) = nearcolor_fast(mixr, mixg, mixb)
+		pal->col(idx) = nearcolor_fast(mixr, mixg, mixb)  'Never 0
 	next
 end sub
 

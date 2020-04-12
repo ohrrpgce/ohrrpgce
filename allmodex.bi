@@ -348,7 +348,7 @@ TYPE QuantizeOptions
 	compute_palette as bool  'If true, pal() is output rather than input!
 	to_intpal as bool        'pal() is intpal() (set by last setpal call). Allows use of nearcolor_fast
 	                         '(currently only implemented if dither=NO compute_palette=NO).
-	                         'firstindex will be ignored! (Always taken as 0. Maybe should be changed.).
+	                         'firstindex will be ignored! Always taken as 1.
 END TYPE
 
 ENUM ImageFileTypes
