@@ -479,6 +479,17 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 				<ref>random</ref>
 			</seealso>
 		</command>
+		<command id="multdiv">
+			<canon>multdiv (a, b, c)</canon>
+			<shortname>multdiv</shortname>
+			<description>
+				Computes <tt>(a * b) / c</tt> with rounding, and without overflowing.
+				The intermediate result is performed in floating point so that it won't overflow,
+				and the final result is clamped to the range of a 32-bit integer.
+				<lb/>
+				This is equivalent to <tt>min(2^31 - 1, max(-2^31, round(1.0 * a * b / c)))</tt> in other languages.
+			</description>
+		</command>
 	</section>
 
 	<section title="Flow Control">
@@ -2319,6 +2330,7 @@ wait for text box # wait until the player continues</example>
 	
 	<section title="The Party">
 		<description>
+			See also the <a href="#Hero Data">Hero Data</a> section for inspecting or modifying individual heroes.
 			<note>
 			You should definitely read <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
 			Ways to refer to a hero in a script</a> to understand the differences between hero ID numbers
@@ -2943,20 +2955,35 @@ fade screen in</example>
 
 	<section title="Hero Data">
 
+		<description>
+			See also <a href="#The Party">The Party</a> section for commands for finding, adding, removing or swapping
+			heroes in the party.
+			<note>
+			You should definitely read <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
+			Ways to refer to a hero in a script</a> to understand the differences between hero ID numbers
+			(including <tt>hero:name</tt> constants), hero party slots, and walkabout rank!
+			</note>
+		</description>
+
+
 		<command id="renamehero">
 			<canon>rename hero (who)</canon>
 			<shortname>rename hero</shortname>
 			<description>
-				Pops up a name-editing box that allows you to change a hero&apos;s name.
+				Pops up a name-editing box that allows you to change the name of a hero in the party.
+				The game and scripts are paused while this menu is up.
+				<lb/>
 				The argument is the hero&apos;s ID number, or name in the format hero:name.
 				The return value is true if the player renamed the hero, or false if they cancelled.
-</description>
+			</description>
 		</command>
 		<command id="renameherobyslot">
 			<canon>rename hero by slot (who)</canon>
 			<shortname>rename hero by slot</shortname>
 			<description>
-				Pops up a name-editing box that allows you to change a hero&apos;s name.
+				Pops up a name-editing box that allows you to change the name of a hero in the party.
+				The game and scripts are paused while this menu is up.
+				<lb/>
 				The argument is the hero&apos;s position in the party as returned by <ref>findhero</ref>.
 				The return value is true if the player the hero renamed, or false if they cancelled.
 			</description>
@@ -5765,7 +5792,7 @@ set menu on close script(m, @my menu exit handler)
 	<section title="Slices">
 		<description>
 			To learn what a slice is, read the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices">Slices article</a> on the wiki,
-			or a tutorial linked to from it.
+			or one of the other tutorials you can find there.
 			Although there are many commands here for manipulating slices, it's much easier to create slices
 			in the Slice Collection Editor and then use <ref>loadslicecollection</ref>.
 			<lb/>
@@ -9037,6 +9064,7 @@ set horiz align(sl, edge:right)
 			</seealso>
 		</command>
 		<reference ref="moveslicewithwallchecking" />
+		<reference ref="checkwallcollisionxy" />
 		</section>		<!--Slice Collision Testing-->
 
 	</section>		<!--Slices-->
@@ -9325,7 +9353,8 @@ write pass block(15,3,none)
 				See <ref>moveslicewithwallchecking</ref> for information about what the optional <p>friction%</p>
 				argument (which defaults to 100) does.
 				<lb/>
-				The return value is the maximum x/y offset that the object could move
+				The return value is the maximum x or y offset
+				(for <tt>check wall collision x</tt> or <tt>y</tt> respectively) that the object could move
 				in a straight line towards the target before hitting a wall.
 				If there are no walls in the way, then the return value is <p>relative x</p> or <p>relative y</p>.
 				<lb/>
