@@ -263,6 +263,7 @@ End Type
 
 Type BackdropSpriteBrowser extends SpriteBrowser
  declare constructor()
+ declare virtual function thing_kind_name() as string
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
  declare virtual sub enter_browser()
  declare virtual sub leave_browser()

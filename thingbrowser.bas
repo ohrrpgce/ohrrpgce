@@ -1232,6 +1232,10 @@ Constructor BackdropSpriteBrowser()
  Base(sprTypeBackdrop)
 End Constructor
 
+Function BackdropSpriteBrowser.thing_kind_name() as string
+ return "Backdrops"
+End Function
+
 Sub BackdropSpriteBrowser.enter_browser()
  switch_to_32bit_vpages
 End Sub
@@ -1255,7 +1259,12 @@ Function BackdropSpriteBrowser.create_thing_plank(byval id as integer) as Slice 
   spr->AnchorVert = alignBottom
   spr->AnchorHoriz = alignCenter
   spr->y = -1
-  ScaleSpriteSlice spr, plank->size - XY(2,2)
+  if spr->Width > 0 andalso spr->Height > 0 then
+   'Preserve aspect ratio when scaling, and only scale down, not up (for no good reason)
+   dim maxsize as XYPair = plank->size - XY(2,2)
+   dim scale as double = small(1., small(maxsize.w / spr->Width, maxsize.h / spr->Height))
+   ScaleSpriteSlice spr, XY(scale * spr->Width, scale * spr->Height)
+  end if
  end if
  return plank
 End Function
