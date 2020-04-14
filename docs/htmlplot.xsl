@@ -27,6 +27,8 @@
 					.section h3 {
 						color: #f06060;
 						font-size: 130%;
+						/* Make the "Back to top link" fit snuggly below */
+						margin-bottom: 6px;
 					}
 					.subsection h3 {
 						color: #e05050;
@@ -72,7 +74,7 @@
 						color: #d0d000;
 					}
 					a:visited {
-						color: #009090;
+						color: #00bb11;
 					}
 
 					a.undef {
@@ -112,8 +114,10 @@
 					.subsection {
 					}
 
+					/* Used both for "Back to top" and parent section links */
 					.backlink {
 						color: #f09090;
+						font-size: 90%;
 					}
 
 					/* Used by note, warn, and danger */
@@ -161,8 +165,52 @@
 						list-style-type: none;
 					}
 
+
+					button {
+						/* Remove/override text styles */
+						font-family: inherit;
+						font-size: 90%;
+						line-height: 1.15;
+						/* Remove the margin in Firefox and Safari */
+						margin: 0;
+						padding: 2px 10px;
+						/* Remove the bezelling */
+						border: 0;
+						border-radius: 5px;
+						background-color: #004c00;
+						color: #ddd;  /* inherit; */
+					}
+					button:hover {
+						background: #006609;
+					}
+					button:focus {
+						outline: 1px solid #019b01;
+						outline-offset: -2px;
+					}
+
+					/* Used for toggling command links in section headers, which are inside
+					   an .content-shown element inside a .select-content-shown/hidden element */
+					.select-content-shown .content-hidden {
+						display: none;
+					}
+					.select-content-hidden .content-shown {
+						display: none;
+					}
+
+
 ]]>
 				</style>
+				<script>
+function toggleContent(target) {
+	//var target = event.target || event.srcElement;
+	var x = target.parentNode;
+	if (x.className === "select-content-hidden") {
+		x.className = "select-content-shown";
+	} else {
+		x.className = "select-content-hidden";
+	}
+}
+				</script>
 			</head>
 			<body>
 				<h1>Plotscripting Dictionary</h1>
@@ -186,6 +234,7 @@
 				This documentation is also included as an HTML file with downloads of the engine.
 				</p>
 				<hr/>
+				<a name="Categories"></a>
 				<h2>Commands by Category</h2>
 				<p>
 				<div class="sectionlist">
@@ -229,21 +278,23 @@
 		<li><a href="#{@title}"><xsl:value-of select="@title" /></a>
 		<br/><xsl:text>
 		</xsl:text>
-		<ul><xsl:apply-templates select="command" mode="alphalist" /></ul>
+		<ul class="content-shown">
+			<xsl:apply-templates select="command" mode="alphalist" />
+		</ul>
 		<!-- Recurse on subsections -->
 		<ul><xsl:apply-templates select="section" mode="sections-and-commands" /></ul>
 		</li>
 	</xsl:template>
 
 	<!-- A link to a command -->
-	<xsl:template match="command" mode="alphalist"><xsl:text>
-		</xsl:text><xsl:if test='boolean(canon)'>
+	<xsl:template match="command" mode="alphalist">
+		<xsl:if test='boolean(canon)'>
 			<a href="#about-{@id}"><xsl:value-of select="canon" /></a><br/>
-		</xsl:if><xsl:text>
-		</xsl:text><xsl:if test='boolean(alias)'>
+		</xsl:if><xsl:if test='boolean(alias)'>
 			<a href="#about-{alias}"><xsl:value-of select="shortname" /></a><br/>
 		</xsl:if><xsl:text>
-	</xsl:text></xsl:template>
+		</xsl:text>
+	</xsl:template>
 
 	<xsl:template match="section" mode="full">
 		<xsl:param name="backlinks" />
@@ -257,20 +308,34 @@
 		<!-- <xsl:if test="parent::section"> -->
 		<!-- 	<div class="backlink">(Back to <a href="#{../@title}"><xsl:value-of select="../@title" /></a>.)</div> -->
 		<!-- </xsl:if> -->
+		<xsl:if test="not(parent::section)">
+			<!-- Top-level section: special back-link -->
+			<a href="#Categories" class="backlink">[Back to top-level index]</a>
+		</xsl:if>
 
 		<!-- Show section description-->
 		<p><xsl:apply-templates select="description"/></p>
-		<ul>
-			<xsl:if test="not(parent::section)">
-				<!-- Top-level section: show all subsections and commands -->
-				<xsl:apply-templates select="command" mode="alphalist" />
-				<xsl:apply-templates select="section" mode="sections-and-commands" />
-			</xsl:if>
-			<xsl:if test="parent::section">
+		<xsl:if test="not(parent::section)">
+			<!-- Top-level section: show all subsections and commands -->
+			<div class="select-content-shown" id="{@title}-index" >
+				<button onclick="toggleContent(this);">
+					<span class="content-shown">Hide command index</span>
+					<span class="content-hidden">Show command index</span>
+				</button>
+				<ul>
+					<div class="content-shown">
+						<xsl:apply-templates select="command" mode="alphalist" />
+					</div>
+					<xsl:apply-templates select="section" mode="sections-and-commands" />
+				</ul>
+			</div>
+		</xsl:if>
+		<xsl:if test="parent::section">
+			<ul>
 				<!-- Subsection: only show links to nested subsections-->
 				<xsl:apply-templates select="section" mode="sections" />
-			</xsl:if>
-		</ul>
+			</ul>
+		</xsl:if>
 
 		<!-- Show commands-->
 		<xsl:apply-templates select="command|reference" mode="full" /><xsl:text>
@@ -290,7 +355,7 @@
 		</xsl:text><h4>
 		<xsl:value-of select="//command[@id=current()/@ref]/canon" />
 		</h4><xsl:text>
-		</xsl:text><p><a href="#about-{@ref}">Defined in the <xsl:value-of select="//command[@id=current()/@ref]/../@title" /> section.</a></p><xsl:text>
+		</xsl:text><p><a href="#about-{@ref}">Documented in the <xsl:value-of select="//command[@id=current()/@ref]/../@title" /> section.</a></p><xsl:text>
 		</xsl:text></div>
 	</xsl:template>
 
@@ -305,7 +370,7 @@
 		</xsl:text></p></xsl:if>
 		<xsl:if test='boolean(alias)'><xsl:text>
 				</xsl:text><h4><xsl:value-of select="shortname" /></h4><xsl:text>
-				</xsl:text>See <a href="#about-{alias}"><xsl:value-of select="id(alias)/shortname" /></a><xsl:text>
+				</xsl:text>An alias for <a href="#about-{alias}"><xsl:value-of select="id(alias)/shortname" /></a>.<xsl:text>
 			</xsl:text>
 		</xsl:if>
 		</div>
