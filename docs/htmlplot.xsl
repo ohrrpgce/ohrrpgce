@@ -125,7 +125,6 @@
 					  border:thin black solid;
 					  padding:5px;
 					  padding-left:42px;
-					  color:black;
 					  margin:3px;
 					  min-height: 32px;
 					}
@@ -139,15 +138,15 @@
 					}
 
 					div.note {
-						background-color: #BCC;
+						background-color: #233;
 					}
 
 					div.warn {
-						background-color: #CCB;
+						background-color: #331;
 					}
 
 					div.danger {
-						background-color: #DCC;
+						background-color: #422;
 					}
 
 					.icon {
