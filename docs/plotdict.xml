@@ -8341,8 +8341,8 @@ set horiz align(sl, edge:right)
 				<p>dissolve:fade</p>,
 				<p>dissolve:ghostly fade</p>,
 				<p>dissolve:fade to white</p>,
-				<p>dissolve:evaporate</p>,
-				<p>dissolve:evaporate up</p>,
+				<p>dissolve:puff</p>,
+				<p>dissolve:fade up</p>,
 				<p>dissolve:blip</p>.
 				<lb/>
 				The third argument is the total number of ticks that the animation should run.

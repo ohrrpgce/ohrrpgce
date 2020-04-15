@@ -9851,7 +9851,7 @@ sub frame_draw_dissolved (src as Frame ptr, pal as Palette16 ptr = NULL, x as Re
 			frame_draw src, fadepal, x, y, trans, dest, fadeopts
 			palette16_unload @fadepal
 
-		case 15, 16  'Evaporate/Condense, Evaporate Up/Condense Down
+		case 15, 16  'Puff, Fade Up
 			'Zoom out at same time as fading out
 			dim as double zoomx = 1., zoomy = 1.
 			if style = 15 then
@@ -9900,7 +9900,7 @@ end sub
 function default_dissolve_time(style as integer, w as integer, h as integer) as integer
 	select case style
 		case 4, 6, 7, 8, 9, 11, 15, 16
-			'squash, vapourise, phase out, squeeze, shrink, shrink centered, evaporate [up]
+			'squash, vapourise, phase out, squeeze, shrink, shrink centered, puff, fade up
 			return w / 5
 		case 12  'fade
 			return w / 4
