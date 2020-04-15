@@ -17,6 +17,12 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
+2020-04-16:
+Evaporate and Evaporate Up dissolves were renamed to Puff and Fade Up, so
+if you've used these in a script you need to replace the constants.
+
+** 2020-01-12 Fufluns Released ***
+
 2020-01-04:
 If you changed the default palette of a spriteset in the Fufluns release
 candidate (2020-01-01) it might have been saved incorrectly (it's stored in two
