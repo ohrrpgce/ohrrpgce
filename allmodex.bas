@@ -9795,41 +9795,59 @@ sub frame_draw_dissolved (src as Frame ptr, pal as Palette16 ptr = NULL, x as Re
 
 	'Trivial cases
 	if tick > tlength then exit sub
-	if tick <= 0 then frame_draw src, pal, x, y, trans, dest, opts
+	if tick <= 0 then
+		frame_draw src, pal, x, y, trans, dest, opts
+		exit sub
+	end if
 
 	dim fadeopts as DrawOptions
 	fadeopts.with_blending = YES
 	fadeopts.blend_mode = blendModeNormal
 
+	dim max_opacity as double = 1.
+	if opts.with_blending then
+		'We respect the baseline opts.opacity and blend_mode
+		max_opacity = opts.opacity
+		fadeopts.blend_mode = opts.blend_mode
+	end if
+
+	'Should just pass other drawoptions on, though the combination hasn't necessarily been tested
+	'(FIXME: when opts.scale <> 1., we need to adjust dissolves that offset the sprite)
+	fadeopts.scale = opts.scale
+	fadeopts.write_mask = opts.write_mask
+
 	dim tfrac as double = tick / tlength
 
 	select case style
 		case 12  'Fade out
-			'We respect the baseline opts.opacity but not the blend_mode
-			fadeopts.opacity = opts.opacity * (1 - tfrac)
+			fadeopts.opacity = max_opacity * (1 - tfrac)
 			frame_draw src, pal, x, y, trans, dest, fadeopts
 
 		case 13  'Ghost fade
 			'Fade out (normal blending) 100% to 0% at half time
 			dim t_to_halfway as double = 1. - tick / (tlength / 2.)  'Goes from 1 to -1
 			if t_to_halfway > 0. then
-				fadeopts.opacity = opts.opacity * t_to_halfway
+				fadeopts.opacity = max_opacity * t_to_halfway
 				frame_draw src, pal, x, y, trans, dest, fadeopts
 			end if
 			'...while also fade in (add blending) from 0% to 100% at half time to 0%
-			fadeopts.opacity = opts.opacity * (1 - abs(t_to_halfway))
+			fadeopts.opacity = max_opacity * (1 - abs(t_to_halfway))
 			fadeopts.blend_mode = blendModeAdd
 			frame_draw src, pal, x, y, trans, dest, fadeopts
 
-		case 14  'Fade through white
+		case 14  'Fade to white
 			FAIL_IF(pal = NULL, "Fade through white needs palette")
 
 			dim white as RGBcolor
-			white.col = &hffffffff
+			if fadeopts.blend_mode = blendModeMultiply then
+				'Special case, fading to white would do nothing, so fade to black
+			else
+				white.col = &hffffffff
+			end if
 			dim fadepal as Palette16 ptr = palette16_duplicate(pal)
 			Palette16_mix_n_match fadepal, white, small(1., tfrac * 2), mixBlend
 
-			fadeopts.opacity = opts.opacity * large(0., 2. - tfrac * 2)
+			fadeopts.opacity = max_opacity * bound(2. - tfrac * 2, 0., 1.)
 			frame_draw src, fadepal, x, y, trans, dest, fadeopts
 			palette16_unload @fadepal
 
@@ -9854,7 +9872,7 @@ sub frame_draw_dissolved (src as Frame ptr, pal as Palette16 ptr = NULL, x as Re
 			else
 				y += (src->h - scaled->h)
 			end if
-			fadeopts.opacity *= opts.opacity
+			fadeopts.opacity *= max_opacity
 			frame_draw scaled, pal, x, y, trans, dest, fadeopts
 			frame_unload @scaled
 
