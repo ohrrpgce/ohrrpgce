@@ -589,7 +589,7 @@ define function, begin
 #563,unused
 #564,unused
 565,stringsprintf,-1             #(dest string id, format string id, args...) Format a string, like sprintf
-566,scripterror,1,-1             #(string id) Show a script error
+566,scripterror,2,-1,0           #(string id, hide frame) Show a script error
 567,getscriptname,2,0,0          #(string id, script id) Get name of a script
 568,getcallingscriptid,1,1       #(depth) Get ID number of a parent or ancestor script
 569,camerafollowsslice,1,0       #(slice) Center camera on slice
@@ -780,11 +780,15 @@ script,swapbyname,hsd:hero1,hsd:hero2,begin
 end
 
 script,renamehero,hsd:who=0,begin
-  variable(hsd:slot)
+  variable(hsd:slot, hsd:tmp)
   hsd:slot:=findhero(hsd:who)
   if(hsd:slot>=0)
-    then(return(renameherobyslot(hsd:slot)))
-    else(return(false))
+  then(return(renameherobyslot(hsd:slot)))
+  else(
+    hsd:tmp := hsd:save string(99)
+    script error(string sprintf(99, $99="rename hero: no hero with id %d", hsd:who), true)
+    hsd:restore string(99, hsd:tmp)
+  )
 end
 
 # this exploits an undocumented feature of getherostat. Don't use the
@@ -1630,34 +1634,45 @@ end
 # slice commands
 
 script, get npc sprite, hsd:npc, begin
-  variable (hsd:sl)
+  variable (hsd:sl, hsd:tmp)
   hsd:sl := get npc slice(hsd:npc)
+  # If the NPC is tag-disabled it has no slice and we return 0; not an error.
   if (hsd:sl) then (return (lookup slice(sl:walkabout sprite component, hsd:sl)))
 end
 
-script, get hero sprite, hsd:who, begin
+script, get hero sprite, hsd:rank, begin
   variable (hsd:sl)
-  hsd:sl := get hero slice(hsd:who)
+  hsd:sl := get hero slice(hsd:rank)
+  # If the caterpillar rank is empty we return 0; not an error.
   if (hsd:sl) then (return (lookup slice(sl:walkabout sprite component, hsd:sl)))
 end
 
 script, get hero sprite by slot, hsd:who, begin
   variable (hsd:sl)
   hsd:sl := get hero slice by slot(hsd:who)
+  # If the slot is empty we return 0; not an error.
   if (hsd:sl) then (return (lookup slice(sl:walkabout sprite component, hsd:sl)))
 end
 
 script, load sprite, hsd:type, hsd:number, hsd:pal = -1, begin
-  if(hsd:type == spritetype:hero)        then(return(load hero sprite         (hsd:number, hsd:pal)))
-  if(hsd:type == spritetype:smallenemy)  then(return(load small enemy sprite  (hsd:number, hsd:pal)))
-  if(hsd:type == spritetype:mediumenemy) then(return(load medium enemy sprite (hsd:number, hsd:pal)))
-  if(hsd:type == spritetype:largeenemy)  then(return(load large enemy sprite  (hsd:number, hsd:pal)))
-  if(hsd:type == spritetype:walkabout)   then(return(load walkabout sprite    (hsd:number, hsd:pal)))
-  if(hsd:type == spritetype:weapon)      then(return(load weapon sprite       (hsd:number, hsd:pal)))
-  if(hsd:type == spritetype:attack)      then(return(load attack sprite       (hsd:number, hsd:pal)))
-  if(hsd:type == spritetype:border)      then(return(load border sprite       (hsd:number, hsd:pal)))
-  if(hsd:type == spritetype:portrait)    then(return(load portrait sprite     (hsd:number, hsd:pal)))
-  if(hsd:type == spritetype:backdrop)    then(return(load backdrop sprite     (hsd:number)))
+  switch (hsd:type) do (
+    case(spritetype:hero)        return(load hero sprite         (hsd:number, hsd:pal))
+    case(spritetype:smallenemy)  return(load small enemy sprite  (hsd:number, hsd:pal))
+    case(spritetype:mediumenemy) return(load medium enemy sprite (hsd:number, hsd:pal))
+    case(spritetype:largeenemy)  return(load large enemy sprite  (hsd:number, hsd:pal))
+    case(spritetype:walkabout)   return(load walkabout sprite    (hsd:number, hsd:pal))
+    case(spritetype:weapon)      return(load weapon sprite       (hsd:number, hsd:pal))
+    case(spritetype:attack)      return(load attack sprite       (hsd:number, hsd:pal))
+    case(spritetype:border)      return(load border sprite       (hsd:number, hsd:pal))
+    case(spritetype:portrait)    return(load portrait sprite     (hsd:number, hsd:pal))
+    case(spritetype:backdrop)    return(load backdrop sprite     (hsd:number))
+    else (
+      variable(hsd:tmp)
+      hsd:tmp := hsd:save string(99)
+      script error(string sprintf(99, $99="load sprite(%d,%d,%d): invalid type %d", hsd:type, hsd:number, hsd:pal, hsd:type), true)
+      hsd:restore string(99, hsd:tmp)
+    )
+  )
 end
 
 script, create sprite, hsd:type, hsd:number, hsd:pal = -1, begin
@@ -1665,16 +1680,24 @@ script, create sprite, hsd:type, hsd:number, hsd:pal = -1, begin
 end
 
 script, replace sprite, hsd:sl, hsd:type, hsd:number, hsd:pal = -1, begin
-  if(hsd:type == spritetype:hero)        then(replace hero sprite         (hsd:sl, hsd:number, hsd:pal))
-  if(hsd:type == spritetype:smallenemy)  then(replace small enemy sprite  (hsd:sl, hsd:number, hsd:pal))
-  if(hsd:type == spritetype:mediumenemy) then(replace medium enemy sprite (hsd:sl, hsd:number, hsd:pal))
-  if(hsd:type == spritetype:largeenemy)  then(replace large enemy sprite  (hsd:sl, hsd:number, hsd:pal))
-  if(hsd:type == spritetype:walkabout)   then(replace walkabout sprite    (hsd:sl, hsd:number, hsd:pal))
-  if(hsd:type == spritetype:weapon)      then(replace weapon sprite       (hsd:sl, hsd:number, hsd:pal))
-  if(hsd:type == spritetype:attack)      then(replace attack sprite       (hsd:sl, hsd:number, hsd:pal))
-  if(hsd:type == spritetype:border)      then(replace border sprite       (hsd:sl, hsd:number, hsd:pal))
-  if(hsd:type == spritetype:portrait)    then(replace portrait sprite     (hsd:sl, hsd:number, hsd:pal))
-  if(hsd:type == spritetype:backdrop)    then(replace backdrop sprite     (hsd:sl, hsd:number))
+  switch (hsd:type) do (
+    case(spritetype:hero)        replace hero sprite         (hsd:sl, hsd:number, hsd:pal)
+    case(spritetype:smallenemy)  replace small enemy sprite  (hsd:sl, hsd:number, hsd:pal)
+    case(spritetype:mediumenemy) replace medium enemy sprite (hsd:sl, hsd:number, hsd:pal)
+    case(spritetype:largeenemy)  replace large enemy sprite  (hsd:sl, hsd:number, hsd:pal)
+    case(spritetype:walkabout)   replace walkabout sprite    (hsd:sl, hsd:number, hsd:pal)
+    case(spritetype:weapon)      replace weapon sprite       (hsd:sl, hsd:number, hsd:pal)
+    case(spritetype:attack)      replace attack sprite       (hsd:sl, hsd:number, hsd:pal)
+    case(spritetype:border)      replace border sprite       (hsd:sl, hsd:number, hsd:pal)
+    case(spritetype:portrait)    replace portrait sprite     (hsd:sl, hsd:number, hsd:pal)
+    case(spritetype:backdrop)    replace backdrop sprite     (hsd:sl, hsd:number)
+    else (
+      variable(hsd:tmp)
+      hsd:tmp := hsd:save string(99)
+      script error(string sprintf(99, $99="replace sprite(%d,%d,%d): invalid type %d", hsd:type, hsd:number, hsd:pal, hsd:type), true)
+      hsd:restore string(99, hsd:tmp)
+    )
+  )
 end
 
 script, load enemy sprite, hsd:size, hsd:number, hsd:pal = -1, begin
@@ -1798,7 +1821,7 @@ script, set selected child, hsd:parent, hsd:child, begin
   if (parent slice(hsd:child) <> hsd:parent) then (
     variable(hsd:tmp)
     hsd:tmp := hsd:save string(99)
-    script error($99="set selected slice: 2nd slice must be a child of the 1st")
+    script error($99="set selected slice: 2nd slice must be a child of the 1st", true)
     hsd:restore string(99, hsd:tmp)
   ) else (
     set select slice index(hsd:parent, slice child index(hsd:child))

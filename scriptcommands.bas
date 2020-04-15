@@ -3562,11 +3562,20 @@ SUB script_functions(byval cmdid as integer)
    plotstr(retvals(0)).s = script_sprintf()
    scriptret = retvals(0)
   END IF
- CASE 566 '--script error (string id)
+ CASE 566 '--script error (string id, [hide frame])
+  'What if we want to renumber error levels? I think I'll leave this arg for now
+  DIM errlvl as scriptErrEnum = serrBadOp 'get_optional_arg(2, serrBadOp)
   IF retvals(0) = -1 THEN
-   scripterr "(Triggered with ""scripterror"", no message)", serrBadOp
+   scripterr "(Triggered with ""scripterror"", no message)", errlvl
   ELSEIF valid_plotstr(retvals(0), serrBadOp) THEN
-   scripterr !"(Triggered with ""scripterror""):\n" & plotstr(retvals(0)).s, serrBadOp
+   IF get_optional_arg(1, 0) THEN
+    'For script commands in plotscr.hsd.
+    'TODO: report line number in the parent script instead, or
+    'n frames up the stack.
+    scripterr plotstr(retvals(0)).s, errlvl
+   ELSE
+    scripterr !"(Triggered with ""scripterror""):\n" & plotstr(retvals(0)).s, errlvl
+   END IF
   END IF
  CASE 567 '--get script name (string id, script id)
   IF valid_plotstr(retvals(0), serrBadOp) THEN
