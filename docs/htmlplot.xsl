@@ -19,6 +19,9 @@
 						color: white;
 						background-color: black;
 					}
+					body {
+						padding: 0 6px 0 6px;
+					}
 
 					h2 {
 						font-style: italic;
@@ -74,7 +77,7 @@
 						color: #d0d000;
 					}
 					a:visited {
-						color: #00bb11;
+						color: #44ff88;
 					}
 
 					a.undef {
@@ -129,20 +132,12 @@
 					  min-height: 32px;
 					}
 
-					div.notice a {
-					  color: #008800;
-					}
-
-					div.notice .param, div.notice .code {
-					  color: #888800;
-					}
-
 					div.note {
-						background-color: #233;
+						background-color: #033;
 					}
 
 					div.warn {
-						background-color: #331;
+						background-color: #220;
 					}
 
 					div.danger {
@@ -151,7 +146,7 @@
 
 					.icon {
 						position: absolute;
-						left: 16px;
+						left: 24px;
 					}
 
 					.sectionlist ul {
@@ -214,7 +209,7 @@ function toggleContent(target) {
 			<body>
 				<h1>Plotscripting Dictionary</h1>
 				<xsl:if test="@version = 'wip'">
-					<h2>For the current OHRRPGCE work-in-progress version (<xsl:value-of select="@datecode" />)</h2>
+					<h2>For the next WIP OHRRPGCE version (nightly build <xsl:value-of select="@datecode" />)</h2>
 				</xsl:if>
 				<xsl:if test="not(@version = 'wip')">
 					<h2>For OHRRPGCE version <xsl:value-of select="@version" /></h2>
@@ -228,8 +223,10 @@ function toggleContent(target) {
 				article on the wiki.</p>
 				<p>
 				If you're reading this on the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/">OHRRPGCE website</a>
-				then make sure you're looking at the page for the correct stable release or latest
-				nightly version.
+				then make sure you're looking at the page for the latest stable release
+				(<a href="http://hamsterrepublic.com/ohrrpgce/docs/plotdictionary.html">here</a>)
+				or latest nightly version
+				(<a href="http://hamsterrepublic.com/ohrrpgce/nightly/docs/plotdictionary.html">here</a>).
 				This documentation is also included as an HTML file with downloads of the engine.
 				</p>
 				<hr/>

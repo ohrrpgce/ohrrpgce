@@ -6573,7 +6573,12 @@ end
 		<command id="setslicevisible">
 			<canon>set slice visible (handle, vis)</canon>
 			<shortname>set slice visible</shortname>
-			<description>Makes slice <p>handle</p> invisible or visible, according to <p>vis</p>. Slices are automatically visible when you load them, but you can make them invisible with <p>set slice visible(handle, off)</p>. If the slice has children, they will become invisible too.</description>
+			<description>
+				Makes slice <p>handle</p> invisible or visible. <p>vis</p> is a true or false value.
+				Slices are automatically visible when you load them,
+				but you can make them invisible with <p>set slice visible(handle, off)</p>.
+				If the slice has children, they will become invisible too.
+			</description>
 		</command>
 		<command id="setspritevisible">
 			<alias>setslicevisible</alias>
@@ -8935,7 +8940,13 @@ set horiz align(sl, edge:right)
 		</section>		<!-- Slice Types-->
 
 		<section title="Slice Collision Testing">
-		<description><note>For the purposes of collision testing, all slices are treated as solid rectangles, even if they are text slices, sprites, ellipses, or invisible. A point right on the boundary of this rectangle counts as a collision.</note></description>
+		<description>
+			<note>
+				For the purposes of collision testing, all slices are treated as solid rectangles,
+				even if they are text slices, sprites, ellipses, lines or invisible.
+				A point right on the boundary of this rectangle counts as a collision.
+			</note>
+		</description>
 
 		<command id="slicecollidepoint">
 			<canon>slice collide point (handle, x, y)</canon>
@@ -9158,17 +9169,17 @@ set horiz align(sl, edge:right)
 		<command id="currentmap">
 			<canon>current map</canon>
 			<shortname>current map</shortname>
-			<description>Returns the number of the current map.</description>
+			<description>Returns the number (ID) of the current map.</description>
 		</command>
 		<command id="mapwidth">
 			<canon>map width (map)</canon>
 			<shortname>map width</shortname>
-			<description>Returns the width of a map in tiles. <p>map</p> is optional; the width of the current map is returned if it is not specified.</description>
+			<description>Returns the width of a map in tiles. <p>map</p>, the map ID, is optional; the width of the current map is returned if it is not specified.</description>
 		</command>
 		<command id="mapheight">
 			<canon>map height (map)</canon>
 			<shortname>map height</shortname>
-			<description>Returns the height of a map in tiles. <p>map</p> is optional; the height of the current map is returned if it is not specified.</description>
+			<description>Returns the height of a map in tiles. <p>map</p>, the map ID, is optional; the height of the current map is returned if it is not specified.</description>
 		</command>
 		<command id="getmaptileset">
 			<canon>get map tileset</canon>
@@ -9187,7 +9198,13 @@ set horiz align(sl, edge:right)
 		<command id="loadtileset">
 			<canon>load tileset (tileset, layer)</canon>
 			<shortname>load tileset</shortname>
-			<description>Temporarily loads a different default or layer tileset for the currently displaying map.<lb/>Use <p>load tileset</p> (with no arguments) to restore the old tilesets after using load tileset (this has no effect after <ref>changetileset</ref>).<lb/>Use <p>load tileset (tileset)</p> to load a new default tileset. <p>tileset</p> is the ID number of the tileset to load. This changes the tileset for all layers that are set to 'Tileset: default'.<lb/>Use <p>load tileset (tileset, layer)</p> to load in a new a tileset for a single layer. <p>layer</p> is the layer number to target.<note>This command has a temporary effect: even if the map state is saved, the new tilesets will not persist if you leave the map and come back. <ref>changetileset</ref> is a more powerful command for this.</note></description>
+			<description>Temporarily loads a different default or layer tileset for the currently displaying map.<lb/>Use <p>load tileset</p> (with no arguments) to restore the old tilesets after using load tileset (this has no effect after <ref>changetileset</ref>).<lb/>Use <p>load tileset (tileset)</p> to load a new default tileset. <p>tileset</p> is the ID number of the tileset to load. This changes the tileset for all layers that are set to 'Tileset: default'.<lb/>Use <p>load tileset (tileset, layer)</p> to load in a new a tileset for a single layer. <p>layer</p> is the layer number to target.
+				<note>
+					This command has a temporary effect: even if the map state is saved,
+					the new tilesets will not persist if you leave the map and come back.
+					<ref>changetileset</ref> is a more permanent alternative command.
+				</note>
+			</description>
 			<seealso>
 				<ref>getmaptileset</ref>
 				<ref>layertileset</ref>
@@ -9197,9 +9214,9 @@ set horiz align(sl, edge:right)
 			<canon>change tileset (tileset, layer)</canon>
 			<shortname>change tileset</shortname>
 			<description>An alternative to <ref>loadtileset</ref>: Changes and loads in the default or a map layer tileset for the current map. Unlike <ref>loadtileset</ref>, this command's effects last to the next time you come back to this map if you save the map state (in General Map Settings, or mapstate:mapsettings with <ref>savemapstate</ref>). To undo the effects, you'll need to use <ref>resetmapstate</ref>. <p>tileset</p> is the ID number of the tileset to load. You can use the constant <p>tileset:default</p> to set a layer to use the map's default tileset. <p>layer</p> is the layer number to change, or the constant <p>tileset:default</p> which changes the map's default tileset. It defaults to <p>tileset:default</p> if omitted. <p>change tileset</p> with no arguments undoes any changes to tilesets made using <ref>loadtileset</ref> (<b>not</b> <tt>change tileset</tt>).
-				<note>
-					Any call to <tt>change tileset</tt> undoes all changes made by <ref>loadtileset</ref>.
-				</note>
+				<warn>
+					Any call to <tt>change tileset</tt> undoes all changes (to all map layers) made by <ref>loadtileset</ref>.
+				</warn>
 			</description>
 			<seealso>
 				<ref>getmaptileset</ref>
@@ -9962,11 +9979,11 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				If the argument is <ref>off</ref> then only the leader will be displayed.
 				If the argument is <ref>on</ref> then the whole active (battle) party will be
 				displayed and will normally walk behind the leader.
-				<note>
+				<warn>
 					Do not confuse this with the <ref>suspendcaterpillar</ref>
 					and <ref>resumecaterpillar</ref> commands,
 					which only apply when caterpillar mode is ON.
-				</note>
+				</warn>
 			</description>
 		</command>
 		<command id="sethpleveluprestore">
@@ -10055,14 +10072,14 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				such as <ref>extendedscancodesenabled</ref>.
 				Get the value of <p>bitnum</p>
 				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
-				<note>
+				<warn>
 					Some bits are shown with the opposite names on the wiki and in the editor!
 					If that's the case, you need to set the bit off instead of on and vice versa.
 					They might also have slightly different names.
 					For example to check whether "Randomize initial ready meters" is <b>on</b>,
 					use <tt>read preference bit(22) == off</tt>,
 					because bit 22 is documented as "Don't randomize battle ready-meters".
-				</note>
+				</warn>
 			</description>
 			<seealso>
 				<ref>writepreferencebit</ref>
@@ -10404,10 +10421,10 @@ end</example>
 					however you will be able to read them with <ref>importglobals</ref>.
 					You can delete these globals using <ref>deletesave</ref>.
 				</note>
-				<note>
+				<danger>
 					Unlike importglobals, <tt>export globals (slot, first)</tt> does
 					NOT export a single global variable!
-				</note>
+				</danger>
 			</description>
 			<seealso>
 				<ref>importglobals</ref>
@@ -10625,10 +10642,10 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<canon>send email (save slot, subject string id, message string id)</canon>
 			<shortname>send email</shortname>
 			<description>
-				<danger>
-					As of Callipygous, this command is only implemented on Android!
+				<warn>
+					This command is only implemented on Android!
 					Calling it on other platforms does nothing.
-				</danger>
+				</warn>
 				This asks the player if they want to send an email to you, optionally
 				with a save file attached.
 				The purpose is to make it easy for players to send bug reports or feedback,
