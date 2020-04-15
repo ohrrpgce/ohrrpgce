@@ -496,22 +496,29 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 		<command id="begin">
 			<canon>begin,other commands,end</canon>
 			<shortname>begin</shortname>
-			<description>Begin is a synonym for ( and end is a synonym for ). Parentheses are normally used for bracketing things that all fit on the same line, and begin/end statements are often used to enclose very long things such as whole scripts or long flow control blocks that take up several lines. For example, the following two blocks of code are identical:</description>
-			<example>if (check tag(tag:have rusty sword)) then (show text box (5), wait for text box)</example>
-			<example>if (check tag(tag:have rusty sword)) then
-begin
+			<description>
+				<tt>begin</tt> is a synonym for <tt>(</tt> and <tt>end</tt> is a synonym for <tt>)</tt>.
+				Parentheses are normally used for bracketing things that all fit on the same line,
+				and begin/end statements are often used to enclose very long things such as whole
+				scripts or long flow control blocks that take up several lines.
+				For example, the following:
+				<example>if (check tag(tag:have rusty sword)) then (show text box (5), wait for text box)</example>
+				is equivalent to:
+				<example>if (check tag(tag:have rusty sword)) then, begin
 	show text box (5)
 	wait for text box
 end</example>
+			</description>
 		</command>
 		<command id="end">
-			<alias>begin</alias>
+			<canon>end</canon>
 			<shortname>end</shortname>
+			<description>See <ref>begin</ref>.</description>
 		</command>
 		<command id="if">
 			<canon>if(condition) then(commands) else(commands)</canon>
 			<shortname>if</shortname>
-			<description>The <p>if</p> statement checks the value of its condition, and if the value is <ref>true</ref> (or actually any value other than <ref>false</ref>, which is zero), it runs the commands in the <p>then</p> block. If the value is <ref>false</ref>, it runs the commands in its <p>else</p> block. The conditional is usually a comparison operator such as <ref>equal</ref> or <ref>notequal</ref>, or a command which returns either true or false, such as <ref>checktag</ref>. The <p>else</p> is optional as long as you have a <p>then</p>, and the <p>then</p> is optional as long as you have an <p>else</p>. There are several examples of <p>if</p> statements in the HamsterSpeak Specification, and throughout this document. You can also place one or more <ref>elseif</ref>s after the <p>then</p> (or immediately after the <p>if</p> if you skip the <p>then</p>) instead of nesting multiple <p>if</p> statements.</description>
+			<description>The <p>if</p> statement checks the value of its condition, and if the value is <ref>true</ref> (actually, any value other than <ref>false</ref> (which is zero) counts as true), it runs the commands in the <p>then</p> block. If the value is <ref>false</ref>, it runs the commands in its <p>else</p> block. The conditional is usually a comparison operator such as <ref>equal</ref> or <ref>notequal</ref>, or a command which returns either true or false, such as <ref>checktag</ref>. The <p>else</p> is optional as long as you have a <p>then</p>, and the <p>then</p> is optional as long as you have an <p>else</p>. You can also place one or more <ref>elseif</ref>s after the <p>then</p> (or immediately after the <p>if</p> if you skip the <p>then</p>) instead of nesting multiple <p>if</p> statements.</description>
 			<seealso><ref>elseif</ref></seealso>
 		</command>
 		<command id="elseif">
@@ -562,23 +569,27 @@ end</example>
 			<canon>return(value)</canon>
 			<shortname>return</shortname>
 			<description>
-<note><p>return</p> in HamsterSpeak is completely different from <p>return</p> in nearly all other programming languages!</note>
-Sets the value to be returned by the script. This is only useful when the script has been called as a function from another script. It is irrelevant to scripts called directly from your RPG, for example, text box scripts or menu scripts. This command only matters when you are calling one script from another script. This command does NOT cause the script to terminate, it just sets the return value. If you never use the <p>return</p> command, the script will return zero. If return is used more than once in the same script, only the last one executed matters.
+				<warn>
+					<p>return</p> in HamsterSpeak is very different from <p>return</p> in nearly all other programming languages!
+				</warn>
+				Sets the value to be returned by the script.
+				This is only useful when the script has been called as a function from another script.
+				It is irrelevant to scripts called directly from your RPG,
+				for example, text box scripts or menu scripts.
+				This command only matters when you are calling one script from another script.
+				This command does NOT cause the script to terminate, it just sets the return value.
+				If you never use the <p>return</p> command, the script will return zero.
+				If return is used more than once in the same script, only the last one executed matters.
 <example>
 script, key wait, ticks, begin
   # Returns true if a key was pressed during the wait,
   # or false (0) if the wait finished uninterrupted.
-  # The wait duration is always the same.
+  # The wait duration is always the same. (Compare with the example for "exit returning".)
   variable(i)
   for(i, 1, ticks) do, begin
     wait(1)
-    if(key is pressed(key:ENTER)) then(return(true))
-    if(key is pressed(key:SPACE)) then(return(true))
-    if(key is pressed(key:CTRL)) then(return(true))
-    if(key is pressed(key:ALT)) then(return(true))
-    if(key is pressed(key:ESC)) then(return(true))
-    if(key is pressed(joy:button 1)) then(return(true))
-    if(key is pressed(joy:button 2)) then(return(true))
+    if(key is pressed(use key)) then(return(true))
+    if(key is pressed(menu key)) then(return(true))
   end
 end
 
@@ -609,15 +620,9 @@ script, key wait, ticks, begin
   variable(i)
   for(i, 1, ticks) do, begin
     wait(1)
-    if(key is pressed(key:ENTER)) then(exit returning(true))
-    if(key is pressed(key:SPACE)) then(exit returning(true))
-    if(key is pressed(key:CTRL)) then(exit returning(true))
-    if(key is pressed(key:ALT)) then(exit returning(true))
-    if(key is pressed(key:ESC)) then(exit returning(true))
-    if(key is pressed(joy:button 1)) then(exit returning(true))
-    if(key is pressed(joy:button 2)) then(exit returning(true))
+    if(key is pressed(use key)) then(exit returning(true))
+    if(key is pressed(menu key)) then(exit returning(true))
   end
-  exit returning(false)
 end
 
 plotscript, usage example, begin
@@ -642,7 +647,9 @@ The <p>exit returning</p> command works exactly the same as the <ref>return</ref
 			<canon>exit script</canon>
 			<shortname>exit script</shortname>
 			<added>ubersetzung</added>
-			<description>Causes the script to end immediately</description>
+			<description>
+				Causes the script to end immediately, and return the value set by the most recent <ref>return</ref> statement.
+			</description>
 			<seealso>
 				<ref>exitreturning</ref>
 			</seealso>
@@ -720,7 +727,7 @@ Besides readability, there is one other important difference between using switc
 			(unless you call a command with invalid arguments, causing a script error instead).
 			For example, "wait for textbox" waits for one tick even if there is no textbox.
 			<lb/>
-			<note>
+			<warn>
 				If a battle occurs, a menu is entered (unless it 'Allows Scripts') or
 				another script is triggered, your script will be paused until the other
 				thing finishes.
@@ -729,7 +736,7 @@ Besides readability, there is one other important difference between using switc
 				<ref>waitfornpc</ref> doesn't end if the NPC it's waiting for
 				stops moving while a script is paused but then starts again
 				before it the script resumes.
-			</note>
+			</warn>
 		</description>
 		<command id="wait">
 			<canon>wait (ticks)</canon>
@@ -1449,13 +1456,13 @@ resume player</example>
 					into the leader position, the leader (and party) speed doesn't change.
 					That's usually a good thing!
 				</note>
-				<warn>
+				<danger>
 					Don't set speed to zero while a hero is moving,
 					it will cause the hero to stop mid-step and become misaligned with the grid
 					and stuck.
 					Wait for the hero to stop first or check with <ref>heroiswalking</ref>.
 					(You probably shouldn't use speed 0 at all.)
-				</warn>
+				</danger>
 			</description>
 			<seealso>
 				<ref>getherospeed</ref>
@@ -1490,7 +1497,8 @@ resume player</example>
 				</note>
 				<note>
 					If you call <ref>fadescreenout</ref> immediately after <tt>use door</tt>,
-					then the screen won't fade back in afterwards.
+					then the screen won't automatically fade back in afterwards.
+					That's intentional, so that you can cancel the fade.
 					(But you might have to do this in the map autorun script, if there is one,
 					since it will suspend the script that called <tt>use door</tt>!)
 				</note>
@@ -1841,7 +1849,12 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 		<command id="setnpcextra">
 			<canon>set NPC extra (who, which, value)</canon>
 			<shortname>set NPC extra</shortname>
-			<description>Sets the npc instance-specific extra data field requested in <p>which</p>, a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them.  If you use an NPC ID for <p>who</p>, the first instance's data will be used.<note>Unlike other NPC instance data, the extra data for NPCs on the current map is not saved in save games! However, it is saved in mapstate NPC saves (see <ref>savemapstate</ref>)</note></description>
+			<description>Sets the npc instance-specific extra data field requested in <p>which</p>, a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them.  If you use an NPC ID for <p>who</p>, the first instance's data will be used.
+				<note>
+					Like other NPC instance data, the extra data for NPCs on the current map is not saved in save games!
+					However, it is saved in mapstate NPC saves (see <ref>savemapstate</ref>).
+				</note>
+			</description>
 			<seealso>
 				<ref>npcextra</ref>
 			</seealso>
@@ -1850,7 +1863,7 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 			<canon>get NPC ID (reference)</canon>
 			<shortname>get NPC ID</shortname>
 			<description>
-				This command opposite to <ref>npcreference</ref> (along with <ref>npccopynumber</ref>).
+				This command is the inverse of <ref>npcreference</ref> (along with <ref>npccopynumber</ref>).
 				If you give <p>get NPC ID</p> a reference to an NPC it will return the NPC's ID.
 				If the reference is not valid then <p>get NPC ID</p> will return -1.
 				This command can be used on tag-disabled NPCs too, returning their ID number.
@@ -1860,7 +1873,7 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 			<canon>NPC copy number (reference)</canon>
 			<shortname>NPC copy number</shortname>
 			<description>
-				This command opposite to <ref>npcreference</ref> (along with <ref>getnpcid</ref>).
+				This command is the inverse of <ref>npcreference</ref> (along with <ref>getnpcid</ref>).
 				That is, it returns the copy number that you need to pass to <ref>npcreference</ref>
 				to get this NPC.
 				If you give <p>NPC copy number</p> a reference to an NPC it will return which copy
