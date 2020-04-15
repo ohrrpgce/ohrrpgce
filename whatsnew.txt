@@ -3,7 +3,7 @@ WHAT IS NEW?
 April ? 2020 [Gorgonzola]
 
   *** New Features
-    * True transparent sprite and map slices!
+    * True transparent sprite and map layer slices!
       You can control opacity and blend mode: normal, add or multiply.
       Blending works by mapping to the nearest master palette color, which
       is fast-enough but sometimes looks poor; there's a global setting to
@@ -32,6 +32,8 @@ April ? 2020 [Gorgonzola]
       "hero slot from slice" [Ralph]
     * Global script triggers for when a hero is added, deleted, or swapped to
       a different slot [Ralph]
+    * "get opacity", "set opacity", "get blend mode", "set blend mode",
+      "get blending enabled", "set blending enabled" [Ralph]
 
   *** Changes
     * Renamed "Enemy" target class to "Foe (not dead)", and "Ally" to

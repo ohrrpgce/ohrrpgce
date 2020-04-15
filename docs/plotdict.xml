@@ -6614,6 +6614,116 @@ end
 		</command>
 		</section>		<!-- Visibility and Clipping-->
 
+		<section title="Slice Blending">
+		<command id="setopacity">
+			<canon>set opacity (handle, percent)</canon>
+			<shortname>set opacity</shortname>
+			<description>
+				Set the opacity (the opposite of transparency) of a slice.
+				<p>handle</p> is a <ref>blendableslicehandle</ref>.
+				<p>percent</p> is normally a value from 0 to 100;
+				values outside this range are clipped to 0-100 without showing an error.
+				Opacity 0 is completely invisible, and 100 is fully opaque (solid) if the blending mode is 'Normal'.
+				If the blending mode is 'Add' or 'Multiply', the slice is never opaque,
+				due to how those work.
+				<lb/>
+				If <tt>percent &lt; 100</tt> then blending is automatically enabled (<ref>setblendingenabled</ref>).
+			</description>
+			<seealso>
+				<ref>getopacity</ref>
+			</seealso>
+		</command>
+
+		<command id="getopacity">
+			<canon>get opacity (handle)</canon>
+			<shortname>get opacity</shortname>
+			<description>
+				Returns the opacity of any slice (from 0-100; see <ref>setopacity</ref>).
+				<p>handle</p> is a <ref>slicehandle</ref>;
+				if it isn't a <ref>blendableslicehandle</ref> or if blending is disabled
+				for this slice, 100 is returned without showing an error.
+			</description>
+			<seealso>
+				<ref>setopacity</ref>
+			</seealso>
+		</command>
+
+		<command id="setblendmode">
+			<canon>set blend mode (handle, blend mode)</canon>
+			<shortname>set blend mode</shortname>
+			<description>
+				Set the blending mode (aka blend mode) of a slice, also enables blending (<ref>setblendingenabled</ref>).
+				<p>handle</p> is a <ref>blendableslicehandle</ref>.
+				<p>blend mode</p> is one of:
+				<ul>
+					<li><tt>blend:normal</tt> -- (Default) Ordinary transparency; no effect if opacity is 100%</li>
+					<li><tt>blend:add</tt> or <tt>blend:additive</tt> -- Lightens the image by adding to the RGB channels</li>
+					<li><tt>blend:multiply </tt> -- Darkens the image by multiplying the RGB channels</li>
+				</ul>
+			</description>
+			<seealso>
+				<ref>getblendmode</ref>
+			</seealso>
+		</command>
+
+		<command id="getblendmode">
+			<canon>get blend mode (handle)</canon>
+			<shortname>get blend mode</shortname>
+			<description>
+				Gets the blend mode of any slice (see <ref>setblendmode</ref>).
+				<p>handle</p> is a <ref>slicehandle</ref>;
+				if it isn't a <ref>blendableslicehandle</ref> or if blending is disabled
+				for this slice, then this returns <tt>blend:normal</tt> without showing an error.
+			</description>
+			<seealso>
+				<ref>setblendmode</ref>
+			</seealso>
+		</command>
+
+		<command id="setblendingenabled">
+			<canon>set blending enabled (handle, state)</canon>
+			<shortname>set blending enabled</shortname>
+			<description>
+				Set whether blending (opacity and blend mode) is enabled for a slice.
+				<p>handle</p> is a <ref>blendableslicehandle</ref>.
+				<p>state</p> is a true or false value.
+				<note>
+					You normally don't need to use this command, because setting a slice's opacity or
+					blend mode will automatically enable blending.
+					This command is only useful if you want to temporarily disable blending
+					and then reenable it later, because disabling it (including in the slice editor)
+					preserves the other blending settings, even though they're hidden in the editor.
+				</note>
+			</description>
+			<seealso>
+				<ref>getblendingenabled</ref>
+			</seealso>
+		</command>
+
+		<command id="getblendingenabled">
+			<canon>get blending enabled (handle)</canon>
+			<shortname>get blending enabled</shortname>
+			<description>
+				Tells whether any slice has its blending settings, if any, enabled;
+				returns <tt>true</tt> or <tt>false</tt>.
+				<p>handle</p> is a <ref>slicehandle</ref>;
+				if it isn't a <ref>blendableslicehandle</ref> then this returns <tt>false</tt>
+				without showing an error.
+				<note>
+					You normally wouldn't use this command for anything.
+					Even if blending is enabled, that doesn't tell whether
+					the slice is transparent/blended or appears normally.
+					To check that, instead of this command, write
+					<lb/>
+					<tt>if (<ref>getopacity</ref>(sl) &lt; 100 || get blend mode(sl) &lt;&gt; blend:normal)</tt>
+				</note>
+			</description>
+			<seealso>
+				<ref>setblendingenabled</ref>
+			</seealso>
+		</command>
+		</section>  <!-- Slice Blending -->
+
 		<section title="Alignment and Anchor Points">
 		<command id="sliceedgex">
 			<canon>slice edge x (handle, edge)</canon>
@@ -10821,6 +10931,21 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				</note>
 			</description>
 		</command>
+		<command id="blendableslicehandle">
+			<canon>Blendable slice handle</canon>
+			<shortname>blendable slice handle</shortname>
+			<description>
+				A <ref>slicehandle</ref> for a slice type which has blending settings (opacity and blend mode),
+				which currently are Sprite and Map (map layer) slices.
+				More slice types will become blendable in a future version.
+			</description>
+			<seealso>
+				<ref>setopacity</ref>
+				<ref>setblendmode</ref>
+				<ref>setblendingenabled</ref>
+			</seealso>
+		</command>
+
 		<command id="lookupcode">
 			<canon>Slice lookup codes</canon>
 			<shortname>slice lookup code</shortname>

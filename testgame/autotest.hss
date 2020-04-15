@@ -4311,6 +4311,7 @@ script, slice tests, begin
   slice find tests
   slice tree tests
   slice correspondence tests
+  slice blending tests
 
   # Test rect transparency
   variable (sl)
@@ -4762,6 +4763,56 @@ script, slice correspondence tests, begin
   # Restore
   delete hero(hero:Bram)
   swap by position(0, 1)
+end
+
+########################################################################
+
+script, slice blending tests, begin
+  variable(sl, collection)
+
+  sl := load hero sprite(0, 1)
+  assert(get blending enabled(sl) == false)
+  assert(get opacity(sl) == 100)
+  assert(get blend mode(sl) == blend:normal)
+
+  # Test opacity
+  set opacity(sl, 50), w
+  assert(get opacity(sl) == 50)
+  assert(get blending enabled(sl) == true)
+  # And blend mode
+  set blend mode(sl, blend:multiply), w
+  assert(get blend mode(sl) == blend:multiply)
+
+  set blending enabled(sl, false), w
+  assert(get blending enabled(sl) == false)
+  assert(get opacity(sl) == 100)
+  assert(get blend mode(sl) == blend:normal)
+
+  # Check blending settings preserved when blending is disabled
+  set blending enabled(sl, true), w
+  assert(get opacity(sl) == 50)
+  assert(get blend mode(sl) == blend:multiply)
+  free slice(sl)
+
+  sl := create container
+  # Allowed on non-blendable slices
+  assert(get blending enabled(sl) == false)
+  assert(get opacity(sl) == 100)
+  assert(get blend mode(sl) == blend:normal)
+  free slice(sl)
+
+  # Check Map slice blending
+  sl := lookup slice(sl:map layer 1)
+  set opacity(sl, 30), w
+  assert(get opacity(sl) == 30)
+  set opacity(sl, 100)
+
+  # Check blending settings loaded from file correctly
+  collection := load slice collection(2)
+  sl := first sprite child(collection)
+  assert(get opacity(sl) == 45)
+  assert(get blend mode(sl) == blend:add)
+  free slice(collection)
 end
 
 ########################################################################

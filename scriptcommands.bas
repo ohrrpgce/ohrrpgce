@@ -3335,12 +3335,12 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 519 '--get hero slice
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
-   scriptret = find_plotslice_handle(herow(retvals(0)).sl)  'May be NULL
+   scriptret = find_plotslice_handle(herow(retvals(0)).sl)  'May be NULL (empty ranks)
   END IF
  CASE 520 '--get NPC slice
   npcref = get_valid_npc(retvals(0))
   IF npcref >= 0 THEN
-   scriptret = find_plotslice_handle(npc(npcref).sl)
+   scriptret = find_plotslice_handle(npc(npcref).sl)  'May be NULL (tag-disabled NPCs)
   END IF
  CASE 521 '--get door x (doorid, [mapid])
   scriptret = -1
@@ -4791,6 +4791,57 @@ SUB script_functions(byval cmdid as integer)
     scriptret = CAST(HeroSliceContext ptr, sl->Context)->slot
    END IF
   END IF
+ CASE 695 '--get opacity (slice)
+  IF valid_plotslice(retvals(0)) THEN
+   'Non-blendable slice types allowed
+   DIM drawopts as DrawOptions ptr = get_slice_drawopts(plotslices(retvals(0)), NO)
+   IF drawopts ANDALSO drawopts->with_blending THEN
+    scriptret = 100 * drawopts->opacity
+   ELSE
+    scriptret = 100
+   END IF
+  END IF
+ CASE 696 '--set opacity (slice, opacity)
+  IF valid_plotslice(retvals(0)) THEN
+   DIM drawopts as DrawOptions ptr = get_slice_drawopts(plotslices(retvals(0)))
+   IF drawopts THEN
+    'Setting opacity to a value outside 0-100% is not an error
+    drawopts->opacity = bound(retvals(1), 0, 100) * 0.01
+    IF retvals(0) < 100 THEN drawopts->with_blending = YES
+   END IF
+  END IF
+ CASE 697 '--get blending enabled (slice)
+  scriptret = 0
+  IF valid_plotslice(retvals(0)) THEN
+   'Non-blendable slice types allowed
+   DIM drawopts as DrawOptions ptr = get_slice_drawopts(plotslices(retvals(0)), NO)
+   IF drawopts ANDALSO drawopts->with_blending THEN
+    scriptret = 1
+   END IF
+  END IF
+ CASE 698 '--set blending enabled (slice, bool)
+  IF valid_plotslice(retvals(0)) THEN
+   DIM drawopts as DrawOptions ptr = get_slice_drawopts(plotslices(retvals(0)))
+   IF drawopts THEN drawopts->with_blending = retvals(1) <> 0
+  END IF
+ CASE 699 '--get blend mode (slice)
+  IF valid_plotslice(retvals(0)) THEN
+   'Non-blendable slice types allowed
+   DIM drawopts as DrawOptions ptr = get_slice_drawopts(plotslices(retvals(0)), NO)
+   IF drawopts ANDALSO drawopts->with_blending THEN
+    scriptret = drawopts->blend_mode
+   ELSE
+    scriptret = blendModeNormal
+   END IF
+  END IF
+ CASE 700 '--set blend mode (slice, blendmode)
+  IF valid_plotslice(retvals(0)) ANDALSO bound_arg(retvals(1), 0, blendModeLast, "blend mode", , serrBadOp) THEN
+   DIM drawopts as DrawOptions ptr = get_slice_drawopts(plotslices(retvals(0)))
+   IF drawopts THEN
+    drawopts->blend_mode = retvals(1)
+    drawopts->with_blending = YES
+   END IF
+  END IF
 
 
  CASE ELSE
@@ -5204,6 +5255,22 @@ SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, by
   END IF
  END IF
 END SUB
+
+'Get a slice's DrawOptions, or NULL if it doesn't have any.
+'required: whether to throw an error on wrong type.
+FUNCTION get_slice_drawopts(sl as Slice ptr, required as bool = YES) as DrawOptions ptr
+ BUG_IF(sl = NULL, "null ptr", NULL)
+ IF sl->SliceType = slSprite THEN
+  RETURN @sl->SpriteData->drawopts
+ ELSEIF sl->SliceType = slMap THEN
+  RETURN @sl->MapData->drawopts
+ ELSEIF required THEN
+  scripterr strprintf("%s: %s slices don't have blending settings. " _
+                      "This command can only be used on Sprite or Map layer slices", _
+                      current_command_name(), SliceTypeName(sl))
+ END IF
+ RETURN NULL
+END FUNCTION
 
 
 '==========================================================================================

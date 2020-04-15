@@ -584,7 +584,7 @@ define function, begin
 558,setspritesetnumber,2,0,0     #(sprite slice handle, set num)
 559,getspritedefaultpal,1,0      #(sprite slice handle) - returns default palette number
 560,npcisdisabled,1,0            #(npc reference) returns true if the npc exists, but is disabled by tags or one-time use
-#561,unused
+#561,unused (Don't use: should increment maxScriptCmdID when new commands added)
 #562,unused
 #563,unused
 #564,unused
@@ -674,7 +674,7 @@ define function, begin
 646,mouserelease,1,0          # returns true if the specified button is was just released (button)
 647,_cancelrunfast,0          # cancels the -runfast command-line option, if it is active.
 648,_runfast,0                # speeds up as if the -runfast command-line option is active.
-649,multdiv,3,0,0,0           # calculate int(float(a)*b/c), with rounding and clamping (undocumented)
+649,multdiv,3,0,0,0           # calculate int(float(a)*b/c), with rounding and clamping
 650,setrectrawborder,2,0,-1   # set a rectangle slice to use a specific border sprite instead of the border for its style
 651,getrectrawborder,1,0      # set a rectangle slice to use a specific border sprite instead of the border for its style
 652,cloneslice,2,0,1          # Copy a slice (handle, recurse)
@@ -720,6 +720,12 @@ define function, begin
 692,getscancodename,3,0,0,1   # Get the name of a scancode in a string (string id, scancode, long name)
 693,getheroslicebyslot,1,0    # Get the slice representing a hero walkabout
 694,heroslotfromslice,1,0     # Return the hero party slot for a hero slice, or else -1
+695,getopacity,1,0            # Return opacity percentage, 0-100 (slice)
+696,setopacity,2,0,100        # Set slice opacity 0-100 (blendable slice, percent)
+697,getblendingenabled,1,0    # True or false (slice)
+698,setblendingenabled,2,0,1  # Blending (blendable slice, true/false)
+699,getblendmode,1,0          # Get slice blend mode: blend:normal/blend:add/blend:multiply (slice)
+700,setblendmode,2,0,0        # Set blend mode (blendable slice, blendmode)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
@@ -2194,6 +2200,10 @@ define constant, begin
 0,trans:solid
 1,trans:fuzzy
 2,trans:hollow
+0,blend:normal
+1,blend:add
+1,blend:additive
+2,blend:multiply
 0,hand:Attack A
 1,hand:Attack B
 0,dissolve:random scatter

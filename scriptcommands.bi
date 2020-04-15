@@ -41,6 +41,7 @@ DECLARE FUNCTION valid_plotselectslice(byval handle as integer) as bool
 DECLARE FUNCTION valid_plotscrollslice(byval handle as integer) as bool
 DECLARE FUNCTION valid_plotpanelslice(byval handle as integer) as bool
 DECLARE FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as bool=NO, byval vert_fill_ok as bool=NO) as bool
+DECLARE FUNCTION get_slice_drawopts(sl as Slice ptr, required as bool = YES) as DrawOptions ptr
 
 DECLARE FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
 DECLARE FUNCTION find_plotslice_handle(byval sl as Slice Ptr) as integer
