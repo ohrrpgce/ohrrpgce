@@ -6,7 +6,7 @@ set ZIPFILE=ohrrpgce-win-%BUILDNAME%-%OHRVERCODE%.zip
 set SYMBFILE=ohrrpgce-symbols-win-%BUILDNAME%-r%SVNREV%-%OHRVERDATE%-%OHRVERCODE%.7z
 echo Now creating %ZIPFILE%
 
-for %%X in (game.exe custom.exe) do (
+for %%X in (game.exe custom.exe hspeak.exe) do (
     if not exist "%%X" (
         ECHO "ERROR: build result %%X is missing. Unable to continue."
         GOTO failed

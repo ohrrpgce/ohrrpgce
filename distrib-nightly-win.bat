@@ -24,8 +24,10 @@ del nightly-temp.txt
 
 svn info > svninfo.txt
 
-REM Build all utilities once
+REM Build all utilities once (relump and unlump aren't important, but want to detect if hspeak didn't build)
+support\rm -f hspeak.exe
 CALL scons hspeak relump unlump %SCONS_ARGS%
+IF NOT EXIST hspeak.exe GOTO FAILURE
 
 REM This is the default build (default download is symlinked to it on the server)
 support\rm -f game.exe custom.exe
@@ -103,3 +105,5 @@ support\zip distrib\madplay+oggenc.zip support\madplay.exe support\oggenc.exe su
 pscp -q distrib\madplay+oggenc.zip %SCPHOST%:%SCPDEST%
 
 pscp -q svninfo.txt %SCPHOST%:%SCPDEST%
+
+:FAILURE

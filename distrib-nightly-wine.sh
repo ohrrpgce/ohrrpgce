@@ -118,9 +118,9 @@ fi
 svn info > svninfo.txt
 
 # Build all utilities once
-${BUILD} relump unlump $SCONS_ARGS
+${BUILD} relump unlump $SCONS_ARGS || exit 1
 if [ -z "$DONT_BUILD_HSPEAK" ]; then
-  ${BUILD} hspeak $SCONS_ARGS
+  ${BUILD} hspeak $SCONS_ARGS || exit 1
 fi
 mustexist unlump.exe
 mustexist relump.exe
@@ -128,7 +128,7 @@ mustexist hspeak.exe
 
 # This is the default build (default download is symlinked to it on the server)
 rm -f game*.exe custom*.exe
-${BUILD} music=sdl $SCONS_ARGS
+${BUILD} music=sdl $SCONS_ARGS || exit 1
 zip_and_upload music_sdl gfx_directx.dll SDL.dll SDL_mixer.dll
 
 # Create the installer from the executables we just built: the installer and .zips for default build configs
