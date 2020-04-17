@@ -290,14 +290,21 @@ function toggleContent(target) {
 		</li>
 	</xsl:template>
 
-	<!-- A link to a command -->
-	<xsl:template match="command|altcommand" mode="alphalist">
-		<xsl:if test='boolean(canon)'>
-			<a href="#about-{@id}"><xsl:value-of select="canon" /></a><br/>
-		</xsl:if><xsl:if test='boolean(alias)'>
-			<a href="#about-{alias}"><xsl:value-of select="shortname" /></a><br/>
-		</xsl:if><xsl:text>
+	<!-- A link to a command in a command index -->
+	<xsl:template match="command|altcommand" mode="alphalist"><xsl:text>
 		</xsl:text>
+		<xsl:choose>
+			<xsl:when test='boolean(canon)'>
+				<a href="#about-{@id}"><xsl:value-of select="canon" /></a><br/>
+			</xsl:when>
+			<xsl:when test='boolean(alias)'>
+				<a href="#about-{alias}"><xsl:value-of select="shortname" /></a><br/>
+			</xsl:when>
+			<!-- This is only used for <altcommands> with no <canon> -->
+			<xsl:when test='boolean(shortname)'>
+				<a href="#about-{@id}"><xsl:value-of select="shortname" /></a><br/>
+			</xsl:when>
+		</xsl:choose>
 	</xsl:template>
 
 	<xsl:template match="section" mode="full">
@@ -387,14 +394,16 @@ function toggleContent(target) {
 		</div>
 	</xsl:template>
 
-	<xsl:template match="command|altcommand" mode="anchor"><xsl:text>
-		</xsl:text><a name="about-{@id}" ></a>
+	<xsl:template match="command|altcommand" mode="anchor">
+		<xsl:if test='boolean(@id)'><xsl:text>
+			</xsl:text><a name="about-{@id}" ></a>
+		</xsl:if>
 	</xsl:template>
 
 	<!-- An <altcommand> nested inside a <command> -->
 	<xsl:template match="altcommand" mode="canon">
 		<!-- <canon> is optional; without it the shortname still appears in alphalists -->
-		<xsl:if test='boolean(canon)'><xsl:text>
+		<xsl:if test="boolean(canon) and not(@alias = 'hide')"><xsl:text>
 			</xsl:text><div class="notetext">Alias:</div>
 		</xsl:if>
 		<xsl:for-each select="canon"><xsl:text>
@@ -418,6 +427,9 @@ function toggleContent(target) {
 	<xsl:template match="a"><a href="{@href}"><xsl:value-of select="." /></a></xsl:template>
 	<xsl:template match="ref" name="ref">
 		<xsl:if test='count(id(.))=0'>
+			<xsl:message>
+				Broken link to <xsl:value-of select='.' />
+			</xsl:message>
 			<a href="#{.}" class="undef"><xsl:value-of select='.' /></a>
 		</xsl:if>
 		<xsl:if test='count(id(.))>0'>

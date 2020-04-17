@@ -9,11 +9,11 @@
 	<!ATTLIST section title CDATA #REQUIRED constants (yes|no) #IMPLIED topics (yes|no) #IMPLIED>
 	<!ELEMENT reference EMPTY>
 	<!ATTLIST reference ref IDREF #REQUIRED>
-	<!ELEMENT command ((canon+,shortname,altcommand*,added?,deprecated?,description,example*,seealso?) |
+	<!ELEMENT command ((canon+,shortname,altcommand*,added?,deprecated?,description,altcommand*,example*,seealso?) |
 					   (alias,shortname,added?,deprecated?))>
 	<!ATTLIST command id ID #REQUIRED>
 	<!ELEMENT altcommand (canon*,shortname)>
-	<!ATTLIST altcommand id ID #REQUIRED>
+	<!ATTLIST altcommand id ID #IMPLIED show-alias CDATA "yes"  alias (show|hide) "show">
 	<!ELEMENT canon      (#PCDATA)>
 	<!ELEMENT altcanon   (#PCDATA)>
 	<!ELEMENT shortname   (#PCDATA)>
@@ -74,9 +74,13 @@ Case 1: Full command definition
                   Example: import globals
   <altcommand>* - This defines an alias to the command which is documented
                   together with it, but which appears separately in command
-		  indices (if it contains a <canon>) and can be linked to
+		  indexes (if it contains a <canon>) and can be linked to
 		  separately. Must have an id="" attribute and <shortname>
-		  subelement, and usually has one or more <canon>s.
+		  subelement, and usually has one or more <canon>s. If there's no
+		  canon then <shortname> is used for links but no 'canon' line
+		  appears in the command definition.
+		  "Alias:" is displayed before the command, unless you add
+		  alias="hide".
   <added>       - Version this was added in. Not used!
   <deprecated>  - Version this was deprecated in. Not used!
   <description> - This is a paragraph (or more) of text describing what the
@@ -7780,7 +7784,7 @@ end
 				For a description of the different slice types, see the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices#Slice_types">Slices</a> article on the wiki.
 				<note>
 					There are two types of slice used by the engine for which there are no commands:
-					'special' slices (such as <ref>sprite layer</ref>),
+					'special' slices (such as <ref>spritelayer</ref>),
 					and 'map' slices (which are map layers).
 					However you can use <ref>lookupslice</ref> to find each instance of these.
 					Special slices are nothing but container slices with special purposes (but not special behaviour).
@@ -11211,9 +11215,18 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 				<ref>extendedscancodesenabled</ref>
 			</seealso>
 		</command>
+		<reference ref="keyconstants" />
+	</section>
+
+	<section title="Predefined Constants" constants="yes">
+		<description>
+			This section only lists constants which can be used for multiple commands.
+			There are many other builtin constants, but they're documented along with the commands they're for.
+		</description>
+
 		<command id="keyconstants">
-			<canon>Key constants</canon>
-			<shortname>key constants</shortname>
+			<canon>Key Constants</canon>
+			<shortname>key Constants</shortname>
 			<description>
 				A constant specifying a keyboard key or joystick button by its function.
 				(Possibly included mouse buttons too, if enabled in the Mouse Controls menu.)
@@ -11229,111 +11242,99 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 				<lb />
 				(<p>menu key</p> and <p>cancel key</p> are identical).
 			</description>
+			<altcommand id="anykey">
+				<shortname>any key</shortname>
+			</altcommand>
+			<altcommand id="upkey">
+				<shortname>up key</shortname>
+			</altcommand>
+			<altcommand id="downkey">
+				<shortname>down key</shortname>
+			</altcommand>
+			<altcommand id="leftkey">
+				<shortname>left key</shortname>
+			</altcommand>
+			<altcommand id="rightkey">
+				<shortname>right key</shortname>
+			</altcommand>
+			<altcommand id="usekey">
+				<shortname>use key</shortname>
+			</altcommand>
+			<altcommand id="menukey">
+				<shortname>menu key</shortname>
+			</altcommand>
+			<altcommand id="cancelkey">
+				<shortname>cancel key</shortname>
+			</altcommand>
+			<altcommand id="runkey">
+				<shortname>run key</shortname>
+			</altcommand>
 		</command>
-	</section>
-
-	<section title="Predefined Constants" constants="yes">
-		<description>
-			This section isn't complete; there are <b>zillions</b> of other builtin constants!
-		</description>
 		<command id="numericconstants">
 			<canon>Numeric Constants</canon>
 			<shortname>Numeric Constants</shortname>
-			<description>There are pre-defined constants for the numbers from 0 to 10. You can use these constants to make your scripts look friendly :)<lb />zero, one, two, three, four, five, six, seven, eight, nine, ten</description>
-		</command>
-		<command id="anykey">
-			<alias>keyconstants</alias>
-			<shortname>any key</shortname>
-		</command>
-		<command id="upkey">
-			<alias>keyconstants</alias>
-			<shortname>up key</shortname>
-		</command>
-		<command id="downkey">
-			<alias>keyconstants</alias>
-			<shortname>down key</shortname>
-		</command>
-		<command id="leftkey">
-			<alias>keyconstants</alias>
-			<shortname>left key</shortname>
-		</command>
-		<command id="rightkey">
-			<alias>keyconstants</alias>
-			<shortname>right key</shortname>
-		</command>
-		<command id="usekey">
-			<alias>keyconstants</alias>
-			<shortname>use key</shortname>
-		</command>
-		<command id="menukey">
-			<alias>keyconstants</alias>
-			<shortname>menu key</shortname>
-		</command>
-		<command id="cancelkey">
-			<alias>keyconstants</alias>
-			<shortname>cancel key</shortname>
-		</command>
-		<command id="runkey">
-			<alias>keyconstants</alias>
-			<shortname>run key</shortname>
+			<description>
+				There are pre-defined constants for the numbers from 0 to 10.
+				You can use these constants to make your scripts look friendly :)
+				<lb />
+				<p>zero, one, two, three, four, five, six, seven, eight, nine, ten</p>
+			</description>
 		</command>
 		<command id="booleanconstants">
 			<canon>Boolean Constants</canon>
 			<shortname>Boolean Constants</shortname>
-			<description>There are constants are named <tt>true</tt> and <tt>false</tt>, and for <tt>ON</tt> and <tt>OFF</tt>. These are useful for checking and setting the values of tags, and in conditional statements. <tt>true</tt>/<tt>on</tt> are equal to 1, <tt>false</tt>/<tt>off</tt> are equal to 0.<lb/>true, false, on, off</description>
-		</command>
-		<command id="true">
-			<alias>booleanconstants</alias>
-			<shortname>true</shortname>
-		</command>
-		<command id="false">
-			<alias>booleanconstants</alias>
-			<shortname>false</shortname>
-		</command>
-		<command id="on">
-			<alias>booleanconstants</alias>
-			<shortname>on</shortname>
-		</command>
-		<command id="off">
-			<alias>booleanconstants</alias>
-			<shortname>off</shortname>
+			<description>
+			There are constants are named <p>true</p> and <p>false</p>, and for <p>on</p> and <p>off</p>.
+			These are useful for checking and setting the values of tags, and in conditional statements.
+			<tt>true</tt>/<tt>on</tt> are equal to 1, <tt>false</tt>/<tt>off</tt> are equal to 0.
+			</description>
+			<altcommand id="true">
+				<shortname>true</shortname>
+			</altcommand>
+			<altcommand id="false">
+				<shortname>false</shortname>
+			</altcommand>
+			<altcommand id="on">
+				<shortname>on</shortname>
+			</altcommand>
+			<altcommand id="off">
+				<shortname>off</shortname>
+			</altcommand>
 		</command>
 		<command id="directionconstants">
 			<canon>Direction Constants</canon>
 			<shortname>Direction Constants</shortname>
-			<description>There are constants for each of the four directions. These constants are useful for commands such as <ref>walkhero</ref> and <ref>walknpc</ref>, which take a direction as an argument.<lb/>north, south, east, west, up, down, right, left</description>
-		</command>
-		<command id="north">
-			<alias>directionconstants</alias>
-			<shortname>north</shortname>
-		</command>
-		<command id="south">
-			<alias>directionconstants</alias>
-			<shortname>south</shortname>
-		</command>
-		<command id="east">
-			<alias>directionconstants</alias>
-			<shortname>east</shortname>
-		</command>
-		<command id="west">
-			<alias>directionconstants</alias>
-			<shortname>west</shortname>
-		</command>
-		<command id="up">
-			<alias>directionconstants</alias>
-			<shortname>up</shortname>
-		</command>
-		<command id="down">
-			<alias>directionconstants</alias>
-			<shortname>down</shortname>
-		</command>
-		<command id="right">
-			<alias>directionconstants</alias>
-			<shortname>right</shortname>
-		</command>
-		<command id="left">
-			<alias>directionconstants</alias>
-			<shortname>left</shortname>
+			<description>
+				There are constants for each of the four directions.
+				These constants are useful for commands such as <ref>walkhero</ref> and
+				<ref>walknpc</ref>, which take a direction as an argument.
+				<lb/>
+				<p>north, south, east, west, up, down, right, left</p>
+			</description>
+			<altcommand id="north">
+				<shortname>north</shortname>
+			</altcommand>
+			<altcommand id="south">
+				<shortname>south</shortname>
+			</altcommand>
+			<altcommand id="east">
+				<shortname>east</shortname>
+			</altcommand>
+			<altcommand id="west">
+				<shortname>west</shortname>
+			</altcommand>
+			<altcommand id="up">
+				<shortname>up</shortname>
+			</altcommand>
+			<altcommand id="down">
+				<shortname>down</shortname>
+			</altcommand>
+			<altcommand id="right">
+				<shortname>right</shortname>
+			</altcommand>
+			<altcommand id="left">
+				<shortname>left</shortname>
+			</altcommand>
 		</command>
 		<command id="me">
 			<canon>me</canon>
@@ -11379,34 +11380,43 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 		<command id="insidebattle">
 			<canon>inside battle</canon>
 			<shortname>inside battle</shortname>
-			<description>A constant used in the <ref>getheropicture</ref>, <ref>setheropicture</ref>, <ref>getheropalette</ref>, <ref>setheropalette</ref>, <ref>resetheropicture</ref> and <ref>resetheropalette</ref> commands to represent the battle graphics.</description>
-		</command>
-		<command id="outsidebattle">
-			<canon>outside battle</canon>
-			<shortname>outside battle</shortname>
-			<description>A constant used in the <ref>getheropicture</ref>, <ref>setheropicture</ref>, <ref>getheropalette</ref>, <ref>setheropalette</ref>, <ref>resetheropicture</ref> and <ref>resetheropalette</ref> commands to represent the walkabout graphics.</description>
-		</command>
-		<command id="heroportrait">
-			<canon>hero portrait</canon>
-			<shortname>hero portrait</shortname>
-			<description>A constant used in the <ref>getheropicture</ref>, <ref>setheropicture</ref>, <ref>getheropalette</ref>, <ref>setheropalette</ref>, <ref>resetheropicture</ref> and <ref>resetheropalette</ref> commands to represent the hero's portrait graphics.</description>
+			<altcommand id="outsidebattle" alias="hide">
+				<canon>outside battle</canon>
+				<shortname>outside battle</shortname>
+			</altcommand>
+			<altcommand id="heroportrait" alias="hide">
+				<canon>hero portrait</canon>
+				<shortname>hero portrait</shortname>
+			</altcommand>
+			<description>
+				A constant used in the <ref>getheropicture</ref>, <ref>setheropicture</ref>,
+				<ref>getheropalette</ref>, <ref>setheropalette</ref>, <ref>resetheropicture</ref>
+				and <ref>resetheropalette</ref> commands:
+				<ul>
+					<li><p>inside battle</p> indicates the hero battle spriteset.</li>
+					<li><p>outside battle</p> indicates the walkabout spriteset.</li>
+					<li><p>hero portrait</p> indicates the portrait spriteset.</li>
+				</ul>
+			</description>
 		</command>
 		<command id="colorconstants">
 			<canon>Color Constants</canon>
 			<shortname>Color Constants</shortname>
-			<description>Constants for each of the three primary colors are used in commands like <ref>readcolor</ref> or <ref>writecolor</ref><lb/>color:red, color:green, color:blue</description>
-		</command>
-		<command id="colorred">
-			<alias>colorconstants</alias>
-			<shortname>color:red</shortname>
-		</command>
-		<command id="colorgreen">
-			<alias>colorconstants</alias>
-			<shortname>color:green</shortname>
-		</command>
-		<command id="colorblue">
-			<alias>colorconstants</alias>
-			<shortname>color:blue</shortname>
+			<description>
+				Constants for each of the three primary colors are used in commands like
+				<ref>readcolor</ref> or <ref>writecolor</ref>:
+				<lb/>
+				<p>color:red, color:green, color:blue</p>
+			</description>
+			<altcommand id="colorred">
+				<shortname>color:red</shortname>
+			</altcommand>
+			<altcommand id="colorgreen">
+				<shortname>color:green</shortname>
+			</altcommand>
+			<altcommand id="colorblue">
+				<shortname>color:blue</shortname>
+			</altcommand>
 		</command>
 		<command id="mouseconstants">
 			<canon>Mouse Constants</canon>
@@ -11414,63 +11424,57 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 			<description>
 				The following constants are for use with the mouse functions such as <ref>mousebutton</ref>.
 				<lb/>
-				<tt>left button</tt>, <tt>middle button</tt>, <tt>right button</tt>
+				<p>left button</p>, <p>middle button</p>, <p>right button</p>
 			</description>
-		</command>
-		<command id="leftbutton">
-			<alias>mouseconstants</alias>
-			<shortname>left button</shortname>
-		</command>
-		<command id="middlebutton">
-			<alias>mouseconstants</alias>
-			<shortname>middle button</shortname>
-		</command>
-		<command id="rightbutton">
-			<alias>mouseconstants</alias>
-			<shortname>right button</shortname>
+			<altcommand id="leftbutton">
+				<shortname>left button</shortname>
+			</altcommand>
+			<altcommand id="middlebutton">
+				<shortname>middle button</shortname>
+			</altcommand>
+			<altcommand id="rightbutton">
+				<shortname>right button</shortname>
+			</altcommand>
 		</command>
 		<command id="getcount">
 			<canon>get count</canon>
 			<shortname>get count</shortname>
 			<description>When passed to <ref>npcatpixel</ref>, <ref>npcatspot</ref>, <ref>sliceatpixel</ref>, <ref>findcollidingslice</ref> or <ref>zoneatspot</ref> they return the number of NPCs, slices or zones at that spot. With <ref>spellslearned</ref> returns the number of spells a hero learnt. With <ref>findenemyinformation</ref>, returns the number of enemies, or the number of some kind of enemy in the formation.</description>
 		</command>
-		<command id="tileconstants">
-			<canon>Tile Constants</canon>
-			<shortname>Tile Constants</shortname>
-			<description>The following constants are for use with functions like <ref>readpassblock</ref> or <ref>writepassblock</ref>.<lb/>north wall, east wall, south wall, west wall, vehicle A, vehicle B, harm tile, overhead tile</description>
+		<command id="wallconstants">
+			<canon>Wall Bit Constants</canon>
+			<shortname>Wall Bit Constants</shortname>
+			<description>
+				The following constants are for use with functions like <ref>readpassblock</ref> or <ref>writepassblock</ref>:
+				<lb/>
+				<p>north wall, east wall, south wall, west wall, vehicle A, vehicle B, harm tile, overhead tile</p>
+			</description>
+			<altcommand id="northwall">
+				<shortname>north wall</shortname>
+			</altcommand>
+			<altcommand id="eastwall">
+				<shortname>east wall</shortname>
+			</altcommand>
+			<altcommand id="westwall">
+				<shortname>west wall</shortname>
+			</altcommand>
+			<altcommand id="southwall">
+				<shortname>south wall</shortname>
+			</altcommand>
+			<altcommand id="vehiclea">
+				<shortname>vehicle A</shortname>
+			</altcommand>
+			<altcommand id="vehicleb">
+				<shortname>vehicle B</shortname>
+			</altcommand>
+			<altcommand id="harmtile">
+				<shortname>harm tile</shortname>
+			</altcommand>
+			<altcommand id="overheadtile">
+				<shortname>overhead tile</shortname>
+			</altcommand>
 		</command>
-		<command id="northwall">
-			<alias>tileconstants</alias>
-			<shortname>north wall</shortname>
-		</command>
-		<command id="eastwall">
-			<alias>tileconstants</alias>
-			<shortname>east wall</shortname>
-		</command>
-		<command id="westwall">
-			<alias>tileconstants</alias>
-			<shortname>west wall</shortname>
-		</command>
-		<command id="southwall">
-			<alias>tileconstants</alias>
-			<shortname>south wall</shortname>
-		</command>
-		<command id="vehiclea">
-			<alias>tileconstants</alias>
-			<shortname>vehicle A</shortname>
-		</command>
-		<command id="vehicleb">
-			<alias>tileconstants</alias>
-			<shortname>vehicle B</shortname>
-		</command>
-		<command id="harmtile">
-			<alias>tileconstants</alias>
-			<shortname>harm tile</shortname>
-		</command>
-		<command id="overheadtile">
-			<alias>tileconstants</alias>
-			<shortname>overhead tile</shortname>
-		</command>
+
 		<command id="crop">
 			<canon>crop</canon>
 			<shortname>crop</shortname>
@@ -11534,11 +11538,11 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 		<command id="song:sameaslastmap">
 			<canon>song: same as last map</canon>
 			<shortname>song: same as last map</shortname>
+			<altcommand id="song:sameasmap">
+				<canon>song: same as map</canon>
+				<shortname>song: same as map</shortname>
+			</altcommand>
 			<description>Used with <ref>setformationsong</ref> and <ref>getformationsong</ref> to indicate an enemy formation which uses the same music as the map. Used by <ref>setambientmusic</ref> and <ref>getambientmusic</ref> for a map that continues with the last map's music.</description>
-		</command>
-		<command id="song:sameasmap">
-			<alias>song:sameaslastmap</alias>
-			<shortname>song: same as map</shortname>
 		</command>
 	</section>
 </plotscript>
