@@ -1436,7 +1436,7 @@ SUB general_data_editor ()
    CASE 22  'Title screen text
     IF LEN(selectst.query) = 0 THEN
      enable_strgrabber = YES
-     state.need_update OR= strgrabber(genmenu.titletext, 38)
+     state.need_update OR= strgrabber(genmenu.titletext, (gen(genResolutionX) - 16) \ 8)
     END IF
    CASE ELSE
     WITH genmenu

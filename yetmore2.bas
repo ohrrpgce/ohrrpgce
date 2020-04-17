@@ -395,7 +395,7 @@ FUNCTION titlescreen () as bool
 
   clearpage vpage
   frame_draw backdrop, , pCentered, pCentered, NO, vpage
-  edgeprint titletext, 8, 190, uilook(uiText), vpage
+  edgeprint titletext, 8 + showLeft, pBottom, uilook(uiText), vpage
   setvispage vpage
   check_for_queued_fade_in
   dowait
