@@ -4326,17 +4326,29 @@ script, slice tests, begin
   set rect fuzziness(sl, 25), w
   assert(get rect trans(sl) == trans:fuzzy)
   assert(get rect fuzziness(sl) == 25)
+  assert(get rect opacity(sl) == 25)  # It's an alias
   set rect fuzziness(sl, 0), w
   assert(get rect trans(sl) == trans:hollow)
   assert(get rect fuzziness(sl) == 0)
   set rect fuzziness(sl, 100), w
   assert(get rect trans(sl) == trans:solid)
   assert(get rect fuzziness(sl) == 100)
+  set rect opacity(sl, 70), w
+  assert(get rect trans(sl) == trans:blend)
+  assert(get rect opacity(sl) == 70)
+  assert(get rect fuzziness(sl) == 70)  # Alias
+  set rect trans(sl, trans:solid)
+  assert(get rect opacity(sl) == 100)
+  set rect trans(sl, trans:hollow)
+  assert(get rect opacity(sl) == 0)
   set rect trans(sl, trans:fuzzy), w
   assert(get rect trans(sl) == trans:fuzzy)
-  assert(get rect fuzziness(sl) == 50)
+  # Using setrecttrans preserves previous opacity to 70%
+  assert(get rect fuzziness(sl) == 70)
+  set rect trans(sl, trans:blend), w
+  assert(get rect opacity(sl) == 70)
   free slice(sl)
-  
+
   # Test rect box border and raw box border
   sl := create rect(99, 99), w
   set slice x(sl, 10)

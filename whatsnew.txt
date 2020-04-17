@@ -34,6 +34,8 @@ April ? 2020 [Gorgonzola]
       a different slot [Ralph]
     * "get opacity", "set opacity", "get blend mode", "set blend mode",
       "get blending enabled", "set blending enabled" [Ralph]
+    * "set rect opacity", "get rect opacity", and trans:blend constant for
+      "set rect trans" [Ralph]
 
   *** Changes
     * Renamed "Enemy" target class to "Foe (not dead)", and "Ally" to

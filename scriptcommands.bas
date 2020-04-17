@@ -2572,7 +2572,7 @@ SUB script_functions(byval cmdid as integer)
    scriptret = dat->translucent
   END IF
  CASE 383 '--set rect trans
-  IF bound_arg(retvals(1), 0, 2, "transparency") THEN
+  IF bound_arg(retvals(1), 0, transLAST, "trans:... transparency setting") THEN
    change_rect_plotslice retvals(0), , , , ,retvals(1)
   END IF
  CASE 384 '--slice collide point
@@ -3396,7 +3396,7 @@ SUB script_functions(byval cmdid as integer)
    plotstr(retvals(0)).s = readattackcaption(retvals(1) - 1)
    scriptret = 1
   END IF
- CASE 527 '--get rect fuzziness (slice)
+ CASE 527, 701 '--527: get rect fuzziness (slice), 701: get rect opacity (slice)
   IF valid_plotrect(retvals(0)) THEN
    DIM dat as RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
@@ -3408,18 +3408,26 @@ SUB script_functions(byval cmdid as integer)
     scriptret = 100
    END IF
   END IF
- CASE 528 '--set rect fuzziness (slice, percent)
+ CASE 528, 702 '--528: set rect fuzziness (slice, percent), 702: set rect opacity (slice, percent)
   IF valid_plotrect(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 100, "fuzziness percentage", , serrBadOp) THEN
-    IF retvals(1) = 0 THEN
-     'Reset fuzzfactor to default 50% for future "set rect trans (sl, trans:fuzzy)"
-     ChangeRectangleSlice plotslices(retvals(0)), , , , , transHollow, 50
-    ELSEIF retvals(1) = 100 THEN 
-     ChangeRectangleSlice plotslices(retvals(0)), , , , , transOpaque, 50
-    ELSE
-     ChangeRectangleSlice plotslices(retvals(0)), , , , , transFuzzy, retvals(1)
-    END IF
+   'Allow out of bounds percentages, just like "set opacity"
+   DIM opacity as integer = bound(retvals(1), 0, 100)
+   DIM trans as RectTransTypes
+   IF opacity = 0 THEN
+    'Reset fuzzfactor to default 50% for future "set rect trans (sl, trans:fuzzy)";
+    'the trans setting overrides the opacity
+    trans = transHollow
+    opacity = 50
+   ELSEIF opacity = 100 THEN
+    'Ditto
+    trans = transOpaque
+    opacity = 50
+   ELSEIF cmdid = 528 THEN  'set rect fuzziness
+    trans = transFuzzy
+   ELSE  'set rect opacity
+    trans = transBlend
    END IF
+   ChangeRectangleSlice plotslices(retvals(0)), , , , , trans, opacity
   END IF
  CASE 529 '-- textbox line (string, box, line, expand, strip)
   IF valid_plotstr(retvals(0), serrBadOp) ANDALSO _

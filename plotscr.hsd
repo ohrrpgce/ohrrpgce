@@ -550,7 +550,7 @@ define function, begin
 524,getdoordestinationmap,2,0,-1 #map number of given door's exit
 525,doorexists,2,0,-1            #returns true if the given door exists
 526,getattackcaption,2,0,0       #puts an attack's caption in a string (string id, attack id+1 / attack .hsi constant)
-527,getrectfuzziness,1,0         #get rect fuzz percentange
+527,getrectfuzziness,1,0         #get rect fuzz or opacity percentage
 528,setrectfuzziness,2,0,50      #set rect fuzz percentange
 529,textboxline,5,0,0,-1,1,0     #get a line of text from a textbox (string, box, line, expand, strip)
 530,getslicetext,2,0,0           #get the contents of a text slice (string, slice)
@@ -726,6 +726,8 @@ define function, begin
 698,setblendingenabled,2,0,1  # Blending (blendable slice, true/false)
 699,getblendmode,1,0          # Get slice blend mode: blend:normal/blend:add/blend:multiply (slice)
 700,setblendmode,2,0,0        # Set blend mode (blendable slice, blendmode)
+701,getrectopacity,1,0        # Alias to "get rect fuzziness" (slice)
+702,setrectopacity,2,0,50     # Set rect bg to transparent and set its opacity (slice, opacity)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
@@ -2200,6 +2202,7 @@ define constant, begin
 0,trans:solid
 1,trans:fuzzy
 2,trans:hollow
+3,trans:blend
 0,blend:normal
 1,blend:add
 1,blend:additive

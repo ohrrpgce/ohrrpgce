@@ -4653,7 +4653,7 @@ show string(0)</example>
 			<canon>string equal (ID1, ID2)</canon>
 			<shortname>string equal</shortname>
 			<altcommand id="stringcompare">
-				<canon>string compare</canon>
+				<canon>string compare (ID1, ID2)</canon>
 				<shortname>string compare</shortname>
 			</altcommand>
 			<description>Returns true if the two strings #<p>ID1</p> and #<p>ID2</p> are identical, case sensitive.</description>
@@ -7355,7 +7355,7 @@ end
 			<canon>parent slice (handle)</canon>
 			<shortname>parent slice</shortname>
 			<altcommand id="sliceparent">
-				<canon>slice parent</canon>
+				<canon>slice parent (handle)</canon>
 				<shortname>slice parent</shortname>
 			</altcommand>
 			<description>Returns a slice handle for the parent of slice <p>handle</p>, or 0 if <p>handle</p> is the root slice.</description>
@@ -8561,44 +8561,117 @@ set horiz align(sl, edge:right)
 				<ref>setrectborder</ref>
 			</seealso>
 		</command>
+
 		<command id="getrecttrans">
 			<canon>get rect trans (handle)</canon>
 			<shortname>get rect trans</shortname>
-			<description>Given a rect slice <p>handle</p>, returns one of: the constant <p>trans:fuzzy</p> if it is drawn semi-transparent (with any fuzziness percentage from 1 to 99: see <ref>getrectfuzziness</ref>), <p>trans:hollow</p> if it is fully transparent, or <p>trans:solid</p> (equal to <ref>false</ref>) if it is drawn solid.</description>
+			<description>
+				Given a rect slice <p>handle</p>, returns a constant like <tt>trans:fuzzy</tt>
+				telling the background drawing mode;
+				see <ref>setrecttrans</ref> for the different constants.
+				Returns <tt>trans:hollow</tt> if the rect's opacity/fuzziness is 0,
+				and <tt>trans:solid</tt> (equal to <tt>false</tt>) if it's 100.
+			</description>
 			<seealso>
 				<ref>setrecttrans</ref>
 				<ref>getrectfuzziness</ref>
 			</seealso>
 		</command>
+
 		<command id="setrecttrans">
 			<canon>set rect trans (handle, transparency setting)</canon>
 			<shortname>set rect trans</shortname>
-			<description>Given a rect slice <p>handle</p>, change how transparently it is drawn. For <p>transparency setting</p>, pass in one of the constants <p>trans:fuzzy</p> for semi-transparency (checkered, ie. 50% fuzziness), <p>trans:hollow</p> for fully transparent (the border drawn only), or <p>trans:solid</p> (equal to <ref>false</ref>) for solid. Note that this command is strictly weaker than <ref>setrectfuzziness</ref>, which provides much finer control of rectangle slice transparency/translucency.</description>
+			<description>
+				Given a rect slice <p>handle</p>, change how its background
+				(the part that's not the border) is drawn.
+				For <p>transparency setting</p>, pass in one of the constants:
+				<ul>
+					<li><tt>trans:fuzzy</tt> for checkered semi-transparency,</li>
+					<li><tt>trans:blend</tt> for true transparency,</li>
+					<li><tt>trans:hollow</tt> to not draw the background at all (only the border is drawn),</li>
+					<li><tt>trans:solid</tt> (equal to <ref>false</ref>) for solid with no transparency.</li>
+				</ul>
+				When changing to <tt>trans:fuzzy</tt> and <tt>trans:blend</tt> the
+				fuzziness/opacity defaults to 50% if it hasn't been previously set.
+				Otherwise the previous value is restored:
+				<example>set rect opacity(rect, 70)   # Becomes 70% opaque
+set rect trans(rect, trans:solid)  # Becomes opaque
+set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
+				<note>
+					This command is less powerful than <ref>setrectfuzziness</ref>
+					and <ref>setrectopacity</ref>,
+					which together can change to any of the four <tt>trans:</tt> types,
+					and also control the amount of transparency.
+				</note>
+			</description>
 			<seealso>
 				<ref>getrecttrans</ref>
 				<ref>setrectfuzziness</ref>
+				<ref>setrectopacity</ref>
 			</seealso>
 		</command>
+
 		<command id="getrectfuzziness">
 			<canon>get rect fuzziness (handle)</canon>
 			<shortname>get rect fuzziness</shortname>
-			<description>Given a rect slice <p>handle</p>, returns the percentage translucency of the slice, from 0 to 100: 0 if the rectangle is hollow, 100 if it is opaque, and a value between 1 and 99 if it is fuzzy. Rectangles set to trans:fuzzy using <ref>setrecttrans</ref> default to 50% translucency.</description>
+			<altcommand id="getrectopacity">
+				<canon>get rect opacity (handle)</canon>
+				<shortname>get rect opacity</shortname>
+			</altcommand>
+			<description>
+				Given a rect slice <p>handle</p>, returns the percentage fuzziness or opacity of the slice,
+				from 0 to 100:
+				0 if the rectangle is hollow, 100 if it is opaque,
+				and a value between 1 and 99 if it is 'fuzzy' or 'blended (transparent)'
+				(which share the same opacity value).
+				Rectangles set to <tt>trans:fuzzy</tt> or <tt>trans:blend</tt> using <ref>setrecttrans</ref> default to 50% opacity.
+			</description>
 			<seealso>
 				<ref>setrecttrans</ref>
 				<ref>getrecttrans</ref>
 				<ref>setrectfuzziness</ref>
+				<ref>setrectopacity</ref>
 			</seealso>
 		</command>
+
 		<command id="setrectfuzziness">
 			<canon>set rect fuzziness (handle, percent)</canon>
 			<shortname>set rect fuzziness</shortname>
-			<description>Sets the percentage translucency of a rect slice <p>handle</p> to <p>percent</p>. A <p>percent</p> of 0 is equivalent to <ref>setrecttrans</ref>(handle, trans:hollow), a <p>percent</p> of 100 is equivalent to <ref>setrecttrans</ref>(handle, trans:opaque), and anything in between 1 and 99 implicitly does <ref>setrecttrans</ref>(handle, trans:fuzzy) as well as setting the percentage.</description>
+			<description>
+				Makes a rect slice <p>handle</p> 'fuzzy', and optionally sets the <p>percent</p>
+				fuzziness/opacity (defaults to 50).
+				A <p>percent</p> of 0 is equivalent to <tt><ref>setrecttrans</ref>(handle, trans:hollow)</tt>,
+				a <p>percent</p> of 100 is equivalent to <tt><ref>setrecttrans</ref>(handle, trans:opaque)</tt>,
+				and anything in between 1 and 99 implicitly does <tt><ref>setrecttrans</ref>(handle, trans:fuzzy)</tt>
+				as well as setting the percentage.
+			</description>
 			<seealso>
+				<ref>setrectopacity</ref>
 				<ref>setrecttrans</ref>
 				<ref>getrecttrans</ref>
 				<ref>getrectfuzziness</ref>
 			</seealso>
 		</command>
+
+		<command id="setrectopacity">
+			<canon>set rect opacity (handle, percent)</canon>
+			<shortname>set rect opacity</shortname>
+			<description>
+				Makes a rect slice <p>handle</p> (truly) transparent, and optionally sets the <p>percent</p>
+				opacity (defaults to 50).
+				A <p>percent</p> of 0 is equivalent to <tt><ref>setrecttrans</ref>(handle, trans:hollow)</tt>,
+				a <p>percent</p> of 100 is equivalent to <tt><ref>setrecttrans</ref>(handle, trans:opaque)</tt>,
+				and anything in between 1 and 99 implicitly does <tt><ref>setrecttrans</ref>(handle, trans:blend)</tt>
+				as well as setting the percentage.
+			</description>
+			<seealso>
+				<ref>setrectfuzziness</ref>
+				<ref>setrecttrans</ref>
+				<ref>getrecttrans</ref>
+				<ref>getrectopacity</ref>
+			</seealso>
+		</command>
+
 		</section>		<!--Rect Slices-->
 
 		<section title="Line Slices">
