@@ -6646,9 +6646,13 @@ end
 				due to how those work.
 				<lb/>
 				If <tt>percent &lt; 100</tt> then blending is automatically enabled (<ref>setblendingenabled</ref>).
+				<note>
+					You have to use <ref>setrectopacity</ref> instead on Rect slices.
+				</note>
 			</description>
 			<seealso>
 				<ref>getopacity</ref>
+				<ref>setrectopacity</ref>
 			</seealso>
 		</command>
 
@@ -6660,9 +6664,13 @@ end
 				<p>handle</p> is a <ref>slicehandle</ref>;
 				if it isn't a <ref>blendableslicehandle</ref> or if blending is disabled
 				for this slice, 100 is returned without showing an error.
+				<note>
+					You have to use <ref>getrectopacity</ref> instead on Rect slices.
+				</note>
 			</description>
 			<seealso>
 				<ref>setopacity</ref>
+				<ref>getrectopacity</ref>
 			</seealso>
 		</command>
 
@@ -8631,6 +8639,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 				<ref>getrecttrans</ref>
 				<ref>setrectfuzziness</ref>
 				<ref>setrectopacity</ref>
+				<ref>getopacity</ref>
 			</seealso>
 		</command>
 
@@ -8669,6 +8678,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 				<ref>setrecttrans</ref>
 				<ref>getrecttrans</ref>
 				<ref>getrectopacity</ref>
+				<ref>setopacity</ref>
 			</seealso>
 		</command>
 
@@ -11025,7 +11035,14 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<description>
 				A <ref>slicehandle</ref> for a slice type which has blending settings (opacity and blend mode),
 				which currently are Sprite and Map (map layer) slices.
-				More slice types will become blendable in a future version.
+				More slice types will become blendable in future versions.
+				<note>
+					Rectangle slices aren't blendable, however the background of a
+					rect <b>can</b> be made transparent using <ref>setrectopacity</ref>
+					instead of <ref>setopacity</ref>.
+					This doesn't make the box border transparent, and <ref>getopacity</ref>
+					will still return 100.
+				</note>
 			</description>
 			<seealso>
 				<ref>setopacity</ref>
