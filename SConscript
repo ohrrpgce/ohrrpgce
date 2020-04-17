@@ -1171,9 +1171,9 @@ else:
     gamename = 'ohrrpgce-game'
     editname = 'ohrrpgce-custom'
 
-def env_exe(name, env=env, **kwargs):
-    ret = env.BASEXE (rootdir + name, **kwargs)
-    Alias (name, ret)
+def env_exe(name, builder=env.BASEXE, **kwargs):
+    ret = builder(rootdir + name, **kwargs)
+    Alias(name, ret)
     return ret
 
 GAME = gameenv.BASEXE   (rootdir + gamename, source = gamesrc)
@@ -1185,7 +1185,7 @@ env_exe ('miditest')
 env_exe ('unlump', source = ['unlump.bas'] + base_objects)
 env_exe ('relump', source = ['relump.bas'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
-env_exe ('imageconv', env = allmodexenv, source = ['imageconv.bas'] + allmodex_objects)
+env_exe ('imageconv', builder = allmodexenv.BASEXE, source = ['imageconv.bas'] + allmodex_objects)
 
 ####################  Compiling Euphoria (HSpeak)
 
@@ -1218,14 +1218,14 @@ setup_eu_vars()
 
 # HSpeak is built by translating to C, generating a Makefile, and running make.
 euexe = Builder(action = [Action(check_have_euc, None),
-                          '$EUC -con -gcc $SOURCES $EUFLAGS -verbose -maxsize 5000 -makefile -build-dir $EUBUILDDIR',
+                          '"$EUC" -con -gcc $SOURCES $EUFLAGS -verbose -maxsize 5000 -makefile -build-dir $EUBUILDDIR',
                           '$MAKE -j%d -C $EUBUILDDIR -f hspeak.mak' % (GetOption('num_jobs'),)],
                 suffix = exe_suffix, src_suffix = '.exw')
 env.Append(BUILDERS = {'EUEXE': euexe})
 
 ####################
 
-HSPEAK = env.EUEXE(rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'))
+HSPEAK = env_exe('hspeak', builder = env.EUEXE, source = ['hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'))
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
 x2rsrc = ['xml2reload.bas'] + reload_objects
 if win32:
@@ -1239,8 +1239,7 @@ VECTORTEST = env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
 # Compile util.bas as a main module to utiltest.o to prevent its linkage in other binaries
 UTILTEST = env_exe ('utiltest', source = env.BASMAINO('utiltest.o', 'util.bas') + base_objects_without_util)
 FILETEST = env_exe ('filetest', source = ['filetest.bas'] + base_objects)
-Depends(FILETEST,          env_exe ('filetest_helper', source = ['filetest_helper.bas'] + base_objects))
-#env.BASEXE (rootdir + name, **kwargs)
+Depends(FILETEST, env_exe ('filetest_helper', source = ['filetest_helper.bas'] + base_objects))
 env_exe ('slice2bas', source = ['slice2bas.bas'] + reload_objects)
 
 Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
