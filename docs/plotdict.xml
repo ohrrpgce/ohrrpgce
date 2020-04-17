@@ -9,11 +9,13 @@
 	<!ATTLIST section title CDATA #REQUIRED constants (yes|no) #IMPLIED topics (yes|no) #IMPLIED>
 	<!ELEMENT reference EMPTY>
 	<!ATTLIST reference ref IDREF #REQUIRED>
-	<!ELEMENT command ((canon,shortname,added?,deprecated?,description,example*,seealso?) |
+	<!ELEMENT command ((canon+,shortname,altcommand*,added?,deprecated?,description,example*,seealso?) |
 					   (alias,shortname,added?,deprecated?))>
-	<!ATTLIST command id ID #REQUIRED
-			          created CDATA #IMPLIED>
+	<!ATTLIST command id ID #REQUIRED>
+	<!ELEMENT altcommand (canon*,shortname)>
+	<!ATTLIST altcommand id ID #REQUIRED>
 	<!ELEMENT canon      (#PCDATA)>
+	<!ELEMENT altcanon   (#PCDATA)>
 	<!ELEMENT shortname   (#PCDATA)>
 	<!ELEMENT added     (#PCDATA)>
 	<!ELEMENT deprecated     (#PCDATA)>
@@ -61,11 +63,20 @@ crosslinking command entries to generating a file for HssEd to use.
 
 Inside the <command> element are subelements, in this order:
 Case 1: Full command definition
-  <canon>       - This is the "canonical" form of the command: the fully spaced
-                  command with parameter prototypes. Example: move hero to x (who, x)
+  <canon>*      - This is the "canonical" form of the command: the fully spaced
+                  command with parameter prototypes. Can appear multiple times to
+		  show alternative arg lists; only the first is shown in command
+		  indexes. (Use <altcommand> instead for aliases). Example:
+		  <canon>import globals (slot, first, last)</canon>
+                  <canon>import globals (slot, id)</canon>
   <shortname>   - This is the short version of the command, used for crosslinking,
                   indexes, etc. It is the <canon> element, minus the parameters.
-                  Example: move hero to x
+                  Example: import globals
+  <altcommand>* - This defines an alias to the command which is documented
+                  together with it, but which appears separately in command
+		  indices (if it contains a <canon>) and can be linked to
+		  separately. Must have an id="" attribute and <shortname>
+		  subelement, and usually has one or more <canon>s.
   <added>       - Version this was added in. Not used!
   <deprecated>  - Version this was deprecated in. Not used!
   <description> - This is a paragraph (or more) of text describing what the
@@ -73,17 +84,21 @@ Case 1: Full command definition
                   in, and <p></p> when referring to a parameter (to avoid user
                   confusion). No HTML is allowed (at this time).
                   You can also embed <example> blocks inside <description> blocks
-                  instead of having them trail afterwards.
-Example: Well, it
+                  instead of having them trail afterwards. Example: Well, it
                   would be pretty long...
-  <example>*    - Finally, most commands should have some sort of example on how to
-                  use the command. You can put this inside <description> instead.
+  <example>*    - Finally, commands may  have some sort of example usage of the
+                  the command. You can put this inside <description> instead;
+		  that way you can put more text after/between the example(s).
                   It will be displayed in a mono-space font suitable for code.
                   But, be sure to format it properly:
                   Example:
                   <example># first example line has no line-break
 # the second (and more) lines should have no indentation
 # and so forth</example>
+
+As an alternative to <altcommand> you can also define aliases which have
+separate entries. This is probably mainly useful for obsolete aliases which
+you want to hide in a different section:
 
 Case 2: Alias command definition
   <alias>       - If a command is an alias to another command (or is so closely
@@ -92,7 +107,7 @@ Case 2: Alias command definition
   <shortname>   - Aliases also need a short name, since they are technically
                   different from their alias. Example: end
 
-Additionally, if you want a command to appear in multiple sections, 
+Additionally, if you want a command to appear in multiple sections,
 define it once and place references to it elsewhere.
   <reference>   - Has a single attribute, 'ref', and no contents.
 
@@ -142,8 +157,8 @@ Which reminds me: Indentation. For each "level" you go down in the hierarchy,
 you indent once. Many code specific editors will maintain this indentation level
 for until you explicitly change it, so it isn't difficult. Notepad users will
 have to do it manually, but you MUST do it. Remember: 1 indent = 1 tab.
-(However, subsections are not indented, in order to keep all commands at the same
-level.)
+(However, subsections are not indented, in order to keep all commands at the
+same level.)
 
 "Mono means 'one'. Rail means 'rail'. And that concludes our training."
 	~ Monorail guy, Simpsons
@@ -4456,11 +4471,11 @@ end</example>
 		<command id="hidemousecursor">
 			<canon>hide mouse cursor</canon>
 			<shortname>hidemousecursor</shortname>
+			<altcommand id="showmousecursor">
+				<canon>show mouse cursor</canon>
+				<shortname>show mouse cursor</shortname>
+			</altcommand>
 			<description>Causes the normal OS mouse cursor to be hidden. This command is seldom needed, because the cursor is hidden by default when you run <ref>initmouse</ref>.</description>
-		</command>
-		<command id="showmousecursor">
-			<alias>unhidemousecursor</alias>
-			<shortname>show mouse cursor</shortname>
 		</command>
 
 		<section title="Helpful Related Commands">
@@ -4633,13 +4648,12 @@ show string(0)</example>
 		<command id="stringequal">
 			<canon>string equal (ID1, ID2)</canon>
 			<shortname>string equal</shortname>
+			<altcommand id="stringcompare">
+				<canon>string compare</canon>
+				<shortname>string compare</shortname>
+			</altcommand>
 			<description>Returns true if the two strings #<p>ID1</p> and #<p>ID2</p> are identical, case sensitive.</description>
 		</command>
-		<command id="stringcompare">
-			<alias>stringequal</alias>
-			<shortname>string compare</shortname>
-		</command>
-
 		<command id="searchstring">
 			<canon>search string (ID1, ID2, start)</canon>
 			<shortname>search string</shortname>
@@ -7333,13 +7347,13 @@ end
 				<ref>moveslicebelow</ref>
 			</seealso>
 		</command>
-		<command id="sliceparent">
-			<alias>parentslice</alias>
-			<shortname>slice parent</shortname>
-		</command>
 		<command id="parentslice">
 			<canon>parent slice (handle)</canon>
 			<shortname>parent slice</shortname>
+			<altcommand id="sliceparent">
+				<canon>slice parent</canon>
+				<shortname>slice parent</shortname>
+			</altcommand>
 			<description>Returns a slice handle for the parent of slice <p>handle</p>, or 0 if <p>handle</p> is the root slice.</description>
 			<seealso>
 				<ref>setparent</ref>
@@ -9478,11 +9492,9 @@ write pass block(15,3,none)
 		
 		<command id="checkwallcollisionxy">
 			<canon>check wall collision x (x, y, width, height, relative x, relative y, friction%)</canon>
+			<canon>check wall collision y (x, y, width, height, relative x, relative y, friction%)</canon>
 			<shortname>check wall collision x/y</shortname>
 			<description>
-				and<lb/>
-				<p>check wall collision y (x, y, width, height, relative x, relative y, friction%)</p>
-				<lb/>
 				Check how far an object (with a rectangular "hitbox") could move in a straight line on the map
 				before hitting a wall (and possibly sliding along that wall).
 				Provide the starting <p>x</p> and <p>y</p> map position in pixels of the top left
@@ -10472,10 +10484,10 @@ end</example>
 		<reference ref="setloadscript" />
 		<command id="importglobals">
 			<canon>import globals (slot, first, last)</canon>
+			<canon>import globals (slot, id)</canon>
+			<canon>import globals (slot)</canon>
 			<shortname>import globals</shortname>
 			<description>
-				and<lb/><p>import globals (slot, id)</p>
-				<lb/>
 				Loads a range of globals from a saved game, overwriting the current globals in that range.
 				<p>slot</p> is the save slot number, from 1 to 1000.
 				Note that only slots 1-4 appear by default on the save/load menus.
@@ -10484,12 +10496,11 @@ end</example>
 				If you leave out both of <p>first</p> and <p>last</p> all global variables will be imported.
 				<lb/>
 				To read a single global from a save slot without modifying any of your globals,
-				use the form <tt>var := import globals (slot, id)</tt>
-				<lb/>
+				use the form <tt>var := import globals (slot, id)</tt>.
 				This is NOT the same thing as <tt>import globals (slot, id, id)</tt>,
 				which does modify the global variable.
 				<lb/>
-				import globals and <ref>exportglobals</ref> can be used to save and
+				<tt>import globals</tt> and <ref>exportglobals</ref> can be used to save and
 				retrieve info about a saved game without loading it,
 				and also to store variables that any game the player starts can use,
 				such as high scores and other "global" data, like in the following example:

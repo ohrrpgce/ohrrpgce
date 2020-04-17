@@ -49,12 +49,19 @@
 						font-family: 'Lucida Console',monospace;
 						font-size: 0.75em;
 					}
-					/* Remove gap between command name and definition */
+					/* Reduce gaps between (each) command name(s) and definition */
 					.command h4 {
-						margin-bottom: 3px;
+						margin-bottom: 0px;
+						margin-top: 0px;
 					}
 					.command p {
 						margin-top: 3px;
+					}
+					.notetext {
+						font-style: italic;
+						font-size: 11px;
+						/* Shrink gap 'Alias' and canon */
+						margin-bottom: -5px;
 					}
 
 					pre {
@@ -240,7 +247,7 @@ function toggleContent(target) {
 				<hr/>
 				<h2>Alphabetical Index</h2>
 				<p>
-				<xsl:apply-templates select=".//command" mode="alphalist">
+				<xsl:apply-templates select=".//command|.//altcommand" mode="alphalist">
 				<xsl:sort select="@id" data-type="text" />
 				</xsl:apply-templates>
 				</p>
@@ -275,7 +282,8 @@ function toggleContent(target) {
 		<br/><xsl:text>
 		</xsl:text>
 		<ul class="content-shown">
-			<xsl:apply-templates select="command" mode="alphalist" />
+			<!-- Include commands and nested commands (aliases) -->
+			<xsl:apply-templates select="command|command/altcommand" mode="alphalist" />
 		</ul>
 		<!-- Recurse on subsections -->
 		<ul><xsl:apply-templates select="section" mode="sections-and-commands" /></ul>
@@ -283,7 +291,7 @@ function toggleContent(target) {
 	</xsl:template>
 
 	<!-- A link to a command -->
-	<xsl:template match="command" mode="alphalist">
+	<xsl:template match="command|altcommand" mode="alphalist">
 		<xsl:if test='boolean(canon)'>
 			<a href="#about-{@id}"><xsl:value-of select="canon" /></a><br/>
 		</xsl:if><xsl:if test='boolean(alias)'>
@@ -320,7 +328,7 @@ function toggleContent(target) {
 				</button>
 				<ul>
 					<div class="content-shown">
-						<xsl:apply-templates select="command" mode="alphalist" />
+						<xsl:apply-templates select="command|command/altcommand" mode="alphalist" />
 					</div>
 					<xsl:apply-templates select="section" mode="sections-and-commands" />
 				</ul>
@@ -356,9 +364,16 @@ function toggleContent(target) {
 	</xsl:template>
 
 	<xsl:template match="command" mode="full"><xsl:text>
-		</xsl:text><div class="command"><a name="about-{@id}" ></a><xsl:text>
-		</xsl:text><xsl:if test='boolean(canon)'>
-			<h4><xsl:value-of select="canon" /></h4><p><xsl:text>
+		</xsl:text><div class="command">
+		<xsl:apply-templates select=".|altcommand" mode="anchor" />
+		<xsl:if test='boolean(canon)'>
+			<!-- There are two ways to give alternative names: multiple <canon>s (for alternative args)... -->
+			<xsl:for-each select="canon"><xsl:text>
+				</xsl:text><h4><xsl:value-of select="." /></h4>
+			</xsl:for-each>
+			<!-- ...and nested <altcommands>, for aliases which appear in the lists of commands -->
+			<xsl:apply-templates select="altcommand" mode="canon" />
+			<p><xsl:text>
 			</xsl:text><xsl:apply-templates select="description" /><xsl:text>
 			<!-- <example> can also appear nested inside <description> rather than following it -->
 			</xsl:text><xsl:apply-templates select="example" /><xsl:text>
@@ -370,6 +385,21 @@ function toggleContent(target) {
 			</xsl:text>
 		</xsl:if>
 		</div>
+	</xsl:template>
+
+	<xsl:template match="command|altcommand" mode="anchor"><xsl:text>
+		</xsl:text><a name="about-{@id}" ></a>
+	</xsl:template>
+
+	<!-- An <altcommand> nested inside a <command> -->
+	<xsl:template match="altcommand" mode="canon">
+		<!-- <canon> is optional; without it the shortname still appears in alphalists -->
+		<xsl:if test='boolean(canon)'><xsl:text>
+			</xsl:text><div class="notetext">Alias:</div>
+		</xsl:if>
+		<xsl:for-each select="canon"><xsl:text>
+			</xsl:text><h4><xsl:value-of select="." /></h4>
+		</xsl:for-each>
 	</xsl:template>
 
 	<xsl:template match="description"><xsl:apply-templates /><!-- <br/> --></xsl:template>
