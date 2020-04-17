@@ -51,7 +51,7 @@ ENUM RectTransTypes
  transOpaque = 0
  transFuzzy = 1
  transHollow = 2
- transTrans = 3
+ transBlend = 3
  transLAST = 3
 END ENUM
 

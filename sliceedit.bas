@@ -216,7 +216,7 @@ REDIM SHARED TransCaptions(0 TO 3) as string
 TransCaptions(0) = "Solid"       'transOpaque
 TransCaptions(1) = "Fuzzy"       'transFuzzy
 TransCaptions(2) = "Hollow"      'transHollow
-TransCaptions(3) = "Transparent" 'transTrans
+TransCaptions(3) = "Blend (transparent)" 'transBlend
 REDIM SHARED AutoSortCaptions(0 TO 5) as string
 AutoSortCaptions(0) = "None"
 AutoSortCaptions(1) = "Custom"
@@ -1653,7 +1653,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      sliceed_rule rules(), "rect_fuzzzoom", erIntgrabber, @(dat->fuzz_zoom), 1, 10000  'No need for upper limit
      a_append menu(), "  Stationary pattern: " & yesorno(dat->fuzz_stationary)
      sliceed_rule_tog rules(), "rect_fuzz_stationary", @(dat->fuzz_stationary)
-    ELSEIF dat->translucent = transTrans THEN
+    ELSEIF dat->translucent = transBlend THEN
      a_append menu(), "  Opacity: " & dat->fuzzfactor & "%"
      sliceed_rule rules(), "rect_transfact", erIntgrabber, @(dat->fuzzfactor), 0, 99
     END IF

@@ -372,7 +372,7 @@ Type RectangleSliceData
  fgcol as integer
  border as RectBorderTypes = borderLine   'borderNone/borderLine/0-14 for box style's border
  translucent as RectTransTypes
- fuzzfactor as integer = 50
+ fuzzfactor as integer = 50     'For transFuzzy and transBlend (as opacity)
  fuzz_stationary as bool
  fuzz_zoom as integer = 1
  bgcol as integer

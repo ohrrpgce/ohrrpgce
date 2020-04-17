@@ -3400,7 +3400,7 @@ SUB script_functions(byval cmdid as integer)
   IF valid_plotrect(retvals(0)) THEN
    DIM dat as RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
-   IF dat->translucent = transFuzzy ORELSE dat->translucent = transTrans THEN
+   IF dat->translucent = transFuzzy ORELSE dat->translucent = transBlend THEN
     scriptret = dat->fuzzfactor
    ELSEIF dat->translucent = transHollow THEN
     scriptret = 0

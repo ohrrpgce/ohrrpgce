@@ -904,7 +904,7 @@ SUB draw_box_back (fr as Frame ptr, pos as XYPair, size as XYPair, col as intege
   fuzzyrect fr, pos.x, pos.y, size.w, size.h, col, fuzzfactor, fuzz_stationary, fuzz_zoom
  ELSEIF trans = transOpaque THEN
   rectangle fr, pos.x, pos.y, size.w, size.h, col
- ELSEIF trans = transTrans THEN
+ ELSEIF trans = transBlend THEN
   trans_rectangle fr, XY_WH(pos, size), master(col), fuzzfactor / 100.
  'ELSEIF trans = transHollow THEN
  END IF
