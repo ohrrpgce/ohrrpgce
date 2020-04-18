@@ -1011,7 +1011,6 @@ for lib in base_libraries + common_libraries:
 
 # The following are linked into all executables, except miditest.
 base_modules +=   ['util.bas',
-                   'blit.c',
                    'base64.c',
                    'unicode.c',
                    'array.c',
@@ -1089,6 +1088,7 @@ game_modules = ['game',
 
 # The following are built only once and linked into Game and Custom
 common_modules += ['rotozoom.c',
+                   'blit.c',
                    'surface.cpp',
                    'lib/gif.cpp',
                    'lib/jo_jpeg.cpp',
