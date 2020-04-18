@@ -638,6 +638,11 @@ SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
  IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: rcedit failed when trying to update the icon: " & spawn_ret : EXIT SUB
 END SUB
 
+SUB add_file(byref files as string vector, fname as string)
+ 'Could use a StrHashTable instead of a vector
+ IF v_find(files, fname) = -1 THEN v_append(files, fname)
+END SUB
+
 SUB find_required_dlls(gameplayer as string, byref files as string vector)
 
 #IFDEF __FB_WIN32__
@@ -646,26 +651,36 @@ SUB find_required_dlls(gameplayer as string, byref files as string vector)
   '--the backend might be non-default
   DIM gfxbackend_to_use as string = gfxbackend
   IF gen(genResolutionX) <> 320 OR gen(genResolutionY) <> 200 THEN
-   'Only one that will work
-   gfxbackend_to_use = "sdl"
+   'Note: This code is duplicated in apply_game_window_settings
+   'This really seems too complicated...
+   IF gfx_supports_variable_resolution() = NO THEN
+    DIM varresbackends(...) as string = {"sdl2", "sdl"}
+    FOR idx as integer = 0 TO UBOUND(varresbackends)
+     IF have_gfx_backend(varresbackends(idx)) THEN
+      gfxbackend_to_use = varresbackends(idx)
+      EXIT FOR
+     END IF
+    NEXT
+   END IF
   END IF
 
   SELECT CASE gfxbackend_to_use
-   CASE "directx":
-    IF v_find(files, "gfx_directx.dll") = -1 THEN v_append(files, "gfx_directx.dll")
-   CASE "sdl":
-    IF v_find(files, "SDL.dll") = -1 THEN v_append(files, "SDL.dll")
-   CASE "alleg":
-    IF v_find(files, "alleg40.dll") = -1 THEN v_append(files, "alleg40.dll")
+   CASE "directx":  add_file files, "gfx_directx.dll"
+   CASE "sdl":      add_file files, "SDL.dll"
+   CASE "sdl2":     add_file files, "SDL2.dll"
+   CASE "alleg":    add_file files, "alleg40.dll"
    CASE "fb":
     'gfx_fb requires no dll files
   END SELECT
   SELECT CASE musicbackend
    CASE "sdl":
-    IF v_find(files, "SDL.dll") = -1 THEN v_append(files, "SDL.dll")
-    IF v_find(files, "SDL_mixer.dll") = -1 THEN v_append(files, "SDL_mixer.dll")
+    add_file files, "SDL.dll"
+    add_file files, "SDL_mixer.dll"
+   CASE "sdl2":
+    add_file files, "SDL2.dll"
+    add_file files, "SDL2_mixer.dll"
    CASE "native", "native2":
-    IF v_find(files, "audiere.dll") = -1 THEN v_append(files, "audiere.dll")
+    add_file files, "audiere.dll"
    CASE "silence":
     'music_silence requires no dll files
   END SELECT
@@ -676,10 +691,10 @@ SUB find_required_dlls(gameplayer as string, byref files as string vector)
  '--for all other cases and all other platforms, we use
  '--the dll files for the default backend(s) on windows
  IF gen(genResolutionX) = 320 AND gen(genResolutionY) = 200 THEN
-  v_append files, "gfx_directx.dll"
+  add_file files, "gfx_directx.dll"
  END IF
- v_append files, "SDL.dll"
- v_append files, "SDL_mixer.dll"
+ add_file files, "SDL.dll"
+ add_file files, "SDL_mixer.dll"
 END SUB
 
 FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer

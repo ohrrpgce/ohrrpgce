@@ -1124,6 +1124,7 @@ SUB apply_game_window_settings (reloading as bool = NO)
  IF XY(gen(genResolutionX), gen(genResolutionY)) <> get_resolution() THEN
   'get_resolution() will be 320x200 if the backend doesn't support anything else
   IF gfx_supports_variable_resolution() = NO THEN
+   'Note: This code is duplicated in find_required_dlls
    DIM varresbackends(...) as string = {"sdl2", "sdl"}
    FOR idx as integer = 0 TO UBOUND(varresbackends)
     DIM name as string = varresbackends(idx)
