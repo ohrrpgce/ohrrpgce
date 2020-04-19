@@ -74,6 +74,8 @@ April ? 2020 [Gorgonzola]
     * If "Do not hide leader" vehicle bit was on, "Do not hide party" was
       ignored [Ralph]
     * Windows gfx_sdl2 builds failed to add SDL2.dll to packaged games [Ralph]
+    * Innosetup (to create installer .exe) download no longer worked, at least
+      on some Windows OSes [Ralph]
 
   *** Stuff Only Developers Will Notice
     * All .py build scripts and utilities will run under Python 3 as well as

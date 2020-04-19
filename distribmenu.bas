@@ -808,8 +808,8 @@ SELECT CASE which_arch
  CASE "x86_64":
   arch_suffix = "-x86_64"
   maybe_use_installed = running_64bit()
- CASE ELSE
-  debug "get_linux_gameplayer: Requested unsupported arch """ & which_arch & """. The only supported vaues are x86 and x86_64"
+ CASE ELSE  'Never happens
+  dist_info "get_linux_gameplayer: Requested unsupported arch """ & which_arch & """. The only supported values are x86 and x86_64"
   RETURN ""
 END SELECT
 
@@ -1044,7 +1044,12 @@ FUNCTION find_or_download_innosetup () as string
  DIM iscc as string = find_innosetup()
  IF iscc = "" THEN
   IF dist_yesno("Inno Setup 5 is required to create windows installation packages. Would you like to download it from jrsoftware.org now?") THEN
-   download_file "http://www.jrsoftware.org/download.php/is.exe", settings_dir, "is.exe"
+   'Download 5.4.3 (from 2011), the last version to run on non-NT Windows.
+   'In future we could switch to 5.6.x (2019), the last version to support Win 2000 and XP.
+   'As a separate problem, the following link redirects to https, and wget fails to create a SSL
+   'connection on Win XP and older.
+   'download_file "http://www.jrsoftware.org/download.php/is.exe", settings_dir, "is.exe"  'Latest version
+   download_file "http://files.jrsoftware.org/is/5/isetup-5.4.3.exe", settings_dir, "is.exe"
    DIM spawn_ret as string
    spawn_ret = win_or_wine_spawn_and_wait(settings_dir & SLASH & "is.exe")
    safekill settings_dir & SLASH & "is.exe"
@@ -1052,7 +1057,7 @@ FUNCTION find_or_download_innosetup () as string
    '--re-search for iscc now that it may have been installed
    iscc = find_innosetup()
   END IF
-  IF iscc = "" THEN dist_info "Canceling export. Inno Setup 5 is not available." : RETURN ""
+  IF iscc = "" THEN dist_info "Cancelling export. Inno Setup 5 is not available." : RETURN ""
  END IF
  RETURN iscc
 END FUNCTION
