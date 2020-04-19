@@ -3512,7 +3512,15 @@ FUNCTION download_file (url as string, destdir as string, forcefilename as strin
  '
  'wget is the first choice because its -N option can prevent unneeded redundant
  'downloads when the file has not changed. curl is an important fallback because
- 'it is installed by default on Mac OS X
+ 'it is installed by default on Mac OS X (and recent Windows too).
+ '
+ 'NOTE: On WinXP at least, wget no longer is able to establish a SSL connection
+ 'to servers. We ship an old support/wget.exe, but a new build doesn't work either.
+ 'However a new build takes the --no-check-certificate option, while our wget.exe
+ 'doesn't seem to have any corresponding option. However, a recent wget build from
+ 'https://eternallybored.org/misc/wget/ is 1.7MB zipped, so not switching to it.
+ '
+ 'On Windows XP SP3 or later, could also use powershell to download files.
  '
  'If you specify forcefilename, the -N option will do nothing,
  ' and the file will be re-downloaded even if it has not changed
@@ -3549,12 +3557,13 @@ FUNCTION download_file (url as string, destdir as string, forcefilename as strin
   IF destfile = "" THEN
    destfile = trimpath(url)
   END IF
-  
-  args = "-o " & escape_filename(destdir & SLASH & destfile) & " " & escape_filename(url)
-  
+
+  '-L (location) means follow redirects
+  args = "-L -o " & escape_filename(destdir & SLASH & destfile) & " " & escape_filename(url)
+
   '--Do the download
   spawn_ret = spawn_and_wait(curl, args)
- 
+
   '--Check to see if the download worked
   IF LEN(spawn_ret) = 0 THEN RETURN YES
   visible_debug "ERROR: curl download failed: " & spawn_ret
