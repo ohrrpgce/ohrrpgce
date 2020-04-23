@@ -1347,30 +1347,53 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  DIM gzip as string = find_helper_app("gzip", YES)
  IF gzip = "" THEN dist_info "ERROR: gzip is not available": RETURN NO
 
+ DIM as string tarversion, errstr
+ IF run_and_get_output(tar & " --version", tarversion, errstr) THEN
+  dist_info !"ERROR: couldn't run tar\n" & errstr
+  RETURN NO
+ END IF
+
+ DIM gnutar as bool = INSTR(tarversion, "GNU tar")
+ 'bsdtar (frontend to libarchive) is a modern tar implementation, shipped on
+ 'FreeBSD, NetBSD, OSX, Win10 19xx+. Its arguments are quite different from gnutar.
+ 'DIM bsdtar as bool = INSTR(tarversion, "libarchive")
+ 'There are also other tars, like the one used by OpenBSD, and busybox
+
  DIM uncompressed as string = trimextension(tarball)
 
  DIM more_args as string = ""
- #IFDEF __FB_UNIX__
- #IFNDEF __FB_DARWIN__
- 'These arguments are broken on Windows tar.exe for some stupid reason
- more_args = " --owner=root --group=root"
- #ENDIF
- #ENDIF
+
+ IF gnutar THEN
+  #IFNDEF __FB_WIN32__
+   'These arguments are broken on Windows tar.exe for some stupid reason
+   '("root: invalid owner". Using uid/gid 0 instead doesn't work either.)
+   'Instead the current username gets put in the .tar. Presumably it doesn't
+   'matter, since the root user would be installing a .deb anyway.
+   more_args = " --owner=root --group=root"
+  #ENDIF
+ ELSE 'ELSEIF bsdtar THEN
+  more_args = " --uname=root --gname=root"
+ END IF
+
  #IFDEF __FB_WIN32__
- 'This is a hack to replace tar.exe's horrendous default permissions, and to (clumsily) mark the executables with the executable bit
-  more_args = " --mode=755"
-  'This is a workaround for the dumbest misfeature: some versions of tar.exe
-  '(the one in msys, but not the one we distribute) will treat the name of the tarball
-  'as being a remote filename if it contains a ':'... even on Windows!!!!11asjdajd
-  more_args &= " --force-local"
+  IF gnutar THEN
+   'This is a hack to replace tar.exe's horrendous default permissions, and to (clumsily) mark the executables with the executable bit
+   '(Both bsdtar and gnutar use modes 777 for .exe files and 666 for all others.
+   'Unfortunately bsdtar doesn't have a way to override the mode.
+    more_args &= " --mode=755"
+
+   'This is a workaround for the dumbest misfeature: some versions of tar.exe
+   '(the one in msys, but not the one we distribute) will treat the name of the tarball
+   'as being a remote filename if it contains a ':'... even on Windows!!!!11asjdajd
+   more_args &= " --force-local"
+  END IF
  #ENDIF
  
  DIM spawn_ret as string
  DIM args as string
 
  args = " -c " & more_args & " -f " & escape_filename(uncompressed) & " " & files
- 'debug tar & " " & args
- 
+
  DIM olddir as string = CURDIR
  CHDIR start_in_dir
  spawn_ret = spawn_and_wait(tar, args)
