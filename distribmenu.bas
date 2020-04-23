@@ -800,44 +800,33 @@ FUNCTION get_linux_gameplayer(which_arch as string) as string
  're-downloading.
 
 DIM arch_suffix as string
-DIM maybe_use_installed as bool = NO
 SELECT CASE which_arch
  CASE "x86":
   arch_suffix = ""
-  maybe_use_installed = NOT running_64bit()
  CASE "x86_64":
   arch_suffix = "-x86_64"
-  maybe_use_installed = running_64bit()
- CASE ELSE  'Never happens
-  dist_info "get_linux_gameplayer: Requested unsupported arch """ & which_arch & """. The only supported values are x86 and x86_64"
+ CASE ELSE  'Should never happen
+  dist_info "get_linux_gameplayer: Requested unsupported arch """ & which_arch & """. The only supported vaues are x86 and x86_64"
   RETURN ""
 END SELECT
 
 #IFDEF __GNU_LINUX__
 
  '--If this is Linux, we might already have the correct version of ohrrpgce-game
- IF maybe_use_installed THEN
-  DIM installed_player as string = exepath & SLASH & "ohrrpgce-game"
-  debuginfo "Checking for " & installed_player
-  IF isfile(installed_player) THEN
-   DIM file_info as string
-   DIM err_string as string
-   DIM unstripped as bool = NO
-   IF run_and_get_output("file " & installed_player, file_info, err_string) = 0 THEN
-    IF ends_with(RTRIM(file_info, ANY !" \t\r\n"), ", not stripped") THEN
-     debuginfo installed_player & " is an unstripped binary, don't use it for distribute"
-     unstripped = YES
-    END IF
-   ELSE
-    debug "Unable to execute: file " & installed_player
-    debug err_string
-   END IF
-   IF NOT unstripped THEN
+ DIM installed_player as string = exepath & SLASH & "ohrrpgce-game"
+ debuginfo "Checking for " & installed_player
+ IF isfile(installed_player) THEN
+  DIM playerversion as string
+  IF run_and_get_output(installed_player & " --version", playerversion) = 0 THEN
+   'If it's a portable build it's probably a release build too
+   IF INSTR(playerversion, which_arch & " ") ANDALSO INSTR(playerversion, "portable") THEN
     debuginfo "Using installed binary " & installed_player
     RETURN installed_player
+   ELSE
+    debuginfo installed_player & " isn't right arch or not a portable build, don't use it for distribute"
    END IF
   ELSE
-   dist_info "ERROR: ohrrpgce-game wasn't found in the same directory as ohrrpgce-custom. (This probably shouldn't happen!)" : RETURN ""
+   debuginfo "Couldn't run " & installed_player
   END IF
  END IF
 
