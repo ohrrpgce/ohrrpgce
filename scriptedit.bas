@@ -608,7 +608,7 @@ FUNCTION compilescripts(fname as string, hsifile as string, quickimport as bool 
  DIM as string outfile, hspeak, errmsg, hspeak_ver, args
  hspeak = find_helper_app("hspeak")
  IF hspeak = "" THEN
-  visible_debug missing_helper_message("hspeak")
+  visible_debug missing_helper_message("hspeak" DOTEXE)
   RETURN ""
  END IF
  args = "-y"

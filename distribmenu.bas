@@ -507,7 +507,7 @@ SUB distribute_game_as_zip ()
 
  DIM zip as string = find_helper_app("zip", YES)
  IF zip = "" THEN
-  dist_info "Can't create zip files: " & missing_helper_message("zip" + DOTEXE)
+  dist_info "Can't create zip files: " & missing_helper_message("zip" DOTEXE)
   RETURN
  END IF
 

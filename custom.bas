@@ -2045,9 +2045,9 @@ SUB CreateProcess_tests()
  state.last = UBOUND(menu)
 
  DIM madplay as string = find_helper_app("madplay")
- ERROR_IF(madplay = "", missing_helper_message("madplay"))
+ ERROR_IF(madplay = "", missing_helper_message("madplay" DOTEXE))
  DIM hspeak as string = find_helper_app("hspeak")
- ERROR_IF(hspeak = "", missing_helper_message("hspeak"))
+ ERROR_IF(hspeak = "", missing_helper_message("hspeak" DOTEXE))
 
  setkeys
  DO
