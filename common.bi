@@ -211,6 +211,7 @@ DECLARE FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_
 DECLARE FUNCTION find_support_dir () as string
 DECLARE FUNCTION find_helper_app (appname as zstring ptr, try_install as bool=NO, download_url as zstring ptr=@"") as string
 DECLARE FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, download_url as string="") as string
+DECLARE FUNCTION install_windows_helper_app (appname as string, download_url as string="") as string
 DECLARE FUNCTION download_file (url as string, dest as string, forcefilename as string="") as bool
 DECLARE FUNCTION missing_helper_message (appname as string) as string
 
