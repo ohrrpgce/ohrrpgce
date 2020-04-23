@@ -3486,7 +3486,7 @@ FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, dow
     RETURN ""
    END IF
    IF appname <> "unzip" THEN
-    DIM unzip as string = find_helper_app("unzip")
+    DIM unzip as string = find_helper_app("unzip", YES)
     IF unzip = "" THEN
      visible_debug "Can't find unzip tool"
      RETURN ""

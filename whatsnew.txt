@@ -76,6 +76,8 @@ April ? 2020 [Gorgonzola]
     * Windows gfx_sdl2 builds failed to add SDL2.dll to packaged games [Ralph]
     * Innosetup (to create installer .exe) download no longer worked, at least
       on some Windows OSes [Ralph]
+    * Fix possible "Can't find unzip tool" error on Windows when trying to
+      distribute a game in a .zip file [Ralph]
 
   *** Stuff Only Developers Will Notice
     * All .py build scripts and utilities will run under Python 3 as well as
