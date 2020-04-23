@@ -3446,6 +3446,7 @@ FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, dow
  'download_url: only used if try_install is true, to override the default
 
  'For windows, first look in the support subdirectory
+ '(This is required so we can replace unusable utilities, eg create_tarball)
  DIM support as string = get_support_dir()
  DIM apppath as string = support & SLASH & appname & ".exe"
  IF appname = "zip" THEN

@@ -78,6 +78,7 @@ April ? 2020 [Gorgonzola]
       on some Windows OSes [Ralph]
     * Fix possible "Can't find unzip tool" error on Windows when trying to
       distribute a game in a .zip file [Ralph]
+    * Couldn't package games for Linux from recent Windows 10 versions [Ralph]
 
   *** Stuff Only Developers Will Notice
     * All .py build scripts and utilities will run under Python 3 as well as

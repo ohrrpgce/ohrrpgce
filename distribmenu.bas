@@ -1359,7 +1359,16 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  'DIM bsdtar as bool = INSTR(tarversion, "libarchive")
  'There are also other tars, like the one used by OpenBSD, and busybox
 
- DIM uncompressed as string = trimextension(tarball)
+ #IFDEF __FB_WIN32__
+  IF gnutar = NO THEN
+   'We need gnutar to be able to set the correct permissions (so I assume),
+   'see below. So download it. (Note that we look in support before PATH)
+   debuginfo tar & " isn't gnutar: " & tarversion
+   tar = install_windows_helper_app("tar")
+   IF tar = "" THEN dist_info "ERROR: gnutar is not available": RETURN NO
+   gnutar = YES
+  END IF
+ #ENDIF
 
  DIM more_args as string = ""
 
@@ -1389,13 +1398,14 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
   END IF
  #ENDIF
  
- DIM spawn_ret as string
+ DIM uncompressed as string = trimextension(tarball)
  DIM args as string
 
  args = " -c " & more_args & " -f " & escape_filename(uncompressed) & " " & files
 
  DIM olddir as string = CURDIR
  CHDIR start_in_dir
+ DIM spawn_ret as string
  spawn_ret = spawn_and_wait(tar, args)
  CHDIR olddir
  
