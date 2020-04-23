@@ -3493,13 +3493,15 @@ FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, dow
     END IF
     ' -q quiet -o overwrite -C case-insenstive -L make lowercase -j junk directories
     DIM arglist as string
-    arglist =  " -qoCLj " & escape_filename(support & SLASH & appname & ".zip") & " -d " & escape_filename(support)
+    DIM zipfile as string = support & SLASH & appname & ".zip"
+    arglist =  " -qoCLj " & escape_filename(zipfile) & " -d " & escape_filename(support)
     DIM spawn_ret as string
     spawn_ret = spawn_and_wait(unzip, arglist)
     IF NOT isfile(support & SLASH & appname & ".exe") THEN
      visible_debug "Unable to unzip " & appname & ".exe from " & appname & ".zip"
      RETURN ""
     END IF
+    safekill zipfile
    END IF
    RETURN support & SLASH & appname & ".exe"
   END IF
