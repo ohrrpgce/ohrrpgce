@@ -508,12 +508,13 @@ elif not win32:
     if not clang and gccversion < 500:
         # gcc 4.9 apparently doesn't have -nopie, so I assume it was added in 5.x
         NO_PIE = None
-    elif clang or gccversion < 540:
+    elif clang or gccversion < 600:
         # -no-pie was added in gcc 6.
-        # But on Ubuntu 16.04 -no-pie exists in gcc 5.4
+        # But on Ubuntu 16.04 -no-pie exists in gcc 5.4.
+        # Some builds of gcc 5.x (but not stock gcc 5.4.0) support -nopie.
         # -no-pie was added to clang in July 2017, which I think is clang 5.0
         # Recent clang accepts both, recent gcc only accepts -no-pie
-        NO_PIE = '-nopie'
+        NO_PIE = None #'-nopie'
     if NO_PIE:
         # -no-pie is a linker flag, I think the compiler flag is actually
         # -fno-pie (or -fno-PIE?) but I assume the former implies the latter
@@ -619,7 +620,7 @@ if linkgcc:
         libpath = get_command_output (fbc, ["-print", "fblibdir"] + FBFLAGS).split('\n')[-1]
         checkfile = os.path.join (libpath, 'fbrt0.o')
         if not os.path.isfile (checkfile):
-            print("Error: This installation of FreeBASIC doesn't support this target-arch combination;\n" + repr(checkfile) + " is missing.")
+            print("Error: This installation of FreeBASIC doesn't support this target-arch combination;\n" + checkfile + " is missing.")
             Exit(1)
     else:
         # Manually determine library location (TODO: delete this if certainly not supporting FB 1.02 any more)

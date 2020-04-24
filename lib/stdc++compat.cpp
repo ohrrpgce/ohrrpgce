@@ -9,6 +9,7 @@
 #include <string>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define MOZ_EXPORT
 
