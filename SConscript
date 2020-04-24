@@ -290,15 +290,18 @@ if 'sdl' in music+gfx and 'sdl2' in music+gfx:
 
 env = Environment (CFLAGS = [],
                    CXXFLAGS = [],
-                   FBC = fbc,
+                   FBC = File(fbc),
                    VAR_PREFIX = '',
                    **envextra)
 
 # Shocked that scons doesn't provide $HOME
 # $DISPLAY is need for both gfx_sdl and gfx_fb (when running tests)
-for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR', 'GCC', 'AS', 'CC', 'CXX':
+for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR':
     if var in os.environ:
         env['ENV'][var] = os.environ[var]
+for var in 'GCC', 'AS', 'CC', 'CXX':
+    if var in os.environ:
+        env['ENV'][var] = File(os.environ[var])
 
 def findtool(envvar, toolname, always_expand = False):
     if os.environ.get (envvar):
@@ -341,7 +344,7 @@ if CC:
 for tool in ('CC', 'GCC', 'CXX', 'MAKE', 'EUC'):
     val = globals()[tool]
     if val:
-        env[tool] = val
+        env[tool] = File(val)
 
 #gcc = env['ENV'].get('GCC', env['ENV'].get('CC', 'gcc'))
 #gcc = CC or WhereIs(target + "-gcc") or WhereIs("gcc")
@@ -1212,13 +1215,15 @@ def setup_eu_vars():
         euc_extra_args += ['-extra-lflags', NO_PIE]
 
     env['EUFLAGS'] = euc_extra_args
-    env['EUBUILDDIR'] = hspeak_builddir
+    env['EUBUILDDIR'] = Dir(hspeak_builddir)  # Ensures spaces are escaped
+    # euc itself creates a .mak file that's broken if the (destination)
+    # path to hspeak.exe contains a space.
 
 setup_eu_vars()
 
 # HSpeak is built by translating to C, generating a Makefile, and running make.
 euexe = Builder(action = [Action(check_have_euc, None),
-                          '"$EUC" -con -gcc $SOURCES $EUFLAGS -verbose -maxsize 5000 -makefile -build-dir $EUBUILDDIR',
+                          '$EUC -con -gcc $SOURCES $EUFLAGS -verbose -maxsize 5000 -makefile -build-dir $EUBUILDDIR',
                           '$MAKE -j%d -C $EUBUILDDIR -f hspeak.mak' % (GetOption('num_jobs'),)],
                 suffix = exe_suffix, src_suffix = '.exw')
 env.Append(BUILDERS = {'EUEXE': euexe})
