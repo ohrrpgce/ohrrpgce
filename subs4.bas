@@ -1209,7 +1209,7 @@ SUB GeneralSettingsMenu.update()
  ERASE min
  ERASE max
 
- add_item 0, ,  "Return to Main Menu"
+ add_item -1, ,  "Return to Main Menu"
 
  header " Game Title & Info"
  add_item 1, ,  "Long name: " + this.longname
@@ -1389,7 +1389,7 @@ SUB general_data_editor ()
 
   IF enter_space_click(state) THEN
    SELECT CASE genmenu.itemtypes(state.pt)
-    CASE 0:  EXIT DO
+    CASE -1:  EXIT DO
     CASE 3
      DIM backdropb as BackdropSpriteBrowser
      gen(genTitle) = backdropb.browse(gen(genTitle))
