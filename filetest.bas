@@ -19,6 +19,7 @@ dim shared num_errors as integer = 0
         ' Only tested on FreeBSD
         #define UNREADABLE_FILE "/etc/master.passwd"
 #elseif defined(__FB_UNIX__)
+	' Mac, Linux
         #define UNREADABLE_FILE "/etc/sudoers"
 #elseif defined(__FB_WIN32__)
 	' Don't have an easy example of an unreadable file
@@ -158,6 +159,7 @@ startTest(fileisreadable)
 
 	' isfile is just an alias for fileisreadable, so should behave the same
 	#ifdef UNREADABLE_FILE
+                'FIXME: Prints "Error 2" (file not found) on BSD and Linux
 		if isfile(UNREADABLE_FILE) then fail
 	#endif
 endTest
@@ -176,6 +178,7 @@ startTest(real_isfile)
 		if fileisreadable("_testreadonly.tmp") = NO then fail
 	#endif
 	#ifdef UNREADABLE_FILE
+                'FIXME: Prints "Error 2" (file not found) on BSD and Linux
 		if fileisreadable(UNREADABLE_FILE) then fail
 	#endif
 endTest
@@ -336,7 +339,7 @@ startTest(lazyclose)
 	if lazyclose(fh) then fail
 
 	'Check double-close detection
-	print "Ignore two errors:"
+	print "Ignore two BUG errors:"
 	if lazyclose(fh) = 0 then fail
 	if close(fh) = 0 then fail
 
@@ -422,17 +425,30 @@ startTest(rename)
         if filelen("_testfile2.tmp") <> 6 then fail
 endTest
 
-#ifdef __FB_WIN32__
-        CONST procwait = 300   'Starting a process can take quite a while on Windows
-#else
-        CONST procwait = 150
-#endif
+sub before_spawn()
+        safekill "_syncfile.tmp"
+end sub
+
+function _wait_spawn() as bool
+        for tick as integer = 1 to 100
+                if real_isfile("_syncfile.tmp") then
+                        killfile "_syncfile.tmp"
+                        return YES
+                end if
+                sleep 10
+        next
+        print "Error: wait_spawn timeout"
+        return NO
+end function
+
+#define wait_spawn  if _wait_spawn() = NO then fail
 
 startTest(renameReplaceOpenFile)
         'Precond: _testfile2.tmp contains "output"
 
+        before_spawn
         open_process("." SLASH "filetest_helper" DOTEXE, "_testfile3.tmp 300 -write -q", NO, YES)  'show_output=YES
-        sleep procwait
+        wait_spawn
 
         #ifdef __FB_WIN32__
                 print "Ignore one error (access denied)"
@@ -449,8 +465,9 @@ endTest
 startTest(renameMoveOpenFile)
         'Precond: _testfile3.tmp contains "output"
 
+        before_spawn
         open_process("." SLASH "filetest_helper" DOTEXE, "_testfile3.tmp 400 -readonly -q", NO, YES)
-        sleep procwait
+        wait_spawn
 
         #ifdef __FB_WIN32__
                 print "Ignore two errors (MoveFile & DeleteFile: cannot access)"
@@ -468,8 +485,9 @@ startTest(renameShareDeleteFile)
         'Precond: _testfile4.tmp contains "output"
 
         'FILE_SHARE_DELETE files can be moved without error on Windows
+        before_spawn
         open_process("." SLASH "filetest_helper" DOTEXE, "_testfile4.tmp 300 -sharedelete -q", NO, YES)
-        sleep procwait
+        wait_spawn
 
         if renamefile("_testfile4.tmp", "_testfile5.tmp") = NO then fail
 
@@ -484,8 +502,9 @@ endTest
 startTest(renameLockedFile)
         'Precond: _testfile5.tmp contains "output"
 
+        before_spawn
         open_process("." SLASH "filetest_helper" DOTEXE, "_testfile5.tmp 500 -lock -q", NO, YES)
-        sleep procwait
+        wait_spawn
 
         #ifdef __FB_WIN32__
                 print "Ignore many errors (MoveFile & copy: cannot access)"
