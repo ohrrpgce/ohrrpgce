@@ -136,8 +136,10 @@ This bitset only affects whether the attack can be used from the Spells menu. It
 
 
 * Delay doesn't block further actions
-This bitset means the attacker will start their next turn immediately without waiting for the attack delay to run out. These non-blocking attacks don't interfere with the attacker's ready-meter. (non-blocking is a automatically inherited by attacks that chain from a non-blocking attack)
+This bitset means the attacker can continue to take turns as normal while attack delays and chained attacks happen.
+In Active-time battles their ready meter will start filling again without waiting for the attack delay to run out.
+In Turn-based battles, this only matters for attacks that have turn delays, it means the attacker will get their next turn as normal.
+In both battle modes non-blocking status is inherited by all attacks that chain from a non-blocking attack.
 
 * Don't chain if attack misses or fails
 This causes the attack's chain to be ignored if the attack doesn't hit instead of continuing.
-

@@ -12,7 +12,8 @@ Hero counter attacks do *not* count.
 * "Ignore chained attack's delay" causes the chained attack to happen immediately, even if it has a delay when used normally.
 
 * "Doesn't block further actions"
-causes the chained attack to be non-blocking, even if it would not normally be. Non-blocking attacks allow the attacker to continue to act while the attack delay counts down.
+causes the chained attack to be non-blocking, even if it would not normally be. Non-blocking attacks allow the attacker to continue to act while attack delays count down.
+Non-blocking status is inherited by all attacks chained from a non-blocking attack.
 
 * "Don't retarget if target is lost"
 Prevents a new target from being chosen if the target dies before the attack animates.
