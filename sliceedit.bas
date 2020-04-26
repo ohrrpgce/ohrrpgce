@@ -659,9 +659,9 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     'Edit this slice alone ("fullscreen")
     slice_editor ses.curslice, ses.collection_group_number, ses.collection_file, YES
     state.need_update = YES
-   END IF
 
-   IF keyval(scDelete) > 1 THEN
+   ELSEIF keyval(scDelete) > 1 THEN
+
     IF ses.privileged = NO ANDALSO slice_editor_forbidden_search(ses.curslice, ses.specialcodes()) THEN
      notification "Can't delete special/protected slices!"
      CONTINUE DO
@@ -728,19 +728,18 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   ' Window size change
   IF UpdateScreenSlice() THEN state.need_update = YES
 
-  DIM topmost as Slice ptr
-  topmost = slice_editor_mouse_over(edslice, ses.slicemenu(), state)
-
   IF state.need_update THEN
    slice_editor_refresh(ses, edslice, cursor_seek)
    state.need_update = NO
    cursor_seek = NULL
-  ELSE
-   ' If there's slice under the mouse, clicking should focus on that, not any menu item there.
-   ' (Right-clicking still works to select a menu item)
-   IF topmost = NULL ORELSE (readmouse.buttons AND mouseLeft) = 0 THEN
-    usemenu state
-   END IF
+  END IF
+
+  DIM topmost as Slice ptr
+  topmost = slice_editor_mouse_over(edslice, ses.slicemenu(), state)
+  ' If there's slice under the mouse, clicking should focus on that, not any menu item there.
+  ' (Right-clicking still works to select a menu item)
+  IF topmost = NULL ORELSE (readmouse.buttons AND mouseLeft) = 0 THEN
+   usemenu state
   END IF
 
   draw_background vpages(dpage), bgChequer
@@ -827,6 +826,7 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
 END SUB
 
 FUNCTION SliceEditState.curslice() as Slice ptr
+ IF slicemenust.pt > UBOUND(slicemenu) THEN RETURN NULL
  RETURN slicemenu(slicemenust.pt).handle
 END FUNCTION
 
@@ -984,6 +984,7 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
   remember_draw_root_pos = ses.draw_root->Pos
   DeleteSlice @ses.draw_root
  END IF
+ ERASE ses.slicemenu  'All the .handle pointers are invalid
  edslice = newcollection
  ses.draw_root = create_draw_root(ses)
  SetSliceParent edslice, ses.draw_root
