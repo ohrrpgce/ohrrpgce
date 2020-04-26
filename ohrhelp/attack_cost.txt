@@ -8,6 +8,8 @@ You can also hold the ALT key and press the left and right arrow keys to change 
 
 The attack cost as shown to the player in the spell lists is previewed at the bottom of the screen. If the text is so long that not all of it can be shown in-game, part of the preview will be greyed out.
 
+Costs are deducted after attack delays immediately after the actual attack: after the Instead attack chain is checked but before the conditions for the normal and Instead chains are checked.
+
 MP Cost: This is the number of magic points the attacker must spend to use the attack. The MP cost gets adjusted according to the `MP~' (spell cost %) stat. MP~ 0 makes no difference. An MP~ of 50 halves the MP cost; 100 makes the MP cost 0, and 200 negates the MP cost!
 Finally, if an attack is in a FF1-style level-MP spell list, it will also cost level-MP depending on the row it appears on. That's completely independent.
 

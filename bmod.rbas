@@ -657,7 +657,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
    END IF
   END WITH
 
-  '--set the flag to prevent re-consuming costs
+  '--set the flag to prevent re-consuming costs on multi-hit or multi-target attacks
   bat.atk.has_consumed_costs = YES
  END IF
 

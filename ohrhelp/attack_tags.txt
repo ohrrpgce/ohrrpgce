@@ -8,6 +8,8 @@ You can also hold the ALT key and press the left and right arrow keys to change 
 
 There are 2 tag settings, each divided into 3 sections.
 
+Tags are set at the moment of the attack hitting or missing, and are set before attack chains are evaluated (except for Instead chains) and before counter-attacks happen.
+
 On: This is the condition that triggers the tag setting.
 
 * Never - This means that the tag
