@@ -39,10 +39,10 @@ declare Sub save_hero_as_old_dt0(filename as string, hero as HeroDef, byval reco
 declare sub create_blank_hero_reld(hero as HeroDef, byval id as integer = -1)
 declare sub general_reld_init_buttonnames(root_node as NodePtr)
 declare sub append_trade_node (byval par as NodePtr, byval itnum as integer, byval itqty as integer)
-declare sub InternalDefaultUIColors (colarray() as integer, uidef() as integer, boxarray() as BoxStyle, boxdef() as integer)
+declare sub InternalDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, uidef() as integer, boxarray() as BoxStyle, boxdef() as integer)
 declare sub SaveUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() as BoxStyle)
-declare sub LoadUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() as BoxStyle)
-declare function FillMissingUIColor(byval index as integer, colarray() as integer) as integer
+declare sub LoadUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() as BoxStyle, masterpal() as RGBcolor)
+declare function FillMissingUIColor(byval index as integer, colarray() as integer, masterpal() as RGBcolor) as integer
 
 '==========================================================================================
 '                                      Helper Functions
@@ -2268,12 +2268,13 @@ END SUB
 '                                        UI Colors
 '==========================================================================================
 
-SUB InternalDefaultUIColors (colarray() as integer, uidef() as integer, boxarray() as BoxStyle, boxdef() as integer)
+LOCAL SUB InternalDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, uidef() as integer, boxarray() as BoxStyle, boxdef() as integer)
+ 'Fill colarray() and boxarray() using masterpal(), uidef(), boxdef()
  'This sub just exists because I didn't want to copy-and-paste to implement
  'OldDefaultUIColors() and DefaultUIColors()
  'First we call GuessDefaultUIColors to initialise any colours above uiColorOldLast, which aren't in uidef()
- GuessDefaultUIColors master(), colarray()
- GuessDefaultBoxStyles master(), boxarray()
+ GuessDefaultUIColors masterpal(), colarray()
+ GuessDefaultBoxStyles masterpal(), boxarray()
  FOR i as integer = 0 TO uiColorOldLast
   colarray(i) = uidef(i)
  NEXT i
@@ -2288,7 +2289,7 @@ SUB InternalDefaultUIColors (colarray() as integer, uidef() as integer, boxarray
  NEXT i
 END SUB
 
-SUB OldDefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
+SUB OldDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarray() as BoxStyle)
  'Default UI for Classic OHR master palette
  'for upgrading old games that lack an uicolors.bin file
  'Boxstyle borders all set to line only.
@@ -2297,10 +2298,10 @@ SUB OldDefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
  DIM boxdef(uiBoxLast * 2 + 1) as integer = _
         {18,28,34,44,50,60,66,76,82,92,98,108,114,124,130,140, _
         146,156,162,172,178,188,194,204,210,220,226,236,242,252}
- InternalDefaultUIColors colarray(), uidef(), boxarray(), boxdef()
+ InternalDefaultUIColors masterpal(), colarray(), uidef(), boxarray(), boxdef()
 END SUB
 
-SUB DefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
+SUB DefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarray() as BoxStyle)
  'Default UI for NeoTA's new Master palette
  'for the filepicker and other menus before a game is loaded.
  'Boxstyle borders all set to line only.
@@ -2309,7 +2310,7 @@ SUB DefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
  DIM boxdef(uiBoxLast * 2 + 1) as integer = _
         {242,40,211,221,83,90,182,173,100,159,115,60,132,156,98,105, _
         195,204,70,66,217,210,87,82,108,232,54,116,48,160}
- InternalDefaultUIColors colarray(), uidef(), boxarray(), boxdef()
+ InternalDefaultUIColors masterpal(), colarray(), uidef(), boxarray(), boxdef()
 END SUB
 
 SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer)
@@ -2402,7 +2403,7 @@ SUB GuessDefaultBoxStyles (masterpal() as RGBcolor, boxarray() as BoxStyle, colo
  NEXT
 END SUB
 
-FUNCTION FillMissingUIColor(byval index as integer, colarray() as integer) as integer
+FUNCTION FillMissingUIColor(byval index as integer, colarray() as integer, masterpal() as RGBcolor) as integer
  'This returns a missing uilook color. Some of these may be hard-coded, and others
  'may rely on the values already present in colarray(). This is used for filling gaps in
  'the uilook array for old games that have uicolor data, but lack new uilook slots
@@ -2446,7 +2447,7 @@ FUNCTION FillMissingUIColor(byval index as integer, colarray() as integer) as in
   CASE ELSE
    'Return defaults for all other colors
    DIM defaults(uiColorLast) as integer
-   GuessDefaultUIColors master(), defaults()
+   GuessDefaultUIColors masterpal(), defaults()
    RETURN defaults(index)
  END SELECT
 END FUNCTION
@@ -2549,7 +2550,7 @@ FUNCTION mouse_hover_tinted_color(text_col as integer = -1) as integer
  RETURN nearcolor(master(), r, g, b, , , text_col)  'Find nearest color not equal to text_col
 END FUNCTION
 
-SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer=-1)
+SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer=-1, masterpal() as RGBcolor)
 
  '--Prefer to load ui colors from general.reld
  
@@ -2560,7 +2561,7 @@ SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
   READNODE uic
    WITHNODE uic."forpalette" as forpal
     IF palnum = GetInteger(forpal) THEN
-     LoadUIColorsNode forpal, colarray(), boxarray()
+     LoadUIColorsNode forpal, colarray(), boxarray(), masterpal()
      EXIT SUB
     END IF
    END WITHNODE
@@ -2573,7 +2574,7 @@ SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
  filename = workingdir & SLASH & "uicolors.bin"
 
  IF palnum < 0 OR palnum > gen(genMaxMasterPal) OR NOT isfile(filename) THEN
-  DefaultUIColors colarray(), boxarray()
+  DefaultUIColors masterpal(), colarray(), boxarray()
   EXIT SUB
  END IF
 
@@ -2595,12 +2596,12 @@ SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
  'If we have fallen back to uicolors.bin then we need to fill the missing
  'values for colors that were added after uicolors.bin was obsoleted
  FOR i as integer = uiColorOldLast + 1 TO uiColorLast
-  colarray(i) = FillMissingUIColor(i, colarray())
+  colarray(i) = FillMissingUIColor(i, colarray(), masterpal())
  NEXT i
  
 END SUB
 
-SUB LoadUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() as BoxStyle)
+SUB LoadUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() as BoxStyle, masterpal() as RGBcolor)
  DIM foundui(uiColorLast) as bool
  READNODE node
   WITHNODE node."uilook" as n
@@ -2628,7 +2629,7 @@ SUB LoadUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() a
  
  FOR i as integer = 0 TO uiColorLast
   IF NOT foundui(i) THEN
-   colarray(i) = FillMissingUIColor(i, colarray())
+   colarray(i) = FillMissingUIColor(i, colarray(), masterpal())
   END IF
  NEXT i
  

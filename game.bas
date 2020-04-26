@@ -278,7 +278,7 @@ presentsong = -1
 gam.current_master_palette = -1
 load_default_master_palette master()
 setpal master()
-DefaultUIColors uilook(), boxlook()
+DefaultUIColors master(), uilook(), boxlook()
 getdefaultfont current_font()
 setfont current_font()
 

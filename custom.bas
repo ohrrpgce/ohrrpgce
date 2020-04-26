@@ -170,7 +170,7 @@ processcommandline cmdline_args(), @gamecustom_setoption, orig_dir & SLASH & "oh
 '======================= Initialise backends/graphics =========================
 
 load_default_master_palette master()
-DefaultUIColors uilook(), boxlook()
+DefaultUIColors master(), uilook(), boxlook()
 getdefaultfont current_font()
 
 setmodex

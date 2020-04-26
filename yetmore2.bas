@@ -1396,7 +1396,7 @@ SUB reload_general_reld()
  FreeDocument gen_reld_doc
  gen_reld_doc = 0
 
- LoadUIColors uilook(), boxlook(), gam.current_master_palette
+ LoadUIColors uilook(), boxlook(), gam.current_master_palette, master()
 
  load_non_elemental_elements gam.non_elemental_elements()
 

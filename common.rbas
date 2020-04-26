@@ -1528,7 +1528,7 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
  REDIM default_palette(255) as RGBcolor
  load_default_master_palette default_palette()
  setpal default_palette()
- DefaultUIColors uilook(), boxlook()
+ DefaultUIColors default_palette(), uilook(), boxlook()
  clearpage vpage
  'suppress_borders to avoid needing to load the box border spriteset
  basic_textbox msg, uilook(uiText), vpage, , , , YES  'suppress_borders=YES
@@ -1706,7 +1706,7 @@ END SUB
 'Load master(), uilook(), boxlook()
 SUB load_master_and_uicol(palnum as integer)
  loadpalette master(), palnum
- LoadUIColors uilook(), boxlook(), palnum
+ LoadUIColors uilook(), boxlook(), palnum, master()
 END SUB
 
 FUNCTION rgb_to_string(col as RGBcolor) as string
@@ -4627,12 +4627,12 @@ IF NOT isfile(workingdir + SLASH + "palettes.bin") THEN
  upgrade_message "Upgrading Master Palette format..."
  IF NOT isfile(game + ".mas") THEN
   debug "Warning: " & game & ".mas does not exist (which should never happen)"
-  load_default_master_palette master()
+  load_default_master_palette master_temp()
  ELSE
-  loadpalette master(), 0  'Loads from .mas
+  loadpalette master_temp(), 0  'Loads from .mas
  END IF
  gen(genMaxMasterPal) = 0
- savepalette master(), 0  'Saves to palettes.bin
+ savepalette master_temp(), 0  'Saves to palettes.bin
 END IF
 
 'Safety-check for negative gen(genMasterPal) because of one known game that somehow had -2
@@ -4698,14 +4698,12 @@ IF uirecords < gen(genMaxMasterPal) + 1 THEN
 
  FOR i as integer = uirecords TO gen(genMaxMasterPal)
   'In old games (before uicolors.bin was added), use the old fixed color indices, for compatibility
+  loadpalette master_temp(), i
   IF original_genVersion <= 7 THEN  'Before Ypsiliform WIPs
-   'Load the master palette because OldDefaultUIColors needs it
-   loadpalette master(), i
-   OldDefaultUIColors uilook_temp(), boxlook_temp()
+   OldDefaultUIColors master_temp(), uilook_temp(), boxlook_temp()
    SaveUIColors uilook_temp(), boxlook_temp(), i
   ELSE
    'Otherwise, missing records is a bug. Do nearest match with default
-   loadpalette master_temp(), i
    GuessDefaultUIColors master_temp(), uilook_temp()
    GuessDefaultBoxStyles master_temp(), boxlook_temp()
    SaveUIColors uilook_temp(), boxlook_temp(), i
@@ -4715,11 +4713,9 @@ END IF
 
 'Work around a bug: vehicle shadow colour shouldn't be 0
 FOR i as integer = 0 TO gen(genMaxMasterPal)
- 'Load the master palette because LoadUIColors needs it
- loadpalette master(), i
- LoadUIColors uilook_temp(), boxlook_temp(), i
+ loadpalette master_temp(), i
+ LoadUIColors uilook_temp(), boxlook_temp(), i, master_temp()
  IF uilook_temp(uiShadow) = 0 THEN
-  loadpalette master_temp(), i
   'This is a hack. Unfortunately ellipse slice border and fill colors can't be 0 as that
   'counts as transparent. This is a design mistake in ellipse slices, but is too much trouble to fix
   uilook_temp(uiShadow) = nearcolor(master_temp(), 0, 1)

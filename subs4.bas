@@ -462,7 +462,7 @@ DO
   IF needaddset(palnum, gen(genMaxMasterPal), "Master Palette") THEN
    IF importmasterpal("", palnum) THEN
     setpal master()
-    LoadUIColors uilook(), boxlook(), palnum
+    LoadUIColors uilook(), boxlook(), palnum, master()
     state.need_update = YES
    ELSE
     palnum -= 1
@@ -497,7 +497,7 @@ DO
   CASE 2
     IF importmasterpal("", palnum) THEN
      setpal master()
-     LoadUIColors uilook(), boxlook(), palnum
+     LoadUIColors uilook(), boxlook(), palnum, master()
      state.need_update = YES
     END IF
   CASE 3
@@ -509,7 +509,7 @@ DO
     SaveUIColors uilook(), boxlook(), palnum
   CASE 6
     notification "Copying UI colors without remapping often leads to bad colors. Normally you want to use ""Nearest-match active palette's UI colors"" instead. Press F4 to reset UI colors if the menu becomes unreadable."
-    LoadUIColors uilook(), boxlook(), activepalette
+    LoadUIColors uilook(), boxlook(), activepalette, master()
     SaveUIColors uilook(), boxlook(), palnum
   CASE 7
    'Reset UI colors
@@ -646,7 +646,7 @@ SUB nearestui (byval mimicpal as integer, newmaster() as RGBcolor, newui() as in
  DIM referenceui(uiColorLast) as integer
  DIM refboxstyle(uiBoxLast) as BoxStyle
  loadpalette referencepal(), mimicpal
- LoadUIColors referenceui(), refboxstyle(), mimicpal
+ LoadUIColors referenceui(), refboxstyle(), mimicpal, referencepal()
  remappalette referencepal(), referenceui(), refboxstyle(), newmaster(), newui(), newbox()
 END SUB
 

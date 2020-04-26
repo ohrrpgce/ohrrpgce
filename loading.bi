@@ -98,9 +98,9 @@ declare Sub SaveVehicle OVERLOAD (file as string, veh() as integer, vehname as s
 declare Sub SaveVehicle OVERLOAD (file as string, vehicle as VehicleData, byval record as integer)
 
 declare Sub SaveUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer)
-declare Sub LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer=-1)
-declare Sub DefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
-declare Sub OldDefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
+declare Sub LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer=-1, masterpal() as RGBcolor)
+declare Sub DefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarray() as BoxStyle)
+declare Sub OldDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarray() as BoxStyle)
 declare Sub GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer)
 declare Sub GuessDefaultBoxStyles (masterpal() as RGBcolor, boxarray() as BoxStyle, colors_only as bool = NO)
 declare Function UiColorCaption(byval n as integer) as string
