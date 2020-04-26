@@ -1464,7 +1464,10 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  append_menu_item menu, "Ignore"
  append_menu_item menu, "Don't display any more script errors"
  'append_menu_item menu, "Set error suppression level to " & errorlevel
- append_menu_item menu, "Stop this script"
+ IF insideinterpreter THEN
+  'Outside the interpreter there's no active fiber, can't call killscriptthread
+  append_menu_item menu, "Stop this script"
+ END IF
  append_menu_item menu, "Hide this error"
  append_menu_item menu, "Exit game (without saving)"
  append_menu_item menu, "Enter slice debugger"
