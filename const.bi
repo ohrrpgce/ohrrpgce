@@ -323,6 +323,7 @@ CONST maxElements = 64 'Maximum selectable number of elements
 CONST maxDoorsPerMap = 99 '0 thru 99
 CONST maxMapHistoryMem = 2000000 'In number of MapEditUndoTiles (8 bytes)
 CONST maxSpriteHistoryMem = 16000000  'Max size of sprite undo history, in bytes
+CONST maxFrameSize = 4096 'Max width or height of a Frame (in memory or .rgfx) or importable image.
 CONST maxScriptGlobals = 50000 'Actually the index of the last global  (also "maximum global id" in plotscr.hsd)
                                'If you update this, also update the default argument to exportglobals in plotscr.hsd
 CONST maxScriptStrings = 99 'ID of last plotstring  (also "maximum string id" in plotscr.hsd)

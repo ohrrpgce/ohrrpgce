@@ -7292,7 +7292,7 @@ function image_read_info (filename as string) as ImageFileInfo
 
 	if ret.supported orelse ret.size.w > 0 then
 		info &= ", " & ret.size.w & "*" & ret.size.h & " pixels, " & ret.bpp & "-bit color"
-		if ret.size.w > 4096 or ret.size.h > 4096 then
+		if ret.size.w > maxFrameSize orelse ret.size.h > maxFrameSize then
 			ret.supported = NO
 			ret.error = "Too large!"
 		end if
@@ -9078,7 +9078,7 @@ function frameset_from_node(fs_node as Node ptr) as Frame ptr
 
 	ERROR_IF(dataformat <> 0, "unsupported data format " & dataformat, NULL)
 	ERROR_IF(frames = 0, "no frames!", NULL)
-	ERROR_IF(size.w <= 0 orelse size.h <= 0 orelse size.w > 2048 orelse size.h > 2048, _
+	ERROR_IF(size.w <= 0 orelse size.h <= 0 orelse size.w > maxFrameSize orelse size.h > maxFrameSize, _
 		 "bad size " & size, NULL)
 
 	dim fr as Frame ptr

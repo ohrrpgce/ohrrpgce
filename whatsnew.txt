@@ -81,7 +81,8 @@ April ? 2020 [Gorgonzola]
     * Couldn't package games for Linux from recent Windows 10 versions [Ralph]
     * The FreeBSD port didn't compile [Ralph]
     * When upgrading some pre-Beelzebufo (2013) .rpgs new UI colors were
-     initialised to nonsense values [Ralph]
+      initialised to nonsense values [Ralph]
+    * Imported images with height or width above 2048 would crash [Ralph]
 
   *** Stuff Only Developers Will Notice
     * All .py build scripts and utilities will run under Python 3 as well as
