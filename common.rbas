@@ -4711,6 +4711,8 @@ END IF
 
 'Work around a bug: vehicle shadow colour shouldn't be 0
 FOR i as integer = 0 TO gen(genMaxMasterPal)
+ 'Load the master palette because LoadUIColors needs it
+ loadpalette master(), i
  LoadUIColors uilook_temp(), boxlook_temp(), i
  IF uilook_temp(uiShadow) = 0 THEN
   loadpalette master_temp(), i
