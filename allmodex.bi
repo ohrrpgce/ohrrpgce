@@ -790,6 +790,9 @@ extern active_seconds as double
 extern idle_time_threshold as double
 extern joysticks_globally_disabled as bool
 extern "C"
+'WARNING: don't pass curmasterpal() to functions from code outside allmodex.bas!
+'That will crash because it's not a dynamic array! (FB bug: in other modules, an
+'invalid blank temp array descriptor is created and passed.)
 extern curmasterpal(255) as RGBcolor
 end extern
 

@@ -1844,7 +1844,7 @@ END FUNCTION
 'quant: whether to return 8-bit Frame insteaad of 32-bit one.
 LOCAL FUNCTION minimap_tile_scaled(composed_tile as Frame ptr, zoom as integer, quant as bool) as Frame ptr
  DIM as Surface ptr composed_surf, scaled
- composed_surf = frame_to_surface32(composed_tile, curmasterpal())
+ composed_surf = frame_to_surface32(composed_tile, master())
  scaled = surface_scale(composed_surf, zoom, zoom)
  gfx_surfaceDestroy(@composed_surf)
 
@@ -1852,7 +1852,7 @@ LOCAL FUNCTION minimap_tile_scaled(composed_tile as Frame ptr, zoom as integer, 
  IF quant THEN
   DIM opts as QuantizeOptions
   opts.to_master = YES  'Use nearcolor_fast
-  scaledfr = quantize_surface(scaled, curmasterpal(), opts)  'Frees scaled
+  scaledfr = quantize_surface(scaled, master(), opts)  'Frees scaled
  ELSE
   scaledfr = frame_with_surface(scaled)
   gfx_surfaceDestroy(@scaled)
@@ -1921,7 +1921,7 @@ FUNCTION MinimapGenerator.run(runtime as double) as Frame ptr
 
    IF algorithm = minimapScaled ORELSE algorithm = minimapScaledQuant THEN
     DIM tile as Frame ptr = minimap_tile_scaled(composed_tile, zoom, (algorithm = minimapScaledQuant))
-    frame_draw tile, curmasterpal(), NULL, tx * zoom, ty * zoom, NO, minimap   'curmasterpal() not used
+    frame_draw tile, master(), NULL, tx * zoom, ty * zoom, NO, minimap   'master() not used
     frame_unload @tile
    ELSE
 
