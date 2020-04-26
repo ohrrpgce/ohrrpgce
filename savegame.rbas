@@ -664,6 +664,7 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
        slot."rename_on_status".ignore
        slot."hide_empty_lists".ignore
        slot."battle_menus".ignore
+       slot."wep".ignore
 
        READNODE slot."elements" as ch
         ch."weak".ignore
