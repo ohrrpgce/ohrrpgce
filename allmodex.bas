@@ -731,7 +731,8 @@ sub switch_to_32bit_vpages ()
 	if default_page_bitdepth = 32 then exit sub
 	default_page_bitdepth = 32
 	for i as integer = 0 to ubound(vpages)
-		if vpages(i) then
+		'Skip duplicated ('holdscreen') pages
+		if vpages(i) andalso vpages(i)->fixeddepth = 0 then
 			if vpages(i)->isview = NO then
 				frame_convert_to_32bit vpages(i), intpal()
 				'Any view onto the page will now be invalid (containing an invalid ptr)
@@ -749,7 +750,8 @@ sub switch_to_8bit_vpages ()
 	if default_page_bitdepth = 8 then exit sub
 	default_page_bitdepth = 8
 	for i as integer = 0 to ubound(vpages)
-		if vpages(i) then
+		'Skip duplicated ('holdscreen') pages
+		if vpages(i) andalso vpages(i)->fixeddepth = 0 then
 			if vpages(i)->isview = NO then
 				'frame_assign @vpages(i), frame_new(vpages(i)->w, vpages(i)->h)
 				'Safer to use this, as it keeps extra state like .noresize
@@ -815,8 +817,10 @@ function allocatepage(w as integer = -1, h as integer = -1, bitdepth as integer 
 end function
 
 'creates a copy of a page, registering it (must be freed)
+'The copy will be unaffected by switch_to_8/32bit_vpages so that it is preserved.
 function duplicatepage (page as integer) as integer
 	dim fr as Frame ptr = frame_duplicate(vpages(page))
+	fr->fixeddepth = 1  'Preserve contents instead of swapping from 8<->32 bit
 	dim ret as integer = registerpage(fr)
 	frame_unload(@fr) 'we're not hanging onto it, vpages() is
 	return ret

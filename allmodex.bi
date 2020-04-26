@@ -57,6 +57,7 @@ Type Frame
 	                   'Aside from that, this is NOT true for Surface-backed Frames which aren't views!
 	                   'If this is a view, then 'image' and 'mask' mustn't be freed, but 'surf' must be.
 	noresize:1 as int32  '(Video pages only.) Don't resize this page to the window size
+	fixeddepth:1 as int32 '(Video pages only.) Not affected by switch_to_32bit/8bit_vpages: Not a render target.
 
 	surf as Surface ptr  'If not NULL, this is a Surface-backed Frame, and image/mask are NULL,
 	                     'but all other members are correct (including .pitch), and match the Surface.
