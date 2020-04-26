@@ -209,9 +209,10 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
 
   'Draw the screen
   copypage holdscreen, page
+  'Draw menu first so it goes below pricebox in case of overlap
+  draw_menu menu, st, page
   DrawSlice buyst.root_sl, page
   draw_menu buyst.info, buyst.info_st, page
-  draw_menu menu, st, page
   setvispage vpage
   dowait
  LOOP
