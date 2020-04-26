@@ -111,6 +111,7 @@ DECLARE SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
 DECLARE SUB savepalette(pal() as RGBcolor, byval palnum as integer)
 DECLARE SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
 DECLARE SUB unconvertpalette()
+DECLARE SUB load_master_and_uicol(palnum as integer)
 
 DECLARE FUNCTION rgb_to_string(col as RGBcolor) as string
 DECLARE FUNCTION string_to_rgb(text as string, byref col as RGBcolor) as bool

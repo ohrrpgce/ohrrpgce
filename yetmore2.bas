@@ -1352,9 +1352,8 @@ SUB reload_gen()
  IF gam.current_master_palette = gen(genMasterPal) _
      AND newgen(genMasterPal) <> gen(genMasterPal) THEN
   gam.current_master_palette = newgen(genMasterPal)
-  loadpalette master(), gam.current_master_palette
+  load_master_and_uicol gam.current_master_palette
   setpal master()
-  LoadUIColors uilook(), boxlook(), gam.current_master_palette
  END IF
 
  DIM should_reset_window as bool = NO

@@ -1099,13 +1099,13 @@ SUB ui_color_editor(palnum as integer)
  DIM index as integer
  DIM default_colors(uiColorLast) as integer
 
+ load_master_and_uicol palnum
+ GuessDefaultUIColors master(), default_colors()
+
  DIM sample_menu as MenuDef
  DIM sample_state as MenuState
  make_ui_editor_sample_menu sample_menu, sample_state
 
- GuessDefaultUIColors master(), default_colors()
-
- LoadUIColors uilook(), boxlook(), palnum
 
  DIM color_menu(-1 TO uiColorLast) as string
  make_ui_color_editor_menu color_menu(), uilook()
@@ -1204,13 +1204,12 @@ SUB ui_boxstyle_editor(palnum as integer)
  DIM kind as integer
  DIM default_boxes(uiBoxLast) as BoxStyle
 
+ load_master_and_uicol palnum
+ GuessDefaultBoxStyles master(), default_boxes()
+
  DIM sample_menu as MenuDef
  DIM sample_state as MenuState
  make_ui_editor_sample_menu sample_menu, sample_state
-
- GuessDefaultBoxStyles master(), default_boxes()
-
- LoadUIColors uilook(), boxlook(), palnum
 
  DIM color_menu(-1 TO (uiBoxLast + 1) * NUM_BOXSTYLE_OPTIONS - 1) as string
  make_ui_boxstyle_editor_menu color_menu(), boxlook()

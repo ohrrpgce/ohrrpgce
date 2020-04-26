@@ -1575,15 +1575,13 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
   END IF
 
   IF activepalette > -1 THEN
-   loadpalette master(), activepalette
-   LoadUIColors uilook(), boxlook(), activepalette
+   load_master_and_uicol activepalette
   END IF
 
  #ELSEIF DEFINED(IS_GAME)
   'Restore game's master palette and ui colors
   IF gam.current_master_palette > -1 THEN
-   loadpalette master(), gam.current_master_palette
-   LoadUIColors uilook(), boxlook(), gam.current_master_palette
+   load_master_and_uicol gam.current_master_palette
   END IF
  #ENDIF
  setpal master()
@@ -1703,6 +1701,12 @@ SUB unconvertpalette()
   oldpal(i * 3 + 2) = newpal(i).b \ 4
  NEXT
  xbsave game + ".mas", oldpal(), 1536
+END SUB
+
+'Load master(), uilook(), boxlook()
+SUB load_master_and_uicol(palnum as integer)
+ loadpalette master(), palnum
+ LoadUIColors uilook(), boxlook(), palnum
 END SUB
 
 FUNCTION rgb_to_string(col as RGBcolor) as string

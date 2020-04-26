@@ -318,9 +318,8 @@ palette16_reload_cache
 
 'Load the game's palette, uicolors, font
 activepalette = gen(genMasterPal)
-loadpalette master(), activepalette
+load_master_and_uicol activepalette
 setpal master()
-LoadUIColors uilook(), boxlook(), activepalette
 clearpage dpage
 clearpage vpage
 xbload game + ".fnt", current_font(), "Font not loaded"

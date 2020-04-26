@@ -436,9 +436,8 @@ DIM menu_display(11) as string
 DIM shaded(11) as bool
 DIM oldpal as integer
 DIM palnum as integer = activepalette
-loadpalette master(), palnum
+load_master_and_uicol palnum
 setpal master()
-LoadUIColors uilook(), boxlook(), palnum
 
 DIM selectst as SelectTypeState
 DIM state as MenuState
@@ -480,9 +479,8 @@ DO
   palnum = palnum MOD (gen(genMaxMasterPal) + 1)
  END IF
  IF palnum <> oldpal THEN
-  loadpalette master(), palnum
+  load_master_and_uicol palnum
   setpal master()
-  LoadUIColors uilook(), boxlook(), palnum
   state.need_update = YES
  END IF
 
@@ -574,9 +572,8 @@ DO
 LOOP
 
 IF activepalette <> palnum THEN
- loadpalette master(), activepalette
+ load_master_and_uicol activepalette
  setpal master()
- LoadUIColors uilook(), boxlook(), activepalette
 END IF
 
 END SUB
