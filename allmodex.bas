@@ -83,6 +83,8 @@ declare sub snapshot_check()
 
 declare function calcblock(tmap as TileMap, x as integer, y as integer, overheadmode as integer, pmapptr as TileMap ptr) as integer
 
+declare function compatpage_internal(pageframe as Frame ptr) as Frame ptr
+
 declare sub screen_size_update ()
 declare sub masterpal_changed()
 
@@ -730,7 +732,13 @@ sub switch_to_32bit_vpages ()
 	default_page_bitdepth = 32
 	for i as integer = 0 to ubound(vpages)
 		if vpages(i) then
-			frame_convert_to_32bit vpages(i), intpal()
+			if vpages(i)->isview = NO then
+				frame_convert_to_32bit vpages(i), intpal()
+				'Any view onto the page will now be invalid (containing an invalid ptr)
+			else
+				'Hack: assume the page is a compatpage (view of vpage) and i > vpage
+				frame_assign @vpages(i), compatpage_internal(vpages(vpage))
+			end if
 		end if
 	next
 end sub
@@ -742,10 +750,15 @@ sub switch_to_8bit_vpages ()
 	default_page_bitdepth = 8
 	for i as integer = 0 to ubound(vpages)
 		if vpages(i) then
-			'frame_assign @vpages(i), frame_new(vpages(i)->w, vpages(i)->h)
-			'Safer to use this, as it keeps extra state like .noresize
-			frame_drop_surface vpages(i)
-			clearpage i
+			if vpages(i)->isview = NO then
+				'frame_assign @vpages(i), frame_new(vpages(i)->w, vpages(i)->h)
+				'Safer to use this, as it keeps extra state like .noresize
+				frame_drop_surface vpages(i)
+				clearpage i
+			else
+				'Hack: assume the page is a compatpage (view of vpage) and i > vpage
+				frame_assign @vpages(i), compatpage_internal(vpages(vpage))
+			end if
 		end if
 	next
 end sub
@@ -8768,6 +8781,7 @@ end function
 
 ' Turn a regular Frame into a 32-bit Surface-backed Frame.
 ' Content is preserved.
+' Warning: this is a dangerous implementation. Any view onto fr will become invalid
 sub frame_convert_to_32bit(fr as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)
 	BUG_IF(fr->cached, "refusing to clobber cached Frame")
 	fr->surf = frame_to_surface32(fr, masterpal(), pal)
