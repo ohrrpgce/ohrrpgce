@@ -1318,7 +1318,7 @@ sub fadeto (red as integer, green as integer, blue as integer)
 	'Make sure the palette gets set on the final pass
 
 	'This function was probably called in the middle of timed loop, call
-	'setwait to avoid "dowait without setwait" warnings
+	'setwait to avoid "dowait called without setwait" warnings
 	setwait 0
 end sub
 
@@ -1374,7 +1374,7 @@ sub fadetopal (pal() as RGBcolor)
 	next
 
 	'This function was probably called in the middle of timed loop, call
-	'setwait to avoid "dowait without setwait" warnings
+	'setwait to avoid "dowait called without setwait" warnings
 	setwait 0
 end sub
 
@@ -1469,7 +1469,7 @@ function dowait () as bool
 	if setwait_called then
 		setwait_called = NO
 	else
-		debug "dowait called without setwait"
+		'debuginfo "dowait called without setwait"
 	end if
 	return timer >= flagtime
 end function
