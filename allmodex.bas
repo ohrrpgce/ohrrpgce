@@ -8621,7 +8621,7 @@ function frame_new(w as integer, h as integer, frames as integer = 1, clr as boo
 
 	'no memory? shucks.
 	if ret = 0 then
-		debug "Could not create sprite frames, no memory"
+		showerror "Could not create sprite frames, no memory"
 		return 0
 	end if
 
@@ -8658,7 +8658,7 @@ function frame_new(w as integer, h as integer, frames as integer = 1, clr as boo
 				end if
 
 				if .image = 0 or (.mask = 0 and wantmask <> NO) then
-					debug "Could not allocate sprite frames/surfaces"
+					showerror "Could not allocate sprite frames/surfaces"
 					'well, I don't really see the point freeing memory, but who knows...
 					frame_freemem(ret)
 					return NULL
@@ -8675,7 +8675,7 @@ function frame_new_view(spr as Frame ptr, x as integer, y as integer, w as integ
 	dim ret as Frame ptr = callocate(sizeof(Frame))
 
 	if ret = 0 then
-		debug "Could not create sprite view, no memory"
+		showerror "Could not create sprite view, no memory"
 		return 0
 	end if
 
