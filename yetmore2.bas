@@ -942,7 +942,7 @@ PRIVATE SUB npc_debug_display_tooltip ()
   IF readmouse.y + 7 + boxsize.h > vpages(dpage)->h THEN
    y = readmouse.y + showTop + ancBottom
   END IF
-  trans_rectangle vpages(dpage), Type(x, y, boxsize.w, boxsize.h), master(uilook(uiShadow)), .60
+  trans_rectangle vpages(dpage), Type(x, y, boxsize.w, boxsize.h), curmasterpal(uilook(uiShadow)), .60
   wrapprint info, x, y, uilook(uiText), dpage, maxwidth, , fontEdged
  END IF
 END SUB

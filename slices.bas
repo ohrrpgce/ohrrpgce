@@ -1874,7 +1874,7 @@ Sub LoadSpriteSliceImage(byval sl as Slice ptr, warn_if_missing as bool = NO)
      .scaled = NO
     elseif .img.sprite->size <> sl->Size then
      'Becomes a 32-bit sprite
-     frame_assign @.img.sprite, frame_scaled32(.img.sprite, sl->Width, sl->Height, master(), .img.pal)
+     frame_assign @.img.sprite, frame_scaled32(.img.sprite, sl->Width, sl->Height, curmasterpal(), .img.pal)
      palette16_unload @.img.pal
     end if
    else
@@ -2004,7 +2004,7 @@ Local Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
     .img.sprite = image_import_as_frame_32bit(filename)
    else
     dim transp_color as RGBcolor  'Black. TODO: this should be stored in dat and customisabled
-    .img.sprite = image_import_as_frame_8bit(filename, master(), , transp_color)
+    .img.sprite = image_import_as_frame_8bit(filename, curmasterpal(), , transp_color)
    end if
   end if
   if .img.sprite then

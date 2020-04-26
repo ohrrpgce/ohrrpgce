@@ -418,13 +418,14 @@ DECLARE FUNCTION color_distance(pal() as RGBcolor, index1 as integer, index2 as 
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, red as integer, green as integer, blue as integer, firstindex as integer = 0, indexhint as integer = -1, avoidcol as integer = -1) as ubyte
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, index as integer, firstindex as integer = 0) as ubyte
 EXTERN "C"
+DECLARE FUNCTION nearcolor_master(byval col as RGBcolor, firstindex as integer = 0) as ubyte
 DECLARE FUNCTION nearcolor_fast OVERLOAD (byval col as RGBcolor) as ubyte
 END EXTERN
 DECLARE FUNCTION nearcolor_fast OVERLOAD (r as integer, g as integer, b as integer) as ubyte
 DECLARE SUB find_palette_mapping (inputpal() as RGBcolor, masterpal() as RGBcolor, mapping() as integer, firstindex as integer = 0)
 DECLARE FUNCTION quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options as QuantizeOptions) as Frame ptr
-'firstindex is optional
-#DEFINE findrgb(r, g, b, firstindex...)  nearcolor(master(), r, g, b, firstindex)
+'Never returns 0
+#DEFINE findrgb(r, g, b)  nearcolor_fast(r, g, b)
 
 'Export .gifs
 DECLARE SUB GifPalette_from_pal (byref gpal as GifPalette, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)
