@@ -3520,7 +3520,10 @@ END FUNCTION
 
 SUB convert_mxs_to_rgfx(infile as string, outfile as string, sprtype as SpriteType)
   DIM as double readstart = TIMER, writestart
-  DIM num_images as integer = filelen(infile) \ 64000
+  DIM num_images as integer = filelen(infile) / 64000  'Round up if at least half a backdrop
+  'infile might not actually exist - for example in ancient SAMPLE.RPG
+  num_images = large(1, num_images)
+
   DIM doc as DocPtr
   doc = rgfx_create_doc()
 
@@ -3528,6 +3531,7 @@ SUB convert_mxs_to_rgfx(infile as string, outfile as string, sprtype as SpriteTy
     DIM fr as Frame ptr
     'frame_load_mxs is uncached
     fr = frame_load_mxs(infile, imnum)
+    IF fr = NULL THEN fr = frame_new(320, 200)  'If .mxs doesn't exist
     rgfx_save_spriteset(doc, fr, sprtype, imnum)
     frame_unload @fr
   NEXT

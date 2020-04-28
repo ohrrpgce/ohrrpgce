@@ -315,6 +315,8 @@ SUB backdrop_browser ()
  DIM rgfx_doc as DocPtr = rgfx_open(backdrops_file)
  DIM backdrop as Frame ptr
  backdrop = rgfx_load_spriteset(rgfx_doc, sprTypeBackdrop, backdrop_id)
+ 'Shouldn't happen unless the .rgfx is bad, but avoid crashing. Leaks the doc
+ IF backdrop = NULL THEN showerror "Failed to load any backdrop" : EXIT SUB
 
  setkeys
  DO
