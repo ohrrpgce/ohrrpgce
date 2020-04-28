@@ -272,8 +272,22 @@ def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, exe = None, from_g
 def get_source_around_line(git_dir, gitrev, filename, lineno, context = 1):
     """Return a few lines of source code around the given line"""
     print('Querying git for source...    ', file=sys.stderr, end='\r')
-    contents = subprocess.check_output(['git', '-C', git_dir, 'show', gitrev + ':' + filename]).decode('utf8')
+    if '\\' in filename and filename == filename.upper():
+        # Some source files have mangled filenames like C:\USERS\JAMES\SRC\OHR\REL\FUFLUNS\CUSTOM_UDTS.BI
+        # Hard to tell how many directories to trim.
+        filename = ntpath.basename(filename).lower()
+
+    try:
+        contents_raw = subprocess.check_output(['git', '-C', git_dir, 'show', gitrev + ':' + filename])
+    except subprocess.CalledProcessError as ex:
+        print(ex, file=sys.stderr)
+        return []
+    try:
+        contents = contents_raw.decode('utf8')
+    except UnicodeDecodeError:
+        contents = contents_raw.decode('latin1')
     lines = contents.replace('\r', '').split('\n')
+
     ret = []
     # Add one extra line before, because lineno is typically the line after the actual one
     for lineidx in range(max(1, lineno - context - 1), min(len(lines), lineno + context + 1)):
