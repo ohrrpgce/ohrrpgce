@@ -404,13 +404,14 @@ FUNCTION script_keyval (byval key as KBScancode, byval joynum as integer = 0) as
  END IF
 
  IF prefbit(47) = NO THEN  '!Map joystick controls to keyboard keys for scripts
+  'Device -1 is all joysticks OR'd together
   SELECT CASE key
-   CASE scUp:     ret OR= keyval(ccUp)
-   CASE scDown:   ret OR= keyval(ccDown)
-   CASE scLeft:   ret OR= keyval(ccLeft)
-   CASE scRight:  ret OR= keyval(ccRight)
-   CASE scEnter:  ret OR= keyval(ccUse)
-   CASE scEsc:    ret OR= keyval(ccCancel)
+   CASE scUp:     ret OR= device_carray(ccUp, -1)
+   CASE scDown:   ret OR= device_carray(ccDown, -1)
+   CASE scLeft:   ret OR= device_carray(ccLeft, -1)
+   CASE scRight:  ret OR= device_carray(ccRight, -1)
+   CASE scEnter:  ret OR= device_carray(ccUse, -1)
+   CASE scEsc:    ret OR= device_carray(ccCancel, -1)
   END SELECT
  END IF
 

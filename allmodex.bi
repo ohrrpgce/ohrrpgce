@@ -441,6 +441,7 @@ DECLARE FUNCTION keyval_ex (key as KBScancode, repeat_wait as integer = 0, repea
 DECLARE FUNCTION real_keyval (key as KBScancode) as KeyBits
 DECLARE FUNCTION keyval (key as KBScancode) as KeyBits
 DECLARE FUNCTION carray alias "KEYVAL" (key as KBScancode) as KeyBits
+DECLARE FUNCTION device_carray (ccode as KBScancode, joynum as integer) as KeyBits
 DECLARE FUNCTION slowkey (key as KBScancode, ms as integer) as bool
 DECLARE FUNCTION getinputtext () as string
 DECLARE FUNCTION interrupting_keypress () as bool

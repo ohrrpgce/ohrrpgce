@@ -85,6 +85,8 @@ April ? 2020 [Gorgonzola]
     * Imported images with height or width above 2048 would crash [Ralph]
     * Possible crash in slice editor when switching collections [Ralph]
     * Crash when viewing Map from inside a shop [Ralph]
+    * Bug #1106 Space and Ctrl cause Enter to appear pressed, Alt causes ESC
+      to appear pressed [Ralph]
 
   *** Stuff Only Developers Will Notice
     * All .py build scripts and utilities will run under Python 3 as well as

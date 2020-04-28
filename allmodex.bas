@@ -253,8 +253,9 @@ type KeyArray extends Object
 	declare abstract sub init_controls()
 	declare abstract sub update_arrow_keydown_time()
 	declare sub update_keydown_times(inputst as InputStateFwd)
+	'In following, key is a KBScancode or JoyScancode depending on subclass
 	declare function key_repeating(key as integer, is_arrowkey as bool, repeat_wait as integer, repeat_rate as integer, inputst as InputStateFwd) as KeyBits
-	declare abstract function keyval(a as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd) as KeyBits
+	declare abstract function keyval(key as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd) as KeyBits
 	declare sub calc_carray (whichcarray() as KeyBits, inputst as InputStateFwd, repeat_wait as integer = 0, repeat_rate as integer = 0)
 	declare sub clearkeys()
 end type
@@ -293,7 +294,7 @@ type JoystickState extends KeyArray
 	declare sub init_controls()
 	declare sub update_keybits(joynum as integer)
 	declare sub update_arrow_keydown_time()
-	declare function keyval(key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd) as KeyBits
+	declare function keyval(key as JoyScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd) as KeyBits
 end type
 
 ' Keyboard and joystick state which is separate for recording and replaying.
@@ -1648,6 +1649,34 @@ end function
 '                                      Keyboard input
 '==========================================================================================
 
+'Read carray controls array (ccUse etc) for a single device keyboard/joystick).
+'If you want to get the global you should call carray() instead, which is just
+'an alias to keyval().
+'Reads replayed state (real_keys = NO)
+'ccode:   a cc* constant
+'joynum:  -2 for keyboard, -1 for any joystick, 0-3 for joystick
+function device_carray(ccode as KBScancode, joynum as integer) as KeyBits
+	BUG_IF(ccode < ccLOWEST orelse ccode > ccHIGHEST, "Invalid ccode " & ccode, 0)
+
+	dim inputst as InputState ptr
+	if replay.active then
+		inputst = @replay_input
+	else
+		inputst = @real_input
+	end if
+
+	if joynum = -2 then
+		return inputst->carray(ccode)
+	elseif joynum = -1 then
+		dim ret as KeyBits
+		for joynum = 0 to ubound(inputst->joys)
+			ret or= inputst->joys(joynum).carray(ccode)
+		next
+		return ret
+	elseif joynum < ubound(inputst->joys) then
+		return inputst->joys(joynum).carray(ccode)
+	end if
+end function
 
 'Return numpad scancode that's an alias to 'key'
 local function numpad_alias_key(key as KBScancode, real_keys as bool) as KBScancode
