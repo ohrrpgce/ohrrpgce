@@ -237,6 +237,8 @@ ENUM 'JoyScancode
 END ENUM
 TYPE JoyScancode as integer
 
+'------------------------------------------------------------------------------
+
 ENUM MouseButton
   mouseLeft = 1
   mouseRight = 2
