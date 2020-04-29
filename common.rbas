@@ -5251,6 +5251,10 @@ SUB fix_record_count(byref last_rec_index as integer, record_byte_size as intege
   last_rec_index = 0 - count_offset
   EXIT SUB
  END IF
+ IF record_byte_size <= 0 THEN
+  showerror "Game seems to be corrupt, " & info & " lump has invalid/no binsize"
+  EXIT SUB
+ END IF
  DIM total_bytes as integer = filelen(lumpname) - skip_header_bytes
  IF total_bytes <= 0 THEN  'No records!
   adjust_record_count last_rec_index, 0, lumpname, info, count_offset
@@ -5421,6 +5425,8 @@ SUB rpg_sanity_checks
  IF flen > 2 * (binLASTENTRY + 1) THEN
   debug "binsize.bin length " & flen
   future_rpg_warning
+ ELSEIF flen = 0 ANDALSO gen(genVersion) >= 6 THEN
+  showerror "This game is corrupt: binsize.bin lump is missing. Contact the OHRRPGCE developers for help"
  ELSE
   FOR bindex as integer = 0 TO binLASTENTRY
    IF curbinsize(bindex) MOD 2 <> 0 THEN

@@ -106,7 +106,7 @@ SUB LoadNPCD(file as string, dat() as NPCType)
   REDIM dat(arraylen - 1)
   DIM as integer recordlen = getbinsize(binN) \ 2
   DIM as integer buf(recordlen - 1)
-  IF recordlen <> maxNPCDataField + 1 THEN fatalbug "maxNPCDataField not updated"
+  BUG_IF(recordlen <> maxNPCDataField + 1, "maxNPCDataField not updated")
 
   FOR i = 0 TO arraylen - 1
     loadrecord buf(), f, recordlen
@@ -127,7 +127,7 @@ SUB SaveNPCD(file as string, dat() as NPCType)
 
   DIM as integer recordlen = getbinsize(binN) \ 2
   DIM as integer buf(recordlen - 1)
-  IF recordlen <> maxNPCDataField + 1 THEN fatalbug "maxNPCDataField not updated"
+  BUG_IF(recordlen <> maxNPCDataField + 1, "maxNPCDataField not updated")
 
   FOR i = 0 TO UBOUND(dat)
     FOR j = 0 TO recordlen - 1

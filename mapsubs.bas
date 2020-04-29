@@ -3335,7 +3335,7 @@ SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem 
  gdidx(27) = 14: append_simplemenu_item menu, "Each-Step Script: "
  gdidx(28) = 15: append_simplemenu_item menu, "On-Keypress Script: "
 
- IF UBOUND(gdidx) + 1 <> v_len(menu) THEN fatalbug "Wrong gdidx length!"
+ BUG_IF(UBOUND(gdidx) + 1 <> v_len(menu), "Wrong gdidx length!")
  invert_permutation gdidx(), midx()
 
  ' Music
