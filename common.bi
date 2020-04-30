@@ -150,10 +150,13 @@ END TYPE
 DECLARE FUNCTION minimap_zoom_amount(mapsize as XYPair, margin as XYPair = XY(0,0)) as integer
 DECLARE FUNCTION createminimap OVERLOAD (tiles() as TileMap, tilesets() as TilesetData ptr, pmapptr as TileMap ptr = NULL, byref zoom as integer = -1, algorithm as MinimapAlgorithmEnum = minimapScaled) as Frame ptr
 DECLARE FUNCTION createminimap OVERLOAD (layer as TileMap, tileset as TilesetData ptr, byref zoom as integer = -1, algorithm as MinimapAlgorithmEnum = minimapScaled) as Frame ptr
+
 DECLARE SUB animatetilesets (tilesets() as TilesetData ptr)
 DECLARE SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
-DECLARE SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integer, byval tilesetnum as integer)
 DECLARE SUB reloadtileanimations (tilesets() as TilesetData ptr, gmap() as integer)
+DECLARE SUB reset_tile_anims (tileset as TilesetData ptr)
+
+DECLARE SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integer, byval tilesetnum as integer)
 DECLARE SUB unloadtilesetdata (byref tileset as TilesetData ptr)
 DECLARE FUNCTION layer_tileset_index(byval layer as integer) as integer
 DECLARE FUNCTION gmap_index_affects_tiles(byval index as integer) as bool

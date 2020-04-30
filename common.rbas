@@ -3770,6 +3770,16 @@ SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
  NEXT i
 END SUB
 
+'Reset state of all animations to beginning
+SUB reset_tile_anims(tileset as TilesetData ptr)
+ FOR j as integer = 0 TO 1
+  WITH tileset->anim(j)
+   .cycle = 0
+   .pt = 0
+   .skip = 0
+  END WITH
+ NEXT
+END SUB
 
 '==========================================================================================
 '                                Finding data files, directories
@@ -6166,13 +6176,7 @@ SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integer, byva
   load_tile_anims tilesetnum, .tastuf()
  END WITH
 
- FOR i as integer = 0 TO 1
-  WITH tilesets(layer)->anim(i)
-   .cycle = 0
-   .pt = 0
-   .skip = 0
-  END WITH
- NEXT
+ reset_tile_anims tilesets(layer)
  lockstep_tile_animation tilesets(), layer
 END SUB
 
@@ -6206,30 +6210,30 @@ FUNCTION gmap_index_affects_tiles(byval index as integer) as bool
  END SELECT
 END FUNCTION
 
+'Tileset ID for a map layer.
+FUNCTION get_layer_tileset(layer as integer, gmap() as integer) as integer
+ DIM tileset as integer
+ tileset = gmap(layer_tileset_index(layer))
+ IF tileset > 0 THEN
+  tileset -= 1
+ ELSE
+  tileset = gmap(0)
+ END IF
+ RETURN tileset
+END FUNCTION
+
 SUB loadmaptilesets (tilesets() as TilesetData ptr, gmap() as integer, resetanimations as bool = YES)
 'tilesets() may contain already loaded tilesets. In this case, we can reuse them
 '(Actually, whether they get reused, and therefore whether the animation state is preserved, depends on
 'their order -- eww. But noone will ever notice)
+'resetanimations: if true, reset animation state unconditionally (will be reset regardless if had
+'  to load a new tileset).
  DIM tileset as integer
 
  FOR i as integer = 0 TO UBOUND(tilesets)
-  tileset = gmap(layer_tileset_index(i))
-  IF tileset > 0 THEN
-   tileset = tileset - 1
-  ELSE
-   tileset = gmap(0)
-  END IF
-
+  tileset = get_layer_tileset(i, gmap())
   loadtilesetdata tilesets(), i, tileset
-  IF resetanimations THEN
-   FOR j as integer = 0 TO 1
-    WITH tilesets(i)->anim(j)
-     .cycle = 0
-     .pt = 0
-     .skip = 0
-    END WITH
-   NEXT
-  END IF
+  IF resetanimations THEN reset_tile_anims tilesets(i)
  NEXT
 END SUB
 
@@ -6237,21 +6241,9 @@ SUB reloadtileanimations (tilesets() as TilesetData ptr, gmap() as integer)
  DIM tileset as integer
 
  FOR i as integer = 0 TO UBOUND(tilesets)
-  tileset = gmap(layer_tileset_index(i))
-  IF tileset <> 0 THEN
-   tileset = tileset - 1
-  ELSE
-   tileset = gmap(0)
-  END IF
-
+  tileset = get_layer_tileset(i, gmap())
   load_tile_anims tileset, tilesets(i)->tastuf()
-  FOR j as integer = 0 TO 1
-   WITH tilesets(i)->anim(j)
-    .cycle = 0
-    .pt = 0
-    .skip = 0
-   END WITH
-  NEXT
+  reset_tile_anims tilesets(i)
  NEXT
 END SUB
 
