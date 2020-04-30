@@ -6212,12 +6212,18 @@ END FUNCTION
 
 'Tileset ID for a map layer.
 FUNCTION get_layer_tileset(layer as integer, gmap() as integer) as integer
- DIM tileset as integer
- tileset = gmap(layer_tileset_index(layer))
+ DIM as integer index = layer_tileset_index(layer)
+ DIM as integer tileset = gmap(index)
  IF tileset > 0 THEN
   tileset -= 1
- ELSE
+ ELSEIF tileset = 0 THEN
   tileset = gmap(0)
+ END IF
+ IF tileset < 0 THEN
+  showerror "Map corruption: a layer tileset set to " & tileset
+  gmap(index) = 0  'It was either already 0, or invalid
+  IF gmap(0) < 0 THEN gmap(0) = 0
+  tileset = 0
  END IF
  RETURN tileset
 END FUNCTION

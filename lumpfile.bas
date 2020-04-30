@@ -272,6 +272,7 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 'Even if the file is too short, reads as much as possible, regardless of partial_retval.
 
 	dim idx as integer
+	BUG_IF(record < -1, "Tried to read record " & record & " of " & get_filename(fh), NO)
 	if recordsize <= 0 then return NO
 	if ubound(buf) < recordsize - 1 then
 		showbug "loadrecord: " & recordsize & " ints will not fit in " & ubound(buf) + 1 & " element array, in " & get_filename(fh)
@@ -328,6 +329,7 @@ end function
 
 sub storerecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
 'same as loadrecord
+	BUG_IF(record < -1, "Tried to write record " & record & " of " & get_filename(fh))
 	if ubound(buf) < recordsize - 1 then
 		debugc errBug, "storerecord: array has only " & ubound(buf) + 1 & " elements, record is " & recordsize & " ints"
 		'continue, write as much as possible

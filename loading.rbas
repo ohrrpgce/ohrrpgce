@@ -3199,7 +3199,11 @@ END SUB
 ' Other functions for working with tile animations are in common.rbas
 
 SUB load_tile_anims (byval tileset_num as integer, tastuf() as integer)
- 'Not all tilesets may have .tap records
+ IF tileset_num < 0 THEN
+  onetime_debug errShowError, "Corrupt map data: invalid tileset " & tileset_num & " loading animations"
+  EXIT SUB
+ END IF
+ 'It's normal for not all tilesets to have .tap records (short lump) if they weren't edited
  loadrecord tastuf(), game & ".tap", 80 \ 2, tileset_num, NO
 END SUB
 
