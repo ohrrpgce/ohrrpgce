@@ -4079,7 +4079,7 @@ SUB verify_map_size (st as MapEditState)
   textcolor uilook(uiText), 0
   printstr "Map " & .id & ":" & .name, 0, j * 8, vpage
   j += 2
-  printstr "this map seems to be corrupted", 0, j * 8, vpage
+  printstr "This map seems to be corrupted.", 0, j * 8, vpage
   j += 2
   printstr " TileMap " & .tiles(0).wide & "*" & .tiles(0).high & " tiles, " & (UBOUND(.tiles) + 1) & " layers", 0, j * 8, vpage: j += 1
   printstr " WallMap " & .pass.wide & "*" & .pass.high & " tiles", 0, j * 8, vpage: j += 1
@@ -4090,24 +4090,17 @@ SUB verify_map_size (st as MapEditState)
   'A map's size might be due to corruption, besides, the tilemap is far away the most important
   '.wide = large(.tiles(0).wide, large(.pass.wide, .foemap.wide))
   '.high = large(.tiles(0).high, large(.pass.high, .foemap.high))
-  .pass.size = size
-  .pass.data = REALLOCATE(.pass.data, .wide * .high)
-  .foemap.size = size
-  .foemap.data = REALLOCATE(.foemap.data, .wide * .high)
-  IF .zmap.size <> size THEN
-   'Zone maps are too tricky, just delete
-   CleanZoneMap .zmap, .wide, .high
-  END IF
   'savetilemaps .tiles, maplumpname(.id, "t")
+  'resizetiledata shows a message, write it to dpage to hide it because it uses line height 10 instead of 8
+  resizetiledata .pass, 0, 0, .wide, .high, 0, dpage
   savetilemap .pass, maplumpname(.id, "p")
+  resizetiledata .foemap, 0, 0, .wide, .high, 0, dpage
   savetilemap .foemap, maplumpname(.id, "e")
-  SaveZoneMap .zmap, maplumpname(.id, "z")
-  'loadtilemaps .tiles, maplumpname(.id, "t")
-  'loadtilemap .pass, maplumpname(.id, "p")
-  'loadtilemap .foemap, maplumpname(.id, "e")
+  SaveZoneMap .zmap, maplumpname(.id, "z"), @XYWH(0, 0, .wide, .high)  'Resizes
+  LoadZoneMap .zmap, maplumpname(.id, "z")
   j += 1
-  printstr "please report this error to", 0, j * 8, vpage: j += 1
-  printstr "ohrrpgce@HamsterRepublic.com", 0, j * 8, vpage: j += 1
+  printstr "If unexpected, report this error to", 0, j * 8, vpage: j += 1
+  printstr "ohrrpgce-crash@HamsterRepublic.com", 0, j * 8, vpage: j += 1
   setvispage vpage
   waitforanykey
  END WITH

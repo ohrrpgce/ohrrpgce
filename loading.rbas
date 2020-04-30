@@ -1274,6 +1274,7 @@ LOCAL SUB DeserializeZoneTiles(zmap as ZoneMap, byval root as NodePtr)
   WEND
 END SUB
 
+'rsrect: resize/shift the zonemap to this size as it's saved. rect.x/y is the offset.
 SUB SaveZoneMap(zmap as ZoneMap, filename as string, rsrect as RectType ptr = NULL)
   'DIM as double t = TIMER
 
