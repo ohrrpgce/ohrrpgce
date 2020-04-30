@@ -3754,7 +3754,7 @@ end sub
 function readblock (map as TileMap, x as integer, y as integer, default as integer = 112343211) as integer
 	if x < 0 orelse x >= map.wide orelse y < 0 orelse y >= map.high then
 		if default <> 112343211 then return default
-		showbug "illegal readblock call " & x & " " & y
+		onetime_debug errShowBug, "illegal readblock call " & x & " " & y
 		exit function
 	end if
 	return map.data[x + y * map.wide]
@@ -3762,7 +3762,7 @@ end function
 
 sub writeblock (map as TileMap, x as integer, y as integer, v as integer)
 	if x < 0 orelse x >= map.wide orelse y < 0 orelse y >= map.high then
-		showbug "illegal writeblock call " & x & " " & y
+		onetime_debug errShowBug, "illegal writeblock call " & x & " " & y & " " & v
 		exit sub
 	end if
 	map.data[x + y * map.wide] = v

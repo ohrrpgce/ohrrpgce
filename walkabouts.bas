@@ -994,7 +994,7 @@ SUB update_vehicle_state ()
    aheadxy dismountpos, herodir(0), 1
    cropposition dismountpos.x, dismountpos.y, 1
   END IF
-  IF vehpass(vstate.dat.dismount_to, readblock(pass, dismountpos.x, dismountpos.y), -1) THEN
+  IF vehpass(vstate.dat.dismount_to, readblock(pass, dismountpos.x, dismountpos.y, 0), -1) THEN
    '--dismount point is landable
    resetcaterpillar ()
    IF vstate.dat.dismount_ahead = YES THEN
@@ -1123,7 +1123,7 @@ SUB try_mount_vehicle(vehid as integer, npci as NPCIndex, force_mount as bool = 
  LoadVehicle game & ".veh", vstate.dat, vstate.id
  IF force_mount = NO THEN
   '--check mounting permissions first
-  IF vehpass(vstate.dat.mount_from, readblock(pass, herotx(0), heroty(0)), -1) = NO THEN EXIT SUB
+  IF vehpass(vstate.dat.mount_from, readblock(pass, herotx(0), heroty(0), 0), -1) = NO THEN EXIT SUB
  END IF
  vstate.active = YES
  vstate.npc = npci

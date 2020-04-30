@@ -1432,7 +1432,7 @@ SUB update_heroes(force_step_check as bool=NO)
    process_zone_eachstep_triggers "hero" & whoi, herow(whoi).curzones
 
    '--Check for harm tile
-   DIM p as integer = readblock(pass, herotx(whoi), heroty(whoi))
+   DIM p as integer = readblock(pass, herotx(whoi), heroty(whoi), 0)
    IF harmtiles_enabled() ANDALSO (p AND passHarm) THEN
 
     DIM harm_whole_party as bool = NO
@@ -1496,7 +1496,7 @@ SUB update_heroes(force_step_check as bool=NO)
   'No random battle allowed on the first tick before fade-in (?)
   IF gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendrandomenemies) = 0 THEN
    DIM battle_formation_set as integer
-   battle_formation_set = readblock(foemap, herotx(0), heroty(0))
+   battle_formation_set = readblock(foemap, herotx(0), heroty(0), 0)
    IF vstate.active = YES THEN
     '--Riding a vehicle
     IF vstate.dat.random_battles > 0 THEN
@@ -4738,7 +4738,7 @@ SUB battle_formation_testing_menu(all_formations as bool)
    battle_formation_testing_menu_add(menu, i)
   NEXT i
  ELSE
-  battle_formation_set = readblock(foemap, herotx(0), heroty(0))
+  battle_formation_set = readblock(foemap, herotx(0), heroty(0), 0)
 
   IF battle_formation_set = 0 THEN
    append_menu_item(menu, "Formation set: None", 0, 1)

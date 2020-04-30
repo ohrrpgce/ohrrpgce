@@ -729,7 +729,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 97'--read map block
   retvals(2) = get_optional_arg(2, 0)
   IF retvals(2) >= 0 AND retvals(2) <= UBOUND(maptiles) THEN
-   scriptret = readblock(maptiles(retvals(2)), bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1))
+   scriptret = readblock(maptiles(retvals(2)), bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), 0)
   END IF
  CASE 98'--write map block
   retvals(3) = get_optional_arg(3, 0)
@@ -738,7 +738,7 @@ SUB script_functions(byval cmdid as integer)
    lump_reloading.maptiles.dirty = YES
   END IF
  CASE 99'--read pass block
-  scriptret = readblock(pass, bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1))
+  scriptret = readblock(pass, bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), 0)
  CASE 100'--write pass block
   writeblock pass, bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), bound(retvals(2), 0, 255)
   lump_reloading.passmap.dirty = YES
