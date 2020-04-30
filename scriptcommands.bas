@@ -740,7 +740,8 @@ SUB script_functions(byval cmdid as integer)
  CASE 99'--read pass block
   scriptret = readblock(pass, bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), 0)
  CASE 100'--write pass block
-  writeblock pass, bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), bound(retvals(2), 0, 255)
+  'pass isn't known to be the same size as mapsizetiles
+  writeblock pass, bound(retvals(0), 0, pass.wide - 1), bound(retvals(1), 0, pass.high - 1), bound(retvals(2), 0, 255)
   lump_reloading.passmap.dirty = YES
  CASE 144'--load tileset(tileset, map layer) or load tileset(tileset) or load tileset()
   'Unlike "change tileset", doesn't modify gmap
