@@ -31,6 +31,6 @@ When a master palette is imported, its UI colors and Box Styles are automaticall
 
 "Copy active palette's UI data" basically copy-pastes UI color indices (and Box Styles) between palettes without remapping, for when you want to do something like create a darkened version of a palette and affect the user interface as well.
 
-"Reset UI Colors to defaults" (hotkey: F4) resets all UI Colors to the nearest matches to the default colors. Use this (or press F4) if the menu text becomes unreadable.
+"Reset UI Colors to defaults" (hotkey: Ctrl-D) resets all UI Colors to the nearest matches to the default colors. Use this (or press Ctrl-D) if the menu text becomes unreadable.
 
 "Reset Box Styles to defaults" resets the Box Style colors to defaults, but leaves box borders alone.

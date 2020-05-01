@@ -484,10 +484,14 @@ DO
   state.need_update = YES
  END IF
 
- IF keyval(scF4) > 1 THEN
-  'Rescue key
+ IF keyval(scCtrl) > 0 ANDALSO keyval(scD) > 1 THEN
+  'Ctrl-D Rescue key
   GuessDefaultUIColors master(), uilook()
-  SaveUIColors uilook(), boxlook(), palnum
+  IF yesno("Really reset UI colors to defaults?") THEN
+   SaveUIColors uilook(), boxlook(), palnum
+  ELSE
+   load_master_and_uicol palnum
+  END IF
  END IF
 
  IF enter_space_click(state) THEN
@@ -508,17 +512,21 @@ DO
     nearestui activepalette, master(), uilook(), boxlook()
     SaveUIColors uilook(), boxlook(), palnum
   CASE 6
-    notification "Copying UI colors without remapping often leads to bad colors. Normally you want to use ""Nearest-match active palette's UI colors"" instead. Press F4 to reset UI colors if the menu becomes unreadable."
+    notification "Copying UI colors without remapping often leads to bad colors. Normally you want to use ""Nearest-match active palette's UI colors"" instead. Press Ctrl-D to reset UI colors if the menu becomes unreadable."
     LoadUIColors uilook(), boxlook(), activepalette, master()
     SaveUIColors uilook(), boxlook(), palnum
   CASE 7
    'Reset UI colors
-   GuessDefaultUIColors master(), uilook()
-   SaveUIColors uilook(), boxlook(), palnum
+   IF yesno("Really reset UI colors to defaults?") THEN
+    GuessDefaultUIColors master(), uilook()
+    SaveUIColors uilook(), boxlook(), palnum
+   END IF
   CASE 8
    'Reset box styles
-   GuessDefaultBoxStyles master(), boxlook(), YES  'colors_only=YES
-   SaveUIColors uilook(), boxlook(), palnum
+   IF yesno("Really reset box styles to defaults?") THEN
+    GuessDefaultBoxStyles master(), boxlook(), YES  'colors_only=YES
+    SaveUIColors uilook(), boxlook(), palnum
+   END IF
   CASE 9
     gen(genMasterPal) = palnum
     ' Keep obsolete .MAS lump up to date

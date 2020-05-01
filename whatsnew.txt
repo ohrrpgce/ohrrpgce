@@ -20,7 +20,7 @@ April ? 2020 [Gorgonzola]
     * Title Screen Text; a quick and easy way to put a line of text like
       a version number at the bottom of the title screen [James]
     * "Reset UI Colors/Box Styles to defaults" options in the Master Palettes
-      menu, and F4 rescue key [Ralph]
+      menu, and Ctrl-D rescue key [Ralph]
     * Enemy editor option to show a backdrop behind the enemy sprite [Ralph]
     * While encoding .ogg files, added an advanced option not to filter out
       very high frequencies. Useful for sfx (eg rain) with hiss noises [Ralph]
