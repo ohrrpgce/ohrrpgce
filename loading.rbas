@@ -2379,7 +2379,10 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer)
  FOR i as integer = 0 TO uiColorLast
   c.col = fixeddefaults(i)
   DIM firstindex as integer = IIF(i = uiShadow, 1, 0)   'Shadow color can't be 0
-  colarray(i) = nearcolor(masterpal(), c.r, c.g, c.b, firstindex)
+  DIM avoidcol as integer = -1
+  'Text colors used in Custom shouldn't be same as background
+  IF i >= uiMenuItem ANDALSO i <= uiHighlight2 THEN avoidcol = uilook(uiBackground)
+  colarray(i) = nearcolor(masterpal(), c.r, c.g, c.b, firstindex, , avoidcol)
  NEXT i
 END SUB
 
@@ -2544,11 +2547,13 @@ FUNCTION mouse_hover_tinted_color(text_col as integer = -1) as integer
  END IF
  DIM as RGBcolor col = master(text_col)
  DIM as RGBcolor menuitem = master(uilook(uiMenuItem)), hover = master(uilook(uiMouseHoverItem))
- DIM as integer r, g, b
+ DIM as integer r, g, b, ret
  r = col.r + hover.r - menuitem.r
  g = col.g + hover.g - menuitem.g
  b = col.b + hover.b - menuitem.b
- RETURN nearcolor(master(), r, g, b, , , text_col)  'Find nearest color not equal to text_col
+ ret = nearcolor(master(), r, g, b, , , text_col)  'Find nearest color not the same as text_col
+ IF ret = uilook(uiBackground) THEN ret = uilook(uiMouseHoverItem)  'Never return the background
+ RETURN ret
 END FUNCTION
 
 SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer=-1, masterpal() as RGBcolor)

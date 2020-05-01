@@ -525,7 +525,8 @@ SUB standardmenu (menu() as string, byref state as MenuState, x as RelPos, y as 
  v_free basicmenu
 END SUB
 
-'Version which allows items to be "shaded" (they are both disabled/greyed out and unselectable (for purposes of mouse hover))
+'Version which allows items to be "shaded" (they are both disabled/greyed out and
+'unselectable (not affected by mouse hover)... which is often not what you want)
 SUB standardmenu (menu() as string, byref state as MenuState, shaded() as bool, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions)
  BUG_IF(LBOUND(shaded) > LBOUND(menu) ORELSE UBOUND(shaded) < UBOUND(menu), "shaded() too small")
  DIM basicmenu as BasicMenuItem vector
