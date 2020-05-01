@@ -705,6 +705,7 @@ DIM preview as Slice Ptr
 preview = NewSliceOfType(slSprite, preview_box)
 '--Align the sprite to the bottom center of the containing box
 WITH *preview
+ .Lookup = SL_EDITOR_ENEMY_SPRITE
  .Y = -1
  .AnchorHoriz = alignCenter
  .AlignHoriz = alignCenter
@@ -1079,7 +1080,7 @@ FUNCTION enemy_edit_add_new (recbuf() as integer, preview_box as Slice ptr) as b
   DIM enemy as EnemyDef
   DIM menu(2) as string
   DIM enemytocopy as integer = 0
-  DIM preview as Slice ptr = preview_box->FirstChild
+  DIM preview as Slice ptr = LookupSlice(SL_EDITOR_ENEMY_SPRITE, preview_box)
   DIM state as MenuState
   state.last = UBOUND(menu)
   state.size = 24
