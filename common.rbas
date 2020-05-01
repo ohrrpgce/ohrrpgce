@@ -7070,7 +7070,7 @@ END FUNCTION
 
 FUNCTION color_browser_256(byval start_color as integer=0) as integer
  DIM ret as integer = start_color
- DIM tog as integer = 0
+ DIM cycle_idx as integer = 0
  DIM gridpos as XYPair = (64, 0)
  DIM tilesize as XYPair = (12, 12)
  DIM spot as XYPair
@@ -7120,19 +7120,20 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   END IF
 
   clearpage dpage
+  DIM cycle_col as integer = uilook(cycle_idx)
   'Draw the grid
   FOR i as integer = 0 TO 255
    spot = xy_from_int(i, 16, 16)
    DIM where as XYPair = gridpos + spot * tilesize
    rectangle where.x, where.y, tilesize.x, tilesize.y, i, dpage
    IF i = showcol THEN
-    drawbox where.x, where.y, tilesize.x, tilesize.y, tog, 1, dpage
+    drawbox where.x, where.y, tilesize.x, tilesize.y, cycle_col, 1, dpage
    ELSEIF spot = cursor THEN
-    drawants vpages(dpage), where.x, where.y, tilesize.x, tilesize.y, tog
+    drawants vpages(dpage), where.x, where.y, tilesize.x, tilesize.y, cycle_col
    END IF
   NEXT i
 
-  textcolor tog, 0
+  textcolor cycle_col, 0
   'Mouse cursor tip is offset in the font
   printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
 
@@ -7146,7 +7147,7 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   SWAP vpage, dpage
   setvispage vpage
   'Only increment tog every 55ms (secondary setwait timer)
-  IF dowait THEN tog = (tog + 1) MOD 256
+  IF dowait THEN loopvar cycle_idx, 0, uiColorOldLast
  LOOP
  setcursorvisibility prev_mouse_vis
  RETURN ret
