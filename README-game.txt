@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Game Player         (WIP version)
+ O.H.R.RPG.C.E Game Player   (gorgonzola version 2020-05-02)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
