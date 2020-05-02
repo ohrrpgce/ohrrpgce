@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-April ? 2020 [Gorgonzola]
+May 2 2020 [Gorgonzola]
 
   *** New Features
     * True transparent sprite and map layer slices!
