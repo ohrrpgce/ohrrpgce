@@ -3136,6 +3136,8 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
  holdscreen = allocatepage
  copypage vpage, holdscreen
 
+ DIM have_help_file as bool = (LEN(*helpkey) > 0 ANDALSO isfile(*helpkey))
+
  push_and_reset_gfxio_state
  DO
   setwait 55
@@ -3178,7 +3180,7 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
   menu.max_chars = res.w \ 8 - 2
   init_menu_state state, menu  'Required after changing menu.maxrows
   draw_menu menu, state, vpage
-  IF LEN(*helpkey) > 0 THEN
+  IF have_help_file THEN
    edgeprint "F1 Help", pRight, pBottom, uilook(uiMenuItem), vpage
   END IF
   wrapprint *extra_message, pLeft, pBottom, uilook(uiMenuItem), vpage, YES, YES
