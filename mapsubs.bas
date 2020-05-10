@@ -4520,8 +4520,10 @@ SUB mapedit_import_tilemaps(st as MapEditState, appending as bool)
  IF st.map.wide <> newwide OR st.map.high <> newhigh THEN
   REDIM menu_choices(2) as string
 
-  menu_caption = "This tilemap is " & newwide & "*" & newhigh & " with " & (UBOUND(newlayers) + 1) & " layers, while the map is " & st.map.wide & "*" & st.map.high & " (with " & (UBOUND(newlayers) + 1) & " layers)."
-  menu_caption = !"\nDo you want to resize (or shift) the map first?"
+  menu_caption = "This tilemap is " & newwide & "*" & newhigh & " with " & (UBOUND(newlayers) + 1) & _
+                 " layers, while the map is " & st.map.wide & "*" & st.map.high & _
+                 " (with " & (UBOUND(newlayers) + 1) & " layers)." _
+                 !"\nDo you want to resize (or shift) the map first?"
   menu_choices(0) = "Cancel"
   menu_choices(1) = "Let me resize the map"
   menu_choices(2) = "Crop/expand imported tilemaps as needed"
