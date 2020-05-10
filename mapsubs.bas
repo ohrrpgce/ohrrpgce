@@ -137,9 +137,10 @@ DECLARE SUB DrawDoorPair(st as MapEditState, linknum as integer, page as integer
 DECLARE SUB calculatepassblock(st as MapEditState, x as integer, y as integer)
 
 DECLARE SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
-DECLARE SUB resizetiledata OVERLOAD (tmap as TileMap, rs as MapResizeState, byref yout as integer, page as integer)
-DECLARE SUB resizetiledata OVERLOAD (tmaps() as TileMap, rs as MapResizeState, byref yout as integer, page as integer)
-DECLARE SUB resizetiledata OVERLOAD (tmap as TileMap, x_off as integer, y_off as integer, new_width as integer, new_height as integer, byref yout as integer, page as integer)
+
+DECLARE SUB mapedit_resize_map(st as MapEditState, rect as RectType)
+DECLARE SUB resizetiledata OVERLOAD (tmap as TileMap, rect as RectType)
+DECLARE SUB resizetiledata OVERLOAD (tmaps() as TileMap, rect as RectType)
 
 DECLARE SUB set_usetile(st as MapEditState, tile as integer)
 DECLARE SUB update_tilepicker(st as MapEditState)
@@ -4091,12 +4092,12 @@ SUB verify_map_size (st as MapEditState)
   '.wide = large(.tiles(0).wide, large(.pass.wide, .foemap.wide))
   '.high = large(.tiles(0).high, large(.pass.high, .foemap.high))
   'savetilemaps .tiles, maplumpname(.id, "t")
-  'resizetiledata shows a message, write it to dpage to hide it because it uses line height 10 instead of 8
-  resizetiledata .pass, 0, 0, .wide, .high, 0, dpage
+  DIM resize_to as RectType = XYWH(0, 0, .wide, .high)
+  resizetiledata .pass, resize_to
   savetilemap .pass, maplumpname(.id, "p")
-  resizetiledata .foemap, 0, 0, .wide, .high, 0, dpage
+  resizetiledata .foemap, resize_to
   savetilemap .foemap, maplumpname(.id, "e")
-  SaveZoneMap .zmap, maplumpname(.id, "z"), @XYWH(0, 0, .wide, .high)  'Resizes
+  SaveZoneMap .zmap, maplumpname(.id, "z"), @resize_to  'Resizes
   LoadZoneMap .zmap, maplumpname(.id, "z")
   j += 1
   printstr "If unexpected, report this error to", 0, j * 8, vpage: j += 1
@@ -4238,59 +4239,49 @@ END SUB
 
 
 SUB mapedit_resize(st as MapEditState)
-'sizemap:
  DIM rs as MapResizeState
- rs.rect.wide = 0
- rs.rect.high = 0
- rs.rect.x = 0
- rs.rect.y = 0
  resizemapmenu st, rs
- IF rs.rect.wide = -1 THEN EXIT SUB
+ IF rs.rect.wide = -1 ORELSE rs.rect = XY_WH(XY(0,0), st.map.size) THEN EXIT SUB
+ mapedit_resize_map st, rs.rect
+ 'notification "Resized the map to " & rs.rect.w & "x" & rs.rect.h
+END SUB
 
- clearpage 0
- clearpage 1
- 
- DIM yout as integer = 0
- edgeprint "TILEMAP", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
- resizetiledata st.map.tiles(), rs, yout, vpage
- edgeprint "PASSMAP", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
- resizetiledata st.map.pass, rs, yout, vpage
- edgeprint "FOEMAP", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
- resizetiledata st.map.foemap, rs, yout, vpage
- edgeprint "ZONEMAP", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
- SaveZoneMap st.map.zmap, tmpdir & "zresize.tmp", @rs.rect
+'Shift and resize all map data. Does not save the map afterwards.
+'rect.x/y are the offset to shift, .wide/.high is the new size.
+SUB mapedit_resize_map(st as MapEditState, rect as RectType)
+ resizetiledata st.map.tiles(), rect
+ resizetiledata st.map.pass, rect
+ resizetiledata st.map.foemap, rect
+ SaveZoneMap st.map.zmap, tmpdir & "zresize.tmp", @rect
  LoadZoneMap st.map.zmap, tmpdir & "zresize.tmp"
- edgeprint "Deleting Undo History", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
  mapedit_throw_away_history st
  ' update SAV x/y offset in MAP lump
- st.map.gmap(20) += rs.rect.x * -1
- st.map.gmap(21) += rs.rect.y * -1
+ st.map.gmap(20) += rect.x * -1
+ st.map.gmap(21) += rect.y * -1
  ' update hero's starting position (if on current map)
  IF gen(genStartMap) = st.map.id THEN
-  gen(genStartX) += rs.rect.x * -1
-  gen(genStartY) += rs.rect.y * -1 
+  gen(genStartX) += rect.x * -1
+  gen(genStartY) += rect.y * -1
  END IF
- st.map.wide = rs.rect.wide
- st.map.high = rs.rect.high
+ st.map.wide = rect.wide
+ st.map.high = rect.high
  '--reset map scroll position
  st.x = 0
  st.y = 0
  st.mapx = 0
  st.mapy = 0
- edgeprint "Aligning and truncating doors", 0, yout * 10, uilook(uiText), vpage: yout += 1
  FOR i as integer = 0 TO UBOUND(st.map.door)
   WITH st.map.door(i)
-   .pos -= rs.rect.topleft
+   .pos -= rect.topleft
    IF (.pos >= 0 ANDALSO .pos < st.map.size) = NO THEN
     st.map.door(i).exists = NO
    END IF
   END WITH
  NEXT
- edgeprint "Aligning and truncating NPCs", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
  FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
-   .x -= rs.rect.x * 20
-   .y -= rs.rect.y * 20
+   .x -= rect.x * 20
+   .y -= rect.y * 20
    IF .x < 0 OR .y < 0 OR .x >= st.map.wide * 20 OR .y >= st.map.high * 20 THEN
     .id = 0
    END IF
@@ -4516,30 +4507,37 @@ SUB mapedit_import_tilemaps(st as MapEditState, appending as bool)
 
  '--- Then we check the size and handle any problems
 
- DIM as integer newwide = newlayers(0).wide, newhigh = newlayers(0).high
- IF st.map.wide <> newwide OR st.map.high <> newhigh THEN
+ DIM as XYPair newsize = newlayers(0).size
+ IF st.map.size <> newsize THEN
   REDIM menu_choices(2) as string
 
-  menu_caption = "This tilemap is " & newwide & "*" & newhigh & " with " & (UBOUND(newlayers) + 1) & _
-                 " layers, while the map is " & st.map.wide & "*" & st.map.high & _
+  menu_caption = "This tilemap is " & newsize & " with " & (UBOUND(newlayers) + 1) & _
+                 " layers, while the map is currently " & st.map.size & _
                  " (with " & (UBOUND(newlayers) + 1) & " layers)." _
-                 !"\nDo you want to resize (or shift) the map first?"
+                 !"\nDo you want to resize the map? (Deletes out-of-bounds doors/NPCs)"
   menu_choices(0) = "Cancel"
-  menu_choices(1) = "Let me resize the map"
+  IF appending = NO THEN
+   'If we're overwriting the existing map layers there's no point letting the user scroll the map
+   menu_choices(1) = "Resize the map"
+  ELSE
+   menu_choices(1) = "Go to the map resize menu"
+  END IF
   menu_choices(2) = "Crop/expand imported tilemaps as needed"
 
   choice = multichoice(menu_caption, menu_choices(), 1, 0, "mapedit_importing_wrong_size_tilemap")
   IF choice = 0 THEN
    UnloadTilemaps newlayers()
    EXIT SUB
-  ELSEIF choice = 1 THEN
+  ELSEIF choice = 1 AND appending = YES THEN
    'Goto resize menu
    mapedit_resize st
-   IF st.map.wide <> newwide OR st.map.high <> newhigh THEN  'Either cancelled or wrong size
+   IF st.map.size <> newsize THEN  'Either cancelled or wrong size
     notification "Map still the wrong size, cancelling import"
     UnloadTilemaps newlayers()
     EXIT SUB
    END IF
+  ELSEIF choice = 1 AND appending = NO THEN
+   mapedit_resize_map st, XY_WH(XY(0,0), newsize)
   ELSEIF choice = 2 THEN
    'Crop/extend. This is handled automatically.
   END IF
@@ -5109,33 +5107,24 @@ END SUB
 
 ' (Actual resize routine, mapedit_resize, is above)
 
-SUB resizetiledata (tmap as TileMap, rs as MapResizeState, byref yout as integer, page as integer)
- resizetiledata tmap, rs.rect.x, rs.rect.y, rs.rect.wide, rs.rect.high, yout, page
-END SUB
-
-SUB resizetiledata (tmaps() as TileMap, rs as MapResizeState, byref yout as integer, page as integer)
+SUB resizetiledata (tmaps() as TileMap, rect as RectType)
  FOR i as integer = 0 TO UBOUND(tmaps)
-  resizetiledata tmaps(i), rs.rect.x, rs.rect.y, rs.rect.wide, rs.rect.high, yout, page
+  resizetiledata tmaps(i), rect
  NEXT
 END SUB
 
-SUB resizetiledata (tmap as TileMap, x_off as integer, y_off as integer, new_width as integer, new_height as integer, byref yout as integer, page as integer)
- edgeprint "Resizing Map...", 0, yout * 10, uilook(uiText), page
- yout += 1
- setvispage page, NO
-
- dim tmp as TileMap
- cleantilemap tmp, new_width, new_height
+SUB resizetiledata (tmap as TileMap, rect as RectType)
+ DIM tmp as TileMap
+ CleanTilemap tmp, rect.wide, rect.high
  tmp.layernum = tmap.layernum  'the unexpected ingredient!
 
- dim as integer x, y
- for x = large(x_off, 0) to small(tmap.wide, new_width + x_off) - 1
-	for y = large(y_off, 0) to small(tmap.high, new_height + y_off) - 1
-		'newarray((x - tempx) * tempw + (y - tempy) + 2) = tmp(x * st.map.wide + y + 2)
-		writeblock(tmp, x - x_off, y - y_off, readblock(tmap, x, y))
-	next
- next
- unloadtilemap tmap
+ DIM as integer x, y
+ FOR x = large(rect.x, 0) to small(tmap.wide, rect.wide + rect.x) - 1
+  FOR y = large(rect.y, 0) to small(tmap.high, rect.high + rect.y) - 1
+   writeblock(tmp, x - rect.x, y - rect.y, readblock(tmap, x, y))
+  NEXT
+ NEXT
+ UnloadTilemap tmap
  memcpy(@tmap, @tmp, sizeof(TileMap))
  'obviously don't free tmp
 END SUB
