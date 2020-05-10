@@ -19,12 +19,12 @@ FBFLAGS = ['-mt'] #, '-showincludes']
 # Flags used when compiling C and C++ modules, but NOT -gen gcc or euc generated
 # C sources (except on Android...). Not used for linking.
 CFLAGS = ['-Wall']
-# Flags used when compiling -gen gcc generated C sources.
-# Not for euc, and not using on Android (because of inflexible build system).
+# Flags given to fbc to pass on to FBCC used when compiling -gen gcc generated C sources.
+# Not for euc, and not used on Android (because of inflexible build system).
 GENGCC_CFLAGS = []
 # In addition to GENGCC_CFLAGS, flags for -gen gcc C sources when we compile them
-# manually using clang, instead of fbc. (Such as ones fbc would normally pass)
-GENCLANG_CFLAGS = []
+# manually using FBCC (if FBCC is clang), instead of fbc. Such as ones fbc would normally pass automatically.
+FBCC_CFLAGS = []
 # TRUE_CFLAGS apply only to normal .c sources, NOT to C++ or those generated via gengcc=1 or euc.
 # Use gnu99 dialect instead of c99. c99 causes GCC to define __STRICT_ANSI__
 # which causes types like off_t and off64_t to be renamed to _off_t and _off64_t
@@ -50,9 +50,6 @@ if 'FBFLAGS' in os.environ:
 fbc = ARGUMENTS.get ('fbc','fbc')
 fbc = os.path.expanduser (fbc)  # expand ~
 gengcc = int (ARGUMENTS.get ('gengcc', True if release else False))
-genclang = int (ARGUMENTS.get ('genclang', False))
-if genclang:
-    gengcc = True
 linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # link using g++ instead of fbc?
 envextra = {}
 FRAMEWORKS_PATH = os.path.expanduser("~/Library/Frameworks")  # Frameworks search path in addition to the default /Library/Frameworks
@@ -211,10 +208,10 @@ if debug >= 1 or pdb:
     # If debug=0 and pdb, then the debug info gets stripped later
     FBFLAGS.append ('-g')
     CFLAGS.append ('-g')
-    GENCLANG_CFLAGS.append ('-g')
+    FBCC_CFLAGS.append ('-g')
 # Note: fbc includes symbols (but not debug info) in .o files even without -g,
 # but strips everything if -g not passed during linking; with linkgcc we need to strip.
-GCC_strip = (debug == 0 and pdb == 0)  # (linkgcc only) strip debug info and unwanted symbols?
+linkgcc_strip = (debug == 0 and pdb == 0)  # (linkgcc only) strip debug info and unwanted symbols?
 if ARGUMENTS.get('lto'):
     # Only use LTO on gengcc .c files. GCC throws errors if you try to use LTO
     # across C/FB, after saying declarations don't match.
@@ -235,7 +232,7 @@ profile = int (ARGUMENTS.get ('profile', 0))
 if profile:
     FBFLAGS.append ('-profile')
     CFLAGS.append ('-pg')
-    GENCLANG_CFLAGS.append ('-pg')
+    FBCC_CFLAGS.append ('-pg')
 if int (ARGUMENTS.get ('valgrind', 0)):
     #-exx under valgrind is nearly redundant, and really slow
     FB_exx = False
@@ -255,12 +252,12 @@ if asan:
 if optimisations:
     CFLAGS.append ('-O3')
     CXXLINKFLAGS.append ('-O2')  # For LTO
-    GENCLANG_CFLAGS.append ('-O3')
+    FBCC_CFLAGS.append ('-O3')
     # FB optimisation flag currently does pretty much nothing unless using -gen gcc
     FBFLAGS += ["-O", "2"]
 else:
     CFLAGS.append ('-O0')
-    GENCLANG_CFLAGS.append ('-O0')
+    FBCC_CFLAGS.append ('-O0')
 
 # Backend selection.
 if 'gfx' in ARGUMENTS:
@@ -307,9 +304,11 @@ env = Environment (CFLAGS = [],
 for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR':
     if var in os.environ:
         env['ENV'][var] = os.environ[var]
-for var in 'GCC', 'AS', 'CC', 'CXX':
+for var in 'AS', 'CC', 'CXX':
     if var in os.environ:
+        # Make a File object so scons escapes spaces in paths
         env['ENV'][var] = File(os.environ[var])
+# env['ENV']['GCC'] is set below
 
 def findtool(envvar, toolname, always_expand = False):
     if os.environ.get (envvar):
@@ -326,29 +325,34 @@ def findtool(envvar, toolname, always_expand = False):
 
 
 # If you want to use a different C/C++ compiler do "CC=... CXX=... scons ...".
-# If using gengcc=1, CC will not be used by fbc, set GCC envar instead.
-GCC = findtool ('GCC', 'clang' if genclang else 'gcc')
-CC = findtool ('CC', 'clang' if genclang else 'cc')
-CXX = findtool ('CXX', 'clang++' if genclang else 'c++')
+# If CC is clang, you may want to set FBCC too.
+CC = findtool('CC', ARGUMENTS.get('compiler', 'cc'))
+# FBCC is the compiler used for fbc-generated C code (gengcc=1).
+FBCC = findtool('FBCC', ARGUMENTS.get('compiler', 'gcc'), True)  # None if not found
+if not FBCC: FBCC = CC
+_cxx = {'gcc':'g++', 'clang':'clang++', None:'c++'}[ARGUMENTS.get('compiler')]
+CXX = findtool('CXX', _cxx)
 EUC = findtool ('EUC', "euc", True)  # Euphoria to C compiler (None if not found)
 MAKE = findtool ('MAKE', 'make')
 if not MAKE and win32:
     MAKE = findtool ('MAKE', 'mingw32-make')
 
-# Replace CC and GCC with ToolInfo objects (which can still be treated as strings)
+# Replace CC and FBCC with ToolInfo objects (which can still be treated as strings)
 CC = ohrbuild.get_cc_info(CC)
-GCC = CC if CC.path == GCC else ohrbuild.get_cc_info(GCC)
+FBCC = CC if CC.path == FBCC else ohrbuild.get_cc_info(FBCC)
 
-if not genclang and CC.is_gcc and 'GCC' not in os.environ:
-    # Copy CC to GCC (fbc only checks GCC variable, not CC).
-    # fbc doesn't fully support -gen gcc using clang; using clang is experimental,
-    # so don't use clang unless explicitly requested with genclang=1.
-    # Note: GCC mostly isn't used when compiling when GCC.is_clang, because fbc only produces .c files
-    GCC = CC
-    env['ENV']['GCC'] = GCC.path
+if 'FBCC' not in env['ENV']:
+    if 'compiler' not in ARGUMENTS and CC.is_gcc:
+        # Copy CC to FBCC if CC is gcc.
+        # Using clang for -gen gcc is experimental (fbc doesn't officially support it)
+        # so don't use clang unless explicitly requested with compiler=...
+        # Note: GCC in env['ENV'] mostly isn't used when compiling when FBCC.is_clang, because fbc only produces .c files
+        FBCC = CC
+# fbc uses GCC variable for -gen gcc, doesn't check CC. Renamed to FBCC in this script for less confusion.
+env['ENV']['GCC'] = FBCC.path
 
 # This may look redundant, but it's so $MAKE, etc in command strings work, as opposed to setting envvars.
-for tool in ('CC', 'GCC', 'CXX', 'MAKE', 'EUC'):
+for tool in ('CC', 'FBCC', 'CXX', 'MAKE', 'EUC'):
     val = globals()[tool]
     if val:
         env[tool] = File(val)
@@ -379,11 +383,11 @@ else:
 
 
 def bas_build_action(moreflags = ''):
-    if GCC.is_clang:
-        # fbc asks GCC to produce assembly and then runs that through as,
+    if FBCC.is_clang:
+        # fbc asks FBCC to produce assembly and then runs that through as,
         # but clang produces some directives that as doesn't like.
         return ['$FBC -r $SOURCE -o ${TARGET}.c $FBFLAGS ' + moreflags,
-                '$GCC -c ${TARGET}.c -o $TARGET $GENGCC_CFLAGS $GENCLANG_CFLAGS']
+                '$FBCC -c ${TARGET}.c -o $TARGET $GENGCC_CFLAGS $FBCC_CFLAGS']
     else:
         return '$FBC -c $SOURCE -o $TARGET $FBFLAGS ' + moreflags
 
@@ -502,14 +506,14 @@ elif mac:
     NO_PIE = '-no_pie'
 elif not win32:
     # Recent versions of some linux distros, such as debian and arch, config
-    # GCC to default to PIE on non-x86, but our linkgcc code isn't written
+    # gcc to default to PIE on non-x86, but our linkgcc code isn't written
     # to support PIE, causing ld 'relocation' errors. Simplest solution is
     # to disable PIE.
-    # (Assuming if GCC is clang then CC is too)
-    if GCC.is_gcc and GCC.version < 500:
+    # (Assuming if FBCC is clang then CC is too)
+    if FBCC.is_gcc and FBCC.version < 500:
         # gcc 4.9 apparently doesn't have -nopie, so I assume it was added in 5.x
         NO_PIE = None
-    elif GCC.is_clang or GCC.version < 600:
+    elif FBCC.is_clang or FBCC.version < 600:
         # -no-pie was added in gcc 6.
         # But on Ubuntu 16.04 -no-pie exists in gcc 5.4.
         # Some builds of gcc 5.x (but not stock gcc 5.4.0) support -nopie.
@@ -542,7 +546,7 @@ elif arch == 'aarch64':
 elif arch == 'x86':
     FBFLAGS += ["-arch", "686"]  # "x86" alias not recognised by FB yet
     CFLAGS.append ('-m32')
-    GENCLANG_CFLAGS.append ('-m32')
+    FBCC_CFLAGS.append ('-m32')
     if fbcversion < 1060 and CC.is_gcc and gengcc == False:
         # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
         # (which is a recent change in the Linux x86 ABI, and IIRC is also part of the
@@ -556,7 +560,7 @@ elif arch == 'x86':
 elif arch == 'x86_64':
     FBFLAGS += ["-arch", arch]
     CFLAGS.append ('-m64')
-    GENCLANG_CFLAGS.append ('-m64')
+    FBCC_CFLAGS.append ('-m64')
     # This also causes FB to default to -gen gcc, as -gen gas not supported
     # (therefore we don't need to pass -mpreferred-stack-boundary=2)
 elif arch == '(see target)':
@@ -572,16 +576,16 @@ else:
 
 # If cross compiling, do a sanity test
 if not android_source:
-    print("Using target:", target, " arch:", arch, " gcc:", GCC.describe(), " cc:", CC.describe(), " gcctarget:", GCC.target, " fbcversion:", fbcversion)
+    print("Using target:", target, " arch:", arch, " fbcc:", FBCC.describe(), " cc:", CC.describe(), " gcctarget:", FBCC.target, " fbcversion:", fbcversion)
     # If it contains two dashes it looks like a target triple
-    if target_prefix and target_prefix != GCC.target + '-':
+    if target_prefix and target_prefix != FBCC.target + '-':
         print("Error: This CC/GCC doesn't target " + target_prefix)
         print ("You need to either pass 'target' as a target triple (e.g. target=arm-linux-androideabi) and "
                "ensure that the toolchain executables (e.g. arm-linux-androideabi-gcc) "
                "are in your PATH, or otherwise set CC, CXX, and AS environmental variables.")
         Exit(1)
 
-if gengcc and GCC.is_clang:
+if gengcc and FBCC.is_clang:
     # -exx (in fact -e) causes fbc to use computed gotos which clang can't compile
     FB_exx = False
     # Currently needed on x86 only: fbc outputs some asm which clang doesn't like
@@ -592,20 +596,20 @@ if FB_exx:
 
 if gengcc:
     FBFLAGS += ["-gen", "gcc"]
-    if GCC.is_gcc:
+    if FBCC.is_gcc:
         # -exx results in a lot of labelled goto use, which confuses gcc 4.8+, which tries harder to throw this warning
         # (This flag only recognised by recent gcc)
-        if GCC.version >= 480:
+        if FBCC.version >= 480:
             GENGCC_CFLAGS.append ('-Wno-maybe-uninitialized')
             # (The following is not in gcc 4.2)
             # Ignore warnings due to using an array lbound > 0
             GENGCC_CFLAGS.append ('-Wno-array-bounds')
-        if GCC.version >= 900:
+        if FBCC.version >= 900:
             # Workaround an error. See https://sourceforge.net/p/fbc/bugs/904/
             GENGCC_CFLAGS.append ('-Wno-format')
         # Ignore annoying warning which is an fbc bug
         GENGCC_CFLAGS.append ('-Wno-missing-braces')
-    if GCC.is_clang:
+    if FBCC.is_clang:
         # clang doesn't like fbc's declarations of standard functions
         GENGCC_CFLAGS += ['-Wno-builtin-requires-header', '-Wno-incompatible-library-redeclaration']
     if asan:
@@ -615,9 +619,9 @@ if gengcc:
         # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc; the last -Wc overrides others!
         # NOTE: GENGCC_CFLAGS isn't used on android
         FBFLAGS += ["-Wc", ','.join (GENGCC_CFLAGS)]
-        # Used when GCC.is_clang only
+        # Used when FBCC.is_clang only
         env['GENGCC_CFLAGS'] = GENGCC_CFLAGS
-    env['GENCLANG_CFLAGS'] =  GENCLANG_CFLAGS
+    env['FBCC_CFLAGS'] = FBCC_CFLAGS
 
 if mac:
     # Doesn't have --gc-sections. This is similar, but more aggressive than --gc-sections
@@ -672,7 +676,7 @@ if linkgcc:
     CXXLINKFLAGS += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
     if verbose:
         CXXLINKFLAGS += ['-v']
-    if GCC_strip:
+    if linkgcc_strip:
         # Strip debug info but leave in the function (and unwanted global) symbols.
         # Result is about 600KB larger than a full strip, and after running
         # strip_unwanted_syms below, down to 280KB.
@@ -741,7 +745,7 @@ if linkgcc:
             handle_symbols += " || exit /b 0"   # aka " || true"
     else:
         # Untested on mac. And I would guess not needed, due to -dead_strip
-        if GCC_strip and not mac:
+        if linkgcc_strip and not mac:
             # This strips ~330kB from each of game.exe and custom.exe, leaving ~280kB of symbols
             # The size reduction is more like 60kB on Linux.
             def strip_unwanted_syms(source, target, env):
@@ -1130,7 +1134,7 @@ archinfo = arch
 if arch == '(see target)':
     archinfo = target
 def version_info(source, target, env):
-    ohrbuild.verprint (gfx, music, fbc, archinfo, GCC.fullversion, asan, portable, pdb, builddir, rootdir)
+    ohrbuild.verprint (gfx, music, fbc, archinfo, FBCC.fullversion, asan, portable, pdb, builddir, rootdir)
 VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'],
                         source = ['codename.txt'], 
                         action = env.Action(version_info, "Generating ver.txt"))
@@ -1468,9 +1472,9 @@ Options:
                       nightly builds (which you can override):
                       Equivalent to debug=0 gengcc=1, and also portable=1
                       on Unix (except Android and Mac)
-  gengcc=1            Compile using GCC emitter (faster binaries, longer compile
+  gengcc=1            Compile using C backend (faster binaries, longer compile
                       times, and some extra warnings). This is always used
-                      everywhere except x86 Windows/Linux/BSD. See also 'genclang'.
+                      everywhere except x86 Windows/Linux/BSD. See also 'compiler'.
   debug=0|1|2|3|4     Debug level:
                                   -exx |     debug info      | optimisation
                                  ------+---------------------+--------------
@@ -1481,7 +1485,7 @@ Options:
                        debug=4:    no  |        yes          |    no
                       (pdb=1:          always stripped to pdb         )
                       -exx builds have array, pointer and file error checking and
-                        are slow.
+                        are slow. [Disabled if using clang, asan or valgrind.]
                       debug info: "minimal syms" means: only function
                         symbols present (to allow basic stacktraces); adds ~300KB.
                         (Note: if gengcc=0, then debug=0 is completely unstripped)
@@ -1497,7 +1501,7 @@ Options:
                       and mingw-w64 (not mingw) to get support for IPv6.
   valgrind=1          Recommended when using valgrind (also turns off -exx).
   asan=1              Use AddressSanitizer. Unless overridden with gengcc=0 also
-                      disables -exx and uses GCC emitter.
+                      disables -exx and uses C backend.
   profile=1           Profiling build using gprof (executables) or MicroProfiler
                       (gfx_directx.dll/gfx_directx_test1.exe).
   asm=1               Produce .asm or .c files in build/ while compiling.
@@ -1514,16 +1518,18 @@ Options:
   dry_run=1           For 'uninstall' only. Print files that would be deleted.
   buildtests=0        Affects test targets only: run tests without recompiling
                       anything or reimporting scripts.
-  v=1                 Be verbose.
-
-Experimental options:
-  linkgcc=0           Link using fbc instead of g++
-  genclang=1          Prefer to use clang instead of gcc for C, C++ and -gen gcc;
-                      implies gengcc=1. Disables -exx.
+  v=1                 Verbose output from commands.
+  linkgcc=0           Link using fbc instead of g++/clang++. May not work.
+  compiler=gcc|clang  Prefer to use clang or gcc for C, C++ and -gen gcc.
+                      CC, CXX, FBCC environmental variables always take
+                      precedence if set. If not, by default we use cc for C, c++
+                      for C++, and gcc for -gen gcc if gcc is present.
+                      Note that -exx is disabled if using clang for -gen gcc.
   android-source=1    Used as part of the Android build process for Game/Custom.
                       (See wiki for explanation.) Note: defaults to the original
                       armeabi ABI, which is becoming obsolete, c.f. 'arch='.
-  glibc=0|1           Override automatic detection (just checks for Linux).
+  glibc=0|1           Override automatic detection of GNU libc (detection just
+                      checks for Linux).
   target=...          Set cross-compiling target. Passed through to fbc. Either
                       a toolchain prefix triplet such as arm-linux-androideabi
                       (will be prefixed to names of tools like gcc/as/ld/, e.g.
@@ -1542,7 +1548,10 @@ Experimental options:
                        32 or 64           32 or 64 bit variant of the default
                                           arch (x86 or ARM).
                       Current (default) value: """ + arch + """
-  portable=1          (For Linux) Try to build portable binaries, and test them.
+  portable=1          (For Linux and BSD) Try to build portable binaries, and
+                      check library dependencies.
+
+Optional features:
   raster=1            Include software triangle rasterizer (rasterizer.cpp).
                       Not used for anything!
 
@@ -1551,10 +1560,11 @@ The following environmental variables are also important:
   fbc                 Override FB compiler
   AS, CC, CXX         Override assembler/compiler. Should be set when
                       crosscompiling unless target=... is given instead.
-  GCC                 Used only to compile C code generated from FB code
+  FBCC                Used only to compile C code generated from FB code
                       (e.g. when using gengcc=1).
-                      If genclang=1 this defaults to clang, otherwise to
-                      CC unless CC appears to be clang, then it defaults to gcc.
+                      If compiler=gcc|clang this defaults to gcc or clang,
+                      otherwise to CC unless CC appears to be clang, then it
+                      defaults to gcc.
   OHRGFX, OHRMUSIC    Specify default gfx, music backends
   DXSDK_DIR, Lib,
      Include          For compiling gfx_directx.dll
