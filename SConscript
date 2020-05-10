@@ -23,7 +23,7 @@ CFLAGS = ['-Wall']
 # Not for euc, and not using on Android (because of inflexible build system).
 GENGCC_CFLAGS = []
 # In addition to GENGCC_CFLAGS, flags for -gen gcc C sources when we compile them
-# manually using clang, instead of fbc. (Ones fbc would normally pass)
+# manually using clang, instead of fbc. (Such as ones fbc would normally pass)
 GENCLANG_CFLAGS = []
 # TRUE_CFLAGS apply only to normal .c sources, NOT to C++ or those generated via gengcc=1 or euc.
 # Use gnu99 dialect instead of c99. c99 causes GCC to define __STRICT_ANSI__
@@ -542,9 +542,11 @@ elif arch == 'aarch64':
 elif arch == 'x86':
     FBFLAGS += ["-arch", "686"]  # "x86" alias not recognised by FB yet
     CFLAGS.append ('-m32')
-    if CC.is_gcc:
+    GENCLANG_CFLAGS.append ('-m32')
+    if fbcversion < 1060 and CC.is_gcc and gengcc == False:
         # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
-        # (which is a recent change in the Linux x86 ABI) but fbc's GAS backend is not yet updated for that
+        # (which is a recent change in the Linux x86 ABI, and IIRC is also part of the
+        # Mac OSX ABI) but fbc's GAS backend wasn't updated for that until FB 1.06.
         # I don't know what clang does, but it doesn't support this commandline option.
         CFLAGS.append ('-mpreferred-stack-boundary=2')
     # gcc -m32 on x86_64 defaults to enabling SSE and SSE2, so disable that,
@@ -554,6 +556,7 @@ elif arch == 'x86':
 elif arch == 'x86_64':
     FBFLAGS += ["-arch", arch]
     CFLAGS.append ('-m64')
+    GENCLANG_CFLAGS.append ('-m64')
     # This also causes FB to default to -gen gcc, as -gen gas not supported
     # (therefore we don't need to pass -mpreferred-stack-boundary=2)
 elif arch == '(see target)':
@@ -581,6 +584,9 @@ if not android_source:
 if gengcc and GCC.is_clang:
     # -exx (in fact -e) causes fbc to use computed gotos which clang can't compile
     FB_exx = False
+    # Currently needed on x86 only: fbc outputs some asm which clang doesn't like
+    FBFLAGS += ['-asm', 'att']
+
 if FB_exx:
     FBFLAGS.append ('-exx')
 
