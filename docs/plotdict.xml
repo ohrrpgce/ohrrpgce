@@ -2041,13 +2041,24 @@ wait for text box # wait until the player continues</example>
 			</seealso>
 		</command>
 		<command id="speakingnpc">
-			<canon>speaking npc</canon>
-			<shortname>speaking npc</shortname>
+			<canon>speaking NPC</canon>
+			<shortname>speaking NPC</shortname>
 			<description>
 				If the player activated an NPC which showed a textbox
 				and the hero and NPC are still "speaking" (the textbox chain isn't done),
-				returns the NPC reference for that NPC.
-				Otherwise returns false.
+				returns the <ref>npcreference</ref> for that NPC.
+				Otherwise returns <tt>false</tt>.
+				<warn>
+					If you try to use this in a script called either AFTER or INSTEAD of
+					a textbox, the textbox has closed by the time the script starts,
+					so the NPC is no longer speaking and this will return <tt>false</tt>.
+					<lb/>
+					Likewise, if an NPC calls a script directly without showing a textbox
+					this will just return <tt>false</tt>.
+					But you don't need <p>speaking NPC</p> for scripts triggered directly from NPCs,
+					because the script is given the NPC reference as its second argument (if any).
+					(The first argument is customisable in the NPC editor.)
+				</warn>
 			</description>
 			<seealso>
 				<ref>currenttextbox</ref>

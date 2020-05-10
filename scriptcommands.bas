@@ -4713,7 +4713,7 @@ SUB script_functions(byval cmdid as integer)
    cancel_hero_walk(retvals(0))
   END IF
  CASE 675 '--speaking npc
-  scriptret = -1 - txt.sayer
+  scriptret = -1 - txt.sayer  '0 if no textbox or not triggered by an NPC
  CASE 676 '--keypress (scancode, joynum)
   a_script_wants_keys()
   scriptret = IIF(script_keyval(retvals(0), retvals(1)) > 1, 1, 0)
