@@ -4815,7 +4815,7 @@ SUB script_functions(byval cmdid as integer)
    IF drawopts THEN
     'Setting opacity to a value outside 0-100% is not an error
     drawopts->opacity = bound(retvals(1), 0, 100) * 0.01
-    IF retvals(0) < 100 THEN drawopts->with_blending = YES
+    IF retvals(1) < 100 THEN drawopts->with_blending = YES
    END IF
   END IF
  CASE 697 '--get blending enabled (slice)

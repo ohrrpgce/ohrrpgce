@@ -10,6 +10,8 @@ August ? 2020 [H???]
   *** Changes
 
   *** Bugfixes
+    * "set opacity" (with opacity < 100%) didn't always turn on blending
+      [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"
