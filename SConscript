@@ -335,49 +335,23 @@ MAKE = findtool ('MAKE', 'make')
 if not MAKE and win32:
     MAKE = findtool ('MAKE', 'mingw32-make')
 
-def tool_is(tool, iswhat):
-    "Try to recognise whether a tool path (eg CC) is a certain program (eg clang)"
-    if tool:
-        try:
-            return iswhat in os.readlink(WhereIs(tool))
-        except OSError:
-            pass # readlink throws an error if the arg isn't a symlink
-        except AttributeError:
-            pass # readlink does not exist at all on Windows
-    return iswhat in tool  # Fallback
+# Replace CC and GCC with ToolInfo objects (which can still be treated as strings)
+CC = ohrbuild.get_cc_info(CC)
+GCC = CC if CC.path == GCC else ohrbuild.get_cc_info(GCC)
 
-CC_is_clang = tool_is(CC, 'clang')
-CC_is_gcc = not CC_is_clang
-GCC_is_clang = tool_is(GCC, 'clang')
-GCC_is_gcc = not GCC_is_clang
-if not genclang and CC_is_gcc and 'GCC' not in os.environ:
+if not genclang and CC.is_gcc and 'GCC' not in os.environ:
     # Copy CC to GCC (fbc only checks GCC variable, not CC).
     # fbc doesn't fully support -gen gcc using clang; using clang is experimental,
     # so don't use clang unless explicitly requested with genclang=1.
-    # Note: GCC mostly isn't used when compiling when GCC_is_clang, because fbc only produces .c files
-    env['ENV']['GCC'] = CC
+    # Note: GCC mostly isn't used when compiling when GCC.is_clang, because fbc only produces .c files
     GCC = CC
-    GCC_is_clang = CC_is_clang
-    GCC_is_gcc = CC_is_gcc
+    env['ENV']['GCC'] = GCC.path
 
 # This may look redundant, but it's so $MAKE, etc in command strings work, as opposed to setting envvars.
 for tool in ('CC', 'GCC', 'CXX', 'MAKE', 'EUC'):
     val = globals()[tool]
     if val:
         env[tool] = File(val)
-
-#gcc = env['ENV'].get('GCC', env['ENV'].get('CC', 'gcc'))
-#gcc = CC or WhereIs(target + "-gcc") or WhereIs("gcc")
-
-
-# GCC can be configured to print only the major version number on -dumpversion,
-# -dumpfullversion always prints in #.#.# format... but is missing in older GCC.
-# GCC will process the first -dump* arg it recognises, and ignores others.
-# And clang accepts -dumpversion and ignores -dumpfullversion
-# NOTE: Check GCC_is_gcc before testing against version number.
-fullgccversion = get_command_output(GCC, ["-dumpfullversion", "-dumpversion"])
-gccversion = int(fullgccversion.replace('.', ''))  # Convert e.g. 4.9.2 to 492
-
 
 ################ Define Builders and Scanners for FreeBASIC and ReloadBasic
 
@@ -405,7 +379,7 @@ else:
 
 
 def bas_build_action(moreflags = ''):
-    if GCC_is_clang:
+    if GCC.is_clang:
         # fbc asks GCC to produce assembly and then runs that through as,
         # but clang produces some directives that as doesn't like.
         return ['$FBC -r $SOURCE -o ${TARGET}.c $FBFLAGS ' + moreflags,
@@ -532,10 +506,10 @@ elif not win32:
     # to support PIE, causing ld 'relocation' errors. Simplest solution is
     # to disable PIE.
     # (Assuming if GCC is clang then CC is too)
-    if GCC_is_gcc and gccversion < 500:
+    if GCC.is_gcc and GCC.version < 500:
         # gcc 4.9 apparently doesn't have -nopie, so I assume it was added in 5.x
         NO_PIE = None
-    elif GCC_is_clang or gccversion < 600:
+    elif GCC.is_clang or GCC.version < 600:
         # -no-pie was added in gcc 6.
         # But on Ubuntu 16.04 -no-pie exists in gcc 5.4.
         # Some builds of gcc 5.x (but not stock gcc 5.4.0) support -nopie.
@@ -568,7 +542,7 @@ elif arch == 'aarch64':
 elif arch == 'x86':
     FBFLAGS += ["-arch", "686"]  # "x86" alias not recognised by FB yet
     CFLAGS.append ('-m32')
-    if CC_is_gcc:
+    if CC.is_gcc:
         # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
         # (which is a recent change in the Linux x86 ABI) but fbc's GAS backend is not yet updated for that
         # I don't know what clang does, but it doesn't support this commandline option.
@@ -595,17 +569,16 @@ else:
 
 # If cross compiling, do a sanity test
 if not android_source:
-    gcctarget = get_command_output(GCC, "-dumpmachine")
-    print("Using target:", target, " arch:", arch, " gcc:", GCC, " cc:", CC, " gcctarget:", gcctarget, " gccversion:", gccversion, " fbcversion:", fbcversion)
+    print("Using target:", target, " arch:", arch, " gcc:", GCC.describe(), " cc:", CC.describe(), " gcctarget:", GCC.target, " fbcversion:", fbcversion)
     # If it contains two dashes it looks like a target triple
-    if target_prefix and target_prefix != gcctarget + '-':
-        print("Error: This GCC doesn't target " + target_prefix)
+    if target_prefix and target_prefix != GCC.target + '-':
+        print("Error: This CC/GCC doesn't target " + target_prefix)
         print ("You need to either pass 'target' as a target triple (e.g. target=arm-linux-androideabi) and "
                "ensure that the toolchain executables (e.g. arm-linux-androideabi-gcc) "
                "are in your PATH, or otherwise set CC, CXX, and AS environmental variables.")
         Exit(1)
 
-if gengcc and GCC_is_clang:
+if gengcc and GCC.is_clang:
     # -exx (in fact -e) causes fbc to use computed gotos which clang can't compile
     FB_exx = False
 if FB_exx:
@@ -613,20 +586,20 @@ if FB_exx:
 
 if gengcc:
     FBFLAGS += ["-gen", "gcc"]
-    if GCC_is_gcc:
+    if GCC.is_gcc:
         # -exx results in a lot of labelled goto use, which confuses gcc 4.8+, which tries harder to throw this warning
         # (This flag only recognised by recent gcc)
-        if gccversion >= 480:
+        if GCC.version >= 480:
             GENGCC_CFLAGS.append ('-Wno-maybe-uninitialized')
             # (The following is not in gcc 4.2)
             # Ignore warnings due to using an array lbound > 0
             GENGCC_CFLAGS.append ('-Wno-array-bounds')
-        if gccversion >= 900:
+        if GCC.version >= 900:
             # Workaround an error. See https://sourceforge.net/p/fbc/bugs/904/
             GENGCC_CFLAGS.append ('-Wno-format')
         # Ignore annoying warning which is an fbc bug
         GENGCC_CFLAGS.append ('-Wno-missing-braces')
-    if GCC_is_clang:
+    if GCC.is_clang:
         # clang doesn't like fbc's declarations of standard functions
         GENGCC_CFLAGS += ['-Wno-builtin-requires-header', '-Wno-incompatible-library-redeclaration']
     if asan:
@@ -636,7 +609,7 @@ if gengcc:
         # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc; the last -Wc overrides others!
         # NOTE: GENGCC_CFLAGS isn't used on android
         FBFLAGS += ["-Wc", ','.join (GENGCC_CFLAGS)]
-        # Used when GCC_is_clang only
+        # Used when GCC.is_clang only
         env['GENGCC_CFLAGS'] = GENGCC_CFLAGS
     env['GENCLANG_CFLAGS'] =  GENCLANG_CFLAGS
 
@@ -1151,7 +1124,7 @@ archinfo = arch
 if arch == '(see target)':
     archinfo = target
 def version_info(source, target, env):
-    ohrbuild.verprint (gfx, music, fbc, archinfo, fullgccversion, asan, portable, pdb, builddir, rootdir)
+    ohrbuild.verprint (gfx, music, fbc, archinfo, GCC.fullversion, asan, portable, pdb, builddir, rootdir)
 VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'],
                         source = ['codename.txt'], 
                         action = env.Action(version_info, "Generating ver.txt"))

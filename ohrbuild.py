@@ -32,8 +32,8 @@ host_win32 = platform.system() == 'Windows'
 ########################################################################
 # Utilities
 
-def get_command_output(cmd, args, shell = True, ignore_stderr = False):
-    """Runs a shell command and returns stdout as a string"""
+def get_command_outputs(cmd, args, shell = True, error_on_stderr = False):
+    """Runs a shell command and returns stdout and stderr as strings"""
     if shell:
         # Argument must be a single string (additional arguments get passed as extra /bin/sh args)
         if isinstance(args, (list, tuple)):
@@ -42,19 +42,19 @@ def get_command_output(cmd, args, shell = True, ignore_stderr = False):
     else:
         assert isinstance(args, (list, tuple))
         cmdargs = [cmd] + args
-    if ignore_stderr:
-        proc = subprocess.Popen(cmdargs, shell=shell, stdout=subprocess.PIPE)
-        errtext = ""
-    else:
-        proc = subprocess.Popen(cmdargs, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    outtext = proc.stdout.read().decode()
+    proc = subprocess.Popen(cmdargs, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    outtext = proc.stdout.read().decode().strip()
+    errtext = proc.stderr.read().decode().strip()
     proc.wait()  # To get returncode
-    if not ignore_stderr:
-        errtext = proc.stderr.read().decode()
-        # Annoyingly fbc prints (at least some) error messages to stdout instead of stderr
-    if proc.returncode or errtext:
+    if proc.returncode or (error_on_stderr and errtext):
         exit("subprocess.Popen(%s) failed:\n%s\nstderr:%s" % (cmdargs, outtext, errtext))
-    return outtext.strip()
+    return outtext, errtext
+
+def get_command_output(cmd, args, shell = True, ignore_stderr = False):
+    """Runs a shell command and returns stdout as a string.
+    Halts program on nonzero return or if ignore_stderr=False and anything printed to stderr."""
+    # Annoyingly fbc prints (at least some) error messages to stdout instead of stderr
+    return get_command_outputs(cmd, args, shell, not ignore_stderr)[0]
 
 ########################################################################
 # Scanning for FB include files
@@ -201,6 +201,33 @@ def get_euphoria_version(EUC):
     print("Euphoria version", eucver)
     x,y,z = eucver.split('.')
     return int(x)*10000 + int(y)*100 + int(z)
+
+########################################################################
+
+class ToolInfo:
+    "Info about a compiler, returned by get_cc_info()"
+    def __str__(self):
+        return self.path
+    def describe(self):
+        return self.name + " (" + self.fullversion + ")"
+
+def get_cc_info(CC):
+    "Process the output of gcc -v or clang -v for program name, version, and target. Returns a ToolInfo"
+    # Used to call -dumpfullversion, -dumpversion, -dumpmachine instead
+    ret = ToolInfo()
+    stdout,stderr = get_command_outputs(CC, ["-v"])  # shell=True just to get "command not found" error
+    match = re.search("(\S+) version ([0-9.]+)", stderr)
+    match2 = re.search("Target: (\S+)", stderr)
+    if not match or not match2:
+        exit("Couldn't understand output of %s:\n%s\n%s\n" % (CC, stdout, stderr))
+    ret.fullversion = match.group(1) + " " + match.group(2)
+    ret.name = match.group(1)
+    ret.version = int(match.group(2).replace('.', '')) # Convert e.g. 4.9.2 to 492
+    ret.target = match2.group(1)
+    ret.is_clang = ret.name == 'clang'
+    ret.is_gcc = ret.name == 'gcc'
+    ret.path = CC
+    return ret
 
 ########################################################################
 # Querying fbc
