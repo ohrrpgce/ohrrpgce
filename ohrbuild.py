@@ -209,7 +209,25 @@ class ToolInfo:
     def __str__(self):
         return self.path
     def describe(self):
-        return self.name + " (" + self.fullversion + ")"
+        return self.path + " (" + self.fullversion + ")"
+
+
+def findtool(mod, envvar, toolname, always_expand = False):
+    """Look for a callable program.
+    Returns None if it's not in PATH only if always_expand!"""
+    if os.environ.get(envvar):
+        ret = os.environ.get(envvar)
+    elif WhereIs(mod['target_prefix'] + toolname):
+        ret = mod['target_prefix'] + toolname
+    else:
+        ret = toolname
+    # standalone builds of FB on Windows do not search $PATH for binaries,
+    # so we have to do so for it!
+    if mod['win32'] or always_expand:
+        ret = WhereIs(ret)
+    return ret
+
+########################################################################
 
 def get_cc_info(CC):
     "Process the output of gcc -v or clang -v for program name, version, and target. Returns a ToolInfo"
@@ -232,22 +250,26 @@ def get_cc_info(CC):
 ########################################################################
 # Querying fbc
 
-def get_fb_info(fbc = 'fbc'):
-    """Find fbc and query its version and default target and arch.
-    'fbc' is the program name to use."""
+def get_fb_info(fbc):
+    """Returns FBC, a ToolInfo for the FB compiler containing version and default target and arch info."""
+    FBC = ToolInfo()
+    fbc = os.path.expanduser(fbc)  # expand ~
     if not os.path.isfile (fbc):
         fbc = WhereIs (fbc)
         if not fbc:
             print("FreeBasic compiler is not installed! (Couldn't find fbc)")
             sys.exit(1)
+    FBC.path = fbc
+    FBC.name = os.path.basename(fbc)
+
     # Newer versions of fbc (1.0+) print e.g. "FreeBASIC Compiler - Version $VER ($DATECODE), built for linux-x86 (32bit)"
     # older versions printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux"
     # older still printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux (target:linux)"
     fbcinfo = get_command_output(fbc, ["-version"])
     version, date = re.findall("Version ([0-9.]+) ([0-9()-]+)", fbcinfo)[0]
-    fullfbcversion = version + ' ' + date
+    FBC.fullversion = version + ' ' + date
     # Convert e.g. 1.04.1 into 1041
-    fbcversion = (lambda x,y,z: int(x)*1000 + int(y)*10 + int(z))(*version.split('.'))
+    FBC.version = (lambda x,y,z: int(x)*1000 + int(y)*10 + int(z))(*version.split('.'))
 
     fbtarget = re.findall("target:([a-z]*)", fbcinfo)  # Old versions of fbc.
     if len(fbtarget) == 0:
@@ -259,15 +281,15 @@ def get_fb_info(fbc = 'fbc'):
     fbtarget = fbtarget[0]
     if fbtarget == 'win64':
         # Special case (including new versions of fbc)
-        default_target, default_arch = 'win32', 'x86_64'
+        FBC.default_target, FBC.default_arch = 'win32', 'x86_64'
     elif '-' in fbtarget:
         # New versions of fbc
-        default_target, default_arch = fbtarget.split('-')
+        FBC.default_target, FBC.default_arch = fbtarget.split('-')
     else:
         # Old versions of fbc, and special case for dos, win32, xbox
-        default_target, default_arch = fbtarget, 'x86'
+        FBC.default_target, FBC.default_arch = fbtarget, 'x86'
 
-    return fbc, fbcversion, fullfbcversion, default_target, default_arch
+    return FBC
 
 ########################################################################
 
@@ -286,14 +308,21 @@ def read_codename_and_branchrev(rootdir):
     branch_rev = int(lines[1])
     return codename, branch_rev
 
-def verprint (used_gfx, used_music, fbc, arch, gccversion, asan, portable, pdb, builddir, rootdir):
+
+def verprint(mod, builddir, rootdir):
     """
     Generate ver.txt, iver.txt (Innosetup), distver.bat.
 
+    mod:      The SConscript module
     rootdir:  the directory containing this script
     builddir: the directory where object files should be placed
-    However, all files created here are currently placed in rootdir
+              However, all files created here are currently placed in rootdir
     """
+    class AttributeDict:
+        def __init__(self, d):
+            self.__dict__ = d
+    mod = AttributeDict(mod)   # Allow mod.member instead of mod['member']
+
     def openw (whichdir, filename):
         if not os.path.isdir (whichdir):
             os.mkdir (whichdir)
@@ -309,14 +338,14 @@ def verprint (used_gfx, used_music, fbc, arch, gccversion, asan, portable, pdb, 
 
     # Backends
     supported_gfx = []
-    for gfx in used_gfx:
-        if gfx in ('sdl','sdl2','fb','alleg','directx','sdlpp','console','dummy'):
+    for gfx in mod.gfx:
+        if gfx in mod.gfx_map.keys():
             results.append ('#DEFINE GFX_%s_BACKEND' % gfx.upper())
             supported_gfx.append (gfx)
         else:
             exit("Unrecognised gfx backend " + gfx)
-    for m in used_music:
-        if m in ('native','sdl','sdl2','native2','allegro','silence'):
+    for m in mod.music:
+        if m in mod.music_map.keys():
             results.append ('#DEFINE MUSIC_%s_BACKEND' % m.upper())
             results.append ('#DEFINE MUSIC_BACKEND "%s"' % m)
         else:
@@ -326,17 +355,27 @@ def verprint (used_gfx, used_music, fbc, arch, gccversion, asan, portable, pdb, 
     results.append ("#DEFINE GFX_CHOICES_INIT  " +\
       " :  ".join (['redim gfx_choices(%d)' % (len(supported_gfx) - 1)] + tmp))
 
+    if not mod.gengcc or mod.CC.fullversion == mod.FBCC.fullversion:
+        ccversion = mod.CC.fullversion
+    else:
+        # Using two different C/C++ compilers!
+        ccversion = mod.CC.fullversion + ' + ' + mod.FBCC.fullversion
+
+    archinfo = mod.arch
+    if mod.arch == '(see target)':
+        archinfo = mod.target
+
     data = {
-        'codename': codename, 'date': date, 'arch': arch,
+        'codename': codename, 'date': date, 'arch': archinfo,
         'rev': rev, 'branch_rev': branch_rev,
         'name':   'OHRRPGCE',
         'gfx':    'gfx_' + "+".join(supported_gfx),
-        'music':  'music_' + "+".join(used_music),
-        'asan':   'AddrSan ' if asan else '',
-        'portable': 'portable ' if portable else '',
-        'pdb':    'pdb ' if pdb else '',
-        'gccver': gccversion,
-        'fbver':  get_fb_info(fbc)[2],
+        'music':  'music_' + "+".join(mod.music),
+        'asan':   'AddrSan ' if mod.asan else '',
+        'portable': 'portable ' if mod.portable else '',
+        'pdb':    'pdb ' if mod.pdb else '',
+        'ccver':  ccversion,
+        'fbver':  mod.FBC.fullversion,
         'uname':  platform.uname()[1],
     }
 
@@ -349,7 +388,7 @@ def verprint (used_gfx, used_music, fbc, arch, gccversion, asan, portable, pdb, 
         'CONST version_branch as string = "%(codename)s"' % data,
         'CONST version_branch_revision as integer = %(branch_rev)s' % data,
         ('CONST long_version as string = "%(name)s %(codename)s %(date)s.%(rev)s %(gfx)s/%(music)s '
-         'FreeBASIC %(fbver)s GCC %(gccver)s %(arch)s %(asan)s%(portable)s%(pdb)s Built on %(uname)s"') % data])
+         'FreeBASIC %(fbver)s %(ccver)s %(arch)s %(asan)s%(portable)s%(pdb)s Built on %(uname)s"') % data])
 
     # If there is a build/ver.txt placed there by previous versions of this function
     # then it must be deleted because scons thinks that one is preferred

@@ -47,8 +47,6 @@ if verbose:
     FBFLAGS += ['-v']
 if 'FBFLAGS' in os.environ:
     FBFLAGS += shlex.split (os.environ['FBFLAGS'])
-fbc = ARGUMENTS.get ('fbc','fbc')
-fbc = os.path.expanduser (fbc)  # expand ~
 gengcc = int (ARGUMENTS.get ('gengcc', True if release else False))
 linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # link using g++ instead of fbc?
 envextra = {}
@@ -67,13 +65,16 @@ try:
 except (ImportError, NotImplementedError):
     pass
 
+################ Find FBC
+
+# FBC, the FB compiler, is a ToolInfo object (which can be treated as a string)
+FBC = ohrbuild.get_fb_info(ARGUMENTS.get('fbc', os.environ.get('FBC', 'fbc')))
+
 ################ Decide the target/OS and cpu arch
 
 # Note: default_arch will be one of x86, x86_64, arm, aarch64, not more specific.
-# default_target will be one of win32, dos, linux, freebsd, darwin, etc
-fbc_binary, fbcversion, fullfbcversion, default_target, default_arch = ohrbuild.get_fb_info(fbc)
-if verbose:
-    print("Using fbc", fbc_binary) #, " version:", fbcversion
+# FBC.default_target will be one of win32, dos, linux, freebsd, darwin, etc
+default_arch = FBC.default_arch
 
 host_win32 = platform.system() == 'Windows'
 
@@ -101,7 +102,7 @@ if 'android-source' in ARGUMENTS:
     linkgcc = False
 
 if not target:
-    target = default_target
+    target = FBC.default_target
 
 # Must check android before linux, because of 'arm-linux-androideabi'
 if 'android' in target:
@@ -290,12 +291,11 @@ if 'sdl' in music+gfx and 'sdl2' in music+gfx:
     Exit(1)
 
 
-################ create base environment
 
+################ Create base environment
 
 env = Environment (CFLAGS = [],
                    CXXFLAGS = [],
-                   FBC = File(fbc),
                    VAR_PREFIX = '',
                    **envextra)
 
@@ -310,32 +310,23 @@ for var in 'AS', 'CC', 'CXX':
         env['ENV'][var] = File(os.environ[var])
 # env['ENV']['GCC'] is set below
 
-def findtool(envvar, toolname, always_expand = False):
-    if os.environ.get (envvar):
-        ret = os.environ.get (envvar)
-    elif WhereIs (target_prefix + toolname):
-        ret = target_prefix + toolname
-    else:
-        ret = toolname
-    # standalone builds of FB on Windows do not search $PATH for binaries,
-    # so we have to do so for it!
-    if win32 or always_expand:
-        ret = WhereIs(ret)
-    return ret
 
+################ Find tools other than FBC
+# TODO: FBC should be in the same section
 
 # If you want to use a different C/C++ compiler do "CC=... CXX=... scons ...".
 # If CC is clang, you may want to set FBCC too.
-CC = findtool('CC', ARGUMENTS.get('compiler', 'cc'))
+mod = globals()
+CC = ohrbuild.findtool(mod, 'CC', ARGUMENTS.get('compiler', 'cc'))
 # FBCC is the compiler used for fbc-generated C code (gengcc=1).
-FBCC = findtool('FBCC', ARGUMENTS.get('compiler', 'gcc'), True)  # None if not found
+FBCC = ohrbuild.findtool(mod, 'FBCC', ARGUMENTS.get('compiler', 'gcc'), True)  # None if not found
 if not FBCC: FBCC = CC
 _cxx = {'gcc':'g++', 'clang':'clang++', None:'c++'}[ARGUMENTS.get('compiler')]
-CXX = findtool('CXX', _cxx)
-EUC = findtool ('EUC', "euc", True)  # Euphoria to C compiler (None if not found)
-MAKE = findtool ('MAKE', 'make')
+CXX = ohrbuild.findtool(mod, 'CXX', _cxx)
+EUC = ohrbuild.findtool(mod, 'EUC', "euc", True)  # Euphoria to C compiler (None if not found)
+MAKE = ohrbuild.findtool(mod, 'MAKE', 'make')
 if not MAKE and win32:
-    MAKE = findtool ('MAKE', 'mingw32-make')
+    MAKE = ohrbuild.findtool(mod, 'MAKE', 'mingw32-make')
 
 # Replace CC and FBCC with ToolInfo objects (which can still be treated as strings)
 CC = ohrbuild.get_cc_info(CC)
@@ -352,7 +343,7 @@ if 'FBCC' not in env['ENV']:
 env['ENV']['GCC'] = FBCC.path
 
 # This may look redundant, but it's so $MAKE, etc in command strings work, as opposed to setting envvars.
-for tool in ('CC', 'FBCC', 'CXX', 'MAKE', 'EUC'):
+for tool in ('FBC', 'CC', 'FBCC', 'CXX', 'MAKE', 'EUC'):
     val = globals()[tool]
     if val:
         env[tool] = File(val)
@@ -438,10 +429,10 @@ env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'BASMAINO':basmaino, 'VARI
 ################ Find fbc and get fbcinfo fbcversion
 
 # Headers in fb/ depend on this define
-CFLAGS += ['-DFBCVERSION=%d' % fbcversion]
+CFLAGS += ['-DFBCVERSION=%d' % FBC.version]
 
 # FB 0.91 added a multithreaded version of libfbgfx
-if fbcversion >= 910:
+if FBC.version >= 910:
     libfbgfx = 'fbgfxmt'
 else:
     libfbgfx = 'fbgfx'
@@ -533,7 +524,7 @@ elif not win32:
 # We set gengcc=True if FB will default to it; we need to know whether it's used
 if arch != 'x86' and 'mingw32' not in target:
     gengcc = True
-if mac and fbcversion > 220:
+if mac and FBC.version > 220:
     gengcc = True
 
 if arch == 'armv5te':
@@ -547,7 +538,7 @@ elif arch == 'x86':
     FBFLAGS += ["-arch", "686"]  # "x86" alias not recognised by FB yet
     CFLAGS.append ('-m32')
     FBCC_CFLAGS.append ('-m32')
-    if fbcversion < 1060 and CC.is_gcc and gengcc == False:
+    if FBC.version < 1060 and CC.is_gcc and gengcc == False:
         # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
         # (which is a recent change in the Linux x86 ABI, and IIRC is also part of the
         # Mac OSX ABI) but fbc's GAS backend wasn't updated for that until FB 1.06.
@@ -576,10 +567,10 @@ else:
 
 # If cross compiling, do a sanity test
 if not android_source:
-    print("Using target:", target, " arch:", arch, " fbcc:", FBCC.describe(), " cc:", CC.describe(), " gcctarget:", FBCC.target, " fbcversion:", fbcversion)
+    print("Using target:", target, " arch:", arch, " fbc:", FBC.describe(), " fbcc:", FBCC.describe(), " cc:", CC.describe(), " cctarget:", CC.target)
     # If it contains two dashes it looks like a target triple
-    if target_prefix and target_prefix != FBCC.target + '-':
-        print("Error: This CC/GCC doesn't target " + target_prefix)
+    if target_prefix and target_prefix != CC.target + '-':
+        print("Error: This CC doesn't target " + target_prefix)
         print ("You need to either pass 'target' as a target triple (e.g. target=arm-linux-androideabi) and "
                "ensure that the toolchain executables (e.g. arm-linux-androideabi-gcc) "
                "are in your PATH, or otherwise set CC, CXX, and AS environmental variables.")
@@ -638,16 +629,16 @@ if linkgcc:
     # Link using g++ instead of fbc; this makes it easy to link correct C++ libraries, but harder to link FB
 
     # Find the directory where the FB libraries are kept.
-    if fbcversion >= 1030:
+    if FBC.version >= 1030:
         # Take the last line, in case -v is in FBFLAGS
-        libpath = get_command_output (fbc, ["-print", "fblibdir"] + FBFLAGS).split('\n')[-1]
+        libpath = get_command_output (FBC.path, ["-print", "fblibdir"] + FBFLAGS).split('\n')[-1]
         checkfile = os.path.join (libpath, 'fbrt0.o')
         if not os.path.isfile (checkfile):
             print("Error: This installation of FreeBASIC doesn't support this target-arch combination;\n" + checkfile + " is missing.")
             Exit(1)
     else:
         # Manually determine library location (TODO: delete this if certainly not supporting FB 1.02 any more)
-        fbc_path = os.path.dirname(os.path.realpath(fbc_binary))
+        fbc_path = os.path.dirname(os.path.realpath(FBC.path))
         fblibpaths = [[fbc_path, '..', 'lib', 'freebasic'],  # Normal
                       [fbc_path, 'lib'],   # Standalone
                       [fbc_path, '..', 'lib'],
@@ -701,7 +692,7 @@ if linkgcc:
                 CXXLINKFLAGS += ['-lncurses']
 
     if mac:
-        if fbcversion <= 220:
+        if FBC.version <= 220:
             # The old port of FB v0.22 to mac requires this extra file (it was a kludge)
             CXXLINKFLAGS += [os.path.join(libpath, 'operatornew.o')]
         if macSDKpath:
@@ -767,7 +758,7 @@ if linkgcc:
     env['BUILDERS']['BASEXE'] = basexe_gcc
 
 if not linkgcc:
-    if fbcversion >= 1060:
+    if FBC.version >= 1060:
         # Ignore #inclib directives (specifically, so we can include modplug.bi)
         FBLINKFLAGS += ['-noobjinfo']
     if win32:
@@ -775,7 +766,7 @@ if not linkgcc:
         FBLINKFLAGS += ['-l', ':libstdc++.a']  # Yes, fbc accepts this argument form
     else:
         FBLINKFLAGS += ['-l','stdc++'] #, '-l','gcc_s']
-    if mac and fbcversion > 220:
+    if mac and FBC.version > 220:
         # libgcc_eh (a C++ helper library) is only needed when linking/compiling with old versions of Apple g++
         # including v4.2.1; for most compiler versions and configuration I tried it is unneeded
         # (Normally fbc links with gcc_eh if required, I wonder what goes wrong here?)
@@ -1130,11 +1121,8 @@ if 'raster' in ARGUMENTS:
 
 ################ ver.txt (version info) build rule
 
-archinfo = arch
-if arch == '(see target)':
-    archinfo = target
 def version_info(source, target, env):
-    ohrbuild.verprint (gfx, music, fbc, archinfo, FBCC.fullversion, asan, portable, pdb, builddir, rootdir)
+    ohrbuild.verprint(globals(), builddir, rootdir)
 VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'],
                         source = ['codename.txt'], 
                         action = env.Action(version_info, "Generating ver.txt"))
@@ -1340,7 +1328,7 @@ if platform.system () == 'Windows':
     directx_sources.append (RESFILE)
 
     # Enable exceptions, most warnings, treat .c files are C++, unicode/wide strings
-    w32_env.Append (CPPFLAGS = ['/EHsc', '/W3', '/TP'], CPPDEFINES = ['UNICODE', '_UNICODE', 'FBCVERSION=%d' % fbcversion])
+    w32_env.Append (CPPFLAGS = ['/EHsc', '/W3', '/TP'], CPPDEFINES = ['UNICODE', '_UNICODE', 'FBCVERSION=%d' % FBC.version])
 
     if profile:
         # debug info, static link VC9.0 runtime lib, but no link-time code-gen
@@ -1505,7 +1493,7 @@ Options:
   profile=1           Profiling build using gprof (executables) or MicroProfiler
                       (gfx_directx.dll/gfx_directx_test1.exe).
   asm=1               Produce .asm or .c files in build/ while compiling.
-  fbc=PATH            Point to a different version of fbc.
+  fbc=PATH            Point to a different version of fbc. (Or pass FBC envvar).
   macsdk=version      Compile against a Mac OS X SDK instead of using the system
                       headers and libraries. Specify the SDK version, e.g. 10.4.
                       You'll need the relevant SDK installed in /Developer/SDKs
@@ -1557,7 +1545,7 @@ Optional features:
 
 The following environmental variables are also important:
   FBFLAGS             Pass more flags to fbc
-  fbc                 Override FB compiler
+  FBC                 Override FB compiler (alternative to passing fbc=...)
   AS, CC, CXX         Override assembler/compiler. Should be set when
                       crosscompiling unless target=... is given instead.
   FBCC                Used only to compile C code generated from FB code
