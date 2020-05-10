@@ -2535,6 +2535,8 @@ END FUNCTION
 
 
 '==========================================================================================
+'                                   NPCs-at-tile menu
+'==========================================================================================
 
 LOCAL SUB mapedit_list_npcs_by_tile_update (st as MapEditState, pos as XYPair, menu() as string, npcrefs() as integer)
  DIM dir_str(...) as string = {"north", "east", "south", "west"}
@@ -4068,45 +4070,6 @@ SUB mapedit_savemap (st as MapEditState)
  storerecord mapsave(), game & ".mn", 40, st.map.id
 END SUB
 
-SUB verify_map_size (st as MapEditState)
- WITH st.map
-  DIM size as XYPair = .tiles(0).size
-  IF .pass.size = size AND .foemap.size = size AND .zmap.size = size THEN EXIT SUB
-  '--Map's X and Y do not match
-  .size = size
-  clearpage vpage
-  DIM j as integer
-  j = 0
-  textcolor uilook(uiText), 0
-  printstr "Map " & .id & ":" & .name, 0, j * 8, vpage
-  j += 2
-  printstr "This map seems to be corrupted.", 0, j * 8, vpage
-  j += 2
-  printstr " TileMap " & .tiles(0).wide & "*" & .tiles(0).high & " tiles, " & (UBOUND(.tiles) + 1) & " layers", 0, j * 8, vpage: j += 1
-  printstr " WallMap " & .pass.wide & "*" & .pass.high & " tiles", 0, j * 8, vpage: j += 1
-  printstr " FoeMap " & .foemap.wide & "*" & .foemap.high & " tiles", 0, j * 8, vpage: j += 1
-  printstr " ZoneMap " & .zmap.wide & "*" & .zmap.high & " tiles", 0, j * 8, vpage: j += 1
-  j += 1
-  printstr "Fixing to " & .wide & "*" & .high, 0, j * 8, vpage: j += 1
-  'A map's size might be due to corruption, besides, the tilemap is far away the most important
-  '.wide = large(.tiles(0).wide, large(.pass.wide, .foemap.wide))
-  '.high = large(.tiles(0).high, large(.pass.high, .foemap.high))
-  'savetilemaps .tiles, maplumpname(.id, "t")
-  DIM resize_to as RectType = XYWH(0, 0, .wide, .high)
-  resizetiledata .pass, resize_to
-  savetilemap .pass, maplumpname(.id, "p")
-  resizetiledata .foemap, resize_to
-  savetilemap .foemap, maplumpname(.id, "e")
-  SaveZoneMap .zmap, maplumpname(.id, "z"), @resize_to  'Resizes
-  LoadZoneMap .zmap, maplumpname(.id, "z")
-  j += 1
-  printstr "If unexpected, report this error to", 0, j * 8, vpage: j += 1
-  printstr "ohrrpgce-crash@HamsterRepublic.com", 0, j * 8, vpage: j += 1
-  setvispage vpage
-  waitforanykey
- END WITH
-END SUB
-
 SUB mapedit_load_tilesets(st as MapEditState)
  loadmaptilesets st.tilesets(), st.map.gmap()
  v_new st.defaultwalls, UBOUND(st.map.tiles) + 1
@@ -4234,61 +4197,56 @@ END SUB
 
 
 '==========================================================================================
-'                                  Resizing & deleting
+'                                      Layer helpers
 '==========================================================================================
 
+'If a layer is marked visible but not enabled, it isn't drawn. Call should_draw_layer().
+FUNCTION LayerIsVisible(vis() as integer, byval l as integer) as bool
+ BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l, NO)
+ 'debug "layer #" & l & " is: " & readbit(vis(), 0, l)
+ RETURN xreadbit(vis(), l)
+END FUNCTION
 
-SUB mapedit_resize(st as MapEditState)
- DIM rs as MapResizeState
- resizemapmenu st, rs
- IF rs.rect.wide = -1 ORELSE rs.rect = XY_WH(XY(0,0), st.map.size) THEN EXIT SUB
- mapedit_resize_map st, rs.rect
- 'notification "Resized the map to " & rs.rect.w & "x" & rs.rect.h
+'Whether a map layer is visible in-game
+FUNCTION LayerIsEnabled(gmap() as integer, byval l as integer) as bool
+ BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l, NO)
+ IF l = 0 THEN RETURN YES
+ 'debug "layer #" & l & " is: " & readbit(gmap(), 19, l-1)
+ RETURN xreadbit(gmap(), l - 1, 19)
+END FUNCTION
+
+'This layer is drawn, while editing.
+FUNCTION should_draw_layer(st as MapEditState, l as integer) as bool
+ RETURN layerisvisible(st.visible(), l) AND layerisenabled(st.map.gmap(), l)
+END FUNCTION
+
+SUB SetLayerVisible(vis() as integer, byval l as integer, byval v as bool)
+ BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l)
+ setbit(vis(), 0, l, v)
 END SUB
 
-'Shift and resize all map data. Does not save the map afterwards.
-'rect.x/y are the offset to shift, .wide/.high is the new size.
-SUB mapedit_resize_map(st as MapEditState, rect as RectType)
- resizetiledata st.map.tiles(), rect
- resizetiledata st.map.pass, rect
- resizetiledata st.map.foemap, rect
- SaveZoneMap st.map.zmap, tmpdir & "zresize.tmp", @rect
- LoadZoneMap st.map.zmap, tmpdir & "zresize.tmp"
- mapedit_throw_away_history st
- ' update SAV x/y offset in MAP lump
- st.map.gmap(20) += rect.x * -1
- st.map.gmap(21) += rect.y * -1
- ' update hero's starting position (if on current map)
- IF gen(genStartMap) = st.map.id THEN
-  gen(genStartX) += rect.x * -1
-  gen(genStartY) += rect.y * -1
- END IF
- st.map.wide = rect.wide
- st.map.high = rect.high
- '--reset map scroll position
- st.x = 0
- st.y = 0
- st.mapx = 0
- st.mapy = 0
- FOR i as integer = 0 TO UBOUND(st.map.door)
-  WITH st.map.door(i)
-   .pos -= rect.topleft
-   IF (.pos >= 0 ANDALSO .pos < st.map.size) = NO THEN
-    st.map.door(i).exists = NO
-   END IF
-  END WITH
- NEXT
- FOR i as integer = 0 TO UBOUND(st.map.npc)
-  WITH st.map.npc(i)
-   .x -= rect.x * 20
-   .y -= rect.y * 20
-   IF .x < 0 OR .y < 0 OR .x >= st.map.wide * 20 OR .y >= st.map.high * 20 THEN
-    .id = 0
-   END IF
-  END WITH
- NEXT i
- verify_map_size st
+SUB SetLayerEnabled(gmap() as integer, byval l as integer, byval v as bool)
+ BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l)
+ IF l = 0 THEN EXIT SUB
+ setbit(gmap(), 19, l - 1, v)
 END SUB
+
+SUB ToggleLayerVisible(vis() as integer, byval l as integer)
+ BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l)
+ setbit(vis(), 0, l, readbit(vis(), 0, l) XOR 1)
+END SUB
+
+SUB ToggleLayerEnabled(gmap() as integer, byval l as integer)
+ BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l)
+ IF l = 0 THEN EXIT SUB
+ setbit(gmap(), 19, l - 1, readbit(gmap(), 19, l - 1) XOR 1)
+END SUB
+
+
+'==========================================================================================
+'                                  Deleting map data
+'==========================================================================================
+
 
 SUB mapedit_delete(st as MapEditState)
  REDIM options(6) as string
@@ -4353,6 +4311,7 @@ SUB mapedit_delete(st as MapEditState)
   'Afterwards, the map editor exits
  END IF
 END SUB
+
 
 '==========================================================================================
 
@@ -4759,7 +4718,7 @@ END SUB
 
 
 '==========================================================================================
-'                                         Doors
+'                                       Door linking menu
 '==========================================================================================
 
 
@@ -4961,54 +4920,6 @@ SUB link_one_door(st as MapEditState, linknum as integer)
  LOOP
 END SUB
 
-
-'==========================================================================================
-
-'If a layer is marked visible but not enabled, it isn't drawn. Call should_draw_layer().
-FUNCTION LayerIsVisible(vis() as integer, byval l as integer) as bool
- BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l, NO)
- 'debug "layer #" & l & " is: " & readbit(vis(), 0, l)
- RETURN xreadbit(vis(), l)
-END FUNCTION
-
-'Whether a map layer is visible in-game
-FUNCTION LayerIsEnabled(gmap() as integer, byval l as integer) as bool
- BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l, NO)
- IF l = 0 THEN RETURN YES
- 'debug "layer #" & l & " is: " & readbit(gmap(), 19, l-1)
- RETURN xreadbit(gmap(), l - 1, 19)
-END FUNCTION
-
-'This layer is drawn, while editing.
-FUNCTION should_draw_layer(st as MapEditState, l as integer) as bool
- RETURN layerisvisible(st.visible(), l) AND layerisenabled(st.map.gmap(), l)
-END FUNCTION
-
-SUB SetLayerVisible(vis() as integer, byval l as integer, byval v as bool)
- BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l)
- setbit(vis(), 0, l, v)
-END SUB
-
-SUB SetLayerEnabled(gmap() as integer, byval l as integer, byval v as bool)
- BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l)
- IF l = 0 THEN EXIT SUB
- setbit(gmap(), 19, l - 1, v)
-END SUB
-
-SUB ToggleLayerVisible(vis() as integer, byval l as integer)
- BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l)
- setbit(vis(), 0, l, readbit(vis(), 0, l) XOR 1)
-END SUB
-
-SUB ToggleLayerEnabled(gmap() as integer, byval l as integer)
- BUG_IF(l < 0 ORELSE l > maplayerMax, "Bad map layer " & l)
- IF l = 0 THEN EXIT SUB
- setbit(gmap(), 19, l - 1, readbit(gmap(), 19, l - 1) XOR 1)
-END SUB
-
-
-'==========================================================================================
-
 'Draws a preview of a certain door on a map to either the top or bottom half of a page
 SUB DrawDoorPreview(map as MapData, tilesets() as TilesetData ptr, doornum as integer, top_half as bool, page as integer)
  DIM as integer starty
@@ -5084,28 +4995,62 @@ SUB DrawDoorPair(st as MapEditState, linknum as integer, page as integer)
  END IF
 END SUB
 
-SUB calculatepassblock(st as MapEditState, x as integer, y as integer)
- DIM n as integer = 0
- DIM tilenum as integer
- FOR i as integer = 0 TO UBOUND(st.map.tiles)
-  tilenum = readblock(st.map.tiles(i), x, y)
-  IF i = 0 OR tilenum > 0 THEN
-   n = n OR st.defaultwalls[i][tile_anim_deanimate_tile(tilenum, st.tilesets(i)->tastuf())]
-  END IF
- NEXT i
- DIM oldval as integer = readblock(st.map.pass, x, y)
- IF oldval <> n THEN
-  add_undo_step st, x, y, oldval, mapIDPass
-  writeblock st.map.pass, x, y, n
- END IF
-END SUB
-
 
 '==========================================================================================
 '                                      Map resizing
 '==========================================================================================
 
-' (Actual resize routine, mapedit_resize, is above)
+SUB mapedit_resize(st as MapEditState)
+ DIM rs as MapResizeState
+ resizemapmenu st, rs
+ IF rs.rect.wide = -1 ORELSE rs.rect = XY_WH(XY(0,0), st.map.size) THEN EXIT SUB
+ mapedit_resize_map st, rs.rect
+ 'notification "Resized the map to " & rs.rect.w & "x" & rs.rect.h
+END SUB
+
+'Shift and resize all map data. Does not save the map afterwards.
+'rect.x/y are the offset to shift, .wide/.high is the new size.
+SUB mapedit_resize_map(st as MapEditState, rect as RectType)
+ resizetiledata st.map.tiles(), rect
+ resizetiledata st.map.pass, rect
+ resizetiledata st.map.foemap, rect
+ SaveZoneMap st.map.zmap, tmpdir & "zresize.tmp", @rect
+ LoadZoneMap st.map.zmap, tmpdir & "zresize.tmp"
+ mapedit_throw_away_history st
+ ' update SAV x/y offset in MAP lump
+ st.map.gmap(20) += rect.x * -1
+ st.map.gmap(21) += rect.y * -1
+ ' update hero's starting position (if on current map)
+ IF gen(genStartMap) = st.map.id THEN
+  gen(genStartX) += rect.x * -1
+  gen(genStartY) += rect.y * -1
+ END IF
+ st.map.wide = rect.wide
+ st.map.high = rect.high
+ '--reset map scroll position
+ st.x = 0
+ st.y = 0
+ st.mapx = 0
+ st.mapy = 0
+ FOR i as integer = 0 TO UBOUND(st.map.door)
+  WITH st.map.door(i)
+   .pos -= rect.topleft
+   IF (.pos >= 0 ANDALSO .pos < st.map.size) = NO THEN
+    st.map.door(i).exists = NO
+   END IF
+  END WITH
+ NEXT
+ FOR i as integer = 0 TO UBOUND(st.map.npc)
+  WITH st.map.npc(i)
+   .x -= rect.x * 20
+   .y -= rect.y * 20
+   IF .x < 0 OR .y < 0 OR .x >= st.map.wide * 20 OR .y >= st.map.high * 20 THEN
+    .id = 0
+   END IF
+  END WITH
+ NEXT i
+ verify_map_size st
+END SUB
 
 SUB resizetiledata (tmaps() as TileMap, rect as RectType)
  FOR i as integer = 0 TO UBOUND(tmaps)
@@ -5128,6 +5073,50 @@ SUB resizetiledata (tmap as TileMap, rect as RectType)
  memcpy(@tmap, @tmp, sizeof(TileMap))
  'obviously don't free tmp
 END SUB
+
+SUB verify_map_size (st as MapEditState)
+ WITH st.map
+  DIM size as XYPair = .tiles(0).size
+  IF .pass.size = size AND .foemap.size = size AND .zmap.size = size THEN EXIT SUB
+  '--Map's X and Y do not match
+  .size = size
+  clearpage vpage
+  DIM j as integer
+  j = 0
+  textcolor uilook(uiText), 0
+  printstr "Map " & .id & ":" & .name, 0, j * 8, vpage
+  j += 2
+  printstr "This map seems to be corrupted.", 0, j * 8, vpage
+  j += 2
+  printstr " TileMap " & .tiles(0).wide & "*" & .tiles(0).high & " tiles, " & (UBOUND(.tiles) + 1) & " layers", 0, j * 8, vpage: j += 1
+  printstr " WallMap " & .pass.wide & "*" & .pass.high & " tiles", 0, j * 8, vpage: j += 1
+  printstr " FoeMap " & .foemap.wide & "*" & .foemap.high & " tiles", 0, j * 8, vpage: j += 1
+  printstr " ZoneMap " & .zmap.wide & "*" & .zmap.high & " tiles", 0, j * 8, vpage: j += 1
+  j += 1
+  printstr "Fixing to " & .wide & "*" & .high, 0, j * 8, vpage: j += 1
+  'A map's size might be due to corruption, besides, the tilemap is far away the most important
+  '.wide = large(.tiles(0).wide, large(.pass.wide, .foemap.wide))
+  '.high = large(.tiles(0).high, large(.pass.high, .foemap.high))
+  'savetilemaps .tiles, maplumpname(.id, "t")
+  DIM resize_to as RectType = XYWH(0, 0, .wide, .high)
+  resizetiledata .pass, resize_to
+  savetilemap .pass, maplumpname(.id, "p")
+  resizetiledata .foemap, resize_to
+  savetilemap .foemap, maplumpname(.id, "e")
+  SaveZoneMap .zmap, maplumpname(.id, "z"), @resize_to  'Resizes
+  LoadZoneMap .zmap, maplumpname(.id, "z")
+  j += 1
+  printstr "If unexpected, report this error to", 0, j * 8, vpage: j += 1
+  printstr "ohrrpgce-crash@HamsterRepublic.com", 0, j * 8, vpage: j += 1
+  setvispage vpage
+  waitforanykey
+ END WITH
+END SUB
+
+
+'==========================================================================================
+'                                    Map resize menu
+'==========================================================================================
 
 SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
  'returns the new size and offset in passed args, or -1 width to cancel
@@ -5279,6 +5268,11 @@ SUB resize_rezoom_mini_map(st as MapEditState, byref rs as MapResizeState)
   rs.minimap = createminimap(st.map.tiles(), st.tilesets(), @st.map.pass, rs.zoom)
  END IF
 END SUB
+
+
+'==========================================================================================
+'                                     Minimap screen
+'==========================================================================================
 
 SUB show_minimap(st as MapEditState)
  DIM algorithm as MinimapAlgorithmEnum
@@ -5495,6 +5489,8 @@ END SUB
 
 
 '==========================================================================================
+'                                     Default walls
+'==========================================================================================
 
 
 SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
@@ -5525,6 +5521,7 @@ SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
  END IF
 END SUB
 
+'Used only in the tileset editor
 SUB savepasdefaults (byref defaults as integer vector, tilesetnum as integer)
  DIM buf(160) as integer
  FOR i as integer = 0 TO 159
@@ -5536,6 +5533,22 @@ SUB savepasdefaults (byref defaults as integer vector, tilesetnum as integer)
  'NOTE: we might be writing past the end of the file, and so records for
  'earlier tilesets will (I hope) be zeroed out, missing the magic number
  storerecord buf(), workingdir & SLASH & "defpass.bin", 322 \ 2, tilesetnum
+END SUB
+
+SUB calculatepassblock(st as MapEditState, x as integer, y as integer)
+ DIM n as integer = 0
+ DIM tilenum as integer
+ FOR i as integer = 0 TO UBOUND(st.map.tiles)
+  tilenum = readblock(st.map.tiles(i), x, y)
+  IF i = 0 OR tilenum > 0 THEN
+   n = n OR st.defaultwalls[i][tile_anim_deanimate_tile(tilenum, st.tilesets(i)->tastuf())]
+  END IF
+ NEXT i
+ DIM oldval as integer = readblock(st.map.pass, x, y)
+ IF oldval <> n THEN
+  add_undo_step st, x, y, oldval, mapIDPass
+  writeblock st.map.pass, x, y, n
+ END IF
 END SUB
 
 
