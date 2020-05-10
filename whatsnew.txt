@@ -1,5 +1,21 @@
 WHAT IS NEW?
 
+
+August ? 2020 [H???]
+
+  *** New Features
+
+   * New Plotscripting Features
+
+  *** Changes
+
+  *** Bugfixes
+
+  *** Stuff Only Developers Will Notice
+    * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"
+      flag to scons [Ralph]
+
+
 May 2 2020 [Gorgonzola]
 
   *** New Features
