@@ -36,3 +36,5 @@ In newly created games you normally wouldn't change any of these bitsets. When s
 "Wrap map layers over edge of Crop maps" affects maps set to Map Edge Mode: Crop. Normally on a cropping map you can't see past the map edge and this bitset has no effect. When this is ON, if you view an off-map position then the map layers continue forever by wrapping around. This is only possible if you use scripting to move map layers, or if the map is smaller than the game window.
 
 "Draw Backdrop slice above Script layer" causes normal backdrops (sl:backdrop) to be drawn above the sprite layer (sl:script layer) instead of below. This was the behaviour in Alectormancy and earlier.
+
+"Non-turn attack delays can also cause turn delays" (turn-based battles only) emulates bug #1118, where non-blocking attacks with an attack delay (not a turn delay) could would get delayed to a future round. Normally the attack delay causes attacks to get delayed until the end of the current turn only.

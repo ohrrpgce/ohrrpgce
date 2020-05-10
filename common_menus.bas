@@ -309,6 +309,9 @@ SUB edit_backcompat_bitsets()
  bitname(36) = "Old attack positioning at bottom-left of target"
  bitname(37) = "Wrap map layers over edge of Crop maps"
  bitname(39) = "Draw Backdrop slice above Script Layer"
+ IF gen(genBattleMode) = 1 THEN  'turn-based
+  bitname(50) = "!Non-turn attack delays can also cause turn delays"
+ END IF
  edit_global_bitsets bitname(), "share_general_game_backcompat_bitsets"
 END SUB
 

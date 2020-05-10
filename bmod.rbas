@@ -4675,12 +4675,16 @@ FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSpri
   WITH atkq(i)
    'Ignore unused atkq() slots, attacks with a turn delay, and stunned attackers
    IF atkq_attack_active(atkq(i), bslot()) THEN
-    '--only blocking queued attacks are considered part of the current
-    ' turn (although it is always perfectly possible for a nonblocking
-    ' attack to happen in the current turn)
-    ' FIXME: Why?! This doesn't look correct - won't it cause us to the next
-    ' round even if there are attacks left?
-    IF .blocking THEN RETURN YES
+    IF prefbit(50) = NO THEN ' !Non-turn attack delays can also cause turn delays
+     'Emulate bug #1118:
+     '--only blocking queued attacks are considered part of the current
+     ' turn (although it is always perfectly possible for a nonblocking
+     ' attack to happen in the current turn)
+     IF .blocking THEN RETURN YES
+    ELSE
+     ' Don't go to the next round until only attacks with turn delays are left
+     RETURN YES
+    END IF
    END IF
   END WITH
  NEXT i
@@ -4951,6 +4955,7 @@ SUB apply_initiative_order (bslot() as BattleSprite)
  FOR j as integer = 0 to UBOUND(atkq)
   WITH atkq(j)
    'Don't apply to attacks with .turn_delay < 0, they've already been processed in a previous round
+   '(such attacks occur only if "Non-turn attack delays can also cause turn delays" backcompat off)
    IF .used ANDALSO .turn_delay = 0 THEN
     DIM addend as integer = ATK_DELAY_MULT * bslot(.attacker).initiative_order
     'debug "Applying initiative: adjust " & bslot(.attacker).name & "'s attack " & .attack & ": attack_delay " & .delay & " + initiative " & addend & " = delay " & (.delay + addend)
@@ -4973,7 +4978,8 @@ END SUB
 SUB update_turn_delays_in_attack_queue (byval who as integer)
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
-   'Allow turn_delay to go negative to mark non-blocking attacks in turn-based mode
+   'If the "Non-turn attack delays can also cause turn delays" backcompat is on, we need to
+   'allow turn_delay to go negative to mark non-blocking attacks in turn-based mode
    'that got shunted to the next round, which therefore shouldn't have initiative added again
    IF .used ANDALSO .attacker = who THEN
     .turn_delay -= 1

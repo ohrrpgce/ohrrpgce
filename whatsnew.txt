@@ -12,6 +12,10 @@ August ? 2020 [H???]
   *** Bugfixes
     * "set opacity" (with opacity < 100%) didn't always turn on blending
       [Ralph]
+    * Bug #1118 In turn-based battles, non-blocking attacks delayed by X
+      attacks could delay by up to X turns. You have to turn off the "Non-turn
+      attack delays can also cause turn delays" back-compatibility bit to get
+      this bugfix [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"
