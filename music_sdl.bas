@@ -330,7 +330,7 @@ sub music_play(filename as string, byval fmt as MusicFormatEnum)
 		#else
 			music_song_rw = SDL_RWFromFile(songname, @"rb")
 			if music_song_rw = NULL then
-				debug "Could not load song " + songname + " (SDL_RWFromFile failed)"
+				debug "Couldn't SDL_RWFromFile(" + songname + "): " & *SDL_GetError()
 				exit sub
 			end if
 			music_song_rw = safe_RWops(music_song_rw)
@@ -539,7 +539,7 @@ sub sound_play(slot as integer, loopcount as integer, volume as single = 1.)
 			' Note that the i-th sfx slot is played on the i-th SDL_mixer channel,
 			' which is just a simplification.
 			if Mix_PlayChannel(slot, .buf, loopcount) = -1 then
-				showbug "sound_play: Mix_PlayChannel failed"
+				showbug "sound_play: Mix_PlayChannel failed:" & *Mix_GetError()
 				exit sub
 			end if
 			.playing = YES
@@ -649,7 +649,7 @@ function sound_load overload(filename as string, num as integer = -1) as integer
 	log_openfile filename
 	sfx = Mix_LoadWAV(@filename[0])
 	if sfx = NULL then
-		debug "Couldn't Mix_LoadWAV " & filename
+		debug "Couldn't Mix_LoadWAV " & filename & " : " & *Mix_GetError()
 		return -1
 	end if
 
