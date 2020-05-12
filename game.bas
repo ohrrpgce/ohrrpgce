@@ -250,6 +250,7 @@ REDIM cmdline_args() as string
 ' This can modify log_dir and restart the debug log
 ' Also, this (game_setoptions) opens a channel with Custom as soon as it processes the --slave option
 processcommandline cmdline_args(), @gamecustom_setoption, orig_dir & SLASH & "ohrrpgce_arguments.txt"
+DIM checked_cmdline_args as bool = NO  'Don't look through cmdline_args() twice
 
 IF running_as_slave THEN debuginfo "Spawned from Custom"
 
@@ -369,7 +370,9 @@ ELSE  'NOT running_as_slave
   gam.started_by_run_game = YES
   gam.want.rungame = ""
 
- ELSE
+ ELSEIF checked_cmdline_args = NO THEN
+  'Doing do this again if switching game
+  checked_cmdline_args = YES
 
   '---IF A VALID RPG FILE WAS SPECIFIED ON THE COMMAND LINE, RUN IT, ELSE BROWSE---
   '---ALSO CHECKS FOR GAME.EXE RENAMING
