@@ -2254,7 +2254,9 @@ define constant, begin
 -100010, sl:walkabout layer
 -100011, sl:hero layer
 -100012, sl:npc layer
+-100013, sl:walkabout sprite
 -100013, sl:walkabout sprite component
+-100014, sl:walkabout shadow
 -100014, sl:walkabout shadow component
 -100015, sl:backdrop
 -101000, sl:map layer0
@@ -2273,35 +2275,6 @@ define constant, begin
 -101013, sl:map layer13
 -101014, sl:map layer14
 -101015, sl:map layer15
--102000, sl:status portrait
--102001, sl:status walkabout
--102002, sl:status battlesprite
--102003, sl:status page select
--102004, sl:status statlist
--102005, sl:status hide if no mp
--102006, sl:status hide if no lmp
--102007, sl:status hide if max lev
--102008, sl:plank holder
--102009, sl:status hide if no portrait
--102010, sl:item itemlist
--102011, sl:item exitbutton
--102012, sl:item sortbutton
--102013, sl:item trashbutton
--102014, sl:plank menu selectable
--102015, sl:spell listlist
--102016, sl:spell spelllist
--102017, sl:spell hide if no list
--102018, sl:spell cancelbutton
--102019, sl:virtual keyboard button
--102020, sl:virtual keyboard buttontext
--102021, sl:virtual keyboard shift
--102022, sl:virtual keyboard symbols
--102023, sl:virtual keyboard select
--102024, sl:virtual keyboard entrytext
--102025, sl:virtual keyboard del
--102026, sl:virtual keyboard enter
--102027, sl:shop buy info panel
--102028, sl:status hide if no hp
 -102100, sl:pathfind dest display
 end
 #</SLICE LOOKUP CODES>

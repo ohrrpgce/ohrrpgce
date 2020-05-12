@@ -2260,8 +2260,8 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
   append_simplemenu_item menu, "walkabout_layer", , , -100010
   append_simplemenu_item menu, "hero_layer", , , -100011
   append_simplemenu_item menu, "npc_layer", , , -100012
-  append_simplemenu_item menu, "walkabout_sprite_component", , , -100013
-  append_simplemenu_item menu, "walkabout_shadow_component", , , -100014
+  append_simplemenu_item menu, "walkabout_sprite", , , -100013
+  append_simplemenu_item menu, "walkabout_shadow", , , -100014
   append_simplemenu_item menu, "backdrop", , , -100015
   append_simplemenu_item menu, "map_layer0", , , -101000
   append_simplemenu_item menu, "map_layer1", , , -101001

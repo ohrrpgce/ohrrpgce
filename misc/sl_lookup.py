@@ -18,9 +18,11 @@ import re
 
 class Lookup(object):
   
-    def __init__(self, name, code):
+    def __init__(self, name, code, hide = False, is_alias = False):
         self.name = name
         self.code = code
+        self.hide = hide
+        self.is_alias = is_alias
 
     def basic_name(self):
         return self.name.upper().replace(" ", "_")
@@ -36,13 +38,21 @@ class Lookup_Updater(object):
         self.lookups = []
         self.longest = 0
 
-    def add(self, name, code):
-        if code in [l.code for l in self.lookups]:
-            raise Exception("slice code %d is used more than once" % code)
-        l = Lookup(name, code)
+    def add(self, name, code, comments):
+        is_alias = 'Alias' in comments
+        hide = 'Hide' in comments or name.startswith("EDITOR_")
+        if not is_alias and code in [l.code for l in self.lookups]:
+            raise Exception("Slice code %d is used more than once. Add \"'Alias\" comment to duplicates if this is intentional" % code)
+        l = Lookup(name, code, hide, is_alias)
         self.lookups.append(l)
         if len(name) > self.longest:
             self.longest = len(name)
+
+    def find_code(self, code):
+        for l in self.lookups:
+            if l.code == code:
+                return l
+        raise KeyError(code)
 
     def pad(self, n):
         format = "%%-%ds" % (self.longest)
@@ -59,28 +69,35 @@ class Lookup_Updater(object):
     def hspeak(self):
         result = "define constant, begin\n"
         for l in self.lookups:
-            if l.name.startswith("EDITOR_"): continue
-            result += "%d, sl:%s\n" % (l.code, l.hspeak_name())
+            if l.hide: continue
+            result += "%d, sl:%s" % (l.code, l.hspeak_name())
+            # if l.is_alias:
+            #     result += "  # Alias to sl:" + self.find_code(l.code).hspeak_name()
+            result += "\n"
         result += "end\n"
         return result
 
     def docs(self):
         result = ""
         for l in self.lookups:
-            if l.name.startswith("EDITOR_"): continue
-            result += "lookup slice(sl:%s)\n" % (l.hspeak_name())
+            if l.hide: continue
+            result += "lookup slice(sl:%s)" % (l.hspeak_name())
+            if l.is_alias:
+                result += "  # Same as lookup slice(sl:%s)" % self.find_code(l.code).hspeak_name()
+            result += "\n"
         return result
 
     def names(self):
         result = ""
         for l in self.lookups:
-            n = l.basic_name()
-            result += '  CASE SL_%s: RETURN "%s"\n' % (n, n.lower())
+            if l.is_alias: continue
+            result += '  CASE SL_%s: RETURN "%s"\n' % (l.basic_name(), l.hspeak_name())
         return result
     
     def editor_list(self):
         result = ""
         for l in self.lookups:
+            if l.is_alias: continue
             n = l.basic_name().lower()
             result += '  append_simplemenu_item menu, "%s", , , %s\n' % (n, l.code)
         return result
@@ -101,14 +118,15 @@ class Reader(object):
         if not match:
             raise Exception("failed to find comment markers")
         constants = match.group(0).split("\n")
-        regex = re.compile("^[ \t]*CONST SL_(.*?)[ \t]*=[ \t]*(-?\d+)[ \t]*$", re.I)
+        regex = re.compile("^[ \t]*CONST SL_(.*?)[ \t]*=[ \t]*(-?\d+)[ \t]*('.*)?", re.I)
         for line in constants:
             match = regex.match(line)
             if match:
                 name = match.group(1)
                 code = int(match.group(2))
+                comments = match.group(3) or ''
                 print(name, code)
-                look.add(name, code)
+                look.add(name, code, comments)
 
 #-----------------------------------------------------------------------
 

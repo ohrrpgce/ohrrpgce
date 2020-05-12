@@ -7,6 +7,8 @@ August ? 2020 [H???]
 
    * New Plotscripting Features
     * "set timer args" [Ralph]
+    * "sl:walkabout sprite" alias to "sl:walkabout sprite component" and
+      "sl:walkabout shadow" alias to "sl:walkabout shadow component"
 
   *** Changes
 
