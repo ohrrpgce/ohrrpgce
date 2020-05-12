@@ -327,6 +327,7 @@ CONST maxFrameSize = 4096 'Max width or height of a Frame (in memory or .rgfx) o
 CONST maxScriptGlobals = 50000 'Actually the index of the last global  (also "maximum global id" in plotscr.hsd)
                                'If you update this, also update the default argument to exportglobals in plotscr.hsd
 CONST maxScriptStrings = 99 'ID of last plotstring  (also "maximum string id" in plotscr.hsd)
+CONST numInitialTimers = 16 'Initial number of script timers
 CONST maxScriptHeap = 8192 'Maximum number of local variables in use by all running scripts
 CONST maxScriptRunning = 128 'Number of scripts which can run at once
 CONST maxScriptNesting = 4 'Maximum subscript nesting depth

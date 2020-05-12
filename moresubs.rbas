@@ -1424,16 +1424,7 @@ killallscripts
 'This only happens when using Test Game
 IF lump_reloading.hsp.changed THEN reload_scripts
 
-FOR i as integer = 0 TO ubound(timers)
- WITH timers(i)
-  .count = 0
-  .speed = 0
-  .ticks = 0
-  .trigger = 0
-  .flags = 0
-  .st = 0
- END WITH
-NEXT i
+REDIM timers(numInitialTimers - 1)
 
 close_persist_reld()
 

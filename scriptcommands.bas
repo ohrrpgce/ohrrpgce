@@ -49,8 +49,7 @@ DIM next_slice_handle as integer = 1   '== LBOUND(plotslices)
 'Tracks the number of unassigned handles less than next_slice_handle
 DIM num_reusable_slice_handles as integer
 
-
-REDIM timers(15) as PlotTimer
+REDIM timers(numInitialTimers - 1) as PlotTimer
 
 
 
