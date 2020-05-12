@@ -6,6 +6,7 @@ August ? 2020 [H???]
   *** New Features
 
    * New Plotscripting Features
+    * "set timer args" [Ralph]
 
   *** Changes
 

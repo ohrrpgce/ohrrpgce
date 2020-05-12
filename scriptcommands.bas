@@ -2123,7 +2123,11 @@ SUB script_functions(byval cmdid as integer)
       ELSEIF retvals(2) = -1 AND .speed = 0 THEN
         .speed = 18
       END IF
-      IF retvals(3) <> -1 THEN .trigger = retvals(3)
+      IF retvals(3) <> -1 ANDALSO .trigger <> retvals(3) THEN
+       'When changing the trigger, any script args are forgotten
+       ERASE .script_args
+       .trigger = retvals(3)
+      END IF
       IF retvals(4) <> -1 THEN
        IF valid_plotstr(retvals(4)) THEN .st = retvals(4) + 1
       END IF
@@ -4849,7 +4853,24 @@ SUB script_functions(byval cmdid as integer)
     drawopts->with_blending = YES
    END IF
   END IF
-
+ CASE 703 '--set timer args (id, args...)
+  IF curcmd->argc = 0 THEN
+   scripterr "set_timer_args needs at least one argument: ID", serrBadOp
+  ELSEIF bound_arg(retvals(0), 0, UBOUND(timers), "timer ID") THEN
+   WITH timers(retvals(0))
+    IF .trigger <= 0 THEN
+     scripterr "Timer " & retvals(0) & " isn't set to trigger a script. Call ""set timer"" before ""set timer args"".", serrBadOp
+    ELSE
+     'The number of args passed can be 0, in which case we REDIM -1 TO -1,
+     'which is different from an un-DIM'd arraay which is 0 TO -1 and causes
+     'the default timer ID arg to be passed.
+     REDIM .script_args(-1 TO curcmd->argc - 2)
+     FOR i as integer = 1 TO curcmd->argc - 1
+      .script_args(i - 1) = retvals(i)
+     NEXT
+    END IF
+   END WITH
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

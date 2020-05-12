@@ -728,6 +728,7 @@ define function, begin
 700,setblendmode,2,0,0        # Set blend mode (blendable slice, blendmode)
 701,getrectopacity,1,0        # Alias to "get rect fuzziness" (slice)
 702,setrectopacity,2,0,50     # Set rect bg to transparent and set its opacity (slice, opacity)
+703,settimerargs,-1           # Set the arguments a timer will pass to its triggered script (id, args...)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

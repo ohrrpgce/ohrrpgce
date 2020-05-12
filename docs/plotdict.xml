@@ -10017,15 +10017,17 @@ end</example>
 				it will NOT cause that timer setting to be reset to the default initial value.
 				<p>Count</p> is the length of the timer.
 				While it's running, the count will go down by one every <p>speed</p> game ticks (frames).
-				I.e., if you set speed to 18, it will count down once every 18 ticks, close to one second.
+				I.e., if you set speed to 18, it will count down once every 18 ticks, close to one second
+				if using the default framerate of 18.3fps.
 				Use a speed of 1 to count down in ticks.
 				Changing the timer's <p>count</p> (as opposed to passing <p>timer:default</p> as the second argument)
 				will cause the timer to restart from the new value.
 				<lb/>
 				<p>trigger</p> is what happens when the timer runs out.
 				You can use the constant <ref>timer:gameover</ref> to indicate that the game should end (the gameover script is not called),
-				or specify a plotscript (in the form "@my script") to have that run.
-				A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one.
+				or specify a plotscript (in the form <tt>@my script</tt>) to have that run.
+				A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one,
+				unless you specify the arguments using <ref>settimerargs</ref>.
 				If the timer runs out during a battle then the effect happens after the battle ends.
 				<lb/>
 				You can bind a timer to a string using the <p>string</p> parameter to create a countdown that shows up on screen.
@@ -10053,13 +10055,15 @@ end</example>
 					A timer count set to 1 would counter-intuitively trigger in 2 ticks time.
 				</note>
 				<note>
-					Timer settings are not saved in game saves.
+					Timer settings are not saved in saved games.
 				</note>
-			</description>
 			<example># This starts a 300 second (5 minute) timer that counts down once every 18 ticks (approximately one second).
 # If it runs out during battle, the battle won't end but a game-over will happen afterwards.
 set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: menu))</example>
+				See <ref>settimerargs</ref> for a larger example.
+			</description>
 			<seealso>
+				<ref>settimerargs</ref>
 				<ref>stoptimer</ref>
 				<ref>readtimer</ref>
 				<ref>systemsecond</ref>
@@ -10067,14 +10071,82 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				<ref>milliseconds</ref>
 				<ref>runscriptbyid</ref>
 			</seealso>
-
 		</command>
+
+		<command id="settimerargs">
+			<canon>set timer args (id, args...)</canon>
+			<shortname>set timer args</shortname>
+			<description>
+				Sets the arguments that a timer will pass to the script it triggers.
+				(If the timer isn't set to call a script this shows an error,
+				so you have to call <ref>settimer</ref> before <tt>set timer args</tt>.)
+				<lb/>
+				This overrides the default first argument to the script, which is the timer ID.
+				So if you want the timer ID to be first argument you have to write something like
+				<lb/>
+				<tt>set timer args(id, id, 20)  # Script gets args 'id, 20'</tt>
+				<lb/>
+				If you call this with no arguments (<tt>set timer args(id)</tt>)
+				then all the script's arguments default to 0.
+				If the script doesn't take as many args as you pass it the extra
+				ones will be ignored without error.
+				<warn>
+					After the script runs the arguments will still be remembered for next time
+					the timer is run (you can re-start a timer by calling <tt>set timer(id, count)</tt>),
+					unless the script ID is changed (or set to 0).
+				</warn>
+				<danger>
+					Due to a bug, the script's default arguments will be ignored,
+					and missing arguments are instead set to 0.
+					This happens whether you use <tt>set timer args</tt> or not, and affects
+					all triggered scripts.
+					This will be fixed in some future version.
+				</danger>
+				<example># This script changes the tile at x,y on tilemap 'layer' between tile IDs 'tile'
+# and 'othertile' in the tileset every 5 ticks, repeating until the map changes.
+script, blink tile, x, y, layer, tile, othertile, timerid, whichmap = -1, begin
+
+  # Remember which map we started running on, and stop if the map changes
+  if (whichmap == -1) then (
+    whichmap := current map
+  ) else (
+    if (whichmap &lt;&gt; current map) then (exit script)
+  )
+
+  write map block (x, y, tile, layer)
+
+  # Cause this script to run again in 10 ticks, but this time
+  # swap 'tile' and 'othertile'
+  set timer (timerid, 0, 10, @blink tile)
+  set timer args (timerid, x, y, layer, othertile, tile, timerid, whichmap)
+end
+
+# Some timer IDs
+define constant (10, timer:blink1)
+define constant (11, timer:blink2)
+
+# This is an auto-run script for a map
+plotscript, blinky map, begin
+  blink tile (4, 5, 0, 0, 1, timer:blink1)   # Blink x=4,y=5,layer=0 between tiles 0 &amp; 1
+  blink tile (11, 10, 1, 5, 10, timer:blink2) # Blink x=11,y=10,layer=1 between tiles 5 &amp; 10
+end</example>
+			</description>
+			<seealso>
+				<ref>settimer</ref>
+			</seealso>
+		</command>
+
 		<command id="stoptimer">
 			<canon>stop timer (id)</canon>
 			<shortname>stop timer</shortname>
-			<description>Stops a timer by setting its speed to 0. All of its other settings remain the same.</description>
+			<description>
+				Stops a timer by setting its speed to 0. All of its other settings remain the same.
+				You can resume it by calling <tt>set timer(id, timer:default, speed)</tt>
+				if you know the original speed.
+			</description>
 			<seealso><ref>settimer</ref></seealso>
 		</command>
+
 <!--
 		<command id="unusedtimer">
 			<canon>unused timer</canon>
@@ -10684,13 +10756,14 @@ end</example>
 				or it could be the function return value of another script.
 				For example, using <ref>setsliceextra</ref> you might want to store the ID
 				of a script that should be run when the player clicks on a slice.
-				<note>
+				<danger>
 					If you pass too few arguments, the unspecified ones will have value zero
 					<b>regardless</b> of any default values given in the script declaration.
+					This bug will be fixed in some future version.
 					<lb/>
 					If you pass too many (which does not cause an error),
 					the extra ones are ignored.
-				</note>
+				</danger>
 			</description>
 			<example>plotscript,scriptcallingtest,begin
   show value (run script by id (@sum, 1, 2, 3))

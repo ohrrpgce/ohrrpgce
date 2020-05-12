@@ -344,9 +344,13 @@ TYPE PlotTimer
   count as integer
   speed as integer
   ticks as integer
-  trigger as integer
-  flags as integer  '1=critical 2=battle 4=menu 8+=undefined
-  st as integer     'string, but both str and string are reserved
+  trigger as integer  'TIMERTRIGGER_DEFAULT or TIMERTRIGGER_GAMEOVER or > 0 for a script trigger or 0 for nothing
+  script_args(any) as integer
+                      'Arguments to the script, or not DIM'd (bounds 0 TO -1) for default args (timer ID)
+                      'When used, is DIM'd with bounds -1 up, with element -1 ignored.
+                      'DIM'd -1 TO -1 for no arguments (which means don't pass the timer ID)
+  flags as integer    '1=critical 2=battle 4=menu 8+=undefined (use TIMERFLAG_* constants)
+  st as integer       'Plotstring ID+1, 0 for none
   finished_tick as integer  'tick at which this last triggered; 0 if never
 END TYPE
 

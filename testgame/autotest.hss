@@ -24,6 +24,7 @@ include, "autotest-plotstr.hsi"
 
 define constant(1, default wait)
 define constant(10, timer:checkpoint)
+define constant(30, timer:set args test)
 
 global variable(100, menu item script global)
 global variable(101, timer global)
@@ -49,6 +50,8 @@ global variable(120, timer checkpoint interval)
 global variable(121, saveglobal)
 global variable(122, observed hero count)
 global variable(123, move hero count)
+global variable(124, timer expect arg 1)
+global variable(125, timer expect arg 2)
 global variable(50000, the global with the biggest id)
 
 # 200-500 used in hstests.hss
@@ -235,6 +238,7 @@ end
 # Test the interaction of different script fibres, including pausing,
 # waiting, and back-compat blocking.
 # This makes use of timers, but the real timer tests are elsewhere.
+# (Timer tests happen after these tests!)
 # Triggering scripts is also tested in "script trigger tests" and
 # a number of other tests for npcs, menus, battles, etc.
 script, scheduling tests, begin
@@ -3349,7 +3353,36 @@ script, timer tests, begin
   timer global := 100
   set timer(31, 0, 1, @looping timer test, 1)
   w(11)
-  
+
+  # Test "set timer args"
+  timer global := 0
+  set timer(timer:set args test, 0, 1, @timer args test)
+  set timer args(timer:set args test, -999, 100)
+  timer expect arg 1 := -999
+  timer expect arg 2 := 100
+  wait
+  assert(timer global == 1)
+  # Args should be preserved when run again
+  set timer(timer:set args test, 0)
+  wait
+  assert(timer global == 2)
+  # Changing the trigger to different script wipes the args
+  set timer(timer:set args test, 0, 1, @timer args test 2)
+  timer expect arg 1 := timer:set args test  # Default args
+  timer expect arg 2 := 0
+  wait
+  assert(timer global == 12)
+  # Passing no args
+  set timer args(timer:set args test)
+  set timer(timer:set args test, 0)
+  timer expect arg 1 := 0
+  timer expect arg 2 := 0
+  wait
+  assert(timer global == 22)
+  # Throw an error if no script triggered
+  # set timer(timer:set args test, 0, 1, 0)
+  # set timer args(timer:set args test, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+
   $err arg string="random"
   test timer and battle interactions(@force random battle)
   $err arg string="fight formation"
@@ -3428,6 +3461,20 @@ script, looping timer test, begin
   timer global -= 10
   show value(timer global)
   _checkpoint
+end
+
+script, timer args test, arg1, arg2, arg3 = 42, begin
+  assert(arg1 == timer expect arg 1)
+  assert(arg2 == timer expect arg 2)
+  #assert(arg3 == 42)  # arg3 defaults to 0 instead of 42 due to an engine bug
+  assert(arg3 == 0)
+  timer global += 1
+end
+
+script, timer args test 2, arg1, arg2, begin
+  assert(arg1 == timer expect arg 1)
+  assert(arg2 == timer expect arg 2)
+  timer global += 10
 end
 
 script, battle timer test, begin

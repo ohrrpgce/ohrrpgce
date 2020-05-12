@@ -2557,12 +2557,12 @@ END FUNCTION
 ' Countdown timers, applying effects (except TIMERFLAG_CRITICAL)
 SUB dotimer(timercontext as TimerContextEnum)
   if readbit(gen(), genSuspendBits, suspendtimers) <> 0 then exit sub
-  dim i as integer
-  for i = 0 to ubound(timers)
-    with timers(i)
+  dim id as integer
+  for id = 0 to ubound(timers)
+    with timers(id)
       if .speed > 0 then
-        if should_skip_this_timer(timercontext, timers(i)) then continue for  'not supposed to run here
-        'debug "i=" & i & " timercontext=" & timercontext & " .speed=" & .speed & " .ticks=" & .ticks & " .count=" & .count & " .flags=" & .flags & " .trigger=" & .trigger
+        if should_skip_this_timer(timercontext, timers(id)) then continue for  'not supposed to run here
+        'debug "id=" & id & " timercontext=" & timercontext & " .speed=" & .speed & " .ticks=" & .ticks & " .count=" & .count & " .flags=" & .flags & " .trigger=" & .trigger
 
         if .st > 0 then
           if plotstr(.st - 1).s = "" then plotstr(.st - 1).s = seconds2str(.count)
@@ -2590,10 +2590,26 @@ SUB dotimer(timercontext as TimerContextEnum)
               'undefined, shouldn't happen
             end if
 
-            if .trigger >= 0 then  'a plotscript
+            '.trigger = 0 does nothing.
+
+            if .trigger > 0 then  'A script
               ' NOTE: this doesn't run until the next tick (a design flaw)
-              trigger_script .trigger, 1, NO, "timer", "", mainFibreGroup
-              trigger_script_arg 0, i, "id"
+              dim numargs as integer
+              if lbound(.script_args) = 0 then
+                'Has not been DIM'd by "set timer args"; pass timer ID as single arg
+                numargs = 1
+              else
+                numargs = ubound(.script_args) + 1
+              end if
+              trigger_script .trigger, numargs, NO, "timer", "", mainFibreGroup
+              if lbound(.script_args) = 0 then
+                trigger_script_arg 0, id, "id"
+              else
+                '.script_args(-1) is ignored
+                for arg as integer = 0 to numargs - 1
+                  trigger_script_arg arg, .script_args(arg), "arg"
+                next
+              end if
             end if
           end if
         end if
