@@ -317,12 +317,16 @@ for var in 'AS', 'CC', 'CXX':
 # If you want to use a different C/C++ compiler do "CC=... CXX=... scons ...".
 # If CC is clang, you may want to set FBCC too.
 mod = globals()
-CC = ohrbuild.findtool(mod, 'CC', ARGUMENTS.get('compiler', 'cc'))
+CC = ohrbuild.findtool(mod, 'CC', ARGUMENTS.get('compiler', 'gcc'), True)
+if not CC:
+    CC = ohrbuild.findtool(mod, (), 'cc')
 # FBCC is the compiler used for fbc-generated C code (gengcc=1).
-FBCC = ohrbuild.findtool(mod, 'FBCC', ARGUMENTS.get('compiler', 'gcc'), True)  # None if not found
+FBCC = ohrbuild.findtool(mod, ('FBCC', 'GCC'), ARGUMENTS.get('compiler', 'gcc'), True)  # None if not found
 if not FBCC: FBCC = CC
-_cxx = {'gcc':'g++', 'clang':'clang++', None:'c++'}[ARGUMENTS.get('compiler')]
-CXX = ohrbuild.findtool(mod, 'CXX', _cxx)
+_cxx = {'gcc':'g++', 'clang':'clang++', None:'g++'}[ARGUMENTS.get('compiler')]
+CXX = ohrbuild.findtool(mod, 'CXX', _cxx, True)
+if not CXX:
+    CXX = ohrbuild.findtool(mod, (), 'c++')
 EUC = ohrbuild.findtool(mod, 'EUC', "euc", True)  # Euphoria to C compiler (None if not found)
 MAKE = ohrbuild.findtool(mod, 'MAKE', 'make')
 if not MAKE and win32:
@@ -1510,8 +1514,9 @@ Options:
   linkgcc=0           Link using fbc instead of g++/clang++. May not work.
   compiler=gcc|clang  Prefer to use clang or gcc for C, C++ and -gen gcc.
                       CC, CXX, FBCC environmental variables always take
-                      precedence if set. If not, by default we use cc for C, c++
-                      for C++, and gcc for -gen gcc if gcc is present.
+                      precedence if set. If not, by default we use gcc for C, g++
+                      for C++, and gcc for -gen gcc, and then try cc and c++ if
+                      gcc isn't present.
                       Note that -exx is disabled if using clang for -gen gcc.
   android-source=1    Used as part of the Android build process for Game/Custom.
                       (See wiki for explanation.) Note: defaults to the original
@@ -1553,6 +1558,7 @@ The following environmental variables are also important:
                       If compiler=gcc|clang this defaults to gcc or clang,
                       otherwise to CC unless CC appears to be clang, then it
                       defaults to gcc.
+  GCC                 Alias for FBCC.
   OHRGFX, OHRMUSIC    Specify default gfx, music backends
   DXSDK_DIR, Lib,
      Include          For compiling gfx_directx.dll

@@ -11,6 +11,7 @@ import sys
 from os.path import join as pathjoin
 import subprocess
 import platform
+import collections
 import re
 import datetime
 import fnmatch
@@ -212,15 +213,20 @@ class ToolInfo:
         return self.path + " (" + self.fullversion + ")"
 
 
-def findtool(mod, envvar, toolname, always_expand = False):
+def findtool(mod, envvars, toolname, always_expand = False):
     """Look for a callable program.
     Returns None if it's not in PATH only if always_expand!"""
-    if os.environ.get(envvar):
-        ret = os.environ.get(envvar)
-    elif WhereIs(mod['target_prefix'] + toolname):
-        ret = mod['target_prefix'] + toolname
+    if not isinstance(envvars, collections.Iterable):
+        envvars = envvars,
+    for envvar in envvars:
+        if os.environ.get(envvar):
+            ret = os.environ.get(envvar)
+            break
     else:
-        ret = toolname
+        if WhereIs(mod['target_prefix'] + toolname):
+            ret = mod['target_prefix'] + toolname
+        else:
+            ret = toolname
     # standalone builds of FB on Windows do not search $PATH for binaries,
     # so we have to do so for it!
     if mod['win32'] or always_expand:
