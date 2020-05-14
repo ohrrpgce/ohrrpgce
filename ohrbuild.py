@@ -11,7 +11,6 @@ import sys
 from os.path import join as pathjoin
 import subprocess
 import platform
-import collections
 import re
 import datetime
 import fnmatch
@@ -216,7 +215,7 @@ class ToolInfo:
 def findtool(mod, envvars, toolname, always_expand = False):
     """Look for a callable program.
     Returns None if it's not in PATH only if always_expand!"""
-    if not isinstance(envvars, collections.Iterable):
+    if not isinstance(envvars, (list, tuple)):
         envvars = envvars,
     for envvar in envvars:
         if os.environ.get(envvar):
