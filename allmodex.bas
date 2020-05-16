@@ -772,6 +772,19 @@ sub switch_to_8bit_vpages ()
 	next
 end sub
 
+'Returns whether pages are now 32-bit color
+function toggle_32bit_vpages () as bool
+	if vpages_are_32bit then
+		switch_to_8bit_vpages
+		show_overlay_message "Switched to 8-bit color", 1.2
+		return NO
+	else
+		switch_to_32bit_vpages
+		show_overlay_message "Switched to 32-bit color", 1.2
+		return YES
+	end if
+end function
+
 function vpages_are_32bit () as bool
 	return default_page_bitdepth = 32
 end function

@@ -177,6 +177,8 @@ DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focus
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
 DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, edit_separately as bool)
 DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
+DECLARE SUB slice_editor_import_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
+DECLARE SUB slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
 DECLARE FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr) as bool
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
 DECLARE FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState, lowerlimit as integer, upperlimit as integer) as bool
@@ -184,6 +186,7 @@ DECLARE FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelooku
 DECLARE FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slice Ptr, edslice as Slice Ptr) as string
 DECLARE SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
+DECLARE SUB slice_editor_reset_slice(byref ses as SliceEditState, sl as Slice ptr)
 DECLARE SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)
 DECLARE SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
 DECLARE FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes) as bool
@@ -540,22 +543,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     END IF
     state.need_update = YES
    END IF
-   IF keyval(scR) > 1 THEN
-    'Reset position
-    WITH *ses.curslice
-     'Fill Parent changes position, so reset that. Cover Children doesn't.
-     .Fill = NO
-     .FillMode = sliceFillFull
-     .Pos = XY(0, 0)
-     .AlignHoriz = alignLeft
-     .AlignVert = alignTop
-     .AnchorHoriz = alignLeft
-     .AnchorVert = alignTop
-     slice_edit_updates ses.curslice, @.Fill
-     slice_edit_updates ses.curslice, @.CoverChildren
-    END WITH
-   END IF
-
+   IF keyval(scR) > 1 THEN slice_editor_reset_slice ses, ses.curslice
   END IF
 
   IF keyval(scF8) > 1 THEN
@@ -601,33 +589,13 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     END IF
    END IF
   END IF
-  IF keyval(scF2) > 1 THEN
-   '--Export
-   DIM filename as string
-   IF keyval(scCtrl) > 0 AND LEN(ses.collection_file) THEN
-    IF yesno("Save, overwriting " & simplify_path_further(ses.collection_file) & "?", NO, NO) THEN
-     filename = ses.collection_file
-    END IF
-   ELSE
-    filename = inputfilename("Export slice collection", ".slice", trimfilename(ses.collection_file), "input_filename_export_slices")
-    IF filename <> "" THEN filename &= ".slice"
-   END IF
-   IF filename <> "" THEN
-    SliceSaveToFile edslice, filename
-   END IF
-  END IF
+  IF keyval(scF2) > 1 THEN slice_editor_export_prompt ses, edslice
 #IFDEF IS_CUSTOM
   '--Overwriting import can't be allowed when there are certain slices expected by the engine,
   '--and no point allowing editing external files in-game, so just disable in-game.
-  '--Furthermore, loading new collections when .editing_existing is unimplemented anyway.
-  IF keyval(scCtrl) = 0 ANDALSO keyval(scF3) > 1 ANDALSO ses.editing_existing = NO THEN
-   DIM choice as integer
-   DIM choices(...) as string = {"Import, overwriting this collection", "Edit it separately"}
-   choice = multichoice("Loading a .slice file. Do you want to import it over the existing collection?", choices(), IIF(ses.collection_group_number = SL_COLLECT_EDITOR, 1, 0))
-   IF choice >= 0 THEN
-    slice_editor_import_file ses, edslice, (choice = 1)
-   END IF
-  END IF
+  '--Furthermore, loading new collections when .editing_existing is unimplemented anyway
+  '--(checked by slice_editor_export_key())
+  IF keyval(scCtrl) = 0 ANDALSO keyval(scF3) > 1 THEN slice_editor_export_prompt ses, edslice
 #ENDIF
   IF state.need_update = NO AND (keyval(scPlus) > 1 OR keyval(scNumpadPlus)) THEN
    DIM slice_type as SliceTypes
@@ -790,7 +758,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  '--free the clipboard if there is something in it
  IF ses.clipboard THEN DeleteSlice @ses.clipboard
 
- switch_to_8bit_vpages  'In case Ctrl-3 used
+ switch_to_8bit_vpages  'In case Ctrl-F3 used
  pop_gfxio_state
 END SUB
 
@@ -809,13 +777,7 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
  IF keyval(scCtrl) > 0 ANDALSO keyval(scF3) > 1 THEN
   'Switching to 32 bit color depth allows 32-bit and smooth-scaled sprites,
   'but breaks sprite dissolves
-  IF vpages_are_32bit THEN
-   switch_to_8bit_vpages
-   show_overlay_message "Switched to 8-bit color", 1.2
-  ELSE
-   switch_to_32bit_vpages
-   show_overlay_message "Switched to 32-bit color", 1.2
-  END IF
+  toggle_32bit_vpages
   state.need_update = YES  'smoothing menu item needs update
  END IF
  IF keyval(scCtrl) > 0 ANDALSO keyval(scF4) > 1 ANDALSO NOT vpages_are_32bit THEN
@@ -1009,6 +971,36 @@ SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice
  END IF
 END SUB
 
+#IFDEF IS_CUSTOM
+'Prompt user whether to import. Called when F2 is pressed.
+SUB slice_editor_import_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
+ '--Loading new collections when .editing_existing is unimplemented
+ IF ses.editing_existing THEN EXIT SUB
+ DIM choice as integer
+ DIM choices(...) as string = {"Import, overwriting this collection", "Edit it separately"}
+ choice = multichoice("Loading a .slice file. Do you want to import it over the existing collection?", choices(), IIF(ses.collection_group_number = SL_COLLECT_EDITOR, 1, 0))
+ IF choice >= 0 THEN
+  slice_editor_import_file ses, edslice, (choice = 1)
+ END IF
+END SUB
+#ENDIF
+
+'Prompt user whether to export. Called when F3 is pressed.
+SUB slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
+ DIM filename as string
+ IF keyval(scCtrl) > 0 AND LEN(ses.collection_file) THEN
+  IF yesno("Save, overwriting " & simplify_path_further(ses.collection_file) & "?", NO, NO) THEN
+   filename = ses.collection_file
+  END IF
+ ELSE
+  filename = inputfilename("Export slice collection", ".slice", trimfilename(ses.collection_file), "input_filename_export_slices")
+  IF filename <> "" THEN filename &= ".slice"
+ END IF
+ IF filename <> "" THEN
+  SliceSaveToFile edslice, filename
+ END IF
+END SUB
+
 FUNCTION slice_collection_has_changed(sl as Slice ptr, filename as string) as bool
  IF isfile(filename) = NO THEN RETURN YES
 
@@ -1175,9 +1167,25 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   setvispage vpage
   dowait
  LOOP
- 
+
  remember_pt = state.pt
- 
+
+END SUB
+
+'Reset a slice's position and alignment
+SUB slice_editor_reset_slice(byref ses as SliceEditState, sl as Slice ptr)
+ WITH *sl
+  'Fill Parent changes position, so reset that. Cover Children doesn't.
+  .Fill = NO
+  .FillMode = sliceFillFull
+  .Pos = XY(0, 0)
+  .AlignHoriz = alignLeft
+  .AlignVert = alignTop
+  .AnchorHoriz = alignLeft
+  .AnchorVert = alignTop
+  slice_edit_updates ses.curslice, @.Fill
+  slice_edit_updates ses.curslice, @.CoverChildren
+ END WITH
 END SUB
 
 'Filling is so yuck we need helpers just to turn it off
@@ -1496,7 +1504,7 @@ SUB sliceed_rule (rules() as EditRule, helpkey as string, mode as EditRuleMode, 
   .upper = upper
   .group = group
   .helpkey = helpkey
- END WITH 
+ END WITH
 END SUB
 
 'We have a lot of apparently redundant functions to allow error compile-
@@ -1983,7 +1991,7 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
    END IF
   NEXT i
  END IF
- 
+
  ses.slicemenust.last = index - 1
  correct_menu_state ses.slicemenust
 END SUB
@@ -2153,7 +2161,7 @@ SUB shrink_lookup_list(slicelookup() as string)
  NEXT i
  last += 1  ' Leave (or add) one blank name
  IF UBOUND(slicelookup) <> last THEN
-  REDIM PRESERVE slicelookup(last) as string 
+  REDIM PRESERVE slicelookup(last) as string
  END IF
 END SUB
 
@@ -2195,13 +2203,13 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
  append_simplemenu_item menu, "Previous Menu...", , , -1
  append_simplemenu_item menu, "None", , , 0
 
- DIM special_header as bool = NO 
+ DIM special_header as bool = NO
  FOR i as integer = 0 TO UBOUND(ses.specialcodes)
   WITH ses.specialcodes(i)
    IF .code <> 0 THEN
     IF special_code_kindlimit_check(.kindlimit, slicekind) THEN
      IF NOT special_header THEN
-      append_simplemenu_item menu, "Special Lookup Codes", YES, uiLook(uiText) 
+      append_simplemenu_item menu, "Special Lookup Codes", YES, uiLook(uiText)
       special_header = YES
      END IF
      append_simplemenu_item menu, .caption, , , .code
@@ -2209,9 +2217,9 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
    END IF
   END WITH
  NEXT i
- 
+
  IF ses.collection_group_number = SL_COLLECT_EDITOR THEN
-  append_simplemenu_item menu, "All Special Lookup Codes", YES, uiLook(uiText) 
+  append_simplemenu_item menu, "All Special Lookup Codes", YES, uiLook(uiText)
 
 '--the following is updated from slices.bi using the misc/sl_lookup.py script
 '<SLICE LOOKUP NAMES>
@@ -2312,10 +2320,10 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
 '</SLICE LOOKUP NAMES>
 
  END IF
- 
- append_simplemenu_item menu, "User Defined Lookup Codes", YES, uiLook(uiText) 
+
+ append_simplemenu_item menu, "User Defined Lookup Codes", YES, uiLook(uiText)
  DIM userdef_start as integer = v_len(menu) - 1
- 
+
  FOR i as integer = 1 TO UBOUND(slicelookup)
   append_simplemenu_item menu, slicelookup(i), , , i
  NEXT i
@@ -2333,7 +2341,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
 
  DIM menuopts as MenuOptions
  menuopts.highlight = YES
- 
+
  DIM curcode as integer = 0
 
  setkeys YES

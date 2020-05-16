@@ -101,6 +101,7 @@ DECLARE SUB flush_gfx_config_settings ()
 
 DECLARE SUB switch_to_32bit_vpages ()
 DECLARE SUB switch_to_8bit_vpages ()
+DECLARE FUNCTION toggle_32bit_vpages () as bool
 DECLARE FUNCTION vpages_are_32bit () as bool
 DECLARE FUNCTION allocatepage(w as integer = -1, h as integer = -1, bitdepth as integer = -1) as integer
 DECLARE FUNCTION duplicatepage (page as integer) as integer
