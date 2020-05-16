@@ -1811,6 +1811,7 @@ SUB ModularMenu.add_item(itemtype as integer = 0, id as integer = -1, text as st
  a_append itemids(), id
  a_append menu(), text
  a_append selectable(), canselect
+ IF canselect = NO THEN use_selectable = YES
  a_append shaded(), heading
 END SUB
 

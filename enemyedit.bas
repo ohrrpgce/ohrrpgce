@@ -1375,7 +1375,6 @@ END SUB
 SUB enemy_usage_menu(byref enemyid as integer)
  DIM menu as EnemyUsageMenu
  menu.enemyid = enemyid
- menu.use_selectable = YES
  menu.title = "(filled later)"
  menu.helpkey = "enemy_usage"
  menu.run()
@@ -1741,7 +1740,6 @@ END FUNCTION
 SUB foemap_stats_menu(foemap as TileMap, title as string)
  DIM menu as FoemapStatsMenu
  menu.foemap = @foemap
- menu.use_selectable = YES
  menu.title = title
  menu.helpkey = "foemap_stats"
  menu.run()
