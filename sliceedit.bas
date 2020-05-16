@@ -66,6 +66,8 @@ TYPE SliceEditState
  hide_mode as HideMode
  show_root as bool         'Whether to show edslice
  show_ants as bool = YES   'Whether to draw a box around the selected slice
+ show_sizes as bool
+ show_positions as bool
  privileged as bool        'Whether can edit properties that are normally off-limits. Non-user collections only.
 
  ' Internal state of lookup_code_grabber
@@ -1936,19 +1938,20 @@ FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allo
 END FUNCTION
 
 'Returns a description of a slice, used on the top-level list of slices
-FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slice Ptr, edslice as Slice Ptr) as string
+FUNCTION slice_caption (byref ses as SliceEditState, edslice as Slice ptr, sl as Slice ptr) as string
  DIM s as string
  WITH *sl
   s = SliceTypeName(sl) & " "
-  s &= (.ScreenX - rootsl->ScreenX) & "," & (.ScreenY - rootsl->ScreenY) & "(" & .Width & "x" & .Height & ")"
+  IF ses.show_positions THEN s &= (.ScreenX - ses.draw_root->ScreenX) & "," & (.ScreenY - ses.draw_root->ScreenY)
+  IF ses.show_sizes THEN s &= "(" & .Width & "x" & .Height & ")"
   IF sl = edslice AND .Lookup <> SL_ROOT THEN
    s &= " [root]"
   END IF
-  s &= "${K" & uilook(uiText) & "} "
+  s = RTRIM(s) & "${K" & uilook(uiText) & "} "
   IF sl->Context THEN s &= sl->Context->description()
-  s &= SliceLookupCodeName(.Lookup, slicelookup())  'returns "Lookup" & .Lookup if not recognied
+  s &= SliceLookupCodeName(.Lookup, ses.slicelookup())  'returns "Lookup" & .Lookup if not recognied
  END WITH
- RETURN s
+ RETURN RTRIM(s)
 END FUNCTION
 
 'Update slice states and the menu listing the slices
@@ -2019,8 +2022,10 @@ SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer,
  WITH *sl
   DIM caption as string
   caption = STRING(indent, " ")
-  IF sl->EditorHideChildren THEN caption &= "${K" & uilook(uiText) & "}+[" & sl->NumChildren & "]${K-1}"
-  caption &= slice_caption(sl, ses.slicelookup(), ses.draw_root, edslice)
+  IF sl->EditorHideChildren ANDALSO sl->NumChildren THEN
+   caption &= "${K" & uilook(uiText) & "}+[" & sl->NumChildren & "]${K-1}"
+  END IF
+  caption &= slice_caption(ses, edslice, sl)
   IF sl <> hidden_slice THEN
    slice_editor_refresh_append index, ses.slicemenu(), caption, sl
    indent += 1
@@ -2359,23 +2364,23 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
    IF curcode <> -1 THEN result = curcode  'Not 'Previous Menu'
    EXIT DO
   END IF
-  
+
   'Special handling that only happens for the user-defined lookup codes
   IF st.pt > userdef_start THEN
-   
+
    'Edit lookup codes
    IF strgrabber(slicelookup(curcode), 40) THEN
     slicelookup(curcode) = sanitize_script_identifier(slicelookup(curcode))
     v_at(menu, st.pt)->text = slicelookup(curcode)
    END IF
-  
+
    '--make the list longer if we have selected the last item in the list and it is not blank
    IF st.pt = st.last ANDALSO TRIM(slicelookup(curcode)) <> "" THEN
     REDIM PRESERVE slicelookup(UBOUND(slicelookup) + 1) as string
     append_simplemenu_item menu, "", , , UBOUND(slicelookup)
     st.last += 1
    END IF
-   
+
   END IF
 
   clearpage dpage
@@ -2386,7 +2391,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
   setvispage vpage
   dowait
  LOOP
- 
+
  '--shrink the end of the list to exclude blank ones.
  shrink_lookup_list slicelookup()
 
@@ -2443,6 +2448,8 @@ SUB SliceEditSettingsMenu.update()
  header "Editor Settings"
  DIM hide_captions(...) as string = {"Show menu and slices", "Hide menu background", "Hide slices", "Hide menu"}
  IF in_detail_editor = NO THEN
+  add_item 7, , "Show positions: " & yesorno(ses->show_positions)
+  add_item 8, , "Show sizes: " & yesorno(ses->show_sizes)
 #IFDEF IS_CUSTOM
   add_item 9, , "Import collection (F2)"
 #ENDIF
@@ -2479,6 +2486,10 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
     RETURN YES
    END IF
 
+  CASE 7
+   changed = boolgrabber(ses->show_positions, state)
+  CASE 8
+   changed = boolgrabber(ses->show_sizes, state)
 #IFDEF IS_CUSTOM
   CASE 9
    IF activate THEN
