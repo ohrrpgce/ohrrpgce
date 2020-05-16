@@ -25,7 +25,7 @@ Press V to toggle a slice visible/invisible. This doesn't work on the children o
 
 Press H to hide the children of a slice in the editor menu, but the children can still be visible in the collection
 
-Press R to reset a slice's position: to position 0,0, aligned and anchored to top-left corner, and not filling.
+Press R to reset a slice's position: to position 0,0, aligned and anchored to top-left corner, and not filling parent.
 
 Press Delete if you want to remove a slice.
 
@@ -48,6 +48,8 @@ NOTE: if you add no children to the root slice, it won't be saved!
 Press F6 to shift around your view of the whole slice collection around. This does not modify the collection, it is only for help while editing.
 
 Press F7 to toggle whether outline boxes are drawn around the currently selected slice and the one under the mouse.
+
+Press F8 to open the Slice Editor Settings menu, where you can access most of these functions without having to remember the hotkey for each.
 
 Press Ctrl+F3 to toggle between 8-bit and 32-bit color mode. This affects transparency/blending in the slice editor only. You can't yet run your game in 32-bit color mode.
 

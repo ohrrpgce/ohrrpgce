@@ -11,3 +11,5 @@ Press F4 to switch between hiding the menu background, the menu (so you can see 
 Press F6 to shift around your view of the whole slice collection around. This does not modify the collection, it is only for help while editing.
 
 Press F7 to toggle whether an outline box is drawn around the currently selected slice.
+
+Press F8 to open the Slice Editor Settings menu, where you can access most of these functions, and more, without having to remember the hotkey for each.

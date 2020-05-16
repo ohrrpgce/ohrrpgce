@@ -90,6 +90,7 @@ DECLARE SUB frame_draw_with_background (src as Frame ptr, pal as Palette16 ptr =
 DECLARE FUNCTION bgcolor_caption(bgcolor as bgType) as string
 
 DECLARE SUB Custom_volume_menu
+DECLARE SUB Custom_global_menu
 DECLARE SUB global_Custom_controls ()
 
 DECLARE FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtype as string, allow_default as bool = NO, default as integer = 0) as string

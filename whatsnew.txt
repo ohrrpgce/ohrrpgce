@@ -4,6 +4,8 @@ WHAT IS NEW?
 August ? 2020 [H???]
 
   *** New Features
+    * Slice Editor Settings menu. Press F8 to open. You no longer need to
+      remember (other) hotkeys [Ralph]
 
    * New Plotscripting Features
     * "set timer args" [Ralph]

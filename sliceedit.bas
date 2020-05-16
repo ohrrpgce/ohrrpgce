@@ -11,6 +11,9 @@
 #include "loading.bi"
 #include "thingbrowser.bi"
 #include "reloadext.bi"
+#ifdef IS_CUSTOM
+ #include "custom.bi"
+#endif
 
 #include "sliceedit.bi"
 
@@ -164,7 +167,7 @@ DECLARE FUNCTION find_special_lookup_code(specialcodes() as SpecialLookupCode, c
 DECLARE FUNCTION lookup_code_forbidden(specialcodes() as SpecialLookupCode, code as integer) as bool
 DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode, errorstr as string = "") as bool
 DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem, state as MenuState) as Slice ptr
-DECLARE SUB slice_editor_common_function_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState)
+DECLARE SUB slice_editor_common_function_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, in_detail_editor as bool)
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
 DECLARE SUB slice_editor_refresh_delete (byref index as integer, slicemenu() as SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (byref index as integer, slicemenu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
@@ -183,7 +186,7 @@ DECLARE FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, eds
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
 DECLARE FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState, lowerlimit as integer, upperlimit as integer) as bool
 DECLARE FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as string, byval start_at_code as integer, byval slicekind as SliceTypes) as integer
-DECLARE FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slice Ptr, edslice as Slice Ptr) as string
+DECLARE FUNCTION slice_caption (byref ses as SliceEditState, edslice as Slice Ptr, sl as Slice Ptr) as string
 DECLARE SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE SUB slice_editor_reset_slice(byref ses as SliceEditState, sl as Slice ptr)
@@ -192,6 +195,7 @@ DECLARE SUB append_specialcode (byref ses as SliceEditState, byval code as integ
 DECLARE FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes) as bool
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allowed_types() as SliceTypes) as bool
 DECLARE SUB preview_SelectSlice_parents (byval sl as Slice ptr)
+DECLARE SUB slice_editor_settings_menu(byref ses as SliceEditState, byref edslice as Slice ptr, in_detail_editor as bool)
 
 'Slice EditRule convenience functions
 DECLARE SUB sliceed_rule (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as integer ptr, lower as integer=0, upper as integer=0, group as integer = 0)
@@ -516,7 +520,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     IF slice_editor_save_when_leaving(ses, edslice) THEN EXIT DO
    END IF
   END IF
-  slice_editor_common_function_keys ses, edslice, state  'F4, F6, F7, Ctrl+F3, Ctrl+F4
+  slice_editor_common_function_keys ses, edslice, state, NO  'F4, F6, F7, F8, Ctrl+F3, Ctrl+F4
   #IFDEF IS_GAME
    IF keyval(scF1) > 1 THEN show_help "sliceedit_game"
   #ELSE
@@ -544,13 +548,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     state.need_update = YES
    END IF
    IF keyval(scR) > 1 THEN slice_editor_reset_slice ses, ses.curslice
-  END IF
-
-  IF keyval(scF8) > 1 THEN
-   IF ses.curslice ANDALSO ses.curslice->SliceType = slSprite THEN
-    'Make a sprite melt, just for a fun test
-    DissolveSpriteSlice(ses.curslice, 5, 36)
-   END IF
   END IF
 
   ' Highlighting and selecting slices with the mouse
@@ -762,7 +759,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  pop_gfxio_state
 END SUB
 
-SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState)
+'Note: a lot of this is duplicated, and the keys are documented, in SliceEditSettingsMenu
+SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, in_detail_editor as bool)
  IF keyval(scCtrl) = 0 ANDALSO keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD (hideLAST + 1)
  IF keyval(scF6) > 1 THEN
   'Move around our view on this slice collection.
@@ -774,6 +772,10 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
   state.need_update = YES
  END IF
  IF keyval(scF7) > 1 THEN ses.show_ants = NOT ses.show_ants
+ IF keyval(scF8) > 1 THEN
+  slice_editor_settings_menu ses, edslice, in_detail_editor
+  state.need_update = YES
+ END IF
  IF keyval(scCtrl) > 0 ANDALSO keyval(scF3) > 1 THEN
   'Switching to 32 bit color depth allows 32-bit and smooth-scaled sprites,
   'but breaks sprite dissolves
@@ -1132,7 +1134,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   setwait 55
   setkeys YES
   IF keyval(ccCancel) > 1 THEN EXIT DO
-  slice_editor_common_function_keys ses, edslice, state  'F4, F6, F7, Ctrl+F3, Ctrl+F4
+  slice_editor_common_function_keys ses, edslice, state, YES  'F4, F6, F7, F8, Ctrl+F3, Ctrl+F4
   IF keyval(scF1) > 1 ANDALSO LEN(rules(state.pt).helpkey) THEN
    show_help "sliceedit_" & rules(state.pt).helpkey
   END IF
@@ -2409,6 +2411,125 @@ FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
  'Invalid values still print, but !?
  RETURN n & "(!?)"
 END FUNCTION
+
+
+'==========================================================================================
+'                                       Settings menu
+'==========================================================================================
+
+TYPE SliceEditSettingsMenu EXTENDS ModularMenu
+ ses as SliceEditState ptr
+ edslice as Slice ptr
+ in_detail_editor as bool
+
+ DECLARE SUB update ()
+ DECLARE FUNCTION each_tick () as bool
+END TYPE
+
+SUB SliceEditSettingsMenu.update()
+ add_item 0 , , "[Close]"
+
+ IF ses->curslice <> NULL THEN
+  header "Selected slice:"
+  WITH *ses->curslice
+   add_item 1, , "visible: " & yesorno(.Visible) & IIF(in_detail_editor, "", " (V)")
+   IF .NumChildren > 0 THEN
+    add_item 2, , "Collapse (hide) children: " & yesorno(.EditorHideChildren) & IIF(in_detail_editor, "", " (H)")
+   END IF
+   add_item 3, , "Reset position & alignment" & IIF(in_detail_editor, "", " (R)")
+  END WITH
+ END IF
+
+ header "Editor Settings"
+ DIM hide_captions(...) as string = {"Show menu and slices", "Hide menu background", "Hide slices", "Hide menu"}
+ IF in_detail_editor = NO THEN
+#IFDEF IS_CUSTOM
+  add_item 9, , "Import collection (F2)"
+#ENDIF
+  add_item 10, , "Export collection (F3)"
+ END IF
+ add_item 11, , safe_caption(hide_captions(), ses->hide_mode) & " (F4)"
+ add_item 12, , "Show root slice: " & yesorno(ses->show_root) & " (F5)"
+'IIF(ses->show_root, "Show", "Hide") & " root slice (F5)"
+ add_item 13, , "Shift viewport... (F6)"
+ add_item 14, , "Show ants: " & yesorno(ses->show_ants) & " (F7)"
+ 'add_item 15, , "This menu (F8)"
+#IFDEF IS_CUSTOM
+ add_item 16, , "Global Editor Options (F9)"
+#ENDIF
+ add_item 17, , "Switch to " & IIF(vpages_are_32bit, 8, 32) & "-bit color mode (Ctrl-F3)"
+ IF NOT vpages_are_32bit THEN
+  add_item 18, , "Blend algorithm: " & BlendAlgoCaptions(gen(gen8bitBlendAlgo)) & " (Ctrl-F4)"
+ END IF
+END SUB
+
+FUNCTION SliceEditSettingsMenu.each_tick() as bool
+ DIM activate as bool = enter_space_click(state)
+ DIM changed as bool
+ SELECT CASE itemtypes(state.pt)
+  CASE 0
+   IF activate THEN RETURN YES
+  CASE 1  'Toggle visible
+   changed = boolgrabber(ses->curslice->Visible, state)
+  CASE 2  'Toggle subtree hidden
+   changed = boolgrabber(ses->curslice->EditorHideChildren, state)
+  CASE 3  'Reset position/align
+   IF activate THEN
+    slice_editor_reset_slice *ses, ses->curslice
+    RETURN YES
+   END IF
+
+#IFDEF IS_CUSTOM
+  CASE 9
+   IF activate THEN
+    slice_editor_import_prompt *ses, edslice
+    changed = YES
+   END IF
+#ENDIF
+  CASE 10
+   IF activate THEN slice_editor_export_prompt *ses, edslice
+  CASE 11  'Hide menu/slices
+   changed = intgrabber(ses->hide_mode, 0, hideLAST)
+  CASE 12
+   changed = boolgrabber(ses->show_root, state)
+  CASE 13  'Shift viewport
+   IF activate THEN
+    DIM true_root as Slice ptr = FindRootSlice(edslice)
+    slice_editor_xy true_root->X, true_root->Y, ses->draw_root, edslice, ses->show_ants
+   END IF
+  CASE 14
+   changed = boolgrabber(ses->show_ants, state)
+  'CASE 15  'This menu: nothing
+#IFDEF IS_CUSTOM
+  CASE 16
+   IF activate THEN Custom_global_menu
+#ENDIF
+  CASE 17  '8/32 bit color
+   IF activate THEN
+    toggle_32bit_vpages
+    changed = YES
+   END IF
+  CASE 18  'Blend algo
+   changed = intgrabber(gen(gen8bitBlendAlgo), 0, blendAlgoLAST)
+ END SELECT
+ state.need_update OR= changed
+END FUNCTION
+
+SUB slice_editor_settings_menu(byref ses as SliceEditState, byref edslice as Slice ptr, in_detail_editor as bool)
+ DIM menu as SliceEditSettingsMenu
+ menu.floating = YES
+ menu.menuopts.edged = YES
+ menu.ses = @ses
+ menu.edslice = edslice
+ menu.in_detail_editor = in_detail_editor
+ menu.title = "Slice editor (F8)"
+ menu.helpkey = "sliceedit_settings"
+ menu.run()
+ edslice = menu.edslice  'Changes eg. when importing
+END SUB
+
+
+'==========================================================================================
 
 'This wrapper around SliceLoadFromFile falls back to a default for the various special slice collections
 SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)

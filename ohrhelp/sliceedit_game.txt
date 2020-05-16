@@ -16,6 +16,8 @@ Child slices are grouped together with their parent, and they move as a group.
 
 While holding Ctrl you can press up and down to move to the previous and next siblings of a slice; and press left and right to select the parent and the first child.
 
+Press F8 to open the Slice Editor Settings menu, where you can see most of the following hotkeys, and more.
+
 Press V to toggle a slice visible/invisible. This doesn't work on the children of Select slices. Invisible slices have a different colour in the menu.
 
 Press H to hide the children of a slice in the editor menu, but the children can still be visible in the collection
@@ -28,8 +30,7 @@ Press Ctrl+C to copy a slice and its children. Press Ctrl+V to paste a copied sl
 
 Press F2 to export your slice collection to a file.
 
-Press Ctrl+F2 to save (export) to the same file that you loaded from (using F3),
-if any.
+Press Ctrl+F2 to save (export) to the same file that you loaded from (using F3), if any.
 
 Press F3 to import a slice collection (the collection you are currently working on will be replaced.)
 
