@@ -198,6 +198,8 @@ DECLARE FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval 
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allowed_types() as SliceTypes) as bool
 DECLARE SUB preview_SelectSlice_parents (byval sl as Slice ptr)
 DECLARE SUB slice_editor_settings_menu(byref ses as SliceEditState, byref edslice as Slice ptr, in_detail_editor as bool)
+DECLARE SUB slice_editor_save_settings(byref ses as SliceEditState)
+DECLARE SUB slice_editor_load_settings(byref ses as SliceEditState)
 
 'Slice EditRule convenience functions
 DECLARE SUB sliceed_rule (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as integer ptr, lower as integer=0, upper as integer=0, group as integer = 0)
@@ -477,6 +479,8 @@ END SUB
 SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  init_slice_editor_for_collection_group(ses, ses.collection_group_number)
 
+ slice_editor_load_settings ses
+
  REDIM PRESERVE editable_slice_types(9)
  IF ses.privileged THEN a_append editable_slice_types(), slLayout
 
@@ -624,7 +628,9 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
    IF keyval(scCtrl) > 0 ANDALSO keyval(scF) > 1 THEN
     'Edit this slice alone ("fullscreen")
+    slice_editor_save_settings ses  'So will be loaded by recursive editor
     slice_editor ses.curslice, ses.collection_group_number, ses.collection_file, YES
+    slice_editor_load_settings ses
     state.need_update = YES
 
    ELSEIF keyval(scDelete) > 1 THEN
@@ -746,7 +752,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    menuopts.drawbg = (ses.hide_mode <> hideMenuBG)
    standardmenu plainmenu(), state, 8, 0, dpage, menuopts
    draw_fullscreen_scrollbar state, 0, dpage, alignLeft
-   wrapprintbg "+ to add a slice. SHIFT+arrows to sort", 8, pBottom, uilook(uiText), dpage, menuopts.drawbg
+   wrapprintbg "+ to add a slice. SHIFT+arrows to reorder", 8, pBottom, uilook(uiText), dpage, menuopts.drawbg
   END IF
 
   SWAP vpage, dpage
@@ -759,6 +765,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
  switch_to_8bit_vpages  'In case Ctrl-F3 used
  pop_gfxio_state
+
+ slice_editor_save_settings ses
 END SUB
 
 'Note: a lot of this is duplicated, and the keys are documented, in SliceEditSettingsMenu
@@ -2437,7 +2445,7 @@ SUB SliceEditSettingsMenu.update()
  IF ses->curslice <> NULL THEN
   header "Selected slice:"
   WITH *ses->curslice
-   add_item 1, , "visible: " & yesorno(.Visible) & IIF(in_detail_editor, "", " (V)")
+   add_item 1, , "Visible: " & yesorno(.Visible) & IIF(in_detail_editor, "", " (V)")
    IF .NumChildren > 0 THEN
     add_item 2, , "Collapse (hide) children: " & yesorno(.EditorHideChildren) & IIF(in_detail_editor, "", " (H)")
    END IF
@@ -2537,8 +2545,23 @@ SUB slice_editor_settings_menu(byref ses as SliceEditState, byref edslice as Sli
  menu.helpkey = "sliceedit_settings"
  menu.run()
  edslice = menu.edslice  'Changes eg. when importing
+
+ slice_editor_save_settings ses
 END SUB
 
+SUB slice_editor_save_settings(byref ses as SliceEditState)
+ write_config "sliceedit.show_positions", yesorno(ses.show_positions)
+ write_config "sliceedit.show_sizes", yesorno(ses.show_sizes)
+ 'While in the recursive slice editor, show_root gets set to YES by default
+ IF ses.recursive = NO THEN write_config "sliceedit.show_root", yesorno(ses.show_root)
+END SUB
+
+SUB slice_editor_load_settings(byref ses as SliceEditState)
+ ses.show_positions = read_config_bool("sliceedit.show_positions", NO)
+ ses.show_sizes = read_config_bool("sliceedit.show_sizes", NO)
+ 'See above
+ IF ses.recursive = NO THEN ses.show_root = read_config_bool("sliceedit.show_root", NO)
+END SUB
 
 '==========================================================================================
 
