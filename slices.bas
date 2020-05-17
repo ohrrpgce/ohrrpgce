@@ -4611,10 +4611,10 @@ SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)
  dim s as string
  s = string(indent, " ") & SliceTypeName(sl)
  if sl->Protect then
-  s = s & " (P)"
+  s &= " (P)"
  end if
 
- s = s & " lookup:" & SliceLookupCodename(sl) & " handle:" & sl->TableSlot & " pos:" & sl->X & "," & sl->Y & " size:" & sl->Width & "x" & sl->Height
+ s &= " lookup:" & SliceLookupCodename(sl) & " handle:" & sl->TableSlot & " pos:" & sl->Pos & " size:" & sl->Size.wh
  if sl->Visible = NO then s &= " visible:false"
  for idx as integer = 0 to 2
   if sl->Extra(idx) then s &= " extra" & idx & ":" & sl->Extra(idx)

@@ -180,6 +180,10 @@ OPERATOR XYPair.CAST () as string
   RETURN x & "," & y
 END OPERATOR
 
+OPERATOR WHSimple.CAST () as string
+  RETURN w & "*" & h
+END OPERATOR
+
 OPERATOR XYPair.+= (rhs as XYPair)
   x += rhs.x
   y += rhs.y
@@ -348,6 +352,7 @@ startTest(XYPairOperators)
   IF A / 1.5 <> XY(3,4) THEN fail
   IF A / XY(-1,4) <> XY(-4,2) THEN fail
   IF STR(A) <> "4,6" THEN fail
+  IF STR(A.wh) <> "4*6" THEN fail
   IF ABS(XY(-4,-5)) <> XY(4,5) THEN fail
   IF A MOD 3 <> XY(1,0) THEN fail
   IF A MOD XY(3,5) <> XY(1,1) THEN fail

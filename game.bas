@@ -1530,7 +1530,7 @@ SUB update_heroes(force_step_check as bool=NO)
        END IF
       ELSE
        'trigger the instead-of-battle script
-       trigger_script trigger, 2, YES, "instead-of-battle", "triggered at " & herotx(0) & "," & heroty(0), mainFibreGroup
+       trigger_script trigger, 2, YES, "instead-of-battle", "triggered at " & herotpos(0), mainFibreGroup
        trigger_script_arg 0, battle_formation, "formation"
        trigger_script_arg 1, battle_formation_set, "formation set"
       END IF
@@ -4179,7 +4179,7 @@ FUNCTION usenpc(byval cause as integer, byval npcnum as NPCIndex) as bool
  END IF
  IF npcs(id).script > 0 THEN
   '--summon a script directly from an NPC
-  trigger_script npcs(id).script, 2, YES, "NPC", "NPC ID " & id & " at " & npc(npcnum).x & "," & npc(npcnum).y, mainFibreGroup
+  trigger_script npcs(id).script, 2, YES, "NPC", "NPC ID " & id & " at " & npc(npcnum).pos, mainFibreGroup
   trigger_script_arg 0, npcs(id).scriptarg, "arg"
   trigger_script_arg 1, (npcnum + 1) * -1, "npcref"
  END IF

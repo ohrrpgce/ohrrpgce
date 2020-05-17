@@ -513,7 +513,7 @@ SUB loadmapstate_tilemap (mapnum as integer, prefix as string, dontfallback as b
   GetTilemapInfo maplumpname(mapnum, "t"), propersize
   GetTilemapInfo filebase + "_t.tmp", statesize
 
-  IF statesize.wide = propersize.wide AND statesize.high = propersize.high THEN
+  IF statesize.size = propersize.size THEN
    'Changing number of map layers is OK, however
    lump_reloading.maptiles.dirty = NO  'Not correct, but too much trouble to do correctly
    lump_reloading.maptiles.changed = NO
@@ -526,7 +526,7 @@ SUB loadmapstate_tilemap (mapnum as integer, prefix as string, dontfallback as b
    cropposition herox(0), heroy(0), 20
 
   ELSE
-   DIM errmsg as string = " Tried to load saved tilemap state which is size " & statesize.wide & "*" & statesize.high & ", while the map is size " & propersize.wide & "*" & propersize.high
+   DIM errmsg as string = " Tried to load saved tilemap state which is size " & statesize.size.wh & ", while the map is size " & propersize.size.wh
    IF insideinterpreter THEN
     scripterr current_command_name() + errmsg, 4
    ELSE
@@ -546,12 +546,12 @@ SUB loadmapstate_passmap (mapnum as integer, prefix as string, dontfallback as b
   GetTilemapInfo maplumpname(mapnum, "p"), propersize
   GetTilemapInfo filebase + "_p.tmp", statesize
 
-  IF statesize.wide = propersize.wide AND statesize.high = propersize.high THEN
+  IF statesize.size = propersize.size THEN
    lump_reloading.passmap.dirty = NO  'Not correct, but too much trouble to do correctly
    lump_reloading.passmap.changed = NO
    loadtilemap pass, filebase + "_p.tmp"
   ELSE
-   DIM errmsg as string = "tried to load saved passmap state which is size " & statesize.wide & "*" & statesize.high & ", while the map is size " & propersize.wide & "*" & propersize.high
+   DIM errmsg as string = "tried to load saved passmap state which is size " & statesize.size.wh & ", while the map is size " & propersize.size.wh
    IF insideinterpreter THEN
     scripterr current_command_name() + errmsg, 4
    ELSE
@@ -573,8 +573,8 @@ SUB loadmapstate_zonemap (mapnum as integer, prefix as string, dontfallback as b
   lump_reloading.zonemap.dirty = NO  'Not correct, but too much trouble to do correctly
   lump_reloading.zonemap.changed = NO
   LoadZoneMap zmap, filebase + "_z.tmp"
-  IF zmap.wide <> mapsizetiles.x OR zmap.high <> mapsizetiles.y THEN
-   DIM errmsg as string = "tried to load saved zonemap state which is size " & zmap.wide & "*" & zmap.high & ", while the map is size " & mapsizetiles.x & "*" & mapsizetiles.y
+  IF zmap.size <> mapsizetiles THEN
+   DIM errmsg as string = "tried to load saved zonemap state which is size " & zmap.size.wh & ", while the map is size " & mapsizetiles.wh
    IF insideinterpreter THEN
     scripterr current_command_name() + errmsg, 4
    ELSE
@@ -627,7 +627,7 @@ FUNCTION tilemap_is_same_size (lumptype as string, what as string) as bool
  DIM as TilemapInfo newsize
  GetTilemapInfo maplumpname(gam.map.id, lumptype), newsize
 
- IF newsize.wide <> mapsizetiles.w OR newsize.high <> mapsizetiles.h THEN
+ IF newsize.size <> mapsizetiles THEN
   notification "Could not reload " + what + " because the map size has changed. The map must be reloaded. You can do so by pressing F5 to access the Live Preview Debug Menu and selecting 'Reload map'."
   RETURN NO
  END IF

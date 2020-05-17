@@ -930,13 +930,13 @@ SUB gfx_sdl2_process_events()
         WITH evnt.button
           mouseclicks OR= SDL_BUTTON(.button)
           IF debugging_io THEN
-            debuginfo "SDL_MOUSEBUTTONDOWN mouse " & .which & " button " & .button & " at " & .x & "," & .y
+            debuginfo "SDL_MOUSEBUTTONDOWN mouse " & .which & " button " & .button & " at " & XY(.x, .y)
           END IF
         END WITH
       CASE SDL_MOUSEBUTTONUP
         WITH evnt.button
           IF debugging_io THEN
-            debuginfo "SDL_MOUSEBUTTONUP   mouse " & .which & " button " & .button & " at " & .x & "," & .y
+            debuginfo "SDL_MOUSEBUTTONUP   mouse " & .which & " button " & .button & " at " & XY(.x, .y)
           END IF
         END WITH
 

@@ -628,7 +628,7 @@ FUNCTION GetTilemapInfo(filename as string, info as TilemapInfo) as bool
     .wide = readshort(fh, 8)  'skip over BSAVE header
     .high = readshort(fh, 10)
     IF in_bound(.wide, 16, 32678) = NO ORELSE in_bound(.high, 10, 32678) = NO THEN
-      info.seterr filename, "Bad map size " & .wide & "*" & .high
+      info.seterr filename, "Bad map size " & .size.wh
       CLOSE #fh
       RETURN NO
     END IF
@@ -636,7 +636,7 @@ FUNCTION GetTilemapInfo(filename as string, info as TilemapInfo) as bool
     'Because of bug 829 (.T not truncated when map resized), and old 32000 byte tilemaps,
     'tilemaps with bad lengths are common; only do a simple length check
     IF .layers = 0 THEN
-      info.seterr filename, "Bad file length or map size; " & .wide & "*" & .high & ", " & LOF(fh) & " bytes"
+      info.seterr filename, "Bad file length or map size; " & .size.wh & ", " & LOF(fh) & " bytes"
       CLOSE #fh
       RETURN NO
     END IF
@@ -945,10 +945,10 @@ SUB DebugZoneMap(zmap as ZoneMap, byval x as integer = -1, byval y as integer = 
   WITH zmap
     DIM memusage as integer
     memusage = .wide * .high * 2 + .wide_segments * .high_segments * 32 + .extraID_hash.numitems * SIZEOF(ZoneHashedSegment) + .extraID_hash.tablesize * SIZEOF(any ptr)
-    debug "ZoneMap dump: " & .wide & "*" & .high & ", " & .numzones & " zones, " & .extraID_hash.numitems & " crowded tiles, " & memusage & "B memory used"
+    debug "ZoneMap dump: " & .size.wh & ", " & .numzones & " zones, " & .extraID_hash.numitems & " crowded tiles, " & memusage & "B memory used"
     IF x <> -1 AND y <> -1 THEN
       DIM bitvector as ushort = .bitmap[x + y * .wide]
-      debug " tile " & x & "," & y & ": " & BIN(bitvector)
+      debug " tile " & XY(x,y) & ": " & BIN(bitvector)
       DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
       IF bitvector AND (1 SHL 15) THEN
         'This 4x4 segment is overcrowded, fall back to looking up the tile
@@ -1328,7 +1328,7 @@ SUB LoadZoneMap(zmap as ZoneMap, filename as string)
   w = GetChildNodeInt(root, "w")
   h = GetChildNodeInt(root, "h")
   IF w <= 0 OR h <= 0 THEN
-    debug "LoadZoneMap: " & filename & " - bad size " & w & "*" & h
+    debug "LoadZoneMap: " & filename & " - bad size " & XY(w,h).wh
     FreeDocument doc
     EXIT SUB
   END IF

@@ -4516,7 +4516,7 @@ SUB image_to_layer(st as MapEditState, imgfile as string, layer as integer)
   EXIT SUB
  END IF
  IF fr->h <> st.map.high OR fr->w <> st.map.wide THEN
-  notification "This image is " & fr->w & "*" & fr->h & " while the map is " & st.map.wide & "*" & st.map.high & !".\n" _
+  notification "This image is " & fr->size.wh & " while the map is " & st.map.size.wh & !".\n" _
                "Any extra portion will be clipped. Resize the map manually as desired."
  END IF
  FOR y as integer = 0 TO small(fr->h, st.map.high) - 1
@@ -5005,7 +5005,7 @@ SUB mapedit_resize(st as MapEditState)
  resizemapmenu st, rs
  IF rs.rect.wide = -1 ORELSE rs.rect = XY_WH(XY(0,0), st.map.size) THEN EXIT SUB
  mapedit_resize_map st, rs.rect
- 'notification "Resized the map to " & rs.rect.w & "x" & rs.rect.h
+ 'notification "Resized the map to " & rs.rect.wh
 END SUB
 
 'Shift and resize all map data. Does not save the map afterwards.
@@ -5088,12 +5088,12 @@ SUB verify_map_size (st as MapEditState)
   j += 2
   printstr "This map seems to be corrupted.", 0, j * 8, vpage
   j += 2
-  printstr " TileMap " & .tiles(0).wide & "*" & .tiles(0).high & " tiles, " & (UBOUND(.tiles) + 1) & " layers", 0, j * 8, vpage: j += 1
-  printstr " WallMap " & .pass.wide & "*" & .pass.high & " tiles", 0, j * 8, vpage: j += 1
-  printstr " FoeMap " & .foemap.wide & "*" & .foemap.high & " tiles", 0, j * 8, vpage: j += 1
-  printstr " ZoneMap " & .zmap.wide & "*" & .zmap.high & " tiles", 0, j * 8, vpage: j += 1
+  printstr " TileMap " & .tiles(0).size.wh & " tiles, " & (UBOUND(.tiles) + 1) & " layers", 0, j * 8, vpage: j += 1
+  printstr " WallMap " & .pass.size.wh & " tiles", 0, j * 8, vpage: j += 1
+  printstr " FoeMap " & .foemap.size.wh & " tiles", 0, j * 8, vpage: j += 1
+  printstr " ZoneMap " & .zmap.size.wh & " tiles", 0, j * 8, vpage: j += 1
   j += 1
-  printstr "Fixing to " & .wide & "*" & .high, 0, j * 8, vpage: j += 1
+  printstr "Fixing to " & .size.wh, 0, j * 8, vpage: j += 1
   'A map's size might be due to corruption, besides, the tilemap is far away the most important
   '.wide = large(.tiles(0).wide, large(.pass.wide, .foemap.wide))
   '.high = large(.tiles(0).high, large(.pass.high, .foemap.high))

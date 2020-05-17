@@ -1942,8 +1942,8 @@ FUNCTION slice_caption (byref ses as SliceEditState, edslice as Slice ptr, sl as
  DIM s as string
  WITH *sl
   s = SliceTypeName(sl) & " "
-  IF ses.show_positions THEN s &= (.ScreenX - ses.draw_root->ScreenX) & "," & (.ScreenY - ses.draw_root->ScreenY)
-  IF ses.show_sizes THEN s &= "(" & .Width & "x" & .Height & ")"
+  IF ses.show_positions THEN s &= (.ScreenPos - ses.draw_root->ScreenPos)
+  IF ses.show_sizes THEN s &= "(" & .Size.wh & ")"
   IF sl = edslice AND .Lookup <> SL_ROOT THEN
    s &= " [root]"
   END IF

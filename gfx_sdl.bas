@@ -382,7 +382,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
     ELSE
       screen_width = videoinfo->current_w
       screen_height = videoinfo->current_h
-      debuginfo "SDL: screen size "  & screen_width & "x" & screen_height
+      debuginfo "SDL: screen size " & XY(screen_width, screen_height).wh
     END IF
   END IF
   ' This enables key repeat both for text input and for keys. We only

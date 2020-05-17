@@ -182,10 +182,10 @@ FUNCTION describe_formation(formdata as Formation) as string
    IF LEN(nam) = 0 THEN nam = "Enemy" & id
    IF result <> "" THEN result &= " "
    result &= nam
-   IF num <> 1 THEN result &= "*" & num 
+   IF num <> 1 THEN result &= "*" & num
   END IF
  NEXT i
- 
+
  RETURN result
 END FUNCTION
 

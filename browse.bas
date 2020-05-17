@@ -672,7 +672,7 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
      .about = info.err
      .kind = bkUnselectable
     END IF
-    .about = "Size " & info.wide & "x" & info.high & " tilemap with " & info.layers & " layers"
+    .about = "Size " & info.size.wh & " tilemap with " & info.layers & " layers"
    END IF
   END WITH
   draw_browse_meter br

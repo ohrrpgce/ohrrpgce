@@ -897,8 +897,8 @@ end function
 local sub screen_size_update ()
 	'Changes windowsize if user tried to resize, otherwise does nothing
 	if gfx_get_resize(windowsize) then
-		'debuginfo "User window resize to " & windowsize.w & "*" & windowsize.h
-		show_overlay_message windowsize.w & " x " & windowsize.h, 0.7
+		'debuginfo "User window resize to " & windowsize.wh
+		show_overlay_message windowsize.wh & " x " & windowsize.h, 0.7
 	end if
 
 	'Clamping windowsize to the minwinsize here means trying to override user
@@ -930,7 +930,7 @@ local sub screen_size_update ()
 		dim vp as Frame ptr = vpages(page)
 		if vp andalso vp->isview = NO andalso vp->noresize = NO then
 			if vp->w <> windowsize.w or vp->h <> windowsize.h then
-				'debug "screen_size_update: resizing page " & page & " -> " & windowsize.w & "*" & windowsize.h
+				'debug "screen_size_update: resizing page " & page & " -> " & windowsize.wh
 				resizepage page, windowsize.w, windowsize.h
 			end if
 		end if
@@ -980,7 +980,7 @@ sub unlock_resolution (min_w as integer, min_h as integer)
 	if gfx_supports_variable_resolution() = NO then
 		exit sub
 	end if
-	debuginfo "unlock_resolution(" & min_w & "," & min_h & ")"
+	debuginfo "unlock_resolution(" & minwinsize & ")"
 	resizing_enabled = gfx_set_resizable(YES, minwinsize.w, minwinsize.h)
 	windowsize.w = large(windowsize.w, minwinsize.w)
 	windowsize.h = large(windowsize.h, minwinsize.h)
@@ -7372,7 +7372,7 @@ function image_read_info (filename as string) as ImageFileInfo
 	info &= ret.imagetype_name
 
 	if ret.supported orelse ret.size.w > 0 then
-		info &= ", " & ret.size.w & "*" & ret.size.h & " pixels, " & ret.bpp & "-bit color"
+		info &= ", " & ret.size.wh & " pixels, " & ret.bpp & "-bit color"
 		if ret.size.w > maxFrameSize orelse ret.size.h > maxFrameSize then
 			ret.supported = NO
 			ret.error = "Too large!"
@@ -8689,7 +8689,7 @@ end sub
 'no_alloc: ignore this; internal use only.
 function frame_new(w as integer, h as integer, frames as integer = 1, clr as bool = NO, wantmask as bool = NO, with_surface32 as bool = NO, no_alloc as bool = NO) as Frame ptr
 	if w < 1 or h < 1 or frames < 1 then
-		showbug "frame_new: bad size " & w & "*" & h & "*" & frames
+		showbug "frame_new: bad size " & XY(w,h).wh & "*" & frames
 		return 0
 	end if
 	if with_surface32 then
@@ -9326,8 +9326,8 @@ function frame_describe(p as Frame ptr) as string
 	if p = 0 then return "'(null)'"
 	dim temp as string
 	if p->sprset then temp = p->sprset->describe()
-	return "'(0x" & hexptr(p) & ") " & p->arraylen & "x" & p->w & "x" & p->h _
-	       & " offset=" & p->offset.x & "," & p->offset.y  & " img=0x" & hexptr(p->image) _
+	return "'(0x" & hexptr(p) & ") " & p->arraylen & "*" & p->size.wh _
+	       & " offset=" & p->offset  & " img=0x" & hexptr(p->image) _
 	       & " msk=0x" & hexptr(p->mask) & " pitch=" & p->pitch & " cached=" & p->cached & " aelem=" _
 	       & p->arrayelem & " view=" & p->isview & " base=0x" & hexptr(p->base) & " refc=" & p->refcount & "' " _
 	       & temp

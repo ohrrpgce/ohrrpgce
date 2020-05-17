@@ -3153,7 +3153,7 @@ SUB script_functions(byval cmdid as integer)
     scriptret = 1
     IF WriteZoneTile(zmap, retvals(0), retvals(1), retvals(2), retvals(3)) = 0 THEN
      scriptret = 0
-     scripterr "writezone: the maximum number of zones, 15, already overlap at " & retvals(1) & "," & retvals(2) & "; attempt to add another failed"
+     scripterr "writezone: the maximum number of zones, 15, already overlap at " & XY(retvals(1), retvals(2)) & "; attempt to add another failed"
     END IF
     lump_reloading.zonemap.dirty = YES
    END IF
@@ -3756,11 +3756,11 @@ SUB script_functions(byval cmdid as integer)
     FOR i = UBOUND(npc) TO 0 STEP -1
      IF npc(i).id <= 0 THEN EXIT FOR
     NEXT
-    DIM msgtemp as string = "create NPC: trying to create NPC id " & retvals(0) & " at " & retvals(1)*20 & "," & retvals(2)*20
+    DIM msgtemp as string = "create NPC: trying to create NPC id " & retvals(0) & " at " & XY(retvals(1), retvals(2)) * 20
     IF i = -1 THEN 
      scripterr msgtemp & "; failed: too many NPCs exist"
     ELSE
-     scripterr msgtemp & "; warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).x & "," & npc(i).y & ": too many NPCs exist", serrWarn
+     scripterr msgtemp & "; warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).pos & ": too many NPCs exist", serrWarn
     END IF
    END IF
    IF i > -1 THEN
@@ -5504,7 +5504,7 @@ END FUNCTION
 
 FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as bool
  IF x < 0 OR y < 0 OR x >= mapsizetiles.x OR y >= mapsizetiles.y THEN
-  scripterr current_command_name() + ": invalid map position " & x & "," & y & " -- map is " & mapsizetiles.x & "*" & mapsizetiles.y & " tiles", serrBadOp
+  scripterr current_command_name() + ": invalid map position " & XY(x,y) & " -- map is " & mapsizetiles.wh & " tiles", serrBadOp
   RETURN NO
  END IF
  RETURN YES

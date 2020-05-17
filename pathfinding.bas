@@ -246,19 +246,14 @@ Sub AStarPathfinder.slow_debug()
 End Sub
 
 Sub AStarPathfinder.debug_path()
- dim s as string = " A* path="
- for i as integer = 0 to v_len(path) - 1
-  if i > 0 then s &= " "
-  s &= path[i].x & "," & path[i].y
- next i
- debug s
+ debug " A* path=" & v_str(path)
 End Sub
 
 Sub AStarPathfinder.debug_list(list as AStarNode vector, expected_status as AStarNodeStatus, listname as string ="nodelist")
  dim s as string = " A* " & listname & "="
  for i as integer = 0 to v_len(list) - 1
   if i > 0 then s &= " "
-  s &= list[i].p.x & "," & list[i].p.y
+  s &= list[i].p
   if list[i].status <> expected_status then
    select case list[i].status
     case AStarNodeStatus.EMPTY: s &= "E"
@@ -273,7 +268,7 @@ End Sub
 '------------------------------------------------------------------------------------------
 
 Property AStarNode.parent () as XYPair
- if not has_parent then debug "AStarNode.parent: Attempted to access non-existant parent for node " & p.x & "," & p.y
+ if not has_parent then debug "AStarNode.parent: Attempted to access non-existant parent for node " & p
  return _parent
 End Property
 

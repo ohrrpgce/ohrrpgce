@@ -543,6 +543,14 @@ TYPE XYSimple
   y as integer
 END TYPE
 
+'The only reason this exists in addition to XYSimple is for the CAST to string
+'operator, so you can write '"size " & foo.wh' to get "size 2*3"
+TYPE WHSimple
+  w as integer
+  h as integer
+  DECLARE OPERATOR CAST () as string
+END TYPE
+
 UNION XYPair
   TYPE
    x as integer
@@ -558,7 +566,7 @@ UNION XYPair
   END TYPE
   n(1) as integer
   xy as XYSimple  'This is to allow LET(posx,posy) = pos.xy
-  wh as XYSimple
+  wh as WHSimple
 
   DECLARE OPERATOR += (rhs as XYPair)
   DECLARE OPERATOR CAST () as string
