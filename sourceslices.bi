@@ -444,6 +444,7 @@ Sub default_status_screen (byval sl1 as Slice Ptr)
         ChangeTextSlice sl8, !"${LEVLABEL} ${LEV}", , , , 
         SetSliceParent(sl8, sl7)
         sl8 = NewSliceOfType(slText)
+        sl8->lookup = -102007
         sl8->x = 4
         sl8->y = 24
         sl8->width = 360
