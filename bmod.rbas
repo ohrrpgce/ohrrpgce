@@ -1758,7 +1758,8 @@ SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
 END SUB
 
 FUNCTION distribute_party_experience (byval exper as integer) as integer
- '--Calculate amount of experience given to each hero, and returns the "base" experience value,
+ '--Calculate amount of experience given to each hero, and returns the gained
+ '--experience to display in the victory info: the "base" experience value,
  '--which is the amount given to live heroes in the active party
  DIM as double sumheroes, xp_mult(UBOUND(gam.hero))
  DIM as integer i
@@ -1786,13 +1787,18 @@ FUNCTION distribute_party_experience (byval exper as integer) as integer
  ' then divide the experience between the heroes
  IF sumheroes > 0 ANDALSO prefbit(30) = NO THEN exper = exper / sumheroes
 
+ DIM gained_xp as bool = NO
+
  FOR i = 0 TO UBOUND(gam.hero)
   IF gam.hero(i).id >= 0 THEN
-   giveheroexperience i, xp_mult(i) * exper
+   gained_xp OR= giveheroexperience(i, xp_mult(i) * exper)
    'debug "hero " & i & " got " & CINT(xp_mult(i) * exper)
    updatestatslevelup i, NO
   END IF
  NEXT
+
+ IF gained_xp = NO THEN exper = 0  'Everyone is at the level cap.
+
  RETURN exper
 END FUNCTION
 

@@ -57,7 +57,7 @@ declare sub hero_total_equipment_bonuses (byval hero_slot as integer, bonuses() 
 declare sub recompute_hero_max_stats (byval hero_slot as integer)
 declare sub compute_hero_base_stats_from_max (byval hero_slot as integer)
 declare sub learn_spells_for_current_level(byval who as integer, byval allowforget as bool)
-declare sub giveheroexperience (byval i as integer, byval exper as integer)
+declare function giveheroexperience (byval i as integer, byval exper as integer) as bool
 declare sub setheroexperience (byval who as integer, byval amount as integer, byval allowforget as bool)
 declare function allowed_to_gain_levels(byval heroslot as integer) as bool
 

@@ -22,6 +22,9 @@ August ? 2020 [H???]
       attacks could delay by up to X turns. You have to turn off the "Non-turn
       attack delays can also cause turn delays" back-compatibility bit to get
       this bugfix [Ralph]
+    * Experience required to level is no longer shown in the Status screen
+      for heroes that reached max level. If all heroes are at max level,
+      battles no longer tell that you gained experience [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"

@@ -1104,7 +1104,8 @@ FUNCTION allowed_to_gain_levels(byval heroslot as integer) as bool
  RETURN YES
 END FUNCTION
 
-SUB giveheroexperience (byval who as integer, byval exper as integer)
+'Returns true if hero gained XP
+FUNCTION giveheroexperience (byval who as integer, byval exper as integer) as bool
  WITH gam.hero(who)
   'reset levels gained
   .lev_gain = 0
@@ -1122,9 +1123,10 @@ SUB giveheroexperience (byval who as integer, byval exper as integer)
      EXIT WHILE
     END IF
    WEND
+   RETURN YES
   END IF
  END WITH
-END SUB
+END FUNCTION
 
 SUB setheroexperience (byval who as integer, byval amount as integer, byval allowforget as bool)
  'unlike giveheroexperience, this can cause delevelling
