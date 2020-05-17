@@ -4,8 +4,8 @@ Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End), or type
 
 Use the Left and Right arrow keys to change the values, or just type in a number.
 
-"Damage Cap" refers to the maximum amount of damage that an attack will be allowed to do at once.
+"Damage Cap" refers to the maximum amount of damage (or healing) that an attack will be allowed to do to each target.
 
-"Initial Level Cap" sets the maximum level a hero can reach (bypassable with the "set hero level" command). Note that it does NOT affect the experience required for level-up, or the stat increase curve.
+"Initial Level Cap" sets the maximum level a hero can reach (by-passable with the "set hero level" command). You can change the current cap with the "set level cap" command (up to Maximum Level). Note that the cap does NOT affect the experience required for level-up, or the stat increase curve.
 
-"Maximum Level" sets the maximum level a hero can reach. it cannot be bypassed. The stat increase curve uses this level.
+"Maximum Level" sets the maximum level a hero can reach. It cannot be bypassed. The stat increase curve uses this level.

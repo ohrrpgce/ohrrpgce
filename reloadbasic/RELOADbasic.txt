@@ -95,8 +95,9 @@ Example:
  END READNODE
 
 If node."damage_cap" is missing, then gen(genDamageCap) is uninitialised, while gen(genLevelCap)
-defaults to 99. You can't add a line that looks like
+defaults to 99. You can't add lines like
   txt.id = node."textbox"."id"
+  gen(genTextboxBackdrop) = tb."textbox"."backdrop"
 to this block, instead you would have to add
   WITHNODE node."textbox" as tb
    txt.id = tb."id"

@@ -38,7 +38,7 @@ CONST CURRENT_RPG_VERSION = 21
 CONST CURRENT_RGFX_VERSION = 1
 ' Version number embedded in each .rgfx file.
 
-CONST CURRENT_RSAV_VERSION = 4
+CONST CURRENT_RSAV_VERSION = 5
 ' Increment this number any time that loading and resaving a game in either
 ' new or old versions of Game leads to data-loss, or major new features are
 ' added.
@@ -48,8 +48,9 @@ CONST CURRENT_RSAV_VERSION = 4
 ' 2 - alectormancy wip increased global limit from 4095 to 16383
 ' 3 - stopped writing obsolete battle_menus node
 ' unversioned - optional saving of slices
-' 4 - callipygous added optional saving of strings
-' 5 - g*** removed hero weapon pic/pal
+' unversioned - callipygous added optional saving of strings
+' 4 - gorgonzola removed hero weapon pic/pal
+' 5 - h*** made saving level and damage caps optional
 
 CONST CURRENT_TESTING_IPC_VERSION = 4
 ' Version of the IPC protocol used when live-previewing

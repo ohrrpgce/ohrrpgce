@@ -362,8 +362,10 @@ SUB gamestate_state_from_reload(byval node as Reload.NodePtr)
    gen(genRegenChar) = ch."regen".default(gen(genRegenChar))
   END READNODE
 
-  gen(genDamageCap) = node."damage_cap"
-  gen(genLevelCap) = small(node."level_cap".default(99), gen(genMaxLevel))
+  'Damage and level caps are only saved if they were modified.
+  '(So we don't want these to default, but we're inside a READNODE that defaults)
+  gen(genDamageCap) = node."damage_cap".default(gen(genDamageCap))
+  gen(genLevelCap) = small(node."level_cap".default(gen(genLevelCap)), gen(genMaxLevel))
 
   READNODE node."stats".warn as stats
    WITHNODE stats."stat" as n
@@ -862,6 +864,9 @@ SUB gamestate_to_reload(byval node as Reload.NodePtr)
 END SUB
 
 SUB gamestate_state_to_reload(byval parent as Reload.NodePtr)
+ REDIM original_gen(499) as integer
+ xbload game + ".gen", original_gen(), ".gen unreadable"
+
  DIM node as NodePtr
  node = SetChildNode(parent, "state")
  DIM ch as NodePtr 'used for sub-containers
@@ -908,8 +913,13 @@ SUB gamestate_state_to_reload(byval parent as Reload.NodePtr)
  SetChildNode(ch, "mute", gen(genMuteChar))
  SetChildNode(ch, "regen", gen(genRegenChar))
 
- SetChildNode(node, "damage_cap", gen(genDamageCap))
- SetChildNode(node, "level_cap", gen(genLevelCap))
+ 'Save damage and level caps only if modified (by "set damage cap" and "set level cap")
+ IF gen(genDamageCap) <> original_gen(genDamageCap) THEN
+  SetChildNode(node, "damage_cap", gen(genDamageCap))
+ END IF
+ IF gen(genLevelCap) <> original_gen(genLevelCap) THEN
+  SetChildNode(node, "level_cap", gen(genLevelCap))
+ END IF
 
  ch = SetChildNode(node, "stats")
  FOR i as integer = 0 TO 11
