@@ -28,6 +28,8 @@ August ? 2020 [H???]
     * Damage and level caps changes didn't update in saved games. This fix
       only affects new saves, old ones still remember the old caps [Ralph]
     * Wrong victory animation when battle ends while hero is walking [Ralph]
+    * In the slice editor, Ctrl+Up/Down and Shift+Up/Down made the cursor move
+      two places [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"

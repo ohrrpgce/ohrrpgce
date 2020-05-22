@@ -701,18 +701,20 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   ' Window size change
   IF UpdateScreenSlice() THEN state.need_update = YES
 
+  DIM topmost as Slice ptr
+
   IF state.need_update THEN
    slice_editor_refresh(ses, edslice, cursor_seek)
    state.need_update = NO
    cursor_seek = NULL
-  END IF
-
-  DIM topmost as Slice ptr
-  topmost = slice_editor_mouse_over(edslice, ses.slicemenu(), state)
-  ' If there's slice under the mouse, clicking should focus on that, not any menu item there.
-  ' (Right-clicking still works to select a menu item)
-  IF topmost = NULL ORELSE (readmouse.buttons AND mouseLeft) = 0 THEN
-   usemenu state
+   topmost = slice_editor_mouse_over(edslice, ses.slicemenu(), state)
+  ELSE
+   topmost = slice_editor_mouse_over(edslice, ses.slicemenu(), state)
+   ' If there's slice under the mouse, clicking should focus on that, not any menu item there.
+   ' (Right-clicking still works to select a menu item)
+   IF topmost = NULL ORELSE (readmouse.buttons AND mouseLeft) = 0 THEN
+    usemenu state
+   END IF
   END IF
 
   draw_background vpages(dpage), bgChequer
