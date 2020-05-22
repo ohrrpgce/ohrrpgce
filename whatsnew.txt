@@ -27,6 +27,7 @@ August ? 2020 [H???]
       battles no longer tell that you gained experience [Ralph]
     * Damage and level caps changes didn't update in saved games. This fix
       only affects new saves, old ones still remember the old caps [Ralph]
+    * Wrong victory animation when battle ends while hero is walking [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"

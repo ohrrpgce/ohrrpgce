@@ -1261,7 +1261,7 @@ SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
  DIM i as integer
  '--First, things that only heroes can do
  FOR i = 0 TO 3
-  IF bslot(i).walk = 1 THEN bslot(i).frame = bslot(i).frame XOR bat.tog
+  IF bat.vic.state = vicNONE AND bslot(i).walk = 1 THEN bslot(i).frame = bslot(i).frame XOR bat.tog
   ' Change weak heroes to weak unless the hero is attacking.
   ' Note that enforce_weak_picture doesn't change from weak to normal frame if
   ' the hero is not weak; the whole method of deciding .frame is broken.
