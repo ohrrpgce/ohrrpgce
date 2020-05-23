@@ -2865,7 +2865,7 @@ fade screen in</example>
 		<command id="resetpalette">
 			<canon>reset palette</canon>
 			<shortname>reset palette</shortname>
-			<description>Reloads the default master palette and its user interface colors, undoing any changes you have made with other palette-altering commands such as <ref>tweakpalette</ref> or <ref>greyscalepalette</ref>. Changes to the palette do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>. However the UI color indices (those in the 'Change User-Interface Colors' menu) are changed immediately (if you're not using multiple master palettes, then UI color indices never change).</description>
+			<description>Reloads the default master palette and its user interface colors, undoing any changes you have made with other palette-altering commands such as <ref>tweakpalette</ref>, <ref>greyscalepalette</ref>, or <ref>loadpalette</ref>. Changes to the palette do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>. However the UI color indices (those in the 'Change User-Interface Colors' menu) are changed immediately (if you're not using multiple master palettes, then UI color indices never change).</description>
 		</command>
 		<command id="readcolor">
 			<canon>read color (index, element)</canon>

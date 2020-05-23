@@ -1349,6 +1349,8 @@ END SUB
 SUB reload_gen()
  REDIM newgen(499) as integer
  xbload game + ".gen", newgen(), "reload lumps: .gen unreadable"
+ 'If "load palette" has been used (sets gam.current_master_palette), don't update palette.
+ '(Not that it really matters)
  IF gam.current_master_palette = gen(genMasterPal) _
      AND newgen(genMasterPal) <> gen(genMasterPal) THEN
   gam.current_master_palette = newgen(genMasterPal)

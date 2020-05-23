@@ -1575,6 +1575,7 @@ SUB script_functions(byval cmdid as integer)
    scriptret = herodir(retvals(0))
   END IF
  CASE 103'--reset palette
+  gam.current_master_palette = gen(genMasterPal)
   load_master_and_uicol gam.current_master_palette
  CASE 104'--tweak palette
   IF bound_arg(retvals(3), 0, 255, "start pal index") THEN
@@ -2168,7 +2169,8 @@ SUB script_functions(byval cmdid as integer)
   END SELECT
  CASE 268'--load palette
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxMasterPal) THEN
-   load_master_and_uicol retvals(0)
+   gam.current_master_palette = retvals(0)
+   load_master_and_uicol gam.current_master_palette
   END IF
  CASE 273'--milliseconds
   ' We shift the zero point so that negative return values don't occur unless the
