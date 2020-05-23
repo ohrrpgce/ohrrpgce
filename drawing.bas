@@ -4944,6 +4944,9 @@ SUB SpriteSetBrowser.run()
   DIM cursor_moved as bool = YES
   DIM selected_frame as integer = 0
   DIM last_resolution as XYPair
+  'This is a workaround for https://github.com/ohrrpgce/ohrrpgce/issues/1110
+  ' The workaround triggers a rebuild_menu on the second pass of the loop below
+  DIM workaround as integer = 2
 
   setkeys
   DO
@@ -4968,6 +4971,11 @@ SUB SpriteSetBrowser.run()
       ELSE
         slice_editor root, SL_COLLECT_EDITOR, , , YES
       END IF
+    END IF
+    
+    IF workaround > 0 THEN
+     workaround -= 1
+     IF workaround = 0 THEN rebuild_menu
     END IF
 
     'Debug key Ctrl-R, reload sprite cache
