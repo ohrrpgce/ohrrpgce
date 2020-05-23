@@ -2780,38 +2780,15 @@ END SUB
 'Load an image of any bitdepth into a Frame which has just 16 colours: those in pal16
 'defaultpal is SpriteEditState.palette
 SUB spriteedit_import16_loadimage(srcfile as string, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr, defaultpal as Palette16 ptr = NULL)
-
- DIM info as ImageFileInfo = image_read_info(srcfile)
-
- 'Map from impsprite colors to master pal indices
- DIM palmapping(255) as integer
-
- 'Load the image and palmapping()
- IF info.paletted = NO THEN
-  impsprite = image_import_as_frame_quantized(srcfile, master())
-  FOR i as integer = 0 TO 255
-   palmapping(i) = i
-  NEXT
- ELSE
-  DIM imgpal(255) as RGBcolor
-  impsprite = image_import_as_frame_paletted(srcfile, imgpal())
-
-  IF defaultpal THEN
-   'Put color index hints in palmapping(), which are used if they are an exact match.
-   FOR i as integer = 0 TO defaultpal->numcolors - 1
-    palmapping(i) = defaultpal->col(i)
-   NEXT
-  END IF
-
-  find_palette_mapping(imgpal(), master(), palmapping())
- END IF
-
- IF impsprite = NULL THEN
-  notification "Could not load " & srcfile & !"\nCheck c_debug.txt for detailed error messages"
+ DIM img as GraphicPair
+ IF image_import_as_frame_and_palette16(img, srcfile, defaultpal) = NO THEN
+  notification "Could not load " & srcfile & !"\nCheck c_debug.txt for detailed error messages (Press Ctrl-F8)"
   EXIT SUB
  END IF
 
- pal16 = palette16_new()
+ impsprite = img.sprite
+ pal16 = img.pal
+ IF pal16 = NULL THEN pal16 = Palette16_new_identity(256)
 
  'Special case (mainly intended for paletted images, but this could also happen
  'if there are only a few colours in the master palette):
@@ -2824,23 +2801,18 @@ SUB spriteedit_import16_loadimage(srcfile as string, byref impsprite as Frame pt
   NEXT
  NEXT
 
- IF require_remap = NO THEN
-  FOR i as integer = 0 TO 15
-   pal16->col(i) = palmapping(i)
-  NEXT i
-  'We're done
-  EXIT SUB
- END IF
+ IF require_remap = NO THEN EXIT SUB  'We're done
 
  'Find the set of colours used in impsprite, and remap impsprite
  'to those colour indices
+ '(This changes the order of the colors. Would be nice to keep it the same)
  DIM vpal16 as integer vector
  v_new vpal16
  'v_append vpal16, 0
 
  FOR x as integer = 0 TO impsprite->w - 1   'small(impsprite->w, ss.wide) - 1
   FOR y as integer = 0 TO impsprite->h - 1  'small(impsprite->h, ss.high) - 1
-   DIM col as integer = palmapping(readpixel(impsprite, x, y))
+   DIM col as integer = pal16->col(small(pal16->numcolors - 1, readpixel(impsprite, x, y)))
    DIM at as integer = v_find(vpal16, col)
    IF at = -1 THEN
     v_append vpal16, col

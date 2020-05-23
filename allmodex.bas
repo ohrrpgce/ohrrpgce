@@ -7459,6 +7459,46 @@ function image_import_as_frame_paletted (filename as string, pal() as RGBColor) 
 	end select
 end function
 
+'Load a paletted image as a Frame and a Palette16 mapped into master() using nearest-matching; returns success.
+'Deletes any existing pointers in ret.
+'Unlike image_import_as_frame_8bit() this preserves the original colour indices.
+'ret.pal will have at least 16 colors, possibly up to 256, but enough to cover all pixel values,
+'but is NULL when the image is unpaletted.
+'defaultpal is used for breaking nearest-match ties.
+function image_import_as_frame_and_palette16 (byref ret as GraphicPair, filename as string, defaultpal as Palette16 ptr = NULL) as bool
+	unload_sprite_and_pal ret
+
+	dim info as ImageFileInfo
+	info = image_read_info(filename)
+	if info.supported = NO then return NULL ' Unreadable, invalid, or unsupported
+
+	if info.paletted then
+		dim imgpal(255) as RGBColor
+		ret.sprite = image_import_as_frame_paletted(filename, imgpal())
+		if ret.sprite = NULL then return NO
+
+		'Map from impsprite colors to master pal indices
+		dim ncols as integer = 1 shl info.bpp
+		if ncols < 16 then ncols = 16
+		dim palmapping(ncols - 1) as integer
+		if defaultpal then
+			'Put color index hints in palmapping(), which are used if they are an exact match.
+			for i as integer = 0 TO small(ncols, defaultpal->numcolors) - 1
+				palmapping(i) = defaultpal->col(i)
+			next
+		end if
+		find_palette_mapping(imgpal(), curmasterpal(), palmapping())
+
+		ret.pal = Palette16_new_from_indices(palmapping())
+	else
+		ret.sprite = image_import_as_frame_quantized(filename, curmasterpal())
+		if ret.sprite = NULL then return NO
+		'Leave ret.pal blank, we don't need it
+		'ret.pal = Palette16_new_identity(256)
+	end if
+	return YES
+end function
+
 'Load a paletted image as a Frame, ignoring the palette. An error to call for non-paletted images.
 function image_import_as_frame_raw (filename as string) as Frame ptr
 	dim pal(255) as RGBColor

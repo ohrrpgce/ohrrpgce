@@ -381,6 +381,7 @@ DECLARE FUNCTION image_load_palette (filename as string, pal() as RGBcolor) as i
 DECLARE FUNCTION image_import_as_frame_raw (filename as string) as Frame ptr
 DECLARE FUNCTION image_import_as_frame_paletted (filename as string, pal() as RGBColor) as Frame ptr
 DECLARE FUNCTION image_import_as_frame_quantized (bmp as string, pal() as RGBcolor, options as QuantizeOptions = TYPE(0, -1)) as Frame ptr
+DECLARE FUNCTION image_import_as_frame_and_palette16 (byref ret as GraphicPair, filename as string, defaultpal as Palette16 ptr = NULL) as bool
 DECLARE FUNCTION image_import_as_frame_8bit (filename as string, masterpal() as RGBcolor, keep_col0 as bool = YES, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
 DECLARE FUNCTION image_import_as_frame_32bit (filename as string) as Frame ptr
 
