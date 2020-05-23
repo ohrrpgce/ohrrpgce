@@ -7026,7 +7026,7 @@ function frame_import_paletted_png(filename as string, pal() as RGBcolor) as Fra
 				pal(cidx).b = .palette[cidx * 4 + 2]
 				pal(cidx).a = .palette[cidx * 4 + 3]  '255=opaque
 			next
-			for cidx as integer = .palettesize - 1 to ubound(pal)
+			for cidx as integer = .palettesize to ubound(pal)
 				pal(cidx).col = 0
 			next
 		end with

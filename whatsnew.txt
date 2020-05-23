@@ -30,6 +30,7 @@ August ? 2020 [H???]
     * Wrong victory animation when battle ends while hero is walking [Ralph]
     * In the slice editor, Ctrl+Up/Down and Shift+Up/Down made the cursor move
       two places [Ralph]
+    * Sprites imported from PNG had the last palette color set to black [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"
