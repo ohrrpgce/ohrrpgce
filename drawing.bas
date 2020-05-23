@@ -4335,8 +4335,9 @@ SUB SpriteSetBrowser.delete_menu_items()
 END SUB
 
 'Deletes and recreates just the spriteset slices.
-'Called every time a spriteset changes in a way that requires slices to be recreated
-'(which includes changes in size or number of frames or frame IDs, but not contents).
+'Must be called every time a spriteset changes in a way that requires slices to be recreated,
+'which includes changes in size or number of frames, frame IDs, or default palette,
+'but not frame contents.
 SUB SpriteSetBrowser.rebuild_menu()
   DIM starttime as double = TIMER
 
@@ -4805,10 +4806,9 @@ SUB SpriteSetBrowser.import_any()
 
   cleanup_editstate edstate, fullset
 
-  IF fullset THEN
-    replace_spriteset setnum
-    rebuild_menu()
-  END IF
+  'Even if importing a single frame, the default palette may have changed
+  replace_spriteset setnum
+  rebuild_menu()
 END SUB
 
 'Delete a frame from a spriteset
