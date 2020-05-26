@@ -97,4 +97,6 @@ DECLARE FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as in
 DECLARE FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as KBScancode=ccLeft, byval more as KBScancode=ccRight, byval scriptside as integer, byval triggertype as integer) as bool
 DECLARE FUNCTION get_hspeak_version(hspeak_path as string) as string
 
+'Note: Custom-specific global variables are in cglobals.bi
+
 #endif

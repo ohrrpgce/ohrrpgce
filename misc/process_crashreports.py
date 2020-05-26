@@ -3,7 +3,7 @@
 This is a utility for analyzing crashrpt crash/bug reports, which are .zip
 files containing a Windows minidump, crashrpt xml file, {c,g}_debug.txt, and
 possibly more.  The minidump is analyzed using Breakpad (see
-minidump_stacktrace.py).
+minidump_tools.py).
 
 Requirements:
 -wine

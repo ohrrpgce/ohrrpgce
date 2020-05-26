@@ -675,6 +675,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
     WITH attacker
      '--drain
      DIM absorb_amount as integer = h * attack.absorb_rate
+     astat_cur += absorb_amount
      IF attack.do_not_display_damage = NO THEN
       .harm.text = STR(ABS(absorb_amount))
       IF h > 0 THEN .harm.text = "+" + .harm.text
@@ -683,7 +684,6 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
      .harm.col = uilook(uiBattleAbsorb)
      .harm.pos.x = .x + (.w * .5)
      .harm.pos.y = .y + (.h * .5)
-     .stat.cur.sta(targstat) += absorb_amount
     END WITH
    END IF
 
@@ -747,9 +747,10 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
    IF attack.damage_color > 0 THEN
     target.harm.col = attack.damage_color - 1
    END IF
-  END IF
- 
- END IF 'skips to here if no damage
+
+  END IF 'attack.show_damage_without_inflicting = NO
+
+ END IF 'skips to here for No Damage attacks
 
  'remember "Counter" target-class data
  target.counter_target = attackerslot

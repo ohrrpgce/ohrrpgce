@@ -168,4 +168,6 @@ DECLARE SUB check_pathfinding_for_map_change()
 
 DECLARE SUB heromove_walk_ahead(byval rank as integer)
 
+'Note: Game-specific global variables are in gglobals.bi
+
 #ENDIF
