@@ -218,7 +218,7 @@ SUB importmxs (f as string, cap as string, byref count as integer, sprtype as Sp
   setkeys
   IF cropafter_keycombo(mstate.pt = 1) THEN
    DIM crop_this as integer = count - 1
-   cropafter pt, crop_this, 3, game + f, 64000
+   cropafter pt, crop_this, NO, game + f, 64000
    count = crop_this + 1
   END IF
   IF keyval(ccCancel) > 1 THEN EXIT DO
@@ -764,7 +764,7 @@ DO
  IF keyval(ccCancel) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "maptile_pickset"
  IF cropafter_keycombo(YES) AND state.pt > -1 THEN
-  cropafter state.pt, gen(genMaxTile), 3, game + ".til", 64000
+  cropafter state.pt, gen(genMaxTile), NO, game + ".til", 64000
   state.last = gen(genMaxTile)
   state.need_update = YES
  END IF
