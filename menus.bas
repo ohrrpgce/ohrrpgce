@@ -1651,10 +1651,19 @@ FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as string
   embedtext cap
  #ENDIF
  IF menu.max_chars > 0 THEN ' Crop overlength
-  IF menu.textalign = alignRight THEN
-   cap = RIGHT(cap, menu.max_chars)
-  ELSE ' left and center align
-   cap = LEFT(cap, menu.max_chars)
+  'TODO: we should replace max_chars with a pixel width, but in the meantime, special-case for withtags
+  IF menu.withtags THEN
+   IF menu.textalign = alignRight THEN
+    cap = shorten_to_left(cap, menu.max_chars * 8)
+   ELSE ' left and center align
+    cap = shorten_to_right(cap, menu.max_chars * 8)
+   END IF
+  ELSE
+   IF menu.textalign = alignRight THEN
+    cap = RIGHT(cap, menu.max_chars)
+   ELSE ' left and center align
+    cap = LEFT(cap, menu.max_chars)
+   END IF
   END IF
  END IF
  RETURN cap
