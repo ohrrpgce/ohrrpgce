@@ -5353,9 +5353,9 @@ SUB load_non_elemental_elements (elem() as bool)
  END READNODE
 END SUB
 
-SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as bool, lump as string, byval bytes as integer, byval prompt as bool=YES)
- 'flushafter YES = flush records (set to zero)
- 'flushafter NO = trim file
+'After prompting user, crop a file of fixed-sized records after record 'index'
+'and update 'limit' (max valid record ID). Returns true if not cancelled.
+FUNCTION cropafter (index as integer, byref limit as integer, lump as string, bytes as integer, prompt as bool=YES) as bool
  DIM i as integer
 
  IF prompt THEN
@@ -5365,7 +5365,7 @@ SUB cropafter (byval index as integer, byref limit as integer, byval flushafter 
   IF multichoice("Do you want to delete ALL records AFTER this one?", menu()) < 1 _
      ORELSE yesno("Are you SURE?", NO, NO) = NO THEN
    setkeys
-   EXIT SUB
+   RETURN NO
   ELSE
    setkeys
   END IF
@@ -5376,19 +5376,9 @@ SUB cropafter (byval index as integer, byref limit as integer, byval flushafter 
   loadrecord buf(), lump, bytes \ 2, i
   storerecord buf(), tmpdir & "_cropped.tmp", bytes \ 2, i
  NEXT i
- IF flushafter THEN
-  'FIXME: this flushafter hack only exists for the .DT0 lump,
-  ' out of fear that some code with read hero data past the end of the file.
-  ' after cleanup of all hero code has confirmed this fear is unfounded, we can
-  ' eliminate this hack entirely
-  'Also, if we're not doing flushing, all of this can be replaced with a truncation
-  flusharray buf()
-  FOR i = index + 1 TO limit
-   storerecord buf(), tmpdir & "_cropped.tmp", bytes \ 2, i
-  NEXT i
- END IF
  limit = index
 
  copyfile tmpdir & "_cropped.tmp", lump
  safekill tmpdir & "_cropped.tmp"
-END SUB
+ RETURN YES
+END FUNCTION

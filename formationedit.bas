@@ -531,7 +531,7 @@ FUNCTION individual_formation_editor (form_id as integer = -1) as integer
     EXIT DO
    END IF
    IF keyval(scF1) > 1 THEN show_help "formation_editor"
-   IF cropafter_keycombo(state.pt = 1) THEN cropafter form_id, gen(genMaxFormation), 0, game + ".for", 80
+   IF cropafter_keycombo(state.pt = 1) THEN cropafter form_id, gen(genMaxFormation), game + ".for", 80
    usemenu state
    slot = state.pt - first_enemy_item
    IF slot < 0 THEN slot = -1

@@ -560,7 +560,7 @@ Function ItemBrowser.thing_text_for_id(byval id as integer) as string
 End Function
 
 Sub ItemBrowser.handle_cropafter(byval id as integer)
- cropafter id, gen(genMaxItem), 0, game & ".itm", getbinsize(binITM)
+ cropafter id, gen(genMaxItem), game & ".itm", getbinsize(binITM)
  load_special_tag_caches
 End Sub
 
@@ -684,12 +684,9 @@ Function AttackBrowser.create_thing_plank(byval id as integer) as Slice ptr
 End Function
 
 Sub AttackBrowser.handle_cropafter(byval id as integer)
- cropafter id, gen(genMaxAttack), 0, game & ".dt6", 80
- '--this is a hack to detect if it is safe to erase the extended data
- '--in the second file
- IF id = gen(genMaxAttack) THEN
-  '--delete the end of attack.bin without the need to prompt
-  cropafter id, gen(genMaxAttack), 0, workingdir & SLASH & "attack.bin", getbinsize(binATTACK), NO
+ IF cropafter(id, gen(genMaxAttack), game & ".dt6", 80) THEN
+  'User confirmed the prompt, also crop attack.bin without prompt
+  cropafter id, gen(genMaxAttack), workingdir & SLASH & "attack.bin", getbinsize(binATTACK), NO  'prompt=NO
  END IF
 End Sub
 
@@ -750,7 +747,7 @@ Function EnemyBrowser.create_thing_plank(byval id as integer) as Slice ptr
 End Function
 
 Sub EnemyBrowser.handle_cropafter(byval id as integer)
- cropafter id, gen(genMaxEnemy), 0, game & ".dt1", getbinsize(binDT1)
+ cropafter id, gen(genMaxEnemy), game & ".dt1", getbinsize(binDT1)
 End Sub
 
 '-----------------------------------------------------------------------
@@ -786,7 +783,7 @@ Function FormationBrowser.thing_text_for_id(byval id as integer) as string
 End Function
 
 Sub FormationBrowser.handle_cropafter(byval id as integer)
- cropafter id, gen(genMaxFormation), 0, game & ".for", 80
+ cropafter id, gen(genMaxFormation), game & ".for", 80
 End Sub
 
 '-----------------------------------------------------------------------
@@ -836,7 +833,7 @@ End Function
 
 Sub HeroBrowser.handle_cropafter(byval id as integer)
  'FIXME: this only clears the old .dt0 file, not the new heroes.reld file
- cropafter id, gen(genMaxHero), 0, game & ".dt0", getbinsize(binDT0)
+ cropafter id, gen(genMaxHero), game & ".dt0", getbinsize(binDT0)
  load_special_tag_caches
 End Sub
 
@@ -1056,7 +1053,7 @@ Function TextboxBrowser.create_thing_plank(byval id as integer) as Slice ptr
 End Function
 
 Sub TextboxBrowser.handle_cropafter(byval id as integer)
- cropafter id, gen(genMaxTextBox), 0, game & ".say", getbinsize(binSAY)
+ cropafter id, gen(genMaxTextBox), game & ".say", getbinsize(binSAY)
 End Sub
 
 '-----------------------------------------------------------------------

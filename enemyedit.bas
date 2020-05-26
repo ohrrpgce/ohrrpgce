@@ -771,7 +771,7 @@ DO
 
  '--SHIFT+BACKSPACE
  IF cropafter_keycombo(workmenu(state.pt) = EnMenuChooseAct) THEN
-  cropafter recindex, gen(genMaxEnemy), 0, game + ".dt1", getbinsize(binDT1)
+  cropafter recindex, gen(genMaxEnemy), game + ".dt1", getbinsize(binDT1)
  END IF
 
  usemenu state

@@ -1338,12 +1338,9 @@ DO
 
  '--SHIFT+BACKSPACE
  IF cropafter_keycombo(workmenu(state.pt) = AtkChooseAct) THEN
-  cropafter recindex, gen(genMaxAttack), 0, game + ".dt6", 80
-  '--this is a hack to detect if it is safe to erase the extended data
-  '--in the second file
-  IF recindex = gen(genMaxAttack) THEN
-   '--delete the end of attack.bin without the need to prompt
-   cropafter recindex, gen(genMaxAttack), 0, workingdir + SLASH + "attack.bin", getbinsize(binATTACK), NO
+  IF cropafter(recindex, gen(genMaxAttack), game & ".dt6", 80) THEN
+   'User confirmed the prompt, also crop attack.bin without prompt
+   cropafter recindex, gen(genMaxAttack), workingdir & SLASH & "attack.bin", getbinsize(binATTACK), NO  'prompt=NO
   END IF
  END IF
 

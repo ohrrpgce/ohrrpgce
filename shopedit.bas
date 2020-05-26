@@ -93,7 +93,7 @@ FUNCTION shop_editor (shop_id as integer) as integer
   setkeys YES
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "shop_main"
-  IF cropafter_keycombo(shopst.st.pt = 1) THEN cropafter shopst.id, gen(genMaxShop), 0, game + ".sho", 40
+  IF cropafter_keycombo(shopst.st.pt = 1) THEN cropafter shopst.id, gen(genMaxShop), game + ".sho", 40
   usemenu shopst.st
   IF shopst.st.pt = 1 THEN
    new_shop_id = shopst.id

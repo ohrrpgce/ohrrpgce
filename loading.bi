@@ -262,7 +262,7 @@ DECLARE SUB textbox_translation_to_lines(box as TextBox, text as string)
 DECLARE FUNCTION get_translation(code as zstring ptr) as TranslationString ptr
 DECLARE FUNCTION translate(original as string, code as zstring ptr) as string
 
-DECLARE SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as bool, lump as string, byval bytes as integer, byval prompt as integer=YES)
+DECLARE FUNCTION cropafter (index as integer, byref limit as integer, lump as string, bytes as integer, prompt as bool=YES) as bool
 
 EXTERN translations as StrHashTable
 EXTERN rgfx_lumpnames() as string

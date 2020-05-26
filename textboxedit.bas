@@ -151,7 +151,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_main"
   IF cropafter_keycombo(state.pt = 1) THEN
-   cropafter st.id, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY)
+   cropafter st.id, gen(genMaxTextBox), game & ".say", curbinsize(binSAY)
    textbox_edit_load box, st, menu()
   END IF
   usemenu state
