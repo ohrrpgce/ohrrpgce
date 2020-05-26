@@ -518,12 +518,7 @@ SUB gfx_editor_menu()
     EXIT DO
    END IF
    IF state.pt = 1 THEN maptile
-   IF state.pt = 2 THEN
-    gen(genMaxTile) = gen(genMaxTile) + 1
-    'Tilesets still use the old mxs backdrop browser
-    importmxs ".til", "tileset", gen(genMaxTile), sprTypeTileset
-    gen(genMaxTile) = gen(genMaxTile) - 1
-   END IF
+   IF state.pt = 2 THEN importmxs 'Tilesets still use the old mxs backdrop browser
    IF state.pt = 3 THEN spriteset_editor sprTypeWalkabout
    IF state.pt = 4 THEN spriteset_editor sprTypeHero
    IF state.pt = 5 THEN spriteset_editor sprTypeSmallEnemy

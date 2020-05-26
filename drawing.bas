@@ -179,9 +179,10 @@ LOCAL SUB toggle_pmask (pmask() as RGBcolor, master() as RGBcolor, index as inte
  setpal pmask()
 END SUB
 
-' This is the OLD "Import/Export {Screens,Full Maptile Sets}" menu, now used only for tilesets.
-' backdrop_browser() is the new one
-SUB importmxs (f as string, cap as string, byref count as integer, sprtype as SpriteType)
+' The "Import/Export Tilesets" menu
+' (Previously it was also for importing/exporting backdrops, replaced by backdrop_browser)
+SUB importmxs ()
+ DIM filename as string = game + ".til"
  STATIC defaultdir as string  'Import & export
  STATIC bgcolor as bgType = 0 'Default to not transparent (color 0)
  DIM chequer_scroll as integer = 0
@@ -194,32 +195,31 @@ SUB importmxs (f as string, cap as string, byref count as integer, sprtype as Sp
  menuopts.edged = YES
  menu(0) = "Return to Main Menu"
  menu(1) = CHR(27) + "Browse 0" + CHR(26)
- menu(2) = "Replace current " + cap
- menu(3) = "Append a new " + cap
+ menu(2) = "Replace current tileset"
+ menu(3) = "Append a new tileset"
  menu(4) = "Disable palette colors for import"
- menu(5) = "Export " + cap + " as BMP"
+ menu(5) = "Export tileset as BMP"
  menu(6) = "View with background: " & bgcolor_caption(bgcolor)
  menu(7) = "Remap transparent color"
  menu(8) = "Full screen view"
  DIM srcfile as string
  DIM pt as integer = 0 'backdrop number
 
+ DIM byref count as integer = gen(genMaxTile)
+
  ' FIXME: We still use vpages(2) to store the tileset, and also if it is resized
  ' the pointer passed to importimage_change_background_color would become invalid!
  lock_page_size 2, 320, 200
 
- IF count = 0 THEN count = 1
  loadpalette pmask(), activepalette
- loadmxs game & f, pt, vpages(2)
+ loadmxs filename, pt, vpages(2)
 
  setkeys
  DO
   setwait 55, 110
   setkeys
   IF cropafter_keycombo(mstate.pt = 1) THEN
-   DIM crop_this as integer = count - 1
-   cropafter pt, crop_this, game + f, 64000
-   count = crop_this + 1
+   cropafter pt, count, filename, 64000
   END IF
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "importimage"
@@ -228,41 +228,41 @@ SUB importmxs (f as string, cap as string, byref count as integer, sprtype as Sp
    intgrabber(bgcolor, bgFIRST, 255)
    menu(6) = "View with background: " & bgcolor_caption(bgcolor)
   ELSE
-   IF intgrabber(pt, 0, count - 1) THEN
+   IF intgrabber(pt, 0, count) THEN
     menu(1) = CHR(27) + "Browse " & pt & CHR(26)
-    loadmxs game + f, pt, vpages(2)
+    loadmxs filename, pt, vpages(2)
    END IF
   END IF
   IF enter_space_click(mstate) THEN
    IF mstate.pt = 0 THEN EXIT DO
    IF mstate.pt = 2 THEN
     'Replace current
-    srcfile = browse(browseTileset, defaultdir, , "browse_import_" & cap)
+    srcfile = browse(browseTileset, defaultdir, , "browse_import_tileset")
     IF srcfile <> "" THEN
-     importimage_importmxs(game & f, pt, srcfile, pmask())
+     importimage_importmxs(filename, pt, srcfile, pmask())
     END IF
-    loadmxs game + f, pt, vpages(2)
+    loadmxs filename, pt, vpages(2)
    END IF
    IF mstate.pt = 3 AND count < 32767 THEN
     'Append new
-    srcfile = browse(browseTileset, defaultdir, , "browse_import_" & cap)
+    srcfile = browse(browseTileset, defaultdir, , "browse_import_tileset")
     IF srcfile <> "" THEN
-     IF importimage_importmxs(game & f, count, srcfile, pmask()) THEN
+     IF importimage_importmxs(filename, count + 1, srcfile, pmask()) THEN
+      count += 1
       pt = count
-      count = pt + 1
      END IF
     END IF
     menu(1) = CHR(27) + "Browse " & pt & CHR(26)
-    loadmxs game + f, pt, vpages(2)
+    loadmxs filename, pt, vpages(2)
    END IF
    IF mstate.pt = 4 THEN
     select_disabled_import_colors pmask(), vpages(2)
    END IF
    IF mstate.pt = 5 THEN
     DIM outfile as string
-    outfile = inputfilename("Name of file to export to?", ".bmp", defaultdir, "input_file_export_screen", trimextension(trimpath(sourcerpg)) & " " & cap & pt)
+    outfile = inputfilename("Name of file to export to?", ".bmp", defaultdir, "input_file_export_screen", trimextension(trimpath(sourcerpg)) & " tileset" & pt)
     '--Re-load the page to vpages(2) just in case it got clobbered by inputfilename() calling the file browser
-    loadmxs game + f, pt, vpages(2)
+    loadmxs filename, pt, vpages(2)
     IF outfile <> "" THEN frame_export_bmp8 outfile & ".bmp", vpages(2), master()
    END IF
    IF mstate.pt = 6 THEN
@@ -271,7 +271,7 @@ SUB importmxs (f as string, cap as string, byref count as integer, sprtype as Sp
    END IF
    IF mstate.pt = 7 THEN
     importimage_change_background_color vpages(2)
-    storemxs game + f, pt, vpages(2)
+    storemxs filename, pt, vpages(2)
    END IF
   END IF  '--end enter_space_click()
   clearpage dpage
@@ -285,7 +285,7 @@ SUB importmxs (f as string, cap as string, byref count as integer, sprtype as Sp
  LOOP
  unlock_page_size 2
  clearpage 2
- sprite_update_cache sprtype
+ sprite_update_cache sprTypeTileset
 END SUB
 
 ' This is the new browser/editor for backdrops.
@@ -306,7 +306,7 @@ SUB backdrop_browser ()
  DIM menuopts as MenuOptions
  menuopts.edged = YES
 
- DIM BYREF count as integer = gen(genNumBackdrops)
+ DIM byref count as integer = gen(genNumBackdrops)
  IF count = 0 THEN count = 1
 
  loadpalette pmask(), activepalette
