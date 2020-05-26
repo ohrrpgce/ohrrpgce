@@ -4926,6 +4926,8 @@ end sub
 '==========================================================================================
 
 
+#define TEXTDBG(message) if state.debug then ? message
+
 function get_font(fontnum as integer, show_err as bool = NO) as Font ptr
 	if fontnum < 0 orelse fontnum > ubound(fonts) orelse fonts(fontnum) = null then
 		if show_err then
@@ -4960,6 +4962,7 @@ type PrintStrState
 	as long fgcolor          'Used when resetting localpal. May be -1 for none
 	as long bgcolor          'Only used if not_transparent
 	as bool not_transparent  'Force non-transparency of layer 1
+	'as bool debug           'Print debug statements (also need to uncomment this and TEXTDBG lines)
 
 	'Internal members
 	as Font ptr initial_font    'Used when resetting thefont
@@ -5029,13 +5032,13 @@ end destructor
 #endmacro
 
 'Interprets a control sequence (at 0-based offset ch in outbuf) written by UPDATE_STATE,
-'modifying state.
-#define MODIFY_STATE(state, outbuf, ch) _
+'modifying a member of state.
+#define READ_MEMBER(state, outbuf, ch) _
 	/' dim offset as long = *Cast(short ptr, @outbuf[ch + 1]) '/ _
 	/' dim newval as long = *Cast(long ptr, @outbuf[ch + 3]) '/ _
 	*Cast(long ptr, Cast(byte ptr, @state) + *Cast(short ptr, @outbuf[ch + 1])) = _
 		*Cast(long ptr, @outbuf[ch + 3]) : _
-	ch += 6
+	ch += 6  '7 bytes in total, assume inside FOR loop that increments ch
 
 #define APPEND_CMD0(outbuf, cmd_id) _
 	outbuf += CHR(cmd_id)
@@ -5044,20 +5047,20 @@ end destructor
 	outbuf += CHR(cmd_id) & "    " : _
 	*Cast(long ptr, @outbuf[len(outbuf) - 4]) = Cast(long, value)
 
-#define READ_CMD(outbuf, ch, variable) _
+#define READ_VALUE(variable, outbuf, ch) _
 	variable = *Cast(long ptr, @outbuf[ch + 1]) : _
-	ch += 4
+	ch += 4  '5 bytes in total, assume inside FOR loop that increments ch
 
 'Processes starting from z[state.charnum] until the end of the line, returning a string
 'which describes a line fragment. It contains printing characters plus command sequences
 'for modifying state. state is passed byval (upon wrapping we would have to undo changes
 'to the state, which is too hard).
 'endchar is 0 based, and exclusive - normally len(z). FIXME: endchar appears broken
-'We also compute the height (height of the tallest font on the line) and the right edge
-'(max_x) of the line fragment. You have to know the line height before you can know the y
+'We also compute the line_height (height of the tallest font on the line) and the line_width
+'of the line fragment. You have to know the line height before you can know the y
 'coordinate of each character on the line.
-'Updates to .x, .y are not written because they can be recreated from the character
-'stream, and .charnum is not written (unless updatecharnum is true) because it's too
+'Updates to .x, .y are not written because they can be recreated from the character stream,
+'nor is .charnum for printing characters (unless updatecharnum is true) because it's too
 'expensive. However, .x, .y and .charnum are updated at the end.
 'If updatecharnum is true, it is updated only when .charnum jumps; you still need to
 'increment after every printing character yourself.
@@ -5079,7 +5082,7 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 	if state.rightmargin = INT_MAX then state.rightmargin = 999999
 
 	with state
-'debug "layout '" & z & "' from " & .charnum & " at " & .x & "," & .y
+		'TEXTDBG("layout '" & z & "' from " & .charnum & " at " & .x & "," & .y)
 		line_height = .thefont->h
 		for ch = .charnum to len(z) - 1
 			if ch = endchar - 1 then
@@ -5090,7 +5093,7 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 			end if
 
 			if z[ch] = 10 and withnewlines then  'newline
-'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
+				'TEXTDBG("add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'")
 				outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
 				chars_to_add = 0
 				'Skip past the newline character, but don't add to outbuf
@@ -5123,7 +5126,7 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 					dim closebrace as integer = instr((ch + 2) + 1, z, "}") - 1
 					if closebrace <> -1 then
 						'Add delayed characters first
-'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
+						'TEXTDBG("add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'")
 
 						outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
 						chars_to_add = 0
@@ -5135,7 +5138,7 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 					end if
 				end if
 			elseif z[ch] >= tcmdFirst and z[ch] <= tcmdLast then ' special signalling characters. Not allowed! (FIXME: delete this)
-'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
+				'TEXTDBG("add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'")
 
 				outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
 				chars_to_add = 0
@@ -5152,7 +5155,7 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 					dim closebrace as integer = parse_tag(z, ch + 2, action, @intarg)
 					if closebrace then
 						'Add delayed characters first
-'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
+						'TEXTDBG("add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'")
 
 						outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
 						chars_to_add = 0
@@ -5245,12 +5248,12 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 
 			.x += .thefont->w(z[ch])
 			if .x > .startx + .rightmargin then
-'debug "rm = " & .rightmargin & " lm = " & .leftmargin
+				'TEXTDBG("rm = " & .rightmargin & " lm = " & .leftmargin)
 				if lastspace > -1 and .x - lastspace_x < 3 * (.rightmargin - .leftmargin) \ 5 then
 					'Split at the last space
 
 					if chars_to_add then
-'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
+						'TEXTDBG("add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'")
 
 						outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
 					end if
@@ -5283,16 +5286,16 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 
 		'Hit end of text, or splitting word
 		if chars_to_add then
-'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
+			'TEXTDBG("add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'")
 			outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
 		end if
-		'Why do we always set x and charnum at the end of the string?
+		'Set final x and charnum
 		if ch <= endchar then
-'debug "exiting layout_line_fragment, ch = " & ch & ", .x = " & .x
+			'TEXTDBG("exiting layout_line_fragment, ch = " & ch & ", .x = " & .x)
 			line_width = .x
 			UPDATE_STATE(outbuf, x, .startx + .leftmargin)
 		else
-'debug "exiting layout_line_fragment, ch = " & ch & ", endchar_x = " & endchar_x
+			'TEXTDBG("exiting layout_line_fragment, ch = " & ch & ", endchar_x = " & endchar_x)
 			outbuf = left(outbuf, endchar_outbuf_len)
 			line_width = endchar_x
 			UPDATE_STATE(outbuf, x, endchar_x)
@@ -5321,7 +5324,7 @@ sub build_text_palette(byref state as PrintStrState, srcpal as Palette16 ptr)
 		if srcpal = NULL and .fgcolor = -1 then
 			debug "render_text: Drawing a font without a palette or foreground colour!"
 		end if
-'debug "build_text_palette: bg = " & .bgcolor & " fg = "& .fgcolor & " outline = " & .thefont->outline_col
+		'TEXTDBG("build_text_palette: bg = " & .bgcolor & " fg = "& .fgcolor & " outline = " & .thefont->outline_col)
 		'Outline colours are a hack, hopefully temp.
 		if .thefont->outline_col > 0 then
 			.localpal->col(.thefont->outline_col) = uilook(uiOutline)
@@ -5339,14 +5342,14 @@ sub draw_line_fragment(dest as Frame ptr, byref state as PrintStrState, layer as
 	dim byref cliprect as ClipState = get_cliprect()
 
 	with state
-'debug "draw frag: x=" & .x & " y=" & .y & " char=" & .charnum & " reallydraw=" & reallydraw & " layer=" & layer
+		'TEXTDBG("draw frag: x=" & .x & " y=" & .y & " char=" & .charnum & " reallydraw=" & reallydraw & " layer=" & layer)
 		for ch as integer = 0 to len(parsed_line) - 1
 			if parsed_line[ch] = tcmdState then
 				'Control sequence. Make a change to state, and move ch past the sequence
-				MODIFY_STATE(state, parsed_line, ch)
+				READ_MEMBER(state, parsed_line, ch)
 
 			elseif parsed_line[ch] = tcmdFont then
-				READ_CMD(parsed_line, ch, arg)
+				READ_VALUE(arg, parsed_line, ch)
 				if arg >= -1 andalso arg <= ubound(fonts) then
 					if arg = -1 then
 						'UPDATE_STATE(outbuf, thefont, .initial_font)
@@ -5371,7 +5374,7 @@ sub draw_line_fragment(dest as Frame ptr, byref state as PrintStrState, layer as
 				end if
 
 			elseif parsed_line[ch] = tcmdPalette then
-				READ_CMD(parsed_line, ch, arg)
+				READ_VALUE(arg, parsed_line, ch)
 				if reallydraw then
 					dim pal as Palette16 ptr
 					pal = Palette16_load(arg)
@@ -5483,7 +5486,7 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 
 	'check bounds skipped because this is now quite hard to tell (checked in draw_clipped)
 
-'debug "printstr '" & text & "' (len=" & len(text) & ") wide = " & wide & " tags=" & withtags & " nl=" & withnewlines
+	'TEXTDBG("printstr '" & text & "' (len=" & len(text) & ") wide = " & wide & " tags=" & withtags & " nl=" & withnewlines)
 
 	wide = relative_pos(wide, dest->w)
 
@@ -5525,6 +5528,7 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 
 		'We have to process both layers, even if the current font has only one layer,
 		'in case the string switches to a font that has two!
+		'That's why we use two copies of state.
 		'Make sure to use a separate Palette16.
 		dim prev_state as PrintStrState
 		prev_state.duplicate_from(state)
@@ -5536,12 +5540,12 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 		do
 			dim line_height as integer
 			dim parsed_line as string = layout_line_fragment(text, endchar, state, 0, line_height, wide, withtags, withnewlines)
-'debug "parsed: " + parsed_line
+			'TEXTDBG("parsed: " + parsed_line)
 			'Print at least one extra line above and below the visible region, in case the
 			'characters are big (we only approximate this policy, with the current font height)
 			visibleline = (.y + line_height > cliprect.t - .thefont->h AND .y < cliprect.b + .thefont->h)
-'if tog then visibleline = NO
-'debug "vis: " & visibleline
+			'if tog then visibleline = NO
+			'debug "vis: " & visibleline
 
 			'FIXME: state caching was meant to kick in after the first visible line of text, not here;
 			'however need to rethink how it should work
@@ -5561,7 +5565,7 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 				'for the previous line. Afterwards, prev_state will be identical to state
 				'as it was at the start of this loop.
 				draw_line_fragment(dest, prev_state, 1, prev_parse, prev_visible)
-'debug "prev.charnum=" & prev_state.charnum
+				'TEXTDBG("prev.charnum=" & prev_state.charnum)
 				if prev_state.charnum >= endchar then /'debug "text end" :'/ exit do
 				if prev_state.y > cliprect.b + prev_state.thefont->h then exit do
 			end if
@@ -5571,14 +5575,15 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 			prev_state.y += line_height
 		loop
 	end with
-'t = timer - t
-'debug "prinstr" & tog & " len " & len(text) & " in " & t*1000 & "ms"
+	't = timer - t
+	'debug "prinstr" & tog & " len " & len(text) & " in " & t*1000 & "ms"
 end sub
 
 'Calculate size of part of a block of text when drawn, returned in retsize
+'endchar is the number of chars (bytes), not a 1-based string position!
 'NOTE: Edged font has width 1 pixel more than Plain font, due to .offset.x.
 sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as integer = 999999, maxlines as integer = 999999, wide as integer = 999999, fontp as Font ptr, withtags as bool = YES, withnewlines as bool = YES)
-'debug "DIMEN char " & endchar
+	'debug "[text_layout_dimensions] endchar=" & endchar
 	dim state as PrintStrState
 	with state
 		'.localpal/?gcolor/initial_?gcolor/transparency non-initialised
@@ -5604,13 +5609,13 @@ sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as i
 			dim exitloop as bool = (.charnum = endchar)
 			dim parsed_line as string = layout_line_fragment(z, endchar, state, line_width, line_height, wide, withtags, withnewlines)
 			retsize->lines += 1
-'debug "parsed a line, line_width =" & line_width
+			'TEXTDBG("parsed a line, line_width =" & line_width)
 			maxwidth = large(maxwidth, line_width)
 
 			'Update state
 			.y += line_height
 			draw_line_fragment(NULL, state, 0, parsed_line, NO)  'reallydraw=NO
-'debug "now " & .charnum & " at " & .x & "," & .y
+			'TEXTDBG("now " & .charnum & " at " & .x & "," & .y)
 			if exitloop then exit while
 		wend
 
@@ -5620,7 +5625,7 @@ sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as i
 		retsize->lastw = line_width
 		retsize->lasth = line_height
 		retsize->finalfont = .thefont
-'debug "end DIM  char=" & .charnum
+		'debug "[/text_layout_dimensions] charnum=" & .charnum
 	end with
 end sub
 
@@ -5685,6 +5690,7 @@ sub find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as
 		'Margins are measured relative to xpos
 		.leftmargin = 0
 		.rightmargin = wide
+		'if left(z,11) = "${K15}Press" then .debug = YES
 
 		dim delayedmatch as bool = NO
 		dim line_width as integer
@@ -5701,18 +5707,19 @@ sub find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as
 
 			'Update state
 			for ch as integer = 0 to len(parsed_line) - 1
-				if parsed_line[ch] = tcmdState then
+				dim char as integer = parsed_line[ch]
+				if char = tcmdState then
 					'Make a change to the state
 					.charnum += 1   'FIXME: this looks wrong
-					MODIFY_STATE(state, parsed_line, ch)
-				elseif parsed_line[ch] = tcmdFont then
-					READ_CMD(parsed_line, ch, arg)
+					READ_MEMBER(state, parsed_line, ch)
+				elseif char = tcmdFont then
+					READ_VALUE(arg, parsed_line, ch)
 					.thefont = fonts(arg)
-				elseif parsed_line[ch] = tcmdPalette then
-					READ_CMD(parsed_line, ch, arg)
+				elseif char = tcmdPalette then
+					READ_VALUE(arg, parsed_line, ch)
 				else
-
-					dim w as integer = .thefont->w(parsed_line[ch])
+					'TEXTDBG("char: ch = " & ch & " charnum = " & .charnum & " x = " & .x & " c=" & char & " " & CHR(char))
+					dim w as integer = .thefont->w(char)
 					'Draw a character
 					if delayedmatch then
 						'retsize->w = w
@@ -5720,7 +5727,7 @@ sub find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as
 					end if
 					.x += w
 					if .y > seeky and .x > seekx then
-'debug "FIND IN: hit w/ x = " & .x
+						'TEXTDBG("FIND IN: hit w/ x = " & .x)
 						'retsize->w = w
 						retsize->exacthit = YES
 						.x -= w
@@ -5744,7 +5751,7 @@ sub find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as
 					end if
 				end if
 				delayedmatch = YES
-'debug "FIND IN: delayed"
+				'TEXTDBG("FIND IN: delayed")
 			end if
 		wend
 
