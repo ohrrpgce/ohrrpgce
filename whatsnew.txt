@@ -33,6 +33,8 @@ August ? 2020 [H???]
     * Sprites imported from PNGs had the last palette color set to black [Ralph]
     * Wrong default palette in spriteset browser after importing a frame [Ralph]
     * "load palette" reverted often when using Test Game or debug menus [Ralph]
+    * Deleting tilesets didn't delete default passability or animations, and
+      the tilesets reappeared, blanked out, when quitting & reloading [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"

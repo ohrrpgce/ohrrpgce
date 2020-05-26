@@ -37,6 +37,7 @@ DECLARE FUNCTION importimage_change_background_color(img as Frame ptr, pal as Pa
 DECLARE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
 
 ' Tileset editor
+DECLARE SUB crop_tilesets(to_id as integer)
 DECLARE SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile as string, bgcolor as bgType)
 DECLARE SUB editmaptile (ts as TileEditState, mouse as MouseInfo, area() as MouseArea, bgcolor as bgType)
 DECLARE SUB tilecut (ts as TileEditState, mouse as MouseInfo)
@@ -204,7 +205,6 @@ SUB importmxs ()
  menu(8) = "Full screen view"
  DIM srcfile as string
  DIM pt as integer = 0 'backdrop number
-
  DIM byref count as integer = gen(genMaxTile)
 
  ' FIXME: We still use vpages(2) to store the tileset, and also if it is resized
@@ -218,9 +218,7 @@ SUB importmxs ()
  DO
   setwait 55, 110
   setkeys
-  IF cropafter_keycombo(mstate.pt = 1) THEN
-   cropafter pt, count, filename, 64000
-  END IF
+  IF cropafter_keycombo(mstate.pt = 1) THEN crop_tilesets pt
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "importimage"
   usemenu mstate
@@ -734,6 +732,14 @@ FUNCTION bgcolor_caption(bgcolor as bgType) as string
  END IF
 END FUNCTION
 
+SUB crop_tilesets(to_id as integer)
+ 'Remove tilesets, animation patterns, default walls
+ IF cropafter(to_id, gen(genMaxTile), game & ".til", 64000) THEN
+  cropafter to_id, gen(genMaxTile), game & ".tap", 80, NO  'prompt=NO
+  cropafter to_id, gen(genMaxTile), workingdir & SLASH & "defpass.bin", 322, NO  'prompt=NO
+ END IF
+END SUB
+
 SUB maptile ()
 STATIC bgcolor as bgType = 0  'Default to first color in master palette
 DIM menu() as string
@@ -764,7 +770,7 @@ DO
  IF keyval(ccCancel) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "maptile_pickset"
  IF cropafter_keycombo(YES) AND state.pt > -1 THEN
-  cropafter state.pt, gen(genMaxTile), game + ".til", 64000
+  crop_tilesets state.pt
   state.last = gen(genMaxTile)
   state.need_update = YES
  END IF
