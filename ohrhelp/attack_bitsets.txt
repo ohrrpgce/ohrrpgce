@@ -15,6 +15,7 @@ Causes the attack's name to be displayed alongside the attack's damage. (This ca
 
 * Don't display damage
 Although the damage will still be dealt to the target, this bitset will prevent the damage from being displayed.
+"Miss" or "Fail" messages, and "Show attack name" will still appear.
 
 * Don't cause target to flinch
 Normally the target of an attack flinches. For heroes this is their "Hurt" frame, and for enemies this is a small horizontal twitch. This bitset prevents the flinching.

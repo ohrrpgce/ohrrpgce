@@ -19,7 +19,8 @@ Any damage dealt will be added to the attacker's target stat. If the attack incr
 Normally the attacker may repeat the attack several times according to their Extra Hits stat. Turning this bitset on makes the attack is not repeated even if the attacker has extra hits.
 
 * Show damage without inflicting
-When this bitset is turned on, no damage will be done, but the amount of damage that would have been done will still be displayed. Revenge and thankvenge damage will not be remembered.
+When this bitset is turned on, no damage will be done (or absorbed by attacker), but the amount of damage that would have been done will still be displayed. Revenge and thankvenge damage will not be remembered.
+Turning on both "Show damage without inflicting" and "Don't display damage" is similar to "No Damage" attacks, except that the attack can still miss or fail.
 
 * Reset target stat to max before hit
 Causes the target stat of the attack's target to be reset to the maximum before any damage is dealt. This is most often used with attacks that change stats like strength or speed or defense to prevent the effect from stacking. This bitset is also useful for attacks that target the effect register, such as poison and stun. Displayed damage (and the revenge or thankvenge stored damage) will show only the amount of damage done after the reset, not the total change.

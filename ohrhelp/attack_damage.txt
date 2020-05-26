@@ -64,7 +64,11 @@ are comments on using them.
  and Elemental failure conditions
  are ignored. But the "Reset mute/
  stun/regen/poison register" bits
- still take effect.
+ still take effect. The target
+ remembers the attack for "Counter"
+ targeting, and the attacker
+ still remembers Last Target and
+ Recorded (Stored) Targets.
 
 -<Stat> = [N]% of Maximum:
  Sets the <target stat> to a
