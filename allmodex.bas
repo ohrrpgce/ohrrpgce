@@ -3360,22 +3360,43 @@ local function draw_allmodex_recordable_overlays (page as integer) as bool
 	if gif_show_keys andalso recordvid andalso recordvid->active then
 		' Build up two strings describing keypresses, so that modifiers like LShift
 		' are sorted to the front.
-		' FIXME: due to frameskip some keypresses might not be recorded. Should show for more than 1 tick.
 		dim as string modifiers, keys
-		with iif(replay.active, @replay_input, @real_input)->kb
+		static recent_key_cooldowns(ubound(real_input.kb.keys)) as integer 'cooldown ticks
+		dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+		with inputst->kb
 			for idx as KBScancode = 0 to ubound(.keys)
+				'If the key was down for only a short time, wait a little
+				'before the display of the key disappears
+				const DISPLAY_MS = 400
+				dim byref cooldown as integer = recent_key_cooldowns(idx)
+				if .keys(idx) > 0 then
+					cooldown = DISPLAY_MS - .key_down_ms(idx)  'Total display time DISPLAY_MS
+				else
+					cooldown -= inputst->elapsed_ms
+				end if
+				if cooldown < 0 then cooldown = 0
+				if cooldown = 0 andalso .keys(idx) = 0 then continue for
+
 				'TODO: Would be nice to show "Left" instead of "Numpad 4" if
 				'numlock is off and that's what it's acting as.
-				if .keys(idx) = 0 then continue for
 				dim keyname as string = scancodename(idx)
-				replacestr keyname, "Left", "L"  'Shorten the name
-				replacestr keyname, "Right", "R"
-				replacestr keyname, " ", ""
+				if idx <> scLeft andalso idx <> scRight then
+					replacestr keyname, "Left", "L"  'Shorten the name of modifiers
+					replacestr keyname, "Right", "R"
+					replacestr keyname, " ", ""
+				end if
+				if .keys(idx) = 0 then
+					'In cooldown period, show darker text because key isn't down
+					keyname = fgcol_text(keyname, uilook(uiMenuItem))
+				end if
+
 				select case idx
 				case scLeftShift, scRightShift, scLeftAlt, scRightAlt, scLeftCtrl, scRightCtrl
 					modifiers &= " " & keyname
 				case scShift, scAlt, scUnfilteredAlt, scCtrl, scAnyEnter
 					'Ignore these duplicates
+				case scNumLock, scCapsLock, scScrollLock
+					'May appear pressed continuously
 				case else
 					keys &= " " & keyname
 				end select
@@ -3384,7 +3405,7 @@ local function draw_allmodex_recordable_overlays (page as integer) as bool
 		dim keysmsg as string = trim(modifiers & keys)
 		if len(keysmsg) then
 			rectangle pRight, pTop, textwidth(keysmsg) + 2, 10, uilook(uiBackground), page
-			edgeprint keysmsg, pRight - 1, pTop, uilook(uiText), page
+			edgeprint keysmsg, pRight - 1, pTop, uilook(uiText), page, YES  'withtags=YES
 			dirty = YES
 		end if
 	end if
