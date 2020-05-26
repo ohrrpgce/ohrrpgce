@@ -5010,10 +5010,13 @@ end destructor
 
 'Special signalling characters
 #define tcmdFirst      15
-#define tcmdState      15
-#define tcmdPalette    16
-#define tcmdRepalette  17
-#define tcmdFont       18  '1 argument: the font number (possibly -1)
+#define tcmdState      15  'Special argument format (6 bytes)
+'All following tcmds must have one argument
+#define tcmdPalette    16  '1 argument
+#define tcmdFont       17  '1 argument: the font number (possibly -1)
+#define tcmdLastWithArg 17
+'All following tcmds must have zero arguments
+#define tcmdRepalette  18  'Call build_text_palette
 #define tcmdLast       18
 
 'Invisible argument: state. (member should not be . prefixed, unfortunately)
@@ -5717,13 +5720,16 @@ sub find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as
 				dim char as integer = parsed_line[ch]
 				if char = tcmdState then
 					'Make a change to the state
-					.charnum += 1   'FIXME: this looks wrong
 					READ_MEMBER(state, parsed_line, ch)
+					'TEXTDBG("READ_MEMBER: ch = " & ch & " charnum = " & .charnum & " x = " & .x)
 				elseif char = tcmdFont then
 					READ_VALUE(arg, parsed_line, ch)
 					.thefont = fonts(arg)
-				elseif char = tcmdPalette then
-					READ_VALUE(arg, parsed_line, ch)
+				elseif char >= tcmdFirst andalso char <= tcmdLast then
+					'Ignore all other commands
+					if char <= tcmdLastWithArg then
+						READ_VALUE(arg, parsed_line, ch)  'Skip the arg
+					end if
 				else
 					'TEXTDBG("char: ch = " & ch & " charnum = " & .charnum & " x = " & .x & " c=" & char & " " & CHR(char))
 					dim w as integer = .thefont->w(char)
@@ -5733,8 +5739,8 @@ sub find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as
 						exit while
 					end if
 					.x += w
-					if .y > seeky and .x > seekx then
-						'TEXTDBG("FIND IN: hit w/ x = " & .x)
+					if .y > seeky andalso .x > seekx then
+						'TEXTDBG("HIT w/ x=" & .x & " ch=" & ch & " charnum=" & .charnum)
 						'retsize->w = w
 						retsize->exacthit = YES
 						.x -= w
