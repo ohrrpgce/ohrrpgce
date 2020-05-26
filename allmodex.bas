@@ -5069,7 +5069,7 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 	dim lastspace_x as integer
 	dim lastspace_outbuf_len as integer
 	dim lastspace_line_height as integer
-	dim endchar_x as integer             'x at endchar
+	dim endchar_x as integer             'state.x at endchar
 	dim endchar_outbuf_len as integer = 999999  'Length of outbuf at endchar
 	dim ch as integer                    'We use this instead of modifying .charnum
 	dim visible_chars as integer         'Number non-control chars we will return
@@ -5085,9 +5085,12 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 		'TEXTDBG("layout '" & z & "' from " & .charnum & " at " & .x & "," & .y)
 		line_height = .thefont->h
 		for ch = .charnum to len(z) - 1
-			if ch = endchar - 1 then
-				'If the final character is a newline and maybe other cases, need to record this
-'debug "hit endchar"
+			'We keep going past endchar until the end of the line, to figure out where to linebreak
+			if ch >= endchar andalso endchar_outbuf_len = 999999 then
+				'If the final character is a newline (and maybe other cases?), or if endchar
+				'isn't len(z), then we need to record this.
+				'We might skip over ch = endchar because it's in the middle of markup.
+				'TEXTDBG("hit endchar, x=" & .x)
 				endchar_x = .x
 				endchar_outbuf_len = len(outbuf) + chars_to_add
 			end if
@@ -5098,7 +5101,7 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 				chars_to_add = 0
 				'Skip past the newline character, but don't add to outbuf
 				ch += 1
-				if ch >= endchar then
+				if ch - 1 >= endchar then
 					'FIXME: If the final character is a newline, we don't add a blank line.
 					'But text slices do! We should probably do the same here, e.g. removing
 					'this if block (and much more work).
@@ -5289,12 +5292,14 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 			'TEXTDBG("add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'")
 			outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
 		end if
-		'Set final x and charnum
-		if ch <= endchar then
+		'Set final x and charnum, and trim off outbuf anything parsed after endchar
+		if endchar_outbuf_len = 999999 then 'ch <= endchar then
+			'Didn't reach endchar
 			'TEXTDBG("exiting layout_line_fragment, ch = " & ch & ", .x = " & .x)
 			line_width = .x
 			UPDATE_STATE(outbuf, x, .startx + .leftmargin)
 		else
+			'Reached endchar and continued
 			'TEXTDBG("exiting layout_line_fragment, ch = " & ch & ", endchar_x = " & endchar_x)
 			outbuf = left(outbuf, endchar_outbuf_len)
 			line_width = endchar_x
@@ -5611,6 +5616,8 @@ sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as i
 			retsize->lines += 1
 			'TEXTDBG("parsed a line, line_width =" & line_width)
 			maxwidth = large(maxwidth, line_width)
+
+			'if .debug then edgeprint STR(line_width), pRight, .y, 10, vpage
 
 			'Update state
 			.y += line_height
