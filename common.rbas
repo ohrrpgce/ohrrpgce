@@ -4252,9 +4252,9 @@ IF time_rpg_upgrade THEN upgrade_message "Updating record counts"
 FOR i as integer = 0 TO sprTypeLastLoadable
  fix_sprite_record_count i
 NEXT i
-IF isfile(workingdir & SLASH & "heroes.reld") THEN
+IF real_isfile(workingdir & SLASH & "heroes.reld") THEN
  'TODO: genMaxHero fix-up for heroes.reld is unimplemented
-ELSE
+ELSEIF real_isfile(game & ".dt0") THEN
  'In old versions, games start with 60 heroes
  fix_record_count gen(genMaxHero),     getbinsize(binDT0), game & ".dt0", "Heroes"
 END IF
@@ -4789,7 +4789,8 @@ IF getfixbit(fixWeapPoints) = 0 THEN
  upgrade_message "Reset hero hand points..."
  DO
   setfixbit(fixWeapPoints, 1)
-  OPENFILE(game + ".dt0", FOR_BINARY + ACCESS_READ_WRITE, fh)
+  'This fixbit is older than heroes.reld, so we can assume only need to upgrade .dt0
+  IF OPENFILE(game + ".dt0", FOR_BINARY + ACCESS_READ_WRITE, fh) THEN EXIT DO  'lump doesn't exist
   REDIM dat(dimbinsize(binDT0)) as short
   FOR i as integer = 0 to gen(genMaxHero)
    GET #fh, , dat()

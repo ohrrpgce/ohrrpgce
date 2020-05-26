@@ -143,7 +143,7 @@ FUNCTION hero_editor (hero_id as integer) as integer
   IF keyval(scF1) > 1 THEN show_help "hero_editor"
   IF cropafter_keycombo(mstate.pt = 1) THEN
    'FIXME: this only clears the old .dt0 file, not the new heroes.reld file
-   cropafter hero_id, gen(genMaxHero), game + ".dt0", getbinsize(binDT0)
+   IF isfile(game + ".dt0") THEN cropafter hero_id, gen(genMaxHero), game + ".dt0", getbinsize(binDT0)
    load_special_tag_caches
   END IF
   usemenu mstate

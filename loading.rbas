@@ -1737,9 +1737,11 @@ Sub save_hero_as_old_dt0(filename as string, hero as HeroDef, byval record as in
 end sub
 
 SUB loadherodata (hero as HeroDef, byval index as integer)
- '--first try to load the data from heroes.reld
- '--and then fall back on the .DT0 lump only if not found.
- '(I think we fall back to .DT0 even if heroes.reld in case we've only partially upgraded to heroes.reld?)
+ 'First try to load the data from heroes.reld and then fall back on the .DT0
+ 'lump if that hero wasn't in heroes.reld.  Do this because we don't upgrade
+ '.DT0 -> heroes.reld in one go, they get upgraded as individual records are
+ 'loaded and saved, during upgrade() or in hero_editor, so the upgrade may be
+ 'partial!
 
  DIM loaded as bool = NO
 
@@ -5370,6 +5372,8 @@ FUNCTION cropafter (index as integer, byref limit as integer, lump as string, by
    setkeys
   END IF
  END IF
+
+ 'TODO: FB 1.08 (2020) adds SetFileEof, eventually should use that instead
 
  DIM buf(bytes \ 2 - 1) as integer
  FOR i = 0 TO index

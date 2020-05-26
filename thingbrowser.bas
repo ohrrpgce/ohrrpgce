@@ -833,7 +833,7 @@ End Function
 
 Sub HeroBrowser.handle_cropafter(byval id as integer)
  'FIXME: this only clears the old .dt0 file, not the new heroes.reld file
- cropafter id, gen(genMaxHero), game & ".dt0", getbinsize(binDT0)
+ IF isfile(game & ".dt0") THEN cropafter id, gen(genMaxHero), game & ".dt0", getbinsize(binDT0)
  load_special_tag_caches
 End Sub
 
