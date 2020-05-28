@@ -5138,7 +5138,7 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 						chars_to_add = 0
 						ch = closebrace
 						if updatecharnum then
-							UPDATE_STATE(outbuf, charnum, ch)
+							UPDATE_STATE(outbuf, charnum, ch + 1)
 						end if
 						continue for
 					end if
@@ -5150,7 +5150,7 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 				chars_to_add = 0
 				ch += 1	 'skip
 				if updatecharnum then
-					UPDATE_STATE(outbuf, charnum, ch)
+					UPDATE_STATE(outbuf, charnum, ch + 1)
 				end if
 				continue for
 			elseif z[ch] = asc("$") then
@@ -5238,7 +5238,7 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 						end if
 						ch = closebrace
 						if updatecharnum then
-							UPDATE_STATE(outbuf, charnum, ch)
+							UPDATE_STATE(outbuf, charnum, ch + 1)
 						end if
 						continue for
 					end if
@@ -5613,6 +5613,7 @@ sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as i
 		while .charnum < len(z)
 			if .charnum > endchar then exit while
 			'If .charnum = endchar, the last line is zero length, but should be included.
+			'(That sounds wrong. Doesn't it actually mean endchar points at a newline?)
 			'.charnum won't advance, so need extra check to prevent infinite loop!
 			dim exitloop as bool = (.charnum = endchar)
 			dim parsed_line as string = layout_line_fragment(z, endchar, state, line_width, line_height, wide, withtags, withnewlines)
@@ -5629,7 +5630,7 @@ sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as i
 			if exitloop then exit while
 		wend
 
-		retsize->endchar = .charnum
+		retsize->endchar = .charnum  'FIXME: layout_line_fragment sets .charnum to the end of the line past endchar!
 		retsize->w = maxwidth
 		retsize->h = .y
 		retsize->lastw = line_width
