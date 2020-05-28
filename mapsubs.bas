@@ -576,16 +576,16 @@ draw_zone_tileset3 st.zonetileset(2)
 'frame_export_bmp8 "zt3.bmp", st.zonetileset(2), master()
 
 st.overlaytileset = frame_new(20, 20 * 160, , YES)
-fuzzyrect st.overlaytileset, 0, 1*20, 20, 20, uilook(uiHighlight)  'Zone edit mode, and NPC movement zone
-fuzzyrect st.overlaytileset, 0, 2*20, 20, 20, uilook(uiHighlight2) 'NPC avoidance zone
-fuzzyrect st.overlaytileset, 0, 3*20, 20, 20, uilook(uiHighlight2) 'NPC avoidance zone (overriding movement zone)
-rectangle st.overlaytileset, 0, 6*20, 20, 20, uilook(uiDisabledItem)  '???
+fuzzyrect st.overlaytileset, XYWH(0, 1*20, 20, 20), uilook(uiHighlight)  'Zone edit mode, and NPC movement zone
+fuzzyrect st.overlaytileset, XYWH(0, 2*20, 20, 20), uilook(uiHighlight2) 'NPC avoidance zone
+fuzzyrect st.overlaytileset, XYWH(0, 3*20, 20, 20), uilook(uiHighlight2) 'NPC avoidance zone (overriding movement zone)
+rectangle st.overlaytileset, XYWH(0, 6*20, 20, 20), uilook(uiDisabledItem)  '???
 
 'Tiles 10 - 15 are for the 'hidden zone' animation. I think it's easier on the eyes than 2 frame flickering.
 'Leave tiles 10-12 blank
 FOR i as integer = 1 TO 3
  'fuzzyrect st.overlaytileset, 0, (12 + i)*20, 20, 20, uilook(uiDisabledItem), 5 * i
- fuzzyrect st.overlaytileset, 0, (12 + i)*20, 20, 20, boxlook(15-i).edgecol, 5 * i
+ fuzzyrect st.overlaytileset, XYWH(0, (12 + i)*20, 20, 20), boxlook(15-i).edgecol, 5 * i
 NEXT
 
 'Plenty of tiles left for other purposes
@@ -5985,7 +5985,7 @@ SUB apply_changelist(st as MapEditState, byref changelist as MapEditUndoTile vec
   'First remove all existing tile data
 
   DIM as RectType clone_box
-  clone_box = XY_WH(st.pos - st.clone_offset, st.clone_size)
+  clone_box = XY_WH((st.pos - st.clone_offset), st.clone_size)
 
   FOR xoff as integer = 0 TO clone_box.wide - 1
    DIM x as integer = xoff + clone_box.x
@@ -6097,7 +6097,7 @@ END FUNCTION
 
 'Is a tile at least partially visisble on-screen?
 FUNCTION mapedit_tile_visible(st as MapEditState, tile as XYPair) as bool
- RETURN mapedit_rect_visible(st, XY_WH(tile * tilesize, tilesize))
+ RETURN mapedit_rect_visible(st, XY_WH((tile * tilesize), tilesize))
 END FUNCTION
 
 'Is a rectangular area (position/size measured in map coords in pixels!) at least partially visible on-screen?

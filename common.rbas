@@ -901,9 +901,9 @@ END SUB
 
 SUB draw_box_back (fr as Frame ptr, pos as XYPair, size as XYPair, col as integer, trans as RectTransTypes, fuzzfactor as integer=50, fuzz_stationary as bool=NO, fuzz_zoom as integer=1)
  IF trans = transFuzzy THEN
-  fuzzyrect fr, pos.x, pos.y, size.w, size.h, col, fuzzfactor, fuzz_stationary, fuzz_zoom
+  fuzzyrect fr, XY_WH(pos, size), col, fuzzfactor, fuzz_stationary, fuzz_zoom
  ELSEIF trans = transOpaque THEN
-  rectangle fr, pos.x, pos.y, size.w, size.h, col
+  rectangle fr, XY_WH(pos, size), col
  ELSEIF trans = transBlend THEN
   trans_rectangle fr, XY_WH(pos, size), curmasterpal(col), fuzzfactor / 100.
  'ELSEIF trans = transHollow THEN
@@ -7128,7 +7128,7 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   FOR i as integer = 0 TO 255
    spot = xy_from_int(i, 16, 16)
    DIM where as XYPair = gridpos + spot * tilesize
-   rectangle where.x, where.y, tilesize.x, tilesize.y, i, dpage
+   rectangle vpages(dpage), XY_WH(where, tilesize), i
    IF i = showcol THEN
     drawbox where.x, where.y, tilesize.x, tilesize.y, cycle_col, 1, dpage
    ELSEIF spot = cursor THEN

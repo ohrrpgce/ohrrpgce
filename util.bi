@@ -656,7 +656,10 @@ UNION RectType
 END UNION
 
 #DEFINE XYWH(x, y, w, h)  TYPE<RectType>(x, y, w, h)   'Just TYPE will nearly always do too.
-#DEFINE XY_WH(xy, wh)  TYPE<RectType>((xy).x, (xy).y, (wh).w, (wh).h)
+' This ought to be defined as
+'#DEFINE XY_WH(xy, wh)  TYPE<RectType>((xy).x, (xy).y, (wh).w, (wh).h)
+' but that hits FB bug https://sourceforge.net/p/fbc/bugs/922/
+#DEFINE XY_WH(xy, wh)  TYPE<RectType>(xy.x, xy.y, wh.w, wh.h)
 
 DECLARE OPERATOR = (lhs as RectType, rhs as RectType) as bool
 DECLARE OPERATOR <> (lhs as RectType, rhs as RectType) as bool
@@ -727,9 +730,10 @@ CONST pBottom =        rBottom + ancBottom
 CONST pRight =         rRight  + ancRight
 
 ' Type of a relative coordinate or relative XYPair, use this to indicate whether a function supports them!
-' (However RelPosXY is hardly used anywhere currently)
+' (However RelPosXY/RelRectType are hardly used anywhere currently)
 TYPE RelPos as integer
 TYPE RelPosXY as XYPair
+TYPE RelRectType as RectType
 
 declare function relative_pos overload (pos as RelPos, pagewidth as integer, objwidth as integer = 0) as integer
 declare function relative_pos overload (pos as RelPosXY, pagesize as XYPair, objsize as XYPair = XY(0,0)) as XYPair

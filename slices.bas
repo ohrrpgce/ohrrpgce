@@ -3093,15 +3093,15 @@ Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
     .topleft.n(other) = sl->ScreenPos.n(other) + sl->Size.n(other)
     .size.n(axis) = sl->Size.n(axis)
     .size.n(other) = 4
-    rectangle .x, .y, .wide, .high, boxlook(dat->style).bgcol, p
    end with
+   rectangle vpages(p), sbar, boxlook(dat->style).bgcol
    with slider
     .topleft = sbar.topleft
     .topleft.n(axis) += sbar.size.n(axis) / total * off
     .size.n(axis) = sbar.size.n(axis) / total * (sl->Size.n(axis) + 1)
     .size.n(other) = 4
-    rectangle .x, .y, .wide, .high, boxlook(dat->style).edgecol, p
    end with
+   rectangle vpages(p), slider, boxlook(dat->style).edgecol
   end if
  next axis
 

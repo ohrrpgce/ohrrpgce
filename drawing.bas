@@ -5508,9 +5508,7 @@ SUB AnimationEditor.edit_animation(anim_name as string)
   draw_background vpages(vpage), bgChequer
   frame_draw @sprset->frames[framenum], pal, pCentered, pBottom - 30, , vpage
 
-  WITH state.rect
-   fuzzyrect vpages(vpage), .x, .y, .wide, .high, uilook(uiBackground)
-  END WITH
+  fuzzyrect vpages(vpage), state.rect, uilook(uiBackground)
   standardmenu cast(BasicMenuItem vector, menu), state, mpos.x, mpos.y, vpage, menuopts
 
   DIM message as string

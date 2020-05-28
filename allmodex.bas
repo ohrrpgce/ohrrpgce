@@ -4272,7 +4272,7 @@ end sub
 'Ensure rect is contained within the cliprect and has non-negative width/height.
 'Used by rectangle, trans_rectangle, fuzzyrect.
 'x/y_start tells how many pixels the x/y location was moved by.
-sub clip_rectangle_draw(dest as Frame ptr, byref rect as RectType, byref x_start as integer = 0, byref y_start as integer = 0)
+sub clip_rectangle_draw(dest as Frame ptr, byref rect as RelRectType, byref x_start as integer = 0, byref y_start as integer = 0)
 	dim byref cliprect as ClipState = get_cliprect(dest)
 
 	' Decode relative positions/sizes to absolute
@@ -4307,7 +4307,7 @@ end sub
 
 'Draw a transparent rectangle. 8- or 32-bit
 'alpha is 0 for transparent, 1. for opaque
-sub trans_rectangle(dest as Frame ptr, byval rect as RectType, byval col as RGBcolor, alpha as double)
+sub trans_rectangle(dest as Frame ptr, byval rect as RelRectType, byval col as RGBcolor, alpha as double)
 	'gfx_surfaceFillAlpha and frame_new_view also clip to the Frame bounds,
 	'but we need to clip by the cliprect anyway.
 	clip_rectangle_draw dest, rect
@@ -4335,10 +4335,13 @@ sub rectangle (x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer,
 	rectangle vpages(p), x, y, w, h, c
 end sub
 
+sub rectangle (fr as Frame Ptr, x_ as RelPos, y_ as RelPos, w_ as RelPos, h_ as RelPos, c as integer)
+	rectangle fr, XYWH(x_, y_, w_, h_), c
+end sub
+
 'Draw a solid rectangle (use drawbox for a hollow one)
 'Top/left edges are inclusive, bottom/right are exclusive
-sub rectangle (fr as Frame Ptr, x_ as RelPos, y_ as RelPos, w_ as RelPos, h_ as RelPos, c as integer)
-	dim rect as RectType = (x_, y_, w_, h_)
+sub rectangle (fr as Frame Ptr, byval rect as RelRectType, c as integer)
 	clip_rectangle_draw fr, rect
 	if rect.wide <= 0 orelse rect.high <= 0 then exit sub
 
@@ -4360,7 +4363,7 @@ sub rectangle (fr as Frame Ptr, x_ as RelPos, y_ as RelPos, w_ as RelPos, h_ as 
 end sub
 
 sub fuzzyrect (x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, p as integer, fuzzfactor as integer = 50, stationary as bool = NO, zoom as integer = 1, offset as integer = 0)
-	fuzzyrect vpages(p), x, y, w, h, c, fuzzfactor, stationary, zoom, offset
+	fuzzyrect vpages(p), XYWH(x, y, w, h), c, fuzzfactor, stationary, zoom, offset
 end sub
 
 'Draw a dithered rectangle
@@ -4374,7 +4377,7 @@ end sub
 'offset:
 '  Used for animating scrolling patterns by offseting them; non-negative
 '  (see draw_background()).
-sub fuzzyrect (fr as Frame Ptr, x_ as RelPos, y_ as RelPos, w_ as RelPos = rWidth, h_ as RelPos = rHeight, c as integer, fuzzfactor as integer = 50, stationary as bool = NO, zoom as integer = 1, offset as integer = 0)
+sub fuzzyrect (fr as Frame Ptr, byval rect as RelRectType, c as integer, fuzzfactor as integer = 50, stationary as bool = NO, zoom as integer = 1, offset as integer = 0)
 	'How many magic constants could you wish for?
 	'These were half generated via magic formulas, and half hand picked (with magic criteria)
 	static grain_table(50) as integer = {_
@@ -4387,7 +4390,6 @@ sub fuzzyrect (fr as Frame Ptr, x_ as RelPos, y_ as RelPos, w_ as RelPos = rWidt
 	fuzzfactor = bound(fuzzfactor, 1, 99)
 	zoom = large(zoom, 1)
 
-	dim rect as RectType = (x_, y_, w_, h_)
 	dim as integer x_start = 0, y_start = 0
 	clip_rectangle_draw fr, rect, x_start, y_start
 	if rect.wide <= 0 orelse rect.high <= 0 then exit sub
@@ -4480,15 +4482,15 @@ sub fuzzyrect (fr as Frame Ptr, x_ as RelPos, y_ as RelPos, w_ as RelPos = rWidt
 end sub
 
 'Draw a fuzzy rect over the whole clipping rect (normally, the whole screen) except for the given rectangle.
-sub antifuzzyrect(fr as Frame Ptr, rect as RectType, col as integer, fuzzfactor as integer = 50, zoom as integer = 1)
+sub antifuzzyrect(fr as Frame Ptr, rect as RelRectType, col as integer, fuzzfactor as integer = 50, zoom as integer = 1)
 	'Top 3 ninths
-	fuzzyrect fr, 0, 0, 999999, rect.y, col, fuzzfactor, YES, zoom
+	fuzzyrect fr, XYWH(0, 0, 999999, rect.y), col, fuzzfactor, YES, zoom
 	'Left ninth
-	fuzzyrect fr, 0, rect.y, rect.x, rect.high, col, fuzzfactor, YES, zoom
+	fuzzyrect fr, XYWH(0, rect.y, rect.x, rect.high), col, fuzzfactor, YES, zoom
 	'Right ninth
-	fuzzyrect fr, rect.x + rect.wide, rect.y, 999999, rect.high, col, fuzzfactor, YES, zoom
+	fuzzyrect fr, XYWH(rect.x + rect.wide, rect.y, 999999, rect.high), col, fuzzfactor, YES, zoom
 	'Bottom 3 ninths
-	fuzzyrect fr, 0, rect.y + rect.high, 999999, 999999, col, fuzzfactor, YES, zoom
+	fuzzyrect fr, XYWH(0, rect.y + rect.high, 999999, 999999), col, fuzzfactor, YES, zoom
 end sub
 
 'Draw either a rectangle or a scrolling chequer pattern.
@@ -4513,8 +4515,8 @@ sub draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byr
 	else
 		dim offset as integer = 0
 		if bgcolor = bgChequerScroll then offset = chequer_scroll \ rate
-		rectangle dest, x, y, wide, high, uilook(uiBackground)
-		fuzzyrect dest, x, y, wide, high, uilook(uiDisabledItem), 25, , zoom, offset
+		rectangle dest, XYWH(x, y, wide, high), uilook(uiBackground)
+		fuzzyrect dest, XYWH(x, y, wide, high), uilook(uiDisabledItem), 25, , zoom, offset
 	end if
 end sub
 
