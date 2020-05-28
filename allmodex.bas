@@ -5716,22 +5716,25 @@ sub find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as
 			'.y now points to 1 pixel past the bottom of the line fragment
 
 			'Update state
+			'Note: .charnum is character in original text, ch is character in parser output
 			for ch as integer = 0 to len(parsed_line) - 1
 				dim char as integer = parsed_line[ch]
 				if char = tcmdState then
 					'Make a change to the state
+					'TEXTDBG("READ_MEMBER: ch=" & ch & " charnum=" & .charnum)
 					READ_MEMBER(state, parsed_line, ch)
-					'TEXTDBG("READ_MEMBER: ch = " & ch & " charnum = " & .charnum & " x = " & .x)
-				elseif char = tcmdFont then
-					READ_VALUE(arg, parsed_line, ch)
-					.thefont = fonts(arg)
 				elseif char >= tcmdFirst andalso char <= tcmdLast then
-					'Ignore all other commands
+					'TEXTDBG("CMD(" & char & "): ch=" & ch & " charnum=" & .charnum)
 					if char <= tcmdLastWithArg then
-						READ_VALUE(arg, parsed_line, ch)  'Skip the arg
+						READ_VALUE(arg, parsed_line, ch)
+						'TEXTDBG("READ_VALUE: arg=" & arg)
+						if char = tcmdFont then
+							.thefont = fonts(arg)
+						end if
 					end if
+					'All other commands: ignore
 				else
-					'TEXTDBG("char: ch = " & ch & " charnum = " & .charnum & " x = " & .x & " c=" & char & " " & CHR(char))
+					'TEXTDBG("CHAR(" & char & " " & CHR(char) & ") ch=" & ch & " charnum = " & .charnum & " x = " & .x)
 					dim w as integer = .thefont->w(char)
 					'Draw a character
 					if delayedmatch then
