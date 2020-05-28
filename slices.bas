@@ -1553,32 +1553,13 @@ Sub NewDrawTextSlice(byval sl as Slice ptr, byval p as integer, col as integer)
  dat->insert_tog = dat->insert_tog xor 1
 
  if dat->show_insert then
-  'Draw the insert cursor by changing the bg color of the character at insert.
-  'FIXME: this doesn't work properly if the cursor is at the end of the line:
-  'the cursor isn't shown at all, because render_text doesn't draw the space.
-  'And if the cursor is at a newline just as the line would wrap, adding another
-  'space causes the line wrapping to change.  I guess this is the wrong approach.
-  dim insert_col as integer = uilook(uiHighlight) + dat->insert_tog
-  dim at_insert as string = mid(text, dat->insert + 1, 1)
-  if at_insert = "" then at_insert = " "  'Past end of string
-  if at_insert = !"\n" then
-   at_insert = bgtag(insert_col, " ") & at_insert
-  else
-   at_insert = bgtag(insert_col, at_insert)
-  end if
-  text = mid(text, 1, dat->insert) & at_insert & mid(text, dat->insert + 2)
-
-  /'
-  'Second attempt: figure out where the insert cursor is and then draw it ourselves.
-  'This doesn't work either, because find_text_char_position is buggy :(
-  'But it is a good approach.
+  'Figure out where the insert cursor is and draw it
   dim insert_size as integer = 8
   if dat->outline then insert_size = 9
   dim charpos as StringCharPos
-  find_text_char_position(@charpos, text, dat->insert + 1, wide, fontnum)
+  find_text_char_position(@charpos, text, dat->insert, wide, fontnum)
   dim insert_pos as XYPair = sl->ScreenPos + charpos.pos
   rectangle insert_pos.x, insert_pos.y, insert_size, insert_size, uilook(uiHighlight + dat->insert_tog), p
-  '/
  end if
 
  textcolor col, ColorIndex(dat->bgcol)
