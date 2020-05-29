@@ -1155,8 +1155,26 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   setkeys YES
   IF keyval(ccCancel) > 1 THEN EXIT DO
   slice_editor_common_function_keys ses, edslice, state, YES  'F4, F6, F7, F8, Ctrl+F3, Ctrl+F4
-  IF keyval(scF1) > 1 ANDALSO LEN(rules(state.pt).helpkey) THEN
-   show_help "sliceedit_" & rules(state.pt).helpkey
+  IF keyval(scF1) > 1 THEN
+   DIM helpkey as string = rules(state.pt).helpkey
+   show_help "sliceedit_" & IIF(LEN(helpkey), helpkey, "detail")
+  END IF
+  IF keyval(scTab) > 1 THEN
+   'Expand/collapse all
+   WITH ses
+    DIM expand as bool
+    expand = .expand_dimensions OR .expand_visible OR .expand_alignment OR _
+             .expand_special OR .expand_padding OR .expand_extra OR .expand_sort
+    expand XOR= YES
+    .expand_dimensions = expand
+    .expand_visible = expand
+    .expand_alignment = expand
+    .expand_special = expand
+    .expand_padding = expand
+    .expand_extra = expand
+    .expand_sort = expand
+   END WITH
+   state.need_update = YES
   END IF
 
   IF UpdateScreenSlice() THEN state.need_update = YES

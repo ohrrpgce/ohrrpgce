@@ -2,6 +2,9 @@ This is the slice detail editor.
 
 Use the up and down arrow keys to navigate the menu.
 
+Click or press enter/space/left/right on a [Section] header to expand/collapse it.
+Press Tab to expand/collapse all sections.
+
 Use the left and right arrow keys to change values, or you can type in numbers.
 
 Press F1 on the other menu items for more detail about each of them.
