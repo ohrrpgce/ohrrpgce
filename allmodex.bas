@@ -4970,8 +4970,12 @@ type PrintStrState
 	as Font ptr initial_font    'Used when resetting thefont
 	as long leftmargin
 	as long rightmargin
-	as long x
-	as long y
+	union
+		as XYPair pos
+		type
+			as long x, y
+		end type
+	end union
 	as long startx
 	as long charnum
 
@@ -5171,8 +5175,7 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 							'Font
 							'Let's preserve the position offset when changing fonts. That way, plain text in
 							'the middle of edgetext is also offset +1,+1, so that it lines up visually with it
-							'.x += fonts(intarg)->offset.x - .thefont->offset.x
-							'.y += fonts(intarg)->offset.y - .thefont->offset.y
+							'.pos += fonts(intarg)->offset - .thefont->offset
 							if intarg >= -1 andalso intarg <= ubound(fonts) then
 								if intarg = -1 then
 									'UPDATE_STATE(outbuf, thefont, .initial_font)
@@ -5526,8 +5529,7 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 			.initial_bgcolor = .bgcolor
 			.initial_not_trans = .not_transparent
 			.charnum = 0
-			.x = relative_pos(xpos, dest->w, finalsize.w) + .thefont->offset.x
-			.y = relative_pos(ypos, dest->h, finalsize.h) + .thefont->offset.y
+			.pos = relative_pos(XY(xpos, ypos), dest->size, finalsize.size) + .thefont->offset
 			.startx = .x
 			'Margins are measured relative to xpos
 			.leftmargin = 0
@@ -5590,9 +5592,10 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 end sub
 
 'Calculate size of part of a block of text when drawn, returned in retsize
+'endchar and endline can be used to trim the string.
 'endchar is the number of chars (bytes), not a 1-based string position!
 'NOTE: Edged font has width 1 pixel more than Plain font, due to .offset.x.
-sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as integer = 999999, maxlines as integer = 999999, wide as integer = 999999, fontp as Font ptr, withtags as bool = YES, withnewlines as bool = YES)
+sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as integer = 999999, endline as integer = 999999, wide as integer = 999999, fontp as Font ptr, withtags as bool = YES, withnewlines as bool = YES)
 	'debug "[text_layout_dimensions] endchar=" & endchar
 	dim state as PrintStrState
 	with state
@@ -5600,8 +5603,7 @@ sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as i
 		.thefont = fontp
 		.initial_font = .thefont
 		.charnum = 0
-		.x = .thefont->offset.x
-		.y = .thefont->offset.y
+		.pos = .thefont->offset
 		'Margins are measured relative to xpos
 		.leftmargin = 0
 		.rightmargin = wide
@@ -5613,7 +5615,7 @@ sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as i
 
 		if endchar > len(z) then endchar = len(z)
 		while .charnum < len(z)
-			if .charnum > endchar then exit while
+			if .charnum > endchar orelse retsize->lines >= endline then exit while
 			'If .charnum = endchar, the last line is zero length, but should be included.
 			'(That sounds wrong. Doesn't it actually mean endchar points at a newline?)
 			'.charnum won't advance, so need extra check to prevent infinite loop!
@@ -5628,13 +5630,15 @@ sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as i
 			'Update state
 			.y += line_height
 			draw_line_fragment(NULL, state, 0, parsed_line, NO)  'reallydraw=NO
-			'TEXTDBG("now " & .charnum & " at " & .x & "," & .y)
+			'TEXTDBG("now " & .charnum & " at " & .pos)
 			if exitloop then exit while
 		wend
 
-		retsize->endchar = .charnum  'FIXME: layout_line_fragment sets .charnum to the end of the line past endchar!
-		retsize->w = maxwidth
-		retsize->h = .y
+		'layout_line_fragment sets .charnum to the beginning of the next line. It's a 0-based
+		'index. Instead we return it as a 1-based index to the end of the current line
+		'(char on which the line wraps).
+		retsize->lineend = .charnum
+		retsize->size = XY(maxwidth, .y)
 		retsize->lastw = line_width
 		retsize->lasth = line_height
 		retsize->finalfont = .thefont
@@ -5646,7 +5650,7 @@ end sub
 function textwidth(text as string, fontnum as integer = fontPlain, withtags as bool = YES, withnewlines as bool = YES) as integer
 	dim retsize as StringSize
 	text_layout_dimensions @retsize, text, , , , get_font(fontnum), withtags, withnewlines
-	return retsize.w
+	return retsize.size.w
 end function
 
 'Returns the width and height of an autowrapped string.
@@ -5657,7 +5661,7 @@ function textsize(text as string, wide as RelPos = rWidth, fontnum as integer = 
 	wide = relative_pos(wide, vpages(page)->w)
 	dim retsize as StringSize
 	text_layout_dimensions @retsize, text, , , wide, get_font(fontnum), withtags, YES
-	return XY(retsize.w, retsize.h)
+	return retsize.size
 end function
 
 'Returns the default height of a line of text of a certain font.
@@ -5666,6 +5670,21 @@ end function
 'and draw_menu by default uses 10. Nonstandard menus use 8-10.
 function lineheight(fontnum as integer = fontEdged) as integer
 	return get_font(fontnum, YES)->h
+end function
+
+'Pixel size of a character in a font
+function charsize(char as integer, fontp as Font ptr) as XYPair
+	dim w as integer
+	if char <= 0 then   'This happens when we index 1 past the end of the string
+		w = fontp->w(ASC(" "))  'Dummy value
+	else
+		w = fontp->w(char)
+	end if
+	return XY(w, fontp->h)
+end function
+
+function charsize(char as integer, fontnum as integer) as XYPair
+	return charsize(char, get_font(fontnum))
 end function
 
 'Calculate the position at which a certain character in a block of text will be drawn
@@ -5677,30 +5696,32 @@ sub find_text_char_position(retsize as StringCharPos ptr, text as string, charnu
 	wide = relative_pos(wide, vpages(page)->w)
 	dim size as StringSize
 	text_layout_dimensions @size, text, charnum, , wide, get_font(fontnum), withtags, YES
-	'return XY(retsize.lastw, retsize.h - retsize.lasth)
 	with *retsize
 		.charnum = charnum
 		.exacthit = YES   'Maybe return NO if it's at the end of the line?
 		.pos.x = size.lastw
-		.pos.y = size.h - size.lasth
-		.h = size.finalfont->h
+		.pos.y = size.size.h - size.lasth
+		.size = charsize(iif(charnum >= len(text), 0, text[charnum]), size.finalfont)
 		.lineh = size.lasth
 	end with
 end sub
 
 'Calculate character position in string from pixel position.
-'xpos and ypos are where the text was drawn... redundant to subtracting that out of seekx/seeky,
+'draw_pos is where the text was drawn... redundant to subtracting that out of seekpt,
 'but in future we might cache render_text state.
-sub find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as integer, z as string, wide as integer = 999999, xpos as integer = 0, ypos as integer = 0, fontnum as integer, withtags as bool = YES, withnewlines as bool = YES)
+'NOTE: draw_pos is NOT a RelPosXY, unlike render_text! Because we don't know the size of the dest Frame.
+sub find_point_in_text (retsize as StringCharPos ptr, seekpt as XYPair, z as string, wide as integer = 999999, draw_pos as XYPair = XY(0,0), fontnum as integer, withtags as bool = YES, withnewlines as bool = YES)
 	dim state as PrintStrState
 	with state
 		'.localpal/?gcolor/initial_?gcolor/transparency non-initialised
 		.thefont = get_font(fontnum)
 		.initial_font = .thefont
 		.charnum = 0
-		.x = xpos + .thefont->offset.x
-		.y = ypos + .thefont->offset.y
-		'Margins are measured relative to xpos
+		.pos = draw_pos + .thefont->offset
+		'.pos = relative_pos(draw_pos, destfr->size, finalsize.size) + .thefont->offset
+		.startx = .x
+
+		'Margins are measured relative to draw_pos.x
 		.leftmargin = 0
 		.rightmargin = wide
 		'if left(z,11) = "${K15}Press" then .debug = YES
@@ -5745,7 +5766,7 @@ sub find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as
 						exit while
 					end if
 					.x += w
-					if .y > seeky andalso .x > seekx then
+					if .y > seekpt.y andalso .x > seekpt.x then
 						'TEXTDBG("HIT w/ x=" & .x & " ch=" & ch & " charnum=" & .charnum)
 						'retsize->w = w
 						retsize->exacthit = YES
@@ -5756,8 +5777,10 @@ sub find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as
 				end if
 			next
 
-			if .y > seeky then
-				'Position was off the end of the line
+			'TEXTDBG("After parsing: charnum = " & .charnum & " line_width = " & line_width & " x = " & .x)
+
+			if .y > seekpt.y then
+				'Position was off the (right-hand) end of the line
 				if .charnum > 0 then
 					dim lastchar as ubyte = z[.charnum - 1]
 					if lastchar = 32 or (lastchar = 10 andalso withnewlines) then
@@ -5777,7 +5800,7 @@ sub find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as
 		retsize->charnum = .charnum
 		retsize->pos.x = .x
 		retsize->pos.y = .y - .thefont->h
-		retsize->h = .thefont->h
+		retsize->size = charsize(z[.charnum], .thefont)  '.charnum = len(z) is OK
 		retsize->lineh = line_height
 	end with
 end sub

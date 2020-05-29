@@ -289,9 +289,9 @@ End Type
 
 'text_layout_dimensions returns this struct
 Type StringSize
-	h as integer         'Height (in pixels)
-	w as integer         'Greatest width of any line
-	endchar as integer   'For when maxlines is specified: one character past last line
+	size as XYPair       'Width is the greatest width of any line
+	lineend as integer   '1-based character position of the end of the line containing endchar or endline
+	                     'This is the character which was wrapped, usually a space or newline, or first char on next line.
 	lastw as integer     'Width of last line fragment
 	lasth as integer     'Height of last line fragment
 	lines as integer     'Number of lines (always at least 1)   FIXME:  not true
@@ -302,8 +302,7 @@ Type StringCharPos
 	charnum as integer   '0-based!! offset in string; equal to len(text) if off the end
 	exacthit as bool     'whether actually on this character, or just the nearest (eg. off end of line)
 	pos as XYPair        'position is in screen coordinates
-	'w as integer        'Size of the selected character (do we really need this?)
-	h as integer
+	size as XYPair       'Size of the selected character
 	lineh as integer     'height of containing line fragment
 End Type
 
@@ -321,9 +320,11 @@ DECLARE SUB text_layout_dimensions (retsize as StringSize ptr, z as string, endc
 DECLARE FUNCTION textwidth(text as string, fontnum as integer = fontPlain, withtags as bool = YES, withnewlines as bool = YES) as integer
 DECLARE FUNCTION textsize(text as string, wide as RelPos = rWidth, fontnum as integer = fontPlain, withtags as bool = YES, page as integer = -1) as XYPair
 DECLARE FUNCTION lineheight(fontnum as integer = fontEdged) as integer
+DECLARE FUNCTION charsize OVERLOAD(char as integer, font as Font ptr) as XYPair
+DECLARE FUNCTION charsize OVERLOAD(char as integer, fontnum as integer) as XYPair
 
 DECLARE SUB find_text_char_position(retsize as StringCharPos ptr, text as string, charnum as integer, wide as RelPos = rWidth, fontnum as integer = fontPlain, withtags as bool = YES, page as integer = -1)
-DECLARE SUB find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as integer, z as string, wide as integer = 999999, xpos as integer = 0, ypos as integer = 0, fontnum as integer, withtags as bool = YES, withnewlines as bool = YES)
+DECLARE SUB find_point_in_text (retsize as StringCharPos ptr, seekpt as XYPair, z as string, wide as integer = 999999, draw_pos as XYPair = XY(0,0), fontnum as integer, withtags as bool = YES, withnewlines as bool = YES)
 
 DECLARE FUNCTION fgcol_text (text as string, colour as integer) as string
 DECLARE FUNCTION bgcol_text (text as string, colour as integer) as string

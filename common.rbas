@@ -1598,7 +1598,7 @@ FUNCTION shorten_to_left (text as string, byval wide as integer) as string
  wide -= textwidth("...")
 
  DIM curspos as StringCharPos
- find_point_in_text @curspos, wide, 0, text, , , , fontPlain
+ find_point_in_text @curspos, XY(wide, 0), text, , , fontPlain
  RETURN "..." + RIGHT(text, curspos.charnum)
 END FUNCTION
 
@@ -1610,7 +1610,7 @@ FUNCTION shorten_to_right (text as string, byval wide as integer) as string
  wide -= textwidth("...")
 
  DIM curspos as StringCharPos
- find_point_in_text @curspos, wide, 0, text, , , , fontPlain
+ find_point_in_text @curspos, XY(wide, 0), text, , , fontPlain
  RETURN LEFT(text, curspos.charnum) + "..."
 END FUNCTION
 
@@ -2888,8 +2888,7 @@ SUB show_help(helpkey as zstring ptr)
     ' Move cursor to location of mouse click.
     IF readmouse.buttons AND (mouseLeft OR mouseRight) THEN
      DIM curspos as StringCharPos
-     DIM mpoint as XYPair = readmouse.pos - help_text->ScreenPos
-     find_point_in_text @curspos, mpoint.x, mpoint.y, dat->s, help_text->Width, 0, 0, 0
+     find_point_in_text @curspos, readmouse.pos, dat->s, help_text->Width, help_text->ScreenPos, fontPlain
      dat->insert = curspos.charnum
     END IF
 

@@ -1780,20 +1780,22 @@ SUB text_test_menu
    text = load_help_file("texttest_stress_test")
   END IF
 
+  DIM textpos as XYPair = XY(20, 20)
+
   DIM curspos as StringCharPos
   DIM pos2 as StringSize
-  find_point_in_text @curspos, mouse.x - 20, mouse.y - 20, text, 280, 0, 0, 0, YES, YES
+  find_point_in_text @curspos, mouse.pos, text, 280, textpos, 0, YES, YES
 
   clearpage vpage
   edgeboxstyle 10, 10, 300, 185, 0, vpage
-  wrapprint text, 20, 20, , vpage, 280, , fontPlain
+  wrapprint text, textpos.x, textpos.y, , vpage, 280, , fontPlain
 
   text_layout_dimensions @pos2, text, curspos.charnum, , 280, fonts(0), YES, YES
 
-  rectangle vpages(vpage), 20 + pos2.lastw, 20 + pos2.h - pos2.finalfont->h, 8, pos2.finalfont->h, 5
-  printstr CHR(3), mouse.x - 2, mouse.y - 2, vpage
+  rectangle vpages(vpage), XY_WH(curspos.pos, curspos.size), uilook(uiHighlight)
+  printstr CHR(3), mouse.x - 3, mouse.y - 3, vpage
   DIM cursor_show as string
-  cursor_show = lpad(STR(curspos.charnum), , 4) & " "
+  cursor_show = lpad(STR(curspos.charnum), , 4) & " (lineend=" & pos2.lineend & ") "
   DIM tpos as integer = curspos.charnum + 1  'curspos.charnum is 0-based!
   cursor_show &= RIGHT(LEFT(text, tpos - 1), 15)
   cursor_show &= "[" & MID(text, tpos, 1) & "]"
