@@ -1590,9 +1590,10 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
 END SUB
 END EXTERN
 
-'Return the right end of a string, trimming and prepending '...' if longer than wide pixels
+'Replacement for RIGHT: Return the right end of a string, trimming and prepending '...' if longer than wide pixels
+'Aware of text markup; doesn't break them.
 '(Might sometimes want to handle this using text slices instead)
-FUNCTION shorten_to_left (text as string, byval wide as integer) as string
+FUNCTION text_right (text as string, byval wide as integer) as string
  DIM w as integer = textwidth(text)
  IF w <= wide THEN RETURN text
  wide -= textwidth("...")
@@ -1602,16 +1603,17 @@ FUNCTION shorten_to_left (text as string, byval wide as integer) as string
  RETURN "..." + RIGHT(text, curspos.charnum)
 END FUNCTION
 
-'Return the left end of a string, trimming and appending '...' if longer than wide pixels
+'Replacement for LEFT: Return the left end of a string, trimming and appending '...' if longer than wide pixels
+'Aware of text markup; doesn't break them.
 '(Might sometimes want to handle this using text slices instead)
-FUNCTION shorten_to_right (text as string, byval wide as integer) as string
+FUNCTION text_left (text as string, byval wide as integer) as string
  DIM w as integer = textwidth(text)
  IF w <= wide THEN RETURN text
  wide -= textwidth("...")
 
  DIM curspos as StringCharPos
  find_point_in_text @curspos, XY(wide, 0), text, , , fontPlain
- RETURN LEFT(text, curspos.charnum) + "..."
+ RETURN LEFT(text, curspos.charnum) + "${K-1}${KB-1}${F-1}..."  'Reset to original color and font
 END FUNCTION
 
 SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
@@ -5776,7 +5778,7 @@ FUNCTION describe_tag_condition(tag as integer, zerocap as string, maxwidth as i
  ret = "IF TAG " & ABS(tag) & "=" + onoroff(tag)
  IF ABS(tag) > 1 THEN
   ret &= " (" & load_tag_name(ABS(tag))
-  ret = shorten_to_right(ret, maxwidth - textwidth(")"))
+  ret = text_left(ret, maxwidth - textwidth(")"))
   ret &= ")"
  END IF
  RETURN ret

@@ -2915,7 +2915,7 @@ FUNCTION textbox_preview_line(box as TextBox, maxwidth as integer = 700) as stri
   IF LEN(ret) * 8 >= maxwidth THEN EXIT FOR
  NEXT i
  ret = RTRIM(ret)  ' Remove spaces due to trailing blank lines
- RETURN shorten_to_right(ret, maxwidth)
+ RETURN text_left(ret, maxwidth)
 END FUNCTION
 
 '==========================================================================================

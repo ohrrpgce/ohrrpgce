@@ -1654,9 +1654,9 @@ FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as string
   'TODO: we should replace max_chars with a pixel width, but in the meantime, special-case for withtags
   IF menu.withtags THEN
    IF menu.textalign = alignRight THEN
-    cap = shorten_to_left(cap, menu.max_chars * 8)
+    cap = text_right(cap, menu.max_chars * 8)
    ELSE ' left and center align
-    cap = shorten_to_right(cap, menu.max_chars * 8)
+    cap = text_left(cap, menu.max_chars * 8)
    END IF
   ELSE
    IF menu.textalign = alignRight THEN

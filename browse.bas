@@ -313,7 +313,7 @@ DO
  ELSE
   title = br.nowdir
  END IF
- edgeprint shorten_to_left(decode_filename(title), 304), 8, 6, uilook(uiText), dpage
+ edgeprint text_right(decode_filename(title), 304), 8, 6, uilook(uiText), dpage
  textcolor uilook(uiText), 0
  printstr ">", 0, 20 + (br.mstate.pt - br.mstate.top) * 9, dpage
  'This mess here because this menu doesn't use a standard MenuState
