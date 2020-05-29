@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# TMC runs this script from cron to keep the git-svn mirrors on bitbucket and github up to date.
+# This script is run from cron to keep the git-svn mirrors on bitbucket and github up to date.
 
 LOCALREPO=~/ohr/ohrrpgce-git-svn
 REMOTEREPO=git@bitbucket.org:rbv/ohrrpgce-svn.git

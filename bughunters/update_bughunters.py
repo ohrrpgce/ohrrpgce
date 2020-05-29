@@ -75,7 +75,9 @@ class LeagueTableUpdater:
         bugstbl.write('{| class=wikitable\n')
         for line in infile.readlines():
             line = line.strip()
-            if line == "START_TABLE":
+            if line.startswith("VERSIONS "):
+                self.versions = line.split()[1:]
+            elif line == "START_TABLE":
                 intable = True
             elif not line.startswith("| "):
                 intable = False
@@ -116,10 +118,12 @@ class LeagueTableUpdater:
                         # X+      => X+
                         reported_version = version.replace('?','').replace('!','').replace('-','')
                         next_version = chr(ord(reported_version[0]) + 1)
-                        if fixed == 'yes' and fixed_version > next_version:
+                        if fixed == 'yes' and fixed_version and fixed_version > next_version:
                             fixed = 'later'  # Fixed in later release
                         self.counts[(reported_version,fixed)] += 1
                         self.totalcounts[reported_version] += 1
+                        # self.counts[('total',fixed)] += 1
+                        # self.totalcounts['total'] += 1
                         if len(fixed_revs) >= 1 and fixed_revs[0] >= self.fixed_since_rev:
                             self.fixed_since[reported_version] += 1
                     try:
@@ -129,14 +133,15 @@ class LeagueTableUpdater:
                                 self.bugs[who] += 1
                     except ValueError:
                         pass
-                    if parts[5].startswith('#'):
-                        # Bug number
-                        bugnum, rest = parts[5].split(' ', 1)
-                        parts[5] = '{{bug|%s}} ' % bugnum[1:] + rest
-                    elif parts[5].startswith('gh#'):
-                        # GitHub Bug number
-                        bugnum, rest = parts[5].split(' ', 1)
-                        parts[5] = '{{ghbug|%s}} ' % bugnum[3:] + rest
+                    if '#' in parts[5][:3]:
+                        bugprefix, rest = parts[5].split('#', 1)
+                        bugnum, rest = rest.split(' ', 1)
+                        if bugprefix == 'sf':
+                            # SourceForge bug number
+                            parts[5] = '{{oldbug|%s}} ' % bugnum + rest
+                        elif bugprefix in ('', 'gh'):
+                            # GitHub bug number
+                            parts[5] = '{{bug|%s}} ' % bugnum + rest
                     del parts[0]
                     del parts[-1]
                     bugstbl.write("|-\n| " + " || ".join(parts) + "\n")
@@ -217,7 +222,7 @@ class LeagueTableUpdater:
                 c('unmerged'), c('later'), c('yes'), c('part'), c('no'), self.totalcounts[code]
             ))
 
-        for version in ("Etheldreme", "Fufluns"):
+        for version in self.versions:
             code = version[0]
             ret += """
 |-
@@ -226,6 +231,16 @@ class LeagueTableUpdater:
 |-
 ! Post-[[%s]] [[nightly builds]]
 %s""" % (version, row(code), version, row(code+'+'))
+
+        # Add totals
+        for (version,status),count in dict(self.counts).items():
+            self.counts[('total',status)] += count
+            self.totalcounts['total'] += count
+        ret += """
+|-
+! Total
+""" + row('total')
+
         ret += "\n|}"
         return ret
 
@@ -250,6 +265,8 @@ class LeagueTableUpdater:
         self.print_summary()
 
         oldpage = get_old_page()
+        #with open("oldpage.txt", "w") as oldfile:
+        #    oldfile.write(oldpage)
         page = []
         it = iter(oldpage.split('\n'))
 

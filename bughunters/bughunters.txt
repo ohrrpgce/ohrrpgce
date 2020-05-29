@@ -35,6 +35,8 @@ Everyone in the 'Reporter' column gets the points.
 (This differs from system used on github: the table shows when the bug was reported not when it was introduced; plus also whether new in nightlies.)
 Categorisation might not be 100% accurate.
 
+VERSIONS Etheldreme Fufluns Gorgonzola
+
 START_TABLE
 | Reporter                  | Pts | Version | Fixed?        | Bug                                                                                                                         |
 | kylekrack                 | 0.5 | D+      | E/yes         | Mapedit layer skew keys misdocumented                                                                                       |
