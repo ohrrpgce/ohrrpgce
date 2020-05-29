@@ -64,9 +64,10 @@ class LeagueTableUpdater:
         self.fixed_since_rev = since_rev
         self.fixed_since = defaultdict(int)
 
-    def read_and_format_bugs_table(self, infile):
+    def read_and_format_bugs_table(self, infile, only_version = None):
         """Scan infile for the org-mode table of bugs, process it (storing data in self),
-        and return mediawiki-formatted table"""
+        and return mediawiki-formatted table
+        only_version: Single uppercase character. Limit to a bugs in that release, all other bugs ignored."""
         bugstbl = io.StringIO()
 
         self.points = Counter()
@@ -111,15 +112,20 @@ class LeagueTableUpdater:
                     except:
                         fixed_revs = []
                         pass
-                    if version != 'N/A' and fixed not in ('notabug', 'wontfix'):
-                        # Tally bugs by version and status ('fixed') into 'self.counts' and 'self.totalcounts'
+
+                    if version != 'N/A':
                         # Remove '?' suffix and merge version codes:
                         # X X! X- => X
                         # X+      => X+
                         reported_version = version.replace('?','').replace('!','').replace('-','')
+                        if only_version and reported_version.replace('+','') != only_version:
+                            # Limiting to a certain release and nighlies, skip bug
+                            continue
                         next_version = chr(ord(reported_version[0]) + 1)
                         if fixed == 'yes' and fixed_version and fixed_version > next_version:
                             fixed = 'later'  # Fixed in later release
+                    if reported_version and fixed not in ('notabug', 'wontfix'):
+                        # Tally bugs by version and status ('fixed') into 'self.counts' and 'self.totalcounts'
                         self.counts[(reported_version,fixed)] += 1
                         self.totalcounts[reported_version] += 1
                         # self.counts[('total',fixed)] += 1
@@ -127,6 +133,7 @@ class LeagueTableUpdater:
                         if len(fixed_revs) >= 1 and fixed_revs[0] >= self.fixed_since_rev:
                             self.fixed_since[reported_version] += 1
                     try:
+                        # Award points even for notabug (only worthy notabug's are tabulated) or wontfix
                         for who in reporters.split('/'):
                             if who not in ('Anonymous', 'tmc', 'James'):  # Exclude certain users
                                 self.points[who] += float(pts)
@@ -159,8 +166,8 @@ class LeagueTableUpdater:
         if self.fixed_since_rev:
             print("Since r%d fixed bugs: %s" % (self.fixed_since_rev, list(self.fixed_since.items())))
 
-    def leaderboard_table(self):
-        """Return mediawiki table of people sorted by points"""
+    def leaderboard_table(self, limit = None):
+        """Return mediawiki table of people sorted by points, down to a certain placing."""
         def sortkey(who_points):
             who,pts = who_points
             return -pts, -self.bugs[who], who.lower()  # Lexicographic sort, by three keys
@@ -192,6 +199,8 @@ class LeagueTableUpdater:
                 placestr += " [[File:Golden star.png|25px]]" * (4 - placing)
             if placing <= 10:
                 who = "'''%s'''" % who
+            if limit and placing > limit:
+                break
             leaguetbl.write("|-\n")
             leaguetbl.write("| %s || %s || %g || %d\n" % (placestr, who, pts, bugcount))
         leaguetbl.write("|}")
@@ -244,6 +253,11 @@ class LeagueTableUpdater:
         ret += "\n|}"
         return ret
 
+    def output_page(self, page):
+        print("Writing leaguetable_wiki.txt")
+        ofile = open("leaguetable_wiki.txt", "w")
+        ofile.write("\n".join(page))
+
     def update_article(self):
 
         def skiptable(it):
@@ -278,15 +292,29 @@ class LeagueTableUpdater:
         page.append(bugstbl)
         page += list(it)
 
-        print("Writing leaguetable_wiki.txt")
-        ofile = open("leaguetable_wiki.txt", "w")
-        ofile.write("\n".join(page))
+        self.output_page(page)
 
+    def release_leaderboard(self, release):
+        prev_release = chr(ord(release[0].upper()) - 1)  #In the leadup to $release
+
+        with open("bughunters.txt", "r") as infile:
+            bugstbl = self.read_and_format_bugs_table(infile, prev_release)
+
+        self.print_summary()
+
+        page = ["=" + release.title() + "=", "Bugs reported in the lead-up to [[" + release + "]] (in the previous major release or in [[nightly builds]] since).",
+                "<big>", self.leaderboard_table(25), "</big>"]
+        self.output_page(page)
 
 ######################################################################
 
 parser = argparse.ArgumentParser(description="Updates Bughunters League Table; reads bughunters.txt and writes leaguetable_wiki.txt")
 parser.add_argument("--since", help="Count bugs fixed since this svn revision (inclusive)", type=int, default=0)
+parser.add_argument("--release", help="Produce leader table for bugs reported in a particular release (and nightlies)", type=str)
 args = parser.parse_args()
 
-LeagueTableUpdater(args.since).update_article()
+updater = LeagueTableUpdater(args.since)
+if args.release:
+    updater.release_leaderboard(args.release)
+else:
+    updater.update_article()
