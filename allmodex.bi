@@ -275,7 +275,8 @@ End Type
 Type Font
 	layers(1) as FontLayer ptr	'single layer fonts should use sprite(1) only
 	w(255) as integer	'width of each character
-	h as integer		'height of a line
+	char_h as integer	'nominal height of a character (e.g. for insert cursor)
+	line_h as integer	'height of a line (default separation between lines)
 	offset as XYPair	'added to coordinates when printing
 	cols as integer		'number of used colours, not including colour 0 (transparency), so at most 15
 	pal as Palette16 ptr    '(Default) palette template to use, or NULL if this font is unpaletted (foreground colour only)

@@ -79,7 +79,7 @@ SUB font_test_menu
     row &= CHR(j)
    NEXT
    IF fonts(st.pt) THEN
-    printstr row, 145, 0 + i * fonts(st.pt)->h, vpage, YES, st.pt
+    printstr row, 145, 0 + i * fonts(st.pt)->line_h, vpage, YES, st.pt
    END IF
   NEXT
 

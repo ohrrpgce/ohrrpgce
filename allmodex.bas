@@ -5092,7 +5092,7 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 
 	with state
 		'TEXTDBG("layout '" & z & "' from " & .charnum & " at " & .x & "," & .y)
-		line_height = .thefont->h
+		line_height = .thefont->line_h
 		for ch = .charnum to len(z) - 1
 			'We keep going past endchar until the end of the line, to figure out where to linebreak
 			if ch >= endchar andalso endchar_outbuf_len = 999999 then
@@ -5187,7 +5187,7 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 									goto badtexttag
 								end if
 								APPEND_CMD1(outbuf, tcmdFont, intarg)
-								line_height = large(line_height, .thefont->h)
+								line_height = large(line_height, .thefont->line_h)
 							else
 								goto badtexttag
 							end if
@@ -5429,7 +5429,7 @@ sub draw_line_fragment(dest as Frame ptr, byref state as PrintStrState, layer as
 							'(2-layer fonts would need layer 0 to be opaque)
 							'ALSO, this would stuff up ${KB#} on 2-layer fonts
 							if layer = 1 and state.not_transparent then trans = NO
-							frame_draw_internal(@charframe, intpal(), state.localpal, state.x + .offx, state.y + .offy - state.thefont->h, trans, dest)
+							frame_draw_internal(@charframe, intpal(), state.localpal, state.x + .offx, state.y + .offy - state.thefont->line_h, trans, dest)
 						end with
 					end if
 				end if
@@ -5555,7 +5555,7 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 			'TEXTDBG("parsed: " + parsed_line)
 			'Print at least one extra line above and below the visible region, in case the
 			'characters are big (we only approximate this policy, with the current font height)
-			visibleline = (.y + line_height > cliprect.t - .thefont->h AND .y < cliprect.b + .thefont->h)
+			visibleline = (.y + line_height > cliprect.t - .thefont->char_h AND .y < cliprect.b + .thefont->char_h)
 			'if tog then visibleline = NO
 			'debug "vis: " & visibleline
 
@@ -5579,7 +5579,7 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 				draw_line_fragment(dest, prev_state, 1, prev_parse, prev_visible)
 				'TEXTDBG("prev.charnum=" & prev_state.charnum)
 				if prev_state.charnum >= endchar then /'debug "text end" :'/ exit do
-				if prev_state.y > cliprect.b + prev_state.thefont->h then exit do
+				if prev_state.y > cliprect.b + prev_state.thefont->char_h then exit do
 			end if
 			draw_layer1 = YES
 			prev_parse = parsed_line
@@ -5669,7 +5669,7 @@ end function
 'However standardmenu (calc_menustate_size) by default uses 9 for fontEdged and 8 for fontPlain
 'and draw_menu by default uses 10. Nonstandard menus use 8-10.
 function lineheight(fontnum as integer = fontEdged) as integer
-	return get_font(fontnum, YES)->h
+	return get_font(fontnum, YES)->line_h
 end function
 
 'Pixel size of a character in a font
@@ -5680,7 +5680,7 @@ function charsize(char as integer, fontp as Font ptr) as XYPair
 	else
 		w = fontp->w(char)
 	end if
-	return XY(w, fontp->h)
+	return XY(w, fontp->char_h)
 end function
 
 function charsize(char as integer, fontnum as integer) as XYPair
@@ -5732,7 +5732,6 @@ sub find_point_in_text (retsize as StringCharPos ptr, seekpt as XYPair, z as str
 		dim arg as integer
 
 		retsize->exacthit = NO
-		'retsize->w = .thefont->h  'Default for if we go off the end of the text
 
 		while .charnum < len(z)
 			dim parsed_line as string = layout_line_fragment(z, len(z), state, line_width, line_height, wide, withtags, withnewlines, YES)
@@ -5799,7 +5798,7 @@ sub find_point_in_text (retsize as StringCharPos ptr, seekpt as XYPair, z as str
 
 		retsize->charnum = .charnum
 		retsize->pos.x = .x
-		retsize->pos.y = .y - .thefont->h
+		retsize->pos.y = .y - .thefont->line_h
 		retsize->size = charsize(z[.charnum], .thefont)  '.charnum = len(z) is OK
 		retsize->lineh = line_height
 	end with
@@ -5967,7 +5966,8 @@ function font_create_edged (basefont as Font ptr) as Font ptr
 	'This is a hack; create a size*1 size frame, which we use as a buffer for pixel data
 	newfont->layers(0)->spr = frame_new(size, 1, , YES)
 
-	newfont->h = basefont->h  '+ 2
+	newfont->char_h = basefont->char_h + 2
+	newfont->line_h = basefont->line_h  'This is for backcompat with text slices...
 	newfont->offset = basefont->offset
 	newfont->cols = basefont->cols
 	if basefont->outline_col = 0 then
@@ -5981,7 +5981,6 @@ function font_create_edged (basefont as Font ptr) as Font ptr
 	'Stuff currently hardcoded to keep edged font working as before
 	newfont->offset.x = 1
 	newfont->offset.y = 1
-	'newfont->h += 2
 
 	'dim as ubyte ptr maskp = basefont->layers(0)->spr->mask
 	dim as ubyte ptr sptr
@@ -6054,7 +6053,8 @@ function font_loadold1bit (fontdata as ubyte ptr) as Font ptr
 
 	newfont->layers(1) = new FontLayer()
 	newfont->layers(1)->spr = frame_new(8, 256 * 8)
-	newfont->h = 10  'I would have said 9, but this is what was used in text slices
+	newfont->char_h = 8
+	newfont->line_h = 10  'I would have said 9, but this is what was used in text slices
 	newfont->offset.x = 0
 	newfont->offset.y = 0
 	newfont->cols = 1
@@ -6118,7 +6118,7 @@ function font_loadbmps (directory as string, fallback as Font ptr = null) as Fon
 
 	dim maxheight as integer
 	if fallback then
-		maxheight = fallback->h
+		maxheight = fallback->char_h
 		newfont->offset.x = fallback->offset.x
 		newfont->offset.y = fallback->offset.y
 		newfont->cols = fallback->cols
@@ -6175,7 +6175,8 @@ function font_loadbmps (directory as string, fallback as Font ptr = null) as Fon
 	next
 
 	newfont->layers(1)->spr->image = image
-	newfont->h = maxheight
+	newfont->char_h = maxheight
+	newfont->line_h = maxheight + 2
 
 	return newfont
 end function
@@ -6197,7 +6198,8 @@ function font_load_16x16 (filename as string) as Font ptr
 	dim as integer charw, charh
 	charw = image->w \ 16
 	charh = image->h \ 16
-	newfont->h = charh
+	newfont->char_h = charh
+	newfont->line_h = charh + 2
 	newfont->offset.x = 0
 	newfont->offset.y = 0
 	newfont->outline_col = 0  'None
