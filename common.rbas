@@ -1593,29 +1593,36 @@ END EXTERN
 'Replacement for RIGHT: Return the right end of a string, trimming and prepending '...' if longer than wide pixels
 'Aware of text markup; doesn't break them.
 '(Might sometimes want to handle this using text slices instead)
-FUNCTION text_right (text as string, byval wide as integer) as string
- DIM w as integer = textwidth(text)
+FUNCTION text_right (text as string, wide as integer, ellipsis as bool = YES, withtags as bool = YES, fontnum as integer = fontPlain) as string
+ DIM w as integer = textwidth(text, fontnum, withtags)
  IF w <= wide THEN RETURN text
- wide -= textwidth("...")
+ IF ellipsis THEN wide -= textwidth("...", fontnum)
 
  DIM curspos as StringCharPos
- find_point_in_text @curspos, XY(w - wide, 0), text, , , fontPlain
- 'Include any markup in the skipped portion of the text, to get the
- 'correct font/color/etc. (curspos.charnum is 0-based)
- RETURN "..." + just_markup(LEFT(text, curspos.charnum)) + MID(text, 1 + curspos.charnum)
+ find_point_in_text @curspos, XY(w - wide, 0), text, , , fontnum, withtags
+ DIM ret as string
+ IF ellipsis THEN ret = "..."
+ 'Include markup in the skipped portion of the text, to get the correct font/color/etc.
+ IF withtags THEN ret &= just_markup(LEFT(text, curspos.charnum))
+ ret &= MID(text, 1 + curspos.charnum)  'curspos.charnum is 0-based
+ RETURN ret
 END FUNCTION
 
-'Replacement for LEFT: Return the left end of a string, trimming and appending '...' if longer than wide pixels
-'Aware of text markup; doesn't break them.
+'Replacement for LEFT: Return the left end of a string, trimming and (if ellipsis=YES)
+'appending '...' if longer than wide pixels
+'If withtags=YES: Aware of text markup; doesn't break them.
 '(Might sometimes want to handle this using text slices instead)
-FUNCTION text_left (text as string, byval wide as integer) as string
- DIM w as integer = textwidth(text)
+FUNCTION text_left (text as string, wide as integer, ellipsis as bool = YES, withtags as bool = YES, fontnum as integer = fontPlain) as string
+ DIM w as integer = textwidth(text, fontnum, withtags)
  IF w <= wide THEN RETURN text
- wide -= textwidth("...")
+ IF ellipsis THEN wide -= textwidth("...", fontnum)
 
  DIM curspos as StringCharPos
- find_point_in_text @curspos, XY(wide, 0), text, , , fontPlain
- RETURN LEFT(text, curspos.charnum) + "${K-1}${KB-1}${F-1}..."  'Reset to original color and font
+ find_point_in_text @curspos, XY(wide, 0), text, , , fontnum, withtags
+ DIM ret as string = LEFT(text, curspos.charnum)
+ IF withtags THEN ret &= "${K-1}${KB-1}${F-1}"  'Reset to original color and font
+ IF ellipsis THEN ret &= "..."
+ RETURN ret
 END FUNCTION
 
 SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
@@ -5780,7 +5787,7 @@ FUNCTION describe_tag_condition(tag as integer, zerocap as string, maxwidth as i
  ret = "IF TAG " & ABS(tag) & "=" + onoroff(tag)
  IF ABS(tag) > 1 THEN
   ret &= " (" & load_tag_name(ABS(tag))
-  ret = text_left(ret, maxwidth - textwidth(")"))
+  ret = text_left(ret, maxwidth - textwidth(")"), NO, NO)  'ellipsis=NO, withtags=NO
   ret &= ")"
  END IF
  RETURN ret

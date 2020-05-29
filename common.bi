@@ -104,8 +104,8 @@ DECLARE FUNCTION dimbinsize (byval id as integer) as integer
 DECLARE FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
 DECLARE FUNCTION maplumpname (byval map as integer, oldext as string) as string
 
-DECLARE FUNCTION text_left (text as string, byval wide as integer) as string
-DECLARE FUNCTION text_right (text as string, byval wide as integer) as string
+DECLARE FUNCTION text_left (text as string, wide as integer, ellipsis as bool = YES, withtags as bool = YES, fontnum as integer = fontPlain) as string
+DECLARE FUNCTION text_right (text as string, wide as integer, ellipsis as bool = YES, withtags as bool = YES, fontnum as integer = fontPlain) as string
 
 DECLARE SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
 DECLARE SUB savepalette(pal() as RGBcolor, byval palnum as integer)
