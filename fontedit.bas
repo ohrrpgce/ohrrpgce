@@ -34,7 +34,9 @@ SUB font_test_menu
   setkeys
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(sc1) > 1 THEN
-   DIM newfont as Font ptr = font_loadbmps("fonttests/testfont", fonts(st.pt))
+   DIM fallback as Font ptr = fonts(st.pt)
+   IF fallback = 0 THEN fallback = fonts(0)
+   DIM newfont as Font ptr = font_loadbmps("fonttests/testfont", fallback)
    font_unload @fonts(st.pt)
    fonts(st.pt) = newfont
   END IF
@@ -67,7 +69,7 @@ SUB font_test_menu
 
   usemenu st
 
-  clearpage vpage
+  clearpage vpage, findrgb(80,80,80)
   'edgeboxstyle 10, 10, 300, 185, 0, vpage
   standardmenu menu(), st, 0, 0, vpage
   textcolor uilook(uiText), 0

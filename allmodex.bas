@@ -6131,7 +6131,9 @@ function font_loadbmps (directory as string, fallback as Font ptr = null) as Fon
 	dim f as string
 	dim tempfr as Frame ptr
 	dim bchr as FontChar ptr
-	bchr = @fallback->layers(1)->chdata(0)
+	if fallback andalso fallback->layers(1) then
+		bchr = @fallback->layers(1)->chdata(0)
+	end if
 
 	for i = 0 to 255
 		with newfont->layers(1)->chdata(i)
@@ -6153,8 +6155,8 @@ function font_loadbmps (directory as string, fallback as Font ptr = null) as Fon
 				memcpy(sptr, tempfr->image, .w * .h)
 				frame_unload @tempfr
 			else
-				if fallback = null ORELSE fallback->layers(1) = null then
-					debug "font_loadbmps: " & i & ".bmp missing and fallback font not provided"
+				if bchr = NULL then
+					visible_debug "font_loadbmps: " & i & ".bmp missing and fallback font not provided"
 					font_unload @newfont
 					return null
 				end if
