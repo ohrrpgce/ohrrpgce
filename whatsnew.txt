@@ -7,6 +7,7 @@ August ? 2020 [H???]
     * Slice Editor Settings menu. Press F8 to open. You no longer need to
       remember (other) hotkeys. New settings to show/hide the position and
       size of each slice. [Ralph]
+    * Slice editor data organised into collapsible/expandable sections [Sword]
 
    * New Plotscripting Features
     * "set timer args" [Ralph]

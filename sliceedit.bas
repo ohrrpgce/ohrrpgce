@@ -60,6 +60,14 @@ TYPE SliceEditState
  'The following is used only if editing_existing AND collection_file<>""
  existing_matches_file as bool 'Whether the slice tree that was passed in was equal to contents of collection_file.
 
+ expand_dimensions as bool
+ expand_visible as bool
+ expand_alignment as bool
+ expand_special as bool
+ expand_padding as bool
+ expand_extra as bool
+ expand_sort as bool
+
  recursive as bool
  clipboard as Slice Ptr
  draw_root as Slice Ptr    'The slice to actually draw; either edslice or its parent.
@@ -1553,9 +1561,13 @@ SUB sliceed_rule_tog(rules() as EditRule, helpkey as string, dataptr as bool ptr
  sliceed_rule rules(), helpkey, erToggle, dataptr, -1, 0, group
 END SUB
 
-SUB sliceed_header(menu() as string, rules() as EditRule, text as string, helpkey as string = "")
+SUB sliceed_header(menu() as string, rules() as EditRule, text as string, dataptr as bool ptr = NULL, helpkey as string = "")
  a_append menu(), fgtag(uilook(eduiHeading), text)
- sliceed_rule_none rules(), helpkey
+ IF dataptr THEN
+  sliceed_rule_tog rules(), helpkey, dataptr
+ ELSE
+  sliceed_rule_none rules(), helpkey
+ END IF
 END SUB
 
 SUB sliceed_add_blend_edit_rules(menu() as string, rules() as EditRule, drawopts as DrawOptions ptr)
@@ -1585,68 +1597,76 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
  rules(0).helpkey = "detail"
  menu(0) = "Previous Menu"
  WITH *sl
-  a_append menu(), "Slice type: " & SliceTypeName(sl)
-  sliceed_rule_none rules(), "slicetype", slgrPICKTYPE  'May not be editable; see slgrPICKTYPE
+
+ a_append menu(), "Slice type: " & SliceTypeName(sl)
+ sliceed_rule_none rules(), "slicetype", slgrPICKTYPE  'May not be editable; see slgrPICKTYPE
+
+ a_append menu(), "Lookup code: " & slice_lookup_code_caption(.Lookup, ses.slicelookup())
+ IF ses.editing_lookup_name THEN menu(6) &= fgtag(uilook(uiText), "_")
+ DIM minlookup as integer = IIF(ses.privileged, -999999999, 0)
+ IF ses.privileged ORELSE lookup_code_forbidden(ses.specialcodes(), .Lookup) = NO THEN
+  sliceed_rule rules(), "lookup", erLookupgrabber, @.Lookup, minlookup, INT_MAX, slgrPICKLOOKUP
+ ELSE
+  '--Not allowed to change lookup code at all
+  sliceed_rule_none rules(), "lookup"
+ END IF
+ #IFDEF IS_GAME
+  a_append menu(), "Script handle: " & defaultint(.TableSlot, "None", 0)
+  sliceed_rule_none rules(), "scripthandle"
+ #ENDIF
+ IF .Context THEN
+  a_append menu(), "ID: " & .Context->description()
+  sliceed_rule_none rules(), "metadata"
+ END IF
+ IF ses.privileged THEN
+  a_append menu(), "Protected: " & yesorno(.Protect)
+  sliceed_rule_tog rules(), "protect", @.Protect
+ ELSEIF .Protect THEN
+  a_append menu(), "Protected"
+  sliceed_rule_none rules(), "protect"
+ END IF
+
+ sliceed_header menu(), rules(), "[Dimensions]", @ses.expand_dimensions
+ IF ses.expand_dimensions THEN
   IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
-   a_append menu(), "X: " & .X
+   a_append menu(), " X: " & .X
    sliceed_rule rules(), "pos", erIntgrabber, @.X, -9999, 9999, slgrPICKXY
   ELSE
    'a_append menu(), "X: " & fgtag(uilook(uiDisabledItem), "0 (filling)")
    'sliceed_rule_none rules(), "pos"
   END IF
   IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
-   a_append menu(), "Y: " & .Y
+   a_append menu(), " Y: " & .Y
    sliceed_rule rules(), "pos", erIntgrabber, @.Y, -9999, 9999, slgrPICKXY
   ELSE
    'a_append menu(), "Y: " & fgtag(uilook(uiDisabledItem), "0 (filling)")
    'sliceed_rule_none rules(), "pos"
   END IF
   DIM minsize as integer = IIF(.SliceType = slLine, -9999, 0)
-  a_append menu(), "Width: " & .Width
+  a_append menu(), " Width: " & .Width
   sliceed_rule rules(), "size", erIntgrabber, @.Width, minsize, 9999, slgrPICKWH
-  a_append menu(), "Height: " & .Height
+  a_append menu(), " Height: " & .Height
   sliceed_rule rules(), "size", erIntgrabber, @.Height, minsize, 9999, slgrPICKWH
   IF ses.privileged THEN
-   a_append menu(), "Cover Children: " & CoverModeCaptions(.CoverChildren)
+   a_append menu(), " Cover Children: " & CoverModeCaptions(.CoverChildren)
    sliceed_rule_enum rules(), "cover", @.CoverChildren, 0, 3
   END IF
-  a_append menu(), "Fill Parent: " & yesorno(.Fill)
+  a_append menu(), " Fill Parent: " & yesorno(.Fill)
   sliceed_rule_tog rules(), "fill", @.Fill
   IF .Fill THEN
-   a_append menu(), " Fill Type: " & FillModeCaptions(.FillMode)
+   a_append menu(), "  Fill Type: " & FillModeCaptions(.FillMode)
    sliceed_rule_enum rules(), "fillmode", @.FillMode, 0, 2
   END IF
+ END IF
 
-  a_append menu(), "Lookup code: " & slice_lookup_code_caption(.Lookup, ses.slicelookup())
-  IF ses.editing_lookup_name THEN menu(6) &= fgtag(uilook(uiText), "_")
-  DIM minlookup as integer = IIF(ses.privileged, -999999999, 0)
-  IF ses.privileged ORELSE lookup_code_forbidden(ses.specialcodes(), .Lookup) = NO THEN
-   sliceed_rule rules(), "lookup", erLookupgrabber, @.Lookup, minlookup, INT_MAX, slgrPICKLOOKUP
-  ELSE
-   '--Not allowed to change lookup code at all
-   sliceed_rule_none rules(), "lookup"
-  END IF
-  #IFDEF IS_GAME
-   a_append menu(), "Script handle: " & defaultint(.TableSlot, "None", 0)
-   sliceed_rule_none rules(), "scripthandle"
-  #ENDIF
-  IF .Context THEN
-   a_append menu(), "ID: " & .Context->description()
-   sliceed_rule_none rules(), "metadata"
-  END IF
-  IF ses.privileged THEN
-   a_append menu(), "Protected: " & yesorno(.Protect)
-   sliceed_rule_tog rules(), "protect", @.Protect
-  ELSEIF .Protect THEN
-   a_append menu(), "Protected"
-   sliceed_rule_none rules(), "protect"
-  END IF
+ SELECT CASE .SliceType
+  CASE slSpecial, slContainer
+  CASE ELSE
+   sliceed_header menu(), rules(), "[" & SliceTypeName(sl) & " settings]", @ses.expand_special
+ END SELECT
 
-  SELECT CASE .SliceType
-   CASE slSpecial, slContainer
-   CASE ELSE
-    sliceed_header menu(), rules(), "[" & SliceTypeName(sl) & " settings]"
-  END SELECT
+ IF ses.expand_special THEN
+
   SELECT CASE .SliceType
    CASE slRectangle
     DIM dat as RectangleSliceData Ptr
@@ -1860,16 +1880,22 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     sliceed_rule rules(), "layout_min_row_breadth", erIntgrabber, @dat->min_row_breadth, 0, 9999
     a_append menu(), " Skip hidden: " & yesorno(dat->skip_hidden)
     sliceed_rule_tog rules(), "layout_skip_hidden", @dat->skip_hidden
-
   END SELECT
-  a_append menu(), "Visible: " & yesorno(.Visible)
-  sliceed_rule_tog rules(), "vis", @.Visible
-  a_append menu(), "Clip Children: " & yesorno(.Clip)
-  sliceed_rule_tog rules(), "clip", @.Clip
 
-  IF .Fill = NO ORELSE .FillMode <> sliceFillFull THEN
-   sliceed_header menu(), rules(), "[Alignment]"
-  END IF
+ END IF  'expand_special
+
+ sliceed_header menu(), rules(), "[Visibility]", @ses.expand_visible
+ IF ses.expand_visible THEN
+  a_append menu(), " Visible: " & yesorno(.Visible)
+  sliceed_rule_tog rules(), "vis", @.Visible
+  a_append menu(), " Clip Children: " & yesorno(.Clip)
+  sliceed_rule_tog rules(), "clip", @.Clip
+ END IF
+
+ IF .Fill = NO ORELSE .FillMode <> sliceFillFull THEN
+  sliceed_header menu(), rules(), "[Alignment]", @ses.expand_alignment
+ END IF
+ IF ses.expand_alignment THEN
   IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
    a_append menu(), " Align horiz. to: " & HorizCaptions(.AlignHoriz)
    sliceed_rule_enum rules(), "align", @.AlignHoriz, 0, 2
@@ -1896,8 +1922,10 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     sliceed_rule_enum rules(), "clamp", @.ClampVert, 0, 2
    END IF
   END IF
+ END IF
 
-  sliceed_header menu(), rules(), "[Padding]", "padding"
+ sliceed_header menu(), rules(), "[Padding]", @ses.expand_padding
+ IF ses.expand_padding THEN
   a_append menu(), " Top: " & .PaddingTop
   sliceed_rule rules(), "padding", erIntgrabber, @.PaddingTop, -9999, 9999
   a_append menu(), " Right: " & .PaddingRight
@@ -1906,19 +1934,26 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   sliceed_rule rules(), "padding", erIntgrabber, @.PaddingBottom, -9999, 9999
   a_append menu(), " Left: " & .PaddingLeft
   sliceed_rule rules(), "padding", erIntgrabber, @.PaddingLeft, -9999, 9999
+ END IF
 
-  sliceed_header menu(), rules(), "[Extra Data]", "extra"
+ sliceed_header menu(), rules(), "[Extra Data]", @ses.expand_extra
+ IF ses.expand_extra THEN
   FOR i as integer = 0 TO 2
    a_append menu(), " extra" & i & ": " & .Extra(i)
    sliceed_rule rules(), "extra", erIntgrabber, @.Extra(i), -2147483648, 2147483647
   NEXT
+ END IF
 
+ sliceed_header menu(), rules(), "[Sorting]", @ses.expand_sort
+ IF ses.expand_sort THEN
   sliceed_rule_enum rules(), "autosort", @.AutoSort, 0, 5
-  a_append menu(), "Auto-sort children: " & AutoSortCaptions(.AutoSort)
+  a_append menu(), " Auto-sort children: " & AutoSortCaptions(.AutoSort)
   sliceed_rule rules(), "sortorder", erIntgrabber, @.Sorter, INT_MIN, INT_MAX
   DIM sortNA as string
   IF .Parent = NULL ORELSE .Parent->AutoSort <> slAutoSortCustom THEN sortNA = " (N/A)"
-  a_append menu(), "Custom sort order" & sortNA & ": " & .Sorter
+  a_append menu(), " Custom sort order" & sortNA & ": " & .Sorter
+ END IF
+
  END WITH
 
  init_menu_state state, menu(), menuopts
