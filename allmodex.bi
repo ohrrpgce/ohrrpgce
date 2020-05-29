@@ -329,6 +329,8 @@ DECLARE SUB find_point_in_text (retsize as StringCharPos ptr, seekpt as XYPair, 
 
 DECLARE FUNCTION fgcol_text (text as string, colour as integer) as string
 DECLARE FUNCTION bgcol_text (text as string, colour as integer) as string
+DECLARE FUNCTION remove_markup(text as string) as string
+DECLARE FUNCTION just_markup(text as string) as string
 
 DECLARE FUNCTION get_font(fontnum as integer, show_err as bool = NO) as Font ptr
 

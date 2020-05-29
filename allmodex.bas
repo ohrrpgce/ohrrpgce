@@ -4957,6 +4957,48 @@ function parse_tag(z as string, offset as integer, byref action as string, arg a
 	return 0
 end function
 
+'Used for iterating over the valid text markup tags (e.g. "${K4}") in a string.
+'Considers markup valid only when render_text would (ignores ones with invalid parameters and embed codes).
+'offset is input/output, tagend is output.
+'On the first call, pass in offset = 1 (it's a 1-based position).
+'If there is another tag at or after offset, returns true and sets offset to the
+'start of the tag and tagend to one past end (1-based).
+'Returns false when no more, and doesn't set offset/tagend.
+function next_text_markup(text as string, byref offset as integer, byref tagend as integer) as bool
+	while offset <= len(text) - 3
+		if text[offset - 1] = asc("$") andalso text[offset] = asc("{") then
+			dim action as string
+			dim intarg as int32
+			tagend = parse_tag(text, (offset - 1) + 2, action, @intarg)
+			debug "at " & offset & " tagend " & (tagend + 1)
+			if tagend = 0 then return NO
+			tagend += 2  'Convert from 0- to 1-based index, and move 1 past closing }
+			dim ok as bool = NO
+
+			if action = "F" then  'Font
+				'Assume won't have null ptrs in font()
+				ok = (intarg >= -1 andalso intarg <= ubound(fonts))
+			elseif action = "K" then  'Foreground colour
+				ok = (intarg <= 255)
+			elseif action = "KB" then  'Background colour
+				ok = (intarg <= 255)
+			elseif action = "KP" then  'Font palette
+				ok = (intarg >= 0 andalso intarg <= gen(genMaxPal))
+			elseif action = "LM" then
+				ok = YES
+			elseif action = "RM" then
+				ok = YES
+			end if
+
+			if ok then return YES
+			offset = tagend
+			continue while
+		end if
+		offset += 1
+	wend
+	return NO
+end function
+
 'FIXME: refactor, making use of OO which we can now use
 type PrintStrState
 	'Public members (may set before passing to render_text)
@@ -5867,6 +5909,35 @@ end function
 
 function bgcol_text(text as string, colour as integer) as string
 	return "${KB" & colour & "}" & text & "${KB-1}"
+end function
+
+'Remove all the valid text markup (not embed codes) like ${K-1} from a string.
+function remove_markup(text as string) as string
+	dim offset as integer = 1
+	dim tagend as integer
+	dim ret as string
+	do
+		dim last as integer = offset
+		if next_text_markup(text, offset, tagend) = NO then
+			ret &= mid(text, last)
+			return ret
+		end if
+		ret &= mid(text, last, offset - last)
+		offset = tagend  'Skip over tag
+	loop
+end function
+
+'Remove everything except valid text markup (not embed codes) from a string.
+'Useful for skipping over text but getting the same effects
+function just_markup(text as string) as string
+	dim offset as integer = 1
+	dim tagend as integer
+	dim ret as string
+	do
+		if next_text_markup(text, offset, tagend) = NO then return ret
+		ret &= mid(text, offset, tagend - offset)
+		offset = tagend  'Skip over tag
+	loop
 end function
 
 

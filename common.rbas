@@ -1599,8 +1599,10 @@ FUNCTION text_right (text as string, byval wide as integer) as string
  wide -= textwidth("...")
 
  DIM curspos as StringCharPos
- find_point_in_text @curspos, XY(wide, 0), text, , , fontPlain
- RETURN "..." + RIGHT(text, curspos.charnum)
+ find_point_in_text @curspos, XY(w - wide, 0), text, , , fontPlain
+ 'Include any markup in the skipped portion of the text, to get the
+ 'correct font/color/etc. (curspos.charnum is 0-based)
+ RETURN "..." + just_markup(LEFT(text, curspos.charnum)) + MID(text, 1 + curspos.charnum)
 END FUNCTION
 
 'Replacement for LEFT: Return the left end of a string, trimming and appending '...' if longer than wide pixels
