@@ -1792,7 +1792,7 @@ SUB text_test_menu
 
   text_layout_dimensions @pos2, text, curspos.charnum, , 280, fonts(0), YES, YES
 
-  rectangle vpages(vpage), XY_WH(curspos.pos, curspos.size), uilook(uiHighlight)
+  rectangle(vpages(vpage), XY_WH(curspos.pos, curspos.size), uilook(uiHighlight))
   printstr CHR(3), mouse.x - 3, mouse.y - 3, vpage
   DIM cursor_show as string
   cursor_show = lpad(STR(curspos.charnum), , 4) & " (lineend=" & pos2.lineend & ") "

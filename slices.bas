@@ -1557,7 +1557,7 @@ Sub NewDrawTextSlice(byval sl as Slice ptr, byval p as integer, col as integer)
   dim charpos as StringCharPos
   find_text_char_position(@charpos, text, dat->insert, wide, fontnum)
   dim insert_pos as XYPair = sl->ScreenPos + charpos.pos
-  rectangle vpages(p), XY_WH(insert_pos, charpos.size), uilook(uiHighlight + dat->insert_tog)
+  rectangle(vpages(p), XY_WH(insert_pos, charpos.size), uilook(uiHighlight + dat->insert_tog))
  end if
 
  textcolor col, ColorIndex(dat->bgcol)
