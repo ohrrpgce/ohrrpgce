@@ -1409,6 +1409,8 @@ DO
   msg = "Select tile to overwrite: " & bnum
  ELSEIF tmode = 3 THEN
   msg = "ENTER: edit tile  CTRL+arrows: set walls"
+ ELSEIF tmode = 0 THEN
+  msg = "Tile to edit: " & bnum
  END IF
  edgeprint msg, 0, IIF(get_resolution().h >= 210 OR bnum < 112, pBottom, 0), uilook(uiText), dpage
 
@@ -1781,7 +1783,12 @@ DO
  DIM scale8 as DrawOptions
  scale8.scale = 8
  frame_draw_with_background ts.drawframe, NULL, 80, 0, bgcolor, chequer_scroll, vpages(dpage), scale8  'Draw the tile, at 8x zoom with background
- 
+
+ '--Display x/y pos and color
+ textcolor uilook(uiMenuItem), 0
+ printstr strprintf("x=%2d y=%2d", ts.x, ts.y), pRight, pBottom + 2, dpage
+ printstr "Col: " & ts.curcolor, pLeft, pBottom + 2, dpage
+
  '--Draw tile preview
  IF ts.preview_content = 0 THEN
   tileedit_show_neighbouring_tiles(ts, bgcolor, chequer_scroll)
@@ -2572,7 +2579,7 @@ SUB spriteedit_display(ss as SpriteEditState)
   frame_draw ss_save.clone_brush, ss.palette, ss.previewpos.x + temppos.x, ss.previewpos.y + temppos.y, , dpage
  END IF
  textcolor uilook(uiMenuItem), 0
- printstr "x=" & ss.x & " y=" & ss.y, 0, 190, dpage
+ printstr strprintf("x=%2d y=%2d", ss.x, ss.y), 0, 190, dpage
  printstr "Tool:" & ss.toolinfo(ss.tool).name, 0, 182, dpage
  printstr ss.framename, 0, 174, dpage
  FOR i = 0 TO UBOUND(ss.toolinfo)
