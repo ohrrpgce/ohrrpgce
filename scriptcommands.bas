@@ -1863,14 +1863,14 @@ SUB script_functions(byval cmdid as integer)
    scriptret = presentsong
   END IF
  CASE 204'--get hero name(str,her)
-  IF valid_plotstr(retvals(0)) AND valid_hero_party(retvals(1)) THEN
+  IF valid_plotstr(retvals(0)) ANDALSO valid_hero_party(retvals(1)) THEN
    plotstr(retvals(0)).s = gam.hero(retvals(1)).name
    scriptret = 1
   ELSE
    scriptret = 0
   END IF
  CASE 205'--set hero name
-  IF valid_plotstr(retvals(0)) AND valid_hero_party(retvals(1)) THEN
+  IF valid_plotstr(retvals(0)) ANDALSO valid_hero_party(retvals(1)) THEN
    gam.hero(retvals(1)).name = plotstr(retvals(0)).s
    scriptret = 1
   ELSE
@@ -1911,11 +1911,11 @@ SUB script_functions(byval cmdid as integer)
  CASE 211'--clear string
   IF valid_plotstr(retvals(0)) THEN plotstr(retvals(0)).s = ""
  CASE 212'--append ascii
-  IF valid_plotstr(retvals(0)) THEN
-   IF retvals(1) >= 0 AND retvals(1) <= 255 THEN
-    plotstr(retvals(0)).s = plotstr(retvals(0)).s + CHR(retvals(1))
-    scriptret = LEN(plotstr(retvals(0)).s)
-   END IF
+  IF valid_plotstr(retvals(0)) ANDALSO retvals(1) >= 0 ANDALSO retvals(1) <= 255 THEN
+   WITH plotstr(retvals(0))
+    .s &= CHR(retvals(1))
+    scriptret = LEN(.s)
+   END WITH
   END IF
  CASE 213'--append number (id, value, minlength, zeropad)
   IF valid_plotstr(retvals(0)) THEN
@@ -1933,11 +1933,11 @@ SUB script_functions(byval cmdid as integer)
    scriptret = LEN(thestring)
   END IF
  CASE 214'--copy string
-  IF valid_plotstr(retvals(0)) AND valid_plotstr(retvals(1)) THEN
+  IF valid_plotstr(retvals(0)) ANDALSO valid_plotstr(retvals(1)) THEN
    plotstr(retvals(0)).s = plotstr(retvals(1)).s
   END IF
  CASE 215'--concatenate strings
-  IF valid_plotstr(retvals(0)) AND valid_plotstr(retvals(1)) THEN
+  IF valid_plotstr(retvals(0)) ANDALSO valid_plotstr(retvals(1)) THEN
    plotstr(retvals(0)).s += plotstr(retvals(1)).s
    scriptret = LEN(plotstr(retvals(0)).s)
   END IF
@@ -1948,19 +1948,19 @@ SUB script_functions(byval cmdid as integer)
  CASE 217'--delete char
   IF valid_plotstr(retvals(0)) THEN
    IF retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
-    DIM beforestr as string = LEFT(plotstr(retvals(0)).s, retvals(1) - 1)
-    DIM afterstr as string = MID(plotstr(retvals(0)).s, retvals(1) + 1)
-    plotstr(retvals(0)).s = beforestr & afterstr
+    WITH plotstr(retvals(0))
+     .s = LEFT(.s, retvals(1) - 1) & MID(.s, retvals(1) + 1)
+    END WITH
    END IF
   END IF
  CASE 218'--replace char
-  IF valid_plotstr(retvals(0)) AND retvals(2) >= 0 AND retvals(2) <= 255 THEN
+  IF valid_plotstr(retvals(0)) ANDALSO retvals(2) >= 0 ANDALSO retvals(2) <= 255 THEN
    IF retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
     MID(plotstr(retvals(0)).s, retvals(1), 1) = CHR(retvals(2))
    END IF
   END IF
  CASE 219'--ascii from string
-  IF valid_plotstr(retvals(0)) AND retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
+  IF valid_plotstr(retvals(0)) ANDALSO retvals(1) >= 1 ANDALSO retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
    scriptret = plotstr(retvals(0)).s[retvals(1)-1]'you can index strings a la C
   END IF
  CASE 220'--position string
@@ -1969,23 +1969,22 @@ SUB script_functions(byval cmdid as integer)
    plotstr(retvals(0)).Y = retvals(2)
   END IF
  CASE 221'--set string bit
-  IF valid_plotstr(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= 15 THEN
-   if retvals(2) then
-    plotstr(retvals(0)).bits = plotstr(retvals(0)).bits or 2 ^ retvals(1)
-   else
-    plotstr(retvals(0)).bits = plotstr(retvals(0)).bits and not 2 ^ retvals(1)
-   end if
+  IF valid_plotstr(retvals(0)) ANDALSO retvals(1) >= 0 ANDALSO retvals(1) <= 15 THEN
+   IF retvals(2) THEN
+    plotstr(retvals(0)).bits OR= 2 ^ retvals(1)
+   ELSE
+    plotstr(retvals(0)).bits AND= NOT 2 ^ retvals(1)
+   END IF
   END IF
  CASE 222'--get string bit
-  IF valid_plotstr(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= 15 THEN
+  IF valid_plotstr(retvals(0)) ANDALSO retvals(1) >= 0 ANDALSO retvals(1) <= 15 THEN
    'scriptret = readbit(plotstrBits(), retvals(0), retvals(1))
-   scriptret = plotstr(retvals(0)).bits AND 2 ^ retvals(1)
-   IF scriptret THEN scriptret = 1
+   scriptret = IIF(plotstr(retvals(0)).bits AND 2 ^ retvals(1), 1, 0)
   END IF
  CASE 223'--string color
   IF valid_plotstr(retvals(0)) THEN
-   plotstr(retvals(0)).Col = bound(retvals(1), -1, 255)  'Allow -1 for default
-   plotstr(retvals(0)).BGCol = bound(retvals(2), 0, 255)
+   plotstr(retvals(0)).col = bound(retvals(1), -1, 255)  'Allow -1 for default
+   plotstr(retvals(0)).bgcol = bound(retvals(2), 0, 255)
   END IF
  CASE 224'--string X
   IF valid_plotstr(retvals(0)) THEN
@@ -2048,26 +2047,28 @@ SUB script_functions(byval cmdid as integer)
     scriptret = 8
   END IF
  CASE 238'--search string
-  IF valid_plotstr(retvals(0)) AND valid_plotstr(retvals(1)) THEN
-    WITH plotstr(retvals(0))
-     scriptret = instr(bound(retvals(2), 1, LEN(.s)), .s, plotstr(retvals(1)).s)
-    END WITH
+  IF valid_plotstr(retvals(0)) ANDALSO valid_plotstr(retvals(1)) THEN
+   WITH plotstr(retvals(0))
+    scriptret = INSTR(bound(retvals(2), 1, LEN(.s)), .s, plotstr(retvals(1)).s)
+   END WITH
   ELSE
    scriptret = 0
   END IF
  CASE 239'--trim string
   IF valid_plotstr(retvals(0)) THEN
-   IF retvals(1) = -1 THEN
-    plotstr(retvals(0)).s = trim(plotstr(retvals(0)).s)
-   ELSE
-    IF retvals(1) <= LEN(plotstr(retvals(0)).s) AND retvals(2) >= 1 THEN
-     retvals(1) = large(retvals(1),1)
-     'retvals(2) = bound(retvals(2),1,LEN(plotstr(retvals(0)).s))
-     plotstr(retvals(0)).s = MID(plotstr(retvals(0)).s,retvals(1),retvals(2))
+   WITH plotstr(retvals(0))
+    IF retvals(1) = -1 THEN
+     .s = TRIM(.s)
     ELSE
-     plotstr(retvals(0)).s = ""
+     IF retvals(1) <= LEN(.s) ANDALSO retvals(2) >= 1 THEN
+      retvals(1) = large(retvals(1), 1)
+      'retvals(2) = bound(retvals(2), 1, LEN(.s))
+      .s = MID(.s, retvals(1), retvals(2))
+     ELSE
+      .s = ""
+     END IF
     END IF
-   END IF
+   END WITH
   END IF
  CASE 240'-- string from textbox (string, box, line, ignored)   [obsolete]
   IF valid_plotstr(retvals(0)) THEN
@@ -2151,21 +2152,20 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 264'--set color
   IF retvals(0) >= 0 AND retvals(0) < 256 THEN
-   retvals(1) = retvals(1) OR &HFF000000 'just in case, set the alpha
-   master(retvals(0)).col = retvals(1)
+   WITH master(retvals(0))
+    .col = retvals(1)
+    .a = 255  'just in case, set the alpha
+   END WITH
   END IF
  CASE 265'--rgb
   scriptret = RGB(bound(retvals(0),0,255), bound(retvals(1),0,255), bound(retvals(2),0,255))
  CASE 266'--extract color
-  dim c as rgbcolor
-  c.col = retvals(0)
+  DIM c as RGBcolor = TYPE(retvals(0))
   SELECT CASE retvals(1)
-   CASE 0
-    scriptret = c.r
-   CASE 1
-    scriptret = c.g
-   CASE 2
-    scriptret = c.b
+   CASE 0 : scriptret = c.r
+   CASE 1 : scriptret = c.g
+   CASE 2 : scriptret = c.b
+   CASE 3 : scriptret = c.a  'No use yet
   END SELECT
  CASE 268'--load palette
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxMasterPal) THEN
