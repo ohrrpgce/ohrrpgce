@@ -21,7 +21,7 @@ def file_ext_in(name, *types):
     return path.splitext(name)[1].lower()[1:] in types
 
 def is_rpg(name):
-    return file_ext_in(name, 'rpg', 'rpgdir')
+    return file_ext_in(name, 'rpg', 'rpgdir', 'bak')
 
 top_level = ["defineconstant", "definetrigger", "defineoperator", 
              "globalvariable", "definefunction", "definescript", "include"]
@@ -172,7 +172,7 @@ class RPGIterator(object):
         """Hash an .rpg or .rpgdir, returning the md5 digest as a hex string"""
         md5 = hashlib.md5()
         if path.isdir(fname):
-            for node in sorted(x.lower() for x in os.listdir(fname)):
+            for node in sorted(os.listdir(fname), key=(lambda filename: filename.lower())):
                 md5.update(node)
                 md5_add_file(md5, path.join(fname, node))
         else:

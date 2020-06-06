@@ -321,7 +321,7 @@ for i, r in enumerate(rpgidx):
         backup_type = 1
     elif r.scripts_backup == 'source.lumped':
         backup_type = 2
-    tally[i, r.has_scripts, r.has_source, backup_type] = 1
+    tally[i, int(r.has_scripts), int(r.has_source), backup_type] = 1
 
 tally = tally.sum(axis=0)
 
