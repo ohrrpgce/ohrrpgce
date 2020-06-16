@@ -250,7 +250,9 @@ class RPGIterator(object):
                         gameinfo.loadname(rpg)
                         yield rpg, gameinfo, None
                     elif self.yield_corrupt_games:
-                        yield None, gameinfo, None                       
+                        gameinfo.longname = ""
+                        gameinfo.aboutline = ""
+                        yield None, gameinfo, None
                     self._cleanup()
 
             for zippath, src in self.zipfiles:
@@ -292,7 +294,7 @@ class RPGIterator(object):
                             zipinfo.exes.append(name)
                     # Delay reading files, which could throw, until after we've grabbed the above
                     for name in archive.namelist():
-                        if file_ext_in(name, 'hss', 'txt'):
+                        if file_ext_in(name, 'hss', 'txt', 'hsi', 'hspp', 'lib'):
                             source = archive.open(name)
                             if is_script(source):
                                 zipinfo.scripts.append(name)
@@ -336,6 +338,8 @@ class RPGIterator(object):
                                 gameinfo.loadname(rpg)
                                 yield rpg, gameinfo, zipinfo
                             elif self.yield_corrupt_games:
+                                gameinfo.longname = ""
+                                gameinfo.aboutline = ""
                                 yield None, gameinfo, zipinfo
                             self._cleanup()
                         if path.isdir(extractto):
