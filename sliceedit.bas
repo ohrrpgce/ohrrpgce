@@ -606,7 +606,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   '--and no point allowing editing external files in-game, so just disable in-game.
   '--Furthermore, loading new collections when .editing_existing is unimplemented anyway
   '--(checked by slice_editor_export_key())
-  IF keyval(scCtrl) = 0 ANDALSO keyval(scF3) > 1 THEN slice_editor_export_prompt ses, edslice
+  IF keyval(scCtrl) = 0 ANDALSO keyval(scF3) > 1 THEN slice_editor_import_prompt ses, edslice
 #ENDIF
   IF state.need_update = NO AND (keyval(scPlus) > 1 OR keyval(scNumpadPlus)) THEN
    DIM slice_type as SliceTypes
@@ -994,7 +994,7 @@ SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice
 END SUB
 
 #IFDEF IS_CUSTOM
-'Prompt user whether to import. Called when F2 is pressed.
+'Prompt user whether to import. Called when F3 is pressed.
 SUB slice_editor_import_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
  '--Loading new collections when .editing_existing is unimplemented
  IF ses.editing_existing THEN EXIT SUB
@@ -1007,7 +1007,7 @@ SUB slice_editor_import_prompt(byref ses as SliceEditState, byref edslice as Sli
 END SUB
 #ENDIF
 
-'Prompt user whether to export. Called when F3 is pressed.
+'Prompt user whether to export. Called when F2 is pressed.
 SUB slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
  DIM filename as string
  IF keyval(scCtrl) > 0 AND LEN(ses.collection_file) THEN
