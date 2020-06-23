@@ -29,7 +29,7 @@ Remember that you can control which direction an NPC is facing by pressing CTRL+
 
 * "Chase You/Avoid You (Direct)" move directly towards/away from the player, don't make any random decisions, and stay still when stuck behind an obstacle. These NPCs easily get stuck.
 
-* "Chase You/Avoid You (Meandering)" are like the "Direct" versions, except that when two directions are equally good they choose randomly.
+* "Chase You/Avoid You (Meandering)" are like the "Direct" versions, except they make random decisions sometimes. If on the same row or column as the hero they will even somethings move backwards. They still get stuck on corners when diagonal to the hero.
 
 * "Chase You (Pathfinding)" finds the shortest path to the hero, moving around any obstacle. If the map is a very large maze then pathfinding may fail to find the path. If no path can be found, the NPC will instead move to the nearest tile to the hero which it can reach. The path is recomputed every step.
 Pathing NPCs respect zone restrictions.
