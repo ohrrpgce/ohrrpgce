@@ -472,17 +472,18 @@ function os_get_documents_dir() as string
 		' Might be missing on Win95, and the Documents folder was only added in Win98 anyway.
 		' Doesn't set an error code!
 		if SHGetSpecialFolderPathA(0, strptr(buf), CSIDL_PERSONAL, 0) then  'Documents
-			if diriswriteable(buf) then
+			'Not using diriswriteable, triggers BitDefender's Safe Files feature
+			if isdir(buf) then
 				return buf
 			else
-				debug "Can't write to CSIDL_PERSONAL directory " & buf
+				debug "CSIDL_PERSONAL directory doesn't exist: " & buf
 			end if
 		end if
 		if SHGetSpecialFolderPathA(0, strptr(buf), CSIDL_DESKTOPDIRECTORY, 0) then  'Desktop
-			if diriswriteable(buf) then
+			if isdir(buf) then
 				return buf
 			else
-				debug "Can't write to CSIDL_DESKTOPDIRECTORY " & buf
+				debug "CSIDL_DESKTOPDIRECTORY doesn't exist: " & buf
 			end if
 		end if
 	end if
