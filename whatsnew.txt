@@ -36,6 +36,7 @@ August ? 2020 [H???]
     * "load palette" reverted often when using Test Game or debug menus [Ralph]
     * Deleting tilesets didn't delete default passability or animations, and
       the tilesets reappeared, blanked out, when quitting & reloading [Ralph]
+    * Foemap Stats menu partly ignored enemy 0, and several minor bugs [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"

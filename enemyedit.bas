@@ -1208,8 +1208,10 @@ SUB EnemyUsageMenu.update()
   DIM enctr_rate as double = formset_freq_estimate(formset.frequency)
   IF count THEN
    have_any = YES
+   DIM extra as string
+   IF enctr_rate = 0 THEN extra = "  (Zero frequency!)"
    add_item 1, fsid, strprintf("%-3d: in %2d%% of formations (avg num %.1f)", _
-                               fsid, CINT(100 * matching_forms / total_forms), count / total_forms)
+                               fsid, CINT(100 * matching_forms / total_forms), count / total_forms) & extra
   END IF
   formset_encounter_rate(fsid) = enctr_rate
   formset_avg_num(fsid) = count / total_forms
@@ -1246,8 +1248,8 @@ SUB EnemyUsageMenu.update()
     formsets &= fsid & " "
    END IF
   NEXT
-  enctr_rate /= total_foe_tiles
-  avg_num /= total_enctr_rate
+  IF total_foe_tiles THEN enctr_rate /= total_foe_tiles
+  IF total_enctr_rate THEN avg_num /= total_enctr_rate
 
   DIM percent_of_tiles as double = 100 * matching_tiles / (foemap.wide * foemap.high)
   DIM percent_of_foe_tiles as double = 100 * matching_tiles / total_foe_tiles
@@ -1457,6 +1459,7 @@ SUB FoemapStatsMenu.update()
    END WITH
   END IF
  NEXT
+ IF total_enctr_rate = 0 THEN total_enctr_rate = 1  'Avoid NaNs
 
  ' Then print
  FOR fsid as integer = 1 TO maxFormationSet
@@ -1492,6 +1495,7 @@ SUB FoemapStatsMenu.update()
  ' Get the combined list of formations (build form_weights)
  DIM form_weights(gen(genMaxFormation)) as double 'Weight of each formation in the combined stats
  DIM form_enctr_rates(gen(genMaxFormation)) as double 'Encounter chance per random foe-tile step
+ DIM form_needed(gen(genMaxFormation)) as bool  'Need to load this formation (although form_weights may be 0)
  FOR fsid as integer = 1 TO maxFormationSet
   IF occurrences(fsid) ANDALSO num_forms(fsid) > 0 THEN
    FOR idx as integer = 0 TO UBOUND(formsets(fsid).formations)
@@ -1499,6 +1503,7 @@ SUB FoemapStatsMenu.update()
     IF formid >= 0 THEN
      form_weights(formid) += fs_weights(fsid) / num_forms(fsid)
      form_enctr_rates(formid) += fs_enctr_rates(fsid) / num_forms(fsid)
+     form_needed(formid) = YES
     END IF
    NEXT
   END IF
@@ -1511,19 +1516,19 @@ SUB FoemapStatsMenu.update()
  DIM form_exper(gen(genMaxFormation)) as integer 'Formation totals
  DIM form_gold(gen(genMaxFormation)) as integer
  FOR formid as integer = 0 TO gen(genMaxFormation)
-  IF form_weights(formid) > 0 THEN
+  IF form_needed(formid) THEN
    DIM form as Formation
    LoadFormation form, formid
 
    DIM already_seen() as integer
    FOR slot as integer = 0 TO UBOUND(form.slots)
     WITH form.slots(slot)
-     IF .id > 0 THEN
+     IF .id >= 0 THEN
       enemy_weights(.id) += form_weights(formid)
       DIM reward as EnemyRewardDef = get_enemy(.id).reward
       form_exper(formid) += reward.exper
       form_gold(formid) += reward.gold
-      IF a_find(already_seen(), .id) = -1 THEN
+      IF form_weights(formid) > 0 ANDALSO a_find(already_seen(), .id) = -1 THEN
        'First occurrence in this formation
        a_append already_seen(), .id
        enemy_formations(.id) &= formid & " "
@@ -1543,8 +1548,8 @@ SUB FoemapStatsMenu.update()
 
  'Unfortunately need to loop again, because rewards are calculated enemies->formations->sets,
  'while encounter rates are calculated sets->formations->enemies
- DIM fs_exper(gen(genMaxFormation)) as integer   'Average for the formset
- DIM fs_gold(gen(genMaxFormation)) as integer
+ DIM fs_exper(gen(genMaxFormation)) as double   'Average XP, gold reward for the formset
+ DIM fs_gold(gen(genMaxFormation)) as double
  FOR fsid as integer = 1 TO maxFormationSet
   IF occurrences(fsid) ANDALSO num_forms(fsid) > 0 THEN
    FOR idx as integer = 0 TO UBOUND(formsets(fsid).formations)
@@ -1615,7 +1620,7 @@ SUB FoemapStatsMenu.update()
  FOR fsid as integer = 1 TO maxFormationSet
   IF occurrences(fsid) THEN
    WITH formsets(fsid)
-    'Calculate encounters and steps neede
+    'Calculate encounters and steps needed
     DIM enctrs_needed as double
     DIM as string enctr_str, steps_str
     DIM exp_mult as double = 0.2
@@ -1642,7 +1647,7 @@ SUB FoemapStatsMenu.update()
     END IF
 
     have_any = YES
-    add_item 0, fsid, strprintf("%3d | %6d | %6d | %12s | %12s ", fsid, fs_gold(fsid), _
+    add_item 0, fsid, strprintf("%3d | %6.0f | %6.0f | %12s | %12s ", fsid, fs_gold(fsid), _
                                 fs_exper(fsid), @enctr_str[0], @steps_str[0])
    END WITH
   END IF
