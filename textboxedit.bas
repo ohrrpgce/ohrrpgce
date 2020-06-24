@@ -1745,7 +1745,7 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
         box.vertical_offset = VALINT(v)
        CASE "text color"
         box.textcolor = VALINT(v)
-       CASE "border color"
+       CASE "box style", "border color"    'Obsolete name from previously exported files
         box.boxstyle = VALINT(v)
        CASE "backdrop"
         box.backdrop = VALINT(v)
@@ -1993,8 +1993,8 @@ FUNCTION export_textboxes (filename as string, metadata() as bool) as bool
     PRINT #fh, "Size: " & (21 - box.shrink)
    END IF
    PRINT #fh, "Position: " & box.vertical_offset
-   PRINT #fh, "Text Color: " & box.textcolor '--AARGH.
-   PRINT #fh, "Border Color: " & box.boxstyle '--AARGH AGAIN.
+   PRINT #fh, "Text Color: " & box.textcolor
+   PRINT #fh, "Box Style: " & box.boxstyle  'Used to be exported as "Border Color"
    PRINT #fh, "Backdrop: " & box.backdrop
    IF box.music > 0 THEN
     PRINT #fh, "Music: " & box.music & " (" & escape_nonprintable_ascii(getsongname(box.music - 1)) & ")"
