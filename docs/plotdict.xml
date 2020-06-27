@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-04-17">
+<plotscript version="wip" datecode="2020-06-27">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -10348,15 +10348,71 @@ end</example>
 				menus (in the General Game Settings menu).
 				You can use this command if there isn't a dedicated command to read the bit,
 				such as <ref>extendedscancodesenabled</ref>.
-				Get the value of <p>bitnum</p>
-				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
+				Get the value of <p>bitnum</p> from the list below or
+				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>
+				(which might possibly be more up-to-date).
+				<ul>
+					<li>0 - Pause in battle on spell and item menus</li>
+					<li>1 - Enable Caterpillar party</li>
+					<li>2 - <b>Don't</b> restore HP on level-up</li>
+					<li>3 - <b>Don't</b> restore MP on level-up</li>
+					<li>4 - Inns <b>don't</b> revive dead heros</li>
+					<li>5 - Hero swapping always available</li>
+					<li>6 - <b>Hide</b> ready meter in battle</li>
+					<li>7 - <b>Hide</b> health bar in battle</li>
+					<li>8 - <b>Disable</b> debugging keys</li>
+					<li>9 - Simulate old level-up bug</li>
+					<li>10 - Permit double-triggering of scripts</li>
+					<li>11 - Skip title screen</li>
+					<li>12 - Skip load screen</li>
+					<li>13 - Pause in battle on all menus</li>
+					<li>14 - Disable Hero's Battle Cursor</li>
+					<li>15 - Default passability disabled by default</li>
+					<li>16 - Simulate pushable NPC collision bug</li>
+					<li>17 - <b>Disable</b> ESC to run from battle</li>
+					<li>18 - <b>Don't</b> save gameover/loadgame script IDs</li>
+					<li>19 - Dead heroes gain share of experience</li>
+					<li>20 - Locked heros can't be rearranged</li>
+					<li>21 - Attack captions pause battle meters</li>
+					<li>22 - <b>Don't</b> randomize battle ready-meters</li>
+					<li>23 - Battle menus wait for attack animations</li>
+					<li>24 - <b>Enable</b> better scancodes for scripts</li>
+					<li>25 - Simulate old fail vs. elemental resist bit</li>
+					<li>26 - 0 damage when immune to attack elements</li>
+					<li>27 - <b>Do</b> recreate map slices when changing maps</li>
+					<li>28 - Harm tiles <b>do</b> harm non-caterpillar heroes</li>
+					<li>29 - Attacks ignore extra hits by default</li>
+					<li>30 - <b>Don't</b> divide experience between heroes</li>
+					<li>31 - Don't reset max stats after OOB attack</li>
+					<li>32 - <b>Don't</b> limit max tags to 999</li>
+					<li>33 - Simulate Bug #430 script wait skips</li>
+					<li>34 - showtextbox happens immediately</li>
+					<li>35 - Pause battle while targeting attacks</li>
+					<li>36 - Old attack positioning at bottom-left of target</li>
+					<li>37 - Wrap map layers over edge of Crop maps</li>
+					<li>38 - Never show script timer during battles</li>
+					<li>39 - Draw Backdrop slice above Script layer</li>
+					<li>40 - <b>Don't</b> stop music when starting/loading game</li>
+					<li>41 - Keep caterpillar length the same when speed changes</li>
+					<li>42 - Heroes use Walk in Place animation while idle</li>
+					<li>43 - Cap minimum stats at zero</li>
+					<li>44 - Hide empty save slots at the bottom of the save/load menu</li>
+					<li>45 - Attack IDs in scripts are offset by +1</li>
+					<li>46 - Negative damage harmtiles <b>don't</b> cure above max HP</li>
+					<li>47 - <b>Don't</b> map joystick controls to keyboard keys for scripts</li>
+					<li>48 - <b>Disable</b> ESC to cancel/change a hero's attack (turn-based battles only)</li>
+					<li>49 - Show hero MP meter</li>
+					<li>50 - Non-turn attack delays <b>don't</b> also cause turn delays</li>
+				</ul>
 				<warn>
-					Some bits are shown with the opposite names on the wiki and in the editor!
+					Some bits have names which are opposite above/on the wiki and in the editor!
 					If that's the case, you need to set the bit off instead of on and vice versa.
 					They might also have slightly different names.
 					For example to check whether "Randomize initial ready meters" is <b>on</b>,
 					use <tt>read preference bit(22) == off</tt>,
-					because bit 22 is documented as "Don't randomize battle ready-meters".
+					because bit 22 is documented as "<b>Don't</b> randomize battle ready-meters".
+					In the above list, any bit will an inverted name is (hopefully) shown with part of
+					the description in <b>bold</b>.
 				</warn>
 			</description>
 			<seealso>
@@ -10372,17 +10428,17 @@ end</example>
 				menus (in the General Game Settings menu).
 				You can use this command if there isn't a dedicated command to write the bit,
 				such as <ref>setbattlewaitmode</ref>.
-				Get the value of <p>bitnum</p>
-				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
-
-				<note>
-					Some bits are shown with the opposite names on the wiki and in the editor!
+				Get the value of <p>bitnum</p> from the list at <ref>readpreferencebit</ref> or
+				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>
+				(which might possibly be more up-to-date).
+				<warn>
+					Some bits are shown with the opposite names here/the wiki and in the editor!
 					If that's the case, you need to set the bit off instead of on and vice versa.
 					They might also have slightly different names.
 					For example to turn <b>on</b> "Randomize initial ready meters", use
 					<tt>write preference bit(22, off)</tt>,
 					because bit 22 is documented as "Don't randomize battle ready-meters".
-				</note>
+				</warn>
 				<danger>
 					Use common sense. Some bits, such as "Limit maximum tags to 999" might be disastrous
 					to change in the middle of a game!

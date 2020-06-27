@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2020-04-17)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2020-06-27)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1398,6 +1398,7 @@ function toggleContent(target) {
 		<a href="#about-settextcolor">set text color(handle, color)</a><br>
 		<a href="#about-settileanimationoffset">set tile animation offset (animation pattern, offset, layer)</a><br>
 		<a href="#about-settimer">set timer (id, count, speed, trigger, string, flags)</a><br>
+		<a href="#about-settimerargs">set timer args (id, args...)</a><br>
 		<a href="#about-settoppadding">set top padding (handle, pixels)</a><br>
 		<a href="#about-setvariable">variable := value</a><br>
 		<a href="#about-setvertalign">set vert align (handle, edge)</a><br>
@@ -1458,7 +1459,7 @@ function toggleContent(target) {
 		<a href="#about-soundisplaying">sound is playing (num)</a><br>
 		<a href="#about-south">south</a><br>
 		<a href="#about-southwall">south wall</a><br>
-		<a href="#about-speakingnpc">speaking npc</a><br>
+		<a href="#about-speakingnpc">speaking NPC</a><br>
 		<a href="#about-spellslearned">spells learned (hero, number)</a><br>
 		<a href="#about-spellslearnt">spells learnt (hero, number)</a><br>
 		<a href="#about-spellsmenu">spells menu (who)</a><br>
@@ -4636,7 +4637,7 @@ end</pre>
 		<a href="#about-showtextbox">show text box (number)</a><br>
 		<a href="#about-advancetextbox">advance text box</a><br>
 		<a href="#about-currenttextbox">current text box</a><br>
-		<a href="#about-speakingnpc">speaking npc</a><br>
+		<a href="#about-speakingnpc">speaking NPC</a><br>
 		<a href="#about-stringfromtextbox">string from textbox (ID, textbox, line, ignored)</a><br>
 		<a href="#about-textboxline">textbox line (string ID, textbox, line, expand, strip)</a><br>
 		<a href="#about-textboxtext">textbox text (string ID, textbox, expand, strip)</a><br>
@@ -4680,7 +4681,7 @@ resume box advance # go back to normal</pre>
 			
 			<div class="seealso">See also: <ul>
 <li>
-<a href="#about-speakingnpc" class="ref">speaking npc</a>, </li>
+<a href="#about-speakingnpc" class="ref">speaking NPC</a>, </li>
 <li>
 <a href="#about-showtextbox" class="ref">show text box</a>, </li>
 <li><a href="#about-advancetextbox" class="ref">advance text box</a></li>
@@ -4690,13 +4691,25 @@ resume box advance # go back to normal</pre>
 </div>
 		<div class="command">
 			<a name="about-speakingnpc"></a>
-				<h4>speaking npc</h4>
+				<h4>speaking NPC</h4>
 <p>
 			
 				If the player activated an NPC which showed a textbox
 				and the hero and NPC are still "speaking" (the textbox chain isn't done),
-				returns the NPC reference for that NPC.
-				Otherwise returns false.
+				returns the <a href="#about-npcreference" class="ref">NPC reference</a> for that NPC.
+				Otherwise returns <span class="code">false</span>.
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					If you try to use this in a script called either AFTER or INSTEAD of
+					a textbox, the textbox has closed by the time the script starts,
+					so the NPC is no longer speaking and this will return <span class="code">false</span>.
+					<br>
+					Likewise, if an NPC calls a script directly without showing a textbox
+					this will just return <span class="code">false</span>.
+					But you don't need <span class="param">speaking NPC</span> for scripts triggered directly from NPCs,
+					because the script is given the NPC reference as its second argument (if any).
+					(The first argument is customisable in the NPC editor.)
+				</div>
 			
 			
 			
@@ -6183,7 +6196,7 @@ fade screen in</pre>
 			<a name="about-resetpalette"></a>
 				<h4>reset palette</h4>
 <p>
-			Reloads the default master palette and its user interface colors, undoing any changes you have made with other palette-altering commands such as <a href="#about-tweakpalette" class="ref">tweak palette</a> or <a href="#about-greyscalepalette" class="ref">greyscale palette</a>. Changes to the palette do not take effect until you call <a href="#about-updatepalette" class="ref">update palette</a> or <a href="#about-fadescreenin" class="ref">fade screen in</a>. However the UI color indices (those in the 'Change User-Interface Colors' menu) are changed immediately (if you're not using multiple master palettes, then UI color indices never change).
+			Reloads the default master palette and its user interface colors, undoing any changes you have made with other palette-altering commands such as <a href="#about-tweakpalette" class="ref">tweak palette</a>, <a href="#about-greyscalepalette" class="ref">greyscale palette</a>, or <a href="#about-loadpalette" class="ref">load palette</a>. Changes to the palette do not take effect until you call <a href="#about-updatepalette" class="ref">update palette</a> or <a href="#about-fadescreenin" class="ref">fade screen in</a>. However the UI color indices (those in the 'Change User-Interface Colors' menu) are changed immediately (if you're not using multiple master palettes, then UI color indices never change).
 			
 			
 			
@@ -11705,8 +11718,10 @@ lookup slice(sl:map overlay)
 lookup slice(sl:walkabout layer)
 lookup slice(sl:hero layer)
 lookup slice(sl:npc layer)
-lookup slice(sl:walkabout sprite component)
-lookup slice(sl:walkabout shadow component)
+lookup slice(sl:walkabout sprite)
+lookup slice(sl:walkabout sprite component)  # Same as lookup slice(sl:walkabout sprite)
+lookup slice(sl:walkabout shadow)
+lookup slice(sl:walkabout shadow component)  # Same as lookup slice(sl:walkabout shadow)
 lookup slice(sl:backdrop)
 lookup slice(sl:map layer0)
 lookup slice(sl:map layer1)
@@ -11724,35 +11739,6 @@ lookup slice(sl:map layer12)
 lookup slice(sl:map layer13)
 lookup slice(sl:map layer14)
 lookup slice(sl:map layer15)
-lookup slice(sl:status portrait)
-lookup slice(sl:status walkabout)
-lookup slice(sl:status battlesprite)
-lookup slice(sl:status page select)
-lookup slice(sl:status statlist)
-lookup slice(sl:status hide if no mp)
-lookup slice(sl:status hide if no lmp)
-lookup slice(sl:status hide if max lev)
-lookup slice(sl:plank holder)
-lookup slice(sl:status hide if no portrait)
-lookup slice(sl:item itemlist)
-lookup slice(sl:item exitbutton)
-lookup slice(sl:item sortbutton)
-lookup slice(sl:item trashbutton)
-lookup slice(sl:plank menu selectable)
-lookup slice(sl:spell listlist)
-lookup slice(sl:spell spelllist)
-lookup slice(sl:spell hide if no list)
-lookup slice(sl:spell cancelbutton)
-lookup slice(sl:virtual keyboard button)
-lookup slice(sl:virtual keyboard buttontext)
-lookup slice(sl:virtual keyboard shift)
-lookup slice(sl:virtual keyboard symbols)
-lookup slice(sl:virtual keyboard select)
-lookup slice(sl:virtual keyboard entrytext)
-lookup slice(sl:virtual keyboard del)
-lookup slice(sl:virtual keyboard enter)
-lookup slice(sl:shop buy info panel)
-lookup slice(sl:status hide if no hp)
 lookup slice(sl:pathfind dest display)
 </pre>
 			<div class="seealso">See also: <ul>
@@ -17748,6 +17734,7 @@ end</pre>
 <div class="select-content-shown" id="Timers-index">
 <button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul><div class="content-shown">
 		<a href="#about-settimer">set timer (id, count, speed, trigger, string, flags)</a><br>
+		<a href="#about-settimerargs">set timer args (id, args...)</a><br>
 		<a href="#about-stoptimer">stop timer (id)</a><br>
 		<a href="#about-allocatetimers">allocate timers (number)</a><br>
 		<a href="#about-readtimer">read timer (id)</a><br>
@@ -17766,15 +17753,17 @@ end</pre>
 				it will NOT cause that timer setting to be reset to the default initial value.
 				<span class="param">Count</span> is the length of the timer.
 				While it's running, the count will go down by one every <span class="param">speed</span> game ticks (frames).
-				I.e., if you set speed to 18, it will count down once every 18 ticks, close to one second.
+				I.e., if you set speed to 18, it will count down once every 18 ticks, close to one second
+				if using the default framerate of 18.3fps.
 				Use a speed of 1 to count down in ticks.
 				Changing the timer's <span class="param">count</span> (as opposed to passing <span class="param">timer:default</span> as the second argument)
 				will cause the timer to restart from the new value.
 				<br>
 				<span class="param">trigger</span> is what happens when the timer runs out.
 				You can use the constant <a href="#about-timer:gameover" class="ref">timer: game over</a> to indicate that the game should end (the gameover script is not called),
-				or specify a plotscript (in the form "@my script") to have that run.
-				A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one.
+				or specify a plotscript (in the form <span class="code">@my script</span>) to have that run.
+				A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one,
+				unless you specify the arguments using <a href="#about-settimerargs" class="ref">set timer args</a>.
 				If the timer runs out during a battle then the effect happens after the battle ends.
 				<br>
 				You can bind a timer to a string using the <span class="param">string</span> parameter to create a countdown that shows up on screen.
@@ -17806,14 +17795,18 @@ end</pre>
 				</div>
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
-					Timer settings are not saved in game saves.
+					Timer settings are not saved in saved games.
 				</div>
-			
-			
 			<pre># This starts a 300 second (5 minute) timer that counts down once every 18 ticks (approximately one second).
 # If it runs out during battle, the battle won't end but a game-over will happen afterwards.
 set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: menu))</pre>
+				See <a href="#about-settimerargs" class="ref">set timer args</a> for a larger example.
+			
+			
+			
 			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-settimerargs" class="ref">set timer args</a>, </li>
 <li>
 <a href="#about-stoptimer" class="ref">stop timer</a>, </li>
 <li>
@@ -17830,10 +17823,81 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		</p>
 </div>
 		<div class="command">
+			<a name="about-settimerargs"></a>
+				<h4>set timer args (id, args...)</h4>
+<p>
+			
+				Sets the arguments that a timer will pass to the script it triggers.
+				(If the timer isn't set to call a script this shows an error,
+				so you have to call <a href="#about-settimer" class="ref">set timer</a> before <span class="code">set timer args</span>.)
+				<br>
+				This overrides the default first argument to the script, which is the timer ID.
+				So if you want the timer ID to be first argument you have to write something like
+				<br>
+				<span class="code">set timer args(id, id, 20)  # Script gets args 'id, 20'</span>
+				<br>
+				If you call this with no arguments (<span class="code">set timer args(id)</span>)
+				then all the script's arguments default to 0.
+				If the script doesn't take as many args as you pass it the extra
+				ones will be ignored without error.
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					After the script runs the arguments will still be remembered for next time
+					the timer is run (you can re-start a timer by calling <span class="code">set timer(id, count)</span>),
+					unless the script ID is changed (or set to 0).
+				</div>
+				<div class="notice danger" title="Danger">
+<img src="Plotdanger.png" alt="[Danger]" class="icon">
+					Due to a bug, the script's default arguments will be ignored,
+					and missing arguments are instead set to 0.
+					This happens whether you use <span class="code">set timer args</span> or not, and affects
+					all triggered scripts.
+					This will be fixed in some future version.
+				</div>
+				<pre># This script changes the tile at x,y on tilemap 'layer' between tile IDs 'tile'
+# and 'othertile' in the tileset every 5 ticks, repeating until the map changes.
+script, blink tile, x, y, layer, tile, othertile, timerid, whichmap = -1, begin
+
+  # Remember which map we started running on, and stop if the map changes
+  if (whichmap == -1) then (
+    whichmap := current map
+  ) else (
+    if (whichmap &lt;&gt; current map) then (exit script)
+  )
+
+  write map block (x, y, tile, layer)
+
+  # Cause this script to run again in 10 ticks, but this time
+  # swap 'tile' and 'othertile'
+  set timer (timerid, 0, 10, @blink tile)
+  set timer args (timerid, x, y, layer, othertile, tile, timerid, whichmap)
+end
+
+# Some timer IDs
+define constant (10, timer:blink1)
+define constant (11, timer:blink2)
+
+# This is an auto-run script for a map
+plotscript, blinky map, begin
+  blink tile (4, 5, 0, 0, 1, timer:blink1)   # Blink x=4,y=5,layer=0 between tiles 0 &amp; 1
+  blink tile (11, 10, 1, 5, 10, timer:blink2) # Blink x=11,y=10,layer=1 between tiles 5 &amp; 10
+end</pre>
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-settimer" class="ref">set timer</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
 			<a name="about-stoptimer"></a>
 				<h4>stop timer (id)</h4>
 <p>
-			Stops a timer by setting its speed to 0. All of its other settings remain the same.
+			
+				Stops a timer by setting its speed to 0. All of its other settings remain the same.
+				You can resume it by calling <span class="code">set timer(id, timer:default, speed)</span>
+				if you know the original speed.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-settimer" class="ref">set timer</a></li></ul>
@@ -18221,16 +18285,72 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				menus (in the General Game Settings menu).
 				You can use this command if there isn't a dedicated command to read the bit,
 				such as <a href="#about-extendedscancodesenabled" class="ref">extended scancodes enabled</a>.
-				Get the value of <span class="param">bitnum</span>
-				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
+				Get the value of <span class="param">bitnum</span> from the list below or
+				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>
+				(which might possibly be more up-to-date).
+				<ul>
+					<li>0 - Pause in battle on spell and item menus</li>
+					<li>1 - Enable Caterpillar party</li>
+					<li>2 - <b>Don't</b> restore HP on level-up</li>
+					<li>3 - <b>Don't</b> restore MP on level-up</li>
+					<li>4 - Inns <b>don't</b> revive dead heros</li>
+					<li>5 - Hero swapping always available</li>
+					<li>6 - <b>Hide</b> ready meter in battle</li>
+					<li>7 - <b>Hide</b> health bar in battle</li>
+					<li>8 - <b>Disable</b> debugging keys</li>
+					<li>9 - Simulate old level-up bug</li>
+					<li>10 - Permit double-triggering of scripts</li>
+					<li>11 - Skip title screen</li>
+					<li>12 - Skip load screen</li>
+					<li>13 - Pause in battle on all menus</li>
+					<li>14 - Disable Hero's Battle Cursor</li>
+					<li>15 - Default passability disabled by default</li>
+					<li>16 - Simulate pushable NPC collision bug</li>
+					<li>17 - <b>Disable</b> ESC to run from battle</li>
+					<li>18 - <b>Don't</b> save gameover/loadgame script IDs</li>
+					<li>19 - Dead heroes gain share of experience</li>
+					<li>20 - Locked heros can't be rearranged</li>
+					<li>21 - Attack captions pause battle meters</li>
+					<li>22 - <b>Don't</b> randomize battle ready-meters</li>
+					<li>23 - Battle menus wait for attack animations</li>
+					<li>24 - <b>Enable</b> better scancodes for scripts</li>
+					<li>25 - Simulate old fail vs. elemental resist bit</li>
+					<li>26 - 0 damage when immune to attack elements</li>
+					<li>27 - <b>Do</b> recreate map slices when changing maps</li>
+					<li>28 - Harm tiles <b>do</b> harm non-caterpillar heroes</li>
+					<li>29 - Attacks ignore extra hits by default</li>
+					<li>30 - <b>Don't</b> divide experience between heroes</li>
+					<li>31 - Don't reset max stats after OOB attack</li>
+					<li>32 - <b>Don't</b> limit max tags to 999</li>
+					<li>33 - Simulate Bug #430 script wait skips</li>
+					<li>34 - showtextbox happens immediately</li>
+					<li>35 - Pause battle while targeting attacks</li>
+					<li>36 - Old attack positioning at bottom-left of target</li>
+					<li>37 - Wrap map layers over edge of Crop maps</li>
+					<li>38 - Never show script timer during battles</li>
+					<li>39 - Draw Backdrop slice above Script layer</li>
+					<li>40 - <b>Don't</b> stop music when starting/loading game</li>
+					<li>41 - Keep caterpillar length the same when speed changes</li>
+					<li>42 - Heroes use Walk in Place animation while idle</li>
+					<li>43 - Cap minimum stats at zero</li>
+					<li>44 - Hide empty save slots at the bottom of the save/load menu</li>
+					<li>45 - Attack IDs in scripts are offset by +1</li>
+					<li>46 - Negative damage harmtiles <b>don't</b> cure above max HP</li>
+					<li>47 - <b>Don't</b> map joystick controls to keyboard keys for scripts</li>
+					<li>48 - <b>Disable</b> ESC to cancel/change a hero's attack (turn-based battles only)</li>
+					<li>49 - Show hero MP meter</li>
+					<li>50 - Non-turn attack delays <b>don't</b> also cause turn delays</li>
+				</ul>
 				<div class="notice warn">
 <img src="Plotwarn.png" alt="[Warning]" class="icon">
-					Some bits are shown with the opposite names on the wiki and in the editor!
+					Some bits have names which are opposite above/on the wiki and in the editor!
 					If that's the case, you need to set the bit off instead of on and vice versa.
 					They might also have slightly different names.
 					For example to check whether "Randomize initial ready meters" is <b>on</b>,
 					use <span class="code">read preference bit(22) == off</span>,
-					because bit 22 is documented as "Don't randomize battle ready-meters".
+					because bit 22 is documented as "<b>Don't</b> randomize battle ready-meters".
+					In the above list, any bit will an inverted name is (hopefully) shown with part of
+					the description in <b>bold</b>.
 				</div>
 			
 			
@@ -18249,12 +18369,12 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				menus (in the General Game Settings menu).
 				You can use this command if there isn't a dedicated command to write the bit,
 				such as <a href="#about-setbattlewaitmode" class="ref">set battle wait mode</a>.
-				Get the value of <span class="param">bitnum</span>
-				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>.
-
-				<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">
-					Some bits are shown with the opposite names on the wiki and in the editor!
+				Get the value of <span class="param">bitnum</span> from the list at <a href="#about-readpreferencebit" class="ref">read preference bit</a> or
+				by checking <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN#General_bitsets">this list on the wiki</a>
+				(which might possibly be more up-to-date).
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					Some bits are shown with the opposite names here/the wiki and in the editor!
 					If that's the case, you need to set the bit off instead of on and vice versa.
 					They might also have slightly different names.
 					For example to turn <b>on</b> "Randomize initial ready meters", use
@@ -18782,10 +18902,11 @@ end</pre>
 				or it could be the function return value of another script.
 				For example, using <a href="#about-setsliceextra" class="ref">set slice extra</a> you might want to store the ID
 				of a script that should be run when the player clicks on a slice.
-				<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">
+				<div class="notice danger" title="Danger">
+<img src="Plotdanger.png" alt="[Danger]" class="icon">
 					If you pass too few arguments, the unspecified ones will have value zero
 					<b>regardless</b> of any default values given in the script declaration.
+					This bug will be fixed in some future version.
 					<br>
 					If you pass too many (which does not cause an error),
 					the extra ones are ignored.
@@ -20094,7 +20215,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 886 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 887 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
