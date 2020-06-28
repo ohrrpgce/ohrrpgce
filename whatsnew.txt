@@ -37,6 +37,8 @@ August ? 2020 [H???]
     * Deleting tilesets didn't delete default passability or animations, and
       the tilesets reappeared, blanked out, when quitting & reloading [Ralph]
     * Foemap Stats menu partly ignored enemy 0, and several minor bugs [Ralph]
+    * Saving in a hidden save slot with a script will not move the default
+      cursor to the very bottom of the save/load menu anymore [James]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"
