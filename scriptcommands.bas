@@ -3048,7 +3048,7 @@ SUB script_functions(byval cmdid as integer)
   DIM sl as Slice Ptr
   IF isfile(workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld") THEN
    sl = NewSliceOfType(slContainer, SliceTable.scriptsprite)
-   SliceLoadFromFile sl, workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld"
+   SliceLoadFromFile sl, workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld", , retvals(0)
    scriptret = create_plotslice_handle(sl)
   ELSE
    scripterr current_command_name() & ": invalid slice collection id " & retvals(0), serrBadOp

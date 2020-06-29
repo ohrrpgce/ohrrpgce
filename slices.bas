@@ -600,9 +600,6 @@ Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer=0)
  *s = 0
 End Sub
 
-Destructor SliceContext()
-End Destructor
-
 'Deletes a slice's children but not itself
 'If debugme is YES, log debug info about the slices.
 Sub DeleteSliceChildren(byval sl as Slice ptr, byval debugme as integer = 0)
@@ -1091,7 +1088,41 @@ Function Slice.FillVert() as bool
 End Function
 
 
-'==Special slice types=========================================================
+'=============================================================================
+'                                Slice contexts
+
+End Extern
+
+Destructor SliceContext()
+End Destructor
+
+Sub SliceContext.save(node as Reload.Nodeptr)
+End Sub
+
+Sub SliceContext.load(node as Reload.Nodeptr)
+End Sub
+
+Sub SliceCollectionContext.load(node as Reload.Nodeptr)
+ name = LoadPropStr(node, "collection_name")
+End Sub
+
+Sub SliceCollectionContext.save(node as Reload.Nodeptr)
+ SaveProp node, "collection_name", name
+ 'id not saved
+End Sub
+
+Function SliceCollectionContext.description() as string
+ dim ret as string = "Collection"
+ if id > -1 then ret &= " " & id
+ if len(name) then ret &= " " & name
+ return ret
+End Function
+
+Extern "C"
+
+
+'=============================================================================
+'                                 Slice types
 
 
 '--Class-based Slice wrapper--------------------------------------------------
@@ -4359,6 +4390,8 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  #ENDIF
  '--Save properties specific to this slice type
  sl->Save(sl, node)
+ '--Contexts may or may not be savable
+ if sl->Context then sl->Context->save(node)
  '--Now save all the children
  if sl->NumChildren > 0 then
   '--make a container node for all the child nodes
@@ -4422,6 +4455,7 @@ Function LoadPropFloat(node as Reload.Nodeptr, propname as zstring ptr, byval de
  return Reload.GetChildNodeFloat(node, propname, defaultval)
 End function
 
+'Note that this mutates an existing slice
 Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handles as bool=NO)
  if sl = 0 then debug "SliceLoadFromNode null slice ptr": Exit Sub
  if node = 0 then debug "SliceLoadFromNode null node ptr": Exit Sub
@@ -4470,6 +4504,10 @@ Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handle
    if tableslot then set_plotslice_handle(sl, tableslot)
   end if
  #ENDIF
+ 'TODO: create a SliceContext so it can load itself. For now, SliceLoadFromFile gives
+ 'the root slice a SliceCollectionContext.
+ 'dim contextstr as string = LoadPropStr(node, "context")
+ if sl->Context then sl->Context->load(node)
  'now update the type
  dim typestr as string = LoadPropStr(node, "type")
  dim typenum as SliceTypes = SliceTypeByName(typestr)
@@ -4505,23 +4543,28 @@ Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handle
  end if
 End sub
 
-Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO)
- 
- 'First create a reload document
+'collection_id is used only in-game
+Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO, collection_id as integer=-1)
  dim doc as Reload.DocPtr
  doc = Reload.LoadDocument(filename, optNoDelay)
- if doc = null then 'the root node will never be null -- Mike
-   debug "Reload.LoadDocument failed in SliceLoadFromFile"
+ if doc = null then
+   showerror "SliceLoadFromFile: couldn't read " & filename
    exit sub
  end if
- 
+
+ 'Always give the root slice a context. The context is used to hold the name of
+ 'the slice collection, if there is one, and other shared data in future
+ BUG_IF(sl->Context, "sl has Context")
+ VAR context = new SliceCollectionContext
+ context->id = collection_id
+ sl->Context = context
+
  'Populate the slice tree with data from the reload tree
  dim node as Reload.Nodeptr
  node = Reload.DocumentRoot(doc)
  SliceLoadFromNode sl, node, load_handles
- 
- Reload.FreeDocument(doc)
 
+ Reload.FreeDocument(doc)
 End sub
 
 

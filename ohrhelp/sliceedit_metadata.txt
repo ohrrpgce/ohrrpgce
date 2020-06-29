@@ -3,3 +3,5 @@ This entry in the slice editor tells that this slice has some special purpose in
 For an NPC, its ID and reference numbers are shown.
 
 For a hero, the caterpillar rank, hero ID and name are shown.
+
+For the root slice of a slice collection this shows the Collection ID and name. (There are no script commands to get these.)

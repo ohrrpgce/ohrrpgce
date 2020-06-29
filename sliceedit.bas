@@ -214,6 +214,7 @@ DECLARE SUB preview_SelectSlice_parents (byval sl as Slice ptr)
 DECLARE SUB slice_editor_settings_menu(byref ses as SliceEditState, byref edslice as Slice ptr, in_detail_editor as bool)
 DECLARE SUB slice_editor_save_settings(byref ses as SliceEditState)
 DECLARE SUB slice_editor_load_settings(byref ses as SliceEditState)
+DECLARE FUNCTION collection_context(edslice as Slice ptr) as SliceCollectionContext ptr
 
 'Slice EditRule convenience functions
 DECLARE SUB sliceed_rule (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as integer ptr, lower as integer=0, upper as integer=0, group as integer = 0)
@@ -552,6 +553,10 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    state.need_update = YES
   END IF
 
+  IF state.need_update = NO ANDALSO ses.slicemenu(state.pt).id = mnidCollectionName THEN
+   IF strgrabber(collection_context(edslice)->name) THEN state.need_update = YES
+  END IF
+
   IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
 
    IF keyval(scCtrl) = 0 AND keyval(scV) > 1 THEN
@@ -785,6 +790,19 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  slice_editor_save_settings ses
 END SUB
 
+'Get the SliceCollectionContext in which shared data for this slice collection is stored
+'(edslice may be a subtree, so we search up the tree)
+FUNCTION collection_context(edslice as Slice ptr) as SliceCollectionContext ptr
+ WHILE edslice
+  IF *edslice->Context IS SliceCollectionContext THEN
+   RETURN CAST(SliceCollectionContext ptr, edslice->Context)
+  END IF
+  edslice = edslice->Parent
+ WEND
+ debug "Can't find a SliceCollectionContext"
+ RETURN NULL
+END FUNCTION
+
 'Note: a lot of this is duplicated, and the keys are documented, in SliceEditSettingsMenu
 SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, in_detail_editor as bool)
  IF keyval(scCtrl) = 0 ANDALSO keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD (hideLAST + 1)
@@ -931,7 +949,12 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
   .Fill = YES
  END WITH
  IF isfile(filename) THEN
-  SliceLoadFromFile newcollection, filename
+  SliceLoadFromFile newcollection, filename, , ses.collection_number
+ ELSE
+  'Collection root slices should have contexts
+  VAR context = NEW SliceCollectionContext
+  context->id = ses.collection_number
+  newcollection->Context = context
  END IF
 
  'Special case fix: in the ancient slicetest.rpg file, collection 0 was rooted by a Root slice
@@ -1639,7 +1662,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   sliceed_rule_none rules(), "scripthandle"
  #ENDIF
  IF .Context THEN
-  a_append menu(), "ID: " & .Context->description()
+  a_append menu(), "Info: " &  .Context->description()
   sliceed_rule_none rules(), "metadata"
  END IF
  IF ses.privileged THEN
@@ -2017,7 +2040,12 @@ FUNCTION slice_caption (byref ses as SliceEditState, edslice as Slice ptr, sl as
    s &= " [root]"
   END IF
   s = RTRIM(s) & "${K" & uilook(uiText) & "} "
-  IF sl->Context THEN s &= sl->Context->description()
+  IF sl->Context THEN
+   'Hide the Context of the root slice of a collection because it duplicates collection name, ID
+   IF sl <> edslice ORELSE (*sl->Context IS SliceCollectionContext) = NO THEN
+    s &= sl->Context->description()
+   END IF
+  END IF
   s &= SliceLookupCodeName(.Lookup, ses.slicelookup())  'returns "Lookup" & .Lookup if not recognied
  END WITH
  RETURN RTRIM(s)
@@ -2042,6 +2070,13 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
   msg &= simplify_path_further(ses.collection_file)
   slice_editor_refresh_append ses, mnidEditingFile, msg
  END IF
+
+ VAR context = collection_context(edslice)
+ 'Don't show the collection name when editing a subtree
+ IF context ANDALSO context = edslice->Context THEN
+  slice_editor_refresh_append ses, mnidCollectionName, "Name: " & context->name
+ END IF
+
  'Normally, hide the root
  DIM hidden_slice as Slice Ptr = edslice
  IF ses.show_root THEN hidden_slice = NULL
@@ -2626,7 +2661,7 @@ SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integ
  DIM filename as string
  filename = workingdir & SLASH & "slicetree_" & collection_kind & "_" & collection_num & ".reld"
  IF isfile(filename) THEN
-  SliceLoadFromFile sl, filename
+  SliceLoadFromFile sl, filename, , IIF(collection_kind = SL_COLLECT_USERDEFINED, collection_num, -1)
  ELSE
   SELECT CASE collection_kind
    CASE SL_COLLECT_STATUSSCREEN:

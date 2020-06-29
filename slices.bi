@@ -182,9 +182,23 @@ End Enum
 Type SliceContext Extends Object
  Declare Virtual Destructor()
  Declare Abstract Function description() as string
+ ' Contexts can't necessarily be loaded and saved; implementing save/load is optional.
+ Declare Virtual Sub save(node as Reload.Nodeptr)
+ Declare Virtual Sub load(node as Reload.Nodeptr)
 End Type
 
 DECLARE_VECTOR_OF_TYPE(SliceContext ptr, SliceContext_ptr)
+
+' The root slice of slice collections have this Context.
+' In future, it would be a good place to store slice animations
+' and other data shared across the collection.
+Type SliceCollectionContext Extends SliceContext
+ Declare Virtual Function description() as string
+ Declare Virtual Sub save(node as Reload.Nodeptr)
+ Declare Virtual Sub load(node as Reload.Nodeptr)
+ name as string
+ id as integer = -1      'Only used by user collections. Not saved. -1 means unknown
+End Type
 
 Extern "C"
 Type SliceFwd as Slice
@@ -553,7 +567,7 @@ DECLARE Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
 DECLARE Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles as bool=NO)
 DECLARE Sub SliceSaveToFile(byval sl as Slice Ptr, filename as string, save_handles as bool=NO)
 DECLARE Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handles as bool=NO)
-DECLARE Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO)
+DECLARE Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO, collection_id as integer=-1)
 
 DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
 DECLARE Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as bool = NO)

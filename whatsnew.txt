@@ -8,6 +8,8 @@ August ? 2020 [H???]
       remember (other) hotkeys. New settings to show/hide the position and
       size of each slice. [Ralph]
     * Slice editor data organised into collapsible/expandable sections [Sword]
+    * Slice collections can be named. The name and collection ID are shown in
+      the in-game slice debugger [Ralph]
 
    * New Plotscripting Features
     * "set timer args" [Ralph]
