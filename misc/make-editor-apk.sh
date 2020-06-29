@@ -1,7 +1,27 @@
 #!/bin/bash
-
 # This script creates the experimental Android build of Custom. Maybe it will be
 # merged into distrib-nightly-android.sh if it's useful enough.
+#
+# Usage:
+#  FBCARM=... SDLANDROID=... misc/make-editor-apk.sh [keyboard] [release] [args to build.sh]
+#
+#  keyboard: create a build with no onscreen buttons, for Chromebooks and other
+#            devices with keyboards.
+
+
+if [ "$#" -gt 0 -a "$1" = "keyboard" ] ; then
+  shift
+  # This affects android/EditorSettings.cfg, called by build.sh.
+  export HASKEYBOARD=yes
+fi
+
+if [ "$#" -gt 0 -a "$1" = "release" ] ; then
+  shift
+  BUILDFILE=MainActivity-release-unsigned.apk
+  BUILDARGS=release
+else
+  BUILDFILE=MainActivity-debug.apk
+fi
 
 ARCHARGS="arch=armeabi"
 
@@ -39,9 +59,9 @@ rm src
 ln -s ohrrpgce src
 
 cd "${SDLANDROID}"
-rm project/bin/MainActivity-debug.apk
-./build.sh
-if [ ! -f project/bin/MainActivity-debug.apk ] ; then
+rm project/bin/${BUILDFILE}
+./build.sh $* ${BUILDARGS}
+if [ ! -f "project/bin/${BUILDFILE}" ] ; then
   echo "Failed to build Android OHRRPGCE Custom apk for arch $CUR_ARCH"
   exit 1
 fi
