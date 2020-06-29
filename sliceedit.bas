@@ -30,9 +30,19 @@ ENUM HideMode
  hideLAST = 3
 END ENUM
 
+ENUM SliceMenuItemID
+ mnidText = 0            'Not editable
+ mnidSlice = 1
+ mnidPrevMenu = 2
+ mnidEditingFile = 3     'Editing <collection file>
+ mnidCollectionID = 4    '<-Slice collection #->
+ mnidCollectionName = 5
+END ENUM
+
 TYPE SliceEditMenuItem
  s as string
  handle as Slice Ptr
+ id as SliceMenuItemID
 END TYPE
 
 TYPE SpecialLookupCode
@@ -81,10 +91,6 @@ TYPE SliceEditState
  ' Internal state of lookup_code_grabber
  editing_lookup_name as bool
  last_lookup_name_edit as double  'Time of last edit
-
- ' Indices of menu items in slicemenu()
- collection_name_pt as integer  'The "Editing <collection name>" title, or -1
- last_non_slice as integer
 
  slicelookup(any) as string
  specialcodes(any) as SpecialLookupCode
@@ -180,8 +186,8 @@ DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceE
 DECLARE SUB slice_editor_common_function_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, in_detail_editor as bool)
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
 DECLARE SUB slice_editor_refresh_delete (byref index as integer, slicemenu() as SliceEditMenuItem)
-DECLARE SUB slice_editor_refresh_append (byref index as integer, slicemenu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
-DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
+DECLARE SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice Ptr=0)
+DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
 DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
@@ -577,7 +583,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   IF state.need_update = NO ANDALSO enter_space_click(state) THEN
    IF state.pt = 0 THEN
     IF slice_editor_save_when_leaving(ses, edslice) THEN EXIT DO
-   ELSEIF state.pt = ses.collection_name_pt THEN
+   ELSEIF ses.slicemenu(state.pt).id = mnidEditingFile THEN
     ' Selected the 'Editing <collection file>' menu item
     slice_editor_import_file ses, edslice, YES
    ELSE
@@ -762,7 +768,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    menuopts.drawbg = (ses.hide_mode <> hideMenuBG)
    standardmenu plainmenu(), state, 8, 0, dpage, menuopts
    draw_fullscreen_scrollbar state, 0, dpage, alignLeft
-   wrapprintbg "+ to add a slice. SHIFT+arrows to reorder", 8, pBottom, uilook(uiText), dpage, menuopts.drawbg
+   wrapprintbg "+ to add a slice. SHIFT+arrows to reorder", 8, pBottom, uilook(uiText), dpage, menuopts.drawbg, 9999  'never wraps
   END IF
 
   SWAP vpage, dpage
@@ -2020,38 +2026,30 @@ END FUNCTION
 'Update slice states and the menu listing the slices
 'NOTE: cursor_seek may be an invalid pointer, e.g. after switching to another slice collection!
 SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
- FOR i as integer = 0 TO UBOUND(ses.slicemenu)
-  ses.slicemenu(i).s = ""
- NEXT i
- DIM index as integer = 0
+ 'DIM timing as double = TIMER
+ ERASE ses.slicemenu
 
  'Refresh positions of all slices
  RefreshSliceTreeScreenPos ses.draw_root
 
  DIM indent as integer = 0
- slice_editor_refresh_append index, ses.slicemenu(), "Previous Menu"
- ses.last_non_slice = 0
- ses.collection_name_pt = -1  'Not present
+ slice_editor_refresh_append ses, mnidPrevMenu, "Previous Menu"
  IF ses.use_index THEN
-  slice_editor_refresh_append index, ses.slicemenu(), CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
-  ses.last_non_slice += 1
+  slice_editor_refresh_append ses, mnidCollectionID, CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
  ELSEIF LEN(ses.collection_file) THEN
   DIM msg as string = "Editing "
   IF ses.editing_existing ANDALSO ses.existing_matches_file = NO THEN msg &= "instance of "
   msg &= simplify_path_further(ses.collection_file)
-  ses.collection_name_pt = index
-  slice_editor_refresh_append index, ses.slicemenu(), msg
-  ses.last_non_slice += 1
+  slice_editor_refresh_append ses, mnidEditingFile, msg
  END IF
  'Normally, hide the root
  DIM hidden_slice as Slice Ptr = edslice
  IF ses.show_root THEN hidden_slice = NULL
- slice_editor_refresh_recurse ses, index, indent, edslice, edslice, hidden_slice
-
- REDIM PRESERVE ses.slicemenu(index - 1)
+ slice_editor_refresh_recurse ses, indent, edslice, edslice, hidden_slice
+ ses.slicemenust.last = UBOUND(ses.slicemenu)
 
  IF cursor_seek <> 0 THEN
-  FOR i as integer = 0 TO index - 1
+  FOR i as integer = 0 TO ses.slicemenust.last
    IF ses.slicemenu(i).handle = cursor_seek THEN
     ses.slicemenust.pt = i
     cursor_seek = 0
@@ -2060,8 +2058,10 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
   NEXT i
  END IF
 
- ses.slicemenust.last = index - 1
  correct_menu_state ses.slicemenust
+
+ 'timing = TIMER - timing
+ 'debuginfo "refresh in " & cint(timing * 1e6) & "us, slices: " & UBOUND(ses.slicemenu) + 1
 END SUB
 
 SUB slice_editor_refresh_delete (byref index as integer, menu() as SliceEditMenuItem)
@@ -2072,16 +2072,17 @@ SUB slice_editor_refresh_delete (byref index as integer, menu() as SliceEditMenu
  REDIM PRESERVE menu(UBOUND(menu) - 1)
 END SUB
 
-SUB slice_editor_refresh_append (byref index as integer, slicemenu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
- IF index > UBOUND(slicemenu) THEN
-  REDIM PRESERVE slicemenu(index + 10) as SliceEditMenuItem
- END IF
- slicemenu(index).s = caption
- slicemenu(index).handle = sl
- index += 1
+SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice Ptr=0)
+ DIM index as integer = UBOUND(ses.slicemenu) + 1
+ REDIM PRESERVE ses.slicemenu(index) as SliceEditMenuItem
+ WITH ses.slicemenu(index)
+  .id = id
+  .s = caption
+  .handle = sl
+ END WITH
 END SUB
 
-SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
+SUB slice_editor_refresh_recurse (ses as SliceEditState, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
  WITH *sl
   DIM caption as string
   caption = STRING(indent, " ")
@@ -2090,14 +2091,14 @@ SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer,
   END IF
   caption &= slice_caption(ses, edslice, sl)
   IF sl <> hidden_slice THEN
-   slice_editor_refresh_append index, ses.slicemenu(), caption, sl
+   slice_editor_refresh_append ses, mnidSlice, caption, sl
    indent += 1
   END IF
   IF NOT sl->EditorHideChildren THEN
    'Now append the children
    DIM ch as slice ptr = .FirstChild
    DO WHILE ch <> 0
-    slice_editor_refresh_recurse ses, index, indent, edslice, ch, hidden_slice
+    slice_editor_refresh_recurse ses, indent, edslice, ch, hidden_slice
     ch = ch->NextSibling
    LOOP
   END IF
