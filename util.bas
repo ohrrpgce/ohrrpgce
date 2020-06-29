@@ -3962,10 +3962,20 @@ END FUNCTION
 'scancodes are 95% the same as FB scancodes
 FUNCTION scancodename (k as KBScancode, longname as bool = NO) as string
  'static scancodenames(...) as string * 18 = { ... }
+ 'static joybuttonnames(...) as string * 18  = { ... }
  #INCLUDE "scancodenames.bi"
 
+ DIM scname as string
  IF k >= LBOUND(scancodenames) ANDALSO k <= UBOUND(scancodenames) THEN
-  DIM scname as string = scancodenames(k)
+  scname = scancodenames(k)
+ ELSEIF k >= LBOUND(joybuttonnames) ANDALSO k <= UBOUND(joybuttonnames) THEN
+  scname = joybuttonnames(k)
+ ELSEIF k >= scJoyButton1 ANDALSO k <= scJoyButton16 THEN
+  scname = "Gamepad Button " & (k - scJoyButton1 + 1)
+ ELSEIF k >= scJoyButton17 ANDALSO k <= scJoyButton32 THEN
+  scname = "Gamepad Button " & (k - scJoyButton17 + 17)
+ END IF
+ IF LEN(scname) THEN
   'scname is either "" or formatted like "Long Name" or "X Long Name"
   IF LEN(scname) THEN
    IF LEN(scname) >= 3 ANDALSO scname[1] = ASC(" ") THEN

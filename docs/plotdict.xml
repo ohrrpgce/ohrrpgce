@@ -4259,10 +4259,10 @@ end
 			<description>
 				Get a name for a <ref>scancode</ref>, what the key does if Shift isn't pressed,
 				and put it in <p>string id</p>.
-				For example, "7", "Q", "Space", "Caps Lock".
+				For example, "7", "Q", "Space", "Caps Lock", "Gamepad Button 1", "Gamepad Up".
 				<lb/>
 				<p>scancode</p> can be any <tt>key:...</tt> scancode or <ref>usekey</ref>, <ref>menukey</ref>,
-				etc, but not a <tt>joy:...</tt> scancode.
+				etc, or <tt>joy:...</tt> scancode (e.g. "Gamepad button 1").
 				<lb/>
 				Normally a long name like "Left Shift" is returned, but if
 				optional argument <p>long name</p> is false, then

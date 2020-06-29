@@ -13,7 +13,7 @@ static scancodenames(ccRun to ...) as string * 18  = { _
   "Left",                      /' -4 '/ _
   "Down",                      /' -3 '/ _
   "Up",                        /' -2 '/ _
-  "",                          /' -1 '/ _
+  "Any Key",                   /' -1 '/ _
   "",                          /' 0 '/ _
   "Esc",                       /' 01 '/ _
   "1",                         /' 02 '/ _
@@ -162,4 +162,11 @@ static scancodenames(ccRun to ...) as string * 18  = { _
   "Alt",                       /' 119 '/ _
   "Any Enter",                 /' 120 '/ _
   "Command/Win"                /' 121 '/ _
+}
+
+static joybuttonnames(144 to 147) as string * 18  = { _
+  "Gamepad Left",                  /' 144 '/ _
+  "Gamepad Right",                 /' 145 '/ _
+  "Gamepad Up",                    /' 146 '/ _
+  "Gamepad Down"                   /' 147 '/ _
 }

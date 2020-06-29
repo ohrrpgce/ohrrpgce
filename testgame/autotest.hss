@@ -5553,6 +5553,12 @@ script, string load tests, begin
   $1="Left Shift"
   get scancode name(2, key:left shift, false)
   assert(string compare(1,2))
+  $1="Gamepad Button 2"
+  get scancode name(2, joy:button 2, false)
+  assert(string compare(1,2))
+  $1="Gamepad Up"
+  get scancode name(2, joy:up, false)
+  assert(string compare(1,2))
 end
 
 ########################################################################

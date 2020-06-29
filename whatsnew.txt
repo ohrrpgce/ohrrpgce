@@ -13,6 +13,7 @@ August ? 2020 [H???]
     * "set timer args" [Ralph]
     * "sl:walkabout sprite" alias to "sl:walkabout sprite component" and
       "sl:walkabout shadow" alias to "sl:walkabout shadow component"
+    * "get scancode name" works for joy: scancodes too [Ralph]
 
   *** Changes
 
