@@ -52,6 +52,10 @@ struct Surface
 #ifdef __cplusplus
 	uint8_t& pixel8(int x, int y) { return pPaletteData[pitch * y + x]; }
 	RGBcolor& pixel32(int x, int y) { return ((RGBcolor*)pColorData)[pitch * y + x]; }
+
+	Surface(int _width, int _height, int _pitch, SurfaceFormat _format, SurfaceUsage _usage)
+		: width(_width), height(_height), pitch(_pitch), refcount(1), format(_format), usage(_usage)
+		{}
 #endif
 };
 
