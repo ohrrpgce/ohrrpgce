@@ -2,8 +2,25 @@
 #
 # This is a port of a few of the microbenchmarks in benchmark.hss to Python for comparison
 #
+# Runs under MicroPython too if the from __future__ line is commented out
 from __future__ import print_function
-import timeit
+try:
+    import timeit
+except:
+    # For MicroPython
+    import time
+
+    class timeit:
+        @classmethod
+        def repeat(cls, script, repeat, number=1):
+            ret = []
+            for i in range(repeat):
+                timing = time.time()
+                script()
+                timing = time.time() - timing
+                ret.append(timing)
+            return ret
+
 
 NUM_RUNS = 100
 MICRO_LOOPCOUNT = 1000
@@ -79,21 +96,23 @@ def fibonacci(n):
 def benchmark_recursive_fibonacci():
     fibonacci (14)
 
-
 # a and b are 16 bit fixed point numbers, where b >= 1.0
 # Return a*b
 def FixedMul(a, b):
     if a >= 0:
-        return (a / 0x10000) * b + ((a & 0xffff) * b + 0x8000) / 0x10000
+        return (a // 0x10000) * b + ((a & 0xffff) * b + 0x8000) // 0x10000
     else:
         # fixme: not sure the rounding here is correct
-        return (a / 0x10000) * b - ((-a & 0xffff) * b + 0x8000) / 0x10000
+        return (a // 0x10000) * b - ((-a & 0xffff) * b + 0x8000) // 0x10000
 
 def benchmark_fixedmul():
     total = 0
     for i in range(-100000, 100000, 8000):
         for j in range(-100000, 100000, 8000):
             total += FixedMul(i, j)
+    return total
+
+#print("FixedMul ", benchmark_fixedmul())
 
 #----
 
@@ -167,9 +186,13 @@ def benchmark_crappy_sqrt():
 
 ########################################################################
 
+# FIXME: why is loops ignored?
 def run_benchmark(script, loops):
     times = timeit.repeat(script, repeat=NUM_RUNS, number=1)
-    print(script.__name__)
+    if hasattr(script, '__name__'):
+        print(script.__name__)
+    else:
+        print("Unknown")
     #print times
     print(" Best microseconds per run:", min(times) * 1e6)
     times = sorted(times)[:len(times)//2]
