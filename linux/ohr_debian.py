@@ -24,7 +24,7 @@ def calculate_size(files, executables):
   return size / 1000
 
 def read_version():
-  codename, branch_rev = ohrbuild.read_codename_and_branchrev(rootdir)
+  codename, branch_name, branch_rev = ohrbuild.read_codename_and_branchrev(rootdir)
   rev, date = ohrbuild.query_svn_rev_and_date(rootdir)
   year = date[0:4]
   month = date[4:6]

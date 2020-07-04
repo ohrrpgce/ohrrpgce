@@ -298,8 +298,8 @@ def get_fb_info(fbc):
 
 ########################################################################
 
-def read_codename_and_branchrev(rootdir):
-    """Retrieve branch name and svn revision.
+def read_codename_and_branch(rootdir):
+    """Retrieve codename, branch name and svn revision.
     Note: if branch_rev is -1, the current svn revision should be used."""
     f = open(os.path.join(rootdir, 'codename.txt'), 'rb')
     lines = []
@@ -308,11 +308,12 @@ def read_codename_and_branchrev(rootdir):
         if not line.startswith('#'):
             lines.append(line.rstrip())
     f.close()
-    if len(lines) != 2:
-        exit('Expected two noncommented lines in codename.txt')
+    if len(lines) != 3:
+        exit('Expected three noncommented lines in codename.txt')
     codename = lines[0]
-    branch_rev = int(lines[1])
-    return codename, branch_rev
+    branch_name = lines[1]
+    branch_rev = int(lines[2])
+    return codename, branch_name, branch_rev
 
 
 def verprint(mod, builddir, rootdir):
@@ -340,7 +341,7 @@ def verprint(mod, builddir, rootdir):
 
     rev, date = query_svn_rev_and_date(rootdir)
 
-    codename, branch_rev = read_codename_and_branchrev(rootdir)
+    codename, branch_name, branch_rev = read_codename_and_branch(rootdir)
     if branch_rev <= 0:
         branch_rev = rev
 
@@ -377,7 +378,7 @@ def verprint(mod, builddir, rootdir):
 
     data = {
         'codename': codename, 'date': date, 'arch': archinfo,
-        'rev': rev, 'branch_rev': branch_rev,
+        'rev': rev, 'branch_rev': branch_rev, 'branch_name': branch_name,
         'name':   'OHRRPGCE',
         'gfx':    'gfx_' + "+".join(supported_gfx),
         'music':  'music_' + "+".join(mod.music),
@@ -395,7 +396,7 @@ def verprint(mod, builddir, rootdir):
         'CONST version_build as string = "%(date)s.%(rev)s %(gfx)s %(music)s"' % data,
         'CONST version_revision as integer = %(rev)d' % data,
         'CONST version_date as integer = %(date)s' % data,
-        'CONST version_branch as string = "%(codename)s"' % data,
+        'CONST version_branch as string = "%(branch_name)s"' % data,
         'CONST version_branch_revision as integer = %(branch_rev)s' % data,
         ('CONST long_version as string = "%(name)s %(codename)s %(date)s.%(rev)s %(gfx)s/%(music)s '
          'FreeBASIC %(fbver)s %(ccver)s %(arch)s %(asan)s%(portable)s%(pdb)s Built on %(uname)s"') % data])
@@ -415,6 +416,7 @@ def verprint(mod, builddir, rootdir):
                 'VersionInfoVersion=%s.%s\n' % (tmpdate, rev)))
     write_file('distver.bat',
                ('SET OHRVERCODE=%s\n' % codename +
+                'SET OHRVERBRANCH=%s\n' % branch_name +
                 'SET OHRVERDATE=%s\n' % tmpdate.replace('.', '-') +
                 'SET SVNREV=%s' % rev))
 

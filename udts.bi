@@ -1120,7 +1120,7 @@ TYPE EngineVersion
   recorded as bool           'False for old .rpg files without version info (before r5761, Apr 9 2013)
   name as string             'Expected to be 'OHRRPGCE'
   long_version as string     'Complete version and build string
-  branch_name as string      '"wip" or release name
+  branch_name as string      '"wip" or svn branch name (usually same as version codename)
   revision as integer        'SVN revision, or 0 if unknown.
                              'You should normally test against .branch_revision instead!
   branch_revision as integer 'SVN revision at which the release was branched, equal to .revision for "wip"

@@ -115,7 +115,7 @@ int CALLBACK crashrpt_callback(CR_CRASH_CALLBACK_INFOA* pInfo) {
 	}
 
 // Returns success
-boolint crashrpt_setup(const char *libpath, const char *appname, const char *version, const char *buildstring, const char *logfile1, const char *logfile2, boolint add_screenshot) {
+boolint crashrpt_setup(const char *libpath, const char *appname, const char *version, const char *buildstring, const char *branchstring, const char *logfile1, const char *logfile2, boolint add_screenshot) {
 
 	// First, have to find the dll
 	void *lib = LoadLibrary(libpath);
@@ -171,6 +171,7 @@ boolint crashrpt_setup(const char *libpath, const char *appname, const char *ver
 	if (add_screenshot)
 		crpt.crAddScreenshot2(CR_AS_MAIN_WINDOW | CR_AS_ALLOW_DELETE, 0);
 	crpt.crAddPropertyA("build", buildstring);
+	crpt.crAddPropertyA("branch", branchstring);
 
 	crpt.crSetCrashCallbackA(&crashrpt_callback, NULL);
 

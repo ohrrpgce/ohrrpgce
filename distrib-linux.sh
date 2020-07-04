@@ -84,6 +84,7 @@ package_for_arch() {
   echo "tarring and bzip2ing $ARCH distribution"
   TODAY=`date "+%Y-%m-%d"`
   CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
+  BRANCH=`cat codename.txt | grep -v "^#" | head -2 | tail -1 | tr -d "\r"`
   mv tmp ohrrpgce
   tar -jcf distrib/ohrrpgce-linux-$TODAY-$CODE-$ARCH.tar.bz2 --exclude .svn ./ohrrpgce || return 1
   mv ohrrpgce tmp

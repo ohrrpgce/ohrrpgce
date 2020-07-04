@@ -171,6 +171,7 @@ echo "Packaging source snapshot zip ..."
 OHRVERDATE=`svn info | grep "^Last Changed Date:" | cut -d ":" -f 2 | cut -d " " -f 2`
 SVNREV=`svn info | grep "^Revision:" | cut -d " " -f 2`
 OHRVERCODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
+OHRVERBRANCH=`cat codename.txt | grep -v "^#" | head -2 | tail -1 | tr -d "\r"`
 REPOSITORY=`svn info | grep "^URL:" | cut -d " " -f 2-`
 rm -Rf tmpdist
 mkdir tmpdist
@@ -178,8 +179,8 @@ mkdir tmpdist
 cd tmpdist
 echo "  Checkout..."
 svn co -q "${REPOSITORY}"
-[ ! -d $OHRVERCODE ] && echo "Directory $OHRVERCODE is missing. Maybe codename.txt wasn't updated?" && exit 1
-svn info $OHRVERCODE > $OHRVERCODE/svninfo.txt
+[ ! -d $OHRVERBRANCH ] && echo "Directory $OHRVERBRANCH is missing. Maybe codename.txt wasn't updated?" && exit 1
+svn info $OHRVERBRANCH > $OHRVERBRANCH/svninfo.txt
 echo "  Zip..."
 zip -q -r ../distrib/ohrrpgce-source.zip *
 cd ..

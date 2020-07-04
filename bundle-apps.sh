@@ -10,6 +10,7 @@ usage() {
 
 TODAY=`date "+%Y%m%d"`
 CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
+BRANCH=`cat codename.txt | grep -v "^#" | head -2 | tail -1 | tr -d "\r"`
 
 ARCH=${1:-i386}
 [ $ARCH = "i386" -o $ARCH = "x86_64" ] || usage
