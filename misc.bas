@@ -172,17 +172,24 @@ function gamecustom_setoption(opt as string, arg as string) as integer
 end function
 
 sub display_help_string(help as string)
-	dim k as string
-	print help    ' display to text console (doesn't work under Windows unless compiled without -s gui)
 #ifdef __FB_WIN32__
+	'Printing to the console doesn't work under Windows unless compiled without -s gui
 	'Don't do this under Unix, it's annoying and adds fbgfx as a dependency
 	if len(help) > 500 then
 		screen 19   ' create a graphical fake text console (800x600, 100x37 characters)
 	else
 		screen 11
 	end if
+	'Haaaaaack. fbgfx has builtin fonts which are code page 437 (US English IBM PC).
+	'So translate a couple characters we might use from Latin-1 (CP1252) to CP437
+	replacestr help, !"\&hF0", !"\&hEB"   ' ð -> δ
+	replacestr help, !"\&hF3", !"\&hA2"   ' ó
+
 	print help,   ' display the help on the graphical console
-	k = input(1)  ' use FreeBasic-style keypress checking because our keyhandler isn't set up yet
+	dim k as string = input(1)  ' use FreeBasic-style keypress checking because our keyhandler isn't set up yet
+#else
+	'Convert the string to system (multibyte) encoding
+	print utf8_to_mbs(latin1_to_utf8(help))
 #endif
 	SYSTEM        ' terminate the program
 end sub

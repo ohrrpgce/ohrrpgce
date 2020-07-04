@@ -301,9 +301,10 @@ def get_fb_info(fbc):
 def read_codename_and_branchrev(rootdir):
     """Retrieve branch name and svn revision.
     Note: if branch_rev is -1, the current svn revision should be used."""
-    f = open(os.path.join(rootdir, 'codename.txt'), 'r')
+    f = open(os.path.join(rootdir, 'codename.txt'), 'rb')
     lines = []
     for line in f:
+        line = line.decode('utf8')
         if not line.startswith('#'):
             lines.append(line.rstrip())
     f.close()
@@ -331,7 +332,11 @@ def verprint(mod, builddir, rootdir):
     def openw (whichdir, filename):
         if not os.path.isdir (whichdir):
             os.mkdir (whichdir)
-        return open (os.path.join (whichdir, filename), 'w')
+        return open (os.path.join (whichdir, filename), 'wb')
+
+    def write_file(filename, text):
+        with openw(rootdir, filename) as f:
+            f.write(text.encode('latin-1'))
 
     rev, date = query_svn_rev_and_date(rootdir)
 
@@ -401,19 +406,17 @@ def verprint(mod, builddir, rootdir):
     try:
         os.remove (builddir + 'ver.txt')
     except OSError: pass
-    f = openw (rootdir, 'ver.txt')
-    f.write ('\n'.join (results))
-    f.write ('\n')
-    f.close()
+
+    write_file('ver.txt',
+               '\n'.join (results) + '\n')
     tmpdate = '.'.join([data['date'][:4],data['date'][4:6],data['date'][6:8]])
-    f = openw (rootdir, 'iver.txt')
-    f.write ('AppVerName=%(name)s %(codename)s %(date)s\n' % data)
-    f.write ('VersionInfoVersion=%s.%s\n' % (tmpdate, rev))
-    f.close ()
-    f = openw(rootdir, 'distver.bat')
-    f.write('SET OHRVERCODE=%s\nSET OHRVERDATE=%s\nSET SVNREV=%s'
-            % (codename, tmpdate.replace('.', '-'), rev))
-    f.close()
+    write_file('iver.txt',
+               ('AppVerName=%(name)s %(codename)s %(date)s\n' % data +
+                'VersionInfoVersion=%s.%s\n' % (tmpdate, rev)))
+    write_file('distver.bat',
+               ('SET OHRVERCODE=%s\n' % codename +
+                'SET OHRVERDATE=%s\n' % tmpdate.replace('.', '-') +
+                'SET SVNREV=%s' % rev))
 
 ########################################################################
 # Android

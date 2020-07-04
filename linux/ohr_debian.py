@@ -32,8 +32,10 @@ def read_version():
   return "%s.%s.%s.%s-%s" % (year, month, day, codename, rev)
 
 def write_control_file(filename, template, values):
-  f = open(filename, 'w')
-  f.write(template % values)
+  "Write /DEBIAN/control"
+  f = open(filename, 'wb')
+  # The file must be UTF8-encoded
+  f.write((template % values).encode('utf8'))
   f.close()
 
 def copy_file_or_dir(src, dest):
@@ -115,7 +117,8 @@ def quiet_mkdir(dir):
     pass # ignore dir-already-exists
 
 def run_dpkg(package, ver):
-  os.system("fakeroot dpkg -b %s %s_%s_amd64.deb" % (package, package, ver))
+  temp = "fakeroot dpkg -b %s %s_%s_amd64.deb" % (package, package, ver)
+  os.system(temp.encode(sys.getfilesystemencoding()))
 
 def menu_entry(destdir, package_name, title, command, append=False, desktop_file_suffix="", prefix = "/usr", icon = None):
   mode = "w"
