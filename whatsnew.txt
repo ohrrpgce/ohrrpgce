@@ -10,6 +10,7 @@ August ? 2020 [H???]
     * Slice editor data organised into collapsible/expandable sections [Sword]
     * Slice collections can be named. The name and collection ID are shown in
       the in-game slice debugger [Ralph]
+    * F8 debug menu option "Enable/Disable random battles" [Ralph]
 
    * New Plotscripting Features
     * "set timer args" [Ralph]

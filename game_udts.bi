@@ -192,6 +192,7 @@ TYPE GameState
   debug_npc_info as integer          'NPC debug display. 0: off, 1: IDs/refs, 2: also show obstructions
   debug_textbox_info as bool         'Textbox debug display
   debug_camera_pan as bool           'Arrow keys pan the camera, and camera mode is ignored
+  debug_disable_foemap as bool       'Disable random battles
 
   'The following are mutually exclusive
   debug_scripts as integer           '0: off, 1: show running scripts, 2: pause and enter debugger

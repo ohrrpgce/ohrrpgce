@@ -654,7 +654,10 @@ gam.debug_showtags = 0
 gam.debug_npc_info = 0
 gam.debug_textbox_info = NO
 gam.debug_scripts = 0
+gam.debug_disable_foemap = 0
+gam.debug_camera_pan = NO
 gam.walk_through_walls = NO
+'gam.debug_camera_pan, and nothing else, is also reset in resetgame
 
 load_special_tag_caches
 
@@ -1497,7 +1500,7 @@ SUB update_heroes(force_step_check as bool=NO)
 
   'Trigger battles
   'No random battle allowed on the first tick before fade-in (?)
-  IF gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendrandomenemies) = 0 THEN
+  IF gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendrandomenemies) = 0 AND gam.debug_disable_foemap = NO THEN
    DIM battle_formation_set as integer
    battle_formation_set = readblock(foemap, herotx(0), heroty(0), 0)
    IF vstate.active = YES THEN
@@ -4688,6 +4691,11 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  IF dbg.def( , , "Edit backcompat bitsets") THEN edit_backcompat_bitsets
  IF dbg.def( , , "Show/test battle formations here") THEN battle_formation_testing_menu NO
  IF dbg.def( , , "Show/test any battle formation") THEN battle_formation_testing_menu YES
+ IF dbg.def( , , "Enable/disable random battles") THEN
+  gam.debug_disable_foemap XOR= YES
+  gam.showtext = "Random battles " & IIF(gam.debug_disable_foemap, "disabled", "enabled")
+  gam.showtext_ticks = 50
+ END IF
  IF dbg.def( , , "(Advanced) Manipulate gen() array") THEN patcharray gen(), "gen"
  IF dbg.def( , , "(Advanced) Manipulate gmap() array") THEN patcharray gmap(), "gmap"
  'IF dbg.def( , , "Test Slicified Spell Screen") THEN spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), NO)

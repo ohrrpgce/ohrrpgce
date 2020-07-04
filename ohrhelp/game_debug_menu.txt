@@ -66,6 +66,8 @@ Edit backcompat bitsets: Lets you toggle backcompat bitsets to fix games broken 
 
 Show/test battle formations: Display the battle formation set for the tile the hero is standing on, and start any of the battles in it.
 
+Enable/disable random battles: Control whether the foemap triggers battles.
+
 Manipulate gen() array: Raw-edit gen(), for engine developers. This gives you direct access to the data represented in the General Game Data menu, as well as an assortment of other data. Press Esc to exit.
 
 Manipulate gmap() array: Raw-edit gmap(), for engine developers. This gives you direct access to the data represented in the General Map Data submenu of the map editor.
