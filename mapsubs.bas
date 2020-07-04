@@ -4746,11 +4746,21 @@ SUB mapedit_linkdoors (st as MapEditState)
   END IF
   IF keyval(scF1) > 1 THEN show_help "mapedit_linkdoors"
   IF usemenu(state) THEN state.need_update = YES
+
   IF enter_space_click(state) THEN
-   IF state.pt = state.last AND st.map.doorlink(state.pt).source = -1 THEN st.map.doorlink(state.pt).source = 0
+   IF state.pt = state.last THEN
+    WITH st.map.doorlink(state.pt)
+     IF .source = -1 THEN
+      'The doorlink is unused, initialise it
+      .source = 0  'Mark used
+      .dest_map = st.map.id  'Default
+     END IF
+    END WITH
+   END IF
    link_one_door st, state.pt
    state.need_update = YES
   END IF
+
   IF keyval(scDelete) > 1 OR keyval(scBackspace) > 1 THEN
    st.map.doorlink(state.pt).source = -1  ' Mark unused
    ' Shuffle the unused doorlink to the end, so that it will be hidden
@@ -4800,9 +4810,12 @@ SUB mapedit_linkdoors (st as MapEditState)
      END IF
      edgeprint menu_temp, 0, 10 + ypos, col, dpage
     ELSEIF i = state.last THEN
+     'Appears only if this doorlink is unused (ie. not all are used)
      menu_temp = "Create a new doorlink..."
      edgeprint menu_temp, 0, 2 + ypos, col, dpage
     ELSE
+     'This should ordinally never appear, but maybe happens in old games if
+     'the unused doorlinks aren't all shuffled to the bottom?
      menu_temp = "Unused Door link #" & i
      edgeprint menu_temp, 0, 2 + ypos, col, dpage
     END IF
