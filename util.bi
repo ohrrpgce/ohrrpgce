@@ -796,6 +796,7 @@ declare function copy_zstring (str_ptr as zstring ptr) as zstring ptr
 declare function blob_to_string (byval str_ptr as zstring ptr, byval str_len as integer) as string
 declare function utf8_to_latin1(utf8string as ustring) as string
 declare function latin1_to_utf8(s as string) as ustring
+declare function utf8_to_mbs(u8str as ustring) as string
 
 declare function rpad (s as string, pad_char as zstring ptr = @" ", size as integer, clip as clipDir = clipNone) as string
 declare function lpad (s as string, pad_char as zstring ptr = @" ", size as integer, clip as clipDir = clipNone) as string

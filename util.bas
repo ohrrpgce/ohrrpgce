@@ -2659,6 +2659,21 @@ FUNCTION latin1_to_utf8(s as string) as ustring
   RETURN LEFT(buf, outchar - @buf[0])
 END FUNCTION
 
+' Translates from utf8 to the OS native multibyte string encoding (that is, to
+' the OS codepage (for non-unicode programs) on Windows and to the LC_CTYPE
+' encoding on Unix), which is used for printing to console.
+' Returns original u8str on failure
+FUNCTION utf8_to_mbs(u8str as ustring) as string
+  'First convert from utf8 to wstring so we can call wcstombs
+  DIM wcstr as wstring ptr = utf8_decode(strptr(u8str))
+  IF wcstr = NULL THEN debug "utf8_decode failed" : RETURN u8str
+  DIM length as integer = wcstombs(NULL, wcstr, 0)
+  IF length < 0 THEN RETURN u8str
+  DIM mbstr as zstring ptr = calloc(length + 1, 1)
+  IF wcstombs(mbstr, wcstr, length) = -1 THEN RETURN u8str
+  RETURN *mbstr
+END FUNCTION
+
 ' This translates a filename, e.g. returned from browse() or findfiles() to
 ' Latin-1 so it can be displayed normally.
 ' FIXME: check the font type instead of assuming Latin-1.
