@@ -3070,10 +3070,10 @@ END SUB
 '==============================================================================
 '                               Animation system
 
+
 'Calculate the absolute position at which an attack should be drawn at on top of
 'a certain target. This position might instead be used as a waypoint for projectiles.
-'Called from within generate_atkscript.
-FUNCTION attack_placement_over_target(attack as AttackData, targslot as integer, bat as BattleState, bslot() as BattleSprite) as XYZTriple
+FUNCTION attack_placement_over_targetpos(attack as AttackData, targpos as XYZTriple, targsize as XYPair, targ_is_acting_hero as bool) as XYZTriple
  'Load the size of the sprite
  DIM temp_sl as Slice Ptr
  temp_sl = NewSliceOfType(slSprite)
@@ -3085,30 +3085,47 @@ FUNCTION attack_placement_over_target(attack as AttackData, targslot as integer,
  IF prefbit(36) THEN  ' "Old attack positioning at bottom-left of target"
   ' Position attack animation aligned with bottom-left of target (?!) and down 2 pixels
   xt = 0
-  yt = (bslot(targslot).h - attackh) + 2
+  yt = (targsize.h - attackh) + 2
   zt = 0
  ELSE
   ' Visually align center of attack and target, while bottom-y position is forward several pixels of the
   ' bottom-y of the target to ensure the attack appears in front (with 4 pixel margin to protect against
   ' rounding error in anim_absmove, etc.)
   ' (The +4's cancel out because z increases towards top of screen)
-  xt = (bslot(targslot).w - attackw) \ 2
-  yt = (bslot(targslot).h - attackh) + 4
-  zt = (bslot(targslot).h - attackh) \ 2 + 4
+  xt = (targsize.w - attackw) \ 2
+  yt = (targsize.h - attackh) + 4
+  zt = (targsize.h - attackh) \ 2 + 4
  END IF
- ' The following case is a simple fix for the fact that bslot() contains the *initial* positions
- ' of everyone at the start of the attack, not the actual position at this point of the animation.
- IF targslot = bat.acting AND is_hero(bat.acting) THEN
+ ' The following case is a simple fix for the fact that targpos is populated from bslot which contains
+ ' the *initial* positions of everyone at the start of the attack, not the actual position at this point
+ ' of the animation.
+ IF targ_is_acting_hero THEN
   SELECT CASE attack.attacker_anim
    ' Heroes move forward 20 pixels for these attacker animations (see anim_advance)
    CASE atkrAnimStrike, atkrAnimCast, atkrAnimSpinStrike, atkrAnimJump
     xt -= 20
   END SELECt
  END IF
- xt += bslot(targslot).x
- yt += bslot(targslot).y
- zt += bslot(targslot).z
+ xt += targpos.x
+ yt += targpos.y
+ zt += targpos.z
  RETURN TYPE<XYZTriple>(xt, yt, zt)
+END FUNCTION
+
+'Called from within generate_atkscript.
+FUNCTION attack_placement_over_target(attack as AttackData, targslot as integer, bat as BattleState, bslot() as BattleSprite) as XYZTriple
+ DIM targpos as XYZTriple
+ DIM targsize AS XYPair
+ 
+ targpos.x = bslot(targslot).x
+ targpos.y = bslot(targslot).y
+ targpos.z = bslot(targslot).z
+ targsize.w = bslot(targslot).w
+ targsize.h = bslot(targslot).h
+
+ DIM targ_is_acting_hero as bool = NO
+ IF targslot = bat.acting ANDALSO is_hero(bat.acting) THEN targ_is_acting_hero = YES
+ RETURN attack_placement_over_targetpos(attack, targpos, targsize, targ_is_acting_hero)
 END FUNCTION
 
 ' Calculate where a projectile will start relative to the attacker (bat.acting):
