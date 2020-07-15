@@ -43,6 +43,8 @@ August ? 2020 [H???]
     * Foemap Stats menu partly ignored enemy 0, and several minor bugs [Ralph]
     * Saving in a hidden save slot with a script will not move the default
       cursor to the very bottom of the save/load menu anymore [James]
+    * On Macs, games set to run at 60fps (or close to 60) actually ran at a much
+      lower framerate. Shift-Tab also works much better on Mac now. [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"

@@ -106,8 +106,6 @@ declare sub update_fps_counter (skipped as bool)
 declare sub allmodex_controls ()
 declare sub replay_controls ()
 
-declare function time_draw_calls_from_finish() as bool
-
 declare function hexptr(p as any ptr) as string
 
 declare sub Palette16_delete(f as Palette16 ptr ptr)
@@ -210,9 +208,8 @@ dim shared ms_per_frame as integer = 55     'This is only used by the animation 
 dim shared requested_framerate as double    'Set by last setwait
 dim shared base_fps_multiplier as double = 1.0 'Doesn't include effect of shift+tab
 dim shared fps_multiplier as double = 1.0   'Effect speed multiplier, affects all setwait/dowaits
-dim max_display_fps as integer = 90         'Skip frames if drawing more than this.
-dim shared lastframe as double              'Time at which the last frame was displayed.
-dim shared blocking_draws as bool = NO      'True if drawing the screen is a blocking call.
+dim max_display_fps as integer = 60         'Skip frames if drawing more than this.
+dim shared frame_index as integer           'Count number of setvispage calls
 dim shared skipped_frame as SkippedFrame    'Records the last setvispage call if it was frameskipped.
 
 dim shared last_setvispage as integer = -1  'Records the last setvispage. -1 if none.
@@ -222,12 +219,10 @@ dim shared last_setvispage as integer = -1  'Records the last setvispage. -1 if 
 
 dim shared log_slow as bool = NO            'Enable spammy debug_if_slow logging
 
-#IFDEF __FB_DARWIN__
-	' On OSX vsync will cause screen draws to block, so we shouldn't try to draw more than the refresh rate.
-	' (Still doesn't work perfectly)
-	max_display_fps = 60
-	blocking_draws = YES
-#ENDIF
+'If this is defined, the effect of vsync on Macs is simulated, where gfx_present
+'blocks until vsync occurs. Other OSes might do the same, but generally don't.
+'Note: this simulates vsync at 60fps regardless of max_display_fps
+'#define SIMULATE_BLOCKING_VSYNC
 
 type InputStateFwd as InputState
 
@@ -1128,6 +1123,23 @@ sub SkippedFrame.show ()
 	end if
 end sub
 
+'Decide whether to skip a frame, in order to meet max_display_fps limit
+function should_skip_frame() as bool
+	'How many times will setvispage be called per non-skipped frame?
+	dim frames_per_gfx_present as double = requested_framerate / max_display_fps
+	if frames_per_gfx_present <= 1 then return NO  'No need to skip
+
+	'Per frames_per_gfx_present frames, draw one frame and skip the rest
+	frame_index and= INT_MAX  'Avoid overflow to negative
+	if fmod(frame_index, frames_per_gfx_present) > 1 then
+		return YES
+	end if
+
+	'Maybe we should have an option to also skip frames if we're running at
+	'100% cpu, although that will only save a little time because we still
+	'draw each frame.
+end function
+
 ' The last/currently displayed  videopage (or a substitute: guaranteed to be valid)
 function getvispage() as integer
 	if last_setvispage >= 0 andalso last_setvispage <= ubound(vpages) _
@@ -1145,7 +1157,8 @@ sub setvispage (page as integer, skippable as bool = YES)
 	last_setvispage = page
 
 	' Drop frames to reduce CPU usage if FPS too high
-	if skippable andalso timer - lastframe < 1. / max_display_fps then
+	frame_index += 1
+	if skippable andalso should_skip_frame() then
 		skipped_frame.drop()
 		skipped_frame.page = page
 		' To be really cautious we could save a copy, but because page should
@@ -1154,11 +1167,7 @@ sub setvispage (page as integer, skippable as bool = YES)
 		update_fps_counter YES
 		exit sub
 	end if
-
 	update_fps_counter NO
-	if not time_draw_calls_from_finish then
-		lastframe = timer
-	end if
 
 	dim starttime as double = timer
 	if gfx_supports_variable_resolution() = NO then
@@ -1208,19 +1217,22 @@ sub setvispage (page as integer, skippable as bool = YES)
 		present_internal_frame drawpage
 	end if
 
+	GFX_EXIT
+
+	#ifdef SIMULATE_BLOCKING_VSYNC
+		'For testing: simulate gfx_present blocking until vsync.
+		dim vsynctime as double, nowtime as double = timer
+		vsynctime = 1e3 * ((1. / 60) - fmod(nowtime, (1. / 60)))
+		sleep vsynctime
+		'?"sleep " & vsynctime & "... slept " & 1e3 * (timer - nowtime)
+	#endif
+
 	' This gets triggered a lot under Win XP because the program freezes while moving
 	' the window (in all backends, although in gfx_fb it freezes readmouse instead)
 	if log_slow then debug_if_slow(starttime2, 0.008, "gfx_present")
 	starttime += timer  'Restart timer
 
-	GFX_EXIT
-
 	freepage drawpage
-
-	if time_draw_calls_from_finish then
-		' Have to give the backend and driver a millisecond or two to display the frame or we'll miss it
-		lastframe = timer - 0.004
-	end if
 
 	skipped_frame.drop()  'Delay dropping old frame; skipped_frame.show() might have called us
 
@@ -1281,25 +1293,18 @@ end sub
 
 ' A gfx_setpal wrapper which may perform frameskipping to limit fps
 local sub maybe_do_gfx_setpal()
-	updatepal = YES
-	if timer - lastframe < 1. / max_display_fps then
+	frame_index += 1
+	if should_skip_frame() then
 		update_fps_counter YES
+		updatepal = YES
 		exit sub
 	end if
 	update_fps_counter NO
-	if not time_draw_calls_from_finish then
-		lastframe = timer
-	end if
+	updatepal = NO
 
 	GFX_ENTER
 	gfx_setpal(@intpal(0))
 	GFX_EXIT
-
-	updatepal = NO
-	if time_draw_calls_from_finish then
-		' Have to give the backend and driver a millisecond or two to display the frame or we'll miss it
-		lastframe = timer - 0.004
-	end if
 end sub
 
 sub fadeto (red as integer, green as integer, blue as integer)
@@ -1421,26 +1426,6 @@ end sub
 '==========================================================================================
 
 
-'Decides whether to time when to display the next frame (deciding whether to skip
-'a frame or not) based on when the last gfx_present returned instead of when it
-'was called.
-'Normally we should just try to display a frame every refresh-interval, but on OSX
-'presenting the window blocks until vsync, which means if we time from the call
-'time rather than the return time, then we'll always be unnecessarily waiting
-'even if speedcontrol is disabled. (If we're not trying to go fast then this waiting
-'is OK, because it only happens if we displayed a frame earlier than necessary.)
-'So this is only useful if we are frame skipping to run at more than the refresh rate!
-local function time_draw_calls_from_finish() as bool
-	if blocking_draws = NO then
-		' Normally this is undesirable
-		return NO
-	else
-		' Otherwise, only turn this on if we're trying to go FAST
-		' (But allow for 16 ms = 62.5fps)
-		return (use_speed_control = NO or requested_framerate > max_display_fps + 3)
-	end if
-end function
-
 'Set number of milliseconds from now when the next call to dowait returns.
 'This number is treated as a desired framewait, so actual target wait varies from 0.5-1.5x requested.
 'ms:     number of milliseconds
@@ -1450,7 +1435,7 @@ sub setwait (ms as double, flagms as double = 0)
 	if use_speed_control = NO then ms = 0.001
 	ms /= fps_multiplier
 	'flagms /= fps_multiplier
-	requested_framerate = 1. / ms
+	requested_framerate = 1000. / ms
 	dim thetime as double = timer
 	dim target as double
 	target = bound(waittime + ms / 1000, thetime + 0.5 * ms / 1000, thetime + 1.5 * ms / 1000)
