@@ -9129,7 +9129,8 @@ function graphics_file(lumpname_or_extn as string) as string
 	dim as bool fullname = instr(lumpname_or_extn, ".") > 0
 	if len(game) = 0 then
 		' Haven't loaded a game, fallback to the engine's default graphics
-		dim gfxdir as string = finddatadir("defaultgfx")
+		' (Note that this won't exist when running a distributed game.exe)
+		dim gfxdir as string = finddatadir("defaultgfx", NO)  'error_if_missing=NO
 		if len(gfxdir) = 0 then
 			return ""
 		end if
@@ -10530,7 +10531,10 @@ local sub palette16_fill_cache()
 	dim fh as integer
 	dim numpalettes as integer
 	dim headersize as integer
-	if open_pal_and_read_header(graphics_file("pal"), fh, numpalettes, headersize) = NO then exit sub
+	'If we haven't loaded a game, and data/defaultgfx isn't available, then there's nothing to load
+	dim fname as string = graphics_file("pal")
+	if len(fname) = 0 then exit sub
+	if open_pal_and_read_header(fname, fh, numpalettes, headersize) = NO then exit sub
 
 	seek #fh, 1 + headersize
 
