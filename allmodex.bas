@@ -1418,6 +1418,11 @@ sub fadetopal (pal() as RGBcolor)
 	'This function was probably called in the middle of timed loop, call
 	'setwait to avoid "dowait called without setwait" warnings
 	setwait 0
+
+	'If fadetopal/fadein is used, it means setpal wasn't called, so we need to replicate
+	'the other thing setpal does: update curmasterpal
+	memcpy(@curmasterpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
+	masterpal_changed
 end sub
 
 

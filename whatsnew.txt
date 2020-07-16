@@ -45,6 +45,8 @@ August ? 2020 [H???]
       cursor to the very bottom of the save/load menu anymore [James]
     * On Macs, games set to run at 60fps (or close to 60) actually ran at a much
       lower framerate. Shift-Tab also works much better on Mac now. [Ralph]
+    * Transparency effects resulted in random colors (unless "update palette"
+      was called) in games that didn't use the default master palette [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"
