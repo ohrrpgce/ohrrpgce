@@ -136,8 +136,11 @@ CONST AtkDamageColor = 149
 CONST AtkTransmogRewards = 150
 #define AtkCounterProvoke 151
 CONST AtkTriggerElementalCounters = 152
+CONST AtkMissSoundEffect = 153
+CONST AtkFailSoundEffect = 154
+CONST AtkStealFailSoundEffect = 155
 
-'Next menu item is 153 (remember to update MnuItems)
+'Next menu item is 156 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -212,6 +215,9 @@ CONST AtkDatDramaticPause = 320
 CONST AtkDatDamageColor = 338
 CONST AtkDatTransmogRewards = 339
 CONST AtkDatCounterProvoke = 340
+CONST AtkDatMissSoundEffect = 341
+CONST AtkDatFailSoundEffect = 342
+CONST AtkDatStealFailSoundEffect = 343
 
 'anything past this requires expanding the data
 
@@ -358,7 +364,7 @@ atk_chain_bitset_names(4) = "Invert condition"
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
-CONST MnuItems = 152
+CONST MnuItems = 155
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -369,8 +375,8 @@ DIM menucapoff(MnuItems) as integer
 
 DIM capindex as integer = 0
 REDIM caption(-1 TO -1) as string
-DIM max(45) as integer
-DIM min(45) as integer
+DIM max(46) as integer
+DIM min(46) as integer
 
 'Limit(0) is not used
 
@@ -589,7 +595,7 @@ min(AtkLimItem) = 0
 
 CONST AtkLimSfx = 27
 max(AtkLimSfx) = gen(genMaxSFX) + 1
-min(AtkLimSfx) = 0
+min(AtkLimSfx) = 0  '0 is None
 
 CONST AtkLimPal16 = 28
 max(AtkLimPal16) = 32767
@@ -714,7 +720,11 @@ FOR idx as integer = 0 TO UBOUND(counter_provoke_captions)
  addcaption caption(), capindex, counter_provoke_captions(idx)
 NEXT
 
-'next limit is 46 (remember to update the max() and min() dims)
+CONST AtkLimSfxOrDefault = 46
+max(AtkLimSfxOrDefault) = gen(genMaxSFX) + 1
+min(AtkLimSfxOrDefault) = -1  '0 is same as Hit sound, -1 is None
+
+'next limit is 47 (remember to update the max() and min() dims)
 
 '----------------------------------------------------------------------
 '--menu content
@@ -936,10 +946,25 @@ menutype(AtkItemCost3) = 0
 menuoff(AtkItemCost3) = AtkDatItemCost + 4
 menulimits(AtkItemCost3) = AtkLimInt
 
-menu(AtkSoundEffect) = "Sound Effect:"
+menu(AtkSoundEffect) = "Sound Effect:"  '"Hit/Default Sound Effect:"
 menutype(AtkSoundEffect) = 11
 menuoff(AtkSoundEffect) = AtkDatSoundEffect
 menulimits(AtkSoundEffect) = AtkLimSFX
+
+menu(AtkMissSoundEffect) = "Miss Sound Effect:"
+menutype(AtkMissSoundEffect) = 27
+menuoff(AtkMissSoundEffect) = AtkDatMissSoundEffect
+menulimits(AtkMissSoundEffect) = AtkLimSfxOrDefault
+
+menu(AtkFailSoundEffect) = "Fail Sound Effect:"
+menutype(AtkFailSoundEffect) = 27
+menuoff(AtkFailSoundEffect) = AtkDatFailSoundEffect
+menulimits(AtkFailSoundEffect) = AtkLimSfxOrDefault
+
+menu(AtkStealFailSoundEffect) = "Hit but Steal Failed Sound Effect:"
+menutype(AtkStealFailSoundEffect) = 27
+menuoff(AtkStealFailSoundEffect) = AtkDatStealFailSoundEffect
+menulimits(AtkStealFailSoundEffect) = AtkLimSfxOrDefault
 
 menu(AtkPreferTarg) = "Prefer Target:"
 menutype(AtkPreferTarg) = 2000 + menucapoff(AtkPreferTarg)
@@ -1066,7 +1091,7 @@ menuoff(AtkTransmogRewards) = AtkDatTransmogRewards
 menulimits(AtkTransmogRewards) = AtkLimTransmogRewards
 
 menu(AtkCounterProvoke) = "Provoke counterattacks:"
-menutype(AtkCounterProvoke) = 25
+menutype(AtkCounterProvoke) = menucapoff(AtkCounterProvoke)
 menuoff(AtkCounterProvoke) = AtkDatCounterProvoke
 menulimits(AtkCounterProvoke) = AtkLimCounterProvoke
 
@@ -1595,6 +1620,7 @@ DO
   max(AtkLimTransmogEnemy) = gen(genMaxEnemy) + 1
   max(AtkLimItem) = gen(genMaxItem) + 1
   max(AtkLimSfx) = gen(genMaxSFX) + 1
+  max(AtkLimSfxOrDefault) = gen(genMaxSFX) + 1
   '--in case chain mode has changed
   update_attack_editor_for_chain recbuf(AtkDatChainMode),        menu(AtkChainVal1),        max(AtkLimChainVal1),        min(AtkLimChainVal1),        menutype(AtkChainVal1),        menu(AtkChainVal2),        max(AtkLimChainVal2),        min(AtkLimChainVal2),        menutype(AtkChainVal2),        recbuf(AtkDatChainRate),        recbuf(AtkDatChainVal1)
   update_attack_editor_for_chain recbuf(AtkDatElseChainMode),    menu(AtkElseChainVal1),    max(AtkLimElseChainVal1),    min(AtkLimElseChainVal1),    menutype(AtkElseChainVal1),    menu(AtkElseChainVal2),    max(AtkLimElseChainVal2),    min(AtkLimElseChainVal2),    menutype(AtkElseChainVal2),    recbuf(AtkDatElseChainRate),    recbuf(AtkDatElseChainVal1)
@@ -1795,10 +1821,13 @@ SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integ
   workmenu(10) = AtkCapTime
   workmenu(11) = AtkCaptDelay
   workmenu(12) = AtkSoundEffect
+  'workmenu() = AtkMissSoundEffect
+  'workmenu() = AtkFailSoundEffect
+  'workmenu() = AtkStealFailSoundEffect
   workmenu(13) = AtkLearnSoundEffect
   workmenu(14) = AtkDamageColor
   state.last = 14
-  
+
   DIM anim as integer = recbuf(AtkDatAnimAttacker)
   IF     anim = atkrAnimStrike _
   ORELSE anim = atkrAnimDashIn _
@@ -2256,7 +2285,7 @@ FUNCTION editflexmenu (state as MenuState, nowindex as integer, menutype() as in
 '           8=item number (not offset)
 '           9=enemy name (offset)
 '           10=item number (offset!)
-'           11=sound effect (offset)
+'           11=sound effect or none (offset)
 '           12=defaultable positive int >=0 is int, -1 is "default"
 '           13=Default zero int >0 is int, 0 is "default"  (see also type 26)
 '           14=sound effect + 1 (0=default, -1=none)
@@ -2272,6 +2301,7 @@ FUNCTION editflexmenu (state as MenuState, nowindex as integer, menutype() as in
 '           24=turn-based attack delay
 '           25=counterattack provoke setting (captioned, with default for 0)
 '           26=Defaultable non-negative int: >0 is int offset by 1, 0 is "default"
+'           27=sound effect or default or none (offset)
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -2313,7 +2343,7 @@ SELECT CASE menutype(nowindex)
    datablock(menuoff(nowindex)) = flexb.browse(datablock(menuoff(nowindex)))
    changed = (old_dat <> datablock(menuoff(nowindex)))
   END IF
- CASE 7, 9 TO 11, 26 'offset integers
+ CASE 7, 9 TO 11, 26, 27 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
  CASE 22 '(int+100)%
   DIM temp as integer = datablock(menuoff(nowindex)) + 100
@@ -2420,7 +2450,7 @@ SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as intege
 '           8=item number (not offset)
 '           9=enemy name (offset)
 '           10=item name (offset)
-'           11=sound effect (offset)
+'           11=sound effect or none (offset)
 '           12=defaultable positive int >=0 is int, -1 is "default"
 '           13=Default zero int >0 is int, 0 is "default"  (see also type 26)
 '           14=sound effect + 1 (0=default, -1=none)
@@ -2436,6 +2466,7 @@ SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as intege
 '           24=turn-based attack delay
 '           25=counterattack provoke setting (captioned, with default for 0)
 '           26=Defaultable non-negative int: >0 is int offset by 1, 0 is "default"
+'           27=sound effect or default or none (offset)
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-2000)
@@ -2560,6 +2591,14 @@ FOR i = 0 TO size
    IF dat = provokeDefault THEN datatext &= " (" & caption(capnum + gen(genDefCounterProvoke)) & ")"
   CASE 26 '--0=default, >0 is int offset by 1
    IF dat = 0 THEN datatext = "Default" ELSE datatext = STR(dat - 1)
+  CASE 27 '--sound effect number, offset
+    IF dat <= -1 THEN
+      datatext = "None"
+    ELSEIF dat = 0 THEN
+      datatext = "(Same as Hit sound)"
+    ELSE
+      datatext = (dat - 1) & " (" + getsfxname(dat - 1) + ")"
+    END IF
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
    datatext = dat & " " & caption(capnum + dat)
