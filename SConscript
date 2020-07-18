@@ -1174,6 +1174,7 @@ reload_objects = base_objects + Flatten ([env.Object(a) for a in reload_modules]
 
 # For utiltest
 base_objects_without_util = [a for a in base_objects if str(a) != 'util.o']
+allmodex_objects_without_common = [a for a in allmodex_objects if str(a) != 'util-common.rbas.o']
 
 
 ################ Executable definitions
@@ -1261,6 +1262,7 @@ VECTORTEST = env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
 UTILTEST = env_exe ('utiltest', source = env.BASMAINO('utiltest.o', 'util.bas') + base_objects_without_util)
 FILETEST = env_exe ('filetest', source = ['filetest.bas'] + base_objects)
 Depends(FILETEST, env_exe ('filetest_helper', source = ['filetest_helper.bas'] + base_objects))
+COMMONTEST = env_exe ('commontest', builder = allmodexenv.BASEXE, source = allmodexenv.BASMAINO('commontest.o', 'common.rbas') + allmodex_objects_without_common)
 env_exe ('slice2bas', source = ['slice2bas.bas'] + reload_objects)
 
 Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
@@ -1422,7 +1424,7 @@ HSPEAKTEST = Phony ('hspeaktest', source = HSPEAK, action =
                     [rootdir + 'hspeaktest.py testgame/parser_tests.hss'])
 
 # Note: does not include hspeaktest, because it fails, and Euphoria may not be installed
-tests = [exe.abspath for exe in Flatten([RELOADTEST, RBTEST, VECTORTEST, UTILTEST, FILETEST])]
+tests = [exe.abspath for exe in Flatten([RELOADTEST, RBTEST, VECTORTEST, UTILTEST, FILETEST, COMMONTEST])]
 test_srcs = tests[:] if buildtests else []
 test_srcs += [AUTOTEST, INTERTEST]  # These are Nodes so can't be used as actions
 TESTS = Phony ('test', source = test_srcs, action = tests)
@@ -1575,7 +1577,7 @@ Targets (executables to build):
   hspeak              HamsterSpeak compiler (note: arch and target ignored)
   dumpohrkey          Convert .ohrkeys to text
   bam2mid             Convert .bam to .mid
-  imageconv           Convert between png/bmp/jpg/gif (note: use gfx=dummy)
+  imageconv           Convert between png/bmp/jpg/gif (suggest using gfx=dummy)
   slice2bas           For embedding .slice files
   reload2xml
   xml2reload          Requires libxml2 to build.
@@ -1583,6 +1585,7 @@ Targets (executables to build):
  Automated tests (executables; use "test" target to build and run):
   reloadtest
   utiltest
+  commontest
   filetest
   vectortest
   rbtest

@@ -639,7 +639,7 @@ sub toXMLAndBack(byval debugging as integer)
 end sub
 
 startTest(loadFromXML)
-	if skip_xml2reload then skip
+	if skip_xml2reload then skip_test
 	toXMLAndBack(NO)
 
 	doc2 = LoadDocument("unittest.rld", optNoDelay)
@@ -652,7 +652,7 @@ startTest(loadFromXML)
 endTest
 
 startTest(compareWithXML)
-	if skip_xml2reload then skip
+	if skip_xml2reload then skip_test
 	'non-pedantic
 	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), NO, YES) = NO then fail
 endTest
@@ -662,7 +662,7 @@ endTest
 'It's not important at all; type-accurate import/export would probably only be useful for chasing
 'bugs in RELOAD internals
 startTest(pedanticCompareWithXML)
-	if skip_xml2reload then skip
+	if skip_xml2reload then skip_test
 	toXMLAndBack(YES)
 
 	doc2 = LoadDocument("unittest.rld", optNoDelay)
@@ -769,7 +769,7 @@ endTest
 startTest(freeDocumentNoDelay)
 	FreeDocument(doc2)
 	doc2 = 0
-	pass
+	passed
 endTest
 
 startTest(loadAndCompareDocumentsDelay)
@@ -783,7 +783,7 @@ endTest
 startTest(freeDocumentDelay)
 	FreeDocument(doc2)
 	doc2 = 0
-	pass
+	passed
 endTest
 
 
@@ -792,7 +792,7 @@ startTest(cleanup)
 	doc = 0
 	FreeDocument(doc2)
 	doc2 = 0
-	pass
+	passed
 endTest
 
 print "All passed."

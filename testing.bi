@@ -73,9 +73,9 @@ sub doTest(t as string, byval theTest as testPtr)
 	
 end sub
 
-#define pass return 0
+#define passed return 0
 #define fail errorfile = __FILE__ : errorpos = __LINE__ : return 1
-#define skip return -1
+#define skip_test return -1
 
 #macro startTest(t)
 	Declare Function t##_TEST() as integer

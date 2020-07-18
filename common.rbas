@@ -31,6 +31,10 @@
 #include "music.bi"
 #include "loading.bi"
 
+#IFDEF __FB_MAIN__
+#include "testing.bi"
+#endif
+
 'Subs and functions only used here
 DECLARE SUB setup_sprite_sizes ()
 DECLARE SUB check_map_count ()
@@ -627,7 +631,13 @@ FUNCTION ticklite(what as string, col as integer = -1) as string
  LOOP
 END FUNCTION
 
-'IF ticklite("`Test`f`x``") <> "${K2}Test${K-1}f${K2}x${K-1}${K2}" THEN fail
+#IFDEF __FB_MAIN__
+startTest(ticklite)
+ uilook(uiSelectedItem) = 2
+ uilook(uiSelectedItem + 1) = 2
+ IF ticklite("`Test`f`x``") <> "${K2}Test${K-1}f${K2}x${K-1}${K2}" THEN fail
+endTest
+#ENDIF
 
 'Return the markup tag to switch foreground color. -1 resets to initial.
 'Optionally, if you pass a string, wraps it with start/reset color tags.
@@ -1753,7 +1763,6 @@ FUNCTION string_to_color(text as string, default as integer = -1) as integer
  RETURN ret
 END FUNCTION
 
-/'  Don't compile any testcases from this module yet
 #IFDEF __FB_MAIN__
 startTest(rgb)
   DIM col as RGBcolor
@@ -1763,7 +1772,6 @@ startTest(rgb)
   IF string_to_rgb("rgb(16,0,255", col) THEN fail
 endTest
 #ENDIF
-'/
 
 '----------------------------------------------------------------------
 

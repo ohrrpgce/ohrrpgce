@@ -552,5 +552,5 @@ startTest(cleanup)
 	doc = 0
 	FreeDocument(doc2)
 	doc2 = 0
-	pass
+	passed
 endTest
