@@ -1256,7 +1256,7 @@ DIM entry_box_width as integer = large(limit, LEN(gam.hero(who).name)) * 8
 DIM remember as string = gam.hero(who).name
 
 DIM need_fade_out as bool
-IF fadestate = NO THEN
+IF faded_in = NO THEN
  setvispage vpage
  fadein
  need_fade_out = YES

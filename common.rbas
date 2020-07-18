@@ -70,7 +70,6 @@ REDIM master(255) as RGBcolor
 REDIM uilook(uiColorLast) as integer
 REDIM boxlook(uiBoxLast) as BoxStyle
 REDIM current_font(1023) as integer
-DIM fadestate as bool = YES   'Fades are only used in Game, but implemented in common.rbas
 
 '=== Debug logging ==='
 
@@ -260,23 +259,20 @@ FUNCTION common_setoption(opt as string, arg as string) as integer
 END FUNCTION
 
 'fade in and out not actually used in custom
-'NOTE: fadestate is NOT reliable. For example we don't set it to YES when "setpal master()" is
-'called or to NO if a script manipulates the palette
 SUB fadein ()
- fadestate = YES
  fadetopal master()
 END SUB
 
 SUB fadeout (palidx as integer)
- fadestate = NO
- WITH master(palidx)
-  fadeto .r, .g, .b
- END WITH
+ fadetocolor master(palidx)
 END SUB
 
 SUB fadeout (byval red as integer, byval green as integer, byval blue as integer)
- fadestate = NO
- fadeto red, green, blue
+ DIM col as RGBcolor
+ col.r = red
+ col.g = green
+ col.b = blue
+ fadetocolor col
 END SUB
 
 'Call before showing debug screens and messages in Game, in case the screen is faded out or
@@ -284,7 +280,7 @@ END SUB
 'Call restore_previous_palette() before resuming (mandatory)
 SUB ensure_normal_palette ()
 #IFDEF IS_GAME
- 'IF fadestate = NO THEN setpal master()  'Simpler solution
+ 'IF faded_in = NO THEN setpal master()  'Simpler solution
  IF master_remembered THEN EXIT SUB
  master_remembered = YES
  FOR i as integer = 0 TO 255
@@ -302,7 +298,7 @@ SUB restore_previous_palette ()
  FOR i as integer = 0 TO 255
   master(i) = remember_master(i)
  NEXT
- IF fadestate THEN
+ IF faded_in THEN  'FIXME: this is wrong now that setpal (in ensure_normal_palette) modifies faded_in
   setpal master()
  ELSE
   ' It's possible the screen was faded out to some other colour, but unusual

@@ -128,6 +128,8 @@ dim modex_initialised as bool = NO
 dim vpages() as Frame ptr
 dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs typeless debugging symbol
 dim shared default_page_bitdepth as integer = 8  '8 or 32. Affects allocatepage only, set by switch_to_*bit_vpages()
+dim faded_in as bool           'NO when screen is faded to a color, YES when faded to a palette
+dim faded_to_color as RGBcolor 'If faded_in=NO, the color the screen is faded to
 
 'Whether the player has at any point toggled fullscreen/windowed in some low-level way
 'like alt+enter or window buttons.
@@ -1289,6 +1291,7 @@ sub setpal(pal() as RGBcolor)
 	memcpy(@curmasterpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
 	masterpal_changed
 	updatepal = YES
+	faded_in = YES
 end sub
 
 ' A gfx_setpal wrapper which may perform frameskipping to limit fps
@@ -1307,7 +1310,7 @@ local sub maybe_do_gfx_setpal()
 	GFX_EXIT
 end sub
 
-sub fadeto (red as integer, green as integer, blue as integer)
+sub fadetocolor (col as RGBcolor)
 	dim i as integer
 	dim j as integer
 	dim diff as integer
@@ -1325,21 +1328,21 @@ sub fadeto (red as integer, green as integer, blue as integer)
 		setwait 16.67 ' aim to complete fade in 550ms
 		for j = 0 to 255
 			'red
-			diff = intpal(j).r - red
+			diff = intpal(j).r - col.r
 			if diff > 0 then
 				intpal(j).r -= iif(diff >= 8, 8, diff)
 			elseif diff < 0 then
 				intpal(j).r -= iif(diff <= -8, -8, diff)
 			end if
 			'green
-			diff = intpal(j).g - green
+			diff = intpal(j).g - col.g
 			if diff > 0 then
 				intpal(j).g -= iif(diff >= 8, 8, diff)
 			elseif diff < 0 then
 				intpal(j).g -= iif(diff <= -8, -8, diff)
 			end if
 			'blue
-			diff = intpal(j).b - blue
+			diff = intpal(j).b - col.b
 			if diff > 0 then
 				intpal(j).b -= iif(diff >= 8, 8, diff)
 			elseif diff < 0 then
@@ -1362,6 +1365,11 @@ sub fadeto (red as integer, green as integer, blue as integer)
 	'This function was probably called in the middle of timed loop, call
 	'setwait to avoid "dowait called without setwait" warnings
 	setwait 0
+
+	'Do not update curmasterpal, it's the state without fadeouts
+
+	faded_in = NO
+	faded_to_color = col
 end sub
 
 sub fadetopal (pal() as RGBcolor)
@@ -1418,6 +1426,8 @@ sub fadetopal (pal() as RGBcolor)
 	'This function was probably called in the middle of timed loop, call
 	'setwait to avoid "dowait called without setwait" warnings
 	setwait 0
+
+	faded_in = YES
 
 	'If fadetopal/fadein is used, it means setpal wasn't called, so we need to replicate
 	'the other thing setpal does: update curmasterpal

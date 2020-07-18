@@ -668,7 +668,7 @@ END SUB
 
 SUB refresh_purchases_ouya()
 
- IF fadestate = NO THEN
+ IF faded_in = NO THEN
   setpal master()
  END IF
 

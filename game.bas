@@ -891,7 +891,7 @@ DO
   IF gen(genGameoverScript) > 0 THEN
    trigger_script gen(genGameoverScript), 0, NO, "death", "", mainFibreGroup
    fatal = NO
-   IF fadestate = NO THEN queue_fade_in 1, YES  'Backcompat. Unlikely to be needed
+   IF faded_in = NO THEN queue_fade_in 1, YES  'Backcompat. Unlikely to be needed
   ELSE
    fadeout uilook(uiFadeoutDeath)
    gam.quit = YES

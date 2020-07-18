@@ -130,7 +130,7 @@ DECLARE SUB setvispage (page as integer, skippable as bool = YES)
 DECLARE FUNCTION getvispage () as integer
 DECLARE SUB setwindowtitle (title as string)
 DECLARE SUB setpal (pal() as RGBcolor)
-DECLARE SUB fadeto (red as integer, green as integer, blue as integer)
+DECLARE SUB fadetocolor (col as RGBcolor)
 DECLARE SUB fadetopal (pal() as RGBcolor)
 
 DECLARE SUB show_overlay_message(msg as string, seconds as double = 3.)
@@ -787,6 +787,8 @@ declare sub email_files(address as string, subject as string, message as string,
 extern gfxmutex as any ptr
 extern main_thread_in_gfx_backend as bool
 extern modex_initialised as bool
+extern faded_in as bool
+extern faded_to_color as RGBcolor
 extern vpages() as Frame ptr
 extern vpagesp as Frame ptr ptr
 extern key2text(3,53) as string*1
