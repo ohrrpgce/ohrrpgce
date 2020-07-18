@@ -134,7 +134,7 @@ extern "C"
 	int gfx_surfaceFillAlpha_SW( RGBcolor fillColor, double alpha, SurfaceRect* pRect, Surface* pSurface );
 	int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 	Surface* gfx_surfaceShrink_SW( Surface *surf, int destWidth, int destHeight );
-	int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* opts );
+	int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* opts );
 
 	int gfx_paletteCreate_SW( RGBPalette** ppPaletteOut );
 	int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut );
@@ -152,7 +152,7 @@ extern "C"
 	extern int (*gfx_surfaceFillAlpha)( RGBcolor fillColor, double alpha, SurfaceRect* pRect, Surface* pSurfaceIn );
 	extern int (*gfx_surfaceStretch)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 	extern Surface* (*gfx_surfaceShrink)( Surface *surf, int destWidth, int destHeight );
-	extern int (*gfx_surfaceCopy)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* opts );
+	extern int (*gfx_surfaceCopy)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* opts );
 
 	extern int (*gfx_paletteCreate)( RGBPalette** ppPaletteOut );
 	extern int (*gfx_paletteFromRGB)( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut );
@@ -172,6 +172,8 @@ extern "C"
 	Surface* surface_duplicate( Surface* surf );
 	Surface* surface32_from_pixels( char *input, int w, int h, enum PixelFormat format );
 	char *surface32_to_pixels( Surface *surf, enum PixelFormat format );
+	int surfaceFrameShim( Frame* pFrameIn, Surface* pSurfaceOut );
+
 	// In blend.h
 	//RGBcolor alpha_blend( RGBcolor src, RGBcolor dest, int alpha, enum BlendMode mode );
 

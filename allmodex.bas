@@ -65,7 +65,7 @@ declare sub reload_global_animations(def_anim as SpriteSet ptr, sprtype as Sprit
 declare sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
 declare sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions)
 declare sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions)
-declare sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Surface ptr, opts as DrawOptions = def_drawoptions)
+declare sub draw_clipped_surf(src as Surface ptr, master_pal as RGBcolor ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Surface ptr, opts as DrawOptions = def_drawoptions)
 
 'declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(filen as string, w as integer, h as integer, bitdepth as integer) as integer
@@ -8497,7 +8497,7 @@ local sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x a
 end sub
 
 ' Blit a Surface with setclip clipping.
-local sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Surface ptr, opts as DrawOptions)
+local sub draw_clipped_surf(src as Surface ptr, master_pal as RGBcolor ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Surface ptr, opts as DrawOptions)
 
 	dim byref cliprect as ClipState = get_cliprect()
 
@@ -9706,26 +9706,33 @@ local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as 
 		BUG_IF(opts.write_mask orelse opts.scale <> 1, "write_mask and scale not supported with 32-bit Frames")
 
 		dim src_surface as Surface ptr
+		dim temp_surface as Surface = any
 		if src->surf then
 			src_surface = src->surf
 		else
-			'debuginfo "frame_draw_internal: unnecessary allocation"
-			if gfx_surfaceCreateFrameView(src, @src_surface) then return
+			'Correct but slower:
+			'if gfx_surfaceCreateFrameView(src, @src_surface) then return
+			'Kludgy but faster, avoid a slow allocation:
+			src_surface = @temp_surface
+			if surfaceFrameShim(src, src_surface) then return
 		end if
+		/'
 		dim master_pal as RGBPalette ptr
 		if src_surface->format = SF_8bit then
 			' From 8 -> 32 bit
-			' TODO: Don't do this every single call!
+			' This is slow, performs an allocation and copy!
 			if gfx_paletteFromRGB(@masterpal(0), @master_pal) then
 				debug "gfx_paletteFromRGB failed"
 				goto cleanup
 			end if
 		end if
+		'/
 
 		' TODO: this ignores the src mask, if the src is 8-bit, which means dissolved Frames
 		' aren't drawn correctly
-		draw_clipped_surf src_surface, master_pal, pal, x, y, trans, dest->surf, opts
+		draw_clipped_surf src_surface, @masterpal(0), pal, x, y, trans, dest->surf, opts
 
+		/'
 	cleanup:
 		if master_pal then
 			gfx_paletteDestroy(@master_pal)
@@ -9733,6 +9740,7 @@ local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as 
 		if src->surf = NULL then
 			gfx_surfaceDestroy(@src_surface)
 		end if
+		'/
 	else
 		if opts.scale <> 1 then
 			BUG_IF(src->surf orelse dest->surf, "32-bit Frames don't support scale<>1")
@@ -10185,13 +10193,19 @@ end function
 
 function frame_rotozoom(src as Frame ptr, pal as Palette16 ptr = NULL, angle as double, zoomx as double, zoomy as double, smooth as integer = 0) as Frame ptr
 	dim as Surface ptr in_surf, out_surf
+	dim as Surface temp_surf = any
 	if smooth > 0 andalso vpages_are_32bit then
 		'Going to perform smoothing
 		'Can't do any smoothing with an 8-bit input Surface, since the rotozoomer
 		'doesn't do 8->32 bit like frame_draw can.
 		in_surf = frame_to_surface32(src, intpal(), pal)
 	else
-		if gfx_surfaceCreateFrameView(src, @in_surf) then return NULL
+		'Correct but slower:
+		'if gfx_surfaceCreateFrameView(src, @in_surf) then return NULL
+		'Kludgy but faster, avoid a slow allocation:
+		in_surf = @temp_surf
+		if surfaceFrameShim(src, in_surf) then return NULL
+		'We can call gfx_surfaceDestroy on in_surf, it will do nothing.
 	end if
 	if smooth = 2 andalso vpages_are_32bit then
 		'surface_scale does much better smoothing for zoom levels < 100% (neglible

@@ -164,7 +164,7 @@ extern "C"
 	extern gfx_surfaceFill as function ( byval fillColor as integer, byval pRect as SurfaceRect ptr, byval pSurfaceIn as Surface ptr ) as integer
 	extern gfx_surfaceFillAlpha as function ( byval fillColor as RGBcolor, byval alpha as double, byval pRect as SurfaceRect ptr, byval pSurfaceIn as Surface ptr ) as integer
 	extern gfx_surfaceStretch as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
-	extern gfx_surfaceCopy as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, pPal8 as Palette16Fwd ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr, byref opts as DrawOptions ) as integer
+	extern gfx_surfaceCopy as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBcolor ptr, pPal8 as Palette16Fwd ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr, byref opts as DrawOptions ) as integer
 
 	extern gfx_paletteCreate as function ( byval ppPaletteOut as RGBPalette ptr ptr) as integer
 	extern gfx_paletteFromRGB as function ( byval pColorsIn as RGBcolor ptr, byval ppPaletteOut as RGBPalette ptr ptr) as integer
@@ -197,6 +197,8 @@ extern "C"
 	declare function surface32_from_pixels ( pixels as ubyte ptr, w as integer, h as integer, format as PixelFormat ) as Surface ptr
 	declare function surface32_to_pixels( surf as Surface ptr, format as PixelFormat ) as ubyte ptr
 
+	declare function surfaceFrameShim( pFrameIn as FrameFwd ptr, pSurfaceOut as Surface ptr ) as integer
+
 	'' Roto-zoomer, implemented in rotozoom.c
 	declare function rotozoomSurface(src as Surface ptr, angle as double, zoomx as double, zoomy as double, smooth as boolint) as Surface ptr
 	declare sub rotozoomSurfaceSize(width as integer, height as integer, angle as double, zoomx as double, zoomy as double, dstwidth as integer ptr, dstheight as integer ptr)
@@ -215,7 +217,7 @@ extern "C"
 	declare function gfx_surfaceFill_SW ( byval fillColor as integer, byval pRect as SurfaceRect ptr, byval pSurfaceIn as Surface ptr ) as integer
 	declare function gfx_surfaceFillAlpha_SW ( byval fillColor as RGBcolor, byval alpha as double, byval pRect as SurfaceRect ptr, byval pSurfaceIn as Surface ptr ) as integer
 	declare function gfx_surfaceStretch_SW ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
-	declare function gfx_surfaceCopy_SW ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, pPal8 as Palette16Fwd ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr, byref opts as DrawOptions ) as integer
+	declare function gfx_surfaceCopy_SW ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBcolor ptr, pPal8 as Palette16Fwd ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr, byref opts as DrawOptions ) as integer
 
 	declare function gfx_paletteCreate_SW ( byval ppPaletteOut as RGBPalette ptr ptr ) as integer
 	declare function gfx_paletteFromRGB_SW ( byval pColorsIn as RGBcolor ptr, byval ppPaletteOut as RGBPalette ptr ptr) as integer

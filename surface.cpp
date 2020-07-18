@@ -130,6 +130,28 @@ int gfx_surfaceCreateFrameView_SW( Frame* pFrameIn, Surface** ppSurfaceOut )
 	return 0;
 }
 
+// Copy data from a Frame* into a Surface*.
+// This is a temporary kludge to avoid needing to call gfx_surfaceCreateView in frame_draw
+// to draw a Frame onto a Surface, where the new/delete overhead would be huge.
+// OK to call gfx_surfaceDestroy on pSurfaceOut
+int surfaceFrameShim( Frame* pFrameIn, Surface* pSurfaceOut )
+{
+	if (pFrameIn->surf) {
+		// The Frame is a view onto a surface; error.
+		return 1;
+	}
+	pSurfaceOut->width = pFrameIn->w;
+	pSurfaceOut->height = pFrameIn->h;
+	pSurfaceOut->pitch = pFrameIn->pitch;
+	pSurfaceOut->pPaletteData = pFrameIn->image;
+	pSurfaceOut->format = SF_8bit;
+	pSurfaceOut->usage = SU_Source;
+	pSurfaceOut->refcount = 999;  //Ensure never deleted
+	pSurfaceOut->isview = 1;
+	pSurfaceOut->base_frame = pFrameIn;
+	return 0;
+}
+
 int gfx_surfaceDestroy_SW( Surface** ppSurfaceIn ) {
 	if (!ppSurfaceIn) {
 		debug(errShowBug, "surfaceDestroy_SW: NULL in ptr");
@@ -407,7 +429,7 @@ void clampRectToSurface( SurfaceRect* inRect, SurfaceRect* outRect, Surface* pSu
 // the edge of the respective Surfaces; they are clamped. Negative width or
 // height means the draw is a noop.
 // bUseColorKey0 says whether color 0 in 8-bit source images is transparent
-int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts ) {
+int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts ) {
 	if (!pSurfaceSrc || !pSurfaceDest || !pOpts) {
 		debug(errShowBug, "surfaceCopy_SW: NULL ptr %p %p %p", pSurfaceSrc, pSurfaceDest, pOpts);
 		return -1;
@@ -533,12 +555,12 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 			return -1;
 		}
 
-		RGBcolor *restrict pal32 = pPalette->col;
+		RGBcolor *restrict pal32 = pPalette;
 		if (pPal8) {
 			// Form a temp palette to avoid double-indirection on every pixel
 			pal32 = (RGBcolor*)alloca(pPal8->numcolors * sizeof(RGBcolor));
 			for (int idx = 0; idx < pPal8->numcolors; idx++) {
-				pal32[idx] = pPalette->col[pPal8->col[idx]];
+				pal32[idx] = pPalette[pPal8->col[idx]];
 			}
 		}
 
