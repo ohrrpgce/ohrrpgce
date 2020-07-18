@@ -130,8 +130,8 @@ DECLARE SUB setvispage (page as integer, skippable as bool = YES)
 DECLARE FUNCTION getvispage () as integer
 DECLARE SUB setwindowtitle (title as string)
 DECLARE SUB setpal (pal() as RGBcolor)
-DECLARE SUB fadetocolor (col as RGBcolor)
-DECLARE SUB fadetopal (pal() as RGBcolor)
+DECLARE SUB fadetocolor (col as RGBcolor, fadems as integer = 500)
+DECLARE SUB fadetopal (pal() as RGBcolor, fadems as integer = 500)
 
 DECLARE SUB show_overlay_message(msg as string, seconds as double = 3.)
 DECLARE FUNCTION overlay_message_visible () as bool

@@ -1310,11 +1310,7 @@ local sub maybe_do_gfx_setpal()
 	GFX_EXIT
 end sub
 
-sub fadetocolor (col as RGBcolor)
-	dim i as integer
-	dim j as integer
-	dim diff as integer
-
+local sub fadetopal_internal(pal() as RGBcolor, fadems as integer = 500)
 	skipped_frame.show()  'If we frame-skipped last frame, better show it
 
 	if updatepal then
@@ -1324,34 +1320,29 @@ sub fadetocolor (col as RGBcolor)
 		end if
 	end if
 
-	for i = 1 to 32
-		setwait 16.67 ' aim to complete fade in 550ms
-		for j = 0 to 255
-			'red
-			diff = intpal(j).r - col.r
-			if diff > 0 then
-				intpal(j).r -= iif(diff >= 8, 8, diff)
-			elseif diff < 0 then
-				intpal(j).r -= iif(diff <= -8, -8, diff)
-			end if
-			'green
-			diff = intpal(j).g - col.g
-			if diff > 0 then
-				intpal(j).g -= iif(diff >= 8, 8, diff)
-			elseif diff < 0 then
-				intpal(j).g -= iif(diff <= -8, -8, diff)
-			end if
-			'blue
-			diff = intpal(j).b - col.b
-			if diff > 0 then
-				intpal(j).b -= iif(diff >= 8, 8, diff)
-			elseif diff < 0 then
-				intpal(j).b -= iif(diff <= -8, -8, diff)
-			end if
+	dim startpal(255) as RGBcolor
+	'This will be equal to curmasterpal unless we're faded out
+	for j as integer = 0 to 255
+		startpal(j) = intpal(j)
+	next
+
+	dim ticks as integer = large(1, fadems / 16.67)
+	for tick as integer = 1 to ticks
+		setwait 16.67
+		'Use a symmetric cubic smoothing function. The slope is at a
+		'minimum at x=0 and x=1, where it's 1/2 of the linear
+		'interpolation slope, and it's at a maximum at x=1/2.
+		dim x as double = tick / ticks
+		dim fraction as double = x / 2 + 3 * x*x / 2 - x*x*x
+
+		for j as integer = 0 to 255
+			intpal(j).r = pal(j).r * fraction + startpal(j).r * (1 - fraction)
+			intpal(j).g = pal(j).g * fraction + startpal(j).g * (1 - fraction)
+			intpal(j).b = pal(j).b * fraction + startpal(j).b * (1 - fraction)
 		next
 		maybe_do_gfx_setpal
 
-		if i mod 3 = 0 then
+		if tick mod 3 = 0 then
 			' We're assuming that the page hasn't been modified since the last setvispage
 			if recordvid then
 				recordvid->record_frame vpages(getvispage()), intpal()
@@ -1360,72 +1351,28 @@ sub fadetocolor (col as RGBcolor)
 
 		dowait
 	next
-	'Make sure the palette gets set on the final pass
 
 	'This function was probably called in the middle of timed loop, call
 	'setwait to avoid "dowait called without setwait" warnings
 	setwait 0
+end sub
 
-	'Do not update curmasterpal, it's the state without fadeouts
+sub fadetocolor(col as RGBcolor, fadems as integer = 500)
+	col.a = 255
+	dim pal(255) as RGBcolor
+	for j as integer = 0 to 255
+		pal(j) = col
+	next
+	fadetopal_internal pal(), fadems
 
 	faded_in = NO
 	faded_to_color = col
+
+	'Do not update curmasterpal, it contains non-faded palette
 end sub
 
-sub fadetopal (pal() as RGBcolor)
-	dim i as integer
-	dim j as integer
-	dim diff as integer
-
-	skipped_frame.show()  'If we frame-skipped last frame, better show it
-
-	if updatepal then
-		maybe_do_gfx_setpal
-		if recordvid then
-			recordvid->record_frame vpages(getvispage()), intpal()
-		end if
-	end if
-
-	for i = 1 to 32
-		setwait 16.67 ' aim to complete fade in 550ms
-		for j = 0 to 255
-			'red
-			diff = intpal(j).r - pal(j).r
-			if diff > 0 then
-				intpal(j).r -= iif(diff >= 8, 8, diff)
-			elseif diff < 0 then
-				intpal(j).r -= iif(diff <= -8, -8, diff)
-			end if
-			'green
-			diff = intpal(j).g - pal(j).g
-			if diff > 0 then
-				intpal(j).g -= iif(diff >= 8, 8, diff)
-			elseif diff < 0 then
-				intpal(j).g -= iif(diff <= -8, -8, diff)
-			end if
-			'blue
-				diff = intpal(j).b - pal(j).b
-			if diff > 0 then
-				intpal(j).b -= iif(diff >= 8, 8, diff)
-			elseif diff < 0 then
-				intpal(j).b -= iif(diff <= -8, -8, diff)
-			end if
-		next
-		maybe_do_gfx_setpal
-
-		if i mod 3 = 0 then
-			' We're assuming that the page hasn't been modified since the last setvispage
-			if recordvid then
-				recordvid->record_frame vpages(getvispage()), intpal()
-			end if
-		end if
-
-		dowait
-	next
-
-	'This function was probably called in the middle of timed loop, call
-	'setwait to avoid "dowait called without setwait" warnings
-	setwait 0
+sub fadetopal(pal() as RGBcolor, fadems as integer = 500)
+	fadetopal_internal pal(), fadems
 
 	faded_in = YES
 
