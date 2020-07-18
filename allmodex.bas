@@ -1127,6 +1127,13 @@ end sub
 
 'Decide whether to skip a frame, in order to meet max_display_fps limit
 function should_skip_frame() as bool
+	static lastframe as double
+	'Make sure we still draw under --runfast
+	if timer > lastframe + 1. / max_display_fps then
+		lastframe = timer
+		return NO
+	end if
+
 	'How many times will setvispage be called per non-skipped frame?
 	dim frames_per_gfx_present as double = requested_framerate / max_display_fps
 	if frames_per_gfx_present <= 1 then return NO  'No need to skip
@@ -1136,6 +1143,7 @@ function should_skip_frame() as bool
 	if fmod(frame_index, frames_per_gfx_present) > 1 then
 		return YES
 	end if
+	lastframe = timer
 
 	'Maybe we should have an option to also skip frames if we're running at
 	'100% cpu, although that will only save a little time because we still
