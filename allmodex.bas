@@ -1294,6 +1294,23 @@ sub setpal(pal() as RGBcolor)
 	faded_in = YES
 end sub
 
+'Immediately change to a faded out state.
+'The difference from calling setpal is:
+'-preserves curmasterpal, for nearcolor & transparency effects
+'-Sets faded_in = NO, not YES
+'The difference from calling fadetocolor with fadems=0 is just that it doesn't
+'immediately redraw the screen.
+sub setpal_to_color(col as RGBcolor)
+	col.a = 255
+	faded_to_color = col
+	for i as integer = 0 to 255
+		intpal(i) = col
+	next
+	'Do not update curmasterpal
+	updatepal = YES
+	faded_in = NO
+end sub
+
 ' A gfx_setpal wrapper which may perform frameskipping to limit fps
 local sub maybe_do_gfx_setpal()
 	frame_index += 1

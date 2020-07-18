@@ -235,8 +235,9 @@ REDIM SHARED gfxio_state_stack(-1 TO -1) as SavedGfxIOState  '-1th element unuse
 DIM SHARED global_strings_buffer as string
 
 'Used by ensure_normal_palette & restore_previous_palette
-DIM SHARED remember_master(255) as RGBcolor
-DIM SHARED master_remembered as bool = NO
+DIM SHARED entered_ensure_normal_palette as integer = 0
+DIM SHARED remember_faded_in as bool
+DIM SHARED remember_faded_to_color as RGBcolor
 
 'binsize.bin, fixbits.bin cache
 DIM SHARED binsize_cache(binLASTENTRY) as integer
@@ -259,51 +260,51 @@ FUNCTION common_setoption(opt as string, arg as string) as integer
 END FUNCTION
 
 'fade in and out not actually used in custom
-SUB fadein ()
- fadetopal master()
+SUB fadein (fadems as integer = 500)
+ fadetopal master(), fadems
 END SUB
 
-SUB fadeout (palidx as integer)
- fadetocolor master(palidx)
+SUB fadeout (palidx as integer, fadems as integer = 500)
+ fadetocolor master(palidx), fadems
 END SUB
 
-SUB fadeout (byval red as integer, byval green as integer, byval blue as integer)
+SUB fadeout (red as integer, green as integer, blue as integer, fadems as integer = 500)
  DIM col as RGBcolor
  col.r = red
  col.g = green
  col.b = blue
- fadetocolor col
+ fadetocolor col, fadems
 END SUB
 
 'Call before showing debug screens and messages in Game, in case the screen is faded out or
 'the palette has been modified (e.g. for a scripted screen fade)
 'Call restore_previous_palette() before resuming (mandatory)
+'The ensure-restore calls can be nested.
 SUB ensure_normal_palette ()
 #IFDEF IS_GAME
  'IF faded_in = NO THEN setpal master()  'Simpler solution
- IF master_remembered THEN EXIT SUB
- master_remembered = YES
- FOR i as integer = 0 TO 255
-  remember_master(i) = master(i)
- NEXT
- 'Skip if we haven't started a game yet
- IF gam.ingame THEN loadpalette master(), gam.current_master_palette
- setpal master()
+ entered_ensure_normal_palette += 1
+ IF entered_ensure_normal_palette > 1 THEN EXIT SUB
+ remember_faded_in = faded_in
+ remember_faded_to_color = faded_to_color
+ IF gam.ingame THEN
+  DIM mpal(255) as RGBcolor
+  loadpalette mpal(), gam.current_master_palette
+  setpal mpal()
+ ELSE  'Haven't loaded a game yet
+  setpal master()
+ END IF
 #ENDIF
 END SUB
 
 SUB restore_previous_palette ()
 #IFDEF IS_GAME
- master_remembered = NO
- FOR i as integer = 0 TO 255
-  master(i) = remember_master(i)
- NEXT
- IF faded_in THEN  'FIXME: this is wrong now that setpal (in ensure_normal_palette) modifies faded_in
+ entered_ensure_normal_palette -= 1
+ IF entered_ensure_normal_palette > 0 THEN EXIT SUB
+ IF remember_faded_in THEN
   setpal master()
  ELSE
-  ' It's possible the screen was faded out to some other colour, but unusual
-  REDIM black(255) as RGBcolor
-  setpal black()
+  setpal_to_color remember_faded_to_color
  END IF
 #ENDIF
 END SUB

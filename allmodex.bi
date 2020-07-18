@@ -130,6 +130,7 @@ DECLARE SUB setvispage (page as integer, skippable as bool = YES)
 DECLARE FUNCTION getvispage () as integer
 DECLARE SUB setwindowtitle (title as string)
 DECLARE SUB setpal (pal() as RGBcolor)
+DECLARE SUB setpal_to_color (col as RGBcolor)
 DECLARE SUB fadetocolor (col as RGBcolor, fadems as integer = 500)
 DECLARE SUB fadetopal (pal() as RGBcolor, fadems as integer = 500)
 

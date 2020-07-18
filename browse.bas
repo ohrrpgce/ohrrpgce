@@ -145,9 +145,7 @@ catfg(5) = findrgb(200,200,128) : catbg(5) = uilook(uiDisabledItem) 'special (ne
 catfg(6) = uilook(uiDisabledItem): catbg(6) = uilook(uiBackground)  'disabled
 
 IF needf THEN
- ' An entirely black palette
- DIM temppal(255) as RGBcolor
- setpal temppal()
+ fadeout 0, 0, 0, 0  'fadems=0: fade immediately to black
 END IF
 
 '--Preserve pages 2 and 3 because the tilemap editor still uses them
