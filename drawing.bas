@@ -634,6 +634,7 @@ FUNCTION importimage_process(filename as string, pmask() as RGBcolor) as Frame p
    RETURN NULL
   END IF
 
+  'Note imgpal() might contain non-opaque alpha, but we will drop the alpha when importing as a master palette
   IF memcmp(@imgpal(0), @master(0), 256 * sizeof(RGBcolor)) <> 0 THEN
    'the palette is inequal to the master palette
    clearpage vpage

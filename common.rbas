@@ -1655,6 +1655,7 @@ SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
    pal(i).r = palbuf(i * 3)
    pal(i).g = palbuf(i * 3 + 1)
    pal(i).b = palbuf(i * 3 + 2)
+   pal(i).a = 255
   NEXT
  END IF
  'Uncomment the line below if you want the palette in text format for updating load_default_master_palette
@@ -1705,6 +1706,7 @@ SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
   newpal(i).r = iif(r, r shl 2 + 3, 0)   'Mapping as Neo suggested
   newpal(i).g = iif(g, g shl 2 + 3, 0)
   newpal(i).b = iif(b, b shl 2 + 3, 0)
+  newpal(i).a = 255
  NEXT
 END SUB
 

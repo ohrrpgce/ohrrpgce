@@ -7008,11 +7008,14 @@ function loadbmppal (f as string, pal() as RGBcolor) as integer
 				pal(i).r = col3.rgbtRed
 				pal(i).g = col3.rgbtGreen
 				pal(i).b = col3.rgbtBlue
+				pal(i).a = 255
 			else
 				get #bf, , col4
 				pal(i).r = col4.rgbRed
 				pal(i).g = col4.rgbGreen
 				pal(i).b = col4.rgbBlue
+				' Some BMP documentation states col4.rgbReserved "must be zero"
+				pal(i).a = 255
 			end if
 		next
 	else
@@ -7582,6 +7585,7 @@ end function
 'ret.pal will have at least 16 colors, possibly up to 256, but enough to cover all pixel values,
 'but is NULL when the image is unpaletted.
 'defaultpal is used for breaking nearest-match ties.
+'Alpha values in image palette ignored.
 function image_import_as_frame_and_palette16 (byref ret as GraphicPair, filename as string, defaultpal as Palette16 ptr = NULL) as bool
 	unload_sprite_and_pal ret
 
@@ -7789,6 +7793,7 @@ end function
 'Find the nearest color in the current palette (curmasterpal(), set by setpal). Alpha ignored.
 'This may produce slightly worse results than nearcolor because it uses a slightly different
 'color distance function. However it's over 10x faster. (Try nearcolor_faster if you need more.)
+'This never returns color 0 (firstindex=1).
 function nearcolor_fast(byval col as RGBcolor) as ubyte
 	return query_KDTree(nearcolor_kdtree, col)
 end function
@@ -7797,6 +7802,7 @@ end extern
 
 'Version which supports out-of-bounds r/g/b values. Note that this behaves
 'differently to nearcolor, which can search for a color "bluer than blue".
+'This never returns color 0 (firstindex=1).
 function nearcolor_fast(r as integer, g as integer, b as integer) as ubyte
 	dim col as RGBcolor = any
 	col.b = iif(b > 255, 255, iif(b < 0, 0, b))
@@ -7808,6 +7814,7 @@ end function
 
 'Find the nearest match palette mapping from inputpal() into
 'the master palette masterpal(), and store it in mapping(), an array of masterpal() indices.
+'Alpha values ignored.
 'mapping() may contain initial values, used as hints which are used if an exact match.
 'Pass firstindex = 1 to prevent anything from getting mapped to colour 0.
 sub find_palette_mapping(inputpal() as RGBcolor, masterpal() as RGBcolor, mapping() as integer, firstindex as integer = 0)

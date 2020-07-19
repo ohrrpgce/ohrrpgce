@@ -25,7 +25,7 @@ enum BlendAlgo blend_algo = blendAlgoDither;
 uint8_t nearcolor_cache[65536] = {0};
 
 
-// Memoize nearcolor_fast, dropping 3 least-significant bits per channel
+// Memoize nearcolor_fast, dropping 3 least-significant bits red & blue, 2 from green.
 int nearcolor_faster(RGBcolor searchcol) {
 	int idx = ((searchcol.r >> 3) << 11) | ((searchcol.g >> 2) << 5) | (searchcol.b >> 3);
 	int res = nearcolor_cache[idx];

@@ -639,6 +639,9 @@ FUNCTION importmasterpal (filename as string = "", palnum as integer) as bool
    image_load_palette filename, master()
   END IF
  END IF
+ FOR i as integer = 0 TO 255
+  master(i).a = 255
+ NEXT
  'get a default set of ui colours - nearest match to the current
  nearestui activepalette, master(), uilook(), boxlook()
 
