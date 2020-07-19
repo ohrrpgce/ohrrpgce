@@ -13,6 +13,7 @@ Union RGBcolor
 		' and BMP and PNG import uses the alpha channel, all other code ignores it.
 		as ubyte b, g, r, a
 	end type
+	DECLARE OPERATOR CAST () as string
 End Union
 
 'Masks for components of RGBcolor

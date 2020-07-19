@@ -1727,14 +1727,24 @@ SUB load_master_and_uicol(palnum as integer)
  LoadUIColors uilook(), boxlook(), palnum, master()
 END SUB
 
+OPERATOR RGBColor.cast() as string
+ RETURN rgb_to_string(this)
+END OPERATOR
+
 FUNCTION rgb_to_string(col as RGBcolor) as string
- RETURN "rgb(" & col.r & "," & col.g & "," & col.b & ")"
+ IF col.a = 255 THEN
+  RETURN strprintf("rgb(%d,%d,%d)", col.r, col.g, col.b)
+ ELSE
+  RETURN strprintf("rgba(%d,%d,%d,%d)", col.r, col.g, col.b, col.a)
+ END IF
 END FUNCTION
 
-'Decode a string like "rgb(0,1,2)". Returns true on success
+'Decode a string like "rgb(0,255,0)" or "rgba(0,255,0,255)". Returns true on success
 FUNCTION string_to_rgb(text as string, byref col as RGBcolor) as bool
- IF starts_with(LCASE(text), "rgb(") = NO THEN RETURN NO
- DIM pos as integer = 5  'one-based
+ DIM isrgb as bool = starts_with(LCASE(text), "rgb(")
+ DIM isrgba as bool = starts_with(LCASE(text), "rgba(")
+ IF isrgb = NO AND isrgba = NO THEN RETURN NO
+ DIM pos as integer = IIF(isrgb, 5, 6)  'one-based
  'Use VALINT because it ignores trailing garbage
  '(This is very lenient)
  col.r = VALINT(MID(text, pos))
@@ -1746,13 +1756,22 @@ FUNCTION string_to_rgb(text as string, byref col as RGBcolor) as bool
  IF pos = 0 THEN RETURN NO
  pos += 1
  col.b = VALINT(MID(text, pos))
+ IF isrgba THEN
+  pos = INSTR(pos + 1, text, ",")
+  IF pos = 0 THEN RETURN NO
+  pos += 1
+  col.a = VALINT(MID(text, pos))
+ ELSE
+  col.a = 255
+ END IF
  pos = INSTR(pos, text, ")")
  IF pos = 0 THEN RETURN NO
  RETURN YES
 END FUNCTION
 
-'Takes either a string like "rgb(0,1,2)", and looks it up in the master
-'palette (never maps to color 0) or a string containing a color index, eg "14".
+'Takes either a string like "rgb(0,255,0)" or "rgba(0,255,0,255)" (but alpha is
+'ignored), and looks it up in the master palette (never maps to color 0) or a
+'string containing a color index, eg "14".
 FUNCTION string_to_color(text as string, default as integer = -1) as integer
  DIM col as RGBcolor
  IF string_to_rgb(text, col) THEN
@@ -1766,10 +1785,16 @@ END FUNCTION
 #IFDEF __FB_MAIN__
 startTest(rgb)
   DIM col as RGBcolor
-  IF rgb_to_string(col) <> "rgb(0,0,0)" THEN fail
+  IF rgb_to_string(col) <> "rgba(0,0,0,0)" THEN fail
   IF string_to_rgb("rgb(16,0,255)", col) <> YES THEN fail
-  IF col.col <> &h1000ff THEN fail  'BGRA
+  IF col.col <> &hff1000ff THEN fail  'BGRA
   IF string_to_rgb("rgb(16,0,255", col) THEN fail
+  col.col = &hf0102030
+  IF STR(col) <> "rgba(16,32,48,240)" THEN fail
+  col.a = 255
+  IF STR(col) <> "rgb(16,32,48)" THEN fail
+  IF string_to_rgb("rgba(16,0,255,128)", col) <> YES THEN fail
+  IF col.col <> &h801000ff THEN fail  'BGRA
 endTest
 #ENDIF
 
