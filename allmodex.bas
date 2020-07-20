@@ -128,7 +128,7 @@ dim modex_initialised as bool = NO
 dim vpages() as Frame ptr
 dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs typeless debugging symbol
 dim shared default_page_bitdepth as integer = 8  '8 or 32. Affects allocatepage only, set by switch_to_*bit_vpages()
-dim faded_in as bool           'NO when screen is faded to a color, YES when faded to a palette
+dim faded_in as bool = YES     'NO when screen is faded to a color, YES when faded to a palette
 dim faded_to_color as RGBcolor 'If faded_in=NO, the color the screen is faded to
 
 'Whether the player has at any point toggled fullscreen/windowed in some low-level way
@@ -416,7 +416,8 @@ dim shared textbg as integer
 'master() is usually equal to these two, but does not take effect until setpal() is called.
 'In most cases intpal should be used, including when drawing to a 32-bit vpage, but curmasterpal
 'should be used when drawing to a 8-bit vpage (e.g. drawing with blending).
-dim shared intpal(0 to 255) as RGBcolor       'Current palette, with any screen fading applied
+'In 32-bit mode, intpal and curmasterpal are always equal
+dim shared intpal(0 to 255) as RGBcolor       'Current palette, with any screen fading applied in 8-bit mode
 extern "C"
 dim shared curmasterpal(0 to 255) as RGBcolor 'Palette at last setpal(), excludes any screen fades
 end extern
@@ -1191,11 +1192,19 @@ sub setvispage (page as integer, skippable as bool = YES)
 	end if
 
 	' The page to which to draw overlays, and display.
-	' We could skip this duplication if there are no overlays to draw. But even at 60fps
-	' it's not significant: in my test, at 1920x1080 and 2x zoom, this duplicatepage
-	' is only 0.5% of runtime.
 	dim drawpage as integer
-	drawpage = duplicatepage(page)
+	if vpages_are_32bit() andalso faded_in = NO then
+		' In 32-bit mode, we always draw to the vpage using curmasterpal (not faded out),
+		' so that we have something to fade back in if a fade happens.
+		' This means we need to hide the fact that the vpage palette isn't actually faded out.
+		drawpage = allocatepage(vpages(page)->w, vpages(page)->h)
+		gfx_surfaceFill(faded_to_color.col, NULL, vpages(drawpage)->surf)
+	else
+		' We could skip this duplication if there are no overlays to draw. But even at 60fps
+		' it's not significant: in my test, at 1920x1080 and 2x zoom, this duplicatepage
+		' is only 0.5% of runtime.
+		drawpage = duplicatepage(page)
+	end if
 
 	'Draw those overlays that are always recorded in .gifs/screenshots
 	draw_allmodex_recordable_overlays drawpage
@@ -1311,9 +1320,11 @@ end sub
 sub setpal_to_color(col as RGBcolor)
 	col.a = 255
 	faded_to_color = col
-	for i as integer = 0 to 255
-		intpal(i) = col
-	next
+	if vpages_are_32bit() = NO then
+		for i as integer = 0 to 255
+			intpal(i) = col
+		next
+	end if
 	'Do not update curmasterpal
 	updatepal = YES
 	faded_in = NO
@@ -1335,21 +1346,33 @@ local sub maybe_do_gfx_setpal()
 	GFX_EXIT
 end sub
 
-local sub fadetopal_internal(pal() as RGBcolor, fadems as integer = 500)
+'A fade in or out.
+'This modifies intpal() only in 8-bit color mode
+'pal() is used only in 8-bit mode. fadecol is used only in 32-bit mode
+'so don't support fading between two master palettes!
+local sub fadetopal_internal(pal() as RGBcolor, col as RGBcolor, fadems as integer, fading_in as bool)
+	dim vispage as integer = getvispage()
+	dim is32bit as bool = vpages_are_32bit()
+	dim was_faded_in as bool = faded_in
+
 	skipped_frame.show()  'If we frame-skipped last frame, better show it
 
 	if updatepal then
-		maybe_do_gfx_setpal
+		if is32bit = NO then maybe_do_gfx_setpal
 		if recordvid then
-			recordvid->record_frame vpages(getvispage()), intpal()
+			recordvid->record_frame vpages(vispage), intpal()
 		end if
 	end if
 
+	dim holdscreen as integer
 	dim startpal(255) as RGBcolor
-	'This will be equal to curmasterpal unless we're faded out
-	for j as integer = 0 to 255
-		startpal(j) = intpal(j)
-	next
+
+	if is32bit then
+		holdscreen = duplicatepage(vispage)
+	else
+		'This will be equal to curmasterpal unless we're faded out
+		memcpy(@startpal(0), @intpal(0), 256 * SIZEOF(RGBcolor))
+	end if
 
 	dim ticks as integer = large(1, fadems / 16.67)
 	for tick as integer = 1 to ticks
@@ -1360,22 +1383,39 @@ local sub fadetopal_internal(pal() as RGBcolor, fadems as integer = 500)
 		dim x as double = tick / ticks
 		dim fraction as double = x / 2 + 3 * x*x / 2 - x*x*x
 
-		for j as integer = 0 to 255
-			intpal(j).r = pal(j).r * fraction + startpal(j).r * (1 - fraction)
-			intpal(j).g = pal(j).g * fraction + startpal(j).g * (1 - fraction)
-			intpal(j).b = pal(j).b * fraction + startpal(j).b * (1 - fraction)
-		next
-		maybe_do_gfx_setpal
+		if is32bit then
+			'Draw a transparent rect over vispage
+			if fading_in then fraction = 1 - fraction
+			if was_faded_in andalso fading_in then fraction = 0  'noop
+			if was_faded_in = NO andalso fading_in = NO then fraction = 1  'noop
+			copypage holdscreen, vispage
+			trans_rectangle vpages(vispage), XYWH(0,0,rWidth,rHeight), col, fraction
+			faded_in = YES  'Needed to stop setvispage from doing its own fade handling
+			setvispage vispage
+		else
+			'Don't modify vispage, instead modify intpal and redisplay with that
+			for j as integer = 0 to 255
+				intpal(j).r = pal(j).r * fraction + startpal(j).r * (1 - fraction)
+				intpal(j).g = pal(j).g * fraction + startpal(j).g * (1 - fraction)
+				intpal(j).b = pal(j).b * fraction + startpal(j).b * (1 - fraction)
+			next
+			maybe_do_gfx_setpal
+		end if
 
 		if tick mod 3 = 0 then
 			' We're assuming that the page hasn't been modified since the last setvispage
 			if recordvid then
-				recordvid->record_frame vpages(getvispage()), intpal()
+				recordvid->record_frame vpages(vispage), intpal()
 			end if
 		end if
 
 		dowait
 	next
+
+	if is32bit then
+		copypage holdscreen, vispage
+		freepage holdscreen
+	end if
 
 	'This function was probably called in the middle of timed loop, call
 	'setwait to avoid "dowait called without setwait" warnings
@@ -1388,19 +1428,22 @@ sub fadetocolor(col as RGBcolor, fadems as integer = 500)
 	for j as integer = 0 to 255
 		pal(j) = col
 	next
-	fadetopal_internal pal(), fadems
+	fadetopal_internal pal(), col, fadems, NO
 
 	faded_in = NO
 	faded_to_color = col
 
+	'In 8-bit mode, intpal() is now equal to pal()/col. In 32-bit mode, not modified
 	'Do not update curmasterpal, it contains non-faded palette
 end sub
 
+'NOTE: In 32-bit mode we don't support fading between two master palettes, only out and back in to the original palette!
 sub fadetopal(pal() as RGBcolor, fadems as integer = 500)
-	fadetopal_internal pal(), fadems
+	fadetopal_internal pal(), faded_to_color, fadems, YES
 
 	faded_in = YES
 
+	memcpy(@intpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
 	'If fadetopal/fadein is used, it means setpal wasn't called, so we need to replicate
 	'the other thing setpal does: update curmasterpal
 	memcpy(@curmasterpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
