@@ -19,7 +19,7 @@ end sub
 dim to_pal as bool = NO
 dim to_24 as bool = NO
 dim dither as bool = NO
-
+dim quality as integer = 95
 dim cmdidx as integer = 1
 do
         if COMMAND(cmdidx) = "-pal" then
@@ -28,6 +28,11 @@ do
                 to_24 = YES
         elseif COMMAND(cmdidx) = "-d" then
                 dither = YES
+        elseif COMMAND(cmdidx) = "-q" then
+                'For jpeg 0-100, for png 0-2
+                cmdidx += 1
+                quality = VALINT(COMMAND(cmdidx))
+                print "Quality " & quality
         else
                 exit do
         end if
@@ -54,9 +59,10 @@ if info.supported = NO then  ' Unreadable, invalid, or unsupported
 	end 1
 end if
 
+dim pal(255) as RGBColor
+
 if info.paletted andalso to_24 = NO then
         ' Paletted input and output. Copy palette.
-        dim pal(255) as RGBColor
         dim fr as Frame ptr
         fr = image_import_as_frame_paletted(src, pal())
         if fr then frame_export_image fr, dest, pal()
@@ -78,5 +84,13 @@ else
         if dither = NO then kGifMaxAccumError = 0
         dim surf as Surface ptr
         surf = image_import_as_surface(src, YES)  'always_32bit=YES
-        if surf then surface_export_image surf, dest
+        if surf = 0 then fatalerror "Couldn't read file"
+        if image_file_type(dest) = imJPEG then
+                surface_export_jpeg surf, dest, quality
+        elseif image_file_type(dest) = imPNG then
+                if quality = 95 then quality = 1  'Default
+                surface_export_png surf, dest, pal(), , quality  'pal() ignored
+        else
+                surface_export_image surf, dest
+        end if
 end if

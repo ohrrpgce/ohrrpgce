@@ -46,7 +46,7 @@ Returns 0 on success or a gzip_error_text() error code.
 
 See also the gzip specification, RFC 1952: http://www.gzip.org/zlib/rfc-gzip.html
 */
-int compress_gzip(const unsigned char *in, size_t insize, unsigned char **outp, size_t *outsizep)
+int compress_gzip(const unsigned char *in, size_t insize, unsigned char **outp, size_t *outsizep, int maxcomp)
 {
   if (outp) *outp = NULL;
   if (outsizep) *outsizep = 0;
@@ -70,7 +70,7 @@ int compress_gzip(const unsigned char *in, size_t insize, unsigned char **outp, 
   out[9] = 255; //OS unknown
 
   LodePNGCompressSettings settings = lodepng_default_compress_settings;
-  settings.windowsize = 16384; // Default is only 2048, max is 32768.
+  settings.windowsize = maxcomp ? 32768 : 16384; // Default is only 2048, max is 32768.
   // LodePNG needs a windowsize of 32768 just to match gzip at default compression level.
 
   int ret;

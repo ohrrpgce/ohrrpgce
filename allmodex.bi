@@ -382,6 +382,7 @@ TYPE ImageFileInfo
 	bpp as integer      'Bits per pixel
 END TYPE
 
+DECLARE FUNCTION image_file_type (filename as string) as ImageFileTypes
 DECLARE FUNCTION image_read_info (filename as string) as ImageFileInfo
 DECLARE FUNCTION image_load_palette (filename as string, pal() as RGBcolor) as integer
 DECLARE FUNCTION image_import_as_frame_raw (filename as string) as Frame ptr
@@ -410,12 +411,15 @@ DECLARE SUB stop_recording_video()
 DECLARE SUB frame_export_bmp4 (f as string, fr as Frame Ptr, maspal() as RGBcolor, pal as Palette16 ptr)
 DECLARE SUB frame_export_bmp8 (f as string, fr as Frame Ptr, maspal() as RGBcolor)
 DECLARE SUB surface_export_bmp24 (f as string, surf as Surface Ptr)
+DECLARE SUB surface_export_bmp (f as string, surf as Surface Ptr, maspal() as RGBcolor)
 DECLARE SUB frame_export_bmp (fname as string, fr as Frame ptr, maspal() as RGBcolor, pal as Palette16 ptr = NULL)
 
 DECLARE FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
 
 DECLARE FUNCTION surface_export_jpeg(surf as Surface ptr, filename as string, quality as integer = 95) as bool
 DECLARE FUNCTION frame_export_jpeg(fr as Frame ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, quality as integer = 95) as bool
+
+DECLARE FUNCTION surface_export_png(surf as Surface ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, compress as integer = 1) as bool
 
 'Read BMP info or palette
 DECLARE FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer

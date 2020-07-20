@@ -11,7 +11,7 @@ enum
 	GZ_UNSUPPORTED = -3
 end enum
 
-declare function compress_gzip(byval in as const ubyte ptr, byval insize as size_t, byval outp as ubyte ptr ptr, byval outsizep as size_t ptr) as long
+declare function compress_gzip(byval in as const ubyte ptr, byval insize as size_t, byval outp as ubyte ptr ptr, byval outsizep as size_t ptr, byval maxcomp as long = 0) as long
 declare function decompress_gzip(byval in as const ubyte ptr, byval insize as size_t, byval outp as ubyte ptr ptr, byval outsizep as size_t ptr) as long
 declare function gzip_error_text(byval code as long) as const zstring ptr
 

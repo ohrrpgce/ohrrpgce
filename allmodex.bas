@@ -7250,7 +7250,7 @@ end function
 '8-bit Surfaces:  preserves palette indices. pal is optional.
 '32-bit Surfaces: masterpal() and pal and the alpha channel are ignored.
 '                 The output .png will be paletted if the input has <= 256 colors.
-function surface_export_png(surf as Surface ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, fast as bool = NO) as bool
+function surface_export_png(surf as Surface ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, compress as integer = 1) as bool
 	dim filebuf as byte ptr
 	dim filebufsize as size_t
 	dim pixelbuf as byte ptr
@@ -7261,7 +7261,7 @@ function surface_export_png(surf as Surface ptr, filename as string, masterpal()
 	state.info_png.color.bitdepth = 8
 
 	'Default is 2048. 8192 and above are much slower, because they're size-optimised
-	state.encoder.zlibsettings.windowsize = iif(fast, 512, 4096)
+	state.encoder.zlibsettings.windowsize = iif(compress <= 0, 512, iif(compress >= 2, 32768, 4096))
 
 	if surf->format = SF_8bit then
 		state.info_raw.colortype = LCT_PALETTE
@@ -7316,12 +7316,13 @@ function surface_export_png(surf as Surface ptr, filename as string, masterpal()
 end function
 
 'Write a Frame to a paletted .png file, preserving palette indices. pal is optional.
-function frame_export_png(fr as Frame ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, fast as bool = NO) as bool
+'compress: amount of compression (affects speed), 0, 1 or 2
+function frame_export_png(fr as Frame ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, compress as integer = 1) as bool
 	dim surf as Surface ptr
 	if gfx_surfaceCreateFrameView(fr, @surf) then return NO
 
 	dim ret as bool
-	ret = surface_export_png(surf, filename, masterpal(), pal, fast)
+	ret = surface_export_png(surf, filename, masterpal(), pal, compress)
 
 	gfx_surfaceDestroy(@surf)
 	return ret
