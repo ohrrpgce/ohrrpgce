@@ -32,7 +32,7 @@ mutex surfaceMutex;
 int gfx_debugSurfaces_SW() {
 	debuginfo("%d Surfaces:", (int)g_surfaces.size());
 	for (auto pSurf : g_surfaces) {
-		debuginfo("%p %d*%d refc=%d view=%d 32bit=%d base_surf=%p", pSurf, pSurf->width, pSurf->height, pSurf->refcount, pSurf->isview, (pSurf->format == SF_32bit), pSurf->base_surf);
+		debuginfo("%p %d*%d refc=%d view=%d 32bit=%d base_surf=%p base_frame=%p", pSurf, pSurf->width, pSurf->height, pSurf->refcount, pSurf->isview, (pSurf->format == SF_32bit), pSurf->base_surf, pSurf->base_frame);
 	}
 	return g_surfaces.size();
 }
@@ -148,7 +148,9 @@ int surfaceFrameShim( Frame* pFrameIn, Surface* pSurfaceOut )
 	pSurfaceOut->usage = SU_Source;
 	pSurfaceOut->refcount = 999;  //Ensure never deleted
 	pSurfaceOut->isview = 1;
-	pSurfaceOut->base_frame = pFrameIn;
+	pSurfaceOut->base_frame = pFrameIn;  //For debugging; should never be used for anything
+	pSurfaceOut->base_surf = NULL;
+	pSurfaceOut->handle = NULL;
 	return 0;
 }
 

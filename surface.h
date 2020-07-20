@@ -54,7 +54,8 @@ struct Surface
 	RGBcolor& pixel32(int x, int y) { return ((RGBcolor*)pColorData)[pitch * y + x]; }
 
 	Surface(int _width, int _height, int _pitch, SurfaceFormat _format, SurfaceUsage _usage)
-		: width(_width), height(_height), pitch(_pitch), refcount(1), format(_format), usage(_usage)
+		: width(_width), height(_height), pitch(_pitch), refcount(1), isview(0),
+		format(_format), usage(_usage), base_frame(0), base_surf(0), handle(0), pRawData(0)
 		{}
 #endif
 };
