@@ -414,14 +414,14 @@ dim shared textfg as integer
 dim shared textbg as integer
 
 'Master palette copies internal to allmodex.
-'master() is usually equal to these two, but does not take effect until setpal() is called.
-'intpal is used for display (including screenshots and gifs), while curmasterpal is for drawing.
+'master() is usually equal to these two, but does not take effect until setpal or fadein is called.
+'displaypal is used for display (including screenshots and gifs), while curmasterpal is for drawing.
 'curmasterpal is used for colors drawn to a 32-bit vpage, and for nearcolor lookups when drawing
 'to a 8-bit vpage (e.g. drawing with blending), and for exporting.
-'In 32-bit mode, intpal and curmasterpal are always equal, in 8-bit mode, intpal gets faded in and out.
-dim shared intpal(0 to 255) as RGBcolor       'Current display palette; in 8-bit mode includes screen fades
+'In 32-bit mode, displaypal and curmasterpal are always equal, in 8-bit mode, displaypal gets faded in and out.
+dim shared displaypal(0 to 255) as RGBcolor   'Current display palette; in 8-bit mode includes screen fades
 extern "C"
-dim shared curmasterpal(0 to 255) as RGBcolor 'Palette at last setpal(), excludes any screen fades
+dim shared curmasterpal(0 to 255) as RGBcolor 'Palette at last setpal/fadein, excludes any screen fades
 end extern
 
 dim shared updatepal as bool             'setpal called, load new palette at next setvispage
@@ -1218,7 +1218,7 @@ sub setvispage (page as integer, skippable as bool = YES)
 	'F12 for screenshots handled here (uses real_keyval)
 	snapshot_check
 	if recordvid then
-		recordvid->record_frame vpages(drawpage), intpal()
+		recordvid->record_frame vpages(drawpage), displaypal()
 	end if
 
 	if screenshot_record_overlays = NO then
@@ -1271,7 +1271,7 @@ local sub present_internal_frame(drawpage as integer)
 	dim surface_pal as RGBPalette ptr
 	if surf->format = SF_8bit then
 		' Need to provide a palette
-		gfx_paletteFromRGB(@intpal(0), @surface_pal)
+		gfx_paletteFromRGB(@displaypal(0), @surface_pal)
 	end if
 
 	gfx_present(surf, surface_pal)
@@ -1288,7 +1288,7 @@ local sub present_internal_surface(drawpage as integer)
 	dim surface_pal as RGBPalette ptr
 	if drawsurf->format = SF_8bit then
 		' Need to provide a palette
-		gfx_paletteFromRGB(@intpal(0), @surface_pal)
+		gfx_paletteFromRGB(@displaypal(0), @surface_pal)
 	end if
 
 	gfx_present(drawsurf, surface_pal)
@@ -1306,7 +1306,7 @@ end sub
 
 ' Change the palette at the NEXT setvispage call (or before next screen fade).
 sub setpal(pal() as RGBcolor)
-	memcpy(@intpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
+	memcpy(@displaypal(0), @pal(0), 256 * SIZEOF(RGBcolor))
 	memcpy(@curmasterpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
 	masterpal_changed
 	updatepal = YES
@@ -1324,7 +1324,7 @@ sub setpal_to_color(col as RGBcolor)
 	faded_to_color = col
 	if vpages_are_32bit() = NO then
 		for i as integer = 0 to 255
-			intpal(i) = col
+			displaypal(i) = col
 		next
 	end if
 	'Do not update curmasterpal
@@ -1344,12 +1344,12 @@ local sub maybe_do_gfx_setpal()
 	updatepal = NO
 
 	GFX_ENTER
-	gfx_setpal(@intpal(0))
+	gfx_setpal(@displaypal(0))
 	GFX_EXIT
 end sub
 
 'A fade in or out.
-'This modifies intpal() only in 8-bit color mode
+'This modifies displaypal() only in 8-bit color mode
 'pal() is used only in 8-bit mode. fadecol is used only in 32-bit mode
 'so don't support fading between two master palettes!
 local sub fadetopal_internal(pal() as RGBcolor, col as RGBcolor, fadems as integer, fading_in as bool)
@@ -1362,7 +1362,7 @@ local sub fadetopal_internal(pal() as RGBcolor, col as RGBcolor, fadems as integ
 	if updatepal then
 		if is32bit = NO then maybe_do_gfx_setpal
 		if recordvid then
-			recordvid->record_frame vpages(vispage), intpal()
+			recordvid->record_frame vpages(vispage), displaypal()
 		end if
 	end if
 
@@ -1373,7 +1373,7 @@ local sub fadetopal_internal(pal() as RGBcolor, col as RGBcolor, fadems as integ
 		holdscreen = duplicatepage(vispage)
 	else
 		'This will be equal to curmasterpal unless we're faded out
-		memcpy(@startpal(0), @intpal(0), 256 * SIZEOF(RGBcolor))
+		memcpy(@startpal(0), @displaypal(0), 256 * SIZEOF(RGBcolor))
 	end if
 
 	dim ticks as integer = large(1, fadems / 16.67)
@@ -1395,11 +1395,11 @@ local sub fadetopal_internal(pal() as RGBcolor, col as RGBcolor, fadems as integ
 			faded_in = YES  'Needed to stop setvispage from doing its own fade handling
 			setvispage vispage
 		else
-			'Don't modify vispage, instead modify intpal and redisplay with that
+			'Don't modify vispage, instead modify displaypal and redisplay with that
 			for j as integer = 0 to 255
-				intpal(j).r = pal(j).r * fraction + startpal(j).r * (1 - fraction)
-				intpal(j).g = pal(j).g * fraction + startpal(j).g * (1 - fraction)
-				intpal(j).b = pal(j).b * fraction + startpal(j).b * (1 - fraction)
+				displaypal(j).r = pal(j).r * fraction + startpal(j).r * (1 - fraction)
+				displaypal(j).g = pal(j).g * fraction + startpal(j).g * (1 - fraction)
+				displaypal(j).b = pal(j).b * fraction + startpal(j).b * (1 - fraction)
 			next
 			maybe_do_gfx_setpal
 		end if
@@ -1407,7 +1407,7 @@ local sub fadetopal_internal(pal() as RGBcolor, col as RGBcolor, fadems as integ
 		if tick mod 3 = 0 then
 			' We're assuming that the page hasn't been modified since the last setvispage
 			if recordvid then
-				recordvid->record_frame vpages(vispage), intpal()
+				recordvid->record_frame vpages(vispage), displaypal()
 			end if
 		end if
 
@@ -1435,7 +1435,7 @@ sub fadetocolor(col as RGBcolor, fadems as integer = 500)
 	faded_in = NO
 	faded_to_color = col
 
-	'In 8-bit mode, intpal() is now equal to pal()/col. In 32-bit mode, not modified
+	'In 8-bit mode, displaypal() is now equal to pal()/col. In 32-bit mode, not modified
 	'Do not update curmasterpal, it contains non-faded palette
 end sub
 
@@ -1445,7 +1445,7 @@ sub fadetopal(pal() as RGBcolor, fadems as integer = 500)
 
 	faded_in = YES
 
-	memcpy(@intpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
+	memcpy(@displaypal(0), @pal(0), 256 * SIZEOF(RGBcolor))
 	'If fadetopal/fadein is used, it means setpal wasn't called, so we need to replicate
 	'the other thing setpal does: update curmasterpal
 	memcpy(@curmasterpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
@@ -8065,8 +8065,8 @@ end sub
 
 constructor GIFRecorder(outfile as string, secondscreen as string = "")
 	dim gifpal as GifPalette
-	' Use curmasterpal() rather than actual palette (intpal()), because
-	' intpal() is affected by fades. We want the master palette,
+	' Use curmasterpal() rather than actual palette (displaypal()), because
+	' displaypal() is affected by fades. We want the master palette,
 	' because that's likely to be the palette for most frames.
 	GifPalette_from_pal gifpal, curmasterpal()
 	this.fname = outfile
@@ -8244,7 +8244,7 @@ function screenshot (basename as string) as string
 	if use_gfx_screenshot = NO ORELSE gfx_screenshot(basename) = 0 then
 		'otherwise save it ourselves
 		ret = basename & screenshot_format
-		frame_export_image(vpages(getvispage), ret, intpal())
+		frame_export_image(vpages(getvispage), ret, displaypal())
 		return ret
 	end if
 	' The reason for this for loop is that we don't know what extension the gfx backend
@@ -8260,7 +8260,7 @@ end function
 sub bmp_screenshot(basename as string)
 	'This is for when you explicitly want a bmp screenshot, and NOT the preferred
 	'screenshot type used by the current gfx backend
-	frame_export_bmp(basename & ".bmp", vpages(getvispage), intpal())
+	frame_export_bmp(basename & ".bmp", vpages(getvispage), displaypal())
 end sub
 
 ' Find an available screenshot name in the current directory.
