@@ -413,11 +413,13 @@ dim shared cursorvisibility as CursorVisibility = cursorDefault
 dim shared textfg as integer
 dim shared textbg as integer
 
+'Master palette copies internal to allmodex.
 'master() is usually equal to these two, but does not take effect until setpal() is called.
-'In most cases intpal should be used, including when drawing to a 32-bit vpage, but curmasterpal
-'should be used when drawing to a 8-bit vpage (e.g. drawing with blending).
-'In 32-bit mode, intpal and curmasterpal are always equal
-dim shared intpal(0 to 255) as RGBcolor       'Current palette, with any screen fading applied in 8-bit mode
+'intpal is used for display (including screenshots and gifs), while curmasterpal is for drawing.
+'curmasterpal is used for colors drawn to a 32-bit vpage, and for nearcolor lookups when drawing
+'to a 8-bit vpage (e.g. drawing with blending), and for exporting.
+'In 32-bit mode, intpal and curmasterpal are always equal, in 8-bit mode, intpal gets faded in and out.
+dim shared intpal(0 to 255) as RGBcolor       'Current display palette; in 8-bit mode includes screen fades
 extern "C"
 dim shared curmasterpal(0 to 255) as RGBcolor 'Palette at last setpal(), excludes any screen fades
 end extern
@@ -739,7 +741,7 @@ sub switch_to_32bit_vpages ()
 		'Skip duplicated ('holdscreen') pages
 		if vpages(i) andalso vpages(i)->fixeddepth = 0 then
 			if vpages(i)->isview = NO then
-				frame_convert_to_32bit vpages(i), intpal()
+				frame_convert_to_32bit vpages(i), curmasterpal()
 				'Any view onto the page will now be invalid (containing an invalid ptr)
 			else
 				'Hack: assume the page is a compatpage (view of vpage) and i > vpage
@@ -1298,7 +1300,7 @@ end sub
 local sub masterpal_changed()
 	delete_KDTree(nearcolor_kdtree)
 	'Build tree which excludes color 0 (callers to nearcolor_fast rely on this)
-	nearcolor_kdtree = make_KDTree_for_palette(@intpal(0), 8, 1)
+	nearcolor_kdtree = make_KDTree_for_palette(@curmasterpal(0), 8, 1)
 	memset(@nearcolor_cache(0), 0, ubound(nearcolor_cache) + 1)
 end sub
 
@@ -3976,7 +3978,7 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 				end if
 
 				'draw it on the map
-				frame_draw_internal(@tileframe, intpal(), pal, tx, ty, trans, dest, opts)
+				frame_draw_internal(@tileframe, curmasterpal(), pal, tx, ty, trans, dest, opts)
 			end if
 
 			tx = tx + 20
@@ -4242,8 +4244,8 @@ sub drawants(dest as Frame ptr, x as RelPos, y as RelPos, wide as RelPos, high a
 	dim as integer color2 = uilook(uiBackground)
 	if dest->surf andalso dest->surf->format = SF_32bit then
 		'putpixel takes BGRA, not master palette index
-		color = intpal(color).col
-		color2 = intpal(color2).col
+		color = curmasterpal(color).col
+		color2 = curmasterpal(color2).col
 	end if
 
 	' Decode relative positions/sizes to absolute
@@ -4364,7 +4366,7 @@ sub rectangle (fr as Frame Ptr, byval rect as RelRectType, c as integer)
 		dim srect as SurfaceRect = (rect.x, rect.y, rect.x + rect.wide - 1, rect.y + rect.high - 1)
 		dim col as uint32 = c
 		if fr->surf->format = SF_32bit then
-			col = intpal(c).col
+			col = curmasterpal(c).col
 		end if
 		gfx_surfaceFill(col, @srect, fr->surf)
 	else
@@ -4448,7 +4450,7 @@ sub fuzzyrect (fr as Frame Ptr, byval rect as RelRectType, c as integer, fuzzfac
 		if pixformat = SF_32bit then
 			pitch *= 4
 			pixelbytes = 4
-			c = intpal(c).col
+			c = curmasterpal(c).col
 		end if
 	else
 		showbug "fuzzyrect: bad dest Frame"
@@ -4637,7 +4639,7 @@ sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2
 		sptr = dest->surf->pRawData
 		minorstep *= 4
 		majorstep *= 4
-		c = intpal(c).col
+		c = curmasterpal(c).col
 		is32bit = YES
 	else
 		showbug "drawline: bad Frame"
@@ -4760,8 +4762,8 @@ sub ellipse (fr as Frame ptr, x as double, y as double, radius as double, col as
 
 	if fr->surf andalso fr->surf->format = SF_32bit then
 		'putpixel takes BGRA, not master palette index
-		col = intpal(col).col
-		fillcol = intpal(fillcol).col
+		col = curmasterpal(col).col
+		fillcol = curmasterpal(fillcol).col
 	end if
 
 	dim byref cliprect as ClipState = get_cliprect(fr)
@@ -5486,7 +5488,7 @@ sub draw_line_fragment(dest as Frame ptr, byref state as PrintStrState, layer as
 							'(2-layer fonts would need layer 0 to be opaque)
 							'ALSO, this would stuff up ${KB#} on 2-layer fonts
 							if layer = 1 and state.not_transparent then trans = NO
-							frame_draw_internal(@charframe, intpal(), state.localpal, state.x + .offx, state.y + .offy - state.thefont->line_h, trans, dest)
+							frame_draw_internal(@charframe, curmasterpal(), state.localpal, state.x + .offx, state.y + .offy - state.thefont->line_h, trans, dest)
 						end with
 					end if
 				end if
@@ -7736,10 +7738,10 @@ sub surface_export_image (surf as Surface ptr, filename as string)
 	select case image_file_type(filename)
 		case imBMP
 			'Supports only 8bit Surfaces with backing Frame
-			surface_export_bmp filename, surf, intpal()
+			surface_export_bmp filename, surf, curmasterpal()
 		case imPNG
 			'Supports 8bit Surfaces
-			surface_export_png surf, filename, intpal() ' masterpal(), pal
+			surface_export_png surf, filename, curmasterpal() ' masterpal(), pal
 		case imGIF
 			'Doesn't support 8bit
 			surface_export_gif surf, filename
@@ -9696,11 +9698,11 @@ end constructor
 '    If the destination has a mask, sets the mask for the destination rectangle
 '    equal to the mask (or color-key) for the source rectangle. Does not OR them.
 sub frame_draw(src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, page as integer, opts as DrawOptions = def_drawoptions)
-	frame_draw src, intpal(), pal, x, y, trans, vpages(page), opts
+	frame_draw src, curmasterpal(), pal, x, y, trans, vpages(page), opts
 end sub
 
 sub frame_draw(src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
-	frame_draw src, intpal(), pal, x, y, trans, dest, opts
+	frame_draw src, curmasterpal(), pal, x, y, trans, dest, opts
 end sub
 
 ' Explicitly specify the master palette to use - it is only used if the src is 8-bit
@@ -10220,7 +10222,7 @@ function frame_rotozoom(src as Frame ptr, pal as Palette16 ptr = NULL, angle as 
 		'Going to perform smoothing
 		'Can't do any smoothing with an 8-bit input Surface, since the rotozoomer
 		'doesn't do 8->32 bit like frame_draw can.
-		in_surf = frame_to_surface32(src, intpal(), pal)
+		in_surf = frame_to_surface32(src, curmasterpal(), pal)
 	else
 		'Correct but slower:
 		'if gfx_surfaceCreateFrameView(src, @in_surf) then return NULL
