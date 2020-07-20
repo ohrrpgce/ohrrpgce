@@ -947,7 +947,7 @@ SUB minimap (playerpos as XYPair)
  LOOP UNTIL anykeypressed(YES, YES)  'inc. joystick and mouse
  setkeys
  MenuSound gen(genCancelSFX)
- switch_to_8bit_vpages
+ IF gen(gen32bitMode) THEN switch_to_32bit_vpages ELSE switch_to_8bit_vpages
 END SUB
 
 'The map-teleport debug menu.
@@ -1104,7 +1104,7 @@ FUNCTION teleporttool () as bool
  restore_previous_palette
  setkeys
  MenuSound gen(genCancelSFX)
- switch_to_8bit_vpages
+ IF gen(gen32bitMode) THEN switch_to_32bit_vpages ELSE switch_to_8bit_vpages
 END FUNCTION
 
 'Load enough of a map's data to display it

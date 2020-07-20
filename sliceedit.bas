@@ -529,6 +529,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  '--Ensure all the slices are updated before the loop starts
  RefreshSliceTreeScreenPos ses.draw_root
 
+ DIM vpages_were_32bit as bool = vpages_are_32bit()
  push_and_reset_gfxio_state
  DO
   setwait 55
@@ -784,7 +785,11 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  '--free the clipboard if there is something in it
  IF ses.clipboard THEN DeleteSlice @ses.clipboard
 
- switch_to_8bit_vpages  'In case Ctrl-F3 used
+ IF vpages_were_32bit = NO THEN
+  switch_to_8bit_vpages
+ ELSE
+  switch_to_32bit_vpages
+ END IF
  pop_gfxio_state
 
  slice_editor_save_settings ses

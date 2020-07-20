@@ -1260,6 +1260,9 @@ SUB GeneralSettingsMenu.update()
  add_item , , "Framerate: " & fps & " frames/sec (" & gen(genMillisecPerFrame) & "ms/frame)"
  gen_int genMillisecPerFrame, 16, 200
 
+ add_item , , "Color depth: " & IIF(gen(gen32bitMode), "24-bit (true color)", "8-bit (limit to master palette)")
+ gen_int gen32bitMode, 0, 1
+
  DIM ticks as integer = gen(genTicksPerWalkFrame)
  tmp = "Walk animation rate: "
  IF ticks = 0 THEN

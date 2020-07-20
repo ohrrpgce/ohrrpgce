@@ -1113,9 +1113,12 @@ FUNCTION automatic_scale_factor (screen_fraction as double) as integer
  RETURN scale
 END FUNCTION
 
-'Set the game resolution and size of the window.
+'Set the game resolution, size of the window, and bitdepth.
 'This can be called when live-previewing when resolution settings change
 SUB apply_game_window_settings (reloading as bool = NO)
+
+ IF gen(gen32bitMode) THEN switch_to_32bit_vpages ELSE switch_to_8bit_vpages
+
  'This can happen while live-previewing, or maybe messing around with writegeneral
  IF gen(genResolutionX) < 10 OR gen(genResolutionY) < 10 THEN EXIT SUB
 
@@ -1371,7 +1374,7 @@ SUB reload_gen()
    gen(j) = newgen(j)
    'After updating gen()
    SELECT CASE j
-    CASE genResolutionX, genResolutionY, genWindowSize, genLivePreviewWindowSize, genRungameFullscreenIndependent
+    CASE genResolutionX, genResolutionY, genWindowSize, genLivePreviewWindowSize, genRungameFullscreenIndependent, gen32bitMode
      should_reset_window = YES
     CASE genMillisecPerFrame
      set_speedcontrol gen(genMillisecPerFrame)

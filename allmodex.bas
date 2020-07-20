@@ -1319,7 +1319,7 @@ end sub
 '-Sets faded_in = NO, not YES
 'The difference from calling fadetocolor with fadems=0 is just that it doesn't
 'immediately redraw the screen.
-sub setpal_to_color(col as RGBcolor)
+sub setpal_to_color(col as RGBcolor = TYPE(0))
 	col.a = 255
 	faded_to_color = col
 	if vpages_are_32bit() = NO then

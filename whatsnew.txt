@@ -12,6 +12,8 @@ August ? 2020 [H???]
       the in-game slice debugger [Ralph]
     * F8 debug menu option "Enable/Disable random battles" [Ralph]
     * Better, smoother screen fading in/out [Ralph]
+    * Option (in General Settings Menu) to run in 24-bit color mode. Much nicer
+      looking transparent sprites, but slower [Ralph]
 
    * New Plotscripting Features
     * "set timer args" [Ralph]

@@ -585,6 +585,7 @@ setfont current_font()
 loadglobalstrings
 getstatnames statnames()
 
+'Setup script interpreter
 load_hsp
 'Might be changed by --errlvl commandline option
 'Default to showing all errors. genErrorLevel is no longer used (but might be again in future)
@@ -618,9 +619,11 @@ reset_game_state
 
 DO' This loop encloses the playable game for a specific RPG file
 
-
+'Screen currently faded out. Load palette
 gam.current_master_palette = gen(genMasterPal)
 load_master_and_uicol gam.current_master_palette
+setpal master()  'Required in 32-bit color mode
+setpal_to_color  'Hide the effect of setpal (switch display palette to black)
 
 set_speedcontrol gen(genMillisecPerFrame)
 set_animation_framerate gen(genMillisecPerFrame)
