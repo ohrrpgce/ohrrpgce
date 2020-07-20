@@ -4050,7 +4050,7 @@ FUNCTION count_directory_size(directory as string) as integer
  RETURN bytes
 END FUNCTION
 
-'Return contents of a file as a string
+'Return contents of a binary file as a string
 FUNCTION read_file (filename as string) as string
  DIM buflen as integer = FILELEN(filename)
  DIM buf as string = STRING(buflen, 0)
@@ -4060,6 +4060,15 @@ FUNCTION read_file (filename as string) as string
  CLOSE #fh
  RETURN buf
 END FUNCTION
+
+'Write binary data (as a string) to a file
+SUB write_file (filename as string, outdata as string)
+ DIM fh as integer
+ IF OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh) = fberrOK then  'truncate to 0 length
+  PUT #fh, , outdata
+  CLOSE #fh
+ END IF
+END SUB
 
 FUNCTION string_from_first_line_of_file (filename as string) as string
  'Read the first line of a text file and return it as a string.
@@ -4073,7 +4082,7 @@ FUNCTION string_from_first_line_of_file (filename as string) as string
 END FUNCTION
 
 FUNCTION string_from_file (filename as string) as string
- 'Read an entire file as a string.
+ 'Read an entire text file as a string and
  'convert the line endings to LF only
  DIM fh as integer
  DIM result as string = ""
@@ -4092,11 +4101,7 @@ SUB string_to_file (string_to_write as string, filename as string)
  'Write a string to a text file using native line endings
  DIM s as string = string_to_write
  replacestr string_to_write, !"\n", LINE_END
- DIM fh as integer
- IF OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh) = fberrOK then  'truncate to 0 length
-  PUT #fh, , s
-  CLOSE #fh
- END IF
+ write_file filename, s
 END SUB
 
 'Read each line of a file into a string array. Return true on success
