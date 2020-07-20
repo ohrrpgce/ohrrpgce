@@ -4,6 +4,7 @@
 #include "config.bi"
 #include "common.bi"
 #include "allmodex.bi"
+#include "lib/lodepng_gzip.bi"
 
 sub usage()
         print "Convert 1/2/4/8/24-bit image from one supported file format"
@@ -19,7 +20,7 @@ end sub
 dim to_pal as bool = NO
 dim to_24 as bool = NO
 dim dither as bool = NO
-dim quality as integer = 95
+dim quality as integer = 0
 dim cmdidx as integer = 1
 do
         if COMMAND(cmdidx) = "-pal" then
@@ -61,7 +62,33 @@ end if
 
 dim pal(255) as RGBColor
 
-if info.paletted andalso to_24 = NO then
+if right(dest, 7) = ".bmp.gz" then
+	dim surf as Surface ptr
+	surf = image_import_as_surface(src, YES)  'always_32bit=YES
+	if surf = 0 then fatalerror "Couldn't read file"
+	image_load_palette(src, pal())
+
+	dim tempfile as string = "_imageconv.bmp.tmp"
+	surface_export_bmp tempfile, surf, pal()
+	dim indata as string = read_file(tempfile)
+	kill tempfile
+
+	'Compress
+	dim outdata as byte ptr
+	dim outdatasize as size_t
+	dim starttime as double = timer
+	starttime = timer
+	if compress_gzip(strptr(indata), len(indata), @outdata, @outdatasize, quality) then fatalerror "Compress failed"
+	print "lode-gzip compressed in " & cint((timer - starttime) * 1e3) & " ms"
+
+	dim fil as FILE ptr
+	fil = fopen(strptr(dest), "wb")
+	if fil = NULL then fatalerror "fopen dest failed"
+	if fwrite(outdata, 1, outdatasize, fil) <> outdatasize then fatalerror "fwrite to dest failed"
+	fclose(fil)
+	deallocate outdata
+
+elseif info.paletted andalso to_24 = NO then
         ' Paletted input and output. Copy palette.
         dim fr as Frame ptr
         fr = image_import_as_frame_paletted(src, pal())
@@ -86,10 +113,9 @@ else
         surf = image_import_as_surface(src, YES)  'always_32bit=YES
         if surf = 0 then fatalerror "Couldn't read file"
         if image_file_type(dest) = imJPEG then
-                surface_export_jpeg surf, dest, quality
+                surface_export_jpeg surf, dest, iif(quality, quality, 95)
         elseif image_file_type(dest) = imPNG then
-                if quality = 95 then quality = 1  'Default
-                surface_export_png surf, dest, pal(), , quality  'pal() ignored
+                surface_export_png surf, dest, pal(), , iif(quality, quality, 1)  'pal() ignored
         else
                 surface_export_image surf, dest
         end if
