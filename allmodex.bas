@@ -1356,6 +1356,7 @@ local sub fadetopal_internal(pal() as RGBcolor, col as RGBcolor, fadems as integ
 	dim vispage as integer = getvispage()
 	dim is32bit as bool = vpages_are_32bit()
 	dim was_faded_in as bool = faded_in
+	dim prev_fade_color as RGBcolor = faded_to_color
 
 	skipped_frame.show()  'If we frame-skipped last frame, better show it
 
@@ -1389,8 +1390,13 @@ local sub fadetopal_internal(pal() as RGBcolor, col as RGBcolor, fadems as integ
 			'Draw a transparent rect over vispage
 			if fading_in then fraction = 1 - fraction
 			if was_faded_in andalso fading_in then fraction = 0  'noop
-			if was_faded_in = NO andalso fading_in = NO then fraction = 1  'noop
-			copypage holdscreen, vispage
+			if was_faded_in = NO andalso fading_in = NO then
+				'fraction = 1  'noop
+				'Fading between two colors
+				gfx_surfaceFill(prev_fade_color.col, NULL, vpages(vispage)->surf)
+			else
+				copypage holdscreen, vispage
+			end if
 			trans_rectangle vpages(vispage), XYWH(0,0,rWidth,rHeight), col, fraction
 			faded_in = YES  'Needed to stop setvispage from doing its own fade handling
 			setvispage vispage
