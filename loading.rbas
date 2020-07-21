@@ -3109,6 +3109,10 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .randomization = buf(337)
   .damage_color = buf(338) '0 for default ot master palette index+1
   .counterattack_provoke = buf(340)
+  .targ_offset_x = buf(344)
+  .targ_offset_y = buf(345)
+  .targ_halign = buf(346)
+  .targ_valign = buf(347)
   '----Chaining----
   loadattackchain .chain, buf(), 12, 13, 101, 102, 103, 104
   loadattackchain .elsechain, buf(), 105, 107, 106, 108, 109, 110

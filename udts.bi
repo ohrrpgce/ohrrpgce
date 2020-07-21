@@ -746,6 +746,10 @@ Type AttackData
 	randomization as integer
 	absorb_rate as single
 	damage_color as integer '0 is default, >=1 is palette index (color zero not available)
+	targ_offset_x as integer
+	targ_offset_y as integer
+	targ_halign as integer
+	targ_valign as integer
 	'----Bitsets----
 	cure_instead_of_harm as bool
 	divide_spread_damage as bool
