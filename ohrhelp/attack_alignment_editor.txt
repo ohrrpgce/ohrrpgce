@@ -1,0 +1,7 @@
+Here you can customize how an attack animation aligns with a target.
+
+By default, the attack will be centered, but sometimes you don't want that.
+
+For best results, test out your alignment on enemies of different sizes.
+
+For projectile attack animations, the alignment is just the point where the attack will aim towards (or come from, in the case of a reverse projectile)
