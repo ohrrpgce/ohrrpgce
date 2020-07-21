@@ -1,7 +1,7 @@
 WHAT IS NEW?
 
 
-August ? 2020 [H???]
+August ? 2020 [Hróðvitnir]
 
   *** New Features
     * Slice Editor Settings menu. Press F8 to open. You no longer need to
@@ -14,6 +14,7 @@ August ? 2020 [H???]
     * Better, smoother screen fading in/out [Ralph]
     * Option (in General Settings Menu) to run in 24-bit color mode. Much nicer
       looking transparent sprites, but slower [Ralph]
+    * Attacks can have custom alignment relative to their targets
 
    * New Plotscripting Features
     * "set timer args" [Ralph]
