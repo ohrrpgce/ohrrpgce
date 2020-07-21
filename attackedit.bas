@@ -2915,6 +2915,7 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
   
   clearpage vpage
   'Paint preview
+  atk_edit_preview attack.anim_pattern, atk_spr
   DrawSlice preview_box, vpage
   'Show menu
   standardmenu menu(), state, 0, 0, vpage
