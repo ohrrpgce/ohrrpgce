@@ -1841,6 +1841,7 @@ SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integ
   'workmenu() = AtkStealFailSoundEffect
   workmenu(14) = AtkLearnSoundEffect
   workmenu(15) = AtkDamageColor
+  'Be careful when adding new menu items here. See that more are sometimes apended below
   state.last = 15
 
   DIM anim as integer = recbuf(AtkDatAnimAttacker)
@@ -1850,13 +1851,13 @@ SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integ
   ORELSE anim = atkrAnimTeleport _
   ORELSE anim = atkrAnimStandingStrike _
   THEN
-   workmenu(15) = AtkWepPic
-   state.last = 15
+   workmenu(17) = AtkWepPic
+   state.last = 17
    IF recbuf(AtkDatWepPic) > 0 THEN
-    workmenu(16) = AtkWepPal
-    workmenu(17) = AtkWepHand0
-    workmenu(18) = AtkWepHand1
-    state.last = 18
+    workmenu(18) = AtkWepPal
+    workmenu(19) = AtkWepHand0
+    workmenu(20) = AtkWepHand1
+    state.last = 20
    END IF
   END IF
    
