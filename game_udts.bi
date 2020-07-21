@@ -208,6 +208,7 @@ TYPE GameState
   need_fade_in as bool
   fade_in_delay as integer
   fade_in_script_overridable as bool 'If true, the fade in can be cancelled by a fadescreenout command
+  need_fade_page as bool             'Use fadetopage instead of setvispage; used in 32-bit mode to fade between master palettes
   current_master_palette as integer  'gen(genMasterPal) or last call to "load palette" command
   showtext as string                 'Used for map names and other alerts
   showtext_ticks as integer          'Remaining number of ticks

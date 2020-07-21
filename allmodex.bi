@@ -127,10 +127,13 @@ DECLARE FUNCTION supports_fullscreen_well () as bool
 DECLARE FUNCTION try_check_fullscreen(byref fullscreen as bool) as bool
 
 DECLARE SUB setvispage (page as integer, skippable as bool = YES)
+DECLARE SUB fadetopage(oldpage as integer, newpage as integer, fadems as integer = 500)
 DECLARE FUNCTION getvispage () as integer
 DECLARE SUB setwindowtitle (title as string)
+DECLARE SUB setdrawpal (pal() as RGBcolor)
 DECLARE SUB setpal (pal() as RGBcolor)
 DECLARE SUB setpal_to_color (col as RGBcolor = TYPE(0))
+DECLARE FUNCTION masterpal_has_changed(pal() as RGBcolor) as bool
 DECLARE SUB fadetocolor (col as RGBcolor, fadems as integer = 500)
 DECLARE SUB fadetopal (pal() as RGBcolor, fadems as integer = 500)
 

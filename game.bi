@@ -12,6 +12,7 @@
 
 declare sub prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
 declare sub displayall()
+declare sub swap_or_fade_page (byref oldpage as integer, byref newpage as integer)
 
 declare sub gmap_updates()
 declare sub loadmap_gmap(byval mapnum as integer)

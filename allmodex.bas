@@ -418,7 +418,7 @@ dim shared textbg as integer
 'displaypal is used for display (including screenshots and gifs), while curmasterpal is for drawing.
 'curmasterpal is used for colors drawn to a 32-bit vpage, and for nearcolor lookups when drawing
 'to a 8-bit vpage (e.g. drawing with blending), and for exporting.
-'In 32-bit mode, displaypal and curmasterpal are always equal, in 8-bit mode, displaypal gets faded in and out.
+'In 32-bit mode, displaypal is mever used; in 8-bit mode, displaypal gets faded in and out.
 dim shared displaypal(0 to 255) as RGBcolor   'Current display palette; in 8-bit mode includes screen fades
 extern "C"
 dim shared curmasterpal(0 to 255) as RGBcolor 'Palette at last setpal/fadein, excludes any screen fades
@@ -1304,11 +1304,25 @@ local sub masterpal_changed()
 	memset(@nearcolor_cache(0), 0, ubound(nearcolor_cache) + 1)
 end sub
 
-' Change the palette at the NEXT setvispage call (or before next screen fade).
-sub setpal(pal() as RGBcolor)
-	memcpy(@displaypal(0), @pal(0), 256 * SIZEOF(RGBcolor))
+'For checking whether master() has changed since last setpal/setdrawpal/fadein
+function masterpal_has_changed(pal() as RGBcolor) as bool
+	return memcmp(@pal(0), @curmasterpal(0), 256 * SIZEOF(RGBcolor)) <> 0
+end function
+
+'Change the palette used for drawing, but don't end a fade out yet.
+'This should be called before drawing the screen and calling fadein/fadetopal,
+'unless you're fading back in the same palette that you faded out from.
+'(It's also mostly necessary only in 32-bit mode)
+sub setdrawpal(pal() as RGBcolor)
 	memcpy(@curmasterpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
 	masterpal_changed
+end sub
+
+'Switch to a palette immediately without a fade in. Ends a fade out.
+'(Unlike how it used to work, only takes effect at the next setvispage call or at start of fadein)
+sub setpal(pal() as RGBcolor)
+	setdrawpal pal()
+	memcpy(@displaypal(0), @pal(0), 256 * SIZEOF(RGBcolor))
 	updatepal = YES
 	faded_in = YES
 end sub
@@ -1391,7 +1405,6 @@ local sub fadetopal_internal(pal() as RGBcolor, col as RGBcolor, fadems as integ
 			if fading_in then fraction = 1 - fraction
 			if was_faded_in andalso fading_in then fraction = 0  'noop
 			if was_faded_in = NO andalso fading_in = NO then
-				'fraction = 1  'noop
 				'Fading between two colors
 				gfx_surfaceFill(prev_fade_color.col, NULL, vpages(vispage)->surf)
 			else
@@ -1456,6 +1469,64 @@ sub fadetopal(pal() as RGBcolor, fadems as integer = 500)
 	'the other thing setpal does: update curmasterpal
 	memcpy(@curmasterpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
 	masterpal_changed
+end sub
+
+'Blend between two video pages... unless the screen is faded out, in which case blends in to newpage, ignoring oldpage
+sub fadetopage(oldpage as integer, newpage as integer, fadems as integer = 500)
+	dim was_faded_in as bool = faded_in
+	dim prev_fade_color as RGBcolor = faded_to_color
+
+	skipped_frame.show()  'If we frame-skipped last frame, better show it
+
+	if updatepal then
+		if vpages_are_32bit() = NO then maybe_do_gfx_setpal
+		if recordvid then
+			recordvid->record_frame vpages(getvispage()), displaypal()
+		end if
+	end if
+
+	dim drawpage as integer = allocatepage(vpages(oldpage)->w, vpages(oldpage)->h)
+	dim drawopts as DrawOptions
+	drawopts.with_blending = YES
+
+	dim ticks as integer = large(1, fadems / 16.67)
+	for tick as integer = 1 to ticks
+		setwait 16.67
+		'Use a symmetric cubic smoothing function. The slope is at a
+		'minimum at x=0 and x=1, where it's 1/2 of the linear
+		'interpolation slope, and it's at a maximum at x=1/2.
+		dim x as double = tick / ticks
+		drawopts.opacity = x / 2 + 3 * x*x / 2 - x*x*x
+
+		if was_faded_in then
+			copypage oldpage, drawpage
+		else
+			if vpages_are_32bit() then
+				gfx_surfaceFill(faded_to_color.col, NULL, vpages(drawpage)->surf)
+			else
+				clearpage drawpage, nearcolor_master(faded_to_color)
+			end if
+		end if
+		frame_draw vpages(newpage), , 0, 0, NO, drawpage, drawopts
+		faded_in = YES
+		setvispage drawpage
+
+		if tick mod 3 = 0 then
+			' We're assuming that the page hasn't been modified since the last setvispage
+			if recordvid then
+				recordvid->record_frame vpages(drawpage), displaypal()
+			end if
+		end if
+
+		dowait
+	next
+
+	copypage newpage, vpage
+	freepage drawpage
+
+	'This function was probably called in the middle of timed loop, call
+	'setwait to avoid "dowait called without setwait" warnings
+	setwait 0
 end sub
 
 

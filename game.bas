@@ -622,8 +622,7 @@ DO' This loop encloses the playable game for a specific RPG file
 'Screen currently faded out. Load palette
 gam.current_master_palette = gen(genMasterPal)
 load_master_and_uicol gam.current_master_palette
-setpal master()  'Required in 32-bit color mode
-setpal_to_color  'Hide the effect of setpal (switch display palette to black)
+setdrawpal master()  'Set palette but don't unfade the screen
 
 set_speedcontrol gen(genMillisecPerFrame)
 set_animation_framerate gen(genMillisecPerFrame)
@@ -766,6 +765,8 @@ DO
  'DEBUG debug "increment script timers"
  dotimer(TIMER_NORMAL)
 
+ IF gam.need_fade_page = NO THEN  'Try to minimise changes between old and new pages
+
  'DEBUG debug "Player controls"
 
  'Main menu controls
@@ -853,6 +854,9 @@ DO
  update_npcs()
 
  AdvanceSlice SliceTable.root
+
+ END IF 'end gam.need_fade_page = NO
+
  ELSE
   dotimer(TIMER_BLOCKINGMENUS)
  END IF' end menus_allow_gameplay
@@ -923,8 +927,7 @@ DO
  END IF
 
  'DEBUG debug "swap video pages"
- SWAP vpage, dpage
- setvispage vpage
+ swap_or_fade_page vpage, dpage
 
  IF gam.paused = NO THEN
   'DEBUG debug "fade in"
@@ -4392,19 +4395,42 @@ SUB queue_fade_in (delay as integer = 0, script_overridable as bool = NO)
  gam.need_fade_in = YES
  gam.fade_in_delay = delay
  gam.fade_in_script_overridable = script_overridable
+ IF delay = 0 THEN setdrawpal master()  'Draw next frame with possibly new master(). (For 32-bit mode)
 END SUB
 
 SUB check_for_queued_fade_in ()
+ 'We don't process gam.need_fade_page here, that's specific to the main loop
  IF gam.need_fade_in THEN
   IF gam.fade_in_delay <= 0 THEN
-   gam.need_fade_in = 0
+   gam.need_fade_in = NO
    script_log_out !"\nFading in the screen"
    fadein
    setkeys
   ELSE
    gam.fade_in_delay -= 1
+   IF gam.fade_in_delay = 0 THEN
+    setdrawpal master()  'Draw next frame with possibly new master(). (For 32-bit mode)
+   END IF
   END IF
  END IF
+END SUB
+
+'Display or fade-in newpage, swapping with oldpage.
+'Page fades are needed only to support fadescreenin between two master palettes in 32-bit mode.
+'Currently this is only needed in the main loop. If scripts can run in other places
+'it would make sense to use there too.
+SUB swap_or_fade_page (byref oldpage as integer, byref newpage as integer)
+ IF gam.need_fade_page THEN
+  fadetopage oldpage, newpage
+  setkeys
+  gam.need_fade_page = NO
+  gam.need_fade_in = NO
+  script_log_out !"\nFading in the screen"
+ ELSE
+  setvispage newpage
+ END IF
+ 'This is probably the only "SWAP vpage, dpage" in the whole engine that's actually needed
+ SWAP oldpage, newpage
 END SUB
 
 '==========================================================================================

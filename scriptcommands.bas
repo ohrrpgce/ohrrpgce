@@ -470,7 +470,7 @@ SUB process_wait_conditions()
    END IF
 
    SELECT CASE .curvalue
-    CASE 15, 35, 61'--use door, use NPC, teleport to map
+    CASE 15, 35, 61, 76'--use door, use NPC, teleport to map, fade screen in
      script_stop_waiting()
 
     CASE 16'--fight formation
@@ -1530,12 +1530,21 @@ SUB script_functions(byval cmdid as integer)
    gam.need_fade_in = NO
   END IF
  CASE 76'--fade screen in
-  stop_fibre_timing
-  fadein
-  start_fibre_timing
-  IF gam.need_fade_in AND gam.fade_in_delay <= 0 THEN
-   'Avoid unnecessary pause
-   gam.need_fade_in = NO
+  IF vpages_are_32bit() ANDALSO masterpal_has_changed(master()) THEN
+   'We can't fade between two master palettes (not even out and in) in 32-bit color mode,
+   'so bit of a hack to provide good backcompat: an implicit wait, mostly pause the game
+   'logic, redraw the scene, and blend between old and new page
+   queue_fade_in
+   gam.need_fade_page = YES
+   script_start_waiting(0)
+  ELSE
+   stop_fibre_timing
+   fadein
+   start_fibre_timing
+   IF gam.need_fade_in AND gam.fade_in_delay <= 0 THEN
+    'Avoid unnecessary pause
+    gam.need_fade_in = NO
+   END IF
   END IF
  CASE 81'--set hero speed
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
