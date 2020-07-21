@@ -7,6 +7,7 @@
 #include "config.bi"
 #include "common.bi"
 #include "loading.bi"
+#include "slices.bi"
 
 'This is similar to fuzzythreshold. It interpolates between these values:
 ' 0.12  0.24  1.00  2.00 ...  x
@@ -193,4 +194,45 @@ FUNCTION describe_formation_by_id(byval form_id as integer) as string
  DIM form as Formation
  LoadFormation form, game & ".for", form_id
  RETURN describe_formation(form)
+END FUNCTION
+
+'Calculate the absolute position at which an attack should be drawn at on top of
+'a certain target. This position might instead be used as a waypoint for projectiles.
+FUNCTION attack_placement_over_targetpos(attack as AttackData, targpos as XYZTriple, targsize as XYPair, targ_is_acting_hero as bool) as XYZTriple
+ 'Load the size of the sprite
+ DIM temp_sl as Slice Ptr
+ temp_sl = NewSliceOfType(slSprite)
+ ChangeSpriteSlice temp_sl, sprTypeAttack, attack.picture
+ DIM as integer attackw = temp_sl->width, attackh = temp_sl->height
+ DeleteSlice @temp_sl
+
+ DIM as integer xt, yt, zt
+ IF prefbit(36) THEN  ' "Old attack positioning at bottom-left of target"
+  ' Position attack animation aligned with bottom-left of target (?!) and down 2 pixels
+  xt = 0
+  yt = (targsize.h - attackh) + 2
+  zt = 0
+ ELSE
+  ' Visually align center of attack and target, while bottom-y position is forward several pixels of the
+  ' bottom-y of the target to ensure the attack appears in front (with 4 pixel margin to protect against
+  ' rounding error in anim_absmove, etc.)
+  ' (The +4's cancel out because z increases towards top of screen)
+  xt = (targsize.w - attackw) \ 2
+  yt = (targsize.h - attackh) + 4
+  zt = (targsize.h - attackh) \ 2 + 4
+ END IF
+ ' The following case is a simple fix for the fact that targpos is populated from bslot which contains
+ ' the *initial* positions of everyone at the start of the attack, not the actual position at this point
+ ' of the animation.
+ IF targ_is_acting_hero THEN
+  SELECT CASE attack.attacker_anim
+   ' Heroes move forward 20 pixels for these attacker animations (see anim_advance)
+   CASE atkrAnimStrike, atkrAnimCast, atkrAnimSpinStrike, atkrAnimJump
+    xt -= 20
+  END SELECt
+ END IF
+ xt += targpos.x
+ yt += targpos.y
+ zt += targpos.z
+ RETURN TYPE<XYZTriple>(xt, yt, zt)
 END FUNCTION
