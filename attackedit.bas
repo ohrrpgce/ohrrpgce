@@ -2874,6 +2874,10 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
    menu(3) = "Horizontal Alignment: " & safe_caption(halign_cap(), halign, "alignment")
    menu(4) = "Vertical Alignment: " & safe_caption(valign_cap(), valign, "alignment")
    menu(5) = "Preview on Enemy: " & enemy_id & " " & readenemyname(enemy_id)
+   attack.targ_offset_x = xoff
+   attack.targ_offset_y = yoff
+   attack.targ_halign = halign
+   attack.targ_valign = valign
    loadenemydata enemy, enemy_id
    ChangeSpriteSlice targ_spr, sprTypeSmallEnemy + enemy.size, enemy.pic, enemy.pal
    targ_spr->pos = preview_box->size / 2 - targ_spr->size / 2

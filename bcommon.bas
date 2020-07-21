@@ -221,6 +221,11 @@ FUNCTION attack_placement_over_targetpos(attack as AttackData, targpos as XYZTri
   yt = (targsize.h - attackh) + 4
   zt = (targsize.h - attackh) \ 2 + 4
  END IF
+ 'Apply offset
+ xt += attack.targ_offset_x
+ zt -= attack.targ_offset_y
+ 
+ 
  ' The following case is a simple fix for the fact that targpos is populated from bslot which contains
  ' the *initial* positions of everyone at the start of the attack, not the actual position at this point
  ' of the animation.
