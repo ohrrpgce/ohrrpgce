@@ -215,20 +215,23 @@ sub music_init()
 		dim audio_channels as integer
 		dim audio_buffers as integer
 
-		' We're going to be requesting certain things from our audio
-		' device, so we set them up beforehand
-		' MIX_DEFAULT_FREQUENCY is 22050, which slightly worsens sound quality
-		' than playing at 44100, but using 44100 causes tracks between 22-44
-		' to be sped up, which sounds worse. See https://sourceforge.net/p/ohrrpgce/bugs/2026/
-		audio_rate = MIX_DEFAULT_FREQUENCY
+		#ifndef SDL_MIXER2
+			' MIX_DEFAULT_FREQUENCY is 22050, which slightly worsens sound quality
+			' than playing at 44100, but using 44100 causes tracks between 22-44kHz
+			' to be sped up, which sounds worse. See https://github.com/ohrrpgce/ohrrpgce/issues/1085
+			audio_rate = MIX_DEFAULT_FREQUENCY
+			'Despite the documentation, non power of 2 buffer size MAY work depending on the driver, and pygame even does it
+			'1024 seems to give much lower delay than 1536 before being played, maybe a non-power of two problem
+			audio_buffers = 1024 '1536
+		#else
+			' SDL_mixer 2: the above problem doesn't apply
+			audio_rate = 44100
+			audio_buffers = 2048 'Might as well increase to match (effect not investigated)
+		#endif
 		audio_format = MIX_DEFAULT_FORMAT
 		audio_channels = 2
-		'Despite the documentation, non power of 2 buffer size MAY work depending on the driver, and pygame even does it
-		'1024 seems to give much lower delay than 1536 before being played, maybe a non-power of two problem
-		audio_buffers = 1024 '1536
 
 		if SDL_WasInit(0) = 0 then
-
 			if SDL_Init(SDL_INIT_AUDIO) then
 				debug "Can't start SDL (audio): " & *SDL_GetError
 				music_status = musicError
