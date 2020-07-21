@@ -31,6 +31,8 @@ DECLARE SUB atk_edit_preview(byval pattern as integer, sl as Slice Ptr)
 DECLARE SUB atk_edit_pushptr(state as MenuState, laststate as MenuState, byref menudepth as integer)
 DECLARE SUB atk_edit_backptr(workmenu() as integer, mainMenu() as integer, state as MenuState, laststate as menustate, byref menudepth as integer)
 
+DECLARE SUB attack_alignment_editor (byval atk_pic as integer, byval atk_pal as integer=-1, byval atk_anim_pattern as integer, byref xoff as integer, byref yoff as integer, byref halign as integer, byref valign as integer)
+
 '--Globals
 DIM counter_provoke_captions(provokeLAST) as string * 23 = { _
     "Default", "Always", "Never", "If attack hits", "If attack fails", "If attack misses", _
@@ -139,8 +141,9 @@ CONST AtkTriggerElementalCounters = 152
 CONST AtkMissSoundEffect = 153
 CONST AtkFailSoundEffect = 154
 CONST AtkStealFailSoundEffect = 155
+CONST AtkAlignToTarget = 156
 
-'Next menu item is 156 (remember to update MnuItems)
+'Next menu item is 157 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -218,6 +221,10 @@ CONST AtkDatCounterProvoke = 340
 CONST AtkDatMissSoundEffect = 341
 CONST AtkDatFailSoundEffect = 342
 CONST AtkDatStealFailSoundEffect = 343
+CONST AtkDatXOffset = 344
+CONST AtkDatYOffset = 345
+CONST AtkDatHorizAlign = 346
+CONST AtkDatVertAlign = 347
 
 'anything past this requires expanding the data
 
@@ -364,7 +371,7 @@ atk_chain_bitset_names(4) = "Invert condition"
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
-CONST MnuItems = 155
+CONST MnuItems = 156
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -1150,6 +1157,9 @@ menutype(AtkDamageColor) = 23'color
 menuoff(AtkDamageColor) = AtkDatDamageColor
 menulimits(AtkDamageColor) = AtkLimColorIndex
 
+menu(AtkAlignToTarget) = "Attack Animation Align to Target..."
+menutype(AtkAlignToTarget) = 1
+
 '----------------------------------------------------------
 '--menu structure
 DIM workmenu(65) as integer
@@ -1591,6 +1601,9 @@ DO
      CASE 1: recbuf(AtkDatDamageColor) = color_browser_256(recbuf(AtkDatDamageColor))
     END SELECT
     state.need_update = YES
+   CASE AtkAlignToTarget
+    attack_alignment_editor recbuf(AtkDatPic), recbuf(AtkDatPal), recbuf(AtkDatAnimPattern), recbuf(AtkDatXOffset), recbuf(AtkDatYOffset), recbuf(AtkDatHorizAlign), recbuf(AtkDatVertAlign)
+    state.need_update = YES
   END SELECT
  END IF
 
@@ -1814,19 +1827,20 @@ SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integ
   workmenu(3) = AtkAnimAttack
   workmenu(4) = AtkAnimPattern
   workmenu(5) = AtkAnimAttacker
-  workmenu(6) = AtkDelay
-  workmenu(7) = AtkTurnDelay
-  workmenu(8) = AtkDramaticPause
-  workmenu(9) = AtkCaption
-  workmenu(10) = AtkCapTime
-  workmenu(11) = AtkCaptDelay
-  workmenu(12) = AtkSoundEffect
+  workmenu(6) = AtkAlignToTarget
+  workmenu(7) = AtkDelay
+  workmenu(8) = AtkTurnDelay
+  workmenu(9) = AtkDramaticPause
+  workmenu(10) = AtkCaption
+  workmenu(11) = AtkCapTime
+  workmenu(12) = AtkCaptDelay
+  workmenu(13) = AtkSoundEffect
   'workmenu() = AtkMissSoundEffect
   'workmenu() = AtkFailSoundEffect
   'workmenu() = AtkStealFailSoundEffect
-  workmenu(13) = AtkLearnSoundEffect
-  workmenu(14) = AtkDamageColor
-  state.last = 14
+  workmenu(14) = AtkLearnSoundEffect
+  workmenu(15) = AtkDamageColor
+  state.last = 15
 
   DIM anim as integer = recbuf(AtkDatAnimAttacker)
   IF     anim = atkrAnimStrike _
@@ -2793,3 +2807,68 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
  setkeys
  RETURN result
 END FUNCTION
+
+SUB attack_alignment_editor (byval atk_pic as integer, byval atk_pal as integer=-1, byval atk_anim_pattern as integer, byref xoff as integer, byref yoff as integer, byref halign as integer, byref valign as integer)
+
+ DIM menu(4) as string
+ menu(0) = "Previous Menu..."
+ DIM halign_cap(-1 TO 1) as string
+ halign_cap(-1) = "Left"
+ halign_cap(0) = "Center"
+ halign_cap(1) = "Right"
+ DIM valign_cap(-1 TO 1) as string
+ valign_cap(-1) = "Top"
+ valign_cap(0) = "Center"
+ valign_cap(1) = "Bottom"
+
+ DIM state as MenuState
+ state.pt = 0
+ state.last = UBOUND(menu)
+ state.size = 22
+ state.need_update = YES
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  IF state.need_update THEN
+   state.need_update = NO
+   menu(1) = "Attack X Offset: " & xoff
+   menu(2) = "Attack Y Offset: " & yoff
+   menu(3) = "Horizontal Alignment: " & safe_caption(halign_cap(), halign, "alignment")
+   menu(4) = "Vertical Alignment: " & safe_caption(valign_cap(), valign, "alignment")
+  END IF
+  
+  usemenu state
+  IF keyval(ccCancel) > 1 THEN
+   EXIT DO
+  END IF
+  IF keyval(scF1) > 1 THEN show_help "attack_alignment_editor"
+  
+  'Activate
+  IF enter_space_click(state) THEN
+   SELECT CASE state.pt
+    CASE 0: EXIT DO
+   END SELECT
+  END IF
+
+  'Typing
+  SELECT CASE state.pt
+   CASE 1:
+    IF intgrabber(xoff, -9999, 9999) THEN state.need_update = YES
+   CASE 2:
+    IF intgrabber(yoff, -9999, 9999) THEN state.need_update = YES
+   CASE 3:
+    IF intgrabber(halign, -1, 1) THEN state.need_update = YES
+   CASE 4:
+    IF intgrabber(valign, -1, 1) THEN state.need_update = YES
+  END SELECT
+  
+  clearpage vpage
+  standardmenu menu(), state, 0, 0, vpage
+  setvispage vpage
+  dowait
+ LOOP
+ 
+END SUB
+
