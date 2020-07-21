@@ -1653,8 +1653,9 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
  a_append menu(), "Slice type: " & SliceTypeName(sl)
  sliceed_rule_none rules(), "slicetype", slgrPICKTYPE  'May not be editable; see slgrPICKTYPE
 
- a_append menu(), "Lookup code: " & slice_lookup_code_caption(.Lookup, ses.slicelookup())
- IF ses.editing_lookup_name THEN menu(6) &= fgtag(uilook(uiText), "_")
+ DIM temp as string
+ IF ses.editing_lookup_name THEN temp = fgtag(uilook(uiText), "_")  'Show text editing cursor
+ a_append menu(), "Lookup code: " & slice_lookup_code_caption(.Lookup, ses.slicelookup()) & temp
  DIM minlookup as integer = IIF(ses.privileged, -999999999, 0)
  IF ses.privileged ORELSE lookup_code_forbidden(ses.specialcodes(), .Lookup) = NO THEN
   sliceed_rule rules(), "lookup", erLookupgrabber, @.Lookup, minlookup, INT_MAX, slgrPICKLOOKUP
