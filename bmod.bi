@@ -76,6 +76,6 @@ DECLARE FUNCTION ready_meter_may_grow (bat as BattleState, bslot() as BattleSpri
 DECLARE FUNCTION hero_attack_cost_info(byref atk as AttackData, byval hero_slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=-1) as string
 DECLARE FUNCTION bslot_attack_cost_info(bslot() as BattleSprite, byref atk as AttackData, byval slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=-1) as string
 
-DECLARE FUNCTION attack_placement_over_target(attack as AttackData, targslot as integer, bat as BattleState, bslot() as BattleSprite) as XYZTriple
+DECLARE FUNCTION attack_placement_over_target(attack as AttackData, targslot as integer, bat as BattleState, bslot() as BattleSprite, byval reverse as integer=0) as XYZTriple
 
 #ENDIF

@@ -198,7 +198,7 @@ END FUNCTION
 
 'Calculate the absolute position at which an attack should be drawn at on top of
 'a certain target. This position might instead be used as a waypoint for projectiles.
-FUNCTION attack_placement_over_targetpos(attack as AttackData, targpos as XYZTriple, targsize as XYPair, targ_is_acting_hero as bool) as XYZTriple
+FUNCTION attack_placement_over_targetpos(attack as AttackData, targpos as XYZTriple, targsize as XYPair, targ_is_acting_hero as bool=NO, byval reverse as integer=0) as XYZTriple
  'Load the size of the sprite
  DIM temp_sl as Slice Ptr
  temp_sl = NewSliceOfType(slSprite)
@@ -217,7 +217,9 @@ FUNCTION attack_placement_over_targetpos(attack as AttackData, targpos as XYZTri
   ' bottom-y of the target to ensure the attack appears in front (with 4 pixel margin to protect against
   ' rounding error in anim_absmove, etc.)
   ' (The +4's cancel out because z increases towards top of screen)
-  SELECT CASE attack.targ_halign
+  DIM halign as integer = attack.targ_halign
+  IF reverse <> 0 THEN halign *= -1
+  SELECT CASE halign
    CASE -1 'Left
     xt = 0
    CASE 0 'Center
@@ -242,7 +244,9 @@ FUNCTION attack_placement_over_targetpos(attack as AttackData, targpos as XYZTri
   END SELECT
  END IF
  'Apply offset
- xt += attack.targ_offset_x
+ DIM x_off as integer = attack.targ_offset_x
+ IF reverse <> 0 THEN x_off *= -1
+ xt += x_off
  zt -= attack.targ_offset_y
  
  

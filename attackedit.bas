@@ -2814,7 +2814,7 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
  DIM attack as AttackData
  loadattackdata attack, attack_id
 
- DIM menu(5) as string
+ DIM menu(6) as string
  menu(0) = "Previous Menu..."
 
  DIM halign_cap(-1 TO 1) as string
@@ -2837,6 +2837,8 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
  STATIC enemy_id as integer
  enemy_id = small(enemy_id, gen(genMaxEnemy))
  DIM enemy as EnemyDef
+ 
+ DIM reverse as integer = 0
 
  DIM preview_box as Slice Ptr
  preview_box = NewSliceOfType(slRectangle)
@@ -2845,8 +2847,8 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
  WITH *preview_box
   .X = -8
   .Y = -8
-  .Width = 100
-  .Height = 100 
+  .Width = 120
+  .Height = 120 
   .PaddingTop = 1
   .PaddingBottom = 1
   .PaddingLeft = 1
@@ -2869,11 +2871,12 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
   setkeys YES
   IF state.need_update THEN
    state.need_update = NO
-   menu(1) = "Attack X Offset: " & xoff
+   menu(1) = "Attack X Offset: " & xoff & IIF(reverse <> 0, "(mirrored)", "")
    menu(2) = "Attack Y Offset: " & yoff
-   menu(3) = "Horizontal Alignment: " & safe_caption(halign_cap(), halign, "alignment")
+   menu(3) = "Horizontal Alignment: " & safe_caption(halign_cap(), halign, "alignment") & IIF(reverse <> 0, "(mirrored)", "")
    menu(4) = "Vertical Alignment: " & safe_caption(valign_cap(), valign, "alignment")
    menu(5) = "Preview on Enemy: " & enemy_id & " " & readenemyname(enemy_id)
+   menu(6) = "Attack done by " & IIF(reverse <> 0, "Enemy", "Hero")
    attack.targ_offset_x = xoff
    attack.targ_offset_y = yoff
    attack.targ_halign = halign
@@ -2881,10 +2884,10 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
    loadenemydata enemy, enemy_id
    ChangeSpriteSlice targ_spr, sprTypeSmallEnemy + enemy.size, enemy.pic, enemy.pal
    targ_spr->pos = preview_box->size / 2 - targ_spr->size / 2
-   previewpos = attack_placement_over_targetpos(attack, TYPE<XYZTriple>(targ_spr->x, targ_spr->y, 0), targ_spr->size, NO)
+   previewpos = attack_placement_over_targetpos(attack, TYPE<XYZTriple>(targ_spr->x, targ_spr->y, 0), targ_spr->size, NO, reverse)
    atk_spr->X = previewpos.x
    atk_spr->Y = previewpos.y - previewpos.z
-   ChangeSpriteSlice atk_spr, sprTypeAttack, attack.picture, attack.pal, 1
+   ChangeSpriteSlice atk_spr, sprTypeAttack, attack.picture, attack.pal, , IIF(attack.unreversable_picture, 0, reverse)
   END IF
   
   usemenu state
@@ -2899,6 +2902,9 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
     CASE 0: EXIT DO
     CASE 5:
      enemy_id = enemy_picker(enemy_id)
+     state.need_update = YES
+    CASE 6:
+     reverse XOR= 1
      state.need_update = YES
    END SELECT
   END IF
@@ -2915,6 +2921,8 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
     IF intgrabber(valign, -1, 1) THEN state.need_update = YES
    CASE 5:
     IF intgrabber(enemy_id, 0, gen(genMaxEnemy)) THEN state.need_update = YES
+   CASE 6:
+    IF intgrabber(reverse, 0, 1) THEN state.need_update = YES
   END SELECT
   
   clearpage vpage
