@@ -31,7 +31,7 @@ DECLARE SUB atk_edit_preview(byval pattern as integer, sl as Slice Ptr)
 DECLARE SUB atk_edit_pushptr(state as MenuState, laststate as MenuState, byref menudepth as integer)
 DECLARE SUB atk_edit_backptr(workmenu() as integer, mainMenu() as integer, state as MenuState, laststate as menustate, byref menudepth as integer)
 
-DECLARE SUB attack_alignment_editor (byval atk_pic as integer, byval atk_pal as integer=-1, byval atk_anim_pattern as integer, byref xoff as integer, byref yoff as integer, byref halign as integer, byref valign as integer)
+DECLARE SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, byref yoff as integer, byref halign as integer, byref valign as integer)
 
 '--Globals
 DIM counter_provoke_captions(provokeLAST) as string * 23 = { _
@@ -1602,7 +1602,8 @@ DO
     END SELECT
     state.need_update = YES
    CASE AtkAlignToTarget
-    attack_alignment_editor recbuf(AtkDatPic), recbuf(AtkDatPal), recbuf(AtkDatAnimPattern), recbuf(AtkDatXOffset), recbuf(AtkDatYOffset), recbuf(AtkDatHorizAlign), recbuf(AtkDatVertAlign)
+    saveattackdata recbuf(), recindex
+    attack_alignment_editor recindex, recbuf(AtkDatXOffset), recbuf(AtkDatYOffset), recbuf(AtkDatHorizAlign), recbuf(AtkDatVertAlign)
     state.need_update = YES
   END SELECT
  END IF
@@ -2808,10 +2809,14 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
  RETURN result
 END FUNCTION
 
-SUB attack_alignment_editor (byval atk_pic as integer, byval atk_pal as integer=-1, byval atk_anim_pattern as integer, byref xoff as integer, byref yoff as integer, byref halign as integer, byref valign as integer)
+SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, byref yoff as integer, byref halign as integer, byref valign as integer)
 
- DIM menu(4) as string
+ DIM attack as AttackData
+ loadattackdata attack, attack_id
+
+ DIM menu(5) as string
  menu(0) = "Previous Menu..."
+
  DIM halign_cap(-1 TO 1) as string
  halign_cap(-1) = "Left"
  halign_cap(0) = "Center"
@@ -2827,6 +2832,37 @@ SUB attack_alignment_editor (byval atk_pic as integer, byval atk_pal as integer=
  state.size = 22
  state.need_update = YES
 
+ DIM previewpos as XYZTriple
+ 
+ STATIC enemy_id as integer
+ enemy_id = small(enemy_id, gen(genMaxEnemy))
+ DIM enemy as EnemyDef
+
+ DIM preview_box as Slice Ptr
+ preview_box = NewSliceOfType(slRectangle)
+ ChangeRectangleSlice preview_box, , uilook(uiDisabledItem), uilook(uiMenuItem), , transOpaque
+ '--Align the box in the bottom right
+ WITH *preview_box
+  .X = -8
+  .Y = -8
+  .Width = 100
+  .Height = 100 
+  .PaddingTop = 1
+  .PaddingBottom = 1
+  .PaddingLeft = 1
+  .PaddingRight = 1
+  .AnchorHoriz = alignRight
+  .AlignHoriz = alignRight
+  .AnchorVert = alignBottom
+  .AlignVert = alignBottom
+ END WITH
+ 
+ DIM targ_spr as Slice Ptr
+ targ_spr = NewSliceOfType(slSprite, preview_box)
+
+ DIM atk_spr as Slice Ptr
+ atk_spr = NewSliceOfType(slSprite, preview_box)
+
  setkeys YES
  DO
   setwait 55
@@ -2837,6 +2873,14 @@ SUB attack_alignment_editor (byval atk_pic as integer, byval atk_pal as integer=
    menu(2) = "Attack Y Offset: " & yoff
    menu(3) = "Horizontal Alignment: " & safe_caption(halign_cap(), halign, "alignment")
    menu(4) = "Vertical Alignment: " & safe_caption(valign_cap(), valign, "alignment")
+   menu(5) = "Preview on Enemy: " & enemy_id & " " & readenemyname(enemy_id)
+   loadenemydata enemy, enemy_id
+   ChangeSpriteSlice targ_spr, sprTypeSmallEnemy + enemy.size, enemy.pic, enemy.pal
+   targ_spr->pos = preview_box->size / 2 - targ_spr->size / 2
+   previewpos = attack_placement_over_targetpos(attack, TYPE<XYZTriple>(targ_spr->x, targ_spr->y, 0), targ_spr->size, NO)
+   atk_spr->X = previewpos.x
+   atk_spr->Y = previewpos.y - previewpos.z
+   ChangeSpriteSlice atk_spr, sprTypeAttack, attack.picture, attack.pal, 1
   END IF
   
   usemenu state
@@ -2849,6 +2893,9 @@ SUB attack_alignment_editor (byval atk_pic as integer, byval atk_pal as integer=
   IF enter_space_click(state) THEN
    SELECT CASE state.pt
     CASE 0: EXIT DO
+    CASE 5:
+     enemy_id = enemy_picker(enemy_id)
+     state.need_update = YES
    END SELECT
   END IF
 
@@ -2862,13 +2909,20 @@ SUB attack_alignment_editor (byval atk_pic as integer, byval atk_pal as integer=
     IF intgrabber(halign, -1, 1) THEN state.need_update = YES
    CASE 4:
     IF intgrabber(valign, -1, 1) THEN state.need_update = YES
+   CASE 5:
+    IF intgrabber(enemy_id, 0, gen(genMaxEnemy)) THEN state.need_update = YES
   END SELECT
   
   clearpage vpage
+  'Paint preview
+  DrawSlice preview_box, vpage
+  'Show menu
   standardmenu menu(), state, 0, 0, vpage
   setvispage vpage
   dowait
  LOOP
+
+ DeleteSlice @preview_box
  
 END SUB
 
