@@ -213,13 +213,33 @@ FUNCTION attack_placement_over_targetpos(attack as AttackData, targpos as XYZTri
   yt = (targsize.h - attackh) + 2
   zt = 0
  ELSE
-  ' Visually align center of attack and target, while bottom-y position is forward several pixels of the
+  ' Visually align attack and target, while bottom-y position is forward several pixels of the
   ' bottom-y of the target to ensure the attack appears in front (with 4 pixel margin to protect against
   ' rounding error in anim_absmove, etc.)
   ' (The +4's cancel out because z increases towards top of screen)
-  xt = (targsize.w - attackw) \ 2
+  SELECT CASE attack.targ_halign
+   CASE -1 'Left
+    xt = 0
+   CASE 0 'Center
+    xt = (targsize.w - attackw) \ 2
+   CASE 1 'Right
+    xt = (targsize.w - attackw)
+   CASE ELSE
+    debug "Invalid attack horizontal alignment. attack_id=" & attack.id & " halign=" & attack.targ_halign
+    xt = (targsize.w - attackw) \ 2
+  END SELECT
   yt = (targsize.h - attackh) + 4
-  zt = (targsize.h - attackh) \ 2 + 4
+  SELECT CASE attack.targ_valign
+   CASE -1 'Top
+    zt = (targsize.h - attackh) + 4
+   CASE 0 'Center
+    zt = (targsize.h - attackh) \ 2 + 4
+   CASE 1 'Bottom
+    zt = 0 + 4
+   CASE ELSE
+    debug "Invalid attack vertical alignment. attack_id=" & attack.id & " valign=" & attack.targ_valign
+    zt = (targsize.h - attackh) \ 2 + 4
+  END SELECT
  END IF
  'Apply offset
  xt += attack.targ_offset_x
