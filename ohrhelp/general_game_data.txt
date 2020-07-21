@@ -49,6 +49,11 @@ Window Size Options: The resolution your game will run at and the size of the wi
 Framerate:
 By default, OHRRPGCE games run at 18.2 frames per second (FPS), which is 55 milliseconds (ms) per frame. Increasing the framerate is highly desirable if you want to use the mouse or create an action game. HOWEVER, increasing the framerate is not recommended for RPGs because the walk animation will become very fast (this is an unfinished feature). Battles are NOT affected by this setting (so you're safe there!)
 
+Color depth:
+8-bit color is the default; it means there are at most 256 colors on the screen at once. This makes sprite transparency effects grainy instead of smooth.
+24-bit color makes sprite/slice transparency effects look better (and run faster!) However it significantly increases the CPU time needed to draw the screen, so may make high-framerate games run slow on very old computers.
+WARNING: For technical reasons, switching a game to 24-bit mode causes the "fade screen in" command to behave slightly differently when used after modifying the master palette ("tweak palette", "load palette", etc): it does an implicit wait(1).
+
 Walk animation rate:
 This changes how quickly the two frames of the walkabout walking animation toggle, in ticks. The default is that they toggle after ~110 milliseconds (2 ticks at the default tick rate), so you generally don't need to change it. This animation is also used for the Walk In Place animation.
 (This is a temporary setting that will be superceded in future versions.)

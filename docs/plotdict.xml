@@ -2843,7 +2843,18 @@ fade screen in</example>
 		<command id="fadescreenin">
 			<canon>fade screen in</canon>
 			<shortname>fade screen in</shortname>
-			<description>Fades the screen back to normal after a <ref>fadescreenout</ref> command, or applies the changes made with other palette commands such as <ref>greyscalepalette</ref>, <ref>tweakpalette</ref>, <ref>resetpalette</ref>, and <ref>writecolor</ref>.</description>
+			<description>
+				Fades the screen back to normal after a <ref>fadescreenout</ref> command,
+				or smoothly applies the changes made with other palette commands such as <ref>greyscalepalette</ref>,
+				<ref>tweakpalette</ref>,  <ref>loadpalette</ref>, <ref>resetpalette</ref>, and <ref>writecolor</ref>.
+				<lb/>
+				(You can also make palette changes take effect immediately without a fade using <ref>updatepalette</ref>.)
+			</description>
+			<warn>
+				 Switching a game to 24-bit mode causes this command (but no others)
+				 to behave slightly differently when used after modifying the master palette
+				 (<ref>tweakpalette</ref>,, etc): it does an extra (implicit) <tt>wait(1)</tt>.
+			</warn>
 		</command>
 		<command id="loadpalette">
 			<canon>load palette (palette number)</canon>
