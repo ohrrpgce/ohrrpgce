@@ -2921,6 +2921,10 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
   'Paint preview
   atk_edit_preview attack.anim_pattern, atk_spr
   DrawSlice preview_box, vpage
+  IF prefbit(36) THEN
+   edgeprint """Old attack positioning"" bitset is on", 0, pBottom - 10, uilook(uiText), vpage 
+   edgeprint "Which disables attack alignment", 0, pBottom - 0, uilook(uiText), vpage 
+  END IF
   'Show menu
   standardmenu menu(), state, 0, 0, vpage
   setvispage vpage
