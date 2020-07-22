@@ -630,6 +630,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
    END IF
   END IF
  ELSE
+  'Miss or Fail
   checkTagCond attack.tagset(0), atktagOnMiss
   checkTagCond attack.tagset(1), atktagOnMiss
  END IF

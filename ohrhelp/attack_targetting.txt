@@ -46,9 +46,9 @@ NOTE: When an attack is used outside of battle, most target classes are treated 
 
 * Ally (not dead) - For heroes this
   means that the attack is targeted
-  to heroes.  For enemies this means
-  that the attack is targetted to
-  enemies.
+  to heroes (including self).  For
+  enemies this means that the attack
+  is targetted to enemies.
 
 * Self - This means the attack can
   only be targetted to the attacker.
@@ -60,9 +60,9 @@ NOTE: When an attack is used outside of battle, most target classes are treated 
 * Ally (including dead) - For heroes
   this means that the attack can
   target any hero including the ones
-  who are already dead. This is
-  intended for "Life" potions or
-  spells. For enemies, this is no
+  who are already dead, and self.
+  This is intended for "Life" potions
+  or spells. For enemies, this is no
   different from "Ally".
 
 * Ally not self - Just like "Ally"
@@ -154,8 +154,8 @@ NOTE: When an attack is used outside of battle, most target classes are treated 
 
 * All (including dead heroes) -
   Allows attacking anyone, including
-  dead heroes. Dead enemies vanish
-  so can't be targetted.
+  dead heroes and self. Dead enemies
+  vanish so can't be targetted.
 
 * Dead Foe (dead heroes only) - This
   attack can only target dead heroes

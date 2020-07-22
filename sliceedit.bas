@@ -84,8 +84,8 @@ TYPE SliceEditState
  hide_mode as HideMode
  show_root as bool         'Whether to show edslice
  show_ants as bool = YES   'Whether to draw a box around the selected slice
- show_sizes as bool
- show_positions as bool
+ show_sizes as bool        'Display sizes in the slice list?
+ show_positions as bool    'Display screen positions in the slice list?
  privileged as bool        'Whether can edit properties that are normally off-limits. Non-user collections only.
 
  ' Internal state of lookup_code_grabber

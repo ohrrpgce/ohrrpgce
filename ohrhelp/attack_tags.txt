@@ -25,7 +25,7 @@ On: This is the condition that triggers the tag setting.
 
 * On Miss - This means the tag
   setting will only be activated if
-  the attack fails.
+  the attack misses or fails.
 
 * On Kill - This means the tag
   setting will only be activated if
