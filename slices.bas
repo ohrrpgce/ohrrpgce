@@ -1943,6 +1943,11 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
    spr = frame_rotozoom(spr, .img.pal, -.rotate, .zoom, .zoom, .rz_smooth)
    if spr = 0 then exit sub
    have_copy = YES
+   if .dissolving then
+    'Kludge: frame_rotozoom returns an 8-bit Surface-backed Frame, which frame_dissolved doesn't yet support.
+    'Convert into a normal Frame, but only if needed, because it does a copy.
+    frame_drop_surface spr
+   end if
   end if
 
   dim drew as bool = NO
