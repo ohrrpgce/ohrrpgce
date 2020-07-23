@@ -46,9 +46,10 @@ int gfx_surfaceCreate_SW( int32_t width, int32_t height, SurfaceFormat format, S
 	Surface *ret = new Surface(width, height, width, format, usage);
 	ret->isview = 0;
 	if(format == SF_8bit)
-		ret->pPaletteData = new uint8_t[width*height];
+		ret->pPaletteData = new uint8_t[width*height]();  //zero-initialise
 	else
-		ret->pColorData = new uint32_t[width*height];
+		ret->pColorData = new uint32_t[width*height]();
+	// No mask
 
 	surfaceMutex.lock();
 	g_surfaces.push_back(ret);

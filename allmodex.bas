@@ -117,7 +117,8 @@ declare function palette16_load_pal_single(fh as integer) as Palette16 ptr
 #define FRAMEPIXEL(x, y, fr) fr->image[fr->pitch * (y) + (x)]
 
 ' In a function, pass return value on error
-' NULL .image ptr usually indicates that the Frame is Surface-backed
+' NULL .image ptr indicates that either the Frame is Surface-backed or it's corrupt,
+' so might as well check that instead of ->surf. This is misnamed: doesn't allow 8-bit surfaces.
 #define CHECK_FRAME_8BIT(fr, retwhat...) FAIL_IF((fr)->image = NULL, " NULL Frame.image", retwhat)
 
 
@@ -8981,6 +8982,8 @@ function frame_new(w as integer, h as integer, frames as integer = 1, clr as boo
 	end if
 	if with_surface32 then
 		if wantmask then
+			'8-bit surfaces can have masks, but not 32-bit ones (no form
+			'of transparency is implemented for them yet!)
 			showbug "frame_new: mask and backing surface mututally exclusive"
 		end if
 	end if
@@ -9112,7 +9115,7 @@ local sub init_frame_with_surface(ret as Frame ptr, surf as Surface ptr)
 	end with
 end sub
 
-' Creates an (independent) 32 bit Surface which is a copy of an unpaletted Frame.
+' Creates an (independent) 32 bit Surface which is a copy of a Frame.
 ' This is not the same as gfx_surfaceCreateFrameView, which creates a Surface which
 ' is just a view of a Frame (and is a temporary hack!)
 function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL) as Surface ptr
@@ -9131,7 +9134,15 @@ function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor, pal as Pal
 	end if
 	dim wrapper as Frame ptr  'yuck
 	wrapper = frame_with_surface(surf)
-	frame_draw fr, masterpal(), pal, 0, 0, NO, wrapper
+	dim trans as bool = NO
+	dim opts as DrawOptions
+	if fr->mask then
+		'32bit Surfaces don't have transparency yet, but if the Frame has
+		'a mask at least make transparent pixels end up as rgb 0,0,0
+		trans = YES
+		opts.write_mask = YES
+	end if
+	frame_draw fr, masterpal(), pal, 0, 0, trans, wrapper, opts
 	frame_unload @wrapper
 	return surf
 end function
@@ -9156,6 +9167,10 @@ sub frame_drop_surface(fr as Frame ptr)
 			if fr->surf->format = SF_8bit then
 				fr->image = allocate(fr->pitch * fr->h)
 				memcpy(fr->image, fr->surf->pPaletteData, fr->pitch * fr->h)
+				if fr->surf->pMaskData then
+					fr->mask = allocate(fr->pitch * fr->h)
+					memcpy(fr->mask, fr->surf->pMaskData, fr->pitch * fr->h)
+				end if
 			else
 				fr->image = callocate(fr->pitch * fr->h)
 			end if
@@ -9635,7 +9650,7 @@ function frame_is_valid(p as Frame ptr) as bool
 	if p->pitch < p->w then ret = NO
 
 	if p->surf then
-		if p->image = 0 or p->mask = 0 then ret = NO
+		if p->image <> 0 orelse p->mask <> 0 then ret = NO
 	else
 		if p->image = 0 then ret = NO
 	end if
@@ -9652,17 +9667,16 @@ function frame_is_valid(p as Frame ptr) as bool
 	return ret
 end function
 
-'Add a mask. NOTE: Only valid on Frames with pitch == w!
-'clr: is true, blank mask, otherwise copy image
+'Add a mask
+'clr: is true, blank mask (entirely transparent), otherwise copy image
 local sub frame_add_mask(fr as Frame ptr, clr as bool = NO)
 	CHECK_FRAME_8BIT(fr)
 	if fr->mask then exit sub
 	if clr = NO then
-		fr->mask = allocate(fr->w * fr->h)
-		'we can just copy .image in one go, since we just ensured it's contiguous
-		memcpy(fr->mask, fr->image, fr->w * fr->h)
+		fr->mask = allocate(fr->pitch * fr->h)
+		memcpy(fr->mask, fr->image, fr->pitch * fr->h)
 	else
-		fr->mask = callocate(fr->w * fr->h)
+		fr->mask = callocate(fr->pitch * fr->h)
 	end if
 end sub
 
@@ -9675,7 +9689,7 @@ function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO)
 	if p = 0 then return 0
 
 	if p->surf then
-		BUG_IF(clr orelse addmask, "clr/addmask unimplemented for Surfaces", NULL)
+		BUG_IF(clr orelse addmask, "clr/addmask unimplemented for Surfaces", NULL)  'TODO: we don't need it yet
 		dim surf as Surface ptr = surface_duplicate(p->surf)
 		ret = frame_with_surface(surf)
 		ret->offset = p->offset
@@ -9770,11 +9784,8 @@ constructor DrawOptions(scale as integer = 1)
 end constructor
 
 'Public:
-' draws a sprite to a page. scale must be greater than or equal to 1. if trans is false, the
-' mask will be wholly ignored. Just like draw_clipped, masks are optional, otherwise use colourkey 0
-' write_mask:
-'    If the destination has a mask, sets the mask for the destination rectangle
-'    equal to the mask (or color-key) for the source rectangle. Does not OR them.
+' Draws a sprite to a page/dest.
+' trans: if true, color 0 is transparent. (If the Frame has a mask, mask = 0 is transparent instead)
 sub frame_draw(src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, page as integer, opts as DrawOptions = def_drawoptions)
 	frame_draw src, curmasterpal(), pal, x, y, trans, vpages(page), opts
 end sub
@@ -9785,7 +9796,6 @@ end sub
 
 ' Explicitly specify the master palette to use - it is only used if the src is 8-bit
 ' and the dest is 32-bit.
-' Also, the mask if any is ignored.
 sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
 	BUG_IF(src = NULL orelse dest = NULL, "trying to draw from/to null frame")
 	get_cliprect(dest)  'Set clipping Frame
@@ -9830,8 +9840,6 @@ local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as 
 		end if
 		'/
 
-		' TODO: this ignores the src mask, if the src is 8-bit, which means dissolved Frames
-		' aren't drawn correctly
 		draw_clipped_surf src_surface, @masterpal(0), pal, x, y, trans, dest->surf, opts
 
 		/'
@@ -9863,7 +9871,7 @@ function frame_resized(spr as Frame ptr, wide as integer, high as integer, shift
 	dim with_surface32 as bool = (spr->surf <> NULL andalso spr->surf->format = SF_32bit)
 	ret = frame_new(wide, high, spr->arraylen, NO, (spr->mask <> NULL), with_surface32)
 	dim opts as DrawOptions
-	opts.write_mask = (spr->surf = NULL)  'FIXME: not supported for Surfaces
+	opts.write_mask = YES
 	for fridx as integer = 0 to spr->arraylen - 1
 		frame_clear @ret[fridx], bgcol
 		frame_draw @spr[fridx], NULL, shiftx, shifty, NO, @ret[fridx], opts
@@ -10293,6 +10301,7 @@ function default_dissolve_time(style as integer, w as integer, h as integer) as 
 	end select
 end function
 
+'Note: Frame masks are not supported, so can't rotate a dissolved sprite
 function frame_rotozoom(src as Frame ptr, pal as Palette16 ptr = NULL, angle as double, zoomx as double, zoomy as double, smooth as integer = 0) as Frame ptr
 	dim as Surface ptr in_surf, out_surf
 	dim as Surface temp_surf = any

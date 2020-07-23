@@ -375,7 +375,7 @@ TYPE ImageFileInfo
 	imagetype as ImageFileTypes
 	imagetype_name as string
 	supported as bool   'Can be loaded
-	valid as bool       'Appears to valid, regardless of being supported
+	valid as bool       'Appears to be valid, regardless of being supported
 	paletted as bool    'Has a palette. Check this, not bpp!
 	alpha as bool       'Has alpha channel or color key
 	                    '(Warning: is false for PNGs with palette w/ transparent colors)
