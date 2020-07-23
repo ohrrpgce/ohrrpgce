@@ -39,24 +39,27 @@ int nearcolor_faster(RGBcolor searchcol) {
 	return res;
 }
 
-static inline uint8_t *get_frame_buf(Frame *spr) {
+static inline int get_frame_buf(Frame *spr, uint8_t *restrict *srcpp, uint8_t *restrict *maskpp) {
 	if (spr->surf) {
 		if (spr->surf->format != SF_8bit) {
 			debug(errShowBug, "blitohr[scaled]: 32bit sprite!");
-			return NULL;
+			return 0;
 		}
-		return spr->surf->pPaletteData;
+		*srcpp = spr->surf->pPaletteData;
+		*maskpp = spr->surf->pMaskData;
 	} else {
-		return spr->image;
+		*srcpp = spr->image;
+		*maskpp = spr->mask;
 	}
+	return 1;
 }
 
-// 8 bit blitting routine. Supports 8-bit Surface-backed Frames too.
+// 8-bit -> 8-bit scale=1 blitting routine. Supports 8-bit Surface-backed Frames too.
 // The arguments must already be clipped to the destination (done in draw_clipped())
 // opts should be a ptr to def_drawoptions if no extra options are needed.
 void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int startx, int starty, int endx, int endy, boolint trans, DrawOptions *opts) {
 	int i, j;
-	unsigned char *maskp, *srcp, *original_srcp, *restrict destp;
+	unsigned char *maskp, *srcp, *original_maskp, *restrict destp, *restrict destmaskp;
 	int srclineinc, destlineinc;
 
 	if (!opts) {
@@ -64,10 +67,8 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 		return;
 	}
 
-	original_srcp = srcp = get_frame_buf(spr);
-
-	// Surfaces don't have masks
-	maskp = spr->mask;
+	if (!get_frame_buf(spr, &srcp, &maskp))
+		return;
 	if (maskp == NULL) {
 		//we could add an optimised version for this case, which is the 99% case
 		maskp = srcp;
@@ -75,10 +76,16 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 
 	srcp += startoffset;
 	maskp += startoffset;
+	original_maskp = maskp;
 
 	srclineinc = spr->pitch - (endx - startx + 1);
 
-	destp = get_frame_buf(destspr) + startx + starty * destspr->pitch;
+	if (!get_frame_buf(destspr, &destp, &destmaskp))
+		return;
+	destp += startx + starty * destspr->pitch;
+	if (destmaskp)
+		destmaskp += startx + starty * destspr->pitch;
+
 	destlineinc = destspr->pitch - (endx - startx + 1);
 
 	int tog = 0;
@@ -237,9 +244,9 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
   no_draw:
 
 	// Set the destination mask
-	if (opts->write_mask && destspr->mask) {
-		srcp = (spr->mask ? spr->mask : original_srcp) + startoffset;
-		destp = destspr->mask + startx + starty * destspr->pitch;
+	if (opts->write_mask && destmaskp) {
+		srcp = original_maskp;
+		destp = destmaskp;
 		for (i = starty; i <= endy; i++) {
 			memcpy(destp, srcp, endx - startx + 1);
 			srcp += spr->pitch;
@@ -254,8 +261,8 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 //(This function will be replaced with rotozoomSurface(), which has a fast path for scaling)
 // opts should be a ptr to def_drawoptions if no extra options are needed.
 void blitohrscaled(Frame *spr, Frame *destspr, Palette16 *pal, int x, int y, int startx, int starty, int endx, int endy, boolint trans, DrawOptions *opts) {
-	unsigned char *restrict destbuf;
-	unsigned char *restrict maskbuf;
+	unsigned char *restrict destbuf, *restrict destmaskp;
+	unsigned char *restrict maskp;
 	unsigned char *restrict srcp;
 	int tx, ty;
 	int pix, spix;
@@ -265,17 +272,16 @@ void blitohrscaled(Frame *spr, Frame *destspr, Palette16 *pal, int x, int y, int
 		return;
 	}
 
-	srcp = get_frame_buf(spr);
-	destbuf = get_frame_buf(destspr);
+	if (!get_frame_buf(spr, &srcp, &maskp)) return;
+	if (!get_frame_buf(destspr, &destbuf, &destmaskp)) return;
 
 	int scale = opts->scale;
 
 	bool write_mask = opts->write_mask;
-	maskbuf = spr->mask;
-	if (maskbuf == 0) {
-		maskbuf = srcp;
+	if (maskp == 0) {
+		maskp = srcp;
 	}
-	if (destspr->mask == 0) {
+	if (destmaskp == 0) {
 		write_mask = false;
 	}
 
@@ -293,7 +299,7 @@ void blitohrscaled(Frame *spr, Frame *destspr, Palette16 *pal, int x, int y, int
 				else
 					destbuf[pix] = srcp[spix];
 				if (write_mask)
-					destspr->mask[pix] = maskbuf[spix];
+					destmaskp[pix] = maskp[spix];
 			}
 		}
 	} else {
@@ -306,14 +312,14 @@ void blitohrscaled(Frame *spr, Frame *destspr, Palette16 *pal, int x, int y, int
 				spix = (((ty - y) / scale) * spr->pitch) + ((tx - x) / scale);
 
 				//check mask
-				if (maskbuf[spix]) {
+				if (maskp[spix]) {
 					if (pal != 0)
 						destbuf[pix] = pal->col[srcp[spix]];
 					else
 						destbuf[pix] = srcp[spix];
 				}
 				if (write_mask)
-					destspr->mask[pix] = maskbuf[spix];
+					destmaskp[pix] = maskp[spix];
 			}
 		}
 	}

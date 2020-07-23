@@ -48,14 +48,17 @@ struct Surface
 		uint32_t* pColorData;
 		uint8_t* pPaletteData;
 	};
+	uint8_t* pMaskData;  // Optional, nonzero for opaque pixels. May only be present on 8-bit surfaces.
 
 #ifdef __cplusplus
 	uint8_t& pixel8(int x, int y) { return pPaletteData[pitch * y + x]; }
+	uint8_t& mask8(int x, int y) { return pMaskData[pitch * y + x]; }
 	RGBcolor& pixel32(int x, int y) { return ((RGBcolor*)pColorData)[pitch * y + x]; }
 
 	Surface(int _width, int _height, int _pitch, SurfaceFormat _format, SurfaceUsage _usage)
 		: width(_width), height(_height), pitch(_pitch), refcount(1), isview(0),
-		format(_format), usage(_usage), base_frame(0), base_surf(0), handle(0), pRawData(0)
+		format(_format), usage(_usage), base_frame(0), base_surf(0), handle(0), pRawData(0),
+		pMaskData(0)
 		{}
 #endif
 };
@@ -97,7 +100,6 @@ typedef struct
 
 	// If the destination has a mask, sets the mask for the destination rectangle
 	// equal to the mask (or color-key) for the source rectangle. Does not OR them.
-	// (Not implemented for Surfaces)
 	boolint write_mask;
 
 	// If false, all blending/modulation options are ignored. Used as an early-out

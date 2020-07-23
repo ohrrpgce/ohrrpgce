@@ -79,10 +79,13 @@ int gfx_surfaceCreateView_SW( Surface *pSurfaceIn, int x, int y, int width, int 
 	height = bound(height, 0, pSurfaceIn->height - y);
 	Surface *ret = new Surface(width, height, pSurfaceIn->pitch, pSurfaceIn->format, pSurfaceIn->usage);
 	ret->isview = 1;
-	if(ret->format == SF_8bit)
+	if(ret->format == SF_8bit) {
 		ret->pPaletteData = &pSurfaceIn->pixel8(x, y);
-	else
+		if (pSurfaceIn->pMaskData)
+			ret->pMaskData = &pSurfaceIn->mask8(x, y);
+	} else {
 		ret->pColorData = (uint32_t*)&pSurfaceIn->pixel32(x, y);
+	}
 
 	ret->base_surf = pSurfaceIn;
 	gfx_surfaceReference_SW(pSurfaceIn);
@@ -126,6 +129,7 @@ int gfx_surfaceCreateFrameView_SW( Frame* pFrameIn, Surface** ppSurfaceOut )
 	ret->isview = 1;
 	ret->base_frame = frame_reference(pFrameIn);
 	ret->pPaletteData = pFrameIn->image;
+	ret->pMaskData = pFrameIn->mask;
 	*ppSurfaceOut = ret;
 	return 0;
 }
@@ -144,6 +148,7 @@ int surfaceFrameShim( Frame* pFrameIn, Surface* pSurfaceOut )
 	pSurfaceOut->height = pFrameIn->h;
 	pSurfaceOut->pitch = pFrameIn->pitch;
 	pSurfaceOut->pPaletteData = pFrameIn->image;
+	pSurfaceOut->pMaskData = pFrameIn->mask;
 	pSurfaceOut->format = SF_8bit;
 	pSurfaceOut->usage = SU_Source;
 	pSurfaceOut->refcount = 999;  //Ensure never deleted
@@ -173,11 +178,15 @@ int gfx_surfaceDestroy_SW( Surface** ppSurfaceIn ) {
 				gfx_surfaceDestroy_SW(&pSurfaceIn->base_surf);
 			}
 		}
-		else if(pSurfaceIn->pRawData) {
-			if(pSurfaceIn->format == SF_8bit)
-				delete [] pSurfaceIn->pPaletteData;
-			else
-				delete [] pSurfaceIn->pColorData;
+		else {
+			if(pSurfaceIn->pRawData) {
+				if(pSurfaceIn->format == SF_8bit)
+					delete [] pSurfaceIn->pPaletteData;
+				else
+					delete [] pSurfaceIn->pColorData;
+			}
+			if(pSurfaceIn->pMaskData)
+				delete [] pSurfaceIn->pMaskData;
 		}
 		surfaceMutex.lock();
 		g_surfaces.remove(pSurfaceIn);
@@ -430,7 +439,7 @@ void clampRectToSurface( SurfaceRect* inRect, SurfaceRect* outRect, Surface* pSu
 // is drawn at the top-left corner of the dest rect.  The rectangles may be over
 // the edge of the respective Surfaces; they are clamped. Negative width or
 // height means the draw is a noop.
-// bUseColorKey0 says whether color 0 in 8-bit source images is transparent
+// bUseColorKey0 says whether color 0 (or mask 0, in Surfaces with masks) in 8-bit source images is transparent
 int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts ) {
 	if (!pSurfaceSrc || !pSurfaceDest || !pOpts) {
 		debug(errShowBug, "surfaceCopy_SW: NULL ptr %p %p %p", pSurfaceSrc, pSurfaceDest, pOpts);
@@ -519,20 +528,27 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 		}
 	} else if (pSurfaceDest->format == SF_8bit) { //both are 8bit
 		// alpha/opacity ignored, not supported. Handled by blitohr in blit.c
+		// so this path is not typically used
 		if (bUseColorKey0) {
+			uint8_t *restrict maskp = pSurfaceSrc->pMaskData;
+			if (!maskp)
+				maskp = srcp8;
+
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
 					if (pPal8) {
-						if (*srcp8)
+						if (*maskp)
 							*destp8 = pPal8->col[*srcp8];
 					} else {
-						if (*srcp8)
+						if (*maskp)
 							*destp8 = *srcp8;
 					}
 					srcp8++;
+					maskp++;
 					destp8++;
 				}
 				srcp8 += srcLineEnd;
+				maskp += srcLineEnd;
 				destp8 += destLineEnd;
 			}
 		} else {
@@ -557,28 +573,37 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 			return -1;
 		}
 
-		RGBcolor *restrict pal32 = pPalette;
+		RGBcolor *restrict pal32;
+		RGBcolor temppal[256];
 		if (pPal8) {
 			// Form a temp palette to avoid double-indirection on every pixel
-			pal32 = (RGBcolor*)alloca(pPal8->numcolors * sizeof(RGBcolor));
+			pal32 = temppal;
 			for (int idx = 0; idx < pPal8->numcolors; idx++) {
 				pal32[idx] = pPalette[pPal8->col[idx]];
 			}
+		} else {
+			pal32 = pPalette;
 		}
 
 		if (bUseColorKey0) {
+			uint8_t *restrict maskp = pSurfaceSrc->pMaskData;
+			if (!maskp)
+				maskp = srcp8;
+
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
-					if (*srcp8) {
+					if (*maskp) {
 						if (with_blending)
 							*destp32 = alpha_blend(pal32[*srcp8], *destp32, alpha, pOpts->blend_mode);
 						else
 							*destp32 = pal32[*srcp8];
 					}
 					srcp8++;
+					maskp++;
 					destp32++;
 				}
 				srcp8 += srcLineEnd;
+				maskp += srcLineEnd;
 				destp32 += destLineEnd;
 			}
 		} else {

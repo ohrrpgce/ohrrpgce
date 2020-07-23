@@ -9805,7 +9805,7 @@ local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as 
 		' Have to use gfx_surfaceCopy, so translate everything to Surfaces
 
 		BUG_IF(dest->surf = NULL, "trying to draw a 32-bit Frame to a regular Frame")
-		BUG_IF(opts.write_mask orelse opts.scale <> 1, "write_mask and scale not supported with 32-bit Frames")
+		BUG_IF(opts.scale <> 1, "scale not supported with 32-bit Frames")
 
 		dim src_surface as Surface ptr
 		dim temp_surface as Surface = any

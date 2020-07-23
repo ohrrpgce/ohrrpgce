@@ -61,6 +61,7 @@ Type Surface
 		pColorData as RGBcolor ptr  'uint32s
 		pPaletteData as ubyte ptr
 	End Union
+	pMaskData as ubyte ptr  'Optional, nonzero for opaque pixels. May only be present on 8-bit surfaces.
 End Type
 
 Type SurfaceRect
@@ -101,7 +102,6 @@ Type DrawOptions
 
 	' If the destination has a mask, sets the mask for the destination rectangle
 	' equal to the mask (or color-key) for the source rectangle. Does not OR them.
-	' (Not implemented for Surfaces)
 	write_mask as bool
 
 	' If false, all blending/modulation options are ignored. Used as an early-out
