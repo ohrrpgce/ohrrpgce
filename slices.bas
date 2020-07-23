@@ -1880,10 +1880,7 @@ Sub LoadSpriteSliceImage(byval sl as Slice ptr, warn_if_missing as bool = NO)
   .loaded = YES  'Set YES even if loading failed, so we don't try again
   if .img.sprite then
    if .scaled then
-    if vpages_are_32bit = NO then
-     visible_debug "Disabled sprite 'Scaled': unsupported in 8-bit mode"
-     .scaled = NO
-    elseif .img.sprite->size <> sl->Size then
+    if .img.sprite->size <> sl->Size then
      'Becomes a 32-bit sprite
      frame_assign @.img.sprite, frame_scaled32(.img.sprite, sl->Width, sl->Height, master(), .img.pal)
      palette16_unload @.img.pal
@@ -2013,10 +2010,7 @@ Local Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
   if .assetfile then assetfile = *.assetfile
   dim filename as string = finddatafile(assetfile, NO)  'Handle missing file below
   if len(filename) then
-   if .load_asset_as_32bit andalso vpages_are_32bit = NO then
-    visible_debug "Disabled load_asset_as_32bit: unsupported in 8-bit mode"
-    .load_asset_as_32bit = NO
-   elseif .load_asset_as_32bit then
+   if .load_asset_as_32bit then
     .img.sprite = image_import_as_frame_32bit(filename)
    else
     dim transp_color as RGBcolor  'Black. TODO: this should be stored in dat and customisabled
@@ -2315,7 +2309,6 @@ Sub SpriteSliceUpdate(sl as Slice ptr)
 end sub
 
 'Cause the sprite to be scaled/stretched to a certain size.
-'WARNING: you must call switch_to_32bit_vpages to display a scaled sprite.
 'TODO: once scaled sprites are available in games, uncomment the relevant code in valid_resizeable_slice.
 'Size can't be negative (Maybe handle negatives by setting flipVert and flipHoriz?)
 Sub ScaleSpriteSlice(sl as Slice ptr, size as XYPair)

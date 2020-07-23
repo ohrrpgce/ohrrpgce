@@ -9814,20 +9814,28 @@ local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as 
 	   (dest->surf andalso dest->surf->format <> SF_8bit) then
 		' Have to use gfx_surfaceCopy, so translate everything to Surfaces
 
-		BUG_IF(dest->surf = NULL, "trying to draw a 32-bit Frame to a regular Frame")
 		BUG_IF(opts.scale <> 1, "scale not supported with 32-bit Frames")
 
 		dim src_surface as Surface ptr
-		dim temp_surface as Surface = any
+		dim dest_surface as Surface ptr
+		dim tempsrc_surface as Surface = any
+		dim tempdest_surface as Surface = any
 		if src->surf then
 			src_surface = src->surf
 		else
 			'Correct but slower:
 			'if gfx_surfaceCreateFrameView(src, @src_surface) then return
 			'Kludgy but faster, avoid a slow allocation:
-			src_surface = @temp_surface
+			src_surface = @tempsrc_surface
 			if surfaceFrameShim(src, src_surface) then return
 		end if
+		if dest->surf then
+			dest_surface = dest->surf
+		else
+			dest_surface = @tempdest_surface
+			if surfaceFrameShim(dest, dest_surface) then return
+		end if
+
 		/'
 		dim master_pal as RGBPalette ptr
 		if src_surface->format = SF_8bit then
@@ -9840,7 +9848,7 @@ local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as 
 		end if
 		'/
 
-		draw_clipped_surf src_surface, @masterpal(0), pal, x, y, trans, dest->surf, opts
+		draw_clipped_surf src_surface, @masterpal(0), pal, x, y, trans, dest_surface, opts
 
 		/'
 	cleanup:

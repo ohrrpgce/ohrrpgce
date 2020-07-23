@@ -446,10 +446,6 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 		debug(errShowBug, "surfaceCopy_SW: NULL ptr %p %p %p", pSurfaceSrc, pSurfaceDest, pOpts);
 		return -1;
 	}
-	if (pSurfaceSrc->format == SF_32bit && pSurfaceDest->format == SF_8bit) {
-		debug(errShowBug, "surfaceCopy_SW: can't copy from 32-bit to 8-bit Surface");
-		return -1;
-	}
 
 	SurfaceRect rectDest, rectSrc;
 	if (!pRectDest)
@@ -508,9 +504,8 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 	RGBcolor *restrict srcp32 = &pSurfaceSrc->pixel32(srcX, srcY);
 	RGBcolor *restrict destp32 = &pSurfaceDest->pixel32(destX, destY);
 
-	if (pSurfaceSrc->format == SF_32bit) { //both are 32bit (since already validated destination target)
+	if (pSurfaceSrc->format == SF_32bit && pSurfaceDest->format == SF_32bit) {
 		// TODO: implement alpha channel-based blending and colorkeying
-
 		if (with_blending) {
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
@@ -527,7 +522,26 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 				destp32 += pSurfaceDest->pitch;
 			}
 		}
-	} else if (pSurfaceDest->format == SF_8bit) { //both are 8bit
+
+	} else if (pSurfaceSrc->format == SF_32bit && pSurfaceDest->format == SF_8bit) {
+		// Slow fallback to doing master palette lookups. Because this is just a fallback, we don't
+		// do any dithering like blitohr() does.
+		// TODO: implement alpha channel-based blending and colorkeying
+		for (int itY = 0; itY < itY_max; itY++) {
+			for (int itX = 0; itX < itX_max; itX++) {
+				RGBcolor destcol;
+				if (with_blending)
+					destcol = alpha_blend(*srcp32++, pPalette[*destp8], alpha, pOpts->blend_mode);
+				else
+					destcol = *srcp32++;
+				*destp8 = nearcolor_faster(destcol);
+				destp8++;
+			}
+			srcp32 += srcLineEnd;
+			destp8 += destLineEnd;
+		}
+
+	} else if (pSurfaceSrc->format == SF_8bit && pSurfaceDest->format == SF_8bit) {
 		// alpha/opacity ignored, not supported. Handled by blitohr in blit.c
 		// so this path is not typically used
 		if (bUseColorKey0) {
@@ -568,6 +582,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 				}
 			}
 		}
+
 	} else { //source is 8bit, dest is 32bit
 		if (!pPalette) {
 			debug(errShowBug, "surfaceCopy_SW: NULL palette");

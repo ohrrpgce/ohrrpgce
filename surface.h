@@ -180,6 +180,9 @@ extern "C"
 	// In blend.h
 	//RGBcolor alpha_blend( RGBcolor src, RGBcolor dest, int alpha, enum BlendMode mode );
 
+	// In blit.c
+	int nearcolor_faster(RGBcolor searchcol);
+
 	// Roto-zooming functions (implemented in rotozoom.c)
 	Surface *rotozoomSurface(Surface * src, double angle, double zoomx, double zoomy, int smooth);
 	void rotozoomSurfaceSize(int width, int height, double angle, double zoomx, double zoomy, int *dstwidth, int *dstheight);
