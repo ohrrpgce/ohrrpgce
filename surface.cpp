@@ -498,11 +498,17 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 	int srcLineEnd = pSurfaceSrc->pitch - itX_max;
 	int destLineEnd = pSurfaceDest->pitch - itX_max;
 
-	// Two of these are invalid
+	// Two of the following pointers are invalid
 	uint8_t *restrict srcp8 = &pSurfaceSrc->pixel8(srcX, srcY);
 	uint8_t *restrict destp8 = &pSurfaceDest->pixel8(destX, destY);
 	RGBcolor *restrict srcp32 = &pSurfaceSrc->pixel32(srcX, srcY);
 	RGBcolor *restrict destp32 = &pSurfaceDest->pixel32(destX, destY);
+	// maskp is only valid for 8 bit source
+	uint8_t *restrict maskp;
+	if (pSurfaceSrc->pMaskData)
+		maskp = &pSurfaceSrc->mask8(srcX, srcY);
+	else
+		maskp = srcp8;
 
 	if (pSurfaceSrc->format == SF_32bit && pSurfaceDest->format == SF_32bit) {
 		// TODO: implement alpha channel-based blending and colorkeying
@@ -545,10 +551,6 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 		// alpha/opacity ignored, not supported. Handled by blitohr in blit.c
 		// so this path is not typically used
 		if (bUseColorKey0) {
-			uint8_t *restrict maskp = pSurfaceSrc->pMaskData;
-			if (!maskp)
-				maskp = srcp8;
-
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
 					if (pPal8) {
@@ -602,10 +604,6 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 		}
 
 		if (bUseColorKey0) {
-			uint8_t *restrict maskp = pSurfaceSrc->pMaskData;
-			if (!maskp)
-				maskp = srcp8;
-
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
 					if (*maskp) {
