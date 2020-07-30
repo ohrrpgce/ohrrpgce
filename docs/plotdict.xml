@@ -3411,7 +3411,18 @@ if (herolevelled (find hero (hero: Bob))) then (
 		<command id="readspell">
 			<canon>read spell (hero, list, slot)</canon>
 			<shortname>read spell</shortname>
-			<description>Returns the ID number of a chosen spell slot, or 0 (<ref>false</ref>) if there is no spell in that slot. The first argument is the hero&apos;s position in the party (as returned by <ref>findhero</ref>). The second argument is the number of the spell list to check. This is a value from 0 to 3. The third argument is the slot to check. This is a number from 0 to 23. Spell slots are numbered in rows, so the first row is 0,1,2 the second row is 3,4,5, and so-on.</description>
+			<description>
+				Checks what spell (attack) is in a certain slot of a hero spell list.
+				Returns 0 (<ref>false</ref>) if the slot is empty,
+				otherwise the attack ID (i.e. one of the <tt>atk:attackname</tt> constants),
+				which is the ID shown in the attack editor + 1.
+				The first argument is the hero&apos;s position in the party (as returned by <ref>findhero</ref>).
+				The second argument is the number of the spell list to check.
+				This is a value from 0 to 3.
+				The third argument is the slot to check.
+				This is a number from 0 to 23.
+				Spell slots are numbered in rows, so the first row is 0,1,2 the second row is 3,4,5, and so on.
+			</description>
 		</command>
 		<command id="writespell">
 			<canon>write spell (hero, list, slot, attack)</canon>
