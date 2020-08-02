@@ -16,6 +16,6 @@ if [ ! -e "SDL-1.2.15.dmg" ] ; then
   curl -O "https://www.libsdl.org/release/SDL-1.2.15.dmg"
 fi
 
-if [ ! -e "SDL2-2.0.10.dmg" ] ; then
-  curl -O "https://www.libsdl.org/release/SDL2-2.0.10.dmg"
+if [ ! -e "SDL2-2.0.12.dmg" ] ; then
+  curl -O "https://www.libsdl.org/release/SDL2-2.0.12.dmg"
 fi
