@@ -62,6 +62,7 @@ static const char *lasterror() {
 
 typedef struct {
 	boolint failed;
+	char *failmsg;       // When failed is true, a string containing the error message
 	boolint started;     // HTTP_request called, cleanup needed
 	char *response;      // Response with the header stripped
 	int response_len;    // Length of response, NOT response_buf
@@ -81,6 +82,7 @@ void HTTP_Request_init(HTTPRequest *req) {
 
 void HTTP_Request_destroy(HTTPRequest *req) {
 	if (!req->started) return;
+	free(req->failmsg);
 	free(req->response_buf);
 	free(req->status_string);
 #ifndef NO_IPv6
@@ -92,12 +94,26 @@ void HTTP_Request_destroy(HTTPRequest *req) {
 #endif
 }
 
+// Log an error, and also copy the error message into req and mark it as failed
+void req_log_fail(HTTPRequest *req, const char *msg, ...) {
+	va_list vl;
+	va_start(vl, msg);
+	char buf[256];
+	buf[255] = '\0';
+	int buflen = vsnprintf(buf, 255, msg, vl);
+	va_end(vl);
+	debug_hook(errError, buf);
+
+	req->failed = true;
+	req->failmsg = malloc(buflen + 1);
+	strcpy(req->failmsg, buf);
+}
+
 static void parse_HTTP_response(HTTPRequest *req) {
 	// Find the HTTP result code
 	char status_buf[64];
 	if (sscanf(req->response_buf, "HTTP/%*d.%*d %d %63[^\r]\r\n", &req->status, status_buf) != 2) {
-		debug(errError, "Couldn't parse HTTP header line: %50s", req->response_buf);
-		req->failed = true;
+		req_log_fail(req, "Couldn't parse HTTP header line: %50s", req->response_buf);
 		return;
 	}
 	req->status_string = strdup(status_buf);
@@ -108,8 +124,8 @@ static void parse_HTTP_response(HTTPRequest *req) {
 		req->response =  doubleline + 4;
 		req->response_len -= doubleline + 4 - req->response_buf;
 	} else {
-		debug(errError, "Couldn't find end of HTTP header");
-		req->failed = true;
+		req_log_fail(req, "Couldn't find end of HTTP header");
+		return;
 	}
 }
 
@@ -119,9 +135,8 @@ static bool send_on_socket(SOCKET sock, const char *sendbuf, int sendlen, HTTPRe
 		int result = send(sock, sendbuf + sent, sendlen - sent, 0);
 		// FIXME: EAGAIN and EWOULDBLOCK
 		if (result == SOCKET_ERROR) {
-			debug(errError, "send(%s) error: %s", server, lasterror());
+			req_log_fail(req, "send(%s) error: %s", server, lasterror());
 			closesocket(sock);
-			req->failed = true;
 			return false;
 		} else {
 			sent += result;
@@ -147,8 +162,7 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 	WSADATA wsaData;
 	result = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (result) {
-		debug(errError, "WSAStartup failed: %s", win_error_str(result));
-		req->failed = true;
+		req_log_fail(req, "WSAStartup failed: %s", win_error_str(result));
 		return false;
 	}
 #else
@@ -210,8 +224,7 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 #else
 		const char *err = hstrerror(h_errno);
 #endif
-		debug(errError, "getaddrinfo(%s) failed: %s", server, err);
-		req->failed = true;
+		req_log_fail(req, "getaddrinfo(%s) failed: %s", server, err);
 		return false;
 	}
 
@@ -240,8 +253,7 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 		// Can't use lasterror: getaddrinfo doesn't set errno
 		const char *err = gai_strerror(result);
 #endif
-		debug(errError, "getaddrinfo(%s) failed: %s", server, err);
-		req->failed = true;
+		req_log_fail(req, "getaddrinfo(%s) failed: %s", server, err);
 		return false;
 	}
 	int ai_family = req->addr->ai_family;
@@ -254,8 +266,7 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 	// Create socket (a file descriptor under Unix)
 	SOCKET sock = socket(ai_family, ai_socktype, ai_protocol);
 	if (sock == INVALID_SOCKET) {
-		debug(errError, "socket(%s) error: %s", server, lasterror());
-		req->failed = true;
+		req_log_fail(req, "socket(%s) error: %s", server, lasterror());
 		return false;
 	}
 
@@ -263,9 +274,8 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 	result = connect(sock, ai_addr, ai_addrlen);
 	if (result == SOCKET_ERROR) {
 		// Not bothering to attempt to connect to the next available address from addr
-		debug(errError, "connect(%s) error: %s", server, lasterror());
+		req_log_fail(req, "connect(%s) error: %s", server, lasterror());
 		closesocket(sock);
-		req->failed = true;
 		return false;
 		//sock = INVALID_SOCKET;
 	}
@@ -302,8 +312,7 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 		result = recv(sock, req->response_buf + received, recvbuf_len - received - 1, 0);  // Space for NUL
 		// FIXME: EAGAIN and EWOULDBLOCK
 		if (result == SOCKET_ERROR) {
-			debug(errError, "recv(%s) error: %s", server, lasterror());
-			req->failed = true;
+			req_log_fail(req, "recv(%s) error: %s", server, lasterror());
 			break;
 		} else {
 			received += result;

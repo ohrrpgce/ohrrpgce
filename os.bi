@@ -115,6 +115,7 @@ declare function channel_input_line (byref channel as IPCChannel, line_in as str
 
 type HTTPRequest
 	failed as boolint
+	failmsg as zstring ptr       ' When failed is true, a string containing the error message
 	started as boolint           ' HTTP_request called, cleanup needed
 	response as ubyte ptr        ' Response with the header stripped
 	response_len as integer      ' Length of response, NOT response_buf

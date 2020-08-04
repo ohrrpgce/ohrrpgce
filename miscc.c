@@ -33,6 +33,7 @@ char *get_sys_err_string() {
 void (*debug_hook)(enum ErrorLevel errorlevel, const char *msg) = debugc;
 
 // This is for the benefit of testing tools (e.g. vectortest, filetest)
+// Note that the hook only affects debug output from C and C++ code!
 void set_debug_hook(void (*new_debug_hook)(enum ErrorLevel errorlevel, const char *msg)) {
 	if (new_debug_hook)
 		debug_hook = new_debug_hook;
