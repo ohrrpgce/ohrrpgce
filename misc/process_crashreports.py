@@ -175,7 +175,7 @@ def download_and_extract_symbols(syms_fname, args):
 
 def process_minidump(build, reportdir, is_custom, args):
     """Read a minidump file (producing .sym files as necessary), print info
-    from it, and return a (stacktrace, crash_summary) pair."""
+    from it, and return a (stacktrace, crash_summary, crash_info) tuple."""
     # Try to determine the symbols .7z archive
     try:
         syms_fname = symbols_filename_from_build(build)
@@ -218,13 +218,13 @@ def process_minidump(build, reportdir, is_custom, args):
         minidump_tools.produce_breakpad_symbols_windows(pdb, breakpad_root, verbose=args.verbose)
 
     minidump = pathjoin(reportdir, 'crashdump.dmp')
-    stacktrace, crash_summary, info = minidump_tools.analyse_minidump(minidump, breakpad_root, GIT_DIR, gitrev, args.verbose, args.fetch, args.stack_detail, ignore_pdbs)
-    for name, value in info:
+    stacktrace, crash_summary, crash_info = minidump_tools.analyse_minidump(minidump, breakpad_root, GIT_DIR, gitrev, args.verbose, args.fetch, args.stack_detail, ignore_pdbs)
+    for name, value in crash_info:
         print_attr(name, value)
     if error_note:
         stacktrace += [error_note]
         crash_summary += ' ' + error_note
-    return stacktrace, crash_summary
+    return stacktrace, crash_summary, crash_info
 
 class ReportSummary:
     def __getattr__(self, attr):
@@ -280,6 +280,8 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
         print_attr(x.attrib['name'].title(), x.attrib['value'])
         if x.attrib['name'] == 'build':
             build = x.attrib['value']
+        if x.attrib['name'] == 'error':  # The BUG message
+            summary.error = x.attrib['value']
 
     is_custom = (root.find('AppName').text == 'OHRRPGCE-Custom')
     summary.program = 'Custom' if is_custom else 'Game'
@@ -300,6 +302,7 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
     logfname = pathjoin(reportdir, log_prefix + '_debug.txt')
     errors = []  # list of (lineidx, line) pairs
     debug_archive_errors = 0
+    backend = ''
     loglines = []
     try:
         with open(logfname, 'r', encoding='latin-1') as logfile:
@@ -321,10 +324,10 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
                 print_matching_line(line, 'Spawned from Custom', 'Received message from Custom: (V.*)')
                 #print_matching_line(line, 'settings_dir', 'settings_dir: (.*)')
                 # Most of the backends return an info string on initialising, printed in quotes
-                print_matching_line(line, 'Backend init info', '(gfx_.*".*)')
+                backend = backend or print_matching_line(line, 'Backend init info', '(gfx_.*".*)')
                 # gfx_directx doesn't, it prints directly to debug log, and there's no
                 # one-line summary, so just show this
-                print_matching_line(line, 'Backend init info', 'Initialising (gfx_directx)')
+                backend = backend or print_matching_line(line, 'Backend init info', 'Initialising (gfx_directx)')
 
                 if not summary.username:
                     user = print_matching_line(line, 'Username', r'settings_dir: .*(Documents and Settings|Users)\\([^\\]+)\\', 2)
@@ -354,10 +357,15 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
 
     # Get stacktrace and other info from the minidump
     if args.no_stacktrace:
-        stacktrace, summary.crash_summary = None, 'N/A'
+        stacktrace, summary.crash_summary, crash_info = None, 'N/A', []
     else:
-        stacktrace, summary.crash_summary = process_minidump(build, reportdir, is_custom, args)
+        stacktrace, summary.crash_summary, crash_info = process_minidump(build, reportdir, is_custom, args)
     # Print the stacktrace later, at the end
+
+    for key, value in crash_info:
+        if key == 'Exception':
+            if summary.error == '' and value != '0x00000000 / 0x00000000':
+                summary.error = value
 
     # Print errors
     if debug_archive_errors:
@@ -400,8 +408,16 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
         for line in stacktrace:
             print(line)
 
-    # Return summary
-    summary.version = ' '.join(build.split(' ')[1:3])  # ohrvercode, builddate.svnrev
+    # Compute summary.version and summary.build
+    summary.version = ' '.join(build.split(' ')[1:3])  # ohrvercode builddate.svnrev
+    keywords = []
+    # This list of platforms is from config.bi
+    for keyword in ("Android", "Linux", "FreeBSD", "NetBSD", "OpenBSD", "Mac", "Win", "DOS", "Unknown",
+                    "32-bit", "64-bit", "exx"):  #"portable", "AddrSan"
+        if keyword in build:
+            keywords.append(keyword.replace('-bit', ''))
+    summary.build = '/'.join(keywords + [backend.replace('"', '')])
+
     return summary
 
 
@@ -447,11 +463,14 @@ def process_crashrpt_reports_directory(reports_dir, args):
 
 def print_summary_table(report_summaries):
     print('\n\n\n######### Summary #########')
-    print('%-6s  %-8s  %-6s  %-27s  %s' % ('UUID', 'Uploaded', 'Prog', 'Version', 'Top stack frames'))
-    print('%-6s  %-8s  %-6s  %-27s  %s' % ('Who', '', 'User', 'Game', 'Description'))
+    print('%-6s  %-8s  %-29s  %s' % ('UUID', 'Uploaded', 'Version',       'Top stack frames'))
+    print('%-6s  %-8s  %-29s  %s' % ('Prog', 'Username', 'Build/Backend', 'Error'))
+    print('%-6s  %-8s  %-29s  %s' % ('Who',  '',         'Game',          'Description'))
     for rpt in report_summaries:
-        print(f'{rpt.uuid:<6}  {rpt.upload_date:8}  {rpt.program:<6}  {rpt.version:<27.27}  {rpt.crash_summary}\n'
-              f'{rpt.email:16.16}  {rpt.username:6.6}  {rpt.game:<27.27}  {rpt.description}\n')
+        print('_' * 90)
+        print(f'{rpt.uuid:<6}  {rpt.upload_date:8}  {rpt.version:<29.29}  {rpt.crash_summary}\n'
+              f'{rpt.program:<6}  {rpt.username:8.8}  {rpt.build:<29.29}  {rpt.error}\n'
+              f'{rpt.email:16.16}  {rpt.game:<29.29}  {rpt.description}')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Print summary of one or more CrashRpt reports. See comments at top of file.")

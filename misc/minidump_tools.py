@@ -441,7 +441,7 @@ def _crash_summary(shortbt):
 
     # Trim frames due to calling crashrpt_send_report() (OK, this bit is OHRRPGCE-specific)
     for idx, fr in reversed(list(enumerate(shortbt))):
-        if 'crashrpt_send_report' in fr or 'showbug' in fr or 'fatalbug' in fr:
+        if 'crashrpt_send_report' in fr or 'showbug' in fr or 'fatalbug' in fr or 'debugc' in fr:
             del shortbt[:idx+1]
             deleted_frames = '...' + fr.split('(')[0]
             break
