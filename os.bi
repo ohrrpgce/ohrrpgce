@@ -125,9 +125,16 @@ type HTTPRequest
 	_dummy as any ptr
 end type
 
+'In os_sockets.c
 declare sub HTTP_Request_init(req as HTTPRequest ptr)
 declare sub HTTP_Request_destroy(req as HTTPRequest ptr)
 declare function HTTP_request(req as HTTPRequest ptr, url as const zstring ptr, verb as const zstring ptr, content_type as const zstring ptr = NULL, data as const ubyte ptr = NULL, datalen as integer = 0) as boolint
+
+'In networkutil.bi
+declare sub POST_add_text_part(byref buffer as string, name as string, contents as string)
+declare sub POST_add_file_part(byref buffer as string, name as string, filename as string, content_type as string, contents as string)
+declare sub POST_add_final_part(byref buffer as string)
+declare function multipart_POST_request(req as HTTPRequest ptr, url as string, buffer as string) as boolint
 
 'Threads
 

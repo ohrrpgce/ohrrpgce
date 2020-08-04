@@ -1043,6 +1043,7 @@ base_modules +=   ['util.bas',
                    'lib/lodepng_gzip.c',  # Only for filetest
                    'filelayer.cpp',
                    'lumpfile.bas',
+                   'networkutil.bas',
                    'vector.bas']
 
 # Modules shared by the reload utilities, additional to base_modules

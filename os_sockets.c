@@ -1,4 +1,5 @@
-//OHHRPGCE COMMON - Berkeley socket-based networking routines (Windows and Unix)
+//OHRRPGCE common - Berkeley socket-based networking routines (Windows and Unix)
+//See also networkutil.bas for related code.
 //Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 
 #include "config.h"
@@ -287,7 +288,7 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 	char hdrbuf[HDRBUFSZ], *hdrptr = hdrbuf, *hdrend = hdrbuf + HDRBUFSZ;
 	hdrptr += snprintf(hdrptr, hdrend - hdrptr,
 			    "%s %s HTTP/1.1\r\nHost: %s:%s\r\nUser-Agent: OHRRPGCE\r\n", verb, path, server, port);
-	if (content_type && strlen(content_type)) {
+	if (content_type) {
 		hdrptr += snprintf(hdrptr, hdrend - hdrptr, "Content-Type: %s\r\n", content_type);
 	}
 	if (data) {
