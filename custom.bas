@@ -2013,7 +2013,7 @@ SUB HTTP_demo()
  DIM url as string = "http://rpg.hamsterrepublic.com/nightly-archive/"
  IF prompt_for_string(url, "URL to fetch?", 100) = NO THEN EXIT SUB
  DIM req as HTTPRequest
- HTTP_request(@req, url, "GET", NULL, 0)
+ HTTP_request(@req, url, "GET")
  notification "failed=" & yesorno(req.failed) & " " & req.status & " - " & *req.status_string
  pop_warning *cast(zstring ptr, req.response)
  HTTP_Request_destroy(@req)

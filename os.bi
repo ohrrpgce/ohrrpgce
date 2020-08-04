@@ -127,7 +127,7 @@ end type
 
 declare sub HTTP_Request_init(req as HTTPRequest ptr)
 declare sub HTTP_Request_destroy(req as HTTPRequest ptr)
-declare function HTTP_request(req as HTTPRequest ptr, url as const zstring ptr, verb as const zstring ptr, data as const ubyte ptr, datalen as integer) as boolint
+declare function HTTP_request(req as HTTPRequest ptr, url as const zstring ptr, verb as const zstring ptr, content_type as const zstring ptr = NULL, data as const ubyte ptr = NULL, datalen as integer = 0) as boolint
 
 'Threads
 

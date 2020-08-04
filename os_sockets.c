@@ -150,10 +150,12 @@ static bool send_on_socket(SOCKET sock, const char *sendbuf, int sendlen, HTTPRe
     afterwards with HTTP_Request_destroy(), whether this function succeeds or not.
    -url can optionally include a protocol
    -verb should be e.g. "GET" or "POST"
-   -data should be NULL for GET and the data to include for POST.
+   -content_type is optional (e.g. "multipart")
+   -data should be NULL for GET and the data to include for POST (along with datalen in bytes).
+   -there's no way to add additional lines to the header
    Returns non-zero on success.
 */
-boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const char *data, int datalen) {
+boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const char *content_type, const char *data, int datalen) {
 	int result;
 
 	HTTP_Request_init(req);
@@ -281,16 +283,19 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 	}
 
 	// Build the header
-	const int HDRBUFSZ = 256;
+	const int HDRBUFSZ = 512;
 	char hdrbuf[HDRBUFSZ], *hdrptr = hdrbuf, *hdrend = hdrbuf + HDRBUFSZ;
 	hdrptr += snprintf(hdrptr, hdrend - hdrptr,
 			    "%s %s HTTP/1.1\r\nHost: %s:%s\r\nUser-Agent: OHRRPGCE\r\n", verb, path, server, port);
+	if (content_type && strlen(content_type)) {
+		hdrptr += snprintf(hdrptr, hdrend - hdrptr, "Content-Type: %s\r\n", content_type);
+	}
 	if (data) {
 		hdrptr += snprintf(hdrptr, hdrend - hdrptr, "Content-Length: %d\r\n", datalen);
 	}
 	hdrptr += snprintf(hdrptr, hdrend - hdrptr, "\r\n");
-	int hdrlen = hdrend - hdrptr;
-	debuginfo("%s", hdrbuf);
+	int hdrlen = hdrptr - hdrbuf;
+	debuginfo("<header>%s</header>", hdrbuf);
 
 	// Send the data
 	if (!send_on_socket(sock, hdrbuf, hdrlen, req, server))
