@@ -51,6 +51,8 @@ August ? 2020 [Hróðvitnir]
       lower framerate. Shift-Tab also works much better on Mac now. [Ralph]
     * Transparency effects resulted in random colors (unless "update palette"
       was called) in games that didn't use the default master palette [Ralph]
+    * Bug #1138 64-bit Mac builds show black screen when fullscreened, and also
+      bug #1142 possible extreme lag/freezing on 64-bit Mac [James]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"
