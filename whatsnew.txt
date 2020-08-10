@@ -53,6 +53,8 @@ August ? 2020 [Hróðvitnir]
       was called) in games that didn't use the default master palette [Ralph]
     * Bug #1138 64-bit Mac builds show black screen when fullscreened, and also
       bug #1142 possible extreme lag/freezing on 64-bit Mac [James]
+    * If you had more than about 3321 textboxes, Page Down in the textbox
+      browser was broken [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"

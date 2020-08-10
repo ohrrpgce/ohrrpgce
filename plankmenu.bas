@@ -216,7 +216,7 @@ FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, 
  RETURN ps.cur <> old_cur
 END FUNCTION
 
-LOCAL FUNCTION plankscroll_dist(sl as Slice ptr, targpos as XYPair) as integer
+LOCAL FUNCTION plankscroll_dist(sl as Slice ptr, targpos as XYPair) as double
  DIM xdist as integer  'Min distance between targpos.x and any point inside sl
  xdist = large(0, large(sl->ScreenX - targpos.x, targpos.x - (sl->ScreenX + sl->Width)))
  RETURN xdist ^ 2 + (sl->ScreenY + sl->Height / 2 - targpos.y) ^ 2
@@ -243,10 +243,10 @@ SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer, 
  IF UBOUND(planks) < 0 THEN EXIT SUB
 
  DIM best_sl as Slice Ptr = ps.cur
- DIM best as integer = plankscroll_dist(best_sl, targpos)
+ DIM best as double = plankscroll_dist(best_sl, targpos)
  FOR i as integer = 0 TO UBOUND(planks)
   DIM sl as Slice ptr = planks(i)
-  DIM dist as integer = plankscroll_dist(sl, targpos)
+  DIM dist as double = plankscroll_dist(sl, targpos)
   IF dist < best THEN
    best = dist
    best_sl = sl
