@@ -1883,11 +1883,11 @@ SUB attack_editor_build_sounds_menu(recbuf() as integer, workmenu() as integer, 
   NEXT
   workmenu(0) = AtkBackAct
   workmenu(1) = AtkSoundEffect
-  workmenu(2) = AtkMissSoundEffect
-  workmenu(3) = AtkFailSoundEffect
-  workmenu(4) = AtkStealFailSoundEffect
-  workmenu(5) = AtkLearnSoundEffect
-  state.last = 5
+  'workmenu(2) = AtkMissSoundEffect
+  'workmenu(3) = AtkFailSoundEffect
+  'workmenu(4) = AtkStealFailSoundEffect
+  workmenu(2) = AtkLearnSoundEffect
+  state.last = 2
   state.top = 0
   state.need_update = YES
 END SUB
