@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-06-27">
+<plotscript version="wip" datecode="2020-08-12">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -2849,12 +2849,12 @@ fade screen in</example>
 				<ref>tweakpalette</ref>,  <ref>loadpalette</ref>, <ref>resetpalette</ref>, and <ref>writecolor</ref>.
 				<lb/>
 				(You can also make palette changes take effect immediately without a fade using <ref>updatepalette</ref>.)
+				<warn>
+					Switching a game to 24-bit mode causes this command (but no others)
+					to behave slightly differently when used after modifying the master palette
+					(<ref>tweakpalette</ref>,, etc): it does an extra (implicit) <tt>wait(1)</tt>.
+				</warn>
 			</description>
-			<warn>
-				 Switching a game to 24-bit mode causes this command (but no others)
-				 to behave slightly differently when used after modifying the master palette
-				 (<ref>tweakpalette</ref>,, etc): it does an extra (implicit) <tt>wait(1)</tt>.
-			</warn>
 		</command>
 		<command id="loadpalette">
 			<canon>load palette (palette number)</canon>
