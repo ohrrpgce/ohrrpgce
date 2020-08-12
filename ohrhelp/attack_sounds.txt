@@ -1,0 +1,11 @@
+This is the attack sounds editor.
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate through the menu.
+
+Use the Left and Right arrow keys to change values, or you can type in numbers.
+
+You can also hold the ALT key and press the left and right arrow keys to change which attack you are editing, or while holding ALT you can type an attack ID number.
+
+Sound Effect: You can press ENTER or SPACE to preview the currently selected effect. The sound effect will be played whenever the attack is used (both inside battle and outside battle)
+
+You can also specify a sound effect that wll be played when the attack is learned as a spell from a level-up or by using an item.

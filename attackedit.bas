@@ -25,6 +25,7 @@ DECLARE FUNCTION atk_edit_atkname(recbuf() as integer) as string
 DECLARE SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
 DECLARE SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menutype() as integer, caption() as string, menucapoff() as integer, workmenu() as integer, state as MenuState, dmgbit() as string, maskeddmgbit() as string, damagepreview as string)
 DECLARE SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integer, state as MenuState)
+DECLARE SUB attack_editor_build_sounds_menu(recbuf() as integer, workmenu() as integer, state as MenuState)
 DECLARE FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
 
 DECLARE SUB atk_edit_preview(byval pattern as integer, sl as Slice Ptr)
@@ -142,8 +143,9 @@ CONST AtkMissSoundEffect = 153
 CONST AtkFailSoundEffect = 154
 CONST AtkStealFailSoundEffect = 155
 CONST AtkAlignToTarget = 156
+CONST AtkSoundsAct = 157
 
-'Next menu item is 157 (remember to update MnuItems)
+'Next menu item is 158 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -371,7 +373,7 @@ atk_chain_bitset_names(4) = "Invert condition"
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
-CONST MnuItems = 156
+CONST MnuItems = 157
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -744,8 +746,11 @@ menutype(AtkName) = 6
 menuoff(AtkName) = AtkDatName
 menulimits(AtkName) = AtkLimStr10
 
-menu(AtkAppearAct) = "Appearance & Sounds..."
+menu(AtkAppearAct) = "Appearance..."
 menutype(AtkAppearAct) = 1
+
+menu(AtkSoundsAct) = "Sounds..."
+menutype(AtkSoundsAct) = 1
 
 menu(AtkDmgAct) = "Damage Settings..."
 menutype(AtkDmgAct) = 1
@@ -1170,21 +1175,22 @@ state.autosize_ignore_pixels = 12
 DIM menuopts as MenuOptions
 menuopts.fullscreen_scrollbar = YES
 
-DIM mainMenu(13) as integer
+DIM mainMenu(14) as integer
 mainMenu(0) = AtkBackAct
 mainMenu(1) = AtkChooseAct
 mainMenu(2) = AtkName
 mainMenu(3) = AtkDescription
 mainMenu(4) = AtkAppearAct
-mainMenu(5) = AtkTargAct
-mainMenu(6) = AtkDmgAct
-mainMenu(7) = AtkCostAct
-mainMenu(8) = AtkChainAct
-mainMenu(9) = AtkBitAct
-mainMenu(10) = AtkElemBitAct
-mainMenu(11) = AtkElementFailAct
-mainMenu(12) = AtkTagAct
-mainMenu(13) = AtkTransmogAct
+mainMenu(5) = AtkSoundsAct
+mainMenu(6) = AtkTargAct
+mainMenu(7) = AtkDmgAct
+mainMenu(8) = AtkCostAct
+mainMenu(9) = AtkChainAct
+mainMenu(10) = AtkBitAct
+mainMenu(11) = AtkElemBitAct
+mainMenu(12) = AtkElementFailAct
+mainMenu(13) = AtkTagAct
+mainMenu(14) = AtkTransmogAct
 
 DIM targMenu(5) as integer
 targMenu(0) = AtkBackAct
@@ -1304,6 +1310,7 @@ DIM damagepreview as string
 setactivemenu workmenu(), mainMenu(), state
 state.pt = 1  'Select <-Attack ..-> line
 state.size = 25
+state.autosize = YES
 
 DIM selectable() as bool
 flexmenu_update_selectable workmenu(), menutype(), selectable()
@@ -1475,6 +1482,13 @@ DO
     state.need_update = YES
     drawpreview = YES
     helpkey = "attack_appearance"
+   CASE AtkSoundsAct
+    'Special case
+    atk_edit_pushptr state, laststate, menudepth
+    state.pt = 0
+    state.need_update = YES
+    drawpreview = YES
+    helpkey = "attack_sounds"
    CASE AtkDmgAct
     'Special case
     atk_edit_pushptr state, laststate, menudepth
@@ -1625,6 +1639,9 @@ DO
  IF state.need_update THEN
   IF helpkey = "attack_appearance" THEN
    attack_editor_build_appearance_menu recbuf(), workmenu(), state
+  END IF
+  IF helpkey = "attack_sounds" THEN
+   attack_editor_build_sounds_menu recbuf(), workmenu(), state
   END IF
   IF helpkey = "attack_damage" THEN
    attack_editor_build_damage_menu recbuf(), menu(), menutype(), caption(), menucapoff(), workmenu(), state, dmgbit(), maskeddmgbit(), damagepreview
@@ -1835,14 +1852,9 @@ SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integ
   workmenu(10) = AtkCaption
   workmenu(11) = AtkCapTime
   workmenu(12) = AtkCaptDelay
-  workmenu(13) = AtkSoundEffect
-  'workmenu() = AtkMissSoundEffect
-  'workmenu() = AtkFailSoundEffect
-  'workmenu() = AtkStealFailSoundEffect
-  workmenu(14) = AtkLearnSoundEffect
-  workmenu(15) = AtkDamageColor
+  workmenu(13) = AtkDamageColor
   'Be careful when adding new menu items here. See that more are sometimes apended below
-  state.last = 15
+  state.last = 13
 
   DIM anim as integer = recbuf(AtkDatAnimAttacker)
   IF     anim = atkrAnimStrike _
@@ -1851,16 +1863,31 @@ SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integ
   ORELSE anim = atkrAnimTeleport _
   ORELSE anim = atkrAnimStandingStrike _
   THEN
-   workmenu(17) = AtkWepPic
-   state.last = 17
+   workmenu(15) = AtkWepPic
+   state.last = 15
    IF recbuf(AtkDatWepPic) > 0 THEN
-    workmenu(18) = AtkWepPal
-    workmenu(19) = AtkWepHand0
-    workmenu(20) = AtkWepHand1
-    state.last = 20
+    workmenu(16) = AtkWepPal
+    workmenu(17) = AtkWepHand0
+    workmenu(18) = AtkWepHand1
+    state.last = 18
    END IF
   END IF
    
+  state.top = 0
+  state.need_update = YES
+END SUB
+
+SUB attack_editor_build_sounds_menu(recbuf() as integer, workmenu() as integer, state as MenuState)
+  FOR i as integer = 2 TO UBOUND(workmenu)
+   workmenu(i) = AtkBlankMenuItem
+  NEXT
+  workmenu(0) = AtkBackAct
+  workmenu(1) = AtkSoundEffect
+  'workmenu() = AtkMissSoundEffect
+  'workmenu() = AtkFailSoundEffect
+  'workmenu() = AtkStealFailSoundEffect
+  workmenu(2) = AtkLearnSoundEffect
+  state.last = 2
   state.top = 0
   state.need_update = YES
 END SUB
