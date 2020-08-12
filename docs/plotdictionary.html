@@ -753,6 +753,7 @@ function toggleContent(target) {
 		<a href="#about-exitreturning">exit returning(value)</a><br>
 		<a href="#about-exitscript">exit script</a><br>
 		<a href="#about-expandstring">expand string(ID, saveslot)</a><br>
+		<a href="#about-expandstringsinslices">expand strings in slices(handle, saveslot)</a><br>
 		<a href="#about-experiencetolevel">experience to level (level, hero slot)</a><br>
 		<a href="#about-experiencetonextlevel">experience to next level (who)</a><br>
 		<a href="#about-exponent">number ^ power</a><br>
@@ -8917,7 +8918,8 @@ There is no limit on string length.<br>
 			Expands codes in <span class="param">ID</span> such as ${H1}. This does the same thing that textboxes do automatically. The <span class="param">saveslot</span> argument is optional. If you leave it out, the string's codes will be expanded based on the currently running game state. If you specify a save slot number from 1-1000 then the string will be expanded based on hero names, variables, and strings in that save slot.
 			
 			
-			
+			<div class="seealso">See also: <ul><li><a href="#about-expandstringsinslices" class="ref">expand strings in slices</a></li></ul>
+</div>
 		</p>
 </div>
 		<hr>
@@ -11316,6 +11318,7 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-createtext">create text</a><br>
 		<a href="#about-setslicetext">set slice text(handle, string id)</a><br>
 		<a href="#about-getslicetext">get slice text(string id, slice handle)</a><br>
+		<a href="#about-expandstringsinslices">expand strings in slices(handle, saveslot)</a><br>
 		<a href="#about-gettextcolor">get text color(handle)</a><br>
 		<a href="#about-settextcolor">set text color(handle, color)</a><br>
 		<a href="#about-gettextbg">get text bg(handle)</a><br>
@@ -15896,6 +15899,20 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 		</p>
 </div>
 		<div class="command">
+			<a name="about-expandstringsinslices"></a>
+				<h4>expand strings in slices(handle, saveslot)</h4>
+<p>
+			Starting with the slice handle, search for all child slices, and if any of them are text slices, then expand any text codes such as ${H1} ${V2} or ${S5}. This does the same thing that textboxes do automatically. The <span class="param">saveslot</span> argument is optional. If you leave it out, the codes will be expanded based on the currently running game state. If you specify a save slot number from 1-1000 then the string will be expanded based on hero names, variables, and strings in that save slot.
+			
+			<pre>  variable (col)
+  col := load slice collection(1)
+  expand strings in slices(col)
+</pre>
+			<div class="seealso">See also: <ul><li><a href="#about-expandstring" class="ref">expand string</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
 			<a name="about-gettextcolor"></a>
 				<h4>get text color(handle)</h4>
 <p>
@@ -20241,7 +20258,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 887 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 888 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

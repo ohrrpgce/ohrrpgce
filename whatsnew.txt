@@ -21,6 +21,7 @@ August ? 2020 [Hróðvitnir]
     * "sl:walkabout sprite" alias to "sl:walkabout sprite component" and
       "sl:walkabout shadow" alias to "sl:walkabout shadow component"
     * "get scancode name" works for joy: scancodes too [Ralph]
+    * "expand strings in slices" [James]
 
   *** Changes
 

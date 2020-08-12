@@ -4546,6 +4546,9 @@ There is no limit on string length.<lb/>
 			<canon>expand string(ID, saveslot)</canon>
 			<shortname>expand string</shortname>
 			<description>Expands codes in <p>ID</p> such as ${H1}. This does the same thing that textboxes do automatically. The <p>saveslot</p> argument is optional. If you leave it out, the string's codes will be expanded based on the currently running game state. If you specify a save slot number from 1-1000 then the string will be expanded based on hero names, variables, and strings in that save slot.</description>
+			<seealso>
+				<ref>expandstringsinslices</ref>
+			</seealso>
 		</command>
 
 		<section title="Basic String Commands">
@@ -8823,6 +8826,18 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 			<seealso>
 				<ref>createtext</ref>
 				<ref>setslicetext</ref>
+			</seealso>
+		</command>
+		<command id="expandstringsinslices">
+			<canon>expand strings in slices(handle, saveslot)</canon>
+			<shortname>expand strings in slices</shortname>
+			<description>Starting with the slice handle, search for all child slices, and if any of them are text slices, then expand any text codes such as ${H1} ${V2} or ${S5}. This does the same thing that textboxes do automatically. The <p>saveslot</p> argument is optional. If you leave it out, the codes will be expanded based on the currently running game state. If you specify a save slot number from 1-1000 then the string will be expanded based on hero names, variables, and strings in that save slot.</description>
+			<example>  variable (col)
+  col := load slice collection(1)
+  expand strings in slices(col)
+</example>
+			<seealso>
+				<ref>expandstring</ref>
 			</seealso>
 		</command>
 		<command id="gettextcolor">
