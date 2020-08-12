@@ -8,4 +8,6 @@ You can also hold the ALT key and press the left and right arrow keys to change 
 
 Sound Effect: You can press ENTER or SPACE to preview the currently selected effect. The sound effect will be played whenever the attack is used (both inside battle and outside battle)
 
+You can also optionally pick different sounds for when the attack misses, fails, or fails to steal
+
 You can also specify a sound effect that wll be played when the attack is learned as a spell from a level-up or by using an item.

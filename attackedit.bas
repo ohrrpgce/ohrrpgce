@@ -1883,11 +1883,11 @@ SUB attack_editor_build_sounds_menu(recbuf() as integer, workmenu() as integer, 
   NEXT
   workmenu(0) = AtkBackAct
   workmenu(1) = AtkSoundEffect
-  'workmenu() = AtkMissSoundEffect
-  'workmenu() = AtkFailSoundEffect
-  'workmenu() = AtkStealFailSoundEffect
-  workmenu(2) = AtkLearnSoundEffect
-  state.last = 2
+  workmenu(2) = AtkMissSoundEffect
+  workmenu(3) = AtkFailSoundEffect
+  workmenu(4) = AtkStealFailSoundEffect
+  workmenu(5) = AtkLearnSoundEffect
+  state.last = 5
   state.top = 0
   state.need_update = YES
 END SUB
@@ -2429,13 +2429,30 @@ SELECT CASE menutype(nowindex)
   changed = bitsetgrabber(datablock(), wordnum, bitnum, state)
 END SELECT
 
-'--preview sound effects
-IF menutype(nowindex) = 11 AND enter_space_click(state) THEN
- DIM old_sfx as integer = datablock(menuoff(nowindex))
- DIM sfx as integer = sfx_picker_or_none(old_sfx)
- IF sfx <> old_sfx THEN
-  datablock(menuoff(nowindex)) = sfx
-  changed = YES
+'--browse & preview sound effects
+IF (menutype(nowindex) = 11 ORELSE menutype(nowindex) = 27) THEN
+ IF keyval(scP) > 1 THEN 
+  IF datablock(menuoff(nowindex)) > 0 THEN
+   playsfx datablock(menuoff(nowindex)) - 1
+  END IF
+ END IF
+ IF enter_space_click(state) THEN
+  DIM should_pick as integer = 1
+  IF menutype(nowindex) = 27 THEN
+   should_pick = twochoice("Use default sound?", "Use hit sound", "Pick a specific sound", 1, -1)
+   IF should_pick = 0 THEN
+    datablock(menuoff(nowindex)) = 0
+    changed = YES
+   END IF
+  END IF
+  IF should_pick = 1 THEN
+   DIM old_sfx as integer = datablock(menuoff(nowindex))
+   DIM sfx as integer = sfx_picker_or_none(old_sfx)
+   IF sfx <> old_sfx THEN
+    datablock(menuoff(nowindex)) = sfx
+    changed = YES
+   END IF
+  END IF
  END IF
 END IF
 
