@@ -67,6 +67,19 @@ SUB embedtext (text as string, byval limit as integer=0, byval saveslot as integ
  END IF
 END SUB
 
+SUB embedslicetree (byval sl as Slice Ptr, byval saveslot as integer=-1)
+ IF sl->SliceType = slText THEN
+  DIM text as string = sl->TextData->s
+  text = embed_text_codes(text, saveslot)
+  ChangeTextSlice sl, text
+ END IF
+ DIM ch as Slice Ptr = sl->FirstChild
+ DO WHILE ch
+  embedslicetree ch, saveslot
+  ch = ch->NextSibling
+ LOOP
+END SUB
+
 FUNCTION embed_text_codes (text_in as string, byval saveslot as integer=-1, byval callback as FnEmbedCode=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0) as string
 ' Expand embed codes like ${H0}.
 ' The optional callback can be passed to process additional codes.
@@ -4881,6 +4894,15 @@ SUB script_functions(byval cmdid as integer)
      NEXT
     END IF
    END WITH
+  END IF
+ CASE 704'-- expand strings in slices(sl, saveslot)
+  retvals(1) = get_optional_arg(1, 0)
+  IF valid_plotslice(retvals(0)) THEN
+   'Retvals(1) can be 0 for the default of using current game state, or a save slot 1-maxSaveSlotCount
+   IF retvals(1) = 0 ORELSE valid_save_slot(retvals(1)) THEN
+    embedslicetree plotslices(retvals(0)), retvals(1) - 1
+   END IF
+   scriptret = retvals(0)
   END IF
 
  CASE ELSE
