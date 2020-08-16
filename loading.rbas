@@ -325,13 +325,8 @@ SUB save_npc_instances(byval npcs_node as NodePtr, npc() as NPCInst)
  NEXT i
 END SUB
 
-SUB save_npc_instance (byval parent as NodePtr, byval index as NPCIndex, npc as NPCInst)
- 'Map offset does not need to be used when saving temporary npc states
- DIM map_offset as XYPair
- save_npc_instance parent, index, npc, map_offset
-END SUB
-
-SUB save_npc_instance (byval parent as NodePtr, byval index as NPCIndex, npc as NPCInst, map_offset as XYPair)
+'map_offset does not need to be used when saving temporary npc states
+SUB save_npc_instance (byval parent as NodePtr, byval index as NPCIndex, npc as NPCInst, map_offset as XYPair = XY(0,0))
  DIM n as NodePtr
  n = AppendChildNode(parent, "npc", index)
  WITH npc
@@ -355,13 +350,9 @@ SUB save_npc_instance (byval parent as NodePtr, byval index as NPCIndex, npc as 
 END SUB
 
 SUB load_npc_instances (filename as string, npc() as NPCInst)
- IF NOT isfile(filename) THEN
-  debug "load_npc_instances: file doesn't exist: '" & filename & "'"
-  EXIT SUB
- END IF
-
  DIM doc as DocPtr
  doc = LoadDocument(filename, optNoDelay)
+ FAIL_IF(doc = NULL, "load failed")  'LoadDocument logs the real error
  
  DIM node as NodePtr
  node = DocumentRoot(doc)
@@ -387,13 +378,8 @@ SUB load_npc_instances (byval npcs_node as NodePtr, npc() as NPCInst)
  NEXT i
 END SUB
 
-SUB load_npc_instance (byval n as NodePtr, npc as NPCInst)
- 'Map offset does not need to be used when loading temporary npc states
- DIM map_offset as XYPair
- load_npc_instance n, npc, map_offset
-END SUB
-
-SUB load_npc_instance (byval n as NodePtr, npc as NPCInst, map_offset as XYPair)
+'map_offset does not need to be used when loading temporary npc states
+SUB load_npc_instance (byval n as NodePtr, npc as NPCInst, map_offset as XYPair = XY(0,0))
  IF NodeName(n) <> "npc" THEN
   debug "load_npc_instance: loading npc data into a node misnamed """ & NodeName(n) & """"
  END IF

@@ -210,13 +210,11 @@ DECLARE FUNCTION load_map_pos_save_offset(byval mapnum as integer) as XYPair
 
 DECLARE SUB save_npc_instances OVERLOAD (filename as string, npc() as NPCInst)
 DECLARE SUB save_npc_instances OVERLOAD (byval npcs_node as NodePtr, npc() as NPCInst)
-DECLARE SUB save_npc_instance OVERLOAD (byval parent as NodePtr, byval index as NPCIndex, npc as NPCInst)
-DECLARE SUB save_npc_instance OVERLOAD (byval parent as NodePtr, byval index as NPCIndex, npc as NPCInst, map_offset as XYPair)
+DECLARE SUB save_npc_instance (byval parent as NodePtr, byval index as NPCIndex, npc as NPCInst, map_offset as XYPair = XY(0,0))
 
 DECLARE SUB load_npc_instances OVERLOAD (filename as string, npc() as NPCInst)
 DECLARE SUB load_npc_instances OVERLOAD (byval npcs_node as NodePtr, npc() as NPCInst)
-DECLARE SUB load_npc_instance OVERLOAD (byval n as NodePtr, npc as NPCInst)
-DECLARE SUB load_npc_instance OVERLOAD (byval n as NodePtr, npc as NPCInst, map_offset as XYPair)
+DECLARE SUB load_npc_instance (byval n as NodePtr, npc as NPCInst, map_offset as XYPair = XY(0,0))
 
 DECLARE FUNCTION load_gamename (filename as string="") as string
 DECLARE FUNCTION load_aboutline (filename as string="") as string
