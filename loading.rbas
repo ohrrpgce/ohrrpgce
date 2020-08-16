@@ -413,8 +413,8 @@ SUB load_npc_instance (byval n as NodePtr, npc as NPCInst, map_offset as XYPair)
    ex = FirstChild(n, "extra")
    WHILE ex
     DIM exid as integer = GetInteger(ex)
-    IF exid >= 0 AND exid <= 2 THEN
-     .extra(exid) = GetChildNodeInt(n, "int")
+    IF exid >= 0 ANDALSO exid <= 2 THEN
+     .extra(exid) = GetChildNodeInt(ex, "int")
     ELSE
      debug "bad npc extra " & exid
     END IF
