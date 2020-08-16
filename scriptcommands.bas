@@ -4904,6 +4904,23 @@ SUB script_functions(byval cmdid as integer)
    END IF
    scriptret = retvals(0)
   END IF
+ CASE 705'-- hero is chasing
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
+   IF hero_is_pathfinding(retvals(0)) THEN
+    IF gam.hero_pathing(retvals(0)).mode = HeroPathingMode.NPC THEN
+     'If the hero is actually chasing an NPC, convert the NPC number into an NPC reference
+     scriptret = (gam.hero_pathing(retvals(0)).dest_npc + 1) * -1
+    END IF
+   END IF
+  END IF
+ CASE 706'-- npc is chasing
+  DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBadOp)
+  IF npcref >= 0 THEN
+   IF npc(npcref).pathover.override = NPCOverrideMove.NPC THEN
+    'If the npc is actualy chasing another NPC, convert the target NPC number into an NPC reference
+    scriptret = (npc(npcref).pathover.dest_npc + 1) * -1
+   END IF
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

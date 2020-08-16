@@ -730,6 +730,8 @@ define function, begin
 702,setrectopacity,2,0,50     # Set rect bg to transparent and set its opacity (slice, opacity)
 703,settimerargs,-1           # Set the arguments a timer will pass to its triggered script (id, args...)
 704,expandstringsinslices,2,0,0 # Expand all codes like ${H0} or ${V0} in text slices starting with a parent slice and including all child slices
+705,heroischasing,1,0         # If hero is chasing an NPC, return the NPC reference
+706,npcischasing,1,0          # If npc is chasing another NPC, return NPC reference
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
