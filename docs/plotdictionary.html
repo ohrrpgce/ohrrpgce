@@ -961,6 +961,7 @@ function toggleContent(target) {
 		<a href="#about-herochasesnpc">hero chases npc (who, npc, stop when reached, stuck ticks)</a><br>
 		<a href="#about-herodirection">hero direction (who)</a><br>
 		<a href="#about-heroframe">hero frame (who)</a><br>
+		<a href="#about-heroischasing">hero is chasing (who)</a><br>
 		<a href="#about-heroiswalking">hero is walking (who)</a><br>
 		<a href="#about-herolevelled">hero levelled (who)</a><br>
 		<a href="#about-heropixelx">hero pixel X (who)</a><br>
@@ -1104,6 +1105,7 @@ function toggleContent(target) {
 		<a href="#about-npcextra">NPC extra (who, which)</a><br>
 		<a href="#about-npcframe">NPC frame (who)</a><br>
 		<a href="#about-npcid">NPC IDs</a><br>
+		<a href="#about-npcischasing">npc is chasing (who)</a><br>
 		<a href="#about-npcisdisabled">NPC is disabled (reference)</a><br>
 		<a href="#about-npciswalking">NPC is walking (who)</a><br>
 		<a href="#about-npcpixelx">NPC pixel X (who)</a><br>
@@ -3379,6 +3381,7 @@ play song (get ambient music)</pre>
 		<a href="#about-pathfindheroto">pathfind hero to (who, x, y, stuck ticks)</a><br>
 		<a href="#about-herochasesnpc">hero chases npc (who, npc, stop when reached, stuck ticks)</a><br>
 		<a href="#about-cancelherowalk">cancel hero walk (who)</a><br>
+		<a href="#about-heroischasing">hero is chasing (who)</a><br>
 		<a href="#about-setherodirection">set hero direction (who, direction)</a><br>
 		<a href="#about-herodirection">hero direction (who)</a><br>
 		<a href="#about-setheroframe">set hero frame (who, frame)</a><br>
@@ -3481,6 +3484,21 @@ walk hero(who, hero direction(hero), 0)</pre>
 <li>
 <a href="#about-walkhero" class="ref">walk hero</a>, </li>
 <li><a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-heroischasing"></a>
+				<h4>hero is chasing (who)</h4>
+<p>
+			If the specified hero is currently chasing an NPC, such as by clicking on the hero with mouse/touch controls, or a previous <a href="#about-herochasesnpc" class="ref">hero chases NPC</a> command then return an <a href="#about-npcreference" class="ref">NPC reference</a>. If the hero is not currently chasing an NPC, returns false
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-herochasesnpc" class="ref">hero chases NPC</a>, </li>
+<li><a href="#about-npcischasing" class="ref">npc is chasing</a></li>
 </ul>
 </div>
 		</p>
@@ -3905,6 +3923,7 @@ resume player</pre>
 		<a href="#about-setnpcdirection">set NPC direction (who, direction)</a><br>
 		<a href="#about-pathfindnpcto">pathfind NPC to (who, x, y, stuck ticks)</a><br>
 		<a href="#about-npcchasesnpc">NPC chases NPC (who, other who, stop when reached, stuck ticks)</a><br>
+		<a href="#about-npcischasing">npc is chasing (who)</a><br>
 		<a href="#about-cancelnpcwalk">cancel NPC walk (who)</a><br>
 		<a href="#about-npcdirection">NPC direction (who)</a><br>
 		<a href="#about-setnpcframe">set NPC frame (who, frame)</a><br>
@@ -4110,6 +4129,21 @@ while (npcref) do (
 <li>
 <a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a>, </li>
 <li><a href="#about-waitfornpc" class="ref">wait for NPC</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-npcischasing"></a>
+				<h4>npc is chasing (who)</h4>
+<p>
+			If the specified NPC is currently chasing another NPC from a previous call to <a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a> then return an <a href="#about-npcreference" class="ref">NPC reference</a> to the target NPC. If the NPC is not currently chasing another NPC, returns false
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a>, </li>
+<li><a href="#about-heroischasing" class="ref">hero is chasing</a></li>
 </ul>
 </div>
 		</p>
@@ -20258,7 +20292,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 888 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 890 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

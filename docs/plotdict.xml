@@ -1322,6 +1322,15 @@ walk hero(who, hero direction(hero), 0)</example>
 				<ref>cancelnpcwalk</ref>
 			</seealso>
 		</command>
+		<command id="heroischasing">
+			<canon>hero is chasing (who)</canon>
+			<shortname>hero is chasing</shortname>
+			<description>If the specified hero is currently chasing an NPC, such as by clicking on the hero with mouse/touch controls, or a previous <ref>herochasesnpc</ref> command then return an <ref>npcreference</ref>. If the hero is not currently chasing an NPC, returns false</description>
+			<seealso>
+				<ref>herochasesnpc</ref>
+				<ref>npcischasing</ref>
+			</seealso>
+		</command>
 		<command id="setherodirection">
 			<canon>set hero direction (who, direction)</canon>
 			<shortname>set hero direction</shortname>
@@ -1699,6 +1708,15 @@ while (npcref) do (
 				<ref>pathfindnpcto</ref>
 				<ref>cancelnpcwalk</ref>
 				<ref>waitfornpc</ref>
+			</seealso>
+		</command>
+		<command id="npcischasing">
+			<canon>npc is chasing (who)</canon>
+			<shortname>npc is chasing</shortname>
+			<description>If the specified NPC is currently chasing another NPC from a previous call to <ref>npcchasesnpc</ref> then return an <ref>npcreference</ref> to the target NPC. If the NPC is not currently chasing another NPC, returns false</description>
+			<seealso>
+				<ref>npcchasesnpc</ref>
+				<ref>heroischasing</ref>
 			</seealso>
 		</command>
 		<command id="cancelnpcwalk">
