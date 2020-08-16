@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2020-08-12)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2020-08-16)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -958,7 +958,7 @@ function toggleContent(target) {
 		<a href="#about-herobaseelementalresistasint">hero base elemental resist as int (who, element)</a><br>
 		<a href="#about-herobyrank">hero by rank (where)</a><br>
 		<a href="#about-herobyslot">hero by slot (where)</a><br>
-		<a href="#about-herochasesnpc">hero chases hero (who, npc, stop when reached, stuck ticks)</a><br>
+		<a href="#about-herochasesnpc">hero chases npc (who, npc, stop when reached, stuck ticks)</a><br>
 		<a href="#about-herodirection">hero direction (who)</a><br>
 		<a href="#about-heroframe">hero frame (who)</a><br>
 		<a href="#about-heroiswalking">hero is walking (who)</a><br>
@@ -3377,7 +3377,7 @@ play song (get ambient music)</pre>
 <button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul><div class="content-shown">
 		<a href="#about-walkhero">walk hero (who, direction, distance)</a><br>
 		<a href="#about-pathfindheroto">pathfind hero to (who, x, y, stuck ticks)</a><br>
-		<a href="#about-herochasesnpc">hero chases hero (who, npc, stop when reached, stuck ticks)</a><br>
+		<a href="#about-herochasesnpc">hero chases npc (who, npc, stop when reached, stuck ticks)</a><br>
 		<a href="#about-cancelherowalk">cancel hero walk (who)</a><br>
 		<a href="#about-setherodirection">set hero direction (who, direction)</a><br>
 		<a href="#about-herodirection">hero direction (who)</a><br>
@@ -3435,7 +3435,7 @@ resume player # OK, done</pre>
 </div>
 		<div class="command">
 			<a name="about-herochasesnpc"></a>
-				<h4>hero chases hero (who, npc, stop when reached, stuck ticks)</h4>
+				<h4>hero chases npc (who, npc, stop when reached, stuck ticks)</h4>
 <p>
 			Makes the specified hero walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing hero will go around obstacles. If the destination NPC cannot be reached at all, the chasing hero will go to the closest reachable tile. The first argument <span class="param">who</span> is the caterpillar rank of the hero who will be chasing, or <a href="#about-me" class="ref">me</a> for the leader. When the caterpillar party is enabled, this command only works on the leader, and will do nothing for other heroes. Use <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> if you want to make the other heroes pathfind. Non-leader heroes do not treat NPCs as obstacles when they pathfind. The second argument <span class="param">npc</span> is the NPC to chase. You can use an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The third argument <span class="param">stop when reached</span> can be true if you want the chasing hero to stop after the first time it reaches the destination NPC. If ommitted or false, the hero will keep chasing even after it reaches a moving destination NPC. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, a hero who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the hero will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelherowalk" class="ref">cancel hero walk</a> command. Be careful if you are using <a href="#about-waitforhero" class="ref">wait for hero</a> to wait for <a href="#about-herochasesnpc" class="ref">hero chases NPC</a> when no <span class="param">stuck ticks</span> timeout is used, since <a href="#about-waitforhero" class="ref">wait for hero</a> might wait forever if the hero has no way to get to its destination.
 			

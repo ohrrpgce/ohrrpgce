@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-08-12">
+<plotscript version="wip" datecode="2020-08-16">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -1287,7 +1287,7 @@ resume player # OK, done</example>
 			</seealso>
 		</command>
 		<command id="herochasesnpc">
-			<canon>hero chases hero (who, npc, stop when reached, stuck ticks)</canon>
+			<canon>hero chases npc (who, npc, stop when reached, stuck ticks)</canon>
 			<shortname>hero chases NPC</shortname>
 			<description>Makes the specified hero walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing hero will go around obstacles. If the destination NPC cannot be reached at all, the chasing hero will go to the closest reachable tile. The first argument <p>who</p> is the caterpillar rank of the hero who will be chasing, or <ref>me</ref> for the leader. When the caterpillar party is enabled, this command only works on the leader, and will do nothing for other heroes. Use <ref>suspendcaterpillar</ref> if you want to make the other heroes pathfind. Non-leader heroes do not treat NPCs as obstacles when they pathfind. The second argument <p>npc</p> is the NPC to chase. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The third argument <p>stop when reached</p> can be true if you want the chasing hero to stop after the first time it reaches the destination NPC. If ommitted or false, the hero will keep chasing even after it reaches a moving destination NPC. The fourth argument <p>stuck ticks</p> is optional. If it is included, a hero who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the hero will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancelherowalk</ref> command. Be careful if you are using <ref>waitforhero</ref> to wait for <ref>herochasesnpc</ref> when no <p>stuck ticks</p> timeout is used, since <ref>waitforhero</ref> might wait forever if the hero has no way to get to its destination.</description>
 			<seealso>
