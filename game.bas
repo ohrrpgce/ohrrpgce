@@ -5064,6 +5064,7 @@ SUB update_virtual_gamepad_display()
  END IF
 END SUB
 
+'Return whether the virtual gamepad should be shown
 FUNCTION calc_virtual_gamepad_state() as bool
  'None of this matters unless we are running on a platform that actually uses a virtual gamepad
  IF NOT running_on_mobile() THEN RETURN NO
@@ -5087,6 +5088,7 @@ FUNCTION calc_virtual_gamepad_state() as bool
  IF use_touch_textboxes() THEN
   IF txt.showing THEN
    'Make an exception when the current textbox has a choicebox
+   '(TODO: shouldn't these exceptions only apply if user textbox or menu controls aren't suspended?)
    IF txt.box.choice_enabled THEN RETURN YES
    IF top_menu_allows_controls() THEN RETURN YES
    'No exceptions were found, proceed to hide the virtual gamepad for this textbox

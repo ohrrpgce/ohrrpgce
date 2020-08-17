@@ -2301,6 +2301,9 @@ wait for text box # wait until the player continues</example>
 				Opens the main menu; exactly equivalent to <ref>openmenu</ref>(0).
 				If menu 0 is already open, it is brought to the top.
 				Returns the menu handle of the new or existing instance of menu 0.
+				<lb/>
+				This isn't affected by anything that prevents the player from opening
+				the main menu in the normal ways.
 				<warn>
 					If menu 0 does NOT have the "Allow gameplay &amp; scripts" bit set,
 					then your script will pause as soon as the menu opens, until either
@@ -4524,7 +4527,16 @@ end</example>
 		<command id="unhidemousecursor">
 			<canon>unhide mouse cursor</canon>
 			<shortname>unhidemousecursor</shortname>
-			<description>Causes the normal OS mouse cursor to be displayed. You may want to run this command right after <ref>initmouse</ref> unless you plan to use a customized mouse cursor. Note that this command has no effect if the game is running on Android, because a mouse cursor is usually inappropriate on a touch screen.</description>
+			<description>
+				Causes the normal OS mouse cursor to be displayed, even when fullscreened.
+				You may want to run this command right after <ref>initmouse</ref> unless you plan to use a scripted customized mouse cursor.
+				<lb/>
+				If you don't call <ref>initmouse</ref>, <ref>hidemouscursor</ref> or <ref>unhidemousecursor</ref> then
+				the default behaviour is for the cursor to be shown when running in a window and hidden in fullscreen.
+				<note>
+					This command has no effect if the game is running on Android, because a mouse cursor is usually inappropriate on a touch screen.
+				</note>
+			</description>
 		</command>
 		<command id="hidemousecursor">
 			<canon>hide mouse cursor</canon>

@@ -1,6 +1,41 @@
-These options allow you to enable built-in mouse support features.
+These options allow you to enable built-in mouse/touchscreen support features.
 
 If you are scripting your own mouse controls, you may want to disable some of these.
 
+* Click on map to move the hero
+ Mouse-based walking.
+
+** Display destination
+ While the hero is walking towards the point the player clicked, show an indicator (currently a circle) at the destination. The color of the circle is "Highlight A" in the User Interface Colors menu. The destination isn't shown when a script moves the hero.
+
+** Cancel move on battles
+ If a battle happens for any reason, stop the hero walking to where the player clicked. Scripted hero movement isn't cancelled.
+
+** Cancel move on textboxes
+ If a textbox is displayed for any reason, stop the hero walking to where the player clicked. Scripted hero movement isn't cancelled.
+
+** Cancel move on menus
+ If a menu is opened (either by a script or by the player opening the menu), stop the hero walking to where the player clicked. If this is disabled, the player can't open the main menu (or trigger the Menu Action script) while they are in the middle of a mouse-triggered movement.
+
+** Max tiles to walk
+ If the player clicks on a tile that's more than this many steps away (pathing around obstacles), then the hero won't walk. Set this to something low like 10 to stop the player from being able to solve mazes automatically, or finding their way around large obstacles like rivers without needing to explore to find the bridge.
+
+* Show cursor even in full-screen
+ This causes the mouse cursor to be visible even when fullscreened. Equivalent to calling "unhide mouse cursor". This is just sets the initial visibility, so will be overridden if you call the "init mouse" or "hide mouse cursor" commands.
+
+* Open main menu on right-click
+ This causes right-clicking while there's no menu up to act like the menu key (e.g. ESC): unless the menu is disabled for the current map, it either brings up the main menu (menu 0) or runs the Menu Action script if the is one.
+
+* Click to advance textboxes
+ When a textbox is up, this lets you left-click anywhere on the screen to advance the box, and click on textbox choices menus.
+ By default, when playing on a smartphone tapping the screen advances textboxes even when this setting is off. You can disable that by turning off "Touch Textboxes" in Platform-Specific Controls, but that's usually a bad idea.
+
 * "any key", etc, includes mouse
  This causes the anykey code (for waitforkey, keypress, keyispressed, etc) to also check mouse buttons, usekey checks for left button, and menukey and cancelkey check for right mouse button. It also makes mouse buttons trigger on-keypress scripts (calling "init mouse" does the same).
+
+* Mouse support on menus
+ This affects all user-defined and builtin menus (such as the Items menu) except battle menus & submenus and text box multi-choice menus. Lets you activate menu items by left clicking, move the cursor by right clicking, and exit menus by left- or right-clicking outside the menu.
+
+* Mouse support in battles
+ Lets you use a mouse/touchscreen throughout battles, including clicking on targets, all the menus, and running away by holding down the right button.
+ While picking targets, drag (with left button) to perform an option spread attack, and click outside any target to cancel the attack. Also causes mouse hover icons to appear above invalid targets.
