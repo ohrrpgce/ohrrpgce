@@ -418,6 +418,17 @@ SUB choicebox_controls()
  END IF
 END SUB
 
+FUNCTION use_touch_textboxes() as bool
+ 'Also applies to mouse-click textboxes
+ IF running_on_mobile() THEN
+  IF get_gen_bool("/mobile_options/touch_textboxes/enabled") THEN RETURN YES
+ END IF
+ IF get_gen_bool("/mouse/click_textboxes") THEN
+  RETURN YES
+ END IF
+ RETURN NO
+END FUNCTION
+
 FUNCTION user_textbox_advance() as bool
  'Return YES if the player wants to advance the textbox using built-in controls
  IF use_touch_textboxes() THEN
@@ -438,7 +449,7 @@ FUNCTION user_textbox_advance() as bool
   END IF
  END IF
 
- 'Keyboard textbox advance
+ 'Keyboard/joystick textbox advance
  IF carray(ccUse) > 1 THEN RETURN YES
 
  RETURN NO
@@ -1540,17 +1551,6 @@ FUNCTION should_hide_virtual_gamepad_when_suspendplayer() as bool
  IF NOT running_on_mobile() THEN RETURN NO
  DIM root as NodePtr = get_general_reld()
  RETURN root."mobile_options"."hide_virtual_gamepad_when_suspendplayer".integer.default(NO) <> 0
-END FUNCTION
-
-FUNCTION use_touch_textboxes() as bool
- 'Also applies to mouse-click textboxes
- IF running_on_mobile() THEN
-  IF get_gen_bool("/mobile_options/touch_textboxes/enabled") THEN RETURN YES
- END IF
- IF get_gen_bool("/mouse/click_textboxes") THEN
-  RETURN YES
- END IF
- RETURN NO
 END FUNCTION
 
 SUB reset_map_state (map as MapModeState)

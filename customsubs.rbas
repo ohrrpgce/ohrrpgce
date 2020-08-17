@@ -2983,6 +2983,13 @@ SUB edit_platform_controls ()
     append_menu_item menu, "Previous menu..."
     menu.last->t = platformoptEXIT
 
+    IF get_gen_bool("/mouse/click_textboxes") THEN
+     append_menu_item menu, "Touch Textboxes: YES [Click to advance textboxes ON]"
+    ELSE
+     append_menu_item menu, "Touch Textboxes: " & yesorno(get_gen_bool("/mobile_options/touch_textboxes/enabled"))
+     menu.last->t = platformoptTOGGLETOUCHTEXTBOXES
+    END IF
+
     append_menu_item menu, "Phone/Tablet Virtual Gamepad: " & IIF(mobile."disable_virtual_gamepad".exists, "Disabled", "Enabled")
     menu.last->t = platformoptTOGGLEVGAMEPAD
 
@@ -3045,9 +3052,6 @@ SUB edit_platform_controls ()
 
     append_menu_item menu, ""
     menu.last->unselectable = YES
-
-    append_menu_item menu, "Touch Textboxes: " & yesorno(get_gen_bool("/mobile_options/touch_textboxes/enabled"))
-    menu.last->t = platformoptTOGGLETOUCHTEXTBOXES
  
     append_menu_item menu, ""
     menu.last->unselectable = YES
