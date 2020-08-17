@@ -477,7 +477,9 @@ LOCAL FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = 
       .w = framesize.w * zoom
       .h = framesize.h * zoom
     END WITH
-    IF quiet = NO THEN debuginfo "setvideomode zoom=" & zoom & " w*h = " & dest_rect.w &"*"& dest_rect.h
+    IF quiet = NO THEN
+      debuginfo "setvideomode zoom=" & zoom & " w*h = " & framesize*zoom & " resizable=" & resizable & " windowed=" & windowedmode
+    END IF
     screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, bitdepth, flags)
     IF screensurface = NULL THEN
       'This crude hack won't work for everyone if the SDL error messages are internationalised...
@@ -512,6 +514,14 @@ LOCAL FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = 
 
   'Workaround for apparent SDL bug (see gfx_sdl_present_internal)
   lastwindowsize = XY(screensurface->w, screensurface->h)
+
+  'Sanity check fullscreen state
+  DIM is_windowed as bool = ((screensurface->flags AND SDL_FULLSCREEN) = 0)
+  IF windowedmode <> is_windowed THEN
+    debuginfo "SDL_SetVideoMode failed to set windowedmode=" & windowedmode
+    windowedmode = is_windowed
+    quiet = NO
+  END IF
 
   WITH *screensurface->format
     screensurface_is_RGBColor = (.Rmask = RGB_Rmask andalso .Gmask = RGB_Gmask andalso .Bmask = RGB_Bmask)
