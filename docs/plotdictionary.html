@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2020-08-16)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2020-08-18)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1042,6 +1042,7 @@ function toggleContent(target) {
 		<a href="#about-mapmusicissuspended">map music is suspended</a><br>
 		<a href="#about-mapwidth">map width (map)</a><br>
 		<a href="#about-maximumstat">maximum stat</a><br>
+		<a href="#about-maxmapid">max map id</a><br>
 		<a href="#about-me">me</a><br>
 		<a href="#about-menuhandle">Menu handles</a><br>
 		<a href="#about-menuisopen">menu is open(menu handle)</a><br>
@@ -5134,6 +5135,9 @@ resume box advance # go back to normal</pre>
 				Opens the main menu; exactly equivalent to <a href="#about-openmenu" class="ref">open menu</a>(0).
 				If menu 0 is already open, it is brought to the top.
 				Returns the menu handle of the new or existing instance of menu 0.
+				<br>
+				This isn't affected by anything that prevents the player from opening
+				the main menu in the normal ways.
 				<div class="notice warn">
 <img src="Plotwarn.png" alt="[Warning]" class="icon">
 					If menu 0 does NOT have the "Allow gameplay &amp; scripts" bit set,
@@ -8804,7 +8808,17 @@ end</pre>
 			<a name="about-unhidemousecursor"></a>
 				<h4>unhide mouse cursor</h4>
 <p>
-			Causes the normal OS mouse cursor to be displayed. You may want to run this command right after <a href="#about-initmouse" class="ref">init mouse</a> unless you plan to use a customized mouse cursor. Note that this command has no effect if the game is running on Android, because a mouse cursor is usually inappropriate on a touch screen.
+			
+				Causes the normal OS mouse cursor to be displayed, even when fullscreened.
+				You may want to run this command right after <a href="#about-initmouse" class="ref">init mouse</a> unless you plan to use a scripted customized mouse cursor.
+				<br>
+				If you don't call <a href="#about-initmouse" class="ref">init mouse</a>, <a href="#about-hidemousecursor" class="ref">hidemousecursor</a> or <a href="#about-unhidemousecursor" class="ref">unhidemousecursor</a> then
+				the default behaviour is for the cursor to be shown when running in a window and hidden in fullscreen.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					This command has no effect if the game is running on Android, because a mouse cursor is usually inappropriate on a touch screen.
+				</div>
+			
 			
 			
 			
@@ -16891,6 +16905,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 <button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul>
 <div class="content-shown">
 		<a href="#about-currentmap">current map</a><br>
+		<a href="#about-maxmapid">max map id</a><br>
 		<a href="#about-mapwidth">map width (map)</a><br>
 		<a href="#about-mapheight">map height (map)</a><br>
 		<a href="#about-getmaptileset">get map tileset</a><br>
@@ -16974,6 +16989,16 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 				<h4>current map</h4>
 <p>
 			Returns the number (ID) of the current map.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-maxmapid"></a>
+				<h4>max map id</h4>
+<p>
+			Returns the number (ID) of the highest numbered map that exists in the game.
 			
 			
 			
@@ -20292,7 +20317,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 890 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 891 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

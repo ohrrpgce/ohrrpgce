@@ -4921,6 +4921,8 @@ SUB script_functions(byval cmdid as integer)
     scriptret = (npc(npcref).pathover.dest_npc + 1) * -1
    END IF
   END IF
+ CASE 707'-- max map id
+  scriptret = gen(genMaxMap)
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

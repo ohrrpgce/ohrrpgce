@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-08-16">
+<plotscript version="wip" datecode="2020-08-18">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -4531,7 +4531,7 @@ end</example>
 				Causes the normal OS mouse cursor to be displayed, even when fullscreened.
 				You may want to run this command right after <ref>initmouse</ref> unless you plan to use a scripted customized mouse cursor.
 				<lb/>
-				If you don't call <ref>initmouse</ref>, <ref>hidemouscursor</ref> or <ref>unhidemousecursor</ref> then
+				If you don't call <ref>initmouse</ref>, <ref>hidemousecursor</ref> or <ref>unhidemousecursor</ref> then
 				the default behaviour is for the cursor to be shown when running in a window and hidden in fullscreen.
 				<note>
 					This command has no effect if the game is running on Android, because a mouse cursor is usually inappropriate on a touch screen.
@@ -9448,6 +9448,11 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 			<canon>current map</canon>
 			<shortname>current map</shortname>
 			<description>Returns the number (ID) of the current map.</description>
+		</command>
+		<command id="maxmapid">
+			<canon>max map id</canon>
+			<shortname>max map id</shortname>
+			<description>Returns the number (ID) of the highest numbered map that exists in the game.</description>
 		</command>
 		<command id="mapwidth">
 			<canon>map width (map)</canon>

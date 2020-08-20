@@ -732,6 +732,7 @@ define function, begin
 704,expandstringsinslices,2,0,0 # Expand all codes like ${H0} or ${V0} in text slices starting with a parent slice and including all child slices
 705,heroischasing,1,0         # If hero is chasing an NPC, return the NPC reference
 706,npcischasing,1,0          # If npc is chasing another NPC, return NPC reference
+707,maxmapid,0                # Return id number of the last map
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

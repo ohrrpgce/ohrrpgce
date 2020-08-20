@@ -23,6 +23,7 @@ August ? 2020 [Hróðvitnir]
     * "get scancode name" works for joy: scancodes too [Ralph]
     * "expand strings in slices" [James]
     * "hero is chasing" and "npc is chasing" [James]
+    * "max map id" [James]
 
   *** Changes
 
