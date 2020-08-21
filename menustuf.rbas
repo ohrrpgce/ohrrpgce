@@ -1205,7 +1205,7 @@ END FUNCTION
 FUNCTION picksave () as integer
  ' Return value:
  '  0 or higher: save slot
- '  -1: cancelled/Exit
+ '  -2: cancelled/Exit
  RETURN picksaveload(NO)
 END FUNCTION
 
@@ -1215,8 +1215,8 @@ PRIVATE FUNCTION picksaveload (byval loading as bool, byval newgame_opt as bool 
 ' See pickload for other argument documentation.
 ' Return value:
 '  0 or higher: save slot
-'  -1   no saves available/New Game (loading only) or cancelled (saving only)
-'  -2   cancelled/Exit (loading only)
+'  -1   (loading only) no saves available/New Game
+'  -2   cancelled/Exit
 
 show_virtual_gamepad()
 
@@ -1305,12 +1305,12 @@ FOR i as integer = 0 TO last_slot
 NEXT i
 
 IF loading THEN
- 'check for no slots
- DIM nofull as bool = YES
+ 'Check for no saves
+ DIM nosaves as bool = YES
  FOR i as integer = 0 TO last_slot
-  IF pv(i).valid THEN nofull = NO
+  IF pv(i).valid THEN nosaves = NO
  NEXT i
- IF nofull = YES THEN
+ IF nosaves THEN
   ret_slot = -1
   IF beep_if_no_saves THEN MenuSound gen(genCancelSFX)
   GOTO freesprites
@@ -1326,7 +1326,7 @@ DO
  IF loading = NO THEN playtimer
  IF carray(ccMenu) > 1 THEN
   MenuSound gen(genCancelSFX)
-  IF loading THEN ret_slot = -2 ELSE ret_slot = -1
+  ret_slot = -2
   EXIT DO
  END IF
 
@@ -1348,12 +1348,12 @@ DO
   IF newgame_opt AND st.pt = -1 THEN
    'Selected "New Game"
    MenuSound gen(genAcceptSFX)
-   ret_slot = st.pt
+   ret_slot = -1
    EXIT DO
   ELSEIF st.pt < 0 THEN
    'Selected "Cancel" or "Exit"
    MenuSound gen(genCancelSFX)
-   IF loading THEN ret_slot = -2 ELSE ret_slot = -1
+   ret_slot = -2
    EXIT DO
   ELSE
    allow = YES

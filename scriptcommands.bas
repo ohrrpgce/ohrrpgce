@@ -808,6 +808,7 @@ SUB script_functions(byval cmdid as integer)
   'ID 155 is a backcompat hack
   stop_fibre_timing
   scriptret = picksave() + 1
+  IF scriptret = -1 THEN scriptret = 0  'Cancelled/Exit
   IF scriptret > 0 AND (retvals(0) OR cmdid = 155) THEN
    savegame scriptret - 1
   END IF
