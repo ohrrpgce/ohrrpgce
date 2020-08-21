@@ -321,20 +321,21 @@ FUNCTION SliceTypeName (t as SliceTypes) as string
 END FUNCTION
 
 'Called from sliceedit.
-FUNCTION SliceLookupCodename (code as integer, slicelookup() as string) as string
+FUNCTION SliceLookupCodename (code as integer, slicelookup() as string, use_default as bool = YES) as string
  IF code > 0 ANDALSO code <= UBOUND(slicelookup) ANDALSO LEN(TRIM(slicelookup(code))) THEN
   RETURN slicelookup(code)
  ELSE
-  RETURN SliceLookupCodeName(code)  'Special lookup codes
+  RETURN SliceLookupCodeName(code, use_default)  'Special lookup codes
  END IF
 END FUNCTION
 
-FUNCTION SliceLookupCodename (sl as Slice Ptr) as string
- IF sl = 0 THEN RETURN "[null]"
- RETURN SliceLookupCodename(sl->Lookup)
+FUNCTION SliceLookupCodename (sl as Slice Ptr, use_default as bool = YES) as string
+ IF sl = 0 THEN RETURN "[nullptr]"
+ RETURN SliceLookupCodename(sl->Lookup, use_default)
 END FUNCTION
 
-FUNCTION SliceLookupCodename (byval code as integer) as string
+'use_default: if the code is unnamed, return "Lookup###" instead of ""
+FUNCTION SliceLookupCodename (byval code as integer, use_default as bool = YES) as string
  SELECT CASE code
   CASE 0: RETURN ""
 '--the following is updated from slices.bi using the misc/sl_lookup.py script
@@ -443,7 +444,8 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
     RETURN slicelookup(code)
    END IF
  END SELECT
- RETURN "Lookup" & code
+ IF use_default THEN RETURN "Lookup" & code
+ RETURN ""
 END FUNCTION
 
 EXTERN "C"

@@ -14,7 +14,7 @@ August ? 2020 [Hróðvitnir]
     * Better, smoother screen fading in/out [Ralph]
     * Option (in General Settings Menu) to run in 24-bit color mode. Much nicer
       looking transparent sprites, but slower [Ralph]
-    * Attacks can have custom alignment relative to their targets
+    * Attacks can have custom alignment relative to their targets [James]
 
    * New Plotscripting Features
     * "set timer args" [Ralph]
@@ -24,6 +24,7 @@ August ? 2020 [Hróðvitnir]
     * "expand strings in slices" [James]
     * "hero is chasing" and "npc is chasing" [James]
     * "max map id" [James]
+    * "get slice lookup name" [Ralph]
 
   *** Changes
 

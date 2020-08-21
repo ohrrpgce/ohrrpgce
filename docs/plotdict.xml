@@ -6254,6 +6254,8 @@ end
 			</seealso>
 		</command>
 
+		<reference ref="getslicelookupname" />
+
 		<command id="getheroslice">
 			<canon>get hero slice (rank)</canon>
 			<shortname>get hero slice</shortname>
@@ -11034,6 +11036,25 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				<ref>tracevalue</ref>
 			</seealso>
 		</command>
+
+		<command id="getslicelookupname">
+			<canon>get slice lookup name (string id, code, use default name)</canon>
+			<shortname>get slice lookup name</shortname>
+			<description>
+				Lookup the codename of a slice lookup code ID (either user-defined or builtin).
+				<p>string id</p> is the ID of a string to put the name into
+				and <p>code</p> is a slice lookup code like <tt>sl:map layer 2</tt>.
+				<lb/>
+				The <tt>sl:</tt> or <tt>sli:</tt> prefix (for builtin and user codes
+				respectively) isn't prefixed to the codename.
+				For example, might set the string to "map layer2".
+				<p>use default name</p> is optional, defaulting to <tt>true</tt>.
+				When true, if there is no codename with that code, the produced codename
+				is e.g. "Lookup40"; when false, the string is set to "".
+				But if <tt>code == 0</tt> then the string is always set to "".
+			</description>
+		</command>
+
 		<command id="getscriptname">
 			<canon>get script name (string id, script id)</canon>
 			<shortname>get script name</shortname>
@@ -11252,6 +11273,9 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				There are also many special slice lookup codes with names that start with sl: prefixes.
 				See <ref>lookupslice</ref> for the list. They are always negative.
 			</description>
+			<seealso>
+				<ref>getslicelookupname</ref>
+			</seealso>
 		</command>
 
 		<command id="menuhandle">

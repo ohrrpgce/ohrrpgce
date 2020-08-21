@@ -4486,8 +4486,8 @@ SUB load_string_list(array() as string, filename as string)
    '--ready for the next line
    lines += 1
   LOOP
- 
-  CLOSE #fh
+
+  lazyclose fh
  END IF
 
  IF lines = 0 THEN

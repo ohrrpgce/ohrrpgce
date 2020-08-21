@@ -5534,7 +5534,7 @@ script, string load tests, begin
   textboxtext(1, 8, true, false)
   assert(string compare(1, 2))
 
-  # get get scancode name tests
+  # get scancode name tests
   $1="Left Bracket"
   get scancode name(2, key:leftbracket)
   assert(string compare(1,2))
@@ -5558,6 +5558,25 @@ script, string load tests, begin
   assert(string compare(1,2))
   $1="Gamepad Up"
   get scancode name(2, joy:up, false)
+  assert(string compare(1,2))
+
+  # get slice lookup name tests
+  $1=""
+  get slice lookup name(2, 0, true)
+  assert(string compare(1,2))
+  get slice lookup name(2, 0, false)
+  assert(string compare(1,2))
+  $1="map layer0"
+  get slice lookup name(2, sl:maplayer0)
+  assert(string compare(1,2))
+  $1="Some lookup"
+  get slice lookup name(2, sli:Some lookup)
+  assert(string compare(1,2))
+  $1="Lookup-40"
+  get slice lookup name(2, -40)
+  assert(string compare(1,2))
+  $1=""
+  get slice lookup name(2, -40, false)
   assert(string compare(1,2))
 end
 

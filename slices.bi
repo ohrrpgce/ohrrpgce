@@ -632,9 +632,9 @@ End Extern
 
 DECLARE FUNCTION SliceTypeName OVERLOAD (sl as Slice Ptr) as string
 DECLARE FUNCTION SliceTypeName OVERLOAD (t as SliceTypes) as string
-DECLARE FUNCTION SliceLookupCodename OVERLOAD (sl as Slice Ptr) as string
-DECLARE FUNCTION SliceLookupCodename OVERLOAD (byval code as integer) as string
-DECLARE FUNCTION SliceLookupCodename OVERLOAD (code as integer, slicelookup() as string) as string
+DECLARE FUNCTION SliceLookupCodename OVERLOAD (sl as Slice Ptr, use_default as bool = YES) as string
+DECLARE FUNCTION SliceLookupCodename OVERLOAD (byval code as integer, use_default as bool = YES) as string
+DECLARE FUNCTION SliceLookupCodename OVERLOAD (code as integer, slicelookup() as string, use_default as bool = YES) as string
 
 Extern "C"
 

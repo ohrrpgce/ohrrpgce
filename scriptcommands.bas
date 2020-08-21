@@ -4923,6 +4923,10 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 707'-- max map id
   scriptret = gen(genMaxMap)
+ CASE 708'-- get slice lookup name (string, code, use default)
+  IF valid_plotstr(retvals(0)) THEN
+   plotstr(retvals(0)).s = SliceLookupCodename(retvals(1), retvals(2))
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
