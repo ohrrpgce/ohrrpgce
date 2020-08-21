@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2020-08-18)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2020-08-21)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -925,6 +925,7 @@ function toggleContent(target) {
 		<a href="#about-getsliceclipping">get slice clipping (handle)</a><br>
 		<a href="#about-getsliceextra">get slice extra (handle, extra)</a><br>
 		<a href="#about-getslicelookup">get slice lookup (handle)</a><br>
+		<a href="#about-getslicelookupname">get slice lookup name (string id, code, use default name)</a><br>
 		<a href="#about-getslicetext">get slice text(string id, slice handle)</a><br>
 		<a href="#about-getslicevelocityx">get slice velocity x (handle)</a><br>
 		<a href="#about-getslicevelocityy">get slice velocity y (handle)</a><br>
@@ -5235,17 +5236,41 @@ resume box advance # go back to normal</pre>
 				<h4>load menu (reallyload, show new game)</h4>
 <p>
 			
-				Displays the load game menu.
-				The player can pick a saved game to load or Exit or New Game (New Game only appears
-				if <span class="param">show new game</span> is <span class="param">true</span>, which is the default).
-				If the player picks New Game then the calling script continues,
-				otherwise the current game is terminated and either quits to the titlescreen (if there is one) or a game is loaded.
+				Displays the load game menu (unless there are no saved games, in which case it's skipped).
+				The player can pick a saved game to load or Exit/Cancel or New Game.
+				New Game only appears if <span class="param">show new game</span> is <span class="code">true</span>, which is the default,
+				together with the Exit button.
+				(If <span class="param">show new game</span> is <span class="code">false</span> the button is labelled Cancel instead of Exit.)
+				If there are no saved games, it's equivalent to selecting
+				New Game, even if <span class="param">show new game</span> is false.
+				<br>
+				The <span class="param">reallyload</span> argument is optional, and defaults to <span class="code">true</span>.
+				When true,
+				if the player picks a save it's loaded,
+				if they pick New Game (or there are no saves) then the calling script continues,
+				and if they select Exit/Cancel
+				the game quits to the titlescreen if there is one or completely if not.
+				<br>
+				If you pass <span class="code">false</span> as <span class="param">reallyload</span> argument
+				the menu only displays (or is skipped) without actually loading or quiting.
+				You'll need to interpret the return value to find out which option the player selected:
+				positive values (1 to 1000) are save slot numbers, 0 means New Game/menu skipped and -1 is Quit or cancelled (pressed ESC).
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
 				If you want the New Game option to actually reset the game,
-				call <a href="#about-resetgame" class="ref">reset game</a> immediately after <span class="param">load menu</span>.
-				You can optionally pass the value <a href="#about-false" class="ref">false</a> as the <span class="param">reallyload</span> argument,
-				to make the menu display without actually loading or quiting.
-				If you do this, you'll need to interpret the return value to find out which option the player selected:
-				positive values (1 to 1000) are save slot numbers, 0 means New Game and -1 is Quit or cancelled (pressed ESC).
+				call <a href="#about-resetgame" class="ref">reset game</a> afterwards:
+<pre>load menu
+reset game</pre>
+
+				</div>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					If you don't want the player to be able to quit the game, only load a game or continue, then
+					write:
+					<pre>variable (slot)
+slot := load menu (false)
+if (slot &gt; 0) then (load from slot (slot))</pre>
+				</div>
 			
 			
 			
@@ -7256,9 +7281,9 @@ if (herolevelled (find hero (hero: Bob))) then (
 			<a name="about-spellslearned"></a>
 				<h4>spells learned (hero, number)</h4>
 <p>
-			Returns the id numbers (+1) of spells the hero learned from the last battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targeted either this hero or the whole party. If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 to get the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
+			Returns the id numbers (+1) of spells the hero learned from the last battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targeted either this hero or the whole party. If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learned is returned. Pass 0 for <span class="param">number</span> to get the first spell learnt, 1 to get the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
 			<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.</div>
+<img src="Plotnote.png" alt="[Notice]" class="icon">If you want to compare attacks returned by this command with attack ID numbers, you must add 1 to the ID number, unless you use <span class="code">atk:...</span> constants.</div>
 			
 			
 			<pre># the following script uses strings 0, 1, 2 for its use (will be overwritten)
@@ -11888,6 +11913,10 @@ end
 </div>
 		</p>
 </div>
+		<div class="command">
+		<h4>get slice lookup name (string id, code, use default name)</h4>
+		<p><a href="#about-getslicelookupname">Documented in the Debugging section.</a></p>
+		</div>
 		<div class="command">
 			<a name="about-getheroslice"></a>
 				<h4>get hero slice (rank)</h4>
@@ -18977,6 +19006,7 @@ end</pre>
 		<a href="#about-scripterror">script error (string id)</a><br>
 		<a href="#about-debugmenu">debug menu</a><br>
 		<a href="#about-assert">assert (expression)</a><br>
+		<a href="#about-getslicelookupname">get slice lookup name (string id, code, use default name)</a><br>
 		<a href="#about-getscriptname">get script name (string id, script id)</a><br>
 		<a href="#about-getcallingscriptid">get calling script id (depth)</a><br>
 		<a href="#about-sendemail">send email (save slot, subject string id, message string id)</a><br>
@@ -19239,6 +19269,28 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <li><a href="#about-tracevalue" class="ref">trace value</a></li>
 </ul>
 </div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getslicelookupname"></a>
+				<h4>get slice lookup name (string id, code, use default name)</h4>
+<p>
+			
+				Lookup the codename of a slice lookup code ID (either user-defined or builtin).
+				<span class="param">string id</span> is the ID of a string to put the name into
+				and <span class="param">code</span> is a slice lookup code like <span class="code">sl:map layer 2</span>.
+				<br>
+				The <span class="code">sl:</span> or <span class="code">sli:</span> prefix (for builtin and user codes
+				respectively) isn't prefixed to the codename.
+				For example, might set the string to "map layer2".
+				<span class="param">use default name</span> is optional, defaulting to <span class="code">true</span>.
+				When true, if there is no codename with that code, the produced codename
+				is e.g. "Lookup40"; when false, the string is set to "".
+				But if <span class="code">code == 0</span> then the string is always set to "".
+			
+			
+			
+			
 		</p>
 </div>
 		<div class="command">
@@ -19581,7 +19633,8 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			
 			
 			
-			
+			<div class="seealso">See also: <ul><li><a href="#about-getslicelookupname" class="ref">get slice lookup name</a></li></ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -20317,7 +20370,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 891 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 892 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

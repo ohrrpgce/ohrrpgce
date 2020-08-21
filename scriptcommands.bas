@@ -840,12 +840,12 @@ SUB script_functions(byval cmdid as integer)
  CASE 234'--load menu (reallyload, show new game)
   stop_fibre_timing
   ' Originally only had one argument; 'show new game' should default to true
-  retvals(1) = get_optional_arg(1, 1)
+  retvals(1) = get_optional_arg(1, 1) <> 0
   scriptret = pickload(retvals(1)) + 1
   IF retvals(0) THEN
    'Enact whatever the user picked
    IF scriptret = -1 THEN
-    'New Game
+    'Cancelled/Exit
     gam.quit = YES
     gam.want.dont_quit_to_loadmenu = YES  'don't go straight back to loadmenu!
     script_start_waiting()
@@ -853,6 +853,8 @@ SUB script_functions(byval cmdid as integer)
    ELSEIF scriptret > 0 THEN
     gam.want.loadgame = scriptret
     script_start_waiting()
+  'ELSEIF scriptret = 0 THEN  'New Game/no saves available (menu skipped)
+    'Do nothing, script continues
    END IF
   END IF
   start_fibre_timing

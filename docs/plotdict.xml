@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-08-18">
+<plotscript version="wip" datecode="2020-08-21">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -2362,17 +2362,39 @@ wait for text box # wait until the player continues</example>
 			<canon>load menu (reallyload, show new game)</canon>
 			<shortname>load menu</shortname>
 			<description>
-				Displays the load game menu.
-				The player can pick a saved game to load or Exit or New Game (New Game only appears
-				if <p>show new game</p> is <p>true</p>, which is the default).
-				If the player picks New Game then the calling script continues,
-				otherwise the current game is terminated and either quits to the titlescreen (if there is one) or a game is loaded.
+				Displays the load game menu (unless there are no saved games, in which case it's skipped).
+				The player can pick a saved game to load or Exit/Cancel or New Game.
+				New Game only appears if <p>show new game</p> is <tt>true</tt>, which is the default,
+				together with the Exit button.
+				(If <p>show new game</p> is <tt>false</tt> the button is labelled Cancel instead of Exit.)
+				If there are no saved games, it's equivalent to selecting
+				New Game, even if <p>show new game</p> is false.
+				<lb/>
+				The <p>reallyload</p> argument is optional, and defaults to <tt>true</tt>.
+				When true,
+				if the player picks a save it's loaded,
+				if they pick New Game (or there are no saves) then the calling script continues,
+				and if they select Exit/Cancel
+				the game quits to the titlescreen if there is one or completely if not.
+				<lb/>
+				If you pass <tt>false</tt> as <p>reallyload</p> argument
+				the menu only displays (or is skipped) without actually loading or quiting.
+				You'll need to interpret the return value to find out which option the player selected:
+				positive values (1 to 1000) are save slot numbers, 0 means New Game/menu skipped and -1 is Quit or cancelled (pressed ESC).
+				<note>
 				If you want the New Game option to actually reset the game,
-				call <ref>resetgame</ref> immediately after <p>load menu</p>.
-				You can optionally pass the value <ref>false</ref> as the <p>reallyload</p> argument,
-				to make the menu display without actually loading or quiting.
-				If you do this, you'll need to interpret the return value to find out which option the player selected:
-				positive values (1 to 1000) are save slot numbers, 0 means New Game and -1 is Quit or cancelled (pressed ESC).
+				call <ref>resetgame</ref> afterwards:
+<example>load menu
+reset game</example>
+
+				</note>
+				<note>
+					If you don't want the player to be able to quit the game, only load a game or continue, then
+					write:
+					<example>variable (slot)
+slot := load menu (false)
+if (slot > 0) then (load from slot (slot))</example>
+				</note>
 			</description>
 			<seealso>
 				<ref>loadfromslot</ref>
@@ -3469,8 +3491,8 @@ if (herolevelled (find hero (hero: Bob))) then (
 		<command id="spellslearned">
 			<canon>spells learned (hero, number)</canon>
 			<shortname>spells learned</shortname>
-			<description>Returns the id numbers (+1) of spells the hero learned from the last battle or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that targeted either this hero or the whole party. If the second argument is <ref>getcount</ref> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 to get the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
-			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
+			<description>Returns the id numbers (+1) of spells the hero learned from the last battle or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that targeted either this hero or the whole party. If the second argument is <ref>getcount</ref> then the number of spells that the hero learned is returned. Pass 0 for <p>number</p> to get the first spell learnt, 1 to get the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
+			<note>If you want to compare attacks returned by this command with attack ID numbers, you must add 1 to the ID number, unless you use <tt>atk:...</tt> constants.</note>
 			</description>
 			<example># the following script uses strings 0, 1, 2 for its use (will be overwritten)
 plotscript, print learned spells, who=0, begin
