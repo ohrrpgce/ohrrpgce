@@ -1931,8 +1931,7 @@ FUNCTION hero_uses_lmp (byval hero_slot as integer) as bool
  END IF
  DIM her as HeroDef
  loadherodata her, hero_id
- DIM hero_node as NodePtr
- hero_node = CAST(NodePtr, her.reld)
+ DIM hero_node as NodePtr = her.reld
  READNODE hero_node."battle_menus" as batmenu
   WITHNODE batmenu."menu" as m
    DIM k as NodePtr
@@ -3814,8 +3813,7 @@ SUB spells_menu_refresh_hero(sp as SpellsMenuState)
 
  DIM slot as integer = 0
  DIM listnum as integer
- DIM hero_node as NodePtr
- hero_node = CAST(NodePtr, her.reld)
+ DIM hero_node as NodePtr = her.reld
  READNODE hero_node."battle_menus" as batmenus
   WITHNODE batmenus."menu" as m
    DIM k as NodePtr

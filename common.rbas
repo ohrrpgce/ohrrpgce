@@ -5995,7 +5995,7 @@ SUB dump_integer_array_as_hex (arraydim as string, byval start as uinteger ptr, 
 END SUB
 
 SUB dump_master_palette_as_hex (master_palette() as RGBColor)
- dump_integer_array_as_hex("colorcodes(255) as integer", CAST(uinteger ptr, @master_palette(0).col), 255, 6)
+ dump_integer_array_as_hex("colorcodes(255) as integer", @master_palette(0).col, 255, 6)
 END SUB
 
 'dump_integer_array_as_hex "default_font(1023) as ushort", @current_font(0), 1023, 4

@@ -5442,7 +5442,7 @@ SUB AnimationEditor.edit_animation(anim_name as string)
 
   ELSE
    IF keyval(scShift) = 0 THEN
-    usemenu state, cast(BasicMenuItem ptr, menu)
+    usemenu state, menu
    END IF
    DIM op_idx as integer = -1
    IF state.pt <= UBOUND(anim.ops) THEN op_idx = state.pt

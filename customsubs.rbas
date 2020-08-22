@@ -2023,17 +2023,13 @@ FUNCTION attack_chain_browser (byval start_attack as integer) as integer
 
   state.lbox = NewSliceOfType(slLayout, state.root)
   state.lbox->Width = 80
-  WITH *CAST(LayoutSliceData ptr, state.lbox->SliceData)
-   .secondary_padding = 6
-  END WITH
+  state.lbox->LayoutData->secondary_padding = 6
 
   state.rbox = NewSliceOfType(slLayout, state.root)
   state.rbox->Width = 80
   state.rbox->AlignHoriz = 2
   state.rbox->AnchorHoriz = 2
-  WITH *CAST(LayoutSliceData ptr, state.rbox->SliceData)
-   .secondary_padding = 6
-  END WITH
+  state.rbox->LayoutData->secondary_padding = 6
 
   init_attack_chain_screen selected, state
 
