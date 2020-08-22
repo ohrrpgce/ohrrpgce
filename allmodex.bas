@@ -6513,6 +6513,7 @@ sub frame_export_bmp8 (f as string, fr as Frame Ptr, maspal() as RGBcolor)
 	close #of
 end sub
 
+'Write a 4-bit BMP; pal should have at most 16 colours in use
 sub frame_export_bmp4 (f as string, fr as Frame Ptr, maspal() as RGBcolor, pal as Palette16 ptr)
 	dim argb as RGBQUAD
 	dim as integer of, x, y, i, skipbytes
@@ -6531,8 +6532,10 @@ sub frame_export_bmp4 (f as string, fr as Frame Ptr, maspal() as RGBcolor, pal a
 		put #of, , argb
 	next
 
-	skipbytes = 4 - ((fr->w / 2) mod 4)
+	'Each row must be a multiple of 4 bytes
+	skipbytes = 4 - ((fr->w + 1) \ 2) mod 4
 	if skipbytes = 4 then skipbytes = 0
+
 	sptr = fr->image + (fr->h - 1) * fr->pitch
 	for y = fr->h - 1 to 0 step -1
 		for x = 0 to fr->w - 1
@@ -6576,6 +6579,7 @@ local function write_bmp_header(filen as string, w as integer, h as integer, bit
 	imagesize = ((w * bitdepth + 31) \ 32) * 4 * h
 	imageoff = 54
 	if bitdepth <= 8 then
+		'Palette in front of the image data
 		imageoff += (1 shl bitdepth) * 4
 	end if
 
