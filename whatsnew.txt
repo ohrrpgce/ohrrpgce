@@ -60,7 +60,8 @@ August ? 2020 [Hróðvitnir]
     * If you had more than about 3321 textboxes, Page Down in the textbox
       browser was broken [Ralph]
     * NPC extra data wasn't saved in saved map states (they reset to 0) [Ralph]
-    * Bug #1143 4-bit BMP export with width mod 4 == 1 is broken [Ralph]
+    * Bug #1143 4-bit BMP export with width mod 4 == 1 is broken, and
+      bug #1070 Master palette export produces a semi-broken BMP file [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"

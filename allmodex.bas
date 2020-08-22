@@ -6598,8 +6598,10 @@ local function write_bmp_header(filen as string, w as integer, h as integer, bit
 	info.biSizeImage = imagesize
 	info.biXPelsPerMeter = &hB12
 	info.biYPelsPerMeter = &hB12
-	info.biClrUsed = 1 shl bitdepth
-	info.biClrImportant = 1 shl bitdepth
+	if bitdepth <= 8 then
+		info.biClrUsed = 1 shl bitdepth
+		info.biClrImportant = 1 shl bitdepth
+	end if
 
 	if openfile(filen, for_binary + access_write, of) then  'Truncate
 		debugerror "write_bmp_header: couldn't open " & filen
