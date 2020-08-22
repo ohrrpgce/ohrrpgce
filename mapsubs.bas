@@ -6216,9 +6216,9 @@ END FUNCTION
 ' State of edit_npc (single NPC definition editor)
 TYPE NPCEditState
  state as MenuState
+ ' .dat for each menu item is an id to match up menu items with actions.
+ ' Currently equal to .N## data index, but treat as meaningless.
  menu as SimpleMenuItem vector
- ' IDs to match up menu items with actions. Currently equal to .N data index, but treat as meaningless.
- itemids(any) as integer
 
  ' Preview current item/textbox/script/vechicle name
  itemname as string
@@ -6254,7 +6254,6 @@ FUNCTION editnpc_zone_caption(byval zoneid as integer, byval default as integer,
 END FUNCTION
 
 SUB update_edit_npc (npcdata as NPCType, ed as NPCEditState, gmap() as integer, zmap as ZoneMap)
- REDIM ed.itemids(-1 TO -1)
  v_new ed.menu
 
  ed.menu_append -1, "Previous Menu"
@@ -6334,6 +6333,12 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
 
  update_edit_npc npcdata, ed, gmap(), zmap
 
+ STATIC remember_itemid as integer = -1  'Previously selected menu item (default to 'Previous Menu')
+ FOR pt as integer = 0 TO v_len(ed.menu) - 1
+  IF ed.menu[pt].dat = remember_itemid THEN ed.state.pt = pt
+ NEXT
+ init_menu_state ed.state, ed.menu
+
  setkeys YES
  DO
   setwait gen(genMillisecPerFrame)
@@ -6344,6 +6349,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   IF keyval(scF1) > 1 THEN show_help "edit_npc"
   usemenu ed.state, cast(BasicMenuItem vector, ed.menu)
   DIM itemid as integer = ed.menu[ed.state.pt].dat
+  remember_itemid = itemid
   SELECT CASE itemid
    CASE 0'--picture
     IF intgrabber(npcdata.picture, 0, gen(genMaxNPCPic)) THEN
