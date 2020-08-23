@@ -71,6 +71,7 @@ DECLARE SUB mapedit_update_layer_palettes(st as MapEditState)
 
 DECLARE SUB mapedit_draw_npcs(st as MapEditState, drawing_whole_map as bool = NO, including_conditional as bool, page as integer)
 DECLARE FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, framenum as integer, screenpos as XYPair) as bool
+DECLARE SUB mapedit_unload_npc_graphics (npc_img() as GraphicPair)
 
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (st as MapEditState, npcdata as NPCType)
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (map as MapData, npc_img() as GraphicPair, npcdata as NPCType)
@@ -78,6 +79,7 @@ DECLARE SUB npcdef_editor (st as MapEditState)
 DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
 DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4, thinggrabber_hint as bool = NO)
 DECLARE FUNCTION count_npc_slots_used(npcs() as NPCInst) as integer
+
 
 'Undo
 DECLARE SUB add_change_step(byref changelist as MapEditUndoTile vector, byval x as integer, byval y as integer, byval value as integer, byval mapid as MapID)
@@ -752,6 +754,8 @@ DO
    CASE 8
     'This may delete NPC instances, and write npc definitions to disk
     npcdef_editor st
+    'Reload NPC graphics after we exit the editor
+    load_npc_graphics st.map.npc_def(), st.npc_img()
    CASE 9 TO 11  'Place NPCs, Foemap, Zonemap
     st.seteditmode = mstate.pt - 6
     mapeditor_mapping st, mode_tools_map()
@@ -796,14 +800,7 @@ LOOP
 
 '---------------------------------- CLEANUP CODE -------------------------------------
 
-'Unload NPC graphics
-FOR i as integer = 0 TO UBOUND(st.npc_img)
- WITH st.npc_img(i)
-  IF .sprite THEN frame_unload(@.sprite)
-  IF .pal THEN palette16_unload(@.pal)
- END WITH
-NEXT i
-
+mapedit_unload_npc_graphics st.npc_img()
 unloadmaptilesets st.tilesets()
 unloadtilemap st.menubar
 v_free st.history
@@ -834,6 +831,15 @@ remem_map_positions(st.map.id) = XY(st.x, st.y)
 remember_menu_pt = mstate.pt  'preserve for other maps
 END SUB
 
+SUB mapedit_unload_npc_graphics (npc_img() as GraphicPair)
+ 'Unload NPC graphics
+ FOR i as integer = 0 TO UBOUND(npc_img)
+  WITH npc_img(i)
+   IF .sprite THEN frame_unload(@.sprite)
+   IF .pal THEN palette16_unload(@.pal)
+  END WITH
+ NEXT i
+END SUB
 
 '==========================================================================================
 '                                   Map editor Proper
@@ -6533,6 +6539,9 @@ END SUB
 SUB npcdef_editor (st as MapEditState)
 DIM byref map as MapData = st.map
 
+DIM npc_img() as GraphicPair
+load_npc_graphics map.npc_def(), npc_img()
+
 ' Copied NPC buffer. can be used to copy NPC definitions also between maps
 STATIC copied_npcdef as NPCType
 STATIC have_copied_npcdef as bool = NO
@@ -6572,7 +6581,7 @@ DO
    REDIM PRESERVE map.npc_def(UBOUND(map.npc_def) + 1)
   ELSE
    '--An NPC
-   mapedit_edit_npcdef st, map.npc_def(state.pt)
+   mapedit_edit_npcdef map, npc_img(), map.npc_def(state.pt)
    setkeys
   END IF
   need_update_selected = YES
@@ -6615,7 +6624,7 @@ DO
 
  IF need_update_selected THEN
   '--Note not all, or even any, of these updates will be required in a given case
-  load_npc_graphics map.npc_def(), st.npc_img()
+  load_npc_graphics map.npc_def(), npc_img()
   '--Update box preview line
   REDIM PRESERVE boxpreview(UBOUND(map.npc_def))
   boxpreview(state.pt) = npc_preview_text(map.npc_def(state.pt))
@@ -6650,7 +6659,7 @@ DO
   ELSE
    '--An NPC
    printstr "" & i, 0, y + 5, dpage
-   WITH st.npc_img(i)
+   WITH npc_img(i)
     '--Down A frame
     frame_draw .sprite + 4, .pal, 32, (i - state.top) * 25, , dpage
    END WITH
@@ -6668,7 +6677,9 @@ DO
  dowait
 LOOP
 
-END SUB 'st
+mapedit_unload_npc_graphics npc_img()
+
+END SUB
 
 
 '==========================================================================================
