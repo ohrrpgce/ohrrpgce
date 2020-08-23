@@ -75,7 +75,7 @@ DECLARE SUB mapedit_unload_npc_graphics (npc_img() as GraphicPair)
 
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (st as MapEditState, npcdata as NPCType)
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (map as MapData, npc_img() as GraphicPair, npcdata as NPCType)
-DECLARE SUB npcdef_editor (st as MapEditState)
+DECLARE SUB npcdef_editor (map as MapData)
 DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
 DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4, thinggrabber_hint as bool = NO)
 DECLARE FUNCTION count_npc_slots_used(npcs() as NPCInst) as integer
@@ -753,7 +753,7 @@ DO
     mapedit_linkdoors st
    CASE 8
     'This may delete NPC instances, and write npc definitions to disk
-    npcdef_editor st
+    npcdef_editor st.map
     'Reload NPC graphics after we exit the editor
     load_npc_graphics st.map.npc_def(), st.npc_img()
    CASE 9 TO 11  'Place NPCs, Foemap, Zonemap
@@ -6536,8 +6536,7 @@ SUB handle_npc_def_delete (npc() as NPCType, byval id as NPCTypeID, npc_insts() 
 END SUB
 
 'This is the top-level NPC editor menu (displays a list of NPCs)
-SUB npcdef_editor (st as MapEditState)
-DIM byref map as MapData = st.map
+SUB npcdef_editor (map as MapData)
 
 DIM npc_img() as GraphicPair
 load_npc_graphics map.npc_def(), npc_img()
