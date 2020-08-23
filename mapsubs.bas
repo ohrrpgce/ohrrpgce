@@ -317,7 +317,8 @@ SUB make_map_picker_menu(topmenu() as string, state as MenuState)
   a_append topmenu(), "Map " & i & ": " + getmapname(i)
  NEXT
  a_append topmenu(), "Add a New Map"
- a_append topmenu(), "Edit global NPC pool shared by all maps"
+ '--temporarily disabled until we are ready for this
+ 'a_append topmenu(), "Edit global NPC pool shared by all maps"
 
  state.last = UBOUND(topmenu)
 END SUB
@@ -360,10 +361,15 @@ SUB map_picker ()
     switch_to_8bit_vpages
     mapeditor map_id
     switch_to_32bit_vpages
-   ELSEIF state.pt = state.last - 1 THEN
-    mapedit_addmap
+    
+   '--temporarily disabled until we are ready for this
+   'ELSEIF state.pt = state.last - 1 THEN
+   ' mapedit_addmap
+   'ELSEIF state.pt = state.last THEN
+   ' global_npcdef_editor
    ELSEIF state.pt = state.last THEN
-    global_npcdef_editor
+    mapedit_addmap
+    
    END IF
    make_map_picker_menu topmenu(), state
    state.need_update = YES
