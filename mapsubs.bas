@@ -72,7 +72,8 @@ DECLARE SUB mapedit_update_layer_palettes(st as MapEditState)
 DECLARE SUB mapedit_draw_npcs(st as MapEditState, drawing_whole_map as bool = NO, including_conditional as bool, page as integer)
 DECLARE FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, framenum as integer, screenpos as XYPair) as bool
 
-DECLARE SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
+DECLARE SUB mapedit_edit_npcdef OVERLOAD (st as MapEditState, npcdata as NPCType)
+DECLARE SUB mapedit_edit_npcdef OVERLOAD (map as MapData, npc_img() as GraphicPair, npcdata as NPCType)
 DECLARE SUB npcdef_editor (st as MapEditState)
 DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
 DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4, thinggrabber_hint as bool = NO)
@@ -6463,7 +6464,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  v_free menu_display
 
  unload_sprite_and_pal npc_img
-END SUB
+END SUB 'gmap
 
 ' Displays the NPC walkabout, tag conditions and textbox preview at the bottom of the screen
 ' (Default to displaying south1 frame)
@@ -6483,10 +6484,14 @@ END SUB
 'Wrapper around edit_npc to do the right thing
 '(npcdata should be an element of st.map.npc_def())
 SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
+ mapedit_edit_npcdef st.map, st.npc_img(), npcdata
+END SUB
+
+SUB mapedit_edit_npcdef (map as MapData, npc_img() as GraphicPair, npcdata as NPCType)
  'First save NPCs so that we can correctly search for unused one-time use tags (see onetimetog)
- SaveNPCD maplumpname(st.map.id, "n"), st.map.npc_def()
- edit_npc npcdata, st.map.gmap(), st.map.zmap
- load_npc_graphics st.map.npc_def(), st.npc_img()
+ SaveNPCD maplumpname(map.id, "n"), map.npc_def()
+ edit_npc npcdata, map.gmap(), map.zmap
+ load_npc_graphics map.npc_def(), npc_img()
 END SUB
 
 
@@ -6663,7 +6668,7 @@ DO
  dowait
 LOOP
 
-END SUB
+END SUB 'st
 
 
 '==========================================================================================
