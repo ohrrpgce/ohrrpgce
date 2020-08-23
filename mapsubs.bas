@@ -76,6 +76,7 @@ DECLARE SUB mapedit_unload_npc_graphics (npc_img() as GraphicPair)
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (st as MapEditState, npcdata as NPCType)
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (map as MapData, npcdef_filename as string, npc_img() as GraphicPair, npcdata as NPCType)
 DECLARE SUB npcdef_editor (map as MapData, npcdef_filename as string)
+DECLARE SUB global_npcdef_editor ()
 DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
 DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4, thinggrabber_hint as bool = NO)
 DECLARE FUNCTION count_npc_slots_used(npcs() as NPCInst) as integer
@@ -316,6 +317,7 @@ SUB make_map_picker_menu(topmenu() as string, state as MenuState)
   a_append topmenu(), "Map " & i & ": " + getmapname(i)
  NEXT
  a_append topmenu(), "Add a New Map"
+ a_append topmenu(), "Edit global NPC pool shared by all maps"
 
  state.last = UBOUND(topmenu)
 END SUB
@@ -358,8 +360,10 @@ SUB map_picker ()
     switch_to_8bit_vpages
     mapeditor map_id
     switch_to_32bit_vpages
-   ELSEIF map_id > gen(genMaxMap) THEN
+   ELSEIF state.pt = state.last - 1 THEN
     mapedit_addmap
+   ELSEIF state.pt = state.last THEN
+    global_npcdef_editor
    END IF
    make_map_picker_menu topmenu(), state
    state.need_update = YES
@@ -6533,6 +6537,20 @@ SUB handle_npc_def_delete (npc() as NPCType, byval id as NPCTypeID, npc_insts() 
   REDIM PRESERVE npc(UBOUND(npc) - 1)
  END IF
 
+END SUB
+
+SUB global_npcdef_editor ()
+ 'Global NPCs are not associated with any specific map, so create a dummy map datastructure
+ DIM dummy_map as MapData
+ REDIM dummy_map.npc_def(0)
+ 'Pool ID is always for zero 
+ DIM pool_id as integer = 0
+ DIM npcdef_filename as string = workingdir & SLASH & "globalnpcs" & pool_id & ".n"
+ IF isfile(npcdef_filename) THEN
+  LoadNPCD npcdef_filename, dummy_map.npc_def()
+ END IF
+ npcdef_editor dummy_map, npcdef_filename
+ SaveNPCD npcdef_filename, dummy_map.npc_def()
 END SUB
 
 'This is the top-level NPC editor menu (displays a list of NPCs)
