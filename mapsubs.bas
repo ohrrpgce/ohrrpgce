@@ -69,9 +69,10 @@ DECLARE FUNCTION layer_shadow_palette() as Palette16 ptr
 DECLARE SUB mapedit_free_layer_palettes(st as MapEditState)
 DECLARE SUB mapedit_update_layer_palettes(st as MapEditState)
 
+DECLARE SUB load_npc_graphics(npc_def() as NPCType, npc_img() as GraphicPair)
+DECLARE SUB unload_npc_graphics(npc_img() as GraphicPair)
 DECLARE SUB mapedit_draw_npcs(st as MapEditState, drawing_whole_map as bool = NO, including_conditional as bool, page as integer)
 DECLARE FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, framenum as integer, screenpos as XYPair) as bool
-DECLARE SUB mapedit_unload_npc_graphics (npc_img() as GraphicPair)
 
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (st as MapEditState, npcdata as NPCType)
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (map as MapData, npcdef_filename as string, npc_img() as GraphicPair, npcdata as NPCType)
@@ -810,7 +811,7 @@ LOOP
 
 '---------------------------------- CLEANUP CODE -------------------------------------
 
-mapedit_unload_npc_graphics st.npc_img()
+unload_npc_graphics st.npc_img()
 unloadmaptilesets st.tilesets()
 unloadtilemap st.menubar
 v_free st.history
@@ -841,15 +842,6 @@ remem_map_positions(st.map.id) = XY(st.x, st.y)
 remember_menu_pt = mstate.pt  'preserve for other maps
 END SUB
 
-SUB mapedit_unload_npc_graphics (npc_img() as GraphicPair)
- 'Unload NPC graphics
- FOR i as integer = 0 TO UBOUND(npc_img)
-  WITH npc_img(i)
-   IF .sprite THEN frame_unload(@.sprite)
-   IF .pal THEN palette16_unload(@.pal)
-  END WITH
- NEXT i
-END SUB
 
 '==========================================================================================
 '                                   Map editor Proper
@@ -2692,12 +2684,16 @@ END SUB
 
 SUB load_npc_graphics(npc_def() as NPCType, npc_img() as GraphicPair)
  ' Resizes and fills npc_img()
- FOR i as integer = 0 TO UBOUND(npc_img)
-  unload_sprite_and_pal npc_img(i)
- NEXT
+ unload_npc_graphics npc_img()
  REDIM npc_img(UBOUND(npc_def))
  FOR i as integer = 0 TO UBOUND(npc_def)
   load_sprite_and_pal npc_img(i), sprTypeWalkabout, npc_def(i).picture, npc_def(i).palette
+ NEXT i
+END SUB
+
+SUB unload_npc_graphics (npc_img() as GraphicPair)
+ FOR i as integer = 0 TO UBOUND(npc_img)
+  unload_sprite_and_pal npc_img(i)
  NEXT i
 END SUB
 
@@ -6700,7 +6696,7 @@ DO
  dowait
 LOOP
 
-mapedit_unload_npc_graphics npc_img()
+unload_npc_graphics npc_img()
 
 END SUB
 

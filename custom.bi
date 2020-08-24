@@ -83,7 +83,6 @@ DECLARE SUB write_session_info ()
 DECLARE FUNCTION format_date(timeser as double) as string
 
 DECLARE SUB common_elementals_editor(elementals() as single, helpfile as string, byval showsign as integer = 0)
-DECLARE SUB load_npc_graphics(npc_def() as NPCType, npc_img() as GraphicPair)
 DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page as integer)
 
 DECLARE SUB frame_draw_with_background (src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, bgcolor as bgType, byref chequer_scroll as integer, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
