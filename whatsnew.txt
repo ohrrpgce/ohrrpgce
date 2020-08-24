@@ -4,16 +4,18 @@ WHAT IS NEW?
 August ? 2020 [Hróðvitnir]
 
   *** New Features
-    * Slice Editor Settings menu. Press F8 to open. You no longer need to
-      remember (other) hotkeys. New settings to show/hide the position and
-      size of each slice. [Ralph]
-    * Slice editor data organised into collapsible/expandable sections [Sword]
-    * Slice collections can be named. The name and collection ID are shown in
-      the in-game slice debugger [Ralph]
+    * Slice Editor:
+      * Settings menu. Press F8 to open. You no longer need to remember
+        (other) hotkeys. New settings to show/hide the position and size
+        of each slice. [Ralph]
+      * Data organised into collapsible/expandable sections [Sword]
+      * Press F in the slice editor to focus on a slice [Ralph]
+      * Slice collections can be named. The name and collection ID are shown in
+        the in-game slice debugger [Ralph]
     * F8 debug menu option "Enable/Disable random battles" [Ralph]
     * Better, smoother screen fading in/out [Ralph]
     * Option (in General Settings Menu) to run in 24-bit color mode. Much nicer
-      looking transparent sprites, but slower [Ralph]
+      looking transparent sprites, but increases CPU usage [Ralph]
     * Attacks can have custom alignment relative to their targets [James]
 
    * New Plotscripting Features

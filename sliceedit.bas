@@ -558,8 +558,17 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    IF strgrabber(collection_context(edslice)->name) THEN state.need_update = YES
   END IF
 
-  IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
+  IF state.need_update = NO ANDALSO keyval(scCtrl) = 0 ANDALSO keyval(scF) > 1 THEN  'need_update=NO ensures not a string field
+   'Focus slice
+   DIM true_root as Slice ptr = FindRootSlice(edslice)  'In case recursively editing a subtree
+   DIM focus_pt as XYPair = get_resolution() \ 2  'Where on the screen to put the focused slice
+   focus_pt.x += 70
+   DIM focus_on as Slice ptr = IIF(ses.curslice, ses.curslice, edslice)
+   true_root->Pos += focus_pt - (focus_on->ScreenPos + focus_on->Size \ 2)
+   state.need_update = YES
+  END IF
 
+  IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
    IF keyval(scCtrl) = 0 AND keyval(scV) > 1 THEN
     'Toggle visibility (does nothing on Select slice children)
     ses.curslice->Visible XOR= YES
