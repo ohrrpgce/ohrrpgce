@@ -231,6 +231,7 @@ TYPE SavedGfxIOState
  use_speed_control as bool
  vpage as integer
  dpage as integer
+ key_mappings(any) as ControlKey
 END TYPE
 
 REDIM SHARED gfxio_state_stack(-1 TO -1) as SavedGfxIOState  '-1th element unused
@@ -316,6 +317,7 @@ END SUB
 'Call this when opening an editor, menu, error message, etc, which should be shown
 'with working mouse, normal master palette, and resizable window.
 'Mostly used in-game, but also useful in Custom since some menus hide the mouse cursor.
+'Note: this doesn't stop or pause replaying or recording an .ohrkeys file.
 SUB push_and_reset_gfxio_state ()
  REDIM PRESERVE gfxio_state_stack(-1 TO UBOUND(gfxio_state_stack) + 1)
  WITH gfxio_state_stack(UBOUND(gfxio_state_stack))
@@ -323,6 +325,8 @@ SUB push_and_reset_gfxio_state ()
   .prev_mouse_vis = getcursorvisibility()
   showmousecursor
   force_use_mouse += 1
+  get_key_mappings .key_mappings()
+  set_basic_key_mappings  'Ensures Ctrl is not mapped to Use
   setkeys
   #IFDEF IS_GAME
    .resolution_was_unlocked = resolution_unlocked()
@@ -344,6 +348,7 @@ SUB pop_gfxio_state ()
   restore_previous_palette
   setcursorvisibility(.prev_mouse_vis)
   force_use_mouse -= 1
+  set_key_mappings .key_mappings()
   setkeys
   #IFDEF IS_GAME
    IF .resolution_was_unlocked = NO THEN
@@ -6102,11 +6107,14 @@ FUNCTION click_dismiss () as bool
 END FUNCTION
 
 'You should call usemenu before calling this, to ensure state.pt is correct!
+'Note: This also includes Ctrl in Game! (And in future, any custom Use key mappings)
+'  To avoid that, call push_and_reset_gfxio_state
 FUNCTION enter_space_click (state as MenuState) as bool
  IF menu_click(state) THEN RETURN YES
  RETURN keyval(ccUse) > 1 ORELSE keyval(scAnyEnter) > 1 ORELSE keyval(scSpace) > 1
 END FUNCTION
 
+'NOTE: This also includes Ctrl in Game (see above)!
 FUNCTION enter_or_space () as bool
  RETURN keyval(ccUse) > 1 ORELSE keyval(scAnyEnter) > 1 ORELSE keyval(scSpace) > 1
 END FUNCTION
