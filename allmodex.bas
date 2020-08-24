@@ -229,12 +229,6 @@ dim shared log_slow as bool = NO            'Enable spammy debug_if_slow logging
 
 type InputStateFwd as InputState
 
-'Mapping from a scancode to a carray() index (action)
-type ControlKey
-	scancode as integer                 'Either a KBScancode or JoyScancode
-	ckey as KBScancode                  'A cc* virtual scancode: index in carray()
-end type
-
 ' Shared by KeyboardState and JoystickState, this holds down/triggered/new-press
 ' state of an array of keys/buttons.
 type KeyArray extends Object
@@ -1758,11 +1752,11 @@ end function
 '==========================================================================================
 
 'Read carray controls array (ccUse etc) for a single device keyboard/joystick).
-'If you want to get the global you should call carray() instead, which is just
+'If you want to get the global/combined input you should call carray() instead, which is just
 'an alias to keyval().
-'Reads replayed state (real_keys = NO)
+'Reads replayed state, if any (real_keys = NO)
 'ccode:   a cc* constant
-'joynum:  -2 for keyboard, -1 for any joystick, 0-3 for joystick
+'joynum:  -2 for keyboard, -1 for any joystick, 0-3 for single joystick
 function device_carray(ccode as KBScancode, joynum as integer) as KeyBits
 	BUG_IF(ccode < ccLOWEST orelse ccode > ccHIGHEST, "Invalid ccode " & ccode, 0)
 
@@ -1918,6 +1912,7 @@ function KeyArray.key_repeating(key as integer, is_arrowkey as bool, repeat_wait
 		if repeat_rate = 0 then repeat_rate = inputst.repeat_rate
 
 		dim down_ms as integer
+		'Ensure arrow keys/buttons repeat on the same tick
 		down_ms = iif(is_arrowkey, arrow_key_down_ms, key_down_ms(key))
 
 		if down_ms >= repeat_wait then
@@ -2355,6 +2350,9 @@ constructor JoystickState()
 	init(joyLAST)
 end constructor
 
+
+'================================== Key mappings ==========================================
+
 sub KeyboardState.init_controls()
 	redim controls(10)
 	controls(0)  = TYPE(scUp,     ccUp)
@@ -2362,12 +2360,12 @@ sub KeyboardState.init_controls()
 	controls(2)  = TYPE(scLeft,   ccLeft)
 	controls(3)  = TYPE(scRight,  ccRight)
 	#ifdef IS_GAME
-	controls(4)  = TYPE(scCtrl,   ccUse)
+	controls(4)  = TYPE(scCtrl,   ccUse)  'Wiped by init_basic_key_mappings
 	#endif
 	controls(5)  = TYPE(scSpace,  ccUse)
 	controls(6)  = TYPE(scEnter,  ccUse)
 	#ifdef IS_GAME
-	controls(7)  = TYPE(scAlt,    ccMenu)
+	controls(7)  = TYPE(scAlt,    ccMenu)  'Wiped by init_basic_key_mappings
 	#endif
 	controls(8)  = TYPE(scEsc,    ccMenu)
 	controls(9)  = TYPE(scEsc,    ccRun)
@@ -2389,6 +2387,67 @@ sub JoystickState.init_controls()
 	controls(8) = TYPE(joyButton4,  ccMenu)
 	controls(9) = TYPE(joyButton4,  ccRun)
 end sub
+
+'Remove all key mappings to or from a scancode/controlcode (cc* constant).
+'Reads replayed state, if any (real_keys = NO)
+'key:     either a cc* constant (all key mappings to that cc will be removed)
+'         or an ordinary KBScancode or JoyScancode (any mapping from that key/button will be removed)
+'joynum:  -2 for keyboard, -1 for any joystick, 0-3 for single joystick (similar to device_carray())
+sub delete_key_mappings(key as integer, joynum as integer = -2)
+	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+
+	'Maybe this device-specific stuff is overengineering, don't need it yet...
+	dim device as KeyArray ptr
+	if joynum = -2 then
+		device = @inputst->kb
+	elseif joynum = -1 then
+		for joynum = 0 to ubound(inputst->joys)
+			delete_key_mappings key, joynum
+		next
+		exit sub
+	else
+		if joynum < 0 orelse joynum > ubound(inputst->joys) then exit sub
+		device = @inputst->joys(joynum)
+	end if
+
+	for i as integer = 0 to ubound(device->controls)
+		with device->controls(i)
+			if .ckey = key orelse .scancode = key then .ckey = 0
+		end with
+	next
+end sub
+
+'Return the current (keyboard) key bindings
+'TODO: only keyboard, not joystick mappings, as currently we have no use for that
+sub get_key_mappings(controls() as ControlKey)
+	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+	redim controls(ubound(inputst->kb.controls))
+	for i as integer = 0 to ubound(controls)
+		controls(i) = inputst->kb.controls(i)
+	next
+end sub
+
+'Overwrite the current (keyboard) key bindings
+'TODO: see above
+sub set_key_mappings(controls() as ControlKey)
+	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+	redim inputst->kb.controls(ubound(controls))
+	for i as integer = 0 to ubound(controls)
+		inputst->kb.controls(i) = controls(i)
+	next
+end sub
+
+'Sets up the keyboard key mappings the way Custom does (unlike Game, which allows Ctrl for Use
+'and Alt for Cancel)
+sub set_basic_key_mappings()
+	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+
+	inputst->kb.init_controls()
+	delete_key_mappings scCtrl
+	delete_key_mappings scAlt
+end sub
+
+'==========================================================================================
 
 'Poll io backend to update key state bits, and then handle all special scancodes.
 'keybd() should be dimmed at least (0 to scLAST)
@@ -2761,14 +2820,6 @@ sub post_terminate_signal cdecl ()
 end sub
 
 
-sub disable_joystick_input ()
-  joysticks_globally_disabled = YES
-end sub
-
-sub enable_joystick_input ()
-  joysticks_globally_disabled = NO
-end sub
-
 '==========================================================================================
 '                                          Mouse
 '==========================================================================================
@@ -3040,6 +3091,15 @@ function joystick_info (joynum as integer) as JoystickInfo ptr
 	return @inputst->joys(joynum).state.info
 end function
 
+/' Not used yet
+sub disable_joystick_input ()
+	joysticks_globally_disabled = YES
+end sub
+
+sub enable_joystick_input ()
+	joysticks_globally_disabled = NO
+end sub
+'/
 
 '==========================================================================================
 '                       Compat layer for old graphics backend IO API

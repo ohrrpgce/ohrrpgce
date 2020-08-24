@@ -452,33 +452,40 @@ DECLARE SUB frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBc
 '==========================================================================================
 '                                          Input
 
-DECLARE FUNCTION keyval_ex (key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
-DECLARE FUNCTION real_keyval (key as KBScancode) as KeyBits
-DECLARE FUNCTION keyval (key as KBScancode) as KeyBits
-DECLARE FUNCTION carray alias "KEYVAL" (key as KBScancode) as KeyBits
-DECLARE FUNCTION device_carray (ccode as KBScancode, joynum as integer) as KeyBits
-DECLARE FUNCTION slowkey (key as KBScancode, ms as integer) as bool
-DECLARE FUNCTION getinputtext () as string
+'================ Key mappings =================
+
+'Mapping from a scancode to a carray() index (action)
+type ControlKey
+	scancode as integer                 'Either a KBScancode or JoyScancode
+	ckey as KBScancode                  'A cc* virtual scancode: index in carray(). 0 if unused.
+end type
+
+DECLARE SUB delete_key_mappings(key as integer, joynum as integer = -2)
+DECLARE SUB get_key_mappings(controls() as ControlKey)
+DECLARE SUB set_key_mappings(controls() as ControlKey)
+DECLARE SUB set_basic_key_mappings()
+
+DECLARE SUB setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
+
+'=========== Update or wait for keys ============
+
 DECLARE FUNCTION interrupting_keypress () as bool
 DECLARE FUNCTION anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as KeyBits = 2) as KBScancode
 DECLARE FUNCTION waitforanykey (wait_for_resize as bool = NO) as KBScancode
 DECLARE SUB waitforkeyrelease ()
-DECLARE SUB setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
+
 DECLARE SUB setkeys (enable_inputtext as bool = NO)
 DECLARE SUB real_clearkey (key as KBScancode, clear_key_repeat as bool = YES)
 DECLARE SUB clearkey (key as KBScancode, clear_key_repeat as bool = YES)
 DECLARE SUB clearkeys ()
 
-DECLARE FUNCTION joykeyval (key as JoyScancode, joynum as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
-DECLARE FUNCTION joystick_axis (axis as integer, joynum as integer = 0) as integer
-DECLARE FUNCTION joystick_info (joynum as integer) as JoystickInfo ptr
-DECLARE FUNCTION keybd_to_joy_scancode (key as KBScancode) as JoyScancode
-DECLARE FUNCTION num_joysticks () as integer
-DECLARE SUB disable_joystick_input()
-DECLARE SUB enable_joystick_input() 'defaults to enabled, so this doesn't necessarily need to be called
+' This SUB is implemented in Game/Custom and called from allmodex.
+DECLARE SUB global_setkeys_hook ()
 
 DECLARE SUB setquitflag (newstate as bool = YES)
 DECLARE FUNCTION getquitflag () as bool
+
+'============== Recording/replaying =============
 
 DECLARE SUB start_recording_input (filename as string)
 DECLARE SUB stop_recording_input (msg as string="", errorlevel as ErrorLevelEnum = errError)
@@ -491,8 +498,27 @@ DECLARE SUB resume_recording_input
 
 DECLARE SUB macro_controls ()
 
-' This SUB is implemented in Game/Custom and called from allmodex.
-DECLARE SUB global_setkeys_hook ()
+'=============== Generic keyval ================
+
+DECLARE FUNCTION keyval_ex (key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
+DECLARE FUNCTION real_keyval (key as KBScancode) as KeyBits
+DECLARE FUNCTION keyval (key as KBScancode) as KeyBits
+DECLARE FUNCTION carray alias "KEYVAL" (key as KBScancode) as KeyBits
+DECLARE FUNCTION device_carray (ccode as KBScancode, joynum as integer) as KeyBits
+DECLARE FUNCTION slowkey (key as KBScancode, ms as integer) as bool
+DECLARE FUNCTION getinputtext () as string
+
+'================== Joystick ===================
+
+DECLARE FUNCTION joykeyval (key as JoyScancode, joynum as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
+DECLARE FUNCTION joystick_axis (axis as integer, joynum as integer = 0) as integer
+DECLARE FUNCTION joystick_info (joynum as integer) as JoystickInfo ptr
+DECLARE FUNCTION keybd_to_joy_scancode (key as KBScancode) as JoyScancode
+DECLARE FUNCTION num_joysticks () as integer
+DECLARE SUB disable_joystick_input()
+DECLARE SUB enable_joystick_input() 'defaults to enabled, so this doesn't necessarily need to be called
+
+'==================== Mouse =====================
 
 Type MouseInfo
 	Union
