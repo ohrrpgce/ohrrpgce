@@ -903,36 +903,41 @@ Sub ReplaceSliceType(byval sl as Slice ptr, byref newsl as Slice ptr)
  END WITH
 End Sub
 
-Function LookupSlice(byval lookup_code as integer, byval start_sl as Slice ptr, byval onlytype as SliceTypes=slInvalid) as Slice ptr
-  IF start_sl = 0 THEN debug "LookupSlice null root slice": RETURN 0
+'If start_sl = NULL: Find first descendent of root_sl (including root_sl itself) which matches lookup and onlytype.
+'If start_sl <> NULL: Find next descendent (in depth-first order), after start_sl, of root_sl.
+'onlytype: if slInvalid, any type allowed.
+Function LookupSlice(byval lookup_code as integer, byval root_sl as Slice ptr, byval onlytype as SliceTypes=slInvalid, start_sl as Slice ptr = NULL) as Slice ptr
+  IF root_sl = 0 THEN debug "LookupSlice null root slice": RETURN 0
   IF lookup_code = 0 THEN RETURN 0 '--fail searching for a zero lookup code
-  IF start_sl->Lookup = lookup_code THEN
-   IF onlytype = slInvalid ORELSE onlytype = start_sl->SliceType THEN
-    'If onlytype is invalid (default) then we don't care which type the slice is.
-    'If onlytype is set, only match lookup codes on slices of the desired type.
-    RETURN start_sl '--found it!
-   END IF
+  DIM desc as Slice ptr
+  IF start_sl = 0 THEN
+   desc = root_sl
+  ELSE
+   desc = NextDescendent(start_sl, root_sl)
   END IF
-  DIM child as Slice Ptr
-  child = start_sl->FirstChild
-  DIM result as Slice Ptr
-  WHILE child
-   result = LookupSlice(lookup_code, child, onlytype)
-   IF result THEN RETURN result '--found in recursion, pass the result back
-   child = child->NextSibling
+  WHILE desc
+   IF desc->Lookup = lookup_code THEN
+    IF onlytype = slInvalid ORELSE onlytype = desc->SliceType THEN
+     'If onlytype is invalid (default) then we don't care which type the slice is.
+     'If onlytype is set, only match lookup codes on slices of the desired type.
+     RETURN desc '--found it!
+    END IF
+   END IF
+   desc = NextDescendent(desc, root_sl)
   WEND
+  RETURN 0
 End Function
 
 'This is intended for built-in menus, to allow continuing gracefully instead of
 'crashing, by creating a dummy slice if the slice is missing, and printing a more
 'informative error message; if onlytype isn't specified, you get a container.
-Function LookupSliceSafe(lookup_code as integer, start_sl as Slice ptr, onlytype as SliceTypes=slInvalid) as Slice ptr
- dim ret as Slice ptr = LookupSlice(lookup_code, start_sl, onlytype)
+Function LookupSliceSafe(lookup_code as integer, root_sl as Slice ptr, onlytype as SliceTypes=slInvalid) as Slice ptr
+ dim ret as Slice ptr = LookupSlice(lookup_code, root_sl, onlytype)
  if ret then return ret
  debug "Builtin slice collection missing " & iif(onlytype = slInvalid, "any", SliceTypeName(onlytype)) & _
        " slice with lookup code " & lookup_code
  if onlytype = slInvalid then onlytype = slContainer
- return NewSliceOfType(onlytype, start_sl, lookup_code)
+ return NewSliceOfType(onlytype, root_sl, lookup_code)
 End Function
 
 'Return the root of the tree by going up.
