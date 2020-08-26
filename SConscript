@@ -450,6 +450,9 @@ if mac:
     if os.path.isdir(FRAMEWORKS_PATH):
         FBLINKERFLAGS += ['-F', FRAMEWORKS_PATH]
         CXXLINKFLAGS += ['-F', FRAMEWORKS_PATH]
+    # Fix for bug #1113
+    FBLINKERFLAGS += ['-rpath,@executable_path/../Frameworks']  # -Wl will be prefixed
+    CXXLINKFLAGS += ['-Wl,-rpath,@executable_path/../Frameworks']
     # OS 10.4 is the minimum version supported by SDL 1.2.14 on x86 (README.MacOSX
     # in the SDL source tree seems to be out of date, it doesn't even mention x86_64)
     # and OS 10.6 is the minimum for x86_64. 10.6 was released 2009
@@ -475,6 +478,7 @@ if mac:
         if not os.path.isdir(macSDKpath):
             raise Exception('Mac SDK ' + macsdk + ' not installed: ' + macSDKpath + ' is missing')
         macosx_version_min = macsdk
+        CXXLINKFLAGS += ["-isysroot", macSDKpath]  # "-static-libgcc", '-weak-lSystem']
     FBLINKERFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
     CFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
 
@@ -699,8 +703,6 @@ if linkgcc:
         if FBC.version <= 220:
             # The old port of FB v0.22 to mac requires this extra file (it was a kludge)
             CXXLINKFLAGS += [os.path.join(libpath, 'operatornew.o')]
-        if macSDKpath:
-            CXXLINKFLAGS += ["-isysroot", macSDKpath]  # "-static-libgcc", '-weak-lSystem']
 
     def compile_main_module(target, source, env):
         """
