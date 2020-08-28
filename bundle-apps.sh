@@ -85,12 +85,15 @@ add_frameworks() {
     cp -R $SRC $APP/Contents/Frameworks/ &&
     thin_framework $APP/Contents/Frameworks/${SDL}_mixer.framework || exit 1
 
+    # Deleting these frameworks causes "Library not loaded: @rpath/FLAC.framework/Versions/A/FLAC"
+    # errors. So we would need to recompile to avoid them (TODO)
+
     # We don't use FLAC
-    rm -rf $APP/Contents/Frameworks/${SDL}_mixer.framework/Versions/A/Frameworks/FLAC.framework
+    #rm -rf $APP/Contents/Frameworks/${SDL}_mixer.framework/Versions/A/Frameworks/FLAC.framework
 
     # Or Opus (SDL2 only)
-    rm -rf $APP/Contents/Frameworks/${SDL}_mixer.framework/Versions/A/Frameworks/Opus.framework
-    rm -rf $APP/Contents/Frameworks/${SDL}_mixer.framework/Versions/A/Frameworks/OpusFile.framework
+    #rm -rf $APP/Contents/Frameworks/${SDL}_mixer.framework/Versions/A/Frameworks/Opus.framework
+    #rm -rf $APP/Contents/Frameworks/${SDL}_mixer.framework/Versions/A/Frameworks/OpusFile.framework
 
     # Delete header files. They're about 330kB zipped (SDL 1.2)
     find $APP -name "*.h" -exec rm "{}" ";" || exit 1
