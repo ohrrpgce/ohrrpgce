@@ -450,9 +450,6 @@ if mac:
     if os.path.isdir(FRAMEWORKS_PATH):
         FBLINKERFLAGS += ['-F', FRAMEWORKS_PATH]
         CXXLINKFLAGS += ['-F', FRAMEWORKS_PATH]
-    # Fix for bug #1113
-    FBLINKERFLAGS += ['-rpath,@executable_path/../Frameworks']  # -Wl will be prefixed
-    CXXLINKFLAGS += ['-Wl,-rpath,@executable_path/../Frameworks']
     # OS 10.4 is the minimum version supported by SDL 1.2.14 on x86 (README.MacOSX
     # in the SDL source tree seems to be out of date, it doesn't even mention x86_64)
     # and OS 10.6 is the minimum for x86_64. 10.6 was released 2009
@@ -481,6 +478,12 @@ if mac:
         CXXLINKFLAGS += ["-isysroot", macSDKpath]  # "-static-libgcc", '-weak-lSystem']
     FBLINKERFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
     CFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
+    if macosx_version_min != '10.4':
+        # SDL 1.2.15+ (and SDL_mixer) uses @rpath in its load path, so the executable now needs
+        # to contain an rpath. (Fix for bug #1113) @rpath was added in Mac OS 10.5. This is why
+        # SDL 1.2.15 sets macOS 10.5 as the minimum. We're still using SDL 1.2.14 for 32-bit builds.
+        FBLINKERFLAGS += ['-rpath,@executable_path/../Frameworks']
+        CXXLINKFLAGS += ['-Wl,-rpath,@executable_path/../Frameworks']
 
 
 ################ Cross-compiling and arch-specific stuff
