@@ -591,6 +591,11 @@ setfont current_font()
 loadglobalstrings
 getstatnames statnames()
 
+'Load global NPC definitions
+IF isfile(global_npcdef_filename(0)) THEN
+ LoadNPCD global_npcdef_filename(0), npool(1).npcs()
+END IF
+
 'Setup script interpreter
 load_hsp
 'Might be changed by --errlvl commandline option
@@ -2461,8 +2466,6 @@ SUB loadmap_npcd(byval mapnum as integer)
  lump_reloading.npcd.changed = NO
  lump_reloading.npcd.hash = file_hash64(maplumpname(mapnum, "n"))
  LoadNPCD maplumpname(mapnum, "n"), npool(0).npcs()
- 'FIXME: probably want to move this to newgame/loadgame so AlterNPC persists when moving between maps
- LoadNPCD global_npcdef_filename(0), npool(1).npcs()
 
  'Evaluate whether NPCs should appear or disappear based on tags
  visnpc
