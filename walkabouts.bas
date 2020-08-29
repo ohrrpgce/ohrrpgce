@@ -206,18 +206,18 @@ SUB reset_npc_graphics ()
  NEXT i
 END SUB
 
-SUB change_npc_def_sprite (byval npc_id as NPCTypeID, byval walkabout_sprite_id as integer)
+SUB change_npc_def_sprite (byval npc_id as NPCTypeID, byval walkabout_sprite_id as integer, byval pool as integer=0)
  FOR i as integer = 0 TO UBOUND(npc)
-  IF npc(i).id - 1 = npc_id THEN
+  IF npc(i).id - 1 = npc_id ANDALSO npc(i).pool = pool THEN
    'found a match!
    set_walkabout_sprite npc(i).sl, walkabout_sprite_id
   END IF
  NEXT i
 END SUB
 
-SUB change_npc_def_pal (byval npc_id as NPCTypeID, byval palette_id as integer)
+SUB change_npc_def_pal (byval npc_id as NPCTypeID, byval palette_id as integer, byval pool as integer=0)
  FOR i as integer = 0 TO UBOUND(npc)
-  IF npc(i).id - 1 = npc_id THEN
+  IF npc(i).id - 1 = npc_id ANDALSO npc(i).pool = pool THEN
    'found a match!
    set_walkabout_sprite npc(i).sl, , palette_id
   END IF

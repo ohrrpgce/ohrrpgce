@@ -3592,7 +3592,7 @@ end</example>
 
 	<section title="NPC Data">
 		<command id="alternpc">
-			<canon>alter NPC (who, NPCstat, value)</canon>
+			<canon>alter NPC (who, NPCstat, value, pool)</canon>
 			<shortname>alter NPC</shortname>
 			<description>
 				Changes the stats of an NPC type.
@@ -3714,6 +3714,13 @@ end</example>
 				but if you want to use an <ref>npcreference</ref> it will still work.
 				Just remember that alter NPC changes every copy of the NPC on the map,
 				not just the specific one you referenced.
+				<lb/>
+				The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>.
+				It cannot be used if you are specifying the NPC by reference, since then that NPC reference's
+				current npc pool will be used.
+				<lb/>
+				Changes to global npcs in <p>npc pool:global</p> will persist when you move to other maps.
+				Those changes will be reset if you load a saved game or start a new game.
 				<lb/>
 				A good way to make use of <tt>alter NPC</tt> is to wrap it in your own script. For example:
 				<example># Example alter NPC wrapper for changing NPC appearance

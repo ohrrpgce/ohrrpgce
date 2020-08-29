@@ -714,22 +714,37 @@ SUB script_functions(byval cmdid as integer)
   gam.showstring = STR(retvals(0))
  CASE 78'--alter NPC
   IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant") THEN
-   DIM npcid as NPCTypeID = get_valid_npc_id(retvals(0), serrBound)
-   IF npcid <> -1 THEN
-    DIM write_value as bool = YES
-    IF retvals(1) = 0 THEN  'NPCstat:picture
-     IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN
-      write_value = NO
-     ELSE
-      change_npc_def_sprite npcid, retvals(2)
+   DIM pool as integer = get_optional_arg(3, -1)
+   IF retvals(0) < 0 AND pool <> -1 THEN
+    scripterr current_command_name() & ": npc pool argument is only allowed when using an NPC ID, but an NPC reference was used"
+   ELSE
+    DIM npcid as NPCTypeID = get_valid_npc_id(retvals(0), serrBound, IIF(pool=-1,0,pool))
+    IF npcid <> -1 THEN
+     IF pool = -1 THEN
+      IF retvals(0) < 0 THEN
+       'Was specified as a reference, We want whatever NPC pool the NPC actually belongs to
+       DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBound, 0)
+       pool = npc(npcref).pool
+      ELSE
+       'A pool wasn't specified, assume the ID was a local ID
+       pool = 0
+      END IF
      END IF
+     DIM write_value as bool = YES
+     IF retvals(1) = 0 THEN  'NPCstat:picture
+      IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN
+       write_value = NO
+      ELSE
+       change_npc_def_sprite npcid, retvals(2), pool
+      END IF
+     END IF
+     IF retvals(1) = 1 THEN  'NPCstat:palette
+      change_npc_def_pal npcid, retvals(2), pool
+     END IF
+     'Shouldn't we check validity of retvals(2) for other data?
+     IF write_value THEN SetNPCD(npool(pool).npcs(npcid), retvals(1), retvals(2))
+     lump_reloading.npcd.dirty = YES
     END IF
-    IF retvals(1) = 1 THEN  'NPCstat:palette
-     change_npc_def_pal npcid, retvals(2)
-    END IF
-    'Shouldn't we check validity of retvals(2) for other data?
-    IF write_value THEN SetNPCD(npool(0).npcs(npcid), retvals(1), retvals(2))
-    lump_reloading.npcd.dirty = YES
    END IF
   END IF
  CASE 79'--show no value

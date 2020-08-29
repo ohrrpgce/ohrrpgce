@@ -635,7 +635,7 @@ function toggleContent(target) {
 		<a href="#about-allocatetimers">allocate timers (number)</a><br>
 		<a href="#about-allowminimap">allow minimap (setting)</a><br>
 		<a href="#about-allowsaveanywhere">allow save anywhere (setting)</a><br>
-		<a href="#about-alternpc">alter NPC (who, NPCstat, value)</a><br>
+		<a href="#about-alternpc">alter NPC (who, NPCstat, value, pool)</a><br>
 		<a href="#about-and">value,and,value</a><br>
 		<a href="#about-animationstarttile">animation start tile (tile number, layer)</a><br>
 		<a href="#about-anykey">any key</a><br>
@@ -7423,7 +7423,7 @@ end</pre>
 		<a href="#Categories" class="backlink">[Back to top-level index]</a><p></p>
 <div class="select-content-shown" id="NPC Data-index">
 <button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul><div class="content-shown">
-		<a href="#about-alternpc">alter NPC (who, NPCstat, value)</a><br>
+		<a href="#about-alternpc">alter NPC (who, NPCstat, value, pool)</a><br>
 		<a href="#about-readnpc">read NPC (who, NPCstat, pool)</a><br>
 		<a href="#about-setnpcignoreswalls">set NPC ignores walls (who, value)</a><br>
 		<a href="#about-getnpcignoreswalls">get NPC ignores walls (who)</a><br>
@@ -7437,7 +7437,7 @@ end</pre>
 </div>
 		<div class="command">
 			<a name="about-alternpc"></a>
-				<h4>alter NPC (who, NPCstat, value)</h4>
+				<h4>alter NPC (who, NPCstat, value, pool)</h4>
 <p>
 			
 				Changes the stats of an NPC type.
@@ -7559,6 +7559,13 @@ end</pre>
 				but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work.
 				Just remember that alter NPC changes every copy of the NPC on the map,
 				not just the specific one you referenced.
+				<br>
+				The <span class="param">pool</span> argument is optional. It can be <span class="param">npc pool:local</span> or <span class="param">npc pool:global</span>.
+				It cannot be used if you are specifying the NPC by reference, since then that NPC reference's
+				current npc pool will be used.
+				<br>
+				Changes to global npcs in <span class="param">npc pool:global</span> will persist when you move to other maps.
+				Those changes will be reset if you load a saved game or start a new game.
 				<br>
 				A good way to make use of <span class="code">alter NPC</span> is to wrap it in your own script. For example:
 				<pre># Example alter NPC wrapper for changing NPC appearance
