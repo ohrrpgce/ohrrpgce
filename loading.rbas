@@ -231,6 +231,9 @@ SUB LoadNPCL(file as string, dat() as NPCInst)
   FOR i = 0 to 299
     dat(i).wtog = ReadShort(f,-1)
   NEXT
+  FOR i = 0 to 299
+    dat(i).pool = ReadShort(f,-1)
+  NEXT
   CLOSE #f
 END SUB
 
@@ -254,6 +257,9 @@ SUB SaveNPCL(file as string, dat() as NPCInst)
   NEXT
   FOR i = 0 to 299
     WriteShort f, -1, dat(i).wtog
+  NEXT
+  FOR i = 0 to 299
+    WriteShort f, -1, dat(i).pool
   NEXT
   CLOSE #f
 END SUB
@@ -331,6 +337,7 @@ SUB save_npc_instance (byval parent as NodePtr, byval index as NPCIndex, npc as 
  n = AppendChildNode(parent, "npc", index)
  WITH npc
   SetChildNode(n, "id", ABS(.id) - 1)
+  SetChildNode(n, "pool", .pool)
   SetChildNode(n, "x", .x - map_offset.x * 20)
   SetChildNode(n, "y", .y - map_offset.y * 20)
   SetChildNode(n, "z", .z)
@@ -387,6 +394,7 @@ SUB load_npc_instance (byval n as NodePtr, npc as NPCInst, map_offset as XYPair 
   'FIXME: this would be a good place to read the edit count property
   WITH npc
    .id = GetChildNodeInt(n, "id") + 1
+   .pool = GetChildNodeInt(n, "pool")
    .x = GetChildNodeInt(n, "x") + map_offset.x * 20
    .y = GetChildNodeInt(n, "y") + map_offset.y * 20
    .z = GetChildNodeInt(n, "z")

@@ -304,6 +304,7 @@ TYPE NPCInst
                     '  (So NOT an NPCTypeID)
                     '  NOTE: NPCs with invalidly high ID numbers (on incompletely loaded maps)
                     '        are automatically hidden (and obviously unsafe to unhide)
+  pool as integer   ' 0 for local NPCs 1 for global NPCs
   UNION
     TYPE
       xgo as integer'npcl+1500   warning: positive to go LEFT, negative RIGHT
