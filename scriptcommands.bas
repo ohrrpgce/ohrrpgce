@@ -728,7 +728,7 @@ SUB script_functions(byval cmdid as integer)
      change_npc_def_pal npcid, retvals(2)
     END IF
     'Shouldn't we check validity of retvals(2) for other data?
-    IF write_value THEN SetNPCD(npcs(npcid), retvals(1), retvals(2))
+    IF write_value THEN SetNPCD(npool(0).npcs(npcid), retvals(1), retvals(2))
     lump_reloading.npcd.dirty = YES
    END IF
   END IF
@@ -1334,7 +1334,7 @@ SUB script_functions(byval cmdid as integer)
    script_start_waiting(retvals(0))
   END IF
  CASE 4'--wait for NPC
-  IF retvals(0) >= -300 AND retvals(0) <= UBOUND(npcs) THEN
+  IF retvals(0) >= -300 AND retvals(0) <= UBOUND(npool(0).npcs) THEN
    script_start_waiting(retvals(0), gam.map.id)
   END IF
  CASE 5'--suspend npcs
@@ -3720,7 +3720,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 120'--NPC reference
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
+  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npool(0).npcs) THEN
    DIM find_disabled as bool = get_optional_arg(2, 0) <> 0
    DIM found as integer = 0
    FOR i as integer = 0 TO UBOUND(npc)
@@ -3754,7 +3754,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 123'--NPC copy count
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
+  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npool(0).npcs) THEN
    FOR i as integer = 0 TO UBOUND(npc)
     IF npc(i).id - 1 = retvals(0) THEN
      scriptret = scriptret + 1
@@ -3763,16 +3763,16 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 124'--change NPC ID
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= UBOUND(npcs) THEN
+  IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= UBOUND(npool(0).npcs) THEN
    npc(npcref).id = retvals(1) + 1
    '--update the walkabout sprite for the changed NPC
-   set_walkabout_sprite npc(npcref).sl, npcs(retvals(1)).picture, npcs(retvals(1)).palette
+   set_walkabout_sprite npc(npcref).sl, npool(0).npcs(retvals(1)).picture, npool(0).npcs(retvals(1)).palette
    '--run visnpc to apply any changes to the NPCs tag-visibility
    visnpc
   END IF
  CASE 125'--create NPC
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
+  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npool(0).npcs) THEN
    DIM i as integer
    FOR i = UBOUND(npc) TO 0 STEP -1
     IF npc(i).id = 0 THEN EXIT FOR
@@ -3833,7 +3833,7 @@ SUB script_functions(byval cmdid as integer)
   IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant") THEN
    DIM npcid as NPCTypeID = get_valid_npc_id(retvals(0), serrBound)
    IF npcid <> -1 THEN
-    scriptret = GetNPCD(npcs(npcid), retvals(1))
+    scriptret = GetNPCD(npool(0).npcs(npcid), retvals(1))
     IF retvals(1) = 12 THEN  'NPCstat:script
      scriptret = decodetrigger(scriptret, NO)  'showerr=NO
     END IF
@@ -4989,7 +4989,7 @@ FUNCTION getnpcref (byval seekid as NPCScriptref, byval copynum as integer) as N
  CASE -300 TO -1'--direct reference
   RETURN (seekid + 1) * -1
 
- CASE 0 TO UBOUND(npcs) 'ID
+ CASE 0 TO UBOUND(npool(0).npcs) 'ID
   DIM found as integer = 0
   FOR i as integer = 0 TO UBOUND(npc)
    IF npc(i).id - 1 = seekid THEN
@@ -5030,7 +5030,7 @@ END FUNCTION
 'References to Hidden/Disabled NPCs are alright.
 FUNCTION get_valid_npc_id (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp) as NPCTypeID
  IF seekid >= 0 THEN
-  IF seekid > UBOUND(npcs) THEN
+  IF seekid > UBOUND(npool(0).npcs) THEN
    scripterr current_command_name() & ": invalid NPC ID " & seekid, errlvl
    RETURN -1
   END IF
@@ -5045,7 +5045,7 @@ FUNCTION get_valid_npc_id (byval seekid as NPCScriptref, byval errlvl as scriptE
    RETURN -1
   ELSE
    DIM id as NPCTypeID = ABS(npc(npcidx).id) - 1
-   IF id > UBOUND(npcs) THEN
+   IF id > UBOUND(npool(0).npcs) THEN
     'Note that an NPC may be marked hidden because it has an invalid ID
     scripterr current_command_name() & ": NPC reference " & seekid & " is for a disabled NPC with invalid ID " & npc(npcidx).id & " (the map must be incompletely loaded)", errlvl
     RETURN -1

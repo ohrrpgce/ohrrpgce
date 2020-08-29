@@ -68,7 +68,7 @@ FUNCTION create_npc_slices(byval npcidx as NPCIndex) as Slice Ptr
  DIM meta as NPCSliceContext ptr = NEW NPCSliceContext
  meta->npcindex = npcidx
  sl->Context = meta
- WITH npcs(npc(npcidx).id - 1)
+ WITH npool(npc(npcidx).pool).npcs(npc(npcidx).id - 1)
   set_walkabout_sprite sl, .picture, .palette
  END WITH
  RETURN sl
@@ -189,15 +189,17 @@ END SUB
 'which enables or disables npcs and also creates the slices for any npcs that were enabled.
 SUB reset_npc_graphics ()
  DIM npc_id as integer
+ DIM pool as integer
  FOR i as integer = 0 TO UBOUND(npc)
   npc_id = npc(i).id - 1
+  pool = npc(i).pool
   IF npc_id >= 0 THEN
-   IF npc_id > UBOUND(npcs) THEN
+   IF npc_id > UBOUND(npool(pool).npcs) THEN
     'I think this could happen while reloading a map, if NPC instances are loaded definitions
-    debug "reset_npc_graphics: ignore npc " & i & " because npc def " & npc_id & " is out of range (>" & UBOUND(npcs) & ")"
+    debug "reset_npc_graphics: ignore npc " & i & " because npc def " & npc_id & " is out of range (>" & UBOUND(npool(pool).npcs) & ") for pool " & pool
    ELSE
     'Update/load sprite
-    set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
+    set_walkabout_sprite npc(i).sl, npool(pool).npcs(npc_id).picture, npool(pool).npcs(npc_id).palette
     set_walkabout_vis npc(i).sl, YES
    END IF
   END IF
@@ -357,15 +359,16 @@ SUB visnpc()
   IF npc(i).id = 0 THEN CONTINUE FOR
 
   DIM npc_id as integer = ABS(npc(i).id) - 1
+  DIM pool as integer = npc(i).pool
 
-  IF npc_id > UBOUND(npcs) THEN
+  IF npc_id > UBOUND(npool(pool).npcs) THEN
    'Invalid ID number; hide. Probably a partially loaded map.
    npc(i).id = -npc_id - 1
    CONTINUE FOR
   END IF
  
   '--check tags
-  IF istag(npcs(npc_id).tag1, 1) ANDALSO istag(npcs(npc_id).tag2, 1) ANDALSO istag(onetime(), npcs(npc_id).usetag, 0) = NO THEN
+  IF istag(npool(pool).npcs(npc_id).tag1, 1) ANDALSO istag(npool(pool).npcs(npc_id).tag2, 1) ANDALSO istag(onetime(), npool(pool).npcs(npc_id).usetag, 0) = NO THEN
    npc(i).id = npc_id + 1
   ELSE
    npc(i).id = -npc_id - 1
@@ -1107,7 +1110,8 @@ SUB forcemountvehicle (byval npci as NPCIndex)
   EXIT SUB
  END IF
  DIM npcid as NPCTypeID = npc(npci).id - 1
- DIM vehid as integer = npcs(npcid).vehicle - 1
+ DIM pool as integer = npc(npci).pool
+ DIM vehid as integer = npool(pool).npcs(npcid).vehicle - 1
  IF vehid < 0 THEN
   'This NPC is not a vehicle
   EXIT SUB

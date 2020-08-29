@@ -58,7 +58,7 @@ EXTERN cats() as CaterpillarHistory
 EXTERN herow() as HeroWalkabout
 
 'NPC globals
-EXTERN npcs() as NPCType
+EXTERN npool() as NPCPool
 EXTERN npc() as NPCInst
 
 'Item globals

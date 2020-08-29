@@ -102,7 +102,13 @@ REDIM herow(3) as HeroWalkabout
 ' so 61 elements is 0-60
 REDIM cats(60) as CaterpillarHistory
 
-REDIM npcs(0) as NPCType
+REDIM npool(1) as NPCPool
+WITH npool(0)
+ REDIM .npcs(0) as NPCType
+END WITH
+WITH npool(1)
+ REDIM .npcs(0) as NPCType
+END WITH
 REDIM npc(299) as NPCInst
 
 DIM vstate as VehicleState
@@ -1067,7 +1073,7 @@ SUB doloadgame(byval load_slot as integer, prefix as string="")
     debug "Vehicle NPC ref " & vstate.npc - 1 & " in save state is now disabled by tags"
     vehicle_graceful_dismount
    CASE ELSE
-    vstate.id = npcs(npc(vstate.npc).id - 1).vehicle - 1
+    vstate.id = npool(npc(vstate.npc).pool).npcs(npc(vstate.npc).id - 1).vehicle - 1
     create_walkabout_shadow npc(vstate.npc).sl
   END SELECT
  END IF
@@ -1330,14 +1336,14 @@ SUB update_heroes(force_step_check as bool=NO)
       IF .id > 0 THEN '---NPC EXISTS---
        DIM id as NPCTypeID
        id = .id - 1
-       IF npcs(id).activation <> 2 THEN '---NPC is not step-on
+       IF npool(.pool).npcs(id).activation <> 2 THEN '---NPC is not step-on
         IF wrapcollision (.pos, .xygo, heropos(whoi), herow(whoi).xygo) THEN
          IF .not_obstruction = NO THEN
           herow(whoi).xygo = 0
 
           '--push the NPC
           'Note: Heroes other than the leader can push NPCs! I've never seen this happen
-          DIM push as integer = npcs(id).pushtype
+          DIM push as integer = npool(.pool).npcs(id).pushtype
           IF push > 0 AND .xgo = 0 AND .ygo = 0 THEN
            IF herodir(whoi) = dirUp    AND (push = 1 OR push = 2 OR push = 4) THEN .ygo = 20
            IF herodir(whoi) = dirDown  AND (push = 1 OR push = 2 OR push = 6) THEN .ygo = -20
@@ -1345,7 +1351,7 @@ SUB update_heroes(force_step_check as bool=NO)
            IF herodir(whoi) = dirRight AND (push = 1 OR push = 3 OR push = 5) THEN .xgo = -20
            IF prefbit(16) = NO THEN ' "Simulate Pushable NPC obstruction bug" backcompat bit
             'Check whether the NPC can't be pushed because there's an obstruction on its other side
-            IF npc_collision_check(npc(i), npcs(id), .xgo, .ygo) THEN
+            IF npc_collision_check(npc(i), npool(.pool).npcs(id), .xgo, .ygo) THEN
              .xgo = 0
              .ygo = 0
             END IF
@@ -1353,7 +1359,7 @@ SUB update_heroes(force_step_check as bool=NO)
           END IF
 
          END IF
-         IF npcs(id).activation = 1 AND whoi = 0 THEN '--NPC is touch-activated
+         IF npool(.pool).npcs(id).activation = 1 AND whoi = 0 THEN '--NPC is touch-activated
           IF wraptouch(.pos, heropos(0), 20) THEN
            usenpc 1, i
           END IF
@@ -1488,7 +1494,7 @@ SUB update_heroes(force_step_check as bool=NO)
     WITH npc(i)
      IF .id > 0 THEN '---NPC EXISTS---
       IF vstate.active = NO OR (vstate.dat.enable_npc_activation = YES AND vstate.npc <> i) THEN
-       IF npcs(.id - 1).activation = 2 THEN '---NPC is step-on activated
+       IF npool(.pool).npcs(.id - 1).activation = 2 THEN '---NPC is step-on activated
         IF .pos = heropos(0) THEN '---YOU ARE ON NPC---
          usenpc 1, i
         END IF '---YOU ARE ON NPC---
@@ -1643,7 +1649,7 @@ SUB update_npcs ()
     '--For all NPCs except the active vehicle
     IF (txt.sayer <> o ANDALSO readbit(gen(), genSuspendBits, suspendnpcs) = 0 ANDALSO npc(o).suspend_ai = NO) ORELSE npc(o).pathover.override THEN
      IF npc(o).xgo = 0 AND npc(o).ygo = 0 THEN
-      pick_npc_action npc(o), npcs(id)
+      pick_npc_action npc(o), npool(npc(o).pool).npcs(id)
      END IF
     END IF
 
@@ -1652,7 +1658,7 @@ SUB update_npcs ()
    DIM oldpos as XYPair = npc(o).pos
 
    DIM finished_step as bool = NO
-   IF npc(o).xgo <> 0 OR npc(o).ygo <> 0 THEN finished_step = perform_npc_move(o, npc(o), npcs(id))
+   IF npc(o).xgo <> 0 OR npc(o).ygo <> 0 THEN finished_step = perform_npc_move(o, npc(o), npool(npc(o).pool).npcs(id))
 
    IF oldpos = npc(o).pos THEN
     npc(o).stillticks += 1
@@ -1961,7 +1967,7 @@ END SUB
 
 FUNCTION npc_pathfinding_collision_rule(npci as NPCInst) as PathfindingObstructionMode
  DIM obs_mode as PathfindingObstructionMode
- obs_mode = npcs(npci.id - 1).pathfinding_obstruction_mode
+ obs_mode = npool(npci.pool).npcs(npci.id - 1).pathfinding_obstruction_mode
  'Check to see if we should use the map default
  IF obs_mode = obmodeDefault THEN obs_mode = gmap(378)
  'Check to see if we should use the global default
@@ -2144,7 +2150,7 @@ FUNCTION hero_collision_check_at(byval rank as integer, tile as XYPair, byval di
 END FUNCTION
 
 FUNCTION npc_collision_check(npci as NPCInst, byval direction as DirNum, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
- RETURN npc_collision_check(npci, npcs(ABS(npci.id) - 1), direction, collision_type, npc_ccache)
+ RETURN npc_collision_check(npci, npool(npci.pool).npcs(ABS(npci.id) - 1), direction, collision_type, npc_ccache)
 END FUNCTION
 
 FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval direction as DirNum, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
@@ -2276,7 +2282,7 @@ FUNCTION hero_collision_check(byval rank as integer, byval xgo as integer, byval
    'Loop through all the NPCs and check them
    FOR i as integer = 0 TO UBOUND(npc)
     IF npc(i).id > 0 ANDALSO npc(i).not_obstruction = 0 THEN
-     IF npcs(npc(i).id - 1).activation <> 2 THEN ' Only for NPCs that are not step-on activated
+     IF npool(npc(i).pool).npcs(npc(i).id - 1).activation <> 2 THEN ' Only for NPCs that are not step-on activated
       IF wrapcollision (npc(i).pos, npc(i).xygo, heropos(i), XY(xgo, ygo)) THEN
        collision_type = collideNPC
        RETURN YES
@@ -2454,7 +2460,9 @@ SUB loadmap_npcd(byval mapnum as integer)
  lump_reloading.npcd.dirty = NO
  lump_reloading.npcd.changed = NO
  lump_reloading.npcd.hash = file_hash64(maplumpname(mapnum, "n"))
- LoadNPCD maplumpname(mapnum, "n"), npcs()
+ LoadNPCD maplumpname(mapnum, "n"), npool(0).npcs()
+ 'FIXME: probably want to move this to newgame/loadgame so AlterNPC persists when moving between maps
+ LoadNPCD global_npcdef_filename(0), npool(1).npcs()
 
  'Evaluate whether NPCs should appear or disappear based on tags
  visnpc
@@ -3555,7 +3563,7 @@ SUB end_text_box_chain ()
  tag_updates
  IF txt.sayer >= 0 AND txt.old_dir <> -1 THEN
   IF npc(txt.sayer).id > 0 THEN
-   IF npcs(npc(txt.sayer).id - 1).facetype = 1 THEN  '"Face Player"
+   IF npool(npc(txt.sayer).pool).npcs(npc(txt.sayer).id - 1).facetype = 1 THEN  '"Face Player"
     npc(txt.sayer).dir = txt.old_dir
    END IF
   END IF
@@ -4123,7 +4131,7 @@ FUNCTION find_useable_npc() as NPCIndex
   WITH npc(j)
    IF .id > 0 AND (j <> vstate.npc OR vstate.active = NO) THEN
     '--Step-on NPCs cannot be used
-    IF npcs(.id - 1).activation = 2 THEN CONTINUE FOR
+    IF npool(.pool).npcs(.id - 1).activation = 2 THEN CONTINUE FOR
     IF .suspend_use THEN CONTINUE FOR
     DIM nx as integer = .x
     DIM ny as integer = .y
@@ -4166,9 +4174,10 @@ FUNCTION usenpc(byval cause as integer, byval npcnum as NPCIndex) as bool
  IF npcnum < 0 THEN RETURN NO
  IF npc(npcnum).suspend_use ANDALSO cause <> 2 THEN RETURN NO
  DIM id as NPCTypeID = npc(npcnum).id - 1
+ DIM pool as integer = npc(npcnum).pool
 
  '---Item from NPC---
- DIM getit as integer = npcs(id).item
+ DIM getit as integer = npool(pool).npcs(id).item
  IF getit THEN
   getitem getit - 1
   evalitemtags
@@ -4176,29 +4185,29 @@ FUNCTION usenpc(byval cause as integer, byval npcnum as NPCIndex) as bool
  END IF
  '---DIRECTION CHANGING-----------------------
  txt.old_dir = -1
- IF cause <> 2 AND npcs(id).facetype <> 2 THEN  'not "Do not face player"
+ IF cause <> 2 AND npool(pool).npcs(id).facetype <> 2 THEN  'not "Do not face player"
   txt.old_dir = npc(npcnum).dir
   npc(npcnum).dir = herodir(0)
   loopvar npc(npcnum).dir, 0, 3, 2
  END IF
- IF npcs(id).usetag > 0 THEN
+ IF npool(pool).npcs(id).usetag > 0 THEN
   '--One-time-use tag
-  settag onetime(), npcs(id).usetag, YES
+  settag onetime(), npool(pool).npcs(id).usetag, YES
   'Delay tag_updates
  END IF
- IF npcs(id).script > 0 THEN
+ IF npool(pool).npcs(id).script > 0 THEN
   '--summon a script directly from an NPC
-  trigger_script npcs(id).script, 2, YES, "NPC", "NPC ID " & id & " at " & npc(npcnum).pos, mainFibreGroup
-  trigger_script_arg 0, npcs(id).scriptarg, "arg"
+  trigger_script npool(pool).npcs(id).script, 2, YES, "NPC", "NPC ID " & id & " at " & npc(npcnum).pos, mainFibreGroup
+  trigger_script_arg 0, npool(pool).npcs(id).scriptarg, "arg"
   trigger_script_arg 1, (npcnum + 1) * -1, "npcref"
  END IF
- DIM vehuse as integer = npcs(id).vehicle
+ DIM vehuse as integer = npool(pool).npcs(id).vehicle
  IF vehuse THEN '---activate a vehicle---
   try_mount_vehicle vehuse - 1, npcnum
  END IF
- IF npcs(id).textbox > 0 THEN
+ IF npool(pool).npcs(id).textbox > 0 THEN
   txt.sayer = npcnum
-  loadsay npcs(id).textbox
+  loadsay npool(pool).npcs(id).textbox
   'NOTE: don't force NPC tag visibility to be updated after a text box
   '  is displayed because that could cause premature NPC disappearance,
   '  and because tag_updates will always be called when the box advances
@@ -5294,7 +5303,7 @@ SUB update_hero_pathfinding(byval rank as integer)
      END IF
     END IF
     IF gam.hero_pathing(rank).stop_when_npc_reached THEN
-     IF npcs(.id - 1).activation <> 2 THEN
+     IF npool(.pool).npcs(.id - 1).activation <> 2 THEN
       '---NPC is NOT step-on activated
       IF xypair_wrapped_distance(t1, t2) <= 1 THEN
        'Within 1 tile of destination

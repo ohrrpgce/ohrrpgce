@@ -270,6 +270,10 @@ TYPE NPCType
   pathfinding_obstruction_mode as PathfindingObstructionMode '+18 (only matters if .movetype=15)
 END TYPE
 
+TYPE NPCPool
+  npcs(any) as NPCType
+END TYPE
+
 ENUM NPCOverrideMove
  NONE
  NPC

@@ -421,7 +421,7 @@ SUB savemapstate_npcl(mapnum as integer, prefix as string)
 END SUB
 
 SUB savemapstate_npcd(mapnum as integer, prefix as string)
- SaveNPCD mapstatetemp(mapnum, prefix) & "_n.tmp", npcs()
+ SaveNPCD mapstatetemp(mapnum, prefix) & "_n.tmp", npool(0).npcs()
 END SUB
 
 SUB savemapstate_tilemap(mapnum as integer, prefix as string)
@@ -496,7 +496,7 @@ SUB loadmapstate_npcd (mapnum as integer, prefix as string, dontfallback as bool
   IF dontfallback = NO THEN loadmap_npcd mapnum
   EXIT SUB
  END IF
- LoadNPCD filebase & "_n.tmp", npcs()
+ LoadNPCD filebase & "_n.tmp", npool(0).npcs()
 
  'Evaluate whether NPCs should appear or disappear based on tags
  visnpc
@@ -710,7 +710,7 @@ SUB reloadmap_npcd()
 
  DIM filename as string = maplumpname(gam.map.id, "n")
  lump_reloading.npcd.hash = file_hash64(filename)
- LoadNPCD filename, npcs()
+ LoadNPCD filename, npool(0).npcs()
 
  'Evaluate whether NPCs should appear or disappear based on tags
  visnpc
@@ -826,10 +826,12 @@ END SUB
 
 'Print all NPCs to g_debug.txt
 SUB debug_npcs ()
- debug "NPC types:"
- FOR i as integer = 0 TO UBOUND(npcs)
-  debug " ID " & i & ": pic=" & npcs(i).picture & " pal=" & npcs(i).palette
- NEXT
+ FOR p as integer = 0 to 1
+  debug IIF(p=1, "Global", "Local") & " NPC types:"
+  FOR i as integer = 0 TO UBOUND(npool(p).npcs)
+   debug " ID " & i & ": pic=" & npool(p).npcs(i).picture & " pal=" & npool(p).npcs(i).palette
+  NEXT
+ NEXT p
  debug "NPC instances:"
  FOR i as integer = 0 TO 299
   WITH npc(i)
@@ -846,9 +848,9 @@ SUB debug_npcs ()
  NEXT
 END SUB
 
-FUNCTION describe_npctype(npcid as NPCTypeID) as string
+FUNCTION describe_npctype(npcid as NPCTypeID, pool as integer) as string
  DIM info as string, appearinfo as string
- WITH npcs(npcid)
+ WITH npool(pool).npcs(npcid)
   info &= fgcol_text("NPC Type: ", uilook(uiSelectedItem)) _
        & "Pic `" & .picture & "` Pal `" & .palette _
        & "` Speed `" & .speed _
@@ -881,7 +883,7 @@ FUNCTION describe_npcinst(npcnum as NPCIndex) as string
    info &= " copy `" & copynum & "`"
   END IF
   info &= " npcref `" & (-1 - npcnum) & !"`\n" _
-       & describe_npctype(id) & !"\n" _
+       & describe_npctype(id, .pool) & !"\n" _
        & fgcol_text("NPC Inst: ", uilook(uiSelectedItem)) _
        & "At `" & .pos & "` Z `" & .z _
        & "` tile `" & (.pos \ 20) & "` dir `" & CHR(("NESW")[.dir]) & "`"
