@@ -143,7 +143,7 @@ define function, begin
 120,NPCreference,4,0,0,0,0  # get an NPC reference by ID number (ID, copynumber, allowdisabled, pool)
 121,NPCatspot,3,0,0,0       # get nth NPC reference on tile (X,Y,n)
 122,getNPCID,1,0            # get the ID number of an NPC reference
-123,NPCcopycount,1,0        # find out how many copys of an NPC ID are on the map
+123,NPCcopycount,2,0,0      # find out how many copys of an NPC ID are on the map
 124,changeNPCID,2,0,0       # given an NPC reference, changes its ID
 125,createNPC,5,0,0,0,2,0   # create an NPC by ID at a location and return its reference
 126,destroyNPC,1,0          # destroy the referenced NPC

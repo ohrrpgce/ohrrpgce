@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-08-28">
+<plotscript version="wip" datecode="2020-08-29">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -1939,13 +1939,15 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 		</command>
 
 		<command id="npccopycount">
-			<canon>NPC copy count (ID)</canon>
+			<canon>NPC copy count (ID, pool)</canon>
 			<shortname>NPC copy count</shortname>
 			<description>
 				This command tells you how many copies of a particular NPC ID exist on the map.
 				This can be very useful if you want apply the same action to each copy of an NPC
 				on the map by looping over them.
 				Generally this is used together with the <ref>npcreference</ref> command.
+				<lb/>
+				The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>. If you do not specify which pool, then the NPC ID will be assumed to be local.
 				<note>
 					This command does not count tag-disabled NPCs.
 					So if there are four copies of NPC 2 on a map, but they only appear

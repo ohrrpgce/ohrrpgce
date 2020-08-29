@@ -3757,12 +3757,15 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 123'--NPC copy count
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npool(0).npcs) THEN
-   FOR i as integer = 0 TO UBOUND(npc)
-    IF npc(i).id - 1 = retvals(0) THEN
-     scriptret = scriptret + 1
-    END IF
-   NEXT i
+  DIM pool as integer = get_optional_arg(1, 0)
+  IF bound_arg(pool, 0, 1, "pool id") THEN
+   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npool(pool).npcs) THEN
+    FOR i as integer = 0 TO UBOUND(npc)
+     IF npc(i).id - 1 = retvals(0) ANDALSO npc(i).pool = pool THEN
+      scriptret = scriptret + 1
+     END IF
+    NEXT i
+   END IF
   END IF
  CASE 124'--change NPC ID
   npcref = getnpcref(retvals(0), 0)
