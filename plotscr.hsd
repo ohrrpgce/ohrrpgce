@@ -2236,6 +2236,61 @@ define constant, begin
 -1,dissolvetime:default
 50000,maximum global id
 99,maximum string id
+
+ -1, ui:Background               # Background colour
+ -2, ui:MenuItem                 # Normal menu item
+ -3, ui:DisabledItem             # Disabled menu item
+ -4, ui:SelectedItem             # Selection, alternates 3 & 4
+ -5, ui:SelectedItem2            # Selection flash color
+ -6, ui:SelectedDisabled         # Selected disabled item
+ -7, ui:SelectedDisabled2        # Selected disabled item flash color
+ -8, ui:HighlightA               # Background to selected menu item
+ -9, ui:HighlightB               # Background used in equip menu
+ -10, ui:TimeBar                 # Hero's time bar
+ -11, ui:TimeBarFull             # Time bar flash when full
+ -12, ui:HealthBar               # Hero's health bar
+ -13, ui:HealthBarFull           # Health bar flash when full
+ -14, ui:Text                    # Default text colour
+ -15, ui:TextOutline             # Text outline colour
+ -16, ui:Description             # Spell description
+ -17, ui:Money                   # Status menu money display
+ -18, ui:Shadow                  # Vehicle shadow
+ -19, ui:SpecialItem             # Special menu item
+ -20, ui:SelectedSpecial         # Selected Special item
+ -21, ui:SelectedSpecial2        # Selected Special item flash color
+ -22, ui:Items:Swap
+ -23, ui:Items:SwapDisabled
+ -24, ui:Items:SwapSpecial
+ -25, ui:Items:Item
+ -26, ui:Items:Disabled
+ -27, ui:Items:Special
+ -28, ui:Items:Selected
+ -29, ui:Items:Selected2
+ -30, ui:Items:SelectedDisabled
+ -31, ui:Items:SelectedDisabled2
+ -32, ui:Items:SelectedSpecial
+ -33, ui:Items:SelectedSpecial2
+ -34, ui:Items:Highlight
+ -35, ui:Items:Highlight2
+ -36, ui:Items:SwapHighlight
+ -37, ui:Items:SwapHighlight2
+ -38, ui:MouseHoverItem          # A menu item over which the mouse is hovering
+ -39, ui:Damage                  # Default damage digit color
+ -40, ui:Heal
+ -41, ui:Absorb
+ -42, ui:Poison
+ -43, ui:Regen
+ -44, ui:FadeOutNewGame
+ -45, ui:FadeOutLoadGame
+ -46, ui:FadeOutDeath
+ -47, ui:FadeOutQuit
+ -48, ui:FadeOutDoor
+ -49, ui:FadeOutInn
+ -50, ui:FadeOutEnterBattle
+ -51, ui:FadeOutWonBattle
+ -52, ui:FadeOutExitBattle
+ -53, ui:MPBar                   # Hero's MP bar
+ -54, ui:MPBarFlash              # MP bar flash colour (when higher than max)
 end
 
 #<SLICE LOOKUP CODES>
