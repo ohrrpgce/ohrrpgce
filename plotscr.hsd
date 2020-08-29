@@ -785,6 +785,10 @@ script, npc copy number, hsd:npc, begin
   return (hsd:copy)
 end
 
+script, create global npc, hsd:id, hsd:x=0, hsd:y=0, hsd:direction=2, begin
+  exit returning(create npc(hsd:id, hsd:x, hsd:y, hsd:direction, npc pool:global))
+end
+
 script, global npc reference, hsd:id, hsd:copy=0, hsd:allow disabled=0, begin
   exit returning(npc reference(hsd:id, hsd:copy, hsd:allow disabled, npc pool:global))
 end

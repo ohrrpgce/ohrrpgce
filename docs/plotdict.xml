@@ -1983,7 +1983,31 @@ end</example>
 		<command id="createnpc">
 			<canon>create NPC (ID,X,Y,direction,pool)</canon>
 			<shortname>create NPC</shortname>
-			<description>This command will magically create a new copy of an NPC with the given ID number. You can specify an X and Y position where it will be created, and optionally a direction too (if you leave out the direction, the new NPC will be facing south). The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>. If you do not specify which pool, then the NPC will be created from the local pool for the current map. create NPC returns an <ref>npcreference</ref> that you can use to refer to the new NPC in other commands like <ref>walknpc</ref>. If the new NPC cannot be created (there is a maximum of 300 total NPC copies in memory at a time) then create NPC will return false (zero). The new NPC is not permanent. It only lasts until a new map is loaded.</description>
+			<description>
+				This command will magically create a new copy of an NPC with the given ID number.
+				You can specify an X and Y position where it will be created, and optionally a direction too
+				(if you leave out the direction, the new NPC will be facing south).
+				The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>.
+				If you do not specify which pool, then the NPC will be created from the local pool for the current map.
+				<lb/>
+				create NPC returns an <ref>npcreference</ref> that you can use to refer to the new NPC in other
+				commands like <ref>walknpc</ref>. If the new NPC cannot be created
+				(there is a maximum of 300 total NPC copies in memory at a time) then create NPC will return false (zero).
+				The new NPC is not permanent. It only lasts until a new map is loaded.
+			</description>
+			<seealso>
+				<ref>createglobalnpc</ref>
+			</seealso>
+		</command>
+		<command id="createglobalnpc">
+			<canon>create global NPC (ID,X,Y,direction)</canon>
+			<shortname>create global NPC</shortname>
+			<description>
+				This command works the same as the <ref>createnpc</ref> command, except that the ID numebr always refers to the global pool of NPCs, instead of the local pool. The instance of this global NPC will be created on the current map, and only lasts until you leave the map. It is not global in the sense of moving from map to map.
+			</description>
+			<seealso>
+				<ref>createnpc</ref>
+			</seealso>
 		</command>
 		<command id="destroynpc">
 			<canon>destroy NPC (reference)</canon>

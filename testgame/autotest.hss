@@ -2416,6 +2416,15 @@ script, global npc tests, begin
   assert(read npc(n1, npcstat:picture) == 17) # snake
   w(1)
   
+  n2 := create global npc(0, 7, 5)
+  assert(n2 < 0)
+  assert(get sprite set number(get npc sprite(n2)) == 15) # chewie
+  walk npc(n2, south, 1)
+  wait for npc(n2)
+  assert(npc y(n2) == 6)
+  w(1)
+  
+  
   #wait for key(anykey)
 
   w(1)  
