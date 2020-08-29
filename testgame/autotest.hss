@@ -2404,7 +2404,17 @@ script, global npc tests, begin
   wait for npc(1)
   # Global NPC id 1 will not have moved
   assert(get npc id(npc at spot(11, 3)) == 1)
-  w()
+  w(1)
+  
+  # Test read npc
+  assert(read npc(2, npcstat:picture, npc pool:local) == 13) # pup
+  n1 := npc reference(2)
+  assert(read npc(n1, npcstat:picture) == 13) # pup
+  w(1)
+  assert(read npc(2, npcstat:picture, npc pool:global) == 17) # snake
+  n1 := global npc reference(2)
+  assert(read npc(n1, npcstat:picture) == 17) # snake
+  w(1)
   
   #wait for key(anykey)
 

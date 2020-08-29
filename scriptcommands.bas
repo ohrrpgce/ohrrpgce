@@ -3846,11 +3846,26 @@ SUB script_functions(byval cmdid as integer)
   IF retvals(2) = -1 THEN scriptret = found
  CASE 182'--read NPC
   IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant") THEN
-   DIM npcid as NPCTypeID = get_valid_npc_id(retvals(0), serrBound)
-   IF npcid <> -1 THEN
-    scriptret = GetNPCD(npool(0).npcs(npcid), retvals(1))
-    IF retvals(1) = 12 THEN  'NPCstat:script
-     scriptret = decodetrigger(scriptret, NO)  'showerr=NO
+   DIM pool as integer = get_optional_arg(2, -1)
+   DIM npcid as NPCTypeID = get_valid_npc_id(retvals(0), serrBound, IIF(pool=-1, 0, pool))
+   IF retvals(0) < 0 AND pool <> -1 THEN
+    scripterr current_command_name() & ": npc pool argument is only allowed when using an NPC ID, but an NPC reference was used "
+   ELSE
+    IF npcid <> -1 THEN
+     IF pool = -1 THEN
+      IF retvals(0) < 0 THEN
+       'Was specified as a reference, We want whatever NPC pool the NPC actually belongs to
+       DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBound, 0)
+       pool = npc(npcref).pool
+      ELSE
+       'A pool wasn't specified, assume the ID was a local ID
+       pool = 0
+      END IF
+     END IF
+     scriptret = GetNPCD(npool(pool).npcs(npcid), retvals(1))
+     IF retvals(1) = 12 THEN  'NPCstat:script
+      scriptret = decodetrigger(scriptret, NO)  'showerr=NO
+     END IF
     END IF
    END IF
   END IF

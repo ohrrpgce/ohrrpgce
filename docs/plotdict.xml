@@ -3707,9 +3707,12 @@ end</example>
 			</seealso>
 		</command>
 		<command id="readnpc">
-			<canon>read NPC (who, NPCstat)</canon>
+			<canon>read NPC (who, NPCstat, pool)</canon>
 			<shortname>read NPC</shortname>
-			<description>Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <ref>alternpc</ref>. <note>If you use this command to read the give item number, the result is offset + 1. A zero means no item.</note></description>
+			<description>Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <ref>alternpc</ref>.
+			<lb/>
+			The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>. It is only allowed when you specify the NPC by ID number. If you specify the NPC with an <ref>npcreference</ref> then the pool is determined by the reference. 
+			<note>If you use this command to read the give item number, the result is offset + 1. A zero means no item.</note></description>
 			<seealso>
 				<ref>alternpc</ref>
 			</seealso>

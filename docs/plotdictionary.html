@@ -1170,7 +1170,7 @@ function toggleContent(target) {
 		<a href="#about-readenemydata">read enemy data (enemyid, data)</a><br>
 		<a href="#about-readglobal">read global (id)</a><br>
 		<a href="#about-readmapblock">read map block (x, y, layer)</a><br>
-		<a href="#about-readnpc">read NPC (who, NPCstat)</a><br>
+		<a href="#about-readnpc">read NPC (who, NPCstat, pool)</a><br>
 		<a href="#about-readpassblock">read pass block (x, y)</a><br>
 		<a href="#about-readpreferencebit">read preference bit (bitnum)</a><br>
 		<a href="#about-readspell">read spell (hero, list, slot)</a><br>
@@ -4528,7 +4528,7 @@ end</pre>
 			<a name="about-changenpcid"></a>
 				<h4>change NPC ID (reference,new ID)</h4>
 <p>
-			This command takes an <a href="#about-npcreference" class="ref">NPC reference</a> and lets you change the ID number of the NPC it points to. This means that the NPC will now use a different picture, an different palette, a different walking speed, an different text box, everything. This change is not permanent. It only lasts until the next time a map gets loaded.
+			This command takes an <a href="#about-npcreference" class="ref">NPC reference</a> and lets you change the ID number of the NPC it points to. This means that the NPC will now use a different picture, an different palette, a different walking speed, an different text box, everything. This change is not permanent. It only lasts until the next time a map gets loaded. The <span class="param">pool</span> argument is optional. It can be <span class="param">npc pool:local</span> or <span class="param">npc pool:global</span>. If you do not specify a pool, then the NPC ID will be assumed to be the same pool that the NPC was previously part of.
 			
 			
 			
@@ -7397,7 +7397,7 @@ end</pre>
 <div class="select-content-shown" id="NPC Data-index">
 <button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul><div class="content-shown">
 		<a href="#about-alternpc">alter NPC (who, NPCstat, value)</a><br>
-		<a href="#about-readnpc">read NPC (who, NPCstat)</a><br>
+		<a href="#about-readnpc">read NPC (who, NPCstat, pool)</a><br>
 		<a href="#about-setnpcignoreswalls">set NPC ignores walls (who, value)</a><br>
 		<a href="#about-getnpcignoreswalls">get NPC ignores walls (who)</a><br>
 		<a href="#about-setnpcmoves">set NPC moves (who, value)</a><br>
@@ -7557,9 +7557,12 @@ end</pre>
 </div>
 		<div class="command">
 			<a name="about-readnpc"></a>
-				<h4>read NPC (who, NPCstat)</h4>
+				<h4>read NPC (who, NPCstat, pool)</h4>
 <p>
-			Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <a href="#about-alternpc" class="ref">alter NPC</a>. <div class="notice note">
+			Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <a href="#about-alternpc" class="ref">alter NPC</a>.
+			<br>
+			The <span class="param">pool</span> argument is optional. It can be <span class="param">npc pool:local</span> or <span class="param">npc pool:global</span>. It is only allowed when you specify the NPC by ID number. If you specify the NPC with an <a href="#about-npcreference" class="ref">NPC reference</a> then the pool is determined by the reference. 
+			<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">If you use this command to read the give item number, the result is offset + 1. A zero means no item.</div>
 			
 			
