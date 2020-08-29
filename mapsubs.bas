@@ -78,10 +78,11 @@ DECLARE SUB mapedit_edit_npcdef OVERLOAD (st as MapEditState, npcdata as NPCType
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (map as MapData, npcdef_filename as string, npc_img() as GraphicPair, npcdata as NPCType)
 DECLARE SUB npcdef_editor (map as MapData, npcdef_filename as string)
 DECLARE SUB global_npcdef_editor ()
-DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
+DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer, byval pool_id as integer) as integer
 DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4, thinggrabber_hint as bool = NO)
 DECLARE FUNCTION count_npc_slots_used(npcs() as NPCInst) as integer
 
+DECLARE FUNCTION npcdef_by_pool(st as MapEditState, byval pool_id as integer, byval id as integer) as NPCType
 
 'Undo
 DECLARE SUB add_change_step(byref changelist as MapEditUndoTile vector, byval x as integer, byval y as integer, byval value as integer, byval mapid as MapID)
@@ -164,7 +165,7 @@ DECLARE FUNCTION mapedit_pick_layer(st as MapEditState, message as string, other
 DECLARE SUB mapedit_layers (st as MapEditState)
 DECLARE SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector, state as MenuState, byval resetpt as bool, byval selectedlayer as integer = 0, byref layerpreview as Frame ptr)
 
-DECLARE SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as integer, img as GraphicPair, framenum as integer, mappos as XYPair, drawing_whole_map as bool)
+DECLARE SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as integer, poolid as integer, img as GraphicPair, framenum as integer, mappos as XYPair, drawing_whole_map as bool)
 
 DECLARE SUB mapedit_copy_layer(st as MapEditState, byval src as integer, byval dest as integer)
 DECLARE SUB mapedit_append_new_layers(st as MapEditState, howmany as integer)
@@ -503,10 +504,10 @@ END FUNCTION
 '                               Main SUB (toplevel menu)
 '==========================================================================================
 
-FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
+FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer, byval pool_id as integer) as integer
  DIM num as integer = 0
  FOR i as integer = 0 to UBOUND(st.map.npc)
-  IF st.map.npc(i).id - 1 = id THEN num += 1
+  IF st.map.npc(i).id - 1 = id ANDALSO st.map.npc(i).pool = pool_id THEN num += 1
  NEXT i
  RETURN num
 END FUNCTION
@@ -674,7 +675,8 @@ st.zoneminimap = NULL
 
 mapedit_loadmap st, mapnum
 
-load_npc_graphics st.map.npc_def(), st.npc_img()
+load_npc_graphics st.map.npc_def(), st.npc_imgs(0).img()
+load_npc_graphics st.global_npc_def(), st.npc_imgs(1).img()
 
 st.x = 0
 st.y = 0
@@ -766,7 +768,7 @@ DO
     'This may delete NPC instances, and write npc definitions to disk
     npcdef_editor st.map, maplumpname(st.map.id, "n")
     'Reload NPC graphics after we exit the editor
-    load_npc_graphics st.map.npc_def(), st.npc_img()
+    load_npc_graphics st.map.npc_def(), st.npc_imgs(0).img()
    CASE 9 TO 11  'Place NPCs, Foemap, Zonemap
     st.seteditmode = mstate.pt - 6
     mapeditor_mapping st, mode_tools_map()
@@ -811,7 +813,8 @@ LOOP
 
 '---------------------------------- CLEANUP CODE -------------------------------------
 
-unload_npc_graphics st.npc_img()
+unload_npc_graphics st.npc_imgs(0).img()
+unload_npc_graphics st.npc_imgs(1).img()
 unloadmaptilesets st.tilesets()
 unloadtilemap st.menubar
 v_free st.history
@@ -1407,7 +1410,7 @@ DO
    DIM npc_d as DirNum = -1  'If not -1, create an NPC facing this direction
    IF st.mouse_attention = focusTopBar then
     IF mouse.release AND normal_right_release THEN
-     mapedit_edit_npcdef st, st.map.npc_def(st.cur_npc)
+     mapedit_edit_npcdef st, npcdef_by_pool(st, st.cur_npc_pool, st.cur_npc)
     END IF
    ELSEIF st.mouse_attention = focusMap then
     IF mouse.drag_dist > 5 THEN
@@ -1443,7 +1446,7 @@ DO
     IF mapedit_npc_at_spot(st, st.pos) > -1 THEN
      mapedit_list_npcs_by_tile st, st.pos
     ELSE
-     mapedit_edit_npcdef st, st.map.npc_def(st.cur_npc)
+     mapedit_edit_npcdef st, npcdef_by_pool(st, st.cur_npc_pool, st.cur_npc)
     END IF
    END IF
    'Note that pressing SPACE+arrow keys at the same time will place an NPC and
@@ -2067,7 +2070,7 @@ DO
   st.cur_npc_wall_zone = 0
   DIM npci as NPCIndex = mapedit_npc_at_spot(st, st.pos)
   IF npci > -1 THEN
-   WITH st.map.npc_def(st.map.npc(npci).id - 1)
+   WITH npcdef_by_pool(st, st.map.npc(npci).pool, st.map.npc(npci).id - 1)
     IF .defaultzone = -1 THEN
      st.cur_npc_zone = 0
     ELSEIF .defaultzone = 0 THEN
@@ -2119,28 +2122,36 @@ DO
   NEXT
 
   'Then draw the overlay
-  REDIM npc_copy_num(UBOUND(st.map.npc_def)) as integer  'Clear counts to 0
-  FOR i as integer = 0 TO UBOUND(st.map.npc)
-   WITH st.map.npc(i)
-    IF .id > 0 THEN
-     DIM tilepos as XYPair = map_to_screen(st, .pos)  'Position in pixels of the tile the NPC is standing on
-     IF rect_collide_rect(st.viewport, XY_WH(tilepos, tilesize)) THEN
-      DIM tile as XYPair = .pos \ tilesize
-      DIM count as integer = npcs_on_tile.get_int(@tile)
-      DIM text as string
-      IF count = 1 THEN
-       text = (.id - 1) & !"\n" & npc_copy_num(.id - 1)
-      ELSE
-       'In this case we will draw the same string multiple times, doesn't matter.
-       text = !"..\n" & CHR(1) & count  'Three dot ellipsis won't fit!
+  REDIM npc_copy_num(ANY) as integer
+  FOR pool_i as integer = 0 to 1
+   SELECT CASE pool_i
+    CASE 0:
+     REDIM npc_copy_num(UBOUND(st.map.npc_def)) as integer  'Clear counts to 0
+    CASE 1:
+     REDIM npc_copy_num(UBOUND(st.global_npc_def)) as integer  'Clear counts to 0
+   END SELECT
+   FOR i as integer = 0 TO UBOUND(st.map.npc)
+    WITH st.map.npc(i)
+     IF .id > 0 AND .pool = pool_i THEN
+      DIM tilepos as XYPair = map_to_screen(st, .pos)  'Position in pixels of the tile the NPC is standing on
+      IF rect_collide_rect(st.viewport, XY_WH(tilepos, tilesize)) THEN
+       DIM tile as XYPair = .pos \ tilesize
+       DIM count as integer = npcs_on_tile.get_int(@tile)
+       DIM text as string
+       IF count = 1 THEN
+        text = (.id - 1) & IIF(pool_i = 1, "g", "") & !"\n" & npc_copy_num(.id - 1)
+       ELSE
+        'In this case we will draw the same string multiple times, doesn't matter.
+        text = !"..\n" & CHR(1) & count  'Three dot ellipsis won't fit!
+       END IF
+       DIM col as integer = uilook(uiSelectedItem + tog)
+       edgeprint text, tilepos.x, tilepos.y + 2, col, dpage, , YES   'withnewlines=YES
       END IF
-      DIM col as integer = uilook(uiSelectedItem + tog)
-      edgeprint text, tilepos.x, tilepos.y + 2, col, dpage, , YES   'withnewlines=YES
+      npc_copy_num(.id - 1) += 1
      END IF
-     npc_copy_num(.id - 1) += 1
-    END IF
-   END WITH
-  NEXT
+    END WITH
+   NEXT i
+  NEXT pool_i
 
   '--Draw tooltip+NPC usage count at bottom of screen
   DIM text as string
@@ -2263,8 +2274,8 @@ DO
 
  '--npc info
  IF st.editmode = npc_mode THEN
-  edgeprint npc_preview_text(st.map.npc_def(st.cur_npc)), 0, 0, uilook(uiText), dpage
-  DIM copies as integer = mapedit_npc_instance_count(st, st.cur_npc)
+  edgeprint npc_preview_text(npcdef_by_pool(st, st.cur_npc_pool, st.cur_npc)), 0, 0, uilook(uiText), dpage
+  DIM copies as integer = mapedit_npc_instance_count(st, st.cur_npc, st.cur_npc_pool)
   DIM msg as string
   msg = copies & " copies of " & CHR(27) & "NPC " & st.cur_npc & CHR(26) & " on this map"
   IF copies THEN msg &= ticklite(" (`C`: " & IIF(copies = 1, "goto copy)", "cycle copies)"))
@@ -2488,7 +2499,7 @@ SUB mapedit_draw_cursor(st as MapEditState)
 
   CASE npc_tool
    'Draw an NPC instead of a square cursor
-   mapedit_draw_walkabout st, st.npc_img(st.cur_npc), st.npc_cursor_frame, tool_rect.topleft
+   mapedit_draw_walkabout st, st.npc_imgs(st.cur_npc_pool).img(st.cur_npc), st.npc_cursor_frame, tool_rect.topleft
    edgeprint STR(st.cur_npc), tool_rect.x, tool_rect.y + 8, uilook(uiSelectedItem + global_tog), dpage
    EXIT SUB
  END SELECT
@@ -2555,21 +2566,29 @@ LOCAL SUB mapedit_list_npcs_by_tile_update (st as MapEditState, pos as XYPair, m
  REDIM menu(0) as string
  menu(0) = "Back to the map editor..."
 
- REDIM npc_copy_num(UBOUND(st.map.npc_def)) as integer
-
- FOR i as integer = 0 TO UBOUND(st.map.npc)
-  WITH st.map.npc(i)
-   IF .id > 0 THEN
-    IF .pos = pos * tilesize THEN
-     DIM s as string
-     s = "NPC ID=" & (.id - 1) & " copy=" & npc_copy_num(.id - 1) & " facing " & dir_str(.dir)
-     a_append menu(), s
-     a_append npcrefs(), i
+ REDIM npc_copy_num(any) as integer
+ FOR pool_i as integer = 0 to 1
+  SELECT CASE pool_i
+   CASE 0:
+    REDIM npc_copy_num(UBOUND(st.map.npc_def)) as integer
+   CASE 1:
+    REDIM npc_copy_num(UBOUND(st.global_npc_def)) as integer
+  END SELECT
+  
+  FOR i as integer = 0 TO UBOUND(st.map.npc)
+   WITH st.map.npc(i)
+    IF .id > 0 ANDALSO .pool = pool_i THEN
+     IF .pos = pos * tilesize THEN
+      DIM s as string
+      s = IIF(pool_i, "Global", "Local") & " NPC ID=" & (.id - 1) & " copy=" & npc_copy_num(.id - 1) & " facing " & dir_str(.dir)
+      a_append menu(), s
+      a_append npcrefs(), i
+     END IF
+     npc_copy_num(.id - 1) += 1
     END IF
-    npc_copy_num(.id - 1) += 1
-   END IF
-  END WITH
- NEXT i
+   END WITH
+  NEXT i
+ NEXT pool_i
 END SUB
 
 'Menu which shows the NPCs at the specified tile, and allows you to edit them
@@ -2621,7 +2640,12 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
    npcdef = NULL
    IF state.pt > 0 AND state.pt <= UBOUND(npcrefs) THEN
     npcinst = @st.map.npc(npcrefs(state.pt))
-    npcdef = @st.map.npc_def(npcinst->id - 1)
+    IF starts_with(menu(state.pt), "Global") THEN
+     'Oh my gosh this is such a hack I hope TMC doesn't see. SHHH! Nobody tell him! 
+     npcdef = @st.global_npc_def(npcinst->id - 1)
+    ELSE
+     npcdef = @st.map.npc_def(npcinst->id - 1)
+    END IF
     boxpreview = npc_preview_text(*npcdef)
    END IF
   END IF
@@ -2632,7 +2656,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
   IF npcdef THEN
    edgeprint !"Enter/Space/Click to edit\nDelete to remove", 0, pBottom - 21, uilook(uiSelectedDisabled), dpage, , YES
    'Display a frame in right direction
-   npcdefedit_preview_npc *npcdef, st.npc_img(npcinst->id - 1), boxpreview, npcinst->dir * 2
+   npcdefedit_preview_npc *npcdef, st.npc_imgs(npcinst->pool).img(npcinst->id - 1), boxpreview, npcinst->dir * 2
   END IF
 
   SWAP vpage, dpage
@@ -2701,7 +2725,7 @@ END SUB
 'drawing_whole_map is true when exporting a map image, false if drawing to the screen.
 'Skips creating the NPC slice if it's off-screen:
 'until the editor is more completely converted to slices, we are recreating the slice every tick
-SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as integer, img as GraphicPair, framenum as integer, mappos as XYPair, drawing_whole_map as bool)
+SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as integer, poolid as integer, img as GraphicPair, framenum as integer, mappos as XYPair, drawing_whole_map as bool)
  DIM spritepos as XYPair
  IF drawing_whole_map THEN
   spritepos = mappos
@@ -2712,7 +2736,7 @@ SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as 
  spritepos.y += tileh - img.sprite->h + st.map.gmap(11)
  IF drawing_whole_map ORELSE rect_collide_rect(st.viewport, XY_WH(spritepos, img.sprite->size)) THEN  'Just a speed-up
   DIM sl as Slice ptr = NewSliceOfType(slSprite)
-  WITH st.map.npc_def(npcid)
+  WITH npcdef_by_pool(st, poolid, npcid)
    ChangeSpriteSlice sl, sprTypeWalkabout, .picture, .palette, framenum
   END WITH
   SetSliceParent sl, parent
@@ -2748,12 +2772,12 @@ SUB mapedit_draw_npcs(st as MapEditState, drawing_whole_map as bool = NO, includ
  FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
    IF .id <= 0 THEN CONTINUE FOR
-   WITH st.map.npc_def(.id - 1)
+   WITH npcdef_by_pool(st, .pool, .id - 1)
     IF including_conditional = NO ANDALSO (.tag1 ORELSE .tag2) THEN CONTINUE FOR
    END WITH
 
    DIM framenum as integer = (2 * .dir) + st.walk \ 2
-   mapedit_create_npc_slice st, npclayer, .id - 1, st.npc_img(.id - 1), framenum, .pos, drawing_whole_map
+   mapedit_create_npc_slice st, npclayer, .id - 1, .pool, st.npc_imgs(.pool).img(.id - 1), framenum, .pos, drawing_whole_map
   END WITH
  NEXT
  IF st.map.gmap(16) = 2 THEN ' Heroes and NPCs Together
@@ -4064,6 +4088,9 @@ SUB mapedit_loadmap (st as MapEditState, mapnum as integer)
  'Initialise default zone names
  DIM zinfo as ZoneInfo ptr = GetZoneInfo(st.map.zmap, zoneOneWayExit)
  IF LEN(zinfo->name) = 0 THEN zinfo->name = "One-Way walls (exit only)"
+ 
+ 'Also load the global NPC definitions
+ LoadNPCD global_npcdef_filename(0), st.global_npc_def()
 END SUB
 
 SUB mapedit_savemap (st as MapEditState)
@@ -4278,7 +4305,8 @@ SUB mapedit_delete(st as MapEditState)
  IF choice >= 1 AND choice <= 6 THEN
   IF choice = 1 THEN  '--everything
    new_blank_map st
-   load_npc_graphics st.map.npc_def(), st.npc_img()
+   load_npc_graphics st.map.npc_def(), st.npc_imgs(0).img()
+   load_npc_graphics st.global_npc_def(), st.npc_imgs(1).img()
    mapedit_throw_away_history st
   ELSEIF choice = 2 THEN  '--just tile related data
    CleanTilemaps st.map.tiles(), st.map.wide, st.map.high, 1
@@ -4294,7 +4322,7 @@ SUB mapedit_delete(st as MapEditState)
   ELSEIF choice = 4 THEN
    CleanNPCL st.map.npc()
    REDIM st.map.npc_def(0)
-   load_npc_graphics st.map.npc_def(), st.npc_img()
+   load_npc_graphics st.map.npc_def(), st.npc_imgs(0).img()
   ELSEIF choice = 5 THEN
    CleanDoors st.map.door()
   ELSEIF choice = 6 THEN
@@ -6266,6 +6294,17 @@ FUNCTION editnpc_zone_caption(byval zoneid as integer, byval default as integer,
  RETURN caption
 END FUNCTION
 
+FUNCTION npcdef_by_pool(st as MapEditState, byval pool_id as integer, byval id as integer) as NPCType
+ SELECT CASE pool_id
+  CASE 0:
+   RETURN st.map.npc_def(id)
+  CASE 1:
+   RETURN st.global_npc_def(id)
+  CASE ELSE
+   visible_debug "Invalid NPC pool id " & pool_id
+ END SELECT
+END FUNCTION
+
 SUB update_edit_npc (npcdata as NPCType, ed as NPCEditState, gmap() as integer, zmap as ZoneMap)
  v_new ed.menu
 
@@ -6494,9 +6533,9 @@ SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxprevie
 END SUB
 
 'Wrapper around edit_npc to do the right thing
-'(npcdata should be an element of st.map.npc_def())
+'(npcdata should be an element of st.map.npc_def() and when it isn't we would be using the other overload)
 SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
- mapedit_edit_npcdef st.map, maplumpname(st.map.id, "n"), st.npc_img(), npcdata
+ mapedit_edit_npcdef st.map, maplumpname(st.map.id, "n"), st.npc_imgs(0).img(), npcdata
 END SUB
 
 SUB mapedit_edit_npcdef (map as MapData, npcdef_filename as string, npc_img() as GraphicPair, npcdata as NPCType)
@@ -6547,7 +6586,7 @@ SUB global_npcdef_editor ()
  REDIM dummy_map.npc_def(0)
  'Pool ID is always for zero 
  DIM pool_id as integer = 0
- DIM npcdef_filename as string = workingdir & SLASH & "globalnpcs" & pool_id & ".n"
+ DIM npcdef_filename as string = global_npcdef_filename(pool_id)
  IF isfile(npcdef_filename) THEN
   LoadNPCD npcdef_filename, dummy_map.npc_def()
  END IF

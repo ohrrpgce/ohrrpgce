@@ -282,6 +282,10 @@ TYPE MapEditStateFwd as MapEditState
 TYPE FnBrush as SUB (st as MapEditStateFwd, byval x as integer, byval y as integer, byval value as integer = -1, byval extraarg as integer = -1)
 TYPE FnReader as FUNCTION (st as MapEditStateFwd, byval x as integer, byval y as integer, byval extraarg as integer = -1) as integer
 
+TYPE GraphicPairList
+ img(any) as GraphicPair
+END TYPE
+
 TYPE MapEditState
   map as MapData
 
@@ -321,6 +325,7 @@ TYPE MapEditState
   defpass as bool            'Default passability ON/OFF
   cur_foe as integer         'Formation set selected for placement
   cur_npc as integer         'NPC ID selected for placement
+  cur_npc_pool as integer    'NPC pool 0 for local 1 for global
   cur_door as integer        'Door number selected
   usetile(0 to maplayerMax) as integer  'Tile selected for each layer
 
@@ -330,7 +335,8 @@ TYPE MapEditState
   npc_cursor_frame as integer  'frame num for the NPC cursor in npc_mode
   npc_inst_iter as integer    'Current NPC instance number, when `C`ycling through them
   tilesets(maplayerMax) as TilesetData ptr  'Tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
-  npc_img(any) as GraphicPair
+  npc_imgs(1) as GraphicPairList
+  global_npc_def(any) as NPCType
   defaultwalls as integer vector vector  'indexed by layer (variable length) and then by tile (always 0-159)
   temptilemap as TileMap     'A temporary TileMap. Normally remains uninitialised
   moved as integer          'used when detecting cursor movement
