@@ -5024,7 +5024,7 @@ END FUNCTION
 'Given NPC ref or NPC ID, return npc() index, or throw a scripterr and return -1
 'Note this is stricter than getnpcref: invalid npc refs are not alright!
 'References to Hidden/Disabled NPCs are alright.
-FUNCTION get_valid_npc (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp) as NPCIndex
+FUNCTION get_valid_npc (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp, byval pool as integer=0) as NPCIndex
  IF seekid < 0 THEN
   DIM npcidx as NPCIndex = (seekid + 1) * -1
   IF npcidx > UBOUND(npc) ORELSE npc(npcidx).id = 0 THEN
@@ -5034,18 +5034,18 @@ FUNCTION get_valid_npc (byval seekid as NPCScriptref, byval errlvl as scriptErrE
   RETURN npcidx
  ELSE
   FOR i as integer = 0 TO UBOUND(npc)
-   IF npc(i).id - 1 = seekid THEN RETURN i
+   IF npc(i).id - 1 = seekid ANDALSO npc(i).pool = pool THEN RETURN i
   NEXT
-  scripterr current_command_name() & ": invalid npc reference; no NPCs of ID " & seekid & " exist", errlvl
+  scripterr current_command_name() & ": invalid npc reference; no NPCs of ID " & seekid & " from pool " & pool & " exist", errlvl
   RETURN -1
  END IF
 END FUNCTION
 
 'Given NPC ref or NPC ID, return an NPC ID, or throw a scripterr and return -1
 'References to Hidden/Disabled NPCs are alright.
-FUNCTION get_valid_npc_id (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp) as NPCTypeID
+FUNCTION get_valid_npc_id (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp, byval pool as integer=0) as NPCTypeID
  IF seekid >= 0 THEN
-  IF seekid > UBOUND(npool(0).npcs) THEN
+  IF seekid > UBOUND(npool(pool).npcs) THEN
    scripterr current_command_name() & ": invalid NPC ID " & seekid, errlvl
    RETURN -1
   END IF
@@ -5060,7 +5060,7 @@ FUNCTION get_valid_npc_id (byval seekid as NPCScriptref, byval errlvl as scriptE
    RETURN -1
   ELSE
    DIM id as NPCTypeID = ABS(npc(npcidx).id) - 1
-   IF id > UBOUND(npool(0).npcs) THEN
+   IF id > UBOUND(npool(pool).npcs) THEN
     'Note that an NPC may be marked hidden because it has an invalid ID
     scripterr current_command_name() & ": NPC reference " & seekid & " is for a disabled NPC with invalid ID " & npc(npcidx).id & " (the map must be incompletely loaded)", errlvl
     RETURN -1
