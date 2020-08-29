@@ -1,7 +1,7 @@
 WHAT IS NEW?
 
 
-August ? 2020 [Hróðvitnir]
+September ? 2020 [Hróðvitnir]
 
   *** New Features
     * Slice Editor:
@@ -17,6 +17,8 @@ August ? 2020 [Hróðvitnir]
     * Option (in General Settings Menu) to run in 24-bit color mode. Much nicer
       looking transparent sprites, but increases CPU usage [Ralph]
     * Attacks can have custom alignment relative to their targets [James]
+    * There is now a global pool of NPC definitions that can be used on
+      any map to supplement the local per-map NPCs [James]
 
    * New Plotscripting Features
     * "set timer args" [Ralph]
@@ -27,6 +29,11 @@ August ? 2020 [Hróðvitnir]
     * "hero is chasing" and "npc is chasing" [James]
     * "max map id" [James]
     * "get slice lookup name" [Ralph]
+    * "create global npc", "global npc reference", "get npc pool" [James]
+    * Commands that now accept an optional "pool" argument:
+      "alter npc", "npc reference", "npc copy count", "change npc id",
+      "create npc", "read npc" [James]
+    
 
   *** Changes
 
