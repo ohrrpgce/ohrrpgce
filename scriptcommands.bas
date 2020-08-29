@@ -3800,39 +3800,41 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 125'--create NPC
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npool(0).npcs) THEN
-   DIM i as integer
-   FOR i = UBOUND(npc) TO 0 STEP -1
-    IF npc(i).id = 0 THEN EXIT FOR
-   NEXT
-   'for backwards compatibility with games that max out the number of NPCs, try to overwrite tag-disabled NPCs
-   'FIXME: delete this bit once we raise the NPC limit
-   IF i = -1 THEN
+  DIM pool as integer = get_optional_arg(4, 0)
+  IF bound_arg(pool, 0, 1, "npc pool") THEN
+   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npool(pool).npcs) THEN
+    DIM i as integer
     FOR i = UBOUND(npc) TO 0 STEP -1
-     IF npc(i).id <= 0 THEN EXIT FOR
+     IF npc(i).id = 0 THEN EXIT FOR
     NEXT
-    DIM msgtemp as string = "create NPC: trying to create NPC id " & retvals(0) & " at " & XY(retvals(1), retvals(2)) * 20
-    IF i = -1 THEN 
-     scripterr msgtemp & "; failed: too many NPCs exist"
-    ELSE
-     scripterr msgtemp & "; warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).pos & ": too many NPCs exist", serrWarn
+    'for backwards compatibility with games that max out the number of NPCs, try to overwrite tag-disabled NPCs
+    'FIXME: delete this bit once we raise the NPC limit
+    IF i = -1 THEN
+     FOR i = UBOUND(npc) TO 0 STEP -1
+      IF npc(i).id <= 0 THEN EXIT FOR
+     NEXT
+     DIM msgtemp as string = "create NPC: trying to create NPC id " & retvals(0) & " at " & XY(retvals(1), retvals(2)) * 20
+     IF i = -1 THEN 
+      scripterr msgtemp & "; failed: too many NPCs exist"
+     ELSE
+      scripterr msgtemp & "; warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).pos & ": too many NPCs exist", serrWarn
+     END IF
     END IF
-   END IF
-   IF i > -1 THEN
-    'This deletes the walkabout slice
-    CleanNPCInst npc(i)
-    DIM npc_id as integer = retvals(0)
-    DIM pool as integer = get_optional_arg(4, 0)
-    npc(i).id = npc_id + 1
-    npc(i).pool = pool
-    cropposition retvals(1), retvals(2), 1
-    npc(i).x = retvals(1) * 20
-    npc(i).y = retvals(2) * 20
-    npc(i).dir = ABS(retvals(3)) MOD 4
-    npc(i).sl = create_npc_slices(i)  'Calls set_walkabout_sprite
-    'debug "npc(" & i & ").sl=" & npc(i).sl & " [create npc(" & retvals(0) & ")]"
-    update_npc_zones i
-    scriptret = (i + 1) * -1
+    IF i > -1 THEN
+     'This deletes the walkabout slice
+     CleanNPCInst npc(i)
+     DIM npc_id as integer = retvals(0)
+     npc(i).id = npc_id + 1
+     npc(i).pool = pool
+     cropposition retvals(1), retvals(2), 1
+     npc(i).x = retvals(1) * 20
+     npc(i).y = retvals(2) * 20
+     npc(i).dir = ABS(retvals(3)) MOD 4
+     npc(i).sl = create_npc_slices(i)  'Calls set_walkabout_sprite
+     'debug "npc(" & i & ").sl=" & npc(i).sl & " [create npc(" & retvals(0) & ")]"
+     update_npc_zones i
+     scriptret = (i + 1) * -1
+    END IF
    END IF
   END IF
  CASE 126 '--destroy NPC (aka delete NPC)
