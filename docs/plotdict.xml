@@ -1978,7 +1978,7 @@ end</example>
 		<command id="changenpcid">
 			<canon>change NPC ID (reference,new ID)</canon>
 			<shortname>change NPC ID</shortname>
-			<description>This command takes an <ref>npcreference</ref> and lets you change the ID number of the NPC it points to. This means that the NPC will now use a different picture, an different palette, a different walking speed, an different text box, everything. This change is not permanent. It only lasts until the next time a map gets loaded.</description>
+			<description>This command takes an <ref>npcreference</ref> and lets you change the ID number of the NPC it points to. This means that the NPC will now use a different picture, an different palette, a different walking speed, an different text box, everything. This change is not permanent. It only lasts until the next time a map gets loaded. The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>. If you do not specify a pool, then the NPC ID will be assumed to be the same pool that the NPC was previously part of.</description>
 		</command>
 		<command id="createnpc">
 			<canon>create NPC (ID,X,Y,direction,pool)</canon>

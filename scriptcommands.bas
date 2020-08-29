@@ -3769,12 +3769,19 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 124'--change NPC ID
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= UBOUND(npool(0).npcs) THEN
-   npc(npcref).id = retvals(1) + 1
-   '--update the walkabout sprite for the changed NPC
-   set_walkabout_sprite npc(npcref).sl, npool(0).npcs(retvals(1)).picture, npool(0).npcs(retvals(1)).palette
-   '--run visnpc to apply any changes to the NPCs tag-visibility
-   visnpc
+  DIM pool as integer = get_optional_arg(2, -1)
+  IF npcref >= 0 THEN
+   IF pool = -1 THEN pool = npc(npcref).pool
+   IF bound_arg(pool, 0, 1, "npc pool") THEN
+    IF retvals(1) >= 0 AND retvals(1) <= UBOUND(npool(pool).npcs) THEN
+     npc(npcref).id = retvals(1) + 1
+     npc(npcref).pool = pool
+     '--update the walkabout sprite for the changed NPC
+     set_walkabout_sprite npc(npcref).sl, npool(pool).npcs(retvals(1)).picture, npool(pool).npcs(retvals(1)).palette
+     '--run visnpc to apply any changes to the NPCs tag-visibility
+     visnpc
+    END IF
+   END IF
   END IF
  CASE 125'--create NPC
   scriptret = 0

@@ -2375,7 +2375,22 @@ script, global npc tests, begin
   assert(npc copy count(2, npc pool:global) == 4)
   w(1)
   
-  #wait for key(anykey)
+  # Change NPC ID and pool
+  change npc id(n2, 1)
+  # should still be global
+  assert(get sprite set number(get npc sprite(n2)) == 16) # triangle
+  w(1)
+  # become local
+  change npc id(n2, 0, npc pool:local)
+  assert(get sprite set number(get npc sprite(n2)) == 13) # pup
+  w(1)
+  # back to a global again
+  change npc id(n2, 0, npc pool:global)
+  assert(get sprite set number(get npc sprite(n2)) == 15) # chewie
+  w(1)
+  
+  
+  wait for key(anykey)
 
   w(1)  
   teleport to map(oldmap, oldx, oldy)
