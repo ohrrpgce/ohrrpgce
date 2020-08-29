@@ -688,8 +688,8 @@ REDIM PRESERVE remem_map_positions(gen(genMaxMap))
 mapedit_window_size_updates st  'Needed to set the size of st.viewport
 mapedit_move_cursor st, remem_map_positions(st.map.id)
 
-DIM mapeditmenu(17) as string
-DIM mapeditmenu_display(17) as string
+DIM mapeditmenu(18) as string
+DIM mapeditmenu_display(18) as string
 
 mapeditmenu(0) = "Previous Menu"
 mapeditmenu(1) = "Edit General Map Data..."
@@ -699,16 +699,17 @@ mapeditmenu(4) = "Edit Tilemap..."
 mapeditmenu(5) = "Edit Wallmap..."
 mapeditmenu(6) = "Place Doors..."
 mapeditmenu(7) = "Link Doors..."
-mapeditmenu(8) = "Edit NPCs..."
-mapeditmenu(9) = "Place NPCs..."
-mapeditmenu(10) = "Edit Foemap..."
-mapeditmenu(11) = "Edit Zones..."
-mapeditmenu(12) = "Editor Settings..."
-mapeditmenu(13) = "Erase Map Data..."
-mapeditmenu(14) = "Import/Export Tilemap..."
-mapeditmenu(15) = "Re-load Default Passability"
-mapeditmenu(16) = "Foemap Statistics..."
-mapeditmenu(17) = "Map name: "
+mapeditmenu(8) = "Edit Local NPCs..."
+mapeditmenu(9) = "Edit Global NPCs..."
+mapeditmenu(10) = "Place NPCs..."
+mapeditmenu(11) = "Edit Foemap..."
+mapeditmenu(12) = "Edit Zones..."
+mapeditmenu(13) = "Editor Settings..."
+mapeditmenu(14) = "Erase Map Data..."
+mapeditmenu(15) = "Import/Export Tilemap..."
+mapeditmenu(16) = "Re-load Default Passability"
+mapeditmenu(17) = "Foemap Statistics..."
+mapeditmenu(18) = "Map name: "
 
 DIM selectst as SelectTypeState
 STATIC remember_menu_pt as integer = 0
@@ -728,7 +729,7 @@ DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "mapedit_menu"
  usemenu mstate
- IF mstate.pt = 17 AND selectst.query = "" THEN
+ IF mstate.pt = 18 AND selectst.query = "" THEN
   strgrabber st.map.name, 39
   mstate.need_update = YES
  ELSEIF select_by_typing(selectst) THEN
@@ -763,20 +764,25 @@ DO
     npcdef_editor st.map, maplumpname(st.map.id, "n")
     'Reload NPC graphics after we exit the editor
     load_npc_graphics st.map.npc_def(), st.npc_imgs(0).img()
-   CASE 9 TO 11  'Place NPCs, Foemap, Zonemap
-    st.seteditmode = mstate.pt - 6
+   CASE 9
+    'This may delete NPC instances, and write npc definitions to disk
+    global_npcdef_editor()
+    'Reload NPC graphics after we exit the editor
+    load_npc_graphics st.global_npc_def(), st.npc_imgs(1).img()
+   CASE 10 TO 12  'Place NPCs, Foemap, Zonemap
+    st.seteditmode = mstate.pt - 7
     mapeditor_mapping st, mode_tools_map()
-   CASE 12  'Settings
+   CASE 13  'Settings
     mapedit_settings_menu st
-   CASE 13
+   CASE 14
     mapedit_delete st
     IF st.map.id > gen(genMaxMap) THEN
      'This was the last map, and it was deleted instead of blanked
      EXIT DO
     END IF
-   CASE 14
-    mapedit_import_export st
    CASE 15
+    mapedit_import_export st
+   CASE 16
     '--reload default passability
     IF yesno("Set default passability for whole map, overwriting your wallmap? Don't worry, you can undo this by hitting Ctrl+Z in any editing mode", NO, NO) THEN
      FOR tx as integer = 0 TO st.map.wide - 1
@@ -785,7 +791,7 @@ DO
       NEXT ty
      NEXT tx
     END IF
-   CASE 16
+   CASE 17
     foemap_stats_menu st.map.foemap, "Foemap Stats for Map " & st.map.id & " " & st.map.name
   END SELECT
   IF slave_channel <> NULL_CHANNEL THEN     'If live previewing, give quick feedback
@@ -794,7 +800,7 @@ DO
  END IF
 
  IF mstate.need_update THEN
-  mapeditmenu(17) = "Map name: " + st.map.name
+  mapeditmenu(18) = "Map name: " + st.map.name
   mstate.need_update = NO
  END IF
 
