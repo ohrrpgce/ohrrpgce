@@ -26,7 +26,7 @@ DECLARE SUB wrappedsong (byval songnumber as integer)
 DECLARE SUB stopsong
 DECLARE FUNCTION backcompat_sound_id (byval id as integer) as integer
 
-DECLARE FUNCTION getnpcref (byval seekid as NPCScriptref, byval copynum as integer) as NPCIndex
+DECLARE FUNCTION getnpcref (byval seekid as NPCScriptref, byval copynum as integer, byval pool as integer=0) as NPCIndex
 DECLARE FUNCTION get_valid_npc (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp) as NPCIndex
 DECLARE FUNCTION get_valid_npc_id (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp) as NPCTypeID
 

@@ -2389,8 +2389,24 @@ script, global npc tests, begin
   assert(get sprite set number(get npc sprite(n2)) == 15) # chewie
   w(1)
   
+  # Test change npc id with ID numbers
+  # Change the first local 2 into 3
+  change npc id(2, 3)
+  assert(npc y(2) == 4)
+  w(1)
+  # change the first global 2 into 1
+  change npc id(2, 1, npc pool:global)
+  assert(get sprite set number(get npc sprite(global npc reference(1))) == 16) # chewie
+  w(1)
+  # many NPC commands will only refer to local NPCs by ID, you need a refernce to worj with globals
+  # No NPC should move, because local ID 1 does not exist, even though global ID 1 exists
+  walk npc(1, left, 1)
+  wait for npc(1)
+  # Global NPC id 1 will not have moved
+  assert(get npc id(npc at spot(11, 3)) == 1)
+  w()
   
-  wait for key(anykey)
+  #wait for key(anykey)
 
   w(1)  
   teleport to map(oldmap, oldx, oldy)

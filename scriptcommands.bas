@@ -3768,8 +3768,8 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 124'--change NPC ID
-  npcref = getnpcref(retvals(0), 0)
   DIM pool as integer = get_optional_arg(2, -1)
+  npcref = getnpcref(retvals(0), 0, IIF(pool=-1, 0, pool))
   IF npcref >= 0 THEN
    IF pool = -1 THEN pool = npc(npcref).pool
    IF bound_arg(pool, 0, 1, "npc pool") THEN
@@ -4999,15 +4999,15 @@ END FUNCTION
 
 'Implementation of "npc reference".
 'Deprecated; Use get_valid_npc for all new NPC commands
-FUNCTION getnpcref (byval seekid as NPCScriptref, byval copynum as integer) as NPCIndex
+FUNCTION getnpcref (byval seekid as NPCScriptref, byval copynum as integer, byval pool as integer=0) as NPCIndex
  SELECT CASE seekid
  CASE -300 TO -1'--direct reference
   RETURN (seekid + 1) * -1
 
- CASE 0 TO UBOUND(npool(0).npcs) 'ID
+ CASE 0 TO UBOUND(npool(pool).npcs) 'ID
   DIM found as integer = 0
   FOR i as integer = 0 TO UBOUND(npc)
-   IF npc(i).id - 1 = seekid THEN
+   IF npc(i).id - 1 = seekid ANDALSO npc(i).pool = pool THEN
     IF found = copynum THEN
      RETURN i
     END IF
