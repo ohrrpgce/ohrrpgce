@@ -1582,7 +1582,7 @@ resume player</example>
 
 	<section title="Moving NPCs">
 		<command id="npcreference">
-			<canon>NPC reference (ID, copy, allow disabled?)</canon>
+			<canon>NPC reference (ID, copy, allow disabled?, pool)</canon>
 			<shortname>NPC reference</shortname>
 			<description>
 				What is an NPC reference?
@@ -1602,6 +1602,10 @@ resume player</example>
 				The third argument, <p>allow disabled?</p> is optional, and defaults to <tt>false</tt>.
 				If <tt>true</tt>, when used on a copy of an NPC hidden due to tag conditions,
 				<tt>NPC reference</tt> will return a reference instead of returning <tt>false</tt>.
+				<lb/>
+				The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>.
+				If you do not specify which pool, then NPC ID is assumed to refer to the local pool for the current map.
+				See also the <ref>globalnpcreference</ref> command.
 				<lb/>
 				If the NPC ID/copy which you asked for is not found on the map then NPC reference will return <ref>false</ref> (zero).
 				(Unlike other NPC commands, this one does not accept an NPC reference in place of the NPC ID.)
@@ -1641,6 +1645,17 @@ end</example>
 				<ref>npccopynumber</ref>
 				<ref>npccopycount</ref>
 				<ref>nextnpcreference</ref>
+				<ref>globalnpcreference</ref>
+			</seealso>
+		</command>
+		<command id="globalnpcreference">
+			<canon>global NPC reference (ID, copy, allow disabled?)</canon>
+			<shortname>global NPC reference</shortname>
+			<description>
+				This command is the same as <ref>npcreference</ref> except that it will always assume that you are using a global NPC ID number instead of a local NPC ID number. If there is no copy of the global NPC ID on the current map, it will return false. This command cannot get references to NPCs located on different maps, and the NPC reference it returns is only valid on the current map.
+			</description>
+			<seealso>
+				<ref>npcreference</ref>
 			</seealso>
 		</command>
 		<command id="nextnpcreference">

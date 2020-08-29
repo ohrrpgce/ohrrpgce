@@ -949,6 +949,7 @@ function toggleContent(target) {
 		<a href="#about-getzoneextra">get zone extra (zone id, extra num)</a><br>
 		<a href="#about-getzonename">get zone name (string id, zone id)</a><br>
 		<a href="#about-giveexperience">give experience (hero, amount)</a><br>
+		<a href="#about-globalnpcreference">global NPC reference (ID, copy, allow disabled?)</a><br>
 		<a href="#about-globalstostring">globals to string(ID, starting global, length)</a><br>
 		<a href="#about-globalvariable">global variable (id,name)</a><br>
 		<a href="#about-greaterthan">number &gt; number</a><br>
@@ -1113,7 +1114,7 @@ function toggleContent(target) {
 		<a href="#about-npcpixelx">NPC pixel X (who)</a><br>
 		<a href="#about-npcpixely">NPC pixel Y (who)</a><br>
 		<a href="#about-npcref">NPC references</a><br>
-		<a href="#about-npcreference">NPC reference (ID, copy, allow disabled?)</a><br>
+		<a href="#about-npcreference">NPC reference (ID, copy, allow disabled?, pool)</a><br>
 		<a href="#about-npcreferencefromslice">npc reference from slice (handle)</a><br>
 		<a href="#about-npcsaresuspended">npcs are suspended</a><br>
 		<a href="#about-npcwallsaresuspended">npc walls are suspended</a><br>
@@ -3917,7 +3918,8 @@ resume player</pre>
 		<a href="#Categories" class="backlink">[Back to top-level index]</a><p></p>
 <div class="select-content-shown" id="Moving NPCs-index">
 <button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul><div class="content-shown">
-		<a href="#about-npcreference">NPC reference (ID, copy, allow disabled?)</a><br>
+		<a href="#about-npcreference">NPC reference (ID, copy, allow disabled?, pool)</a><br>
+		<a href="#about-globalnpcreference">global NPC reference (ID, copy, allow disabled?)</a><br>
 		<a href="#about-nextnpcreference">next NPC reference (npcref)</a><br>
 		<a href="#about-npcatspot">NPC at spot (x, y, number)</a><br>
 		<a href="#about-npcatpixel">NPC at pixel (x, y, number)</a><br>
@@ -3958,7 +3960,7 @@ resume player</pre>
 </div>
 		<div class="command">
 			<a name="about-npcreference"></a>
-				<h4>NPC reference (ID, copy, allow disabled?)</h4>
+				<h4>NPC reference (ID, copy, allow disabled?, pool)</h4>
 <p>
 			
 				What is an NPC reference?
@@ -3978,6 +3980,10 @@ resume player</pre>
 				The third argument, <span class="param">allow disabled?</span> is optional, and defaults to <span class="code">false</span>.
 				If <span class="code">true</span>, when used on a copy of an NPC hidden due to tag conditions,
 				<span class="code">NPC reference</span> will return a reference instead of returning <span class="code">false</span>.
+				<br>
+				The <span class="param">pool</span> argument is optional. It can be <span class="param">npc pool:local</span> or <span class="param">npc pool:global</span>.
+				If you do not specify which pool, then NPC ID is assumed to refer to the local pool for the current map.
+				See also the <a href="#about-globalnpcreference" class="ref">global NPC reference</a> command.
 				<br>
 				If the NPC ID/copy which you asked for is not found on the map then NPC reference will return <a href="#about-false" class="ref">false</a> (zero).
 				(Unlike other NPC commands, this one does not accept an NPC reference in place of the NPC ID.)
@@ -4023,8 +4029,23 @@ end</pre>
 <a href="#about-npccopynumber" class="ref">NPC copy number</a>, </li>
 <li>
 <a href="#about-npccopycount" class="ref">NPC copy count</a>, </li>
-<li><a href="#about-nextnpcreference" class="ref">next NPC reference</a></li>
+<li>
+<a href="#about-nextnpcreference" class="ref">next NPC reference</a>, </li>
+<li><a href="#about-globalnpcreference" class="ref">global NPC reference</a></li>
 </ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-globalnpcreference"></a>
+				<h4>global NPC reference (ID, copy, allow disabled?)</h4>
+<p>
+			
+				This command is the same as <a href="#about-npcreference" class="ref">NPC reference</a> except that it will always assume that you are using a global NPC ID number instead of a local NPC ID number. If there is no copy of the global NPC ID on the current map, it will return false. This command cannot get references to NPCs located on different maps, and the NPC reference it returns is only valid on the current map.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-npcreference" class="ref">NPC reference</a></li></ul>
 </div>
 		</p>
 </div>
@@ -20370,7 +20391,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 892 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 893 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

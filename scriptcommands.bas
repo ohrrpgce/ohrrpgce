@@ -3720,20 +3720,23 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 120'--NPC reference
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npool(0).npcs) THEN
-   DIM find_disabled as bool = get_optional_arg(2, 0) <> 0
-   DIM found as integer = 0
-   FOR i as integer = 0 TO UBOUND(npc)
-    DIM id as integer = npc(i).id
-    IF find_disabled THEN id = ABS(id)
-    IF id - 1 = retvals(0) THEN
-     IF found = retvals(1) THEN
-      scriptret = (i + 1) * -1
-      EXIT FOR
+  DIM pool as integer = get_optional_arg(3, 0)
+  IF bound_arg(pool, 0, 1, "pool id") THEN
+   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npool(pool).npcs) THEN
+    DIM find_disabled as bool = get_optional_arg(2, 0) <> 0
+    DIM found as integer = 0
+    FOR i as integer = 0 TO UBOUND(npc)
+     DIM id as integer = npc(i).id
+     IF find_disabled THEN id = ABS(id)
+     IF id - 1 = retvals(0) ANDALSO npc(i).pool = pool THEN
+      IF found = retvals(1) THEN
+       scriptret = (i + 1) * -1
+       EXIT FOR
+      END IF
+      found = found + 1
      END IF
-     found = found + 1
-    END IF
-   NEXT i
+    NEXT i
+   END IF
   END IF
  CASE 121'--NPC at spot
   IF retvals(2) = -1 THEN

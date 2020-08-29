@@ -140,7 +140,7 @@ define function, begin
 #117,NPCiswalking,1,0       #x obsolete, backwards compatability only
 118,suspendcaterpillar,0    # other heros stop following the leader, and can be manipulated separately.
 119,resumecaterpillar,0     # turns catapillar party back on
-120,NPCreference,3,0,0,0    # get an NPC reference by ID number (ID, copynumber, allowdisabled)
+120,NPCreference,4,0,0,0,0  # get an NPC reference by ID number (ID, copynumber, allowdisabled, pool)
 121,NPCatspot,3,0,0,0       # get nth NPC reference on tile (X,Y,n)
 122,getNPCID,1,0            # get the ID number of an NPC reference
 123,NPCcopycount,1,0        # find out how many copys of an NPC ID are on the map
@@ -783,6 +783,10 @@ script, npc copy number, hsd:npc, begin
     hsd:copy += 1
   )
   return (hsd:copy)
+end
+
+script, global npc reference, hsd:id, hsd:copy=0, hsd:allow disabled=0, begin
+  exit returning(npc reference(hsd:id, hsd:copy, hsd:allow disabled, npc pool:global))
 end
 
 script,swapbyname,hsd:hero1,hsd:hero2,begin
