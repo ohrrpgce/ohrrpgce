@@ -4975,6 +4975,16 @@ SUB script_functions(byval cmdid as integer)
   IF valid_plotstr(retvals(0)) THEN
    plotstr(retvals(0)).s = SliceLookupCodename(retvals(1), retvals(2))
   END IF
+ CASE 709'-- get npc pool
+  IF retvals(0) > 0 THEN
+   scripterr current_command_name() & ": invalid npc reference " & retvals(0)
+   scriptret = 0
+  ELSE
+   DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBound, 0)
+   IF npcref >= 0 THEN
+    scriptret = npc(npcref).pool
+   END IF
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

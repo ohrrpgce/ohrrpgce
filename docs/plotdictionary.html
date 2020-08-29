@@ -894,6 +894,7 @@ function toggleContent(target) {
 		<a href="#about-getnpcignoreswalls">get NPC ignores walls (who)</a><br>
 		<a href="#about-getnpcmoves">get NPC moves (who)</a><br>
 		<a href="#about-getnpcobstructs">get NPC obstructs (who)</a><br>
+		<a href="#about-getnpcpool">get NPC pool (reference)</a><br>
 		<a href="#about-getnpcslice">get npc slice (npc)</a><br>
 		<a href="#about-getnpcspeed">get NPC speed (who)</a><br>
 		<a href="#about-getnpcsprite">get npc sprite (npc)</a><br>
@@ -3950,6 +3951,7 @@ resume player</pre>
 		<a href="#about-npcextra">NPC extra (who, which)</a><br>
 		<a href="#about-setnpcextra">set NPC extra (who, which, value)</a><br>
 		<a href="#about-getnpcid">get NPC ID (reference)</a><br>
+		<a href="#about-getnpcpool">get NPC pool (reference)</a><br>
 		<a href="#about-npccopynumber">NPC copy number (reference)</a><br>
 		<a href="#about-npccopycount">NPC copy count (ID, pool)</a><br>
 		<a href="#about-changenpcid">change NPC ID (reference,new ID)</a><br>
@@ -4460,7 +4462,31 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 			
 			
 			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getnpcpool" class="ref">get NPC pool</a>, </li>
+<li><a href="#about-changenpcid" class="ref">change NPC ID</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getnpcpool"></a>
+				<h4>get NPC pool (reference)</h4>
+<p>
 			
+				This command takes an <a href="#about-npcreference" class="ref">NPC reference</a> and returns the ID of the NPC pool that
+				this NPC belongs to. You can compare it to the constants such as <span class="param">npc pool:local</span>
+				and <span class="param">npc pool:global</span>
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getnpcid" class="ref">get NPC ID</a>, </li>
+<li><a href="#about-changenpcid" class="ref">change NPC ID</a></li>
+</ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -4533,7 +4559,12 @@ end</pre>
 			This command takes an <a href="#about-npcreference" class="ref">NPC reference</a> and lets you change the ID number of the NPC it points to. This means that the NPC will now use a different picture, an different palette, a different walking speed, an different text box, everything. This change is not permanent. It only lasts until the next time a map gets loaded. The <span class="param">pool</span> argument is optional. It can be <span class="param">npc pool:local</span> or <span class="param">npc pool:global</span>. If you do not specify a pool, then the NPC ID will be assumed to be the same pool that the NPC was previously part of.
 			
 			
-			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getnpcid" class="ref">get NPC ID</a>, </li>
+<li><a href="#about-getnpcpool" class="ref">get NPC pool</a></li>
+</ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -20430,7 +20461,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 894 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 895 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

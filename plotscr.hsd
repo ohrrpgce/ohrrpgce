@@ -734,6 +734,7 @@ define function, begin
 706,npcischasing,1,0          # If npc is chasing another NPC, return NPC reference
 707,maxmapid,0                # Return id number of the last map
 708,getslicelookupname,3,0,0,1 # Get the name of a lookup code (string id, code id, use default name)
+709,getnpcpool,1,0            # given an NPC reference, return its pool number
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

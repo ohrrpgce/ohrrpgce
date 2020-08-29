@@ -2445,15 +2445,12 @@ script, global npc tests, begin
   assert(read npc(n2, npcstat:movespeed) == 4)
   w(1)
   # change it into a global npc
+  assert(get npc pool(n2) == npc pool:local)
   change npc id(n2, 0, npc pool:global)
+  assert(get npc pool(n2) == npc pool:global)
   assert(read npc(n2, npcstat:movespeed) == 10)
   w(1)
 
-
-  
-  #wait for key(anykey)
-
-  w(1)  
   teleport to map(oldmap, oldx, oldy)
 end
 

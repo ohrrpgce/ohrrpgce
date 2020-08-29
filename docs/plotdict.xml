@@ -1920,6 +1920,23 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 				If the reference is not valid then <p>get NPC ID</p> will return -1.
 				This command can be used on tag-disabled NPCs too, returning their ID number.
 			</description>
+			<seealso>
+				<ref>getnpcpool</ref>
+				<ref>changenpcid</ref>
+			</seealso>
+		</command>
+		<command id="getnpcpool">
+			<canon>get NPC pool (reference)</canon>
+			<shortname>get NPC pool</shortname>
+			<description>
+				This command takes an <ref>npcreference</ref> and returns the ID of the NPC pool that
+				this NPC belongs to. You can compare it to the constants such as <p>npc pool:local</p>
+				and <p>npc pool:global</p>
+			</description>
+			<seealso>
+				<ref>getnpcid</ref>
+				<ref>changenpcid</ref>
+			</seealso>
 		</command>
 		<command id="npccopynumber">
 			<canon>NPC copy number (reference)</canon>
@@ -1979,6 +1996,10 @@ end</example>
 			<canon>change NPC ID (reference,new ID)</canon>
 			<shortname>change NPC ID</shortname>
 			<description>This command takes an <ref>npcreference</ref> and lets you change the ID number of the NPC it points to. This means that the NPC will now use a different picture, an different palette, a different walking speed, an different text box, everything. This change is not permanent. It only lasts until the next time a map gets loaded. The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>. If you do not specify a pool, then the NPC ID will be assumed to be the same pool that the NPC was previously part of.</description>
+			<seealso>
+				<ref>getnpcid</ref>
+				<ref>getnpcpool</ref>
+			</seealso>
 		</command>
 		<command id="createnpc">
 			<canon>create NPC (ID,X,Y,direction,pool)</canon>
