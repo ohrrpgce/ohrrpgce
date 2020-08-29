@@ -16,6 +16,8 @@ Use ALT+arrow keys to move the view of the map.
 
 Press < and > to choose which NPC you want to place. You can also type in an NPC ID number or use the MOUSE WHEEL.
 
+Press PageUp or PageDown to switch between the local pool of NPCs for this map and the global pool of NPCs for all maps
+
 Press the SPACE bar or LEFT CLICK to place an NPC on the map.
 
 To remove an NPC, position the cursor over the NPC and press SPACE or CLICK again.

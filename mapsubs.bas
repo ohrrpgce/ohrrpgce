@@ -319,8 +319,7 @@ SUB make_map_picker_menu(topmenu() as string, state as MenuState)
   a_append topmenu(), "Map " & i & ": " + getmapname(i)
  NEXT
  a_append topmenu(), "Add a New Map"
- '--temporarily disabled until we are ready for this
- 'a_append topmenu(), "Edit global NPC pool shared by all maps"
+ a_append topmenu(), "Edit global NPC pool shared by all maps"
 
  state.last = UBOUND(topmenu)
 END SUB
@@ -363,15 +362,10 @@ SUB map_picker ()
     switch_to_8bit_vpages
     mapeditor map_id
     switch_to_32bit_vpages
-    
-   '--temporarily disabled until we are ready for this
-   'ELSEIF state.pt = state.last - 1 THEN
-   ' mapedit_addmap
-   'ELSEIF state.pt = state.last THEN
-   ' global_npcdef_editor
-   ELSEIF state.pt = state.last THEN
+   ELSEIF state.pt = state.last - 1 THEN
     mapedit_addmap
-    
+   ELSEIF state.pt = state.last THEN
+    global_npcdef_editor
    END IF
    make_map_picker_menu topmenu(), state
    state.need_update = YES
@@ -1376,7 +1370,7 @@ DO
     FOR i as integer = 0 TO UBOUND(st.map.npc)
      loopvar st.npc_inst_iter, 0, UBOUND(st.map.npc)
      WITH st.map.npc(st.npc_inst_iter)
-      IF .id - 1 = st.cur_npc THEN
+      IF .id - 1 = st.cur_npc ANDALSO .pool = st.cur_npc_pool THEN
        mapedit_move_cursor st, .pos \ tilesize
        EXIT FOR
       END IF
@@ -1388,19 +1382,22 @@ DO
    IF keyval(scCtrl) = 0 ANDALSO keyval(scG) > 1 THEN
     'If there are multiple NPC types on this tile, select the next one
     'after the selected one. So first get a list of NPC IDs.
-    DIM idlist as NPCTypeID vector
+    DIM idlist as XYPair vector
     v_new idlist
     FOR i as integer = 0 TO UBOUND(st.map.npc)
      WITH st.map.npc(i)
       IF .id > 0 ANDALSO .pos = st.pos * tilesize THEN
-       IF v_find(idlist, .id - 1) = -1 THEN v_append idlist, .id - 1
+       IF v_find(idlist, XY(.id - 1, .pool)) = -1 THEN v_append idlist, XY(.id - 1, .pool)
       END IF
      END WITH
     NEXT i
 
     IF v_len(idlist) THEN
-     DIM where as integer = v_find(idlist, st.cur_npc)
-     st.cur_npc = idlist[(where + 1) MOD v_len(idlist)]  'If where = -1, take idlist[0]
+     DIM where as integer = v_find(idlist, XY(st.cur_npc, st.cur_npc_pool))
+     DIM idpair as XYPair
+     idpair = idlist[(where + 1) MOD v_len(idlist)]  'If where = -1, take idlist[0]
+     st.cur_npc = idpair.x
+     st.cur_npc_pool = idpair.y
     END IF
 
     v_free idlist
@@ -1481,13 +1478,26 @@ DO
       IF st.map.npc(i).id = 0 THEN npc_slot = i
      NEXT i
      IF npc_slot >= 0 THEN
-      st.map.npc(npc_slot).pos = st.pos * 20
-      st.map.npc(npc_slot).id = st.cur_npc + 1
-      st.map.npc(npc_slot).dir = npc_d
+      WITH st.map.npc(npc_slot)
+       .pos = st.pos * 20
+       .id = st.cur_npc + 1
+       .pool = st.cur_npc_pool
+       .dir = npc_d
+      END WITH
      END IF
     END IF
    END IF
-   intgrabber(st.cur_npc, 0, UBOUND(st.map.npc_def), scLeftCaret, scRightCaret, , , , wheelAlways)
+   ' Let the user press PageUp or PageDown to change NPC pools
+   IF keyval(scPageUp) > 1 THEN loopvar st.cur_npc_pool, 0, 1, 1
+   IF keyval(scPageDown) > 1 THEN loopvar st.cur_npc_pool, 0, 1, -1
+   SELECT CASE st.cur_npc_pool
+    CASE 0
+     intgrabber(st.cur_npc, 0, UBOUND(st.map.npc_def), scLeftCaret, scRightCaret, , , , wheelAlways)
+     st.cur_npc = bound(st.cur_npc, 0, UBOUND(st.map.npc_def))
+    CASE 1
+     intgrabber(st.cur_npc, 0, UBOUND(st.global_npc_def), scLeftCaret, scRightCaret, , , , wheelAlways)
+     st.cur_npc = bound(st.cur_npc, 0, UBOUND(st.global_npc_def))
+   END SELECT
 
    '---FOEMODE--------
   CASE foe_mode
@@ -2277,7 +2287,9 @@ DO
   edgeprint npc_preview_text(npcdef_by_pool(st, st.cur_npc_pool, st.cur_npc)), 0, 0, uilook(uiText), dpage
   DIM copies as integer = mapedit_npc_instance_count(st, st.cur_npc, st.cur_npc_pool)
   DIM msg as string
-  msg = copies & " copies of " & CHR(27) & "NPC " & st.cur_npc & CHR(26) & " on this map"
+  msg = "Placing " & IIF(st.cur_npc_pool = 1, "Global", "Local") & " NPC ID " & st.cur_npc
+  edgeprint msg, 0, 0, uilook(uiText), dpage, YES
+  msg = copies & " copies of " & CHR(27) & "NPC " & st.cur_npc & IIF(st.cur_npc_pool = 1, "g", "") & CHR(26) & " on this map"
   IF copies THEN msg &= ticklite(" (`C`: " & IIF(copies = 1, "goto copy)", "cycle copies)"))
   edgeprint msg, 0, 10, uilook(uiText), dpage, YES
  END IF
@@ -2500,7 +2512,7 @@ SUB mapedit_draw_cursor(st as MapEditState)
   CASE npc_tool
    'Draw an NPC instead of a square cursor
    mapedit_draw_walkabout st, st.npc_imgs(st.cur_npc_pool).img(st.cur_npc), st.npc_cursor_frame, tool_rect.topleft
-   edgeprint STR(st.cur_npc), tool_rect.x, tool_rect.y + 8, uilook(uiSelectedItem + global_tog), dpage
+   edgeprint st.cur_npc & IIF(st.cur_npc_pool = 1, "g", ""), tool_rect.x, tool_rect.y + 8, uilook(uiSelectedItem + global_tog), dpage
    EXIT SUB
  END SELECT
 
