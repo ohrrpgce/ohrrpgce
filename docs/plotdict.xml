@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-08-21">
+<plotscript version="wip" datecode="2020-08-28">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -1964,9 +1964,9 @@ end</example>
 			<description>This command takes an <ref>npcreference</ref> and lets you change the ID number of the NPC it points to. This means that the NPC will now use a different picture, an different palette, a different walking speed, an different text box, everything. This change is not permanent. It only lasts until the next time a map gets loaded.</description>
 		</command>
 		<command id="createnpc">
-			<canon>create NPC (ID,X,Y,direction)</canon>
+			<canon>create NPC (ID,X,Y,direction,pool)</canon>
 			<shortname>create NPC</shortname>
-			<description>This command will magically create a new copy of an NPC with the given ID number. You can specify an X and Y position where it will be created, and optionally a direction too (if you leave out the direction, the new NPC will be facing south). create NPC returns an <ref>npcreference</ref> that you can use to refer to the new NPC in other commands like <ref>walknpc</ref>. If the new NPC cannot be created (there is a maximum of 300 total NPC copies in memory at a time) then create NPC will return false (zero). The new NPC is not permanent. It only lasts until a new map is loaded.</description>
+			<description>This command will magically create a new copy of an NPC with the given ID number. You can specify an X and Y position where it will be created, and optionally a direction too (if you leave out the direction, the new NPC will be facing south). The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>. If you do not specify which pool, then the NPC will be created from the local pool for the current map. create NPC returns an <ref>npcreference</ref> that you can use to refer to the new NPC in other commands like <ref>walknpc</ref>. If the new NPC cannot be created (there is a maximum of 300 total NPC copies in memory at a time) then create NPC will return false (zero). The new NPC is not permanent. It only lasts until a new map is loaded.</description>
 		</command>
 		<command id="destroynpc">
 			<canon>destroy NPC (reference)</canon>

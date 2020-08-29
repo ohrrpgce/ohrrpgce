@@ -120,6 +120,7 @@ end
 script, run tests 1, begin
   assert(map autorun triggered == 1)
   interpreter tests
+  global npc tests
   scheduling tests
   plotstr tests
   string load tests
@@ -2317,6 +2318,40 @@ script, test harm tile death, start hp, begin
   assert hurt pattern(7, start hp, start hp, start hp, start hp, start hp)
   expecting death := false
   died := 0
+end
+
+script, global npc tests, begin
+  $0="global npc tests"
+  
+  variable(oldmap, oldx, oldy)
+  oldmap := current map
+  oldx := hero x(me)
+  oldy := hero y(me)
+  teleport to map(8, 3, 3)
+  w(1)
+  
+  variable(n1, n2)
+  n2 := create npc(0, 10, 8, south, npc pool:global)
+  n1 := create npc(0, 9, 8, south, npc pool:local)
+  w(1)
+  # Global NPC 0 and local NPC 0 will have different sprites
+  assert(get sprite set number(get npc sprite(n1)) == 11) # sheep
+  assert(get sprite set number(get npc sprite(n2)) == 15) # chewie
+  # By ref works on both
+  set npc direction(n1, left)
+  set npc direction(n2, left)
+  w(1)
+  assert(npc direction(n1) == left)
+  assert(npc direction(n2) == left)
+  # by ID does the local ID
+  set npc direction(0, right)
+  w(1)
+  assert(npc direction(n1) == right)
+  assert(npc direction(n2) == left)
+  #wait for key(key:space)
+
+  w(1)  
+  teleport to map(oldmap, oldx, oldy)
 end
 
 ########################################################################

@@ -145,7 +145,7 @@ define function, begin
 122,getNPCID,1,0            # get the ID number of an NPC reference
 123,NPCcopycount,1,0        # find out how many copys of an NPC ID are on the map
 124,changeNPCID,2,0,0       # given an NPC reference, changes its ID
-125,createNPC,4,0,0,0,2     # create an NPC by ID at a location and return its reference
+125,createNPC,5,0,0,0,2,0   # create an NPC by ID at a location and return its reference
 126,destroyNPC,1,0          # destroy the referenced NPC
 126,deleteNPC,1,0           # alias
 127,teachspell,2,0,0        # (who,spell) tries to teach a hero a spell
@@ -2236,7 +2236,6 @@ define constant, begin
 -1,dissolvetime:default
 50000,maximum global id
 99,maximum string id
-
  -1, ui:Background               # Background colour
  -2, ui:MenuItem                 # Normal menu item
  -3, ui:DisabledItem             # Disabled menu item
@@ -2291,6 +2290,8 @@ define constant, begin
  -52, ui:FadeOutExitBattle
  -53, ui:MPBar                   # Hero's MP bar
  -54, ui:MPBarFlash              # MP bar flash colour (when higher than max)
+0,npc pool:local
+1,npc pool:global
 end
 
 #<SLICE LOOKUP CODES>

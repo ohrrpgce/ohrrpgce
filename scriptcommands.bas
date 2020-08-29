@@ -3794,7 +3794,9 @@ SUB script_functions(byval cmdid as integer)
     'This deletes the walkabout slice
     CleanNPCInst npc(i)
     DIM npc_id as integer = retvals(0)
+    DIM pool as integer = get_optional_arg(4, 0)
     npc(i).id = npc_id + 1
+    npc(i).pool = pool
     cropposition retvals(1), retvals(2), 1
     npc(i).x = retvals(1) * 20
     npc(i).y = retvals(2) * 20

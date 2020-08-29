@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2020-08-21)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2020-08-28)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -699,7 +699,7 @@ function toggleContent(target) {
 		<a href="#about-creategrid">create grid (width, height, rows, columns)</a><br>
 		<a href="#about-createline">create line (width, height, color)</a><br>
 		<a href="#about-createmenu">create menu</a><br>
-		<a href="#about-createnpc">create NPC (ID,X,Y,direction)</a><br>
+		<a href="#about-createnpc">create NPC (ID,X,Y,direction,pool)</a><br>
 		<a href="#about-createpanel">create panel (width, height)</a><br>
 		<a href="#about-createrect">create rect (width, height, style)</a><br>
 		<a href="#about-createscroll">create scroll (width, height)</a><br>
@@ -3950,7 +3950,7 @@ resume player</pre>
 		<a href="#about-npccopynumber">NPC copy number (reference)</a><br>
 		<a href="#about-npccopycount">NPC copy count (ID)</a><br>
 		<a href="#about-changenpcid">change NPC ID (reference,new ID)</a><br>
-		<a href="#about-createnpc">create NPC (ID,X,Y,direction)</a><br>
+		<a href="#about-createnpc">create NPC (ID,X,Y,direction,pool)</a><br>
 		<a href="#about-destroynpc">destroy NPC (reference)</a><br>
 		<a href="#about-destroynpc">delete NPC (reference)</a><br>
 		<a href="#about-npcisdisabled">NPC is disabled (reference)</a><br>
@@ -4513,9 +4513,9 @@ end</pre>
 </div>
 		<div class="command">
 			<a name="about-createnpc"></a>
-				<h4>create NPC (ID,X,Y,direction)</h4>
+				<h4>create NPC (ID,X,Y,direction,pool)</h4>
 <p>
-			This command will magically create a new copy of an NPC with the given ID number. You can specify an X and Y position where it will be created, and optionally a direction too (if you leave out the direction, the new NPC will be facing south). create NPC returns an <a href="#about-npcreference" class="ref">NPC reference</a> that you can use to refer to the new NPC in other commands like <a href="#about-walknpc" class="ref">walk NPC</a>. If the new NPC cannot be created (there is a maximum of 300 total NPC copies in memory at a time) then create NPC will return false (zero). The new NPC is not permanent. It only lasts until a new map is loaded.
+			This command will magically create a new copy of an NPC with the given ID number. You can specify an X and Y position where it will be created, and optionally a direction too (if you leave out the direction, the new NPC will be facing south). The <span class="param">pool</span> argument is optional. It can be <span class="param">npc pool:local</span> or <span class="param">npc pool:global</span>. If you do not specify which pool, then the NPC will be created from the local pool for the current map. create NPC returns an <a href="#about-npcreference" class="ref">NPC reference</a> that you can use to refer to the new NPC in other commands like <a href="#about-walknpc" class="ref">walk NPC</a>. If the new NPC cannot be created (there is a maximum of 300 total NPC copies in memory at a time) then create NPC will return false (zero). The new NPC is not permanent. It only lasts until a new map is loaded.
 			
 			
 			
