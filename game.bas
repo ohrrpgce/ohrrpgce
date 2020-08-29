@@ -592,8 +592,8 @@ loadglobalstrings
 getstatnames statnames()
 
 'Load global NPC definitions
-IF isfile(global_npcdef_filename(0)) THEN
- LoadNPCD global_npcdef_filename(0), npool(1).npcs()
+IF isfile(global_npcdef_filename(1)) THEN
+ LoadNPCD global_npcdef_filename(1), npool(1).npcs()
 END IF
 
 'Setup script interpreter

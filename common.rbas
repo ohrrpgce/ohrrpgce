@@ -1387,7 +1387,7 @@ FUNCTION maplumpname (byval map_id as integer, oldext as string) as string
  END IF
 END FUNCTION
 
-FUNCTION global_npcdef_filename (byval pool_id as integer=0) as string
+FUNCTION global_npcdef_filename (byval pool_id as integer=1) as string
  RETURN workingdir & SLASH & "globalnpcs" & pool_id & ".n"
 END FUNCTION
 

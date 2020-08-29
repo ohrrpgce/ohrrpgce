@@ -4108,7 +4108,7 @@ SUB mapedit_loadmap (st as MapEditState, mapnum as integer)
  IF LEN(zinfo->name) = 0 THEN zinfo->name = "One-Way walls (exit only)"
  
  'Also load the global NPC definitions
- LoadNPCD global_npcdef_filename(0), st.global_npc_def()
+ LoadNPCD global_npcdef_filename(1), st.global_npc_def()
 END SUB
 
 SUB mapedit_savemap (st as MapEditState)
@@ -6602,8 +6602,8 @@ SUB global_npcdef_editor ()
  'Global NPCs are not associated with any specific map, so create a dummy map datastructure
  DIM dummy_map as MapData
  REDIM dummy_map.npc_def(0)
- 'Pool ID is always for zero 
- DIM pool_id as integer = 0
+ 'Pool ID is always 1 for now 
+ DIM pool_id as integer = 1
  DIM npcdef_filename as string = global_npcdef_filename(pool_id)
  IF isfile(npcdef_filename) THEN
   LoadNPCD npcdef_filename, dummy_map.npc_def()
