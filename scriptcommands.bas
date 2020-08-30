@@ -723,7 +723,8 @@ SUB script_functions(byval cmdid as integer)
      IF pool = -1 THEN
       IF retvals(0) < 0 THEN
        'Was specified as a reference, We want whatever NPC pool the NPC actually belongs to
-       DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBound, 0)
+       'We know npcref is valid.
+       DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBound)
        pool = npc(npcref).pool
       ELSE
        'A pool wasn't specified, assume the ID was a local ID
@@ -3872,7 +3873,8 @@ SUB script_functions(byval cmdid as integer)
      IF pool = -1 THEN
       IF retvals(0) < 0 THEN
        'Was specified as a reference, We want whatever NPC pool the NPC actually belongs to
-       DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBound, 0)
+       'We know npcref is valid.
+       DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBound)
        pool = npc(npcref).pool
       ELSE
        'A pool wasn't specified, assume the ID was a local ID
@@ -4982,7 +4984,7 @@ SUB script_functions(byval cmdid as integer)
    scripterr current_command_name() & ": invalid npc reference " & retvals(0)
    scriptret = 0
   ELSE
-   DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBound, 0)
+   DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBound)
    IF npcref >= 0 THEN
     scriptret = npc(npcref).pool
    END IF
@@ -5064,8 +5066,8 @@ FUNCTION getnpcref (byval seekid as NPCScriptref, byval copynum as integer, byva
  RETURN -1
 END FUNCTION
 
-'Replacement for getnpcref.
-'Given NPC ref or NPC ID, return npc() index, or throw a scripterr and return -1
+'Intended replacement for getnpcref (TODO: but this is missing the copynum arg!)
+'Given NPC ref (pool ignored) or NPC ID+pool, return npc() index if valid, or throw a scripterr and return -1.
 'Note this is stricter than getnpcref: invalid npc refs are not alright!
 'References to Hidden/Disabled NPCs are alright.
 FUNCTION get_valid_npc (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp, byval pool as integer=0) as NPCIndex
@@ -5085,7 +5087,7 @@ FUNCTION get_valid_npc (byval seekid as NPCScriptref, byval errlvl as scriptErrE
  END IF
 END FUNCTION
 
-'Given NPC ref or NPC ID, return an NPC ID, or throw a scripterr and return -1
+'Given NPC ref (pool ignored) or NPC ID+pool, return the NPC ID if valid, or throw a scripterr and return -1.
 'References to Hidden/Disabled NPCs are alright.
 FUNCTION get_valid_npc_id (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp, byval pool as integer=0) as NPCTypeID
  IF seekid >= 0 THEN
@@ -5104,6 +5106,7 @@ FUNCTION get_valid_npc_id (byval seekid as NPCScriptref, byval errlvl as scriptE
    RETURN -1
   ELSE
    DIM id as NPCTypeID = ABS(npc(npcidx).id) - 1
+   pool = npc(npcidx).pool
    IF id > UBOUND(npool(pool).npcs) THEN
     'Note that an NPC may be marked hidden because it has an invalid ID
     scripterr current_command_name() & ": NPC reference " & seekid & " is for a disabled NPC with invalid ID " & npc(npcidx).id & " (the map must be incompletely loaded)", errlvl
