@@ -4980,8 +4980,8 @@ SUB script_functions(byval cmdid as integer)
    plotstr(retvals(0)).s = SliceLookupCodename(retvals(1), retvals(2))
   END IF
  CASE 709'-- get npc pool
-  IF retvals(0) > 0 THEN
-   scripterr current_command_name() & ": invalid npc reference " & retvals(0)
+  IF retvals(0) >= 0 THEN
+   scripterr current_command_name() & ": invalid npc reference " & retvals(0) & " (Can't be an ID)"
    scriptret = 0
   ELSE
    DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBound)

@@ -1929,9 +1929,12 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 			<canon>get NPC pool (reference)</canon>
 			<shortname>get NPC pool</shortname>
 			<description>
+				This command (along with <ref>getnpcid</ref> and <ref>npccopynumber</ref>)
+				is the inverse of <ref>npcreference</ref>.
 				This command takes an <ref>npcreference</ref> and returns the ID of the NPC pool that
-				this NPC belongs to. You can compare it to the constants such as <p>npc pool:local</p>
-				and <p>npc pool:global</p>
+				this NPC belongs to. You can compare it to the constants such as <tt>npc pool:local</tt>
+				(which is <tt>0</tt>) and <tt>npc pool:global</tt>.
+				<p>reference</p> can't be an NPC ID.
 			</description>
 			<seealso>
 				<ref>getnpcid</ref>
