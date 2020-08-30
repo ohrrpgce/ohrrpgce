@@ -712,10 +712,10 @@ SUB script_functions(byval cmdid as integer)
   script_start_waiting()
  CASE 77'--show value
   gam.showstring = STR(retvals(0))
- CASE 78'--alter NPC
-  IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant") THEN
+ CASE 78'--alter NPC (npcref, npcstat, value, [pool])
+  IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant", , serrBadOp) THEN
    DIM pool as integer = get_optional_arg(3, -1)
-   IF retvals(0) < 0 AND pool <> -1 THEN
+   IF pool <> -1 ANDALSO retvals(0) < 0 THEN
     scripterr current_command_name() & ": npc pool argument is only allowed when using an NPC ID, but an NPC reference was used"
    ELSE
     DIM npcid as NPCTypeID = get_valid_npc_id(retvals(0), serrBound, IIF(pool=-1,0,pool))
@@ -3866,8 +3866,8 @@ SUB script_functions(byval cmdid as integer)
    END IF
   NEXT i
   IF retvals(2) = -1 THEN scriptret = found
- CASE 182'--read NPC
-  IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant") THEN
+ CASE 182'--read NPC (npcref, npcstat, [pool])
+  IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant", , serrBadOp) THEN
    DIM pool as integer = get_optional_arg(2, -1)
    DIM npcid as NPCTypeID = get_valid_npc_id(retvals(0), serrBound, IIF(pool=-1, 0, pool))
    IF retvals(0) < 0 AND pool <> -1 THEN
@@ -5095,6 +5095,10 @@ END FUNCTION
 'References to Hidden/Disabled NPCs are alright.
 FUNCTION get_valid_npc_id (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp, byval pool as integer=0) as NPCTypeID
  IF seekid >= 0 THEN
+  IF pool < 0 ORELSE pool > UBOUND(npool) THEN
+   scripterr current_command_name() & ": invalid NPC pool " & pool, errlvl
+   RETURN -1
+  END IF
   IF seekid > UBOUND(npool(pool).npcs) THEN
    scripterr current_command_name() & ": invalid NPC ID " & seekid, errlvl
    RETURN -1
