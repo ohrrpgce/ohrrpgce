@@ -2044,8 +2044,8 @@ define constant, begin
 7,NPCstat:pushability
   0,NPCpush:off
   1,NPCpush:full
-  2,NPCpush:horizontal
-  3,NPCpush:vertical
+  2,NPCpush:vertical
+  3,NPCpush:horizontal
   4,NPCpush:uponly
   5,NPCpush:rightonly
   6,NPCpush:downonly

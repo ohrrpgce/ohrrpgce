@@ -34,9 +34,11 @@ September ? 2020 [Hróðvitnir]
       "alter npc", "npc reference", "npc copy count", "change npc id",
       "create npc", "read npc" [James]
     * "gracefully dismount vehicle" [James]
-    
 
   *** Changes
+    * NPCpush:vertical and NPCpush:horizontal script constants were swapped with
+      with each other! They've been swapped the right way. This fix only takes
+      effect when you reimport your scripts.
 
   *** Bugfixes
     * "set opacity" (with opacity < 100%) didn't always turn on blending
