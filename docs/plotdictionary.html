@@ -954,6 +954,7 @@ function toggleContent(target) {
 		<a href="#about-globalnpcreference">global NPC reference (ID, copy, allow disabled?)</a><br>
 		<a href="#about-globalstostring">globals to string(ID, starting global, length)</a><br>
 		<a href="#about-globalvariable">global variable (id,name)</a><br>
+		<a href="#about-gracefullydismountvehicle">gracefully dismount vehicle</a><br>
 		<a href="#about-greaterthan">number &gt; number</a><br>
 		<a href="#about-greaterthanorequalto">number &gt;= number</a><br>
 		<a href="#about-greyscalepalette">greyscale palette (first, last)</a><br>
@@ -3772,8 +3773,8 @@ resume player</pre>
 		</p>
 </div>
 		<div class="command">
-		<h4>dismount vehicle</h4>
-		<p><a href="#about-dismountvehicle">Documented in the Triggering Stuff section.</a></p>
+		<h4>gracefully dismount vehicle</h4>
+		<p><a href="#about-gracefullydismountvehicle">Documented in the Triggering Stuff section.</a></p>
 		</div>
 		<div class="command">
 			<a name="about-heroiswalking"></a>
@@ -4897,6 +4898,7 @@ resume box advance # go back to normal</pre>
 		<a href="#about-forcemountvehicle">force mount vehicle (npc)</a><br>
 		<a href="#about-currentvehicleid">current vehicle id</a><br>
 		<a href="#about-currentvehiclenpc">current vehicle npc</a><br>
+		<a href="#about-gracefullydismountvehicle">gracefully dismount vehicle</a><br>
 		<a href="#about-dismountvehicle">dismount vehicle</a><br>
 		<a href="#about-gameover">game over</a><br>
 		<a href="#about-resetgame">reset game(args...)</a><br>
@@ -4954,7 +4956,8 @@ resume box advance # go back to normal</pre>
 			
 			
 			
-			
+			<div class="seealso">See also: <ul><li><a href="#about-gracefullydismountvehicle" class="ref">gracefully dismount vehicle</a></li></ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -5006,13 +5009,30 @@ resume box advance # go back to normal</pre>
 		</p>
 </div>
 		<div class="command">
+			<a name="about-gracefullydismountvehicle"></a>
+				<h4>gracefully dismount vehicle</h4>
+<p>
+			Attempts to dismount whatever vehicle you are riding. If you are not riding a vehicle, nothing will happen. If the vehicle is not in a location where you are allowed to dismount, then nothing will happen.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-dismountvehicle" class="ref">dismount vehicle</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
 			<a name="about-dismountvehicle"></a>
 				<h4>dismount vehicle</h4>
 <p>
-			Makes you dismount whatever vehicle you are riding. If you are not riding a vehicle, nothing will happen.
+			
+				Forces you to instantly dismount whatever vehicle you are riding without advancing the hero or allowing
+				an airship to land. This will work even if the vehicle is located in a place where it would not normally allow dismounting. If you are not riding a vehicle, nothing will happen.
+				<br>
+				If you want normal dismounting behavior, as if the player had pressed the key to dismount a vehicle, use the <a href="#about-gracefullydismountvehicle" class="ref">gracefully dismount vehicle</a> command instead.
 			
 			
 			
+			<div class="seealso">See also: <ul><li><a href="#about-gracefullydismountvehicle" class="ref">gracefully dismount vehicle</a></li></ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -20461,7 +20481,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 895 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 896 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

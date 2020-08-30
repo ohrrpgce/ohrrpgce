@@ -33,6 +33,7 @@ September ? 2020 [Hróðvitnir]
     * Commands that now accept an optional "pool" argument:
       "alter npc", "npc reference", "npc copy count", "change npc id",
       "create npc", "read npc" [James]
+    * "gracefully dismount vehicle" [James]
     
 
   *** Changes

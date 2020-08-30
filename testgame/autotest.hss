@@ -4189,6 +4189,25 @@ script, vehicle tests, begin
   assert(hero y(me) == 1)
   assert(npc x(1) == 4)
   assert(npc y(1) == 1)
+  w
+  
+  set hero position(me, 4, 2)
+  variable(n)
+  n := create global npc(3, 2, 5)
+  hero chases npc(me, n, true, 10)
+  wait for hero(me)
+  set hero direction(me, left)
+  use npc(n)
+  w(20)
+  walk hero(me, right, 5)
+  w
+  wait for hero(me)
+  gracefully dismount vehicle
+  w(20)
+  walk hero(me, right, 1)
+  w
+  wait for hero(me)
+  walk hero(me, south, 4)
 
   w
   teleport to map(oldmap, oldx, oldy)

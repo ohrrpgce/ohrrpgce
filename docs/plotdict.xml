@@ -1501,7 +1501,7 @@ resume player</example>
 			<shortname>teleport to map</shortname>
 			<description>An alternative to <ref>usedoor</ref>, teleport to map moves you to a given x,y position on the specified map without the need to create a door-link on the map. Teleport to map does not fade to black. <note>An automatic <ref>wait</ref>(1) occurs immediately after this command.</note></description>
 		</command>
-		<reference ref="dismountvehicle" />
+		<reference ref="gracefullydismountvehicle" />
 		<command id="heroiswalking">
 			<canon>hero is walking (who)</canon>
 			<shortname>hero is walking</shortname>
@@ -2219,6 +2219,9 @@ wait for text box # wait until the player continues</example>
 					An automatic <ref>wait</ref><tt>(1)</tt> occurs immediately after this command.
 				</note>
 			</description>
+			<seealso>
+				<ref>gracefullydismountvehicle</ref>
+			</seealso>
 		</command>
 		<reference ref="usedoor"/>
 		<command id="useshop">
@@ -2242,10 +2245,26 @@ wait for text box # wait until the player continues</example>
 			<shortname>current vehicle npc</shortname>
 			<description>Returns an NPC reference to the vehicle your hero is currently riding. If you are not riding a vehicle, it will return 0 or false</description>
 		</command>
+		<command id="gracefullydismountvehicle">
+			<canon>gracefully dismount vehicle</canon>
+			<shortname>gracefully dismount vehicle</shortname>
+			<description>Attempts to dismount whatever vehicle you are riding. If you are not riding a vehicle, nothing will happen. If the vehicle is not in a location where you are allowed to dismount, then nothing will happen.</description>
+			<seealso>
+				<ref>dismountvehicle</ref>
+			</seealso>
+		</command>
 		<command id="dismountvehicle">
 			<canon>dismount vehicle</canon>
 			<shortname>dismount vehicle</shortname>
-			<description>Makes you dismount whatever vehicle you are riding. If you are not riding a vehicle, nothing will happen.</description>
+			<description>
+				Forces you to instantly dismount whatever vehicle you are riding without advancing the hero or allowing
+				an airship to land. This will work even if the vehicle is located in a place where it would not normally allow dismounting. If you are not riding a vehicle, nothing will happen.
+				<lb/>
+				If you want normal dismounting behavior, as if the player had pressed the key to dismount a vehicle, use the <ref>gracefullydismountvehicle</ref> command instead.
+			</description>
+			<seealso>
+				<ref>gracefullydismountvehicle</ref>
+			</seealso>
 		</command>
 		<command id="gameover">
 			<canon>game over</canon>

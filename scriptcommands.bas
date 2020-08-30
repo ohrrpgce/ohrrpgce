@@ -4987,6 +4987,8 @@ SUB script_functions(byval cmdid as integer)
     scriptret = npc(npcref).pool
    END IF
   END IF
+ CASE 710'--gracefully dismount vehicle
+  vehicle_graceful_dismount()
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
