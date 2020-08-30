@@ -2569,7 +2569,7 @@ SUB script_functions(byval cmdid as integer)
    scriptret = dat->fgcol
   END IF
  CASE 377 '--set rect fgcol
-  IF bound_arg(retvals(1), 0, 255, "fgcol") THEN
+  IF valid_color(retvals(1)) THEN
    change_rect_plotslice retvals(0), , ,retvals(1)
   END IF
  CASE 378 '--get rect bgcol
@@ -2579,7 +2579,7 @@ SUB script_functions(byval cmdid as integer)
    scriptret = dat->bgcol
   END IF
  CASE 379 '--set rect bgcol
-  IF bound_arg(retvals(1), 0, 255, "bgcol") THEN
+  IF valid_color(retvals(1)) THEN
    change_rect_plotslice retvals(0), ,retvals(1)
   END IF
  CASE 380 '--get rect border
@@ -2821,7 +2821,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 424 '--set text color
   IF valid_plottextslice(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 255, "color") THEN
+   IF valid_color(retvals(1)) THEN
     ChangeTextSlice plotslices(retvals(0)), , retvals(1)
    END IF
   END IF
@@ -2848,7 +2848,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 429 '--set text bg
   IF valid_plottextslice(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 255, "color") THEN
+   IF valid_color(retvals(1)) THEN
     ChangeTextSlice plotslices(retvals(0)), , , , , retvals(1)
    END IF
   END IF
@@ -3336,13 +3336,13 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 512 '--set ellipse border col
   IF valid_plotellipse(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 255, "bordercol") THEN
+   IF valid_color(retvals(1)) THEN
     ChangeEllipseSlice plotslices(retvals(0)), retvals(1)
    END IF
   END IF
  CASE 513 '--set ellipse fill col
   IF valid_plotellipse(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 255, "fillcol") THEN
+   IF valid_color(retvals(1)) THEN
     ChangeEllipseSlice plotslices(retvals(0)), , retvals(1)
    END IF
   END IF
@@ -5377,7 +5377,7 @@ SUB replace_sprite_plotslice(byval handle as integer, byval spritetype as Sprite
  END IF
 END SUB
 
-SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=-99, byval fgcol as integer=-99, byval border as RectBorderTypes=borderUndef, byval translucent as RectTransTypes=transUndef, byval fuzzfactor as integer=0, byval raw_box_border as RectBorderTypes=borderUndef)
+SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=colInvalid, byval fgcol as integer=colInvalid, byval border as RectBorderTypes=borderUndef, byval translucent as RectTransTypes=transUndef, byval fuzzfactor as integer=0, byval raw_box_border as RectBorderTypes=borderUndef)
  IF valid_plotslice(handle) THEN
   DIM sl as Slice Ptr
   sl = plotslices(handle)

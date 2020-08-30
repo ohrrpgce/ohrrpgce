@@ -674,8 +674,8 @@ DECLARE SUB SliceDebugLinks(sl as Slice Ptr, recurse as bool = NO, prefix as str
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
 DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval style as integer=-2,_
-                      byval bgcol as integer=-99,_
-                      byval fgcol as integer=-99,_
+                      byval bgcol as integer=colInvalid,_
+                      byval fgcol as integer=colInvalid,_
                       byval border as RectBorderTypes=borderUndef,_
                       byval translucent as RectTransTypes=transUndef,_
                       byval fuzzfactor as integer=0,_
@@ -687,10 +687,10 @@ DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceD
 DECLARE Sub UpdateTextSlice(byval sl as slice ptr)
 DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
                       s as string=CHR(1) & CHR(255),_
-                      byval col as integer=-99,_
+                      byval col as integer=colInvalid,_
                       byval outline as integer=-2,_
                       byval wrap as integer=-2,_
-                      byval bgcol as integer=-1)
+                      byval bgcol as integer=colInvalid)
 DECLARE Function GetTextSliceString(byval sl as slice ptr) as string
 DECLARE Function TextSliceCharPos(sl as Slice ptr, charnum as integer) as XYPair
 
@@ -739,8 +739,8 @@ DECLARE Sub DisposeEllipseSlice(byval sl as slice ptr)
 DECLARE Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
 DECLARE Function NewEllipseSlice(byval parent as Slice ptr, byref dat as EllipseSliceData) as slice ptr
 DECLARE Sub ChangeEllipseSlice(byval sl as slice ptr,_
-                      byval bordercol as integer=-1,_
-                      byval fillcol as integer=-1)  ' All arguments default to no change
+                      byval bordercol as integer=colInvalid,_
+                      byval fillcol as integer=colInvalid)  ' All arguments default to no change
 
 DECLARE Function NewScrollSlice(byval sl as slice ptr, byref dat as ScrollSliceData) as Slice ptr
 DECLARE Sub ChangeScrollSlice(byval sl as slice ptr,_

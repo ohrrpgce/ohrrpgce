@@ -67,6 +67,8 @@ CONST uiFadeOutExitBattle = 51
 CONST uiMPBar = 52               'hero's mp bar
 CONST uiMPBarFlash = 53          'mp bar flash colour (when higher than max)
 
+CONST colInvalid = -999
+
 'When you add more constants you will need to update GuessDefaultUIColors
 'and UiColorCaption, and possibly FillMissingUIColor, in loading.rbas.
 'And don't forget to update uiColorLast above.

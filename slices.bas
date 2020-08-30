@@ -1394,8 +1394,8 @@ End Function
 'All arguments default to no-change
 Sub ChangeRectangleSlice(byval sl as Slice ptr,_
                       byval style as integer=-2,_
-                      byval bgcol as integer=-99,_
-                      byval fgcol as integer=-99,_
+                      byval bgcol as integer=colInvalid,_
+                      byval fgcol as integer=colInvalid,_
                       byval border as RectBorderTypes=borderUndef,_
                       byval translucent as RectTransTypes=transUndef,_
                       byval fuzzfactor as integer=0,_
@@ -1413,12 +1413,12 @@ Sub ChangeRectangleSlice(byval sl as Slice ptr,_
    UpdateRectangleSliceStyle sl->RectData
   end if
   'Then consider all other data as style overrides
-  if bgcol > -99 then
+  if bgcol <> colInvalid then
    .bgcol = bgcol
    .style = -1
    .style_loaded = NO
   end if
-  if fgcol > -99 then
+  if fgcol <> colInvalid then
    .fgcol = fgcol
    .style = -1
    .style_loaded = NO
@@ -1787,20 +1787,20 @@ end function
 'All arguments default to no-change
 Sub ChangeTextSlice(byval sl as Slice ptr,_
                       s as string=CHR(1) & CHR(255),_
-                      byval col as integer=-99,_
+                      byval col as integer=colInvalid,_
                       byval outline as integer=-2,_
                       byval wrap as integer=-2,_
-                      byval bgcol as integer=-1)
+                      byval bgcol as integer=colInvalid)
  if sl = 0 then debug "ChangeTextSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slText)
  with *sl->TextData
   if s <> CHR(1) & CHR(255) then
    .s = s
   end if
-  if col > -99 then
+  if col <> colInvalid then
    .col = col
   end if
-  if bgcol >= 0 then
+  if bgcol <> colInvalid then
    .bgcol = bgcol
   end if
   if outline > -2 then
@@ -3048,15 +3048,15 @@ end function
 
 'All arguments default to no-change
 Sub ChangeEllipseSlice(byval sl as Slice ptr,_
-                      byval bordercol as integer=-1,_
-                      byval fillcol as integer=-1)
+                      byval bordercol as integer=colInvalid,_
+                      byval fillcol as integer=colInvalid)
  if sl = 0 then debug "ChangeEllipseSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slEllipse)
  with *sl->EllipseData
-  if bordercol >= 0 then
+  if bordercol <> colInvalid then
    .bordercol = bordercol
   end if
-  if fillcol >= 0 then
+  if fillcol <> colInvalid then
    .fillcol = fillcol
   end if
  end with
