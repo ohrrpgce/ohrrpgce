@@ -125,7 +125,12 @@ This is the menu item detail editor. This is where you define what a menu item a
    on the "Allow Gameplay & Scripts"
    menu bitset and "Close menu if
    selected" menu item bitset!
-
+   "handle" means a menu item
+   handle. The three extra data
+   values are passed as args. The
+   script you select can have any
+   number of args; if it has more
+   then the extra ones become 0.
 
 Color: The normal text color. Each menu has its own default color. Press ENTER or SPACE for a color browser. You can also select a UI color (numbers below zero).
 
@@ -139,4 +144,4 @@ Disabled Color: The text color when the menu item is disabled. Each menu has its
 
 *Bitsets - See the help screen in this submenu for details.
 
-*Extra Data - There are 3 pieces of extra data that you can attach to each menu item. These are just numbers. They don't mean anything unless you use them for your own special purposes from a plotscript. They are passed to triggered scripts as arguments if the menu bitset "Allow gameplay & scripts" is off.
+*Extra Data - There are 3 pieces of extra data that you can attach to each menu item. These are just numbers. They don't mean anything unless you use them for your own special purposes from a plotscript. They are passed to triggered scripts as additional arguments.
