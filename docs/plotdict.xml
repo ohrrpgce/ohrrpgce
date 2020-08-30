@@ -1996,9 +1996,21 @@ plotscript, every NPC example, begin
 end</example>
 		</command>
 		<command id="changenpcid">
-			<canon>change NPC ID (reference,new ID)</canon>
+			<canon>change NPC ID (reference, new ID, pool)</canon>
 			<shortname>change NPC ID</shortname>
-			<description>This command takes an <ref>npcreference</ref> and lets you change the ID number of the NPC it points to. This means that the NPC will now use a different picture, an different palette, a different walking speed, an different text box, everything. This change is not permanent. It only lasts until the next time a map gets loaded. The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>. If you do not specify a pool, then the NPC ID will be assumed to be the same pool that the NPC was previously part of.</description>
+			<description>
+				This command takes an <ref>npcreference</ref> and lets you change the ID number
+				of the NPC it points to, and change between local and global NPC pools.
+				This means that the NPC will now use a different picture, an different palette,
+				a different walking speed, a different text box, everything.
+				This change is not permanent. It only lasts until the next time a map gets loaded.
+				The <p>pool</p> argument is optional.
+				It can be <p>npc pool:local</p> or <p>npc pool:global</p>.
+				If you do not specify a pool, then the NPC ID will be assumed to be the same pool that the NPC was previously part of.
+				<lb/>
+				If <p>reference</p> is an NPC ID then this command acts on the first NPC instance
+				of that ID and pool, and the pool is not changed.
+			</description>
 			<seealso>
 				<ref>getnpcid</ref>
 				<ref>getnpcpool</ref>

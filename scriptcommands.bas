@@ -3783,13 +3783,17 @@ SUB script_functions(byval cmdid as integer)
     NEXT i
    END IF
   END IF
- CASE 124'--change NPC ID
+ CASE 124'--change NPC ID (npcref, newid, [pool])
   DIM pool as integer = get_optional_arg(2, -1)
+  'Quirk: npcref is allowed to be an NPC ID, changing the first instance of that ID;
+  'in that case the old and pools are the same.
   npcref = getnpcref(retvals(0), 0, IIF(pool=-1, 0, pool))
   IF npcref >= 0 THEN
    IF pool = -1 THEN pool = npc(npcref).pool
    IF bound_arg(pool, 0, 1, "npc pool") THEN
-    IF retvals(1) >= 0 AND retvals(1) <= UBOUND(npool(pool).npcs) THEN
+    IF retvals(1) < 0 ORELSE retvals(1) > UBOUND(npool(pool).npcs) THEN
+     scripterr "change NPC ID: NPC ID " & retvals(1) & " (from pool " & pool & ") doesn't exist"
+    ELSE
      npc(npcref).id = retvals(1) + 1
      npc(npcref).pool = pool
      '--update the walkabout sprite for the changed NPC
