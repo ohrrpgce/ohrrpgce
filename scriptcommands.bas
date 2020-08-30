@@ -714,38 +714,23 @@ SUB script_functions(byval cmdid as integer)
   gam.showstring = STR(retvals(0))
  CASE 78'--alter NPC (npcref, npcstat, value, [pool])
   IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant", , serrBadOp) THEN
-   DIM pool as integer = get_optional_arg(3, -1)
-   IF pool <> -1 ANDALSO retvals(0) < 0 THEN
-    scripterr current_command_name() & ": npc pool argument is only allowed when using an NPC ID, but an NPC reference was used"
-   ELSE
-    DIM npcid as NPCTypeID = get_valid_npc_id(retvals(0), serrBound, IIF(pool=-1,0,pool))
-    IF npcid <> -1 THEN
-     IF pool = -1 THEN
-      IF retvals(0) < 0 THEN
-       'Was specified as a reference, We want whatever NPC pool the NPC actually belongs to
-       'We know npcref is valid.
-       DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBound)
-       pool = npc(npcref).pool
-      ELSE
-       'A pool wasn't specified, assume the ID was a local ID
-       pool = 0
-      END IF
+   DIM npcid as NPCTypeID
+   DIM pool as integer
+   IF get_valid_npc_id_pool(retvals(0), get_optional_arg(3, -1), npcid, pool) THEN
+    DIM write_value as bool = YES
+    IF retvals(1) = 0 THEN  'NPCstat:picture
+     IF retvals(2) < 0 ORELSE retvals(2) > gen(genMaxNPCPic) THEN
+      write_value = NO
+     ELSE
+      change_npc_def_sprite npcid, retvals(2), pool
      END IF
-     DIM write_value as bool = YES
-     IF retvals(1) = 0 THEN  'NPCstat:picture
-      IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN
-       write_value = NO
-      ELSE
-       change_npc_def_sprite npcid, retvals(2), pool
-      END IF
-     END IF
-     IF retvals(1) = 1 THEN  'NPCstat:palette
-      change_npc_def_pal npcid, retvals(2), pool
-     END IF
-     'Shouldn't we check validity of retvals(2) for other data?
-     IF write_value THEN SetNPCD(npool(pool).npcs(npcid), retvals(1), retvals(2))
-     lump_reloading.npcd.dirty = YES
     END IF
+    IF retvals(1) = 1 THEN  'NPCstat:palette
+     change_npc_def_pal npcid, retvals(2), pool
+    END IF
+    'Shouldn't we check validity of retvals(2) for other data?
+    IF write_value THEN SetNPCD(npool(pool).npcs(npcid), retvals(1), retvals(2))
+    lump_reloading.npcd.dirty = YES
    END IF
   END IF
  CASE 79'--show no value
@@ -3868,27 +3853,12 @@ SUB script_functions(byval cmdid as integer)
   IF retvals(2) = -1 THEN scriptret = found
  CASE 182'--read NPC (npcref, npcstat, [pool])
   IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant", , serrBadOp) THEN
-   DIM pool as integer = get_optional_arg(2, -1)
-   DIM npcid as NPCTypeID = get_valid_npc_id(retvals(0), serrBound, IIF(pool=-1, 0, pool))
-   IF retvals(0) < 0 AND pool <> -1 THEN
-    scripterr current_command_name() & ": npc pool argument is only allowed when using an NPC ID, but an NPC reference was used "
-   ELSE
-    IF npcid <> -1 THEN
-     IF pool = -1 THEN
-      IF retvals(0) < 0 THEN
-       'Was specified as a reference, We want whatever NPC pool the NPC actually belongs to
-       'We know npcref is valid.
-       DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBound)
-       pool = npc(npcref).pool
-      ELSE
-       'A pool wasn't specified, assume the ID was a local ID
-       pool = 0
-      END IF
-     END IF
-     scriptret = GetNPCD(npool(pool).npcs(npcid), retvals(1))
-     IF retvals(1) = 12 THEN  'NPCstat:script
-      scriptret = decodetrigger(scriptret, NO)  'showerr=NO
-     END IF
+   DIM npcid as NPCTypeID
+   DIM pool as integer
+   IF get_valid_npc_id_pool(retvals(0), get_optional_arg(2, -1), npcid, pool) THEN
+    scriptret = GetNPCD(npool(pool).npcs(npcid), retvals(1))
+    IF retvals(1) = 12 THEN  'NPCstat:script
+     scriptret = decodetrigger(scriptret, NO)  'showerr=NO
     END IF
    END IF
   END IF
@@ -5077,8 +5047,11 @@ END FUNCTION
 FUNCTION get_valid_npc (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp, byval pool as integer=0) as NPCIndex
  IF seekid < 0 THEN
   DIM npcidx as NPCIndex = (seekid + 1) * -1
-  IF npcidx > UBOUND(npc) ORELSE npc(npcidx).id = 0 THEN
-   scripterr current_command_name() & ": invalid npc reference " & seekid & " (maybe the NPC was deleted?)", errlvl
+  IF npcidx > UBOUND(npc) THEN
+   scripterr current_command_name() & ": invalid NPC reference " & seekid, errlvl
+   RETURN -1
+  ELSEIF npc(npcidx).id = 0 THEN
+   scripterr current_command_name() & ": invalid NPC reference " & seekid & " (maybe the NPC was deleted?)", errlvl
    RETURN -1
   END IF
   RETURN npcidx
@@ -5091,38 +5064,41 @@ FUNCTION get_valid_npc (byval seekid as NPCScriptref, byval errlvl as scriptErrE
  END IF
 END FUNCTION
 
-'Given NPC ref (pool ignored) or NPC ID+pool, return the NPC ID if valid, or throw a scripterr and return -1.
+'Given seekid+pool, which are a NPC ref (pool must be -1) or NPC ID+pool (-1 means pool 0),
+'if they point to a valid NPC return true and the NPC ID and pool in retid, retpool;
+'otherwise throw a scripterr and return false.
 'References to Hidden/Disabled NPCs are alright.
-FUNCTION get_valid_npc_id (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp, byval pool as integer=0) as NPCTypeID
+'Uses errlvl serrBadOp.
+FUNCTION get_valid_npc_id_pool (seekid as NPCScriptref, pool as integer=-1, byref retid as NPCTypeID, byref retpool as integer) as bool
  IF seekid >= 0 THEN
+  IF pool = -1 THEN pool = 0
   IF pool < 0 ORELSE pool > UBOUND(npool) THEN
-   scripterr current_command_name() & ": invalid NPC pool " & pool, errlvl
-   RETURN -1
+   scripterr current_command_name() & ": invalid NPC pool " & pool
+   RETURN NO
   END IF
   IF seekid > UBOUND(npool(pool).npcs) THEN
-   scripterr current_command_name() & ": invalid NPC ID " & seekid, errlvl
-   RETURN -1
+   scripterr current_command_name() & ": invalid NPC ID " & seekid
+   RETURN NO
   END IF
-  RETURN seekid
+  retid = seekid
+  retpool = pool
  ELSE
-  DIM npcidx as NPCIndex = (seekid + 1) * -1
-  IF npcidx > UBOUND(npc) THEN
-   scripterr current_command_name() & ": invalid NPC reference " & seekid, errlvl
-   RETURN -1
-  ELSEIF npc(npcidx).id = 0 THEN
-   scripterr current_command_name() & ": invalid NPC reference " & seekid & " (maybe the NPC was deleted?)", errlvl
-   RETURN -1
-  ELSE
-   DIM id as NPCTypeID = ABS(npc(npcidx).id) - 1
-   pool = npc(npcidx).pool
-   IF id > UBOUND(npool(pool).npcs) THEN
-    'Note that an NPC may be marked hidden because it has an invalid ID
-    scripterr current_command_name() & ": NPC reference " & seekid & " is for a disabled NPC with invalid ID " & npc(npcidx).id & " (the map must be incompletely loaded)", errlvl
-    RETURN -1
-   END IF
-   RETURN id
+  IF pool <> -1 THEN
+   scripterr current_command_name() & ": npc pool argument is only allowed when using an NPC ID, but an NPC reference was used"
+   RETURN NO
   END IF
+  DIM npcidx as NPCIndex = get_valid_npc(seekid)
+  IF npcidx = -1 THEN RETURN NO
+  DIM id as NPCTypeID = ABS(npc(npcidx).id) - 1
+  retpool = npc(npcidx).pool
+  IF id > UBOUND(npool(retpool).npcs) THEN
+   'Note that an NPC may be marked hidden because it has an invalid ID
+   scripterr current_command_name() & ": NPC reference " & seekid & " is for a disabled NPC with invalid ID " & npc(npcidx).id & " (the map must be incompletely loaded)"
+   RETURN NO
+  END IF
+  retid = id
  END IF
+ RETURN YES
 END FUNCTION
 
 
