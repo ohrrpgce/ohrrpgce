@@ -1586,11 +1586,11 @@ resume player</example>
 			<shortname>NPC reference</shortname>
 			<description>
 				What is an NPC reference?
-				A reference is a number that uniquely identifies an NPC on a map.
+				A reference is a number that uniquely identifies an NPC instance on a map.
 				You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands.
 				<lb/>
 				The first argument to <tt>NPC reference</tt> is the <p>ID</p> number of the NPC you want to work with.
-				The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map.
+				The ID is the same number that appears in CUSTOM when you are editing NPCs or placing NPCs on the map.
 				<lb/>
 				The second argument, <p>copy</p> is optional.
 				It specifies which copy of the NPC you want, in case there are more than one on the map.
@@ -1915,7 +1915,8 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 			<canon>get NPC ID (reference)</canon>
 			<shortname>get NPC ID</shortname>
 			<description>
-				This command is the inverse of <ref>npcreference</ref> (along with <ref>npccopynumber</ref>).
+				This command (along with <ref>npccopynumber</ref> and <ref>getnpcpool</ref>)
+				is the inverse of <ref>npcreference</ref>.
 				If you give <p>get NPC ID</p> a reference to an NPC it will return the NPC's ID.
 				If the reference is not valid then <p>get NPC ID</p> will return -1.
 				This command can be used on tag-disabled NPCs too, returning their ID number.
@@ -5665,7 +5666,7 @@ end</example>
 			<shortname>get menu item color</shortname>
 			<description>
 				Given a <ref>menuitemhandle</ref>, get its normal color (when it isn't disabled). This will be a <ref>colorcode</ref>.
-				0 means the default for the menu is used.
+				0 means the default for the menu is used, which is <ref>getmenutextcolor</ref>.
 			</description>
 			<seealso>
 				<ref>getmenutextcolor</ref>
@@ -5677,7 +5678,7 @@ end</example>
 			<shortname>set menu item color</shortname>
 			<description>
 				Given a <ref>menuitemhandle</ref>, set its normal color (when it isn't disabled). This should be a <ref>colorcode</ref>.
-				0 means to use the default for the menu.
+				0 means to use the default for the menu, which is <ref>getmenutextcolor</ref>.
 			</description>
 			<seealso>
 				<ref>setmenutextcolor</ref>
@@ -5689,7 +5690,7 @@ end</example>
 			<shortname>get menu item disabled color</shortname>
 			<description>
 				Given a <ref>menuitemhandle</ref>, get the color it uses when disabled. This will be a <ref>colorcode</ref>.
-				0 means the default for the menu is used.
+				0 means the default for the menu is used, which is <ref>getmenudisabledtextcolor</ref>.
 			</description>
 			<seealso>
 				<ref>setmenudisabledtextcolor</ref>
@@ -5701,7 +5702,7 @@ end</example>
 			<shortname>set menu item disabled color</shortname>
 			<description>
 				Given a <ref>menuitemhandle</ref>, set its color it uses when disabled. This should be a <ref>colorcode</ref>.
-				0 means to use the default for the menu.
+				0 means to use the default for the menu, which is <ref>getmenudisabledtextcolor</ref>.
 			</description>
 			<seealso>
 				<ref>setmenudisabledtextcolor</ref>
@@ -5764,22 +5765,22 @@ end</example>
 		<command id="getmenutextcolor">
 			<canon>get menu textcolor(menu handle)</canon>
 			<shortname>get menu textcolor</shortname>
-			<description>Given a <ref>menuhandle</ref>, return the default text color of the menu items. This will be a <ref>colorcode</ref>. 0 means the default is used, which is the "Menu item" color in the User Interface Colors menu.</description>
+			<description>Given a <ref>menuhandle</ref>, return the default text color of the menu items. This will be a <ref>colorcode</ref>. 0 means the default is used, which is the "Menu item" color (<tt>ui:menuitem</tt>) in the User Interface Colors menu.</description>
 		</command>
 		<command id="setmenutextcolor">
 			<canon>set menu textcolor(menu handle, new textcolor)</canon>
 			<shortname>set menu textcolor</shortname>
-			<description>Given a <ref>menuhandle</ref>, change the default text color of its menu items. <p>new textcolor</p> should be a <ref>colorcode</ref>. 0 means the default is used, which is the "Menu item" color in the User Interface Colors menu.</description>
+			<description>Given a <ref>menuhandle</ref>, change the default text color of its menu items. <p>new textcolor</p> should be a <ref>colorcode</ref>. 0 means the default is used, which is the "Menu item" color (<tt>ui:menuitem</tt>) in the User Interface Colors menu.</description>
 		</command>
 		<command id="getmenudisabledtextcolor">
 			<canon>get menu disabled textcolor(menu handle)</canon>
 			<shortname>get menu disabled textcolor</shortname>
-			<description>Given a <ref>menuhandle</ref>, return the default text color of disabled menu items. This will be a <ref>colorcode</ref>. 0 means the default is used, which is the "Disabled menu item" color in the User Interface Colors menu.</description>
+			<description>Given a <ref>menuhandle</ref>, return the default text color of disabled menu items. This will be a <ref>colorcode</ref>. 0 means the default is used, which is the "Disabled menu item" color (<tt>ui:disableditem</tt>) in the User Interface Colors menu.</description>
 		</command>
 		<command id="setmenudisabledtextcolor">
 			<canon>set menu disabled textcolor(menu handle, new textcolor)</canon>
 			<shortname>set menu disabled textcolor</shortname>
-			<description>Given a <ref>menuhandle</ref>, change the default text color of disabled menu items. <p>new textcolor</p> should be a <ref>colorcode</ref>. 0 means the default is used, which is the "Disabled menu item" color in the User Interface Colors menu.</description>
+			<description>Given a <ref>menuhandle</ref>, change the default text color of disabled menu items. <p>new textcolor</p> should be a <ref>colorcode</ref>. 0 means the default is used, which is the "Disabled menu item" color (<tt>ui:disableditem</tt>) in the User Interface Colors menu.</description>
 		</command>
 
 		<command id="getmenumaxrows">
