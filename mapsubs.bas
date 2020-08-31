@@ -82,7 +82,7 @@ DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as inte
 DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4, thinggrabber_hint as bool = NO)
 DECLARE FUNCTION count_npc_slots_used(npcs() as NPCInst) as integer
 
-DECLARE FUNCTION npcdef_by_pool(st as MapEditState, byval pool_id as integer, byval id as integer) as NPCType
+DECLARE FUNCTION npcdef_by_pool(st as MapEditState, byval pool_id as integer, byval id as integer) byref as NPCType
 
 'Undo
 DECLARE SUB add_change_step(byref changelist as MapEditUndoTile vector, byval x as integer, byval y as integer, byval value as integer, byval mapid as MapID)
@@ -6316,7 +6316,7 @@ FUNCTION editnpc_zone_caption(byval zoneid as integer, byval default as integer,
  RETURN caption
 END FUNCTION
 
-FUNCTION npcdef_by_pool(st as MapEditState, byval pool_id as integer, byval id as integer) as NPCType
+FUNCTION npcdef_by_pool(st as MapEditState, byval pool_id as integer, byval id as integer) byref as NPCType
  SELECT CASE pool_id
   CASE 0:
    RETURN st.map.npc_def(id)
@@ -6380,6 +6380,7 @@ SUB update_edit_npc (npcdata as NPCType, ed as NPCEditState, gmap() as integer, 
 END SUB
 
 ' Editor for a single NPC definition
+' npcdata is modified but not saved to file.
 SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  DIM ed as NPCEditState
  DIM menu_display as BasicMenuItem vector
