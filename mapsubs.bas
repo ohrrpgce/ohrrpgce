@@ -4108,7 +4108,11 @@ SUB mapedit_loadmap (st as MapEditState, mapnum as integer)
  IF LEN(zinfo->name) = 0 THEN zinfo->name = "One-Way walls (exit only)"
  
  'Also load the global NPC definitions
- LoadNPCD global_npcdef_filename(1), st.global_npc_def()
+ IF isfile(global_npcdef_filename(1)) THEN
+  LoadNPCD global_npcdef_filename(1), st.global_npc_def()
+ ELSE
+  REDIM st.global_npc_def(0)
+ END IF
 END SUB
 
 SUB mapedit_savemap (st as MapEditState)
