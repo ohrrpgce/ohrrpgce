@@ -2293,8 +2293,8 @@ DO
   edgeprint npc_preview_text(npcdef_by_pool(st, st.cur_npc_pool, st.cur_npc)), 0, 0, uilook(uiText), dpage
   DIM copies as integer = mapedit_npc_instance_count(st, st.cur_npc, st.cur_npc_pool)
   DIM msg as string
-  msg = "Placing " & IIF(st.cur_npc_pool = 1, "Global", "Local") & " NPC ID " & st.cur_npc
-  edgeprint msg, 0, 0, uilook(uiText), dpage, YES
+  msg = IIF(st.cur_npc_pool = 1, "Global", "Local") & " NPC ID " & st.cur_npc
+  edgeprint msg, pRight - 4, 24, uilook(uiText), dpage, YES
   msg = copies & " copies of " & CHR(27) & "NPC " & st.cur_npc & IIF(st.cur_npc_pool = 1, "g", "") & CHR(26) & " on this map"
   IF copies THEN msg &= ticklite(" (`C`: " & IIF(copies = 1, "goto copy)", "cycle copies)"))
   edgeprint msg, 0, 10, uilook(uiText), dpage, YES
