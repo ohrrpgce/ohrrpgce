@@ -2553,58 +2553,58 @@ SUB script_functions(byval cmdid as integer)
    plotslices(retvals(0))->Height = retvals(1)
   END IF
  CASE 374 '--get rect style
-  IF valid_plotrect(retvals(0)) THEN
-   DIM dat as RectangleSliceData ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = dat->style
+  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  IF sl THEN
+   scriptret = sl->RectData->style
   END IF
  CASE 375 '--set rect style
-  IF bound_arg(retvals(1), -1, 14, "style") THEN
-   change_rect_plotslice retvals(0), retvals(1)
+  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  IF sl ANDALSO bound_arg(retvals(1), -1, 14, "style") THEN
+   ChangeRectangleSlice sl, retvals(1)
   END IF
  CASE 376 '--get rect fgcol
-  IF valid_plotrect(retvals(0)) THEN
-   DIM dat as RectangleSliceData ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = dat->fgcol
+  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  IF sl THEN
+   scriptret = sl->RectData->fgcol
   END IF
  CASE 377 '--set rect fgcol
-  IF valid_color(retvals(1)) THEN
-   change_rect_plotslice retvals(0), , ,retvals(1)
+  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  IF sl ANDALSO valid_color(retvals(1)) THEN
+   ChangeRectangleSlice sl, , , retvals(1)
   END IF
  CASE 378 '--get rect bgcol
-  IF valid_plotrect(retvals(0)) THEN
-   DIM dat as RectangleSliceData ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = dat->bgcol
+  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  IF sl THEN
+   scriptret = sl->RectData->bgcol
   END IF
  CASE 379 '--set rect bgcol
-  IF valid_color(retvals(1)) THEN
-   change_rect_plotslice retvals(0), ,retvals(1)
+  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  IF sl ANDALSO valid_color(retvals(1)) THEN
+   ChangeRectangleSlice sl, , retvals(1)
   END IF
  CASE 380 '--get rect border
-  IF valid_plotrect(retvals(0)) THEN
-   DIM dat as RectangleSliceData ptr
-   dat = plotslices(retvals(0))->SliceData
-   IF dat->use_raw_box_border THEN
+  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  IF sl THEN
+   IF sl->RectData->use_raw_box_border THEN
     scriptret = -99  'border:raw
    ELSE
-    scriptret = dat->border
+    scriptret = sl->RectData->border
    END IF
   END IF
  CASE 381 '--set rect border
-  IF bound_arg(retvals(1), -2, 14, "border") THEN  'border:raw not allowed
-   change_rect_plotslice retvals(0), , , ,retvals(1)
+  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  IF sl ANDALSO bound_arg(retvals(1), -2, 14, "border") THEN  'border:raw not allowed
+   ChangeRectangleSlice sl, , , , retvals(1)
   END IF
  CASE 382 '--get rect trans
-  IF valid_plotrect(retvals(0)) THEN
-   DIM dat as RectangleSliceData ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = dat->translucent
+  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  IF sl THEN
+   scriptret = sl->RectData->translucent
   END IF
  CASE 383 '--set rect trans
-  IF bound_arg(retvals(1), 0, transLAST, "trans:... transparency setting") THEN
-   change_rect_plotslice retvals(0), , , , ,retvals(1)
+  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  IF sl ANDALSO bound_arg(retvals(1), 0, transLAST, "trans:... transparency setting") THEN
+   ChangeRectangleSlice sl, , , , , retvals(1)
   END IF
  CASE 384 '--slice collide point
   IF valid_plotslice(retvals(0)) THEN
@@ -3428,19 +3428,21 @@ SUB script_functions(byval cmdid as integer)
    scriptret = 1
   END IF
  CASE 527, 701 '--527: get rect fuzziness (slice), 701: get rect opacity (slice)
-  IF valid_plotrect(retvals(0)) THEN
-   DIM dat as RectangleSliceData ptr
-   dat = plotslices(retvals(0))->SliceData
-   IF dat->translucent = transFuzzy ORELSE dat->translucent = transBlend THEN
-    scriptret = dat->fuzzfactor
-   ELSEIF dat->translucent = transHollow THEN
-    scriptret = 0
-   ELSEIF dat->translucent = transOpaque THEN
-    scriptret = 100
-   END IF
+  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  IF sl THEN
+   WITH *sl->RectData
+    IF .translucent = transFuzzy ORELSE .translucent = transBlend THEN
+     scriptret = .fuzzfactor
+    ELSEIF .translucent = transHollow THEN
+     scriptret = 0
+    ELSEIF .translucent = transOpaque THEN
+     scriptret = 100
+    END IF
+   END WITH
   END IF
  CASE 528, 702 '--528: set rect fuzziness (slice, percent), 702: set rect opacity (slice, percent)
-  IF valid_plotrect(retvals(0)) THEN
+  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  IF sl THEN
    'Allow out of bounds percentages, just like "set opacity"
    DIM opacity as integer = bound(retvals(1), 0, 100)
    DIM trans as RectTransTypes
@@ -3458,7 +3460,7 @@ SUB script_functions(byval cmdid as integer)
    ELSE  'set rect opacity
     trans = transBlend
    END IF
-   ChangeRectangleSlice plotslices(retvals(0)), , , , , trans, opacity
+   ChangeRectangleSlice sl, , , , , trans, opacity
   END IF
  CASE 529 '-- textbox line (string, box, line, expand, strip)
   IF valid_plotstr(retvals(0), serrBadOp) ANDALSO _
@@ -4628,20 +4630,22 @@ SUB script_functions(byval cmdid as integer)
    scriptret = INT(bound(CDBL(retvals(0)) * retvals(1) / retvals(2), CDBL(INT_MIN), CDBL(INT_MAX)) + 0.5)
   END IF
  CASE 650 '--set rect raw border
-  IF bound_arg(retvals(1), -2, gen(genMaxBoxBorder), "raw border") THEN
-   change_rect_plotslice retvals(0), , , , , , , retvals(1)
+  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  IF sl ANDALSO bound_arg(retvals(1), -2, gen(genMaxBoxBorder), "raw border") THEN
+   ChangeRectangleSlice sl, , , , , , , retvals(1)
   END IF
  CASE 651 '--get rect raw border
-  IF valid_plotrect(retvals(0)) THEN
-   DIM dat as RectangleSliceData ptr
-   dat = plotslices(retvals(0))->SliceData
-   IF dat->use_raw_box_border THEN
-    scriptret = dat->raw_box_border
-   ELSEIF dat->border >= 0 THEN
-    scriptret = boxlook(dat->border).border - 1  'possibly border:line
-   ELSE
-    scriptret = dat->border  'border:line or border:none
-   END IF
+  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  IF sl THEN
+   WITH *sl->RectData
+    IF .use_raw_box_border THEN
+     scriptret = .raw_box_border
+    ELSEIF .border >= 0 THEN
+     scriptret = boxlook(.border).border - 1  'possibly border:line
+    ELSE
+     scriptret = .border  'border:line or border:none
+    END IF
+   END WITH
   END IF
  CASE 652 '--clone slice(recurse)
   IF valid_plotslice(retvals(0)) THEN
@@ -5148,15 +5152,19 @@ FUNCTION valid_plotsprite(byval handle as integer) as bool
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_plotrect(byval handle as integer) as bool
+'Don't need a valid_plotrect function
+
+'Return Slice ptr if the handle is valid rect slice, or throw an error
+FUNCTION valid_plotrect_ptr(byval handle as integer) as Slice ptr
  IF valid_plotslice(handle) THEN
-  IF plotslices(handle)->SliceType = slRectangle THEN
-   RETURN YES
+  DIM sl as Slice ptr = plotslices(handle)
+  IF sl->SliceType = slRectangle THEN
+   RETURN sl
   ELSE
    scripterr current_command_name() & ": slice handle " & handle & " is not a rect", serrBadOp
   END IF
  END IF
- RETURN NO
+ RETURN NULL
 END FUNCTION
 
 FUNCTION valid_plottextslice(byval handle as integer) as bool

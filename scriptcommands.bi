@@ -32,7 +32,7 @@ DECLARE FUNCTION get_valid_npc_id_pool (seekid as NPCScriptref, pool as integer=
 
 DECLARE FUNCTION valid_plotslice(byval handle as integer, byval errlev as scriptErrEnum = serrBadOp) as bool
 DECLARE FUNCTION valid_plotsprite(byval handle as integer) as bool
-DECLARE FUNCTION valid_plotrect(byval handle as integer) as bool
+DECLARE FUNCTION valid_plotrect_ptr(byval handle as integer) as Slice ptr
 DECLARE FUNCTION valid_plottextslice(byval handle as integer) as bool
 DECLARE FUNCTION valid_plotellipse(byval handle as integer) as bool
 DECLARE FUNCTION valid_plotlineslice(byval handle as integer) as bool
