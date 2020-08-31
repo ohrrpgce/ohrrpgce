@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-08-29">
+<plotscript version="wip" datecode="2020-08-31">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -1603,7 +1603,7 @@ resume player</example>
 				If <tt>true</tt>, when used on a copy of an NPC hidden due to tag conditions,
 				<tt>NPC reference</tt> will return a reference instead of returning <tt>false</tt>.
 				<lb/>
-				The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>.
+				The <p>pool</p> argument is optional; it's a <ref>npcpool</ref>.
 				If you do not specify which pool, then NPC ID is assumed to refer to the local pool for the current map.
 				See also the <ref>globalnpcreference</ref> command.
 				<lb/>
@@ -1932,9 +1932,8 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 			<description>
 				This command (along with <ref>getnpcid</ref> and <ref>npccopynumber</ref>)
 				is the inverse of <ref>npcreference</ref>.
-				This command takes an <ref>npcreference</ref> and returns the ID of the NPC pool that
-				this NPC belongs to. You can compare it to the constants such as <tt>npc pool:local</tt>
-				(which is <tt>0</tt>) and <tt>npc pool:global</tt>.
+				This command takes an <ref>npcreference</ref> and returns the ID of the <ref>npcpool</ref> that
+				this NPC belongs to.
 				<p>reference</p> can't be an NPC ID.
 			</description>
 			<seealso>
@@ -1968,7 +1967,8 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 				on the map by looping over them.
 				Generally this is used together with the <ref>npcreference</ref> command.
 				<lb/>
-				The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>. If you do not specify which pool, then the NPC ID will be assumed to be local.
+				The <p>pool</p> argument is optional (defaulting to <tt>pool:local</tt>),
+				and tells which NPC pool <p>ID</p> refers to.
 				<note>
 					This command does not count tag-disabled NPCs.
 					So if there are four copies of NPC 2 on a map, but they only appear
@@ -2000,17 +2000,16 @@ end</example>
 			<canon>change NPC ID (reference, new ID, pool)</canon>
 			<shortname>change NPC ID</shortname>
 			<description>
-				This command takes an <ref>npcreference</ref> and lets you change the ID number
+				This command takes an <ref>npcref</ref> and lets you change the ID number
 				of the NPC it points to, and change between local and global NPC pools.
-				This means that the NPC will now use a different picture, an different palette,
-				a different walking speed, a different text box, everything.
+				This means that the NPC will now use a different picture, palette,
+				walking speed, text box, everything.
 				This change is not permanent. It only lasts until the next time a map gets loaded.
-				The <p>pool</p> argument is optional.
-				It can be <p>npc pool:local</p> or <p>npc pool:global</p>.
-				If you do not specify a pool, then the NPC ID will be assumed to be the same pool that the NPC was previously part of.
+				The <p>pool</p> argument is an optional <ref>npcpool</ref>.
+				If you don't specify a pool, then the NPC ID will be assumed to be the same pool that the NPC was previously part of.
 				<lb/>
 				If <p>reference</p> is an NPC ID then this command acts on the first NPC instance
-				of that ID and pool, and the pool is not changed.
+				of that ID/pool, and the pool is not changed.
 			</description>
 			<seealso>
 				<ref>getnpcid</ref>
@@ -2018,16 +2017,16 @@ end</example>
 			</seealso>
 		</command>
 		<command id="createnpc">
-			<canon>create NPC (ID,X,Y,direction,pool)</canon>
+			<canon>create NPC (ID, X, Y, direction, pool)</canon>
 			<shortname>create NPC</shortname>
 			<description>
-				This command will magically create a new copy of an NPC with the given ID number.
-				You can specify an X and Y position where it will be created, and optionally a direction too
+				This command will magically create a new copy of an NPC with the given <p>ID</p> number.
+				You can specify an <p>X</p> and <p>Y</p> position where it will be created, and optionally a <p>direction</p> too
 				(if you leave out the direction, the new NPC will be facing south).
-				The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>.
-				If you do not specify which pool, then the NPC will be created from the local pool for the current map.
+				The <p>pool</p> argument is an optional <ref>npcpool</ref> defaulting to <tt>pool:local</tt>
+				(NPC definitions local to the current map).
 				<lb/>
-				create NPC returns an <ref>npcreference</ref> that you can use to refer to the new NPC in other
+				<tt>create NPC</tt> returns an <ref>npcref</ref> that you can use to refer to the new NPC in other
 				commands like <ref>walknpc</ref>. If the new NPC cannot be created
 				(there is a maximum of 300 total NPC copies in memory at a time) then create NPC will return false (zero).
 				The new NPC is not permanent. It only lasts until a new map is loaded.
@@ -2037,10 +2036,10 @@ end</example>
 			</seealso>
 		</command>
 		<command id="createglobalnpc">
-			<canon>create global NPC (ID,X,Y,direction)</canon>
+			<canon>create global NPC (ID, X, Y, direction)</canon>
 			<shortname>create global NPC</shortname>
 			<description>
-				This command works the same as the <ref>createnpc</ref> command, except that the ID numebr always refers to the global pool of NPCs, instead of the local pool. The instance of this global NPC will be created on the current map, and only lasts until you leave the map. It is not global in the sense of moving from map to map.
+				This command works the same as the <ref>createnpc</ref> command, except that the ID number always refers to the global pool of NPCs, instead of the local pool. The instance of this global NPC will be created on the current map, and only lasts until you leave the map. It is not global in the sense of moving from map to map.
 			</description>
 			<seealso>
 				<ref>createnpc</ref>
@@ -3771,11 +3770,12 @@ end</example>
 				Just remember that alter NPC changes every copy of the NPC on the map,
 				not just the specific one you referenced.
 				<lb/>
-				The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>.
+				The <p>pool</p> argument is an optional <ref>npcpool</ref>.
 				It cannot be used if you are specifying the NPC by reference, since then that NPC reference's
 				current npc pool will be used.
 				<lb/>
-				Changes to global npcs in <p>npc pool:global</p> will persist when you move to other maps.
+				Changes to global npcs in <p>pool:global</p> will persist when you move to other maps,
+				regardless of whether the map is set to remember NPC data.
 				Those changes will be reset if you load a saved game or start a new game.
 				<lb/>
 				A good way to make use of <tt>alter NPC</tt> is to wrap it in your own script. For example:
@@ -3798,7 +3798,9 @@ end</example>
 			<shortname>read NPC</shortname>
 			<description>Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <ref>alternpc</ref>.
 			<lb/>
-			The <p>pool</p> argument is optional. It can be <p>npc pool:local</p> or <p>npc pool:global</p>. It is only allowed when you specify the NPC by ID number. If you specify the NPC with an <ref>npcreference</ref> then the pool is determined by the reference. 
+			The <p>pool</p> argument is an optional <ref>npcpool</ref>.
+			It is only allowed when you specify the NPC by ID number.
+			If you specify the NPC with an <ref>npcref</ref> then the pool is determined by the reference.
 			<note>If you use this command to read the give item number, the result is offset + 1. A zero means no item.</note></description>
 			<seealso>
 				<ref>alternpc</ref>
@@ -11335,9 +11337,31 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<description>
 				An NPC ID refers to an NPC definition, as defined in the Edit NPCs menu.
 				NPC IDs count from 0 upwards.
+				Local and global <ref>npcpool</ref>s have distinct sets of IDs,
+				so some commands such as <ref>npccopycount</ref> take both an NPC ID and an NPC pool
+				as separate arguments.
+				But most NPCs, such as <ref>walknpc</ref> don't take a pool argument.
+				If you pass an ID to these, then it's interpreted as a ID in the local NPC pool.
+				<lb/>
 				A copy of an NPC is referred to using an <ref>npcref</ref>.
 			</description>
 		</command>
+
+		<command id="npcpool">
+			<canon>NPC pool number</canon>
+			<shortname>NPC pool</shortname>
+			<description>
+				An NPC pool number tells whether an NPC ID refers to an NPC in the local
+				or global NPC pools.
+				It can be either <p>pool:local</p> (which is <p>0</p>) or <p>pool:global</p>
+				(which is <p>1</p>).
+				Most commands that accept NPC IDs don't have an argument to tell the pool number.
+				These always default to the local pool, and you need to first use
+				<ref>npcreference</ref> or <ref>globalnpcreference</ref>
+				if you want to refer to a global NPC by ID.
+			</description>
+		</command>
+
 		<command id="npcref">
 			<canon>NPC references</canon>
 			<shortname>NPC reference</shortname>
@@ -11348,7 +11372,8 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				down, while NPC IDs count from 0 up.
 				An <ref>npcid</ref> can always be used with any command that expects
 				an NPC reference, in which case it refers to the first
-				instance/copy of that NPC, not to the NPC definition itself.
+				instance/copy of that NPC ID from the local <ref>npcpool</ref>, not to the NPC definition itself.
+				(If you want to refer to a global NPC, you need to first use <ref>globalnpcreference</ref>.)
 				So <tt>wait for NPC(5)</tt> is equivalent to <tt>wait for NPC(npc reference(5, 0))</tt>.
 			</description>
 		</command>

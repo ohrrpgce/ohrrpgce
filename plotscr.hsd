@@ -788,11 +788,11 @@ script, npc copy number, hsd:npc, begin
 end
 
 script, create global npc, hsd:id, hsd:x=0, hsd:y=0, hsd:direction=2, begin
-  exit returning(create npc(hsd:id, hsd:x, hsd:y, hsd:direction, npc pool:global))
+  exit returning(create npc(hsd:id, hsd:x, hsd:y, hsd:direction, pool:global))
 end
 
 script, global npc reference, hsd:id, hsd:copy=0, hsd:allow disabled=0, begin
-  exit returning(npc reference(hsd:id, hsd:copy, hsd:allow disabled, npc pool:global))
+  exit returning(npc reference(hsd:id, hsd:copy, hsd:allow disabled, pool:global))
 end
 
 script,swapbyname,hsd:hero1,hsd:hero2,begin
@@ -2300,8 +2300,8 @@ define constant, begin
  -52, ui:FadeOutExitBattle
  -53, ui:MPBar                   # Hero's MP bar
  -54, ui:MPBarFlash              # MP bar flash colour (when higher than max)
-0,npc pool:local
-1,npc pool:global
+0,pool:local
+1,pool:global
 end
 
 #<SLICE LOOKUP CODES>

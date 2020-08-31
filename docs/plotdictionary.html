@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2020-08-29)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2020-08-31)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -670,7 +670,7 @@ function toggleContent(target) {
 		<a href="#about-caterpillarissuspended">caterpillar is suspended</a><br>
 		<a href="#about-centerslice">center slice (handle)</a><br>
 		<a href="#about-centerstringat">center string at (ID, x, y)</a><br>
-		<a href="#about-changenpcid">change NPC ID (reference,new ID)</a><br>
+		<a href="#about-changenpcid">change NPC ID (reference, new ID, pool)</a><br>
 		<a href="#about-changetileset">change tileset (tileset, layer)</a><br>
 		<a href="#about-checkequipment">check equipment (hero, slot)</a><br>
 		<a href="#about-checkgameexists">check game exists (file string id)</a><br>
@@ -696,11 +696,11 @@ function toggleContent(target) {
 		<a href="#about-copystring">copy string (dest, source)</a><br>
 		<a href="#about-createcontainer">create container (width, height)</a><br>
 		<a href="#about-createellipse">create ellipse (width, height, border color, fill color)</a><br>
-		<a href="#about-createglobalnpc">create global NPC (ID,X,Y,direction)</a><br>
+		<a href="#about-createglobalnpc">create global NPC (ID, X, Y, direction)</a><br>
 		<a href="#about-creategrid">create grid (width, height, rows, columns)</a><br>
 		<a href="#about-createline">create line (width, height, color)</a><br>
 		<a href="#about-createmenu">create menu</a><br>
-		<a href="#about-createnpc">create NPC (ID,X,Y,direction,pool)</a><br>
+		<a href="#about-createnpc">create NPC (ID, X, Y, direction, pool)</a><br>
 		<a href="#about-createpanel">create panel (width, height)</a><br>
 		<a href="#about-createrect">create rect (width, height, style)</a><br>
 		<a href="#about-createscroll">create scroll (width, height)</a><br>
@@ -1116,6 +1116,7 @@ function toggleContent(target) {
 		<a href="#about-npciswalking">NPC is walking (who)</a><br>
 		<a href="#about-npcpixelx">NPC pixel X (who)</a><br>
 		<a href="#about-npcpixely">NPC pixel Y (who)</a><br>
+		<a href="#about-npcpool">NPC pool number</a><br>
 		<a href="#about-npcref">NPC references</a><br>
 		<a href="#about-npcreference">NPC reference (ID, copy, allow disabled?, pool)</a><br>
 		<a href="#about-npcreferencefromslice">npc reference from slice (handle)</a><br>
@@ -3446,7 +3447,7 @@ resume player # OK, done</pre>
 			<a name="about-herochasesnpc"></a>
 				<h4>hero chases npc (who, npc, stop when reached, stuck ticks)</h4>
 <p>
-			Makes the specified hero walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing hero will go around obstacles. If the destination NPC cannot be reached at all, the chasing hero will go to the closest reachable tile. The first argument <span class="param">who</span> is the caterpillar rank of the hero who will be chasing, or <a href="#about-me" class="ref">me</a> for the leader. When the caterpillar party is enabled, this command only works on the leader, and will do nothing for other heroes. Use <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> if you want to make the other heroes pathfind. Non-leader heroes do not treat NPCs as obstacles when they pathfind. The second argument <span class="param">npc</span> is the NPC to chase. You can use an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The third argument <span class="param">stop when reached</span> can be true if you want the chasing hero to stop after the first time it reaches the destination NPC. If ommitted or false, the hero will keep chasing even after it reaches a moving destination NPC. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, a hero who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the hero will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelherowalk" class="ref">cancel hero walk</a> command. Be careful if you are using <a href="#about-waitforhero" class="ref">wait for hero</a> to wait for <a href="#about-herochasesnpc" class="ref">hero chases NPC</a> when no <span class="param">stuck ticks</span> timeout is used, since <a href="#about-waitforhero" class="ref">wait for hero</a> might wait forever if the hero has no way to get to its destination.
+			Makes the specified hero walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing hero will go around obstacles. If the destination NPC cannot be reached at all, the chasing hero will go to the closest reachable tile. The first argument <span class="param">who</span> is the caterpillar rank of the hero who will be chasing, or <a href="#about-me" class="ref">me</a> for the leader. When the caterpillar party is enabled, this command only works on the leader, and will do nothing for other heroes. Use <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> if you want to make the other heroes pathfind. Non-leader heroes do not treat NPCs as obstacles when they pathfind. The second argument <span class="param">npc</span> is the NPC to chase. You can use an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a>. The third argument <span class="param">stop when reached</span> can be true if you want the chasing hero to stop after the first time it reaches the destination NPC. If ommitted or false, the hero will keep chasing even after it reaches a moving destination NPC. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, a hero who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the hero will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelherowalk" class="ref">cancel hero walk</a> command. Be careful if you are using <a href="#about-waitforhero" class="ref">wait for hero</a> to wait for <a href="#about-herochasesnpc" class="ref">hero chases NPC</a> when no <span class="param">stuck ticks</span> timeout is used, since <a href="#about-waitforhero" class="ref">wait for hero</a> might wait forever if the hero has no way to get to its destination.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -3498,7 +3499,7 @@ walk hero(who, hero direction(hero), 0)</pre>
 			<a name="about-heroischasing"></a>
 				<h4>hero is chasing (who)</h4>
 <p>
-			If the specified hero is currently chasing an NPC, such as by clicking on the hero with mouse/touch controls, or a previous <a href="#about-herochasesnpc" class="ref">hero chases NPC</a> command then return an <a href="#about-npcreference" class="ref">NPC reference</a>. If the hero is not currently chasing an NPC, returns false
+			If the specified hero is currently chasing an NPC, such as by clicking on the hero with mouse/touch controls, or a previous <a href="#about-herochasesnpc" class="ref">hero chases NPC</a> command then return an <a href="#about-npcref" class="ref">NPC reference</a>. If the hero is not currently chasing an NPC, returns false
 			
 			
 			<div class="seealso">See also: <ul>
@@ -3955,9 +3956,9 @@ resume player</pre>
 		<a href="#about-getnpcpool">get NPC pool (reference)</a><br>
 		<a href="#about-npccopynumber">NPC copy number (reference)</a><br>
 		<a href="#about-npccopycount">NPC copy count (ID, pool)</a><br>
-		<a href="#about-changenpcid">change NPC ID (reference,new ID)</a><br>
-		<a href="#about-createnpc">create NPC (ID,X,Y,direction,pool)</a><br>
-		<a href="#about-createglobalnpc">create global NPC (ID,X,Y,direction)</a><br>
+		<a href="#about-changenpcid">change NPC ID (reference, new ID, pool)</a><br>
+		<a href="#about-createnpc">create NPC (ID, X, Y, direction, pool)</a><br>
+		<a href="#about-createglobalnpc">create global NPC (ID, X, Y, direction)</a><br>
 		<a href="#about-destroynpc">destroy NPC (reference)</a><br>
 		<a href="#about-destroynpc">delete NPC (reference)</a><br>
 		<a href="#about-npcisdisabled">NPC is disabled (reference)</a><br>
@@ -3969,11 +3970,11 @@ resume player</pre>
 <p>
 			
 				What is an NPC reference?
-				A reference is a number that uniquely identifies an NPC on a map.
+				An <a href="#about-npcref" class="ref">NPC reference</a> is a number that uniquely identifies an NPC instance on a map.
 				You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands.
 				<br>
 				The first argument to <span class="code">NPC reference</span> is the <span class="param">ID</span> number of the NPC you want to work with.
-				The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map.
+				The ID is the same number that appears in CUSTOM when you are editing NPCs or placing NPCs on the map.
 				<br>
 				The second argument, <span class="param">copy</span> is optional.
 				It specifies which copy of the NPC you want, in case there are more than one on the map.
@@ -3986,7 +3987,7 @@ resume player</pre>
 				If <span class="code">true</span>, when used on a copy of an NPC hidden due to tag conditions,
 				<span class="code">NPC reference</span> will return a reference instead of returning <span class="code">false</span>.
 				<br>
-				The <span class="param">pool</span> argument is optional. It can be <span class="param">npc pool:local</span> or <span class="param">npc pool:global</span>.
+				The <span class="param">pool</span> argument is optional; it's a <a href="#about-npcpool" class="ref">NPC pool</a>.
 				If you do not specify which pool, then NPC ID is assumed to refer to the local pool for the current map.
 				See also the <a href="#about-globalnpcreference" class="ref">global NPC reference</a> command.
 				<br>
@@ -4456,7 +4457,8 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 				<h4>get NPC ID (reference)</h4>
 <p>
 			
-				This command is the inverse of <a href="#about-npcreference" class="ref">NPC reference</a> (along with <a href="#about-npccopynumber" class="ref">NPC copy number</a>).
+				This command (along with <a href="#about-npccopynumber" class="ref">NPC copy number</a> and <a href="#about-getnpcpool" class="ref">get NPC pool</a>)
+				is the inverse of <a href="#about-npcreference" class="ref">NPC reference</a>.
 				If you give <span class="param">get NPC ID</span> a reference to an NPC it will return the NPC's ID.
 				If the reference is not valid then <span class="param">get NPC ID</span> will return -1.
 				This command can be used on tag-disabled NPCs too, returning their ID number.
@@ -4476,9 +4478,11 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 				<h4>get NPC pool (reference)</h4>
 <p>
 			
-				This command takes an <a href="#about-npcreference" class="ref">NPC reference</a> and returns the ID of the NPC pool that
-				this NPC belongs to. You can compare it to the constants such as <span class="param">npc pool:local</span>
-				and <span class="param">npc pool:global</span>
+				This command (along with <a href="#about-getnpcid" class="ref">get NPC ID</a> and <a href="#about-npccopynumber" class="ref">NPC copy number</a>)
+				is the inverse of <a href="#about-npcreference" class="ref">NPC reference</a>.
+				This command takes an <a href="#about-npcreference" class="ref">NPC reference</a> and returns the ID of the <a href="#about-npcpool" class="ref">NPC pool</a> that
+				this NPC belongs to.
+				<span class="param">reference</span> can't be an NPC ID.
 			
 			
 			
@@ -4521,7 +4525,8 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 				on the map by looping over them.
 				Generally this is used together with the <a href="#about-npcreference" class="ref">NPC reference</a> command.
 				<br>
-				The <span class="param">pool</span> argument is optional. It can be <span class="param">npc pool:local</span> or <span class="param">npc pool:global</span>. If you do not specify which pool, then the NPC ID will be assumed to be local.
+				The <span class="param">pool</span> argument is optional (defaulting to <span class="code">pool:local</span>),
+				and tells which NPC pool <span class="param">ID</span> refers to.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					This command does not count tag-disabled NPCs.
@@ -4555,9 +4560,20 @@ end</pre>
 </div>
 		<div class="command">
 			<a name="about-changenpcid"></a>
-				<h4>change NPC ID (reference,new ID)</h4>
+				<h4>change NPC ID (reference, new ID, pool)</h4>
 <p>
-			This command takes an <a href="#about-npcreference" class="ref">NPC reference</a> and lets you change the ID number of the NPC it points to. This means that the NPC will now use a different picture, an different palette, a different walking speed, an different text box, everything. This change is not permanent. It only lasts until the next time a map gets loaded. The <span class="param">pool</span> argument is optional. It can be <span class="param">npc pool:local</span> or <span class="param">npc pool:global</span>. If you do not specify a pool, then the NPC ID will be assumed to be the same pool that the NPC was previously part of.
+			
+				This command takes an <a href="#about-npcref" class="ref">NPC reference</a> and lets you change the ID number
+				of the NPC it points to, and change between local and global NPC pools.
+				This means that the NPC will now use a different picture, palette,
+				walking speed, text box, everything.
+				This change is not permanent. It only lasts until the next time a map gets loaded.
+				The <span class="param">pool</span> argument is an optional <a href="#about-npcpool" class="ref">NPC pool</a>.
+				If you don't specify a pool, then the NPC ID will be assumed to be the same pool that the NPC was previously part of.
+				<br>
+				If <span class="param">reference</span> is an NPC ID then this command acts on the first NPC instance
+				of that ID/pool, and the pool is not changed.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -4570,16 +4586,16 @@ end</pre>
 </div>
 		<div class="command">
 			<a name="about-createnpc"></a>
-				<h4>create NPC (ID,X,Y,direction,pool)</h4>
+				<h4>create NPC (ID, X, Y, direction, pool)</h4>
 <p>
 			
-				This command will magically create a new copy of an NPC with the given ID number.
-				You can specify an X and Y position where it will be created, and optionally a direction too
+				This command will magically create a new copy of an NPC with the given <span class="param">ID</span> number.
+				You can specify an <span class="param">X</span> and <span class="param">Y</span> position where it will be created, and optionally a <span class="param">direction</span> too
 				(if you leave out the direction, the new NPC will be facing south).
-				The <span class="param">pool</span> argument is optional. It can be <span class="param">npc pool:local</span> or <span class="param">npc pool:global</span>.
-				If you do not specify which pool, then the NPC will be created from the local pool for the current map.
+				The <span class="param">pool</span> argument is an optional <a href="#about-npcpool" class="ref">NPC pool</a> defaulting to <span class="code">pool:local</span>
+				(NPC definitions local to the current map).
 				<br>
-				create NPC returns an <a href="#about-npcreference" class="ref">NPC reference</a> that you can use to refer to the new NPC in other
+				<span class="code">create NPC</span> returns an <a href="#about-npcref" class="ref">NPC reference</a> that you can use to refer to the new NPC in other
 				commands like <a href="#about-walknpc" class="ref">walk NPC</a>. If the new NPC cannot be created
 				(there is a maximum of 300 total NPC copies in memory at a time) then create NPC will return false (zero).
 				The new NPC is not permanent. It only lasts until a new map is loaded.
@@ -4592,10 +4608,10 @@ end</pre>
 </div>
 		<div class="command">
 			<a name="about-createglobalnpc"></a>
-				<h4>create global NPC (ID,X,Y,direction)</h4>
+				<h4>create global NPC (ID, X, Y, direction)</h4>
 <p>
 			
-				This command works the same as the <a href="#about-createnpc" class="ref">create NPC</a> command, except that the ID numebr always refers to the global pool of NPCs, instead of the local pool. The instance of this global NPC will be created on the current map, and only lasts until you leave the map. It is not global in the sense of moving from map to map.
+				This command works the same as the <a href="#about-createnpc" class="ref">create NPC</a> command, except that the ID number always refers to the global pool of NPCs, instead of the local pool. The instance of this global NPC will be created on the current map, and only lasts until you leave the map. It is not global in the sense of moving from map to map.
 			
 			
 			
@@ -4607,7 +4623,7 @@ end</pre>
 			<a name="about-destroynpc"></a>
 				<h4>destroy NPC (reference)</h4>
 <p>
-			This command will erase the specified NPC. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The deletion is not permanent. Unless this is an NPC that you created with <a href="#about-createnpc" class="ref">create NPC</a>, the NPC will be back again next time the map gets loaded. If you need to permanently remove an NPC, use tags. <div class="notice note">
+			This command will erase the specified NPC. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or the NPC's ID number. The deletion is not permanent. Unless this is an NPC that you created with <a href="#about-createnpc" class="ref">create NPC</a>, the NPC will be back again next time the map gets loaded. If you need to permanently remove an NPC, use tags. <div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">This only deletes the one NPC you specify. If you use an NPC ID number as the argument, only the first copy of the NPC on the map will be deleted.</div><div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">This command can be also be written as <span class="param">delete NPC</span>.</div>
 			
@@ -4624,7 +4640,7 @@ end</pre>
 			<a name="about-npcisdisabled"></a>
 				<h4>NPC is disabled (reference)</h4>
 <p>
-			This command returns true if the <a href="#about-npcreference" class="ref">NPC reference</a> points to an NPC who does not exist, or has been disabled because of tags or one-time-use.
+			This command returns true if the <a href="#about-npcref" class="ref">NPC reference</a> <span class="param">reference</span> points to an NPC who does not exist, or has been disabled because of tags or one-time-use.
 			
 			
 			
@@ -4815,7 +4831,7 @@ resume box advance # go back to normal</pre>
 			
 				If the player activated an NPC which showed a textbox
 				and the hero and NPC are still "speaking" (the textbox chain isn't done),
-				returns the <a href="#about-npcreference" class="ref">NPC reference</a> for that NPC.
+				returns the <a href="#about-npcref" class="ref">NPC reference</a> for that NPC.
 				Otherwise returns <span class="code">false</span>.
 				<div class="notice warn">
 <img src="Plotwarn.png" alt="[Warning]" class="icon">
@@ -4942,7 +4958,7 @@ resume box advance # go back to normal</pre>
 <p>
 			
 				Remotely trigger an NPC.
-				You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number.
+				You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or an <a href="#about-npcid" class="ref">NPC ID</a>.
 				Whatever actions are associated with triggering that NPC will be taken,
 				text box, script, vehicle, item, whatever.
 				<br>
@@ -7611,11 +7627,12 @@ end</pre>
 				Just remember that alter NPC changes every copy of the NPC on the map,
 				not just the specific one you referenced.
 				<br>
-				The <span class="param">pool</span> argument is optional. It can be <span class="param">npc pool:local</span> or <span class="param">npc pool:global</span>.
+				The <span class="param">pool</span> argument is an optional <a href="#about-npcpool" class="ref">NPC pool</a>.
 				It cannot be used if you are specifying the NPC by reference, since then that NPC reference's
 				current npc pool will be used.
 				<br>
-				Changes to global npcs in <span class="param">npc pool:global</span> will persist when you move to other maps.
+				Changes to global npcs in <span class="param">pool:global</span> will persist when you move to other maps,
+				regardless of whether the map is set to remember NPC data.
 				Those changes will be reset if you load a saved game or start a new game.
 				<br>
 				A good way to make use of <span class="code">alter NPC</span> is to wrap it in your own script. For example:
@@ -7646,7 +7663,9 @@ end</pre>
 <p>
 			Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <a href="#about-alternpc" class="ref">alter NPC</a>.
 			<br>
-			The <span class="param">pool</span> argument is optional. It can be <span class="param">npc pool:local</span> or <span class="param">npc pool:global</span>. It is only allowed when you specify the NPC by ID number. If you specify the NPC with an <a href="#about-npcreference" class="ref">NPC reference</a> then the pool is determined by the reference. 
+			The <span class="param">pool</span> argument is an optional <a href="#about-npcpool" class="ref">NPC pool</a>.
+			It is only allowed when you specify the NPC by ID number.
+			If you specify the NPC with an <a href="#about-npcref" class="ref">NPC reference</a> then the pool is determined by the reference.
 			<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">If you use this command to read the give item number, the result is offset + 1. A zero means no item.</div>
 			
@@ -10638,7 +10657,7 @@ end</pre>
 <p>
 			
 				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, get its normal color (when it isn't disabled). This will be a <a href="#about-colorcode" class="ref">color code</a>.
-				0 means the default for the menu is used.
+				0 means the default for the menu is used, which is <a href="#about-getmenutextcolor" class="ref">get menu textcolor</a>.
 			
 			
 			
@@ -10656,7 +10675,7 @@ end</pre>
 <p>
 			
 				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, set its normal color (when it isn't disabled). This should be a <a href="#about-colorcode" class="ref">color code</a>.
-				0 means to use the default for the menu.
+				0 means to use the default for the menu, which is <a href="#about-getmenutextcolor" class="ref">get menu textcolor</a>.
 			
 			
 			
@@ -10674,7 +10693,7 @@ end</pre>
 <p>
 			
 				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, get the color it uses when disabled. This will be a <a href="#about-colorcode" class="ref">color code</a>.
-				0 means the default for the menu is used.
+				0 means the default for the menu is used, which is <a href="#about-getmenudisabledtextcolor" class="ref">get menu disabled textcolor</a>.
 			
 			
 			
@@ -10692,7 +10711,7 @@ end</pre>
 <p>
 			
 				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, set its color it uses when disabled. This should be a <a href="#about-colorcode" class="ref">color code</a>.
-				0 means to use the default for the menu.
+				0 means to use the default for the menu, which is <a href="#about-getmenudisabledtextcolor" class="ref">get menu disabled textcolor</a>.
 			
 			
 			
@@ -10783,7 +10802,7 @@ end</pre>
 			<a name="about-getmenutextcolor"></a>
 				<h4>get menu textcolor(menu handle)</h4>
 <p>
-			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the default text color of the menu items. This will be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Menu item" color in the User Interface Colors menu.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the default text color of the menu items. This will be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Menu item" color (<span class="code">ui:menuitem</span>) in the User Interface Colors menu.
 			
 			
 			
@@ -10793,7 +10812,7 @@ end</pre>
 			<a name="about-setmenutextcolor"></a>
 				<h4>set menu textcolor(menu handle, new textcolor)</h4>
 <p>
-			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the default text color of its menu items. <span class="param">new textcolor</span> should be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Menu item" color in the User Interface Colors menu.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the default text color of its menu items. <span class="param">new textcolor</span> should be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Menu item" color (<span class="code">ui:menuitem</span>) in the User Interface Colors menu.
 			
 			
 			
@@ -10803,7 +10822,7 @@ end</pre>
 			<a name="about-getmenudisabledtextcolor"></a>
 				<h4>get menu disabled textcolor(menu handle)</h4>
 <p>
-			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the default text color of disabled menu items. This will be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Disabled menu item" color in the User Interface Colors menu.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the default text color of disabled menu items. This will be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Disabled menu item" color (<span class="code">ui:disableditem</span>) in the User Interface Colors menu.
 			
 			
 			
@@ -10813,7 +10832,7 @@ end</pre>
 			<a name="about-setmenudisabledtextcolor"></a>
 				<h4>set menu disabled textcolor(menu handle, new textcolor)</h4>
 <p>
-			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the default text color of disabled menu items. <span class="param">new textcolor</span> should be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Disabled menu item" color in the User Interface Colors menu.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the default text color of disabled menu items. <span class="param">new textcolor</span> should be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Disabled menu item" color (<span class="code">ui:disableditem</span>) in the User Interface Colors menu.
 			
 			
 			
@@ -12191,7 +12210,7 @@ end
 <p>
 			
 				Get an NPC walkabout container slice (the parent of all slices for the NPC).
-				The argument is the NPC id or an <a href="#about-npcreference" class="ref">NPC reference</a>.
+				The argument is an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a>.
 				If the NPC is tag-disabled, it has no slice so this command returns 0/false.
 				If there are no copies of an NPC ID on the map, an error is thrown.
 				You will not be able to manually reposition this slice (e.g. <a href="#about-putslice" class="ref">put slice</a> does not work) - use <a href="#about-putnpc" class="ref">put npc</a> instead.
@@ -12216,7 +12235,7 @@ end
 <p>
 			
 				Get the walkabout sprite slice for a npc.
-				<span class="param">npc</span> is an NPC id or <a href="#about-npcreference" class="ref">NPC reference</a>.
+				<span class="param">npc</span> is an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a>.
 				This is equivalent to
 				<a href="#about-lookupslice" class="ref">lookup slice</a><span class="code">(sl:walkabout sprite component, get npc slice(npc))</span>.
 			
@@ -12233,7 +12252,7 @@ end
 			
 				The opposite of <a href="#about-getnpcslice" class="ref">get npc slice</a>:
 				Given a slice <span class="param">handle</span>, check whether it's the walkabout container slice of some NPC,
-				and if so, returns the <a href="#about-npcreference" class="ref">NPC reference</a> number.
+				and if so, returns the <a href="#about-npcref" class="ref">NPC reference</a>.
 				If it doesn't belong to any NPC, returns 0.
 				<br>
 				This also returns 0 for slices parented to the NPC's slices, such as the 'walkabout
@@ -19635,6 +19654,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <div class="select-content-shown" id="Types and Handles-index">
 <button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul><div class="content-shown">
 		<a href="#about-npcid">NPC IDs</a><br>
+		<a href="#about-npcpool">NPC pool number</a><br>
 		<a href="#about-npcref">NPC references</a><br>
 		<a href="#about-slicehandle">Slice handles</a><br>
 		<a href="#about-blendableslicehandle">Blendable slice handle</a><br>
@@ -19653,7 +19673,32 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			
 				An NPC ID refers to an NPC definition, as defined in the Edit NPCs menu.
 				NPC IDs count from 0 upwards.
+				Local and global <a href="#about-npcpool" class="ref">NPC pool</a>s have distinct sets of IDs,
+				so some commands such as <a href="#about-npccopycount" class="ref">NPC copy count</a> take both an NPC ID and an NPC pool
+				as separate arguments.
+				But most NPCs, such as <a href="#about-walknpc" class="ref">walk NPC</a> don't take a pool argument.
+				If you pass an ID to these, then it's interpreted as a ID in the local NPC pool.
+				<br>
 				A copy of an NPC is referred to using an <a href="#about-npcref" class="ref">NPC reference</a>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-npcpool"></a>
+				<h4>NPC pool number</h4>
+<p>
+			
+				An NPC pool number tells whether an NPC ID refers to an NPC in the local
+				or global NPC pools.
+				It can be either <span class="param">pool:local</span> (which is <span class="param">0</span>) or <span class="param">pool:global</span>
+				(which is <span class="param">1</span>).
+				Most commands that accept NPC IDs don't have an argument to tell the pool number.
+				These always default to the local pool, and you need to first use
+				<a href="#about-npcreference" class="ref">NPC reference</a> or <a href="#about-globalnpcreference" class="ref">global NPC reference</a>
+				if you want to refer to a global NPC by ID.
 			
 			
 			
@@ -19671,7 +19716,8 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				down, while NPC IDs count from 0 up.
 				An <a href="#about-npcid" class="ref">NPC ID</a> can always be used with any command that expects
 				an NPC reference, in which case it refers to the first
-				instance/copy of that NPC, not to the NPC definition itself.
+				instance/copy of that NPC ID from the local <a href="#about-npcpool" class="ref">NPC pool</a>, not to the NPC definition itself.
+				(If you want to refer to a global NPC, you need to first use <a href="#about-globalnpcreference" class="ref">global NPC reference</a>.)
 				So <span class="code">wait for NPC(5)</span> is equivalent to <span class="code">wait for NPC(npc reference(5, 0))</span>.
 			
 			
@@ -20481,7 +20527,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 896 commands (of which 12 are aliases), 28 constants and 10 definitions of types and other terms in this file.</p>
+<p>Stats: There are 896 commands (of which 12 are aliases), 28 constants and 11 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
