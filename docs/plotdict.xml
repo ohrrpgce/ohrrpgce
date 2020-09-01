@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-08-31">
+<plotscript version="wip" datecode="2020-09-01">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -1289,7 +1289,7 @@ resume player # OK, done</example>
 		<command id="herochasesnpc">
 			<canon>hero chases npc (who, npc, stop when reached, stuck ticks)</canon>
 			<shortname>hero chases NPC</shortname>
-			<description>Makes the specified hero walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing hero will go around obstacles. If the destination NPC cannot be reached at all, the chasing hero will go to the closest reachable tile. The first argument <p>who</p> is the caterpillar rank of the hero who will be chasing, or <ref>me</ref> for the leader. When the caterpillar party is enabled, this command only works on the leader, and will do nothing for other heroes. Use <ref>suspendcaterpillar</ref> if you want to make the other heroes pathfind. Non-leader heroes do not treat NPCs as obstacles when they pathfind. The second argument <p>npc</p> is the NPC to chase. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The third argument <p>stop when reached</p> can be true if you want the chasing hero to stop after the first time it reaches the destination NPC. If ommitted or false, the hero will keep chasing even after it reaches a moving destination NPC. The fourth argument <p>stuck ticks</p> is optional. If it is included, a hero who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the hero will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancelherowalk</ref> command. Be careful if you are using <ref>waitforhero</ref> to wait for <ref>herochasesnpc</ref> when no <p>stuck ticks</p> timeout is used, since <ref>waitforhero</ref> might wait forever if the hero has no way to get to its destination.</description>
+			<description>Makes the specified hero walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing hero will go around obstacles. If the destination NPC cannot be reached at all, the chasing hero will go to the closest reachable tile. The first argument <p>who</p> is the caterpillar rank of the hero who will be chasing, or <ref>me</ref> for the leader. When the caterpillar party is enabled, this command only works on the leader, and will do nothing for other heroes. Use <ref>suspendcaterpillar</ref> if you want to make the other heroes pathfind. Non-leader heroes do not treat NPCs as obstacles when they pathfind. The second argument <p>npc</p> is the NPC to chase. You can use an <ref>npcref</ref> or <ref>npcid</ref>. The third argument <p>stop when reached</p> can be true if you want the chasing hero to stop after the first time it reaches the destination NPC. If ommitted or false, the hero will keep chasing even after it reaches a moving destination NPC. The fourth argument <p>stuck ticks</p> is optional. If it is included, a hero who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the hero will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancelherowalk</ref> command. Be careful if you are using <ref>waitforhero</ref> to wait for <ref>herochasesnpc</ref> when no <p>stuck ticks</p> timeout is used, since <ref>waitforhero</ref> might wait forever if the hero has no way to get to its destination.</description>
 			<seealso>
 				<ref>pathfindheroto</ref>
 				<ref>cancelherowalk</ref>
@@ -1325,7 +1325,7 @@ walk hero(who, hero direction(hero), 0)</example>
 		<command id="heroischasing">
 			<canon>hero is chasing (who)</canon>
 			<shortname>hero is chasing</shortname>
-			<description>If the specified hero is currently chasing an NPC, such as by clicking on the hero with mouse/touch controls, or a previous <ref>herochasesnpc</ref> command then return an <ref>npcreference</ref>. If the hero is not currently chasing an NPC, returns false</description>
+			<description>If the specified hero is currently chasing an NPC, such as by clicking on the hero with mouse/touch controls, or a previous <ref>herochasesnpc</ref> command then return an <ref>npcref</ref>. If the hero is not currently chasing an NPC, returns false.</description>
 			<seealso>
 				<ref>herochasesnpc</ref>
 				<ref>npcischasing</ref>
@@ -1580,41 +1580,44 @@ resume player</example>
 	</section>		<!-- Doors-->
 
 
-	<section title="Moving NPCs">
+	<section title="NPC Instances">
+		<description>
+			This section contains commands for moving, manipulating and inspecting NPCs on the map (NPC instances).
+			See the <a href="#NPC Data">NPC Data</a> section for inspecting or modifying NPC definitions/types.
+		</description>
 		<command id="npcreference">
 			<canon>NPC reference (ID, copy, allow disabled?, pool)</canon>
 			<shortname>NPC reference</shortname>
 			<description>
-				What is an NPC reference?
-				A reference is a number that uniquely identifies an NPC instance on a map.
-				You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands.
+				(See <ref>npcref</ref> for an explanation of NPC references.)
 				<lb/>
-				The first argument to <tt>NPC reference</tt> is the <p>ID</p> number of the NPC you want to work with.
+				Returns a reference to one of the NPCs on the map, or <tt>false</tt>/<tt>0</tt>
+				if the NPC you asked for is not found on the map.
+				<lb/>
+				<p>ID</p> is the <ref>npcid</ref> of the NPC to look up.
 				The ID is the same number that appears in CUSTOM when you are editing NPCs or placing NPCs on the map.
+				(Unlike other NPC commands, this one does not accept an NPC reference in place of the NPC ID.)
 				<lb/>
-				The second argument, <p>copy</p> is optional.
-				It specifies which copy of the NPC you want, in case there are more than one on the map.
-				If you don't specify which copy you want, you will just get a reference to the first NPC on the map with the right ID.
+				<p>copy</p> is optional.
+				It specifies which copy (instance) of the NPC you want, in case there are more than one on the map.
+				If you don't specify it, you will just get a reference to the first copy.
 				Copies are counted starting from zero.
-				You can see the copy number of NPCs in the Map Editor if you placed them in Custom, at the bottom of the NPC.
-				(You can also see them using the F6 NPC debugger, by hoving the mouse over an NPC.)
+				You can see the copy number of NPCs in the Map Editor, at the bottom of the NPC,
+				and using the F6 NPC debugger, by hoving the mouse over an NPC.
 				<lb/>
-				The third argument, <p>allow disabled?</p> is optional, and defaults to <tt>false</tt>.
+				<p>allow disabled?</p> is optional, and defaults to <tt>false</tt>.
 				If <tt>true</tt>, when used on a copy of an NPC hidden due to tag conditions,
 				<tt>NPC reference</tt> will return a reference instead of returning <tt>false</tt>.
 				<lb/>
-				The <p>pool</p> argument is optional; it's a <ref>npcpool</ref>.
-				If you do not specify which pool, then NPC ID is assumed to refer to the local pool for the current map.
+				<p>pool</p> is an optional <ref>npcpool</ref>.
+				If you don't specify which pool, then the ID is assumed to refer to the local pool for the current map.
 				See also the <ref>globalnpcreference</ref> command.
-				<lb/>
-				If the NPC ID/copy which you asked for is not found on the map then NPC reference will return <ref>false</ref> (zero).
-				(Unlike other NPC commands, this one does not accept an NPC reference in place of the NPC ID.)
 				<lb/>
 				If you plan on using the same NPC reference many times in a script you can store it in a <ref>variable</ref>.
 			</description>
 			<example>#---NPC reference example---
 
-plotscript,ref example,begin
+plotscript, ref example, begin
 
   variable(Fred)
 
@@ -1661,7 +1664,7 @@ end</example>
 		<command id="nextnpcreference">
 			<canon>next NPC reference (npcref)</canon>
 			<shortname>next NPC reference</shortname>
-			<description>This command is for looping over all the npcs on the map, in the same way that <ref>firstchild</ref> and <ref>nextsibling</ref> can be used to iterate over all the children of a slice. When called with no argument or 0, it returns a reference to the first NPC on the map. When you give it an NPC reference it returns a reference to the next NPC. It returns 0 when there are no more NPCs, and skips over NPCs that are disabled by a tag condition (including used one-time-use NPCs). It's safe to delete NPCs while you're iterating over them (unlike <ref>nextsibling</ref>!), but creating NPCs at the same time might result in them getting skipped.</description>
+			<description>This command is for looping over all the npcs on the map, in the same way that <ref>firstchild</ref> and <ref>nextsibling</ref> can be used to iterate over all the children of a slice. When called with no argument or <tt>0</tt>, it returns an <ref>npcref</ref> to the first NPC on the map. When <p>npcref</p> is an NPC reference it returns a reference to the next NPC. It returns 0 when there are no more NPCs, and skips over NPCs that are disabled by a tag condition (including used one-time-use NPCs). It's safe to delete NPCs while you're iterating over them (unlike <ref>nextsibling</ref>!), but creating NPCs at the same time might result in them getting skipped.</description>
 			<example># Iterate over all NPCs... and delete them all!
 variable(npcref)
 npcref := next NPC reference()  # The first NPC
@@ -1694,18 +1697,18 @@ while (npcref) do (
 		<command id="walknpc">
 			<canon>walk NPC (who, direction, distance)</canon>
 			<shortname>walk NPC</shortname>
-			<description>Makes the specified NPC move in the specified direction for the specified number of tiles. The first argument tells who to move. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The second argument is the direction. Use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the NPC will move one tile. If you use a negative number for walk distance, the npc will walk backwards. walk NPC is usually used with the <ref>waitfornpc</ref> command. You should normally use the <ref>suspendnpcs</ref> command before moving NPCs to prevent their automatic movements from interfering with your scripted movements.</description>
+			<description>Makes the specified NPC move in the specified direction for the specified number of tiles. The first argument tells who to move. You can use an <ref>npcref</ref> or <ref>npcid</ref>. The second argument is the direction. Use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the NPC will move one tile. If you use a negative number for walk distance, the npc will walk backwards. walk NPC is usually used with the <ref>waitfornpc</ref> command. You should normally use the <ref>suspendnpcs</ref> command before moving NPCs to prevent their automatic movements from interfering with your scripted movements.</description>
 		</command>
 		<reference ref="waitfornpc" />
 		<command id="setnpcdirection">
 			<canon>set NPC direction (who, direction)</canon>
 			<shortname>set NPC direction</shortname>
-			<description>Makes the specified NPC face in the specified direction. The following constants are available for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will turn.</description>
+			<description>Makes the specified NPC face in the specified direction. The following constants are available for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will turn.</description>
 		</command>
 		<command id="pathfindnpcto">
 			<canon>pathfind NPC to (who, x, y, stuck ticks)</canon>
 			<shortname>pathfind NPC to</shortname>
-			<description>Makes the specified NPC walk along the shortest path to the destination position. They will go around obstacles. If the destination cannot be reached at all, they will go to the closest reachable tile. The first argument <p>who</p> is the NPC. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The second argument is the destination <p>x</p> tile coordinate. The third argument is the destination <p>y</p> tile coordinate. The fourth argument <p>stuck ticks</p> is optional. If it is included, an NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancelnpcwalk</ref> command. Be careful if you are using <ref>waitfornpc</ref> to wait for <ref>pathfindnpcto</ref> when no <p>stuck ticks</p> timeout is used, since <ref>waitfornpc</ref> might wait forever if the NPC has no way to get to its destination.</description>
+			<description>Makes the specified NPC walk along the shortest path to the destination position. They will go around obstacles. If the destination cannot be reached at all, they will go to the closest reachable tile. The first argument <p>who</p> is the NPC. You can use an <ref>npcref</ref> or <ref>npcid</ref>. The second argument is the destination <p>x</p> tile coordinate. The third argument is the destination <p>y</p> tile coordinate. The fourth argument <p>stuck ticks</p> is optional. If it is included, an NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancelnpcwalk</ref> command. Be careful if you are using <ref>waitfornpc</ref> to wait for <ref>pathfindnpcto</ref> when no <p>stuck ticks</p> timeout is used, since <ref>waitfornpc</ref> might wait forever if the NPC has no way to get to its destination.</description>
 			<seealso>
 				<ref>npcchasesnpc</ref>
 				<ref>cancelnpcwalk</ref>
@@ -1715,7 +1718,7 @@ while (npcref) do (
 		<command id="npcchasesnpc">
 			<canon>NPC chases NPC (who, other who, stop when reached, stuck ticks)</canon>
 			<shortname>NPC chases NPC</shortname>
-			<description>Makes the specified NPC walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing NPC will go around obstacles. If the destination NPC cannot be reached at all, the chasing NPC will go to the closest reachable tile. The first argument <p>who</p> is the NPC who will be chasing. The second argument <p>other who</p> is the NPC to chase. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The third argument <p>stop when reached</p> can be true if you want the chasing NPC to stop after the first time it reaches the destination NPC. If omitted or false, the NPC will keep chasing even after it reaches a moving destination NPC. The fourth argument <p>stuck ticks</p> is optional. If it is included, an NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancelnpcwalk</ref> command. Be careful if you are using <ref>waitfornpc</ref> to wait for <ref>npcchasesnpc</ref> when no <p>stuck ticks</p> timeout is used, since <ref>waitfornpc</ref> might wait forever if the NPC has no way to get to its destination.
+			<description>Makes the specified NPC walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing NPC will go around obstacles. If the destination NPC cannot be reached at all, the chasing NPC will go to the closest reachable tile. The first argument <p>who</p> is the NPC who will be chasing. The second argument <p>other who</p> is the NPC to chase. You can use an <ref>npcref</ref> or <ref>npcid</ref>. The third argument <p>stop when reached</p> can be true if you want the chasing NPC to stop after the first time it reaches the destination NPC. If omitted or false, the NPC will keep chasing even after it reaches a moving destination NPC. The fourth argument <p>stuck ticks</p> is optional. If it is included, an NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancelnpcwalk</ref> command. Be careful if you are using <ref>waitfornpc</ref> to wait for <ref>npcchasesnpc</ref> when no <p>stuck ticks</p> timeout is used, since <ref>waitfornpc</ref> might wait forever if the NPC has no way to get to its destination.
 			<lb/>
 			If the destination NPC is deleted or disappears due to a tag condition, the chasing NPC stops.
 			</description>
@@ -1728,7 +1731,7 @@ while (npcref) do (
 		<command id="npcischasing">
 			<canon>npc is chasing (who)</canon>
 			<shortname>npc is chasing</shortname>
-			<description>If the specified NPC is currently chasing another NPC from a previous call to <ref>npcchasesnpc</ref> then return an <ref>npcreference</ref> to the target NPC. If the NPC is not currently chasing another NPC, returns false</description>
+			<description>If the specified NPC is currently chasing another NPC from a previous call to <ref>npcchasesnpc</ref> then return an <ref>npcref</ref> to the target NPC. If the NPC is not currently chasing another NPC, returns false.</description>
 			<seealso>
 				<ref>npcchasesnpc</ref>
 				<ref>heroischasing</ref>
@@ -1763,7 +1766,7 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 		<command id="setnpcframe">
 			<canon>set NPC frame (who, frame)</canon>
 			<shortname>set NPC frame</shortname>
-			<description>Sets the walking frame of the specified NPC to 0 or 1. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will change.</description>
+			<description>Sets the walking frame of the specified NPC to 0 or 1. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will change.</description>
 			<seealso>
 				<ref>npcframe</ref>
 			</seealso>
@@ -1776,7 +1779,7 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 		<command id="setnpcposition">
 			<canon>set NPC position (who, X, Y)</canon>
 			<shortname>set NPC position</shortname>
-			<description>Instantly moves the specified NPC to an X,Y position on the map. The coordinates are in units of tiles. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will be moved.</description>
+			<description>Instantly moves the specified NPC to an X,Y position on the map. The coordinates are in units of tiles. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will be moved.</description>
 		</command>
 		<command id="putnpc">
 			<canon>put npc (who,x,y)</canon>
@@ -1830,12 +1833,12 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 		<command id="walknpctox">
 			<canon>walk NPC to X (who, X)</canon>
 			<shortname>walk NPC to X</shortname>
-			<description>Makes the specified NPC walk to a given X coordinate on the map. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will move.</description>
+			<description>Makes the specified NPC walk to a given X coordinate on the map. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will move.</description>
 		</command>
 		<command id="walknpctoy">
 			<canon>walk NPC to Y (who, Y)</canon>
 			<shortname>walk NPC to Y</shortname>
-			<description>Makes the specified NPC walk to a given Y coordinate on the map. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will move.</description>
+			<description>Makes the specified NPC walk to a given Y coordinate on the map. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will move.</description>
 		</command>
 		<command id="checknpcwall">
 			<canon>check NPC wall (who, direction)</canon>
@@ -1887,7 +1890,7 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 		<command id="npciswalking">
 			<canon>NPC is walking (who)</canon>
 			<shortname>NPC is walking</shortname>
-			<description>Returns <ref>true</ref> if the specified NPC is currently walking. Returns <ref>false</ref> if the NPC is standing still. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will be checked.</description>
+			<description>Returns <ref>true</ref> if the specified NPC is currently walking, or <ref>false</ref> if standing still. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will be checked.</description>
 		</command>
 
 		<command id="npcextra">
@@ -1917,9 +1920,14 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 			<description>
 				This command (along with <ref>npccopynumber</ref> and <ref>getnpcpool</ref>)
 				is the inverse of <ref>npcreference</ref>.
-				If you give <p>get NPC ID</p> a reference to an NPC it will return the NPC's ID.
+				Returns an NPC's ID. <p>reference</p>If you give <p>get NPC ID</p> an <ref>npcref</ref> it will return the NPC's ID.
 				If the reference is not valid then <p>get NPC ID</p> will return -1.
 				This command can be used on tag-disabled NPCs too, returning their ID number.
+				<note>
+					Some cheeky users use this command to check whether any instances of a local NPC ID exists,
+					since like nearly all commands you can give it an NPC ID instead of a reference.
+					E.g. <tt>get NPC ID(4) == 4</tt> is true only if there's at least one copy of NPC 4.
+				</note>
 			</description>
 			<seealso>
 				<ref>getnpcpool</ref>
@@ -1932,8 +1940,8 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 			<description>
 				This command (along with <ref>getnpcid</ref> and <ref>npccopynumber</ref>)
 				is the inverse of <ref>npcreference</ref>.
-				This command takes an <ref>npcreference</ref> and returns the ID of the <ref>npcpool</ref> that
-				this NPC belongs to.
+				This command takes an <ref>npcref</ref> and returns the ID of the <ref>npcpool</ref> that
+				this NPC belongs to: either <p>pool:local</p> or <p>pool:global</p>.
 				<p>reference</p> can't be an NPC ID.
 			</description>
 			<seealso>
@@ -2048,7 +2056,7 @@ end</example>
 		<command id="destroynpc">
 			<canon>destroy NPC (reference)</canon>
 			<shortname>destroy NPC</shortname>
-			<description>This command will erase the specified NPC. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number. The deletion is not permanent. Unless this is an NPC that you created with <ref>createnpc</ref>, the NPC will be back again next time the map gets loaded. If you need to permanently remove an NPC, use tags. <note>This only deletes the one NPC you specify. If you use an NPC ID number as the argument, only the first copy of the NPC on the map will be deleted.</note><note>This command can be also be written as <p>delete NPC</p>.</note></description>
+			<description>This command will erase the specified NPC. You can use either an <ref>npcref</ref> or the NPC&apos;s ID number. The deletion is not permanent. Unless this is an NPC that you created with <ref>createnpc</ref>, the NPC will be back again next time the map gets loaded. If you need to permanently remove an NPC, use tags. <note>This only deletes the one NPC you specify. If you use an NPC ID number as the argument, only the first copy of the NPC on the map will be deleted.</note><note>This command can be also be written as <p>delete NPC</p>.</note></description>
 		</command>
 		<command id="deletenpc">
 			<alias>destroynpc</alias>
@@ -2057,7 +2065,7 @@ end</example>
 		<command id="npcisdisabled">
 			<canon>NPC is disabled (reference)</canon>
 			<shortname>NPC is disabled</shortname>
-			<description>This command returns true if the <ref>npcreference</ref> points to an NPC who does not exist, or has been disabled because of tags or one-time-use.</description>
+			<description>This command returns true if the <ref>npcref</ref> <p>reference</p> points to an NPC who does not exist, or has been disabled because of tags or one-time-use.</description>
 		</command>
 	</section>
 
@@ -2141,7 +2149,7 @@ wait for text box # wait until the player continues</example>
 			<description>
 				If the player activated an NPC which showed a textbox
 				and the hero and NPC are still "speaking" (the textbox chain isn't done),
-				returns the <ref>npcreference</ref> for that NPC.
+				returns the <ref>npcref</ref> for that NPC.
 				Otherwise returns <tt>false</tt>.
 				<warn>
 					If you try to use this in a script called either AFTER or INSTEAD of
@@ -2223,7 +2231,7 @@ wait for text box # wait until the player continues</example>
 			<shortname>use NPC</shortname>
 			<description>
 				Remotely trigger an NPC.
-				You can use either an <ref>npcreference</ref> or an NPC ID number.
+				You can use either an <ref>npcref</ref> or an <ref>npcid</ref>.
 				Whatever actions are associated with triggering that NPC will be taken,
 				text box, script, vehicle, item, whatever.
 				<lb/>
@@ -3646,6 +3654,11 @@ end</example>
 	</section>
 
 	<section title="NPC Data">
+		<description>
+			This section contains commands for  for inspecting or modifying NPC definitions/types.
+			See the <a href="#NPC Instances">NPC Instances</a> section for moving, manipulating and inspecting NPCs on the map.
+		</description>
+
 		<command id="alternpc">
 			<canon>alter NPC (who, NPCstat, value, pool)</canon>
 			<shortname>alter NPC</shortname>
@@ -3766,7 +3779,7 @@ end</example>
 					</li>
 				</ul>
 				Normally you would only give an NPC ID number to alter NPC,
-				but if you want to use an <ref>npcreference</ref> it will still work.
+				but if you want to use an <ref>npcref</ref> it will still work.
 				Just remember that alter NPC changes every copy of the NPC on the map,
 				not just the specific one you referenced.
 				<lb/>
@@ -6512,7 +6525,7 @@ end
 			<shortname>get npc slice</shortname>
 			<description>
 				Get an NPC walkabout container slice (the parent of all slices for the NPC).
-				The argument is the NPC id or an <ref>npcreference</ref>.
+				The argument is an <ref>npcref</ref> or <ref>npcid</ref>.
 				If the NPC is tag-disabled, it has no slice so this command returns 0/false.
 				If there are no copies of an NPC ID on the map, an error is thrown.
 				You will not be able to manually reposition this slice (e.g. <ref>putslice</ref> does not work) - use <ref>putnpc</ref> instead.
@@ -6531,7 +6544,7 @@ end
 			<shortname>get npc sprite</shortname>
 			<description>
 				Get the walkabout sprite slice for a npc.
-				<p>npc</p> is an NPC id or <ref>npcreference</ref>.
+				<p>npc</p> is an <ref>npcref</ref> or <ref>npcid</ref>.
 				This is equivalent to
 				<ref>lookupslice</ref><tt>(sl:walkabout sprite component, get npc slice(npc))</tt>.
 			</description>
@@ -6545,7 +6558,7 @@ end
 			<description>
 				The opposite of <ref>getnpcslice</ref>:
 				Given a slice <p>handle</p>, check whether it's the walkabout container slice of some NPC,
-				and if so, returns the <ref>npcreference</ref> number.
+				and if so, returns the <ref>npcref</ref>.
 				If it doesn't belong to any NPC, returns 0.
 				<lb/>
 				This also returns 0 for slices parented to the NPC's slices, such as the 'walkabout
@@ -11335,12 +11348,12 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<canon>NPC IDs</canon>
 			<shortname>NPC ID</shortname>
 			<description>
-				An NPC ID refers to an NPC definition, as defined in the Edit NPCs menu.
+				An NPC ID refers to an NPC type, as defined in the Edit NPCs menu.
 				NPC IDs count from 0 upwards.
 				Local and global <ref>npcpool</ref>s have distinct sets of IDs,
 				so some commands such as <ref>npccopycount</ref> take both an NPC ID and an NPC pool
 				as separate arguments.
-				But most NPCs, such as <ref>walknpc</ref> don't take a pool argument.
+				But most NPC commands, such as <ref>walknpc</ref>, don't take a pool argument.
 				If you pass an ID to these, then it's interpreted as a ID in the local NPC pool.
 				<lb/>
 				A copy of an NPC is referred to using an <ref>npcref</ref>.
@@ -11348,12 +11361,12 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		</command>
 
 		<command id="npcpool">
-			<canon>NPC pool number</canon>
+			<canon>NPC pool numbers</canon>
 			<shortname>NPC pool</shortname>
 			<description>
 				An NPC pool number tells whether an NPC ID refers to an NPC in the local
-				or global NPC pools.
-				It can be either <p>pool:local</p> (which is <p>0</p>) or <p>pool:global</p>
+				or global NPC pools. (In future there may be more than two pools.)
+				It can be either <p>pool:local</p> (which is <p>0</p>; NPCs specific to one map) or <p>pool:global</p>
 				(which is <p>1</p>).
 				Most commands that accept NPC IDs don't have an argument to tell the pool number.
 				These always default to the local pool, and you need to first use
@@ -11366,15 +11379,29 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<canon>NPC references</canon>
 			<shortname>NPC reference</shortname>
 			<description>
+				What is an NPC reference?
+				A reference is a number that uniquely identifies an NPC instance on the map.
+				You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands.
+				<lb/>
 				NPC references are handles for NPC instances on the map,
 				that is, a copy of an NPC definition.
-				NPC references are always negative values counting from -1
-				down, while NPC IDs count from 0 up.
+				NPC references are always negative values, while NPC IDs count from 0 up.
 				An <ref>npcid</ref> can always be used with any command that expects
 				an NPC reference, in which case it refers to the first
 				instance/copy of that NPC ID from the local <ref>npcpool</ref>, not to the NPC definition itself.
 				(If you want to refer to a global NPC, you need to first use <ref>globalnpcreference</ref>.)
-				So <tt>wait for NPC(5)</tt> is equivalent to <tt>wait for NPC(npc reference(5, 0))</tt>.
+				So <tt>wait for NPC(5)</tt> is equivalent to <tt>wait for NPC(<ref>npcreference</ref>(5, 0))</tt>.
+				<note>
+					If you want to loop over all NPC instances (that is, over all NPC references), use
+					<ref>nextnpcreference</ref>.
+					An NPC reference historically was (and still is for now) a number between -1 and -300,
+					but that will change in an upcoming version.
+					So it's strongly recommended that you don't loop over values -1 to -300.
+				</note>
+				<warn>
+					If you move to a different map you mustn't use the old references on the new map.
+					If you set the map to save NPC data when leaving, the previous references will be valid when you get back to it.
+				</warn>
 			</description>
 		</command>
 
@@ -11383,7 +11410,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<shortname>slice handle</shortname>
 			<description>
 				Slices are referred to with <p>slice handles</p>. A slice handle is just a value that you can store in a <p>variable</p>,
-				just like an <ref>npcref</ref> or a textbox ID number.
+				just like an <ref>npcref</ref> or a <ref>menuhandle</ref>.
 				A handle is <p>valid</p> if it currently refers to an existing slice.
 				<ref>false</ref> (zero) is never a valid slice handle, so slice commands return 0 to indicate "no slice found" or similar failures.
 				<note>
@@ -11393,7 +11420,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</description>
 		</command>
 		<command id="blendableslicehandle">
-			<canon>Blendable slice handle</canon>
+			<canon>Blendable slice handles</canon>
 			<shortname>blendable slice handle</shortname>
 			<description>
 				A <ref>slicehandle</ref> for a slice type which has blending settings (opacity and blend mode),
