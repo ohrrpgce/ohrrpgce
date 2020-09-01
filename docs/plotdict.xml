@@ -1580,11 +1580,7 @@ resume player</example>
 	</section>		<!-- Doors-->
 
 
-	<section title="NPC Instances">
-		<description>
-			This section contains commands for moving, manipulating and inspecting NPCs on the map (NPC instances).
-			See the <a href="#NPC Data">NPC Data</a> section for inspecting or modifying NPC definitions/types.
-		</description>
+	<section title="NPCs">
 		<command id="npcreference">
 			<canon>NPC reference (ID, copy, allow disabled?, pool)</canon>
 			<shortname>NPC reference</shortname>
@@ -1694,17 +1690,39 @@ while (npcref) do (
 				<ref>npcreference</ref>
 			</seealso>
 		</command>
+
+		<section title="Moving and Positioning NPCs">
+
 		<command id="walknpc">
 			<canon>walk NPC (who, direction, distance)</canon>
 			<shortname>walk NPC</shortname>
 			<description>Makes the specified NPC move in the specified direction for the specified number of tiles. The first argument tells who to move. You can use an <ref>npcref</ref> or <ref>npcid</ref>. The second argument is the direction. Use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the NPC will move one tile. If you use a negative number for walk distance, the npc will walk backwards. walk NPC is usually used with the <ref>waitfornpc</ref> command. You should normally use the <ref>suspendnpcs</ref> command before moving NPCs to prevent their automatic movements from interfering with your scripted movements.</description>
 		</command>
+		<command id="walknpctox">
+			<canon>walk NPC to X (who, X)</canon>
+			<shortname>walk NPC to X</shortname>
+			<description>Makes the specified NPC walk to a given X coordinate on the map. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will move.</description>
+		</command>
+		<command id="walknpctoy">
+			<canon>walk NPC to Y (who, Y)</canon>
+			<shortname>walk NPC to Y</shortname>
+			<description>Makes the specified NPC walk to a given Y coordinate on the map. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will move.</description>
+		</command>
+
 		<reference ref="waitfornpc" />
+
 		<command id="setnpcdirection">
 			<canon>set NPC direction (who, direction)</canon>
 			<shortname>set NPC direction</shortname>
 			<description>Makes the specified NPC face in the specified direction. The following constants are available for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will turn.</description>
 		</command>
+		<command id="npcdirection">
+			<canon>NPC direction (who)</canon>
+			<shortname>NPC direction</shortname>
+			<description>Returns the specified NPC&apos;s direction.</description>
+		</command>
+
+
 		<command id="pathfindnpcto">
 			<canon>pathfind NPC to (who, x, y, stuck ticks)</canon>
 			<shortname>pathfind NPC to</shortname>
@@ -1729,14 +1747,21 @@ while (npcref) do (
 			</seealso>
 		</command>
 		<command id="npcischasing">
-			<canon>npc is chasing (who)</canon>
-			<shortname>npc is chasing</shortname>
+			<canon>NPC is chasing (who)</canon>
+			<shortname>NPC is chasing</shortname>
 			<description>If the specified NPC is currently chasing another NPC from a previous call to <ref>npcchasesnpc</ref> then return an <ref>npcref</ref> to the target NPC. If the NPC is not currently chasing another NPC, returns false.</description>
 			<seealso>
 				<ref>npcchasesnpc</ref>
 				<ref>heroischasing</ref>
 			</seealso>
 		</command>
+
+		<command id="npciswalking">
+			<canon>NPC is walking (who)</canon>
+			<shortname>NPC is walking</shortname>
+			<description>Returns <ref>true</ref> if the specified NPC is currently walking, or <ref>false</ref> if standing still. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will be checked.</description>
+		</command>
+
 		<command id="cancelnpcwalk">
 			<canon>cancel NPC walk (who)</canon>
 			<shortname>cancel NPC walk</shortname>
@@ -1758,11 +1783,7 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 				<ref>cancelherowalk</ref>
 			</seealso>
 		</command>
-		<command id="npcdirection">
-			<canon>NPC direction (who)</canon>
-			<shortname>NPC direction</shortname>
-			<description>Returns the specified NPC&apos;s direction.</description>
-		</command>
+
 		<command id="setnpcframe">
 			<canon>set NPC frame (who, frame)</canon>
 			<shortname>set NPC frame</shortname>
@@ -1782,8 +1803,8 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 			<description>Instantly moves the specified NPC to an X,Y position on the map. The coordinates are in units of tiles. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will be moved.</description>
 		</command>
 		<command id="putnpc">
-			<canon>put npc (who,x,y)</canon>
-			<shortname>put npc</shortname>
+			<canon>put NPC (who,x,y)</canon>
+			<shortname>put NPC</shortname>
 			<description>Moves an NPC to a location on the map in pixels. The first argument is and <ref>npcreference</ref> or an NPC ID number. The second and third arguments are the X,Y pixel position relative to the top left corner of the map. Be aware that using this command can mis-align your NPC with the tile-grid, preventing it from walking normally. To position the NPC by tile, use the <ref>setnpcposition</ref> command.</description>
 		</command>
 		<command id="npcx">
@@ -1813,8 +1834,8 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 			<description>Returns the NPC&apos;s Y position on the map in pixels. The argument is an <ref>npcreference</ref> or an NPC ID number. To find the NPC&apos;s position in tiles, use the <ref>npcy</ref> function instead.</description>
 		</command>
                 <command id="npcz">
-			<canon>npc Z (who)</canon>
-			<shortname>npc Z</shortname>
+			<canon>NPC Z (who)</canon>
+			<shortname>NPC Z</shortname>
 			<description>Returns the specified NPC&apos;s Z position in pixels. The Z value is the number of pixels they are above the tile that they are 'standing' on, not including the map's foot offset. All NPCs normally have a Z value of 0 (even on maps with a foot offset) unless they are used as a vehicle which rises.</description>
 			<seealso>
 				<ref>setnpcz</ref>
@@ -1822,23 +1843,13 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 			</seealso>
 		</command>
                 <command id="setnpcz">
-			<canon>set npc z (npc, z)</canon>
-			<shortname>set npc z</shortname>
+			<canon>set NPC z (npc, z)</canon>
+			<shortname>set NPC z</shortname>
 			<description>Sets the Z location of the specified NPC. The Z value is the number of pixels they are above the tile that they are 'standing' on. Useful for scripts where you want a NPC to jump or levitate. All NPCs normally have a Z value of 0 (even on maps with a foot offset) unless they are a vehicle which rises.</description>
 			<seealso>
 				<ref>npcz</ref>
 				<ref>setheroz</ref>
 			</seealso>
-		</command>
-		<command id="walknpctox">
-			<canon>walk NPC to X (who, X)</canon>
-			<shortname>walk NPC to X</shortname>
-			<description>Makes the specified NPC walk to a given X coordinate on the map. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will move.</description>
-		</command>
-		<command id="walknpctoy">
-			<canon>walk NPC to Y (who, Y)</canon>
-			<shortname>walk NPC to Y</shortname>
-			<description>Makes the specified NPC walk to a given Y coordinate on the map. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will move.</description>
 		</command>
 		<command id="checknpcwall">
 			<canon>check NPC wall (who, direction)</canon>
@@ -1854,66 +1865,9 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 				</note>
 			</description>
 		</command>
-		<command id="getnpcspeed">
-			<canon>get NPC speed (who)</canon>
-			<shortname>get NPC speed</shortname>
-			<description>
-				Returns the walking speed of the specified NPC (either NPC reference or ID number) in pixels per tick.
-				<lb/>
-				(This is just an alias for <ref>readnpc</ref><tt>(who, NPCstat:movespeed)</tt>).
-			</description>
-		</command>
-		<command id="setnpcspeed">
-			<canon>set NPC speed (who, speed)</canon>
-			<shortname>set NPC speed</shortname>
-			<description>
-				Changes the walking speed of the specified NPC.
-				<p>speed</p> defaults to 4.
-				Tiles are 20 pixels in size, and speeds that do not divide evenly or nearly
-				evenly into 20 will result in jerky movement.
-				So only use speeds 0, 1, 2, 3, 4, 5, 7, 10, or 20.
-				<lb/>
-				Normally you would only use an NPC ID number for <p>who</p>,
-				but if you want to use an <ref>npcreference</ref> it will still work.
-				Just remember that <tt>set NPC speed</tt> changes every copy of the NPC on the map,
-				not just the specific one you referenced.
-				<lb/>
-				(This is just an alias for <ref>alternpc</ref><tt>(who, NPCstat:movespeed, speed)</tt>).
-				<warn>
-					Don't set speed to zero while an NPC is moving,
-					it will cause the NPC to stop mid-step and become misaligned with the grid.
-					Get all instances of the NPC to stop first and wait for them,
-					or check with <ref>npciswalking</ref>.
-				</warn>
-			</description>
-		</command>
-		<command id="npciswalking">
-			<canon>NPC is walking (who)</canon>
-			<shortname>NPC is walking</shortname>
-			<description>Returns <ref>true</ref> if the specified NPC is currently walking, or <ref>false</ref> if standing still. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will be checked.</description>
-		</command>
 
-		<command id="npcextra">
-			<canon>NPC extra (who, which)</canon>
-			<shortname>NPC extra</shortname>
-			<description>Returns the npc instance-specific extra data field requested in <p>which</p>, a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them. If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
-			<seealso>
-				<ref>setnpcextra</ref>
-			</seealso>
-		</command>
-		<command id="setnpcextra">
-			<canon>set NPC extra (who, which, value)</canon>
-			<shortname>set NPC extra</shortname>
-			<description>Sets the npc instance-specific extra data field requested in <p>which</p>, a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them.  If you use an NPC ID for <p>who</p>, the first instance's data will be used.
-				<note>
-					Like other NPC instance data, the extra data for NPCs on the current map is not saved in save games!
-					However, it is saved in mapstate NPC saves (see <ref>savemapstate</ref>).
-				</note>
-			</description>
-			<seealso>
-				<ref>npcextra</ref>
-			</seealso>
-		</command>
+		</section>   <!-- Moving NPCs -->
+
 		<command id="getnpcid">
 			<canon>get NPC ID (reference)</canon>
 			<shortname>get NPC ID</shortname>
@@ -2067,7 +2021,365 @@ end</example>
 			<shortname>NPC is disabled</shortname>
 			<description>This command returns true if the <ref>npcref</ref> <p>reference</p> points to an NPC who does not exist, or has been disabled because of tags or one-time-use.</description>
 		</command>
-	</section>
+
+		<section title="NPC Instance Data">
+		<description>
+			This section contains commands for getting and setting properties of individual NPC instances.
+			See <a href="#NPC Definitions">NPC Definitions</a> for inspecting or modifying NPC definitions/types.
+		</description>
+
+		<command id="setnpcignoreswalls">
+			<canon>set NPC ignores walls (who, value)</canon>
+			<shortname>set NPC ignores walls</shortname>
+			<description>
+				Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used),
+				set whether that NPC can walk through walls, including off the edge of a map,
+				and violating its zone restrictions.
+				<p>value</p> should be true or false.
+				<lb/>
+				Turning this on doesn't let the NPC walk through the lead hero and other NPCs;
+				you need <ref>setnpcobstructs</ref> for that.
+				<lb/>
+				This command is just like <ref>suspendnpcwalls</ref>/<ref>resumenpcwalls</ref>,
+				but only affects a single npc.
+				<note>
+					Don't confuse this with <ref>alternpc</ref><tt>(who, NPCstat:ignore passmap, value)</tt>,
+					which sets whether an NPC ID can pass through walls on the wallmap,
+					but doesn't allow it to ignore zones or walk off the map.
+				</note>
+			</description>
+			<seealso>
+				<ref>getnpcignoreswalls</ref>
+				<ref>suspendnpcwalls</ref>
+				<ref>setnpcobstructs</ref>
+				<ref>alternpc</ref>
+			</seealso>
+		</command>
+		<command id="getnpcignoreswalls">
+			<canon>get NPC ignores walls (who)</canon>
+			<shortname>get NPC ignores walls</shortname>
+			<description>
+				Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used),
+				returns whether that NPC can walk through walls.
+				<note>
+					Don't confuse this with <ref>readnpc</ref><tt>(who, NPCstat:ignore passmap)</tt>,
+					which tells whether an NPC ID can pass through walls on the wallmap,
+					but doesn't allow it to ignore zones or walk off the map.
+				</note>
+			</description>
+			<seealso>
+				<ref>setnpcignoreswalls</ref>
+				<ref>readnpc</ref>
+			</seealso>
+		</command>
+		<command id="setnpcmoves">
+			<canon>set NPC moves (who, value)</canon>
+			<shortname>set NPC moves</shortname>
+			<description>
+				Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used),
+				set whether that NPC moves according to its move-type, or whether it stands still
+				and waits for you to control it with <ref>walknpc</ref>.
+				<lb/>
+				<p>value</p> should be true or false.
+				<lb/>
+				This command is just like <ref>suspendnpcs</ref>/<ref>resumenpcs</ref>,
+				but only affects a single npc.
+				<note>
+					If you set an NPC to not move by itself, it will still complete
+					its current step, moving the rest of the way to the next tile.
+				</note>
+			</description>
+			<seealso>
+				<ref>getnpcmoves</ref>
+				<ref>suspendnpcs</ref>
+				<ref>alternpc</ref>
+			</seealso>
+		</command>
+		<command id="getnpcmoves">
+			<canon>get NPC moves (who)</canon>
+			<shortname>get NPC moves</shortname>
+			<description>Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used), returns <ref>true</ref> or <ref>false</ref> indicating whether that NPC moves according to its move-type, or whether it is suspended. This is always true, even for "Stand Still" NPCs unless <ref>setnpcmoves</ref> has been used.</description>
+			<seealso>
+				<ref>setnpcmoves</ref>
+				<ref>readnpc</ref>
+			</seealso>
+		</command>
+		<command id="setnpcobstructs">
+			<canon>set NPC obstructs (who, value)</canon>
+			<shortname>set NPC obstructs</shortname>
+			<description>
+				Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used),
+				set whether the NPC should be an obstruction to heroes and other NPCs.
+				If set to false, the NPC can move through heroes and other NPCs and vice-versa.
+				Heroes can always pass through Step-on NPCs.
+				<p>value</p> should be true or false.
+				<lb/>
+				This command is almost like <ref>suspendobstruction</ref>/<ref>resumeobstruction</ref>,
+				but it only affects a single npc and it doesn't stop activation of step-on NPCs.
+
+				<lb/>
+				If you want to allow an NPC to walk through all obstacles, you also need
+				to use the <ref>setnpcignoreswalls</ref> command.
+			</description>
+			<seealso>
+				<ref>getnpcobstructs</ref>
+				<ref>suspendobstruction</ref>
+			</seealso>
+		</command>
+		<command id="getnpcobstructs">
+			<canon>get NPC obstructs (who)</canon>
+			<shortname>get NPC obstructs</shortname>
+			<description>Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used), returns false if that NPC's obstruction has been suspended with <ref>setnpcobstructs</ref> (and is always true otherwise).</description>
+			<seealso>
+				<ref>setnpcobstructs</ref>
+			</seealso>
+		</command>
+		<command id="setnpcusable">
+			<canon>set NPC usable (who, value)</canon>
+			<shortname>set NPC usable</shortname>
+			<description>Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used), set whether the NPC can be activated by the player as normal (as defined in the NPC ID data). <ref>usenpc</ref> will still work on the NPC. <p>value</p> should be true or false.</description>
+			<seealso>
+				<ref>getnpcusable</ref>
+				<ref>alternpc</ref>
+			</seealso>
+		</command>
+		<command id="getnpcusable">
+			<canon>get NPC usable (who)</canon>
+			<shortname>get NPC usable</shortname>
+			<description>Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used), returns false if normal activation of that NPC has been suspended with <ref>setnpcusable</ref>. This is always true otherwise, even for NPC types which are not activatable.</description>
+			<seealso>
+				<ref>setnpcusable</ref>
+			</seealso>
+		</command>
+
+		<command id="npcextra">
+			<canon>NPC extra (who, which)</canon>
+			<shortname>NPC extra</shortname>
+			<description>Returns the npc instance-specific extra data field requested in <p>which</p>, a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them. If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
+			<seealso>
+				<ref>setnpcextra</ref>
+			</seealso>
+		</command>
+		<command id="setnpcextra">
+			<canon>set NPC extra (who, which, value)</canon>
+			<shortname>set NPC extra</shortname>
+			<description>Sets the npc instance-specific extra data field requested in <p>which</p>, a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them.  If you use an NPC ID for <p>who</p>, the first instance's data will be used.
+				<note>
+					Like other NPC instance data, the extra data for NPCs on the current map is not saved in save games!
+					However, it is saved in mapstate NPC saves (see <ref>savemapstate</ref>).
+				</note>
+			</description>
+			<seealso>
+				<ref>npcextra</ref>
+			</seealso>
+		</command>
+
+		</section>  <!-- NPC Data -->
+
+		<section title="NPC Definitions">
+		<description>
+			These are the only commands for inspecting or modifying NPC definitions/types.
+			All other commands act on single NPC instances (see <a href="#NPC Instance Data">NPC Instance Data</a>).
+		</description>
+
+		<command id="alternpc">
+			<canon>alter NPC (who, NPCstat, value, pool)</canon>
+			<shortname>alter NPC</shortname>
+			<description>
+				Changes the stats of an NPC type.
+				<tt>alter NPC</tt> can be used for many purposes.
+				The following constants for this command are available:
+				<lb/>
+				<ul>
+					<li>alter NPC (who,NPCstat:picture,picture number)</li>
+					<li>
+						alter NPC (who,NPCstat:palette,palette number)
+						<lb/>
+						Set the palette number to -1 to use the default palette.
+					</li>
+					<li>
+						alter NPC (who,NPCstat:move type,move type code)
+						<lb/>
+						Available move types:
+						<ul>
+							<li>NPCmovetype:standstill</li>
+							<li>NPCmovetype:wander</li>
+							<li>NPCmovetype:pace</li>
+							<li>NPCmovetype:rightturns</li>
+							<li>NPCmovetype:leftturns</li>
+							<li>NPCmovetype:randomturns</li>
+							<li>NPCmovetype:chaseyou (aka NPCmovetype:chaseyoumeandering)</li>
+							<li>NPCmovetype:chaseyoudirect</li>
+							<li>NPCmovetype:avoidyou (aka NPCmovetype:avoidyoumeandering)</li>
+							<li>NPCmovetype:avoidyoudirect</li>
+							<li>NPCmovetype:walkinplace</li>
+							<li>NPCmovetype:followwallsright</li>
+							<li>NPCmovetype:followwallsleft</li>
+							<li>NPCmovetype:followwallsrightstopsforothers</li>
+							<li>NPCmovetype:followwallsleftstopsforothers</li>
+							<li>NPCmovetype:chaseyoupathfinding</li>
+						</ul>
+					</li>
+					<li>alter NPC (who,NPCstat:move speed,speed)</li>
+					<li>alter NPC (who,NPCstat:display text,text box number)</li>
+					<li>
+						alter NPC (who,NPCstat:when activated,when activated code)
+						<lb/>
+						Available whenactivated codes:
+						<ul>
+							<li>NPCwhenactivated:changedirection</li>
+							<li>NPCwhenactivated:faceplayer</li>
+							<li>NPCwhenactivated:donotfaceplayer</li>
+						</ul>
+					</li>
+					<li>
+						alter NPC (who,NPCstat:give item,item number + 1)
+						... Note that the item number is offset + 1. A zero means no item.
+					</li>
+					<li>
+						alter NPC (who,NPCstat:pushability,pushability code)
+						<lb/>
+						Available pushability codes:
+						<ul>
+							<li>NPCpush:off</li>
+							<li>NPCpush:full</li>
+							<li>NPCpush:horizontal</li>
+							<li>NPCpush:vertical</li>
+							<li>NPCpush:uponly</li>
+							<li>NPCpush:rightonly</li>
+							<li>NPCpush:downonly</li>
+							<li>NPCpush:leftonly</li>
+						</ul>
+					</li>
+					<li>
+						alter NPC (who,NPCstat:activation,activation code)
+						<lb/>
+						Available activation codes:
+						<ul>
+							<li>NPCactivation:use</li>
+							<li>NPCactivation:touch</li>
+							<li>NPCactivation:stepon</li>
+						</ul>
+					</li>
+					<li>
+						alter NPC (who,NPCstat:onetime use flag,onetime flag ID)
+						<lb/>
+						The onetime flag (see <ref>checkonetime</ref>) is zero if the
+						NPC is usable repeatedly.
+					</li>
+					<li>
+						alter NPC (who,NPCstat:tag1,tag ID)
+					</li>
+					<li>
+						alter NPC (who,NPCstat:tag2,tag ID)
+						<lb/>
+						These are two tag conditions which both have to be true for the NPC
+						to appear. A tag ID of 0 means no check is done (the condition is true).
+						A positive condition means that tag needs to be ON, a negative means
+						that tag needs to be OFF.
+						For example, tag1 = -4 and tag2 = 0 means the NPC appears only when
+						tag 4 is OFF.
+					</li>
+					<li>alter NPC (who,NPCstat:script,script ID)</li>
+					<li>alter NPC (who,NPCstat:script argument,number)</li>
+					<li>alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
+					<li>alter NPC (who,NPCstat:default movement zone,zone ID)</li>
+					<li>alter NPC (who,NPCstat:default avoidance zone,zone ID)</li>
+					<li>
+						alter NPC (who,NPCstat:ignore passmap, true or false)
+						<lb/>
+						This is for the NPC editor setting, not the <ref>setnpcignoreswalls</ref> command.
+					</li>
+					<li>
+						alter NPC (who,NPCstat:pathfinding rule,rule)
+						<lb/>
+						The <tt>rule</tt> (see the F1 help page for the NPC editor for more info) is one of:
+						<ul>
+							<li>pathfinding:default</li>
+							<li>pathfinding:npcs obstruct</li>
+							<li>pathfinding:npcs ignored</li>
+						</ul>
+					</li>
+				</ul>
+				Normally you would only give an NPC ID number to alter NPC,
+				but if you want to use an <ref>npcref</ref> it will still work.
+				Just remember that alter NPC changes every copy of the NPC on the map,
+				not just the specific one you referenced.
+				<lb/>
+				The <p>pool</p> argument is an optional <ref>npcpool</ref>.
+				It cannot be used if you are specifying the NPC by reference, since then that NPC reference's
+				current npc pool will be used.
+				<lb/>
+				Changes to global npcs in <p>pool:global</p> will persist when you move to other maps,
+				regardless of whether the map is set to remember NPC data.
+				Those changes will be reset if you load a saved game or start a new game.
+				<lb/>
+				A good way to make use of <tt>alter NPC</tt> is to wrap it in your own script. For example:
+				<example># Example alter NPC wrapper for changing NPC appearance
+# Palette -1 means the default palette.
+plotscript, change NPC, who, picture, palette = -1, begin
+  alter NPC(who, NPCstat:picture, picture)
+  alter NPC(who, NPCstat:palette, palette)
+end</example>
+			</description>
+			<seealso>
+				<ref>setnpcusable</ref>
+				<ref>setnpcmoves</ref>
+				<ref>setnpcignoreswalls</ref>
+				<ref>setnpcobstructs</ref>
+			</seealso>
+		</command>
+		<command id="readnpc">
+			<canon>read NPC (who, NPCstat, pool)</canon>
+			<shortname>read NPC</shortname>
+			<description>Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <ref>alternpc</ref>.
+			<lb/>
+			The <p>pool</p> argument is an optional <ref>npcpool</ref>.
+			It is only allowed when you specify the NPC by ID number.
+			If you specify the NPC with an <ref>npcref</ref> then the pool is determined by the reference.
+			<note>If you use this command to read the give item number, the result is offset + 1. A zero means no item.</note></description>
+			<seealso>
+				<ref>alternpc</ref>
+			</seealso>
+		</command>
+
+		<command id="getnpcspeed">
+			<canon>get NPC speed (who)</canon>
+			<shortname>get NPC speed</shortname>
+			<description>
+				Returns the walking speed of the specified NPC (either NPC reference or ID number) in pixels per tick.
+				<lb/>
+				(This is just an alias for <ref>readnpc</ref><tt>(who, NPCstat:movespeed)</tt>).
+			</description>
+		</command>
+		<command id="setnpcspeed">
+			<canon>set NPC speed (who, speed)</canon>
+			<shortname>set NPC speed</shortname>
+			<description>
+				Changes the walking speed of the specified NPC.
+				<p>speed</p> defaults to 4.
+				Tiles are 20 pixels in size, and speeds that do not divide evenly or nearly
+				evenly into 20 will result in jerky movement.
+				So only use speeds 0, 1, 2, 3, 4, 5, 7, 10, or 20.
+				<lb/>
+				Normally you would only use an NPC ID number for <p>who</p>,
+				but if you want to use an <ref>npcreference</ref> it will still work.
+				Just remember that <tt>set NPC speed</tt> changes every copy of the NPC on the map,
+				not just the specific one you referenced.
+				<lb/>
+				(This is just an alias for <ref>alternpc</ref><tt>(who, NPCstat:movespeed, speed)</tt>).
+				<warn>
+					Don't set speed to zero while an NPC is moving,
+					it will cause the NPC to stop mid-step and become misaligned with the grid.
+					Get all instances of the NPC to stop first and wait for them,
+					or check with <ref>npciswalking</ref>.
+				</warn>
+			</description>
+		</command>
+
+		</section>		<!-- NPC Definitions-->
+
+	</section>  <!-- NPCs -->
 
 	<section title="The Camera">
 		<command id="camerapixelx">
@@ -3652,298 +3964,6 @@ end</example>
 		</section>		<!-- Out-of-battle Attacks-->
 
 	</section>
-
-	<section title="NPC Data">
-		<description>
-			This section contains commands for  for inspecting or modifying NPC definitions/types.
-			See the <a href="#NPC Instances">NPC Instances</a> section for moving, manipulating and inspecting NPCs on the map.
-		</description>
-
-		<command id="alternpc">
-			<canon>alter NPC (who, NPCstat, value, pool)</canon>
-			<shortname>alter NPC</shortname>
-			<description>
-				Changes the stats of an NPC type.
-				<tt>alter NPC</tt> can be used for many purposes.
-				The following constants for this command are available:
-				<lb/>
-				<ul>
-					<li>alter NPC (who,NPCstat:picture,picture number)</li>
-					<li>
-						alter NPC (who,NPCstat:palette,palette number)
-						<lb/>
-						Set the palette number to -1 to use the default palette.
-					</li>
-					<li>
-						alter NPC (who,NPCstat:move type,move type code)
-						<lb/>
-						Available move types:
-						<ul>
-							<li>NPCmovetype:standstill</li>
-							<li>NPCmovetype:wander</li>
-							<li>NPCmovetype:pace</li>
-							<li>NPCmovetype:rightturns</li>
-							<li>NPCmovetype:leftturns</li>
-							<li>NPCmovetype:randomturns</li>
-							<li>NPCmovetype:chaseyou (aka NPCmovetype:chaseyoumeandering)</li>
-							<li>NPCmovetype:chaseyoudirect</li>
-							<li>NPCmovetype:avoidyou (aka NPCmovetype:avoidyoumeandering)</li>
-							<li>NPCmovetype:avoidyoudirect</li>
-							<li>NPCmovetype:walkinplace</li>
-							<li>NPCmovetype:followwallsright</li>
-							<li>NPCmovetype:followwallsleft</li>
-							<li>NPCmovetype:followwallsrightstopsforothers</li>
-							<li>NPCmovetype:followwallsleftstopsforothers</li>
-							<li>NPCmovetype:chaseyoupathfinding</li>
-						</ul>
-					</li>
-					<li>alter NPC (who,NPCstat:move speed,speed)</li>
-					<li>alter NPC (who,NPCstat:display text,text box number)</li>
-					<li>
-						alter NPC (who,NPCstat:when activated,when activated code)
-						<lb/>
-						Available whenactivated codes:
-						<ul>
-							<li>NPCwhenactivated:changedirection</li>
-							<li>NPCwhenactivated:faceplayer</li>
-							<li>NPCwhenactivated:donotfaceplayer</li>
-						</ul>
-					</li>
-					<li>
-						alter NPC (who,NPCstat:give item,item number + 1)
-						... Note that the item number is offset + 1. A zero means no item.
-					</li>
-					<li>
-						alter NPC (who,NPCstat:pushability,pushability code)
-						<lb/>
-						Available pushability codes:
-						<ul>
-							<li>NPCpush:off</li>
-							<li>NPCpush:full</li>
-							<li>NPCpush:horizontal</li>
-							<li>NPCpush:vertical</li>
-							<li>NPCpush:uponly</li>
-							<li>NPCpush:rightonly</li>
-							<li>NPCpush:downonly</li>
-							<li>NPCpush:leftonly</li>
-						</ul>
-					</li>
-					<li>
-						alter NPC (who,NPCstat:activation,activation code)
-						<lb/>
-						Available activation codes:
-						<ul>
-							<li>NPCactivation:use</li>
-							<li>NPCactivation:touch</li>
-							<li>NPCactivation:stepon</li>
-						</ul>
-					</li>
-					<li>
-						alter NPC (who,NPCstat:onetime use flag,onetime flag ID)
-						<lb/>
-						The onetime flag (see <ref>checkonetime</ref>) is zero if the
-						NPC is usable repeatedly.
-					</li>
-					<li>
-						alter NPC (who,NPCstat:tag1,tag ID)
-					</li>
-					<li>
-						alter NPC (who,NPCstat:tag2,tag ID)
-						<lb/>
-						These are two tag conditions which both have to be true for the NPC
-						to appear. A tag ID of 0 means no check is done (the condition is true).
-						A positive condition means that tag needs to be ON, a negative means
-						that tag needs to be OFF.
-						For example, tag1 = -4 and tag2 = 0 means the NPC appears only when
-						tag 4 is OFF.
-					</li>
-					<li>alter NPC (who,NPCstat:script,script ID)</li>
-					<li>alter NPC (who,NPCstat:script argument,number)</li>
-					<li>alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
-					<li>alter NPC (who,NPCstat:default movement zone,zone ID)</li>
-					<li>alter NPC (who,NPCstat:default avoidance zone,zone ID)</li>
-					<li>
-						alter NPC (who,NPCstat:ignore passmap, true or false)
-						<lb/>
-						This is for the NPC editor setting, not the <ref>setnpcignoreswalls</ref> command.
-					</li>
-					<li>
-						alter NPC (who,NPCstat:pathfinding rule,rule)
-						<lb/>
-						The <tt>rule</tt> (see the F1 help page for the NPC editor for more info) is one of:
-						<ul>
-							<li>pathfinding:default</li>
-							<li>pathfinding:npcs obstruct</li>
-							<li>pathfinding:npcs ignored</li>
-						</ul>
-					</li>
-				</ul>
-				Normally you would only give an NPC ID number to alter NPC,
-				but if you want to use an <ref>npcref</ref> it will still work.
-				Just remember that alter NPC changes every copy of the NPC on the map,
-				not just the specific one you referenced.
-				<lb/>
-				The <p>pool</p> argument is an optional <ref>npcpool</ref>.
-				It cannot be used if you are specifying the NPC by reference, since then that NPC reference's
-				current npc pool will be used.
-				<lb/>
-				Changes to global npcs in <p>pool:global</p> will persist when you move to other maps,
-				regardless of whether the map is set to remember NPC data.
-				Those changes will be reset if you load a saved game or start a new game.
-				<lb/>
-				A good way to make use of <tt>alter NPC</tt> is to wrap it in your own script. For example:
-				<example># Example alter NPC wrapper for changing NPC appearance
-# Palette -1 means the default palette.
-plotscript, change NPC, who, picture, palette = -1, begin
-  alter NPC(who, NPCstat:picture, picture)
-  alter NPC(who, NPCstat:palette, palette)
-end</example>
-			</description>
-			<seealso>
-				<ref>setnpcusable</ref>
-				<ref>setnpcmoves</ref>
-				<ref>setnpcignoreswalls</ref>
-				<ref>setnpcobstructs</ref>
-			</seealso>
-		</command>
-		<command id="readnpc">
-			<canon>read NPC (who, NPCstat, pool)</canon>
-			<shortname>read NPC</shortname>
-			<description>Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <ref>alternpc</ref>.
-			<lb/>
-			The <p>pool</p> argument is an optional <ref>npcpool</ref>.
-			It is only allowed when you specify the NPC by ID number.
-			If you specify the NPC with an <ref>npcref</ref> then the pool is determined by the reference.
-			<note>If you use this command to read the give item number, the result is offset + 1. A zero means no item.</note></description>
-			<seealso>
-				<ref>alternpc</ref>
-			</seealso>
-		</command>
-		<command id="setnpcignoreswalls">
-			<canon>set NPC ignores walls (who, value)</canon>
-			<shortname>set NPC ignores walls</shortname>
-			<description>
-				Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used),
-				set whether that NPC can walk through walls, including off the edge of a map,
-				and violating its zone restrictions.
-				<p>value</p> should be true or false.
-				<lb/>
-				Turning this on doesn't let the NPC walk through the lead hero and other NPCs;
-				you need <ref>setnpcobstructs</ref> for that.
-				<lb/>
-				This command is just like <ref>suspendnpcwalls</ref>/<ref>resumenpcwalls</ref>,
-				but only affects a single npc.
-				<note>
-					Don't confuse this with <ref>alternpc</ref><tt>(who, NPCstat:ignore passmap, value)</tt>,
-					which sets whether an NPC ID can pass through walls on the wallmap,
-					but doesn't allow it to ignore zones or walk off the map.
-				</note>
-			</description>
-			<seealso>
-				<ref>getnpcignoreswalls</ref>
-				<ref>suspendnpcwalls</ref>
-				<ref>setnpcobstructs</ref>
-				<ref>alternpc</ref>
-			</seealso>
-		</command>
-		<command id="getnpcignoreswalls">
-			<canon>get NPC ignores walls (who)</canon>
-			<shortname>get NPC ignores walls</shortname>
-			<description>
-				Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used),
-				returns whether that NPC can walk through walls.
-				<note>
-					Don't confuse this with <ref>readnpc</ref><tt>(who, NPCstat:ignore passmap)</tt>,
-					which tells whether an NPC ID can pass through walls on the wallmap,
-					but doesn't allow it to ignore zones or walk off the map.
-				</note>
-			</description>
-			<seealso>
-				<ref>setnpcignoreswalls</ref>
-				<ref>readnpc</ref>
-			</seealso>
-		</command>
-		<command id="setnpcmoves">
-			<canon>set NPC moves (who, value)</canon>
-			<shortname>set NPC moves</shortname>
-			<description>
-				Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used),
-				set whether that NPC moves according to its move-type, or whether it stands still
-				and waits for you to control it with <ref>walknpc</ref>.
-				<lb/>
-				<p>value</p> should be true or false.
-				<lb/>
-				This command is just like <ref>suspendnpcs</ref>/<ref>resumenpcs</ref>,
-				but only affects a single npc.
-				<note>
-					If you set an NPC to not move by itself, it will still complete
-					its current step, moving the rest of the way to the next tile.
-				</note>
-			</description>
-			<seealso>
-				<ref>getnpcmoves</ref>
-				<ref>suspendnpcs</ref>
-				<ref>alternpc</ref>
-			</seealso>
-		</command>
-		<command id="getnpcmoves">
-			<canon>get NPC moves (who)</canon>
-			<shortname>get NPC moves</shortname>
-			<description>Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used), returns <ref>true</ref> or <ref>false</ref> indicating whether that NPC moves according to its move-type, or whether it is suspended. This is always true, even for "Stand Still" NPCs unless <ref>setnpcmoves</ref> has been used.</description>
-			<seealso>
-				<ref>setnpcmoves</ref>
-				<ref>readnpc</ref>
-			</seealso>
-		</command>
-		<command id="setnpcobstructs">
-			<canon>set NPC obstructs (who, value)</canon>
-			<shortname>set NPC obstructs</shortname>
-			<description>
-				Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used),
-				set whether the NPC should be an obstruction to heroes and other NPCs.
-				If set to false, the NPC can move through heroes and other NPCs and vice-versa.
-				Heroes can always pass through Step-on NPCs.
-				<p>value</p> should be true or false.
-				<lb/>
-				This command is almost like <ref>suspendobstruction</ref>/<ref>resumeobstruction</ref>,
-				but it only affects a single npc and it doesn't stop activation of step-on NPCs.
-
-				<lb/>
-				If you want to allow an NPC to walk through all obstacles, you also need
-				to use the <ref>setnpcignoreswalls</ref> command.
-			</description>
-			<seealso>
-				<ref>getnpcobstructs</ref>
-				<ref>suspendobstruction</ref>
-			</seealso>
-		</command>
-		<command id="getnpcobstructs">
-			<canon>get NPC obstructs (who)</canon>
-			<shortname>get NPC obstructs</shortname>
-			<description>Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used), returns false if that NPC's obstruction has been suspended with <ref>setnpcobstructs</ref> (and is always true otherwise).</description>
-			<seealso>
-				<ref>setnpcobstructs</ref>
-			</seealso>
-		</command>
-		<command id="setnpcusable">
-			<canon>set NPC usable (who, value)</canon>
-			<shortname>set NPC usable</shortname>
-			<description>Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used), set whether the NPC can be activated by the player as normal (as defined in the NPC ID data). <ref>usenpc</ref> will still work on the NPC. <p>value</p> should be true or false.</description>
-			<seealso>
-				<ref>getnpcusable</ref>
-				<ref>alternpc</ref>
-			</seealso>
-		</command>
-		<command id="getnpcusable">
-			<canon>get NPC usable (who)</canon>
-			<shortname>get NPC usable</shortname>
-			<description>Given an <ref>npcref</ref> or <ref>npcid</ref> (in which case the first NPC with that ID is used), returns false if normal activation of that NPC has been suspended with <ref>setnpcusable</ref>. This is always true otherwise, even for NPC types which are not activatable.</description>
-			<seealso>
-				<ref>setnpcusable</ref>
-			</seealso>
-		</command>
-	</section>		<!-- NPC Data-->
-
 
 	<section title="Enemy and Formation Functions">
 		<command id="getenemystat">

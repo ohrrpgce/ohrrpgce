@@ -259,8 +259,21 @@ function toggleContent(target) {
 		<ul></ul>
 </li>
 		<li>
-<a href="#NPC%20Instances">NPC Instances</a><br>
+<a href="#NPCs">NPCs</a><br>
+		<ul>
+		<li>
+<a href="#Moving%20and%20Positioning%20NPCs">Moving and Positioning NPCs</a><br>
 		<ul></ul>
+</li>
+		<li>
+<a href="#NPC%20Instance%20Data">NPC Instance Data</a><br>
+		<ul></ul>
+</li>
+		<li>
+<a href="#NPC%20Definitions">NPC Definitions</a><br>
+		<ul></ul>
+</li>
+</ul>
 </li>
 		<li>
 <a href="#The%20Camera">The Camera</a><br>
@@ -358,10 +371,6 @@ function toggleContent(target) {
 		<ul></ul>
 </li>
 </ul>
-</li>
-		<li>
-<a href="#NPC%20Data">NPC Data</a><br>
-		<ul></ul>
 </li>
 		<li>
 <a href="#Enemy%20and%20Formation%20Functions">Enemy and Formation Functions</a><br>
@@ -1111,7 +1120,7 @@ function toggleContent(target) {
 		<a href="#about-npcextra">NPC extra (who, which)</a><br>
 		<a href="#about-npcframe">NPC frame (who)</a><br>
 		<a href="#about-npcid">NPC IDs</a><br>
-		<a href="#about-npcischasing">npc is chasing (who)</a><br>
+		<a href="#about-npcischasing">NPC is chasing (who)</a><br>
 		<a href="#about-npcisdisabled">NPC is disabled (reference)</a><br>
 		<a href="#about-npciswalking">NPC is walking (who)</a><br>
 		<a href="#about-npcpixelx">NPC pixel X (who)</a><br>
@@ -1124,7 +1133,7 @@ function toggleContent(target) {
 		<a href="#about-npcwallsaresuspended">npc walls are suspended</a><br>
 		<a href="#about-npcx">NPC X (who)</a><br>
 		<a href="#about-npcy">NPC Y (who)</a><br>
-		<a href="#about-npcz">npc Z (who)</a><br>
+		<a href="#about-npcz">NPC Z (who)</a><br>
 		<a href="#about-numberfromstring">number from string (ID, default)</a><br>
 		<a href="#about-numericconstants">Numeric Constants</a><br>
 		<a href="#about-obstructionissuspended">obstruction is suspended</a><br>
@@ -1161,7 +1170,7 @@ function toggleContent(target) {
 		<a href="#about-putcamera">put camera (x,y)</a><br>
 		<a href="#about-puthero">put hero (who, x, y)</a><br>
 		<a href="#about-putmouse">put mouse (X, Y)</a><br>
-		<a href="#about-putnpc">put npc (who,x,y)</a><br>
+		<a href="#about-putnpc">put NPC (who,x,y)</a><br>
 		<a href="#about-putslice">put slice (handle, X, Y)</a><br>
 		<a href="#about-putslicescreen">put slice screen (handle, x, y)</a><br>
 		<a href="#about-putsprite">put sprite (handle, x, y)</a><br>
@@ -1354,7 +1363,7 @@ function toggleContent(target) {
 		<a href="#about-setnpcposition">set NPC position (who, X, Y)</a><br>
 		<a href="#about-setnpcspeed">set NPC speed (who, speed)</a><br>
 		<a href="#about-setnpcusable">set NPC usable (who, value)</a><br>
-		<a href="#about-setnpcz">set npc z (npc, z)</a><br>
+		<a href="#about-setnpcz">set NPC z (npc, z)</a><br>
 		<a href="#about-setonetime">set onetime (onetime,value)</a><br>
 		<a href="#about-setonkeypressscript">set on keypress script (id)</a><br>
 		<a href="#about-setopacity">set opacity (handle, percent)</a><br>
@@ -3505,7 +3514,7 @@ walk hero(who, hero direction(hero), 0)</pre>
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-herochasesnpc" class="ref">hero chases NPC</a>, </li>
-<li><a href="#about-npcischasing" class="ref">npc is chasing</a></li>
+<li><a href="#about-npcischasing" class="ref">NPC is chasing</a></li>
 </ul>
 </div>
 		</p>
@@ -3641,7 +3650,7 @@ resume player</pre>
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-setheroz" class="ref">set hero z</a>, </li>
-<li><a href="#about-npcz" class="ref">npc Z</a></li>
+<li><a href="#about-npcz" class="ref">NPC Z</a></li>
 </ul>
 </div>
 		</p>
@@ -3666,7 +3675,7 @@ resume player</pre>
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-heroz" class="ref">hero Z</a>, </li>
-<li><a href="#about-setnpcz" class="ref">set npc z</a></li>
+<li><a href="#about-setnpcz" class="ref">set NPC z</a></li>
 </ul>
 </div>
 		</p>
@@ -3916,45 +3925,18 @@ resume player</pre>
 		<hr>
 		</div>
 		<div class="section">
-<a name="NPC%20Instances"></a>
+<a name="NPCs"></a>
 		<h3>
-<span class="backlink"></span>NPC Instances</h3>
-		<a href="#Categories" class="backlink">[Back to top-level index]</a><p>
-			This section contains commands for moving, manipulating and inspecting NPCs on the map (NPC instances).
-			See the <a href="#NPC%20Data">NPC Data</a> section for inspecting or modifying NPC definitions/types.
-		</p>
-<div class="select-content-shown" id="NPC Instances-index">
-<button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul><div class="content-shown">
+<span class="backlink"></span>NPCs</h3>
+		<a href="#Categories" class="backlink">[Back to top-level index]</a><p></p>
+<div class="select-content-shown" id="NPCs-index">
+<button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul>
+<div class="content-shown">
 		<a href="#about-npcreference">NPC reference (ID, copy, allow disabled?, pool)</a><br>
 		<a href="#about-globalnpcreference">global NPC reference (ID, copy, allow disabled?)</a><br>
 		<a href="#about-nextnpcreference">next NPC reference (npcref)</a><br>
 		<a href="#about-npcatspot">NPC at spot (x, y, number)</a><br>
 		<a href="#about-npcatpixel">NPC at pixel (x, y, number)</a><br>
-		<a href="#about-walknpc">walk NPC (who, direction, distance)</a><br>
-		<a href="#about-setnpcdirection">set NPC direction (who, direction)</a><br>
-		<a href="#about-pathfindnpcto">pathfind NPC to (who, x, y, stuck ticks)</a><br>
-		<a href="#about-npcchasesnpc">NPC chases NPC (who, other who, stop when reached, stuck ticks)</a><br>
-		<a href="#about-npcischasing">npc is chasing (who)</a><br>
-		<a href="#about-cancelnpcwalk">cancel NPC walk (who)</a><br>
-		<a href="#about-npcdirection">NPC direction (who)</a><br>
-		<a href="#about-setnpcframe">set NPC frame (who, frame)</a><br>
-		<a href="#about-npcframe">NPC frame (who)</a><br>
-		<a href="#about-setnpcposition">set NPC position (who, X, Y)</a><br>
-		<a href="#about-putnpc">put npc (who,x,y)</a><br>
-		<a href="#about-npcx">NPC X (who)</a><br>
-		<a href="#about-npcy">NPC Y (who)</a><br>
-		<a href="#about-npcpixelx">NPC pixel X (who)</a><br>
-		<a href="#about-npcpixely">NPC pixel Y (who)</a><br>
-		<a href="#about-npcz">npc Z (who)</a><br>
-		<a href="#about-setnpcz">set npc z (npc, z)</a><br>
-		<a href="#about-walknpctox">walk NPC to X (who, X)</a><br>
-		<a href="#about-walknpctoy">walk NPC to Y (who, Y)</a><br>
-		<a href="#about-checknpcwall">check NPC wall (who, direction)</a><br>
-		<a href="#about-getnpcspeed">get NPC speed (who)</a><br>
-		<a href="#about-setnpcspeed">set NPC speed (who, speed)</a><br>
-		<a href="#about-npciswalking">NPC is walking (who)</a><br>
-		<a href="#about-npcextra">NPC extra (who, which)</a><br>
-		<a href="#about-setnpcextra">set NPC extra (who, which, value)</a><br>
 		<a href="#about-getnpcid">get NPC ID (reference)</a><br>
 		<a href="#about-getnpcpool">get NPC pool (reference)</a><br>
 		<a href="#about-npccopynumber">NPC copy number (reference)</a><br>
@@ -3965,7 +3947,61 @@ resume player</pre>
 		<a href="#about-destroynpc">destroy NPC (reference)</a><br>
 		<a href="#about-destroynpc">delete NPC (reference)</a><br>
 		<a href="#about-npcisdisabled">NPC is disabled (reference)</a><br>
-</div></ul>
+</div>
+		<li>
+<a href="#Moving%20and%20Positioning%20NPCs">Moving and Positioning NPCs</a><br>
+		<ul class="content-shown">
+		<a href="#about-walknpc">walk NPC (who, direction, distance)</a><br>
+		<a href="#about-walknpctox">walk NPC to X (who, X)</a><br>
+		<a href="#about-walknpctoy">walk NPC to Y (who, Y)</a><br>
+		<a href="#about-setnpcdirection">set NPC direction (who, direction)</a><br>
+		<a href="#about-npcdirection">NPC direction (who)</a><br>
+		<a href="#about-pathfindnpcto">pathfind NPC to (who, x, y, stuck ticks)</a><br>
+		<a href="#about-npcchasesnpc">NPC chases NPC (who, other who, stop when reached, stuck ticks)</a><br>
+		<a href="#about-npcischasing">NPC is chasing (who)</a><br>
+		<a href="#about-npciswalking">NPC is walking (who)</a><br>
+		<a href="#about-cancelnpcwalk">cancel NPC walk (who)</a><br>
+		<a href="#about-setnpcframe">set NPC frame (who, frame)</a><br>
+		<a href="#about-npcframe">NPC frame (who)</a><br>
+		<a href="#about-setnpcposition">set NPC position (who, X, Y)</a><br>
+		<a href="#about-putnpc">put NPC (who,x,y)</a><br>
+		<a href="#about-npcx">NPC X (who)</a><br>
+		<a href="#about-npcy">NPC Y (who)</a><br>
+		<a href="#about-npcpixelx">NPC pixel X (who)</a><br>
+		<a href="#about-npcpixely">NPC pixel Y (who)</a><br>
+		<a href="#about-npcz">NPC Z (who)</a><br>
+		<a href="#about-setnpcz">set NPC z (npc, z)</a><br>
+		<a href="#about-checknpcwall">check NPC wall (who, direction)</a><br>
+</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#NPC%20Instance%20Data">NPC Instance Data</a><br>
+		<ul class="content-shown">
+		<a href="#about-setnpcignoreswalls">set NPC ignores walls (who, value)</a><br>
+		<a href="#about-getnpcignoreswalls">get NPC ignores walls (who)</a><br>
+		<a href="#about-setnpcmoves">set NPC moves (who, value)</a><br>
+		<a href="#about-getnpcmoves">get NPC moves (who)</a><br>
+		<a href="#about-setnpcobstructs">set NPC obstructs (who, value)</a><br>
+		<a href="#about-getnpcobstructs">get NPC obstructs (who)</a><br>
+		<a href="#about-setnpcusable">set NPC usable (who, value)</a><br>
+		<a href="#about-getnpcusable">get NPC usable (who)</a><br>
+		<a href="#about-npcextra">NPC extra (who, which)</a><br>
+		<a href="#about-setnpcextra">set NPC extra (who, which, value)</a><br>
+</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#NPC%20Definitions">NPC Definitions</a><br>
+		<ul class="content-shown">
+		<a href="#about-alternpc">alter NPC (who, NPCstat, value, pool)</a><br>
+		<a href="#about-readnpc">read NPC (who, NPCstat, pool)</a><br>
+		<a href="#about-getnpcspeed">get NPC speed (who)</a><br>
+		<a href="#about-setnpcspeed">set NPC speed (who, speed)</a><br>
+</ul>
+<ul></ul>
+</li>
+</ul>
 </div>
 		<div class="command">
 			<a name="about-npcreference"></a>
@@ -4100,357 +4136,6 @@ while (npcref) do (
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-npcreference" class="ref">NPC reference</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-walknpc"></a>
-				<h4>walk NPC (who, direction, distance)</h4>
-<p>
-			Makes the specified NPC move in the specified direction for the specified number of tiles. The first argument tells who to move. You can use an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a>. The second argument is the direction. Use the constants: <a href="#about-north" class="ref">north</a>, <a href="#about-south" class="ref">south</a>, <a href="#about-east" class="ref">east</a>, <a href="#about-west" class="ref">west</a>, <a href="#about-up" class="ref">up</a>, <a href="#about-down" class="ref">down</a>, <a href="#about-left" class="ref">left</a>, or <a href="#about-right" class="ref">right</a>. The third argument is the number of tiles to move. If you leave out the third argument, the NPC will move one tile. If you use a negative number for walk distance, the npc will walk backwards. walk NPC is usually used with the <a href="#about-waitfornpc" class="ref">wait for NPC</a> command. You should normally use the <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> command before moving NPCs to prevent their automatic movements from interfering with your scripted movements.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-		<h4>wait for NPC (who)</h4>
-		<p><a href="#about-waitfornpc">Documented in the Wait Commands section.</a></p>
-		</div>
-		<div class="command">
-			<a name="about-setnpcdirection"></a>
-				<h4>set NPC direction (who, direction)</h4>
-<p>
-			Makes the specified NPC face in the specified direction. The following constants are available for direction: <a href="#about-north" class="ref">north</a>, <a href="#about-south" class="ref">south</a>, <a href="#about-east" class="ref">east</a>, <a href="#about-west" class="ref">west</a>, <a href="#about-up" class="ref">up</a>, <a href="#about-down" class="ref">down</a>, <a href="#about-left" class="ref">left</a>, or <a href="#about-right" class="ref">right</a>. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will turn.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-pathfindnpcto"></a>
-				<h4>pathfind NPC to (who, x, y, stuck ticks)</h4>
-<p>
-			Makes the specified NPC walk along the shortest path to the destination position. They will go around obstacles. If the destination cannot be reached at all, they will go to the closest reachable tile. The first argument <span class="param">who</span> is the NPC. You can use an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a>. The second argument is the destination <span class="param">x</span> tile coordinate. The third argument is the destination <span class="param">y</span> tile coordinate. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, an NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a> command. Be careful if you are using <a href="#about-waitfornpc" class="ref">wait for NPC</a> to wait for <a href="#about-pathfindnpcto" class="ref">pathfind NPC to</a> when no <span class="param">stuck ticks</span> timeout is used, since <a href="#about-waitfornpc" class="ref">wait for NPC</a> might wait forever if the NPC has no way to get to its destination.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a>, </li>
-<li>
-<a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a>, </li>
-<li><a href="#about-waitfornpc" class="ref">wait for NPC</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-npcchasesnpc"></a>
-				<h4>NPC chases NPC (who, other who, stop when reached, stuck ticks)</h4>
-<p>
-			Makes the specified NPC walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing NPC will go around obstacles. If the destination NPC cannot be reached at all, the chasing NPC will go to the closest reachable tile. The first argument <span class="param">who</span> is the NPC who will be chasing. The second argument <span class="param">other who</span> is the NPC to chase. You can use an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a>. The third argument <span class="param">stop when reached</span> can be true if you want the chasing NPC to stop after the first time it reaches the destination NPC. If omitted or false, the NPC will keep chasing even after it reaches a moving destination NPC. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, an NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a> command. Be careful if you are using <a href="#about-waitfornpc" class="ref">wait for NPC</a> to wait for <a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a> when no <span class="param">stuck ticks</span> timeout is used, since <a href="#about-waitfornpc" class="ref">wait for NPC</a> might wait forever if the NPC has no way to get to its destination.
-			<br>
-			If the destination NPC is deleted or disappears due to a tag condition, the chasing NPC stops.
-			
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-pathfindnpcto" class="ref">pathfind NPC to</a>, </li>
-<li>
-<a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a>, </li>
-<li><a href="#about-waitfornpc" class="ref">wait for NPC</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-npcischasing"></a>
-				<h4>npc is chasing (who)</h4>
-<p>
-			If the specified NPC is currently chasing another NPC from a previous call to <a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a> then return an <a href="#about-npcref" class="ref">NPC reference</a> to the target NPC. If the NPC is not currently chasing another NPC, returns false.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a>, </li>
-<li><a href="#about-heroischasing" class="ref">hero is chasing</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-cancelnpcwalk"></a>
-				<h4>cancel NPC walk (who)</h4>
-<p>
-			If the specified NPC is walking with a command like <a href="#about-walknpc" class="ref">walk NPC</a> or pathfinding with a command like <a href="#about-pathfindnpcto" class="ref">pathfind NPC to</a>, they will stop. They are allowed to finish their current step, so they will not end up misaligned with the tiles. This command has no effect on automatic NPC movement patterns, it only stops scripted movement.
-				<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">
-					If you want to stop an NPC immediately without letting them finish their
-					step, use <a href="#about-walknpc" class="ref">walk NPC</a> with a distance of zero tiles, like:
-					<pre>cancel NPC walk(npc)  # Cancel any pathfinding
-walk NPC(npc, NPC direction(npc), 0)</pre>
-					This will misalign the NPC with the tile grid, breaking movement and
-					wall and collision checking! You are responsible for realigning the NPC
-					afterwards somehow.
-				</div>
-			
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-pathfindnpcto" class="ref">pathfind NPC to</a>, </li>
-<li>
-<a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a>, </li>
-<li>
-<a href="#about-walknpc" class="ref">walk NPC</a>, </li>
-<li><a href="#about-cancelherowalk" class="ref">cancel hero walk</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-npcdirection"></a>
-				<h4>NPC direction (who)</h4>
-<p>
-			Returns the specified NPC's direction.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-setnpcframe"></a>
-				<h4>set NPC frame (who, frame)</h4>
-<p>
-			Sets the walking frame of the specified NPC to 0 or 1. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will change.
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-npcframe" class="ref">NPC frame</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-npcframe"></a>
-				<h4>NPC frame (who)</h4>
-<p>
-			Returns the walking frame (0 or 1) of the specified NPC.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-setnpcposition"></a>
-				<h4>set NPC position (who, X, Y)</h4>
-<p>
-			Instantly moves the specified NPC to an X,Y position on the map. The coordinates are in units of tiles. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will be moved.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-putnpc"></a>
-				<h4>put npc (who,x,y)</h4>
-<p>
-			Moves an NPC to a location on the map in pixels. The first argument is and <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number. The second and third arguments are the X,Y pixel position relative to the top left corner of the map. Be aware that using this command can mis-align your NPC with the tile-grid, preventing it from walking normally. To position the NPC by tile, use the <a href="#about-setnpcposition" class="ref">set NPC position</a> command.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-npcx"></a>
-				<h4>NPC X (who)</h4>
-<p>
-			Returns the specified NPC's X position in tiles. Note that an NPC's tile is the tile its top left corner is on.
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-npcatspot" class="ref">NPC at spot</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-npcy"></a>
-				<h4>NPC Y (who)</h4>
-<p>
-			Returns the specified NPC's Y position in tiles. Note that an NPC's tile is the tile its top left corner is on.
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-npcatspot" class="ref">NPC at spot</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-npcpixelx"></a>
-				<h4>NPC pixel X (who)</h4>
-<p>
-			Returns the NPC's X position on the map in pixels. The argument is an <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number. To find the NPC's position in tiles, use the <a href="#about-npcx" class="ref">NPC X</a> function instead.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-npcpixely"></a>
-				<h4>NPC pixel Y (who)</h4>
-<p>
-			Returns the NPC's Y position on the map in pixels. The argument is an <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number. To find the NPC's position in tiles, use the <a href="#about-npcy" class="ref">NPC Y</a> function instead.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-npcz"></a>
-				<h4>npc Z (who)</h4>
-<p>
-			Returns the specified NPC's Z position in pixels. The Z value is the number of pixels they are above the tile that they are 'standing' on, not including the map's foot offset. All NPCs normally have a Z value of 0 (even on maps with a foot offset) unless they are used as a vehicle which rises.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-setnpcz" class="ref">set npc z</a>, </li>
-<li><a href="#about-heroz" class="ref">hero Z</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-setnpcz"></a>
-				<h4>set npc z (npc, z)</h4>
-<p>
-			Sets the Z location of the specified NPC. The Z value is the number of pixels they are above the tile that they are 'standing' on. Useful for scripts where you want a NPC to jump or levitate. All NPCs normally have a Z value of 0 (even on maps with a foot offset) unless they are a vehicle which rises.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-npcz" class="ref">npc Z</a>, </li>
-<li><a href="#about-setheroz" class="ref">set hero z</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-walknpctox"></a>
-				<h4>walk NPC to X (who, X)</h4>
-<p>
-			Makes the specified NPC walk to a given X coordinate on the map. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will move.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-walknpctoy"></a>
-				<h4>walk NPC to Y (who, Y)</h4>
-<p>
-			Makes the specified NPC walk to a given Y coordinate on the map. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will move.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-checknpcwall"></a>
-				<h4>check NPC wall (who, direction)</h4>
-<p>
-			
-				Returns true if there is a wall blocking the NPC from moving in the specified direction.
-				No actual movement takes place.
-				It does not matter whether the NPC is set to ignore walls or ignore the passmap.
-				<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">
-					This command should only be used when the NPC is standing still and aligned with the tile grid.
-					You can use the <a href="#about-checkwallcollisionxy" class="ref">check wall collision x/y</a> commands for much
-					more flexible wall-checking, which works from any starting position on the map.
-				</div>
-			
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-getnpcspeed"></a>
-				<h4>get NPC speed (who)</h4>
-<p>
-			
-				Returns the walking speed of the specified NPC (either NPC reference or ID number) in pixels per tick.
-				<br>
-				(This is just an alias for <a href="#about-readnpc" class="ref">read NPC</a><span class="code">(who, NPCstat:movespeed)</span>).
-			
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-setnpcspeed"></a>
-				<h4>set NPC speed (who, speed)</h4>
-<p>
-			
-				Changes the walking speed of the specified NPC.
-				<span class="param">speed</span> defaults to 4.
-				Tiles are 20 pixels in size, and speeds that do not divide evenly or nearly
-				evenly into 20 will result in jerky movement.
-				So only use speeds 0, 1, 2, 3, 4, 5, 7, 10, or 20.
-				<br>
-				Normally you would only use an NPC ID number for <span class="param">who</span>,
-				but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work.
-				Just remember that <span class="code">set NPC speed</span> changes every copy of the NPC on the map,
-				not just the specific one you referenced.
-				<br>
-				(This is just an alias for <a href="#about-alternpc" class="ref">alter NPC</a><span class="code">(who, NPCstat:movespeed, speed)</span>).
-				<div class="notice warn">
-<img src="Plotwarn.png" alt="[Warning]" class="icon">
-					Don't set speed to zero while an NPC is moving,
-					it will cause the NPC to stop mid-step and become misaligned with the grid.
-					Get all instances of the NPC to stop first and wait for them,
-					or check with <a href="#about-npciswalking" class="ref">NPC is walking</a>.
-				</div>
-			
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-npciswalking"></a>
-				<h4>NPC is walking (who)</h4>
-<p>
-			Returns <a href="#about-true" class="ref">true</a> if the specified NPC is currently walking, or <a href="#about-false" class="ref">false</a> if standing still. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will be checked.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-npcextra"></a>
-				<h4>NPC extra (who, which)</h4>
-<p>
-			Returns the npc instance-specific extra data field requested in <span class="param">which</span>, a number from 0 to 2. You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them. If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-setnpcextra" class="ref">set NPC extra</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-setnpcextra"></a>
-				<h4>set NPC extra (who, which, value)</h4>
-<p>
-			Sets the npc instance-specific extra data field requested in <span class="param">which</span>, a number from 0 to 2. You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them.  If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.
-				<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">
-					Like other NPC instance data, the extra data for NPCs on the current map is not saved in save games!
-					However, it is saved in mapstate NPC saves (see <a href="#about-savemapstate" class="ref">save map state</a>).
-				</div>
-			
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-npcextra" class="ref">NPC extra</a></li></ul>
 </div>
 		</p>
 </div>
@@ -4649,6 +4334,733 @@ end</pre>
 				<h4>NPC is disabled (reference)</h4>
 <p>
 			This command returns true if the <a href="#about-npcref" class="ref">NPC reference</a> <span class="param">reference</span> points to an NPC who does not exist, or has been disabled because of tags or one-time-use.
+			
+			
+			
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="subsection">
+<a name="Moving%20and%20Positioning%20NPCs"></a>
+		<h3>
+<span class="backlink"><a href="#NPCs">NPCs</a> →
+			</span>Moving and Positioning NPCs</h3>
+		<p></p>
+<ul></ul>
+		<div class="command">
+			<a name="about-walknpc"></a>
+				<h4>walk NPC (who, direction, distance)</h4>
+<p>
+			Makes the specified NPC move in the specified direction for the specified number of tiles. The first argument tells who to move. You can use an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a>. The second argument is the direction. Use the constants: <a href="#about-north" class="ref">north</a>, <a href="#about-south" class="ref">south</a>, <a href="#about-east" class="ref">east</a>, <a href="#about-west" class="ref">west</a>, <a href="#about-up" class="ref">up</a>, <a href="#about-down" class="ref">down</a>, <a href="#about-left" class="ref">left</a>, or <a href="#about-right" class="ref">right</a>. The third argument is the number of tiles to move. If you leave out the third argument, the NPC will move one tile. If you use a negative number for walk distance, the npc will walk backwards. walk NPC is usually used with the <a href="#about-waitfornpc" class="ref">wait for NPC</a> command. You should normally use the <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> command before moving NPCs to prevent their automatic movements from interfering with your scripted movements.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-walknpctox"></a>
+				<h4>walk NPC to X (who, X)</h4>
+<p>
+			Makes the specified NPC walk to a given X coordinate on the map. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will move.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-walknpctoy"></a>
+				<h4>walk NPC to Y (who, Y)</h4>
+<p>
+			Makes the specified NPC walk to a given Y coordinate on the map. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will move.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+		<h4>wait for NPC (who)</h4>
+		<p><a href="#about-waitfornpc">Documented in the Wait Commands section.</a></p>
+		</div>
+		<div class="command">
+			<a name="about-setnpcdirection"></a>
+				<h4>set NPC direction (who, direction)</h4>
+<p>
+			Makes the specified NPC face in the specified direction. The following constants are available for direction: <a href="#about-north" class="ref">north</a>, <a href="#about-south" class="ref">south</a>, <a href="#about-east" class="ref">east</a>, <a href="#about-west" class="ref">west</a>, <a href="#about-up" class="ref">up</a>, <a href="#about-down" class="ref">down</a>, <a href="#about-left" class="ref">left</a>, or <a href="#about-right" class="ref">right</a>. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will turn.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-npcdirection"></a>
+				<h4>NPC direction (who)</h4>
+<p>
+			Returns the specified NPC's direction.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-pathfindnpcto"></a>
+				<h4>pathfind NPC to (who, x, y, stuck ticks)</h4>
+<p>
+			Makes the specified NPC walk along the shortest path to the destination position. They will go around obstacles. If the destination cannot be reached at all, they will go to the closest reachable tile. The first argument <span class="param">who</span> is the NPC. You can use an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a>. The second argument is the destination <span class="param">x</span> tile coordinate. The third argument is the destination <span class="param">y</span> tile coordinate. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, an NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a> command. Be careful if you are using <a href="#about-waitfornpc" class="ref">wait for NPC</a> to wait for <a href="#about-pathfindnpcto" class="ref">pathfind NPC to</a> when no <span class="param">stuck ticks</span> timeout is used, since <a href="#about-waitfornpc" class="ref">wait for NPC</a> might wait forever if the NPC has no way to get to its destination.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a>, </li>
+<li>
+<a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a>, </li>
+<li><a href="#about-waitfornpc" class="ref">wait for NPC</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-npcchasesnpc"></a>
+				<h4>NPC chases NPC (who, other who, stop when reached, stuck ticks)</h4>
+<p>
+			Makes the specified NPC walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing NPC will go around obstacles. If the destination NPC cannot be reached at all, the chasing NPC will go to the closest reachable tile. The first argument <span class="param">who</span> is the NPC who will be chasing. The second argument <span class="param">other who</span> is the NPC to chase. You can use an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a>. The third argument <span class="param">stop when reached</span> can be true if you want the chasing NPC to stop after the first time it reaches the destination NPC. If omitted or false, the NPC will keep chasing even after it reaches a moving destination NPC. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, an NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a> command. Be careful if you are using <a href="#about-waitfornpc" class="ref">wait for NPC</a> to wait for <a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a> when no <span class="param">stuck ticks</span> timeout is used, since <a href="#about-waitfornpc" class="ref">wait for NPC</a> might wait forever if the NPC has no way to get to its destination.
+			<br>
+			If the destination NPC is deleted or disappears due to a tag condition, the chasing NPC stops.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-pathfindnpcto" class="ref">pathfind NPC to</a>, </li>
+<li>
+<a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a>, </li>
+<li><a href="#about-waitfornpc" class="ref">wait for NPC</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-npcischasing"></a>
+				<h4>NPC is chasing (who)</h4>
+<p>
+			If the specified NPC is currently chasing another NPC from a previous call to <a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a> then return an <a href="#about-npcref" class="ref">NPC reference</a> to the target NPC. If the NPC is not currently chasing another NPC, returns false.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a>, </li>
+<li><a href="#about-heroischasing" class="ref">hero is chasing</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-npciswalking"></a>
+				<h4>NPC is walking (who)</h4>
+<p>
+			Returns <a href="#about-true" class="ref">true</a> if the specified NPC is currently walking, or <a href="#about-false" class="ref">false</a> if standing still. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will be checked.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-cancelnpcwalk"></a>
+				<h4>cancel NPC walk (who)</h4>
+<p>
+			If the specified NPC is walking with a command like <a href="#about-walknpc" class="ref">walk NPC</a> or pathfinding with a command like <a href="#about-pathfindnpcto" class="ref">pathfind NPC to</a>, they will stop. They are allowed to finish their current step, so they will not end up misaligned with the tiles. This command has no effect on automatic NPC movement patterns, it only stops scripted movement.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					If you want to stop an NPC immediately without letting them finish their
+					step, use <a href="#about-walknpc" class="ref">walk NPC</a> with a distance of zero tiles, like:
+					<pre>cancel NPC walk(npc)  # Cancel any pathfinding
+walk NPC(npc, NPC direction(npc), 0)</pre>
+					This will misalign the NPC with the tile grid, breaking movement and
+					wall and collision checking! You are responsible for realigning the NPC
+					afterwards somehow.
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-pathfindnpcto" class="ref">pathfind NPC to</a>, </li>
+<li>
+<a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a>, </li>
+<li>
+<a href="#about-walknpc" class="ref">walk NPC</a>, </li>
+<li><a href="#about-cancelherowalk" class="ref">cancel hero walk</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setnpcframe"></a>
+				<h4>set NPC frame (who, frame)</h4>
+<p>
+			Sets the walking frame of the specified NPC to 0 or 1. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will change.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-npcframe" class="ref">NPC frame</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-npcframe"></a>
+				<h4>NPC frame (who)</h4>
+<p>
+			Returns the walking frame (0 or 1) of the specified NPC.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setnpcposition"></a>
+				<h4>set NPC position (who, X, Y)</h4>
+<p>
+			Instantly moves the specified NPC to an X,Y position on the map. The coordinates are in units of tiles. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will be moved.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-putnpc"></a>
+				<h4>put NPC (who,x,y)</h4>
+<p>
+			Moves an NPC to a location on the map in pixels. The first argument is and <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number. The second and third arguments are the X,Y pixel position relative to the top left corner of the map. Be aware that using this command can mis-align your NPC with the tile-grid, preventing it from walking normally. To position the NPC by tile, use the <a href="#about-setnpcposition" class="ref">set NPC position</a> command.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-npcx"></a>
+				<h4>NPC X (who)</h4>
+<p>
+			Returns the specified NPC's X position in tiles. Note that an NPC's tile is the tile its top left corner is on.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-npcatspot" class="ref">NPC at spot</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-npcy"></a>
+				<h4>NPC Y (who)</h4>
+<p>
+			Returns the specified NPC's Y position in tiles. Note that an NPC's tile is the tile its top left corner is on.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-npcatspot" class="ref">NPC at spot</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-npcpixelx"></a>
+				<h4>NPC pixel X (who)</h4>
+<p>
+			Returns the NPC's X position on the map in pixels. The argument is an <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number. To find the NPC's position in tiles, use the <a href="#about-npcx" class="ref">NPC X</a> function instead.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-npcpixely"></a>
+				<h4>NPC pixel Y (who)</h4>
+<p>
+			Returns the NPC's Y position on the map in pixels. The argument is an <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number. To find the NPC's position in tiles, use the <a href="#about-npcy" class="ref">NPC Y</a> function instead.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-npcz"></a>
+				<h4>NPC Z (who)</h4>
+<p>
+			Returns the specified NPC's Z position in pixels. The Z value is the number of pixels they are above the tile that they are 'standing' on, not including the map's foot offset. All NPCs normally have a Z value of 0 (even on maps with a foot offset) unless they are used as a vehicle which rises.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setnpcz" class="ref">set NPC z</a>, </li>
+<li><a href="#about-heroz" class="ref">hero Z</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setnpcz"></a>
+				<h4>set NPC z (npc, z)</h4>
+<p>
+			Sets the Z location of the specified NPC. The Z value is the number of pixels they are above the tile that they are 'standing' on. Useful for scripts where you want a NPC to jump or levitate. All NPCs normally have a Z value of 0 (even on maps with a foot offset) unless they are a vehicle which rises.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-npcz" class="ref">NPC Z</a>, </li>
+<li><a href="#about-setheroz" class="ref">set hero z</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-checknpcwall"></a>
+				<h4>check NPC wall (who, direction)</h4>
+<p>
+			
+				Returns true if there is a wall blocking the NPC from moving in the specified direction.
+				No actual movement takes place.
+				It does not matter whether the NPC is set to ignore walls or ignore the passmap.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					This command should only be used when the NPC is standing still and aligned with the tile grid.
+					You can use the <a href="#about-checkwallcollisionxy" class="ref">check wall collision x/y</a> commands for much
+					more flexible wall-checking, which works from any starting position on the map.
+				</div>
+			
+			
+			
+			
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="subsection">
+<a name="NPC%20Instance%20Data"></a>
+		<h3>
+<span class="backlink"><a href="#NPCs">NPCs</a> →
+			</span>NPC Instance Data</h3>
+		<p>
+			This section contains commands for getting and setting properties of individual NPC instances.
+			See <a href="#NPC%20Definitions">NPC Definitions</a> for inspecting or modifying NPC definitions/types.
+		</p>
+<ul></ul>
+		<div class="command">
+			<a name="about-setnpcignoreswalls"></a>
+				<h4>set NPC ignores walls (who, value)</h4>
+<p>
+			
+				Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used),
+				set whether that NPC can walk through walls, including off the edge of a map,
+				and violating its zone restrictions.
+				<span class="param">value</span> should be true or false.
+				<br>
+				Turning this on doesn't let the NPC walk through the lead hero and other NPCs;
+				you need <a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a> for that.
+				<br>
+				This command is just like <a href="#about-suspendnpcwalls" class="ref">suspend NPC walls</a>/<a href="#about-resumenpcwalls" class="ref">resume NPC walls</a>,
+				but only affects a single npc.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Don't confuse this with <a href="#about-alternpc" class="ref">alter NPC</a><span class="code">(who, NPCstat:ignore passmap, value)</span>,
+					which sets whether an NPC ID can pass through walls on the wallmap,
+					but doesn't allow it to ignore zones or walk off the map.
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getnpcignoreswalls" class="ref">get NPC ignores walls</a>, </li>
+<li>
+<a href="#about-suspendnpcwalls" class="ref">suspend NPC walls</a>, </li>
+<li>
+<a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a>, </li>
+<li><a href="#about-alternpc" class="ref">alter NPC</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getnpcignoreswalls"></a>
+				<h4>get NPC ignores walls (who)</h4>
+<p>
+			
+				Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used),
+				returns whether that NPC can walk through walls.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Don't confuse this with <a href="#about-readnpc" class="ref">read NPC</a><span class="code">(who, NPCstat:ignore passmap)</span>,
+					which tells whether an NPC ID can pass through walls on the wallmap,
+					but doesn't allow it to ignore zones or walk off the map.
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a>, </li>
+<li><a href="#about-readnpc" class="ref">read NPC</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setnpcmoves"></a>
+				<h4>set NPC moves (who, value)</h4>
+<p>
+			
+				Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used),
+				set whether that NPC moves according to its move-type, or whether it stands still
+				and waits for you to control it with <a href="#about-walknpc" class="ref">walk NPC</a>.
+				<br>
+				<span class="param">value</span> should be true or false.
+				<br>
+				This command is just like <a href="#about-suspendnpcs" class="ref">suspend NPCs</a>/<a href="#about-resumenpcs" class="ref">resume NPCs</a>,
+				but only affects a single npc.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					If you set an NPC to not move by itself, it will still complete
+					its current step, moving the rest of the way to the next tile.
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getnpcmoves" class="ref">get NPC moves</a>, </li>
+<li>
+<a href="#about-suspendnpcs" class="ref">suspend NPCs</a>, </li>
+<li><a href="#about-alternpc" class="ref">alter NPC</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getnpcmoves"></a>
+				<h4>get NPC moves (who)</h4>
+<p>
+			Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used), returns <a href="#about-true" class="ref">true</a> or <a href="#about-false" class="ref">false</a> indicating whether that NPC moves according to its move-type, or whether it is suspended. This is always true, even for "Stand Still" NPCs unless <a href="#about-setnpcmoves" class="ref">set NPC moves</a> has been used.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setnpcmoves" class="ref">set NPC moves</a>, </li>
+<li><a href="#about-readnpc" class="ref">read NPC</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setnpcobstructs"></a>
+				<h4>set NPC obstructs (who, value)</h4>
+<p>
+			
+				Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used),
+				set whether the NPC should be an obstruction to heroes and other NPCs.
+				If set to false, the NPC can move through heroes and other NPCs and vice-versa.
+				Heroes can always pass through Step-on NPCs.
+				<span class="param">value</span> should be true or false.
+				<br>
+				This command is almost like <a href="#about-suspendobstruction" class="ref">suspend obstruction</a>/<a href="#about-resumeobstruction" class="ref">resume obstruction</a>,
+				but it only affects a single npc and it doesn't stop activation of step-on NPCs.
+
+				<br>
+				If you want to allow an NPC to walk through all obstacles, you also need
+				to use the <a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a> command.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getnpcobstructs" class="ref">get NPC obstructs</a>, </li>
+<li><a href="#about-suspendobstruction" class="ref">suspend obstruction</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getnpcobstructs"></a>
+				<h4>get NPC obstructs (who)</h4>
+<p>
+			Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used), returns false if that NPC's obstruction has been suspended with <a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a> (and is always true otherwise).
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setnpcusable"></a>
+				<h4>set NPC usable (who, value)</h4>
+<p>
+			Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used), set whether the NPC can be activated by the player as normal (as defined in the NPC ID data). <a href="#about-usenpc" class="ref">use NPC</a> will still work on the NPC. <span class="param">value</span> should be true or false.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getnpcusable" class="ref">get NPC usable</a>, </li>
+<li><a href="#about-alternpc" class="ref">alter NPC</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getnpcusable"></a>
+				<h4>get NPC usable (who)</h4>
+<p>
+			Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used), returns false if normal activation of that NPC has been suspended with <a href="#about-setnpcusable" class="ref">set NPC usable</a>. This is always true otherwise, even for NPC types which are not activatable.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-setnpcusable" class="ref">set NPC usable</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-npcextra"></a>
+				<h4>NPC extra (who, which)</h4>
+<p>
+			Returns the npc instance-specific extra data field requested in <span class="param">which</span>, a number from 0 to 2. You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them. If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-setnpcextra" class="ref">set NPC extra</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setnpcextra"></a>
+				<h4>set NPC extra (who, which, value)</h4>
+<p>
+			Sets the npc instance-specific extra data field requested in <span class="param">which</span>, a number from 0 to 2. You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them.  If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Like other NPC instance data, the extra data for NPCs on the current map is not saved in save games!
+					However, it is saved in mapstate NPC saves (see <a href="#about-savemapstate" class="ref">save map state</a>).
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-npcextra" class="ref">NPC extra</a></li></ul>
+</div>
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="subsection">
+<a name="NPC%20Definitions"></a>
+		<h3>
+<span class="backlink"><a href="#NPCs">NPCs</a> →
+			</span>NPC Definitions</h3>
+		<p>
+			These are the only commands for inspecting or modifying NPC definitions/types.
+			All other commands act on single NPC instances (see <a href="#NPC%20Instance%20Data">NPC Instance Data</a>).
+		</p>
+<ul></ul>
+		<div class="command">
+			<a name="about-alternpc"></a>
+				<h4>alter NPC (who, NPCstat, value, pool)</h4>
+<p>
+			
+				Changes the stats of an NPC type.
+				<span class="code">alter NPC</span> can be used for many purposes.
+				The following constants for this command are available:
+				<br>
+				<ul>
+					<li>alter NPC (who,NPCstat:picture,picture number)</li>
+					<li>
+						alter NPC (who,NPCstat:palette,palette number)
+						<br>
+						Set the palette number to -1 to use the default palette.
+					</li>
+					<li>
+						alter NPC (who,NPCstat:move type,move type code)
+						<br>
+						Available move types:
+						<ul>
+							<li>NPCmovetype:standstill</li>
+							<li>NPCmovetype:wander</li>
+							<li>NPCmovetype:pace</li>
+							<li>NPCmovetype:rightturns</li>
+							<li>NPCmovetype:leftturns</li>
+							<li>NPCmovetype:randomturns</li>
+							<li>NPCmovetype:chaseyou (aka NPCmovetype:chaseyoumeandering)</li>
+							<li>NPCmovetype:chaseyoudirect</li>
+							<li>NPCmovetype:avoidyou (aka NPCmovetype:avoidyoumeandering)</li>
+							<li>NPCmovetype:avoidyoudirect</li>
+							<li>NPCmovetype:walkinplace</li>
+							<li>NPCmovetype:followwallsright</li>
+							<li>NPCmovetype:followwallsleft</li>
+							<li>NPCmovetype:followwallsrightstopsforothers</li>
+							<li>NPCmovetype:followwallsleftstopsforothers</li>
+							<li>NPCmovetype:chaseyoupathfinding</li>
+						</ul>
+					</li>
+					<li>alter NPC (who,NPCstat:move speed,speed)</li>
+					<li>alter NPC (who,NPCstat:display text,text box number)</li>
+					<li>
+						alter NPC (who,NPCstat:when activated,when activated code)
+						<br>
+						Available whenactivated codes:
+						<ul>
+							<li>NPCwhenactivated:changedirection</li>
+							<li>NPCwhenactivated:faceplayer</li>
+							<li>NPCwhenactivated:donotfaceplayer</li>
+						</ul>
+					</li>
+					<li>
+						alter NPC (who,NPCstat:give item,item number + 1)
+						... Note that the item number is offset + 1. A zero means no item.
+					</li>
+					<li>
+						alter NPC (who,NPCstat:pushability,pushability code)
+						<br>
+						Available pushability codes:
+						<ul>
+							<li>NPCpush:off</li>
+							<li>NPCpush:full</li>
+							<li>NPCpush:horizontal</li>
+							<li>NPCpush:vertical</li>
+							<li>NPCpush:uponly</li>
+							<li>NPCpush:rightonly</li>
+							<li>NPCpush:downonly</li>
+							<li>NPCpush:leftonly</li>
+						</ul>
+					</li>
+					<li>
+						alter NPC (who,NPCstat:activation,activation code)
+						<br>
+						Available activation codes:
+						<ul>
+							<li>NPCactivation:use</li>
+							<li>NPCactivation:touch</li>
+							<li>NPCactivation:stepon</li>
+						</ul>
+					</li>
+					<li>
+						alter NPC (who,NPCstat:onetime use flag,onetime flag ID)
+						<br>
+						The onetime flag (see <a href="#about-checkonetime" class="ref">check onetime</a>) is zero if the
+						NPC is usable repeatedly.
+					</li>
+					<li>
+						alter NPC (who,NPCstat:tag1,tag ID)
+					</li>
+					<li>
+						alter NPC (who,NPCstat:tag2,tag ID)
+						<br>
+						These are two tag conditions which both have to be true for the NPC
+						to appear. A tag ID of 0 means no check is done (the condition is true).
+						A positive condition means that tag needs to be ON, a negative means
+						that tag needs to be OFF.
+						For example, tag1 = -4 and tag2 = 0 means the NPC appears only when
+						tag 4 is OFF.
+					</li>
+					<li>alter NPC (who,NPCstat:script,script ID)</li>
+					<li>alter NPC (who,NPCstat:script argument,number)</li>
+					<li>alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
+					<li>alter NPC (who,NPCstat:default movement zone,zone ID)</li>
+					<li>alter NPC (who,NPCstat:default avoidance zone,zone ID)</li>
+					<li>
+						alter NPC (who,NPCstat:ignore passmap, true or false)
+						<br>
+						This is for the NPC editor setting, not the <a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a> command.
+					</li>
+					<li>
+						alter NPC (who,NPCstat:pathfinding rule,rule)
+						<br>
+						The <span class="code">rule</span> (see the F1 help page for the NPC editor for more info) is one of:
+						<ul>
+							<li>pathfinding:default</li>
+							<li>pathfinding:npcs obstruct</li>
+							<li>pathfinding:npcs ignored</li>
+						</ul>
+					</li>
+				</ul>
+				Normally you would only give an NPC ID number to alter NPC,
+				but if you want to use an <a href="#about-npcref" class="ref">NPC reference</a> it will still work.
+				Just remember that alter NPC changes every copy of the NPC on the map,
+				not just the specific one you referenced.
+				<br>
+				The <span class="param">pool</span> argument is an optional <a href="#about-npcpool" class="ref">NPC pool</a>.
+				It cannot be used if you are specifying the NPC by reference, since then that NPC reference's
+				current npc pool will be used.
+				<br>
+				Changes to global npcs in <span class="param">pool:global</span> will persist when you move to other maps,
+				regardless of whether the map is set to remember NPC data.
+				Those changes will be reset if you load a saved game or start a new game.
+				<br>
+				A good way to make use of <span class="code">alter NPC</span> is to wrap it in your own script. For example:
+				<pre># Example alter NPC wrapper for changing NPC appearance
+# Palette -1 means the default palette.
+plotscript, change NPC, who, picture, palette = -1, begin
+  alter NPC(who, NPCstat:picture, picture)
+  alter NPC(who, NPCstat:palette, palette)
+end</pre>
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setnpcusable" class="ref">set NPC usable</a>, </li>
+<li>
+<a href="#about-setnpcmoves" class="ref">set NPC moves</a>, </li>
+<li>
+<a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a>, </li>
+<li><a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-readnpc"></a>
+				<h4>read NPC (who, NPCstat, pool)</h4>
+<p>
+			Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <a href="#about-alternpc" class="ref">alter NPC</a>.
+			<br>
+			The <span class="param">pool</span> argument is an optional <a href="#about-npcpool" class="ref">NPC pool</a>.
+			It is only allowed when you specify the NPC by ID number.
+			If you specify the NPC with an <a href="#about-npcref" class="ref">NPC reference</a> then the pool is determined by the reference.
+			<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">If you use this command to read the give item number, the result is offset + 1. A zero means no item.</div>
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-alternpc" class="ref">alter NPC</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getnpcspeed"></a>
+				<h4>get NPC speed (who)</h4>
+<p>
+			
+				Returns the walking speed of the specified NPC (either NPC reference or ID number) in pixels per tick.
+				<br>
+				(This is just an alias for <a href="#about-readnpc" class="ref">read NPC</a><span class="code">(who, NPCstat:movespeed)</span>).
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setnpcspeed"></a>
+				<h4>set NPC speed (who, speed)</h4>
+<p>
+			
+				Changes the walking speed of the specified NPC.
+				<span class="param">speed</span> defaults to 4.
+				Tiles are 20 pixels in size, and speeds that do not divide evenly or nearly
+				evenly into 20 will result in jerky movement.
+				So only use speeds 0, 1, 2, 3, 4, 5, 7, 10, or 20.
+				<br>
+				Normally you would only use an NPC ID number for <span class="param">who</span>,
+				but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work.
+				Just remember that <span class="code">set NPC speed</span> changes every copy of the NPC on the map,
+				not just the specific one you referenced.
+				<br>
+				(This is just an alias for <a href="#about-alternpc" class="ref">alter NPC</a><span class="code">(who, NPCstat:movespeed, speed)</span>).
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					Don't set speed to zero while an NPC is moving,
+					it will cause the NPC to stop mid-step and become misaligned with the grid.
+					Get all instances of the NPC to stop first and wait for them,
+					or check with <a href="#about-npciswalking" class="ref">NPC is walking</a>.
+				</div>
+			
 			
 			
 			
@@ -7492,373 +7904,6 @@ end</pre>
 		<hr>
 		</div>
 		<div class="section">
-<a name="NPC%20Data"></a>
-		<h3>
-<span class="backlink"></span>NPC Data</h3>
-		<a href="#Categories" class="backlink">[Back to top-level index]</a><p>
-			This section contains commands for  for inspecting or modifying NPC definitions/types.
-			See the <a href="#NPC%20Instances">NPC Instances</a> section for moving, manipulating and inspecting NPCs on the map.
-		</p>
-<div class="select-content-shown" id="NPC Data-index">
-<button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul><div class="content-shown">
-		<a href="#about-alternpc">alter NPC (who, NPCstat, value, pool)</a><br>
-		<a href="#about-readnpc">read NPC (who, NPCstat, pool)</a><br>
-		<a href="#about-setnpcignoreswalls">set NPC ignores walls (who, value)</a><br>
-		<a href="#about-getnpcignoreswalls">get NPC ignores walls (who)</a><br>
-		<a href="#about-setnpcmoves">set NPC moves (who, value)</a><br>
-		<a href="#about-getnpcmoves">get NPC moves (who)</a><br>
-		<a href="#about-setnpcobstructs">set NPC obstructs (who, value)</a><br>
-		<a href="#about-getnpcobstructs">get NPC obstructs (who)</a><br>
-		<a href="#about-setnpcusable">set NPC usable (who, value)</a><br>
-		<a href="#about-getnpcusable">get NPC usable (who)</a><br>
-</div></ul>
-</div>
-		<div class="command">
-			<a name="about-alternpc"></a>
-				<h4>alter NPC (who, NPCstat, value, pool)</h4>
-<p>
-			
-				Changes the stats of an NPC type.
-				<span class="code">alter NPC</span> can be used for many purposes.
-				The following constants for this command are available:
-				<br>
-				<ul>
-					<li>alter NPC (who,NPCstat:picture,picture number)</li>
-					<li>
-						alter NPC (who,NPCstat:palette,palette number)
-						<br>
-						Set the palette number to -1 to use the default palette.
-					</li>
-					<li>
-						alter NPC (who,NPCstat:move type,move type code)
-						<br>
-						Available move types:
-						<ul>
-							<li>NPCmovetype:standstill</li>
-							<li>NPCmovetype:wander</li>
-							<li>NPCmovetype:pace</li>
-							<li>NPCmovetype:rightturns</li>
-							<li>NPCmovetype:leftturns</li>
-							<li>NPCmovetype:randomturns</li>
-							<li>NPCmovetype:chaseyou (aka NPCmovetype:chaseyoumeandering)</li>
-							<li>NPCmovetype:chaseyoudirect</li>
-							<li>NPCmovetype:avoidyou (aka NPCmovetype:avoidyoumeandering)</li>
-							<li>NPCmovetype:avoidyoudirect</li>
-							<li>NPCmovetype:walkinplace</li>
-							<li>NPCmovetype:followwallsright</li>
-							<li>NPCmovetype:followwallsleft</li>
-							<li>NPCmovetype:followwallsrightstopsforothers</li>
-							<li>NPCmovetype:followwallsleftstopsforothers</li>
-							<li>NPCmovetype:chaseyoupathfinding</li>
-						</ul>
-					</li>
-					<li>alter NPC (who,NPCstat:move speed,speed)</li>
-					<li>alter NPC (who,NPCstat:display text,text box number)</li>
-					<li>
-						alter NPC (who,NPCstat:when activated,when activated code)
-						<br>
-						Available whenactivated codes:
-						<ul>
-							<li>NPCwhenactivated:changedirection</li>
-							<li>NPCwhenactivated:faceplayer</li>
-							<li>NPCwhenactivated:donotfaceplayer</li>
-						</ul>
-					</li>
-					<li>
-						alter NPC (who,NPCstat:give item,item number + 1)
-						... Note that the item number is offset + 1. A zero means no item.
-					</li>
-					<li>
-						alter NPC (who,NPCstat:pushability,pushability code)
-						<br>
-						Available pushability codes:
-						<ul>
-							<li>NPCpush:off</li>
-							<li>NPCpush:full</li>
-							<li>NPCpush:horizontal</li>
-							<li>NPCpush:vertical</li>
-							<li>NPCpush:uponly</li>
-							<li>NPCpush:rightonly</li>
-							<li>NPCpush:downonly</li>
-							<li>NPCpush:leftonly</li>
-						</ul>
-					</li>
-					<li>
-						alter NPC (who,NPCstat:activation,activation code)
-						<br>
-						Available activation codes:
-						<ul>
-							<li>NPCactivation:use</li>
-							<li>NPCactivation:touch</li>
-							<li>NPCactivation:stepon</li>
-						</ul>
-					</li>
-					<li>
-						alter NPC (who,NPCstat:onetime use flag,onetime flag ID)
-						<br>
-						The onetime flag (see <a href="#about-checkonetime" class="ref">check onetime</a>) is zero if the
-						NPC is usable repeatedly.
-					</li>
-					<li>
-						alter NPC (who,NPCstat:tag1,tag ID)
-					</li>
-					<li>
-						alter NPC (who,NPCstat:tag2,tag ID)
-						<br>
-						These are two tag conditions which both have to be true for the NPC
-						to appear. A tag ID of 0 means no check is done (the condition is true).
-						A positive condition means that tag needs to be ON, a negative means
-						that tag needs to be OFF.
-						For example, tag1 = -4 and tag2 = 0 means the NPC appears only when
-						tag 4 is OFF.
-					</li>
-					<li>alter NPC (who,NPCstat:script,script ID)</li>
-					<li>alter NPC (who,NPCstat:script argument,number)</li>
-					<li>alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
-					<li>alter NPC (who,NPCstat:default movement zone,zone ID)</li>
-					<li>alter NPC (who,NPCstat:default avoidance zone,zone ID)</li>
-					<li>
-						alter NPC (who,NPCstat:ignore passmap, true or false)
-						<br>
-						This is for the NPC editor setting, not the <a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a> command.
-					</li>
-					<li>
-						alter NPC (who,NPCstat:pathfinding rule,rule)
-						<br>
-						The <span class="code">rule</span> (see the F1 help page for the NPC editor for more info) is one of:
-						<ul>
-							<li>pathfinding:default</li>
-							<li>pathfinding:npcs obstruct</li>
-							<li>pathfinding:npcs ignored</li>
-						</ul>
-					</li>
-				</ul>
-				Normally you would only give an NPC ID number to alter NPC,
-				but if you want to use an <a href="#about-npcref" class="ref">NPC reference</a> it will still work.
-				Just remember that alter NPC changes every copy of the NPC on the map,
-				not just the specific one you referenced.
-				<br>
-				The <span class="param">pool</span> argument is an optional <a href="#about-npcpool" class="ref">NPC pool</a>.
-				It cannot be used if you are specifying the NPC by reference, since then that NPC reference's
-				current npc pool will be used.
-				<br>
-				Changes to global npcs in <span class="param">pool:global</span> will persist when you move to other maps,
-				regardless of whether the map is set to remember NPC data.
-				Those changes will be reset if you load a saved game or start a new game.
-				<br>
-				A good way to make use of <span class="code">alter NPC</span> is to wrap it in your own script. For example:
-				<pre># Example alter NPC wrapper for changing NPC appearance
-# Palette -1 means the default palette.
-plotscript, change NPC, who, picture, palette = -1, begin
-  alter NPC(who, NPCstat:picture, picture)
-  alter NPC(who, NPCstat:palette, palette)
-end</pre>
-			
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-setnpcusable" class="ref">set NPC usable</a>, </li>
-<li>
-<a href="#about-setnpcmoves" class="ref">set NPC moves</a>, </li>
-<li>
-<a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a>, </li>
-<li><a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-readnpc"></a>
-				<h4>read NPC (who, NPCstat, pool)</h4>
-<p>
-			Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <a href="#about-alternpc" class="ref">alter NPC</a>.
-			<br>
-			The <span class="param">pool</span> argument is an optional <a href="#about-npcpool" class="ref">NPC pool</a>.
-			It is only allowed when you specify the NPC by ID number.
-			If you specify the NPC with an <a href="#about-npcref" class="ref">NPC reference</a> then the pool is determined by the reference.
-			<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">If you use this command to read the give item number, the result is offset + 1. A zero means no item.</div>
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-alternpc" class="ref">alter NPC</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-setnpcignoreswalls"></a>
-				<h4>set NPC ignores walls (who, value)</h4>
-<p>
-			
-				Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used),
-				set whether that NPC can walk through walls, including off the edge of a map,
-				and violating its zone restrictions.
-				<span class="param">value</span> should be true or false.
-				<br>
-				Turning this on doesn't let the NPC walk through the lead hero and other NPCs;
-				you need <a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a> for that.
-				<br>
-				This command is just like <a href="#about-suspendnpcwalls" class="ref">suspend NPC walls</a>/<a href="#about-resumenpcwalls" class="ref">resume NPC walls</a>,
-				but only affects a single npc.
-				<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">
-					Don't confuse this with <a href="#about-alternpc" class="ref">alter NPC</a><span class="code">(who, NPCstat:ignore passmap, value)</span>,
-					which sets whether an NPC ID can pass through walls on the wallmap,
-					but doesn't allow it to ignore zones or walk off the map.
-				</div>
-			
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-getnpcignoreswalls" class="ref">get NPC ignores walls</a>, </li>
-<li>
-<a href="#about-suspendnpcwalls" class="ref">suspend NPC walls</a>, </li>
-<li>
-<a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a>, </li>
-<li><a href="#about-alternpc" class="ref">alter NPC</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-getnpcignoreswalls"></a>
-				<h4>get NPC ignores walls (who)</h4>
-<p>
-			
-				Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used),
-				returns whether that NPC can walk through walls.
-				<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">
-					Don't confuse this with <a href="#about-readnpc" class="ref">read NPC</a><span class="code">(who, NPCstat:ignore passmap)</span>,
-					which tells whether an NPC ID can pass through walls on the wallmap,
-					but doesn't allow it to ignore zones or walk off the map.
-				</div>
-			
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a>, </li>
-<li><a href="#about-readnpc" class="ref">read NPC</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-setnpcmoves"></a>
-				<h4>set NPC moves (who, value)</h4>
-<p>
-			
-				Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used),
-				set whether that NPC moves according to its move-type, or whether it stands still
-				and waits for you to control it with <a href="#about-walknpc" class="ref">walk NPC</a>.
-				<br>
-				<span class="param">value</span> should be true or false.
-				<br>
-				This command is just like <a href="#about-suspendnpcs" class="ref">suspend NPCs</a>/<a href="#about-resumenpcs" class="ref">resume NPCs</a>,
-				but only affects a single npc.
-				<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">
-					If you set an NPC to not move by itself, it will still complete
-					its current step, moving the rest of the way to the next tile.
-				</div>
-			
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-getnpcmoves" class="ref">get NPC moves</a>, </li>
-<li>
-<a href="#about-suspendnpcs" class="ref">suspend NPCs</a>, </li>
-<li><a href="#about-alternpc" class="ref">alter NPC</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-getnpcmoves"></a>
-				<h4>get NPC moves (who)</h4>
-<p>
-			Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used), returns <a href="#about-true" class="ref">true</a> or <a href="#about-false" class="ref">false</a> indicating whether that NPC moves according to its move-type, or whether it is suspended. This is always true, even for "Stand Still" NPCs unless <a href="#about-setnpcmoves" class="ref">set NPC moves</a> has been used.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-setnpcmoves" class="ref">set NPC moves</a>, </li>
-<li><a href="#about-readnpc" class="ref">read NPC</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-setnpcobstructs"></a>
-				<h4>set NPC obstructs (who, value)</h4>
-<p>
-			
-				Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used),
-				set whether the NPC should be an obstruction to heroes and other NPCs.
-				If set to false, the NPC can move through heroes and other NPCs and vice-versa.
-				Heroes can always pass through Step-on NPCs.
-				<span class="param">value</span> should be true or false.
-				<br>
-				This command is almost like <a href="#about-suspendobstruction" class="ref">suspend obstruction</a>/<a href="#about-resumeobstruction" class="ref">resume obstruction</a>,
-				but it only affects a single npc and it doesn't stop activation of step-on NPCs.
-
-				<br>
-				If you want to allow an NPC to walk through all obstacles, you also need
-				to use the <a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a> command.
-			
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-getnpcobstructs" class="ref">get NPC obstructs</a>, </li>
-<li><a href="#about-suspendobstruction" class="ref">suspend obstruction</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-getnpcobstructs"></a>
-				<h4>get NPC obstructs (who)</h4>
-<p>
-			Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used), returns false if that NPC's obstruction has been suspended with <a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a> (and is always true otherwise).
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-setnpcusable"></a>
-				<h4>set NPC usable (who, value)</h4>
-<p>
-			Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used), set whether the NPC can be activated by the player as normal (as defined in the NPC ID data). <a href="#about-usenpc" class="ref">use NPC</a> will still work on the NPC. <span class="param">value</span> should be true or false.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-getnpcusable" class="ref">get NPC usable</a>, </li>
-<li><a href="#about-alternpc" class="ref">alter NPC</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-getnpcusable"></a>
-				<h4>get NPC usable (who)</h4>
-<p>
-			Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used), returns false if normal activation of that NPC has been suspended with <a href="#about-setnpcusable" class="ref">set NPC usable</a>. This is always true otherwise, even for NPC types which are not activatable.
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-setnpcusable" class="ref">set NPC usable</a></li></ul>
-</div>
-		</p>
-</div>
-		<hr>
-		</div>
-		<div class="section">
 <a name="Enemy%20and%20Formation%20Functions"></a>
 		<h3>
 <span class="backlink"></span>Enemy and Formation Functions</h3>
@@ -9031,7 +9076,7 @@ end</pre>
 		</div>
 		<div class="command">
 		<h4>NPC at pixel (x, y, number)</h4>
-		<p><a href="#about-npcatpixel">Documented in the NPC Instances section.</a></p>
+		<p><a href="#about-npcatpixel">Documented in the NPCs section.</a></p>
 		</div>
 		<div class="command">
 		<h4>menu item at pixel(x, y)</h4>
@@ -12224,7 +12269,7 @@ end
 				The argument is an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a>.
 				If the NPC is tag-disabled, it has no slice so this command returns 0/false.
 				If there are no copies of an NPC ID on the map, an error is thrown.
-				You will not be able to manually reposition this slice (e.g. <a href="#about-putslice" class="ref">put slice</a> does not work) - use <a href="#about-putnpc" class="ref">put npc</a> instead.
+				You will not be able to manually reposition this slice (e.g. <a href="#about-putslice" class="ref">put slice</a> does not work) - use <a href="#about-putnpc" class="ref">put NPC</a> instead.
 				<br>
 				Once you have this slice you can access any other slices attached to the npc, such as the sprite slice
 				(e.g. <a href="#about-lookupslice" class="ref">lookup slice</a><span class="code">(sl:walkabout sprite component, get npc slice(npc))</span>, which is equivalent to <a href="#about-getnpcsprite" class="ref">get npc sprite</a><span class="code">(npc)</span>),
@@ -17467,7 +17512,7 @@ write pass block(15,3,none)
 		</div>
 		<div class="command">
 		<h4>check NPC wall (who, direction)</h4>
-		<p><a href="#about-checknpcwall">Documented in the NPC Instances section.</a></p>
+		<p><a href="#about-checknpcwall">Documented in the Moving and Positioning NPCs section.</a></p>
 		</div>
 		<div class="command">
 			<a name="about-checkwallcollisionxy"></a>
