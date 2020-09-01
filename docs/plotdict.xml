@@ -1452,6 +1452,9 @@ resume player</example>
 					more flexible wall-checking, which works from any starting position on the map.
 				</note>
 			</description>
+			<seealso>
+				<ref>checknpcwall</ref>
+			</seealso>
 		</command>
 		<command id="getherospeed">
 			<canon>get hero speed (who)</canon>
@@ -1864,6 +1867,9 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 					more flexible wall-checking, which works from any starting position on the map.
 				</note>
 			</description>
+			<seealso>
+				<ref>checkherowall</ref>
+			</seealso>
 		</command>
 
 		</section>   <!-- Moving NPCs -->
@@ -9850,6 +9856,8 @@ write pass block(15,3,none)
 			<seealso>
 				<ref>moveslicewithwallchecking</ref>
 				<ref>findcollidingslice</ref>
+				<ref>checkherowall</ref>
+				<ref>checknpcwall</ref>
 			</seealso>
 		</command>
 		<!--
