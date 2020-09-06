@@ -67,8 +67,8 @@ dim shared as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 dim shared inputtext as string
 dim shared extrakeys(127) as KeyBits
 
-'internal palette for 32-bit mode, with RGB colour components packed into a int
-dim shared truepal(255) as int32
+'Internal palette for 32-bit mode
+dim shared truepal(255) as RGBcolor
 
 
 function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
@@ -143,7 +143,9 @@ sub gfx_fb_update_screen_mode()
 		'Palette must be re-set
 		if depth = 8 then
 			for i as integer = 0 to 255
-				palette i, (truepal(i) and &hFF0000) shr 16, (truepal(i) and &hFF00) shr 8, truepal(i) and &hFF
+				with truepal(i)
+					palette i, .r, .g, .b
+				end with
 			next
 		end if
 		GFX_EXIT
@@ -168,9 +170,7 @@ sub gfx_fb_setpal(byval pal as RGBcolor ptr)
 	end if
 	'copy the palette, both for 32bit colour mode and when changing
 	'res requires resetting the palette
-	for i = 0 to 255
-		truepal(i) = RGB(pal[i].r, pal[i].g, pal[i].b)
-	next
+	memcpy @truepal(0), pal, 256 * sizeof(RGBcolor)
 	'FIXME: If running in 32 bitdepth, this does not update the page "live", like the 8-bit version
 	'so fades won't working, and there's no way to force an
 	'update from here at the moment because the screen buffer is not
