@@ -401,7 +401,7 @@ DECLARE SUB surface_export_image (surf as Surface ptr, filename as string)
 
 DECLARE SUB palette_from_16x16_image (filename as string, pal() as RGBcolor)
 
-DECLARE FUNCTION screenshot(basename as string = "") as string
+DECLARE FUNCTION screenshot(basename as string = "", page as integer = -1) as string
 DECLARE SUB bmp_screenshot(basename as string)
 DECLARE SUB start_recording_gif(secondscreen as string = "")
 DECLARE FUNCTION recording_gif() as bool

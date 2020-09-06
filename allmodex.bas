@@ -79,7 +79,7 @@ declare sub loadbmprle8(bf as integer, fr as Frame ptr)
 declare sub loadbmprle4(bf as integer, fr as Frame ptr)
 
 declare function next_unused_screenshot_filename() as string
-declare sub snapshot_check()
+declare sub snapshot_check(page as integer = -1)
 
 declare function calcblock(tmap as TileMap, x as integer, y as integer, overheadmode as integer, pmapptr as TileMap ptr) as integer
 
@@ -1211,7 +1211,7 @@ sub setvispage (page as integer, skippable as bool = YES)
 	end if
 
 	'F12 for screenshots handled here (uses real_keyval)
-	snapshot_check
+	snapshot_check drawpage
 	if recordvid then
 		recordvid->record_frame vpages(drawpage), displaypal()
 	end if
@@ -8375,11 +8375,13 @@ local sub load_screenshot_settings()
 end sub
 
 'Save a screenshot. fname should NOT include the extension, since the gfx backend can decide that.
+'The page argument is only for internal use from inside setvispage!
 'Returns the filename it was saved to, with extension
-function screenshot (basename as string) as string
+function screenshot (basename as string = "", page as integer = -1) as string
 	if loaded_screenshot_settings = NO then
 		load_screenshot_settings
 	end if
+	if page = -1 then page = getvispage()
 
 	dim ret as string
 	if len(basename) = 0 then
@@ -8389,7 +8391,7 @@ function screenshot (basename as string) as string
 	if use_gfx_screenshot = NO ORELSE gfx_screenshot(basename) = 0 then
 		'otherwise save it ourselves
 		ret = basename & screenshot_format
-		frame_export_image(vpages(getvispage), ret, displaypal())
+		frame_export_image(vpages(page), ret, displaypal())
 		return ret
 	end if
 	' The reason for this for loop is that we don't know what extension the gfx backend
@@ -8446,7 +8448,7 @@ end function
 'moved, in order to 'debounce' F12 if you only press it for a short while.
 '(Hmm, now that we can record gifs directly, it probably makes sense to remove the ability to hold F12)
 'NOTE: global variables like tmpdir can change between calls, have to be lenient
-local sub snapshot_check()
+local sub snapshot_check(page as integer = -1)
 	static as string backlog()
 	' The following are just for the overlay message
 	static as integer num_screenshots_taken
@@ -8476,7 +8478,7 @@ local sub snapshot_check()
 		if F12bits = 1 then
 			' Take a screenshot, but maybe delete it later
 			shot = tmpdir & get_process_id() & "_tempscreen" & (ubound(backlog) + 1)
-			a_append(backlog(), screenshot(shot))
+			a_append(backlog(), screenshot(shot, page))
 			'debug "temp save " & backlog(ubound(backlog))
 		else
 			' Key repeat has kicked in, so move our backlog of screenshots to the visible location.
@@ -8490,7 +8492,7 @@ local sub snapshot_check()
 			erase backlog
 
 			' Take the new screenshot
-			dim temp as string = screenshot()
+			dim temp as string = screenshot( , page)
 			'debug "saved " & temp
 			if num_screenshots_taken = 0 then
 				first_screenshot = trimpath(temp)
