@@ -511,11 +511,27 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 		maskp = srcp8;
 
 	if (pSurfaceSrc->format == SF_32bit && pSurfaceDest->format == SF_32bit) {
-		// TODO: implement alpha channel-based blending and colorkeying
+		// TODO: implement alpha channel-based blending
+		RGBcolor colorkey = {};
+		if (pPalette)
+			colorkey = pPalette[0];
 		if (with_blending) {
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
-					*destp32 = alpha_blend(*srcp32++, *destp32, alpha, pOpts->blend_mode);
+					if (!bUseColorKey0 || srcp32->col != colorkey.col)
+						*destp32 = alpha_blend(*srcp32, *destp32, alpha, pOpts->blend_mode);
+					srcp32++;
+					destp32++;
+				}
+				srcp32 += srcLineEnd;
+				destp32 += destLineEnd;
+			}
+		} else if (bUseColorKey0) {
+			for (int itY = 0; itY < itY_max; itY++) {
+				for (int itX = 0; itX < itX_max; itX++) {
+					if (srcp32->col != colorkey.col)
+						*destp32 = *srcp32;
+					srcp32++;
 					destp32++;
 				}
 				srcp32 += srcLineEnd;
@@ -533,6 +549,11 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 		// Slow fallback to doing master palette lookups. Because this is just a fallback, we don't
 		// do any dithering like blitohr() does.
 		// TODO: implement alpha channel-based blending and colorkeying
+		if (!pPalette) {
+			debug(errShowBug, "surfaceCopy_SW: NULL palette");
+			return -1;
+		}
+
 		for (int itY = 0; itY < itY_max; itY++) {
 			for (int itX = 0; itX < itX_max; itX++) {
 				RGBcolor destcol;
