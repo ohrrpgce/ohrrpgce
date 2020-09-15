@@ -425,6 +425,9 @@ function toggleContent(target) {
 	</xsl:template>
 
 	<xsl:template match="a"><a href="{@href}"><xsl:value-of select="." /></a></xsl:template>
+	<!--Reference (link) to a section-->
+	<xsl:template match="secref"><a href="#{.}" class="ref"><xsl:value-of select="." /></a></xsl:template>
+	<!--Reference (link) to a <command> -->
 	<xsl:template match="ref" name="ref">
 		<xsl:if test='count(id(.))=0'>
 			<xsl:message>

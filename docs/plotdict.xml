@@ -29,6 +29,7 @@
 	<!ELEMENT warn         ANY>
 	<!ELEMENT danger       ANY>
 	<!ELEMENT ref          (#PCDATA)>
+	<!ELEMENT secref       (#PCDATA)>
 	<!ELEMENT ul           (li*)>
 	<!ELEMENT li           ANY>
 	<!ELEMENT a            ANY>
@@ -2031,7 +2032,7 @@ end</example>
 		<section title="NPC Instance Data">
 		<description>
 			This section contains commands for getting and setting properties of individual NPC instances.
-			See <a href="#NPC Definitions">NPC Definitions</a> for inspecting or modifying NPC definitions/types.
+			See <secref>NPC Definitions</secref> for inspecting or modifying NPC definitions/types.
 		</description>
 
 		<command id="setnpcignoreswalls">
@@ -2185,7 +2186,7 @@ end</example>
 		<section title="NPC Definitions">
 		<description>
 			These are the only commands for inspecting or modifying NPC definitions/types.
-			All other commands act on single NPC instances (see <a href="#NPC Instance Data">NPC Instance Data</a>).
+			All other commands act on single NPC instances (see <secref>NPC Instance Data</secref>).
 		</description>
 
 		<command id="alternpc">
@@ -2838,7 +2839,7 @@ if (slot > 0) then (load from slot (slot))</example>
 	
 	<section title="The Party">
 		<description>
-			See also the <a href="#Hero Data">Hero Data</a> section for inspecting or modifying individual heroes.
+			See also the <secref>Hero Data</secref> section for inspecting or modifying individual heroes.
 			<note>
 			You should definitely read <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
 			Ways to refer to a hero in a script</a> to understand the differences between hero ID numbers
@@ -3478,7 +3479,7 @@ fade screen in</example>
 	<section title="Hero Data">
 
 		<description>
-			See also <a href="#The Party">The Party</a> section for commands for finding, adding, removing or swapping
+			See also <secref>The Party</secref> section for commands for finding, adding, removing or swapping
 			heroes in the party.
 			<note>
 			You should definitely read <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
@@ -5020,7 +5021,7 @@ get hero name (1, find hero (leader))
 		</section>
 
                 <section title="Showing Plotstrings">
-		<description>These commands are an old (and largely obsolete) method of showing strings on the screen. They completely separate to, and superceded by <a href="Text Slices">Text Slices</a>. The <ref>showstring</ref> command is yet another separate way to display a string.</description>
+		<description>These commands are an old (and largely obsolete) method of showing strings on the screen. They're completely separate to, and superceded by <secref>Text Slices</secref>. The <ref>showstring</ref> command is yet another separate way to display a string.</description>
 		<reference ref="showstring" />
 		<command id="showstringat">
 			<canon>show string at (ID, x, y)</canon>
