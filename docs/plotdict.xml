@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-09-01">
+<plotscript version="wip" datecode="2020-09-08">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -4328,18 +4328,22 @@ end
 
 		<section title="Keyboard Input">
 		<description>
-			There are two main commands for checking for keypresses: <ref>keypress</ref> and <ref>keyispressed</ref>.
+			There are three main commands for checking for keypresses: <ref>keypress</ref>,
+			<ref>newkeypress</ref> and <ref>keyispressed</ref>.
 			Use <ref>keyispressed</ref> (which checks whether a key is down) when you want the player to do something continually,
-			such as if they're controlling a character's movement or jumping.
-			For nearly everything else you will use <ref>keypress</ref>, such as when you script a menu
+			such for moving, running, jumping, or attacking repeatedly
+			each time a cooldown expires (you'll need to script your own cooldown).
+			For nearly everything else you will use <ref>keypress</ref>,
+			(or <ref>newkeypress</ref> instead if you don't want key repeat),
+			such as when you script a menu
 			(both activating menu items and moving the cursor - since the cursor moves in jumps rather than continually),
 			or to use a special ability such throwing a ball.
-			Use <ref>newkeypress</ref> instead of <ref>keypress</ref> if you don't want key repeat.
+			You should use <ref>keypress</ref> for key repeat for scripted menus.
 			<note>
 				You can NOT wait for the player to press a key by continually polling <ref>keyispressed</ref>, etc,
 				in a <ref>while</ref> loop unless you stick a <ref>wait</ref> in your loop.
 				That's because key, joystick and mouse commands don't return real time data,
-				but the state of the devices at the beginning of the current game tick.
+				but the state of the devices at the beginning of the current game tick (after the last wait).
 			</note>
 		</description>
 
@@ -4357,15 +4361,19 @@ end
 				It's only used with joystick scancodes such as <tt>joy:button 1</tt>,
 				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
 				<note>
+					This command is an alternative to <ref>keypress</ref> or <ref>newkeypress</ref>;
+					see <secref>Keyboard Input</secref> for usage hints.
+				</note>
+				<note>
 					Previously you couldn't use virtual scancodes like <ref>usekey</ref>,
 					which could only be used with <ref>waitforkey</ref>.
 					Now all key commands accept any kind of constant; what a relief!
 				</note>
-				<note>
+				<warn>
 					You can't rely on the behaviour of the caps-, scroll- and num-lock keys.
 					They might report on/off state instead of pressed/not pressed,
 					depending on the graphics backend, operating system, and engine version.
-				</note>
+				</warn>
 			</description>
 			<seealso>
 				<ref>keypress</ref>
@@ -4389,14 +4397,18 @@ end
 				The <p>joystick num</p> argument is optional, and defaults to 0.
 				It's only used with joystick scancodes such as <tt>joy:button 1</tt>,
 				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
-				<danger>
+				<note>
+					This command is an alternative to <ref>newkeypress</ref> or <ref>keyispressed</ref>;
+					see <secref>Keyboard Input</secref> for usage hints.
+				</note>
+				<warn>
 					It's not a good idea to rely on the key repeat rate for things that affect gameplay such as the rate at which you can shoot bullets!
 					The repeat rate is once every 55 milliseconds (18 times a second), independent of the frames per second (fps) that
 					the game is running at.
 					Suppose you use key repeat to shoot bullets and your game runs at 36 fps,
 					then a bullet will be fired every other frame.
 					But if played on a really slow computer that only ran the game at 18 fps, a bullet will be fired every frame!
-				</danger>
+				</warn>
 			</description>
 			<seealso>
 				<ref>keyispressed</ref>
@@ -4417,6 +4429,10 @@ end
 				The <p>joystick num</p> argument is optional, and defaults to 0.
 				It's only used with joystick scancodes such as <tt>joy:button 1</tt>,
 				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+				<note>
+					This command is an alternative to <ref>keypress</ref> or <ref>keyispressed</ref>;
+					see <secref>Keyboard Input</secref> for hints.
+				</note>
 			</description>
 			<seealso>
 				<ref>keyispressed</ref>
@@ -4428,6 +4444,8 @@ end
 			<canon>keyval (scancode, joystick num)</canon>
 			<shortname>keyval</shortname>
 			<description>
+			(Obsolete, you can now use simpler commands like <ref>keypress</ref> instead.)
+			<lb/>
 			Returns a bitmask for the state of the specified key, joystick button, or virtual scancode.
 			<lb/>
 			The <p>scancode</p> argument is a <ref>scancode</ref> such as a keyboard key (e.g. <tt>key:ctrl</tt>)

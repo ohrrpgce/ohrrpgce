@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2020-09-01)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2020-09-08)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -4638,7 +4638,7 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 			</span>NPC Instance Data</h3>
 		<p>
 			This section contains commands for getting and setting properties of individual NPC instances.
-			See <a href="#NPC%20Definitions">NPC Definitions</a> for inspecting or modifying NPC definitions/types.
+			See <a href="#NPC%20Definitions" class="ref">NPC Definitions</a> for inspecting or modifying NPC definitions/types.
 		</p>
 <ul></ul>
 		<div class="command">
@@ -4849,7 +4849,7 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 			</span>NPC Definitions</h3>
 		<p>
 			These are the only commands for inspecting or modifying NPC definitions/types.
-			All other commands act on single NPC instances (see <a href="#NPC%20Instance%20Data">NPC Instance Data</a>).
+			All other commands act on single NPC instances (see <a href="#NPC%20Instance%20Data" class="ref">NPC Instance Data</a>).
 		</p>
 <ul></ul>
 		<div class="command">
@@ -5848,7 +5848,7 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 		<h3>
 <span class="backlink"></span>The Party</h3>
 		<a href="#Categories" class="backlink">[Back to top-level index]</a><p>
-			See also the <a href="#Hero%20Data">Hero Data</a> section for inspecting or modifying individual heroes.
+			See also the <a href="#Hero%20Data" class="ref">Hero Data</a> section for inspecting or modifying individual heroes.
 			<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 			You should definitely read <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
@@ -7014,7 +7014,7 @@ fade screen in</pre>
 		<h3>
 <span class="backlink"></span>Hero Data</h3>
 		<a href="#Categories" class="backlink">[Back to top-level index]</a><p>
-			See also <a href="#The%20Party">The Party</a> section for commands for finding, adding, removing or swapping
+			See also <a href="#The%20Party" class="ref">The Party</a> section for commands for finding, adding, removing or swapping
 			heroes in the party.
 			<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
@@ -8506,19 +8506,23 @@ end
 <span class="backlink"><a href="#Getting%20Player%20Input">Getting Player Input</a> →
 			</span>Keyboard Input</h3>
 		<p>
-			There are two main commands for checking for keypresses: <a href="#about-keypress" class="ref">keypress</a> and <a href="#about-keyispressed" class="ref">key is pressed</a>.
+			There are three main commands for checking for keypresses: <a href="#about-keypress" class="ref">keypress</a>,
+			<a href="#about-newkeypress" class="ref">new keypress</a> and <a href="#about-keyispressed" class="ref">key is pressed</a>.
 			Use <a href="#about-keyispressed" class="ref">key is pressed</a> (which checks whether a key is down) when you want the player to do something continually,
-			such as if they're controlling a character's movement or jumping.
-			For nearly everything else you will use <a href="#about-keypress" class="ref">keypress</a>, such as when you script a menu
+			such for moving, running, jumping, or attacking repeatedly
+			each time a cooldown expires (you'll need to script your own cooldown).
+			For nearly everything else you will use <a href="#about-keypress" class="ref">keypress</a>,
+			(or <a href="#about-newkeypress" class="ref">new keypress</a> instead if you don't want key repeat),
+			such as when you script a menu
 			(both activating menu items and moving the cursor - since the cursor moves in jumps rather than continually),
 			or to use a special ability such throwing a ball.
-			Use <a href="#about-newkeypress" class="ref">new keypress</a> instead of <a href="#about-keypress" class="ref">keypress</a> if you don't want key repeat.
+			You should use <a href="#about-keypress" class="ref">keypress</a> for key repeat for scripted menus.
 			<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 				You can NOT wait for the player to press a key by continually polling <a href="#about-keyispressed" class="ref">key is pressed</a>, etc,
 				in a <a href="#about-while" class="ref">while</a> loop unless you stick a <a href="#about-wait" class="ref">wait</a> in your loop.
 				That's because key, joystick and mouse commands don't return real time data,
-				but the state of the devices at the beginning of the current game tick.
+				but the state of the devices at the beginning of the current game tick (after the last wait).
 			</div>
 		</p>
 <ul></ul>
@@ -8538,12 +8542,17 @@ end
 				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
+					This command is an alternative to <a href="#about-keypress" class="ref">keypress</a> or <a href="#about-newkeypress" class="ref">new keypress</a>;
+					see <a href="#Keyboard%20Input" class="ref">Keyboard Input</a> for usage hints.
+				</div>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
 					Previously you couldn't use virtual scancodes like <a href="#about-usekey" class="ref">use key</a>,
 					which could only be used with <a href="#about-waitforkey" class="ref">wait for key</a>.
 					Now all key commands accept any kind of constant; what a relief!
 				</div>
-				<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
 					You can't rely on the behaviour of the caps-, scroll- and num-lock keys.
 					They might report on/off state instead of pressed/not pressed,
 					depending on the graphics backend, operating system, and engine version.
@@ -8578,8 +8587,13 @@ end
 				The <span class="param">joystick num</span> argument is optional, and defaults to 0.
 				It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
 				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
-				<div class="notice danger" title="Danger">
-<img src="Plotdanger.png" alt="[Danger]" class="icon">
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					This command is an alternative to <a href="#about-newkeypress" class="ref">new keypress</a> or <a href="#about-keyispressed" class="ref">key is pressed</a>;
+					see <a href="#Keyboard%20Input" class="ref">Keyboard Input</a> for usage hints.
+				</div>
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
 					It's not a good idea to rely on the key repeat rate for things that affect gameplay such as the rate at which you can shoot bullets!
 					The repeat rate is once every 55 milliseconds (18 times a second), independent of the frames per second (fps) that
 					the game is running at.
@@ -8614,6 +8628,11 @@ end
 				The <span class="param">joystick num</span> argument is optional, and defaults to 0.
 				It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
 				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					This command is an alternative to <a href="#about-keypress" class="ref">keypress</a> or <a href="#about-keyispressed" class="ref">key is pressed</a>;
+					see <a href="#Keyboard%20Input" class="ref">Keyboard Input</a> for hints.
+				</div>
 			
 			
 			
@@ -8632,6 +8651,8 @@ end
 				<h4>keyval (scancode, joystick num)</h4>
 <p>
 			
+			(Obsolete, you can now use simpler commands like <a href="#about-keypress" class="ref">keypress</a> instead.)
+			<br>
 			Returns a bitmask for the state of the specified key, joystick button, or virtual scancode.
 			<br>
 			The <span class="param">scancode</span> argument is a <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
@@ -9597,7 +9618,7 @@ get hero name (1, find hero (leader))
 		<h3>
 <span class="backlink"><a href="#String%20Functions">String Functions</a> →
 			</span>Showing Plotstrings</h3>
-		<p>These commands are an old (and largely obsolete) method of showing strings on the screen. They completely separate to, and superceded by <a href="Text%20Slices">Text Slices</a>. The <a href="#about-showstring" class="ref">show string</a> command is yet another separate way to display a string.</p>
+		<p>These commands are an old (and largely obsolete) method of showing strings on the screen. They're completely separate to, and superceded by <a href="#Text%20Slices" class="ref">Text Slices</a>. The <a href="#about-showstring" class="ref">show string</a> command is yet another separate way to display a string.</p>
 <ul></ul>
 		<div class="command">
 		<h4>show string (ID)</h4>
