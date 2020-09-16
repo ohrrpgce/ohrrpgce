@@ -731,13 +731,7 @@ LOCAL FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptDat
    .nonlocals = 0
   END IF
 
-  'set an arbitrary max script buffer size (scriptmemMax in const.bi), individual scripts must also obey
   .size = (LOF(fh) - skip) \ wordsize
-  IF .size > scriptmemMax THEN
-   scripterr "Script " & id & " " & scriptname(id) & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%", serrError
-   DELETE ret
-   RETURN NULL
-  END IF
 
   IF .strtable < 0 OR .strtable > .size THEN
    scripterr "Script " & id & " corrupt; bad string table offset", serrError
@@ -840,7 +834,7 @@ SUB deref_script(script as ScriptData ptr)
  IF script->refcount = 0 THEN
   'scriptcachemem
   unused_script_cache_mem += script->size
-  ' Don't delete ScriptDatas, as they include the timing info
+  ' If profiling don't delete ScriptDatas, as they include the timing info
   IF scriptprofiling THEN EXIT SUB
   IF unused_script_cache_mem > scriptmemMax THEN
    'Evicting stuff from the script cache is probably pointless, but we've already got it,

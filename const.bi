@@ -334,8 +334,8 @@ CONST maxScriptHeap = 8192 'Maximum number of local variables in use by all runn
 CONST maxScriptRunning = 128 'Number of scripts which can run at once
 CONST maxScriptNesting = 4 'Maximum subscript nesting depth
 CONST maxScriptArgs = 32 'Maximum number of args that can be passed to a script or command
-'Amount of script data to cache (these can be freely changed, unlike other constants)
-CONST scriptmemMax = 65536 'in 4-byte ints (256kb)
+'The following script constants can be freely changed, unlike most others
+CONST scriptmemMax = 65536   'Total .size of unused scripts to cache, in 4-byte ints (=256kb)
 CONST scriptTableSize = 512  'hash table size, power of 2 please
 CONST scriptCheckDelay = 1.1     'How long, in seconds, before the script interpreter becomes interruptable
 CONST scriptCheckInterval = 0.1  'How often, in seconds, that the script interpreter should perform checks
