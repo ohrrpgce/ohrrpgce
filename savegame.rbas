@@ -138,9 +138,14 @@ END SUB
 'to initialise anything missing from the save file
 SUB loadgame (byval slot as integer, prefix as string="")
  debuginfo "Loading save slot " & prefix & slot
- IF prefix = "" ANDALSO slot >= 0 ANDALSO slot <= maxSaveSlotCount ANDALSO slot <= gen(genSaveSlotCount) - 1 THEN
+ DIM slot_count as integer = gen(genSaveSlotCount)
+ IF slot_count = 0 THEN slot_count = 4
+ IF prefix = "" ANDALSO slot >= 0 ANDALSO slot <= maxSaveSlotCount ANDALSO slot <= slot_count - 1 THEN
   'only update lastsaveslot for normal prefixless slots
+  debuginfo "loadgame: " & slot & " is a valid normal slot, updating lastsaveslot"
   lastsaveslot = slot + 1
+ ELSE
+  debuginfo "loadgame: " & slot & " is special non-normal slot, skipping update of lastsaveslot"
  END IF
 
  DIM errmsg as string = "Save slot empty"
@@ -210,9 +215,14 @@ SUB savegame (byval slot as integer, prefix as string="")
 
  BUG_IF(prefix <> trimpath(prefix), "Not allowed to include path in save prefix!")
 
- IF prefix = "" ANDALSO slot >= 0 ANDALSO slot <= maxSaveSlotCount - 1 ANDALSO slot <= gen(genSaveSlotCount) - 1 THEN
+ DIM slot_count as integer = gen(genSaveSlotCount)
+ IF slot_count = 0 THEN slot_count = 4
+ IF prefix = "" ANDALSO slot >= 0 ANDALSO slot <= maxSaveSlotCount - 1 ANDALSO slot <= slot_count - 1 THEN
   'Only remember lastsaveslot for valid normal slots
+  debuginfo "savegame: " & slot & " is a valid normal slot, updating lastsaveslot"
   lastsaveslot = slot + 1
+ ELSE
+  debuginfo "savegame: " & slot & " is special non-normal slot, skipping update of lastsaveslot"
  END IF
 
  debuginfo "Saving in slot " & prefix & slot
