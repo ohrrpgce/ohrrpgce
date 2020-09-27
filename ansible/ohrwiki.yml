@@ -1,0 +1,151 @@
+---
+# run with:   ansible-playbook -i ./ohr.hosts ./ohrwiki.yml --ask-vault-pass
+# (The vault password is only known to OHRRPGCE Website Admins)
+
+# Install/Upgrade Mediawiki for OHRRPGCE
+
+#-----------------------------------------------------------------------
+
+- hosts: hamsterrepublic
+  gather_facts: yes
+
+#-----------------------------------------------------------------------
+
+  vars:
+    # These files need to exist inside the local ohrwiki_data folder
+    # You may need to download the mediawiki tarball yourself.
+    # the plugin and skin tarballs are small enough to included in version control
+    mediawiki_tarball: mediawiki-1.34.4.tar.gz
+    embedvideo_zip: EmbedVideo-v2.8.0.zip
+    metrolook_skin: Metrolook-REL1_35-378825e.tar.gz
+    
+    # These paths are on the remote server
+    temp_dir: /home/james_paige/rpg.hamsterrepublic.com/ohrrpgce-temp
+    staging_dir: /home/james_paige/rpg.hamsterrepublic.com/ohrrpgce-staging
+    real_dir: /home/james_paige/rpg.hamsterrepublic.com/ohrrpgce
+    
+    # Dreamhost puts php executable here
+    bin_php: /usr/local/php73/bin/php
+    
+    # Encrypted mysql password
+    # the --ask-vault-pass argument is what decrypts this 
+    mysql_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          66383531336638346566363461663834386536613532643933626432633262663837303837663261
+          6461343564303136376335633038363035626163633334310a656439333534336561653336343034
+          36373839363930653361366539623532626334336234333239363239306662366662313034326239
+          6337323965336665330a363266633636623830393531373961663563373332646666386330343964
+          63623862363633326336363362623934376662356166653737313163336333663066
+
+
+#-----------------------------------------------------------------------
+
+  tasks:
+
+  - name: Create the temp directory if it does not exist
+    file:
+      path: '{{ temp_dir }}'
+      state: directory
+      mode: '0750'
+  
+  - name: Upload mediaiwiki tarball
+    copy:
+      src: ohrwiki_data/{{ mediawiki_tarball }}
+      dest: '{{ temp_dir }}/{{ mediawiki_tarball }}'
+      mode: '0644'
+    register: upload_tarball
+
+  - name: Clean up old staging folder
+    file:
+      state: absent
+      dest: '{{ staging_dir }}'
+    when: upload_tarball.changed
+
+  - name: Create new empty staging folder
+    file:
+      state: directory
+      dest: '{{ staging_dir }}'
+      mode: '0755'
+    register: made_staging_dir
+
+  - name: Extract tarball
+    unarchive:
+      src: '{{ temp_dir }}/{{ mediawiki_tarball }}'
+      dest: '{{ staging_dir }}'
+      remote_src: yes
+      extra_opts: [--strip-components=1]
+    when: upload_tarball.changed or made_staging_dir.changed
+
+  - name: Transfer LocalSettings.php configuration
+    template:
+      src: ohrwiki_data/LocalSettings.php.j2
+      dest: '{{ staging_dir }}/LocalSettings.php'
+      mode: '0640'
+
+  - name: Transfer ohrrpgce.png logo
+    copy:
+      src: ohrwiki_data/ohrrpgce.png
+      dest: '{{ staging_dir }}/ohrrpgce.png'
+      mode: '0644'
+
+  - name: Transfer spamcallback
+    copy:
+      src: ohrwiki_data/mediawiki-spamcallback.php
+      dest: '{{ staging_dir }}/mediawiki-spamcallback.php'
+      mode: '0644'
+
+  - name: Transfer LocalFirst.php
+    copy:
+      src: ohrwiki_data/LocalFirst.php
+      dest: '{{ staging_dir }}/LocalFirst.php'
+      mode: '0644'
+
+  - name: Patch LocalFirst.php into index.php
+    lineinfile:
+      path: '{{ staging_dir }}/index.php'
+      regexp: '^include "LocalFirst\.php";'
+      insertafter: '.*PHPVersionCheck'
+      line: 'include "LocalFirst.php"; # special for ohrrpgce wiki'
+      
+  - name: Transfer EmbedVideo plugin
+    copy:
+      src: ohrwiki_data/{{ embedvideo_zip }}
+      dest: '{{ temp_dir }}/{{ embedvideo_zip }}'
+      mode: '0644'
+    register: upload_embedvideo
+
+  - name: Extract EmbedVideo plugin
+    unarchive:
+      src: '{{ temp_dir }}/{{ embedvideo_zip }}'
+      dest: '{{ temp_dir }}/'
+      remote_src: yes
+    when: upload_embedvideo.changed
+
+  - name: Put ExtractVideo into position
+    copy:
+      src: '{{ temp_dir }}/{{ embedvideo_zip | splitext | first }}/'
+      dest: '{{ staging_dir }}/extensions/EmbedVideo'
+      remote_src: yes
+
+  - name: Upload Metrolook skin tarball
+    copy:
+      src: ohrwiki_data/{{ metrolook_skin }}
+      dest: '{{ temp_dir }}/{{ metrolook_skin }}'
+      mode: '0644'
+    
+  - name: Extract Metrolook skin
+    unarchive:
+      src: '{{ temp_dir }}/{{ metrolook_skin }}'
+      dest: '{{ staging_dir }}/skins/'
+      remote_src: yes
+
+  - name: Update the mediawiki database
+    shell: '{{ bin_php }} update.php --quick'
+    args:
+      chdir: '{{ staging_dir }}/maintenance/'
+
+  - name: Move away the old folder
+    shell: 'mv -f "{{ real_dir }}" "{{ real_dir }}.old"'
+  
+  - name: Move the staging folder into place
+    shell: 'mv "{{ staging_dir }}" "{{ real_dir }}"'

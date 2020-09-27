@@ -1,0 +1,4 @@
+[server]
+# This is currently set up for hosting at James's dreamhost account
+hamsterrepublic  ansible_host=motherhamster.org ansible_user=james_paige
+

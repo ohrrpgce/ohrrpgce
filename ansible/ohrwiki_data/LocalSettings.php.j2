@@ -1,0 +1,263 @@
+<?php
+
+# See includes/DefaultSettings.php for all configurable settings
+# and their default values, but don't forget to make changes in _this_
+# file, not there.
+
+# If you customize your file layout, set $IP to the directory that contains
+# the other MediaWiki files. It will be used as a base to locate files.
+if( defined( 'MW_INSTALL_PATH' ) ) {
+	$IP = MW_INSTALL_PATH;
+} else {
+	$IP = dirname( __FILE__ );
+}
+
+$path = array( $IP, "$IP/includes", "$IP/languages" );
+set_include_path( implode( PATH_SEPARATOR, $path ) . PATH_SEPARATOR . get_include_path() );
+
+require_once( "$IP/includes/DefaultSettings.php" );
+
+# If PHP's memory limit is very low, some operations may fail.
+# ini_set( 'memory_limit', '20M' );
+
+if ( $wgCommandLineMode ) {
+	if ( isset( $_SERVER ) && array_key_exists( 'REQUEST_METHOD', $_SERVER ) ) {
+		die( "This script must be run from the command line\n" );
+	}
+}
+## Uncomment this to disable output compression
+# $wgDisableOutputCompression = true;
+
+#$wgReadOnly = "This wiki is in read-only mode for maintenance";
+
+$wgSitename         = "OHRRPGCE-Wiki";
+$wgServer = 'https://rpg.hamsterrepublic.com';
+
+## The URL base path to the directory containing the wiki;
+## defaults for all runtime URL paths are based off of this.
+$wgScriptPath       = "/ohrrpgce";
+$wgScriptExtension  = ".php";
+
+#$wgArticlePath      = "$wgScriptPath/index.php?title=$1";
+$wgArticlePath      = "$wgScriptPath/$1";
+
+## For more information on customizing the URLs please see:
+## http://www.mediawiki.org/wiki/Manual:Short_URL
+
+$wgEnableEmail      = true;
+$wgEnableUserEmail  = false;
+
+$wgEmergencyContact = "webmaster-wiki@HamsterRepublic.com";
+$wgPasswordSender = "webmaster-wiki@HamsterRepublic.com";
+
+## For a detailed description of the following switches see
+## http://www.mediawiki.org/wiki/Extension:Email_notification 
+## and http://www.mediawiki.org/wiki/Extension:Email_notification
+## There are many more options for fine tuning available see
+## /includes/DefaultSettings.php
+## UPO means: this is also a user preference option
+$wgEnotifUserTalk = false; # UPO
+$wgEnotifWatchlist = false; # UPO
+$wgEmailAuthentication = true;
+
+$wgDBtype           = "mysql";
+$wgDBserver         = "mysql.motherhamster.org";
+$wgDBname           = "ohrrpgce_wiki";
+$wgDBuser           = "ohr_wiki_user";
+$wgDBpassword       = "{{ mysql_password | trim }}";
+
+# MySQL specific settings
+$wgDBprefix         = "";
+
+# MySQL table options to use during installation or update
+$wgDBTableOptions   = "TYPE=InnoDB";
+
+# Experimental charset support for MySQL 4.1/5.0.
+$wgDBmysql5 = false;
+
+# Postgres specific settings
+#$wgDBport           = "5432";
+#$wgDBmwschema       = "mediawiki";
+#$wgDBts2schema      = "public";
+
+## Shared memory settings
+$wgMainCacheType = CACHE_NONE;
+$wgMemCachedServers = array();
+
+## To enable image uploads, make sure the 'images' directory
+## is writable, then set this to true:
+$wgEnableUploads       = true;
+$wgUploadPath       = "/wiki-images";
+$wgUploadDirectory  = "/home/james_paige/rpg.hamsterrepublic.com/wiki-images";
+$wgUseImageMagick = true;
+$wgUseImageResize = true;
+$wgImageMagickConvertCommand = "/usr/bin/convert";
+
+
+## If you want to use image uploads under safe mode,
+## create the directories images/archive, images/thumb and
+## images/temp, and make them all writable. Then uncomment
+## this, if it's not already uncommented:
+# $wgHashedUploadDirectory = false;
+
+## If you have the appropriate support software installed
+## you can enable inline LaTeX equations:
+$wgUseTeX           = false;
+
+$wgLocalInterwiki   = $wgSitename;
+
+$wgLanguageCode = "en";
+
+$wgProxyKey = "590a6262c3cfbaa5afdfc1170a9201633bf837b223db4bd4076079da0682a597";
+
+## Default skin: you can change the default skin. Use the internal symbolic
+## names, ie 'standard', 'nostalgia', 'cologneblue', 'monobook':
+$wgDefaultSkin = 'vector';
+wfLoadSkin( 'MonoBook' );
+wfLoadSkin( 'Vector' );
+wfLoadSkin( 'Metrolook' );
+$wgAllowUserCss = true;
+
+# Customisation of Vector skin
+$wgVectorUseIconWatch = false;
+# Customisation of Metrolook skin
+$wgMetrolookUploadButton = false;
+$wgMetrolookDownArrow = false;
+$wgMetrolookLine = false;
+$wgMetrolookUseIconWatch = false;
+
+## For attaching licensing metadata to pages, and displaying an
+## appropriate copyright notice / icon. GNU Free Documentation
+## License and Creative Commons licenses are supported so far.
+# $wgEnableCreativeCommonsRdf = true;
+$wgRightsPage = ""; # Set to the title of a wiki page that describes your license/copyright
+$wgRightsUrl = "";
+$wgRightsText = "";
+$wgRightsIcon = "";
+# $wgRightsCode = ""; # Not yet used
+
+$wgDiff3 = "/usr/bin/diff3";
+
+# When you make changes to this configuration file, this will make
+# sure that cached pages are cleared.
+$configdate = gmdate( 'YmdHis', @filemtime( __FILE__ ) );
+$wgCacheEpoch = max( $wgCacheEpoch, $configdate );
+	
+$wgLogo = "/ohrrpgce/ohrrpgce.png";
+
+$wgShowSQLErrors = false;
+
+$wgExtraNamespaces =   
+       array(100 => "Menu",
+             101 => "Menu_Talk",
+             102 => "Game",
+             103 => "Game_Talk",
+             104 => "Br",
+             105 => "Br_Conversa",
+             106 => "Plot",
+             107 => "Plot_Talk",
+             108 => "Id",
+             109 => "Id_parolaro",
+             110 => "Scripts",
+             111 => "Scripts_Talk",
+             112 => "FMF",
+             113 => "FMF_Talk",
+             114 => "Ru",
+             115 => "Ru_Talk"
+             );
+
+$wgNamespacesWithSubpages = array(
+        NS_TALK           => true,
+        NS_USER           => true,
+        NS_USER_TALK      => true,
+        NS_PROJECT_TALK   => true,
+        NS_FILE_TALK      => true,
+        NS_MEDIAWIKI_TALK => true,
+        NS_TEMPLATE_TALK  => true,
+        NS_HELP_TALK      => true,
+        NS_CATEGORY_TALK  => true,
+        100 => true,
+        102 => true,
+        104 => true,
+        106 => true,
+        112 => true
+ );
+ 
+$wgNamespacesToBeSearchedDefault = array(
+        NS_MAIN           => true,
+        100 => true,
+        102 => true,
+        106 => true,
+        110 => true,
+        112 => true
+);
+
+/**
+ * Recentchanges items are periodically purged; entries older than this many
+ * seconds will go.
+ * For one week : 7 * 24 * 3600
+ */
+$wgRCMaxAge = 7 * 24 * 3600 * 16;
+
+# It would be better if this was 1, but making it 2
+# until we have a way to exclude talk namespaces
+$wgWantedPagesThreshold = 2;
+
+# Allowed upload formats
+$wgFileExtensions = array(
+  'png', 'gif', 'jpg', 'jpeg', 'bmp',
+  'ogg', 'mp3', 'mid', 'midi', 'bam', 'mod', 'xm', 'it', 's3m',
+  'rpg', 'mas', 'ohf', 'sav',
+  'zip', 'bz2', 'gz', 'exe'
+); // end upload formats
+
+$wgVerifyMimeType = false;
+
+$wgSysopRangeBans = true;
+
+# Extensions
+$wgPFEnableStringFunctions = true;
+
+wfLoadExtension( 'EmbedVideo' );
+
+wfLoadExtension( 'ConfirmEdit' );
+wfLoadExtension( 'ConfirmEdit/QuestyCaptcha' );
+$wgGroupPermissions['user']['skipcaptcha'] = true; // Logged-in users don't need to do captcha
+$wgCaptchaTriggers['edit'] = true; 
+$wgCaptchaTriggers['create'] = true; 
+
+$wgCaptchaClass = 'QuestyCaptcha';
+$wgCaptchaQuestions[] = array( 'question' => "What year did Yoko Ono celebrate her 20th birthday? (If you don't know, just google it!)", 'answer' => "1953" );
+$wgCaptchaQuestions[] = array( 'question' => "On what day in September is Talk Like a Pirate Day celebrated? (If you don't know, just google it!)", 'answer' => "19" );
+$wgCaptchaQuestions[] = array( 'question' => "In what year was the king known as Edward the Confessor born? (If you don't know, just google it!)", 'answer' => "1003" );
+$wgCaptchaQuestions[] = array( 'question' => "In what city or village was Nikola Tesla born? (If you don't know, just google it!)", 'answer' => array("Smiljan", "smiljan") );
+$wgCaptchaQuestions[] = array( 'question' => "In what year did Orson Scott Card publish Xenocide? (If you don't know, just google it!)", 'answer' => "1991" );
+$wgCaptchaQuestions[] = array( 'question' => "How old was Martin Luther King Jr when he won the Nobel Peace Prize? (If you don't know, just google it!)", 'answer' => "35" );
+$wgCaptchaQuestions[] = array( 'question' => "In 1992, Dan Quayle incorrectly spelled 'potatoe' at a spelling bee. What was the last name of the student who spelled it correctly at the same spelling bee? (If you don't know, just google it!)", 'answer' => "Figueroa" );
+$wgCaptchaQuestions[] = array( 'question' => "The famous author Mark Twain used a pen-name. His real name was different. What was his father's middle name? (If you don't know, just google it!)", 'answer' => "Marshall" );
+$wgCaptchaQuestions[] = array( 'question' => "Find the name of the person who invented the Carburetor in 1826. When he died, where was he buried? (If you don't know, just google it!)", 'answer' => array("Orford") );
+
+# Disabled questions that spammers already know the answers to
+#$wgCaptchaQuestions[] = array( 'question' => "How many red stripes are on the flag of Liberia? (If you don't know, just google it!)", 'answer' => "6" );
+#$wgCaptchaQuestions[] = array( 'question' => "In which year was Winston Churchill born? (If you don't know, just google it!)", 'answer' => "1874" );
+
+require_once('mediawiki-spamcallback.php');
+$wgHooks['EditFilter'][] = 'spamCallBack';
+#$wgFilterCallback = spamCallBack;
+
+$wgGroupPermissions['bureaucrat']['replacetext'] = true;
+
+$wgDefaultUserOptions['usenewrc'] = false;
+
+$wgGroupPermissions['user']['upload'] = false;
+$wgGroupPermissions['user']['reupload'] = false;
+$wgGroupPermissions['uploadaccess']['upload'] = true;
+$wgGroupPermissions['uploadaccess']['reupload'] = true;
+
+
+$wgShowExceptionDetails = true;
+$wgShowDBErrorBacktrace = true;
+
+#wfLoadExtension('SimpleBatchUpload');
+
+wfLoadExtension('Renameuser');
