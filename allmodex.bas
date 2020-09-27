@@ -4766,7 +4766,7 @@ sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2
 	'/
 
 	dim sptr as ubyte ptr
-	dim sptr32 as integer ptr
+	dim sptr32 as RGBcolor ptr
 	dim is32bit as bool
 	if dest->image then
 		sptr = dest->image + (y1 * dest->pitch) + x1
@@ -4774,7 +4774,8 @@ sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2
 	elseif dest->surf then
 		ERROR_IF(dest->surf->format <> SF_32bit, "surf not 32bit")
 		ERROR_IF(dest->surf->pitch <> dest->pitch, "mismatched pitch")
-		sptr = dest->surf->pRawData
+		sptr32 = dest->surf->pColorData + (y1 * dest->surf->pitch) + x1
+		sptr = cast(ubyte ptr, sptr32)
 		minorstep *= 4
 		majorstep *= 4
 		c = curmasterpal(c).col
