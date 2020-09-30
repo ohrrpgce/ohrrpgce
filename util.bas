@@ -38,6 +38,10 @@ Declare Function fb_hStrAllocTemp Alias "fb_hStrAllocTemp" (byval s as FBSTRING 
   Declare Function fb_hStrDelTemp Alias "fb_hStrDelTemp" (s as FBSTRING ptr) as long
 #endif
 
+DECLARE FUNCTION integerptr_compare CDECL (byval a as integer ptr ptr, byval b as integer ptr ptr) as long
+DECLARE FUNCTION stringptr_compare CDECL (byval a as string ptr ptr, byval b as string ptr ptr) as long
+
+
 'It is very important for this to be populated _before_ any calls to CHDIR
 DIM orig_dir as string
 
@@ -1517,14 +1521,12 @@ startTest(staticDynamicArray)
 endTest
 #ENDIF
 
-'I've compared the speed of the following two. For random integers, the quicksort is faster
-'for arrays over length about 80. For arrays which are 90% sorted appended with 10% random data,
-'the cut off is about 600 (insertion sort did ~5x better on nearly-sort data at the 600 mark)
 
+'Stable (insert) sort of integers. Running time is O(n^2), but much faster on nearly-sorted lists.
+'Use qsort_integers_indices instead when speed is needed.
 'Returns, in indices() (assumed to already have been dimmed large enough), indices for
 'visiting the data (an array of some kind of struct containing an integer) in ascending order.
 'start points to the integer in the first element, stride is the size of an array element, in integers
-'Insertion sort. Running time is O(n^2). Much faster on nearly-sorted lists. STABLE
 SUB sort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer, byval stride as integer)
  IF number = 0 THEN number = UBOUND(indices) + 1
  DIM keys(number - 1) as integer
@@ -1546,6 +1548,38 @@ SUB sort_integers_indices(indices() as integer, byval start as integer ptr, byva
   indices(i + 1) = j
  NEXT
 END SUB
+
+'CRT Quicksort. Running time is *usually* O(n*log(n)). NOT STABLE
+'See sort_integer_indices.
+'
+'A comparison (dependent on your libc) of sort_integers_indices and qsort_integers_indices speed:
+'For random integers, the quicksort is faster
+'for arrays over length about 80. For arrays which are 90% sorted appended with 10% random data,
+'the cut off is about 600 (insertion sort did ~5x better on nearly-sort data at the 600 mark)
+LOCAL SUB qsort_indices(indices() as integer, byval start as any ptr, byval number as integer, byval stride as integer, byval compare_fn as FnCompare)
+ IF number = 0 THEN number = UBOUND(indices) + 1
+
+ DIM keys(number - 1) as any ptr
+ DIM i as integer
+ FOR i = 0 TO number - 1
+  keys(i) = start + stride * i
+ NEXT
+
+ qsort(@keys(0), number, sizeof(any ptr), compare_fn)
+
+ FOR i = 0 TO number - 1
+  indices(i) = CAST(integer, keys(i) - start) \ stride
+ NEXT
+END SUB
+
+SUB qsort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer, byval stride as integer)
+ qsort_indices indices(), start, number, stride, CAST(FnCompare, @integerptr_compare)
+END SUB
+
+SUB qsort_strings_indices(indices() as integer, byval start as string ptr, byval number as integer, byval stride as integer)
+ qsort_indices indices(), start, number, stride, CAST(FnCompare, @stringptr_compare)
+END SUB
+
 
 FUNCTION ptr_compare CDECL (byval a as any ptr ptr, byval b as any ptr ptr) as long
  IF *a < *b THEN RETURN -1
@@ -1664,32 +1698,6 @@ startTest(numeric_string_compare)
  IF numeric_string_compare("09", "1") <> -1 THEN fail
 endTest
 #ENDIF
-
-'CRT Quicksort. Running time is *usually* O(n*log(n)). NOT STABLE
-'See sort_integer_indices.
-LOCAL SUB qsort_indices(indices() as integer, byval start as any ptr, byval number as integer, byval stride as integer, byval compare_fn as FnCompare)
- IF number = 0 THEN number = UBOUND(indices) + 1
-
- DIM keys(number - 1) as any ptr
- DIM i as integer
- FOR i = 0 TO number - 1
-  keys(i) = start + stride * i
- NEXT
-
- qsort(@keys(0), number, sizeof(any ptr), compare_fn)
-
- FOR i = 0 TO number - 1
-  indices(i) = CAST(integer, keys(i) - start) \ stride
- NEXT
-END SUB
-
-SUB qsort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer, byval stride as integer)
- qsort_indices indices(), start, number, stride, CAST(FnCompare, @integerptr_compare)
-END SUB
-
-SUB qsort_strings_indices(indices() as integer, byval start as string ptr, byval number as integer, byval stride as integer)
- qsort_indices indices(), start, number, stride, CAST(FnCompare, @stringptr_compare)
-END SUB
 
 'Invert a (possibly partial) permutation such as that returned by sort_integers_indices;
 'indices() should normally contain the integers 0 to UBOUND(inverse),
