@@ -475,7 +475,9 @@ FUNCTION individual_formation_editor (form_id as integer = -1) as integer
 
  LoadFormation form, form_id
  load_formation_slices ename(), form, @rootslice
- IF form.music >= 0 THEN playsongnum form.music
+
+ DIM preview_music as bool = read_config_bool("formedit.preview_music", NO)
+ IF preview_music ANDALSO form.music >= 0 THEN playsongnum form.music
  DIM last_music as integer = form.music
 
  DIM menu(16) as string
@@ -646,14 +648,14 @@ FUNCTION individual_formation_editor (form_id as integer = -1) as integer
   END IF
   
   IF state.need_update THEN
-   IF form.music >= 0 THEN
-    IF form.music <> last_music THEN
-     playsongnum form.music
+   IF preview_music THEN
+    IF form.music >= 0 THEN
+     IF form.music <> last_music THEN playsongnum form.music
+    ELSE
+     music_stop
     END IF
-   ELSE
-    music_stop
+    last_music = form.music
    END IF
-   last_music = form.music
    state.need_update = NO
   END IF
 
