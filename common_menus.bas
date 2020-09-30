@@ -348,6 +348,7 @@ SUB edit_battle_bitsets()
  ELSE
   a_append bits(), -1, " Turn-based Battle Options"
   a_append bits(), 48, "!Press ESC to cancel/change a hero's attack"
+  a_append bits(), 51, "Don't break Speed ties randomly"
  END IF
 
  edit_global_bitsets bits(), "general_battle_bitsets"

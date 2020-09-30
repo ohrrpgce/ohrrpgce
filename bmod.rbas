@@ -4889,8 +4889,10 @@ SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
     CONTINUE FOR
    END IF
   END IF
-  'Random addition to break ties
-  speeds(i) = 100 * bslot(i).stat.cur.spd + randint(100)
+  speeds(i) = bslot(i).stat.cur.spd
+  IF prefbit(51) = NO THEN  '"Don't break Speed ties randomly"
+   speeds(i) = 100 * speeds(i) + randint(100)
+  END IF
   'debug bslot(i).name & " speed = " & bslot(i).stat.cur.spd & " sort index " & speeds(i)
  NEXT i
  
@@ -4910,7 +4912,7 @@ END SUB
 'Turn-based only. Finish setting .delay for each atkq - called once at the start of each round.
 'The .delay of a queued attack is a key used to determine the attack order. Each
 'attack will have a unique delay to avoid ties, because a tie would result in
-'battle_check_delays picking the first one.
+'battle_check_delays picking the first one. (This is separate from breaking attacker Speed ties.)
 'Initially, .delay = A * ATK_DELAY_MULT + B
 ' A is the primary sort key, equal to initiative order plus the attack's .attack_delay.
 ' B is the secondary sort key, equal to .attack_delay.

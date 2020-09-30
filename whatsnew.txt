@@ -19,6 +19,7 @@ September ? 2020 [Hróðvitnir]
     * Attacks can have custom alignment relative to their targets [James]
     * There is now a global pool of NPC definitions that can be used on
       any map to supplement the local per-map NPCs [James]
+    * Turn-based battle bit "Don't break Speed ties randomly" [Ralph]
 
    * New Plotscripting Features
     * "set timer args" [Ralph]

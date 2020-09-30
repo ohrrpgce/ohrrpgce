@@ -49,3 +49,5 @@ This does everything the next two bits do, and more. If ON, those bits have no e
 These bitsets only apply to Turn-based battle mode. They aren't shown if your game is set to use Active-time battles.
 
 "Press ESC to cancel/change a hero's attack" is on by default, and lets you press ESC to go back to the previous hero and change the attack you already selected. It would be odd for you to disable this.
+
+"Don't break Speed ties randomly" causes combatants which have the same Speed stat to act in order (first the leader, then the second hero, etc, then enemies in order), assuming they don't use attacks that have delays. Otherwise, these turn-order ties are broken randomly each combat round.
