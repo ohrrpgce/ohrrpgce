@@ -4716,6 +4716,10 @@ end</example>
 		<command id="unhidemousecursor">
 			<canon>unhide mouse cursor</canon>
 			<shortname>unhidemousecursor</shortname>
+			<altcommand id="showmousecursor">
+				<canon>show mouse cursor</canon>
+				<shortname>show mouse cursor</shortname>
+			</altcommand>
 			<description>
 				Causes the normal OS mouse cursor to be displayed, even when fullscreened.
 				You may want to run this command right after <ref>initmouse</ref> unless you plan to use a scripted customized mouse cursor.
@@ -4730,10 +4734,6 @@ end</example>
 		<command id="hidemousecursor">
 			<canon>hide mouse cursor</canon>
 			<shortname>hidemousecursor</shortname>
-			<altcommand id="showmousecursor">
-				<canon>show mouse cursor</canon>
-				<shortname>show mouse cursor</shortname>
-			</altcommand>
 			<description>Causes the normal OS mouse cursor to be hidden. This command is seldom needed, because the cursor is hidden by default when you run <ref>initmouse</ref>.</description>
 		</command>
 
