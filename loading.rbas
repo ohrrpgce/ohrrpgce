@@ -1159,6 +1159,19 @@ SUB ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, byval id as integer, byval b
   'debug "ZoneToTileMap in " & (timer - t) * 1000 & "ms, average=" & (accum * 1000 / samples)
 END SUB
 
+'Append a span to spanbuf, increment spanoff
+LOCAL SUB AppendSpan(spanbuf as ubyte ptr, byref spanoff as integer, spanlen as integer)
+  WHILE spanlen >= 256
+    'span too long, overflows a ubyte, break in two
+    spanbuf[spanoff] = 255
+    spanbuf[spanoff + 1] = 0
+    spanoff += 2
+    spanlen -= 255
+  WEND
+  spanbuf[spanoff] = spanlen
+  spanoff += 1
+END SUB
+
 'Adds 'rows' node to a .Z## root RELOAD node describing the tile data.
 'rect.x/y give an offset, and rect.w/h a size to trim to; used for resizing a map.
 LOCAL SUB SerializeZoneTiles(zmap as ZoneMap, byval root as NodePtr, rect as RectType)
@@ -1187,30 +1200,22 @@ LOCAL SUB SerializeZoneTiles(zmap as ZoneMap, byval root as NodePtr, rect as Rec
           IF a_find(seen_this_line(), id) <> -1 THEN CONTINUE FOR
           a_append seen_this_line(), id
 
-          DIM as integer spantype = NO  'NO: currently in a stretch of unset tiles
+          DIM spantype as bool = NO  'Start as a span of 0's
           spanoff = 0
           spanlen = large(xstart - rect.x, 0)
           FOR x = large(xstart, rect.x) TO small(.wide - 1, rect.x + rect.wide - 1)
-            WHILE spanlen >= 256
-              'span too long, break in two
-              spanbuf[spanoff] = 255
-              spanbuf[spanoff + 1] = 0
-              spanoff += 2
-              spanlen -= 255
-            WEND
             IF CheckZoneAtTile(zmap, id, x, y) = spantype THEN
               spanlen += 1
             ELSE
               spantype = spantype XOR YES
-              spanbuf[spanoff] = spanlen
-              spanoff += 1
+              AppendSpan(spanbuf, spanoff, spanlen)
               spanlen = 1
             END IF
           NEXT
 
-          IF spanlen <> 0 THEN
-            spanbuf[spanoff] = spanlen
-            spanoff += 1
+          'Write last span, but we can skip a span of 0's
+          IF spanlen <> 0 ANDALSO spantype THEN
+            AppendSpan(spanbuf, spanoff, spanlen)
           END IF
 
           'Write it out
@@ -1228,6 +1233,7 @@ END SUB
 'Set zone tiles according to a .Z document ('rows' node)
 LOCAL SUB DeserializeZoneTiles(zmap as ZoneMap, byval root as NodePtr)
   DIM as NodePtr rowsnode, rownode, idnode
+  DIM seterror as bool
   rowsnode = GetChildByName(root, "rows")
   IF rowsnode = NULL THEN
     debug "DeserializeZoneTiles: No 'rows' node!"
@@ -1245,15 +1251,18 @@ LOCAL SUB DeserializeZoneTiles(zmap as ZoneMap, byval root as NodePtr)
           IF id <= 0 THEN
             debug "DeserializeZoneTiles: bad zone id " & id
           ELSE
-
             'Everything else is RELOAD parsing, here's the actual spans decoding (see lump documentation)
+            'spans gives the length of alternating sequence of 0's or 1's, starting with 0's
             DIM spans as string = GetChildNodeStr(idnode, "spans")
             x = 0
+            'Note that we only process an even number of spans; if there's an odd number then
+            'the last span is a span of 0's so can be ignored.
             FOR i = 0 TO (LEN(spans) \ 2) * 2 - 1 STEP 2
               x += spans[i]
               FOR j = 0 TO spans[i + 1] - 1
                 IF SetZoneTile(zmap, id, x + j, y) = 0 THEN
-                  debug "DeserializeZoneTiles: Too much overlapping at " & (x + j) & " " & y
+                  debug strprintf("DeserializeZoneTiles: Couldn't set zone %d at %d,%d", id, x + j, y)
+                  seterror = YES
                 END IF
               NEXT
               x += spans[i + 1]
@@ -1266,6 +1275,7 @@ LOCAL SUB DeserializeZoneTiles(zmap as ZoneMap, byval root as NodePtr)
     END IF
     rownode = NextSibling(rownode)
   WEND
+  IF seterror THEN notification "Zone data seems corrupt, there was an error loading it (see error log with Ctrl-F8)"
 END SUB
 
 'rsrect: resize/shift the zonemap to this size as it's saved. rect.x/y is the offset.
