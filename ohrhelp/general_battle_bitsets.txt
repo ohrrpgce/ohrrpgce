@@ -22,9 +22,12 @@ Note that there are more bitsets which affect things like stats and hero experie
 
 "0 damage when immune to attack elements" allows elemental attacks to do zero damage if the target takes 0% damage from that element. Normally you would have to to set the "Allow zero damage" bit on the attack to do less than 1 point of damage.
 
-"Attacks ignore extra hits stat" makes the engine ignore the Hits stat, letting you repurpose this stat for something else. Otherwise, Hits randomly increases the number of times each attack by an enemy/hero hits, by 0 to Hits times.
+"Ignore extra Hits stat" lets you repurpose this stat for whatever you want, by disabling the builtin meaning of this stat. Otherwise, Hits randomly increases the number of times each attack by an enemy/hero hits, by 0 to Hits times.
 Turning this on is equivalent to setting the "Ignore attacker's extra hits" attack bit on all attacks (that bit is hidden if you turn on this general one).
+(This bit also appears in General Preference Bitsets)
 
+"Ignore MP~ stat" makes the engine ignore the MP~ stat, letting you repurpose this stat for something else. Otherwise, MP~ reduces the MP cost of spells by a %.
+(This bit also appears in General Preference Bitsets)
 
  Active-time Battle Options
 

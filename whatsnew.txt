@@ -20,6 +20,8 @@ September ? 2020 [Hróðvitnir]
     * There is now a global pool of NPC definitions that can be used on
       any map to supplement the local per-map NPCs [James]
     * Turn-based battle bit "Don't break Speed ties randomly" [Ralph]
+    * "Ignore MP~ stat" general preference bit, so you can use the stat for
+      something else [Ralph]
 
    * New Plotscripting Features
     * "set timer args" [Ralph]

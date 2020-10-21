@@ -88,6 +88,7 @@ END FUNCTION
 
 'Adjust the MP cost of an attack according to focus stat
 FUNCTION focuscost (cost as integer, focus as integer) as integer
+ IF prefbit(52) THEN RETURN cost '"Ignore MP~ stat"
  IF focus > 0 THEN
   RETURN cost - INT(cost / (100 / focus))
  ELSE

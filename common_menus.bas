@@ -268,6 +268,8 @@ SUB edit_general_bitsets()
  a_append bits(), 19, "Dead heroes gain share of experience"
  a_append bits(), 43, "Cap minimum stats at zero"
  a_append bits(), 46, "!Negative-damage harmtiles can cure above max HP"
+ a_append bits(), 29, "Ignore extra Hits stat"
+ a_append bits(), 52, "Ignore MP~ stat"
 
  a_append bits(), -1, ""
  a_append bits(), -1, " Hero Party"
@@ -329,7 +331,8 @@ SUB edit_battle_bitsets()
  a_append bits(), -1, ""
  a_append bits(), -1, " General Options"
  a_append bits(), 26, "0 damage when immune to attack elements"
- a_append bits(), 29, "Attacks ignore extra hits stat"
+ a_append bits(), 29, "Ignore extra Hits stat"
+ a_append bits(), 52, "Ignore MP~ stat"
 
  a_append bits(), -1, ""
  IF gen(genBattleMode) = 0 THEN

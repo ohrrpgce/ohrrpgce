@@ -29,4 +29,4 @@ Counter: This is a spare stat with no built-in purpose, but you can use it as a 
 Focus: This is a percentage by which the enemy's MP consuption is reduced. Normally this should be 0. If 100, all MP costs are reduced to 0.
 
 Extra Hit: This stat causes the enemy to randomly hit additional times every time they use an attack. For example, if it's 2 then the attack will hit 0-2 extra times (1-3 in total), on average 2 time. You almost always want to keep this at 0.
-But that doesn't happen (the stat is  ignored) if either the "Ignore attacker's extra hits" attack bit or "Attacks ignores extra hits" battle system bit are on.
+But that doesn't happen (the stat is ignored) if either the "Ignore attacker's extra hits" attack bit or "Ignore extra Hits stats" battle system bit are on.
