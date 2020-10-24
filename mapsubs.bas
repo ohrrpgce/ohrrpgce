@@ -1341,6 +1341,8 @@ DO
     IF doorid >= 0 THEN
      'clear an existing door
      st.map.door(doorid).exists = NO
+     'Make this the selected door ID, which makes it easy to reposition any door
+     st.cur_door = doorid
     ELSE
      'Either move the current door if it exists, or create it
      st.map.door(st.cur_door).pos = st.pos
