@@ -341,7 +341,6 @@ TYPE MapEditState
   temptilemap as TileMap     'A temporary TileMap. Normally remains uninitialised
   moved as integer          'used when detecting cursor movement
   walk as integer           'used for animating NPC walking
-  doorid as integer
 
   modenames(5) as string
   mode_tools as integer vector

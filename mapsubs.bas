@@ -1084,9 +1084,9 @@ DO
     END WITH
    NEXT i
    'delete door
-   st.doorid = find_door_at_spot(st.pos, st.map.door())
-   IF st.doorid >= 0 THEN
-    st.map.door(st.doorid).exists = NO
+   DIM doorid as integer = find_door_at_spot(st.pos, st.map.door())
+   IF doorid >= 0 THEN
+    st.map.door(doorid).exists = NO
    END IF
    'zones not deleted
  END IF
@@ -1315,17 +1315,17 @@ DO
   CASE door_mode
    IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
    IF keyval(scAnyEnter) > 1 OR normal_right_release THEN ' enter/right click to link a door
-    st.doorid = find_door_at_spot(st.pos, st.map.door())
-    IF st.doorid >= 0 THEN
+    DIM doorid as integer = find_door_at_spot(st.pos, st.map.door())
+    IF doorid >= 0 THEN
      'Save currently-worked-on map data
      mapedit_savemap st
-     DIM doorlinkid as integer = find_first_doorlink_by_door(st.doorid, st.map.doorlink())
+     DIM doorlinkid as integer = find_first_doorlink_by_door(doorid, st.map.doorlink())
      IF doorlinkid >= 0 THEN
       link_one_door st, doorlinkid
      ELSE
       doorlinkid = find_last_used_doorlink(st.map.doorlink()) + 1
       IF doorlinkid >= 0 AND doorlinkid <= UBOUND(st.map.doorlink) THEN
-       st.map.doorlink(doorlinkid).source = st.doorid
+       st.map.doorlink(doorlinkid).source = doorid
        link_one_door st, doorlinkid
       END IF
      END IF
@@ -1337,10 +1337,10 @@ DO
     END IF
    END IF
    IF tool_actkeypress THEN ' space/click to place a door
-    st.doorid = find_door_at_spot(st.pos, st.map.door())
-    IF st.doorid >= 0 THEN
+    DIM doorid as integer = find_door_at_spot(st.pos, st.map.door())
+    IF doorid >= 0 THEN
      'clear an existing door
-     st.map.door(st.doorid).exists = NO
+     st.map.door(doorid).exists = NO
     ELSE
      'Either move the current door if it exists, or create it
      st.map.door(st.cur_door).pos = st.pos
@@ -1352,9 +1352,9 @@ DO
     END IF
    END IF
    IF keyval(scDelete) > 1 THEN
-    st.doorid = find_door_at_spot(st.pos, st.map.door())
-    IF st.doorid >= 0 THEN
-     st.map.door(st.doorid).exists = NO
+    DIM doorid as integer = find_door_at_spot(st.pos, st.map.door())
+    IF doorid >= 0 THEN
+     st.map.door(doorid).exists = NO
     END IF
    END IF
 
