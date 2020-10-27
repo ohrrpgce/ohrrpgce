@@ -201,10 +201,8 @@ max(EnLimPercent) = 100
 
 CONST EnLimStat = 6' to 17
 FOR i as integer = 0 TO statLast
- max(EnLimStat + i) = 32767  ' By default
+ max(EnLimStat + i) = 32767
 NEXT
-max(EnLimStat + statFocus) = 100
-max(EnLimStat + statHitX) = 20
 
 CONST EnLimSpawn = 18
 max(EnLimSpawn) = gen(genMaxEnemy) + 1 'must be updated!

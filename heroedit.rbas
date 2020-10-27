@@ -365,8 +365,6 @@ SUB hero_editor_stats_menu (her as HeroDef)
   min(i) = 0
   max(i) = 32767
  NEXT
- max(statFocus) = 100
- max(statHitX) = 20
 
  setkeys
  DO
