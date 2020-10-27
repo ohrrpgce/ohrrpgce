@@ -377,7 +377,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
   usemenu mstate, leftmenu
   DIM statnum as integer = mstate.pt - 4
 
-  IF readmouse.clicks AND (mouseLeft OR mouseRight) THEN
+  IF readmouse.clicks AND (mouseLeft OR mouseRight) ANDALSO readmouse.y < graph_sl->Y THEN
    IF readmouse.x > 160 AND twomenus THEN
     activemenu = 1
    ELSE
@@ -392,15 +392,18 @@ SUB hero_editor_stats_menu (her as HeroDef)
     mstate.need_update = YES
    END IF
   END IF
+
   IF statnum < 0 THEN
    activemenu = 0
   ELSE
    IF twomenus AND (keyval(ccLeft) > 1 OR keyval(ccRight) > 1) THEN activemenu XOR= 1
+   DIM selected_value as integer ptr
    IF activemenu = 0 THEN
-    IF intgrabber(her.Lev0.sta(statnum), min(statnum), max(statnum), scLeftCaret, scRightCaret) THEN mstate.need_update = YES
+    selected_value = @her.Lev0.sta(statnum)
    ELSE
-    IF intgrabber(her.LevMax.sta(statnum), min(statnum), max(statnum), scLeftCaret, scRightCaret) THEN mstate.need_update = YES
+    selected_value = @her.LevMax.sta(statnum)
    END IF
+   mstate.need_update OR= intgrabber(*selected_value, min(statnum), max(statnum), scLeftCaret, scRightCaret)
   END IF
 
   IF mstate.need_update THEN
@@ -426,7 +429,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
 
   'Update graph
   graph_sl->Visible = (statnum >= 0)
-  graph_sl->Size = get_resolution() - graph_sl->Pos - XY(0, 10)
+  graph_sl->Size = get_resolution() - graph_sl->Pos - XY(0, 12)
   IF statnum >= 0 THEN
    n0 = her.Lev0.sta(statnum)
    nMax = her.LevMax.sta(statnum)
@@ -465,6 +468,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
    standardmenu middlemenu, inactive_state, midmenux, 0, dpage
   END IF
 
+/'
   IF statnum >= 0 THEN
    'Experimental stuff
    IF keyval(scLeftShift) > 1 THEN
@@ -481,10 +485,11 @@ SUB hero_editor_stats_menu (her as HeroDef)
     mstate.need_update = YES
    END IF
   END IF
+'/
 
-  'Preview speed, if appropriate
-  IF statnum = statSpeed ANDALSO gen(genBattleMode) = 0 THEN  'Active-time battles
-   DIM as integer whatlevel, spdstat
+  IF statnum >= 0 THEN
+   'Show more info about selected stat value, if appropriate
+   DIM as integer whatlevel, statval
    IF graph->showpoint THEN
     whatlevel = CINT(graph->showx)
    ELSEIF activemenu = 0 THEN
@@ -492,11 +497,11 @@ SUB hero_editor_stats_menu (her as HeroDef)
    ELSE
     whatlevel = gen(genMaxLevel)
    END IF
-   spdstat = atlevel(whatlevel, her.Lev0.spd, her.LevMax.spd)
-
-   textcolor uilook(uiDescription), 0
-   printstr "Level " & whatlevel & ": " & speed_estimate(spdstat), 0, pBottom, dpage
+   statval = atlevel(whatlevel, her.Lev0.sta(statnum), her.LevMax.sta(statnum))
+   textcolor uilook(uiMenuItem), 0
+   printstr stat_value_caption(statnum, statval), 0, pBottom, dpage
   END IF
+
   SWAP vpage, dpage
   setvispage vpage
   dowait

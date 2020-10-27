@@ -1703,7 +1703,8 @@ DO
   edgeprint RIGHT(cost_caption, 30), pRight, pBottom, uilook(uiText), dpage
  END IF
 
- edgeprint flexmenu_tooltip(workmenu(state.pt), menutype()), pLeft, pBottom, uilook(uiDisabledItem), dpage
+ DIM nowindex as integer = workmenu(state.pt)
+ edgeprint flexmenu_tooltip(menutype(nowindex), recbuf(menuoff(nowindex))), pLeft, pBottom, uilook(uiDisabledItem), dpage
 
  standardmenu dispmenu(), state, 0, 0, dpage, menuopts
  IF keyval(scAlt) > 0 OR show_name_ticks > 0 THEN 'holding ALT or just tab-flipped, show ID and name
@@ -2332,7 +2333,7 @@ FUNCTION editflexmenu (state as MenuState, nowindex as integer, menutype() as in
 '           12=defaultable positive int >=0 is int, -1 is "default"
 '           13=Default zero int >0 is int, 0 is "default"  (see also type 26)
 '           14=sound effect + 1 (0=default, -1=none)
-'           15=speed (shows battle turn time estimate in active-time mode)
+'           15=UNUSED
 '           16=stat (numbered the same way as BattleStatsSingle.sta())
 '           17=int with a % sign after it
 '           18=skipper (caption which is skipped by the cursor)
@@ -2365,6 +2366,7 @@ FUNCTION editflexmenu (state as MenuState, nowindex as integer, menutype() as in
 '           7000-7999=attack bitset, either NO/YES or captioned
 '                     The attack bit number is type - 7000, menuoff() ignored.
 '                     If menucapoff() is non-zero it's used instead of NO/YES
+'           8000-8999=value of stat 8000+statnum
 'menuoff() is the offsets into the data block where each menu data is stored
 'menulimits() is the offsets into the mintable() and maxtable() arrays
 'datablock() holds the actual data
@@ -2375,7 +2377,7 @@ DIM changed as bool = NO
 DIM s as string
 
 SELECT CASE menutype(nowindex)
- CASE 0, 8, 12 TO 17, 19, 20, 23, 24, 25, 3000 TO 3999' integers
+ CASE 0, 8, 12 TO 17, 19, 20, 23, 24, 25, 3000 TO 3999, 8000 TO 8999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
  CASE 1000 TO 2999' captioned integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
@@ -2514,7 +2516,7 @@ SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as intege
 '           12=defaultable positive int >=0 is int, -1 is "default"
 '           13=Default zero int >0 is int, 0 is "default"  (see also type 26)
 '           14=sound effect + 1 (0=default, -1=none)
-'           15=speed (shows battle turn time estimate in active-time mode)
+'           15=UNUSED
 '           16=stat (numbered the same way as BattleStatsSingle.sta())
 '           17=int with a % sign after it
 '           18=skipper (caption which is skipped by the cursor)
@@ -2549,6 +2551,7 @@ SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as intege
 '           7000-7999=attack bitset, either NO/YES or captioned
 '                     The attack bit number is type - 7000, menuoff() ignored.
 '                     If menucapoff() is non-zero it's used instead of NO/YES
+'           8000-8999=value of stat 8000+statnum
 'menuoff() tells us what index to look for the data for this menu item
 'menulimits() is the offset to look in maxtable() for limits
 'datablock() the actual data the menu represents
@@ -2618,11 +2621,7 @@ FOR i = 0 TO size
     ELSE
       datatext = (dat - 1) & " (" + getsfxname(dat - 1) + ")"
     END IF
-  CASE 15 '--speed (shows battle turn time estimate)
-    datatext = STR(dat)
-    IF gen(genBattleMode) = 0 THEN  'active-time
-     datatext &= " (" & speed_estimate(dat) & ")"
-    END IF
+  CASE 15 '--UNUSED
   CASE 16 '--stat
     datatext = battle_statnames(dat)
   CASE 17 '--int%
@@ -2688,6 +2687,14 @@ FOR i = 0 TO size
    ELSE
     datatext = yesorno(thebit)
    END IF
+  CASE 8000 TO 8999 '--value of stat 8000+statnum
+   datatext = STR(dat)
+   IF menutype(nowdat(i)) - 8000 = statSpeed THEN '--speed (shows battle turn time estimate)
+    IF gen(genBattleMode) = 0 THEN  'active-time
+     datatext &= " (" & speed_estimate(dat) & ")"
+    END IF
+   END IF
+
  END SELECT
  IF replacestr(nowmenu(i), "$$", datatext) = 0 THEN
   'No replacements made
@@ -2703,10 +2710,15 @@ FUNCTION isStringField(byval mnu as integer) as bool
 END FUNCTION
 
 'Message to show at the bottom of the screen. Only for things not specific to enemy or attack editor.
-FUNCTION flexmenu_tooltip(nowindex as integer, menutype() as integer) as string
- SELECT CASE menutype(nowindex)
+FUNCTION flexmenu_tooltip(menutype as integer, datvalue as integer) as string
+ SELECT CASE menutype
   CASE 7, 9  'attack (offset)
    RETURN THINGGRABBER_TOOLTIP
+  CASE 8000 TO 8999  'value of stat 8000+statnum
+   IF menutype <> 8000 + statSpeed THEN  'Skip Speed, since that's already shown right in the menu item (see updateflexmenu)
+    RETURN stat_value_caption(menutype - 8000, datvalue)
+   END IF
+
  END SELECT
 END FUNCTION
 

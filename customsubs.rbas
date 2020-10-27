@@ -1681,6 +1681,21 @@ FUNCTION seconds_estimate(ticks as integer) as string
  RETURN strprintf("%.2f", ticks / ideal_ticks_per_second())
 END FUNCTION
 
+'Return a caption shown in hero and enemy editors while editing a stat.
+FUNCTION stat_value_caption(statnum as integer, statval as integer) as string
+ IF statnum = statSpeed ANDALSO gen(genBattleMode) = 0 THEN  'Active-time
+  RETURN speed_estimate(statval)
+ ELSEIF statnum = statFocus ANDALSO prefbit(52) = NO THEN  '"Ignore MP~ stat"
+  RETURN "Attacks cost " & (100 - statval) & "% normal MP cost"
+ ELSEIF statnum = statHitX ANDALSO prefbit(29) = NO THEN  '"Ignore extra Hits
+  'stat" Total number of hits is capped to 20. Increasing Hits above 20 will
+  'continue to increase the average number of hits, but we don't show that.
+  RETURN "Attacks hit 0 to " & small(19, statval) & " extra times"
+ ELSEIF statnum >= statCtr THEN  'Ctr, possible Hits and Focus (MP~)
+  RETURN "Free stat for any use"
+ END IF
+END FUNCTION
+
 SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
  'NOTE: Compare this to the portrait loading code in game.bas:init_text_box_slices()
  'If you update this here, you might need to update that one too!

@@ -16,7 +16,7 @@ DECLARE FUNCTION flexmenu_handle_crossrefs (state as MenuState, nowindex as inte
 DECLARE SUB enforceflexbounds (menuoff() as integer, menutype() as integer, menulimits() as integer, recbuf() as integer, min() as integer, max() as integer)
 DECLARE SUB addcaption (caption() as string, byref indexer as integer, cap as string)
 DECLARE FUNCTION isStringField(byval mnu as integer) as bool
-DECLARE FUNCTION flexmenu_tooltip(nowindex as integer, menutype() as integer) as string
+DECLARE FUNCTION flexmenu_tooltip(menutype as integer, datvalue as integer) as string
 
 
 #ENDIF

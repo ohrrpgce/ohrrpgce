@@ -377,11 +377,10 @@ menulimits(EnMenuRareItemP) = EnLimPercent
 CONST EnMenuStat = 18' to 29
 FOR i as integer = 0 TO 11
  menu(EnMenuStat + i) = statnames(i) + ":"
- menutype(EnMenuStat + i) = 0
+ menutype(EnMenuStat + i) = 8000 + i  'stat value
  menuoff(EnMenuStat + i) = EnDatStat + i
  menulimits(EnMenuStat + i) = EnLimStat + i
 NEXT i
-menutype(EnMenuStat + 8) = 15 'Speed should show turn-time estimate
 
 CONST EnMenuSpawnDeath = 30
 menu(EnMenuSpawnDeath) = "Spawn on Death:"
@@ -975,7 +974,8 @@ DO
   textcolor uilook(uiText), uilook(uiHighlight)
   printstr tmpstr, pRight, 0, vpage
  END IF
- edgeprint flexmenu_tooltip(workmenu(state.pt), menutype()), pLeft, pBottom, uilook(uiDisabledItem), vpage
+ nowindex = workmenu(state.pt)
+ edgeprint flexmenu_tooltip(menutype(nowindex), recbuf(menuoff(nowindex))), pLeft, pBottom, uilook(uiDisabledItem), vpage
 
  setvispage vpage
  dowait
