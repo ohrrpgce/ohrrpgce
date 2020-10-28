@@ -893,7 +893,7 @@ local sub screen_size_update ()
 	'Changes windowsize if user tried to resize, otherwise does nothing
 	if gfx_get_resize(windowsize) then
 		'debuginfo "User window resize to " & windowsize.wh
-		show_overlay_message windowsize.wh & " x " & windowsize.h, 0.7
+		show_overlay_message windowsize.w & " x " & windowsize.h, 0.7
 	end if
 
 	'Clamping windowsize to the minwinsize here means trying to override user

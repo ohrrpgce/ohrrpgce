@@ -62,6 +62,7 @@ declare function SDL_ANDROID_OUYAReceiptsResult () as zstring ptr
 DECLARE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
 DECLARE FUNCTION recreate_screen_texture() as bool
 DECLARE FUNCTION get_buffersize() as XYPair
+DECLARE SUB set_viewport()
 DECLARE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, imagesz as XYPair, pitch as integer, bitdepth as integer) as bool
 DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
@@ -84,7 +85,7 @@ DIM SHARED maintexture as SDL_Texture ptr = NULL
 DIM SHARED screenbuffer as SDL_Surface ptr = NULL
 DIM SHARED last_bitdepth as integer   'Bitdepth of the last gfx_present call
 
-DIM SHARED windowedmode as bool = YES
+DIM SHARED windowedmode as bool = YES  'Windowed rather than fullscreen? (Should we trust this, or call SDL_GetWindowFlags?)
 DIM SHARED resizable as bool = NO
 DIM SHARED resize_requested as bool = NO
 DIM SHARED resize_request as XYPair
@@ -379,12 +380,12 @@ LOCAL FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
     CheckOK(mainrenderer = NULL, RETURN 0)
   END IF
 
-  DIM buffersize as XYPair = get_buffersize
-  SDL_RenderSetLogicalSize(mainrenderer, buffersize.w, buffersize.h)
   #IFDEF SDL_RenderSetIntegerScale
-    'Whether to stick to integer scaling amounts. SDL 2.0.5+
+    'Whether to stick to integer scaling amounts when using SDL_RenderSetLogicalSize. SDL 2.0.5+
     'SDL_RenderSetIntegerScale(mainrenderer, NO)
   #ENDIF
+
+  set_viewport
 
   IF recreate_screen_texture() = NO THEN RETURN 0
 
@@ -419,6 +420,27 @@ LOCAL FUNCTION get_buffersize() as XYPair
   RETURN framesize * buffer_zoom
 END FUNCTION
 
+'Set/update the part of the window/screen on which to draw the frame, including scaling and letterboxing.
+LOCAL SUB set_viewport()
+  IF windowedmode = NO THEN
+    'Fullscreen: Ask SDL to scale, center and letterbox automatically.
+    '(Aspect ratio is always preserved. SDL_RenderSetIntegerScale is optional)
+    'But this will lead to ugly wobbling while resizing a window.
+    DIM buffersize as XYPair = get_buffersize
+    SDL_RenderSetLogicalSize(mainrenderer, buffersize.w, buffersize.h)
+  ELSE
+    'No centering while windowed, fixed scale amount.
+    '(There's no need to use SDL_RenderSetScale)
+    DIM rect as SDL_Rect
+    rect.w = zoom * framesize.w
+    rect.h = zoom * framesize.h
+    'Calling SDL_RenderSetLogicalSize overrides previous SDL_RenderSetViewport,
+    'but calling SDL_RenderSetViewport does not turn off SDL_RenderSetLogicalSize automatically.
+    SDL_RenderSetLogicalSize(mainrenderer, 0, 0)
+    SDL_RenderSetViewport(mainrenderer, @rect)
+  END IF
+END SUB
+
 'Note that gfx_sdl2_set_window_size wraps this.
 LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
   framesize = newframesize
@@ -427,9 +449,11 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
 
   IF mainwindow THEN
     'TODO: this doesn't work if fullscreen
+    '(FIXME: If you open debug menu in-game, resize the window, press alt-enter to fullscreen
+    'and then alt-enter back to windowed, the window won't return to original size.
+    'Maybe the cause is here.)
     SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
-    DIM buffersize as XYPair = get_buffersize
-    SDL_RenderSetLogicalSize(mainrenderer, buffersize.w, buffersize.h)
+    set_viewport
     recreate_screen_texture
   END IF
 END SUB
@@ -579,9 +603,6 @@ LOCAL FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, ima
   'Clearing the screen first is necessary in fullscreen, when the window size may not match the maintexture size
   '(this clears the black bars)
   SDL_RenderClear(mainrenderer)
-  'FIXME: resizing the window makes the image wobble like jelly, and the solution probably involves
-  'changing the following SDL_RenderCopy call.
-  'But even disabling SDL_RenderSetLogicalSize and passing a dest rect didn't help.
   'DIM dstrect as SDL_Rect = (0, 0, framesize.w * zoom, framesize.h * zoom) 'imagew, imageh
   CheckOK(SDL_RenderCopy(mainrenderer, maintexture, NULL, NULL /'@dstrect'/), ret = NO)
   SDL_RenderPresent(mainrenderer)
@@ -638,6 +659,9 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
   END IF
   windowedmode = towindowed
   'TODO: call gfx_sdl2_set_resizable here, since that doesn't work on fullscreen windows?
+
+  'Turn on or off scaling/centering/letterboxing
+  set_viewport
 END SUB
 
 SUB gfx_sdl2_windowtitle(byval title as zstring ptr)
@@ -984,14 +1008,21 @@ SUB gfx_sdl2_process_events()
 
         IF evnt.window.event = SDL_WINDOWEVENT_RESIZED THEN
           'This event is delivered when the window size is changed by the user/WM
-          'rather than because we changed it.
+          'rather than because we changed it (unlike SDL_WINDOWEVENT_SIZE_CHANGED)
           IF debugging_io THEN
             debuginfo "SDL_WINDOWEVENT_RESIZED: w=" & evnt.window.data1 & " h=" & evnt.window.data2
           END IF
+
+          'The viewport is automatically updated when window is resized. In fullscreen
+          '(SDL_RenderSetLogicalSize in use) that's good, but when windowed, the viewport
+          'resets to cover the window, causing the image to stretch. Undo that
+          IF windowedmode THEN set_viewport
+
           IF resizable THEN
             'Round upwards
             resize_request.w = (evnt.window.data1 + zoom - 1) \ zoom
             resize_request.h = (evnt.window.data2 + zoom - 1) \ zoom
+
             IF framesize <> resize_request THEN
               'On Windows (XP), changing the window size causes an SDL_VIDEORESIZE event
               'to be sent with the size you just set... this would produce annoying overlay
