@@ -75,7 +75,7 @@ DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as KBScancode, byval default_sdl_s
 DECLARE SUB log_error(failed_call as zstring ptr, funcname as zstring ptr)
 #define CheckOK(condition, otherwise...)  IF condition THEN log_error(#condition, __FUNCTION__) : otherwise
 
-DIM SHARED zoom as integer = 2  'Window size
+DIM SHARED zoom as integer = 2  'Size of a pixel
 DIM SHARED smooth_zoom as integer = 2  'Amount to zoom before applying smoothing
 DIM SHARED smooth as integer = 0  'Smoothing mode (0 or 1)
 DIM SHARED mainwindow as SDL_Window ptr = NULL
@@ -656,6 +656,8 @@ FUNCTION gfx_sdl2_getwindowstate() as WindowState ptr
   state.minimised = (flags AND SDL_WINDOW_MINIMIZED) = 0
   state.fullscreen = (flags AND (SDL_WINDOW_FULLSCREEN OR SDL_WINDOW_FULLSCREEN_DESKTOP)) <> 0
   state.mouse_over = (flags AND SDL_WINDOW_MOUSE_FOCUS) <> 0
+  SDL_GetWindowSize(mainwindow, @state.windowsize.w, @state.windowsize.h)
+  state.zoom = zoom
   RETURN @state
 END FUNCTION
 
@@ -728,7 +730,7 @@ END SUB
 SUB gfx_sdl2_set_zoom(byval value as integer)
   IF value >= 1 AND value <= 16 AND value <> zoom THEN
     gfx_sdl2_recenter_window_hint()  'Recenter because the window might go off the screen edge.
-    set_window_size(framesize, zoom)
+    set_window_size(framesize, value)
 
     'Update the clip rectangle
     'It would probably be easier to just store the non-zoomed clipped rect (mxmin, etc)
