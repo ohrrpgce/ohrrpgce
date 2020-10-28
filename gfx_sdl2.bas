@@ -699,6 +699,13 @@ FUNCTION gfx_sdl2_set_resizable(byval enable as bool, min_width as integer, min_
   resizable = enable
   IF mainwindow = NULL THEN RETURN resizable
 
+  'The min window size may (depending on OS?) still be enforced even if we disable resizing, so
+  'have to change it, but passing zero width/height to SDL_SetWindowMinimumSize is invalid.
+  DIM minsize as XYPair = XY(min_width, min_height) * zoom
+  minsize = large(minsize, XY(10, 10))
+  'debuginfo "SDL_SetWindowMinimumSize " & minsize
+  SDL_SetWindowMinimumSize(mainwindow, minsize.w, minsize.h)
+
   'Note: Can't change resizability of a fullscreen window
   'Argh, SDL_SetWindowResizable was only added in SDL 2.0.5 (Oct 2016)
   #IFDEF SDL_SetWindowResizable
@@ -706,7 +713,6 @@ FUNCTION gfx_sdl2_set_resizable(byval enable as bool, min_width as integer, min_
   #ELSE
     recreate_window()
   #ENDIF
-  SDL_SetWindowMinimumSize(mainwindow, zoom * min_width, zoom * min_height)
   RETURN resizable
 END FUNCTION
 
