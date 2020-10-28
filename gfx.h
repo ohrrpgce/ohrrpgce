@@ -77,6 +77,7 @@ DFI_DECLARE_CDECL( int, gfx_screenshot, const char* fname );
 DFI_DECLARE_CDECL( void, gfx_setwindowed, int iswindow );
 DFI_DECLARE_CDECL( void, gfx_windowtitle, const char* title );
 DFI_DECLARE_CDECL( struct WindowState*, gfx_getwindowstate );
+DFI_DECLARE_CDECL( void, gfx_set_window_size, XYPair newsize, int newzoom );
 
 //gfx_setoption recieves an option name and the following option which may or may not be a related argument
 //returns 0 if unrecognised, 1 if recognised but arg is ignored, 2 if arg is gobbled

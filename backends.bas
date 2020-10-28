@@ -54,6 +54,7 @@ dim gfx_windowtitle as sub (byval title as zstring ptr)
 dim gfx_getwindowstate as function () as WindowState ptr
 dim gfx_get_screen_size as sub (wide as integer ptr, high as integer ptr)
 
+dim gfx_set_window_size as sub (byval newsize as XYPair, newzoom as integer)
 dim gfx_supports_variable_resolution as function () as bool
 dim gfx_get_resize as function (byref ret as XYPair) as bool
 dim gfx_set_resizable as function (enable as bool, min_width as integer, min_height as integer) as bool
@@ -362,6 +363,7 @@ local function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filena
 	MUSTLOAD(gfx_windowtitle)
 	MUSTLOAD(gfx_getwindowstate)
 	TRYLOAD (gfx_get_screen_size)
+	TRYLOAD (gfx_set_window_size)
 	TRYLOAD (gfx_supports_variable_resolution)
 	TRYLOAD (gfx_get_resize)
 	TRYLOAD (gfx_set_resizable)

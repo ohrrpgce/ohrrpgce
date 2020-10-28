@@ -157,6 +157,13 @@ extern Gfx_getwindowstate as function () as WindowState ptr
 'NOTE: call get_screen_size instead of this.
 extern Gfx_get_screen_size as sub (wide as integer ptr, high as integer ptr)
 
+'(optional) Set the window size and scale/zoom at the same time.
+'This is the new way of changing window size, supported by gfx_sdl2. It's an alternative
+'to calling gfx_present with a new frame, which is still preferred because it can repaint the
+'window at the same time.
+'This will count as a resize request, causing gfx_get_resize() to return the new resolution.
+extern Gfx_set_window_size as sub (byval newsize as XYPair, newzoom as integer)
+
 '(optional) Returns whether the resolution can be changed to something other than 320x200 (via gfx_present)
 '(This doesn't imply that gfx_set_resizable is supported)
 'Returns false if the backend hasn't been updated or there are other constraints.

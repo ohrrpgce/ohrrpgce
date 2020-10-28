@@ -62,7 +62,6 @@ declare function SDL_ANDROID_OUYAReceiptsResult () as zstring ptr
 DECLARE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
 DECLARE FUNCTION recreate_screen_texture() as bool
 DECLARE FUNCTION get_buffersize() as XYPair
-DECLARE SUB gfx_sdl2_set_zoom(byval value as integer)
 DECLARE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, imagesz as XYPair, pitch as integer, bitdepth as integer) as bool
 DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
@@ -420,6 +419,7 @@ LOCAL FUNCTION get_buffersize() as XYPair
   RETURN framesize * buffer_zoom
 END FUNCTION
 
+'Note that gfx_sdl2_set_window_size wraps this.
 LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
   framesize = newframesize
   zoom = newzoom
@@ -733,10 +733,21 @@ SUB gfx_sdl2_recenter_window_hint()
   recenter_window_hint = YES
 END SUB
 
-SUB gfx_sdl2_set_zoom(byval value as integer)
-  IF value >= 1 AND value <= 16 AND value <> zoom THEN
+'This is the new API for changing window size, an alternative to calling gfx_present with a resized frame.
+'Unlike gfx_present, it causes the window to resize but doesn't repaint it yet.
+SUB gfx_sdl2_set_window_size (byval newframesize as XYPair, newzoom as integer)
+  IF newzoom >= 1 AND newzoom <= 16 AND newzoom <> zoom THEN
+    'debuginfo "set_window_size " & newframesize & ", zoom=" & newzoom
+
+    IF newframesize <> framesize THEN
+      resize_request = newframesize
+      resize_requested = YES
+      'debuginfo " (resize_requested)"
+    END IF
+
     gfx_sdl2_recenter_window_hint()  'Recenter because the window might go off the screen edge.
-    set_window_size(framesize, value)
+
+    set_window_size(newframesize, newzoom)
 
     'Update the clip rectangle
     'It would probably be easier to just store the non-zoomed clipped rect (mxmin, etc)
@@ -751,11 +762,9 @@ END SUB
 FUNCTION gfx_sdl2_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
   DIM ret as integer = 0
   DIM value as integer = str2int(*arg, -1)
-  'IF *opt = "zoomonly" THEN  'TODO
-    'Set zoom without changing window size.
-    'Used by set_scale_factor(), not intended for cmdline use.
+  '"zoomonly" is not supported, we support gfx_sdl2_set_window_size instead.
   IF *opt = "zoom" or *opt = "z" THEN
-    gfx_sdl2_set_zoom(value)
+    gfx_sdl2_set_window_size(framesize, value)
     ret = 1
   ELSEIF *opt = "smooth" OR *opt = "s" THEN
     IF value = 1 OR value = -1 THEN  'arg optional (-1)
@@ -983,7 +992,7 @@ SUB gfx_sdl2_process_events()
             'Round upwards
             resize_request.w = (evnt.window.data1 + zoom - 1) \ zoom
             resize_request.h = (evnt.window.data2 + zoom - 1) \ zoom
-            IF framesize.w <> resize_request.w OR framesize.h <> resize_request.h THEN
+            IF framesize <> resize_request THEN
               'On Windows (XP), changing the window size causes an SDL_VIDEORESIZE event
               'to be sent with the size you just set... this would produce annoying overlay
               'messages in screen_size_update() if we don't filter them out.
@@ -1411,6 +1420,7 @@ FUNCTION gfx_sdl2_setprocptrs() as integer
   gfx_windowtitle = @gfx_sdl2_windowtitle
   gfx_getwindowstate = @gfx_sdl2_getwindowstate
   gfx_get_screen_size = @gfx_sdl2_get_screen_size
+  gfx_set_window_size = @gfx_sdl2_set_window_size
   gfx_supports_variable_resolution = @gfx_sdl2_supports_variable_resolution
   gfx_vsync_supported = @gfx_sdl2_vsync_supported
   gfx_get_resize = @gfx_sdl2_get_resize

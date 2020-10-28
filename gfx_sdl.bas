@@ -832,9 +832,9 @@ END SUB
 
 'change_windowsize = NO: Results in (eventually) changing framesize (set_scale_factor())
 'change_windowsize = YES: Change the actual window size instead of framesize.
-SUB gfx_sdl_set_zoom(value as integer, change_windowsize as bool)
-  IF value >= 1 AND value <= 16 AND value <> zoom THEN
-    zoom = value
+SUB gfx_sdl_set_zoom(newzoom as integer, change_windowsize as bool)
+  IF newzoom >= 1 AND newzoom <= 16 AND newzoom <> zoom THEN
+    zoom = newzoom
     zoom_has_been_changed = YES
     DIM temp as string
     IF screensurface THEN temp = " old size = " & screensurface->w & "," & screensurface->h
@@ -875,6 +875,7 @@ FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) a
   IF *opt = "zoomonly" THEN
     'Set zoom without changing window size.
     'Used by set_scale_factor(), not intended for cmdline use.
+    'TODO: get rid of zoomonly and instead implement gfx_set_window_size
     gfx_sdl_set_zoom(value, NO)
     ret = 1
   ELSEIF *opt = "zoom" or *opt = "z" THEN

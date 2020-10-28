@@ -1030,7 +1030,7 @@ sub get_screen_size (byref screenwidth as integer, byref screenheight as integer
 	debuginfo "Desktop resolution: " & screenwidth & "*" & screenheight
 end sub
 
-'Set the size that a pixel appears on the screen.
+'Set the size that a pixel appears on the screen (i.e. the zoom).
 'Supported by all backends except gfx_alleg.
 'If change_windowsize = YES, this changes the window size and keeps the same resolution,
 'otherwise it changes the resolution and keeps the same window size
@@ -1038,24 +1038,31 @@ sub set_scale_factor (scale as integer, change_windowsize as bool = YES)
 	'gfx_sdl and gfx_fb, which use blit.c scaling, are limited to 1x-16x
 	scale = bound(scale, 1, 16)
 	debuginfo "Setting graphics scaling to x" & scale & " change_windowsize=" & change_windowsize
+
+	dim changed_zoom as bool = NO
 	if change_windowsize = NO then
 		dim winstate as WindowState ptr = gfx_getwindowstate()
 		if winstate->structsize >= 8 THEN  'winstate->windowsize valid
-                        dim newresolution as XYPair = winstate->windowsize \ scale
 			debuginfo " ...current window size " & winstate->windowsize
-			if newresolution.w < 320 orelse newresolution.h < 200 then
+			dim newresolution as XYPair = winstate->windowsize \ scale
+			dim toosmall as bool = (newresolution < XY(320, 200))
+			newresolution = large(newresolution, XY(320, 200))
+			if gfx_set_window_size then
+				'Set both resolution and scale at the same time if the gfx backend supports it
+				gfx_set_window_size(newresolution, scale)
+				changed_zoom = YES
+			elseif toosmall then
 				debuginfo " ...too small, increasing res"
 				'Don't allow a tiny resolution: change both resolution and window size
-				newresolution.w = large(newresolution.w, 320)
-				newresolution.h = large(newresolution.h, 200)
 				set_resolution newresolution.w, newresolution.h
-				'TODO: set both resolution and scale at the same time
 				change_windowsize = YES
 			end if
 		end if
 	end if
+	if changed_zoom then
+		' Already done.
 	' zoomonly only supported by gfx_sdl currently
-	if change_windowsize = NO andalso gfx_setoption("zoomonly", str(scale)) then
+	elseif change_windowsize = NO andalso gfx_setoption("zoomonly", str(scale)) then
 	elseif gfx_setoption("zoom", str(scale)) then
 	else
 		' Old versions of gfx_directx don't support zoom (TODO: delete this)
