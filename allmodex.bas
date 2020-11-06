@@ -7693,11 +7693,13 @@ function image_read_info (filename as string) as ImageFileInfo
 		info &= ", " & ret.size.wh & " pixels, " & ret.bpp & "-bit color"
 		if ret.size.w > maxFrameSize orelse ret.size.h > maxFrameSize then
 			ret.supported = NO
-			ret.error = "Too large!"
+			if ret.error = "" then ret.error = "Too large!"
 		end if
 	end if
-	if ret.alpha then info &= ", alpha"
-	if ret.paletted then info &= ", paletted"
+	if ret.valid then
+		if ret.alpha then info &= ", alpha"
+		if ret.paletted then info &= ", paletted"
+	end if
 	if len(ret.info) then info &= ", " & ret.info
 	ret.info = info
 
