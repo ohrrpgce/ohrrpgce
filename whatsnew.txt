@@ -79,6 +79,8 @@ September ? 2020 [Hróðvitnir]
     * Bug #1143 4-bit BMP export with width mod 4 == 1 is broken, and
       bug #1070 Master palette export produces a semi-broken BMP file [Ralph]
     * Zone maps could be saved incorrectly on width-256 and larger maps [Ralph]
+    * Poison/regen/mute/stun status icon characters were pointlessly saved in
+      save games, so didn't update if you changed them
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"

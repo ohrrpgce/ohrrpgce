@@ -38,7 +38,7 @@ CONST CURRENT_RPG_VERSION = 21
 CONST CURRENT_RGFX_VERSION = 1
 ' Version number embedded in each .rgfx file.
 
-CONST CURRENT_RSAV_VERSION = 5
+CONST CURRENT_RSAV_VERSION = 6
 ' Increment this number any time that loading and resaving a game in either
 ' new or old versions of Game leads to data-loss, or major new features are
 ' added.
@@ -50,7 +50,8 @@ CONST CURRENT_RSAV_VERSION = 5
 ' unversioned - optional saving of slices
 ' unversioned - callipygous added optional saving of strings
 ' 4 - gorgonzola removed hero weapon pic/pal
-' 5 - h*** made saving level and damage caps optional
+' 5 - hróðvitnir made saving level and damage caps optional
+' 6 - hróðvitnir stopped saving/loading status icon characters
 
 CONST CURRENT_TESTING_IPC_VERSION = 4
 ' Version of the IPC protocol used when live-previewing

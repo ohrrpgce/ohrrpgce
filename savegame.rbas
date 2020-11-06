@@ -365,13 +365,6 @@ SUB gamestate_state_from_reload(byval node as Reload.NodePtr)
   'FIXME: There is no point to restoring this with no other textbox state being saved
   gen(genTextboxBackdrop) = node."textbox"."backdrop"
 
-  READNODE node."status_char" as ch, default
-   gen(genPoisonChar) = ch."poison"
-   gen(genStunChar) = ch."stun"
-   gen(genMuteChar) = ch."mute"
-   gen(genRegenChar) = ch."regen".default(gen(genRegenChar))
-  END READNODE
-
   'Damage and level caps are only saved if they were modified.
   '(So we don't want these to default, but we're inside a READNODE that defaults)
   gen(genDamageCap) = node."damage_cap".default(gen(genDamageCap))
@@ -916,12 +909,6 @@ SUB gamestate_state_to_reload(byval parent as Reload.NodePtr)
  'FIXME: There is no point to saving this with no other textbox state being saved
  ch = SetChildNode(node, "textbox")
  SetChildNode(ch, "backdrop", gen(genTextboxBackdrop))
- 
- ch = SetChildNode(node, "status_char")
- SetChildNode(ch, "poison", gen(genPoisonChar))
- SetChildNode(ch, "stun", gen(genStunChar))
- SetChildNode(ch, "mute", gen(genMuteChar))
- SetChildNode(ch, "regen", gen(genRegenChar))
 
  'Save damage and level caps only if modified (by "set damage cap" and "set level cap")
  IF gen(genDamageCap) <> original_gen(genDamageCap) THEN
