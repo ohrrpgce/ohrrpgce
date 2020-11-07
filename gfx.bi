@@ -157,7 +157,7 @@ extern Gfx_getwindowstate as function () as WindowState ptr
 'NOTE: call get_screen_size instead of this.
 extern Gfx_get_screen_size as sub (wide as integer ptr, high as integer ptr)
 
-'(optional) Set the window size and scale/zoom at the same time.
+'(optional, ptr may be NULL) Set the window size and scale/zoom at the same time.
 'This is the new way of changing window size, supported by gfx_sdl2. It's an alternative
 'to calling gfx_present with a new frame, which is still preferred because it can repaint the
 'window at the same time.
@@ -183,7 +183,6 @@ extern Gfx_vsync_supported as function () as bool
 'gfx_setoption recieves an option name and the following option which may or may not be a related argument
 'returns 0 if unrecognised, 1 if recognised but arg is ignored, 2 if arg is gobbled
 extern Gfx_setoption as function (byval opt as zstring ptr, byval arg as zstring ptr) as integer
-'(optional)
 extern Gfx_describe_options as function () as zstring ptr
 
 '(optional, ptr may be NULL, gfx_console only)
@@ -191,14 +190,22 @@ extern Gfx_printchar as sub (byval ch as integer, byval x as integer, byval y as
 
 '(optional)
 extern Gfx_get_safe_zone_margin as function () as single
+'(optional)
 extern Gfx_set_safe_zone_margin as sub (byval margin as single)
+'(optional)
 extern Gfx_supports_safe_zone_margin as function () as bool
 
+'(optional)
 extern Gfx_ouya_purchase_request as sub(dev_id as string, identifier as string, key_der as string)
+'(optional)
 extern Gfx_ouya_purchase_is_ready as function () as bool
+'(optional)
 extern Gfx_ouya_purchase_succeeded as function () as bool
+'(optional)
 extern Gfx_ouya_receipts_request as sub (dev_id as string, key_der as string)
+'(optional)
 extern Gfx_ouya_receipts_are_ready as function () as bool
+'(optional)
 extern Gfx_ouya_receipts_result as function () as string
 
 

@@ -369,7 +369,7 @@ local function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filena
 	TRYLOAD (gfx_set_resizable)
 	TRYLOAD (gfx_recenter_window_hint)
 	MUSTLOAD(gfx_setoption)
-	TRYLOAD (gfx_describe_options)
+	MUSTLOAD(gfx_describe_options)
 	TRYLOAD (gfx_printchar)
 	TRYLOAD (gfx_get_safe_zone_margin)
 	TRYLOAD (gfx_set_safe_zone_margin)
