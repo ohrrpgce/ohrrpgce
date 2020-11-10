@@ -17,7 +17,8 @@
     # the plugin and skin tarballs are small enough to included in version control
     mediawiki_tarball: mediawiki-1.34.4.tar.gz
     embedvideo_zip: EmbedVideo-v2.8.0.zip
-    metrolook_skin: Metrolook-REL1_35-378825e.tar.gz
+    #metrolook_skin: Metrolook-REL1_35-378825e.tar.gz  # Not compatible with mediawiki 1.34
+    metrolook_skin: Metrolook-REL1_34-48c1b49.tar.gz
     
     # These paths are on the remote server
     temp_dir: /home/james_paige/rpg.hamsterrepublic.com/ohrrpgce-temp
