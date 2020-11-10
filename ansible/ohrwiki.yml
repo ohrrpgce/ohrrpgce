@@ -144,6 +144,11 @@
     args:
       chdir: '{{ staging_dir }}/maintenance/'
 
+  - name: Remove previous old folder backup
+    file:
+      state: absent
+      dest: '{{ real_dir }}.old'
+
   - name: Move away the old folder
     shell: 'mv -f "{{ real_dir }}" "{{ real_dir }}.old"'
   
