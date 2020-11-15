@@ -40,7 +40,8 @@ executables = [prefix + "ohrrpgce-game",
 icons = [prefix + "ohrrpgce-game.png",
          prefix + "ohrrpgce-custom.png"]
 
-depends = "libc6 (>= 2.3), libncurses5 (>= 5.4), libsdl-mixer1.2 (>= 1.2), libsdl1.2debian (>> 1.2), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1"
+# For gfx_sdl builds:  libsdl-mixer1.2 (>= 1.2), libsdl1.2debian (>> 1.2)
+depends = "libc6 (>= 2.14), libncurses5 (>= 5.4), libsdl2-mixer (>= 2.0.0), libsdl2 (>= 2.0.5), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1"
 recommends = "madplay, vorbis-tools"
 
 ############################################################################

@@ -1505,8 +1505,8 @@ SUB write_debian_control_file(controlfile as string, basename as string, pkgver 
  PUT #fh, , "Version: " & pkgver & LF
  PUT #fh, , "Installed-Size: " & size_in_kibibytes & LF
  'FIXME: the Depends: line could vary depending on gfx and music backends
- 'FIXME: Is there an easy way to verify which is the minimum libc version to depend upon?
- PUT #fh, , "Depends: libc6 (>= 2.3), libncurses5 (>= 5.4), libsdl-mixer1.2 (>= 1.2), libsdl1.2debian (>> 1.2), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1" & LF
+ 'This minimum libc version is taken from "scons portable=1" output (see nightly build logs)
+ PUT #fh, , "Depends: libc6 (>= 2.14), libncurses5 (>= 5.4), libsdl-mixer1.2 (>= 1.2), libsdl1.2debian (>> 1.2), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1" & LF
  IF LEN(website) > 0 THEN
   PUT #fh, , "Homepage: " & website & LF
  END IF
