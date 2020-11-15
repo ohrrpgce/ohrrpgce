@@ -6,8 +6,8 @@ MKDIR tmpdist
 REM ------------------------------------------
 ECHO Building executables...
 
-REM This should be the BUILDNAME for the default backends
-set BUILDNAME=music_sdl
+REM This should be the BUILDNAME (as in distrib-nightly-win-packnupload.bat) for the default backends
+set BUILDNAME=sdl2
 
 support\rm -f game.exe custom.exe relump.exe unlump.exe hspeak.exe
 
@@ -39,7 +39,7 @@ support\rm -f distrib\ohrrpgce-win-installer.exe
 
 REM ------------------------------------------
 ECHO Packaging game player ohrrpgce-player-win.zip ...
-support\zip -9 -q distrib\ohrrpgce-player-win.zip game.exe SDL.dll SDL_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt
+support\zip -9 -q distrib\ohrrpgce-player-win.zip game.exe SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt
 
 REM ------------------------------------------
 ECHO Packaging minimal-but-complete ohrrpgce-minimal.zip ...
@@ -55,8 +55,8 @@ support\cp README-custom.txt tmpdist
 support\cp IMPORTANT-nightly.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
 support\cp whatsnew.txt tmpdist
-support\cp SDL.dll tmpdist
-support\cp SDL_mixer.dll tmpdist
+support\cp SDL2.dll tmpdist
+support\cp SDL2_mixer.dll tmpdist
 support\cp gfx_directx.dll tmpdist
 REM wget.exe needed to download everything else (unzip is downloaded as an .exe)
 mkdir tmpdist\support
@@ -97,8 +97,8 @@ support\cp LICENSE-binary.txt tmpdist
 support\cp plotscr.hsd tmpdist
 support\cp scancode.hsi tmpdist
 support\cp gfx_directx.dll tmpdist
-support\cp SDL.dll tmpdist
-support\cp SDL_mixer.dll tmpdist
+support\cp SDL2.dll tmpdist
+support\cp SDL2_mixer.dll tmpdist
 support\cp -r data tmpdist\data
 support\cp -r ohrhelp tmpdist\ohrhelp
 mkdir tmpdist\docs

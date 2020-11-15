@@ -270,18 +270,18 @@ elif mac:
 elif android:
     gfx = 'sdl'
 elif win32:
-    gfx = 'directx+sdl+fb'
+    gfx = 'sdl2+directx+fb'
 else: # unix
-    gfx = 'sdl+fb'
+    gfx = 'sdl2+fb'
 gfx = [g.lower() for g in gfx.split("+")]
 if 'music' in ARGUMENTS:
     music = ARGUMENTS['music']
 elif 'OHRMUSIC' in os.environ:
     music = os.environ['OHRMUSIC']
-elif 'sdl2' in gfx:
-    music = 'sdl2'
-else:
+elif 'sdl' in gfx:
     music = 'sdl'
+else:
+    music = 'sdl2'
 music = [music.lower()]
 
 # You can link both gfx_sdl and gfx_sdl2, but one of SDL 1.2, SDL 2 will

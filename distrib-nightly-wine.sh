@@ -126,10 +126,14 @@ mustexist unlump.exe
 mustexist relump.exe
 mustexist hspeak.exe
 
+rm -f game*.exe custom*.exe
+${BUILD} gfx=directx+sdl+fb music=sdl $SCONS_ARGS || exit 1
+zip_and_upload music_sdl gfx_directx.dll SDL.dll SDL_mixer.dll
+
 # This is the default build (default download is symlinked to it on the server)
 rm -f game*.exe custom*.exe
-${BUILD} music=sdl $SCONS_ARGS || exit 1
-zip_and_upload music_sdl gfx_directx.dll SDL.dll SDL_mixer.dll
+${BUILD} gfx=sdl2+directx+fb music=sdl2 $SCONS_ARGS || exit 1
+zip_and_upload sdl2 gfx_directx.dll SDL2.dll SDL2_mixer.dll
 
 # Create the installer from the executables we just built: the installer and .zips for default build configs
 # must contain the same executables, to share .pdb files
@@ -141,28 +145,31 @@ scp -p distrib/ohrrpgce-win-installer.exe "${SCPHOST}":"${SCPDEST}"/ohrrpgce-wip
 
 # Player-only zip
 rm -f distrib/ohrrpgce-player-win-wip.zip
-zip -q -9 distrib/ohrrpgce-player-win-wip.zip game.exe SDL.dll SDL_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt svninfo.txt
+zip -q -9 distrib/ohrrpgce-player-win-wip.zip game.exe SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt svninfo.txt
 scp -p distrib/ohrrpgce-player-win-wip.zip "${SCPHOST}":"${SCPDEST}"
 
 rm -f game*.exe custom*.exe
 ${BUILD} music=native $SCONS_ARGS
-zip_and_upload music_native gfx_directx.dll SDL.dll audiere.dll
+zip_and_upload music_native gfx_directx.dll SDL2.dll audiere.dll
 
 rm -f game*.exe custom*.exe
 ${BUILD} music=native2 $SCONS_ARGS
-zip_and_upload music_native2 gfx_directx.dll SDL.dll audiere.dll
+zip_and_upload music_native2 gfx_directx.dll SDL2.dll audiere.dll
 
 rm -f game*.exe custom*.exe
 ${BUILD} music=silence $SCONS_ARGS
-zip_and_upload music_silence gfx_directx.dll SDL.dll
+zip_and_upload music_silence gfx_directx.dll SDL2.dll
 
 # rm -f game*.exe custom*.exe
 # ${BUILD} gfx=alleg+directx+fb+sdl music=sdl $SCONS_ARGS
 # zip_and_upload gfx_alleg-music_sdl alleg40.dll SDL.dll SDL_mixer.dll
 
 rm -f game*.exe custom*.exe
-${BUILD} music=sdl debug=2
-zip_and_upload music_sdl-debug gfx_directx.dll SDL.dll SDL_mixer.dll misc/gdbcmds1.txt misc/gdbcmds2.txt gdbgame.bat gdbcustom.bat
+${BUILD} debug=2 pdb=1
+zip_and_upload sdl2-debug gfx_directx.dll SDL2.dll SDL2_mixer.dll misc/gdbcmds1.txt misc/gdbcmds2.txt gdbgame.bat gdbcustom.bat
+
+# Note: when adding or modifying builds, BACKENDS_SYMSNAME in misc/process_crashreports.py should be updated
+
 
 # Note that this is duplicated in distrib-nightly-linux.sh
 echo "uploading plotscripting docs"

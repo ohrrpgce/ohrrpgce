@@ -35,8 +35,8 @@ Name: "associate"; Description: "{cm:AssocFileExtension,the OHRRPGCE,RPG}"
 [Files]
 Source: "game.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "custom.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "SDL.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "SDL_mixer.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "SDL2.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "SDL2_mixer.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gfx_directx.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "hspeak.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "game.ico"; DestDir: "{app}"; Flags: ignoreversion

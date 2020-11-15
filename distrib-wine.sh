@@ -24,8 +24,8 @@ function ohrrpgce_common_files {
  cp LICENSE.txt tmpdist
  cp LICENSE-binary.txt tmpdist
  cp whatsnew.txt tmpdist
- cp SDL.dll tmpdist
- cp SDL_mixer.dll tmpdist
+ cp SDL2.dll tmpdist
+ cp SDL2_mixer.dll tmpdist
  cp gfx_directx.dll tmpdist
  mkdir tmpdist/support
  cp support/madplay.exe tmpdist/support
@@ -64,7 +64,7 @@ EUC="C:\Euphoria\bin\euc.exe"
 SCONS_ARGS="release=1 pdb=1"
 
 # This should be the BUILDNAME matching $SCONS_ARGS, i.e. the default backends
-BUILDNAME=music_sdl
+BUILDNAME=sdl2
 
 # Using wine
 BUILD="wine cmd /C ${SCONS}"
@@ -101,7 +101,7 @@ rm -f distrib/ohrrpgce.zip
 rm -f distrib/ohrrpgce-win-installer.exe
 
 echo "Packaging game player ohrrpgce-player-win.zip ..."
-zip -9 -q distrib/ohrrpgce-player-win.zip game.exe SDL.dll SDL_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt
+zip -9 -q distrib/ohrrpgce-player-win.zip game.exe SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt
 
 echo "Make temporary folder..."
 rm -Rf tmpdist

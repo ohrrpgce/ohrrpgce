@@ -64,12 +64,16 @@ SYMBOLS_ARCHIVE_URL = 'http://hamsterrepublic.com/ohrrpgce/symbols-archive/'
 # This name is defined in distrib-nightly-win.bat, as the first argument to
 # distrib-nightly-win-packnupload.bat (or the wine versions thereof),
 # and by "set BUILDNAME=..." in distrib-win.{bat,sh}
+# Note that symbols_filename_from_build handles -debug variants, so they aren't in this table.
 BACKENDS_SYMSNAME = {
-    'gfx_directx+sdl+fb/music_sdl': 'music_sdl',   # And its variant, music_sdl-debug
-    'gfx_directx+sdl+fb/music_native': 'music_native',
-    'gfx_directx+sdl+fb/music_native2': 'music_native2',
-    'gfx_directx+sdl+fb/music_silence': 'music_silence',
-    'gfx_sdl2+directx+fb/music_sdl2': 'sdl2',
+    'gfx_directx+sdl+fb/music_sdl': 'music_sdl',   # And its obsolete variant, music_sdl-debug
+    'gfx_directx+sdl+fb/music_native': 'music_native',   # Obsolete
+    'gfx_directx+sdl+fb/music_native2': 'music_native2',   # Obsolete
+    'gfx_directx+sdl+fb/music_silence': 'music_silence',   # Obsolete
+    'gfx_sdl2+directx+fb/music_native': 'music_native',
+    'gfx_sdl2+directx+fb/music_native2': 'music_native2',
+    'gfx_sdl2+directx+fb/music_silence': 'music_silence',
+    'gfx_sdl2+directx+fb/music_sdl2': 'sdl2',   # And its variant, sdl2-debug
 }
 
 HOST_WIN32 = platform.system() == 'Windows'
