@@ -110,6 +110,7 @@ startTest(makeReadOnly)
 		if close(fh) then fail
 		if setwriteable("_testreadonly.tmp", NO) = NO then fail
 	#endif
+	passed
 endTest
 
 startTest(get_file_type)
@@ -248,6 +249,7 @@ startTest(makeWritable)
 		if fileisreadable("_testreadonly.tmp") = NO then fail
 		if safekill("_testreadonly.tmp") = NO then fail
 	#endif
+	passed
 endTest
 
 sub error_counter cdecl (byval errorlevel as ErrorLevelEnum, byval msg as zstring ptr)

@@ -613,6 +613,7 @@ startTest(serializeXML)
 	open "unittest.xml" for output as fh
 	serializeXML(doc, fh)
 	close fh
+	passed
 endTest
 
 dim shared skip_xml2reload as bool
@@ -685,6 +686,7 @@ startTest(nodeAppendingSpeedTest1)
 			nod = AppendChildNode(hub, "marker" & i)
 		end if
 	next
+	passed
 endTest
 
 startTest(nodeFindingSpeedTest1)
@@ -694,6 +696,7 @@ startTest(nodeFindingSpeedTest1)
 	for i as integer = 0 to 10000 step 1000
 		nod = GetChildByName(hub, "marker" & i)
 	next
+	passed
 endTest
 
 startTest(setKeyValueSpeedTest1)
@@ -704,6 +707,7 @@ startTest(setKeyValueSpeedTest1)
 	for i as integer = 0 to 500
 		SetKeyValueNode(hub, itemname, i, i * 2)
 	next
+	passed
 endTest
 
 startTest(nodeFindingSpeedTest2)
@@ -732,6 +736,7 @@ startTest(nodeAppendingSpeedTest2)
 		AppendChildNode(nod, "datum9")
 		AppendChildNode(nod, "datum10")
 	next
+	passed
 endTest
 
 startTest(nodeFindingSpeedTest3)
