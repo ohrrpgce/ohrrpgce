@@ -9133,7 +9133,18 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 		<command id="creategrid">
 			<canon>create grid (width, height, rows, columns)</canon>
 			<shortname>create grid</shortname>
-			<description>Creates a new grid slice, and returns a <ref>slicehandle</ref> to it. Grid slices are special containers that automatically arrange their children into rows and columns. No manual child positioning is required. The first two arguments are the width and height of the whole grid. The next two arguments are the number of rows and columns that should appear in the grid. If rows or columns are left out, the grid with be a boring 1x1.</description>
+			<description>
+				Creates a new grid slice, and returns a <ref>slicehandle</ref> to it.
+				Grid slices are special containers that automatically arrange their children into rows and columns.
+				No manual child positioning is required.
+				The first two arguments are the width and height of the whole grid.
+				The next two arguments are the number of rows and columns that should appear in the grid.
+				If rows or columns are left out, the grid with be a boring 1x1 (a single large cell).
+				<note>
+					Beware that the order of the <p>rows, columns</p> args is reversed from what you might expect:
+					they affect the height and width of each cell, not width and height.
+				</note>
+			</description>
 		</command>
 		<reference ref="sliceisgrid" />
 		<command id="setgridcolumns">
