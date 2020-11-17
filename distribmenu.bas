@@ -741,11 +741,11 @@ FUNCTION get_windows_gameplayer() as string
  IF version_branch = "wip" THEN
   '--If running a nightly wip, download the default build of the latest nightly wip
   '--(Before 2020-11-17 nightlies downloaded ohrrpgce-player-win-wip.zip instead,
-  '--which was assumed to be gfx_directx+sdl, music_sdl)
+  '--which was assumed to be gfx_directx+sdl[+fb], music_sdl)
   url = "http://hamsterrepublic.com/ohrrpgce/nightly/"
-  dlfile = "ohrrpgce-player-win-sdl2-wip.zip"
+  dlfile = "ohrrpgce-player-win-wip-sdl2.zip"
  ELSE
-  '--If running any stable release, download the latest stable release.
+  '--If running any stable release, download the latest stable release
   url = "http://hamsterrepublic.com/dl/"
   dlfile = "ohrrpgce-player-win.zip"
  END IF

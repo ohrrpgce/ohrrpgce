@@ -144,9 +144,9 @@ mustexist "distrib/ohrrpgce-win-installer.exe"
 scp -p distrib/ohrrpgce-win-installer.exe "${SCPHOST}":"${SCPDEST}"/ohrrpgce-wip-win-installer.exe
 
 # Player-only zip
-rm -f distrib/ohrrpgce-player-win-wip.zip
-zip -q -9 distrib/ohrrpgce-player-win-wip.zip game.exe SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt svninfo.txt
-scp -p distrib/ohrrpgce-player-win-wip.zip "${SCPHOST}":"${SCPDEST}"
+rm -f distrib/ohrrpgce-player-win-wip-sdl2.zip
+zip -q -9 distrib/ohrrpgce-player-win-wip-sdl2.zip game.exe SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt svninfo.txt
+scp -p distrib/ohrrpgce-player-win-wip-sdl2.zip "${SCPHOST}":"${SCPDEST}"
 
 rm -f game*.exe custom*.exe
 ${BUILD} music=native $SCONS_ARGS
