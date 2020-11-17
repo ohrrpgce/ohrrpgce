@@ -3,7 +3,7 @@ WHAT IS NEW?
 
 December ? 2020 [Hróðvitnir]
 
-And now I am just making (3) random changes just to to test svn commit messages
+And now I am just making (4) random changes just to to test svn commit messages
 Lorem ipsum dolor sit amet
 
   *** New Features
