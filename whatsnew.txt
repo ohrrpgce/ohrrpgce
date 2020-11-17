@@ -3,6 +3,9 @@ WHAT IS NEW?
 
 December ? 2020 [Hróðvitnir]
 
+And now I am just making random changes just to to test svn commit messages
+Lorem ipsum dolor sit amet
+
   *** New Features
     * Slice Editor:
       * Settings menu. Press F8 to open. You no longer need to remember
