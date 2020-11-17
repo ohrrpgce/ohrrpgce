@@ -4245,6 +4245,16 @@ sub processcommandline(nonoption_args() as string, opt_handler as FnSetOption, a
 
 		opt = cmdargs(cnt)
 		if commandline_flag(opt) then
+			#ifdef __FB_DARWIN__
+				'Passed when started from Finder. Ignore. (Fix for bug #1171)
+                                'This is currently only necessary when using gfx_sdl2 because it doesn't link
+                                'mac/SDLMain.m; if using gfx_sdl then this argument is stripped in SDLMain.m.
+				if left(opt, 4) = "psn_" then
+					cnt += 1
+					continue while
+				end if
+			#endif
+
 			if cnt + 1 <= ubound(cmdargs) then
 				arg = cmdargs(cnt + 1)
 				if commandline_flag(arg) then arg = ""
