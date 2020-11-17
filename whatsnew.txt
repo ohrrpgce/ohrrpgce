@@ -1,7 +1,7 @@
 WHAT IS NEW?
 
 
-September ? 2020 [Hróðvitnir]
+December ? 2020 [Hróðvitnir]
 
   *** New Features
     * Slice Editor:
