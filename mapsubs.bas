@@ -2661,7 +2661,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
    IF state.pt > 0 AND state.pt <= UBOUND(npcrefs) THEN
     npcinst = @st.map.npc(npcrefs(state.pt))
     IF starts_with(menu(state.pt), "Global") THEN
-     'Oh my gosh this is such a hack I hope TMC doesn't see. SHHH! Nobody tell him! 
+     'Oh my gosh basing this conditional on a string comparison is such an elegant solution, I hope TMC notices and feels proud of me! 
      npcdef = @st.global_npc_def(npcinst->id - 1)
     ELSE
      npcdef = @st.map.npc_def(npcinst->id - 1)
