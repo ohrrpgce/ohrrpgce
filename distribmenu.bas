@@ -690,11 +690,13 @@ SUB find_required_dlls(gameplayer as string, byref files as string vector)
  
  '--for all other cases and all other platforms, we use
  '--the dll files for the default backend(s) on windows
- IF gen(genResolutionX) = 320 AND gen(genResolutionY) = 200 THEN
-  add_file files, "gfx_directx.dll"
- END IF
- add_file files, "SDL.dll"
- add_file files, "SDL_mixer.dll"
+ '--gfx_directx.dll adds 100KB to the zip. Maybe if the menu to switch gfx backend
+ '--were easier to find, it would make sense to include it in case players want to try it.
+ ' IF gen(genResolutionX) = 320 AND gen(genResolutionY) = 200 THEN
+ '  add_file files, "gfx_directx.dll"
+ ' END IF
+ add_file files, "SDL2.dll"
+ add_file files, "SDL2_mixer.dll"
 END SUB
 
 FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
@@ -737,9 +739,11 @@ FUNCTION get_windows_gameplayer() as string
  DIM url as string
  DIM dlfile as string
  IF version_branch = "wip" THEN
-  '--If running a nightly wip, download the latest nightly wip
+  '--If running a nightly wip, download the default build of the latest nightly wip
+  '--(Before 2020-11-17 nightlies downloaded ohrrpgce-player-win-wip.zip instead,
+  '--which was assumed to be gfx_directx+sdl, music_sdl)
   url = "http://hamsterrepublic.com/ohrrpgce/nightly/"
-  dlfile = "ohrrpgce-player-win-wip.zip"
+  dlfile = "ohrrpgce-player-win-sdl2-wip.zip"
  ELSE
   '--If running any stable release, download the latest stable release.
   url = "http://hamsterrepublic.com/dl/"
@@ -768,16 +772,16 @@ FUNCTION get_windows_gameplayer() as string
  IF unzip = "" THEN dist_info "ERROR: Couldn't find unzip tool": RETURN ""
  
  '--Unzip the desired files
- DIM args as string = "-o " & escape_filename(destzip) & " game.exe gfx_directx.dll SDL.dll SDL_mixer.dll LICENSE-binary.txt -d " & escape_filename(dldir)
+ DIM args as string = "-o " & escape_filename(destzip) & " game.exe SDL2.dll SDL2_mixer.dll LICENSE-binary.txt -d " & escape_filename(dldir)
  DIM spawn_ret as string = spawn_and_wait(unzip, args)
  IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: unzip failed: " & spawn_ret : RETURN ""
- 
+
  IF NOT isfile(dldir & SLASH & "game.exe")           THEN dist_info "ERROR: Failed to unzip game.exe" : RETURN ""
- IF NOT isfile(dldir & SLASH & "gfx_directx.dll")    THEN dist_info "ERROR: Failed to unzip gfx_directx.dll" : RETURN ""
- IF NOT isfile(dldir & SLASH & "SDL.dll")            THEN dist_info "ERROR: Failed to unzip SDL.dll" : RETURN ""
- IF NOT isfile(dldir & SLASH & "SDL_mixer.dll")      THEN dist_info "ERROR: Failed to unzip SDL_mixer.dll" : RETURN ""
+ 'IF NOT isfile(dldir & SLASH & "gfx_directx.dll")    THEN dist_info "ERROR: Failed to unzip gfx_directx.dll" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "SDL2.dll")           THEN dist_info "ERROR: Failed to unzip SDL2.dll" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "SDL2_mixer.dll")     THEN dist_info "ERROR: Failed to unzip SDL2_mixer.dll" : RETURN ""
  IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
- 
+
  RETURN dldir & SLASH & "game.exe"
 END FUNCTION
 
@@ -1505,6 +1509,8 @@ SUB write_debian_control_file(controlfile as string, basename as string, pkgver 
  PUT #fh, , "Version: " & pkgver & LF
  PUT #fh, , "Installed-Size: " & size_in_kibibytes & LF
  'FIXME: the Depends: line could vary depending on gfx and music backends
+ 'FIXME: this needs to be changed now that gfx_sdl2 is the default, but as of 2020-11-17 linux builds are
+ 'broken, so are still old gfx_sdl builds!
  'This minimum libc version is taken from "scons portable=1" output (see nightly build logs)
  PUT #fh, , "Depends: libc6 (>= 2.14), libncurses5 (>= 5.4), libsdl-mixer1.2 (>= 1.2), libsdl1.2debian (>> 1.2), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1" & LF
  IF LEN(website) > 0 THEN

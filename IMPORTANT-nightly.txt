@@ -17,6 +17,15 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
+2020-11-17:
+The default graphics/music backends have changed to sdl2 on Windows and Linux/
+Unix so keep an eye out for problems.
+In particular, it's possible there'll be hiccups with Distribute Game menu
+packaging not working or producing broken packages EVEN (or ESPECIALLY) if
+you are using an OLD nightly build. Though currently it should work.
+
+** 2020-05-02 Gorgonzola Released **
+
 2020-04-16:
 Evaporate and Evaporate Up dissolves were renamed to Puff and Fade Up, so
 if you've used these in a script you need to replace the constants.
