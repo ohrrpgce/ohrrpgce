@@ -2380,7 +2380,7 @@ sub KeyboardState.init_controls()
 end sub
 
 sub JoystickState.init_controls()
-	redim controls(9)
+	redim controls(6)
 	controls(0) = TYPE(joyUp,       ccUp)
 	controls(1) = TYPE(joyDown,     ccDown)
 	controls(2) = TYPE(joyLeft,     ccLeft)
@@ -2388,11 +2388,12 @@ sub JoystickState.init_controls()
 	controls(4) = TYPE(joyButton1,  ccUse)
 	controls(5) = TYPE(joyButton2,  ccMenu)
 	controls(6) = TYPE(joyButton2,  ccRun)
-	'Typically the first four buttons will be a dpad, in some random order.
+	'Typically the first four buttons will be A/B/X/Y buttons, but not always in that order.
+	'So previously we used to map buttons 3 and 4 to use/cancel, but that's a nuiscance for scripted controls.
 	'It's better if all those dpad buttons do something
-	controls(7) = TYPE(joyButton3,  ccUse)
-	controls(8) = TYPE(joyButton4,  ccMenu)
-	controls(9) = TYPE(joyButton4,  ccRun)
+	' controls(7) = TYPE(joyButton3,  ccUse)
+	' controls(8) = TYPE(joyButton4,  ccMenu)
+	' controls(9) = TYPE(joyButton4,  ccRun)
 end sub
 
 'Remove all key mappings to or from a scancode/controlcode (cc* constant).
