@@ -2678,7 +2678,7 @@ FUNCTION utf8_to_mbs(u8str as ustring) as string
   DIM length as integer = wcstombs(NULL, wcstr, 0)
   IF length < 0 THEN RETURN u8str
   DIM mbstr as zstring ptr = calloc(length + 1, 1)
-  IF wcstombs(mbstr, wcstr, cast(unsigned integer, length)) = -1 THEN RETURN u8str
+  IF wcstombs(mbstr, wcstr, length) = cast(size_t, -1) THEN RETURN u8str
   RETURN *mbstr
 END FUNCTION
 
