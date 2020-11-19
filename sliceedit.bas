@@ -33,7 +33,7 @@ END ENUM
 ENUM SliceMenuItemID
  mnidText = 0            'Not editable
  mnidSlice = 1
- mnidPrevMenu = 2
+ mnidExitMenu = 2        'Exit Menu
  mnidEditingFile = 3     'Editing <collection file>
  mnidCollectionID = 4    '<-Slice collection #->
  mnidCollectionName = 5
@@ -581,20 +581,23 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    END IF
   END IF
 
+  ' Activate menu item
+  DIM menuitemid as integer = ses.slicemenu(state.pt).id
   IF state.need_update = NO ANDALSO enter_space_click(state) THEN
-   IF state.pt = 0 THEN
+   IF menuitemid = mnidExitMenu THEN
     IF slice_editor_save_when_leaving(ses, edslice) THEN EXIT DO
-   ELSEIF ses.slicemenu(state.pt).id = mnidEditingFile THEN
+   ELSEIF menuitemid = mnidEditingFile THEN
     ' Selected the 'Editing <collection file>' menu item
-    slice_editor_import_file ses, edslice, YES
-   ELSE
+    slice_editor_import_file ses, edslice, YES   'sets need_update
+   ELSEIF menuitemid = mnidSlice THEN
     cursor_seek = ses.curslice
     slice_edit_detail ses, edslice, ses.curslice
     state.need_update = YES
    END IF
   END IF
+
   IF ses.use_index THEN
-   IF state.pt = 1 THEN
+   IF menuitemid = mnidCollectionID THEN
     '--Browse collections
     jump_to_collection = ses.collection_number
     IF intgrabber(jump_to_collection, 0, 32767, , , , NO) THEN  'Disable copy/pasting
@@ -2089,8 +2092,8 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
  'Refresh positions of all slices
  RefreshSliceTreeScreenPos ses.draw_root
 
- DIM indent as integer = 0
- slice_editor_refresh_append ses, mnidPrevMenu, "Previous Menu"
+ slice_editor_refresh_append ses, mnidExitMenu, "Exit Menu"
+
  IF ses.use_index THEN
   slice_editor_refresh_append ses, mnidCollectionID, CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
  ELSEIF LEN(ses.collection_file) THEN
@@ -2109,7 +2112,7 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
  'Normally, hide the root
  DIM hidden_slice as Slice Ptr = edslice
  IF ses.show_root THEN hidden_slice = NULL
- slice_editor_refresh_recurse ses, indent, edslice, edslice, hidden_slice
+ slice_editor_refresh_recurse ses, 0, edslice, edslice, hidden_slice
  ses.slicemenust.last = UBOUND(ses.slicemenu)
 
  IF cursor_seek <> 0 THEN
