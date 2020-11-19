@@ -37,6 +37,7 @@ ENUM SliceMenuItemID
  mnidEditingFile = 3     'Editing <collection file>
  mnidCollectionID = 4    '<-Slice collection #->
  mnidCollectionName = 5
+ mnidSettingsMenu = 6    'Settings/tools (F8)...
 END ENUM
 
 TYPE SliceEditMenuItem
@@ -586,6 +587,9 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   IF state.need_update = NO ANDALSO enter_space_click(state) THEN
    IF menuitemid = mnidExitMenu THEN
     IF slice_editor_save_when_leaving(ses, edslice) THEN EXIT DO
+   ELSEIF menuitemid = mnidSettingsMenu THEN
+    slice_editor_settings_menu ses, edslice, NO
+    state.need_update = YES
    ELSEIF menuitemid = mnidEditingFile THEN
     ' Selected the 'Editing <collection file>' menu item
     slice_editor_import_file ses, edslice, YES   'sets need_update
@@ -2109,6 +2113,8 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
   slice_editor_refresh_append ses, mnidCollectionName, "Name: " & context->name
  END IF
 
+ slice_editor_refresh_append ses, mnidSettingsMenu, "Settings/tools (F8)..."
+
  'Normally, hide the root
  DIM hidden_slice as Slice Ptr = edslice
  IF ses.show_root THEN hidden_slice = NULL
@@ -2578,15 +2584,19 @@ SUB SliceEditSettingsMenu.update()
   add_item 4, , "Focus view on the slice (F)"
  END IF
 
+ IF in_detail_editor = NO THEN
+  add_spacer
+#IFDEF IS_CUSTOM
+  add_item 9, , "Import collection (F2)"
+#ENDIF
+  add_item 10, , "Export collection (F3)"
+ END IF
+
  header "Editor Settings"
  DIM hide_captions(...) as string = {"Show menu and slices", "Hide menu background", "Hide slices", "Hide menu"}
  IF in_detail_editor = NO THEN
   add_item 7, , "Show positions: " & yesorno(ses->show_positions)
   add_item 8, , "Show sizes: " & yesorno(ses->show_sizes)
-#IFDEF IS_CUSTOM
-  add_item 9, , "Import collection (F2)"
-#ENDIF
-  add_item 10, , "Export collection (F3)"
  END IF
  add_item 11, , safe_caption(hide_captions(), ses->hide_mode) & " (F4)"
  add_item 12, , "Show root slice: " & yesorno(ses->show_root) & " (F5)"
@@ -2671,7 +2681,7 @@ SUB slice_editor_settings_menu(byref ses as SliceEditState, byref edslice as Sli
  menu.ses = @ses
  menu.edslice = edslice
  menu.in_detail_editor = in_detail_editor
- menu.title = "Slice editor (F8)"
+ menu.title = "Slice editor settings/tools (F8)"
  menu.helpkey = "sliceedit_settings"
  menu.run()
  edslice = menu.edslice  'Changes eg. when importing

@@ -1,0 +1,13 @@
+This menu shows editor settings (which are remembered when you exit), most of the available tools (and their hotkeys) for quickly manipulating a slice, and functions such as collection import/export.
+
+You can access this menu both while viewing the slice tree or editing a slice, by pressing F8.
+
+Note: Some options are hidden when there's no slice selected, or when you're playing a game rather than editing in Custom.
+
+Show positions: next to each slice in the menu its screen position (not its X,Y position) will be shown. This is affected by all its ancestors.
+
+Show sizes: show size of each slice in the menu
+
+All other functions have hotkeys. To see help for them, exit the settings menu, press F1, and search for the hotkey.
+
+

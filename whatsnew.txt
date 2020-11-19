@@ -5,9 +5,8 @@ December ? 2020 [Hróðvitnir]
 
   *** New Features
     * Slice Editor:
-      * Settings menu. Press F8 to open. You no longer need to remember
-        (other) hotkeys. New settings to show/hide the position and size
-        of each slice. [Ralph]
+      * Settings/tools menu (F8 to open). Lists most hotkeys. Includes new
+        settings to show/hide the position and size of each slice. [Ralph]
       * Data organised into collapsible/expandable sections [Sword]
       * Press F in the slice editor to focus on a slice [Ralph]
       * Slice collections can be named. The name and collection ID are shown in
