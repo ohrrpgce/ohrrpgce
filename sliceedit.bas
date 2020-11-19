@@ -206,6 +206,7 @@ DECLARE FUNCTION slice_caption (byref ses as SliceEditState, edslice as Slice Pt
 DECLARE SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE SUB slice_editor_reset_slice(byref ses as SliceEditState, sl as Slice ptr)
+DECLARE SUB slice_editor_focus_on_slice(byref ses as SliceEditState, edslice as Slice ptr)
 DECLARE SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)
 DECLARE SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
 DECLARE FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes) as bool
@@ -542,7 +543,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     IF slice_editor_save_when_leaving(ses, edslice) THEN EXIT DO
    END IF
   END IF
-  slice_editor_common_function_keys ses, edslice, state, NO  'F4, F6, F7, F8, Ctrl+F3, Ctrl+F4
+  slice_editor_common_function_keys ses, edslice, state, NO  'F, R, V, F4, F6, F7, F8, Ctrl+F3, Ctrl+F4
   #IFDEF IS_GAME
    IF keyval(scF1) > 1 THEN show_help "sliceedit_game"
   #ELSE
@@ -558,21 +559,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    IF strgrabber(collection_context(edslice)->name) THEN state.need_update = YES
   END IF
 
-  IF state.need_update = NO ANDALSO keyval(scCtrl) = 0 ANDALSO keyval(scF) > 1 THEN  'need_update=NO ensures not a string field
-   'Focus slice
-   DIM true_root as Slice ptr = FindRootSlice(edslice)  'In case recursively editing a subtree
-   DIM focus_pt as XYPair = get_resolution() \ 2  'Where on the screen to put the focused slice
-   focus_pt.x += 70
-   DIM focus_on as Slice ptr = IIF(ses.curslice, ses.curslice, edslice)
-   true_root->Pos += focus_pt - (focus_on->ScreenPos + focus_on->Size \ 2)
-   state.need_update = YES
-  END IF
-
   IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
-   IF keyval(scCtrl) = 0 AND keyval(scV) > 1 THEN
-    'Toggle visibility (does nothing on Select slice children)
-    ses.curslice->Visible XOR= YES
-   END IF
    IF keyval(scH) > 1 THEN
     'Toggle editor visibility of children
     IF ses.curslice->NumChildren > 0 THEN
@@ -582,7 +569,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     END IF
     state.need_update = YES
    END IF
-   IF keyval(scR) > 1 THEN slice_editor_reset_slice ses, ses.curslice
   END IF
 
   ' Highlighting and selecting slices with the mouse
@@ -819,6 +805,22 @@ END FUNCTION
 
 'Note: a lot of this is duplicated, and the keys are documented, in SliceEditSettingsMenu
 SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, in_detail_editor as bool)
+ IF state.need_update = NO ANDALSO keyval(scCtrl) = 0 THEN  'need_update=NO ensures not a string field
+  IF keyval(scF) > 1 THEN
+   slice_editor_focus_on_slice ses, edslice
+   state.need_update = YES
+  END IF
+  IF keyval(scR) > 1 THEN
+   slice_editor_reset_slice ses, ses.curslice
+   state.need_update = YES
+  END IF
+  IF keyval(scV) > 1 THEN
+   'Toggle visibility (does nothing on Select slice children)
+   ses.curslice->Visible XOR= YES
+   state.need_update = YES
+  END IF
+ END IF
+
  IF keyval(scCtrl) = 0 ANDALSO keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD (hideLAST + 1)
  IF keyval(scF6) > 1 THEN
   'Move around our view on this slice collection.
@@ -1197,7 +1199,6 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   setwait 55
   setkeys YES
   IF keyval(ccCancel) > 1 THEN EXIT DO
-  slice_editor_common_function_keys ses, edslice, state, YES  'F4, F6, F7, F8, Ctrl+F3, Ctrl+F4
   IF keyval(scF1) > 1 THEN
    DIM helpkey as string = rules(state.pt).helpkey
    show_help "sliceedit_" & IIF(LEN(helpkey), helpkey, "detail")
@@ -1234,6 +1235,9 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   IF state.pt = 0 AND enter_space_click(state) THEN EXIT DO
   slice_edit_detail_keys ses, state, sl, rules(), usemenu_flag
 
+  'After slice_edit_detail_keys so that can handle text input
+  slice_editor_common_function_keys ses, edslice, state, YES  'F, R, V, F4, F6, F7, F8, Ctrl+F3, Ctrl+F4
+
   draw_background vpages(dpage), bgChequer
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice ses.draw_root, dpage
@@ -1269,6 +1273,16 @@ SUB slice_editor_reset_slice(byref ses as SliceEditState, sl as Slice ptr)
   slice_edit_updates ses.curslice, @.Fill
   slice_edit_updates ses.curslice, @.CoverChildren
  END WITH
+END SUB
+
+'Shift viewport so this slice is just off-center (to the right)
+SUB slice_editor_focus_on_slice(byref ses as SliceEditState, edslice as Slice ptr)
+ DIM true_root as Slice ptr = FindRootSlice(edslice)  'In case recursively editing a subtree
+ DIM focus_pt as XYPair = get_resolution() \ 2  'Where on the screen to put the focused slice
+ focus_pt.x += 70
+ DIM focus_on as Slice ptr = IIF(ses.curslice, ses.curslice, edslice)
+ RefreshSliceScreenPos focus_on
+ true_root->Pos += focus_pt - (focus_on->ScreenPos + focus_on->Size \ 2)
 END SUB
 
 'Filling is so yuck we need helpers just to turn it off
@@ -2551,12 +2565,14 @@ SUB SliceEditSettingsMenu.update()
  IF ses->curslice <> NULL THEN
   header "Selected slice:"
   WITH *ses->curslice
-   add_item 1, , "Visible: " & yesorno(.Visible) & IIF(in_detail_editor, "", " (V)")
+   add_item 1, , "Visible: " & yesorno(.Visible) & " (V)"
    IF .NumChildren > 0 THEN
     add_item 2, , "Collapse (hide) children: " & yesorno(.EditorHideChildren) & IIF(in_detail_editor, "", " (H)")
    END IF
-   add_item 3, , "Reset position & alignment" & IIF(in_detail_editor, "", " (R)")
+   add_item 3, , "Reset position & alignment (R)"
   END WITH
+  'This also works if curslice is NULL; then it focuses on edslice
+  add_item 4, , "Focus view on the slice (F)"
  END IF
 
  header "Editor Settings"
@@ -2598,6 +2614,11 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
    IF activate THEN
     slice_editor_reset_slice *ses, ses->curslice
     RETURN YES
+   END IF
+  CASE 4  'Focus view on slice
+   IF activate THEN
+    slice_editor_focus_on_slice *ses, edslice
+    RETURN YES  'quit
    END IF
 
   CASE 7

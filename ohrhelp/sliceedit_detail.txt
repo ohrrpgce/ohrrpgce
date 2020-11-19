@@ -16,3 +16,10 @@ Press F6 to shift around your view of the whole slice collection around. This do
 Press F7 to toggle whether an outline box is drawn around the currently selected slice.
 
 Press F8 to open the Slice Editor Settings menu, where you can access most of these functions, and more, without having to remember the hotkey for each.
+
+Press V to toggle the slice visible/invisible. This doesn't work on the children of Select slices. Invisible slices have a different colour in the menu.
+
+Press R to reset the slice's position: to position 0,0, aligned and anchored to top-left corner, and not filling.
+
+Press F to focus on the slice, shifting the view of the slice tree (like F6) to put it near the screen center.
+
