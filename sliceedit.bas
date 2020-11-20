@@ -83,7 +83,7 @@ TYPE SliceEditState
  clipboard as Slice Ptr
  draw_root as Slice Ptr    'The slice to actually draw; either edslice or its parent.
  hide_mode as HideMode
- show_root as bool         'Whether to show edslice
+ show_root as bool = YES   'Whether to show edslice
  show_ants as bool = YES   'Whether to draw a box around the selected slice
  show_sizes as bool        'Display sizes in the slice list?
  show_positions as bool    'Display screen positions in the slice list?
@@ -475,7 +475,6 @@ SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLEC
   'Note that we don't call create_draw_root() to create a temp root slice; this is a bit unfortunate
   'because it may cause some subtle differences
   ses.draw_root = edslice
-  ses.show_root = YES
  ELSE
   ' Temporarily reparent the root of the slice tree!
   rootslice = FindRootSlice(edslice)
@@ -2115,7 +2114,7 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
 
  slice_editor_refresh_append ses, mnidSettingsMenu, "Settings/tools (F8)..."
 
- 'Normally, hide the root
+ 'Show the root (if ses.show_root)
  DIM hidden_slice as Slice Ptr = edslice
  IF ses.show_root THEN hidden_slice = NULL
  slice_editor_refresh_recurse ses, 0, edslice, edslice, hidden_slice
@@ -2692,15 +2691,17 @@ END SUB
 SUB slice_editor_save_settings(byref ses as SliceEditState)
  write_config "sliceedit.show_positions", yesorno(ses.show_positions)
  write_config "sliceedit.show_sizes", yesorno(ses.show_sizes)
+ 'show_ants and hide_mode are not saved.
+ 'sliceedit.show_root was renamed to sliceedit.show_root2 to ignore previous setting
  'While in the recursive slice editor, show_root gets set to YES by default
- IF ses.recursive = NO THEN write_config "sliceedit.show_root", yesorno(ses.show_root)
+ IF ses.recursive = NO THEN write_config "sliceedit.show_root2", yesorno(ses.show_root)
 END SUB
 
 SUB slice_editor_load_settings(byref ses as SliceEditState)
  ses.show_positions = read_config_bool("sliceedit.show_positions", NO)
  ses.show_sizes = read_config_bool("sliceedit.show_sizes", NO)
  'See above
- IF ses.recursive = NO THEN ses.show_root = read_config_bool("sliceedit.show_root", NO)
+ IF ses.recursive = NO THEN ses.show_root = read_config_bool("sliceedit.show_root2", YES)
 END SUB
 
 '==========================================================================================

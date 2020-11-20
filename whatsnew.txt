@@ -53,6 +53,7 @@ December ? 2020 [Hróðvitnir]
     * MP~/Focus and Hits stats are no longer limited to 100 and 20 in the editors
     * Joystick buttons 2 and 3 are no longer mapped to Use/Cancel (like buttons 0
       and 1), so you can use them for other purposes
+    * The slice editor now shows the root slice of a collection by default
 
   *** Bugfixes
     * "set opacity" (with opacity < 100%) didn't always turn on blending

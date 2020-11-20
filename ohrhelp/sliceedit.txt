@@ -5,7 +5,9 @@ Here you can create collections of slices that can be loaded using plotscripting
 In the future it will also be usable to create your own custom screen layouts, and to provide a much greater level of customizability for things like the battle interface, the status menu, the spells menu, or shops.
 
 To change which slice collection you are editing, select the Slice Collection number and press left or right arrows or type in a new slice number.
-You can also press F3 to "Edit separately" a slice collection that has been exported to an external .slice file (and then press ENTER or SPACE on the 'Editing <file.slice>' line to browse for another file).
+You can also press F3 to "Edit separately" a slice collection that has been exported to an external .slice file (and then press ENTER or SPACE on the "Editing <file.slice>" line to browse for another file).
+
+When you switch to an empty slice collection you will see a Container slice marked "[root]" (unless hidden in Settings). All other slices are children/descendents of the root. The root is the slice you get a handle to when using "load slice collection". Note that it's set to Fill Parent by default!
 
 Press + to add a new slice to the current collection.
 
