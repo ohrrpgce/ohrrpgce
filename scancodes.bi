@@ -222,7 +222,7 @@ CONST scKEYVAL_LAST = scJoyLAST
 '                            Joystick scancodes
 'Indices used by JoystickState
 
-ENUM 'JoyScancode
+ENUM 'JoyButton
  joyButton1  = 0
  joyButton2  = 1
  joyButton3  = 2
@@ -235,7 +235,7 @@ ENUM 'JoyScancode
  joyDown     = 35
  joyLAST     = 35
 END ENUM
-TYPE JoyScancode as integer
+TYPE JoyButton as integer
 
 '------------------------------------------------------------------------------
 

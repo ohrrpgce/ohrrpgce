@@ -456,7 +456,7 @@ DECLARE SUB frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBc
 
 'Mapping from a scancode to a carray() index (action)
 type ControlKey
-	scancode as integer                 'Either a KBScancode or JoyScancode
+	scancode as integer                 'Either a KBScancode or JoyButton
 	ckey as KBScancode                  'A cc* virtual scancode: index in carray(). 0 if unused.
 end type
 
@@ -510,10 +510,10 @@ DECLARE FUNCTION getinputtext () as string
 
 '================== Joystick ===================
 
-DECLARE FUNCTION joykeyval (key as JoyScancode, joynum as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
+DECLARE FUNCTION joykeyval (key as JoyButton, joynum as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
 DECLARE FUNCTION joystick_axis (axis as integer, joynum as integer = 0) as integer
 DECLARE FUNCTION joystick_info (joynum as integer) as JoystickInfo ptr
-DECLARE FUNCTION keybd_to_joy_scancode (key as KBScancode) as JoyScancode
+DECLARE FUNCTION keybd_to_joy_scancode (key as KBScancode) as JoyButton
 DECLARE FUNCTION num_joysticks () as integer
 DECLARE SUB disable_joystick_input()
 DECLARE SUB enable_joystick_input() 'defaults to enabled, so this doesn't necessarily need to be called

@@ -245,7 +245,7 @@ type KeyArray extends Object
 	declare abstract sub init_controls()
 	declare abstract sub update_arrow_keydown_time()
 	declare sub update_keydown_times(inputst as InputStateFwd)
-	'In following, key is a KBScancode or JoyScancode depending on subclass
+	'In following, key is a KBScancode or JoyButton depending on subclass
 	declare function key_repeating(key as integer, is_arrowkey as bool, repeat_wait as integer, repeat_rate as integer, inputst as InputStateFwd) as KeyBits
 	declare abstract function keyval(key as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd) as KeyBits
 	declare sub calc_carray (whichcarray() as KeyBits, inputst as InputStateFwd, repeat_wait as integer = 0, repeat_rate as integer = 0)
@@ -286,7 +286,7 @@ type JoystickState extends KeyArray
 	declare sub init_controls()
 	declare sub update_keybits(joynum as integer)
 	declare sub update_arrow_keydown_time()
-	declare function keyval(key as JoyScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd) as KeyBits
+	declare function keyval(key as JoyButton, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd) as KeyBits
 end type
 
 ' Keyboard and joystick state which is separate for recording and replaying.
@@ -2399,7 +2399,7 @@ end sub
 'Remove all key mappings to or from a scancode/controlcode (cc* constant).
 'Reads replayed state, if any (real_keys = NO)
 'key:     either a cc* constant (all key mappings to that cc will be removed)
-'         or an ordinary KBScancode or JoyScancode (any mapping from that key/button will be removed)
+'         or an ordinary KBScancode or JoyButton (any mapping from that key/button will be removed)
 'joynum:  -2 for keyboard, -1 for any joystick, 0-3 for single joystick (similar to device_carray())
 sub delete_key_mappings(key as integer, joynum as integer = -2)
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
@@ -2594,7 +2594,7 @@ sub JoystickState.update_keybits(joynum as integer)
 	' so this is similar to the former (as handled in pollingthread).
 
 	' Clear bits 1 (keypress event) and 2 (new keypress)
-	for scancode as JoyScancode = 0 to ubound(keys)
+	for scancode as JoyButton = 0 to ubound(keys)
 		keys(scancode) and= 1
 	next
 
@@ -2630,7 +2630,7 @@ sub JoystickState.update_keybits(joynum as integer)
 	keystate_convert_bit3_to_keybits(keys())
 
 	' Duplicate bit 1 (key event) to bit 2 (new keypress)
-	for scancode as JoyScancode = 0 to ubound(keys)
+	for scancode as JoyButton = 0 to ubound(keys)
 		dim byref key as KeyBits = keys(scancode)
 		key = (key and 3) or ((key and 2) shl 1)
 	next
@@ -3040,7 +3040,7 @@ end sub
 '==========================================================================================
 
 'Translate a sc* constant to a joy* constant
-function keybd_to_joy_scancode(key as KBScancode) as JoyScancode
+function keybd_to_joy_scancode(key as KBScancode) as JoyButton
 	ERROR_IF(key < scJoyFIRST orelse key > scJoyLAST, "Bad scancode " & key, 0)
 	select case key
 		case scJoyLeft  : return joyLeft
@@ -3061,7 +3061,7 @@ function num_joysticks () as integer
 end function
 
 'The new way to read joystick buttons. Like keyval.
-function joykeyval (key as JoyScancode, joynum as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
+function joykeyval (key as JoyButton, joynum as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
 	ERROR_IF(key > joyLAST, "bad scancode " & key, 0)
 
 	dim inputst as InputState ptr
@@ -3077,7 +3077,7 @@ function joykeyval (key as JoyScancode, joynum as integer = 0, repeat_wait as in
 	return joy.keyval(key, repeat_wait, repeat_rate, *inputst)
 end function
 
-function JoystickState.keyval (key as JoyScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputState) as KeyBits
+function JoystickState.keyval (key as JoyButton, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputState) as KeyBits
 	dim is_arrowkey as bool
 	is_arrowkey = (key = joyLeft orelse key = joyRight orelse key = joyUp orelse key = joyDown)
 	return this.key_repeating(key, is_arrowkey, repeat_wait, repeat_rate, inputst)
