@@ -78,7 +78,7 @@ type IOJoystickState
 	axes(7) as integer       'Values from -1000 to 1000
 	                         'If info->have_bindings is true, then axes are numbered according to JoyAxis.
 	hats(3) as integer       'Length 4 bitvector: left=1, right=2, up=4, down=8
-	info as JoystickInfo ptr 'This pointer must be and remain valid until backend shutdown
+	info as JoystickInfo ptr '(Optional - can be NULL) This pointer must remain valid until backend shutdown
 end type
 #define IOJOYSTICKSTATE_SZ 6
 

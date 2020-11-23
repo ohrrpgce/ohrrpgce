@@ -4778,6 +4778,7 @@ SUB script_functions(byval cmdid as integer)
   a_script_wants_keys()
   scriptret = IIF(script_keyval(retvals(0), retvals(1)) AND 4, 1, 0)
  CASE 678 '--get joystick name (stringid, joynum)
+  plotstr(retvals(0)).s = ""
   IF valid_plotstr(retvals(0), serrBadOp) ANDALSO valid_joystick(retvals(1)) THEN
    DIM info as JoystickInfo ptr = joystick_info(retvals(1))
    IF info THEN
