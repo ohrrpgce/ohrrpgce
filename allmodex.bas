@@ -2613,6 +2613,7 @@ sub JoystickState.update_keybits(joynum as integer)
 		if angle > 4  orelse  angle < -4 then keys(joyLeft)  or= 8
 	end if
 	' Also treat the first hat as X, Y directions
+	' (this is only needed, and does anything, if info->have_bindings = NO)
 	' (E.g. on this here PSX controller with thumbsticks, using a usb adaptor, the
 	' dpad reports as axes 0/1 with analog off, and as hat 0 with analog on)
 	for bitn as integer = 0 to 3

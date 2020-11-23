@@ -281,6 +281,8 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   'Possibly useful in future:
   'SDL_SetHint(SDL_HINT_RENDER_LOGICAL_SIZE_MODE, "overscan")  'Causes left/right of screen to be clipped instead of letterboxing
 
+  'To receive controller updates while in the background, SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS
+
   DIM ver as SDL_version
   SDL_GetVersion(@ver)
   DIM ret as string
@@ -288,8 +290,8 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
 
   DIM video_already_init as bool = (SDL_WasInit(SDL_INIT_VIDEO) <> 0)
 
-  IF SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_JOYSTICK) THEN
-    ret = "Can't start SDL (video): " & *SDL_GetError() & !"\n" & ret
+  IF SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_JOYSTICK OR SDL_INIT_GAMECONTROLLER) THEN
+    ret = "Can't start SDL (gfx_sdl2): " & *SDL_GetError() & !"\n" & ret
     *info_buffer = LEFT(ret, info_buffer_size)
     RETURN 0
   END IF
@@ -297,6 +299,9 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   'Clear keyboard state because if we re-initialise the backend (switch backend)
   'some key-up events can easily get lost
   memset(@keybdstate(0), 0, (UBOUND(keybdstate) + 1) * SIZEOF(keybdstate(0)))
+
+  'Enable controller events, so don't have to call SDL_GameControllerUpdate
+  SDL_GameControllerEventState(SDL_ENABLE)
 
   ret &= " (" & SDL_NumJoysticks() & " joysticks) Driver:" & *SDL_GetCurrentVideoDriver() & " (Drivers:"
   FOR i as integer = 0 TO SDL_GetNumVideoDrivers() - 1

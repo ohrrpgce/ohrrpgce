@@ -238,13 +238,14 @@ ENUM 'JoyButton
  joyStart      = 9  'Aka Options (PS4), Menu (XBox)
  joyL1         = 10
  joyR1         = 11
- joyL2         = 12  'Also axisL1
+ joyL2         = 12  'Also axisL2
  joyR2         = 13  'Also axisR2
  '14-16 are unused; Dpad buttons start at 17 for easy mapping to script joy:... controls
  joyLeft       = 17  'Dpad
  joyRight      = 18
  joyUp         = 19
  joyDown       = 20
+ joyLASTGAMEPAD = 20  'Last button with builtin meaning
  'joyA2Left     = 21  'Right thumbstick (axisRightX/Y)
  'joyA2Right    = 22
  'joyA2Up       = 23

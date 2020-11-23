@@ -157,6 +157,30 @@ define constant,begin
 121,key:Command
 
 #keys >= 128 are NOT scan codes, per se, but for other devices (mouse, joystick)
+
+128,joy:A          # Aka X/Cross (PS)
+129,joy:B          # Aka O/Circle (PS)
+130,joy:X          # Aka Square (PS)
+131,joy:Y          # Aka Triangle (PS)
+132,joy:LeftStick  # Pressed as a button
+133,joy:RightStick #
+134,joy:Back       #  Aka Select (eg PS3), Share (eg PS4), View (Xbox)
+135,joy:Guide      # Aka PS (eg 3), XBox
+136,joy:Start      # Aka Options (PS4), Menu (XBox)
+137,joy:L1         # Left shoulder
+138,joy:R1         # Right shoulder
+139,joy:L2         # Left trigger. Also axis:L2
+140,joy:R2         # Left trigger. Also axis:R2
+144,joy:Left       # Dpad
+145,joy:Right
+146,joy:Up
+147,joy:Down
+# Obsolete aliases
+144,joy:x left
+145,joy:x right
+146,joy:y up
+147,joy:y down
+
 128,joy:button 1
 129,joy:button 2
 130,joy:button 3
@@ -173,32 +197,23 @@ define constant,begin
 141,joy:button 14
 142,joy:button 15
 143,joy:button 16
-# Warning: gap in scancode numbers!
-148,joy:button 17
-149,joy:button 18
-150,joy:button 19
-151,joy:button 20
-152,joy:button 21
-153,joy:button 22
-154,joy:button 23
-155,joy:button 24
-156,joy:button 25
-157,joy:button 26
-158,joy:button 27
-159,joy:button 28
-160,joy:button 29
-161,joy:button 30
-162,joy:button 31
-163,joy:button 32
-
-144,joy:x left
-144,joy:left
-145,joy:x right
-145,joy:right
-146,joy:y up
-146,joy:up
-147,joy:y down
-147,joy:down
+144,joy:button 17
+145,joy:button 18
+146,joy:button 19
+147,joy:button 20
+148,joy:button 21
+149,joy:button 22
+150,joy:button 23
+151,joy:button 24
+152,joy:button 25
+153,joy:button 26
+154,joy:button 27
+155,joy:button 28
+156,joy:button 29
+157,joy:button 30
+158,joy:button 31
+159,joy:button 32
+# 160-163 reserved
 
 # These are only returned by waitforkey(anykey)! You can't use them elsewhere!
 # Don't confuse these with "left button", etc, which are used for "mouse click", etc.

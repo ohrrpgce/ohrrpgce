@@ -5,6 +5,9 @@
 '' Part of the OHRRPGCE - See LICENSE.txt for GNU GPL License details and disclaimer of liability
 
 
+#ifdef USE_SDL2
+ DECLARE FUNCTION sdl2_update_gamepad(joynum as integer, state as IOJoystickState ptr) as integer
+#endif
 
 
 SUB GFX_SDL(close)()
@@ -53,6 +56,8 @@ LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
 
   IF joynum < 0 ORELSE joynum >= maxJoysticks THEN RETURN 1
   IF joynum > SDL_NumJoysticks() - 1 THEN RETURN 1
+  'FIXME: this doesn't handle joysticks getting renumbered as they are plugged/unplugged
+  '(SDL 1.2 doesn't support that, though)
   DIM byref joy as SDL_Joystick ptr = joystickhandles(joynum)
   IF joy THEN RETURN 0  'Success
 
@@ -79,9 +84,33 @@ LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
     .num_axes = SDL_JoystickNumAxes(joy)
     .num_hats = SDL_JoystickNumHats(joy)
     .num_balls = SDL_JoystickNumBalls(joy)
-    joystick_counter += 1
-    .instance_id = joystick_counter
-    'Can't retrieve guid
+    #ifdef USE_SDL2
+      .instance_id = SDL_JoystickInstanceID(joy)
+
+      DIM GUID as SDL_JoystickGUID = SDL_JoystickGetGUID(joy)
+      memcpy(@.model_guid(0), @GUID, sizeof(SDL_JoystickGUID))
+
+      DIM GUIDstr as string * 33
+      SDL_JoystickGetGUIDString(GUID, @GUIDstr[0], 32)
+      debuginfo "Joystick GUID " & GUIDstr
+
+      'Open the controller, but no need to store the pointer because we can look it up again
+      .have_bindings = SDL_IsGameController(joynum)
+      IF .have_bindings THEN
+        IF SDL_GameControllerOpen(joynum) THEN
+          debuginfo "Opened instance=" & .instance_id & " gamecontroller"
+          .num_buttons = large(.num_buttons, joyLASTGAMEPAD)
+        ELSE
+          debug "Couldn't open gamecontroller " & joynum & ": " & *SDL_GetError
+          .have_bindings = NO
+        END IF
+      END IF
+
+    #else
+      joystick_counter += 1
+      .instance_id = joystick_counter
+      'Can't even retrieve guid under SDL1.2
+    #endif
 
     debuginfo strprintf("Opened joystick %d %s (id %d) -- %d buttons %d axes %d hats %d balls", _
                         joynum, joyname, .instance_id, .num_buttons, .num_axes, .num_hats, .num_balls)
@@ -105,22 +134,31 @@ FUNCTION IO_SDL(get_joystick_state)(byval joynum as integer, byval state as IOJo
   'We can assume that state has already been cleared.
   DIM idx as integer
   WITH *state
-    FOR idx = 0 TO .info->num_buttons - 1
-      IF SDL_JoystickGetButton(joy, idx) THEN .buttons_down OR= 1 SHL idx
-    NEXT
 
-    FOR idx = 0 TO .info->num_axes - 1
-      'Has range -32768 (SDL_JOYSTICK_AXIS_MIN) to 32767 (SDL_JOYSTICK_AXIS_MAX), which is pretty odd...
-      .axes(idx) = large(-1000, SDL_JoystickGetAxis(joy, idx) * 1000 \ 32767)
-    NEXT
+    IF .info->have_bindings THEN
+      #ifdef USE_SDL2
+        ret = sdl2_update_gamepad(joynum, state)
+      #endif
+    ELSE
 
-    FOR idx = 0 TO .info->num_hats - 1
-      DIM vec as integer = SDL_JoystickGetHat(joy, idx)
-      IF vec AND SDL_HAT_LEFT  THEN .hats(idx) OR= 1
-      IF vec AND SDL_HAT_RIGHT THEN .hats(idx) OR= 2
-      IF vec AND SDL_HAT_UP    THEN .hats(idx) OR= 4
-      IF vec AND SDL_HAT_DOWN  THEN .hats(idx) OR= 8
-    NEXT
+      FOR idx = 0 TO .info->num_buttons - 1
+        IF SDL_JoystickGetButton(joy, idx) THEN .buttons_down OR= 1 SHL idx
+      NEXT
+
+      FOR idx = 0 TO .info->num_axes - 1
+        'Has range -32768 (SDL_JOYSTICK_AXIS_MIN) to 32767 (SDL_JOYSTICK_AXIS_MAX), which is pretty odd...
+        .axes(idx) = large(-1000, SDL_JoystickGetAxis(joy, idx) * 1000 \ 32767)
+      NEXT
+
+      FOR idx = 0 TO .info->num_hats - 1
+        DIM vec as integer = SDL_JoystickGetHat(joy, idx)
+        IF vec AND SDL_HAT_LEFT  THEN .hats(idx) OR= 1
+        IF vec AND SDL_HAT_RIGHT THEN .hats(idx) OR= 2
+        IF vec AND SDL_HAT_UP    THEN .hats(idx) OR= 4
+        IF vec AND SDL_HAT_DOWN  THEN .hats(idx) OR= 8
+      NEXT
+
+    END IF
 
     IF debugging_io THEN
       STATIC last_state(maxJoysticks - 1) as string
@@ -147,3 +185,72 @@ FUNCTION IO_SDL(get_joystick_state)(byval joynum as integer, byval state as IOJo
 
   RETURN ret
 END FUNCTION
+
+#ifdef USE_SDL2
+
+#include "scancodes.bi"
+
+END EXTERN ' Can't put assignment statements in an extern block
+
+DIM SHARED ohr_gamepad_axes(0 to SDL_CONTROLLER_AXIS_MAX) as JoyAxis
+ohr_gamepad_axes(SDL_CONTROLLER_AXIS_LEFTX) = axisX
+ohr_gamepad_axes(SDL_CONTROLLER_AXIS_LEFTY) = axisY
+ohr_gamepad_axes(SDL_CONTROLLER_AXIS_RIGHTX) = axisRightX
+ohr_gamepad_axes(SDL_CONTROLLER_AXIS_RIGHTY) = axisRightY
+ohr_gamepad_axes(SDL_CONTROLLER_AXIS_TRIGGERLEFT) = axisL2
+ohr_gamepad_axes(SDL_CONTROLLER_AXIS_TRIGGERRIGHT) = axisR2
+
+DIM SHARED ohr_gamepad_buttons(0 to SDL_CONTROLLER_BUTTON_MAX) as JoyButton
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_A) = joyA
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_B) = joyB
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_X) = joyX
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_Y) = joyY
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_BACK) = joyBack
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_GUIDE) = joyGuide
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_START) = joyStart
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_LEFTSTICK) = joyLeftStick
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_RIGHTSTICK) = joyRightStick
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_LEFTSHOULDER) = joyL1
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER) = joyR1
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_DPAD_UP) = joyUp
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_DPAD_DOWN) = joyDown
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_DPAD_LEFT) = joyLeft
+ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) = joyRight
+
+EXTERN "C"
+
+'Return value: see io_get_joystick_state
+FUNCTION sdl2_update_gamepad(joynum as integer, state as IOJoystickState ptr) as integer
+  WITH *state
+    '.attached = SDL_ControllerGetAttached(controller)
+
+    DIM controller as SDL_GameController ptr = SDL_GameControllerFromInstanceID(state->info->instance_id)
+    IF controller = NULL THEN
+      'FIXME: not really handling renumbering properly
+      'SDL_GetError doesn't report anything
+      debug "Lost game controller " & state->info->name
+      state->info->instance_id = -1
+      state->info->have_bindings = NO
+      RETURN 2  'Lost joystick
+    END IF
+
+    DIM buttons as uinteger = 0
+
+    FOR idx as integer = 0 TO SDL_CONTROLLER_BUTTON_MAX
+      IF SDL_GameControllerGetButton(controller, idx) THEN
+        'io_get_joystick_state returns gamepad buttons starting with joyButton1 in the first bit
+        buttons OR= 1 SHL (ohr_gamepad_buttons(idx) - 1)
+      END IF
+    NEXT
+
+    .buttons_down = buttons
+
+    FOR idx as integer = 0 TO SDL_CONTROLLER_AXIS_MAX
+      .axes(ohr_gamepad_axes(idx)) = SDL_GameControllerGetAxis(controller, idx)
+    NEXT
+
+  END WITH
+  RETURN 0  'Success
+END FUNCTION
+
+#endif

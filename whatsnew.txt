@@ -30,6 +30,9 @@ December ? 2020 [Hróðvitnir]
       will need to download/compile a "music_sdl" build.
       Mac users can opt in to gfx_sdl2/music_sdl2 by downloading the sdl2 build.
       [Ralph]
+    * When using gfx_sdl2, gamepads should now work reliably: A is Use, B is
+      Cancel, and you can use new joy:button constants like joy:A, joy:LeftStick,
+      joy:L2, and for "joystick axis", axis:X, axis:RightY, axis:L2, etc [Ralph]
 
    * New Plotscripting Features
     * "set timer args" [Ralph]

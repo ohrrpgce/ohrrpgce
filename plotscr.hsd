@@ -2105,8 +2105,15 @@ define constant, begin
 0, extra 0
 1, extra 1
 2, extra 2
-0, x axis
+# Joystick axes
+0, x axis  #old style
 1, y axis
+0, axis:X
+1, axis:Y
+2, axis:RightX
+3, axis:RightY
+4, axis:L2
+5, axis:R2
 0b1,mapstate:mapsettings
 0b10,mapstate:npclocations
 0b100,mapstate:npcdefinitions
