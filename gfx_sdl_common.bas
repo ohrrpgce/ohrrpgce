@@ -65,6 +65,7 @@ LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
   STATIC joystick_counter as integer
 
   WITH joystickinfo(joynum)
+    .structsize = JOYSTICKINFO_SZ
     DIM joyname as const zstring ptr
     #ifdef USE_SDL2
       joyname = SDL_JoystickNameForIndex(joynum)
@@ -98,21 +99,22 @@ FUNCTION IO_SDL(get_joystick_state)(byval joynum as integer, byval state as IOJo
 
   DIM byref joy as SDL_Joystick ptr = joystickhandles(joynum)
 
-  'Copy over fixed data
-  state->info = joystickinfo(joynum)
+  'Fixed joystick info
+  state->info = @joystickinfo(joynum)
 
+  'We can assume that state has already been cleared.
   DIM idx as integer
   WITH *state
-    FOR idx = 0 TO .info.num_buttons - 1
+    FOR idx = 0 TO .info->num_buttons - 1
       IF SDL_JoystickGetButton(joy, idx) THEN .buttons_down OR= 1 SHL idx
     NEXT
 
-    FOR idx = 0 TO .info.num_axes - 1
-      'Has range -32768 to 32767, which is pretty odd...
+    FOR idx = 0 TO .info->num_axes - 1
+      'Has range -32768 (SDL_JOYSTICK_AXIS_MIN) to 32767 (SDL_JOYSTICK_AXIS_MAX), which is pretty odd...
       .axes(idx) = large(-1000, SDL_JoystickGetAxis(joy, idx) * 1000 \ 32767)
     NEXT
 
-    FOR idx = 0 TO .info.num_hats - 1
+    FOR idx = 0 TO .info->num_hats - 1
       DIM vec as integer = SDL_JoystickGetHat(joy, idx)
       IF vec AND SDL_HAT_LEFT  THEN .hats(idx) OR= 1
       IF vec AND SDL_HAT_RIGHT THEN .hats(idx) OR= 2
@@ -122,15 +124,15 @@ FUNCTION IO_SDL(get_joystick_state)(byval joynum as integer, byval state as IOJo
 
     IF debugging_io THEN
       STATIC last_state(maxJoysticks - 1) as string
-      DIM temp as string = lpad(BIN(.buttons_down), "0", .info.num_buttons)
+      DIM temp as string = lpad(BIN(.buttons_down), "0", .info->num_buttons)
       DIM msg as string = strprintf("joy %d buttons: 0b%s", joynum, STRPTR(temp))
-      FOR idx = 0 TO .info.num_axes - 1
+      FOR idx = 0 TO .info->num_axes - 1
         msg &= strprintf(" axis%d: %6d", idx, .axes(idx))
       NEXT
-      FOR idx = 0 TO .info.num_hats - 1
+      FOR idx = 0 TO .info->num_hats - 1
         msg &= strprintf(" hat%d: 0x%x", idx, .hats(idx))  'Value from 0-15
       NEXT
-      FOR idx = 0 TO .info.num_balls - 1
+      FOR idx = 0 TO .info->num_balls - 1
         DIM as integer bx, by
         'NOTE: This is relative movement since last call, so will break if we ever support balls!
         SDL_JoystickGetBall(joy, idx, @bx, @by)

@@ -571,6 +571,7 @@ function io_fb_get_joystick_state(byval joynum as integer, byval state as IOJoys
 	static joystick_counter as integer
 	'state.instance_id mapping. Used to tell report whether this is a new joystick or not
 	static joystick_ids(15) as integer
+	static joystick_infos(15) as JoystickInfo
 
 	'Axes which are not present are set to -1000.
 	'Those which are present aren't necessarily consecutive on Windows, since there fbgfx
@@ -596,6 +597,11 @@ function io_fb_get_joystick_state(byval joynum as integer, byval state as IOJoys
 		end if
 	end if
 
+	dim byref info as JoystickInfo = joystick_infos(joynum)
+	state->info = @info
+	memset @info, 0, sizeof(info)
+	info.structsize = JOYSTICKINFO_SZ
+
 	for i as integer = 0 to 7
 		if ax(i) <> -1000 then
 			'debug "ax " & i & " " & ax(i)
@@ -606,12 +612,12 @@ function io_fb_get_joystick_state(byval joynum as integer, byval state as IOJoys
 					dim bitnum as integer = 2*(i-6) + iif(ax(i) > 0, 1, 0)
 					state->hats(0) or= 1 shl bitnum
 				end if
-				state->info.num_hats = 1
+				info.num_hats = 1
 				continue for
 			end if
 #endif
-			state->axes(state->info.num_axes) = 1000 * ax(i)
-			state->info.num_axes += 1
+			state->axes(info.num_axes) = 1000 * ax(i)
+			info.num_axes += 1
 		end if
 	next
 

@@ -50,28 +50,37 @@ end type
 #define WINDOWSTATE_SZ 8
 
 type JoystickInfo
-	'All of this data is optional except for num_axes, num_hats
+	'All of this data is optional.
+	structsize as integer    'Number of members in the struct, set to JOYSTICKINFO_SZ by backend. Always at least 9
 	instance_id as integer   'Uniquely identifies a joystick. (Some backends may not be to track
 	                         'correctly if there are multiple joysticks plugged in at once).
-	                         'Unplugging and replugging a jotstick should assign a new ID.
+	                         'Unplugging and replugging a joystick may assign a new ID.
 	model_guid(15) as ubyte  'Identifies the model of hardware. Provided by winapi and SDL2
-	name as zstring * 40     'Concatenation of manufacturer name and product name, if both available
+	name as zstring * 80     'E.g. concatenation of manufacturer name and product name, if both available
+	have_bindings as boolint 'True if the backend could map buttons/axes to OHR ones (joyA etc) itself
+	'Note: if have_bindings, then num_buttons and num_axes may be less than the last button/axis reported
+	'in IOJoystickState, so num_buttons/num_axes/num_hats may be ignored.
 	num_buttons as integer   'At most 32. 0 if not known.
 	num_axes as integer      'At most 8.
 	num_hats as integer      'At most 4.
 	num_balls as integer     'I don't actually expect we will ever use this - backend should just report balls as axes
+	'joytype as integer       'SDL_JoystickType and SDL_GameControllerType
 end type
+#define JOYSTICKINFO_SZ 9
 
 type IOJoystickState
-	structsize as integer    'Number of members in the struct or inside info (not counting info itself),
-	                         'set to IOJOYSTICKSTATE_SZ by both engine and backend. Always at least 11
-	buttons_down as uinteger 'Whether each button is currently down
+	structsize as integer    'Number of members in the struct, set to IOJOYSTICKSTATE_SZ by both engine and backend.
+				 'Always at least 6.
+	buttons_down as uinteger 'Whether each button is currently down. Starting from bit 0, unlike JoyButton
+	                         'If info->have_bindings is true, then buttons are numbered according to JoyButton,
+				 '(offset by -1 to start from 0), e.g. bit 0 is joyA, bit 1 is joyB
 	buttons_new as uinteger  '(Optional) Whether a new keypress has happened for each button, since last poll
 	axes(7) as integer       'Values from -1000 to 1000
+	                         'If info->have_bindings is true, then axes are numbered according to JoyAxis.
 	hats(3) as integer       'Length 4 bitvector: left=1, right=2, up=4, down=8
-	info as JoystickInfo
+	info as JoystickInfo ptr 'This pointer must be and remain valid until backend shutdown
 end type
-#define IOJOYSTICKSTATE_SZ 11
+#define IOJOYSTICKSTATE_SZ 6
 
 
 type GamePadMap
@@ -294,7 +303,7 @@ extern Io_mouserect as sub (byval xmin as integer, byval xmax as integer, byval 
 '(optional, ptr may be NULL)
 'Poll state of a joystick. (Old)
 'Returns nonzero on success, 0 if the joystick can't be read.
-'buttons is a bitvector of up to 32 buttons
+'buttons is a bitvector of up to 32 buttons (starting from bit 0, unlike JoyButton)
 'jx/jy are the first two axes, in the range from -100 to 100
 extern Io_readjoysane as function (byval joynum as integer, byref buttons as uinteger, byref jx as integer, byref jy as integer) as integer
 

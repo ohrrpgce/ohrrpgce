@@ -3079,14 +3079,14 @@ function joystick_axis (axis as integer, joynum as integer = 0) as integer
 	if joynum > ubound(inputst->joys) then return 0  'Not an error
 	dim byref joy as JoystickState = inputst->joys(joynum)
 
-	if axis < 0 orelse axis >= joy.state.info.num_axes then return 0
+	if axis < 0 orelse axis >= joy.state.info->num_axes then return 0
 	return joy.state.axes(axis)
 end function
 
 function joystick_info (joynum as integer) as JoystickInfo ptr
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
 	if joynum > ubound(inputst->joys) then return NULL  'Not an error
-	return @inputst->joys(joynum).state.info
+	return inputst->joys(joynum).state.info
 end function
 
 /' Not used yet
