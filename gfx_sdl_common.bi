@@ -12,6 +12,13 @@
   #error Must define USE_SDL or USE_SDL2
 #endif
 
+CONST maxJoysticks = 8
+
 DECLARE SUB GFX_SDL(close)()
 DECLARE SUB quit_joystick_subsystem()
 DECLARE FUNCTION IO_SDL(get_joystick_state)(byval joynum as integer, byval state as IOJoystickState ptr) as integer
+
+DECLARE FUNCTION instance_to_joynum(instance_id as integer) as integer
+DECLARE FUNCTION sdl2_joy_button_press(btn as integer, instance_id as integer) as bool
+
+EXTERN joystickinfo(maxJoysticks - 1) as JoystickInfo

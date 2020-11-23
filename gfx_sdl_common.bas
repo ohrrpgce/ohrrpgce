@@ -30,19 +30,28 @@ END SUB
 '==============================================================================
 '                                   Joysticks
 
-CONST maxJoysticks = 8
-
 DIM SHARED joystickhandles(maxJoysticks - 1) as SDL_Joystick ptr
-DIM SHARED joystickinfo(maxJoysticks - 1) as JoystickInfo
-
+DIM joystickinfo(maxJoysticks - 1) as JoystickInfo
+'The following is only used by gfx_sdl2, for button press events, to track
+'fast presses that are released between ticks.
+DIM SHARED joystickbuttons(maxJoysticks - 1) as uinteger
 
 LOCAL SUB quit_joystick_subsystem()
   FOR i as integer = 0 TO small(SDL_NumJoysticks(), maxJoysticks) - 1
     IF joystickhandles(i) <> NULL THEN SDL_JoystickClose(joystickhandles(i))
     joystickhandles(i) = NULL
+    joystickinfo(i).instance_id = -1
   NEXT
   SDL_QuitSubSystem(SDL_INIT_JOYSTICK)
 END SUB
+
+'Return -1 if not found
+LOCAL FUNCTION instance_to_joynum(instance_id as integer) as integer
+  FOR joynum as integer = 0 TO UBOUND(joystickinfo)
+    IF joystickinfo(joynum).instance_id = instance_id THEN RETURN joynum
+  NEXT
+  RETURN -1
+END FUNCTION
 
 'Check a joystick is valid, and open it if not open yet, reading info
 'Same return values as io_get_joystick_state in gfx.bi
@@ -92,13 +101,13 @@ LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
 
       DIM GUIDstr as string * 33
       SDL_JoystickGetGUIDString(GUID, @GUIDstr[0], 32)
-      debuginfo "Joystick GUID " & GUIDstr
+      debuginfo "Joystick " & joynum & " GUID " & GUIDstr & " instance_id " & .instance_id
 
       'Open the controller, but no need to store the pointer because we can look it up again
       .have_bindings = SDL_IsGameController(joynum)
       IF .have_bindings THEN
         IF SDL_GameControllerOpen(joynum) THEN
-          debuginfo "Opened instance=" & .instance_id & " gamecontroller"
+          debuginfo " Opened as gamecontroller"
           .num_buttons = large(.num_buttons, joyLASTGAMEPAD)
         ELSE
           debug "Couldn't open gamecontroller " & joynum & ": " & *SDL_GetError
@@ -134,6 +143,9 @@ FUNCTION IO_SDL(get_joystick_state)(byval joynum as integer, byval state as IOJo
   'We can assume that state has already been cleared.
   DIM idx as integer
   WITH *state
+
+    .buttons_new = joystickbuttons(joynum)
+    joystickbuttons(joynum) = 0
 
     IF .info->have_bindings THEN
       #ifdef USE_SDL2
@@ -239,6 +251,7 @@ FUNCTION sdl2_update_gamepad(joynum as integer, state as IOJoystickState ptr) as
     FOR idx as integer = 0 TO SDL_CONTROLLER_BUTTON_MAX
       IF SDL_GameControllerGetButton(controller, idx) THEN
         'io_get_joystick_state returns gamepad buttons starting with joyButton1 in the first bit
+        'debuginfo "raw SDL button " & idx & " " & *SDL_GameControllerGetStringForButton(idx)
         buttons OR= 1 SHL (ohr_gamepad_buttons(idx) - 1)
       END IF
     NEXT
@@ -253,4 +266,12 @@ FUNCTION sdl2_update_gamepad(joynum as integer, state as IOJoystickState ptr) as
   RETURN 0  'Success
 END FUNCTION
 
-#endif
+'Record a button press (when a button down event happens)
+FUNCTION sdl2_joy_button_press(btn as integer, instance_id as integer) as bool
+  DIM joynum as integer = instance_to_joynum(instance_id)
+  IF joynum < 0 THEN RETURN NO
+  joystickbuttons(joynum) OR= 1 SHL (ohr_gamepad_buttons(btn) - 1)
+  RETURN YES
+END FUNCTION
+
+#endif  'USE_SDL2

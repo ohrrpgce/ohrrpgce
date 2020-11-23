@@ -58,7 +58,6 @@ declare function SDL_ANDROID_OUYAReceiptsAreReady () as bool
 declare function SDL_ANDROID_OUYAReceiptsResult () as zstring ptr
 #ENDIF
 
-
 DECLARE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
 DECLARE FUNCTION recreate_screen_texture() as bool
 DECLARE FUNCTION get_buffersize() as XYPair
@@ -967,6 +966,48 @@ SUB gfx_sdl2_process_events()
         IF key THEN keybdstate(key) = (keybdstate(key) AND 2) OR 4
       CASE SDL_TEXTINPUT
         input_buffer += evnt.text.text  'UTF8
+
+      /'
+      CASE SDL_CONTROLLERDEVICEADDED
+        IF debugging_io THEN
+          debuginfo "SDL_CONTROLLERDEVICEADDED joynum=" & evnt.cdevice.which
+        END IF
+
+      CASE SDL_CONTROLLERDEVICEREMOVED
+        IF debugging_io THEN
+          debuginfo "SDL_CONTROLLERDEVICEREMOVED instance_id=" & evnt.cdevice.which
+        END IF
+      '/
+
+      CASE SDL_JOYDEVICEADDED
+        IF debugging_io THEN
+          debuginfo "SDL_JOYDEVICEADDED joynum=" & evnt.jdevice.which & " instance_id=" & _
+                    SDL_JoystickGetDeviceInstanceID(evnt.jdevice.which) & " " & SDL_JoystickNameForIndex(evnt.jdevice.which)
+        END IF
+
+      CASE SDL_JOYDEVICEREMOVED
+        IF debugging_io THEN
+          debuginfo "SDL_JOYDEVICEREMOVED instance_id=" & evnt.jdevice.which
+        END IF
+
+      CASE SDL_CONTROLLERBUTTONDOWN
+        DIM btn as integer = evnt.cbutton.button
+        DIM ok as bool = sdl2_joy_button_press(btn, evnt.cbutton.which)
+        IF debugging_io THEN
+          debuginfo "SDL_CONTROLLERBUTTONDOWN instance_id=" & evnt.cbutton.which & " sdlbtn=" & evnt.cbutton.button & " ok=" & ok
+        END IF
+
+      CASE SDL_JOYBUTTONDOWN
+        DIM btn as integer = evnt.jbutton.button
+        DIM ok as bool
+        DIM joynum as integer = instance_to_joynum(evnt.jbutton.which)
+        IF joynum >= 0 ANDALSO joystickinfo(joynum).have_bindings = NO THEN
+          'Only process buttons for joysticks not recognised as gamepads, they're handled by SDL_CONTROLLERBUTTONDOWN
+          ok = sdl2_joy_button_press(btn, evnt.jbutton.which)
+        END IF
+        IF debugging_io THEN
+          debuginfo "SDL_JOYBUTTONDOWN instance_id=" & evnt.jbutton.which & " joynum=" & joynum & " sdlbtn=" & evnt.jbutton.button & " ok=" & ok
+        END IF
 
       CASE SDL_MOUSEBUTTONDOWN
         'note SDL_GetMouseState is still used, while SDL_GetKeyState isn't

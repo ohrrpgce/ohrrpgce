@@ -2634,10 +2634,10 @@ sub JoystickState.update_keybits(joynum as integer)
 		dim byref key as KeyBits = keys(scancode)
 		key = (key and 3) or ((key and 2) shl 1)
 	next
-	' Add in explicit new-keypress bits from the backend, if reported
+	' Add in explicit new-keypress (mirror to key-event) bits from the backend, if reported
 	for btn as integer = 0 to 31
 		if state.buttons_new and (1 shl btn) then
-			keys(joyButton1 + btn) or= 4
+			keys(joyButton1 + btn) or= 6
 		end if
 	next
 end sub
