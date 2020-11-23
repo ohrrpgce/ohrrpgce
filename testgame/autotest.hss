@@ -5707,11 +5707,16 @@ script, string load tests, begin
   $1="Left Shift"
   get scancode name(2, key:left shift, false)
   assert(string compare(1,2))
-  $1="Gamepad Button 2"
-  get scancode name(2, joy:button 2, false)
+  $1="Gamepad B"
+  get scancode name(2, joy:B, false)
+  tracevalue(joy:B)
+  trace(2)
   assert(string compare(1,2))
   $1="Gamepad Up"
   get scancode name(2, joy:up, false)
+  assert(string compare(1,2))
+  $1="Gamepad Button 16"
+  get scancode name(2, joy:button16, false)
   assert(string compare(1,2))
 
   # get slice lookup name tests

@@ -174,15 +174,15 @@ CONST scLAST = 127
 '------------- Virtual scancodes
 
 'For convenience joystick buttons are also accessible via scancodes
-CONST scJoyFIRST = 128
-CONST scJoyButton1 = 128
-CONST scJoyButton16 = 143
+CONST scJoyOFFSET = 127  'Difference between a scJoy* scancode and a joy* button. Button 0/scancode 127 doesn't exist
+CONST scJoyButton1 = 128  'First joystick button scancode
 CONST scJoyLeft = 144
 CONST scJoyRight = 145
 CONST scJoyUp = 146
 CONST scJoyDown = 147
-CONST scJoyButton17 = 148
-CONST scJoyButton32 = 163
+'See JoyButton for other button meanings
+'CONST scJoyButton32 = 159
+'Scancodes 159 to 163 were previously buttons, but no longer are. They should be reserved and ignored.
 CONST scJoyLAST = 163
 
 'These are only returned by anykeypressed/waitforkey! You can't use them elsewhere!
@@ -223,19 +223,50 @@ CONST scKEYVAL_LAST = scJoyLAST
 'Indices used by JoystickState
 
 ENUM 'JoyButton
- joyButton1  = 0
- joyButton2  = 1
- joyButton3  = 2
- joyButton4  = 3
- joyButton17 = 16
- joyButton32 = 31
- joyLeft     = 32
- joyRight    = 33
- joyUp       = 34
- joyDown     = 35
- joyLAST     = 35
+ 'Button 0 not used, although it's a valid index, to be consistent with existing button numbering
+ joyNone       = 0  'Not used
+ 'The following button meanings/numbering only applies if the backend can actually provide it.
+ 'Otherwise raw buttons are returned, which might be in any order.
+ joyA          = 1  'Aka X/Cross (PS)
+ joyB          = 2  'Aka O/Circle (PS)
+ joyX          = 3  'Aka Square (PS)
+ joyY          = 4  'Aka Triangle (PS)
+ joyLeftStick  = 5  'Pressed as a button
+ joyRightStick = 6
+ joyBack       = 7  'Aka Select (eg PS3), Share (eg PS4), View (Xbox)
+ joyGuide      = 8  'Aka PS (eg 3), XBox
+ joyStart      = 9  'Aka Options (PS4), Menu (XBox)
+ joyL1         = 10
+ joyR1         = 11
+ joyL2         = 12  'Also axisL1
+ joyR2         = 13  'Also axisR2
+ '14-16 are unused; Dpad buttons start at 17 for easy mapping to script joy:... controls
+ joyLeft       = 17  'Dpad
+ joyRight      = 18
+ joyUp         = 19
+ joyDown       = 20
+ 'joyA2Left     = 21  'Right thumbstick (axisRightX/Y)
+ 'joyA2Right    = 22
+ 'joyA2Up       = 23
+ 'joyA2Down     = 24
+ 'joyEXTRA      = 25  'Any other surplus buttons start here (not implemented)
+
+ joyButton1    = 1
+ 'Note: buttons 33-36 never used, can't be reported by the backends
+ joyLAST       = 36  'Corresponds to scJoyLAST
 END ENUM
 TYPE JoyButton as integer
+
+ENUM 'JoyAxis
+ 'As for JoyButton, the backend might not be able to map the axes like this.
+ axisX      = 0  'Left thumbstick, also mapped from left dpad by default
+ axisY      = 1
+ axisRightX = 2  'Right thumbstick
+ axisRightY = 3
+ axisL2     = 4  'Left trigger
+ axisR2     = 5  'Right trigger
+END ENUM
+TYPE JoyAxis as integer
 
 '------------------------------------------------------------------------------
 

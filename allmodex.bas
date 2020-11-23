@@ -2207,7 +2207,7 @@ function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, t
 
 	if checkjoystick then
 		for joynum as integer = 0 to num_joysticks() - 1
-			for key as integer = scJoyFIRST to scJoyLAST
+			for key as integer = scJoyButton1 to scJoyLAST
 				if joykeyval(keybd_to_joy_scancode(key), joynum) >= trigger_level then
 					return key
 				end if
@@ -2385,12 +2385,11 @@ sub JoystickState.init_controls()
 	controls(1) = TYPE(joyDown,     ccDown)
 	controls(2) = TYPE(joyLeft,     ccLeft)
 	controls(3) = TYPE(joyRight,    ccRight)
-	controls(4) = TYPE(joyButton1,  ccUse)
-	controls(5) = TYPE(joyButton2,  ccMenu)
-	controls(6) = TYPE(joyButton2,  ccRun)
+	controls(4) = TYPE(joyA,        ccUse)
+	controls(5) = TYPE(joyB,        ccMenu)
+	controls(6) = TYPE(joyB,        ccRun)
 	'Typically the first four buttons will be A/B/X/Y buttons, but not always in that order.
 	'So previously we used to map buttons 3 and 4 to use/cancel, but that's a nuiscance for scripted controls.
-	'It's better if all those dpad buttons do something
 	' controls(7) = TYPE(joyButton3,  ccUse)
 	' controls(8) = TYPE(joyButton4,  ccMenu)
 	' controls(9) = TYPE(joyButton4,  ccRun)
@@ -2614,7 +2613,7 @@ sub JoystickState.update_keybits(joynum as integer)
 		if angle > 4  orelse  angle < -4 then keys(joyLeft)  or= 8
 	end if
 	' Also treat the first hat as X, Y directions
-	' (E.g. on this here PSX controller with thumbsticks, use a usb adaptor, the
+	' (E.g. on this here PSX controller with thumbsticks, using a usb adaptor, the
 	' dpad reports as axes 0/1 with analog off, and as hat 0 with analog on)
 	for bitn as integer = 0 to 3
 		if state.hats(0) and (1 shl bitn) then keys(joyLeft + bitn) or= 8
@@ -3041,17 +3040,8 @@ end sub
 
 'Translate a sc* constant to a joy* constant
 function keybd_to_joy_scancode(key as KBScancode) as JoyButton
-	ERROR_IF(key < scJoyFIRST orelse key > scJoyLAST, "Bad scancode " & key, 0)
-	select case key
-		case scJoyLeft  : return joyLeft
-		case scJoyRight : return joyRight
-		case scJoyUp    : return joyUp
-		case scJoyDown  : return joyDown
-		case is <= scJoyButton16  'button 1 to 16
-			return joyButton1 + key - scJoyButton1
-		case is >= scJoyButton17  'button 17 to 32
-			return joyButton17 + key - scJoyButton17
-	end select
+	ERROR_IF(key < scJoyButton1 orelse key > scJoyLAST, "Bad scancode " & key, 0)
+	return key - scJoyOFFSET
 end function
 
 'TODO: this always returns 4!

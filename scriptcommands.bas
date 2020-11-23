@@ -2116,7 +2116,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 242'-- joystick button(button, joystick)
   IF bound_arg(retvals(0), 1, 32, "button number 1-32") ANDALSO valid_joystick(retvals(1)) THEN
-   DIM key as KeyBits = joykeyval(joyButton1 + retvals(0) - 1, retvals(1))
+   DIM key as KeyBits = joykeyval(retvals(0), retvals(1))
    scriptret = IIF(key > 0, 1, 0)
   END IF
  CASE 243'-- joystick axis(axis, scale, joystick)

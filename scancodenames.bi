@@ -164,9 +164,27 @@ static scancodenames(ccRun to ...) as string * 18  = { _
   "Command/Win"                /' 121 '/ _
 }
 
-static joybuttonnames(144 to 147) as string * 18  = { _
-  "Gamepad Left",                  /' 144 '/ _
-  "Gamepad Right",                 /' 145 '/ _
-  "Gamepad Up",                    /' 146 '/ _
-  "Gamepad Down"                   /' 147 '/ _
+static joybuttonnames(128 to 147) as string * 20  = { _
+  "Gamepad A",                      /' 128 '/ _
+  "Gamepad B",                      /' 129 '/ _
+  "Gamepad X",                      /' 130 '/ _
+  "Gamepad Y",                      /' 131 '/ _
+  "Gamepad Left Stick",             /' 132 '/ _
+  "Gamepad Right Stick",            /' 133 '/ _
+  "Gamepad Back",                   /' 134 '/ _
+  "Gamepad Guide",                  /' 135 '/ _
+  "Gamepad Start",                  /' 136 '/ _
+  "Gamepad L1",                     /' 137 '/ _
+  "Gamepad R1",                     /' 138 '/ _
+  "Gamepad L2",                     /' 139 '/ _
+  "Gamepad R2",                     /' 140 '/ _
+  /' 141-143 (buttons 14-16) are unassigned, default names in scancodename() '/ _
+  "",                               /' 141'/ _
+  "",                               /' 142'/ _
+  "",                               /' 143'/ _
+  "Gamepad Left",                   /' 144 '/ _
+  "Gamepad Right",                  /' 145 '/ _
+  "Gamepad Up",                     /' 146 '/ _
+  "Gamepad Down"                    /' 147 '/ _
+  /' 148-163 (buttons 17-36) are unassigned, default names in scancodename() '/ _
 }
