@@ -8,7 +8,7 @@ exit
 
 ########################## Config
 
-# Android 5.0+ will only run PIE exes. Don't use -pie if targetting 4.0 or older
+# Android 5.0+ will only run PIE exes so requires -pie. Don't use -pie if targetting 4.0 or older, not supported.
 #CFLAGS=-pie
 CFLAGS=
 
@@ -47,7 +47,7 @@ OLDNDK=
 
 ########################## Install stand-alone toolchain if it hasn't been already
 
-# We (our commandergenius fork) default to API 4 (android 1.6)
+# Default to a really old API 4 (android 1.6)
 if [ $ARCH = "arm" ]; then
     TARGET=arm-linux-androideabi
     API=4
@@ -95,19 +95,19 @@ if [ ! $STANDALONE ]; then
     CFLAGS="$CFLAGS --sysroot $SYSROOT"
 fi
 
+# An example of compiling a commandline FB program for android:
+$FBC -target $TARGET -g test.bas -v
+
 # If you want to try the examples below, not using scons, need to set these
 export CC=$TOOLCHAIN/bin/$TARGET-gcc   # or export CC=clang
-export CXX=$TOOLCHAIN/bin/$TARGET-g++  # or export CXX=clang++
+#export CXX=$TOOLCHAIN/bin/$TARGET-g++  # or export CXX=clang++
 export AS=$TOOLCHAIN/bin/$TARGET-as  # or export CXX=clang++
 export GCC=$CC
-export OBJDUMP=$TOOLCHAIN/bin/$TARGET-objdump
+#export OBJDUMP=$TOOLCHAIN/bin/$TARGET-objdump
 
 # Examples of compiling a commandline C program for android:
 #$CC hello.c -o hello -g $CFLAGS -march=armv7-a
 #$CC hello.c -static -o hello.o -g $CFLAGS -march=armv7-a
-
-# An example of compiling a commandline FB program for android:
-#$FBC -target $TARGET -g test.bas -v
 
 # An example of compiling a commandline FB program for android and manually linking it:
 #BASFILE=test
