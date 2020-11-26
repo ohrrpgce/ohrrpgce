@@ -236,7 +236,13 @@ FUNCTION sdl2_update_gamepad(joynum as integer, state as IOJoystickState ptr) as
   WITH *state
     '.attached = SDL_ControllerGetAttached(controller)
 
-    DIM controller as SDL_GameController ptr = SDL_GameControllerFromInstanceID(state->info->instance_id)
+    DIM controller as SDL_GameController ptr
+    #IFNDEF SDL_203
+      'This returns NULL if not already opened, and it doesn't increment refcount
+      controller = SDL_GameControllerFromInstanceID(state->info->instance_id)
+    #ELSE
+      controller = SDL_GameControllerOpen(joynum)
+    #ENDIF
     IF controller = NULL THEN
       'FIXME: not really handling renumbering properly
       'SDL_GetError doesn't report anything
@@ -261,6 +267,10 @@ FUNCTION sdl2_update_gamepad(joynum as integer, state as IOJoystickState ptr) as
     FOR idx as integer = 0 TO SDL_CONTROLLER_AXIS_MAX
       .axes(ohr_gamepad_axes(idx)) = SDL_GameControllerGetAxis(controller, idx)
     NEXT
+
+    #IFDEF SDL_203
+      SDL_GameControllerClose(controller)
+    #ENDIF
 
   END WITH
   RETURN 0  'Success

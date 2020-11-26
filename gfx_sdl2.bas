@@ -27,11 +27,35 @@
 
 #include "SDL2\SDL.bi"
 
-#ifndef KMOD_META
+EXTERN "C"
+
 #define KMOD_META  KMOD_GUI  'Renamed in SDL2
+
+'Older FB releases (before 1.06?) only have headers for SDL 2.0.3 (Mar 2014). Declaring these is
+'simpler than requiring a recent FB. Whether they're in FB's headers doesn't tell whether they're on
+'the system, but you can compile with "scons sdl203=1" to not depend on any of the following.
+'(Might actually support SDL 2.0.1/2 too; I didn't check)
+#ifndef SDL_GameControllerFromInstanceID
+  'SDL 2.0.4+ (Jan 2016)
+  declare function SDL_GameControllerFromInstanceID(byval joyid as SDL_JoystickID) as SDL_GameController ptr
+#endif
+#ifndef SDL_GetDisplayUsableBounds
+  'SDL 2.0.5+ (Oct 2016)
+  declare function SDL_GetDisplayUsableBounds(byval displayIndex as long, byval rect as SDL_Rect ptr) as long
+#endif
+#ifndef SDL_RenderSetIntegerScale
+  'SDL 2.0.5+
+  declare function SDL_RenderSetIntegerScale(byval renderer as SDL_Renderer ptr, byval enable as SDL_bool) as long
+#endif
+#ifndef SDL_SetWindowResizable
+  'SDL 2.0.5+
+  declare sub SDL_SetWindowResizable(byval window as SDL_Window ptr, byval resizable as SDL_bool)
+#endif
+#ifndef SDL_JoystickGetDeviceInstanceID
+  'SDL 2.0.6+ (Sept 2017). Not used
+  declare function SDL_JoystickGetDeviceInstanceID(byval device_index as long) as SDL_JoystickID
 #endif
 
-EXTERN "C"
 
 #define USE_SDL2
 #include "gfx_sdl_common.bi"
@@ -384,7 +408,7 @@ LOCAL FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
     CheckOK(mainrenderer = NULL, RETURN 0)
   END IF
 
-  #IFDEF SDL_RenderSetIntegerScale
+  #IFNDEF SDL_203
     'Whether to stick to integer scaling amounts when using SDL_RenderSetLogicalSize. SDL 2.0.5+
     'SDL_RenderSetIntegerScale(mainrenderer, NO)
   #ENDIF
@@ -691,10 +715,10 @@ END FUNCTION
 
 SUB gfx_sdl2_get_screen_size(wide as integer ptr, high as integer ptr)
   'Query the first display.
-  'SDL_GetDisplayUsableBounds excludes area for taskbar, OSX menubar, dock, etc.,
-  'but was only added in SDL 2.0.5 (Oct 2016), and isn't even in FB's headers
   DIM rect as SDL_Rect
-#IFDEF SDL_GetDisplayUsableBounds
+#IFNDEF SDL_203
+  'SDL_GetDisplayUsableBounds excludes area for taskbar, OSX menubar, dock, etc.,
+  'but is SDL 2.0.5+
   IF SDL_GetDisplayUsableBounds(0, @rect) THEN
 #ELSE
   IF SDL_GetDisplayBounds(0, @rect) THEN
@@ -736,7 +760,7 @@ FUNCTION gfx_sdl2_set_resizable(byval enable as bool, min_width as integer, min_
 
   'Note: Can't change resizability of a fullscreen window
   'Argh, SDL_SetWindowResizable was only added in SDL 2.0.5 (Oct 2016)
-  #IFDEF SDL_SetWindowResizable
+  #IFNDEF SDL_203
     SDL_SetWindowResizable(mainwindow, resizable)
   #ELSE
     recreate_window()
@@ -981,8 +1005,8 @@ SUB gfx_sdl2_process_events()
 
       CASE SDL_JOYDEVICEADDED
         IF debugging_io THEN
-          debuginfo "SDL_JOYDEVICEADDED joynum=" & evnt.jdevice.which & " instance_id=" & _
-                    SDL_JoystickGetDeviceInstanceID(evnt.jdevice.which) & " " & SDL_JoystickNameForIndex(evnt.jdevice.which)
+          debuginfo "SDL_JOYDEVICEADDED joynum=" & evnt.jdevice.which & " " & SDL_JoystickNameForIndex(evnt.jdevice.which)
+          '     & " instance_id=" & SDL_JoystickGetDeviceInstanceID(evnt.jdevice.which)
         END IF
 
       CASE SDL_JOYDEVICEREMOVED

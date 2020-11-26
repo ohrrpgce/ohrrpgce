@@ -1129,6 +1129,9 @@ if 'raster' in ARGUMENTS:
     commonenv['CFLAGS'] += ['-DUSE_RASTERIZER']
     commonenv['CXXFLAGS'] += ['-DUSE_RASTERIZER']
 
+if 'sdl203' in ARGUMENTS:
+    commonenv['FBFLAGS'] += ['-d', 'SDL_203']
+
 ################ ver.txt (version info) build rule
 
 def version_info(source, target, env):
@@ -1553,6 +1556,8 @@ Options:
                       check library dependencies.
 
 Optional features:
+  sdl203=1            gfx_sdl2 will only require SDL 2.0.3+ (2014-03) instead
+                      of SDL 2.0.5+ (2016-10)
   raster=1            Include software triangle rasterizer (rasterizer.cpp).
                       Not used for anything!
 
