@@ -1455,24 +1455,23 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  menu.offset.y = -100 + 38 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
  menu.bordersize = -4
 
- append_menu_item menu, "Ignore"
- append_menu_item menu, "Don't display any more script errors"
- 'append_menu_item menu, "Set error suppression level to " & errorlevel
+ append_menu_item menu, "Ignore", 0
+ append_menu_item menu, "Don't display any more script errors", 1
+ 'append_menu_item menu, "Set error suppression level to " & errorlevel, 9
  IF insideinterpreter THEN
   'Outside the interpreter there's no active fiber, can't call killscriptthread
-  append_menu_item menu, "Stop this script"
+  append_menu_item menu, "Stop this script", 2
  END IF
- append_menu_item menu, "Hide this error"
- append_menu_item menu, "Exit game (without saving)"
- append_menu_item menu, "Enter slice debugger"
+ append_menu_item menu, "Hide this error", 3
+ append_menu_item menu, "Exit game", 4
+ append_menu_item menu, "Enter slice debugger", 5
  IF recursivecall = 1 THEN  'don't reenter the debugger if possibly already inside!
   IF gam.debug_scripts <> 0 THEN
-   append_menu_item menu, "Return to script debugger"
-   state.pt = 6
+   state.pt = append_menu_item(menu, "Return to script debugger", 6)
   ELSE
-   append_menu_item menu, "Enter script debugger"
+   append_menu_item menu, "Enter script debugger", 6
   END IF
-  IF running_as_slave THEN append_menu_item menu, "Reload scripts"
+  IF running_as_slave THEN append_menu_item menu, "Reload scripts", 7
  END IF
 
  state.active = YES
@@ -1490,14 +1489,12 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
   IF keyval(scF1) > 1 THEN show_help("game_scripterr")
 
   IF enter_space_click(state) THEN
-   SELECT CASE state.pt
+   SELECT CASE menu.items[state.pt]->t
     CASE 0 'ignore
      EXIT DO
     CASE 1 'hide errors (but not engine bugs)
      err_suppress_lvl = serrError
      EXIT DO
-    ' CASE 2 'hide some errors
-    '  err_suppress_lvl = errorlevel
     CASE 2
      killscriptthread
      EXIT DO
@@ -1506,7 +1503,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
      a_append(ignorelist(), errmsghash)
      EXIT DO
     CASE 4
-     debug "scripterr: User opted to quit"
+     debuginfo "scripterr: User opted to quit"
      exitprogram NO, 1
     CASE 5
      slice_editor SliceTable.Root
@@ -1516,6 +1513,8 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
     CASE 7 'reload scripts
      reload_scripts
      EXIT DO
+    'CASE 9 'hide some errors
+    ' err_suppress_lvl = errorlevel
    END SELECT
   END IF
   
@@ -1589,13 +1588,13 @@ FUNCTION script_interrupt () as integer
  menu.offset.y = -100 + 38 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
  menu.bordersize = -4
 
- append_menu_item menu, "Continue running"
- 'append_menu_item menu, "Exit the top-most script"
- append_menu_item menu, "Stop the script fibre"
- append_menu_item menu, "Stop all scripts"
- append_menu_item menu, "Exit game"
- append_menu_item menu, "Enter script debugger"
- IF running_as_slave THEN append_menu_item menu, "Reload scripts"
+ append_menu_item menu, "Continue running", 0
+ 'append_menu_item menu, "Exit the top-most script", 10
+ append_menu_item menu, "Stop the script fibre", 2
+ append_menu_item menu, "Stop all scripts", 3
+ append_menu_item menu, "Exit game", 4
+ append_menu_item menu, "Enter script debugger", 5
+ IF running_as_slave THEN append_menu_item menu, "Reload scripts", 6
 
  state.active = YES
  init_menu_state state, menu
@@ -1612,10 +1611,10 @@ FUNCTION script_interrupt () as integer
   IF keyval(scF1) > 1 THEN show_help("game_script_interrupt")
 
   IF enter_space_click(state) THEN
-   SELECT CASE state.pt
+   SELECT CASE menu.items[state.pt]->t
     CASE 0 'continue
      ret = NO
-    'CASE 1 'exit topmost  ... probably not too helpful
+    'CASE 10 'exit topmost  ... probably not too helpful
     ' killtopscript
     ' ret = YES
     CASE 1 'exit whole 'thread'
