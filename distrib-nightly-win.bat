@@ -49,10 +49,15 @@ IF EXIST distrib\ohrrpgce-win-installer-wip.exe (
     pscp -q distrib\ohrrpgce-win-installer-wip.exe %SCPHOST%:%SCPDEST%
 )
 
+IF NOT EXIST game.exe (
+    ECHO game.exe didn't build; skipping ohrrpgce-player-win-wip-sdl2.zip
+    GOTO SKIPPLAYER
+)
 ECHO Packaging game player ohrrpgce-player-win-wip-sdl2.zip ...
 support\rm -f distrib\ohrrpgce-player-win-wip-sdl2.zip
 support\zip -9 -q distrib\ohrrpgce-player-win-wip-sdl2.zip game.exe SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt svninfo.txt
 pscp -q distrib\ohrrpgce-player-win-wip-sdl2.zip %SCPHOST%:%SCPDEST%
+:SKIPPLAYER
 
 support\rm -f game.exe custom.exe
 call scons music=native %SCONS_ARGS%
@@ -107,6 +112,7 @@ support\rm -f distrib\madplay+oggenc.zip
 support\zip distrib\madplay+oggenc.zip support\madplay.exe support\oggenc.exe support\LICENSE-madplay.txt support\LICENSE-oggenc.txt
 pscp -q distrib\madplay+oggenc.zip %SCPHOST%:%SCPDEST%
 
+REM For some weird reason, the following upload only works once every few months
 pscp -q svninfo.txt %SCPHOST%:%SCPDEST%
 
 :FAILURE
