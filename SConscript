@@ -797,6 +797,7 @@ if portable and (unix and not mac):
         syms = "fcntl", "fcntl64", "pow", "exp", "log"
         CXXLINKFLAGS.append ("-Wl," + ",".join("--wrap=" + x for x in syms))
         FBLINKERFLAGS += ["--wrap=" + x for x in syms]
+    ARGUMENTS['sdl203'] = True
 
 # As long as exceptions aren't used anywhere and don't have to be propagated between libraries,
 # we can link libgcc_s statically, which avoids one more thing that might be incompatible
@@ -1553,7 +1554,7 @@ Options:
                                           arch (x86 or ARM).
                       Current (default) value: """ + arch + """
   portable=1          (For Linux and BSD) Try to build portable binaries, and
-                      check library dependencies.
+                      check library dependencies. Implies sdl203=1
 
 Optional features:
   sdl203=1            gfx_sdl2 will only require SDL 2.0.3+ (2014-03) instead
