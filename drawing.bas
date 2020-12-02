@@ -488,7 +488,9 @@ LOCAL SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
     rectangle 1 + o * 10, 9 + i * 10, 8, 8, i * 16 + o, dpage
    NEXT o
   NEXT i
-  printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
+  IF mouse.active THEN
+   printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
+  END IF
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -977,7 +979,11 @@ SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page
  NEXT i
 END SUB
 
+'Return zone+1 which a screen position is over, or 0.
 FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
+ 'Note: checking readmouse.active here isn't totally correct since mousex/y might be a previous
+ 'position rather than the current one. But that's only used by the scroll tool, which this doesn't break.
+ IF readmouse.active = NO THEN RETURN 0
  FOR i as integer = UBOUND(area) TO 0 STEP -1
   IF area(i).w <> 0 AND area(i).h <> 0 THEN
    IF mousex >= area(i).x AND mousex < area(i).x + area(i).w THEN
@@ -1336,7 +1342,7 @@ DO
    show_help "picktiletoedit"
   END IF
  END IF
- DIM mouse_over_tile as bool = (mouse.x < 320 AND mouse.y < 200)
+ DIM mouse_over_tile as bool = mouse.active ANDALSO mouse.x < 320 ANDALSO mouse.y < 200
  DIM mouse_click as bool = mouse_over_tile ANDALSO (mouse.release AND mouseLeft)
  IF mouse_over_tile THEN
   bnum = (mouse.y \ 20) * 16 + mouse.x \ 20
@@ -1431,7 +1437,7 @@ DO
   NEXT o
  END IF
  rectangle ts.tilex * 20 + 7, ts.tiley * 20 + 7, 6, 6, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
- IF ts.gotmouse THEN
+ IF mouse.active THEN
   textcolor uilook(IIF(tog, uiText, uiDescription)), 0
   printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
  END IF
@@ -1732,7 +1738,7 @@ DO
   END IF
  NEXT i
  '--mouse over undo
- IF mouse.x >= 280 AND mouse.x < 300 THEN
+ IF mouse.active ANDALSO mouse.x >= 280 ANDALSO mouse.x < 300 THEN
   FOR i as integer = 0 TO 5
    IF mouse.y >= (10 + (i * 21)) AND mouse.y < (30 + (i * 21)) THEN
     IF (mouse.clicks AND mouseLeft) ANDALSO ts.allowundo THEN
@@ -1744,7 +1750,7 @@ DO
  END IF
  '--toggle preview
  IF keyval(scP) > 1 THEN ts.preview_content XOR= 1
- IF mouse.x >= 10 AND mouse.x <= 70 THEN
+ IF mouse.active ANDALSO mouse.x >= 10 AND mouse.x <= 70 THEN
   IF mouse.y >= 90 AND mouse.y <= 150 THEN
    IF mouse.clicks AND mouseLeft THEN
     ts.preview_content XOR= 1
@@ -1881,7 +1887,7 @@ DO
   textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone = 20 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
   printstr CHR(26), 36, 76, dpage
  END IF
- IF ts.gotmouse THEN
+ IF mouse.active THEN
   DIM c as integer = zcsr
   IF c = -1 THEN
    c = ts.drawcursor
@@ -2242,7 +2248,7 @@ DO
   mouse = readmouse
   zcsr = 0
   ts.zone = mouseover(mouse.x, mouse.y, 0, 0, zcsr, area())
-  IF mouse.moved THEN
+  IF mouse.moved ANDALSO mouse.active THEN
    ts.x = small(mouse.x, 320 - 20)
    ts.y = small(mouse.y, 200 - 20)
   END IF
@@ -2359,7 +2365,7 @@ DO
  temp = hilite("G") & "ridsnap:" & yesorno(snap_to_grid, "On", "Off")
  printstr temp, 4, ypos, dpage, YES
 
- IF ts.gotmouse THEN
+ IF mouse.active THEN
   textcolor uilook(IIF(tog, uiText, uiDescription)), 0
   printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
  END IF
@@ -2620,7 +2626,7 @@ SUB spriteedit_display(ss as SpriteEditState)
   spriteedit_draw_icon ss, CHR(27), 15
   spriteedit_draw_icon ss, CHR(26), 17
  END IF
- IF ss.gotmouse THEN
+ IF ss.mouse.active THEN
   IF ss.zonecursor = -1 THEN
    IF ss.hidemouse THEN ss.zonecursor = -2 ELSE ss.zonecursor = ss.drawcursor
   END IF
@@ -3020,7 +3026,7 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   setkeys
   mouse = readmouse()
   DIM mouse_in_bounds as bool
-  mouse_in_bounds = (mouse.pos >= imagepos) ANDALSO (mouse.pos < (imagepos + picksize * zoom))
+  mouse_in_bounds = mouse.active ANDALSO (mouse.pos >= imagepos) ANDALSO (mouse.pos < (imagepos + picksize * zoom))
   tog XOR= 1
   IF keyval(ccCancel) > 1 THEN ret = NO : EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpkey
@@ -3068,16 +3074,20 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   DIM col as integer
   IF tog THEN col = uilook(uiBackground) ELSE col = uilook(uiText)
   IF zoom = 1 THEN
-   'A single pixel is too small, so draw the crosshair mouse cursor.
-   textcolor uilook(uiSelectedItem + tog), 0
-   printstr CHR(5), mouse.x - 2, mouse.y - 2, dpage
+   IF mouse.active THEN
+    'A single pixel is too small, so draw the crosshair mouse cursor.
+    textcolor uilook(uiSelectedItem + tog), 0
+    printstr CHR(5), mouse.x - 2, mouse.y - 2, dpage
+   END IF
    textcolor col, 0
    printstr CHR(5), imagepos.x + pickpos.x - 2, imagepos.y + pickpos.y - 2, dpage
   ELSE
    'Draw both pixel cursor and mouse cursor
    rectangle imagepos.x + pickpos.x * zoom, imagepos.y + pickpos.y * zoom, zoom, zoom, col, dpage
-   textcolor uilook(uiSelectedItem + tog), 0
-   printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
+   IF mouse.active THEN
+    textcolor uilook(uiSelectedItem + tog), 0
+    printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
+   END IF
   END IF
 
   edgeprint message, 0, pBottom, uilook(uiText), dpage, YES, YES
@@ -5035,7 +5045,11 @@ SUB SpriteSetBrowser.run()
       highlight_ss_id = NO
     END IF
     DIM byref mouse as MouseInfo = readmouse
-    hover = find_plank_at_screen_pos(ps, mouse.pos)
+    IF mouse.active THEN
+     hover = find_plank_at_screen_pos(ps, mouse.pos)
+    ELSE
+     hover = NULL
+    END IF
     IF hover THEN
       IF (mouse.clicks AND mouseLeft) ORELSE (mouse.release AND mouseRight) THEN
         cursor_moved = ps.cur <> hover
