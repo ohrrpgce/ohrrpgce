@@ -3026,6 +3026,7 @@ sub MouseInfo.clearclick(button as MouseButton)
 end sub
 
 sub movemouse (x as integer, y as integer)
+	'Maybe we shouldn't cause the mouse to jump back to our window if it's not over it? (mouse_state.active)
 	io_setmouse(x, y)
 
 	' Don't call io_mousebits to get the new state, since that will cause clicks and movements to get lost,

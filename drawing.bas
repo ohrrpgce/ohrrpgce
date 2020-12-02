@@ -1353,7 +1353,7 @@ DO
   IF slowkey(ccRight, 100) THEN bnum = (bnum + 1) MOD 160: movedcsr = YES
   IF slowkey(ccUp, 100) THEN bnum = (bnum + 144) MOD 160: movedcsr = YES
   IF slowkey(ccDown, 100) THEN bnum = (bnum + 16) MOD 160: movedcsr = YES
-  IF movedcsr AND ts.gotmouse THEN
+  IF movedcsr AND mouse.active THEN
    mouse.x = (mouse.x MOD 20) + (bnum MOD 16) * 20
    mouse.y = (mouse.y MOD 20) + (bnum \ 16) * 20
    movemouse mouse.x, mouse.y
@@ -1581,7 +1581,7 @@ DIM fgcol as integer
 DIM bgcol as integer
 mouse.x = area(0).x + zox
 mouse.y = area(0).y + zoy
-movemouse mouse.x, mouse.y
+IF mouse.active THEN movemouse mouse.x, mouse.y
 clearpage 2
 '--Undo boxes
 FOR i as integer = 0 TO 5
@@ -1905,7 +1905,7 @@ DO
   chequer_scroll += 1
  END IF
 LOOP
-IF ts.gotmouse THEN
+IF mouse.active THEN
  movemouse ts.tilex * 20 + 10, ts.tiley * 20 + 10
 END IF
 frame_unload @overlay
@@ -2228,7 +2228,7 @@ area(11).h = 10
 
 STATIC snap_to_grid as bool = NO
 
-IF ts.gotmouse THEN
+IF mouse.active THEN
  movemouse ts.x, ts.y
 END IF
 ts.delay = 3
@@ -2268,7 +2268,7 @@ DO
  IF keyval(ccRight) AND 5 THEN movex = inc
  ts.x = bound(ts.x + movex, 0, 320 - 20)
  ts.y = bound(ts.y + movey, 0, 200 - 20)
- IF (movex <> 0 OR movey <> 0) AND ts.gotmouse THEN movemouse ts.x, ts.y
+ IF (movex <> 0 OR movey <> 0) AND mouse.active THEN movemouse ts.x, ts.y
 
  IF snap_to_grid THEN
   ts.x -= ts.x MOD 20
@@ -2292,7 +2292,7 @@ DO
      ts.y += 20
      IF ts.y > 180 THEN ts.y = 0
     END IF
-    IF ts.gotmouse THEN movemouse ts.x, ts.y
+    IF mouse.active THEN movemouse ts.x, ts.y
     previewticks = 12
    ELSE
     EXIT DO
@@ -2373,7 +2373,7 @@ DO
  setvispage vpage
  dowait
 LOOP
-IF ts.gotmouse THEN
+IF mouse.active THEN
  movemouse ts.tilex * 20 + 10, ts.tiley * 20 + 10
 END IF
 END SUB
