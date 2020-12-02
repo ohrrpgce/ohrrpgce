@@ -543,7 +543,14 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     IF slice_editor_save_when_leaving(ses, edslice) THEN EXIT DO
    END IF
   END IF
+
+  IF state.need_update = NO ANDALSO ses.slicemenu(state.pt).id = mnidCollectionName THEN
+   IF strgrabber(collection_context(edslice)->name) THEN state.need_update = YES
+  END IF
+
+  'This must be after the strgrabber above so that can handle text input
   slice_editor_common_function_keys ses, edslice, state, NO  'F, R, V, F4, F6, F7, F8, Ctrl+F3, Ctrl+F4
+
   #IFDEF IS_GAME
    IF keyval(scF1) > 1 THEN show_help "sliceedit_game"
   #ELSE
@@ -553,10 +560,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    ses.show_root = NOT ses.show_root
    cursor_seek = ses.curslice
    state.need_update = YES
-  END IF
-
-  IF state.need_update = NO ANDALSO ses.slicemenu(state.pt).id = mnidCollectionName THEN
-   IF strgrabber(collection_context(edslice)->name) THEN state.need_update = YES
   END IF
 
   IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
@@ -816,11 +819,11 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
    slice_editor_focus_on_slice ses, edslice
    state.need_update = YES
   END IF
-  IF keyval(scR) > 1 THEN
+  IF keyval(scR) > 1 ANDALSO ses.curslice THEN
    slice_editor_reset_slice ses, ses.curslice
    state.need_update = YES
   END IF
-  IF keyval(scV) > 1 THEN
+  IF keyval(scV) > 1 ANDALSO ses.curslice THEN
    'Toggle visibility (does nothing on Select slice children)
    ses.curslice->Visible XOR= YES
    state.need_update = YES
@@ -1241,7 +1244,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   IF state.pt = 0 AND enter_space_click(state) THEN EXIT DO
   slice_edit_detail_keys ses, state, sl, rules(), usemenu_flag
 
-  'After slice_edit_detail_keys so that can handle text input
+  'This must be after slice_edit_detail_keys so that can handle text input
   slice_editor_common_function_keys ses, edslice, state, YES  'F, R, V, F4, F6, F7, F8, Ctrl+F3, Ctrl+F4
 
   draw_background vpages(dpage), bgChequer
