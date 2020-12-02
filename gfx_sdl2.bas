@@ -1038,6 +1038,9 @@ SUB gfx_sdl2_process_events()
         'Interestingly, although (on Linux/X11) SDL doesn't report mouse motion events
         'if the window isn't focused, it does report mouse wheel button events
         '(other buttons focus the window).
+
+        'TODO: we should call SDL_CaptureMouse() here, so that dragging off the window reports positions
+        'outside the window.
         WITH evnt.button
           mouseclicks OR= SDL_BUTTON(.button)
           IF debugging_io THEN
@@ -1430,7 +1433,7 @@ SUB io_sdl2_setmouse(byval x as integer, byval y as integer)
   IF mouseclipped THEN
     privatempos = windowpos
   ELSE
-    IF SDL_GetWindowFlags(mainwindow) AND SDL_WINDOW_MOUSE_FOCUS THEN
+    IF SDL_GetWindowFlags(mainwindow) AND SDL_WINDOW_INPUT_FOCUS THEN
       SDL_WarpMouseInWindow mainwindow, windowpos.x, windowpos.y
       SDL_PumpEvents  'Needed for SDL_WarpMouse to work?
 #IFDEF __FB_DARWIN__
