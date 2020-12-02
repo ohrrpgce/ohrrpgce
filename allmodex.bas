@@ -2894,6 +2894,20 @@ sub update_mouse_state ()
 	io_mousebits(mouse_state.x, mouse_state.y, mouse_state.wheel, mouse_state.buttons, mouse_state.clicks)
 	GFX_EXIT
 
+	'Ignore mouse clicks that focus the window. If you clicked, it's already
+	'focused, so we consider the previous focus state instead.
+	'(Not necessary for gfx_sdl2, already filters those clicks out.)
+	static prev_focus_state as bool
+	dim window_state as WindowState ptr = gfx_getwindowstate()
+	if mouse_state.buttons = 0 then
+		prev_focus_state = window_state->focused
+	elseif prev_focus_state = NO then
+		mouse_state.buttons = 0
+		mouse_state.clicks = 0
+		mouse_state.release = 0
+		mouse_state.last_buttons = 0
+	end if
+
 	for button as integer = 0 to 15
 		check_for_released_mouse_button(1 shl button)
 	next
@@ -2908,18 +2922,6 @@ sub update_mouse_state ()
 	mouse_state.wheel_delta = mouse_state.wheel - last_mouse_wheel
 	mouse_state.wheel_clicks = mouse_state.wheel \ 120 - last_mouse_wheel \ 120
 	last_mouse_wheel = mouse_state.wheel
-
-	'Ignore mouse clicks that focus the window. If you clicked, it's already
-	'focused, so we consider the previous focus state instead.
-	'(Not necessary for gfx_sdl2, already filters those clicks out.)
-	'FIXME: this doesn't seem to work with gfx_sdl on X11
-	static prev_focus_state as bool
-	if prev_focus_state = NO then
-		mouse_state.buttons = 0
-		mouse_state.clicks = 0
-	end if
-	dim window_state as WindowState ptr = gfx_getwindowstate()
-	prev_focus_state = window_state->focused
 
 	'In the following, "offscreen" includes over the window decorations or
 	'whenever the window doesn't have mouse focus even if mouse is over it.
