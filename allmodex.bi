@@ -523,8 +523,8 @@ DECLARE SUB enable_joystick_input() 'defaults to enabled, so this doesn't necess
 Type MouseInfo
 	Union
 		Type
-			'Note: position may be wrong if .active is NO.
-			'See comments in update_mouse_state
+			'Note: position usually stops updating when .active is NO.
+			'See comments in update_mouse_state documenting backend differences.
 			x as integer
 			y as integer
 		End Type
@@ -538,7 +538,7 @@ Type MouseInfo
 	buttons as integer    'Buttons currently down OR clicked; MouseButton bitvector
 	release as integer    'Buttons that were released last click; MouseButton bitvector
 	last_buttons as integer 'used when calculating .release; MouseButton bitvector
-	wheel as integer      'Wheel position. Each dedent/click is 120
+	wheel as integer      'Wheel position. Each dedent/click is 120, but may change by less than that
 	wheel_delta as integer  'Change in .wheel since last setkeys
 	wheel_clicks as integer 'Multiples of 120 that .wheel has changed since last setkeys (NOT .wheel_delta\120)
 		                'If the wheel is moved very slowly, wheel_delta\120 may be always 0.

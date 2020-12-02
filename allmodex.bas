@@ -2835,6 +2835,7 @@ end sub
 
 function havemouse() as bool
 	'atm, all backends support the mouse, or don't know
+	'Tip: It's much more useful to check readmouse().active instead.
 	return YES
 end function
 
@@ -2896,7 +2897,7 @@ sub update_mouse_state ()
 	for button as integer = 0 to 15
 		check_for_released_mouse_button(1 shl button)
 	next
-	
+
 	if (mouse_state.buttons and mouseLeft) orelse (mouse_state.release and mouseLeft) then
 		mouse_state.left_click_age += 1
 	else
@@ -2910,6 +2911,7 @@ sub update_mouse_state ()
 
 	'Ignore mouse clicks that focus the window. If you clicked, it's already
 	'focused, so we consider the previous focus state instead.
+	'(Not necessary for gfx_sdl2, already filters those clicks out.)
 	'FIXME: this doesn't seem to work with gfx_sdl on X11
 	static prev_focus_state as bool
 	if prev_focus_state = NO then
@@ -2919,15 +2921,38 @@ sub update_mouse_state ()
 	dim window_state as WindowState ptr = gfx_getwindowstate()
 	prev_focus_state = window_state->focused
 
-	'gfx_fb/sdl/alleg return last onscreen position when the mouse is offscreen
-	'gfx_fb: If you release a mouse button offscreen, it becomes stuck (FB bug)
-	'        wheel scrolls offscreen are registered when you move back onscreen
-	'        Also, may report a mouse position slightly off the screen edge
-	'        (at least on X11) due to freezing mouse input fractionally late.
+	'In the following, "offscreen" includes over the window decorations or
+	'whenever the window doesn't have mouse focus even if mouse is over it.
+	'
+	'==Mouse position while offscreen, when NOT dragging from inside the window==
+	'
+	'gfx_sdl/alleg:
+	'         Return last onscreen position when the mouse is offscreen.
+	'gfx_sdl2:Returns last onscreen position when the mouse is outside the window.
+	'         Returns real position if the mouse is over the window even if it
+	'         it isn't focused.
+	'gfx_fb:  (At least on X11) May return first OFFSCREEN position instead of
+	'         last onscreen, due to freezing mouse input fractionally late.
+	'         gfx_getwindowstate->mouse_over always false when the window doesn't
+	'         have focus.
+	'directx: Unknown.
+	'
+	'==Mouse buttons & wheel while offscreen==
+	'
+	'gfx_fb:  If you release a mouse button offscreen, it becomes stuck until
+	'         either the mouse moves back onscreen or the window loses focus.
+	'         [wheel scrolls offscreen are registered when you move back onscreen?
+	'         I can't reproduce that anymore.]
 	'gfx_alleg: button state continues to work offscreen but wheel scrolls are not registered
-	'gfx_sdl: button state works offscreen. Wheel movement is reported if the
-	'         mouse is over the window, even if it's not focused. SDL 1.2 doesn't
-	'         know about the OS's wheel speed setting.
+	'gfx_sdl: Doesn't report buttons offscreen (unless dragging). Wheel movement
+	'         is reported if the mouse is over the window, even if it's not focused.
+	'         SDL 1.2 doesn't know about the OS's wheel speed setting.
+	'gfx_sdl2:Mouse position stops updating and buttons become unpressed as soon
+	'         as the mouse leaves the window regardless of dragging.
+	'         But if dragging offscreen, wheel is still reported.
+	'         Wheel (and position) reported whenever mouse over the window even
+	'         if not focused
+	'directx: Unknown.
 
 	mouse_state.moved = mouse_state.lastpos <> mouse_state.pos
 
@@ -2936,12 +2961,16 @@ sub update_mouse_state ()
 
 	mouse_state.active = window_state->mouse_over and window_state->focused
 
-	'Behaviour of clicking and dragging from inside the window to outside:
+	'==Behaviour of clicking and dragging from inside the window to outside==
+	'
+	'gfx_sdl/sdl2/fb: mouse.active is false while dragging off the window
 	'gfx_fb:  Mouse input goes dead while outside until moved back into window.
-	'         When button is released, the cursor reappears at actual position on-screen
-	'gfx_sdl: Mouse acts as if clipped to the window while button is down; but when it's released
-	'         it appears at its actual position on-screen
+	'gfx_sdl: Mouse acts as if clipped to the window while button is down and
+	'         button state continues to be reported, until button is released.
+	'gfx_sdl2:Mouse input goes dead while outside until moved back into window
+	'         Mouse buttons become unpressed as soon as mouse leaves the window.
 	'directx: Mouse is truely clipped to the window while button is down.
+	'         (So mouse.active is true while dragging off the window?)
 	'gfx_alleg:Unknown.
 
 	if mouse_state.dragging then
@@ -3575,7 +3604,9 @@ end function
 local function draw_allmodex_overlays (page as integer) as bool
 	if overlays_enabled = NO then return NO
 
-	'show_overlay_message "mouse over:" & gfx_getwindowstate()->mouse_over & " at " & mouse_state.pos
+	'show_overlay_message "mouse over:" & gfx_getwindowstate()->mouse_over & " active:" & readmouse.active _
+	'		     & " at:" & readmouse.pos & " click:" & readmouse.clicks & " buts:" & readmouse.buttons _
+	'		     & " release:" & readmouse.release & " wheel:" & readmouse.wheel_delta
 
 	dim dirty as bool = NO
 
