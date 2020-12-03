@@ -260,6 +260,9 @@ sub FreeNode(byval nod as NodePtr)
 		end if
 	end if
 	if nod->nodeType = rltString and nod->str <> 0 then RDeallocate(nod->str, nod->doc)
+	if nod->doc->root = nod then
+		nod->doc->root = null
+	end if
 	RDeallocate(nod, nod->doc)
 end sub
 
@@ -1028,15 +1031,16 @@ function AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 end function
 
 'This promotes a node to Root Node status (which, really, isn't that big a deal.)
+'There's no way to make a node no longer the root, except to free it.
 'NOTE: It automatically frees the old root node (unless it's the same as the new root node)
 'NOTE: the node must not have a parent
 sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
-	if doc = null then return
-	
+	BUG_IF(doc = null, "null doc")
+	BUG_IF(nod = null, "null node")
+	BUG_IF(nod->parent, "has parent")
+
 	if doc->root = nod then return
 
-	if nod->parent then return
-	
 	if verifyNodeLineage(nod, doc->root) = YES and verifyNodeLineage(doc->root, nod) = YES then
 		FreeNode(doc->root)
 	end if
