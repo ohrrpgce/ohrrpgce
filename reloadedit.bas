@@ -38,9 +38,9 @@ DECLARE SUB reload_editor_refresh (byref st as ReloadEditorState, byval node as 
 DECLARE FUNCTION reload_editor_node_string(byref st as ReloadEditorState, byval node as Reload.Nodeptr) as string
 DECLARE FUNCTION reload_editor_browse(byref st as ReloadEditorState) as bool
 DECLARE SUB reload_editor_export(byref st as ReloadEditorState)
-DECLARE FUNCTION reload_editor_load(filename as string, byref st as ReloadEditorState) as bool
+DECLARE SUB reload_editor_load(filename as string, byref st as ReloadEditorState)
 DECLARE SUB reload_editor_save(filename as string, byref st as ReloadEditorState)
-DECLARE FUNCTION reload_editor_special_file(byref st as ReloadEditorState) as bool
+DECLARE FUNCTION reload_editor_load_special_file(byref st as ReloadEditorState) as bool
 DECLARE SUB reload_editor_edit_node(byref st as ReloadEditorState, mi as MenuDefItem Ptr)
 DECLARE FUNCTION reload_editor_edit_node_name(byval node as Reload.Nodeptr) as bool
 DECLARE FUNCTION reload_editor_edit_node_value(byref st as ReloadEditorState, byval node as Reload.Nodeptr) as bool
@@ -88,17 +88,17 @@ SUB reload_editor()
   IF keyval(scF3) > 1 THEN
    IF reload_editor_okay_to_unload(st) THEN
     IF reload_editor_browse(st) THEN
-     setkeys YES
      st.state.need_update = YES
     END IF
+    setkeys YES
    END IF
   END IF
   IF keyval(scF4) > 1 THEN
    IF reload_editor_okay_to_unload(st) THEN
-    IF reload_editor_special_file(st) THEN
-     setkeys YES
+    IF reload_editor_load_special_file(st) THEN
      st.state.need_update = YES
     END IF
+    setkeys YES
    END IF
   END IF
 
@@ -125,6 +125,9 @@ SUB reload_editor()
 
   clearpage dpage
   draw_menu st.menu, st.state, dpage
+  IF st.doc = NULL THEN
+   edgeprint "(No Document loaded)", 0, 0, uilook(uiText), dpage
+  END IF
   edgeprint "F1=Help TAB=Mode (" & st.mode_name(st.mode) & ") ", 0, pBottom, uilook(uiText), dpage
 
   SWAP vpage, dpage
@@ -326,7 +329,7 @@ FUNCTION reload_editor_edit_node_type(byval node as Reload.Nodeptr) as bool
 END FUNCTION
 
 SUB reload_editor_refresh (byref st as ReloadEditorState, byval node as Reload.Nodeptr)
- BUG_IF(node = 0, "null node")
+ IF st.root = 0 THEN EXIT SUB  'No doc loaded
 
  DIM s as string
  s = STRING(st.indent, " ") & reload_editor_node_string(st, node)
@@ -379,6 +382,7 @@ SUB reload_editor_focus_node(byref st as ReloadEditorState, byval node as Reload
 END SUB
 
 SUB reload_editor_export(byref st as ReloadEditorState)
+ IF st.doc = NULL THEN EXIT SUB
  DIM outfile as string
  outfile = inputfilename("Export RELOAD document", "", "", "input_file_export_reload", st.filename)
  IF outfile <> "" THEN
@@ -387,24 +391,25 @@ SUB reload_editor_export(byref st as ReloadEditorState)
  END IF
 END SUB
 
+'Returns true if the document changed
 FUNCTION reload_editor_browse(byref st as ReloadEditorState) as bool
  DIM filename as string
  filename = browse(browseRELOAD, "", "", "browse_import_reload")
  IF filename = "" THEN RETURN NO
- RETURN reload_editor_load(filename, st)
-END FUNCTION
-
-FUNCTION reload_editor_load(filename as string, byref st as ReloadEditorState) as bool
- st.filename = ""
- Reload.FreeDocument st.doc
- st.doc = Reload.LoadDocument(filename, optNoDelay)
- IF st.doc = 0 THEN debug "load '" & filename & "' failed: null doc": RETURN NO
- st.root = Reload.DocumentRoot(st.doc)
- IF st.root = 0 THEN debug "load '" & filename & "' failed: null root node": RETURN NO
- st.filename = trimpath(filename)
- st.changed = NO
+ reload_editor_load(filename, st)
  RETURN YES
 END FUNCTION
+
+SUB reload_editor_load(filename as string, byref st as ReloadEditorState)
+ st.filename = ""
+ st.changed = NO
+ Reload.FreeDocument st.doc
+ st.doc = Reload.LoadDocument(filename, optNoDelay)
+ ERROR_IF(st.doc = 0, "load '" & filename & "' failed: null doc")
+ st.root = Reload.DocumentRoot(st.doc)
+ ERROR_IF(st.root = 0, "load '" & filename & "' failed: null root node")
+ st.filename = trimpath(filename)
+END SUB
 
 SUB reload_editor_save(filename as string, byref st as ReloadEditorState)
  Reload.SerializeBin(filename, st.doc)
@@ -447,7 +452,8 @@ FUNCTION reload_editor_okay_to_unload(byref st as ReloadEditorState) as bool
  RETURN NO
 END FUNCTION
 
-FUNCTION reload_editor_special_file(byref st as ReloadEditorState) as bool
+'Returns true if the document changed (including if doesn't exist)
+FUNCTION reload_editor_load_special_file(byref st as ReloadEditorState) as bool
  'Could add slices and RSAV docs
  DIM menu(3) as string
  menu(0) = "general.reld"
@@ -473,7 +479,7 @@ FUNCTION reload_editor_special_file(byref st as ReloadEditorState) as bool
    st.doc = Reload.LoadDocument(workingdir & SLASH & "heroform.reld", optNoDelay)
 
  END SELECT
- IF st.doc = 0 THEN RETURN NO
+ IF st.doc = 0 THEN st.root = 0 : RETURN YES
  st.root = Reload.DocumentRoot(st.doc)
  RETURN YES
 END FUNCTION
