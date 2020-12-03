@@ -171,7 +171,7 @@ SUB reload_editor_rearrange(byref st as ReloadEditorState, mi as MenuDefItem Ptr
    '--paste this node
    IF st.clipboard <> 0 THEN
     Reload.AddSiblingAfter(node, Reload.CloneNodeTree(st.clipboard))
-    IF Reload.NodeHasAncestor(node, st.clipboard_is) THEN st.clipboard_is = 0 'cosmetic importance only
+    IF Reload.NodeHasAncestor(NodeParent(node), st.clipboard_is) THEN st.clipboard_is = 0 'cosmetic importance only
     changed = YES
    END IF
   END IF
@@ -353,7 +353,7 @@ END SUB
 FUNCTION reload_editor_node_string(byref st as ReloadEditorState ,byval node as Reload.Nodeptr) as string
  BUG_IF(node = 0, "null node", "<null ptr>")
  DIM s as string = ""
- if node = st.clipboard_is OR Reload.NodeHasAncestor(node, st.clipboard_is) then s &= "*"
+ if Reload.NodeHasAncestor(node, st.clipboard_is) then s &= "*"
  s &= Reload.NodeName(node)
  SELECT CASE Reload.NodeType(node)
   CASE Reload.rltNull:   s &= "()"

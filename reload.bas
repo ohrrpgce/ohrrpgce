@@ -823,17 +823,14 @@ Local Function VerifyNodeLineage(byval nod as NodePtr, byval parent as NodePtr) 
 	return yes
 end function
 
-'this public function tells if a node has a particular ancestor
-'Returns NO if nod = possible_parent.
+'Whether a node has a particular ancestor. Returns YES if nod = possible_parent.
 Function NodeHasAncestor(byval nod as NodePtr, byval possible_parent as NodePtr) as bool
-	if nod = null then return no
-	if possible_parent = null then return no
-	dim parent as NodePtr = NodeParent(nod)
-	do while parent <> null
-		if parent = possible_parent then return yes
-		parent = NodeParent(parent)
+	if possible_parent = null then return NO
+	do while nod <> null
+		if nod = possible_parent then return YES
+		nod = nod->parent
 	loop
-	return no
+	return NO
 end function
 
 'Returns whether a node is NOT a sibling of 'family', not equal to family, and not NULL

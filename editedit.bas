@@ -290,7 +290,7 @@ SUB ee_rearrange(byref st as EEState, mi as MenuDefItem Ptr)
    '--paste this widget
    IF st.clipboard <> 0 THEN
     AddSiblingAfter(widget, CloneNodeTree(st.clipboard))
-    IF NodeHasAncestor(widget, st.clipboard_is) THEN st.clipboard_is = 0 'cosmetic importance only
+    IF NodeHasAncestor(NodeParent(widget), st.clipboard_is) THEN st.clipboard_is = 0 'cosmetic importance only
     changed = YES
    END IF
   END IF
@@ -418,7 +418,7 @@ END FUNCTION
 FUNCTION ee_widget_string(byref st as EEState, byval widget as Nodeptr) as string
  IF widget = 0 THEN debug "ee_widget_string: null node" : RETURN "<null ptr>"
  DIM s as string = ""
- IF widget = st.clipboard_is OR NodeHasAncestor(widget, st.clipboard_is) then s &= "*"
+ IF NodeHasAncestor(widget, st.clipboard_is) then s &= "*"
  s &= ee_grey_str("<") & GetString(widget) & ee_grey_str(">")
  IF NOT st.type_data THEN s &= ee_emphasis_str("[")
  s &= GetChildNodeStr(widget, "caption", "")
