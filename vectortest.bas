@@ -790,6 +790,7 @@ startTest(valgrind)
 	v_append arr, 42
 	dummy = arr[1]
 	v_free arr
+	passed
 endTest
 
 
