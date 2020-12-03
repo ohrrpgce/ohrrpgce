@@ -813,16 +813,6 @@ sub MarkProvisional(byval nod as NodePtr)
 	nod->flags OR= nfProvisional
 end sub
 
-'Check whether 'nod' is NOT a descendent of 'parent' (nor equal to 'parent'), for example before adding to a new parent
-Local Function VerifyNodeLineage(byval nod as NodePtr, byval parent as NodePtr) as bool
-	if nod = null then return no
-	do while parent <> null
-		if nod = parent then return no
-		parent = parent->parent
-	loop
-	return yes
-end function
-
 'Whether a node has a particular ancestor. Returns YES if nod = possible_parent.
 Function NodeHasAncestor(byval nod as NodePtr, byval possible_parent as NodePtr) as bool
 	if possible_parent = null then return NO
@@ -831,25 +821,6 @@ Function NodeHasAncestor(byval nod as NodePtr, byval possible_parent as NodePtr)
 		nod = nod->parent
 	loop
 	return NO
-end function
-
-'Returns whether a node is NOT a sibling of 'family', not equal to family, and not NULL
-'FIXME: this looks like a slow debug routine to me, why is it used?
-'JAMES: sanity checking pointers to prevent horrible crashes is always a good idea, even if slow (PS, I didn't write this function)
-Function VerifyNodeSiblings(byval sl as NodePtr, byval family as NodePtr) as bool
-	dim s as NodePtr
-	if sl = 0 then return no
-	s = family
-	do while s <> 0
-		if s = sl then return no
-		s = s->prevSib
-	loop
-	s = family
-	do while s <> 0
-		if s = sl then return no
-		s = s->nextSib
-	loop
-	return yes
 end function
 
 'This marks a node as a string type and sets its data to the provided string
@@ -948,8 +919,10 @@ end sub
 
 'This adds a node as a child to another node, updating their relatives
 Sub AddChild(byval par as NodePtr, byval nod as NodePtr)
-	'Ensure not creating a loop in the node tree
-	BUG_IF(verifyNodeLineage(nod, par), "creating a loop!")
+	BUG_IF(par = 0, "null parent")
+	BUG_IF(nod = 0, "null node")
+	BUG_IF(NodeHasAncestor(par, nod), "creating a loop!")  'includes par = nod
+	BUG_IF(nod->doc->root = nod, "can't reparent the root")
 
 	'first, remove us from our old parent
 	RemoveParent(nod)
@@ -974,12 +947,13 @@ end sub
 sub AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr)
 	BUG_IF(sib = 0, "null sib")
 	BUG_IF(nod = 0, "null node")
-	BUG_IF(sib = DocumentRoot(sib->doc), "can't sibling the root")
-	BUG_IF(VerifyNodeSiblings(nod, sib) = NO, "already a sibling")
+	BUG_IF(NodeHasAncestor(sib, nod), "creating a loop!")  'íncludes sib = nod
+	BUG_IF(nod->doc->root = nod, "can't reparent the root")
+	BUG_IF(sib->parent = 0, "sib has no parent")
 
 	'first, remove us from our old parent
 	RemoveParent(nod)
-	
+
 	nod->prevSib = sib
 	nod->nextSib = sib->nextSib
 	sib->nextSib = nod
@@ -997,8 +971,9 @@ end sub
 sub AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr)
 	BUG_IF(sib = 0, "null sib")
 	BUG_IF(nod = 0, "null node")
-	BUG_IF(sib = DocumentRoot(sib->doc), "can't sibling the root")
-	BUG_IF(VerifyNodeSiblings(nod, sib) = NO, "already a sibling")
+	BUG_IF(NodeHasAncestor(sib, nod), "creating a loop!")  'íncludes sib = nod
+	BUG_IF(nod->doc->root = nod, "can't reparent the root")
+	BUG_IF(sib->parent = 0, "sib has no parent")
 
 	'first, remove us from our old parent
 	RemoveParent(nod)
@@ -1024,15 +999,12 @@ sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 	BUG_IF(doc = null, "null doc")
 	BUG_IF(nod = null, "null node")
 	BUG_IF(nod->parent, "has parent")
+	BUG_IF(nod->doc <> doc, "node was created in the context of another RELOAD doc")
 
 	if doc->root = nod then return
 
-	if verifyNodeLineage(nod, doc->root) = YES and verifyNodeLineage(doc->root, nod) = YES then
-		FreeNode(doc->root)
-	end if
-
-	if nod->doc <> doc then
-		showbug "SetRootNode: node was created in the context of another RELOAD doc"
+	if doc->root then
+		FreeNode(doc->root)  'Won't delete nod, it has no parent
 	end if
 
 	doc->root = nod

@@ -926,10 +926,7 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
    DIM other_node as NodePtr
    other_node = menu.items[st.pt]->dataptr
    IF other_node = 0 THEN other_node = FirstChild(hero_node."battle_menus".ptr)
-   IF other_node THEN
-    'FIXME: why doesn't this work??
-    AddSiblingAfter(other_node, ins_node)
-   END IF
+   IF other_node THEN AddSiblingAfter(other_node, ins_node)
    DIM k as NodePtr
    k = SetChildNode(ins_node, "kind")
    SetChildNode(k, "attack", 0)
