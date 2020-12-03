@@ -243,7 +243,7 @@ END FUNCTION
 
 SUB ee_insertion(byref st as EEState, byval widget as Nodeptr)
  IF keyval(scInsert) > 1 THEN
-  IF ee_parent_is_full(widget) THEN
+  IF widget ANDALSO ee_parent_is_full(widget) THEN
    visible_debug "Parent container widget is full, and cannot hold any more child widgets"
    EXIT SUB
   END IF
