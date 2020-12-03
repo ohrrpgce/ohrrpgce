@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-09-08">
+<plotscript version="wip" datecode="2020-12-03">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -4760,11 +4760,18 @@ There is no limit on string length.<lb/>
 		<reference ref="showstring" />
 		<reference ref="inputstring" />
 
-
 		<command id="expandstring">
 			<canon>expand string(ID, saveslot)</canon>
 			<shortname>expand string</shortname>
-			<description>Expands codes in <p>ID</p> such as ${H1}. This does the same thing that textboxes do automatically. The <p>saveslot</p> argument is optional. If you leave it out, the string's codes will be expanded based on the currently running game state. If you specify a save slot number from 1-1000 then the string will be expanded based on hero names, variables, and strings in that save slot.</description>
+			<description>
+				Expands "embed" codes in string <p>ID</p> such as ${H1}, modifying the string.
+				(See the textbox editor for the list of all available embed codes.)
+				This does the same thing that textboxes do automatically.
+				The <p>saveslot</p> argument is optional.
+				If you leave it out, the string's codes will be expanded based on the currently running game state.
+				If you specify a save slot number (from 1-1000) then the string will be expanded based on data
+				(hero names, variables, strings, etc.) from that saved game.
+			</description>
 			<seealso>
 				<ref>expandstringsinslices</ref>
 			</seealso>
@@ -5274,6 +5281,8 @@ end</example>
 			<description>
 				Given a <ref>menuitemhandle</ref>,
 				move the menu selection cursor to point to that menu item.
+				This works even if the menu item is in a menu that's not top-most/selected, but the
+				menu won't become selected.
 				Unselectable menu items (see <ref>menuitemselectable</ref>) can't be selected;
 				if you try to select one this command silently fails and returns <tt>false</tt>;
 				normally it returns <tt>true</tt>.

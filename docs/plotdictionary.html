@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2020-09-08)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2020-12-03)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -8454,8 +8454,8 @@ end
 		<a href="#about-mouseregion">mouse region (x min, x max, y min, y max)</a><br>
 		<a href="#about-inputstringwithmousekeyboard">input string with mouse keyboard (ID, maxlength)</a><br>
 		<a href="#about-unhidemousecursor">unhide mouse cursor</a><br>
-		<a href="#about-hidemousecursor">hide mouse cursor</a><br>
 		<a href="#about-showmousecursor">show mouse cursor</a><br>
+		<a href="#about-hidemousecursor">hide mouse cursor</a><br>
 </ul>
 <ul>
 		<li>
@@ -9040,7 +9040,10 @@ end</pre>
 </div>
 		<div class="command">
 			<a name="about-unhidemousecursor"></a>
+			<a name="about-showmousecursor"></a>
 				<h4>unhide mouse cursor</h4>
+			<div class="notetext">Alias:</div>
+			<h4>show mouse cursor</h4>
 <p>
 			
 				Causes the normal OS mouse cursor to be displayed, even when fullscreened.
@@ -9060,10 +9063,7 @@ end</pre>
 </div>
 		<div class="command">
 			<a name="about-hidemousecursor"></a>
-			<a name="about-showmousecursor"></a>
 				<h4>hide mouse cursor</h4>
-			<div class="notetext">Alias:</div>
-			<h4>show mouse cursor</h4>
 <p>
 			Causes the normal OS mouse cursor to be hidden. This command is seldom needed, because the cursor is hidden by default when you run <a href="#about-initmouse" class="ref">init mouse</a>.
 			
@@ -9197,7 +9197,15 @@ There is no limit on string length.<br>
 			<a name="about-expandstring"></a>
 				<h4>expand string(ID, saveslot)</h4>
 <p>
-			Expands codes in <span class="param">ID</span> such as ${H1}. This does the same thing that textboxes do automatically. The <span class="param">saveslot</span> argument is optional. If you leave it out, the string's codes will be expanded based on the currently running game state. If you specify a save slot number from 1-1000 then the string will be expanded based on hero names, variables, and strings in that save slot.
+			
+				Expands "embed" codes in string <span class="param">ID</span> such as ${H1}, modifying the string.
+				(See the textbox editor for the list of all available embed codes.)
+				This does the same thing that textboxes do automatically.
+				The <span class="param">saveslot</span> argument is optional.
+				If you leave it out, the string's codes will be expanded based on the currently running game state.
+				If you specify a save slot number (from 1-1000) then the string will be expanded based on data
+				(hero names, variables, strings, etc.) from that saved game.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-expandstringsinslices" class="ref">expand strings in slices</a></li></ul>
@@ -10117,6 +10125,8 @@ end</pre>
 			
 				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>,
 				move the menu selection cursor to point to that menu item.
+				This works even if the menu item is in a menu that's not top-most/selected, but the
+				menu won't become selected.
 				Unselectable menu items (see <a href="#about-menuitemselectable" class="ref">menu item selectable</a>) can't be selected;
 				if you try to select one this command silently fails and returns <span class="code">false</span>;
 				normally it returns <span class="code">true</span>.
@@ -16308,7 +16318,19 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 			<a name="about-creategrid"></a>
 				<h4>create grid (width, height, rows, columns)</h4>
 <p>
-			Creates a new grid slice, and returns a <a href="#about-slicehandle" class="ref">slice handle</a> to it. Grid slices are special containers that automatically arrange their children into rows and columns. No manual child positioning is required. The first two arguments are the width and height of the whole grid. The next two arguments are the number of rows and columns that should appear in the grid. If rows or columns are left out, the grid with be a boring 1x1.
+			
+				Creates a new grid slice, and returns a <a href="#about-slicehandle" class="ref">slice handle</a> to it.
+				Grid slices are special containers that automatically arrange their children into rows and columns.
+				No manual child positioning is required.
+				The first two arguments are the width and height of the whole grid.
+				The next two arguments are the number of rows and columns that should appear in the grid.
+				If rows or columns are left out, the grid with be a boring 1x1 (a single large cell).
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Beware that the order of the <span class="param">rows, columns</span> args is reversed from what you might expect:
+					they affect the height and width of each cell, not width and height.
+				</div>
+			
 			
 			
 			
