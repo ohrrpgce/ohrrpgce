@@ -813,8 +813,8 @@ sub MarkProvisional(byval nod as NodePtr)
 	nod->flags OR= nfProvisional
 end sub
 
-'this private function checks to see if a node is part of a tree, for example before adding to a new parent
-Function verifyNodeLineage(byval nod as NodePtr, byval parent as NodePtr) as integer
+'Check whether 'nod' is NOT a descendent of 'parent' (nor equal to 'parent'), for example before adding to a new parent
+Local Function VerifyNodeLineage(byval nod as NodePtr, byval parent as NodePtr) as bool
 	if nod = null then return no
 	do while parent <> null
 		if nod = parent then return no
@@ -824,7 +824,8 @@ Function verifyNodeLineage(byval nod as NodePtr, byval parent as NodePtr) as int
 end function
 
 'this public function tells if a node has a particular ancestor
-Function NodeHasAncestor(byval nod as NodePtr, byval possible_parent as NodePtr) as integer
+'Returns NO if nod = possible_parent.
+Function NodeHasAncestor(byval nod as NodePtr, byval possible_parent as NodePtr) as bool
 	if nod = null then return no
 	if possible_parent = null then return no
 	dim parent as NodePtr = NodeParent(nod)
@@ -835,10 +836,10 @@ Function NodeHasAncestor(byval nod as NodePtr, byval possible_parent as NodePtr)
 	return no
 end function
 
-'this checks to see whether a node is part of a given family or not
+'Returns whether a node is NOT a sibling of 'family', not equal to family, and not NULL
 'FIXME: this looks like a slow debug routine to me, why is it used?
 'JAMES: sanity checking pointers to prevent horrible crashes is always a good idea, even if slow (PS, I didn't write this function)
-Function verifyNodeSiblings(byval sl as NodePtr, byval family as NodePtr) as integer
+Function VerifyNodeSiblings(byval sl as NodePtr, byval family as NodePtr) as bool
 	dim s as NodePtr
 	if sl = 0 then return no
 	s = family
@@ -949,20 +950,18 @@ Sub RemoveParent(byval nod as NodePtr)
 end sub
 
 'This adds a node as a child to another node, updating their relatives
-function AddChild(byval par as NodePtr, byval nod as NodePtr) as NodePtr
-	
-	'If a node is part of the tree already, we can't add it again
-	if verifyNodeLineage(nod, par) = NO then return nod
-	
+Sub AddChild(byval par as NodePtr, byval nod as NodePtr)
+	'Ensure not creating a loop in the node tree
+	BUG_IF(verifyNodeLineage(nod, par), "creating a loop!")
+
 	'first, remove us from our old parent
 	RemoveParent(nod)
-	
+
 	'next, add us to our new parent
 	if par then
-		
 		nod->parent = par
 		par->numChildren += 1
-		
+
 		if par->children = null then
 			par->children = nod
 		else
@@ -972,19 +971,15 @@ function AddChild(byval par as NodePtr, byval nod as NodePtr) as NodePtr
 		end if
 		par->lastChild = nod
 	end if
-	
-	return nod
-end function
+end sub
 
 'This adds nod as a sibling *after* another node, sib.
-function AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
-	
-	if sib = DocumentRoot(sib->doc) then return nod 'no siblings for root!
-	
-	if verifyNodeSiblings(nod, sib) = NO then return nod
-	
-	if sib = 0 then return nod
-	
+sub AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr)
+	BUG_IF(sib = 0, "null sib")
+	BUG_IF(nod = 0, "null node")
+	BUG_IF(sib = DocumentRoot(sib->doc), "can't sibling the root")
+	BUG_IF(VerifyNodeSiblings(nod, sib) = NO, "already a sibling")
+
 	'first, remove us from our old parent
 	RemoveParent(nod)
 	
@@ -996,25 +991,21 @@ function AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 	else
 		sib->parent->lastChild = nod
 	end if
-	
+
 	nod->parent = sib->parent
 	sib->parent->numChildren += 1
-	
-	return nod
-end function
+end sub
 
 'This adds nod as a sibling *before* another node, sib.
-function AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
-	
-	if sib = DocumentRoot(sib->doc) then return nod 'no siblings for root!
-	
-	if verifyNodeSiblings(nod, sib) = NO then return nod
-	
-	if sib = 0 then return nod
-	
+sub AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr)
+	BUG_IF(sib = 0, "null sib")
+	BUG_IF(nod = 0, "null node")
+	BUG_IF(sib = DocumentRoot(sib->doc), "can't sibling the root")
+	BUG_IF(VerifyNodeSiblings(nod, sib) = NO, "already a sibling")
+
 	'first, remove us from our old parent
 	RemoveParent(nod)
-	
+
 	nod->nextSib = sib
 	nod->prevSib = sib->prevSib
 	sib->prevSib = nod
@@ -1023,12 +1014,10 @@ function AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 	else
 		sib->parent->children = nod
 	end if
-	
+
 	nod->parent = sib->parent
 	sib->parent->numChildren += 1
-	
-	return nod
-end function
+end sub
 
 'This promotes a node to Root Node status (which, really, isn't that big a deal.)
 'There's no way to make a node no longer the root, except to free it.

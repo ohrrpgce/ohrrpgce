@@ -63,7 +63,7 @@ TYPE NodePtr as Node ptr
 		heap as HANDLE
 #endif
 		stringHash as HashPtr
-		delayLoading as integer
+		delayLoading as bool
 		fileHandle as FILE ptr
 		'fileName as string
 
@@ -125,9 +125,9 @@ Declare sub SetContent(byval nod as NodePtr, byval zstr as zstring ptr, byval si
 Declare sub SetContent(byval nod as NodePtr, byval dat as longint)
 Declare sub SetContent(byval nod as NodePtr, byval dat as double)
 Declare sub SetContent(byval nod as NodePtr)
-Declare Function AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
-Declare Function AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
-Declare Function AddChild(byval par as NodePtr, byval nod as NodePtr) as NodePtr
+Declare sub AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr)
+Declare sub AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr)
+Declare sub AddChild(byval par as NodePtr, byval nod as NodePtr)
 Declare sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 
 Declare Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as DocPtr
@@ -164,7 +164,7 @@ Declare Sub SwapSiblingNodes(byval nod1 as NodePtr, byval nod2 as NodePtr)
 Declare Sub SwapNodePrev(byval node as Nodeptr)
 Declare Sub SwapNodeNext(byval node as Nodeptr)
 Declare Function CloneNodeTree(byval nod as NodePtr, byval doc as DocPtr=0) as NodePtr
-Declare Function NodeHasAncestor(byval nod as NodePtr, byval possible_parent as NodePtr) as integer
+Declare Function NodeHasAncestor(byval nod as NodePtr, byval possible_parent as NodePtr) as bool
 
 'Helper functions:
 Declare Function GetOrCreateChild Overload (byval parent as NodePtr, n as zstring ptr) as NodePtr
