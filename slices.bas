@@ -4420,10 +4420,7 @@ Sub SliceSaveToFile(byval sl as Slice Ptr, filename as string, save_handles as b
  'First create a reload document
  dim doc as Reload.DocPtr
  doc = Reload.CreateDocument()
- if doc = null then
-   debug "Reload.CreateDocument failed in SliceSaveToFile"
-   exit sub
- end if
+ if doc = NULL then exit sub  'Already showed a BUG message
  
  'Create a node, and save the slice tree into it
  dim node as Reload.Nodeptr
@@ -4435,7 +4432,6 @@ Sub SliceSaveToFile(byval sl as Slice Ptr, filename as string, save_handles as b
  Reload.SerializeBin filename, doc
  
  Reload.FreeDocument(doc)
-
 End sub
 
 '--loading---------------------------------------------------------------------

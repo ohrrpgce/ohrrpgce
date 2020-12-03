@@ -405,7 +405,7 @@ LOCAL FUNCTION create_draw_root (ses as SliceEditState) as Slice ptr
 
  DIM rect as RectangleSliceData
  rect.bgcol = uilook(uiBackground)
- rect.border = -2  'None
+ rect.border = borderNone
  DIM ret as Slice ptr = NewRectangleSlice(NULL, rect)
  WITH *ret
   .Pos = remember_draw_root_pos
@@ -428,6 +428,21 @@ LOCAL FUNCTION create_draw_root (ses as SliceEditState) as Slice ptr
  ret->X -= small(0, ret->ScreenX)
  ret->Y -= small(0, ret->ScreenY)
  RETURN ret
+END FUNCTION
+
+'Initialise a collection that doesn't exist yet
+LOCAL FUNCTION create_blank_collection(ses as SliceEditState) as Slice ptr
+ DIM newcollection as Slice Ptr
+ newcollection = NewSlice
+ WITH *newcollection  'Defaults only
+  .SliceType = slContainer
+  .Fill = YES
+ END WITH
+ 'Collection root slices should have contexts
+ VAR context = NEW SliceCollectionContext
+ context->id = ses.collection_number
+ newcollection->Context = context
+ RETURN newcollection
 END FUNCTION
 
 ' Edit a group of slice collections - this is the overload used by the slice editor menus in Custom.
@@ -967,19 +982,13 @@ END FUNCTION
 SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, edit_separately as bool)
  ' Check for programmer error (doesn't work because of the games slice_editor plays with the draw_root)
  BUG_IF(ses.editing_existing, "Can't load when editing existing collection")
+
  DIM newcollection as Slice Ptr
- newcollection = NewSlice
- WITH *newcollection  'Defaults only
-  .SliceType = slContainer
-  .Fill = YES
- END WITH
  IF isfile(filename) THEN
+  newcollection = NewSlice
   SliceLoadFromFile newcollection, filename, , ses.collection_number
  ELSE
-  'Collection root slices should have contexts
-  VAR context = NEW SliceCollectionContext
-  context->id = ses.collection_number
-  newcollection->Context = context
+  newcollection = create_blank_collection(ses)
  END IF
 
  'Special case fix: in the ancient slicetest.rpg file, collection 0 was rooted by a Root slice
@@ -1077,6 +1086,7 @@ SUB slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Sli
  END IF
 END SUB
 
+'Compare a slice tree to a file
 FUNCTION slice_collection_has_changed(sl as Slice ptr, filename as string) as bool
  IF isfile(filename) = NO THEN RETURN YES
 
@@ -1086,22 +1096,57 @@ FUNCTION slice_collection_has_changed(sl as Slice ptr, filename as string) as bo
  IF olddoc = NULL THEN RETURN YES
  DIM oldtree as Nodeptr = DocumentRoot(olddoc)
 
- 'Create a node in a new RELOAD document, and save the slice tree into it
- DIM newdoc as DocPtr
- newdoc = CreateDocument()
- IF newdoc = NULL THEN FreeDocument olddoc : RETURN YES
+ 'Save the slice tree into a new RELOAD node
  DIM newtree as Nodeptr
- newtree = CreateNode(newdoc, "")
- SetRootNode newdoc, newtree
- SliceSaveToNode sl, newtree, NO
- 'SerializeBin filename + ".2", newdoc  'For debug
+ newtree = CreateNode(olddoc, "")  'Reusing the doc
+ SliceSaveToNode sl, newtree
 
  DIM changed as bool
  changed = Reload.Ext.CompareNodes(newtree, oldtree) = NO  'Check not equal
 
+ 'SetRootNode olddoc, newtree
+ 'SerializeBin filename + ".2", olddoc  'For debug
+
+ FreeNode newtree
  FreeDocument olddoc
- FreeDocument newdoc
  RETURN changed
+END FUNCTION
+
+'Check whether a collection has been edited or is still blank.
+'We can't simply check whether the root slice has no children, as we used to.
+FUNCTION slice_collection_is_blank(byref ses as SliceEditState, sl as Slice ptr) as bool
+ IF ses.recursive THEN RETURN NO  'Shouldn't be called in this case, doesn't make sense
+ IF sl->NumChildren > 0 THEN RETURN NO
+
+ 'Serialize the existing tree
+ DIM doc as DocPtr
+ doc = CreateDocument()
+ DIM slnode as NodePtr = CreateNode(doc, "")
+ SliceSaveToNode sl, slnode
+
+ 'A new blank slice tree to compare to
+ DIM blanksl as Slice ptr
+ blanksl = create_blank_collection(ses)
+ 'Ensure width and height are correct, since blanksl is set to Fill
+ DIM root as Slice ptr
+ root = create_draw_root(ses)
+ SetSliceParent blanksl, root
+ RefreshSliceScreenPos blanksl
+ 'Serialize
+ DIM blanknode as NodePtr = CreateNode(doc, "")  'Reusing doc
+ SliceSaveToNode blanksl, blanknode
+
+ DIM is_blank as bool
+ is_blank = Reload.Ext.CompareNodes(slnode, blanknode)  'Check equal
+
+ 'SetRootNode doc, blanknode
+ 'SerializeBin "temp.slice", doc  'For debug
+
+ DeleteSlice @root
+ FreeNode blanknode
+ FreeNode slnode
+ FreeDocument doc
+ RETURN is_blank
 END FUNCTION
 
 ' Called when you leave the editor or switch to a different collection: saves if necessary.
@@ -1110,12 +1155,11 @@ FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as 
  DIM filename as string = slice_editor_filename(ses)
  IF ses.use_index THEN
   ' Autosave on quit, unless the collection is empty
-  IF edslice->NumChildren > 0 THEN
+  IF slice_collection_is_blank(ses, edslice) = NO THEN
    '--save non-empty slice collections
    SliceSaveToFile edslice, filename
   ELSE
    '--erase empty slice collections
-   '(Note: since you can edit the root slice, this is technically wrong...)
    safekill filename
   END IF
  ELSEIF LEN(ses.collection_file) > 0 THEN
@@ -2101,7 +2145,9 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
  slice_editor_refresh_append ses, mnidExitMenu, "Exit Menu"
 
  IF ses.use_index THEN
-  slice_editor_refresh_append ses, mnidCollectionID, CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
+  DIM extra as string
+  IF slice_collection_is_blank(ses, edslice) THEN extra = " (blank)"
+  slice_editor_refresh_append ses, mnidCollectionID, CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26) & extra
  ELSEIF LEN(ses.collection_file) THEN
   DIM msg as string = "Editing "
   IF ses.editing_existing ANDALSO ses.existing_matches_file = NO THEN msg &= "instance of "
