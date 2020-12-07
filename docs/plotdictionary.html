@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2020-12-03)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2020-12-07)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -2630,6 +2630,10 @@ wait for hero (me) # wait until he stops</pre>
 					and there was a separate <a href="#about-waitforscancode" class="ref">wait for scancode</a> command for those,
 					but now you can use any scancode with <span class="code">wait for key</span>, and use any
 					of the codes like <span class="code">use key</span> with other key commands like <a href="#about-keyispressed" class="ref">key is pressed</a>.
+				</div>
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					While <span class="code">wait for key</span> waits, on-keypress scripts will not be triggered.
 				</div>
 			
 			
@@ -9427,10 +9431,30 @@ show string(0)</pre>
 		<div class="command">
 			<a name="about-trimstring"></a>
 				<h4>trim string (ID, start, length)</h4>
+				<h4>trim string (ID)</h4>
 <p>
-			Cuts the string to the specified length, OR removes blank space from the beginning and ends of the string. <span class="param">ID</span> is the string you want to be cut. If you wish to cut <span class="param">ID</span> to a certain length, you must specify <span class="param">start</span> and <span class="param">length</span>. <span class="param">start</span> is the position at which you want to start cutting, anything to the left of this number will be deleted in a string. <span class="param">length</span> is the size of the string you want to preserve, anything to the right of this number will be deleted in a string. If you leave these parameters blank, it will trim whitespace from the beginning and ends of <span class="param">ID</span>.
+			
+				Cuts a string to the specified substring, OR removes blank space from the beginning and end of the string.
+				<span class="param">ID</span> is the string you want to be cut.
+				If you wish to cut <span class="param">ID</span> to a certain length, you must specify <span class="param">start</span> and <span class="param">length</span>.
+				<br>
+				<span class="param">start</span> is the position at which you want the new string to start,
+				anything to the left of this will be deleted from the string.
+				Pass <span class="code">1</span> if you don't want to cut anything from the start, and just want to shorten the string.
+				<br>
+				<span class="param">length</span> is the size of the string you want,
+				anything to the right of <span class="code">start+length</span> will be deleted.
+				It's not an error if <span class="code">start+length</span> is beyond the end of the string
+				<br>
+				If you only provide <span class="param">ID</span>, <span class="code">trim string</span> will trim all whitespace (spaces) from the beginning and end of the string.
 			
 			
+			<pre>$1 = "  this silly example "
+trim string(1)
+show string(1)  # Shows "this silly example"
+wait(30)
+trim string(1, 3, 8)
+show string(1)  # Shows "is silly"</pre>
 			
 		</p>
 </div>

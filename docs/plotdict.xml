@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-12-03">
+<plotscript version="wip" datecode="2020-12-07">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -4933,8 +4933,29 @@ show string(0)</example>
 		</command>
 		<command id="trimstring">
 			<canon>trim string (ID, start, length)</canon>
+			<canon>trim string (ID)</canon>
 			<shortname>trim string</shortname>
-			<description>Cuts the string to the specified length, OR removes blank space from the beginning and ends of the string. <p>ID</p> is the string you want to be cut. If you wish to cut <p>ID</p> to a certain length, you must specify <p>start</p> and <p>length</p>. <p>start</p> is the position at which you want to start cutting, anything to the left of this number will be deleted in a string. <p>length</p> is the size of the string you want to preserve, anything to the right of this number will be deleted in a string. If you leave these parameters blank, it will trim whitespace from the beginning and ends of <p>ID</p>.</description>
+			<description>
+				Cuts a string to the specified substring (if you specify <p>start</p> and <p>length</p>),
+				OR removes all whitespace (spaces) from the beginning and end of the string (if you only provide <p>ID</p>).
+				<p>ID</p> is the string you want to trim.
+				<lb/>
+				<p>start</p> is the position at which you want the new string to start,
+				anything to the left of this will be deleted from the string.
+				Pass <tt>1</tt> if you don't want to cut anything from the start but just want to shorten the string.
+				If <tt>start</tt> is past the end of the string, the string is blanked (this isn't an error).
+				<lb/>
+				<p>length</p> is the size of the string you want,
+				anything to the right of <tt>start+length</tt> will be deleted.
+				It's not an error if <tt>start+length</tt> is beyond the end of the string or if <tt>length &lt;= 0</tt>.
+				<lb/>
+			</description>
+			<example>$1 = "  this silly example "
+trim string(1)
+show string(1)  # Shows "this silly example"
+wait(30)
+trim string(1, 3, 8)
+show string(1)  # Shows "is silly"</example>
 		</command>
 
 		<command id="replacesubstring">
