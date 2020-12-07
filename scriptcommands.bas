@@ -440,7 +440,7 @@ SUB trigger_onkeypress_script ()
  DIM checkmouse as bool = gam.mouse_enabled
  gam.click_keys = get_gen_bool("/mouse/click_keys")
  IF gam.click_keys ORELSE get_gen_bool("/mouse/move_hero") THEN checkmouse = YES
- IF anykeypressed(YES, checkmouse, 1) THEN doit = YES  'trigger_level=1
+ IF anykeypressed(YES, checkmouse, 1) THEN doit = YES  'checkjoystick=YES, trigger_level=1
 
  'Because anykeypressed doesn't check it, and we don't want to break scripts looking for key:alt (== scUnfilteredAlt)
  IF keyval(scUnfilteredAlt) > 0 THEN doit = YES

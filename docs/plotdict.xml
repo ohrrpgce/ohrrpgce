@@ -826,6 +826,9 @@ wait for hero (me) # wait until he stops</example>
 					but now you can use any scancode with <tt>wait for key</tt>, and use any
 					of the codes like <tt>use key</tt> with other key commands like <ref>keyispressed</ref>.
 				</note>
+				<warn>
+					While <tt>wait for key</tt> waits, on-keypress scripts will not be triggered.
+				</warn>
 			</description>
 			<example>show text box(623) # "press cancel!"
 wait for key(cancel key)</example>

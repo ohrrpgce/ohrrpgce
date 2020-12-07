@@ -50,4 +50,6 @@ Instead-of-Battle Script: A plotscript that will be executed instead when a rand
 
 Each-Step Script: A plotscript that will be run each time the hero finished taking a step on the current map. The script will be passed the X and Y coordinates of the hero and its direction as arguments in that order.
 
-On-Keypress Script: A plotscript that will be run each time the user presses any key on the current map.
+On-Keypress Script: A plotscript that will be run each tick that any keyboard key or joystick button is pressed (down) or the joystick stick(s) are off-center, or (when mouse controls are enabled) if any mouse button is pressed/clicked.
+Mouse controls are considered enabled if "init mouse" is called or "Click on map to move the hero" or ""any key", etc, include mouse" are turned on in the global Mouse Options menu.
+During a "wait for key" command the on-keypress script won't be triggered!
