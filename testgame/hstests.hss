@@ -341,6 +341,34 @@ script, string tests, begin
   append number(2, -65, -4)      , $3="-65 ", assert(check())
   append number(2, -65, -4)      , $3="-65 ", assert(check())
 
+  # trim string
+
+  $1 = "  this silly \nexample \t \n"
+  trim string(1)
+  $2 = "this silly \nexample"
+  assert(string equal(1, 2))
+  trim string(1, 3, 9)
+  $2 = "is silly "
+  assert(string equal(1, 2))
+  # Blanking out the string
+  trim string(1, 10, 5)  # Start just past end
+  $2 = ""
+  assert(string equal(1, 2))
+  $1 = "secret"
+  trim string(1, 1, 0)
+  assert(string equal(1, 2))
+  $1 = "Qux"
+  # A start index = 0 is treated as 1...
+  trim string(1, 0, 2)
+  trace(1)
+  $2 = "Qu"
+  assert(string equal(1, 2))
+  # ...but start = -1 is equivalent to trimstring(id)!
+  $2 = " a "
+  trim string(2, -1, 2)
+  $1 = "a"
+  assert(string equal(1, 2))
+
   # replace substring
 
   $1 = "This is an example of replace substring"

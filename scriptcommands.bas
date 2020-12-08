@@ -2080,19 +2080,16 @@ SUB script_functions(byval cmdid as integer)
   ELSE
    scriptret = 0
   END IF
- CASE 239'--trim string
+ CASE 239'--trim string (id, start, len) or (id)
   IF valid_plotstr(retvals(0)) THEN
    WITH plotstr(retvals(0))
-    IF retvals(1) = -1 THEN
-     .s = TRIM(.s)
+    DIM start as integer = retvals(1)
+    IF start = -1 THEN  'start/len omitted
+     'Note: don't trim \r, because we can still use that character for any purpose
+     .s = TRIM(.s, ANY !" \n\t")
     ELSE
-     IF retvals(1) <= LEN(.s) ANDALSO retvals(2) >= 1 THEN
-      retvals(1) = large(retvals(1), 1)
-      'retvals(2) = bound(retvals(2), 1, LEN(.s))
-      .s = MID(.s, retvals(1), retvals(2))
-     ELSE
-      .s = ""
-     END IF
+     start = large(start, 1)  'TRIM returns "" if start <= 0
+     .s = MID(.s, start, retvals(2))
     END IF
    END WITH
   END IF

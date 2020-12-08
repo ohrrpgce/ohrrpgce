@@ -4937,7 +4937,8 @@ show string(0)</example>
 			<shortname>trim string</shortname>
 			<description>
 				Cuts a string to the specified substring (if you specify <p>start</p> and <p>length</p>),
-				OR removes all whitespace (spaces) from the beginning and end of the string (if you only provide <p>ID</p>).
+				OR removes all whitespace (spaces, tabs and newlines) from the beginning and end of the string
+				(if you only provide <p>ID</p>).
 				<p>ID</p> is the string you want to trim.
 				<lb/>
 				<p>start</p> is the position at which you want the new string to start,
@@ -4950,7 +4951,8 @@ show string(0)</example>
 				It's not an error if <tt>start+length</tt> is beyond the end of the string or if <tt>length &lt;= 0</tt>.
 				<lb/>
 			</description>
-			<example>$1 = "  this silly example "
+			<example>$1 = "  this silly example \n "
+# \n is the newline character, if you remove the trimstring(1) now you'll see the text is two lines high
 trim string(1)
 show string(1)  # Shows "this silly example"
 wait(30)
