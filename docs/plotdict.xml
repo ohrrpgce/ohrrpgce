@@ -4236,6 +4236,9 @@ end
 			<canon>last formation</canon>
 			<shortname>last formation</shortname>
 			<description>Returns the last formation fought. If the player hasn't fought any formations yet (since starting or loading the game), it returns -1.</description>
+			<seealso>
+				<ref>readfoemap</ref>
+			</seealso>
 		</command>
 
 		<command id="randomformation">
@@ -4274,6 +4277,7 @@ end
 				<ref>formationsetfrequency</ref>
 				<ref>getbattlecountdown</ref>
 				<ref>setbattlecountdown</ref>
+				<ref>readfoemap</ref>
 			</seealso>
 		</command>
 		<command id="setbattlecountdown">
@@ -9834,6 +9838,19 @@ write pass block(15,3,none)
 # Use 0 or none to remove walls from a tile</example>
 			<seealso>
 				<ref>writewallbit</ref>
+			</seealso>
+		</command>
+
+		<command id="readfoemap">
+			<canon>read foemap (x, y)</canon>
+			<shortname>read foemap</shortname>
+			<description>
+				Reads and returns a formation set number (which is a value 0-255) from the foemap at tile position <p>x</p>,<p>y</p>.
+				The foemap is used to trigger random battles.
+				0 means no formation set at that position.
+			</description>
+			<seealso>
+				<ref>getbattlecountdown</ref>
 			</seealso>
 		</command>
 

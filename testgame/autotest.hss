@@ -5248,7 +5248,7 @@ end
 
 script, maptile tests, begin
   $0="maptile tests"
-  # Test some tilemap and passmap commands
+  # Test some tilemap, passmap, foemap commands
   # (Zones are tested separately in 'zone tests', and wallchecking
   # in 'wallchecking tests' and 'do hero cater tests')
 
@@ -5283,6 +5283,11 @@ script, maptile tests, begin
   write wall bit(3, 2, vehicle a, true)
   assert(read pass block(3, 2) == vehicle a + harm tile)
   write pass block(3, 2, 0)
+
+  # Read foemap
+  assert(read foe map(14, 5) == 0)
+  assert(read foe map(14, 6) == 1)
+  assert(read foe map(-1, 0) == 0)
 
   # Test tile animations
   # An animated tile (water

@@ -4967,6 +4967,8 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 710'--gracefully dismount vehicle
   vehicle_graceful_dismount()
+ CASE 711 '--read foe map
+  scriptret = readblock(foemap, bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), 0)
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

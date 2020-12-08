@@ -736,6 +736,7 @@ define function, begin
 708,getslicelookupname,3,0,0,1 # Get the name of a lookup code (string id, code id, use default name)
 709,getnpcpool,1,0            # given an NPC reference, return its pool number
 710,gracefullydismountvehicle,0 # Dismount a vehicle, but cleanly
+711,readfoemap,2,0,0          # Read a formation set (0-255) from the foe map (x, y)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

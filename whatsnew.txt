@@ -48,6 +48,7 @@ December ? 2020 [Hróðvitnir]
       "alter npc", "npc reference", "npc copy count", "change npc id",
       "create npc", "read npc" [James]
     * "gracefully dismount vehicle" [James]
+    * "read foemap" [Ralph]
 
   *** Changes
     * NPCpush:vertical and NPCpush:horizontal script constants were swapped with
