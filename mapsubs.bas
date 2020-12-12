@@ -154,6 +154,7 @@ DECLARE SUB verify_map_size (st as MapEditState)
 DECLARE SUB fix_tilemaps(map as MapData)
 DECLARE SUB mapedit_loadmap (st as MapEditState, mapnum as integer)
 DECLARE SUB mapedit_reloadglobalnpcs (st as MapEditState, mapnum as integer)
+DECLARE SUB mapedit_sanity_check_npc_instances (st as MapEditState)
 DECLARE SUB mapedit_load_tilesets (st as MapEditState)
 DECLARE SUB mapedit_savemap (st as MapEditState)
 DECLARE SUB new_blank_map (st as MapEditState)
@@ -4121,6 +4122,28 @@ SUB mapedit_reloadglobalnpcs (st as MapEditState, mapnum as integer)
  ELSE
   REDIM st.global_npc_def(0)
  END IF
+ mapedit_sanity_check_npc_instances st
+END SUB
+
+SUB mapedit_sanity_check_npc_instances (st as MapEditState)
+ FOR i as integer = 0 TO UBOUND(st.map.npc)
+  IF st.map.npc(i).id <> 0 THEN
+   DIM id as integer = ABS(st.map.npc(i).id) - 1
+   DIM pool_id as integer = st.map.npc(i).pool
+   SELECT CASE pool_id
+    CASE 0 '--Local NPC
+     IF id > UBOUND(st.map.npc_def) THEN
+      debug "Local NPC ID " & id & " in instance slot" & i & " is out of range (" & UBOUND(st.map.npc_def) & ") culling it."
+      st.map.npc(i).id = 0
+     END IF
+    CASE 1 '--Global NPC
+     IF id > UBOUND(st.global_npc_def) THEN
+      debug "Global NPC ID " & id & " in instance slot" & i & " is out of range (" & UBOUND(st.global_npc_def) & ") culling it."
+      st.map.npc(i).id = 0
+     END IF
+   END SELECT 
+  END IF
+ NEXT i
 END SUB
 
 SUB mapedit_savemap (st as MapEditState)
