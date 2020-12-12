@@ -153,6 +153,7 @@ DECLARE SUB update_tilepicker(st as MapEditState)
 DECLARE SUB verify_map_size (st as MapEditState)
 DECLARE SUB fix_tilemaps(map as MapData)
 DECLARE SUB mapedit_loadmap (st as MapEditState, mapnum as integer)
+DECLARE SUB mapedit_reloadglobalnpcs (st as MapEditState, mapnum as integer)
 DECLARE SUB mapedit_load_tilesets (st as MapEditState)
 DECLARE SUB mapedit_savemap (st as MapEditState)
 DECLARE SUB new_blank_map (st as MapEditState)
@@ -767,7 +768,8 @@ DO
    CASE 9
     'This may delete NPC instances, and write npc definitions to disk
     global_npcdef_editor()
-    'Reload NPC graphics after we exit the editor
+    'Reload NPC definitions and graphics after we exit the editor
+    mapedit_reloadglobalnpcs st, mapnum
     load_npc_graphics st.global_npc_def(), st.npc_imgs(1).img()
    CASE 10 TO 12  'Place NPCs, Foemap, Zonemap
     st.seteditmode = mstate.pt - 7
@@ -4110,6 +4112,10 @@ SUB mapedit_loadmap (st as MapEditState, mapnum as integer)
  IF LEN(zinfo->name) = 0 THEN zinfo->name = "One-Way walls (exit only)"
  
  'Also load the global NPC definitions
+ mapedit_reloadglobalnpcs st, mapnum
+END SUB
+
+SUB mapedit_reloadglobalnpcs (st as MapEditState, mapnum as integer)
  IF isfile(global_npcdef_filename(1)) THEN
   LoadNPCD global_npcdef_filename(1), st.global_npc_def()
  ELSE
