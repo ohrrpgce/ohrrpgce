@@ -1,7 +1,5 @@
 WHAT IS NEW?
 
-test edit to trigger commit mail
-
 December ? 2020 [Hróðvitnir]
 
   *** New Features
