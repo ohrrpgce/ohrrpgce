@@ -232,7 +232,14 @@ SUB LoadNPCL(file as string, dat() as NPCInst)
     dat(i).wtog = ReadShort(f,-1)
   NEXT
   FOR i = 0 to 299
-    dat(i).pool = ReadShort(f,-1)
+    'Check NPC pool number as a precaution against corruption and future rpg files
+    DIM pool_id as integer = ReadShort(f,-1)
+    IF pool_id < 0 ORELSE pool_id > 1 THEN
+      debug "Invalid pool_id " & pool_id & " for NPC instance " & i & " in npc location file " & file
+      pool_id = 0
+      dat(i).id = 0 'Also clear the ID
+    END IF
+    dat(i).pool = pool_id
   NEXT
   CLOSE #f
 END SUB
