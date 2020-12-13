@@ -4154,10 +4154,7 @@ END SUB
 SUB saveenemydata (enemy as EnemyDef, byval index as integer, byval altfile as bool = NO)
  DIM buf(dimbinsize(binDT1)) as integer
  WITH enemy
-  buf(0) = LEN(.name)
-  FOR i as integer = 1 TO LEN(.name)
-   buf(i) = ASC(MID(.name, i, 1))
-  NEXT i
+  writebadbinstring(.name, buf(), 0, 16)
   buf(17) = .steal.thievability
   buf(18) = .steal.item
   buf(19) = .steal.item_rate

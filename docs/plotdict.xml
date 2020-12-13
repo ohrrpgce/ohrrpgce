@@ -4009,7 +4009,15 @@ end</example>
 		<command id="getenemyname">
 			<canon>get enemy name (enemyid, stringid)</canon>
 			<shortname>get enemy name</shortname>
-			<description>Lets you use the enemy name in a string. The first argument is the number of the enemy you want to get the name from, second argument is the number of the string that you want to store the name of the enemy.</description>
+			<description>
+				Put the name of an enemy in a string.
+				<p>enemyid</p> is the number of the enemy
+				(you can use a constant like <tt>enemy: skeleton</tt>,
+				and <p>stringid</p> is the number of the string in which to store the name of the enemy.
+				<warn>
+					The arguments are the opposite order to every other "get ... name" command! Whoops!
+				</warn>
+			</description>
 			<seealso>
 				<ref>setenemyname</ref>
 			</seealso>
@@ -4017,7 +4025,17 @@ end</example>
 		<command id="setenemyname">
 			<canon>set enemy name (enemyid, stringid)</canon>
 			<shortname>set enemy name</shortname>
-			<description>Lets you set the enemy name from a string, the string length cannot be more then 16 characters, if it is more then 16 the name will be truncated.  The first argument is the number of the enemy's name you want to change, second argument is the number of the string that you supply the name of the enemy from.<note>Enemy name changes are temporary. They are not saved in the game save.</note></description>
+			<description>
+				Lets you change an enemy's name from a string.
+				The string length cannot be more then 16 characters, if it is more then 16 the name will be truncated.
+				<lb/>
+				<p>enemyid</p> is the number of the enemy
+				(you can use a constant like <tt>enemy: skeleton</tt>,
+				and <p>stringid</p> is the number of the string that you supply the name of the enemy from.
+				<note>
+					Enemy name changes are temporary. They are not saved in saved games.
+				</note>
+			</description>
 			<seealso>
 				<ref>getenemyname</ref>
 			</seealso>

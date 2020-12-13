@@ -3457,6 +3457,13 @@ script, enemy tests, begin
   set enemy name(enemy:Data Read Test, 2)
   get enemy name(enemy:Data Read Test, 1)
   assert(string compare(1, 2))
+  # Length limit is currently 16, so check at least first 16 chars saved
+  $2 = "SeenGoldDuckUponHigh"
+  set enemy name(enemy:Data Read Test, 2)
+  get enemy name(enemy:Data Read Test, 1)
+  trim string(1, 1, 16)
+  trim string(2, 1, 16)
+  assert(string compare(1, 2))
 
   # Stats
   assert(get enemy stat(enemy:Data Read Test, stat:HP) == 13)

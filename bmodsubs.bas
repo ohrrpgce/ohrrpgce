@@ -1832,7 +1832,7 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
  IF formdata.slots(slot).id >= 0 THEN '-- if this slot is occupied
 
   WITH bspr
-   loadenemydata .enemy, formdata.slots(slot).id, -1
+   loadenemydata .enemy, formdata.slots(slot).id, YES
 
    setup_non_volatile_enemy_state bspr
    reset_enemy_state bspr
@@ -1959,7 +1959,7 @@ SUB changefoe(bat as BattleState, byval slot as integer, transmog as TransmogDat
  WITH bspr
   BUG_IF(.sl = NULL, "foe not loaded")
 
-  loadenemydata .enemy, formdata.slots(slot).id, -1
+  loadenemydata .enemy, formdata.slots(slot).id, YES
 
   setup_non_volatile_enemy_state bspr
   reset_enemy_state bspr

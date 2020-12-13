@@ -195,6 +195,7 @@ DECLARE SUB dump_integer_array_as_hex (arraydim as string, byval start as uinteg
 DECLARE FUNCTION readattackname (byval index as integer) as string
 DECLARE FUNCTION readattackcaption (byval index as integer) as string
 DECLARE FUNCTION readenemyname (byval index as integer) as string
+DECLARE SUB writeenemyname (byval index as integer, newname as string)
 DECLARE FUNCTION readitemname (byval index as integer) as string
 DECLARE FUNCTION readitemdescription (byval index as integer) as string
 DECLARE FUNCTION readshopname (byval shopnum as integer) as string

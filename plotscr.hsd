@@ -737,6 +737,8 @@ define function, begin
 709,getnpcpool,1,0            # given an NPC reference, return its pool number
 710,gracefullydismountvehicle,0 # Dismount a vehicle, but cleanly
 711,readfoemap,2,0,0          # Read a formation set (0-255) from the foe map (x, y)
+712,getenemyname,2,0,0        # Get enemy name (enemyid, stringid)
+713,setenemyname,2,0,0        # Change the name of an enemy (enemyid, stringid)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
@@ -1073,13 +1075,7 @@ end
 #--------------------------------------------------------------------------
 #read/write enemy wrappers
 
-script,getenemyname,hsd:enemyID,hsd:stringID,begin
-  variable(hsd:t)
-  clearstring(hsd:stringID)
-  for (hsd:t,1,readenemydata(hsd:enemyID,0)) do(
-    appendascii(hsd:stringID,readenemydata(hsd:enemyID,hsd:t))
-  end
-end
+#getenemyname and setenemyname used to be scripts here
 
 script,getenemystat,hsd:enemyID,hsd:stat,begin
   return(readenemydata(hsd:enemyID,hsd:stat+62))
@@ -1087,15 +1083,6 @@ end
 
 script,setenemystat,hsd:enemyID,hsd:stat,hsd:value,begin
   writeenemydata(hsd:enemyID,hsd:stat+62,hsd:value)
-end
-
-script,setenemyname,hsd:enemyID,hsd:stringID,begin
-  variable(hsd:t,hsd:t2)
-  if(stringlength(hsd:stringID)>=16) then (hsd:t2:=16) else (hsd:t2:=stringlength(hsd:stringID))
-  writeenemydata(hsd:enemyID,0,hsd:t2)
-  for(hsd:t,1,hsd:t2) do (
-    writeenemydata(hsd:enemyID,hsd:t,asciifromstring(hsd:stringID,hsd:t))
-  )
 end
 
 #get/set enemy appearance are now simply wrappers. too much confusion to remove them now

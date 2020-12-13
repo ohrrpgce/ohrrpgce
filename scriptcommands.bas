@@ -2036,6 +2036,8 @@ SUB script_functions(byval cmdid as integer)
   'prevent further damage
   'Note: elemental/enemytype bits no longer exist (should still be able to read them
   'from old games, though)
+  'Note: this used to be used by "get enemy name" script to read names, could become
+  'a problem when the name storage changes
   IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") AND bound_arg(retvals(1), 0, 106, "data index", , serrBadOp) THEN
    scriptret = ReadShort(tmpdir & "dt1.tmp", retvals(0) * getbinsize(binDT1) + retvals(1) * 2 + 1)
   END IF
@@ -2044,6 +2046,8 @@ SUB script_functions(byval cmdid as integer)
   '106 was the largest used offset until very recently, so we'll limit it there to
   'prevent further damage
   'Note: writing elemental/enemytype bits no longer works
+  'Note: this used to be used by "set enemy name" script to write names, could become
+  'a problem when the name storage changes
   IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") AND bound_arg(retvals(1), 0, 106, "data index", , serrBadOp) THEN
    'Show an error if out of range, but be lenient and continue anyway, capping
    'stats (and other data...) to 32767
@@ -4969,6 +4973,20 @@ SUB script_functions(byval cmdid as integer)
   vehicle_graceful_dismount()
  CASE 711 '--read foe map
   scriptret = readblock(foemap, bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), 0)
+ CASE 712 '--get enemy name (enemy, stringid)
+  IF valid_plotstr(retvals(1)) THEN
+   WITH plotstr(retvals(1))
+    IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") THEN
+     .s = readenemyname(retvals(0))
+    ELSE
+     .s = ""
+    END IF
+   END WITH
+  END IF
+ CASE 713 '--set enemy name (enemy, stringid)
+  IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") ANDALSO valid_plotstr(retvals(1)) THEN
+   writeenemyname retvals(0), plotstr(retvals(1)).s
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
