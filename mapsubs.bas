@@ -76,7 +76,7 @@ DECLARE FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair,
 
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (st as MapEditState, npcdata as NPCType)
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (map as MapData, npcdef_filename as string, npc_img() as GraphicPair, npcdata as NPCType)
-DECLARE SUB npcdef_editor (map as MapData, npcdef_filename as string)
+DECLARE SUB npcdef_editor (map as MapData, npcdef_filename as string, byval is_global as bool=NO)
 DECLARE SUB global_npcdef_editor ()
 DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer, byval pool_id as integer) as integer
 DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4, thinggrabber_hint as bool = NO)
@@ -4133,12 +4133,12 @@ SUB mapedit_sanity_check_npc_instances (st as MapEditState)
    SELECT CASE pool_id
     CASE 0 '--Local NPC
      IF id > UBOUND(st.map.npc_def) THEN
-      debug "Local NPC ID " & id & " in instance slot" & i & " is out of range (" & UBOUND(st.map.npc_def) & ") culling it."
+      debug "Local NPC ID " & id & " in instance slot " & i & " is out of range (" & UBOUND(st.map.npc_def) & ") culling it."
       st.map.npc(i).id = 0
      END IF
     CASE 1 '--Global NPC
      IF id > UBOUND(st.global_npc_def) THEN
-      debug "Global NPC ID " & id & " in instance slot" & i & " is out of range (" & UBOUND(st.global_npc_def) & ") culling it."
+      debug "Global NPC ID " & id & " in instance slot " & i & " is out of range (" & UBOUND(st.global_npc_def) & ") culling it."
       st.map.npc(i).id = 0
      END IF
    END SELECT 
@@ -6602,12 +6602,13 @@ END SUB
 
 '----------------------------- Toplevel NPC Editor ----------------------------
 
-SUB handle_npc_def_delete (npc() as NPCType, byval id as NPCTypeID, npc_insts() as NPCInst)
+SUB handle_npc_def_delete (npc() as NPCType, byval id as NPCTypeID, npc_insts() as NPCInst, byval is_global as bool=NO)
 
  '--Count number of copies of this NPC
  DIM as integer uses = 0
  FOR i as integer = 0 to UBOUND(npc_insts)
-  IF npc_insts(i).id = id + 1 THEN uses += 1
+  'Only count local instances
+  IF npc_insts(i).id = id + 1 ANDALSO npc_insts(i).pool = 0 THEN uses += 1
  NEXT
 
  IF uses > 0 THEN
@@ -6617,6 +6618,11 @@ SUB handle_npc_def_delete (npc() as NPCType, byval id as NPCTypeID, npc_insts() 
   FOR i as integer = 0 to UBOUND(npc_insts)
    IF npc_insts(i).id = id + 1 THEN npc_insts(i).id = 0
   NEXT
+ END IF
+ 
+ IF is_global THEN
+  'Global uses will never be counted above, we don't attempt to count them, just give a general warning
+  IF yesno("This is a Global NPC ID. If it is used on any maps, those instances will be affected. Are you sure you want to delete them?", NO, NO) = NO THEN EXIT SUB
  END IF
 
  '--Wiping a definition clear, or completely deleting it?
@@ -6644,12 +6650,12 @@ SUB global_npcdef_editor ()
  IF isfile(npcdef_filename) THEN
   LoadNPCD npcdef_filename, dummy_map.npc_def()
  END IF
- npcdef_editor dummy_map, npcdef_filename
+ npcdef_editor dummy_map, npcdef_filename, YES
  SaveNPCD npcdef_filename, dummy_map.npc_def()
 END SUB
 
 'This is the top-level NPC editor menu (displays a list of NPCs)
-SUB npcdef_editor (map as MapData, npcdef_filename as string)
+SUB npcdef_editor (map as MapData, npcdef_filename as string, byval is_global as bool=NO)
 
 DIM npc_img() as GraphicPair
 load_npc_graphics map.npc_def(), npc_img()
@@ -6706,7 +6712,7 @@ DO
  END IF
  IF keyval(scDelete) > 1 THEN
   '--This updates arrays, but not state.pt
-  handle_npc_def_delete map.npc_def(), state.pt, map.npc()
+  handle_npc_def_delete map.npc_def(), state.pt, map.npc(), is_global
   IF state.pt > UBOUND(map.npc_def) THEN
    '--Deleted last NPC def
    state.pt = UBOUND(map.npc_def)
@@ -6767,7 +6773,7 @@ DO
    printstr "Previous Menu", 0, y + 5, dpage
   ELSEIF i = state.last THEN
    '--Add new NPC option
-   printstr "Add new NPC", 0, y + 5, dpage
+   printstr "Add new " & IIF(is_global, "Global ", "") & "NPC", 0, y + 5, dpage
   ELSE
    '--An NPC
    printstr "" & i, 0, y + 5, dpage
