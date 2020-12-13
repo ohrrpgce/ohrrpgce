@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-12-07">
+<plotscript version="wip" datecode="2020-12-09">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -7655,7 +7655,7 @@ end
 			</seealso>
 		</command>
 
-		<section title="Type-specific iteration commands">
+		<section title="Type-specific Iteration Commands">
 
 		<command id="firstchildoftype">
 			<canon>first child of type(handle, type)</canon>
@@ -7842,7 +7842,7 @@ end
 			</description>
 		</command>
 
-		</section>	        <!-- Type-specific iteration commands-->
+		</section>	        <!-- Type-specific Iteration Commands-->
 
 		</section>		<!-- Moving Around the Slice Tree-->
 
@@ -9748,7 +9748,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 			</seealso>
 		</command>
 
-		<section title="Tilemap and Wallmap">
+		<section title="Tilemap, Wallmap and Foemap">
 		<command id="readmapblock">
 			<canon>read map block (x, y, layer)</canon>
 			<shortname>read map block</shortname>
@@ -9884,7 +9884,7 @@ write pass block(15,3,none)
 		</command>
 		</section>		<!--Tile Animations-->
 
-		<section title="Wall checking">
+		<section title="Wall Checking">
 
 		<reference ref="readpassblock" />
 		<reference ref="checkherowall" />
@@ -10027,9 +10027,9 @@ end</example>
 				<ref>findcollidingslice</ref>
 			</seealso>
 		</command>
-		</section>		<!--Wall checking-->
+		</section>		<!--Wall Checking-->
 
-		</section>		<!--Tilemap and Wallmap-->
+		</section>		<!--Tilemap, Wallmap and Foemap-->
 
 
 		<section title="Zonemaps">

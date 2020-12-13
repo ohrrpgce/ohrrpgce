@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2020-12-07)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2020-12-09)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -481,7 +481,7 @@ function toggleContent(target) {
 <a href="#Moving%20Around%20the%20Slice%20Tree">Moving Around the Slice Tree</a><br>
 		<ul>
 		<li>
-<a href="#Type-specific%20iteration%20commands">Type-specific iteration commands</a><br>
+<a href="#Type-specific%20Iteration%20Commands">Type-specific Iteration Commands</a><br>
 		<ul></ul>
 </li>
 </ul>
@@ -557,14 +557,14 @@ function toggleContent(target) {
 <a href="#Tweaking%20Maps">Tweaking Maps</a><br>
 		<ul>
 		<li>
-<a href="#Tilemap%20and%20Wallmap">Tilemap and Wallmap</a><br>
+<a href="#Tilemap,%20Wallmap%20and%20Foemap">Tilemap, Wallmap and Foemap</a><br>
 		<ul>
 		<li>
 <a href="#Tile%20Animations">Tile Animations</a><br>
 		<ul></ul>
 </li>
 		<li>
-<a href="#Wall%20checking">Wall checking</a><br>
+<a href="#Wall%20Checking">Wall Checking</a><br>
 		<ul></ul>
 </li>
 </ul>
@@ -1181,6 +1181,7 @@ function toggleContent(target) {
 		<a href="#about-readattackname">read attack name (ID, attack)</a><br>
 		<a href="#about-readcolor">read color (index, element)</a><br>
 		<a href="#about-readenemydata">read enemy data (enemyid, data)</a><br>
+		<a href="#about-readfoemap">read foemap (x, y)</a><br>
 		<a href="#about-readglobal">read global (id)</a><br>
 		<a href="#about-readmapblock">read map block (x, y, layer)</a><br>
 		<a href="#about-readnpc">read NPC (who, NPCstat, pool)</a><br>
@@ -8311,7 +8312,8 @@ end
 			Returns the last formation fought. If the player hasn't fought any formations yet (since starting or loading the game), it returns -1.
 			
 			
-			
+			<div class="seealso">See also: <ul><li><a href="#about-readfoemap" class="ref">read foemap</a></li></ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -8364,7 +8366,9 @@ end
 <a href="#about-formationsetfrequency" class="ref">formation set frequency</a>, </li>
 <li>
 <a href="#about-getbattlecountdown" class="ref">get battle countdown</a>, </li>
-<li><a href="#about-setbattlecountdown" class="ref">set battle countdown</a></li>
+<li>
+<a href="#about-setbattlecountdown" class="ref">set battle countdown</a>, </li>
+<li><a href="#about-readfoemap" class="ref">read foemap</a></li>
 </ul>
 </div>
 		</p>
@@ -9434,22 +9438,24 @@ show string(0)</pre>
 				<h4>trim string (ID)</h4>
 <p>
 			
-				Cuts a string to the specified substring, OR removes blank space from the beginning and end of the string.
-				<span class="param">ID</span> is the string you want to be cut.
-				If you wish to cut <span class="param">ID</span> to a certain length, you must specify <span class="param">start</span> and <span class="param">length</span>.
+				Cuts a string to the specified substring (if you specify <span class="param">start</span> and <span class="param">length</span>),
+				OR removes all whitespace (spaces, tabs and newlines) from the beginning and end of the string
+				(if you only provide <span class="param">ID</span>).
+				<span class="param">ID</span> is the string you want to trim.
 				<br>
 				<span class="param">start</span> is the position at which you want the new string to start,
 				anything to the left of this will be deleted from the string.
-				Pass <span class="code">1</span> if you don't want to cut anything from the start, and just want to shorten the string.
+				Pass <span class="code">1</span> if you don't want to cut anything from the start but just want to shorten the string.
+				If <span class="code">start</span> is past the end of the string, the string is blanked (this isn't an error).
 				<br>
 				<span class="param">length</span> is the size of the string you want,
 				anything to the right of <span class="code">start+length</span> will be deleted.
-				It's not an error if <span class="code">start+length</span> is beyond the end of the string
+				It's not an error if <span class="code">start+length</span> is beyond the end of the string or if <span class="code">length &lt;= 0</span>.
 				<br>
-				If you only provide <span class="param">ID</span>, <span class="code">trim string</span> will trim all whitespace (spaces) from the beginning and end of the string.
 			
 			
-			<pre>$1 = "  this silly example "
+			<pre>$1 = "  this silly example \n "
+# \n is the newline character, if you remove the trimstring(1) now you'll see the text is two lines high
 trim string(1)
 show string(1)  # Shows "this silly example"
 wait(30)
@@ -11461,7 +11467,7 @@ set menu on close script(m, @my menu exit handler)
 </ul>
 <ul>
 		<li>
-<a href="#Type-specific%20iteration%20commands">Type-specific iteration commands</a><br>
+<a href="#Type-specific%20Iteration%20Commands">Type-specific Iteration Commands</a><br>
 		<ul class="content-shown">
 		<a href="#about-firstchildoftype">first child of type(handle, type)</a><br>
 		<a href="#about-nextsiblingoftype">next sibling of type (handle, type)</a><br>
@@ -13779,7 +13785,7 @@ end
 </div>
 		<div class="command">
 		<h4>move slice with wallchecking (sl, relative x, relative y, friction%)</h4>
-		<p><a href="#about-moveslicewithwallchecking">Documented in the Wall checking section.</a></p>
+		<p><a href="#about-moveslicewithwallchecking">Documented in the Wall Checking section.</a></p>
 		</div>
 		<hr>
 		</div>
@@ -13791,7 +13797,7 @@ end
 		<p></p>
 <ul>
 		<li>
-<a href="#Type-specific%20iteration%20commands">Type-specific iteration commands</a><br>
+<a href="#Type-specific%20Iteration%20Commands">Type-specific Iteration Commands</a><br>
 		<ul></ul>
 </li>
 </ul>
@@ -13990,11 +13996,11 @@ end
 		<hr>
 		</div>
 		<div class="subsection">
-<a name="Type-specific%20iteration%20commands"></a>
+<a name="Type-specific%20Iteration%20Commands"></a>
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
 			<a href="#Moving%20Around%20the%20Slice%20Tree">Moving Around the Slice Tree</a> →
-			</span>Type-specific iteration commands</h3>
+			</span>Type-specific Iteration Commands</h3>
 		<p></p>
 <ul></ul>
 		<div class="command">
@@ -16977,11 +16983,11 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 </div>
 		<div class="command">
 		<h4>move slice with wallchecking (sl, relative x, relative y, friction%)</h4>
-		<p><a href="#about-moveslicewithwallchecking">Documented in the Wall checking section.</a></p>
+		<p><a href="#about-moveslicewithwallchecking">Documented in the Wall Checking section.</a></p>
 		</div>
 		<div class="command">
 		<h4>check wall collision x (x, y, width, height, relative x, relative y, friction%)</h4>
-		<p><a href="#about-checkwallcollisionxy">Documented in the Wall checking section.</a></p>
+		<p><a href="#about-checkwallcollisionxy">Documented in the Wall Checking section.</a></p>
 		</div>
 		<hr>
 		</div>
@@ -17198,7 +17204,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 		<a href="#about-changetileset">change tileset (tileset, layer)</a><br>
 </div>
 		<li>
-<a href="#Tilemap%20and%20Wallmap">Tilemap and Wallmap</a><br>
+<a href="#Tilemap,%20Wallmap%20and%20Foemap">Tilemap, Wallmap and Foemap</a><br>
 		<ul class="content-shown">
 		<a href="#about-readmapblock">read map block (x, y, layer)</a><br>
 		<a href="#about-writemapblock">write map block (x, y, value, layer)</a><br>
@@ -17206,6 +17212,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 		<a href="#about-writewallbit">write wall bit (x, y, bit, value)</a><br>
 		<a href="#about-readpassblock">read pass block (x, y)</a><br>
 		<a href="#about-writepassblock">write pass block (x,y,value)</a><br>
+		<a href="#about-readfoemap">read foemap (x, y)</a><br>
 </ul>
 <ul>
 		<li>
@@ -17219,7 +17226,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 <ul></ul>
 </li>
 		<li>
-<a href="#Wall%20checking">Wall checking</a><br>
+<a href="#Wall%20Checking">Wall Checking</a><br>
 		<ul class="content-shown">
 		<a href="#about-checkwallcollisionxy">check wall collision x (x, y, width, height, relative x, relative y, friction%)</a><br>
 		<a href="#about-moveslicewithwallchecking">move slice with wallchecking (sl, relative x, relative y, friction%)</a><br>
@@ -17378,10 +17385,10 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 		<hr>
 		</div>
 		<div class="subsection">
-<a name="Tilemap%20and%20Wallmap"></a>
+<a name="Tilemap,%20Wallmap%20and%20Foemap"></a>
 		<h3>
 <span class="backlink"><a href="#Tweaking%20Maps">Tweaking Maps</a> →
-			</span>Tilemap and Wallmap</h3>
+			</span>Tilemap, Wallmap and Foemap</h3>
 		<p></p>
 <ul>
 		<li>
@@ -17389,7 +17396,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 		<ul></ul>
 </li>
 		<li>
-<a href="#Wall%20checking">Wall checking</a><br>
+<a href="#Wall%20Checking">Wall Checking</a><br>
 		<ul></ul>
 </li>
 </ul>
@@ -17503,13 +17510,28 @@ write pass block(15,3,none)
 </div>
 		</p>
 </div>
+		<div class="command">
+			<a name="about-readfoemap"></a>
+				<h4>read foemap (x, y)</h4>
+<p>
+			
+				Reads and returns a formation set number (which is a value 0-255) from the foemap at tile position <span class="param">x</span>,<span class="param">y</span>.
+				The foemap is used to trigger random battles.
+				0 means no formation set at that position.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getbattlecountdown" class="ref">get battle countdown</a></li></ul>
+</div>
+		</p>
+</div>
 		<hr>
 		</div>
 		<div class="subsection">
 <a name="Tile%20Animations"></a>
 		<h3>
 <span class="backlink"><a href="#Tweaking%20Maps">Tweaking Maps</a> →
-			<a href="#Tilemap%20and%20Wallmap">Tilemap and Wallmap</a> →
+			<a href="#Tilemap,%20Wallmap%20and%20Foemap">Tilemap, Wallmap and Foemap</a> →
 			</span>Tile Animations</h3>
 		<p></p>
 <ul></ul>
@@ -17564,16 +17586,16 @@ write pass block(15,3,none)
 		<hr>
 		</div>
 		<div class="subsection">
-<a name="Wall%20checking"></a>
+<a name="Wall%20Checking"></a>
 		<h3>
 <span class="backlink"><a href="#Tweaking%20Maps">Tweaking Maps</a> →
-			<a href="#Tilemap%20and%20Wallmap">Tilemap and Wallmap</a> →
-			</span>Wall checking</h3>
+			<a href="#Tilemap,%20Wallmap%20and%20Foemap">Tilemap, Wallmap and Foemap</a> →
+			</span>Wall Checking</h3>
 		<p></p>
 <ul></ul>
 		<div class="command">
 		<h4>read pass block (x, y)</h4>
-		<p><a href="#about-readpassblock">Documented in the Tilemap and Wallmap section.</a></p>
+		<p><a href="#about-readpassblock">Documented in the Tilemap, Wallmap and Foemap section.</a></p>
 		</div>
 		<div class="command">
 		<h4>check hero wall (who,direction)</h4>
@@ -20672,7 +20694,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 896 commands (of which 12 are aliases), 28 constants and 11 definitions of types and other terms in this file.</p>
+<p>Stats: There are 897 commands (of which 12 are aliases), 28 constants and 11 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

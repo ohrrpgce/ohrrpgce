@@ -426,7 +426,17 @@ function toggleContent(target) {
 
 	<xsl:template match="a"><a href="{@href}"><xsl:value-of select="." /></a></xsl:template>
 	<!--Reference (link) to a section-->
-	<xsl:template match="secref"><a href="#{.}" class="ref"><xsl:value-of select="." /></a></xsl:template>
+	<xsl:template match="secref">
+		<xsl:if test='count(//section[@title=current()])=0'>
+			<xsl:message>
+				Broken link to <xsl:value-of select='.' />
+			</xsl:message>
+			<a href="#{.}" class="undef"><xsl:value-of select='.' /></a>
+		</xsl:if>
+		<xsl:if test='count(//section[@title=current()])>0'>
+			<a href="#{.}" class="ref"><xsl:value-of select="." /></a>
+		</xsl:if>
+	</xsl:template>
 	<!--Reference (link) to a <command> -->
 	<xsl:template match="ref" name="ref">
 		<xsl:if test='count(id(.))=0'>
