@@ -876,7 +876,7 @@ FUNCTION describe_npcinst(npcnum as NPCIndex) as string
    IF npc(i).id - 1 = id THEN copynum += 1
   NEXT
 
-  info = "ID `" & id & "`"
+  info = IIF(.pool=1, "Global", "Local") & " ID `" & id & "`"
   IF .id < 0 THEN
    info &= " (DISABLED)"
   ELSE
@@ -977,10 +977,11 @@ SUB npc_debug_display (draw_walls as bool)
      ' Draw the NPC ID and negative NPC reference number (e.g 7 instead of -7)
      DIM col as integer = IIF(.id < 0, uilook(uiSelectedDisabled), uilook(uiText))
      'the numbers can overlap quite badly, try to squeeze them in
-     temp = STR(ABS(.id) - 1)
+     temp = STR(ABS(.id) - 1) & IIF(.pool = 1, "g", "")
      edgeprint MID(temp, 1, 1), where.x, where.y + 3, col, dpage
      edgeprint MID(temp, 2, 1), where.x + 7, where.y + 3, col, dpage
      edgeprint MID(temp, 3, 1), where.x + 14, where.y + 3, col, dpage
+     edgeprint MID(temp, 4, 1), where.x + 21, where.y + 3, col, dpage
      col = uilook(uiDescription)
      temp = STR(i + 1)
      edgeprint MID(temp, 1, 1), where.x, where.y + 11, col, dpage
