@@ -3036,10 +3036,11 @@ sub movemouse (x as integer, y as integer)
 end sub
 
 sub mouserect (xmin as integer, xmax as integer, ymin as integer, ymax as integer)
+	dim norect as bool = (xmin = -1 and xmax = -1 and ymin = -1 and ymax = -1)
 	' Set window title to tell the player about scrolllock to escape mouse-grab
 	' gfx_directx does this itself, including handling scroll lock
 	if gfxbackend = "fb" or gfxbackend = "sdl" then
-		if xmin = -1 and xmax = -1 and ymin = -1 and ymax = -1 then
+		if norect then
 			mouse_grab_requested = NO
 			settemporarywindowtitle remember_title
 		else
@@ -3060,10 +3061,12 @@ sub mouserect (xmin as integer, xmax as integer, ymin as integer, ymax as intege
 	io_mouserect(xmin, xmax, ymin, ymax)
 	GFX_EXIT
 
-	' Don't call io_mousebits to get the new state, since that will cause clicks and movements to get lost,
-	' and is difficult to support in .ohrkeys.
-	mouse_state.x = bound(mouse_state.x, xmin, xmax)
-	mouse_state.y = bound(mouse_state.y, ymin, ymax)
+	if norect = NO then
+		' Don't call io_mousebits to get the new state, since that will cause clicks and movements to get lost,
+		' and is difficult to support in .ohrkeys.
+		mouse_state.x = bound(mouse_state.x, xmin, xmax)
+		mouse_state.y = bound(mouse_state.y, ymin, ymax)
+	end if
 end sub
 
 
