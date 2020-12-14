@@ -4,6 +4,8 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate throug
 
 Use the Left and Right arrow keys to change which enemy you are editing.
 
+Select the <- Enemy ## -> line and press Ctrl-C/V (or Cmd-C/V on Mac) to copy/paste enemies.
+
 You can also hold the ALT key and press Left and Right or type an enemy ID number.
 
 In this menu you can type in a name for your enemy, or press ENTER or SPACE to access the various sub-menus.

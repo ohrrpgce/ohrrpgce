@@ -32,6 +32,8 @@ December ? 2020 [Hróðvitnir]
     * When using gfx_sdl2, gamepads should now work reliably: A is Use, B is
       Cancel, and you can use new joy:button constants like joy:A, joy:LeftStick,
       joy:L2, and for "joystick axis", axis:X, axis:RightY, axis:L2, etc [Ralph]
+    * You can copy/paste enemies and attacks by pressing Ctrl-C, etc, on the
+      <- Enemy/Attack ## -> line [Ralph]
 
    * New Plotscripting Features
     * "set timer args" [Ralph]

@@ -26,6 +26,7 @@
 DECLARE FUNCTION enemy_edit_add_new (recbuf() as integer, preview_box as Slice ptr) as bool
 DECLARE SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, menucapoff() as integer, preview as Slice Ptr, rewards_preview as string, byval EnLimSpawn as integer, byval EnLimAtk as integer, byval EnLimPic as integer)
 DECLARE FUNCTION start_preview_dissolve(preview as Slice ptr, dissolve_type as integer, dissolve_time as integer, dissolve_backwards as bool) as integer
+DECLARE FUNCTION readenemyname OVERLOAD(recbuf() as integer) as string
 DECLARE FUNCTION describe_item_chance(chance as ItemChance) as string
 DECLARE SUB enemy_edit_load(byval recnum as integer, recbuf() as integer, state as MenuState, caption() as string, byval EnCapElemResist as integer)
 DECLARE SUB enemy_edit_pushmenu (state as MenuState, byref lastptr as integer, byref lasttop as integer, byref menudepth as bool)
@@ -128,6 +129,10 @@ NEXT
 
 '--record buffer
 DIM recbuf(dimbinsize(binDT1)) as integer
+
+'Copy/paste buffer
+STATIC copy_recbuf(dimbinsize(binDT1)) as integer
+STATIC have_copy as bool
 
 CONST EnDatName = 0' to 16
 CONST EnDatStealAvail = 17
@@ -771,8 +776,24 @@ DO
   cropafter recindex, gen(genMaxEnemy), game + ".dt1", getbinsize(binDT1)
  END IF
 
+ 'Copy-paste
+ IF workmenu(state.pt) = EnMenuChooseAct THEN
+  IF copy_keychord() THEN
+   a_copy recbuf(), copy_recbuf()
+   have_copy = YES
+   show_overlay_message "Copied enemy", 1.2
+  END IF
+  IF have_copy ANDALSO paste_keychord() THEN
+   IF yesno("Really overwrite this enemy by pasting " & readenemyname(copy_recbuf()) & "?") THEN
+    a_copy copy_recbuf(), recbuf()
+    state.need_update = YES
+   END IF
+  END IF
+ END IF
+
  usemenu state
 
+ 'Change record (possibly anywhere if holding Alt)
  IF workmenu(state.pt) = EnMenuChooseAct OR (keyval(scAlt) > 0 and NOT isStringField(menutype(workmenu(state.pt)))) THEN
   DIM lastindex as integer = recindex
   IF intgrabber_with_addset(recindex, 0, gen(genMaxEnemy), 32767, "enemy") THEN
@@ -970,7 +991,7 @@ DO
  draw_fullscreen_scrollbar state, , vpage
  IF keyval(scAlt) > 0 OR show_name_ticks > 0 THEN 'holding ALT or just pressed TAB
   show_name_ticks = large(0, show_name_ticks - 1)
-  DIM tmpstr as string = readbadbinstring(recbuf(), EnDatName, 15, 0) & " " & recindex
+  DIM tmpstr as string = readenemyname(recbuf()) & " " & recindex
   textcolor uilook(uiText), uilook(uiHighlight)
   printstr tmpstr, pRight, 0, vpage
  END IF
@@ -990,6 +1011,11 @@ DeleteSlice @preview_box
 remember_recindex = recindex
 RETURN recindex
 
+END FUNCTION
+
+'There's another overload of this in common.rbas
+FUNCTION readenemyname(recbuf() as integer) as string
+ RETURN readbadbinstring(recbuf(), 0, 16, 0)
 END FUNCTION
 
 SUB enemy_edit_backmenu (state as MenuState, byval lastptr as integer, byval lasttop as integer, byref menudepth as bool, workmenu() as integer, mainMenu() as integer)

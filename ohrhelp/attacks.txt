@@ -4,6 +4,8 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate throug
 
 Use the Left and Right arrow keys to change which attack you are editing.
 
+Select the <- Attack ## -> line and press Ctrl-C/V (or Cmd-C/V on Mac) to copy/paste attacks.
+
 You can also hold the ALT key and press Left and Right or type an attack ID number.
 
 In this menu you can type a name for your attack, and you can type a description which will be displayed if the attack is used as a spell in a spell list.

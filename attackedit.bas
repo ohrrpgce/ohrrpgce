@@ -21,7 +21,7 @@ DECLARE FUNCTION atk_edit_add_new(recbuf() as integer, preview_box as Slice Ptr)
 DECLARE SUB atk_edit_load_attack(recbuf() as integer, attackid as integer, caption() as string, AtkCapFailConds as integer)
 DECLARE SUB atk_edit_merge_bitsets(recbuf() as integer, tempbuf() as integer)
 DECLARE SUB atk_edit_split_bitsets(recbuf() as integer, tempbuf() as integer)
-DECLARE FUNCTION atk_edit_atkname(recbuf() as integer) as string
+DECLARE FUNCTION readattackname(recbuf() as integer) as string
 DECLARE SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
 DECLARE SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menutype() as integer, caption() as string, menucapoff() as integer, workmenu() as integer, state as MenuState, dmgbit() as string, maskeddmgbit() as string, damagepreview as string)
 DECLARE SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integer, state as MenuState)
@@ -372,6 +372,10 @@ atk_chain_bitset_names(4) = "Invert condition"
 
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
+
+'Copy/paste buffer
+STATIC copy_recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer
+STATIC have_copy as bool
 
 CONST MnuItems = 157
 DIM menu(MnuItems) as string
@@ -1386,6 +1390,21 @@ DO
   END IF
  END IF
 
+ 'Copy-paste
+ IF workmenu(state.pt) = AtkChooseAct THEN
+  IF copy_keychord() THEN
+   a_copy recbuf(), copy_recbuf()
+   have_copy = YES
+   show_overlay_message "Copied attack", 1.2
+  END IF
+  IF have_copy ANDALSO paste_keychord() THEN
+   IF yesno("Really overwrite this attack by pasting " & readattackname(copy_recbuf()) & "?") THEN
+    a_copy copy_recbuf(), recbuf()
+    state.need_update = YES
+   END IF
+  END IF
+ END IF
+
  IF usemenu(state, selectable()) THEN
   state.need_update = YES
  END IF
@@ -1544,7 +1563,7 @@ DO
     END IF
    CASE AtkBitAct
     atk_edit_merge_bitsets recbuf(), buffer()
-    editbitset buffer(), 0, atkbit(), "attack_bitsets", remember_atk_bit, , atk_edit_atkname(recbuf()) & " general bitsets"
+    editbitset buffer(), 0, atkbit(), "attack_bitsets", remember_atk_bit, , readattackname(recbuf()) & " general bitsets"
     atk_edit_split_bitsets recbuf(), buffer()
    CASE AtkDamageBitAct
     'Every time the user toggles a bit editbitset quits immediately, we refresh
@@ -1552,7 +1571,7 @@ DO
     DIM editret as EditBitsetResult
     DO
      atk_edit_merge_bitsets recbuf(), buffer()
-     editret = editbitset(buffer(), 0, maskeddmgbit(), "attack_damage_bitsets", remember_dmg_bit, YES, atk_edit_atkname(recbuf()) & " damage bitsets")
+     editret = editbitset(buffer(), 0, maskeddmgbit(), "attack_damage_bitsets", remember_dmg_bit, YES, readattackname(recbuf()) & " damage bitsets")
      atk_edit_split_bitsets recbuf(), buffer()
      IF editret = edbitPickedBit THEN
       attack_editor_build_damage_menu recbuf(), menu(), menutype(), caption(), menucapoff(), workmenu(), state, dmgbit(), maskeddmgbit(), damagepreview
@@ -1572,7 +1591,7 @@ DO
      'bits 80 - 127
      buffer(2 + i) = recbuf(AtkDatBitsets2 + 5 + i)
     NEXT i
-    editbitset buffer(), 0, elementbit(), "attack_element_bitsets", remember_elmt_bit, , atk_edit_atkname(recbuf()) & " elements"
+    editbitset buffer(), 0, elementbit(), "attack_element_bitsets", remember_elmt_bit, , readattackname(recbuf()) & " elements"
     'split the buffer to the two bitset blocks
     FOR i = 0 TO 1
      recbuf(AtkDatBitsets + i) = buffer(i)
@@ -1709,7 +1728,7 @@ DO
  standardmenu dispmenu(), state, 0, 0, dpage, menuopts
  IF keyval(scAlt) > 0 OR show_name_ticks > 0 THEN 'holding ALT or just tab-flipped, show ID and name
    show_name_ticks = large(0, show_name_ticks - 1)
-   tmpstr = atk_edit_atkname(recbuf()) & " " & recindex
+   tmpstr = readattackname(recbuf()) & " " & recindex
    textcolor uilook(uiText), uilook(uiHighlight)
    printstr tmpstr, pRight, 0, dpage
  END IF
@@ -1823,7 +1842,8 @@ SUB atk_edit_load_attack(recbuf() as integer, attackid as integer, caption() as 
  update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
 END SUB
 
-FUNCTION atk_edit_atkname(recbuf() as integer) as string
+'There's another overload of this in common.rbas
+FUNCTION readattackname(recbuf() as integer) as string
  RETURN readbadbinstring(recbuf(), AtkDatName, 10, 1)
 END FUNCTION
 
