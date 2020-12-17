@@ -955,8 +955,7 @@ IF waitforscript <> 999 THEN
    'Done
    waitforscript = 999
   ELSE
-
-   IF scrat(nowscript).depth > waitfordepth THEN
+   IF nowscript >= 0 ANDALSO scrat(nowscript).depth > waitfordepth THEN
     'We're waiting for some commands to exit.
     EXIT SUB
    ELSE
@@ -967,7 +966,8 @@ IF waitforscript <> 999 THEN
  END IF
 END IF
 
-argn = scrat(nowscript).curargn
+IF nowscript >= 0 THEN argn = scrat(nowscript).curargn
+
 SELECT CASE stepmode
  CASE stependscript
   GOTO breakin
@@ -982,7 +982,7 @@ SELECT CASE stepmode
    ' debug "skipped b " & curcmd->argc & " flow " &  curcmd->kind
    ' EXIT SUB
    'end if
-   IF curcmd->kind = tyflow THEN
+   IF curcmd ANDALSO curcmd->kind = tyflow THEN
     IF curcmd->value = flowif AND argn <> 1 THEN EXIT SUB
     IF curcmd->value = flowfor AND argn <> 4 THEN EXIT SUB
     IF curcmd->value = flowwhile AND argn <> 1 THEN EXIT SUB
@@ -991,6 +991,7 @@ SELECT CASE stepmode
   GOTO breakin
 END SELECT
 
+' Warning: the following EXIT SUBs refer to how control flow previously worked in this SUB
 'IF callspot = 1 THEN 'stnext
 '' IF (mode AND 4) AND curcmd->kind <> tyscript THEN EXIT SUB
 ' 'only used to print off evaluated list of arguments
