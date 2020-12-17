@@ -1009,12 +1009,12 @@ breakin:
 'clear breakpoint bits
 mode = mode AND 3
 stepmode = 0
-scriptwatcher mode, 0
+scriptwatcher mode
 
 END SUB
 
 'The following function is an atrocious mess. Don't worry too much; it'll be totally replaced.
-SUB scriptwatcher (byref mode as integer, byval drawloop as bool)
+SUB scriptwatcher (byref mode as integer, byval drawloop as bool = NO)
 STATIC localsscroll as integer
 STATIC globalsscroll as integer
 STATIC stringsscroll as integer
@@ -1109,31 +1109,17 @@ IF nowscript >= 0 THEN
  END SELECT
 END IF
 
-'Note: the colours here are fairly arbitrary
-rectangle 0, 0, 320, 4, uilook(uiBackground), page
-rectangle 0, 0, (320 / scriptmemMax) * totalscrmem, 2, uilook(uiSelectedItem), page
-rectangle 0, 2, (320 / maxScriptHeap) * scrat(nowscript + 1).heapend, 2, uilook(uiSelectedItem + 1), page
-
-DIM ol as integer = 191
+DIM ol as integer = pBottom  '191
 
 IF mode > 1 AND viewmode = 0 THEN
  IF nowscript = -1 THEN
-  edgeprint "Extended script debug mode: no scripts", 0, ol, uilook(uiDescription), page
+  edgeprint "Script debugger: no scripts", 0, ol, uilook(uiDescription), page
   ol -= 9
  ELSE
   DIM decmpl as string = scriptstate(selectedscript)
   IF LEN(decmpl) > 200 THEN decmpl = "..." & RIGHT(decmpl, 197)
-  FOR i as integer = 0 TO 4
-   edgeprint MID(decmpl, i * 40 + 1, 40), 0, ol - (4 - i) * 9, uilook(uiDescription), page
-  NEXT
-'  FOR i as integer = 5 TO 0 STEP -1
-'   IF LEN(decmpl) > i * 40 THEN
-'    edgeprint MID(decmpl, i * 40 + 1), 0, ol, uilook(uiDescription), page
-'    ol -= 9
-'   END IF
-'  NEXT
+  wrapprint decmpl, 0, ol, uilook(uiDescription), page
  ' edgeprint "Last return value: " & scriptret, 0, ol, uilook(uiDescription), page
- ' ol -= 9
  END IF
 END IF
 

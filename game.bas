@@ -1161,7 +1161,7 @@ SUB displayall()
  IF gam.debug_npc_info > 0 THEN npc_debug_display(gam.debug_npc_info = 2)
  IF gam.debug_textbox_info THEN show_textbox_debug_info
  IF gam.debug_showtags THEN tagdisplay dpage
- IF gam.debug_scripts THEN scriptwatcher gam.debug_scripts, -1
+ IF gam.debug_scripts THEN scriptwatcher gam.debug_scripts, YES
 END SUB
 
 
@@ -4442,6 +4442,7 @@ SUB swap_or_fade_page (byref oldpage as integer, byref newpage as integer)
   setvispage newpage
  END IF
  'This is probably the only "SWAP vpage, dpage" in the whole engine that's actually needed
+ '(Note: scriptwatcher also relies on this alternating vpage/dpage)
  SWAP oldpage, newpage
 END SUB
 

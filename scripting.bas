@@ -1509,7 +1509,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
      slice_editor SliceTable.Root
     CASE 6 'Script debugger
      gam.debug_scripts = 2
-     scriptwatcher gam.debug_scripts, 0 'clean mode, script state view mode
+     scriptwatcher gam.debug_scripts 'clean mode, script state view mode
     CASE 7 'reload scripts
      reload_scripts
      EXIT DO
@@ -1628,7 +1628,7 @@ FUNCTION script_interrupt () as integer
      exitprogram NO, 1
     CASE 4 'script debugger
      gam.debug_scripts = 2
-     scriptwatcher gam.debug_scripts, 0 'clean mode, script state view mode
+     scriptwatcher gam.debug_scripts 'clean mode, script state view mode
      ret = YES
     CASE 5 'reload scripts
      reload_scripts

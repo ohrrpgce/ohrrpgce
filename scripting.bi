@@ -53,7 +53,7 @@ DECLARE FUNCTION script_interrupt () as integer
 DECLARE FUNCTION oldscriptstate_init (index as integer, script as ScriptData ptr) as zstring ptr
 DECLARE SUB scriptinterpreter ()
 DECLARE SUB breakpoint (byref mode as integer, byval callspot as integer)
-DECLARE SUB scriptwatcher (byref mode as integer, byval drawloop as integer)
+DECLARE SUB scriptwatcher (byref mode as integer, byval drawloop as bool = NO)
 DECLARE SUB setScriptArg (byval arg as integer, byval value as integer)
 DECLARE FUNCTION ancestor_script_id(scriptslot as integer, depth as integer) as integer
 
