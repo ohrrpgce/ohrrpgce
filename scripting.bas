@@ -1510,6 +1510,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
     CASE 6 'Script debugger
      gam.debug_scripts = 2
      scriptwatcher gam.debug_scripts 'clean mode, script state view mode
+     EXIT DO
     CASE 7 'reload scripts
      reload_scripts
      EXIT DO
