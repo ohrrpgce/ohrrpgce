@@ -7664,9 +7664,13 @@ end
 			</seealso>
 		</command>
 		<command id="checkparentage">
-			<canon>check parentage (handle, parent handle)</canon>
+			<canon>check parentage (handle, ancestor handle)</canon>
 			<shortname>check parentage</shortname>
-			<description>Checks to see if <p>handle</p> is a child (or grandchild, or great-grandchild, etc...) of <p>parent handle</p>. Returns <ref>true</ref> or <ref>false</ref>.</description>
+			<description>
+				Checks to see if <p>handle</p> is a child (or grandchild, or great-grandchild, etc...) of <p>ancestor handle</p>.
+				Returns <ref>true</ref> or <ref>false</ref>.
+				The result is <tt>false</tt> if <tt>handle == ancestor handle</tt>.
+			</description>
 			<seealso>
 				<ref>parentslice</ref>
 				<ref>setparent</ref>

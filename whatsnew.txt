@@ -99,6 +99,7 @@ December ? 2020 [Hróðvitnir]
     * Zone maps could be saved incorrectly on width-256 and larger maps [Ralph]
     * Poison/regen/mute/stun status icon characters were pointlessly saved in
       save games, so didn't update if you changed them
+    * "check parentage" was completely broken [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"

@@ -968,6 +968,7 @@ Function NextDescendent(desc as Slice ptr, parent as Slice ptr) as Slice ptr
 End Function
 
 'This function returns true if the ancestor slice is a parent or grandparent or great(*) grandparent...
+'Returns NO if sl = ancestor.
 Function IsAncestor(byval sl as Slice ptr, byval ancestor as Slice ptr) as bool
  if sl = 0 THEN debug "IsAncestor null slice": RETURN NO
  dim parent as Slice ptr = sl->parent
@@ -979,6 +980,7 @@ Function IsAncestor(byval sl as Slice ptr, byval ancestor as Slice ptr) as bool
 End Function
 
 'this function ensures that we can't set a slice to be a child of itself (or, a child of a child of itself, etc)
+'TODO: This should be deleted and replaced with IsAncestor
 Function VerifySliceLineage(byval sl as Slice ptr, parent as Slice ptr) as bool
  dim s as Slice ptr
  if sl = 0 then return NO

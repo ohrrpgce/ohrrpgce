@@ -4673,7 +4673,18 @@ script, slice collection tests, begin
   sl := load slice collection(0)
   w
   assert(sl)
+
   assert(parent slice(sl) == sprite layer)  # default parent
+  # Test "check parentage"
+  assert(check parentage(sl, sprite layer) == true)
+  assert(check parentage(sl, sl) == false)  # Defined behaviour
+  assert(check parentage(sprite layer, sl) == false)
+  assert(check parentage(sl, lookup slice(sl:root)) == true)
+  sl2 := create rect
+  assert(check parentage(sl, sl2) == false)
+  assert(check parentage(sl2, sl) == false)
+  free slice(sl2)
+
   assert(slice is rect(sl) == true)
   assert(is filling parent(sl) == false)
   assert(slice x(sl) == -10)

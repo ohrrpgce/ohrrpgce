@@ -2508,7 +2508,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 366 '--check parentage
   IF valid_plotslice(retvals(0)) AND valid_plotslice(retvals(1)) THEN
-   IF verifySliceLineage(plotslices(retvals(0)), plotslices(retvals(1))) THEN
+   IF IsAncestor(plotslices(retvals(0)), plotslices(retvals(1))) THEN
     scriptret = 1
    END IF
   END IF
