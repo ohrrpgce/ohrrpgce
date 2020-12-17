@@ -739,6 +739,7 @@ define function, begin
 711,readfoemap,2,0,0          # Read a formation set (0-255) from the foe map (x, y)
 712,getenemyname,2,0,0        # Get enemy name (enemyid, stringid)
 713,setenemyname,2,0,0        # Change the name of an enemy (enemyid, stringid)
+714,breakpoint,0              # Enter the script debugger
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

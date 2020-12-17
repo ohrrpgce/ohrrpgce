@@ -4987,6 +4987,12 @@ SUB script_functions(byval cmdid as integer)
   IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") ANDALSO valid_plotstr(retvals(1)) THEN
    writeenemyname retvals(0), plotstr(retvals(1)).s
   END IF
+ CASE 714 '--breakpoint
+  stop_fibre_timing
+  IF gam.debug_scripts < 2 THEN gam.debug_scripts = 2
+  scriptwatcher gam.debug_scripts
+  next_interpreter_check_time = TIMER + scriptCheckDelay
+  start_fibre_timing
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

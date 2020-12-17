@@ -11260,7 +11260,7 @@ trace value (hero X (me), hero Y (me))</example>
 		<command id="scripterror">
 			<canon>script error (string id)</canon>
 			<shortname>script error</shortname>
-			<description>Shows an error message, like any other script error. This allows you to open the script debugger. The optional <p>string id</p> argument gives the error message to display.</description>
+			<description>Shows an error message, like any other script error. This allows you to open the script debugger. (Use <ref>breakpoint</ref> to skip the menu straight to the debugger.) The optional <p>string id</p> argument gives the error message to display.</description>
 			<example>if (x &lt; 0 || x &gt;= map width || y &lt; 0 || y &gt;= map height) then (
   $0="Coordinates went off the edge of the map"
   script error(0)
@@ -11269,8 +11269,25 @@ trace value (hero X (me), hero Y (me))</example>
 				<ref>assert</ref>
 				<ref>tracevalue</ref>
 				<ref>debugmenu</ref>
+				<ref>breakpoint</ref>
 			</seealso>
 		</command>
+
+		<command id="breakpoint">
+			<canon>breakpoint</canon>
+			<shortname>breakpoint</shortname>
+			<description>
+				Open the script debugger; this is slightly simpler than using `script error`.
+				You can temporarily add this to a script you're trying to debug
+				if you want to examine its state at a certain point.
+			</description>
+			<seealso>
+				<ref>scripterror</ref>
+				<ref>assert</ref>
+				<ref>tracevalue</ref>
+			</seealso>
+		</command>
+
 		<command id="debugmenu">
 			<canon>debug menu</canon>
 			<shortname>debug menu</shortname>

@@ -50,6 +50,7 @@ December ? 2020 [Hróðvitnir]
       "create npc", "read npc" [James]
     * "gracefully dismount vehicle" [James]
     * "read foemap" [Ralph]
+    * "breakpoint" [Ralph]
 
   *** Changes
     * NPCpush:vertical and NPCpush:horizontal script constants were swapped with
