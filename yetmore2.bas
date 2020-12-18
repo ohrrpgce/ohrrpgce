@@ -873,7 +873,7 @@ FUNCTION describe_npcinst(npcnum as NPCIndex) as string
   'Calculate NPC copy number
   DIM copynum as integer
   FOR i as integer = 0 TO npcnum - 1
-   IF npc(i).id - 1 = id THEN copynum += 1
+   IF npc(i).id - 1 = id ANDALSO npc(i).pool = .pool THEN copynum += 1
   NEXT
 
   info = IIF(.pool=1, "Global", "Local") & " ID `" & id & "`"
