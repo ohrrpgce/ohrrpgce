@@ -816,6 +816,8 @@ END SUB
 
 ' Accessible with F8 if we are editing a game
 SUB Custom_global_menu
+ DIM holdscreen as integer = duplicatepage(getvispage)  'For screenshots
+
  DIM menu as CustomGlobalMenu
  IF editing_a_game THEN
   IF inside_importscripts = NO THEN
@@ -830,6 +832,7 @@ SUB Custom_global_menu
  END IF
  menu.append 2, "Volume"
  menu.append 3, "Macro record/replay (Shft/Ctrl-F11)"
+ menu.append 14, "Screenshot (F12)"
 
  menu.append 12, IIF(recording_gif(), "Stop recording", "Record") & " .gif video (Shft/Ctrl-F12)"
  IF slave_channel <> NULL_CHANNEL ANDALSO recording_gif() = NO THEN
@@ -885,7 +888,10 @@ SUB Custom_global_menu
   toggle_recording_gif
  ELSEIF choice = 13 THEN
   open_document log_dir & *app_log_filename
+ ELSEIF choice = 14 THEN
+  screenshot , holdscreen
  END IF
+ freepage holdscreen
 END SUB
 
 ' This is called after every setkeys unless we're already inside global_setkeys_hook

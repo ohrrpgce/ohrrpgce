@@ -4707,8 +4707,7 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 660 '--save screenshot
-  DIM fname as string = screenshot()
-  show_overlay_message "Saved screenshot " & trimpath(fname), 1.5
+  screenshot
  CASE 661 '--slice is line
   IF valid_plotslice(retvals(0)) THEN
    scriptret = (plotslices(retvals(0))->SliceType = slLine)

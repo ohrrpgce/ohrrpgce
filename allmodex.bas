@@ -8439,34 +8439,44 @@ local sub load_screenshot_settings()
 	use_gfx_screenshot = read_config_bool("gfx.gfx_" & gfxbackend & ".backend_screenshot", YES)
 end sub
 
-'Save a screenshot. fname should NOT include the extension, since the gfx backend can decide that.
-'The page argument is only for internal use from inside setvispage!
+'Save a screenshot.
+'basename: overrides the filename, default to gamename####.ext. Should NOT include the extension,
+'    since the gfx backend can decide that.
+'page: defaults to last setvispage
+'message: if true, announces the file was saved.
 'Returns the filename it was saved to, with extension
-function screenshot (basename as string = "", page as integer = -1) as string
+function screenshot (basename as string = "", page as integer = -1, message as bool = YES) as string
 	if loaded_screenshot_settings = NO then
 		load_screenshot_settings
 	end if
-	if page = -1 then page = getvispage()
 
 	dim ret as string
 	if len(basename) = 0 then
 		basename = next_unused_screenshot_filename()
 	end if
 	'try external first
-	if use_gfx_screenshot = NO ORELSE gfx_screenshot(basename) = 0 then
+	if page <> -1 orelse use_gfx_screenshot = NO orelse gfx_screenshot(basename) = 0 then
 		'otherwise save it ourselves
 		ret = basename & screenshot_format
+		if page = -1 then page = getvispage()
 		frame_export_image(vpages(page), ret, displaypal())
-		return ret
+	else
+		' gfx_screenshot succeeded:
+		' The reason for this for loop is that we don't know what extension the gfx backend
+		' might save the screenshot as; have to search for it.
+		for i as integer = 0 to ubound(screenshot_exts)
+			dim tmp as string = basename & screenshot_exts(i)
+			if isfile(tmp) then
+				ret = tmp
+				exit for
+			end if
+		next
 	end if
-	' The reason for this for loop is that we don't know what extension the gfx backend
-	' might save the screenshot as; have to search for it.
-	for i as integer = 0 to ubound(screenshot_exts)
-		ret = basename & screenshot_exts(i)
-		if isfile(ret) then
-			return ret
-		end if
-	next
+
+	if message then
+		show_overlay_message "Saved screenshot " & trimpath(ret), 1.5
+	end if
+	return ret
 end function
 
 sub bmp_screenshot(basename as string)
@@ -8543,7 +8553,7 @@ local sub snapshot_check(page as integer = -1)
 		if F12bits = 1 then
 			' Take a screenshot, but maybe delete it later
 			shot = tmpdir & get_process_id() & "_tempscreen" & (ubound(backlog) + 1)
-			a_append(backlog(), screenshot(shot, page))
+			a_append(backlog(), screenshot(shot, page, NO))  'message=NO
 			'debug "temp save " & backlog(ubound(backlog))
 		else
 			' Key repeat has kicked in, so move our backlog of screenshots to the visible location.
@@ -8557,7 +8567,7 @@ local sub snapshot_check(page as integer = -1)
 			erase backlog
 
 			' Take the new screenshot
-			dim temp as string = screenshot( , page)
+			dim temp as string = screenshot( , page, NO)  'message=NO
 			'debug "saved " & temp
 			if num_screenshots_taken = 0 then
 				first_screenshot = trimpath(temp)
