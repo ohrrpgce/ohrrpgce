@@ -829,23 +829,28 @@ SUB Custom_global_menu
   'menu.append 10, "Save Game"
  END IF
  menu.append 2, "Volume"
- menu.append 3, "Macro record/replay (Ctrl-F11)"
- menu.append 4, "Zoom 1x"
- menu.append 5, "Zoom 2x"
- menu.append 6, "Zoom 3x"
- menu.append 7, "Zoom 4x"
- menu.append 8, "Switch graphics backend (Ctrl-F7)"
- 'menu.append 9, "Music backend settings"
- IF slave_channel <> NULL_CHANNEL THEN
-  IF recording_gif() THEN
-   menu.append 12, "Stop recording .gif video (Ctrl-F12)"
-  ELSE
-   menu.append 11, "Record combined editor+player .gif"
-  END IF
+ menu.append 3, "Macro record/replay (Shft/Ctrl-F11)"
+
+ menu.append 12, IIF(recording_gif(), "Stop recording", "Record") & " .gif video (Shft/Ctrl-F12)"
+ IF slave_channel <> NULL_CHANNEL ANDALSO recording_gif() = NO THEN
+  menu.append 11, "Record combined editor+player .gif"
  END IF
+
+ 'On Mac, Cmd-1/2/3/4 is handled by keycombos_logic in gfx_sdl and gfx_sdl2
+ FOR zoom as integer = 1 TO 4
+  #IFDEF __FB_DARWIN__
+   menu.append 3 + zoom, "Zoom to " & zoom & "x (Cmd-" & zoom & ")")
+  #ELSE
+   menu.append 3 + zoom, "Zoom to " & zoom & "x"
+  #ENDIF
+ NEXT
+
+ menu.append 8, "Switch graphics backend (Shft/Ctrl-F7)"
+ 'menu.append 9, "Music backend settings"
+
  DIM note as string
  IF num_logged_errors THEN note = ": " & num_logged_errors & " errors" ELSE note = " log"
- menu.append 13, "View c_debug.txt" & note & " (Ctrl-F8)"
+ menu.append 13, "View c_debug.txt" & note & " (Shft/Ctrl-F8)"
 
  DIM choice as integer
  choice = multichoice("Global Editor Options (F9)", menu.items())
@@ -877,7 +882,7 @@ SUB Custom_global_menu
  ELSEIF choice = 11 THEN
   start_recording_combined_gif
  ELSEIF choice = 12 THEN
-  stop_recording_video
+  toggle_recording_gif
  ELSEIF choice = 13 THEN
   open_document log_dir & *app_log_filename
  END IF

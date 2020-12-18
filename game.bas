@@ -4509,12 +4509,17 @@ FUNCTION DebugMenuDef.def(combining_scancode as integer = 0, scancode as integer
  IF menu = NULL THEN
   'Only check keys
   'FIXME: should debug menus check real_keyval instead? But then all the controls within each
-  'debug menu will need changing, not just these.
-  IF combining_scancode THEN
-   IF keyval(combining_scancode) = 0 THEN RETURN NO
-  ELSE
-   IF keyval(scCtrl) > 0 THEN RETURN NO
+  'debug menu will need changing, not just these. Note that most allmodex_controls use real_keyval
+
+  'Check modifier keys
+  IF combining_scancode = 0 THEN
+   IF keyval(scCtrl) > 0 ORELSE keyval(scShift) > 0 THEN RETURN NO
+  ELSEIF combining_scancode = SftCtl THEN
+   IF keyval(scCtrl) = 0 ANDALSO keyval(scShift) = 0 THEN RETURN NO
+  ELSEIF keyval(combining_scancode) = 0 THEN
+   RETURN NO
   END IF
+
   IF scancode = 0 THEN RETURN NO
   RETURN keyval(scancode) AND 4
  ELSEIF LEN(selected_item) THEN
@@ -4542,7 +4547,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  IF txt.showing = NO THEN
   IF dbg.def(      , scF1, "Minimap (F1)") THEN minimap heropos(0)
 
-  IF dbg.def(scCtrl, scF1, "Teleport tool (Ctrl-F1)") THEN
+  IF dbg.def(SftCtl, scF1, "Teleport tool (Shft/Ctrl-F1)") THEN
    IF teleporttool() THEN
     prepare_map
    END IF
@@ -4556,8 +4561,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
    END IF
   END IF
 
-  IF dbg.def(scCtrl, scF2, "Save menu (Ctrl-F2)") THEN
-   clearkey scCtrl
+  IF dbg.def(SftCtl, scF2, "Save menu (Shft/Ctrl-F2)") THEN
    DIM slot as integer = picksave()
    IF slot >= 0 THEN savegame slot
   END IF
@@ -4574,8 +4578,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
    END IF
   END IF
 
-  IF dbg.def(scCtrl, scF3, "Load menu (Ctrl-F3)") THEN
-   clearkey scCtrl
+  IF dbg.def(SftCtl, scF3, "Load menu (Shft/Ctrl-F3)") THEN
    gam.want.loadgame = pickload(NO, YES) + 1  'No New Game option, beep if the menu doesn't display
   END IF
 
@@ -4588,7 +4591,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   gam.debug_scripts = 0
  END IF
 
- IF dbg.def(scCtrl, scF4, "View/edit slice tree (Ctrl-F4)") THEN
+ IF dbg.def(SftCtl, scF4, "View/edit slice tree (Shft/Ctrl-F4)") THEN
   slice_editor SliceTable.Root
  END IF
 
@@ -4606,18 +4609,18 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   gam.debug_camera_pan XOR= YES
  END IF
 
- 'Ctrl+F7 handled in allmodex
- IF dbg.def(      ,     , "Switch graphics backend (Ctrl-F7)") THEN gfx_backend_menu
+ 'Shift/Ctrl+F7 handled in allmodex
+ IF dbg.def(      ,     , "Switch graphics backend (S/C-F7)") THEN gfx_backend_menu
 
  IF dbg.def(      , scF8) THEN debug_menu
  dbg.def(      ,     , "Debug menu (F8)")  'Does nothing, but document F8.
 
- 'Ctrl+F8 handled in allmodex
+ 'Shift/Ctrl+F8 handled in allmodex
  DIM note as string
  IF num_logged_errors THEN note = ": " & num_logged_errors & " errors" ELSE note = " log"
- IF dbg.def(      ,     , "View g_debug.txt" & note & " (Ctrl-F8)") THEN open_document log_dir & *app_log_filename
+ IF dbg.def(      ,     , "View g_debug.txt" & note & " (S/C-F8)") THEN open_document log_dir & *app_log_filename
 
- IF dbg.def(scCtrl, scF9, IIF(scriptprofiling, "Stop", "Start") & " script profiling (Ctrl-F9)") THEN
+ IF dbg.def(SftCtl, scF9, IIF(scriptprofiling, "Stop", "Start") & " script profiling (S/C-F9)") THEN
   scriptprofiling XOR= YES
   IF scriptprofiling THEN
    gam.showtext = "Timings will be printed to g_debug.txt"
@@ -4638,7 +4641,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   gam.debug_showtags = 0
  END IF
 
- IF dbg.def(scCtrl, scF10, "Toggle script logging (Ctrl-F10)") THEN
+ IF dbg.def(SftCtl, scF10, "Toggle script logging (S/C-F10)") THEN
   IF gam.script_log.enabled THEN
    gam.script_log.enabled = NO
    gam.showtext = "Script logging disabled."
@@ -4655,14 +4658,14 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   gam.showtext_ticks = 36
  END IF
 
- 'Ctrl+F11 is handled in allmodex
- IF dbg.def( , , "Macro record/replay menu (Ctrl-F11)") THEN macro_controls
+ 'Shift/Ctrl+F11 is handled in allmodex
+ IF dbg.def( , , "Macro record/replay menu (S/C-F11)") THEN macro_controls
 
  'Screenshotting with F12 is handled in allmodex
  IF dbg.def( , , "Screenshot (F12)") THEN screenshot
 
  'This is also handled in allmodex
- IF dbg.def( , , "Record .gif video (Ctrl-F12)") THEN toggle_recording_gif
+ IF dbg.def( , , "Record .gif video (Shft/Ctrl-F12)") THEN toggle_recording_gif
 
  IF dbg.def( , scPause, "Pause game (Pause)") THEN
   gam.paused XOR= YES
@@ -4706,10 +4709,14 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   gam.showtext_ticks = 60
  END IF
 
- IF dbg.def( , , "Set zoom to 1x") THEN set_scale_factor 1
- IF dbg.def( , , "Set zoom to 2x") THEN set_scale_factor 2
- IF dbg.def( , , "Set zoom to 3x") THEN set_scale_factor 3
- IF dbg.def( , , "Set zoom to 4x") THEN set_scale_factor 4
+ 'On Mac, Cmd-1/2/3/4 is handled by keycombos_logic in gfx_sdl and gfx_sdl2
+ FOR zoom as integer = 1 TO 4
+  #IFDEF __FB_DARWIN__
+   IF dbg.def( , , "Zoom to " & zoom & "x (Cmd-" & zoom & ")") THEN set_scale_factor zoom
+  #ELSE
+   IF dbg.def( , , "Zoom to " & zoom & "x") THEN set_scale_factor zoom
+  #ENDIF
+ NEXT
 
  IF dbg.def( , , "List slices to g_debug.txt") THEN
   debug "----------------Slice Tree Dump---------------"

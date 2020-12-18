@@ -1956,6 +1956,7 @@ end sub
 
 'Erase a keypress event from the keyboard state, and optionally cancel key repeat. Does not affect key-down state.
 'FIXME: have to clear numpad keys too, if remapped!
+'NOTE: clearing scShift/Alt/Ctrl doesn't clear scLeft/RightShift/Alt/Ctrl. That's probably fine.
 sub clearkey(k as KBScancode, clear_key_repeat as bool = YES)
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
 	inputst->kb.keys(k) and= 1
@@ -3229,11 +3230,17 @@ end sub
 'Called from setkeys. This handles keypresses which are global throughout the engine.
 '(Note that backends also have some hooks, especially gfx_sdl.bas for OSX-specific stuff)
 local sub allmodex_controls()
+	dim ctrl as KeyBits = real_keyval(scCtrl)
+	dim shift as KeyBits = real_keyval(scShift)
+	dim ctrlshift as Keybits = ctrl or shift
+
 	'Check to see if the backend has received a request
 	'to close the window (eg. clicking the window frame's X).
 	'This form of input isn't recorded, but the ESCs fired in Custom will be recorded,
 	'so there's no need to check the recorded key state for pageup+pagedown+esc
-	if real_keyval(scPageup) > 0 and real_keyval(scPagedown) > 0 and real_keyval(scEsc) > 1 then closerequest = YES
+	if real_keyval(scPageup) > 0 andalso real_keyval(scPagedown) > 0 andalso real_keyval(scEsc) > 1 then
+		closerequest = YES
+	end if
 
 #ifdef IS_CUSTOM
 	'Fire ESC keypresses to exit every menu
@@ -3251,53 +3258,56 @@ local sub allmodex_controls()
 	end if
 #endif
 
-	' Crash the program! For testing
-	if keyval(scTab) > 0 and keyval(scShift) > 0 and keyval(scF3) > 1 then
-		*cast(integer ptr, &hff) = 42
+	if shift > 0 andalso real_keyval(scTab) > 0 then
+		' Crash the program! For testing
+		if real_keyval(scF3) > 1 then
+			*cast(integer ptr, &hff) = 42
+		end if
+
+		' A breakpoint. If not running under gdb, this will terminate the program
+		if real_keyval(scF4) > 1 then
+			interrupt_self ()
+		end if
+
+		if real_keyval(scF5) > 1 then
+			fatalerror "User hit Tab-Shift-F5"
+		end if
 	end if
 
-	' A breakpoint. If not running under gdb, this will terminate the program
-	if keyval(scTab) > 0 and keyval(scShift) > 0 and keyval(scF4) > 1 then
-		interrupt_self ()
-	end if
-
-	if keyval(scTab) > 0 and keyval(scShift) > 0 and keyval(scF5) > 1 then
-		fatalerror "User hit Tab-Shift-F5"
-	end if
-
-	if real_keyval(scCtrl) > 0 andalso (real_keyval(scF7) and 4) then
+	if ctrlshift > 0 andalso (real_keyval(scF7) and 4) then
 		gfx_backend_menu
 	end if
 
 	'Ctrl-Shift-N: toggle numpad remapping
-	if real_keyval(scCtrl) > 0 andalso real_keyval(scShift) > 0 andalso (real_keyval(scN) and 4) then
+	if ctrl > 0 andalso shift > 0 andalso (real_keyval(scN) and 4) then
 		remap_numpad xor= YES
 		show_overlay_message "Numpad remapping " & onoroff(remap_numpad xor YES)
 	end if
 
-	if real_keyval(scCtrl) > 0 andalso (real_keyval(scF8) and 4) then
+	'Ctrl/Shift-F8: Open debug log
+	if ctrlshift > 0 andalso (real_keyval(scF8) and 4) then
 		open_document log_dir & *app_log_filename
 	end if
 
 	' F12 screenshots are handled in setvispage, not here.
 
-	' Ctrl+F12 to start/stop recording a .gif
-	if real_keyval(scCtrl) > 0 andalso (real_keyval(scF12) and 4) then
+	' Ctrl/Shift+F12 to start/stop recording a .gif
+	if ctrlshift > 0 andalso (real_keyval(scF12) and 4) then
 		toggle_recording_gif
 	end if
 
-	if real_keyval(scCtrl) > 0 andalso real_keyval(scTilde) and 4 then
+	if ctrl > 0 andalso real_keyval(scTilde) and 4 then
 		toggle_fps_display
 	end if
 
 	fps_multiplier = base_fps_multiplier
-	if real_keyval(scShift) > 0 and real_keyval(scTab) > 0 then  'speed up while held down
+	if shift > 0 and real_keyval(scTab) > 0 then  'speed up while held down
 		fps_multiplier *= 6.
 	end if
 
 	if replay.active then replay_controls()
 
-	if real_keyval(scCtrl) > 0 and real_keyval(scF11) > 1 then
+	if ctrlshift > 0 and real_keyval(scF11) > 1 then
 		real_clearkey(scF11)
 		macro_controls()
 	end if
@@ -3321,7 +3331,7 @@ local sub allmodex_controls()
 			set_resolution windowsize.w - 10, windowsize.h - 10
 		end if
 		if keyval(scR) > 1 then
-			'Note: there's also a debug key in the F8 menu in-game.
+			'Note: there's also an option in the F8 menu in-game.
 			resizing_enabled = gfx_set_resizable(resizing_enabled xor YES, minwinsize.w, minwinsize.h)
 		end if
 	end if
@@ -8273,7 +8283,7 @@ constructor GIFRecorder(outfile as string, secondscreen as string = "")
 	this.secondscreen = secondscreen
 	dim file as FILE ptr = fopen(this.fname, "wb")
 	if GifBegin(@this.writer, file, vpages(vpage)->w, vpages(vpage)->h, 6, NO, @gifpal) then
-		show_overlay_message "Ctrl-F12 to stop recording", 1.
+		show_overlay_message "Shft/Ctrl-F12 to stop recording", 1.
 		this.last_frame_end_time = timer
 		debuginfo "Starting to record to " & outfile
 	else
@@ -8528,7 +8538,7 @@ local sub snapshot_check(page as integer = -1)
 			show_overlay_message "Saved " & first_screenshot & " and " & (num_screenshots_taken - 1) & " more", 1.5
 		end if
 		num_screenshots_taken = 0
-	elseif real_keyval(scCtrl) = 0 then
+	elseif real_keyval(scCtrl) = 0 andalso real_keyval(scShift) = 0 then  'Not Shift/Ctrl-F12 to record a gif
 
 		if F12bits = 1 then
 			' Take a screenshot, but maybe delete it later

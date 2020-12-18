@@ -34,6 +34,8 @@ December ? 2020 [Hróðvitnir]
       joy:L2, and for "joystick axis", axis:X, axis:RightY, axis:L2, etc [Ralph]
     * You can copy/paste enemies and attacks by pressing Ctrl-C, etc, on the
       <- Enemy/Attack ## -> line [Ralph]
+    * Shift+F# alternative keycombos to Ctrl+F# debug keys, so you can activate
+      them without accidentally activating NPCs/etc [Ralph]
 
    * New Plotscripting Features
     * "set timer args" [Ralph]
