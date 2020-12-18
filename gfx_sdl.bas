@@ -155,7 +155,6 @@ DIM SHARED always_force_video_reset as bool = NO
 DIM SHARED remember_windowtitle as string
 DIM SHARED remember_enable_textinput as bool = NO
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
-DIM SHARED debugging_io as bool = NO
 DIM SHARED sdlpalette(0 TO 255) as SDL_Color
 DIM SHARED framesize as XYPair
 DIM SHARED dest_rect as SDL_Rect
@@ -888,9 +887,6 @@ FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) a
       smooth = 0
     END IF
     ret = 1
-  ELSEIF *opt = "input-debug" THEN
-    debugging_io = YES
-    ret = 1
   ELSEIF *opt = "reset-videomode" THEN
     always_force_video_reset = YES
     ret = 1
@@ -904,7 +900,6 @@ END FUNCTION
 FUNCTION gfx_sdl_describe_options() as zstring ptr
   return @"-z -zoom [1...16]   Scale screen to 1,2, ... up to 16x normal size (2x default)" LINE_END _
           "-s -smooth          Enable smoothing filter for zoom modes (default off)" LINE_END _
-          "-input-debug        Print extra debug info to c/g_debug.txt related to keyboard, mouse, etc. input" LINE_END _
           "-reset-videomode    Reset SDL video subsys when changing video mode; may work around problems"
 END FUNCTION
 

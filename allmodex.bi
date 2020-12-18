@@ -831,6 +831,7 @@ extern global_tog as integer
 extern max_display_fps as integer
 extern use_speed_control as bool
 extern user_toggled_fullscreen as bool
+extern debugging_io as bool
 extern active_seconds as double
 extern idle_time_threshold as double
 extern joysticks_globally_disabled as bool

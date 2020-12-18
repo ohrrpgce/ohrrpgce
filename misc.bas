@@ -84,7 +84,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "                    Not all formats are available on all platforms." & LINE_END
 		help = help & "                    See c_debug.txt for error messages" & LINE_END
 		help = help & "-nowait             When importing scripts (ignored otherwise) quit immediately on success" & LINE_END
-		help = help & "-export-trans file  Export translations to a file" & LINE_END
+		help = help & "-export-trans file  Export translations to a file (experimental)" & LINE_END
 #ENDIF
 		help = help & "-rawexx             Don't catch -exx fatal errors, let gdbgame/gdbcustom.sh/bat catch them" & LINE_END
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
@@ -99,6 +99,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-showmouse          Show mouse position while recording a .gif" & LINE_END
 		help = help & "-gfx backendname    Select graphics backend. This build supports:" & LINE_END
 		help = help & "                      " & SUPPORTED_GFX & " (tried in that order)" & LINE_END
+		help = help & "-input-debug        Print extra debug info to c/g_debug.txt related to keyboard, mouse, etc. input" LINE_END
 		help = help & "-nojoy              Disable joystick/gamepad support" & LINE_END
 		help = help & "-nonumpad           Disable remapping numpad .0-9 to arrows/pageup/insert/etc. Can also toggle with Ctrl-Shift-N" & LINE_END
 		help = help & "-no-native-kbd      Use US keyboard layout instead of OS-based text input (Default under gfx_sdl+X11 (ie. Linux, BSD))" & LINE_END

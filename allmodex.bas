@@ -136,6 +136,9 @@ dim faded_to_color as RGBcolor 'If faded_in=NO, the color the screen is faded to
 'like alt+enter or window buttons.
 dim user_toggled_fullscreen as bool = NO
 
+'The -input-debug cmdline option: causes gfx backends to print info about events and other user/OS input
+dim debugging_io as bool = NO
+
 'Amount of time (in seconds) that the user has been actively using the program. Stops counting if no input
 dim active_seconds as double
 'Seconds without input after which to stop increasing time
@@ -501,6 +504,9 @@ end sub
 
 ' Initialise stuff specific to the backend (this is called after gfx_init())
 local sub after_backend_init()
+	'This for when switching to gfx_directx; sdl/sdl2/fb can read the global
+	if gfx_setoption andalso debugging_io then gfx_setoption("-input-debug", "")
+
 	'Polling thread variables
 	pollthread.wantquit = NO
 	pollthread.mouselastbuttons = 0
@@ -703,6 +709,13 @@ function allmodex_setoption(opt as string, arg as string) as integer
 		return 1
 	elseif opt = "showmouse" then
 		gif_show_mouse = YES
+		return 1
+	elseif opt = "input-debug" orelse opt = "debug-input" then
+		debugging_io = YES
+		'sdl/sdl2/fb access the debugging_io global, but gfx_directx does not
+		if gfx_setoption then
+			gfx_setoption(cstring(opt), "")  'Ignore result
+		end if
 		return 1
 	elseif opt = "logslow" then
 		log_slow = YES

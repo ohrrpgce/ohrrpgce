@@ -253,8 +253,7 @@ DFI_IMPLEMENT_CDECL(const char*, gfx_describe_options)
 		"-a -aspect [0|1*]   Toggles aspect ratio preservation\n" \
 		"-s -smooth [0*|1]   Toggles smooth linear interpolation of display\n" \
 		"-ss -screenshot [jpg | bmp | png* | dds | ohr]\n" \
-		"                    Sets the screen shot format\n" \
-		"-input-debug        Print extra debug info to c/g_debug.txt";
+		"                    Sets the screen shot format";
 }
 
 DFI_IMPLEMENT_CDECL(void, io_init)

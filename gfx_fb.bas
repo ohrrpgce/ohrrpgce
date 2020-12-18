@@ -365,30 +365,37 @@ sub process_key_event(e as Event, byval value as KeyBits)
 	end select
 end sub
 
+private sub debug_key_event(e as Event, eventname as zstring ptr)
+	if debugging_io then
+		debuginfo *eventname & " scan=" & e.scancode & " (" & scancodename(e.scancode) & ") ascii=" & e.ascii
+	end if
+end sub
+
 sub process_events()
 '	static last_enter_state as integer
 	dim e as Event
 	while ScreenEvent(@e)
 		'unhide the mouse when the window loses focus
 		if e.type = EVENT_WINDOW_LOST_FOCUS then
+			if debugging_io then debuginfo "EVENT_WINDOW_LOST_FOCUS"
 			setmouse , , 1
 			window_state.focused = NO
-		end if
-		if e.type = EVENT_WINDOW_GOT_FOCUS then
+		elseif e.type = EVENT_WINDOW_GOT_FOCUS then
+			if debugging_io then debuginfo "EVENT_WINDOW_GOT_FOCUS"
 			update_mouse_visibility()
 			window_state.focused = YES
-		end if
-		if e.type = EVENT_KEY_PRESS then
+		elseif e.type = EVENT_KEY_PRESS then
+			debug_key_event(e, "EVENT_KEY_PRESS")
 			if e.ascii <> 0 then inputtext += chr(e.ascii)
-			'debug "key press scan=" & e.scancode & " (" & scancodename(e.scancode) & ") ascii=" & e.ascii
 			process_key_event(e, 8)
-		end if
-		if e.type = EVENT_KEY_REPEAT then
+		elseif e.type = EVENT_KEY_REPEAT then
+			debug_key_event(e, "EVENT_KEY_REPEAT")
 			if e.ascii <> 0 then inputtext += chr(e.ascii)
-		end if
-		if e.type = EVENT_KEY_RELEASE then
-			'debug "key release scan=" & e.scancode & " (" & scancodename(e.scancode) & ") ascii=" & e.ascii
+		elseif e.type = EVENT_KEY_RELEASE then
+			debug_key_event(e, "EVENT_KEY_RELEASE")
 			process_key_event(e, 0)
+		else
+			if debugging_io then debuginfo "EVENT " & e.type & " " & e.z
 		end if
 	wend
 
@@ -604,7 +611,7 @@ function io_fb_get_joystick_state(byval joynum as integer, byval state as IOJoys
 
 	for i as integer = 0 to 7
 		if ax(i) <> -1000 then
-			'debug "ax " & i & " " & ax(i)
+			if debugging_io then debuginfo "ax " & i & " " & ax(i)
 #ifdef __FB_WIN32__
 			if i >= 6 then
 				'POV hat (see comment above)

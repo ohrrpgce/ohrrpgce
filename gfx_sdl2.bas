@@ -115,7 +115,6 @@ DIM SHARED resize_request as XYPair
 DIM SHARED recenter_window_hint as bool = NO
 DIM SHARED remember_windowtitle as string
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
-DIM SHARED debugging_io as bool = NO
 DIM SHARED sdlpalette as SDL_Palette ptr
 DIM SHARED framesize as XYPair       'Size of the unscaled image
 DIM SHARED mouseclipped as bool = NO   'Whether we are ACTUALLY clipped
@@ -475,6 +474,10 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
   zoom = newzoom
   smooth_zoom = IIF(newzoom > 4, 3, newzoom)
 
+  IF debugging_io THEN
+    debuginfo "set_window_size " & newframesize & " x" & newzoom
+  END IF
+
   IF mainwindow THEN
     'TODO: this doesn't work if fullscreen
     '(FIXME: If you open debug menu in-game, resize the window, press alt-enter to fullscreen
@@ -686,6 +689,7 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
     EXIT SUB
   END IF
   windowedmode = towindowed
+  IF debugging_io THEN debuginfo "setwindowed " & towindowed
   'TODO: call gfx_sdl2_set_resizable here, since that doesn't work on fullscreen windows?
 
   'Turn on or off scaling/centering/letterboxing
@@ -743,6 +747,7 @@ FUNCTION gfx_sdl2_vsync_supported() as bool
     ' special treatment (as opposed to most other WMs which also do vsync compositing)
     RETURN YES
   #ELSE
+    'FIXME: this is usually wrong
     RETURN NO
   #ENDIF
 END FUNCTION
@@ -825,9 +830,6 @@ FUNCTION gfx_sdl2_setoption(byval opt as zstring ptr, byval arg as zstring ptr) 
       smooth = 0
     END IF
     ret = 1
-  ELSEIF *opt = "input-debug" THEN
-    debugging_io = YES
-    ret = 1
   END IF
   'all these take an optional numeric argument, so gobble the arg if it is
   'a number, whether or not it was valid
@@ -837,8 +839,7 @@ END FUNCTION
 
 FUNCTION gfx_sdl2_describe_options() as zstring ptr
   return @"-z -zoom [1...16]   Scale screen to 1,2, ... up to 16x normal size (2x default)" LINE_END _
-          "-s -smooth          Enable smoothing filter for zoom modes (default off)" LINE_END _
-          "-input-debug        Print extra debug info to c/g_debug.txt related to keyboard, mouse, etc. input"
+          "-s -smooth          Enable smoothing filter for zoom modes (default off)"
 END FUNCTION
 
 FUNCTION gfx_sdl2_get_safe_zone_margin() as single
@@ -991,7 +992,6 @@ SUB gfx_sdl2_process_events()
       CASE SDL_TEXTINPUT
         input_buffer += evnt.text.text  'UTF8
 
-      /'
       CASE SDL_CONTROLLERDEVICEADDED
         IF debugging_io THEN
           debuginfo "SDL_CONTROLLERDEVICEADDED joynum=" & evnt.cdevice.which
@@ -1001,7 +1001,6 @@ SUB gfx_sdl2_process_events()
         IF debugging_io THEN
           debuginfo "SDL_CONTROLLERDEVICEREMOVED instance_id=" & evnt.cdevice.which
         END IF
-      '/
 
       CASE SDL_JOYDEVICEADDED
         IF debugging_io THEN
