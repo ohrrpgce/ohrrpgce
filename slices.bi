@@ -1,10 +1,8 @@
 #ifndef SLICES_BI
 #define SLICES_BI
 'OHRRPGCE GAME - Slice related functionality
-'(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
-'See README.txt for code docs and apologies for crappyness of this code ;)
-'Except, this module isn't very crappy
 
 #include "udts.bi"
 #include "common.bi"

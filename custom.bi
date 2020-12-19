@@ -3,7 +3,6 @@
 'so those functions are declared here instead. See customsubs.bi for util functions.
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
-'See README.txt for code docs and apologies for crappyness of this code ;)
 
 #ifndef CUSTOM_BI
 #define CUSTOM_BI

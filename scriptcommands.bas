@@ -1,7 +1,6 @@
 'OHRRPGCE GAME
-'(C) Copyright 1997-2015 James Paige and Hamster Republic Productions
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
-'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 ' All script commands are implemented here, arranged in rather random order,
 ' including functions for the various handles and references that can be passed to script commands.

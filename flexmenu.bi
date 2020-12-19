@@ -1,7 +1,6 @@
 'OHRRPGCE - flexmenu system, used by attack and enemy editors
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
-'See README.txt for code docs and apologies for crappyness of this code ;)
 
 #ifndef FLEXMENU_BI
 #define FLEXMENU_BI

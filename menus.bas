@@ -1,7 +1,6 @@
 'OHRRPGCE COMMON - Game/Custom shared menu code
 '
 'Please read LICENSE.txt for GNU GPL details and disclaimer of liability
-'See README.txt for code docs and apologies for crappyness of this code ;)
 
 #include "config.bi"
 #include "udts.bi"

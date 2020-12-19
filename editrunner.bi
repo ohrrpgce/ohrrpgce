@@ -1,7 +1,6 @@
 'OHRRPGCE - editrunner.bi
-'(C) Copyright 2010 James Paige and Hamster Republic Productions
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
-'See README.txt for code docs and apologies for crappyness of this code ;)
 '...although this module APOLOGISES FOR NOTHING!
 
 #IFNDEF EDITRUNNER_BI

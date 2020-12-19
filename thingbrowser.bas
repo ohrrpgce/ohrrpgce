@@ -1,8 +1,6 @@
 'OHRRPGCE GAME & CUSTOM - Classes for browsing various kinds of things and getting an ID number
-'(C) Copyright 2017 James Paige and Hamster Republic Productions
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
-'See README.txt for code docs and apologies for crappyness of this code ;)
-'Except, this module isn't especially crappy
 '
 #include "config.bi"
 #include "allmodex.bi"

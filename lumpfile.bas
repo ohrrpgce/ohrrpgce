@@ -1,5 +1,5 @@
 'OHRRPGCE COMMON - Lumped file format routines
-'(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
 ' This module contains a whole lot of code implementing Lump, FileLump etc.
