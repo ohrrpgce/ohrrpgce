@@ -32,8 +32,14 @@ pipeline {
                 unstash 'distrib_dir'
                 sh 'ls -l distrib/'
                 withCredentials([sshUserPrivateKey(credentialsId: 'hamsterrepublic-ohrrpgce', keyFileVariable: 'SSH_KEYFILE')]) {
-                    sh 'scp -i $SSH_KEYFILE -o StrictHostKeyChecking=no distrib/ohrrpgce-linux-*-wip-x86_64.tar.bz2 $UPLOAD_USER@$UPLOAD_HOST:$UPLOAD_FOLDER'
-                    sh 'scp -i $SSH_KEYFILE -o StrictHostKeyChecking=no distrib/ohrrpgce-player-linux-bin-minimal-*-wip-x86_64.zip $UPLOAD_USER@$UPLOAD_HOST:$UPLOAD_FOLDER'
+                    sh '''
+                      scp -i $SSH_KEYFILE -o StrictHostKeyChecking=no \
+                        distrib/ohrrpgce-linux-*-wip-x86_64.tar.bz2 \
+                        $UPLOAD_USER@$UPLOAD_HOST:$UPLOAD_FOLDER/ohrrpgce-linux-wip-x86_64.tar.bz2
+                      scp -i $SSH_KEYFILE -o StrictHostKeyChecking=no \
+                        distrib/ohrrpgce-player-linux-bin-minimal-*-wip-x86_64.zip \
+                        $UPLOAD_USER@$UPLOAD_HOST:$UPLOAD_FOLDER/ohrrpgce-player-linux-bin-minimal-wip-x86_64.zip
+                    '''
                 }
             }
         }
