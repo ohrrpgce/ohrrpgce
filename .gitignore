@@ -88,6 +88,9 @@ android/extraconfig.cfg
 # Mac sdl frameworks
 mac/mac_sdl_framework_downloads
 
+# docker/terraform stuff to ignore
+docker/myjenkins/terraform.tfstate
+
 ohr.geany
 
 # Location-specific exclusions
