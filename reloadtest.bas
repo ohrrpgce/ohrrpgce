@@ -1,3 +1,9 @@
+'OHRRPGCE - RELOAD testcases
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
+'Compile with "scons reloadtest", run by "scons test"
+
 
 #include "config.bi"
 #include "testing.bi"

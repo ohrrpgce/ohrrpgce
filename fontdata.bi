@@ -1,3 +1,7 @@
+'OHRRPGCE - Default fonts
+'(C) Copyright 1997-2017 James Paige and Hamster Republic Productions
+'Please read LICENSE.txt for GNU GPL license details and disclaimer of liability
+
 DIM shared default_font(1023) as ushort = {&h0001,&h0000,&h0000,&h0000,&h4400,&h1028,&h4428,&h0000,_
         &h1810,&h18FC,&h0010,&h0000,&h0000,&h1800,&h5028,&h40A0,&h0000,&hF804,&h8888,&hF888,_
         &h0404,&h041B,&h0004,&h0000,&h0000,&h1804,&hF078,&h60F0,&h1C08,&h082A,&h2A08,&h081C,_

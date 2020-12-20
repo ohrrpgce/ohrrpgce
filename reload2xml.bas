@@ -1,3 +1,9 @@
+'OHRRPGCE - reload2xml utility
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
+'Compile with "scons reload2xml"
+
 #include "util.bi"
 #include "reload.bi"
 

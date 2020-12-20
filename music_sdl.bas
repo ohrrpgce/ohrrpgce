@@ -1,11 +1,11 @@
-''
-'' music_sdl.bas - This compiles to both music_sdl and music_sdl2 audio backends,
-''  music_sdl: SDL 1.2 + SDL_mixer 1.2 (when SDL_MIXER2 not defined)
-''  music_sdl2: SDL 2 + SDL_mixer 2 (when SDL_MIXER2 defined)
-'' It isn't possible to link both backends into the engine at once.
-''
-'' Part of the OHRRPGCE - See LICENSE.txt for GNU GPL License details and disclaimer of liability
-''
+'OHRRPGCE - music_sdl and music_sdl2 audio backends
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
+' music_sdl.bas - This compiles to both music_sdl and music_sdl2 audio backends,
+'  music_sdl: SDL 1.2 + SDL_mixer 1.2 (when SDL_MIXER2 not defined)
+'  music_sdl2: SDL 2 + SDL_mixer 2 (when SDL_MIXER2 defined)
+' It isn't possible to link both backends into the engine at once.
 
 #include "config.bi"
 

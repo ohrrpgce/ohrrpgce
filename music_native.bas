@@ -1,8 +1,7 @@
-''
-'' music_native.bas - External music functions implemented natively
-''
-'' part of OHRRPGCE - see elsewhere for license details
-''
+'OHRRPGCE - music_native audio backend
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+
 '' Windows lowlevel event-based MIDI playback + Audiere. Supports loop points and sysexs.
 '' Can also be compiled for other OSes, without MIDI support.
 ''

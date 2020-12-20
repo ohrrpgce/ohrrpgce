@@ -1,8 +1,10 @@
-'' This file contains code common to gfx_sdl and gfx_sdl2 graphics backends.
-'' Note that it is included directly into gfx_sdl.bas and gfx_sdl2.bas and compiled twice
-'' with macros SDL12 and SDL2.
-''
-'' Part of the OHRRPGCE - See LICENSE.txt for GNU GPL License details and disclaimer of liability
+'OHRRPGCE - gfx_sdl/gfx_sdl2 shared routines
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
+' This file contains code common to gfx_sdl and gfx_sdl2 graphics backends.
+' Note that it is included directly into gfx_sdl.bas and gfx_sdl2.bas and compiled twice
+' with macros SDL12 and SDL2.
 
 
 #ifdef USE_SDL2

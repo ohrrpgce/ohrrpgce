@@ -1,9 +1,9 @@
-'' 
-'' music_allegro.bas - External music functions implemented in Allegro
-''
-'' part of OHRRPGCE - see elsewhere for license details
-''
+'OHRRPGCE - Allegro music backend
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+
 '' The new sfx interface is not completely implemented.
+
 #print
 #print WARNING: music_allegro can only play WAV (and sometimes MIDI/BAM) and other problems
 #print

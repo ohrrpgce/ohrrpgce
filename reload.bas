@@ -1,7 +1,7 @@
-'OHRRPGCE COMMON - RELOAD related functions
+'OHRRPGCE - RELOAD related functions
 '(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
-'
+
 #define RELOADINTERNAL
 
 'if you find yourself debugging heap issues, define this. If the crashes go away, then I (Mike Caron)

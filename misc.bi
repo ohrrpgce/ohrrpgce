@@ -1,4 +1,7 @@
-'OHRRPGCE Common - Odd header/module left over from the QuickBasic to FreeBASIC move
+'OHRRPGCE - Odd header/module left over from the QuickBasic to FreeBASIC move
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
 'FIXME: move this crud elsewhere. Does NOT correspond to misc.h and miscc.c!
 
 #IFNDEF MISC_BI

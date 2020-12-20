@@ -1,4 +1,7 @@
-'Header for misc functions implemented in C files
+'OHRRPGCE - Header for misc functions implemented in C files
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
 'FIXME: why don't we just split this in two?
 
 #ifndef CUTIL_BI

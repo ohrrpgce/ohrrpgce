@@ -1,8 +1,10 @@
 'OHRRPGCE - Some Custom/Game common code
-'
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
-'
+
 ' This file is for code that is shared between GAME and CUSTOM.
+' It is disorganised; .rpg upgrade routines, much loading/saving code, and a
+' number of general menus like multichoice and show_help are here.
 ' Code that is not OHRRPGCE-specific that would be of general use
 ' to any FreeBasic program belongs in util.bas instead.
 ' Also, a few of these functions (those declared in common_base.bi)

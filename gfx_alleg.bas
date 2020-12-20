@@ -1,8 +1,7 @@
-''
-'' gfx_alleg.bas - External graphics functions implemented in Allegro
-''
-'' part of OHRRPGCE - see elsewhere for license details
-''
+'OHRRPGCE - Allegro graphics backend
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+
 '' NOTE: This backend is not well maintained. Currently at least the following don't work:
 '' -changing zoom (no cmdline switch, so can't work at runtime either)
 '' -hiding or showing the mouse cursor

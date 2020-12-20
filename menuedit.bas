@@ -1,4 +1,4 @@
-'OHRRPGCE CUSTOM - The Menus Editor (not to be confused with menu slices editors)
+'OHRRPGCE CUSTOM - Menu Editor (not to be confused with menu slices editors)
 '(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 

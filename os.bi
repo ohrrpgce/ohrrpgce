@@ -1,5 +1,6 @@
-'OHRRPGCE COMMON - Header for OS-specific routines
-'Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
+'OHRRPGCE - Header for OS-specific routines
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
 'Implementations are in os_unix.c, os_unix2.bas, os_unix_wm.bas, os_windows.bas, os_windows2.c, os_sockets.c
 'Documentation is sadly to be found duplicated in those files, with many differences,

@@ -1,3 +1,7 @@
+'OHRRPGCE - Classes for browsing various kinds of things and getting an ID number
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+
 #IFNDEF THINGBROWSER_BI
 #DEFINE THINGBROWSER_BI
 

@@ -1,11 +1,15 @@
+'OHRRPGCE GAME - UDTs for game state (not game data)
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
+'This file contains UDTs that only get used in game mode, and not in custom,
+'so as to prevent them from cluttering up the global udts.bi file
+
 #IFNDEF GAME_UDTS_BI
 #DEFINE GAME_UDTS_BI
 
 #INCLUDE "slices.bi"
 #INCLUDE "const.bi"
-
-'This file contains UDTs that only get used in game mode, and not in custom,
-'so as to prevent them from cluttering up the global udts.bi file
 
 TYPE SliceTableType
   root as Slice Ptr

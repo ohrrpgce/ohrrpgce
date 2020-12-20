@@ -1,6 +1,8 @@
-' OHRRPGCE common - Berkeley socket-based networking routines (Windows and Unix)
-' See also networkutil.bas for related code.
-' Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
+'OHRRPGCE - HTTP request routines
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
+'See also os_sockets.c for related code.
 
 #include "os.bi"
 

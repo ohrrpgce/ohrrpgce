@@ -1,3 +1,7 @@
+'OHRRPGCE - bam2mid
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+
 ''
 '' bam2mid -- convert a .BAM file to a General Midi .MID file
 ''		2005-10-11 - 1.0 - Ignores final infinite loop point and

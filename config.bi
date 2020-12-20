@@ -1,4 +1,7 @@
-'OHRRPGCE Common - Configuration/platform specific/important macros
+'OHRRPGCE - Configuration/platform specific/important macros
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
 'This file is (should be) included everywhere, and is a dumping ground for macros and other global declarations
 
 #IFNDEF CONFIG_BI

@@ -1,9 +1,8 @@
-''
-'' music_stub.bas - A dummy backend for isolating problems that may or may not
-'' be backend related
-''
-'' part of OHRRPGCE - see elsewhere for license details
-''
+'OHRRPGCE - Dummy music_silence audio backend
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
+'A dummy backend for isolating problems that may or may not be backend related
 
 #include "music.bi"
 

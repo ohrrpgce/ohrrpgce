@@ -1,6 +1,6 @@
 'OHRRPGCE - Type tables for vectors
-'
-'Please read LICENSE.txt for GNU GPL details and disclaimer of liability
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
 'Type definitions for the basic builtin types. Place other DEFINE_VECTOR_OF_TYPE macros in another
 'module (somewhere where your type definitions are actually available, they aren't here)

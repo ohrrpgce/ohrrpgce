@@ -1,5 +1,10 @@
+'OHRRPGCE GAME - Various builtin menus
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+
 #ifndef MENUSTUF_BI
 #define MENUSTUF_BI
+
 DECLARE SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
 DECLARE FUNCTION chkOOBtarg (byval attacker as integer, byval target as integer, byval atk as integer) as bool
 DECLARE SUB update_hero_max_and_cur_stats (byval who as integer)

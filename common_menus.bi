@@ -1,3 +1,6 @@
+'OHRRPGCE - Some of the editors shared between Custom and Game
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
 
 #ifndef COMMON_MENUS_BI
 #define COMMON_MENUS_BI

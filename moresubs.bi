@@ -1,3 +1,7 @@
+'OHRRPGCE GAME - Various unsorted routines
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+
 #ifndef MORESUBS_BI
 #define MORESUBS_BI
 

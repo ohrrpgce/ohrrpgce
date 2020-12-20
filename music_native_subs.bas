@@ -1,8 +1,7 @@
-''
-'' music_native_subs.bas - Routines used by music_native*
-''
-'' part of OHRRPGCE - see elsewhere for license details
-''
+'OHRRPGCE - Routines used by music_native and music_native2
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
 ' Many subs in this file are ported from SDL_Mixer (used under the GPL):
 ' /*
 '     native_midi:  Hardware Midi support for the SDL_mixer library

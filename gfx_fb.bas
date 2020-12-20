@@ -1,9 +1,6 @@
-''
-'' gfx_fb.bas - External graphics functions implemented in FB's
-''				built-in gfxlib. Multi-option version.
-''
-'' part of OHRRPGCE - see elsewhere for license details
-''
+'OHRRPGCE - FreeBASIC gfxlib-based graphics backend
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
 
 #include "config.bi"
 

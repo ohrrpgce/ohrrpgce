@@ -1,10 +1,9 @@
-#ifndef RELOAD_BI
-#define RELOAD_BI
-
-'OHRRPGCE COMMON - RELOAD related functions
+'OHRRPGCE - RELOAD related functions
 '(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
-'
+
+#ifndef RELOAD_BI
+#define RELOAD_BI
 
 #include "config.bi"
 #include "util.bi"

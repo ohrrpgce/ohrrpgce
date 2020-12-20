@@ -1,10 +1,10 @@
+'OHRRPGCE - UI colour constants
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+
 #IFNDEF __UICONST_BI__
 #DEFINE __UICONST_BI__
 
-'OHRRPGCE - UICONST.BI - UI colour constants
-'
-'Please read LICENSE.txt for GPL License details and disclaimer of liability
-'
 CONST uiColorLast = 53
 CONST uiColorOldLast = 17 ' the last uilook saved in uicolors.bin
 CONST uiBoxLast = 14

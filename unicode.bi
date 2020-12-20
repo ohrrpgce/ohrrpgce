@@ -1,3 +1,6 @@
+' OHRRPGCE - Minimal set of wchar_t <-> UTF8 Unicode routines
+' See unicode.c for license information
+
 #pragma once
 
 '#include once "crt/stdint.bi"

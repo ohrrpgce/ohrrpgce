@@ -1,3 +1,11 @@
+'OHRRPGCE - Utility for autogenerating .bas files from .slice files
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
+'Compile with "scons slice2bas"
+'But you don't need to ever manually run this utility. Instead run sourceslices/update.sh
+'if you modify any .slice files in sourceslice
+
 #include "reload.bi"
 
 'Can't include slices.bi here

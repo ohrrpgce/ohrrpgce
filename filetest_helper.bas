@@ -1,3 +1,7 @@
+'OHRRPGCE - filetest helper
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+
 ' This is a helper for the rename tests in filetest.bas.
 ' This program opens a file with a certain access mode, possibly writes to it,
 ' waits a while, then closes it.

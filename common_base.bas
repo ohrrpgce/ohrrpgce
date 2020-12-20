@@ -1,5 +1,5 @@
 'OHRRPGCE - Common code for utilities
-'
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
 'This module is for code to be linked into utilities, but not Game and Custom.

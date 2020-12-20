@@ -1,3 +1,8 @@
+' FreeBASIC libfbgfx internals
+'WARNING: This is almost certainly broken for versions of FreeBASIC more recent than
+'the ancient version Mike copied this from!!
+'Luckily we only want WIN32DRIVER.hinstance, which is right at the front.
+
 ' Some defines and typedefs for the Win32Driver structure
 #define WINDOW_TITLE_SIZE   128
 #define WINDOW_CLASS_PREFIX "fbgfxclass_"

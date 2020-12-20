@@ -1,3 +1,7 @@
+'OHRRPGCE - Testcases for file IO
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+
 ' These tests focus on OPENFILE and other basic functions in filelayer.cpp and util.bas,
 ' but even OPENFILE tests are not comprehensive (e.g. don't actually test the messaging,
 ' mechanism, or ACCESS_READ_WRITE, or ACCESS_ANY, etc)

@@ -1,8 +1,7 @@
-'OHRRPGCE CUSTOM - Distribute game menu
+'OHRRPGCE CUSTOM - Distribute Game menu
 '(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
-'Except, this module isn't much crappier than it needs to be
-'
+
 #include "config.bi"
 #include "ver.txt"
 #include "udts.bi"

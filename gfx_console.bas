@@ -1,10 +1,9 @@
-''
-'' gfx_console - Not a real graphics backend; for testing from the console
-''               Uses curses (ncurses on Unix, pdcurses on Windows).
-''
-'' Part of the OHRRPGCE - See LICENSE.txt for GNU GPL License details and disclaimer of liability
-''
-
+'OHRRPGCE - Curses/console graphics backend
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
+' gfx_console - Not a real graphics backend; for testing from the console
+'               Uses curses (ncurses on Unix, pdcurses on Windows).
 
 #include "config.bi"
 #include "surface.bi"

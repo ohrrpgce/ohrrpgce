@@ -1,5 +1,6 @@
-'OHRRPGCE - vector.bi
-'Copyright 2010-2017. Please read LICENSE.txt for GNU GPL details and disclaimer of liability
+'OHRRPGCE - Vectors
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
 'Arrays in FB are a disaster. This is a completely separate array implementation,
 'written in C (see array.c).  These arrays are called vectors (as in C++) to avoid

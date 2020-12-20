@@ -1,10 +1,9 @@
-#IFNDEF __CONST_BI__
-#DEFINE __CONST_BI__
-
-'OHRRPGCE GAME - shared constants
+'OHRRPGCE - shared constants
 '(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
-'
+
+#IFNDEF __CONST_BI__
+#DEFINE __CONST_BI__
 
 CONST CURRENT_RPG_VERSION = 21
 ' It is a good idea to increment this number each time a major feature

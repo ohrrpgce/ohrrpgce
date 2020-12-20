@@ -1,3 +1,7 @@
+'OHRRPGCE - Proposed new Graphics/IO backend API
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
 ' New backend interfaces (proposal, not used yet)
 ' This file should not normally be included; it's just a template of the
 ' necessary functions to define in a shared-library gfx backend, but doesn't

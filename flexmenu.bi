@@ -1,5 +1,5 @@
 'OHRRPGCE - flexmenu system, used by attack and enemy editors
-'
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 
 #ifndef FLEXMENU_BI
@@ -16,6 +16,5 @@ DECLARE SUB enforceflexbounds (menuoff() as integer, menutype() as integer, menu
 DECLARE SUB addcaption (caption() as string, byref indexer as integer, cap as string)
 DECLARE FUNCTION isStringField(byval mnu as integer) as bool
 DECLARE FUNCTION flexmenu_tooltip(menutype as integer, datvalue as integer) as string
-
 
 #ENDIF

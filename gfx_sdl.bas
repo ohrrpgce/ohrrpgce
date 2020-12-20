@@ -1,8 +1,6 @@
-''
-'' gfx_sdl.bas - External graphics functions implemented in SDL 1.2
-''
-'' Part of the OHRRPGCE - See LICENSE.txt for GNU GPL License details and disclaimer of liability
-''
+'OHRRPGCE - SDL 1.2 graphics backend
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
 
 #include "config.bi"
 

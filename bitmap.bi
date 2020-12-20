@@ -1,3 +1,5 @@
+'Structure definitions for the BMP file format
+
 #ifndef BITMAP
 'windows.bi might have been included.
 'It contains all of these definitions

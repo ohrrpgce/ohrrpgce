@@ -1,5 +1,6 @@
-'OHRRPGCE COMMON - Generic Unix versions of OS-specific routines
-'Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
+'OHRRPGCE - Generic Unix versions of OS-specific routines
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
 'This module is for Unix-specific functions that are more easily implemented
 'in FB than in C.

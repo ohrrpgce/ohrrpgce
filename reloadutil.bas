@@ -1,3 +1,9 @@
+'OHRRPGCE - a RELOAD test utility, or compare two RELOAD files
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
+'Compile with "scons reloadutil"
+
 #include "reload.bi"
 #include "reloadext.bi"
 

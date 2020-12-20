@@ -1,3 +1,7 @@
+'OHRRPGCE - Audiere audio output
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
 'This is not an actual music backend; it is included as part of music_native and music_native2
 'It plays sound effects using Audiere.
 'music_native/native2 play non-MIDI music by treating them as sound effects.
