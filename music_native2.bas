@@ -32,16 +32,13 @@
 #include "common.bi"
 #include "const.bi"
 #include "util.bi"
-
+#include "music.bi"
 
 ''''''''''''''''''''''''''''''''''''' Code include:
 #include "music_native_subs.bas"
 
 
-#include "music.bi"
-
-
-'FB's MIDIEVENT is wrong (in older versions of FB anyway)
+'FB's MIDIEVENT is wrong (still as of FB 1.08); it's the wrong size because of a zero-length array at the end
 #undef MIDIEVENT
 type MIDIEVENT
 	dwDeltaTime as integer
@@ -89,33 +86,23 @@ dim shared current_size as integer, buffer_size as integer
 dim shared skip_ticks as integer
 dim shared buffer_thread as any ptr = NULL
 
+
+'==========================================================================================
+'                                     Debug window
+
 Declare function DebugWndProc(byval hwnd as HWND, byval uMsg as uinteger, byval wParam as WPARAM, byval lParam as LPARAM) as LRESULT
 Declare sub DebugWindowThread(byval useless as any ptr)
 
-#include once "fbgfx.bi"
+dim shared DebugWnd as HWND
 
-'this should probably be in an include...
-
-'WARNING: libfbgfx internals. This is almost certainly broken for versions of FB more recent than
-'the ancient version Mike copied this from!!
-'TODO: I think there's a correct way to get the window handle, though...
-#include "externs.bi"
-Extern FB_Win32 Alias "fb_win32" As WIN32DRIVER
 
 Function ProgInstance() As HINSTANCE
-	Return FB_Win32.hInstance
+	return GetModuleHandle(NULL)
 End Function
 
-
-
-dim shared DebugWndClass as ATOM '??? dunno.
-dim shared DebugWnd as HWND
-dim shared clasName as ZString * 9
 Sub initDebugWindow
 	dim clas as WNDCLASSEX
 	'dim mainHandle as integer
-
-	clasName = "WndMusDbg"
 
 	'screencontrol GET_WINDOW_HANDLE, mainHandle
 
@@ -129,6 +116,7 @@ Sub initDebugWindow
 		.hCursor = LoadImage(0, MAKEINTRESOURCE(OCR_NORMAL), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE OR LR_SHARED)
 	end with
 
+	dim DebugWndClass as ATOM '??? dunno.
 	DebugWndClass = RegisterClassEx(@clas)
 
 	if DebugWndClass = 0 then
@@ -141,7 +129,6 @@ Sub initDebugWindow
 end sub
 
 sub killDebugWindow
-	'SendMessage(DebugWnd, WM_USER, 0, 0)
 	'debug "asking the window to die plzkthx"
 	SendMessage(DebugWnd, WM_USER, 0, 0)
 	UnregisterClass("WndMusDbg", ProgInstance)
@@ -224,6 +211,7 @@ function DebugWndProc(byval hwnd as HWND, byval uMsg as uinteger, byval wParam a
 	end select
 end function
 
+'==========================================================================================
 
 
 function openMidi() as integer
