@@ -1,9 +1,25 @@
+def default_UPLOAD_USER = "james_paige"
+def default_UPLOAD_HOST = "motherhamster.org"
+def default_UPLOAD_FOLDER = "HamsterRepublic.com/ohrrpgce/nightly-test/"
+
 pipeline {
     agent any
     parameters {
-        string(name: "UPLOAD_USER", defaultValue: "james_paige", description: "This username will be used when doing the ssh upload of build artifacts")
-        string(name: "UPLOAD_HOST", defaultValue: "motherhamster.org", description: "This hostname will be the destination for doing the ssh upload of build artifacts")
-        string(name: "UPLOAD_FOLDER", defaultValue: "HamsterRepublic.com/ohrrpgce/nightly-test/", description: "This is the destination folder on the remote host for doing the ssh upload of build artifacts")
+        string(
+            name: "UPLOAD_USER",
+            defaultValue: params.UPLOAD_USER ?: default_UPLOAD_USER,
+            description: "This username will be used when doing the ssh upload of build artifacts"
+        )
+        string(
+            name: "UPLOAD_HOST",
+            defaultValue: params.UPLOAD_HOST ?: default_UPLOAD_HOST,
+            description: "This hostname will be the destination for doing the ssh upload of build artifacts"
+        )
+        string(
+            name: "UPLOAD_FOLDER",
+            defaultValue: params.UPLOAD_FOLDER ?: default_UPLOAD_FOLDER,
+            description: "This is the destination folder on the remote host for doing the ssh upload of build artifacts"
+        )
     }
     stages {
         stage('docker-image-freebasic') {
