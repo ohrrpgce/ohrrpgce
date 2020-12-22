@@ -11,6 +11,11 @@ pipeline {
                 sh 'docker build --tag bobthehamster/ohrrpgce-build-env ./docker/ohrrpgce-build-env/'
             }
         }
+        stage('cleanup-distrib') {
+            steps {
+                sh 'rm -f distrib/*'
+            }
+        }
         stage('build-ohrrpgce') {
             agent { docker { image 'bobthehamster/ohrrpgce-build-env' } }
             environment {
