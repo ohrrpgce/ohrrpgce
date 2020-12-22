@@ -1,6 +1,7 @@
 def default_UPLOAD_USER = "james_paige"
 def default_UPLOAD_HOST = "motherhamster.org"
 def default_UPLOAD_FOLDER = "HamsterRepublic.com/ohrrpgce/nightly-test/"
+def default_SSH_CREDS = "hamsterrepublic-ohrrpgce"
 
 pipeline {
     agent any
@@ -19,6 +20,11 @@ pipeline {
             name: "UPLOAD_FOLDER",
             defaultValue: params.UPLOAD_FOLDER ?: default_UPLOAD_FOLDER,
             description: "This is the destination folder on the remote host for doing the ssh upload of build artifacts"
+        )
+        string(
+            name: "SSH_CREDS",
+            defaultValue: params.SSH_CREDS ?: default_SSH_CREDS,
+            description: "This is the ID you used when you added your ssh private key to Jenkins' credential vault. The matching public key must be in .ssh/authorized_keys for the upload host"
         )
     }
     stages {
@@ -50,21 +56,21 @@ pipeline {
         }
         stage('upload-ohrrpgce') {
             environment {
-                UPLOAD_USER = "${params.UPLOAD_USER}"
-                UPLOAD_HOST = "${params.UPLOAD_HOST}"
-                UPLOAD_FOLDER = "${params.UPLOAD_FOLDER}"
+                USER = "${params.UPLOAD_USER}"
+                HOST = "${params.UPLOAD_HOST}"
+                FOLDER = "${params.UPLOAD_FOLDER}"
             }
             steps {
                 unstash 'distrib_dir'
                 sh 'ls -l distrib/'
-                withCredentials([sshUserPrivateKey(credentialsId: 'hamsterrepublic-ohrrpgce', keyFileVariable: 'SSH_KEYFILE')]) {
+                withCredentials([sshUserPrivateKey(credentialsId: params.SSH_CREDS, keyFileVariable: 'SSH_KEYFILE')]) {
                     sh '''
                       scp -i $SSH_KEYFILE -o StrictHostKeyChecking=no \
                         distrib/ohrrpgce-linux-*-wip-x86_64.tar.bz2 \
-                        $UPLOAD_USER@$UPLOAD_HOST:$UPLOAD_FOLDER/ohrrpgce-linux-$BRANCH_NAME-x86_64.tar.bz2
+                        $USER@$HOST:$FOLDER/ohrrpgce-linux-$BRANCH_NAME-x86_64.tar.bz2
                       scp -i $SSH_KEYFILE -o StrictHostKeyChecking=no \
                         distrib/ohrrpgce-player-linux-bin-minimal-*-wip-x86_64.zip \
-                        $UPLOAD_USER@$UPLOAD_HOST:$UPLOAD_FOLDER/ohrrpgce-player-linux-bin-minimal-$BRANCH_NAME-x86_64.zip
+                        $USER@$HOST:$FOLDER/ohrrpgce-player-linux-bin-minimal-$BRANCH_NAME-x86_64.zip
                     '''
                 }
             }
