@@ -1,5 +1,10 @@
 pipeline {
     agent any
+    parameters {
+        string(name: "UPLOAD_USER", defaultValue: "james_paige", description: "This username will be used when doing the ssh upload of build artifacts")
+        string(name: "UPLOAD_HOST", defaultValue: "motherhamster.org", description: "This hostname will be the destination for doing the ssh upload of build artifacts")
+        string(name: "UPLOAD_FOLDER", defaultValue: "HamsterRepublic.com/ohrrpgce/nightly-test/", description: "This is the destination folder on the remote host for doing the ssh upload of build artifacts")
+    }
     stages {
         stage('docker-image-freebasic') {
             steps {
@@ -29,9 +34,9 @@ pipeline {
         }
         stage('upload-ohrrpgce') {
             environment {
-                UPLOAD_USER = 'james_paige'
-                UPLOAD_HOST = 'motherhamster.org'
-                UPLOAD_FOLDER = 'HamsterRepublic.com/ohrrpgce/nightly-test/'
+                UPLOAD_USER = "${params.UPLOAD_USER}"
+                UPLOAD_HOST = "${params.UPLOAD_HOST}"
+                UPLOAD_FOLDER = "${params.UPLOAD_FOLDER}"
             }
             steps {
                 unstash 'distrib_dir'
