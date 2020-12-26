@@ -564,7 +564,7 @@ script, hero party management tests, begin
   assert(hero z(0) == 0)
   assert(get hero speed(0) == h0speed)
   assert(hero direction(0) == h0d)
-
+  
   # add a different leader
   add hero(hero:Styrge)
   assert(hero by slot(0) == hero:Styrge)
@@ -637,6 +637,27 @@ script, hero party management tests, begin
   swap by position(3, find hero(hero:Frumpy))
   assert(hero by slot(3) == hero:Frumpy)
 
+  # add another copy of Freki, should go to reserve
+  add hero(hero:Freki)
+  slot := find hero(hero:Freki)
+  assert(slot == 0)
+  delete hero by slot(slot)
+  slot := find hero(hero:Freki)
+  assert(slot >= 4)
+  # add back leader Freki
+  assert(hero by slot(0) == -1)
+  add hero(hero:Freki)
+  assert(hero by slot(0) == hero:Freki)
+  # Delete the reserve Freki
+  assert(slot >= 4)
+  assert(hero by slot(slot) == hero:Freki)
+  assert(delete hero by slot(slot) == 0)
+  assert(hero by slot(slot) == -1)
+  # original Freki should be untouched, and not in the reserve
+  assert(find hero(hero:Freki) >= 0)
+  assert(find hero(hero:Freki) <= 3)
+  w
+
   # Test "move hero hook"
   testing script triggers := 1  # Tell the hook script to pay attention
   assert(move hero count == 0)
@@ -649,6 +670,7 @@ script, hero party management tests, begin
   assert(move hero count == 3)
   testing script triggers := false
   swap by position (2, 3)
+
 end
 
 script, hero appearance tests, begin

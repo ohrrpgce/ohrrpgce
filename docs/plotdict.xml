@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-12-09">
+<plotscript version="wip" datecode="2020-12-26">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -2899,7 +2899,27 @@ if (slot > 0) then (load from slot (slot))</example>
 		<command id="deletehero">
 			<canon>delete hero (who)</canon>
 			<shortname>delete hero</shortname>
-			<description>Removes the named hero from your party. If you have more than one copy of the hero in your party, only the first one will be deleted. Use the constants defined in your HSI file. They are in the form of hero:name</description>
+			<description>
+				Removes the named hero from your party. If you have more
+				than one copy of the hero in your party, only the first
+				one will be deleted. Use the constants defined in your
+				HSI file. They are in the form of hero:name
+				</description>
+			<seealso>
+				<ref>deleteherobyslot</ref>
+			</seealso>
+		</command>
+		<command id="deleteherobyslot">
+			<canon>delete hero by slot (slot)</canon>
+			<shortname>delete hero by slot</shortname>
+			<description>
+				Removes a hero from the given slot in your party.
+				Returns -1 if no hero was removed because the slot was
+				already empty.
+			</description>
+			<seealso>
+				<ref>deletehero</ref>
+			</seealso>
 		</command>
 		<command id="swapinhero">
 			<canon>swap in hero (who)</canon>

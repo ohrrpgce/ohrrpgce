@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-December ? 2020 [Hróðvitnir]
+January ? 2021 [Hróðvitnir]
 
   *** New Features
     * Slice Editor:
@@ -53,6 +53,7 @@ December ? 2020 [Hróðvitnir]
     * "gracefully dismount vehicle" [James]
     * "read foemap" [Ralph]
     * "breakpoint" [Ralph]
+    * "delete hero by slot" [James]
 
   *** Changes
     * NPCpush:vertical and NPCpush:horizontal script constants were swapped with

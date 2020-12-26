@@ -740,6 +740,7 @@ define function, begin
 712,getenemyname,2,0,0        # Get enemy name (enemyid, stringid)
 713,setenemyname,2,0,0        # Change the name of an enemy (enemyid, stringid)
 714,breakpoint,0              # Enter the script debugger
+715,deleteherobyslot,1,0      # Delete a hero by slot number
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

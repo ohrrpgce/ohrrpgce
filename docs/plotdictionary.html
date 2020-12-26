@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2020-12-09)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2020-12-26)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -662,6 +662,7 @@ function toggleContent(target) {
 		<a href="#about-bottommenu">bottom menu</a><br>
 		<a href="#about-boxadvanceissuspended">box advance is suspended</a><br>
 		<a href="#about-break">break</a><br>
+		<a href="#about-breakpoint">breakpoint</a><br>
 		<a href="#about-bringmenuforward">bring menu forward(menu handle)</a><br>
 		<a href="#about-camerafollowshero">camera follows hero (who)</a><br>
 		<a href="#about-camerafollowsnpc">camera follows NPC (who)</a><br>
@@ -686,7 +687,7 @@ function toggleContent(target) {
 		<a href="#about-checkherowall">check hero wall (who,direction)</a><br>
 		<a href="#about-checknpcwall">check NPC wall (who, direction)</a><br>
 		<a href="#about-checkonetime">check onetime (onetime)</a><br>
-		<a href="#about-checkparentage">check parentage (handle, parent handle)</a><br>
+		<a href="#about-checkparentage">check parentage (handle, ancestor handle)</a><br>
 		<a href="#about-checktag">check tag (tag)</a><br>
 		<a href="#about-checkwallcollisionxy">check wall collision x (x, y, width, height, relative x, relative y, friction%)</a><br>
 		<a href="#about-childcount">child count (handle)</a><br>
@@ -732,6 +733,7 @@ function toggleContent(target) {
 		<a href="#about-deletechar">delete char (ID, position)</a><br>
 		<a href="#about-deleteenemyfromformation">delete enemy from formation (formation, slot)</a><br>
 		<a href="#about-deletehero">delete hero (who)</a><br>
+		<a href="#about-deleteherobyslot">delete hero by slot (slot)</a><br>
 		<a href="#about-deleteitem">delete item (item, number)</a><br>
 		<a href="#about-deletemapstate">delete map state (whichdata)</a><br>
 		<a href="#about-deletemenuitem">delete menu item(menu item handle)</a><br>
@@ -5881,6 +5883,7 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 		<ul class="content-shown">
 		<a href="#about-addhero">add hero (who)</a><br>
 		<a href="#about-deletehero">delete hero (who)</a><br>
+		<a href="#about-deleteherobyslot">delete hero by slot (slot)</a><br>
 		<a href="#about-swapinhero">swap in hero (who)</a><br>
 		<a href="#about-swapouthero">swap out hero (who)</a><br>
 		<a href="#about-lockhero">lock hero (who)</a><br>
@@ -5986,10 +5989,31 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 			<a name="about-deletehero"></a>
 				<h4>delete hero (who)</h4>
 <p>
-			Removes the named hero from your party. If you have more than one copy of the hero in your party, only the first one will be deleted. Use the constants defined in your HSI file. They are in the form of hero:name
+			
+				Removes the named hero from your party. If you have more
+				than one copy of the hero in your party, only the first
+				one will be deleted. Use the constants defined in your
+				HSI file. They are in the form of hero:name
+				
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-deleteherobyslot" class="ref">delete hero by slot</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-deleteherobyslot"></a>
+				<h4>delete hero by slot (slot)</h4>
+<p>
+			
+				Removes a hero from the given slot in your party.
+				Returns -1 if no hero was removed because the slot was
+				already empty.
 			
 			
 			
+			<div class="seealso">See also: <ul><li><a href="#about-deletehero" class="ref">delete hero</a></li></ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -8011,7 +8035,16 @@ end</pre>
 			<a name="about-getenemyname"></a>
 				<h4>get enemy name (enemyid, stringid)</h4>
 <p>
-			Lets you use the enemy name in a string. The first argument is the number of the enemy you want to get the name from, second argument is the number of the string that you want to store the name of the enemy.
+			
+				Put the name of an enemy in a string.
+				<span class="param">enemyid</span> is the number of the enemy
+				(you can use a constant like <span class="code">enemy: skeleton</span>,
+				and <span class="param">stringid</span> is the number of the string in which to store the name of the enemy.
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					The arguments are the opposite order to every other "get ... name" command! Whoops!
+				</div>
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setenemyname" class="ref">set enemy name</a></li></ul>
@@ -8022,8 +8055,18 @@ end</pre>
 			<a name="about-setenemyname"></a>
 				<h4>set enemy name (enemyid, stringid)</h4>
 <p>
-			Lets you set the enemy name from a string, the string length cannot be more then 16 characters, if it is more then 16 the name will be truncated.  The first argument is the number of the enemy's name you want to change, second argument is the number of the string that you supply the name of the enemy from.<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">Enemy name changes are temporary. They are not saved in the game save.</div>
+			
+				Lets you change an enemy's name from a string.
+				The string length cannot be more then 16 characters, if it is more then 16 the name will be truncated.
+				<br>
+				<span class="param">enemyid</span> is the number of the enemy
+				(you can use a constant like <span class="code">enemy: skeleton</span>,
+				and <span class="param">stringid</span> is the number of the string that you supply the name of the enemy from.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Enemy name changes are temporary. They are not saved in saved games.
+				</div>
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getenemyname" class="ref">get enemy name</a></li></ul>
@@ -11463,7 +11506,7 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-previoussibling">previous sibling (handle)</a><br>
 		<a href="#about-parentslice">parent slice (handle)</a><br>
 		<a href="#about-sliceparent">slice parent (handle)</a><br>
-		<a href="#about-checkparentage">check parentage (handle, parent handle)</a><br>
+		<a href="#about-checkparentage">check parentage (handle, ancestor handle)</a><br>
 </ul>
 <ul>
 		<li>
@@ -13980,9 +14023,13 @@ end
 </div>
 		<div class="command">
 			<a name="about-checkparentage"></a>
-				<h4>check parentage (handle, parent handle)</h4>
+				<h4>check parentage (handle, ancestor handle)</h4>
 <p>
-			Checks to see if <span class="param">handle</span> is a child (or grandchild, or great-grandchild, etc...) of <span class="param">parent handle</span>. Returns <a href="#about-true" class="ref">true</a> or <a href="#about-false" class="ref">false</a>.
+			
+				Checks to see if <span class="param">handle</span> is a child (or grandchild, or great-grandchild, etc...) of <span class="param">ancestor handle</span>.
+				Returns <a href="#about-true" class="ref">true</a> or <a href="#about-false" class="ref">false</a>.
+				The result is <span class="code">false</span> if <span class="code">handle == ancestor handle</span>.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -19285,6 +19332,7 @@ end</pre>
 		<a href="#about-tracevalue">trace value (expression, ...)</a><br>
 		<a href="#about-dumpslicetree">dump slice tree (slice)</a><br>
 		<a href="#about-scripterror">script error (string id)</a><br>
+		<a href="#about-breakpoint">breakpoint</a><br>
 		<a href="#about-debugmenu">debug menu</a><br>
 		<a href="#about-assert">assert (expression)</a><br>
 		<a href="#about-getslicelookupname">get slice lookup name (string id, code, use default name)</a><br>
@@ -19489,7 +19537,7 @@ trace value (hero X (me), hero Y (me))</pre>
 			<a name="about-scripterror"></a>
 				<h4>script error (string id)</h4>
 <p>
-			Shows an error message, like any other script error. This allows you to open the script debugger. The optional <span class="param">string id</span> argument gives the error message to display.
+			Shows an error message, like any other script error. This allows you to open the script debugger. (Use <a href="#about-breakpoint" class="ref">breakpoint</a> to skip the menu straight to the debugger.) The optional <span class="param">string id</span> argument gives the error message to display.
 			
 			<pre>if (x &lt; 0 || x &gt;= map width || y &lt; 0 || y &gt;= map height) then (
   $0="Coordinates went off the edge of the map"
@@ -19500,7 +19548,30 @@ trace value (hero X (me), hero Y (me))</pre>
 <a href="#about-assert" class="ref">assert</a>, </li>
 <li>
 <a href="#about-tracevalue" class="ref">trace value</a>, </li>
-<li><a href="#about-debugmenu" class="ref">debug menu</a></li>
+<li>
+<a href="#about-debugmenu" class="ref">debug menu</a>, </li>
+<li><a href="#about-breakpoint" class="ref">breakpoint</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-breakpoint"></a>
+				<h4>breakpoint</h4>
+<p>
+			
+				Open the script debugger; this is slightly simpler than using `script error`.
+				You can temporarily add this to a script you're trying to debug
+				if you want to examine its state at a certain point.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-scripterror" class="ref">script error</a>, </li>
+<li>
+<a href="#about-assert" class="ref">assert</a>, </li>
+<li><a href="#about-tracevalue" class="ref">trace value</a></li>
 </ul>
 </div>
 		</p>
@@ -20694,7 +20765,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 897 commands (of which 12 are aliases), 28 constants and 11 definitions of types and other terms in this file.</p>
+<p>Stats: There are 899 commands (of which 12 are aliases), 28 constants and 11 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

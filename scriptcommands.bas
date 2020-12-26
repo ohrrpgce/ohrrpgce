@@ -4991,6 +4991,21 @@ SUB script_functions(byval cmdid as integer)
   scriptwatcher gam.debug_scripts
   next_interpreter_check_time = TIMER + scriptCheckDelay
   start_fibre_timing
+ CASE 715 '--delete hero by slot (slot)
+  IF valid_hero_party(retvals(0)) THEN
+   IF gam.hero(retvals(0)).id >= 0 THEN
+    'slot is occupied
+    deletehero retvals(0)
+    IF active_party_size() = 0 THEN forceparty
+    scriptret = 0
+   ELSE
+    ' slot is empty, do nothing
+    scriptret = -1
+   END IF
+  ELSE
+   scriptret = -1
+  END IF
+
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
