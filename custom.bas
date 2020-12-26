@@ -841,7 +841,7 @@ SUB Custom_global_menu
  'On Mac, Cmd-1/2/3/4 is handled by keycombos_logic in gfx_sdl and gfx_sdl2
  FOR zoom as integer = 1 TO 4
   #IFDEF __FB_DARWIN__
-   menu.append 3 + zoom, "Zoom to " & zoom & "x (Cmd-" & zoom & ")")
+   menu.append 3 + zoom, "Zoom to " & zoom & "x (Cmd-" & zoom & ")"
   #ELSE
    menu.append 3 + zoom, "Zoom to " & zoom & "x"
   #ENDIF
