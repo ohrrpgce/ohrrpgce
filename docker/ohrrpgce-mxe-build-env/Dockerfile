@@ -36,6 +36,7 @@ RUN apt-get update \
       wget \
       xz-utils \
       libffi-dev \
+      libgmp3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt
@@ -45,9 +46,17 @@ RUN make gcc libffi
 ENV PATH="${PATH}:/opt/mxe/usr/bin"
 
 WORKDIR /opt
-RUN git -c http.sslVerify=false clone https://github.com/freebasic/fbc.git
+RUN git -c http.sslVerify=false clone https://github.com/rversteegen/fbc.git --branch android --single-branch
 WORKDIR /opt/fbc
 
-# FIXME: this step doesn't work yet, fails with:
-# src/rtlib/thread_call.c:33:17: fatal error: ffi.h: No such file or directory
-RUN make TARGET=i686-w64-mingw32.static prefix=/usr/local/ rtlib gfxlib2 install-rtlib install-gfxlib2
+# This still doesn't work-- it is a work-in-progress :P
+RUN make compiler install-compiler install-includes -j6 \
+    && make rtlib install-rtlib gfxlib2 install-gfxlib2 MULTILIB=32 -j6 \
+    && make rtlib install-rtlib gfxlib2 install-gfxlib2 MULTILIB=64 -j6 \
+    && make unit-tests \
+    && echo "Done make linux and unit tests..."
+
+ENV TARGET="i686-w64-mingw32.static"
+RUN rtlib install-rtlib gfxlib2 install-gfxlib2 TARGET=$TARGET prefix=$HOME/local/fbc-git CFLAGS="-g `$TARGET-pkg-config libffi --cflags`" \
+    && echo "Done make windows target..."
+    
