@@ -222,7 +222,7 @@ typedef struct FB_HOOKSTB {
 	FnDummy isredirproc;
 	FnDummy pagecopyproc;
 	FnDummy pagesetproc;
-#if FBCVERSION >= 1060
+#if FBCVERSION >= 1080	// Added on FB's emscripten branch, not merged until FB 1.08
 	FnDummy posteventproc;
 #endif
 } FB_HOOKSTB;
