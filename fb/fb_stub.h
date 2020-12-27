@@ -193,7 +193,7 @@ typedef struct _FB_LIST {
 typedef FBCALL int (*FnDummy)();
 
 // Although the signatures of these functions have sometimes changed, the contents of
-// this struct hasn't changed since 2007 (as of 20160504)
+// this struct have only changed once since 2007 (as of 2020)
 typedef struct FB_HOOKSTB {
 	FnDummy inkeyproc;
 	FnDummy getkeyproc;
@@ -222,6 +222,9 @@ typedef struct FB_HOOKSTB {
 	FnDummy isredirproc;
 	FnDummy pagecopyproc;
 	FnDummy pagesetproc;
+#if FBCVERSION >= 1060
+	FnDummy posteventproc;
+#endif
 } FB_HOOKSTB;
 
 #if FBCVERSION < 240
