@@ -1913,18 +1913,18 @@ end sub
 	dim byt as ubyte
 	dim ret as longint = 0
 	dim neg as bool = NO
-	dim bit as integer = 0
+	dim bitnum as integer = 0
 
 	READBYTE(byt)
-	if byt AND &b1000000 then neg = YES
-	
-	ret OR= (byt AND &b111111) SHL bit
-	bit += 6
+	if byt and &b1000000 then neg = YES
 
-	do while byt AND &b10000000
+	ret or= (byt and &b111111) shl bitnum
+	bitnum += 6
+
+	do while byt and &b10000000
                 READBYTE(byt)
-		ret OR= cast(longint, byt AND &b1111111) SHL bit
-		bit += 7
+		ret or= cast(longint, byt and &b1111111) shl bitnum
+		bitnum += 7
 	loop
 
 	if neg then ret = not ret

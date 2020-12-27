@@ -16,46 +16,43 @@ Sub CreateBitset(byval node as Nodeptr)
 	SetContent(node, "")
 end sub
 
-Sub SetBitset(byval node as Nodeptr, byval bit as integer, byval v as integer)
+Sub SetBitset(byval node as Nodeptr, byval bitnum as integer, byval value as bool)
 	if node = 0 then return
-	
+
 	if NodeType(node) <> rltString then return
-	
+
 	dim as integer byt, b
-	
-	byt = bit \ 8
-	b = bit mod 8
-	
+
+	byt = bitnum \ 8
+	b = bitnum mod 8
+
 	if byt >= GetZStringSize(node) then
 		if 0 = ResizeZString(node, byt + 1) then return 'memory failure...
 	end if
 
-	'Work around FB bug #662 gen gcc: zstring ptrs are indexed as char* instead of unsigned char* 
 	dim d as ubyte ptr = GetZString(node)
-	
-	if v then
-		d[byt] = d[byt] or (2 ^ b)
-	else 
-		d[byt] = d[byt] and not(2 ^ b)
+	if value then
+		d[byt] or= 2 ^ b
+	else
+		d[byt] and= not(2 ^ b)
 	end if
 End sub
 
-Function GetBitset(byval node as Nodeptr, byval bit as integer) as integer
+Function GetBitset(byval node as Nodeptr, byval bitnum as integer) as bool
 	if node = 0 then return 0
 	
 	if NodeType(node) <> rltString then return 0
 	
 	dim as integer byt, b
-	
-	byt = bit \ 8
-	b = bit mod 8
-	
+
+	byt = bitnum \ 8
+	b = bitnum mod 8
+
 	if byt >= GetZStringSize(node) then
 		return 0
 	end if
-	
+
 	dim d as ubyte ptr = GetZString(node)
-	
 	return 0 <> (d[byt] and (2 ^ b))
 End function
 
