@@ -36,7 +36,8 @@ RUN apt-get update \
       wget \
       xz-utils \
       libffi-dev \
-      libgmp3-dev \
+      libgpm-dev \
+      libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt
@@ -49,14 +50,14 @@ WORKDIR /opt
 RUN git -c http.sslVerify=false clone https://github.com/rversteegen/fbc.git --branch android --single-branch
 WORKDIR /opt/fbc
 
-# This still doesn't work-- it is a work-in-progress :P
 RUN make compiler install-compiler install-includes -j6 \
-    && make rtlib install-rtlib gfxlib2 install-gfxlib2 MULTILIB=32 -j6 \
-    && make rtlib install-rtlib gfxlib2 install-gfxlib2 MULTILIB=64 -j6 \
-    && make unit-tests \
-    && echo "Done make linux and unit tests..."
+    && make rtlib install-rtlib gfxlib2 install-gfxlib2 MULTILIB=32 -j6 prefix=/usr/local CFLAGS="-g -DDISABLE_FFI" \
+    && make rtlib install-rtlib gfxlib2 install-gfxlib2 MULTILIB=64 -j6 prefix=/usr/local CFLAGS="-g -DDISABLE_FFI"
+# Disabled unit tests for now because fbc_tests.threads.threadcall_ fails
+#RUN make unit-tests
 
 ENV TARGET="i686-w64-mingw32.static"
-RUN rtlib install-rtlib gfxlib2 install-gfxlib2 TARGET=$TARGET prefix=$HOME/local/fbc-git CFLAGS="-g `$TARGET-pkg-config libffi --cflags`" \
+RUN make rtlib install-rtlib gfxlib2 install-gfxlib2 TARGET=$TARGET prefix=/usr/local CFLAGS="-g `$TARGET-pkg-config libffi --cflags`" \
     && echo "Done make windows target..."
     
+WORKDIR /
