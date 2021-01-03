@@ -1,10 +1,17 @@
 #!/usr/bin/env python
+"""
+Utility to check and print which versions of glibc, stdc++/supc++ and gcc dependency libraries (libgcc_s)
+that an ELF binary requires, and when those versions were released.
+
+Python 2.7 or 3.x
+
+Placed in the public domain by Ralph Versteegen.
+"""
 
 from __future__ import print_function
 import sys
 import subprocess
 import re
-from ohrbuild import get_command_output
 
 
 def check_deps(binary):
@@ -20,7 +27,7 @@ def check_deps(binary):
     libraries = []
     current_lib = None
     req = {'CXXABI': (), 'GLIBC': (), 'GLIBCXX': (), 'GCC': ()}
-    for line in get_command_output("objdump", ["-p", binary]).split('\n'):
+    for line in subprocess.check_output(["objdump", "-p", binary]).decode().split('\n'):
         match = re.search("required from (.*):", line)
         if match:
             current_lib = match.group(1)
@@ -29,7 +36,7 @@ def check_deps(binary):
         if match:
             symbol = match.group(1)
             version = tuple(map(int, match.group(2).split('.')))
-            #print symbol, version
+            #print(symbol, version)
             req[symbol] = max(req[symbol], version)
 
     # Tables giving the required version of GCC corresponding to each GLIBCXX symbol versioning tag
@@ -132,7 +139,7 @@ def check_deps(binary):
         (2,28): '2018-08-01',
         (2,29): '2019-01-31',
     }
-    #print req
+    #print(req)
 
     def verstring(version_tuple):
         unknown = [a for a in version_tuple if 'unknown' in str(a)]
@@ -175,3 +182,12 @@ def check_deps(binary):
     glibc_release = lookup_version(req['GLIBC'], glibc_release_dates)
     print(">>  %s requires glibc %s (released %s) %s" % (
         binary, verstring(req['GLIBC']), glibc_release, gcc_req))
+
+
+##############################################################################
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print("Usage: %s <executable or .so>")
+        exit(1)
+    check_deps(sys.argv[1])
