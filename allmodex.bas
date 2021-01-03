@@ -7458,6 +7458,7 @@ end function
 '8-bit Surfaces:  preserves palette indices. pal is optional.
 '32-bit Surfaces: masterpal() and pal and the alpha channel are ignored.
 '                 The output .png will be paletted if the input has <= 256 colors.
+'compress is 0, 1, 2, higher values are slower but compress better.
 function surface_export_png(surf as Surface ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, compress as integer = 1) as bool
 	dim filebuf as byte ptr
 	dim filebufsize as size_t
@@ -7468,7 +7469,7 @@ function surface_export_png(surf as Surface ptr, filename as string, masterpal()
 	state.info_raw.bitdepth = 8
 	state.info_png.color.bitdepth = 8
 
-	'Default is 2048. 8192 and above are much slower, because they're size-optimised
+	'LodePNG's default is 2048. 8192 and above are much slower, because they're size-optimised
 	state.encoder.zlibsettings.windowsize = iif(compress <= 0, 512, iif(compress >= 2, 32768, 4096))
 
 	if surf->format = SF_8bit then

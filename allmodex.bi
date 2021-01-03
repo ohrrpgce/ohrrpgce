@@ -425,6 +425,7 @@ DECLARE FUNCTION surface_export_jpeg(surf as Surface ptr, filename as string, qu
 DECLARE FUNCTION frame_export_jpeg(fr as Frame ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, quality as integer = 95) as bool
 
 DECLARE FUNCTION surface_export_png(surf as Surface ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, compress as integer = 1) as bool
+DECLARE FUNCTION frame_export_png(fr as Frame ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, compress as integer = 1) as bool
 
 'Read BMP info or palette
 DECLARE FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
