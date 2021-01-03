@@ -13,6 +13,7 @@ import shlex
 import itertools
 import re
 from ohrbuild import get_command_output
+from misc import linux_portability_check
 import ohrbuild
 
 FBFLAGS = ['-mt'] #, '-showincludes']
@@ -371,7 +372,7 @@ if portable and unix and not mac:
     # Only implemented on GNU
     def check_lib_reqs(source, target, env):
         for targ in target:
-            ohrbuild.check_lib_requirements(str(targ))
+            linux_portability_check.check_deps(str(targ))
     check_binary = Action(check_lib_reqs, None)  # Action wrapper which prints nothing
 else:
     check_binary = None
