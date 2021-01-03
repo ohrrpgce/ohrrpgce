@@ -524,7 +524,6 @@ script, hero party management tests, begin
   $0="hero party management tests"
   # Preconditions
   assert(room in active party == 3)
-  assert(hero by slot(0) == hero:Freki)
   variable(h0x, h0y, h0speed, h0d)
   h0x := hero x(0)
   h0y := hero y(0)
@@ -532,13 +531,9 @@ script, hero party management tests, begin
   h0d := hero direction(0)
 
   assert(observed hero count == 1)
-  tracevalue(herobyslot(0))
-  tracevalue(herobyslot(1))
-  tracevalue(herobyslot(2))
-  tracevalue(herobyslot(3))
-  assert(add hero(hero:Helga) == 1)
-  assert(add hero(hero:Olaf) == 2)
-  assert(add hero(hero:Frumpy) == 3)
+  add hero(hero:Helga)
+  add hero(hero:Olaf)
+  add hero(hero:Frumpy)
   assert(room in active party == 0)
   assert(observed hero count == 4)
   assert(hero by rank(0) == hero:Freki)
@@ -571,7 +566,7 @@ script, hero party management tests, begin
   assert(hero direction(0) == h0d)
   
   # add a different leader
-  assert(add hero(hero:Styrge) == 0)
+  add hero(hero:Styrge)
   assert(hero by slot(0) == hero:Styrge)
   # test find hero
   assert(find hero(hero:Freki)  == -1)
@@ -586,7 +581,7 @@ script, hero party management tests, begin
   assert(rank in caterpillar(hero:Frumpy) == 3)
   assert(rank in caterpillar(hero:Styrge) == 0)
   # Add a hero to the reserve
-  assert(add hero(hero:Kitt) == 4)
+  add hero(hero:Kitt)
   assert(room in active party == 0)
   variable(slot)
   slot := find hero(hero:Kitt)
@@ -633,7 +628,7 @@ script, hero party management tests, begin
   swap out hero(hero by slot(0)) # swap out frumpy
   assert(hero by slot(0) == -1)
   # restore numeric order
-  assert(add hero(hero:Freki) == 0)
+  add hero(hero:Freki) # Freki
   assert(hero by slot(0) == hero:Freki)
   swap by position(1, find hero(hero:Helga))
   assert(hero by slot(1) == hero:Helga)
@@ -766,7 +761,7 @@ script, hero names embed tests, begin
   $2=",Olaf,,Frumpy"
   hero names embed helper
 
-  assert(add hero(hero:Olaf) == 1)  # slot 1
+  add hero(hero:Olaf)  # slot 1
   $4="Nolaf"
   set hero name(4, 1)
   $1="Olaf,Nolaf,Frumpy,"
@@ -1225,9 +1220,10 @@ script, hero exp and levels tests, begin
   assert(experience to level(99, freki slot) == 50183838)
 
   # check Bram's level curve (should faster than default)
+  add hero(hero:Bram)
   variable(bram slot)
-  bram slot := add hero(hero:Bram)
-  assert(bram slot == find hero(hero:Bram))
+  bram slot := find hero(hero:Bram)
+  assert(bram slot >= 0)
   assert(experience to level(1, bram slot) == 30)
   assert(experience to level(2, bram slot) == 70)
   assert(experience to level(3, bram slot) == 121)
@@ -5006,7 +5002,7 @@ script, slice correspondence tests, begin
   assert(get hero slice by slot(1) == sl)
 
   # Test rank > 0
-  assert(add hero(hero:Bram) == 0)  # Freki in slot 1
+  add hero(hero:Bram)
   sl := get hero slice(1)
   assert(sl)
   assert(get hero slice by slot(1) == sl)
