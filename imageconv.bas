@@ -50,6 +50,11 @@ dim dest as string = COMMAND(cmdidx + 1)
 if isfile(src) = NO orelse dest = "" then usage
 if COMMAND(cmdidx + 2) <> "" then usage
 
+dim outtype as ImageFileTypes = image_file_type(dest)
+if outtype = imJPEG then
+        to_24 = YES
+        to_pal = NO
+end if
 
 'Needed to load Surface function pointers
 prefer_gfx_backend "dummy"
