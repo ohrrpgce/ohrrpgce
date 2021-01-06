@@ -1,9 +1,7 @@
-/*
- * blit.c - Expensive graphics utility functions
- *
+/* OHRRPGCE - 8-bit graphics blitting
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
  * Please read LICENSE.txt for GPL License details and disclaimer of liability
  */
-
 
 #include "config.h"
 #include <string.h>

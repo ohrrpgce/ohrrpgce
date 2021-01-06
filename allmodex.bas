@@ -1,6 +1,6 @@
 'OHRRPGCE - the graphics, audio and user input library!
 '(C) Copyright 1997-2017 James Paige and Hamster Republic Productions
-'Please read LICENSE.txt for GNU GPL license details and disclaimer of liability
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
 'This module is completely bool-clean (bool always used when appropriate)
 

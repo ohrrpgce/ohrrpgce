@@ -1,5 +1,6 @@
-/* OHRRPGCE - Replacement for FB arrays
- * Copyright 2010. Please read LICENSE.txt for GNU GPL details and disclaimer of liability
+/* OHRRPGCE - Generic vector/array library
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
  */
 
 #include <stdlib.h>
