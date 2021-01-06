@@ -28,7 +28,7 @@
 #endif
 */
 
-#if (defined(unix) || defined(__unix__)) && !defined(__APPLE__) && !defined(__ANDROID__)
+#if (defined(unix) || defined(__unix__)) && !defined(__APPLE__) && !defined(__ANDROID__) && !defined(NO_X11)
 # define USE_X11 1
 #endif
 

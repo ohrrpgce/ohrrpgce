@@ -988,7 +988,7 @@ elif android:
     common_modules += ['os_unix_wm.c', 'android/sdlmain.c']
 elif unix:  # Unix+X11 systems: Linux & BSD
     base_modules += ['os_unix.c', 'os_unix2.bas']
-    common_modules += ['os_unix_wm.c', 'lib/x11_printerror.c']
+    common_modules += ['os_unix_wm.c']
     if portable:
         # To support old libstdc++.so versions
         base_modules += ['lib/stdc++compat.cpp']
@@ -998,9 +998,14 @@ elif unix:  # Unix+X11 systems: Linux & BSD
             base_modules += ['lib/glibc_compat.c']
     if 'sdl' in gfx or 'fb' in gfx:
         common_modules += ['lib/SDL/SDL_x11clipboard.c', 'lib/SDL/SDL_x11events.c']
-    if gfx != ['console']:
+    if gfx == ['console']:
+        # Exclusively gfx_console
+        commonenv['FBFLAGS'] += ['-d', 'NO_X11']
+        commonenv['CFLAGS'] += ['-DNO_X11']
+    else:
         # All graphical gfx backends need the X11 libs
         common_libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')
+        common_modules += ['lib/x11_printerror.c']
     if 'console' in gfx and portable:
         print("gfx=console is not compatible with portable=1, which doesn't link to ncurses.")
         Exit(1)

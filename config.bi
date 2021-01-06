@@ -109,7 +109,7 @@ CONST build_info as string = "" _GSTR _ESTR _GENSTR _PSTR _BSTR
 'Universal Windows Platform (Windows Store and XBox One)
 '#define UWP
 
-#if defined(__FB_UNIX__) and not (defined(__FB_DARWIN__) or defined(__FB_ANDROID__))
+#if defined(__FB_UNIX__) and not (defined(__FB_DARWIN__) or defined(__FB_ANDROID__)) and not defined(NO_X11)
  #define USE_X11
 #endif
 
