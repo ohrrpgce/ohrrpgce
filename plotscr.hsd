@@ -2114,6 +2114,10 @@ define constant, begin
 0b110,mapstate:npcs
 0b111000,mapstate:tiles
 0b11111111,mapstate:all
+# Values for "draw NPCs above heroes"
+0,layering:heroes over NPCs
+1,layering:NPCS over heroes
+2,layering:heroes and NPCs together
 0,timer:stop #use in speed
 -1,timer:default #use in any
 -2,timer:gameover#use in trigger

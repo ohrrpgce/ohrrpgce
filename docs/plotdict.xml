@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2020-12-26">
+<plotscript version="wip" datecode="2021-01-07">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -6359,6 +6359,10 @@ end
 				the Map slices just won't be copied.
 				Any slices of type Special (such as the textbox or script layers) will be copied as
 				plain Container slices (there isn't really any difference between them).
+				<note>
+					Ongoing slice movement (e.g. velocity) and sprite dissolves are copied into the clone too,
+					so you might need to reset those.
+				</note>
 			</description>
 		</command>
 		<command id="setsliceextra">
@@ -10238,8 +10242,14 @@ end</example>
 			<canon>draw NPCs above heroes (setting)</canon>
 			<shortname>draw NPCs above heroes</shortname>
 			<description>
-				Sets whether NPCs are drawn above heroes or the default of beneath.
-				The effect goes away if you change maps or fight a battle.
+				Sets whether NPCs are drawn above, beneath or together (Y-sorted) with heroes.
+				The effect goes away if you change maps or fight a battle (unless saved by <ref>savemapstate</ref>).
+				<p>setting</p> is one of:
+				<ul>
+					<li>layering: heroes over NPCs</li>
+					<li>layering: NPCS over heroes</li>
+					<li>layering: heroes and NPCs together</li>
+				</ul>
 			</description>
 		</command>
 		<command id="setmapedgemode">

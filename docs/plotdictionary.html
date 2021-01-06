@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2020-12-26)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2021-01-07)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -11989,6 +11989,11 @@ end
 				the Map slices just won't be copied.
 				Any slices of type Special (such as the textbox or script layers) will be copied as
 				plain Container slices (there isn't really any difference between them).
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Ongoing slice movement (e.g. velocity) and sprite dissolves are copied into the clone too,
+					so you might need to reset those.
+				</div>
 			
 			
 			
@@ -18036,8 +18041,14 @@ end</pre>
 				<h4>draw NPCs above heroes (setting)</h4>
 <p>
 			
-				Sets whether NPCs are drawn above heroes or the default of beneath.
-				The effect goes away if you change maps or fight a battle.
+				Sets whether NPCs are drawn above, beneath or together (Y-sorted) with heroes.
+				The effect goes away if you change maps or fight a battle (unless saved by <a href="#about-savemapstate" class="ref">save map state</a>).
+				<span class="param">setting</span> is one of:
+				<ul>
+					<li>layering: heroes over NPCs</li>
+					<li>layering: NPCS over heroes</li>
+					<li>layering: heroes and NPCs together</li>
+				</ul>
 			
 			
 			
