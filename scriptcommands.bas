@@ -47,6 +47,9 @@ plotslicesp = @plotslices(1)
 DIM next_slice_handle as integer = 1   '== LBOUND(plotslices)
 'Tracks the number of unassigned handles less than next_slice_handle
 DIM num_reusable_slice_handles as integer
+'This tells the largest slice handle that was ever valid. It's only to determine whether
+'"invalid slice handle" or "slice already deleted" is the appropriate error message.
+DIM highest_used_slice_handle as integer = 0
 
 REDIM timers(numInitialTimers - 1) as PlotTimer
 
@@ -5181,7 +5184,7 @@ FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as bool
 END FUNCTION
 
 FUNCTION valid_plotslice(byval handle as integer, byval errlev as scriptErrEnum = serrBadOp) as bool
- IF handle < LBOUND(plotslices) OR handle > UBOUND(plotslices) THEN
+ IF handle < LBOUND(plotslices) ORELSE handle > highest_used_slice_handle THEN  'catches handle > UBOUND(plotslices)
   scripterr current_command_name() & ": invalid slice handle " & handle, errlev
   RETURN NO
  END IF
@@ -5375,6 +5378,7 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
    'Store the handle slot in the slice
    sl->TableSlot = i
    next_slice_handle = i + 1
+   IF i > highest_used_slice_handle THEN highest_used_slice_handle = i
    RETURN i
   END IF
  NEXT
@@ -5386,6 +5390,7 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
  'Store the handle slot in the slice
  sl->TableSlot = i
  next_slice_handle = i + 1
+ IF i > highest_used_slice_handle THEN highest_used_slice_handle = i
  RETURN i
 END FUNCTION
 
@@ -5399,7 +5404,7 @@ END FUNCTION
 SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
  'This function is used to restore handles when loading a slice collection from a saved game.
  'This should ONLY be called when starting a game, before any scripts have run!
- IF sl = 0 THEN showbug "set_plotslice_handle null ptr"
+ BUG_IF(sl = 0, "null ptr")
  IF sl->TableSlot <> 0 THEN
   showbug "set_plotslice_handle shouldn't be called on a slice with existing TableSlot"
  END IF
@@ -5408,6 +5413,8 @@ SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
   REDIM PRESERVE plotslices(LBOUND(plotslices) TO handle * 1.5 + 32)
   plotslicesp = @plotslices(1)
  END IF
+
+ IF handle > highest_used_slice_handle THEN highest_used_slice_handle = handle
 
  IF plotslices(handle) <> 0 THEN
   showbug "set_plotslice_handle: non-empty plotslices(" & handle & ")"

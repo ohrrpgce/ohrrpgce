@@ -3915,7 +3915,8 @@ Sub DestroyGameSlices (dumpdebug as bool = NO)
  'Correct accounting of these globals is unnecessary! I guess
  'it's good for determinism though
  num_reusable_slice_handles = 0
- next_Slice_Handle = LBOUND(plotslices)
+ highest_used_slice_handle = 0
+ next_slice_handle = LBOUND(plotslices)
 END SUB
 
 

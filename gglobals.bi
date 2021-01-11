@@ -118,5 +118,6 @@ EXTERN remembered_menu_pts() as integer
 EXTERN SliceTable as SliceTableType
 EXTERN plotslices() as Slice ptr
 EXTERN next_slice_handle as integer
+EXTERN highest_used_slice_handle as integer
 EXTERN num_reusable_slice_handles as integer
 
