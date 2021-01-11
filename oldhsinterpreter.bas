@@ -1300,7 +1300,7 @@ END IF 'end drawing scripts list
 
 IF mode > 1 AND drawloop = NO THEN
  setvispage page, NO
- DIM w as KBScancode = waitforanykey
+ DIM w as KBScancode = waitforanykey( , 2)  'Wait for new or repeating key
  IF w = scEsc OR w = scF10 THEN
   mode = 0
   clearkey(scF10)
