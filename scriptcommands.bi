@@ -84,6 +84,7 @@ DECLARE FUNCTION valid_map_layer(layer as integer, byval errlvl as scriptErrEnum
 DECLARE FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as bool
 DECLARE FUNCTION valid_save_slot(slot as integer) as bool
 DECLARE FUNCTION valid_color(index as integer) as bool
+DECLARE FUNCTION valid_box_style(index as integer) as bool
 DECLARE FUNCTION valid_spriteset(spritetype as SpriteType, record as integer) as bool
 
 DECLARE SUB greyscalepal

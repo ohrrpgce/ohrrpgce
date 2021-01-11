@@ -54,6 +54,8 @@ January ? 2021 [Hróðvitnir]
     * "read foemap" [Ralph]
     * "breakpoint" [Ralph]
     * "delete hero by slot" [James]
+    * "get ui color", "set ui color", "get box style color",
+      "get box style edge color", "get box style border" [Ralph]
 
   *** Changes
     * NPCpush:vertical and NPCpush:horizontal script constants were swapped with

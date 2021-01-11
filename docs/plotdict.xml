@@ -3441,6 +3441,10 @@ fade screen in</example>
 			<description>Takes a 32-bit color value (as returned by <ref>getcolor</ref>), and extracts the red, green or blue component, based on the <p>component</p> parameter. You may use the <ref>colorred</ref>, <ref>colorgreen</ref> and <ref>colorblue</ref> parameters to choose which one.</description>
 			<seealso><ref>rgb</ref></seealso>
 		</command>
+
+		<reference ref="getuicolor" />
+		<reference ref="setuicolor" />
+
 		</section>
 
 		<section title="Sound Effects">
@@ -3498,6 +3502,79 @@ fade screen in</example>
 		</command>
 		</section>		<!-- Sound Effects-->
 	</section>
+
+
+	<section title="User Interface Colors and Box Styles">
+
+		<command id="getuicolor">
+			<canon>get ui color (color, autotoggle)</canon>
+			<shortname>get ui color</shortname>
+			<description>
+				Look up which color a UI color is.
+				<p>color</p> should normally be a <tt>ui:</tt> constant such as <tt>ui:menu item</tt>.
+				See <ref>colorcode</ref> for a list of constants.
+				Also, if <p>color</p> is a palette index (0 - 255) then it is returned unchanged.
+				<lb/>
+				<p>autotoggle</p> is optional, and defaults to false.
+				If <tt>true</tt>, when you get certain UI colors that normally flash
+				(for example, <tt>ui:selected item</tt>), the return value will change
+				every tick according to the flashing, rather than just returning the value seen
+				in the Edit User-Interface Colors menu.
+			</description>
+			<seealso>
+				<ref>setuicolor</ref>
+			</seealso>
+		</command>
+		<command id="setuicolor">
+			<canon>set ui color (color, palette index)</canon>
+			<shortname>set ui color</shortname>
+			<description>
+				Change a UI color.
+				<p>color</p> should be a <tt>ui:</tt> constant such as <tt>ui:menu item</tt>.
+				See <ref>colorcode</ref> for a list of constants.
+				<p>palette index</p> should be a value 0-255, an index in the current master palette.
+				<note>
+					The change will be lost if you call <ref>loadpalette</ref>, <ref>resetpalette</ref>, quit the game, or load a game.
+				</note>
+			</description>
+			<seealso>
+				<ref>getuicolor</ref>
+			</seealso>
+		</command>
+
+		<command id="getboxstylecolor">
+			<canon>get box style color (box style)</canon>
+			<shortname>get box style color</shortname>
+			<description>
+				Returns the background/fill color (0-255 master palette index) of <p>box style</p>,
+				which should be 0 to 14.
+			</description>
+		</command>
+		<command id="getboxstyleedgecolor">
+			<canon>get box style edge color (box style)</canon>
+			<shortname>get box style edge color</shortname>
+			<description>
+				Returns the edge color (0-255 master palette index) of <p>box style</p>,
+				which should be 0 to 14.
+				<lb/>
+				This is the color of the simple line border;
+				if the box style uses a box border spriteset (see <ref>getboxstyleborder</ref>)
+				then the line border is usually not visible.
+			</description>
+		</command>
+		<command id="getboxstyleborder">
+			<canon>get box style border (box style)</canon>
+			<shortname>get box style border</shortname>
+			<description>
+				Returns either <tt>border:line</tt> (which is -1) if a box style use a simple line
+				border rather than a box border spriteset,
+				or the spriteset ID of the border for <p>box style</p>,
+				which should be 0 to 14.
+			</description>
+		</command>
+
+	</section>
+
 
 	<section title="Hero Data">
 
@@ -5891,12 +5968,12 @@ end</example>
 		<command id="getmenuboxstyle">
 			<canon>get menu boxstyle(menu handle)</canon>
 			<shortname>get menu boxstyle</shortname>
-			<description>Given a <ref>menuhandle</ref>, return a the boxstyle of the menu. This will be a number from 0 to 15.</description>
+			<description>Given a <ref>menuhandle</ref>, return a the boxstyle of the menu. This will be a number from 0 to 14.</description>
 		</command>
 		<command id="setmenuboxstyle">
 			<canon>set menu boxstyle(menu handle, new box style)</canon>
 			<shortname>set menu boxstyle</shortname>
-			<description>Given a <ref>menuhandle</ref>, change the boxstyle of the menu. <p>new box style</p> will be a number from 0 to 15.</description>
+			<description>Given a <ref>menuhandle</ref>, change the boxstyle of the menu. <p>new box style</p> will be a number from 0 to 14.</description>
 		</command>
 
 		<command id="getmenutextcolor">
@@ -11687,7 +11764,9 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				The meaning of 0 depends on the particular script command:
 				it might mean either 'transparent' or 'the default color'
 				or 'color 0 in the palette'.
-				Negative valeus indicate colors defined in the User-Interface Colors editor.
+				Negative values are <tt>ui:...</tt> constants, for colors defined in
+				the User-Interface Colors editor.
+				(You can get the master palette index for a <tt>ui:</tt> constant with <ref>getuicolor</ref>.)
 			</description>
 		</command>
 		<command id="scancode">

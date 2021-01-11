@@ -104,7 +104,7 @@ declare Sub GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer
 declare Sub GuessDefaultBoxStyles (masterpal() as RGBcolor, boxarray() as BoxStyle, colors_only as bool = NO)
 declare Function UiColorCaption(byval n as integer) as string
 DECLARE FUNCTION LowColorCode () as integer
-declare Function ColorIndex(byval n as integer) as integer
+DECLARE FUNCTION ColorIndex(n as integer, autotoggle as bool = YES) as integer
 declare Function mouse_hover_tinted_color(text_col as integer = -1) as integer
 
 declare Sub LoadTextBox (byref box as TextBox, byval record as integer)

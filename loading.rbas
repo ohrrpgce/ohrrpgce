@@ -2530,22 +2530,26 @@ FUNCTION UiColorCaption(byval n as integer) as string
  RETURN n & "(!?)"
 END FUNCTION
 
+'Minimum valid color code (as used in scripts or slice data)
 FUNCTION LowColorCode () as integer
  RETURN uiColorLast * -1 - 1
 END FUNCTION
 
-FUNCTION ColorIndex(byval n as integer) as integer
+'Decode a color code (as used in scripts or slice data) to a master palette index
+FUNCTION ColorIndex(n as integer, autotoggle as bool = YES) as integer
  if n >= 0 andalso n <= 255 then return n
  if n <= -1 andalso n >= (uiColorLast*-1 - 1) then
   dim uiC as integer = (n * -1) - 1
-  select case uiC
-   case uiSelectedItem2, uiSelectedDisabled2, uiSelectedSpecial2, _
-        uiItemScreenSelected2, uiItemScreenSelectedDisabled2, _
-        uiItemScreenSelectedSpecial2, uiItemScreenHighlight2, _
-        uiItemScreenSwapHighlight2:
-    'Some colors auto-animate
-    if get_tickcount() mod 2 = 0 then uiC = uiC - 1
-  end select
+  if autotoggle then
+   select case uiC
+    case uiSelectedItem2, uiSelectedDisabled2, uiSelectedSpecial2, _
+         uiItemScreenSelected2, uiItemScreenSelectedDisabled2, _
+         uiItemScreenSelectedSpecial2, uiItemScreenHighlight2, _
+         uiItemScreenSwapHighlight2:
+     'Some colors auto-animate
+     if get_tickcount() mod 2 = 0 then uiC = uiC - 1
+   end select
+  end if
   return uilook(uiC)
  end if
  debugerror "Invalid slice color " & n

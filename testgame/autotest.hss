@@ -5272,6 +5272,14 @@ end
 script, master palette tests, begin
   $0="master palette tests"
 
+  # Test reading master palette
+  assert(get color(0) == RGB(255, 0, 255))
+  assert(get color(6) == RGB(155, 83, 3))
+  assert(extract color(get color(19), color:red) == 37)
+  assert(extract color(get color(19), color:green) == 139)
+  assert(extract color(get color(19), color:blue) == 255)
+
+  # Test searching master palette
   assert(find color(255, 0, 255) == 0)
   assert(find color(0, 0, 0, 255) == 255)
   assert(find color(0, 0, 0, 256) == 0)
@@ -5280,6 +5288,39 @@ script, master palette tests, begin
   assert(find color(255, 0, 255, 186) == 200)
   assert(find color(180, 180, 0) == 103)
   assert(find color(512, 100, -512) == 168)
+
+  # Test get/set ui color
+  assert(get ui color(ui:background) == 240)
+  assert(get ui color(0) == 0)
+  assert(get ui color(255) == 255)
+  assert(get ui color(ui:MPBarFlash) == 37)  # Currently last UI col
+  open menu(0)
+  set ui color(ui:menu item, 99)
+  assert(get ui color(ui:menu item) == 99)
+  w
+  close menu(top menu)
+  set ui color(ui:menu item, ui:background)
+  assert(get ui color(ui:menu item) == 240)
+  set ui color(ui:menu item, 250)  # Reset
+
+  # Test "get ui color" autotoggling
+  variable(c1, c2, tog1, tog2, )
+  c1 := get ui color(ui:selected item)
+  c2 := get ui color(ui:selected item 2)
+  assert(c1 == 14)
+  assert(c2 == 15)
+  tog1 := get ui color(ui:selected item 2, true)
+  wait(1)
+  assert(get ui color(ui:selected item 2) == c2)
+  tog2 := get ui color(ui:selected item 2, true)
+  # Currently it changes every tick
+  assert((tog1 == c1 && tog2 == c2) || (tog1 == c2 && tog2 == c1))
+
+  # Test box styles
+  assert(get box style color(14) == 65)
+  assert(get box style edge color(14) == 252)
+  assert(get box style border(14) == 1)
+  assert(get box style color(0) == 33)
 
   # Lots of other color commands could be tested
 end

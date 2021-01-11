@@ -4037,7 +4037,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 590'--set scroll bar style
   IF valid_plotscrollslice(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 14, "box style") THEN
+   IF valid_box_style(retvals(1)) THEN
     ChangeScrollSlice plotslices(retvals(0)), retvals(1)
    END IF
   END IF
@@ -5005,7 +5005,29 @@ SUB script_functions(byval cmdid as integer)
   ELSE
    scriptret = -1
   END IF
-
+ CASE 716 '--get ui color (color code, autotoggle)
+  DIM c as integer = retvals(0)
+  IF valid_color(c) THEN
+   scriptret = ColorIndex(c, retvals(1))
+  END IF
+ CASE 717 '--set ui color (color code, color index)
+  DIM uicol as integer = (retvals(0) * -1) - 1
+  DIM index as integer = retvals(1)
+  IF bound_arg(uicol, 0, uiColorLast, "UI color constant", , serrBadOp) ANDALSO valid_color(index) THEN
+   uilook(uicol) = ColorIndex(index, NO)
+  END IF
+ CASE 718 '--get box style color (box style)
+  IF valid_box_style(retvals(0)) THEN
+   scriptret = boxlook(retvals(0)).bgcol
+  END IF
+ CASE 719 '--get box style edge color (box style)
+  IF valid_box_style(retvals(0)) THEN
+   scriptret = boxlook(retvals(0)).edgecol
+  END IF
+ CASE 720 '--get box style border (box style)
+  IF valid_box_style(retvals(0)) THEN
+   scriptret = boxlook(retvals(0)).border - 1
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
@@ -5696,6 +5718,10 @@ END FUNCTION
 
 FUNCTION valid_color(index as integer) as bool
  RETURN bound_arg(index, -1 * uiColorLast - 1, 255, "color index (0-255) or UI color constant", , serrBadOp)
+END FUNCTION
+
+FUNCTION valid_box_style(index as integer) as bool
+ RETURN bound_arg(index, 0, uiBoxLast, "box style ID", , serrBadOp)
 END FUNCTION
 
 

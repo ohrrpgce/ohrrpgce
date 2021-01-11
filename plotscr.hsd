@@ -741,6 +741,11 @@ define function, begin
 713,setenemyname,2,0,0        # Change the name of an enemy (enemyid, stringid)
 714,breakpoint,0              # Enter the script debugger
 715,deleteherobyslot,1,0      # Delete a hero by slot number
+716,getuicolor,2,0,0          # Translate a ui: constant to master pal index (color code, autotoggle)
+717,setuicolor,2,0,0          # Change UI color temporarily (color code, pal index)
+718,getboxstylecolor,1,0      # Box background color (box style)
+719,getboxstyleedgecolor,1,0  # Box edge color (box style)
+720,getboxstyleborder,1,0     # border:line or box border spriteset (box style)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
