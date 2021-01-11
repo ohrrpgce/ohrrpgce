@@ -805,6 +805,11 @@ script, global npc reference, hsd:id, hsd:copy=0, hsd:allow disabled=0, begin
   exit returning(npc reference(hsd:id, hsd:copy, hsd:allow disabled, pool:global))
 end
 
+# Alias to above
+script, global npc, hsd:id, hsd:copy=0, hsd:allow disabled=0, begin
+  exit returning(npc reference(hsd:id, hsd:copy, hsd:allow disabled, pool:global))
+end
+
 script,swapbyname,hsd:hero1,hsd:hero2,begin
  hsd:hero1:=findhero(hsd:hero1)
  hsd:hero2:=findhero(hsd:hero2)

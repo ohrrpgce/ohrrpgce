@@ -2380,6 +2380,7 @@ script, global npc tests, begin
   assert(get sprite set number(get npc sprite(n1)) == 13)
   w(1)
   n1 := global npc reference(2)
+  assert(n1 == global npc(2))  # test alias
   assert(n1 <> 0)
   assert(npc x(n1) == 11)
   assert(npc y(n1) == 3)

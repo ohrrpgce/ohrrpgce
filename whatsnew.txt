@@ -46,7 +46,8 @@ January ? 2021 [Hróðvitnir]
     * "hero is chasing" and "npc is chasing" [James]
     * "max map id" [James]
     * "get slice lookup name" [Ralph]
-    * "create global npc", "global npc reference", "get npc pool" [James]
+    * "create global npc", "global npc reference" (and alias "global npc"),
+      "get npc pool" [James]
     * Commands that now accept an optional "pool" argument:
       "alter npc", "npc reference", "npc copy count", "change npc id",
       "create npc", "read npc" [James]

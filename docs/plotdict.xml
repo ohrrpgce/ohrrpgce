@@ -1654,6 +1654,10 @@ end</example>
 				<ref>globalnpcreference</ref>
 			</seealso>
 		</command>
+		<command id="globalnpc">
+			<alias>globalnpcreference</alias>
+			<shortname>global NPC</shortname>
+		</command>
 		<command id="globalnpcreference">
 			<canon>global NPC reference (ID, copy, allow disabled?)</canon>
 			<shortname>global NPC reference</shortname>
