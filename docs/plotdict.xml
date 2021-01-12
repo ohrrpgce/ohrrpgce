@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2021-01-07">
+<plotscript version="wip" datecode="2021-01-13">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -3620,7 +3620,17 @@ fade screen in</example>
 		<command id="setheropicture">
 			<canon>set hero picture (who, picture, type)</canon>
 			<shortname>set hero picture</shortname>
-			<description>Permanently changes a hero&apos;s picture. The first argument is the hero's position in the party. (Use <ref>findhero</ref> if you want refer to the hero by name.) The second argument is the index number of the picture to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref> or <ref>heroportrait</ref>, which determines if you are changing the hero's battle picture or their walkabout picture or their portrait. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>
+				Permanently changes a hero&apos;s picture.
+				The first argument is the hero's position in the party.
+				(Use <ref>findhero</ref> if you want refer to the hero by name.)
+				The second argument is the index number of the picture to use (the sprite set of the appropriate type),
+				and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref> or <ref>heroportrait</ref>,
+				which determines if you are changing the hero's battle picture or their walkabout picture or their portrait.
+				If the last argument is left out, <ref>outsidebattle</ref> is assumed.
+				<lb/>
+				The palette is not modified (but if the palette is "default" it will of course update to the spriteset's default).
+			</description>
 			<seealso>
 				<ref>resetheropicture</ref>
 			</seealso>
@@ -3646,9 +3656,19 @@ fade screen in</example>
 		<command id="resetheropicture">
 			<canon>reset hero picture (who, type)</canon>
 			<shortname>reset hero picture</shortname>
-			<description>Resets a hero&apos;s picture that was previously changed with <ref>setheropicture</ref> back to the default picture. The first argument is the hero's position in the party. (Use <ref>findhero</ref> if you want refer to the hero by name). The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref> or <ref>heroportrait</ref>, which determines if you are resetting the hero's battle picture or their walkabout picture or their portrait. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>
+				Resets a hero&apos;s picture that was previously changed with <ref>setheropicture</ref> back to the default picture.
+				The first argument is the hero's position in the party.
+				(Use <ref>findhero</ref> if you want refer to the hero by name).
+				The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref> or <ref>heroportrait</ref>,
+				which determines if you are resetting the hero's battle picture or their walkabout picture or their portrait.
+				If the last argument is left out, <ref>outsidebattle</ref> is assumed.
+				<lb/>
+				The palette is not modified (but if the palette is "default" it will of course update to the spriteset's default).
+			</description>
 			<seealso>
 				<ref>setheropicture</ref>
+				<ref>resetheropalette</ref>
 			</seealso>
 		</command>
 		<command id="resetheropalette">
@@ -3864,7 +3884,20 @@ end</example>
 		<command id="setlevelmp">
 			<canon>set level MP (who, mp level slot, new value)</canon>
 			<shortname>get level MP</shortname>
-			<description>Changes a hero's level MP (FF1-style MP). The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>mp level slot</p> is a number from 0 to 7 that represents a row of spells in the hero's spell list (the level is NOT counted from 1 to 8, as it's displayed in-game and in the spell-list editor!) The argument <p>new value</p> is the new number of level MP points. Each point represents one spell from that row.</description>
+			<description>
+				Changes one of a hero's level MP (FF1-style MP) numbers.
+				The argument <p>who</p> is the hero's position in the party,
+as returned by <ref>findhero</ref>.
+				The argument <p>mp level slot</p> is a number from 0 to 7 that represents a row of spells in the hero's spell list
+				(the level is NOT counted from 1 to 8, as it's displayed in-game and in the spell-list editor!)
+				The argument <p>new value</p> is the new number of level MP points.
+				Each point lets the player cast one spell from that row.
+				<lb/>
+				This changes the current value of a Level MP stat, therefore changes
+				will be erased if the hero levels up or otherwise has their MP restored
+				(e.g. by an inn).
+				There's not yet any command to make a permanent change (to maximum level MP).
+			</description>
 		</command>
 		<command id="herobaseelementalresistasint">
 			<canon>hero base elemental resist as int (who, element)</canon>
@@ -6847,9 +6880,16 @@ end
 			</seealso>
 		</command>
 		<command id="clampslice">
-			<canon>clamp slice (handle1, handle2)</canon>
+			<canon>clamp slice (slice, within slice)</canon>
 			<shortname>clamp slice</shortname>
-			<description>Try to move the slice <p>handle1</p> so that its screen position will be inside the screen position of slice <p>handle2</p>. The size of the slices will not be changed. It does not matter if the slices are related.</description>
+			<description>
+				Try to move <p>slice</p> so that its screen position will
+				be inside the screen position of <p>within slice</p>.
+				The size of the slices will not be changed, so if
+				<p>within sl</p> isn't large enough to contain <p>slice</p> it will stick out at least one side
+				(it's shifted to align with the nearest vertical and nearest horizontal edge of <p>within slice</p>).
+				It does not matter whether the slices are related.
+			</description>
 			<seealso>
 				<ref>slicecontains</ref>
 			</seealso>
@@ -9619,7 +9659,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 				one another (even if one or both are off the edge of the screen or hidden or
 				clipped by one of their ancestors).
 				Parent/child relationships have nothing to do with this test;
-				it does not matter if the slices are related or what their children are.
+				it doesn't matter whether the slices are related or what their children are.
 			</description>
 			<seealso>
 				<ref>slicecollidepoint</ref>
@@ -9633,7 +9673,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 				Return true if the screen position of slice <p>handle2</p> is completely inside
 				slice <p>handle1</p> (even if one or both are off the edge of the screen or hidden).
 				Parent/child relationships have nothing to do with this test;
-				it does not matter if the slices are related or what their children are.
+				it doesn't matter whether the slices are related or what their children are.
 			</description>
 			<seealso>
 				<ref>slicecollide</ref>

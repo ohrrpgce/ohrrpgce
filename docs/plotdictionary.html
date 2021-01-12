@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2021-01-07)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2021-01-13)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -341,6 +341,10 @@ function toggleContent(target) {
 		<ul></ul>
 </li>
 </ul>
+</li>
+		<li>
+<a href="#User%20Interface%20Colors%20and%20Box%20Styles">User Interface Colors and Box Styles</a><br>
+		<ul></ul>
 </li>
 		<li>
 <a href="#Hero%20Data">Hero Data</a><br>
@@ -691,7 +695,7 @@ function toggleContent(target) {
 		<a href="#about-checktag">check tag (tag)</a><br>
 		<a href="#about-checkwallcollisionxy">check wall collision x (x, y, width, height, relative x, relative y, friction%)</a><br>
 		<a href="#about-childcount">child count (handle)</a><br>
-		<a href="#about-clampslice">clamp slice (handle1, handle2)</a><br>
+		<a href="#about-clampslice">clamp slice (slice, within slice)</a><br>
 		<a href="#about-clearstring">clear string(ID)</a><br>
 		<a href="#about-cloneslice">clone slice (handle, recurse)</a><br>
 		<a href="#about-clonesprite">clone sprite (handle)</a><br>
@@ -819,6 +823,9 @@ function toggleContent(target) {
 		<a href="#about-getblendingenabled">get blending enabled (handle)</a><br>
 		<a href="#about-getblendmode">get blend mode (handle)</a><br>
 		<a href="#about-getbottompadding">get bottom padding (handle)</a><br>
+		<a href="#about-getboxstyleborder">get box style border (box style)</a><br>
+		<a href="#about-getboxstylecolor">get box style color (box style)</a><br>
+		<a href="#about-getboxstyleedgecolor">get box style edge color (box style)</a><br>
 		<a href="#about-getcallingscriptid">get calling script id (depth)</a><br>
 		<a href="#about-getcolor">get color (index)</a><br>
 		<a href="#about-getcount">get count</a><br>
@@ -955,6 +962,7 @@ function toggleContent(target) {
 		<a href="#about-gettextcolor">get text color(handle)</a><br>
 		<a href="#about-gettileanimationoffset">get tile animation offset (animation pattern, layer)</a><br>
 		<a href="#about-gettoppadding">get top padding (handle)</a><br>
+		<a href="#about-getuicolor">get ui color (color, autotoggle)</a><br>
 		<a href="#about-getvertalign">get vert align (handle)</a><br>
 		<a href="#about-getvertanchor">get vert anchor (handle)</a><br>
 		<a href="#about-getvictorymusic">get victory music</a><br>
@@ -962,6 +970,7 @@ function toggleContent(target) {
 		<a href="#about-getzoneextra">get zone extra (zone id, extra num)</a><br>
 		<a href="#about-getzonename">get zone name (string id, zone id)</a><br>
 		<a href="#about-giveexperience">give experience (hero, amount)</a><br>
+		<a href="#about-globalnpcreference">global NPC</a><br>
 		<a href="#about-globalnpcreference">global NPC reference (ID, copy, allow disabled?)</a><br>
 		<a href="#about-globalstostring">globals to string(ID, starting global, length)</a><br>
 		<a href="#about-globalvariable">global variable (id,name)</a><br>
@@ -1422,6 +1431,7 @@ function toggleContent(target) {
 		<a href="#about-settimer">set timer (id, count, speed, trigger, string, flags)</a><br>
 		<a href="#about-settimerargs">set timer args (id, args...)</a><br>
 		<a href="#about-settoppadding">set top padding (handle, pixels)</a><br>
+		<a href="#about-setuicolor">set ui color (color, palette index)</a><br>
 		<a href="#about-setvariable">variable := value</a><br>
 		<a href="#about-setvertalign">set vert align (handle, edge)</a><br>
 		<a href="#about-setvertanchor">set vert anchor (handle, edge)</a><br>
@@ -3941,6 +3951,7 @@ resume player</pre>
 <button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul>
 <div class="content-shown">
 		<a href="#about-npcreference">NPC reference (ID, copy, allow disabled?, pool)</a><br>
+		<a href="#about-globalnpcreference">global NPC</a><br>
 		<a href="#about-globalnpcreference">global NPC reference (ID, copy, allow disabled?)</a><br>
 		<a href="#about-nextnpcreference">next NPC reference (npcref)</a><br>
 		<a href="#about-npcatspot">NPC at spot (x, y, number)</a><br>
@@ -4088,6 +4099,11 @@ end</pre>
 </div>
 		</p>
 </div>
+		<div class="command">
+			<a name="about-globalnpc"></a>
+				<h4>global NPC</h4>
+				An alias for <a href="#about-globalnpcreference">global NPC reference</a>.
+			</div>
 		<div class="command">
 			<a name="about-globalnpcreference"></a>
 				<h4>global NPC reference (ID, copy, allow disabled?)</h4>
@@ -6955,6 +6971,14 @@ fade screen in</pre>
 </div>
 		</p>
 </div>
+		<div class="command">
+		<h4>get ui color (color, autotoggle)</h4>
+		<p><a href="#about-getuicolor">Documented in the User Interface Colors and Box Styles section.</a></p>
+		</div>
+		<div class="command">
+		<h4>set ui color (color, palette index)</h4>
+		<p><a href="#about-setuicolor">Documented in the User Interface Colors and Box Styles section.</a></p>
+		</div>
 		<hr>
 		</div>
 		<div class="subsection">
@@ -7034,6 +7058,109 @@ fade screen in</pre>
 			
 			<div class="seealso">See also: <ul><li><a href="#about-soundisplaying" class="ref">sound is playing</a></li></ul>
 </div>
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="section">
+<a name="User%20Interface%20Colors%20and%20Box%20Styles"></a>
+		<h3>
+<span class="backlink"></span>User Interface Colors and Box Styles</h3>
+		<a href="#Categories" class="backlink">[Back to top-level index]</a><p></p>
+<div class="select-content-shown" id="User Interface Colors and Box Styles-index">
+<button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul><div class="content-shown">
+		<a href="#about-getuicolor">get ui color (color, autotoggle)</a><br>
+		<a href="#about-setuicolor">set ui color (color, palette index)</a><br>
+		<a href="#about-getboxstylecolor">get box style color (box style)</a><br>
+		<a href="#about-getboxstyleedgecolor">get box style edge color (box style)</a><br>
+		<a href="#about-getboxstyleborder">get box style border (box style)</a><br>
+</div></ul>
+</div>
+		<div class="command">
+			<a name="about-getuicolor"></a>
+				<h4>get ui color (color, autotoggle)</h4>
+<p>
+			
+				Look up which color a UI color is.
+				<span class="param">color</span> should normally be a <span class="code">ui:</span> constant such as <span class="code">ui:menu item</span>.
+				See <a href="#about-colorcode" class="ref">color code</a> for a list of constants.
+				Also, if <span class="param">color</span> is a palette index (0 - 255) then it is returned unchanged.
+				<br>
+				<span class="param">autotoggle</span> is optional, and defaults to false.
+				If <span class="code">true</span>, when you get certain UI colors that normally flash
+				(for example, <span class="code">ui:selected item</span>), the return value will change
+				every tick according to the flashing, rather than just returning the value seen
+				in the Edit User-Interface Colors menu.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-setuicolor" class="ref">set ui color</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setuicolor"></a>
+				<h4>set ui color (color, palette index)</h4>
+<p>
+			
+				Change a UI color.
+				<span class="param">color</span> should be a <span class="code">ui:</span> constant such as <span class="code">ui:menu item</span>.
+				See <a href="#about-colorcode" class="ref">color code</a> for a list of constants.
+				<span class="param">palette index</span> should be a value 0-255, an index in the current master palette.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					The change will be lost if you call <a href="#about-loadpalette" class="ref">load palette</a>, <a href="#about-resetpalette" class="ref">reset palette</a>, quit the game, or load a game.
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getuicolor" class="ref">get ui color</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getboxstylecolor"></a>
+				<h4>get box style color (box style)</h4>
+<p>
+			
+				Returns the background/fill color (0-255 master palette index) of <span class="param">box style</span>,
+				which should be 0 to 14.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getboxstyleedgecolor"></a>
+				<h4>get box style edge color (box style)</h4>
+<p>
+			
+				Returns the edge color (0-255 master palette index) of <span class="param">box style</span>,
+				which should be 0 to 14.
+				<br>
+				This is the color of the simple line border;
+				if the box style uses a box border spriteset (see <a href="#about-getboxstyleborder" class="ref">get box style border</a>)
+				then the line border is usually not visible.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getboxstyleborder"></a>
+				<h4>get box style border (box style)</h4>
+<p>
+			
+				Returns either <span class="code">border:line</span> (which is -1) if a box style use a simple line
+				border rather than a box border spriteset,
+				or the spriteset ID of the border for <span class="param">box style</span>,
+				which should be 0 to 14.
+			
+			
+			
+			
 		</p>
 </div>
 		<hr>
@@ -7184,7 +7311,17 @@ fade screen in</pre>
 			<a name="about-setheropicture"></a>
 				<h4>set hero picture (who, picture, type)</h4>
 <p>
-			Permanently changes a hero's picture. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name.) The second argument is the index number of the picture to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a> or <a href="#about-heroportrait" class="ref">hero portrait</a>, which determines if you are changing the hero's battle picture or their walkabout picture or their portrait. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.
+			
+				Permanently changes a hero's picture.
+				The first argument is the hero's position in the party.
+				(Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name.)
+				The second argument is the index number of the picture to use (the sprite set of the appropriate type),
+				and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a> or <a href="#about-heroportrait" class="ref">hero portrait</a>,
+				which determines if you are changing the hero's battle picture or their walkabout picture or their portrait.
+				If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.
+				<br>
+				The palette is not modified (but if the palette is "default" it will of course update to the spriteset's default).
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-resetheropicture" class="ref">reset hero picture</a></li></ul>
@@ -7226,10 +7363,23 @@ fade screen in</pre>
 			<a name="about-resetheropicture"></a>
 				<h4>reset hero picture (who, type)</h4>
 <p>
-			Resets a hero's picture that was previously changed with <a href="#about-setheropicture" class="ref">set hero picture</a> back to the default picture. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name). The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a> or <a href="#about-heroportrait" class="ref">hero portrait</a>, which determines if you are resetting the hero's battle picture or their walkabout picture or their portrait. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.
+			
+				Resets a hero's picture that was previously changed with <a href="#about-setheropicture" class="ref">set hero picture</a> back to the default picture.
+				The first argument is the hero's position in the party.
+				(Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name).
+				The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a> or <a href="#about-heroportrait" class="ref">hero portrait</a>,
+				which determines if you are resetting the hero's battle picture or their walkabout picture or their portrait.
+				If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.
+				<br>
+				The palette is not modified (but if the palette is "default" it will of course update to the spriteset's default).
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-setheropicture" class="ref">set hero picture</a></li></ul>
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setheropicture" class="ref">set hero picture</a>, </li>
+<li><a href="#about-resetheropalette" class="ref">reset hero palette</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -7581,7 +7731,20 @@ end</pre>
 			<a name="about-setlevelmp"></a>
 				<h4>set level MP (who, mp level slot, new value)</h4>
 <p>
-			Changes a hero's level MP (FF1-style MP). The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">mp level slot</span> is a number from 0 to 7 that represents a row of spells in the hero's spell list (the level is NOT counted from 1 to 8, as it's displayed in-game and in the spell-list editor!) The argument <span class="param">new value</span> is the new number of level MP points. Each point represents one spell from that row.
+			
+				Changes one of a hero's level MP (FF1-style MP) numbers.
+				The argument <span class="param">who</span> is the hero's position in the party,
+as returned by <a href="#about-findhero" class="ref">find hero</a>.
+				The argument <span class="param">mp level slot</span> is a number from 0 to 7 that represents a row of spells in the hero's spell list
+				(the level is NOT counted from 1 to 8, as it's displayed in-game and in the spell-list editor!)
+				The argument <span class="param">new value</span> is the new number of level MP points.
+				Each point lets the player cast one spell from that row.
+				<br>
+				This changes the current value of a Level MP stat, therefore changes
+				will be erased if the hero levels up or otherwise has their MP restored
+				(e.g. by an inn).
+				There's not yet any command to make a permanent change (to maximum level MP).
+			
 			
 			
 			
@@ -10944,7 +11107,7 @@ end</pre>
 			<a name="about-getmenuboxstyle"></a>
 				<h4>get menu boxstyle(menu handle)</h4>
 <p>
-			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return a the boxstyle of the menu. This will be a number from 0 to 15.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return a the boxstyle of the menu. This will be a number from 0 to 14.
 			
 			
 			
@@ -10954,7 +11117,7 @@ end</pre>
 			<a name="about-setmenuboxstyle"></a>
 				<h4>set menu boxstyle(menu handle, new box style)</h4>
 <p>
-			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the boxstyle of the menu. <span class="param">new box style</span> will be a number from 0 to 15.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the boxstyle of the menu. <span class="param">new box style</span> will be a number from 0 to 14.
 			
 			
 			
@@ -11398,7 +11561,7 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-setslicewidth">set slice width (handle, width)</a><br>
 		<a href="#about-setsliceheight">set slice height (handle, height)</a><br>
 		<a href="#about-setslicesize">set slice size (handle, width, height)</a><br>
-		<a href="#about-clampslice">clamp slice (handle1, handle2)</a><br>
+		<a href="#about-clampslice">clamp slice (slice, within slice)</a><br>
 		<a href="#about-fillparent">fill parent (handle, true_or_false)</a><br>
 		<a href="#about-isfillingparent">is filling parent (handle)</a><br>
 </ul>
@@ -12544,9 +12707,16 @@ end
 </div>
 		<div class="command">
 			<a name="about-clampslice"></a>
-				<h4>clamp slice (handle1, handle2)</h4>
+				<h4>clamp slice (slice, within slice)</h4>
 <p>
-			Try to move the slice <span class="param">handle1</span> so that its screen position will be inside the screen position of slice <span class="param">handle2</span>. The size of the slices will not be changed. It does not matter if the slices are related.
+			
+				Try to move <span class="param">slice</span> so that its screen position will
+				be inside the screen position of <span class="param">within slice</span>.
+				The size of the slices will not be changed, so if
+				<span class="param">within sl</span> isn't large enough to contain <span class="param">slice</span> it will stick out at least one side
+				(it's shifted to align with the nearest vertical and nearest horizontal edge of <span class="param">within slice</span>).
+				It does not matter whether the slices are related.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-slicecontains" class="ref">slice contains</a></li></ul>
@@ -16908,7 +17078,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 				one another (even if one or both are off the edge of the screen or hidden or
 				clipped by one of their ancestors).
 				Parent/child relationships have nothing to do with this test;
-				it does not matter if the slices are related or what their children are.
+				it doesn't matter whether the slices are related or what their children are.
 			
 			
 			
@@ -16928,7 +17098,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 				Return true if the screen position of slice <span class="param">handle2</span> is completely inside
 				slice <span class="param">handle1</span> (even if one or both are off the edge of the screen or hidden).
 				Parent/child relationships have nothing to do with this test;
-				it does not matter if the slices are related or what their children are.
+				it doesn't matter whether the slices are related or what their children are.
 			
 			
 			
@@ -20104,7 +20274,9 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				The meaning of 0 depends on the particular script command:
 				it might mean either 'transparent' or 'the default color'
 				or 'color 0 in the palette'.
-				Negative valeus indicate colors defined in the User-Interface Colors editor.
+				Negative values are <span class="code">ui:...</span> constants, for colors defined in
+				the User-Interface Colors editor.
+				(You can get the master palette index for a <span class="code">ui:</span> constant with <a href="#about-getuicolor" class="ref">get ui color</a>.)
 			
 			
 			
@@ -20776,7 +20948,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 899 commands (of which 12 are aliases), 28 constants and 11 definitions of types and other terms in this file.</p>
+<p>Stats: There are 905 commands (of which 13 are aliases), 28 constants and 11 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
