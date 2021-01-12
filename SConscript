@@ -204,7 +204,12 @@ else:
     debug = 2  # Default to happy medium
 if 'debug' in ARGUMENTS:
     debug = int (ARGUMENTS['debug'])
-optimisations = (debug < 3)    # compile with C/C++/FB optimisations?
+if debug < 2:
+    optimisations = 2  # compile with C/C++/FB gengcc optimisations
+elif debug == 2:
+    optimisations = 1  # compile with C/C++ optimisations
+else:
+    optimisations = 0
 FB_exx = (debug in (2,3))     # compile with -exx?
 if debug >= 1 or pdb:
     # If debug=0 and pdb, then the debug info gets stripped later
@@ -255,8 +260,9 @@ if optimisations:
     CFLAGS.append ('-O3')
     CXXLINKFLAGS.append ('-O2')  # For LTO
     FBCC_CFLAGS.append ('-O3')
-    # FB optimisation flag currently does pretty much nothing unless using -gen gcc
-    FBFLAGS += ["-O", "2"]
+    if optimisations > 1:
+        # FB optimisation flag currently does pretty much nothing unless using -gen gcc
+        FBFLAGS += ["-O", "2"]
 else:
     CFLAGS.append ('-O0')
     FBCC_CFLAGS.append ('-O0')
@@ -564,7 +570,8 @@ elif arch == 'x86_64':
     FBFLAGS += ["-arch", arch]
     CFLAGS.append ('-m64')
     FBCC_CFLAGS.append ('-m64')
-    # This also causes FB to default to -gen gcc, as -gen gas not supported
+    # This also causes older FB to default to -gen gcc, as -gen gas not supported
+    # (but FB 1.08 added -gen gas64)
     # (therefore we don't need to pass -mpreferred-stack-boundary=2)
 elif arch == '(see target)':
     pass  # We let fbc figure it out from the target
@@ -1490,7 +1497,7 @@ Options:
                                  ------+---------------------+--------------
                        debug=0:    no  |    minimal syms     |    yes   <--Releases
                        debug=1:    no  |        yes          |    yes
-                       debug=2:    yes |        yes          |    yes   <--Default
+                       debug=2:    yes |        yes          | C/C++ only <--Default
                        debug=3:    yes |        yes          |    no
                        debug=4:    no  |        yes          |    no
                       (pdb=1:          always stripped to pdb         )
