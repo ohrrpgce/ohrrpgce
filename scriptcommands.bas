@@ -4712,7 +4712,7 @@ SUB script_functions(byval cmdid as integer)
   screenshot
  CASE 661 '--slice is line
   IF valid_plotslice(retvals(0)) THEN
-   scriptret = (plotslices(retvals(0))->SliceType = slLine)
+   scriptret = IIF(plotslices(retvals(0))->SliceType = slLine, 1, 0)
   END IF
  CASE 662 '--create line
   IF valid_color(retvals(2)) THEN
