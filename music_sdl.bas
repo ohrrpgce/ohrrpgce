@@ -68,7 +68,7 @@ dim shared _ModPlug_SetSettings as sub (byval settings as const ModPlug_Settings
 #endif
 
 #ifndef MIX_INIT_MID
-	'Exists in SDL_mixer 2 only (but missing from FB's header).
+	'Exists in SDL_mixer 2 only (but missing from older FB headers).
 	'Equal to MIX_INIT_FLUIDSYNTH in SDL_mixer 1.2.
 	#define MIX_INIT_MID &h00000020
 #endif
@@ -80,6 +80,7 @@ end extern
 
 declare function next_free_slot() as integer
 declare function sfx_slot_info (byval slot as integer) as string
+declare sub enable_modplug_looping()
 
 enum MusicStatusEnum
   musicError = -1  ' Don't try again
@@ -88,6 +89,10 @@ enum MusicStatusEnum
 end enum
 
 dim shared supported_formats as integer
+dim shared have_modplug as bool
+dim shared tried_enabling_modplug_loops as bool
+dim shared modplug_handle as any ptr
+
 dim shared music_status as MusicStatusEnum = musicOff
 dim shared music_vol as integer      '0 to 128
 dim shared music_paused as bool      'Always false: we never pause! (see r5406)
@@ -101,6 +106,13 @@ dim shared tempfiles() as string
 dim shared callback_set_up as bool = NO
 
 sub quit_sdl_audio()
+	'Close libmodplug
+	if modplug_handle then
+		dylibfree modplug_handle
+		modplug_handle = NULL
+	end if
+	tried_enabling_modplug_loops = NO
+
 	if SDL_WasInit(SDL_INIT_AUDIO) then
 		SDL_QuitSubSystem(SDL_INIT_AUDIO)
 		if SDL_WasInit(0) = 0 then
@@ -173,7 +185,10 @@ function music_get_info() as string
 					supported_formats or= FORMAT_FLAC
 				elseif form = "WAVE" then
 					supported_formats or= FORMAT_WAV
-				elseif form = "MOD" or form = "MIKMOD" or form = "MODPLUG" then
+				elseif form = "MOD" or form = "MODPLUG" then
+					supported_formats or= FORMAT_MODULES
+					have_modplug = YES
+				elseif form = "MIKMOD" then
 					supported_formats or= FORMAT_MODULES
 				elseif form = "MIDI" or form = "TIMIDITY" or form = "FLUIDSYNTH" or form = "NATIVEMIDI" then
 					supported_formats or= FORMAT_MIDI or FORMAT_BAM
@@ -227,6 +242,8 @@ sub music_init()
 			' SDL_mixer 2: the above problem doesn't apply
 			audio_rate = 44100
 			audio_buffers = 2048 'Might as well increase to match (effect not investigated)
+
+			'SDL_SetHint("SDL_MIXER_DEBUG_MUSIC_INTERFACES", "1")
 		#endif
 		audio_format = MIX_DEFAULT_FORMAT
 		audio_channels = 2
@@ -318,6 +335,15 @@ sub music_play(filename as string, byval fmt as MusicFormatEnum)
 
 		music_stop
 
+		#ifndef __FB_WIN32__
+			if getmusictype(songname) and FORMAT_MODULES then
+				'Hack: SDL_mixer and SDL2_mixer currently do not enable loop points
+				'in modplug, although our Windows builds have it enabled. In case not using
+				'a custom build, try to enable loop points. Must happen before playing.
+				enable_modplug_looping
+			end if
+		#endif
+
 		log_openfile songname
 
 		'Versions of SDL_mixer 1.2 before 1.2.12 (the final release) failed to
@@ -345,8 +371,12 @@ sub music_play(filename as string, byval fmt as MusicFormatEnum)
 			exit sub
 		end if
 
-		Mix_PlayMusic(music_song, -1)
 		music_paused = NO
+		if Mix_PlayMusic(music_song, -1) then
+			debug "Could not Mix_PlayMusic " + songname + " : " & *Mix_GetError
+			music_stop
+			exit sub
+		end if
 
 		'not really working when songs are being faded in.
 		if orig_vol = -1 then
@@ -756,3 +786,50 @@ end function
 function music_settings_menu () as bool
 	return modplug_settings_menu()
 end function
+
+#ifndef __FB_WIN32__
+'Try to override SDL_mixer's disabling of loop points in ModPlug.
+'Does not affect any currently playing module.
+'Not needed on Windows.
+sub enable_modplug_looping ()
+	if tried_enabling_modplug_loops then exit sub
+	tried_enabling_modplug_loops = YES
+
+	'When, and only when, SDL_Mixer's modplug backend is first loaded it will call
+	'ModPlug_SetSettings, so ensure that has happened so our changes aren't clobbered
+	'(currently, we already do this in music_init())
+	if Mix_Init(MIX_INIT_MOD) = 0 then exit sub  'Can't play mods
+
+	'Don't go loading modplug if SDL_mixer isn't using it
+	if have_modplug = NO then exit sub
+
+	if _ModPlug_GetSettings = NULL orelse _ModPlug_SetSettings = NULL then
+		'Using NULL as the module handle doesn't work, as SDL_mixer doesn't
+		'load modplug into the global namespace.
+		modplug_handle = dylibload("modplug")
+		if modplug_handle then
+			debuginfo "Loaded ModPlug"
+			_ModPlug_GetSettings = dylibsymbol(modplug_handle, "ModPlug_GetSettings")
+			_ModPlug_SetSettings = dylibsymbol(modplug_handle, "ModPlug_SetSettings")
+
+			if _ModPlug_GetSettings = NULL orelse _ModPlug_SetSettings = NULL then
+				debuginfo "ModPlug_Get/SetSettings missing!"
+				exit sub
+			end if
+		else
+			debuginfo "Couldn't load modplug"
+			exit sub
+		end if
+	end if
+
+	dim settings as ModPlug_Settings
+	_ModPlug_GetSettings(@settings)
+	if settings.mLoopCount = -1 then
+		'debuginfo "ModPlug looping already enabled"
+	else
+		debuginfo "Enabling ModPlug looping"
+		settings.mLoopCount = -1
+		_ModPlug_SetSettings(@settings)
+	end if
+end sub
+#endif

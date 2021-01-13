@@ -393,7 +393,7 @@ function getmusictype (file as string) as MusicFormatEnum
 	select case ext
 	case "bam"
 		chk = FORMAT_BAM
-	case "mid"
+	case "mid", "bmd"
 		chk = FORMAT_MIDI
 	case "xm"
 		chk = FORMAT_XM
