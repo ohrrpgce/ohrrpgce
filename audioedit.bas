@@ -437,6 +437,7 @@ SUB importsong_import_song_file (songname as string, songfile as string, bamfile
 
  'browse for new song
  DIM sourcesong as string = browse(browseMusic, default, "", "browse_import_song")
+ IF sourcesong = "" THEN EXIT SUB
 
  'Get song name
  DIM newname as string = decode_filename(trimextension(trimpath(sourcesong)))
@@ -451,7 +452,7 @@ SUB importsong_import_song_file (songname as string, songfile as string, bamfile
   oggtemp = ""
  END IF
 
- 'If no song was selected, go back
+ 'If conversion to ogg failed, exit
  IF sourcesong = "" THEN
   EXIT SUB
  END IF
@@ -781,6 +782,7 @@ SUB importsfx_importsfxfile(sfxname as string, sfxfile as string, byval sfxnum a
  STATIC default as string
 
  DIM sourcesfx as string = browse(browseSfx, default, "", "browse_import_sfx")
+ IF sourcesfx = "" THEN EXIT SUB
 
  '-- get name (before sourcesfx is modified)
  DIM newname as string = decode_filename(trimextension(trimpath(sourcesfx)))
@@ -795,6 +797,7 @@ SUB importsfx_importsfxfile(sfxname as string, sfxfile as string, byval sfxnum a
   oggtemp = ""
  END IF
 
+ 'If conversion to ogg failed, exit
  IF sourcesfx = "" THEN EXIT SUB
 
  'Delete the old file. We cannot assume it will be overwritten because the extension might change
