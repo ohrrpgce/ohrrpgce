@@ -662,8 +662,10 @@ if linkgcc:
     if FBC.version >= 1030:
         # Take the last line, in case -v is in FBFLAGS
         libpath = get_command_output (FBC.path, ["-print", "fblibdir"] + FBFLAGS).split('\n')[-1]
+        # Some FB targets (win32) don't have PIC libs, android only has PIC libs
         checkfile = os.path.join (libpath, 'fbrt0.o')
-        if not os.path.isfile (checkfile):
+        checkfile2 = os.path.join (libpath, 'fbrt0pic.o')
+        if not os.path.isfile (checkfile) and not os.path.isfile (checkfile2):
             print("Error: This installation of FreeBASIC doesn't support this target-arch combination;\n" + checkfile + " is missing.")
             Exit(1)
     else:
@@ -692,9 +694,15 @@ if linkgcc:
     if not mac:
         CXXLINKFLAGS += ['-Wl,--add-needed']
 
+    # FB libs
     # Passing this -L option straight to the linker is necessary, otherwise gcc gives it
     # priority over the default library paths, which on Windows means using FB's old mingw libraries
-    CXXLINKFLAGS += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
+    if android:
+        # See NO_PIE discussion above
+        CXXLINKFLAGS += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0pic.o'), '-lfbmtpic']
+    else:
+        CXXLINKFLAGS += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
+
     if verbose:
         CXXLINKFLAGS += ['-v']
     if linkgcc_strip:
