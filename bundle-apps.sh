@@ -33,9 +33,9 @@ done
 find_framework() {
   NAME=$1
   SRC="$HOME/Library/Frameworks/$NAME"
-  [ -d "$SRC" ] && return 0
+  [ -d "$SRC" ] && echo "$SRC" && return 0
   SRC="/Library/Frameworks/$NAME"
-  [ -d "$SRC" ] && return 0
+  [ -d "$SRC" ] && echo "$SRC" && return 0
   echo "Can't find $NAME"
   exit 1
 }
