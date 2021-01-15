@@ -3373,15 +3373,25 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
 
  DIM fh as integer
  DIM dummyscript as string = tmpdir + "dummyscript" & randint(10000) & ".sh"
+ DIM signalfile as string = tmpdir + "signal." & randint(10000) & ".tmp"
  fh = FREEFILE
  OPEN dummyscript FOR OUTPUT as #fh
  PRINT #fh, "#!/bin/sh"
+ PRINT #fh, "touch " & escape_filename(signalfile)
  PRINT #fh, "cd " & escape_filename(curdir())
  PRINT #fh, "clear"
  PRINT #fh, escape_filename(app) + " " + args
  CLOSE #fh
  safe_shell "chmod +x " + escape_filename(dummyscript)
  safe_shell escape_filename(term_wrap) + " " + escape_filename(dummyscript)
+ 'Avoid race condition by waiting for the dummyscript to start, since Terminal needs time to spawn bash
+ DIM i as integer
+ FOR i = 0 TO 300
+  IF real_isfile(signalfile) THEN EXIT FOR
+  sleep 10
+ NEXT
+ IF i >= 300 THEN debug "Timeout waiting for script!"
+ safekill signalfile
  safekill dummyscript
  RETURN ""
 

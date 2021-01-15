@@ -106,6 +106,7 @@ January ? 2021 [Hróðvitnir]
     * Poison/regen/mute/stun status icon characters were pointlessly saved in
       save games, so didn't update if you changed them
     * "check parentage" was completely broken [Ralph]
+    * Bug #1145 on Mac spawning HSpeak to import scripts randomly failed [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"
