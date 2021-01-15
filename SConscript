@@ -584,16 +584,17 @@ else:
     print("Error: Unknown architecture %s" % arch)
     Exit(1)
 
+
+print("Using target:", target, " arch:", arch, " fbc:", FBC.describe(), " fbcc:", FBCC.describe(), " cc:", CC.describe(), " cctarget:", CC.target)
+
 # If cross compiling, do a sanity test
-if not android_source:
-    print("Using target:", target, " arch:", arch, " fbc:", FBC.describe(), " fbcc:", FBCC.describe(), " cc:", CC.describe(), " cctarget:", CC.target)
-    # If it contains two dashes it looks like a target triple
-    if target_prefix and target_prefix != CC.target + '-':
-        print("Error: This CC doesn't target " + target_prefix)
-        print ("You need to either pass 'target' as a target triple (e.g. target=arm-linux-androideabi) and "
-               "ensure that the toolchain executables (e.g. arm-linux-androideabi-gcc) "
-               "are in your PATH, or otherwise set CC, CXX, and AS environmental variables.")
-        Exit(1)
+# If it contains two dashes it looks like a target triple
+if target_prefix and target_prefix != CC.target + '-':
+    print("Error: This CC doesn't target " + target_prefix)
+    print ("You need to either pass 'target' as a target triple (e.g. target=arm-linux-androideabi) and "
+           "ensure that the toolchain executables (e.g. arm-linux-androideabi-gcc) "
+           "are in your PATH, or otherwise set CC, CXX, and AS environmental variables.")
+    Exit(1)
 
 if gengcc and FBCC.is_clang:
     # -exx (in fact -e) causes fbc to use computed gotos which clang can't compile
