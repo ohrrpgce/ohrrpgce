@@ -101,7 +101,11 @@ end function
 #endmacro
 
 local function _load_libvorbisfile(libfile as string) as bool
-	libvorbisfile = dylibload(libfile)
+	#ifdef __FB_DARWIN__
+		libvorbisfile = dylibload(libfile + ".framework/" + libfile)
+	#else
+		libvorbisfile = dylibload(libfile)
+	#endif
 	if libvorbisfile = NULL then
 		debuginfo "Couldn't find " & libfile & ", skipping (not an error)"
 		return NO
@@ -129,7 +133,11 @@ local function load_vorbisfile() as bool
 	if libvorbisfile = BADPTR then return NO
 	if libvorbisfile then return YES
 	' Unix
-	if _load_libvorbisfile("vorbisfile") then return YES
+	#ifdef __FB_DARWIN__
+		if _load_libvorbisfile("Vorbis") then return YES
+	#else
+		if _load_libvorbisfile("vorbisfile") then return YES
+	#endif
 	' libvorbisfile is statically linked into our Windows and Mac SDL_mixer builds
 	' and Windows SDL2_mixer.
 	' We can load them even if we're using a different music backend
@@ -140,7 +148,11 @@ local function load_vorbisfile() as bool
 end function
 
 local function _load_libmad(libfile as string) as bool
-	libmad = dylibload(libfile)
+	#ifdef __FB_DARWIN__
+		libmad = dylibload(libfile + ".framework/" + libfile)
+	#else
+		libmad = dylibload(libfile)
+	#endif
 	if libmad = NULL then
 		debuginfo "Couldn't find " & libfile & ", skipping (not an error)"
 		return NO
