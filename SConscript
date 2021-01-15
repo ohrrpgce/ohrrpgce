@@ -130,7 +130,13 @@ else:
 target_prefix = ''  # prepended to gcc, etc.
 if target.count('-') >= 2:
     target_prefix = target + '-'
+    if not arch:
+        # Try to recognise it so we know whether we're target
+        # This will not recognise all archs used in target triples, that's OK
+        arch = target.split('-')[0]
 
+# Determine 'arch', converting it into the particular synonym used by the rest of this script
+# (which sometimes differs from the synonym expected by other tools)
 if arch == '32':
     if android:
         arch = 'armeabi'  # This might be obsolete?
@@ -143,7 +149,8 @@ if arch == '64':
         arch = 'x86_64'
     else:
         arch = 'aarch64'
-if arch in ('i386',):
+if arch in ('i386', 'i686', '686'):
+    # i386 is the name used on Mac, i686 commonly used on Linux, 686 by fbc
     arch = 'x86'
 if arch in ('x64',):
     arch = 'x86_64'
@@ -166,6 +173,7 @@ if not arch:
         # There are 4 ARM ABIs used on Android
         # armeabi - ARMV5TE and later. All floating point is done by library calls
         #           (aka androideabi, as it is slightly more specific than the ARM EABI)
+        #           Removed in ndk r17.
         # armeabi-v7a - ARM V7 and later, has hardware floating point (VFP)
         # armeabi-v7a-hard - not a real ABI. armeabi-v7a with faster passing convention
         #           for floating point values. Not binary compatible with armeabi, support
@@ -173,9 +181,6 @@ if not arch:
         # arm64-v8a
         # See https://developer.android.com/ndk/guides/abis.html for more
         arch = 'armv5te'
-    elif mac:
-        # Default to 32 bit, because bundle-apps.sh only supports that currently
-        arch = 'x86'
     else:
         arch = default_arch
 
@@ -540,7 +545,10 @@ elif not win32:
 
 
 # We set gengcc=True if FB will default to it; we need to know whether it's used
-if arch != 'x86' and 'mingw32' not in target:
+if FBC.version >= 1080 and arch == 'x86_64':
+    # FB 1.08 adds gas64 backend but doesn't use it yet
+    gengcc = True
+elif arch != 'x86':
     gengcc = True
 if mac and FBC.version > 220:
     gengcc = True
@@ -589,6 +597,8 @@ print("Using target:", target, " arch:", arch, " fbc:", FBC.describe(), " fbcc:"
 
 # If cross compiling, do a sanity test
 # If it contains two dashes it looks like a target triple
+# (FIXME: newer clang-based NDKs have wrapper scripts named like aarch64-linux-android21-clang
+# which is not the same as the target-triple clang actually prints, so this breaks)
 if target_prefix and target_prefix != CC.target + '-':
     print("Error: This CC doesn't target " + target_prefix)
     print ("You need to either pass 'target' as a target triple (e.g. target=arm-linux-androideabi) and "
