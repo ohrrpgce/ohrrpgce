@@ -131,11 +131,15 @@ function music_get_info() as string
 	dim ret as string = "music_" & sdlX
 
 	dim libhandle as any ptr
-	libhandle = dylibload(ucase(sdlX) + "_mixer")
-	' For some reason the SDL 1.2 Android port produces libsdl_mixer.so instead
-	if libhandle = NULL then
-		libhandle = dylibload(sdlX + "_mixer")
-	end if
+	#ifdef __FB_DARWIN__
+		libhandle = dylibload(ucase(sdlX) + "_mixer.framework/" + ucase(sdlX) + "_mixer")
+	#else
+		libhandle = dylibload(ucase(sdlX) + "_mixer")
+		' For some reason the SDL 1.2 Android port produces libsdl_mixer.so instead
+		if libhandle = NULL then
+			libhandle = dylibload(sdlX + "_mixer")
+		end if
+	#endif
 	if libhandle then
 		_Mix_GetNumMusicDecoders = dylibsymbol(libhandle, "Mix_GetNumMusicDecoders")
 		_Mix_GetNumChunkDecoders = dylibsymbol(libhandle, "Mix_GetNumChunkDecoders")
@@ -806,7 +810,11 @@ sub enable_modplug_looping ()
 	if _ModPlug_GetSettings = NULL orelse _ModPlug_SetSettings = NULL then
 		'Using NULL as the module handle doesn't work, as SDL_mixer doesn't
 		'load modplug into the global namespace.
-		modplug_handle = dylibload("modplug")
+		#ifdef __FB_DARWIN__
+			modplug_handle = dylibload("modplug.framework/modplug")
+		#else
+			modplug_handle = dylibload("modplug")
+		#endif
 		if modplug_handle then
 			debuginfo "Loaded ModPlug"
 			_ModPlug_GetSettings = dylibsymbol(modplug_handle, "ModPlug_GetSettings")
