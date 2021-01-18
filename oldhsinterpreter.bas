@@ -136,7 +136,6 @@ END SUB
 
 SUB scriptinterpreter_loop ()
 DIM i as integer
-DIM rsr as integer
 DIM temp as integer
 DIM tmpstate as integer
 DIM tmpcase as integer
@@ -264,16 +263,17 @@ DO
      CASE tyscript
       DIM argc as integer = curcmd->argc
       'No need to check argc <= maxScriptArgs; setScriptArg checks OK
+      DIM rsr as RunScriptResult
       rsr = runscript(curcmd->value, NO, NO, "called")
       'WARNING: WITH now points to scrat(nowscript-1)
-      IF rsr = 1 THEN
+      IF rsr = rsSuccess THEN
        '--fill heap with arguments
        FOR i as integer = argc - 1 TO 0 STEP -1
         popstack(scrst, temp)
         setScriptArg i, temp
        NEXT i
       END IF
-      IF rsr = 0 THEN
+      IF rsr = rsFail THEN
        .state = streturn'---return
       END IF
       GOTO interpretloop 'new WITH pointer

@@ -1786,10 +1786,10 @@ SUB script_functions(byval cmdid as integer)
    erase_save_slot retvals(0) - 1
   END IF
  CASE 176'--run script by id
-  DIM rsr as integer
+  DIM rsr as RunScriptResult
   DIM argc as integer = curcmd->argc  'Must store before calling runscript
   rsr = runscript(retvals(0), NO, NO, "runscriptbyid")
-  IF rsr = 1 THEN
+  IF rsr = rsSuccess THEN
    '--fill heap with arguments
    FOR i as integer = 1 TO argc - 1  'flexible argument number!
     setScriptArg i - 1, retvals(i)

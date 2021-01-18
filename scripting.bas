@@ -65,9 +65,9 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
  STATIC dummy_queued_script as ScriptFibre
 
  IF insideinterpreter THEN
-  DIM rsr as integer
+  DIM rsr as RunScriptResult
   rsr = runscript(id, YES, double_trigger_check, scripttype)
-  trigger_script_failure = (rsr <> 1)
+  trigger_script_failure = (rsr <> rsSuccess)
   IF gam.script_log.enabled = NO THEN EXIT SUB
 
   'Can't call watched_script_triggered until after the trigger_script_args calls
@@ -137,9 +137,9 @@ LOCAL SUB run_queued_script (script as ScriptFibre)
  'If the script is missing then .id = 0 and decodetrigger already showed an error
  IF script.id = 0 THEN EXIT SUB
 
- DIM rsr as integer
+ DIM rsr as RunScriptResult
  rsr = runscript(script.id, YES, script.double_trigger_check, script.scripttype)
- IF rsr = 1 THEN
+ IF rsr = rsSuccess THEN
   FOR argno as integer = 0 TO script.argc - 1
    setScriptArg argno, script.args(argno)
   NEXT
@@ -479,34 +479,26 @@ END SUB
 '==========================================================================================
 
 
-FUNCTION runscript (byval id as integer, byval newcall as bool, byval double_trigger_check as bool, byval scripttype as zstring ptr) as integer
+FUNCTION runscript (id as integer, newcall as bool, double_trigger_check as bool, scripttype as zstring ptr) as RunScriptResult
 'newcall: whether his script is triggered (start a new fibre) rather than called from a script
 'double_trigger_check: whether "no double-triggering" should take effect
 
-DIM n as integer
-n = decodetrigger(id)
+DIM n as integer = decodetrigger(id)
+IF n = 0 THEN RETURN rsQuietFail  '(though decodetrigger might have shown a scripterr)
 
-IF n = 0 THEN
- runscript = 2 '--quiet failure (though decodetrigger might have shown a scripterr)
- EXIT FUNCTION
-END IF
-
-IF insideinterpreter = NO AND newcall = NO THEN showbug "runscript: newcall=NO outside interpreter"
+BUG_IF(insideinterpreter = NO AND newcall = NO, "newcall=NO outside interpreter", rsFail)
 
 DIM index as integer = nowscript + 1
 
 IF index >= maxScriptRunning THEN
- runscript = 0 '--error
  scripterr "Can't load " & *scripttype & " script " & scriptname(n) & ", too many scripts running", serrMajor
- EXIT FUNCTION
+ RETURN rsFail
 END IF
 
-IF double_trigger_check AND index > 0 THEN
- IF n = scriptinsts(index - 1).id AND prefbit(10) = NO THEN  '"Permit double-triggering of scripts" off
-  'fail quietly
-  '--scripterr "script " & n & " is already running"
-  runscript = 2 '--quiet failure
-  EXIT FUNCTION
+IF double_trigger_check ANDALSO index > 0 THEN
+ IF n = scriptinsts(index - 1).id ANDALSO prefbit(10) = NO THEN  '"Permit double-triggering of scripts" off
+  '--scripterr "script " & n & " is already running", serrInfo
+  RETURN rsQuietFail
  END IF
 END IF
 
@@ -523,10 +515,8 @@ WITH scriptinsts(index)
  '-- Load the script (or return the reference if already loaded)
  .scr = loadscript(n)
  IF .scr = NULL THEN
-  '--failed to load
-  runscript = 0'--error
   scripterr "Failed to load " + *scripttype + " script " & n & " " & scriptname(n), serrError
-  EXIT FUNCTION
+  RETURN rsFail
  END IF
  IF scriptprofiling THEN .scr->numcalls += 1
  scriptctr += 1
@@ -548,19 +538,19 @@ WITH scriptinsts(index)
 
  DIM errstr as zstring ptr = oldscriptstate_init(index, .scr)
  IF errstr <> NULL THEN
-  scripterr "failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", " & *errstr, serrError
-  RETURN 0 '--error
+  scripterr "Failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", " & *errstr, serrError
+  RETURN rsFail
  END IF
 
- IF newcall AND index > 0 THEN
+ IF newcall ANDALSO index > 0 THEN
   '--suspend the previous fibre
   IF scriptprofiling THEN stop_fibre_timing  'Must call before suspending
   scrat(index - 1).state *= -1
  END IF
 
- '--we are successful, so now its safe to increment this
+ '--we are successful, so now its safe to increment these
+ nowscript = index
  .scr->refcount += 1
- nowscript += 1
  IF .scr->refcount = 1 THEN
   'Removed from unused scripts cache
   unused_script_cache_mem -= .scr->size
@@ -579,7 +569,7 @@ IF scriptprofiling THEN
  END IF
 END IF
 
-RETURN 1 '--success
+RETURN rsSuccess
 
 END FUNCTION
 
@@ -677,7 +667,7 @@ LOCAL FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptDat
   'some HSX files seem to have an illegal negative number of variables
   .vars = shortvar
   .vars = bound(.vars, 0, 256)
- 
+
   IF skip >= 6 THEN
    GET #fh, 5, shortvar
    .args = bound(shortvar, 0, .vars)

@@ -36,7 +36,14 @@ DECLARE SUB script_start_waiting(waitarg1 as integer = 0, waitarg2 as integer = 
 DECLARE SUB script_start_waiting_ticks(whichscript as integer, ticks as integer)
 DECLARE SUB script_stop_waiting(returnval as integer = 0)
 
-DECLARE FUNCTION runscript (byval id as integer, byval newcall as bool, byval double_trigger_check as bool, byval scripttype as zstring ptr) as integer
+ENUM 'RunScriptResult
+  rsFail = 0
+  rsSuccess = 1
+  rsQuietFail = 2
+END ENUM
+TYPE RunScriptResult as integer
+
+DECLARE FUNCTION runscript (id as integer, newcall as bool, double_trigger_check as bool, scripttype as zstring ptr) as RunScriptResult
 DECLARE FUNCTION loadscript (id as integer, loaddata as bool = YES) as ScriptData ptr
 DECLARE SUB delete_ScriptData (byval scriptd as ScriptData ptr)
 DECLARE SUB deref_script (script as ScriptData ptr)
