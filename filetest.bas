@@ -449,11 +449,13 @@ end function
 
 #define wait_spawn  if _wait_spawn() = NO then fail
 
+dim shared hproc as ProcessHandle
+
 startTest(renameReplaceOpenFile)
         'Precond: _testfile2.tmp contains "output"
 
         before_spawn
-        open_process("." SLASH "filetest_helper" DOTEXE, "_testfile3.tmp 300 -write -q", NO, YES)  'show_output=YES
+        hproc = open_process("." SLASH "filetest_helper" DOTEXE, "_testfile3.tmp 300 -write -q", NO, YES)  'show_output=YES
         wait_spawn
 
         #ifdef __FB_WIN32__
@@ -466,13 +468,14 @@ startTest(renameReplaceOpenFile)
 
         if filelen("_testfile3.tmp") <> 6 then fail
         if real_isfile("_testfile2.tmp") then fail
+	cleanup_process @hproc
 endTest
 
 startTest(renameMoveOpenFile)
         'Precond: _testfile3.tmp contains "output"
 
         before_spawn
-        open_process("." SLASH "filetest_helper" DOTEXE, "_testfile3.tmp 400 -readonly -q", NO, YES)
+        hproc = open_process("." SLASH "filetest_helper" DOTEXE, "_testfile3.tmp 400 -readonly -q", NO, YES)
         wait_spawn
 
         #ifdef __FB_WIN32__
@@ -485,6 +488,7 @@ startTest(renameMoveOpenFile)
         #ifdef __FB_UNIX__
                 if real_isfile("_testfile3.tmp") then fail   'Will still exist on Windows
         #endif
+	cleanup_process @hproc
 endTest
 
 startTest(renameShareDeleteFile)
@@ -492,7 +496,7 @@ startTest(renameShareDeleteFile)
 
         'FILE_SHARE_DELETE files can be moved without error on Windows
         before_spawn
-        open_process("." SLASH "filetest_helper" DOTEXE, "_testfile4.tmp 300 -sharedelete -q", NO, YES)
+        hproc = open_process("." SLASH "filetest_helper" DOTEXE, "_testfile4.tmp 300 -sharedelete -q", NO, YES)
         wait_spawn
 
         if renamefile("_testfile4.tmp", "_testfile5.tmp") = NO then fail
@@ -500,6 +504,7 @@ startTest(renameShareDeleteFile)
         if filelen("_testfile5.tmp") <> 6 then fail
         'On Windows this produces an Access denied error if filetest_helper still running, but doesn't fail
         if real_isfile("_testfile4.tmp") then fail
+	cleanup_process @hproc
 endTest
 
 #ifdef __FB_WIN32__
@@ -509,7 +514,7 @@ startTest(renameLockedFile)
         'Precond: _testfile5.tmp contains "output"
 
         before_spawn
-        open_process("." SLASH "filetest_helper" DOTEXE, "_testfile5.tmp 500 -lock -q", NO, YES)
+        hproc = open_process("." SLASH "filetest_helper" DOTEXE, "_testfile5.tmp 500 -lock -q", NO, YES)
         wait_spawn
 
         #ifdef __FB_WIN32__
@@ -524,6 +529,7 @@ startTest(renameLockedFile)
 
         safekill "_testfile6.tmp"
         safekill "_testfile3.tmp"
+	cleanup_process @hproc
 endTest
 #endif
 
