@@ -208,6 +208,7 @@ CONST ccRight = -5
 CONST ccUse = -6
 CONST ccCancel = -7
 CONST ccMenu = -7
+CONST ccFlee = -8
 CONST ccRun = -8
 CONST ccLOWEST = -8
 'Update scancodenames.bi if you add more

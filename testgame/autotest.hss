@@ -5837,8 +5837,8 @@ script, string load tests, begin
   $1="["
   get scancode name(2, key:leftbracket, false)
   assert(string compare(1,2))
-  $1="Run"
-  get scancode name(2, run key)
+  $1="Flee"  # Previously "Run"
+  get scancode name(2, flee key)  # AKA run key
   assert(string compare(1,2))
   $1="Scancode 0"
   get scancode name(2, 0)

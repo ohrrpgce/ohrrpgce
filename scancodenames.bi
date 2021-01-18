@@ -5,7 +5,7 @@
 #include "scancodes.bi"
 
 static scancodenames(ccRun to ...) as string * 18  = { _
-  "Run",                       /' -8 '/ _
+  "Flee",                      /' -8 '/ _
   "Menu",                      /' -7 '/ _
   "Use",                       /' -6 '/ _
   "Right",                     /' -5 '/ _

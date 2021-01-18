@@ -1989,6 +1989,7 @@ define constant, begin
 -6,usekey
 -7,cancelkey
 -7,menukey
+-8,fleekey
 -8,runkey
 0,me
 0,none

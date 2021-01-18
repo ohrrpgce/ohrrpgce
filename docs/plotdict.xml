@@ -12012,7 +12012,8 @@ use key            # Space, Ctrl or Enter, or Use button on any joystick. Includ
                    # if "'any key', etc, include mouse" turned on in Mouse Controls menu.
 cancel key         # Alt or Esc, or Cancel button on any joystick. Optionally includes right clicks as above.
 menu key           # Alt or Esc, or Menu button on any joystick. Optionally includes right clicks as above.
-run key            # Esc or Tab, or Run button on any joystick (Hold to run from battle)
+flee key           # Esc or Tab, or Run button on any joystick (Hold to flee (run) from battle)
+run key            # Alias for 'flee key'
 </example>
 				<note>
 					Previously it was necessary to <tt>include, scancode.hsi</tt>
@@ -12049,10 +12050,10 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 
 		<command id="keyconstants">
 			<canon>Key Constants</canon>
-			<shortname>key Constants</shortname>
+			<shortname>Key Constants</shortname>
 			<description>
-				A constant specifying a keyboard key or joystick button by its function.
-				(Possibly included mouse buttons too, if enabled in the Mouse Controls menu.)
+				A constant specifying a keyboard key or joystick button by its builtin function.
+				(Possibly includes mouse buttons too, if enabled in the Mouse Controls menu.)
 				They can be passed to <ref>keyispressed</ref>, <ref>keyval</ref>, <ref>waitforkey</ref>,
 				<ref>keypress</ref>, <ref>newkeypress</ref> and <ref>waitforscancode</ref>.
 				<lb />
@@ -12061,9 +12062,13 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 				Possible values:
 				<lb />
 				<p>any key</p>, <p>up key</p>, <p>down key</p>, <p>left key</p>, <p>right key</p>,
-				<p>use key</p>, <p>menu key</p>, <p>cancel key</p>, <p>run key</p>.
+				<p>use key</p>, <p>menu key</p>, <p>cancel key</p>, <p>flee key</p>, <p>run key</p>.
 				<lb />
-				(<p>menu key</p> and <p>cancel key</p> are identical).
+				(<p>menu key</p> and <p>cancel key</p> are identical, and so are <p>flee key</p> and <p>run key</p>).
+				<note>
+					All commands which accept a key constant can also accept a scancode (like <tt>key:enter</tt>) instead.
+					See <ref>scancode</ref>.
+				</note>
 			</description>
 			<altcommand id="anykey">
 				<shortname>any key</shortname>
@@ -12091,6 +12096,9 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 			</altcommand>
 			<altcommand id="runkey">
 				<shortname>run key</shortname>
+			</altcommand>
+			<altcommand id="fleekey">
+				<shortname>flee key</shortname>
 			</altcommand>
 		</command>
 		<command id="numericconstants">
