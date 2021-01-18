@@ -8181,6 +8181,9 @@ end
 				<ref>previoussibling</ref>
 			</seealso>
 		</command>
+
+		<section title="Sorting Slices">
+
 		<command id="ysortchildren">
 			<canon>Y sort children (handle)</canon>
 			<shortname>Y sort children</shortname>
@@ -8223,6 +8226,41 @@ end
 				<ref>ysortchildren</ref>
 			</seealso>
 		</command>
+
+		<command id="getchildautosort">
+			<canon>get child autosort (handle)</canon>
+			<shortname>get child autosort</shortname>
+			<description>
+				Get slice <p>handle</p>'s "autosort children" setting, which is one of the following constants:
+				<ul>
+					<li><tt>autosort: Off</tt></li>
+					<li><tt>autosort: Custom</tt> -
+						sorted according to the sort order value (<ref>setsortorder</ref>),
+						just like <ref>sortchildren</ref> (sort order not wiped after sorting)
+					</li>
+					<li><tt>autosort: Y</tt> - sorted by each child's Y (<ref>slicey</ref>), ignoring anchoring and alignment</li>
+					<li><tt>autosort: Top Y</tt> - sorted by top edge position </li>
+					<li><tt>autosort: Center Y</tt> - sorted by center position</li>
+					<li><tt>autosort: Bottom Y</tt> - sorted by bottom edge position</li>
+				</ul>
+				Every tick immediately before the screen is redrawn the children of the slice will
+				be sorted according to the autosort setting.
+				This is useful for emulating 3D (or "2.5D") environments, causing slices for objects that are closer to the "view"
+				(the bottom of the screen) to be drawn on top of ones further away.
+			</description>
+		</command>
+
+		<command id="setchildautosort">
+			<canon>set child autosort (handle, setting)</canon>
+			<shortname>set child autosort</shortname>
+			<description>
+				Change a slice <p>handle</p>'s "autosort children" setting.
+				<p>setting</p> should be one of the <tt>autosort: ...</tt> settings; see <ref>getchildautosort</ref>.
+			</description>
+		</command>
+
+		</section>		<!--Sorting Slices-->
+
 		</section>		<!--Reordering Slices-->
 
 

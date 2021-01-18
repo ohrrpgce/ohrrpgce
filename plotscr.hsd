@@ -746,6 +746,8 @@ define function, begin
 718,getboxstylecolor,1,0      # Box background color (box style)
 719,getboxstyleedgecolor,1,0  # Box edge color (box style)
 720,getboxstyleborder,1,0     # border:line or box border spriteset (box style)
+721,getchildautosort,1,0      # Get slice children autosort setting, an autosort: constant (slice)
+722,setchildautosort,2,0,0    # Set slice children autosort setting (slice, autosort)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
@@ -2223,6 +2225,12 @@ define constant, begin
 7,spritetype:border
 8,spritetype:portrait
 9,spritetype:backdrop
+0,autosort:Off
+1,autosort:Custom
+2,autosort:Y
+3,autosort:TopY
+4,autosort:CenterY
+5,autosort:BottomY
 -1,border:line
 -2,border:none
 -99,border:raw

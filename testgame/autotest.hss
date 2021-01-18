@@ -4538,11 +4538,12 @@ script, slice tests, begin
 
   # Extremely unfinished!
 
-  slice collection tests
+  slice collection tests  # Tests collection loaded correctly
   slice find tests
   slice tree tests
   slice correspondence tests
   slice blending tests
+  slice sort tests
 
   # Test rect transparency
   variable (sl)
@@ -5067,6 +5068,60 @@ script, slice blending tests, begin
   assert(get opacity(sl) == 45)
   assert(get blend mode(sl) == blend:add)
   free slice(collection)
+end
+
+########################################################################
+
+script, slice sort tests, begin
+  # Very incomplete
+
+  variable(parent, ch1, ch2, ch3, ch4)
+  parent := create container(100,100)
+  ch1 := create container(10,10)
+  set parent(ch1, parent)
+  ch2 := create container(10,10)
+  set parent(ch2, parent)
+  ch3 := create container(10,20)
+  set parent(ch3, parent)
+  ch4 := create container(10,100)
+  set parent(ch4, parent)
+
+  #### get/set child autosort
+
+  # Preconditions
+  assert(current map == 0)
+  assert(read gmap(16) == 0)  # Map 0 is set to heroes over NPCs.
+
+  assert(get child autosort(lookup slice(sl:walkabout layer)) == autosort:off)
+  write gmap(16, 2)  # Layering: NPCs and heroes together
+  assert(read gmap(16) == 2)
+  # This might actually change in future when more sophisticated layering is implemented
+  assert(get child autosort(lookup slice(sl:walkabout layer)) == autosort:Y)
+
+  write gmap(16, 0)  # Reset to heroes over NPCs
+
+  set child autosort(parent, autosort:bottomY)
+  assert(get child autosort(parent) == autosort:bottomY)
+
+  # Test bottomY sorting
+  set slice edge y(ch1, edge:bottom, 100)
+  assert(slice y(ch1) == 100 -- 10)
+  set vert anchor(ch2, edge:middle)
+  set slice edge y(ch2, edge:bottom, 50)
+  assert(slice y(ch2) == 50 -- 10/2)
+  set vert anchor(ch3, edge:bottom)
+  set slice edge y(ch3, edge:bottom, 80)
+  assert(slice y(ch3) == 80)
+  set vert anchor(ch4, edge:middle)
+  set vert align(ch4, edge:bottom)
+  set slice edge y(ch4, edge:bottom, 50)
+  wait(1)
+  assert(slice child(parent, 0) == ch2)
+  assert(slice child(parent, 1) == ch4)
+  assert(slice child(parent, 2) == ch3)
+  assert(slice child(parent, 3) == ch1)
+
+  free slice(parent)
 end
 
 ########################################################################
@@ -6270,7 +6325,6 @@ end
 #set seconds of play (sec)
 #set slice clipping (handle, clip)
 #set slice edge x (handle, edge, value)
-#set slice edge y (handle, edge, value)
 #set slice extra (handle, extra, value)
 #set slice height (handle, height)
 #set slice lookup (handle, code)

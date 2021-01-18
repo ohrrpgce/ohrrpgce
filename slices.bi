@@ -155,12 +155,13 @@ Enum AttachTypes
 End Enum
 
 Enum AutoSortModes
- slAutoSortNone
- slAutoSortCustom
- slAutoSortY
- slAutoSortTopY
- slAutoSortCenterY
- slAutoSortBottomY
+ slAutoSortNone = 0
+ slAutoSortCustom = 1
+ slAutoSortY = 2
+ slAutoSortTopY = 3
+ slAutoSortCenterY = 4
+ slAutoSortBottomY = 5
+ slAutoSortLAST = 5
 End Enum
 
 Enum FillModes

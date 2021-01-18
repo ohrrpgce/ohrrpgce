@@ -1,7 +1,9 @@
-The slice autosort setting causes the children of the slice to be automatically sorted everytime it's drawn. This is used for example by the walkabout layer to draw NPCs/heroes in the right order.
+The slice autosort setting causes the children of the slice to be automatically sorted everytime it's drawn. This is used for example by the walkabout layer to draw NPCs/heroes in the right order (if the map is set to "Layering: Heroes and NPCs Together").
 
 None: no autosorting happens.
 
 Custom: means that the slices are sorted by their Sort Order value. Low values get sorted to the bottom (become the first children), high values to the top (the last children). If two slices have the same sort order, they remain in their original order relative to each other.
 
-By ...: children are sorted by their screen positions, so that ones at the top of the screen are drawn first. This is useful for objects on a map. If the objects are standing on a flat surface, use "By bottom edge".
+By Y: children are sorted by their raw Y value, ignoring anchor and align points.
+
+By top edge/center Y/bottom edge: children are sorted by their screen positions, so that ones at the top of the screen are drawn first. This is useful for objects on a map. If the objects are standing up on a flat surface, use "By bottom edge".

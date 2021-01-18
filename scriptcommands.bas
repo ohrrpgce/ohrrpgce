@@ -5031,6 +5031,15 @@ SUB script_functions(byval cmdid as integer)
   IF valid_box_style(retvals(0)) THEN
    scriptret = boxlook(retvals(0)).border - 1
   END IF
+ CASE 721 '--get child autosort (slice)
+  IF valid_plotslice(retvals(0)) THEN
+   scriptret = plotslices(retvals(0))->Autosort
+  END IF
+ CASE 722 '--set child autosort (slice, autosort)
+  IF valid_plotslice(retvals(0)) ANDALSO _
+     bound_arg(retvals(1), 0, slAutoSortLAST, "autosort:... constant", , serrBadOp) THEN
+   plotslices(retvals(0))->Autosort = retvals(1)
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
