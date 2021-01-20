@@ -331,7 +331,7 @@ SUB push_and_reset_gfxio_state ()
   setkeys
   #IFDEF IS_GAME
    .resolution_was_unlocked = resolution_unlocked()
-   unlock_resolution gen(genResolutionX), gen(genResolutionY)
+   unlock_resolution gen(genResolutionX), gen(genResolutionY)  'I don't see a reason to use this as min resolution
   #ENDIF
   .use_speed_control = use_speed_control
   use_speed_control = YES

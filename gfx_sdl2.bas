@@ -110,6 +110,7 @@ DIM SHARED windowedmode as bool = YES  'Windowed rather than fullscreen? (Should
 DIM SHARED resizable as bool = NO
 DIM SHARED resize_requested as bool = NO
 DIM SHARED resize_request as XYPair
+DIM SHARED min_window_resolution as XYPair = XY(10, 10)  'Used only if 'resizable' true. Excludes zoom factor.
 DIM SHARED recenter_window_hint as bool = NO
 DIM SHARED remember_windowtitle as string
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
@@ -476,6 +477,11 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
     debuginfo "set_window_size " & newframesize & " x" & newzoom
   END IF
 
+  IF resizable THEN
+    DIM minsize as XYPair = min_window_resolution * zoom
+    SDL_SetWindowMinimumSize(mainwindow, minsize.w, minsize.h)
+  END IF
+
   IF mainwindow THEN
     'TODO: this doesn't work if fullscreen
     '(FIXME: If you open debug menu in-game, resize the window, press alt-enter to fullscreen
@@ -750,14 +756,21 @@ FUNCTION gfx_sdl2_vsync_supported() as bool
   #ENDIF
 END FUNCTION
 
-FUNCTION gfx_sdl2_set_resizable(byval enable as bool, min_width as integer, min_height as integer) as bool
+FUNCTION gfx_sdl2_set_resizable(enable as bool, min_width as integer, min_height as integer) as bool
   resizable = enable
   IF mainwindow = NULL THEN RETURN resizable
 
-  'The min window size may (depending on OS?) still be enforced even if we disable resizing, so
-  'have to change it, but passing zero width/height to SDL_SetWindowMinimumSize is invalid.
-  DIM minsize as XYPair = XY(min_width, min_height) * zoom
-  minsize = large(minsize, XY(10, 10))
+  'The min window size may (depending on OS?) still be enforced (even on
+  'SDL_SetWindowSize) even if we disable resizing, so have to change it so setting a
+  'small zoom or frame size works. But passing zero width/height to
+  'SDL_SetWindowMinimumSize is invalid, so set to something tiny.
+  DIM minsize as XYPair
+  IF enable THEN
+    min_window_resolution = large(XY(5, 5), XY(min_width, min_height))
+    minsize = min_window_resolution * zoom
+  ELSE
+    minsize = XY(10, 10)
+  END IF
   'debuginfo "SDL_SetWindowMinimumSize " & minsize
   SDL_SetWindowMinimumSize(mainwindow, minsize.w, minsize.h)
 
