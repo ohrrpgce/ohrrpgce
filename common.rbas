@@ -3217,11 +3217,7 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
    result = escval
    state.active = NO
   END IF
-  IF readmouse.release AND mouseRight THEN
-   result = escval
-   state.active = NO
-  END IF
-  IF readmouse.release AND mouseLeft THEN
+  IF readmouse.release AND (mouseLeft OR mouseRight) THEN
    IF NOT rect_collide_point(menu.rect, readmouse.pos) THEN
     result = escval
     state.active = NO
