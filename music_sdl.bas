@@ -33,6 +33,12 @@
 	#include "SDL\SDL_mixer.bi"
 #endif
 
+#ifndef Mix_ClearError
+	'Missing from SDL_mixer 1.2's header
+	#define Mix_ClearError  SDL_ClearError
+#endif
+
+
 ' External functions
 
 declare function safe_RWops(byval rw as SDL_RWops ptr) as SDL_RWops ptr
@@ -162,6 +168,7 @@ function music_get_info() as string
 
 	ver = Mix_Linked_Version()
 	ret += ", SDL_Mixer " & ver->major & "." & ver->minor & "." & ver->patch
+	dim version as integer = ver->major * 1000 + ver->minor * 100 + ver->patch  'E.g. 1213
 
 	if music_status = musicOn then
 		dim freq as int32, format as ushort, channels as int32
@@ -178,11 +185,19 @@ function music_get_info() as string
 				'SDL2_mixer lists the file formats in the list of decoders,
 				'SDL_mixer 1.2 may only list the decoders, such as MIKMOD.
 				'Mix_GetChunkDecoder only lists file formats, not decoders.
-				if form = "MPG123" or form = "MAD" then
-					'Is linked to libmad or libmpg123, rather than smpeg,
-					'which is totally broken for non-44.1kHz MP3s,
-					'so intentionally NOT checking for "MP3"
-					supported_formats or= FORMAT_MP3
+				if form = "MP3" then
+					'Note: SDL_mixer 1.2 reports "MP3" only regardless of which library it's
+					'using, 2.0 also reports "MPG123" or "MAD".
+					'SDL_mixer 1.2.13 (unreleased) supports only libmad or libmpg123, not smpeg.
+					'smpeg may crash for non-44.1kHz MP3s (bug #372), so don't support them on
+					'SDL_mixer <= 1.2.12 Mac/Linux, where it's very probably linked to smpeg.
+					#ifdef __FB_WIN32__
+						supported_formats or= FORMAT_MP3
+					#else
+						if version >= 1213 then
+							supported_formats or= FORMAT_MP3
+						end if
+					#endif
 				elseif form = "OGG" then
 					supported_formats or= FORMAT_OGG
 				elseif form = "FLAC" then
@@ -204,6 +219,7 @@ function music_get_info() as string
 		end if
 
 		if _Mix_GetNumChunkDecoders andalso _Mix_GetChunkDecoder then
+			'BTW, SDL_mixer 1.2 doesn't support playing .mp3 sound effects (chunks)!
 			ret += " Sample decoders:"
 			for i as integer = 0 to _Mix_GetNumChunkDecoders() - 1
 				if i > 0 then ret += ","
@@ -219,6 +235,7 @@ function music_get_info() as string
 	return ret
 end function
 
+'Note that the backend will still be asked to play files it doesn't report supporting
 function music_supported_formats() as integer
 	return supported_formats and VALID_MUSIC_FORMAT
 end function
@@ -286,6 +303,9 @@ sub music_init()
 		'loaded everything from Mix_OpenAudio). Increasing startup time just to get
 		'supported_formats is sad, but at least it prevents pauses later.
 		Mix_Init(MIX_INIT_MID or MIX_INIT_OGG or MIX_INIT_MP3 or MIX_INIT_MOD)
+		'SDL_mixer 1.2.12 bug: if compiled against libmad Mix_Init sets the error "Mixer not built with MP3 support"
+		'if Mix_GetError then debug "Mix_Init: " & *Mix_GetError
+		Mix_ClearError
 	end if
 end sub
 
