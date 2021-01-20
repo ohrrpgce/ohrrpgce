@@ -278,7 +278,7 @@ if 'gfx' in ARGUMENTS:
 elif 'OHRGFX' in os.environ:
     gfx = os.environ['OHRGFX']
 elif mac:
-    gfx = 'sdl'
+    gfx = 'sdl2'
 elif android:
     gfx = 'sdl'
 elif win32:

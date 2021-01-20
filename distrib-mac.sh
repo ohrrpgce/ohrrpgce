@@ -21,7 +21,6 @@ fi
 
 if [ $SDL = "SDL2" ]; then
   GFX=sdl2
-  SUFFIX=${SUFFIX}-sdl2
 else
   GFX=sdl
 fi

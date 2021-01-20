@@ -21,13 +21,13 @@ January ? 2021 [Hróðvitnir]
     * "Ignore MP~ stat" general preference bit, so you can use the stat for
       something else [Ralph]
     * The new gfx_sdl2 and music_sdl2 backends based on SDL 2 & SDL_mixer 2 are
-      now the default on Windows and Linux/Unix. These fix many problems in
-      gfx_sdl and music_sdl. gfx_sdl2 requires Windows XP or later.
+      now the default on Windows, 64-bit Mac and Linux/Unix. These fix many
+      problems in gfx_sdl and music_sdl. gfx_sdl2 requires Windows XP or later.
       You can switch backend, to gfx_directx or (obsolete) gfx_fb, with Ctrl-F7.
       There's no reason to prefer music_sdl, but if you want to use gfx_sdl,
-      which was the default on Unix and the default for Custom on Windows, you
-      will need to download/compile a "music_sdl" build.
-      Mac users can opt in to gfx_sdl2/music_sdl2 by downloading the sdl2 build.
+      which was the default on Unix/Linux/Mac and the default for Custom on
+      Windows, you will need to download/compile a "music_sdl" build or 32-bit
+      Mac build.
       [Ralph]
     * When using gfx_sdl2, gamepads should now work reliably: A is Use, B is
       Cancel, and you can use new joy:button constants like joy:A, joy:LeftStick,

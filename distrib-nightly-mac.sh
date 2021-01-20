@@ -40,6 +40,7 @@ svn update || exit 1
 cd wip
 
 build_package() {
+  # distrib-mac.sh reads these envvars
   export ARCH=$1
   export SDL=$2
 
@@ -47,10 +48,6 @@ build_package() {
     SUFFIX=-x86_64
   else
     SUFFIX=-x86
-  fi
-
-  if [ $SDL = "SDL2" ]; then
-    SUFFIX=${SUFFIX}-sdl2
   fi
 
   ./distrib-mac.sh ${MORE_ARGS} || return
@@ -69,5 +66,4 @@ build_package() {
 
 
 build_package i386 SDL
-build_package x86_64 SDL
 build_package x86_64 SDL2
