@@ -108,6 +108,22 @@ January ? 2021 [Hróðvitnir]
       save games, so didn't update if you changed them
     * "check parentage" was completely broken [Ralph]
     * Bug #1145 on Mac spawning HSpeak to import scripts randomly failed [Ralph]
+    * Mac: music & sfx menus didn't show metadata for .ogg files [Ralph]
+    * When using the new default gfx_sdl2/music_sdl2 backends, the following
+      bugs are fixed:
+      * #372 music_sdl: segmentation fault on 11025Hz MP3 files (affects old
+        games containing MP3s on Mac/Linux)
+      * #1085 SDL_mixer plays tracks slowed down/sped up if not 11, 22 or 44.1kHz
+      * #1187 module (XM/MOD/IT/S3M) loop points didn't work on Linux and Mac
+      * #1136 music_sdl: Crash when playing a truncated .wav
+      * #1079 Linux: Occasional freeze when quitting when using PulseAudio
+      * #617 Screen tearing on some computers (didn't affect gfx_directx)
+      * #1140 64-bit Mac gfx_sdl: Random crash in SDL_SoftStretch
+      * #1147 64-bit Mac gfx_sdl: run-away memory leak
+      * #1115 Linux gfx_sdl: can't resize the window on Xfce
+      * #1173 Windows gfx_sdl: Enter key stuck after changing window zoom level
+        in Custom
+    * Many bugs fixed in gfx_sdl2, which was previously experimental [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"
