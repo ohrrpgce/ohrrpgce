@@ -1,9 +1,20 @@
-# this include file defines a whole mess of key: constants for use with
-# the "key is pressed" command. This is more complete than it needs to be :)
+# This include file defines key: and joy: constants for use with commands like
+#"keypress", "key is pressed" and "wait for key", and also axis: constants for
+# "joystick axis".
+# You don't need to include this file, it's done automatically.
 
 define constant,begin
-# anykey, upkey, downkey, leftkey, rightkey, usekey, menukey, cancelkey, runkey
-# are also valid virtual scancodes, but they're defined in plotscr.hsd.
+# These *key constants can be used with any keypress commands.
+-1,anykey
+-2,upkey
+-3,downkey
+-4,leftkey
+-5,rightkey
+-6,usekey
+-7,menukey
+-8,fleekey
+-8,runkey
+-9,cancelkey
 
 01,key:Esc
 02,key:1
@@ -162,10 +173,10 @@ define constant,begin
 129,joy:B          # Aka O/Circle (PS)
 130,joy:X          # Aka Square (PS)
 131,joy:Y          # Aka Triangle (PS)
-132,joy:LeftStick  # Pressed as a button
+132,joy:LeftStick  # When pressed as a button
 133,joy:RightStick #
-134,joy:Back       #  Aka Select (eg PS3), Share (eg PS4), View (Xbox)
-135,joy:Guide      # Aka PS (eg 3), XBox
+134,joy:Back       # Aka Select (eg PS3, NES, SNES), Share (eg PS4), View (Xbox)
+135,joy:Guide      # Aka PS (eg PS3), XBox
 136,joy:Start      # Aka Options (PS4), Menu (XBox)
 137,joy:L1         # Left shoulder
 138,joy:R1         # Right shoulder
@@ -221,4 +232,16 @@ define constant,begin
 #181,mouse:right
 #182,mouse:middle
 
+end
+
+define constant, begin
+# Joystick axes
+0, x axis  #old style
+1, y axis
+0, axis:X
+1, axis:Y
+2, axis:RightX
+3, axis:RightY
+4, axis:L2
+5, axis:R2
 end

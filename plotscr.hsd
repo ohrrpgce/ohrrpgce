@@ -1980,17 +1980,6 @@ define constant, begin
 2,down
 3,left
 1,right
-# plotscr version >= "3U " has new *key constants
--1,anykey
--2,upkey
--3,downkey
--4,leftkey
--5,rightkey
--6,usekey
--7,menukey
--8,fleekey
--8,runkey
--9,cancelkey
 0,me
 0,none
 -1,autonumber
@@ -2108,15 +2097,6 @@ define constant, begin
 0, extra 0
 1, extra 1
 2, extra 2
-# Joystick axes
-0, x axis  #old style
-1, y axis
-0, axis:X
-1, axis:Y
-2, axis:RightX
-3, axis:RightY
-4, axis:L2
-5, axis:R2
 0b1,mapstate:mapsettings
 0b10,mapstate:npclocations
 0b100,mapstate:npcdefinitions
