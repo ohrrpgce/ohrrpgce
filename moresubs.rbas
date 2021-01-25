@@ -592,7 +592,7 @@ DO
   hero_swap_menu_mouse_control st
  END IF
  
- IF carray(ccMenu) > 1 THEN
+ IF carray(ccCancel) > 1 THEN
   IF st.swapme >= 0 THEN
    MenuSound gen(genCancelSFX)
    st.swapme = -1
@@ -1050,7 +1050,7 @@ FUNCTION teleporttool () as bool
   END IF
 
   IF pickpoint = NO THEN
-   IF carray(ccMenu) > 1 THEN  'cancel
+   IF carray(ccCancel) > 1 THEN
     EXIT DO
    END IF
    IF intgrabber(destmap, 0, gen(genMaxMap)) THEN
@@ -1065,7 +1065,7 @@ FUNCTION teleporttool () as bool
     (heropos(0)) = dest * 20
     EXIT DO
    END IF
-   IF carray(ccMenu) > 1 THEN pickpoint = NO
+   IF carray(ccCancel) > 1 THEN pickpoint = NO
 
    DIM xrate as integer  'Movement rate
    DIM yrate as integer
@@ -1177,7 +1177,7 @@ DO
  playtimer
  loopvar wtog, 0, max_wtog()
  DIM do_exit as bool = NO
- IF carray(ccMenu) > 1 THEN do_exit = YES
+ IF carray(ccCancel) > 1 THEN do_exit = YES
  IF carray(ccLeft) > 1 THEN
   who = loop_active_party_slot(who, -1)
   menusound gen(genCursorSFX)
@@ -1307,7 +1307,7 @@ ELSE
     menusound gen(genCancelSFX)
    END IF
   END IF
-  IF carray(ccMenu) > 1 THEN
+  IF carray(ccCancel) > 1 THEN
    gam.hero(who).name = remember
    menusound gen(genCancelSFX)
    IF escapable THEN EXIT DO
@@ -1663,7 +1663,7 @@ DO
  DIM do_quit as bool = NO
  DIM do_pick as bool = NO
 
- IF carray(ccMenu) > 1 THEN do_quit = YES
+ IF carray(ccCancel) > 1 THEN do_quit = YES
  IF carray(ccUse) > 1 THEN do_pick = YES
 
  IF get_gen_bool("/mouse/mouse_menus") ANDALSO autopick = NO THEN
@@ -1791,7 +1791,7 @@ DO
  playtimer
  DIM do_pick as bool = NO
  DIM do_quit as bool = NO
- IF carray(ccMenu) > 1 THEN do_quit = YES
+ IF carray(ccCancel) > 1 THEN do_quit = YES
  usemenusounds
  usemenu state
  'alternatively

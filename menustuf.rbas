@@ -156,7 +156,7 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
     buystuff_refresh_selected buyst, menu.items[st.pt]->dataptr
    END IF
   END IF
-  IF carray(ccMenu) > 1 THEN do_quit = YES
+  IF carray(ccCancel) > 1 THEN do_quit = YES
   IF carray(ccUse) > 1 THEN do_pick = YES
 
   buyst.alert_ticks = large(0, buyst.alert_ticks - 1)
@@ -1324,7 +1324,7 @@ DO
  setwait speedcontrol
  setkeys
  IF loading = NO THEN playtimer
- IF carray(ccMenu) > 1 THEN
+ IF carray(ccCancel) > 1 THEN
   MenuSound gen(genCancelSFX)
   ret_slot = -2
   EXIT DO
@@ -1419,7 +1419,7 @@ FUNCTION picksave_confirm(menu() as string, byval loading as bool, byval newgame
   setkeys
   tog = tog XOR 1
   playtimer
-  IF carray(ccMenu) > 1 THEN
+  IF carray(ccCancel) > 1 THEN
    MenuSound gen(genCancelSFX)
    RETURN NO
   END IF
@@ -1683,7 +1683,7 @@ DO
   ic = last_inv_slot()
   top = ic - (pagesize - 1)
  END IF
- IF carray(ccMenu) > 1 THEN do_quit = YES
+ IF carray(ccCancel) > 1 THEN do_quit = YES
  IF carray(ccUse) > 1  THEN do_pick = YES
 
  IF get_gen_bool("/mouse/mouse_menus") THEN
@@ -2193,7 +2193,7 @@ SUB status_screen (byval slot as integer)
   setwait speedcontrol
   setkeys
   playtimer
-  IF carray(ccMenu) > 1 THEN EXIT DO
+  IF carray(ccCancel) > 1 THEN EXIT DO
   DIM do_next as bool = NO
   IF carray(ccUse) > 1 THEN do_next = YES
   IF get_gen_bool("/mouse/mouse_menus") THEN
@@ -2219,7 +2219,7 @@ SUB status_screen (byval slot as integer)
     '--status-screen rename is allowed
     renamehero st.slot, YES
     st.need_update = YES
-    IF carray(ccMenu) > 1 THEN EXIT DO
+    IF carray(ccCancel) > 1 THEN EXIT DO
    END IF
   END IF
   IF is_active_party_slot(slot) THEN
@@ -2600,7 +2600,7 @@ FUNCTION item_screen () as integer
   setkeys
   playtimer
   
-  IF carray(ccMenu) > 1 THEN
+  IF carray(ccCancel) > 1 THEN
    item_screen_cancel_action st
   END IF
 
@@ -2818,7 +2818,7 @@ SUB spell_screen (byval slot as integer)
   setwait speedcontrol
   setkeys
   playtimer
-  IF carray(ccMenu) > 1 THEN EXIT DO
+  IF carray(ccCancel) > 1 THEN EXIT DO
   IF carray(ccUse) > 1 THEN
   END IF
   IF is_active_party_slot(slot) THEN
@@ -2985,7 +2985,7 @@ END FUNCTION
 SUB equip_menu_controls_slot_picker (st as EquipMenuState)
  '--primary menu
  DIM do_pick as bool = NO
- IF carray(ccMenu) > 1 THEN
+ IF carray(ccCancel) > 1 THEN
   st.quit = YES
   EXIT SUB
  END IF
@@ -3087,7 +3087,7 @@ SUB equip_menu_controls_equip_change (st as EquipMenuState)
  '--change equip menu
  DIM do_pick as bool = NO
  DIM do_cancel as bool = NO
- IF carray(ccMenu) > 1 THEN do_cancel = YES
+ IF carray(ccCancel) > 1 THEN do_cancel = YES
  usemenusounds
  IF usemenu(st.eq_cursor) THEN
   equip_menu_stat_bonus st
@@ -3599,7 +3599,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   do_effect = NO
   
   '--handle keys
-  IF carray(ccMenu) > 1 THEN
+  IF carray(ccCancel) > 1 THEN
    menusound gen(genCancelSFX)
    EXIT DO
   END IF
@@ -3862,7 +3862,7 @@ FUNCTION spells_menu_control_hover() as integer
 END FUNCTION
 
 SUB spells_menu_control_which_list(sp as SpellsMenuState)
- IF carray(ccMenu) > 1 THEN sp.quit = YES : EXIT SUB
+ IF carray(ccCancel) > 1 THEN sp.quit = YES : EXIT SUB
  IF carray(ccLeft) > 1 THEN
   DO
    loopvar sp.hero, 0, 3, -1
@@ -3948,7 +3948,7 @@ SUB spells_menu_control_pick_spell(sp as SpellsMenuState)
 
  'Keyboard controls
  IF sp.re_use = NO THEN
-  IF carray(ccMenu) > 1 THEN
+  IF carray(ccCancel) > 1 THEN
    sp.mset = 0
    menusound gen(genCancelSFX)
   END IF
@@ -4348,7 +4348,7 @@ FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1
    st.pushed_sl = 0
   END IF
 
-  'IF carray(ccMenu) > 1 THEN EXIT DO
+  'IF carray(ccCancel) > 1 THEN EXIT DO
   'IF carray(ccUse) > 1 THEN
   'END IF
   IF keyval(scF8) > 1 THEN

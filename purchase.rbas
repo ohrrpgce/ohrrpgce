@@ -122,7 +122,7 @@ SUB purchases_menu ()
    menusound gen(genCursorSFX)
   END IF
   IF carray(ccUse) > 1 THEN do_pick = YES
-  IF carray(ccMenu) > 1 THEN do_quit = YES
+  IF carray(ccCancel) > 1 THEN do_quit = YES
   
   IF get_gen_bool("/mouse/mouse_menus") THEN
    DIM hover as integer = -1

@@ -888,7 +888,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  END IF
 
  'cancel
- IF carray(ccMenu) > 1 THEN do_cancel = YES
+ IF carray(ccCancel) > 1 THEN do_cancel = YES
  IF do_cancel THEN
   menusound gen(genCancelSFX)
   bslot(bat.hero_turn).attack = 0
@@ -1817,7 +1817,7 @@ SUB RewardsState.add_item(itemid as integer, count as integer = 1)
 END SUB
 
 FUNCTION should_victory_advance(byref bat as BattleState) as bool
- IF carray(ccUse) > 1 ORELSE carray(ccMenu) > 1 THEN RETURN YES
+ IF carray(ccUse) > 1 ORELSE carray(ccCancel) > 1 THEN RETURN YES
  IF (readmouse.release AND mouseLeft) ORELSE (readmouse.release AND mouseLeft) THEN RETURN YES
  IF gen(genSkipBattleRewardsTicks) > 0 THEN
   IF bat.vic.display_ticks > gen(genSkipBattleRewardsTicks) THEN
@@ -2689,7 +2689,7 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef
    EXIT SUB
   END IF
 
-  IF carray(ccMenu) > 1 THEN do_close = YES
+  IF carray(ccCancel) > 1 THEN do_close = YES
  
   usemenusounds
   usemenu .menust
@@ -2726,8 +2726,8 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef
      bat.turn.reverse = YES
     END IF
    END IF
-   'Don't loop the sound effect while holding down Menu to allow time to pass
-   IF carray(ccMenu) AND 4 THEN menusound gen(genCancelSFX)
+   'Don't loop the sound effect while holding down Cancel to allow time to pass
+   IF carray(ccCancel) AND 4 THEN menusound gen(genCancelSFX)
    EXIT SUB
   END IF
   
@@ -2849,7 +2849,7 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
   END IF
  END WITH
 
- IF carray(ccMenu) > 1 THEN do_cancel = YES
+ IF carray(ccCancel) > 1 THEN do_cancel = YES
  IF carray(ccUse) > 1 THEN do_pick = YES
 
  IF get_gen_bool("/mouse/mouse_battles") THEN
@@ -2971,7 +2971,7 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
   bat.item.pt = bat.item.pt + 1
  END IF
 
- IF carray(ccMenu) > 1 THEN do_cancel = YES
+ IF carray(ccCancel) > 1 THEN do_cancel = YES
  IF carray(ccUse) > 1 THEN do_pick = YES
 
  bat.item.hover = -1

@@ -131,7 +131,7 @@ SUB setmapxy
   IF carray(ccDown) > 0 THEN mapy += speed
   IF carray(ccLeft) > 0 THEN mapx -= speed
   IF carray(ccRight) > 0 THEN mapx += speed
-  IF carray(ccMenu) > 0 THEN
+  IF carray(ccCancel) > 0 THEN
    gam.showtext = "Normal camera restored"
    gam.showtext_ticks = 45
    gam.debug_camera_pan = NO
@@ -319,7 +319,7 @@ SUB verify_quit
   loopvar wtog, 0, max_wtog()
 
   'Keyboard controls
-  IF carray(ccMenu) > 1 THEN EXIT DO
+  IF carray(ccCancel) > 1 THEN EXIT DO
   IF (carray(ccUse) > 1 AND ABS(ptr2) > usethreshold) OR ABS(ptr2) > walkthreshold THEN
    IF ptr2 < 0 THEN gam.quit = YES: fadeout uilook(uiFadeoutQuit)
    EXIT DO
@@ -385,7 +385,7 @@ FUNCTION titlescreen () as bool
   ' Draw the screen at least once and fade in before skipping the title screen
   ' (This is not required to avoid any bug, it simply ensures this function acts consistently.)
   IF gam.need_fade_in = NO THEN
-   IF carray(ccMenu) > 1 THEN
+   IF carray(ccCancel) > 1 THEN
     ret = NO
     EXIT DO
    END IF
