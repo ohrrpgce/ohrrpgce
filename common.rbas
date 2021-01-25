@@ -5643,12 +5643,16 @@ END SUB
 ' Initialise the volume menu used in old games
 ' menu should be blank.
 SUB create_volume_menu(menu as MenuDef)
- ' Load the main menu and copy some of the styling
- DIM menu_set as MenuSet
- menu_set.menufile = workingdir + SLASH + "menus.bin"
- menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
  DIM mainmenu as MenuDef
- LoadMenuData menu_set, mainmenu, 0, YES
+ IF LEN(game) THEN
+  ' Load the main menu and copy some of the styling
+  DIM menu_set as MenuSet
+  menu_set.menufile = workingdir + SLASH + "menus.bin"
+  menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
+  LoadMenuData menu_set, mainmenu, 0, YES
+ ELSE
+  menu.translucent = YES
+ END IF
 
  add_item_to_ menu, spMusicVolume
  add_item_to_ menu, spSoundVolume
