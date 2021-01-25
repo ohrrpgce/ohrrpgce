@@ -2377,33 +2377,38 @@ end constructor
 '================================== Key mappings ==========================================
 
 sub KeyboardState.init_controls()
-	redim controls(10)
+	redim controls(12)
 	controls(0)  = TYPE(scUp,     ccUp)
 	controls(1)  = TYPE(scDown,   ccDown)
 	controls(2)  = TYPE(scLeft,   ccLeft)
 	controls(3)  = TYPE(scRight,  ccRight)
 	#ifdef IS_GAME
-	controls(4)  = TYPE(scCtrl,   ccUse)  'Wiped by init_basic_key_mappings
+	controls(4)  = TYPE(scCtrl,   ccUse)  'Wiped by set_basic_key_mappings
 	#endif
 	controls(5)  = TYPE(scSpace,  ccUse)
 	controls(6)  = TYPE(scEnter,  ccUse)
 	#ifdef IS_GAME
-	controls(7)  = TYPE(scAlt,    ccMenu)  'Wiped by init_basic_key_mappings
+	controls(7)  = TYPE(scAlt,    ccMenu)  'Wiped by set_basic_key_mappings
+	controls(8)  = TYPE(scAlt,    ccCancel)  'Wiped by set_basic_key_mappings
 	#endif
-	controls(8)  = TYPE(scEsc,    ccMenu)
-	controls(9)  = TYPE(scEsc,    ccRun)
-	controls(10) = TYPE(scTab,    ccRun)  'Who knew?
+	controls(9)  = TYPE(scEsc,    ccMenu)
+	controls(10) = TYPE(scEsc,    ccCancel)
+	controls(11) = TYPE(scEsc,    ccFlee)
+	controls(12) = TYPE(scTab,    ccFlee)  'Who knew?
 end sub
 
 sub JoystickState.init_controls()
-	redim controls(6)
+	redim controls(8)
 	controls(0) = TYPE(joyUp,       ccUp)
 	controls(1) = TYPE(joyDown,     ccDown)
 	controls(2) = TYPE(joyLeft,     ccLeft)
 	controls(3) = TYPE(joyRight,    ccRight)
 	controls(4) = TYPE(joyA,        ccUse)
-	controls(5) = TYPE(joyB,        ccMenu)
-	controls(6) = TYPE(joyB,        ccRun)
+	controls(5) = TYPE(joyB,        ccCancel)
+	controls(6) = TYPE(joyB,        ccMenu)
+	controls(7) = TYPE(joyStart,    ccMenu)
+	controls(8) = TYPE(joyB,        ccRun)
+
 	'Typically the first four buttons will be A/B/X/Y buttons, but not always in that order.
 	'So previously we used to map buttons 3 and 4 to use/cancel, but that's a nuiscance for scripted controls.
 	' controls(7) = TYPE(joyButton3,  ccUse)

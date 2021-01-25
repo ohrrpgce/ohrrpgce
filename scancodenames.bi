@@ -4,7 +4,8 @@
 
 #include "scancodes.bi"
 
-static scancodenames(ccRun to ...) as string * 18  = { _
+static scancodenames(ccCancel to ...) as string * 18  = { _
+  "Cancel",                    /' -9 '/ _
   "Flee",                      /' -8 '/ _
   "Menu",                      /' -7 '/ _
   "Use",                       /' -6 '/ _

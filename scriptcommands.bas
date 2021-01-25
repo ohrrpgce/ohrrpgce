@@ -425,7 +425,7 @@ FUNCTION script_keyval (byval key as KBScancode, byval joynum as integer = 0) as
    CASE scLeft:   ret OR= device_carray(ccLeft, -1)
    CASE scRight:  ret OR= device_carray(ccRight, -1)
    CASE scEnter:  ret OR= device_carray(ccUse, -1)
-   CASE scEsc:    ret OR= device_carray(ccCancel, -1)
+   CASE scEsc:    ret OR= device_carray(ccMenu, -1)
   END SELECT
  END IF
 
@@ -554,9 +554,9 @@ SUB process_wait_conditions()
        EXIT SUB
       END IF
 
-      'Because carray(ccMenu) doesn't include it, and we don't want to break scripts
+      'Because carray(ccMenu/ccCancel) don't include it, and we don't want to break scripts
       'doing waitforkey(menu key) followed by looking for key:alt (== scUnfilteredAlt)
-      IF .waitarg = ccMenu AND keyval(scUnfilteredAlt) > 1 THEN script_stop_waiting()
+      IF (.waitarg = ccMenu OR .waitarg = ccCancel) ANDALSO keyval(scUnfilteredAlt) > 1 THEN script_stop_waiting()
      ELSE
       '.waitarg == scAny
       DIM temp as KBScancode = anykeypressed(YES, gam.click_keys)  'check joystick, maybe mouse

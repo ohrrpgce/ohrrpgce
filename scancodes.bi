@@ -196,7 +196,7 @@ CONST scResize = 200   'The window was resized
 CONST scAny = -1   'Any key - can NOT be used to index into carray(), only passed to keyval().
                    'Warning: not 100% equivalent to "any key" in scripts, because it excludes
                    'scUnfilteredAlt, and joystick buttons not mapped into carray aren't checked
-                   'Also, in scripts this (and ccUse and ccMenu) will include mouse clicks if
+                   'Also, in scripts scAny/ccUse/ccMenu/ccCancel will include mouse clicks if
                    '"'anykey', etc, includes mouse" is turned on, but keyval(scAny), etc don't.
 
 '--- Scancodes shared with carray()
@@ -206,11 +206,11 @@ CONST ccDown = -3
 CONST ccLeft = -4
 CONST ccRight = -5
 CONST ccUse = -6
-CONST ccCancel = -7
 CONST ccMenu = -7
 CONST ccFlee = -8
 CONST ccRun = -8
-CONST ccLOWEST = -8
+CONST ccCancel = -9
+CONST ccLOWEST = -9
 'Update scancodenames.bi if you add more
 
 'These are the range of scancodes which can be passed to keyval().

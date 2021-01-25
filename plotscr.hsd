@@ -1987,10 +1987,10 @@ define constant, begin
 -4,leftkey
 -5,rightkey
 -6,usekey
--7,cancelkey
 -7,menukey
 -8,fleekey
 -8,runkey
+-9,cancelkey
 0,me
 0,none
 -1,autonumber

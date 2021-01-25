@@ -5840,6 +5840,12 @@ script, string load tests, begin
   $1="Flee"  # Previously "Run"
   get scancode name(2, flee key)  # AKA run key
   assert(string compare(1,2))
+  $1="Menu"
+  get scancode name(2, menu key)
+  assert(string compare(1,2))
+  $1="Cancel"
+  get scancode name(2, cancel key)
+  assert(string compare(1,2))
   $1="Scancode 0"
   get scancode name(2, 0)
   assert(string compare(1,2))

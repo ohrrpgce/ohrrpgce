@@ -12064,7 +12064,9 @@ run key            # Alias for 'flee key'
 				<p>any key</p>, <p>up key</p>, <p>down key</p>, <p>left key</p>, <p>right key</p>,
 				<p>use key</p>, <p>menu key</p>, <p>cancel key</p>, <p>flee key</p>, <p>run key</p>.
 				<lb />
-				(<p>menu key</p> and <p>cancel key</p> are identical, and so are <p>flee key</p> and <p>run key</p>).
+				(<p>flee key</p> and <p>run key</p> are different names for the same constant;
+				<p>menu key</p> and <p>cancel key</p> used to be the same but are now different:
+				the Start button on a gamepad is a menu key.)
 				<note>
 					All commands which accept a key constant can also accept a scancode (like <tt>key:enter</tt>) instead.
 					See <ref>scancode</ref>.
