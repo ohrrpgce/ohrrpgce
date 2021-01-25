@@ -12,11 +12,18 @@
 
 #UNDEF name
 #UNDEF color
+#UNDEF data
 #UNDEF draw
 #UNDEF out
+#UNDEF read
+#UNDEF reset
+#UNDEF restore
 #UNDEF stop
+#UNDEF tab
+#UNDEF wait
 #UNDEF window
 #UNDEF width
+'#UNDEF palette
 #UNDEF pos
 #UNDEF pos  ' You need to undef POS twice! Why??
 #UNDEF point
