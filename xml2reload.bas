@@ -173,7 +173,7 @@ end sub
 'properties are NULL if not specified.
 
 
-' This function takes an XML node and creates a RELOAD node based on it.
+' This function takes an XML node and creates a RELOAD node based on it, or returns NULL if it should be dropped
 function chug(node as xmlNodeptr, dc as DocPtr, encoded as encoding_t) as NodePtr
 
 	dim this as nodeptr
@@ -214,9 +214,9 @@ function chug(node as xmlNodeptr, dc as DocPtr, encoded as encoding_t) as NodePt
 						end if
 					else
 						ch = chug(cast(xmlNodePtr, cur_attr), dc, encNone)
-						
+
 						'add the new child to the document tree
-						AddChild(this, ch)
+						if ch then AddChild(this, ch)
 					end if
 					cur_attr = cur_attr->next
 				loop
@@ -227,10 +227,10 @@ function chug(node as xmlNodeptr, dc as DocPtr, encoded as encoding_t) as NodePt
 			do while cur_node <> null
 				'recurse to parse the children
 				dim ch as nodeptr = chug(cur_node, dc, child_enc)
-				
+
 				'add the new child to the document tree
-				AddChild(this, ch)
-				
+				if ch then AddChild(this, ch)
+
 				'move to the next child
 				cur_node = cur_node->next
 			loop
