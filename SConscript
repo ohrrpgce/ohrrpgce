@@ -1077,6 +1077,7 @@ base_modules +=   ['util.bas',
                    'lib/lodepng.c',  # Only for lodepng_gzip.c
                    'lib/lodepng_gzip.c',  # Only for filetest
                    'filelayer.cpp',
+                   'globals.bas',
                    'lumpfile.bas',
                    'networkutil.bas',
                    'vector.bas']
@@ -1095,7 +1096,6 @@ shared_modules += ['allmodex',
                    'browse',
                    'common.rbas',
                    'common_menus',
-                   'globals',
                    'loading.rbas',
                    'menus',
                    'misc',
