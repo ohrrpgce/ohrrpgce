@@ -94,6 +94,7 @@ enum MusicStatusEnum
   musicOn = 1
 end enum
 
+dim shared mixer_version as integer  'E.g. 1213 for SDL_mixer 1.2.13
 dim shared supported_formats as integer
 dim shared have_modplug as bool
 dim shared tried_enabling_modplug_loops as bool
@@ -168,7 +169,7 @@ function music_get_info() as string
 
 	ver = Mix_Linked_Version()
 	ret += ", SDL_Mixer " & ver->major & "." & ver->minor & "." & ver->patch
-	dim version as integer = ver->major * 1000 + ver->minor * 100 + ver->patch  'E.g. 1213
+	mixer_version = ver->major * 1000 + ver->minor * 100 + ver->patch
 
 	if music_status = musicOn then
 		dim freq as int32, format as ushort, channels as int32
@@ -194,7 +195,7 @@ function music_get_info() as string
 					#ifdef __FB_WIN32__
 						supported_formats or= FORMAT_MP3
 					#else
-						if version >= 1213 then
+						if mixer_version >= 1213 then
 							supported_formats or= FORMAT_MP3
 						end if
 					#endif
@@ -407,7 +408,21 @@ sub music_play(filename as string, byval fmt as MusicFormatEnum)
 			orig_vol = Mix_VolumeMusic(-1)
 		end if
 
-		Mix_VolumeMusic(music_vol * MIX_MAX_VOLUME)
+		dim volume_mult as double = 1.
+
+		'SDL_mixer 2.0.5 halves modplug volume (a change backported to
+		'our SDL_mixer.dll 1.2.13 build), so we halve the volume when using
+		'older versions, for consistency.
+		'(Our pre-2.0.5 build of SDL2_mixer.dll identifies as 2.0.5)
+		if (fmt and FORMAT_MODULES) andalso have_modplug then
+			#ifdef SDL_MIXER2
+				if mixer_version < 2005 then volume_mult = 0.5
+			#else
+				if mixer_version < 1213 then volume_mult = 0.5
+			#endif
+		end if
+
+		Mix_VolumeMusic(music_vol * volume_mult * MIX_MAX_VOLUME)
 
 		if fmt <> FORMAT_MIDI then
 			nonmidi_playing = YES

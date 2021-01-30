@@ -75,12 +75,10 @@ January ? 2021 [Hróðvitnir]
       volume level differs by OS, SDL_mixer version and SDL_mixer backend
       library, and previously changed in Dwimmercrafty (2017):
                                  Windows            Mac/Linux/Android
-        music_sdl2, future*:     medium (modplug)   medium (modplug)
-        music_sdl2, now:         medium (modplug)   loud   (modplug)
+        music_sdl2, now:         medium (modplug)   medium (modplug)
         music_sdl, now:          medium (modplug)   quiet  (mikmod)
         music_sdl, 2017-2020:    loud   (modplug)   quiet  (mikmod)
         music_sdl, before 2017:  quiet  (mikmod)    quiet  (mikmod)
-         * when SDL2_mixer 2.0.5 is officially released
 
   *** Bugfixes
     * "set opacity" (with opacity < 100%) didn't always turn on blending
