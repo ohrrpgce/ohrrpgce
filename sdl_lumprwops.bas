@@ -2,7 +2,7 @@
 '(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 
-'Used by music_sdl/music_sdl2, but could be used with other SDL libraries
+'Used by music_sdl (not music_sdl2) to workaround some SDL_mixer 1.2 bugs, but could be used with other SDL libraries
 
 #include "config.bi"
 

@@ -4,7 +4,7 @@
 '
 ' music_sdl.bas - This compiles to both music_sdl and music_sdl2 audio backends,
 '  music_sdl: SDL 1.2 + SDL_mixer 1.2 (when SDL_MIXER2 not defined)
-'  music_sdl2: SDL 2 + SDL_mixer 2 (when SDL_MIXER2 defined)
+'  music_sdl2: SDL 2 + SDL_mixer 2 (when SDL_MIXER2 defined, ie when included from music_sdl2.bas)
 ' It isn't possible to link both backends into the engine at once.
 
 #include "config.bi"
@@ -41,8 +41,10 @@
 
 ' External functions
 
-declare function safe_RWops(byval rw as SDL_RWops ptr) as SDL_RWops ptr
-declare sub safe_RWops_close (byval rw as SDL_RWops ptr)
+#ifndef SDL_MIXER2
+	declare function safe_RWops(byval rw as SDL_RWops ptr) as SDL_RWops ptr
+	declare sub safe_RWops_close (byval rw as SDL_RWops ptr)
+#endif
 
 extern "C"
 
