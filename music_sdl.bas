@@ -100,7 +100,7 @@ dim shared tried_enabling_modplug_loops as bool
 dim shared modplug_handle as any ptr
 
 dim shared music_status as MusicStatusEnum = musicOff
-dim shared music_vol as integer      '0 to 128
+dim shared music_vol as double       '0 to 1 nominally; values above 1 useful when other multipliers exist
 dim shared music_paused as bool      'Always false: we never pause! (see r5406)
 dim shared music_song as Mix_Music ptr = NULL
 dim shared music_song_rw as SDL_RWops ptr = NULL
@@ -293,7 +293,7 @@ sub music_init()
 			'end if
 		end if
 
-		music_vol = 64
+		music_vol = 0.5
 		music_status = musicOn
 		music_paused = NO
 
@@ -407,7 +407,7 @@ sub music_play(filename as string, byval fmt as MusicFormatEnum)
 			orig_vol = Mix_VolumeMusic(-1)
 		end if
 
-		Mix_VolumeMusic(music_vol)
+		Mix_VolumeMusic(music_vol * MIX_MAX_VOLUME)
 
 		if fmt <> FORMAT_MIDI then
 			nonmidi_playing = YES
@@ -495,15 +495,16 @@ end sub
 ' Volume fading: see r2283
 
 sub music_setvolume(byval vol as single)
-	music_vol = bound(vol, 0., 1.) * MIX_MAX_VOLUME
+	'SDL_mixer (unfortunately) internally clamps to MIX_MAX_VOLUME, so we don't need to
+	music_vol = large(vol, 0.)
 	if music_status = musicOn then
-		Mix_VolumeMusic(music_vol)
+		Mix_VolumeMusic(music_vol * MIX_MAX_VOLUME)
 	end if
 end sub
 
 function music_getvolume() as single
 	'return Mix_VolumeMusic(-1) / MIX_MAX_VOLUME
-	music_getvolume = music_vol / MIX_MAX_VOLUME
+	return music_vol
 end function
 
 '------------ Sound effects --------------
