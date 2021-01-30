@@ -5,7 +5,6 @@
 #include "config.bi"
 #include "datetime.bi"  'for date serials
 #include "string.bi"  'for date serials
-#include "ver.txt"
 #include "udts.bi"
 #include "const.bi"
 #include "allmodex.bi"

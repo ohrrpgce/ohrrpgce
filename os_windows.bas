@@ -23,7 +23,6 @@ include_windows_bi()
 #include "common_base.bi"
 #include "util.bi"
 #include "const.bi"
-#include "ver.txt"
 
 'Try to load CrashRpt*.dll on startup.
 'You should build with pdb=1, and keep the generated .pdb files.

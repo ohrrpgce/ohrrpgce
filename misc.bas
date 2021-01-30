@@ -6,7 +6,6 @@
 
 #include "config.bi"
 #include "util.bi"
-#include "ver.txt"
 #include "misc.bi"
 #include "allmodex.bi"
 #include "fontdata.bi"
@@ -97,7 +96,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-showkeys           Show keyboard keys as they're pressed while recording a .gif" & LINE_END
 		help = help & "-showmouse          Show mouse position while recording a .gif" & LINE_END
 		help = help & "-gfx backendname    Select graphics backend. This build supports:" & LINE_END
-		help = help & "                      " & SUPPORTED_GFX & " (tried in that order)" & LINE_END
+		help = help & "                      " & supported_gfx_backends & " (tried in that order)" & LINE_END
 		help = help & "-input-debug        Print extra debug info to c/g_debug.txt related to keyboard, mouse, etc. input" LINE_END
 		help = help & "-nojoy              Disable joystick/gamepad support" & LINE_END
 		help = help & "-nonumpad           Disable remapping numpad .0-9 to arrows/pageup/insert/etc. Can also toggle with Ctrl-Shift-N" & LINE_END

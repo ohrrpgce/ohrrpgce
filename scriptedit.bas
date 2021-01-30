@@ -12,7 +12,6 @@
 #include "customsubs.bi"
 #include "loading.bi"
 #include "cglobals.bi"
-#include "ver.txt"
 #include "scrconst.bi"
 #include "custom.bi"
 

@@ -369,6 +369,8 @@ for tool in ('FBC', 'CC', 'FBCC', 'CXX', 'MAKE', 'EUC'):
 builddir = Dir('.').abspath + os.path.sep
 rootdir = Dir('#').abspath + os.path.sep
 
+FBFLAGS += ['-i', builddir]  # For backendinfo.bi
+
 def prefix_targets(target, source, env):
     target = [File(env['VAR_PREFIX'] + str(a)) for a in target]
     return target, source
@@ -393,10 +395,10 @@ def bas_build_action(moreflags = ''):
     if FBCC.is_clang:
         # fbc asks FBCC to produce assembly and then runs that through as,
         # but clang produces some directives that as doesn't like.
-        return ['$FBC -r $SOURCE -o ${TARGET}.c $FBFLAGS ' + moreflags,
-                '$FBCC -c ${TARGET}.c -o $TARGET $GENGCC_CFLAGS $FBCC_CFLAGS']
+        return ['$FBC $FBFLAGS -r $SOURCE -o ${TARGET}.c ' + moreflags,
+                '$FBCC $GENGCC_CFLAGS $FBCC_CFLAGS -c ${TARGET}.c -o $TARGET']
     else:
-        return '$FBC -c $SOURCE -o $TARGET $FBFLAGS ' + moreflags
+        return '$FBC $FBFLAGS -c $SOURCE -o $TARGET ' + moreflags
 
 #variant_baso creates Nodes/object files with filename prefixed with VAR_PREFIX environment variable
 variant_baso = Builder (action = bas_build_action(),
@@ -427,7 +429,7 @@ rc_builder = Builder (action = target_prefix + 'windres --input $SOURCE --output
                       suffix = '.obj', src_suffix = '.rc')
 
 bas_scanner = Scanner (function = ohrbuild.basfile_scan,
-                       skeys = ['.bas', '.bi'], recursive = True)
+                       skeys = ['.bas', '.bi'], recursive = True, argument = builddir)
 hss_scanner = Scanner (function = ohrbuild.hssfile_scan,
                        skeys = ['.hss', '.hsi', '.hsd'], recursive = True)
 
@@ -1088,20 +1090,21 @@ reload_modules =  ['reload.bas',
 shared_modules += ['allmodex',
                    'audiofile',
                    'backends',
-                   'misc',
                    'bam2mid',
+                   'bcommon',
+                   'browse',
                    'common.rbas',
                    'common_menus',
-                   'bcommon',
-                   'menus',
-                   'browse',
+                   'globals',
                    'loading.rbas',
+                   'menus',
+                   'misc',
                    'reload',
                    'reloadext',
                    'sliceedit',
                    'slices',
-                   'plankmenu.bas',
-                   'thingbrowser']
+                   'thingbrowser',
+                   'plankmenu']
 
 # (.bas files only) 
 edit_modules = ['custom',
@@ -1164,9 +1167,9 @@ if 'sdl203' in ARGUMENTS:
 
 def version_info(source, target, env):
     ohrbuild.verprint(globals(), builddir, rootdir)
-VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'],
+VERPRINT = env.Command (target = [builddir + 'globals.bas', builddir + 'backendinfo.bi', '#/iver.txt', '#/distver.bat'],
                         source = ['codename.txt'], 
-                        action = env.Action(version_info, "Generating ver.txt"))
+                        action = env.Action(version_info, "Generating version/backend info"))
 AlwaysBuild(VERPRINT)
 
 

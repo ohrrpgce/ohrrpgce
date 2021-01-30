@@ -3,12 +3,13 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 
 #include "config.bi"
-#include "ver.txt"
 #include "common.bi"
 #include "gfx.bi"
 #include "music.bi"
 #include "gfx.new.bi"
 #include "surface.bi"
+
+#include "backendinfo.bi"
 
 extern "C"
 

@@ -13,7 +13,6 @@
 #include "reload.bi"
 #include "reloadext.bi"
 #include "scripting.bi"
-#include "ver.txt"
 
 #include "game.bi"
 #include "scriptcommands.bi"

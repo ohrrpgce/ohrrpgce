@@ -16,7 +16,6 @@
 #include "cglobals.bi"
 #include "reload.bi"
 #include "slices.bi"
-#include "ver.txt"
 #include "custom.bi"
 #include "customsubs.bi"
 #include "thingbrowser.bi"

@@ -3,7 +3,6 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 
 #include "config.bi"
-#include "ver.txt"
 #include "const.bi"
 #include "allmodex.bi"
 #include "common.bi"

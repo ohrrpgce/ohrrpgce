@@ -12,7 +12,6 @@
 ' and can used in commandline utilities.
 
 #include "config.bi"
-#include "ver.txt"
 #include "const.bi"
 #include "allmodex.bi"
 #include "audiofile.bi"
