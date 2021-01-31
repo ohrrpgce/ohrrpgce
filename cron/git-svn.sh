@@ -56,5 +56,5 @@ done
 git svn fetch || exit
 git push svn $REFS
 git push gh $REFS
-git push tools refs/remotes/svn/tools:refs/heads/master
-git push web refs/remotes/svn/web:refs/heads/master
+git push tools refs/remotes/svn/tools:refs/heads/tools
+git push web refs/remotes/svn/web:refs/heads/web
