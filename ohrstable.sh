@@ -59,6 +59,7 @@ function updatelink () {
   PREFIX="${3}"
   EXT="${4}"
   OLDPREFIX="${5}"
+  OLDPREFIX2="${6}"
   DFILE="${PREFIX}${EXT}"
   printf "  ${DFILE}"
   SFILE=`sourcefile "${REL}" "${PREFIX}" "${VER}" "${EXT}"`
@@ -116,3 +117,6 @@ updatelink "${REL}" "${VER}" "ohrrpgce-linux"     "-x86.tar.bz2" "" ""
 updatelink "${REL}" "${VER}" "ohrrpgce-linux"     "-x86_64.tar.bz2" "" ""
 updatelink "${REL}" "${VER}" "ohrrpgce-player-linux-bin-minimal" "-x86.zip" "" ""
 updatelink "${REL}" "${VER}" "ohrrpgce-player-linux-bin-minimal" "-x86_64.zip" "" ""
+
+# Source code
+updatelink "${REL}" "${VER}" "ohrrpgce-source"    ".zip" "" ""
