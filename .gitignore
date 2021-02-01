@@ -1,12 +1,12 @@
-distver.bat
 ?_debug.txt
 ?_debug_archive.txt
 script_log.txt
+# hspeak
 hs_debug.txt
 ex.err
+physpeak/hs_lib/parser.out
+physpeak/hs_lib/parsetab.py
 gmon.out
-ver.txt
-iver.txt
 
 #*.xml
 *.hs
@@ -23,11 +23,19 @@ GPATH
 GRTAGS
 GTAGS
 
+# Build & distrib artifacts
 build/
+distver.bat
+iver.txt
+android/tmp/
+android/extraconfig.cfg
 distrib/
+# OSX debug info
+*.dSYM
 # Used by node_hsint.js
 node_modules/
 
+# Executables built by scons
 *.exe
 # scons puts .pdbs under win32/
 win32/*.pdb
@@ -38,6 +46,7 @@ OHRRPGCE-Custom.app
 hspeak
 unlump
 relump
+commontest
 reloadtest
 vectortest
 rbtest
@@ -71,20 +80,17 @@ support/scancode.hsi
 support/rules.txt
 # Indicator file
 support/zip-version-3.0.txt
+
 gfx_directx.dll.manifest
 gfx_directx.exp
 gfx_directx.ilk
 gfx_directx.lib
 gfx_directx/gfx_directx.res
 vc90.pub
-# OSX debug info
-*.dSYM
 autotest/
 autobackups/
 # Obsolete
 joyset.ini
-android/tmp/
-android/extraconfig.cfg
 # Mac sdl frameworks
 mac/mac_sdl_framework_downloads
 
