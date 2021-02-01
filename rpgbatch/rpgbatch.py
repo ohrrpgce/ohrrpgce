@@ -79,6 +79,7 @@ def readbit(array, bitnum, offset = 0):
     assert array.itemsize == 1
     return array[offset + bitnum / 8] & (1 << (bitnum % 8)) != 0
 
+
 class RPGInfo(object):
     def loadname(self, rpg):
         if rpg.lump_size('browse.txt'):
@@ -94,6 +95,7 @@ class RPGInfo(object):
     def __str__(self):
         return self.id + ' -- ' + self.longname
 
+
 class ArchiveInfo(object):
     def file_mtime(self, fname):
         """Returns the modification time for a file in the archive, as a Unix timestamp"""
@@ -102,6 +104,12 @@ class ArchiveInfo(object):
     def file_size(self, fname):
         """Returns the size of a file in the archive"""
         return self.zip.getinfo(fname).file_size
+
+    def __str__(self):
+        if hasattr(self, "path"):
+            return self.path  #+ " from " + self.src
+        return repr(self)
+
 
 class RPGIterator(object):
     def __init__(self, things, yield_zips = False, yield_corrupt_games = False):
