@@ -42,7 +42,7 @@ def iter_script_tree(root):
             lst.append(argnum)
 
 
-class ScriptScanner:
+class ScriptScanner(object):
     """Base class for iterating over each script of each game, using rpgbatch+nohrio,
     and collecting interesting stats on scripts, especially command usage.
 
@@ -59,6 +59,13 @@ class ScriptScanner:
         self.print_logged_commands()
         self.print_source_stats()
         self.print_command_usage()
+
+    def visit_node(self, cmd_or_script, node, script, gameinfo):
+        """Optionally override this.
+        Called for all script nodes which match a command or script in self.cmd_logging.
+        cmd_or_script: a command id or a script name
+        """
+        self.cmd_logging[cmd_or_script] += "Found in " + script.name + " in " + gameinfo.name + ":\n   " + str(node) + '\n'
 
     def __init__(self):
 
@@ -208,7 +215,7 @@ class ScriptScanner:
                                 script.cmdusage[node.id] += 1
                                 # Ignore occurrences in standard scripts
                                 if not is_standard_script and node.id in self.cmd_logging:
-                                    self.cmd_logging[node.id] += "Found in " + script.name + " in " + gameinfo.name + ":\n" + str(node) + '\n'
+                                    self.visit_node(node.id, node, script, gameinfo)
                             elif kind == kScript:
                                 # Count standard script usage
                                 idx = id_to_standardindex.get(node.id)
@@ -218,7 +225,7 @@ class ScriptScanner:
                                     if not is_standard_script:
                                         node_script_name = self.standardscrs['names'][idx]
                                         if node_script_name in self.cmd_logging:
-                                            self.cmd_logging[node_script_name] += "Found in " + script.name + " in " + gameinfo.name + ":\n" + str(node) + '\n'
+                                            self.visit_node(node_script_name, node, script, gameinfo)
                         if is_standard_script:
                             self.cmdcounts_in_plotscrhsd += script.cmdusage
                         else:
