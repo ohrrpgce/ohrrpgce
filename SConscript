@@ -1227,6 +1227,11 @@ allmodex_objects_without_common = [a for a in allmodex_objects if str(a) != 'uti
 ################ Executable definitions
 # Executables are explicitly placed in rootdir, otherwise they would go in build/
 
+def env_exe(name, builder=env.BASEXE, **kwargs):
+    ret = builder(rootdir + name, **kwargs)
+    Alias(name, ret)
+    return ret[0]  # first element of the NodeList is the executable
+
 if win32:
     gamename = 'game'
     editname = 'custom'
@@ -1234,15 +1239,23 @@ else:
     gamename = 'ohrrpgce-game'
     editname = 'ohrrpgce-custom'
 
-def env_exe(name, builder=env.BASEXE, **kwargs):
-    ret = builder(rootdir + name, **kwargs)
-    Alias(name, ret)
-    return ret
+if android_source:
+    # android_source is a hack:
+    # Don't produce any .o files, just produce and copy .c/.cpp files to a directory for sdl-android's build system
+    srcs, actions = ohrbuild.android_source_actions (gameenv, gamesrc, rootdir, rootdir + 'android/tmp')
+    Alias('game', source = srcs, action = actions)
+    srcs, actions = ohrbuild.android_source_actions (editenv, editsrc, rootdir, rootdir + 'android/tmp')
+    Alias('custom', source = srcs, action = actions)
+    if 'game' not in COMMAND_LINE_TARGETS and 'custom' not in COMMAND_LINE_TARGETS:
+        raise Exception("Specify either 'game' or 'custom' as a target with android-source=1")
+    GAME = File(gamename)   # These shouldn't be used, only to allow rest of file to parse
+    CUSTOM = File(editname)
+else:
+    GAME = env_exe(gamename, builder = gameenv.BASEXE, source = gamesrc)
+    CUSTOM = env_exe(editname, builder = editenv.BASEXE, source = editsrc)
+    Alias('game', GAME)
+    Alias('custom', CUSTOM)
 
-GAME = gameenv.BASEXE   (rootdir + gamename, source = gamesrc)
-CUSTOM = editenv.BASEXE (rootdir + editname, source = editsrc)
-GAME = GAME[0]  # first element of NodeList is the executable
-CUSTOM = CUSTOM[0]
 env_exe ('bam2mid', source = ['bam2mid.bas'] + base_objects)
 env_exe ('miditest')
 env_exe ('unlump', source = ['unlump.bas'] + base_objects)
@@ -1309,19 +1322,6 @@ COMMONTEST = env_exe ('commontest', builder = allmodexenv.BASEXE, source = allmo
 env_exe ('slice2bas', source = ['slice2bas.bas'] + reload_objects)
 
 Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
-
-if android_source:
-    # android_source is a hack:
-    # Don't produce any .o files, just produce and copy .c/.cpp files to a directory for sdl-android's build system
-    srcs, actions = ohrbuild.android_source_actions (gameenv, gamesrc, rootdir, rootdir + 'android/tmp')
-    Alias('game', source = srcs, action = actions)
-    srcs, actions = ohrbuild.android_source_actions (editenv, editsrc, rootdir, rootdir + 'android/tmp')
-    Alias('custom', source = srcs, action = actions)
-    if 'game' not in COMMAND_LINE_TARGETS and 'custom' not in COMMAND_LINE_TARGETS:
-        raise Exception("Specify either 'game' or 'custom' as a target with android-source=1")
-else:
-    Alias('game', GAME)
-    Alias('custom', CUSTOM)
 
 # building gfx_directx.dll (can't crosscompile)
 if platform.system () == 'Windows':
