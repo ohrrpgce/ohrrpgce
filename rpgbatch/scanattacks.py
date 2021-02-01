@@ -5,8 +5,8 @@
 from __future__ import print_function
 import time
 from nohrio.ohrrpgce import *
-from rpgbatch import readbit
-import scantools
+from rpgbatch.rpgbatch import readbit
+from rpgbatch import scantools
 
 class AttackScanner(scantools.Scanner):
     def setup_stats(self, stats):

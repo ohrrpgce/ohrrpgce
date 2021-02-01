@@ -10,7 +10,7 @@ import numpy as np
 from nohrio.ohrrpgce import *
 from nohrio.dtypes import dt
 from nohrio.wrappers import OhrData
-from rpgbatch import RPGIterator, RPGInfo, readbit
+from rpgbatch.rpgbatch import RPGIterator, RPGInfo, readbit
 from collections import defaultdict
 
 if len(sys.argv) < 2:

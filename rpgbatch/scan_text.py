@@ -22,7 +22,7 @@ from nohrio.dtypes import dt
 from nohrio.wrappers import OhrData
 from nohrio.scripts import *
 import nohrio.stt
-from rpgbatch import RPGIterator, RPGInfo, readbit
+from rpgbatch.rpgbatch import RPGIterator, RPGInfo, readbit
 
 if len(sys.argv) < 2:
     sys.exit("Specify .rpg files, .rpgdir directories, .zip files, or directories containing any of these as arguments.")

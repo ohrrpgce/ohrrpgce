@@ -5,7 +5,7 @@
 
 import sys
 from nohrio.ohrrpgce import *
-from rpgbatch import RPGIterator
+from rpgbatch.rpgbatch import RPGIterator
 
 if len(sys.argv) < 2:
     sys.exit("Specify .rpg files, .rpgdir directories, .zip files, or directories containing any of these as arguments.")

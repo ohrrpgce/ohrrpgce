@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Find .exe files in zips
-import scantools
+from rpgbatch import scantools
 
 class ExeScanner(scantools.Scanner):
 
