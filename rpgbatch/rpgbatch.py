@@ -81,6 +81,9 @@ def readbit(array, bitnum, offset = 0):
 
 
 class RPGInfo(object):
+    def __init__(self):
+        self.extra_info = ''
+
     def loadname(self, rpg):
         if rpg.lump_size('browse.txt'):
             browse = rpg.data('browse.txt')
@@ -93,7 +96,7 @@ class RPGInfo(object):
         self.name = ("%-30s %s" % (self.id, self.longname)).strip()
 
     def __str__(self):
-        return self.id + ' -- ' + self.longname
+        return self.id + ' -- ' + self.longname + '  ' + self.extra_info
 
 
 class ArchiveInfo(object):

@@ -35,7 +35,6 @@ for rpg, gameinfo, zipinfo in rpgs:
         continue
 
     try:
-        adjust_for_binsize
         enemies = rpg.flexidata('dt1')
     except () as e:#(ValueError, AssertionError) as e:
         print "Ex2:", e
