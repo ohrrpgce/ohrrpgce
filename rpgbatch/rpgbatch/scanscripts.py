@@ -72,41 +72,45 @@ class ScriptScanner:
         self.scripthashes = {}
 
         self.standardscrs = {'names': [], 'versions':[], 'games':[]}
+        self.standardindex = {}
 
         self.parse_args()  # Loads standardscrs from plotscr.hs, if on the commandline
-
-        # Map from name to index in standardscrs
-        self.standardindex = {}
-        for i, name in enumerate(self.standardscrs['names']):
-            self.standardindex[name] = i
 
         self.setup()
 
     def load_plotscr_hs(self, filename):
+        stdnames = self.standardscrs['names']
         scriptset = HSScripts(filename)
-        self.standardscrs['names'] = scriptset.scriptnames.values()
-        self.commands_info = scriptset.commands_info
+        for name in scriptset.scriptnames.values():
+            if name not in stdnames:
+                self.standardindex[name] = len(stdnames)
+                stdnames.append(name)
+        self.commands_info.update(scriptset.commands_info)
         del scriptset
-        print "Read", len(self.standardscrs['names']), "standard scripts from", filename
+        print "Read", len(stdnames), "standard scripts from", filename
+        self.standardscrs['versions'] = [0 for x in stdnames]
+        self.standardscrs['games'] = [[] for x in stdnames]
+
         # A few special cases for scripts which were removed from plotscr.hsd
         # (all of these were in fact replaced with builtin commands)
         for n in ('setstring', 'appendstring', 'suspendmapmusic', 'resumemapmusic', 'setenemyrewards', 'getenemyrewards'):
-            if n not in self.standardscrs['names']:
-                self.standardscrs['names'].append(n)
-        self.standardscrs['versions'] = [0 for x in self.standardscrs['names']]
-        self.standardscrs['games'] = [[] for x in self.standardscrs['names']]
+            if n not in stdnames:
+                self.standardindex[name] = len(stdnames)
+                stdnames.append(n)
 
     def parse_args(self):
         if len(sys.argv) < 2:
             print "Usage:"
-            print " " + sys.argv[0] + " [plotscr.hs] [src:identifier] locations ..."
-            print "Optionally pass plotscr.hs (plotscr.hsd compiled) as the first argument to identify the standard scripts."
-            print "More advanced options are available only by editing this file."
-            print "Specify .rpg files, .rpgdir directories, .zip files, or directories containing any of these as arguments."
+            print " " + sys.argv[0] + " [plotscr.hs]* [src:identifier] locations ..."
+            print "Optionally pass one or more copies of plotscr.hs (plotscr.hsd compiled)"
+            print "as the first argument to identify the standard scripts."
+            print "More advanced options are available only by writing a script."
+            print "Specify .rpg files, .rpgdir directories, .zip files, or directories containing"
+            print "any of these as arguments."
             sys.exit()
 
         rpgsources = sys.argv[1:]
-        if rpgsources[0].endswith('plotscr.hs'):
+        while len(rpgsources) and rpgsources[0].endswith('.hs'):
             self.load_plotscr_hs(rpgsources[0])
             rpgsources.pop(0)
         self.rpgbatch_args = rpgsources
@@ -261,8 +265,8 @@ class ScriptScanner:
         print "%d/%d games had imported scripts:" % (tally[1].sum(), len(self.rpgidx))
         tally = tally[1]
         print "                no backup   |   source.txt   |   source.lumped"
-        print "no orig. src       %3d             %3d                %3d" % tuple(tally[0])
-        print "with orig. src     %3d             %3d                %3d" % tuple(tally[1])
+        print "no src in zip      %3d             %3d                %3d" % tuple(tally[0])
+        print "with src in zip    %3d             %3d                %3d" % tuple(tally[1])
 
         total = tally.sum()
         print

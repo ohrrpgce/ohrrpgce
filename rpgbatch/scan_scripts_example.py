@@ -73,5 +73,4 @@ class ScrScanExample(ScriptScanner):
         self.print_command_usage()
 
 
-
 ScrScanExample().run()

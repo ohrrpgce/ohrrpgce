@@ -11,7 +11,8 @@ class ScrScanIdentifiers(ScriptScanner):
         self.strange_names = []
 
     def process_script(self, rpg, gameinfo, zipinfo, script):
-        if re.search('(^[0-9-]|[^a-z0-9:_-])', script.name):
+        name = script.name.replace('<-', '')
+        if re.search('(^[0-9-]|[^a-z0-9:_-])', name):
             self.strange_names.append((script.name, gameinfo.id))
 
     def print_results(self):
