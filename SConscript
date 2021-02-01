@@ -71,6 +71,9 @@ except (ImportError, NotImplementedError):
 # FBC, the FB compiler, is a ToolInfo object (which can be treated as a string)
 FBC = ohrbuild.get_fb_info(ARGUMENTS.get('fbc', os.environ.get('FBC', 'fbc')))
 
+# Headers in fb/ depend on this define
+CFLAGS += ['-DFBCVERSION=%d' % FBC.version]
+
 ################ Decide the target/OS and cpu arch
 
 # Note: default_arch will be one of x86, x86_64, arm, aarch64, not more specific.
@@ -444,18 +447,6 @@ env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'BASMAINO':basmaino, 'VARI
             SCANNERS = [bas_scanner, hss_scanner])
 
 
-################ Find fbc and get fbcinfo fbcversion
-
-# Headers in fb/ depend on this define
-CFLAGS += ['-DFBCVERSION=%d' % FBC.version]
-
-# FB 0.91 added a multithreaded version of libfbgfx
-if FBC.version >= 910:
-    libfbgfx = 'fbgfxmt'
-else:
-    libfbgfx = 'fbgfx'
-
-
 ################ Mac SDKs
 
 if mac:
@@ -656,6 +647,12 @@ else:
 
 
 ################ A bunch of stuff for linking
+
+# FB 0.91 added a multithreaded version of libfbgfx
+if FBC.version >= 910:
+    libfbgfx = 'fbgfxmt'
+else:
+    libfbgfx = 'fbgfx'
 
 if linkgcc:
     # Link using g++ instead of fbc; this makes it easy to link correct C++ libraries, but harder to link FB
@@ -1088,6 +1085,8 @@ reload_modules =  ['reload.bas',
 
 # The following are built twice, for Game and Custom, so may use #ifdef to change behaviour
 # (.bas files only) 
+# (All shared FB files are here instead of common_modules so we don't have to
+# remember where using IS_GAME/IS_CUSTOM is allowed.)
 shared_modules += ['allmodex',
                    'audiofile',
                    'backends',
@@ -1163,13 +1162,15 @@ if 'raster' in ARGUMENTS:
 if 'sdl203' in ARGUMENTS:
     commonenv['FBFLAGS'] += ['-d', 'SDL_203']
 
-################ ver.txt (version info) build rule
+################ Generate files containing Version/build info
 
 def version_info(source, target, env):
     ohrbuild.verprint(globals(), builddir, rootdir)
-VERPRINT = env.Command (target = [builddir + 'globals.bas', builddir + 'backendinfo.bi', '#/iver.txt', '#/distver.bat'],
+verprint_targets = [builddir + 'globals.bas', builddir + 'backendinfo.bi', '#/iver.txt', '#/distver.bat']
+VERPRINT = env.Command (target = verprint_targets,
                         source = ['codename.txt'], 
                         action = env.Action(version_info, "Generating version/backend info"))
+# We can't describe what the dependencies to verprint() are, so make sure scons always runs it
 AlwaysBuild(VERPRINT)
 
 
@@ -1201,6 +1202,12 @@ for item in edit_modules:
 for item in shared_modules:
     editsrc.extend (editenv.VARIANT_BASO (item))
 
+if win32:
+    # The .rc file includes game.ico or custom.ico and is compiled to an .o file
+    # (If linkgcc=0, could just pass the .rc to fbc)
+    gamesrc += Depends(gameenv.RC('gicon.o', 'gicon.rc'), 'game.ico')
+    editsrc += Depends(editenv.RC('cicon.o', 'cicon.rc'), 'custom.ico')
+
 allmodex_objects = common_objects[:]
 for item in shared_modules:
     allmodex_objects.extend (allmodexenv.VARIANT_BASO (item))
@@ -1223,10 +1230,6 @@ allmodex_objects_without_common = [a for a in allmodex_objects if str(a) != 'uti
 if win32:
     gamename = 'game'
     editname = 'custom'
-    # The .rc file includes game.ico or custom.ico and is compiled to an .o file
-    # (If linkgcc=0, could just pass the .rc to fbc)
-    gamesrc += Depends(gameenv.RC('gicon.o', 'gicon.rc'), 'game.ico')
-    editsrc += Depends(editenv.RC('cicon.o', 'cicon.rc'), 'custom.ico')
 else:
     gamename = 'ohrrpgce-game'
     editname = 'ohrrpgce-custom'
