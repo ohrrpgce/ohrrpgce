@@ -5439,6 +5439,25 @@ script, maptile tests, begin
   assert(currentdisplaytile(192) >= 144 && currentdisplaytile(192) <= 147)
   assert(currentdisplaytile(192) == 144 + get tile animation offset(0, 0))
   #set tile animation offset (animation pattern, offset, layer) not tested
+  
+  # These checks will have to change if any layers are added to map 0 or 1
+  variable(rem map, rem x, rem y)
+  rem map := current map
+  rem x := hero x(me)
+  rem y := hero y(me)
+  
+  teleport to map(0, 0, 0)
+  w
+  assert(last layer id == 2)
+  assert(layer id under walkabouts == 1)
+  w
+  teleport to map(1, 0, 0)
+  w
+  assert(last layer id == 1)
+  assert(layer id under walkabouts == 0)
+  w
+  # go back to the map we were on before
+  teleport to map(rem map, rem x, rem y)
 end
 
 ########################################################################

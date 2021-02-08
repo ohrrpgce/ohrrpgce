@@ -5040,6 +5040,11 @@ SUB script_functions(byval cmdid as integer)
      bound_arg(retvals(1), 0, slAutoSortLAST, "autosort:... constant", , serrBadOp) THEN
    plotslices(retvals(0))->Autosort = retvals(1)
   END IF
+ CASE 723 '--last layer id
+  scriptret = UBOUND(maptiles)
+ CASE 724 '--layer id under walkabouts
+  'When gmap(31) = 0 then it defaults to 2, but that is enforced at loading time in gmap_updates()
+  scriptret = bound(gmap(31) - 1, 0, UBOUND(maptiles))
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

@@ -748,6 +748,8 @@ define function, begin
 720,getboxstyleborder,1,0     # border:line or box border spriteset (box style)
 721,getchildautosort,1,0      # Get slice children autosort setting, an autosort: constant (slice)
 722,setchildautosort,2,0,0    # Set slice children autosort setting (slice, autosort)
+723,lastlayerid,0             # The ID number of the last map layer that exists in the current map
+724,layeridunderwalkabouts,0  # Get ID number of map layer under the walkabouts in the current map
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2021-01-13)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2021-02-08)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -492,7 +492,12 @@ function toggleContent(target) {
 </li>
 		<li>
 <a href="#Reordering%20Slices">Reordering Slices</a><br>
+		<ul>
+		<li>
+<a href="#Sorting%20Slices">Sorting Slices</a><br>
 		<ul></ul>
+</li>
+</ul>
 </li>
 		<li>
 <a href="#Slice%20Types">Slice Types</a><br>
@@ -800,6 +805,7 @@ function toggleContent(target) {
 		<a href="#about-firstselectchild">first select child (handle)</a><br>
 		<a href="#about-firstspritechild">first sprite child (handle)</a><br>
 		<a href="#about-firsttextchild">first text child (handle)</a><br>
+		<a href="#about-fleekey">flee key</a><br>
 		<a href="#about-focuscamera">focus camera (x,y,speed)</a><br>
 		<a href="#about-for">for(counter,start,finish,step) do(commands)</a><br>
 		<a href="#about-forceequip">force equip (hero, slot, item)</a><br>
@@ -827,6 +833,7 @@ function toggleContent(target) {
 		<a href="#about-getboxstylecolor">get box style color (box style)</a><br>
 		<a href="#about-getboxstyleedgecolor">get box style edge color (box style)</a><br>
 		<a href="#about-getcallingscriptid">get calling script id (depth)</a><br>
+		<a href="#about-getchildautosort">get child autosort (handle)</a><br>
 		<a href="#about-getcolor">get color (index)</a><br>
 		<a href="#about-getcount">get count</a><br>
 		<a href="#about-getdamagecap">get damage cap</a><br>
@@ -1028,8 +1035,10 @@ function toggleContent(target) {
 		<a href="#about-lastascii">last ascii</a><br>
 		<a href="#about-lastchild">last child (handle)</a><br>
 		<a href="#about-lastformation">last formation</a><br>
+		<a href="#about-lastlayerid">last layer id</a><br>
 		<a href="#about-lastmenuitem">last menu item(menu handle, visible only)</a><br>
 		<a href="#about-lastsaveslot">last save slot</a><br>
+		<a href="#about-layeridunderwalkabouts">layer id under walkabouts</a><br>
 		<a href="#about-layertileset">layer tileset (layer)</a><br>
 		<a href="#about-leader">leader</a><br>
 		<a href="#about-left">left</a><br>
@@ -1284,6 +1293,7 @@ function toggleContent(target) {
 		<a href="#about-setbottompadding">set bottom padding (handle, pixels)</a><br>
 		<a href="#about-setcappedherostat">set capped hero stat (who, stat, value, type)</a><br>
 		<a href="#about-setcaterpillarmode">set caterpillar mode (state)</a><br>
+		<a href="#about-setchildautosort">set child autosort (handle, setting)</a><br>
 		<a href="#about-setcolor">set color (index, value)</a><br>
 		<a href="#about-setdamagecap">set damage cap (cap)</a><br>
 		<a href="#about-setdaysofplay">set days of play (days)</a><br>
@@ -11709,12 +11719,21 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-slicetoback">slice to back (handle)</a><br>
 		<a href="#about-movesliceabove">move slice above (handle, above what handle)</a><br>
 		<a href="#about-moveslicebelow">move slice below (handle, below what handle)</a><br>
+</ul>
+<ul>
+		<li>
+<a href="#Sorting%20Slices">Sorting Slices</a><br>
+		<ul class="content-shown">
 		<a href="#about-ysortchildren">Y sort children (handle)</a><br>
 		<a href="#about-setsortorder">set sort order (handle, order)</a><br>
 		<a href="#about-getsortorder">get sort order (handle)</a><br>
 		<a href="#about-sortchildren">sort children (handle, wipe)</a><br>
+		<a href="#about-getchildautosort">get child autosort (handle)</a><br>
+		<a href="#about-setchildautosort">set child autosort (handle, setting)</a><br>
 </ul>
 <ul></ul>
+</li>
+</ul>
 </li>
 		<li>
 <a href="#Slice%20Types">Slice Types</a><br>
@@ -14513,7 +14532,12 @@ end
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Reordering Slices</h3>
 		<p></p>
-<ul></ul>
+<ul>
+		<li>
+<a href="#Sorting%20Slices">Sorting Slices</a><br>
+		<ul></ul>
+</li>
+</ul>
 		<div class="command">
 			<a name="about-slicetofront"></a>
 				<h4>slice to front (handle)</h4>
@@ -14706,6 +14730,16 @@ end
 </div>
 		</p>
 </div>
+		<hr>
+		</div>
+		<div class="subsection">
+<a name="Sorting%20Slices"></a>
+		<h3>
+<span class="backlink"><a href="#Slices">Slices</a> →
+			<a href="#Reordering%20Slices">Reordering Slices</a> →
+			</span>Sorting Slices</h3>
+		<p></p>
+<ul></ul>
 		<div class="command">
 			<a name="about-ysortchildren"></a>
 				<h4>Y sort children (handle)</h4>
@@ -14763,6 +14797,51 @@ end
 <li><a href="#about-ysortchildren" class="ref">Y sort children</a></li>
 </ul>
 </div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getchildautosort"></a>
+				<h4>get child autosort (handle)</h4>
+<p>
+			
+				Get slice <span class="param">handle</span>'s "autosort children" setting, which is one of the following constants:
+				<ul>
+					<li><span class="code">autosort: Off</span></li>
+					<li>
+<span class="code">autosort: Custom</span> -
+						sorted according to the sort order value (<a href="#about-setsortorder" class="ref">set sort order</a>),
+						just like <a href="#about-sortchildren" class="ref">sort children</a> (sort order not wiped after sorting)
+					</li>
+					<li>
+<span class="code">autosort: Y</span> - sorted by each child's Y (<a href="#about-slicey" class="ref">slice y</a>), ignoring anchoring and alignment</li>
+					<li>
+<span class="code">autosort: Top Y</span> - sorted by top edge position </li>
+					<li>
+<span class="code">autosort: Center Y</span> - sorted by center position</li>
+					<li>
+<span class="code">autosort: Bottom Y</span> - sorted by bottom edge position</li>
+				</ul>
+				Every tick immediately before the screen is redrawn the children of the slice will
+				be sorted according to the autosort setting.
+				This is useful for emulating 3D (or "2.5D") environments, causing slices for objects that are closer to the "view"
+				(the bottom of the screen) to be drawn on top of ones further away.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setchildautosort"></a>
+				<h4>set child autosort (handle, setting)</h4>
+<p>
+			
+				Change a slice <span class="param">handle</span>'s "autosort children" setting.
+				<span class="param">setting</span> should be one of the <span class="code">autosort: ...</span> settings; see <a href="#about-getchildautosort" class="ref">get child autosort</a>.
+			
+			
+			
+			
 		</p>
 </div>
 		<hr>
@@ -17424,6 +17503,8 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 		<a href="#about-layertileset">layer tileset (layer)</a><br>
 		<a href="#about-loadtileset">load tileset (tileset, layer)</a><br>
 		<a href="#about-changetileset">change tileset (tileset, layer)</a><br>
+		<a href="#about-lastlayerid">last layer id</a><br>
+		<a href="#about-layeridunderwalkabouts">layer id under walkabouts</a><br>
 </div>
 		<li>
 <a href="#Tilemap,%20Wallmap%20and%20Foemap">Tilemap, Wallmap and Foemap</a><br>
@@ -17599,6 +17680,42 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-getmaptileset" class="ref">get map tileset</a>, </li>
+<li><a href="#about-layertileset" class="ref">layer tileset</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-lastlayerid"></a>
+				<h4>last layer id</h4>
+<p>
+			
+				Returns the ID number of the last map layer that exists on the current map.
+				This is the topmost layer that is drawn on top of all the other layers.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-layeridunderwalkabouts" class="ref">layer id under walkabouts</a>, </li>
+<li><a href="#about-layertileset" class="ref">layer tileset</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-layeridunderwalkabouts"></a>
+				<h4>layer id under walkabouts</h4>
+<p>
+			
+				Returns the ID number of the map layer directly beneath the layer where hero and NPC walkabouts are drawn.
+				This is the topmost layer that is not drawn on top of walkabouts.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-lastlayerid" class="ref">last layer id</a>, </li>
 <li><a href="#about-layertileset" class="ref">layer tileset</a></li>
 </ul>
 </div>
@@ -20290,7 +20407,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			
 				A scancode is a constant referring to a keyboard key, a joystick button,
 				or is a virtual scancode like <a href="#about-usekey" class="ref">use key</a>
-				(see <a href="#about-keyconstants" class="ref">key Constants</a> for the full list)
+				(see <a href="#about-keyconstants" class="ref">Key Constants</a> for the full list)
 				which is an action that can be attached to multiple keys/buttons.
 				<br>
 				The scancodes are also listed in the <b>scancode.hsi</b> file included with the engine.
@@ -20445,7 +20562,8 @@ use key            # Space, Ctrl or Enter, or Use button on any joystick. Includ
                    # if "'any key', etc, include mouse" turned on in Mouse Controls menu.
 cancel key         # Alt or Esc, or Cancel button on any joystick. Optionally includes right clicks as above.
 menu key           # Alt or Esc, or Menu button on any joystick. Optionally includes right clicks as above.
-run key            # Esc or Tab, or Run button on any joystick (Hold to run from battle)
+flee key           # Esc or Tab, or Run button on any joystick (Hold to flee (run) from battle)
+run key            # Alias for 'flee key'
 </pre>
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
@@ -20502,6 +20620,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 		<a href="#about-menukey">menu key</a><br>
 		<a href="#about-cancelkey">cancel key</a><br>
 		<a href="#about-runkey">run key</a><br>
+		<a href="#about-fleekey">flee key</a><br>
 		<a href="#about-numericconstants">Numeric Constants</a><br>
 		<a href="#about-booleanconstants">Boolean Constants</a><br>
 		<a href="#about-true">true</a><br>
@@ -20571,11 +20690,12 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 			<a name="about-menukey"></a>
 			<a name="about-cancelkey"></a>
 			<a name="about-runkey"></a>
+			<a name="about-fleekey"></a>
 				<h4>Key Constants</h4>
 <p>
 			
-				A constant specifying a keyboard key or joystick button by its function.
-				(Possibly included mouse buttons too, if enabled in the Mouse Controls menu.)
+				A constant specifying a keyboard key or joystick button by its builtin function.
+				(Possibly includes mouse buttons too, if enabled in the Mouse Controls menu.)
 				They can be passed to <a href="#about-keyispressed" class="ref">key is pressed</a>, <a href="#about-keyval" class="ref">keyval</a>, <a href="#about-waitforkey" class="ref">wait for key</a>,
 				<a href="#about-keypress" class="ref">keypress</a>, <a href="#about-newkeypress" class="ref">new keypress</a> and <a href="#about-waitforscancode" class="ref">wait for scancode</a>.
 				<br>
@@ -20584,9 +20704,16 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 				Possible values:
 				<br>
 				<span class="param">any key</span>, <span class="param">up key</span>, <span class="param">down key</span>, <span class="param">left key</span>, <span class="param">right key</span>,
-				<span class="param">use key</span>, <span class="param">menu key</span>, <span class="param">cancel key</span>, <span class="param">run key</span>.
+				<span class="param">use key</span>, <span class="param">menu key</span>, <span class="param">cancel key</span>, <span class="param">flee key</span>, <span class="param">run key</span>.
 				<br>
-				(<span class="param">menu key</span> and <span class="param">cancel key</span> are identical).
+				(<span class="param">flee key</span> and <span class="param">run key</span> are different names for the same constant;
+				<span class="param">menu key</span> and <span class="param">cancel key</span> used to be the same but are now different:
+				the Start button on a gamepad is a menu key.)
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					All commands which accept a key constant can also accept a scancode (like <span class="code">key:enter</span>) instead.
+					See <a href="#about-scancode" class="ref">scancode</a>.
+				</div>
 			
 			
 			
@@ -20948,7 +21075,7 @@ run key            # Esc or Tab, or Run button on any joystick (Hold to run from
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 905 commands (of which 13 are aliases), 28 constants and 11 definitions of types and other terms in this file.</p>
+<p>Stats: There are 909 commands (of which 13 are aliases), 28 constants and 11 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

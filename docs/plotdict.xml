@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2021-01-13">
+<plotscript version="wip" datecode="2021-02-08">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -9949,6 +9949,30 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 			</description>
 			<seealso>
 				<ref>getmaptileset</ref>
+				<ref>layertileset</ref>
+			</seealso>
+		</command>
+		<command id="lastlayerid">
+			<canon>last layer id</canon>
+			<shortname>last layer id</shortname>
+			<description>
+				Returns the ID number of the last map layer that exists on the current map.
+				This is the topmost layer that is drawn on top of all the other layers.
+			</description>
+			<seealso>
+				<ref>layeridunderwalkabouts</ref>
+				<ref>layertileset</ref>
+			</seealso>
+		</command>
+		<command id="layeridunderwalkabouts">
+			<canon>layer id under walkabouts</canon>
+			<shortname>layer id under walkabouts</shortname>
+			<description>
+				Returns the ID number of the map layer directly beneath the layer where hero and NPC walkabouts are drawn.
+				This is the topmost layer that is not drawn on top of walkabouts.
+			</description>
+			<seealso>
+				<ref>lastlayerid</ref>
 				<ref>layertileset</ref>
 			</seealso>
 		</command>

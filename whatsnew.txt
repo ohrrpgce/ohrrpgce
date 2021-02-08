@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-January ? 2021 [Hróðvitnir]
+March ? 2021 [Hróðvitnir]
 
   *** New Features
     * Slice Editor:
@@ -59,6 +59,7 @@ January ? 2021 [Hróðvitnir]
     * "get ui color", "set ui color", "get box style color",
       "get box style edge color", "get box style border" [Ralph]
     * "get child autosort", "set child autosort" [Ralph]
+    * "last layer id", "layer id under walkabouts" [James]
 
   *** Changes
     * NPCpush:vertical and NPCpush:horizontal script constants were swapped with
