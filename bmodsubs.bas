@@ -408,11 +408,11 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
    SELECT CASE attack.base_acc_stat
     CASE -1
      acc = 1
-    CASE 0 TO 11
+    CASE 0 TO statLast
      acc = attacker.stat.cur.sta(attack.base_acc_stat)
-    CASE 256 TO 267
+    CASE 256 TO 256 + statLast
      acc = target.stat.cur.sta(attack.base_acc_stat - 256)
-    CASE 512 TO 523
+    CASE 512 TO 512 + statLast
      acc = attacker.stat.cur.sta(attack.base_acc_stat - 512)
      accmult = accmult / tcount
     CASE ELSE
@@ -421,9 +421,9 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
    SELECT CASE attack.base_dog_stat
     CASE -1
      dog = 1
-    CASE 0 TO 11
+    CASE 0 TO statLast
      dog = attacker.stat.cur.sta(attack.base_acc_stat)
-    CASE 256 TO 267
+    CASE 256 TO 256 + statLast
      dog = target.stat.cur.sta(attack.base_acc_stat - 256)
     CASE ELSE
      debug "Invalid Base DOG stat"
@@ -1902,7 +1902,7 @@ SUB transfer_enemy_counterattacks (byref bspr as BattleSprite)
    .elem_counter_attack(j) = .enemy.elem_counter_attack(j)
   NEXT j
   .non_elem_counter_attack = .enemy.non_elem_counter_attack
-  FOR j as integer = 0 TO 11
+  FOR j as integer = 0 TO statLast
    .stat_counter_attack(j) = .enemy.stat_counter_attack(j)
   NEXT j
  END WITH
@@ -1975,7 +1975,7 @@ SUB changefoe(bat as BattleState, byval slot as integer, transmog as TransmogDat
 
   '--update stats
   change_foe_stat bspr, 0, .enemy.stat.hp, transmog.hp_rule
-  FOR i as integer = 1 TO 11
+  FOR i as integer = 1 TO statLast
    change_foe_stat bspr, i, .enemy.stat.sta(i), transmog.other_stats_rule
   NEXT i
  END WITH

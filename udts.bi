@@ -602,7 +602,7 @@ Union Stats
                focus as integer
                hits as integer
        End Type
-       sta(11) as integer
+       sta(statLast) as integer
 End Union
 
 Enum AttackTagConditionEnum
@@ -847,7 +847,7 @@ Type HeroDef
 	elementals(maxElements - 1) as single
 	elem_counter_attack(maxElements - 1) as integer 'id+1, 0=none
 	non_elem_counter_attack as integer 'id+1, 0=none
-	stat_counter_attack(11) as integer 'id+1, 0=none
+	stat_counter_attack(statLast) as integer 'id+1, 0=none
 	bits(2) as integer
 	list_name(3) as string
 	list_type(3) as integer
@@ -945,7 +945,7 @@ TYPE EnemyDef
   alone_ai(4) as integer       'id+1, 0=none
   elem_counter_attack(maxElements - 1) as integer 'id+1, 0=none
   non_elem_counter_attack as integer 'id+1, 0=none
-  stat_counter_attack(11) as integer 'id+1, 0=none
+  stat_counter_attack(statLast) as integer 'id+1, 0=none
   bequest_attack as integer    'id+1, 0=none
   '--bitsets
   harmed_by_cure as bool

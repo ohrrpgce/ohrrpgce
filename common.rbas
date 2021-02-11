@@ -6832,7 +6832,7 @@ FUNCTION getdisplayname (default as string) as string
 END FUNCTION
 
 SUB getstatnames(statnames() as string)
- REDIM statnames(11)
+ REDIM statnames(statLast)
  statnames(0) = readglobalstring(0, "HP", 10)
  statnames(1) = readglobalstring(1, "MP", 10)
  statnames(2) = readglobalstring(2, "Atk", 10)

@@ -1896,7 +1896,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr, byval id as 
     WITHNODE statdamage."stat" as stat
      DIM i as integer = GetInteger(stat)
      SELECT CASE i
-      CASE 0 TO maxElements - 1
+      CASE 0 TO statLast
        hero.stat_counter_attack(i) = stat."attack".integer + 1
       CASE ELSE
        debug "out-of-bounds stat " & i & " for hero " & hero.name & " counter attacks"
@@ -2063,7 +2063,7 @@ SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
  NEXT i
  'Store the stat-damage counterattacks
  DIM ca_statdamage as NodePtr = SetChildNode(counterattacks, "statdamage")
- FOR i as integer = 0 to 11
+ FOR i as integer = 0 to statLast
   IF hero.stat_counter_attack(i) > 0 THEN
    ch = AppendChildNode(ca_statdamage, "stat", i)
    SetChildNode ch, "attack", hero.stat_counter_attack(i) - 1

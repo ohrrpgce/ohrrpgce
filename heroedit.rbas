@@ -1775,7 +1775,7 @@ SUB hero_editor_counterattacks_update_menu(hero as HeroDef, menu as MenuDef)
  atk_id = hero.non_elem_counter_attack - 1
  atk_cap = IIF(atk_id >= 0, atk_id & " " & readattackname(atk_id), "NONE") 
  append_menu_item menu, "Counter non-elemental attacks: " & atk_cap, EditCounter.NonElemental
- FOR i as integer = 0 TO 11
+ FOR i as integer = 0 TO statLast
   atk_id = hero.stat_counter_attack(i) - 1
   atk_cap = IIF(atk_id >= 0, atk_id & " " & readattackname(atk_id), "NONE") 
   append_menu_item menu, "Counter damage to " & statnames(i) & ": " & atk_cap, EditCounter.StatDamage, i
