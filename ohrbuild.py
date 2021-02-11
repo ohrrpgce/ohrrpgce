@@ -143,8 +143,8 @@ def query_git (rootdir):
     which is a git-svn mirror of an svn repo.
     Returns a (rev,date) pair, or (0, '') if not a git repo"""
     if os.path.isdir (os.path.join (rootdir, '.git')):
-        # git svn info is really slow on Windows
-        if not host_win32 and os.path.isdir (os.path.join (rootdir, '.git', 'svn', 'refs', 'remotes')):
+        # git svn info is terribly slow on Windows, and slow elsewhere, so we don't use it.
+        if False and not host_win32 and os.path.isdir (os.path.join (rootdir, '.git', 'svn', 'refs', 'remotes')):
             # If git config settings for git-svn haven't been set up yet, or git-svn hasn't been
             # told to initialise yet, this will take a long time before failing
             date, rev = query_svn (rootdir, 'git svn info')
