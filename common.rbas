@@ -2080,8 +2080,8 @@ END FUNCTION
 
 FUNCTION getsfxname (byval num as integer) as string
  DIM sfxd(dimbinsize(binSFXDATA)) as integer
- loadrecord sfxd(), workingdir & SLASH & "sfxdata.bin", curbinsize(binSFXDATA) \ 2, num
- RETURN readbinstring (sfxd(), 0, 30)
+ loadrecord sfxd(), workingdir & SLASH & "sfxdata.bin", curbinsize(binSFXDATA) \ 2, num, NO  'expectexists=NO
+ RETURN readbinstring(sfxd(), 0, 30)
 END FUNCTION
 
 '==========================================================================================
