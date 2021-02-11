@@ -11,10 +11,12 @@ import sys
 from os.path import join as pathjoin
 import subprocess
 import platform
+import math
+import random
 import re
+import time
 import datetime
-import fnmatch
-import itertools
+import glob
 try:
     from SCons.Util import WhereIs
 except ImportError:
@@ -501,3 +503,50 @@ def strip_nonfunction_symbols(binary, target_prefix, builddir, env):
     objcopy = WhereIs(target_prefix + "objcopy")
     env.Execute(objcopy + ' --strip-symbols ' + symfilename + ' ' + binary)
 
+
+########################################################################
+# SCons cache
+
+def init_cache_dir(cache_dir):
+   """If it doesn't already exist, initialise the cache with prefix_len=1.
+   This is a completely unnecessary step; it just speeds up cache pruning a bit by not creating 256 directories.
+   Equivalent to  "scons-configure-cache --prefix-len 1 build/cache/" """
+   try:
+       os.makedirs(cache_dir)
+   except FileExistsError:
+       return
+   with open(os.path.join(cache_dir, 'config'), 'w') as config:
+       config.write('{"prefix_len": 1}')
+
+def prune_cache_dir(cache_dir, cache_size_limit):
+    """Prune the cache dir to be approximately less than the size limit, in bytes."""
+    # Adapted from https://github.com/garyo/scons-wiki/wiki/LimitCacheSizeWithProgress
+    now = time.time()
+    hashprefix = ''
+    # Uncomment on only iterate over a random 1/4th of the cache
+    #cache_size_limit /= 4
+    #hashprefix = '[%s]' % ''.join(random.sample("0123456789ABCDEF", 4))
+
+    # Gather a list of (path, (size, atime)) for each cached file
+    file_stat = [(path, os.stat(path)[6:8]) for path in
+                 glob.glob(os.path.join(cache_dir, hashprefix + '*', '*'))]
+
+    # Sort the cache files by most sensible to keep (lower weight: smaller and more recent) first,
+    # creating a list with entries (weight, path, size, timeago).
+    time_scale = 60*60
+    file_stat = [(size ** 0.35 * (1 + (now - atime) / time_scale), path, size, now - atime) for (path, (size, atime)) in file_stat]
+    file_stat.sort()
+
+    # Search for the first entry where the storage limit is reached and delete the rest
+    partialsum = 0
+    pruned, prunedsize = 0, 0
+    for mark, (weight,path,size,timeago) in enumerate(file_stat):
+        partialsum += size
+        #print("size=  %10d weight= %.1f hoursago= %.2f" % (size, weight, timeago/(60*60)))
+        if partialsum > cache_size_limit:
+            os.remove(path)
+            pruned += 1
+            prunedsize += size
+    if pruned:
+        print("Pruned %d file(s) (%.0fMB) from cache" % (pruned, prunedsize/1024./1024.))
+    #print("done in %f" % (time.time() - now))

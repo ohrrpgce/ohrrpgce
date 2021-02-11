@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- mode:python -*-
 """Main scons build script for OHRRPGCE
 Run "scons -h" to print help (and "scons -H" for options to scons itself).
 
@@ -1172,6 +1172,7 @@ VERPRINT = env.Command (target = verprint_targets,
                         action = env.Action(version_info, "Generating version/backend info"))
 # We can't describe what the dependencies to verprint() are, so make sure scons always runs it
 AlwaysBuild(VERPRINT)
+NoCache(verprint_targets)
 
 
 ################ Generate object file Nodes
@@ -1230,6 +1231,7 @@ allmodex_objects_without_common = [a for a in allmodex_objects if str(a) != 'uti
 def env_exe(name, builder=env.BASEXE, **kwargs):
     ret = builder(rootdir + name, **kwargs)
     Alias(name, ret)
+    NoCache(ret)  # Executables are large but fast to link, not worth caching
     return ret[0]  # first element of the NodeList is the executable
 
 if win32:
@@ -1432,6 +1434,7 @@ def RPGWithScripts(rpg, main_script):
     node = env.Command('#' + rpg, source = sources, action = action)
     Precious(node)  # Don't delete the .rpg before "rebuilding" it
     NoClean(node)   # Don't delete the .rpg with -c
+    NoCache(node)   # Don't copy the .rpg into build/cache
     # Note: the following Ignore does NOT work if the .hss file manually includes plotscr.hsd/scancode.hsi!
     Ignore(node, [CUSTOM, "plotscr.hsd", "scancode.hsi"])  # Don't reimport just because these changed...
     Requires(node, CUSTOM)  # ...but do rebuild Custom before reimporting (because of maxScriptCmdID, etc, checks)
@@ -1612,6 +1615,8 @@ The following environmental variables are also important:
   EUC                 euc Euphoria-to-C compiler, for compiling hspeak
   EUDIR               Override location of the Euphoria installation, for
                       compiling hspeak (not needed if installed system-wide)
+  SCONS_CACHE_SIZE    Max size of the compile results cache in MB; default 100.
+                      Set to 0 to disable the cache.
 
 Targets (executables to build):
   """ + gamename + """ (or game)
