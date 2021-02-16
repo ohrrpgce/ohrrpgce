@@ -511,10 +511,9 @@ def init_cache_dir(cache_dir):
    """If it doesn't already exist, initialise the cache with prefix_len=1.
    This is a completely unnecessary step; it just speeds up cache pruning a bit by not creating 256 directories.
    Equivalent to  "scons-configure-cache --prefix-len 1 build/cache/" """
-   try:
-       os.makedirs(cache_dir)
-   except FileExistsError:
+   if os.path.isdir(cache_dir):
        return
+   os.makedirs(cache_dir)
    with open(os.path.join(cache_dir, 'config'), 'w') as config:
        config.write('{"prefix_len": 1}')
 
