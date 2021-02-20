@@ -7965,14 +7965,14 @@ FUNCTION default_gen_int(nodepath as string) as integer
  END SELECT
 END FUNCTION
 
-FUNCTION gen_int_limits(nodepath as string) as XYPair
+FUNCTION gen_int_limits(nodepath as string, warn as bool = NO) as XYPair
  'This function supplies a centralized place to manage
  'minimum and maximum values for integers in general.reld
  SELECT CASE nodepath
   CASE "/mouse/move_hero/max_path_length": RETURN XY(0, 100000)
   CASE ELSE
-   debuginfo "gen_int_limits: no limits for nodepath """ & nodepath & """ falling back to something large"
-   RETURN XY(-100000000, 100000000) '100 million is completel arbitrary
+   IF warn THEN debug "gen_int_limits: no limits for """ & nodepath & """"
+   RETURN XY(INT_MIN, INT_MAX)
  END SELECT
 END FUNCTION
 
@@ -7989,6 +7989,7 @@ FUNCTION enforce_gen_int_limits(nodepath as string, byval v as integer) as integ
  RETURN v
 END FUNCTION
 
+'Read a string from general.reld.
 FUNCTION get_gen_str(nodepath as zstring ptr, default as zstring ptr = @"") as string
  DIM gen_root as NodePtr = get_general_reld()
  DIM node as NodePtr = NodeByPath(gen_root, nodepath)
@@ -7996,17 +7997,25 @@ FUNCTION get_gen_str(nodepath as zstring ptr, default as zstring ptr = @"") as s
  RETURN *default
 END FUNCTION
 
-FUNCTION get_gen_bool(nodepath as zstring ptr) as bool
+'Read a bool from general.reld.
+''default' can be omitted to use the default in default_gen_bool.
+'Putting the default in default_gen_bool is better if required in more than one place.
+FUNCTION get_gen_bool(nodepath as zstring ptr, byref default as bool = default_arg) as bool
  DIM gen_root as NodePtr = get_general_reld()
  DIM node as NodePtr = NodeByPath(gen_root, nodepath)
  IF node THEN RETURN IIF(GetInteger(node), YES, NO)
+ IF @default <> @default_arg THEN return default
  RETURN default_gen_bool(*nodepath)
 END FUNCTION
 
-FUNCTION get_gen_int(nodepath as zstring ptr) as integer
+'Read an int from general.reld, enforcing any limits in gen_int_limits.
+''default' can be omitted to use the default in default_gen_int.
+'Putting the default in default_gen_int is better if required in more than one place.
+FUNCTION get_gen_int(nodepath as zstring ptr, byref default as integer = default_arg) as integer
  DIM gen_root as NodePtr = get_general_reld()
  DIM node as NodePtr = NodeByPath(gen_root, nodepath)
  IF node THEN RETURN enforce_gen_int_limits(*nodepath, GetInteger(node))
+ IF @default <> @default_arg THEN RETURN default
  RETURN default_gen_int(*nodepath)
 END FUNCTION
 
@@ -8032,7 +8041,7 @@ END SUB
 FUNCTION gen_intgrabber(nodepath as string) as bool
  'This changes the node, but does not call write_general_reld()
  DIM v as integer = get_gen_int(nodepath)
- DIM limits as XYPair = gen_int_limits(nodepath)
+ DIM limits as XYPair = gen_int_limits(nodepath, YES)
  IF intgrabber(v, limits.x, limits.y) THEN
   set_gen_int(nodepath, v)
   RETURN YES

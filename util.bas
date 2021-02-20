@@ -51,6 +51,9 @@ DIM exename as string
 DIM program_start_timer as double
 program_start_timer = TIMER
 
+'Dummy value used to indicate the default value of a byref arg
+DIM default_arg as integer
+
 '---------------- Initialization -----------------
 
 

@@ -382,14 +382,14 @@ TYPE FnNoArgsBool as FUNCTION () as bool
 DECLARE FUNCTION progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double) as bool
 
 DECLARE FUNCTION default_gen_bool(nodepath as string) as bool
-DECLARE FUNCTION get_gen_bool(nodepath as zstring ptr) as bool
+DECLARE FUNCTION get_gen_bool(nodepath as zstring ptr, byref default as bool = default_arg) as bool
 DECLARE SUB set_gen_bool(nodepath as zstring ptr, byval v as bool)
 DECLARE SUB toggle_gen_bool(nodepath as zstring ptr)
 
 DECLARE FUNCTION default_gen_int(nodepath as string) as integer
-DECLARE FUNCTION gen_int_limits(nodepath as string) as XYPair
+DECLARE FUNCTION gen_int_limits(nodepath as string, warn as bool = NO) as XYPair
 DECLARE FUNCTION enforce_gen_int_limits(nodepath as string, byval v as integer) as integer
-DECLARE FUNCTION get_gen_int(nodepath as zstring ptr) as integer
+DECLARE FUNCTION get_gen_int(nodepath as zstring ptr, byref default as integer = default_arg) as integer
 DECLARE SUB set_gen_int(nodepath as zstring ptr, byval v as integer)
 DECLARE FUNCTION gen_intgrabber(nodepath as string) as bool
 
