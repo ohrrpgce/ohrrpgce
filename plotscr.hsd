@@ -227,7 +227,8 @@ define function, begin
 205,setheroname,2,0,0         # (string, hero) - sets the name of hero(hero) to string(string)
 206,getitemname,2,0,0         # (string, item) - puts the name of item(item) in string(string)
 207,getmapname,2,0,0          # (string, map) - puts the name of map(map) in string(string)
-208,getattackname,2,0,0       # deprecated. Use "read attack name" instead
+@obsolete("The argument isn't an attack ID or atk: constant! ", read attack name)
+208,getattackname,2,0,0       #Obsolete: Takes real ID - 1 or atk: constant - 2 (string id, attack ID - 1)
 #209,getglobalstring,2,0,0     # (string, global) - puts the global string (global) in string(string)
 210,showstring,1,0            #shows string on the bottom(stringID)
 211,clearstring,1,0           #deletes the data from string(stringID)
@@ -490,7 +491,7 @@ define function, begin
 465,setslicelookup,2,0,0      #change a slice's lookup code
 466,tracevalueinternal,-1     #tracevalue is translated to this
 467,mapcure,3,0,0,-1          #uses a cure attack on a hero
-468,readattackname,2,0,0      #puts an attack name in a string (string id, attack id+1 / attack .hsi constant)
+468,readattackname,2,0,0      #puts an attack name in a string (string id, atk: constant (attack id+1))
 469,spellslearned,2,0,0       #number spells and spell ids hero learnt at last battle/giveexperience command.
 470,allocatetimers,1,16       #change the number of timers
 #471,unusedtimer,0             #find a timer id that's not in use, or allocate more

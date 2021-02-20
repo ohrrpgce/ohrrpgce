@@ -1921,7 +1921,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 208'--get attack name(str,atk)
   'WARNING: backcompat only. new games should prefer read attack name
-  IF valid_plotstr(retvals(0)) = NO OR retvals(1) < 0 OR retvals(1) > gen(genMaxAttack) THEN
+  IF valid_plotstr(retvals(0)) = NO OR retvals(1) + 1 < 0 OR retvals(1) + 1 > gen(genMaxAttack) THEN
    scriptret = 0
   ELSE
    plotstr(retvals(0)).s = readattackname(retvals(1) + 1)

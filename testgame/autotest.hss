@@ -5792,10 +5792,18 @@ end
 script, string load tests, begin
   $0="string load tests"
 
+  # Reading attack name
   $1="SelfStab"
+  read attack name(2, atk:SelfStab)
+  assert(string compare(1,2))
+  $2=""
   read attack name(2, 0 + 1)
   assert(string compare(1,2))
+  $2=""
+  get attack name(2, 0 -- 1)
+  assert(string compare(1,2))
   
+  # Reading attack caption
   $1="Attack self"
   get attack caption(2, 0 + 1)
   assert(string compare(1,2))

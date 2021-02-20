@@ -4180,6 +4180,7 @@ function fix_arguments(Node tree, integer kind, integer id, sequence list, VarLi
 
   --Obsolescence warnings
   --(This seems as good a spot to do this as any, because we've looked up the function in 'list' already)
+  --Syntax: @obsolete([error,] [replacement_cmd,] ["message"])  (arg order can var)
   if and_bits(list[at][FUNC_FLAGS],FLAG_OBSOLETE)!=0 then
     params=attribute_params("@obsolete",list[at])
     message=""
@@ -4198,7 +4199,7 @@ function fix_arguments(Node tree, integer kind, integer id, sequence list, VarLi
       message=sprintf_utf("Function "&COLYEL&"%s"&COLRED&" is obsolete and can no longer be used. %s",{funcname,message})
       src_error(message,funcpos)
     else
-      message=sprintf_utf("Function "&COLYEL&"%s"&COLRED&" is obsolete; it shouldn't be used in newly written scripts. %s",{funcname,message})
+      message=sprintf_utf("Function "&COLYEL&"%s"&COLRED&" is obsolete; avoid it. %s",{funcname,message})
       src_warn(message,funcpos)
     end if
   end if
