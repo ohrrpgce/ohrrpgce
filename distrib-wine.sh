@@ -79,6 +79,9 @@ echo "Building executables..."
 
 rm -f game.exe custom.exe relump.exe unlump.exe
 ${BUILD} game custom unlump relump $SCONS_ARGS || exit 1
+# lto=1 to reduce unlump/relump size
+${BUILD} unlump relump $SCONS_ARGS lto=1 || exit 1
+
 
 if [ -z "$DONT_BUILD_HSPEAK" ]; then
   rm -f hspeak.exe

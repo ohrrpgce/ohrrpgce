@@ -1535,8 +1535,8 @@ Options:
                       Forces gengcc=1. Doesn't support linkgcc=0.
                       Requires wine if cross-compiling to Windows.
   lto=1               Do link-time optimisation, for a faster, smaller build
-                      (about 2-300KB for Game/Custom) but longer compile time.
-                      Use with gengcc=1.
+                      (around 10-15% smaller for Game/Custom, 50% for utilities)
+                      but long compile time. Useful with gengcc=1 only.
   win95=0             (Windows only) Link to Winsock 2 instead of 1. Use win95=0
                       and mingw-w64 (not mingw) to get support for IPv6.
   valgrind=1          Recommended when using valgrind (also turns off -exx).

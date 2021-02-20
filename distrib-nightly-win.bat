@@ -25,8 +25,9 @@ del nightly-temp.txt
 svn info > svninfo.txt
 
 REM Build all utilities once (relump and unlump aren't important, but want to detect if hspeak didn't build)
+REM lto=1 to reduce unlump/relump size
 support\rm -f hspeak.exe
-CALL scons hspeak relump unlump %SCONS_ARGS%
+CALL scons hspeak relump unlump %SCONS_ARGS% lto=1
 IF NOT EXIST hspeak.exe GOTO FAILURE
 
 support\rm -f game.exe custom.exe

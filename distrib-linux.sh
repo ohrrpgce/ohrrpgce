@@ -10,7 +10,7 @@ if [ ! -f distrib-linux.sh ] ; then
 fi
 
 echo "Building relump"
-scons $SCONS_ARGS relump || exit 1
+scons $SCONS_ARGS lto=1 relump || exit 1
 
 echo "Lumping Vikings of Midgard"
 if [ -f vikings.rpg ] ; then
@@ -32,7 +32,9 @@ package_for_arch() {
   ARCH=$1
 
   echo "Building $ARCH binaries"
-  scons $SCONS_ARGS arch=$ARCH game custom hspeak unlump relump || return 1
+  # lto=1 to reduce unlump/relump size
+  scons $SCONS_ARGS arch=$ARCH lto=1 unlump relump || return 1
+  scons $SCONS_ARGS arch=$ARCH game custom hspeak || return 1
 
   echo "Packaging $ARCH binary distribution of CUSTOM"
 

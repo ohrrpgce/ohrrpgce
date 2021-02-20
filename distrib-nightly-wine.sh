@@ -118,7 +118,8 @@ fi
 svn info > svninfo.txt
 
 # Build all utilities once
-${BUILD} relump unlump $SCONS_ARGS || exit 1
+# lto=1 to reduce relump/unlump size
+${BUILD} relump unlump $SCONS_ARGS lto=1 || exit 1
 if [ -z "$DONT_BUILD_HSPEAK" ]; then
   ${BUILD} hspeak $SCONS_ARGS || exit 1
 fi

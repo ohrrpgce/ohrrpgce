@@ -42,7 +42,9 @@ echo "Building binaries for ARCH=$ARCH GFX=$GFX"
 
 rm -f ohrrpgce-game ohrrpgce-custom
 
-scons release=1 ${EXTRA_SCONS_OPTIONS} arch=$ARCH gfx=$GFX game custom hspeak unlump relump || exit 1
+# lto=1 to reduce unlump/relump size
+scons release=1 ${EXTRA_SCONS_OPTIONS} arch=$ARCH lto=1 unlump relump hspeak || exit 1
+scons release=1 ${EXTRA_SCONS_OPTIONS} arch=$ARCH gfx=$GFX game custom || exit 1
 
 echo "Bundling apps"
 ./bundle-apps.sh $ARCH $SDL || exit 1
