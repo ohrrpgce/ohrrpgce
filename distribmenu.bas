@@ -1521,6 +1521,8 @@ SUB write_debian_control_file(controlfile as string, basename as string, pkgver 
  CLOSE #fh
 END SUB
 
+'Much stricter version of sanitize_pkgname.
+'distinfo.pkgname sanitized to contain only lowercase a-z and non-adjacent non-leading non-trailing - dashes
 FUNCTION get_debian_package_name() as string
  DIM distinfo as DistribState
  load_distrib_state distinfo
@@ -1591,7 +1593,8 @@ SUB distribute_game_as_mac_app (which_arch as string)
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
- DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname
+ DIM basename as string = distinfo.pkgname
+ DIM destname as string = trimfilename(sourcerpg) & SLASH & basename
  IF which_arch = "x86" THEN
   'This is an obsolete arch, add a suffix
   destname &= "-mac-32bit.zip"
@@ -1619,7 +1622,7 @@ SUB distribute_game_as_mac_app (which_arch as string)
   DIM gameplayer as string
   gameplayer = get_mac_gameplayer(which_arch)
   IF gameplayer = "" THEN dist_info "ERROR: OHRRPGCE-Game.app for " & which_arch & " is not available" : EXIT DO
-  DIM app as string = apptmp & SLASH & distinfo.pkgname & ".app"
+  DIM app as string = apptmp & SLASH & basename & ".app"
 #IFDEF __FB_WIN32__
   IF confirmed_copydirectory(gameplayer, app) = NO THEN dist_info "Couldn't copy " & gameplayer & " to " & app : EXIT DO
 #ELSE
@@ -1629,16 +1632,15 @@ SUB distribute_game_as_mac_app (which_arch as string)
   IF confirmed_copy(trimfilename(gameplayer) & SLASH & "LICENSE-binary.txt", apptmp & SLASH & "LICENSE-binary.txt") = NO THEN EXIT DO
 
   debuginfo "Copy rpg file"
-  DIM gameshortname as string
-  gameshortname = trimextension(trimpath(sourcerpg))
+  'Renaming the .rpg file to pkgname only for consistency with all other packagers
   DIM resources as string
   resources = app & SLASH & "Contents" & SLASH & "Resources"
-  IF copy_or_relump(sourcerpg, resources & SLASH & gameshortname & ".rpg") = NO THEN EXIT DO
+  IF copy_or_relump(sourcerpg, resources & SLASH & basename & ".rpg") = NO THEN EXIT DO
   
   debuginfo "Create bundledgame file"
   DIM fh as integer = FREEFILE
   OPEN resources & SLASH & "bundledgame" FOR OUTPUT AS #fh
-  PRINT #fh, gameshortname
+  PRINT #fh, basename
   CLOSE #fh
   
   DIM icns_file as string = trimextension(sourcerpg) & ".icns"
@@ -1646,7 +1648,7 @@ SUB distribute_game_as_mac_app (which_arch as string)
    confirmed_copy(icns_file, resources & SLASH & "game.icns")
   END IF
 
-  write_readme_text_file apptmp & SLASH & "README-" & distinfo.pkgname & ".txt", CHR(10)
+  write_readme_text_file apptmp & SLASH & "README-" & basename & ".txt", CHR(10)
 
   maybe_write_license_text_file apptmp & SLASH & "LICENSE.txt"
 
@@ -1671,7 +1673,7 @@ SUB distribute_game_as_mac_app (which_arch as string)
   'I have seen someone -- on Linux, even -- wipe the +x flag on ohrrpgce-game
   'by unzipping and rezipping.
   dist_info "Note: Don't unzip and re-zip " & destshortname & ": that might wipe critical metadata from " _
-            & gameshortname & ".app and prevent it from running!", errInfo
+            & basename & ".app and prevent it from running!", errInfo
   EXIT DO 'this loop is only ever one pass
  LOOP
 
@@ -1821,8 +1823,7 @@ SUB distribute_game_as_linux_tarball (which_arch as string)
 
  DO '--single pass loop for breaking
 
-  DIM gameshortname as string
-  gameshortname = trimextension(trimpath(sourcerpg))
+  DIM basename as string = distinfo.pkgname
 
   debuginfo "Rename linux game player" 
   DIM gameplayer as string
@@ -1833,7 +1834,7 @@ SUB distribute_game_as_linux_tarball (which_arch as string)
   DIM tarballdir as string = apptmp & SLASH & tarballdir_base
   debuginfo " tarballdir: " & tarballdir
   makedir tarballdir
-  DIM dest_gameplayer as string = tarballdir & SLASH & gameshortname
+  DIM dest_gameplayer as string = tarballdir & SLASH & basename
   IF confirmed_copy(gameplayer, dest_gameplayer) = NO THEN dist_info "Couldn't copy " & gameplayer & " to " & dest_gameplayer : EXIT DO
   #IFDEF __FB_UNIX__
    'Mac and Linux fix the permissions
@@ -1843,9 +1844,9 @@ SUB distribute_game_as_linux_tarball (which_arch as string)
   IF confirmed_copy(license, tarballdir & SLASH & "LICENSE-binary.txt") = NO THEN EXIT DO
 
   debuginfo "Copy rpg file"
-  IF copy_or_relump(sourcerpg, tarballdir & SLASH & gameshortname & ".rpg") = NO THEN EXIT DO
+  IF copy_or_relump(sourcerpg, tarballdir & SLASH & basename & ".rpg") = NO THEN EXIT DO
 
-  write_readme_text_file tarballdir & SLASH & "README-" & distinfo.pkgname & ".txt", CHR(10)
+  write_readme_text_file tarballdir & SLASH & "README-" & basename & ".txt", CHR(10)
 
   maybe_write_license_text_file tarballdir & SLASH & "LICENSE.txt"
 
