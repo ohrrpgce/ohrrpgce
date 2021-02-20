@@ -1483,7 +1483,7 @@ SUB write_debian_binary_file (filename as string)
 END SUB
 
 SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, size_in_kibibytes as integer, byref distinfo as DistribState, deb_arch as string)
- DIM LF as string = CHR(10)
+ CONST LF as string = CHR(10)
 
  DIM author as string = distinfo.author
  IF author = "" THEN author = "Anonymous"
@@ -1658,7 +1658,7 @@ SUB distribute_game_as_mac_app (which_arch as string)
   'We rely on a quirk of the Mac Finder, which sets the +x bit on every file when extracting
   'files from a Windows/DOS .zip file. Other Mac archivers might not do this. For a solution
   'to actually create Mac .zip packages with correct file permissions from Windows, see
-  'prepare_map_app_zip()
+  'prepare_mac_app_zip()
   DIM olddir as string = CURDIR
   CHDIR apptmp
   IF create_zipfile(apptmp, destname, "*.app *.txt") = NO THEN

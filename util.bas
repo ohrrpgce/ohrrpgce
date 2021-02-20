@@ -2547,10 +2547,8 @@ FUNCTION safe_shell (cmd as string, timeout as double = 5., log_it as bool = YES
   END IF
   RETURN wait_for_process(@handle, timeout * 1000)
 #ELSE
-  ' (SHELL returns wrong exit code in FB 0.23 and earlier)
-  'RETURN SHELL(cmd)
   ' Replacement for SHELL which checks the return code in more detail
-  ' Doesn't timeout.
+  ' Doesn't timeout. Only implemented on Unix.
   RETURN checked_system(STRPTR(cmd))
 #ENDIF
 END FUNCTION

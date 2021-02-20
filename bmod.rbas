@@ -650,7 +650,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
    IF .consume_item >= 0 THEN
     IF consumeitem(.consume_item) THEN
      'Finished the item stack
-     setbit bat.iuse(), 0, .consume_item, 0
+     setbit bat.iuse(), 0, .consume_item, 0  'Update this in case Items menu happens to be open
      evalitemtags
     END IF
     .consume_item = -1
@@ -754,6 +754,8 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  'This may have changed since we started targetting because the attacker
  'might have been muted, or hit with an MP-damaging attack
  ' (FIXME: Does not attempt to re-check LMP)
+ ' FIXME: We shouldn't be checking costs here in all cases, eg an item-triggered
+ ' attack that doesn't use costs (bug #1161, #1098)
  IF NOT atkallowed(bat.targ.atk, bat.hero_turn, 0, 0, bslot()) THEN
   bslot(bat.hero_turn).attack = 0
   bslot(bat.hero_turn).consume_lmp = -1

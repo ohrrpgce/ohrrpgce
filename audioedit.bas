@@ -271,7 +271,7 @@ SUB import_convert_wav(byref wav as string, byref oggtemp as string)
  clearpage vpage
  basic_textbox "Please wait, converting to OGG...", uilook(uiText), vpage
  setvispage vpage, NO
- 'WAV files don't contain any comments
+ 'WAV files CAN contain metadata and even ID3 tags, but we don't support them yet
  DIM comments() as string
  DIM ret as string = wav_to_ogg(wav, oggtemp, ogg_quality, filter_high_freq, comments())
  IF LEN(ret) THEN

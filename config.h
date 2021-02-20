@@ -159,13 +159,13 @@ typedef int boolint;
 /************* Attributes ***************/
 
 
-// __has_attribute is supported since gcc 5.0 and clang 2.9. That's very recent
+// __has_attribute is supported since gcc 5.0 and clang 2.9. That's recent
 // but I don't think we care if the attributes accidentally don't get used.
 # ifndef __has_attribute
 #  define __has_attribute(x) 0
 # endif
 
-// GCC is missing __has_builtin, at least in 5.4
+// GCC only added __has_builtin in GCC 10
 #ifndef __has_builtin
 # define __has_builtin(x) 0
 #endif

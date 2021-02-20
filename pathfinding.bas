@@ -58,9 +58,11 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_w
  'pre-cache NPC collisions, but only if we need them.
  dim npc_ccache as NPCCollisionCache
  if npc <> null then
+  ' Step-on NPCs are obstructions for NPCs...
   npc_ccache.populate(mapsizetiles, npc)
  elseif check_npcs_as_hero then
-  npc_ccache.populate(mapsizetiles, null, YES)
+  ' ...but not heroes
+  npc_ccache.populate(mapsizetiles, null, YES) 'ignore_step_on=YES
  end if
 
  dim cursor as XYPair

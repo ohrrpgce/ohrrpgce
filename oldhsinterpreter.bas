@@ -265,8 +265,10 @@ DO
       'No need to check argc <= maxScriptArgs; setScriptArg checks OK
       DIM rsr as RunScriptResult
       rsr = runscript(curcmd->value, NO, NO, "called")
-      'WARNING: WITH now points to scrat(nowscript-1)
+      'WARNING: nowscript has changed, WITH still points to old scrat(nowscript)
       IF rsr = rsSuccess THEN
+       'On success runscript calls oldscriptstate_init which will
+       'set scrat(nowscript).state = ststart
        '--fill heap with arguments
        FOR i as integer = argc - 1 TO 0 STEP -1
         popstack(scrst, temp)
@@ -274,6 +276,8 @@ DO
        NEXT i
       END IF
       IF rsr = rsFail THEN
+       'runscript may have shown an error, which might change the old scrat(nowscript).state to streturn (in killscriptthread)
+       'or stexit (in killallscripts). TODO: don't set .state in so many places when runscript is called
        .state = streturn'---return
       END IF
       GOTO interpretloop 'new WITH pointer

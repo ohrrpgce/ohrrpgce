@@ -1,5 +1,5 @@
 # bobthehamster/ohrrpgce-build-env
-# Begin with the freebasic image, (which is in turn based on debian:jessie-slim)
+# Begin with the freebasic image, (which is in turn based on debian:stretch-slim)
 
 FROM bobthehamster/freebasic
 
