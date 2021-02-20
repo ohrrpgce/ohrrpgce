@@ -316,6 +316,7 @@ function read_mp3_metadata(songfile as string, byref filetype as string = "") as
 	' It's a pain to feed libmad just the parts of the file it needs to read,
 	' and because MP3 frames are less than 4KB, it won't really save any time anyway.
 	dim buf as string = read_file(songfile)
+	if buf = "" then return ""
 
 	dim numerrs as integer
 	dim stream as mad_stream

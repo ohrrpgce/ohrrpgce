@@ -4064,7 +4064,7 @@ FUNCTION read_file (filename as string) as string
  DIM buflen as integer = FILELEN(filename)
  DIM buf as string = STRING(buflen, 0)
  DIM fh as integer
- OPENFILE(filename, for_binary + access_read, fh)
+ IF OPENFILE(filename, FOR_BINARY + ACCESS_READ + OR_ERROR, fh) THEN RETURN ""
  GET #fh, , buf
  CLOSE #fh
  RETURN buf
