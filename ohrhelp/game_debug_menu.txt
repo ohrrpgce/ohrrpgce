@@ -1,11 +1,13 @@
 The following documentation is also available at http://rpg.hamsterrepublic.com/ohrrpgce/Debug_keys
 
+Most debug keys let you press either Shift or Ctrl. Pressing Ctrl will activate menu items, NPCs, etc, so use Shift in those cases.
+
 -------------------------------------
 The following are only available when a text box IS NOT being displayed:
 
 F1 Show Minimap
 
-CTRL+F1 Pick a spot on the minimap of any map to teleport to.
+Shift/Ctrl+F1 Pick a spot on the minimap of any map to teleport to.
 
 F2 Quicksave anywhere
 
@@ -20,9 +22,9 @@ Conditionals that happen as soon as the text box is displayed, such as 'Instead'
 -------------------------------------
 Everything else is always available:
 
-F4 Brings up the Tag Debugging menu, which shows you which tags are OFF and which are ON (and which are Autoset, e.g. an "Item equipped" tag), and lets you change them (+ and - scroll, TAB toggles, CTRL+ sets and CTRL- unsets). Press F4 again twice to close.
+F4 Brings up the Tag Debugging menu, which shows you which tags are OFF and which are ON (and which are Autoset, e.g. an "Item equipped" tag), and lets you change them (+ and - and PgUp/PgDown/Home/End scroll, Tab toggles, Shift/Ctrl + sets and Shift/Ctrl - unsets). Press F4 again to expand the debugger, and twice to close.
 
-CTRL+F4 Edit the slice tree (in the Slice Collection Editor). You can even save the slice tree to file.
+Shift/Ctrl+F4 Edit the slice tree (in the Slice Collection Editor). You can even save the slice tree to file.
 
 F5 Menu for forcing reloading of edited data while running Game using "Test Game". If you are not editing while you play then this menu is only useful for reloading the map to undo changes made by scripts.
 
@@ -30,31 +32,31 @@ F6 NPC Debug Mode. Draw NPC type ID and reference numbers on top of NPCs. ID num
 Move the mouse over an NPC to see some of the NPC type and instance data. (Hint: use the PAUSE key to examine at moving NPCs)
 Press F6 twice to also see dotted lines around each NPC indicating everything that's considered an obstruction. Press three times to disable this mode.
 
-CTRL+F7 Realign hero 0 with the tile grid
+Shift/Ctrl+F7 Realign hero 0 with the tile grid
 
 F8 Bring up this debug menu (this option does nothing)
 
-CTRL+F8 Lets you switch graphics backend. This key combination works everywhere in Game and Custom. Try switching if you have graphical or keyboard/mouse/joystick problems or want certain features. Only gfx_sdl supports resolutions other than 320x200.
+Shift/Ctrl+F8 Lets you switch graphics backend. This key combination works everywhere in Game and Custom. Try switching if you have graphical or keyboard/mouse/joystick problems or want certain features. Only gfx_sdl supports resolutions other than 320x200.
 
-CTRL+F9 Toggle script profiling. When profiling, the script interpreter collects statistics about how long each script ran for, how long the scripts it called ran for, and how many times it was run. These stats are printed to g_debug.txt (next to the .rpg file) when you quit, or when you turn off profiling. Note: If you turn profiling on and off several times, data from all profiling sessions gets printed.
+Shift/Ctrl+F9 Toggle script profiling. When profiling, the script interpreter collects statistics about how long each script ran for, how long the scripts it called ran for, and how many times it was run. These stats are printed to g_debug.txt (next to the .rpg file) when you quit, or when you turn off profiling. Note: If you turn profiling on and off several times, data from all profiling sessions gets printed.
 
 F10 Toggle script-debugging mode. Press once to draw some information on-screen while continuing to play, twice to pause and enter the script debugger, three times to exit.
 
-CTRL+F10 Enable script trigger logging. Every time a script is triggered by an event like a keypress it is logged to a text file called script_log.txt. Also displays when triggered scripts are paused by a wait or finish, however this won't work for scripts started before the bdebug key was pressed (restart the game if needed).
+Shift/Ctrl+F10 Enable script trigger logging. Every time a script is triggered by an event like a keypress it is logged to a text file called script_log.txt. Also displays when triggered scripts are paused by a wait or finish, however this won't work for scripts started before the bdebug key was pressed (restart the game if needed).
 
 F11 Toggle walking through walls (and other obstructions)
 
-CTRL+F11 Open the Macro record and replay menu, or if you're currently recording or replaying a macro, stops it.
+Shift/Ctrl+F11 Open the Macro record and replay menu, or if you're currently recording or replaying a macro, stops it.
 
 F12 Take a screenshot, saving it next to the .rpg. Hold down to take a screenshot every frame.
 
-CTRL+F12 Start recording a 'video' as a looping .gif file. Press again to stop. Saved alongside the screenshots. The files will be large; you can compress them to typically half the size with the free 'gifsicle' tool or similar.
+Shift/Ctrl+F12 Start recording a 'video' as a looping .gif file. Press again to stop. Saved alongside the screenshots. The files will be large; you can compress them to typically half the size with the free 'gifsicle' tool or similar.
 
 PAUSE Pauses the game; only debug keys can be used.
 
-CTRL + slows down and CTRL - speeds up the frame rate (adjusts milliseconds per tick).
+Ctrl + slows down and Ctrl - speeds up the frame rate (adjusts milliseconds per tick).
 
-Holding down SHIFT+TAB increases the framerate greatly. (The menu option does nothing - you have to hold it down.)
+Holding down Shift+Tab increases the framerate greatly. (The menu option does nothing - you have to hold it down.)
 
 Toggle window resizability: Turning this on makes the window resizable by dragging the edges. Select again to disable. NOTE: This doesn't work if using gfx_directx (the default on Windows).
 

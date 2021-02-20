@@ -1881,7 +1881,7 @@ ELSE
 END IF
 
 'Controls
-IF keyval(scCtrl) > 0 THEN
+IF keyval(scCtrl) > 0 ORELSE keyval(scShift) > 0 THEN
  IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN
   settag st.pt, NO
   tag_updates

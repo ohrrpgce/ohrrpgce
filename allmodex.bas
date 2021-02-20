@@ -3320,7 +3320,7 @@ local sub allmodex_controls()
 	end if
 
 	'This is a pause that doesn't show up in recorded input
-	if (replay.active or record.active) and real_keyval(scPause) > 1 then
+	if (replay.active or record.active) andalso real_keyval(scPause) > 1 then
 		real_clearkey(scPause)
 		pause_replaying_input
 		pause_recording_input
@@ -3457,7 +3457,7 @@ local sub macro_menu ()
 			end if
 			continue do
 		elseif choice = 2 then
-			show_overlay_message "Recording macro, CTRL+F11 to stop", 2.
+			show_overlay_message "Recording macro, Shift/Ctrl+F11 to stop", 2.
 			start_recording_input macrofile
 		elseif choice = 3 then
 			show_overlay_message "Replaying macro"
@@ -3500,7 +3500,7 @@ sub macro_controls ()
 	if reentering then exit sub
 	reentering = YES
 	if record.active then
-		stop_recording_input "Recorded macro, CTRL+F11 to play", errInfo
+		stop_recording_input "Recorded macro, Shift/Ctrl+F11 to play", errInfo
 	elseif replay.active then
 		show_overlay_message "Ended macro playback early", 2.
 		stop_replaying_input
@@ -8339,7 +8339,7 @@ function recording_gif() as bool
 	return recordvid andalso recordvid->active andalso *recordvid is GIFRecorder
 end function
 
-'Perform the effect of pressing Ctrl-F12: start or stop recording a gif
+'Perform the effect of pressing Shift/Ctrl-F12: start or stop recording a gif
 sub toggle_recording_gif()
 	if recordvid andalso recordvid->active then
 		stop_recording_video
