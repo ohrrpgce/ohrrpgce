@@ -1848,6 +1848,10 @@ FUNCTION ModularMenu.each_tick() as bool
  RETURN NO
 END FUNCTION
 
+FUNCTION ModularMenu.try_exit() as bool
+ RETURN YES
+END FUNCTION
+
 SUB ModularMenu.draw_underlays()
 END SUB
 
@@ -1941,13 +1945,16 @@ SUB ModularMenu.run()
   ELSE
    usemenu_ret = usemenu(state)
   END IF
-  IF keyval(ccCancel) > 1 THEN EXIT DO
-  IF LEN(helpkey) AND keyval(scF1) > 1 THEN show_help helpkey
 
   can_use_strgrabber = (LEN(selectst.query) = 0)
   using_strgrabber = NO
 
+  'Call each_tick before checking cancel and help keys, so it can override them if it wants
   IF each_tick() THEN EXIT DO
+
+  IF keyval(ccCancel) > 1 ANDALSO try_exit() THEN EXIT DO
+  IF LEN(helpkey) AND keyval(scF1) > 1 THEN show_help helpkey
+
   IF state.need_update THEN
    state.need_update = NO
    update_wrapper()

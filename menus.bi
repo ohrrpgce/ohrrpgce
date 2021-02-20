@@ -139,6 +139,10 @@ TYPE ModularMenu EXTENDS Object
  ' Return YES to exit the menu
  DECLARE VIRTUAL FUNCTION each_tick() as bool
 
+ ' Called when user tries to leave the menu
+ ' Return YES to exit the menu
+ DECLARE VIRTUAL FUNCTION try_exit() as bool
+
  ' Called before drawing the menu to draw any extra stuff
  DECLARE VIRTUAL SUB draw_underlays()
 
