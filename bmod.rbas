@@ -4993,9 +4993,9 @@ END FUNCTION
 SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 
  IF dbg.def(      , scF4, "Tag debugger (F4)") THEN gam.debug_showtags = (gam.debug_showtags + 1) MOD 3
- IF dbg.def(scCtrl, scF4, "View/edit slice tree (Ctrl-F4)") THEN slice_editor bat.root_sl
+ IF dbg.def(SftCtl, scF4, "View/edit slice tree (S/C-F4)") THEN slice_editor bat.root_sl
  IF dbg.def(      , scF5, "Give million experience (F5)") THEN bat.rew.exper = 1000000
- IF dbg.def(scCtrl, scF5, "Run instantly (Ctrl-F5)") THEN bat.away = 11
+ IF dbg.def(SftCtl, scF5, "Run instantly (Shft/Ctrl-F5)") THEN bat.away = 11
 
  DIM temp as string
  IF bat.turn.mode = 0 THEN temp = "Switch to turn-based battles" ELSE temp = "Switch to active-time battles"
@@ -5017,6 +5017,11 @@ SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot()
 
  IF dbg.def(      , scF8) THEN battle_debug_menu bat, bslot(), formdata
  dbg.def(      ,     , "Debug menu (F8)")  'Does nothing, but document F8.
+
+ 'Shift/Ctrl+F8 handled in allmodex
+ DIM note as string
+ IF num_logged_errors THEN note = ": " & num_logged_errors & " errors" ELSE note = " log"
+ IF dbg.def(      ,     , "View g_debug.txt" & note & " (S/C-F8)") THEN open_document log_dir & *app_log_filename
 
  IF dbg.def(      , scF10, "Show enemy meters (F10)") THEN bat.show_info_mode = IIF(bat.show_info_mode = 1, 0, 1)
  IF dbg.def(      , scF11, "Show attack queue (F11)") THEN bat.show_info_mode = IIF(bat.show_info_mode = 2, 0, 2)

@@ -1,10 +1,12 @@
 The following documentation is also available at http://rpg.hamsterrepublic.com/ohrrpgce/Debug_keys
 
-F4 Brings up the Tag Debugging menu, which shows you which tags are OFF and which are ON (and which are Autoset, e.g. an "Item equipped" tag), and lets you change them (+ and - scroll, TAB toggles, CTRL+ sets and CTRL- unsets). Press F4 again twice to close.
+F4 Brings up the Tag Debugging menu, which shows you which tags are OFF and which are ON (and which are Autoset, e.g. an "Item equipped" tag), and lets you change them (+ and - and PgUp/PgDown/Home/End scroll, Tab toggles, Shift/Ctrl + sets and Shift/Ctrl - unsets). Press F4 again to expand the debugger, and twice to close.
 
-Ctrl+F4 Instantly Run (even from inescapable enemies)
+Shift/Ctrl+F4 Open the slice tree in the debugger. This is currently not very useful, because you can't customise battle slices yet.
 
 F5 Gain a million Experience Points
+
+Shift/Ctrl+F5 Instantly Run (even from inescapable enemies)
 
 F6 Toggle between turn-based and active-time-based battle systems
 
@@ -12,6 +14,13 @@ F7 Kill all enemies which are targetable and need to killed to win
 
 F8 Shows this debug menu, with these keys documented.
 
-F10 Display Enemy ready-meters and state-variables, and again to hide.
+Shift/Ctrl+F8 Open g_debug.txt with an (default) external program. g_debug.txt is written next to the .rpg file and error messages and other output is written to it. Errors are lines beginning with "! ", and often don't cause a message to display to the player.
+This menu item will read "View g_debug.txt: # errors" if there are errors.
+
+F10 Display enemy ready-meters and state-variables, and again to hide.
 
 F11 Show queued attacks, and again to hide.
+
+PAUSE key pauses the battle.
+
+Dump battle slots info: Writes info on the current state of each hero and enemy to g_debug.txt (press Shift-F8 to view).

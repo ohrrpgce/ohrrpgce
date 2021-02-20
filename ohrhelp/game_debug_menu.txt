@@ -32,13 +32,14 @@ F6 NPC Debug Mode. Draw NPC type ID and reference numbers on top of NPCs. ID num
 Move the mouse over an NPC to see some of the NPC type and instance data. (Hint: use the PAUSE key to examine at moving NPCs)
 Press F6 twice to also see dotted lines around each NPC indicating everything that's considered an obstruction. Press three times to disable this mode.
 
-Shift/Ctrl+F7 Realign hero 0 with the tile grid
+Shift/Ctrl+F7 Lets you switch graphics backend. This key combination works everywhere in Game and Custom. Try switching if you have graphical or keyboard/mouse/joystick problems or want certain features. Only gfx_sdl supports resolutions other than 320x200.
 
 F8 Bring up this debug menu (this option does nothing)
 
-Shift/Ctrl+F8 Lets you switch graphics backend. This key combination works everywhere in Game and Custom. Try switching if you have graphical or keyboard/mouse/joystick problems or want certain features. Only gfx_sdl supports resolutions other than 320x200.
+Shift/Ctrl+F8 Open g_debug.txt with an (default) external program. g_debug.txt is written next to the .rpg file and error messages and other output is written to it. Errors are lines beginning with "! ", and often don't cause a message to display to the player.
+This menu item will read "View g_debug.txt: # errors" if there are errors.
 
-Shift/Ctrl+F9 Toggle script profiling. When profiling, the script interpreter collects statistics about how long each script ran for, how long the scripts it called ran for, and how many times it was run. These stats are printed to g_debug.txt (next to the .rpg file) when you quit, or when you turn off profiling. Note: If you turn profiling on and off several times, data from all profiling sessions gets printed.
+Shift/Ctrl+F9 Toggle script profiling. When profiling, the script interpreter collects statistics about how long each script ran for, how long the scripts it called ran for, and how many times it was run. These stats are printed to g_debug.txt (press Shift-F8 to view) when you quit, or when you turn off profiling. Note: If you turn profiling on and off several times, data from all profiling sessions gets printed.
 
 F10 Toggle script-debugging mode. Press once to draw some information on-screen while continuing to play, twice to pause and enter the script debugger, three times to exit.
 
@@ -62,7 +63,9 @@ Toggle window resizability: Turning this on makes the window resizable by draggi
 
 Set zoom: These options change the window size without changing the resolution.
 
-List slices to g_debug.txt: Write a textual dump of the whole slice tree to g_debug.txt, next to the .rpg file.
+List slices to g_debug.txt: Write a textual dump of the whole slice tree to g_debug.txt (press Shift-F8 to view.)
+
+Realign leader to grid: This is useful if a buggy script misaligns the hero. Misalignment causes problems (bug #660).
 
 Edit backcompat bitsets: Lets you toggle backcompat bitsets to fix games broken by recent OHRRPGCE versions. It's not always possible for the engine to automatically turn on the correct bits.
 
