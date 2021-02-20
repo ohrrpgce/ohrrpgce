@@ -3548,8 +3548,8 @@ local sub update_fps_counter (skipped as bool)
 	if not skipped then
 		fps_real_frames += 1
 	end if
-	if timer > fps_time_start + 1 then
-		dim nowtime as double = timer
+	dim nowtime as double = timer
+	if nowtime > fps_time_start + 1 then
 		draw_fps = fps_draw_frames / (nowtime - fps_time_start)
 		real_fps = fps_real_frames / (nowtime - fps_time_start)
 		fps_time_start = nowtime

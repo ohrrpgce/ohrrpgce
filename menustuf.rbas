@@ -1081,7 +1081,7 @@ SUB oobcure (byval attacker as integer, byval target as integer, byval atk as in
   inflict( , , 0, 1, attacker_obj, target_obj, attack, target_count)
 
   '--copy back stats that need copying back
-  DIM last_plain_stat as integer = statMP
+  DIM last_plain_stat as integer
 
   IF prefbit(31) = NO THEN  '"Don't reset max stats after OOB attack"
    '--Then update just the max for the other stats
@@ -1091,7 +1091,8 @@ SUB oobcure (byval attacker as integer, byval target as integer, byval atk as in
    '--Note that an item can't permanently change HP or MP!
    '--Note also that this has bad results if cur != max to begin with: the cur becomes
    '--the new max even if the attack does nothing! (We should probably change that)
-   FOR statnum as integer = 2 to statLast
+   last_plain_stat = statMP
+   FOR statnum as integer = statMP + 1 to statLast
     'Indirectly update base
     DIM diff as integer = target_obj.stat.cur.sta(statnum) - .max.sta(statnum)
     .base.sta(statnum) += diff
@@ -1099,7 +1100,7 @@ SUB oobcure (byval attacker as integer, byval target as integer, byval atk as in
    NEXT statnum
 
    recompute_hero_max_stats target
-   FOR statnum as integer = 2 to statLast
+   FOR statnum as integer = statMP + 1 to statLast
     .cur.sta(statnum) = .max.sta(statnum)
    NEXT
 
