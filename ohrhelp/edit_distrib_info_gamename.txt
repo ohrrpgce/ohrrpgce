@@ -1,1 +1,3 @@
-You are editing the name of your game. it is probably best to leave this blank, and instead edit the "Long Name" in the "Edit General Game Data" menu.
+You are editing the name of your game. This is what is used as the name of the application in places such as links to launch it, and is put in the generated README.
+
+It is probably best to leave this blank which will cause the "Long Name" in the "Edit General Game Data" menu to be used, and edit that instead.

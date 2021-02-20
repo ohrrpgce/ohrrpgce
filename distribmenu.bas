@@ -470,16 +470,16 @@ FUNCTION is_known_license(license_code as string) as integer
 END FUNCTION
 
 FUNCTION generate_copyright_line(distinfo as DistribState) as string
- DIM c_y_by as string = "(C) Copyright " & distinfo.copyright_year & " " & distinfo.author
+ DIM c_y_by as string = RTRIM("(C) Copyright " & distinfo.copyright_year & " " & distinfo.author)
  SELECT CASE distinfo.license
   CASE "COPYRIGHT":
    RETURN c_y_by
   CASE "PUBLICDOMAIN":
    RETURN "Copyright released by " & distinfo.author & " into the Public Domain."
   CASE "GPL":
-   RETURN c_y_by & ". this game is distributed under the terms of the GNU General Public License."
+   RETURN c_y_by & ". This game is distributed under the terms of the GNU General Public License."
   CASE "MIT":
-   RETURN c_y_by & ". this game is distributed under the terms of the MIT license."
+   RETURN c_y_by & ". This game is distributed under the terms of the MIT license."
   CASE "CC-BY":
    RETURN c_y_by & ". This game is licensed under a Creative Commons Attribution 3.0 Unported License."
   CASE "CC-BY-SA":
@@ -493,7 +493,8 @@ FUNCTION generate_copyright_line(distinfo as DistribState) as string
   CASE "CC-BY-NC-ND":
    RETURN c_y_by & ". This game is licensed under a Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported License."
   CASE ELSE:
-   RETURN distinfo.license & " is not in the list of licenses that this program understands"
+   showerror distinfo.license & " is not in the list of licenses that this program understands"
+   RETURN ""
  END SELECT
 END FUNCTION
 

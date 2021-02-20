@@ -1,4 +1,4 @@
-You are editing the package name. This will be the filename of your distribution package, and the filename that your .RPG file is renamed to.
+You are editing the package name. This will be the filename of your distribution package (e.g. <pkgname>.zip, <pkgname>.exe, etc), and also the filename of your .rpg file inside that package.
 
 Keep it simple!
 
