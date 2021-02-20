@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2021-02-08)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2021-02-19)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -4132,6 +4132,11 @@ end</pre>
 				<h4>next NPC reference (npcref)</h4>
 <p>
 			This command is for looping over all the npcs on the map, in the same way that <a href="#about-firstchild" class="ref">first child</a> and <a href="#about-nextsibling" class="ref">next sibling</a> can be used to iterate over all the children of a slice. When called with no argument or <span class="code">0</span>, it returns an <a href="#about-npcref" class="ref">NPC reference</a> to the first NPC on the map. When <span class="param">npcref</span> is an NPC reference it returns a reference to the next NPC. It returns 0 when there are no more NPCs, and skips over NPCs that are disabled by a tag condition (including used one-time-use NPCs). It's safe to delete NPCs while you're iterating over them (unlike <a href="#about-nextsibling" class="ref">next sibling</a>!), but creating NPCs at the same time might result in them getting skipped.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Tag-disabled NPCs are skipped.
+				</div>
+			
 			
 			<pre># Iterate over all NPCs... and delete them all!
 variable(npcref)
@@ -9167,6 +9172,20 @@ end</pre>
 					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
 					wait for the player to click the mouse with a while loop that doesn't contain
 					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated once per frame.
+				</div>
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					When scripting a user interface (GUI or menu) with custom mouse-based controls,
+					you should almost always use <a href="#about-mouserelease" class="ref">mouse release</a> instead of <a href="#about-mousebutton" class="ref">mouse button</a>
+					or <a href="#about-mouseclick" class="ref">mouse click</a>.
+					(<span class="code">mouse button</span> is fine for gameplay actions, like throwing projectiles.)
+					<br>
+					There are two reasons: firstly, that's how the mouse works in almost all software (try it!).
+					Secondly, the engine itself uses 'mouse release' everywhere,
+					so you may run into problems if you use <span class="code">mouse button</span> for UI stuff.
+					For example if you quit a custom menu on <span class="code">mouse button</span> (ie the button is pushed down),
+					but then the engine will do something like walk the hero to a tile when it sees the button goes back up,
+					that'll cause an unwanted action.
 				</div>
 			
 			

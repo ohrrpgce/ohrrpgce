@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2021-02-08">
+<plotscript version="wip" datecode="2021-02-19">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -4817,6 +4817,19 @@ end</example>
 					wait for the player to click the mouse with a while loop that doesn't contain
 					a <ref>wait</ref> command, because the mouse state is only updated once per frame.
 				</note>
+				<warn>
+					When scripting a user interface (GUI or menu) with custom mouse-based controls,
+					you should almost always use <ref>mouserelease</ref> instead of <ref>mousebutton</ref>
+					or <ref>mouseclick</ref>.
+					(<tt>mouse button</tt> is fine for gameplay actions, like throwing projectiles.)
+					<lb/>
+					There are two reasons: firstly, that's how the mouse works in almost all software (try it!).
+					Secondly, the engine itself uses 'mouse release' everywhere,
+					so you may run into problems if you use <tt>mouse button</tt> for UI stuff.
+					For example if you quit a custom menu on <tt>mouse button</tt> (ie the button is pushed down),
+					but then the engine will do something like walk the hero to a tile when it sees the button goes back up,
+					that'll cause an unwanted action.
+				</warn>
 			</description>
 			<seealso>
 				<ref>mouseclick</ref>
