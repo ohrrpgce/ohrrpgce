@@ -1671,7 +1671,11 @@ end</example>
 		<command id="nextnpcreference">
 			<canon>next NPC reference (npcref)</canon>
 			<shortname>next NPC reference</shortname>
-			<description>This command is for looping over all the npcs on the map, in the same way that <ref>firstchild</ref> and <ref>nextsibling</ref> can be used to iterate over all the children of a slice. When called with no argument or <tt>0</tt>, it returns an <ref>npcref</ref> to the first NPC on the map. When <p>npcref</p> is an NPC reference it returns a reference to the next NPC. It returns 0 when there are no more NPCs, and skips over NPCs that are disabled by a tag condition (including used one-time-use NPCs). It's safe to delete NPCs while you're iterating over them (unlike <ref>nextsibling</ref>!), but creating NPCs at the same time might result in them getting skipped.</description>
+			<description>This command is for looping over all the npcs on the map, in the same way that <ref>firstchild</ref> and <ref>nextsibling</ref> can be used to iterate over all the children of a slice. When called with no argument or <tt>0</tt>, it returns an <ref>npcref</ref> to the first NPC on the map. When <p>npcref</p> is an NPC reference it returns a reference to the next NPC. It returns 0 when there are no more NPCs, and skips over NPCs that are disabled by a tag condition (including used one-time-use NPCs). It's safe to delete NPCs while you're iterating over them (unlike <ref>nextsibling</ref>!), but creating NPCs at the same time might result in them getting skipped.
+				<note>
+					Tag-disabled NPCs are skipped.
+				</note>
+			</description>
 			<example># Iterate over all NPCs... and delete them all!
 variable(npcref)
 npcref := next NPC reference()  # The first NPC
