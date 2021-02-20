@@ -1,3 +1,7 @@
+/* OHRRPGCE - Configuration/platform specific/important macros
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ */
 
 // Defining CONFIG_H breaks some MSVC++ or Windows header!
 #ifndef CONFIG_H__

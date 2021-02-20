@@ -1,5 +1,9 @@
-//OHRRPGCE COMMON - Generic Unix versions of OS-specific routines
-//Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
+/* OHRRPGCE - Unix versions of OS-specific routines
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ *
+ * See os_unix2.bas and os_unix_wm.c for further Unix-specific routines.
+ */
 
 // defining _POSIX_SOURCE on FreeBSD prevents use of sys/ headers (an error about u_int)
 //#if !defined(__APPLE__) && !defined(__FreeBSD__)

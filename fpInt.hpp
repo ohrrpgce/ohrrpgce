@@ -1,8 +1,12 @@
-//fpInt2.h
-//by Jay Tennant 5/31/11
-//exposes fixed point math with template overloads
-//precision is 65536 fractional steps 
-//range is from (-32768.9998...) to (32767.9998...)
+/* OHRRPGCE - low level file interface layer
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ *
+ * Written by Jay Tennant 5/31/11
+ * Fixed point math with template overloads.
+ * Precision is 65536 fractional steps.
+ * Range is from (-32768.9998...) to (32767.9998...)
+ */
 
 #ifndef FPINT_H
 #define FPINT_H

@@ -1,4 +1,9 @@
-/* Contains implementation of surface.h and gfxRender.hpp routines */
+/* OHRRPGCE - Surfaces
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ *
+ * Contains implementation of surface.h and gfxRender.hpp routines.
+ */
 
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"
@@ -19,8 +24,10 @@ void clampRectToSurface( SurfaceRect* inRect, SurfaceRect* outRect, Surface* pSu
 
 #define bound(x, low, high)  std::max(std::min(x, high), low)
 
+#ifdef USE_RASTERIZER
 // g_rasterizer has no state, so is threadsafe
 QuadRasterizer g_rasterizer;
+#endif
 
 // Access to g_surfaces and g_palettes is gated by surfaceMutex
 std::list< Surface* > g_surfaces;

@@ -1,3 +1,10 @@
+/* OHRRPGCE - Matrix routines
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ *
+ * Functions for creating 3x3 2d transformation matrices, multiplying them, and multiplying 3d vectors (x,y,w) against them
+ */
+
 #include "matrixMath.h"
 #include <string.h>
 #include <math.h>

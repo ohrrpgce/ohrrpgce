@@ -1,8 +1,10 @@
-// This file contains Unix-specific OS routines which should only be linked into
-// Game and Custom, not the commandline utils, namely X11 stuff.
-// (However this module is linked on all Unices, including OSX, not just ones using X11)
-//
-// Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
+/* OHRRPGCE - Unix versions of OS-specific window manager routines
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ *
+ * This file contains OS-specific routines which should only be linked into
+ * Game and Custom, not the commandline utils; namely, GUI/WM-related stuff.
+ */
 
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"

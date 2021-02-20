@@ -1,7 +1,11 @@
-//rasterizer.h
-//by Jay Tennant 5/30/11
-//exposes method of triangle rasterization on software surfaces
-//I think all this stuff is internal to rasterizer.cpp, and shouldn't be exposed. --tmc
+/* OHRRPGCE - software 3D rasterizer private API
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ *
+ * By Jay Tennant 5/30/11
+ * Triangle and quad rasterization on software surfaces.
+ * See gfxRender.hpp for the public rasterizer API.
+ */
 
 #ifndef RASTERIZER_H
 #define RASTERIZER_H

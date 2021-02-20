@@ -1,6 +1,9 @@
-//OHRRPGCE common - Berkeley socket-based networking routines (Windows and Unix)
-//See also networkutil.bas for related code.
-//Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
+/* OHRRPGCE - Berkeley socket-based networking routines (Windows and Unix)
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ *
+ * See also networkutil.bas for related code.
+ */
 
 #include "config.h"
 

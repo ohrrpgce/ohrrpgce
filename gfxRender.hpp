@@ -1,3 +1,10 @@
+/* OHRRPGCE - software 3D rasterizer public API
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ *
+ * This is the public complement to rasterizer.hpp.
+ */
+
 #ifndef GFXRENDER_H
 #define GFXRENDER_H
 
@@ -131,7 +138,7 @@ struct VertexPTC
 	}
 };
 
-//interfaces
+//The following interface is implemented in surface.cpp
 extern "C"
 {
 

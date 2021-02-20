@@ -1,6 +1,7 @@
-// OHRRPGCE scancode constants. An extension of FreeBASIC's set.
-//
-// Please read LICENSE.txt for GPL License details and disclaimer of liability
+/* OHRRPGCE - scancode constants
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ */
 
 #ifndef SCANCODES_H
 #define SCANCODES_H

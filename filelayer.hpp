@@ -1,5 +1,6 @@
 /* OHRRPGCE - low level file interface layer
- * Copyright 2011. Please read LICENSE.txt for GNU GPL details and disclaimer of liability
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
  */
 
 #ifndef FILELAYER_H

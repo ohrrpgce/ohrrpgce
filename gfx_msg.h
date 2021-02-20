@@ -1,6 +1,9 @@
-//gfx_msg.h
-//started 12/31/09
-//proposal for message system to the backends (for setting/getting options, etc.)
+/* OHRRPGCE - Proposed graphics backend message constants
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ *
+ * proposal for message system to the backends (for setting/getting options, etc.)
+ */
 
 #ifndef GFX_MSG_H
 #define GFX_MSG_H

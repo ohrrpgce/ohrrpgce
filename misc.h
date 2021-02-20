@@ -1,6 +1,8 @@
-/* OHRRPGCE
- * This misc function declarations, mainly from miscc.c
- * Copyright 2011. Please read LICENSE.txt for GNU GPL details and disclaimer of liability
+/* OHRRPGCE - Misc function declarations
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ *
+ * Note: does not correspond to misc.bi!
  */
 
 #ifndef COMMON_H

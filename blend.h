@@ -1,3 +1,7 @@
+/* OHRRPGCE - RGB alpha blending
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ */
 
 // Blend source and dest pixels in 24-bit colour space.
 // Alpha channel-based blending isn't enabled yet; this blends using fixed alpha

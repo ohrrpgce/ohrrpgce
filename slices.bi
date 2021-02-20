@@ -1,4 +1,4 @@
-'OHRRPGCE GAME - Slices
+'OHRRPGCE - Slices
 '(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 

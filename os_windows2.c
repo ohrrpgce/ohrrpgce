@@ -1,5 +1,9 @@
-//OHHRPGCE COMMON - Windows-specific routines which require C implementations
-//Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
+/* OHRRPGCE - Windows-specific routines which require C implementations
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ *
+ * Most low-level Windows code is in os_windows.bas, but some is easier to write in C.
+ */
 
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"

@@ -1,6 +1,7 @@
-//slices.h
-//2/28/12
-//translates important components of slices.bi for cross-language interfacing
+/* OHRRPGCE - Slices
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ */
 
 #ifndef SLICES_H
 #define SLICES_H

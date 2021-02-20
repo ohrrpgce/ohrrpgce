@@ -1,5 +1,7 @@
-//OHRRPGCE - routines for abstracting away OS differences
-//Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
+/* OHRRPGCE - routines for abstracting away OS differences
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ */
 
 #ifndef OS_H
 #define OS_H

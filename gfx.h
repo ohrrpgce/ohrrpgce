@@ -1,5 +1,7 @@
-// Definition of the OHRRPGCE graphics backend API (both old and new).
-// Any C/C++ program exporting or importing the API can include this file.
+/* OHRRPGCE - graphics API
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+ * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ */
 
 #ifndef GFX_H
 #define GFX_H
