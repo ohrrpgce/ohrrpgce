@@ -241,8 +241,8 @@ SUB subtract_attack_costs(attack as AttackData, attackerslot as integer, byref b
      .harm.ticks = gen(genDamageDisplayTicks)
      .harm.pos.x = .x + (.w * .5)
      .harm.pos.y = .y + (.h * .5)
-     .harm.text = ABS(attack.money_cost) & "$"
-     IF attack.money_cost < 0 THEN .harm.text  += "+"
+     .harm.text = price_string(ABS(attack.money_cost))
+     IF attack.money_cost < 0 THEN .harm.text = "+" & .harm.text
    END WITH
    IF gold > 2000000000 THEN gold = 2000000000
    IF gold < 0 THEN gold = 0

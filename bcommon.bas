@@ -114,7 +114,7 @@ FUNCTION attack_cost_info(byref atk as AttackData, byval focus as integer=0, byv
  NEXT i
 
  IF atk.money_cost <> 0 THEN
-  cost_s = ABS(atk.money_cost) & "$"  
+  cost_s = price_string(ABS(atk.money_cost))
   IF atk.money_cost < 0 THEN cost_s = "+" & cost_s
   v_append vec, cost_s
  END IF

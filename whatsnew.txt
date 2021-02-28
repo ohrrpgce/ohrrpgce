@@ -136,6 +136,8 @@ March ? 2021 [Hróðvitnir]
       * #1173 Windows gfx_sdl: Enter key stuck after changing window zoom level
         in Custom
     * Many bugs fixed in gfx_sdl2, which was previously experimental [Ralph]
+    * The currency global text string wasn't used for attack harm text or cost
+      descriptions [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"
