@@ -37,6 +37,7 @@ March ? 2021 [Hróðvitnir]
       <- Enemy/Attack ## -> line [Ralph]
     * Shift+F# alternative keycombos to Ctrl+F# debug keys, so you can activate
       them without accidentally activating NPCs/etc [Ralph]
+    * "Don't display 'Miss'" and "Don't display 'Fail'" attack bits [Ralph]
 
    * New Plotscripting Features
     * "set timer args" [Ralph]

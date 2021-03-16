@@ -630,6 +630,12 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
   END IF
  ELSE
   'Miss or Fail
+  IF result = atkMiss ANDALSO attack.dont_display_miss = NO THEN
+   bslot(targ).harm.text = readglobalstring(120, "miss", 20)
+  ELSEIF result = atkFail ANDALSO attack.dont_display_fail = NO THEN
+   bslot(targ).harm.text = readglobalstring(122, "fail", 20)
+  END IF
+
   checkTagCond attack.tagset(0), atktagOnMiss
   checkTagCond attack.tagset(1), atktagOnMiss
  END IF

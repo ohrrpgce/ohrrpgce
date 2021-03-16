@@ -775,7 +775,9 @@ Type AttackData
 	delete_stored_targs as bool
 	automatic_targ as bool
 	show_name as bool
-	do_not_display_damage as bool
+	dont_display_damage as bool
+	dont_display_miss as bool
+	dont_display_fail as bool
 	reset_targ_stat_before_hit as bool
 	allow_cure_to_exceed_maximum as bool
 	useable_outside_battle as bool    'Affects out-of-battle Spells menu only

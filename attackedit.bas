@@ -268,6 +268,8 @@ a_append atkbit(), -1, " Appearance"
 a_append atkbit(), 3,  "Unreversable picture"
 a_append atkbit(), 55, "Show attack name"
 a_append atkbit(), 56, "Don't display damage"
+a_append atkbit(), 90, "Don't display ""Miss"""
+a_append atkbit(), 91, "Don't display ""Fail"""
 a_append atkbit(), 82, "Don't cause target to flinch"
 
 a_append atkbit(), -1, ""

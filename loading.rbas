@@ -3160,7 +3160,7 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .delete_stored_targs            = xreadbit(buf(), 53, 20)
   .automatic_targ                 = xreadbit(buf(), 54, 20)
   .show_name                      = xreadbit(buf(), 55, 20)
-  .do_not_display_damage          = xreadbit(buf(), 56, 20)
+  .dont_display_damage            = xreadbit(buf(), 56, 20)
   .reset_targ_stat_before_hit     = xreadbit(buf(), 57, 20)
   .allow_cure_to_exceed_maximum   = xreadbit(buf(), 58, 20)
   .useable_outside_battle         = xreadbit(buf(), 59, 20)
@@ -3194,6 +3194,8 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .never_trigger_elemental_counterattacks = xreadbit(buf(), 23, 65)
   .poison_is_negative_regen       = xreadbit(buf(), 24, 65)
   .useable_inside_battle          = NOT xreadbit(buf(), 25, 65)
+  .dont_display_miss              = xreadbit(buf(), 26, 65)
+  .dont_display_fail              = xreadbit(buf(), 27, 65)
 
   ' If didn't do a full upgrade, then these aren't initialised
   IF getfixbit(fixAttackMultipliers) = 0 THEN

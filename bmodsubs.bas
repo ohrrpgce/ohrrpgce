@@ -440,25 +440,20 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
   IF attack.aim_math = 11 THEN attackhit = rando() < (1 + erf(attack.aim_extra + acc * accmult - dog * dogmult)) / 2
   IF attack.aim_math = 12 THEN attackhit = randint(100) < ((attack.aim_extra + acc * accmult) * (100 - dog * dogmult)) / 100
   IF attackhit = NO THEN
-   target.harm.text = readglobalstring(120, "miss", 20)
    RETURN atkMiss
   END IF
- 
+
   WITH target
    IF attack.fail_if_targ_poison = YES AND .stat.cur.poison < .stat.max.poison THEN
-    .harm.text = readglobalstring(122, "fail", 20)
     RETURN atkFail
    END IF
    IF attack.fail_if_targ_regen = YES AND .stat.cur.regen < .stat.max.regen THEN
-    .harm.text = readglobalstring(122, "fail", 20)
     RETURN atkFail
    END IF
    IF attack.fail_if_targ_stun = YES AND .stat.cur.stun <> .stat.max.stun THEN
-    .harm.text = readglobalstring(122, "fail", 20)
     RETURN atkFail
    END IF
    IF attack.fail_if_targ_mute = YES AND .stat.cur.mute <> .stat.max.mute THEN
-    .harm.text = readglobalstring(122, "fail", 20)
     RETURN atkFail
    END IF
   END WITH
@@ -558,10 +553,8 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
     IF t = compGe THEN fail = (effectiveval >= .value - 0.000005)
     IF fail THEN
      IF .comp AND 32 THEN
-      target.harm.text = readglobalstring(120, "miss", 20)
       RETURN atkMiss
      ELSE
-      target.harm.text = readglobalstring(122, "fail", 20)
       RETURN atkFail
      END IF
     END IF
@@ -675,7 +668,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
      '--drain
      DIM absorb_amount as integer = h * attack.absorb_rate
      astat_cur += absorb_amount
-     IF attack.do_not_display_damage = NO THEN
+     IF attack.dont_display_damage = NO THEN
       .harm.text = STR(ABS(absorb_amount))
       IF h > 0 THEN .harm.text = "+" + .harm.text
      END IF
@@ -736,7 +729,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
   END IF
 
   'set damage display
-  IF attack.do_not_display_damage = NO THEN
+  IF attack.dont_display_damage = NO THEN
    target.harm.text = STR(ABS(h))
    IF h < 0 THEN
     '--if cure, show + sign and change color
