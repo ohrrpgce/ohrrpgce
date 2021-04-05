@@ -3,3 +3,5 @@ Type a name for the font to export as. The file will appear in the same location
 Press ENTER to confirm the name and export the file.
 
 Press ESC to cancel and return to the Font Editor.
+
+Press DELETE to clear the filename.

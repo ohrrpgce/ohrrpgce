@@ -3,3 +3,5 @@ Type in a name for the sprite to be exported as a 4-bit (16-color) BMP file. The
 Press ENTER to confirm the file name and export.
 
 Press ESC to cancel and return to the Sprite editor.
+
+Press DELETE to clear away the default filename.

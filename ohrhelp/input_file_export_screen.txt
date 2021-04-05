@@ -5,3 +5,5 @@ Press ENTER to confirm the file name and export.
 Press ESC to cancel and return to the previous menu.
 
 Press TAB to change the export location.
+
+Press DELETE to clear the default filename.

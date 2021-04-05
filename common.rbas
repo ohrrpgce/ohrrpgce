@@ -6780,6 +6780,7 @@ FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref director
   END IF
   IF foldermode = NO THEN
    strgrabber filename, 40
+   IF keyval(scDelete) > 1 THEN filename = ""
    filename = fixfilename(filename)
    IF keyval(scAnyEnter) > 1 THEN
     filename = TRIM(filename)
