@@ -20,7 +20,7 @@ FBFLAGS = ['-mt'] #, '-showincludes']
 # Flags used when compiling C and C++ modules, but NOT -gen gcc or euc generated
 # C sources (except on Android...). Not used for linking.
 CFLAGS = ['-Wall']
-# Flags given to fbc to pass on to FBCC used when compiling -gen gcc generated C sources.
+# Flags given to fbc to pass on to FBCC (C compiler) used when compiling -gen gcc generated C sources.
 # Not for euc, and not used on Android (because of inflexible build system).
 GENGCC_CFLAGS = []
 # In addition to GENGCC_CFLAGS, flags for -gen gcc C sources when we compile them
@@ -205,11 +205,15 @@ if pdb:
         print("pdb=1 only makes sense when targeting Windows")
         Exit(1)
 
+tiny = int(ARGUMENTS.get('tiny', 0))
+
 # There are five levels of debug here: 0, 1, 2, 3, 4 (ugh!). See the help.
 if release:
     debug = 0
 else:
     debug = 2  # Default to happy medium
+if tiny:
+    debug = 0
 if 'debug' in ARGUMENTS:
     debug = int (ARGUMENTS['debug'])
 if debug < 2:
@@ -224,20 +228,22 @@ if debug >= 1 or pdb:
     FBFLAGS.append ('-g')
     CFLAGS.append ('-g')
     FBCC_CFLAGS.append ('-g')
+
 # Note: fbc includes symbols (but not debug info) in .o files even without -g,
 # but strips everything if -g not passed during linking; with linkgcc we need to strip.
 linkgcc_strip = (debug == 0 and pdb == 0)  # (linkgcc only) strip debug info and unwanted symbols?
-if ARGUMENTS.get('lto'):
+if int(ARGUMENTS.get('lto', tiny != 0)):  # lto=0 overrides tiny=1
     # Only use LTO on gengcc .c files. GCC throws errors if you try to use LTO
     # across C/FB, after saying declarations don't match.
     #CFLAGS.append('-flto')
     GENGCC_CFLAGS.append('-flto')
     CXXLINKFLAGS.append('-flto')
 
-# Make sure we can print stack traces
-# Also -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
-CFLAGS.append('-fno-omit-frame-pointer')
-GENGCC_CFLAGS.append('-fno-omit-frame-pointer')
+if not tiny:
+    # Make sure we can print stack traces
+    # Also -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
+    CFLAGS.append('-fno-omit-frame-pointer')
+    GENGCC_CFLAGS.append('-fno-omit-frame-pointer')
 
 portable = False
 if release and unix and not mac and not android:
@@ -264,16 +270,32 @@ if asan:
     if int (ARGUMENTS.get ('gengcc', 1)):
         gengcc = True
         FB_exx = False  # Superceded by AddressSanitizer
-if optimisations:
+
+if tiny:
+    gengcc = True
+    CFLAGS.append('-Os')
+    CXXFLAGS.append('-fno-exceptions')  # Just a few bytes
+    CXXLINKFLAGS.append('-Os')  # For LTO
+    GENGCC_CFLAGS.append('-Os')
+    FBFLAGS += ["-O", "2"]  # Currently no effect
+elif optimisations:
     CFLAGS.append ('-O3')
     CXXLINKFLAGS.append ('-O2')  # For LTO
-    FBCC_CFLAGS.append ('-O3')
     if optimisations > 1:
-        # FB optimisation flag currently does pretty much nothing unless using -gen gcc
+        # Also optimise FB code. Only use -O2 instead of -O3 because -O3 produces about 10% larger
+        # binaries (before and after compression) but most of the performance critical stuff is in
+        # .c files anyway; even the improvement in HS benchmarks is only about 3%.
+        GENGCC_CFLAGS.append('-O2')
+        # FB optimisation flag currently does pretty much nothing except passed on to -gen gcc.
+        # And we override that with GENGCC_CFLAGS anyway.
         FBFLAGS += ["-O", "2"]
 else:
     CFLAGS.append ('-O0')
     FBCC_CFLAGS.append ('-O0')
+
+# Help dead code stripping. (This helps a lot even in LTO builds!)
+CFLAGS += ['-ffunction-sections', '-fdata-sections']
+GENGCC_CFLAGS += ['-ffunction-sections', '-fdata-sections']
 
 # Backend selection.
 if 'gfx' in ARGUMENTS:
@@ -398,6 +420,7 @@ def bas_build_action(moreflags = ''):
     if FBCC.is_clang:
         # fbc asks FBCC to produce assembly and then runs that through as,
         # but clang produces some directives that as doesn't like.
+        # So we do the .c -> asm step ourselves.
         return ['$FBC $FBFLAGS -r $SOURCE -o ${TARGET}.c ' + moreflags,
                 '$FBCC $GENGCC_CFLAGS $FBCC_CFLAGS -c ${TARGET}.c -o $TARGET']
     else:
@@ -646,6 +669,7 @@ else:
     CXXLINKFLAGS += ['-Wl,--gc-sections']
 
 
+
 ################ A bunch of stuff for linking
 
 # FB 0.91 added a multithreaded version of libfbgfx
@@ -770,10 +794,13 @@ if linkgcc:
         else:
             handle_symbols += " || exit /b 0"   # aka " || true"
     else:
-        # Untested on mac. And I would guess not needed, due to -dead_strip
-        if linkgcc_strip and not mac:
+        if tiny:
+            # Perform a full strip
+            handle_symbols = "strip $TARGET"
+        elif linkgcc_strip and not mac:
             # This strips ~330kB from each of game.exe and custom.exe, leaving ~280kB of symbols
             # The size reduction is more like 60kB on Linux.
+            # Untested on mac. And I would guess not needed, due to -dead_strip
             def strip_unwanted_syms(source, target, env):
                 # source are the source objects for the executable and target is the exe
                 ohrbuild.strip_nonfunction_symbols(target[0].path, target_prefix, builddir, env)
@@ -1529,6 +1556,10 @@ Options:
                       debug info: "minimal syms" means: only function
                         symbols present (to allow basic stacktraces); adds ~300KB.
                         (Note: if gengcc=0, then debug=0 is completely unstripped)
+  tiny=1              Create a minimum-size build. Enables gengcc=1, debug=0,
+                      lto=1 and use -Os. Runs slower (scripts by ~20%).
+                      Adding lto=0 hugely shortens build time, is not much larger,
+                      but even slower.
   pdb=1               (Windows only.) Produce .pdb debug info files, for CrashRpt
                       and BreakPad crash analysis. .pdb files are put in win32/.
                       Visual Studio or Visual C++ Build Tools must be installed.
