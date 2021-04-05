@@ -1608,26 +1608,26 @@ FUNCTION script_interrupt () as integer
     'CASE 10 'exit topmost  ... probably not too helpful
     ' killtopscript
     ' ret = YES
-    CASE 1 'exit whole 'thread'
+    CASE 2 'exit fiber
      killscriptthread
      ret = YES
-    CASE 2 'kill everything
+    CASE 3 'stop all fibers
      killallscripts
      ret = YES
-    CASE 3 'die
+    CASE 4 'exit
      debug "script_interrupt: User opted to quit"
      exitprogram NO, 1
-    CASE 4 'script debugger
+    CASE 5 'script debugger
      gam.debug_scripts = 2
      scriptwatcher gam.debug_scripts 'clean mode, script state view mode
      ret = YES
-    CASE 5 'reload scripts
+    CASE 6 'reload scripts
      reload_scripts
      ret = NO
    END SELECT
    EXIT DO
   END IF
-  
+
   usemenu state
 
   clearpage vpage
