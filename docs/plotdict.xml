@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2021-02-19">
+<plotscript version="wip" datecode="2021-04-05">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -4183,31 +4183,35 @@ end</example>
 			<shortname>get enemy appearance</shortname>
 			<description>
 				Returns data on the appearance of a enemy.
-				Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size.
-				You can use the following constants for appearance:
+				<p>enemyid</p> is the enemy number that you want to return the appearance of,
+				<p>appearance</p> is one of the following constants:
 				<ul>
 					<li>enemy:picture</li>
 					<li>enemy:palette</li>
 					<li>enemy:picturesize</li>
 				</ul>
 				<lb/>
-				You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large.
+				You can compare the values returned for <tt>enemy:picturesize</tt> with the constants <tt>enemysize:small</tt>, <tt>enemysize:medium</tt> and <tt>enemysize:large</tt>.
 			</description>
 			<seealso>
 				<ref>setenemyappearance</ref>
 			</seealso>
 		</command>
 		<command id="setenemyappearance">
-			<canon>set enemy appearance (enemyid, appearance,value)</canon>
+			<canon>set enemy appearance (enemyid, appearance, value)</canon>
 			<shortname>set enemy appearance</shortname>
 			<description>
 				Lets you change an enemy's appearance.
-				Enemyid is the number of the enemy's appearance that you want to change,
-				appearance is one of the constants given in <ref>getenemyappearance</ref>.
-				Value can is the new number that you want to assign, constants enemysize:small,
-				enemysize:medium, or enemysize:large when changing picture size, or palette number when changing palette.
+				<p>enemyid</p> is the number of the enemy's appearance that you want to change,
+				<p>appearance</p> is one of the constants given in <ref>getenemyappearance</ref>.
+				<p>value</p> is the value to assign:
+				spriteset id for <tt>enemy:picture</tt>;
+				constants <tt>enemysize:small</tt>,
+				<tt>enemysize:medium</tt>, or <tt>enemysize:large</tt> when changing picture size
+				(spriteset group);
+				or palette number when changing palette.
 				<note>
-					Enemy appearance changes are temporary. They are not saved in the save game.
+					Enemy appearance changes are temporary: they are not saved in saved games.
 				</note>
 			</description>
 			<seealso>
@@ -5072,7 +5076,7 @@ show string(0)</example>
 		<command id="numberfromstring">
 			<canon>number from string (ID, default)</canon>
 			<shortname>number from string</shortname>
-			<description>Try to read the string specified by <p>ID</p> as a number and return it. Blank spaces at the beginning of the string will be ignored, and the string can start with a - sign for negatives. No other characters except numerical digits can appear in the string. You can also provide an optional default value that will be returned if the string is not a valid number (for example, if it contains a non-numeric letter)</description>
+			<description>Try to read the string specified by <p>ID</p> as a number and return it. Blank spaces at the beginning of the string will be ignored, and the string can start with a - sign for negatives. No other characters except numerical digits can appear in the string. You can also provide an optional <p>default</p> value that will be returned if the string is not a valid number (for example, if it contains a non-numeric letter)</description>
 			<seealso><ref>appendnumber</ref></seealso>
 		</command>
 		<command id="copystring">
@@ -5169,7 +5173,11 @@ show string (1)  # "CAabCAaa"
 		<command id="appendascii">
 			<canon>append ascii (ID, char)</canon>
 			<shortname>append ascii</shortname>
-			<description>Appends the character with ASCII code 'ascii' to the string with ID #ID. The font editor lists ASCII codes. For example numbers are 48 - 57, uppercase letters are 65 - 90, lowercase letters are 97 - 122.</description>
+			<description>
+				Appends the character with ASCII code <p>char</p> to the string with ID <p>ID</p>.
+				The font editor displays the character code of each character.
+				For example numbers are 48 - 57, uppercase letters are 65 - 90, lowercase letters are 97 - 122.
+			</description>
 			<seealso>
 				<ref>stringsprintf</ref>
 				<ref>appendnumber</ref>
@@ -6933,7 +6941,12 @@ end
 		<command id="slicex">
 			<canon>slice x (handle)</canon>
 			<shortname>slice x</shortname>
-			<description>Returns the X position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
+			<description>Returns the X position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.
+				<note>
+					If you want the global position of a slice (i.e. relative to top-left of the map),
+					use the <ref>slicescreenx</ref> example script.
+				</note>
+			</description>
 			<seealso>
 				<ref>slicey</ref>
 				<ref>setslicex</ref>
@@ -7000,6 +7013,10 @@ end
 				However, the slice's anchor point setting doesn't affect this, because that
 				specifies which point on the slice is attached to the anchor point.
 			</description>
+			<example># slice screen x can be used to compute the position of a slice on the map, in pixels:
+variable (map x, map y)
+map x := slice screen x(sl) + camera pixel x
+map y := slice screen y(sl) + camera pixel y</example>
 			<seealso>
 				<ref>slicescreeny</ref>
 				<ref>slicex</ref>

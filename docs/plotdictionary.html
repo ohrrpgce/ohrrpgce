@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2021-02-19)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2021-04-05)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1304,7 +1304,7 @@ function toggleContent(target) {
 		<a href="#about-seteachstepscript">set each step script (id)</a><br>
 		<a href="#about-setellipsebordercol">set ellipse border col (handle, color)</a><br>
 		<a href="#about-setellipsefillcol">set ellipse fill col (handle, color)</a><br>
-		<a href="#about-setenemyappearance">set enemy appearance (enemyid, appearance,value)</a><br>
+		<a href="#about-setenemyappearance">set enemy appearance (enemyid, appearance, value)</a><br>
 		<a href="#about-setenemyname">set enemy name (enemyid, stringid)</a><br>
 		<a href="#about-setenemystat">set enemy stat(enemy, stat, value)</a><br>
 		<a href="#about-setexperience">set experience (who, experience, allowforget)</a><br>
@@ -8126,7 +8126,7 @@ end</pre>
 		<a href="#about-getenemyname">get enemy name (enemyid, stringid)</a><br>
 		<a href="#about-setenemyname">set enemy name (enemyid, stringid)</a><br>
 		<a href="#about-getenemyappearance">get enemy appearance (enemyid, appearance)</a><br>
-		<a href="#about-setenemyappearance">set enemy appearance (enemyid, appearance,value)</a><br>
+		<a href="#about-setenemyappearance">set enemy appearance (enemyid, appearance, value)</a><br>
 		<a href="#about-readenemydata">read enemy data (enemyid, data)</a><br>
 		<a href="#about-writeenemydata">write enemy data (enemyid, data, value)</a><br>
 </div>
@@ -8257,15 +8257,15 @@ end</pre>
 <p>
 			
 				Returns data on the appearance of a enemy.
-				Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size.
-				You can use the following constants for appearance:
+				<span class="param">enemyid</span> is the enemy number that you want to return the appearance of,
+				<span class="param">appearance</span> is one of the following constants:
 				<ul>
 					<li>enemy:picture</li>
 					<li>enemy:palette</li>
 					<li>enemy:picturesize</li>
 				</ul>
 				<br>
-				You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large.
+				You can compare the values returned for <span class="code">enemy:picturesize</span> with the constants <span class="code">enemysize:small</span>, <span class="code">enemysize:medium</span> and <span class="code">enemysize:large</span>.
 			
 			
 			
@@ -8275,17 +8275,21 @@ end</pre>
 </div>
 		<div class="command">
 			<a name="about-setenemyappearance"></a>
-				<h4>set enemy appearance (enemyid, appearance,value)</h4>
+				<h4>set enemy appearance (enemyid, appearance, value)</h4>
 <p>
 			
 				Lets you change an enemy's appearance.
-				Enemyid is the number of the enemy's appearance that you want to change,
-				appearance is one of the constants given in <a href="#about-getenemyappearance" class="ref">get enemy appearance</a>.
-				Value can is the new number that you want to assign, constants enemysize:small,
-				enemysize:medium, or enemysize:large when changing picture size, or palette number when changing palette.
+				<span class="param">enemyid</span> is the number of the enemy's appearance that you want to change,
+				<span class="param">appearance</span> is one of the constants given in <a href="#about-getenemyappearance" class="ref">get enemy appearance</a>.
+				<span class="param">value</span> is the value to assign:
+				spriteset id for <span class="code">enemy:picture</span>;
+				constants <span class="code">enemysize:small</span>,
+				<span class="code">enemysize:medium</span>, or <span class="code">enemysize:large</span> when changing picture size
+				(spriteset group);
+				or palette number when changing palette.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
-					Enemy appearance changes are temporary. They are not saved in the save game.
+					Enemy appearance changes are temporary: they are not saved in saved games.
 				</div>
 			
 			
@@ -9607,7 +9611,7 @@ show string(0)</pre>
 			<a name="about-numberfromstring"></a>
 				<h4>number from string (ID, default)</h4>
 <p>
-			Try to read the string specified by <span class="param">ID</span> as a number and return it. Blank spaces at the beginning of the string will be ignored, and the string can start with a - sign for negatives. No other characters except numerical digits can appear in the string. You can also provide an optional default value that will be returned if the string is not a valid number (for example, if it contains a non-numeric letter)
+			Try to read the string specified by <span class="param">ID</span> as a number and return it. Blank spaces at the beginning of the string will be ignored, and the string can start with a - sign for negatives. No other characters except numerical digits can appear in the string. You can also provide an optional <span class="param">default</span> value that will be returned if the string is not a valid number (for example, if it contains a non-numeric letter)
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-appendnumber" class="ref">append number</a></li></ul>
@@ -9739,7 +9743,11 @@ show string (1)  # "CAabCAaa"
 			<a name="about-appendascii"></a>
 				<h4>append ascii (ID, char)</h4>
 <p>
-			Appends the character with ASCII code 'ascii' to the string with ID #ID. The font editor lists ASCII codes. For example numbers are 48 - 57, uppercase letters are 65 - 90, lowercase letters are 97 - 122.
+			
+				Appends the character with ASCII code <span class="param">char</span> to the string with ID <span class="param">ID</span>.
+				The font editor displays the character code of each character.
+				For example numbers are 48 - 57, uppercase letters are 65 - 90, lowercase letters are 97 - 122.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -12797,6 +12805,12 @@ end
 				<h4>slice x (handle)</h4>
 <p>
 			Returns the X position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					If you want the global position of a slice (i.e. relative to top-left of the map),
+					use the <a href="#about-slicescreenx" class="ref">slice screen x</a> example script.
+				</div>
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -12899,7 +12913,10 @@ end
 				specifies which point on the slice is attached to the anchor point.
 			
 			
-			
+			<pre># slice screen x can be used to compute the position of a slice on the map, in pixels:
+variable (map x, map y)
+map x := slice screen x(sl) + camera pixel x
+map y := slice screen y(sl) + camera pixel y</pre>
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-slicescreeny" class="ref">slice screen y</a>, </li>
