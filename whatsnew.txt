@@ -81,6 +81,8 @@ March ? 2021 [Hróðvitnir]
         music_sdl, now:          medium (modplug)   quiet  (mikmod)
         music_sdl, 2017-2020:    loud   (modplug)   quiet  (mikmod)
         music_sdl, before 2017:  quiet  (mikmod)    quiet  (mikmod)
+    * Games packed as Windows installers install into Program Files\ not
+      Program Files\OHRRPGCE Games\
 
   *** Bugfixes
     * "set opacity" (with opacity < 100%) didn't always turn on blending

@@ -968,7 +968,7 @@ SUB write_innosetup_script (basename as string, gamename as string, isstmp as st
  'According to the docs AppVerName is not required if both AppVerName and AppName are given,
  'but apparently older Innosetup require it
  s &= "AppVerName=" & gamename & " version " & appversion & E
- s &= "DefaultDirName={pf}\OHRRPGCE Games\" & gamename & E
+ s &= "DefaultDirName={pf}\" & gamename & E
  s &= "DefaultGroupName=" & gamename & E
  s &= "SolidCompression=yes" & E
  s &= "OutputBaseFilename=setup-" & basename & E
