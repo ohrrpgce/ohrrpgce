@@ -266,8 +266,10 @@ FUNCTION sdl2_update_gamepad(joynum as integer, state as IOJoystickState ptr) as
 
     .buttons_down = buttons
 
-    FOR idx as integer = 0 TO SDL_CONTROLLER_AXIS_MAX
-      .axes(ohr_gamepad_axes(idx)) = SDL_GameControllerGetAxis(controller, idx)
+    FOR idx as integer = 0 TO SDL_CONTROLLER_AXIS_TRIGGERRIGHT  'Axes SDL_CONTROLLER_AXIS_MAX and above not supported
+      DIM off as integer = SDL_GameControllerGetAxis(controller, idx)  'Range -32768 to 32767
+      off = (off * 1000.0) / 32767.
+      .axes(ohr_gamepad_axes(idx)) = off 'bound(CINT(off), -1000, 1000)
     NEXT
 
     #IFDEF SDL_203
