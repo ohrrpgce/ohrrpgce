@@ -42,8 +42,9 @@ echo "Building binaries for ARCH=$ARCH GFX=$GFX"
 
 rm -f ohrrpgce-game ohrrpgce-custom
 
-# lto=1 to reduce unlump/relump size
-scons release=1 ${EXTRA_SCONS_OPTIONS} arch=$ARCH lto=1 unlump relump hspeak || exit 1
+# Note: lto=1 is used on Windows/Linux to reduce unlump/relump size, but currently
+# on Mac it causes an assembler error
+scons release=1 ${EXTRA_SCONS_OPTIONS} arch=$ARCH unlump relump hspeak || exit 1
 scons release=1 ${EXTRA_SCONS_OPTIONS} arch=$ARCH gfx=$GFX game custom || exit 1
 
 echo "Bundling apps"
