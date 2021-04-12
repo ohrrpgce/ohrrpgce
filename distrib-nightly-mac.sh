@@ -24,7 +24,7 @@ svn cleanup
 svn resolve --accept theirs-full --recursive docs
 svn revert --recursive docs
 
-svn update | tee ../nightly-temp.txt || exit 1
+svn update --trust-server-cert-failures=unknown-ca --non-interactive | tee ../nightly-temp.txt || exit 1
 UPDATE=`grep "Updated to revision" ../nightly-temp.txt`
 rm ../nightly-temp.txt
 
@@ -35,7 +35,7 @@ fi
 
 echo Now we go to build the Mac nightlies
 
-svn update || exit 1
+svn update --trust-server-cert-failures=unknown-ca --non-interactive || exit 1
 
 cd wip
 
