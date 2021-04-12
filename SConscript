@@ -638,7 +638,13 @@ if FB_exx:
 
 if gengcc:
     FBFLAGS += ["-gen", "gcc"]
+    if asan:
+        # Use AddressSanitizer in C files produced by fbc
+        GENGCC_CFLAGS.append ('-fsanitize=address')
     if FBCC.is_gcc:
+        if FBCC.version >= 900:
+            # Workaround an error. See https://sourceforge.net/p/fbc/bugs/904/
+            GENGCC_CFLAGS.append ('-Wno-format')
         # -exx results in a lot of labelled goto use, which confuses gcc 4.8+, which tries harder to throw this warning
         # (This flag only recognised by recent gcc)
         if FBCC.version >= 480:
@@ -646,21 +652,21 @@ if gengcc:
             # (The following is not in gcc 4.2)
             # Ignore warnings due to using an array lbound > 0
             GENGCC_CFLAGS.append ('-Wno-array-bounds')
-        if FBCC.version >= 900:
-            # Workaround an error. See https://sourceforge.net/p/fbc/bugs/904/
-            GENGCC_CFLAGS.append ('-Wno-format')
         # Ignore annoying warning which is an fbc bug
         GENGCC_CFLAGS.append ('-Wno-missing-braces')
     if FBCC.is_clang:
         # clang doesn't like fbc's declarations of standard functions
         GENGCC_CFLAGS += ['-Wno-builtin-requires-header', '-Wno-incompatible-library-redeclaration']
-    if asan:
-        # Use AddressSanitizer in C files produced by fbc
-        GENGCC_CFLAGS.append ('-fsanitize=address')
     if len(GENGCC_CFLAGS):
         # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc; the last -Wc overrides others!
         # NOTE: GENGCC_CFLAGS isn't used on android
-        FBFLAGS += ["-Wc", ','.join (GENGCC_CFLAGS)]
+        # fbc has a limit of 127 characters for -Wc arguments (gh#298), so stop the build from breaking
+        # if we exceed the limit by removing final args, which are assumed to be least important.
+        tmp = GENGCC_CFLAGS
+        while len(','.join(tmp)) > 127:
+            print("WARNING: due to fbc bug, dropping arg -Wc %s" % tmp[-1])
+            tmp.pop()
+        FBFLAGS += ["-Wc", ','.join(tmp)]
         # Used when FBCC.is_clang only
         env['GENGCC_CFLAGS'] = GENGCC_CFLAGS
     env['FBCC_CFLAGS'] = FBCC_CFLAGS
