@@ -187,6 +187,14 @@ end sub
 sub external_log (msg as const zstring ptr)
 end sub
 
+'Not used
+sub os_open_logfile (path as const zstring ptr)
+end sub
+
+'Not used
+sub os_close_logfile ()
+end sub
+
 #macro GET_MEMORY_INFO(memctrs, on_error)
 	' This requires psapi.dll
 	if GetProcessMemoryInfo = NULL then return on_error

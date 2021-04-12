@@ -67,6 +67,8 @@ filetype_names(fileTypeError)       = "unreadable"
 
 'Set up an error handler for the errors FB throws when compiled with -exx. The
 'default handler prints a message which is lost on Windows.
+'Note also that this installs signal handlers, but some of those signal handlers
+'are overridden on Unix by setup_exception_handler()
 SUB setup_fb_error_handler()
   'There seems to be a gengcc bug at play: passing the address of a label to a
   'function doesn't work (gcc docs say it's undefined behaviour) and the address

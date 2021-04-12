@@ -196,6 +196,11 @@ if int (ARGUMENTS.get ('asm', False)):
 glibc = int (ARGUMENTS.get ('glibc', glibc))
 if glibc:
     CFLAGS += ["-DHAVE_GLIBC"]
+    # This includes symbols which are used by glibc's backtrace_symbols() function
+    # (unlike GDB backtraces which are created using debug info, and sadly GDB doesn't
+    # try to use these symbols)
+    CXXLINKFLAGS.append('-Wl,--export-dynamic')
+    FBLINKERFLAGS.append('--export-dynamic')
 
 pdb = int(ARGUMENTS.get('pdb', 0))
 if pdb:

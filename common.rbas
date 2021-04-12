@@ -388,6 +388,7 @@ END FUNCTION
 ' If c/g_debug.txt already exists, archive it and create a new one.
 ' title is what message to write at the top
 SUB start_new_debug(title as string)
+ os_close_logfile
  DIM as string logfile, archivefile
  logfile = log_dir & *app_log_filename
  archivefile = log_dir & *app_archive_filename
@@ -410,6 +411,7 @@ SUB start_new_debug(title as string)
   'num_log_buffer_errors doesn't get reset, because log_buffer doesn't.
  END IF
  debuginfo " ----" & title & "----"
+ os_open_logfile logfile
 END SUB
 
 ' Append logfile to archivefile and delete it.
@@ -459,6 +461,7 @@ END SUB
 
 ' Delete the log file if there were no important error messages.
 SUB end_debug
+ os_close_logfile
  IF NOT importantdebug THEN
    safekill log_dir & *app_log_filename
    lastlogfile = ""

@@ -41,6 +41,11 @@ boolint is_windows_9x();
 int memory_usage();
 FBSTRING *memory_usage_string();
 
+boolint setup_exception_handler();
+void save_backtrace(boolint show_message);
+void os_open_logfile(const char *path);
+void os_close_logfile();
+
 int copy_file_replacing(const char *source, const char *destination);
 boolint os_rename(const char *source, const char *destination);
 

@@ -3279,6 +3279,11 @@ local sub allmodex_controls()
 		if real_keyval(scF5) > 1 then
 			fatalerror "User hit Tab-Shift-F5"
 		end if
+
+		if real_keyval(scF6) > 1 then
+			dim x as integer
+			x = 1\x
+		end if
 	end if
 
 	if ctrlshift > 0 andalso (real_keyval(scF7) and 4) then
