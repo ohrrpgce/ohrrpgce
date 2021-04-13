@@ -2589,8 +2589,8 @@ sub JoystickState.update_keybits(joynum as integer)
 		if ret > 0 then
 			'Failed to read/not present. Continue, wiping keys()
 		end if
-		jx = state.axes(0)
-		jy = state.axes(1)
+		jx = state.axes(axisX)
+		jy = state.axes(axisY)
 	elseif io_readjoysane then
 		if io_readjoysane(joynum, state.buttons_down, jx, jy) = 0 then
 			'Failed to read/not present. Continue, wiping keys()
@@ -2626,12 +2626,14 @@ sub JoystickState.update_keybits(joynum as integer)
 	dim as double angle, norm
 	norm = sqr(jx ^ 2 + jy ^ 2)
 	angle = atan2(-jy, jx) * 6 / 3.14159265  'range -6.0 - 6.0, 0 is right, 3 is up, -3 is down
-	'debug strprintf("%d,%d -> norm %f ang %f",jx, jy, norm, angle)
+	if jx or jy then
+ 	? strprintf("%d,%d -> norm %f ang %f",jx, jy, norm, angle)
+end if
 	if norm >= xy_threshold then
-		if angle > 1  andalso angle < 5  then keys(joyUp)    or= 8
-		if angle > -5 andalso angle < -1 then keys(joyDown)  or= 8
-		if angle > -2 andalso angle < 2  then keys(joyRight) or= 8
-		if angle > 4  orelse  angle < -4 then keys(joyLeft)  or= 8
+		if angle > 1  andalso angle < 5  then keys(joyUp)    or= 8   : ?"U"
+		if angle > -5 andalso angle < -1 then keys(joyDown)  or= 8 : ?"D"
+		if angle > -2 andalso angle < 2  then keys(joyRight) or= 8 : ?"R"
+		if angle > 4  orelse  angle < -4 then keys(joyLeft)  or= 8 : ?"L"
 	end if
 	' Also treat the first hat as X, Y directions
 	' (this is only needed, and does anything, if info->have_bindings = NO)

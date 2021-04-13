@@ -167,25 +167,36 @@ define constant,begin
 121,key:Win Logo
 121,key:Command
 
-#keys >= 128 are NOT scan codes, per se, but for other devices (mouse, joystick)
+# Keys >= 128 are scancodes for other devices (mouse, joystick)
 
-128,joy:A          # Aka X/Cross (PS)
-129,joy:B          # Aka O/Circle (PS)
-130,joy:X          # Aka Square (PS)
-131,joy:Y          # Aka Triangle (PS)
+128,joy:A          # B button on SNES!
+128,joy:Cross      # PS
+129,joy:B          # A button on SNES!
+129,joy:Circle     # PS
+130,joy:X          # Y button on SNES!
+130,joy:Square     # PS
+131,joy:Y          # X button on SNES!
+132,joy:Triangle   # PS
 132,joy:LeftStick  # When pressed as a button
 133,joy:RightStick #
-134,joy:Back       # Aka Select (eg PS3, NES, SNES), Share (eg PS4), View (Xbox)
-135,joy:Guide      # Aka PS (eg PS3), XBox
-136,joy:Start      # Aka Options (PS4), Menu (XBox)
+# Center-left button: Select (NES, SNES, PS1-3), Back (Xbox), Share (PS4), View (Xbox)
+134,joy:Select
+134,joy:Back
+# Center button: PS button (PS3), Xbox guide button
+135,joy:Logo
+135,joy:Guide
+# Center-right button: Start (NES, SNES, Genesis, N64, Saturn, PS1-3, Xbox), Options (PS4), Menu (XBox)
+136,joy:Start
 137,joy:L1         # Left shoulder
 138,joy:R1         # Right shoulder
 139,joy:L2         # Left trigger. Also axis:L2
 140,joy:R2         # Left trigger. Also axis:R2
+#141-143 unassigned
 144,joy:Left       # Dpad
 145,joy:Right
 146,joy:Up
 147,joy:Down
+
 # Obsolete aliases
 144,joy:x left
 145,joy:x right

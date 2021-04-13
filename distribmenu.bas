@@ -627,6 +627,10 @@ SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
   EXIT SUB
  END IF
 
+ ' DIM resourcehacker as string = find_windows_helper_app("resourcehacker", YES)
+ ' IF resourcehacker = "" THEN EXIT SUB
+
+
  DIM rcedit as string = find_windows_helper_app("rcedit", YES)
  IF rcedit = "" THEN EXIT SUB
 
