@@ -157,7 +157,7 @@ FUNCTION IO_SDL(get_joystick_state)(byval joynum as integer, byval state as IOJo
         ret = sdl2_update_gamepad(joynum, state)
       #endif
     ELSE
-?"no binding"
+      '?"no binding"
       FOR idx = 0 TO .info->num_buttons - 1
         IF SDL_JoystickGetButton(joy, idx) THEN .buttons_down OR= 1 SHL idx
       NEXT
@@ -262,7 +262,7 @@ FUNCTION sdl2_update_gamepad(joynum as integer, state as IOJoystickState ptr) as
     FOR idx as integer = 0 TO SDL_CONTROLLER_BUTTON_MAX
       IF SDL_GameControllerGetButton(controller, idx) THEN
         'io_get_joystick_state returns gamepad buttons starting with joyButton1 in the first bit
-        ? "raw SDL button " & idx & " " & *SDL_GameControllerGetStringForButton(idx)
+        '? "raw SDL button " & idx & " " & *SDL_GameControllerGetStringForButton(idx)
         buttons OR= 1 SHL (ohr_gamepad_buttons(idx) - 1)
       END IF
     NEXT
@@ -272,7 +272,7 @@ FUNCTION sdl2_update_gamepad(joynum as integer, state as IOJoystickState ptr) as
     FOR idx as integer = 0 TO SDL_CONTROLLER_AXIS_TRIGGERRIGHT  'Axes SDL_CONTROLLER_AXIS_MAX and above not supported
       DIM off as integer = SDL_GameControllerGetAxis(controller, idx)  'Range -32768 to 32767
       IF off THEN
-        ? "raw SDL axis " & idx & " ohrax=" & ohr_gamepad_axes(idx) &  " " & off
+        '? "raw SDL axis " & idx & " ohrax=" & ohr_gamepad_axes(idx) &  " " & off
       END IF
       off = (off * 1000.0) / 32767.
       .axes(ohr_gamepad_axes(idx)) = off 'bound(CINT(off), -1000, 1000)
