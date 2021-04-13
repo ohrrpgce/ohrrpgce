@@ -247,7 +247,7 @@ ENUM 'JoyButton
  joyRight      = 18
  joyUp         = 19
  joyDown       = 20
- joyLASTGAMEPAD = 20  'Last button with builtin meaning
+ joyLASTGAMEPAD = 20  'Last button with a gamepad mapping
  'joyA2Left     = 21  'Right thumbstick (axisRightX/Y)
  'joyA2Right    = 22
  'joyA2Up       = 23
@@ -268,6 +268,7 @@ ENUM 'JoyAxis
  axisRightY = 3
  axisL2     = 4  'Left trigger
  axisR2     = 5  'Right trigger
+ axisLASTGAMEPAD = 5  'Last axis with a gamepad mapping
 END ENUM
 TYPE JoyAxis as integer
 

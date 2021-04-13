@@ -113,6 +113,7 @@ LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
           'This name may vary from SDL_JoystickNameForIndex
           debuginfo " Opened as gamecontroller " & SDL_GameControllerName(controller)
           .num_buttons = large(.num_buttons, joyLASTGAMEPAD)
+          .num_axes = large(.num_buttons, axisLASTGAMEPAD)
         ELSE
           debug "Couldn't open gamecontroller " & joynum & ": " & *SDL_GetError
           .have_bindings = NO
@@ -199,7 +200,6 @@ FUNCTION IO_SDL(get_joystick_state)(byval joynum as integer, byval state as IOJo
     END IF
   END WITH
 
-? "ax0 " &state->axes(0)
   RETURN ret
 END FUNCTION
 

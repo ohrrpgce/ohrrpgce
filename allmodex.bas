@@ -284,7 +284,7 @@ type JoystickState extends KeyArray
 	state as IOJoystickState
 
 	' Configuration
-	xy_threshold as integer = 500
+	axis_threshold as integer = AXIS_LIMIT / 2
 
 	declare constructor()
 	declare sub init_controls()
@@ -2598,10 +2598,10 @@ sub JoystickState.update_keybits(joynum as integer)
 			'are renumbered)
 		else
 			'io_readjoysane reports -100 to 100, not -1000 to 1000
-			jx *= 10
-			jy *= 10
-			state.axes(0) = jx
-			state.axes(1) = jy
+			jx *= AXIS_LIMIT / 100
+			jy *= AXIS_LIMIT / 100
+			state.axes(axisX) = jx
+			state.axes(axisY) = jy
 		end if
 	else
 		'Backend doesn't support joysticks! Continue, wiping keys()
@@ -2629,19 +2629,25 @@ sub JoystickState.update_keybits(joynum as integer)
 	if jx or jy then
  	? strprintf("%d,%d -> norm %f ang %f",jx, jy, norm, angle)
 end if
-	if norm >= xy_threshold then
+	if norm >= axis_threshold then
 		if angle > 1  andalso angle < 5  then keys(joyUp)    or= 8   : ?"U"
 		if angle > -5 andalso angle < -1 then keys(joyDown)  or= 8 : ?"D"
 		if angle > -2 andalso angle < 2  then keys(joyRight) or= 8 : ?"R"
 		if angle > 4  orelse  angle < -4 then keys(joyLeft)  or= 8 : ?"L"
 	end if
-	' Also treat the first hat as X, Y directions
-	' (this is only needed, and does anything, if info->have_bindings = NO)
-	' (E.g. on this here PSX controller with thumbsticks, using a usb adaptor, the
-	' dpad reports as axes 0/1 with analog off, and as hat 0 with analog on)
-	for bitn as integer = 0 to 3
-		if state.hats(0) and (1 shl bitn) then keys(joyLeft + bitn) or= 8
-	next
+
+	if state.info andalso state.info->have_bindings then
+		' These two trigger buttons are reported as axes, not buttons, by XInput and SDL2
+		if state.axes(axisL2) > axis_threshold then keys(joyL2) or= 8
+		if state.axes(axisR2) > axis_threshold then keys(joyR2) or= 8
+	else
+		' If don't have button bindings also treat the first hat as X, Y directions
+		' (E.g. on this here PSX controller with thumbsticks, using a usb adaptor, the
+		' dpad reports as axes 0/1 with analog off, and as hat 0 with analog on)
+		for bitn as integer = 0 to 3
+			if state.hats(0) and (1 shl bitn) then keys(joyLeft + bitn) or= 8
+		next
+	end if
 
 	for btn as integer = 0 to 31
 		if state.buttons_down and (1 shl btn) then
