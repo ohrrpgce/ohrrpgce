@@ -10,6 +10,7 @@ March ? 2021 [Hróðvitnir]
       * Press F in the slice editor to focus on a slice [Ralph]
       * Slice collections can be named. The name and collection ID are shown in
         the in-game slice debugger [Ralph]
+      * In the position/size edit view hold Ctrl to change size/position instead
     * F8 debug menu option "Enable/Disable random battles" [Ralph]
     * Better, smoother screen fading in/out [Ralph]
     * Option (in General Settings Menu) to run in 24-bit color mode. Much nicer

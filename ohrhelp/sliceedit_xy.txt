@@ -2,4 +2,6 @@ You are editing the position or size of a slice, or shifting the position the sl
 
 Press arrow keys to change the position/size, and hold down Shift to move more quickly.
 
+If you're editing a slice's posiition or size then you can hold Ctrl to modify size/position instead.
+
 Press F7 to toggle whether the slice outline is shown.

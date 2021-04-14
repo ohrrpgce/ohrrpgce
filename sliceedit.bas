@@ -191,7 +191,7 @@ DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
 DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
-DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr, byref show_ants as bool)
+DECLARE SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Slice ptr, rootsl as Slice ptr, byref show_ants as bool, ctrl_msg as string = "")
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
 DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, edit_separately as bool)
 DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
@@ -850,7 +850,7 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
   'even if it's not drawn. The root gets deleted when leaving slice_editor, so
   'changes are temporary.
   DIM true_root as Slice ptr = FindRootSlice(edslice)
-  slice_editor_xy true_root->X, true_root->Y, ses.draw_root, edslice, ses.show_ants
+  slice_editor_xy @true_root->Pos, , ses.draw_root, edslice, ses.show_ants
   state.need_update = YES
  END IF
  IF keyval(scF7) > 1 THEN ses.show_ants = NOT ses.show_ants
@@ -1487,13 +1487,14 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
  END IF
  IF rule.group AND slgrPICKXY THEN
   IF enter_space_click(state) THEN
-   slice_editor_xy sl->X, sl->Y, sl, ses.draw_root, ses.show_ants
+   slice_editor_xy @sl->Pos, @sl->Size, sl, ses.draw_root, ses.show_ants, "Hold CTRL to adjust size"
+
    state.need_update = YES
   END IF
  END IF
  IF rule.group AND slgrPICKWH THEN
   IF enter_space_click(state) THEN
-   slice_editor_xy sl->Width, sl->Height, sl, ses.draw_root, ses.show_ants
+   slice_editor_xy @sl->Size, @sl->Pos, sl, ses.draw_root, ses.show_ants, "Hold CTRL to adjust position"
    state.need_update = YES
   END IF
  END IF
@@ -1611,9 +1612,10 @@ FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
  END IF
 END FUNCTION
 
-'Editor to visually edit an x/y position or a width/height
-SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr, byref show_ants as bool)
- DIM shift as integer = 0
+'Editor to visually edit an x/y position or a width/height or both at once
+'ctrl_msg is used to tell what CTRL does (modifies xy2 instead of xy1)
+SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Slice ptr, rootsl as Slice ptr, byref show_ants as bool, ctrl_msg as string = "")
+ DIM msg as string = "Arrow keys to edit, SHIFT for speed. " & ctrl_msg
  setkeys
  DO
   setwait 55
@@ -1625,16 +1627,17 @@ SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Sl
   DIM speed as integer = IIF(keyval(scShift) > 0, 10, 1)
   'The following calls to slice_edit_updates only do something if x/y are focussl->Width/Height.
   'Perfectly harmless otherwise.
-  IF keyval(ccUp)    > 0 THEN y -= speed : slice_edit_updates focussl, @y
-  IF keyval(ccRight) > 0 THEN x += speed : slice_edit_updates focussl, @x
-  IF keyval(ccDown)  > 0 THEN y += speed : slice_edit_updates focussl, @y
-  IF keyval(ccLeft)  > 0 THEN x -= speed : slice_edit_updates focussl, @x
+  DIM byref pair as XYPair = *IIF(keyval(scCtrl) > 0, xy2, xy1)
+  IF keyval(ccUp)    > 0 THEN pair.y -= speed : slice_edit_updates focussl, @pair.y
+  IF keyval(ccRight) > 0 THEN pair.x += speed : slice_edit_updates focussl, @pair.x
+  IF keyval(ccDown)  > 0 THEN pair.y += speed : slice_edit_updates focussl, @pair.y
+  IF keyval(ccLeft)  > 0 THEN pair.x -= speed : slice_edit_updates focussl, @pair.x
   draw_background vpages(dpage), bgChequer
   'Invisible slices won't be updated by DrawSlice
   RefreshSliceTreeScreenPos focussl
   DrawSlice rootsl, dpage
   IF show_ants THEN DrawSliceAnts focussl, dpage
-  edgeprint "Arrow keys to edit, SHIFT for speed", 0, pBottom, uilook(uiText), dpage
+  wrapprint msg, 0, pBottom, uilook(uiText), dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -2710,7 +2713,7 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
   CASE 13  'Shift viewport
    IF activate THEN
     DIM true_root as Slice ptr = FindRootSlice(edslice)
-    slice_editor_xy true_root->X, true_root->Y, ses->draw_root, edslice, ses->show_ants
+    slice_editor_xy @true_root->Pos, , ses->draw_root, edslice, ses->show_ants
    END IF
   CASE 14
    changed = boolgrabber(ses->show_ants, state)
