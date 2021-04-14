@@ -53,3 +53,6 @@ On the other hand, if you turn this ON, then changing the Load and Death scripts
 This only affects the script commands for checking keyboard keys, not built-in controls for moving the hero and using menus, which always support keyboard, mouse and joysticks.
 You don't need to turn on this bit if you use the constants "left key", ... "use key", "menu key", etc, in your scripts instead of "key:left", ... "key:enter", "key:esc", etc, since those constants mean "LEFT on any keyboard/controller", etc.
 If you want to know the real state of these keyboard keys (e.g. if you want to create a local multi-player game that uses keyboard and joystick for different players), you need to turn this OFF.
+
+"Map joystick (left) stick to dpad" maps joystick/gamepad primary X/Y axes (which are the left thumbstick on gamepads, or possibly the dpad on gamepads without one) to the "joy:left/right/up/down" keys, which allows you to walk around and use menus using a gamepad.
+ALWAYS keep this enabled unless you are completely scripting your own movement, checking both the "joy:left/right/up/down" keys AND the "axis:X/Y" axes, otherwise the game won't be playable with gamepads which report the dpad buttons as the X/Y axis rather than as buttons. Even then, turning this off is going to break builtin menus!

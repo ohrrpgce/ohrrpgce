@@ -33,6 +33,7 @@ March ? 2021 [Hróðvitnir]
       Cancel/Menu, Start is Menu, and you can use new joy:button constants like
       joy:A, joy:LeftStick, joy:L2 for keypress commands, and axis:X, axis:RightY,
       axis:L2, etc. for "joystick axis" [Ralph]
+    * Preference bitset "Map joystick (left) stick to dpad" (default on) [Ralph]
     * You can copy/paste enemies and attacks by pressing Ctrl-C, etc, on the
       <- Enemy/Attack ## -> line [Ralph]
     * Shift+F# alternative keycombos to Ctrl+F# debug keys, so you can activate

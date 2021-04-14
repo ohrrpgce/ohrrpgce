@@ -2637,7 +2637,9 @@ sub JoystickState.update_keybits(joynum as integer)
 	' Set pressed buttons
 
 	' Map axes 0, 1 to dpad buttons
-	joy_axes_to_buttons jx, jy, keys(joyUp), keys(joyDown), keys(joyLeft), keys(joyRight), axis_threshold
+	if prefbit(53) = NO then ' "!Map joystick (left) stick to dpad"
+		joy_axes_to_buttons jx, jy, keys(joyUp), keys(joyDown), keys(joyLeft), keys(joyRight), axis_threshold
+	end if
 	' Convenience buttons for using right thumbstick
 	joy_axes_to_buttons state.axes(axisRightX), state.axes(axisRightY), keys(joyRStickUp), _
 			    keys(joyRStickDown), keys(joyRStickLeft), keys(joyRStickRight), axis_threshold

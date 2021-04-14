@@ -111,7 +111,7 @@ LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
         VAR controller = SDL_GameControllerOpen(joynum)
         IF controller THEN
           'This name may vary from SDL_JoystickNameForIndex
-          debuginfo " Opened as gamecontroller " & SDL_GameControllerName(controller)
+          debuginfo " Opened as gamecontroller " & *SDL_GameControllerName(controller)
           .num_buttons = large(.num_buttons, joyLASTGAMEPAD)
           .num_axes = large(.num_buttons, axisLASTGAMEPAD)
         ELSE
