@@ -2571,6 +2571,22 @@ sub KeyboardState.update_keybits()
 
 end sub
 
+sub joy_axes_to_buttons(jx as integer, jy as integer, byref keyup as KeyBits, byref keydown as KeyBits, byref keyleft as KeyBits, byref keyright as KeyBits, axis_threshold as integer)
+
+	'Instead of treating X and Y separately, which would divide the range of possible values
+	'into quadrants, we divide it into a circular dead zone and 8 surrounding sectors
+	dim as double angle, norm
+	norm = sqr(jx ^ 2 + jy ^ 2)
+	angle = atan2(-jy, jx) * 6 / 3.14159265  'range -6.0 - 6.0, 0 is right, 3 is up, -3 is down
+	'if jx or jy then ? strprintf("%d,%d -> norm %f ang %f",jx, jy, norm, angle)
+	if norm >= axis_threshold then
+		if angle > 1  andalso angle < 5  then keyup    or= 8
+		if angle > -5 andalso angle < -1 then keydown  or= 8
+		if angle > -2 andalso angle < 2  then keyright or= 8
+		if angle > 4  orelse  angle < -4 then keyleft  or= 8
+	end if
+end sub
+
 'This is similar to io_keybits for a single joystick:
 'it updates a JoystickState with currently-down and new-keypress bits.
 'Basically it does a similar thing to the pollingthread, emulating new-keypress
@@ -2620,19 +2636,11 @@ sub JoystickState.update_keybits(joynum as integer)
 
 	' Set pressed buttons
 
-	' Convert axes 0, 1 to X, Y buttons
-	'Instead of treating X and Y separately, which would divide the range of possible values
-	'into quadrants, we divide it into a circular dead zone and 8 surrounding sectors
-	dim as double angle, norm
-	norm = sqr(jx ^ 2 + jy ^ 2)
-	angle = atan2(-jy, jx) * 6 / 3.14159265  'range -6.0 - 6.0, 0 is right, 3 is up, -3 is down
-	'if jx or jy then ? strprintf("%d,%d -> norm %f ang %f",jx, jy, norm, angle)
-	if norm >= axis_threshold then
-		if angle > 1  andalso angle < 5  then keys(joyUp)    or= 8
-		if angle > -5 andalso angle < -1 then keys(joyDown)  or= 8
-		if angle > -2 andalso angle < 2  then keys(joyRight) or= 8
-		if angle > 4  orelse  angle < -4 then keys(joyLeft)  or= 8
-	end if
+	' Map axes 0, 1 to dpad buttons
+	joy_axes_to_buttons jx, jy, keys(joyUp), keys(joyDown), keys(joyLeft), keys(joyRight), axis_threshold
+	' Convenience buttons for using right thumbstick
+	joy_axes_to_buttons state.axes(axisRightX), state.axes(axisRightY), keys(joyRStickUp), _
+			    keys(joyRStickDown), keys(joyRStickLeft), keys(joyRStickRight), axis_threshold
 
 	if state.info andalso state.info->have_bindings then
 		' These two trigger buttons are reported as axes, not buttons, by XInput and SDL2
@@ -2641,7 +2649,7 @@ sub JoystickState.update_keybits(joynum as integer)
 	else
 		' If don't have button bindings also treat the first hat as X, Y directions
 		' (E.g. on this here PSX controller with thumbsticks, using a usb adaptor, the
-		' dpad reports as axes 0/1 with analog off, and as hat 0 with analog on)
+		' dpad reports as axes 0/1 with analog off, and as hat 0 (or dpad under SDL2) with analog on)
 		for bitn as integer = 0 to 3
 			if state.hats(0) and (1 shl bitn) then keys(joyLeft + bitn) or= 8
 		next

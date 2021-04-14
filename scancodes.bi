@@ -247,11 +247,11 @@ ENUM 'JoyButton
  joyRight      = 18
  joyUp         = 19
  joyDown       = 20
- joyLASTGAMEPAD = 20  'Last button with a gamepad mapping
- 'joyA2Left     = 21  'Right thumbstick (axisRightX/Y)
- 'joyA2Right    = 22
- 'joyA2Up       = 23
- 'joyA2Down     = 24
+ joyRStickLeft = 21  'Right thumbstick (axisRightX/Y)
+ joyRStickRight= 22
+ joyRStickUp   = 23
+ joyRStickDown = 24
+ joyLASTGAMEPAD= 24  'Last button with a gamepad mapping
  'joyEXTRA      = 25  'Any other surplus buttons start here (not implemented)
 
  joyButton1    = 1

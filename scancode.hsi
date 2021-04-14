@@ -190,12 +190,16 @@ define constant,begin
 137,joy:L1         # Left shoulder
 138,joy:R1         # Right shoulder
 139,joy:L2         # Left trigger. Also axis:L2
-140,joy:R2         # Left trigger. Also axis:R2
+140,joy:R2         # Right trigger. Also axis:R2
 #141-143 unassigned
 144,joy:Left       # Dpad
 145,joy:Right
 146,joy:Up
 147,joy:Down
+148,joy:RStick Left  # Right stick
+149,joy:RStick Right
+150,joy:RStick Up
+151,joy:RStick Down
 
 # Obsolete aliases
 144,joy:x left
@@ -247,12 +251,12 @@ end
 
 define constant, begin
 # Joystick axes
-0, x axis  #old style
+0, x axis  # Old style alias
 1, y axis
 0, axis:X
 1, axis:Y
-2, axis:RightX
-3, axis:RightY
-4, axis:L2
-5, axis:R2
+2, axis:RightX  # Also mapped to joy:RStickLeft, joy:RStickRight
+3, axis:RightY  # Also mapped to joy:RStickUp, joy:RStickDown
+4, axis:L2   # Also mapped to joy:L2 button
+5, axis:R2   # Also mapped to joy:R2 button
 end
