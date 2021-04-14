@@ -27,6 +27,7 @@ CONST ENABLE_SLICE_DEBUG = NO
 'containing "Alias" in ones after the first. The first name is the main one.
 'Other comments are ignored.
 
+'Lookup code -1 is used in at least edit_slice_lookup_codes as a reserved value
 '<SLICE LOOKUP CODES>
 CONST SL_EDITOR_SPLASH_MENU   = -100
 CONST SL_EDITOR_THINGBROWSER_THINGLIST      = -200

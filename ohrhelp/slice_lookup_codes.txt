@@ -1,7 +1,11 @@
 This is the Slice Lookup code name editor.
 
-Here you can define names that can be assigned to your slices. Each line on the screen aside from "Previous Menu" is a lookup code name. Initially they are all blank.
+Here you can define names that can be assigned to your slices. Each line on the screen aside from "Previous Menu" and "None" is a lookup code name. Initially they are all blank.
 
-A slice only needs a lookup code name if you want to be able to use the "lookup slice" plotscripting command to get a handle to the slice.
+Select any line (such as the blank line at the bottom of the menu) and type to enter/modify a lookup name.
+
+Press Enter or Click to select the lookup code for the current slice, or ESC to exit without changing the slice's lookup code.
+
+A slice only needs a lookup code if you want to be able to use the "lookup slice" plotscripting command to get a handle to the slice.
 
 The names you define here will be exported in your HSI file.

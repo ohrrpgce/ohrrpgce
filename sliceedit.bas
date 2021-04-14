@@ -2409,7 +2409,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
  NEXT i
 
  IF ses.collection_group_number = SL_COLLECT_EDITOR THEN
-  append_simplemenu_item menu, "All Special Lookup Codes", YES, uiLook(uiText)
+  append_simplemenu_item menu, "All Special Lookup Codes", YES, uiLook(uiText), -1
 
 '--the following is updated from slices.bi using the misc/sl_lookup.py script
 '<SLICE LOOKUP NAMES>
@@ -2511,12 +2511,22 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
 
  END IF
 
- append_simplemenu_item menu, "User Defined Lookup Codes", YES, uiLook(uiText)
+ append_simplemenu_item menu, "User Defined Lookup Codes", YES, uiLook(uiText), -1
  DIM userdef_start as integer = v_len(menu) - 1
 
  FOR i as integer = 1 TO UBOUND(slicelookup)
   append_simplemenu_item menu, slicelookup(i), , , i
  NEXT i
+
+ 'Prepend -> symbol to the currently selected code as a UI hack to remind the
+ 'user that pressing ESC will not change the current selection, although the ->
+ 'never moves because changing the code and exiting are done in same action.
+ FOR i as integer = 0 TO v_len(menu) - 1
+  DIM lookup as integer = menu[i].dat
+  IF lookup <> -1 THEN
+   menu[i].text = IIF(lookup = start_at_code, CHR(26), " ") & menu[i].text
+  END IF
+ NEXT
 
  DIM st as MenuState
  init_menu_state st, cast(BasicMenuItem vector, menu)
@@ -2552,9 +2562,9 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
   IF st.pt > userdef_start THEN
 
    'Edit lookup codes
-   IF strgrabber(slicelookup(curcode), 40) THEN
+   IF strgrabber(slicelookup(curcode), 70) THEN
     slicelookup(curcode) = sanitize_script_identifier(slicelookup(curcode))
-    v_at(menu, st.pt)->text = slicelookup(curcode)
+    v_at(menu, st.pt)->text = " " & slicelookup(curcode)
    END IF
 
    '--make the list longer if we have selected the last item in the list and it is not blank
