@@ -218,9 +218,12 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    end if
   end if
 
+  if keyval(scSpace) > 1 andalso selectst.query <> " " then
+   'Don't activate any menu items while select_by_typing is active
+
   'Activating menu items.
   'The hover=ps.cur test here is to ensure that clicking and dragging off the selection does not activate it.
-  if ps.cur andalso enter_or_space() orelse _
+  elseif ps.cur andalso enter_or_space() orelse _
      ((readmouse.release AND mouseLeft) andalso hover = ps.cur andalso confirm_plank_click(hover)) then
    if can_edit andalso (isAncestor(ps.cur, new_holder) orelse isAncestor(ps.cur, add_new_holder)) then
     '+New menubar button or Add New button at end
