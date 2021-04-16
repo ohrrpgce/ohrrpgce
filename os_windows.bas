@@ -67,8 +67,9 @@ include_windows_bi()
 	dim shared loaded_crashrpt as bool = NO
 #endif
 
+declare sub update_crash_report_file(path as const zstring ptr)
 
-dim shared crash_reportfile as string
+dim shared crash_report_file as string
 dim shared continue_after_exception as bool = NO
 dim shared want_exception_messagebox as bool = YES
 dim shared main_thread_id as integer
@@ -194,12 +195,12 @@ end sub
 sub external_log (msg as const zstring ptr)
 end sub
 
-'Not used
 sub os_open_logfile (path as const zstring ptr)
+	update_crash_report_file path
 end sub
 
-'Not used
 sub os_close_logfile ()
+	update_crash_report_file NULL
 end sub
 
 #macro GET_MEMORY_INFO(memctrs, on_error)
@@ -243,18 +244,18 @@ function exceptFilterMessageBox(pExceptionInfo as PEXCEPTION_POINTERS) as clong
 
 	if want_exception_messagebox then
 		'Avoid calling FB string routines
-		dim msgbuf as string * 301
-		if len(crash_reportfile) then
+		dim msgbuf as string * 401
+		if loaded_drmingw then
 			'This only happens if we loaded exchndl.dll
-			snprintf(strptr(msgbuf), 300, _
+			snprintf(strptr(msgbuf), 400, _
 				 !"The engine has crashed! Sorry :(\n\n" _
 				 !"A crash report has been written to\n%s\n\n" _
 				 !"Please email it and g_debug.txt or c_debug.txt\n" _
 				 !"to ohrrpgce-crash@HamsterRepublic.com\n" _
 				 "with a description of what you were doing.", _
-				 strptr(crash_reportfile))
+				 strptr(crash_report_file))
 		else
-			snprintf(strptr(msgbuf), 300, _
+			snprintf(strptr(msgbuf), 400, _
 				 !"The engine has crashed! Sorry :(\n\n" _
 				 !"Can't generate a stacktrace, as neither\n" _
 				 !"CrashRpt1403.dll nor exchndl.dll are present.\n\n" _
@@ -380,18 +381,25 @@ function setup_exception_handler() as boolint
 		return NO
 	end if
 #else
-	' If statically linked to libexchndl.a/exchndl.dll
+	' If statically linked to libexchndl.a
 	ExcHndlInit()
 #endif
-	crash_reportfile = trimextension(exename) + "-crash-report.txt"
-	early_debuginfo "exchndl will log to " & crash_reportfile
-	ExcHndlSetLogFileNameA(strptr(crash_reportfile))
 	loaded_drmingw = YES
+	update_crash_report_file NULL
 	return YES
 #endif
 end function
 
-'This works only if DrMingw was loaded: will log a backtrace to crash_reportfile.
+local sub update_crash_report_file(path as const zstring ptr)
+	crash_report_file = *IIF(path = NULL, @"crash-report.txt", path)
+#if defined(WITH_DRMINGW)
+	if loaded_drmingw then
+		ExcHndlSetLogFileNameA(strptr(crash_report_file))
+	end if
+#endif
+end sub
+
+'This works only if DrMingw was loaded: will log a backtrace to crash_report_file.
 'Will popup an "Engine crashed ... saved backtrace" messagebox if show_message true.
 sub save_backtrace(show_message as bool = YES)
 #if defined(WITH_DRMINGW)
