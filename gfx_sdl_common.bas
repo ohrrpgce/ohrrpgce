@@ -58,13 +58,6 @@ END FUNCTION
 'Check a joystick is valid, and open it if not open yet, reading info
 'Same return values as io_get_joystick_state in gfx.bi
 LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
-  'SDL1 & 2 report joystick state even when the app isn't focused (under both Linux and Windows)
-  #ifdef USE_SDL2
-    IF (SDL_GetWindowFlags(mainwindow) AND SDL_WINDOW_INPUT_FOCUS) = 0 THEN RETURN 3
-  #else
-    IF (SDL_GetAppState() AND SDL_APPINPUTFOCUS) = 0 THEN RETURN 3
-  #endif
-
   IF joynum < 0 ORELSE joynum >= maxJoysticks THEN RETURN 1
   IF joynum > SDL_NumJoysticks() - 1 THEN RETURN 1
   'FIXME: this doesn't handle joysticks getting renumbered as they are plugged/unplugged
@@ -112,8 +105,6 @@ LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
         IF controller THEN
           'This name may vary from SDL_JoystickNameForIndex
           debuginfo " Opened as gamecontroller " & *SDL_GameControllerName(controller)
-          .num_buttons = large(.num_buttons, joyLASTGAMEPAD)
-          .num_axes = large(.num_buttons, axisLASTGAMEPAD)
         ELSE
           debug "Couldn't open gamecontroller " & joynum & ": " & *SDL_GetError
           .have_bindings = NO
@@ -129,6 +120,10 @@ LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
     debuginfo strprintf("Opened joystick %d %s (id %d) -- %d buttons %d axes %d hats %d balls", _
                         joynum, joyname, .instance_id, .num_buttons, .num_axes, .num_hats, .num_balls)
 
+    IF .have_bindings THEN
+      .num_buttons = large(joyLASTGAMEPAD, .num_buttons)
+      .num_axes = large(axisLASTGAMEPAD, .num_buttons)
+    END IF
     .num_buttons = small(32, .num_buttons)
     .num_axes = small(8, .num_axes)
     .num_hats = small(4, .num_hats)
@@ -144,6 +139,14 @@ FUNCTION IO_SDL(get_joystick_state)(byval joynum as integer, byval state as IOJo
 
   'Fixed joystick info
   state->info = @joystickinfo(joynum)
+
+  'SDL1.2 (not SDL 2) reports joystick state even when the app isn't focused (under both
+  'Linux and Windows), be consistent and ignore it
+  #ifdef USE_SDL2
+    'IF (SDL_GetWindowFlags(mainwindow) AND SDL_WINDOW_INPUT_FOCUS) = 0 THEN RETURN 3
+  #else
+    IF (SDL_GetAppState() AND SDL_APPINPUTFOCUS) = 0 THEN RETURN 3
+  #endif
 
   'We can assume that state has already been cleared.
   DIM idx as integer

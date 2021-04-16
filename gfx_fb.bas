@@ -588,7 +588,7 @@ function io_fb_get_joystick_state(byval joynum as integer, byval state as IOJoys
 	' 5: V
 	' 6,7: POV hat (direction converted by fbgfx to possible values {-1,0,1} for each axis)
 	'On linux, fbgfx reads events from /dev/input/js# and /dev/js#, which seem to
-	'treat POV hats as extra axes
+	'treat POV hats as extra axes, not necessarily starting at 6, so no way to distinguish them.
 	dim ax(7) as single
 	dim as size_t button_bits
 	if getjoystick(joynum, button_bits, ax(0), ax(1), ax(2), ax(3), ax(4), ax(5), ax(6), ax(7)) then
