@@ -30,20 +30,27 @@ include_windows_bi()
 'but debug=2/3 will add -exx for more error checking.
 #define WITH_CRASHRPT
 
+'Try to load the DrMingw embeddable exception handler on startup, if CrashRpt wasn't loaded.
+'(DrMingw can produce backtraces using either .pdb files if MS's dbghelp.dll library is
+'available, or using gcc-generated DWARF debug info in the .exe if mgwhelp.dll is available.)
+'This is not very useful because we don't even include any of these .dlls in the source repo
+'let alone ship them.
 'You should compile with gengcc=1, or debug info will be garbage. Source lines will be
 'included with scons debug>=1
-#define WITH_EXCHNDL
+#define WITH_DRMINGW
 
-'Only has an effect if WITH_EXCHNDL defined: Try to load exchndl.dll at startup,
+'Only has an effect if WITH_DRMINGW defined: Try to load exchndl.dll at startup,
 'instead of being statically linked.
-#define DYNAMIC_EXCHNDL
+#define DYNAMIC_DRMINGW
 
-#if defined(WITH_EXCHNDL)
-	#if defined(DYNAMIC_EXCHNDL)
+#if defined(WITH_DRMINGW)
+	#if defined(DYNAMIC_DRMINGW)
 		dim shared ExcHndlSetLogFileNameA as function(as zstring ptr) as boolean
 	#else
 		#include "win32/exchndl.bi"  'Our win32 directory
 	#endif
+
+	dim shared loaded_drmingw as bool = NO
 #endif
 
 #if defined(WITH_CRASHRPT)
@@ -249,7 +256,8 @@ function exceptFilterMessageBox(pExceptionInfo as PEXCEPTION_POINTERS) as clong
 		else
 			snprintf(strptr(msgbuf), 300, _
 				 !"The engine has crashed! Sorry :(\n\n" _
-				 !"Can't generate a stacktrace, as exchndl.dll isn't present.\n\n" _
+				 !"Can't generate a stacktrace, as neither\n" _
+				 !"CrashRpt1403.dll nor exchndl.dll are present.\n\n" _
 				 !"Please email g_debug.txt or c_debug.txt to\n" _
 				 !"ohrrpgce-crash@HamsterRepublic.com\n" _
 				 "with a description of what you were doing.")
@@ -334,7 +342,7 @@ function setup_exception_handler() as boolint
 	'If we're using crashrpt:
 	'CrashRpt will handle the crash - if we successfully found and loaded it -
 	'and this exception handler won't run.
-	'If we're using exchndl:
+	'If we're using exchndl (DrMingw):
 	'exchndl will call any preexisting exception handler after its own runs.
 	'(Note: this won't work if libexchndl.a is statically linked)
         SetUnhandledExceptionFilter(@exceptFilterMessageBox)
@@ -346,10 +354,10 @@ function setup_exception_handler() as boolint
 	if find_and_load_crashrpt() then return YES
 #endif
 
-#if defined(WITH_EXCHNDL)
+#if defined(WITH_DRMINGW)
 	' Load the DrMingw embeddable exception handler, if available
 
-#if defined(DYNAMIC_EXCHNDL)
+#if defined(DYNAMIC_DRMINGW)
 	' To dynamically link to exchndl.dll
 
 	dim dll as string
@@ -360,7 +368,7 @@ function setup_exception_handler() as boolint
 	end if
 	early_debuginfo "Loading " & dll
 	dim handle as any ptr
-	handle = dylibload(dll)
+	handle = dylibload(dll)  'Will show an error box if a required dll like mgwhelp.dll is missing, then continues
 	if handle = NULL then
 		dim errstr as string = *win_error_str()
 		debug "exchndl.dll load failed! lasterr: " & errstr
@@ -378,28 +386,29 @@ function setup_exception_handler() as boolint
 	crash_reportfile = trimextension(exename) + "-crash-report.txt"
 	early_debuginfo "exchndl will log to " & crash_reportfile
 	ExcHndlSetLogFileNameA(strptr(crash_reportfile))
+	loaded_drmingw = YES
 	return YES
 #endif
 end function
 
-'Unused.
-'Works only if loaded exchndl.dll: will log a backtrace to crash_reportfile.
-'Will popup an "Engine crashed" messagebox if show_message true.
-'Also if CrashRpt was loaded, that will intercept the exception.
+'This works only if DrMingw was loaded: will log a backtrace to crash_reportfile.
+'Will popup an "Engine crashed ... saved backtrace" messagebox if show_message true.
 sub save_backtrace(show_message as bool = YES)
-	#if defined(WITH_EXCHNDL)
-		if len(crash_reportfile) = 0 then exit sub  'Don't have exchndl
-	#endif
+#if defined(WITH_DRMINGW)
+	'If we don't have DrMingw then the breakpoint will simply show our default
+	'"Engine crashed" popup and then continue.
+	if loaded_drmingw = NO then exit sub
+
 	debug "Saving backtrace"
 	want_exception_messagebox = show_message
 	continue_after_exception = YES
 	'To continue past DebugBreak (interrupt_self) you need to advance the instruction
 	'pointer in the exception handler. RaiseException doesn't have that complication.
-	'interrupt_self
 	RaiseException(EXCEPTION_BREAKPOINT, 0, 0, NULL)
 	want_exception_messagebox = YES
 	continue_after_exception = NO
 	debug "Done!"
+#endif
 end sub
 
 'Returns true if we successfully showed a prompt to send a report (even if the user cancelled)
