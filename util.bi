@@ -23,7 +23,7 @@ declare sub lowlevel_init()
 declare sub setup_fb_error_handler()
 declare sub remove_fb_error_handler()
 extern "C"
-  declare sub fb_error_hook (message as const zstring ptr)
+  declare sub fb_error_hook (message as const zstring ptr, interrupt_signal as boolint)
 end extern
 
 'Ensure that all executables call lowlevel_init at the top of main().  Want this

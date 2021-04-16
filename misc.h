@@ -67,7 +67,7 @@ boolint hook_fb_End();
 void unhook_fb_End();
 
 // in util.bas
-void fb_error_hook(const char *message);
+void fb_error_hook(const char *message, boolint interrupt_signal);
 
 #ifdef __cplusplus
 }

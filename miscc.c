@@ -98,7 +98,7 @@ void fb_End_hook() {
 		// from printing it twice.
 		const char *msg = __fb_ctx.errmsg;
 		__fb_ctx.errmsg = NULL;
-		fb_error_hook(msg);  // In util.bas
+		fb_error_hook(msg, NO);  // Don't know if this is SIGTERM/INT/QUIT, assume not
 		// Does not return (fb_End will be called a second time)
 	} else {
 		// unhook_fb_End restored the real hook, so call that

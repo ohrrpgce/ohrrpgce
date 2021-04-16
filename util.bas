@@ -93,7 +93,8 @@ SUB setup_fb_error_handler()
   DIM as zstring ptr func_name = ERFN, mod_name = ERMN
   DIM as zstring ptr message = ANY
   message = format_FB_error_message(err_num, err_line, mod_name, func_name)
-  fb_error_hook message
+  DIM interrupt_signal as bool = (err_num = fberrSIGINT) OR (err_num = fberrSIGQUIT) OR (err_num = fberrSIGTERM)
+  fb_error_hook message, interrupt_signal
 END SUB
 
 SUB remove_fb_error_handler()
@@ -106,9 +107,13 @@ END SUB
 'one of two different ways by calling hook_fb_End or setup_fb_error_handler (not
 'both!) Called on ASSERT failure only if fb_End hooked.
 EXTERN "C"
-SUB fb_error_hook(message as const zstring ptr)
+SUB fb_error_hook(message as const zstring ptr, interrupt_signal as boolint)
   'Yes, this function is redundant, but it makes the control flow clearer.
-  fatalbug message
+  IF interrupt_signal THEN
+   fatalerror message
+  ELSE
+   fatalbug message
+  END IF
 END SUB
 END EXTERN
 

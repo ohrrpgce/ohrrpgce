@@ -264,7 +264,21 @@ Enum 'FBErrorEnum
 	fberrOK = 0
 	fberrILLEGAL_CALL = 1
 	fberrNOTFOUND = 2
-	' Plenty more error codes, see fb/fb_stub.h
+	fberrFILEIO = 3
+	fberrOUTOFMEM = 4
+	fberrILLEGALRESUME = 5
+	fberrOUTOFBOUNDS = 6
+	fberrNULLPTR = 7
+	fberrNOPRIVILEGES = 8
+	fberrSIGINT = 9
+	fberrSIGILL = 10
+	fberrSIGFPE = 11
+	fberrSIGSEGV = 12
+	fberrSIGTERM = 13
+	fberrSIGABRT = 14
+	fberrSIGQUIT = 15
+	fberrRETURNWITHOUTGOSUB = 16
+	fberrENDOFFILE = 17
 End Enum
 Type FBErrorEnum as integer  'For compatibility with C
 
