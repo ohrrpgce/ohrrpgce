@@ -49,8 +49,6 @@ include_windows_bi()
 	#else
 		#include "win32/exchndl.bi"  'Our win32 directory
 	#endif
-
-	dim shared loaded_drmingw as bool = NO
 #endif
 
 #if defined(WITH_CRASHRPT)
@@ -64,10 +62,14 @@ include_windows_bi()
 		declare function crashrpt_send_report(errmsg as const zstring ptr) as boolint
 	end extern
 
-	dim shared loaded_crashrpt as bool = NO
 #endif
 
+extern "C"
 declare sub update_crash_report_file(path as const zstring ptr)
+end extern
+
+dim shared loaded_drmingw as bool = NO
+dim shared loaded_crashrpt as bool = NO
 
 dim shared crash_report_file as string
 dim shared continue_after_exception as bool = NO
@@ -405,7 +407,7 @@ function save_backtrace(show_message as bool = YES) as boolint
 #if defined(WITH_DRMINGW)
 	'If we don't have DrMingw then the breakpoint will simply show our default
 	'"Engine crashed" popup and then continue.
-	if loaded_drmingw = NO then exit sub
+	if loaded_drmingw = NO then return NO
 
 	debug "Saving backtrace"
 	want_exception_messagebox = show_message
