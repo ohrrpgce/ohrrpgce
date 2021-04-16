@@ -24,10 +24,13 @@ char *escape_filenamec (const char *filename);
 // in filelayer.cpp
 const char *trimpath(const char *filename);
 
-// in common.rbas
+// in common_base.bas / common.rbas
 void onetime_debug(enum ErrorLevel errorlevel, const char *msg);
 void debugc_internal(void *callsite, enum ErrorLevel errorlevel, const char *msg);
 void showerror_internal(void *callsite, const char *msg, boolint isfatal, boolint isbug);
+extern char *app_name;
+extern char *app_log_filename;
+extern char *app_archive_filename;
 
 // libfb.a
 void _noreturn (*fb_ErrorThrowAt(int line_num, const char *mod_name, void *res_label, void *resnext_label))(void);

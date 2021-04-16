@@ -401,7 +401,7 @@ end sub
 
 'This works only if DrMingw was loaded: will log a backtrace to crash_report_file.
 'Will popup an "Engine crashed ... saved backtrace" messagebox if show_message true.
-sub save_backtrace(show_message as bool = YES)
+function save_backtrace(show_message as bool = YES) as boolint
 #if defined(WITH_DRMINGW)
 	'If we don't have DrMingw then the breakpoint will simply show our default
 	'"Engine crashed" popup and then continue.
@@ -416,8 +416,10 @@ sub save_backtrace(show_message as bool = YES)
 	want_exception_messagebox = YES
 	continue_after_exception = NO
 	debug "Done!"
+	return YES
 #endif
-end sub
+	return NO
+end function
 
 'Returns true if we successfully showed a prompt to send a report (even if the user cancelled)
 function send_bug_report (msg as const zstring ptr) as boolint

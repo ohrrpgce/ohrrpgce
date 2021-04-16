@@ -599,6 +599,11 @@ end sub
 ' Deinitialise this module and backends, destroy the window
 sub restoremode()
 	if modex_initialised = NO then exit sub
+	if main_thread_in_gfx_backend then
+		'This can happen when quitting from crash handler. Likely to deadlock
+		debug "skipping gfx_close"
+		exit sub
+	end if
 	modex_initialised = NO
 
 	debuginfo "Closing gfx backend & allmodex..."
@@ -3297,8 +3302,8 @@ local sub allmodex_controls()
 		end if
 
 		if real_keyval(scF6) > 1 then
-			dim x as integer
-			x = 1\x
+			dim x as integer ptr
+			*x = 42  'In -exx builds, FB throws an error rather than SIGSEGV
 		end if
 	end if
 

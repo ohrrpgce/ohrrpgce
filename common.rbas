@@ -1460,11 +1460,15 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
  END IF
 
  DIM reported_this_bug as bool
+ DIM saved_backtrace as bool
  IF isbug ANDALSO reported_a_bug = NO THEN
   'Attempt to prompt the users to send a bug report (currently, using CrashRpt),
   'but not if we've already done so; that would be annoying.
   reported_this_bug = send_bug_report(zmsg)
   reported_a_bug = reported_this_bug
+  'If we couldn't do that, try to save a backtrace to the debug log (this
+  'usually only does anything on Linux). May be skipped if already done.
+  IF reported_this_bug = NO THEN saved_backtrace = save_backtrace()
  END IF
 
  DIM printmsg as string
@@ -1507,17 +1511,20 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
 
  DIM quitmsg as string
 
+ IF saved_backtrace THEN
+  quitmsg += !"\n\nSaved backtrace to " & log_dir & *app_log_filename
+ END IF
  IF isbug THEN
   IF reported_this_bug THEN
-   quitmsg = !"\n\n(Invoked crash reporter)\n\n"
+   quitmsg += !"\n\n(Invoked crash reporter)\n\n"
   ELSEIF reported_a_bug THEN
-   quitmsg = !"\n\n(Not sending another crash report)\n\n"
+   quitmsg += !"\n\n(Not sending another crash report)\n\n"
   ELSE
    'Couldn't send a report
-   quitmsg = !"\n\nPlease report this engine bug by sending an e-mail to ohrrpgce-crash@HamsterRepublic.com\n\n"
+   quitmsg += !"\n\nPlease report this engine bug by sending an e-mail to ohrrpgce-crash@HamsterRepublic.com\n\n"
   END IF
  ELSE
-  quitmsg = !"\n\nIf this error is unexpected, please send an e-mail to ohrrpgce-crash@HamsterRepublic.com\n\n"
+  quitmsg += !"\n\nIf this error is unexpected, please send an e-mail to ohrrpgce-crash@HamsterRepublic.com\n\n"
  END IF
  IF isfatal THEN
   quitmsg += "Press any key to quit."

@@ -28,7 +28,7 @@ declare function memory_usage() as integer
 declare function memory_usage_string() as string
 
 declare function setup_exception_handler () as boolint
-declare sub save_backtrace (show_message as bool = YES)
+declare function save_backtrace (show_message as bool = YES) as boolint
 declare function send_bug_report (msg as const zstring ptr) as boolint
 declare sub interrupt_self ()
 declare sub os_open_logfile (path as const zstring ptr)

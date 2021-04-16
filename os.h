@@ -42,7 +42,7 @@ int memory_usage();
 FBSTRING *memory_usage_string();
 
 boolint setup_exception_handler();
-void save_backtrace(boolint show_message);
+boolint save_backtrace(boolint show_message);
 void os_open_logfile(const char *path);
 void os_close_logfile();
 
