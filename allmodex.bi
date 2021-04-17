@@ -507,15 +507,15 @@ DECLARE FUNCTION keyval_ex (key as KBScancode, repeat_wait as integer = 0, repea
 DECLARE FUNCTION real_keyval (key as KBScancode) as KeyBits
 DECLARE FUNCTION keyval (key as KBScancode) as KeyBits
 DECLARE FUNCTION carray alias "KEYVAL" (key as KBScancode) as KeyBits
-DECLARE FUNCTION device_carray (ccode as KBScancode, joynum as integer) as KeyBits
+DECLARE FUNCTION player_keyval (key as KBScancode, player as integer, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
 DECLARE FUNCTION slowkey (key as KBScancode, ms as integer) as bool
 DECLARE FUNCTION getinputtext () as string
 
 '================== Joystick ===================
 
 DECLARE FUNCTION joykeyval (key as JoyButton, joynum as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
-DECLARE FUNCTION joystick_axis (axis as integer, joynum as integer = 0) as integer
-DECLARE FUNCTION joystick_info (joynum as integer) as JoystickInfo ptr
+DECLARE FUNCTION joystick_axis (axis as integer, player as integer = 0) as integer
+DECLARE FUNCTION joystick_info (player as integer) as JoystickInfo ptr
 DECLARE FUNCTION keybd_to_joy_scancode (key as KBScancode) as JoyButton
 DECLARE FUNCTION num_joysticks () as integer
 DECLARE SUB disable_joystick_input()

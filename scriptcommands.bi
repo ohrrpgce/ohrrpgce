@@ -66,7 +66,7 @@ DECLARE FUNCTION assign_menu_handles (byref menu as menudef) as integer
 DECLARE FUNCTION menu_item_handle_by_slot(byval menuslot as integer, byval mislot as integer, byval visible_only as bool=YES) as integer
 DECLARE FUNCTION find_menu_item_slot_by_string(byval menuslot as integer, s as string, byval mislot as integer=0, byval visible_only as bool=YES) as integer
 
-DECLARE FUNCTION valid_joystick(byval joynum as integer) as bool
+DECLARE FUNCTION valid_player_num(byval player as integer) as bool
 DECLARE FUNCTION valid_item_slot(byval item_slot as integer) as bool
 DECLARE FUNCTION valid_item(byval itemid as integer) as bool
 DECLARE FUNCTION valid_hero_caterpillar_rank(who as integer) as bool

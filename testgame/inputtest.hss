@@ -99,7 +99,7 @@ plotscript, joystick main, begin
     )
 
     update joystick strings (joynum)
-    update buttons (cancelkey, anykey)  #-9 to -1
+    update buttons (cancelkey, anykey, joynum)  #-9 to -1
     update buttons (joy:button1, joy:button32, joynum, true)
     # Duplicate buttons
     update buttons (joy:button1, joy:button32, joynum, true, lookup slice(sli:right stick))

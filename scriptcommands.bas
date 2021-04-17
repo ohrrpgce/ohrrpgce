@@ -362,22 +362,15 @@ END FUNCTION
 '==========================================================================================
 
 
-FUNCTION script_keyval (byval key as KBScancode, byval joynum as integer = 0) as KeyBits
- 'Wrapper around keyval for use by scripts: performs scancode mapping for back-compat
+FUNCTION script_keyval (byval key as KBScancode, byval player as integer = 0) as KeyBits
+ 'Wrapper around player_keyval for use by scripts: performs scancode mapping for back-compat
 
  IF key < scKEYVAL_FIRST ORELSE key > scKEYVAL_LAST THEN
   scripterr current_command_name() & ": invalid scancode keyval(" & key & ")", serrBound
   RETURN 0
  END IF
 
- DIM ret as KeyBits = 0
-
- IF key <= scLAST THEN
-  ret = keyval(key)
- ELSE
-  'keyval does this anyway, but always only checks joystick 0
-  ret = joykeyval(keybd_to_joy_scancode(key), joynum)
- END IF
+ DIM ret as KeyBits = player_keyval(key, player)
 
  IF gam.click_keys THEN
   DIM mask as integer
@@ -405,27 +398,26 @@ FUNCTION script_keyval (byval key as KBScancode, byval joynum as integer = 0) as
   'as if they were indistinguishable.
   SELECT CASE key
    CASE scHome TO scDelete
-    ret OR= keyval(key + scNumpad7 - scHome)
+    ret OR= player_keyval(key + scNumpad7 - scHome, player)
    CASE scNumpad7 TO scNumpad9, scNumpad4 TO scNumpad6, scNumpad1 TO scNumpadPeriod
-    ret OR= keyval(key - scNumpad7 + scHome)
-   CASE scSlash:       ret OR= keyval(scNumpadSlash)
-   CASE scEnter:       ret OR= keyval(scNumpadEnter)
-   CASE scNumlock:     ret OR= keyval(scPause)
-   CASE scNumpadSlash: ret OR= keyval(scSlash)
-   CASE scNumpadEnter: ret OR= keyval(scEnter)
-   CASE scPause:       ret OR= keyval(scNumlock)
+    ret OR= player_keyval(key - scNumpad7 + scHome, player)
+   CASE scSlash:       ret OR= player_keyval(scNumpadSlash, player)
+   CASE scEnter:       ret OR= player_keyval(scNumpadEnter, player)
+   CASE scNumlock:     ret OR= player_keyval(scPause, player)
+   CASE scNumpadSlash: ret OR= player_keyval(scSlash, player)
+   CASE scNumpadEnter: ret OR= player_keyval(scEnter, player)
+   CASE scPause:       ret OR= player_keyval(scNumlock, player)
   END SELECT
  END IF
 
  IF prefbit(47) = NO THEN  '!Map joystick controls to keyboard keys for scripts
-  'Device -1 is all joysticks OR'd together
   SELECT CASE key
-   CASE scUp:     ret OR= device_carray(ccUp, -1)
-   CASE scDown:   ret OR= device_carray(ccDown, -1)
-   CASE scLeft:   ret OR= device_carray(ccLeft, -1)
-   CASE scRight:  ret OR= device_carray(ccRight, -1)
-   CASE scEnter:  ret OR= device_carray(ccUse, -1)
-   CASE scEsc:    ret OR= device_carray(ccMenu, -1)
+   CASE scUp:     ret OR= player_keyval(ccUp, player)
+   CASE scDown:   ret OR= player_keyval(ccDown, player)
+   CASE scLeft:   ret OR= player_keyval(ccLeft, player)
+   CASE scRight:  ret OR= player_keyval(ccRight, player)
+   CASE scEnter:  ret OR= player_keyval(ccUse, player)
+   CASE scEsc:    ret OR= player_keyval(ccMenu, player)
   END SELECT
  END IF
 
@@ -1445,13 +1437,13 @@ SUB script_functions(byval cmdid as integer)
   wrappedsong retvals(0)
  CASE 29'--stop song
   stopsong
- CASE 30'--keyval (scancode, joystick num)
+ CASE 30'--keyval (scancode, player)
   'This used to be keyispressed; which undocumentedly reported two bits
   'instead of true/false.
   a_script_wants_keys()
-  DIM joynum as integer = get_optional_arg(1, 0)
+  DIM player as integer = get_optional_arg(1, 0)
   'keyval() reports a 3rd bit, but didn't at the time that this command was (re-)documented
-  scriptret = script_keyval(retvals(0), joynum) AND 3
+  scriptret = script_keyval(retvals(0), player) AND 3
  CASE 31'--rank in caterpillar
   scriptret = rankincaterpillar(retvals(0))
  CASE 38'--camera follows hero
@@ -2065,7 +2057,7 @@ SUB script_functions(byval cmdid as integer)
   IF valid_plotstr(retvals(0)) AND retvals(1) >= 0 THEN
    plotstr(retvals(0)).s = getsongname(retvals(1))
   END IF
- CASE 235'--key is pressed (scancode, joystick num)
+ CASE 235'--key is pressed (scancode, player)
   a_script_wants_keys()
   IF script_keyval(retvals(0), retvals(1)) THEN scriptret = 1 ELSE scriptret = 0
  CASE 236'--sound is playing
@@ -2117,13 +2109,13 @@ SUB script_functions(byval cmdid as integer)
    END IF
    scriptret = retvals(0)
   END IF
- CASE 242'-- joystick button(button, joystick)
-  IF bound_arg(retvals(0), 1, 32, "button number 1-32") ANDALSO valid_joystick(retvals(1)) THEN
-   DIM key as KeyBits = joykeyval(retvals(0), retvals(1))
+ CASE 242'-- joystick button(button, player)
+  IF bound_arg(retvals(0), 1, 32, "button number 1-32") ANDALSO valid_player_num(retvals(1)) THEN
+   DIM key as KeyBits = player_keyval(scJoyOFFSET + retvals(0), retvals(1))
    scriptret = IIF(key > 0, 1, 0)
   END IF
- CASE 243'-- joystick axis(axis, scale, joystick)
-  IF valid_joystick(retvals(2)) THEN
+ CASE 243'-- joystick axis(axis, scale, player)
+  IF valid_player_num(retvals(2)) THEN
    scriptret = (joystick_axis(retvals(0), retvals(2)) / 1000) * retvals(1)
   END IF
  CASE 249'--party money
@@ -4773,36 +4765,36 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 675 '--speaking npc
   scriptret = -1 - txt.sayer  '0 if no textbox or not triggered by an NPC
- CASE 676 '--keypress (scancode, joynum)
+ CASE 676 '--keypress (scancode, player)
   a_script_wants_keys()
   scriptret = IIF(script_keyval(retvals(0), retvals(1)) > 1, 1, 0)
- CASE 677 '--new keypress (scancode, joynum)
+ CASE 677 '--new keypress (scancode, player)
   a_script_wants_keys()
   scriptret = IIF(script_keyval(retvals(0), retvals(1)) AND 4, 1, 0)
- CASE 678 '--get joystick name (stringid, joynum)
+ CASE 678 '--get joystick name (stringid, player)
   plotstr(retvals(0)).s = ""
-  IF valid_plotstr(retvals(0), serrBadOp) ANDALSO valid_joystick(retvals(1)) THEN
+  IF valid_plotstr(retvals(0), serrBadOp) ANDALSO valid_player_num(retvals(1)) THEN
    DIM info as JoystickInfo ptr = joystick_info(retvals(1))
    IF info THEN
     plotstr(retvals(0)).s = info->name
    END IF
   END IF
- CASE 679 '--joystick button count (joynum)
-  IF valid_joystick(retvals(0)) THEN
+ CASE 679 '--joystick button count (player)
+  IF valid_player_num(retvals(0)) THEN
    DIM info as JoystickInfo ptr = joystick_info(retvals(0))
    IF info THEN
     scriptret = info->num_buttons
    END IF
   END IF
- CASE 680 '--joystick axis count (joynum)
-  IF valid_joystick(retvals(0)) THEN
+ CASE 680 '--joystick axis count (player)
+  IF valid_player_num(retvals(0)) THEN
    DIM info as JoystickInfo ptr = joystick_info(retvals(0))
    IF info THEN
     scriptret = info->num_axes
    END IF
   END IF
- CASE 681 '--joystick hat count (joynum)
-  IF valid_joystick(retvals(0)) THEN
+ CASE 681 '--joystick hat count (player)
+  IF valid_player_num(retvals(0)) THEN
    DIM info as JoystickInfo ptr = joystick_info(retvals(0))
    IF info THEN
     scriptret = info->num_hats
@@ -5618,10 +5610,10 @@ END FUNCTION
 '                        Other script command arg checking/decoding
 '==========================================================================================
 
-'This doesn't check how many joysticks are plugged in, because it's not an error
-'to poll a missing joystick
-FUNCTION valid_joystick(byval joynum as integer) as bool
-  RETURN bound_arg(joynum, 0, 15, "joystick", , serrBadOp)
+'This doesn't check how many players there are/how many joysticks are plugged in, because it's not an error
+'to poll a missing player/joystick
+FUNCTION valid_player_num(byval player as integer) as bool
+  RETURN bound_arg(player, 0, 15, "player number", , serrBadOp)
 END FUNCTION
 
 FUNCTION valid_item_slot(byval item_slot as integer) as bool

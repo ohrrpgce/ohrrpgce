@@ -91,6 +91,7 @@ declare sub masterpal_changed()
 
 declare sub pollingthread(as any ptr)
 declare sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
+declare function keyval_or_numpad_ex(key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
 declare function read_inputtext () as string
 declare sub update_mouse_state ()
 
@@ -1777,14 +1778,13 @@ end function
 '                                      Keyboard input
 '==========================================================================================
 
-'Read carray controls array (ccUse etc) for a single device keyboard/joystick).
-'If you want to get the global/combined input you should call carray() instead, which is just
-'an alias to keyval().
+'Read keyboard/joystick input for either a single player or player 0 (default/all).
 'Reads replayed state, if any (real_keys = NO)
-'ccode:   a cc* constant
-'joynum:  -2 for keyboard, -1 for any joystick, 0-3 for single joystick
-function device_carray(ccode as KBScancode, joynum as integer) as KeyBits
-	BUG_IF(ccode < ccLOWEST orelse ccode > ccHIGHEST, "Invalid ccode " & ccode, 0)
+'key:    any scancode, including cc* constants and joystick buttons
+'player: 0 for any input device, 1-3 for single joystick
+function player_keyval(key as KBScancode, player as integer, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
+	BUG_IF(player < 0, "Invalid player " & player, 0)
+	BUG_IF(key < scKEYVAL_FIRST orelse key > scKEYVAL_LAST, "bad scancode " & key, 0)
 
 	dim inputst as InputState ptr
 	if replay.active then
@@ -1793,17 +1793,51 @@ function device_carray(ccode as KBScancode, joynum as integer) as KeyBits
 		inputst = @real_input
 	end if
 
-	if joynum = -2 then
-		return inputst->carray(ccode)
-	elseif joynum = -1 then
-		dim ret as KeyBits
-		for joynum = 0 to ubound(inputst->joys)
-			ret or= inputst->joys(joynum).carray(ccode)
-		next
-		return ret
-	elseif joynum < ubound(inputst->joys) then
-		return inputst->joys(joynum).carray(ccode)
+	dim ret as KeyBits
+	dim joynum as integer = player - 1
+
+	if joynum > ubound(inputst->joys) then return 0
+
+	if key < 0 then  'Control key or scAny
+		if player <= 0 then
+			'carrays for all input devices are merged together and returned by keyval, so just use that
+			ret = keyval_ex(key, repeat_wait, repeat_rate)  'Equivalent to keyval_or_numpad_ex
+			/'
+			ret = inputst->carray(key)  'Keyboard
+			for joynum = 0 to ubound(inputst->joys)
+				ret or= inputst->joys(joynum).carray(key)
+			next
+			'/
+		elseif key = scAny then
+			for button as integer = joyButton1 to joyLAST
+				ret or= joykeyval(button, joynum, repeat_wait, repeat_rate)
+			next
+			if player = 1 then
+				'Add keyboard scAny
+				'FIXME: this adds in scAny from all joysticks
+				ret or=  keyval_ex(key, repeat_wait, repeat_rate)
+			end if
+		else  'key <= ccHIGHEST
+			'TODO: This is missing repeat_wait/repeat_rate support
+			ret = inputst->joys(joynum).carray(key)
+			if player = 1 then
+				ret or= inputst->carray(key)  'Keyboard
+			end if
+		end if
+	elseif key <= scLAST then  'Keyboard key
+		'Player number is ignored for now
+		ret = keyval_or_numpad_ex(key, repeat_wait, repeat_rate)
+	else  'Joystick button
+		dim button as integer = keybd_to_joy_scancode(key)
+		if player = 0 then
+			for joynum = 0 to ubound(inputst->joys)
+				ret or= joykeyval(button, joynum, repeat_wait, repeat_rate)
+			next
+		else
+			ret = joykeyval(button, joynum, repeat_wait, repeat_rate)
+		end if
 	end if
+	return ret
 end function
 
 'Return numpad scancode that's an alias to 'key'
@@ -1830,7 +1864,7 @@ local function numpad_alias_key(key as KBScancode, real_keys as bool) as KBScanc
 	return 0
 end function
 
-function keyval_or_numpad_ex (key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
+local function keyval_or_numpad_ex (key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
 	dim ret as KeyBits = keyval_ex(key, repeat_wait, repeat_rate, real_keys)
 	dim key2 as KBScancode = numpad_alias_key(key, real_keys)
 	if key2 then ret or= keyval_ex(key2, repeat_wait, repeat_rate, real_keys)
@@ -1869,7 +1903,7 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 
 	ERROR_IF(a < scKEYVAL_FIRST orelse a > scKEYVAL_LAST, "bad scancode " & a, 0)
 	if a > scLAST then
-		'For convenience, poll joystick 0
+		'For convenience, poll joystick (AFAIK this code path isn't used, should be removed)
 		return joykeyval(keybd_to_joy_scancode(a), 0, repeat_wait, repeat_rate, real_keys)
 	end if
 	if a < 0 then
@@ -2425,7 +2459,7 @@ end sub
 'Reads replayed state, if any (real_keys = NO)
 'key:     either a cc* constant (all key mappings to that cc will be removed)
 '         or an ordinary KBScancode or JoyButton (any mapping from that key/button will be removed)
-'joynum:  -2 for keyboard, -1 for any joystick, 0-3 for single joystick (similar to device_carray())
+'joynum:  -2 for keyboard, -1 for any joystick, 0-3 for single joystick (similar to player_keyval())
 sub delete_key_mappings(key as integer, joynum as integer = -2)
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
 
@@ -3128,7 +3162,8 @@ function num_joysticks () as integer
 	return ubound(inputst->joys) + 1
 end function
 
-'The new way to read joystick buttons. Like keyval.
+'Read a single joystick button. Like keyval, but doesn't take a scancode (nor cc* control code)
+'NOTE: this takes a joynum rather than a player number!
 function joykeyval (key as JoyButton, joynum as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
 	ERROR_IF(key > joyLAST, "bad scancode " & key, 0)
 
@@ -3152,8 +3187,10 @@ function JoystickState.keyval (key as JoyButton, repeat_wait as integer = 0, rep
 end function
 
 'Returns a value from -1000 to 1000
-function joystick_axis (axis as integer, joynum as integer = 0) as integer
+'TODO: merge all joysticks into player 0
+function joystick_axis (axis as integer, player as integer = 0) as integer
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+	dim joynum as integer = large(0, player - 1)
 	if joynum > ubound(inputst->joys) then return 0  'Not an error
 	dim byref joy as JoystickState = inputst->joys(joynum)
 
@@ -3164,8 +3201,10 @@ function joystick_axis (axis as integer, joynum as integer = 0) as integer
 end function
 
 'Can return NULL
-function joystick_info (joynum as integer) as JoystickInfo ptr
+'TODO: merge all joysticks into player 0
+function joystick_info (player as integer) as JoystickInfo ptr
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+	dim joynum as integer = large(0, player - 1)
 	if joynum > ubound(inputst->joys) then return NULL  'Not an error
 	return inputst->joys(joynum).state.info
 end function
