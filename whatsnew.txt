@@ -143,6 +143,9 @@ March ? 2021 [Hróðvitnir]
     * Many bugs fixed in gfx_sdl2, which was previously experimental [Ralph]
     * The currency global text string wasn't used for attack harm text or cost
       descriptions [Ralph]
+    * If the player unequips something when there's no room in the inventory they
+      now get the "No room" message instead of losing the equipment (other
+      methods of unequipping still destroy the item!) [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"

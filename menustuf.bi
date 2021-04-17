@@ -9,7 +9,7 @@ DECLARE SUB buystuff (byval shop_id as integer, byval shoptype as integer, store
 DECLARE FUNCTION chkOOBtarg (byval attacker as integer, byval target as integer, byval atk as integer) as bool
 DECLARE SUB update_hero_max_and_cur_stats (byval who as integer)
 DECLARE SUB doequip (toequip as integer, who as integer, where as integer)
-DECLARE SUB unequip (who as integer, where as integer, resetdefwep as bool = YES)
+DECLARE FUNCTION unequip (who as integer, where as integer, resetdefwep as bool = YES, force as bool = YES) as bool
 DECLARE SUB equip_menu (who as integer, allow_switch as bool = YES)
 DECLARE SUB itemmenuswap (invent() as InventSlot, iuse() as integer, permask() as integer, byval it1 as integer, byval it2 as integer)
 DECLARE FUNCTION item_screen () as integer

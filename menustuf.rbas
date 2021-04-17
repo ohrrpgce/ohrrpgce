@@ -2897,18 +2897,22 @@ RETURN result
 
 END FUNCTION
 
+'Remove an equipped item. Returns false if couldn't empty the slot, otherwise true.
 'who: hero slot
 'where: equip slot
 'resetdefwep: if unequipping weapon, reequip the default weapon
-SUB unequip (who as integer, where as integer, resetdefwep as bool = YES)
+'force: unequip even if there's no room in the inventory (item will be destroyed!)
+FUNCTION unequip (who as integer, where as integer, resetdefwep as bool = YES, force as bool = YES) as bool
  WITH gam.hero(who)
   '--exit if nothing is equiped
-  IF .equip(where).id < 0 THEN EXIT SUB
+  IF .equip(where).id < 0 THEN RETURN YES
 
   '--return item to inventory (if not the default weapon)
   IF where = 0 AND .equip(where).id = .def_wep - 1 THEN
   ELSE
-   getitem .equip(where).id
+   IF getitem(.equip(where).id, , YES) = NO THEN  'ok_to_fail=YES
+    IF force = NO THEN RETURN NO
+   END IF
   END IF
 
   '--blank out equipment
@@ -2925,7 +2929,8 @@ SUB unequip (who as integer, where as integer, resetdefwep as bool = YES)
  evalitemtags
  evalherotags  'You could kill someone, right?
  tag_updates
-END SUB
+ RETURN YES
+END FUNCTION
 
 SUB loadshopstuf (array() as integer, byval id as integer)
  DIM ol as integer = getbinsize(binSTF) \ 2 'old size on disk
@@ -3074,7 +3079,9 @@ SUB equip_menu_controls_slot_picker (st as EquipMenuState)
    MenuSound gen(genCancelSFX)
    '--unequip all
    FOR i as integer = 0 TO 4
-    unequip st.who, i
+    IF unequip(st.who, i, , NO) = NO THEN  'force=NO
+     st.item_info = readglobalstring(305, "No room in inventory", 30)
+    END IF
    NEXT i
    equip_menu_setup st
    'UPDATE ITEM POSSESSION BITSETS
@@ -3146,7 +3153,9 @@ SUB equip_menu_controls_equip_change (st as EquipMenuState)
  IF do_pick THEN
   IF st.eq_cursor.pt = st.eq(st.slot).count THEN
    '--unequip
-   unequip st.who, st.slot
+   IF unequip(st.who, st.slot, , NO) = NO THEN  'force=NO
+    st.item_info = readglobalstring(305, "No room in inventory", 30)
+   END IF
    equip_menu_back_to_menu st
    MenuSound gen(genCancelSFX)
   ELSE

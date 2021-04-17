@@ -217,7 +217,9 @@ FUNCTION count_equipped_item(byval item_id as integer) as integer
 END FUNCTION
 
 'Add to inventory. item_id is not offset.
-SUB getitem (byval item_id as integer, byval num as integer=1)
+'Returns true if all items fitted in inventory (may fit just some in and return false!)
+'ok_to_fail is intended for when the caller wants to handle overflow itself.
+FUNCTION getitem (byval item_id as integer, byval num as integer=1, byval ok_to_fail as bool=NO) as bool
 
  DIM numitems as integer = num
  DIM room as integer
@@ -235,7 +237,7 @@ SUB getitem (byval item_id as integer, byval num as integer=1)
    ELSE
     inventory(i).num += numitems
     update_inventory_caption i
-    EXIT SUB
+    RETURN YES
    END IF
   END IF
  NEXT i
@@ -248,14 +250,16 @@ SUB getitem (byval item_id as integer, byval num as integer=1)
    inventory(i).num = small(numitems, stacksize)
    numitems -= inventory(i).num
    update_inventory_caption i
-   IF numitems = 0 THEN EXIT SUB
+   IF numitems = 0 THEN RETURN YES
   END IF
  NEXT
  
  'No slot was found to put this item into!
- inventory_overflow_handler item_id, numitems
- 
-END SUB
+ IF ok_to_fail = NO THEN
+  inventory_overflow_handler item_id, numitems
+ END IF
+ RETURN NO
+END FUNCTION
 
 SUB inventory_overflow_handler(byval item_id as integer, byval numitems as integer)
  debug "Didn't have room for " & readitemname(item_id) & "x" & numitems
