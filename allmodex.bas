@@ -3184,7 +3184,7 @@ end function
 
 function JoystickState.keyval (key as JoyButton, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputState) as KeyBits
 	dim is_arrowkey as bool
-	is_arrowkey = (key = joyLeft orelse key = joyRight orelse key = joyUp orelse key = joyDown)
+	is_arrowkey = (key >= joyLeft andalso key < joyRStickDown) 'Any of joy[RStick]Up/Down/Left/Right
 	return this.key_repeating(key, is_arrowkey, repeat_wait, repeat_rate, inputst)
 end function
 
