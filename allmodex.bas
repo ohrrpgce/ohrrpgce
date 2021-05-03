@@ -1803,7 +1803,7 @@ function player_keyval(key as KBScancode, player as integer, repeat_wait as inte
 			'carrays for all input devices are merged together and returned by keyval, so just use that
 			ret = keyval_ex(key, repeat_wait, repeat_rate)  'Equivalent to keyval_or_numpad_ex
 			/'
-			ret = inputst->carray(key)  'Keyboard
+			ret = inputst->kb.carray(key)  'Keyboard
 			for joynum = 0 to ubound(inputst->joys)
 				ret or= inputst->joys(joynum).carray(key)
 			next
@@ -1821,7 +1821,7 @@ function player_keyval(key as KBScancode, player as integer, repeat_wait as inte
 			'TODO: This is missing repeat_wait/repeat_rate support
 			ret = inputst->joys(joynum).carray(key)
 			if player = 1 then
-				ret or= inputst->carray(key)  'Keyboard
+				ret or= inputst->kb.carray(key)  'Keyboard
 			end if
 		end if
 	elseif key <= scLAST then  'Keyboard key
@@ -2036,6 +2036,9 @@ sub clearkeys()
 	mouse_state.clearclick(mouseRight)
 	mouse_state.clearclick(mouseMiddle)
 end sub
+
+
+'====================================== Text Input ========================================
 
 ' Get text input by assuming a US keyboard layout and reading scancodes rather than using the io backend.
 ' Also supports alt- combinations for the high 128 characters
@@ -2514,7 +2517,8 @@ sub set_basic_key_mappings()
 	delete_key_mappings scAlt
 end sub
 
-'==========================================================================================
+
+'============================ Update KB/joys from backend =================================
 
 'Poll io backend to update key state bits, and then handle all special scancodes.
 'keybd() should be dimmed at least (0 to scLAST)
@@ -2635,7 +2639,6 @@ sub JoystickState.update_keybits(joynum as integer)
 	memset(@state, 0, SIZEOF(state))
 	state.structsize = IOJOYSTICKSTATE_SZ
 
-	dim as integer jx, jy
 
 	dim starttime as double = timer
 	if io_get_joystick_state then
@@ -2644,19 +2647,16 @@ sub JoystickState.update_keybits(joynum as integer)
 		if ret > 0 then
 			'Failed to read/not present. Continue, wiping keys()
 		end if
-		jx = state.axes(axisX)
-		jy = state.axes(axisY)
 	elseif io_readjoysane then
+		dim as integer jx, jy
 		if io_readjoysane(joynum, state.buttons_down, jx, jy) = 0 then
 			'Failed to read/not present. Continue, wiping keys()
 			'(Warning: if gfx_directx can't read a joystick, it is removed and the others
 			'are renumbered)
 		else
 			'io_readjoysane reports -100 to 100, not -1000 to 1000
-			jx *= AXIS_LIMIT / 100
-			jy *= AXIS_LIMIT / 100
-			state.axes(axisX) = jx
-			state.axes(axisY) = jy
+			state.axes(axisX) = jx * AXIS_LIMIT / 100
+			state.axes(axisY) = jy * AXIS_LIMIT / 100
 		end if
 	else
 		'Backend doesn't support joysticks! Continue, wiping keys()
@@ -2677,7 +2677,8 @@ sub JoystickState.update_keybits(joynum as integer)
 
 	' Map axes 0, 1 to dpad buttons
 	if prefbit(53) = NO then ' "!Map joystick (left) stick to dpad"
-		joy_axes_to_buttons jx, jy, keys(joyUp), keys(joyDown), keys(joyLeft), keys(joyRight), axis_threshold
+		joy_axes_to_buttons state.axes(axisX), state.axes(axisY), keys(joyUp), _
+				    keys(joyDown), keys(joyLeft), keys(joyRight), axis_threshold
 	end if
 	' Convenience buttons for using right thumbstick
 	joy_axes_to_buttons state.axes(axisRightX), state.axes(axisRightY), keys(joyRStickUp), _
@@ -2688,7 +2689,8 @@ sub JoystickState.update_keybits(joynum as integer)
 		if state.axes(axisL2) > axis_threshold then keys(joyL2) or= 8
 		if state.axes(axisR2) > axis_threshold then keys(joyR2) or= 8
 	else
-		' If don't have button bindings also treat the first hat as X, Y directions
+		' If we don't have button bindings also map the first hat as the dpad, which is univerally
+		' correct for gamepads.
 		' (E.g. on this here PSX controller with thumbsticks, using a usb adaptor, the
 		' dpad reports as axes 0/1 with analog off, and as hat 0 (or dpad under SDL2) with analog on)
 		for bitn as integer = 0 to 3
