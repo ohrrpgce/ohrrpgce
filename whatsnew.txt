@@ -146,6 +146,8 @@ March ? 2021 [Hróðvitnir]
     * If the player unequips something when there's no room in the inventory they
       now get the "No room" message instead of losing the equipment (other
       methods of unequipping still destroy the item!) [Ralph]
+    * Bug #1137 crashes and "BUG: missing sprite component" errors when swapping
+      heroes immediately before a map change [James]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"
