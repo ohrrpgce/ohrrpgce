@@ -322,8 +322,21 @@ END SUB
 SUB doswap (byval s as integer, byval d as integer)
  IF s = d THEN EXIT SUB
 
+ 'Because this sub can swap between the active party and the reserve party,
+ 'we also need to prepare to swap the parentage of the hero slice between
+ 'the hero layer and the reserve layer
+ DIM s_par as Slice Ptr = NULL
+ DIM d_par as Slice Ptr = NULL
+ IF gam.hero(s).sl THEN s_par = gam.hero(s).sl->Parent
+ IF gam.hero(d).sl THEN d_par = gam.hero(d).sl->Parent
+
  '---hero state and stats
  SWAP gam.hero(s), gam.hero(d)
+
+ 'Restore the correct parentage of the hero slice, active to the hero layer
+ 'and reserve to the reserve layer 
+ IF gam.hero(s).sl THEN SetSliceParent gam.hero(s).sl, s_par
+ IF gam.hero(d).sl THEN SetSliceParent gam.hero(d).sl, d_par
 
  '--The hero slice tells which slot the hero is in, needs updating
  update_HeroSliceContext s
