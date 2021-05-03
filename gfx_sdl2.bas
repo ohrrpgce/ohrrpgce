@@ -279,6 +279,8 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
     SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1")
   #endif
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest")
+  'By default SDL disables VM compositing in order to allow higher framerates, but this is causes problems under KWin (KDE). (SDL 2.0.8+)
+  SDL_SetHint("SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "0")
   'We don't need shaders
   'NOTE: commented out, because this caused the window to be stuck white under X11. It used to work fine in
   'SDL 2.0.10 but is broken in SDL 2.0.12.
