@@ -816,28 +816,40 @@ SUB setbatcap (bat as BattleState, cap as string, byval captime as integer, byva
  bat.caption_delay = capdelay
 END SUB
 
-'This picks out the targets which are within a 90 degree wide sector
-SUB battle_target_arrows_sector_mask (inrange() as integer, byval d as integer, byval axis as integer, bslot() as BattleSprite, targ as TargettingState, foredistance() as integer, sidedistance() as integer)
- DIM as integer xdistance, ydistance
+'This picks out the targets which are within a 90 degree wide sector in the
+'specified direction. Returns number of in-range targets.
+FUNCTION battle_target_arrows_sector_mask (inrange() as integer, byval d as integer, byval axis as integer, bslot() as BattleSprite, targ as TargettingState, foredistance() as integer, sidedistance() as integer) as integer
+ DIM as integer xdistance, ydistance, count
  FOR i as integer = 0 TO 11
   IF targ.mask(i) THEN
-   ydistance = (bslot(i).y - bslot(targ.pointer).y) * d
-   xdistance = (bslot(i).x - bslot(targ.pointer).x) * d
+   ydistance = bslot(i).y - bslot(targ.pointer).y
+   xdistance = bslot(i).x - bslot(targ.pointer).x
    IF axis THEN
-    foredistance(i) = ydistance
-    sidedistance(i) = xdistance
+    foredistance(i) = ydistance * d
+    sidedistance(i) = ABS(xdistance)
    ELSE
-    foredistance(i) = xdistance
-    sidedistance(i) = ydistance
+    foredistance(i) = xdistance * d
+    sidedistance(i) = ABS(ydistance)
    END IF
-   IF foredistance(i) > 0 AND ABS(sidedistance(i)) <= foredistance(i) THEN
-    setbit inrange(), 0, i, 1
+   IF foredistance(i) > 0 THEN
+    'Angle in degrees from the forward direction. Always nonnegative
+    DIM angle as double = ATAN2(sidedistance(i), foredistance(i)) * 180 / M_PI
+    IF angle <= 45 THEN
+     'To also allow targets within a 40x40 box:  ORELSE sidedistance(i) < 20
+     '?"angle from " & bslot(targ.pointer).pos & " to " & bslot(i).pos & " is " & angle & " foredist " & foredistance(i) & " sidedist " & sidedistance(i)
+     setbit inrange(), 0, i, 1
+     count += 1
+    END IF
    END IF
   END IF
  NEXT i
-END SUB
+ RETURN count
+END FUNCTION
 
-SUB battle_target_arrows (byval d as integer, byval axis as integer, bslot() as BattleSprite, targ as TargettingState, byval allow_spread as integer=0)
+'Move targ.pointer, the target currently selected by the player, or turn on/off optional spread.
+'axis: 0 for x (left/right), 1 for y (up/down) movement
+'d: -1 (left/up) or 1 (right/down)
+SUB battle_target_arrows (byval d as integer, byval axis as integer, bslot() as BattleSprite, targ as TargettingState, byval allow_spread as bool = NO)
  DIM newptr as integer = targ.pointer
 
  'First, special case for target at same position as current:
@@ -848,20 +860,18 @@ SUB battle_target_arrows (byval d as integer, byval axis as integer, bslot() as 
   idx += d  'search through slots according to direction, but don't loop
   IF idx < 0 OR idx > UBOUND(targ.mask) THEN EXIT FOR
   IF targ.mask(idx) = NO THEN CONTINUE FOR
-  IF bslot(idx).x = bslot(targ.pointer).x AND bslot(idx).y = bslot(targ.pointer).y THEN
+  IF bslot(idx).pos = bslot(targ.pointer).pos THEN
    targ.pointer = idx
    EXIT SUB
   END IF
  NEXT
 
- '--look for a nearby target within a 90 degree wide "sector" in the right direction
+ 'Look for a nearby target within a 90 degree wide sector in the right direction
  DIM foredistance(11) as integer
  DIM sidedistance(11) as integer
  DIM inrange(0) as integer
- inrange(0) = 0
- battle_target_arrows_sector_mask inrange(), d, axis, bslot(), targ, foredistance(), sidedistance()
- IF inrange(0) THEN  'At least one target is inrange
-  'First, pick the closest target within the 90 degree wide sector
+ IF battle_target_arrows_sector_mask(inrange(), d, axis, bslot(), targ, foredistance(), sidedistance()) THEN
+  'At least one target is in the sector, pick the closest
   DIM best as integer = 99999
   FOR i as integer = 0 TO 11
    IF readbit(inrange(), 0, i) THEN
@@ -871,9 +881,9 @@ SUB battle_target_arrows (byval d as integer, byval axis as integer, bslot() as 
     END IF
    END IF
   NEXT i
- END IF
- IF newptr = targ.pointer THEN
+ ELSE
   'If there's none, allow targets which are at a steeper angle, pick the one with minimum angle
+  '?"no nearest"
   DIM bestangle as double = 999.
   DIM angle as double
   FOR i as integer = 0 TO 11
@@ -886,6 +896,7 @@ SUB battle_target_arrows (byval d as integer, byval axis as integer, bslot() as 
    END IF
   NEXT i
  END IF 
+
  IF newptr = targ.pointer THEN
   'Spread attack
   IF allow_spread = YES AND targ.opt_spread = 1 THEN

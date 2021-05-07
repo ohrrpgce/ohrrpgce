@@ -45,7 +45,7 @@ declare function safesubtract (byval number as integer, byval minus as integer) 
 declare function safemultiply (byval number as integer, byval by as single) as integer
 declare sub setbatcap (bat as BattleState, cap as string, byval captime as integer, byval capdelay as integer)
 declare sub battle_target_arrows_mask (inrange() as integer, byval d as integer, byval axis as integer, bslot() as battlesprite, targ as TargettingState)
-declare sub battle_target_arrows (byval d as integer, byval axis as integer, bslot() as battlesprite, targ as TargettingState, byval allow_spread as integer=0)
+declare sub battle_target_arrows (byval d as integer, byval axis as integer, bslot() as battlesprite, targ as TargettingState, byval allow_spread as bool = NO)
 declare function targetmaskcount (tmask() as integer) as integer
 declare sub traceshow (s as string)
 
