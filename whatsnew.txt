@@ -148,6 +148,8 @@ March ? 2021 [Hróðvitnir]
       methods of unequipping still destroy the item!) [Ralph]
     * Bug #1137 crashes and "BUG: missing sprite component" errors when swapping
       heroes immediately before a map change [James]
+    * Tweaked battle target cursor movement to fix some (but not all) odd
+      behaviour and a possibility of unselectable targets! [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"

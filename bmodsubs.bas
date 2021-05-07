@@ -834,9 +834,10 @@ FUNCTION battle_target_arrows_sector_mask (inrange() as integer, byval d as inte
    IF foredistance(i) > 0 THEN
     'Angle in degrees from the forward direction. Always nonnegative
     DIM angle as double = ATAN2(sidedistance(i), foredistance(i)) * 180 / M_PI
-    IF angle <= 45 THEN
+    '? "angle from " & bslot(targ.pointer).pos & " to " & i & " " & bslot(i).pos & " is " & angle & " foredist " & foredistance(i) & " sidedist " & sidedistance(i) & IIF(angle <= 45, " IN SECTOR", "")
+    'WARNING: allowing angles >= 45 can result in unselectable targets
+    IF angle < 45 THEN
      'To also allow targets within a 40x40 box:  ORELSE sidedistance(i) < 20
-     '?"angle from " & bslot(targ.pointer).pos & " to " & bslot(i).pos & " is " & angle & " foredist " & foredistance(i) & " sidedist " & sidedistance(i)
      setbit inrange(), 0, i, 1
      count += 1
     END IF
@@ -870,9 +871,9 @@ SUB battle_target_arrows (byval d as integer, byval axis as integer, bslot() as 
  DIM foredistance(11) as integer
  DIM sidedistance(11) as integer
  DIM inrange(0) as integer
+ DIM best as integer = 99999
  IF battle_target_arrows_sector_mask(inrange(), d, axis, bslot(), targ, foredistance(), sidedistance()) THEN
   'At least one target is in the sector, pick the closest
-  DIM best as integer = 99999
   FOR i as integer = 0 TO 11
    IF readbit(inrange(), 0, i) THEN
     IF foredistance(i) < best THEN
@@ -882,16 +883,15 @@ SUB battle_target_arrows (byval d as integer, byval axis as integer, bslot() as 
    END IF
   NEXT i
  ELSE
-  'If there's none, allow targets which are at a steeper angle, pick the one with minimum angle
-  '?"no nearest"
-  DIM bestangle as double = 999.
-  DIM angle as double
+  'If there's none, allow targets which are at any angle, and pick the closest one
   FOR i as integer = 0 TO 11
-   IF targ.mask(i) AND foredistance(i) > 0 THEN
-    angle = ABS(ATAN2(sidedistance(i), foredistance(i)))
-    IF angle < bestangle THEN
-     bestangle = angle
-     newptr = i
+   IF targ.mask(i) THEN
+    IF foredistance(i) > 0 THEN
+     DIM dist as integer = foredistance(i) + sidedistance(i)  'Both are non-negative
+     IF dist < best THEN
+      best = dist
+      newptr = i
+     END IF
     END IF
    END IF
   NEXT i
