@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2021-04-05)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2021-05-21)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -7956,7 +7956,18 @@ if (herolevelled (find hero (hero: Bob))) then (
 			<a name="about-forgetspell"></a>
 				<h4>forget spell (hero, attack)</h4>
 <p>
-			Causes a hero to forget a spell. The first argument is the hero's position in the party (as returned by <a href="#about-findhero" class="ref">find hero</a>). The second argument is the attack to forget. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack's ID number. This is the number you see in the attack editor + 1). If the hero does not know the spell, nothing happens.
+			
+				Causes a hero to forget a spell, by deleting all occurrences of it in their spell lists, regardless of how the spell was learnt.
+				If the hero doesn't know the spell, nothing happens.
+				(This doesn't affect attacks which are options directly in the hero's battle menu.)
+				Returns <a href="#about-true" class="ref">true</a> if the hero knew the spell, <a href="#about-false" class="ref">false</a> if not.
+				<br>
+				The first argument is the hero's position in the party (as returned by <a href="#about-findhero" class="ref">find hero</a>).
+				<br>
+				The second argument is the attack to forget.
+				You can use the constants (defined in your .hsi file) in the form <span class="code">atk:attackname</span>.
+				(You may also use the attack's ID number. This is the number you see in the attack editor + 1).
+			
 			
 			
 			
@@ -7997,7 +8008,16 @@ if (herolevelled (find hero (hero: Bob))) then (
 			<a name="about-knowsspell"></a>
 				<h4>knows spell (hero, attack)</h4>
 <p>
-			Checks to see if a hero already knows a spell. The first argument is the hero's position in the party (as returned by <a href="#about-findhero" class="ref">find hero</a>). The second argument is the attack to check for. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack's ID number. This is the number you see in the attack editor + 1). If the hero knows the spell, knows spell will return <a href="#about-true" class="ref">true</a>. If the hero does not know the spell, it will return <a href="#about-false" class="ref">false</a>
+			
+				Checks whether a hero already knows a spell (whether it's in one of their spell lists - if it's an option directly in the hero's battle menu that doesn't count!)
+				and returns <a href="#about-true" class="ref">true</a> or <a href="#about-false" class="ref">false</a>.
+				<br>
+				The first argument is the hero's position in the party (as returned by <a href="#about-findhero" class="ref">find hero</a>).
+				<br>
+				The second argument is the attack to check for.
+				You can use the constants (defined in your .hsi file) in the form <span class="code">atk:attackname</span>.
+				(You may also use the attack's ID number. This is the number you see in the attack editor + 1).
+			
 			
 			
 			
@@ -8007,7 +8027,15 @@ if (herolevelled (find hero (hero: Bob))) then (
 			<a name="about-canlearnspell"></a>
 				<h4>can learn spell (hero, attack)</h4>
 <p>
-			Checks to see if a hero is capable of learning a spell from an item or from the teach spell command. The first argument is the hero's position in the party (as returned by <a href="#about-findhero" class="ref">find hero</a>). The second argument is the attack to check for. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack's ID number. This is the number you see in the attack editor + 1). If the hero can learn the spell, can learn spell will return <a href="#about-true" class="ref">true</a>. If the hero cannot learn the spell (or learns it from level-ups), it will return <a href="#about-false" class="ref">false</a>
+			
+				Checks whether a hero is capable of learning a spell from an item (and therefore also with the <a href="#about-teachspell" class="ref">teach spell</a> command) and returns <a href="#about-true" class="ref">true</a> or <a href="#about-false" class="ref">false</a>.
+				<br>
+				The first argument is the hero's position in the party (as returned by <a href="#about-findhero" class="ref">find hero</a>).
+				<br>
+				The second argument is the attack to check for.
+				You can use the constants (defined in your .hsi file) in the form <span class="code">atk:attackname</span>.
+				(You may also use the attack's ID number. This is the number you see in the attack editor + 1).
+			
 			
 			
 			
@@ -8032,10 +8060,10 @@ if (herolevelled (find hero (hero: Bob))) then (
 <img src="Plotnote.png" alt="[Notice]" class="icon">If you want to compare attacks returned by this command with attack ID numbers, you must add 1 to the ID number, unless you use <span class="code">atk:...</span> constants.</div>
 			
 			
-			<pre># the following script uses strings 0, 1, 2 for its use (will be overwritten)
+			<pre># The following script uses strings 0, 1, 2 for its use (they will be overwritten)
 plotscript, print learned spells, who=0, begin
   variable(i)
-  get hero name (1, who) # construct the static part of the text in string 1
+  get hero name (1, who)  # construct the static part of the text in string 1
   $1+" learned spell "
   for (i, 0, spells learned (who, get count) -- 1) do (
     read attack name (2, spells learned (who, i))  # get the i-th spell learnt
