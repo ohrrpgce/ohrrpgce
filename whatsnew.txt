@@ -154,6 +154,8 @@ March ? 2021 [Hróðvitnir]
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"
       flag to scons [Ralph]
+    * hspeak now built using eubind instead of euc in debug builds; using eubind
+      avoids linker errors when compiling Euphoria->C on recent Linux distros
 
 
 May 2 2020 [Gorgonzola]

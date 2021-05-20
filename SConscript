@@ -222,7 +222,7 @@ if tiny:
 if 'debug' in ARGUMENTS:
     debug = int (ARGUMENTS['debug'])
 if debug < 2:
-    optimisations = 2  # compile with C/C++/FB gengcc optimisations
+    optimisations = 2  # compile with C/C++/FB->C/Euphoria->C optimisations
 elif debug == 2:
     optimisations = 1  # compile with C/C++ optimisations
 else:
@@ -369,7 +369,12 @@ _cxx = {'gcc':'g++', 'clang':'clang++', None:'g++'}[ARGUMENTS.get('compiler')]
 CXX = ohrbuild.findtool(mod, 'CXX', _cxx, True)
 if not CXX:
     CXX = ohrbuild.findtool(mod, (), 'c++')
-EUC = ohrbuild.findtool(mod, 'EUC', "euc", True)  # Euphoria to C compiler (None if not found)
+if optimisations > 1:
+    EUC = ohrbuild.findtool(mod, 'EUC', "euc", True)  # Euphoria to C compiler (None if not found)
+    EUBIND = None
+else:
+    EUC = None
+    EUBIND = ohrbuild.findtool(mod, 'EUBIND', "eubind", True)  # Euphoria binder (None if not found)
 MAKE = ohrbuild.findtool(mod, 'MAKE', 'make')
 if not MAKE and win32:
     MAKE = ohrbuild.findtool(mod, 'MAKE', 'mingw32-make')
@@ -389,7 +394,7 @@ if 'FBCC' not in env['ENV']:
 env['ENV']['GCC'] = FBCC.path
 
 # This may look redundant, but it's so $MAKE, etc in command strings work, as opposed to setting envvars.
-for tool in ('FBC', 'CC', 'FBCC', 'CXX', 'MAKE', 'EUC'):
+for tool in ('FBC', 'CC', 'FBCC', 'CXX', 'MAKE', 'EUC', 'EUBIND'):
     val = globals()[tool]
     if val:
         env[tool] = File(val)
@@ -1306,7 +1311,7 @@ env_exe ('imageconv', builder = allmodexenv.BASEXE, source = ['imageconv.bas'] +
 ####################  Compiling Euphoria (HSpeak)
 
 def check_have_euc(target, source, env):
-    if not EUC:
+    if not EUC and not EUBIND:
         print("Euphoria is required to compile HSpeak but is not installed (euc is not in the PATH)")
         Exit(1)
 
@@ -1332,13 +1337,21 @@ def setup_eu_vars():
     # euc itself creates a .mak file that's broken if the (destination)
     # path to hspeak.exe contains a space.
 
-setup_eu_vars()
+if optimisations > 1:
+    # Use euc to compile hspeak
+    setup_eu_vars()
 
-# HSpeak is built by translating to C, generating a Makefile, and running make.
-euexe = Builder(action = [Action(check_have_euc, None),
-                          '$EUC -con -gcc $SOURCES $EUFLAGS -verbose -maxsize 5000 -makefile -build-dir $EUBUILDDIR',
-                          '$MAKE -j%d -C $EUBUILDDIR -f hspeak.mak' % (GetOption('num_jobs'),)],
-                suffix = exe_suffix, src_suffix = '.exw')
+    # HSpeak is built by translating to C, generating a Makefile, and running make.
+    euexe = Builder(action = [Action(check_have_euc, None),
+                              '$EUC -con -gcc $SOURCES $EUFLAGS -verbose -maxsize 5000 -makefile -build-dir $EUBUILDDIR',
+                              '$MAKE -j%d -C $EUBUILDDIR -f hspeak.mak' % (GetOption('num_jobs'),)],
+                    suffix = exe_suffix, src_suffix = '.exw')
+else:
+    # Use eubind to combine hspeak.exw and the eui interpreter into a single (slower) executable
+    euexe = Builder(action = [Action(check_have_euc, None),
+                              '$EUBIND $SOURCES'],
+                    suffix = exe_suffix, src_suffix = '.exw')
+
 env.Append(BUILDERS = {'EUEXE': euexe})
 
 ####################
@@ -1567,6 +1580,7 @@ Options:
                       debug info: "minimal syms" means: only function
                         symbols present (to allow basic stacktraces); adds ~300KB.
                         (Note: if gengcc=0, then debug=0 is completely unstripped)
+                      optimisation: Also causes hspeak to be translated to C
   tiny=1              Create a minimum-size build. Enables gengcc=1, debug=0,
                       lto=1 and use -Os. Runs slower (scripts by ~20%).
                       Adding lto=0 hugely shortens build time, is not much larger,
@@ -1667,6 +1681,7 @@ Targets (executables to build):
   unlump
   relump
   hspeak              HamsterSpeak compiler (note: arch and target ignored)
+                      Requires Euphoria. (If you get compile errors try release=0)
   dumpohrkey          Convert .ohrkeys to text
   bam2mid             Convert .bam to .mid
   imageconv           Convert between png/bmp/jpg/gif (suggest using gfx=dummy)
