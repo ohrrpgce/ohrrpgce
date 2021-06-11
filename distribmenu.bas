@@ -748,8 +748,10 @@ FUNCTION get_windows_gameplayer() as string
   dlfile = "ohrrpgce-player-win-wip-sdl2.zip"
  ELSE
   '--If running any stable release, download the latest stable release
+  '--(Stable releases gorgonzola 2020-05-02 and older downloaded ohrrpgce-player-win.zip instead,
+  '--which was assumed to be gfx_directx+sdl[+fb], music_sdl)
   url = "http://hamsterrepublic.com/dl/"
-  dlfile = "ohrrpgce-player-win.zip"
+  dlfile = "ohrrpgce-player-win-minimal-sdl2.zip"
  END IF
  url &= dlfile
  

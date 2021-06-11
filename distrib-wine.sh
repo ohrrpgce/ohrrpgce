@@ -98,13 +98,13 @@ rm -f vikings.rpg
 wine ./relump.exe vikings/vikings.rpgdir vikings.rpg
 mustexist "vikings.rpg"
 
-rm -f distrib/ohrrpgce-player-win.zip
+rm -f distrib/ohrrpgce-player-win-minimal-sdl2.zip
 rm -f distrib/ohrrpgce-minimal.zip
 rm -f distrib/ohrrpgce.zip
 rm -f distrib/ohrrpgce-win-installer.exe
 
-echo "Packaging game player ohrrpgce-player-win.zip ..."
-zip -9 -q distrib/ohrrpgce-player-win.zip game.exe SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt
+echo "Packaging game player ohrrpgce-player-win-minimal-sdl2.zip ..."
+zip -9 -q distrib/ohrrpgce-player-win-minimal-sdl2.zip game.exe SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt
 
 echo "Make temporary folder..."
 rm -Rf tmpdist
@@ -195,7 +195,7 @@ echo "Rename results..."
 SUFFIX="${OHRVERDATE}-${OHRVERCODE}"
 echo "${SUFFIX}"
 cd distrib
-mv ohrrpgce-player-win.zip    ohrrpgce-player-win-"${SUFFIX}".zip
+mv ohrrpgce-player-win-minimal-sdl2.zip    ohrrpgce-player-win-minimal-sdl2-"${SUFFIX}".zip
 mv ohrrpgce-minimal.zip       ohrrpgce-minimal-"${SUFFIX}".zip
 mv ohrrpgce.zip               ohrrpgce-"${SUFFIX}".zip
 mv ohrrpgce-win-installer.exe ohrrpgce-win-installer-"${SUFFIX}".exe
