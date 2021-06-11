@@ -93,6 +93,7 @@ function updatelink () {
 updatelink "${REL}" "${VER}" "ohrrpgce-win-installer" ".exe" "" ""
 updatelink "${REL}" "${VER}" "ohrrpgce"               ".zip" "custom" ""
 updatelink "${REL}" "${VER}" "ohrrpgce-minimal"       ".zip" "ohrrpgce-floppy" "ohrrpgce_play"
+updatelink "${REL}" "${VER}" "ohrrpgce-player-win-minimal-sdl2" ".zip" "" ""
 
 # Old Mac files for versions <= etheldreme
 #updatelink "${REL}" "${VER}" "OHRRPGCE"               ".dmg" "" ""
