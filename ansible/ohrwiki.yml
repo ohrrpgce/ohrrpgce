@@ -15,7 +15,7 @@
     # These files need to exist inside the local ohrwiki_data folder
     # You may need to download the mediawiki tarball yourself.
     # the plugin and skin tarballs are small enough to included in version control
-    mediawiki_tarball: mediawiki-1.35.1.tar.gz
+    mediawiki_tarball: mediawiki-1.35.3.tar.gz
     embedvideo_zip: EmbedVideo-v2.8.0.zip
     metrolook_skin: Metrolook-REL1_35-378825e.tar.gz
     
