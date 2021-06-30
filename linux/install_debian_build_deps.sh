@@ -19,5 +19,6 @@ sudo apt-get install --no-install-recommends \
   libncurses5-dev \
   timidity \
   freepats \
+  libtinfo5 \
   gdb
 # gdb isn't strictly required, but is useful anyway

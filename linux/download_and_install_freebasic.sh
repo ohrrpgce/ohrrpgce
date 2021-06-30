@@ -19,8 +19,9 @@ mkdir "${DLTEMP}"
 cd "${DLTEMP}"
 
 wget "https://downloads.sourceforge.net/project/fbc/Binaries%20-%20Linux/FreeBASIC-1.05.0-linux-x86_64.tar.gz"
-tar -xvf "FreeBASIC-1.05.0-linux-x86_64.tar.gz"
-cd "FreeBASIC-1.05.0-linux-x86_64"
+wget "https://downloads.sourceforge.net/project/fbc/FreeBASIC-1.08.0/Binaries-Linux/FreeBASIC-1.08.0-linux-x86_64.tar.gz"
+tar -xvf "FreeBASIC-1.08.0-linux-x86_64.tar.gz"
+cd "FreeBASIC-1.08.0-linux-x86_64"
 echo "Running FreeBasic installer with sudo..."
 sudo ./install.sh -i
 
