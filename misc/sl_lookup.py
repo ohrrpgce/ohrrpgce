@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """To use this script, start in the source dir where plotscr.hsd and slices.bi
    are loacted, and run:

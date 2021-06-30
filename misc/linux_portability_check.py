@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Utility to check and print which versions of glibc, stdc++/supc++ and gcc dependency libraries (libgcc_s)
 that an ELF binary requires, and when those versions were released.

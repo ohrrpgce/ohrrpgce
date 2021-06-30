@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 For creating the ohrrpgce .deb package, and also installing the OHRRPGCE locally system-wide.

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # This is a port of a few of the microbenchmarks in benchmark.hss to Python for comparison
 #
