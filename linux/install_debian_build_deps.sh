@@ -16,6 +16,8 @@ sudo apt-get install --no-install-recommends \
   libxrandr-dev \
   libxrender-dev \
   libsdl-mixer1.2-dev \
+  libsdl2-dev \
+  libsdl2-mixer-dev \
   libncurses5-dev \
   timidity \
   freepats \
