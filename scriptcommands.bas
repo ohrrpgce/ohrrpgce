@@ -5037,6 +5037,10 @@ SUB script_functions(byval cmdid as integer)
  CASE 724 '--layer id under walkabouts
   'When gmap(31) = 0 then it defaults to 2, but that is enforced at loading time in gmap_updates()
   scriptret = bound(gmap(31) - 1, 0, UBOUND(maptiles))
+ CASE 725 '--get global sound volume
+  scriptret = get_global_sfx_volume * 255
+ CASE 726 '--set global sound volume (volume)
+  set_global_sfx_volume bound(retvals(0), 0, 255) / 255
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

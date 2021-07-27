@@ -63,6 +63,7 @@ March ? 2021 [Hróðvitnir]
       "get box style edge color", "get box style border" [Ralph]
     * "get child autosort", "set child autosort" [Ralph]
     * "last layer id", "layer id under walkabouts" [James]
+    * "get/set global sound volume" [Ralph]
 
   *** Changes
     * NPCpush:vertical and NPCpush:horizontal script constants were swapped with

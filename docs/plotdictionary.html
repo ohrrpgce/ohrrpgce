@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2021-05-21)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2021-07-27)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -854,6 +854,7 @@ function toggleContent(target) {
 		<a href="#about-getfootoffset">get foot offset</a><br>
 		<a href="#about-getformationbackground">get formation background (formation)</a><br>
 		<a href="#about-getformationsong">get formation song (formation)</a><br>
+		<a href="#about-getglobalsoundvolume">get global sound volume</a><br>
 		<a href="#about-getgridcolumns">get grid columns (handle)</a><br>
 		<a href="#about-getgridrows">get grid rows (handle)</a><br>
 		<a href="#about-getherohandx">get hero hand x (who, frame)</a><br>
@@ -1312,6 +1313,7 @@ function toggleContent(target) {
 		<a href="#about-setformationbackground">set formation background (formation, background, animation frames, animation ticks)</a><br>
 		<a href="#about-setformationsong">set formation song (formation, song)</a><br>
 		<a href="#about-setfullheroswapmode">set full hero swap mode (state)</a><br>
+		<a href="#about-setglobalsoundvolume">set global sound volume (volume)</a><br>
 		<a href="#about-setgridcolumns">set grid columns (handle, columns)</a><br>
 		<a href="#about-setgridrows">set grid rows (handle, rows)</a><br>
 		<a href="#about-setharmtiledamage">set harm tile damage (amount)</a><br>
@@ -6604,6 +6606,8 @@ gain hero stat(who, stat:mp, 0)</pre>
 		<a href="#about-getambientmusic">get ambient music</a><br>
 		<a href="#about-setmusicvolume">set music volume (volume)</a><br>
 		<a href="#about-getmusicvolume">get music volume</a><br>
+		<a href="#about-setglobalsoundvolume">set global sound volume (volume)</a><br>
+		<a href="#about-getglobalsoundvolume">get global sound volume</a><br>
 </ul>
 <ul></ul>
 </li>
@@ -6728,10 +6732,10 @@ gain hero stat(who, stat:mp, 0)</pre>
 			
 				Sets the volume at which music is played,
 				<span class="param">volume</span> being a number on the scale of 0 to 255, 0 being silent, 255 loudest.
-				This is the same as the Volume setting in the in-game menu.
+				This is the same as the Music setting in the in-game Volume menu.
 				If you want to manipulate the sound (e.g. fading out the music)
 				you should take note of the original volume that the player has set and return to this later.
-				The default volume is not the maximum 255, so you should not hardcode fades to begin at volume 255.
+				The default volume is usually not the maximum 255, so you should not hardcode fades to begin at volume 255.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					The actual resolution at which the volume is set is not necessarily 1/255th
@@ -6752,7 +6756,39 @@ gain hero stat(who, stat:mp, 0)</pre>
 			
 				Returns the volume at which music is played, on a scale of 0 to 255,
 				0 being silent, 255 loudest.
-				This is the same as the Volume setting in the in-game menu.
+				This is the same as the Music setting in the in-game Volume menu.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setglobalsoundvolume"></a>
+				<h4>set global sound volume (volume)</h4>
+<p>
+			
+				Sets the volume at which sound effects (sfx) are played,
+				<span class="param">volume</span> being a number on the scale of 0 to 255, 0 being silent, 255 loudest.
+				This is the same as the Sound setting in the in-game Volume menu.
+				Any currently playing sounds are affected, so this can be used for fading.
+				If you want to temporarily change the volume
+				you should record the original volume that the player has set and return to this later.
+				The default volume is usually not the maximum 255, so you should not hardcode fades to begin at volume 255.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getglobalsoundvolume"></a>
+				<h4>get global sound volume</h4>
+<p>
+			
+				Returns the volume at which music is played, on a scale of 0 to 255,
+				0 being silent, 255 loudest.
+				This is the same as the Sound setting in the in-game Volume menu.
 			
 			
 			
@@ -7075,6 +7111,14 @@ fade screen in</pre>
 </div>
 		</p>
 </div>
+		<div class="command">
+		<h4>get global sound volume</h4>
+		<p><a href="#about-getglobalsoundvolume">Documented in the Music section.</a></p>
+		</div>
+		<div class="command">
+		<h4>set global sound volume (volume)</h4>
+		<p><a href="#about-setglobalsoundvolume">Documented in the Music section.</a></p>
+		</div>
 		<hr>
 		</div>
 		<div class="section">
@@ -21139,7 +21183,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 909 commands (of which 13 are aliases), 28 constants and 11 definitions of types and other terms in this file.</p>
+<p>Stats: There are 911 commands (of which 13 are aliases), 28 constants and 11 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

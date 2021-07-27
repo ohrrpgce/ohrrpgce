@@ -702,6 +702,17 @@ plotscript, swap slot 0 and 3, begin
   swap by position(0, 3)
 end
 
+# In 'Testing scripts' menu
+# Tip: you can play a sound on Endless Wrapping and other maps by pressing '1'
+plotscript, fade sound volume in out, begin
+  variable(i, oldvol)
+  oldvol := get global sound volume
+  show value(oldvol)
+  for (i, 0, 255, 20) do (set global sound volume(i), showvalue(get global sound volume), wait)
+  for (i, 255, 0, -20) do (set global sound volume(i), showvalue(get global sound volume), wait)
+  set global sound volume(oldvol)
+end
+
 plotscript, run vikings_rpgdir, begin
   run game($0="..\VIKINGS/vikings.rpgdir")
 end
