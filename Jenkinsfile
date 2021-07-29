@@ -5,6 +5,12 @@ def default_SSH_CREDS = "hamsterrepublic-ohrrpgce"
 
 pipeline {
     agent any
+    triggers {
+        pollSCM 'H/5 * * * *'
+    }
+    options {
+	    quietPeriod(60)
+    }
     parameters {
         string(
             name: "UPLOAD_USER",
