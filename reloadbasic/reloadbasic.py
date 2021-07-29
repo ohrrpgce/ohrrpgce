@@ -184,7 +184,7 @@ class FileParsingIterator(object):
 
     def __init__(self, filename):
         self.filename = filename
-        file = open(filename, 'r')
+        file = open(filename, 'r', encoding='utf-8')
         self.starting_in_comment = False
         self.parser = pyPEG.LineParser(skipComments = comment, packrat = True, forceKeywords = True, caseInsensitive = True)
         self.source = source_lines_iter(file)
@@ -1373,7 +1373,7 @@ class ReloadBasicTranslator(object):
             outfilename = os.path.splitext(filename)[0] + ".bas"
         if outfilename == filename:
             sys.exit("Refusing to overwrite input file with output")
-        outfile = DelayedFileWriter(open(outfilename, 'w'))
+        outfile = DelayedFileWriter(open(outfilename, 'w', encoding='utf-8'))
 
         self.magic_number = randint(1, 2000000000)
         outfile.write('#define RELOADINTERNAL\n')
