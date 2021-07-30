@@ -61,6 +61,20 @@ Fill in the following:
 * The first build will take a long time because the docker images have
   to be built
 
+Go to "Manage Jenkins"
+Go to "Manage Credentials"
+Go to the "Jenkins" (System) store
+Go to the "Global Credentials unrestricted" domain
+Click "Add Credentials"
+Pick "SSH username with private key"
+For "ID" use "hamsterrepublic-ohrrpgce"
+Enter directly and paste the private key
+(matching public key should be appended to ~/.ssh/authorized_keys on
+the upload host)
+
+(Username in the credentials doesn't actually matter, it is a parameter
+in the Jenkinsfile. Only the ID and private key actually matters)  
+
 ## Backup
 
 You'll definitely want to back up your jenkins_home_vol docker volume
