@@ -16,6 +16,12 @@ from xmlast import AST2XML
 
 reloadbasic = "".join((a,a.upper())[randint(0,1)] for a in "reloadbasic")
 
+def openwrapper(filename, mode, encoding='utf-8'):
+	if sys.version_info[0] == 2:
+		# Ignore encoding on python2.x
+		return open(filename, mode)
+	# Pass encoding for python 3.x
+	return open(filename, mode, encoding=encoding)
 
 ############################### RB PEG grammar #################################
 
@@ -184,7 +190,7 @@ class FileParsingIterator(object):
 
     def __init__(self, filename):
         self.filename = filename
-        file = open(filename, 'r', encoding='utf-8')
+        file = openwrapper(filename, 'r', encoding='utf-8')
         self.starting_in_comment = False
         self.parser = pyPEG.LineParser(skipComments = comment, packrat = True, forceKeywords = True, caseInsensitive = True)
         self.source = source_lines_iter(file)
@@ -1373,7 +1379,7 @@ class ReloadBasicTranslator(object):
             outfilename = os.path.splitext(filename)[0] + ".bas"
         if outfilename == filename:
             sys.exit("Refusing to overwrite input file with output")
-        outfile = DelayedFileWriter(open(outfilename, 'w', encoding='utf-8'))
+        outfile = DelayedFileWriter(openwrapper(outfilename, 'w', encoding='utf-8'))
 
         self.magic_number = randint(1, 2000000000)
         outfile.write('#define RELOADINTERNAL\n')
