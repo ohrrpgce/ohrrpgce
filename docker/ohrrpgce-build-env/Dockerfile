@@ -34,6 +34,6 @@ RUN apt-get update \
 # Install the euphoria compiler. In spite of the deb name
 # this is actually a 32 bit binary (which is why we need g++-multilib)
 
-COPY euphoria_4.0.5_amd64.deb /euphoria-install/
+ADD http://mirror.motherhamster.org/dependencies/euphoria_4.0.5_amd64.deb /euphoria-install/
 RUN dpkg -i /euphoria-install/euphoria_4.0.5_amd64.deb
 RUN rm -rf /euphoria-install
