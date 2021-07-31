@@ -49,9 +49,24 @@ pipeline {
                 sh 'rm -f distrib/*'
             }
         }
-        stage('build-ohrrpgce') {
+        stage('build-linux-x86_64') {
             agent { docker { image 'bobthehamster/ohrrpgce-build-env' } }
+            environment {
+                OHR_SKIP_X86 = "yes"
+            }
             steps {
+                sh './distrib-linux.sh'
+                sh 'ls -l distrib/'
+                stash name: 'distrib_dir', includes: 'distrib/*'
+            }
+        }
+        stage('build-linux-x86') {
+            agent { docker { image 'bobthehamster/ohrrpgce-build-env-x86' } }
+            environment {
+                OHR_SKIP_X86_64 = "yes"
+            }
+            steps {
+                unstash 'distrib_dir'
                 sh './distrib-linux.sh'
                 sh 'ls -l distrib/'
                 stash name: 'distrib_dir', includes: 'distrib/*'
@@ -80,8 +95,10 @@ pipeline {
                       scp -i $SSH_KEYFILE -o StrictHostKeyChecking=no \
                         distrib/ohrrpgce-player-linux-bin-minimal-*-wip-x86.zip \
                         $USER@$HOST:$FOLDER/ohrrpgce-player-linux-bin-minimal-$BRANCH_NAME-x86.zip
-                      ssh -i $SSH_KEYFILE -o StrictHostKeyChecking=no \
-                        -- ln -s ohrrpgce-player-linux-bin-minimal-$BRANCH_NAME-x86.zip $FOLDER/ohrrpgce-player-linux-bin-minimal.zip
+                      if [ "$BRANCH_NAME" = "wip" ] ; then
+                        ssh -i $SSH_KEYFILE -o StrictHostKeyChecking=no \
+                          -- ln -s ohrrpgce-player-linux-bin-minimal-$BRANCH_NAME-x86.zip $FOLDER/ohrrpgce-player-linux-bin-minimal.zip
+                      fi
                     '''
                 }
             }
