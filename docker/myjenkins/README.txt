@@ -54,7 +54,7 @@ Fill in the following:
   * Input the repository url https://github.com/ohrrpgce/ohrrpgce.git
     (If using your private fork you might need to add auth)
   * In "Behaviors" add "filter by name" with wildcards and include "wip"
-* Skip all other options and pick "Add" at the bottom
+* Skip all other options and pick "Save" at the bottom
 * Wait for the "Scan multibranch pipeline" to find the Jenkinsfile
   on the wip branch
 * OHRRPGCE wip job will be added, and should attempt to build itself
