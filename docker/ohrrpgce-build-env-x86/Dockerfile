@@ -34,6 +34,8 @@ RUN apt-get update \
 
 # Install the euphoria compiler.
 
-ADD http://mirror.motherhamster.org/dependencies/euphoria_4.0.5_i386.deb /euphoria-install/
+WORKDIR /euphoria-install/
+RUN curl -O http://mirror.motherhamster.org/dependencies/euphoria_4.0.5_i386.deb
 RUN dpkg -i /euphoria-install/euphoria_4.0.5_i386.deb
+WORKDIR /
 RUN rm -rf /euphoria-install
