@@ -1,3 +1,8 @@
+/*
+  These defaults are used when the parameters are empty
+  You can override parameters with "build with parameters"
+  and the changes should remain for later builds
+*/ 
 def default_UPLOAD_USER = "james_paige"
 def default_UPLOAD_HOST = "motherhamster.org"
 def default_UPLOAD_FOLDER = "HamsterRepublic.com/ohrrpgce/nightly-test/"

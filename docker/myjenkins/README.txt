@@ -75,6 +75,10 @@ the upload host)
 (Username in the credentials doesn't actually matter, it is a parameter
 in the Jenkinsfile. Only the ID and private key actually matters)  
 
+Click "Build with Parameters" and you can change any of the upload
+parameters that need to be changed for your environment. These values
+will be remembered for subsequent automatic builds.
+
 ## Backup
 
 You'll definitely want to back up your jenkins_home_vol docker volume
