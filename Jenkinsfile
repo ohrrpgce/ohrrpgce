@@ -38,7 +38,7 @@ pipeline {
             steps {
                 sh 'docker build --tag bobthehamster/freebasic ./docker/freebasic/'
                 sh 'docker build --tag bobthehamster/ohrrpgce-build-env ./docker/ohrrpgce-build-env/'
-                sh 'docker build --tag bobthehamster/ohrrpgce-build-env-x86 ./docker/ohrrpgce-build-env/'
+                sh 'docker build --tag bobthehamster/ohrrpgce-build-env-x86 ./docker/ohrrpgce-build-env-x86/'
             }
         }
         stage('cleanup-distrib') {
