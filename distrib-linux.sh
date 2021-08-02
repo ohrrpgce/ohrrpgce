@@ -102,11 +102,11 @@ package_for_arch() {
 }
 
 if [ -z "${OHR_SKIP_X86}" ] ; then
-  package_for_arch x86
+  package_for_arch x86 || exit 1
 fi
 
 if [ -z "${OHR_SKIP_X86_64}" ] ; then
-  package_for_arch x86_64 &&
+  package_for_arch x86_64 || exit 1
   if which dpkg > /dev/null; then
     echo "Building x86_64 Debian/Ubuntu packages"
     cd linux
