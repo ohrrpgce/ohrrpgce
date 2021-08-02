@@ -54,7 +54,7 @@ pipeline {
             steps {
                 sh './distrib-linux.sh'
                 sh 'ls -l distrib/'
-                stash name: 'distrib_dir', includes: 'distrib/*'
+                stash name: 'distrib_dir_linux_x86_64', includes: 'distrib/*'
             }
         }
         stage('build-linux-x86') {
@@ -63,10 +63,9 @@ pipeline {
                 OHR_SKIP_X86_64 = "yes"
             }
             steps {
-                unstash 'distrib_dir'
                 sh './distrib-linux.sh'
                 sh 'ls -l distrib/'
-                stash name: 'distrib_dir', includes: 'distrib/*'
+                stash name: 'distrib_dir_linux_x86', includes: 'distrib/*'
             }
         }
         stage('upload-ohrrpgce') {
@@ -76,7 +75,8 @@ pipeline {
                 FOLDER = "${params.UPLOAD_FOLDER}"
             }
             steps {
-                unstash 'distrib_dir'
+                unstash 'distrib_dir_linux_x86_64'
+                unstash 'distrib_dir_linux_x86'
                 sh 'ls -l distrib/'
                 withCredentials([sshUserPrivateKey(credentialsId: params.SSH_CREDS, keyFileVariable: 'SSH_KEYFILE')]) {
                     sh '''
