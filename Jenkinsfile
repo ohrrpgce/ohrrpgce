@@ -92,10 +92,6 @@ pipeline {
                       scp -i $SSH_KEYFILE -o StrictHostKeyChecking=no \
                         distrib/ohrrpgce-player-linux-bin-minimal-*-wip-x86.zip \
                         $USER@$HOST:$FOLDER/ohrrpgce-player-linux-bin-minimal-$BRANCH_NAME-x86.zip
-                      if [ "$BRANCH_NAME" = "wip" ] ; then
-                        ssh -i $SSH_KEYFILE -o StrictHostKeyChecking=no \
-                          -- ln -s ohrrpgce-player-linux-bin-minimal-$BRANCH_NAME-x86.zip $FOLDER/ohrrpgce-player-linux-bin-minimal.zip
-                      fi
                     '''
                 }
             }
