@@ -1,6 +1,6 @@
 def default_UPLOAD_USER = "james_paige"
 def default_UPLOAD_HOST = "motherhamster.org"
-def default_UPLOAD_FOLDER = "HamsterRepublic.com/ohrrpgce/nightly-test/"
+def default_UPLOAD_FOLDER = "HamsterRepublic.com/ohrrpgce/${env.BRANCH_NAME == 'wip' ? 'nightly' : 'nightly-test'}/"
 def default_SSH_CREDS = "hamsterrepublic-ohrrpgce"
 
 pipeline {
