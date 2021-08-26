@@ -1861,7 +1861,7 @@ SUB distribute_game_as_linux_tarball (which_arch as string)
   safekill destname
   DIM olddir as string = CURDIR
   CHDIR apptmp
-  IF create_tarball(apptmp, destname, tarballdir_base) = NO THEN
+  IF create_tarball(apptmp, destname, escape_filename(tarballdir_base)) = NO THEN
    CHDIR olddir
    EXIT DO
   END IF
