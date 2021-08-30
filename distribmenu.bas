@@ -760,6 +760,8 @@ FUNCTION get_windows_gameplayer() as string
   IF dist_yesno("Is it okay to download the Windows version of OHRRPGCE game.exe from HamsterRepublic.com now?") = NO THEN RETURN ""
   touchfile dldir & SLASH & "win.download.agree"
  END IF
+ 
+ dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using."
 
  DIM destzip as string = dldir & SLASH & dlfile
  '--Remove the old copy
@@ -865,6 +867,8 @@ END SELECT
   IF dist_yesno("Is it okay to download the Linux version of OHRRPGCE ohrrpgce-game from HamsterRepublic.com now?") = NO THEN RETURN ""
   touchfile dldir & SLASH & "linux.download.agree"
  END IF
+
+ dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using."
 
  DIM destzip as string = dldir & SLASH & dlfile
  '--Remove the old file
@@ -1763,7 +1767,6 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
   url = "http://hamsterrepublic.com/dl/" & dlfile
  END IF
 
- '--Ask the user for permission the first time we download (subsequent updates don't ask)
  DIM destgz as string = dldir & SLASH & dlfile
  DIM desttar as string = trimextension(destgz)
 
@@ -1772,10 +1775,13 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
  safekill destgz
  safekill desttar
 
+ '--Ask the user for permission the first time we download (subsequent updates don't ask)
  IF NOT isfile(dldir & SLASH & "mac.download.agree") THEN
   IF dist_yesno("Is it okay to download the Mac OS X version of OHRRPGCE from HamsterRepublic.com now?") = NO THEN RETURN ""
   touchfile dldir & SLASH & "mac.download.agree"
  END IF
+
+ dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using."
 
  '--Actually download the dang file
  download_file url, dldir
