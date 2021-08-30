@@ -777,16 +777,21 @@ FUNCTION get_windows_gameplayer() as string
  DIM unzip as string = find_helper_app("unzip", YES)
  IF unzip = "" THEN dist_info "ERROR: Couldn't find unzip tool": RETURN ""
  
+ '--remove the old files first
+ safekill dldir & SLASH & "game.exe"
+ safekill dldir & SLASH & "LICENSE-binary.txt"
+ safekill_pattern dldir, "*.dll"
+ 
  '--Unzip the desired files
  DIM args as string = "-o " & escape_filename(destzip) & " game.exe SDL2.dll SDL2_mixer.dll LICENSE-binary.txt -d " & escape_filename(dldir)
  DIM spawn_ret as string = spawn_and_wait(unzip, args)
  IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: unzip failed: " & spawn_ret : RETURN ""
 
  IF NOT isfile(dldir & SLASH & "game.exe")           THEN dist_info "ERROR: Failed to unzip game.exe" : RETURN ""
- 'IF NOT isfile(dldir & SLASH & "gfx_directx.dll")    THEN dist_info "ERROR: Failed to unzip gfx_directx.dll" : RETURN ""
- IF NOT isfile(dldir & SLASH & "SDL2.dll")           THEN dist_info "ERROR: Failed to unzip SDL2.dll" : RETURN ""
- IF NOT isfile(dldir & SLASH & "SDL2_mixer.dll")     THEN dist_info "ERROR: Failed to unzip SDL2_mixer.dll" : RETURN ""
  IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
+ '--We might be downloading a future version, and don't know with certainty what dll files it might include
+ IF NOT isfile(dldir & SLASH & "SDL2.dll")           THEN debuginfo "WARN: Expected to unzip SDL2.dll but it wasn't there"
+ IF NOT isfile(dldir & SLASH & "SDL2_mixer.dll")     THEN debuginfo "WARN: Expected to unzip SDL2_mixer.dll but it wasn't there"
 
  RETURN dldir & SLASH & "game.exe"
 END FUNCTION
