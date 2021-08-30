@@ -3031,6 +3031,24 @@ FUNCTION safekill (filename as string) as bool
   RETURN YES
 END FUNCTION
 
+SUB safekill_pattern (dirname as string, filepattern as string)
+ 'Is this "safe"? That is "debatable"
+ DIM filelist() as string
+ IF LEN(dirname) = 0 THEN
+  debuginfo "safekill_pattern: empty dirname, do nothing."
+  EXIT SUB
+ END IF
+ IF NOT isdir(dirname) THEN
+  debuginfo "safekill_pattern: """ & dirname & """ directory does not exist, do nothing."
+  EXIT SUB
+ END IF
+ 'findfiles is always case-insensitive
+ findfiles dirname, filepattern, fileTypeFile, YES, filelist()
+ FOR i as integer = 0 TO UBOUND(filelist)
+  safekill dirname & SLASH & filelist(i)
+ NEXT i
+END SUB
+
 'Looking for local_file_move? Now called renamefile, in filelayer.cpp
 
 FUNCTION fileisreadable(filename as string) as bool

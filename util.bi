@@ -480,6 +480,7 @@ declare function copydirectory (src as string, dest as string, byval copyhidden 
 declare sub killdir (directory as string, recurse as bool = NO)
 declare function makedir (directory as string) as integer
 declare function safekill (filename as string) as bool
+declare sub safekill_pattern (dirname as string, filepattern as string)
 declare function killfile (filename as string) as bool
 declare function fileisreadable(filename as string) as bool
 declare function fileiswriteable(filename as string) as bool
