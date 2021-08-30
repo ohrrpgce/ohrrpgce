@@ -690,15 +690,15 @@ SUB find_required_dlls(gameplayer as string, byref files as string vector)
  END IF
 #ENDIF 
  
- '--for all other cases and all other platforms, we use
- '--the dll files for the default backend(s) on windows
- '--gfx_directx.dll adds 100KB to the zip. Maybe if the menu to switch gfx backend
- '--were easier to find, it would make sense to include it in case players want to try it.
- ' IF gen(genResolutionX) = 320 AND gen(genResolutionY) = 200 THEN
- '  add_file files, "gfx_directx.dll"
- ' END IF
- add_file files, "SDL2.dll"
- add_file files, "SDL2_mixer.dll"
+ '-- for all other cases and all other platforms, we just use whatever
+ '-- *.dll files are found in the same folder where we downloaded the
+ '-- game player
+ DIM filelist() as string
+ DIM dirname as string = trimfilename(gameplayer)
+ findfiles dirname, "*.dll", fileTypeFile, YES, filelist()
+ FOR i as integer = 0 TO UBOUND(filelist)
+  add_file files, filelist(i)
+ NEXT i
 END SUB
 
 FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
