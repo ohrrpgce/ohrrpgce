@@ -832,6 +832,7 @@ declare function safe_captionz (caption_array() as zstring ptr, index as integer
 declare Function wordwrap(z as string, byval width as integer, sep as string = chr(10)) as string
 declare sub split(in as string, ret() as string, sep as string = chr(10))
 declare sub split_line_positions(original_text as string, lines() as string, line_starts() as integer, sep as string = chr(10))
+declare function split_chunk(in as string, index as integer, sep as string = chr(10), default as string="") as string
 
 
 '----------------------------------------------------------------------

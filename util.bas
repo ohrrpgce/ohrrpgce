@@ -1312,6 +1312,20 @@ sub split(in as string, ret() as string, sep as string = chr(10))
  loop
 end sub
 
+function split_chunk(in as string, index as integer, sep as string = chr(10), default as string="") as string
+ ' Split a string by a separater, return one chunk.
+ ' 0 is the first chunk.
+ ' negative index counts from the end of the list, python-style
+ dim chunks() as string
+ split(in, chunks(), sep)
+ if index < 0 then
+  ' convert negative index
+  index = ubound(chunks) + 1 + index
+ end if
+ if index < lbound(chunks) or index > ubound(chunks) then return default
+ return chunks(index)
+end function
+
 FUNCTION days_since_datestr (datestr as string) as integer
  'Returns the number of days since a date given as a string in the format YYYY-MM-DD
  IF LEN(datestr) <> 10 THEN
