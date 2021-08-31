@@ -65,6 +65,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-? -h -help         Display this help screen" & LINE_END
 		help = help & "-v -version         Show version and build info" & LINE_END
 		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
+		help = help & "-buildinfo          Output build metadata in ini format" & LINE_END
 #IFDEF IS_GAME
 		help = help & "-full-upgrade       Upgrade game data completely, as Custom does (only useful for bughunting)" & LINE_END
 		help = help & "-autosnap N         Automatically save a screen snapshot every N ticks" & LINE_END
@@ -110,6 +111,22 @@ function global_setoption(opt as string, arg as string) as integer
 		end if
 		display_help_string help
 		return 1
+	elseif opt = "buildinfo" then
+		help = "[buildinfo]" & LINE_END
+		help &= "packaging_version=1" & LINE_END
+		dim version_prefix as string = split_chunk(version_build, 0, " ")
+		dim build_date as string = split_chunk(version_prefix, 0, ".")
+		dim svn_rev as string = split_chunk(version_prefix, 1, ".")
+		help &= "build_date=" & build_date & LINE_END
+		help &= "svn_rev=" & svn_rev & LINE_END
+		dim code_name as string = split_chunk(version_code, -1, " ")
+		help &= "code_name=" & code_name & LINE_END
+		load_preferred_gfx_backend()
+		help &= "gfx=" & gfxbackend & LINE_END
+		help &= "music=" & musicbackend & LINE_END
+		display_help_string help
+		return 1
+		
 	elseif opt = "log" then
 		dim d as string = absolute_with_orig_path(arg, YES)
 		if isdir(d) ANDALSO diriswriteable(d) then
