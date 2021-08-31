@@ -65,7 +65,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-? -h -help         Display this help screen" & LINE_END
 		help = help & "-v -version         Show version and build info" & LINE_END
 		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
-		help = help & "-buildinfo          Output build metadata in ini format" & LINE_END
+		help = help & "-buildinfo file     Write build metadata in ini format" & LINE_END
 #IFDEF IS_GAME
 		help = help & "-full-upgrade       Upgrade game data completely, as Custom does (only useful for bughunting)" & LINE_END
 		help = help & "-autosnap N         Automatically save a screen snapshot every N ticks" & LINE_END
@@ -124,8 +124,10 @@ function global_setoption(opt as string, arg as string) as integer
 		load_preferred_gfx_backend()
 		help &= "gfx=" & gfxbackend & LINE_END
 		help &= "music=" & musicbackend & LINE_END
-		display_help_string help
-		return 1
+
+		dim ini_file as string = absolute_with_orig_path(arg, YES)
+		string_to_file help, ini_file
+		return 2
 		
 	elseif opt = "log" then
 		dim d as string = absolute_with_orig_path(arg, YES)
