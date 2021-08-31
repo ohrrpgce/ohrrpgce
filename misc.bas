@@ -125,8 +125,10 @@ function global_setoption(opt as string, arg as string) as integer
 		help &= "gfx=" & gfxbackend & LINE_END
 		help &= "music=" & musicbackend & LINE_END
 
-		dim ini_file as string = absolute_with_orig_path(arg, YES)
+		dim ini_file as string = arg
+		debuginfo "Write buildinfo in ini format to """ & ini_file & """"
 		string_to_file help, ini_file
+		system
 		return 2
 		
 	elseif opt = "log" then
