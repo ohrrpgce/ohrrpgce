@@ -100,8 +100,12 @@ mv OHRRPGCE-$CODE$SUFFIX tmp
 echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
 
+echo "Generating buildinfo.ini"
+rm -f buildinfo.ini
+./OHRRPGCE-Game.app/Contents/MacOS/ohrrpgce-game -buildinfo ./buildinfo.ini
+
 echo "Create minimal player tarball"
-gnutar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$CODE$SUFFIX.tar.gz OHRRPGCE-Game.app README-player-only.txt LICENSE-binary.txt || exit 1
+gnutar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$CODE$SUFFIX.tar.gz OHRRPGCE-Game.app buildinfo.ini README-player-only.txt LICENSE-binary.txt || exit 1
 
 echo "Creating utilities archive"
 zip distrib/ohrrpgce-mac-util$SUFFIX.zip unlump relump hspeak plotscr.hsd scancode.hsi LICENSE-binary.txt || exit 1

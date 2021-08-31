@@ -103,8 +103,12 @@ rm -f distrib/ohrrpgce-minimal.zip
 rm -f distrib/ohrrpgce.zip
 rm -f distrib/ohrrpgce-win-installer.exe
 
+echo "Generating buildinfo.ini"
+rm -f buildinfo.ini
+wine ./game.exe -buildinfo buildinfo.ini
+
 echo "Packaging game player ohrrpgce-player-win-minimal-sdl2.zip ..."
-zip -9 -q distrib/ohrrpgce-player-win-minimal-sdl2.zip game.exe SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt
+zip -9 -q distrib/ohrrpgce-player-win-minimal-sdl2.zip game.exe buildinfo.ini SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt
 
 echo "Make temporary folder..."
 rm -Rf tmpdist

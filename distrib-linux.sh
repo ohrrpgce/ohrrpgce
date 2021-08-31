@@ -37,7 +37,7 @@ package_for_arch() {
   scons $SCONS_ARGS arch=$ARCH game custom hspeak || return 1
 
   echo "Packaging $ARCH binary distribution of CUSTOM"
-
+  
   echo "  Including binaries"
   cp -p ohrrpgce-game tmp &&
   cp -p ohrrpgce-custom tmp &&
@@ -94,10 +94,13 @@ package_for_arch() {
   echo "Erasing contents of temporary directory"
   rm -Rf tmp/*
 
+  echo "Generating buildinfo.ini"
+  tmp/ohrrpgce-game -buildinfo tmp/buildinfo.ini
+
   echo "Prepare minimal $ARCH player zip"
   cp ohrrpgce-game tmp/
   strip tmp/ohrrpgce-game
-  zip -j distrib/ohrrpgce-player-linux-bin-minimal-$TODAY-$CODE-$ARCH.zip tmp/ohrrpgce-game LICENSE-binary.txt README-player-only.txt
+  zip -j distrib/ohrrpgce-player-linux-bin-minimal-$TODAY-$CODE-$ARCH.zip tmp/ohrrpgce-game tmp/buildinfo.ini LICENSE-binary.txt README-player-only.txt
   rm tmp/ohrrpgce-game
 }
 

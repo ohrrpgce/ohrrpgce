@@ -40,8 +40,11 @@ support\rm -f distrib\ohrrpgce.zip
 support\rm -f distrib\ohrrpgce-win-installer.exe
 
 REM ------------------------------------------
+ECHO Generating buildinfo.ini
+support\rm -f buildinfo.ini
+game.exe -buildinfo buildinfo.ini
 ECHO Packaging game player ohrrpgce-player-win-minimal-sdl2.zip ...
-support\zip -9 -q distrib\ohrrpgce-player-win-minimal-sdl2.zip game.exe SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt
+support\zip -9 -q distrib\ohrrpgce-player-win-minimal-sdl2.zip game.exe buildinfo.ini SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt
 
 REM ------------------------------------------
 ECHO Packaging minimal-but-complete ohrrpgce-minimal.zip ...
