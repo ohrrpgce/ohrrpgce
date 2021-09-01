@@ -1586,7 +1586,8 @@ Sub NewDrawTextSlice(byval sl as Slice ptr, byval p as integer, col as integer)
 
  dim text as string = dat->s
  dim wide as integer = TextSliceRenderTextWide(sl, dat)
- dim fontnum as integer = iif(dat->outline, fontEdged, fontPlain)
+ dim fontnum as integer = iif(dat->fontnum, dat->fontnum, iif(dat->outline, fontEdged, fontPlain))
+ if fontnum > ubound(fonts) then fontnum = 0  'Silent failure; might have loaded slices from a different game
 
  dat->insert_tog = dat->insert_tog xor 1
 
