@@ -37,6 +37,7 @@ void _noreturn (*fb_ErrorThrowAt(int line_num, const char *mod_name, void *res_l
 
 // in miscc.c (NOTE: debugc, _throw_error also defined separately in gfx_directx.cpp)
 void debugc(enum ErrorLevel errorlevel, const char *msg);
+void early_debuginfo(const char *msg);
 void showbug(const char *msg);
 void showerror(const char *msg, boolint isfatal, boolint isbug);
 void _throw_error(enum ErrorLevel errorlevel, const char *srcfile, int linenum, const char *msg, ...) format_chk(4);

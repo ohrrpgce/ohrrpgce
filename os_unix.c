@@ -153,7 +153,7 @@ void fatal_signal_handler(int signum, siginfo_t *si, void *ucontext) {
 // that so that we can tell whether to report a fatal bug or just a fatal error
 // (if using hook_fb_End() we don't know what the error number is)
 boolint setup_exception_handler() {
-	debuginfo("setup_exception_handler");
+	early_debuginfo("setup_exception_handler");
 	struct sigaction sa;
 	sa.sa_sigaction = fatal_signal_handler;
 	sa.sa_flags = SA_SIGINFO;
