@@ -126,8 +126,12 @@ function global_setoption(opt as string, arg as string) as integer
 		help &= "music=" & musicbackend & LINE_END
 
 		dim ini_file as string = arg
-		debuginfo "Write buildinfo in ini format to """ & ini_file & """"
-		string_to_file help, ini_file
+		if len(ini_file) then
+			debuginfo "Write buildinfo in ini format to """ & ini_file & """"
+			string_to_file help, ini_file
+		else
+			print help
+		end if
 		terminate_program
 		return 2
 		
