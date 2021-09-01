@@ -188,7 +188,8 @@ DECLARE FUNCTION price_string (cost as integer) as string
 DECLARE FUNCTION money_name () as string
 
 DECLARE SUB load_default_master_palette (master_palette() as RGBColor)
-DECLARE SUB dump_integer_array_as_hex (arraydim as string, byval start as uinteger ptr, byval _ubound as integer, byval nibbles as integer = 8)
+DECLARE SUB load_gfx_defaults ()
+'DECLARE SUB dump_integer_array_as_hex (arraydim as string, byval start as uinteger ptr, byval _ubound as integer, byval nibbles as integer = 8)
 
 DECLARE FUNCTION readattackname OVERLOAD (byval index as integer) as string
 DECLARE FUNCTION readattackcaption (byval index as integer) as string

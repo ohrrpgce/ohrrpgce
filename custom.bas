@@ -168,14 +168,9 @@ processcommandline cmdline_args(), @gamecustom_setoption, orig_dir & SLASH & "oh
 
 '======================= Initialise backends/graphics =========================
 
-load_default_master_palette master()
-DefaultUIColors master(), uilook(), boxlook()
-getdefaultfont current_font()
+load_gfx_defaults  'Loads master(), uilook(), boxlook(), current_font()
 
 setmodex
-setpal master()
-setfont current_font()
-textcolor uilook(uiText), 0
 
 setwindowtitle "O.H.R.RPG.C.E"
 showmousecursor

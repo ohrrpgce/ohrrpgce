@@ -262,7 +262,6 @@ IF running_as_slave THEN debuginfo "Spawned from Custom"
 
 'DEBUG debug "set mode-X"
 setmodex
-dpage = 1: vpage = 0
 
 'DEBUG debug "init sound"
 setupmusic
@@ -280,11 +279,7 @@ DO
 presentsong = -1
 
 gam.current_master_palette = -1
-load_default_master_palette master()
-setpal master()
-DefaultUIColors master(), uilook(), boxlook()
-getdefaultfont current_font()
-setfont current_font()
+load_gfx_defaults  'Loads master(), uilook(), boxlook(), current_font()
 
 ' Remove junk when using "run game"
 clearpage vpage

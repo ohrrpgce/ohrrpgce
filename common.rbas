@@ -6026,6 +6026,8 @@ SUB save_tag_name (tagname as string, byval index as integer)
  storerecord buf(), game + ".tmn", 42 \ 2, index
 END SUB
 
+/'
+
 SUB dump_integer_array_as_hex (arraydim as string, byval start as uinteger ptr, byval _ubound as integer, byval nibbles as integer = 8)
  DIM hexstring as string = " DIM " & arraydim & " = {"
  FOR i as integer = 0 TO _ubound
@@ -6046,6 +6048,8 @@ SUB dump_master_palette_as_hex (master_palette() as RGBColor)
 END SUB
 
 'dump_integer_array_as_hex "default_font(1023) as ushort", @current_font(0), 1023, 4
+
+'/
 
 SUB load_default_master_palette (master_palette() as RGBColor)
  'To regenerate this if the default master palette changes, use dump_master_palette_as_hex
@@ -6081,6 +6085,16 @@ SUB load_default_master_palette (master_palette() as RGBColor)
  FOR i as integer = 0 TO 255
   master_palette(i).col = colorcodes(i)
  NEXT i
+END SUB
+
+'Loads master(), uilook(), boxlook(), current_font()
+SUB load_gfx_defaults ()
+ load_default_master_palette master()
+ setpal master()
+ DefaultUIColors master(), uilook(), boxlook()
+ getdefaultfont current_font()
+ setfont current_font()
+ textcolor uilook(uiText), 0
 END SUB
 
 'You should probably be calling enter_space_click() instead of calling this directly
