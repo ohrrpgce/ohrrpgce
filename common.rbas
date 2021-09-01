@@ -6100,6 +6100,7 @@ SUB load_gfx_defaults ()
  DefaultUIColors master(), uilook(), boxlook()
  getdefaultfont current_font()
  setfont current_font()
+ set_builtin_font current_font()
  textcolor uilook(uiText), 0
 END SUB
 

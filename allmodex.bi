@@ -254,9 +254,12 @@ DECLARE FUNCTION get_tickcount() as integer
 '==========================================================================================
 '                               Fonts and text rendering
 
-CONST fontPlain = 0
+CONST fontPlain = 0   'The game's font
 CONST fontEdged = 1
 CONST fontShadow = 2
+CONST fontBuiltinPlain = 3  'Builtin Latin-1 font
+CONST fontBuiltinEdged = 4
+CONST fontLAST = 4
 
 Type FontChar
 	offset as integer  'offset into spr->image
@@ -340,9 +343,10 @@ DECLARE FUNCTION just_markup(text as string) as string
 
 DECLARE FUNCTION get_font(fontnum as integer, show_err as bool = NO) as Font ptr
 
-DECLARE SUB setfont (f() as integer)
-DECLARE FUNCTION get_font_type (font() as integer) as fontTypeEnum
-DECLARE SUB set_font_type (font() as integer, ty as fontTypeEnum)
+DECLARE SUB setfont (ohf_font() as integer)
+DECLARE SUB set_builtin_font (ohf_font() as integer)
+DECLARE FUNCTION get_font_type (ohf_font() as integer) as fontTypeEnum
+DECLARE SUB set_font_type (ohf_font() as integer, ty as fontTypeEnum)
 DECLARE SUB font_unload (fontpp as Font ptr ptr)
 DECLARE FUNCTION font_create_edged (basefont as Font ptr) as Font ptr
 DECLARE FUNCTION font_create_shadowed (basefont as Font ptr, xdrop as integer = 1, ydrop as integer = 1) as Font ptr

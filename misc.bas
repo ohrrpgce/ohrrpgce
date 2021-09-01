@@ -28,12 +28,17 @@ dim overrode_log_dir as bool = NO
 dim timer_variables
 #endif
 
+'Embedded copy of import/fonts/OHRRPGCE Default.ohf
+'Latin-1 font, plus icons in the 127-160 free space, and icons for Custom in low characters
 SUB getdefaultfont(fnt() as integer)
 	for i as integer = 0 to 1023
 		fnt(i) = default_font(i)
 	next
 END SUB
 
+'Embedded copy of misc/browser font.ohf
+'Almost identical to the default font, except placement of ©, heart, spades and hamster icons in the free
+'space matching original font - some old games used these in the game longname or description.
 SUB getbrowserfont(fnt() as integer)
 	for i as integer = 0 to 1023
 		fnt(i) = browser_font(i)

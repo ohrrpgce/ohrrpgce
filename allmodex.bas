@@ -150,7 +150,7 @@ dim shared last_active_time as double
 
 dim def_drawoptions as DrawOptions
 
-redim fonts(3) as Font ptr
+redim fonts(fontLAST) as Font ptr
 
 'Toggles 0-1 every time dowait is called
 dim global_tog as integer
@@ -6609,6 +6609,13 @@ sub setfont (ohf_font() as integer)
 	fonts(fontPlain) = font_loadold1bit(cast(ubyte ptr, @ohf_font(0)))
 	fonts(fontEdged) = font_create_edged(fonts(fontPlain))
 	fonts(fontShadow) = font_create_shadowed(fonts(fontPlain), 1, 2)
+end sub
+
+sub set_builtin_font (ohf_font() as integer)
+	font_unload @fonts(fontBuiltinPlain)
+	font_unload @fonts(fontBuiltinEdged)
+	fonts(fontBuiltinPlain) = font_loadold1bit(cast(ubyte ptr, @ohf_font(0)))
+	fonts(fontBuiltinEdged) = font_create_edged(fonts(fontBuiltinPlain))
 end sub
 
 'NOTE: the following two functions are for the old style fonts, they will
