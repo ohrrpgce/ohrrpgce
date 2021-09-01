@@ -1,5 +1,5 @@
 # bobthehamster/ohrrpgce-build-env-x86
-# Begin with the freebasic-x86 image, (which is in turn based on i386/debian:stretch-slim)
+# Begin with the freebasic image, (which is in turn based on debian:stretch-slim)
 
 FROM bobthehamster/freebasic
 
