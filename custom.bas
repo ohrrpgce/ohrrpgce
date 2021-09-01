@@ -755,8 +755,10 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
  END IF
  restoremode
  debuginfo "End."
+ 'Delete c_debug.txt if no errors, regardless of retval: nonzero (e.g. script
+ 'import failed) is not necessarily a serious error
  end_debug
- SYSTEM retval
+ terminate_program retval
 END SUB
 
 

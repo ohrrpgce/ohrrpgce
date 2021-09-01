@@ -28,6 +28,8 @@ DECLARE SUB restore_previous_palette ()
 DECLARE SUB push_and_reset_gfxio_state ()
 DECLARE SUB pop_gfxio_state ()
 
+DECLARE SUB terminate_program (retval as integer = 0)
+
 DECLARE SUB start_new_debug (title as string)
 DECLARE SUB end_debug ()
 DECLARE SUB debug_reload (nod as Node ptr)

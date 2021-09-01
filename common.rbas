@@ -1394,6 +1394,14 @@ FUNCTION global_npcdef_filename (byval pool_id as integer=1) as string
  RETURN workingdir & SLASH & "globalnpcs" & pool_id & ".n"
 END FUNCTION
 
+'Wrapper around SYSTEM - you should usually instead call exitprogram/cleanup_and_terminate
+'to cleanly quit Game/Custom respectively, or fatal_error_shutdown for unclean quit.
+SUB terminate_program(retval as integer = 0)
+ IF retval = 0 THEN end_debug
+ close_lazy_files  'Only needed to avoid "Double close" warnings
+ SYSTEM retval
+END SUB
+
 SUB fatal_error_shutdown
  #IFDEF IS_GAME
   exitprogram NO, 1
@@ -1408,9 +1416,7 @@ SUB fatal_error_shutdown
   closemusic
   restoremode
 
-  'no need for end_debug
-  close_lazy_files  'Only needed to avoid "Double close" warnings
-  SYSTEM 1
+  terminate_program 1
  #ENDIF
 END SUB
 

@@ -270,9 +270,7 @@ v_free modified_lumps
 
 restoremode
 debuginfo "End."
-IF errorout = 0 THEN end_debug
-close_lazy_files  'Only needed to avoid "Double close" warnings
-SYSTEM errorout
+terminate_program errorout
 
 END SUB
 
@@ -1083,7 +1081,7 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
   ELSE
    debug "Failed to open channel '" & arg & "'"
    hook_after_attach_to_master NO
-   SYSTEM
+   terminate_program 10
    RETURN 1
   END IF
  END IF

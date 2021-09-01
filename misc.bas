@@ -128,7 +128,7 @@ function global_setoption(opt as string, arg as string) as integer
 		dim ini_file as string = arg
 		debuginfo "Write buildinfo in ini format to """ & ini_file & """"
 		string_to_file help, ini_file
-		system
+		terminate_program
 		return 2
 		
 	elseif opt = "log" then
@@ -211,9 +211,8 @@ sub display_help_string(help as string)
 	'Convert the string to system (multibyte) encoding
 	print utf8_to_mbs(latin1_to_utf8(help))
 #endif
-	SYSTEM        ' terminate the program
+	terminate_program
 end sub
-
 
 ' This function exists to be hooked by gdb after we've opened
 ' the channel (without which, Custom's attempt to open it times out).

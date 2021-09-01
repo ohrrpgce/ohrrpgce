@@ -302,7 +302,8 @@ declare function OPENFILE(filename as string, open_bits as OPENBits, byref fh as
 declare function lazyclose(fh as integer) as FBErrorEnum
 
 'Really close all files that are lazyclose'd.
-'Shouldn't be needed before quitting, because FB closes all files itself.
+'Not necessary before quitting, because FB closes all files itself... but it seems
+'"double close" warnings are possible if you don't call this.
 declare sub close_lazy_files()
 
 declare sub send_lump_modified_msg(byval filename as zstring ptr)
