@@ -671,7 +671,7 @@ END FUNCTION
 'You can optionally specify a maximum width (default whole screen)
 'If shrink=NO then the textbox extends to maximum width, otherwise its width is minimal.
 'Returns the position of the bottom of the box.
-FUNCTION basic_textbox (msg as zstring ptr, col as integer = -1, page as integer, ypos as RelPos = pCentered, width as RelPos = -1, shrink as bool = NO, suppress_borders as bool = NO) as integer
+FUNCTION basic_textbox (msg as zstring ptr, col as integer = -1, page as integer, ypos as RelPos = pCentered, width as RelPos = -1, shrink as bool = NO, suppress_borders as bool = NO, fontnum as integer = fontEdged) as integer
  IF col = -1 THEN col = uilook(uiText)
  IF width = -1 THEN width = small(vpages(page)->w - 20, 450)
  DIM size as XYPair = textsize(*msg, width, fontEdged)
@@ -683,7 +683,7 @@ FUNCTION basic_textbox (msg as zstring ptr, col as integer = -1, page as integer
   text_xpos = rCenter - size.w \ 2
  END IF
  edgeboxstyle pCentered, ypos - 5, size.w + 10, size.h + 10, 2, page, , suppress_borders
- wrapprint *msg, text_xpos, ypos, col, page, width '- rCenter + size.w \ 2
+ wrapprint *msg, text_xpos, ypos, col, page, width /'- rCenter + size.w \ 2'/, , fontnum
  RETURN ypos + size.h + 10
 END FUNCTION
 
@@ -1563,7 +1563,7 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
  DefaultUIColors default_palette(), uilook(), boxlook()
  clearpage vpage
  'suppress_borders to avoid needing to load the box border spriteset
- basic_textbox msg, uilook(uiText), vpage, , , , YES  'suppress_borders=YES
+ basic_textbox msg, uilook(uiText), vpage, , , , YES, fontBuiltinEdged  'suppress_borders=YES
  setvispage vpage, NO
 
  DIM key as KBScancode = waitforanykey
@@ -1576,7 +1576,7 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
     clearpage vpage
     basic_textbox "The editing state of the game will be preserved; run " CUSTOMEXE _
                   " again and you will be asked whether you want to recover it.", _
-                  uilook(uiText), vpage, , , , YES  'suppress_borders=YES
+                  uilook(uiText), vpage, , , , YES, fontBuiltinEdged  'suppress_borders=YES
     setvispage vpage, NO
     waitforanykey
    END IF
@@ -1601,7 +1601,7 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
    basic_textbox "You may want to backup your .RPG file BEFORE attempting to save any " _
                  "changes, because there is a chance that this error means some kind " _
                  "of data corruption has happened.", _
-                 uilook(uiText), vpage, , , , YES  'suppress_borders=YES
+                 uilook(uiText), vpage, , , , YES, fontBuiltinEdged  'suppress_borders=YES
    setvispage vpage
    waitforanykey
   END IF
@@ -2801,6 +2801,8 @@ SUB show_help(helpkey as zstring ptr)
   .AnchorHoriz = alignRight
   .Y = -4
   .X = -3
+  .TextData->use_render_text = YES
+  .TextData->fontnum = fontBuiltinPlain
  END WITH
  ChangeTextSlice footer_text2, , uilook(uiMenuItem), NO, , boxlook(1).bgcol  'outline=NO
  DIM footer_text as Slice Ptr
@@ -2809,6 +2811,8 @@ SUB show_help(helpkey as zstring ptr)
   .AlignVert = alignBottom
   .X = 3
   .Y = -4
+  .TextData->use_render_text = YES
+  .TextData->fontnum = fontBuiltinPlain
  END WITH
  ChangeTextSlice footer_text, , uilook(uiMenuItem), NO, , boxlook(1).bgcol  'outline=NO
  footer_text->TextData->use_render_text = YES
@@ -2832,6 +2836,7 @@ SUB show_help(helpkey as zstring ptr)
   .Fill = YES
   .FillMode = sliceFillHoriz
   .TextData->use_render_text = YES
+  .TextData->fontnum = fontBuiltinPlain
   ChangeTextSlice help_text, help_str, , , YES  'wrap=YES
  END WITH
  DIM animate as Slice Ptr
@@ -3264,7 +3269,7 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
   IF have_help_file THEN
    edgeprint "F1 Help", pRight, pBottom, uilook(uiMenuItem), vpage
   END IF
-  wrapprint *extra_message, pLeft, pBottom, uilook(uiMenuItem), vpage, YES, YES
+  wrapprint *extra_message, pLeft, pBottom, uilook(uiMenuItem), vpage, , YES, fontBuiltinEdged
   setvispage vpage
   dowait
  LOOP

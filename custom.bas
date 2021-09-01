@@ -454,10 +454,10 @@ SUB main_editor_menu()
   standardmenu menu_display(), state, 0, 0, dpage, menuopts
 
   textcolor uilook(uiSelectedDisabled), 0
-  printstr version_code, 0, pBottom - 16, dpage
-  printstr version_build & " In use: " & gfxbackend & "/" & musicbackend, 0, pBottom - 8, dpage
+  printstr version_code, 0, pBottom - 16, dpage, , fontBuiltinPlain
+  printstr version_build & " In use: " & gfxbackend & "/" & musicbackend, 0, pBottom - 8, dpage, , fontBuiltinPlain
   textcolor uilook(uiText), 0
-  printstr "Press F1 for help on any menu!", 0, pBottom, dpage
+  printstr "Press F1 for help on any menu!", 0, pBottom, dpage, , fontBuiltinPlain
  
   SWAP vpage, dpage
   setvispage vpage

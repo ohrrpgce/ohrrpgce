@@ -251,7 +251,7 @@ DECLARE FUNCTION ticklite(what as string, col as integer = -1) as string
 DECLARE FUNCTION fgtag(col as integer, text as string = "") as string
 DECLARE FUNCTION bgtag(col as integer, text as string = "") as string
 
-DECLARE FUNCTION basic_textbox (msg as zstring ptr, col as integer = -1, page as integer, ypos as RelPos = pCentered, width as RelPos = -1, shrink as bool = NO, suppress_borders as bool = NO) as integer
+DECLARE FUNCTION basic_textbox (msg as zstring ptr, col as integer = -1, page as integer, ypos as RelPos = pCentered, width as RelPos = -1, shrink as bool = NO, suppress_borders as bool = NO, fontnum as integer = fontEdged) as integer
 DECLARE FUNCTION notification (msg as zstring ptr, shrink as bool = NO) as KBScancode
 DECLARE SUB pop_warning(msg as zstring ptr, byval autoquit as bool = NO)
 DECLARE FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", centerlines as bool=YES, extra_message as zstring ptr=@"") as integer
