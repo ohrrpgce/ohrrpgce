@@ -3,6 +3,8 @@
 CHOICE /m "NIGHTLY BUILD WILL START IN 10 SECONDS" /n /d "Y" /t 10
 
 CD c:\nightly\ohrrpgce
+svn cleanup
+svn update distrib-nightly-win.bat nightly
 cmd /c distrib-nightly-win.bat 1> c:\nightly\distrib-out.txt 2>&1
 CD C:\nightly
 

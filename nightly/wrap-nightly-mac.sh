@@ -11,7 +11,8 @@ if [ -n "True" ] ; then
   echo ""
   # Make sure whave the lates mac distrib script
   # everything else is done in a different folder
-  svn update --trust-server-cert-failures=unknown-ca --non-interactive distrib-nightly-mac.sh
+  svn cleanup
+  svn update --trust-server-cert-failures=unknown-ca --non-interactive distrib-nightly-mac.sh nightly
   # This hard-codes some paths specific to James's setup
   CC=clang GCC=/opt/local/bin/gcc-mp-4.7 EUDIR=~james/misc/euphoria/ ./distrib-nightly-mac.sh 2>&1
 fi | tee ~/wrap-nightly-mac-output.txt

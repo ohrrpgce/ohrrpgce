@@ -10,7 +10,7 @@ if [ -n "True" ] ; then
   echo "Subject: OHRRPGCE Linux nightly build ($(uname -n))"
   echo ""
   svn cleanup
-  svn update
+  svn update distrib-nightly-linux.sh nightly
   export OHR_SKIP_X86="Yes"
   ./distrib-nightly-linux.sh 2>&1
 fi | tee ~/wrap-nightly-linux-output.txt
