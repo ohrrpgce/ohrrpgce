@@ -94,12 +94,11 @@ package_for_arch() {
   echo "Erasing contents of temporary directory"
   rm -Rf tmp/*
 
-  echo "Generating buildinfo.ini"
-  tmp/ohrrpgce-game -buildinfo tmp/buildinfo.ini
-
   echo "Prepare minimal $ARCH player zip"
   cp ohrrpgce-game tmp/
   strip tmp/ohrrpgce-game
+  echo "Generating buildinfo.ini"
+  tmp/ohrrpgce-game -buildinfo tmp/buildinfo.ini
   zip -j distrib/ohrrpgce-player-linux-bin-minimal-$TODAY-$CODE-$ARCH.zip tmp/ohrrpgce-game tmp/buildinfo.ini LICENSE-binary.txt README-player-only.txt
   rm tmp/ohrrpgce-game
 }
