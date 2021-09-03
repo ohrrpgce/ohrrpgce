@@ -9,6 +9,8 @@ if [ -n "True" ] ; then
   echo "To: cron@rpg.hamsterrepublic.com"
   echo "Subject: OHRRPGCE Linux nightly build ($(uname -n))"
   echo ""
+  svn cleanup
+  svn update
   export OHR_SKIP_X86="Yes"
   ./distrib-nightly-linux.sh 2>&1
 fi | tee ~/wrap-nightly-linux-output.txt
