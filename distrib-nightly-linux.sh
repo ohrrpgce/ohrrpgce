@@ -92,8 +92,8 @@ if [ -z "$OHR_SKIP_X86" ] ; then
   # ohrrpgce-player-linux-bin-minimal.zip is 32-bit
   echo "Uploading minimal 32-bit ohrrpgce-player binaries..."
   mv distrib/ohrrpgce-player-linux-bin-minimal-*-wip-x86.zip distrib/ohrrpgce-player-linux-bin-minimal-x86.zip &&
-  scp -p distrib/ohrrpgce-player-linux-bin-minimal.zip $UPLOAD_DEST/ohrrpgce/nightly/
-  rm distrib/ohrrpgce-player-linux-bin-minimal.zip
+  scp -p distrib/ohrrpgce-player-linux-bin-minimal-x86.zip $UPLOAD_DEST/ohrrpgce/nightly/
+  rm distrib/ohrrpgce-player-linux-bin-minimal-x86.zip
 fi
 
 if [ -z "$OHR_SKIP_X86_64" ] ; then
