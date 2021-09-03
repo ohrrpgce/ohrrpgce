@@ -13,8 +13,8 @@ mkdir ./check_nightly
 cd ./check_nightly
 
 for NAME in "ohrrpgce-player-win-wip-sdl2.zip" \
-            "ohrrpgce-player-linux-bin-minimal-wip-x86.zip" \
-            "ohrrpgce-player-linux-bin-minimal-wip-x86_64.zip" \
+            "ohrrpgce-player-linux-bin-minimal-x86.zip" \
+            "ohrrpgce-player-linux-bin-minimal-x86_64.zip" \
             "ohrrpgce-mac-minimal-x86.tar.gz" \
             "ohrrpgce-mac-minimal-x86_64.tar.gz" ; do
   EXT="${NAME#*.}"
