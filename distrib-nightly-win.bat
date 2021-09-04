@@ -50,14 +50,16 @@ IF EXIST distrib\ohrrpgce-win-installer-wip.exe (
     pscp -q distrib\ohrrpgce-win-installer-wip.exe %SCPHOST%:%SCPDEST%
 )
 
-IF NOT EXIST distrib\ohrrpgce-player-win-minimal-sdl2.zip (
-    ECHO minimal player didn't build; skipping
+IF NOT EXIST game.exe (
+    ECHO game.exe didn't build; skipping ohrrpgce-player-win-wip-sdl2.zip
     GOTO SKIPPLAYER
 )
-ECHO Uploading game player ohrrpgce-player-win-wip-sdl2.zip ...
+ECHO Packaging game player ohrrpgce-player-win-wip-sdl2.zip ...
 support\rm -f distrib\ohrrpgce-player-win-wip-sdl2.zip
-support\cp distrib\ohrrpgce-player-win-minimal-sdl2.zip distrib\ohrrpgce-player-win-wip-sdl2.zip
-support\zip -9 -q distrib\ohrrpgce-player-win-wip-sdl2.zip svninfo.txt
+ECHO Generating nightly buildinfo.ini
+support\rm -f buildinfo.ini
+game.exe -buildinfo buildinfo.ini
+support\zip -9 -q distrib\ohrrpgce-player-win-wip-sdl2.zip game.exe buildinfo.ini SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt svninfo.txt
 pscp -q distrib\ohrrpgce-player-win-wip-sdl2.zip %SCPHOST%:%SCPDEST%
 :SKIPPLAYER
 
