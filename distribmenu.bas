@@ -761,7 +761,7 @@ FUNCTION get_windows_gameplayer() as string
   touchfile dldir & SLASH & "win.download.agree"
  END IF
  
- dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using."
+ dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
 
  DIM destzip as string = dldir & SLASH & dlfile
  '--Remove the old copy
@@ -873,7 +873,7 @@ END SELECT
   touchfile dldir & SLASH & "linux.download.agree"
  END IF
 
- dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using."
+ dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
 
  DIM destzip as string = dldir & SLASH & dlfile
  '--Remove the old file
@@ -1786,7 +1786,7 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
   touchfile dldir & SLASH & "mac.download.agree"
  END IF
 
- dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using."
+ dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
 
  '--Actually download the dang file
  download_file url, dldir
