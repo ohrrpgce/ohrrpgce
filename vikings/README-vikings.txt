@@ -1,6 +1,5 @@
-Vikings of Midgard
-(C) Copyright 2012 Fenrir-Lunaris. this game is distributed under the
-terms of the GNU General Public License.
+Vikings of Midgard - v.Hrodvitnir
+Copyright released by Fenrir-Lunaris into the Public Domain.
 
 Graphics by Fenrir-Lunaris.
 
@@ -8,8 +7,7 @@ Graphics by Fenrir-Lunaris.
 credit their original source (though it would be awfully nice if you
 did!)
 
-Music by Artimus Bena, Moogle1, Setu Firestorm, Cartlemmy, Jeremy
-Jacobs,
+Music by Artimus Bena, Moogle1, Setu Firestorm, Jeremy Jacobs,
 Fenrir-Lunaris, & the Public Domain.
 
 « As far as I'm aware, all the music
@@ -18,6 +16,7 @@ original authors should be credited for their work.
 
 « A few sound effects have been edited and used from the "Arfenhouse"
 movies with permission from Misteroo. They are NOT in the public domain.
+
 
 _____________________________________
 
@@ -28,86 +27,54 @@ game about the O.H.R.RPG.C.E community after all!
 
 Without exception, if a character in this game has a NAME, then it
 belongs to someone, and the authors of this game stake no claim on them.
-Said authors are as follows...
+A special thank you to the following people for the donation of their
+intellectual property, or the references thereof:
+
 _____________________________________
 
-Fenrir-Lunaris
- « Most of the main cast
-Artimus Bena
- « Eldardeen, (Himself)
-Moogle1
- « Rancher Sam, (Himself), Dummefaust
-Gizmog
- « (Himself)
-JSH357
- « OHR house, DUCK
-Surlaw
- « Surlaw (Whalepunch), Bob Surlaw,      Walrusman, Dr. Mu, Musclemen,
-Yuk
-James Paige
- « Bob the Hamster, Vlad the Hamster
-   Plips
-Hiryo
- « Kouryuu, Kirin, Leo, Youji, Hiryo
-Thellos
- « Vellan, Azerith, Ivory, Zidane
-   Elloris, Inara, Kiri, Skadi
-Smokescale Aquatos
- « Shayna, Sirius
-Deam Nitrel
- « Deam (Himself)
-XxSkyxX
- « Sky (Himself)
-Shadowiii
- « Julia, Shadowiii (Himself)
-Red Maverick Zero
- « Josh, Mr Triangle, Slither, That
-   horrible flying thing you fight in
-   Alfheim that you DON'T want to
-   know what it actuall is, 
-   (Himself), Rachael
-Firewulff
- « Dogero, Mi'La, Pyrus, Johan, Gahn,    Anon, Gitleh, Fedora, Shoda,
-Nyx,
-   Grinlow, Sword of Jade
-Charbile
- « (Himself)
-Misteroo
- « Housemaster, E/G Kitty, Joe,
-   Woogy, My Friend Amy, Billy,
-   Arfenhouse, The Jint of mah butt,
-   Squiggle, PIAKCHU!!1, (Himself),
-   LEYMUNAYD, GIMMEYURMUNY
-Seppel
- « Seesawgunswallow
-Sew
- « Sew
-Ronintendo
- « Paul Roanoke, Lita  
-H.P. Lovecraft
- « Cthulhu, Shub-Niggurath, Tulzcha,
-   Dagon, Yog-Sothoth, Nylarlethotep,
-   Azathoth, Flying Polyps, Fhtagn,
-   Hounds of Tindalos
-Stephen King
- « Langoliers
-Spoonweaver
- « Tim-tim the mighty gnome, Boosh,
-   Spaceship Funkatron, Musclemen
-Siyu/Natedawg
- « Siyu (Himself)
-Machu
- « (Himself)
 AdrianX
- « (Himself)
-Inferior Minion
- « (Himself)
+Artimus Bena
+Charbile
+Daydream Kinamoto
+Deam Nitrel
+Doublecakes
+Feenick
+Fenrir-Lunaris
+Foxley
+Fyrewulff
+Gizmog
 Hachi Roku
- « HAIL!!
-   HA HA!!
-   CHOO CHOO!!
-Harlock & Shizuma
- « Spellshard
-
-~lelelelele!
+Harlock
+Hiryo
+H.P.Lovecraft
+Huckdonfonix
+Ichiro
+Idontknow
+Inferior Minion
+James Paige
+Jeremy Jacobs
+JSH357
+Komera
+Machu
+Misteroo
+Mogri
+Orchard L
+Red Triangle Games
+Rekohunter
+Rinku
+Ronintendo
+Samantha Wynn
+Seppel
+Setu Firestorm
+Sew
+Shadowiii
+Shizuma
+Siyu
+Smokescale Aquatos
+Thellos
+The Wobbler
+TMC
+Twinhamster
+Uridine
+XxSkyxX
 
