@@ -70,7 +70,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-? -h -help         Display this help screen" & LINE_END
 		help = help & "-v -version         Show version and build info" & LINE_END
 		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
-		help = help & "-buildinfo file     Write build metadata in ini format" & LINE_END
+		help = help & "-buildinfo [file]   Write build metadata in ini format to file or stdout" & LINE_END
 #IFDEF IS_GAME
 		help = help & "-full-upgrade       Upgrade game data completely, as Custom does (only useful for bughunting)" & LINE_END
 		help = help & "-autosnap N         Automatically save a screen snapshot every N ticks" & LINE_END

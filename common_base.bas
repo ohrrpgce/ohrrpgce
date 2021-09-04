@@ -25,12 +25,12 @@ SUB debuginfo (msg as const zstring ptr)
   print *msg
 END SUB
 
+EXTERN "C"
+
 SUB early_debuginfo (msg as const zstring ptr)
   'Don't want to print startup stuff like setup_exception_handler
   'print s
 END SUB
-
-EXTERN "C"
 
 SUB onetime_debug (errorlevel as errorLevelEnum = errDebug, msg as const zstring ptr)
   STATIC silenced_messages() as string
