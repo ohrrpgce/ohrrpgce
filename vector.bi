@@ -33,7 +33,7 @@ TYPE FnDtor as sub cdecl (byval as any ptr)
 TYPE FnCopy as function cdecl (byval as any ptr) as any ptr  'Allocate and initialise a copy
 TYPE FnDelete as sub cdecl (byval as any ptr)  'Destruct and delete
 TYPE FnStr as function cdecl (byval as any ptr) as string
-TYPE FnCompare as function cdecl (byval as any ptr, byval as any ptr) as int32
+TYPE FnCompare as function cdecl (byval as const any ptr, byval as const any ptr) as int32
 TYPE FnHash as function cdecl (byval as any ptr) as uinteger
 
 'Not used

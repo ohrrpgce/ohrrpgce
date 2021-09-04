@@ -76,10 +76,10 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 			set_X11_error_handlers
 		#endif
 
-		dim bpp as size_t 'bits, not bytes. see, bits is b, bytes is B
-		dim refreshrate as size_t
+		dim bpp as fb_integer 'bits, not bytes. see, bits is b, bytes is B
+		dim refreshrate as fb_integer
 		dim driver as string
-		dim as size_t w, h
+		dim as fb_integer w, h
 		'Poll the size of the screen
 		screeninfo w, h, bpp, , , refreshrate, driver
 		debuginfo "gfx_fb: native screensize=" & w & "*" & h & " bitdepth=" & bpp & " refreshrate=" & refreshrate
@@ -89,7 +89,7 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 		gfx_fb_screenres
 		screenset 1, 0    'Only want one FB video page
 		init_gfx = YES
-		screeninfo , , bpp, , , refreshrate, driver
+		screeninfo w, h, bpp, , , refreshrate, driver
 		*info_buffer = MID(bpp & "bpp, " & refreshrate & "Hz, " & driver & " driver", 1, info_buffer_size)
 	end if
 	window_state.structsize = WINDOWSTATE_SZ
