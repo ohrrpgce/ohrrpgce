@@ -535,6 +535,8 @@ SUB debugc_internal (callsite as any ptr, errorlevel as errorLevelEnum, s as con
  END SELECT
 END SUB
 
+END EXTERN
+
 'This is a kludge (the whole debug logging system is a mess)...  debuginfo
 'replacement before start_new_debug has been called, to avoid junk ending up in
 '?_debug_archive.txt when start_new_debug is called.
@@ -543,8 +545,6 @@ SUB early_debuginfo (msg as const zstring ptr)
  IF debug_to_console THEN PRINT *msg
  log_buffer &= *msg & LINE_END
 END SUB
-
-END EXTERN
 
 LOCAL FUNCTION get_timestamp() as string
  IF program_start_timer <> 0.0 THEN RETURN strprintf("%4.1f  ", TIMER - program_start_timer)
