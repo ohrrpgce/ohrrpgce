@@ -383,8 +383,8 @@ dim shared recordvid as VideoRecorder ptr
 
 dim shared gif_max_fps as integer = 30
 dim shared screenshot_record_overlays as bool = NO
-dim shared gif_show_keys as bool         'While recording a gif, whether to display pressed keys
-dim shared gif_show_mouse as bool        'While recording a gif, whether to display mouse location
+dim shared gif_show_keys_overlay as bool   'Whether to display pressed keys overlay while recording a gif
+dim shared show_mouse_overlay as bool      'Whether to draw mouse location overlay (regardless of gif recording)
 
 dim shared loaded_screenshot_settings as bool = NO
 dim shared screenshot_format as string
@@ -712,10 +712,10 @@ function allmodex_setoption(opt as string, arg as string) as integer
 		remap_numpad = NO
 		return 1 'arg not used
 	elseif opt = "showkeys" then
-		gif_show_keys = YES
+		gif_show_keys_overlay = YES
 		return 1
 	elseif opt = "showmouse" then
-		gif_show_mouse = YES
+		show_mouse_overlay = YES
 		return 1
 	elseif opt = "input-debug" orelse opt = "debug-input" then
 		debugging_io = YES
@@ -3623,28 +3623,33 @@ local sub update_fps_counter (skipped as bool)
 	end if
 end sub
 
+'Draw crosshairs at the mouse position plus left/right buttons; used by --showmouse cmdline option
+sub draw_basic_mouse_cursor (page as integer)
+	with mouse_state
+		dim col as integer = uilook(uiSelectedItem + global_tog)
+		rectangle .x - 4, .y, 9, 1, col, page
+		rectangle .x, .y - 4, 1, 9, col, page
+		if .buttons and mouseLeft then
+			rectangle .x - 3, .y - 3, 3, 3, col, page
+		end if
+		if .buttons and mouseRight then
+			rectangle .x + 1, .y - 3, 3, 3, col, page
+		end if
+	end with
+end sub
+
 'Draw stuff on top of the video page about to be shown; specially those things
 'that are included in .gifs/screenshots even without --recordoverlays
 'Returns true if something was drawn.
 local function draw_allmodex_recordable_overlays (page as integer) as bool
 	dim dirty as bool = NO
 
-	if gif_show_mouse then
-		with mouse_state
-			dim col as integer = uilook(uiSelectedItem + global_tog)
-			rectangle .x - 4, .y, 9, 1, col, page
-			rectangle .x, .y - 4, 1, 9, col, page
-			if .buttons and mouseLeft then
-				rectangle .x - 3, .y - 3, 3, 3, col, page
-			end if
-			if .buttons and mouseRight then
-				rectangle .x + 1, .y - 3, 3, 3, col, page
-			end if
-		end with
+	if show_mouse_overlay then
+		draw_basic_mouse_cursor page
 		dirty = YES
 	end if
 
-	if gif_show_keys andalso recordvid andalso recordvid->active then
+	if gif_show_keys_overlay andalso recordvid andalso recordvid->active then
 		' Build up two strings describing keypresses, so that modifiers like LShift
 		' are sorted to the front.
 		dim as string modifiers, keys
@@ -3704,10 +3709,6 @@ end function
 'Returns true if something was drawn.
 local function draw_allmodex_overlays (page as integer) as bool
 	if overlays_enabled = NO then return NO
-
-	'show_overlay_message "mouse over:" & gfx_getwindowstate()->mouse_over & " active:" & readmouse.active _
-	'		     & " at:" & readmouse.pos & " click:" & readmouse.clicks & " buts:" & readmouse.buttons _
-	'		     & " release:" & readmouse.release & " wheel:" & readmouse.wheel_delta
 
 	dim dirty as bool = NO
 
