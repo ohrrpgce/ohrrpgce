@@ -1051,8 +1051,7 @@ SUB gfx_sdl2_process_events()
         'if the window isn't focused, it does report mouse wheel button events
         '(other buttons focus the window).
 
-        'TODO: we should call SDL_CaptureMouse() here, so that dragging off the window reports positions
-        'outside the window.
+        SDL_CaptureMouse(YES)  'So that dragging off the window reports positions outside the window
         WITH evnt.button
           mouseclicks OR= SDL_BUTTON(.button)
           IF debugging_io THEN
@@ -1060,6 +1059,7 @@ SUB gfx_sdl2_process_events()
           END IF
         END WITH
       CASE SDL_MOUSEBUTTONUP
+        'In order to wait until all buttons are up, we end mouse capture in update_mouse
         WITH evnt.button
           IF debugging_io THEN
             debuginfo "SDL_MOUSEBUTTONUP   mouse " & .which & " button " & .button & " at " & XY(.x, .y)
@@ -1418,6 +1418,7 @@ LOCAL FUNCTION update_mouse() as integer
       buttons = SDL_GetMouseState(@privatempos.x, @privatempos.y)
     END IF
   END IF
+  IF buttons = 0 THEN SDL_CaptureMouse(NO)  'Any mouse drag ended
   RETURN buttons
 END FUNCTION
 

@@ -45,7 +45,7 @@ type WindowState
 	minimised as boolint
 	fullscreen as boolint
 	unused as integer      'Obsolete, used to be user_toggled_fullscreen
-	mouse_over as boolint
+	mouse_over as boolint  'Has mouse focus; backends differ on whether true while the mouse is dragged off window
 	windowsize as XYPair   'The actual size (client area), not the resolution seen by the engine
 	zoom as integer
 end type

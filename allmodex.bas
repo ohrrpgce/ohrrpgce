@@ -3024,14 +3024,9 @@ sub update_mouse_state ()
 	'         [wheel scrolls offscreen are registered when you move back onscreen?
 	'         I can't reproduce that anymore.]
 	'gfx_alleg: button state continues to work offscreen but wheel scrolls are not registered
-	'gfx_sdl: Doesn't report buttons offscreen (unless dragging). Wheel movement
+	'gfx_sdl/sdl2: Doesn't report buttons offscreen (unless dragging). Wheel movement
 	'         is reported if the mouse is over the window, even if it's not focused.
 	'         SDL 1.2 doesn't know about the OS's wheel speed setting.
-	'gfx_sdl2:Mouse position stops updating and buttons become unpressed as soon
-	'         as the mouse leaves the window regardless of dragging.
-	'         But if dragging offscreen, wheel is still reported.
-	'         Wheel (and position) reported whenever mouse over the window even
-	'         if not focused
 	'directx: Unknown.
 
 	mouse_state.moved = mouse_state.lastpos <> mouse_state.pos
@@ -3043,12 +3038,12 @@ sub update_mouse_state ()
 
 	'==Behaviour of clicking and dragging from inside the window to outside==
 	'
-	'gfx_sdl/sdl2/fb: mouse.active is false while dragging off the window
+	'gfx_sdl/fb: mouse.active is false while dragging off the window
+	'gfx_sdl2: mouse.active is true while dragging off the window
 	'gfx_fb:  Mouse input goes dead while outside until moved back into window.
-	'gfx_sdl: Mouse acts as if clipped to the window while button is down and
+	'         (So mouse.dragging doesn't become false until back over window.)
+	'gfx_sdl/sdl2: Mouse acts as if clipped to the window while button is down and
 	'         button state continues to be reported, until button is released.
-	'gfx_sdl2:Mouse input goes dead while outside until moved back into window
-	'         Mouse buttons become unpressed as soon as mouse leaves the window.
 	'directx: Mouse is truely clipped to the window while button is down.
 	'         (So mouse.active is true while dragging off the window?)
 	'gfx_alleg:Unknown.
