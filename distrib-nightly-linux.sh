@@ -48,7 +48,7 @@ rm ohrrpgce-source-nightly.zip
 
 echo "Zipping up new nightly snapshot..."
 svn info wip > wip/svninfo.txt
-zip -q -r ohrrpgce-source-nightly.zip wip -x "*/.svn/*"
+zip -q -r ohrrpgce-source-nightly.zip wip -x "*/.svn/*" "*/vikings/*"
 ls -l ohrrpgce-source-nightly.zip
 
 echo "Uploading new nightly source snapshot..."
