@@ -37,6 +37,10 @@ EXTERN "C"
   'SDL 2.0.4+ (Jan 2016)
   declare function SDL_GameControllerFromInstanceID(byval joyid as SDL_JoystickID) as SDL_GameController ptr
 #endif
+#ifndef SDL_CaptureMouse
+  'SDL 2.0.4+
+  declare function SDL_CaptureMouse(byval enabled as SDL_bool) as long
+#endif
 #ifndef SDL_GetDisplayUsableBounds
   'SDL 2.0.5+ (Oct 2016)
   declare function SDL_GetDisplayUsableBounds(byval displayIndex as long, byval rect as SDL_Rect ptr) as long
@@ -1051,7 +1055,9 @@ SUB gfx_sdl2_process_events()
         'if the window isn't focused, it does report mouse wheel button events
         '(other buttons focus the window).
 
-        SDL_CaptureMouse(YES)  'So that dragging off the window reports positions outside the window
+        #IFNDEF SDL_203
+         SDL_CaptureMouse(YES)  'So that dragging off the window reports positions outside the window
+        #ENDIF
         WITH evnt.button
           mouseclicks OR= SDL_BUTTON(.button)
           IF debugging_io THEN
@@ -1418,7 +1424,9 @@ LOCAL FUNCTION update_mouse() as integer
       buttons = SDL_GetMouseState(@privatempos.x, @privatempos.y)
     END IF
   END IF
-  IF buttons = 0 THEN SDL_CaptureMouse(NO)  'Any mouse drag ended
+  #IFNDEF SDL_203
+    IF buttons = 0 THEN SDL_CaptureMouse(NO)  'Any mouse drag ended
+  #ENDIF
   RETURN buttons
 END FUNCTION
 
