@@ -1,0 +1,165 @@
+include, plotscr.hsd
+include, scancode.hsi
+
+global variable (1027,exitsound)
+global variable (1028,shapex)
+global variable (1029,shapey)
+global variable (1031,beamx)
+global variable (1032,beamy)
+global variable (1033,liveheroart)
+
+global variable (1034, exitbeam)
+global variable (1035, bifrost1)
+global variable (1036, bifrost2)
+global variable (1037, bifrost3)
+global variable (1038, bifrost4)
+global variable (1039, bifrost5)
+global variable (1040, bifrost6)
+global variable (1041, bifrost7)
+global variable (1042, bifrost8)
+global variable (1043, bifrost9)
+global variable (1044, bifrost10)
+global variable (1045, bifroststatus)
+global variable (1046, bifrostwait)
+global variable (1047, bifrostanimator)
+
+define constant (10, bifrost timer)
+
+
+#--------------------------------------------------------
+
+script, setupbifrostbeam, begin
+
+variable (bifrostrider)
+
+exitbeam:= load slice collection (0)
+bifrost1:= LookupSlice (Sli:Bifrost 1,exitbeam)
+bifrost2:= LookupSlice (Sli:Bifrost 2,exitbeam)
+bifrost3:= LookupSlice (Sli:Bifrost 3,exitbeam)
+bifrost4:= LookupSlice (Sli:Bifrost 4,exitbeam)
+bifrost5:= LookupSlice (Sli:Bifrost 5,exitbeam)
+bifrost6:= LookupSlice (Sli:Bifrost 6,exitbeam)
+bifrost7:= LookupSlice (Sli:Bifrost 7,exitbeam)
+bifrost8:= LookupSlice (Sli:Bifrost 8,exitbeam)
+bifrost9:= LookupSlice (Sli:Bifrost 9,exitbeam)
+bifrost10:= LookupSlice (Sli:Bifrost 10,exitbeam)
+
+shapex:= hero pixel X (me)
+shapey:= hero pixel Y (me)
+beamx:= shapex -- camerapixelx
+beamy:=shapey -- camerapixely
+
+bifrostrider:=getheroslice(0)
+put slice (bifrost1,slicescreenx(bifrostrider),slicescreeny(bifrostrider)--180)
+
+bifrostanimator:=1
+bifrostanimations
+
+end
+
+#--------------------------------------------------------
+
+script, bifrostanimations,begin
+
+variable (bifrostframe, livebifrostframe, bifrostcontrol)
+
+        if(bifrostanimator) then (
+
+			livebifrostframe:=get sprite frame(bifrost1)
+			if((livebifrostframe==0) && (bifrostcontrol==0)) then(bifrostframe:=1, bifrostcontrol:=1)
+			if((livebifrostframe==1) && (bifrostcontrol==0)) then(bifrostframe:=2, bifrostcontrol:=1)
+			if((livebifrostframe==2) && (bifrostcontrol==0)) then(bifrostframe:=3, bifrostcontrol:=1)
+			if((livebifrostframe==3) && (bifrostcontrol==0)) then(bifrostframe:=4, bifrostcontrol:=1)
+			if((livebifrostframe==4) && (bifrostcontrol==0)) then(bifrostframe:=5, bifrostcontrol:=1)
+			if((livebifrostframe==5) && (bifrostcontrol==0)) then(bifrostframe:=6, bifrostcontrol:=1)
+			if((livebifrostframe==6) && (bifrostcontrol==0)) then(bifrostframe:=7, bifrostcontrol:=1)
+			if((livebifrostframe==7) && (bifrostcontrol==0)) then(bifrostframe:=0, bifrostcontrol:=1)
+
+			set sprite frame (bifrost1, bifrostframe), set sprite frame (bifrost2, bifrostframe)
+			set sprite frame (bifrost3, bifrostframe), set sprite frame (bifrost4, bifrostframe)
+			set sprite frame (bifrost5, bifrostframe), set sprite frame (bifrost6, bifrostframe)
+			set sprite frame (bifrost7, bifrostframe), set sprite frame (bifrost8, bifrostframe)
+			set sprite frame (bifrost9, bifrostframe), set sprite frame (bifrost10, bifrostframe)
+
+			bifrostcontrol:=0
+
+                # run again in 2 ticks
+                set timer(bifrost timer, 0, 1, @bifrostanimations)
+        )
+end 
+
+#--------------------------------------------------------
+
+script, bifrostbeamwarpdissolves, begin
+
+dissolve sprite (bifrost1, dissolve:random scatter, bifrostwait, 0, bifroststatus, true)
+dissolve sprite (bifrost2, dissolve:random scatter, bifrostwait, 0, bifroststatus, true)
+dissolve sprite (bifrost3, dissolve:random scatter, bifrostwait, 0, bifroststatus, true)
+dissolve sprite (bifrost4, dissolve:random scatter, bifrostwait, 0, bifroststatus, true)
+dissolve sprite (bifrost5, dissolve:random scatter, bifrostwait, 0, bifroststatus, true)
+dissolve sprite (bifrost6, dissolve:random scatter, bifrostwait, 0, bifroststatus, true)
+dissolve sprite (bifrost7, dissolve:random scatter, bifrostwait, 0, bifroststatus, true)
+dissolve sprite (bifrost8, dissolve:random scatter, bifrostwait, 0, bifroststatus, true)
+dissolve sprite (bifrost9, dissolve:random scatter, bifrostwait, 0, bifroststatus, true)
+dissolve sprite (bifrost10, dissolve:random scatter, bifrostwait, 0, bifroststatus, true)
+
+end
+
+#--------------------------------------------------------
+
+script, bifrostbeam, cominggoing, begin
+
+if(cominggoing==0)then(
+	bifroststatus:=true, bifrostwait:=24
+
+	suspend player
+
+	liveheroart:=get hero picture (0, outsidebattle)
+
+
+	#### This segment gets the player out of the map
+
+	play sound (70), play sound (76)
+	set hero direction (me,south)
+	setupbifrostbeam
+	play sound (74)
+	bifrostbeamwarpdissolves, wait (bifrostwait)
+	set hero picture (me,0)
+	wait (8)
+
+	#put sound here for the fizzle out of the beam
+	play sound (75)
+
+	bifroststatus:=false
+	bifrostbeamwarpdissolves, wait (bifrostwait)
+	bifrostanimator:=0, stop timer (bifrost timer)
+	free slice (exitbeam)
+)
+
+if(cominggoing==1)then(
+	bifroststatus:=true, bifrostwait:=24
+
+	suspend player
+
+	#### This segment gets the player out of the map
+
+	play sound (70), play sound (76)
+	set hero direction (me,south)
+	setupbifrostbeam
+	play sound (74)
+	bifrostbeamwarpdissolves, wait (bifrostwait)
+	set hero picture (me,liveheroart)
+	wait (8)
+
+	#put sound here for the fizzle out of the beam
+	play sound (75)
+
+	bifroststatus:=false
+	bifrostbeamwarpdissolves, wait (bifrostwait)
+	bifrostanimator:=0, stop timer (bifrost timer)
+	free slice (exitbeam)
+)
+
+end
+
+#--------------------------------------------------------

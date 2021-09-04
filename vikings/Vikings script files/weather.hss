@@ -1,0 +1,106 @@
+# Script by Artimus Bena, 2020
+
+# eponymous.ent@gmail.com
+
+
+#INSTRUCTIONS
+
+# 1) include, weather.hss
+
+# 2) put this line in your "opening scene" script and your *load script*: "init weather"
+
+# 3) Parts of this script with big arrows <============== are things you can customize
+
+
+define constant (31, weather control timer)
+
+
+plotscript, init weather, begin
+	
+	allocate timers (32)
+	
+	set timer (weather control timer, 0, 1, @precipitation)
+	
+end
+
+
+
+script, precipitation, begin
+	
+	variable (layer, map, sl, slc, cyclelayers, opacity)
+	
+#set all layers to no blending
+	
+	for (slc, sl:map layer0, sl:map layer15, -1) do 
+		(
+		sl := lookup slice(slc)
+		
+		if (sl) then (set blending enabled (sl, false))
+	)
+
+	
+	map := current map
+	
+	opacity := 46 
+# <============================================================ Default opacity
+
+
+# identify which layer needs the effect on a given map
+	
+# "case (map number)"
+		
+	switch (map) do (
+	
+		case (8) layer := 3, opacity := opacity 		
+		case (13) layer := 3, opacity := opacity 
+# <============ replace second "opacity" in any of these lines with your own 
+			
+		case (15) layer := 4, opacity := opacity 
+# 				 number if you want to customize it for that particular map
+			
+		case (19) layer := 4, opacity := opacity
+			
+		case (20) layer := 2, opacity := opacity
+			
+		case (24) layer := 3, opacity := opacity
+
+		case (30) layer := 3, opacity := opacity 			
+		case (38) layer := 4, opacity := opacity
+			
+		case (50) layer := 3, opacity := opacity
+			
+		case (52) layer := 4, opacity := opacity
+			
+		case (54) layer := 3, opacity := opacity
+			
+		case (56) layer := 3, opacity := opacity
+			
+		case (63) layer := 3, opacity := opacity
+			
+		case (65) layer := 4, opacity := opacity
+			
+		case (66) layer := 4, opacity := opacity
+		)
+		
+	
+	if (layer) then (
+			switch (layer) do (
+		
+		case (2) sl := lookup slice (sl:map layer 2)
+		
+		case (3) sl := lookup slice (sl:map layer 3)
+		
+		case (4) sl := lookup slice (sl:map layer 4)
+			)
+		)
+		
+		if (sl) then (
+			set blend mode (sl, blend:normal)
+			
+		set opacity (sl, opacity)
+	)
+
+	
+	init weather
+
+end
