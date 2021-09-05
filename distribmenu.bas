@@ -82,7 +82,7 @@ CONST distmenuMAC64SETUP as integer = 11
 
 DECLARE FUNCTION dist_yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
 DECLARE SUB dist_info (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
-DIM SHARED auto_yes as bool = NO
+DIM SHARED auto_choose_default as bool = NO
 
 SUB distribute_game ()
  
@@ -1904,12 +1904,12 @@ SUB distribute_game_as_linux_tarball (which_arch as string)
 END SUB
 
 FUNCTION dist_yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
- IF auto_yes THEN RETURN YES
+ IF auto_choose_default THEN RETURN defaultval
  RETURN yesno(capt, defaultval, escval)
 END FUNCTION
 
 SUB dist_info (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
- IF auto_yes = NO THEN
+ IF auto_choose_default = NO THEN
   IF errlvl = errInfo  THEN errlvl = errShowInfo
   IF errlvl = errDebug THEN errlvl = errShowDebug
  END IF
@@ -1919,7 +1919,7 @@ END SUB
 SUB auto_export_distribs (distrib_type as string)
  debuginfo "Auto-export: " & distrib_type
 
- auto_yes = YES
+ auto_choose_default = YES
  IF distrib_type = "zip" ORELSE distrib_type = "all" THEN
   distribute_game_as_zip
  END IF
@@ -1972,7 +1972,7 @@ SUB auto_export_distribs (distrib_type as string)
    dist_info "auto distrib: linux 64bit tarball export unavailable"
   END IF
  END IF
- auto_yes = NO
+ auto_choose_default = NO
 END SUB
 
 
