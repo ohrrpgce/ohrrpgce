@@ -189,7 +189,7 @@ svn co -q "${REPOSITORY}"
 [ ! -d $OHRVERBRANCH ] && echo "Directory $OHRVERBRANCH is missing. Maybe codename.txt wasn't updated?" && exit 1
 svn info $OHRVERBRANCH > $OHRVERBRANCH/svninfo.txt
 echo "  Zip..."
-zip -q -r ../distrib/ohrrpgce-source.zip *
+zip -q -r ../distrib/ohrrpgce-source.zip * -x "*/.svn/*" "*/vikings/*"
 cd ..
 
 echo "Cleaning up..."
