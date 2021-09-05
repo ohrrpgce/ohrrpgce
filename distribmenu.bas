@@ -21,6 +21,7 @@ DECLARE SUB distribute_game_as_linux_tarball (which_arch as string)
 DECLARE FUNCTION get_windows_gameplayer() as string
 DECLARE FUNCTION get_linux_gameplayer(which_arch as string) as string
 DECLARE FUNCTION get_mac_gameplayer(which_arch as string) as string
+DECLARE FUNCTION sanity_check_buildinfo(buildinfo_file as string) as bool
 DECLARE FUNCTION find_or_download_innosetup () as string
 DECLARE FUNCTION find_innosetup () as string
 DECLARE FUNCTION win_or_wine_drive(letter as string) as string
@@ -783,17 +784,30 @@ FUNCTION get_windows_gameplayer() as string
  safekill_pattern dldir, "*.dll"
  
  '--Unzip the desired files
- DIM args as string = "-o " & escape_filename(destzip) & " game.exe SDL2.dll SDL2_mixer.dll LICENSE-binary.txt -d " & escape_filename(dldir)
+ DIM args as string = "-o " & escape_filename(destzip) & " game.exe buildinfo.ini SDL2.dll SDL2_mixer.dll LICENSE-binary.txt -d " & escape_filename(dldir)
  DIM spawn_ret as string = spawn_and_wait(unzip, args)
  IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: unzip failed: " & spawn_ret : RETURN ""
 
  IF NOT isfile(dldir & SLASH & "game.exe")           THEN dist_info "ERROR: Failed to unzip game.exe" : RETURN ""
  IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
+ IF sanity_check_buildinfo(dldir & SLASH & "buildinfo.ini") THEN RETURN ""
  '--We might be downloading a future version, and don't know with certainty what dll files it might include
  IF NOT isfile(dldir & SLASH & "SDL2.dll")           THEN debuginfo "WARN: Expected to unzip SDL2.dll but it wasn't there"
  IF NOT isfile(dldir & SLASH & "SDL2_mixer.dll")     THEN debuginfo "WARN: Expected to unzip SDL2_mixer.dll but it wasn't there"
 
  RETURN dldir & SLASH & "game.exe"
+END FUNCTION
+
+FUNCTION sanity_check_buildinfo(buildinfo_file as string) as bool
+ 'Return YES if the sanity check has failed
+ IF NOT isfile(buildinfo_file) THEN dist_info "ERROR: Failed to read buildinfo.ini" : RETURN YES
+ DIM ver as integer = read_ini_int(buildinfo_file, "packaging_version", 0)
+ IF ver > 1 THEN
+  dist_info "ERROR: The buildinfo version is " & ver & " but your copy of the OHRRPGCE only supports version 1. This means you should upgrade to a newer version if you want to keep using the Distribute Game feature.": RETURN YES
+ ELSEIF ver < 1 THEN
+  dist_info "ERROR: The buildinfo version is missing or invalid. Please report this as a bug to the OHRRPGCE developers": RETURN YES
+ END IF
+ RETURN NO
 END FUNCTION
 
 FUNCTION running_64bit() as bool
@@ -895,6 +909,7 @@ END SELECT
  
  IF NOT isfile(dldir & SLASH & "ohrrpgce-game")      THEN dist_info "ERROR: Failed to unzip ohrrpgce-game" : RETURN ""
  IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
+ IF sanity_check_buildinfo(dldir & SLASH & "buildinfo.ini") THEN RETURN ""
  
  RETURN dldir & SLASH & "ohrrpgce-game"
 
@@ -1805,6 +1820,7 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
  IF NOT isdir(dldir & SLASH & "OHRRPGCE-Game.app")   THEN dist_info "ERROR: Failed to untar OHRRPGCE-Game.app" : RETURN ""
  IF NOT isfile(dldir & SLASH & "OHRRPGCE-Game.app" & SLASH & "Contents" & SLASH & "MacOS" & SLASH & "ohrrpgce-game")   THEN dist_info "ERROR: Failed to completely untar OHRRPGCE-Game.app" : RETURN ""
  IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to untar LICENSE-binary.txt" : RETURN ""
+ IF sanity_check_buildinfo(dldir & SLASH & "buildinfo.ini") THEN RETURN ""
  
  RETURN dldir & SLASH & "OHRRPGCE-Game.app"
 
