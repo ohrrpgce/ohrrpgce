@@ -186,7 +186,7 @@ ECHO   Checkout...
 "%SVN%" info %OHRVERBRANCH% > %OHRVERBRANCH%/svninfo.txt
 del svnrepo.bat
 ECHO   Zip...
-..\support\zip -q -r ..\distrib\ohrrpgce-source.zip *.*
+..\support\zip -q -r ..\distrib\ohrrpgce-source.zip *.* -x "*\vikings\*"
 cd ..
 
 REM ------------------------------------------
