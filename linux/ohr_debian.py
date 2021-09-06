@@ -29,7 +29,7 @@ def read_version():
   year = date[0:4]
   month = date[4:6]
   day = date[6:8]
-  return "%s.%s.%s.%s-%s" % (year, month, day, codename, rev)
+  return "%s.%s.%s.%s-%s" % (year, month, day, branch_name, rev)
 
 def write_control_file(filename, template, values):
   "Write /DEBIAN/control"
