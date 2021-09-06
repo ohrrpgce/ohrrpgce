@@ -497,17 +497,19 @@ if mac:
     # Our FB Mac fork also currently targets OS 10.4.
     macosx_version_min = '10.4'
     if 'sdl2' in gfx+music:
-        # The minimum target supported by SDL 2 is 10.5 for x86 and 10.6 for x86_64
-        # (although OS 10.5 is the first to support x86_64 Cocoa apps),
+        # The minimum target supported by SDL 2 for x86 & x64 is 10.6,
+        # although SDL 2.0.4 and earlier only required 10.5 on x86
         # requires SDK 10.7+ to compile.
-        macosx_version_min = '10.5'
+        macosx_version_min = '10.6'
     if arch == 'x86_64':
         macosx_version_min = '10.6'  # Both SDL 1.2 & 2.0
+        # (though OS 10.5 is the first to support x86_64 Cocoa apps)
     if macsdk:
         if macsdk == '10.4':
             # 10.4 has a different naming scheme
             macSDKpath = 'MacOSX10.4u.sdk'
         else:
+            # There is also /System/Developer/CommandLineTools/SDKs/MacOSX.sdk/
             macSDKpath = 'MacOSX' + macsdk + '.sdk'
         macSDKpath = '/Developer/SDKs/' + macSDKpath
         if not os.path.isdir(macSDKpath):
