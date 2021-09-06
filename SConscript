@@ -19,7 +19,7 @@ import ohrbuild
 FBFLAGS = ['-mt'] #, '-showincludes']
 # Flags used when compiling C and C++ modules, but NOT -gen gcc or euc generated
 # C sources (except on Android...). Not used for linking.
-CFLAGS = ['-Wall']
+CFLAGS = ['-Wall', '-Wno-deprecated-declarations']  # Complaints about mallinfo()
 # Flags given to fbc to pass on to FBCC (C compiler) used when compiling -gen gcc generated C sources.
 # Not for euc, and not used on Android (because of inflexible build system).
 GENGCC_CFLAGS = []

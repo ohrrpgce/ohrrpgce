@@ -150,22 +150,22 @@ int file_wrapper_read(FB_FILE *handle, void *value, size_t *pValuelen) {
 */
 
 int file_wrapper_write(FB_FILE *handle, const void *value, size_t valuelen) {
-	FileInfo &info = *get_fileinfo(handle);
-	assert(&info);
+	FileInfo *infop = get_fileinfo(handle);
+	assert(infop);
 	if (!allow_lump_writes) {
 		// It's not really a great idea to call debug in here,
 		// because we've been called from inside the rtlib, so
 		// the global rtlib mutex is held. Luckily, FB uses recursive
 		// mutexes, meaning the same thread can lock one multiple times.
-		if (!info.reported_error) {
+		if (!infop->reported_error) {
 			// Setting this flag does not prevent recursion, since debug can open
 			// a new file. We rely on the hook filter not hooking ?_debug.txt
-			info.reported_error = true;
-			debug(errShowBug, "Tried to write to protected file %s", info.name.c_str());
+			infop->reported_error = true;
+			debug(errShowBug, "Tried to write to protected file %s", infop->name.c_str());
 		}
 		return 1;
 	} else {
-		info.dirty = true;
+		infop->dirty = true;
 		return fb_DevFileWrite(handle, value, valuelen);
 	}
 }
