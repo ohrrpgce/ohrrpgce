@@ -130,9 +130,6 @@ support\cp support\LICENSE-rcedit.txt tmpdist\support
 support\cp support\*-version.txt tmpdist\support
 support\cp relump.exe tmpdist\support
 support\cp unlump.exe tmpdist\support
-support\cp vikings.rpg tmpdist
-support\cp -r "vikings\Vikings script files" "tmpdist\Vikings script files"
-support\cp "vikings\README-vikings.txt" tmpdist
 support\cp -r import tmpdist\import
 
 cd tmpdist

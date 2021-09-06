@@ -74,12 +74,6 @@ if [ $CODE == 'wip' ] ; then
   cp -p IMPORTANT-nightly.txt tmp
 fi
 
-echo "  Including Vikings of Midgard"
-mkdir -p tmp/"Vikings of Midgard" &&
-./relump vikings/vikings.rpgdir tmp/"Vikings of Midgard"/vikings.rpg &&
-cp -pR "vikings/Vikings script files" tmp/"Vikings of Midgard" &&
-cp -p "vikings/README-vikings.txt" tmp/"Vikings of Midgard" || exit 1
-
 echo "  Including import"
 mkdir tmp/import
 cp -pR import/* tmp/import

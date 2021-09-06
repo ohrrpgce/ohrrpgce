@@ -98,6 +98,7 @@ echo "Lumping Vikings of Midgard"
 rm -f vikings.rpg
 wine ./relump.exe vikings/vikings.rpgdir vikings.rpg
 mustexist "vikings.rpg"
+unix2dos -q "tmpdist/Vikings script files/"*
 
 rm -f distrib/ohrrpgce-player-win-minimal-sdl2.zip
 rm -f distrib/ohrrpgce-minimal.zip
@@ -142,11 +143,6 @@ ohrrpgce_common_files
 cp docs/*.png tmpdist/docs
 cp docs/plotdict.xml tmpdist/docs
 cp docs/htmlplot.xsl tmpdist/docs
-# Vikings
-cp vikings.rpg tmpdist
-cp -r "vikings/Vikings script files" "tmpdist/Vikings script files"
-cp "vikings/README-vikings.txt" tmpdist
-unix2dos -q "tmpdist/Vikings script files/"*
 # Import folder
 cp -r import tmpdist/import
 
