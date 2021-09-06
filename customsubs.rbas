@@ -2735,12 +2735,13 @@ FUNCTION save_current_game (byval genDebugMode_override as integer=-1) as bool
  xbsave game + ".gen", gen(), 1000
  save_edit_time
 
- clearpage 0
- textcolor uilook(uiText), 0
- printstr "LUMPING DATA: please wait.", 0, 0, 0
- setvispage 0, NO
+ clearpage vpage
+ textcolor uilook(uiText), vpage
+ printstr "LUMPING DATA: please wait.", 0, 0, vpage
+ setvispage vpage, NO
  '--verify various stuff
  rpg_sanity_checks
+ clearpage vpage
  '--lump data to SAVE rpg file
  IF write_rpg_or_rpgdir(workingdir, sourcerpg) THEN
   write_session_info  'Update sourcerpg mtime and reset editing start time

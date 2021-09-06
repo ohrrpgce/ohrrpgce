@@ -1617,6 +1617,7 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
   END IF
  #ENDIF
  setpal master()
+ clearpage vpage
 
  entered = 0
 END SUB
