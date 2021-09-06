@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-March ? 2021 [Hróðvitnir]
+September 12 2021 [Hróðvitnir]
 
   *** New Features
     * Slice Editor:
