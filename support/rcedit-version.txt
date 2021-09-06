@@ -1,0 +1,5 @@
+10101
+1.1.1
+# https://github.com/rversteegen/rcedit/commit/25f3561d8150e39d7698579c360c371bc813b9e5
+# (The detailed properties of this .exe claim it is v0.2.0)
+# This file just tells the OHRRPGCE what version of rcedit.exe it has.

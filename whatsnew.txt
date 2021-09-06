@@ -151,6 +151,10 @@ March ? 2021 [Hróðvitnir]
       heroes immediately before a map change [James]
     * Tweaked battle target cursor movement to fix some (but not all) odd
       behaviour and a possibility of unselectable targets! [Ralph]
+    * Bug #38 Virus scanners raise false alarm on game.exe when a game icon is
+      embedded while distributing a game. Most virus scanners stopped reporting
+      a false positive anyway, but we now use a fixed embedding tool that sets
+      the correct .exe checksum [Ralph]
 
   *** Stuff Only Developers Will Notice
     * clang can be used to compile instead of gcc. Added "compiler=clang|gcc"

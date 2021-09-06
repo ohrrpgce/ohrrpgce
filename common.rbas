@@ -3577,6 +3577,9 @@ FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, dow
   need_version = 300  'Not 2.3
   need_version_text = "3.0"
   'Previously the zip.exe version was indicated by presence of zip-version-3.0.txt, which we now ignore
+ ELSEIF appname = "rcedit" THEN
+  need_version = 10101
+  need_version_text = "1.1.1"
  END IF
 
  DIM have_version as integer

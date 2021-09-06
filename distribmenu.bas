@@ -622,16 +622,6 @@ SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
  IF NOT isfile(exe_name) THEN debuginfo exe_name & " not found, ignoring attempt to change its icon" : EXIT SUB
  IF NOT isfile(ico_name) THEN debuginfo ico_name & " does not exist" : EXIT SUB
 
- IF dist_yesno("Unfortunately (as of 12/2019) many virus scanners misdetect game.exe as " _
-               "containing a virus if we embed an icon into it. For now, we strongly recommend " _
-               !"that you do NOT embed an icon.\nEmbed " & trimpath(ico_name) & "?", NO, NO) = NO THEN
-  EXIT SUB
- END IF
-
- ' DIM resourcehacker as string = find_windows_helper_app("resourcehacker", YES)
- ' IF resourcehacker = "" THEN EXIT SUB
-
-
  DIM rcedit as string = find_windows_helper_app("rcedit", YES)
  IF rcedit = "" THEN EXIT SUB
 
