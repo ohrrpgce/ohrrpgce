@@ -2567,7 +2567,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
    'Edit lookup codes
    IF strgrabber(slicelookup(curcode), 70) THEN
     slicelookup(curcode) = sanitize_script_identifier(slicelookup(curcode))
-    v_at(menu, st.pt)->text = " " & slicelookup(curcode)
+    v_at(menu, st.pt)->text = IIF(curcode = start_at_code, CHR(26), " ") & slicelookup(curcode)
    END IF
 
    '--make the list longer if we have selected the last item in the list and it is not blank
