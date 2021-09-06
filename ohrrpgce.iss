@@ -61,6 +61,7 @@ Source: "support\CrashRpt*.dll"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\CrashSender*.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\crashrpt_lang.ini"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\rcedit.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
+Source: "support\*-version.txt"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "relump.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "unlump.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "vikings.rpg"; DestDir: "{app}"; Flags: ignoreversion

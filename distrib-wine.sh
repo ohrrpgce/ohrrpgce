@@ -40,6 +40,7 @@ function ohrrpgce_common_files {
  cp support/unzip.exe tmpdist/support
  cp support/rcedit.exe tmpdist/support
  cp support/LICENSE-rcedit.txt tmpdist/support
+ cp support/*-version.txt tmpdist/support
  cp relump.exe tmpdist/support
  cp unlump.exe tmpdist/support
  cp -r data tmpdist/data

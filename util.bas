@@ -4153,6 +4153,7 @@ SUB string_to_file (string_to_write as string, filename as string)
 END SUB
 
 'Read each line of a file into a string array. Return true on success
+'See also string_from_first_line_of_file() if you only want the first.
 FUNCTION lines_from_file(strarray() as string, filename as string, expect_exists as bool = YES) as bool
  REDIM strarray(-1 TO -1)
  DIM as integer fh, openerr

@@ -3501,6 +3501,23 @@ FUNCTION get_support_dir () as string
  RETURN "" ' not found. booo! :(
 END FUNCTION
 
+'Some helper utilities have an <appname>-version.txt file (included in the download) containing:
+'-line 0: a numeric version code (returned)
+'-line 1: a textual version code (returned in version_text)
+'-rest: comments
+'Returns 0 if the version file doesn't exist.
+'apppath: path to the .exe
+FUNCTION get_helper_app_version(apppath as string, byref version_text as string = "") as integer
+ DIM version_file as string = trimextension(apppath) & "-version.txt"
+ DIM lines() as string
+ version_text = "<unknown>"
+ IF NOT lines_from_file(lines(), version_file, NO) THEN RETURN 0  'expect_exists=NO
+ IF UBOUND(lines) >= 1 THEN
+  version_text = lines(1)
+  RETURN str2int(lines(0), 0)
+ END IF
+END FUNCTION
+
 #MACRO try_app_path(path)
  temp = path
  IF isfile(temp) THEN RETURN temp
@@ -3544,30 +3561,41 @@ END FUNCTION
 
 FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, download_url as string="") as string
  'Gets the windows version of the helper app, even when run on Linux or Mac (for utils to be run via wine)
- 'Returns an empty string if the app is not found, or the full path if it is found
- 'try_install: download it if not installed
+ 'Returns an empty string if the app is not found or version is too old, or the full path if it is found
+ 'try_install: download it if not installed or too old
  'download_url: only used if try_install is true, to override the default
 
  'For windows, first look in the support subdirectory
  '(This is required so we can replace unusable utilities, eg create_tarball)
  DIM support as string = get_support_dir()
  DIM apppath as string = support & SLASH & appname & ".exe"
+
+ 'Special case logic to force upgrade of certain utilities to a specified version
+ DIM need_version as integer
+ DIM need_version_text as string
  IF appname = "zip" THEN
-  'A little special magic to make that if we are looking for zip.exe we find version 3.0 and not 2.3
-  IF NOT isfile(support & SLASH & appname & "-version-3.0.txt") THEN
-   safekill apppath
-   DIM fh as integer = FREEFILE
-   OPEN support & SLASH & appname & "-version-3.0.txt" FOR OUTPUT AS #fh
-   PRINT #fh, "This file is just here to let the OHRRPGCE know that we have already upgraded zip.exe from version 2.3 to 3.0"
-   CLOSE #fh
+  need_version = 300  'Not 2.3
+  need_version_text = "3.0"
+  'Previously the zip.exe version was indicated by presence of zip-version-3.0.txt, which we now ignore
+ END IF
+
+ DIM have_version as integer
+ IF isfile(apppath) THEN
+  have_version = get_helper_app_version(apppath)
+  IF have_version < need_version THEN
+   'Reject it; it must be redownloaded
+   debuginfo strprintf("Ignoring %s which is version %d, need version %d", strptr(apppath), have_version, need_version)
+  ELSE
+   RETURN apppath
   END IF
  END IF
- IF isfile(apppath) THEN RETURN apppath
+
+ DIM ret as string
 
  #IFDEF __FB_WIN32__
-  IF is_windows_9x() = NO THEN
+  IF is_windows_9x() = NO ANDALSO need_version = 0 THEN
    ' Check whether appname.exe is in the $PATH  (command.com doesn't seem to support this syntax)
-   DIM ret as string
+   ' Don't do this if we require a specific version, because we won't know (presumably there won't be a version.txt)
    ' Prepend a _ because if its args are blank echo prints "ECHO ON."
    run_and_get_output "for %X in (" & appname & ".exe) do echo _%~$PATH:X", ret, , NO 'disable debuginfo spam
    ret = RTRIM(ret, ANY !"\n\r")
@@ -3575,8 +3603,19 @@ FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, dow
   END IF
  #ENDIF
 
- IF try_install THEN RETURN install_windows_helper_app(appname, download_url)
- RETURN ""
+ IF try_install THEN
+  ret = install_windows_helper_app(appname, download_url)
+  IF LEN(ret) THEN
+   DIM version_text as string
+   have_version = get_helper_app_version(ret, version_text)
+   debuginfo strprintf("Downloaded %s version %s (%d)", strptr(ret), strptr(version_text), have_version)
+   IF have_version < need_version THEN
+    'Someone forgot to put the version file in the download? But we'll proceed with whatever got downloaded
+    showbug "Downloaded a fresh copy of " & appname & " but it was only version " & version_text & ", expected >= " & need_version_text
+   END IF
+  END IF
+ END IF
+ RETURN ret
 END FUNCTION
 
 'Returns "" on failure, otherwise path to the executable
@@ -3591,7 +3630,7 @@ FUNCTION install_windows_helper_app (appname as string, download_url as string="
   download_url = "http://HamsterRepublic.com/ohrrpgce/support/" & appname & "." & extension
  END IF
  DIM choice as integer
- choice = twochoice(appname & ".exe was not found. Would you like to automatically download it from " _
+ choice = twochoice(appname & ".exe was not found (or incorrect version). Would you like to automatically download it from " _
                     & url_hostname(download_url) & "?", , , , , "download_win_support_util")
  IF choice = 0 THEN
   download_file download_url, support
@@ -3600,11 +3639,14 @@ FUNCTION install_windows_helper_app (appname as string, download_url as string="
    RETURN ""
   END IF
   IF appname <> "unzip" THEN
+   'Unzip all files from the .zip
    DIM unzip as string = find_helper_app("unzip", YES)
    IF unzip = "" THEN
     visible_debug "Can't find unzip tool"
     RETURN ""
    END IF
+   safekill apppath
+   safekill trimextension(apppath) & "-version.txt"
    ' -q quiet -o overwrite -C case-insenstive -L make lowercase -j junk directories
    DIM arglist as string
    DIM zipfile as string = support & SLASH & appname & ".zip"

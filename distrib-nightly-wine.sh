@@ -52,6 +52,7 @@ function zip_and_upload {
   zip -q distrib/"${ZIPFILE}" support/oggenc.exe support/LICENSE-oggenc.txt
   zip -q distrib/"${ZIPFILE}" support/zip.exe
   zip -q distrib/"${ZIPFILE}" support/wget.exe
+  zip -q distrib/"${ZIPFILE}" support/*-version.txt
   zip -q distrib/"${ZIPFILE}" support/CrashRpt*.dll support/CrashSender*.exe support/crashrpt_lang.ini
   zip -q distrib/"${ZIPFILE}" support/LICENSE-crashrpt.txt
   cp relump.exe support/

@@ -127,6 +127,7 @@ support\cp support\CrashRpt*.dll support\CrashSender*.exe support\crashrpt_lang.
 support\cp support\LICENSE-crashrpt.txt tmpdist\support
 support\cp support\rcedit.exe tmpdist\support
 support\cp support\LICENSE-rcedit.txt tmpdist\support
+support\cp support\*-version.txt tmpdist\support
 support\cp relump.exe tmpdist\support
 support\cp unlump.exe tmpdist\support
 support\cp vikings.rpg tmpdist
