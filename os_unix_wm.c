@@ -13,6 +13,10 @@
 
 #ifdef USE_X11
 #include <X11/Xlib.h>
+//#define USE_XINERAMA
+#ifdef USE_XINERAMA
+#include <X11/extensions/Xinerama.h>
+#endif
 #endif
 
 #ifdef __APPLE__
@@ -95,6 +99,8 @@ void set_X11_error_handlers() {
 	XSetIOErrorHandler(X_fatal_error_handler);
 }
 
+// BUG: if you have multiple displays and are using Xinerama (likely) this returns
+// the size of the whole desktop (bounding box of all displays) rather than the main display.
 void os_get_screen_size(int *wide, int *high) {
 	Display *display;
 	display = XOpenDisplay(NULL);  // uses display indicated by $DISPLAY env var
@@ -107,6 +113,23 @@ void os_get_screen_size(int *wide, int *high) {
 	int screen = DefaultScreen(display);
 	*wide = DisplayWidth(display, screen);
 	*high = DisplayHeight(display, screen);
+
+#ifdef USE_XINERAMA
+	// This fixes the above mentioned bug, but I don't really want to add
+	// another dependency that's only useful if using gfx_sdl or gfx_fb,
+	// which you'd only likely do when you can't use SDL2. And even SDL2 can
+	// be compiled without Xinerama.
+	// (Requires Xinerama library be linked.)
+	int screennum = 0;
+	XineramaScreenInfo *screenarray = XineramaQueryScreens(display, &screennum);
+	if (screenarray) {
+		//debuginfo("Got %d screens", screennum);
+		*wide = screenarray[0].width;
+		*high = screenarray[0].height;
+		XFree(screenarray);
+	}
+#endif
+
 	XCloseDisplay(display);
 }
 

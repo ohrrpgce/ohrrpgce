@@ -141,6 +141,8 @@ March ? 2021 [Hróðvitnir]
       * #1115 Linux gfx_sdl: can't resize the window on Xfce
       * #1173 Windows gfx_sdl: Enter key stuck after changing window zoom level
         in Custom
+      * On a multimonitor Unix/X11 system game windows could get created larger
+        than a single monitor
     * Many bugs fixed in gfx_sdl2, which was previously experimental [Ralph]
     * The currency global text string wasn't used for attack harm text or cost
       descriptions [Ralph]

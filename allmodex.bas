@@ -1040,10 +1040,21 @@ end function
 
 'Get resolution of the (primary) monitor. On Windows, this excludes size of the taskbar.
 sub get_screen_size (byref screenwidth as integer, byref screenheight as integer)
-	'Prefer os_get_screen_size because on windows it excludes the taskbar,
-	'and gfx_sdl reports resolution at init time rather than the current values.
-	os_get_screen_size(@screenwidth, @screenheight)
+	screenwidth = 0
+	screenheight = 0
+	if gfxbackend = "sdl2" then
+		'Prefer gfx_sdl2 because it has a dedicated API for getting the usable size
+		'(excluding taskbar, etc) of the main display. (gfx_directx is also good.)
+		gfx_get_screen_size(@screenwidth, @screenheight)
+	end if
 	if screenwidth <= 0 or screenheight <= 0 then
+		'On Windows and Mac os_get_screen_size also returns the usable
+		'size of the main display.
+		os_get_screen_size(@screenwidth, @screenheight)
+	end if
+	if screenwidth <= 0 or screenheight <= 0 then
+		'gfx_sdl is particularly bad, reports resolution of the whole desktop
+		'at init time rather than the current size.
 		debuginfo "Falling back to gfx_get_screen_size"
 		gfx_get_screen_size(@screenwidth, @screenheight)
 	end if
