@@ -254,6 +254,26 @@ sub music_init()
 		dim audio_channels as integer
 		dim audio_buffers as integer
 
+		#if defined(__FB_UNIX__) and defined(SDL_MIXER2)
+			'SDL2_mixer only looks for soundfonts for its default fluidsynth MIDI backend at
+			'/usr/share/sounds/sf2/FluidR3_GM.sf2 but there are a couple other common places for distros
+			'to put them; otherwise the user needs to set the SDL_SOUNDFONTS envvar. Mix_SetSoundFonts
+			'overrides SDL_SOUNDFONTS, so make sure we don't do that, and the built default is used only
+			'if neither of those is available.
+			dim soundfonts as zstring ptr = SDL_getenv("SDL_SOUNDFONTS")
+			if soundfonts = NULL orelse len(*soundfonts) = 0 then
+				debuginfo "SDL_SOUNDFONTS not set, using default paths"
+				'This list based on one from OpenTTD
+				Mix_SetSoundFonts(_ ' Debian/Ubuntu/OpenSUSE/Slackware
+						  "/usr/share/sounds/sf2/FluidR3_GM.sf2" _
+						  ":;/usr/share/sounds/sf2/TimGM6mb.sf2" _
+						  ":;/usr/share/sounds/sf2/FluidR3_GS.sf2" _
+						  _ ' RedHat/Fedora/Arch
+						  ":;/usr/share/soundfonts/FluidR3_GM.sf2" _
+						  ":;/usr/share/soundfonts/FluidR3_GS.sf2")
+			end if
+		#endif
+
 		#ifndef SDL_MIXER2
 			' MIX_DEFAULT_FREQUENCY is 22050, which slightly worsens sound quality
 			' than playing at 44100, but using 44100 causes tracks between 22-44kHz
