@@ -23,8 +23,8 @@ LICENSE:
   does not apply to games made with the engine.
 -----------------------------------------------------------------------------
 WINDOWS/LINUX/UNIX:
-  Recommend FreeBasic version 1.05.0
-  Requires minimum FreeBasic version 1.00.0
+  Recommend FreeBasic version 1.08.0
+  Requires minimum FreeBasic version 1.05.0
   Download FreeBasic from http://freebasic.net/
    http://rpg.hamsterrepublic.com/ohrrpgce/Getting_FreeBasic
   Compiling requires Python and Scons
