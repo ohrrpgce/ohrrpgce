@@ -903,7 +903,7 @@ END SELECT
  IF unzip = "" THEN dist_info "ERROR: Couldn't find unzip tool": RETURN ""
  
  '--Unzip the desired files
- DIM args as string = "-o " & escape_filename(destzip) & " ohrrpgce-game LICENSE-binary.txt -d " & escape_filename(dldir)
+ DIM args as string = "-o " & escape_filename(destzip) & " ohrrpgce-game buildinfo.ini LICENSE-binary.txt -d " & escape_filename(dldir)
  DIM spawn_ret as string = spawn_and_wait(unzip, args)
  IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: unzip failed: " & spawn_ret : RETURN ""
  
@@ -1813,7 +1813,7 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
  
  '--Untar the desired files
  IF gunzip_file(destgz) = NO THEN RETURN ""
- IF extract_tarball(dldir, desttar, "OHRRPGCE-Game.app LICENSE-binary.txt") = NO THEN RETURN ""
+ IF extract_tarball(dldir, desttar, "OHRRPGCE-Game.app buildinfo.ini LICENSE-binary.txt") = NO THEN RETURN ""
  
  IF NOT isdir(dldir & SLASH & "OHRRPGCE-Game.app")   THEN dist_info "ERROR: Failed to untar OHRRPGCE-Game.app" : RETURN ""
  IF NOT isfile(dldir & SLASH & "OHRRPGCE-Game.app" & SLASH & "Contents" & SLASH & "MacOS" & SLASH & "ohrrpgce-game")   THEN dist_info "ERROR: Failed to completely untar OHRRPGCE-Game.app" : RETURN ""
