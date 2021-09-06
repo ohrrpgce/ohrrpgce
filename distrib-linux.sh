@@ -100,7 +100,7 @@ package_for_arch() {
   echo "Generating buildinfo.ini"
   tmp/ohrrpgce-game -buildinfo tmp/buildinfo.ini
   zip -j distrib/ohrrpgce-player-linux-bin-minimal-$TODAY-$CODE-$ARCH.zip tmp/ohrrpgce-game tmp/buildinfo.ini LICENSE-binary.txt README-player-only.txt
-  rm -f tmp/*
+  rm tmp/ohrrpgce-game
 }
 
 if [ -z "${OHR_SKIP_X86}" ] ; then
