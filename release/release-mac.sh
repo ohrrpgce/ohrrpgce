@@ -12,5 +12,6 @@ SCPDEST="james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce"
 
 TODAY=`date "+%Y-%m-%d"`
 CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
-scp -p distrib/OHRRPGCE-${TODAY}-${CODE}-*.dmg "${SCPDEST}"/archive/
-scp -p distrib/ohrrpgce-mac-minimal-${TODAY}-${CODE}-*.tar.gz "${SCPDEST}"/archive/
+BRANCH=`cat codename.txt | grep -v "^#" | head -2 | tail -1 | tr -d "\r"`
+scp -p distrib/OHRRPGCE-${TODAY}-${BRANCH}-*.dmg "${SCPDEST}"/archive/
+scp -p distrib/ohrrpgce-mac-minimal-${TODAY}-${BRANCH}-*.tar.gz "${SCPDEST}"/archive/

@@ -193,13 +193,13 @@ rmdir /s /q tmpdist
 
 REM ------------------------------------------
 ECHO Rename results...
-ECHO %OHRVERDATE%-%OHRVERCODE%
-move distrib\ohrrpgce-player-win-minimal-sdl2.zip distrib\ohrrpgce-player-win-minimal-sdl2-%OHRVERDATE%-%OHRVERCODE%.zip
-move distrib\ohrrpgce-minimal.zip distrib\ohrrpgce-minimal-%OHRVERDATE%-%OHRVERCODE%.zip
-move distrib\ohrrpgce.zip distrib\ohrrpgce-%OHRVERDATE%-%OHRVERCODE%.zip
-move distrib\ohrrpgce-win-installer.exe distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe
-move distrib\ohrrpgce-source.zip distrib\ohrrpgce-source-%OHRVERDATE%-%OHRVERCODE%.zip
-move distrib\ohrrpgce-symbols-win.7z distrib\ohrrpgce-symbols-win-%BUILDNAME%-r%SVNREV%-%OHRVERDATE%-%OHRVERCODE%.7z
+ECHO %OHRVERDATE%-%OHRVERBRANCH%
+move distrib\ohrrpgce-player-win-minimal-sdl2.zip distrib\ohrrpgce-player-win-minimal-sdl2-%OHRVERDATE%-%OHRVERBRANCH%.zip
+move distrib\ohrrpgce-minimal.zip distrib\ohrrpgce-minimal-%OHRVERDATE%-%OHRVERBRANCH%.zip
+move distrib\ohrrpgce.zip distrib\ohrrpgce-%OHRVERDATE%-%OHRVERBRANCH%.zip
+move distrib\ohrrpgce-win-installer.exe distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERBRANCH%.exe
+move distrib\ohrrpgce-source.zip distrib\ohrrpgce-source-%OHRVERDATE%-%OHRVERBRANCH%.zip
+move distrib\ohrrpgce-symbols-win.7z distrib\ohrrpgce-symbols-win-%BUILDNAME%-r%SVNREV%-%OHRVERDATE%-%OHRVERBRANCH%.7z
 
 REM ------------------------------------------
 ECHO Done.
