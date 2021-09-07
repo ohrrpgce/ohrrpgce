@@ -1597,9 +1597,9 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
       her.def_weapon = item_picker(her.def_weapon)
       max(7) = gen(genMaxItem)
      CASE 9
-      xy_position_on_sprite st.battle, her.hand_pos(0).x, her.hand_pos(0).y, frameATTACKA, "hand position (for weapon)", "xy_hero_hand"
+      xy_position_on_sprite st.battle, her.hand_pos(0).x, her.hand_pos(0).y, frameATTACKA, "Hand position (for weapon)", "xy_hero_hand"
      CASE 10
-      xy_position_on_sprite st.battle, her.hand_pos(1).x, her.hand_pos(1).y, frameATTACKB, "hand position (for weapon)", "xy_hero_hand"
+      xy_position_on_sprite st.battle, her.hand_pos(1).x, her.hand_pos(1).y, frameATTACKB, "Hand position (for weapon)", "xy_hero_hand"
      CASE 11
       DIM spriteb as PortraitSpriteBrowser
       her.portrait = spriteb.browse(her.portrait)

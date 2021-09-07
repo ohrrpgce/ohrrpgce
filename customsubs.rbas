@@ -1810,10 +1810,11 @@ SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as in
 
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpkey
-  IF keyval(ccLeft) > 0  THEN x -= 1
-  IF keyval(ccRight) > 0 THEN x += 1
-  IF keyval(ccUp) > 0    THEN y -= 1
-  IF keyval(ccDown) > 0  THEN y += 1
+  DIM speed as integer = IIF(keyval(scShift), 4, 1)
+  IF slowkey(ccLeft, 100)  THEN x -= speed
+  IF slowkey(ccRight, 100) THEN x += speed
+  IF slowkey(ccUp, 100)    THEN y -= speed
+  IF slowkey(ccDown, 100)  THEN y += speed
   DIM dragging as bool = readmouse.drag_dist > 3
   IF readmouse.buttons AND mouseRight ORELSE dragging THEN
    DIM temp as XYPair
@@ -1831,8 +1832,7 @@ SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as in
   draw_crosshairs topleft + XY(x, y) * zoom, 1, zoom, col, dpage
 
   wrapprint caption, pCentered, 0, uilook(uiText), dpage
-  edgeprint "Position point and press Enter, Space, or Click", 0, pBottom, uilook(uiText), dpage
-  edgeprint XY(x, y), 0, pBottom - 10, uilook(uiText), dpage
+  wrapprint XY(x, y) & !"  Shift for speed\nPosition point and press Enter, Space, or Click", 0, pBottom, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
