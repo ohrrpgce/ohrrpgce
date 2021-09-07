@@ -130,6 +130,8 @@ sub quit_sdl_audio()
 	end if
 end sub
 
+'This is currently called twice: early when read_backend_info is called, and again from setupmusic.
+'The first call (music_status = musicOff) will be missing decoder info.
 function music_get_info() as string
 	#ifdef SDL_MIXER2
 		#define sdlX "sdl2"
@@ -281,7 +283,6 @@ sub music_init()
 					end if
 				next
 				if len(paths) then
-					debuginfo "SDL_SOUNDFONTS not set, using default paths"
 					Mix_SetSoundFonts(strptr(paths))
 				else
 					debuginfo "Warning: no soundfonts for MIDI playback using fluidsynth found in common " _
