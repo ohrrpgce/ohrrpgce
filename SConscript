@@ -665,14 +665,15 @@ if gengcc:
         # clang doesn't like fbc's declarations of standard functions
         GENGCC_CFLAGS += ['-Wno-builtin-requires-header', '-Wno-incompatible-library-redeclaration']
     if len(GENGCC_CFLAGS):
-        # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc; the last -Wc overrides others!
+        # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc <=1.06; the last -Wc overrides others!
         # NOTE: GENGCC_CFLAGS isn't used on android
-        # fbc has a limit of 127 characters for -Wc arguments (gh#298), so stop the build from breaking
+        # fbc <=1.07 has a limit of 127 characters for -Wc arguments (gh#298), so stop the build from breaking
         # if we exceed the limit by removing final args, which are assumed to be least important.
         tmp = GENGCC_CFLAGS
-        while len(','.join(tmp)) > 127:
-            print("WARNING: due to fbc bug, dropping arg -Wc %s" % tmp[-1])
-            tmp.pop()
+        if FBC.version < 1080:
+            while len(','.join(tmp)) > 127:
+                print("WARNING: due to fbc bug, dropping arg -Wc %s" % tmp[-1])
+                tmp.pop()
         FBFLAGS += ["-Wc", ','.join(tmp)]
         # Used when FBCC.is_clang only
         env['GENGCC_CFLAGS'] = GENGCC_CFLAGS
