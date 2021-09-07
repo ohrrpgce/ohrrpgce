@@ -11,7 +11,8 @@ fi
 # Update the version
 TODAY=`date "+%Y-%m-%d"`
 CODE=`cat ../codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
-sed -i "s/plotscript version=\".*\" datecode=\".*\"/plotscript version=\"$CODE\" datecode=\"$TODAY\"/" plotdict.xml
+BRANCH=`cat ../codename.txt | grep -v "^#" | head -2 | tail -1 | tr -d "\r"`
+sed -i "s/plotscript version=\".*\" datecode=\".*\"/plotscript version=\"$BRANCH\" datecode=\"$TODAY\"/" plotdict.xml
 
 # Validate checks for many things that may not be easily noticable but could
 # still cause breakage, like invalid cross links
