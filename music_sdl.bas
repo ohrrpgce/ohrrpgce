@@ -262,15 +262,31 @@ sub music_init()
 			'if neither of those is available.
 			dim soundfonts as zstring ptr = SDL_getenv("SDL_SOUNDFONTS")
 			if soundfonts = NULL orelse len(*soundfonts) = 0 then
-				debuginfo "SDL_SOUNDFONTS not set, using default paths"
 				'This list based on one from OpenTTD
-				Mix_SetSoundFonts(_ ' Debian/Ubuntu/OpenSUSE/Slackware
-						  "/usr/share/sounds/sf2/FluidR3_GM.sf2" _
-						  ":;/usr/share/sounds/sf2/TimGM6mb.sf2" _
-						  ":;/usr/share/sounds/sf2/FluidR3_GS.sf2" _
-						  _ ' RedHat/Fedora/Arch
-						  ":;/usr/share/soundfonts/FluidR3_GM.sf2" _
-						  ":;/usr/share/soundfonts/FluidR3_GS.sf2")
+				dim default_paths(...) as string = { _
+					_ ' Debian/Ubuntu/OpenSUSE/Slackware
+					"/usr/share/sounds/sf2/FluidR3_GM.sf2", _
+					"/usr/share/sounds/sf2/TimGM6mb.sf2", _
+					"/usr/share/sounds/sf2/FluidR3_GS.sf2", _
+					_ ' RedHat/Fedora/Arch
+					"/usr/share/soundfonts/FluidR3_GM.sf2", _
+					"/usr/share/soundfonts/FluidR3_GS.sf2" _
+				}
+				'Only pass on paths that exist, otherwise errors are printed to stderr
+				dim paths as string
+				for idx as integer = 0 to ubound(default_paths)
+					if isfile(default_paths(idx)) then
+						if len(paths) then paths &= ":;"
+						paths &= default_paths(idx)
+					end if
+				next
+				if len(paths) then
+					debuginfo "SDL_SOUNDFONTS not set, using default paths"
+					Mix_SetSoundFonts(strptr(paths))
+				else
+					debuginfo "Warning: no soundfonts for MIDI playback using fluidsynth found in common " _
+						  "locations. Set the SDL_SOUNDFONTS environmental variable if you've installed them."
+				end if
 			end if
 		#endif
 
