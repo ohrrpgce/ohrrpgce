@@ -87,9 +87,9 @@ cp -p docs/htmlplot.xsl tmp/docs &&
 cp -p docs/more-docs.txt tmp/docs || exit 1
 
 echo "Creating disk image"
-mv tmp OHRRPGCE-$CODE$SUFFIX
-hdiutil create -srcfolder OHRRPGCE-$CODE$SUFFIX/ -fs HFS+ distrib/OHRRPGCE-$TODAY-$CODE$SUFFIX.dmg || exit 1
-mv OHRRPGCE-$CODE$SUFFIX tmp
+mv tmp OHRRPGCE-$BRANCH$SUFFIX
+hdiutil create -srcfolder OHRRPGCE-$BRANCH$SUFFIX/ -fs HFS+ distrib/OHRRPGCE-$TODAY-$BRANCH$SUFFIX.dmg || exit 1
+mv OHRRPGCE-$BRANCH$SUFFIX tmp
 
 echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
@@ -99,7 +99,7 @@ rm -f buildinfo.ini
 ./OHRRPGCE-Game.app/Contents/MacOS/ohrrpgce-game -buildinfo ./buildinfo.ini
 
 echo "Create minimal player tarball"
-gnutar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$CODE$SUFFIX.tar.gz OHRRPGCE-Game.app buildinfo.ini README-player-only.txt LICENSE-binary.txt || exit 1
+gnutar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$BRANCH$SUFFIX.tar.gz OHRRPGCE-Game.app buildinfo.ini README-player-only.txt LICENSE-binary.txt || exit 1
 
 echo "Creating utilities archive"
 zip distrib/ohrrpgce-mac-util$SUFFIX.zip unlump relump hspeak plotscr.hsd scancode.hsi LICENSE-binary.txt || exit 1

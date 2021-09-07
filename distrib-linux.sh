@@ -88,7 +88,7 @@ package_for_arch() {
   CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
   BRANCH=`cat codename.txt | grep -v "^#" | head -2 | tail -1 | tr -d "\r"`
   mv tmp ohrrpgce
-  tar -jcf distrib/ohrrpgce-linux-$TODAY-$CODE-$ARCH.tar.bz2 --exclude .svn ./ohrrpgce || return 1
+  tar -jcf distrib/ohrrpgce-linux-$TODAY-$BRANCH-$ARCH.tar.bz2 --exclude .svn ./ohrrpgce || return 1
   mv ohrrpgce tmp
 
   echo "Erasing contents of temporary directory"
@@ -99,7 +99,7 @@ package_for_arch() {
   strip tmp/ohrrpgce-game
   echo "Generating buildinfo.ini"
   tmp/ohrrpgce-game -buildinfo tmp/buildinfo.ini
-  zip -j distrib/ohrrpgce-player-linux-bin-minimal-$TODAY-$CODE-$ARCH.zip tmp/ohrrpgce-game tmp/buildinfo.ini LICENSE-binary.txt README-player-only.txt
+  zip -j distrib/ohrrpgce-player-linux-bin-minimal-$TODAY-$BRANCH-$ARCH.zip tmp/ohrrpgce-game tmp/buildinfo.ini LICENSE-binary.txt README-player-only.txt
   rm tmp/ohrrpgce-game
 }
 

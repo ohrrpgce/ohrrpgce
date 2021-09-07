@@ -193,7 +193,7 @@ echo "Cleaning up..."
 rm -Rf tmpdist
 
 echo "Rename results..."
-SUFFIX="${OHRVERDATE}-${OHRVERCODE}"
+SUFFIX="${OHRVERDATE}-${OHRVERBRANCH}"
 echo "${SUFFIX}"
 cd distrib
 mv ohrrpgce-player-win-minimal-sdl2.zip    ohrrpgce-player-win-minimal-sdl2-"${SUFFIX}".zip
