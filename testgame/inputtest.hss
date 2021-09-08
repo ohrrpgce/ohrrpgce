@@ -63,6 +63,10 @@ plotscript, keyboard main, begin
     if (key is pressed(key:ctrl) && keypress(key:h)) then (
       show hash := show hash, xor, true
     )
+    if (key is pressed(key:ctrl) && keypress(key:k)) then (
+      write preference bit (47, (true, xor, read preference bit (47)))  # "!Map joystick controls to keyboard keys for scripts"
+    )
+
     update keyboard strings
     update buttons (cancelkey, 127)
     wait
@@ -84,30 +88,30 @@ script, create joystick button grid, begin
 end
 
 plotscript, joystick main, begin
-  variable (collection, template, joynum)
+  variable (collection, template, player)
   collection := load slice collection (2)
   create joystick button grid
   set slice lookups (sprite layer)  # Only needed for the Control keys, I set the lookups of buttons directly instead of extra0
 
   while (check mode change == false) do, begin
     tick += 1
-    if (keypress(key:plus) && joynum < 15) then (joynum += 1)
-    if (keypress(key:minus) && joynum > 0) then (joynum -= 1)
+    if (keypress(key:plus) && player < 15) then (player += 1)
+    if (keypress(key:minus) && player > 0) then (player -= 1)
 
     if (key is pressed(key:ctrl) && keypress(key:d)) then (
-      write preference bit (53, (true, xor, read preference bit (53)))
+      write preference bit (53, (true, xor, read preference bit (53)))  # "!Map joystick (left) stick to dpad"
     )
 
-    update joystick strings (joynum)
-    update buttons (cancelkey, anykey, joynum)  #-9 to -1
-    update buttons (joy:button1, joy:button32, joynum, true)
+    update joystick strings (player)
+    update buttons (cancelkey, anykey, player)  #-9 to -1
+    update buttons (joy:button1, joy:button32, player, true)
     # Duplicate buttons
-    update buttons (joy:button1, joy:button32, joynum, true, lookup slice(sli:right stick))
-    update buttons (joy:button1, joy:button32, joynum, false, lookup slice(sli:button grid))
+    update buttons (joy:button1, joy:button32, player, true, lookup slice(sli:right stick))
+    update buttons (joy:button1, joy:button32, player, false, lookup slice(sli:button grid))
 
     # Move sticks
-    update stick (axis:X, axis:Y, joynum, lookup slice(100 + joy:left stick))
-    update stick (axis:RightX, axis:RightY, joynum, lookup slice(100 + joy:right stick))
+    update stick (axis:X, axis:Y, player, lookup slice(100 + joy:left stick))
+    update stick (axis:RightX, axis:RightY, player, lookup slice(100 + joy:right stick))
 
     wait
   end
@@ -126,7 +130,6 @@ script, update keyboard strings, begin
   if (show hash) then (
     $2="Hash:"
     append number (2, abs(input hash))
-    show string at (2, 200, 40)
   ) else (
     $2=""
   )
@@ -153,6 +156,13 @@ script, update keyboard strings, begin
     3 $+ str:input text
   )
   update str (sli:input string, 3)
+
+  if (read preference bit (47)) then (  # "!Map joystick controls to keyboard keys for scripts"
+    $3="Ctrl+K: joysticks not mapped to keyboard"
+  ) else (
+    $3="Ctrl+K: joysticks mapped to keyboard"
+  )
+  update str (sli: map joy to keys, 3)
 end
 
 script, update str, lookup, strid, begin
@@ -180,14 +190,14 @@ end
 
 #Update appearance of the button slices
 #is game button: buttons on the gamepad itself (unlike Use, etc) are styled a bit differently
-script, update buttons, first, last, joynum = 0, gamepad button = false, root = 0, begin
+script, update buttons, first, last, player = 0, gamepad button = false, root = 0, begin
   variable (key, sl, st, box style)
   for (key, first, last) do, begin
     sl := lookup slice (100 + key, root)
     if (sl == 0) then (continue)
 
     # keyboard buttons use box styles 1-4
-    box style := 1 + keyval(key, joynum)
+    box style := 1 + keyval(key, player)
     if (gamepad button && box style == 1) then (
       # joy buttons use box styles 0 and 2-4
       box style := 0
@@ -200,16 +210,16 @@ script, update buttons, first, last, joynum = 0, gamepad button = false, root = 
       set ellipse fill col(sl, get box style color(box style))
     )
 
-    if (keyval(key, joynum)) then (
-      input hash += (input hash * 333667), xor, (tick * 367 + key * 336667 + keyval(key, joynum) * 3336677)  # primes
+    if (keyval(key, player)) then (
+      input hash += (input hash * 333667), xor, (tick * 367 + key * 336667 + keyval(key, player) * 3336677)  # primes
     )
   end
 end
 
-script, update joystick strings, joynum, begin
+script, update joystick strings, player, begin
   subscript, update axis, axis, lookup, strid, begin
     variable(sl)
-    append number (strid, joystick axis(axis, 100, joynum))
+    append number (strid, joystick axis(axis, 100, player))
     sl := lookup slice (lookup)
     set slice text (sl, strid)
   end
@@ -221,11 +231,12 @@ script, update joystick strings, joynum, begin
   update axis(axis:L2, sli:L2 axis, $0="")
   update axis(axis:R2, sli:R2 axis, $0="")
 
-  get joystick name (0, joynum)
+  get joystick name (0, player)
   update str (sli:joystick name, 0)
-  string sprintf (0, $0="%d", joynum)
+  string sprintf (0, $0="%d", player)
+  if (player == 0) then ($0+" (any)")
   update str (sli:joystick num, 0)
-  string sprintf (0, $0="%d buttons %d axes %d hats", joystick button count(joynum), joystick axis count(joynum), joystick hat count(joynum))
+  string sprintf (0, $0="%d buttons %d axes %d hats", joystick button count(player), joystick axis count(player), joystick hat count(player))
   update str (sli:joystick info, 0)
 
   if (read preference bit (53)) then (  # "!Map joystick (left) stick to dpad buttons"
@@ -236,7 +247,7 @@ script, update joystick strings, joynum, begin
   update str (sli:joystick dpad map, 0)
 end
 
-script, update stick, axis x, axis y, joynum, sl, begin
-  set slice x (sl, joystick axis (axis x, 3, joynum))
-  set slice y (sl, joystick axis (axis y, 3, joynum))
+script, update stick, axis x, axis y, player, sl, begin
+  set slice x (sl, joystick axis (axis x, 3, player))
+  set slice y (sl, joystick axis (axis y, 3, player))
 end
