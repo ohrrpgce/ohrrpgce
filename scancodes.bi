@@ -238,11 +238,11 @@ ENUM 'JoyButton
  joyBack       = 7  'Aka Select (eg PS3), Share (eg PS4), View (Xbox)
  joyGuide      = 8  'Aka PS (eg 3), XBox
  joyStart      = 9  'Aka Options (PS4), Menu (XBox)
- joyL1         = 10
- joyR1         = 11
- joyL2         = 12  'Also axisL2
- joyR2         = 13  'Also axisR2
- '14-16 are unused; Dpad buttons start at 17 for easy mapping to script joy:... controls
+ joyL1         = 10  'Left shoulder
+ joyR1         = 11  'Right shoulder
+ joyL2         = 12  'Left trigger. Also axisL2
+ joyR2         = 13  'Right trigger. Also axisR2
+ '14-16 are unused; Dpad buttons start at 17 because used to support only 16 buttons
  joyLeft       = 17  'Dpad
  joyRight      = 18
  joyUp         = 19

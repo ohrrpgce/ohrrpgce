@@ -169,16 +169,16 @@ define constant,begin
 
 # Keys >= 128 are scancodes for other devices (mouse, joystick)
 
-128,joy:A          # B button on SNES!
+128,joy:A          # B button on a SNES controller!
 128,joy:Cross      # PS
-129,joy:B          # A button on SNES!
+129,joy:B          # A button on a SNES controller!
 129,joy:Circle     # PS
-130,joy:X          # Y button on SNES!
+130,joy:X          # Y button on a SNES controller!
 130,joy:Square     # PS
-131,joy:Y          # X button on SNES!
-132,joy:Triangle   # PS
-132,joy:LeftStick  # When pressed as a button
-133,joy:RightStick #
+131,joy:Y          # X button on a SNES controller!
+131,joy:Triangle   # PS
+132,joy:Left Stick # When pressed as a button
+133,joy:Right Stick
 # Center-left button: Select (NES, SNES, PS1-3), Back (Xbox), Share (PS4), View (Xbox)
 134,joy:Select
 134,joy:Back
@@ -192,11 +192,14 @@ define constant,begin
 139,joy:L2         # Left trigger. Also axis:L2
 140,joy:R2         # Right trigger. Also axis:R2
 #141-143 unassigned
-144,joy:Left       # Dpad
+# Dpad, and also translates axis:X/Y (left thumbstick on a gamepad) to button presses
+# (unless "Map joystick (left) stick to dpad" is disabled)
+144,joy:Left
 145,joy:Right
 146,joy:Up
 147,joy:Down
-148,joy:RStick Left  # Right stick
+# Translation of right stick (axis:RightX/Y) to button presses
+148,joy:RStick Left
 149,joy:RStick Right
 150,joy:RStick Up
 151,joy:RStick Down
@@ -253,8 +256,9 @@ define constant, begin
 # Joystick axes
 0, x axis  # Old style alias
 1, y axis
-0, axis:X
-1, axis:Y
+# The X,Y axes are the left thumbstick on a gamepad
+0, axis:X   # Also mapped to joy:Left, joy:Right
+1, axis:Y   # Also mapped to joy:Up, joy:Down
 2, axis:RightX  # Also mapped to joy:RStickLeft, joy:RStickRight
 3, axis:RightY  # Also mapped to joy:RStickUp, joy:RStickDown
 4, axis:L2   # Also mapped to joy:L2 button

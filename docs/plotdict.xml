@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2021-09-06">
+<plotscript version="wip" datecode="2021-09-09">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -804,7 +804,7 @@ wait for hero (me) # wait until he stops</example>
 			<shortname>wait for key</shortname>
 			<description>
 				Waits for the player to press a key.
-				(Specially, new keypresses or mouse button release.)
+				(Specially, (possibly repeated) keypresses or mouse button release.)
 				<p>key</p> is an optional <ref>scancode</ref> such as a keyboard key (e.g. <tt>key:ctrl</tt>)
 				a joystick button (e.g. <tt>joy:left</tt>), or a virtual scancode such as
 				<ref>usekey</ref>.
@@ -814,7 +814,7 @@ wait for hero (me) # wait until he stops</example>
 				and also waits for a mouse click if "'any key', etc, include mouse clicks" is
 				turned on in the Mouse Controls menu.
 				<p>usekey</p> will wait for Space, Ctrl or Enter, joystick use key, and optionally left click;
-				and <p>cancelkey</p> and <p>menukey</p> (which are identical) both wait for Alt or Esc,
+				and <p>cancelkey</p> and <p>menukey</p> both wait for Alt or Esc,
 				joystick cancel, and optionally right click.
 				<lb/>
 				If and only if <tt>anykey</tt> is used, then <p>waitforkey(anykey)</p> will return the scancode of the keyboard or joystick key that was pressed,
@@ -4572,18 +4572,19 @@ end
 		</description>
 
 		<command id="keyispressed">
-			<canon>key is pressed (scancode, joystick num)</canon>
+			<canon>key is pressed (scancode, player)</canon>
 			<shortname>key is pressed</shortname>
 			<description>
 				Returns <ref>true</ref> if the keyboard or joystick key with the specified <ref>scancode</ref> is being pressed
 				(either held down or pressed since last tick), or <ref>false</ref> if it is not.
 				The <p>scancode</p> argument is a <ref>scancode</ref> such as a keyboard key (e.g. <tt>key:ctrl</tt>)
 				a joystick button (e.g. <tt>joy:left</tt>), or a virtual scancode such as
-				<ref>usekey</ref>.
+				<ref>usekey</ref> (see <ref>controlcodes</ref>).
 				<lb/>
-				The <p>joystick num</p> argument is optional, and defaults to 0.
-				It's only used with joystick scancodes such as <tt>joy:button 1</tt>,
-				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+				<p>player</p> is an optional <ref>playernumber</ref>,
+				normally only used with <tt>joy:...</tt> joystick scancodes
+				or <ref>controlcodes</ref>, and tells which player's controller to read.
+				By default it checks for a button press on any plugged-in controller.
 				<note>
 					This command is an alternative to <ref>keypress</ref> or <ref>newkeypress</ref>;
 					see <secref>Keyboard Input</secref> for usage hints.
@@ -4606,7 +4607,7 @@ end
 			</seealso>
 		</command>
 		<command id="keypress">
-			<canon>keypress (scancode, joystick num)</canon>
+			<canon>keypress (scancode, player)</canon>
 			<shortname>keypress</shortname>
 			<description>
 				Checks for a keypress event, and returns <tt>true</tt> or <tt>false</tt>.
@@ -4616,11 +4617,12 @@ end
 				<lb/>
 				The <p>scancode</p> argument is a <ref>scancode</ref> such as a keyboard key (e.g. <tt>key:ctrl</tt>)
 				a joystick button (e.g. <tt>joy:left</tt>), or a virtual scancode such as
-				<ref>usekey</ref>.
+				<ref>usekey</ref> (see <ref>controlcodes</ref>).
 				<lb/>
-				The <p>joystick num</p> argument is optional, and defaults to 0.
-				It's only used with joystick scancodes such as <tt>joy:button 1</tt>,
-				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+				<p>player</p> is an optional <ref>playernumber</ref>,
+				normally only used with <tt>joy:...</tt> joystick scancodes
+				or <ref>controlcodes</ref>, and tells which player's controller to read.
+				By default it checks for a button press on any plugged-in controller.
 				<note>
 					This command is an alternative to <ref>newkeypress</ref> or <ref>keyispressed</ref>;
 					see <secref>Keyboard Input</secref> for usage hints.
@@ -4641,18 +4643,19 @@ end
 			</seealso>
 		</command>
 		<command id="newkeypress">
-			<canon>new keypress (scancode, joystick num)</canon>
+			<canon>new keypress (scancode, player)</canon>
 			<shortname>new keypress</shortname>
 			<description>
 				Checks for a new keypress (the key/button gets pressed down), and returns <tt>true</tt> or <tt>false</tt>.
 				<lb/>
 				The <p>scancode</p> argument is a <ref>scancode</ref> such as a keyboard key (e.g. <tt>key:ctrl</tt>)
 				a joystick button (e.g. <tt>joy:left</tt>), or a virtual scancode such as
-				<ref>usekey</ref>.
+				<ref>usekey</ref> (see <ref>controlcodes</ref>).
 				<lb/>
-				The <p>joystick num</p> argument is optional, and defaults to 0.
-				It's only used with joystick scancodes such as <tt>joy:button 1</tt>,
-				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+				<p>player</p> is an optional <ref>playernumber</ref>,
+				normally only used with <tt>joy:...</tt> joystick scancodes
+				or <ref>controlcodes</ref>, and tells which player's controller to read.
+				By default it checks for a button press on any plugged-in controller.
 				<note>
 					This command is an alternative to <ref>keypress</ref> or <ref>keyispressed</ref>;
 					see <secref>Keyboard Input</secref> for hints.
@@ -4665,20 +4668,21 @@ end
 			</seealso>
 		</command>
 		<command id="keyval">
-			<canon>keyval (scancode, joystick num)</canon>
+			<canon>keyval (scancode, player)</canon>
 			<shortname>keyval</shortname>
 			<description>
 			(Obsolete, you can now use simpler commands like <ref>keypress</ref> instead.)
 			<lb/>
-			Returns a bitmask for the state of the specified key, joystick button, or virtual scancode.
+			Returns a bitmask for the state of the specified key, joystick/gamepad button, or virtual scancode.
 			<lb/>
 			The <p>scancode</p> argument is a <ref>scancode</ref> such as a keyboard key (e.g. <tt>key:ctrl</tt>)
 			a joystick button (e.g. <tt>joy:left</tt>), or a virtual scancode such as
-			<ref>usekey</ref>.
+			<ref>usekey</ref> (see <ref>controlcodes</ref>).
 			<lb/>
-			The <p>joystick num</p> argument is optional, and defaults to 0.
-			It's only used with joystick scancodes such as <tt>joy:button 1</tt>,
-			and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+			<p>player</p> is an optional <ref>playernumber</ref>,
+			normally only used with <tt>joy:...</tt> joystick scancodes
+			or <ref>controlcodes</ref>, and tells which player's controller to read.
+			By default it checks for a button press on any plugged-in controller.
 			<lb/>
 			The result holds the same information as given by the <ref>keyispressed</ref> and <ref>keypress</ref> commands,
 			so you can use those instead.
@@ -4788,39 +4792,87 @@ end
 		<reference ref="autovirtualgamepad" />
 		</section>		<!-- Keyboard Input-->
 
-		<section title="Joystick Input">
+		<section title="Joystick/Gamepad Input">
 		<description>
 			Joystick buttons and up/down/left/right directions can also be read using the
 			<ref>keypress</ref>, <ref>newkeypress</ref>, <ref>keyispressed</ref> and <ref>waitforkey</ref>
-			commands, by using the <tt>joy:...</tt> constants instead of keyboard scancodes.
+			commands, by using the <tt>joy:...</tt> <ref>scancode</ref> constants instead of keyboard scancodes.
 			<lb/>
-			But the best way to support joysticks is to use virtual scancodes such as <ref>usekey</ref>
+			But the best way to support joysticks is to use <ref>controlcodes</ref> such as <ref>usekey</ref>
 			instead of keyboard scancodes, e.g. write <tt>if (keypress(use key))</tt> instead of
 			<tt>if (keypress(key:space) || keypress(key:enter) || keypress(key:ctrl))</tt>.
 		</description>
 
 		<command id="joystickbutton">
-			<canon>joystick button (button, joystick)</canon>
+			<canon>joystick button (button, player)</canon>
 			<shortname>joystick button</shortname>
 			<description>
 				Returns <ref>true</ref> or <ref>false</ref> depending on whether button
-				#<p>button</p> on joystick #<p>joystick</p> is pressed.
+				number <p>button</p> on the <p>player</p>'s joystick/gamepad is pressed.
 				<p>button</p> can be from 1-32 (assuming the joystick has that many buttons),
-				and <p>joystick</p> can be from 0-7.
-				Most of the time, you will want to use joystick #0,
-				so that is what <p>joystick</p> defaults to.
+				or a joystick <ref>scancode</ref> like <tt>joy:Up</tt>.
+				<lb/>
+				<p>player</p> is an optional <ref>playernumber</ref> telling which player's controller to read.
+				By default it checks for button presses on any plugged-in controller.
+				<lb/>
+				This command is redundant to <ref>keyispressed</ref>.
 				<note>
 					If you want to check for new button presses, or want key-repeat to happen,
-					use the <ref>keypress</ref> or <ref>newkeypress</ref> commands instead.
+					use the <ref>keypress</ref> or <ref>newkeypress</ref> commands instead
+					with a <tt>joy:...</tt> scancode.
 				</note>
 			</description>
 		</command>
 		<command id="joystickaxis">
-			<canon>joystick axis (axis, multiplier, joystick)</canon>
+			<canon>joystick axis (axis, multiplier, player)</canon>
 			<shortname>joystick axis</shortname>
-			<description>Returns the position of the joystick along the X or Y axis on joystick #<p>joystick</p>. <p>axis</p> can be one of the constants <ref>xaxis</ref> or <ref>yaxis</ref>. <p>multiplier</p> is slightly complicated: The position of the joystick is actually a decimal between -1 and 1. Since plotscripting can't handle decimals, this position must be multiplied and rounded off until it is within plotscripting's capabilities. By default, it is 100 (so it will return -100 - 100). <p>joystick</p> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <p>joystick</p> defaults to.</description>
+			<description>
+				Returns the position of one of a joystick/gamepad's sticks along the X or Y axis, or of one of the trigger buttons.
+				<p>axis</p> is a value 0 or higher, or one of the constants:
+				<ul>
+					<li>
+						<tt>axis:X</tt> - the X axis of the joystick, or left thumbstick on a gamepad.
+						Negative for left, positive for right.
+						(You can also use the obsolete <tt>x axis</tt> alias)
+					</li>
+					<li>
+						<tt>axis:Y</tt> - the Y axis of the joystick, or left thumbstick on a gamepad.
+						Negative for up, positive for down.
+						(You can also use the obsolete <tt>y axis</tt> alias)
+					</li>
+					<li><tt>axis:Right X</tt> - X axis of the right thumbstick</li>
+					<li><tt>axis:Right Y</tt> - Y axis of the right thumbstick</li>
+					<li><tt>axis:L2</tt> - the left trigger button. Never negative</li>
+					<li><tt>axis:R2</tt> - the right trigger button. Never negative</li>
+				</ul>
+				<lb/>
+				The optional <p>multiplier</p> is the range of the return value: between <tt>-multiplier ... multiplier</tt>
+				(or <tt>0 ... multiplier</tt> for <tt>axis:L2</tt> or <tt>axis:R2</tt>).
+				By default, the range is -100 - 100.
+				<lb/>
+				<p>player</p> is an optional <ref>playernumber</ref> telling which player's controller to read.
+				By default it check all controllers and combines their input.
+				<warn>
+					All axes are meant to return 0 when the player isn't touching the stick/trigger,
+					but you must NOT rely on this as joysticks/thumbsticks in general don't return to exactly 0,0!
+					Instead, you must use a "dead zone" around 0 where input is ignored.
+					For example, ignore values between -50 and 50.
+					Also, if you push a stick diagonally (e.g. up-right) it probably won't reach 100,-100.
+					<lb/>
+					If possible, use the <tt>joy:Up, joy:Down, joy:Left, joy:Right</tt> or
+					<tt>joy:RStick Up, joy:RStick Down, joy:RStick Left, joy:RStick Right</tt>
+					buttons with <ref>keyispressed</ref> instead.
+					These allow 8-directional movement and have a proper circular dead zone.
+				</warn>
+				<note>
+					Constants like <tt>axis:Right X</tt> only mean what they say if the controller
+					is a gamepad and if you're using the default gfx_sdl2 backend. All the other
+					backends number gamepad buttons and axes unpredictably.
+					So that means <tt>axis:L2</tt> and <tt>axis:R2</tt> can actually return negatives.
+				</note>
+			</description>
 		</command>
-		</section>		<!-- Joystick Input-->
+		</section>		<!-- Joystick/Gamepad Input-->
 
 		<section title="Mouse Input">
 		<command id="initmouse">
@@ -11468,7 +11520,9 @@ end</example>
 			<shortname>run game</shortname>
 			<description>
 				Quit the current game and switch to a different .rpg file/.rpgdir.
-				When that game is quit, the program either exits or goes to the game browse as usual.
+				When that game is quit, the program either exits or goes to the game browser as usual.
+				So if you want to return to the original game you need to call <tt>run game</tt> a
+				second time from that game instead of using <ref>gameover</ref>.)
 				<p>file string id</p> is the ID of a string that contains the filename of the game to load.
 				If the game is not in the same directory, then you need to provide a relative
 				path, like "bonus content\Prequel.rpg" or "../selectmenu.rpg".
@@ -11971,9 +12025,9 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<shortname>scancode</shortname>
 			<description>
 				A scancode is a constant referring to a keyboard key, a joystick button,
-				or is a virtual scancode like <ref>usekey</ref>
-				(see <ref>keyconstants</ref> for the full list)
-				which is an action that can be attached to multiple keys/buttons.
+				or is a virtual scancode for a control like <ref>usekey</ref> or <ref>anykey</ref>
+				(see <ref>controlcodes</ref> for the full list)
+				which is an action that can be triggered by various keys or buttons.
 				<lb/>
 				The scancodes are also listed in the <b>scancode.hsi</b> file included with the engine.
 				<example>key:Esc
@@ -12097,23 +12151,63 @@ key:Numpad Plus
 key:Numpad Minus
 key:Numpad Enter
 
-#  Joystick scan codes:
+#  Joystick scancodes:
+# (The following button names are only correct for supported controllers that are gamepads)
+
+# Dpad, and also translates axis:X/Y (left thumbstick on a gamepad) to button presses
+# (unless "Map joystick (left) stick to dpad" is disabled)
+joy:Left
+joy:Right
+joy:Up
+joy:Down
+
+joy:A              # B button on a SNES controller!
+joy:Cross          # Equal to joy:A
+joy:B              # A button on a SNES controller!
+joy:Circle         # Equal to joy:B
+joy:X              # Y button on a SNES controller!
+joy:Square         # Equal to joy:X
+joy:Y              # X button on a SNES controller!
+joy:Triangle       # Equal to joy:Y
+
+# Translation of right stick (axis:RightX/Y) to button presses
+joy:RStick Left
+joy:RStick Right
+joy:RStick Up
+joy:RStick Down
+
+joy:L1             # Left shoulder
+joy:R1             # Right shoulder
+joy:L2             # Left trigger. Also axis:L2
+joy:R2             # Right trigger. Also axis:R2
+
+# The thumbsticks when pressed as a button
+joy:Left Stick
+joy:Right Stick
+# Center-left button: Select (NES, SNES, PS1-3), Back (Xbox), Share (PS4), View (Xbox)
+joy:Select
+joy:Back           # Equal to joy:Select
+# Center button: PS button (PS3), Xbox guide button
+joy:Logo
+joy:Guide          # Equal to joy:Logo
+# Center-right button: Start (NES, SNES, Genesis, N64, Saturn, PS1-3, Xbox), Options (PS4), Menu (XBox)
+joy:Start
+
+# Obsolete aliases
+joy:x left         # Aka joy:Left
+joy:x right        # Aka joy:Right
+joy:y up           # Aka joy:Up
+joy:y down         # Aka joy:Down
+
+# You can use button numbers instead of the above names:
 joy:button 1
 joy:button 2
 joy:button 3
 ...
 joy:button 16
-joy:button 17      # Warning: joy:button17 is not joy:button16+1! All other button codes are consecutive
+joy:button 17      # Warning: joy:button17 is not joy:button16 + 1! All other button codes are consecutive
 ...
 joy:button 32
-joy:x left
-joy:x right
-joy:y up
-joy:y down
-joy:left           # aka joy:x left
-joy:right          # aka joy:x right
-joy:up             # aka joy:y up
-joy:down           # aka joy:y down
 
 #  Virtual scancodes:
 any key            # Any keyboard key or joystick button (including joystick left/right/up/down),
@@ -12123,16 +12217,21 @@ up key             # Up key on the keyboard, or on any joystick
 down key           # ...ditto
 left key
 right key
-use key            # Space, Ctrl or Enter, or Use button on any joystick. Includes left clicks
+use key            # Space, Ctrl or Enter, or A button on any gamepad. Includes left clicks
                    # if "'any key', etc, include mouse" turned on in Mouse Controls menu.
-cancel key         # Alt or Esc, or Cancel button on any joystick. Optionally includes right clicks as above.
-menu key           # Alt or Esc, or Menu button on any joystick. Optionally includes right clicks as above.
-flee key           # Esc or Tab, or Run button on any joystick (Hold to flee (run) from battle)
+cancel key         # Alt or Esc, or B button on any gamepad. Optionally includes right clicks as above.
+menu key           # Alt or Esc, or B or Start button on any gamepad. Optionally includes right clicks as above.
+flee key           # Esc or Tab, or B button on any gamepad (Hold to flee (run) from battle)
 run key            # Alias for 'flee key'
 </example>
 				<note>
 					Previously it was necessary to <tt>include, scancode.hsi</tt>
 					to use the <tt>key:</tt> constants, but no longer.
+				</note>
+				<note>
+					Gamepad constants like <tt>joy:A</tt> only mean what they say if the controller
+					is a gamepad and if you're using the default gfx_sdl2 backend. All the other
+					backends number gamepad buttons and axes unpredictably.
 				</note>
 				<note>
 					If the "Map joystick controls to keyboard keys for scripts" general preference
@@ -12154,7 +12253,45 @@ run key            # Alias for 'flee key'
 				<ref>extendedscancodesenabled</ref>
 			</seealso>
 		</command>
-		<reference ref="keyconstants" />
+		<reference ref="controlcodes" />
+
+		<command id="playernumber">
+			<canon>Player number</canon>
+			<shortname>player number</shortname>
+			<description>
+				Commands for reading keyboard or joystick/gamepad input (see below)
+				take an optional <p>player</p> argument which you should completely
+				ignore unless you're making a multiplayer game.
+				These tell which player's joystick/gamepad to check and usually shouldn't be
+				used when reading the keyboard.
+				Player 0 (which is always the default argument) means check all joysticks
+				and the keyboard, as applicable, and combine their input,
+				while player 1 and up are specific joysticks: the first joystick is player 1, etc.
+				Out of range player numbers are always OK to use,
+				and just report no input without showing an error.
+				(There's currently no way to get the number of joysticks or players!)
+				<lb/>
+				The keyboard is also considered to be to player 1,
+				so scancodes like <tt>key:ctrl</tt> will always return <tt>false</tt>
+				for players 2 and up, but <ref>controlcodes</ref> like <tt>use key</tt>
+				can be used with any player.
+				<lb/>
+				For example,
+				<tt>key is pressed(use key)</tt> checks the keyboard (ctrl, space, and enter keys) and
+				the A button on any gamepad, while
+				<tt>key is pressed(use key, 1)</tt> checks the keyboard and A button
+				on the first gamepad,
+				and <tt>key is pressed(use key, 2)</tt>
+				checks only the A button on the second gamepad.
+			</description>
+			<seealso>
+				<ref>keypress</ref>
+				<ref>newkeypress</ref>
+				<ref>keyispressed</ref>
+				<ref>joystickbutton</ref>
+				<ref>joystickaxis</ref>
+			</seealso>
+		</command>
 	</section>
 
 	<section title="Predefined Constants" constants="yes">
@@ -12163,9 +12300,9 @@ run key            # Alias for 'flee key'
 			There are many other builtin constants, but they're documented along with the commands they're for.
 		</description>
 
-		<command id="keyconstants">
-			<canon>Key Constants</canon>
-			<shortname>Key Constants</shortname>
+		<command id="controlcodes">
+			<canon>Control Codes</canon>
+			<shortname>control codes</shortname>
 			<description>
 				A constant specifying a keyboard key or joystick button by its builtin function.
 				(Possibly includes mouse buttons too, if enabled in the Mouse Controls menu.)
@@ -12218,6 +12355,11 @@ run key            # Alias for 'flee key'
 				<shortname>flee key</shortname>
 			</altcommand>
 		</command>
+		<command id="keyconstants">
+			<alias>controlcodes</alias>
+			<shortname>Key Constants</shortname>
+		</command>
+
 		<command id="numericconstants">
 			<canon>Numeric Constants</canon>
 			<shortname>Numeric Constants</shortname>
@@ -12442,16 +12584,6 @@ run key            # Alias for 'flee key'
 			<canon>party</canon>
 			<shortname>party</shortname>
 			<description>Pass as first argument to <ref>giveexperience</ref> to divide the experience between all the live heroes in the battle (active) party.</description>
-		</command>
-		<command id="xaxis">
-			<canon>x axis</canon>
-			<shortname>x axis</shortname>
-			<description>Pass to <ref>joystickaxis</ref> to specify the X axis (left and right).</description>
-		</command>
-		<command id="yaxis">
-			<canon>y axis</canon>
-			<shortname>y axis</shortname>
-			<description>Pass to <ref>joystickaxis</ref> to specify the Y axis (up and down).</description>
 		</command>
 		<command id="timer:default">
 			<canon>timer: default</canon>
