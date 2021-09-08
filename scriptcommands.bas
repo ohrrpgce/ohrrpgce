@@ -2110,8 +2110,10 @@ SUB script_functions(byval cmdid as integer)
    scriptret = retvals(0)
   END IF
  CASE 242'-- joystick button(button, player)
-  IF bound_arg(retvals(0), 1, 32, "button number 1-32") ANDALSO valid_player_num(retvals(1)) THEN
-   DIM key as KeyBits = player_keyval(scJoyOFFSET + retvals(0), retvals(1))
+  DIM button as integer = retvals(0)
+  IF button >= scJoyButton1 ANDALSO button <= scJoyButton32 THEN button -= scJoyOFFSET
+  IF bound_arg(button, 1, 32, "button number 1-32 or joy:... scancode") ANDALSO valid_player_num(retvals(1)) THEN
+   DIM key as KeyBits = player_keyval(scJoyOFFSET + button, retvals(1))
    scriptret = IIF(key > 0, 1, 0)
   END IF
  CASE 243'-- joystick axis(axis, scale, player)

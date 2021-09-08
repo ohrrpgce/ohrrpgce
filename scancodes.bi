@@ -180,7 +180,7 @@ CONST scJoyRight = 145
 CONST scJoyUp = 146
 CONST scJoyDown = 147
 'See JoyButton for other button meanings
-'CONST scJoyButton32 = 159
+CONST scJoyButton32 = 159
 'Scancodes 159 to 163 were previously buttons, but no longer are. They should be reserved and ignored.
 CONST scJoyLAST = 163
 
