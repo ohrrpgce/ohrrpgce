@@ -3217,11 +3217,21 @@ function JoystickState.keyval (key as JoyButton, repeat_wait as integer = 0, rep
 end function
 
 'Returns a value from -1000 to 1000
-'TODO: merge all joysticks into player 0
+'player: 0 means merge input from all joysticks together; 1-4 is an individual joystick
 function joystick_axis (axis as integer, player as integer = 0) as integer
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
-	dim joynum as integer = large(0, player - 1)
-	if joynum > ubound(inputst->joys) then return 0  'Not an error
+
+	if player = 0 then  'Merge
+		dim ret as integer
+		for player = 1 to num_joysticks()
+			dim value as integer = joystick_axis(axis, player)
+			if abs(value) > abs(ret) then ret = value
+		next
+		return ret
+	end if
+
+	dim joynum as integer = player - 1
+	if joynum < 0 or joynum > ubound(inputst->joys) then return 0  'Not an error
 	dim byref joy as JoystickState = inputst->joys(joynum)
 
 	if axis < 0 orelse axis > ubound(joy.state.axes) then return 0
@@ -3231,7 +3241,7 @@ function joystick_axis (axis as integer, player as integer = 0) as integer
 end function
 
 'Can return NULL
-'TODO: merge all joysticks into player 0
+'Player 0 just returns info on the first joystick (player 1)
 function joystick_info (player as integer) as JoystickInfo ptr
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
 	dim joynum as integer = large(0, player - 1)
