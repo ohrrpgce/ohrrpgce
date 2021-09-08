@@ -33,7 +33,8 @@ September 12 2021 [Hróðvitnir]
     * When using gfx_sdl2, gamepads should now work reliably: A is Use, B is
       Cancel/Menu, Start is Menu, and you can use new joy:button constants like
       joy:A, joy:LeftStick, joy:L2 for keypress commands, and axis:X, axis:RightY,
-      axis:L2, etc. for "joystick axis" [Ralph]
+      axis:L2, etc. for "joystick axis".
+      And when multiple gamepads are plugged in all of them should work [Ralph]
     * Preference bitset "Map joystick (left) stick to dpad" (default on) [Ralph]
     * You can copy/paste enemies and attacks by pressing Ctrl-C, etc, on the
       <- Enemy/Attack ## -> line [Ralph]
@@ -72,6 +73,9 @@ September 12 2021 [Hróðvitnir]
     * MP~/Focus and Hits stats are no longer limited to 100 and 20 in the editors
     * Joystick buttons 2 and 3 are no longer mapped to Use/Cancel (like buttons 0
       and 1), so you can use them for other purposes
+    * The 'joystick num' args to various script commands were replaced with
+      'player' args which are similar, except joysticks are now numbered from 1
+      instead of 0. 0 means "any joystick".
     * The slice editor now shows the root slice of a collection by default
     * "trim string" now trims tabs and newlines too
     * "menu key" and "cancel key" are now different constants. "menu key"
