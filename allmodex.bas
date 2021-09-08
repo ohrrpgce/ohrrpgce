@@ -1796,7 +1796,8 @@ end function
 'Reads replayed state, if any (real_keys = NO)
 'key:    any scancode, including cc* constants and joystick buttons
 'player: 0 for any input device, 1 is first joystick + keyboard, 2-4 are other joysticks
-function player_keyval(key as KBScancode, player as integer, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
+'check_keyboard: pass false to ignore keyboard input
+function player_keyval(key as KBScancode, player as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES) as KeyBits
 	BUG_IF(player < 0, "Invalid player " & player, 0)
 	BUG_IF(key < scKEYVAL_FIRST orelse key > scKEYVAL_LAST, "bad scancode " & key, 0)
 
@@ -1805,7 +1806,7 @@ function player_keyval(key as KBScancode, player as integer, repeat_wait as inte
 	if player = 0 then
 		'Merge all inputs
 		for player = 1 to num_joysticks()
-			ret or= player_keyval(key, player, repeat_wait, repeat_rate)
+			ret or= player_keyval(key, player, repeat_wait, repeat_rate, check_keyboard)
 		next
 		return ret
 	end if
@@ -1826,7 +1827,7 @@ function player_keyval(key as KBScancode, player as integer, repeat_wait as inte
 			'this doesn't check all joystick buttons, only ones mapped to carray
 			'TODO: scAny should be turned into ccAny, so we can remove this block
 			ret = inputst->joys(joynum).anykey(*inputst)
-			if player = 1 then
+			if player = 1 andalso check_keyboard then
 				'In future, ignore any keys mapped to other players?
 				ret or= inputst->kb.anykey(*inputst)
 			end if
@@ -1834,12 +1835,12 @@ function player_keyval(key as KBScancode, player as integer, repeat_wait as inte
 		else  'key <= ccHIGHEST
 			'TODO: This is missing repeat_wait/repeat_rate support
 			ret = inputst->joys(joynum).carray(key)
-			if player = 1 then
+			if player = 1 andalso check_keyboard then
 				ret or= inputst->kb.carray(key)
 			end if
 		end if
 	elseif key <= scLAST then  'Keyboard key
-		if player = 1 then
+		if player = 1 andalso check_keyboard then
 			ret = keyval_or_numpad_ex(key, repeat_wait, repeat_rate)
 		end if
 	else  'Joystick button

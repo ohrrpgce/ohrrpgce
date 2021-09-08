@@ -412,12 +412,12 @@ FUNCTION script_keyval (byval key as KBScancode, byval player as integer = 0) as
 
  IF prefbit(47) = NO THEN  '!Map joystick controls to keyboard keys for scripts
   SELECT CASE key
-   CASE scUp:     ret OR= player_keyval(ccUp, player)
-   CASE scDown:   ret OR= player_keyval(ccDown, player)
-   CASE scLeft:   ret OR= player_keyval(ccLeft, player)
-   CASE scRight:  ret OR= player_keyval(ccRight, player)
-   CASE scEnter:  ret OR= player_keyval(ccUse, player)
-   CASE scEsc:    ret OR= player_keyval(ccMenu, player)
+   CASE scUp:     ret OR= player_keyval(ccUp, player, , , NO)  'check_keyboard=NO
+   CASE scDown:   ret OR= player_keyval(ccDown, player, , , NO)
+   CASE scLeft:   ret OR= player_keyval(ccLeft, player, , , NO)
+   CASE scRight:  ret OR= player_keyval(ccRight, player, , , NO)
+   CASE scEnter:  ret OR= player_keyval(ccUse, player, , , NO)
+   CASE scEsc:    ret OR= player_keyval(ccMenu, player, , , NO)
   END SELECT
  END IF
 
