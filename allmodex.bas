@@ -1800,6 +1800,16 @@ function player_keyval(key as KBScancode, player as integer, repeat_wait as inte
 	BUG_IF(player < 0, "Invalid player " & player, 0)
 	BUG_IF(key < scKEYVAL_FIRST orelse key > scKEYVAL_LAST, "bad scancode " & key, 0)
 
+	dim ret as KeyBits
+
+	if player = 0 then
+		'Merge all inputs
+		for player = 1 to num_joysticks()
+			ret or= player_keyval(key, player, repeat_wait, repeat_rate)
+		next
+		return ret
+	end if
+
 	dim inputst as InputState ptr
 	if replay.active then
 		inputst = @replay_input
@@ -1807,27 +1817,17 @@ function player_keyval(key as KBScancode, player as integer, repeat_wait as inte
 		inputst = @real_input
 	end if
 
-	dim ret as KeyBits
 	dim joynum as integer = player - 1
-
 	if joynum > ubound(inputst->joys) then return 0
 
 	if key < 0 then  'Control key or scAny
-		if player <= 0 then
-			'carrays for all input devices are merged together and returned by keyval, so just use that
-			ret = keyval_ex(key, repeat_wait, repeat_rate)  'Equivalent to keyval_or_numpad_ex
-			/' (This doesn't work for scAny)
-			ret = inputst->kb.carray(key)  'Keyboard
-			for joynum = 0 to ubound(inputst->joys)
-				ret or= inputst->joys(joynum).carray(key)
-			next
-			'/
-		elseif key = scAny then
+		if key = scAny then
 			'Note: repeat_wait and repeat_rate are ignored, and
 			'this doesn't check all joystick buttons, only ones mapped to carray
+			'TODO: scAny should be turned into ccAny, so we can remove this block
 			ret = inputst->joys(joynum).anykey(*inputst)
 			if player = 1 then
-				'Check all keyboard keys (in future, ignore any keys mapped to other players?)
+				'In future, ignore any keys mapped to other players?
 				ret or= inputst->kb.anykey(*inputst)
 			end if
 
@@ -1835,23 +1835,16 @@ function player_keyval(key as KBScancode, player as integer, repeat_wait as inte
 			'TODO: This is missing repeat_wait/repeat_rate support
 			ret = inputst->joys(joynum).carray(key)
 			if player = 1 then
-				ret or= inputst->kb.carray(key)  'Keyboard
+				ret or= inputst->kb.carray(key)
 			end if
 		end if
 	elseif key <= scLAST then  'Keyboard key
-		'The keyboard is assigned to player 1
-		if player <= 1 then
+		if player = 1 then
 			ret = keyval_or_numpad_ex(key, repeat_wait, repeat_rate)
 		end if
 	else  'Joystick button
 		dim button as integer = keybd_to_joy_scancode(key)
-		if player = 0 then
-			for joynum = 0 to ubound(inputst->joys)
-				ret or= joykeyval(button, joynum, repeat_wait, repeat_rate)
-			next
-		else
-			ret = joykeyval(button, joynum, repeat_wait, repeat_rate)
-		end if
+		ret = joykeyval(button, joynum, repeat_wait, repeat_rate)
 	end if
 	return ret
 end function
@@ -3193,6 +3186,7 @@ function keybd_to_joy_scancode(key as KBScancode) as JoyButton
 	return key - scJoyOFFSET
 end function
 
+'This is also, currently, the number of players
 'TODO: this always returns 4!
 function num_joysticks () as integer
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
