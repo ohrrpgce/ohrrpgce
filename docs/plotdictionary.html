@@ -204,8 +204,8 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For OHRRPGCE version hrodvitnir</h2>
-					(Generated on 2021-09-07)
+<h2>For OHRRPGCE version hróðvitnir</h2>
+					(Generated on 2021-09-09)
 				<p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -394,7 +394,7 @@ function toggleContent(target) {
 		<ul></ul>
 </li>
 		<li>
-<a href="#Joystick%20Input">Joystick Input</a><br>
+<a href="#Joystick/Gamepad%20Input">Joystick/Gamepad Input</a><br>
 		<ul></ul>
 </li>
 		<li>
@@ -713,6 +713,7 @@ function toggleContent(target) {
 		<a href="#about-colorred">color:red</a><br>
 		<a href="#about-concatenatestrings">concatenate strings (dest, source)</a><br>
 		<a href="#about-continue">continue</a><br>
+		<a href="#about-controlcodes">Control Codes</a><br>
 		<a href="#about-copystring">copy string (dest, source)</a><br>
 		<a href="#about-createcontainer">create container (width, height)</a><br>
 		<a href="#about-createellipse">create ellipse (width, height, border color, fill color)</a><br>
@@ -1027,12 +1028,12 @@ function toggleContent(target) {
 		<a href="#about-itemcountinslot">item count in slot (slot)</a><br>
 		<a href="#about-iteminslot">item in slot (slot)</a><br>
 		<a href="#about-itemsmenu">items menu</a><br>
-		<a href="#about-joystickaxis">joystick axis (axis, multiplier, joystick)</a><br>
-		<a href="#about-joystickbutton">joystick button (button, joystick)</a><br>
-		<a href="#about-keyconstants">Key Constants</a><br>
-		<a href="#about-keyispressed">key is pressed (scancode, joystick num)</a><br>
-		<a href="#about-keypress">keypress (scancode, joystick num)</a><br>
-		<a href="#about-keyval">keyval (scancode, joystick num)</a><br>
+		<a href="#about-joystickaxis">joystick axis (axis, multiplier, player)</a><br>
+		<a href="#about-joystickbutton">joystick button (button, player)</a><br>
+		<a href="#about-controlcodes">Key Constants</a><br>
+		<a href="#about-keyispressed">key is pressed (scancode, player)</a><br>
+		<a href="#about-keypress">keypress (scancode, player)</a><br>
+		<a href="#about-keyval">keyval (scancode, player)</a><br>
 		<a href="#about-knowsspell">knows spell (hero, attack)</a><br>
 		<a href="#about-lastascii">last ascii</a><br>
 		<a href="#about-lastchild">last child (handle)</a><br>
@@ -1112,7 +1113,7 @@ function toggleContent(target) {
 		<a href="#about-moveslicewithwallchecking">move slice with wallchecking (sl, relative x, relative y, friction%)</a><br>
 		<a href="#about-multdiv">multdiv (a, b, c)</a><br>
 		<a href="#about-multiply">number * number</a><br>
-		<a href="#about-newkeypress">new keypress (scancode, joystick num)</a><br>
+		<a href="#about-newkeypress">new keypress (scancode, player)</a><br>
 		<a href="#about-nextcontainersibling">next container sibling (handle)</a><br>
 		<a href="#about-nextellipsesibling">next ellipse sibling (handle)</a><br>
 		<a href="#about-nextgridsibling">next grid sibling (handle)</a><br>
@@ -1182,6 +1183,7 @@ function toggleContent(target) {
 		<a href="#about-pixelfocuscamera">pixel focus camera (x,y,speed)</a><br>
 		<a href="#about-putsprite">place sprite</a><br>
 		<a href="#about-playerissuspended">player is suspended</a><br>
+		<a href="#about-playernumber">Player number</a><br>
 		<a href="#about-playsong">play song (song)</a><br>
 		<a href="#about-playsound">play sound (num, loop, preempt)</a><br>
 		<a href="#about-plotscript">plotscript, name, argumentnames (statements)</a><br>
@@ -1630,9 +1632,7 @@ function toggleContent(target) {
 		<a href="#about-writespell">write spell (hero, list, slot, attack)</a><br>
 		<a href="#about-writewallbit">write wall bit (x, y, bit, value)</a><br>
 		<a href="#about-writezone">write zone (zone id, x, y, value)</a><br>
-		<a href="#about-xaxis">x axis</a><br>
 		<a href="#about-xor">value,xor,value</a><br>
-		<a href="#about-yaxis">y axis</a><br>
 		<a href="#about-ysortchildren">Y sort children (handle)</a><br>
 		<a href="#about-zoneatspot">zone at spot (x, y, count)</a><br>
 		<a href="#about-zonenumberoftiles">zone number of tiles (zone id)</a><br></p>
@@ -2634,7 +2634,7 @@ wait for hero (me) # wait until he stops</pre>
 <p>
 			
 				Waits for the player to press a key.
-				(Specially, new keypresses or mouse button release.)
+				(Specially, (possibly repeated) keypresses or mouse button release.)
 				<span class="param">key</span> is an optional <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
 				a joystick button (e.g. <span class="code">joy:left</span>), or a virtual scancode such as
 				<a href="#about-usekey" class="ref">use key</a>.
@@ -2644,7 +2644,7 @@ wait for hero (me) # wait until he stops</pre>
 				and also waits for a mouse click if "'any key', etc, include mouse clicks" is
 				turned on in the Mouse Controls menu.
 				<span class="param">usekey</span> will wait for Space, Ctrl or Enter, joystick use key, and optionally left click;
-				and <span class="param">cancelkey</span> and <span class="param">menukey</span> (which are identical) both wait for Alt or Esc,
+				and <span class="param">cancelkey</span> and <span class="param">menukey</span> both wait for Alt or Esc,
 				joystick cancel, and optionally right click.
 				<br>
 				If and only if <span class="code">anykey</span> is used, then <span class="param">waitforkey(anykey)</span> will return the scancode of the keyboard or joystick key that was pressed,
@@ -8726,10 +8726,10 @@ end
 		<li>
 <a href="#Keyboard%20Input">Keyboard Input</a><br>
 		<ul class="content-shown">
-		<a href="#about-keyispressed">key is pressed (scancode, joystick num)</a><br>
-		<a href="#about-keypress">keypress (scancode, joystick num)</a><br>
-		<a href="#about-newkeypress">new keypress (scancode, joystick num)</a><br>
-		<a href="#about-keyval">keyval (scancode, joystick num)</a><br>
+		<a href="#about-keyispressed">key is pressed (scancode, player)</a><br>
+		<a href="#about-keypress">keypress (scancode, player)</a><br>
+		<a href="#about-newkeypress">new keypress (scancode, player)</a><br>
+		<a href="#about-keyval">keyval (scancode, player)</a><br>
 		<a href="#about-lastascii">last ascii</a><br>
 		<a href="#about-getscancodename">get scancode name(string id, scancode, long name)</a><br>
 		<a href="#about-enableinputtext">enable input text (enable)</a><br>
@@ -8740,10 +8740,10 @@ end
 <ul></ul>
 </li>
 		<li>
-<a href="#Joystick%20Input">Joystick Input</a><br>
+<a href="#Joystick/Gamepad%20Input">Joystick/Gamepad Input</a><br>
 		<ul class="content-shown">
-		<a href="#about-joystickbutton">joystick button (button, joystick)</a><br>
-		<a href="#about-joystickaxis">joystick axis (axis, multiplier, joystick)</a><br>
+		<a href="#about-joystickbutton">joystick button (button, player)</a><br>
+		<a href="#about-joystickaxis">joystick axis (axis, multiplier, player)</a><br>
 </ul>
 <ul></ul>
 </li>
@@ -8834,18 +8834,19 @@ end
 <ul></ul>
 		<div class="command">
 			<a name="about-keyispressed"></a>
-				<h4>key is pressed (scancode, joystick num)</h4>
+				<h4>key is pressed (scancode, player)</h4>
 <p>
 			
 				Returns <a href="#about-true" class="ref">true</a> if the keyboard or joystick key with the specified <a href="#about-scancode" class="ref">scancode</a> is being pressed
 				(either held down or pressed since last tick), or <a href="#about-false" class="ref">false</a> if it is not.
 				The <span class="param">scancode</span> argument is a <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
 				a joystick button (e.g. <span class="code">joy:left</span>), or a virtual scancode such as
-				<a href="#about-usekey" class="ref">use key</a>.
+				<a href="#about-usekey" class="ref">use key</a> (see <a href="#about-controlcodes" class="ref">control codes</a>).
 				<br>
-				The <span class="param">joystick num</span> argument is optional, and defaults to 0.
-				It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
-				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+				<span class="param">player</span> is an optional <a href="#about-playernumber" class="ref">player number</a>,
+				normally only used with <span class="code">joy:...</span> joystick scancodes
+				or <a href="#about-controlcodes" class="ref">control codes</a>, and tells which player's controller to read.
+				By default it checks for a button press on any plugged-in controller.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					This command is an alternative to <a href="#about-keypress" class="ref">keypress</a> or <a href="#about-newkeypress" class="ref">new keypress</a>;
@@ -8878,7 +8879,7 @@ end
 </div>
 		<div class="command">
 			<a name="about-keypress"></a>
-				<h4>keypress (scancode, joystick num)</h4>
+				<h4>keypress (scancode, player)</h4>
 <p>
 			
 				Checks for a keypress event, and returns <span class="code">true</span> or <span class="code">false</span>.
@@ -8888,11 +8889,12 @@ end
 				<br>
 				The <span class="param">scancode</span> argument is a <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
 				a joystick button (e.g. <span class="code">joy:left</span>), or a virtual scancode such as
-				<a href="#about-usekey" class="ref">use key</a>.
+				<a href="#about-usekey" class="ref">use key</a> (see <a href="#about-controlcodes" class="ref">control codes</a>).
 				<br>
-				The <span class="param">joystick num</span> argument is optional, and defaults to 0.
-				It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
-				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+				<span class="param">player</span> is an optional <a href="#about-playernumber" class="ref">player number</a>,
+				normally only used with <span class="code">joy:...</span> joystick scancodes
+				or <a href="#about-controlcodes" class="ref">control codes</a>, and tells which player's controller to read.
+				By default it checks for a button press on any plugged-in controller.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					This command is an alternative to <a href="#about-newkeypress" class="ref">new keypress</a> or <a href="#about-keyispressed" class="ref">key is pressed</a>;
@@ -8922,18 +8924,19 @@ end
 </div>
 		<div class="command">
 			<a name="about-newkeypress"></a>
-				<h4>new keypress (scancode, joystick num)</h4>
+				<h4>new keypress (scancode, player)</h4>
 <p>
 			
 				Checks for a new keypress (the key/button gets pressed down), and returns <span class="code">true</span> or <span class="code">false</span>.
 				<br>
 				The <span class="param">scancode</span> argument is a <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
 				a joystick button (e.g. <span class="code">joy:left</span>), or a virtual scancode such as
-				<a href="#about-usekey" class="ref">use key</a>.
+				<a href="#about-usekey" class="ref">use key</a> (see <a href="#about-controlcodes" class="ref">control codes</a>).
 				<br>
-				The <span class="param">joystick num</span> argument is optional, and defaults to 0.
-				It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
-				and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+				<span class="param">player</span> is an optional <a href="#about-playernumber" class="ref">player number</a>,
+				normally only used with <span class="code">joy:...</span> joystick scancodes
+				or <a href="#about-controlcodes" class="ref">control codes</a>, and tells which player's controller to read.
+				By default it checks for a button press on any plugged-in controller.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					This command is an alternative to <a href="#about-keypress" class="ref">keypress</a> or <a href="#about-keyispressed" class="ref">key is pressed</a>;
@@ -8954,20 +8957,21 @@ end
 </div>
 		<div class="command">
 			<a name="about-keyval"></a>
-				<h4>keyval (scancode, joystick num)</h4>
+				<h4>keyval (scancode, player)</h4>
 <p>
 			
 			(Obsolete, you can now use simpler commands like <a href="#about-keypress" class="ref">keypress</a> instead.)
 			<br>
-			Returns a bitmask for the state of the specified key, joystick button, or virtual scancode.
+			Returns a bitmask for the state of the specified key, joystick/gamepad button, or virtual scancode.
 			<br>
 			The <span class="param">scancode</span> argument is a <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
 			a joystick button (e.g. <span class="code">joy:left</span>), or a virtual scancode such as
-			<a href="#about-usekey" class="ref">use key</a>.
+			<a href="#about-usekey" class="ref">use key</a> (see <a href="#about-controlcodes" class="ref">control codes</a>).
 			<br>
-			The <span class="param">joystick num</span> argument is optional, and defaults to 0.
-			It's only used with joystick scancodes such as <span class="code">joy:button 1</span>,
-			and tells which joystick to read: 0 is the first one, 1 is the second, etc.
+			<span class="param">player</span> is an optional <a href="#about-playernumber" class="ref">player number</a>,
+			normally only used with <span class="code">joy:...</span> joystick scancodes
+			or <a href="#about-controlcodes" class="ref">control codes</a>, and tells which player's controller to read.
+			By default it checks for a button press on any plugged-in controller.
 			<br>
 			The result holds the same information as given by the <a href="#about-keyispressed" class="ref">key is pressed</a> and <a href="#about-keypress" class="ref">keypress</a> commands,
 			so you can use those instead.
@@ -9118,35 +9122,39 @@ end
 		<hr>
 		</div>
 		<div class="subsection">
-<a name="Joystick%20Input"></a>
+<a name="Joystick/Gamepad%20Input"></a>
 		<h3>
 <span class="backlink"><a href="#Getting%20Player%20Input">Getting Player Input</a> →
-			</span>Joystick Input</h3>
+			</span>Joystick/Gamepad Input</h3>
 		<p>
 			Joystick buttons and up/down/left/right directions can also be read using the
 			<a href="#about-keypress" class="ref">keypress</a>, <a href="#about-newkeypress" class="ref">new keypress</a>, <a href="#about-keyispressed" class="ref">key is pressed</a> and <a href="#about-waitforkey" class="ref">wait for key</a>
-			commands, by using the <span class="code">joy:...</span> constants instead of keyboard scancodes.
+			commands, by using the <span class="code">joy:...</span> <a href="#about-scancode" class="ref">scancode</a> constants instead of keyboard scancodes.
 			<br>
-			But the best way to support joysticks is to use virtual scancodes such as <a href="#about-usekey" class="ref">use key</a>
+			But the best way to support joysticks is to use <a href="#about-controlcodes" class="ref">control codes</a> such as <a href="#about-usekey" class="ref">use key</a>
 			instead of keyboard scancodes, e.g. write <span class="code">if (keypress(use key))</span> instead of
 			<span class="code">if (keypress(key:space) || keypress(key:enter) || keypress(key:ctrl))</span>.
 		</p>
 <ul></ul>
 		<div class="command">
 			<a name="about-joystickbutton"></a>
-				<h4>joystick button (button, joystick)</h4>
+				<h4>joystick button (button, player)</h4>
 <p>
 			
 				Returns <a href="#about-true" class="ref">true</a> or <a href="#about-false" class="ref">false</a> depending on whether button
-				#<span class="param">button</span> on joystick #<span class="param">joystick</span> is pressed.
+				number <span class="param">button</span> on the <span class="param">player</span>'s joystick/gamepad is pressed.
 				<span class="param">button</span> can be from 1-32 (assuming the joystick has that many buttons),
-				and <span class="param">joystick</span> can be from 0-7.
-				Most of the time, you will want to use joystick #0,
-				so that is what <span class="param">joystick</span> defaults to.
+				or a joystick <a href="#about-scancode" class="ref">scancode</a> like <span class="code">joy:Up</span>.
+				<br>
+				<span class="param">player</span> is an optional <a href="#about-playernumber" class="ref">player number</a> telling which player's controller to read.
+				By default it checks for button presses on any plugged-in controller.
+				<br>
+				This command is redundant to <a href="#about-keyispressed" class="ref">key is pressed</a>.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					If you want to check for new button presses, or want key-repeat to happen,
-					use the <a href="#about-keypress" class="ref">keypress</a> or <a href="#about-newkeypress" class="ref">new keypress</a> commands instead.
+					use the <a href="#about-keypress" class="ref">keypress</a> or <a href="#about-newkeypress" class="ref">new keypress</a> commands instead
+					with a <span class="code">joy:...</span> scancode.
 				</div>
 			
 			
@@ -9156,9 +9164,59 @@ end
 </div>
 		<div class="command">
 			<a name="about-joystickaxis"></a>
-				<h4>joystick axis (axis, multiplier, joystick)</h4>
+				<h4>joystick axis (axis, multiplier, player)</h4>
 <p>
-			Returns the position of the joystick along the X or Y axis on joystick #<span class="param">joystick</span>. <span class="param">axis</span> can be one of the constants <a href="#about-xaxis" class="ref">x axis</a> or <a href="#about-yaxis" class="ref">y axis</a>. <span class="param">multiplier</span> is slightly complicated: The position of the joystick is actually a decimal between -1 and 1. Since plotscripting can't handle decimals, this position must be multiplied and rounded off until it is within plotscripting's capabilities. By default, it is 100 (so it will return -100 - 100). <span class="param">joystick</span> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <span class="param">joystick</span> defaults to.
+			
+				Returns the position of one of a joystick/gamepad's sticks along the X or Y axis, or of one of the trigger buttons.
+				<span class="param">axis</span> is a value 0 or higher, or one of the constants:
+				<ul>
+					<li>
+						<span class="code">axis:X</span> - the X axis of the joystick, or left thumbstick on a gamepad.
+						Negative for left, positive for right.
+						(You can also use the obsolete <span class="code">x axis</span> alias)
+					</li>
+					<li>
+						<span class="code">axis:Y</span> - the Y axis of the joystick, or left thumbstick on a gamepad.
+						Negative for up, positive for down.
+						(You can also use the obsolete <span class="code">y axis</span> alias)
+					</li>
+					<li>
+<span class="code">axis:Right X</span> - X axis of the right thumbstick</li>
+					<li>
+<span class="code">axis:Right Y</span> - Y axis of the right thumbstick</li>
+					<li>
+<span class="code">axis:L2</span> - the left trigger button. Never negative</li>
+					<li>
+<span class="code">axis:R2</span> - the right trigger button. Never negative</li>
+				</ul>
+				<br>
+				The optional <span class="param">multiplier</span> is the range of the return value: between <span class="code">-multiplier ... multiplier</span>
+				(or <span class="code">0 ... multiplier</span> for <span class="code">axis:L2</span> or <span class="code">axis:R2</span>).
+				By default, the range is -100 - 100.
+				<br>
+				<span class="param">player</span> is an optional <a href="#about-playernumber" class="ref">player number</a> telling which player's controller to read.
+				By default it check all controllers and combines their input.
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					All axes are meant to return 0 when the player isn't touching the stick/trigger,
+					but you must NOT rely on this as joysticks/thumbsticks in general don't return to exactly 0,0!
+					Instead, you must use a "dead zone" around 0 where input is ignored.
+					For example, ignore values between -50 and 50.
+					Also, if you push a stick diagonally (e.g. up-right) it probably won't reach 100,-100.
+					<br>
+					If possible, use the <span class="code">joy:Up, joy:Down, joy:Left, joy:Right</span> or
+					<span class="code">joy:RStick Up, joy:RStick Down, joy:RStick Left, joy:RStick Right</span>
+					buttons with <a href="#about-keyispressed" class="ref">key is pressed</a> instead.
+					These allow 8-directional movement and have a proper circular dead zone.
+				</div>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Constants like <span class="code">axis:Right X</span> only mean what they say if the controller
+					is a gamepad and if you're using the default gfx_sdl2 backend. All the other
+					backends number gamepad buttons and axes unpredictably.
+					So that means <span class="code">axis:L2</span> and <span class="code">axis:R2</span> can actually return negatives.
+				</div>
+			
 			
 			
 			
@@ -19802,7 +19860,9 @@ end</pre>
 <p>
 			
 				Quit the current game and switch to a different .rpg file/.rpgdir.
-				When that game is quit, the program either exits or goes to the game browse as usual.
+				When that game is quit, the program either exits or goes to the game browser as usual.
+				So if you want to return to the original game you need to call <span class="code">run game</span> a
+				second time from that game instead of using <a href="#about-gameover" class="ref">game over</a>.)
 				<span class="param">file string id</span> is the ID of a string that contains the filename of the game to load.
 				If the game is not in the same directory, then you need to provide a relative
 				path, like "bonus content\Prequel.rpg" or "../selectmenu.rpg".
@@ -20293,6 +20353,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		<a href="#about-scriptid">Script IDs</a><br>
 		<a href="#about-colorcode">Color codes</a><br>
 		<a href="#about-scancode">Scancodes</a><br>
+		<a href="#about-playernumber">Player number</a><br>
 </div></ul>
 </div>
 		<div class="command">
@@ -20515,9 +20576,9 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <p>
 			
 				A scancode is a constant referring to a keyboard key, a joystick button,
-				or is a virtual scancode like <a href="#about-usekey" class="ref">use key</a>
-				(see <a href="#about-keyconstants" class="ref">Key Constants</a> for the full list)
-				which is an action that can be attached to multiple keys/buttons.
+				or is a virtual scancode for a control like <a href="#about-usekey" class="ref">use key</a> or <a href="#about-anykey" class="ref">any key</a>
+				(see <a href="#about-controlcodes" class="ref">control codes</a> for the full list)
+				which is an action that can be triggered by various keys or buttons.
 				<br>
 				The scancodes are also listed in the <b>scancode.hsi</b> file included with the engine.
 				<pre>key:Esc
@@ -20641,23 +20702,63 @@ key:Numpad Plus
 key:Numpad Minus
 key:Numpad Enter
 
-#  Joystick scan codes:
+#  Joystick scancodes:
+# (The following button names are only correct for supported controllers that are gamepads)
+
+# Dpad, and also translates axis:X/Y (left thumbstick on a gamepad) to button presses
+# (unless "Map joystick (left) stick to dpad" is disabled)
+joy:Left
+joy:Right
+joy:Up
+joy:Down
+
+joy:A              # B button on a SNES controller!
+joy:Cross          # Equal to joy:A
+joy:B              # A button on a SNES controller!
+joy:Circle         # Equal to joy:B
+joy:X              # Y button on a SNES controller!
+joy:Square         # Equal to joy:X
+joy:Y              # X button on a SNES controller!
+joy:Triangle       # Equal to joy:Y
+
+# Translation of right stick (axis:RightX/Y) to button presses
+joy:RStick Left
+joy:RStick Right
+joy:RStick Up
+joy:RStick Down
+
+joy:L1             # Left shoulder
+joy:R1             # Right shoulder
+joy:L2             # Left trigger. Also axis:L2
+joy:R2             # Right trigger. Also axis:R2
+
+# The thumbsticks when pressed as a button
+joy:Left Stick
+joy:Right Stick
+# Center-left button: Select (NES, SNES, PS1-3), Back (Xbox), Share (PS4), View (Xbox)
+joy:Select
+joy:Back           # Equal to joy:Select
+# Center button: PS button (PS3), Xbox guide button
+joy:Logo
+joy:Guide          # Equal to joy:Logo
+# Center-right button: Start (NES, SNES, Genesis, N64, Saturn, PS1-3, Xbox), Options (PS4), Menu (XBox)
+joy:Start
+
+# Obsolete aliases
+joy:x left         # Aka joy:Left
+joy:x right        # Aka joy:Right
+joy:y up           # Aka joy:Up
+joy:y down         # Aka joy:Down
+
+# You can use button numbers instead of the above names:
 joy:button 1
 joy:button 2
 joy:button 3
 ...
 joy:button 16
-joy:button 17      # Warning: joy:button17 is not joy:button16+1! All other button codes are consecutive
+joy:button 17      # Warning: joy:button17 is not joy:button16 + 1! All other button codes are consecutive
 ...
 joy:button 32
-joy:x left
-joy:x right
-joy:y up
-joy:y down
-joy:left           # aka joy:x left
-joy:right          # aka joy:x right
-joy:up             # aka joy:y up
-joy:down           # aka joy:y down
 
 #  Virtual scancodes:
 any key            # Any keyboard key or joystick button (including joystick left/right/up/down),
@@ -20667,17 +20768,23 @@ up key             # Up key on the keyboard, or on any joystick
 down key           # ...ditto
 left key
 right key
-use key            # Space, Ctrl or Enter, or Use button on any joystick. Includes left clicks
+use key            # Space, Ctrl or Enter, or A button on any gamepad. Includes left clicks
                    # if "'any key', etc, include mouse" turned on in Mouse Controls menu.
-cancel key         # Alt or Esc, or Cancel button on any joystick. Optionally includes right clicks as above.
-menu key           # Alt or Esc, or Menu button on any joystick. Optionally includes right clicks as above.
-flee key           # Esc or Tab, or Run button on any joystick (Hold to flee (run) from battle)
+cancel key         # Alt or Esc, or B button on any gamepad. Optionally includes right clicks as above.
+menu key           # Alt or Esc, or B or Start button on any gamepad. Optionally includes right clicks as above.
+flee key           # Esc or Tab, or B button on any gamepad (Hold to flee (run) from battle)
 run key            # Alias for 'flee key'
 </pre>
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					Previously it was necessary to <span class="code">include, scancode.hsi</span>
 					to use the <span class="code">key:</span> constants, but no longer.
+				</div>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Gamepad constants like <span class="code">joy:A</span> only mean what they say if the controller
+					is a gamepad and if you're using the default gfx_sdl2 backend. All the other
+					backends number gamepad buttons and axes unpredictably.
 				</div>
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
@@ -20704,9 +20811,55 @@ run key            # Alias for 'flee key'
 		</p>
 </div>
 		<div class="command">
-		<h4>Key Constants</h4>
-		<p><a href="#about-keyconstants">Documented in the Predefined Constants section.</a></p>
+		<h4>Control Codes</h4>
+		<p><a href="#about-controlcodes">Documented in the Predefined Constants section.</a></p>
 		</div>
+		<div class="command">
+			<a name="about-playernumber"></a>
+				<h4>Player number</h4>
+<p>
+			
+				Commands for reading keyboard or joystick/gamepad input (see below)
+				take an optional <span class="param">player</span> argument which you should completely
+				ignore unless you're making a multiplayer game.
+				These tell which player's joystick/gamepad to check and usually shouldn't be
+				used when reading the keyboard.
+				Player 0 (which is always the default argument) means check all joysticks
+				and the keyboard, as applicable, and combine their input,
+				while player 1 and up are specific joysticks: the first joystick is player 1, etc.
+				Out of range player numbers are always OK to use,
+				and just report no input without showing an error.
+				(There's currently no way to get the number of joysticks or players!)
+				<br>
+				The keyboard is also considered to be to player 1,
+				so scancodes like <span class="code">key:ctrl</span> will always return <span class="code">false</span>
+				for players 2 and up, but <a href="#about-controlcodes" class="ref">control codes</a> like <span class="code">use key</span>
+				can be used with any player.
+				<br>
+				For example,
+				<span class="code">key is pressed(use key)</span> checks the keyboard (ctrl, space, and enter keys) and
+				the A button on any gamepad, while
+				<span class="code">key is pressed(use key, 1)</span> checks the keyboard and A button
+				on the first gamepad,
+				and <span class="code">key is pressed(use key, 2)</span>
+				checks only the A button on the second gamepad.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-keypress" class="ref">keypress</a>, </li>
+<li>
+<a href="#about-newkeypress" class="ref">new keypress</a>, </li>
+<li>
+<a href="#about-keyispressed" class="ref">key is pressed</a>, </li>
+<li>
+<a href="#about-joystickbutton" class="ref">joystick button</a>, </li>
+<li><a href="#about-joystickaxis" class="ref">joystick axis</a></li>
+</ul>
+</div>
+		</p>
+</div>
 		<hr>
 		</div>
 		<div class="section">
@@ -20719,7 +20872,7 @@ run key            # Alias for 'flee key'
 		</p>
 <div class="select-content-shown" id="Predefined Constants-index">
 <button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul><div class="content-shown">
-		<a href="#about-keyconstants">Key Constants</a><br>
+		<a href="#about-controlcodes">Control Codes</a><br>
 		<a href="#about-anykey">any key</a><br>
 		<a href="#about-upkey">up key</a><br>
 		<a href="#about-downkey">down key</a><br>
@@ -20730,6 +20883,7 @@ run key            # Alias for 'flee key'
 		<a href="#about-cancelkey">cancel key</a><br>
 		<a href="#about-runkey">run key</a><br>
 		<a href="#about-fleekey">flee key</a><br>
+		<a href="#about-controlcodes">Key Constants</a><br>
 		<a href="#about-numericconstants">Numeric Constants</a><br>
 		<a href="#about-booleanconstants">Boolean Constants</a><br>
 		<a href="#about-true">true</a><br>
@@ -20776,8 +20930,6 @@ run key            # Alias for 'flee key'
 		<a href="#about-wrap">wrap</a><br>
 		<a href="#about-defaulttile">default tile</a><br>
 		<a href="#about-party">party</a><br>
-		<a href="#about-xaxis">x axis</a><br>
-		<a href="#about-yaxis">y axis</a><br>
 		<a href="#about-timer:default">timer: default</a><br>
 		<a href="#about-timer:gameover">timer: game over</a><br>
 		<a href="#about-timerflag:critical">timer flag: critical</a><br>
@@ -20789,7 +20941,7 @@ run key            # Alias for 'flee key'
 </div></ul>
 </div>
 		<div class="command">
-			<a name="about-keyconstants"></a>
+			<a name="about-controlcodes"></a>
 			<a name="about-anykey"></a>
 			<a name="about-upkey"></a>
 			<a name="about-downkey"></a>
@@ -20800,7 +20952,7 @@ run key            # Alias for 'flee key'
 			<a name="about-cancelkey"></a>
 			<a name="about-runkey"></a>
 			<a name="about-fleekey"></a>
-				<h4>Key Constants</h4>
+				<h4>Control Codes</h4>
 <p>
 			
 				A constant specifying a keyboard key or joystick button by its builtin function.
@@ -20829,6 +20981,11 @@ run key            # Alias for 'flee key'
 			
 		</p>
 </div>
+		<div class="command">
+			<a name="about-keyconstants"></a>
+				<h4>Key Constants</h4>
+				An alias for <a href="#about-controlcodes">control codes</a>.
+			</div>
 		<div class="command">
 			<a name="about-numericconstants"></a>
 				<h4>Numeric Constants</h4>
@@ -21090,26 +21247,6 @@ run key            # Alias for 'flee key'
 		</p>
 </div>
 		<div class="command">
-			<a name="about-xaxis"></a>
-				<h4>x axis</h4>
-<p>
-			Pass to <a href="#about-joystickaxis" class="ref">joystick axis</a> to specify the X axis (left and right).
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-yaxis"></a>
-				<h4>y axis</h4>
-<p>
-			Pass to <a href="#about-joystickaxis" class="ref">joystick axis</a> to specify the Y axis (up and down).
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
 			<a name="about-timer:default"></a>
 				<h4>timer: default</h4>
 <p>
@@ -21184,7 +21321,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 911 commands (of which 13 are aliases), 28 constants and 11 definitions of types and other terms in this file.</p>
+<p>Stats: There are 911 commands (of which 14 are aliases), 27 constants and 12 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
