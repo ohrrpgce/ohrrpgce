@@ -956,7 +956,7 @@ SUB statcapsmenu
    NEXT
    IF gen(genLevelCap) > gen(genMaxLevel) THEN gen(genLevelCap) = gen(genMaxLevel)
    max(14) = gen(genMaxLevel)
-   m(14) = "Initial Level Cap: " & gen(genLevelCap)
+   m(14) = "Level Cap: " & gen(genLevelCap)
    m(15) = "Maximum Level: " & gen(genMaxLevel)
   END IF
 
