@@ -709,8 +709,7 @@ end sub
 sub read_backend_info()
 	'gfx backend not selected yet.
 
-	'initialise the music backend name because it's static, yet music_init
-	'might not be called until Import Music menu
+	'Initialise the music backend name because it's static, yet music_init won't have been called yet
 	musicbackend = MUSIC_BACKEND
 	'musicbackendinfo = "music_" + MUSIC_BACKEND
 	musicbackendinfo = music_get_info()
