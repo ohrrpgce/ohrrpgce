@@ -12,12 +12,6 @@ fi
 echo "Building relump"
 scons $SCONS_ARGS lto=1 relump || exit 1
 
-echo "Lumping Vikings of Midgard"
-if [ -f vikings.rpg ] ; then
-  rm vikings.rpg
-fi
-./relump vikings/vikings.rpgdir ./vikings.rpg || exit 1
-
 echo "Erasing contents of temporary directory"
 mkdir -p tmp
 mkdir -p distrib
@@ -58,11 +52,6 @@ package_for_arch() {
   cp -p LICENSE.txt tmp &&
   cp -p LICENSE-binary.txt tmp &&
   cp -p whatsnew.txt tmp || return 1
-
-  echo "  Including Vikings of Midgard"
-  cp -p vikings.rpg tmp &&
-  cp -pr "vikings/Vikings script files" tmp &&
-  cp -p "vikings/README-vikings.txt" tmp || return 1
 
   echo "  Including data files"
   mkdir -p tmp/data &&
