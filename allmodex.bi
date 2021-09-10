@@ -463,10 +463,10 @@ DECLARE SUB frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBc
 
 '================ Key mappings =================
 
-'Mapping from a scancode to a carray() index (action)
+'Mapping from a scancode to a cc* control code/action
 type ControlKey
 	scancode as integer                 'Either a KBScancode or JoyButton
-	ckey as KBScancode                  'A cc* virtual scancode: index in carray(). 0 if unused.
+	ckey as KBScancode                  'A cc* virtual scancode. 0 if unused.
 end type
 
 DECLARE SUB delete_key_mappings(key as integer, joynum as integer = -2)

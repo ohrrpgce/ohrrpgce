@@ -243,7 +243,6 @@ type KeyArray extends Object
 	controls(any) as ControlKey         'Mapping from scancodes to controls
 	                                    'The reason that controls() is in this UDT is so that we can
 	                                    'replay input which has controls set up differently.
-	carray(ccLOWEST to ccHIGHEST) as KeyBits  'Control/actions keys from this input device (evaluation of controls())
 
 	' Redim the arrays. (Not a constructor, because that's a nuisance for globals)
 	declare sub init(maxkey as integer)
@@ -254,7 +253,7 @@ type KeyArray extends Object
 	declare function key_repeating(key as integer, repeat_wait as integer, repeat_rate as integer, inputst as InputStateFwd) as KeyBits
 	declare abstract function keyval(key as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd) as KeyBits
 	declare abstract function anykey(inputst as InputStateFwd) as KeyBits
-	declare sub calc_carray (whichcarray() as KeyBits, inputst as InputStateFwd, repeat_wait as integer = 0, repeat_rate as integer = 0)
+	declare function controlkey(key as KBScancode, inputst as InputStateFwd, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
 	declare sub clearkeys()
 end type
 
@@ -308,10 +307,7 @@ type InputState
 	kb as KeyboardState
 	joys(3) as JoystickState
 
-	carray(ccLOWEST to ccHIGHEST) as KeyBits  'Sum of carray() arrays for all input devices
-
-	declare sub calc_carray (whichcarray() as KeyBits, repeat_wait as integer = 0, repeat_rate as integer = 0)
-	declare sub update_carray ()
+	declare function controlkey(key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
 end type
 
 dim shared real_input as InputState         'Always contains real state even if replaying
@@ -1822,22 +1818,10 @@ function player_keyval(key as KBScancode, player as integer, repeat_wait as inte
 	if joynum > ubound(inputst->joys) then return 0
 
 	if key < 0 then  'Control key or scAny
-		if key = scAny then
-			'Note: repeat_wait and repeat_rate are ignored, and
-			'this doesn't check all joystick buttons, only ones mapped to carray
-			'TODO: scAny should be turned into ccAny, so we can remove this block
-			ret = inputst->joys(joynum).anykey(*inputst)
-			if player = 1 andalso check_keyboard then
-				'In future, ignore any keys mapped to other players?
-				ret or= inputst->kb.anykey(*inputst)
-			end if
-
-		else  'key <= ccHIGHEST
-			'TODO: This is missing repeat_wait/repeat_rate support
-			ret = inputst->joys(joynum).carray(key)
-			if player = 1 andalso check_keyboard then
-				ret or= inputst->kb.carray(key)
-			end if
+		ret = inputst->joys(joynum).controlkey(key, *inputst, repeat_wait, repeat_rate)
+		if player = 1 andalso check_keyboard then
+			'In future, ignore any keys mapped to other players?
+			ret or= inputst->kb.controlkey(key, *inputst, repeat_wait, repeat_rate)
 		end if
 	elseif key <= scLAST then  'Keyboard key
 		if player = 1 andalso check_keyboard then
@@ -1857,7 +1841,7 @@ local function numpad_alias_key(key as KBScancode, real_keys as bool) as KBScanc
 		return 0
 	end if
 	select case key
-		'Should ccLeft etc be handled or when building carray?
+		'Should ccLeft etc be handled here, or mapped in controls()?
 		case scLeft, ccLeft:   return scNumpad4
 		case scRight, ccRight: return scNumpad6
 		case scUp, ccUp:       return scNumpad8
@@ -1915,31 +1899,17 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 	if a > scLAST then
 		'For convenience, poll first joystick (AFAIK this code path isn't used, should be removed)
 		return joykeyval(keybd_to_joy_scancode(a), 0, repeat_wait, repeat_rate, real_keys)
-	end if
-	if a < 0 then
+	elseif a < 0 then
 		'Handle scAny and cc* constants. These include combined input from all joysticks.
-		if a = scAny then
-			'Note: repeat_wait and repeat_rate are ignored!
-			dim ret as KeyBits
-			ret = inputst->kb.anykey(*inputst)
-			'This doesn't check all joystick buttons, only ones mapped to carray.
-			'TODO: scAny should be turned into ccAny, so we can simply return inputst->carray(ccAny)
-			for joynum as integer = 0 to ubound(inputst->joys)
-				ret or= inputst->joys(joynum).anykey(*inputst)
-			next
-			return ret
-		elseif repeat_wait <> 0 orelse repeat_rate <> 0 then
-			'Inefficent solution: inputst->carray() was computed with the default key repeat
-			'rate, so simplest solution is to recompute whole array with desired rate.
-			dim temp_carray(ccLOWEST to ccHIGHEST) as KeyBits
-			inputst->calc_carray temp_carray(), repeat_wait, repeat_rate
-			return temp_carray(a)
-		else
-			return inputst->carray(a)
-		end if
+		dim ret as KeyBits
+		ret or= inputst->kb.controlkey(a, *inputst, repeat_wait, repeat_rate)
+		for joynum as integer = 0 to ubound(inputst->joys)
+			ret or= inputst->joys(joynum).controlkey(a, *inputst, repeat_wait, repeat_rate)
+		next
+		return ret
+	else
+		return inputst->kb.keyval(a, repeat_wait, repeat_rate, *inputst)
 	end if
-
-	return inputst->kb.keyval(a, repeat_wait, repeat_rate, *inputst)
 end function
 
 function KeyboardState.anykey(inputst as InputState) as KeyBits
@@ -1954,16 +1924,35 @@ function KeyboardState.anykey(inputst as InputState) as KeyBits
 	return ret
 end function
 
-'This doesn't check all joystick buttons, only ones mapped to carray,
+'This doesn't check all joystick buttons, only ones mapped in controls()
 'semi-intentionally, so you can ignore stuck keys or uncentered sticks.
 function JoystickState.anykey(inputst as InputState) as KeyBits
 	dim ret as KeyBits
 	for key as KBScancode = ccLOWEST to ccHIGHEST
-		ret or= this.carray(key)
+		ret or= this.controlkey(key, inputst)
 	next
 	'for button as JoyButton = joyButton1 to joyLAST
 	'	ret or= this.keyval(button, repeat_wait, repeat_rate, inputst)
 	'next
+	return ret
+end function
+
+'Calculate value of a control key for one device, bitwise-ORing all keys mapped to it.
+'cc should be ccLOWEST <= cc < 0
+function KeyArray.controlkey (cc as KBScancode, inputst as InputState, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
+	if cc = scAny then
+		'Note: repeat_wait and repeat_rate are ignored
+		return this.anykey(inputst)
+	end if
+
+	dim ret as KeyBits
+	for idx as integer = 0 to ubound(this.controls)
+		with this.controls(idx)
+			if cc = .ckey then
+				ret or= this.keyval(.scancode, repeat_wait, repeat_rate, inputst)
+			end if
+		end with
+	next
 	return ret
 end function
 
@@ -2061,7 +2050,6 @@ sub clearkeys()
 	for joynum as integer = 0 to ubound(inputst->joys)
 		inputst->joys(joynum).clearkeys()
 	next
-	inputst->update_carray()
 	mouse_state.clearclick(mouseLeft)
 	mouse_state.clearclick(mouseRight)
 	mouse_state.clearclick(mouseMiddle)
@@ -2294,7 +2282,7 @@ function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, t
 
 	if checkjoystick then
 		for joynum as integer = 0 to num_joysticks() - 1
-			'Note that keyval(scAny) only checks buttons mapped to controls (carray())
+			'Note that keyval(scAny) only checks buttons mapped to controls
 			for key as integer = scJoyButton1 to scJoyLAST
 				if joykeyval(keybd_to_joy_scancode(key), joynum) >= trigger_level then
 					return key
@@ -2778,42 +2766,6 @@ sub KeyArray.update_keydown_times (inputst as InputState)
 	next
 end sub
 
-'Calculate controls/actions array for one device, bitwise-ORed into whichcarray()
-'Normally whichcarray() is equal to this.carray(), except for kludge used inside keyval_ex().
-sub KeyArray.calc_carray (whichcarray() as KeyBits, inputst as InputState, repeat_wait as integer = 0, repeat_rate as integer = 0)
-	for idx as integer = 0 to ubound(this.controls)
-		with this.controls(idx)
-			if .ckey then
-				whichcarray(.ckey) or= this.keyval(.scancode, repeat_wait, repeat_rate, inputst)
-			end if
-		end with
-	next
-end sub
-
-'Calculate sum controls/actions array for all input devices
-'Normally whichcarray() is equal to this.carray(), except for kludge used inside keyval_ex().
-sub InputState.calc_carray (whichcarray() as KeyBits, repeat_wait as integer = 0, repeat_rate as integer = 0)
-	flusharray whichcarray()
-	kb.calc_carray whichcarray(), this, repeat_wait, repeat_rate
-	for joynum as integer = 0 to ubound(joys)
-		joys(joynum).calc_carray whichcarray(), this, repeat_wait, repeat_rate
-	next
-end sub
-
-'Recompute .carray() and also individual .carray() for each input device
-sub InputState.update_carray ()
-	flusharray kb.carray()
-	kb.calc_carray kb.carray(), this
-	for joynum as integer = 0 to ubound(joys)
-		with joys(joynum)
-			flusharray .carray()
-			.calc_carray .carray(), this
-		end with
-	next
-	'Simpler to recompute than merge the above carrays
-	this.calc_carray this.carray()
-end sub
-
 sub setkeys (enable_inputtext as bool = NO)
 'Updates the keyboard state to reflect new keypresses
 'since the last call, also clears all keypress events (except key-is-down)
@@ -2860,7 +2812,6 @@ sub setkeys (enable_inputtext as bool = NO)
 	real_input.kb.update_keybits
 	real_input.kb.update_keydown_times real_input
 	real_input.kb.inputtext = read_inputtext()
-	real_input.update_carray
 
 	if replay.active then
 		' Updates replay_input.kb.keys(), .kb.inputtext, .elapsed_ms
@@ -2874,8 +2825,6 @@ sub setkeys (enable_inputtext as bool = NO)
 		for joynum as integer = 0 to ubound(replay_input.joys)
 			replay_input.joys(joynum).update_keydown_times(replay_input)
 		next
-
-                replay_input.update_carray
 	end if
 
 	'Taking a screenshot with gfx_directx is very slow, so avoid timing that
@@ -3356,7 +3305,6 @@ local sub allmodex_controls()
 			stop_replaying_input "Replay ended by quit request"
 		end if
 		real_input.kb.keys(scEsc) = 7
-		real_input.carray(ccCancel) = 7
 	end if
 #elseif defined(IS_GAME)
 	'Quick abort (could probably do better, just moving this here for now)

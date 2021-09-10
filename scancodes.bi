@@ -5,6 +5,7 @@
 #IFNDEF SCANCODES_BI
 #DEFINE SCANCODES_BI
 
+'KBScancode is misnamed, as it includes cc* control codes and scJoy* codes
 TYPE KBScancode as integer
 
 CONST scNone = 0  'All of allmodex treats this as a valid scancode, but it doesn't mean anything
@@ -193,13 +194,13 @@ CONST scMouseMiddle = 182
 'The following are only returned by waitforkey!
 CONST scResize = 200   'The window was resized
 
-CONST scAny = -1   'Any key - can NOT be used to index into carray(), only passed to keyval().
+CONST scAny = -1   'Any key
                    'Warning: not 100% equivalent to "any key" in scripts, because it excludes
-                   'scUnfilteredAlt, and joystick buttons not mapped into carray aren't checked
+                   'scUnfilteredAlt, and joystick buttons not mapped to controls aren't checked.
                    'Also, in scripts scAny/ccUse/ccMenu/ccCancel will include mouse clicks if
                    '"'anykey', etc, includes mouse" is turned on, but keyval(scAny), etc don't.
 
-'--- Scancodes shared with carray()
+'--- Control code scancodes
 CONST ccHIGHEST = -2
 CONST ccUp = -2
 CONST ccDown = -3
