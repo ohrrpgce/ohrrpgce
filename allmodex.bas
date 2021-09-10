@@ -91,6 +91,8 @@ declare sub masterpal_changed()
 
 declare sub pollingthread(as any ptr)
 declare sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
+declare function numpad_alias_key(key as KBScancode, real_keys as bool) as KBScancode
+declare function player_keyval_ex(key as KBScancode, player as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES) as KeyBits
 declare function keyval_or_numpad_ex(key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
 declare function read_inputtext () as string
 declare sub update_mouse_state ()
@@ -1798,6 +1800,14 @@ end function
 'player: 0 for any input device, 1 is first joystick + keyboard, 2-4 are other joysticks
 'check_keyboard: pass false to ignore keyboard input
 function player_keyval(key as KBScancode, player as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES) as KeyBits
+	'This is a modified copy of keyval_or_numpad_ex
+	dim ret as KeyBits = player_keyval_ex(key, player, repeat_wait, repeat_rate, check_keyboard)
+	dim key2 as KBScancode = numpad_alias_key(key, NO)
+	if key2 then ret or= player_keyval_ex(key2, player, repeat_wait, repeat_rate, check_keyboard)
+	return ret
+end function
+
+local function player_keyval_ex(key as KBScancode, player as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES) as KeyBits
 	BUG_IF(player < 0, "Invalid player " & player, 0)
 	BUG_IF(key < scKEYVAL_FIRST orelse key > scKEYVAL_LAST, "bad scancode " & key, 0)
 
@@ -1806,7 +1816,7 @@ function player_keyval(key as KBScancode, player as integer, repeat_wait as inte
 	if player = 0 then
 		'Merge all inputs
 		for player = 1 to num_joysticks()
-			ret or= player_keyval(key, player, repeat_wait, repeat_rate, check_keyboard)
+			ret or= player_keyval_ex(key, player, repeat_wait, repeat_rate, check_keyboard)
 		next
 		return ret
 	end if
@@ -1841,7 +1851,7 @@ function player_keyval(key as KBScancode, player as integer, repeat_wait as inte
 		end if
 	elseif key <= scLAST then  'Keyboard key
 		if player = 1 andalso check_keyboard then
-			ret = keyval_or_numpad_ex(key, repeat_wait, repeat_rate)
+			ret = keyval_ex(key, repeat_wait, repeat_rate)
 		end if
 	else  'Joystick button
 		dim button as integer = keybd_to_joy_scancode(key)
