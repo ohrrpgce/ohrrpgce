@@ -1817,7 +1817,7 @@ function player_keyval(key as KBScancode, player as integer, repeat_wait as inte
 	dim joynum as integer = player - 1
 	if joynum > ubound(inputst->joys) then return 0
 
-	if key < 0 then  'Control key or scAny
+	if key < 0 then  'Control key
 		ret = inputst->joys(joynum).controlkey(key, *inputst, repeat_wait, repeat_rate)
 		if player = 1 andalso check_keyboard then
 			'In future, ignore any keys mapped to other players?
@@ -1900,7 +1900,7 @@ function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as 
 		'For convenience, poll first joystick (AFAIK this code path isn't used, should be removed)
 		return joykeyval(keybd_to_joy_scancode(a), 0, repeat_wait, repeat_rate, real_keys)
 	elseif a < 0 then
-		'Handle scAny and cc* constants. These include combined input from all joysticks.
+		'Handle cc* controls. These include combined input from all joysticks.
 		dim ret as KeyBits
 		ret or= inputst->kb.controlkey(a, *inputst, repeat_wait, repeat_rate)
 		for joynum as integer = 0 to ubound(inputst->joys)
@@ -1928,8 +1928,8 @@ end function
 'semi-intentionally, so you can ignore stuck keys or uncentered sticks.
 function JoystickState.anykey(inputst as InputState) as KeyBits
 	dim ret as KeyBits
-	for key as KBScancode = ccLOWEST to ccHIGHEST
-		ret or= this.controlkey(key, inputst)
+	for idx as integer = 0 to ubound(this.controls)
+		ret or= this.keyval(this.controls(idx).scancode, , , inputst)
 	next
 	'for button as JoyButton = joyButton1 to joyLAST
 	'	ret or= this.keyval(button, repeat_wait, repeat_rate, inputst)
@@ -1938,9 +1938,9 @@ function JoystickState.anykey(inputst as InputState) as KeyBits
 end function
 
 'Calculate value of a control key for one device, bitwise-ORing all keys mapped to it.
-'cc should be ccLOWEST <= cc < 0
+'cc should be ccFIRST <= cc < 0
 function KeyArray.controlkey (cc as KBScancode, inputst as InputState, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
-	if cc = scAny then
+	if cc = ccAny then
 		'Note: repeat_wait and repeat_rate are ignored
 		return this.anykey(inputst)
 	end if
@@ -2282,7 +2282,7 @@ function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, t
 
 	if checkjoystick then
 		for joynum as integer = 0 to num_joysticks() - 1
-			'Note that keyval(scAny) only checks buttons mapped to controls
+			'Note that keyval(ccAny) only checks joystick buttons mapped to controls
 			for key as integer = scJoyButton1 to scJoyLAST
 				if joykeyval(keybd_to_joy_scancode(key), joynum) >= trigger_level then
 					return key

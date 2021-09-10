@@ -366,7 +366,7 @@ FUNCTION script_keyval (byval key as KBScancode, byval player as integer = 0) as
  'Wrapper around player_keyval for use by scripts: performs scancode mapping for back-compat
 
  IF key < scKEYVAL_FIRST ORELSE key > scKEYVAL_LAST THEN
-  scripterr current_command_name() & ": invalid scancode keyval(" & key & ")", serrBound
+  scripterr current_command_name() & ": invalid scancode " & key, serrBound
   RETURN 0
  END IF
 
@@ -375,7 +375,7 @@ FUNCTION script_keyval (byval key as KBScancode, byval player as integer = 0) as
  IF gam.click_keys THEN
   DIM mask as integer
   SELECT CASE key
-   CASE scAny    : mask = -1
+   CASE ccAny    : mask = -1
    CASE ccUse    : mask = mouseLeft
    CASE ccCancel : mask = mouseRight
    CASE ccMenu   : mask = mouseRight
@@ -540,7 +540,7 @@ SUB process_wait_conditions()
      ELSE
       a_script_wants_keys()
      END IF
-     IF .waitarg <> scAny THEN
+     IF .waitarg <> ccAny THEN
       IF script_keyval(.waitarg) > 1 THEN
        script_stop_waiting()
        EXIT SUB
@@ -550,7 +550,7 @@ SUB process_wait_conditions()
       'doing waitforkey(menu key) followed by looking for key:alt (== scUnfilteredAlt)
       IF (.waitarg = ccMenu OR .waitarg = ccCancel) ANDALSO keyval(scUnfilteredAlt) > 1 THEN script_stop_waiting()
      ELSE
-      '.waitarg == scAny
+      '.waitarg == ccAny
       DIM temp as KBScancode = anykeypressed(YES, gam.click_keys)  'check joystick, maybe mouse
       'Because anykeypressed doesn't check it, and we don't want to break scripts
       'doing waitforkey(any key) followed by looking for key:alt (== scUnfilteredAlt)
@@ -1349,16 +1349,16 @@ SUB script_functions(byval cmdid as integer)
    'Backcompat: constants >= 0 are 'usekey', etc, not key:.../sc... scancodes
    IF scancode >= 0 THEN
     IF scancode = 99 THEN
-     scancode = scAny
+     scancode = ccAny
     ELSEIF scancode > 5 THEN
      'Invalid keycode! Probably used a scancode instead of a *key constant.
      'This acts like anykey.
-     scancode = scAny
+     scancode = ccAny
      'Not much point showing an error, because if you recompile the problem will
      'go away! However, the behaviour will change, so better warn people.
      scripterr "You wrongly passed a scancode (eg. key:space) to the 'wait for key' command. This was equivalent to 'anykey', but 'wait for key' now genuinely supports scancodes. if you reimport your scripts, this will wait for that key instead of for anykey.", serrBadOp
     ELSE
-     scancode = ccHIGHEST - scancode  'Map to cc* constant
+     scancode = ccUp - scancode  'Map to cc* constant other than ccAny
     END IF
    END IF
   END IF
@@ -4837,7 +4837,7 @@ SUB script_functions(byval cmdid as integer)
   scriptret = decodetrigger(retvals(0), NO)  'showerr=NO
  CASE 692 '--get scancode name (string id, scancode, long name)
   'TODO: doesn't support joystick scancodes
-  IF valid_plotstr(retvals(0)) ANDALSO bound_arg(retvals(1), ccLOWEST, scJoyLAST, "keyboard scancode") THEN
+  IF valid_plotstr(retvals(0)) ANDALSO bound_arg(retvals(1), scKEYVAL_FIRST, scKEYVAL_LAST, "scancode") THEN
    plotstr(retvals(0)).s = scancodename(retvals(1), retvals(2) <> 0)
   END IF
  CASE 693 '--get hero slice by slot

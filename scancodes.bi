@@ -194,14 +194,14 @@ CONST scMouseMiddle = 182
 'The following are only returned by waitforkey!
 CONST scResize = 200   'The window was resized
 
-CONST scAny = -1   'Any key
+'--- Control code scancodes
+
+CONST ccLAST = -1
+CONST ccAny = -1   'Any key
                    'Warning: not 100% equivalent to "any key" in scripts, because it excludes
                    'scUnfilteredAlt, and joystick buttons not mapped to controls aren't checked.
-                   'Also, in scripts scAny/ccUse/ccMenu/ccCancel will include mouse clicks if
-                   '"'anykey', etc, includes mouse" is turned on, but keyval(scAny), etc don't.
-
-'--- Control code scancodes
-CONST ccHIGHEST = -2
+                   'Also, in scripts ccAny/ccUse/ccMenu/ccCancel will include mouse clicks if
+                   '"'anykey', etc, includes mouse" is turned on, but keyval(ccAny), etc don't.
 CONST ccUp = -2
 CONST ccDown = -3
 CONST ccLeft = -4
@@ -211,11 +211,11 @@ CONST ccMenu = -7
 CONST ccFlee = -8
 CONST ccRun = -8
 CONST ccCancel = -9
-CONST ccLOWEST = -9
+CONST ccFIRST = -9
 'Update scancodenames.bi if you add more
 
 'These are the range of scancodes which can be passed to keyval().
-CONST scKEYVAL_FIRST = ccLOWEST
+CONST scKEYVAL_FIRST = ccFIRST
 CONST scKEYVAL_LAST = scJoyLAST
 
 'The following is NOT a real scancode and in general can't be used
