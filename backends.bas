@@ -266,8 +266,10 @@ local sub set_default_gfx_function_ptrs
 	default_gfx_render_procs()
 	gfx_getversion = NULL
 	gfx_Initialize = NULL
+	gfx_init = NULL
 	gfx_setdebugfunc = NULL
 	gfx_get_screen_size = @gfx_dummy_get_screen_size
+	gfx_set_window_size = NULL
 	gfx_supports_variable_resolution = @gfx_dummy_supports_variable_resolution
 	gfx_get_resize = @gfx_dummy_get_resize
 	gfx_set_resizable = @gfx_dummy_set_resizable
@@ -326,7 +328,7 @@ end function
 local function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as string) as bool
 	dim hFile as any ptr = backendinfo->dylib
 	dim needpolling as bool = NO
-	if hFile <> NULL then return YES
+	if hFile <> NULL then return YES  'Already loaded
 
 	IF backendinfo->name = "directx" THEN
 		'override default. TODO: move into gfx_directx
@@ -381,6 +383,7 @@ local function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filena
 	TRYLOAD (gfx_ouya_receipts_request)
 	TRYLOAD (gfx_ouya_receipts_are_ready)
 	TRYLOAD (gfx_ouya_receipts_result)
+	'WARNING: If you add a new TRYLOAD you must initialize the ptr in set_default_gfx_function_ptrs
 
 	'New rendering API (FIXME: complete this)
 	MUSTLOAD (gfx_present)
@@ -642,7 +645,7 @@ function switch_gfx_backend(name as string) as bool
 	BUG_IF(backendinfo = NULL, "Invalid backend " & name, NO)
 
 	if currentgfxbackend then
-		' Make sure that the current is the second preference, in case the switch fails.
+		' Set the current as second preference, so we go back to it if switching fails.
 		prefer_gfx_backend(currentgfxbackend)
 
 		gfx_close()
@@ -672,6 +675,8 @@ sub init_preferred_gfx_backend()
 	for i as integer = 0 to ubound(gfx_choices)
 		with *gfx_choices(i)
 			if load_backend(gfx_choices(i)) then
+				'gfxbackendinfo/etc have now been set; we should either
+				'successfully initialize or call unload_backend.
 				debuginfo "Initialising gfx_" + .name + "..."
 
 				if gfx_Initialize then
