@@ -6854,7 +6854,7 @@ FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref director
   IF (foldermode AND enter_or_space()) OR keyval(scTAB) > 1 THEN
    DIM newdir as string
    newdir = browse(browseDir, directory, "", "browse_for_folder")
-   IF isdir(newdir) ANDALSO diriswriteable(newdir) THEN
+   IF LEN(newdir) ANDALSO isdir(newdir) ANDALSO diriswriteable(newdir) THEN
     directory = newdir
     foldermode = NO
    END IF
