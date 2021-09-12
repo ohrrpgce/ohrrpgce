@@ -91,8 +91,6 @@ declare sub masterpal_changed()
 
 declare sub pollingthread(as any ptr)
 declare sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
-declare function numpad_alias_key(key as KBScancode, real_keys as bool) as KBScancode
-declare function player_keyval_ex(key as KBScancode, player as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES, real_keys as bool = NO) as KeyBits
 declare function read_inputtext () as string
 declare sub update_mouse_state ()
 
@@ -267,6 +265,7 @@ type KeyboardState extends KeyArray
 	declare sub reset()
 	declare sub update_keybits()
 	declare function is_arrow_key(key as KBScancode) as bool
+	declare function numpad_alias_key(key as KBScancode) as KBScancode
 	declare function keyval(key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd) as KeyBits
 	declare function anykey(inputst as InputStateFwd) as KeyBits
 end type
@@ -1805,13 +1804,6 @@ end function
 'You won't see Left/Right keypresses even when scAlt/scCtrl is pressed, so do not
 'check "keyval(scLeftAlt) > 0 or keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
 function player_keyval(key as KBScancode, player as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES, real_keys as bool = NO) as KeyBits
-	dim ret as KeyBits = player_keyval_ex(key, player, repeat_wait, repeat_rate, check_keyboard, real_keys)
-	dim key2 as KBScancode = numpad_alias_key(key, real_keys)
-	if key2 then ret or= player_keyval_ex(key2, player, repeat_wait, repeat_rate, check_keyboard, real_keys)
-	return ret
-end function
-
-local function player_keyval_ex(key as KBScancode, player as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES, real_keys as bool = NO) as KeyBits
 	BUG_IF(player < 0, "Invalid player " & player, 0)
 	BUG_IF(key < scKEYVAL_FIRST orelse key > scKEYVAL_LAST, "bad scancode " & key, 0)
 
@@ -1820,7 +1812,7 @@ local function player_keyval_ex(key as KBScancode, player as integer, repeat_wai
 	if player = 0 then
 		'Merge all inputs
 		for player = 1 to num_joysticks()
-			ret or= player_keyval_ex(key, player, repeat_wait, repeat_rate, check_keyboard, real_keys)
+			ret or= player_keyval(key, player, repeat_wait, repeat_rate, check_keyboard, real_keys)
 		next
 		return ret
 	end if
@@ -1853,18 +1845,16 @@ local function player_keyval_ex(key as KBScancode, player as integer, repeat_wai
 end function
 
 'Return numpad scancode that's an alias to 'key'
-local function numpad_alias_key(key as KBScancode, real_keys as bool) as KBScancode
+local function KeyboardState.numpad_alias_key(key as KBScancode) as KBScancode
 	if remap_numpad = NO then return 0
-	'Only need to check player 1 for the keyboard
-	if (player_keyval_ex(scNumLock, 1, , , , real_keys) and 1) xor (player_keyval_ex(scShift, 1, , , , real_keys) and 1) then
+	if (this.keys(scNumLock) and 1) xor (this.keys(scShift) and 1) then
 		return 0
 	end if
 	select case key
-		'Should ccLeft etc be handled here, or mapped in controls()?
-		case scLeft, ccLeft:   return scNumpad4
-		case scRight, ccRight: return scNumpad6
-		case scUp, ccUp:       return scNumpad8
-		case scDown, ccDown:   return scNumpad2
+		case scLeft:           return scNumpad4
+		case scRight:          return scNumpad6
+		case scUp:             return scNumpad8
+		case scDown:           return scNumpad2
 		case scHome:           return scNumpad7
 		case scEnd:            return scNumpad1
 		case scPageUp:         return scNumpad9
@@ -1938,10 +1928,10 @@ function KeyArray.controlkey (cc as KBScancode, inputst as InputState, repeat_wa
 end function
 
 'Get state of a real keyboard key: cc* and joy* scancodes not supported
-function KeyboardState.keyval(a as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputState) as KeyBits
+function KeyboardState.keyval(key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputState) as KeyBits
 	dim check_repeat as bool = YES
 
-	'if a = scAlt then
+	'if key = scAlt then
 		'alt can repeat (probably a bad idea not to), but only if nothing else has been pressed
 		'for i as KBScancode = 1 to scLAST
 		'	if this.keys(i) > 1 then check_repeat = NO
@@ -1951,12 +1941,20 @@ function KeyboardState.keyval(a as KBScancode, repeat_wait as integer = 0, repea
 
 	'Don't fire repeat presses for special toggle keys (note: these aren't actually
 	'toggle keys in all backends, eg. gfx_fb)
-	if a = scNumlock orelse a = scCapslock orelse a = scScrolllock then check_repeat = NO
+	if key = scNumlock orelse key = scCapslock orelse key = scScrolllock then check_repeat = NO
 
 	if check_repeat then
-		return this.key_repeating(a, repeat_wait, repeat_rate, inputst)
+		dim ret as KeyBits
+		ret = this.key_repeating(key, repeat_wait, repeat_rate, inputst)
+		'Wait, there's more! When numlock is off, numpad keys double as other keys; is 'key' one?
+		dim key2 as KBScancode = this.numpad_alias_key(key)
+		if key2 then
+			ret or= this.key_repeating(key2, repeat_wait, repeat_rate, inputst)
+		end if
+		return ret
 	else
-		return this.keys(a)
+		return this.keys(key)
+		'Num/caps/scrolllock don't have any alias keys on the numpad
 	end if
 end function
 
