@@ -509,11 +509,10 @@ DECLARE SUB macro_controls ()
 
 '=============== Generic keyval ================
 
-DECLARE FUNCTION keyval_ex (key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
+DECLARE FUNCTION player_keyval(key as KBScancode, player as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES, real_keys as bool = NO) as KeyBits
 DECLARE FUNCTION real_keyval (key as KBScancode) as KeyBits
 DECLARE FUNCTION keyval (key as KBScancode) as KeyBits
 DECLARE FUNCTION carray alias "KEYVAL" (key as KBScancode) as KeyBits
-DECLARE FUNCTION player_keyval (key as KBScancode, player as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES) as KeyBits
 DECLARE FUNCTION slowkey (key as KBScancode, ms as integer) as bool
 DECLARE FUNCTION getinputtext () as string
 

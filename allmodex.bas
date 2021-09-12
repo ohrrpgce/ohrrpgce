@@ -92,8 +92,7 @@ declare sub masterpal_changed()
 declare sub pollingthread(as any ptr)
 declare sub keystate_convert_bit3_to_keybits(keystate() as KeyBits)
 declare function numpad_alias_key(key as KBScancode, real_keys as bool) as KBScancode
-declare function player_keyval_ex(key as KBScancode, player as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES) as KeyBits
-declare function keyval_or_numpad_ex(key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
+declare function player_keyval_ex(key as KBScancode, player as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES, real_keys as bool = NO) as KeyBits
 declare function read_inputtext () as string
 declare sub update_mouse_state ()
 
@@ -1791,19 +1790,28 @@ end function
 '==========================================================================================
 
 'Read keyboard/joystick input for either a single player or player 0 (default/all).
-'Reads replayed state, if any (real_keys = NO)
+'Reads replayed state, if any, unless real_keys = YES
 'key:    any scancode, including cc* constants and joystick buttons
 'player: 0 for any input device, 1 is first joystick + keyboard, 2-4 are other joysticks
 'check_keyboard: pass false to ignore keyboard input
-function player_keyval(key as KBScancode, player as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES) as KeyBits
-	'This is a modified copy of keyval_or_numpad_ex
-	dim ret as KeyBits = player_keyval_ex(key, player, repeat_wait, repeat_rate, check_keyboard)
-	dim key2 as KBScancode = numpad_alias_key(key, NO)
-	if key2 then ret or= player_keyval_ex(key2, player, repeat_wait, repeat_rate, check_keyboard)
+'
+'except for possibly certain special keys (like capslock), each key reports 3 bits:
+'
+'bit 0: key was down at the last setkeys call
+'bit 1: keypress event (either new keypress, or key-repeat) during last setkey-setkey interval
+'bit 2: new keypress during last setkey-setkey interval
+'
+'Note: Alt/Ctrl keys may behave strangely with gfx_fb:
+'You won't see Left/Right keypresses even when scAlt/scCtrl is pressed, so do not
+'check "keyval(scLeftAlt) > 0 or keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
+function player_keyval(key as KBScancode, player as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES, real_keys as bool = NO) as KeyBits
+	dim ret as KeyBits = player_keyval_ex(key, player, repeat_wait, repeat_rate, check_keyboard, real_keys)
+	dim key2 as KBScancode = numpad_alias_key(key, real_keys)
+	if key2 then ret or= player_keyval_ex(key2, player, repeat_wait, repeat_rate, check_keyboard, real_keys)
 	return ret
 end function
 
-local function player_keyval_ex(key as KBScancode, player as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES) as KeyBits
+local function player_keyval_ex(key as KBScancode, player as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES, real_keys as bool = NO) as KeyBits
 	BUG_IF(player < 0, "Invalid player " & player, 0)
 	BUG_IF(key < scKEYVAL_FIRST orelse key > scKEYVAL_LAST, "bad scancode " & key, 0)
 
@@ -1812,13 +1820,13 @@ local function player_keyval_ex(key as KBScancode, player as integer, repeat_wai
 	if player = 0 then
 		'Merge all inputs
 		for player = 1 to num_joysticks()
-			ret or= player_keyval_ex(key, player, repeat_wait, repeat_rate, check_keyboard)
+			ret or= player_keyval_ex(key, player, repeat_wait, repeat_rate, check_keyboard, real_keys)
 		next
 		return ret
 	end if
 
 	dim inputst as InputState ptr
-	if replay.active then
+	if replay.active andalso real_keys = NO then
 		inputst = @replay_input
 	else
 		inputst = @real_input
@@ -1835,7 +1843,7 @@ local function player_keyval_ex(key as KBScancode, player as integer, repeat_wai
 		end if
 	elseif key <= scLAST then  'Keyboard key
 		if player = 1 andalso check_keyboard then
-			ret = keyval_ex(key, repeat_wait, repeat_rate)
+			ret = inputst->kb.keyval(key, repeat_wait, repeat_rate, *inputst)
 		end if
 	else  'Joystick button
 		dim button as integer = keybd_to_joy_scancode(key)  '0 if invalid
@@ -1847,7 +1855,8 @@ end function
 'Return numpad scancode that's an alias to 'key'
 local function numpad_alias_key(key as KBScancode, real_keys as bool) as KBScancode
 	if remap_numpad = NO then return 0
-	if (keyval_ex(scNumLock, , , real_keys) and 1) xor (keyval_ex(scShift, , , real_keys) and 1) then
+	'Only need to check player 1 for the keyboard
+	if (player_keyval_ex(scNumLock, 1, , , , real_keys) and 1) xor (player_keyval_ex(scShift, 1, , , , real_keys) and 1) then
 		return 0
 	end if
 	select case key
@@ -1868,58 +1877,20 @@ local function numpad_alias_key(key as KBScancode, real_keys as bool) as KBScanc
 	return 0
 end function
 
-local function keyval_or_numpad_ex (key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
-	dim ret as KeyBits = keyval_ex(key, repeat_wait, repeat_rate, real_keys)
-	dim key2 as KBScancode = numpad_alias_key(key, real_keys)
-	if key2 then ret or= keyval_ex(key2, repeat_wait, repeat_rate, real_keys)
-	return ret
-end function
-
+'This keyval() variant always returns the real input, rather than replayed input
 function real_keyval (key as KBScancode) as KeyBits
-	return keyval_or_numpad_ex(key, 0, 0, YES)
+	return player_keyval(key, 0, , , , YES)
 end function
 
 function keyval (key as KBScancode) as KeyBits
-	return keyval_or_numpad_ex(key, 0, 0, NO)
+	'Using a wrapper rather than an alias for player_keyval has the advantage of
+	'decreasing executable size, since this function is called in zillions of places!
+	return player_keyval(key, 0)
 end function
 
+'Simple keyval() variant with modified key repeat rate (in milliseconds), and no repeat delay
 function slowkey (key as KBScancode, ms as integer) as bool
-	return keyval_or_numpad_ex(key, ms, ms, NO) > 1
-end function
-
-function keyval_ex (a as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
-'except for possibly certain special keys (like capslock), each key reports 3 bits:
-'
-'bit 0: key was down at the last setkeys call
-'bit 1: keypress event (either new keypress, or key-repeat) during last setkey-setkey interval
-'bit 2: new keypress during last setkey-setkey interval
-'
-'Note: Alt/Ctrl keys may behave strangely with gfx_fb:
-'You won't see Left/Right keypresses even when scAlt/scCtrl is pressed, so do not
-'check "keyval(scLeftAlt) > 0 or keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
-
-	dim inputst as InputState ptr
-	if replay.active andalso real_keys = NO then
-		inputst = @replay_input
-	else
-		inputst = @real_input
-	end if
-
-	ERROR_IF(a < scKEYVAL_FIRST orelse a > scKEYVAL_LAST, "bad scancode " & a, 0)
-	if a > scLAST then
-		'For convenience, poll first joystick (AFAIK this code path isn't used, should be removed)
-		return joykeyval(keybd_to_joy_scancode(a), 0, repeat_wait, repeat_rate, real_keys)
-	elseif a < 0 then
-		'Handle cc* controls. These include combined input from all joysticks.
-		dim ret as KeyBits
-		ret or= inputst->kb.controlkey(a, *inputst, repeat_wait, repeat_rate)
-		for joynum as integer = 0 to ubound(inputst->joys)
-			ret or= inputst->joys(joynum).controlkey(a, *inputst, repeat_wait, repeat_rate)
-		next
-		return ret
-	else
-		return inputst->kb.keyval(a, repeat_wait, repeat_rate, *inputst)
-	end if
+	return player_keyval(key, 0, ms, ms) > 1
 end function
 
 function KeyboardState.anykey(inputst as InputState) as KeyBits
