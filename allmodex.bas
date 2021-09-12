@@ -1838,8 +1838,8 @@ local function player_keyval_ex(key as KBScancode, player as integer, repeat_wai
 			ret = keyval_ex(key, repeat_wait, repeat_rate)
 		end if
 	else  'Joystick button
-		dim button as integer = keybd_to_joy_scancode(key)
-		ret = joykeyval(button, joynum, repeat_wait, repeat_rate)
+		dim button as integer = keybd_to_joy_scancode(key)  '0 if invalid
+		ret = inputst->joys(joynum).keyval(button, repeat_wait, repeat_rate, *inputst)
 	end if
 	return ret
 end function
@@ -2291,13 +2291,11 @@ function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, t
 	next
 
 	if checkjoystick then
-		for joynum as integer = 0 to num_joysticks() - 1
-			'Note that keyval(ccAny) only checks joystick buttons mapped to controls
-			for key as integer = scJoyButton1 to scJoyLAST
-				if joykeyval(keybd_to_joy_scancode(key), joynum) >= trigger_level then
-					return key
-				end if
-			next
+		'Note that keyval(ccAny) only checks joystick buttons mapped to controls
+		for key as KBScancode = scJoyButton1 to scJoyLAST
+			if keyval(key) >= trigger_level then
+				return key
+			end if
 		next
 	end if
 
@@ -3151,24 +3149,6 @@ end function
 function num_joysticks () as integer
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
 	return ubound(inputst->joys) + 1
-end function
-
-'Read a single joystick button. Like keyval, but doesn't take a scancode (nor cc* control code)
-'NOTE: this takes a joynum rather than a player number!
-function joykeyval (key as JoyButton, joynum as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
-	ERROR_IF(key > joyLAST, "bad scancode " & key, 0)
-
-	dim inputst as InputState ptr
-	if replay.active andalso real_keys = NO then
-		inputst = @replay_input
-	else
-		inputst = @real_input
-	end if
-
-	if joynum > ubound(inputst->joys) then return 0  'Not an error
-	dim byref joy as JoystickState = inputst->joys(joynum)
-
-	return joy.keyval(key, repeat_wait, repeat_rate, *inputst)
 end function
 
 function JoystickState.keyval (key as JoyButton, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputState) as KeyBits

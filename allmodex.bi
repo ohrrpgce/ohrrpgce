@@ -519,7 +519,6 @@ DECLARE FUNCTION getinputtext () as string
 
 '================== Joystick ===================
 
-DECLARE FUNCTION joykeyval (key as JoyButton, joynum as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, real_keys as bool = NO) as KeyBits
 DECLARE FUNCTION joystick_axis (axis as integer, player as integer = 0) as integer
 DECLARE FUNCTION joystick_info (player as integer) as JoystickInfo ptr
 DECLARE FUNCTION keybd_to_joy_scancode (key as KBScancode) as JoyButton
