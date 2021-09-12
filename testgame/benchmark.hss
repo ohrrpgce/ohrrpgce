@@ -122,6 +122,13 @@ plotscript, main, begin
   score += run benchmark (@benchmark: DOOM flames update, 1) * 2
   free slice (flames container)
 
+  # Benchmarks excluded from the score
+
+  # The speed of this would depend on state of numlock, how many joysticks are plugged in,
+  # and whether gfx_fb is used
+  $1 = "check all keys"
+  run benchmark (@benchmark: check all keys, 1)
+
   # This score doesn't depend on the speed of implementation of any commands
   $1 = "Benchmark score for interpreter (lower's better):"
   append number (1, score)
@@ -998,4 +1005,11 @@ script, benchmark: DOOM flames update, begin
   #for (i, 0, 49) do (
     DOOM flames update
   #)
+end
+
+#------------------------------------------------------------------------
+
+script, benchmark: check all keys, begin
+  variable (i)
+  for (i, cancel key, joy: button 32) do (keyval(i))
 end
