@@ -495,6 +495,20 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
     'Maybe the cause is here.)
     SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
     set_viewport
+    IF recenter_window_hint ANDALSO running_as_slave = NO THEN
+      'Note: this recenters on the main display, not the current one. SDL has no
+      'function to set the display number, so to recenter on current display it
+      'would be necessary to call SDL_GetWindowDisplayIndex, then
+      'SDL_GetDisplayUsableBounds to get its bounds, then manually compute the
+      'center of it.
+      'Without calling SDL_SetWindowPosition, if the window is resized so it would
+      'go over the screen edges:
+      '-under WinXP+SDL2.0.14, it isn't moved
+      '-under X11+KDE5+SDL2.0.16, it's move to fit onscreen, but mispositioned so it's
+      ' slightly over the screen edge!
+      SDL_SetWindowPosition(mainwindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED)
+    END IF
+    recenter_window_hint = NO
     recreate_screen_texture
   END IF
 END SUB
@@ -799,10 +813,8 @@ FUNCTION gfx_sdl2_get_resize(byref ret as XYPair) as bool
   RETURN NO
 END FUNCTION
 
-'Interesting behaviour: under X11+KDE+SDL 1.2, if the window doesn't go over the screen edges and is resized
-'larger (SDL_SetVideoMode), then it will automatically be moved to fit onscreen (if you DON'T ask for recenter).
+'The next time zoom or resolution changes recenter the window. Afterwards the flag is removed.
 SUB gfx_sdl2_recenter_window_hint()
-  'Takes effect at the next SDL_SetVideoMode call, and it's then removed
   debuginfo "recenter_window_hint()"
   recenter_window_hint = YES
 END SUB
@@ -819,7 +831,9 @@ SUB gfx_sdl2_set_window_size (byval newframesize as XYPair, newzoom as integer)
       'debuginfo " (resize_requested)"
     END IF
 
-    gfx_sdl2_recenter_window_hint()  'Recenter because the window might go off the screen edge.
+    IF newzoom <> zoom THEN
+      gfx_sdl2_recenter_window_hint()  'Recenter because it's pretty ugly to go from centered to uncentered
+    END IF
 
     set_window_size(newframesize, newzoom)
 
