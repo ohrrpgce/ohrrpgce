@@ -1788,6 +1788,8 @@ end function
 '                                      Keyboard input
 '==========================================================================================
 
+'======================================= keyval API =======================================
+
 'Read keyboard/joystick input for either a single player or player 0 (default/all).
 'Reads replayed state, if any, unless real_keys = YES
 'key:    any scancode, including cc* constants and joystick buttons
@@ -1844,6 +1846,39 @@ function player_keyval(key as KBScancode, player as integer = 0, repeat_wait as 
 	return ret
 end function
 
+'This keyval() variant always returns the real input, rather than replayed input
+function real_keyval (key as KBScancode) as KeyBits
+	return player_keyval(key, 0, , , , YES)
+end function
+
+function keyval (key as KBScancode) as KeyBits
+	'Using a wrapper rather than an alias for player_keyval has the advantage of
+	'decreasing executable size, since this function is called in zillions of places!
+	return player_keyval(key, 0)
+end function
+
+'Simple keyval() variant with modified key repeat rate (in milliseconds), and no repeat delay
+function slowkey (key as KBScancode, ms as integer) as bool
+	return player_keyval(key, 0, ms, ms) > 1
+end function
+
+sub setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
+	' Not actually used anywhere yet, but give the replay and real states
+	' separate repeat rates to avoid desync issues
+	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+	inputst->repeat_wait = repeat_wait
+	inputst->repeat_rate = repeat_rate
+end sub
+
+'Translate a sc* constant to a joy* constant
+function keybd_to_joy_scancode(key as KBScancode) as JoyButton
+	ERROR_IF(key < scJoyButton1 orelse key > scJoyLAST, "Bad scancode " & key, 0)
+	return key - scJoyOFFSET
+end function
+
+
+'=============================== keyval implementation ====================================
+
 'Return numpad scancode that's an alias to 'key'
 local function KeyboardState.numpad_alias_key(key as KBScancode) as KBScancode
 	if remap_numpad = NO then return 0
@@ -1865,22 +1900,6 @@ local function KeyboardState.numpad_alias_key(key as KBScancode) as KBScancode
 		'(no good reason to do so).
 	end select
 	return 0
-end function
-
-'This keyval() variant always returns the real input, rather than replayed input
-function real_keyval (key as KBScancode) as KeyBits
-	return player_keyval(key, 0, , , , YES)
-end function
-
-function keyval (key as KBScancode) as KeyBits
-	'Using a wrapper rather than an alias for player_keyval has the advantage of
-	'decreasing executable size, since this function is called in zillions of places!
-	return player_keyval(key, 0)
-end function
-
-'Simple keyval() variant with modified key repeat rate (in milliseconds), and no repeat delay
-function slowkey (key as KBScancode, ms as integer) as bool
-	return player_keyval(key, 0, ms, ms) > 1
 end function
 
 function KeyboardState.anykey(inputst as InputState) as KeyBits
@@ -1958,6 +1977,10 @@ function KeyboardState.keyval(key as KBScancode, repeat_wait as integer = 0, rep
 	end if
 end function
 
+function JoystickState.keyval (key as JoyButton, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputState) as KeyBits
+	return this.key_repeating(key, repeat_wait, repeat_rate, inputst)
+end function
+
 'Return state of a key plus key repeat bit. (Should only be called from keyval)
 'repeat_wait and repeat_rate can override inputst settings.
 function KeyArray.key_repeating(key as integer, repeat_wait as integer, repeat_rate as integer, inputst as InputState) as KeyBits
@@ -1984,13 +2007,8 @@ function KeyArray.key_repeating(key as integer, repeat_wait as integer, repeat_r
 	return result
 end function
 
-sub setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
-	' Not actually used anywhere yet, but give the replay and real states
-	' separate repeat rates to avoid desync issues
-	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
-	inputst->repeat_wait = repeat_wait
-	inputst->repeat_rate = repeat_rate
-end sub
+
+'======================================= clearkey =========================================
 
 'Erase a keypress event from the keyboard state, and optionally cancel key repeat. Does not affect key-down state.
 'FIXME: have to clear numpad keys too, if remapped!
@@ -3104,24 +3122,14 @@ end sub
 
 
 '==========================================================================================
-'                                        Joystick
+'                                    Extra Joystick API
 '==========================================================================================
-
-'Translate a sc* constant to a joy* constant
-function keybd_to_joy_scancode(key as KBScancode) as JoyButton
-	ERROR_IF(key < scJoyButton1 orelse key > scJoyLAST, "Bad scancode " & key, 0)
-	return key - scJoyOFFSET
-end function
 
 'This is also, currently, the number of players
 'TODO: this always returns 4!
 function num_joysticks () as integer
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
 	return ubound(inputst->joys) + 1
-end function
-
-function JoystickState.keyval (key as JoyButton, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputState) as KeyBits
-	return this.key_repeating(key, repeat_wait, repeat_rate, inputst)
 end function
 
 'Returns a value from -1000 to 1000
