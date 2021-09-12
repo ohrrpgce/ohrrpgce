@@ -31,8 +31,7 @@ EXTERN "C"
 
 'Older FB releases (before 1.06?) only have headers for SDL 2.0.3 (Mar 2014). Declaring these is
 'simpler than requiring a recent FB. Whether they're in FB's headers doesn't tell whether they're on
-'the system, but you can compile with "scons sdl203=1" to not depend on any of the following.
-'(Might actually support SDL 2.0.1/2 too; I didn't check)
+'the system
 #ifndef SDL_GameControllerFromInstanceID
   'SDL 2.0.4+ (Jan 2016)
   declare function SDL_GameControllerFromInstanceID(byval joyid as SDL_JoystickID) as SDL_GameController ptr
@@ -412,10 +411,8 @@ LOCAL FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
     CheckOK(mainrenderer = NULL, RETURN 0)
   END IF
 
-  #IFNDEF SDL_203
-    'Whether to stick to integer scaling amounts when using SDL_RenderSetLogicalSize. SDL 2.0.5+
-    'SDL_RenderSetIntegerScale(mainrenderer, NO)
-  #ENDIF
+  'Whether to stick to integer scaling amounts when using SDL_RenderSetLogicalSize. SDL 2.0.5+
+  'SDL_RenderSetIntegerScale(mainrenderer, NO)
 
   set_viewport
 
@@ -744,13 +741,8 @@ END FUNCTION
 SUB gfx_sdl2_get_screen_size(wide as integer ptr, high as integer ptr)
   'Query the first display.
   DIM rect as SDL_Rect
-#IFNDEF SDL_203
   'SDL_GetDisplayUsableBounds excludes area for taskbar, OSX menubar, dock, etc.,
-  'but is SDL 2.0.5+
   IF SDL_GetDisplayUsableBounds(0, @rect) THEN
-#ELSE
-  IF SDL_GetDisplayBounds(0, @rect) THEN
-#ENDIF
     debug "SDL_GetDisplayUsableBounds: " & *SDL_GetError()
     *wide = 0
     *high = 0
@@ -795,12 +787,7 @@ FUNCTION gfx_sdl2_set_resizable(enable as bool, min_width as integer, min_height
   SDL_SetWindowMinimumSize(mainwindow, minsize.w, minsize.h)
 
   'Note: Can't change resizability of a fullscreen window
-  'Argh, SDL_SetWindowResizable was only added in SDL 2.0.5 (Oct 2016)
-  #IFNDEF SDL_203
-    SDL_SetWindowResizable(mainwindow, resizable)
-  #ELSE
-    recreate_window()
-  #ENDIF
+  SDL_SetWindowResizable(mainwindow, resizable)
   RETURN resizable
 END FUNCTION
 
@@ -1069,9 +1056,7 @@ SUB gfx_sdl2_process_events()
         'if the window isn't focused, it does report mouse wheel button events
         '(other buttons focus the window).
 
-        #IFNDEF SDL_203
-         SDL_CaptureMouse(YES)  'So that dragging off the window reports positions outside the window
-        #ENDIF
+        SDL_CaptureMouse(YES)  'So that dragging off the window reports positions outside the window
         WITH evnt.button
           mouseclicks OR= SDL_BUTTON(.button)
           IF debugging_io THEN
@@ -1438,9 +1423,7 @@ LOCAL FUNCTION update_mouse() as integer
       buttons = SDL_GetMouseState(@privatempos.x, @privatempos.y)
     END IF
   END IF
-  #IFNDEF SDL_203
-    IF buttons = 0 THEN SDL_CaptureMouse(NO)  'Any mouse drag ended
-  #ENDIF
+  IF buttons = 0 THEN SDL_CaptureMouse(NO)  'Any mouse drag ended
   RETURN buttons
 END FUNCTION
 

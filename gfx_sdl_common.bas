@@ -245,12 +245,14 @@ FUNCTION sdl2_update_gamepad(joynum as integer, state as IOJoystickState ptr) as
     '.attached = SDL_ControllerGetAttached(controller)
 
     DIM controller as SDL_GameController ptr
-    #IFNDEF SDL_203
-      'This returns NULL if not already opened, and it doesn't increment refcount
-      controller = SDL_GameControllerFromInstanceID(state->info->instance_id)
-    #ELSE
-      controller = SDL_GameControllerOpen(joynum)
-    #ENDIF
+    'This returns NULL if not already opened, and it doesn't increment refcount
+    'FIXME: if you unplug a controller and plug it back in it won't work, but
+    'starting unplugged and plugging in does work.
+    controller = SDL_GameControllerFromInstanceID(state->info->instance_id)
+    'This works even after unplugging and replugging, but doing so causes this
+    'and the SDL_GameControllerClose below (also needs uncommenting!) to lag
+    'massively on open() and close() calls.
+    'controller = SDL_GameControllerOpen(joynum)
     IF controller = NULL THEN
       'FIXME: not really handling renumbering properly
       'SDL_GetError doesn't report anything
@@ -281,9 +283,8 @@ FUNCTION sdl2_update_gamepad(joynum as integer, state as IOJoystickState ptr) as
       .axes(ohr_gamepad_axes(idx)) = off 'bound(CINT(off), -1000, 1000)
     NEXT
 
-    #IFDEF SDL_203
-      SDL_GameControllerClose(controller)
-    #ENDIF
+    'Uncomment if uncommenting the SDL_GameControllerOpen above
+    'SDL_GameControllerClose(controller)
 
   END WITH
   RETURN 0  'Success
