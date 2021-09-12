@@ -1100,7 +1100,17 @@ SUB gfx_sdl2_process_events()
 
       CASE SDL_WINDOWEVENT
         IF debugging_io THEN
-          debuginfo "SDL_WINDOWEVENT event=" & evnt.window.event
+          DIM eventnames(...) as zstring ptr = { _
+              @"NONE", @"SHOWN", @"HIDDEN", @"EXPOSED", @"MOVED", @"RESIZED", _
+              @"SIZE_CHANGED", @"MINIMIZED", @"MAXIMIZED", @"RESTORED", _
+              @"ENTER", @"LEAVE", @"FOCUS_GAINED", @"FOCUS_LOST", @"CLOSE", _
+              @"TAKE_FOCUS", @"HIT_TEST" _
+          }
+          IF in_bound(evnt.window.event, 0, UBOUND(eventnames)) THEN
+            debuginfo "SDL_WINDOWEVENT_" & *eventnames(evnt.window.event)
+          ELSE
+            debuginfo "SDL_WINDOWEVENT event=" & evnt.window.event
+          END IF
         END IF
         IF evnt.window.event = SDL_WINDOWEVENT_ENTER THEN
           'Gained mouse focus
