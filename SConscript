@@ -869,7 +869,6 @@ if portable and (unix and not mac):
         syms = "fcntl", "fcntl64", "pow", "exp", "log"
         CXXLINKFLAGS.append ("-Wl," + ",".join("--wrap=" + x for x in syms))
         FBLINKERFLAGS += ["--wrap=" + x for x in syms]
-    ARGUMENTS['sdl203'] = True
 
 # As long as exceptions aren't used anywhere and don't have to be propagated between libraries,
 # we can link libgcc_s statically, which avoids one more thing that might be incompatible
@@ -1205,8 +1204,6 @@ if 'raster' in ARGUMENTS:
     commonenv['CFLAGS'] += ['-DUSE_RASTERIZER']
     commonenv['CXXFLAGS'] += ['-DUSE_RASTERIZER']
 
-if 'sdl203' in ARGUMENTS:
-    commonenv['FBFLAGS'] += ['-d', 'SDL_203']
 
 ################ Generate files containing Version/build info
 
@@ -1649,11 +1646,9 @@ Options:
                                           arch (x86 or ARM).
                       Current (default) value: """ + arch + """
   portable=1          (For Linux and BSD) Try to build portable binaries, and
-                      check library dependencies. Implies sdl203=1
+                      check library dependencies.
 
 Optional features:
-  sdl203=1            gfx_sdl2 will only require SDL 2.0.3+ (2014-03) instead
-                      of SDL 2.0.5+ (2016-10)
   raster=1            Include software triangle rasterizer (rasterizer.cpp).
                       Not used for anything!
 
