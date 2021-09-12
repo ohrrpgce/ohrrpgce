@@ -496,12 +496,26 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
       'Without calling SDL_SetWindowPosition, if the window is resized so it would
       'go over the screen edges:
       '-under WinXP+SDL2.0.14, it isn't moved
-      '-under X11+KDE5+SDL2.0.16, it's move to fit onscreen, but mispositioned so it's
+      '-under X11+xfce4+SDL2.0.16, it's moved to fit onscreen, but mispositioned so it's
       ' slightly over the screen edge!
 
-      'Undocumented SDL feature: add in the display index to center on that display
       DIM displayindex as integer = large(0, SDL_GetWindowDisplayIndex(mainwindow))
-      SDL_SetWindowPosition(mainwindow, SDL_WINDOWPOS_CENTERED + displayindex, SDL_WINDOWPOS_CENTERED)
+      'Workaround for a problem on Windows (both XP and 10): if the window client area is
+      'the same (or nearly the same) size as the display and is centered and active,
+      'Windows will display it above the taskbar else -- the same as fullscreen. Since
+      'additionally the window size doesn't get restored when leaving fullscreen, unlike
+      'xfce4 at least, and is maximised when fullscreened, you become stuck fullscreened!
+      '(To reproduce: run Custom, fullscreen, exit fullscreen, then change window zoom in F9,
+      'which causes a window recentering if this workaround is disabled.)
+      DIM displaysize as SDL_Rect
+      SDL_GetDisplayUsableBounds(displayindex, @displaysize)
+      IF zoom * framesize.w >= displaysize.w - 2 ANDALSO zoom * framesize.h >= displaysize.h - 2 THEN
+        'The window is as big as the display
+        debuginfo "Skipping window recenter because window too big"
+      ELSE
+        'Undocumented SDL feature: add in the display index to center on that display
+        SDL_SetWindowPosition(mainwindow, SDL_WINDOWPOS_CENTERED + displayindex, SDL_WINDOWPOS_CENTERED)
+      END IF
     END IF
     recenter_window_hint = NO
     recreate_screen_texture
