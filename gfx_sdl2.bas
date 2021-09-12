@@ -493,17 +493,15 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
     SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
     set_viewport
     IF recenter_window_hint ANDALSO running_as_slave = NO THEN
-      'Note: this recenters on the main display, not the current one. SDL has no
-      'function to set the display number, so to recenter on current display it
-      'would be necessary to call SDL_GetWindowDisplayIndex, then
-      'SDL_GetDisplayUsableBounds to get its bounds, then manually compute the
-      'center of it.
       'Without calling SDL_SetWindowPosition, if the window is resized so it would
       'go over the screen edges:
       '-under WinXP+SDL2.0.14, it isn't moved
       '-under X11+KDE5+SDL2.0.16, it's move to fit onscreen, but mispositioned so it's
       ' slightly over the screen edge!
-      SDL_SetWindowPosition(mainwindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED)
+
+      'Undocumented SDL feature: add in the display index to center on that display
+      DIM displayindex as integer = large(0, SDL_GetWindowDisplayIndex(mainwindow))
+      SDL_SetWindowPosition(mainwindow, SDL_WINDOWPOS_CENTERED + displayindex, SDL_WINDOWPOS_CENTERED)
     END IF
     recenter_window_hint = NO
     recreate_screen_texture
@@ -739,10 +737,15 @@ FUNCTION gfx_sdl2_getwindowstate() as WindowState ptr
 END FUNCTION
 
 SUB gfx_sdl2_get_screen_size(wide as integer ptr, high as integer ptr)
-  'Query the first display.
+  'If we already have a window, query the size of its display, since we will want to
+  'know what we can resize to. Otherwise the first display.
+  DIM displayindex as integer = 0
+  IF mainwindow THEN
+    displayindex = large(0, SDL_GetWindowDisplayIndex(mainwindow))
+  END IF
   DIM rect as SDL_Rect
   'SDL_GetDisplayUsableBounds excludes area for taskbar, OSX menubar, dock, etc.,
-  IF SDL_GetDisplayUsableBounds(0, @rect) THEN
+  IF SDL_GetDisplayUsableBounds(displayindex, @rect) THEN
     debug "SDL_GetDisplayUsableBounds: " & *SDL_GetError()
     *wide = 0
     *high = 0
