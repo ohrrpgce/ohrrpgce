@@ -375,7 +375,7 @@ LOCAL FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
   END IF
 
   DIM windowpos as integer
-  IF recenter_window_hint ANDALSO running_as_slave = NO THEN   'Don't display the window straight on top of Custom's
+  IF recenter_window_hint THEN
     windowpos = SDL_WINDOWPOS_CENTERED
   ELSE
     windowpos = SDL_WINDOWPOS_UNDEFINED
@@ -494,7 +494,11 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
     'Maybe the cause is here.)
     SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
     set_viewport
-    IF recenter_window_hint ANDALSO running_as_slave = NO THEN
+    'Recentering the window while fullscreen can cause the window to move to 0,0
+    'when exiting fullscreen on Windows (oddly, under X11/xfce4 that only
+    'happens if you do it immediately after exiting).
+    IF windowedmode ANDALSO recenter_window_hint THEN
+      IF debugging_io THEN debuginfo "recentering window"
       'Without calling SDL_SetWindowPosition, if the window is resized so it would
       'go over the screen edges:
       '-under WinXP+SDL2.0.14, it isn't moved
@@ -703,6 +707,8 @@ FUNCTION gfx_sdl2_screenshot(byval fname as zstring ptr) as integer
 END FUNCTION
 
 SUB gfx_sdl2_setwindowed(byval towindowed as bool)
+  IF debugging_io THEN debuginfo "setwindowed " & towindowed
+
   DIM entering_fullscreen as bool
   DIM leaving_fullscreen as bool
   IF mainwindow THEN
@@ -711,6 +717,7 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
   END IF
   IF entering_fullscreen THEN
     remember_window_size = framesize * zoom
+    IF debugging_io THEN debuginfo "remembering window size " & remember_window_size
   END IF
 
   DIM flags as int32 = 0
@@ -720,7 +727,6 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
     EXIT SUB
   END IF
   windowedmode = towindowed
-  IF debugging_io THEN debuginfo "setwindowed " & towindowed
   'TODO: call gfx_sdl2_set_resizable here, since that doesn't work on fullscreen windows?
 
   'Turn on or off scaling/centering/letterboxing
@@ -731,9 +737,12 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
     'unmaximises under X11/xfce4 (at least), this doesn't happen on WinXP or Win10, so do it manually.
     'Likewise, on Windows if you change the zoom while fullscreened the window doesn't
     'restore its position when unfullscreening, though it does otherwise, and on xfce4.
+    IF debugging_io THEN debuginfo "Restoring window size to " & remember_window_size
     DIM minsize as XYPair = min_window_resolution * zoom
     resize_request = large(min_window_resolution, remember_window_size \ zoom)
-    resize_requested = YES
+    'If the remembered size isn't different, nothing to do
+    resize_requested = (resize_request <> framesize)
+    SDL_SetWindowSize mainwindow, resize_request.w * zoom, resize_request.h * zoom
   END IF
 END SUB
 
@@ -828,7 +837,9 @@ END FUNCTION
 'The next time zoom or resolution changes recenter the window. Afterwards the flag is removed.
 SUB gfx_sdl2_recenter_window_hint()
   debuginfo "recenter_window_hint()"
-  recenter_window_hint = YES
+  IF running_as_slave = NO THEN   'Don't display the window straight on top of Custom's
+    recenter_window_hint = YES
+  END IF
 END SUB
 
 'This is the new API for changing window size, an alternative to calling gfx_present with a resized frame.
