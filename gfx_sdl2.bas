@@ -114,6 +114,7 @@ DIM SHARED resizable as bool = NO
 DIM SHARED resize_requested as bool = NO
 DIM SHARED resize_request as XYPair
 DIM SHARED min_window_resolution as XYPair = XY(10, 10)  'Used only if 'resizable' true. Excludes zoom factor.
+DIM SHARED remember_window_size as XYPair   'Remembered size before fullscreening
 DIM SHARED recenter_window_hint as bool = NO
 DIM SHARED remember_windowtitle as string
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
@@ -337,6 +338,7 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
 
   framesize.w = 320
   framesize.h = 200
+  remember_window_size = 0
 
   sdlpalette = SDL_AllocPalette(256)
   CheckOK(sdlpalette = NULL, RETURN 0)
@@ -500,22 +502,8 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
       ' slightly over the screen edge!
 
       DIM displayindex as integer = large(0, SDL_GetWindowDisplayIndex(mainwindow))
-      'Workaround for a problem on Windows (both XP and 10): if the window client area is
-      'the same (or nearly the same) size as the display and is centered and active,
-      'Windows will display it above the taskbar else -- the same as fullscreen. Since
-      'additionally the window size doesn't get restored when leaving fullscreen, unlike
-      'xfce4 at least, and is maximised when fullscreened, you become stuck fullscreened!
-      '(To reproduce: run Custom, fullscreen, exit fullscreen, then change window zoom in F9,
-      'which causes a window recentering if this workaround is disabled.)
-      DIM displaysize as SDL_Rect
-      SDL_GetDisplayUsableBounds(displayindex, @displaysize)
-      IF zoom * framesize.w >= displaysize.w - 2 ANDALSO zoom * framesize.h >= displaysize.h - 2 THEN
-        'The window is as big as the display
-        debuginfo "Skipping window recenter because window too big"
-      ELSE
-        'Undocumented SDL feature: add in the display index to center on that display
-        SDL_SetWindowPosition(mainwindow, SDL_WINDOWPOS_CENTERED + displayindex, SDL_WINDOWPOS_CENTERED)
-      END IF
+      'Undocumented SDL feature: add in the display index to center on that display
+      SDL_SetWindowPosition(mainwindow, SDL_WINDOWPOS_CENTERED + displayindex, SDL_WINDOWPOS_CENTERED)
     END IF
     recenter_window_hint = NO
     recreate_screen_texture
@@ -715,6 +703,16 @@ FUNCTION gfx_sdl2_screenshot(byval fname as zstring ptr) as integer
 END FUNCTION
 
 SUB gfx_sdl2_setwindowed(byval towindowed as bool)
+  DIM entering_fullscreen as bool
+  DIM leaving_fullscreen as bool
+  IF mainwindow THEN
+    entering_fullscreen = (towindowed = NO ANDALSO windowedmode = YES)
+    leaving_fullscreen = (towindowed = YES ANDALSO windowedmode = NO)
+  END IF
+  IF entering_fullscreen THEN
+    remember_window_size = framesize * zoom
+  END IF
+
   DIM flags as int32 = 0
   IF towindowed = NO THEN flags = SDL_WINDOW_FULLSCREEN_DESKTOP
   IF SDL_SetWindowFullscreen(mainwindow, flags) THEN
@@ -727,6 +725,16 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
 
   'Turn on or off scaling/centering/letterboxing
   set_viewport
+
+  IF leaving_fullscreen ANDALSO resizable ANDALSO remember_window_size <> 0 THEN
+    'When you fulscreen while resizable the window size is maximised. While it automatically
+    'unmaximises under X11/xfce4 (at least), this doesn't happen on WinXP or Win10, so do it manually.
+    'Likewise, on Windows if you change the zoom while fullscreened the window doesn't
+    'restore its position when unfullscreening, though it does otherwise, and on xfce4.
+    DIM minsize as XYPair = min_window_resolution * zoom
+    resize_request = large(min_window_resolution, remember_window_size \ zoom)
+    resize_requested = YES
+  END IF
 END SUB
 
 SUB gfx_sdl2_windowtitle(byval title as zstring ptr)
@@ -826,8 +834,8 @@ END SUB
 'This is the new API for changing window size, an alternative to calling gfx_present with a resized frame.
 'Unlike gfx_present, it causes the window to resize but doesn't repaint it yet.
 SUB gfx_sdl2_set_window_size (byval newframesize as XYPair, newzoom as integer)
-  IF newzoom >= 1 AND newzoom <= 16 AND newzoom <> zoom THEN
-    'debuginfo "set_window_size " & newframesize & ", zoom=" & newzoom
+  IF newzoom >= 1 AND newzoom <= 16 AND (newzoom <> zoom ORELSE newframesize <> framesize) THEN
+    debuginfo "set_window_size " & newframesize & ", zoom=" & newzoom
 
     IF newframesize <> framesize THEN
       resize_request = newframesize
