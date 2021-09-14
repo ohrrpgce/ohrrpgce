@@ -1114,11 +1114,15 @@ SUB gfx_sdl2_process_events()
               @"ENTER", @"LEAVE", @"FOCUS_GAINED", @"FOCUS_LOST", @"CLOSE", _
               @"TAKE_FOCUS", @"HIT_TEST" _
           }
-          IF in_bound(evnt.window.event, 0, UBOUND(eventnames)) THEN
-            debuginfo "SDL_WINDOWEVENT_" & *eventnames(evnt.window.event)
-          ELSE
-            debuginfo "SDL_WINDOWEVENT event=" & evnt.window.event
-          END IF
+          WITH evnt.window
+            IF in_bound(.event, 0, UBOUND(eventnames)) THEN
+              'Only SDL_WINDOWEVENT_RESIZED, SDL_WINDOWEVENT_SIZE_CHANGED (undocumented),
+              'SDL_WINDOWEVENT_MOVED have args
+              debuginfo strprintf("SDL_WINDOWEVENT_%s %d,%d", eventnames(.event), .data1, .data2)
+            ELSE
+              debuginfo "SDL_WINDOWEVENT event=" & .event
+            END IF
+          END WITH
         END IF
         IF evnt.window.event = SDL_WINDOWEVENT_ENTER THEN
           'Gained mouse focus
@@ -1134,9 +1138,6 @@ SUB gfx_sdl2_process_events()
         IF evnt.window.event = SDL_WINDOWEVENT_RESIZED THEN
           'This event is delivered when the window size is changed by the user/WM
           'rather than because we changed it (unlike SDL_WINDOWEVENT_SIZE_CHANGED)
-          IF debugging_io THEN
-            debuginfo "SDL_WINDOWEVENT_RESIZED: w=" & evnt.window.data1 & " h=" & evnt.window.data2
-          END IF
 
           'The viewport is automatically updated when window is resized. In fullscreen
           '(SDL_RenderSetLogicalSize in use) that's good, but when windowed, the viewport
