@@ -87,6 +87,7 @@ DECLARE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
 DECLARE FUNCTION recreate_screen_texture() as bool
 DECLARE FUNCTION get_buffersize() as XYPair
 DECLARE SUB set_viewport()
+DECLARE FUNCTION gfx_sdl2_set_resizable(enable as bool, min_width as integer, min_height as integer) as bool
 DECLARE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, imagesz as XYPair, pitch as integer, bitdepth as integer) as bool
 DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
@@ -488,10 +489,8 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
   END IF
 
   IF mainwindow THEN
-    'TODO: this doesn't work if fullscreen
-    '(FIXME: If you open debug menu in-game, resize the window, press alt-enter to fullscreen
-    'and then alt-enter back to windowed, the window won't return to original size.
-    'Maybe the cause is here.)
+    'If we're fullscreened, takes effect when unfullscreening (unless resizable,
+    'in which case we restore previous size)
     SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
     set_viewport
     'Recentering the window while fullscreen can cause the window to move to 0,0
@@ -736,7 +735,12 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
   SDL_WarpMouseGlobal mousepos.x, mousepos.y
 
   windowedmode = towindowed
-  'TODO: call gfx_sdl2_set_resizable here, since that doesn't work on fullscreen windows?
+
+  IF leaving_fullscreen THEN
+    'Changing resizability while fullscreened doesn't work, so do it now
+    SDL_SetWindowResizable(mainwindow, resizable)
+    'gfx_sdl2_set_resizable resizable, min_window_resolution.w, min_window_resolution.h
+  END IF
 
   'Turn on or off scaling/centering/letterboxing
   set_viewport
@@ -812,6 +816,7 @@ FUNCTION gfx_sdl2_vsync_supported() as bool
 END FUNCTION
 
 FUNCTION gfx_sdl2_set_resizable(enable as bool, min_width as integer, min_height as integer) as bool
+  IF debugging_io THEN debuginfo "set_resizable " & enable
   resizable = enable
   IF mainwindow = NULL THEN RETURN resizable
 
@@ -829,7 +834,8 @@ FUNCTION gfx_sdl2_set_resizable(enable as bool, min_width as integer, min_height
   'debuginfo "SDL_SetWindowMinimumSize " & minsize
   SDL_SetWindowMinimumSize(mainwindow, minsize.w, minsize.h)
 
-  'Note: Can't change resizability of a fullscreen window
+  'Note: Can't change resizability of a fullscreen window; SDL just ignores the call.
+  'We'll try again in gfx_sdl2_setwindowed
   SDL_SetWindowResizable(mainwindow, resizable)
   RETURN resizable
 END FUNCTION
@@ -1187,6 +1193,17 @@ SUB gfx_sdl2_process_events()
             'resizing (it isn't reported); usually they do hold it down until after they've
             'finished moving their mouse.  One possibility would be to hook into X11, or to do
             'some delayed SDL_SetVideoMode calls.
+          ELSE
+            'If a resize happens that we don't want, override it.
+            'If we don't think the window is resizable, maybe we just disabled it and
+            'the event was generated right before. Or maybe we switched in/out of fullscreen,
+            'which generates resizes to/from the display size. (Ignore the former.)
+            'In particular, resizes when switching out of fullscreen if the
+            'window was erroneously set to resizable (because it's not possible
+            'to change resizability while fullscreened) need to be overridden.
+            IF windowedmode THEN
+              set_window_size framesize, zoom
+            END IF
           END IF
         END IF
     END SELECT

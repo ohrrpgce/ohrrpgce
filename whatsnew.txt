@@ -1,6 +1,21 @@
 WHAT IS NEW?
 
-September 12 2021 [Hróðvitnir]
+??? ? 202? [Ichorescent]
+
+  *** New Features
+
+   * New Plotscripting Features
+
+  *** Changes
+
+  *** Bugfixes
+    * Various gfx_sdl2 window size/position and mouse glitches when exiting
+      fullscreen [Ralph]
+
+  *** Stuff Only Developers Will Notice
+
+
+September 13 2021 [Hróðvitnir]
 
   *** New Features
     * Slice Editor:
