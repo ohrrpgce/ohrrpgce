@@ -720,12 +720,21 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
     IF debugging_io THEN debuginfo "remembering window size " & remember_window_size
   END IF
 
+  DIM mousepos as XYPair
+  SDL_GetGlobalMouseState @mousepos.x, @mousepos.y
+
   DIM flags as int32 = 0
   IF towindowed = NO THEN flags = SDL_WINDOW_FULLSCREEN_DESKTOP
   IF SDL_SetWindowFullscreen(mainwindow, flags) THEN
     showerror "Could not toggle fullscreen mode: " & *SDL_GetError()
     EXIT SUB
   END IF
+
+  'Work around an SDL bug (on X11/xfce4): if the window is resizable, after you leave
+  'fullscreen the mouse gets warped across the screen. If it's not resizable, it instead
+  'moves a little when entering fullscreen.
+  SDL_WarpMouseGlobal mousepos.x, mousepos.y
+
   windowedmode = towindowed
   'TODO: call gfx_sdl2_set_resizable here, since that doesn't work on fullscreen windows?
 
