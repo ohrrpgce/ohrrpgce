@@ -494,8 +494,8 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
     SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
     set_viewport
     'Recentering the window while fullscreen can cause the window to move to 0,0
-    'when exiting fullscreen on Windows (oddly, under X11/xfce4 that only
-    'happens if you do it immediately after exiting).
+    'when exiting fullscreen on Windows (SDL bug gh#4750) (oddly, under X11/xfce4 that
+    'only happens if you do it immediately after exiting (SDL bug gh#4749)).
     IF windowedmode ANDALSO recenter_window_hint THEN
       IF debugging_io THEN debuginfo "recentering window"
       'Without calling SDL_SetWindowPosition, if the window is resized so it would
@@ -729,7 +729,7 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
     EXIT SUB
   END IF
 
-  'Work around an SDL bug (on X11/xfce4): if the window is resizable, after you leave
+  'Work around SDL bug gh#3132 (on X11/xfce4): if the window is resizable, after you leave
   'fullscreen the mouse gets warped across the screen. If it's not resizable, it instead
   'moves a little when entering fullscreen.
   SDL_WarpMouseGlobal mousepos.x, mousepos.y
