@@ -39,6 +39,8 @@ EXTERN "C"
 #ifndef SDL_CaptureMouse
   'SDL 2.0.4+
   declare function SDL_CaptureMouse(byval enabled as SDL_bool) as long
+  declare function SDL_GetGlobalMouseState(byval x as long ptr, byval y as long ptr) as Uint32
+  declare function SDL_WarpMouseGlobal(byval x as long, byval y as long) as long
 #endif
 #ifndef SDL_GetDisplayUsableBounds
   'SDL 2.0.5+ (Oct 2016)
