@@ -88,7 +88,7 @@ declare function SDL_ANDROID_OUYAReceiptsResult () as zstring ptr
 DECLARE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
 DECLARE FUNCTION recreate_screen_texture() as bool
 DECLARE FUNCTION get_buffersize() as XYPair
-DECLARE SUB set_viewport()
+DECLARE SUB set_viewport(for_windowed as bool)
 DECLARE FUNCTION gfx_sdl2_set_resizable(enable as bool, min_width as integer, min_height as integer) as bool
 DECLARE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, imagesz as XYPair, pitch as integer, bitdepth as integer) as bool
 DECLARE SUB update_state()
@@ -311,6 +311,8 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   'Possibly useful in future:
   'SDL_SetHint(SDL_HINT_RENDER_LOGICAL_SIZE_MODE, "overscan")  'Causes left/right of screen to be clipped instead of letterboxing
 
+  'SDL_SetHint(SDL_HINT_RENDER_BATCHING, "0")  'Useful to try this when debugging issues
+
   'To receive controller updates while in the background, SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS
 
   DIM ver as SDL_version
@@ -419,7 +421,7 @@ LOCAL FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
   'Whether to stick to integer scaling amounts when using SDL_RenderSetLogicalSize. SDL 2.0.5+
   'SDL_RenderSetIntegerScale(mainrenderer, NO)
 
-  set_viewport
+  set_viewport windowedmode
 
   IF recreate_screen_texture() = NO THEN RETURN 0
 
@@ -455,8 +457,9 @@ LOCAL FUNCTION get_buffersize() as XYPair
 END FUNCTION
 
 'Set/update the part of the window/screen on which to draw the frame, including scaling and letterboxing.
-LOCAL SUB set_viewport()
-  IF windowedmode = NO THEN
+'for_windowed: true to set it for windowed mode, false for fullscreen
+LOCAL SUB set_viewport(for_windowed as bool)
+  IF for_windowed = NO THEN
     'Fullscreen: Ask SDL to scale, center and letterbox automatically.
     '(Aspect ratio is always preserved. SDL_RenderSetIntegerScale is optional)
     'But this will lead to ugly wobbling while resizing a window.
@@ -494,7 +497,7 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
     'If we're fullscreened, takes effect when unfullscreening (unless resizable,
     'in which case we restore previous size)
     SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
-    set_viewport
+    set_viewport windowedmode
     'Recentering the window while fullscreen can cause the window to move to 0,0
     'when exiting fullscreen on Windows (SDL bug gh#4750) (oddly, under X11/xfce4 that
     'only happens if you do it immediately after exiting (SDL bug gh#4749)).
@@ -721,6 +724,17 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
     IF debugging_io THEN debuginfo "remembering window size " & remember_window_size
   END IF
 
+  'Turn on or off scaling/centering/letterboxing
+  '(This may not be strictly needed when leaving fullscreen)
+  '(This has to be done before switching to fullscreen to avoid SDL bug gh#4715)
+  set_viewport towindowed
+
+  'At least on X11/xfce4, clearing the screen at this point helps to reduce the
+  'likelihood of flicker due to the screen texture getting stretched to the new
+  'window size, but it seems to be impossible to avoid entirely
+  SDL_RenderClear(mainrenderer)
+  SDL_RenderPresent(mainrenderer)
+
   DIM mousepos as XYPair
   SDL_GetGlobalMouseState @mousepos.x, @mousepos.y
 
@@ -743,9 +757,6 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
     SDL_SetWindowResizable(mainwindow, resizable)
     'gfx_sdl2_set_resizable resizable, min_window_resolution.w, min_window_resolution.h
   END IF
-
-  'Turn on or off scaling/centering/letterboxing
-  set_viewport
 
   IF leaving_fullscreen ANDALSO resizable ANDALSO remember_window_size <> 0 THEN
     'When you fulscreen while resizable the window size is maximised. While it automatically
@@ -1169,8 +1180,8 @@ SUB gfx_sdl2_process_events()
 
           'The viewport is automatically updated when window is resized. In fullscreen
           '(SDL_RenderSetLogicalSize in use) that's good, but when windowed, the viewport
-          'resets to cover the window, causing the image to stretch. Undo that
-          IF windowedmode THEN set_viewport
+          'resets to cover the window, causing the image to momentarily stretch. Undo that
+          IF windowedmode THEN set_viewport windowedmode
 
           IF resizable THEN
             'Round upwards
