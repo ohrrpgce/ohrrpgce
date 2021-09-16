@@ -359,22 +359,22 @@ for var in 'AS', 'CC', 'CXX':
 # If you want to use a different C/C++ compiler do "CC=... CXX=... scons ...".
 # If CC is clang, you may want to set FBCC too.
 mod = globals()
-CC = ohrbuild.findtool(mod, 'CC', ARGUMENTS.get('compiler', 'gcc'), True)
+CC = ohrbuild.findtool(mod, 'CC', ARGUMENTS.get('compiler', 'gcc'))
 if not CC:
     CC = ohrbuild.findtool(mod, (), 'cc')
 # FBCC is the compiler used for fbc-generated C code (gengcc=1).
-FBCC = ohrbuild.findtool(mod, ('FBCC', 'GCC'), ARGUMENTS.get('compiler', 'gcc'), True)  # None if not found
+FBCC = ohrbuild.findtool(mod, ('FBCC', 'GCC'), ARGUMENTS.get('compiler', 'gcc'))
 if not FBCC: FBCC = CC
 _cxx = {'gcc':'g++', 'clang':'clang++', None:'g++'}[ARGUMENTS.get('compiler')]
-CXX = ohrbuild.findtool(mod, 'CXX', _cxx, True)
+CXX = ohrbuild.findtool(mod, 'CXX', _cxx)
 if not CXX:
     CXX = ohrbuild.findtool(mod, (), 'c++')
 if optimisations > 1:
-    EUC = ohrbuild.findtool(mod, 'EUC', "euc", True)  # Euphoria to C compiler (None if not found)
+    EUC = ohrbuild.findtool(mod, 'EUC', "euc")  # Euphoria to C compiler (None if not found)
     EUBIND = None
 else:
     EUC = None
-    EUBIND = ohrbuild.findtool(mod, 'EUBIND', "eubind", True)  # Euphoria binder (None if not found)
+    EUBIND = ohrbuild.findtool(mod, 'EUBIND', "eubind")  # Euphoria binder (None if not found)
 MAKE = ohrbuild.findtool(mod, 'MAKE', 'make')
 if not MAKE and win32:
     MAKE = ohrbuild.findtool(mod, 'MAKE', 'mingw32-make')

@@ -215,10 +215,29 @@ class ToolInfo:
     def describe(self):
         return self.path + " (" + self.fullversion + ")"
 
+def expand_tool_path(path, always_expand = False):
+    """Try to find the file a path refers to, allowing absolute and relative
+    paths and checking PATH; returns None if it can't be found.
+    If it's in PATH, expand only if always_expand.
+    """
+    path = os.path.expanduser(path)  # expand ~
+    if os.path.isfile(path):
+        return path
+    ret = WhereIs(path)
+    if ret:
+        if always_expand:
+            return ret
+        return path
+    # The CWD gets changed to build/, so look relative to original directory
+    ret = os.path.join("..", path)
+    if os.path.isfile(ret):
+        return ret
+    return None
 
-def findtool(mod, envvars, toolname, always_expand = False):
-    """Look for a callable program.
-    Returns None if it's not in PATH only if always_expand!"""
+def findtool(module, envvars, toolname, always_expand = False):
+    """Look for a callable program, checking envvars, module variables, relative paths, PATH,
+    and $target_prefix.
+    Returns None if not found."""
     if not isinstance(envvars, (list, tuple)):
         envvars = envvars,
     for envvar in envvars:
@@ -226,14 +245,13 @@ def findtool(mod, envvars, toolname, always_expand = False):
             ret = os.environ.get(envvar)
             break
     else:
-        if WhereIs(mod['target_prefix'] + toolname):
-            ret = mod['target_prefix'] + toolname
+        if WhereIs(module['target_prefix'] + toolname):
+            ret = module['target_prefix'] + toolname
         else:
             ret = toolname
     # standalone builds of FB on Windows do not search $PATH for binaries,
     # so we have to do so for it!
-    if mod['win32'] or always_expand:
-        ret = WhereIs(ret)
+    ret = expand_tool_path(ret, module['win32'] or always_expand)
     return ret
 
 ########################################################################
@@ -262,12 +280,9 @@ def get_cc_info(CC):
 def get_fb_info(fbc):
     """Returns FBC, a ToolInfo for the FB compiler containing version and default target and arch info."""
     FBC = ToolInfo()
-    fbc = os.path.expanduser(fbc)  # expand ~
-    if not os.path.isfile (fbc):
-        fbc = WhereIs (fbc)
-        if not fbc:
-            print("FreeBasic compiler is not installed! (Couldn't find fbc)")
-            sys.exit(1)
+    fbc = expand_tool_path(fbc)
+    if not fbc:
+        exit("FreeBasic compiler is not installed! (Couldn't find fbc)")
     FBC.path = fbc
     FBC.name = os.path.basename(fbc)
 
