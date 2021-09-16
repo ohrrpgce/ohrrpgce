@@ -661,6 +661,8 @@ if gengcc:
             GENGCC_CFLAGS.append ('-Wno-array-bounds')
         # Ignore annoying warning which is an fbc bug
         GENGCC_CFLAGS.append ('-Wno-missing-braces')
+        # And another problem due to gcc being very picky about equivalent types (hard for fbc to fix)
+        GENGCC_CFLAGS.append('-Wno-builtin-declaration-mismatch')
     if FBCC.is_clang:
         # clang doesn't like fbc's declarations of standard functions
         GENGCC_CFLAGS += ['-Wno-builtin-requires-header', '-Wno-incompatible-library-redeclaration']
