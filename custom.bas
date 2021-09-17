@@ -90,7 +90,7 @@ DIM export_translations_to as string
 DIM editing_a_game as bool
 DIM last_active_seconds as double
 
-DIM channel_to_Game as IPCChannel = NULL_CHANNEL
+DIM channel_to_Game as IPCChannel = NULL
 DIM Game_process as ProcessHandle = 0
 
 'Should we delete workingdir when quitting normally?
@@ -633,11 +633,11 @@ SUB prompt_for_save_and_quit()
   EXIT SUB
  END IF 
 
- IF (quitnow = 2 OR quitnow = 3) AND channel_to_Game <> NULL_CHANNEL THEN
+ IF (quitnow = 2 OR quitnow = 3) ANDALSO channel_to_Game THEN
   'Prod the channel to see whether it's still up (send ping)
   channel_write_line(channel_to_Game, "P ")
 
-  IF channel_to_Game <> NULL_CHANNEL THEN
+  IF channel_to_Game THEN
    IF yesno("You are still running a copy of this game. Quitting will force " & GAMEEXE & " to quit as well. Really quit?") = NO THEN quitnow = 0
   END IF
  END IF
@@ -716,7 +716,7 @@ END SUB
 
 SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
  debuginfo "Cleaning up and terminating " & retval
- IF channel_to_Game <> NULL_CHANNEL THEN
+ IF channel_to_Game THEN
   channel_write_line(channel_to_Game, "Q ")
   #IFDEF __FB_WIN32__
    'On windows, can't delete workingdir until Game has closed the music. Not too serious though
@@ -792,7 +792,7 @@ END SUB
 
 'Record a combined editor+player gif
 SUB start_recording_combined_gif()
- IF channel_to_Game = NULL_CHANNEL THEN EXIT SUB
+ IF channel_to_Game = NULL THEN EXIT SUB
  DIM screenfile as string = tmpdir & "screenshare" & randint(100000) & ".bmp"
  channel_write_line(channel_to_Game, "SCREEN " & screenfile)
  start_recording_gif screenfile
@@ -831,7 +831,7 @@ SUB Custom_global_menu
  menu.append 14, "Screenshot (F12)"
 
  menu.append 12, IIF(recording_gif(), "Stop recording", "Record") & " .gif video (Shft/Ctrl-F12)"
- IF channel_to_Game <> NULL_CHANNEL ANDALSO recording_gif() = NO THEN
+ IF channel_to_Game ANDALSO recording_gif() = NO THEN
   menu.append 11, "Record combined editor+player .gif"
  END IF
 

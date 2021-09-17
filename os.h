@@ -17,9 +17,9 @@ extern "C" {
 
 // in gfx_common/win_error.c
 const char* win_error_str(int errcode);
-
-typedef int IPCChannel;  //dummy types
-#define NULL_CHANNEL 0
+struct NamedPipeInfo;
+typedef struct NamedPipeInfo* IPCChannel;
+#define NULL_CHANNEL (IPCChannel)0
 typedef void *ProcessHandle;
 
 #else
@@ -27,7 +27,7 @@ typedef void *ProcessHandle;
 struct PipeState;
 typedef struct PipeState PipeState;
 typedef PipeState *IPCChannel;
-#define NULL_CHANNEL NULL
+#define NULL_CHANNEL (IPCChannel)0
 struct ProcessInfo {
         boolint waitable;
         FILE *file;

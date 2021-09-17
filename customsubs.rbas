@@ -2648,7 +2648,7 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
  END IF
  'We currently do nothing at all with Game_process except cleanup (on Unix
  'closing the channel freezes until the child finishes).
- 'Instead we test Game is still running with channel_to_Game <> NULL_CHANNEL
+ 'Instead we test Game is still running by checking channel_to_Game
 
  'Need Game to connect before we can safely write to the pipe; wait up to 3000ms
  DIM waitms as integer = IIF(valgrind, 9000, IIF(gdb, 5000, 3000))
@@ -2670,7 +2670,7 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
  channel_write_line(channel_to_Game, tmp)
  'If any of these writes fails, channel_to_Game is closed
 
- IF channel_to_Game <> NULL_CHANNEL THEN
+ IF channel_to_Game THEN
   'If we got this far, start sending lump updates and locking files before writing
   set_OPEN_hook @inworkingdir, YES, YES, @channel_to_Game
  ELSE
@@ -2694,7 +2694,7 @@ SUB spawn_game_menu(gdb as bool = NO, valgrind as bool = NO)
  channel_write_line(channel_to_Game, "P ")
 
  DIM scancode as integer
- IF channel_to_Game <> NULL_CHANNEL THEN
+ IF channel_to_Game THEN
   scancode = notification(!"The game is already running! You can't run multiple test copies of a game, but any edits you make will take effect without restarting.\n" _
                            "Press F1 to see the help file for Test Game.")
  ELSE

@@ -796,7 +796,7 @@ DO
    CASE 17
     foemap_stats_menu st.map.foemap, "Foemap Stats for Map " & st.map.id & " " & st.map.name
   END SELECT
-  IF channel_to_Game <> NULL_CHANNEL THEN     'If live previewing, give quick feedback
+  IF channel_to_Game THEN     'If live previewing, give quick feedback
    mapedit_savemap st
   END IF
  END IF

@@ -657,7 +657,7 @@ void clear_OPEN_hook() {
 	lock_hooked_files = false;
 	allow_lump_writes = true;
 	allow_lazyclose = true;
-	lump_updates_channel = NULL_CHANNEL;
+	lump_updates_channel = NULL;
 }
 
 // Lookup the name of a file from its handle (as returned by FREEFILE/OPENFILE).

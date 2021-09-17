@@ -1394,7 +1394,7 @@ DO
    ts.cutfrom = small(ts.cutfrom, gen(genNumBackdrops) - 1)
    tilecut ts, mouse
   END IF 
-  IF channel_to_Game <> NULL_CHANNEL THEN storemxs mapfile, tilesetnum, vpages(3)
+  IF channel_to_Game THEN storemxs mapfile, tilesetnum, vpages(3)
  END IF
  IF tmode = 3 THEN
   IF (keyval(scAnyEnter) > 1) OR mouse_click THEN
@@ -2392,7 +2392,7 @@ SUB tilepaste (cutnpaste() as integer, ts as TileEditState)
     putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, cutnpaste(i, j), 3
    NEXT j
   NEXT i
-  IF channel_to_Game <> NULL_CHANNEL THEN storemxs game + ".til", ts.tilesetnum, vpages(3)
+  IF channel_to_Game THEN storemxs game + ".til", ts.tilesetnum, vpages(3)
  END IF 
 END SUB
 
@@ -2403,7 +2403,7 @@ SUB tiletranspaste (cutnpaste() as integer, ts as TileEditState)
     IF cutnpaste(i, j) THEN putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, cutnpaste(i, j), 3
    NEXT j
   NEXT i
-  IF channel_to_Game <> NULL_CHANNEL THEN storemxs game + ".til", ts.tilesetnum, vpages(3)
+  IF channel_to_Game THEN storemxs game + ".til", ts.tilesetnum, vpages(3)
  END IF
 END SUB
 

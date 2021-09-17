@@ -1473,7 +1473,7 @@ function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as st
 	do
 		line_in = ""
 		while channel_input_line(channel, line_in) = 0
-			if channel = NULL_CHANNEL then
+			if channel = NULL then
 				debug "channel_wait_for_msg: channel closed"
 				return NO
 			end if

@@ -81,10 +81,7 @@ declare function test_locked (filename as string, byval writable as integer) as 
 type NamedPipeInfoFwd as NamedPipeInfo
 
 type ProcessHandle as PROCESS_INFORMATION ptr
-'type IPCChannel as HANDLE
-'#define NULL_CHANNEL INVALID_HANDLE_VALUE
 type IPCChannel as NamedPipeInfoFwd ptr
-#define NULL_CHANNEL NULL
 
 declare function os_open_document (filename as string) as string
 
@@ -97,13 +94,12 @@ type ProcessInfo
 end type
 type ProcessHandle as ProcessInfo ptr
 type IPCChannel as FILE ptr
-#define NULL_CHANNEL NULL
 
 declare function checked_system (cmdline as zstring ptr) as integer
 
 #endif
 
-'IPCChannel functions will automatically close an IPCChannel and set it equal to NULL_CHANNEL if there is an error
+'IPCChannel functions will automatically close an IPCChannel and set it equal to NULL if there is an error
 
 'declare function channel_pick_name (byval id as zstring ptr, byval tempdir as zstring ptr, byval rpg as zstring ptr) as string
 declare function channel_open_client (byref channel as IPCChannel, chan_name as string) as integer

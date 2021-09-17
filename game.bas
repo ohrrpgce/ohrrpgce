@@ -243,7 +243,7 @@ DIM always_enable_debug_keys as bool = NO
 DIM speedcontrol as double = 55
 DIM autosnap as integer = 0   'Number of ticks
 DIM custom_version as string  'when running under Custom
-DIM channel_to_Custom as IPCChannel = NULL_CHANNEL  'when running under Custom
+DIM channel_to_Custom as IPCChannel = NULL  'when running under Custom
 DIM modified_lumps as string vector  'when running under Custom
 v_new modified_lumps
 DIM force_prefsdir_save as bool = NO  'Whether to put save files in prefsdir rather than next to .rpg

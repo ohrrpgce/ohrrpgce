@@ -1332,7 +1332,7 @@ SUB receive_file_updates ()
   END IF
  WEND
 
- IF channel_to_Custom = NULL_CHANNEL THEN
+ IF channel_to_Custom = NULL THEN
   'Opps, it closed. Better quit immediately because workingdir is probably gone (crashy)
   /'  This isn't very useful.
   IF yesno("Lost connection to Custom; the game has to be closed. Do you want to save the game first? (WARNING: resulting save might be corrupt)", NO) THEN
