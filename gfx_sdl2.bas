@@ -729,11 +729,15 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
   '(This has to be done before switching to fullscreen to avoid SDL bug gh#4715)
   set_viewport towindowed
 
+#IFDEF USE_X11
   'At least on X11/xfce4, clearing the screen at this point helps to reduce the
   'likelihood of flicker due to the screen texture getting stretched to the new
-  'window size, but it seems to be impossible to avoid entirely
+  'window size, but it seems to be impossible to avoid entirely.
+  'On the other hand, it adds flicker on Windows (XP) when the window is non-resizable,
+  '(but has neglible effect when it's resizable).
   SDL_RenderClear(mainrenderer)
   SDL_RenderPresent(mainrenderer)
+#ENDIF
 
   DIM mousepos as XYPair
   SDL_GetGlobalMouseState @mousepos.x, @mousepos.y
