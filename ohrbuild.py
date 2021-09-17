@@ -228,10 +228,12 @@ def expand_tool_path(path, always_expand = False):
         if always_expand:
             return ret
         return path
-    # The CWD gets changed to build/, so look relative to original directory
+    # The CWD gets changed to build/ while SConscript is processed, so look
+    # relative to original directory, but then it gets changed back to original
+    # dir while compiling, so convert to abspath
     ret = os.path.join("..", path)
     if os.path.isfile(ret):
-        return ret
+        return os.path.abspath(ret)
     return None
 
 def findtool(module, envvars, toolname, always_expand = False):

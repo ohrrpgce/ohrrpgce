@@ -400,7 +400,8 @@ env['ENV']['GCC'] = FBCC.path
 for tool in ('FBC', 'CC', 'FBCC', 'CXX', 'MAKE', 'EUC', 'EUBIND'):
     val = globals()[tool]
     if val:
-        env[tool] = File(val)
+        env[tool] = val
+
 
 ################ Define Builders and Scanners for FreeBASIC and ReloadBasic
 
