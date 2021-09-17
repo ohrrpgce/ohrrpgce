@@ -90,8 +90,8 @@ DIM export_translations_to as string
 DIM editing_a_game as bool
 DIM last_active_seconds as double
 
-DIM slave_channel as IPCChannel = NULL_CHANNEL
-DIM slave_process as ProcessHandle = 0
+DIM channel_to_Game as IPCChannel = NULL_CHANNEL
+DIM Game_process as ProcessHandle = 0
 
 'Should we delete workingdir when quitting normally?
 'False if relumping workingdir failed.
@@ -633,11 +633,11 @@ SUB prompt_for_save_and_quit()
   EXIT SUB
  END IF 
 
- IF (quitnow = 2 OR quitnow = 3) AND slave_channel <> NULL_CHANNEL THEN
+ IF (quitnow = 2 OR quitnow = 3) AND channel_to_Game <> NULL_CHANNEL THEN
   'Prod the channel to see whether it's still up (send ping)
-  channel_write_line(slave_channel, "P ")
+  channel_write_line(channel_to_Game, "P ")
 
-  IF slave_channel <> NULL_CHANNEL THEN
+  IF channel_to_Game <> NULL_CHANNEL THEN
    IF yesno("You are still running a copy of this game. Quitting will force " & GAMEEXE & " to quit as well. Really quit?") = NO THEN quitnow = 0
   END IF
  END IF
@@ -716,25 +716,25 @@ END SUB
 
 SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
  debuginfo "Cleaning up and terminating " & retval
- IF slave_channel <> NULL_CHANNEL THEN
-  channel_write_line(slave_channel, "Q ")
+ IF channel_to_Game <> NULL_CHANNEL THEN
+  channel_write_line(channel_to_Game, "Q ")
   #IFDEF __FB_WIN32__
    'On windows, can't delete workingdir until Game has closed the music. Not too serious though
    basic_textbox "Waiting for " & GAMEEXE & " to clean up...", uilook(uiText), vpage
    setvispage vpage, NO
-   IF channel_wait_for_msg(slave_channel, "Q", "", 2000) = 0 THEN
+   IF channel_wait_for_msg(channel_to_Game, "Q", "", 2000) = 0 THEN
     basic_textbox "Waiting for " & GAMEEXE & " to clean up... giving up.", uilook(uiText), vpage
     setvispage vpage, NO
     sleep 700
    END IF
   #ENDIF
-  channel_close(slave_channel)
+  channel_close(channel_to_Game)
  END IF
- IF slave_process <> 0 THEN
+ IF Game_process <> 0 THEN
   basic_textbox "Waiting for " & GAMEEXE & " to quit...", uilook(uiText), vpage
   setvispage vpage, NO
   'Under GNU/Linux this calls pclose which will block until Game has quit.
-  cleanup_process @slave_process
+  cleanup_process @Game_process
  END IF
  closemusic
  cleanup_global_reload_doc
@@ -792,9 +792,9 @@ END SUB
 
 'Record a combined editor+player gif
 SUB start_recording_combined_gif()
- IF slave_channel = NULL_CHANNEL THEN EXIT SUB
+ IF channel_to_Game = NULL_CHANNEL THEN EXIT SUB
  DIM screenfile as string = tmpdir & "screenshare" & randint(100000) & ".bmp"
- channel_write_line(slave_channel, "SCREEN " & screenfile)
+ channel_write_line(channel_to_Game, "SCREEN " & screenfile)
  start_recording_gif screenfile
  debuginfo "...recording with secondscreen " & screenfile
 END SUB
@@ -831,7 +831,7 @@ SUB Custom_global_menu
  menu.append 14, "Screenshot (F12)"
 
  menu.append 12, IIF(recording_gif(), "Stop recording", "Record") & " .gif video (Shft/Ctrl-F12)"
- IF slave_channel <> NULL_CHANNEL ANDALSO recording_gif() = NO THEN
+ IF channel_to_Game <> NULL_CHANNEL ANDALSO recording_gif() = NO THEN
   menu.append 11, "Record combined editor+player .gif"
  END IF
 

@@ -242,20 +242,20 @@ DIM autotestmode as bool = NO
 DIM always_enable_debug_keys as bool = NO
 DIM speedcontrol as double = 55
 DIM autosnap as integer = 0   'Number of ticks
-DIM custom_version as string  'when running as slave
-DIM master_channel as IPCChannel = NULL_CHANNEL  'when running as slave
-DIM modified_lumps as string vector  'when running as slave
+DIM custom_version as string  'when running under Custom
+DIM channel_to_Custom as IPCChannel = NULL_CHANNEL  'when running under Custom
+DIM modified_lumps as string vector  'when running under Custom
 v_new modified_lumps
 DIM force_prefsdir_save as bool = NO  'Whether to put save files in prefsdir rather than next to .rpg
-'And also running_as_slave
+'And also running_under_Custom
 
 REDIM cmdline_args() as string
 ' This can modify log_dir and restart the debug log
-' Also, this (game_setoptions) opens a channel with Custom as soon as it processes the --slave option
+' Also, this (gamecustom_setoption) opens a channel with Custom as soon as it processes the --from_Custom option
 processcommandline cmdline_args(), @gamecustom_setoption, orig_dir & SLASH & "ohrrpgce_arguments.txt"
 DIM checked_cmdline_args as bool = NO  'Don't look through cmdline_args() twice
 
-IF running_as_slave THEN debuginfo "Spawned from Custom"
+IF running_under_Custom THEN debuginfo "Spawned from Custom"
 
 
 '============================== Initialise backends ===========================
@@ -338,15 +338,15 @@ gam.started_by_run_game = NO
 usepreunlump = NO
 DIM rpg_browse_default as string = ""  'local variable
 
-IF running_as_slave THEN
+IF running_under_Custom THEN
 
  'Check for version compatibility, and get told sourcerpg & workingdir
  'NOTE: normally sourcedir == workingdir if running a preunlumped game, but not in this case!
- handshake_with_master
+ handshake_with_Custom
  gam.autorungame = YES
  usepreunlump = YES
 
-ELSE  'NOT running_as_slave
+ELSE  'NOT running_under_Custom
 
  workingdir = tmpdir + "playing.tmp"
 
@@ -390,7 +390,7 @@ ELSE  'NOT running_as_slave
   NEXT
  END IF
 
-END IF  'NOT running_as_slave
+END IF  'NOT running_under_Custom
 
 #IFDEF __FB_UNIX__
 IF gam.autorungame = NO THEN
@@ -494,7 +494,7 @@ setvispage vpage, NO
 DIM archinym as string
 
 '--pre-extract (if needed) .gen and load it
-IF running_as_slave THEN
+IF running_under_Custom THEN
  'Spawned from Custom, so must read everything from workingdir, not sourcerpg
  archinym = readarchinym(workingdir, sourcerpg)
  copylump workingdir, "*.gen", tmpdir, YES
@@ -513,13 +513,13 @@ killfile tmpdir + archinym + ".gen"  'So it doesn't override the copy in working
 DIM forcerpgcopy as bool = NO
 IF gen(genVersion) > CURRENT_RPG_VERSION THEN
  debug "genVersion = " & gen(genVersion)
- future_rpg_warning  '(fatal error is running_as_slave)
+ future_rpg_warning  '(fatal error is running_under_Custom)
  forcerpgcopy = YES  'If we upgraded an .rpgdir in-place, we would probably damage it
 END IF
 
 IF usepreunlump = NO THEN
  unlump sourcerpg, workingdir
-ELSEIF NOT running_as_slave THEN  'Won't unlump or upgrade if running as slave
+ELSEIF NOT running_under_Custom THEN  'Won't unlump or upgrade if running under Custom
  IF NOT diriswriteable(workingdir) THEN
   'We have to copy the game, otherwise we won't be able to upgrade it
   '(it's too much trouble to properly check whether the game is already
@@ -552,11 +552,11 @@ close_general_reld()
 
 debuginfo "Name: " & getdisplayname("")
 DIM wintitle as string = getdisplayname(trimpath(sourcerpg))
-IF running_as_slave THEN wintitle = "Testing " + wintitle
+IF running_under_Custom THEN wintitle = "Testing " + wintitle
 setwindowtitle wintitle
 
 'Show a warning if the versions aren't identical
-IF running_as_slave THEN check_game_custom_versions_match
+IF running_under_Custom THEN check_Game_Custom_versions_match
 
 'Perform additional checks for future rpg files or corruption
 'FIXME: if a problem was detected, we don't force copy of an .rpgdir
@@ -565,7 +565,7 @@ rpg_sanity_checks
 xbload game + ".fnt", current_font(), "font missing from " + sourcerpg
 
 '--upgrade obsolete RPG files (if possible)
-IF NOT running_as_slave THEN upgrade gam.started_by_run_game = NO
+IF NOT running_under_Custom THEN upgrade gam.started_by_run_game = NO
 
 
 '======================== Stuff initialised once per .RPG =====================
@@ -738,7 +738,7 @@ setkeys
 DO
  'DEBUG debug "top of master loop"
  setwait speedcontrol
- IF running_as_slave THEN try_to_reload_lumps_onmap
+ IF running_under_Custom THEN try_to_reload_lumps_onmap
  'DEBUG debug "increment play timers"
  IF gam.paused = NO THEN playtimer
 
@@ -3089,7 +3089,7 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
    savemapstate_zonemap gam.map.lastmap, "map"
   END IF
  END IF
- IF running_as_slave THEN make_map_backups
+ IF running_under_Custom THEN make_map_backups
 
  gam.map.lastmap = gam.map.id
 

@@ -78,7 +78,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-errlvl [level]     Override script error suppression level (" & serrBound & " default, " & serrSuspicious & " hide warnings, " & serrBadOp & " hide all but corruption/bugs)" & LINE_END
 		help = help & "-scriptlog          Script logging initially turned on (Ctrl+F10 to toggle)" LINE_END
                 'Hidden options:
-                'help = help & "-slave channel     IPC channel to use to receive messages from Custom" & LINE_END
+                'help = help & "-from_Custom channel  IPC channel to use to receive messages from Custom" & LINE_END
                 'help = help & "-debugkeys         Turn on debug keys" & LINE_END
 #ENDIF
 #IFDEF IS_CUSTOM
@@ -226,7 +226,7 @@ end sub
 ' This function exists to be hooked by gdb after we've opened
 ' the channel (without which, Custom's attempt to open it times out).
 ' It needs to be in a module other than yetmore2.bas so that it doesn't get inlined.
-SUB hook_after_attach_to_master(success as bool)
+SUB hook_after_attach_to_Custom(success as bool)
 END SUB
 
 FUNCTION ReadShort(byval fh as integer, byval p as long=-1) as short

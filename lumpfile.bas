@@ -32,10 +32,6 @@ LMPVTAB(LT_LUMPED, LumpedLump_,  QLMP(destruct),       NULL,       NULL,        
 LMPVTAB(LT_FILE,   FileLump_,    QLMP(destruct),       QLMP(open), QLMP(close), QLMP(writetofile), NULL, QLMP(read))
 
 
-#ifdef IS_GAME
- #include "common.bi"  'For running_as_slave
-#endif
-
 dim can_write_to_workingdir as bool = YES
 
 'Log of recently opened files, and when they were opened (TIMER value)

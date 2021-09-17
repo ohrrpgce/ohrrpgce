@@ -35,7 +35,7 @@ DECLARE SUB drawants_for_tile(tile as XYPair, byval direction as DirNum)
 ' not have loaded a game yet!
 SUB global_setkeys_hook
  ' Process messages from Custom
- IF gam.ingame ANDALSO running_as_slave THEN try_reload_lumps_anywhere
+ IF gam.ingame ANDALSO running_under_Custom THEN try_reload_lumps_anywhere
 END SUB
 
 SUB initgamedefaults
@@ -1068,19 +1068,19 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
    debug "WARNING: autosnap argument was ignored because it should be followed by an integer"
    RETURN 1
   END IF
- ELSEIF opt = "slave" THEN
+ ELSEIF opt = "from_Custom" THEN
   IF arg = "" THEN
-   debug "-slave option ignored because channel not specified"
+   debug "-from_Custom option ignored because channel not specified"
    RETURN 1
   END IF
-  IF channel_open_client(master_channel, arg) THEN
-   running_as_slave = YES
-   debuginfo "Reading commands from master channel '" & arg & "'"
-   hook_after_attach_to_master YES
+  IF channel_open_client(channel_to_Custom, arg) THEN
+   running_under_Custom = YES
+   debuginfo "Reading commands from channel_to_Custom '" & arg & "'"
+   hook_after_attach_to_Custom YES
    RETURN 2
   ELSE
    debug "Failed to open channel '" & arg & "'"
-   hook_after_attach_to_master NO
+   hook_after_attach_to_Custom NO
    terminate_program 10
    RETURN 1
   END IF
@@ -1160,7 +1160,7 @@ SUB apply_game_window_settings (reloading as bool = NO)
   'TODO: screen_size_percent == 100 should be treated specially by maximising the window
   'and adding black bars, once any backends support that.
   DIM scale as integer
-  IF running_as_slave THEN
+  IF running_under_Custom THEN
    scale = automatic_scale_factor(0.1 * gen(genLivePreviewWindowSize))
   ELSE
    scale = automatic_scale_factor(0.1 * gen(genWindowSize))
@@ -1174,7 +1174,7 @@ SUB apply_game_window_settings (reloading as bool = NO)
  END IF
 
  IF supports_fullscreen_well() AND overrode_default_fullscreen = NO AND _
-    user_toggled_fullscreen = NO AND running_as_slave = NO AND _
+    user_toggled_fullscreen = NO AND running_under_Custom = NO AND _
     gam.shared_fullscreen_setting = NO THEN
   DIM fullscreen as bool = read_ini_int(gam.fullscreen_config_file, "gfx.fullscreen", -2)
   ' genFullscreen is used only if the player has never customised the setting.
@@ -1214,7 +1214,7 @@ SUB wrong_spawned_version_fatal_error
              "Editor is version " + custom_version
 END SUB
 
-SUB check_game_custom_versions_match ()
+SUB check_Game_Custom_versions_match ()
  IF short_version <> custom_version THEN
   pop_warning !"Warning: This version of Game is not exactly identical to the version of Custom that spawned it. There's no chance of corrupting your game, but something might go haywire.\n" _
                "Game is version " + short_version + !"\n" _
@@ -1222,12 +1222,12 @@ SUB check_game_custom_versions_match ()
  END IF
 END SUB
 
-SUB handshake_with_master ()
+SUB handshake_with_Custom ()
  DIM line_in as string
  FOR i as integer = 1 TO 3
-  IF channel_input_line(master_channel, line_in) = 0 THEN
+  IF channel_input_line(channel_to_Custom, line_in) = 0 THEN
    'Custom is meant to have already sent the initialisation messages by now
-   debuginfo "handshake_with_master: no message on channel"
+   debuginfo "handshake_with_Custom: no message on channel"
    fatalerror "Could not communicate with Custom"
   END IF
   debuginfo "Received message from Custom: " & line_in
@@ -1284,7 +1284,7 @@ SUB receive_file_updates ()
  DIM line_in as string
  REDIM pieces() as string
 
- WHILE channel_input_line(master_channel, line_in)
+ WHILE channel_input_line(channel_to_Custom, line_in)
   debuginfo "msg: " & line_in
   split RTRIM(line_in), pieces(), " "
 
@@ -1299,7 +1299,7 @@ SUB receive_file_updates ()
    DIM songnum as integer = str2int(pieces(1))
    IF songnum = presentsong THEN music_stop
    'Send confirmation
-   channel_write_line(master_channel, line_in)
+   channel_write_line(channel_to_Custom, line_in)
 
   ELSEIF pieces(0) = "PAL" THEN  'palette changed (path of least resistance...)
    DIM palnum as integer = str2int(pieces(1))
@@ -1321,8 +1321,8 @@ SUB receive_file_updates ()
     DIM dummy as string = DIR("C:\")
    #ENDIF
    'Send confirmation
-   channel_write_line(master_channel, "Q ")
-   channel_close(master_channel)
+   channel_write_line(channel_to_Custom, "Q ")
+   channel_close(channel_to_Custom)
    EXIT WHILE
 
   ELSEIF pieces(0) = "P" THEN   'ping
@@ -1332,7 +1332,7 @@ SUB receive_file_updates ()
   END IF
  WEND
 
- IF master_channel = NULL_CHANNEL THEN
+ IF channel_to_Custom = NULL_CHANNEL THEN
   'Opps, it closed. Better quit immediately because workingdir is probably gone (crashy)
   /'  This isn't very useful.
   IF yesno("Lost connection to Custom; the game has to be closed. Do you want to save the game first? (WARNING: resulting save might be corrupt)", NO) THEN
@@ -1896,7 +1896,7 @@ SUB LPM_update (menu1 as MenuDef, st1 as MenuState, tooltips() as string)
 
   append_menu_item menu1, "Exit"        : menu1.last->extra(0) = 1
   append_menu_item menu1, "Reload map"  : menu1.last->extra(0) = 2
-  IF running_as_slave THEN
+  IF running_under_Custom THEN
    LPM_append_reload_mode_item menu1, tooltips(), "gen. map data", .gmap, 10
    LPM_append_reload_mode_item menu1, tooltips(), "tilemap", .maptiles, 11
    LPM_append_reload_mode_item menu1, tooltips(), "wallmap", .passmap, 12
@@ -1915,7 +1915,7 @@ SUB LPM_update (menu1 as MenuDef, st1 as MenuState, tooltips() as string)
   LPM_append_force_reload_item menu1, tooltips(), "npc instances", .npcl, 105, YES  'NPCL is virtually always dirty
   LPM_append_force_reload_item menu1, tooltips(), "npc definitions", .npcd, 106
 
-  IF running_as_slave THEN 'Not useful otherwise
+  IF running_under_Custom THEN 'Not useful otherwise
    LPM_append_force_reload_item menu1, tooltips(), "scripts", .hsp, 110
    tooltips(UBOUND(tooltips)) += " (Read Help file!)"
   END IF
@@ -1945,7 +1945,7 @@ SUB live_preview_menu ()
  DO
   setwait 55
   setkeys
-  IF running_as_slave THEN try_to_reload_lumps_onmap
+  IF running_under_Custom THEN try_to_reload_lumps_onmap
 
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "game_live_preview_menu"

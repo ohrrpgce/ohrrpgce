@@ -869,7 +869,7 @@ END FUNCTION
 'The next time zoom or resolution changes recenter the window. Afterwards the flag is removed.
 SUB gfx_sdl2_recenter_window_hint()
   debuginfo "recenter_window_hint()"
-  IF running_as_slave = NO THEN   'Don't display the window straight on top of Custom's
+  IF running_under_Custom = NO THEN   'Don't display the window straight on top of Custom's
     recenter_window_hint = YES
   END IF
 END SUB

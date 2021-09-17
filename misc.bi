@@ -16,7 +16,7 @@ DECLARE SUB getbrowserfont (font() as integer)
 
 DECLARE FUNCTION gamecustom_setoption(opt as string, arg as string) as integer
 
-DECLARE SUB hook_after_attach_to_master(success as bool)
+DECLARE SUB hook_after_attach_to_Custom(success as bool)
 
 DECLARE FUNCTION ReadShort overload (byval fh as integer, byval p as long=-1) as short
 DECLARE FUNCTION ReadShort overload (filename as string, byval p as integer) as short

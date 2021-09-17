@@ -20,8 +20,8 @@ end
 echo (Note: please ignore any 'Function "XYZ" not defined' messages due to Unix/Windows differences)\n
 
 # Only happens when running under Test Game
-break HOOK_AFTER_ATTACH_TO_MASTER
-break HOOK_AFTER_ATTACH_TO_MASTER@4
+break HOOK_AFTER_ATTACH_TO_CUSTOM
+break HOOK_AFTER_ATTACH_TO_CUSTOM@4
 
 # Break when exiting with __fb_ctx.errmsg set (only when compiled with -exx)
 # (This is equal to __fb_errmsg on an error, and NULL otherwise)

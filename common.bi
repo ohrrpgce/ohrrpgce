@@ -412,7 +412,7 @@ EXTERN sourcerpg as string
 EXTERN game as string
 EXTERN game_unique_id as string
 EXTERN context_string as string
-EXTERN running_as_slave as bool
+EXTERN running_under_Custom as bool
 EXTERN uilook() as integer
 EXTERN boxlook() as BoxStyle
 EXTERN as integer vpage, dpage

@@ -607,11 +607,11 @@ SUB delete_song (byval songnum as integer, songfile as string, bamfile as string
  IF LEN(songfile) = 0 THEN EXIT SUB
  #IFDEF __FB_WIN32__
   'Only needed on windows, and not currently implemented on unix anyway
-  IF slave_channel <> NULL_CHANNEL THEN
+  IF channel_to_Game <> NULL_CHANNEL THEN
    'Close Music message
    DIM msg as string = "CM " & songnum
-   IF channel_write_line(slave_channel, msg) THEN
-    channel_wait_for_msg(slave_channel, "CM ", "", 1500)
+   IF channel_write_line(channel_to_Game, msg) THEN
+    channel_wait_for_msg(channel_to_Game, "CM ", "", 1500)
    END IF
   END IF
  #ENDIF
@@ -619,7 +619,7 @@ SUB delete_song (byval songnum as integer, songfile as string, bamfile as string
  IF LEN(bamfile) THEN safekill bamfile
  'FIXME: handle deleting from rpgdirs (bug 247)... and the same for soundeffects
 
- IF slave_channel <> NULL_CHANNEL THEN send_lump_modified_msg(songfile)  'only need to send any valid filename for this song
+ IF channel_to_Game <> NULL_CHANNEL THEN send_lump_modified_msg(songfile)  'only need to send any valid filename for this song
 END SUB
 
 SUB importsong_save_song_data(songname as string, byval songnum as integer)

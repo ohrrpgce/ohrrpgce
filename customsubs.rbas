@@ -2528,18 +2528,18 @@ FUNCTION spawn_console_process(executable as string, args as string, title as st
  #ENDIF
 END FUNCTION
 
-'Spawn Game for live-previewing. Puts the ProcessHandle in slave_process.
+'Spawn Game for live-previewing. Puts the ProcessHandle in Game_process.
 'At most one of gdb and valgrind should be true.
 'Returns true if successfully spawned
 FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
- IF slave_process <> 0 THEN
+ IF Game_process <> 0 THEN
   'First clean up after the last time we ran Game
-  cleanup_process @slave_process
+  cleanup_process @Game_process
  END IF
 
  DIM channel_name as string
  channel_name = pick_channel_name()
- IF channel_open_server(slave_channel, channel_name) = NO THEN
+ IF channel_open_server(channel_to_Game, channel_name) = NO THEN
   notification "Couldn't open channel to communicate with Game"
   RETURN NO
  END IF
@@ -2588,10 +2588,10 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
  END IF
  DIM arguments as string
  #IFDEF __FB_UNIX__
-  arguments = "--slave " & escape_filename(channel_name)
+  arguments = "--from_Custom " & escape_filename(channel_name)
  #ELSE
   'Not a filename
-  arguments = "--slave " & channel_name
+  arguments = "--from_Custom " & channel_name
  #ENDIF
 
  IF gdb THEN
@@ -2610,7 +2610,7 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
    ' gdbcmds1.txt adds breakpoints to catch -exx fatal errors, so disable the -exx handler
    arguments &= " --rawexx"
   ELSE
-   gdbargs = "-ex ""break HOOK_AFTER_ATTACH_TO_MASTER"" -ex ""run"" "
+   gdbargs = "-ex ""break HOOK_AFTER_ATTACH_TO_CUSTOM"" -ex ""run"" "
   END IF
   gdbargs &= "--args " & executable & " " & arguments
   executable = find_helper_app("gdb")
@@ -2619,7 +2619,7 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
    RETURN NO
   END IF
 
-  slave_process = spawn_console_process(executable, gdbargs, "gdb " & GAMEEXE)
+  Game_process = spawn_console_process(executable, gdbargs, "gdb " & GAMEEXE)
 
  ELSEIF valgrind THEN
   #IFNDEF __FB_UNIX__
@@ -2633,29 +2633,29 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
    RETURN NO
   END IF
 
-  slave_process = spawn_console_process(executable, arguments, "valgame.sh")
+  Game_process = spawn_console_process(executable, arguments, "valgame.sh")
 
  ELSE
   waitforkeyrelease
-  slave_process = open_process(executable, arguments, YES, YES)
+  Game_process = open_process(executable, arguments, YES, YES)
  END IF
 
  'debuginfo "Spawning: " & executable & " " & arguments
 
- IF slave_process = 0 THEN
+ IF Game_process = 0 THEN
   notification "Couldn't run " & gameexename
   RETURN NO
  END IF
- 'We currently do nothing at all with slave_process except cleanup (on Unix
+ 'We currently do nothing at all with Game_process except cleanup (on Unix
  'closing the channel freezes until the child finishes).
- 'Instead we test Game is still running with slave_channel <> NULL_CHANNEL
+ 'Instead we test Game is still running with channel_to_Game <> NULL_CHANNEL
 
  'Need Game to connect before we can safely write to the pipe; wait up to 3000ms
  DIM waitms as integer = IIF(valgrind, 9000, IIF(gdb, 5000, 3000))
- IF channel_wait_for_client_connection(slave_channel, waitms) = 0 THEN
+ IF channel_wait_for_client_connection(channel_to_Game, waitms) = 0 THEN
   notification "Error communicating with " & gameexename & !" (couldn't connect); aborting\n(Press a key)"
-  channel_close slave_channel
-  cleanup_process @slave_process
+  channel_close channel_to_Game
+  cleanup_process @Game_process
   RETURN NO
  END IF
 
@@ -2663,20 +2663,20 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
  DIM tmp as string
  'msgtype magickey,proto_ver,program_ver,version_string
  tmp = "V OHRRPGCE," & CURRENT_TESTING_IPC_VERSION & "," & version_revision & "," & short_version
- channel_write_line(slave_channel, tmp)
+ channel_write_line(channel_to_Game, tmp)
  tmp = "G " & sourcerpg
- channel_write_line(slave_channel, tmp)
+ channel_write_line(channel_to_Game, tmp)
  tmp = "W " & workingdir
- channel_write_line(slave_channel, tmp)
- 'If any of these writes fails, slave_channel is closed
+ channel_write_line(channel_to_Game, tmp)
+ 'If any of these writes fails, channel_to_Game is closed
 
- IF slave_channel <> NULL_CHANNEL THEN
+ IF channel_to_Game <> NULL_CHANNEL THEN
   'If we got this far, start sending lump updates and locking files before writing
-  set_OPEN_hook @inworkingdir, YES, YES, @slave_channel
+  set_OPEN_hook @inworkingdir, YES, YES, @channel_to_Game
  ELSE
   notification "Error communicating with " & gameexename & !" (channel write failure); aborting\n(Press a key)"
-  channel_close slave_channel
-  cleanup_process @slave_process
+  channel_close channel_to_Game
+  cleanup_process @Game_process
   RETURN NO
  END IF
  RETURN YES
@@ -2691,10 +2691,10 @@ SUB spawn_game_menu(gdb as bool = NO, valgrind as bool = NO)
  #ENDIF
 
  'Prod the channel to see whether it's still up (send ping)
- channel_write_line(slave_channel, "P ")
+ channel_write_line(channel_to_Game, "P ")
 
  DIM scancode as integer
- IF slave_channel <> NULL_CHANNEL THEN
+ IF channel_to_Game <> NULL_CHANNEL THEN
   scancode = notification(!"The game is already running! You can't run multiple test copies of a game, but any edits you make will take effect without restarting.\n" _
                            "Press F1 to see the help file for Test Game.")
  ELSE

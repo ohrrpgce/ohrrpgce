@@ -5809,7 +5809,7 @@ LOCAL SUB run_game ()
  ' Not being able to load the game should always show an error (use serrMajor for everything)
  IF valid_plotstr(retvals(0), serrMajor) = NO THEN RETURN
 
- IF running_as_slave THEN
+ IF running_under_Custom THEN
   ' This would require more work to implement
   scripterr "Sorry, you can't use " + current_command_name() + " while Testing Game"
   RETURN

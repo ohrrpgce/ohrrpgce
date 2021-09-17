@@ -19,7 +19,7 @@ USING RELOAD
 USING RELOAD.EXT
 
 #IFDEF IS_CUSTOM
-EXTERN slave_channel as IPCChannel
+EXTERN channel_to_Game as IPCChannel
 #ENDIF
 
 'Script triggers and names
@@ -3318,7 +3318,9 @@ SUB Palette16_save(pal as Palette16 ptr, pal_num as integer)
  Palette16_save_to_PAL pal, game & ".pal", pal_num
  Palette16_update_cache pal_num
  #IFDEF IS_CUSTOM
-  IF slave_channel <> NULL_CHANNEL THEN channel_write_line slave_channel, "PAL " & pal_num
+  IF channel_to_Game <> NULL_CHANNEL THEN
+   channel_write_line channel_to_Game, "PAL " & pal_num
+  END IF
  #ENDIF
 END SUB
 

@@ -139,7 +139,7 @@ DIM sourcerpg as string
 DIM workingdir as string
 
 'Has been spawned from Custom. This is a common global for the benefit of gfx_sdl
-DIM running_as_slave as bool = NO
+DIM running_under_Custom as bool = NO
 
 'Used for search_string_cache. Should change every time the current game changes; changing
 'it on reloading some lumps while live previewing also useful, to clear certain caches

@@ -899,7 +899,7 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
    END READNODE
    init_menu_state st, menu
    init_menu_state prst, preview
-   IF slave_channel <> NULL_CHANNEL THEN saveherodata her, hero_id
+   IF channel_to_Game <> NULL_CHANNEL THEN saveherodata her, hero_id
    st.need_update = NO
   END IF
   

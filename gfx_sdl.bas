@@ -782,7 +782,7 @@ SUB gfx_sdl_recenter_window_hint()
   ' SDL_VIDEO_CENTERED has no effect on Mac (Quartz backend); the window is always
   ' centred unless SDL_VIDEO_WINDOW_POS is in effect.
 
-  IF running_as_slave = NO THEN   'Don't display the window straight on top of Custom's
+  IF running_under_Custom = NO THEN   'Don't display the window straight on top of Custom's
     putenv("SDL_VIDEO_CENTERED=1")
   ELSE
     #IFDEF __FB_WIN32__

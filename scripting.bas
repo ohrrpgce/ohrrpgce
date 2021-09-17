@@ -1461,7 +1461,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
   ELSE
    append_menu_item menu, "Enter script debugger", 6
   END IF
-  IF running_as_slave THEN append_menu_item menu, "Reload scripts", 7
+  IF running_under_Custom THEN append_menu_item menu, "Reload scripts", 7
  END IF
 
  state.active = YES
@@ -1585,7 +1585,7 @@ FUNCTION script_interrupt () as integer
  append_menu_item menu, "Stop all scripts", 3
  append_menu_item menu, "Exit game", 4
  append_menu_item menu, "Enter script debugger", 5
- IF running_as_slave THEN append_menu_item menu, "Reload scripts", 6
+ IF running_under_Custom THEN append_menu_item menu, "Reload scripts", 6
 
  state.active = YES
  init_menu_state state, menu

@@ -31,7 +31,7 @@ using Reload
 #endif
 
 #ifdef IS_CUSTOM
-	#include "cglobals.bi"  'For slave_channel
+	#include "cglobals.bi"  'For channel_to_Game
 #endif
 
 #ifdef __FB_ANDROID__
@@ -8334,7 +8334,7 @@ sub GIFRecorder.stop()
 	if len(this.secondscreen) then
 		#ifdef IS_CUSTOM
 			debug "Asking Game to stop writing to " & this.secondscreen
-			channel_write_line(slave_channel, "SCREEN STOP")
+			channel_write_line(channel_to_Game, "SCREEN STOP")
 		#endif
 		safekill this.secondscreen  'Both Game and Custom will attempt to delete the file
 	end if

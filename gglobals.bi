@@ -27,7 +27,7 @@ EXTERN backcompat_sound_slot_mode as bool
 EXTERN backcompat_sound_slots() as integer
 EXTERN autosnap as integer
 EXTERN custom_version as string
-EXTERN master_channel as IPCChannel
+EXTERN channel_to_Custom as IPCChannel
 EXTERN modified_lumps as string vector
 EXTERN lump_reloading as LumpReloadOptions
 EXTERN force_prefsdir_save as bool
