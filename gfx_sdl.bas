@@ -37,30 +37,6 @@
 #include "lib/SDL/SDL_cocoaclipboard.bi"
 #endif
 
-''' FB SDL headers were pretty out of date until FB 1.04, when they were replaced with completely new versions
-#if __FB_VERSION__ < "1.04"
-#undef SDL_VideoInfo
-type SDL_VideoInfo
-	hw_available:1 as Uint32
-	wm_available:1 as Uint32
-	UnusedBits1:6 as Uint32
-	UnusedBits2:1 as Uint32
-	blit_hw:1 as Uint32
-	blit_hw_CC:1 as Uint32
-	blit_hw_A:1 as Uint32
-	blit_sw:1 as Uint32
-	blit_sw_CC:1 as Uint32
-	blit_sw_A:1 as Uint32
-	blit_fill:1 as Uint32
-	UnusedBits3:16 as Uint32
-	video_mem as Uint32
-	vfmt as SDL_PixelFormat ptr
-        'ADDED:
-	current_w as Sint32  ' Value: The current video mode width
-	current_h as Sint32  ' Value: The current video mode height
-end type
-#endif
-
 
 EXTERN "C"
 
@@ -1101,12 +1077,7 @@ SUB gfx_sdl_process_events()
       CASE SDL_MOUSEMOTION : warped_mouse = NO
 #ENDIF
 
-'Warning: I don't know which one FB versions between 0.91 and 1.04 need
-#IF __FB_VERSION__ < "0.91" OR __FB_VERSION__ >= "1.04"
       CASE SDL_ACTIVEEVENT
-#ELSE
-      CASE SDL_ACTIVEEVENT_
-#ENDIF
         IF evnt.active.state AND SDL_APPINPUTFOCUS THEN
           IF debugging_io THEN
             debuginfo "SDL_ACTIVEEVENT state=" & evnt.active.state & " gain=" & evnt.active.gain

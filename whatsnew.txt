@@ -13,6 +13,7 @@ WHAT IS NEW?
       fullscreen [Ralph]
 
   *** Stuff Only Developers Will Notice
+    * FreeBASIC 1.04+ now required to compile
 
 
 September 13 2021 [Hróðvitnir]

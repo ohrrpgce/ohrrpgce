@@ -502,17 +502,8 @@ declare function lines_to_file(strarray() as string, filename as string, lineend
 declare function get_tmpdir () as string
 
 'Slight hackery to get more versatile read function
-'Earlier versions of fbc like 0.90 internally defined these functions differently from their actual prototypes,
-'leading to conflicts with -gen gcc, so use the fbc prototype.
-'TODO: The only reason to support -gen gcc in FB 0.90 is because the android branch of our FB fork is currently based on it.
-
-#IF __FB_VERSION__ < "0.91"
-declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as uinteger = 0, byval dst as any ptr, byval bytes as integer ) as integer
-declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as uinteger = 0, byval src as any ptr, byval bytes as integer ) as integer
-#ELSE
 declare function fget alias "fb_FileGet" ( byval fnum as long, byval pos as long = 0, byval dst as any ptr, byval bytes as size_t ) as long
 declare function fput alias "fb_FilePut" ( byval fnum as long, byval pos as long = 0, byval src as any ptr, byval bytes as size_t ) as long
-#ENDIF
 declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as long, byval pos as long = 0, byval dst as any ptr, byval bytes as size_t, byval bytesread as size_t ptr ) as long
 
 
@@ -526,17 +517,6 @@ declare function run_and_get_output(cmd as string, byref stdout_s as string, byr
 '----------------------------------------------------------------------
 '                              Math
 
-
-'crt/float.bi is missing these in FB 0.90.1 and earlier
-
-#IF __FB_VERSION__ < "0.91"
-  ' Maximum double
-  'FIXME: This is the true value, but produces an assembler error!
-  '#define DBL_MAX 1.7976931348623157e+308
-  #define DBL_MAX 1.7976931348623154e+308
-  ' Maximum single
-  #define FLT_MAX 3.40282347e+38F
-#ENDIF
 
 ' Don't use this directly.
 TYPE XYSimple

@@ -69,12 +69,6 @@ dim shared _ModPlug_GetSettings as sub (byval settings as ModPlug_Settings ptr)
 dim shared _ModPlug_SetSettings as sub (byval settings as const ModPlug_Settings ptr)
 
 
-' Older FB have out of date SDL headers
-#if __FB_VERSION__ < "1.04"
-	declare function Mix_LoadMUS_RW (byval rw as SDL_RWops ptr) as Mix_Music ptr
-	' Mix_GetMusicDecoder etc also missing
-#endif
-
 #ifndef MIX_INIT_MID
 	'Exists in SDL_mixer 2 only (but missing from older FB headers).
 	'Equal to MIX_INIT_FLUIDSYNTH in SDL_mixer 1.2.

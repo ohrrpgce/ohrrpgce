@@ -71,6 +71,9 @@ except (ImportError, NotImplementedError):
 # FBC, the FB compiler, is a ToolInfo object (which can be treated as a string)
 FBC = ohrbuild.get_fb_info(ARGUMENTS.get('fbc', os.environ.get('FBC', 'fbc')))
 
+if FBC.version < 1040:
+    exit("FreeBASIC 1.04 or later required")
+
 # Headers in fb/ depend on this define
 CFLAGS += ['-DFBCVERSION=%d' % FBC.version]
 
@@ -578,7 +581,7 @@ if FBC.version >= 1080 and arch == 'x86_64':
     gengcc = True
 elif arch != 'x86':
     gengcc = True
-if mac and FBC.version > 220:
+if mac:
     gengcc = True
 
 if arch == 'armv5te':
@@ -649,9 +652,12 @@ if gengcc:
         # Use AddressSanitizer in C files produced by fbc
         GENGCC_CFLAGS.append ('-fsanitize=address')
     if FBCC.is_gcc:
-        if FBCC.version >= 900:
+        if FBCC.version >= 900 and FBC.version < 1080:
             # Workaround an error. See https://sourceforge.net/p/fbc/bugs/904/
             GENGCC_CFLAGS.append ('-Wno-format')
+        if FBCC.version >= 1000:
+            # And another problem due to gcc 10+ being very picky about equivalent types (c.f. FB bug sf#904)
+            GENGCC_CFLAGS.append('-Wno-builtin-declaration-mismatch')
         # -exx results in a lot of labelled goto use, which confuses gcc 4.8+, which tries harder to throw this warning
         # (This flag only recognised by recent gcc)
         if FBCC.version >= 480:
@@ -659,10 +665,8 @@ if gengcc:
             # (The following is not in gcc 4.2)
             # Ignore warnings due to using an array lbound > 0
             GENGCC_CFLAGS.append ('-Wno-array-bounds')
-        # Ignore annoying warning which is an fbc bug
+        # Ignore annoying warning https://sourceforge.net/p/fbc/bugs/936/
         GENGCC_CFLAGS.append ('-Wno-missing-braces')
-        # And another problem due to gcc being very picky about equivalent types (hard for fbc to fix)
-        GENGCC_CFLAGS.append('-Wno-builtin-declaration-mismatch')
     if FBCC.is_clang:
         # clang doesn't like fbc's declarations of standard functions
         GENGCC_CFLAGS += ['-Wno-builtin-requires-header', '-Wno-incompatible-library-redeclaration']
@@ -693,44 +697,18 @@ else:
 
 ################ A bunch of stuff for linking
 
-# FB 0.91 added a multithreaded version of libfbgfx
-if FBC.version >= 910:
-    libfbgfx = 'fbgfxmt'
-else:
-    libfbgfx = 'fbgfx'
-
 if linkgcc:
     # Link using g++ instead of fbc; this makes it easy to link correct C++ libraries, but harder to link FB
 
     # Find the directory where the FB libraries are kept.
-    if FBC.version >= 1030:
-        # Take the last line, in case -v is in FBFLAGS
-        libpath = get_command_output (FBC.path, ["-print", "fblibdir"] + FBFLAGS).split('\n')[-1]
-        # Some FB targets (win32) don't have PIC libs, android only has PIC libs
-        checkfile = os.path.join (libpath, 'fbrt0.o')
-        checkfile2 = os.path.join (libpath, 'fbrt0pic.o')
-        if not os.path.isfile (checkfile) and not os.path.isfile (checkfile2):
-            print("Error: This installation of FreeBASIC doesn't support this target-arch combination;\n" + checkfile + " is missing.")
-            Exit(1)
-    else:
-        # Manually determine library location (TODO: delete this if certainly not supporting FB 1.02 any more)
-        fbc_path = os.path.dirname(os.path.realpath(FBC.path))
-        fblibpaths = [[fbc_path, '..', 'lib', 'freebasic'],  # Normal
-                      [fbc_path, 'lib'],   # Standalone
-                      [fbc_path, '..', 'lib'],
-                      ['/usr/share/freebasic/lib'],
-                      ['/usr/local/lib/freebasic']]
-        # For each of the above possible library paths, check four possible target subdirectories:
-        # (FB changes where the libraries are stored every other month)
-        targetdirs = [ [], [target + '-' + arch], [arch + '-' + target], [target] ]
-
-        for path, targetdir in itertools.product(fblibpaths, targetdirs):
-            libpath = os.path.join(*(path + targetdir))
-            print("Looking for FB libs in", libpath)
-            if os.path.isfile(os.path.join(libpath, 'fbrt0.o')):
-                break
-        else:
-            raise Exception("Couldn't find the FreeBASIC lib directory")
+    # Take the last line, in case -v is in FBFLAGS
+    libpath = get_command_output(FBC.path, ["-print", "fblibdir"] + FBFLAGS).split('\n')[-1]
+    # Some FB targets (win32) don't have PIC libs, android only has PIC libs
+    checkfile = os.path.join(libpath, 'fbrt0.o')
+    checkfile2 = os.path.join(libpath, 'fbrt0pic.o')
+    if not os.path.isfile(checkfile) and not os.path.isfile(checkfile2):
+        print("Error: This installation of FreeBASIC doesn't support this target-arch combination;\n" + checkfile + " [or fbrt0pic.o] are missing.")
+        Exit(1)
 
     # This causes ld to recursively search the dependencies of linked dynamic libraries
     # for more dependencies (specifically SDL on X11, etc)
@@ -772,11 +750,6 @@ if linkgcc:
             # Don't know about Mac situation.
             if not portable or mac:
                 CXXLINKFLAGS += ['-lncurses']
-
-    if mac:
-        if FBC.version <= 220:
-            # The old port of FB v0.22 to mac requires this extra file (it was a kludge)
-            CXXLINKFLAGS += [os.path.join(libpath, 'operatornew.o')]
 
     def compile_main_module(target, source, env):
         """
@@ -849,7 +822,7 @@ if not linkgcc:
         FBLINKFLAGS += ['-l', ':libstdc++.a']  # Yes, fbc accepts this argument form
     else:
         FBLINKFLAGS += ['-l','stdc++'] #, '-l','gcc_s']
-    if mac and FBC.version > 220:
+    if mac:
         # libgcc_eh (a C++ helper library) is only needed when linking/compiling with old versions of Apple g++
         # including v4.2.1; for most compiler versions and configuration I tried it is unneeded
         # (Normally fbc links with gcc_eh if required, I wonder what goes wrong here?)
@@ -958,7 +931,7 @@ common_libpaths = []
 
 # OS-specific libraries and options for each backend are added below.
 
-gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'common_libraries': libfbgfx},
+gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'common_libraries': 'fbgfxmt'},
            'alleg' : {'shared_modules': 'gfx_alleg.bas', 'common_libraries': 'alleg'},
            'sdl' : {'shared_modules': 'gfx_sdl.bas', 'common_libraries': 'SDL'},
            'sdl2' : {'shared_modules': 'gfx_sdl2.bas', 'common_libraries': 'SDL2'},
@@ -1015,7 +988,7 @@ if win32:
     base_libraries += ['winmm', 'ole32', 'gdi32', 'shell32', 'advapi32', 'wsock32' if win95 else 'ws2_32']
     if win95:
         env['CFLAGS'] += ['-D', 'USE_WINSOCK1']
-    common_libraries += [libfbgfx]
+    common_libraries += ['fbgfxmt']   # For display_help_string
     commonenv['FBFLAGS'] += ['-s','gui']  # Change to -s console to see 'print' statements in the console!
     commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
     #env['CXXLINKFLAGS'] += ['win32/CrashRpt1403.lib']  # If not linking the .dll w/ LoadLibrary

@@ -7,7 +7,7 @@ doesn't depend on any of the platform-specific headers.
 
 These headers have been largely stable over the last 9 years, however
 I only guarantee the parts that we actually use to be correct, for FB
-versions between 0.22 and 1.06 inclusive.  Of course we want to rely
+versions between 1.02 and 1.06 inclusive.  Of course we want to rely
 on as little as possible to minimise the chance of breakage in future
 FB versions. Do not assume these headers are correct for future FB
 versions without diff'ing them! It will be necessary to check the git

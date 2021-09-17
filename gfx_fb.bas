@@ -340,7 +340,6 @@ sub process_key_event(e as Event, byval value as KeyBits)
 
 	select case e.scancode
 		case scHome to scPageUp, scLeft to scRight, scEnd to scDelete
-#if defined(__FB_WIN32__) or __FB_VERSION__ >= "0.90"
 			'If numlock is on, then when a numerical/period numpad key is pressed the key will
 			'generate ascii 0-9 or ., and can be differentiated from arrow and home, etc., keys.
 			'Otherwise they both return e.ascii = 0
@@ -349,16 +348,6 @@ sub process_key_event(e as Event, byval value as KeyBits)
 			else
 				extrakeys(e.scancode) = value
 			end if
-#else
-			'On Linux, X11 driver & FB before 0.90, Home, Left, etc send "extended scancodes",
-			'with .ascii >256 (or 127 in the case of Delete), and numpad keys
-			'send 0 if numlock is off, and the normal ascii if on
-			if e.ascii < 256 andalso e.ascii <> 127 then
-				extrakeys(e.scancode - scHome + scNumpad7) = value
-			else
-				extrakeys(e.scancode) = value
-			end if
-#endif
 	end select
 end sub
 

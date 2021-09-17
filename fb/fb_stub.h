@@ -14,6 +14,9 @@ extern "C" {
 #ifndef FBCVERSION
 #error FBCVERSION must be defined.
 #endif
+#if FBCVERSION < 1020
+#error FBCVERSION before 1.02 not supported.
+#endif
 
 #define ENABLE_MT
 
@@ -227,29 +230,19 @@ typedef struct FB_HOOKSTB {
 #endif
 } FB_HOOKSTB;
 
-#if FBCVERSION < 240
-	typedef uintptr_t FB_TLSENTRY;  // Platform dependent, e.g. pthread_key_t on Unix
-	#define FB_TLSKEYS 5
-#endif
-
 // This is also fairly stable. We need this to access the file table, fileTB.
 typedef struct FB_RTLIB_CTX_ {
 	int             argc;
 	char          **argv;
 	FBSTRING        null_desc;
 	char           *errmsg;
-#if FBCVERSION < 240
-	FnDummy         pfnDevOpenHook;
-	FB_TLSENTRY     tls_ctxtb[FB_TLSKEYS];
-#endif
+	//FnDummy         pfnDevOpenHook;  used to be here, sigh
 	FB_HOOKSTB      hooks;
 	FB_FILE         fileTB[FB_MAX_FILES];
 	/* We don't care about anything after this point */
 	int             do_file_reset;
 	int             lang;
-#if FBCVERSION >= 1020
 	void          (*exit_gfxlib2)(void);
-#endif
 } FB_RTLIB_CTX;
 
 extern FB_RTLIB_CTX __fb_ctx;

@@ -112,7 +112,6 @@ void fb_End_hook() {
 // signal handlers. fb_error_hook() will be called.
 // Can be called repeatedly.
 boolint hook_fb_End() {
-#if FBCVERSION >= 1020
 	// This is a massive kludge! It just so happens that this
 	// function pointer is called at a very convenient time,
 	// inside fb_End immediately before exit()!
@@ -120,19 +119,15 @@ boolint hook_fb_End() {
 		real_exit_gfxlib2_hook = __fb_ctx.exit_gfxlib2;
 	__fb_ctx.exit_gfxlib2 = fb_End_hook;
 	return YES;
-#endif
-	return NO;
 }
 
 // Can be called repeatedly.
 void unhook_fb_End() {
-#if FBCVERSION >= 1020
 	if (__fb_ctx.exit_gfxlib2 == fb_End_hook)  // ensure hook not replaced
 		__fb_ctx.exit_gfxlib2 = real_exit_gfxlib2_hook;
 	real_exit_gfxlib2_hook = NULL;
 	// Note that fbgfx doesn't remove the hook when it shuts down: it's
 	// safe to leave that hook in place after gfx_fb exits.
-#endif
 }
 
 
