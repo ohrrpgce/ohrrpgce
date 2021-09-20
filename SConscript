@@ -93,6 +93,7 @@ android_source = False
 win95 = int(ARGUMENTS.get ('win95', '1'))
 glibc = False  # Computed below; can also be overridden by glibc=1 cmdline argument
 target = ARGUMENTS.get ('target', None)
+cross_compiling = (target is not None)
 arch = ARGUMENTS.get ('arch', None)  # default decided below
 
 if 'android-source' in ARGUMENTS:
@@ -463,7 +464,7 @@ def depend_on_reloadbasic_py(target, source, env):
 rbasic_builder = Builder (action = [[File('reloadbasic/reloadbasic.py'), '--careful', '$SOURCE', '-o', '$TARGET']],
                           suffix = '.rbas.bas', src_suffix = '.rbas', emitter = depend_on_reloadbasic_py)
 
-# windres is part of mingw, and this is only used with linkgcc anyway.
+# windres is part of mingw.
 # FB includes GoRC.exe, but finding that file is too much trouble...
 rc_builder = Builder (action = target_prefix + 'windres --input $SOURCE --output $TARGET',
                       suffix = '.obj', src_suffix = '.rc')
@@ -1301,12 +1302,24 @@ def setup_eu_vars():
         euc_extra_args += ['-eudir', env['ENV']['EUDIR']]
     # We have not found any way to capture euc's stderr on Windows so can't check version there
     # (But currently the nightly build machine runs 4.0.5)
-    if NO_PIE and not host_win32 and not mac and EUC and ohrbuild.get_euphoria_version(EUC) >= 40100:
+    if NO_PIE and not win32 and not mac and EUC and ohrbuild.get_euphoria_version(EUC) >= 40100:
         # On some systems (not including mac) gcc defaults to building PIE
         # executables, but the linux euphoria 4.1.0 builds aren't built for PIE/PIC,
         # resulting in a "recompile with -fPIC" error.
         # But the -extra-lflags option is new in Eu 4.1.
         euc_extra_args += ['-extra-lflags', NO_PIE]
+
+    if cross_compiling:
+        if 'eulib' not in ARGUMENTS:
+            exit('You need to pass eulib=... argument with the path to a Euphoria eu.a compiled for ' + target_prefix)
+        euc_extra_args += ['-arch', arch, '-lib', ARGUMENTS['eulib']]
+        if win32:
+            euc_extra_args += ['-plat', 'windows']
+        elif mac:
+            euc_extra_args += ['-plat', 'osx']
+        else:  # unix
+            euc_extra_args += ['-plat', 'linux']   # FIXME: not quite right
+        env['EUCMAKEFLAGS'] = ['CC=' + str(CC), 'LINKER=' + str(CC)]
 
     env['EUFLAGS'] = euc_extra_args
     env['EUBUILDDIR'] = Dir(hspeak_builddir)  # Ensures spaces are escaped
@@ -1320,7 +1333,7 @@ if optimisations > 1:
     # HSpeak is built by translating to C, generating a Makefile, and running make.
     euexe = Builder(action = [Action(check_have_euc, None),
                               '$EUC -con -gcc $SOURCES $EUFLAGS -verbose -maxsize 5000 -makefile -build-dir $EUBUILDDIR',
-                              '$MAKE -j%d -C $EUBUILDDIR -f hspeak.mak' % (GetOption('num_jobs'),)],
+                              '$MAKE -j%d -C $EUBUILDDIR -f hspeak.mak $EUCMAKEFLAGS' % (GetOption('num_jobs'),)],
                     suffix = exe_suffix, src_suffix = '.exw')
 else:
     # Use eubind to combine hspeak.exw and the eui interpreter into a single (slower) executable
@@ -1621,6 +1634,8 @@ Options:
                        32 or 64           32 or 64 bit variant of the default
                                           arch (x86 or ARM).
                       Current (default) value: """ + arch + """
+  eulib=...           Only needed when cross-compiling hspeak. Path to eu.a
+                      library compiled for the target platform.
   portable=1          (For Linux and BSD) Try to build portable binaries, and
                       check library dependencies.
 
@@ -1643,6 +1658,7 @@ The following environmental variables are also important:
   DXSDK_DIR, Lib,
      Include          For compiling gfx_directx.dll
   EUC                 euc Euphoria-to-C compiler, for compiling hspeak
+  EUBIND              eubind Euphoria binder, produces hspeak in debug builds
   EUDIR               Override location of the Euphoria installation, for
                       compiling hspeak (not needed if installed system-wide)
   SCONS_CACHE_SIZE    Max size of the compile results cache in MB; default 100.
