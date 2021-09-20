@@ -23,34 +23,34 @@ LICENSE:
   does not apply to games made with the engine.
 -----------------------------------------------------------------------------
 WINDOWS/LINUX/UNIX:
-  Recommend FreeBasic version 1.05.0
-  Requires minimum FreeBasic version 1.00.0
-  Download FreeBasic from http://freebasic.net/
+  Recommend FreeBASIC version 1.08.0
+  Requires minimum FreeBASIC version 1.04.0
+  Download FreeBASIC from http://freebasic.net/
    http://rpg.hamsterrepublic.com/ohrrpgce/Getting_FreeBasic
   Compiling requires Python and Scons
   Building HSpeak requires Euphoria v4.0+: http://www.OpenEuphoria.com/
-  (Compiling x86_64 versions of HSpeak requires Euphoria 4.1)
+  (Compiling x86_64 versions of HSpeak requires Euphoria 4.1+)
   Compiling gfx_directx.dll (optional) requires Visual C++ and a DirectX SDK.
   (See http://rpg.hamsterrepublic.com/ohrrpgce/Compiling#gfx_directx)
   x86, x86_64, and ARM on Win32, GNU/Linux, OSX and Android are tested.
 -----------------------------------------------------------------------------
 MAC OS X:
-  Compiling requires Python, Scons, and a fork of FreeBasic 1.06+
+  Compiling requires Python, Scons, and FreeBASIC 1.09+, or else a fork of FB
   Read http://rpg.hamsterrepublic.com/ohrrpgce/Compiling_in_Mac_OS_X
 -----------------------------------------------------------------------------
 ANDROID:
-  Requires a fork of FreeBasic 1.06+
+  Requires a fork of FreeBASIC 1.06+
   Requires sdl-android (ohrrpgce fork)
   See http://rpg.hamsterrepublic.com/ohrrpgce/Compiling_for_Android for info
 -----------------------------------------------------------------------------
 INSTRUCTIONS
   Unpack the source code to a new folder
-  Install FreeBasic
-  Install Python if needed
+  Install FreeBASIC
+  Install Python 3 if needed
   Install SConscript
-  Run "scons --help" to see options
-  Run "scons" to compile Game and Custom
-   (32 bit) or "scons arch=64" (64 bit)
+  Run "scons --help" to see the many options and targets available
+  Run "scons" to compile a debug build of Game and Custom
+  Run "scons release=1" for release builds
   (Unix only) You can run "scons install" to install system-wide or as part
   of creating a package. You can run linux/ohrrpgce.py to create a .deb file.
 -----------------------------------------------------------------------------
