@@ -2677,12 +2677,12 @@ sub JoystickState.update_keybits(joynum as integer)
 	end if
 	debug_if_slow(starttime, 0.01, joynum)
 
-	' Unless the gfx backend supports state.buttons_new (not actually implemented
-	' by any yet), it only tells us which buttons are currently down,
+	' Unless the gfx backend reports state.buttons_new (only gfx_sdl2),
+	' it only tells us which buttons are currently down,
 	' like io_updatekeys, not which have new keypresses, like io_keybits,
 	' so this is similar to the former (as handled in pollingthread).
 
-	' Clear bits 1 (keypress event) and 2 (new keypress)
+	' Clear bits 1 (keypress event) and 2 (new keypress), leave bit 0 (key down)
 	for scancode as JoyButton = 0 to ubound(keys)
 		keys(scancode) and= 1
 	next

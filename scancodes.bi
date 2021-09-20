@@ -270,6 +270,7 @@ ENUM 'JoyAxis
  axisL2     = 4  'Left trigger
  axisR2     = 5  'Right trigger
  axisLASTGAMEPAD = 5  'Last axis with a gamepad mapping
+ axisLAST   = 7  'Last axis returned by io_get_joystick_state (can't be changed!)
 END ENUM
 TYPE JoyAxis as integer
 

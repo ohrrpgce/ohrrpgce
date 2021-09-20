@@ -131,6 +131,7 @@ LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
   RETURN -1  'Acquired joystick
 END FUNCTION
 
+'Returns -1 to 3; see gfx.bi
 FUNCTION IO_SDL(get_joystick_state)(byval joynum as integer, byval state as IOJoystickState ptr) as integer
   DIM ret as integer = get_joystick(joynum)
   IF ret > 0 THEN RETURN ret  'Failure
@@ -212,13 +213,14 @@ END FUNCTION
 
 END EXTERN ' Can't put assignment statements in an extern block
 
-DIM SHARED ohr_gamepad_axes(0 to SDL_CONTROLLER_AXIS_MAX) as JoyAxis
+DIM SHARED ohr_gamepad_axes(0 to SDL_CONTROLLER_AXIS_TRIGGERRIGHT) as JoyAxis
 ohr_gamepad_axes(SDL_CONTROLLER_AXIS_LEFTX) = axisX
 ohr_gamepad_axes(SDL_CONTROLLER_AXIS_LEFTY) = axisY
 ohr_gamepad_axes(SDL_CONTROLLER_AXIS_RIGHTX) = axisRightX
 ohr_gamepad_axes(SDL_CONTROLLER_AXIS_RIGHTY) = axisRightY
 ohr_gamepad_axes(SDL_CONTROLLER_AXIS_TRIGGERLEFT) = axisL2
 ohr_gamepad_axes(SDL_CONTROLLER_AXIS_TRIGGERRIGHT) = axisR2
+'Other axes up to SDL_CONTROLLER_AXIS_MAX ignored
 
 DIM SHARED ohr_gamepad_buttons(0 to SDL_CONTROLLER_BUTTON_MAX) as JoyButton
 ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_A) = joyA
@@ -236,6 +238,7 @@ ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_DPAD_UP) = joyUp
 ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_DPAD_DOWN) = joyDown
 ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_DPAD_LEFT) = joyLeft
 ohr_gamepad_buttons(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) = joyRight
+'Other buttons (which are equal to 0 aka joyNone) ignored
 
 EXTERN "C"
 
@@ -264,7 +267,8 @@ FUNCTION sdl2_update_gamepad(joynum as integer, state as IOJoystickState ptr) as
 
     DIM buttons as uinteger = 0
 
-    FOR idx as integer = 0 TO SDL_CONTROLLER_BUTTON_MAX
+    FOR idx as integer = 0 TO UBOUND(ohr_gamepad_buttons)
+      IF ohr_gamepad_buttons(idx) = joyNone THEN CONTINUE FOR
       IF SDL_GameControllerGetButton(controller, idx) THEN
         'io_get_joystick_state returns gamepad buttons starting with joyButton1 in the first bit
         '? "raw SDL button " & idx & " " & *SDL_GameControllerGetStringForButton(idx)
@@ -274,7 +278,7 @@ FUNCTION sdl2_update_gamepad(joynum as integer, state as IOJoystickState ptr) as
 
     .buttons_down = buttons
 
-    FOR idx as integer = 0 TO SDL_CONTROLLER_AXIS_TRIGGERRIGHT  'Axes SDL_CONTROLLER_AXIS_MAX and above not supported
+    FOR idx as integer = 0 TO UBOUND(ohr_gamepad_axes)
       DIM off as integer = SDL_GameControllerGetAxis(controller, idx)  'Range -32768 to 32767
       IF off THEN
         '? "raw SDL axis " & idx & " ohrax=" & ohr_gamepad_axes(idx) &  " " & off
@@ -293,7 +297,7 @@ END FUNCTION
 'Record a button press (when a button down event happens)
 FUNCTION sdl2_joy_button_press(btn as integer, instance_id as integer) as bool
   DIM joynum as integer = instance_to_joynum(instance_id)
-  IF joynum < 0 THEN RETURN NO
+  IF joynum < 0 ORELSE ohr_gamepad_buttons(btn) = joyNone THEN RETURN NO
   joystickbuttons(joynum) OR= 1 SHL (ohr_gamepad_buttons(btn) - 1)
   RETURN YES
 END FUNCTION

@@ -79,7 +79,7 @@ type IOJoystickState
 	                         'If info->have_bindings is true, then buttons are numbered according to JoyButton,
 				 '(offset by -1 to start from 0), e.g. bit 0 is joyA, bit 1 is joyB
 	buttons_new as uinteger  '(Optional) Whether a new keypress has happened for each button, since last poll
-	axes(7) as integer       'Values from -AXIS_LIMIT to AXIS_LIMIT
+	axes(axisLAST) as integer 'Values from -AXIS_LIMIT to AXIS_LIMIT
 	                         'If info->have_bindings is true, then axes are numbered according to JoyAxis.
 	hats(3) as integer       'Length 4 bitvector: left=1, right=2, up=4, down=8
 	info as JoystickInfo ptr '(Optional - can be NULL) This pointer must remain valid until backend shutdown
