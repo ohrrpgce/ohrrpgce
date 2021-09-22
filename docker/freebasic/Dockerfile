@@ -1,7 +1,7 @@
 # bobthehamster/freebasic
 FROM debian:stretch-slim
 
-ENV FBC_VERSION 1.07.3
+ENV FBC_VERSION 1.08.1
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
