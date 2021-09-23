@@ -515,6 +515,8 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
     END IF
     recenter_window_hint = NO
     recreate_screen_texture
+
+    update_mouserect
   END IF
 END SUB
 
@@ -774,6 +776,9 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
     resize_requested = (resize_request <> framesize)
     SDL_SetWindowSize mainwindow, resize_request.w * zoom, resize_request.h * zoom
   END IF
+
+  'Mouse region needs recomputing after either scale/zoom or window size change
+  update_mouserect
 END SUB
 
 SUB gfx_sdl2_windowtitle(byval title as zstring ptr)
@@ -891,8 +896,6 @@ SUB gfx_sdl2_set_window_size (byval newframesize as XYPair, newzoom as integer)
     END IF
 
     set_window_size(newframesize, newzoom)
-
-    update_mouserect
   END IF
 END SUB
 
@@ -1020,7 +1023,6 @@ LOCAL SUB keycombos_logic(evnt as SDL_Event)
     IF evnt.key.keysym.sym = SDLK_SLASH AND evnt.key.keysym.mod_ AND KMOD_SHIFT THEN
       keybdstate(scF1) = 2
     END IF
-    '(Note: gfx_sdl2 doesn't support set_scale_factor yet)
     FOR i as integer = 1 TO 4
       IF evnt.key.keysym.sym = SDLK_0 + i THEN
         #IFDEF IS_CUSTOM
@@ -1436,7 +1438,7 @@ SUB io_sdl2_setmousevisibility(visibility as CursorVisibility)
 END SUB
 
 'Get the origin of the displayed image, in unscaled window coordinates,
-'and the actual zoom ratio in use (may differ from 'zoom')
+'and the actual zoom ratio in use (may differ from 'zoom', e.g. when full-screened)
 SUB get_image_origin_and_ratio(byref origin as XYPair, byref ratio as double)
   DIM windowsz as XYPair
   SDL_GetWindowSize(mainwindow, @windowsz.w, @windowsz.h)

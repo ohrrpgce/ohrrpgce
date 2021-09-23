@@ -12,7 +12,8 @@ WHAT IS NEW?
     * Various gfx_sdl2 window size/position and mouse glitches when exiting
       fullscreen [Ralph]
     * Re-did "mouse region" handling under gfx_sdl2 so the mouse moves/accelerates
-      normally. Also, entering a debug menu now pauses "mouse region" [Ralph]
+      normally, and switching fullscreen/windowed doesn't break it.
+      Also, entering a debug menu now pauses "mouse region" [Ralph]
 
   *** Stuff Only Developers Will Notice
     * FreeBASIC 1.04+ now required to compile
