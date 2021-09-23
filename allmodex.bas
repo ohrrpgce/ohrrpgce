@@ -460,8 +460,9 @@ dim shared sprcacheB_used as integer    'number of slots full
 'dim shared as integer cachehit, cachemiss
 
 dim shared mouse_grab_requested as bool = NO
-dim shared mouse_grab_overridden as bool = NO
-dim shared remember_mouse_grab(3) as integer = {-1, -1, -1, -1}
+dim shared mouse_grab_nested_pauses as integer = 0
+dim shared mouse_grab_scrolllock_overridden as bool = NO
+dim shared remember_mouse_grab as RectPoints
 
 dim shared remember_title as string       'The window title
 
@@ -3053,11 +3054,11 @@ sub update_mouse_state ()
 	end if
 
 	' If you released a mouse grab (mouserect) and then click on the
-	' window, resume the mouse grab.
-	if mouse_state.clicks <> 0 then
-		if mouse_grab_requested andalso mouse_grab_overridden then
-			mouserect remember_mouse_grab(0), remember_mouse_grab(1), remember_mouse_grab(2), remember_mouse_grab(3)
-		end if
+	' window, resume the mouse grab. (This is, and should be, called even if someone else
+	' also called pause_mouserect)
+	if mouse_state.clicks <> 0 andalso mouse_grab_scrolllock_overridden then
+		mouse_grab_scrolllock_overridden = NO
+		resume_mouserect
 	end if
 
 	if log_slow then debug_if_slow(starttime, 0.005, mouse_state.clicks)
@@ -3086,6 +3087,8 @@ sub movemouse (x as integer, y as integer)
 	mouse_state.y = y
 end sub
 
+'Restrict the mouse to a rectangle (xmax, ymax are inclusive).
+'Call mouserect(-1, -1, -1, -1) to end.
 sub mouserect (xmin as integer, xmax as integer, ymin as integer, ymax as integer)
 	dim norect as bool = (xmin = -1 and xmax = -1 and ymin = -1 and ymax = -1)
 	' Set window title to tell the player about scrolllock to escape mouse-grab
@@ -3095,12 +3098,10 @@ sub mouserect (xmin as integer, xmax as integer, ymin as integer, ymax as intege
 			mouse_grab_requested = NO
 			settemporarywindowtitle remember_title
 		else
-			remember_mouse_grab(0) = xmin
-			remember_mouse_grab(1) = xmax
-			remember_mouse_grab(2) = ymin
-			remember_mouse_grab(3) = ymax
+			remember_mouse_grab = TYPE<RectPoints>(XY(xmin, ymin), XY(xmax, ymax))
 			mouse_grab_requested = YES
-			mouse_grab_overridden = NO
+			'Nested mouserects are not supported.
+			mouse_grab_nested_pauses = 0
 #IFDEF __FB_DARWIN__
 			settemporarywindowtitle remember_title & " (F14 to free mouse)"
 #ELSE
@@ -3117,6 +3118,30 @@ sub mouserect (xmin as integer, xmax as integer, ymin as integer, ymax as intege
 		' and is difficult to support in .ohrkeys.
 		mouse_state.x = bound(mouse_state.x, xmin, xmax)
 		mouse_state.y = bound(mouse_state.y, ymin, ymax)
+	end if
+end sub
+
+'If mouserect is in effect, free the mouse. Nestable; resume_mouserect should be called the
+'same number of times (you can't nest mouserect calls, however).
+'Note this does not pause mouse input or show the mouse cursor.
+sub pause_mouserect
+	if mouse_grab_requested then
+		mouserect -1, -1, -1, -1
+		mouse_grab_requested = YES
+		mouse_grab_nested_pauses += 1
+	end if
+end sub
+
+'Undoes one call to pause_mouserect
+sub resume_mouserect
+	if mouse_grab_requested then
+		mouse_grab_nested_pauses -= 1
+		if mouse_grab_nested_pauses <= 0 then
+			mouse_grab_nested_pauses = 0
+			with remember_mouse_grab
+				mouserect .p1.x, .p2.x, .p1.y, .p2.y
+			end with
+		end if
 	end if
 end sub
 
@@ -3363,7 +3388,7 @@ local sub allmodex_controls()
 		end if
 	end if
 
-	if mouse_grab_requested then
+	if mouse_grab_requested andalso mouse_grab_nested_pauses <= 0 then
 #IFDEF __FB_DARWIN__
 		if keyval(scF14) > 1 then
 			clearkey(scF14)
@@ -3371,9 +3396,8 @@ local sub allmodex_controls()
 		if keyval(scScrollLock) > 1 then
 			clearkey(scScrollLock)
 #ENDIF
-			mouserect -1, -1, -1, -1
-			mouse_grab_requested = YES
-			mouse_grab_overridden = YES
+			pause_mouserect
+			mouse_grab_scrolllock_overridden = YES
 		end if
 	end if
 end sub

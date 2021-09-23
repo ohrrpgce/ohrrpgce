@@ -573,6 +573,8 @@ DECLARE FUNCTION getcursorvisibility () as CursorVisibility
 DECLARE FUNCTION readmouse () byref as MouseInfo
 DECLARE SUB movemouse (x as integer, y as integer)
 DECLARE SUB mouserect (xmin as integer, xmax as integer, ymin as integer, ymax as integer)
+DECLARE SUB pause_mouserect ()
+DECLARE SUB resume_mouserect ()
 
 
 '==========================================================================================

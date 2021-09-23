@@ -324,6 +324,7 @@ SUB push_and_reset_gfxio_state ()
   ensure_normal_palette
   .prev_mouse_vis = getcursorvisibility()
   showmousecursor
+  pause_mouserect
   force_use_mouse += 1
   get_key_mappings .key_mappings()
   set_basic_key_mappings  'Ensures Ctrl is not mapped to Use
@@ -347,6 +348,7 @@ SUB pop_gfxio_state ()
  WITH gfxio_state_stack(UBOUND(gfxio_state_stack))
   restore_previous_palette
   setcursorvisibility(.prev_mouse_vis)
+  resume_mouserect
   force_use_mouse -= 1
   set_key_mappings .key_mappings()
   setkeys
