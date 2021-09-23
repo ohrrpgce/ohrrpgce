@@ -3091,17 +3091,22 @@ end sub
 'Call mouserect(-1, -1, -1, -1) to end.
 sub mouserect (xmin as integer, xmax as integer, ymin as integer, ymax as integer)
 	dim norect as bool = (xmin = -1 and xmax = -1 and ymin = -1 and ymax = -1)
+
+	if norect then
+		mouse_grab_requested = NO
+	else
+		remember_mouse_grab = TYPE<RectPoints>(XY(xmin, ymin), XY(xmax, ymax))
+		mouse_grab_requested = YES
+		'Nested mouserects are not supported.
+		mouse_grab_nested_pauses = 0
+	end if
+
 	' Set window title to tell the player about scrolllock to escape mouse-grab
 	' gfx_directx does this itself, including handling scroll lock
-	if gfxbackend = "fb" or gfxbackend = "sdl" then
+	if gfxbackend <> "directx" then
 		if norect then
-			mouse_grab_requested = NO
 			settemporarywindowtitle remember_title
 		else
-			remember_mouse_grab = TYPE<RectPoints>(XY(xmin, ymin), XY(xmax, ymax))
-			mouse_grab_requested = YES
-			'Nested mouserects are not supported.
-			mouse_grab_nested_pauses = 0
 #IFDEF __FB_DARWIN__
 			settemporarywindowtitle remember_title & " (F14 to free mouse)"
 #ELSE
@@ -3109,6 +3114,7 @@ sub mouserect (xmin as integer, xmax as integer, ymin as integer, ymax as intege
 #ENDIF
 		end if
 	end if
+
 	GFX_ENTER
 	io_mouserect(xmin, xmax, ymin, ymax)
 	GFX_EXIT
@@ -3388,7 +3394,8 @@ local sub allmodex_controls()
 		end if
 	end if
 
-	if mouse_grab_requested andalso mouse_grab_nested_pauses <= 0 then
+	'gfx_directx handles ScollLock to pause mouse grab itself
+	if mouse_grab_requested andalso mouse_grab_nested_pauses <= 0 andalso gfxbackend <> "directx" then
 #IFDEF __FB_DARWIN__
 		if keyval(scF14) > 1 then
 			clearkey(scF14)
