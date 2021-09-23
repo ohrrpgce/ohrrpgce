@@ -95,7 +95,7 @@ DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
 DECLARE SUB update_mouse_visibility()
 DECLARE SUB set_forced_mouse_clipping(byval newvalue as bool)
-DECLARE SUB internal_set_mouserect(rect as RectPoints)
+DECLARE SUB update_mouserect()
 DECLARE SUB internal_disable_virtual_gamepad()
 DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as KBScancode, byval default_sdl_scancode as integer=0) as integer
 
@@ -125,7 +125,7 @@ DIM SHARED sdlpalette as SDL_Palette ptr
 DIM SHARED framesize as XYPair       'Size of the unscaled image
 DIM SHARED mouseclipped as bool = NO   'Whether we are ACTUALLY clipped
 DIM SHARED forced_mouse_clipping as bool = NO
-DIM SHARED remember_mousebounds as RectPoints = ((-1, -1), (-1, -1)) 'Args at the last call to io_mouserect
+DIM SHARED remember_mouserect as RectPoints = ((-1, -1), (-1, -1)) 'Args at the last call to io_mouserect
 DIM SHARED mousebounds as RectPoints = ((-1, -1), (-1, -1)) 'These are the actual clip bounds, in window coords
 DIM SHARED privatempos as XYPair     'Mouse position in window coords
 DIM SHARED keybdstate(127) as KeyBits  '"real"time keyboard array. See io_sdl2_keybits for docs.
@@ -892,13 +892,7 @@ SUB gfx_sdl2_set_window_size (byval newframesize as XYPair, newzoom as integer)
 
     set_window_size(newframesize, newzoom)
 
-    'Update the clip rectangle
-    'It would probably be easier to just store the non-zoomed clipped rect (mxmin, etc)
-    IF remember_mousebounds.p1.x <> -1 THEN
-      internal_set_mouserect remember_mousebounds
-    ELSEIF forced_mouse_clipping THEN
-      internal_set_mouserect TYPE<RectPoints>((0, 0), framesize.w - 1, framesize.h - 1)
-    END IF
+    update_mouserect
   END IF
 END SUB
 
@@ -1565,31 +1559,32 @@ LOCAL SUB internal_set_mouserect(rect as RectPoints)
   update_mouse()  'Move mouse into the rect
 END SUB
 
+'Update the mouse clip rectangle, either because it changed (or was enabled/disabled) or the window size changed
+LOCAL SUB update_mouserect()
+  IF remember_mouserect.p1.x > -1 THEN
+    internal_set_mouserect remember_mouserect
+  ELSEIF forced_mouse_clipping THEN
+    'We're now meant to be unclipped, but clip to the window
+    internal_set_mouserect TYPE<RectPoints>((0, 0), framesize.w - 1, framesize.h - 1)
+  ELSE
+    'Unclipped: remember_mouserect == ((-1,-1),(-1,-1))
+    internal_set_mouserect remember_mouserect
+  END IF
+END SUB
+
 'This turns forced mouse clipping on or off
 LOCAL SUB set_forced_mouse_clipping(byval newvalue as bool)
   newvalue = (newvalue <> 0)
   IF newvalue <> forced_mouse_clipping THEN
     forced_mouse_clipping = newvalue
-    IF forced_mouse_clipping THEN
-      IF mouseclipped = NO THEN
-        internal_set_mouserect TYPE<RectPoints>((0, 0), framesize.w - 1, framesize.h - 1)
-      END IF
-      'If already clipped: nothing to be done
-    ELSE
-      internal_set_mouserect remember_mousebounds
-    END IF
+    update_mouserect
   END IF
 END SUB
 
 SUB io_sdl2_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-  DIM rect as RectPoints = ((xmin, ymin), (xmax, ymax))
-  remember_mousebounds = rect
-  IF forced_mouse_clipping AND xmin = -1 THEN
-    'Remember that we are now meant to be unclipped, but clip to the window
-    internal_set_mouserect TYPE<RectPoints>((0, 0), framesize.w - 1, framesize.h - 1)
-  ELSE
-    internal_set_mouserect rect
-  END IF
+  'Should we clamp the rect?
+  remember_mouserect = TYPE<RectPoints>((xmin, ymin), (xmax, ymax))
+  update_mouserect
 END SUB
 
 PRIVATE FUNCTION scOHR2SDL(byval ohr_scancode as KBScancode, byval default_sdl_scancode as integer=0) as integer

@@ -91,7 +91,7 @@ DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
 DECLARE SUB update_mouse_visibility()
 DECLARE SUB set_forced_mouse_clipping(byval newvalue as bool)
-DECLARE SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+DECLARE SUB update_mouserect()
 DECLARE SUB internal_disable_virtual_gamepad()
 DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer
 DECLARE FUNCTION load_wminfo() as bool
@@ -825,13 +825,7 @@ SUB gfx_sdl_set_zoom(newzoom as integer, change_windowsize as bool)
 
       'Update the clip rectangle
       'FIXME: we ought to be doing this whenever the window size or zoom changes, not only here
-      WITH remember_mouserect
-        IF .p1.x <> -1 THEN
-          internal_set_mouserect .p1.x, .p2.x, .p1.y, .p2.y
-        ELSEIF forced_mouse_clipping THEN
-          internal_set_mouserect 0, framesize.w - 1, 0, framesize.h - 1
-        END IF
-      END WITH
+      update_mouserect
     ELSE
       'Keep window size the same
       resize_request.w = screensurface->w \ zoom
@@ -1480,8 +1474,8 @@ SUB io_sdl_setmouse(byval x as integer, byval y as integer)
   END IF
 END SUB
 
-LOCAL SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-  IF mouseclipped = NO AND (xmin >= 0) THEN
+LOCAL SUB internal_set_mouserect(rect as RectPoints)
+  IF mouseclipped = NO AND (rect.p1.x >= 0) THEN
     'enter clipping mode
     'SDL_WM_GrabInput causes most WM key combinations to be blocked, which I find unacceptable, so instead
     'we stick the mouse at the centre of the window. It's a very common hack.
@@ -1493,15 +1487,28 @@ LOCAL SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, b
     END IF
     lastmx = screensurface->w \ 2
     lastmy = screensurface->h \ 2
-  ELSEIF mouseclipped = YES AND (xmin = -1) THEN
+  ELSEIF mouseclipped = YES AND (rect.p1.x = -1) THEN
     'exit clipping mode
     mouseclipped = NO
     SDL_WarpMouse privatemx, privatemy
   END IF
-  mxmin = xmin * zoom
-  mxmax = xmax * zoom + zoom - 1
-  mymin = ymin * zoom
-  mymax = ymax * zoom + zoom - 1
+  mxmin = rect.p1.x * zoom
+  mxmax = rect.p2.x * zoom + zoom - 1
+  mymin = rect.p1.y * zoom
+  mymax = rect.p2.y * zoom + zoom - 1
+END SUB
+
+'Update the mouse clip rectangle, either because it changed (or was enabled/disabled) or the window size changed
+LOCAL SUB update_mouserect()
+  IF remember_mouserect.p1.x > -1 THEN
+    internal_set_mouserect remember_mouserect
+  ELSEIF forced_mouse_clipping THEN
+    'We're now meant to be unclipped, but clip to the window
+    internal_set_mouserect TYPE<RectPoints>((0, 0), framesize.w - 1, framesize.h - 1)
+  ELSE
+    'Unclipped: remember_mouserect == ((-1,-1),(-1,-1))
+    internal_set_mouserect remember_mouserect
+  END IF
 END SUB
 
 'This turns forced mouse clipping on or off
@@ -1509,33 +1516,14 @@ LOCAL SUB set_forced_mouse_clipping(byval newvalue as bool)
   newvalue = (newvalue <> 0)
   IF newvalue <> forced_mouse_clipping THEN
     forced_mouse_clipping = newvalue
-    IF forced_mouse_clipping THEN
-      IF mouseclipped = NO THEN
-        internal_set_mouserect 0, framesize.w - 1, 0, framesize.h - 1
-      END IF
-      'If already clipped: nothing to be done
-    ELSE
-      WITH remember_mouserect
-        internal_set_mouserect .p1.x, .p2.x, .p1.y, .p2.y
-      END WITH
-    END IF
+    update_mouserect
   END IF
 END SUB
 
 SUB io_sdl_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-  'TODO: clamp the rect
-  WITH remember_mouserect
-    .p1.x = xmin
-    .p1.y = ymin
-    .p2.x = xmax
-    .p2.y = ymax
-  END WITH
-  IF forced_mouse_clipping AND xmin = -1 THEN
-    'Remember that we are now meant to be unclipped, but clip to the window
-    internal_set_mouserect 0, framesize.w - 1, 0, framesize.h - 1
-  ELSE
-    internal_set_mouserect xmin, xmax, ymin, ymax
-  END IF
+  'Should we clamp the rect?
+  remember_mouserect = TYPE<RectPoints>((xmin, ymin), (xmax, ymax))
+  update_mouserect
 END SUB
 
 LOCAL FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer
