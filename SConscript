@@ -1046,7 +1046,7 @@ elif unix:  # Unix+X11 systems: Linux & BSD
         commonenv['CFLAGS'] += ['-DNO_X11']
     else:
         # All graphical gfx backends need the X11 libs
-        common_libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')
+        common_libraries += 'X11 Xext Xpm Xrandr Xrender Xinerama'.split (' ')
         common_modules += ['lib/x11_printerror.c']
     if 'console' in gfx and portable:
         print("gfx=console is not compatible with portable=1, which doesn't link to ncurses.")

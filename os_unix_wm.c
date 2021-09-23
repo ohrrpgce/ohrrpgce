@@ -13,7 +13,7 @@
 
 #ifdef USE_X11
 #include <X11/Xlib.h>
-//#define USE_XINERAMA
+#define USE_XINERAMA
 #ifdef USE_XINERAMA
 #include <X11/extensions/Xinerama.h>
 #endif
