@@ -1428,6 +1428,7 @@ PRIVATE SUB update_mouse_visibility()
   END IF
   SDL_ShowCursor(vis)
 #IFDEF __FB_DARWIN__
+  ' FIXME: still true in SDL2?
   'Force clipping in fullscreen, and undo when leaving, because you
   'can move the cursor to the screen edge, where it will be visible
   'regardless of whether SDL_ShowCursor is used.
@@ -1494,23 +1495,21 @@ PRIVATE FUNCTION fix_buttons(byval buttons as integer) as integer
 END FUNCTION
 
 ' Returns currently down mouse buttons, in SDL order, not OHR order
-' TODO: report mouse position when over the window edge
 LOCAL FUNCTION update_mouse() as integer
   DIM x as int32
   DIM y as int32
   DIM buttons as int32
 
-  'TODO: do these functions return in screen coords or pixel coords? Not clear,
-  'but it makes a difference on high-DPI displays
-
   IF SDL_GetWindowFlags(mainwindow) AND SDL_WINDOW_MOUSE_FOCUS THEN
+    buttons = SDL_GetMouseState(@privatempos.x, @privatempos.y)
     IF mouseclipped THEN
-      buttons = SDL_GetRelativeMouseState(@x, @y)
-      'debuginfo "gfx_sdl2: relativemousestate " & x & " " & y
-      privatempos.x = bound(privatempos.x + x, mousebounds.p1.x, mousebounds.p2.x)
-      privatempos.y = bound(privatempos.y + y, mousebounds.p1.y, mousebounds.p2.y)
-    ELSE
-      buttons = SDL_GetMouseState(@privatempos.x, @privatempos.y)
+      'SDL clips the mouse to the window, but we have to clip it within a smaller rect
+      IF NOT in_bound(privatempos.x, mousebounds.p1.x, mousebounds.p2.x) ORELSE _
+         NOT in_bound(privatempos.y, mousebounds.p1.y, mousebounds.p2.y) THEN
+        privatempos.x = bound(privatempos.x, mousebounds.p1.x, mousebounds.p2.x)
+        privatempos.y = bound(privatempos.y, mousebounds.p1.y, mousebounds.p2.y)
+        SDL_WarpMouseInWindow(mainwindow, privatempos.x, privatempos.y)
+      END IF
     END IF
   END IF
   IF buttons = 0 THEN SDL_CaptureMouse(NO)  'Any mouse drag ended
@@ -1538,43 +1537,32 @@ END SUB
 SUB io_sdl2_setmouse(byval x as integer, byval y as integer)
   DIM windowpos as XYPair = pixelpos_to_windowpos(XY(x, y))
   '?"warp mouse to " & XY(x,y) & "(px) -> " & windowpos & "(window)"
-  IF mouseclipped THEN
-    privatempos = windowpos
-  ELSE
-    IF SDL_GetWindowFlags(mainwindow) AND SDL_WINDOW_INPUT_FOCUS THEN
-      SDL_WarpMouseInWindow mainwindow, windowpos.x, windowpos.y
-      SDL_PumpEvents  'Needed for SDL_WarpMouse to work?
+  privatempos = windowpos
+  IF SDL_GetWindowFlags(mainwindow) AND SDL_WINDOW_INPUT_FOCUS THEN
+    SDL_WarpMouseInWindow mainwindow, windowpos.x, windowpos.y
+    SDL_PumpEvents  'Needed for SDL_WarpMouse to work?
 #IFDEF __FB_DARWIN__
-      ' SDL Mac bug (SDL 1.2.14, OS 10.8.5): if the cursor is off the window
-      ' when SDL_WarpMouse is called then the mouse gets moved onto the window,
-      ' but SDL forgets to hide the cursor if it was previously requested, and further,
-      ' SDL_ShowCursor(0) does nothing because SDL thinks it's already hidden.
-      ' So call SDL_ShowCursor twice in a row as workaround.
-      SDL_ShowCursor(1)
-      update_mouse_visibility()
+    ' FIXME: still true in SDL2?
+    ' SDL Mac bug (SDL 1.2.14, OS 10.8.5): if the cursor is off the window
+    ' when SDL_WarpMouse is called then the mouse gets moved onto the window,
+    ' but SDL forgets to hide the cursor if it was previously requested, and further,
+    ' SDL_ShowCursor(0) does nothing because SDL thinks it's already hidden.
+    ' So call SDL_ShowCursor twice in a row as workaround.
+    SDL_ShowCursor(1)
+    update_mouse_visibility()
 #ENDIF
-    END IF
   END IF
 END SUB
 
 LOCAL SUB internal_set_mouserect(rect as RectPoints)
-  'FIXME: enabling clipping causes the mouse position to change.
-  'In SDL 1.2 SDL_WM_GrabInput causes most WM key combinations to be blocked
-  'Now in SDL 2, keyboard is not grabbed by default (see SDL_HINT_GRAB_KEYBOARD),
-  'but I assume switching to relative mouse mode is effectively grabbing anyway.
-  IF mouseclipped = NO ANDALSO (rect.p1.x >= 0) THEN
-    'enter clipping mode
-    mouseclipped = YES
-    SDL_GetMouseState(@privatempos.x, @privatempos.y)
-    SDL_SetRelativeMouseMode YES
-  ELSEIF mouseclipped = YES ANDALSO (rect.p1.x = -1) THEN
-    'exit clipping mode
-    mouseclipped = NO
-    SDL_SetRelativeMouseMode NO
-    SDL_WarpMouseInWindow mainwindow, privatempos.x, privatempos.y
-  END IF
+  mouseclipped = (rect.p1.x >= 0)
+  'Grabs just mouse, not keyboard (WM combos?) unless SDL_HINT_GRAB_KEYBOARD set
+  '(SDL_SetWindowMouseGrab is new in SDL 2.0.16)
+  SDL_SetWindowGrab(mainwindow, mouseclipped)
+  'This uses the centers of the pixels as bounds... is that OK?
   mousebounds.p1 = pixelpos_to_windowpos(rect.p1)
   mousebounds.p2 = pixelpos_to_windowpos(rect.p2)
+  update_mouse()  'Move mouse into the rect
 END SUB
 
 'This turns forced mouse clipping on or off
