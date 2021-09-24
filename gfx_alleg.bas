@@ -2,7 +2,8 @@
 '(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 
-'' NOTE: This backend is not well maintained. Currently at least the following don't work:
+'' NOTE: This backend is unmaintained. Currently at least the following don't work:
+'' -resolutions other than 320x200
 '' -changing zoom (no cmdline switch, so can't work at runtime either)
 '' -hiding or showing the mouse cursor
 
@@ -16,6 +17,7 @@
 #undef bitmap
 #undef ellipse
 #undef get_filename
+#undef num_joysticks
 #include "allegro.bi"
 #include "scancodes.bi"
 
@@ -212,7 +214,7 @@ end sub
 
 sub io_alleg_updatekeys(byval keybd as KeyBits ptr)
 	dim a as integer
-	for a = KBScancode to &h7f
+	for a as KBScancode = 0 to &h7f
 		if key(a) then
 			keybd[scantrans(a)] = keybd[scantrans(a)] or 8
 		end if
