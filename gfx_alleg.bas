@@ -26,6 +26,7 @@ dim shared screenbuf as BITMAP ptr = null
 dim shared mouse_hidden as bool = NO
 dim shared baroffset as integer = 0
 dim shared windowed as bool = YES
+dim shared bpp as integer = 8
 dim shared alpal(255) as RGB
 
 'Translate an allegro scancode into a normal one
@@ -50,6 +51,8 @@ dim shared scantrans(0 to 127) as integer => { _
 
 extern "C"
 
+declare sub gfx_alleg_set_screen_mode()
+
 
 function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 	if init_gfx = NO then
@@ -65,15 +68,7 @@ function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval wi
 		end if
 		snprintf(info_buffer, info_buffer_size, "%s", allegro_id)
 
-		set_color_depth(8)
-		if windowed then
-			set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 400, 0, 0)
-			baroffset = 0
-		else
-			set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0)
-			baroffset = 40
-		end if
-		clear_bitmap(screen)
+		gfx_alleg_set_screen_mode
 
 		install_keyboard
 		install_mouse
@@ -89,6 +84,24 @@ function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval wi
 	return 1
 end function
 
+local sub gfx_alleg_set_screen_mode()
+	set_color_depth(bpp)
+	if windowed then
+		set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 400, 0, 0)
+		baroffset = 0
+	else
+		set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0)
+		baroffset = 40
+	end if
+	clear_bitmap(screen)
+
+	if screenbuf <> null then
+		destroy_bitmap(screenbuf)
+	end if
+	'only create this once, to save a bit of time
+	screenbuf = create_bitmap(320, 200)
+end sub
+
 sub gfx_alleg_close
 	if screenbuf <> null then
 		destroy_bitmap(screenbuf)
@@ -100,33 +113,30 @@ function gfx_alleg_getversion() as integer
 	return 1
 end function
 
-sub gfx_alleg_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
+function gfx_alleg_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer) as integer
 'takes a pointer to raw 8-bit data at 320x200 (w, h ignored)
 	dim as integer x, y
 
 	if w <> 320 or h <> 200 then
 		debug "gfx_alleg_showpage: only 320x200 implemented"
-		exit sub
-	end if
-
-	if screenbuf = null then
-		'only create this once, to save a bit of time
-		screenbuf = create_bitmap(320, 200)
+		return 1
 	end if
 
 	for y = 0 to 199
 		for x = 0 to 319
-			#IFDEF putpixel8
-			putpixel8(screenbuf, x, y, *raw)
-			#ELSE
-			putpixel(screenbuf, x, y, *raw)
-			#ENDIF
-			raw += 1
+			if bpp = 8 then
+				putpixel(screenbuf, x, y, *raw)
+				raw += 1
+			else
+				putpixel(screenbuf, x, y, *cast(int32 ptr, raw))
+				raw += 4
+			end if
 		next
 	next
 
 	stretch_blit(screenbuf, screen, 0, 0, 320, 200, 0, baroffset, 640, 400)
-end sub
+	return 0
+end function
 
 sub gfx_alleg_setpal(byval pal as RGBcolor ptr)
 	'In 8 bit colour depth, allegro uses 6 bit colour components in the palette
@@ -140,14 +150,16 @@ sub gfx_alleg_setpal(byval pal as RGBcolor ptr)
 end sub
 
 function gfx_alleg_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette ptr) as integer
-	if surfaceIn->format <> SF_8bit then
-		debug "gfx_alleg_present: 32 bit not implemented"
-		return 1
+	dim newbpp as integer = iif(surfaceIn->format = SF_8bit, 8, 24)
+	if bpp <> newbpp then
+		bpp = newbpp
+		gfx_alleg_set_screen_mode
 	end if
+
 	if pal then
 		gfx_alleg_setpal @pal->col(0)
 	end if
-	gfx_alleg_showpage surfaceIn->pPaletteData, surfaceIn->width, surfaceIn->height
+	return gfx_alleg_showpage(surfaceIn->pPaletteData, surfaceIn->width, surfaceIn->height)
 end function
 
 function gfx_alleg_screenshot(byval fname as zstring ptr) as integer
@@ -161,17 +173,7 @@ sub gfx_alleg_setwindowed(byval iswindow as bool)
 	windowed = iswindow
 
 	if init_gfx then
-		if screenbuf <> null then
-			destroy_bitmap(screenbuf)
-			screenbuf = null
-		end if
-		if windowed then
-			set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 400, 0, 0)
-			baroffset = 0
-		else
-			set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0)
-			baroffset = 40
-		end if
+		gfx_alleg_set_screen_mode
 		set_palette(@alpal(0))
 	end if
 end sub
