@@ -99,7 +99,7 @@ void set_X11_error_handlers() {
 	XSetIOErrorHandler(X_fatal_error_handler);
 }
 
-// BUG: if you have multiple displays and are using Xinerama (likely) this returns
+// If you have multiple displays using Xinerama (likely) then unless USE_XINERAMA is defined, this returns
 // the size of the whole desktop (bounding box of all displays) rather than the main display.
 void os_get_screen_size(int *wide, int *high) {
 	Display *display;
@@ -115,7 +115,7 @@ void os_get_screen_size(int *wide, int *high) {
 	*high = DisplayHeight(display, screen);
 
 #ifdef USE_XINERAMA
-	// This fixes the above mentioned bug, but I don't really want to add
+	// This fixes the above mentioned bug, but adds
 	// another dependency that's only useful if using gfx_sdl or gfx_fb,
 	// which you'd only likely do when you can't use SDL2. And even SDL2 can
 	// be compiled without Xinerama.
