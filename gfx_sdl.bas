@@ -521,6 +521,8 @@ LOCAL FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = 
   END IF
 
   update_mouse_visibility()
+  'Update the clip rectangle
+  update_mouserect()
   RETURN 1
 END FUNCTION
 
@@ -822,10 +824,6 @@ SUB gfx_sdl_set_zoom(newzoom as integer, change_windowsize as bool)
       IF SDL_WasInit(SDL_INIT_VIDEO) THEN
         gfx_sdl_set_screen_mode()
       END IF
-
-      'Update the clip rectangle
-      'FIXME: we ought to be doing this whenever the window size or zoom changes, not only here
-      update_mouserect
     ELSE
       'Keep window size the same
       resize_request.w = screensurface->w \ zoom
