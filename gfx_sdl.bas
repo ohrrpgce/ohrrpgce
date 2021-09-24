@@ -84,7 +84,7 @@ DECLARE FUNCTION unsetenv (byval as zstring ptr) as integer
 'DECLARE FUNCTION SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
 
 DECLARE SUB gfx_sdl_recenter_window_hint()
-DECLARE FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as integer
+DECLARE FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as bool
 DECLARE SUB gfx_sdl_set_zoom(value as integer, change_windowsize as bool)
 DECLARE SUB gfx_sdl_8bit_update_screen()
 DECLARE SUB update_state()
@@ -393,7 +393,9 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   RETURN gfx_sdl_set_screen_mode()
 END FUNCTION
 
-LOCAL FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as integer
+'Create or modify the window with SDL_SetVideoMode, which is necessary to change
+'nearly anything, such as window size. Returns true on success.
+LOCAL FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as bool
   DIM flags as Uint32 = 0
   IF resizable THEN flags = flags OR SDL_RESIZABLE
   IF windowedmode = NO THEN
@@ -431,7 +433,7 @@ LOCAL FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = 
   screensurface = SDL_SetVideoMode(android_screen_size.x, android_screen_size.y, bitdepth, flags)
   IF screensurface = NULL THEN
     debug "Failed to open display (bitdepth = " & bitdepth & ", flags = " & flags & "): " & *SDL_GetError()
-    RETURN 0
+    RETURN NO
   END IF
   debuginfo "gfx_sdl: screen size is " & screensurface->w & "*" & screensurface->h
   WITH dest_rect
@@ -465,7 +467,7 @@ LOCAL FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = 
         CONTINUE DO
       END IF
       debug "Failed to open display (windowed = " & windowedmode & "): " & *SDL_GetError
-      RETURN 0
+      RETURN NO
     END IF
     EXIT DO
   LOOP
@@ -523,7 +525,7 @@ LOCAL FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = 
   update_mouse_visibility()
   'Update the clip rectangle
   update_mouserect()
-  RETURN 1
+  RETURN YES
 END FUNCTION
 
 LOCAL SUB quit_video_subsystem()
@@ -566,7 +568,7 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval imagesz as XYPair,
     'A bitdepth of 0 indicates 'same as previous, otherwise default (native)'. Not sure if it's best to use
     'a native or 8 bit screen surface when we're drawing 8 bit; simply going to preserve the status quo for now.
     'Silence debug output here, or we get a raft of resize messages when resizing the window w/ the mouse
-    gfx_sdl_set_screen_mode(IIF(bitdepth = 8, 0, bitdepth), YES)
+    IF gfx_sdl_set_screen_mode(IIF(bitdepth = 8, 0, bitdepth), YES) = NO THEN RETURN 1
     IF screenbuffer THEN
       SDL_FreeSurface(screenbuffer)
       screenbuffer = NULL
@@ -1509,7 +1511,8 @@ LOCAL SUB update_mouserect()
   END IF
 END SUB
 
-'This turns forced mouse clipping on or off
+'This turns forced mouse clipping on or off.
+'Used only on Mac in fullscreen to work around an SDL bug!
 LOCAL SUB set_forced_mouse_clipping(byval newvalue as bool)
   newvalue = (newvalue <> 0)
   IF newvalue <> forced_mouse_clipping THEN

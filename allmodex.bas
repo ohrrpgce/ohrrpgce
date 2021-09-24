@@ -907,7 +907,7 @@ end function
 
 'First check if the window was resized by the user,
 'then if windowsize has changed (possibly by a call to unlock_resolution/set_resolution)
-'resize all videopages (except compatpages) to the new window size.
+'resize all videopages (except compatpages) and the Screen slice to the new window size.
 'The videopages are either trimmed or extended with colour 0.
 local sub screen_size_update ()
 	'Changes windowsize if user tried to resize, otherwise does nothing
@@ -988,7 +988,7 @@ sub unlock_page_size(page as integer)
 	vpages(page)->noresize = 0
 end sub
 
-'Makes the window resizeable, and sets a minimum size.
+'Makes the window resizable, and sets a minimum size.
 'Whenever the window is resized all videopages (except compatpages) are resized to match.
 sub unlock_resolution (min_w as integer, min_h as integer)
 	minwinsize = XY(min_w, min_h)
