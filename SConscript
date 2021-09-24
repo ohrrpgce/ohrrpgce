@@ -401,6 +401,8 @@ env['ENV']['GCC'] = FBCC.path
 for tool in ('FBC', 'CC', 'FBCC', 'CXX', 'MAKE', 'EUC', 'EUBIND'):
     val = globals()[tool]
     if val:
+        if not isinstance(val, ohrbuild.ToolInfo):
+            val = File(val)
         env[tool] = val
 
 
