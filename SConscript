@@ -1340,7 +1340,7 @@ if optimisations > 1:
 else:
     # Use eubind to combine hspeak.exw and the eui interpreter into a single (slower) executable
     euexe = Builder(action = [Action(check_have_euc, None),
-                              '$EUBIND $SOURCES'],
+                              '$EUBIND -con $SOURCES'],
                     suffix = exe_suffix, src_suffix = '.exw')
 
 env.Append(BUILDERS = {'EUEXE': euexe})
