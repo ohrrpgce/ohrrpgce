@@ -472,14 +472,10 @@ LOCAL FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = 
   '  putenv("SDL_VIDEO_CENTERED=0") does not work because SDL only tests whether the variable is defined
   'Note: on OSX unfortunately SDL will always recenter the window if its resizability changes, and the only
   'way to override that is to set SDL_VIDEO_WINDOW_POS.
-  'Also, clear SDL_VIDEO_WINDOW_POS after the window has been created, otherwise it's
-  'reapplied in certain circumstances such as when toggling resizability (eg entering the slice debugger).
 #IFDEF __FB_WIN32__
   putenv("SDL_VIDEO_CENTERED=")
-  putenv("SDL_VIDEO_WINDOW_POS=")
 #ELSE
   unsetenv("SDL_VIDEO_CENTERED")
-  unsetenv("SDL_VIDEO_WINDOW_POS")
 #ENDIF
 
 #ENDIF  ' Not __FB_ANDROID__
@@ -786,15 +782,6 @@ SUB gfx_sdl_recenter_window_hint()
 
   IF running_under_Custom = NO THEN   'Don't display the window straight on top of Custom's
     putenv("SDL_VIDEO_CENTERED=1")
-  ELSE
-    #IFDEF __FB_WIN32__
-      'On Windows (at least XP and 10), SDL measures window position from the
-      'top-left of the client area, so need to add allowance for window frame.
-      putenv("SDL_VIDEO_WINDOW_POS=10,36")
-    #ELSE
-      'At least in X11/KDE, window position is measured from the top-left of the window frame
-      putenv("SDL_VIDEO_WINDOW_POS=5,5")
-    #ENDIF
   END IF
 
 #IFDEF __FB_WIN32__
