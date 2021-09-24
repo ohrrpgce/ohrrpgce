@@ -488,12 +488,15 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
     debuginfo "set_window_size " & newframesize & " x" & newzoom
   END IF
 
-  IF resizable THEN
-    DIM minsize as XYPair = min_window_resolution * zoom
-    SDL_SetWindowMinimumSize(mainwindow, minsize.w, minsize.h)
-  END IF
-
   IF mainwindow THEN
+    'Note the windows's display is whichever one its center is on, which might change when it resizes
+    DIM displayindex as integer = large(0, SDL_GetWindowDisplayIndex(mainwindow))
+
+    IF resizable THEN
+      DIM minsize as XYPair = min_window_resolution * zoom
+      SDL_SetWindowMinimumSize(mainwindow, minsize.w, minsize.h)
+    END IF
+
     'If we're fullscreened, takes effect when unfullscreening (unless resizable,
     'in which case we restore previous size)
     SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
@@ -509,7 +512,6 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
       '-under X11+xfce4+SDL2.0.16, it's moved to fit onscreen, but mispositioned so it's
       ' slightly over the screen edge!
 
-      DIM displayindex as integer = large(0, SDL_GetWindowDisplayIndex(mainwindow))
       'Undocumented SDL feature: add in the display index to center on that display
       SDL_SetWindowPosition(mainwindow, SDL_WINDOWPOS_CENTERED + displayindex, SDL_WINDOWPOS_CENTERED)
     END IF
