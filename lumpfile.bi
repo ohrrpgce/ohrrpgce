@@ -309,7 +309,7 @@ declare sub close_lazy_files()
 declare sub send_lump_modified_msg(byval filename as zstring ptr)
 declare sub set_OPEN_hook(lumpfile_filter as FnOpenCallback, lump_writes_allowed as boolint = YES, lazyclose_allowed as boolint = YES, channel as IPCChannel ptr = NULL)
 declare sub clear_OPEN_hook()
-declare function get_filename(fnum as integer) as string
+declare function get_fb_filename(fnum as integer) as string
 
 declare sub log_openfile(filename as zstring ptr)
 declare function read_recent_files_list(idx as integer, byref filename as zstring ptr, byref opentime as double) as boolint

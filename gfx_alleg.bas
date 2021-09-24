@@ -16,7 +16,6 @@
 #undef readkey
 #undef bitmap
 #undef ellipse
-#undef get_filename
 #undef num_joysticks
 #include "allegro.bi"
 #include "scancodes.bi"

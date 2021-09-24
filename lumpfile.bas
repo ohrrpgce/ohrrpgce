@@ -268,10 +268,10 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 'Even if the file is too short, reads as much as possible, regardless of partial_retval.
 
 	dim idx as integer
-	BUG_IF(record < -1, "Tried to read record " & record & " of " & get_filename(fh), NO)
+	BUG_IF(record < -1, "Tried to read record " & record & " of " & get_fb_filename(fh), NO)
 	if recordsize <= 0 then return NO
 	if ubound(buf) < recordsize - 1 then
-		showbug "loadrecord: " & recordsize & " ints will not fit in " & ubound(buf) + 1 & " element array, in " & get_filename(fh)
+		showbug "loadrecord: " & recordsize & " ints will not fit in " & ubound(buf) + 1 & " element array, in " & get_fb_filename(fh)
 		'continue, fit in as much as possible
 	end if
 	dim readbuf(recordsize - 1) as short
@@ -293,7 +293,7 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 		end if
 		if expectexists andalso ret = NO then
 			' Filename will be unknown if OPENFILE wasn't used
-			debug "loadrecord: record " & record & " is " & partially & "off the end of " & get_filename(fh)
+			debug "loadrecord: record " & record & " is " & partially & "off the end of " & get_fb_filename(fh)
 			debug " read " & bytesread & " instead of " & (recordsize*2)
 		end if
 	end if
@@ -325,7 +325,7 @@ end function
 
 sub storerecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
 'same as loadrecord
-	BUG_IF(record < -1, "Tried to write record " & record & " of " & get_filename(fh))
+	BUG_IF(record < -1, "Tried to write record " & record & " of " & get_fb_filename(fh))
 	if ubound(buf) < recordsize - 1 then
 		debugc errBug, "storerecord: array has only " & ubound(buf) + 1 & " elements, record is " & recordsize & " ints"
 		'continue, write as much as possible

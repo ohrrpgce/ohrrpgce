@@ -81,7 +81,7 @@ extern "C" {
 	FB_RTERROR lazyclose(int fnum);
 	void close_lazy_files();
 
-	FBSTRING *get_filename(int fnum);
+	FBSTRING *get_fb_filename(int fnum);
 #ifdef __cplusplus
 }
 #endif

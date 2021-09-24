@@ -663,7 +663,7 @@ void clear_OPEN_hook() {
 // Lookup the name of a file from its handle (as returned by FREEFILE/OPENFILE).
 // Only works if it was opened with OPENFILE, otherwise returns dummy filename.
 // This is just intended for debugging.
-FBSTRING *get_filename(int fnum) {
+FBSTRING *get_fb_filename(int fnum) {
 	FileInfo *infop = get_fileinfo(fnum);
 	FBSTRING ret;
 	init_fbstring(&ret, infop ? infop->name.c_str() : "<Non-OPENFILE file>");
