@@ -1091,15 +1091,11 @@ sub set_scale_factor (scale as integer, change_windowsize as bool = YES)
 			end if
 		end if
 	end if
-	if changed_zoom then
-		' Already done.
-	' zoomonly only supported by gfx_sdl currently
-	elseif change_windowsize = NO andalso gfx_setoption("zoomonly", str(scale)) then
-	elseif gfx_setoption("zoom", str(scale)) then
-	else
-		' Old versions of gfx_directx don't support zoom (TODO: delete this)
-		gfx_setoption("width", str(windowsize.w * scale))
-		gfx_setoption("height", str(windowsize.h * scale))
+
+	if changed_zoom = NO then
+		' Backends that don't support gfx_set_window_size... actually just gfx_directx.
+		' gfx_alleg/console don't allow changing zoom either
+		gfx_setoption("zoom", str(scale))
 	end if
 
 	'The resolution might have changed size (probably only if change_windowsize=NO)

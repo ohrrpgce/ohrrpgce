@@ -906,9 +906,8 @@ END SUB
 FUNCTION gfx_sdl2_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
   DIM ret as integer = 0
   DIM value as integer = str2int(*arg, -1)
-  '"zoomonly" is not supported, we support gfx_sdl2_set_window_size instead.
   IF *opt = "zoom" or *opt = "z" THEN
-    gfx_sdl2_set_window_size(framesize, value)
+    gfx_sdl2_set_window_size( , value)
     ret = 1
   ELSEIF *opt = "smooth" OR *opt = "s" THEN
     IF value = 1 OR value = -1 THEN  'arg optional (-1)

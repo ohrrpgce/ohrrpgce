@@ -130,7 +130,7 @@ DIM SHARED remember_windowtitle as string
 DIM SHARED remember_enable_textinput as bool = NO
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
 DIM SHARED sdlpalette(0 TO 255) as SDL_Color
-DIM SHARED framesize as XYPair
+DIM SHARED framesize as XYPair = XY(320, 200)
 DIM SHARED dest_rect as SDL_Rect
 DIM SHARED mouseclipped as bool = NO   'Whether we are ACTUALLY clipped
 DIM SHARED forced_mouse_clipping as bool = NO
@@ -378,9 +378,6 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   *info_buffer = *info_buffer & " (" & SDL_NumJoysticks() & " joysticks) Driver:"
   SDL_VideoDriverName(info_buffer + LEN(*info_buffer), info_buffer_size - LEN(*info_buffer))
 
-  framesize.w = 320
-  framesize.h = 200
-
 #IFDEF __FB_ANDROID__
   IF SDL_ANDROID_IsRunningOnConsole() THEN
     debuginfo "Running on a console, disable the virtual gamepad"
@@ -562,7 +559,8 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval imagesz as XYPair,
   'the window, if we try to change window size mid-drag. In that case we try to
   'override the change, and don't set resize_requested.)
   '(screensurface may be NULL after switching back to gfx_sdl, I'm not sure why!)
-  IF screensurface = NULL ORELSE framesize <> imagesz ORELSE XY(screensurface->w, screensurface->h) <> lastwindowsize THEN
+  DIM windowsize as XYPair = XY(screensurface->w, screensurface->h)
+  IF screensurface = NULL ORELSE framesize <> imagesz ORELSE windowsize <> framesize * zoom ORELSE windowsize <> lastwindowsize THEN
     'debuginfo "gfx_sdl_present_internal: framesize changing from " & framesize & " to " & imagesz
     framesize = imagesz
     'A bitdepth of 0 indicates 'same as previous, otherwise default (native)'. Not sure if it's best to use
@@ -830,17 +828,35 @@ SUB gfx_sdl_set_zoom(newzoom as integer, change_windowsize as bool)
   END IF
 END SUB
 
+'Change the window size and scale at the same time. an alternative to calling gfx_present with a resized frame.
+'(Unlike gfx_sdl2_set_window_size, it doesn't immediately resize the window, but waits for the next gfx_present.
+'This way is possibly more correct.)
+SUB gfx_sdl_set_window_size (byval newframesize as XYPair = XY(-1,-1), newzoom as integer = -1)
+  IF newframesize.w <= 0 THEN newframesize = framesize
+  IF newzoom < 1 ORELSE newzoom > 16 THEN newzoom = zoom
+
+  IF newframesize <> framesize THEN
+    framesize = newframesize
+    resize_request = newframesize
+    resize_requested = YES
+  END IF
+
+  IF newzoom <> zoom THEN
+    zoom = newzoom
+    gfx_sdl_recenter_window_hint()  'Recenter because it's pretty ugly to go from centered to uncentered
+  END IF
+
+  IF newzoom <> zoom ORELSE newframesize <> framesize THEN
+    debuginfo "set_window_size " & newframesize & ", zoom=" & newzoom
+    'gfx_sdl_set_screen_mode()
+  END IF
+END SUB
+
 FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
   'debuginfo "gfx_sdl_setoption " & *opt & " " & *arg
   DIM ret as integer = 0
   DIM value as integer = str2int(*arg, -1)
-  IF *opt = "zoomonly" THEN
-    'Set zoom without changing window size.
-    'Used by set_scale_factor(), not intended for cmdline use.
-    'TODO: get rid of zoomonly and instead implement gfx_set_window_size
-    gfx_sdl_set_zoom(value, NO)
-    ret = 1
-  ELSEIF *opt = "zoom" or *opt = "z" THEN
+  IF *opt = "zoom" or *opt = "z" THEN
     gfx_sdl_set_zoom(value, YES)
     ret = 1
   ELSEIF *opt = "smooth" OR *opt = "s" THEN
@@ -1598,6 +1614,7 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_windowtitle = @gfx_sdl_windowtitle
   gfx_getwindowstate = @gfx_sdl_getwindowstate
   gfx_get_screen_size = @gfx_sdl_get_screen_size
+  gfx_set_window_size = @gfx_sdl_set_window_size
   gfx_supports_variable_resolution = @gfx_sdl_supports_variable_resolution
   gfx_vsync_supported = @gfx_sdl_vsync_supported
   gfx_get_resize = @gfx_sdl_get_resize
