@@ -1068,6 +1068,7 @@ end sub
 sub set_scale_factor (scale as integer, change_windowsize as bool = YES)
 	'gfx_sdl and gfx_fb, which use blit.c scaling, are limited to 1x-16x
 	scale = bound(scale, 1, 16)
+	if modex_initialised = NO then change_windowsize = YES  'Otherwise doesn't make sense
 	debuginfo "Setting graphics scaling to x" & scale & " change_windowsize=" & change_windowsize
 
 	dim changed_zoom as bool = NO

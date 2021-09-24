@@ -812,20 +812,15 @@ END SUB
 SUB gfx_sdl_set_zoom(newzoom as integer, change_windowsize as bool)
   IF newzoom >= 1 AND newzoom <= 16 AND newzoom <> zoom THEN
     zoom = newzoom
+    IF screensurface = NULL THEN EXIT SUB
     zoom_has_been_changed = YES
-    DIM temp as string
-    IF screensurface THEN temp = " old size = " & screensurface->w & "," & screensurface->h
-    debuginfo "set_zoom change_windowsize=" & change_windowsize & ", zoom=" & zoom & temp
-    IF change_windowsize = NO ANDALSO screensurface = NULL THEN
-      debug "...but window hasn't been created yet, doesn't make sense!"
-      change_windowsize = YES  'Avoid NULL dereference
-    END IF
+    debuginfo "set_zoom change_windowsize=" & change_windowsize & ", zoom=" & zoom _
+              & " old size = " & XY(screensurface->w, screensurface->h)
     IF change_windowsize THEN
       gfx_sdl_recenter_window_hint()  'Recenter because the window might go off the screen edge.
-
-      IF SDL_WasInit(SDL_INIT_VIDEO) THEN
-        gfx_sdl_set_screen_mode()
-      END IF
+      'Unlike gfx_sdl_set_window_size, we immediately recreate the window, because framesize
+      'is not expected to change on the next present. But ideally we wouldn't do this.
+      gfx_sdl_set_screen_mode()
     ELSE
       'Keep window size the same
       resize_request.w = screensurface->w \ zoom
