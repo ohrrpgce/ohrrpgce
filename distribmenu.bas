@@ -647,7 +647,7 @@ SUB find_required_dlls(gameplayer as string, byref files as string vector)
    'Note: This code is duplicated in apply_game_window_settings
    'This really seems too complicated...
    IF gfx_supports_variable_resolution() = NO THEN
-    DIM varresbackends(...) as string = {"sdl2", "sdl"}
+    DIM varresbackends(...) as string = {"sdl2", "sdl", "fb"}
     FOR idx as integer = 0 TO UBOUND(varresbackends)
      IF have_gfx_backend(varresbackends(idx)) THEN
       gfxbackend_to_use = varresbackends(idx)

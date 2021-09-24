@@ -51,6 +51,7 @@ dim shared init_gfx as bool = NO
 'defaults are 2x zoom and 640x400 in 8-bit
 dim shared zoom as integer = 2
 dim shared remember_windowed_zoom as integer = 2  'What zoom was before entering fullscreen
+dim shared framesize as XYPair = (320, 200) 'The resolution supplied by the engine
 dim shared screensize as XYPair            'The size of the window/fullscreen resolution
 dim shared screenpitch as fb_integer       'Bytes per screen row
 dim shared depth as integer = 8            '8 or 32
@@ -127,20 +128,24 @@ private sub update_mouse_visibility
 	setmouse  , , vis
 end sub
 
+local sub update_screen_mode_no_lock()
+	calculate_screen_res
+	gfx_fb_screenres
+	windowtitle remember_windowtitle
+	'Palette must be re-set
+	if depth = 8 then
+		for i as integer = 0 to 255
+			with truepal(i)
+				palette i, .r, .g, .b
+			end with
+		next
+	end if
+end sub
+
 sub gfx_fb_update_screen_mode()
 	if init_gfx then
 		GFX_ENTER
-		calculate_screen_res
-		gfx_fb_screenres
-		windowtitle remember_windowtitle
-		'Palette must be re-set
-		if depth = 8 then
-			for i as integer = 0 to 255
-				with truepal(i)
-					palette i, .r, .g, .b
-				end with
-			next
-		end if
+		update_screen_mode_no_lock
 		GFX_EXIT
 	end if
 end sub
@@ -171,13 +176,13 @@ sub gfx_fb_setpal(byval pal as RGBcolor ptr)
 end sub
 
 function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette ptr) as integer
-'320x200 Surfaces supported only!
 	dim ret as integer = 0
 
 	dim newdepth as integer = iif(surfaceIn->format = .SF_32bit, 32, 8)
-	if newdepth <> depth then
+	if newdepth <> depth orelse surfaceIn->size <> framesize then
 		depth = newdepth
-		gfx_fb_screenres
+		framesize = surfaceIn->size
+		update_screen_mode_no_lock
 	end if
 
 	screenlock
@@ -242,6 +247,11 @@ sub gfx_fb_get_screen_size(wide as integer ptr, high as integer ptr)
 	*high = high_
 end sub
 
+function gfx_fb_supports_variable_resolution() as bool
+	'Yes, but we don't support setting the window to resizable, and probably never will.
+	return YES
+end function
+
 function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
 'handle command-line options in a generic way, so that they
 'can be ignored or supported as the library permits.
@@ -283,10 +293,8 @@ function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as
 end function
 
 sub calculate_screen_res()
-	dim resolution as XYPair = (320, 200)
-
 	if window_state.fullscreen = NO then
-		screensize = resolution * zoom
+		screensize = framesize * zoom
 		screen_buffer_offset = 0
 	else
 		'Search for a fullscreen resolution that has near-native aspect ratio,
@@ -319,7 +327,7 @@ sub calculate_screen_res()
 
 			'Try multiple zoom levels
 			for tryzoom as integer = 1 to 4
-				dim imagesize as XYPair = resolution * tryzoom
+				dim imagesize as XYPair = framesize * tryzoom
 
 				if modesize >= imagesize then
 					'screenlist returns resolutions in increasing size, so don't
@@ -348,7 +356,7 @@ sub calculate_screen_res()
 		remember_windowed_zoom = zoom
 		zoom = best_zoom
 
-		screen_buffer_offset = (screensize - resolution * zoom) \ 2
+		screen_buffer_offset = (screensize - framesize * zoom) \ 2
 	end if
 end sub
 
@@ -706,6 +714,7 @@ function gfx_fb_setprocptrs() as integer
 	gfx_windowtitle = @gfx_fb_windowtitle
 	gfx_getwindowstate = @gfx_fb_getwindowstate
 	gfx_get_screen_size = @gfx_fb_get_screen_size
+	gfx_supports_variable_resolution = @gfx_fb_supports_variable_resolution
 	gfx_get_resize = @gfx_fb_get_resize
 	gfx_setoption = @gfx_fb_setoption
 	gfx_describe_options = @gfx_fb_describe_options

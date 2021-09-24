@@ -3,6 +3,7 @@ WHAT IS NEW?
 ??? ? 202? [Ichorescent]
 
   *** New Features
+    * gfx_fb backend (the one noone uses) supports non 320-200 games now [Ralph]
 
    * New Plotscripting Features
 
