@@ -883,20 +883,22 @@ END SUB
 
 'This is the new API for changing window size, an alternative to calling gfx_present with a resized frame.
 'Unlike gfx_present, it causes the window to resize but doesn't repaint it yet.
-SUB gfx_sdl2_set_window_size (byval newframesize as XYPair, newzoom as integer)
-  IF newzoom >= 1 AND newzoom <= 16 AND (newzoom <> zoom ORELSE newframesize <> framesize) THEN
+SUB gfx_sdl2_set_window_size (byval newframesize as XYPair = XY(-1,-1), newzoom as integer = -1)
+  IF newframesize.w <= 0 THEN newframesize = framesize
+  IF newzoom < 1 ORELSE newzoom > 16 THEN newzoom = zoom
+
+  IF newframesize <> framesize ANDALSO mainwindow THEN
+    resize_request = newframesize
+    resize_requested = YES
+    'debuginfo " (resize_requested)"
+  END IF
+
+  IF newzoom <> zoom THEN
+    gfx_sdl2_recenter_window_hint()  'Recenter because it's pretty ugly to go from centered to uncentered
+  END IF
+
+  IF newzoom <> zoom ORELSE newframesize <> framesize THEN
     debuginfo "set_window_size " & newframesize & ", zoom=" & newzoom
-
-    IF newframesize <> framesize THEN
-      resize_request = newframesize
-      resize_requested = YES
-      'debuginfo " (resize_requested)"
-    END IF
-
-    IF newzoom <> zoom THEN
-      gfx_sdl2_recenter_window_hint()  'Recenter because it's pretty ugly to go from centered to uncentered
-    END IF
-
     set_window_size(newframesize, newzoom)
   END IF
 END SUB
