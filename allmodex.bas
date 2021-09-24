@@ -1123,9 +1123,10 @@ function supports_fullscreen_well () as bool
 		return NO
 	end if
 #IFDEF __GNU_LINUX__
-	' At least for me with KDE 4, fbgfx gives horrible results,
+	' At least for me with KDE 4 and xfce4, fbgfx gives horrible results,
 	' turning off my 2nd monitor and lots of garbage and desktop resolution changing,
-	' and sometimes gets stuck with a fullscreen black screen.
+	' and often gets stuck with a fullscreen black screen, or ignoring all input
+	' and becoming unquitable from inside X11.
 	' SDL 1.2 does something milder (causing the 2nd monitor to switch to mirrored)
 	' but only when the window size is smaller than the desktop.
 	' So probably the solution in gfx_sdl is to set the requested resolution to
@@ -2861,7 +2862,7 @@ function getquitflag () as bool
 	return closerequest
 end function
 
-' This callback is used by backends.
+' This callback is used by backends, possibly from another thread.
 ' Returns INT_MIN if the event was not understood, otherwise return value is event-dependent.
 function post_event cdecl (event as EventEnum, arg1 as intptr_t = 0, arg2 as intptr_t = 0) as integer
 	select case event

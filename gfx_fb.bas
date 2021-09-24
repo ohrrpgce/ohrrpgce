@@ -44,18 +44,16 @@ declare sub calculate_screen_res()
 declare sub update_mouse_visibility()
 
 
-'border required to fit standard 4:3 screen at zoom 1
-#define BORDER 20
-
-dim shared screen_buffer_offset as integer = 0
+dim shared screen_buffer_offset as XYPair  'Position of the image on the window/screen, in screen pixels
 dim shared window_state as WindowState
+dim shared want_toggle_fullscreen as bool  'Alt-Enter pressed, change pending
 dim shared init_gfx as bool = NO
 'defaults are 2x zoom and 640x400 in 8-bit
 dim shared zoom as integer = 2
-dim shared screenmodex as integer = 640
-dim shared screenmodey as integer = 400
-dim shared bordered as integer = 0  '0 or 1
-dim shared depth as integer = 32   '0 means use native
+dim shared remember_windowed_zoom as integer = 2  'What zoom was before entering fullscreen
+dim shared screensize as XYPair            'The size of the window/fullscreen resolution
+dim shared screenpitch as fb_integer       'Bytes per screen row
+dim shared depth as integer = 8            '8 or 32
 dim shared smooth as integer = 0  '0 or 1
 dim shared mouseclipped as bool = NO
 dim shared mouse_visibility as CursorVisibility = cursorDefault
@@ -80,10 +78,9 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 		dim refreshrate as fb_integer
 		dim driver as string
 		dim as fb_integer w, h
-		'Poll the size of the screen
+		'Poll the size of the desktop (entire desktop across multiple displays), etc
 		screeninfo w, h, bpp, , , refreshrate, driver
-		debuginfo "gfx_fb: native screensize=" & w & "*" & h & " bitdepth=" & bpp & " refreshrate=" & refreshrate
-		if depth = 0 then depth = iif(bpp = 24, 32, bpp)
+		debuginfo "gfx_fb: desktop size=" & w & "*" & h & " screen bitdepth=" & bpp & " refreshrate=" & refreshrate
 
 		calculate_screen_res
 		gfx_fb_screenres
@@ -95,17 +92,23 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 	window_state.structsize = WINDOWSTATE_SZ
 	window_state.focused = YES
 	window_state.minimised = NO
-	window_state.fullscreen = NO
+	'This may be set by gfx_setwindowed before gfx_init
+	'window_state.fullscreen = NO
 	window_state.mouse_over = NO
 	return 1
 end function
 
 local sub gfx_fb_screenres
+	debuginfo "screenres " & screensize & " depth=" & depth & " fullscreen=" & window_state.fullscreen
+	'GFX_NO_SWITCH: disable alt+enter to change to/from fullscreen, so we can handle it ourselves,
+	'changing screensize at the same time. Otherwise, fbgfx often fails to switch to fullscreen,
+	'I think it only accepts screenmodes with the same width as passed to screenres?
 	if window_state.fullscreen = YES then
-		screenres screenmodex, screenmodey, depth, 1, GFX_FULLSCREEN
+		screenres screensize.x, screensize.y, depth, 1, GFX_FULLSCREEN + GFX_NO_SWITCH
 	else
-		screenres screenmodex, screenmodey, depth, 1, GFX_WINDOWED
+		screenres screensize.x, screensize.y, depth, 1, GFX_WINDOWED + GFX_NO_SWITCH
 	end if
+	screeninfo , , , , screenpitch  'Get new screenpitch
 	'hook_fb_End is a kludge that works by setting the gfxlib2 exit hook,
 	'which screenres sets, so have to reset it afterwards. See miscc.c
 	hook_fb_End()
@@ -115,14 +118,7 @@ end sub
 private sub update_mouse_visibility
 	dim vis as integer  '0 or 1
 	if mouse_visibility = cursorDefault then
-		' window_state.fullscreen is an approximation (see process_events()),
-		' and because it's so unreliable we need a constant default.
-#ifdef IS_GAME
-		vis = 0
-#else
-		vis = 1
-#endif
-		'if window_state.fullscreen = YES then vis = 0 else vis = 1
+		vis = iif(window_state.fullscreen, 0, 1)
 	elseif mouse_visibility = cursorVisible then
 		vis = 1
 	else
@@ -178,27 +174,28 @@ function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette 
 '320x200 Surfaces supported only!
 	dim ret as integer = 0
 
-	if surfaceIn->format = .SF_32bit and depth <> 32 then
-		debuginfo "gfx_fb_present: switching to 32 bit mode"
-		depth = 32
+	dim newdepth as integer = iif(surfaceIn->format = .SF_32bit, 32, 8)
+	if newdepth <> depth then
+		depth = newdepth
 		gfx_fb_screenres
 	end if
 
 	screenlock
-	dim as ubyte ptr screenpixels = screenptr + (screen_buffer_offset * 320 * zoom)
+	dim as integer bytespp = depth \ 8
+	dim as ubyte ptr screenpixels = screenptr + screen_buffer_offset.x * bytespp + screen_buffer_offset.y * screenpitch
 
 	with *surfaceIn
 		if .format = SF_8bit then
 			gfx_fb_setpal(cast(RGBcolor ptr, @pal->col(0)))
 
 			if depth = 8 then
-				smoothzoomblit_8_to_8bit(.pPaletteData, screenpixels, .size, .width * zoom, zoom, smooth)
+				smoothzoomblit_8_to_8bit(.pPaletteData, screenpixels, .size, screenpitch, zoom, smooth)
 			elseif depth = 32 then
-				smoothzoomblit_8_to_32bit(.pPaletteData, cast(uint32 ptr, screenpixels), .size, .width * zoom, zoom, smooth, @truepal(0))
+				smoothzoomblit_8_to_32bit(.pPaletteData, cast(uint32 ptr, screenpixels), .size, screenpitch \ 4, zoom, smooth, @truepal(0))
 			end if
 		else  '32 bit
 			if depth = 32 then
-				smoothzoomblit_32_to_32bit(.pColorData, cast(uint32 ptr, screenpixels), .size, .width * zoom, zoom, smooth)
+				smoothzoomblit_32_to_32bit(.pColorData, cast(uint32 ptr, screenpixels), .size, screenpitch \ 4, zoom, smooth)
 			else
 				ret = 1
 			end if
@@ -219,7 +216,9 @@ sub gfx_fb_setwindowed(byval iswindow as integer)
 	dim wantfullscreen as bool = iif(iswindow, NO, YES) 'only 1 "true" value
 	if window_state.fullscreen = wantfullscreen then exit sub
 
+	if debugging_io then debuginfo "setwindowed fullscreen=" & wantfullscreen
 	window_state.fullscreen = wantfullscreen
+	if wantfullscreen = NO then zoom = remember_windowed_zoom
 	gfx_fb_update_screen_mode
 end sub
 
@@ -229,26 +228,25 @@ sub gfx_fb_windowtitle(byval title as zstring ptr)
 end sub
 
 function gfx_fb_getwindowstate() as WindowState ptr
-	window_state.windowsize = XY(screenmodex, screenmodey)
+	window_state.windowsize = screensize
 	window_state.zoom = zoom
 	return @window_state
 end function
 
 sub gfx_fb_get_screen_size(wide as integer ptr, high as integer ptr)
 	dim as ssize_t wide_, high_  'for 64 bit builds
+	'This returns the size of the display on which our window is, as desired, not the whole desktop size.
+	'However, if we've fullscreened it returns the fullscreen resolution.
 	ScreenControl GET_DESKTOP_SIZE, wide_, high_
 	*wide = wide_
 	*high = high_
 end sub
-
 
 function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
 'handle command-line options in a generic way, so that they
 'can be ignored or supported as the library permits.
 'This version supports
 '	zoom (1, 2*, ..., 16),
-'	depth (8*, 32),
-'	border (0*, 1)
 '	smooth (0*, 1)
 'Changing mode after window already created isn't well tested!
 	dim as integer value = str2int(*arg, -1)
@@ -256,25 +254,14 @@ function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as
 	dim as bool screen_mode_changed = NO
 	if *opt = "zoom" or *opt = "z" then
 		if value >= 1 and value <= 16 then
-			zoom = value
+			if window_state.fullscreen then
+				'We are using a computed zoom, ignore the request
+				remember_windowed_zoom = value
+			else
+				zoom = value
+				screen_mode_changed = YES
+			end if
 		end if
-		screen_mode_changed = YES
-		ret = 1
-	elseif *opt = "depth" or *opt = "d" then
-		if value = 24 or value = 32 then
-			depth = 32  '24 would screw things up
-		else
-			depth = 8
-		end if
-		screen_mode_changed = YES
-		ret = 1
-	elseif *opt = "border" or *opt = "b" then
-		if value = 1 or value = -1 then  'arg optional
-			bordered = 1
-		else
-			bordered = 0
-		end if
-		screen_mode_changed = YES
 		ret = 1
 	elseif *opt = "smooth" or *opt = "s" then
 		if value = 1 or value = -1 then  'arg optional
@@ -296,36 +283,77 @@ function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as
 end function
 
 sub calculate_screen_res()
-	'FIXME: this is an utter mess
-	'FIXME: fullscreen doesn't work if the zoom results in an odd resolution like 960x600.
-	'calculate mode
-	if zoom = 1 then
-		if depth = 8 then
-			screenmodex = 320
-			screenmodey = 200 + (bordered * BORDER * zoom)
-		else
-			'only bordered is supported in 24-bit it seems
-			bordered = 1
-			screenmodex = 320
-			screenmodey = 240
-		end if
-	elseif zoom = 2 then
-		screenmodex = 640
-		screenmodey = 400 + (bordered * BORDER * zoom)
-	elseif zoom >= 3 then
-		bordered = 0 ' bordered mode is not supported
+	dim resolution as XYPair = (320, 200)
+
+	if window_state.fullscreen = NO then
+		screensize = resolution * zoom
 		screen_buffer_offset = 0
-		screenmodex = 320 * zoom
-		screenmodey = 200 * zoom
+	else
+		'Search for a fullscreen resolution that has near-native aspect ratio,
+		'and is large enough but no larger than needed, together with a zoom level.
+
+		'Find the native aspect ratio, by getting the largest available resolution,
+		'which should be the last one returned from screenlist. We can't just
+		'call screeninfo or screencontrol, because if we're fullscreen they return
+		'the fullscreen resolution.
+		dim modesize as XYPair
+		dim mode as integer = screenlist(depth)
+		while mode
+			modesize = XY(hiword(mode), loword(mode))
+			mode = screenlist
+		wend
+		dim native_aspect_ratio as double
+		if modesize.y then native_aspect_ratio = modesize.x / modesize.y
+
+		'debug "max screen size " & modesize & " ratio " & native_aspect_ratio & " zoom " & zoom
+
+		screensize = 0
+		dim best_ratio as double = 999
+		dim best_cover as double = 0
+		dim best_zoom as integer = 0
+
+		mode = screenlist(depth)
+		while mode
+			modesize = XY(hiword(mode), loword(mode))
+			dim ratio as double = modesize.x / modesize.y
+
+			'Try multiple zoom levels
+			for tryzoom as integer = 1 to 4
+				dim imagesize as XYPair = resolution * tryzoom
+
+				if modesize >= imagesize then
+					'screenlist returns resolutions in increasing size, so don't
+					'mark a mode best unless it's an improvement
+					dim cover as double = (imagesize.x * imagesize.y) / (modesize.x * modesize.y)
+					'debug "zoom " & tryzoom & " ratio " & ratio & " dist " & abs(ratio - native_aspect_ratio) & " cover " & cover
+					if abs(ratio - native_aspect_ratio) <= abs(best_ratio - native_aspect_ratio) + 0.025 andalso _
+					   cover >= best_cover + 0.01 then
+						'debug "---best"
+						screensize = modesize
+						best_zoom = tryzoom
+						best_ratio = ratio
+						best_cover = cover
+					end if
+				end if
+			next
+			mode = screenlist()
+		wend
+		if best_zoom = 0 then
+			debug "failed to find fullscreen mode"
+			window_state.fullscreen = NO
+			calculate_screen_res
+			exit sub
+		end if
+
+		remember_windowed_zoom = zoom
+		zoom = best_zoom
+
+		screen_buffer_offset = (screensize - resolution * zoom) \ 2
 	end if
-	'calculate offset
-	if bordered = 1 and zoom < 3 then screen_buffer_offset = (BORDER / 2) * zoom
 end sub
 
 function gfx_fb_describe_options() as zstring ptr
 	return @"-z -zoom [1...16]   Scale screen to 1,2, ... up to 16x normal size (2x default)" LINE_END _
-	        "-b -border [0|1]    Add a letterbox border (default off)" LINE_END _
-	        "-d -depth [8|32]    Set color bit-depth (default 8-bit)" LINE_END _
 	        "-s -smooth          Enable smoothing filter for zoom modes (default off)"
 end function
 
@@ -358,7 +386,7 @@ private sub debug_key_event(e as Event, eventname as zstring ptr)
 end sub
 
 sub process_events()
-'	static last_enter_state as integer
+	static last_enter_state as integer
 	dim e as Event
 	while ScreenEvent(@e)
 		'unhide the mouse when the window loses focus
@@ -398,20 +426,30 @@ sub process_events()
 	wend
 	if multikey(SC_ALT) andalso multikey(SC_F4) then post_terminate_signal
 
-	'Try to catch fullscreening to reduce mouse visibility confusion. However, fullscreening
-	'with the window button is not considered.
-	'FB's X11 backend in effect doesn't report key events for alt+enter, nor will you ever see both
-	'pressed at once with multikey, because the moment that they are, FB (the X11 backend anyway)
-	'toggles fullscreen, resetting the state.
-	'And FB has no way to check whether we're fullscreen.
-/'	if multikey(SC_ALT) andalso multikey(SC_ENTER) andalso last_enter_state = 0 then
-		window_state.fullscreen xor= YES
-		post_event(eventFullscreened, window_state.fullscreen)
-		update_mouse_visibility()
+	'Handle alt-enter; we've disabled fbgfx's builtin handling
+	'(The window maximise button should be disabled)
+	if multikey(SC_ALT) andalso multikey(SC_ENTER) andalso last_enter_state = 0 then
+		'debug "ALT ENTER " & main_thread_in_gfx_backend
+		'Can't call gfx_fb_setwindowed here, since we might not be on the
+		'main thread, so delay it
+		want_toggle_fullscreen = YES
 	end if
 	last_enter_state = multikey(SC_ENTER)
-'/
 end sub
+
+function gfx_fb_get_resize(byref ret as XYPair) as bool
+	'Kludge: this seems the easiest place to act on alt-enter
+	'(We can't do this inside gfx_present, because gfxmutex (GFX_ENTER)
+	'is held in there, and obtained in gfx_fb_setwindowed; and
+	'io_pollkeyevents, io_waitprocessing aren't always called)
+	if want_toggle_fullscreen then
+		want_toggle_fullscreen = NO
+		post_event(eventFullscreened, window_state.fullscreen)
+		'Note the inversion: If fullscreen, go windowed
+		gfx_fb_setwindowed window_state.fullscreen
+	end if
+	return NO
+end function
 
 sub io_fb_pollkeyevents()
 	'not really needed by this backend
@@ -507,9 +545,7 @@ sub io_fb_setmousevisibility(visibility as CursorVisibility)
 end sub
 
 sub io_fb_getmouse(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
-	'FIXME: this is broken in fullscreen -z 2, with the Y position offset from the true, even if
-	'FB accurately knows that it's running in fullscreen.
-	static as integer lastx = 0, lasty = 0, lastwheel = 0, lastbuttons = 0
+	static lastpos as XYPair, lastwheel as integer = 0, lastbuttons as integer = 0
 	dim as integer dmx, dmy, dw, db, remx, remy
 	if getmouse(dmx, dmy, dw, db) = 0 then
 		'mouse is inside window
@@ -522,30 +558,28 @@ sub io_fb_getmouse(byref mx as integer, byref my as integer, byref mwheel as int
 			'calling setmouse at the same position rapidly causes the mouse to crawl
 			if remx <> dmx or remy <> dmy then setmouse dmx, dmy
 		end if
-		dmx = dmx \ zoom
-		dmy = (dmy \ zoom) - screen_buffer_offset
-		lastx = dmx
-		lasty = dmy
+		lastpos = (XY(dmx, dmy) - screen_buffer_offset) \ zoom
 		lastwheel = 120 * dw
 		lastbuttons = db
 	else
 		window_state.mouse_over = NO
 	end if
-	mx = lastx
-	my = lasty
+	mx = lastpos.x
+	my = lastpos.y
 	mwheel = lastwheel
 	mbuttons = lastbuttons
 end sub
 
 sub io_fb_setmouse(byval x as integer, byval y as integer)
-	setmouse(x * zoom, y * zoom + screen_buffer_offset)
+	dim mpos as XYPair = XY(x, y) * zoom + screen_buffer_offset
+	setmouse(mpos.x, mpos.y)
 end sub
 
 sub io_fb_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-	mxmin = xmin * zoom
-	mxmax = xmax * zoom + zoom - 1
-	mymin = (ymin + screen_buffer_offset) * zoom
-	mymax = (ymax + screen_buffer_offset) * zoom + zoom - 1
+	mxmin = screen_buffer_offset.x + xmin * zoom
+	mxmax = screen_buffer_offset.x + xmax * zoom + zoom - 1
+	mymin = screen_buffer_offset.y + ymin * zoom
+	mymax = screen_buffer_offset.y + ymax * zoom + zoom - 1
 	if xmin >= 0 then
 		'enable clipping
 		mouseclipped = YES
@@ -672,6 +706,7 @@ function gfx_fb_setprocptrs() as integer
 	gfx_windowtitle = @gfx_fb_windowtitle
 	gfx_getwindowstate = @gfx_fb_getwindowstate
 	gfx_get_screen_size = @gfx_fb_get_screen_size
+	gfx_get_resize = @gfx_fb_get_resize
 	gfx_setoption = @gfx_fb_setoption
 	gfx_describe_options = @gfx_fb_describe_options
 	io_init = @io_fb_init

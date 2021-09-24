@@ -14,6 +14,10 @@ WHAT IS NEW?
     * Re-did "mouse region" handling under gfx_sdl2 so the mouse moves/accelerates
       normally, and switching fullscreen/windowed doesn't break it.
       Also, entering a debug menu now pauses "mouse region" [Ralph]
+    * Various gfx_fb bugfixes, including screen fades not happening, fullscreen
+      not working at some zooms or picking awful aspect ratio wrong mouse cursor
+      position and visibility in fullscreen, and broken display at 1x zoom.
+      Thankfully noone uses gfx_fb. [Ralph]
 
   *** Stuff Only Developers Will Notice
     * FreeBASIC 1.04+ now required to compile
