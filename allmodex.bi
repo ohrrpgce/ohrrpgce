@@ -816,6 +816,9 @@ declare sub email_files(address as string, subject as string, message as string,
 	end if
 	main_thread_in_gfx_backend = YES
 	mutexlock gfxmutex
+	'Another thread may have just flipped this back.
+	'(If there were 3 threads a deadlock would still be possible, but unlikely?)
+	main_thread_in_gfx_backend = YES
 #endmacro
 #macro GFX_EXIT
 	mutexunlock gfxmutex
