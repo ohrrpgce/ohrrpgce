@@ -39,8 +39,7 @@ declare function fb_KeyHit alias "fb_KeyHit" () as long
 extern "C"
 
 'subs only used internally
-declare sub gfx_fb_screenres()		'set screen res, etc
-declare sub calculate_screen_res()
+declare sub calculate_and_set_screen_res(fullscreen as bool)
 declare sub update_mouse_visibility()
 
 
@@ -83,8 +82,7 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 		screeninfo w, h, bpp, , , refreshrate, driver
 		debuginfo "gfx_fb: desktop size=" & w & "*" & h & " screen bitdepth=" & bpp & " refreshrate=" & refreshrate
 
-		calculate_screen_res
-		gfx_fb_screenres
+		calculate_and_set_screen_res window_state.fullscreen
 		screenset 1, 0    'Only want one FB video page
 		init_gfx = YES
 		screeninfo w, h, bpp, , , refreshrate, driver
@@ -99,7 +97,8 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 	return 1
 end function
 
-local sub gfx_fb_screenres
+'calculate_and_set_screen_res should be called instead of this
+local sub gfx_fb_screenres()
 	debuginfo "screenres " & screensize & " depth=" & depth & " fullscreen=" & window_state.fullscreen
 	'GFX_NO_SWITCH: disable alt+enter to change to/from fullscreen, so we can handle it ourselves,
 	'changing screensize at the same time. Otherwise, fbgfx often fails to switch to fullscreen,
@@ -132,9 +131,10 @@ private sub update_mouse_visibility
 	setmouse  , , vis
 end sub
 
-local sub update_screen_mode_no_lock()
-	calculate_screen_res
-	gfx_fb_screenres
+'Recreate the window if needed, while possibly switching to/from fullscreen
+local sub update_screen_mode_no_lock(to_fullscreen as bool = -2)
+	if to_fullscreen = -2 then to_fullscreen = window_state.fullscreen
+	calculate_and_set_screen_res to_fullscreen
 	windowtitle remember_windowtitle
 	'Palette must be re-set
 	if depth = 8 then
@@ -226,9 +226,9 @@ sub gfx_fb_setwindowed(byval iswindow as integer)
 	if window_state.fullscreen = wantfullscreen then exit sub
 
 	if debugging_io then debuginfo "setwindowed fullscreen=" & wantfullscreen
-	window_state.fullscreen = wantfullscreen
+
 	if wantfullscreen = NO then zoom = remember_windowed_zoom
-	gfx_fb_update_screen_mode
+	update_screen_mode_no_lock wantfullscreen
 end sub
 
 sub gfx_fb_windowtitle(byval title as zstring ptr)
@@ -296,8 +296,9 @@ function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as
 	return ret
 end function
 
-sub calculate_screen_res()
-	if window_state.fullscreen = NO then
+'Figure out what size the window/fullscreen resolution should be, and then recreate the window if needed
+sub calculate_and_set_screen_res(fullscreen as bool)
+	if fullscreen = NO then
 		screensize = framesize * zoom
 		screen_buffer_offset = 0
 	else
@@ -352,8 +353,7 @@ sub calculate_screen_res()
 		wend
 		if best_zoom = 0 then
 			debug "failed to find fullscreen mode"
-			window_state.fullscreen = NO
-			calculate_screen_res
+			calculate_and_set_screen_res(NO)
 			exit sub
 		end if
 
@@ -362,6 +362,19 @@ sub calculate_screen_res()
 
 		screen_buffer_offset = (screensize - framesize * zoom) \ 2
 	end if
+
+	if init_gfx then
+		'Check whether the new screen mode actually differs from existing
+		dim as fb_integer w, h, bpp
+		screeninfo w, h, bpp
+		if XY(w, h) = screensize andalso bpp = depth andalso window_state.fullscreen = fullscreen then
+			'No, it doesn't
+			exit sub
+		end if
+	end if
+
+	window_state.fullscreen = fullscreen
+	gfx_fb_screenres
 end sub
 
 function gfx_fb_describe_options() as zstring ptr
@@ -456,9 +469,9 @@ function gfx_fb_get_resize(byref ret as XYPair) as bool
 	'io_pollkeyevents, io_waitprocessing aren't always called)
 	if want_toggle_fullscreen then
 		want_toggle_fullscreen = NO
-		post_event(eventFullscreened, window_state.fullscreen)
 		'Note the inversion: If fullscreen, go windowed
 		gfx_fb_setwindowed window_state.fullscreen
+		post_event(eventFullscreened, window_state.fullscreen)
 	end if
 	return NO
 end function
