@@ -29,8 +29,9 @@ struct WindowState
 	boolint mouse_over;
 	XYPair windowsize; // The actual size (client area), not the resolution seen by the engine
 	int zoom;
+	boolint maximised;
 };
-#define WINDOWSTATE_SZ 8
+#define WINDOWSTATE_SZ 9
 
 typedef void (__cdecl *FnDebug)(enum ErrorLevel errlvl, const char* message);
 

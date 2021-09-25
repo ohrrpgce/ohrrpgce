@@ -48,8 +48,9 @@ type WindowState
 	mouse_over as boolint  'Has mouse focus; backends differ on whether true while the mouse is dragged off window
 	windowsize as XYPair   'The actual size (client area), not the resolution seen by the engine
 	zoom as integer
+	maximised as boolint
 end type
-#define WINDOWSTATE_SZ 8
+#define WINDOWSTATE_SZ 9
 
 type JoystickInfo
 	'All of this data is optional.

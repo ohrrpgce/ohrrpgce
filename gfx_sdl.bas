@@ -116,8 +116,7 @@ DIM SHARED screenbuffer as SDL_Surface ptr = NULL  'Drawn to instead of screensu
 DIM SHARED screensurface_is_RGBColor as bool  'screensurface format is same pixel format as RGBColor
 DIM SHARED wminfo as SDL_SysWMinfo   'Must call load_wminfo() to load this global
 DIM SHARED windowedmode as bool = YES
-DIM SHARED screen_width as integer = 0  'Size of the desktop/monitor (virtual size)
-DIM SHARED screen_height as integer = 0
+DIM SHARED screen_size as XYPair     'Size of the desktop/monitor (virtual size)
 DIM SHARED lastwindowsize as XYPair  'Size of screensurface
 DIM SHARED resizable as bool = NO
 DIM SHARED resize_requested as bool = NO
@@ -353,9 +352,8 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
     IF videoinfo = NULL THEN
       debug "SDL_GetVideoInfo failed: " & *SDL_GetError()
     ELSE
-      screen_width = videoinfo->current_w
-      screen_height = videoinfo->current_h
-      debuginfo "SDL: screen size " & XY(screen_width, screen_height).wh
+      screen_size = XY(videoinfo->current_w, videoinfo->current_h)
+      debuginfo "SDL: screen size " & screen_size.wh
     END IF
   END IF
   ' This enables key repeat both for text input and for keys. We only
@@ -726,13 +724,16 @@ FUNCTION gfx_sdl_getwindowstate() as WindowState ptr
   state.mouse_over = (temp AND SDL_APPMOUSEFOCUS) <> 0
   state.windowsize = XY(screensurface->w, screensurface->h)
   state.zoom = zoom
+  'SDL 1.2 has no way to check whether the window is maximised aside from
+  'using the raw WM window handle, or guessing from the window size
+  state.maximised = (screensurface->w = screen_size.w)
   RETURN @state
 END FUNCTION
 
 SUB gfx_sdl_get_screen_size(wide as integer ptr, high as integer ptr)
   'SDL only lets you check screen resolution before you've created a window.
-  *wide = screen_width
-  *high = screen_height
+  *wide = screen_size.w
+  *high = screen_size.h
 END SUB
 
 FUNCTION gfx_sdl_supports_variable_resolution() as bool

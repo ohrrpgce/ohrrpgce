@@ -91,6 +91,7 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 	window_state.structsize = WINDOWSTATE_SZ
 	window_state.focused = YES
 	window_state.minimised = NO
+	window_state.maximised = NO
 	'This may be set by gfx_setwindowed before gfx_init
 	'window_state.fullscreen = NO
 	window_state.mouse_over = NO

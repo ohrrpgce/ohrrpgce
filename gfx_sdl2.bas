@@ -812,6 +812,7 @@ FUNCTION gfx_sdl2_getwindowstate() as WindowState ptr
   state.mouse_over = (flags AND SDL_WINDOW_MOUSE_FOCUS) <> 0
   SDL_GetWindowSize(mainwindow, @state.windowsize.w, @state.windowsize.h)
   state.zoom = zoom
+  state.maximised = (flags AND SDL_WINDOW_MAXIMIZED) <> 0
   RETURN @state
 END FUNCTION
 
