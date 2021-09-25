@@ -109,7 +109,11 @@ local sub gfx_fb_screenres
 	else
 		screenres screensize.x, screensize.y, depth, 1, GFX_WINDOWED + GFX_NO_SWITCH
 	end if
-	screeninfo , , , , screenpitch  'Get new screenpitch
+	'Get new screenpitch
+	'The int64 version of screeninfo doesn't have optional w,h args, so pass w,h so fbc
+	'can pick whichever overload is suitable
+	dim dummy as fb_integer
+	screeninfo dummy, dummy, , , screenpitch
 	'hook_fb_End is a kludge that works by setting the gfxlib2 exit hook,
 	'which screenres sets, so have to reset it afterwards. See miscc.c
 	hook_fb_End()
