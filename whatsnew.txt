@@ -4,6 +4,8 @@ WHAT IS NEW?
 
   *** New Features
     * gfx_fb backend (the one noone uses) supports non 320-200 games now [Ralph]
+    * "screenshot_dir" ohrrpgce_config.ini option, where to put screenshots and
+      .gifs (globally or for a single game) [Ralph]
 
    * New Plotscripting Features
 

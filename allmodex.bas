@@ -8489,6 +8489,7 @@ end sub
 
 'All extensions that might be used for screenshots or recordings (including by gfx_screenshot)
 dim shared as string*5 screenshot_exts(...) => {".bmp", ".png", ".jpg", ".jpeg", ".dds", ".gif"}
+dim shared as string screenshot_dir
 
 local sub load_screenshot_settings()
 	loaded_screenshot_settings = YES
@@ -8502,10 +8503,12 @@ local sub load_screenshot_settings()
 	end if
 
 	use_gfx_screenshot = read_config_bool("gfx.gfx_" & gfxbackend & ".backend_screenshot", YES)
+
+	screenshot_dir = read_config_str("gfx.screenshot_dir", "")
 end sub
 
 'Save a screenshot.
-'basename: overrides the filename, default to gamename####.ext. Should NOT include the extension,
+'basename: overrides the path/filename, default to gamename####.ext. Should NOT include the extension,
 '    since the gfx backend can decide that.
 'page: defaults to last setvispage
 'message: if true, announces the file was saved.
@@ -8539,7 +8542,7 @@ function screenshot (basename as string = "", page as integer = -1, message as b
 	end if
 
 	if message then
-		show_overlay_message "Saved screenshot " & trimpath(ret), 1.5
+		show_overlay_message "Saved screenshot " & text_right(ret, 150), 1.5
 	end if
 	return ret
 end function
@@ -8550,7 +8553,7 @@ sub bmp_screenshot(basename as string)
 	frame_export_bmp(basename & ".bmp", vpages(getvispage), displaypal())
 end sub
 
-' Find an available screenshot name in the current directory.
+' Find an available screenshot name in screenshot_dir, or current directory if that's not set.
 ' Returns filename without extension, and ensures it doesn't collide regardless of the
 ' extension selected from screenshot_extns.
 local function next_unused_screenshot_filename() as string
@@ -8562,6 +8565,9 @@ local function next_unused_screenshot_filename() as string
 	if gamename = "" then
 		' If we haven't loaded a game yet
 		gamename = "ohrrpgce"
+	end if
+	if len(screenshot_dir) then
+		gamename = screenshot_dir + SLASH + gamename
 	end if
 
 	' Reset search_start counter if needed
@@ -8635,7 +8641,7 @@ local sub snapshot_check(page as integer = -1)
 			dim temp as string = screenshot( , page, NO)  'message=NO
 			'debug "saved " & temp
 			if num_screenshots_taken = 0 then
-				first_screenshot = trimpath(temp)
+				first_screenshot = text_right(temp, 150)
 			end if
 			num_screenshots_taken += 1
 		end if
