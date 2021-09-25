@@ -188,6 +188,9 @@ dim shared tlsKeyClipRect as TLSKey
 'The current internal size of the window (takes effect at next setvispage).
 'Should only be modified via set_resolution and unlock_resolution
 dim shared windowsize as XYPair = (320, 200)
+'Remember gfx scale/zoom when no gfx backend is initialised (default to not changing it)
+'Don't use this otherwise! Call gfx_getwindowstate instead.
+dim shared remember_scale as integer = -1
 'Minimum window size; can't resize width or height below this. Default to (0,0): no bound
 'Also equal to (0,0) when window isn't resizeable.
 dim shared minwinsize as XYPair
@@ -489,7 +492,7 @@ local sub modex_init()
 	'redim fixedsize_vpages(3)  'Initially all NO
 	vpagesp = @vpages(0)
 	for i as integer = 0 to 3
-		vpages(i) = frame_new(320, 200, , YES)
+		vpages(i) = frame_new(windowsize.w, windowsize.h, , YES)
 	next
 	'other vpages slots are for temporary pages
 	'They are currently still used in the tileset editor, importmxs,
@@ -504,11 +507,26 @@ local sub modex_init()
 	macrofile = tmpdir & "macro" & get_process_id() & ".ohrkeys"
 end sub
 
-' Initialise stuff specific to the backend (this is called after gfx_init())
-local sub after_backend_init()
-	'This for when switching to gfx_directx; sdl/sdl2/fb can read the global
-	if gfx_setoption andalso debugging_io then gfx_setoption("-input-debug", "")
+' This is called from init_preferred_gfx_backend before gfx_init/Initialize. gfxbackend is set.
+' Note that it can be called repeatedly with different backends.
+sub before_gfx_backend_init()
+	'Tell the backend what resolution/scale to initialise at
+	if gfx_set_window_size then
+		gfx_set_window_size(windowsize, remember_scale)
+	else
+		' Backends that don't support gfx_set_window_size, which don't
+		' support non-320x200 anyway.  Actually just gfx_directx
+		' supports changing zoom; gfx_alleg/console don't.
+		gfx_setoption("zoom", str(remember_scale))
+	end if
 
+	'This for when switching to gfx_directx; sdl/sdl2/fb can read the global
+	if debugging_io then gfx_setoption("input-debug", "")
+end sub
+
+' Initialise stuff specific to the backend (this is called after a successful gfx_init(),
+' but not after an unsuccessful one, so isn't called as often as before_backend_init())
+local sub after_gfx_backend_init()
 	'Polling thread variables
 	pollthread.wantquit = NO
 	pollthread.mouselastbuttons = 0
@@ -520,7 +538,6 @@ local sub after_backend_init()
 	end if
 
 	io_init()
-	'mouserect(-1,-1,-1,-1)
 
 	if overrode_native_text_input = NO then
 		disable_native_text_input = NO
@@ -552,11 +569,12 @@ local sub after_backend_init()
 end sub
 
 ' Initialise this module and backends, create a window
+' (set_resolution can be called before this to set initial resolution. Other functions generally can't!)
 sub setmodex()
 	modex_init()
-	'Select and initialise a graphics/io backend
+	'Select and initialise a graphics/io backend; calls before_gfx_backend_init()
 	init_preferred_gfx_backend()
-	after_backend_init()
+	after_gfx_backend_init()
 
 	modex_initialised = YES
 end sub
@@ -584,7 +602,7 @@ local sub modex_quit()
 end sub
 
 ' Cleans up everything that ought to be done before calling gfx_close()
-local sub before_backend_quit()
+local sub before_gfx_backend_quit()
 	'clean up io stuff
 	if pollthread.threadptr then
 		pollthread.wantquit = YES
@@ -608,7 +626,7 @@ sub restoremode()
 	modex_initialised = NO
 
 	debuginfo "Closing gfx backend & allmodex..."
-	before_backend_quit()
+	before_gfx_backend_quit()
 	gfx_close()
 	modex_quit()
 	debuginfo "...done"
@@ -618,9 +636,10 @@ end sub
 sub switch_gfx(backendname as string)
 	debuginfo "switch_gfx " & backendname
 
-	before_backend_quit()
+	before_gfx_backend_quit()
+	'This will call before_gfx_backend_init()
 	switch_gfx_backend(backendname)
-	after_backend_init()
+	after_gfx_backend_init()
 
 	' Re-apply settings (this is very incomplete)
 	setwindowtitle remember_title
@@ -910,7 +929,8 @@ end function
 'resize all videopages (except compatpages) and the Screen slice to the new window size.
 'The videopages are either trimmed or extended with colour 0.
 local sub screen_size_update ()
-	'Changes windowsize if user tried to resize, otherwise does nothing
+	'Modifies windowsize to requested size if user or possibly something else
+	'(e.g. get_set_window_size) tried to resize. Does nothing else.
 	if gfx_get_resize(windowsize) then
 		'debuginfo "User window resize to " & windowsize.wh
 		show_overlay_message windowsize.w & " x " & windowsize.h, 0.7
@@ -1016,12 +1036,16 @@ end function
 'Set the window size, if possible, subject to min size bound. Doesn't modify resizability state.
 'This will resize all videopages (except compatpages) to the new window size.
 sub set_resolution (w as integer, h as integer)
-	if gfx_supports_variable_resolution() = NO then
+	if gfx_supports_variable_resolution andalso gfx_supports_variable_resolution() = NO then
 		exit sub
 	end if
 	debuginfo "set_resolution " & w & "*" & h
 	windowsize.w = large(w, minwinsize.w)
 	windowsize.h = large(h, minwinsize.h)
+	if modex_initialised = NO then
+		'We will tell the backend what resolution to initialise at in before_gfx_backend_init
+		exit sub
+	end if
 	'Ignore any pending resize request
 	gfx_get_resize(XY(0,0))
 	'Update page size
@@ -1061,15 +1085,22 @@ sub get_screen_size (byref screenwidth as integer, byref screenheight as integer
 	debuginfo "Desktop resolution: " & screenwidth & "*" & screenheight
 end sub
 
-'Set the size that a pixel appears on the screen (i.e. the zoom).
+'Set the size that a pixel appears on the screen (i.e. the zoom), while windowed.
+'Usually no effect if fullscreened, until switching back to windowed.
 'Supported by all backends except gfx_alleg.
 'If change_windowsize = YES, this changes the window size and keeps the same resolution,
 'otherwise it changes the resolution and keeps the same window size
 sub set_scale_factor (scale as integer, change_windowsize as bool = YES)
 	'gfx_sdl and gfx_fb, which use blit.c scaling, are limited to 1x-16x
 	scale = bound(scale, 1, 16)
-	if modex_initialised = NO then change_windowsize = YES  'Otherwise doesn't make sense
 	debuginfo "Setting graphics scaling to x" & scale & " change_windowsize=" & change_windowsize
+
+	'If we don't have a gfx backend yet need to store it in an otherwise redundant global
+	remember_scale = scale
+	if modex_initialised = NO then
+		'We effectively force change_windowsize = YES
+		exit sub
+	end if
 
 	dim changed_zoom as bool = NO
 	if change_windowsize = NO then
@@ -1089,6 +1120,13 @@ sub set_scale_factor (scale as integer, change_windowsize as bool = YES)
 				set_resolution newresolution.w, newresolution.h
 				change_windowsize = YES
 			end if
+		end if
+	end if
+
+	if change_windowsize then
+		if gfx_set_window_size then
+			gfx_set_window_size( , scale)
+			changed_zoom = YES
 		end if
 	end if
 

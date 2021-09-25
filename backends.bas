@@ -677,8 +677,10 @@ sub init_preferred_gfx_backend()
 			if load_backend(gfx_choices(i)) then
 				'gfxbackendinfo/etc have now been set; we should either
 				'successfully initialize or call unload_backend.
-				debuginfo "Initialising gfx_" + .name + "..."
 
+				before_gfx_backend_init
+
+				debuginfo "Initialising gfx_" + .name + "..."
 				if gfx_Initialize then
 					dim initdata as GfxInitData = ( _
 						GFXINITDATA_SZ, @"O.H.R.RPG.C.E.", @"FB_PROGRAM_ICON", _
