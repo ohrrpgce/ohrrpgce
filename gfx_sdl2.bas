@@ -114,7 +114,8 @@ DIM SHARED last_bitdepth as integer   'Bitdepth of the last gfx_present call
 
 DIM SHARED windowedmode as bool = YES  'Windowed rather than fullscreen? (Should we trust this, or call SDL_GetWindowFlags?)
 DIM SHARED resizable as bool = NO
-DIM SHARED resize_requested as bool = NO
+DIM SHARED resize_requested as bool = NO    'gfx_get_resize called but gfx_present hasn't been called yet
+DIM SHARED resize_pending as bool = NO
 DIM SHARED resize_request as XYPair
 DIM SHARED min_window_resolution as XYPair = XY(10, 10)  'Used only if 'resizable' true. Excludes zoom factor.
 DIM SHARED remember_window_size as XYPair   'Remembered size before fullscreening
@@ -479,7 +480,10 @@ LOCAL SUB set_viewport(for_windowed as bool)
 END SUB
 
 'Note that gfx_sdl2_set_window_size wraps this.
-LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
+'actually_resize can (and should) be false if the window was resized by the WM;
+'don't changing the size while the user is doing the same, as that causes some
+'window resize events to get lost on KDE (bug #1190)
+LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer, actually_resize as bool)
   framesize = newframesize
   zoom = newzoom
   smooth_zoom = IIF(newzoom > 4, 3, newzoom)
@@ -497,9 +501,13 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer)
       SDL_SetWindowMinimumSize(mainwindow, minsize.w, minsize.h)
     END IF
 
-    'If we're fullscreened, takes effect when unfullscreening (unless resizable,
-    'in which case we restore previous size)
-    SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
+    IF actually_resize THEN
+      'If we're fullscreened, takes effect when unfullscreening (unless resizable,
+      'in which case we restore previous size)
+      SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
+    END IF
+    'Still should update the viewport if actually_resize = NO, because the window size
+    'may have been changed externally (without this, the window becomes quite wobbly)
     set_viewport windowedmode
     'Recentering the window while fullscreen can cause the window to move to 0,0
     'when exiting fullscreen on Windows (SDL bug gh#4750) (oddly, under X11/xfce4 that
@@ -547,10 +555,13 @@ LOCAL FUNCTION present_internal(raw as any ptr, imagesz as XYPair, bitdepth as i
   last_bitdepth = bitdepth
 
   'variable resolution handling
+  '(Should we check whether imagesz matches the actual window size? E.g. if a resize_request got lost)
   IF framesize <> imagesz THEN
     'debuginfo "gfx_sdl2_present_internal: framesize changing from " & framesize & " to " & imagesz
-    set_window_size(imagesz, zoom)
+    'Don't actually resize the window if the WM/user is (maybe still) resizing it
+    set_window_size(imagesz, zoom, resize_requested = NO ANDALSO resize_pending = NO)
   END IF
+  resize_pending = NO
 
   DIM pitch as integer = imagesz.w * IIF(bitdepth = 32, 4, 1)
 
@@ -868,6 +879,7 @@ FUNCTION gfx_sdl2_get_resize(byref ret as XYPair) as bool
   IF resize_requested THEN
     ret = resize_request
     resize_requested = NO
+    resize_pending = YES
     RETURN YES
   END IF
   RETURN NO
@@ -899,7 +911,10 @@ SUB gfx_sdl2_set_window_size (byval newframesize as XYPair = XY(-1,-1), newzoom 
 
   IF newzoom <> zoom ORELSE newframesize <> framesize THEN
     debuginfo "set_window_size " & newframesize & ", zoom=" & newzoom
-    set_window_size(newframesize, newzoom)
+    '(We don't actually need to call set_window_size here and could instead mark
+    'that gfx_present should call it if the zoom changed. But that's more code
+    'and seems to behave identically)
+    set_window_size(newframesize, newzoom, newzoom <> zoom)
   END IF
 END SUB
 
@@ -1218,7 +1233,7 @@ SUB gfx_sdl2_process_events()
             'window was erroneously set to resizable (because it's not possible
             'to change resizability while fullscreened) need to be overridden.
             IF windowedmode THEN
-              set_window_size framesize, zoom
+              set_window_size framesize, zoom, YES
             END IF
           END IF
         END IF
