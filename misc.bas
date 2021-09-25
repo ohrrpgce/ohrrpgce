@@ -19,7 +19,8 @@
 #include "customsubs.bi"
 #endif
 
-'An option was given on commandline to set zoom or fullscreen/windowed (overrides the games' settings)
+'An option was given on commandline to set zoom or fullscreen/windowed (overrides the game's settings
+'and remembered window zoom)
 dim overrode_default_zoom as bool = NO
 dim overrode_default_fullscreen as bool = NO
 dim overrode_log_dir as bool = NO

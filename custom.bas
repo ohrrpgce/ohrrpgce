@@ -171,11 +171,15 @@ processcommandline cmdline_args(), @gamecustom_setoption, orig_dir & SLASH & "oh
 
 load_gfx_defaults  'Loads master(), uilook(), boxlook(), current_font()
 
+set_resolution read_config_int("gfx.resolution_w", 480), read_config_int("gfx.resolution_h", 320)
+IF overrode_default_zoom = NO THEN
+ set_scale_factor read_config_int("gfx.zoom", 2), YES
+END IF
 setmodex
+unlock_resolution 320, 200   'Minimum window size
 
 setwindowtitle "O.H.R.RPG.C.E"
 showmousecursor
-unlock_resolution 320, 200   'Minimum window size
 
 debuginfo musicbackendinfo  'Preliminary info before initialising backend
 setupmusic
@@ -716,6 +720,9 @@ END SUB
 
 SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
  debuginfo "Cleaning up and terminating " & retval
+
+ save_window_state_to_config "edit."
+
  IF channel_to_Game THEN
   channel_write_line(channel_to_Game, "Q ")
   #IFDEF __FB_WIN32__

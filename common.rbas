@@ -365,6 +365,30 @@ SUB pop_gfxio_state ()
  REDIM PRESERVE gfxio_state_stack(-1 TO UBOUND(gfxio_state_stack) - 1)
 END SUB
 
+SUB save_window_state_to_config (prefix as string)
+ DIM winstate as WindowState ptr = gfx_getwindowstate()
+ IF winstate->structsize >= 4 ANDALSO winstate->fullscreen THEN
+  EXIT SUB
+ END IF
+ IF winstate->structsize >= 9 ANDALSO winstate->maximised THEN
+  'Don't save window size: it would go slightly over the screen edge rather than
+  'properly maximised (though if there were a gfx function to maximise, we could
+  'start maximised).  And if we don't save the size, better not save zoom either
+  'unless we bound the total size.
+  EXIT SUB
+ END IF
+ IF winstate->structsize >= 8 THEN
+  'Do this even if overrode_default_zoom
+  write_config(prefix & "gfx.zoom", winstate->zoom)
+ END IF
+ IF gfx_supports_variable_resolution() THEN
+  WITH get_resolution()
+   write_config(prefix & "gfx.resolution_w", .w)
+   write_config(prefix & "gfx.resolution_h", .h)
+  END WITH
+ END IF
+END SUB
+
 FUNCTION filesize (file as string) as string
  'returns size of a file in formatted string
  DIM as integer size, spl

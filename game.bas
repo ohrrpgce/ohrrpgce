@@ -261,7 +261,12 @@ IF running_under_Custom THEN debuginfo "Spawned from Custom"
 '============================== Initialise backends ===========================
 
 'DEBUG debug "set mode-X"
+set_resolution read_config_int("gfx.resolution_w", 320), read_config_int("gfx.resolution_h", 200)
+IF overrode_default_zoom = NO THEN
+ set_scale_factor read_config_int("gfx.zoom", 2), YES
+END IF
 setmodex
+unlock_resolution 320, 200   'Minimum window size
 
 'DEBUG debug "init sound"
 setupmusic
@@ -324,10 +329,11 @@ IF LEN(gam.want.rungame) = 0 THEN
  IF overrode_default_fullscreen = NO AND supports_fullscreen_well() THEN
   gfx_setwindowed(YES)
  END IF
- set_resolution 320, 200
+ set_resolution read_config_int("gfx.resolution_w", 320), read_config_int("gfx.resolution_h", 200)
+ unlock_resolution 320, 200   'Minimum window size
  IF overrode_default_zoom = NO THEN
   'If it was set on the commandline, then it should still be set to that; game didn't change it
-  set_scale_factor 2
+  set_scale_factor read_config_int("gfx.zoom", 2), YES
  END IF
 END IF
 
@@ -435,7 +441,12 @@ IF gam.autorungame = NO THEN
  show_virtual_gamepad()
  sourcerpg = browse(browseRPG, rpg_browse_default, , "game_browse_rpg", YES)  'fades in
  hide_virtual_gamepad()
+
  IF sourcerpg = "" THEN exit_gracefully NO
+
+ 'Save the window size of the browser before loading (exit_gracefully also does this)
+ save_window_state_to_config "game."
+
  IF isdir(sourcerpg) THEN
   usepreunlump = YES
   workingdir = sourcerpg
@@ -1017,7 +1028,12 @@ END SUB
 ' Call this instead of exitprogram when not quitting due to an error.
 ' This assumes no cleanup has been performed;
 SUB exit_gracefully(need_fade_out as bool = NO)
- IF LEN(sourcerpg) THEN save_game_config
+ IF LEN(sourcerpg) THEN
+  save_game_config
+ ELSE
+  'Only do this in the file browser (where the window is resizable)
+  save_window_state_to_config "game."
+ END IF
  exitprogram need_fade_out, 0
 END SUB
 
