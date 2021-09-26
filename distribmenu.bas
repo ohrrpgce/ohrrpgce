@@ -71,11 +71,13 @@ DECLARE FUNCTION running_64bit() as bool
 DECLARE SUB itch_io_options_menu()
 DECLARE FUNCTION itch_game_url(distinfo as DistribState) as string
 DECLARE FUNCTION itch_target(distinfo as DistribState) as string
+DECLARE FUNCTION itch_gametarg(distinfo as DistribState) as string
 DECLARE FUNCTION itch_butler_path() as string
 DECLARE FUNCTION itch_butler_is_installed() as bool
 DECLARE FUNCTION itch_butler_is_logged_in() as bool
 DECLARE FUNCTION itch_butler_setup() as bool
 DECLARE FUNCTION itch_butler_download() as bool
+DECLARE SUB itch_butler_upload(distinfo as DistribState)
 
 CONST distmenuEXIT as integer = 1
 CONST distmenuZIP as integer = 2
@@ -2035,8 +2037,8 @@ SUB itch_io_options_menu ()
     CASE itchmenuBUTLERSETUP:
      itch_butler_setup()
     CASE itchmenuUPLOAD:
-     'save_current_game 0
-     'distribute_game_as_windows_installer
+     save_current_game 0
+     itch_butler_upload(distinfo)
    END SELECT
   END IF
 
@@ -2126,11 +2128,15 @@ FUNCTION itch_butler_download() as bool
 END FUNCTION
 
 FUNCTION itch_game_url(distinfo as DistribState) as string
- RETURN "https://" & sanitize_url_chunk(distinfo.itch_user) & ".itch.io/" & sanitize_url_chunk(IIF(LEN(distinfo.itch_gamename) = 0, distinfo.pkgname, distinfo.itch_gamename))
+ RETURN "https://" & sanitize_url_chunk(distinfo.itch_user) & ".itch.io/" & itch_gametarg(distinfo)
 END FUNCTION
 
 FUNCTION itch_target(distinfo as DistribState) as string
- RETURN sanitize_url_chunk(distinfo.itch_user) & "/" & sanitize_url_chunk(IIF(LEN(distinfo.itch_gamename) = 0, distinfo.pkgname, distinfo.itch_gamename) )
+ RETURN sanitize_url_chunk(distinfo.itch_user) & "/" & itch_gametarg(distinfo)
+END FUNCTION
+
+FUNCTION itch_gametarg(distinfo as DistribState) as string
+ RETURN sanitize_url_chunk(IIF(LEN(distinfo.itch_gamename) = 0, distinfo.pkgname, distinfo.itch_gamename))
 END FUNCTION
 
 FUNCTION itch_butler_path() as string
@@ -2160,4 +2166,22 @@ FUNCTION itch_butler_is_logged_in() as bool
  #ENDIF
  RETURN isfile(butler_creds)
 END FUNCTION
+
+SUB itch_butler_upload(distinfo as DistribState)
+ DIM butler as string = itch_butler_path()
+ DIM target as string = itch_target(distinfo)
+ DIM out_s as string
+ DIM err_s as string
+ run_and_get_output butler & " status " & target, out_s, err_s
+ IF LEN(err_s) > 0 THEN dist_info !"butler status error:\n" & err_s
+ IF INSTR(LCASE(out_s), "invalid game") THEN
+  dist_info "The target game " & target & " doesn't exist yet. Create a new game named """ & itch_gametarg(distinfo) & """ on your itch.io account. That is where you can add screenshots and a description. Then come back here and try again."
+  EXIT SUB
+ END IF
+ IF INSTR(LCASE(out_s), " api error ") THEN
+  dist_info !"butler api error\n" & out_s
+ END IF
+ dist_info "placeholder, upload isn't done yet"
+END SUB
+
 
