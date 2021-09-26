@@ -1987,6 +1987,7 @@ CONST itchmenuEXIT as integer = 1
 CONST itchmenuUSER as integer = 2
 CONST itchmenuUPLOAD as integer = 3
 CONST itchmenuBUTLERSETUP as integer = 4
+CONST itchmenuGAMENAME as integer = 5
 
 SUB itch_io_options_menu ()
 
@@ -2010,6 +2011,7 @@ SUB itch_io_options_menu ()
    append_simplemenu_item menu, "Previous Menu...", , , itchmenuEXIT
    append_simplemenu_item menu, " Game package name: " & distinfo.pkgname, YES, uilook(uiDisabledItem)
    append_simplemenu_item menu, "Your itch.io username: " & distinfo.itch_user, , , itchmenuUSER
+   append_simplemenu_item menu, "itch.io game name: " & IIF(LEN(distinfo.itch_gamename) = 0, "<defaults to package name>", distinfo.itch_gamename) , , , itchmenuGAMENAME
    IF LEN(distinfo.itch_user) = 0 THEN
     append_simplemenu_item menu, " Type username to estimate url", YES, uilook(uiDisabledItem)
    ELSE
@@ -2042,6 +2044,11 @@ SUB itch_io_options_menu ()
    CASE itchmenuUSER:
     IF strgrabber(distinfo.itch_user, 63) THEN
      distinfo.itch_user = sanitize_url_chunk(distinfo.itch_user)
+     st.need_update = YES
+    END IF
+   CASE itchmenuGAMENAME:
+    IF strgrabber(distinfo.itch_gamename, 63) THEN
+     distinfo.itch_gamename = sanitize_url_chunk(distinfo.itch_gamename)
      st.need_update = YES
     END IF
   END SELECT
@@ -2119,11 +2126,11 @@ FUNCTION itch_butler_download() as bool
 END FUNCTION
 
 FUNCTION itch_game_url(distinfo as DistribState) as string
- RETURN "https://" & sanitize_url_chunk(distinfo.itch_user) & ".itch.io/" & sanitize_url_chunk(distinfo.pkgname)
+ RETURN "https://" & sanitize_url_chunk(distinfo.itch_user) & ".itch.io/" & sanitize_url_chunk(IIF(LEN(distinfo.itch_gamename) = 0, distinfo.pkgname, distinfo.itch_gamename))
 END FUNCTION
 
 FUNCTION itch_target(distinfo as DistribState) as string
- RETURN sanitize_url_chunk(distinfo.itch_user) & "/" & sanitize_url_chunk(distinfo.pkgname)
+ RETURN sanitize_url_chunk(distinfo.itch_user) & "/" & sanitize_url_chunk(IIF(LEN(distinfo.itch_gamename) = 0, distinfo.pkgname, distinfo.itch_gamename) )
 END FUNCTION
 
 FUNCTION itch_butler_path() as string
