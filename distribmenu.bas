@@ -68,6 +68,7 @@ DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
 DECLARE FUNCTION browse_licenses(old_license as string) as string
 DECLARE SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = "")
 DECLARE FUNCTION running_64bit() as bool
+DECLARE SUB dist_basicstatus (s as string)
 DECLARE SUB itch_io_options_menu()
 DECLARE FUNCTION itch_game_url(distinfo as DistribState) as string
 DECLARE FUNCTION itch_target(distinfo as DistribState) as string
@@ -78,6 +79,7 @@ DECLARE FUNCTION itch_butler_is_logged_in() as bool
 DECLARE FUNCTION itch_butler_setup() as bool
 DECLARE FUNCTION itch_butler_download() as bool
 DECLARE SUB itch_butler_upload(distinfo as DistribState)
+DECLARE FUNCTION itch_butler_error_check(out_s as string, err_s as string) as bool
 
 CONST distmenuEXIT as integer = 1
 CONST distmenuZIP as integer = 2
@@ -598,14 +600,18 @@ SUB distribute_game_as_zip (dest_override as string = "")
  
 END SUB
 
+SUB dist_basicstatus (s as string)
+ basic_textbox s, uilook(uiText), vpage
+ setvispage vpage, NO
+END SUB
+
 FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as bool
  'Return true on success, false on fail
 
  DIM extension as string = LCASE(justextension(src_rpg_or_rpgdir))
 
  IF extension = "rpgdir" THEN
-  basic_textbox "LUMPING DATA: please wait...", uilook(uiText), vpage
-  setvispage vpage, NO
+  dist_basicstatus "LUMPING DATA: please wait..."
   IF NOT write_rpg_or_rpgdir(src_rpg_or_rpgdir, dest_rpg) THEN
    'Already showed error
    RETURN NO
@@ -2177,21 +2183,83 @@ FUNCTION itch_butler_is_logged_in() as bool
  RETURN isfile(butler_creds)
 END FUNCTION
 
+FUNCTION itch_butler_error_check(out_s as string, err_s as string) as bool
+ 'Returns YES if there is an error
+ 'Generic error checking for butler calls
+ 'Special error checking may also be required separately
+ DIM ret as bool = NO
+ IF LEN(err_s) > 0 THEN
+  dist_info !"butler status error:\n" & err_s
+  ret = YES
+ END IF
+ IF INSTR(LCASE(out_s), " api error ") THEN
+  dist_info !"butler api error\n" & out_s
+  ret = YES
+ END IF
+ RETURN ret
+END FUNCTION
+
 SUB itch_butler_upload(distinfo as DistribState)
+ debuginfo "itch_butler_upload"
+ dist_basicstatus "Checking butler status..."
+
  DIM butler as string = itch_butler_path()
  DIM target as string = itch_target(distinfo)
  DIM out_s as string
  DIM err_s as string
  run_and_get_output butler & " status " & target, out_s, err_s
- IF LEN(err_s) > 0 THEN dist_info !"butler status error:\n" & err_s
  IF INSTR(LCASE(out_s), "invalid game") THEN
   dist_info "The target game " & target & " doesn't exist yet. Create a new game named """ & itch_gametarg(distinfo) & """ on your itch.io account. That is where you can add screenshots and a description. Then come back here and try again."
   EXIT SUB
  END IF
- IF INSTR(LCASE(out_s), " api error ") THEN
-  dist_info !"butler api error\n" & out_s
+ IF itch_butler_error_check(out_s, err_s) THEN EXIT SUB
+
+ IF dist_yesno("This will replace the older version of this game at " & itch_game_url(distinfo) & ", are you sure you want to continue?", NO) = NO THEN EXIT SUB
+
+ DIM itch_temp_dir as string = CURDIR & SLASH & "_itch_io_exports.tmp"
+ makedir itch_temp_dir
+ debuginfo "Exporting files to " & itch_temp_dir
+ auto_choose_default = YES
+ dist_basicstatus "Exporting for Windows..."
+ distribute_game_as_zip itch_temp_dir
+ dist_basicstatus "Exporting for Mac..."
+ distribute_game_as_mac_app "x86_64", itch_temp_dir
+ dist_basicstatus "Exporting for Linux..."
+ distribute_game_as_linux_tarball "x86_64", itch_temp_dir
+ auto_choose_default = NO
+
+ dist_basicstatus "Verifying exported files..."
+ DIM win_zip as string = itch_temp_dir & SLASH & distinfo.pkgname & ".zip"
+ DIM mac_app as string = itch_temp_dir & SLASH & distinfo.pkgname & "-mac.zip"
+ DIM linux_tarball as string = itch_temp_dir & SLASH & distinfo.pkgname & "-linux-x86_64.tar.gz"
+ err_s = ""
+ IF NOT isfile(win_zip) THEN err_s &= !"\nWindows zip failed!"
+ IF NOT isfile(mac_app) THEN err_s &= !"\nMacOS App failed!"
+ IF NOT isfile(linux_tarball) THEN err_s &= !"\nLinux tarball failed!"
+ IF err_s <> "" THEN
+  dist_info !"Some files failed to export:" & err_s
+  EXIT SUB
  END IF
- dist_info "placeholder, upload isn't done yet"
+ 
+ debuginfo "Upload exports with butler..."
+
+ dist_basicstatus "Upload " & itch_gametarg(distinfo) & " (Windows) ..."
+ run_and_get_output butler & " push " & escape_filename(win_zip) & " " & target & ":windows", out_s, err_s
+ IF itch_butler_error_check(out_s, err_s) THEN EXIT SUB
+
+ dist_basicstatus "Upload " & itch_gametarg(distinfo) & " (Mac) ..."
+ run_and_get_output butler & " push " & escape_filename(mac_app) & " " & target & ":mac", out_s, err_s
+ IF itch_butler_error_check(out_s, err_s) THEN EXIT SUB
+
+ dist_basicstatus "Upload " & itch_gametarg(distinfo) & " (Linux) ..."
+ run_and_get_output butler & " push " & escape_filename(linux_tarball) & " " & target & ":linux", out_s, err_s
+ IF itch_butler_error_check(out_s, err_s) THEN EXIT SUB
+
+ dist_basicstatus "Cleaning up temp files..."
+ killdir itch_temp_dir
+
+ dist_info "Upload of " & itch_gametarg(distinfo) & " to " & itch_game_url(distinfo) & " finished (Windows, Mac, Linux)"
+
 END SUB
 
 
