@@ -15,9 +15,9 @@
 #include "uiconst.bi"
 #include "scrconst.bi"
 
-DECLARE SUB distribute_game_as_zip ()
-DECLARE SUB distribute_game_as_windows_installer ()
-DECLARE SUB distribute_game_as_linux_tarball (which_arch as string)
+DECLARE SUB distribute_game_as_zip (dest_override as string = "")
+DECLARE SUB distribute_game_as_windows_installer (dest_override as string = "")
+DECLARE SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
 DECLARE FUNCTION get_windows_gameplayer() as string
 DECLARE FUNCTION get_linux_gameplayer(which_arch as string) as string
 DECLARE FUNCTION get_mac_gameplayer(which_arch as string) as string
@@ -34,7 +34,7 @@ DECLARE FUNCTION copy_windows_gameplayer (gameplayer as string, basename as stri
 DECLARE SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
 DECLARE SUB find_required_dlls(gameplayer as string, byref files as string vector)
 DECLARE FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
-DECLARE SUB distribute_game_as_debian_package (which_arch as string)
+DECLARE SUB distribute_game_as_debian_package (which_arch as string, dest_override as string = "")
 DECLARE FUNCTION get_debian_package_version() as string
 DECLARE FUNCTION get_debian_package_name() as string
 DECLARE SUB write_linux_menu_file(title as string, filename as string, basename as string)
@@ -66,7 +66,7 @@ DECLARE SUB maybe_write_license_text_file (filename as string)
 DECLARE FUNCTION is_known_license(license_code as string) as integer
 DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
 DECLARE FUNCTION browse_licenses(old_license as string) as string
-DECLARE SUB distribute_game_as_mac_app (which_arch as string)
+DECLARE SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = "")
 DECLARE FUNCTION running_64bit() as bool
 DECLARE SUB itch_io_options_menu()
 DECLARE FUNCTION itch_game_url(distinfo as DistribState) as string
@@ -521,7 +521,7 @@ FUNCTION generate_copyright_line(distinfo as DistribState) as string
  END SELECT
 END FUNCTION
 
-SUB distribute_game_as_zip ()
+SUB distribute_game_as_zip (dest_override as string = "")
 
  DIM distinfo as DistribState
  load_distrib_state distinfo
@@ -532,7 +532,9 @@ SUB distribute_game_as_zip ()
   RETURN
  END IF
 
- DIM destzip as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & ".zip"
+ DIM destzip as string = trimfilename(sourcerpg)
+ IF dest_override <> "" THEN destzip = dest_override
+ destzip &= SLASH & distinfo.pkgname & ".zip"
  DIM shortzip as string = decode_filename(trimpath(destzip))
  IF isfile(destzip) THEN
   IF dist_yesno(shortzip & " already exists. Overwrite it?") = NO THEN RETURN
@@ -927,13 +929,15 @@ END SELECT
 
 END FUNCTION
 
-SUB distribute_game_as_windows_installer ()
+SUB distribute_game_as_windows_installer (dest_override as string = "")
 
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
  DIM basename as string = distinfo.pkgname
- DIM installer as string = trimfilename(sourcerpg) & SLASH & "setup-" & basename & ".exe"
+ DIM installer as string = trimfilename(sourcerpg)
+ IF dest_override <> "" THEN installer = dest_override
+ installer &= SLASH & "setup-" & basename & ".exe"
 
  IF isfile(installer) THEN
   IF dist_yesno(decode_filename(trimpath(installer)) & " already exists. Overwrite it?") = NO THEN RETURN
@@ -1132,7 +1136,7 @@ FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
  
 END FUNCTION
 
-SUB distribute_game_as_debian_package (which_arch as string)
+SUB distribute_game_as_debian_package (which_arch as string, dest_override as string = "")
 
  DIM deb_arch as string
  SELECT CASE which_arch
@@ -1150,7 +1154,9 @@ SUB distribute_game_as_debian_package (which_arch as string)
 
  DIM basename as string = get_debian_package_name()
  DIM pkgver as string = get_debian_package_version()
- DIM debname as string = trimfilename(sourcerpg) & SLASH & basename & "_" & pkgver & "_" & deb_arch & ".deb"
+ DIM debname as string = trimfilename(sourcerpg)
+ IF dest_override <> "" THEN debname = dest_override
+ debname &= SLASH & basename & "_" & pkgver & "_" & deb_arch & ".deb"
 
  IF isfile(debname) THEN
   IF dist_yesno(trimpath(debname) & " already exists. Overwrite it?") = NO THEN RETURN
@@ -1629,13 +1635,15 @@ IF find_helper_app("gzip") = "" THEN RETURN NO
 RETURN YES
 END FUNCTION
 
-SUB distribute_game_as_mac_app (which_arch as string)
+SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = "")
 
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
  DIM basename as string = distinfo.pkgname
- DIM destname as string = trimfilename(sourcerpg) & SLASH & basename
+ DIM destname as string = trimfilename(sourcerpg)
+ IF dest_override <> "" THEN destname = dest_override
+ destname &= SLASH & basename
  IF which_arch = "x86" THEN
   'This is an obsolete arch, add a suffix
   destname &= "-mac-32bit.zip"
@@ -1836,7 +1844,7 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
 
 END FUNCTION
 
-SUB distribute_game_as_linux_tarball (which_arch as string)
+SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
 
  DIM arch_suffix as string
  SELECT CASE which_arch
@@ -1850,7 +1858,9 @@ SUB distribute_game_as_linux_tarball (which_arch as string)
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
- DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & "-linux" & arch_suffix & ".tar.gz"
+ DIM destname as string = trimfilename(sourcerpg)
+ IF dest_override <> "" THEN destname = dest_override
+ destname &= SLASH & distinfo.pkgname & "-linux" & arch_suffix & ".tar.gz"
 
  IF isfile(destname) THEN
   IF dist_yesno(trimpath(destname) & " already exists. Overwrite it?") = NO THEN RETURN
