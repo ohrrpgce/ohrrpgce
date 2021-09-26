@@ -70,9 +70,12 @@ DECLARE SUB distribute_game_as_mac_app (which_arch as string)
 DECLARE FUNCTION running_64bit() as bool
 DECLARE SUB itch_io_options_menu()
 DECLARE FUNCTION itch_game_url(distinfo as DistribState) as string
+DECLARE FUNCTION itch_target(distinfo as DistribState) as string
 DECLARE FUNCTION itch_butler_path() as string
 DECLARE FUNCTION itch_butler_is_installed() as bool
 DECLARE FUNCTION itch_butler_is_logged_in() as bool
+DECLARE FUNCTION itch_butler_setup() as bool
+DECLARE FUNCTION itch_butler_download() as bool
 
 CONST distmenuEXIT as integer = 1
 CONST distmenuZIP as integer = 2
@@ -2011,9 +2014,10 @@ SUB itch_io_options_menu ()
     append_simplemenu_item menu, " Type username to estimate url", YES, uilook(uiDisabledItem)
    ELSE
     append_simplemenu_item menu, " " & itch_game_url(distinfo), YES, uilook(uiDisabledItem)
+    append_simplemenu_item menu, " butler target = " & itch_target(distinfo), YES, uilook(uiDisabledItem)
    END IF
    IF itch_butler_is_logged_in() THEN
-    append_simplemenu_item menu, "Upload to itch.io using the butler tool now", , , itchmenuUPLOAD
+    append_simplemenu_item menu, "Upload to itch.io now", , , itchmenuUPLOAD
    ELSE
     append_simplemenu_item menu, "Set up itch.io butler tool now", , , itchmenuBUTLERSETUP
    END IF
@@ -2027,7 +2031,7 @@ SUB itch_io_options_menu ()
     CASE itchmenuEXIT:
      EXIT DO
     CASE itchmenuBUTLERSETUP:
-     '
+     itch_butler_setup()
     CASE itchmenuUPLOAD:
      'save_current_game 0
      'distribute_game_as_windows_installer
@@ -2056,8 +2060,70 @@ SUB itch_io_options_menu ()
  save_distrib_state distinfo
 END SUB
 
+FUNCTION itch_butler_setup() as bool
+ ' Returns NO if setup failed
+
+ DIM butler_path as string = itch_butler_path()
+ 
+ IF NOT itch_butler_is_installed() THEN
+  IF NOT itch_butler_download() THEN RETURN NO
+ END IF
+
+ 'If we got this far, butler should be installed. Try to log in
+ IF NOT itch_butler_is_logged_in() THEN
+  dist_info "The itch.io butler tool will try to launch your web browser to log in. When finished, you can come back to this window."
+  DIM spawn_ret as string = spawn_and_wait(butler_path, "login")
+  IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: butler login command reported failure: " & spawn_ret : RETURN NO
+  dist_info "After you are finished with the web browser, come back here..."
+ END IF
+ 
+ RETURN YES
+END FUNCTION
+
+FUNCTION itch_butler_download() as bool
+ DIM butler_path as string = itch_butler_path()
+
+ '--Ask the user for permission the first time we download (subsequent updates don't ask)
+ DIM agree_file as string = get_support_dir() & SLASH & "itch.butler.download.agree"
+ IF NOT isfile(agree_file) THEN
+  IF dist_yesno("Is it okay to download the itch.io butler tool?") = NO THEN RETURN NO
+  touchfile agree_file
+ END IF
+ 
+ DIM destzip as string = get_support_dir() & SLASH & "butler.zip"
+ '--Remove the old copy
+ safekill destzip
+ '--Actually download the dang file
+ DIM url as string = "https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default"
+ download_file url, get_support_dir(), "butler.zip"
+ 
+ IF NOT isfile(destzip) THEN
+  dist_info "ERROR: Failed to download itch.io butler.zip" : RETURN NO
+ END IF
+ 
+ '--Find the unzip tool
+ DIM unzip as string = find_helper_app("unzip", YES)
+ IF unzip = "" THEN dist_info "ERROR: Couldn't find unzip tool": RETURN NO
+
+ '-- remove the old copy (if it exists)
+ safekill butler_path
+ 
+ '--Unzip the files
+ DIM args as string = "-o " & escape_filename(destzip) & " -d " & escape_filename(get_support_dir())
+ DIM spawn_ret as string = spawn_and_wait(unzip, args)
+ IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: unzip failed: " & spawn_ret : RETURN NO
+ 
+ IF NOT isfile(butler_path) THEN dist_info "ERROR: Failed to unzip itch.io butler tool" : RETURN NO
+ 
+ RETURN YES
+END FUNCTION
+
 FUNCTION itch_game_url(distinfo as DistribState) as string
  RETURN "https://" & sanitize_url_chunk(distinfo.itch_user) & ".itch.io/" & sanitize_url_chunk(distinfo.pkgname)
+END FUNCTION
+
+FUNCTION itch_target(distinfo as DistribState) as string
+ RETURN sanitize_url_chunk(distinfo.itch_user) & "/" & sanitize_url_chunk(distinfo.pkgname)
 END FUNCTION
 
 FUNCTION itch_butler_path() as string
