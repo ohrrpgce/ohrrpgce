@@ -4828,6 +4828,7 @@ SUB load_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
   distinfo.more_description = node."more_description".string
   distinfo.license          = node."license".string
   distinfo.copyright_year   = node."copyright_year".string
+  distinfo.itch_user        = node."itch_user".string
  END READNODE
 
  '--Set up defaults
@@ -4875,6 +4876,7 @@ SUB save_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
  SetChildNode node, "more_description", distinfo.more_description
  SetChildNode node, "license",     distinfo.license
  SetChildNode node, "copyright_year", distinfo.copyright_year
+ SetChildNode node, "itch_user",   distinfo.itch_user
 END SUB
 
 

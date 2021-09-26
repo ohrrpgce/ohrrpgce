@@ -59,6 +59,7 @@ DECLARE SUB edit_distrib_info ()
 DECLARE FUNCTION sanitize_pkgname(s as string) as string
 DECLARE FUNCTION sanitize_email(s as string) as string
 DECLARE FUNCTION sanitize_url(s as string) as string
+DECLARE FUNCTION sanitize_url_chunk(s as string) as string
 DECLARE SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
 DECLARE SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wrap as integer=72)
 DECLARE SUB maybe_write_license_text_file (filename as string)
@@ -67,6 +68,11 @@ DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
 DECLARE FUNCTION browse_licenses(old_license as string) as string
 DECLARE SUB distribute_game_as_mac_app (which_arch as string)
 DECLARE FUNCTION running_64bit() as bool
+DECLARE SUB itch_io_options_menu()
+DECLARE FUNCTION itch_game_url(distinfo as DistribState) as string
+DECLARE FUNCTION itch_butler_path() as string
+DECLARE FUNCTION itch_butler_is_installed() as bool
+DECLARE FUNCTION itch_butler_is_logged_in() as bool
 
 CONST distmenuEXIT as integer = 1
 CONST distmenuZIP as integer = 2
@@ -79,6 +85,7 @@ CONST distmenuREADME as integer = 8
 CONST distmenuLINUXSETUP as integer = 9
 CONST distmenuLINUX64SETUP as integer = 10
 CONST distmenuMAC64SETUP as integer = 11
+CONST distmenuITCHUPLOAD as integer = 12
 
 DECLARE FUNCTION dist_yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
 DECLARE SUB dist_info (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
@@ -140,6 +147,8 @@ SUB distribute_game ()
   append_simplemenu_item menu, " (requires ar+tar+gzip)", YES, uilook(uiDisabledItem)
  END IF
 
+ append_simplemenu_item menu, "Upload this game to itch.io ...", , , distmenuITCHUPLOAD
+
  #ENDIF
 
  append_simplemenu_item menu, "Export README text file", , , distmenuREADME
@@ -184,6 +193,8 @@ SUB distribute_game ()
      edit_distrib_info
     CASE distmenuREADME:
      export_readme_text_file
+    CASE distmenuITCHUPLOAD:
+     itch_io_options_menu
    END SELECT
   END IF
 
@@ -345,6 +356,12 @@ END FUNCTION
 FUNCTION sanitize_url(s as string) as string
  '--This website address sanitization is far from perfect, but probably good enough for most cases
  RETURN special_char_sanitize(exclusive(s, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.:/_+%:;?@=&'"))
+END FUNCTION
+
+FUNCTION sanitize_url_chunk(s as string) as string
+ replacestr s, " ", "-"
+ replacestr s, "_", "-"
+ RETURN special_char_sanitize(exclusive(LCASE(s), "abcdefghijklmnopqrstuvwxyz0123456789-"))
 END FUNCTION
 
 SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
@@ -1963,4 +1980,111 @@ SUB auto_export_distribs (distrib_type as string)
  auto_choose_default = NO
 END SUB
 
+CONST itchmenuEXIT as integer = 1
+CONST itchmenuUSER as integer = 2
+CONST itchmenuUPLOAD as integer = 3
+CONST itchmenuBUTLERSETUP as integer = 4
+
+SUB itch_io_options_menu ()
+
+ DIM distinfo as DistribState
+ load_distrib_state distinfo
+ 
+ DIM gamename as string = decode_filename(trimextension(trimpath(sourcerpg)))
+
+ DIM menu as SimpleMenuItem vector
+ v_new menu, 0
+
+ DIM st as MenuState
+ st.need_update = YES
+
+ DO
+  setwait 55
+  setkeys YES
+
+  IF st.need_update THEN
+   v_new menu, 0
+   append_simplemenu_item menu, "Previous Menu...", , , itchmenuEXIT
+   append_simplemenu_item menu, " Game package name: " & distinfo.pkgname, YES, uilook(uiDisabledItem)
+   append_simplemenu_item menu, "Your itch.io username: " & distinfo.itch_user, , , itchmenuUSER
+   IF LEN(distinfo.itch_user) = 0 THEN
+    append_simplemenu_item menu, " Type username to estimate url", YES, uilook(uiDisabledItem)
+   ELSE
+    append_simplemenu_item menu, " " & itch_game_url(distinfo), YES, uilook(uiDisabledItem)
+   END IF
+   IF itch_butler_is_logged_in() THEN
+    append_simplemenu_item menu, "Upload to itch.io using the butler tool now", , , itchmenuUPLOAD
+   ELSE
+    append_simplemenu_item menu, "Set up itch.io butler tool now", , , itchmenuBUTLERSETUP
+   END IF
+   init_menu_state st, cast(BasicMenuItem vector, menu)
+  END IF
+
+  IF keyval(ccCancel) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "upload_game_itch_io"
+  IF enter_space_click(st) THEN
+   SELECT CASE menu[st.pt].dat
+    CASE itchmenuEXIT:
+     EXIT DO
+    CASE itchmenuBUTLERSETUP:
+     '
+    CASE itchmenuUPLOAD:
+     'save_current_game 0
+     'distribute_game_as_windows_installer
+   END SELECT
+  END IF
+
+  SELECT CASE menu[st.pt].dat
+   CASE itchmenuUSER:
+    IF strgrabber(distinfo.itch_user, 63) THEN
+     distinfo.itch_user = sanitize_url_chunk(distinfo.itch_user)
+     st.need_update = YES
+    END IF
+  END SELECT
+
+  usemenu st, cast(BasicMenuItem vector, menu)
+  
+  clearpage dpage
+  standardmenu cast(BasicMenuItem vector, menu), st, 0, 0, dpage
+  
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
+ v_free menu
+ save_distrib_state distinfo
+END SUB
+
+FUNCTION itch_game_url(distinfo as DistribState) as string
+ RETURN "https://" & sanitize_url_chunk(distinfo.itch_user) & ".itch.io/" & sanitize_url_chunk(distinfo.pkgname)
+END FUNCTION
+
+FUNCTION itch_butler_path() as string
+ DIM butler as string = get_support_dir() & SLASH & "butler"
+ #IFDEF __FB_WIN32__
+ butler &= ".exe"
+ #ENDIF
+ RETURN butler
+END FUNCTION
+
+FUNCTION itch_butler_is_installed() as bool
+ DIM butler as string = itch_butler_path()
+ IF butler = "" THEN RETURN NO
+ RETURN isfile(butler)
+END FUNCTION
+
+FUNCTION itch_butler_is_logged_in() as bool
+ ' Can't be logged in if it ain't installed
+ IF NOT itch_butler_is_installed() THEN RETURN NO
+ DIM butler_creds as string
+ #IFDEF __FB_WIN32__
+ butler_creds = ENVIRON("USERPROFILE") & SLASH & ".config" & SLASH & "itch" & SLASH & "butler_creds"
+ #ELSEIF DEFINED(__FB_DARWIN__)
+ butler_creds = ENVIRON("HOME") & SLASH & "Library" & SLASH & "Application Support" & SLASH & "itch" & SLASH & "butler_creds"
+ #ELSE
+ butler_creds = ENVIRON("HOME") & SLASH & ".config" & SLASH & "itch" & SLASH & "butler_creds"
+ #ENDIF
+ RETURN isfile(butler_creds)
+END FUNCTION
 
