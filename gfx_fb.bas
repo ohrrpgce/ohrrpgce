@@ -8,6 +8,7 @@
 	#include "lib/SDL/SDL_x11clipboard.bi"
 	#undef font
 
+#if __FB_VER_MAJOR__ = 1 and __FB_VER_MINOR__ <= 5
 	' HACK: FB 1.05 and earlier don't have a way to get the Display ptr, only the Window
 	' But the Window ptr happens to be the first member of fb_x11
 	type X11DRIVER
@@ -15,6 +16,7 @@
 		'rest omitted
 	end type
 	extern fb_x11 alias "fb_x11" as X11DRIVER
+#endif
 
 #elseif defined(__FB_WIN32__)
 	include_windows_bi()
@@ -66,6 +68,7 @@ dim shared extrakeys(127) as KeyBits
 dim shared truepal(255) as RGBcolor
 
 
+'Don't bother with gfxmutex in this function, as polling thread hasn't started
 function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 	if init_gfx = NO then
 		#ifdef USE_X11
@@ -156,7 +159,9 @@ sub gfx_fb_update_screen_mode()
 end sub
 
 sub gfx_fb_close
+	GFX_ENTER
 	screen 0
+	GFX_EXIT
 	init_gfx = NO
 end sub
 
@@ -231,7 +236,9 @@ sub gfx_fb_setwindowed(byval iswindow as integer)
 	if debugging_io then debuginfo "setwindowed fullscreen=" & wantfullscreen
 
 	if wantfullscreen = NO then zoom = remember_windowed_zoom
+	GFX_ENTER
 	update_screen_mode_no_lock wantfullscreen
+	GFX_EXIT
 end sub
 
 'Called with gfxmutex held
@@ -250,7 +257,9 @@ sub gfx_fb_get_screen_size(wide as integer ptr, high as integer ptr)
 	dim as ssize_t wide_, high_  'for 64 bit builds
 	'This returns the size of the display on which our window is, as desired, not the whole desktop size.
 	'However, if we've fullscreened it returns the fullscreen resolution.
+	GFX_ENTER
 	ScreenControl GET_DESKTOP_SIZE, wide_, high_
+	GFX_EXIT
 	*wide = wide_
 	*high = high_
 end sub
@@ -482,7 +491,9 @@ end function
 
 sub io_fb_pollkeyevents()
 	'not really needed by this backend
+	GFX_ENTER
 	process_events()
+	GFX_EXIT
 end sub
 
 sub io_fb_waitprocessing()
@@ -570,8 +581,10 @@ SUB io_fb_hide_virtual_keyboard()
 END SUB
 
 sub io_fb_setmousevisibility(visibility as CursorVisibility)
+	GFX_ENTER
 	mouse_visibility = visibility
 	update_mouse_visibility()
+	GFX_EXIT
 end sub
 
 'Called with gfxmutex held
@@ -601,6 +614,7 @@ sub io_fb_getmouse(byref mx as integer, byref my as integer, byref mwheel as int
 	mbuttons = lastbuttons
 end sub
 
+'Called with gfxmutex held
 sub io_fb_setmouse(byval x as integer, byval y as integer)
 	dim mpos as XYPair = XY(x, y) * zoom + screen_buffer_offset
 	setmouse(mpos.x, mpos.y)
@@ -623,6 +637,7 @@ sub io_fb_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as 
 	end if
 end sub
 
+'Called with gfxmutex held
 function io_fb_get_joystick_state(byval joynum as integer, byval state as IOJoystickState ptr) as integer
 	if window_state.focused = NO then return 3  'Not focused
 
@@ -700,7 +715,9 @@ sub io_fb_set_clipboard_text(text as zstring ptr)  'ustring
 		exit sub
 	#elseif defined(__FB_WIN32__)
 		dim hwnd as ssize_t 'as HWND
+		GFX_ENTER
 		screencontrol GET_WINDOW_HANDLE, hwnd
+		GFX_EXIT
 		WIN_SetClipboardText(cast(HWND, hwnd), text)
 	#elseif defined(__FB_DARWIN__)
 		Cocoa_SetClipboardText(text)
@@ -710,17 +727,24 @@ end sub
 function io_fb_get_clipboard_text() as zstring ptr  'ustring
 	dim ret as zstring ptr
 	#ifdef USE_X11
-		dim wndw as Window
-		dim displayi as ssize_t
-		dim display as Display ptr
-		screencontrol GET_WINDOW_HANDLE, wndw, displayi
-		display = cptr(Display ptr, displayi)
-		'Getting display via GET_WINDOW_HANDLE is only in FB 1.06.0
-		display = fb_x11.display
+		#if __FB_VER_MAJOR__ = 1 and __FB_VER_MINOR__ <= 5
+			'Getting display via GET_WINDOW_HANDLE is only in FB 1.06.0
+			display = fb_x11.display
+		#else
+			dim wndw as Window
+			dim displayi as ssize_t
+			dim display as Display ptr
+			GFX_ENTER
+			screencontrol GET_WINDOW_HANDLE, wndw, displayi
+			GFX_EXIT
+			display = cptr(Display ptr, displayi)
+		#endif
 		ret = X11_GetClipboardText(display, wndw, NULL)  'No callback, just waits 40ms
 	#elseif defined(__FB_WIN32__)
 		dim hwnd as ssize_t 'as HWND
+		GFX_ENTER
 		screencontrol GET_WINDOW_HANDLE, hwnd
+		GFX_EXIT
 		ret = WIN_GetClipboardText(cast(HWND, hwnd))
 	#elseif defined(__FB_DARWIN__)
 		ret = Cocoa_GetClipboardText()

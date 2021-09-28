@@ -2692,6 +2692,7 @@ sub JoystickState.update_keybits(joynum as integer)
 
 
 	dim starttime as double = timer
+	GFX_ENTER
 	if io_get_joystick_state then
 		dim ret as integer
 		ret = io_get_joystick_state(joynum, @state)
@@ -2712,6 +2713,7 @@ sub JoystickState.update_keybits(joynum as integer)
 	else
 		'Backend doesn't support joysticks! Continue, wiping keys()
 	end if
+	GFX_EXIT
 	debug_if_slow(starttime, 0.01, joynum)
 
 	' Unless the gfx backend reports state.buttons_new (only gfx_sdl2),
@@ -3115,7 +3117,9 @@ end sub
 
 sub movemouse (x as integer, y as integer)
 	'Maybe we shouldn't cause the mouse to jump back to our window if it's not over it? (mouse_state.active)
+	GFX_ENTER
 	io_setmouse(x, y)
+	GFX_EXIT
 
 	' Don't call io_mousebits to get the new state, since that will cause clicks and movements to get lost,
 	' and is difficult to support in .ohrkeys.
@@ -3259,11 +3263,13 @@ end sub
 sub io_amx_mousebits cdecl (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 	with pollthread
 		'get the mouse state one last time, for good measure
+		GFX_ENTER
 		io_getmouse(mx, my, mwheel, mbuttons)
 		mclicks = .mousebuttons or (mbuttons and not .mouselastbuttons)
 		.mouselastbuttons = mbuttons
 		.mousebuttons = 0
 		mbuttons = mbuttons or mclicks
+		GFX_EXIT
 	end with
 end sub
 

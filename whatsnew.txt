@@ -30,8 +30,8 @@ WHAT IS NEW?
       Also, entering a debug menu now pauses "mouse region" [Ralph]
     * Various gfx_fb bugfixes, including screen fades not happening, fullscreen
       not working at some zooms or picking awful aspect ratio wrong mouse cursor
-      position and visibility in fullscreen, and broken display at 1x zoom.
-      Thankfully noone uses gfx_fb. [Ralph]
+      position and visibility in fullscreen, broken display at 1x zoom, and
+      freezing. Thankfully noone uses gfx_fb. [Ralph]
     * Fix #1219 Global NPCs now properly support one-time-use tags [James]
 
   *** Stuff Only Developers Will Notice
