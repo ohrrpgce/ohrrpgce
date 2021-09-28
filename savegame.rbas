@@ -98,8 +98,7 @@ FUNCTION fallback_save_location(savename as string) as string
 END FUNCTION
 
 SUB init_save_system()
- DIM rpg_folder as string = trimfilename(sourcerpg)
- IF LEN(rpg_folder) THEN rpg_folder &= SLASH
+ DIM rpg_folder as string = add_trailing_slash(trimfilename(sourcerpg))
 
  DIM gen_root as NodePtr = get_general_reld()
  DIM savename as string

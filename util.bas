@@ -1921,7 +1921,7 @@ FUNCTION add_trailing_slash (dirname as string) as string
   IF LEN(dirname) = 0 THEN RETURN dirname  'For safety
   #IFDEF __FB_WIN32__
     'Also valid on Windows
-    IF RIGHT(dirname, 1) = "\" THEN RETURN dirname
+    IF RIGHT(dirname, 1) = "/" THEN RETURN dirname
   #ENDIF
   IF RIGHT(dirname, 1) = SLASH THEN RETURN dirname
   RETURN dirname + SLASH
@@ -2004,13 +2004,13 @@ endTest
 'FIXME: this function is terribly misnamed; rename it or change semantics
 FUNCTION trimfilename (filename as string) as string
   'Trim the last component of a path (which may be a directory rather than file!)
-  'Return path without trailing slash. See testcases.
+  'Return path without trailing slash (unless need to return root dir). See testcases.
   'This is the complement to trimpath
   'Quite similar to parentdir().
   DIM ret as string = trim_trailing_slashes(normalize_path(filename))
   ret = MID(ret, 1, large(0, INSTRREV(ret, SLASH) - 1))
   IF is_absolute_path(filename) AND is_absolute_path(ret) = NO THEN
-    'Whoops, we deleted the / or \ corresponding to the root
+    'Whoops, we deleted the / or \ corresponding to the root, put it back
     RETURN normalize_path(get_path_root(filename))
   END IF
   return ret
