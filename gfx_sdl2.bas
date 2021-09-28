@@ -123,7 +123,7 @@ DIM SHARED recenter_window_hint as bool = NO
 DIM SHARED remember_windowtitle as string
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
 DIM SHARED sdlpalette as SDL_Palette ptr
-DIM SHARED framesize as XYPair       'Size of the unscaled image
+DIM SHARED framesize as XYPair = (320, 200)  'Size of the unscaled image
 DIM SHARED mouseclipped as bool = NO   'Whether we are ACTUALLY clipped
 DIM SHARED forced_mouse_clipping as bool = NO
 DIM SHARED remember_mouserect as RectPoints = ((-1, -1), (-1, -1)) 'Args at the last call to io_mouserect
@@ -344,8 +344,6 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   NEXT
   ret &= ") Render driver: "
 
-  framesize.w = 320
-  framesize.h = 200
   remember_window_size = 0
 
   sdlpalette = SDL_AllocPalette(256)
@@ -763,13 +761,15 @@ END FUNCTION
 
 SUB gfx_sdl2_setwindowed(byval towindowed as bool)
   IF debugging_io THEN debuginfo "setwindowed " & towindowed
+  IF mainwindow = NULL THEN
+    windowedmode = towindowed
+    EXIT SUB
+  END IF
 
   DIM entering_fullscreen as bool
   DIM leaving_fullscreen as bool
-  IF mainwindow THEN
-    entering_fullscreen = (towindowed = NO ANDALSO windowedmode = YES)
-    leaving_fullscreen = (towindowed = YES ANDALSO windowedmode = NO)
-  END IF
+  entering_fullscreen = (towindowed = NO ANDALSO windowedmode = YES)
+  leaving_fullscreen = (towindowed = YES ANDALSO windowedmode = NO)
   IF entering_fullscreen THEN
     remember_window_size = framesize * zoom
     IF debugging_io THEN debuginfo "remembering window size " & remember_window_size
@@ -947,7 +947,7 @@ SUB gfx_sdl2_set_window_size (byval newframesize as XYPair = XY(-1,-1), newzoom 
   END IF
 
   IF newzoom <> zoom ORELSE newframesize <> framesize THEN
-    debuginfo "set_window_size " & newframesize & ", zoom=" & newzoom
+    debuginfo "gfx_sdl2_set_window_size " & newframesize & ", zoom=" & newzoom
     '(We don't actually need to call set_window_size here and could instead mark
     'that gfx_present should call it if the zoom changed. But that's more code
     'and seems to behave identically)
@@ -1270,6 +1270,7 @@ SUB gfx_sdl2_process_events()
             'window was erroneously set to resizable (because it's not possible
             'to change resizability while fullscreened) need to be overridden.
             IF windowedmode THEN
+              IF debugging_io THEN debuginfo "set_window_size in response to SDL_WINDOWEVENT_RESIZED"
               set_window_size framesize, zoom, YES
             END IF
           END IF

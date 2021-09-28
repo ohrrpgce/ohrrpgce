@@ -23,8 +23,8 @@ WHAT IS NEW?
       Too complex! [Ralph]
 
   *** Bugfixes
-    * Various gfx_sdl2 window size/position and mouse glitches when exiting
-      fullscreen [Ralph]
+    * Various gfx_sdl2 window size/position/resizing and mouse glitches when
+      entering/exiting fullscreen (e.g. bug #1190) [Ralph]
     * Re-did "mouse region" handling under gfx_sdl2 so the mouse moves/accelerates
       normally, and switching fullscreen/windowed doesn't break it.
       Also, entering a debug menu now pauses "mouse region" [Ralph]
