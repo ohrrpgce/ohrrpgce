@@ -36,6 +36,7 @@ DECLARE SUB attack_preview_slice_focus(byval sl as Slice Ptr)
 DECLARE SUB attack_preview_slice_defocus(byval sl as Slice Ptr)
 DECLARE FUNCTION find_free_attack_preview_slot(slots() as Slice Ptr) as integer
 DECLARE SUB position_chain_preview_boxes(sl_list() as Slice ptr, st as MenuState)
+DECLARE SUB check_used_onetime_npcs_npcdata(bits() as integer, npcdata() as NPCType, mapnum as integer)
 
 
 'Module-local variables
@@ -2872,20 +2873,25 @@ SUB check_used_onetime_npcs(bits() as integer)
  REDIM npcdata(0) as NPCType
  FOR m as integer = 0 TO gen(genMaxMap)
   LoadNPCD maplumpname(m, "n"), npcdata()
-  FOR i as integer = 0 TO UBOUND(npcdata)
-   WITH npcdata(i)
-    IF .usetag > max_onetime THEN
-     debugerror "out-of-range onetime tag " & .usetag & " for NPC " & i & " on map " & m
-    ELSEIF .usetag > 0 THEN
-     'debug "Map " & m & " NPC " & i & " uses onetime " & .usetag
-     IF readbit(bits(), 0, .usetag) THEN
-      'Don't show a warning for duplicate onetime tags because it happens all the time with map copying
-     END IF
-     setbit bits(), 0, .usetag, YES
-    END IF
-   END WITH
-  NEXT i
+  check_used_onetime_npcs_npcdata bits(), npcdata(), m
  NEXT m
+ LoadNPCD global_npcdef_filename(1), npcdata()
+ check_used_onetime_npcs_npcdata bits(), npcdata(), -1
+END SUB
+
+SUB check_used_onetime_npcs_npcdata(bits() as integer, npcdata() as NPCType, mapnum as integer)
+ FOR i as integer = 0 TO UBOUND(npcdata)
+  WITH npcdata(i)
+   IF .usetag > max_onetime THEN
+    debugerror "out-of-range onetime tag " & .usetag & " for NPC " & i & IIF(mapnum >= 0, " on map " & mapnum, " global pool " & ABS(mapnum))
+   ELSEIF .usetag > 0 THEN
+    IF readbit(bits(), 0, .usetag) THEN
+     'Don't show a warning for duplicate onetime tags because it happens all the time with map copying
+    END IF
+    setbit bits(), 0, .usetag, YES
+   END IF
+  END WITH
+ NEXT i
 END SUB
 
 SUB menu_of_reorderable_nodes(st as MenuState, menu as MenuDef)
