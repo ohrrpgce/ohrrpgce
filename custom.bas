@@ -150,7 +150,6 @@ tmpdir = settings_dir & SLASH
 IF NOT isdir(tmpdir) THEN fatalerror "Unable to create temp directory " & tmpdir
 
 set_global_config_file
-config_prefix = "edit."
 debuginfo "config: " & global_config_file
 
 
@@ -232,7 +231,7 @@ END IF
 
 '================= Setup game-specific directories & debug log ================
 
-' Set up game_id, prefsdir, game_config_file, and config_prefix variables
+' Set up game_id, prefsdir, and game_config_file variables
 set_game_config_globals sourcerpg
 
 flush_gfx_config_settings

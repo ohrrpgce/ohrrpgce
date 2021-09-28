@@ -124,20 +124,13 @@ DIM settings_dir as string
 'Game-specific subdirectory (named game_id) of settings_dir. Currently only used by Game
 DIM prefsdir as string
 
-'ohrrpgce_config.ini. This is stored in either app_dir or settings_dir.
-'Contains global settings. Game-specific settings can be put here by the user, using the
-'game.game_<game_id>. or edit.game_<game_id>. prefix, but the engine always puts game-specific
-'settings in game_config_file instead.
+'ohrrpgce_config.ini. This is stored in either app_dir or settings_dir. For non-game-specific settings.
 DIM global_config_file as string
 
 '<gamename>_config.ini next to sourcerpg, or else gameconfig.ini in prefsdir. Settings here
 'shadow those in global_config_file, but only game-specific settings are written here by
 'default. Mostly for settings remembered by Game for a single game, or user overrides.
 DIM game_config_file as string
-
-'The prefix used by read_config_int/etc functions for reading ohrrpgce_config.ini.
-'Defines the current context. E.g. "edit.game_(gamename)."
-DIM config_prefix as string
 
 '=== Game data ==='
 
@@ -8174,7 +8167,6 @@ END FUNCTION
 ' Called on startup to set up config-related globals (excluding savedir)
 SUB set_game_config_globals(sourcerpg as string)
  game_id = trimpath(trimextension(sourcerpg))  'some unique ID scheme would be nice
- config_prefix = exe_prefix & "game_" & game_id & "."
  prefsdir = settings_dir & SLASH & game_id
  'Custom doesn't save anything in prefsdir, don't bother creating it
 #IFDEF IS_GAME
@@ -8195,22 +8187,19 @@ SUB set_global_config_file()
  END IF
 END SUB
 
-'Try to read the value of a key first in game_config_file then in global_config_file while
-'respecting config_prefix and finding the most specific setting that applies.
-'(Do NOT manually prepend config_prefix.)
-'Settings in game_config_file shouldn't be prefixed by config_prefix, but still count as
-'most specific.
-'For example if config_prefix is "edit.game_genesis." and key is "hspeak", then try
-'"edit.game_genesis.hspeak", "edit.hspeak", "hspeak" in order.
-'key can also include a second prefix. For example if config_prefix is
-'"edit.game_genesis." and key is "gfx.gfx_directx.backend_screenshot",
-'then these are tried in order:
-' edit.game_genesis.gfx.gfx_directx.backend_screenshot
-' edit.game_genesis.gfx.backend_screenshot
-' edit.game_genesis.backend_screenshot
+'Try to read the value of a key first from game_config_file then from global_config_file,
+'looking for most specific prefixed setting that applies.
+'(Do NOT manually prepend exe_prefix/"game."/"edit.".)
+'For example if key is "hspeak" and exe_prefix is "edit.", then try "edit.hspeak",
+'"hspeak" in order.
+'key can also include a second prefix. For example if exe_prefix is "edit." and key is
+'"gfx.gfx_directx.backend_screenshot", then these are tried in order:
 ' edit.gfx.gfx_directx.backend_screenshot
 ' edit.gfx.backend_screenshot
-' etc
+' edit.backend_screenshot
+' gfx.gfx_directx.backend_screenshot
+' gfx.backend_screenshot
+' backend_screenshot
 FUNCTION read_config_str (key as zstring ptr, default as zstring ptr=@"") as string
  IF game_config_file <> "" THEN
   'Settings in the game's .ini file override others
@@ -8232,7 +8221,7 @@ END FUNCTION
 
 FUNCTION read_ini_prefixed_str (ini() as string, prefixed_key as string, default as string="", byref linenum as integer=0) as string
  'prefix and prefix2 either end in . or are blank
- DIM prefix as string = config_prefix
+ DIM prefix as string = exe_prefix
  DIM key as string = MID(prefixed_key, INSTRREV(prefixed_key, ".") + 1)
  DIM prefix2 as string = MID(prefixed_key, 1, INSTRREV(prefixed_key, "."))
 
@@ -8248,6 +8237,7 @@ FUNCTION read_ini_prefixed_str (ini() as string, prefixed_key as string, default
 
   IF LEN(prefix) = 0 THEN RETURN default
   'Trim end off prefix (skipping final .)
+  '(We support multiple dotted levels in exe_prefix, but that is never used)
   prefix = MID(prefix, 1, INSTRREV(prefix, ".", LEN(prefix) - 1))
  LOOP
 END FUNCTION
@@ -8260,10 +8250,11 @@ FUNCTION read_config_bool (key as zstring ptr, default as bool=NO) as bool
  RETURN str2bool(read_config_str(key), default)
 END FUNCTION
 
-'Uses the same prefix-matching logic as read_config_str to find a matching
-'line in an .ini and if so overwrite it, preserving the key prefixes, and return true.
+'Drop-in replacement for write_ini_value which uses the same prefix-matching
+'logic as read_config_str to find a matching line in an .ini and if so overwrite
+'it, preserving the key prefixes, and return true.
 'If force_write then append if there was no match.
-FUNCTION write_ini_prefixed_str(filename as string, prefixed_key as string, value as string, force_write as bool) as bool
+FUNCTION write_ini_prefixed_str(filename as string, prefixed_key as string, value as string, force_write as bool = YES) as bool
  REDIM ini(-1 TO -1) as string
  IF real_isfile(filename) = NO THEN RETURN NO
  lines_from_file ini(), filename
@@ -8286,48 +8277,34 @@ END FUNCTION
 
 'Write a config setting to either global_config_file (in general) or
 'game_config_file:
-'-If the key is game-specific (it's prefixed with config_prefix which is
-' "game.game_${game_id}.", or "edit.game_${game_id}."), write it to
-' game_config_file, stripped the redundant config_prefix
-'-If the setting already exists, overwrite it, preserving whereever/whatever
-' prefixes it had, so read_config will return 'value' after doing its search.
+'-If the setting already exists in either file, overwrite it, preserving
+' whatever prefixes it had, so read_config will return 'value' after doing its
+' search.
 '-Otherwise add a new setting to global_config_file
 '
-'So if you want a setting to be game-specific, prepend config_prefix or
-'alternatively just use "write_ini_value game_config_file, ..." directly.
-'If you want it to be specific to Game/Custom, prepend app_prefix.
+'If you want a setting to be game-specific, use write_game_config.
+'If you want it to be specific to Game/Custom, prepend exe_prefix or "game."
+'or "edit.".
 '
 'Here are some guidelines for naming a key, not nailed down:
 '-Something specific to an editor, shared between all games should look like
 ' "mapedit.show_overhead" (eg "sliceedit." can be shared by Game + Custom)
 '-Shared gfx backend options go under "gfx."
 '-Backend-specific options go under eg. "gfx.gfx_sdl."
-'-A setting for Custom and not falling into another category can start with "edit.".
-'-Stuff for Game but not game-specific goes under "game."
+'-Prepend game./edit. if it's not obvious that it only affects one of
+' Game/Custom, but mostly these aren't added
 '
 '(Note: less-specific settings might get shadowed rather than overwritten.
 'game.backend gets overwritten when writing game.gfx.backend, but gfx.backend
 'gets shadowed by a new game.gfx.backend line. Not sure if that counts as a bug.)
-SUB write_config (zkey as zstring ptr, value as string)
- DIM key as string = *zkey
- IF LEN(game_config_file) THEN
-  IF starts_with(key, config_prefix) THEN
-   'Since game_config_file is nonempty, config_prefix must include a game_id prefix
-   DIM trimmedkey as string = MID(key, LEN(config_prefix) + 1)
-   'Not using config_prefix or looking for the most specific match to overwrite it.
-   'debug game_config_file & ": [over]writing " & trimmedkey & " = " & value
-   write_ini_value game_config_file, trimmedkey, value
-   EXIT SUB
-  END IF
- END IF
-
+SUB write_config (key as zstring ptr, value as string)
  IF game_config_file <> "" THEN
   'Settings in the game's .ini file override others. If there's a match there,
   'overwrite it.
-  IF write_ini_prefixed_str(game_config_file, key, value, NO) THEN EXIT SUB
+  IF write_ini_prefixed_str(game_config_file, *key, value, NO) THEN EXIT SUB
  END IF
  'Overwrite any match in ohrrpgce_config.ini, otherwise append to it.
- write_ini_prefixed_str(global_config_file, key, value, YES)
+ write_ini_prefixed_str(global_config_file, *key, value, YES)
 END SUB
 
 SUB write_config (key as zstring ptr, value as integer)
@@ -8336,4 +8313,19 @@ END SUB
 
 SUB write_config (key as zstring ptr, value as double)
  write_config key, FORMAT(value, "0.000")
+END SUB
+
+'Same as write_config, except this only writes to game_config_file to write
+'game-specific settings. key can optionally be prefixed with "game." or "edit."
+SUB write_game_config (key as zstring ptr, value as string)
+ BUG_IF(LEN(game_config_file) = 0, "No game loaded, can't write " & *key)
+ write_ini_prefixed_str(game_config_file, *key, value, YES)
+END SUB
+
+SUB write_game_config (key as zstring ptr, value as integer)
+ write_game_config key, STR(value)
+END SUB
+
+SUB write_game_config (key as zstring ptr, value as double)
+ write_game_config key, FORMAT(value, "0.000")
 END SUB

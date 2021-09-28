@@ -403,13 +403,20 @@ DECLARE FUNCTION get_gen_str(nodepath as zstring ptr, default as zstring ptr = @
 
 DECLARE SUB set_global_config_file()
 DECLARE SUB set_game_config_globals(sourcerpg as string)
+
 DECLARE FUNCTION read_ini_prefixed_str OVERLOAD (filename as string, prefixed_key as string, default as string="", byref linenum as integer=0) as string
 DECLARE FUNCTION read_ini_prefixed_str OVERLOAD (ini() as string, prefixed_key as string, default as string="", byref linenum as integer=0) as string
 DECLARE FUNCTION read_config_str (key as zstring ptr, default as zstring ptr=@"") as string
 DECLARE FUNCTION read_config_int (key as zstring ptr, default as integer=0) as integer
 DECLARE FUNCTION read_config_bool (key as zstring ptr, default as bool=NO) as bool
+DECLARE FUNCTION write_ini_prefixed_str(filename as string, prefixed_key as string, value as string, force_write as bool = YES) as bool
 DECLARE SUB write_config OVERLOAD (key as zstring ptr, value as string)
 DECLARE SUB write_config OVERLOAD (key as zstring ptr, value as integer)
+DECLARE SUB write_config OVERLOAD (key as zstring ptr, value as double)
+DECLARE SUB write_game_config OVERLOAD (key as zstring ptr, value as string)
+DECLARE SUB write_game_config OVERLOAD (key as zstring ptr, value as integer)
+DECLARE SUB write_game_config OVERLOAD (key as zstring ptr, value as double)
+
 
 'Global variables  (See also common_base.bi)
 EXTERN sourcerpg as string
@@ -437,7 +444,6 @@ EXTERN app_dir as string
 EXTERN app_resources_dir as string
 EXTERN global_config_file as string
 EXTERN game_config_file as string
-EXTERN config_prefix as string
 EXTERN global_reload_doc as DocPtr
 EXTERN herotags() as HeroTagsCache
 EXTERN itemtags() as ItemDefTags

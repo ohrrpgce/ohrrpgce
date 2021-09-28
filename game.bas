@@ -227,7 +227,6 @@ tmpdir = get_tmpdir()
 refresh_keepalive_file
 
 set_global_config_file
-config_prefix = "game."
 debuginfo "config: " & global_config_file
 
 
@@ -456,7 +455,7 @@ END IF
 
 '================= Setup game-specific directories & debug log ================
 
-' Set up game_id, prefsdir, game_config_file, and config_prefix variables
+' Set up game_id, prefsdir, and game_config_file variables
 set_game_config_globals sourcerpg
 
 flush_gfx_config_settings
@@ -1011,7 +1010,6 @@ SUB reset_game_final_cleanup()
  game = ""
  sourcerpg = ""
  game_config_file = ""
- config_prefix = "game."
  flush_gfx_config_settings
  'checks for leaks and deallocates them
  sprite_empty_cache
