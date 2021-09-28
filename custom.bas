@@ -151,6 +151,7 @@ IF NOT isdir(tmpdir) THEN fatalerror "Unable to create temp directory " & tmpdir
 
 set_global_config_file
 config_prefix = "edit."
+debuginfo "config: " & global_config_file
 
 
 '========================== Process commandline flags =========================
@@ -231,20 +232,8 @@ END IF
 
 '================= Setup game-specific directories & debug log ================
 
-' Local config file overrides global one
-' TODO: only settings actually present in the file should override ones in the global file!
-DIM tmpstr as string = trimfilename(sourcerpg) & SLASH & "ohrrpgce_config.ini"
-IF isfile(tmpstr) THEN
- global_config_file = tmpstr
-END IF
-
-'-- set up prefs dir and game config file variables
-game_id = trimpath(trimextension(sourcerpg))  'some unique ID scheme would be nice
-prefsdir = settings_dir & SLASH & game_id
-'Unlike Game, we don't save anything in prefsdir, don't bother creating it
-'IF NOT isdir(prefsdir) THEN makedir prefsdir
-game_config_file = prefsdir & SLASH & "gameconfig.ini"
-config_prefix = "edit.game_" & game_id & "."
+' Set up game_id, prefsdir, game_config_file, and config_prefix variables
+set_game_config_globals sourcerpg
 
 flush_gfx_config_settings
 
@@ -266,6 +255,7 @@ debuginfo DATE & " " & TIME
 debuginfo "curdir: " & CURDIR
 debuginfo "tmpdir: " & tmpdir
 debuginfo "settings_dir: " & settings_dir
+debuginfo "config: " & global_config_file
 
 
 '============================= Unlump, Upgrade, Load ==========================

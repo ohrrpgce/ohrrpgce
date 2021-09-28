@@ -16,6 +16,8 @@ WHAT IS NEW?
    * New Plotscripting Features
 
   *** Changes
+    * Custom no longer looks for ohrrpgce_config.ini next to the .rpg to
+      override the global ohrrpgce_config.ini [Ralph]
 
   *** Bugfixes
     * Various gfx_sdl2 window size/position and mouse glitches when exiting

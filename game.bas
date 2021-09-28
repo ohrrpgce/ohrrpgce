@@ -221,12 +221,14 @@ debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & s
 
 settings_dir = get_settings_dir()
 documents_dir = get_documents_dir()  'may depend on app_dir
+'debuginfo "documents_dir: " & documents_dir
 tmpdir = get_tmpdir()
 'As soon as we create the tmpdir, we want to put a keepalive file in it
 refresh_keepalive_file
 
 set_global_config_file
 config_prefix = "game."
+debuginfo "config: " & global_config_file
 
 
 '========================== Process commandline flags =========================
@@ -454,12 +456,8 @@ END IF
 
 '================= Setup game-specific directories & debug log ================
 
-'-- set up prefs dir and config file variables
-game_id = trimpath(trimextension(sourcerpg))  'some unique ID scheme would be nice
-prefsdir = settings_dir & SLASH & game_id
-IF NOT isdir(prefsdir) THEN makedir prefsdir
-game_config_file = prefsdir & SLASH & "gameconfig.ini"
-config_prefix = "game.game_" & game_id & "."
+' Set up game_id, prefsdir, game_config_file, and config_prefix variables
+set_game_config_globals sourcerpg
 
 flush_gfx_config_settings
 
@@ -484,6 +482,7 @@ remember_debug_messages = NO
 debuginfo "curdir: " & CURDIR
 debuginfo "tmpdir: " & tmpdir
 debuginfo "settings_dir: " & settings_dir
+debuginfo "config: " & global_config_file
 
 init_save_system
 gam.script_log.filename = log_dir & "script_log.txt"

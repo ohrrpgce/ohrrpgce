@@ -8167,7 +8167,19 @@ FUNCTION gen_intgrabber(nodepath as string) as bool
  RETURN NO
 END FUNCTION
 
-'   Functions for reading/writing ohrrpgce_config.ini
+'   Functions for reading/writing ohrrpgce_config.ini / gameconfig.ini
+
+' Called on startup to set up config-related globals (excluding savedir)
+SUB set_game_config_globals(sourcerpg as string)
+ game_id = trimpath(trimextension(sourcerpg))  'some unique ID scheme would be nice
+ config_prefix = exe_prefix & "game_" & game_id & "."
+ prefsdir = settings_dir & SLASH & game_id
+ 'Custom doesn't save anything in prefsdir, don't bother creating it
+#IFDEF IS_GAME
+ IF NOT isdir(prefsdir) THEN makedir prefsdir
+#ENDIF
+ game_config_file = prefsdir & SLASH & "gameconfig.ini"
+END SUB
 
 SUB set_global_config_file()
  global_config_file = app_dir & "ohrrpgce_config.ini"
