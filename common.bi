@@ -412,6 +412,7 @@ DECLARE SUB write_config OVERLOAD (key as zstring ptr, value as integer)
 'Global variables  (See also common_base.bi)
 EXTERN sourcerpg as string
 EXTERN game as string
+EXTERN game_id as string
 EXTERN game_unique_id as string
 EXTERN context_string as string
 EXTERN running_under_Custom as bool
@@ -428,10 +429,12 @@ EXTERN sprite_sizes() as SpriteSize
 EXTERN statnames() as string
 EXTERN documents_dir as string
 EXTERN settings_dir as string
+EXTERN prefsdir as string
 EXTERN log_dir as string
 EXTERN app_dir as string
 EXTERN app_resources_dir as string
 EXTERN global_config_file as string
+EXTERN game_config_file as string
 EXTERN config_prefix as string
 EXTERN global_reload_doc as DocPtr
 EXTERN herotags() as HeroTagsCache

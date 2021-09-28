@@ -136,8 +136,6 @@ DIM lastsaveslot as integer
 
 DIM usepreunlump as bool
 DIM savefile as string
-DIM prefsdir as string
-DIM game_config_file as string
 
 DIM lump_reloading as LumpReloadOptions
 lump_reloading.gmap.mode = loadmodeAlways
@@ -456,12 +454,13 @@ END IF
 
 '================= Setup game-specific directories & debug log ================
 
-'-- set up prefs dir
-DIM game_id as string = trimpath(trimextension(sourcerpg))  'some unique ID scheme would be nice
+'-- set up prefs dir and config file variables
+game_id = trimpath(trimextension(sourcerpg))  'some unique ID scheme would be nice
 prefsdir = settings_dir & SLASH & game_id
 IF NOT isdir(prefsdir) THEN makedir prefsdir
 game_config_file = prefsdir & SLASH & "gameconfig.ini"
 config_prefix = "game.game_" & game_id & "."
+
 flush_gfx_config_settings
 
 '-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to $HOME

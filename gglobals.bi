@@ -11,8 +11,6 @@
 #include "scripting.bi"
 
 'Misc game globals
-EXTERN prefsdir as string
-EXTERN game_config_file as string
 EXTERN savedir as string
 EXTERN speedcontrol as double
 EXTERN autotestmode as bool

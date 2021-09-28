@@ -121,11 +121,17 @@ DIM documents_dir as string
 'This is for application-wide settings, and prefsdir for games will be a subdirectory of it.
 DIM settings_dir as string
 
+'Game-specific subdirectory (named game_id) of settings_dir. Currently only used by Game
+DIM prefsdir as string
+
 'ohrrpgce_config.ini. This is stored in either app_dir or settings_dir.
 'Contains global settings. Custom could also put game-specific settings here, using a different
 'key for each, which I think is better than loads of ini files, but there are no such settings yet.
 'On the other hand, Game uses a different ini file for each game (that's the game_config global).
 DIM global_config_file as string
+
+'gameconfig.ini, in prefsdir. This is only for settings remembered by Game for a single game.
+DIM game_config_file as string
 
 'The prefix used by read_config_int/etc functions for reading ohrrpgce_config.ini.
 'Defines the current context. E.g. "edit.game_(gamename)."
@@ -140,6 +146,10 @@ DIM workingdir as string
 
 'Has been spawned from Custom. This is a common global for the benefit of gfx_sdl
 DIM running_under_Custom as bool = NO
+
+'The name of the prefsdir subdirectory and also used as part of config prefix
+'Equal to the .rpg file with path & extension trimmed.
+DIM game_id as string
 
 'Used for search_string_cache. Should change every time the current game changes; changing
 'it on reloading some lumps while live previewing also useful, to clear certain caches
@@ -7188,7 +7198,6 @@ PRIVATE FUNCTION help_dir_helper(dirname as string, fname as string) as integer
 END FUNCTION
 
 FUNCTION get_help_dir(helpfile as string="") as string
- 'what happened to prefsdir? [James: prefsdir only exists for game not custom right now]
  IF help_dir_helper(documents_dir & SLASH & "ohrhelp", helpfile) THEN RETURN documents_dir & SLASH & "ohrhelp"
  IF help_dir_helper(app_dir & SLASH & "ohrhelp", helpfile) THEN RETURN app_dir & SLASH & "ohrhelp"
  IF LEN(app_resources_dir) THEN
