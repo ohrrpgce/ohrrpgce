@@ -616,7 +616,7 @@ fadeout 0, 0, 0
 
 'Recreate/resize/reposition the window as needed
 apply_game_window_settings NO
-set_safe_zone_margin read_ini_int(game_config_file, "gfx.margin", default_margin_for_game())
+set_safe_zone_margin read_config_int("gfx.margin", default_margin_for_game())
 
 'beginplay
 
@@ -971,8 +971,8 @@ SUB save_game_config()
  IF user_toggled_fullscreen THEN
   DIM fullscreen as bool
   IF try_check_fullscreen(fullscreen) THEN
-   debuginfo "write " & gam.fullscreen_config_file & " : gfx.fullscreen = " & fullscreen
-   write_ini_value gam.fullscreen_config_file, "gfx.fullscreen", fullscreen
+   debuginfo "write " & gam.fullscreen_config_file & " : game.gfx.fullscreen = " & fullscreen
+   write_ini_prefixed_str gam.fullscreen_config_file, "game.gfx.fullscreen", yesorno(fullscreen)
   END IF
  END IF
 END SUB
@@ -2848,7 +2848,7 @@ SUB player_menu_keys ()
    END IF
    IF save_margin THEN
     save_margin = NO
-    write_ini_value game_config_file, "gfx.margin", get_safe_zone_margin()
+    write_game_config "game.gfx.margin", get_safe_zone_margin()
    END IF
   END IF
   IF carray(ccUse) > 1 THEN
