@@ -164,6 +164,7 @@ function gfx_fb_getversion() as integer
 	return 1
 end function
 
+'Called with gfxmutex held
 sub gfx_fb_setpal(byval pal as RGBcolor ptr)
 	dim as integer i
 	if depth = 8 then
@@ -180,6 +181,7 @@ sub gfx_fb_setpal(byval pal as RGBcolor ptr)
 	'accessible.
 end sub
 
+'Called with gfxmutex held
 function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette ptr) as integer
 	dim ret as integer = 0
 
@@ -232,6 +234,7 @@ sub gfx_fb_setwindowed(byval iswindow as integer)
 	update_screen_mode_no_lock wantfullscreen
 end sub
 
+'Called with gfxmutex held
 sub gfx_fb_windowtitle(byval title as zstring ptr)
 	remember_windowtitle = *title
 	windowtitle *title
@@ -495,6 +498,7 @@ local sub vkey_to_keybits(vkey as integer, is_toggle as bool, byref key as KeyBi
 end sub
 #endif
 
+'Called with gfxmutex held
 sub io_fb_updatekeys(byval keybd as KeyBits ptr)
 	process_events()
 
@@ -570,6 +574,7 @@ sub io_fb_setmousevisibility(visibility as CursorVisibility)
 	update_mouse_visibility()
 end sub
 
+'Called with gfxmutex held
 sub io_fb_getmouse(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
 	static lastpos as XYPair, lastwheel as integer = 0, lastbuttons as integer = 0
 	dim as integer dmx, dmy, dw, db, remx, remy
@@ -601,6 +606,7 @@ sub io_fb_setmouse(byval x as integer, byval y as integer)
 	setmouse(mpos.x, mpos.y)
 end sub
 
+'Called with gfxmutex held
 sub io_fb_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 	mxmin = screen_buffer_offset.x + xmin * zoom
 	mxmax = screen_buffer_offset.x + xmax * zoom + zoom - 1
