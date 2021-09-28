@@ -79,6 +79,12 @@ Manipulate gmap() array: Raw-edit gmap(), for engine developers. This gives you 
 
 Email saved game (Only on Android): Saves the current game and then attaches it to an email to the game developer (opens an email client).
 
+View/edit ohrrpgce_config.ini: opens an external text editor to edit ohrrpgce_config.ini, where Game and Custom store various settings, some of which can't be edited any other way. There are multiple possible locations for this .ini file.
+See "ohrrpgce_config.ini" on the wiki.
+
+View/edit gameconfig.ini: opens an external text editor to edit gameconfig.ini, where Game stores a couple remembered player settings like whether to fullscreen.
+See "gameconfig.ini" on the wiki.
+
 Switch to debug/release mode: This toggles whether script and other errors are displayed. Games usually default to Release because lots of errors might occur in old games, but when playtesting it's better to use Debug mode.
 
 Mouse Options: These options for mouse-based control of the hero and menus aren't totally finished yet, but you can start to try them out.

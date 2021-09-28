@@ -864,6 +864,11 @@ SUB Custom_global_menu
  menu.append 8, "Switch graphics backend (Shft/Ctrl-F7)"
  'menu.append 9, "Music backend settings"
 
+ menu.append 15, "View/edit ohrrpgce_config.ini"
+ IF LEN(sourcerpg) THEN
+  menu.append 16, "View/edit gameconfig.ini"
+ END IF
+
  DIM note as string
  IF num_logged_errors THEN note = ": " & num_logged_errors & " errors" ELSE note = " log"
  menu.append 13, "View c_debug.txt" & note & " (Shft/Ctrl-F8)"
@@ -903,6 +908,13 @@ SUB Custom_global_menu
   open_document log_dir & *app_log_filename
  ELSEIF choice = 14 THEN
   screenshot , holdscreen
+ ELSEIF choice = 15 THEN
+  open_document global_config_file
+ ELSEIF choice = 16 THEN
+  'We didn't ensure the existence of prefsdir earlier
+  IF NOT isdir(prefsdir) THEN makedir prefsdir
+  touchfile game_config_file
+  open_document game_config_file
  END IF
  freepage holdscreen
 END SUB

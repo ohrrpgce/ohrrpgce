@@ -4766,6 +4766,12 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   END IF
  #ENDIF
 
+ IF dbg.def(      ,     , "View/edit ohrrpgce_config.ini") THEN open_document global_config_file
+ IF dbg.def(      ,     , "View/edit gameconfig.ini") THEN
+  touchfile game_config_file
+  open_document game_config_file
+ END IF
+
  IF gen(genCurrentDebugMode) = 0 THEN
   IF dbg.def( , , "Switch to debug mode (show errors)") THEN gen(genCurrentDebugMode) = 1
  ELSE

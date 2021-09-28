@@ -9,6 +9,9 @@ WHAT IS NEW?
     * "screenshot_dir" ohrrpgce_config.ini option, where to put screenshots and
       .gifs (globally or for a single game) [Ralph]
     * Custom/Game remember the window size when you quit; defaults larger [Ralph]
+    * Added "View/edit ohrrpgce_config.ini/gameconfig.ini" options to the F8
+      Debug menu and F9 menu in Custom.
+      See https://rpg.hamsterrepublic.com/ohrrpgce/ohrrpgce_config.ini [Ralph]
 
    * New Plotscripting Features
 
