@@ -146,11 +146,11 @@ type USTRING as STRING
 
 'This is useful as a prefix in ohrrpgce_config.ini
 #ifdef IS_GAME
- #define EXEPREFIX "game."
+ #define exe_prefix "game."
 #elseif defined(IS_CUSTOM)
- #define EXEPREFIX "edit."
+ #define exe_prefix "edit."
 #else
- #define EXEPREFIX
+ #define exe_prefix ""
 #endif
 
 '---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved

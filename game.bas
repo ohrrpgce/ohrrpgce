@@ -137,7 +137,7 @@ DIM lastsaveslot as integer
 DIM usepreunlump as bool
 DIM savefile as string
 DIM prefsdir as string
-DIM config_file as string
+DIM game_config_file as string
 
 DIM lump_reloading as LumpReloadOptions
 lump_reloading.gmap.mode = loadmodeAlways
@@ -460,7 +460,7 @@ END IF
 DIM game_id as string = trimpath(trimextension(sourcerpg))  'some unique ID scheme would be nice
 prefsdir = settings_dir & SLASH & game_id
 IF NOT isdir(prefsdir) THEN makedir prefsdir
-config_file = prefsdir & SLASH & "gameconfig.ini"
+game_config_file = prefsdir & SLASH & "gameconfig.ini"
 config_prefix = "game.game_" & game_id & "."
 flush_gfx_config_settings
 
@@ -619,7 +619,7 @@ fadeout 0, 0, 0
 
 'Recreate/resize/reposition the window as needed
 apply_game_window_settings NO
-set_safe_zone_margin read_ini_int(config_file, "gfx.margin", default_margin_for_game())
+set_safe_zone_margin read_ini_int(game_config_file, "gfx.margin", default_margin_for_game())
 
 'beginplay
 
@@ -1012,7 +1012,7 @@ SUB reset_game_final_cleanup()
  cleanup_other_temp_files
  game = ""
  sourcerpg = ""
- config_file = ""
+ game_config_file = ""
  config_prefix = "game."
  flush_gfx_config_settings
  'checks for leaks and deallocates them
@@ -2852,7 +2852,7 @@ SUB player_menu_keys ()
    END IF
    IF save_margin THEN
     save_margin = NO
-    write_ini_value config_file, "gfx.margin", get_safe_zone_margin()
+    write_ini_value game_config_file, "gfx.margin", get_safe_zone_margin()
    END IF
   END IF
   IF carray(ccUse) > 1 THEN

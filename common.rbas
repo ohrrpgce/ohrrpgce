@@ -379,12 +379,12 @@ SUB save_window_state_to_config ()
  END IF
  IF winstate->structsize >= 8 THEN
   'Do this even if overrode_default_zoom
-  write_config(EXEPREFIX & "gfx.zoom", winstate->zoom)
+  write_config(exe_prefix & "gfx.zoom", winstate->zoom)
  END IF
  IF gfx_supports_variable_resolution() THEN
   WITH get_resolution()
-   write_config(EXEPREFIX & "gfx.resolution_w", .w)
-   write_config(EXEPREFIX & "gfx.resolution_h", .h)
+   write_config(exe_prefix & "gfx.resolution_w", .w)
+   write_config(exe_prefix & "gfx.resolution_h", .h)
   END WITH
  END IF
 END SUB
@@ -8183,9 +8183,9 @@ END SUB
 'Also, in-game, check the game-specific .ini file first.
 FUNCTION read_config_str (key as zstring ptr, default as zstring ptr=@"") as string
  #IFDEF IS_GAME
-  IF config_file <> "" THEN
+  IF game_config_file <> "" THEN
    'Settings in the game's .ini file override others
-   DIM ret as string = read_ini_prefixed_str(config_file, *key, CHR(0))
+   DIM ret as string = read_ini_prefixed_str(game_config_file, *key, CHR(0))
    IF ret <> CHR(0) THEN RETURN ret
   END IF
  #ENDIF
@@ -8228,7 +8228,7 @@ FUNCTION read_config_bool (key as zstring ptr, default as bool=NO) as bool
  RETURN str2bool(read_config_str(key), default)
 END FUNCTION
 
-'Write to global_config_file (in general) or the game-specific config_file
+'Write to global_config_file (in general) or the game-specific game_config_file
 '(only in Game if key starts with config_prefix).
 'If you want a setting to be game-specific, prepend config_prefix (which is
 '"game.", "edit.", "game.game_${game_id}.", 'or "edit.game_${game_id}.").
@@ -8246,12 +8246,12 @@ SUB write_config (zkey as zstring ptr, value as string)
  DIM key as string = *zkey
  #IFDEF IS_GAME
   IF starts_with(key, config_prefix) ANDALSO starts_with(config_prefix, "game.game_") THEN
-   IF LEN(config_file) THEN
+   IF LEN(game_config_file) THEN
     DIM trimmedkey as string = MID(key, LEN(config_prefix) + 1)
-    write_ini_value config_file, trimmedkey, value
+    write_ini_value game_config_file, trimmedkey, value
     EXIT SUB
    ELSE
-    debug "write_config: config_file isn't set!"
+    debug "write_config: game_config_file isn't set!"
    END IF
   END IF
  #ENDIF

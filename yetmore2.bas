@@ -1170,7 +1170,7 @@ SUB apply_game_window_settings (reloading as bool = NO)
  END IF
 
  IF gam.shared_fullscreen_setting = NO THEN
-  gam.fullscreen_config_file = config_file
+  gam.fullscreen_config_file = game_config_file
  END IF
 
  IF supports_fullscreen_well() AND overrode_default_fullscreen = NO AND _
