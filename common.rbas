@@ -8188,58 +8188,36 @@ SUB set_global_config_file()
 END SUB
 
 'Try to read the value of a key first from game_config_file then from global_config_file,
-'looking for most specific prefixed setting that applies.
+'checking whether there's an app-specific setting prefixed by exe_prefix.
 '(Do NOT manually prepend exe_prefix/"game."/"edit.".)
-'For example if key is "hspeak" and exe_prefix is "edit.", then try "edit.hspeak",
-'"hspeak" in order.
-'key can also include a second prefix. For example if exe_prefix is "edit." and key is
-'"gfx.gfx_directx.backend_screenshot", then these are tried in order:
-' edit.gfx.gfx_directx.backend_screenshot
-' edit.gfx.backend_screenshot
-' edit.backend_screenshot
-' gfx.gfx_directx.backend_screenshot
-' gfx.backend_screenshot
-' backend_screenshot
+'For example if key is "gfx.fullscreen" and exe_prefix is "edit.", then try
+'"edit.gfx.fullscreen" and "gfx.fullscreen" in order.
 FUNCTION read_config_str (key as zstring ptr, default as zstring ptr=@"") as string
  IF game_config_file <> "" THEN
   'Settings in the game's .ini file override others
   DIM ret as string = read_ini_prefixed_str(game_config_file, *key, CHR(0))
   IF ret <> CHR(0) THEN RETURN ret
  END IF
-
  RETURN read_ini_prefixed_str(global_config_file, *key, *default)
 END FUNCTION
 
 'See read_config_str
 'Optionally returns the line number (0-indexed) on which the match was found in linenum, or else -1.
-FUNCTION read_ini_prefixed_str (filename as string, prefixed_key as string, default as string="", byref linenum as integer=0) as string
+FUNCTION read_ini_prefixed_str (filename as string, key as string, default as string="", byref linenum as integer=0) as string
  REDIM ini(-1 TO -1) as string
  IF real_isfile(filename) = NO THEN RETURN default
  lines_from_file ini(), filename
- RETURN read_ini_prefixed_str(ini(), prefixed_key, default, linenum)
+ RETURN read_ini_prefixed_str(ini(), key, default, linenum)
 END FUNCTION
 
-FUNCTION read_ini_prefixed_str (ini() as string, prefixed_key as string, default as string="", byref linenum as integer=0) as string
- 'prefix and prefix2 either end in . or are blank
- DIM prefix as string = exe_prefix
- DIM key as string = MID(prefixed_key, INSTRREV(prefixed_key, ".") + 1)
- DIM prefix2 as string = MID(prefixed_key, 1, INSTRREV(prefixed_key, "."))
-
- DO
-  DIM as string ret, temp = prefix2
-  DO
-   ret = read_ini_str(ini(), prefix & temp & key, , linenum)
-   IF linenum <> -1 THEN RETURN ret
-   IF LEN(temp) = 0 THEN EXIT DO
-   'Trim end off prefix2 (skipping final .)
-   temp = MID(temp, 1, INSTRREV(temp, ".", LEN(temp) - 1))
-  LOOP
-
-  IF LEN(prefix) = 0 THEN RETURN default
-  'Trim end off prefix (skipping final .)
-  '(We support multiple dotted levels in exe_prefix, but that is never used)
-  prefix = MID(prefix, 1, INSTRREV(prefix, ".", LEN(prefix) - 1))
- LOOP
+FUNCTION read_ini_prefixed_str (ini() as string, key as string, default as string="", byref linenum as integer=0) as string
+ 'First check for setting prefixed with game. or edit.
+ '(Normally you wouldn't prepend exe_prefix, but it does happen when called
+ 'from write_ini_prefixed_str.  No harm if we double-prefix it here.)
+ DIM ret as string = read_ini_str(ini(), exe_prefix & key, default, linenum)
+ IF linenum <> -1 THEN RETURN ret
+ 'Otherwise check for key exactly as specified
+ RETURN read_ini_str(ini(), key, default, linenum)
 END FUNCTION
 
 FUNCTION read_config_int (key as zstring ptr, default as integer=0) as integer
@@ -8250,25 +8228,32 @@ FUNCTION read_config_bool (key as zstring ptr, default as bool=NO) as bool
  RETURN str2bool(read_config_str(key), default)
 END FUNCTION
 
-'Drop-in replacement for write_ini_value which uses the same prefix-matching
-'logic as read_config_str to find a matching line in an .ini and if so overwrite
-'it, preserving the key prefixes, and return true.
-'If force_write then append if there was no match.
-FUNCTION write_ini_prefixed_str(filename as string, prefixed_key as string, value as string, force_write as bool = YES) as bool
+'Overwrite or (only if force_write) append a line to an .ini file. Returns true if wrote.
+'Almost-drop-in replacement for write_ini_value which is compatible with read_config_*:
+'if there's more-specific setting prefixed with game. or edit., it gets overwritten.
+'If there is a less-specific setting (e.g. gfx.fullscreen if we're writing game.gfx.fullscreen,
+'or gfx.foo when we're writing gfx.gfx_sdl.foo) then it isn't replaced, but gets shadowed by
+'the value we write.
+'(One difference from write_ini_value: only replaces the first match, not all of them)
+'uses the same prefix-matching
+FUNCTION write_ini_prefixed_str(filename as string, key as string, value as string, force_write as bool = YES) as bool
  REDIM ini(-1 TO -1) as string
- IF real_isfile(filename) = NO THEN RETURN NO
- lines_from_file ini(), filename
+ IF real_isfile(filename) THEN
+  lines_from_file ini(), filename
+ ELSEIF force_write = NO THEN
+  RETURN NO
+ END IF
 
  DIM ret as bool = NO
  DIM linenum as integer
- read_ini_prefixed_str(ini(), prefixed_key, , linenum)
+ read_ini_prefixed_str(ini(), key, , linenum)
  IF linenum <> -1 THEN  'Matched
   ini(linenum) = LEFT(ini(linenum), INSTR(ini(linenum), "=")) + " " + value
   'debug filename & ": overwriting " & ini(linenum)
   ret = YES
  ELSEIF force_write THEN
-  a_append ini(), prefixed_key & " = " & value
-  'debug filename & ": appending " & ini(linenum)
+  a_append ini(), key & " = " & value
+  'debug filename & ": appending " & ini(ubound(ini))
   ret = YES
  END IF
  IF ret THEN lines_to_file ini(), filename, LINE_END
@@ -8277,9 +8262,9 @@ END FUNCTION
 
 'Write a config setting to either global_config_file (in general) or
 'game_config_file:
-'-If the setting already exists in either file, overwrite it, preserving
-' whatever prefixes it had, so read_config will return 'value' after doing its
-' search.
+'-If the setting already exists in either file, possibly with an additional
+' game. or edit. prefix, overwrite it, preserving whatever prefix it had,
+' so read_config will return 'value' after doing its search.
 '-Otherwise add a new setting to global_config_file
 '
 'If you want a setting to be game-specific, use write_game_config.
@@ -8293,10 +8278,6 @@ END FUNCTION
 '-Backend-specific options go under eg. "gfx.gfx_sdl."
 '-Prepend game./edit. if it's not obvious that it only affects one of
 ' Game/Custom, but mostly these aren't added
-'
-'(Note: less-specific settings might get shadowed rather than overwritten.
-'game.backend gets overwritten when writing game.gfx.backend, but gfx.backend
-'gets shadowed by a new game.gfx.backend line. Not sure if that counts as a bug.)
 SUB write_config (key as zstring ptr, value as string)
  IF game_config_file <> "" THEN
   'Settings in the game's .ini file override others. If there's a match there,

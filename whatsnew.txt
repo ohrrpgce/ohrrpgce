@@ -12,12 +12,15 @@ WHAT IS NEW?
       See https://rpg.hamsterrepublic.com/ohrrpgce/ohrrpgce_config.ini [Ralph]
     * You can create a <gamename>_config.ini next to an .rpg to put game-specific
       overrides for ohrrpgce_config.ini settings for both Game and Custom [Ralph]
-    * "screenshot_dir" config option: where to put screenshots and .gifs [Ralph]
+    * "gfx.screenshot_dir" config option, for screenshots and .gifs [Ralph]
 
    * New Plotscripting Features
 
   *** Changes
-    * Custom no longer looks for ohrrpgce_config.ini next to the .rpg [Ralph]
+    * Removed support for optional prefixes on .ini config settings (e.g.
+      "fullscreen" instead of "gfx.fullscreen"), game-specific prefixes (e.g.
+      "edit.game_vikings."), and placing ohrrpgce_config.ini next to the .rpg.
+      Too complex! [Ralph]
 
   *** Bugfixes
     * Various gfx_sdl2 window size/position and mouse glitches when exiting
