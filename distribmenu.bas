@@ -552,7 +552,7 @@ SUB distribute_game_as_zip (dest_override as string = "")
  DIM gameplayer as string
  gameplayer = get_windows_gameplayer()
  IF gameplayer = "" THEN
-  IF dist_yesno("game.exe is not available, continue anyway?") = NO THEN RETURN
+  IF dist_yesno("game.exe is not available, continue anyway?", NO) = NO THEN RETURN
   use_gameplayer = NO
  END IF
 
