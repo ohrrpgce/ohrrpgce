@@ -4357,21 +4357,26 @@ SUB write_ini_value (ini() as string, key as string, value as string)
  END IF
 END SUB
 
-FUNCTION read_ini_str (ini_filename as string, key as string, default as string="") as string
+FUNCTION read_ini_str (ini_filename as string, key as string, default as string="", byref linenum as integer = 0) as string
  REDIM ini(-1 TO -1) as string
  IF isfile(ini_filename) THEN
   lines_from_file ini(), ini_filename
  END IF
- RETURN read_ini_str(ini(), key, default)
+ RETURN read_ini_str(ini(), key, default, linenum)
 END FUNCTION
 
 'Given the content of an .ini as an array of lines, return the value of the
 'first line of form "key = value".
-FUNCTION read_ini_str (ini() as string, key as string, default as string="") as string
+'Optionally returns the line number (0-indexed) on which the match was found in linenum, or else -1.
+FUNCTION read_ini_str (ini() as string, key as string, default as string="", byref linenum as integer = 0) as string
+ linenum = -1
  BUG_IF(LEN(key) = 0, "Can't read empty key from ini file", default)
  DIM value as string
  FOR i as integer = 0 TO UBOUND(ini)
-  IF ini_key_match(ini(i), key, value) THEN RETURN value
+  IF ini_key_match(ini(i), key, value) THEN
+   linenum = i
+   RETURN value
+  END IF
  NEXT i
  RETURN default
 END FUNCTION
