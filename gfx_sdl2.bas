@@ -336,11 +336,11 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   'Enable controller events, so don't have to call SDL_GameControllerUpdate
   SDL_GameControllerEventState(SDL_ENABLE)
 
-  ret &= " (" & SDL_NumJoysticks() & " joysticks) Driver:" & *SDL_GetCurrentVideoDriver() & " (Drivers:"
+  ret &= " (" & SDL_NumJoysticks() & " joysticks) Driver: " & *SDL_GetCurrentVideoDriver() & " (Drivers:"
   FOR i as integer = 0 TO SDL_GetNumVideoDrivers() - 1
     ret &= " " & *SDL_GetVideoDriver(i)
   NEXT
-  ret &= ")"
+  ret &= ") Render driver: "
 
   framesize.w = 320
   framesize.h = 200
@@ -358,8 +358,25 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   END IF
 #ENDIF
 
+  DIM retcode as integer
+  retcode = recreate_window()
+
+  DIM rendererinfo as SDL_RendererInfo
+  IF SDL_GetRendererInfo(mainrenderer, @rendererinfo) = 0 THEN
+    ret &= *rendererinfo.name
+  END IF
+  ret &= " (Drivers:"
+  FOR idx as integer = 0 TO 9
+    IF SDL_GetRenderDriverInfo(idx, @rendererinfo) THEN EXIT FOR
+    ret &= strprintf(" %s (%s%s%s)", rendererinfo.name, _
+                     IIF(rendererinfo.flags AND SDL_RENDERER_ACCELERATED, @"hwaccel,", @""), _
+                     IIF(rendererinfo.flags AND SDL_RENDERER_PRESENTVSYNC, @"vsync,", @""), _
+                     IIF(rendererinfo.flags AND SDL_RENDERER_TARGETTEXTURE, @"textarget", @""))
+  NEXT
+  ret &= ")"
+
   *info_buffer = LEFT(ret, info_buffer_size)
-  RETURN recreate_window()
+  RETURN retcode
 END FUNCTION
 
 LOCAL FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
