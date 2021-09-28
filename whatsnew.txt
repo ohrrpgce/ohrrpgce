@@ -6,18 +6,18 @@ WHAT IS NEW?
     * From the "Disribute Game" menu, you can upload your game directly
       to itch.io [James]
     * gfx_fb backend (the one noone uses) supports non 320-200 games now [Ralph]
-    * "screenshot_dir" ohrrpgce_config.ini option, where to put screenshots and
-      .gifs (globally or for a single game) [Ralph]
     * Custom/Game remember the window size when you quit; defaults larger [Ralph]
     * Added "View/edit ohrrpgce_config.ini/gameconfig.ini" options to the F8
       Debug menu and F9 menu in Custom.
       See https://rpg.hamsterrepublic.com/ohrrpgce/ohrrpgce_config.ini [Ralph]
+    * You can create a <gamename>_config.ini next to an .rpg to put game-specific
+      overrides for ohrrpgce_config.ini settings for both Game and Custom [Ralph]
+    * "screenshot_dir" config option: where to put screenshots and .gifs [Ralph]
 
    * New Plotscripting Features
 
   *** Changes
-    * Custom no longer looks for ohrrpgce_config.ini next to the .rpg to
-      override the global ohrrpgce_config.ini [Ralph]
+    * Custom no longer looks for ohrrpgce_config.ini next to the .rpg [Ralph]
 
   *** Bugfixes
     * Various gfx_sdl2 window size/position and mouse glitches when exiting

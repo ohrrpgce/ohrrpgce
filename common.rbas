@@ -125,12 +125,14 @@ DIM settings_dir as string
 DIM prefsdir as string
 
 'ohrrpgce_config.ini. This is stored in either app_dir or settings_dir.
-'Contains global settings. Custom could also put game-specific settings here, using a different
-'key for each, which I think is better than loads of ini files, but there are no such settings yet.
-'On the other hand, Game uses a different ini file for each game (that's the game_config global).
+'Contains global settings. Game-specific settings can be put here by the user, using the
+'game.game_<game_id>. or edit.game_<game_id>. prefix, but the engine always puts game-specific
+'settings in game_config_file instead.
 DIM global_config_file as string
 
-'gameconfig.ini, in prefsdir. This is only for settings remembered by Game for a single game.
+'<gamename>_config.ini next to sourcerpg, or else gameconfig.ini in prefsdir. Settings here
+'shadow those in global_config_file, but only game-specific settings are written here by
+'default. Mostly for settings remembered by Game for a single game, or user overrides.
 DIM game_config_file as string
 
 'The prefix used by read_config_int/etc functions for reading ohrrpgce_config.ini.
@@ -8178,19 +8180,26 @@ SUB set_game_config_globals(sourcerpg as string)
 #IFDEF IS_GAME
  IF NOT isdir(prefsdir) THEN makedir prefsdir
 #ENDIF
- game_config_file = prefsdir & SLASH & "gameconfig.ini"
+ 'Check next to the .rpg first: the engine never creates the file here, but the user might
+ game_config_file = trimfilename(sourcerpg) & SLASH & game_id & "_config.ini"
+ IF NOT isfile(game_config_file) THEN
+  game_config_file = prefsdir & SLASH & "gameconfig.ini"
+ END IF
 END SUB
 
 SUB set_global_config_file()
+ 'Check next to Game/Custom first: the engine never creates the file here, but the user might
  global_config_file = app_dir & "ohrrpgce_config.ini"
  IF NOT isfile(global_config_file) THEN
   global_config_file = settings_dir & SLASH & "ohrrpgce_config.ini"
  END IF
 END SUB
 
-'Try to read the value of a key from global_config_file while respecting
-'config_prefix and finding the most specific setting that applies.
+'Try to read the value of a key first in game_config_file then in global_config_file while
+'respecting config_prefix and finding the most specific setting that applies.
 '(Do NOT manually prepend config_prefix.)
+'Settings in game_config_file shouldn't be prefixed by config_prefix, but still count as
+'most specific.
 'For example if config_prefix is "edit.game_genesis." and key is "hspeak", then try
 '"edit.game_genesis.hspeak", "edit.hspeak", "hspeak" in order.
 'key can also include a second prefix. For example if config_prefix is
@@ -8201,15 +8210,12 @@ END SUB
 ' edit.gfx_directx.backend_screenshot
 ' edit.backend_screenshot
 ' etc
-'Also, in-game, check the game-specific .ini file first.
 FUNCTION read_config_str (key as zstring ptr, default as zstring ptr=@"") as string
- #IFDEF IS_GAME
-  IF game_config_file <> "" THEN
-   'Settings in the game's .ini file override others
-   DIM ret as string = read_ini_prefixed_str(game_config_file, *key, CHR(0))
-   IF ret <> CHR(0) THEN RETURN ret
-  END IF
- #ENDIF
+ IF game_config_file <> "" THEN
+  'Settings in the game's .ini file override others
+  DIM ret as string = read_ini_prefixed_str(game_config_file, *key, CHR(0))
+  IF ret <> CHR(0) THEN RETURN ret
+ END IF
 
  RETURN read_ini_prefixed_str(global_config_file, *key, *default)
 END FUNCTION
@@ -8250,7 +8256,7 @@ FUNCTION read_config_bool (key as zstring ptr, default as bool=NO) as bool
 END FUNCTION
 
 'Write to global_config_file (in general) or the game-specific game_config_file
-'(only in Game if key starts with config_prefix).
+'(only if key starts with config_prefix and a game is loaded).
 'If you want a setting to be game-specific, prepend config_prefix (which is
 '"game.", "edit.", "game.game_${game_id}.", 'or "edit.game_${game_id}.").
 'Otherwise, Here are some guidelines for naming a key, not nailed down:
@@ -8265,17 +8271,14 @@ SUB write_config (zkey as zstring ptr, value as string)
  'it gets saved to "thing", resulting in a local setting accidentally becoming global,
  'and not being able to change it locally!
  DIM key as string = *zkey
- #IFDEF IS_GAME
-  IF starts_with(key, config_prefix) ANDALSO starts_with(config_prefix, "game.game_") THEN
-   IF LEN(game_config_file) THEN
-    DIM trimmedkey as string = MID(key, LEN(config_prefix) + 1)
-    write_ini_value game_config_file, trimmedkey, value
-    EXIT SUB
-   ELSE
-    debug "write_config: game_config_file isn't set!"
-   END IF
+ IF LEN(game_config_file) THEN
+  IF starts_with(key, config_prefix) THEN
+   'Since game_config_file is nonempty, config_prefix must include a game_id prefix
+   DIM trimmedkey as string = MID(key, LEN(config_prefix) + 1)
+   write_ini_value game_config_file, trimmedkey, value
+   EXIT SUB
   END IF
- #ENDIF
+ END IF
 
  write_ini_value global_config_file, key, value
 END SUB

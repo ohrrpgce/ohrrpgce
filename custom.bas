@@ -901,9 +901,11 @@ SUB Custom_global_menu
  ELSEIF choice = 15 THEN
   open_document global_config_file
  ELSEIF choice = 16 THEN
-  'We didn't ensure the existence of prefsdir earlier
-  IF NOT isdir(prefsdir) THEN makedir prefsdir
-  touchfile game_config_file
+  IF NOT isfile(game_config_file) THEN
+   'We didn't ensure the existence of prefsdir in set_game_config_globals
+   IF NOT isdir(prefsdir) THEN makedir prefsdir
+   touchfile game_config_file
+  END IF
   open_document game_config_file
  END IF
  freepage holdscreen
