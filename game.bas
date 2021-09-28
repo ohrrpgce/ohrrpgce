@@ -445,7 +445,7 @@ IF gam.autorungame = NO THEN
  IF sourcerpg = "" THEN exit_gracefully NO
 
  'Save the window size of the browser before loading (exit_gracefully also does this)
- save_window_state_to_config "game."
+ save_window_state_to_config
 
  IF isdir(sourcerpg) THEN
   usepreunlump = YES
@@ -1012,6 +1012,9 @@ SUB reset_game_final_cleanup()
  cleanup_other_temp_files
  game = ""
  sourcerpg = ""
+ config_file = ""
+ config_prefix = "game."
+ flush_gfx_config_settings
  'checks for leaks and deallocates them
  sprite_empty_cache
  palette16_reload_cache   'Read default palettes (now that game="")
@@ -1032,7 +1035,7 @@ SUB exit_gracefully(need_fade_out as bool = NO)
   save_game_config
  ELSE
   'Only do this in the file browser (where the window is resizable)
-  save_window_state_to_config "game."
+  save_window_state_to_config
  END IF
  exitprogram need_fade_out, 0
 END SUB

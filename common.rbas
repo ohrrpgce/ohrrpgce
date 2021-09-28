@@ -365,7 +365,7 @@ SUB pop_gfxio_state ()
  REDIM PRESERVE gfxio_state_stack(-1 TO UBOUND(gfxio_state_stack) - 1)
 END SUB
 
-SUB save_window_state_to_config (prefix as string)
+SUB save_window_state_to_config ()
  DIM winstate as WindowState ptr = gfx_getwindowstate()
  IF winstate->structsize >= 4 ANDALSO winstate->fullscreen THEN
   EXIT SUB
@@ -379,12 +379,12 @@ SUB save_window_state_to_config (prefix as string)
  END IF
  IF winstate->structsize >= 8 THEN
   'Do this even if overrode_default_zoom
-  write_config(prefix & "gfx.zoom", winstate->zoom)
+  write_config(EXEPREFIX & "gfx.zoom", winstate->zoom)
  END IF
  IF gfx_supports_variable_resolution() THEN
   WITH get_resolution()
-   write_config(prefix & "gfx.resolution_w", .w)
-   write_config(prefix & "gfx.resolution_h", .h)
+   write_config(EXEPREFIX & "gfx.resolution_w", .w)
+   write_config(EXEPREFIX & "gfx.resolution_h", .h)
   END WITH
  END IF
 END SUB
@@ -8231,12 +8231,12 @@ END FUNCTION
 'Write to global_config_file (in general) or the game-specific config_file
 '(only in Game if key starts with config_prefix).
 'If you want a setting to be game-specific, prepend config_prefix (which is
-'"game.", "edit.", "game.game_<gameid>.", 'or "edit.game_<gameid>.").
+'"game.", "edit.", "game.game_${game_id}.", 'or "edit.game_${game_id}.").
 'Otherwise, Here are some guidelines for naming a key, not nailed down:
 '-Something specific to an editor, shared between all games should look like
 ' "mapedit.show_overhead" (eg "sliceedit." can be shared by Game + Custom)
 '-Shared gfx backend options go under "gfx."
-'-Backend-specific options go under eg "gfx.sdl."
+'-Backend-specific options go under eg. "gfx.gfx_sdl."
 '-A setting for Custom and not falling into another category can start with "edit.".
 '-Stuff for Game but not game-specific goes under "game."
 SUB write_config (zkey as zstring ptr, value as string)

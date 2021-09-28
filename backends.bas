@@ -762,7 +762,7 @@ sub gfx_backend_menu ()
 		' Due to a FB fixed-len string bug, passing this fixstr directly corrupts it
 		dim backendname as string = gfx_choices(choice)->name
 		switch_gfx backendname
-		write_ini_value global_config_file, EXEPREFIX "gfx.backend", backendname
+		write_config EXEPREFIX "gfx.backend", backendname
 	end if
 end sub
 

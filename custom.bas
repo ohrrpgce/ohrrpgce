@@ -721,7 +721,7 @@ END SUB
 SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
  debuginfo "Cleaning up and terminating " & retval
 
- save_window_state_to_config "edit."
+ save_window_state_to_config
 
  IF channel_to_Game THEN
   channel_write_line(channel_to_Game, "Q ")
