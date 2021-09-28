@@ -312,7 +312,9 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   'Possibly useful in future:
   'SDL_SetHint(SDL_HINT_RENDER_LOGICAL_SIZE_MODE, "overscan")  'Causes left/right of screen to be clipped instead of letterboxing
 
-  'SDL_SetHint(SDL_HINT_RENDER_BATCHING, "0")  'Useful to try this when debugging issues
+  'For some strange reason, SDL disables batching if you ask for a specific render driver rather than
+  'letting it choose
+  SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1")
 
   'To receive controller updates while in the background, SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS
 
@@ -425,8 +427,25 @@ LOCAL FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
     EXIT DO
   LOOP
 
+  DIM force_driver as string = read_config_str("gfx.gfx_sdl2.render_driver")
+  IF LEN(force_driver) THEN
+    'If the driver name is invalid SDL_CreateRender will ignore it
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, force_driver)
+  END IF
+
+  'The flags to SDL_CreateRenderer have two purposes: firstly, only render drivers
+  'that have all those flags are selected, but secondly PRESENTVSYNC tells the
+  'driver whether to enable vsync. So if we can't get vsync, fallback to without.
+  '(SDL_HINT_RENDER_VSYNC is equivalent to passing SDL_RENDERER_PRESENTVSYNC)
   mainrenderer = SDL_CreateRenderer(mainwindow, -1, SDL_RENDERER_PRESENTVSYNC)
-  ' Don't kill the program yet; we might be able to switch to a different backend
+  IF mainrenderer = NULL THEN
+    'If we get here most likely it's because the drivers failed to load, not because
+    'there's none that support vsync. Don't loop through them all again (which might
+    'be painfully slow), just try first one.
+    mainrenderer = SDL_CreateRenderer(mainwindow, 0, 0)
+  END IF
+
+  ' Don't kill the program yet; the software renderer should work
   IF mainrenderer = NULL THEN
     log_error("SDL_CreateRenderer failed; falling back to software renderer", "")
     'Doing SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "software") or "0" instead didn't help to
