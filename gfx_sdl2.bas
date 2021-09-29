@@ -312,9 +312,8 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   'Possibly useful in future:
   'SDL_SetHint(SDL_HINT_RENDER_LOGICAL_SIZE_MODE, "overscan")  'Causes left/right of screen to be clipped instead of letterboxing
 
-  'For some strange reason, SDL disables batching if you ask for a specific render driver rather than
-  'letting it choose
-  SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1")
+  'SDL disables batching if you ask for a specific render driver rather than letting it choose
+  SDL_SetHint("SDL_RENDER_BATCHING", "1")
 
   'To receive controller updates while in the background, SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS
 
