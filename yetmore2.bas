@@ -846,6 +846,7 @@ END SUB
 
 FUNCTION describe_npctype(npcid as NPCTypeID, pool as integer) as string
  DIM info as string, appearinfo as string
+ IF npcid > UBOUND(npool(pool).npcs) THEN RETURN "NPC Type ID invalid (not loaded)!"
  WITH npool(pool).npcs(npcid)
   info &= fgcol_text("NPC Type: ", uilook(uiSelectedItem)) _
        & "Pic `" & .picture & "` Pal `" & .palette _
@@ -865,21 +866,21 @@ END FUNCTION
 FUNCTION describe_npcinst(npcnum as NPCIndex) as string
  DIM info as string
  WITH npc(npcnum)
-  DIM id as NPCTypeID = ABS(.id) - 1
+  DIM npcid as NPCTypeID = ABS(.id) - 1
   'Calculate NPC copy number
   DIM copynum as integer
   FOR i as integer = 0 TO npcnum - 1
-   IF npc(i).id - 1 = id ANDALSO npc(i).pool = .pool THEN copynum += 1
+   IF npc(i).id - 1 = npcid ANDALSO npc(i).pool = .pool THEN copynum += 1
   NEXT
 
-  info = IIF(.pool=1, "Global", "Local") & " ID `" & id & "`"
+  info = IIF(.pool=1, "Global", "Local") & " ID `" & npcid & "`"
   IF .id < 0 THEN
    info &= " (DISABLED)"
   ELSE
    info &= " copy `" & copynum & "`"
   END IF
   info &= " npcref `" & (-1 - npcnum) & !"`\n" _
-       & describe_npctype(id, .pool) & !"\n" _
+       & describe_npctype(npcid, .pool) & !"\n" _
        & fgcol_text("NPC Inst: ", uilook(uiSelectedItem)) _
        & "At `" & .pos & "` Z `" & .z _
        & "` tile `" & (.pos \ 20) & "` dir `" & CHR(("NESW")[.dir]) & "`"
