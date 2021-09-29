@@ -59,7 +59,7 @@ DECLARE SUB edit_distrib_info ()
 DECLARE FUNCTION sanitize_pkgname(s as string) as string
 DECLARE FUNCTION sanitize_email(s as string) as string
 DECLARE FUNCTION sanitize_url(s as string) as string
-DECLARE FUNCTION sanitize_url_chunk(s as string) as string
+DECLARE FUNCTION sanitize_url_chunk(byval s as string) as string
 DECLARE SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
 DECLARE SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wrap as integer=72)
 DECLARE SUB maybe_write_license_text_file (filename as string)
