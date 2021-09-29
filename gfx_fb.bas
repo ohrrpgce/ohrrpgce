@@ -727,16 +727,16 @@ end sub
 function io_fb_get_clipboard_text() as zstring ptr  'ustring
 	dim ret as zstring ptr
 	#ifdef USE_X11
+		dim wndw as Window
+		dim displayi as ssize_t
+		dim display as Display ptr
+		GFX_ENTER
+		screencontrol GET_WINDOW_HANDLE, wndw, displayi
+		GFX_EXIT
 		#if __FB_VER_MAJOR__ = 1 and __FB_VER_MINOR__ <= 5
 			'Getting display via GET_WINDOW_HANDLE is only in FB 1.06.0
 			display = fb_x11.display
 		#else
-			dim wndw as Window
-			dim displayi as ssize_t
-			dim display as Display ptr
-			GFX_ENTER
-			screencontrol GET_WINDOW_HANDLE, wndw, displayi
-			GFX_EXIT
 			display = cptr(Display ptr, displayi)
 		#endif
 		ret = X11_GetClipboardText(display, wndw, NULL)  'No callback, just waits 40ms
