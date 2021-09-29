@@ -365,7 +365,7 @@ FUNCTION sanitize_url(s as string) as string
  RETURN special_char_sanitize(exclusive(s, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.:/_+%:;?@=&'"))
 END FUNCTION
 
-FUNCTION sanitize_url_chunk(s as string) as string
+FUNCTION sanitize_url_chunk(byval s as string) as string
  replacestr s, " ", "-"
  replacestr s, "_", "-"
  RETURN special_char_sanitize(exclusive(LCASE(s), "abcdefghijklmnopqrstuvwxyz0123456789-"))
