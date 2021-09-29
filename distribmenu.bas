@@ -2108,26 +2108,40 @@ END FUNCTION
 FUNCTION itch_butler_platform_version() as string
  DIM prefix as string
  DIM suffix as string
- 
+
+ #IFNDEF __FB_X86__
+ dist_info "Unfortunately, butler is only available for x86 and x86_64."
+ RETURN ""
+ #ENDIF
+
  #IFDEF __FB_WIN32__
  prefix = "windows"
  #ELSEIF DEFINED(__FB_DARWIN__)
  prefix = "darwin"
- #ELSE
- prefix = "linux"
+ #IFNDEF __FB_64BIT__
+ IF dist_yesno("No butler download for 32-bit Mac is available. Download the 64-bit version instead?") = NO THEN RETURN ""
  #ENDIF
- 
- #IFDEF __FB_64BIT__
+ #ELSEIF DEFINED(__GNU_LINUX__)
+ prefix = "linux"
+ #ELSE
+ dist_info "Unfortunately, butler is only available for Windows, Mac and GNU/Linux."
+ RETURN ""
+ #ENDIF
+
+ #IF defined(__FB_64BIT__) or defined(__FB_DARWIN__)
  suffix = "amd64"
  #ELSE
  suffix = "386"
  #ENDIF
- 
+
  RETURN prefix & "-" & suffix
 END FUNCTION
 
 FUNCTION itch_butler_download() as bool
  DIM butler_path as string = itch_butler_path()
+
+ DIM butler_platform as string = itch_butler_platform_version()
+ IF butler_platform = "" THEN RETURN NO  'Not available
 
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
  DIM agree_file as string = get_support_dir() & SLASH & "itch.butler.download.agree"
@@ -2140,7 +2154,7 @@ FUNCTION itch_butler_download() as bool
  '--Remove the old copy
  safekill destzip
  '--Actually download the dang file
- DIM url as string = "https://broth.itch.ovh/butler/" & itch_butler_platform_version() & "/LATEST/archive/default"
+ DIM url as string = "https://broth.itch.ovh/butler/" & butler_platform & "/LATEST/archive/default"
  download_file url, get_support_dir(), "butler.zip"
  
  IF NOT isfile(destzip) THEN
@@ -2177,11 +2191,7 @@ FUNCTION itch_gametarg(distinfo as DistribState) as string
 END FUNCTION
 
 FUNCTION itch_butler_path() as string
- DIM butler as string = get_support_dir() & SLASH & "butler"
- #IFDEF __FB_WIN32__
- butler &= ".exe"
- #ENDIF
- RETURN butler
+ RETURN get_support_dir() & SLASH & "butler" & DOTEXE
 END FUNCTION
 
 FUNCTION itch_butler_is_installed() as bool
