@@ -2105,6 +2105,27 @@ FUNCTION itch_butler_setup() as bool
  RETURN YES
 END FUNCTION
 
+FUNCTION itch_butler_platform_version() as string
+ DIM prefix as string
+ DIM suffix as string
+ 
+ #IFDEF __FB_WIN32__
+ prefix = "windows"
+ #ELSEIF DEFINED(__FB_DARWIN__)
+ prefix = "darwin"
+ #ELSE
+ prefix = "linux"
+ #ENDIF
+ 
+ #IFDEF __FB_64BIT__
+ suffix = "amd64"
+ #ELSE
+ suffix = "386"
+ #ENDIF
+ 
+ RETURN prefix & "-" & suffix
+END FUNCTION
+
 FUNCTION itch_butler_download() as bool
  DIM butler_path as string = itch_butler_path()
 
@@ -2119,7 +2140,7 @@ FUNCTION itch_butler_download() as bool
  '--Remove the old copy
  safekill destzip
  '--Actually download the dang file
- DIM url as string = "https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default"
+ DIM url as string = "https://broth.itch.ovh/butler/" & itch_butler_platform_version() & "/LATEST/archive/default"
  download_file url, get_support_dir(), "butler.zip"
  
  IF NOT isfile(destzip) THEN
