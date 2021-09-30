@@ -145,6 +145,7 @@ lump_reloading.foemap.mode = loadmodeAlways
 lump_reloading.zonemap.mode = loadmodeAlways
 lump_reloading.npcl.mode = loadmodeMerge
 lump_reloading.npcd.mode = loadmodeAlways
+lump_reloading.globalnpcs.mode = loadmodeAlways
 lump_reloading.hsp.mode = loadmodeAlways
 
 'Menu Data
@@ -590,9 +591,7 @@ palette16_reload_cache
 setfont current_font()
 loadglobalstrings
 getstatnames statnames()
-
-'Load global NPC definitions
-LoadNPCD global_npcdef_filename(1), npool(1).npcs(), NO  'expect_exists=NO
+load_global_npcs
 
 'Setup script interpreter
 load_hsp
@@ -2462,7 +2461,7 @@ SUB loadmap_npcl(byval mapnum as integer)
  lump_reloading.npcl.hash = file_hash64(maplumpname(mapnum, "l"))
  LoadNPCL maplumpname(mapnum, "l"), npc()
 
- 'Evaluate whether NPCs should appear or disappear based on tags
+ 'Evaluate whether NPCs should appear or disappear based on tags or validity of pool/ID
  visnpc
 END SUB
 
@@ -2472,7 +2471,20 @@ SUB loadmap_npcd(byval mapnum as integer)
  lump_reloading.npcd.hash = file_hash64(maplumpname(mapnum, "n"))
  LoadNPCD maplumpname(mapnum, "n"), npool(0).npcs()
 
- 'Evaluate whether NPCs should appear or disappear based on tags
+ 'Evaluate whether NPCs should appear or disappear based on tags or validity of pool/ID
+ visnpc
+ 'load NPC graphics
+ reset_npc_graphics
+END SUB
+
+SUB load_global_npcs()
+ lump_reloading.globalnpcs.dirty = NO
+ lump_reloading.globalnpcs.changed = NO
+ DIM filename as string = global_npcdef_filename(1)
+ lump_reloading.globalnpcs.hash = file_hash64(filename)
+ LoadNPCD filename, npool(1).npcs(), NO  'expect_exists=NO
+
+ 'Evaluate whether NPCs should appear or disappear based on tags or validity of pool/ID
  visnpc
  'load NPC graphics
  reset_npc_graphics

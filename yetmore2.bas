@@ -693,7 +693,7 @@ SUB reloadmap_npcl(merge as bool)
   writeablecopyfile filename, tmpdir + "mapbackup.l"
  END IF
 
- 'Evaluate whether NPCs should appear or disappear based on tags
+ 'Evaluate whether NPCs should appear or disappear based on tags or validity of pool/ID
  visnpc
 END SUB
 
@@ -1509,7 +1509,7 @@ END FUNCTION
 'Check whether a lump is a (supported) map lump, and if so return YES and reload it if needed.
 'Also updates lump_reloading flags and deletes mapstate data as required.
 'Currently supports: T, P, E, Z, N, L
-'Elsewhere: MAP (except tilesets), DOX
+'Elsewhere: MAP (except tilesets), DOX, globalnpcs#.n
 'No need to reload: D
 'Not going to bother with: MN
 'Tilesets are reloaded only when .T changes. Which isn't perfect right now, but will make sense when tilemap format is replaced.
@@ -1517,14 +1517,19 @@ FUNCTION try_reload_map_lump(basename as string, extn as string) as bool
  DIM typecode as string
  DIM mapnum as integer = -1
 
- 'Check for .X## and map###.X
+ 'Check for <archinym>.X## and ###.X
  DIM extnnum as integer = -1
  IF LEN(extn) = 3 THEN extnnum = str2int(MID(extn, 2), -1)
  DIM basenum as integer = str2int(basename, -1)
- '--Don't bother to actually check basename=archinym
- mapnum = IIF(basenum >= 100 AND extnnum = -1, basenum, extnnum)
- IF mapnum = -1 THEN RETURN NO  'Isn't a recognised/supported map lump
+ IF extnnum <> -1 ANDALSO basename = trimpath(game) THEN
+  mapnum = extnnum
+ ELSEIF basenum >= 100 ANDALSO LEN(extn) = 1 THEN
+  mapnum = basenum
+ ELSE
+  RETURN NO  'Isn't a map lump
+ END IF
  typecode = LEFT(extn, 1)
+ IF INSTR("tpeznl", typecode) = 0 THEN RETURN NO  'Isn't a recognised/supported map lump
 
  WITH lump_reloading
 
@@ -1623,6 +1628,29 @@ FUNCTION try_reload_map_lump(basename as string, extn as string) as bool
  END WITH
  RETURN YES
 
+END FUNCTION
+
+FUNCTION try_reload_global_npcs(filename as string) as bool
+ IF filename <> "globalnpcs1.n" THEN RETURN NO
+ /' Future: support multiple NPC pools
+ DIM pool_id as integer = -1
+ IF extn = "n" ANDALSO starts_with(basename, "globalnpcs") THEN
+  pool_id = str2int(MID(basename, 10), -1)
+ END IF
+ IF pool_id = -1 THEN RETURN NO
+ '/
+ DIM newhash as ulongint = file_hash64(workingdir + filename)
+
+ WITH lump_reloading
+  IF .globalnpcs.hash = newhash THEN RETURN YES
+  .globalnpcs.changed = YES
+  IF .globalnpcs.dirty THEN
+   IF .globalnpcs.mode = loadmodeAlways THEN load_global_npcs
+  ELSE
+   IF .globalnpcs.mode <> loadmodeNever THEN load_global_npcs
+  END IF
+ END WITH
+ RETURN YES
 END FUNCTION
 
 'Returns true (and reloads as needed) if this file is a music file (.## or song##.xxx)
@@ -1801,6 +1829,9 @@ SUB try_to_reload_lumps_onmap ()
   ELSEIF try_reload_map_lump(basename, extn) THEN                         '.T, .P, .E, .Z, .N, .L
    handled = YES
 
+  ELSEIF try_reload_global_npcs(modified_lumps[i]) THEN                   'GLOBALNPCS#.N
+   handled = YES
+
   ELSEIF extn = "tap" THEN                                                '.TAP
    reloadtileanimations tilesets(), gmap()
    handled = YES
@@ -1879,8 +1910,9 @@ SUB LPM_update (menu1 as MenuDef, st1 as MenuState, tooltips() as string)
    LPM_append_reload_mode_item menu1, tooltips(), "foemap", .foemap, 13
    LPM_append_reload_mode_item menu1, tooltips(), "zonemap", .zonemap, 14
    LPM_append_reload_mode_item menu1, tooltips(), "npc instances", .npcl, 15
-   LPM_append_reload_mode_item menu1, tooltips(), "npc defs.", .npcd, 16
-   LPM_append_reload_mode_item menu1, tooltips(), "scripts", .hsp, 17
+   LPM_append_reload_mode_item menu1, tooltips(), "local npc defs.", .npcd, 16
+   LPM_append_reload_mode_item menu1, tooltips(), "global npc defs.", .globalnpcs, 17
+   LPM_append_reload_mode_item menu1, tooltips(), "scripts", .hsp, 20
    tooltips(UBOUND(tooltips)) += " (Read Help file!)"
   END IF
   LPM_append_force_reload_item menu1, tooltips(), "general map data", .gmap, 100
@@ -1889,7 +1921,8 @@ SUB LPM_update (menu1 as MenuDef, st1 as MenuState, tooltips() as string)
   LPM_append_force_reload_item menu1, tooltips(), "foemap", .foemap, 103
   LPM_append_force_reload_item menu1, tooltips(), "zones", .zonemap, 104
   LPM_append_force_reload_item menu1, tooltips(), "npc instances", .npcl, 105, YES  'NPCL is virtually always dirty
-  LPM_append_force_reload_item menu1, tooltips(), "npc definitions", .npcd, 106
+  LPM_append_force_reload_item menu1, tooltips(), "local npc defs.", .npcd, 106
+  LPM_append_force_reload_item menu1, tooltips(), "global npc defs.", .globalnpcs, 107
 
   IF running_under_Custom THEN 'Not useful otherwise
    LPM_append_force_reload_item menu1, tooltips(), "scripts", .hsp, 110
@@ -1952,7 +1985,9 @@ SUB live_preview_menu ()
     st1.need_update OR= intgrabber(lump_reloading.npcl.mode, -1, 1)
    CASE 16  '--npcd reload mode
     st1.need_update OR= intgrabber(lump_reloading.npcd.mode, 0, 2)
-   CASE 17  '--script reload mode
+   CASE 17  '--global npcs reload mode
+    st1.need_update OR= intgrabber(lump_reloading.globalnpcs.mode, 0, 2)
+   CASE 20  '--script reload mode
     st1.need_update OR= intgrabber(lump_reloading.hsp.mode, 0, 1)
    CASE 100  '--force gmap reload
     IF enter_space_click(st1) THEN
@@ -1982,6 +2017,10 @@ SUB live_preview_menu ()
    CASE 106  '--force npcd reload
     IF enter_space_click(st1) THEN
      reloadmap_npcd
+    END IF
+   CASE 107  '--force global npcs reload
+    IF enter_space_click(st1) THEN
+     load_global_npcs
     END IF
    CASE 110  '--force scripts reload
     IF enter_space_click(st1) THEN

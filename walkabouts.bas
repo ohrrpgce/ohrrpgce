@@ -195,7 +195,8 @@ SUB reset_npc_graphics ()
   pool = npc(i).pool
   IF npc_id >= 0 THEN
    IF npc_id > UBOUND(npool(pool).npcs) THEN
-    'I think this could happen while reloading a map, if NPC instances are loaded definitions
+    'This probably shouldn't ever happen, because if an NPC has an invalid ID then
+    'visnpc will disable it (negate its ID)
     debug "reset_npc_graphics: ignore npc " & i & " because npc def " & npc_id & " is out of range (>" & UBOUND(npool(pool).npcs) & ") for pool " & pool
    ELSE
     'Update/load sprite

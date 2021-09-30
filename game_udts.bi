@@ -355,6 +355,7 @@ TYPE LumpReloadOptions
   zonemap  as LumpReloadState
   npcl     as LumpReloadState  '.dirty ignored: nearly always dirty
   npcd     as LumpReloadState
+  globalnpcs as LumpReloadState
 
   hsp      as LumpReloadState  '.hash, .dirty ignored
 END TYPE

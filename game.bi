@@ -22,6 +22,7 @@ declare sub loadmap_passmap(byval mapnum as integer)
 declare sub loadmap_foemap(byval mapnum as integer)
 declare sub loadmap_zonemap(byval mapnum as integer)
 declare sub loadmap_bitmask (byval mapnum as integer, byval loadmask as integer)
+declare sub load_global_npcs()
 
 declare sub menusound(byval s as integer)
 declare sub usemenusounds (byval deckey as integer = ccUp, byval inckey as integer = ccDown)
