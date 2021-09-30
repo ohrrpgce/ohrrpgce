@@ -6351,12 +6351,21 @@ END FUNCTION
 FUNCTION npcdef_by_pool(st as MapEditState, byval pool_id as integer, byval id as integer) byref as NPCType
  SELECT CASE pool_id
   CASE 0:
-   RETURN st.map.npc_def(id)
+   IF id >= 0 AND id <= UBOUND(st.map.npc_def) THEN
+    RETURN st.map.npc_def(id)
+   ELSE
+    visible_debug "Invalid NPC id " & id
+   END IF
   CASE 1:
-   RETURN st.global_npc_def(id)
+   IF id >= 0 AND id <= UBOUND(st.global_npc_def) THEN
+    RETURN st.global_npc_def(id)
+   ELSE
+    visible_debug "Invalid global NPC id " & id
+   END IF
   CASE ELSE
    visible_debug "Invalid NPC pool id " & pool_id
  END SELECT
+ RETURN st.map.npc_def(0)  'Have to return something to avoid a null ptr deref
 END FUNCTION
 
 SUB update_edit_npc (npcdata as NPCType, ed as NPCEditState, gmap() as integer, zmap as ZoneMap)
