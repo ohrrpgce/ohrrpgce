@@ -1100,7 +1100,17 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
    SaveNPCD maplumpname(i, "n"), npctmp()
   END IF
  NEXT i
- 
+
+ '--Global NPC scripts
+ LoadNPCD global_npcdef_filename(1), npctmp(), NO 'expect_exists=NO
+ resave = NO
+ FOR j = 0 TO UBOUND(npctmp)
+  resave OR= visitor(npctmp(j).script, "global NPC " & j, "")
+ NEXT j
+ IF resave THEN
+  SaveNPCD global_npcdef_filename(1), npctmp()
+ END IF
+
  '--vehicle scripts
  DIM vehicle as VehicleData
  FOR i = 0 TO gen(genMaxVehicle)
