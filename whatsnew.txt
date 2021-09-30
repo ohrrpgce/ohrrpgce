@@ -33,6 +33,8 @@ WHAT IS NEW?
       position and visibility in fullscreen, broken display at 1x zoom, and
       freezing. Thankfully noone uses gfx_fb. [Ralph]
     * Fix #1219 Global NPCs now properly support one-time-use tags [James]
+    * Editing a single global NPC definition from NPC placement mode didn't save
+      changes and caused crashes [Ralph]
 
   *** Stuff Only Developers Will Notice
     * FreeBASIC 1.04+ now required to compile

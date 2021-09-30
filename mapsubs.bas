@@ -73,7 +73,7 @@ DECLARE SUB unload_npc_graphics(npc_img() as GraphicPair)
 DECLARE SUB mapedit_draw_npcs(st as MapEditState, drawing_whole_map as bool = NO, including_conditional as bool, page as integer)
 DECLARE FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, framenum as integer, screenpos as XYPair) as bool
 
-DECLARE SUB mapedit_edit_npcdef OVERLOAD (st as MapEditState, npcdata as NPCType)
+DECLARE SUB mapedit_edit_npcdef OVERLOAD (st as MapEditState, npcdata as NPCType, pool_id as integer)
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (map as MapData, npcdef_filename as string, npc_img() as GraphicPair, npcdata as NPCType)
 DECLARE SUB npcdef_editor (map as MapData, npcdef_filename as string, byval is_global as bool=NO)
 DECLARE SUB global_npcdef_editor ()
@@ -1419,7 +1419,7 @@ DO
    DIM npc_d as DirNum = -1  'If not -1, create an NPC facing this direction
    IF st.mouse_attention = focusTopBar then
     IF mouse.release AND normal_right_release THEN
-     mapedit_edit_npcdef st, npcdef_by_pool(st, st.cur_npc_pool, st.cur_npc)
+     mapedit_edit_npcdef st, npcdef_by_pool(st, st.cur_npc_pool, st.cur_npc), st.cur_npc_pool
     END IF
    ELSEIF st.mouse_attention = focusMap then
     IF mouse.drag_dist > 5 THEN
@@ -1455,7 +1455,7 @@ DO
     IF mapedit_npc_at_spot(st, st.pos) > -1 THEN
      mapedit_list_npcs_by_tile st, st.pos
     ELSE
-     mapedit_edit_npcdef st, npcdef_by_pool(st, st.cur_npc_pool, st.cur_npc)
+     mapedit_edit_npcdef st, npcdef_by_pool(st, st.cur_npc_pool, st.cur_npc), st.cur_npc_pool
     END IF
    END IF
    'Note that pressing SPACE+arrow keys at the same time will place an NPC and
@@ -2643,7 +2643,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
    IF state.pt = 0 THEN
     EXIT DO
    ELSEIF npcdef THEN
-    mapedit_edit_npcdef st, *npcdef
+    mapedit_edit_npcdef st, *npcdef, npcinst->pool
     state.need_update = YES
    END IF
   END IF
@@ -6588,11 +6588,28 @@ SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxprevie
 END SUB
 
 'Wrapper around edit_npc to do the right thing
-'(npcdata should be an element of st.map.npc_def() and when it isn't we would be using the other overload)
-SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
- mapedit_edit_npcdef st.map, maplumpname(st.map.id, "n"), st.npc_imgs(0).img(), npcdata
+'This overload is called from the map editor to edit a single NPCType directly
+SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType, pool_id as integer)
+ 'Regardless of whether we're editing a local or global NPC first save local NPCs, for
+ 'one-time-use tag searching. Global NPCs are always already saved.
+ SaveNPCD maplumpname(st.map.id, "n"), st.map.npc_def()
+
+ edit_npc npcdata, st.map.gmap(), st.map.zmap
+
+ 'Global NPCs must be saved after editing. The map editor doesn't do so when quitting.
+ 'Local NPCs don't need to be (it's preferable not to save NPCs separately from other map data)
+ IF pool_id > 0 THEN
+  SaveNPCD global_npcdef_filename(pool_id), st.global_npc_def()
+ END IF
+
+ IF pool_id = 0 THEN
+  load_npc_graphics st.map.npc_def(), st.npc_imgs(pool_id).img()
+ ELSE
+  load_npc_graphics st.global_npc_def(), st.npc_imgs(pool_id).img()
+ END IF
 END SUB
 
+'This overload is called only from the top-level NPC editor, so map.npc_def() might contain global NPCs
 SUB mapedit_edit_npcdef (map as MapData, npcdef_filename as string, npc_img() as GraphicPair, npcdata as NPCType)
  'First save NPCs so that we can correctly search for unused one-time use tags (see onetimetog)
  SaveNPCD npcdef_filename, map.npc_def()
