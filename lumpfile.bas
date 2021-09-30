@@ -252,7 +252,7 @@ end function
 'handled transparently by the Lump object rather than actually occurring
 
 
-function loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1, expectexists as bool = YES, partial_retval as bool = NO) as bool
+function loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1, expect_exists as bool = YES, partial_retval as bool = NO) as bool
 'Loads a 16bit record into an array (performing 16 -> 32 bit expansion)
 'buf():   Buffer to load shorts into, starting at buf(0)
 'fh:      Open file handle
@@ -261,7 +261,7 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 'record:  Record number, defaults to read from current file position
 'partial_retval:
 '         Return value if the record is partially off the end of the file.
-'expectexists:
+'expect_exists:
 '         If true, log an error if the record is off the end of the file.
 'Returns true if successful, false if failure (eg. file too short,
 'in which case buf() is filled with zeroes.).
@@ -291,7 +291,7 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 		else
 			ret = NO
 		end if
-		if expectexists andalso ret = NO then
+		if expect_exists andalso ret = NO then
 			' Filename will be unknown if OPENFILE wasn't used
 			debug "loadrecord: record " & record & " is " & partially & "off the end of " & get_fb_filename(fh)
 			debug " read " & bytesread & " instead of " & (recordsize*2)
@@ -304,22 +304,22 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 	return ret
 end function
 
-function loadrecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0, expectexists as bool = YES, partial_retval as bool = NO) as bool
+function loadrecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0, expect_exists as bool = YES, partial_retval as bool = NO) as bool
 'wrapper for above
-'Set expectexists = NO to suppress errors (debug messages), both missing file and missing record.
+'Set expect_exists = NO to suppress errors (debug messages), both missing file and missing record.
 'Errors about partially missing records are still logged unless partial_retval=YES.
 	if recordsize <= 0 then return NO
 
 	dim fh as integer
 	if openfile(filen, for_binary + access_read, fh) then
-		if expectexists = YES then debug "File not found loading record " & record & " from " & filen
+		if expect_exists = YES then debug "File not found loading record " & record & " from " & filen
 		for i as integer = 0 to recordsize - 1
 			buf(i) = 0
 		next
 		return NO
 	end if
 
-	loadrecord = loadrecord(buf(), fh, recordsize, record, expectexists, partial_retval)
+	loadrecord = loadrecord(buf(), fh, recordsize, record, expect_exists, partial_retval)
 	lazyclose fh
 end function
 

@@ -1064,13 +1064,13 @@ FUNCTION read32bitstring (stringptr as integer ptr) as string
  return result
 END FUNCTION
 
-FUNCTION readbadgenericname (byval index as integer, filename as string, byval recsize as integer, byval offset as integer, byval size as integer, byval skip as integer = 0, byval expectexists as bool=YES) as string
+FUNCTION readbadgenericname (byval index as integer, filename as string, byval recsize as integer, byval offset as integer, byval size as integer, byval skip as integer = 0, byval expect_exists as bool=YES) as string
  'recsize is in BYTES!
  'TODO:  there isn't any good reason to load the whole record
  '       just to get the string field
  IF index >= 0 THEN
   DIM buf(recsize \ 2 - 1) as integer
-  IF loadrecord(buf(), filename, recsize \ 2, index, expectexists) THEN
+  IF loadrecord(buf(), filename, recsize \ 2, index, expect_exists) THEN
    RETURN readbadbinstring(buf(), offset, size, skip)
   END IF
  END IF
@@ -2128,7 +2128,7 @@ END FUNCTION
 
 FUNCTION getsfxname (byval num as integer) as string
  DIM sfxd(dimbinsize(binSFXDATA)) as integer
- loadrecord sfxd(), workingdir & SLASH & "sfxdata.bin", curbinsize(binSFXDATA) \ 2, num, NO  'expectexists=NO
+ loadrecord sfxd(), workingdir & SLASH & "sfxdata.bin", curbinsize(binSFXDATA) \ 2, num, NO  'expect_exists=NO
  RETURN readbinstring(sfxd(), 0, 30)
 END FUNCTION
 

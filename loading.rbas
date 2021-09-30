@@ -4352,7 +4352,7 @@ SUB LoadFormationSet (formset as FormationSet, byval index as integer)
  'Not an error to load a nonexistent formation set; happens when
  'editing for first time and can be used before it is created
  DIM formsetdata(24) as integer
- loadrecord formsetdata(), game & ".efs", 25, index - 1, NO  'expectexists=NO
+ loadrecord formsetdata(), game & ".efs", 25, index - 1, NO  'expect_exists=NO
 
  formset.frequency = formsetdata(0)
  FOR i as integer = 0 TO 19
@@ -4548,7 +4548,7 @@ LOCAL FUNCTION load_browse_record(filename as string, record as integer) as stri
  DIM f as string
  f = IIF(LEN(filename), filename, workingdir & SLASH & "browse.txt")
  DIM tempbuf(19) as integer
- IF loadrecord(tempbuf(), f, 20, record, NO) THEN  'expectexists=NO
+ IF loadrecord(tempbuf(), f, 20, record, NO) THEN  'expect_exists=NO
   RETURN readbinstring(tempbuf(), 0, 38)
  END IF
  RETURN ""

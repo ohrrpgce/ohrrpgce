@@ -46,7 +46,7 @@ DECLARE FUNCTION readbinstring OVERLOAD (array() as integer, byval offset as int
 DECLARE FUNCTION readbinstring OVERLOAD (array() as short, byval offset as integer, byval maxlen as integer) as string
 DECLARE FUNCTION readbadbinstring (array() as integer, byval offset as integer, byval maxlen as integer, byval skipword as integer=0) as string
 DECLARE FUNCTION read32bitstring (strptr as integer ptr) as string
-DECLARE FUNCTION readbadgenericname (byval index as integer, filename as string, byval recsize as integer, byval offset as integer, byval size as integer, byval skip as integer = 0, byval expectexists as bool=YES) as string
+DECLARE FUNCTION readbadgenericname (byval index as integer, filename as string, byval recsize as integer, byval offset as integer, byval size as integer, byval skip as integer = 0, byval expect_exists as bool=YES) as string
 
 ENUM RectTransTypes
  transUndef = -1
