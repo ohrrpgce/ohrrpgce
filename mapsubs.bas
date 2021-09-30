@@ -4122,25 +4122,38 @@ SUB mapedit_reloadglobalnpcs (st as MapEditState, mapnum as integer)
   REDIM st.global_npc_def(0)
  END IF
  mapedit_sanity_check_npc_instances st
+ 'Note: we don't reload global NPC graphics here
 END SUB
 
+'This is necessary to remove global NPCs whose definition has been deleted, and also checks
+'all NPCs have valid ID and pool.
 SUB mapedit_sanity_check_npc_instances (st as MapEditState)
  FOR i as integer = 0 TO UBOUND(st.map.npc)
-  IF st.map.npc(i).id <> 0 THEN
-   DIM id as integer = ABS(st.map.npc(i).id) - 1
+  DIM byref id as integer = st.map.npc(i).id
+  IF id < 0 THEN
+   showerror "NPC in instance slot " & i & " has invalid ID " & id & ". Culling it."
+   id = 0
+  ELSEIF id > 0 THEN
+   DIM npc_id as NPCTypeID = id - 1
    DIM pool_id as integer = st.map.npc(i).pool
    SELECT CASE pool_id
     CASE 0 '--Local NPC
-     IF id > UBOUND(st.map.npc_def) THEN
-      debug "Local NPC ID " & id & " in instance slot " & i & " is out of range (" & UBOUND(st.map.npc_def) & ") culling it."
-      st.map.npc(i).id = 0
+     IF npc_id > UBOUND(st.map.npc_def) THEN
+      'This should never happen unless map data is corrupt
+      showerror "Local NPC ID " & npc_id & " in instance slot " & i & " is out of range (" & UBOUND(st.map.npc_def) & "). Culling it."
+      id = 0
      END IF
     CASE 1 '--Global NPC
-     IF id > UBOUND(st.global_npc_def) THEN
-      debug "Global NPC ID " & id & " in instance slot " & i & " is out of range (" & UBOUND(st.global_npc_def) & ") culling it."
-      st.map.npc(i).id = 0
+     IF npc_id > UBOUND(st.global_npc_def) THEN
+      'This can happen if a global NPC was deleted
+      debuginfo "Global NPC ID " & npc_id & " in instance slot " & i & " is out of range (" & UBOUND(st.global_npc_def) & "), must have been deleted. Culling it."
+      id = 0
      END IF
-   END SELECT 
+    CASE ELSE
+      'A future .rpg version, or corrupt. Ideally we wouldn't cull it, but it will cause crashes
+      showerror "NPC ID " & npc_id & " in instance slot " & i & " has invalid NPC pool ID " & pool_id & ". Culling it."
+      id = 0
+   END SELECT
   END IF
  NEXT i
 END SUB
@@ -6352,16 +6365,16 @@ FUNCTION npcdef_by_pool(st as MapEditState, byval pool_id as integer, byval id a
    IF id >= 0 AND id <= UBOUND(st.map.npc_def) THEN
     RETURN st.map.npc_def(id)
    ELSE
-    visible_debug "Invalid NPC id " & id
+    showerror "Invalid NPC id " & id
    END IF
   CASE 1:
    IF id >= 0 AND id <= UBOUND(st.global_npc_def) THEN
     RETURN st.global_npc_def(id)
    ELSE
-    visible_debug "Invalid global NPC id " & id
+    showerror "Invalid global NPC id " & id
    END IF
   CASE ELSE
-   visible_debug "Invalid NPC pool id " & pool_id
+   showerror "Invalid NPC pool id " & pool_id
  END SELECT
  RETURN st.map.npc_def(0)  'Have to return something to avoid a null ptr deref
 END FUNCTION
