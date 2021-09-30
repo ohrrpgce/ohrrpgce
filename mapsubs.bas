@@ -75,8 +75,9 @@ DECLARE FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair,
 
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (st as MapEditState, npcdata as NPCType, pool_id as integer)
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (map as MapData, npcdef_filename as string, npc_img() as GraphicPair, npcdata as NPCType)
-DECLARE SUB npcdef_editor (map as MapData, npcdef_filename as string, byval is_global as bool=NO)
-DECLARE SUB global_npcdef_editor ()
+DECLARE SUB npcdef_editor (map as MapData, npc_def() as NPCType, npcdef_filename as string, byval is_global as bool=NO)
+DECLARE SUB global_npcdef_editor OVERLOAD ()
+DECLARE SUB global_npcdef_editor OVERLOAD (map as MapData, npc_def() as NPCType)
 DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer, byval pool_id as integer) as integer
 DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4, thinggrabber_hint as bool = NO)
 DECLARE FUNCTION count_npc_slots_used(npcs() as NPCInst) as integer
@@ -762,16 +763,13 @@ DO
     mapedit_linkdoors st
    CASE 8  'Local NPCs
     'This may delete NPC instances, and write npc definitions to disk
-    npcdef_editor st.map, maplumpname(st.map.id, "n")
+    npcdef_editor st.map, st.map.npc_def(), maplumpname(st.map.id, "n")
     'Reload NPC graphics after we exit the editor
     load_npc_graphics st.map.npc_def(), st.npc_imgs(0).img()
    CASE 9  'Global NPCs
-    'First save local NPCs so that we can correctly search for unused one-time use tags
-    SaveNPCD maplumpname(st.map.id, "n"), st.map.npc_def()
-    'This may delete NPC instances, and write npc definitions to disk
-    global_npcdef_editor()
-    'Reload NPC definitions and graphics after we exit the editor
-    mapedit_reloadglobalnpcs st, mapnum
+    'This may delete NPC instances, and write local npc definitions to disk
+    global_npcdef_editor st.map, st.global_npc_def()
+    'Reload NPC graphics after we exit the editor
     load_npc_graphics st.global_npc_def(), st.npc_imgs(1).img()
    CASE 10 TO 12  'Place NPCs, Foemap, Zonemap
     st.seteditmode = mstate.pt - 7
@@ -6381,7 +6379,7 @@ SUB update_edit_npc (npcdata as NPCType, ed as NPCEditState, gmap() as integer, 
  IF npcdata.movetype = 15 THEN
   DIM obs_caption as string
   SELECT CASE npcdata.pathfinding_obstruction_mode
-   CASE 0: obs_caption = "Default for this map"
+   CASE 0: obs_caption = "Default for the map"
     SELECT CASE gmap(378)
      CASE 0, 1: obs_caption &= " (NPCs Obstruct)"
      CASE 2: obs_caption &= " (Ignore NPCs)"
@@ -6579,7 +6577,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  v_free menu_display
 
  unload_sprite_and_pal npc_img
-END SUB 'gmap
+END SUB
 
 ' Displays the NPC walkabout, tag conditions and textbox preview at the bottom of the screen
 ' (Default to displaying south1 frame)
@@ -6619,81 +6617,93 @@ SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType, pool_id as inte
 END SUB
 
 'This overload is called only from the top-level NPC editor, so map.npc_def() might contain global NPCs
-SUB mapedit_edit_npcdef (map as MapData, npcdef_filename as string, npc_img() as GraphicPair, npcdata as NPCType)
+SUB mapedit_edit_npcdef (map as MapData, npc_def() as NPCType, npcdef_filename as string, npc_img() as GraphicPair, npcdata as NPCType)
  'First save NPCs so that we can correctly search for unused one-time use tags (see onetimetog)
- SaveNPCD npcdef_filename, map.npc_def()
+ SaveNPCD npcdef_filename, npc_def()
  edit_npc npcdata, map.gmap(), map.zmap
- load_npc_graphics map.npc_def(), npc_img()
+ load_npc_graphics npc_def(), npc_img()
 END SUB
 
 
 '----------------------------- Toplevel NPC Editor ----------------------------
 
-SUB handle_npc_def_delete (npc() as NPCType, byval id as NPCTypeID, npc_insts() as NPCInst, byval is_global as bool=NO)
+SUB handle_npc_def_delete (npc_def() as NPCType, byval id as NPCTypeID, npc_insts() as NPCInst, pool_id as integer)
 
  '--Count number of copies of this NPC
  DIM as integer uses = 0
  FOR i as integer = 0 to UBOUND(npc_insts)
-  'Only count local instances
-  IF npc_insts(i).id = id + 1 ANDALSO npc_insts(i).pool = 0 THEN uses += 1
+  IF npc_insts(i).id = id + 1 ANDALSO npc_insts(i).pool = pool_id THEN uses += 1
  NEXT
 
- IF uses > 0 THEN
-  IF yesno("There are " & uses & " copies of NPC ID " & id & " on the map. Are you sure you want to delete them?", NO, NO) = NO THEN EXIT SUB
+ DIM msg as string
+ IF uses > 0 ORELSE pool_id > 0 THEN
+  IF pool_id > 0 THEN
+   msg = "This is a Global NPC ID. If it is used on any maps, those instances will be deleted. "
+  END IF
+  IF uses > 0 THEN
+   msg &= "There are " & uses & " copies of NPC ID " & id & " on this map. "
+  END IF
+  msg &= "Are you sure you want to delete them?"
+  IF yesno(msg, NO, NO) = NO THEN EXIT SUB
+  msg = "Done. "
+ END IF
 
-  '--Delete instances of this ID
-  FOR i as integer = 0 to UBOUND(npc_insts)
-   IF npc_insts(i).id = id + 1 THEN npc_insts(i).id = 0
-  NEXT
- END IF
- 
- IF is_global THEN
-  'Global uses will never be counted above, we don't attempt to count them, just give a general warning
-  IF yesno("This is a Global NPC ID. If it is used on any maps, those instances will be affected. Are you sure you want to delete them?", NO, NO) = NO THEN EXIT SUB
- END IF
+ '--Delete instances of this ID
+ FOR i as integer = 0 to UBOUND(npc_insts)
+  IF npc_insts(i).id = id + 1 ANDALSO npc_insts(i).pool = pool_id THEN npc_insts(i).id = 0
+ NEXT
 
  '--Wiping a definition clear, or completely deleting it?
  DIM as bool deleting = NO
  '--Can't delete ID 0; must always have at least one NPC
- IF id > 0 AND id = UBOUND(npc) THEN deleting = YES
+ IF id > 0 AND id = UBOUND(npc_def) THEN deleting = YES
 
- IF yesno(IIF(uses, "Done. ", "") & "Really " & IIF(deleting, "delete", "wipe clean") & " this NPC definition?", NO, NO) = NO THEN EXIT SUB
+ IF yesno(msg & "Really " & IIF(deleting, "delete", "wipe clean") & " this NPC definition?", NO, NO) = NO THEN EXIT SUB
 
- 'npc(id).destructor()
- npc(id).constructor()
+ 'npc_def(id).destructor()
+ npc_def(id).constructor()
  IF deleting THEN
-  REDIM PRESERVE npc(UBOUND(npc) - 1)
+  REDIM PRESERVE npc_def(UBOUND(npc_def) - 1)
  END IF
 
 END SUB
 
+'For editing Global NPCs outside of any specific map
 SUB global_npcdef_editor ()
- 'Global NPCs are not associated with any specific map, so create a dummy map datastructure
  DIM dummy_map as MapData
- REDIM dummy_map.npc_def(0)
- 'Pool ID is always 1 for now 
+ REDIM global_npc_def(0) as NPCType
+ global_npcdef_editor dummy_map, global_npc_def()
+END SUB
+
+'Edit global NPCs in the context of a certain map
+'npc_def() should be the map editor's st.global_npc_def() (but it doesn't have to be loaded yet)
+SUB global_npcdef_editor (map as MapData, npc_def() as NPCType)
+ 'First save local NPCs so that we can correctly search for unused one-time use tags (unless a dummy map)
+ IF map.id > -1 THEN SaveNPCD maplumpname(map.id, "n"), map.npc_def()
+ 'Pool ID is always 1 for now
  DIM pool_id as integer = 1
  DIM npcdef_filename as string = global_npcdef_filename(pool_id)
  IF isfile(npcdef_filename) THEN
-  LoadNPCD npcdef_filename, dummy_map.npc_def()
+  LoadNPCD npcdef_filename, npc_def()
  END IF
- npcdef_editor dummy_map, npcdef_filename, YES
- SaveNPCD npcdef_filename, dummy_map.npc_def()
+ npcdef_editor map, npc_def(), npcdef_filename, pool_id
+ SaveNPCD npcdef_filename, npc_def()
 END SUB
 
 'This is the top-level NPC editor menu (displays a list of NPCs)
+'npc_def should be either map.npc_def() or an array of global NPCTypes
 'Before calling this to edit global NPCs, ensure local NPCs are saved, and before editing
 'locals save globals (they always are after editing), so can check for one-time tags.
-SUB npcdef_editor (map as MapData, npcdef_filename as string, byval is_global as bool=NO)
+SUB npcdef_editor (map as MapData, npc_def() as NPCType, npcdef_filename as string, pool_id as integer)
 
 DIM npc_img() as GraphicPair
-load_npc_graphics map.npc_def(), npc_img()
+load_npc_graphics npc_def(), npc_img()
 
 ' Copied NPC buffer. can be used to copy NPC definitions also between maps
 STATIC copied_npcdef as NPCType
 STATIC have_copied_npcdef as bool = NO
 
-DIM boxpreview(UBOUND(map.npc_def)) as string
+DIM boxpreview(UBOUND(npc_def)) as string
 DIM need_update_selected as bool = NO
 
 DIM state as MenuState
@@ -6702,12 +6712,12 @@ state.first = -1
 state.spacing = 25
 state.has_been_drawn = YES ' fake this because we don't call standardmenu()
 
-state.last = UBOUND(map.npc_def)
+state.last = UBOUND(npc_def)
 '--Add "Add new NPC" option to end
 state.last += 1
 
-FOR i as integer = 0 TO UBOUND(map.npc_def)
- boxpreview(i) = npc_preview_text(map.npc_def(i))
+FOR i as integer = 0 TO UBOUND(npc_def)
+ boxpreview(i) = npc_preview_text(npc_def(i))
 NEXT i
 setkeys YES
 DO
@@ -6725,44 +6735,44 @@ DO
    EXIT DO
   ELSEIF state.pt = state.last THEN
    '--Add new NPC option
-   REDIM PRESERVE map.npc_def(UBOUND(map.npc_def) + 1)
+   REDIM PRESERVE npc_def(UBOUND(npc_def) + 1)
   ELSE
    '--An NPC
-   mapedit_edit_npcdef map, npcdef_filename, npc_img(), map.npc_def(state.pt)
+   mapedit_edit_npcdef map, npc_def(), npcdef_filename, npc_img(), npc_def(state.pt)
    setkeys
   END IF
   need_update_selected = YES
  END IF
  IF keyval(scPlus) > 1 THEN
   '--Fast add button (for people who really want ID 134 for a task)
-  state.pt = UBOUND(map.npc_def) + 1
-  REDIM PRESERVE map.npc_def(state.pt)
+  state.pt = UBOUND(npc_def) + 1
+  REDIM PRESERVE npc_def(state.pt)
   need_update_selected = YES
  END IF
  IF keyval(scDelete) > 1 THEN
   '--This updates arrays, but not state.pt
-  handle_npc_def_delete map.npc_def(), state.pt, map.npc(), is_global
-  IF state.pt > UBOUND(map.npc_def) THEN
+  handle_npc_def_delete npc_def(), state.pt, map.npc(), pool_id
+  IF state.pt > UBOUND(npc_def) THEN
    '--Deleted last NPC def
-   state.pt = UBOUND(map.npc_def)
+   state.pt = UBOUND(npc_def)
   END IF
   need_update_selected = YES
  END IF
  'Copy/paste
  IF state.pt >= 0 ANDALSO state.pt < state.last THEN  'An NPC def is selected
   IF copy_keychord() THEN
-   copied_npcdef = map.npc_def(state.pt)
+   copied_npcdef = npc_def(state.pt)
    have_copied_npcdef = YES
   END IF
   IF paste_keychord() ANDALSO have_copied_npcdef THEN
-   map.npc_def(state.pt) = copied_npcdef
+   npc_def(state.pt) = copied_npcdef
    IF copied_npcdef.usetag THEN  'onetime tag
     IF twochoice("Copied NPC has a one-time-use tag set", "Replace the tag with a new one", _
                  "Use the same tag for the copy") <> 1 THEN
      'First save NPCs so that we can correctly search for unused one-time use tags (see onetimetog)
-     SaveNPCD npcdef_filename, map.npc_def()
-     onetimetog map.npc_def(state.pt).usetag
-     onetimetog map.npc_def(state.pt).usetag
+     SaveNPCD npcdef_filename, npc_def()
+     onetimetog npc_def(state.pt).usetag
+     onetimetog npc_def(state.pt).usetag
     END IF
    END IF
    need_update_selected = YES
@@ -6771,12 +6781,12 @@ DO
 
  IF need_update_selected THEN
   '--Note not all, or even any, of these updates will be required in a given case
-  load_npc_graphics map.npc_def(), npc_img()
+  load_npc_graphics npc_def(), npc_img()
   '--Update box preview line
-  REDIM PRESERVE boxpreview(UBOUND(map.npc_def))
-  boxpreview(state.pt) = npc_preview_text(map.npc_def(state.pt))
+  REDIM PRESERVE boxpreview(UBOUND(npc_def))
+  boxpreview(state.pt) = npc_preview_text(npc_def(state.pt))
   '--Update menu size (including Add NPC option) and scroll up if needed
-  state.last = UBOUND(map.npc_def) + 1
+  state.last = UBOUND(npc_def) + 1
   correct_menu_state state
 
   need_update_selected = NO
@@ -6802,7 +6812,7 @@ DO
    printstr "Previous Menu", 0, y + 5, dpage
   ELSEIF i = state.last THEN
    '--Add new NPC option
-   printstr "Add new " & IIF(is_global, "Global ", "") & "NPC", 0, y + 5, dpage
+   printstr "Add new " & IIF(pool_id = 1, "Global ", "") & "NPC", 0, y + 5, dpage
   ELSE
    '--An NPC
    printstr "" & i, 0, y + 5, dpage
