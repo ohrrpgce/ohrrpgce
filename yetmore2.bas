@@ -698,20 +698,9 @@ SUB reloadmap_npcl(merge as bool)
 END SUB
 
 SUB reloadmap_npcd()
- lump_reloading.npcd.changed = NO
- lump_reloading.npcd.dirty = NO
-
  'Delete saved state to prevent regressions
  safekill mapstatetemp(gam.map.id, "map") + "_n.tmp"
-
- DIM filename as string = maplumpname(gam.map.id, "n")
- lump_reloading.npcd.hash = file_hash64(filename)
- LoadNPCD filename, npool(0).npcs()
-
- 'Evaluate whether NPCs should appear or disappear based on tags
- visnpc
- 'load NPC graphics
- reset_npc_graphics
+ loadmap_npcd gam.map.id
 END SUB
 
 SUB reloadmap_tilemap_and_tilesets(merge as bool)
@@ -779,31 +768,17 @@ SUB reloadmap_foemap()
  safekill mapstatetemp(gam.map.id, "map") + "_e.tmp"
 
  IF tilemap_is_same_size("e", "foemap") THEN
-  lump_reloading.foemap.changed = NO
-  lump_reloading.foemap.dirty = NO
-  DIM filename as string = maplumpname(gam.map.id, "e")
-  LoadTileMap foemap, filename
-  lump_reloading.foemap.hash = file_hash64(filename)
+  loadmap_foemap gam.map.id
  END IF
 END SUB
 
 SUB reloadmap_zonemap()
  debug_reloadmap(zonemap)
- lump_reloading.zonemap.changed = NO
- lump_reloading.zonemap.dirty = NO
 
  'Delete saved state to prevent regressions
  safekill mapstatetemp(gam.map.id, "map") + "_z.tmp"
 
- '.Z is the only one of the map lumps that has been added in about the last decade
- DIM filename as string = maplumpname(gam.map.id, "z")
- IF isfile(filename) THEN
-  LoadZoneMap zmap, filename
-  lump_reloading.zonemap.hash = file_hash64(filename)
- ELSE
-  CleanZoneMap zmap, mapsizetiles.x, mapsizetiles.y
-  lump_reloading.zonemap.hash = 0
- END IF
+ loadmap_zonemap gam.map.id
 END SUB
 
 SUB deletetemps
