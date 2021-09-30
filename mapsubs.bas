@@ -760,12 +760,14 @@ DO
    CASE 7
     mapedit_savemap st
     mapedit_linkdoors st
-   CASE 8
+   CASE 8  'Local NPCs
     'This may delete NPC instances, and write npc definitions to disk
     npcdef_editor st.map, maplumpname(st.map.id, "n")
     'Reload NPC graphics after we exit the editor
     load_npc_graphics st.map.npc_def(), st.npc_imgs(0).img()
-   CASE 9
+   CASE 9  'Global NPCs
+    'First save local NPCs so that we can correctly search for unused one-time use tags
+    SaveNPCD maplumpname(st.map.id, "n"), st.map.npc_def()
     'This may delete NPC instances, and write npc definitions to disk
     global_npcdef_editor()
     'Reload NPC definitions and graphics after we exit the editor
@@ -6654,6 +6656,8 @@ SUB global_npcdef_editor ()
 END SUB
 
 'This is the top-level NPC editor menu (displays a list of NPCs)
+'Before calling this to edit global NPCs, ensure local NPCs are saved, and before editing
+'locals save globals (they always are after editing), so can check for one-time tags.
 SUB npcdef_editor (map as MapData, npcdef_filename as string, byval is_global as bool=NO)
 
 DIM npc_img() as GraphicPair
