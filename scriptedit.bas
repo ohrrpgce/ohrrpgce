@@ -1258,7 +1258,7 @@ SUB script_usage_list ()
    'OK, now that we can calculate ranks, we can add new-style scripts
    SEEK #fh, 1
    i = 0
-   WHILE loadrecord(buf(), fh, 20)
+   WHILE loadrecord(buf(), fh, 20, , NO)  'expectexists=NO
     id = buf(0)
     IF id <> 0 THEN
      s = readbinstring(buf(), 1, 38)
