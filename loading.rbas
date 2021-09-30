@@ -89,18 +89,20 @@ END SUB
 
 
 ' Read NPC definitions from file. Resizes dat().
-SUB LoadNPCD(file as string, dat() as NPCType)
+SUB LoadNPCD(file as string, dat() as NPCType, expect_exists as bool = YES)
   DIM as integer i, j, f
+  DIM as integer arraylen
 
-  OPENFILE(file, FOR_BINARY + ACCESS_READ, f)
-  SEEK #f, 8
-
-  DIM as integer arraylen = (LOF(f) - 7) \ getbinsize(binN)
+  IF OPENFILE(file, FOR_BINARY + ACCESS_READ, f) = 0 THEN
+    SEEK #f, 8
+    arraylen = (LOF(f) - 7) \ getbinsize(binN)
+  END IF
   IF arraylen < 1 THEN
     REDIM dat(0)
-    visible_debug "NPC data is corrupt or missing, " & trimpath(file) & " is length " & LOF(f)
+    IF expect_exists THEN showerror "NPC data is corrupt or missing, " & trimpath(file) & " is length " & LOF(f)
     EXIT SUB
   END IF
+
   REDIM dat(arraylen - 1)
   DIM as integer recordlen = getbinsize(binN) \ 2
   DIM as integer buf(recordlen - 1)

@@ -29,7 +29,7 @@ declare sub cleaninventory(invent() as inventslot)
 declare function read_map_layer_name(gmap() as integer, layernum as integer) as string
 declare sub write_map_layer_name(gmap() as integer, layernum as integer, newname as string)
 
-declare sub LoadNPCD(file as string, dat() as NPCType)
+declare sub LoadNPCD(file as string, dat() as NPCType, expect_exists as bool = YES)
 declare sub SaveNPCD(file as string, dat() as NPCType)
 declare sub SetNPCD(npcdata as NPCType, intoffset as integer, value as integer)
 declare function GetNPCD(npcdata as NPCType, intoffset as integer) as integer

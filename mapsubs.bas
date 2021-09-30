@@ -4116,11 +4116,7 @@ SUB mapedit_loadmap (st as MapEditState, mapnum as integer)
 END SUB
 
 SUB mapedit_reloadglobalnpcs (st as MapEditState, mapnum as integer)
- IF isfile(global_npcdef_filename(1)) THEN
-  LoadNPCD global_npcdef_filename(1), st.global_npc_def()
- ELSE
-  REDIM st.global_npc_def(0)
- END IF
+ LoadNPCD global_npcdef_filename(1), st.global_npc_def(), NO  'expect_exists=NO
  mapedit_sanity_check_npc_instances st
  'Note: we don't reload global NPC graphics here
 END SUB
@@ -6696,9 +6692,7 @@ SUB global_npcdef_editor (map as MapData, npc_def() as NPCType)
  'Pool ID is always 1 for now
  DIM pool_id as integer = 1
  DIM npcdef_filename as string = global_npcdef_filename(pool_id)
- IF isfile(npcdef_filename) THEN
-  LoadNPCD npcdef_filename, npc_def()
- END IF
+ LoadNPCD npcdef_filename, npc_def(), NO  'expect_exists=NO
  npcdef_editor map, npc_def(), npcdef_filename, pool_id
  SaveNPCD npcdef_filename, npc_def()
 END SUB

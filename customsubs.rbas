@@ -2875,7 +2875,7 @@ SUB check_used_onetime_npcs(bits() as integer)
   LoadNPCD maplumpname(m, "n"), npcdata()
   check_used_onetime_npcs_npcdata bits(), npcdata(), m
  NEXT m
- LoadNPCD global_npcdef_filename(1), npcdata()
+ LoadNPCD global_npcdef_filename(1), npcdata(), NO  'expect_exists=NO
  check_used_onetime_npcs_npcdata bits(), npcdata(), -1
 END SUB
 

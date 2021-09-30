@@ -592,9 +592,7 @@ loadglobalstrings
 getstatnames statnames()
 
 'Load global NPC definitions
-IF isfile(global_npcdef_filename(1)) THEN
- LoadNPCD global_npcdef_filename(1), npool(1).npcs()
-END IF
+LoadNPCD global_npcdef_filename(1), npool(1).npcs(), NO  'expect_exists=NO
 
 'Setup script interpreter
 load_hsp
