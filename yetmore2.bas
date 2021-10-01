@@ -1153,9 +1153,10 @@ SUB apply_game_window_settings (reloading as bool = NO)
     user_toggled_fullscreen = NO AND running_under_Custom = NO AND _
     gam.shared_fullscreen_setting = NO THEN
   DIM setting as string = read_ini_prefixed_str(gam.fullscreen_config_file, "gfx.fullscreen")
+  IF setting = "" THEN setting = read_config_str("gfx.fullscreen")  'Also reads game_config_file, I think that's OK
   DIM fullscreen as bool = str2bool(setting, gen(genFullscreen))
-  ' genFullscreen is used only if the player has never customised the setting.
-  debuginfo gam.fullscreen_config_file & " : gfx.fullscreen = " & setting & ", genFullscreen = " & gen(genFullscreen)
+  ' genFullscreen is used only if the player has never customised the setting, and there's no global override
+  debuginfo "config gfx.fullscreen = " & setting & ", genFullscreen = " & gen(genFullscreen)
   gfx_setwindowed(fullscreen = NO)
  ELSE
   debuginfo "Preserving fullscreen/windowed state"
