@@ -2481,7 +2481,11 @@ SUB load_global_npcs()
  lump_reloading.globalnpcs.dirty = NO
  lump_reloading.globalnpcs.changed = NO
  DIM filename as string = global_npcdef_filename(1)
- lump_reloading.globalnpcs.hash = file_hash64(filename)
+ IF real_isfile(filename) THEN
+  lump_reloading.globalnpcs.hash = file_hash64(filename)
+ ELSE
+  lump_reloading.globalnpcs.hash = 0
+ END IF
  LoadNPCD filename, npool(1).npcs(), NO  'expect_exists=NO
 
  'Evaluate whether NPCs should appear or disappear based on tags or validity of pool/ID
