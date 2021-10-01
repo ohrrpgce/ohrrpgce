@@ -80,6 +80,18 @@ support/scancode.hsi
 support/rules.txt
 # Indicator file
 support/zip-version-3.0.txt
+# The following are from the "Upload to Itch.io" feature
+support/itch.butler.download.agree
+support/7z.so
+support/butler
+support/libc7zip.so
+support/butler.exe
+support/7z.dll
+support/c7zip.dll
+support/libc7zip.dylib
+
+# Used as temporary space for itch stable release uploads
+release/itch_upload_dir/
 
 gfx_directx.dll.manifest
 gfx_directx.exp
