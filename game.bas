@@ -456,7 +456,7 @@ END IF
 
 '================= Setup game-specific directories & debug log ================
 
-' Set up game_id, prefsdir, and game_config_file variables
+' Set up game_fname, prefsdir, and game_config_file variables
 set_game_config_globals sourcerpg
 
 flush_gfx_config_settings

@@ -421,7 +421,7 @@ DECLARE SUB write_game_config OVERLOAD (key as zstring ptr, value as double)
 'Global variables  (See also common_base.bi)
 EXTERN sourcerpg as string
 EXTERN game as string
-EXTERN game_id as string
+EXTERN game_fname as string
 EXTERN game_unique_id as string
 EXTERN context_string as string
 EXTERN running_under_Custom as bool

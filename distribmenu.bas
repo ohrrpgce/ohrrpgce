@@ -2011,8 +2011,6 @@ SUB itch_io_options_menu ()
 
  DIM distinfo as DistribState
  load_distrib_state distinfo
- 
- DIM gamename as string = decode_filename(trimextension(trimpath(sourcerpg)))
 
  DIM menu as SimpleMenuItem vector
  v_new menu, 0

@@ -256,7 +256,7 @@ SUB importmxs ()
    END IF
    IF mstate.pt = 5 THEN
     DIM outfile as string
-    outfile = inputfilename("Name of file to export to?", ".bmp", defaultdir, "input_file_export_screen", trimextension(trimpath(sourcerpg)) & " tileset" & pt)
+    outfile = inputfilename("Name of file to export to?", ".bmp", defaultdir, "input_file_export_screen", game_fname & " tileset" & pt)
     '--Re-load the page to vpages(2) just in case it got clobbered by inputfilename() calling the file browser
     loadmxs filename, pt, vpages(2)
     IF outfile <> "" THEN frame_export_bmp8 outfile & ".bmp", vpages(2), master()
@@ -369,7 +369,7 @@ SUB backdrop_browser ()
    IF mstate.pt = 5 THEN
     DIM outfile as string
     outfile = inputfilename("Name of file to export to?", ".bmp", "", "input_file_export_screen", _
-                            trimextension(trimpath(sourcerpg)) & " backdrop" & backdrop_id)
+                            game_fname & " backdrop" & backdrop_id)
     IF outfile <> "" THEN frame_export_bmp8 outfile & ".bmp", backdrop, master()
    END IF
    IF mstate.pt = 7 THEN
@@ -2770,7 +2770,7 @@ END SUB
 
 FUNCTION default_export_name (sprtype as SpriteType, setnum as integer, framenum as integer = 0, fullset as bool) as string
  DIM s as string
- s = trimpath(trimextension(sourcerpg)) & " " & exclude(LCASE(sprite_sizes(sprtype).name), " ")
+ s = game_fname & " " & exclude(LCASE(sprite_sizes(sprtype).name), " ")
  IF fullset THEN
   s &= " set " & setnum
  ELSE

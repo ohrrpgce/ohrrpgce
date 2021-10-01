@@ -121,7 +121,7 @@ DIM documents_dir as string
 'This is for application-wide settings, and prefsdir for games will be a subdirectory of it.
 DIM settings_dir as string
 
-'Game-specific subdirectory (named game_id) of settings_dir. Currently only used by Game
+'Game-specific subdirectory (named game_fname) of settings_dir. Currently only used by Game
 DIM prefsdir as string
 
 'ohrrpgce_config.ini. This is stored in either app_dir or settings_dir. For non-game-specific settings.
@@ -142,9 +142,8 @@ DIM workingdir as string
 'Has been spawned from Custom. This is a common global for the benefit of gfx_sdl
 DIM running_under_Custom as bool = NO
 
-'The name of the prefsdir subdirectory and also used as part of config prefix
-'Equal to the .rpg file with path & extension trimmed.
-DIM game_id as string
+'The .rpg filename with path & extension trimmed. Used as prefsdir subdirectory name
+DIM game_fname as string
 
 'Used for search_string_cache. Should change every time the current game changes; changing
 'it on reloading some lumps while live previewing also useful, to clear certain caches
@@ -8166,14 +8165,14 @@ END FUNCTION
 
 ' Called on startup to set up config-related globals (excluding savedir)
 SUB set_game_config_globals(sourcerpg as string)
- game_id = trimpath(trimextension(sourcerpg))  'some unique ID scheme would be nice
- prefsdir = settings_dir & SLASH & game_id
+ game_fname = trimpath(trimextension(sourcerpg))
+ prefsdir = settings_dir & SLASH & game_fname
  'Custom doesn't save anything in prefsdir, don't bother creating it
 #IFDEF IS_GAME
  IF NOT isdir(prefsdir) THEN makedir prefsdir
 #ENDIF
  'Check next to the .rpg first: the engine never creates the file here, but the user might
- game_config_file = trimfilename(sourcerpg) & SLASH & game_id & "_config.ini"
+ game_config_file = trimfilename(sourcerpg) & SLASH & game_fname & "_config.ini"
  IF NOT isfile(game_config_file) THEN
   game_config_file = prefsdir & SLASH & "gameconfig.ini"
  END IF

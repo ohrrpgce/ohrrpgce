@@ -4715,7 +4715,7 @@ SUB mapedit_export_tilemap_image(st as MapEditState)
  IF choice = 0 THEN EXIT SUB
  DIM outfile as string
  DIM defaultname as string
- defaultname = trimextension(trimpath(sourcerpg)) & " map " & st.map.id & " layer " & (choice - 1) & " " & read_map_layer_name(st.map.gmap(), choice - 1)
+ defaultname = game_fname & " map " & st.map.id & " layer " & (choice - 1) & " " & read_map_layer_name(st.map.gmap(), choice - 1)
  defaultname = TRIM(defaultname)  'If no layer name
  outfile = inputfilename("Export tilemap to which file?", ".bmp", "", "input_file_export_bmp_tilemap", defaultname)
  IF LEN(outfile) THEN layer_to_bmp st, outfile + ".bmp", choice - 1
@@ -4725,7 +4725,7 @@ END SUB
 SUB mapedit_export_map_image(st as MapEditState)
  DIM filename as string
  filename = inputfilename("Filename to save as?", ".png", "", "", _
-                          trimextension(trimpath(sourcerpg)) & " map " & st.map.id & " " & st.map.name)
+                          game_fname & " map " & st.map.id & " " & st.map.name)
  IF LEN(filename) = 0 THEN EXIT SUB
  filename += ".png"
  DIM menu(2) as string = {"Only NPCs without tag conditions", "All", "None"}

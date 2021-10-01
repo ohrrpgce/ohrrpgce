@@ -8605,7 +8605,7 @@ local function next_unused_screenshot_filename() as string
 	static search_gamename as string
 
 	dim as string ret
-	dim as string gamename = trimextension(trimpath(sourcerpg))
+	dim as string gamename = game_fname
 	if gamename = "" then
 		' If we haven't loaded a game yet
 		gamename = "ohrrpgce"

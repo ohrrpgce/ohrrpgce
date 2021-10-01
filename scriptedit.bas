@@ -86,7 +86,7 @@ FUNCTION exportnames (outdir as string = "") as string
  DIM elementnames() as string
  getelementnames elementnames()
 
- DIM outf as string = join_path(outdir, trimextension(trimpath(sourcerpg)) + ".hsi")
+ DIM outf as string = join_path(outdir, game_fname + ".hsi")
  outf = simplify_path_further(outf)
 
  clearpage 0
@@ -694,7 +694,7 @@ SUB export_scripts()
 
   DIM dest as string
   dest = inputfilename("Export scripts to which (new) directory?", "", trimfilename(sourcerpg), "", _
-                       trimpath(trimextension(sourcerpg)) & " scripts")
+                       game_fname & " scripts")
 
   IF LEN(dest) = 0 THEN
    EXIT SUB  'cancelled
@@ -717,7 +717,7 @@ SUB export_scripts()
   notification "A backup of the scripts is available, but they are all mushed " _
                "up into a single file. You'll have to clean it up."
   DIM dest as string
-  dest = inputfilename("Export scripts to which file?", ".hss", "", "", trimextension(trimpath(sourcerpg)))
+  dest = inputfilename("Export scripts to which file?", ".hss", "", "", game_fname)
   IF LEN(dest) THEN
    unlumpfile(hsp, "source.txt", tmpdir)
    copyfile tmpdir & "source.txt", dest
@@ -754,7 +754,7 @@ SUB decompile_scripts()
  END IF
 
  DIM dest as string
- dest = inputfilename("Export scripts to which file?", ".hss", "", "", trimextension(trimpath(sourcerpg)))
+ dest = inputfilename("Export scripts to which file?", ".hss", "", "", game_fname)
  IF dest = "" THEN EXIT SUB
 
  DIM as string args, spawn_ret, hsi
@@ -1187,7 +1187,7 @@ END FUNCTION
 
 ' Export menu() to a file, except for the first items.
 SUB script_list_export (menu() as string, description as string, remove_first_items as integer)
- DIM title as string = trimpath(trimextension(sourcerpg)) + " " + description
+ DIM title as string = game_fname + " " + description
  DIM fname as string = inputfilename("Filename to export " & description & " list to?", _
                                      ".txt", "", "", title)
  IF LEN(fname) THEN

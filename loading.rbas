@@ -4835,7 +4835,7 @@ SUB load_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
  END READNODE
 
  '--Set up defaults
- IF distinfo.pkgname = "" THEN distinfo.pkgname = trimextension(trimpath(sourcerpg))
+ IF distinfo.pkgname = "" THEN distinfo.pkgname = game_fname
  IF distinfo.gamename = "" THEN
   distinfo.gamename = special_char_sanitize(load_gamename)
   IF distinfo.gamename = "" THEN distinfo.gamename = distinfo.pkgname
@@ -4866,7 +4866,7 @@ SUB save_distrib_state(byref distinfo as DistribState, filename as string)
 END SUB
 
 SUB save_distrib_state(byref distinfo as DistribState, byval node as Reload.NodePtr)
- IF distinfo.pkgname <> trimextension(trimpath(sourcerpg)) THEN
+ IF distinfo.pkgname <> game_fname THEN
   SetChildNode node, "pkgname", distinfo.pkgname
  END IF
  IF distinfo.gamename <> special_char_sanitize(load_gamename) THEN
