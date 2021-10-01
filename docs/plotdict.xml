@@ -10622,7 +10622,7 @@ end</example>
 					<li>mapstate:tiles = mapstate:tilemap, or, mapstate:passmap, or, mapstate:zonemap</li>
 					<li>mapstate:mapsettings</li>
 					<li>mapstate:npclocations</li>
-					<li>mapstate:npcdefinitions</li>
+					<li>mapstate:npcdefinitions - local NPC definitions only, not global NPCs</li>
 					<li>mapstate:tilemap</li>
 					<li>mapstate:passmap</li>
 					<li>mapstate:zonemap</li>
@@ -10675,7 +10675,7 @@ end</example>
 		<command id="resetmapstate">
 			<canon>reset map state (whichdata)</canon>
 			<shortname>reset map state</shortname>
-			<description>Reloads original unaltered map data from the RPG file. <p>whichdata</p> is a set of bits in the <ref>savemapstate</ref> format to determine what exactly to load. It is optional and the default is mapstate:all. This does not remove temp state files for the map, so they could still be loaded instead when you next enter the map, use <ref>deletemapstate</ref> to remove them if wanted.</description>
+			<description>Reloads original unaltered map data from the RPG file. <p>whichdata</p> is a set of bits in the <ref>savemapstate</ref> format to determine what exactly to load. It is optional and the default is mapstate:all (which doesn't reset global NPC definitions). This does not remove temp state files for the map, so they could still be loaded instead when you next enter the map, use <ref>deletemapstate</ref> to remove them if wanted.</description>
 		</command>
 		<command id="deletemapstate">
 			<canon>delete map state (whichdata)</canon>
@@ -11855,13 +11855,14 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<canon>NPC IDs</canon>
 			<shortname>NPC ID</shortname>
 			<description>
-				An NPC ID refers to an NPC type, as defined in the Edit NPCs menu.
-				NPC IDs count from 0 upwards.
-				Local and global <ref>npcpool</ref>s have distinct sets of IDs,
-				so some commands such as <ref>npccopycount</ref> take both an NPC ID and an NPC pool
+				An NPC ID refers to an NPC type (aka NPC definition), as defined in the Edit
+				Local/Global NPCs menus.
+				Local and global <ref>npcpool</ref>s both have ID numbers that count from 0 upwards,
+				so the ID doesn't tell you whether it's a local or global NPC.
+				Some commands such as <ref>npccopycount</ref> take both an NPC ID and an NPC pool
 				as separate arguments.
 				But most NPC commands, such as <ref>walknpc</ref>, don't take a pool argument.
-				If you pass an ID to these, then it's interpreted as a ID in the local NPC pool.
+				If you pass an ID to these, then it's interpreted as an ID in the local NPC pool.
 				<lb/>
 				A copy of an NPC is referred to using an <ref>npcref</ref>.
 			</description>
@@ -11876,9 +11877,9 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				It can be either <p>pool:local</p> (which is <p>0</p>; NPCs specific to one map) or <p>pool:global</p>
 				(which is <p>1</p>).
 				Most commands that accept NPC IDs don't have an argument to tell the pool number.
-				These always default to the local pool, and you need to first use
-				<ref>npcreference</ref> or <ref>globalnpcreference</ref>
-				if you want to refer to a global NPC by ID.
+				These always default to the local pool, and you need to first use the
+				<ref>npcreference</ref> or <ref>globalnpcreference</ref> functions to get an
+				<ref>npcref</ref> to pass to these commands if you want to refer to a global NPC by ID.
 			</description>
 		</command>
 
@@ -11893,7 +11894,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				NPC references are handles for NPC instances on the map,
 				that is, a copy of an NPC definition.
 				NPC references are always negative values, while NPC IDs count from 0 up.
-				An <ref>npcid</ref> can always be used with any command that expects
+				An <ref>npcid</ref> for a local NPC can always be used with any command that expects
 				an NPC reference, in which case it refers to the first
 				instance/copy of that NPC ID from the local <ref>npcpool</ref>, not to the NPC definition itself.
 				(If you want to refer to a global NPC, you need to first use <ref>globalnpcreference</ref>.)
