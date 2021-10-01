@@ -74,7 +74,7 @@ DECLARE SUB export_translations_and_terminate (translationfile as string)
 
 DECLARE SUB prompt_for_password()
 DECLARE SUB prompt_for_save_and_quit()
-DECLARE SUB choose_rpg_to_open (rpg_browse_default as string)
+DECLARE SUB choose_rpg_to_create_or_load (rpg_browse_default as string)
 DECLARE SUB main_editor_menu()
 DECLARE SUB gfx_editor_menu()
 
@@ -206,11 +206,9 @@ FOR i as integer = 0 TO UBOUND(cmdline_args)
   CONTINUE FOR
  ELSEIF extn = "rpg" AND isfile(arg) THEN
   sourcerpg = arg
-  game = trimextension(trimpath(sourcerpg))
  ELSEIF isdir(arg) THEN
   IF isfile(arg + SLASH + "archinym.lmp") THEN 'ok, accept it
    sourcerpg = trim_trailing_slashes(arg)
-   game = trimextension(trimpath(sourcerpg))
   ELSE
    rpg_browse_default = arg
   END IF
@@ -218,9 +216,10 @@ FOR i as integer = 0 TO UBOUND(cmdline_args)
   visible_debug !"File not found/invalid option:\n" & cmdline_args(i)
  END IF
 NEXT
-IF game = "" THEN
+IF sourcerpg = "" THEN
  scriptfile = ""
- choose_rpg_to_open(rpg_browse_default)
+ 'Show the title menu. Sets sourcerpg
+ choose_rpg_to_create_or_load(rpg_browse_default)
 END IF
 
 sourcerpg = absolute_path(sourcerpg)
@@ -545,8 +544,8 @@ SUB gfx_editor_menu()
 
 END SUB
 
-SUB choose_rpg_to_open (rpg_browse_default as string)
- 'This sub sets the globals: game and sourcerpg
+'This sub sets the sourcerpg global
+SUB choose_rpg_to_create_or_load (rpg_browse_default as string)
 
  DIM state as MenuState
  state.pt = 1
@@ -578,17 +577,16 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
   IF enter_space_click(state) THEN
    SELECT CASE state.pt
     CASE 0
-     game = inputfilename("Filename of New Game?", ".rpg", rpg_browse_default, "input_file_new_game", , NO)
-     IF game <> "" THEN
-       IF NOT newRPGfile(finddatafile("ohrrpgce.new"), game & ".rpg") THEN cleanup_and_terminate
-       sourcerpg = game & ".rpg"
-       game = trimpath(game)
+     DIM path as string
+     path = inputfilename("Filename of New Game?", ".rpg", rpg_browse_default, "input_file_new_game", , NO)
+     IF path <> "" THEN
+       sourcerpg = path & ".rpg"
+       IF NOT newRPGfile(finddatafile("ohrrpgce.new"), sourcerpg) THEN cleanup_and_terminate
        EXIT DO
      END IF
     CASE 1
      sourcerpg = browse(browseRPG, rpg_browse_default, , "custom_browse_rpg")
-     game = trimextension(trimpath(sourcerpg))
-     IF game <> "" THEN EXIT DO
+     IF sourcerpg <> "" THEN EXIT DO
     CASE 2
      cleanup_and_terminate
    END SELECT

@@ -375,7 +375,7 @@ ELSE  'NOT running_under_Custom
   gam.want.rungame = ""
 
  ELSEIF checked_cmdline_args = NO THEN
-  'Doing do this again if switching game
+  'Don't do this again if switching game
   checked_cmdline_args = YES
 
   '---IF A VALID RPG FILE WAS SPECIFIED ON THE COMMAND LINE, RUN IT, ELSE BROWSE---
