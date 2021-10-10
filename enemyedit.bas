@@ -107,6 +107,7 @@ a_append enemybits(), 57, "Unescapable"
 a_append enemybits(), 62, "Win battle even if alive"
 a_append enemybits(), 61, "Untargetable by heroes & win even if alive"
 a_append enemybits(), 60, "Untargetable by enemies"
+a_append enemybits(), 65, "Give rewards even if left alive"
 
 a_append enemybits(), -1, ""
 a_append enemybits(), -1, " Other"

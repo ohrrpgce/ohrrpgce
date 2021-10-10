@@ -13,6 +13,7 @@ WHAT IS NEW?
     * You can create a <gamename>_config.ini next to an .rpg to put game-specific
       overrides for ohrrpgce_config.ini settings for both Game and Custom [Ralph]
     * "gfx.screenshot_dir" config option, for screenshots and .gifs [Ralph]
+    * Enemy bit "Give rewards even if left alive" [Ralph]
 
    * New Plotscripting Features
 

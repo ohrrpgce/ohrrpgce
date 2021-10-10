@@ -150,6 +150,7 @@ TYPE BattleSprite
   death_unneeded as integer 'YES/NO
   never_flinch   as integer 'YES/NO
   ignore_for_alone    as integer 'YES/NO
+  give_rewards_even_if_alive as bool
   '--counterattacking
   elem_counter_attack(maxElements - 1) as integer
   non_elem_counter_attack as integer

@@ -1751,11 +1751,19 @@ END SUB
 SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
  '--Play the victory music
  IF gen(genVictMus) > 0 THEN wrappedsong gen(genVictMus) - 1
+
+ '--Add rewards from still-alive enemies
+ FOR slot as integer = 4 TO 11
+  IF bslot(slot).stat.cur.hp > 0 ANDALSO bslot(slot).give_rewards_even_if_alive THEN
+   enemy_death_rewards bat, bslot(slot)
+  END IF
+ NEXT
+
  '--Collect gold (which is capped at 2 billion max)
  gold = gold + bat.rew.plunder
  IF gold < 0 OR gold > 2000000000 THEN gold = 2000000000
  '--Give out experience
- 
+
  export_battle_hero_stats bslot() 'Needed because distribute_party_experience() might level-up some heroes
  bat.rew.exper = distribute_party_experience(bat.rew.exper)
  import_battle_hero_stats bslot() 'Needed because we will likely be calling export_battle_hero_stats() again later

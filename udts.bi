@@ -959,6 +959,7 @@ TYPE EnemyDef
   enemy_untargetable  as bool
   hero_untargetable   as bool
   death_unneeded as bool
+  give_rewards_even_if_alive as bool
   never_flinch   as bool
   ignore_for_alone    as bool
 

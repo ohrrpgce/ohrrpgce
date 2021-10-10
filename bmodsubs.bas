@@ -1893,6 +1893,8 @@ SUB transfer_enemy_bits(byref bspr as BattleSprite)
    .death_unneeded = .enemy.death_unneeded
    .never_flinch = .enemy.never_flinch
    .ignore_for_alone = .enemy.ignore_for_alone
+   .give_rewards_even_if_alive = .enemy.give_rewards_even_if_alive
+
    FOR i as integer = 0 TO gen(genNumElements) - 1
     .elementaldmg(i) = .enemy.elementals(i)
    NEXT
