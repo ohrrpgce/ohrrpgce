@@ -2335,6 +2335,7 @@ FUNCTION npc_pushability_check(byval n as integer, byval d as integer) as bool
   IF .xgo <> 0 ORELSE .ygo <> 0 THEN RETURN NO 'NPC is already moving, so it can't be pushed
   DIM id as NPCTypeID = .id - 1
   DIM push as integer = npool(.pool).npcs(id).pushtype
+  IF push = 0 THEN RETURN NO ' Not pushable
   DIM go as XYPair
   IF d = dirUp    ANDALSO (push = 1 ORELSE push = 2 ORELSE push = 4) THEN go.y = 1
   IF d = dirDown  ANDALSO (push = 1 ORELSE push = 2 ORELSE push = 6) THEN go.y = -1
