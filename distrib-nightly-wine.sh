@@ -119,8 +119,8 @@ fi
 svn info > svninfo.txt
 
 # Build all utilities once
-# lto=1 to reduce relump/unlump size
-${BUILD} relump unlump $SCONS_ARGS lto=1 || exit 1
+# Would compile with lto=1 to reduce unlump/relump size, but that causes mingw-w64 gcc 8.1.0 to crash
+${BUILD} relump unlump $SCONS_ARGS || exit 1
 if [ -z "$DONT_BUILD_HSPEAK" ]; then
   ${BUILD} hspeak $SCONS_ARGS || exit 1
 fi

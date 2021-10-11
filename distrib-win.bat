@@ -13,8 +13,8 @@ support\rm -f game.exe custom.exe relump.exe unlump.exe hspeak.exe
 
 ECHO   Windows executables...
 CALL scons game custom hspeak %SCONS_ARGS% || exit /b 1
-REM lto=1 to reduce unlump/relump size
-CALL scons unlump relump %SCONS_ARGS% lto=1 || exit /b 1
+REM Would compile with lto=1 to reduce unlump/relump size, but that causes mingw-w64 gcc 8.1.0 to crash
+CALL scons unlump relump %SCONS_ARGS% || exit /b 1
 
 REM "scons pdb=1" will continue even if it can't produce these
 FOR %%X IN (win32\game.pdb win32\custom.pdb) DO (

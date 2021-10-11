@@ -80,8 +80,8 @@ echo "Building executables..."
 
 rm -f game.exe custom.exe relump.exe unlump.exe
 ${BUILD} game custom unlump relump $SCONS_ARGS || exit 1
-# lto=1 to reduce unlump/relump size
-${BUILD} unlump relump $SCONS_ARGS lto=1 || exit 1
+# Would compile with lto=1 to reduce unlump/relump size, but that causes mingw-w64 gcc 8.1.0 to crash
+${BUILD} unlump relump $SCONS_ARGS || exit 1
 
 
 if [ -z "$DONT_BUILD_HSPEAK" ]; then
