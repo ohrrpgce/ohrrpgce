@@ -8171,8 +8171,14 @@ SUB set_game_config_globals(sourcerpg as string)
 #IFDEF IS_GAME
  IF NOT isdir(prefsdir) THEN makedir prefsdir
 #ENDIF
- 'Check next to the .rpg first: the engine never creates the file here, but the user might
- game_config_file = trimfilename(sourcerpg) & SLASH & game_fname & "_config.ini"
+ IF LEN(app_resources_dir) ANDALSO trimfilename(sourcerpg) = app_resources_dir THEN
+  'On Mac, if running a game bundled in the .app look next to the .app
+  '(app_dir has trailing slash)
+  game_config_file = app_dir & game_fname & "_config.ini"
+ ELSE
+  'Check next to the .rpg first: the engine never creates the file here, but the user might
+  game_config_file = trimfilename(sourcerpg) & SLASH & game_fname & "_config.ini"
+ END IF
  IF NOT isfile(game_config_file) THEN
   game_config_file = prefsdir & SLASH & "gameconfig.ini"
  END IF

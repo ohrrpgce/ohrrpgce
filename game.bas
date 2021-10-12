@@ -418,7 +418,7 @@ END IF
 
 #IFDEF __FB_DARWIN__
 IF gam.autorungame = NO THEN
- IF ends_with(exepath, ".app/Contents/MacOS") THEN
+ IF ends_with(LCASE(exepath), ".app/contents/macos") THEN
   IF isfile(app_resources_dir & "/bundledgame") THEN
    DIM bundledname as string
    bundledname = TRIM(string_from_first_line_of_file(app_resources_dir & "/bundledgame"), ANY !" \t\r\n")
