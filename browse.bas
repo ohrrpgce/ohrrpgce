@@ -575,9 +575,6 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
     IF legal_audio_file(filepath, VALID_SFX_FORMAT) = NO THEN
      .kind = bkUnselectable
      .about = "Not a valid sound file"
-    ELSEIF FILELEN(filepath) > 1024 * 1024 AND LCASE(justextension(filepath)) <> "wav" THEN
-     .kind = bkUnselectable
-     .about = "File is too large (limit 1MB)"
     END IF
    END IF
    '---320x200 images

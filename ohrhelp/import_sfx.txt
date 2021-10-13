@@ -8,7 +8,7 @@ You will be prompted to select a file. Some sound effect files are included insi
 
 OGG is the preferred sound file format, but you can also import WAV and MP3 sound effects. They will be converted to OGG files automatically (using the madplay and oggenc tools).
 
-Only short sound files are suitable for use as sound effects. The importer will not allow you to import files larger than 500kB, but even 500kB is really very large.
+Avoid using long/large sound files as sound effects, because they can cause the engine to pause when loaded (played the first time). You might not care about this, depending on how you use it.
 
 You can also give names to your sound effects, but this is not strictly necessary because when you import a sound file, its filename will automatically be used as the sound effect name.
 

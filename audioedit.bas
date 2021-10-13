@@ -882,6 +882,10 @@ SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as
 
   metadata  = "Type:     " & sfxtype & !"\n"
   metadata &= "Filesize: " & filesize(sfxfile) & !"\n"
+  IF filelen(sfxfile) > 1 * 1024 * 1024 THEN
+   metadata &= !"Large sound effects can cause pauses when played!\n"
+  END IF
+
   metadata &= extended_metadata
 
   IF (getmusictype(sfxfile) AND sound_supported_formats()) = 0 THEN
