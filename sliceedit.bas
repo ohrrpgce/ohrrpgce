@@ -636,7 +636,9 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   '--and no point allowing editing external files in-game, so just disable in-game.
   '--Furthermore, loading new collections when .editing_existing is unimplemented anyway
   '--(checked by slice_editor_export_key())
-  IF keyval(scCtrl) = 0 ANDALSO keyval(scF3) > 1 THEN slice_editor_import_prompt ses, edslice
+  IF keyval(scCtrl) = 0 ANDALSO keyval(scShift) = 0 ANDALSO keyval(scF3) > 1 THEN
+   slice_editor_import_prompt ses, edslice
+  END IF
 #ENDIF
   IF state.need_update = NO AND (keyval(scPlus) > 1 OR keyval(scNumpadPlus)) THEN
    DIM slice_type as SliceTypes
@@ -828,7 +830,9 @@ END FUNCTION
 
 'Note: a lot of this is duplicated, and the keys are documented, in SliceEditSettingsMenu
 SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, in_detail_editor as bool)
- IF state.need_update = NO ANDALSO keyval(scCtrl) = 0 THEN  'need_update=NO ensures not a string field
+ DIM shiftctrl as KeyBits = keyval(scShift) OR keyval(scCtrl)
+
+ IF state.need_update = NO ANDALSO shiftctrl = 0 THEN  'need_update=NO ensures not a string field
   IF keyval(scF) > 1 THEN
    slice_editor_focus_on_slice ses, edslice
    state.need_update = YES
@@ -844,7 +848,8 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
   END IF
  END IF
 
- IF keyval(scCtrl) = 0 ANDALSO keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD (hideLAST + 1)
+
+ IF shiftctrl = 0 ANDALSO keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD (hideLAST + 1)
  IF keyval(scF6) > 1 THEN
   'Move around our view on this slice collection.
   'We move around the real rool, not draw_root, as it affects screen positions
@@ -859,16 +864,18 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
   slice_editor_settings_menu ses, edslice, in_detail_editor
   state.need_update = YES
  END IF
- IF keyval(scCtrl) > 0 ANDALSO keyval(scF3) > 1 THEN
-  'Switching to 32 bit color depth allows 32-bit and smooth-scaled sprites,
-  'but breaks sprite dissolves
-  toggle_32bit_vpages
-  state.need_update = YES  'smoothing menu item needs update
- END IF
- IF keyval(scCtrl) > 0 ANDALSO keyval(scF4) > 1 ANDALSO NOT vpages_are_32bit THEN
-  loopvar gen(gen8bitBlendAlgo), 0, blendAlgoLAST
-  show_overlay_message "Blending with " & BlendAlgoCaptions(gen(gen8bitBlendAlgo)), 1.2
-  state.need_update = YES
+ IF shiftctrl > 0 THEN
+  IF keyval(scF3) > 1 THEN
+   'Switching to 32 bit color depth allows 32-bit and smooth-scaled sprites,
+   'but breaks sprite dissolves
+   toggle_32bit_vpages
+   state.need_update = YES  'smoothing menu item needs update
+  END IF
+  IF keyval(scF4) > 1 ANDALSO NOT vpages_are_32bit THEN
+   loopvar gen(gen8bitBlendAlgo), 0, blendAlgoLAST
+   show_overlay_message "Blending with " & BlendAlgoCaptions(gen(gen8bitBlendAlgo)), 1.2
+   state.need_update = YES
+  END IF
  END IF
 END SUB
 

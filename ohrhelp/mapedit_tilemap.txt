@@ -108,7 +108,7 @@ ALT+~ toggles visibility of the current map layer.
 
 ALT+# (a number key) disables or enables that layer (you can't disable layer 0). Disabled layers aren't drawn while editing or playing.
 
-CTRL+F# toggles visibility of a layer: F1 is layer 0, and so on.
+CTRL+F# or SHIFT+F# toggles visibility of a layer: F1 is layer 0, F2 is layer 1, and so on.
 
 Hold CTRL+SHIFT and press arrow keys, or press CTRL and drag with the RIGHT MOUSE button, to "skew" the map layers, drawing them with a 3D perspective so that you can tell them apart.
 

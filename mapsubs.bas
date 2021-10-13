@@ -888,7 +888,7 @@ DO
  mapedit_window_size_updates st
 
  IF keyval(ccCancel) > 1 THEN EXIT DO
- IF keyval(scCtrl) = 0 AND keyval(scAlt) = 0 THEN  'Ignore OS keys and Ctrl+F# to toggle layer vis
+ IF (keyval(scCtrl) OR keyval(scShift) OR keyval(scAlt)) = 0 THEN  'Ignore OS keys and Ctrl/Shift+F# to toggle layer vis
   IF keyval(scF8) > 1 THEN mapedit_settings_menu st 'If quit by F2-F7, will catch it here
   FOR i as integer = tile_mode TO zone_mode
    IF keyval(scF2 + i) > 1 THEN st.seteditmode = i
@@ -1106,7 +1106,7 @@ DO
  SELECT CASE st.editmode
   '---TILEMODE------
   CASE tile_mode
-   IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_tilemap"
+   IF (keyval(scCtrl) OR keyval(scShift)) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_tilemap"
 
    'Selecting a tile in the tileset...
    '...via top bar
@@ -1163,8 +1163,10 @@ DO
      END IF
      IF newtile >= 0 THEN
       IF keyval(scCtrl) = 0 THEN
+       '1 or 2 pressed
        tilebrush st, st.x, st.y, newtile
       ELSE
+       'Ctrl-1 or Ctrl-2
        'Like Replace tool, except that can't place animated tiles
        FOR tx as integer = 0 TO st.map.wide - 1
         FOR ty as integer = 0 TO st.map.high - 1
@@ -1176,15 +1178,15 @@ DO
     END IF
    NEXT i
 
-   '#IFNDEF __FB_UNIX__
-    'common WM keys
+   'Shift/Ctrl-F# toggle layer visibility
+   IF keyval(scCtrl) > 0 ORELSE keyval(scShift) > 0 THEN
     FOR i as integer = 0 TO UBOUND(st.map.tiles)
-     IF keyval(scCtrl) > 0 AND keyval(scF1 + i) > 1 THEN
+     IF keyval(scF1 + i) > 1 THEN
       clearkey(scF1 + i)
       IF layerisenabled(st.map.gmap(), i) THEN togglelayervisible(st.visible(), i)
      END IF
     NEXT
-   '#ENDIF
+   END IF
 
    'Alt+number to toggle layer 1-10 enabled, Alt+Shift+number to toggle layer 11-15
    FOR i as integer = 1 TO small(maplayerMax, 20)
@@ -1219,7 +1221,7 @@ DO
 
    '---PASSMODE-------
   CASE pass_mode
-   IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
+   IF (keyval(scCtrl) OR keyval(scShift)) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
 
    IF st.tool <> mark_tool ANDALSO st.tool <> clone_tool ANDALSO _
       keyval(scCtrl) = 0 ANDALSO keyval(scW) > 1 THEN  'One-way tiles
@@ -1315,7 +1317,7 @@ DO
 
    '---DOORMODE-----
   CASE door_mode
-   IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
+   IF (keyval(scCtrl) OR keyval(scShift)) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
    IF keyval(scAnyEnter) > 1 OR normal_right_release THEN ' enter/right click to link a door
     DIM doorid as integer = find_door_at_spot(st.pos, st.map.door())
     IF doorid >= 0 THEN
@@ -1364,7 +1366,7 @@ DO
 
    '---NPCMODE------
   CASE npc_mode
-   IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_npc_placement"
+   IF (keyval(scCtrl) OR keyval(scShift)) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_npc_placement"
    IF keyval(scDelete) > 1 THEN
     FOR i as integer = 0 TO UBOUND(st.map.npc)
      WITH st.map.npc(i)
@@ -1511,7 +1513,7 @@ DO
 
    '---FOEMODE--------
   CASE foe_mode
-   IF keyval(scCtrl) = 0 THEN
+   IF (keyval(scCtrl) OR keyval(scShift)) = 0 THEN
     IF keyval(scF1) > 1 THEN show_help "mapedit_foemap"
     IF keyval(scG) > 1 THEN st.cur_foe = readblock(st.map.foemap, st.x, st.y)
    END IF
@@ -1520,7 +1522,7 @@ DO
 
    '---ZONEMODE--------
   CASE zone_mode
-   IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN
+   IF (keyval(scCtrl) OR keyval(scShift)) = 0 AND keyval(scF1) > 1 THEN
     IF st.zonesubmode THEN show_help "mapedit_zonemap_view" ELSE show_help "mapedit_zonemap_edit"
    END IF
    IF keyval(scCtrl) = 0 THEN

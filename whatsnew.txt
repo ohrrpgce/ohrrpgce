@@ -17,6 +17,7 @@ WHAT IS NEW?
     * Press Delete to clear most non-text data fields [Ralph]
     * Removed the 1MB limit on size of sound effects, because you likely don't
       care about a pause when loading them
+    * Can press shift+F# instead of ctrl+F# in the map editor to show/hide layers
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

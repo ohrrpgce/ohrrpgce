@@ -1955,8 +1955,9 @@ SUB ModularMenu.run()
   IF each_tick() THEN EXIT DO
 
   IF keyval(ccCancel) > 1 ANDALSO try_exit() THEN EXIT DO
-  IF LEN(helpkey) ANDALSO keyval(scF1) > 1 THEN show_help helpkey
-
+  IF LEN(helpkey) ANDALSO keyval(scF1) > 1 ANDALSO (keyval(scCtrl) OR keyval(scShift)) = 0 THEN
+   show_help helpkey
+  END IF
   IF state.need_update THEN
    state.need_update = NO
    update_wrapper()
