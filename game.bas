@@ -4743,13 +4743,16 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  IF dbg.def( , , "Show frames-per-second (Ctrl ~)") THEN toggle_fps_display
 
  IF dbg.def( , , "Toggle window resizability") THEN
+  DIM resizable as bool = NO
   IF resolution_unlocked THEN
    apply_game_window_settings()  'Reset size to genResolutionX/Y
    lock_resolution
   ELSE
-   unlock_resolution 0, 0
+   'If the backend doesn't support resizing this will return NO but resolution_unlocked
+   'returns YES and the window will become resizable if you switch to a backend that does.
+   resizable = unlock_resolution(0, 0)
   END IF
-  gam.showtext = "Window resizable: " & yesorno(resolution_unlocked)
+  gam.showtext = "Window resizable: " & yesorno(resizable)
   gam.showtext_ticks = 60
  END IF
 

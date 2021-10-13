@@ -194,7 +194,8 @@ dim shared remember_scale as integer = -1
 'Minimum window size; can't resize width or height below this. Default to (0,0): no bound
 'Also equal to (0,0) when window isn't resizeable.
 dim shared minwinsize as XYPair
-dim shared resizing_enabled as bool = NO  'keeps track of backend state
+dim shared resizing_requested as bool = NO  'Whether we want the window to be resizable, even if unsupported
+dim shared resizing_enabled as bool = NO    'Current backend state (maybe this should be in WindowState instead)
 
 'State for drawing maps (I wish we didn't have any global state)
 dim shared bordertile as integer
@@ -562,9 +563,16 @@ local sub after_gfx_backend_init()
 
 	if gfx_supports_variable_resolution() = NO then
 		debuginfo "Resolution changing not supported"
+		resizing_enabled = NO
 		windowsize = XY(320, 200)
 		'In case we're called from switch_gfx, resize video pages
 		screen_size_update
+	else
+		if resizing_requested then
+			resizing_enabled = gfx_set_resizable(YES, minwinsize.w, minwinsize.h)
+		else
+			resizing_enabled = gfx_set_resizable(NO, 0, 0)
+		end if
 	end if
 end sub
 
@@ -1010,27 +1018,35 @@ end sub
 
 'Makes the window resizable, and sets a minimum size.
 'Whenever the window is resized all videopages (except compatpages) are resized to match.
-sub unlock_resolution (min_w as integer, min_h as integer)
+'Returns true if was actually successful in making the window resizable, false
+'if backend doesn't support it. (Note: won't return false just because we're fullscreen)
+function unlock_resolution (min_w as integer, min_h as integer) as bool
+	resizing_requested = YES
 	minwinsize = XY(min_w, min_h)
 	if gfx_supports_variable_resolution() = NO then
-		exit sub
+		resizing_enabled = NO
+		return NO
 	end if
 	debuginfo "unlock_resolution(" & minwinsize & ")"
 	resizing_enabled = gfx_set_resizable(YES, minwinsize.w, minwinsize.h)
 	windowsize.w = large(windowsize.w, minwinsize.w)
 	windowsize.h = large(windowsize.h, minwinsize.h)
 	screen_size_update  'Update page size
-end sub
+	return resizing_enabled
+end function
 
 'Disable window resizing.
 sub lock_resolution ()
 	debuginfo "lock_resolution()"
-	resizing_enabled = gfx_set_resizable(NO, 0, 0)
+	resizing_requested = NO
+	resizing_enabled = gfx_set_resizable(NO, 0, 0)  'Hard to imagine this could return YES
 	minwinsize = XY(0, 0)
 end sub
 
+'Returns whether unlock_resolution was called to make the window to be resizable,
+'regardless of whether the backend supports it.
 function resolution_unlocked () as bool
-	return resizing_enabled
+	return resizing_requested
 end function
 
 'Set the window size, if possible, subject to min size bound. Doesn't modify resizability state.

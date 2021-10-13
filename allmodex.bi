@@ -117,7 +117,7 @@ DECLARE FUNCTION compatpage() as integer
 DECLARE SUB lock_page_size (page as integer, w as integer, h as integer)
 DECLARE SUB unlock_page_size (page as integer)
 
-DECLARE SUB unlock_resolution (min_w as integer, min_h as integer)
+DECLARE FUNCTION unlock_resolution (min_w as integer, min_h as integer) as bool
 DECLARE SUB lock_resolution ()
 DECLARE FUNCTION resolution_unlocked () as bool
 DECLARE SUB set_resolution (w as integer, h as integer)
