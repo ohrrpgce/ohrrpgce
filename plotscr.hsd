@@ -1920,6 +1920,26 @@ script, reparent to hero, hsd:sl, hsd:hero rank, begin
 end
 
 #--------------------------------------------------------------------------
+# helper scripts
+
+script, dirX, dir, begin
+  switch (dir) do (
+    #case (up, down) return (0)
+    case (right) return (1)
+    case (left) return (-1)
+  )
+end
+
+script, dirY, dir, begin
+  switch (dir) do (
+    #case (left, right) return (0)
+    case (down) return (1)
+    case (up) return (-1)
+  )
+end
+
+
+#--------------------------------------------------------------------------
 # script triggers
 
 define trigger,begin

@@ -19,6 +19,7 @@ WHAT IS NEW?
       care about a pause when loading them
 
    * New Plotscripting Features
+    * "dir X", "dir Y" [Ralph]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2021-09-09)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2021-10-13)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -750,7 +750,9 @@ function toggleContent(target) {
 		<a href="#about-destroynpc">delete NPC (reference)</a><br>
 		<a href="#about-deletesave">delete save (slot)</a><br>
 		<a href="#about-destroynpc">destroy NPC (reference)</a><br>
-		<a href="#about-directionconstants">Direction Constants</a><br>
+		<a href="#about-direction">Directions</a><br>
+		<a href="#about-dirx">dir X (direction)</a><br>
+		<a href="#about-diry">dir Y (direction)</a><br>
 		<a href="#about-dismountvehicle">dismount vehicle</a><br>
 		<a href="#about-dissolvesprite">dissolve sprite (handle, dissolve type, total ticks, start tick, backwards, automatic)</a><br>
 		<a href="#about-divide">number / number</a><br>
@@ -1839,6 +1841,8 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 		<a href="#about-random">random (lownumber, highnumber)</a><br>
 		<a href="#about-seedrandom">seed random (seed)</a><br>
 		<a href="#about-multdiv">multdiv (a, b, c)</a><br>
+		<a href="#about-dirx">dir X (direction)</a><br>
+		<a href="#about-diry">dir Y (direction)</a><br>
 </div>
 		<li>
 <a href="#Working%20with%20Variables">Working with Variables</a><br>
@@ -2125,6 +2129,44 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 			
 			
 			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-dirx"></a>
+				<h4>dir X (direction)</h4>
+<p>
+			
+				Simpler helper function to convert a <a href="#about-direction" class="ref">direction</a> into a relative X value. Returns -1 for left, 1 for right, and otherwise 0.
+				It's often useful to multiply the return value, e.g. to get an increment of 20 pixels rather than 1 tile.
+				<pre># To find the tile in front of the hero:
+variable (x, y, dir)
+dir := hero direction(me)
+x := hero X(me) + dir X(dir)
+y := hero Y(me) + dir Y(dir
+
+# To find the point 20 pixels in front of the hero (the hero has a 20x20 hitbox, but "hero pixel X/Y"
+# return the top-left corner, so add 10 pixels to start at the center of the hero):
+x := hero pixel X(me) + 10 + 20 * dir X(dir)
+y := hero pixel Y(me) + 10 + 20 * dir Y(dir)</pre>
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-diry" class="ref">dir Y</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-diry"></a>
+				<h4>dir Y (direction)</h4>
+<p>
+			
+				Simpler helper function to convert a <a href="#about-direction" class="ref">direction</a> into a relative Y value. Returns -1 for up, 1 for down, and otherwise 0.
+				See <a href="#about-dirx" class="ref">dir X</a>.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-dirx" class="ref">dir X</a></li></ul>
+</div>
 		</p>
 </div>
 		<hr>
@@ -3452,7 +3494,7 @@ play song (get ambient music)</pre>
 			<a name="about-walkhero"></a>
 				<h4>walk hero (who, direction, distance)</h4>
 <p>
-			Makes the specified hero move in the specified direction for the specified number of tiles. The first argument tells who to move. Use <a href="#about-me" class="ref">me</a> or numbers 0-3. The second argument is the direction. Use the constants: <a href="#about-north" class="ref">north</a>, <a href="#about-south" class="ref">south</a>, <a href="#about-east" class="ref">east</a>, <a href="#about-west" class="ref">west</a>, <a href="#about-up" class="ref">up</a>, <a href="#about-down" class="ref">down</a>, <a href="#about-left" class="ref">left</a>, or <a href="#about-right" class="ref">right</a>. The third argument is the number of tiles to move. If you leave out the third argument, the hero will move one tile. If you use a negative number for walk distance, the hero will walk backwards. Walk hero is usually used with the <a href="#about-waitforhero" class="ref">wait for hero</a> command. You should normally use the <a href="#about-suspendplayer" class="ref">suspend player</a> command before moving heroes, and if you want to move heroes other than the leader, you should use the <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> command.
+			Makes a hero move the specified number of tiles in some direction. The first argument tells who to move, it is a caterpillar rank. Use <a href="#about-me" class="ref">me</a> or numbers 0-3. (If the catepillar party is disabled then there will only be one hero, <a href="#about-me" class="ref">me</a>.) The second argument is the <a href="#about-direction" class="ref">direction</a>, such as <a href="#about-north" class="ref">north</a>. The third argument is the number of tiles to move. If you leave out the third argument, the hero will move one tile. If you use a negative number for walk distance, the hero will walk backwards. Walk hero is usually used with the <a href="#about-waitforhero" class="ref">wait for hero</a> command. You should normally use the <a href="#about-suspendplayer" class="ref">suspend player</a> command before moving heroes, and if you want to move heroes other than the leader, you should use the <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> command.
 			
 			<pre>suspend player # stop player
 walk hero(me,up,3) # move him up 3 tiles
@@ -3552,7 +3594,7 @@ walk hero(who, hero direction(hero), 0)</pre>
 			<a name="about-setherodirection"></a>
 				<h4>set hero direction (who, direction)</h4>
 <p>
-			Makes the specified hero face in the specified direction. The hero is specified by their rank in the walkabout caterpillar, 0-3. The following constants are available for direction: <a href="#about-north" class="ref">north</a>, <a href="#about-south" class="ref">south</a>, <a href="#about-east" class="ref">east</a>, <a href="#about-west" class="ref">west</a>, <a href="#about-up" class="ref">up</a>, <a href="#about-down" class="ref">down</a>, <a href="#about-left" class="ref">left</a>, or <a href="#about-right" class="ref">right</a>.
+			Makes the specified hero face in the specified <a href="#about-direction" class="ref">direction</a> (e.g. <a href="#about-down" class="ref">down</a>). The hero is specified by their rank in the walkabout caterpillar, 0-3. Use <a href="#about-me" class="ref">me</a> to affect the leader.
 			
 			<pre>set hero direction (me,right) # face right</pre>
 			
@@ -3562,7 +3604,7 @@ walk hero(who, hero direction(hero), 0)</pre>
 			<a name="about-herodirection"></a>
 				<h4>hero direction (who)</h4>
 <p>
-			Returns the specified hero's direction. The hero is specified by their rank in the walkabout caterpillar, 0-3
+			Returns the specified hero's <a href="#about-direction" class="ref">direction</a>. The hero is specified by their rank in the walkabout caterpillar, 0-3
 			
 			
 			
@@ -3734,7 +3776,7 @@ resume player</pre>
 				<h4>check hero wall (who,direction)</h4>
 <p>
 			
-				Returns true if there is a wall blocking the hero from moving in the specified direction.
+				Returns true if there is a wall blocking the hero from moving in the specified <a href="#about-direction" class="ref">direction</a>.
 				No actual movement takes place.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
@@ -4324,7 +4366,7 @@ end</pre>
 <p>
 			
 				This command will magically create a new copy of an NPC with the given <span class="param">ID</span> number.
-				You can specify an <span class="param">X</span> and <span class="param">Y</span> position where it will be created, and optionally a <span class="param">direction</span> too
+				You can specify an <span class="param">X</span> and <span class="param">Y</span> position where it will be created, and optionally a <a href="#about-direction" class="ref">direction</a> too
 				(if you leave out the direction, the new NPC will be facing south).
 				The <span class="param">pool</span> argument is an optional <a href="#about-npcpool" class="ref">NPC pool</a> defaulting to <span class="code">pool:local</span>
 				(NPC definitions local to the current map).
@@ -4393,7 +4435,7 @@ end</pre>
 			<a name="about-walknpc"></a>
 				<h4>walk NPC (who, direction, distance)</h4>
 <p>
-			Makes the specified NPC move in the specified direction for the specified number of tiles. The first argument tells who to move. You can use an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a>. The second argument is the direction. Use the constants: <a href="#about-north" class="ref">north</a>, <a href="#about-south" class="ref">south</a>, <a href="#about-east" class="ref">east</a>, <a href="#about-west" class="ref">west</a>, <a href="#about-up" class="ref">up</a>, <a href="#about-down" class="ref">down</a>, <a href="#about-left" class="ref">left</a>, or <a href="#about-right" class="ref">right</a>. The third argument is the number of tiles to move. If you leave out the third argument, the NPC will move one tile. If you use a negative number for walk distance, the npc will walk backwards. walk NPC is usually used with the <a href="#about-waitfornpc" class="ref">wait for NPC</a> command. You should normally use the <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> command before moving NPCs to prevent their automatic movements from interfering with your scripted movements.
+			Makes the specified NPC move in the specified direction for the specified number of tiles. The first argument tells who to move. You can use an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a>. The second argument is a <a href="#about-direction" class="ref">direction</a>, e.g. <a href="#about-north" class="ref">north</a>. The third argument is the number of tiles to move. If you leave out the third argument, the NPC will move one tile. If you use a negative number for walk distance, the npc will walk backwards. walk NPC is usually used with the <a href="#about-waitfornpc" class="ref">wait for NPC</a> command. You should normally use the <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> command before moving NPCs to prevent their automatic movements from interfering with your scripted movements.
 			
 			
 			
@@ -4427,7 +4469,7 @@ end</pre>
 			<a name="about-setnpcdirection"></a>
 				<h4>set NPC direction (who, direction)</h4>
 <p>
-			Makes the specified NPC face in the specified direction. The following constants are available for direction: <a href="#about-north" class="ref">north</a>, <a href="#about-south" class="ref">south</a>, <a href="#about-east" class="ref">east</a>, <a href="#about-west" class="ref">west</a>, <a href="#about-up" class="ref">up</a>, <a href="#about-down" class="ref">down</a>, <a href="#about-left" class="ref">left</a>, or <a href="#about-right" class="ref">right</a>. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will turn.
+			Makes the specified NPC face in the specified <a href="#about-direction" class="ref">direction</a>, e.g. <a href="#about-north" class="ref">north</a>. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will turn.
 			
 			
 			
@@ -4437,7 +4479,7 @@ end</pre>
 			<a name="about-npcdirection"></a>
 				<h4>NPC direction (who)</h4>
 <p>
-			Returns the specified NPC's direction.
+			Returns the specified NPC's <a href="#about-direction" class="ref">direction</a>.
 			
 			
 			
@@ -4653,7 +4695,7 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 				<h4>check NPC wall (who, direction)</h4>
 <p>
 			
-				Returns true if there is a wall blocking the NPC from moving in the specified direction.
+				Returns true if there is a wall blocking the NPC from moving in the specified <a href="#about-direction" class="ref">direction</a>.
 				No actual movement takes place.
 				It does not matter whether the NPC is set to ignore walls or ignore the passmap.
 				<div class="notice note">
@@ -5182,7 +5224,7 @@ end</pre>
 			<a name="about-pancamera"></a>
 				<h4>pan camera (direction,distance,pixelstep)</h4>
 <p>
-			This command causes the camera to stop following your leader and pan in the specified direction. For direction, you can use the constants: <a href="#about-north" class="ref">north</a>, <a href="#about-south" class="ref">south</a>, <a href="#about-east" class="ref">east</a>, <a href="#about-west" class="ref">west</a>, <a href="#about-up" class="ref">up</a>, <a href="#about-down" class="ref">down</a>, <a href="#about-left" class="ref">left</a>, or <a href="#about-right" class="ref">right</a>. The distance is the number of tiles you want the camera to move before it stops. You can also specify the number of pixels you want the camera to move for each tick. if you leave the last argument out, the camera will move by 2 pixels per tick. This command is normally used with <a href="#about-waitforcamera" class="ref">wait for camera</a>. To revert the camera to normal, use <a href="#about-camerafollowshero" class="ref">camera follows hero</a>.
+			This command causes the camera to stop following your leader and pan in the specified direction. The first argument is a <a href="#about-direction" class="ref">direction</a>, e.g. <a href="#about-north" class="ref">north</a>. The distance is the number of tiles you want the camera to move before it stops. You can also specify the number of pixels you want the camera to move for each tick. if you leave the last argument out, the camera will move by 2 pixels per tick. This command is normally used with <a href="#about-waitforcamera" class="ref">wait for camera</a>. To revert the camera to normal, use <a href="#about-camerafollowshero" class="ref">camera follows hero</a>.
 			
 			
 			
@@ -18569,7 +18611,7 @@ end</pre>
 					<li>mapstate:tiles = mapstate:tilemap, or, mapstate:passmap, or, mapstate:zonemap</li>
 					<li>mapstate:mapsettings</li>
 					<li>mapstate:npclocations</li>
-					<li>mapstate:npcdefinitions</li>
+					<li>mapstate:npcdefinitions - local NPC definitions only, not global NPCs</li>
 					<li>mapstate:tilemap</li>
 					<li>mapstate:passmap</li>
 					<li>mapstate:zonemap</li>
@@ -18631,7 +18673,7 @@ end</pre>
 			<a name="about-resetmapstate"></a>
 				<h4>reset map state (whichdata)</h4>
 <p>
-			Reloads original unaltered map data from the RPG file. <span class="param">whichdata</span> is a set of bits in the <a href="#about-savemapstate" class="ref">save map state</a> format to determine what exactly to load. It is optional and the default is mapstate:all. This does not remove temp state files for the map, so they could still be loaded instead when you next enter the map, use <a href="#about-deletemapstate" class="ref">delete map state</a> to remove them if wanted.
+			Reloads original unaltered map data from the RPG file. <span class="param">whichdata</span> is a set of bits in the <a href="#about-savemapstate" class="ref">save map state</a> format to determine what exactly to load. It is optional and the default is mapstate:all (which doesn't reset global NPC definitions). This does not remove temp state files for the map, so they could still be loaded instead when you next enter the map, use <a href="#about-deletemapstate" class="ref">delete map state</a> to remove them if wanted.
 			
 			
 			
@@ -20360,13 +20402,14 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				<h4>NPC IDs</h4>
 <p>
 			
-				An NPC ID refers to an NPC type, as defined in the Edit NPCs menu.
-				NPC IDs count from 0 upwards.
-				Local and global <a href="#about-npcpool" class="ref">NPC pool</a>s have distinct sets of IDs,
-				so some commands such as <a href="#about-npccopycount" class="ref">NPC copy count</a> take both an NPC ID and an NPC pool
+				An NPC ID refers to an NPC type (aka NPC definition), as defined in the Edit
+				Local/Global NPCs menus.
+				Local and global <a href="#about-npcpool" class="ref">NPC pool</a>s both have ID numbers that count from 0 upwards,
+				so the ID doesn't tell you whether it's a local or global NPC.
+				Some commands such as <a href="#about-npccopycount" class="ref">NPC copy count</a> take both an NPC ID and an NPC pool
 				as separate arguments.
 				But most NPC commands, such as <a href="#about-walknpc" class="ref">walk NPC</a>, don't take a pool argument.
-				If you pass an ID to these, then it's interpreted as a ID in the local NPC pool.
+				If you pass an ID to these, then it's interpreted as an ID in the local NPC pool.
 				<br>
 				A copy of an NPC is referred to using an <a href="#about-npcref" class="ref">NPC reference</a>.
 			
@@ -20385,9 +20428,9 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				It can be either <span class="param">pool:local</span> (which is <span class="param">0</span>; NPCs specific to one map) or <span class="param">pool:global</span>
 				(which is <span class="param">1</span>).
 				Most commands that accept NPC IDs don't have an argument to tell the pool number.
-				These always default to the local pool, and you need to first use
-				<a href="#about-npcreference" class="ref">NPC reference</a> or <a href="#about-globalnpcreference" class="ref">global NPC reference</a>
-				if you want to refer to a global NPC by ID.
+				These always default to the local pool, and you need to first use the
+				<a href="#about-npcreference" class="ref">NPC reference</a> or <a href="#about-globalnpcreference" class="ref">global NPC reference</a> functions to get an
+				<a href="#about-npcref" class="ref">NPC reference</a> to pass to these commands if you want to refer to a global NPC by ID.
 			
 			
 			
@@ -20406,7 +20449,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				NPC references are handles for NPC instances on the map,
 				that is, a copy of an NPC definition.
 				NPC references are always negative values, while NPC IDs count from 0 up.
-				An <a href="#about-npcid" class="ref">NPC ID</a> can always be used with any command that expects
+				An <a href="#about-npcid" class="ref">NPC ID</a> for a local NPC can always be used with any command that expects
 				an NPC reference, in which case it refers to the first
 				instance/copy of that NPC ID from the local <a href="#about-npcpool" class="ref">NPC pool</a>, not to the NPC definition itself.
 				(If you want to refer to a global NPC, you need to first use <a href="#about-globalnpcreference" class="ref">global NPC reference</a>.)
@@ -20889,7 +20932,7 @@ run key            # Alias for 'flee key'
 		<a href="#about-false">false</a><br>
 		<a href="#about-on">on</a><br>
 		<a href="#about-off">off</a><br>
-		<a href="#about-directionconstants">Direction Constants</a><br>
+		<a href="#about-direction">Directions</a><br>
 		<a href="#about-north">north</a><br>
 		<a href="#about-south">south</a><br>
 		<a href="#about-east">east</a><br>
@@ -21019,7 +21062,7 @@ run key            # Alias for 'flee key'
 		</p>
 </div>
 		<div class="command">
-			<a name="about-directionconstants"></a>
+			<a name="about-direction"></a>
 			<a name="about-north"></a>
 			<a name="about-south"></a>
 			<a name="about-east"></a>
@@ -21028,14 +21071,17 @@ run key            # Alias for 'flee key'
 			<a name="about-down"></a>
 			<a name="about-right"></a>
 			<a name="about-left"></a>
-				<h4>Direction Constants</h4>
+				<h4>Directions</h4>
 <p>
 			
-				There are constants for each of the four directions.
-				These constants are useful for commands such as <a href="#about-walkhero" class="ref">walk hero</a> and
-				<a href="#about-walknpc" class="ref">walk NPC</a>, which take a direction as an argument.
+				A direction is a value 0-3 used by commands such as <a href="#about-walkhero" class="ref">walk hero</a> and
+				<a href="#about-walknpc" class="ref">walk NPC</a>, which goes clockwise from north:
 				<br>
-				<span class="param">north, south, east, west, up, down, right, left</span>
+				<span class="param">north</span> = <span class="param">up</span> = <span class="param">0</span><br>
+				<span class="param">east</span> = <span class="param">right</span> = <span class="param">1</span><br>
+				<span class="param">south</span> = <span class="param">down</span> = <span class="param">2</span><br>
+				<span class="param">west</span> = <span class="param">left</span> = <span class="param">3</span><br>
+				You can convert a direction into relative X and Y values using the <a href="#about-dirx" class="ref">dir X</a> and <a href="#about-diry" class="ref">dir Y</a> functions.
 			
 			
 			
@@ -21320,7 +21366,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 911 commands (of which 14 are aliases), 27 constants and 12 definitions of types and other terms in this file.</p>
+<p>Stats: There are 913 commands (of which 14 are aliases), 27 constants and 12 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2021-09-09">
+<plotscript version="wip" datecode="2021-10-13">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -510,7 +510,37 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 				This is equivalent to <tt>min(2^31 - 1, max(-2^31, round(1.0 * a * b / c)))</tt> in other languages.
 			</description>
 		</command>
-	</section>
+
+		<command id="dirx">
+			<canon>dir X (direction)</canon>
+			<shortname>dir X</shortname>
+			<description>
+				Simpler helper function to convert a <ref>direction</ref> into a relative X value. Returns -1 for left, 1 for right, and otherwise 0.
+				It's often useful to multiply the return value, e.g. to get an increment of 20 pixels rather than 1 tile.
+				<example># To find the tile in front of the hero:
+variable (x, y, dir)
+dir := hero direction(me)
+x := hero X(me) + dir X(dir)
+y := hero Y(me) + dir Y(dir
+
+# To find the point 20 pixels in front of the hero (the hero has a 20x20 hitbox, but "hero pixel X/Y"
+# return the top-left corner, so add 10 pixels to start at the center of the hero):
+x := hero pixel X(me) + 10 + 20 * dir X(dir)
+y := hero pixel Y(me) + 10 + 20 * dir Y(dir)</example>
+			</description>
+			<seealso><ref>diry</ref></seealso>
+		</command>
+		<command id="diry">
+			<canon>dir Y (direction)</canon>
+			<shortname>dir Y</shortname>
+			<description>
+				Simpler helper function to convert a <ref>direction</ref> into a relative Y value. Returns -1 for up, 1 for down, and otherwise 0.
+				See <ref>dirx</ref>.
+			</description>
+			<seealso><ref>dirx</ref></seealso>
+		</command>
+
+	</section>   <!-- Math, Comparison, and Logic Operators" -->
 
 	<section title="Flow Control">
 		<command id="begin">
@@ -1274,7 +1304,7 @@ play song (get ambient music)</example>
 		<command id="walkhero">
 			<canon>walk hero (who, direction, distance)</canon>
 			<shortname>walk hero</shortname>
-			<description>Makes the specified hero move in the specified direction for the specified number of tiles. The first argument tells who to move. Use <ref>me</ref> or numbers 0-3. The second argument is the direction. Use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the hero will move one tile. If you use a negative number for walk distance, the hero will walk backwards. Walk hero is usually used with the <ref>waitforhero</ref> command. You should normally use the <ref>suspendplayer</ref> command before moving heroes, and if you want to move heroes other than the leader, you should use the <ref>suspendcaterpillar</ref> command.</description>
+			<description>Makes a hero move the specified number of tiles in some direction. The first argument tells who to move, it is a caterpillar rank. Use <ref>me</ref> or numbers 0-3. (If the catepillar party is disabled then there will only be one hero, <ref>me</ref>.) The second argument is the <ref>direction</ref>, such as <ref>north</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the hero will move one tile. If you use a negative number for walk distance, the hero will walk backwards. Walk hero is usually used with the <ref>waitforhero</ref> command. You should normally use the <ref>suspendplayer</ref> command before moving heroes, and if you want to move heroes other than the leader, you should use the <ref>suspendcaterpillar</ref> command.</description>
 			<example>suspend player # stop player
 walk hero(me,up,3) # move him up 3 tiles
 resume player # OK, done</example>
@@ -1338,13 +1368,13 @@ walk hero(who, hero direction(hero), 0)</example>
 		<command id="setherodirection">
 			<canon>set hero direction (who, direction)</canon>
 			<shortname>set hero direction</shortname>
-			<description>Makes the specified hero face in the specified direction. The hero is specified by their rank in the walkabout caterpillar, 0-3. The following constants are available for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>.</description>
+			<description>Makes the specified hero face in the specified <ref>direction</ref> (e.g. <ref>down</ref>). The hero is specified by their rank in the walkabout caterpillar, 0-3. Use <ref>me</ref> to affect the leader.</description>
 			<example>set hero direction (me,right) # face right</example>
 		</command>
 		<command id="herodirection">
 			<canon>hero direction (who)</canon>
 			<shortname>hero direction</shortname>
-			<description>Returns the specified hero&apos;s direction. The hero is specified by their rank in the walkabout caterpillar, 0-3</description>
+			<description>Returns the specified hero&apos;s <ref>direction</ref>. The hero is specified by their rank in the walkabout caterpillar, 0-3</description>
 		</command>
 		<command id="setheroframe">
 			<canon>set hero frame (who, frame)</canon>
@@ -1448,7 +1478,7 @@ resume player</example>
 			<canon>check hero wall (who,direction)</canon>
 			<shortname>check hero wall</shortname>
 			<description>
-				Returns true if there is a wall blocking the hero from moving in the specified direction.
+				Returns true if there is a wall blocking the hero from moving in the specified <ref>direction</ref>.
 				No actual movement takes place.
 				<note>
 					This command should only be used when the hero is standing still and aligned with the tile grid.
@@ -1711,7 +1741,7 @@ while (npcref) do (
 		<command id="walknpc">
 			<canon>walk NPC (who, direction, distance)</canon>
 			<shortname>walk NPC</shortname>
-			<description>Makes the specified NPC move in the specified direction for the specified number of tiles. The first argument tells who to move. You can use an <ref>npcref</ref> or <ref>npcid</ref>. The second argument is the direction. Use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the NPC will move one tile. If you use a negative number for walk distance, the npc will walk backwards. walk NPC is usually used with the <ref>waitfornpc</ref> command. You should normally use the <ref>suspendnpcs</ref> command before moving NPCs to prevent their automatic movements from interfering with your scripted movements.</description>
+			<description>Makes the specified NPC move in the specified direction for the specified number of tiles. The first argument tells who to move. You can use an <ref>npcref</ref> or <ref>npcid</ref>. The second argument is a <ref>direction</ref>, e.g. <ref>north</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the NPC will move one tile. If you use a negative number for walk distance, the npc will walk backwards. walk NPC is usually used with the <ref>waitfornpc</ref> command. You should normally use the <ref>suspendnpcs</ref> command before moving NPCs to prevent their automatic movements from interfering with your scripted movements.</description>
 		</command>
 		<command id="walknpctox">
 			<canon>walk NPC to X (who, X)</canon>
@@ -1729,12 +1759,12 @@ while (npcref) do (
 		<command id="setnpcdirection">
 			<canon>set NPC direction (who, direction)</canon>
 			<shortname>set NPC direction</shortname>
-			<description>Makes the specified NPC face in the specified direction. The following constants are available for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will turn.</description>
+			<description>Makes the specified NPC face in the specified <ref>direction</ref>, e.g. <ref>north</ref>. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will turn.</description>
 		</command>
 		<command id="npcdirection">
 			<canon>NPC direction (who)</canon>
 			<shortname>NPC direction</shortname>
-			<description>Returns the specified NPC&apos;s direction.</description>
+			<description>Returns the specified NPC&apos;s <ref>direction</ref>.</description>
 		</command>
 
 
@@ -1870,7 +1900,7 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 			<canon>check NPC wall (who, direction)</canon>
 			<shortname>check NPC wall</shortname>
 			<description>
-				Returns true if there is a wall blocking the NPC from moving in the specified direction.
+				Returns true if there is a wall blocking the NPC from moving in the specified <ref>direction</ref>.
 				No actual movement takes place.
 				It does not matter whether the NPC is set to ignore walls or ignore the passmap.
 				<note>
@@ -2001,7 +2031,7 @@ end</example>
 			<shortname>create NPC</shortname>
 			<description>
 				This command will magically create a new copy of an NPC with the given <p>ID</p> number.
-				You can specify an <p>X</p> and <p>Y</p> position where it will be created, and optionally a <p>direction</p> too
+				You can specify an <p>X</p> and <p>Y</p> position where it will be created, and optionally a <ref>direction</ref> too
 				(if you leave out the direction, the new NPC will be facing south).
 				The <p>pool</p> argument is an optional <ref>npcpool</ref> defaulting to <tt>pool:local</tt>
 				(NPC definitions local to the current map).
@@ -2428,7 +2458,7 @@ end</example>
 		<command id="pancamera">
 			<canon>pan camera (direction,distance,pixelstep)</canon>
 			<shortname>pan camera</shortname>
-			<description>This command causes the camera to stop following your leader and pan in the specified direction. For direction, you can use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The distance is the number of tiles you want the camera to move before it stops. You can also specify the number of pixels you want the camera to move for each tick. if you leave the last argument out, the camera will move by 2 pixels per tick. This command is normally used with <ref>waitforcamera</ref>. To revert the camera to normal, use <ref>camerafollowshero</ref>.</description>
+			<description>This command causes the camera to stop following your leader and pan in the specified direction. The first argument is a <ref>direction</ref>, e.g. <ref>north</ref>. The distance is the number of tiles you want the camera to move before it stops. You can also specify the number of pixels you want the camera to move for each tick. if you leave the last argument out, the camera will move by 2 pixels per tick. This command is normally used with <ref>waitforcamera</ref>. To revert the camera to normal, use <ref>camerafollowshero</ref>.</description>
 		</command>
 		<command id="focuscamera">
 			<canon>focus camera (x,y,speed)</canon>
@@ -12392,15 +12422,18 @@ run key            # Alias for 'flee key'
 				<shortname>off</shortname>
 			</altcommand>
 		</command>
-		<command id="directionconstants">
-			<canon>Direction Constants</canon>
-			<shortname>Direction Constants</shortname>
+		<command id="direction">
+			<canon>Directions</canon>
+			<shortname>direction</shortname>
 			<description>
-				There are constants for each of the four directions.
-				These constants are useful for commands such as <ref>walkhero</ref> and
-				<ref>walknpc</ref>, which take a direction as an argument.
+				A direction is a value 0-3 used by commands such as <ref>walkhero</ref> and
+				<ref>walknpc</ref>, which goes clockwise from north:
 				<lb/>
-				<p>north, south, east, west, up, down, right, left</p>
+				<p>north</p> = <p>up</p> = <p>0</p><lb/>
+				<p>east</p> = <p>right</p> = <p>1</p><lb/>
+				<p>south</p> = <p>down</p> = <p>2</p><lb/>
+				<p>west</p> = <p>left</p> = <p>3</p><lb/>
+				You can convert a direction into relative X and Y values using the <ref>dirx</ref> and <ref>diry</ref> functions.
 			</description>
 			<altcommand id="north">
 				<shortname>north</shortname>
