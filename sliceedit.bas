@@ -558,7 +558,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   END IF
 
   IF state.need_update = NO ANDALSO ses.slicemenu(state.pt).id = mnidCollectionName THEN
-   IF strgrabber(collection_context(edslice)->name) THEN state.need_update = YES
+   VAR context = collection_context(edslice)
+   IF context ANDALSO strgrabber(context->name) THEN state.need_update = YES
   END IF
 
   'This must be after the strgrabber above so that can handle text input
