@@ -4,6 +4,6 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the li
 
 To turn a bitset ON, press the Right arrow.
 
-To turn a bitset OFF, press the Left arrow.
+To turn a bitset OFF, press the Left arrow or Delete or Backspace.
 
 Press SPACE or ENTER to toggle a bitset.

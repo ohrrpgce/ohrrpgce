@@ -153,17 +153,15 @@ FUNCTION editbitset (array() as integer, wof as integer, bits() as IntStrPair, h
   usemenu state, selectable()
   IF state.pt >= 0 ANDALSO selectable(state.pt) THEN
    DIM bitnum as integer = bitmenu(state.pt).i
-   DIM bitflip as integer = IIF(starts_with(bitmenu(state.pt).s, "!"), 1, 0)
-   IF keyval(ccLeft) > 1 OR keyval(scLeftCaret) > 1 THEN
-    setbit array(), wof, bitnum, 0 XOR bitflip
-    IF immediate_quit THEN ret = edbitPickedBit : EXIT DO
-   END IF
-   IF keyval(ccRight) > 1 OR keyval(scRightCaret) > 1 THEN
-    setbit array(), wof, bitnum, 1 XOR bitflip
-    IF immediate_quit THEN ret = edbitPickedBit : EXIT DO
-   END IF
-   IF enter_space_click(state) THEN
-    setbit array(), wof, bitnum, readbit(array(), wof, bitnum) XOR 1
+   DIM inverted as integer = IIF(starts_with(bitmenu(state.pt).s, "!"), 1, 0)
+   DIM newval as integer = -2
+   IF keyval(scDelete) > 1 OR keyval(scBackspace) > 1 THEN newval = 0 XOR inverted
+   IF keyval(ccLeft) > 1 OR keyval(scLeftCaret) > 1 THEN newval = 0 XOR inverted
+   IF keyval(ccRight) > 1 OR keyval(scRightCaret) > 1 THEN newval = 1 XOR inverted
+   IF enter_space_click(state) THEN newval = readbit(array(), wof, bitnum) XOR 1
+
+   IF newval <> -2 THEN
+    setbit array(), wof, bitnum, newval
     IF immediate_quit THEN ret = edbitPickedBit : EXIT DO
    END IF
   ELSE

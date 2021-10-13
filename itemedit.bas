@@ -355,7 +355,7 @@ SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as in
 
  DIM is_equippable as bool = NO
  DIM is_weapon as bool = item_is_equippable_in_slot(itembuf(), 0)
- menu(5) = "Equippable as:"
+ menu(5) = "Equippable as...: "
  DIM sep as string = " "
  FOR i as integer = 0 TO 4
   IF item_is_equippable_in_slot(itembuf(), i) THEN

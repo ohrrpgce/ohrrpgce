@@ -194,9 +194,6 @@ FUNCTION formation_set_editor (set_id as integer = -1) as integer
     state.need_update = YES
    ELSEIF enter_space_click(state) THEN
     form_id = formation_picker_or_none(form_id)
-   ELSEIF keyval(scDelete) > 1 THEN
-    form_id = 0
-    state.need_update = YES
    END IF
    form_id -= 1 'Un-offset
    formset.formations(state.pt - 4) = form_id

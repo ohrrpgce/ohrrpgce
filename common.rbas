@@ -2192,6 +2192,9 @@ FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as
   n = bound(n, min, max)
   loopvar n, min, max, updown
   typed = YES
+ ELSEIF keyval(scDelete) > 1 THEN
+  n = bound(0, min, max)
+  typed = YES
  ELSE
   DIM sign as integer = SGN(n)
   n = ABS(n)
@@ -2271,13 +2274,14 @@ FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less a
  DIM temp as integer = n - 1
  '--must adjust to always be able to type in a number
  IF temp < 0 THEN
-  FOR i as integer = 2 TO 11
+  FOR i as KBScancode = sc1 TO sc0
    IF keyval(i) > 1 THEN temp = 0
   NEXT i
  END IF
  intgrabber temp, min, max, less, more
  n = temp + 1
- IF old = 1 AND keyval(scBackspace) > 1 THEN n = 0
+ 'Pressing Backspace/Delete on '0' (n=1) goes to 'None' (n=0). Have to handle old=0 here too, or it alternates 0/-1.
+ IF old <= 1 ANDALSO (keyval(scBackspace) > 1 ORELSE keyval(scDelete) > 1) THEN n = 0
 
  RETURN (old <> n)
 END FUNCTION
@@ -2330,6 +2334,10 @@ FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin
   n = ...
 '/
 
+ ELSEIF keyval(scDelete) > 1 THEN
+  n = 0
+  RETURN (old <> n)
+
  ELSE
   'horrible case: change n based on *displayed* value
   visval = ABS(visval)
@@ -2341,9 +2349,8 @@ FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin
    'some sanity in the rest of the logic
    IF (oldvisval = 0) OR (n > 0 AND visval < pmin) OR (n < 0 AND -visval > nmin) THEN
     n = 0
-    RETURN YES
+    RETURN (old <> n)
    END IF
-
   ELSE
    FOR i as integer = 1 TO 9
     IF keyval(i - 1 + sc1) > 1 THEN visval = visval * 10 + i

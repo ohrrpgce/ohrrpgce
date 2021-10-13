@@ -362,10 +362,6 @@ SUB textbox_conditionals(byref box as TextBox)
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_conditions"
   usemenu state
-  IF keyval(scDelete) > 1 THEN ' Pressed the delete key
-   write_box_conditional_by_menu_index box, state.pt, 0
-   textbox_update_conditional_menu box, menu()
-  END IF
 
   num = read_box_conditional_by_menu_index(box, state.pt)
   SELECT CASE box_conditional_type_by_menu_index(state.pt)

@@ -14,6 +14,7 @@ WHAT IS NEW?
       overrides for ohrrpgce_config.ini settings for both Game and Custom [Ralph]
     * "gfx.screenshot_dir" config option, for screenshots and .gifs [Ralph]
     * Enemy bit "Give rewards even if left alive" [Ralph]
+    * Press Delete to clear most non-text data fields [Ralph]
 
    * New Plotscripting Features
 

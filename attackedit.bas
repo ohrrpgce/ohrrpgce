@@ -2291,6 +2291,8 @@ FUNCTION flexmenu_handle_crossrefs (state as MenuState, nowindex as integer, men
 
  DIM ret as bool
  DIM byref dat as integer = recbuf(menuoff(nowindex))
+ 'The reason for using intgrab=NO below is so that we can filter out when Alt is held down.
+ 'But it results in needing to press Delete twice to delete an enemy/attack
  SELECT CASE menutype(nowindex)
   CASE 7 'dat is attack + 1
    ret = attackgrabber(dat, state, 1, , NO)  'intgrab=NO
