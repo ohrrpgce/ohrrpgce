@@ -8,7 +8,11 @@ When you are finished, press ENTER or ESC.
 
 It is generally a good idea to leave the right and bottom rows of pixels blank to prevent characters in strings of text from running together.
 
-The 224 characters in the font are a small portion of the Unicode set, which can be typed in the usual way for your system. You can also insert characters from your font by pressing CTRL+SPACE in any text input field, or hitting the key combination (for USA keyboards) shown at the bottom of the screen.
+The 224 characters in the font are a small portion of the Unicode set, which can be typed in the usual way for your system. You can also insert characters from your font by pressing CTRL+SPACE in any text input field, or hitting the key combination (for US keyboards) shown at the bottom of the screen.
+
+You can use non-ASCII characters in your scripts by using the \x## code shown at the bottom of the editor. For example,
+ $0 = "\x89 Battleaxe"
+puts character 137 in the string, which is an axe icon in the default font.
 
 You can export your font as an OHF file, or import a new font from OHF files that you download from other people.
 

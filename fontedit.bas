@@ -305,7 +305,9 @@ SUB font_editor (fnt() as integer)
     END IF
     textcolor uilook(uiText), 0
     DIM tmp as string = "CHAR " & f(pt)
-    IF f(pt) >= &hA1 THEN tmp &= "/U+00" & HEX(f(pt))
+    'Show the \x## code recognised by HSpeak (must be two characters)
+    'Only characters past &hA1 are Unicode characters
+    IF f(pt) >= 127 THEN tmp &= "  \x" & HEX(f(pt))
     printstr tmp, 12, 190, dpage
     IF f(pt) < 32 THEN
      printstr "RESERVED", 160, 190, dpage
