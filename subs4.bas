@@ -508,12 +508,16 @@ DO
   CASE 4
     ui_color_editor palnum
   CASE 5
+   IF yesno("Really replace all UI colors and box styles?") THEN
     nearestui activepalette, master(), uilook(), boxlook()
     SaveUIColors uilook(), boxlook(), palnum
+   END IF
   CASE 6
-    notification "Copying UI colors without remapping often leads to bad colors. Normally you want to use ""Nearest-match active palette's UI colors"" instead. Press Ctrl-D to reset UI colors if the menu becomes unreadable."
+   notification "Copying UI colors without remapping often leads to bad colors. Normally you want to use ""Nearest-match active palette's UI colors"" instead. Press Ctrl-D to reset UI colors if the menu becomes unreadable."
+   IF yesno("Really replace all UI colors and box styles?") THEN
     LoadUIColors uilook(), boxlook(), activepalette, master()
     SaveUIColors uilook(), boxlook(), palnum
+   END IF
   CASE 7
    'Reset UI colors
    IF yesno("Really reset UI colors to defaults?") THEN
@@ -570,6 +574,7 @@ DO
   CASE 5, 6, 8, 11
    FOR i as integer = 0 TO uiBoxLast
     highlight_col boxlook(i).bgcol, state
+    highlight_col boxlook(i).edgecol, state
    NEXT i
  END SELECT
 
@@ -660,33 +665,23 @@ SUB nearestui (byval mimicpal as integer, newmaster() as RGBcolor, newui() as in
  remappalette referencepal(), referenceui(), refboxstyle(), newmaster(), newui(), newbox()
 END SUB
 
+'Copy UI colours and box styles from one master palette to another, while remapping colours.
 SUB remappalette (oldmaster() as RGBcolor, oldui() as integer, oldbox() as BoxStyle, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)
  'first the ui
  FOR i as integer = 0 TO UBOUND(oldui)
   WITH oldmaster(oldui(i))
-   IF .col = newmaster(oldui(i)).col THEN
-    newui(i) = oldui(i)
-   ELSE
-    newui(i) = nearcolor(newmaster(), .r, .g, .b)
-   END IF
+   newui(i) = nearcolor(newmaster(), .r, .g, .b, , oldui(i))
   END WITH
  NEXT
  'Then the boxstyles
  FOR i as integer = 0 TO UBOUND(oldbox)
   WITH oldmaster(oldbox(i).bgcol)
-   IF .col = newmaster(oldbox(i).bgcol).col THEN
-    newbox(i).bgcol = oldbox(i).bgcol
-   ELSE
-    newbox(i).bgcol = nearcolor(newmaster(), .r, .g, .b)
-   END IF
+   newbox(i).bgcol = nearcolor(newmaster(), .r, .g, .b, , oldbox(i).bgcol)
   END WITH
   WITH oldmaster(oldbox(i).edgecol)
-   IF .col = newmaster(oldbox(i).edgecol).col THEN
-    newbox(i).edgecol = oldbox(i).edgecol
-   ELSE
-    newbox(i).edgecol = nearcolor(newmaster(), .r, .g, .b)
-   END IF
+   newbox(i).edgecol = nearcolor(newmaster(), .r, .g, .b, , oldbox(i).edgecol)
   END WITH
+  newbox(i).border = oldbox(i).border
  NEXT
 END SUB
 
