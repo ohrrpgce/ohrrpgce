@@ -378,13 +378,13 @@ DO
          ELSE
           popstack(scrst, tmpcase)
           popstack(scrst, tmpstate)
-          DIM as integer doseek = 0 ' whether or not to search argument list for something to execute
+          DIM doseek as bool = NO ' whether or not to search argument list for something to execute
           IF tmpstate = 0 THEN
-           '--not fallen in, check tmpvar
-           IF tmpcase = readstack(scrst, 0) THEN 
+           '--not fallen in, check whether this case matches tmpvar
+           IF tmpcase = readstack(scrst, 0) THEN
             tmpstate = 1
            END IF
-           doseek = 1 '--search for a case or do
+           doseek = YES '--search for a case or do
           ELSEIF tmpstate = 1 THEN
            '--after successfully running a do block, pop off matching value and exit
            scrst.pos -= 1
@@ -393,13 +393,13 @@ DO
           ELSEIF tmpstate = 2 THEN
            '--continue encountered, fall back in
            tmpstate = 1
-           doseek = 1 '--search for a do
+           doseek = YES '--search for a do
           END IF
 
           WHILE doseek
            tmpkind = .scrdata[*(@curcmd->args(0) + .curargn)]
 
-           IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR .curargn = curcmd->argc - 1)) THEN
+           IF (tmpstate = 1 ANDALSO tmpkind = tyflow) ORELSE (tmpstate = 0 ANDALSO (tmpkind <> tyflow ORELSE .curargn = curcmd->argc - 1)) THEN
             '--fall into a do, execute a case, or run default (last arg)
             .state = stdoarg
             pushstack(scrst, tmpstate)
