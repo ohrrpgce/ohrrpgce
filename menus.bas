@@ -1891,9 +1891,11 @@ SUB ModularMenu.draw()
   END IF
  END IF
 
- DIM menu_display(UBOUND(menu)) as string
- highlight_menu_typing_selection menu(), menu_display(), selectst, state
- standardmenu menu_display(), state, shaded(), where.x, where.y, vpage, menuopts
+ IF UBOUND(menu) >= 0 THEN
+  DIM menu_display(UBOUND(menu)) as string
+  highlight_menu_typing_selection menu(), menu_display(), selectst, state
+  standardmenu menu_display(), state, shaded(), where.x, where.y, vpage, menuopts
+ END IF
 
  IF LEN(tooltip) THEN
   edgeprint tooltip, 0, pBottom, uilook(uiText), vpage
@@ -1904,7 +1906,7 @@ END SUB
 SUB ModularMenu.update_wrapper()
  clear_menu()
  update()
- init_menu_state state, menu()  'Updates .size
+ init_menu_state state, menu()  'Updates .size, .last
  'Updating shaded() is optional
  REDIM PRESERVE shaded(UBOUND(menu))
  IF use_selectable THEN
@@ -1953,7 +1955,7 @@ SUB ModularMenu.run()
   IF each_tick() THEN EXIT DO
 
   IF keyval(ccCancel) > 1 ANDALSO try_exit() THEN EXIT DO
-  IF LEN(helpkey) AND keyval(scF1) > 1 THEN show_help helpkey
+  IF LEN(helpkey) ANDALSO keyval(scF1) > 1 THEN show_help helpkey
 
   IF state.need_update THEN
    state.need_update = NO

@@ -20,6 +20,7 @@
 DECLARE SUB formation_editor_main ()
 DECLARE SUB draw_formation_slices OVERLOAD (eform as Formation, rootslice as Slice ptr, selected_slot as integer, page as integer)
 DECLARE SUB draw_formation_slices OVERLOAD (eform as Formation, hform as HeroFormation, rootslice as Slice ptr, selected_slot as integer, page as integer, byval heromode as bool=NO)
+DECLARE SUB update_formation_background(form as Formation, rootslice as Slice ptr, byref bgctr as integer, byref bgwait as integer)
 DECLARE SUB load_formation_slices(ename() as string, form as Formation, rootslice as Slice ptr ptr)
 DECLARE SUB hero_formation_editor ()
 DECLARE SUB formation_init_added_enemy(byref slot as FormationSlot)
@@ -387,15 +388,7 @@ SUB hero_formation_editor ()
   END IF '--end positioning_mode=NO
 
   ' Draw screen
-
-  IF eform.background_frames > 1 AND eform.background_ticks > 0 THEN
-   bgwait = (bgwait + 1) MOD eform.background_ticks   'FIXME: off-by-one bug here
-   IF bgwait = 0 THEN
-    loopvar bgctr, 0, eform.background_frames - 1
-    DIM sl as Slice ptr = LookupSlice(SL_FORMEDITOR_BACKDROP, rootslice)
-    ChangeSpriteSlice sl, , (eform.background + bgctr) MOD gen(genNumBackdrops)
-   END IF
-  END IF
+  update_formation_background eform, rootslice, bgctr, bgwait
   draw_formation_slices eform, hform, rootslice, slot, dpage, YES
 
   IF positioning_mode THEN
@@ -451,109 +444,194 @@ SUB formation_add_new(byref form_id as integer)
  form_id = gen(genMaxFormation)
 END SUB
 
+TYPE FormationEditor EXTENDS ModularMenu
+ form_id as integer
+ form as Formation
+ slot as integer = -1      'Which formation slot selected, or -1 for none
+ positioning_mode as bool  'Whether positioning an enemy (menu hidden)
+ ename(7) as string        'Enemy names
+ rootslice as Slice ptr
+ bgwait as integer
+ bgctr as integer
+
+ preview_music as bool
+ last_music as integer = -1
+
+ DECLARE VIRTUAL FUNCTION each_tick() as bool
+ DECLARE VIRTUAL FUNCTION try_exit() as bool
+ DECLARE VIRTUAL SUB update()
+ DECLARE VIRTUAL SUB draw_underlays()
+
+ DECLARE SUB load_form()
+ DECLARE SUB update_music()
+
+ DECLARE FUNCTION each_tick_menu_mode() as bool
+ DECLARE SUB each_tick_positioning_mode()
+END TYPE
+
 'form_id: which formation to show. If -1, same as last time. If >= max, adds a new formation (without asking!)
 'Returns the formation number we were last editing.
 FUNCTION individual_formation_editor (form_id as integer = -1) as integer
-
- DIM form as Formation
-
  STATIC remember_form_id as integer = 0
  IF form_id < 0 THEN
   form_id = remember_form_id
  ELSEIF form_id > gen(genMaxFormation) THEN
   formation_add_new form_id
-  LoadFormation form, form_id
  END IF
 
- DIM ename(7) as string
- DIM rootslice as Slice ptr
- DIM positioning_mode as bool = NO
- DIM as integer bgwait, bgctr
+ DIM editor as FormationEditor
+ editor.menuopts.edged = YES
+ editor.preview_music = read_config_bool("formedit.preview_music", NO)
 
+ editor.form_id = form_id
+ editor.load_form()
+ editor.run()
+ form_id = editor.form_id
+
+ SaveFormation editor.form, form_id
+ music_stop
+ DeleteSlice @editor.rootslice
+ remember_form_id = form_id
+ RETURN form_id
+END FUNCTION
+
+SUB FormationEditor.load_form()
  LoadFormation form, form_id
  load_formation_slices ename(), form, @rootslice
+ bgwait = 0
+ bgctr = 0
+ update_music()
+END SUB
 
- DIM preview_music as bool = read_config_bool("formedit.preview_music", NO)
- IF preview_music ANDALSO form.music >= 0 THEN playsongnum form.music
- DIM last_music as integer = form.music
+FUNCTION FormationEditor.try_exit() as bool
+ IF positioning_mode THEN
+  positioning_mode = NO
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
 
- DIM menu(16) as string
- DIM state as MenuState
- state.pt = 0
- state.top = 0
- state.first = 0
- state.last = UBOUND(menu)
- state.size = 20
- DIM menuopts as MenuOptions
- menuopts.edged = YES
- 
- CONST first_enemy_item = 9
- 'slot -1 indicates no enemy selected
- DIM slot as integer = state.pt - first_enemy_item
- IF slot < 0 THEN slot = -1
+FUNCTION FormationEditor.each_tick() as bool
+ IF keyval(scF6) > 1 THEN slice_editor rootslice, SL_COLLECT_EDITOR
 
- setkeys
- DO
-  setwait 55
-  setkeys
-  IF keyval(scF6) > 1 THEN slice_editor rootslice, SL_COLLECT_EDITOR
-  IF positioning_mode = YES THEN
-   '--enemy positioning mode
-   IF keyval(ccCancel) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
-   IF readmouse.release AND mouseRight THEN setkeys: positioning_mode = NO
-   IF keyval(scF1) > 1 THEN show_help "formation_editor_placement"
-   DIM as integer movespeed = 1
-   IF keyval(scShift) THEN movespeed = 8
-   WITH form.slots(slot)
-    DIM sprite as Slice ptr = LookupSlice(SL_FORMEDITOR_ENEMY + slot, rootslice)
-    DIM size as XYPair
-    IF sprite THEN size = sprite->Size
-    ' Note that enemy positions are the top-left corner of the sprite
-    ' (which needs to be changed)
-    IF keyval(ccUp) > 0 THEN .pos.y -= movespeed
-    IF keyval(ccDown) > 0 THEN .pos.y += movespeed
-    IF keyval(ccLeft) > 0 THEN .pos.x -= movespeed
-    IF keyval(ccRight) > 0 THEN .pos.x += movespeed
-    IF readmouse.dragging AND mouseLeft THEN
-     .pos += (readmouse.pos - readmouse.lastpos)
-    END IF
-    ' FIXME: battles are still stuck at 320x200 for the moment, but switch to this later
-    ' .pos.x = bound(.pos.x, -size.w\2, gen(genResolutionX) - size.w\2)
-    ' .pos.y = bound(.pos.y, -size.h\2, gen(genResolutionY) - size.h\2)
-    .pos.x = bound(.pos.x, -size.w\2, 320 - size.w\2)
-    .pos.y = bound(.pos.y, -size.h\2, 200 - size.h\2)
-   END WITH
+ IF positioning_mode THEN
+  each_tick_positioning_mode()
+ ELSE
+  IF each_tick_menu_mode() THEN RETURN YES
+ END IF
+
+ IF positioning_mode THEN
+  helpkey = "formation_editor_placement"
+  clear_menu()  'Hide the menu
+ ELSE
+  helpkey = "formation_editor"
+  'Rebuild the menu unconditionally, because each_tick_menu_mode doesn't set need_update
+  state.need_update = YES
+ END IF
+END FUNCTION
+
+SUB FormationEditor.each_tick_positioning_mode()
+ 'ccCancel is handled by try_exit()
+ IF enter_or_space() ORELSE (readmouse.release AND mouseRight) THEN
+  positioning_mode = NO
+  RETURN
+ END IF
+ DIM as integer movespeed = 1
+ IF keyval(scShift) THEN movespeed = 8
+ WITH form.slots(slot)
+  DIM sprite as Slice ptr = LookupSlice(SL_FORMEDITOR_ENEMY + slot, rootslice)
+  DIM size as XYPair
+  IF sprite THEN size = sprite->Size
+  ' Note that enemy positions are the top-left corner of the sprite
+  ' (which needs to be changed)
+  IF keyval(ccUp) > 0 THEN .pos.y -= movespeed
+  IF keyval(ccDown) > 0 THEN .pos.y += movespeed
+  IF keyval(ccLeft) > 0 THEN .pos.x -= movespeed
+  IF keyval(ccRight) > 0 THEN .pos.x += movespeed
+  IF readmouse.dragging AND mouseLeft THEN
+   .pos += (readmouse.pos - readmouse.lastpos)
   END IF
-  IF positioning_mode = NO THEN
-   '--menu mode
-   IF keyval(ccCancel) > 1 THEN
-    EXIT DO
-   END IF
-   IF keyval(scF1) > 1 THEN show_help "formation_editor"
-   IF cropafter_keycombo(state.pt = 1) THEN cropafter form_id, gen(genMaxFormation), game + ".for", 80
-   usemenu state
-   slot = state.pt - first_enemy_item
-   IF slot < 0 THEN slot = -1
+  ' FIXME: battles are still stuck at 320x200 for the moment, but switch to this later
+  ' .pos.x = bound(.pos.x, -size.w\2, gen(genResolutionX) - size.w\2)
+  ' .pos.y = bound(.pos.y, -size.h\2, gen(genResolutionY) - size.h\2)
+  .pos.x = bound(.pos.x, -size.w\2, 320 - size.w\2)
+  .pos.y = bound(.pos.y, -size.h\2, 200 - size.h\2)
+ END WITH
+END SUB
 
-   IF enter_space_click(state) THEN
-    IF state.pt = 0 THEN
-     EXIT DO
-    END IF
-    IF state.pt = 2 THEN
-     DIM backdropb as BackdropSpriteBrowser
-     form.background = backdropb.browse(form.background)
-     bgwait = 0
+FUNCTION FormationEditor.each_tick_menu_mode() as bool
+ IF state.empty() THEN RETURN NO
+ DIM itemid as integer = itemtypes(state.pt)
+ slot = -1
+
+ DIM activate as bool = enter_space_click(state)
+ 'NOTE: we don't set state.need_update (TODO), instead update() called unconditionally.
+
+ IF cropafter_keycombo(itemid = 1) THEN cropafter form_id, gen(genMaxFormation), game + ".for", 80
+
+ SELECT CASE itemid
+  CASE 0  'Previous menu
+   IF activate THEN RETURN YES
+  CASE 1  'Select a different formation
+   DIM as integer remember_id = form_id
+   IF intgrabber_with_addset(form_id, 0, gen(genMaxFormation), maxMaxFormation, "formation") THEN
+    SaveFormation form, remember_id
+    IF form_id > gen(genMaxFormation) THEN formation_add_new form_id
+    load_form()
+   END IF
+  CASE 2  'Backdrop
+   IF intgrabber(form.background, 0, gen(genNumBackdrops) - 1) THEN
+    bgwait = 0
+    bgctr = 0
+    load_formation_slices ename(), form, @rootslice
+   END IF
+   IF activate THEN
+    DIM backdropb as BackdropSpriteBrowser
+    form.background = backdropb.browse(form.background)
+    bgwait = 0
+    bgctr = 0
+    load_formation_slices ename(), form, @rootslice
+   END IF
+  CASE 3  'Backdrop animation frames
+   'IF intgrabber(form.background_frames, 1, 50) THEN
+   DIM temp as integer = form.background_frames - 1
+   IF xintgrabber(temp, 2, 50) THEN
+    IF form.background_frames = 1 THEN form.background_ticks = 8  'default to 8 ticks because 1 tick can be really painful
+    form.background_frames = temp + 1
+    IF bgctr >= form.background_frames THEN
      bgctr = 0
      load_formation_slices ename(), form, @rootslice
     END IF
-    IF state.pt = 5 THEN
-     form.music = song_picker_or_none(form.music + 1) - 1
-     state.need_update = YES
-    END IF
-    IF slot <> -1 THEN 'an enemy
+   END IF
+  CASE 4  'Backdrop animation ticks
+   IF intgrabber(form.background_ticks, 0, 1000) THEN
+    bgwait = 0
+   END IF
+  CASE 5  'Battle music
+   IF intgrabber(form.music, -2, gen(genMaxSong)) THEN  '-2: same as map, -1: silence
+    update_music
+   END IF
+   IF activate THEN
+    form.music = song_picker_or_none(form.music + 1) - 1
+    update_music
+   END IF
+  CASE 6  'Victory tag
+   tag_set_grabber(form.victory_tag, state)
+  CASE 7  'On death
+   intgrabber(form.death_action, -1, 0)
+  CASE 8  'Hero formation
+   intgrabber(form.hero_form, 0, last_hero_formation_id())
+
+  CASE IS >= 100
+   slot = itemid - 100
+
+   WITH form.slots(slot)
+    DIM oldenemy as integer = .id
+
+    IF activate THEN
+     'Usually enemygrabber (below) would handle Enter, but we override it here
      DIM browse_for_enemy as bool = NO
-     DIM in_slot as integer = form.slots(slot).id
-     IF in_slot >= 0 THEN
+     IF .id >= 0 THEN
       'This slot has an enemy already
       DIM choices(1) as string = {"Reposition enemy", "Change Which Enemy"}
       SELECT CASE multichoice("Slot " & slot, choices())
@@ -565,161 +643,90 @@ FUNCTION individual_formation_editor (form_id as integer = -1) as integer
       browse_for_enemy = YES
      END IF
      IF browse_for_enemy THEN
-      DIM oldenemy as integer = in_slot
-      form.slots(slot).id = enemy_picker_or_none(in_slot + 1) - 1
-      IF oldenemy <> form.slots(slot).id THEN
-       load_formation_slices ename(), form, @rootslice
-       IF oldenemy = -1 THEN
-        formation_init_added_enemy form.slots(slot)
-       END IF
-      END IF
+      .id = enemy_picker_or_none(.id + 1) - 1
      END IF
+    ELSEIF enemygrabber(.id, state, 0, -1) THEN
     END IF
-   END IF
-   IF state.pt = 2 THEN
-    IF intgrabber(form.background, 0, gen(genNumBackdrops) - 1) THEN
-     bgwait = 0
-     bgctr = 0
+
+    IF oldenemy <> .id THEN  'Enemy changed
      load_formation_slices ename(), form, @rootslice
-    END IF
-   END IF
-   IF state.pt = 3 THEN
-    'IF intgrabber(form.background_frames, 1, 50) THEN
-    DIM temp as integer = form.background_frames - 1
-    IF xintgrabber(temp, 2, 50) THEN
-     IF form.background_frames = 1 THEN form.background_ticks = 8  'default to 8 ticks because 1 tick can be really painful
-     form.background_frames = temp + 1
-     IF bgctr >= form.background_frames THEN
-      bgctr = 0
-      load_formation_slices ename(), form, @rootslice
-     END IF
-    END IF
-   END IF
-   IF state.pt = 4 THEN
-    IF intgrabber(form.background_ticks, 0, 1000) THEN
-     bgwait = 0
-    END IF
-   END IF
-   IF state.pt = 5 THEN
-    IF intgrabber(form.music, -2, gen(genMaxSong)) THEN
-     state.need_update = YES
-    END IF
-   END IF
-   IF state.pt = 6 THEN
-    tag_set_grabber(form.victory_tag, state)
-   END IF
-   IF state.pt = 7 THEN
-    intgrabber(form.death_action, -1, 0)
-   END IF
-   IF state.pt = 8 THEN
-    intgrabber(form.hero_form, 0, last_hero_formation_id())
-   END IF
-   IF state.pt = 1 THEN '---SELECT A DIFFERENT FORMATION
-    DIM as integer remember_id = form_id
-    IF intgrabber_with_addset(form_id, 0, gen(genMaxFormation), maxMaxFormation, "formation") THEN
-     SaveFormation form, remember_id
-     IF form_id > gen(genMaxFormation) THEN formation_add_new form_id
-     LoadFormation form, form_id
-     load_formation_slices ename(), form, @rootslice
-     state.need_update = YES
-     bgwait = 0
-     bgctr = 0
-    END IF
-   END IF'--DONE SELECTING DIFFERENT FORMATION
-   IF slot <> -1 THEN
-    WITH form.slots(slot)
-     DIM oldenemy as integer = .id
-     IF form.slots(slot).id >= 0 AND enter_space_click(state) THEN
-      'Pressing enter should go to placement mode (handled above)
-     ELSEIF enemygrabber(.id, state, 0, -1) THEN
-      'This would treat the x/y position as being the bottom middle of enemies, which makes much more
-      'sense, but that would change where enemies of different sizes are spawned in slots in existing games
-      'See the Plan for battle formation improvements
-      '.pos.x += w(slot) \ 2
-      '.pos.y += h(slot)
-      load_formation_slices ename(), form, @rootslice
+     IF oldenemy = -1 THEN
       formation_init_added_enemy form.slots(slot)
      END IF
-    END WITH
-   END IF
-  END IF
-  
-  IF state.need_update THEN
-   IF preview_music THEN
-    IF form.music >= 0 THEN
-     IF form.music <> last_music THEN playsongnum form.music
-    ELSE
-     music_stop
+     'This would treat the x/y position as being the bottom middle of enemies, which makes much more
+     'sense, but that would change where enemies of different sizes are spawned in slots in existing games
+     'See the Plan for battle formation improvements
+     '.pos.x += w(slot) \ 2
+     '.pos.y += h(slot)
     END IF
-    last_music = form.music
-   END IF
-   state.need_update = NO
-  END IF
+   END WITH
 
-  ' Draw screen
-
-  IF form.background_frames > 1 AND form.background_ticks > 0 THEN
-   bgwait = (bgwait + 1) MOD form.background_ticks
-   IF bgwait = 0 THEN
-    loopvar bgctr, 0, form.background_frames - 1
-    DIM sl as Slice ptr = LookupSlice(SL_FORMEDITOR_BACKDROP, rootslice)
-    ChangeSpriteSlice sl, , (form.background + bgctr) MOD gen(genNumBackdrops)
-   END IF
-  END IF
-  draw_formation_slices form, rootslice, slot, dpage
-
-  IF positioning_mode THEN
-   edgeprint "Arrow keys or mouse-drag", 0, 0, uilook(uiText), dpage
-   edgeprint "ESC or right-click when done", 0, pBottom, uilook(uiText), dpage
-   edgeprint "x=" & form.slots(slot).pos.x & " y=" & form.slots(slot).pos.y, pRight, 0, uilook(uiMenuItem), dpage
-  ELSE
-   menu(0) = "Previous Menu"
-   menu(1) = CHR(27) + "Formation " & form_id & CHR(26)
-   menu(2) = "Backdrop: " & form.background
-   IF form.background_frames <= 1 THEN
-    menu(3) = "Backdrop Animation: none"
-    menu(4) = " Ticks per Backdrop Frame: -NA-"
-   ELSE
-    menu(3) = "Backdrop Animation: " & form.background_frames & " frames"
-    menu(4) = " Ticks per Backdrop Frame: " & form.background_ticks
-   END IF
-   menu(5) = "Battle Music:"
-   IF form.music = -2 THEN
-     menu(5) &= " -same music as map-"
-   ELSEIF form.music = -1 THEN
-     menu(5) &= " -silence-"
-   ELSEIF form.music >= 0 THEN
-     menu(5) &= " " & form.music & " " & getsongname(form.music)
-   END IF
-   menu(6) = "Victory Tag: " & tag_choice_caption(form.victory_tag)
-   menu(7) = "On Death: "
-   IF form.death_action = 0 THEN
-    menu(7) &= "gameover/death script"
-   ELSEIF form.death_action = -1 THEN
-    menu(7) &= "continue game"
-   END IF
-   menu(8) = "Hero Formation: " & form.hero_form
-
-   FOR i as integer = 0 TO 7
-    menu(first_enemy_item + i) = "Enemy:" + ename(i)
-   NEXT i
-   standardmenu menu(), state, 0, 0, dpage, menuopts
-  END IF
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
-
- SaveFormation form, form_id
- music_stop
- DeleteSlice @rootslice
- remember_form_id = form_id
- RETURN form_id
+ END SELECT
 END FUNCTION
+
+SUB FormationEditor.update_music()
+ IF preview_music ANDALSO form.music <> last_music THEN
+  IF form.music >= 0 THEN
+   playsongnum form.music
+  ELSE
+   music_stop
+  END IF
+ END IF
+ last_music = form.music
+END SUB
+
+SUB FormationEditor.update()
+ IF positioning_mode THEN EXIT SUB
+
+ DIM temp as string
+ add_item 0, , "Previous Menu"
+ add_item 1, , CHR(27) + "Formation " & form_id & CHR(26)
+ add_item 2, , "Backdrop: " & form.background
+ IF form.background_frames <= 1 THEN
+  add_item 3, , "Backdrop Animation: none"
+  add_item 4, , " Ticks per Backdrop Frame: -NA-", NO
+ ELSE
+  add_item 3, , "Backdrop Animation: " & form.background_frames & " frames"
+  add_item 4, , " Ticks per Backdrop Frame: " & form.background_ticks
+ END IF
+ IF form.music = -2 THEN
+  temp = "-same music as map-"
+ ELSEIF form.music = -1 THEN
+  temp = "-silence-"
+ ELSEIF form.music >= 0 THEN
+  temp = form.music & " " & getsongname(form.music)
+ END IF
+ add_item 5, , "Battle Music: " & temp
+ add_item 6, , "Victory Tag: " & tag_choice_caption(form.victory_tag)
+
+ temp = ""
+ IF form.death_action = 0 THEN
+  temp = "gameover/death script"
+ ELSEIF form.death_action = -1 THEN
+  temp = "continue game"
+ END IF
+ add_item 7, , "On Death: " & temp
+ add_item 8, , "Hero Formation: " & form.hero_form
+
+ FOR i as integer = 0 TO 7
+  add_item 100 + i, , "Enemy: " + ename(i)
+ NEXT i
+END SUB
+
+SUB FormationEditor.draw_underlays()
+ update_formation_background form, rootslice, bgctr, bgwait
+ draw_formation_slices form, rootslice, slot, vpage
+
+ IF positioning_mode THEN
+  edgeprint "Arrow keys or mouse-drag", 0, 0, uilook(uiText), vpage
+  edgeprint "ESC or right-click when done", 0, pBottom, uilook(uiText), vpage
+  edgeprint "x=" & form.slots(slot).pos.x & " y=" & form.slots(slot).pos.y, pRight, 0, uilook(uiMenuItem), vpage
+ END IF
+END SUB
 
 SUB formation_init_added_enemy(byref slot as FormationSlot)
  'default to middle of field
- IF slot.pos.x = 0 AND slot.pos.y = 0 THEN
+ IF slot.pos = 0 THEN
   slot.pos.x = 70
   slot.pos.y = 95
  END IF
@@ -853,4 +860,15 @@ SUB draw_formation_slices(eform as Formation, hform as HeroFormation, rootslice 
 
  clearpage page
  DrawSlice rootslice, page
+END SUB
+
+SUB update_formation_background(form as Formation, rootslice as Slice ptr, byref bgctr as integer, byref bgwait as integer)
+ IF form.background_frames > 1 AND form.background_ticks > 0 THEN
+  bgwait = (bgwait + 1) MOD form.background_ticks   'FIXME: off-by-one bug here
+  IF bgwait = 0 THEN
+   loopvar bgctr, 0, form.background_frames - 1
+   DIM sl as Slice ptr = LookupSlice(SL_FORMEDITOR_BACKDROP, rootslice)
+   ChangeSpriteSlice sl, , (form.background + bgctr) MOD gen(genNumBackdrops)
+  END IF
+ END IF
 END SUB
