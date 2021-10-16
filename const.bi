@@ -544,12 +544,6 @@ CONST spMusicVolume = 18
 CONST spSoundVolume = 19
 CONST spLAST        = 19
 
-'constants for lump reloading schemes
-CONST loadmodeMerge = -1
-CONST loadmodeNever = 0
-CONST loadmodeAlways = 1
-CONST loadmodeIfUnchanged = 2
-
 'Constants for timer advancement modes (see game.bas:should_skip_this_timer())
 Enum TimerContextEnum
         TIMER_NORMAL = 0

@@ -1863,7 +1863,7 @@ SUB try_to_reload_lumps_onmap ()
  WEND
 END SUB
 
-FUNCTION lump_reload_mode_to_string (byval mode as integer) as string
+FUNCTION lump_reload_mode_to_string (mode as LoadModeEnum) as string
  IF mode = loadmodeNever THEN RETURN "Never"
  IF mode = loadmodeAlways THEN RETURN "Always"
  IF mode = loadmodeIfUnchanged THEN RETURN "If no in-game changes"

@@ -340,8 +340,16 @@ TYPE OrderTeamState
   do_quit as bool
 END TYPE
 
+'Constants for lump reloading schemes
+ENUM LoadModeEnum
+  loadmodeMerge = -1
+  loadmodeNever = 0
+  loadmodeAlways = 1
+  loadmodeIfUnchanged = 2
+END ENUM
+
 TYPE LumpReloadState
-  mode      as integer  'one of the loadmode constants in const.bi
+  mode      as LoadModeEnum 'The condition for reloading/mergingg the data
   dirty     as bool     'whether a script has modified this (referring to current map, if applicable)
   changed   as bool     'whether modified by Custom and not reloaded
   hash      as ulongint 'used to store file_hash64 of last version loaded
