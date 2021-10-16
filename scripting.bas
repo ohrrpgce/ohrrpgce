@@ -682,7 +682,7 @@ LOCAL FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptDat
    .scrformat = 0
   END IF
   IF .scrformat > CURRENT_HSZ_VERSION THEN
-   scripterr "script " & id & " is in an unsupported format", serrError
+   scripterr "script " & id & " is in an unsupported format. Try using an up-to-date OHRRPGCE version.", serrError
    DELETE ret
    RETURN NULL
   END IF

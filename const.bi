@@ -318,7 +318,6 @@ CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count
 CONST maxTextboxLines = 8 'Maximum number of lines in a text box
 CONST maplayerMax = 15 'The limit on the highest numbered map layer
 CONST mapTilesMax = 100000 'Maximum map size, in tiles (note also a limit of 32768 tiles wide or high)
-CONST dissolveTypeMax = 17 'Highest numbered frame dissolve effect
 CONST maxMPLevel = 7   'Max level of FF1-style level-MP, 0-based (Note: the spell-list editor shows 1-based levels)
 CONST maxElements = 64 'Maximum selectable number of elements
 CONST maxDoorsPerMap = 99 '0 thru 99
@@ -400,6 +399,27 @@ CONST frameWEAK = 6
 CONST frameDEAD = 7
 
 CONST WALKFRAMES = 2  'Number of frames per walkabout direction
+
+'---- Dissolve animations
+CONST dissolveRandomScatter = 0
+CONST dissolveCrossfade = 1
+CONST dissolveDiagonalVanish = 2
+CONST dissolveSinkIntoGround = 3
+CONST dissolveSquash = 4
+CONST dissolveMelt = 5
+CONST dissolveVapourise = 6
+CONST dissolvePhaseOut = 7
+CONST dissolveSqueeze = 8
+CONST dissolveShrink = 9
+CONST dissolveFlicker = 10
+CONST dissolveShrinkToCenter = 11
+CONST dissolveFade = 12
+CONST dissolveGhostlyFade = 13
+CONST dissolveFadeToWhite = 14
+CONST dissolvePuff = 15
+CONST dissolveFadeUp = 16
+CONST dissolveBlip = 17
+CONST dissolveTypeMax = 17   'Highest numbered dissolve
 
 '--- Misc constants
 

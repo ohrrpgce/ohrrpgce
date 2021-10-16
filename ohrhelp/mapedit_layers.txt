@@ -14,4 +14,4 @@ You can name a layer by selecting "Tile layer #" and typing a name.
 
 Each layer can optionally have its own tileset, or you can just choose one tileset for the whole map.
 
-It is also possible to make certain layers invisble in the editor, in case you want to work on just one layer at a time without the visual distraction of seeing the other layers. This doesn't affect playing the game; to hide a layer in-game, disable it. Disabling a layer doesn't delete it. You can't disable layer 0.
+It is also possible to make certain layers invisible in the editor, in case you want to work on just one layer at a time without the visual distraction of seeing the other layers. This doesn't affect playing the game; to hide a layer in-game, disable it. Disabling a layer doesn't delete it. You can't disable layer 0.

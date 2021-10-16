@@ -8,7 +8,7 @@ If you want this product to be available for your enabled stores, you must provi
 
 =Paypal=
 
-You must create a button ID from your paypal account. Log into Paypal.com, go to "Merchant Services" and pick "Create Payment Buttons for your website". After you have created the button, you will find the button id labelled hosed_button_id. It will be a string of uppercase letters and numbers about 13 characters long.
+You must create a button ID from your paypal account. Log into Paypal.com, go to "Merchant Services" and pick "Create Payment Buttons for your website". After you have created the button, you will find the button id labelled hosted_button_id. It will be a string of uppercase letters and numbers about 13 characters long.
 
 If you leave the button ID blank, then this product will not show up in the menu when the Paypal store is being used.
 

@@ -2058,7 +2058,20 @@ end</example>
 		<command id="destroynpc">
 			<canon>destroy NPC (reference)</canon>
 			<shortname>destroy NPC</shortname>
-			<description>This command will erase the specified NPC. You can use either an <ref>npcref</ref> or the NPC&apos;s ID number. The deletion is not permanent. Unless this is an NPC that you created with <ref>createnpc</ref>, the NPC will be back again next time the map gets loaded. If you need to permanently remove an NPC, use tags. <note>This only deletes the one NPC you specify. If you use an NPC ID number as the argument, only the first copy of the NPC on the map will be deleted.</note><note>This command can be also be written as <p>delete NPC</p>.</note></description>
+			<description>
+				This command will erase the specified NPC.
+				You can use either an <ref>npcref</ref> or the NPC&apos;s ID number.
+				The deletion is not permanent.
+				Unless this is an NPC that you created with <ref>createnpc</ref>, the NPC will be back again next time the map gets loaded.
+				If you need to permanently remove an NPC, use tags.
+				<note>
+					This only deletes the one NPC you specify.
+					If you use an NPC ID number as the argument, only the first copy of the NPC on the map will be deleted.
+				</note>
+				<note>
+					This command can be also be written as <p>delete NPC</p>.
+				</note>
+			</description>
 		</command>
 		<command id="deletenpc">
 			<alias>destroynpc</alias>

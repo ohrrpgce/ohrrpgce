@@ -1510,7 +1510,7 @@ SUB resolution_menu ()
   ELSE
    menu(4) &= "shared with this game"
   END IF
-  menu(5) = "Console TV safe margin: " & GetChildNodeStr(console, "safe_margin", "Default")  'This is an integer
+  menu(5) = "Console TV safe margin %: " & GetChildNodeStr(console, "safe_margin", "Default")  'This is an integer
   selectable(6) = NO
   selectable(7) = NO
   menu(7) = fgtag(uilook(eduiHeading), " Experimental options")
