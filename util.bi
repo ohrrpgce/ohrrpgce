@@ -63,7 +63,7 @@ end extern
 #DEFINE MACROSTART #MACRO
 
 #MACRO TEMPLATE_BASE(name, typename)
-  'Internal junk. See TEMPLATE for documentation
+  'Internal junk. See TEMPLATED for documentation
 
   #MACRO INHERIT_##name(T)
     name##_MEMBERS(T)
@@ -87,11 +87,11 @@ end extern
   MACROSTART name##_MEMBERS(typename)
 #ENDMACRO
 
-#MACRO TEMPLATE(name, typename)
+#MACRO TEMPLATED(name, typename)
   /'
    ' Workaround for lack of templates. Single type argument (could add more). Usage example:
 
-     TEMPLATE(MyTemplate, T)
+     TEMPLATED(MyTemplate, T)
        foo as T
      #ENDMACRO  'yes, weird, can't do anything about it
 
@@ -117,7 +117,7 @@ end extern
 
 #MACRO TEMPLATE_GENERIC(name, typename)
   /'
-   ' This is the same as TEMPLATE, but assumes that Any is a valid substitution for T,
+   ' This is the same as TEMPLATED, but assumes that Any is a valid substitution for T,
    ' as MAKETYPE creates a union with a member 'generic' for easy casting to TypeName(Any),
    ' intended for passing to generic functions. Templates really need OO to patch up the
    ' problems they introduce.

@@ -14,7 +14,7 @@
 '   Recomputes sl->ScreenPos from sl->Pos.
 '   (Can also adjust sl->Size (if sl->Fill) and sl->Visible, see ChildRefresh details below.)
 '
-'  If sl->Visible:
+'  If sl->IsShown:
 '
 '    If sl->CoverChildren: UpdateCoverSize(sl)
 '
@@ -51,7 +51,7 @@
 ' -AutoSortChildren() modifies order amongst siblings
 ' -parent->ChildrenRefresh() updates sl->Pos/sl->Size
 ' -parent->ChildRefresh() & ChildRefresh() update sl->ScreenPos/sl->Size/sl->Visible
-' If sl->Visible:
+' If sl->IsShown:
 '   -If sl->CoverChildren, update sl->Size
 '   -push sl->Context onto context_stack
 '   -sl->Draw()
@@ -159,7 +159,8 @@ ReDim Shared SliceDebug(50) as Slice Ptr
 'Number of non-trivial drawn slices (Container, Special, Root and invisible excluded)
 DIM NumDrawnSlices as integer
 
-'add other slice tables here
+'Whether template slices should be reveal - used in the slice editor
+DIM template_slices_shown as bool
 
 'ScreenSlice is used by other slices with ->Attach = slScreen
 DIM SHARED ScreenSlice as Slice Ptr
@@ -187,6 +188,10 @@ EXTERN "C"
 
 '==General slice code==========================================================
 
+Function Slice.IsShown() as bool
+ return this.Visible andalso (this.Template = NO orelse template_slices_shown)
+End Function
+
 'Stub functions.
 'These Null functions are used by Container, Root, and Special slices.
 Sub DisposeNullSlice(byval s as Slice ptr) : end sub
@@ -201,7 +206,7 @@ Sub NullChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex a
 'which saves computing it if it's not needed. (Not used by DefaultChildRefresh)
 Sub DefaultChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES)
  if ch = 0 then debug "DefaultChildRefresh null ptr": exit sub
- if visibleonly and (ch->Visible = NO) then exit sub
+ if visibleonly andalso ch->IsShown = NO then exit sub
  dim support as RectType = any
  support.xy = par->ScreenPos + XY(par->paddingLeft, par->paddingTop)
  support.wide = par->Width - par->paddingLeft - par->paddingRight
@@ -2546,7 +2551,7 @@ End Sub
 'Computes ScreenX/Y, and also sets the width/height if filling
 Sub GridChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES)
  if ch = 0 then debug "GridChildRefresh null ptr": exit sub
- if visibleonly and (ch->Visible = NO) then exit sub
+ if visibleonly andalso ch->IsShown = NO then exit sub
 
  dim dat as GridSliceData ptr = par->GridData
  dim w as integer = par->Width \ large(1, dat->cols)
@@ -2679,7 +2684,7 @@ end sub
 Function LayoutSliceData.SkipForward(ch as Slice ptr) as Slice ptr
 ' ch = ch->NextSibling
  if skip_hidden = NO then return ch
- while ch andalso ch->Visible = NO
+ while ch andalso ch->IsShown = NO
   ch = ch->NextSibling
  wend
  return ch
@@ -2818,7 +2823,7 @@ Sub LayoutChildrenRefresh(byval par as Slice ptr)
  support.high = par->Height - par->paddingTop - par->paddingBottom
  dim as Slice ptr ch = par->FirstChild
  while ch
-  if ch->Visible andalso ch->Fill then
+  if ch->Fill andalso ch->IsShown then
    if ch->FillMode = sliceFillFull ORELSE ch->FillMode = sliceFillHoriz then
     ch->Width = support.wide
    end if
@@ -2860,7 +2865,7 @@ Sub LayoutChildrenRefresh(byval par as Slice ptr)
 
    ' ch = ch->NextSibling
    ' if skip_hidden then
-   '  while ch andalso ch->Visible = NO
+   '  while ch andalso ch->IsShown = NO
    '   ch->ScreenPos = par->ScreenPos
    '   ch = ch->NextSibling
    '  wend
@@ -3088,7 +3093,7 @@ Sub CalcSliceContentsSize(sl as Slice ptr, byref min as XYPair, byref max as XYP
 
  dim ch as Slice ptr = sl->FirstChild
  do while ch
-  if ch->Visible then
+  if ch->IsShown then
    CalcSliceContentsSize ch, min, max, check_depth, cur_depth + 1
   end if
   ch = ch->NextSibling
@@ -3480,7 +3485,7 @@ End Sub
 
 Sub PanelChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES)
  if ch = 0 then debug "PanelChildRefresh null ptr": exit sub
- if visibleonly and (ch->Visible = NO) then exit sub
+ if visibleonly andalso ch->IsShown = NO then exit sub
 
  if childindex < 0 then childindex = SliceIndexAmongSiblings(ch)
  if childindex > 1 then exit sub  'Panel only expects 2 children
@@ -3705,7 +3710,7 @@ Sub UpdateCoverSize(par as Slice ptr)
  dim ch as Slice ptr = par->FirstChild
  while ch
   with *ch
-   if .Visible then
+   if .IsShown then
     dim filling_horiz as bool = .Fill andalso .FillMode <> sliceFillVert
     dim filling_vert  as bool = .Fill andalso .FillMode <> sliceFillHoriz
 
@@ -3796,7 +3801,7 @@ end sub
 ' Apply slice movement to this slice and descendants
 Sub AdvanceSlice(byval s as Slice ptr)
  if s = 0 then debug "AdvanceSlice null ptr": exit sub
- if s->Paused = NO then
+ if s->Paused = NO andalso (s->Template = NO orelse template_slices_shown) then
   SeekSliceTarg s
   ApplySliceVelocity s
   'advance the slice's children
@@ -3873,14 +3878,14 @@ Local Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childind
  if s = 0 then debug "DrawSliceRecurse null ptr": exit sub
 
  'Refresh the slice: calc the size and screen X,Y and possibly visibility (select slices)
- 'or other attributes. Refreshing is skipped if the slice isn't visible.
+ 'or other attributes. Refreshing is skipped if the slice isn't shown.
  '(Note: if ChildrenRefresh is set, it was already called from the parent's
  'ChildDraw, and ChildRefresh will do nothing.)
  DIM attach as Slice Ptr
  attach = GetSliceRefreshAttachParent(s)
  if attach then attach->ChildRefresh(attach, s, childindex, YES)
 
- if s->Visible then
+ if s->IsShown then
   if s->CoverChildren then UpdateCoverSize(s)
 
   if s->Context then v_append context_stack, s->Context
@@ -3966,7 +3971,7 @@ end function
 Sub RefreshSliceScreenPos(slc as Slice ptr)
  'This sub quickly updates ScreenX, ScreenY, plus Width and Height when filling,
  'of a slice and its ancestors without needing to do a full DrawSlice of the whole tree
- 'and without respect to the .Visible property
+ 'and without respect to the .IsShown property
  if slc = 0 then exit sub
  dim attach as Slice ptr
  attach = GetSliceRefreshAttachParent(slc)
@@ -3998,7 +4003,7 @@ end sub
 Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
  'Updates ScreenX, ScreenY, plus Width and Height when filling,
  'of a slice tree (specially, all its ancestors and descendents but not siblings)
- 'while ignoring .Visible. DrawSliceRecurse skips refreshing nonvisible slices.
+ 'while ignoring .IsShown. DrawSliceRecurse skips refreshing nonvisible slices.
  if slc = 0 then exit sub
 
  'Update slc and ancestors
@@ -4046,6 +4051,12 @@ Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as bool
  return NO
 end function
 
+'Whether this slice can be found by a slice collision command
+Private Function SliceCollideable(sl as Slice ptr, visibleonly as bool) as bool
+ if sl->Template andalso template_slices_shown = NO then return NO
+ return sl->Visible orelse visibleonly = NO
+end function
+
 Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
  'Find a child or descendant of parent which is not Special and is not sl which overlaps with sl.
  'descend:     Whether to recurse to decendents of parent.
@@ -4063,14 +4074,14 @@ Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as i
  while s
   if s <> sl then
    with *s
-    'We refresh the child even if not visible, unlike DrawSliceRecurse.
+    'We refresh the child even if not visible/shown, unlike DrawSliceRecurse.
     'We don't call ChildrenRefresh if applicable, because we need (and should)
     'only update the screen positions, not do complex positioning recalc.
     parent->ChildRefresh(parent, s, childindex, NO)  'visibleonly=NO
 
-    dim recurse as bool = descend
+    if SliceCollideable(s, visibleonly) then
+     dim recurse as bool = descend
 
-    if .Visible or (visibleonly = NO) then
      if SliceCollide(s, sl) then
       if .SliceType <> slSpecial then
        if num = 0 then return s
@@ -4110,12 +4121,12 @@ Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as int
  s = parent->FirstChild
  while s
   with *s
-   'We refresh the child even if not visible, unlike DrawSliceRecurse.
+   'We refresh the child even if not visible/shown, unlike DrawSliceRecurse.
    'We don't call ChildrenRefresh if applicable, because we need (and should)
    'only update the screen positions, not do complex positioning recalc.
    parent->ChildRefresh(parent, s, childindex, NO)  'visibleonly=NO
 
-   if .Visible or (visibleonly = NO) then
+   if SliceCollideable(s, visibleonly) then
     dim recurse as bool = descend
 
     if SliceCollidePoint(s, point) then
@@ -4144,18 +4155,19 @@ end function
 Function SliceIsInvisible(byval sl as Slice Ptr) as bool
  if sl = 0 then debug "SliceIsInvisible: null slice": return YES 'Treating a null slice as invisible is probably safest here
  'First check the slice itself
- if sl->Visible = NO then return YES
+ if sl->IsShown = NO then return YES
  'Then check for any invisible parents
  dim parent as Slice Ptr
  parent = sl->Parent
  do while parent
-  if parent->Visible = NO then return YES
+  if parent->IsShown = NO then return YES
   parent = parent->Parent
  loop
  return NO
 End Function
 
 'Check whether a slice is *actually* visible.
+'FIXME: this is incorrect: clipping is done from the padded slice bounds, ignored by SliceCollide.
 Function SliceIsInvisibleOrClipped(byval sl as Slice Ptr) as bool
  if SliceIsInvisible(sl) then return YES
  'Check for any parents that are clipping this slice
@@ -4262,6 +4274,7 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
   .Width = sl->Width
   .Height = sl->Height
   .Visible = sl->Visible
+  .Template = sl->Template
   .Paused = sl->Paused
   '.EditorColor not copied
   .EditorHideChildren = sl->EditorHideChildren
@@ -4307,6 +4320,15 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
  return clone
 end function
 
+Function InstantiateTemplate(byval templatesl as Slice ptr) as Slice ptr
+ dim sl as Slice ptr
+ sl = CloneSliceTree(templatesl)
+ sl->Template = NO  'Descendents which are Templates stay that way
+ InsertSliceBefore templatesl, sl
+ return sl
+end function
+
+
 '==Slice saving and loading====================================================
 
 '--saving----------------------------------------------------------------------
@@ -4349,6 +4371,7 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  if Reload.NumChildren(node) <> 0 then debug "SliceSaveToNode non-empty node has " & Reload.NumChildren(node) & " children"
  '--Save standard slice properties
  'NOTE: if something has a non-zero default load value, then you must use SavePropAlways
+ SaveProp node, "template", sl->template
  SaveProp node, "lookup", sl->lookup
  SaveProp node, "x", sl->x
  SaveProp node, "y", sl->Y
@@ -4464,7 +4487,8 @@ Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handle
  if sl->NumChildren > 0 then debug "SliceLoadFromNode slice already has " & sl->numChildren & " children"
  '--Load standard slice properties
  'NOTE: if something has a non-zero default value, then you must use SavePropAlways
- sl->lookup = LoadProp(node, "lookup")
+ sl->Template = LoadPropBool(node, "template")
+ sl->Lookup = LoadProp(node, "lookup")
  sl->x = LoadProp(node, "x")
  sl->y = LoadProp(node, "y")
  sl->Width = LoadProp(node, "w")
@@ -4639,6 +4663,7 @@ SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)
  end if
 
  s &= " lookup:" & SliceLookupCodename(sl) & " handle:" & sl->TableSlot & " pos:" & sl->Pos & " size:" & sl->Size.wh
+ if sl->Template then s &= " template"
  if sl->Visible = NO then s &= " visible:false"
  for idx as integer = 0 to 2
   if sl->Extra(idx) then s &= " extra" & idx & ":" & sl->Extra(idx)

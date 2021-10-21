@@ -540,6 +540,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
  DIM jump_to_collection as integer
 
+ template_slices_shown = YES
+
  '--Ensure all the slices are updated before the loop starts
  RefreshSliceTreeScreenPos ses.draw_root
 
@@ -563,7 +565,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   END IF
 
   'This must be after the strgrabber above so that can handle text input
-  slice_editor_common_function_keys ses, edslice, state, NO  'F, R, V, F4, F6, F7, F8, Ctrl+F3, Ctrl+F4
+  slice_editor_common_function_keys ses, edslice, state, NO  'F, R, V, F4, F6, F7, F8, F10, Ctrl+F3, Ctrl+F4
 
   #IFDEF IS_GAME
    IF keyval(scF1) > 1 THEN show_help "sliceedit_game"
@@ -781,7 +783,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     IF sl THEN
      IF sl->Visible = NO THEN
       col = uilook(uiSelectedDisabled + IIF(state.pt = i, global_tog, 0))
-     ELSEIF sl->EditorColor ANDALSO state.pt <> i THEN
+     ELSEIF sl->EditorColor > -1 ANDALSO state.pt <> i THEN
       'Don't override normal highlight
       col = sl->EditorColor
      END IF
@@ -812,6 +814,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  END IF
  pop_gfxio_state
 
+ template_slices_shown = NO
  slice_editor_save_settings ses
 END SUB
 
@@ -864,6 +867,11 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
   slice_editor_settings_menu ses, edslice, in_detail_editor
   state.need_update = YES
  END IF
+ IF keyval(scF10) > 1 THEN
+  template_slices_shown XOR= YES
+  show_overlay_message "Template slices " & IIF(template_slices_shown, "shown", "hidden"), 2
+  state.need_update = YES
+ END IF
  IF shiftctrl > 0 THEN
   IF keyval(scF3) > 1 THEN
    'Switching to 32 bit color depth allows 32-bit and smooth-scaled sprites,
@@ -903,7 +911,7 @@ END SUB
 FUNCTION slice_editor_mouse_over (edslice as Slice ptr, slicemenu() as SliceEditMenuItem, state as MenuState) as Slice ptr
  FOR idx as integer = 0 TO UBOUND(slicemenu)
   IF slicemenu(idx).handle THEN
-   slicemenu(idx).handle->EditorColor = uilook(uiMenuItem)
+   slicemenu(idx).handle->EditorColor = -1  'default, ie uilook(uiMenuItem)
   END IF
  NEXT
 
@@ -1213,6 +1221,7 @@ SUB slice_editor_copy(byref ses as SliceEditState, byval tocopy as Slice Ptr, by
 END SUB
 
 'Insert pasted slices before 'putbefore'
+'Note: the clipboard can contain multiple slices, although slice_editor_copy only put one in the clipboard.
 SUB slice_editor_paste(byref ses as SliceEditState, byval putbefore as Slice Ptr, byval edslice as Slice Ptr)
  IF ses.clipboard THEN
   DIM child as Slice Ptr
@@ -1295,7 +1304,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   slice_edit_detail_keys ses, state, sl, rules(), usemenu_flag
 
   'This must be after slice_edit_detail_keys so that can handle text input
-  slice_editor_common_function_keys ses, edslice, state, YES  'F, R, V, F4, F6, F7, F8, Ctrl+F3, Ctrl+F4
+  slice_editor_common_function_keys ses, edslice, state, YES  'F, R, V, F4, F6, F7, F8, F10, Ctrl+F3, Ctrl+F4
 
   draw_background vpages(dpage), bgChequer
   IF ses.hide_mode <> hideSlices THEN
@@ -1764,6 +1773,15 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   sliceed_rule_none rules(), "protect"
  END IF
 
+ IF ses.privileged THEN
+  a_append menu(), "Template: " & yesorno(.Template)
+  sliceed_rule_tog rules(), "template", @.Template
+ ELSEIF .Template THEN
+  'Temporarily disabled until template slices stabilise
+  a_append menu(), "Template: " & yesorno(.Template)
+  sliceed_rule_none rules(), "template"
+ END IF
+
  sliceed_header menu(), rules(), "[Dimensions]", @ses.expand_dimensions
  IF ses.expand_dimensions THEN
   IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
@@ -2130,7 +2148,11 @@ FUNCTION slice_caption (byref ses as SliceEditState, edslice as Slice ptr, sl as
   IF sl = edslice AND .Lookup <> SL_ROOT THEN
    s &= " [root]"
   END IF
-  s = RTRIM(s) & "${K" & uilook(uiText) & "} "
+  s = RTRIM(s)
+  IF sl->Template THEN
+   s &= fgcol_text(" TEMPLATE", findrgb(255, 200, 0))
+  END IF
+  s &= "${K" & uilook(uiText) & "} "
   IF sl->Context THEN
    'Hide the Context of the root slice of a collection because it duplicates collection name, ID
    IF sl <> edslice ORELSE (*sl->Context IS SliceCollectionContext) = NO THEN
@@ -2674,6 +2696,7 @@ SUB SliceEditSettingsMenu.update()
 #IFDEF IS_CUSTOM
  add_item 16, , "Global Editor Options (F9)"
 #ENDIF
+ add_item 19, , "Show template slices: " & yesorno(template_slices_shown) & " (F10)"
  add_item 17, , "Switch to " & IIF(vpages_are_32bit, 8, 32) & "-bit color mode (Ctrl-F3)"
  IF NOT vpages_are_32bit THEN
   add_item 18, , "Blend algorithm: " & BlendAlgoCaptions(gen(gen8bitBlendAlgo)) & " (Ctrl-F4)"
@@ -2737,6 +2760,8 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
    END IF
   CASE 18  'Blend algo
    changed = intgrabber(gen(gen8bitBlendAlgo), 0, blendAlgoLAST)
+  CASE 19  'Show templates
+   changed = boolgrabber(template_slices_shown, state)
  END SELECT
  state.need_update OR= changed
 END FUNCTION
@@ -2759,7 +2784,7 @@ END SUB
 SUB slice_editor_save_settings(byref ses as SliceEditState)
  write_config "sliceedit.show_positions", yesorno(ses.show_positions)
  write_config "sliceedit.show_sizes", yesorno(ses.show_sizes)
- 'show_ants and hide_mode are not saved.
+ 'show_ants, hide_mode and template_slices_shown are not saved.
  'sliceedit.show_root was renamed to sliceedit.show_root2 to ignore previous setting
  'While in the recursive slice editor, show_root gets set to YES by default
  IF ses.recursive = NO THEN write_config "sliceedit.show_root2", yesorno(ses.show_root)

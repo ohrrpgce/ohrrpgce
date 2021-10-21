@@ -275,9 +275,13 @@ Type Slice
   End Union
 
   Visible as bool
+  'A slice is shown if Visible=YES and it's not a template (or template_slices_shown=YES)
+  Declare Function IsShown() as bool
+
+  Template as bool 'Is a template slice, meaning it's normally completely hidden
   Paused as bool  'Whether to not apply target and velocity movement to this slice tree
   Clip as bool
-  
+
   'moving at a constant pixels-per-tick speed (direct setting should cancel targ)
   Velocity as XYPair
   'limit the number of cycles to apply velocity before auto-clearing it (-1 means forever, 0 clears instantly)
@@ -293,7 +297,7 @@ Type Slice
   TableSlot as integer 'which slot in plotslices() holds a reference to this slice, or 0 for none
   Lookup as integer
 
-  EditorColor as integer 'Not saved, used only by slice editor
+  EditorColor as integer 'Not saved, used only by slice editor. -1 if not overridden
   EditorHideChildren as bool 'Saved, but only matters for the editor
 
   AutoSort as AutoSortModes
@@ -560,6 +564,7 @@ DECLARE Function NewClassSlice(parent as Slice ptr, inst as ClassSlice ptr) as S
 DECLARE Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer = 0)
 DECLARE Sub DeleteSliceChildren(byval s as Slice ptr, byval debugme as integer = 0)
 DECLARE Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_special as bool = YES) as Slice ptr
+DECLARE Function InstantiateTemplate(byval templatesl as Slice ptr) as Slice ptr
 
 DECLARE Sub OrphanSlice(byval sl as slice ptr)
 DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
@@ -769,6 +774,7 @@ DECLARE Sub CalcPanelSupport (byref support as RectType, byval par as Slice ptr,
 
 
 EXTERN NumDrawnSlices as integer
+EXTERN template_slices_shown as bool
 
 End Extern
 
