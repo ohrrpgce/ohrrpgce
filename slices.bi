@@ -507,7 +507,7 @@ Type LayoutSliceData
  secondary_dir as DirNum = dirDown 'Direction to shift after a row is full (must be perpendicular to primary_dir)
  primary_padding as integer   'Padding between children, in the primary_dir (within rows)
  secondary_padding as integer '...and between rows
- skip_hidden as bool          'Don't leave gaps for hidden children
+ skip_hidden as bool          'Don't leave gaps for nonvisible children (aka visibleonly)
  min_row_breadth as integer   'Min height/width in pixels of rows, in the secondary_dir
  justified as bool            'Like justified text: add extra padding to rows to be flush against both edges
  last_row_justified as bool   '(Only when justified) If NO, last row justification spacing is no more than row above.
@@ -591,7 +591,7 @@ DECLARE Sub EdgeYSortChildSlices(byval parent as slice ptr, byval edge as AlignT
 DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as bool)
 DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
 
-DECLARE Function SliceIndexAmongSiblings(byval sl as slice ptr) as integer
+DECLARE Function SliceIndexAmongSiblings(sl as Slice Ptr, include_templates as bool = YES) as integer
 DECLARE Function SliceChildByIndex(byval sl as slice ptr, byval index as integer) as Slice ptr
 DECLARE FUNCTION SlicePath(sl as Slice ptr) as string
 DECLARE Function LookupSlice(byval lookup_code as integer, byval root_sl as Slice ptr, byval onlytype as SliceTypes=slInvalid, start_sl as Slice ptr=NULL) as Slice ptr

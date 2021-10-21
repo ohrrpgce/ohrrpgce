@@ -899,7 +899,7 @@ SUB preview_SelectSlice_parents (byval sl as Slice ptr)
  DIM ch as Slice ptr = sl
  DO WHILE par
   IF par->SliceType = slSelect THEN
-   ChangeSelectSlice par, , SliceIndexAmongSiblings(ch)
+   ChangeSelectSlice par, , SliceIndexAmongSiblings(ch, template_slices_shown)
   END IF
   ch = par
   par = par->parent
