@@ -79,8 +79,9 @@
 'sl->ChildRefresh (called by the slice refresh functions like RefreshSliceScreenPos,
 'and called directly or indirectly in lots of places) is responsible for translating a slice's .Pos
 'to its .ScreenPos (including effects of clamping), and also applying .Fill (which
-'modifies .Size). As an exception, SelectChildRefresh also modified .Visible. (These
-'last two effects are very probably in the wrong place!)
+'modifies .Size) -- this is probably in the wrong place!
+'As an exception, SelectChildRefresh also modifies .Visible. (Although this leads to unnecessary
+'refreshes there doesn't seem to a better place for it. See r7792.)
 'All sl->ChildRefresh methods calculate the 'support' rect for a child then call ChildRefresh()
 'to do the actual update. Grid and Panel slices have non-standard supports (each child
 'gets its own instead of all sharing the same one).
@@ -1207,7 +1208,7 @@ End Sub
 
 Sub LoadClassSlice(sl as Slice ptr, node as Reload.Nodeptr)
  if sl = 0 orelse sl->ClassInst = 0 orelse node = 0 then debug "LoadClassSlice null ptr": exit sub
- sl->ClassInst->load(sl, node)
+ sl->ClassInst->Load(sl, node)
 End Sub
 
 Sub ClassChildRefresh(sl as Slice ptr, ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES)
@@ -3095,6 +3096,8 @@ Sub DisposeScrollSlice(byval sl as Slice ptr)
  sl->ScrollData = 0
 end sub
 
+'Computes the bounding box of all visible descendents of a slice, up to a maximum
+'check_depth (1 means just children, 2 is grandchildren, etc, 0 is infinite).
 'This function works for any type of slice
 Sub CalcSliceContentsSize(sl as Slice ptr, byref min as XYPair, byref max as XYPair, check_depth as integer, cur_depth as integer=0)
  if cur_depth = 0 then
@@ -3323,7 +3326,7 @@ Sub SelectChildRefresh(par as Slice ptr, ch as Slice ptr, childindex as integer 
 end sub
 
 Sub CloneSelectSlice(byval sl as Slice ptr, byval cl as Slice ptr)
- if sl = 0 or cl = 0 then debug "SelectScrollSlice null ptr": exit sub
+ if sl = 0 or cl = 0 then debug "CloneScrollSlice null ptr": exit sub
  dim dat as SelectSliceData Ptr
  dat = sl->SliceData
  dim clonedat as SelectSliceData Ptr
@@ -3839,7 +3842,7 @@ Sub AdvanceSlice(byval s as Slice ptr)
 end sub
 
 ' Apply slice .Targ movement
-Sub SeekSliceTarg(byval s as Slice ptr)
+Local Sub SeekSliceTarg(byval s as Slice ptr)
  'no null check because this is only called from AdvanceSlice
  with *s
   if .TargTicks > 0 then
@@ -3863,7 +3866,7 @@ Sub SeekSliceTarg(byval s as Slice ptr)
  end with
 end sub
 
-Sub ApplySliceVelocity(byval s as Slice ptr)
+Local Sub ApplySliceVelocity(byval s as Slice ptr)
  'no null check because this is only called from AdvanceSlice
  if s->VelTicks.X <> 0 then s->X += s->Velocity.X
  if s->VelTicks.X > 0 then
@@ -4104,7 +4107,9 @@ Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as i
   wend
   if s <> sl then
    with *s
-    'We refresh the child even if not visible/shown, unlike DrawSliceRecurse.
+    'First refresh to update child visibility, in case the parent is a Select slice.
+    'But we unconditionally refresh the child even if not visible for... no well
+    'justified reason (see r7792)
     'We don't call ChildrenRefresh if applicable, because we need (and should)
     'only update the screen positions, not do complex positioning recalc.
     parent->ChildRefresh(parent, s, childindex, NO)  'visibleonly=NO
@@ -4143,8 +4148,8 @@ Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as int
  'visibleonly: Whether to restrict to visible slices (treats parent as visible).
  'num:         0 for bottommost matching slice, 1 for next, etc. Is decremented by the number of matching slices.
  'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that,
+ '(because DrawSliceRecurse doesn't call ChildRefresh or recurse on invisible slices)
  'and we handle refreshing the descendents of parent (calling ChildRefresh on every slice we visit).
- 'Warning: RefreshSliceScreenPos doesn't get called on invisible slices in DrawSlice!!
  if parent = 0 then debug "FindSliceAtPoint null ptr": return 0
  dim as Slice ptr s, temp
  dim childindex as integer = 0
@@ -4155,7 +4160,9 @@ Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as int
    if s = NULL then return NULL
   wend
   with *s
-   'We refresh the child even if not visible/shown, unlike DrawSliceRecurse.
+   'First refresh to update child visibility, in case the parent is a Select slice.
+   'But we unconditionally refresh the child even if not visible for... no well
+   'justified reason (see r7792)
    'We don't call ChildrenRefresh if applicable, because we need (and should)
    'only update the screen positions, not do complex positioning recalc.
    parent->ChildRefresh(parent, s, childindex, NO)  'visibleonly=NO
