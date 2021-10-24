@@ -1376,7 +1376,6 @@ UTILTEST = env_exe ('utiltest', source = env.BASMAINO('utiltest.o', 'util.bas') 
 FILETEST = env_exe ('filetest', source = ['filetest.bas'] + base_objects)
 Depends(FILETEST, env_exe ('filetest_helper', source = ['filetest_helper.bas'] + base_objects))
 COMMONTEST = env_exe ('commontest', builder = allmodexenv.BASEXE, source = allmodexenv.BASMAINO('commontest.o', 'common.rbas') + allmodex_objects_without_common)
-env_exe ('slice2bas', source = ['slice2bas.bas'] + reload_objects)
 
 Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
 
@@ -1690,7 +1689,6 @@ Targets (executables to build):
   dumpohrkey          Convert .ohrkeys to text
   bam2mid             Convert .bam to .mid
   imageconv           Convert between png/bmp/jpg/gif (suggest using gfx=dummy)
-  slice2bas           For embedding .slice files
   reload2xml
   xml2reload          Requires libxml2 to build.
   reloadutil          To compare two .reload documents, or time load time
