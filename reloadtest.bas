@@ -245,7 +245,7 @@ startTest(addLargeInteger)
 	
 	if nod2 = 0 then fail
 	
-	dim i as LongInt = int(Rnd * 200000000000) + 5000000000 'we want something > 32 bits ;)
+	dim i as longint = int(Rnd * 200000000000) + 5000000000 'we want something > 32 bits ;)
 	SetContent(nod2, i)
 	
 	if NodeType(nod2) <> rltInt then fail
@@ -279,7 +279,7 @@ startTest(addLargeNegativeInteger)
 	
 	if nod2 = 0 then fail
 	
-	dim i as LongInt = int(Rnd * 200000000000) - 500000000000 'we want something > 32 bits ;)
+	dim i as longint = int(Rnd * 200000000000) - 500000000000 'we want something > 32 bits ;)
 	SetContent(nod2, i)
 	
 	if NodeType(nod2) <> rltInt then fail

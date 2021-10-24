@@ -44,10 +44,10 @@ TYPE DocPtr as Doc ptr
 TYPE NodePtr as Node ptr
 
 #if defined(RELOADINTERNAL) or __FB_DEBUG__
-	TYPE Hashptr as ReloadHash ptr
+	TYPE HashPtr as ReloadHash ptr
 	
 	Type StringTableEntry
-		str as Zstring Ptr
+		str as zstring ptr
 		uses as integer
 	End Type
 	
@@ -84,8 +84,8 @@ TYPE NodePtr as Node ptr
 		namenum as short   'in the string table, used while loading
 		nodeType as ubyte
 		Union 'this saves sizeof(Double) bytes per node!
-			num as LongInt
-			flo as Double
+			num as longint
+			flo as double
 			str as zstring ptr
 		end Union
 		strSize as integer
@@ -137,10 +137,10 @@ Declare sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debug
 Declare sub SerializeBin overload (file as string, byval doc as DocPtr)
 
 Declare Function GetString(byval node as nodeptr) as string
-Declare Function GetInteger(byval node as nodeptr) as LongInt
-Declare Function GetFloat(byval node as nodeptr) as Double
-Declare Function GetZString(byval node as nodeptr) as ZString ptr
-Declare Function ResizeZString(byval node as nodeptr, byval newsize as integer) as ZString ptr
+Declare Function GetInteger(byval node as nodeptr) as longint
+Declare Function GetFloat(byval node as nodeptr) as double
+Declare Function GetZString(byval node as nodeptr) as zstring ptr
+Declare Function ResizeZString(byval node as nodeptr, byval newsize as integer) as zstring ptr
 Declare Function GetZStringSize(byval node as nodeptr) as integer
 
 Declare Function GetChildByName(byval nod as NodePtr, byval nam as zstring ptr) as NodePtr 'NOT recursive
@@ -185,11 +185,11 @@ Declare Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, val 
 Declare Function ChildByIndex(byval parent as NodePtr, byval index as integer, byval withname as zstring ptr = NULL) as NodePtr
 
 Declare function ReadVLI overload(byval f as integer) as longint
-Declare Sub WriteVLI overload(byval f as integer, byval v as Longint)
+Declare Sub WriteVLI overload(byval f as integer, byval v as longint)
 Declare Function ReadVLI(byval f as FILE ptr) as longint
-Declare Sub WriteVLI(byval f as BufferedFile ptr, byval v as Longint)
+Declare Sub WriteVLI(byval f as BufferedFile ptr, byval v as longint)
 
-Declare Function DocumentMemoryUsage(byval doc as DocPtr) as LongInt
+Declare Function DocumentMemoryUsage(byval doc as DocPtr) as longint
 
 #if defined(RELOADINTERNAL) or __FB_DEBUG__
 	'ReloadBasic stuff

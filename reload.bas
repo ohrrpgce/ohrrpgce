@@ -25,15 +25,15 @@
 
 Namespace Reload
 
-Type hashFunction as Function(byval k as ZString ptr) as uinteger
+Type hashFunction as Function(byval k as zstring ptr) as uinteger
 
 Declare Function AddStringToTable (st as zstring ptr, byval doc as DocPtr) as integer
 Declare Function FindStringInTable overload(st as zstring ptr, byval doc as DocPtr) as integer
 
-Declare Function CreateHashTable(doc as Docptr, hashFunc as hashFunction, numbuckets as integer = 65) as Hashptr
+Declare Function CreateHashTable(doc as DocPtr, hashFunc as hashFunction, numbuckets as integer = 65) as HashPtr
 Declare Sub DestroyHashTable(byval h as HashPtr)
-Declare Function FindItem(h as HashPtr, key as ZString ptr, copynumber as integer = 1) as intptr_t
-Declare Sub AddItem(h as HashPtr, key as ZString ptr, item as intptr_t)
+Declare Function FindItem(h as HashPtr, key as zstring ptr, copynumber as integer = 1) as intptr_t
+Declare Sub AddItem(h as HashPtr, key as zstring ptr, item as intptr_t)
 Declare Sub RemoveKey(byval h as HashPtr, byval key as zstring ptr, byval num as integer = 1)
 
 
@@ -62,7 +62,7 @@ end Type
 '= everything manually. This is abstracted away 
 '===================================================================================================
 
-function RHeapInit(byval doc as docptr) as bool
+function RHeapInit(byval doc as DocPtr) as bool
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 	doc->heap = HeapCreate(0, 0, 0)
 	BUG_IF(doc->heap = null, "HeapCreate failed", NO)
@@ -73,7 +73,7 @@ function RHeapInit(byval doc as docptr) as bool
 #endif
 end function
 
-Function RHeapDestroy(byval doc as docptr) as bool
+Function RHeapDestroy(byval doc as DocPtr) as bool
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 	HeapDestroy(doc->heap) 'poof
 	doc->heap = null
@@ -84,7 +84,7 @@ Function RHeapDestroy(byval doc as docptr) as bool
 #endif
 end function
 
-Function RCallocate(byval s as integer, byval doc as docptr) as any ptr
+Function RCallocate(byval s as integer, byval doc as DocPtr) as any ptr
 	dim ret as any ptr
 	
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
@@ -96,7 +96,7 @@ Function RCallocate(byval s as integer, byval doc as docptr) as any ptr
 	return ret
 end function
 
-Function RReallocate(byval p as any ptr, byval doc as docptr, byval newsize as integer) as any ptr
+Function RReallocate(byval p as any ptr, byval doc as DocPtr, byval newsize as integer) as any ptr
 	dim ret as any ptr
 	
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
@@ -108,7 +108,7 @@ Function RReallocate(byval p as any ptr, byval doc as docptr, byval newsize as i
 	return ret
 end function
 
-Sub RDeallocate(byval p as any ptr, byval doc as docptr)
+Sub RDeallocate(byval p as any ptr, byval doc as DocPtr)
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 	HeapFree(doc->heap, 0, p)
 #else
@@ -119,7 +119,7 @@ End Sub
 'Fed a list of 132010 english words, this produced 131957 unique hashes.
 'The old hash produced only 1931 unique hashes
 'If this changes, reload_HashZString in reloadbasic.py needs to be updated too
-Function HashZString(byval st as ZString ptr) as uinteger
+Function HashZString(byval st as zstring ptr) as uinteger
 	dim as uinteger ret = 0, i = 0
 	
 	do while st[i]
@@ -1004,7 +1004,7 @@ sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 end sub
 
 'This is from xml2reload: is a node representable as a longint?
-local function NodeCompressible(byval node as nodeptr) as integer
+local function NodeCompressible(byval node as NodePtr) as integer
 	if (ValLng(GetString(node)) <> 0 AND ValLng(GetString(node) & "1") <> ValLng(GetString(node))) or GetString(node) = "0" then
 		return 1
 	elseif (Val(GetString(node)) <> 0 AND Val(GetString(node) & "1") <> Val(GetString(node))) or GetString(node) = "0" then
@@ -1018,7 +1018,7 @@ end function
 ' 1 - Lead/trailing whitespace, and if debugging = YES whether type will be lost, eg "" -> null
 ' 2 - Binary
 ' 3 - Long string or data, print hash
-local function NodeNeedsEncoding(byval node as nodeptr, byval debugging as bool, byval shortform as bool) as integer
+local function NodeNeedsEncoding(byval node as NodePtr, byval debugging as bool, byval shortform as bool) as integer
 	if node = null then return 0
 
 	if node->nodeType <> rltString then
@@ -1066,7 +1066,7 @@ local function EscapeXMLString(s as string) as string
 end function
 
 'Returns a Base64 encoded string, for XML serialization
-local function GetBase64EncodedString(byval node as nodeptr) as string
+local function GetBase64EncodedString(byval node as NodePtr) as string
 	if node = null orelse node->nodeType <> rltString then return ""
 
 	dim outbuf as zstring ptr
@@ -1274,7 +1274,7 @@ Function GetChildByContent(byval nod as NodePtr, content as longint, name as zst
 End Function
 
 'This returns a node's content in string form.
-Function GetString(byval node as nodeptr) as string
+Function GetString(byval node as NodePtr) as string
 	if node = null then return ""
 	
 	select case node->nodeType
@@ -1296,7 +1296,7 @@ End Function
 'This returns a node's content in integer form. If the node is a string, and the string
 'does not represent an integer of some kind, it will likely return 0.
 'Also, null nodes are worth 0
-Function GetInteger(byval node as nodeptr) as LongInt
+Function GetInteger(byval node as NodePtr) as longint
 	if node = null then return 0
 	
 	select case node->nodeType
@@ -1316,7 +1316,7 @@ End Function
 'This returns a node's content in floating point form. If the node is a string, and the string
 'does not represent a number of some kind, it will likely return 0.
 'Also, null nodes are worth 0
-Function GetFloat(byval node as nodeptr) as Double
+Function GetFloat(byval node as NodePtr) as double
 	if node = null then return 0.0
 	
 	select case node->nodeType
@@ -1335,7 +1335,7 @@ End Function
 
 'This returns a node's content in ZString form (i.e., a blob of data.) If the node
 'is not a string already, it will return null.
-Function GetZString(byval node as nodeptr) as ZString ptr
+Function GetZString(byval node as NodePtr) as zstring ptr
 	if node = null then return 0
 	
 	if node->nodeType <> rltString then
@@ -1345,7 +1345,7 @@ Function GetZString(byval node as nodeptr) as ZString ptr
 	return node->str
 End Function
 
-Function GetZStringSize(byval node as nodeptr) as integer
+Function GetZStringSize(byval node as NodePtr) as integer
 	if node = null then return 0
 	
 	if node->nodeType <> rltString then
@@ -1363,7 +1363,7 @@ End Function
 'Finally, the new memory block will be bigger than newsize by 1 byte. This is for the
 'null terminator, in case you're storing an actual string in here. Please try not
 'to overwrite it :)
-Function ResizeZString(byval node as nodeptr, byval newsize as integer) as ZString ptr
+Function ResizeZString(byval node as NodePtr, byval newsize as integer) as zstring ptr
 	if node = null then return 0
 	
 	if node->nodeType <> rltString then
@@ -1556,7 +1556,7 @@ Function GetChildNodeInt(byval parent as NodePtr, n as zstring ptr, byval d as l
 end function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
-Function GetChildNodeFloat(byval parent as NodePtr, n as zstring ptr, byval d as double) as Double
+Function GetChildNodeFloat(byval parent as NodePtr, n as zstring ptr, byval d as double) as double
 	if parent = 0 then return d
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
@@ -1764,7 +1764,7 @@ Sub SwapSiblingNodes(byval nod1 as NodePtr, byval nod2 as NodePtr)
 
 	'debug "swap " & NodeName(nod1) & " with sibling " & NodeName(nod2)
 
-	dim holder(par->numChildren - 1) as Nodeptr
+	dim holder(par->numChildren - 1) as NodePtr
 	dim index as integer = 0
 	dim p1 as integer = -1
 	dim p2 as integer = -1
@@ -1794,7 +1794,7 @@ Sub SwapSiblingNodes(byval nod1 as NodePtr, byval nod2 as NodePtr)
 	par->lastChild = holder(ubound(holder))
 End Sub
 
-sub SwapNodePrev(byval node as Nodeptr)
+sub SwapNodePrev(byval node as NodePtr)
 	if node = 0 then exit sub
 	dim sib as NodePtr
 	sib = PrevSibling(node)
@@ -1802,7 +1802,7 @@ sub SwapNodePrev(byval node as Nodeptr)
 	SwapSiblingNodes(node, sib)
 end sub
 
-sub SwapNodeNext(byval node as Nodeptr)
+sub SwapNodeNext(byval node as NodePtr)
 	if node = 0 then exit sub
 	dim sib as NodePtr
 	sib = NextSibling(node)
@@ -1940,7 +1940,7 @@ end function
 '                                Hash table for node names
 '==========================================================================================
 
-Function CreateHashTable(doc as Docptr, hashFunc as hashFunction, numbuckets as integer) as ReloadHash ptr
+Function CreateHashTable(doc as DocPtr, hashFunc as hashFunction, numbuckets as integer) as ReloadHash ptr
 	dim ret as HashPtr = RCallocate(sizeof(ReloadHash), doc)
 	
 	with *ret
@@ -1971,7 +1971,7 @@ Sub DestroyHashTable(byval h as HashPtr)
 end sub
 
 'copynumber: which copy of the item to return. 1 is first, etc,
-Function FindItem(h as HashPtr, key as ZString ptr, copynumber as integer = 1) as intptr_t
+Function FindItem(h as HashPtr, key as zstring ptr, copynumber as integer = 1) as intptr_t
 	if key = NULL then return 0
 
 	dim b as ReloadHashItem ptr
@@ -1991,7 +1991,7 @@ Function FindItem(h as HashPtr, key as ZString ptr, copynumber as integer = 1) a
 	return 0
 End Function
 
-Sub AddItem(h as HashPtr, key as ZString ptr, item as intptr_t)
+Sub AddItem(h as HashPtr, key as zstring ptr, item as intptr_t)
 	dim hash as uinteger = h->hashFunc(key)
 	
 	dim as ReloadHashItem ptr b, newitem = RCallocate(sizeof(ReloadHashItem), h->doc)
