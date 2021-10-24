@@ -3981,16 +3981,18 @@ END FUNCTION
 
 LOCAL FUNCTION finddatafile_internal(filename as string, searchtype as FileTypeEnum) as string
  DIM temp as string
- 'Current dir
- try_data_path(filename)
- try_data_path("data" & SLASH & filename)
  'platform-specific relative data files path (Mac OS X bundles)
  IF LEN(app_resources_dir) THEN
   try_data_path(app_resources_dir & SLASH & filename)
  END IF
- 'same folder as executable
- try_data_path(app_dir & filename)
+ 'same folder as executable: Windows, or when running from source tree
  try_data_path(app_dir & "data" SLASH & filename)
+ try_data_path(app_dir & filename)
+ 'Embedded in executable (we don't try this first, so that you don't have to
+ 'recompile to see changes in the source tree)
+ IF find_embedded_file(filename) THEN
+  RETURN "res://" & filename
+ END IF
  #IFDEF __FB_UNIX__
   '~/.ohrrpgce/
   try_data_path(settings_dir & SLASH & filename)
@@ -3998,13 +4000,16 @@ LOCAL FUNCTION finddatafile_internal(filename as string, searchtype as FileTypeE
   DIM datafiles as string
   datafiles = exepath & "/../share/games/ohrrpgce/"
   ' In this case the packaging script could avoid putting anything in a subdirectory
-  try_data_path(datafiles & filename)
   try_data_path(datafiles & "data/" & filename)
+  try_data_path(datafiles & filename)
   '/usr/share/games is optional in the Linux FHS standard, so try share/ohrrpgce too (Not seen in the wild)
   datafiles = exepath & "/../share/ohrrpgce/"
-  try_data_path(datafiles & filename)
   try_data_path(datafiles & "data/" & filename)
+  try_data_path(datafiles & filename)
  #ENDIF
+ 'Current dir... shouldn't really ever be here
+ try_data_path("data" & SLASH & filename)
+ try_data_path(filename)
  RETURN ""
 END FUNCTION
 
@@ -4023,11 +4028,14 @@ END FUNCTION
 
 ' Given a filename, search all the locations that data files for Game or Custom might
 ' be packages, and return its path if found.
+' This can return embedded files, whose path begins with "res://". Embedded files can
+' only be opened using vfopen() are aren't accepted by any other functions!
 FUNCTION finddatafile(filename as string, error_if_missing as bool = YES) as string
  RETURN finddatafile_internal2(filename, fileTypeFile, error_if_missing)
 END FUNCTION
 
 ' Like finddatafile, for subdirectories. Has a trailing slash only if dirname has one.
+' Doesn't return res:// paths.
 FUNCTION finddatadir(dirname as string, error_if_missing as bool = YES) as string
  RETURN finddatafile_internal2(dirname, fileTypeDirectory, error_if_missing)
 END FUNCTION
