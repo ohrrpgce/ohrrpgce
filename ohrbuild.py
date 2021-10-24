@@ -440,6 +440,48 @@ def verprint(mod, builddir, rootdir):
                 'SET SVNREV=%s' % rev))
 
 ########################################################################
+# Embedding data files
+
+def get_embedded_datafiles(rootdir):
+    "Returns list of files that should be embedded in Game/Custom (currently sourceslices/*.slice)"
+    ret = []
+    for fname in os.listdir(os.path.join(rootdir, 'sourceslices')):
+        if fname.endswith('.slice'):
+            ret.append(os.path.join('sourceslices', fname))
+    return ret
+
+def generate_datafiles_c(source, target, env):
+    """Generates datafiles.c ('target') which contains contents of all the files in 'source',
+    plus a table of the embedded files."""
+
+    def symname(path):
+        return '_data_' + os.path.basename(path).replace('.', '_').replace(' ', '_')
+
+    #ret = 'struct datafile_info {const char *path; const char *data; int length;};\n\n'
+    ret = '#include "../filelayer.hpp"\n\n'
+
+    # ld can directly turn files into .o modules, but it's not much trouble to do it ourselves
+    for path in source:
+        path = str(path)
+        with open(path, 'rb') as datafile:
+            ret += 'const char %s[] = {\n' % symname(path)
+            data = datafile.read()
+            for offset in range(0, len(data), 40):
+                row = data[offset : offset + 40]
+                ret += '  ' + ','.join(str(byte) for byte in row) + ',\n'
+            ret += '};\n\n'
+
+    ret += 'struct datafile_info data_files[] = {\n'
+    for idx, path in enumerate(source):
+        path = str(path)
+        ret += '  {"%s", %s, %d},\n' % (path, symname(path), os.stat(path).st_size)
+    ret += '  {NULL, NULL, 0},\n'
+    ret += '};\n'
+
+    with open(str(target[0]), 'w') as outf:
+        outf.write(ret)
+
+########################################################################
 # Android
 
 def android_source_actions (env, sourcelist, rootdir, destdir):

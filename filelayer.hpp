@@ -82,9 +82,15 @@ extern "C" {
 	void close_lazy_files();
 
 	FBSTRING *get_fb_filename(int fnum);
+
+	struct datafile_info {
+		const char *path;
+		const char *data;
+		int length;
+	};
+
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif // FILELAYER_H

@@ -1196,6 +1196,12 @@ VERPRINT = env.Command (target = verprint_targets,
 AlwaysBuild(VERPRINT)
 NoCache(verprint_targets)
 
+################ Data files
+
+datafiles = ohrbuild.get_embedded_datafiles(rootdir)
+DATAFILES_C = env.Command (target = [builddir + 'datafiles.c'], source = datafiles,
+                           action = env.Action(ohrbuild.generate_datafiles_c, "Generating datafiles.c"))
+#common_modules.append(DATAFILES_C)
 
 ################ Generate object file Nodes
 
