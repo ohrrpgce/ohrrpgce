@@ -63,7 +63,7 @@ TYPE NodePtr as Node ptr
 		stringHash as HashPtr
 		delayLoading as bool
 		fileHandle as FILE ptr
-		'fileName as string
+		fileName as string            'Used for error messages
 
 		'The following members are used only by RELOADBASIC
 		RBSignature as integer

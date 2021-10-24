@@ -18,6 +18,7 @@ declare sub debugerror (msg as const zstring ptr)
 declare sub fatalerror (msg as const zstring ptr)
 declare sub fatalbug (msg as const zstring ptr)
 declare sub visible_debug (msg as const zstring ptr)
+declare sub reporterr (msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context as zstring ptr = NULL)
 
 extern "C"
 declare sub early_debuginfo (msg as const zstring ptr)

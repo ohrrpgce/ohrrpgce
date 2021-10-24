@@ -150,7 +150,8 @@ Function CreateDocument() as DocPtr
 		end if
 		ret->version = 1
 		ret->root = null
-		
+		ret->filename = "<In-memory Reload.Doc>"
+
 		'The initial string table has one entry: ""
 		ret->strings = RCallocate(sizeof(StringTableEntry), ret)
 		ret->strings[0].str = RCallocate(1, ret)
@@ -326,7 +327,7 @@ Function LoadNode(byval f as FILE ptr, byval doc as DocPtr, byval force_recursiv
 	ret->namenum = cshort(ReadVLI(f))
 	
 	if ret->namenum < 0 or ret->namenum >= doc->numStrings then
-		debug "Node has invalid name: #" & ret->namenum
+		reporterr doc->filename & " corrupt: node has invalid name #" & ret->namenum, serrMajor
 		ret->namenum = 0
 	else
 		'debug "Node has valid name: #" & ret->namenum & " " & *doc->strings[ret->namenum].str
@@ -364,7 +365,7 @@ Function LoadNode(byval f as FILE ptr, byval doc as DocPtr, byval force_recursiv
 			fread(ret->str, 1, ret->strSize, f)
 			ret->nodeType = rltString
 		case else
-			debug "unknown node type " & ret->nodeType
+			reporterr doc->filename & " corrupt: unknown node type " & ret->nodeType, serrMajor
 			FreeNode(ret)
 			return null
 	end select
@@ -383,7 +384,7 @@ Function LoadNode(byval f as FILE ptr, byval doc as DocPtr, byval force_recursiv
 			nod = LoadNode(f, doc, force_recursive)
 			if nod = null then
 				FreeNode(ret)
-				debug "LoadNode: node @" & here & " child " & i & " node load failed"
+				'debug "LoadNode: node @" & here & " child " & i & " node load failed"
 				return null
 			end if
 			ret->numChildren -= 1
@@ -392,7 +393,7 @@ Function LoadNode(byval f as FILE ptr, byval doc as DocPtr, byval force_recursiv
 		
 		if ftell(f) - here <> size then
 			FreeNode(ret)
-			debug "GOSH-diddly-DARN-it! Why did we read " & (ftell(f) - here) & " bytes instead of " & size & "!?"
+			reporterr doc->filename & " corrupt? GOSH-diddly-DARN-it! Why did we read " & (ftell(f) - here) & " bytes instead of " & size, serrMajor
 			return null
 		end if
 	end if
@@ -414,7 +415,7 @@ Function LoadNode(byval ret as nodeptr, byval recursive as bool = YES) as bool
 	for i as integer = 0 to ret->numChildren - 1
 		dim nod as nodeptr = LoadNode(f, ret->doc, recursive)
 		if nod = null then
-			debug "LoadNode: node @" & ret->fileLoc & " child " & i & " node load failed"
+			'debug "LoadNode: node @" & ret->fileLoc & " child " & i & " node load failed"
 			return NO
 		end if
 		ret->numChildren -= 1
@@ -464,7 +465,7 @@ Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as 
 	f = fopen(fil, "rb")
 	if f = 0 then
 		if (options and optIgnoreMissing) = 0 then
-			debug "failed to open file " & fil
+			debugerror "failed to open " & fil
 		end if
 		return null
 	end if
@@ -479,7 +480,7 @@ Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as 
 	
 	if magic <> "RELD" then
 		fclose(f)
-		debug "Failed to load " & fil & ": No magic RELD signature"
+		reporterr "Couldn't load " & fil & ": Not a RELOAD file", serrMajor
 		return null
 	end if
 	
@@ -490,7 +491,7 @@ Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as 
 			fread(@headSize, 4, 1, f)
 			if headSize <> 13 then 'uh oh, the header is the wrong size
 				fclose(f)
-				debug "Failed to load " & fil & ": Reload header is " & headSize & "instead of 13"
+				reporterr fil & " corrupt: wrong header size " & headSize, serrMajor
 				return null
 			end if
 			
@@ -498,7 +499,7 @@ Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as 
 			
 		case else ' dunno. Let's quit.
 			fclose(f)
-			debug "Failed to load " & fil & ": Reload version " & ver & " not supported"
+			reporterr "Couldn't load " & fil & ": RELOAD version " & ver & " not supported", serrMajor
 			return null
 	end select
 	
@@ -506,7 +507,7 @@ Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as 
 	
 	ret = CreateDocument()
 	ret->version = ver
-	'ret->fileName = fil
+	ret->fileName = fil
 	'debuginfo "reload: opened " & fil
 	
 	if options and optNoDelay then

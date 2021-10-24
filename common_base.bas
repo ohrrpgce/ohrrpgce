@@ -77,3 +77,15 @@ END SUB
 ' SUB showbug (msg as const zstring ptr)
 '   debugc errShowBug, msg
 ' END SUB
+
+SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context as zstring ptr = NULL)
+ DIM full_msg as string = *msg
+ IF context THEN
+  full_msg = *context & ": "
+ END IF
+ IF errlvl >= serrBug THEN
+  showbug full_msg
+ ELSEIF errlvl >= serrMajor THEN
+  print full_msg
+ END IF
+END SUB
