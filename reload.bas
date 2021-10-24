@@ -159,7 +159,7 @@ Function CreateDocument() as DocPtr
 		ret->numStrings = 1
 		ret->numAllocStrings = 1
 		ret->stringHash = CreateHashTable(ret, @HashZString)
-		ret->delayLoading = no
+		ret->delayLoading = NO
 		ret->nameIndexTable = NULL
 		ret->nameIndexTableLen = 0
 		
@@ -211,13 +211,13 @@ end sub
 sub FreeChildren(byval nod as NodePtr)
 	BUG_IF(nod = NULL, "ptr already null")
 
-	if 0 = (nod->flags and nfNotLoaded) then
+	if (nod->flags and nfNotLoaded) = 0 then
 		dim as NodePtr child = nod->children, nextchild
-		do while child <> NULL
+		do while child
 			nextchild = child->nextSib
 			child->parent = NULL
 			FreeNode(child)
-			child = nextchild	
+			child = nextchild
 		loop
 		nod->numChildren = 0
 		nod->children = NULL
@@ -314,14 +314,13 @@ end sub
 
 'Loads a node from a binary file, into a document
 'If force_recurse is true, load recursively even if document marked for delayed loading.
-'
 Function LoadNode(byval f as FILE ptr, byval doc as DocPtr, byval force_recursive as bool) as NodePtr
 	dim size as integer
 	fread(@size, 4, 1, f)
-	
-	dim as integer here, here2
+
+	dim as integer here
 	here = ftell(f)
-	
+
 	dim ret as NodePtr
 	ret = CreateNode(doc, "")
 	ret->namenum = cshort(ReadVLI(f))
@@ -369,9 +368,7 @@ Function LoadNode(byval f as FILE ptr, byval doc as DocPtr, byval force_recursiv
 			FreeNode(ret)
 			return null
 	end select
-	
-	dim nod as nodeptr
-	
+
 	ret->numChildren = ReadVLI(f)
 	
 	if doc->delayLoading and force_recursive = NO then
@@ -381,6 +378,7 @@ Function LoadNode(byval f as FILE ptr, byval doc as DocPtr, byval force_recursiv
 		fseek(f, size + here, 0)
 	else
 		for i as integer = 0 to ret->numChildren - 1
+			dim nod as NodePtr
 			nod = LoadNode(f, doc, force_recursive)
 			if nod = null then
 				FreeNode(ret)
@@ -404,16 +402,16 @@ End Function
 'This loads a node's children if loading has been delayed, either recursively or not, returning success
 'Note: won't do a recursive load if the node is loaded already but its child aren't, so you will have to
 'call LoadNode before the node's children are first accessed!
-Function LoadNode(byval ret as nodeptr, byval recursive as bool = YES) as bool
-	if ret = null then return no
-	if (ret->flags AND nfNotLoaded) = 0 then return yes
-	
+Function LoadNode(byval ret as NodePtr, byval recursive as bool = YES) as bool
+	if ret = null then return NO
+	if (ret->flags AND nfNotLoaded) = 0 then return YES
+
 	dim f as FILE ptr = ret->doc->fileHandle
 	
 	fseek(f, ret->fileLoc, 0)
 	
 	for i as integer = 0 to ret->numChildren - 1
-		dim nod as nodeptr = LoadNode(f, ret->doc, recursive)
+		dim nod as NodePtr = LoadNode(f, ret->doc, recursive)
 		if nod = null then
 			'debug "LoadNode: node @" & ret->fileLoc & " child " & i & " node load failed"
 			return NO
@@ -424,11 +422,11 @@ Function LoadNode(byval ret as nodeptr, byval recursive as bool = YES) as bool
 	
 	ret->flags AND= NOT nfNotLoaded
 	
-	return yes
+	return YES
 End Function
 
 'This loads the string table from a binary document (as if the name didn't clue you in)
-Sub LoadStringTable(byval f as FILE ptr, byval doc as docptr)
+Sub LoadStringTable(byval f as FILE ptr, byval doc as DocPtr)
 	dim as uinteger count, size
 	
 	count = cint(ReadVLI(f))
@@ -445,7 +443,6 @@ Sub LoadStringTable(byval f as FILE ptr, byval doc as docptr)
 	
 	for i as integer = 1 to count
 		size = cint(ReadVLI(f))
-		'get #f, , size
 		doc->strings[i].str = RCallocate(size + 1, doc)
 		dim zs as zstring ptr = doc->strings[i].str
 		if size > 0 then
@@ -469,34 +466,30 @@ Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as 
 		end if
 		return null
 	end if
-	
-	dim as ubyte ver
-	dim as integer headSize, datSize
+
 	dim as string magic = "    "
-	
-	dim b as ubyte, i as integer
-	
 	fread(strptr(magic), 1, 4, f)
-	
+
 	if magic <> "RELD" then
 		fclose(f)
 		reporterr "Couldn't load " & fil & ": Not a RELOAD file", serrMajor
 		return null
 	end if
-	
+
+	dim as ubyte ver
+	dim as integer headSize, datSize
 	ver = fgetc(f)
-	
+
 	select case ver
-		case 1 ' no biggie
+		case 1
 			fread(@headSize, 4, 1, f)
-			if headSize <> 13 then 'uh oh, the header is the wrong size
+			if headSize <> 13 then
 				fclose(f)
 				reporterr fil & " corrupt: wrong header size " & headSize, serrMajor
 				return null
 			end if
-			
 			fread(@datSize, 4, 1, f)
-			
+
 		case else ' dunno. Let's quit.
 			fclose(f)
 			reporterr "Couldn't load " & fil & ": RELOAD version " & ver & " not supported", serrMajor
