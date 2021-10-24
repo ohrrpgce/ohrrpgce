@@ -15,9 +15,6 @@
 
 #include "sliceedit.bi"
 
-'This include contains the default slice collections for special screens
-#include "sourceslices.bi"
-
 '==============================================================================
 
 ENUM HideMode
@@ -2799,32 +2796,37 @@ END SUB
 
 '==========================================================================================
 
-'This wrapper around SliceLoadFromFile falls back to a default for the various special slice collections
+'Load a slice collection either a user or special one, e.g. the Status menu,
+'either from the game or falling back to a default.
 SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)
- DIM filename as string
- filename = workingdir & SLASH & "slicetree_" & collection_kind & "_" & collection_num & ".reld"
- IF isfile(filename) THEN
-  SliceLoadFromFile sl, filename, , IIF(collection_kind = SL_COLLECT_USERDEFINED, collection_num, -1)
+ DIM srcfile as string
+
+ ' Look in game data
+ srcfile = workingdir & SLASH & "slicetree_" & collection_kind & "_" & collection_num & ".reld"
+ IF isfile(srcfile) THEN
+  SliceLoadFromFile sl, srcfile, , IIF(collection_kind = SL_COLLECT_USERDEFINED, collection_num, -1)
+  EXIT SUB
+ END IF
+
+ ' Try to load the default (usually from an embedded file, but can be an external file)
+ DIM collname as string
+ SELECT CASE collection_kind
+  CASE SL_COLLECT_STATUSSCREEN:           collname = "status_screen"
+  CASE SL_COLLECT_STATUSSTATPLANK:        collname = "status_stat_plank"
+  CASE SL_COLLECT_ITEMSCREEN:             collname = "item_screen"
+  CASE SL_COLLECT_ITEMPLANK:              collname = "item_plank"
+  CASE SL_COLLECT_SPELLSCREEN:            collname = "spell_screen"
+  CASE SL_COLLECT_SPELLLISTPLANK:         collname = "spell_list_plank"
+  CASE SL_COLLECT_SPELLPLANK:             collname = "spell_spell_plank"
+  CASE SL_COLLECT_VIRTUALKEYBOARDSCREEN:  collname = "virtual_keyboard_screen"
+  CASE ELSE
+   showbug "Unknown slice collection kind " & collection_kind
+   EXIT SUB
+ END SELECT
+ srcfile = finddatafile("sourceslices" SLASH "default_" & collname & ".slice", NO) 'error_if_missing=NO
+ IF LEN(srcfile) THEN
+  SliceLoadFromFile sl, srcfile
  ELSE
-  SELECT CASE collection_kind
-   CASE SL_COLLECT_STATUSSCREEN:
-    default_status_screen sl
-   CASE SL_COLLECT_STATUSSTATPLANK:
-    default_status_stat_plank sl
-   CASE SL_COLLECT_ITEMSCREEN:
-    default_item_screen sl
-   CASE SL_COLLECT_ITEMPLANK:
-    default_item_plank sl
-   CASE SL_COLLECT_SPELLSCREEN:
-    default_spell_screen sl
-   CASE SL_COLLECT_SPELLLISTPLANK:
-    default_spell_list_plank sl
-   CASE SL_COLLECT_SPELLPLANK:
-    default_spell_spell_plank sl
-   CASE SL_COLLECT_VIRTUALKEYBOARDSCREEN:
-    default_virtual_keyboard_screen sl
-   CASE ELSE
-    debug "WARNING: no default slice collection for collection kind " & collection_kind
-  END SELECT
+  showbug "Missing embedded default_" & collname
  END IF
 END SUB
