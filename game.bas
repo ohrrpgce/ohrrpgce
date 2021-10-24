@@ -70,9 +70,10 @@ DECLARE FUNCTION player_menu_should_close() as bool
 DECLARE SUB debug_mouse_state()
 DECLARE FUNCTION find_doorlink_id (byval door_id as integer, thisdoor as door, door_links() as Doorlink) as integer
 DECLARE FUNCTION npc_pathfinding_collision_rule(npci as NPCInst) as PathfindingObstructionMode
-DECLARE FUNCTION npc_pushability_check(byval n as integer, byval d as integer) as bool
+DECLARE FUNCTION npc_pushability_check(byval n as integer, byval d as integer, byval push_activatable as bool=YES) as bool
 DECLARE FUNCTION check_nearby_pushable_npc(byval n as integer, byval rank as integer=0) as bool
 DECLARE SUB push_nearby_npc(byval n as integer, byval rank as integer=0)
+DECLARE FUNCTION drag_started_on_leader() as bool
 
 '=================================== Globals ==================================
 
@@ -807,7 +808,7 @@ DO
     user_trigger_hero_pathfinding()
     gam.pathing_click_start = TIMER
    END IF
-   IF readmouse.buttons AND mouseLeft ANDALSO TIMER - gam.pathing_click_start > .75 THEN
+   IF readmouse.buttons AND mouseLeft ANDALSO TIMER - gam.pathing_click_start > .5 THEN
     cancel_hero_pathfinding(0)
     user_trigger_hero_pathfinding()
    END IF
@@ -2329,11 +2330,16 @@ SUB npchitwall(npci as NPCInst, npcdata as NPCType, collision_type as WalkaboutC
  END IF
 END SUB
 
-FUNCTION npc_pushability_check(byval n as integer, byval d as integer) as bool
+FUNCTION npc_pushability_check(byval n as integer, byval d as integer, byval push_activatable as bool=YES) as bool
  WITH npc(n)
   IF .id <= 0 THEN RETURN NO ' this NPC does not exist
   IF .xgo <> 0 ORELSE .ygo <> 0 THEN RETURN NO 'NPC is already moving, so it can't be pushed
   DIM id as NPCTypeID = .id - 1
+  IF NOT push_activatable THEN
+   IF npool(.pool).npcs(id).textbox > 0 THEN RETURN NO
+   IF npool(.pool).npcs(id).item > 0 THEN RETURN NO
+   IF npool(.pool).npcs(id).script <> 0 THEN RETURN NO
+  END IF
   DIM push as integer = npool(.pool).npcs(id).pushtype
   IF push = 0 THEN RETURN NO ' Not pushable
   DIM go as XYPair
@@ -5253,10 +5259,12 @@ SUB user_trigger_hero_pathfinding()
   IF check_nearby_pushable_npc(npc_index, 0) THEN
    push_nearby_npc(npc_index, 0)
   ELSE
-   'Pathfind to an NPC (and activate when we reach it)
-   gam.hero_pathing(0).mode = HeroPathingMode.NPC
-   gam.hero_pathing(0).dest_npc = npc_index
-   gam.hero_pathing(0).stop_when_npc_reached = YES
+   IF NOT drag_started_on_leader() THEN
+    'Pathfind to an NPC (and activate when we reach it)
+    gam.hero_pathing(0).mode = HeroPathingMode.NPC
+    gam.hero_pathing(0).dest_npc = npc_index
+    gam.hero_pathing(0).stop_when_npc_reached = YES
+   END IF
   END IF
  ELSE
   clickpos.y -= gmap(11) 'adjust for foot-offset
@@ -5273,13 +5281,21 @@ SUB user_trigger_hero_pathfinding()
  gam.hero_pathing(0).on_map = gam.map.id
 END SUB
 
+FUNCTION drag_started_on_leader() as bool
+ IF (readmouse.dragging AND mouseLeft) = 0 THEN RETURN NO 'not dragging
+ IF SliceCollidepoint(herow(0).sl, readmouse.clickstart) THEN RETURN YES
+ RETURN NO
+END FUNCTION
+
 FUNCTION check_nearby_pushable_npc(byval n as integer, byval rank as integer=0) as bool
+ 'For mouse/touch pushing
  IF herow(0).xygo <> 0 THEN RETURN NO 'Hero is moving, so can't currently push
  DIM t1 as XYPair = herotpos(rank)
  DIM t2 as XYPair = npc(n).pos \ 20
  IF xypair_manhattan_distance(t1, t2) > 1 THEN RETURN NO 'Hero is not nearby
+ DIM push_activatable as bool = drag_started_on_leader()
  DIM dir_to as integer = xypair_direction_to(t1, t2, herodir(rank))
- IF NOT npc_pushability_check(n, dir_to) THEN RETURN NO 'NPC is not pushable
+ IF NOT npc_pushability_check(n, dir_to, push_activatable) THEN RETURN NO 'NPC is not pushable
  RETURN YES
 END FUNCTION
 
