@@ -669,3 +669,138 @@ FBSTRING *get_fb_filename(int fnum) {
 	init_fbstring(&ret, infop ? infop->name.c_str() : "<Non-OPENFILE file>");
 	return return_fbstring(&ret);
 }
+
+
+/******************************************************************************/
+// Abstraction layer for reading data files, either virtual files embedded into
+// the executable or normal external files accessed via C FILE streams.  Only
+// supports reading from embedded files, though writing external ones is OK. See
+// also the similar BufferedFile wrapper in lumpfile, built over FB files, which
+// only supports writing. Should probably merge this with the unused LumpFile
+// class and add FB-like Get and Put functions.
+
+struct VFile {
+	enum {
+		CFILE,
+		MEM,
+	} type;
+	union {
+		FILE *cfile;
+		struct {
+			int position;
+			const char *data;
+			int length;
+		};
+	};
+};
+
+// Returns 0 if the paths are the same, ignoring differences in path seps
+static int pathcmp(const char *path1, const char *path2) {
+	while (true) {
+		char c1 = *path1++, c2 = *path2++;
+		if (c1 == '\\') c1 = '/';
+		if (c2 == '\\') c2 = '/';
+		if (c1 != c2) return 1;
+		if (!c1) return 0;
+	}
+}
+
+// Check whether a file is embedded in the executable, if so return its info.
+// path should exclude res:// prefix.
+EmbeddedFileInfo *find_embedded_file(const char *path) {
+	EmbeddedFileInfo *info;
+	for (info = embedded_files_table; ; info++) {
+		if (!info->path)
+			return NULL;
+		debuginfo("%s, %s", path, info->path);
+		// Use path-separator-insensitive comparison because of cross-compiles
+		if (!pathcmp(info->path, path))
+			return info;
+	}
+}
+
+// Open either an arbitrary external file (relative to the current directory),
+// or if path begins with "res://", an embedded data file, e.g.
+// res://sourceslices/default_item_screen.slice
+VFile *vfopen(const char *path, const char *mode) {
+	VFile *ret;
+	if (strncmp(path, "res://", 6) == 0) {
+		if (strcmp(mode, "r") && strcmp(mode, "rb")) {
+			debug(errShowBug, "vfopen: unsupported mode %s", mode);
+			return NULL;
+		}
+
+		EmbeddedFileInfo *info = find_embedded_file(path + 6);  // Trim res://
+		if (!info) {
+			debug(errError, "vfopen: %s not found", path);  //Maybe count as a bug?
+			return NULL;
+		}
+
+		ret = new VFile;
+		ret->type = VFile::MEM;
+		ret->position = 0;
+		ret->data = info->data;
+		ret->length = info->length;
+	} else {
+		FILE *cfile = fopen(path, mode);
+		if (!cfile) return NULL;
+		ret = new VFile;
+		ret->type = VFile::CFILE;
+		ret->cfile = cfile;
+	}
+	return ret;
+}
+
+void vfclose(VFile *file) {
+	if (file->type == VFile::CFILE)
+		fclose(file->cfile);
+	delete file;
+}
+
+unsigned int vfread(void *restrict ptr, unsigned int size, unsigned int nmemb, VFile *file) {
+	if (file->type == VFile::CFILE)
+		return fread(ptr, size, nmemb, file->cfile);
+	else {
+		ssize_t bytes = size * nmemb;
+		size_t ret = nmemb;
+		if (bytes > file->length - file->position) {
+			bytes = file->length - file->position;
+			ret = bytes / size;
+		}
+		memcpy(ptr, file->data + file->position, bytes);
+		file->position += bytes;
+		return ret;
+	}
+}
+
+unsigned int vfwrite(const void *restrict ptr, unsigned int size, unsigned int nmemb, VFile *file) {
+	if (file->type == VFile::CFILE)
+		return fwrite(ptr, size, nmemb, file->cfile);
+	else {
+		showbug("Can't use vfwrite on memory buffers");
+		return 0;
+	}
+}
+
+size_t vfseek(VFile *file, ssize_t offset, int whence) {
+	if (file->type == VFile::CFILE)
+		return fseek(file->cfile, offset, whence);
+	else {
+		if (whence == SEEK_SET)
+			file->position = offset;
+		else if (whence == SEEK_CUR)
+			file->position += offset;
+		else if (whence == SEEK_END)
+			file->position = file->length + offset;
+		file->position = min(max(file->position, 0), file->length);
+		return file->position;
+	}
+}
+
+size_t vftell(VFile *file) {
+	if (file->type == VFile::CFILE)
+		return ftell(file->cfile);
+	else
+		return file->position;
+}
+

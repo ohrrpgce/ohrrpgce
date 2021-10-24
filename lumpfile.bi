@@ -9,6 +9,11 @@
 #include "const.bi"
 #include "os.bi"
 
+
+' Lump/FileLump/LumpedLump abstraction layer.
+' Sadly not used, and probably never will be, because filelayer.cpp took a different
+' approach which avoids modifying all code that uses FB files.
+
 enum Lumptype
 	LT_LUMPED
 	LT_FILE
@@ -94,7 +99,7 @@ end type
 
 '----------------------------------------------------------------------
 '                        Lump VTable/methods
-
+' (Not used!)
 
 type FnLumpDestruct as sub (byref as Lump)
 type FnLumpOpen as sub (byref as Lump)
@@ -186,6 +191,34 @@ declare function FileWrapper_seek(byref this as FileWrapper, byval offset as int
 declare function FileWrapper_read(byref this as FileWrapper, byval bufr as any ptr, byval size as integer, byval maxnum as integer) as integer
 'declare function FileWrapper_write(byref this as FileWrapper, byval bufr as any ptr, byval size as integer, byval maxnum as integer) as integer
 'don't need tell: call seek
+
+end extern
+
+
+'----------------------------------------------------------------------
+'                   Access to embedded data files
+' Abstraction layer for reading data files either  embedded into the exe or external.
+
+extern "C"
+
+type EmbeddedFileInfo
+	path as const zstring ptr
+	data as const zstring ptr
+	length as long
+end type
+
+extern embedded_files_table as EmbeddedFileInfo ptr
+
+declare function find_embedded_file(byval path as const zstring ptr) as EmbeddedFileInfo ptr
+
+type VFile as VFileFwd
+
+declare function vfopen(byval path as const zstring ptr, byval mode as const zstring ptr) as VFile ptr
+declare sub vfclose(byval file as VFile ptr)
+declare function vfread(byval ptr as any ptr, byval size as uint32, byval nmemb as uint32, byval file as VFile ptr) as uint32
+declare function vfwrite(byval ptr as const any ptr, byval size as uint32, byval nmemb as uint32, byval file as VFile ptr) as uint32
+declare function vfseek(byval file as VFile ptr, byval offset as ssize_t, byval whence as long) as size_t
+declare function vftell(byval file as VFile ptr) as size_t
 
 end extern
 

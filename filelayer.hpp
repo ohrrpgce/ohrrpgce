@@ -83,11 +83,27 @@ extern "C" {
 
 	FBSTRING *get_fb_filename(int fnum);
 
-	struct datafile_info {
+	// Embedded data files
+
+	typedef struct EmbeddedFileInfo {
 		const char *path;
 		const char *data;
 		int length;
-	};
+	} EmbeddedFileInfo;
+	extern EmbeddedFileInfo *embedded_files_table;
+
+	EmbeddedFileInfo *find_embedded_file(const char *path);
+
+	// Abstraction layer for reading data files, embedded or not
+
+	typedef struct VFile VFile;
+
+	VFile *vfopen(const char *path, const char *mode);
+	void vfclose(VFile *file);
+	unsigned int vfread(void *restrict ptr, unsigned int size, unsigned int nmemb, VFile *file);
+	unsigned int vfwrite(const void *restrict ptr, unsigned int size, unsigned int nmemb, VFile *file);
+	size_t vfseek(VFile *file, ssize_t offset, int whence);
+	size_t vftell(VFile *file);
 
 #ifdef __cplusplus
 }

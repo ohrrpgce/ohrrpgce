@@ -1198,18 +1198,25 @@ NoCache(verprint_targets)
 
 ################ Data files
 
-datafiles = ohrbuild.get_embedded_datafiles(rootdir)
-DATAFILES_C = env.Command (target = [builddir + 'datafiles.c'], source = datafiles,
-                           action = env.Action(ohrbuild.generate_datafiles_c, "Generating datafiles.c"))
-#common_modules.append(DATAFILES_C)
+# Files to embed in Custom+Game
+common_datafiles = Glob('sourceslices/*.slice')
+# Files to embed in other utilities
+util_datafiles = []
+
+# datafiles = ohrbuild.get_embedded_datafiles(rootdir)
+DATAFILES_C =      env.Command(target = [builddir + 'datafiles.c'], source = common_datafiles,
+                               action = env.Action(ohrbuild.generate_datafiles_c, "Generating datafiles.c"))
+UTIL_DATAFILES_C = env.Command(target = [builddir + 'util-datafiles.c'], source = util_datafiles,
+                               action = env.Action(ohrbuild.generate_datafiles_c, "Generating util-datafiles.c"))
+common_modules.append(DATAFILES_C)
 
 ################ Generate object file Nodes
 
 # Note that base_objects are not built in commonenv!
 base_objects = Flatten([env.Object(a) for a in base_modules])  # concatenate NodeLists
 common_objects = base_objects + Flatten ([commonenv.Object(a) for a in common_modules])
-# Plus unique module included by utilities but not Game or Custom
-base_objects.extend (env.Object ('common_base.bas'))
+# Modules included by utilities but not Game or Custom
+base_objects += [env.Object('common_base.bas'), env.Object(UTIL_DATAFILES_C)]
 
 gameenv = commonenv.Clone (VAR_PREFIX = 'game-', FBFLAGS = commonenv['FBFLAGS'] + \
                       ['-d','IS_GAME', '-m','game'])

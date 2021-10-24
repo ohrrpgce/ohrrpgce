@@ -442,14 +442,6 @@ def verprint(mod, builddir, rootdir):
 ########################################################################
 # Embedding data files
 
-def get_embedded_datafiles(rootdir):
-    "Returns list of files that should be embedded in Game/Custom (currently sourceslices/*.slice)"
-    ret = []
-    for fname in os.listdir(os.path.join(rootdir, 'sourceslices')):
-        if fname.endswith('.slice'):
-            ret.append(os.path.join('sourceslices', fname))
-    return ret
-
 def generate_datafiles_c(source, target, env):
     """Generates datafiles.c ('target') which contains contents of all the files in 'source',
     plus a table of the embedded files."""
@@ -457,7 +449,7 @@ def generate_datafiles_c(source, target, env):
     def symname(path):
         return '_data_' + os.path.basename(path).replace('.', '_').replace(' ', '_')
 
-    #ret = 'struct datafile_info {const char *path; const char *data; int length;};\n\n'
+    #ret = 'struct EmbeddedFileInfo {const char *path; const char *data; int length;};\n\n'
     ret = '#include "../filelayer.hpp"\n\n'
 
     # ld can directly turn files into .o modules, but it's not much trouble to do it ourselves
@@ -471,7 +463,7 @@ def generate_datafiles_c(source, target, env):
                 ret += '  ' + ','.join(str(byte) for byte in row) + ',\n'
             ret += '};\n\n'
 
-    ret += 'struct datafile_info data_files[] = {\n'
+    ret += 'EmbeddedFileInfo *embedded_files_table = (EmbeddedFileInfo[]){\n'
     for idx, path in enumerate(source):
         path = str(path)
         ret += '  {"%s", %s, %d},\n' % (path, symname(path), os.stat(path).st_size)

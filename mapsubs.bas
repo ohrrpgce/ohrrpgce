@@ -563,9 +563,9 @@ rectangle st.cursor.sprite + 1, 1, 1, 18, 18, 0
 rectangle st.cursor.sprite + 1, 3, 3, 14, 14, 2
 rectangle st.cursor.sprite + 1, 4, 4, 12, 12, 0
 
-DIM datafile as string = finddatafile("arrows2.bmp")  'Actually a walkabout set
-IF LEN(datafile) THEN
- DIM arrowset as Frame ptr = image_import_as_frame_raw(datafile)
+DIM arrowsfile as string = finddatafile("arrows2.bmp")  'Actually a walkabout set
+IF LEN(arrowsfile) THEN
+ DIM arrowset as Frame ptr = image_import_as_frame_raw(arrowsfile)
  FOR idx as integer = 0 TO UBOUND(st.arrow_icons)
   st.arrow_icons(idx) = frame_resized(arrowset, 20, 20, idx * -20, 0)
  NEXT

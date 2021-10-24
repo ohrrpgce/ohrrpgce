@@ -1312,7 +1312,7 @@ end sub
 'requires lots of seeking backwards in the file, but normally to positions near
 'the end. Unfortunately C's stdio buffered files flush when fseek is called, and
 'FreeBasic's files inherit this.
-'In future, likely to be integrated into LumpFile.
+'In future, likely to be integrated into DataFile.
 
 
 function Buffered_open (filename as string) as BufferedFile ptr
