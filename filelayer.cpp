@@ -773,6 +773,16 @@ unsigned int vfread(void *restrict ptr, unsigned int size, unsigned int nmemb, V
 	}
 }
 
+int vfgetc(VFile *file) {
+	if (file->type == VFile::CFILE)
+		return fgetc(file->cfile);
+	else {
+		if (file->position == file->length)
+			return EOF;
+		return (unsigned char)file->data[file->position++];
+	}
+}
+
 unsigned int vfwrite(const void *restrict ptr, unsigned int size, unsigned int nmemb, VFile *file) {
 	if (file->type == VFile::CFILE)
 		return fwrite(ptr, size, nmemb, file->cfile);

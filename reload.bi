@@ -62,7 +62,7 @@ TYPE NodePtr as Node ptr
 #endif
 		stringHash as HashPtr
 		delayLoading as bool
-		fileHandle as FILE ptr
+		fileHandle as VFile ptr
 		fileName as string            'Used for error messages
 
 		'The following members are used only by RELOADBASIC
@@ -186,7 +186,7 @@ Declare Function ChildByIndex(byval parent as NodePtr, byval index as integer, b
 
 Declare function ReadVLI overload(byval f as integer) as longint
 Declare Sub WriteVLI overload(byval f as integer, byval v as longint)
-Declare Function ReadVLI(byval f as FILE ptr) as longint
+Declare Function ReadVLI(byval vf as VFile ptr) as longint
 Declare Sub WriteVLI(byval f as BufferedFile ptr, byval v as longint)
 
 Declare Function DocumentMemoryUsage(byval doc as DocPtr) as longint

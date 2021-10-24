@@ -9,6 +9,7 @@
 #include "testing.bi"
 #include "reload.bi"
 #include "reloadext.bi"
+#include "lumpfile.bi"
 
 Using Reload
 Using Reload.Ext
@@ -172,7 +173,7 @@ startTest(VLIFBFile)
 	killfile VLITestFile
 endTest
 
-' Test overloads of ReadVLI/WriteVLI using C stdio/BufferedFile are compatible
+' Test overloads of ReadVLI/WriteVLI using VFile/BufferedFile are compatible
 startTest(VLICFile)
 	scope
 		dim fil as BufferedFile ptr
@@ -185,14 +186,14 @@ startTest(VLICFile)
 	end scope
 
 	scope
-		dim fil as FILE ptr
-		fil = fopen(VLITestFile, "rb")
+		dim fil as VFile ptr
+		fil = vfopen(VLITestFile, "rb")
 		if fil = NULL then fail
 
 		READ_VLIS()
 
-		if ftell(fil) <> filelen(VLITestFile) then fail
-		fclose(fil)
+		if vftell(fil) <> filelen(VLITestFile) then fail
+		vfclose(fil)
 	end scope
 endTest
 

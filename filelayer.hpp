@@ -101,6 +101,7 @@ extern "C" {
 	VFile *vfopen(const char *path, const char *mode);
 	void vfclose(VFile *file);
 	unsigned int vfread(void *restrict ptr, unsigned int size, unsigned int nmemb, VFile *file);
+	int vfgetc(VFile *file);
 	unsigned int vfwrite(const void *restrict ptr, unsigned int size, unsigned int nmemb, VFile *file);
 	size_t vfseek(VFile *file, ssize_t offset, int whence);
 	size_t vftell(VFile *file);

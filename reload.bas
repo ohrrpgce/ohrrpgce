@@ -278,7 +278,7 @@ sub FreeDocument(byval doc as DocPtr)
 	
 	if doc->fileHandle then
 		'debuginfo "reload: closing file " & doc->fileName
-		fclose(doc->fileHandle)
+		vfclose(doc->fileHandle)
 		doc->fileHandle = null
 	end if
 	
@@ -314,17 +314,17 @@ end sub
 
 'Loads a node from a binary file, into a document
 'If force_recurse is true, load recursively even if document marked for delayed loading.
-Function LoadNode(byval f as FILE ptr, byval doc as DocPtr, byval force_recursive as bool) as NodePtr
+Function LoadNode(byval vf as VFile ptr, byval doc as DocPtr, byval force_recursive as bool) as NodePtr
 	dim size as integer
-	fread(@size, 4, 1, f)
+	vfread(@size, 4, 1, vf)
 
 	dim as integer here
-	here = ftell(f)
+	here = vftell(vf)
 
 	dim ret as NodePtr
 	ret = CreateNode(doc, "")
-	ret->namenum = cshort(ReadVLI(f))
-	
+	ret->namenum = cshort(ReadVLI(vf))
+
 	if ret->namenum < 0 or ret->namenum >= doc->numStrings then
 		reporterr doc->filename & " corrupt: node has invalid name #" & ret->namenum, serrMajor
 		ret->namenum = 0
@@ -333,35 +333,35 @@ Function LoadNode(byval f as FILE ptr, byval doc as DocPtr, byval force_recursiv
 		ret->name = doc->strings[ret->namenum].str
 		doc->strings[ret->namenum].uses += 1
 	end if
-	
-	ret->nodetype = fgetc(f)
-	
+
+	ret->nodetype = vfgetc(vf)
+
 	select case ret->nodeType
 		case rliNull
 		case rliByte
-			ret->num = cbyte(fgetc(f))
+			ret->num = cbyte(vfgetc(vf))
 			ret->nodeType = rltInt
 		case rliShort
 			dim s as short
-			fread(@s, 2, 1, f)
+			vfread(@s, 2, 1, vf)
 			ret->num = s
 			ret->nodeType = rltInt
 		case rliInt
 			dim i as integer
-			fread(@i, 4, 1, f)
+			vfread(@i, 4, 1, vf)
 			ret->num = i
 			ret->nodeType = rltInt
 		case rliLong
-			fread(@(ret->num), 8, 1, f)
+			vfread(@(ret->num), 8, 1, vf)
 			ret->nodeType = rltInt
 		case rliFloat
-			fread(@(ret->flo), 8, 1, f)
+			vfread(@(ret->flo), 8, 1, vf)
 			ret->nodeType = rltFloat
 		case rliString
 			dim mysize as integer
-			ret->strSize = cint(ReadVLI(f))
+			ret->strSize = cint(ReadVLI(vf))
 			ret->str = RCallocate(ret->strSize + 1, doc)
-			fread(ret->str, 1, ret->strSize, f)
+			vfread(ret->str, 1, ret->strSize, vf)
 			ret->nodeType = rltString
 		case else
 			reporterr doc->filename & " corrupt: unknown node type " & ret->nodeType, serrMajor
@@ -369,17 +369,17 @@ Function LoadNode(byval f as FILE ptr, byval doc as DocPtr, byval force_recursiv
 			return null
 	end select
 
-	ret->numChildren = ReadVLI(f)
-	
+	ret->numChildren = ReadVLI(vf)
+
 	if doc->delayLoading and force_recursive = NO then
-		ret->fileLoc = ftell(f)
+		ret->fileLoc = vftell(vf)
 		ret->flags OR= nfNotLoaded
-		
-		fseek(f, size + here, 0)
+
+		vfseek(vf, size + here, SEEK_SET)
 	else
 		for i as integer = 0 to ret->numChildren - 1
 			dim nod as NodePtr
-			nod = LoadNode(f, doc, force_recursive)
+			nod = LoadNode(vf, doc, force_recursive)
 			if nod = null then
 				FreeNode(ret)
 				'debug "LoadNode: node @" & here & " child " & i & " node load failed"
@@ -388,10 +388,10 @@ Function LoadNode(byval f as FILE ptr, byval doc as DocPtr, byval force_recursiv
 			ret->numChildren -= 1
 			AddChild(ret, nod)
 		next
-		
-		if ftell(f) - here <> size then
+
+		if vftell(vf) - here <> size then
 			FreeNode(ret)
-			reporterr doc->filename & " corrupt? GOSH-diddly-DARN-it! Why did we read " & (ftell(f) - here) & " bytes instead of " & size, serrMajor
+			reporterr doc->filename & " corrupt? GOSH-diddly-DARN-it! Why did we read " & (vftell(vf) - here) & " bytes instead of " & size, serrMajor
 			return null
 		end if
 	end if
@@ -406,12 +406,12 @@ Function LoadNode(byval ret as NodePtr, byval recursive as bool = YES) as bool
 	if ret = null then return NO
 	if (ret->flags AND nfNotLoaded) = 0 then return YES
 
-	dim f as FILE ptr = ret->doc->fileHandle
-	
-	fseek(f, ret->fileLoc, 0)
-	
+	dim vf as VFile ptr = ret->doc->fileHandle
+
+	vfseek(vf, ret->fileLoc, SEEK_SET)
+
 	for i as integer = 0 to ret->numChildren - 1
-		dim nod as NodePtr = LoadNode(f, ret->doc, recursive)
+		dim nod as NodePtr = LoadNode(vf, ret->doc, recursive)
 		if nod = null then
 			'debug "LoadNode: node @" & ret->fileLoc & " child " & i & " node load failed"
 			return NO
@@ -426,10 +426,10 @@ Function LoadNode(byval ret as NodePtr, byval recursive as bool = YES) as bool
 End Function
 
 'This loads the string table from a binary document (as if the name didn't clue you in)
-Sub LoadStringTable(byval f as FILE ptr, byval doc as DocPtr)
+Sub LoadStringTable(byval vf as VFile ptr, byval doc as DocPtr)
 	dim as uinteger count, size
 	
-	count = cint(ReadVLI(f))
+	count = cint(ReadVLI(vf))
 	
 	if count <= 0 then exit sub
 	
@@ -442,11 +442,11 @@ Sub LoadStringTable(byval f as FILE ptr, byval doc as DocPtr)
 	doc->numAllocStrings = count + 1
 	
 	for i as integer = 1 to count
-		size = cint(ReadVLI(f))
+		size = cint(ReadVLI(vf))
 		doc->strings[i].str = RCallocate(size + 1, doc)
 		dim zs as zstring ptr = doc->strings[i].str
 		if size > 0 then
-			fread(zs, 1, size, f)
+			vfread(zs, 1, size, vf)
 		end if
 		
 		AddItem(doc->stringHash, doc->strings[i].str, i)
@@ -456,11 +456,11 @@ end sub
 Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as DocPtr
 	dim starttime as double = timer
 	dim ret as DocPtr
-	dim f as FILE ptr
+	dim vf as VFile ptr
 
 	log_openfile fil
-	f = fopen(fil, "rb")
-	if f = 0 then
+	vf = vfopen(fil, "rb")
+	if vf = 0 then
 		if (options and optIgnoreMissing) = 0 then
 			debugerror "failed to open " & fil
 		end if
@@ -468,30 +468,30 @@ Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as 
 	end if
 
 	dim as string magic = "    "
-	fread(strptr(magic), 1, 4, f)
+	vfread(strptr(magic), 1, 4, vf)
 
 	if magic <> "RELD" then
-		fclose(f)
+		vfclose(vf)
 		reporterr "Couldn't load " & fil & ": Not a RELOAD file", serrMajor
 		return null
 	end if
 
 	dim as ubyte ver
 	dim as integer headSize, datSize
-	ver = fgetc(f)
+	ver = vfgetc(vf)
 
 	select case ver
 		case 1
-			fread(@headSize, 4, 1, f)
+			vfread(@headSize, 4, 1, vf)
 			if headSize <> 13 then
-				fclose(f)
+				vfclose(vf)
 				reporterr fil & " corrupt: wrong header size " & headSize, serrMajor
 				return null
 			end if
-			fread(@datSize, 4, 1, f)
+			vfread(@datSize, 4, 1, vf)
 
 		case else ' dunno. Let's quit.
-			fclose(f)
+			vfclose(vf)
 			reporterr "Couldn't load " & fil & ": RELOAD version " & ver & " not supported", serrMajor
 			return null
 	end select
@@ -507,28 +507,28 @@ Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as 
 		ret->delayLoading = NO
 	else
 		ret->delayLoading = YES
-		ret->fileHandle = f
+		ret->fileHandle = vf
 	end if
 	
 	'We'll load the string table first, to assist in debugging.
 	
-	fseek(f, datSize, 0)
-	LoadStringTable(f, ret)
+	vfseek(vf, datSize, SEEK_SET)
+	LoadStringTable(vf, ret)
 	
-	fseek(f, headSize, 0)
+	vfseek(vf, headSize, SEEK_SET)
 	
-	ret->root = LoadNode(f, ret, NO)
+	ret->root = LoadNode(vf, ret, NO)
 	
 	'Is it possible to serialize a null root? I mean, I don't know why you would want to, but...
 	'regardless, if it's null here, it's because of an error
 	if ret->root = null then
-		fclose(f)
+		vfclose(vf)
 		FreeDocument(ret)
 		return null
 	end if
 	
 	if options and optNoDelay then
-		fclose(f)
+		vfclose(vf)
 	end if
 	debug_if_slow(starttime, 0.1, fil)
 	return ret
@@ -703,7 +703,7 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 		'Now it's very likely that we're writing back to the original file, which means
 		'that on Windows we have to close this file, otherwise we can't delete it!
 		'debuginfo "reload: closing file " & doc->fileName
-		fclose(doc->fileHandle)
+		vfclose(doc->fileHandle)
 		doc->fileHandle = NULL
 	end if
 
@@ -1893,7 +1893,7 @@ end sub
 
 #macro READBYTE_stdio(DEST)
         scope
-		dim tmp as integer = fgetc(infile)
+		dim tmp as integer = vfgetc(infile)
 		if tmp = -1 then return 0
 		DEST = tmp
         end scope
@@ -1927,10 +1927,12 @@ end sub
 
 'This reads the number back in again
 'Returns 0 on error.
-function ReadVLI(infile as FILE ptr) as longint
+function ReadVLI(infile as VFile ptr) as longint
         _ReadVLI(READBYTE_stdio)
 end function
 
+'Using a FB file handler. This is currently used only in reloadtest,
+'but VLIs are potentially useful elsewhere.
 function ReadVLI(infile as integer) as longint
         _ReadVLI(READBYTE_FB)
 end function
