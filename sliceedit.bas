@@ -2816,8 +2816,8 @@ SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integ
   CASE SL_COLLECT_ITEMSCREEN:             collname = "item_screen"
   CASE SL_COLLECT_ITEMPLANK:              collname = "item_plank"
   CASE SL_COLLECT_SPELLSCREEN:            collname = "spell_screen"
-  CASE SL_COLLECT_SPELLLISTPLANK:         collname = "spell_list_plank"
-  CASE SL_COLLECT_SPELLPLANK:             collname = "spell_spell_plank"
+  CASE SL_COLLECT_SPELLLISTPLANK:         collname = "spell_list_plank"    'Unused!
+  CASE SL_COLLECT_SPELLPLANK:             collname = "spell_spell_plank"   'Unused!
   CASE SL_COLLECT_VIRTUALKEYBOARDSCREEN:  collname = "virtual_keyboard_screen"
   CASE ELSE
    showbug "Unknown slice collection kind " & collection_kind

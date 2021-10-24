@@ -1413,8 +1413,8 @@ SUB secret_menu ()
    IF st.pt = 11 THEN slice_editor SL_COLLECT_ITEMSCREEN
    IF st.pt = 12 THEN slice_editor SL_COLLECT_ITEMPLANK
    IF st.pt = 13 THEN slice_editor SL_COLLECT_SPELLSCREEN
-   IF st.pt = 14 THEN slice_editor SL_COLLECT_SPELLLISTPLANK
-   IF st.pt = 15 THEN slice_editor SL_COLLECT_SPELLPLANK
+   IF st.pt = 14 THEN slice_editor SL_COLLECT_SPELLLISTPLANK  'Unused!
+   IF st.pt = 15 THEN slice_editor SL_COLLECT_SPELLPLANK      'Unused
    IF st.pt = 16 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
    IF st.pt = 17 THEN
     DIM options(...) as string = {"Hero", "Small Enemy", "Medium Enemy", "Large Enemy", "Walkabouts", "Weapons", "Attack", "Boxborder", "Portrait", "Backdrop", "Enemy"}
