@@ -4636,6 +4636,45 @@ End sub
 
 
 '==============================================================================
+'                              Slice Collections
+
+'Load a slice collection either a user or special one, e.g. the Status menu,
+'either from the game or falling back to a default.
+SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)
+ DIM srcfile as string
+
+ ' Look in game data
+ srcfile = workingdir & SLASH & "slicetree_" & collection_kind & "_" & collection_num & ".reld"
+ IF isfile(srcfile) THEN
+  SliceLoadFromFile sl, srcfile, , IIF(collection_kind = SL_COLLECT_USERDEFINED, collection_num, -1)
+  EXIT SUB
+ END IF
+
+ ' Try to load the default (usually from an embedded file, but can be an external file)
+ DIM collname as string
+ SELECT CASE collection_kind
+  CASE SL_COLLECT_STATUSSCREEN:           collname = "status_screen"
+  CASE SL_COLLECT_STATUSSTATPLANK:        collname = "status_stat_plank"
+  CASE SL_COLLECT_ITEMSCREEN:             collname = "item_screen"
+  CASE SL_COLLECT_ITEMPLANK:              collname = "item_plank"
+  CASE SL_COLLECT_SPELLSCREEN:            collname = "spell_screen"
+  CASE SL_COLLECT_SPELLLISTPLANK:         collname = "spell_list_plank"    'Unused!
+  CASE SL_COLLECT_SPELLPLANK:             collname = "spell_spell_plank"   'Unused!
+  CASE SL_COLLECT_VIRTUALKEYBOARDSCREEN:  collname = "virtual_keyboard_screen"
+  CASE ELSE
+   showbug "Unknown slice collection kind " & collection_kind
+   EXIT SUB
+ END SELECT
+ srcfile = finddatafile("sourceslices" SLASH "default_" & collname & ".slice", NO) 'error_if_missing=NO
+ IF LEN(srcfile) THEN
+  SliceLoadFromFile sl, srcfile
+ ELSE
+  showbug "Missing embedded default_" & collname
+ END IF
+END SUB
+
+
+'==============================================================================
 '                              Slice Debugging
 
 Sub report_slice_type_err(sl as Slice ptr, expected as SliceTypes)

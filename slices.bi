@@ -130,6 +130,34 @@ CONST SL_PATHFIND_DEST_DISPLAY       = -102100
 #define edsl(lookupcode_suffix, parent)  LookupSlice(_CONCAT(EDSL_PREFIX, lookupcode_suffix), parent)
 #define EDSL_PREFIX SL_EDITOR_
 
+' Slice collection kinds
+
+CONST SL_COLLECT_EDITOR = -1      'Collections used by Custom itself, not stored in .rpgs
+CONST SL_COLLECT_USERDEFINED = 0
+CONST SL_COLLECT_ITEMSCREEN = 1
+CONST SL_COLLECT_ITEMPLANK = 2
+CONST SL_COLLECT_STATUSSCREEN = 3
+CONST SL_COLLECT_STATUSSTATPLANK = 4
+CONST SL_COLLECT_SPELLSCREEN = 5
+CONST SL_COLLECT_SPELLLISTPLANK = 6  'Unused!
+CONST SL_COLLECT_SPELLPLANK = 7      'Unused!
+' The following do not yet exist
+'CONST SL_COLLECT_EQUIPSCREEN = 8
+'CONST SL_COLLECT_EQUIPSLOTPLANK = 9
+'CONST SL_COLLECT_EQUIPABLEPLANK = 10
+'CONST SL_COLLECT_ORDERSCREEN = 11
+'CONST SL_COLLECT_ORDERACTIVEPLANK = 12
+'CONST SL_COLLECT_ORDERRESERVEPLANK = 13
+'CONST SL_COLLECT_HEROPICKSCREEN = 14
+'CONST SL_COLLECT_HEROPICKACTIVEPLANK = 15
+'CONST SL_COLLECT_HEROPICKRESERVEPLANK = 16
+'CONST SL_COLLECT_SAVESCREEN = 17
+'CONST SL_COLLECT_SAVEPLANK = 18
+'CONST SL_COLLECT_LOADSCREEN = 19
+'CONST SL_COLLECT_LOADPLANK = 20
+CONST SL_COLLECT_VIRTUALKEYBOARDSCREEN = 21
+
+
 Type SliceTypes as integer
 Enum 'SliceTypes
  slInvalid = -1
@@ -575,6 +603,7 @@ DECLARE Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_
 DECLARE Sub SliceSaveToFile(byval sl as Slice Ptr, filename as string, save_handles as bool=NO)
 DECLARE Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handles as bool=NO)
 DECLARE Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO, collection_id as integer=-1)
+DECLARE Sub load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)
 
 DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
 DECLARE Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as bool = NO)
