@@ -42,6 +42,8 @@ WHAT IS NEW?
     * Editing a single global NPC definition from NPC placement mode didn't save
       changes and caused crashes. Plus other global NPC bugfixes. [Ralph]
     * Global NPCs didn't reload while using Test Game. [Ralph]
+    * At higher resolutions the map layers would be cropped to 320x200 for a
+      tick when exiting the Spells, Equip or Save/Load menus [Ralph]
 
   *** Stuff Only Developers Will Notice
     * FreeBASIC 1.04+ now required to compile

@@ -4212,10 +4212,10 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 'ystart is the distance from the top to start drawing, yheight the number of lines. yheight=-1 indicates extend to bottom of screen
 'There are no options in the X direction because they've never been used, and I don't forsee them being (can use Frames or slices instead)
 	dim mapview as Frame ptr
-	'Drawing onto the view Frame will reset the cliprect. Also we need to shift the cliprect by ystart.
+	'Drawing onto mapview will reset the cliprect, so save it. Also we need to shift the cliprect by ystart.
 	'TODO: it would be more efficient to shrink mapview to the cliprect. Then we could also avoid having
 	'to clip each individual tile.
-	dim saveclip as ClipState = get_cliprect()
+	dim saveclip as ClipState = get_cliprect(vpages(p))
 	mapview = frame_new_view(vpages(p), 0, ystart, vpages(p)->w, iif(yheight = -1, vpages(p)->h, yheight))
 	setclip saveclip.l, saveclip.t - ystart, saveclip.r, saveclip.b - ystart, mapview
 	drawmap tmap, x, y, tilesetsprite, mapview, trans, overheadmode, pmapptr, largetileset, pal, opts
@@ -8809,6 +8809,7 @@ function shrinkclip(l as integer = 0, t as integer = 0, r as integer = 999999, b
 		cliprect.r = fr->w - 1
 		cliprect.b = fr->h - 1
 	end if
+	BUG_IF(cliprect.frame = 0 andalso fr = 0, "Trying to shrinkclip with no Frame", NO)
 	with *cliprect.frame
 		cliprect.l = bound(large(cliprect.l, l), 0, .w) '.w valid, prevents any drawing
 		cliprect.t = bound(large(cliprect.t, t), 0, .h)
