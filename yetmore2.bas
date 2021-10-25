@@ -1399,7 +1399,7 @@ END SUB
 SUB reload_heroes_reld()
  DIM doc as DocPtr
  doc = LoadDocument(workingdir & SLASH & "heroes.reld")
- IF doc = 0 THEN EXIT SUB  '???
+ IF doc = 0 THEN EXIT SUB  'Shouldn't happen!
 
  'Update each hero in the party (this time, we can skip over empty party slots)
  FOR slot as integer = 0 TO UBOUND(gam.hero)

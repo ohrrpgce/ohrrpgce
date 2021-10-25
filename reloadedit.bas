@@ -468,12 +468,10 @@ FUNCTION reload_editor_load_special_file(byref st as ReloadEditorState) as bool
    st.doc = Reload.CreateDocument()
    st.root = Reload.CloneNodeTree(get_general_reld(), st.doc)
    Reload.SetRootNode(st.doc, st.root)
-  CASE 1
-   st.doc = Reload.LoadDocument(workingdir & SLASH & "distrib.reld", optNoDelay)
-  CASE 2
-   st.doc = Reload.LoadDocument(workingdir & SLASH & "heroes.reld", optNoDelay)
-  CASE 3
-   st.doc = Reload.LoadDocument(workingdir & SLASH & "heroform.reld", optNoDelay)
+  CASE 1, 2, 3
+   DIM filename as string = workingdir & SLASH & menu(choice)
+   st.doc = Reload.LoadDocument(filename, optNoDelay or optIgnoreMissing)
+   IF st.doc = 0 THEN visible_debug menu(choice) & " doesn't exist in this game"
 
  END SELECT
  IF st.doc = 0 THEN st.root = 0 : RETURN YES

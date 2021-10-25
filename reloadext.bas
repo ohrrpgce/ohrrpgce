@@ -109,6 +109,7 @@ End Function
 'For example, /party/slot[3]/stats returns a great-grandchild of 'node'.
 'NOTE: If you use an index equal to 0, eg. "/hero[0]", it will match null and most string nodes
 'named "hero" too, because GetInteger on anything that doesn't look like a number returns 0!
+'(FIXME: why don't we just pass a default to GetInteger?)
 Function NodeByPath(byval node as NodePtr, zpath as zstring ptr, byval create as bool=NO) as NodePtr
 	if node = null then return null
 	if len(*zpath) = 0 then return null

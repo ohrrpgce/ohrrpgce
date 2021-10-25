@@ -719,7 +719,7 @@ ELSE
  'Clear the screen so that there's no garbage shown behind the prompt to rename the starting hero
  clearpage dpage
  clearpage vpage
- 'Add initial hero to party (slot 0)
+ 'Add initial hero to party (slot 0), may call renamehero
  addhero gen(genStartHero), 0
  'Trigger textbox and/or script
  gam.want.box = gen(genStartTextbox)  '0 for no textbox

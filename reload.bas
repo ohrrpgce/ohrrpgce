@@ -453,6 +453,7 @@ Sub LoadStringTable(byval vf as VFile ptr, byval doc as DocPtr)
 	next
 end sub
 
+'fil may be a res:// path.
 Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as DocPtr
 	dim starttime as double = timer
 	dim ret as DocPtr
@@ -462,7 +463,7 @@ Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as 
 	vf = vfopen(fil, "rb")
 	if vf = 0 then
 		if (options and optIgnoreMissing) = 0 then
-			debugerror "failed to open " & fil
+			reporterr "Couldn't open " & fil & " (probably missing)", serrMajor
 		end if
 		return null
 	end if
