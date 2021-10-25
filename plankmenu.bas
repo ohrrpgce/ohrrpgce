@@ -515,7 +515,7 @@ END SUB
 
 FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice Ptr
  DIM collection as Slice Ptr = NewSliceOfType(slContainer)
- load_slice_collection collection, collection_kind
+ LoadSliceCollection collection, collection_kind
  BUG_IF(collection = NULL, "plank collection not found " & collection_kind, NULL)
  DIM result as Slice Ptr
  result = plank_menu_append(sl, lookup, collection, callback, arg0, arg1, arg2)

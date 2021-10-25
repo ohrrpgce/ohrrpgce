@@ -2183,7 +2183,7 @@ SUB status_screen (byval slot as integer)
 
  DIM holdscreen as integer = duplicatepage(vpage)
 
- load_slice_collection st.sl, SL_COLLECT_STATUSSCREEN
+ LoadSliceCollection st.sl, SL_COLLECT_STATUSSCREEN
  status_screen_refresh st
  
  show_virtual_gamepad()
@@ -2356,7 +2356,7 @@ SUB item_screen_refresh(byref st as ItemScreenState)
  plank_menu_clear st.ps.m, SL_ITEM_ITEMLIST
 
  DIM collection as Slice Ptr = NewSliceOfType(slSpecial)
- load_slice_collection collection, SL_COLLECT_ITEMPLANK
+ LoadSliceCollection collection, SL_COLLECT_ITEMPLANK
  IF collection = 0 THEN debug "item_screen_refresh: plank collection not found": EXIT SUB
 
  DIM pl as Slice Ptr
@@ -2589,7 +2589,7 @@ FUNCTION item_screen () as integer
 
  DIM holdscreen as integer = duplicatepage(vpage)
 
- load_slice_collection st.ps.m, SL_COLLECT_ITEMSCREEN
+ LoadSliceCollection st.ps.m, SL_COLLECT_ITEMSCREEN
  item_screen_refresh st
 
  show_virtual_gamepad()
@@ -2759,7 +2759,7 @@ SUB spell_screen_refresh(byref st as SpellScreenState)
  'expand_slice_text_insert_codes st.ps.m, @ExpandTextSpellScreen, st.ps.cur
 
  'DIM collection as Slice Ptr = NewSliceOfType(slSpecial)
- 'load_slice_collection collection, SL_COLLECT_ITEMPLANK
+ 'LoadSliceCollection collection, SL_COLLECT_ITEMPLANK
  'IF collection = 0 THEN debug "item_screen_refresh: plank collection not found": EXIT SUB
 '
 ' DIM pl as Slice Ptr
@@ -2808,7 +2808,7 @@ SUB spell_screen (byval slot as integer)
 
  DIM holdscreen as integer = duplicatepage(vpage)
 
- load_slice_collection st.ps.m, SL_COLLECT_SPELLSCREEN
+ LoadSliceCollection st.ps.m, SL_COLLECT_SPELLSCREEN
  spell_screen_refresh st
  
  show_virtual_gamepad()
@@ -4322,7 +4322,7 @@ FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1
  st.max_length = max_length
  st.prompt = prompt
 
- load_slice_collection st.sl, SL_COLLECT_VIRTUALKEYBOARDSCREEN
+ LoadSliceCollection st.sl, SL_COLLECT_VIRTUALKEYBOARDSCREEN
  expand_slice_text_insert_codes st.sl, @ExpandTextVirtualKeyboard, @st
  virtual_keyboard_refresh_array st
 

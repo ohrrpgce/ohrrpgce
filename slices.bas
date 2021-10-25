@@ -4610,8 +4610,8 @@ Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handle
  end if
 End sub
 
-'collection_id is used only in-game
-Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO, collection_id as integer=-1)
+'collection_num is used only in-game
+Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO, collection_num as integer=-1)
  dim doc as Reload.DocPtr
  doc = Reload.LoadDocument(filename, optNoDelay)
  if doc = null then
@@ -4623,7 +4623,7 @@ Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as
  'the slice collection, if there is one, and other shared data in future
  BUG_IF(sl->Context, "sl has Context")
  VAR context = new SliceCollectionContext
- context->id = collection_id
+ context->id = collection_num
  sl->Context = context
 
  'Populate the slice tree with data from the reload tree
@@ -4640,38 +4640,38 @@ End sub
 
 'Load a slice collection either a user or special one, e.g. the Status menu,
 'either from the game or falling back to a default.
-SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)
- DIM srcfile as string
+Sub LoadSliceCollection(byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)
+ dim srcfile as string
 
  ' Look in game data
  srcfile = workingdir & SLASH & "slicetree_" & collection_kind & "_" & collection_num & ".reld"
- IF isfile(srcfile) THEN
+ if isfile(srcfile) then
   SliceLoadFromFile sl, srcfile, , IIF(collection_kind = SL_COLLECT_USERDEFINED, collection_num, -1)
-  EXIT SUB
- END IF
+  exit sub
+ end if
 
  ' Try to load the default (usually from an embedded file, but can be an external file)
- DIM collname as string
- SELECT CASE collection_kind
-  CASE SL_COLLECT_STATUSSCREEN:           collname = "status_screen"
-  CASE SL_COLLECT_STATUSSTATPLANK:        collname = "status_stat_plank"
-  CASE SL_COLLECT_ITEMSCREEN:             collname = "item_screen"
-  CASE SL_COLLECT_ITEMPLANK:              collname = "item_plank"
-  CASE SL_COLLECT_SPELLSCREEN:            collname = "spell_screen"
-  CASE SL_COLLECT_SPELLLISTPLANK:         collname = "spell_list_plank"    'Unused!
-  CASE SL_COLLECT_SPELLPLANK:             collname = "spell_spell_plank"   'Unused!
-  CASE SL_COLLECT_VIRTUALKEYBOARDSCREEN:  collname = "virtual_keyboard_screen"
-  CASE ELSE
+ dim collname as string
+ select case collection_kind
+  case SL_COLLECT_STATUSSCREEN:           collname = "status_screen"
+  case SL_COLLECT_STATUSSTATPLANK:        collname = "status_stat_plank"
+  case SL_COLLECT_ITEMSCREEN:             collname = "item_screen"
+  case SL_COLLECT_ITEMPLANK:              collname = "item_plank"
+  case SL_COLLECT_SPELLSCREEN:            collname = "spell_screen"
+  case SL_COLLECT_SPELLLISTPLANK:         collname = "spell_list_plank"    'Unused!
+  case SL_COLLECT_SPELLPLANK:             collname = "spell_spell_plank"   'Unused!
+  case SL_COLLECT_VIRTUALKEYBOARDSCREEN:  collname = "virtual_keyboard_screen"
+  case else
    showbug "Unknown slice collection kind " & collection_kind
-   EXIT SUB
- END SELECT
+   exit sub
+ end select
  srcfile = finddatafile("sourceslices" SLASH "default_" & collname & ".slice", NO) 'error_if_missing=NO
- IF LEN(srcfile) THEN
+ if len(srcfile) then
   SliceLoadFromFile sl, srcfile
- ELSE
+ else
   showbug "Missing embedded default_" & collname
- END IF
-END SUB
+ end if
+End sub
 
 
 '==============================================================================
