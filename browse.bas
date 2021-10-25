@@ -695,7 +695,7 @@ FUNCTION browse_get_reload_info(filepath as string, info as string) as bool
   CASE "rsav": info = "OHRRPGCE Save-game"
   CASE "editor": info = "OHRRPGCE editor definition file"
   CASE "":
-   IF RIGHT(filepath, 6) = ".slice" ORELSE LEFT(trimpath(filepath), 10) = "slicetree_" THEN
+   IF ends_with(filepath, ".slice") ORELSE starts_with(trimpath(filepath), "slicetree_") THEN
     info = "Saved slice collection"
    ELSE
     info = "RELOAD document"
@@ -840,7 +840,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    WITH tree(br.mstate.last)
     .kind = bkSubDir
     .filename = filelist(i)
-    IF .filename = "." OR .filename = ".." OR RIGHT(LCASE(.filename), 4) = ".tmp" THEN br.mstate.last -= 1
+    IF .filename = "." OR .filename = ".." OR ends_with(LCASE(.filename), ".tmp") THEN br.mstate.last -= 1
    END WITH
    DIM extension as string = justextension(filelist(i))
    IF br.filetype = browseRPG THEN ' Special handling in RPG mode

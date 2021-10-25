@@ -4500,7 +4500,7 @@ END SUB
 
 ' Check if the given path is an rpg file
 FUNCTION is_rpg(path as string) as bool
- RETURN (LCASE(RIGHT(path, 4)) = ".rpg" ANDALSO isfile(path))
+ RETURN ends_with(LCASE(path), ".rpg") ANDALSO isfile(path)
 END FUNCTION
 
 ' Check if the given path is an rpgdir

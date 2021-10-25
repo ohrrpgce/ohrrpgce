@@ -41,7 +41,7 @@ IF NOT isdir(src) THEN
 END IF
 
 IF dest = "" THEN
- IF RIGHT(src,7) = ".rpgdir" THEN
+ IF ends_with(src, ".rpgdir") THEN
   dest = trimextension(src) + ".rpg"
  ELSE
   fatalerror "please specify an output filename"

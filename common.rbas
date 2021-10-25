@@ -7111,7 +7111,7 @@ SUB set_app_dir()
 
  #IFDEF __FB_DARWIN__
   'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside
-  IF LCASE(RIGHT(app_dir, 20)) = ".app/contents/macos/" THEN
+  IF ends_with(LCASE(app_dir), ".app/contents/macos/") THEN
    app_resources_dir = parentdir(app_dir, 1) + "Resources"
    app_dir = parentdir(app_dir, 3)
   END IF
@@ -7522,7 +7522,7 @@ END FUNCTION
 'Returns 0 on no match.
 FUNCTION find_on_word_boundary_excluding(haystack as string, needle as string, excludeword as string) as integer
  DIM excluding as bool = YES
- IF LEN(excludeword) = 0 OR LEFT(needle, LEN(excludeword)) = excludeword THEN
+ IF LEN(excludeword) = 0 ORELSE starts_with(needle, excludeword) THEN
   excluding = NO
  END IF
  DIM wordboundary as bool = YES

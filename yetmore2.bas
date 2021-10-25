@@ -789,7 +789,7 @@ SUB deletetemps
  DIM filename as string
  FOR i as integer = 0 TO UBOUND(filelist)
   filename = LCASE(filelist(i))
-  IF RIGHT(filename,4) = ".tmp" AND (LEFT(filename,3) = "map" OR LEFT(filename,5) = "state") THEN
+  IF ends_with(filename, ".tmp") ANDALSO (starts_with(filename, "map") ORELSE starts_with(filename, "state")) THEN
    killfile tmpdir + filelist(i)
   END IF
  NEXT

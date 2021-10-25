@@ -2115,7 +2115,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
  prev_item = LEFT(prev_item, INSTR(prev_item, ":"))
  IF LEN(prev_item) THEN
   FOR idx as integer = 0 TO UBOUND(menu)
-   IF LEFT(menu(idx), LEN(prev_item)) = prev_item THEN state.pt = idx
+   IF starts_with(menu(idx), prev_item) THEN state.pt = idx
   NEXT idx
  END IF
 END SUB

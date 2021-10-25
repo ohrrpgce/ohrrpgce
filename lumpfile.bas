@@ -1440,14 +1440,14 @@ end sub
 '    (false for generic OPENFILE FOR_BINARY calls, which allows reading+writing)
 'writes_allowed: arg passed to set_OPEN_hook: true in Custom, false in Game.
 function inworkingdir (filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
-	if RIGHT(filename, 10) = "_debug.txt" then return FilterActionEnum.dont_hook
-	'if RIGHT(filename, 12) = "_archive.txt" then return FilterActionEnum.dont_hook
+	if ends_with(filename, "_debug.txt") then return FilterActionEnum.dont_hook
+	'if ends_with(filename, "_archive.txt") then return FilterActionEnum.dont_hook
 	'Uncomment this for OPEN tracing (or you could just use strace...)
 	'debuginfo "OPEN(" & filename & ")  " & ret
 
 	dim ret as FilterActionEnum = FilterActionEnum.hook
 	if strncmp(strptr(filename), strptr(workingdir), len(workingdir)) <> 0 then ret = FilterActionEnum.dont_hook
-	if right(filename, 4) = ".tmp" then ret = FilterActionEnum.dont_hook
+	if ends_with(filename, ".tmp") then ret = FilterActionEnum.dont_hook
 
 	if ret = FilterActionEnum.hook andalso writable andalso writes_allowed = NO then
 		showbug "Illegally tried to open protected file " & filename & " for writing"
@@ -1459,7 +1459,7 @@ end function
 
 'For debugging, so that dump_openfiles() can work
 function hook_all_files(filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
-	if RIGHT(filename, 10) = "_debug.txt" then return FilterActionEnum.dont_hook
+	if ends_with(filename, "_debug.txt") then return FilterActionEnum.dont_hook
 
 	'debuginfo "OPEN(" & filename & ")"
 	return FilterActionEnum.hook

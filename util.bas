@@ -4068,11 +4068,11 @@ END FUNCTION
 
 FUNCTION starts_with(s as string, prefix as string) as bool
  'Return YES if the string begins with a specific prefix
- RETURN MID(s, 1, LEN(prefix)) = prefix
+ RETURN LEFT(s, LEN(prefix)) = prefix
 END FUNCTION
 
 FUNCTION ends_with(s as string, suffix as string) as bool
- 'Return YES if the string ends with a specific prefix
+ 'Return YES if the string ends with a specific suffix
  RETURN RIGHT(s, LEN(suffix)) = suffix
 END FUNCTION
 
@@ -4290,7 +4290,7 @@ sub processcommandline(nonoption_args() as string, opt_handler as FnSetOption, a
 				'Passed when started from Finder. Ignore. (Fix for bug #1171)
                                 'This is currently only necessary when using gfx_sdl2 because it doesn't link
                                 'mac/SDLMain.m; if using gfx_sdl then this argument is stripped in SDLMain.m.
-				if left(opt, 4) = "psn_" then
+				if starts_with(opt, "psn_") then
 					cnt += 1
 					continue while
 				end if

@@ -78,7 +78,7 @@ end if
 
 dim pal(255) as RGBColor
 
-if right(dest, 7) = ".bmp.gz" then
+if ends_with(dest, ".bmp.gz") then
 	dim surf as Surface ptr
 	surf = image_import_as_surface(src, YES)  'always_32bit=YES
 	if surf = 0 then fatalerror "Couldn't read file"
