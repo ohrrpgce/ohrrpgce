@@ -2177,17 +2177,16 @@ SUB status_screen (byval slot as integer)
 
  DIM st as StatusScreenState
  st.slot = slot
- st.sl = NewSliceOfType(slSpecial)
- st.sl->Fill = YES
- RefreshSliceScreenPos st.sl
 
  DIM holdscreen as integer = duplicatepage(vpage)
 
- LoadSliceCollection st.sl, SL_COLLECT_STATUSSCREEN
+ st.sl = LoadSliceCollection(SL_COLLECT_STATUSSCREEN)
+ ERROR_IF(st.sl = NULL, "Couldn't load slices!")
+
  status_screen_refresh st
- 
+
  show_virtual_gamepad()
- 
+
  menusound gen(genAcceptSFX)
  setkeys
  DO
@@ -2355,9 +2354,8 @@ SUB item_screen_refresh(byref st as ItemScreenState)
  
  plank_menu_clear st.ps.m, SL_ITEM_ITEMLIST
 
- DIM collection as Slice Ptr = NewSliceOfType(slSpecial)
- LoadSliceCollection collection, SL_COLLECT_ITEMPLANK
- IF collection = 0 THEN debug "item_screen_refresh: plank collection not found": EXIT SUB
+ DIM collection as Slice ptr = LoadSliceCollection(SL_COLLECT_ITEMPLANK)
+ ERROR_IF(collection = NULL, "couldn't load collection")
 
  DIM pl as Slice Ptr
  FOR i as integer = 0 TO last_inv_slot()
@@ -2581,15 +2579,14 @@ FUNCTION item_screen () as integer
 'Returns 0, or ID of textbox to open (box 0 can't be opened)
 
  DIM st as ItemScreenState
- st.ps.m = NewSliceOfType(slSpecial)
- st.ps.m->Fill = YES
- RefreshSliceScreenPos st.ps.m
  st.ps.is_plank_callback = @is_item_plank
  st.ps.state_callback = @set_item_plank_state
 
  DIM holdscreen as integer = duplicatepage(vpage)
 
- LoadSliceCollection st.ps.m, SL_COLLECT_ITEMSCREEN
+ st.ps.m = LoadSliceCollection(SL_COLLECT_ITEMSCREEN)
+ ERROR_IF(st.ps.m = NULL, "Couldn't load slices!", 0)
+
  item_screen_refresh st
 
  show_virtual_gamepad()
@@ -2758,9 +2755,8 @@ SUB spell_screen_refresh(byref st as SpellScreenState)
 
  'expand_slice_text_insert_codes st.ps.m, @ExpandTextSpellScreen, st.ps.cur
 
- 'DIM collection as Slice Ptr = NewSliceOfType(slSpecial)
- 'LoadSliceCollection collection, SL_COLLECT_ITEMPLANK
- 'IF collection = 0 THEN debug "item_screen_refresh: plank collection not found": EXIT SUB
+' DIM collection as Slice ptr = LoadSliceCollection(SL_COLLECT_ITEMPLANK)
+' ERROR_IF(collection = NULL, "Couldn't load slices!")
 '
 ' DIM pl as Slice Ptr
 ' FOR i as integer = 0 TO last_inv_slot()
@@ -2802,13 +2798,12 @@ END SUB
 SUB spell_screen (byval slot as integer)
 
  DIM st as SpellScreenState
- st.ps.m = NewSliceOfType(slSpecial)
- st.ps.m->Fill = YES
- RefreshSliceScreenPos st.ps.m
 
  DIM holdscreen as integer = duplicatepage(vpage)
 
- LoadSliceCollection st.ps.m, SL_COLLECT_SPELLSCREEN
+ st.ps.m = LoadSliceCollection(SL_COLLECT_SPELLSCREEN)
+ ERROR_IF(st.ps.m = NULL, "Couldn't load slices!")
+
  spell_screen_refresh st
  
  show_virtual_gamepad()
@@ -4315,14 +4310,13 @@ END SUB
 FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1, prompt as string="") as string
 
  DIM st as VirtualKeyboardScreenState
- st.sl = NewSliceOfType(slSpecial)
- st.sl->Fill = YES
- RefreshSliceScreenPos st.sl
  st.result = default_str
  st.max_length = max_length
  st.prompt = prompt
 
- LoadSliceCollection st.sl, SL_COLLECT_VIRTUALKEYBOARDSCREEN
+ st.sl = LoadSliceCollection(SL_COLLECT_VIRTUALKEYBOARDSCREEN)
+ ERROR_IF(st.sl = NULL, "Couldn't load slices!", st.result)
+
  expand_slice_text_insert_codes st.sl, @ExpandTextVirtualKeyboard, @st
  virtual_keyboard_refresh_array st
 

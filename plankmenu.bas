@@ -29,21 +29,17 @@
 '-----------------------------------------------------------------------
 
 FUNCTION load_plank_from_file(filename as string) as Slice Ptr
- IF NOT isfile(filename) THEN visible_debug "load_plank_from_file: unable to open file """ & filename & """": RETURN 0
- DIM col as Slice Ptr
- col = NewSliceOfType(slSpecial)
- SliceLoadFromFile col, filename
- IF col = 0 THEN visible_debug "load_plank_from_file: unable to load slices from """ & filename & """": RETURN 0
- DIM sl as Slice Ptr
- sl = LookupSlice(SL_PLANK_HOLDER, col)
- IF sl = 0 THEN
-  visible_debug "load_plank_from_file: could not find plank holder"
-  DeleteSlice @(col)
-  RETURN 0
+ DIM plank as Slice ptr
+ DIM col as Slice ptr = NewSliceOfType(slSpecial)
+ IF SliceLoadFromFile(col, filename) THEN  'Shows error on failure
+  DIM sl as Slice ptr = LookupSlice(SL_PLANK_HOLDER, col)
+  IF sl = 0 THEN
+   showerror "load_plank_from_file: could not find plank holder"
+  ELSE
+   plank = CloneSliceTree(sl, YES, YES)
+  END IF
  END IF
- DIM plank as Slice Ptr
- plank = CloneSliceTree(sl, YES, YES)
- DeleteSlice @(col)
+ DeleteSlice @col
  RETURN plank
 END FUNCTION
 
@@ -514,10 +510,10 @@ SUB set_plank_state (byref ps as PlankState, byval sl as Slice Ptr, byval state 
 END SUB
 
 FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice Ptr
- DIM collection as Slice Ptr = NewSliceOfType(slContainer)
- LoadSliceCollection collection, collection_kind
- BUG_IF(collection = NULL, "plank collection not found " & collection_kind, NULL)
- DIM result as Slice Ptr
+ DIM collection as Slice ptr
+ collection = LoadSliceCollection(collection_kind)
+ IF collection = NULL THEN RETURN NULL  'Already showed an error
+ DIM result as Slice ptr
  result = plank_menu_append(sl, lookup, collection, callback, arg0, arg1, arg2)
  DeleteSlice @collection
  RETURN result
@@ -528,7 +524,7 @@ END FUNCTION
 FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection as Slice Ptr, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice Ptr
  BUG_IF(sl = NULL, "null slice ptr", NULL)
  DIM m as Slice ptr = LookupSlice(lookup, sl)
- BUG_IF(m = NULL, "menu not found: " & lookup, NULL)
+ ERROR_IF(m = NULL, "menu not found: " & lookup, NULL)
  BUG_IF(collection = NULL, "plank collection null ptr", NULL)
  DIM holder as Slice Ptr
  holder = LookupSlice(SL_PLANK_HOLDER, collection)

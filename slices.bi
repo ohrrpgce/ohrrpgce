@@ -601,9 +601,9 @@ DECLARE Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
 '--Saving and loading slices
 DECLARE Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles as bool=NO)
 DECLARE Sub SliceSaveToFile(byval sl as Slice Ptr, filename as string, save_handles as bool=NO)
-DECLARE Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handles as bool=NO)
-DECLARE Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO, collection_id as integer=-1)
-DECLARE Sub LoadSliceCollection(byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)
+DECLARE Function SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handles as bool=NO) as bool
+DECLARE Function SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO, collection_id as integer=-1) as bool
+DECLARE Function LoadSliceCollection(collection_kind as integer, collection_num as integer=0, return_partially_loaded as bool=YES) as Slice ptr
 
 DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
 DECLARE Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as bool = NO)

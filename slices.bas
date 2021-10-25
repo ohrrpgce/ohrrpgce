@@ -4524,11 +4524,14 @@ Function LoadPropFloat(node as Reload.Nodeptr, propname as zstring ptr, byval de
  return Reload.GetChildNodeFloat(node, propname, defaultval)
 End function
 
-'Note that this mutates an existing slice
-Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handles as bool=NO)
- if sl = 0 then debug "SliceLoadFromNode null slice ptr": Exit Sub
- if node = 0 then debug "SliceLoadFromNode null node ptr": Exit Sub
- if sl->NumChildren > 0 then debug "SliceLoadFromNode slice already has " & sl->numChildren & " children"
+'Note that this mutates an existing slice, which should be a new slice with no children
+'Returns true on (apparent) success; when returning false may be partially
+'loaded, such as when there's an unknown slice type.
+Function SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handles as bool=NO) as bool
+ BUG_IF(sl = 0, "null slice ptr", NO)
+ BUG_IF(node = 0, "null node ptr", NO)
+ BUG_IF(sl->NumChildren > 0, "slice already has children", NO)
+ dim ret as bool = YES
  '--Load standard slice properties
  'NOTE: if something has a non-zero default value, then you must use SavePropAlways
  sl->Template = LoadPropBool(node, "template")
@@ -4582,17 +4585,20 @@ Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handle
  dim typestr as string = LoadPropStr(node, "type")
  dim typenum as SliceTypes = SliceTypeByName(typestr)
  if typenum = slInvalid then
-  reporterr "Could not load slice: invalid type " & typestr, serrError
-  exit sub
+  reporterr "Could not load slice: unknown type " & typestr, serrError
+  typenum = slContainer
+  ret = NO
  end if
- if typenum = slSpecial andalso Reload.GetChildByName(node, "class") <> null then
-  'ClassSlice
-  dim classname as string = LoadPropStr(node, "class")
+ dim classname as string = LoadPropStr(node, "class")
+ if len(classname) then
+  'ClassSlice. Currently, Class slices are always of subtype slSpecial, but might not be true in future?
   if InitClassSliceByName(sl, classname) = NO then
-   reporterr "Could not load slice: invalid class " & classname, serrError
-   exit sub
+   reporterr "Could not load slice: unknown class " & classname, serrError
+   typenum = slContainer
+   ret = NO
   end if
- else
+ end if
+ if typenum <> sl->SliceType then
   dim newsl as Slice Ptr = NewSliceOfType(typenum)
   ReplaceSliceType sl, newsl
  end if
@@ -4607,74 +4613,89 @@ Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handle
   dim ch_node as Reload.NodePtr = Reload.FirstChild(children)
   do while ch_node <> 0
    ch_slice = NewSlice(sl)
-   SliceLoadFromNode ch_slice, ch_node, load_handles
+   'If there's a problem loading a child try to keep going
+   if SliceLoadFromNode(ch_slice, ch_node, load_handles) = NO then ret = NO
    ch_node = Reload.NextSibling(ch_node)
   loop
  end if
-End sub
+ return ret
+End function
 
 'collection_num is used only in-game
-Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO, collection_num as integer=-1)
+'Returns true on (apparent) success; when returning false may be partially
+'loaded, such as when there's an unknown slice type.
+Function SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO, collection_id as integer=-1) as bool
  dim doc as Reload.DocPtr
  doc = Reload.LoadDocument(filename, optNoDelay)
- if doc = null then
-   showerror "SliceLoadFromFile: couldn't read " & filename
-   exit sub
- end if
+ if doc = null then return NO  'Already showed an error
 
  'Always give the root slice a context. The context is used to hold the name of
  'the slice collection, if there is one, and other shared data in future
- BUG_IF(sl->Context, "sl has Context")
- VAR context = new SliceCollectionContext
- context->id = collection_num
+ BUG_IF(sl->Context, "sl has Context", NO)
+ var context = new SliceCollectionContext
+ context->id = collection_id
  sl->Context = context
 
  'Populate the slice tree with data from the reload tree
  dim node as Reload.Nodeptr
  node = Reload.DocumentRoot(doc)
- SliceLoadFromNode sl, node, load_handles
+ dim ret as bool = SliceLoadFromNode(sl, node, load_handles)
 
  Reload.FreeDocument(doc)
-End sub
+ return ret
+End function
 
 
 '==============================================================================
 '                              Slice Collections
 
-'Load a slice collection either a user or special one, e.g. the Status menu,
+'Load a slice collection, either a user or special one, e.g. the Status menu,
 'either from the game or falling back to a default.
-Sub LoadSliceCollection(byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)
- dim srcfile as string
-
+'Returns null if the collection is missing or couldn't be loaded.
+'However if the collection was partially loaded (contains unsupported slice types/data)
+'then return_partially_loaded tells whether to return it or NULL.
+'A missing user collection is not an error, all other failures call showbug or showerror.
+Function LoadSliceCollection(collection_kind as integer, collection_num as integer=0, return_partially_loaded as bool=YES) as Slice ptr
  ' Look in game data
+ dim srcfile as string
  srcfile = workingdir & SLASH & "slicetree_" & collection_kind & "_" & collection_num & ".reld"
- if isfile(srcfile) then
-  SliceLoadFromFile sl, srcfile, , IIF(collection_kind = SL_COLLECT_USERDEFINED, collection_num, -1)
-  exit sub
+
+ if isfile(srcfile) = NO then
+  ' Otherwise look for a default (usually from an embedded file, but can be an external file)
+  dim collname as string
+  select case collection_kind
+   case SL_COLLECT_USERDEFINED:            return null  'Silent failure
+   case SL_COLLECT_STATUSSCREEN:           collname = "status_screen"
+   case SL_COLLECT_STATUSSTATPLANK:        collname = "status_stat_plank"
+   case SL_COLLECT_ITEMSCREEN:             collname = "item_screen"
+   case SL_COLLECT_ITEMPLANK:              collname = "item_plank"
+   case SL_COLLECT_SPELLSCREEN:            collname = "spell_screen"
+   case SL_COLLECT_SPELLLISTPLANK:         collname = "spell_list_plank"    'Unused!
+   case SL_COLLECT_SPELLPLANK:             collname = "spell_spell_plank"   'Unused!
+   case SL_COLLECT_VIRTUALKEYBOARDSCREEN:  collname = "virtual_keyboard_screen"
+   case else
+    showbug "Unknown slice collection kind " & collection_kind
+    return null
+  end select
+
+  srcfile = finddatafile("sourceslices" SLASH "default_" & collname & ".slice", NO) 'error_if_missing=NO
+  if len(srcfile) = 0 then
+   showbug "Missing embedded default_" & collname
+   return null
+  end if
  end if
 
- ' Try to load the default (usually from an embedded file, but can be an external file)
- dim collname as string
- select case collection_kind
-  case SL_COLLECT_STATUSSCREEN:           collname = "status_screen"
-  case SL_COLLECT_STATUSSTATPLANK:        collname = "status_stat_plank"
-  case SL_COLLECT_ITEMSCREEN:             collname = "item_screen"
-  case SL_COLLECT_ITEMPLANK:              collname = "item_plank"
-  case SL_COLLECT_SPELLSCREEN:            collname = "spell_screen"
-  case SL_COLLECT_SPELLLISTPLANK:         collname = "spell_list_plank"    'Unused!
-  case SL_COLLECT_SPELLPLANK:             collname = "spell_spell_plank"   'Unused!
-  case SL_COLLECT_VIRTUALKEYBOARDSCREEN:  collname = "virtual_keyboard_screen"
-  case else
-   showbug "Unknown slice collection kind " & collection_kind
-   exit sub
- end select
- srcfile = finddatafile("sourceslices" SLASH "default_" & collname & ".slice", NO) 'error_if_missing=NO
- if len(srcfile) then
-  SliceLoadFromFile sl, srcfile
- else
-  showbug "Missing embedded default_" & collname
+ ' Load the collection
+ 'The SliceCollectionContext.id
+ dim collection_id as integer = IIF(collection_kind = SL_COLLECT_USERDEFINED, collection_num, -1)
+ dim sl as Slice ptr = NewSlice()
+ if SliceLoadFromFile(sl, srcfile, , collection_id) = NO then  'showerror's on failure
+  if return_partially_loaded = NO then
+   DeleteSlice @sl
+  end if
  end if
-End sub
+ return sl
+End function
 
 
 '==============================================================================
