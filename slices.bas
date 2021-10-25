@@ -171,6 +171,7 @@ ScreenSlice = NewSlice()
 SliceDebugForget ScreenSlice '--screen slice is magical, ignore it for debugging purposes
 WITH *ScreenSlice
  'Note that .Attach is NOT set to slScreen here. slScreen uses this, not the other way around
+ .SliceType = slSpecial
  .X = 0
  .Y = 0
  .ScreenX = 0
@@ -476,7 +477,6 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
    newsl->Protect = YES
   CASE slContainer:
    newsl = NewSlice(parent)
-   newsl->SliceType = slContainer
   CASE slRectangle:
    DIM dat as RectangleSliceData
    newsl = NewRectangleSlice(parent, dat)
@@ -519,7 +519,7 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
  RETURN newsl
 END FUNCTION
 
-'Creates a new Slice of type Root, Special, or Container (defaults to Special) and optionally, adds it to the heirarchy somewhere
+'Creates a new Container Slice (which can be changed to Special) and optionally, adds it to the heirarchy somewhere
 Function NewSlice(byval parent as Slice ptr = 0) as Slice ptr
  dim ret as Slice Ptr
  ret = new Slice
@@ -527,7 +527,7 @@ Function NewSlice(byval parent as Slice ptr = 0) as Slice ptr
 
  setSliceParent(ret, parent)
  
- ret->SliceType = slSpecial
+ ret->SliceType = slContainer
  ret->Visible = YES
  ret->Attached = 0
  ret->Attach = slSlice
@@ -576,7 +576,7 @@ End Function
 
 #endif
 
-'Deletes a slice, and any children (and their children (and their...))
+'Deletes a slice, and any children (and their children (and their...)) and zeros out *s.
 'If debugme is YES, dump some debug info about the slice being freed and all its children
 '(debugme > 0 is indentation depth)
 Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer=0)
@@ -890,13 +890,14 @@ end sub
 Sub ReplaceSliceType(byval sl as Slice ptr, byref newsl as Slice ptr)
  'This takes a new slice (normally from one of the New*Slice functions)
  'and copies its type and type-specific data over an existing tree member.
+ 'This is rather bizarre, but does make it possible to change into a Class slice.
  'Newsl gets Deleted to prevent it from being used afterwards!
  'Also, this fails if newsl is part of a tree. It must be parentless
  if sl = 0 then debug "ReplaceSliceType null ptr": exit sub
  if newsl = 0 then debug "ReplaceSliceType newsl null ptr": exit sub
  WITH *newsl
   'Make sure that newsl is an orphan already
-  IF .Parent <> 0 THEN debug "ReplaceSliceType: Only works with orphaned slices" : EXIT SUB
+  BUG_IF(.Parent, "Only works with orphaned slices")
   'Dispose of any old Slice Type specific data that is about to be replaced
   IF sl->SliceData <> 0 THEN sl->Dispose(sl)
   'Copy over slice identity
@@ -1173,12 +1174,14 @@ End Function
 
 'This is called only from SliceLoadFromNode
 Local Function InitClassSliceByName(sl as Slice ptr, classname as string) as bool
+ if sl->SliceData <> 0 then sl->Dispose(sl)
  dim inst as ClassSlice ptr
  'if classname = "thing" then
  ' inst = new ThingClass()
  'else
   return NO
  'end if
+ sl->SliceType = slSpecial
  sl->ClassInst = inst
  InitClassSlicePtrs sl
  inst->initialize(sl)
