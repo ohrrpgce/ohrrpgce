@@ -122,3 +122,9 @@ ohr.geany
 *.jpeg
 # Don't ignore anything under data/
 !data/**
+
+#steam
+steam_appid.txt
+steam_api.dll
+libsteam_api.so
+steamclient.so

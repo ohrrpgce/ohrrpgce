@@ -28,7 +28,9 @@
 #include "gfx.bi"
 #include "pathfinding.bi"
 #include "bcommon.bi"
-
+#include "steam.bi"
+#include "achievements.bi"
+#include "achievements_runtime.bi"
 
 'local subs and functions
 DECLARE SUB checkdoors ()
@@ -210,7 +212,7 @@ set_app_dir
  log_dir = CURDIR & SLASH
 #ENDIF
 
-'set_OPEN_hook @hook_all_files  'For debugging
+set_OPEN_hook @hook_all_files  'For debugging
 
 'Once log_dir is set, can create debug log.
 external_log "starting debug log..."
@@ -263,6 +265,12 @@ IF running_under_Custom THEN debuginfo "Spawned from Custom"
 
 
 '============================== Initialise backends ===========================
+
+IF Steam.Initialize() THEN
+  debuginfo "Steam initialized"
+ELSE
+  debuginfo "Steam not initialized"
+END IF
 
 'DEBUG debug "set mode-X"
 set_resolution read_config_int("gfx.resolution_w", 320), read_config_int("gfx.resolution_h", 200)
@@ -627,6 +635,11 @@ SetupGameSlices
 'This is called BEFORE the loop, because when the game is quit or a save is loaded, this will be called again there
 reset_game_state
 
+debug "test"
+
+'Load achievement data
+Achievements.definitions_load workingdir & SLASH & "achievements.reld"
+
 '===================== Stuff reinitialised each new/load-game ==================
 
 DO' This loop encloses the playable game for a specific RPG file
@@ -714,6 +727,8 @@ ELSEIF load_slot >= 0 THEN
 ELSE
  'New game
  refresh_purchases()
+ 'clear existing achievement progress (with no save file to refresh from)
+ Achievements.runtime_load(null)
  'This fadeout means that resetgame fades out the screen although gameover doesn't
  fadeout uilook(uiFadeoutNewGame)
  'Clear the screen so that there's no garbage shown behind the prompt to rename the starting hero
@@ -961,7 +976,6 @@ debuginfo "...Quit the game." LINE_END
 reset_game_final_cleanup  'This may call exitprogram
 
 LOOP ' This is the end of the DO that encloses the entire program.
-
 
 '==========================================================================================
 '==========================================================================================
@@ -3028,6 +3042,7 @@ END FUNCTION
 SUB tag_updates (npc_visibility as bool=YES)
  IF npc_visibility THEN visnpc
  update_menu_items
+ Achievements.evaluate_tags
 END SUB
 
 ' Updates which menu items are enabled (for any reason, not just tags)

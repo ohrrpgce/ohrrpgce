@@ -1,0 +1,34 @@
+<!-- source for achievements.reld, until we have an editor -->
+<achievements>
+    <next_id>4</next_id>
+    <permanent/>
+    <achievement>
+        1
+        <name>Finished the Job</name>
+        <type>flag</type>
+        <tags>
+            <tag>4</tag>
+        </tags>
+        <steam_id>ACH_WIN_100_GAMES</steam_id>
+    </achievement>
+    <achievement>
+        2
+        <name>For My Beau</name>
+        <type>flag</type>
+        <tags>
+            <tag>2</tag>
+        </tags>
+        <steam_id>ACH_WIN_ONE_GAME</steam_id>
+    </achievement>
+    <achievement>
+        3
+        <name>Hey Now, You're an All-star</name>
+        <type>count</type>
+        <tags>
+            <tag>6</tag>
+        </tags>
+        <max_value>5</max_value>
+        <progress_interval>1</progress_interval>
+        <steam_id>ACH_TRAVEL_FAR_ACCUM</steam_id>
+    </achievement>
+</achievements>

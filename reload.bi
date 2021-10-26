@@ -170,6 +170,7 @@ Declare Function SetChildNode Overload (byval parent as NodePtr, n as zstring pt
 Declare Function SetChildNode(byval parent as NodePtr, n as zstring ptr, byval val as longint) as NodePtr
 Declare Function SetChildNode(byval parent as NodePtr, n as zstring ptr, byval val as double) as NodePtr
 Declare Function SetChildNode(byval parent as NodePtr, n as zstring ptr, val as string) as NodePtr
+Declare Function SetChildNodeDate(byval parent as NodePtr, n as zstring ptr, val as double) as NodePtr
 Declare Sub ToggleBoolChildNode(byval parent as NodePtr, n as zstring ptr)
 Declare Sub ToggleChildNode(byval parent as NodePtr, n as zstring ptr)
 Declare Sub FreeChildNode(byval parent as NodePtr, n as zstring ptr)

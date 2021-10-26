@@ -23,6 +23,7 @@
 #include "uiconst.bi"
 #include "slices.bi"
 #include "loading.bi"
+#include "steam.bi"
 
 using Reload
 
@@ -1670,6 +1671,7 @@ function dowait () as bool
 	dim starttime as double = timer
 	do while timer <= waittime - 0.0005
 		io_waitprocessing()
+		Steam.run_frame
 		sleep bound((waittime - timer) * 1000, 1, 5)
 	loop
 	' dowait might be called after waittime has already passed, ignore that
