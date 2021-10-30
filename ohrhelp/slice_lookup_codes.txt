@@ -1,10 +1,10 @@
-This is the Slice Lookup code name editor.
+This is the Slice Lookup code name editor, and it can also be used to set a lookup for a slice, when you enter it from "Lookup:..." while editing a slice. You can also open it from the Slice Editor F8 menu.
 
 Here you can define names that can be assigned to your slices. Each line on the screen aside from "Previous Menu" and "None" is a lookup code name. Initially they are all blank.
 
 Select any line (such as the blank line at the bottom of the menu) and type to enter/modify a lookup name.
 
-Press Enter or Click to select the lookup code for the current slice, or ESC to exit without changing the slice's lookup code.
+If editing a slice, press Enter or Click to select the lookup code for the current slice, or ESC to exit without changing the slice's lookup code.
 
 A slice only needs a lookup code if you want to be able to use the "lookup slice" plotscripting command to get a handle to the slice.
 

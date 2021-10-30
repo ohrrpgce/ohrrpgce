@@ -197,7 +197,7 @@ DECLARE SUB slice_editor_export_prompt(byref ses as SliceEditState, byref edslic
 DECLARE FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr) as bool
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
 DECLARE FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState, lowerlimit as integer, upperlimit as integer) as bool
-DECLARE FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as string, byval start_at_code as integer, byval slicekind as SliceTypes) as integer
+DECLARE FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice ptr = NULL, slicelookup() as string, byval start_at_code as integer = 0) as integer
 DECLARE FUNCTION slice_caption (byref ses as SliceEditState, edslice as Slice Ptr, sl as Slice Ptr) as string
 DECLARE SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
@@ -1521,9 +1521,10 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
  END IF
  IF rule.group AND slgrPICKLOOKUP THEN
   ' Ignore scSpace, which is captured by lookup_code_grabber
-  IF enter_space_click(state) AND keyval(scSpace) = 0 THEN
+  IF enter_space_click(state) ANDALSO keyval(scSpace) = 0 THEN
    DIM n as integer ptr = rule.dataptr
-   *n = edit_slice_lookup_codes(ses, ses.slicelookup(), *n, sl->SliceType)
+   BUG_IF(*n <> sl->Lookup, "bad picklookup ptr")
+   *n = edit_slice_lookup_codes(ses, sl, ses.slicelookup(), *n)
    state.need_update = YES
   END IF
  END IF
@@ -2413,32 +2414,43 @@ FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState,
  END IF
 END FUNCTION
 
-FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as string, byval start_at_code as integer, byval slicekind as SliceTypes) as integer
+'This editor doubles both for picking a lookup code for sl, and editing names of
+'user lookup codes (which are preloaded into slicelookup(), but will be re-saved
+'by this editor). sl->Lookup is not modified here, instead the picked code is returned.
+'If sl is NULL, then only for editing user lookup names, though can still pick
+'a code, and pass start_at_code.
+FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice ptr = NULL, slicelookup() as string, byval start_at_code as integer = 0) as integer
 
  DIM result as integer
  result = start_at_code
+ DIM point_to_code as integer  'Draw an arrow pointing to this code
 
  DIM menu as SimpleMenuItem vector
  v_new menu, 0
  append_simplemenu_item menu, "Previous Menu...", , , -1
- append_simplemenu_item menu, "None", , , 0
 
- DIM special_header as bool = NO
- FOR i as integer = 0 TO UBOUND(ses.specialcodes)
-  WITH ses.specialcodes(i)
-   IF .code <> 0 THEN
-    IF special_code_kindlimit_check(.kindlimit, slicekind) THEN
-     IF NOT special_header THEN
-      append_simplemenu_item menu, "Special Lookup Codes", YES, uiLook(uiText)
-      special_header = YES
+ IF sl THEN
+  append_simplemenu_item menu, "None", , , 0
+
+  DIM special_header as bool = NO
+  FOR i as integer = 0 TO UBOUND(ses.specialcodes)
+   WITH ses.specialcodes(i)
+    IF .code <> 0 THEN
+     IF special_code_kindlimit_check(.kindlimit, sl->SliceType) THEN
+      IF NOT special_header THEN
+       append_simplemenu_item menu, "Special Lookup Codes", YES, uiLook(uiText)
+       special_header = YES
+      END IF
+      append_simplemenu_item menu, .caption, , , .code
      END IF
-     append_simplemenu_item menu, .caption, , , .code
     END IF
-   END IF
-  END WITH
- NEXT i
+   END WITH
+  NEXT i
 
- IF ses.collection_group_number = SL_COLLECT_EDITOR THEN
+  point_to_code = start_at_code
+ END IF
+
+ IF sl ANDALSO ses.collection_group_number = SL_COLLECT_EDITOR THEN
   append_simplemenu_item menu, "All Special Lookup Codes", YES, uiLook(uiText), -1
 
 '--the following is updated from slices.bi using the misc/sl_lookup.py script
@@ -2554,7 +2566,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
  FOR i as integer = 0 TO v_len(menu) - 1
   DIM lookup as integer = menu[i].dat
   IF lookup <> -1 THEN
-   menu[i].text = IIF(lookup = start_at_code, CHR(26), " ") & menu[i].text
+   menu[i].text = IIF(lookup = point_to_code, CHR(26), " ") & menu[i].text
   END IF
  NEXT
 
@@ -2563,7 +2575,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
 
  FOR i as integer = 0 to v_len(menu) - 1
   'Move the cursor to pre-select the current code
-  IF v_at(menu, i)->dat = start_at_code THEN
+  IF v_at(menu, i)->dat = point_to_code THEN
    st.pt = i
    EXIT FOR
   END IF
@@ -2594,7 +2606,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
    'Edit lookup codes
    IF strgrabber(slicelookup(curcode), 70) THEN
     slicelookup(curcode) = sanitize_script_identifier(slicelookup(curcode))
-    v_at(menu, st.pt)->text = IIF(curcode = start_at_code, CHR(26), " ") & slicelookup(curcode)
+    v_at(menu, st.pt)->text = IIF(curcode = point_to_code, CHR(26), " ") & slicelookup(curcode)
    END IF
 
    '--make the list longer if we have selected the last item in the list and it is not blank
@@ -2670,8 +2682,9 @@ SUB SliceEditSettingsMenu.update()
   add_item 4, , "Focus view on the slice (F)"
  END IF
 
+ add_spacer
+ add_item 20, , "Edit lookup codes"
  IF in_detail_editor = NO THEN
-  add_spacer
 #IFDEF IS_CUSTOM
   add_item 9, , "Import collection (F2)"
 #ENDIF
@@ -2759,6 +2772,8 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
    changed = intgrabber(gen(gen8bitBlendAlgo), 0, blendAlgoLAST)
   CASE 19  'Show templates
    changed = boolgrabber(template_slices_shown, state)
+  CASE 20  'Edit lookup codes
+   IF activate THEN edit_slice_lookup_codes *ses, , ses->slicelookup()
  END SELECT
  state.need_update OR= changed
 END FUNCTION

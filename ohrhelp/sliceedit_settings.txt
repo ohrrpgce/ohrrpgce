@@ -8,6 +8,8 @@ Show positions: next to each slice in the menu its screen position (not its X,Y 
 
 Show sizes: show size of each slice in the menu
 
+Edit lookup codes: While it's possible to add or rename lookup codes while editing a slice, you can also do so here.
+
 All other functions have hotkeys. To see help for them, exit the settings menu, press F1, and search for the hotkey.
 
 
