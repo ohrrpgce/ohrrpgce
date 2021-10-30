@@ -345,7 +345,6 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
    append_specialcode ses, SL_STATUS_HIDE_IF_NO_LMP, kindlimitANYTHING
    append_specialcode ses, SL_STATUS_HIDE_IF_MAX_LEV, kindlimitANYTHING
    append_specialcode ses, SL_STATUS_HIDE_IF_NO_PORTRAIT, kindlimitANYTHING
-  CASE SL_COLLECT_STATUSSTATPLANK:
    append_specialcode ses, SL_PLANK_HOLDER, kindlimitANYTHING
   CASE SL_COLLECT_ITEMSCREEN:
    append_specialcode ses, SL_ITEM_ITEMLIST, kindlimitGRID

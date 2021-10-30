@@ -1368,7 +1368,7 @@ SUB secret_menu ()
      "Font tests", _
      "Stat Growth Chart", _
      "Edit Status Screen", _
-     "Edit Status Screen Stat Plank", _
+     "N/A", _
      "Edit Item Screen", _
      "N/A", _
      "Edit Spell Screen", _
@@ -1409,7 +1409,7 @@ SUB secret_menu ()
    IF st.pt = 7 THEN font_test_menu
    IF st.pt = 8 THEN stat_growth_chart
    IF st.pt = 9 THEN slice_editor SL_COLLECT_STATUSSCREEN
-   IF st.pt = 10 THEN slice_editor SL_COLLECT_STATUSSTATPLANK
+   'IF st.pt = 10 THEN
    IF st.pt = 11 THEN slice_editor SL_COLLECT_ITEMSCREEN
    'IF st.pt = 12 THEN
    IF st.pt = 13 THEN slice_editor SL_COLLECT_SPELLSCREEN

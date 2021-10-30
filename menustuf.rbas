@@ -2166,7 +2166,7 @@ SUB status_screen_refresh(byref st as StatusScreenState)
 
   FOR statnum as integer = 2 TO statLast
    IF NOT should_hide_hero_stat(her, statnum) THEN
-    plank_menu_append st.sl, SL_STATUS_STATLIST, SL_COLLECT_STATUSSTATPLANK, @ExpandTextHeroSlotStat, @(st.slot), @statnum
+    plank_menu_append st.sl, SL_STATUS_STATLIST, , @ExpandTextHeroSlotStat, @(st.slot), @statnum
    END IF
   NEXT statnum
  END IF
