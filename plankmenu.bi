@@ -95,6 +95,7 @@ DECLARE SUB hide_slices_by_lookup_code (byval sl as Slice ptr, byval lookup as i
 DECLARE SUB set_sprites_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval sprtype as SpriteType, byval picnum as integer, byval palnum as integer=-1)
 DECLARE FUNCTION default_is_plank(byval sl as Slice Ptr) as bool
 DECLARE SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Slice Ptr)
+DECLARE FUNCTION containing_plank(byval sl as Slice ptr) as Slice ptr
 DECLARE FUNCTION top_left_plank(byref ps as PlankState, byval start_parent as Slice Ptr=0) as Slice Ptr
 DECLARE FUNCTION bottom_right_plank(byref ps as PlankState, byval start_parent as Slice Ptr=0) as Slice Ptr
 DECLARE SUB update_plank_scrolling (byref ps as PlankState)

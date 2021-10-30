@@ -7,6 +7,7 @@
 #include "common.bi"
 #include "slices.bi"
 #include "loading.bi"
+#include "plankmenu.bi"
 #include "thingbrowser.bi"
 #include "reloadext.bi"
 #ifdef IS_CUSTOM
@@ -96,14 +97,17 @@ TYPE SliceEditState
  DECLARE FUNCTION curslice() as Slice ptr
 END TYPE
 
+'These are used for limiting slices to which a special lookup can be assigned, and conversely
+'to limit what kinds you can change a slice to when it has a special lookup.
 CONST kindlimitNOTHING = -1
 CONST kindlimitANYTHING = 0
 CONST kindlimitGRID = 1
 CONST kindlimitSELECT = 2
 CONST kindlimitSPRITE = 3
-CONST kindlimitPLANKSELECTABLE = 4
-CONST kindlimitTEXT = 5
-CONST kindlimitPOSITIONING = 6  'Either Grid or Layout
+CONST kindlimitPLANKDESCENDENT = 4  'Is a descendent of a plank slice
+CONST kindlimitPLANKSELECTABLE = 5  'Is a descendent of a plank and either Text, Rectangle or Select
+CONST kindlimitTEXT = 6
+CONST kindlimitPOSITIONING = 7      'Either Grid or Layout
 
 '------------------------------------------------------------------------------
 
@@ -205,7 +209,7 @@ DECLARE SUB slice_editor_reset_slice(byref ses as SliceEditState, sl as Slice pt
 DECLARE SUB slice_editor_focus_on_slice(byref ses as SliceEditState, edslice as Slice ptr)
 DECLARE SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)
 DECLARE SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
-DECLARE FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes) as bool
+DECLARE FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes, byval sl as Slice ptr) as bool
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allowed_types() as SliceTypes) as bool
 DECLARE SUB preview_SelectSlice_parents (byval sl as Slice ptr)
 DECLARE SUB slice_editor_settings_menu(byref ses as SliceEditState, byref edslice as Slice ptr, in_detail_editor as bool)
@@ -1476,7 +1480,7 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
   ' Use kindlimit to filter editable_slice_types()
   FOR i as integer = 0 TO UBOUND(editable_slice_types)
    DIM edtype as SliceTypes = editable_slice_types(i)
-   IF special_code_kindlimit_check(kindlimit, edtype) THEN
+   IF special_code_kindlimit_check(kindlimit, edtype, sl) THEN
     a_append allowed_types(), edtype
    END IF
   NEXT i
@@ -2347,8 +2351,10 @@ FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as strin
  RETURN s
 END FUNCTION
 
-'Returns whether this SpecialLookupCode.kindlimit allows a lookup code to be assigned to this slice type
-FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes) as bool
+'Whether a special lookup code with this kindlimit allows this lookup and slice
+'kind to be assigned to slice sl. This check is done when either changing the
+'lookup or changing the kind, so slicekind may differ from sl->SliceType.
+FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes, byval sl as Slice ptr) as bool
  SELECT CASE kindlimit
   CASE kindlimitNOTHING:
   CASE kindlimitANYTHING:
@@ -2361,12 +2367,15 @@ FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekin
    IF slicekind = slSelect THEN RETURN YES
   CASE kindlimitSPRITE:
    IF slicekind = slSprite THEN RETURN YES
+  CASE kindlimitPLANKDESCENDENT:
+   RETURN containing_plank(sl) <> NULL
   CASE kindlimitPLANKSELECTABLE:
-   IF slicekind = slText ORELSE slicekind = slRectangle ORELSE slicekind = slSelect THEN RETURN YES
+   IF NOT (slicekind = slText ORELSE slicekind = slRectangle ORELSE slicekind = slSelect) THEN RETURN NO
+   RETURN containing_plank(sl) <> NULL
   CASE kindlimitTEXT:
    IF slicekind = slText THEN RETURN YES
   CASE ELSE
-   debug "Unknown slice lookup code kindlimit constant " & kindlimit
+   showbug "Unknown slice lookup code kindlimit constant " & kindlimit
  END SELECT
  RETURN NO
 END FUNCTION
@@ -2436,7 +2445,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
   FOR i as integer = 0 TO UBOUND(ses.specialcodes)
    WITH ses.specialcodes(i)
     IF .code <> 0 THEN
-     IF special_code_kindlimit_check(.kindlimit, sl->SliceType) THEN
+     IF special_code_kindlimit_check(.kindlimit, sl->SliceType, sl) THEN
       IF NOT special_header THEN
        append_simplemenu_item menu, "Special Lookup Codes", YES, uiLook(uiText)
        special_header = YES

@@ -449,6 +449,22 @@ FUNCTION default_is_plank(byval sl as Slice Ptr) as bool
  RETURN sl->Lookup = SL_PLANK_HOLDER ANDALSO SliceIsInvisible(sl) = NO
 END FUNCTION
 
+'Return the plank slice that has sl as a descendent if any (or sl itself
+'if a slice), otherwise NULL.
+'We intentionally *do* allow template slices here, because this is used in sliceedit.
+FUNCTION containing_plank(byval sl as Slice ptr) as Slice ptr
+ WHILE sl
+  'Kludge so that this works for the item menu too without needing PlankState (for
+  'sliceedit): check item codes.  TODO: replace is_plank callback with better system
+  IF sl->Lookup = SL_PLANK_HOLDER ORELSE _
+     sl->Lookup = SL_ITEM_EXITBUTTON ORELSE _
+     sl->Lookup = SL_ITEM_SORTBUTTON ORELSE _
+     sl->Lookup = SL_ITEM_TRASHBUTTON THEN RETURN sl
+  sl = sl->Parent
+ WEND
+ RETURN NULL
+END FUNCTION
+
 'offset=1: select next plank in slice-tree-traversal order, offset=-1: select previous plank
 FUNCTION plank_menu_select_prev_next(byref ps as PlankState, offset as integer) as bool
  IF ps.cur = NULL THEN RETURN NO
