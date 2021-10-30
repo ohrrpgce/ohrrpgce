@@ -50,17 +50,19 @@ END TYPE
 
 ' The slice editor has three different modes:
 ' -editing a slice group in the .rpg. use_index = YES, collection_file = ""
+'  (Note: we don't necessarily want to let people define multiple collections for some collection
+'  types (groups), but for now we assume use_index = YES)
 ' -editing an external slice (.collection_file). use_index = NO.
-' -editing an existing slice tree. editing_existing = YES, use_index = NO,
+' -editing an existing (already loaded, e.g. the in-game) slice tree. editing_existing = YES, use_index = NO,
 '  collection_file normally "", or is the filename the collection was loaded from
 '  (but is not necessarily still equal to)
 TYPE SliceEditState
- collection_group_number as integer  'Which special lookup codes are available, and part of filename if use_index = YES
+ collection_group_number as integer  'SL_COLLECT_* constant. Which special lookup codes are available, and part of filename if use_index = YES
  collection_number as integer  'Used only if use_index = YES
- collection_file as string     'Used only if use_index = NO: the file we are currently editing (will be autosaved)
- use_index as bool         'If this is the indexed collection editor; if NO then we are editing
-                           'either an external file (collection_file), or some given slice tree (editing_existing)
-                           'or both.
+ collection_file as string     'Used only if use_index = NO: the file we are currently editing (will prompt to save when quitting)
+ use_index as bool         'Whether is the indexed collection editor for slicetree_<group>_<number>.reld
+                           'lumps; if NO then we are editing either an external file (collection_file),
+                           'or some given slice tree (editing_existing) or both.
                            'When true, the collections are always re-saved when quitting.
 
  editing_existing as bool  'True if editor was given an existing slice tree (edslice) to edit
@@ -148,6 +150,7 @@ editable_slice_types(7) = SlSelect
 editable_slice_types(8) = SlGrid
 editable_slice_types(9) = SlPanel
 'editable_slice_types(10) = SlLayout
+'Omitted: slSpecial, slMap
 
 '==============================================================================
 
@@ -503,7 +506,7 @@ END SUB
 SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  slice_editor_load_settings ses
 
- REDIM PRESERVE editable_slice_types(9)
+ REDIM PRESERVE editable_slice_types(9)  'Remove slLayout if previously added it
  IF ses.privileged THEN a_append editable_slice_types(), slLayout
 
  '--user-defined slice lookup codes
@@ -602,8 +605,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     slice_editor_settings_menu ses, edslice, NO
     state.need_update = YES
    ELSEIF menuitemid = mnidEditingFile THEN
-    ' Selected the 'Editing <collection file>' menu item
-    slice_editor_import_file ses, edslice, YES   'sets need_update
+    ' Selected the 'Editing <collection file>' menu item; browse for a different file to load
+    slice_editor_import_file ses, edslice, YES   'edit_separately=YES. Sets need_update
    ELSEIF menuitemid = mnidSlice THEN
     cursor_seek = ses.curslice
     slice_edit_detail ses, edslice, ses.curslice
@@ -814,11 +817,12 @@ END SUB
 'Get the SliceCollectionContext in which shared data for this slice collection is stored
 '(edslice may be a subtree, so we search up the tree)
 FUNCTION collection_context(edslice as Slice ptr) as SliceCollectionContext ptr
- WHILE edslice
-  IF *edslice->Context IS SliceCollectionContext THEN
-   RETURN CAST(SliceCollectionContext ptr, edslice->Context)
+ DIM sl as Slice ptr = edslice
+ WHILE sl
+  IF *sl->Context IS SliceCollectionContext THEN
+   RETURN CAST(SliceCollectionContext ptr, sl->Context)
   END IF
-  edslice = edslice->Parent
+  sl = sl->Parent
  WEND
  debug "Can't find a SliceCollectionContext"
  RETURN NULL
@@ -1062,7 +1066,7 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
 
  IF ses.draw_root THEN
   remember_draw_root_pos = ses.draw_root->Pos
-  DeleteSlice @ses.draw_root
+  DeleteSlice @ses.draw_root  'Deletes edslice too
  END IF
  ERASE ses.slicemenu  'All the .handle pointers are invalid
  edslice = newcollection
@@ -1235,12 +1239,16 @@ SUB slice_editor_copy(byref ses as SliceEditState, byval tocopy as Slice Ptr, by
   END IF
   SetSliceParent sl, ses.clipboard
  ELSE
+  'Copy all the children of edslice. edslice itself will not be pasted.
   ses.clipboard = CloneSliceTree(edslice)
+  sl = edslice
  END IF
+ show_overlay_message "Copied slice" & IIF(sl->NumChildren, " tree", ""), 1.2
 END SUB
 
 'Insert pasted slices before 'putbefore'
-'Note: the clipboard can contain multiple slices, although slice_editor_copy only put one in the clipboard.
+'Note: the clipboard can contain multiple slices, although slice_editor_copy only put one in the clipboard,
+'unless it copied the whole tree.
 SUB slice_editor_paste(byref ses as SliceEditState, byval putbefore as Slice Ptr, byval edslice as Slice Ptr)
  IF ses.clipboard THEN
   DIM child as Slice Ptr
