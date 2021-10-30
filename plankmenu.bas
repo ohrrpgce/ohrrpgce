@@ -17,17 +17,47 @@
 #include "scriptcommands.bi"  'For embed_text_codes
 #endif
 
+'-----------------------------------------------------------------------
 
-'Local subs and functions
+'Plank menus are slice-based menus, where the menu item slices are called "planks".
+'There are few requirements in how the slices are organised into a tree. There of lots
+'of slices with different roles:
+'
+'1. A slice ps.m which is the root of the subtree for the menu; arbitrary other slices
+'can exist in this tree aside from the ones below.
+'
+'2. An optional Scroll slice, which is scrolled automatically to the selected plank if
+'it's a descendent. Planks can exist outside of it, as extra buttons outside the
+'scrollable list.  The first Scroll slice in the tree is used.
+'
+'3. Zero or more 'list' parent slices for new planks (can be the root). Should normally be
+'a Grid or Layout slice, so its childen are positioned automatically. This is specified
+'by lookup code to plank_menu_append and plank_menu_clear; also typically passed as a
+'pointer to functions such as plank_menu_arrows.
+'These is just a place that new plank slices are created; planks don't have to all
+'share this parent and can even be reparented out of it afterwards.
+'
+'4. Planks are the actual menu items. A plank should have the lookup code SL_PLANK_HOLDER
+'whatever its type. Planks can be anywhere in the slice tree below ps.m (except a
+'descendent of another plank!) Planks may be either created manually (e.g. for fixed
+'extra selectable buttons like "New Game", or by thingbrowser's create_thing_plank()
+'method), or created by calling plank_menu_append.
+'
+'5. Plank 'prototypes', which are cloned to create new planks if using plank_menu_append.
+'Plank prototypes can be either stored in a separate file, loaded with load_plank_from_file,
+'or just any old slice.
+'
+'6. Descendants of a plank slice can have lookup code SL_PLANK_MENU_SELECTABLE if their
+'styles should change depending on selection state. Call set_plank_state to call the
+'state_callback on all SL_PLANK_MENU_SELECTABLE slices.  The default callback can modify
+'Text and Rectangle slices.
+'
+'This module doesn't create any of these slices except planks from prototypes.
+'You need to supply all the other slices yourself.
 
 '-----------------------------------------------------------------------
 
-'A note about planks: A plank should have the lookup code SL_PLANK_HOLDER whatever its type.
-'Child slices of types slText, slRectangle or slSelect can have lookup code SL_PLANK_MENU_SELECTABLE
-'if their styles should change depending on selection state
-
-'-----------------------------------------------------------------------
-
+'This is a helper function which is useful if you aren't using plank_menu_append
 FUNCTION load_plank_from_file(filename as string) as Slice Ptr
  DIM plank as Slice ptr
  DIM col as Slice ptr = NewSliceOfType(slSpecial)
@@ -509,6 +539,8 @@ SUB set_plank_state (byref ps as PlankState, byval sl as Slice Ptr, byval state 
  LOOP
 END SUB
 
+'This is used only for plankmenus that are builtin (in future) customizable in-game menus.
+'collection_kind should be a SL_COLLECT_* constant.
 FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice Ptr
  DIM collection as Slice ptr
  collection = LoadSliceCollection(collection_kind)
@@ -519,15 +551,18 @@ FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byva
  RETURN result
 END FUNCTION
 
-'Add a new plank child, copied from 'collection' to the 'LookupSlice(lookup, sl)' slice
+'Add a new plank child, copied from 'prototype' to a parent slice, which is 'LookupSlice(lookup, sl)'.
+'prototype should usually be either:
+'-a loaded collection containing a SL_PLANK_HOLDER to clone
+'-a slice to clone directly
 'Other args: passed to expand_slice_text_insert_codes
-FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection as Slice Ptr, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice Ptr
- BUG_IF(sl = NULL, "null slice ptr", NULL)
+FUNCTION plank_menu_append (byval sl as Slice ptr, byval lookup as integer, byval prototype as Slice ptr, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice ptr
+ BUG_IF(sl = NULL, "null menu slice ptr", NULL)
  DIM m as Slice ptr = LookupSlice(lookup, sl)
- ERROR_IF(m = NULL, "menu not found: " & lookup, NULL)
- BUG_IF(collection = NULL, "plank collection null ptr", NULL)
+ ERROR_IF(m = NULL, "menu not found: " & SliceLookupCodename(lookup), NULL)
+ BUG_IF(prototype = NULL, "plank prototype null ptr", NULL)
  DIM holder as Slice Ptr
- holder = LookupSlice(SL_PLANK_HOLDER, collection)
+ holder = LookupSlice(SL_PLANK_HOLDER, prototype)
  DIM cl as Slice Ptr
  IF holder <> 0 THEN
   'Found a holder, use only it
@@ -535,7 +570,7 @@ FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byva
   cl->Fill = YES
  ELSE
   'No holder, use the whole collection
-  cl = CloneSliceTree(collection)
+  cl = CloneSliceTree(prototype)
   cl->Lookup = SL_PLANK_HOLDER
  END IF
  
@@ -559,6 +594,11 @@ FUNCTION plank_menu_clone_template (byval templatesl as Slice ptr) as Slice ptr
  RETURN sl
 END FUNCTION
 
+'Delete all the children of 'lookup'
+'Note this is different to all other plankmenu functions in that this doesn't
+'call find_all_planks, but operates on children of a particular slice.
+'That's intentional, for example thingbrowser has extra planks outside the
+'thinglist parent slice.
 SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
  BUG_IF(sl = NULL, "null slice ptr")
  DIM m as Slice ptr = LookupSlice(lookup, sl)
@@ -615,6 +655,8 @@ SUB set_sprites_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, 
  LOOP
 END SUB
 
+'Find the first scroll slice.
+'It's not a bug if there is none.
 FUNCTION find_plank_scroll (byval sl as Slice Ptr) as Slice ptr
  BUG_IF(sl = NULL, "null slice ptr", NULL)
 
@@ -626,6 +668,7 @@ FUNCTION find_plank_scroll (byval sl as Slice Ptr) as Slice ptr
  RETURN 0
 END FUNCTION
 
+'Scroll to the selected plank, if it's a descendent of the scroll slice.
 SUB update_plank_scrolling (byref ps as PlankState)
  BUG_IF(ps.m = NULL, "null m slice ptr")
 
