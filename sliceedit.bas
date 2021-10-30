@@ -2490,7 +2490,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
     IF .code <> 0 THEN
      IF special_code_kindlimit_check(.kindlimit, sl->SliceType, sl) THEN
       IF NOT special_header THEN
-       append_simplemenu_item menu, "Special Lookup Codes", YES, uiLook(uiText)
+       append_simplemenu_item menu, "Special Lookup Codes", YES, uiLook(uiText), -1
        special_header = YES
       END IF
       append_simplemenu_item menu, .caption, , , .code
@@ -2689,6 +2689,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
   save_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"
  END IF
 
+ v_free menu
  RETURN result
 END FUNCTION
 
