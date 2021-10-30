@@ -311,6 +311,7 @@ END FUNCTION
 '==============================================================================
 
 SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)
+ ERASE ses.specialcodes
  SELECT CASE group
   CASE SL_COLLECT_EDITOR:
    'SL_COLLECT_EDITOR allows access to all lookup codes, but for certain filenames
