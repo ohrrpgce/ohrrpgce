@@ -465,6 +465,7 @@ END SUB
 ' privileged: true if should be allowed to edit things that are hidden from users
 ' filename: useful mainly for group = SL_COLLECT_EDITOR, to define the sub-group,
 ' and also the file to which to save (doesn't save by default if edslice doesn't match the file)
+' (edslice won't be modified, but in case it is, passing it byref makes crashes less likely.)
 SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, filename as string = "", recursive as bool = NO, privileged as bool = NO)
  DIM ses as SliceEditState
  ses.collection_group_number = group
@@ -606,6 +607,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     state.need_update = YES
    ELSEIF menuitemid = mnidEditingFile THEN
     ' Selected the 'Editing <collection file>' menu item; browse for a different file to load
+    ' (can't do that when editing_existing)
     slice_editor_import_file ses, edslice, YES   'edit_separately=YES. Sets need_update
    ELSEIF menuitemid = mnidSlice THEN
     cursor_seek = ses.curslice
@@ -1078,6 +1080,10 @@ END SUB
 ' If edit_separately, then we save the current collection and switch to editing the new one,
 ' otherwise it's imported overwriting the current one.
 SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
+ 'Loading new collections when .editing_existing is unsupported because it involves
+ 'deleting and replacing edslice, which would likely crash the caller of slice_editor
+ '(whether or not it passed edslice byref).
+ IF ses.editing_existing THEN EXIT SUB
  DIM filename as string = browse(browseRELOAD, trimfilename(ses.collection_file), "*.slice", "browse_import_slices")
  IF filename <> "" THEN
   IF edit_separately THEN
@@ -1096,8 +1102,7 @@ END SUB
 #IFDEF IS_CUSTOM
 'Prompt user whether to import. Called when F3 is pressed.
 SUB slice_editor_import_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
- '--Loading new collections when .editing_existing is unimplemented
- IF ses.editing_existing THEN EXIT SUB
+ IF ses.editing_existing THEN EXIT SUB  'Unsupported
  DIM choice as integer
  DIM choices(...) as string = {"Import, overwriting this collection", "Edit it separately"}
  choice = multichoice("Loading a .slice file. Do you want to import it over the existing collection?", choices(), IIF(ses.collection_group_number = SL_COLLECT_EDITOR, 1, 0))
@@ -2823,7 +2828,7 @@ SUB slice_editor_settings_menu(byref ses as SliceEditState, byref edslice as Sli
  menu.title = "Slice editor settings/tools (F8)"
  menu.helpkey = "sliceedit_settings"
  menu.run()
- edslice = menu.edslice  'Changes eg. when importing
+ edslice = menu.edslice  'Changes when importing
 
  slice_editor_save_settings ses
 END SUB
