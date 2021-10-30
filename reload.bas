@@ -455,6 +455,7 @@ end sub
 
 'fil may be a res:// path.
 Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as DocPtr
+	ERROR_IF(len(fil) = 0, "empty filename", NULL)  'Maybe finddatafile failed, which isn't a bug
 	dim starttime as double = timer
 	dim ret as DocPtr
 	dim vf as VFile ptr

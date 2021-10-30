@@ -438,7 +438,7 @@ Sub ThingBrowser.build_thing_list()
  for id as integer = lowest_id() to highest_id()
   plank = create_thing_plank(id)
   if plank = NULL then
-   showbug "create_thing_plank returned NULL!"
+   showerror "create_thing_plank returned NULL!"
    exit for  'Probably something is really broken
   end if
   plank->Clip = YES  'Optimisation: don't draw off-screen planks
@@ -666,8 +666,9 @@ Function AttackBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim attack as AttackData
  loadattackdata attack, id
 
- if plank_template = 0 then
+ if plank_template = NULL then
   plank_template = load_plank_from_file(finddatafile("attack_browser_plank.slice"))
+  if plank_template = NULL then return NULL
  end if
  dim plank as Slice Ptr
  plank = CloneSliceTree(plank_template)
@@ -722,8 +723,9 @@ Function EnemyBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim enemy as EnemyDef
  loadenemydata enemy, id
 
- if plank_template = 0 then
+ if plank_template = NULL then
   plank_template = load_plank_from_file(finddatafile("enemy_browser_plank.slice"))
+  if plank_template = NULL then return NULL
  end if
  dim plank as Slice Ptr
  plank = CloneSliceTree(plank_template)
@@ -814,8 +816,9 @@ Function HeroBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim hero as HeroDef
  loadherodata hero, id
 
- if plank_template = 0 then
+ if plank_template = NULL then
   plank_template = load_plank_from_file(finddatafile("hero_browser_plank.slice"))
+  if plank_template = NULL then return NULL
  end if
  dim plank as Slice Ptr
  plank = CloneSliceTree(plank_template)
@@ -896,8 +899,9 @@ End Sub
 Function SfxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim sfxname as string = getsfxname(id)
 
- if plank_template = 0 then
+ if plank_template = NULL then
   plank_template = load_plank_from_file(finddatafile("sfx_browser_plank.slice"))
+  if plank_template = NULL then return NULL
  end if
  dim plank as Slice Ptr
  plank = CloneSliceTree(plank_template)
@@ -976,12 +980,13 @@ End Sub
 Function SongBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim songname as string = getsongname(id)
 
- if plank_template = 0 then
+ if plank_template = NULL then
   plank_template = load_plank_from_file(finddatafile("song_browser_plank.slice"))
+  if plank_template = NULL then return NULL
  end if
  dim plank as Slice Ptr
  plank = CloneSliceTree(plank_template)
- 
+
  dim spr as Slice Ptr
  spr = LookupSliceSafe(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
  if id = none_id orelse imported_songs(id) = NO then
@@ -1023,12 +1028,13 @@ Function TextboxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  'Most of the text will not be visible, but we still do want to use it for search and filter
  dim text as string = textbox_preview_line(box, 800)
 
- if plank_template = 0 then
+ if plank_template = NULL then
   plank_template = load_plank_from_file(finddatafile("textbox_browser_plank.slice"))
+  if plank_template = NULL then return NULL
  end if
  dim plank as Slice Ptr
  plank = CloneSliceTree(plank_template)
- 
+
  dim txt as Slice Ptr
  txt = LookupSliceSafe(SL_PLANK_MENU_SELECTABLE, plank, slText)
  dim caption as string
