@@ -181,7 +181,7 @@ DECLARE SUB SliceAdoptNiece (byval sl as Slice Ptr)
 'Functions only used locally
 DECLARE FUNCTION find_special_lookup_code(specialcodes() as SpecialLookupCode, code as integer) as integer
 DECLARE FUNCTION lookup_code_forbidden(specialcodes() as SpecialLookupCode, code as integer) as bool
-DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode, errorstr as string = "") as bool
+DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode, errorstr as string = "", clean as bool = NO) as bool
 DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem, state as MenuState) as Slice ptr
 DECLARE SUB slice_editor_common_function_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, in_detail_editor as bool)
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
@@ -194,7 +194,7 @@ DECLARE SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state 
 DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
 DECLARE SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Slice ptr, rootsl as Slice ptr, byref show_ants as bool, ctrl_msg as string = "")
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
-DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, edit_separately as bool)
+DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, importing as bool = NO)
 DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
 DECLARE SUB slice_editor_import_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
 DECLARE SUB slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
@@ -449,7 +449,7 @@ SUB slice_editor (group as integer = SL_COLLECT_USERDEFINED, filename as string 
  'This creates ses.draw_root and loads edslice (if it exists, otherwise
  'a new blank slice)
  DIM edslice as Slice ptr
- slice_editor_load ses, edslice, slice_editor_filename(ses), YES
+ slice_editor_load ses, edslice, slice_editor_filename(ses)
 
  slice_editor_main ses, edslice
 
@@ -619,7 +619,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
      IF slice_editor_save_when_leaving(ses, edslice) THEN
       ses.collection_file = ""
       ses.collection_number = jump_to_collection
-      slice_editor_load ses, edslice, slice_editor_filename(ses), YES
+      slice_editor_load ses, edslice, slice_editor_filename(ses)
       state.need_update = YES
      END IF
     END IF
@@ -963,30 +963,59 @@ FUNCTION lookup_code_forbidden(specialcodes() as SpecialLookupCode, code as inte
  RETURN code < 0 ANDALSO find_special_lookup_code(specialcodes(), code) = -1
 END FUNCTION
 
-'--Returns whether one of the descendents is forbidden
-FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode, errorstr as string = "") as bool
+'Returns true if sl or one of its descendents is disallowed given this set
+'of allowed special lookup codes, and puts details in errorstr.
+'If 'clean', then cleans up the slice tree to remove the forbidden stuff.
+FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode, errorstr as string = "", clean as bool = NO) as bool
  IF sl = 0 THEN RETURN NO
+ DIM ret as bool = NO
+
  IF sl->Protect THEN
-  errorstr = SlicePath(sl) & " is protected"
-  RETURN YES
+  ret = YES
+  errorstr &= SlicePath(sl) & !" is protected\n"
+  IF clean THEN sl->Protect = NO
  END IF
- IF lookup_code_forbidden(specialcodes(), sl->Lookup) THEN
-  errorstr = SlicePath(sl) & " has forbidden lookup code '" & SliceLookupCodename(sl->Lookup) & "'"
-  RETURN YES
- END IF
+
  IF a_find(editable_slice_types(), cint(sl->SliceType)) < 0 THEN
-  errorstr = SlicePath(sl) & " is a disallowed slice type"
-  RETURN YES
+  ret = YES
+  errorstr &= SlicePath(sl) & !" is a disallowed slice type\n"
+  IF clean THEN ReplaceSliceType sl, NewSliceOfType(slContainer)
  END IF
+
+ IF sl->Lookup < 0 THEN
+  DIM which as integer
+  which = find_special_lookup_code(specialcodes(), sl->Lookup)
+  IF which = -1 THEN  ' aka lookup_code_forbidden(specialcodes(), sl->Lookup)
+   ret = YES
+   errorstr &= SlicePath(sl) & " has forbidden lookup code '" & SliceLookupCodename(sl->Lookup) & !"'\n"
+   IF clean THEN sl->Lookup = 0
+  ELSE
+   /'
+   'Does it have an allowed special code, but not on a valid slice?
+   '(This is a bit pedantic, especially for kindlimitPLANKSELECTABLE lookups which can
+   'become invalid easily.)
+   DIM kindlimit as integer = specialcodes(which).kindlimit
+   IF special_code_kindlimit_check(kindlimit, sl->SliceType, sl) = NO THEN
+    ret = YES
+    errorstr &= SlicePath(sl) & " isn't a valid slice to give lookup code '" & SliceLookupCodename(sl->Lookup) & !"'\n"
+    IF clean THEN sl->Lookup = 0
+   END IF
+   '/
+  END IF
+ END IF
+
  DIM ch as Slice ptr = sl->FirstChild
  WHILE ch
-  IF slice_editor_forbidden_search(ch, specialcodes(), errorstr) THEN RETURN YES
+  ret OR= slice_editor_forbidden_search(ch, specialcodes(), errorstr, clean)
   ch = ch->NextSibling
  WEND
- RETURN NO
+ RETURN ret
 END FUNCTION
 
-SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, edit_separately as bool)
+'Load from filename.
+'importing: true when importing to overwrite an existing (lump) collection, false when we're
+'opening either an (internal) lump or external file.
+SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, importing as bool = NO)
  ' Check for programmer error (doesn't work because of the games slice_editor plays with the draw_root)
  BUG_IF(ses.editing_existing, "Can't load when editing existing collection")
 
@@ -1006,34 +1035,31 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
   END IF
  END IF
 
- '--You can export slice collections from the in-game slice debugger. These
- '--collections are full of forbidden slices, so we must detect these and
- '--prevent importing. Attempting to do so instead will open a new editor.
+ 'Files might have forbidden slices (e.g. if you export the slice tree from
+ 'in-game slice debugger, or a importing the wrong collection type), so we must
+ 'detect and maybe clean them up.
+ 'The different situations we might be in:
+ '-Opening a lump (use_index true): check and report, don't clean
+ '-Importing over a lump (importing and use_index true): check and clean
+ '-Opening external (use_index false): do nothing (or check and say "You don't have to do anything"?)
+ '-This sub is never called when editing_existing
  DIM forbidden_error as string
- IF edit_separately = NO ANDALSO ses.privileged = NO ANDALSO _
-    slice_editor_forbidden_search(newcollection, ses.specialcodes(), forbidden_error) THEN
-  IF ses.collection_file = "" THEN
-   'Trying to import a tree into an in-game collection
-   '(TODO: Yes, this solution really sucks, maybe clean away special slices instead)
-   DIM msg as string
-   msg = "The slice collection you're trying to import includes a disallowed " _
-         "slice (see below), probably because it's been exported from a game " _
-         "or is the wrong type of collection. You can't import this " _
-         "collection, but it will be now be opened in a new instance of the " _
-         "slice collection editor so that you may view, edit, and reexport " _
-         "it. Exit the editor to go back to your previous slice collection. " _
-         "Try removing the special slices and exporting the collection; " _
-         !"you'll then be able to import normally.\n\n" & forbidden_error
-   notification msg
-   slice_editor newcollection, ses.collection_group_number
-   EXIT SUB
+ DIM clean as bool = (ses.use_index AND importing)
+ IF ses.use_index ANDALSO ses.privileged = NO ANDALSO _
+    slice_editor_forbidden_search(newcollection, ses.specialcodes(), forbidden_error, clean) THEN
+  DIM msg as string
+  msg = "This slice collection includes slices with disallowed data (at " _
+        "least for this type of collection), as below. "
+  IF importing THEN
+   'Trying to import a tree into/over a game collection
+   msg &= "These have been cleaned up (e.g. lookup codes removed)."
   ELSE
-   'If it's already been imported into the game, only warn
-   notification "Hmm, your slice collection includes protected/special slices. This " _
-                "shouldn't happen, and may be an engine bug! Please report it.\n\n" _
-                & forbidden_error
+   'If it's already been imported into the game, only warn rather than damaging the collection
+   msg &= "This shouldn't happen, and may be an engine bug! Please report it."
   END IF
+  notification msg & !"\n\n" & forbidden_error
  END IF
+
  IF ses.draw_root THEN
   remember_draw_root_pos = ses.draw_root->Pos
   DeleteSlice @ses.draw_root
@@ -1057,7 +1083,7 @@ SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice
    ses.use_index = NO
    ses.editing_existing = NO
   END IF
-  slice_editor_load ses, edslice, filename, edit_separately
+  slice_editor_load ses, edslice, filename, (edit_separately = NO)
   ses.slicemenust.need_update = YES
   init_slice_editor_for_collection_group(ses, ses.collection_group_number)
  END IF
