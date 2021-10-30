@@ -184,7 +184,7 @@ DECLARE SUB SliceAdoptNiece (byval sl as Slice Ptr)
 'Functions only used locally
 DECLARE FUNCTION find_special_lookup_code(specialcodes() as SpecialLookupCode, code as integer) as integer
 DECLARE FUNCTION lookup_code_forbidden(specialcodes() as SpecialLookupCode, code as integer) as bool
-DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode, errorstr as string = "", clean as bool = NO) as bool
+DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode, errorstr as string = "", clean as bool = NO, byref ret as integer = 0) as integer
 DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem, state as MenuState) as Slice ptr
 DECLARE SUB slice_editor_common_function_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, in_detail_editor as bool)
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
@@ -969,22 +969,24 @@ FUNCTION lookup_code_forbidden(specialcodes() as SpecialLookupCode, code as inte
  RETURN code < 0 ANDALSO find_special_lookup_code(specialcodes(), code) = -1
 END FUNCTION
 
-'Returns true if sl or one of its descendents is disallowed given this set
+'Returns nonzero if sl or one of its descendents is disallowed given this set
 'of allowed special lookup codes, and puts details in errorstr.
 'If 'clean', then cleans up the slice tree to remove the forbidden stuff.
-FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode, errorstr as string = "", clean as bool = NO) as bool
- IF sl = 0 THEN RETURN NO
- DIM ret as bool = NO
+'ret: for internal use only
+FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode, errorstr as string = "", clean as bool = NO, byref ret as integer = 0) as integer
+ IF sl = 0 THEN RETURN 0
+ DIM initial_ret as integer = ret
 
  IF sl->Protect THEN
-  ret = YES
-  errorstr &= SlicePath(sl) & !" is protected\n"
+  ret += 1
+  IF ret < 7 THEN errorstr &= SlicePath(sl) & !" is protected\n"
   IF clean THEN sl->Protect = NO
  END IF
 
  IF a_find(editable_slice_types(), cint(sl->SliceType)) < 0 THEN
-  ret = YES
-  errorstr &= SlicePath(sl) & !" is a disallowed slice type\n"
+  ret += 1
+  'The SlicePath includes the type
+  IF ret < 7 THEN errorstr &= SlicePath(sl) & !" is a disallowed slice type\n"
   IF clean THEN ReplaceSliceType sl, NewSliceOfType(slContainer)
  END IF
 
@@ -992,8 +994,11 @@ FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as 
   DIM which as integer
   which = find_special_lookup_code(specialcodes(), sl->Lookup)
   IF which = -1 THEN  ' aka lookup_code_forbidden(specialcodes(), sl->Lookup)
-   ret = YES
-   errorstr &= SlicePath(sl) & " has forbidden lookup code '" & SliceLookupCodename(sl->Lookup) & !"'\n"
+   ret += 1
+   'The SlicePath includes the lookup code
+   IF ret < 7 THEN
+    errorstr &= SlicePath(sl) & !" has invalid lookup code\n"  ' '" & SliceLookupCodename(sl->Lookup) & !"'\n"
+   END IF
    IF clean THEN sl->Lookup = 0
   ELSE
    /'
@@ -1002,17 +1007,20 @@ FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as 
    'become invalid easily.)
    DIM kindlimit as integer = specialcodes(which).kindlimit
    IF special_code_kindlimit_check(kindlimit, sl->SliceType, sl) = NO THEN
-    ret = YES
-    errorstr &= SlicePath(sl) & " isn't a valid slice to give lookup code '" & SliceLookupCodename(sl->Lookup) & !"'\n"
+    ret += 1
+    IF ret < 7 THEN
+     errorstr &= SlicePath(sl) & " isn't a valid slice to give lookup code '" & SliceLookupCodename(sl->Lookup) & !"'\n"
+    END IF
     IF clean THEN sl->Lookup = 0
    END IF
    '/
   END IF
  END IF
+ IF initial_ret < 7 ANDALSO ret >= 7 THEN errorstr &= "..."
 
  DIM ch as Slice ptr = sl->FirstChild
  WHILE ch
-  ret OR= slice_editor_forbidden_search(ch, specialcodes(), errorstr, clean)
+  slice_editor_forbidden_search ch, specialcodes(), errorstr, clean, ret
   ch = ch->NextSibling
  WEND
  RETURN ret
@@ -1061,7 +1069,7 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
    msg &= "These have been cleaned up (e.g. lookup codes removed)."
   ELSE
    'If it's already been imported into the game, only warn rather than damaging the collection
-   msg &= "This shouldn't happen, and may be an engine bug! Please report it."
+   msg &= "This shouldn't happen, and may be an engine bug! If unexpected please report it."
   END IF
   notification msg & !"\n\n" & forbidden_error
  END IF
