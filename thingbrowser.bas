@@ -334,7 +334,8 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  leave_browser
  setkeys
  freepage holdscreen
- DeleteSlice @(root)
+ DeleteSlice @root
+ if plank_template then DeleteSlice @plank_template
  return result
 End Function
 
