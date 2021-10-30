@@ -217,6 +217,14 @@ typedef int boolint;
 # define format_chk(fmt_arg)
 #endif
 
+// disable_ASan: put in front of a function definition to not instrument it when compiling
+// with AddressSanitizer (scons asan=1)
+#if defined(__clang__) || defined (__GNUC__)
+# define disable_ASan __attribute__ ((no_sanitize_address))
+#else
+# define disable_ASan
+#endif
+
 #ifdef __cplusplus
 }
 #endif

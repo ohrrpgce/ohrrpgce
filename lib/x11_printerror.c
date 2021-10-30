@@ -99,7 +99,7 @@ void PrintXError(
     } else {
         extname = opcode_to_extension(event->request_code, fp);
 	if (extname) {
-	    strncpy(buffer, extname, BUFSIZ);
+	    strncpy(buffer, extname, BUFSIZ - 1);
 	    buffer[BUFSIZ - 1] = '\0';
         } else
 	    buffer[0] = '\0';
