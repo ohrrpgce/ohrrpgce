@@ -2750,12 +2750,9 @@ SUB spell_screen_refresh(byref st as SpellScreenState)
 
  'expand_slice_text_insert_codes st.ps.m, @ExpandTextSpellScreen, st.ps.cur
 
-' DIM collection as Slice ptr = LoadSliceCollection(SL_COLLECT_ITEMPLANK)
-' ERROR_IF(collection = NULL, "Couldn't load slices!")
-'
 ' DIM pl as Slice Ptr
 ' FOR i as integer = 0 TO last_inv_slot()
-'  pl = plank_menu_append(st.ps.m, SL_ITEM_ITEMLIST, collection, @ExpandTextItemSlot, @i)
+'  pl = plank_menu_append(st.ps.m, SL_ITEM_ITEMLIST, , @ExpandTextItemSlot, @i)
 '  IF pl THEN
 '   pl->Extra(0) = i
 '   update_item_plank pl, st
@@ -2770,8 +2767,6 @@ SUB spell_screen_refresh(byref st as SpellScreenState)
 ' IF pl THEN pl->Extra(0) = -1 : update_item_plank pl, st
 ' pl = LookupSlice(SL_ITEM_TRASHBUTTON, st.ps.m)
 ' IF pl THEN pl->Extra(0) = -1 :update_item_plank pl, st
-'
-' DeleteSlice @collection
 '
 ' 'Early draw to force update of slice positions 
 ' DrawSlice st.ps.m, vpage

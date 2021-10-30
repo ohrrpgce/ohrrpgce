@@ -30,7 +30,7 @@
 'it's a descendent. Planks can exist outside of it, as extra buttons outside the
 'scrollable list.  The first Scroll slice in the tree is used.
 '
-'3. Zero or more 'list' parent slices for new planks (can be the root). Should normally be
+'3. Zero or more 'list parent' slices for new planks (can be the root). Should normally be
 'a Grid or Layout slice, so its childen are positioned automatically. This is specified
 'by lookup code to plank_menu_append and plank_menu_clear; also typically passed as a
 'pointer to functions such as plank_menu_arrows.
@@ -44,8 +44,8 @@
 'method), or created by calling plank_menu_append.
 '
 '5. Plank 'prototypes', which are cloned to create new planks if using plank_menu_append.
-'Plank prototypes can be either stored in a separate file, loaded with load_plank_from_file,
-'or just any old slice.
+'Prototypes are usually template slice children of the list parent slice, but can also be
+'stored in a separate file loaded with load_plank_from_file, or just any old slice.
 '
 '6. Descendants of a plank slice can have lookup code SL_PLANK_MENU_SELECTABLE if their
 'styles should change depending on selection state. Call set_plank_state to call the
@@ -553,18 +553,6 @@ SUB set_plank_state (byref ps as PlankState, byval sl as Slice Ptr, byval state 
   desc = NextDescendent(desc, sl)
  LOOP
 END SUB
-
-'This is used only for plankmenus that are builtin (in future) customizable in-game menus.
-'collection_kind should be a SL_COLLECT_* constant.
-FUNCTION plank_menu_append (sl as slice ptr, lookup as integer, collection_kind as integer, callback as FnEmbedCode=0, arg0 as any ptr=0, arg1 as any ptr=0, arg2 as any ptr=0) as Slice ptr
- DIM collection as Slice ptr
- collection = LoadSliceCollection(collection_kind)
- IF collection = NULL THEN RETURN NULL  'Already showed an error
- DIM result as Slice ptr
- result = plank_menu_append(sl, lookup, collection, callback, arg0, arg1, arg2)
- DeleteSlice @collection
- RETURN result
-END FUNCTION
 
 'Add a new plank child, copied from 'prototype' to a list parent slice, which is 'LookupSlice(lookup, sl)'.
 'prototype should usually be either:

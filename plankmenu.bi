@@ -46,7 +46,6 @@ DECLARE FUNCTION load_plank_from_file(filename as string) as Slice Ptr
 DECLARE SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
 
 'plank_menu_append is called multiple times to rebuild the plank menu
-DECLARE FUNCTION plank_menu_append OVERLOAD (sl as Slice ptr, lookup as integer, collection_kind as integer, callback as FnEmbedCode=0, arg0 as any ptr=0, arg1 as any ptr=0, arg2 as any ptr=0) as Slice ptr
 DECLARE FUNCTION plank_menu_append OVERLOAD (sl as Slice ptr, lookup as integer, prototype as Slice ptr=NULL, callback as FnEmbedCode=0, arg0 as any ptr=0, arg1 as any ptr=0, arg2 as any ptr=0) as Slice ptr
 DECLARE FUNCTION plank_menu_append OVERLOAD (list_parent as Slice ptr=NULL, prototype as Slice ptr, callback as FnEmbedCode=0, arg0 as any ptr=0, arg1 as any ptr=0, arg2 as any ptr=0) as Slice ptr
 
