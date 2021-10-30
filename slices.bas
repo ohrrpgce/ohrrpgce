@@ -105,6 +105,7 @@
 #include "reloadext.bi"
 #include "loading.bi"
 #include "slices.bi"
+#include "sliceedit.bi"
 #include "surface.bi"
 
 #ifdef IS_GAME
@@ -954,6 +955,19 @@ Function LookupSliceSafe(lookup_code as integer, root_sl as Slice ptr, onlytype 
        " slice with lookup code " & lookup_code
  if onlytype = slInvalid then onlytype = slContainer
  return NewSliceOfType(onlytype, root_sl, lookup_code)
+End Function
+
+'Calls showerror if the slice is missing, and if you press F6 at the error message enters the slice editor!
+Function LookupSliceOrError(lookup_code as integer, root_sl as Slice ptr, onlytype as SliceTypes = slInvalid, slice_description as zstring ptr = @"slice", errlvl as ErrorLevelEnum = errShowError) as Slice ptr
+ dim ret as Slice ptr = LookupSlice(lookup_code, root_sl, onlytype)
+ if ret then return ret
+ 'Use the lookup code & message as the "call site" used for ignoring this error message
+ debugc_internal canyptr(lookup_code + slice_description), errlvl, _
+                 "Couldn't find " & *slice_description & " with lookup '" & SliceLookupCodename(lookup_code) & "'"
+ if keyval(scF6) then
+  slice_editor root_sl, SL_COLLECT_EDITOR
+ end if
+ return NULL
 End Function
 
 'Return the root of the tree by going up.

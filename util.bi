@@ -49,8 +49,10 @@ end extern
 
 'Log an error message and exit (with optional return value) if 'condition' is true
 #define FAIL_IF(condition, message, retwhat...)  EXIT_MSG_IF(condition, errError, message, retwhat)
-'Show an error message and exit (with optional return value)  if 'condition' is true
+'Show an engine error (which might have a cause other than a bug) message and
+'exit (with optional return value) if 'condition' is true. "Please report this error if unexpected..."
 #define ERROR_IF(condition, message, retwhat...) EXIT_MSG_IF(condition, errShowError, message, retwhat)
+'Report an error that's probably due to a serious bug
 #define BUG_IF(condition, message, retwhat...) EXIT_MSG_IF(condition, errShowBug, message, retwhat)
 
 'Used to dereference a ptr only if not NULL... a bit yuck
