@@ -57,7 +57,8 @@
 
 '-----------------------------------------------------------------------
 
-'This is a helper function which is useful if you aren't using plank_menu_append
+'This is a helper function which is useful if you aren't using plank_menu_append, and
+'aren't using plank Template slices.
 FUNCTION load_plank_from_file(filename as string) as Slice Ptr
  DIM plank as Slice ptr
  DIM col as Slice ptr = NewSliceOfType(slSpecial)
@@ -66,7 +67,8 @@ FUNCTION load_plank_from_file(filename as string) as Slice Ptr
   IF sl = 0 THEN
    showerror "load_plank_from_file: could not find plank holder"
   ELSE
-   plank = CloneSliceTree(sl, YES, YES)
+   plank = CloneTemplate(sl)
+   OrphanSlice plank
   END IF
  END IF
  DeleteSlice @col
@@ -444,11 +446,7 @@ END FUNCTION
 
 FUNCTION default_is_plank(byval sl as Slice Ptr) as bool
  BUG_IF(sl = NULL, "null slice ptr", NO)
- IF sl->Lookup = SL_PLANK_HOLDER THEN
-  IF SliceIsInvisible(sl) THEN RETURN NO
-  RETURN YES
- END IF
- RETURN NO
+ RETURN sl->Lookup = SL_PLANK_HOLDER ANDALSO SliceIsInvisible(sl) = NO
 END FUNCTION
 
 'offset=1: select next plank in slice-tree-traversal order, offset=-1: select previous plank
@@ -470,7 +468,8 @@ FUNCTION plank_menu_select_prev_next(byref ps as PlankState, offset as integer) 
 END FUNCTION
 
 ' Fill planks() with all descendents of m that are planks (according to the callback)
-' By default this excludes invisible planks (also planks with invisible parents)
+' The default callback excludes invisible planks (also planks with invisible parents)
+' Templates are never planks.
 SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Slice Ptr)
  BUG_IF(m = NULL, "null m ptr")
 
@@ -482,7 +481,7 @@ SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Sl
  DIM planks_found as integer = 0
  DIM desc as Slice ptr = m->FirstChild
  DO WHILE desc
-  IF plank_checker(desc) THEN
+  IF desc->Template = NO ANDALSO plank_checker(desc) THEN
    'This is a plank.
    IF planks_found > UBOUND(planks) THEN
     REDIM PRESERVE planks(-1 TO UBOUND(planks) + 10)
@@ -541,7 +540,7 @@ END SUB
 
 'This is used only for plankmenus that are builtin (in future) customizable in-game menus.
 'collection_kind should be a SL_COLLECT_* constant.
-FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice Ptr
+FUNCTION plank_menu_append (sl as slice ptr, lookup as integer, collection_kind as integer, callback as FnEmbedCode=0, arg0 as any ptr=0, arg1 as any ptr=0, arg2 as any ptr=0) as Slice ptr
  DIM collection as Slice ptr
  collection = LoadSliceCollection(collection_kind)
  IF collection = NULL THEN RETURN NULL  'Already showed an error
@@ -551,59 +550,78 @@ FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byva
  RETURN result
 END FUNCTION
 
-'Add a new plank child, copied from 'prototype' to a parent slice, which is 'LookupSlice(lookup, sl)'.
+'Add a new plank child, copied from 'prototype' to a list parent slice, which is 'LookupSlice(lookup, sl)'.
 'prototype should usually be either:
 '-a loaded collection containing a SL_PLANK_HOLDER to clone
-'-a slice to clone directly
+'-a slice to clone directly (usually a template slice which is a child of the list parent,
+' in which case you can call the other plank_menu_append overload and omit sl and lookup)
+'-NULL: look for a Template child of the list parent to use
 'Other args: passed to expand_slice_text_insert_codes
-FUNCTION plank_menu_append (byval sl as Slice ptr, byval lookup as integer, byval prototype as Slice ptr, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice ptr
+FUNCTION plank_menu_append (sl as Slice ptr, lookup as integer, prototype as Slice ptr = NULL, callback as FnEmbedCode=0, arg0 as any ptr=0, arg1 as any ptr=0, arg2 as any ptr=0) as Slice ptr
  BUG_IF(sl = NULL, "null menu slice ptr", NULL)
- DIM m as Slice ptr = LookupSlice(lookup, sl)
- ERROR_IF(m = NULL, "menu not found: " & SliceLookupCodename(lookup), NULL)
- BUG_IF(prototype = NULL, "plank prototype null ptr", NULL)
- DIM holder as Slice Ptr
+ DIM list_parent as Slice ptr = LookupSliceOrError(lookup, sl, , "plankmenu list parent")
+ IF list_parent = NULL THEN RETURN NULL
+
+ 'Get holder or prototype
+ DIM holder as Slice ptr
+ IF prototype = NULL THEN
+  'Look for a template child, from the end because that's where it normally is
+  prototype = list_parent->LastChild
+  WHILE prototype
+   IF prototype->Template THEN EXIT WHILE
+   prototype = prototype->PrevSibling
+  WEND
+  ERROR_IF(prototype = NULL, "Couldn't find a template child of " & SliceLookupCodename(lookup), NULL)
+ END IF
+
  holder = LookupSlice(SL_PLANK_HOLDER, prototype)
- DIM cl as Slice Ptr
  IF holder <> 0 THEN
   'Found a holder, use only it
-  cl = CloneSliceTree(holder)
-  cl->Fill = YES
+  prototype = holder
+  'cl->Fill = YES
  ELSE
   'No holder, use the whole collection
-  cl = CloneSliceTree(prototype)
-  cl->Lookup = SL_PLANK_HOLDER
  END IF
- 
- SetSliceParent cl, m
- 
+
+ RETURN plank_menu_append(list_parent, prototype, callback, arg0, arg1, arg2)
+END FUNCTION
+
+'Add a new plank child, copied from 'prototype' to a child of list_parent slice, or leave
+'it parented to prototype's parent by default.
+FUNCTION plank_menu_append (list_parent as Slice ptr = NULL, prototype as Slice ptr, callback as FnEmbedCode=0, arg0 as any ptr=0, arg1 as any ptr=0, arg2 as any ptr=0) as Slice ptr
+ BUG_IF(list_parent = NULL ANDALSO prototype->Parent = NULL, "Need a list_parent", NULL)
+
+ DIM cl as Slice ptr
+ cl = CloneTemplate(prototype)
+ BUG_IF(cl = NULL, "unclonable", NULL)
+ IF list_parent ANDALSO cl->Parent <> list_parent THEN  'Don't move it if prototype was a child
+  SetSliceParent cl, list_parent
+ END IF
+
+ 'This likely overwrites a lookup code that's used to find a Template prototype
+ 'slice, which is a good thing
+ cl->Lookup = SL_PLANK_HOLDER
+
  expand_slice_text_insert_codes cl, callback, arg0, arg1, arg2
- 
+
  RETURN cl
 END FUNCTION
 
-'For use when you're using a template slice instead of a separate slice collection.
-'(Template slices aren't implemented yet, but for now just use normal slices as templates.)
-FUNCTION plank_menu_clone_template (byval templatesl as Slice ptr) as Slice ptr
- BUG_IF(templatesl = NULL, "null template", NULL)
- DIM sl as Slice ptr
- sl = CloneSliceTree(templatesl)
- BUG_IF(sl = NULL, "unclonable", NULL)
- InsertSliceBefore templatesl, sl
- sl->Visible = YES
- sl->Lookup = SL_PLANK_HOLDER
- RETURN sl
-END FUNCTION
-
-'Delete all the children of 'lookup'
+'Delete all the non-template children of 'lookup'
 'Note this is different to all other plankmenu functions in that this doesn't
 'call find_all_planks, but operates on children of a particular slice.
 'That's intentional, for example thingbrowser has extra planks outside the
 'thinglist parent slice.
 SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
  BUG_IF(sl = NULL, "null slice ptr")
- DIM m as Slice ptr = LookupSlice(lookup, sl)
- BUG_IF(m = NULL, "menu not found: " & lookup)
- DeleteSliceChildren m
+ DIM list_parent as Slice ptr = LookupSliceOrError(lookup, sl, , "plankmenu list parent")
+ IF list_parent = NULL THEN EXIT SUB
+ DIM as Slice ptr ch = list_parent->FirstChild, nextch
+ DO WHILE ch
+  nextch = ch->NextSibling
+  IF ch->Template = NO THEN DeleteSlice @ch
+  ch = nextch
+ LOOP
 END SUB
 
 SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0)
@@ -662,6 +680,10 @@ FUNCTION find_plank_scroll (byval sl as Slice Ptr) as Slice ptr
 
  DIM desc as Slice ptr = sl
  DO WHILE desc
+  IF desc->Template ORELSE desc->Lookup = SL_PLANK_HOLDER THEN
+   desc = desc->NextSibling
+   CONTINUE DO
+  END IF
   IF desc->SliceType = slScroll THEN RETURN desc
   desc = NextDescendent(desc, sl)
  LOOP

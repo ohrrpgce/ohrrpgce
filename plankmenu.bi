@@ -46,9 +46,9 @@ DECLARE FUNCTION load_plank_from_file(filename as string) as Slice Ptr
 DECLARE SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
 
 'plank_menu_append is called multiple times to rebuild the plank menu
-DECLARE FUNCTION plank_menu_append OVERLOAD (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice Ptr
-DECLARE FUNCTION plank_menu_append OVERLOAD (byval sl as slice ptr, byval lookup as integer, byval collection as Slice Ptr, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice Ptr
-DECLARE FUNCTION plank_menu_clone_template (byval templatesl as Slice ptr) as Slice ptr
+DECLARE FUNCTION plank_menu_append OVERLOAD (sl as Slice ptr, lookup as integer, collection_kind as integer, callback as FnEmbedCode=0, arg0 as any ptr=0, arg1 as any ptr=0, arg2 as any ptr=0) as Slice ptr
+DECLARE FUNCTION plank_menu_append OVERLOAD (sl as Slice ptr, lookup as integer, prototype as Slice ptr=NULL, callback as FnEmbedCode=0, arg0 as any ptr=0, arg1 as any ptr=0, arg2 as any ptr=0) as Slice ptr
+DECLARE FUNCTION plank_menu_append OVERLOAD (list_parent as Slice ptr=NULL, prototype as Slice ptr, callback as FnEmbedCode=0, arg0 as any ptr=0, arg1 as any ptr=0, arg2 as any ptr=0) as Slice ptr
 
 'Updates a plank's visual state to constants like plankNORMAL or plankSEL (and others)
 'See set_plank_state_default_callback() for details on what changes are applied.

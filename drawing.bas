@@ -4360,7 +4360,7 @@ SUB SpriteSetBrowser.rebuild_menu()
      rgfx_save_spriteset sprset, sprtype, setnum
     END IF
 
-    'ss_sl = plank_menu_clone_template(ss_templ)
+    'ss_sl = plank_menu_append( , ss_templ)
     'ss_sl is not a plank
     ss_sl = CloneSliceTree(ss_templ)
     InsertSliceBefore ss_templ, ss_sl
@@ -4369,7 +4369,7 @@ SUB SpriteSetBrowser.rebuild_menu()
     ss_sl->Extra(0) = setnum
 
     'The plank_holder is the plank to edit the spriteset
-    '(Other plank_holders created by plank_menu_clone_template)
+    '(Other plank_holders created by plank_menu_append)
     DIM ss_ed_plank as Slice ptr = LookupSlice(SL_PLANK_HOLDER, ss_sl)
     IF ss_ed_plank = NULL THEN EXIT SUB
     ss_ed_plank->Extra(0) = setnum
@@ -4392,7 +4392,7 @@ SUB SpriteSetBrowser.rebuild_menu()
     fr_templ = edsl(ssed_frame_templ, ss_sl)
     FOR framenum as integer = 0 TO sprset->arraylen - 1
       DIM frameid as integer = sprset[framenum].frameid
-      fr_sl = plank_menu_clone_template(fr_templ)
+      fr_sl = plank_menu_append( , fr_templ)
       fr_sl->Extra(0) = setnum
       fr_sl->Extra(1) = framenum
       fr_sl->Extra(2) = frameid
@@ -5148,7 +5148,7 @@ SUB spriteset_resize_menu_rebuild(byref root as Slice ptr, sprset as Frame ptr, 
   fr_templ = edsl(ssed_frame_templ, root)
   FOR framenum as integer = 0 TO sprset->arraylen - 1
     DIM frameid as integer = sprset[framenum].frameid
-    fr_sl = plank_menu_clone_template(fr_templ)
+    fr_sl = plank_menu_append( , fr_templ)
     fr_sl->Extra(0) = 0
     fr_sl->Extra(1) = framenum
     fr_sl->Extra(2) = frameid
