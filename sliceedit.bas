@@ -306,7 +306,6 @@ END FUNCTION
 '==============================================================================
 
 SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)
- REDIM ses.specialcodes(0) as SpecialLookupCode
  SELECT CASE group
   CASE SL_COLLECT_EDITOR:
    'SL_COLLECT_EDITOR allows access to all lookup codes, but for certain filenames
@@ -376,17 +375,8 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
 END SUB
 
 SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
- DIM index as integer = -1
- FOR i as integer = 0 TO UBOUND(ses.specialcodes)
-  IF ses.specialcodes(i).code = 0 THEN
-   index = i
-   EXIT FOR
-  END IF
- NEXT i
- IF index = -1 THEN
-  REDIM PRESERVE ses.specialcodes(UBOUND(ses.specialcodes) + 1) as SpecialLookupCode
-  index = UBOUND(ses.specialcodes)
- END IF
+ DIM index as integer = UBOUND(ses.specialcodes) + 1
+ REDIM PRESERVE ses.specialcodes(0 TO index) as SpecialLookupCode
  WITH ses.specialcodes(index)
   .code = code
   .caption = SliceLookupCodeName(code)
@@ -454,6 +444,8 @@ SUB slice_editor (group as integer = SL_COLLECT_USERDEFINED, filename as string 
  ses.use_index = (filename = "")
  ses.privileged = privileged
 
+ init_slice_editor_for_collection_group(ses, ses.collection_group_number)
+
  'This creates ses.draw_root and loads edslice (if it exists, otherwise
  'a new blank slice)
  DIM edslice as Slice ptr
@@ -496,6 +488,8 @@ SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLEC
   SetSliceParent rootslice, ses.draw_root
  END IF
 
+ init_slice_editor_for_collection_group(ses, ses.collection_group_number)
+
  slice_editor_main ses, edslice
 
  IF recursive = NO THEN
@@ -507,8 +501,6 @@ END SUB
 
 ' The main function of the slice editor is not called directly, call a slice_editor() overload instead.
 SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
- init_slice_editor_for_collection_group(ses, ses.collection_group_number)
-
  slice_editor_load_settings ses
 
  REDIM PRESERVE editable_slice_types(9)
