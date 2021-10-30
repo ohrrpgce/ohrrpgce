@@ -358,10 +358,6 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
    append_specialcode ses, SL_SPELL_SPELLLIST, kindlimitGRID
    append_specialcode ses, SL_SPELL_HIDE_IF_NO_LIST, kindlimitANYTHING
    append_specialcode ses, SL_SPELL_CANCELBUTTON, kindlimitANYTHING
-  CASE SL_COLLECT_SPELLLISTPLANK:
-   append_specialcode ses, SL_PLANK_HOLDER, kindlimitANYTHING
-   append_specialcode ses, SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
-  CASE SL_COLLECT_SPELLPLANK:
    append_specialcode ses, SL_PLANK_HOLDER, kindlimitANYTHING
    append_specialcode ses, SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
   CASE SL_COLLECT_VIRTUALKEYBOARDSCREEN:

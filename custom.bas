@@ -1368,13 +1368,13 @@ SUB secret_menu ()
      "Font tests", _
      "Stat Growth Chart", _
      "Edit Status Screen", _
-     "N/A", _
      "Edit Item Screen", _
-     "N/A", _
      "Edit Spell Screen", _
-     "Edit Spell Screen Spell List Plank", _
-     "Edit Spell Screen Spell Plank", _
      "Edit Virtual Keyboard Screen", _
+     "(Unused)", _
+     "(Unused)", _
+     "(Unused)", _
+     "(Unused)", _
      "New Spriteset/Animation Editor", _
      "New backdrop browser", _
      "RGFX tests", _
@@ -1409,13 +1409,10 @@ SUB secret_menu ()
    IF st.pt = 7 THEN font_test_menu
    IF st.pt = 8 THEN stat_growth_chart
    IF st.pt = 9 THEN slice_editor SL_COLLECT_STATUSSCREEN
-   'IF st.pt = 10 THEN
-   IF st.pt = 11 THEN slice_editor SL_COLLECT_ITEMSCREEN
-   'IF st.pt = 12 THEN
-   IF st.pt = 13 THEN slice_editor SL_COLLECT_SPELLSCREEN
-   IF st.pt = 14 THEN slice_editor SL_COLLECT_SPELLLISTPLANK  'Unused!
-   IF st.pt = 15 THEN slice_editor SL_COLLECT_SPELLPLANK      'Unused
-   IF st.pt = 16 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
+   IF st.pt = 10 THEN slice_editor SL_COLLECT_ITEMSCREEN
+   IF st.pt = 11 THEN slice_editor SL_COLLECT_SPELLSCREEN
+   IF st.pt = 12 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
+   '13-16 unused
    IF st.pt = 17 THEN
     DIM options(...) as string = {"Hero", "Small Enemy", "Medium Enemy", "Large Enemy", "Walkabouts", "Weapons", "Attack", "Boxborder", "Portrait", "Backdrop", "Enemy"}
     DIM sprtype as SpriteType = multichoice("Edit what?", options())
