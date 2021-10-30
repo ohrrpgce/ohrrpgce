@@ -1370,7 +1370,7 @@ SUB secret_menu ()
      "Edit Status Screen", _
      "Edit Status Screen Stat Plank", _
      "Edit Item Screen", _
-     "Edit Item Screen Item Plank", _
+     "N/A", _
      "Edit Spell Screen", _
      "Edit Spell Screen Spell List Plank", _
      "Edit Spell Screen Spell Plank", _
@@ -1411,7 +1411,7 @@ SUB secret_menu ()
    IF st.pt = 9 THEN slice_editor SL_COLLECT_STATUSSCREEN
    IF st.pt = 10 THEN slice_editor SL_COLLECT_STATUSSTATPLANK
    IF st.pt = 11 THEN slice_editor SL_COLLECT_ITEMSCREEN
-   IF st.pt = 12 THEN slice_editor SL_COLLECT_ITEMPLANK
+   'IF st.pt = 12 THEN
    IF st.pt = 13 THEN slice_editor SL_COLLECT_SPELLSCREEN
    IF st.pt = 14 THEN slice_editor SL_COLLECT_SPELLLISTPLANK  'Unused!
    IF st.pt = 15 THEN slice_editor SL_COLLECT_SPELLPLANK      'Unused

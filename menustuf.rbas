@@ -2351,15 +2351,12 @@ SUB item_screen_refresh(byref st as ItemScreenState)
  IF st.refocus THEN save_plank_selection st.ps
  st.ps.cur = 0
  st.ps.hover = 0
- 
- plank_menu_clear st.ps.m, SL_ITEM_ITEMLIST
 
- DIM collection as Slice ptr = LoadSliceCollection(SL_COLLECT_ITEMPLANK)
- ERROR_IF(collection = NULL, "couldn't load collection")
+ plank_menu_clear st.ps.m, SL_ITEM_ITEMLIST
 
  DIM pl as Slice Ptr
  FOR i as integer = 0 TO last_inv_slot()
-  pl = plank_menu_append(st.ps.m, SL_ITEM_ITEMLIST, collection, @ExpandTextItemSlot, @i)
+  pl = plank_menu_append(st.ps.m, SL_ITEM_ITEMLIST, , @ExpandTextItemSlot, @i)
   IF pl THEN
    pl->Extra(0) = i
    update_item_plank pl, st
@@ -2375,9 +2372,7 @@ SUB item_screen_refresh(byref st as ItemScreenState)
  pl = LookupSlice(SL_ITEM_TRASHBUTTON, st.ps.m)
  IF pl THEN pl->Extra(0) = -1 :update_item_plank pl, st
 
- DeleteSlice @collection
-
- 'Early draw to force update of slice positions 
+ 'Early draw to force update of slice positions
  DrawSlice st.ps.m, vpage
  
  IF st.refocus THEN

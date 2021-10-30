@@ -4687,7 +4687,6 @@ Function LoadSliceCollection(collection_kind as integer, collection_num as integ
    case SL_COLLECT_STATUSSCREEN:           collname = "status_screen"
    case SL_COLLECT_STATUSSTATPLANK:        collname = "status_stat_plank"
    case SL_COLLECT_ITEMSCREEN:             collname = "item_screen"
-   case SL_COLLECT_ITEMPLANK:              collname = "item_plank"
    case SL_COLLECT_SPELLSCREEN:            collname = "spell_screen"
    case SL_COLLECT_SPELLLISTPLANK:         collname = "spell_list_plank"    'Unused!
    case SL_COLLECT_SPELLPLANK:             collname = "spell_spell_plank"   'Unused!

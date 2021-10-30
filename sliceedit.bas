@@ -352,8 +352,6 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
    append_specialcode ses, SL_ITEM_EXITBUTTON, kindlimitANYTHING
    append_specialcode ses, SL_ITEM_SORTBUTTON, kindlimitANYTHING
    append_specialcode ses, SL_ITEM_TRASHBUTTON, kindlimitANYTHING
-   append_specialcode ses, SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
-  CASE SL_COLLECT_ITEMPLANK:
    append_specialcode ses, SL_PLANK_HOLDER, kindlimitANYTHING
    append_specialcode ses, SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
   CASE SL_COLLECT_SPELLSCREEN:
