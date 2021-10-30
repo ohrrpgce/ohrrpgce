@@ -78,7 +78,6 @@ TYPE SliceEditState
  expand_sort as bool
 
  recursive as bool
- clipboard as Slice Ptr
  draw_root as Slice Ptr    'The slice to actually draw; either edslice or its parent.
  hide_mode as HideMode
  show_root as bool = YES   'Whether to show edslice
@@ -137,6 +136,9 @@ END TYPE
 '==============================================================================
 
 DIM SHARED remember_draw_root_pos as XYPair
+
+DIM SHARED clipboard as Slice ptr
+
 
 REDIM SHARED editable_slice_types(9) as SliceTypes
 editable_slice_types(0) = SlContainer
@@ -802,9 +804,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   dowait
  LOOP
 
- '--free the clipboard if there is something in it
- IF ses.clipboard THEN DeleteSlice @ses.clipboard
-
  IF vpages_were_32bit = NO THEN
   switch_to_8bit_vpages
  ELSE
@@ -1236,24 +1235,19 @@ FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as 
  RETURN YES
 END FUNCTION
 
-'Copy a slice to the internal clipboard
+'Copy a slice 'tocopy' to the internal clipboard, or if NULL, the whole tree (edslice)
 SUB slice_editor_copy(byref ses as SliceEditState, byval tocopy as Slice Ptr, byval edslice as Slice Ptr)
- IF ses.clipboard THEN DeleteSlice @ses.clipboard
+ IF clipboard THEN DeleteSlice @clipboard
  DIM sl as Slice Ptr
  IF tocopy THEN
-  ses.clipboard = NewSliceOfType(slContainer)
-  IF ses.privileged = NO ANDALSO slice_editor_forbidden_search(tocopy, ses.specialcodes()) THEN
-   'If we're copying some special slices, so sanitise with copy_special=NO,
-   'which blanks out all special lookup codes and wipes .Protected
-   sl = CloneSliceTree(tocopy, , NO)  'copy_special=NO
-  ELSE
-   ' Preserve lookup codes, including negative ones which are allowed in this editor
-   sl = CloneSliceTree(tocopy)
-  END IF
-  SetSliceParent sl, ses.clipboard
+  clipboard = NewSliceOfType(slContainer)
+  'Preserve all special lookups, etc, they will be cleaned when pasting, which
+  'might be done in a different slice collection group with different rules.
+  sl = CloneSliceTree(tocopy)
+  SetSliceParent sl, clipboard
  ELSE
   'Copy all the children of edslice. edslice itself will not be pasted.
-  ses.clipboard = CloneSliceTree(edslice)
+  clipboard = CloneSliceTree(edslice)
   sl = edslice
  END IF
  show_overlay_message "Copied slice" & IIF(sl->NumChildren, " tree", ""), 1.2
@@ -1263,11 +1257,16 @@ END SUB
 'Note: the clipboard can contain multiple slices, although slice_editor_copy only put one in the clipboard,
 'unless it copied the whole tree.
 SUB slice_editor_paste(byref ses as SliceEditState, byval putbefore as Slice Ptr, byval edslice as Slice Ptr)
- IF ses.clipboard THEN
+ IF clipboard THEN
+  DIM forbidden_error as string
   DIM child as Slice Ptr
-  child = ses.clipboard->LastChild
+  child = clipboard->LastChild
   WHILE child
    DIM copied as Slice Ptr = CloneSliceTree(child)
+   IF ses.privileged = NO THEN
+    slice_editor_forbidden_search copied, ses.specialcodes(), forbidden_error, YES  'clean=YES
+   END IF
+
    IF putbefore <> 0 AND putbefore <> edslice THEN
     InsertSliceBefore putbefore, copied
    ELSE
@@ -1276,6 +1275,11 @@ SUB slice_editor_paste(byref ses as SliceEditState, byval putbefore as Slice Ptr
    putbefore = copied
    child = child->PrevSibling
   WEND
+
+  IF LEN(forbidden_error) THEN
+   notification "Some slices in the clipboard had disallowed data for this " _
+                !"type of collection, and have been cleaned:\n" & forbidden_error
+  END IF
  END IF
 END SUB
 
