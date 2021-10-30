@@ -4364,11 +4364,16 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
  return clone
 end function
 
-Function InstantiateTemplate(byval templatesl as Slice ptr) as Slice ptr
+'A variant on CloneSliceTree which is intended to be used on Template slices already
+'in a slice tree, for instantiating them, but doesn't need to be.
+Function CloneTemplate(byval templatesl as Slice ptr) as Slice ptr
  dim sl as Slice ptr
  sl = CloneSliceTree(templatesl)
  sl->Template = NO  'Descendents which are Templates stay that way
- InsertSliceBefore templatesl, sl
+ if templatesl->Parent then
+  'Keep the position amongst its siblings
+  InsertSliceBefore templatesl, sl
+ end if
  return sl
 end function
 

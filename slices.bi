@@ -592,7 +592,7 @@ DECLARE Function NewClassSlice(parent as Slice ptr, inst as ClassSlice ptr) as S
 DECLARE Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer = 0)
 DECLARE Sub DeleteSliceChildren(byval s as Slice ptr, byval debugme as integer = 0)
 DECLARE Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_special as bool = YES) as Slice ptr
-DECLARE Function InstantiateTemplate(byval templatesl as Slice ptr) as Slice ptr
+DECLARE Function CloneTemplate(byval templatesl as Slice ptr) as Slice ptr
 
 DECLARE Sub OrphanSlice(byval sl as slice ptr)
 DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
