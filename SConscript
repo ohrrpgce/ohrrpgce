@@ -56,6 +56,7 @@ destdir = ARGUMENTS.get ('destdir', '')
 prefix =  ARGUMENTS.get ('prefix', '/usr')
 dry_run = int(ARGUMENTS.get ('dry_run', '0'))  # Only used by uninstall
 buildtests = int(ARGUMENTS.get ('buildtests', True))
+python = ARGUMENTS.get('python', os.environ.get('PYTHON', 'python3'))
 
 base_libraries = []  # libraries shared by all utilities (except bam2mid)
 
@@ -463,7 +464,7 @@ basexe = Builder (action = ['$FBC $FBFLAGS -x $TARGET $SOURCES $FBLINKFLAGS ${FB
 def depend_on_reloadbasic_py(target, source, env):
     return (target, source + ['reloadbasic/reloadbasic.py'])
 
-rbasic_builder = Builder (action = [[File('reloadbasic/reloadbasic.py'), '--careful', '$SOURCE', '-o', '$TARGET']],
+rbasic_builder = Builder (action = [[python, File('reloadbasic/reloadbasic.py'), '--careful', '$SOURCE', '-o', '$TARGET']],
                           suffix = '.rbas.bas', src_suffix = '.rbas', emitter = depend_on_reloadbasic_py)
 
 # windres is part of mingw.
@@ -1521,7 +1522,7 @@ INTERTEST = Phony ('interactivetest',
 SideEffect (Alias ('g_debug.txt'), [AUTOTEST, INTERTEST])
 
 HSPEAKTEST = Phony ('hspeaktest', source = HSPEAK, action =
-                    [rootdir + 'hspeaktest.py testgame/parser_tests.hss'])
+                    [[python, rootdir + 'hspeaktest.py', 'testgame/parser_tests.hss']])
 
 # Note: does not include hspeaktest, because it fails, and Euphoria may not be installed
 tests = [exe.abspath for exe in Flatten([RELOADTEST, RBTEST, VECTORTEST, UTILTEST, FILETEST, COMMONTEST])]
@@ -1604,7 +1605,10 @@ Options:
   profile=1           Profiling build using gprof (executables) or MicroProfiler
                       (gfx_directx.dll/gfx_directx_test1.exe).
   asm=1               Produce .asm or .c files in build/ while compiling.
-  fbc=PATH            Point to a different version of fbc. (Or pass FBC envvar).
+  fbc=PATH            Use a particular FreeBASIC compiler (defaults to fbc).
+                      Alternatively set the FBC envvar.
+  python=PATH         Use a particular Python interpreter (defaults to python3).
+                      Alternatively set the PYTHON envvar.
   macsdk=version      Compile against a Mac OS X SDK instead of using the system
                       headers and libraries. Specify the SDK version, e.g. 10.4.
                       You'll need the relevant SDK installed in /Developer/SDKs
@@ -1660,6 +1664,7 @@ Optional features:
 The following environmental variables are also important:
   FBFLAGS             Pass more flags to fbc
   FBC                 Override FB compiler (alternative to passing fbc=...)
+  PYTHON              Override Python  (alternative to passing python=...)
   AS, CC, CXX         Override assembler/compiler. Should be set when
                       crosscompiling unless target=... is given instead.
   FBCC                Used only to compile C code generated from FB code
