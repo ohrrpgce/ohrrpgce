@@ -1812,15 +1812,6 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   sliceed_rule_none rules(), "protect"
  END IF
 
- IF ses.privileged THEN
-  a_append menu(), "Template: " & yesorno(.Template)
-  sliceed_rule_tog rules(), "template", @.Template
- ELSEIF .Template THEN
-  'Temporarily disabled until template slices stabilise
-  a_append menu(), "Template: " & yesorno(.Template)
-  sliceed_rule_none rules(), "template"
- END IF
-
  sliceed_header menu(), rules(), "[Dimensions]", @ses.expand_dimensions
  IF ses.expand_dimensions THEN
   IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
@@ -2085,6 +2076,8 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   sliceed_rule_tog rules(), "vis", @.Visible
   a_append menu(), " Clip Children: " & yesorno(.Clip)
   sliceed_rule_tog rules(), "clip", @.Clip
+  a_append menu(), " Template: " & yesorno(.Template)
+  sliceed_rule_tog rules(), "template", @.Template
  END IF
 
  IF .Fill = NO ORELSE .FillMode <> sliceFillFull THEN

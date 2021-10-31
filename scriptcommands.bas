@@ -4648,10 +4648,13 @@ SUB script_functions(byval cmdid as integer)
   IF valid_plotslice(retvals(0)) THEN
    DIM as Slice ptr sl, ret
    sl = plotslices(retvals(0))
+   'Not using CloneTemplate here due to lacking args
    IF sl->Parent THEN ret = CloneSliceTree(sl, retvals(1) <> 0, NO)
    IF ret = 0 THEN  'Returned in the following case:
     scripterr "cloneslice: Can't copy a Map layer slice or the Root slice"
    ELSE
+    'CloneTemplate does the following automatically
+    ret->Template = NO
     'sl has a parent
     InsertSliceBefore sl, ret
     scriptret = create_plotslice_handle(ret)

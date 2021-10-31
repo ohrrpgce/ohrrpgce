@@ -6645,6 +6645,8 @@ end
 				You can copy a protected slice (such as an NPC); the result isn't protected.
 				Any slices with special lookup codes (those listed in <ref>lookupslice</ref>)
 				won't have their lookup codes copied; they'll be set to 0 instead.
+				If the slice is a Template then the copy won't be marked as a template,
+				but the copies of any descendents it has still will be.
 				Passing the root slice or a Map slice as <p>handle</p> is an error.
 				Trying to clone a slice which has a Map slice as a descendent is OK,
 				the Map slices just won't be copied.

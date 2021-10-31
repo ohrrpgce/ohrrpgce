@@ -21,6 +21,8 @@ WHAT IS NEW?
     * Pushable NPCs can be pushed using mouse and touch controls. Click on them
       if they are nearby and not activatable, or drag from the hero to a nearby
       NPC no matter if they are activatable or not. [James]
+    * Slices can be marked as Templates, which makes them hidden and ignored for
+      almost all purposes. Intended for use with "clone slice". [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]
