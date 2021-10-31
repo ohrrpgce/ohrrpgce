@@ -31,7 +31,7 @@ Press R to reset a slice's position: to position 0,0, aligned and anchored to to
 
 Press F to focus on the selected slice, shifting the view of the slice tree (like F6) to put it near the screen center.
 
-Press Delete if you want to remove a slice.
+Press Delete if you want to remove the selected slice. Select the root slice or "<- Collection # ->" to delete the whole collection.
 
 Press Ctrl+C to copy a slice and its children. Press Ctrl+V to paste a copied slice before the current one. Press Ctrl+C while no slice is selected to copy all slices in the collection.
 

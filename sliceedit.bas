@@ -191,7 +191,6 @@ DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcod
 DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem, state as MenuState) as Slice ptr
 DECLARE SUB slice_editor_common_function_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, in_detail_editor as bool)
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
-DECLARE SUB slice_editor_refresh_delete (byref index as integer, slicemenu() as SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice Ptr=0)
 DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
 DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
@@ -617,6 +616,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
   ' Browse collection by number
   IF state.need_update = NO ANDALSO menuitemid = mnidCollectionID THEN  'Implies ses.use_index
+   IF keyval(scDelete) = 0 THEN  'Make Delete delete the collection rather than delete the number
     jump_to_collection = ses.collection_number
     IF intgrabber(jump_to_collection, 0, 32767, , , , NO) THEN  'Disable copy/pasting
      IF slice_editor_save_when_leaving(ses, edslice) THEN
@@ -663,6 +663,30 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   'Special handling for the currently selected slice
   preview_SelectSlice_parents ses.curslice
 
+  'Delete key
+  IF keyval(scDelete) > 1 ANDALSO state.need_update = NO THEN
+   DIM sl as Slice ptr = ses.curslice()
+
+   IF ses.privileged = NO ANDALSO slice_editor_forbidden_search(sl, ses.specialcodes()) THEN
+    notification "Can't delete special/protected slices!"
+   ELSEIF sl = edslice ORELSE menuitemid = mnidCollectionID ORELSE menuitemid = mnidEditingFile THEN
+    'Either the root slice or a header line signifying the collection
+    IF ses.editing_existing THEN
+     notification "Can't delete the slice tree! Exists outside the editor."
+    ELSEIF yesno("Really delete the whole slice collection?", NO) THEN
+     slice_editor_load ses, edslice, ""  'Replace with a blank collection; erases ses.slicemenu
+     state.need_update = YES
+    END IF
+   ELSEIF sl <> NULL THEN
+    IF yesno("Delete this " & SliceTypeName(sl) & " slice?", NO) THEN
+     DeleteSlice @sl
+     'After deleting any slice an unlimited number of menu items have invalid ptrs, so delete the menu to be safe
+     ERASE ses.slicemenu
+     state.need_update = YES
+    END IF
+   END IF
+  END IF
+
   IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
 
    IF keyval(scCtrl) > 0 ANDALSO keyval(scF) > 1 THEN
@@ -671,22 +695,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     slice_editor ses.curslice, ses.collection_group_number, ses.collection_file, YES
     slice_editor_load_settings ses
     state.need_update = YES
-
-   ELSEIF keyval(scDelete) > 1 THEN
-
-    IF ses.privileged = NO ANDALSO slice_editor_forbidden_search(ses.curslice, ses.specialcodes()) THEN
-     notification "Can't delete special/protected slices!"
-     CONTINUE DO
-    END IF
-    IF ses.curslice = edslice THEN
-     notification "Can't delete the root slice!"
-     CONTINUE DO
-    ELSE
-     IF yesno("Delete this " & SliceTypeName(ses.curslice) & " slice?", NO) THEN
-      slice_editor_refresh_delete state.pt, ses.slicemenu()
-      state.need_update = YES
-     END IF
-    END IF
 
    ELSEIF keyval(scShift) > 0 THEN
 
@@ -1030,7 +1038,7 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
  BUG_IF(ses.editing_existing, "Can't load when editing existing collection")
 
  DIM newcollection as Slice Ptr
- IF isfile(filename) THEN
+ IF LEN(filename) ANDALSO isfile(filename) THEN
   newcollection = NewSlice
   SliceLoadFromFile newcollection, filename, , ses.collection_number
  ELSE
@@ -2249,12 +2257,6 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
 
  'timing = TIMER - timing
  'debuginfo "refresh in " & cint(timing * 1e6) & "us, slices: " & UBOUND(ses.slicemenu) + 1
-END SUB
-
-SUB slice_editor_refresh_delete (byref index as integer, menu() as SliceEditMenuItem)
- DeleteSlice @(menu(index).handle)
- 'After deleting any slice an unlimited number of menu items have invalid ptrs, so delete the menu to be safe
- ERASE menu
 END SUB
 
 SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice Ptr=0)

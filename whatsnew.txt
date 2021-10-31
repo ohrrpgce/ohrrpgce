@@ -5,7 +5,7 @@ WHAT IS NEW?
   *** New Features
     * From the "Disribute Game" menu, you can upload your game directly
       to itch.io [James]
-    * gfx_fb backend (the one noone uses) supports non 320-200 games now [Ralph]
+    * gfx_fb backend (the one noone uses) supports non 320x200 games now [Ralph]
     * Custom/Game remember the window size when you quit; defaults larger [Ralph]
     * Added "View/edit ohrrpgce_config.ini/gameconfig.ini" options to the F8
       Debug menu and F9 menu in Custom.
@@ -14,7 +14,9 @@ WHAT IS NEW?
       overrides for ohrrpgce_config.ini settings for both Game and Custom [Ralph]
     * "gfx.screenshot_dir" config option, for screenshots and .gifs [Ralph]
     * Enemy bit "Give rewards even if left alive" [Ralph]
-    * Press Delete to clear most non-text data fields [Ralph]
+    * Press Delete to clear most non-text data fields. And can delete collections
+      in the slice editor with Delete on the root slice or "<- Collection # ->"
+      [Ralph]
     * Removed the 1MB limit on size of sound effects, because you likely don't
       care about a pause when loading them
     * Can press shift+F# instead of ctrl+F# in the map editor to show/hide layers
