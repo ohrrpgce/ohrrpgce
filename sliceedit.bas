@@ -27,6 +27,7 @@ ENUM HideMode
 END ENUM
 
 ENUM SliceMenuItemID
+ mnidInvalid = -1
  mnidText = 0            'Not editable
  mnidSlice = 1
  mnidExitMenu = 2        'Exit Menu
@@ -593,8 +594,10 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    END IF
   END IF
 
+  DIM menuitemid as integer = mnidInvalid
+  IF state.pt <= UBOUND(ses.slicemenu) THEN menuitemid = ses.slicemenu(state.pt).id
+
   ' Activate menu item
-  DIM menuitemid as integer = ses.slicemenu(state.pt).id
   IF state.need_update = NO ANDALSO enter_space_click(state) THEN
    IF menuitemid = mnidExitMenu THEN
     IF slice_editor_save_when_leaving(ses, edslice) THEN EXIT DO
@@ -612,9 +615,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    END IF
   END IF
 
-  IF ses.use_index THEN
-   IF menuitemid = mnidCollectionID THEN
-    '--Browse collections
+  ' Browse collection by number
+  IF state.need_update = NO ANDALSO menuitemid = mnidCollectionID THEN  'Implies ses.use_index
     jump_to_collection = ses.collection_number
     IF intgrabber(jump_to_collection, 0, 32767, , , , NO) THEN  'Disable copy/pasting
      IF slice_editor_save_when_leaving(ses, edslice) THEN
@@ -626,13 +628,14 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     END IF
    END IF
   END IF
-  IF keyval(scF2) > 1 THEN slice_editor_export_prompt ses, edslice
+
+  IF keyval(scF2) > 1 ANDALSO state.need_update = NO THEN slice_editor_export_prompt ses, edslice
 #IFDEF IS_CUSTOM
   '--Overwriting import can't be allowed when there are certain slices expected by the engine,
   '--and no point allowing editing external files in-game, so just disable in-game.
   '--Furthermore, loading new collections when .editing_existing is unimplemented anyway
   '--(checked by slice_editor_export_key())
-  IF keyval(scCtrl) = 0 ANDALSO keyval(scShift) = 0 ANDALSO keyval(scF3) > 1 THEN
+  IF keyval(scF3) > 1 ANDALSO keyval(scCtrl) = 0 ANDALSO keyval(scShift) = 0 ANDALSO state.need_update = NO THEN
    slice_editor_import_prompt ses, edslice
   END IF
 #ENDIF
@@ -2250,10 +2253,8 @@ END SUB
 
 SUB slice_editor_refresh_delete (byref index as integer, menu() as SliceEditMenuItem)
  DeleteSlice @(menu(index).handle)
- FOR i as integer = index + 1 TO UBOUND(menu)
-  SWAP menu(i), menu(i - 1)
- NEXT i
- REDIM PRESERVE menu(UBOUND(menu) - 1)
+ 'After deleting any slice an unlimited number of menu items have invalid ptrs, so delete the menu to be safe
+ ERASE menu
 END SUB
 
 SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice Ptr=0)
