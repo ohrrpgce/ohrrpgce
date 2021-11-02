@@ -2028,11 +2028,6 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
  end with
 end sub
 
-Function GetSpriteSliceData(byval sl as Slice ptr) as SpriteSliceData ptr
- if sl = 0 then debug "GetSpriteSliceData null ptr": return 0
- return sl->SpriteData
-End Function
-
 ' Actually load the asset for a sprite slice, or load a placeholder Frame
 ' if it's missing. If the assetfile is "", always loads a placeholder with no warning.
 Local Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
@@ -2447,11 +2442,6 @@ Sub DrawMapSlice(byval sl as Slice ptr, byval page as integer)
   'if .drawopts.with_blending then watch.stop_and_print()
  end with
 end sub
-
-Function GetMapSliceData(byval sl as Slice ptr) as MapSliceData ptr
- if sl = 0 then debug "GetMapSliceData null ptr": return 0
- return sl->MapData
-End Function
 
 Sub SaveMapSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveMapSlice null ptr": exit sub
@@ -3223,11 +3213,6 @@ Function NewScrollSlice(byval parent as Slice ptr, byref dat as ScrollSliceData)
  return ret
 end function
 
-Function GetScrollSliceData(byval sl as Slice ptr) as ScrollSliceData ptr
- if sl = 0 then debug "GetScrollSliceData null ptr": return 0
- return sl->SliceData
-End Function
-
 'All arguments default to no-change
 Sub ChangeScrollSlice(byval sl as Slice ptr,_
                       byval style as integer=-1,_
@@ -3374,11 +3359,6 @@ Function NewSelectSlice(byval parent as Slice ptr, byref dat as SelectSliceData)
  
  return ret
 end function
-
-Function GetSelectSliceData(byval sl as Slice ptr) as SelectSliceData ptr
- if sl = 0 then debug "GetSelectSliceData null ptr": return 0
- return sl->SliceData
-End Function
 
 'All arguments default to no-change
 Sub ChangeSelectSlice(byval sl as Slice ptr,_
@@ -3579,11 +3559,6 @@ Function NewPanelSlice(byval parent as Slice ptr, byref dat as PanelSliceData) a
  
  return ret
 end function
-
-Function GetPanelSliceData(byval sl as Slice ptr) as PanelSliceData ptr
- if sl = 0 then debug "GetPanelSliceData null ptr": return 0
- return sl->SliceData
-End Function
 
 'All arguments default to no-change
 Sub ChangePanelSlice(byval sl as Slice ptr,_

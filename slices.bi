@@ -726,7 +726,6 @@ DECLARE Function TextSliceCharPos(sl as Slice ptr, charnum as integer) as XYPair
 DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)
 DECLARE Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
 DECLARE Sub LoadSpriteSliceImage(byval sl as Slice ptr, warn_if_missing as bool = NO)
-DECLARE Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
 DECLARE Sub SetSpriteToAsset(sl as Slice ptr, assetfile as string, warn_if_missing as bool = YES)
 DECLARE Sub SetSpriteToFrame(sl as slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = NULL, pal as integer = -2)
 DECLARE Sub SpriteSliceUpdate(sl as Slice ptr)
@@ -747,7 +746,6 @@ DECLARE Function SpriteSliceNumFrames(sl as Slice ptr) as integer
 
 DECLARE Sub DisposeMapSlice(byval sl as slice ptr)
 DECLARE Sub DrawMapSlice(byval sl as slice ptr, byval page as integer)
-DECLARE Function GetMapSliceData(byval sl as slice ptr) as MapSliceData ptr
 DECLARE Function NewMapSlice(byval parent as Slice ptr, byref dat as MapSliceData) as slice ptr
 DECLARE Sub ChangeMapSliceTileset (byval sl as slice ptr, byval tileset as TilesetData ptr)
 DECLARE Sub ChangeMapSlice (byval sl as slice ptr,_
@@ -775,14 +773,12 @@ DECLARE Function NewScrollSlice(byval sl as slice ptr, byref dat as ScrollSliceD
 DECLARE Sub ChangeScrollSlice(byval sl as slice ptr,_
                       byval style as integer=-1,_
                       byval check_depth as integer=-1)
-DECLARE Function GetScrollSliceData(byval sl as slice ptr) as ScrollSliceData ptr
 
 DECLARE Function NewSelectSlice(byval sl as slice ptr, byref dat as SelectSliceData) as Slice ptr
 DECLARE Sub ChangeSelectSlice(byval sl as slice ptr,_
                       byval index as integer=-2,_
                       byval override as integer=-2) ' All arguments default to no change
 DECLARE Sub SelectSliceNext(byval sl as Slice ptr, byval can_loop as bool=YES)
-DECLARE Function GetSelectSliceData(byval sl as slice ptr) as SelectSliceData ptr
 
 DECLARE Function NewPanelSlice(byval parent as Slice ptr, byref dat as PanelSliceData) as slice ptr
 DECLARE Sub ChangePanelSlice(byval sl as slice ptr,_
@@ -791,7 +787,6 @@ DECLARE Sub ChangePanelSlice(byval sl as slice ptr,_
                       byval pixels as integer=-1,_
                       byval percent as double=-1.0,_
                       byval padding as integer=-1)
-DECLARE Function GetPanelSliceData(byval sl as slice ptr) as PanelSliceData ptr
 DECLARE Sub CalcPanelSupport (byref support as RectType, byval par as Slice ptr, byval index as integer)
 
 
