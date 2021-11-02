@@ -5210,6 +5210,18 @@ FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum
  RETURN sl
 END FUNCTION
 
+FUNCTION get_handle_typed_slice(byval handle as integer, byval sltype as SliceTypes, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
+ DIM sl as Slice ptr = get_handle_slice(handle, errlvl)
+ IF sl = NULL THEN RETURN sl
+ IF sl->SliceType <> sltype THEN
+  scripterr current_command_name() & ": slice handle " & handle & " is not a " & SliceTypeName(sltype), serrBadOp
+  RETURN NULL
+ END IF
+ RETURN sl
+END FUNCTION
+
+/'  Currently these are #defines, for speed
+
 'Return the Slice ptr for the nth script command argument, or throw an error and
 'return NULL if not a valid slice handle.
 FUNCTION get_arg_slice(byval argno as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
@@ -5217,120 +5229,47 @@ FUNCTION get_arg_slice(byval argno as integer, byval errlvl as scriptErrEnum = s
 END FUNCTION
 
 FUNCTION get_arg_typed_slice(byval argno as integer, byval sltype as SliceTypes, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
- DIM sl as Slice ptr = get_handle_slice(retvals(argno), errlvl)
- IF sl = NULL THEN RETURN sl
- IF sl->SliceType <> sltype THEN
-  scripterr current_command_name() & ": slice handle " & retvals(argno) & " is not a " & SliceTypeName(sltype), serrBadOp
-  RETURN NULL
- END IF
- RETURN sl
+ RETURN get_handle_typed_slice(retvals(argno), sltype, errlvl)
 END FUNCTION
+
+'/
 
 FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
  RETURN get_handle_slice(handle, errlvl) <> NULL
 END FUNCTION
 
 FUNCTION valid_plotsprite(byval handle as integer) as bool
- IF valid_plotslice(handle) THEN
-  IF plotslices(handle)->SliceType = slSprite THEN
-   RETURN YES
-  ELSE
-   scripterr current_command_name() & ": slice handle " & handle & " is not a sprite", serrBadOp
-  END IF
- END IF
- RETURN NO
+ RETURN get_handle_typed_slice(handle, slSprite) <> NULL
 END FUNCTION
 
-'Don't need a valid_plotrect function
-
-'Return Slice ptr if the handle is valid rect slice, or throw an error
-FUNCTION valid_plotrect_ptr(byval handle as integer) as Slice ptr
- DIM sl as Slice ptr = get_handle_slice(handle)
- IF sl THEN
-  IF sl->SliceType = slRectangle THEN
-   RETURN sl
-  ELSE
-   scripterr current_command_name() & ": slice handle " & handle & " is not a rect", serrBadOp
-  END IF
- END IF
- RETURN NULL
-END FUNCTION
+'No valid_plotrect needed
 
 FUNCTION valid_plottextslice(byval handle as integer) as bool
- IF valid_plotslice(handle) THEN
-  IF plotslices(handle)->SliceType = slText THEN
-   RETURN YES
-  ELSE
-   scripterr current_command_name() & ": slice handle " & handle & " is not text", serrBadOp
-  END IF
- END IF
- RETURN NO
+ RETURN get_handle_typed_slice(handle, slText) <> NULL
 END FUNCTION
 
 FUNCTION valid_plotellipse(byval handle as integer) as bool
- IF valid_plotslice(handle) THEN
-  IF plotslices(handle)->SliceType = slEllipse THEN
-   RETURN YES
-  ELSE
-   scripterr current_command_name() & ": slice handle " & handle & " is not an ellipse", serrBadOp
-  END IF
- END IF
- RETURN NO
+ RETURN get_handle_typed_slice(handle, slEllipse) <> NULL
 END FUNCTION
 
 FUNCTION valid_plotlineslice(byval handle as integer) as bool
- IF valid_plotslice(handle) THEN
-  IF plotslices(handle)->SliceType = slLine THEN
-   RETURN YES
-  ELSE
-   scripterr current_command_name() & ": slice handle " & handle & " is not a line", serrBadOp
-  END IF
- END IF
- RETURN NO
+ RETURN get_handle_typed_slice(handle, slLine) <> NULL
 END FUNCTION
 
 FUNCTION valid_plotgridslice(byval handle as integer) as bool
- IF valid_plotslice(handle) THEN
-  IF plotslices(handle)->SliceType = slGrid THEN
-   RETURN YES
-  ELSE
-   scripterr current_command_name() & ": slice handle " & handle & " is not a grid", serrBadOp
-  END IF
- END IF
- RETURN NO
+ RETURN get_handle_typed_slice(handle, slGrid) <> NULL
 END FUNCTION
 
 FUNCTION valid_plotselectslice(byval handle as integer) as bool
- IF valid_plotslice(handle) THEN
-  IF plotslices(handle)->SliceType = slSelect THEN
-   RETURN YES
-  ELSE
-   scripterr current_command_name() & ": slice handle " & handle & " is not a select", serrBadOp
-  END IF
- END IF
- RETURN NO
+ RETURN get_handle_typed_slice(handle, slSelect) <> NULL
 END FUNCTION
 
 FUNCTION valid_plotscrollslice(byval handle as integer) as bool
- IF valid_plotslice(handle) THEN
-  IF plotslices(handle)->SliceType = slScroll THEN
-   RETURN YES
-  ELSE
-   scripterr current_command_name() & ": slice handle " & handle & " is not a scroll", serrBadOp
-  END IF
- END IF
- RETURN NO
+ RETURN get_handle_typed_slice(handle, slScroll) <> NULL
 END FUNCTION
 
 FUNCTION valid_plotpanelslice(byval handle as integer) as bool
- IF valid_plotslice(handle) THEN
-  IF plotslices(handle)->SliceType = slPanel THEN
-   RETURN YES
-  ELSE
-   scripterr current_command_name() & ": slice handle " & handle & " is not a panel", serrBadOp
-  END IF
- END IF
- RETURN NO
+ RETURN get_handle_typed_slice(handle, slPanel) <> NULL
 END FUNCTION
 
 SUB unresizable_error(sl as Slice ptr, handle as integer, reason as string, errlvl as scriptErrEnum = serrBadOp)

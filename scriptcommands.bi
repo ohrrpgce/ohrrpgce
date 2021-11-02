@@ -35,8 +35,11 @@ DECLARE FUNCTION get_valid_npc (byval seekid as NPCScriptref, byval errlvl as sc
 DECLARE FUNCTION get_valid_npc_id_pool (seekid as NPCScriptref, pool as integer=-1, byref retid as NPCTypeID, byref retpool as integer) as bool
 
 DECLARE FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
-DECLARE FUNCTION get_arg_slice(byval argno as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
-DECLARE FUNCTION get_arg_typed_slice(byval argno as integer, byval sltype as SliceTypes, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
+DECLARE FUNCTION get_handle_typed_slice(byval handle as integer, byval sltype as SliceTypes, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
+'DECLARE FUNCTION get_arg_slice(byval argno as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
+'DECLARE FUNCTION get_arg_typed_slice(byval argno as integer, byval sltype as SliceTypes, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
+#DEFINE get_arg_slice(argno)  get_handle_slice(retvals(argno))
+#DEFINE get_arg_typed_slice(argno, sltype)  get_handle_typed_slice(retvals(argno), sltype)
 
 #DEFINE get_arg_containersl(argno)   get_arg_typed_slice(argno, slContainer)
 #DEFINE get_arg_spritesl(argno)      get_arg_typed_slice(argno, slSprite)
