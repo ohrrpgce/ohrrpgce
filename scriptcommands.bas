@@ -3348,28 +3348,24 @@ SUB script_functions(byval cmdid as integer)
    scriptret = IIF(sl->SliceType = slEllipse, 1, 0)
   END IF
  CASE 512 '--set ellipse border col
-  IF valid_plotellipse(retvals(0)) THEN
-   IF valid_color(retvals(1)) THEN
-    ChangeEllipseSlice plotslices(retvals(0)), retvals(1)
-   END IF
+  sl = get_arg_ellipsesl(0)
+  IF sl ANDALSO valid_color(retvals(1)) THEN
+   ChangeEllipseSlice sl, retvals(1)
   END IF
  CASE 513 '--set ellipse fill col
-  IF valid_plotellipse(retvals(0)) THEN
-   IF valid_color(retvals(1)) THEN
-    ChangeEllipseSlice plotslices(retvals(0)), , retvals(1)
-   END IF
+  sl = get_arg_ellipsesl(0)
+  IF sl ANDALSO valid_color(retvals(1)) THEN
+   ChangeEllipseSlice sl, , retvals(1)
   END IF
  CASE 514 '--get ellipse border col
-  IF valid_plotellipse(retvals(0)) THEN
-   DIM dat as EllipseSliceData ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = dat->bordercol
+  sl = get_arg_ellipsesl(0)
+  IF sl THEN
+   scriptret = sl->EllipseData->bordercol
   END IF
  CASE 515 '--get ellipse fill col
-  IF valid_plotellipse(retvals(0)) THEN
-   DIM dat as EllipseSliceData ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = dat->fillcol
+  sl = get_arg_ellipsesl(0)
+  IF sl THEN
+   scriptret = sl->EllipseData->fillcol
   END IF
  CASE 516 '--_checkpoint
   IF autotestmode = YES THEN
@@ -5275,10 +5271,6 @@ FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum 
 END FUNCTION
 
 'Various valid_plot* functions don't exist, not needed
-
-FUNCTION valid_plotellipse(byval handle as integer) as bool
- RETURN get_handle_typed_slice(handle, slEllipse) <> NULL
-END FUNCTION
 
 FUNCTION valid_plotlineslice(byval handle as integer) as bool
  RETURN get_handle_typed_slice(handle, slLine) <> NULL
