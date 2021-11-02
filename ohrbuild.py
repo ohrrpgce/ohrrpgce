@@ -494,8 +494,14 @@ def android_source_actions (env, sourcelist, rootdir, destdir):
             # produces a .c instead of an .o output. SCons doesn't care that no .o is generated.
             source_nodes += [node]
         else:
-            # node.sources[0] itself is a path in build/ (to a nonexistent file)
-            source_files.append (node.sources[0].srcnode().abspath)
+            # For any .c file that lives in rootdir, node.sources[0] is a path in build/
+            # (to a nonexistent file), and I have no idea why, while .srcnode() is the
+            # actual source file path
+            if os.path.isfile(node.sources[0].abspath):
+                print(node.sources[0].abspath)
+                source_files.append (node.sources[0].abspath)
+            else:
+                source_files.append (node.sources[0].srcnode().abspath)
             source_nodes += node.sources
 
     # hacky. Copy the right source files to a temp directory because the Android.mk used
