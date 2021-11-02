@@ -34,7 +34,24 @@ DECLARE FUNCTION getnpcref (byval seekid as NPCScriptref, byval copynum as integ
 DECLARE FUNCTION get_valid_npc (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp, byval pool as integer=0) as NPCIndex
 DECLARE FUNCTION get_valid_npc_id_pool (seekid as NPCScriptref, pool as integer=-1, byref retid as NPCTypeID, byref retpool as integer) as bool
 
-DECLARE FUNCTION valid_plotslice(byval handle as integer, byval errlev as scriptErrEnum = serrBadOp) as bool
+DECLARE FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
+DECLARE FUNCTION get_arg_slice(byval argno as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
+DECLARE FUNCTION get_arg_typed_slice(byval argno as integer, byval sltype as SliceTypes, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
+
+#DEFINE get_arg_containersl(argno)   get_arg_typed_slice(argno, slContainer)
+#DEFINE get_arg_spritesl(argno)      get_arg_typed_slice(argno, slSprite)
+#DEFINE get_arg_textsl(argno)        get_arg_typed_slice(argno, slText)
+#DEFINE get_arg_rectsl(argno)        get_arg_typed_slice(argno, slRectangle)
+#DEFINE get_arg_linesl(argno)        get_arg_typed_slice(argno, slLine)
+#DEFINE get_arg_ellipsesl(argno)     get_arg_typed_slice(argno, slEllipse)
+#DEFINE get_arg_mapsl(argno)         get_arg_typed_slice(argno, slMap)
+#DEFINE get_arg_gridsl(argno)        get_arg_typed_slice(argno, slGrid)
+#DEFINE get_arg_scrollsl(argno)      get_arg_typed_slice(argno, slScroll)
+#DEFINE get_arg_selectsl(argno)      get_arg_typed_slice(argno, slSelect)
+#DEFINE get_arg_panelsl(argno)       get_arg_typed_slice(argno, slPanel)
+#DEFINE get_arg_layoutsl(argno)      get_arg_typed_slice(argno, slLayout)
+
+DECLARE FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
 DECLARE FUNCTION valid_plotsprite(byval handle as integer) as bool
 DECLARE FUNCTION valid_plotrect_ptr(byval handle as integer) as Slice ptr
 DECLARE FUNCTION valid_plottextslice(byval handle as integer) as bool

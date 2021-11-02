@@ -5198,22 +5198,45 @@ FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as bool
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_plotslice(byval handle as integer, byval errlev as scriptErrEnum = serrBadOp) as bool
+'Return the Slice ptr for a slice handle, or throw an error
+'and return NULL if not valid
+FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
  IF handle < LBOUND(plotslices) ORELSE handle > highest_used_slice_handle THEN  'catches handle > UBOUND(plotslices)
-  scripterr current_command_name() & ": invalid slice handle " & handle, errlev
-  RETURN NO
+  scripterr current_command_name() & ": invalid slice handle " & handle, errlvl
+  RETURN NULL
  END IF
- IF plotslices(handle) = 0 THEN
-  scripterr current_command_name() & ": slice handle " & handle & " has already been deleted", errlev
-  RETURN NO
+ DIM sl as Slice ptr = plotslices(handle)
+ IF sl = 0 THEN
+  scripterr current_command_name() & ": slice handle " & handle & " has already been deleted", errlvl
+  RETURN NULL
  END IF
  IF ENABLE_SLICE_DEBUG THEN
-  IF SliceDebugCheck(plotslices(handle)) = NO THEN
-   scripterr current_command_name() & ": slice " & handle & " " & plotslices(handle) & " is not in the slice debug table!", serrBug
-   RETURN NO
+  IF SliceDebugCheck(sl) = NO THEN
+   scripterr current_command_name() & ": slice " & handle & " " & sl & " is not in the slice debug table!", serrBug
+   RETURN NULL
   END IF
  END IF
- RETURN YES
+ RETURN sl
+END FUNCTION
+
+'Return the Slice ptr for the nth script command argument, or throw an error and
+'return NULL if not a valid slice handle.
+FUNCTION get_arg_slice(byval argno as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
+ RETURN get_handle_slice(retvals(argno), errlvl)
+END FUNCTION
+
+FUNCTION get_arg_typed_slice(byval argno as integer, byval sltype as SliceTypes, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
+ DIM sl as Slice ptr = get_handle_slice(retvals(argno), errlvl)
+ IF sl = NULL THEN RETURN sl
+ IF sl->SliceType <> sltype THEN
+  scripterr current_command_name() & ": slice handle " & retvals(argno) & " is not a " & SliceTypeName(sltype), serrBadOp
+  RETURN NULL
+ END IF
+ RETURN sl
+END FUNCTION
+
+FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
+ RETURN get_handle_slice(handle, errlvl) <> NULL
 END FUNCTION
 
 FUNCTION valid_plotsprite(byval handle as integer) as bool
@@ -5233,8 +5256,8 @@ END FUNCTION
 
 'Return Slice ptr if the handle is valid rect slice, or throw an error
 FUNCTION valid_plotrect_ptr(byval handle as integer) as Slice ptr
- IF valid_plotslice(handle) THEN
-  DIM sl as Slice ptr = plotslices(handle)
+ DIM sl as Slice ptr = get_handle_slice(handle)
+ IF sl THEN
   IF sl->SliceType = slRectangle THEN
    RETURN sl
   ELSE
