@@ -53,6 +53,7 @@ WHAT IS NEW?
     * Global NPCs didn't reload while using Test Game. [Ralph]
     * At higher resolutions the map layers would be cropped to 320x200 for a
       tick when exiting the Spells, Equip or Save/Load menus [Ralph]
+    * "free slice(0)" no longer shows a warning, I mean it this time! [Ralph]
 
   *** Stuff Only Developers Will Notice
     * FreeBASIC 1.04+ now required to compile

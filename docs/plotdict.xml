@@ -6555,10 +6555,14 @@ end
 				<lb/>
 				Freeing the same slice handle twice shows a warning
 				(if slice error reporting is enabled, e.g. while testing your game).
-				However, <tt>free slice (0)</tt> is fine.
+				However, <tt>free slice (0)</tt> is fine, showing no warning.
 				It's good practice to set a variable containing a slice handle to 0
 				after you free it, so that the script can test whether the slice
 				exists or not. (<ref>sliceisvalid</ref> is not reliable.)
+				<note>
+					You can't delete a protected slice, which includes most
+					slices created by the engine such as NPCs and heroes.
+				</note>
 			</description>
 			<example>
 script, simple example, begin
@@ -8817,10 +8821,19 @@ set horiz align(sl, edge:right)
 		<command id="freesprite">
 			<canon>free sprite (handle)</canon>
 			<shortname>free sprite</shortname>
-			<description>Unloads a sprite loaded by any of the "load x sprite" functions. This removes the sprite from the screen and removes it from memory. It is a good idea to free sprites when you are completely done with them. Unlike <ref>freeslice</ref>, this command only works on sprites, but it will still also free any children of the sprite it is freeing regardless of what kind of children they are. The only purpose of this command is additional error checking.</description>
+			<description>
+				Deletes a sprite slice (e.g. created by <tt>load ... sprite</tt> commands).
+				Identical to <ref>freeslice</ref> except it shows an error when used on a non-sprite,
+				for additional error checking.
+				This removes the sprite from the screen, and deletes any children it has.
+				It is a good idea to free sprites when you are completely done with them.
+				<note>
+					You can't delete a protected slice, which includes most
+					slices created by the engine such as NPC and hero sprites.
+				</note>
+			</description>
 			<seealso>
 				<ref>freeslice</ref>
-				<ref>loadherosprite</ref>
 			</seealso>
 		</command>
 		<command id="clonesprite">

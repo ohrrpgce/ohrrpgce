@@ -2326,16 +2326,18 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 322'--load hero sprite
   scriptret = load_sprite_plotslice(0, retvals(0), retvals(1))
- CASE 323'--free sprite
+ CASE 323, 361'--free sprite, free slice
   IF retvals(0) = 0 THEN
    'No warning
   ELSE
    sl = get_arg_slice(0, serrWarn)
    IF sl THEN
-    IF sl->SliceType = slSprite THEN
-     DeleteSlice @plotslices(retvals(0))  'TODO: needs replacement
-    ELSE
+    IF sl->Protect THEN
+     scripterr current_command_name() & ": cannot delete protected " & SliceTypeName(sl) & " slice " & retvals(0), serrBadOp
+    ELSEIF cmdid = 323 ANDALSO sl->SliceType <> slSprite THEN
      scripterr "free sprite: slice " & retvals(0) & " is a " & SliceTypeName(sl), serrBadOp
+    ELSE
+     DeleteSlice @plotslices(retvals(0))  'TODO: needs replacement
     END IF
    END IF
   END IF
@@ -2470,15 +2472,6 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 360 '--sprite layer
   scriptret = find_plotslice_handle(SliceTable.ScriptSprite)
- CASE 361 '--free slice
-  sl = get_arg_slice(0, serrWarn)
-  IF sl THEN
-   IF sl->Protect THEN
-    scripterr "free slice: cannot free protected " & SliceTypeName(sl) & " slice " & retvals(0), serrBadOp
-   ELSE
-    DeleteSlice @plotslices(retvals(0))
-   END IF
-  END IF
  CASE 362 '--first child
   sl = get_arg_slice(0)
   IF sl THEN
