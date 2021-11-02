@@ -149,8 +149,10 @@ SUB setmapxy
     END IF
    CASE slicecam
     'We also check the slice didn't just get deleted after changing map
-    IF valid_plotslice(gen(genCameraArg1), serrIgnore) THEN
-     center_camera_on_slice plotslices(gen(genCameraArg1))
+    DIM sl as Slice ptr
+    sl = get_handle_slice(gen(genCameraArg1), serrIgnore)
+    IF sl THEN
+     center_camera_on_slice sl
     ELSE
      'stopping seems more appropriate than resetting to hero
      gen(genCameraMode) = stopcam

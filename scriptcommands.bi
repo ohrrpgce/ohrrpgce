@@ -57,11 +57,9 @@ DECLARE FUNCTION get_handle_typed_slice(byval handle as integer, byval sltype as
 DECLARE FUNCTION get_arg_resizeable_slice(byval argno as integer, byval horiz_fill_ok as bool=NO, byval vert_fill_ok as bool=NO) as Slice ptr
 DECLARE FUNCTION get_slice_drawopts(sl as Slice ptr, required as bool = YES) as DrawOptions ptr
 
-DECLARE FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
 DECLARE FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
 DECLARE FUNCTION find_plotslice_handle(byval sl as Slice Ptr) as integer
 DECLARE SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
-DECLARE SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=colInvalid, byval fgcol as integer=colInvalid, byval border as RectBorderTypes=borderUndef, byval translucent as RectTransTypes=transUndef, byval fuzzfactor as integer=0, byval raw_box_border as RectBorderTypes=borderUndef)
 
 DECLARE FUNCTION find_menu_id (byval id as integer) as integer
 DECLARE FUNCTION find_menu_handle (byval handle as integer) as integer

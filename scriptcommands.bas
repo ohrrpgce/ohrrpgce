@@ -572,8 +572,10 @@ SUB process_wait_conditions()
     CASE 73, 234, 438'--game over, quit from loadmenu, reset game
 
     CASE 508'--wait for slice
-     IF valid_plotslice(.waitarg, serrWarn) THEN
-      IF plotslices(.waitarg)->Velocity.X = 0 ANDALSO plotslices(.waitarg)->Velocity.Y = 0 ANDALSO plotslices(.waitarg)->TargTicks = 0 THEN
+     DIM sl as Slice ptr
+     sl = get_handle_slice(.waitarg, serrWarn)
+     IF sl THEN
+      IF sl->Velocity = 0 ANDALSO sl->TargTicks = 0 THEN
        script_stop_waiting()
       END IF
      ELSE
@@ -582,8 +584,11 @@ SUB process_wait_conditions()
      END IF
 
     CASE 575'--wait for dissolve
-     IF valid_plotslice(.waitarg, serrWarn) THEN
-      IF NOT SpriteSliceIsDissolving(plotslices(.waitarg), YES) THEN
+     DIM sl as Slice ptr
+     'Don't need to throw an error if the slice is no longer a sprite (SpriteSliceIsDissolving doesn't either)
+     sl = get_handle_slice(.waitarg, serrWarn)
+     IF sl THEN
+      IF NOT SpriteSliceIsDissolving(sl, YES) THEN
        script_stop_waiting()
       END IF
      ELSE
@@ -5257,12 +5262,6 @@ END FUNCTION
 
 '/
 
-FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
- RETURN get_handle_slice(handle, errlvl) <> NULL
-END FUNCTION
-
-'Typed valid_plot* functions don't exist, not needed
-
 LOCAL SUB unresizable_error(sl as Slice ptr, argno as integer, reason as string, errlvl as scriptErrEnum = serrBadOp)
  DIM handle as integer = retvals(argno)  'TODO: needs replacement
  scripterr strprintf("%s: %s slice handle %d cannot be resized%s", current_command_name(), SliceTypeName(sl), handle, reason), errlvl
@@ -5404,18 +5403,6 @@ LOCAL SUB replace_sprite_plotslice(byval slice_argno as integer, byval spritetyp
  IF sl THEN
   IF valid_spriteset(spritetype, record) THEN
    ChangeSpriteSlice sl, spritetype, record, pal
-  END IF
- END IF
-END SUB
-
-SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=colInvalid, byval fgcol as integer=colInvalid, byval border as RectBorderTypes=borderUndef, byval translucent as RectTransTypes=transUndef, byval fuzzfactor as integer=0, byval raw_box_border as RectBorderTypes=borderUndef)
- IF valid_plotslice(handle) THEN
-  DIM sl as Slice Ptr
-  sl = plotslices(handle)
-  IF sl->SliceType = slRectangle THEN
-   ChangeRectangleSlice sl, style, bgcol, fgcol, border, translucent, fuzzfactor, raw_box_border
-  ELSE
-   scripterr current_command_name() & ": " & SliceTypeName(sl) & " is not a rect", serrBadOp
   END IF
  END IF
 END SUB

@@ -3237,8 +3237,8 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
 
  'If following NPC or slice on old map, reset camera
  IF afterbat = NO THEN
-  IF gen(genCameraMode) = slicecam ANDALSO valid_plotslice(gen(genCameraArg1), serrIgnore) = NO  _
-     OR gen(genCameraMode) = npccam THEN
+  IF (gen(genCameraMode) = slicecam ANDALSO get_handle_slice(gen(genCameraArg1), serrIgnore) = NULL) _
+     ORELSE gen(genCameraMode) = npccam THEN
    '(Note that normally when following an invalid slice we stop the camera instead)
    gen(genCameraMode) = herocam
    gen(genCameraArg1) = 0
