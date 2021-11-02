@@ -1188,7 +1188,6 @@ SUB script_functions(byval cmdid as integer)
  CASE 625'--move slice with wallchecking (sl, xgo, ygo, friction)
   IF valid_plotslice(retvals(0)) THEN
    DIM friction as integer = bound(get_optional_arg(3, 100), 0, 100)
-   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    RefreshSliceScreenPos sl
    WITH *sl
@@ -2391,10 +2390,11 @@ SUB script_functions(byval cmdid as integer)
   replace_sprite_plotslice retvals(0), 8, retvals(1), retvals(2)
  CASE 345 '--clone sprite
   IF valid_plotsprite(retvals(0)) THEN
-   DIM sl as Slice Ptr
-   sl = NewSliceOfType(slSprite, SliceTable.scriptsprite)
-   sl->Clone(plotslices(retvals(0)), sl)
-   scriptret = create_plotslice_handle(sl)
+   DIM newsl as Slice Ptr
+   newsl = NewSliceOfType(slSprite, SliceTable.scriptsprite)
+   'Only sprite data is copied!
+   newsl->Clone(plotslices(retvals(0)), newsl)
+   scriptret = create_plotslice_handle(newsl)
   END IF
  CASE 346 '--get sprite frame
   IF valid_plotsprite(retvals(0)) THEN
@@ -2467,7 +2467,6 @@ SUB script_functions(byval cmdid as integer)
   scriptret = find_plotslice_handle(SliceTable.ScriptSprite)
  CASE 361 '--free slice
   IF valid_plotslice(retvals(0), serrWarn) THEN
-   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Protect THEN
     scripterr "free slice: cannot free protected " & SliceTypeName(sl) & " slice " & retvals(0), serrBadOp
@@ -2477,25 +2476,21 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 362 '--first child
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    scriptret = find_plotslice_handle(sl->FirstChild)
   END IF
  CASE 363 '--next sibling
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    scriptret = find_plotslice_handle(sl->NextSibling)
   END IF
  CASE 364 '--create container
-  DIM sl as Slice Ptr
   sl = NewSliceOfType(slContainer, SliceTable.scriptsprite)
   sl->Width = retvals(0)
   sl->Height = retvals(1)
   scriptret = create_plotslice_handle(sl)
  CASE 365 '--set parent
   IF valid_plotslice(retvals(0)) AND valid_plotslice(retvals(1)) THEN
-   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Protect THEN
     scripterr "set parent: cannot reparent protected " & SliceTypeName(sl) & " slice " & retvals(0), serrBadOp
@@ -2511,14 +2506,12 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 367 '--slice screen x
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    RefreshSliceScreenPos sl
    scriptret = sl->ScreenX + SliceXAnchor(sl)
   END IF
  CASE 368 '--slice screen y
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    RefreshSliceScreenPos sl
    scriptret = sl->ScreenY + SliceYAnchor(sl)
@@ -2529,7 +2522,6 @@ SUB script_functions(byval cmdid as integer)
    IF plotslices(retvals(0))->SliceType = slContainer THEN scriptret = 1
   END IF
  CASE 370 '--create rect
-  DIM sl as Slice Ptr
   sl = NewSliceOfType(slRectangle, SliceTable.scriptsprite)
   sl->Width = retvals(0)
   sl->Height = retvals(1)
@@ -2606,7 +2598,6 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 384 '--slice collide point
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    RefreshSliceScreenPos sl
    scriptret = ABS(SliceCollidePoint(sl, XY(retvals(1), retvals(2))))
@@ -2696,13 +2687,11 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 402 '--slice to front
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))->Parent
    SetSliceParent plotslices(retvals(0)), sl
   END IF
  CASE 403 '--slice to back
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Parent = 0 THEN
     scripterr "slice to back: invalid on root slice", serrBadOp
@@ -2788,7 +2777,6 @@ SUB script_functions(byval cmdid as integer)
  CASE 419 '--slice edge x
   IF valid_plotslice(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, 2, "edge") THEN
-    DIM sl as Slice Ptr
     sl = plotslices(retvals(0))
     scriptret = sl->X - SliceXAnchor(sl) + SliceEdgeX(sl, retvals(1))
    END IF
@@ -2796,13 +2784,11 @@ SUB script_functions(byval cmdid as integer)
  CASE 420 '--slice edge y
   IF valid_plotslice(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, 2, "edge") THEN
-    DIM sl as Slice Ptr
     sl = plotslices(retvals(0))
     scriptret = sl->Y - SliceYAnchor(sl) + SliceEdgeY(sl, retvals(1))
    END IF
   END IF
  CASE 421 '--create text
-  DIM sl as Slice Ptr
   sl = NewSliceOfType(slText, SliceTable.scriptsprite)
   scriptret = create_plotslice_handle(sl)
  CASE 422 '--set slice text (slice, string)
@@ -3025,7 +3011,6 @@ SUB script_functions(byval cmdid as integer)
    scriptret = ABS(plotslices(retvals(0))->Clip <> 0)
   END IF
  CASE 453 '--create grid
-  DIM sl as Slice Ptr
   sl = NewSliceOfType(slGrid, SliceTable.scriptsprite)
   scriptret = create_plotslice_handle(sl)
   sl->Width = retvals(0)
@@ -3069,7 +3054,6 @@ SUB script_functions(byval cmdid as integer)
    scriptret = ABS(dat->show <> 0)
   END IF
  CASE 461 '--load slice collection
-  DIM sl as Slice Ptr
   IF isfile(workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld") THEN
    sl = NewSliceOfType(slContainer, SliceTable.scriptsprite)
    SliceLoadFromFile sl, workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld", , retvals(0)
@@ -3081,7 +3065,6 @@ SUB script_functions(byval cmdid as integer)
  CASE 462 '--set slice edge x
   IF valid_plotslice(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, 2, "edge") THEN
-    DIM sl as Slice Ptr
     sl = plotslices(retvals(0))
     sl->X = retvals(2) + SliceXAnchor(sl) - SliceEdgeX(sl, retvals(1))
    END IF
@@ -3089,7 +3072,6 @@ SUB script_functions(byval cmdid as integer)
  CASE 463 '--slice edge y
   IF valid_plotslice(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, 2, "edge") THEN
-    DIM sl as Slice Ptr
     sl = plotslices(retvals(0))
     sl->Y = retvals(2) + SliceYAnchor(sl) - SliceEdgeY(sl, retvals(1))
    END IF
@@ -3316,7 +3298,6 @@ SUB script_functions(byval cmdid as integer)
    END WITH
   END IF
  CASE 510 '--create ellipse
-  DIM sl as Slice Ptr
   sl = NewSliceOfType(slEllipse, SliceTable.scriptsprite)
   sl->Width = retvals(0)
   sl->Height = retvals(1)
@@ -4008,7 +3989,6 @@ SUB script_functions(byval cmdid as integer)
    scriptret = dat->index
   END IF
  CASE 585 '--create select
-  DIM sl as Slice Ptr
   sl = NewSliceOfType(slSelect, SliceTable.scriptsprite)
   scriptret = create_plotslice_handle(sl)
   sl->Width = retvals(0)
@@ -4023,7 +4003,6 @@ SUB script_functions(byval cmdid as integer)
    scriptret = SliceIndexAmongSiblings(plotslices(retvals(0)))
   END IF
  CASE 588 '--create scroll
-  DIM sl as Slice Ptr
   sl = NewSliceOfType(slScroll, SliceTable.scriptsprite)
   scriptret = create_plotslice_handle(sl)
   sl->Width = retvals(0)
@@ -4471,7 +4450,6 @@ SUB script_functions(byval cmdid as integer)
    SliceDebugDumpTree plotslices(retvals(0))
   END IF
  CASE 606 '--create panel
-  DIM sl as Slice Ptr
   sl = NewSliceOfType(slPanel, SliceTable.scriptsprite)
   scriptret = create_plotslice_handle(sl)
   sl->Width = retvals(0)
@@ -4682,13 +4660,13 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 656 '--npc reference from slice
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl as Slice ptr = plotslices(retvals(0))
+   sl = plotslices(retvals(0))
    scriptret = 0
    IF *sl->Context IS NPCSliceContext THEN scriptret = -1 * (1 + CAST(NPCSliceContext ptr, sl->Context)->npcindex)
   END IF
  CASE 657 '--hero rank from slice
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl as Slice ptr = plotslices(retvals(0))
+   sl = plotslices(retvals(0))
    scriptret = -1
    IF *sl->Context IS HeroSliceContext THEN
     scriptret = party_slot_to_rank(CAST(HeroSliceContext ptr, sl->Context)->slot)
@@ -4714,7 +4692,6 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 662 '--create line
   IF valid_color(retvals(2)) THEN
-   DIM sl as Slice ptr
    sl = NewSliceOfType(slLine, SliceTable.scriptsprite)
    scriptret = create_plotslice_handle(sl)
    sl->Width = retvals(0)
@@ -4851,7 +4828,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 694 '--hero slot from slice
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl as Slice ptr = plotslices(retvals(0))
+   sl = plotslices(retvals(0))
    scriptret = -1
    IF *sl->Context IS HeroSliceContext THEN
     scriptret = CAST(HeroSliceContext ptr, sl->Context)->slot
