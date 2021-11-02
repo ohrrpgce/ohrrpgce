@@ -404,8 +404,7 @@ Sub ThingBrowser.loop_sprite_helper(byval plank as Slice Ptr, byval min as integ
  if spr then
   loopvar spr->Extra(1), 0, delay
   if spr->Extra(1) = 0 then
-   dim dat as SpriteSliceData Ptr = spr->SliceData
-   loopvar dat->frame, min, max
+   loopvar spr->SpriteData->frame, min, max
   end if
  end if
 End Sub

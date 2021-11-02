@@ -85,8 +85,7 @@ END PROPERTY
 
 PROPERTY BattleSprite.frame() as integer
  IF sprite ANDALSO sprite->SliceType = slSprite THEN
-  DIM sldata as SpriteSliceData ptr = sprite->SliceData
-  RETURN sldata->frame
+  RETURN sprite->SpriteData->frame
  END IF
 END PROPERTY
 

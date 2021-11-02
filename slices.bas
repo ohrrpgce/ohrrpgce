@@ -1341,10 +1341,8 @@ end sub
 Sub CloneRectangleSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneRectangleSlice null ptr": exit sub
  dim dat as RectangleSliceData Ptr
- dat = sl->SliceData
- dim clonedat as RectangleSliceData Ptr
- clonedat = cl->SliceData
- with *clonedat
+ dat = sl->RectData
+ with *cl->RectData
   .style       = dat->style
   .style_loaded= dat->style_loaded  'Doesn't matter
   .fgcol       = dat->fgcol
@@ -1518,10 +1516,8 @@ End Sub
 Sub CloneLineSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneLineSlice null ptr": exit sub
  dim dat as LineSliceData Ptr
- dat = sl->SliceData
- dim clonedat as LineSliceData Ptr
- clonedat = cl->SliceData
- with *clonedat
+ dat = sl->LineData
+ with *cl->LineData
   .col       = dat->col
   '.flipped   = dat->flipped
  end with
@@ -1764,10 +1760,8 @@ End Function
 Sub CloneTextSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneTextSlice null ptr": exit sub
  dim dat as TextSliceData Ptr
- dat = sl->SliceData
- dim clonedat as TextSliceData Ptr
- clonedat = cl->SliceData
- with *clonedat
+ dat = sl->TextData
+ with *cl->TextData
   .s       = dat->s
   .col     = dat->col
   .outline = dat->outline
@@ -2178,8 +2172,8 @@ end sub
 
 Sub SaveSpriteSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveSpriteSlice null ptr": exit sub
- DIM dat as SpriteSliceData Ptr
- dat = sl->SliceData
+ dim dat as SpriteSliceData Ptr
+ dat = sl->SpriteData
  SavePropAlways node, "sprtype", dat->spritetype
  if dat->spritetype = sprTypeFrame then
   ' If it's not an asset sprite, then the Frame came from an unknown source and can't be saved
@@ -2555,9 +2549,8 @@ end sub
 
 Sub CloneGridSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneGridSlice null ptr": exit sub
- dim dat as GridSliceData ptr = sl->SliceData
- dim clonedat as GridSliceData ptr = cl->SliceData
- with *clonedat
+ dim dat as GridSliceData ptr = sl->GridData
+ with *cl->GridData
   .cols = dat->cols
   .rows = dat->rows
   .show = dat->show
@@ -2920,10 +2913,7 @@ End Function
 
 Sub CloneLayoutSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneLayoutSlice null ptr": exit sub
- dim as LayoutSliceData ptr dat, clonedat
- dat = sl->SliceData
- clonedat = cl->SliceData
- *clonedat = *dat
+ *cl->LayoutData = *sl->LayoutData
 end sub
 
 Sub SaveLayoutSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
@@ -3038,10 +3028,8 @@ end sub
 Sub CloneEllipseSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneEllipseSlice null ptr": exit sub
  dim dat as EllipseSliceData Ptr
- dat = sl->SliceData
- dim clonedat as EllipseSliceData Ptr
- clonedat = cl->SliceData
- with *clonedat
+ dat = sl->EllipseData
+ with *cl->EllipseData
   .bordercol  = dat->bordercol
   .fillcol    = dat->fillcol
   '.last_draw_* left at zero to force a redraw
@@ -3188,10 +3176,8 @@ end sub
 Sub CloneScrollSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneScrollSlice null ptr": exit sub
  dim dat as ScrollSliceData Ptr
- dat = sl->SliceData
- dim clonedat as ScrollSliceData Ptr
- clonedat = cl->SliceData
- with *clonedat
+ dat = sl->ScrollData
+ with *cl->ScrollData
   .style       = dat->style
   .check_depth = dat->check_depth
  end with
@@ -3345,10 +3331,8 @@ end sub
 Sub CloneSelectSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneScrollSlice null ptr": exit sub
  dim dat as SelectSliceData Ptr
- dat = sl->SliceData
- dim clonedat as SelectSliceData Ptr
- clonedat = cl->SliceData
- with *clonedat
+ dat = sl->SelectData
+ with *cl->SelectData
   .index       = dat->index
  end with
 end sub
@@ -3438,10 +3422,8 @@ end sub
 Sub ClonePanelSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "ClonePanelSlice null ptr": exit sub
  dim dat as PanelSliceData Ptr
- dat = sl->SliceData
- dim clonedat as PanelSliceData Ptr
- clonedat = cl->SliceData
- with *clonedat
+ dat = sl->PanelData
+ with *cl->PanelData
   .vertical = dat->vertical
   .primary = dat->primary
   .pixels = dat->pixels

@@ -944,7 +944,7 @@ FUNCTION slice_editor_mouse_over (edslice as Slice ptr, slicemenu() as SliceEdit
     'a huge hitbox
     topmost = sl
    CASE slGrid
-    IF cptr(GridSliceData ptr, sl->SliceData)->show THEN
+    IF sl->GridData->show THEN
      topmost = sl
     END IF
   END SELECT
@@ -1582,7 +1582,7 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
  END IF
  IF rule.group AND slgrBROWSESPRITEID THEN
   IF enter_space_click(state) THEN
-   DIM dat as SpriteSliceData ptr = sl->SliceData
+   DIM dat as SpriteSliceData ptr = sl->SpriteData
    DIM spriteb as SpriteOfTypeBrowser
    ChangeSpriteSlice sl, , spriteb.browse(dat->record, , dat->spritetype)
    state.need_update = YES
@@ -1595,7 +1595,7 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
   END IF
  END IF
  IF rule.group AND slgrBROWSESPRITEASSET THEN
-  DIM dat as SpriteSliceData ptr = sl->SliceData
+  DIM dat as SpriteSliceData ptr = sl->SpriteData
   IF enter_space_click(state) THEN
    ' Browse for an asset. Only paths inside data/ are allowed.
    DIM as string filename
@@ -1613,7 +1613,7 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
  END IF
  IF rule.group AND slgrBROWSEBOXBORDER THEN
   IF enter_space_click(state) THEN
-   DIM dat as RectangleSliceData ptr = sl->SliceData
+   DIM dat as RectangleSliceData ptr = sl->RectData
    DIM boxborderb as BoxborderSpriteBrowser
    dat->raw_box_border = boxborderb.browse(dat->raw_box_border)
    state.need_update = YES
@@ -1629,21 +1629,16 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
  END IF
  IF rule.group AND slgrUPDATERECTSTYLE THEN
   IF state.need_update THEN
-   DIM dat as RectangleSliceData Ptr
-   dat = sl->SliceData
-   dat->style_loaded = NO
+   sl->RectData->style_loaded = NO
   END IF
  END IF
  IF rule.group AND slgrEDITSWITCHINDEX THEN
   IF state.need_update THEN
-   DIM dat as SelectSliceData Ptr
-   dat = sl->SliceData
-   dat->override = -1 'Cancel override when we manually change index
+   sl->SelectData->override = -1 'Cancel override when we manually change index
   END IF
  END IF
  IF rule.group AND slgrLAYOUT2NDDIR THEN
-  DIM dat as LayoutSliceData ptr = sl->SliceData
-  DIM byref secdir as DirNum = dat->secondary_dir
+  DIM byref secdir as DirNum = sl->LayoutData->secondary_dir
   DIM n as integer = 0
   IF secdir = dirRight OR secdir = dirDown THEN n = 1
   IF intgrabber(n, 0, 1) THEN
