@@ -38,8 +38,8 @@ DECLARE FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scrip
 DECLARE FUNCTION get_handle_typed_slice(byval handle as integer, byval sltype as SliceTypes, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
 'DECLARE FUNCTION get_arg_slice(byval argno as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
 'DECLARE FUNCTION get_arg_typed_slice(byval argno as integer, byval sltype as SliceTypes, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
-#DEFINE get_arg_slice(argno)  get_handle_slice(retvals(argno))
-#DEFINE get_arg_typed_slice(argno, sltype)  get_handle_typed_slice(retvals(argno), sltype)
+#DEFINE get_arg_slice(argno, errlvl...)  get_handle_slice(retvals(argno), errlvl)
+#DEFINE get_arg_typed_slice(argno, sltype, errlvl...)  get_handle_typed_slice(retvals(argno), sltype, errlvl)
 
 #DEFINE get_arg_containersl(argno)   get_arg_typed_slice(argno, slContainer)
 #DEFINE get_arg_spritesl(argno)      get_arg_typed_slice(argno, slSprite)
