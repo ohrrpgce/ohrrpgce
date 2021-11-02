@@ -55,8 +55,6 @@ DECLARE FUNCTION get_handle_typed_slice(byval handle as integer, byval sltype as
 #DEFINE get_arg_layoutsl(argno)      get_arg_typed_slice(argno, slLayout)
 
 DECLARE FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
-DECLARE FUNCTION valid_plotsprite(byval handle as integer) as bool
-DECLARE FUNCTION valid_plotrect_ptr(byval handle as integer) as Slice ptr
 DECLARE FUNCTION valid_plottextslice(byval handle as integer) as bool
 DECLARE FUNCTION valid_plotellipse(byval handle as integer) as bool
 DECLARE FUNCTION valid_plotlineslice(byval handle as integer) as bool
@@ -70,8 +68,6 @@ DECLARE FUNCTION get_slice_drawopts(sl as Slice ptr, required as bool = YES) as 
 DECLARE FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
 DECLARE FUNCTION find_plotslice_handle(byval sl as Slice Ptr) as integer
 DECLARE SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
-DECLARE FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2) as integer
-DECLARE SUB replace_sprite_plotslice(byval handle as integer, byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2)
 DECLARE SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=colInvalid, byval fgcol as integer=colInvalid, byval border as RectBorderTypes=borderUndef, byval translucent as RectTransTypes=transUndef, byval fuzzfactor as integer=0, byval raw_box_border as RectBorderTypes=borderUndef)
 
 DECLARE FUNCTION find_menu_id (byval id as integer) as integer

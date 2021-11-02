@@ -31,7 +31,8 @@ DECLARE FUNCTION check_game_exists () as integer
 DECLARE FUNCTION get_optional_arg(byval retval_index as integer, byval default as integer) as integer
 DECLARE FUNCTION get_door_on_map(byref thisdoor as Door, byval door_id as integer, byval map_id as integer) as bool
 DECLARE FUNCTION allow_gmap_idx(gmap_idx as integer) as bool
-
+DECLARE FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2) as integer
+DECLARE SUB replace_sprite_plotslice(byval slice_argno as integer, byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2)
 
 ''''' Global variables
 
@@ -2347,7 +2348,7 @@ SUB script_functions(byval cmdid as integer)
    ChangeSpriteSlice plotslices(retvals(0)), , ,retvals(1)
   END IF
  CASE 327 '--replace hero sprite
-  replace_sprite_plotslice retvals(0), 0, retvals(1), retvals(2)
+  replace_sprite_plotslice 0, 0, retvals(1), retvals(2)
  CASE 328 '--set sprite frame
   IF valid_plotslice(retvals(0)) THEN
    ChangeSpriteSlice plotslices(retvals(0)), , , , retvals(1)
@@ -2359,52 +2360,53 @@ SUB script_functions(byval cmdid as integer)
  CASE 329'--load walkabout sprite
   scriptret = load_sprite_plotslice(4, retvals(0), retvals(1))
  CASE 330 '--replace walkabout sprite
-  replace_sprite_plotslice retvals(0), 4, retvals(1), retvals(2)
+  replace_sprite_plotslice 0, 4, retvals(1), retvals(2)
  CASE 331'--load weapon sprite
   scriptret = load_sprite_plotslice(5, retvals(0), retvals(1))
  CASE 332 '--replace weapon sprite
-  replace_sprite_plotslice retvals(0), 5, retvals(1), retvals(2)
+  replace_sprite_plotslice 0, 5, retvals(1), retvals(2)
  CASE 333'--load small enemy sprite
   scriptret = load_sprite_plotslice(1, retvals(0), retvals(1))
  CASE 334 '--replace small enemy sprite
-  replace_sprite_plotslice retvals(0), 1, retvals(1), retvals(2)
+  replace_sprite_plotslice 0, 1, retvals(1), retvals(2)
  CASE 335'--load medium enemy sprite
   scriptret = load_sprite_plotslice(2, retvals(0), retvals(1))
  CASE 336 '--replace medium enemy sprite
-  replace_sprite_plotslice retvals(0), 2, retvals(1), retvals(2)
+  replace_sprite_plotslice 0, 2, retvals(1), retvals(2)
  CASE 337'--load large enemy sprite
   scriptret = load_sprite_plotslice(3, retvals(0), retvals(1))
  CASE 338 '--replace large enemy sprite
-  replace_sprite_plotslice retvals(0), 3, retvals(1), retvals(2)
+  replace_sprite_plotslice 0, 3, retvals(1), retvals(2)
  CASE 339'--load attack sprite
   scriptret = load_sprite_plotslice(6, retvals(0), retvals(1))
  CASE 340 '--replace attack sprite
-  replace_sprite_plotslice retvals(0), 6, retvals(1), retvals(2)
+  replace_sprite_plotslice 0, 6, retvals(1), retvals(2)
  CASE 341'--load border sprite
   scriptret = load_sprite_plotslice(7, retvals(0), retvals(1))
  CASE 342 '--replace border sprite
-  replace_sprite_plotslice retvals(0), 7, retvals(1), retvals(2)
+  replace_sprite_plotslice 0, 7, retvals(1), retvals(2)
  CASE 343'--load portrait sprite
   scriptret = load_sprite_plotslice(8, retvals(0), retvals(1))
  CASE 344 '--replace portrait sprite
-  replace_sprite_plotslice retvals(0), 8, retvals(1), retvals(2)
+  replace_sprite_plotslice 0, 8, retvals(1), retvals(2)
  CASE 345 '--clone sprite
-  IF valid_plotsprite(retvals(0)) THEN
+  sl = get_arg_spritesl(0)
+  IF sl THEN
    DIM newsl as Slice Ptr
    newsl = NewSliceOfType(slSprite, SliceTable.scriptsprite)
    'Only sprite data is copied!
-   newsl->Clone(plotslices(retvals(0)), newsl)
+   sl->Clone(sl, newsl)
    scriptret = create_plotslice_handle(newsl)
   END IF
  CASE 346 '--get sprite frame
-  IF valid_plotsprite(retvals(0)) THEN
-   DIM dat as SpriteSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = dat->frame
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   scriptret = sl->SpriteData->frame
   END IF
  CASE 347 '--sprite frame count
-  IF valid_plotsprite(retvals(0)) THEN
-   scriptret = SpriteSliceNumFrames(plotslices(retvals(0)))
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   scriptret = SpriteSliceNumFrames(sl)
   END IF
  CASE 348 '--slice x
   IF valid_plotslice(retvals(0)) THEN
@@ -2623,24 +2625,24 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 388 '--horiz flip sprite
-  IF valid_plotsprite(retvals(0)) THEN
-   ChangeSpriteSlice plotslices(retvals(0)), , , , , retvals(1)
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   ChangeSpriteSlice sl, , , , , retvals(1)
   END IF
  CASE 389 '--vert flip sprite
-  IF valid_plotsprite(retvals(0)) THEN
-   ChangeSpriteSlice plotslices(retvals(0)), , , , , , retvals(1)
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   ChangeSpriteSlice sl, , , , , , retvals(1)
   END IF
  CASE 390 '--sprite is horiz flipped
-  IF valid_plotsprite(retvals(0)) THEN
-   DIM dat as SpriteSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   IF dat->flipHoriz THEN scriptret = 1 ELSE scriptret = 0
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   scriptret = IIF(sl->SpriteData->flipHoriz, 1, 0)
   END IF
  CASE 391 '--sprite is vert flipped
-  IF valid_plotsprite(retvals(0)) THEN
-   DIM dat as SpriteSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   IF dat->flipVert THEN scriptret = 1 ELSE scriptret = 0
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   scriptret = IIF(sl->SpriteData->flipVert, 1, 0)
   END IF
  CASE 392 '--set top padding
   IF valid_plotslice(retvals(0)) THEN
@@ -2745,19 +2747,19 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 413 '--get sprite set number
-  IF valid_plotsprite(retvals(0)) THEN
-   DIM dat as SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
-   scriptret = dat->record
-  END IF 
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   scriptret = sl->SpriteData->record
+  END IF
  CASE 414 '--get sprite palette
-  IF valid_plotsprite(retvals(0)) THEN
-   DIM dat as SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
-   IF dat->paletted = NO THEN
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   IF sl->SpriteData->paletted = NO THEN
     scripterr "get sprite palette: this sprite is unpaletted", serrWarn
    ELSE
-    scriptret = dat->pal
+    scriptret = sl->SpriteData->pal
    END IF
-  END IF 
+  END IF
  CASE 415 '--suspend timers
   setbit gen(), genSuspendBits, suspendtimers, 1
  CASE 416 '--resume timers
@@ -2966,11 +2968,10 @@ SUB script_functions(byval cmdid as integer)
    tag_updates
   END IF
  CASE 444 '--put sprite, place sprite
-  IF valid_plotsprite(retvals(0)) THEN
-   WITH *plotslices(retvals(0))
-    .X = retvals(1)
-    .Y = retvals(2)
-   END WITH
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   sl->X = retvals(1)
+   sl->Y = retvals(2)
   END IF
  CASE 446 '--move slice below
   IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
@@ -3209,16 +3210,17 @@ SUB script_functions(byval cmdid as integer)
  CASE 493'--load backdrop sprite (record)
   scriptret = load_sprite_plotslice(sprTypeBackdrop, retvals(0))
  CASE 494 '--replace backdrop sprite (handle, record)
-  replace_sprite_plotslice retvals(0), sprTypeBackdrop, retvals(1)
+  replace_sprite_plotslice 0, sprTypeBackdrop, retvals(1)
  CASE 495 '--get sprite trans (handle)
-  IF valid_plotsprite(retvals(0)) THEN
-   DIM dat as SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
-   scriptret = IIF(dat->trans, 1, 0)
-  END IF 
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   scriptret = IIF(sl->SpriteData->trans, 1, 0)
+  END IF
  CASE 496 '--set sprite trans (handle, bool)
-  IF valid_plotsprite(retvals(0)) THEN
-   ChangeSpriteSlice plotslices(retvals(0)), , , , , , , retvals(1)
-  END IF 
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   ChangeSpriteSlice sl, , , , , , , retvals(1)
+  END IF
  CASE 500 '--set slice velocity x (handle, pixels per tick, ticks)
   IF valid_plotslice(retvals(0)) THEN
    WITH *plotslices(retvals(0))
@@ -3901,9 +3903,9 @@ SUB script_functions(byval cmdid as integer)
    scriptret = iif(npc(npcref).suspend_ai, 0, 1)
   END IF
  CASE 559'--get sprite default pal
-  IF valid_plotsprite(retvals(0)) THEN
-   DIM dat as SpriteSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   DIM dat as SpriteSliceData ptr = sl->SpriteData
    IF dat->paletted = NO OR dat->spritetype = sprTypeFrame THEN
     'Only paletted sprites have default palettes
     scriptret = -1
@@ -3931,22 +3933,25 @@ SUB script_functions(byval cmdid as integer)
  CASE 571'--set active battle pause on all menus
   setprefbit 13, retvals(0)
  CASE 572'--dissolve sprite
-  IF valid_plotsprite(retvals(0)) THEN
-   DissolveSpriteSlice plotslices(retvals(0)), retvals(1), retvals(2), retvals(3), retvals(4), retvals(5)
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   DissolveSpriteSlice sl, retvals(1), retvals(2), retvals(3), retvals(4), retvals(5)
   END IF
  CASE 573'--cancel dissolve
-  IF valid_plotsprite(retvals(0)) THEN
-   CancelSpriteSliceDissolve plotslices(retvals(0))
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   CancelSpriteSliceDissolve sl
   END IF
  CASE 574'--sprite is dissolving
   scriptret = 0
-  IF valid_plotsprite(retvals(0)) THEN
+  sl = get_arg_spritesl(0)
+  IF sl THEN
    'Note that unlike "wait for dissolve", this isn't restricted to auto-dissolve
-   IF SpriteSliceIsDissolving(plotslices(retvals(0)), NO) THEN scriptret = 1
+   IF SpriteSliceIsDissolving(sl, NO) THEN scriptret = 1
   END IF
  CASE 575'--wait for dissolve
-  IF valid_plotsprite(retvals(0)) THEN
-   script_start_waiting(retvals(0))
+  IF get_arg_spritesl(0) THEN
+   script_start_waiting(retvals(0))  'TODO: this will need to be a script object ptr
   END IF
  CASE 576'--hide virtual gamepad
   gam.pad.script_hide_virtual_gamepad = YES
@@ -5215,11 +5220,7 @@ FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum 
  RETURN get_handle_slice(handle, errlvl) <> NULL
 END FUNCTION
 
-FUNCTION valid_plotsprite(byval handle as integer) as bool
- RETURN get_handle_typed_slice(handle, slSprite) <> NULL
-END FUNCTION
-
-'No valid_plotrect needed
+'No valid_plotsprite/rect needed
 
 FUNCTION valid_plottextslice(byval handle as integer) as bool
  RETURN get_handle_typed_slice(handle, slText) <> NULL
@@ -5370,7 +5371,7 @@ FUNCTION valid_spriteset(spritetype as SpriteType, record as integer) as bool
 END FUNCTION
 
 'By default, no palette set
-FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2) as integer
+LOCAL FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2) as integer
  IF valid_spriteset(spritetype, record) THEN
   DIM sl as Slice Ptr
   sl = NewSliceOfType(slSprite, SliceTable.scriptsprite)
@@ -5382,10 +5383,12 @@ FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval record as i
 END FUNCTION
 
 'By default, no palette change
-SUB replace_sprite_plotslice(byval handle as integer, byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2)
- IF valid_plotsprite(handle) THEN
+LOCAL SUB replace_sprite_plotslice(byval slice_argno as integer, byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2)
+ DIM sl as Slice ptr
+ sl = get_arg_spritesl(slice_argno)
+ IF sl THEN
   IF valid_spriteset(spritetype, record) THEN
-   ChangeSpriteSlice plotslices(handle), spritetype, record, pal
+   ChangeSpriteSlice sl, spritetype, record, pal
   END IF
  END IF
 END SUB
