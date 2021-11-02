@@ -4743,20 +4743,17 @@ SUB script_functions(byval cmdid as integer)
    scriptret = create_plotslice_handle(sl)
    sl->Width = retvals(0)
    sl->Height = retvals(1)
-   DIM dat as LineSliceData ptr = sl->SliceData
-   dat->SetColor(retvals(2))
+   sl->LineData->SetColor(retvals(2))
   END IF
  CASE 663 '--get line color
-  IF valid_plotlineslice(retvals(0)) THEN
-   DIM dat as LineSliceData ptr = plotslices(retvals(0))->SliceData
-   scriptret = dat->col
+  sl = get_arg_linesl(0)
+  IF sl THEN
+   scriptret = sl->LineData->col
   END IF
  CASE 664 '--set line color
-  IF valid_plotlineslice(retvals(0)) THEN
-   IF valid_color(retvals(1)) THEN
-    DIM dat as LineSliceData ptr = plotslices(retvals(0))->SliceData
-    dat->SetColor(retvals(1))
-   END IF
+  sl = get_arg_linesl(0)
+  IF sl ANDALSO valid_color(retvals(1)) THEN
+   sl->LineData->SetColor(retvals(1))
   END IF
  CASE 665 '--force mount vehicle
   npcref = get_valid_npc(retvals(0))
@@ -5271,10 +5268,6 @@ FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum 
 END FUNCTION
 
 'Various valid_plot* functions don't exist, not needed
-
-FUNCTION valid_plotlineslice(byval handle as integer) as bool
- RETURN get_handle_typed_slice(handle, slLine) <> NULL
-END FUNCTION
 
 FUNCTION valid_plotgridslice(byval handle as integer) as bool
  RETURN get_handle_typed_slice(handle, slGrid) <> NULL
