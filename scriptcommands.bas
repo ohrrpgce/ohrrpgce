@@ -610,6 +610,7 @@ SUB script_functions(byval cmdid as integer)
  'These variables are uninitialised for speed
  DIM menuslot as integer = ANY
  DIM mislot as integer = ANY
+ DIM sl as Slice ptr = ANY
  DIM npcref as NPCIndex = ANY
  DIM mi as MenuDefItem ptr = ANY
  DIM i as integer = ANY
@@ -2550,37 +2551,37 @@ SUB script_functions(byval cmdid as integer)
    plotslices(retvals(0))->Height = retvals(1)
   END IF
  CASE 374 '--get rect style
-  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  sl = get_arg_rectsl(0)
   IF sl THEN
    scriptret = sl->RectData->style
   END IF
  CASE 375 '--set rect style
-  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  sl = get_arg_rectsl(0)
   IF sl ANDALSO bound_arg(retvals(1), -1, 14, "style") THEN
    ChangeRectangleSlice sl, retvals(1)
   END IF
  CASE 376 '--get rect fgcol
-  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  sl = get_arg_rectsl(0)
   IF sl THEN
    scriptret = sl->RectData->fgcol
   END IF
  CASE 377 '--set rect fgcol
-  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  sl = get_arg_rectsl(0)
   IF sl ANDALSO valid_color(retvals(1)) THEN
    ChangeRectangleSlice sl, , , retvals(1)
   END IF
  CASE 378 '--get rect bgcol
-  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  sl = get_arg_rectsl(0)
   IF sl THEN
    scriptret = sl->RectData->bgcol
   END IF
  CASE 379 '--set rect bgcol
-  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  sl = get_arg_rectsl(0)
   IF sl ANDALSO valid_color(retvals(1)) THEN
    ChangeRectangleSlice sl, , retvals(1)
   END IF
  CASE 380 '--get rect border
-  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  sl = get_arg_rectsl(0)
   IF sl THEN
    IF sl->RectData->use_raw_box_border THEN
     scriptret = -99  'border:raw
@@ -2589,17 +2590,17 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 381 '--set rect border
-  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  sl = get_arg_rectsl(0)
   IF sl ANDALSO bound_arg(retvals(1), -2, 14, "border") THEN  'border:raw not allowed
    ChangeRectangleSlice sl, , , , retvals(1)
   END IF
  CASE 382 '--get rect trans
-  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  sl = get_arg_rectsl(0)
   IF sl THEN
    scriptret = sl->RectData->translucent
   END IF
  CASE 383 '--set rect trans
-  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  sl = get_arg_rectsl(0)
   IF sl ANDALSO bound_arg(retvals(1), 0, transLAST, "trans:... transparency setting") THEN
    ChangeRectangleSlice sl, , , , , retvals(1)
   END IF
@@ -3425,7 +3426,7 @@ SUB script_functions(byval cmdid as integer)
    scriptret = 1
   END IF
  CASE 527, 701 '--527: get rect fuzziness (slice), 701: get rect opacity (slice)
-  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  sl = get_arg_rectsl(0)
   IF sl THEN
    WITH *sl->RectData
     IF .translucent = transFuzzy ORELSE .translucent = transBlend THEN
@@ -3438,7 +3439,7 @@ SUB script_functions(byval cmdid as integer)
    END WITH
   END IF
  CASE 528, 702 '--528: set rect fuzziness (slice, percent), 702: set rect opacity (slice, percent)
-  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  sl = get_arg_rectsl(0)
   IF sl THEN
    'Allow out of bounds percentages, just like "set opacity"
    DIM opacity as integer = bound(retvals(1), 0, 100)
@@ -4627,12 +4628,12 @@ SUB script_functions(byval cmdid as integer)
    scriptret = INT(bound(CDBL(retvals(0)) * retvals(1) / retvals(2), CDBL(INT_MIN), CDBL(INT_MAX)) + 0.5)
   END IF
  CASE 650 '--set rect raw border
-  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  sl = get_arg_rectsl(0)
   IF sl ANDALSO bound_arg(retvals(1), -2, gen(genMaxBoxBorder), "raw border") THEN
    ChangeRectangleSlice sl, , , , , , , retvals(1)
   END IF
  CASE 651 '--get rect raw border
-  DIM sl as Slice ptr = valid_plotrect_ptr(retvals(0))
+  sl = get_arg_rectsl(0)
   IF sl THEN
    WITH *sl->RectData
     IF .use_raw_box_border THEN
