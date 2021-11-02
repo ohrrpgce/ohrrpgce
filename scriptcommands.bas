@@ -4014,16 +4014,14 @@ SUB script_functions(byval cmdid as integer)
    scriptret = sl->AnchorHoriz
   END IF
  CASE 583'--set select slice index
-  IF valid_plotselectslice(retvals(0)) THEN
-   DIM dat as SelectSliceData Ptr
-   dat = GetSelectSliceData(plotslices(retvals(0)))
-   dat->index = retvals(1) 'An invalid index just means that no child slice is visible.
+  sl = get_arg_selectsl(0)
+  IF sl THEN
+   sl->SelectData->index = retvals(1) 'An invalid index just means that no child slice is visible.
   END IF
  CASE 584'--get select slice index
-  IF valid_plotselectslice(retvals(0)) THEN
-   DIM dat as SelectSliceData Ptr
-   dat = GetSelectSliceData(plotslices(retvals(0)))
-   scriptret = dat->index
+  sl = get_arg_selectsl(0)
+  IF sl THEN
+   scriptret = sl->SelectData->index
   END IF
  CASE 585 '--create select
   sl = NewSliceOfType(slSelect, SliceTable.scriptsprite)
@@ -5266,10 +5264,6 @@ FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum 
 END FUNCTION
 
 'Various valid_plot* functions don't exist, not needed
-
-FUNCTION valid_plotselectslice(byval handle as integer) as bool
- RETURN get_handle_typed_slice(handle, slSelect) <> NULL
-END FUNCTION
 
 FUNCTION valid_plotscrollslice(byval handle as integer) as bool
  RETURN get_handle_typed_slice(handle, slScroll) <> NULL

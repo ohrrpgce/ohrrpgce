@@ -4180,9 +4180,7 @@ SUB get_virtual_keyboard_buttons (byval sl as Slice Ptr, byref arr as any ptr ve
    v_append arr, ch
   ELSEIF ch->Lookup = SL_VIRTUAL_KEYBOARD_SELECT THEN
    'If this is the select, only explore the active child
-   DIM dat as SelectSliceData Ptr
-   dat = GetSelectSliceData(ch)
-   get_virtual_keyboard_buttons SliceChildByIndex(ch, dat->index), arr
+   get_virtual_keyboard_buttons SliceChildByIndex(ch, ch->SelectData->index), arr
   ELSE
    IF ch->NumChildren > 0 THEN
     get_virtual_keyboard_buttons ch, arr
