@@ -4504,58 +4504,58 @@ SUB script_functions(byval cmdid as integer)
    scriptret = IIF(sl->SliceType = slPanel, 1, 0)
   END IF
  CASE 608'--get panel is vertical
-  IF valid_plotpanelslice(retvals(0)) THEN
-   DIM dat as PanelSliceData Ptr
-   dat = GetPanelSliceData(plotslices(retvals(0)))
-   scriptret = IIF(dat->vertical, 1, 0)
+  sl = get_arg_panelsl(0)
+  IF sl THEN
+   scriptret = IIF(sl->PanelData->vertical, 1, 0)
   END IF
  CASE 609'--set panel is vertical
-  IF valid_plotpanelslice(retvals(0)) THEN
-   ChangePanelSlice plotslices(retvals(0)), retvals(1) <> 0
+  sl = get_arg_panelsl(0)
+  IF sl THEN
+   ChangePanelSlice sl, retvals(1) <> 0
   END IF
  CASE 610'--get panel primary index
-  IF valid_plotpanelslice(retvals(0)) THEN
-   DIM dat as PanelSliceData Ptr
-   dat = GetPanelSliceData(plotslices(retvals(0)))
-   scriptret = dat->primary
+  sl = get_arg_panelsl(0)
+  IF sl THEN
+   scriptret = sl->PanelData->primary
   END IF
  CASE 611'--set panel primary index
-  IF valid_plotpanelslice(retvals(0)) THEN
+  sl = get_arg_panelsl(0)
+  IF sl THEN
    IF bound_arg(retvals(1), 0, 1, "panel child index") THEN
-    ChangePanelSlice plotslices(retvals(0)), , retvals(1)
+    ChangePanelSlice sl, , retvals(1)
    END IF
   END IF
  CASE 612'--get panel percent as int
-  IF valid_plotpanelslice(retvals(0)) THEN
-   DIM dat as PanelSliceData Ptr
-   dat = GetPanelSliceData(plotslices(retvals(0)))
-   scriptret = CINT(dat->percent * 100)
+  sl = get_arg_panelsl(0)
+  IF sl THEN
+   scriptret = CINT(sl->PanelData->percent * 100)
   END IF
  CASE 613'--set panel percent
-  IF valid_plotpanelslice(retvals(0)) THEN
+  sl = get_arg_panelsl(0)
+  IF sl THEN
    IF bound_arg(retvals(1), 0, 100, "percent") THEN
-    ChangePanelSlice plotslices(retvals(0)), , , , CDBL(retvals(1))
+    ChangePanelSlice sl, , , , CDBL(retvals(1))
    END IF
   END IF
  CASE 614'--get panel pixels
-  IF valid_plotpanelslice(retvals(0)) THEN
-   DIM dat as PanelSliceData Ptr
-   dat = GetPanelSliceData(plotslices(retvals(0)))
-   scriptret = dat->pixels
+  sl = get_arg_panelsl(0)
+  IF sl THEN
+   scriptret = sl->PanelData->pixels
   END IF
  CASE 615'--set panel pixels
-  IF valid_plotpanelslice(retvals(0)) THEN
-   ChangePanelSlice plotslices(retvals(0)), , , retvals(1)
+  sl = get_arg_panelsl(0)
+  IF sl THEN
+   ChangePanelSlice sl, , , retvals(1)
   END IF
  CASE 616'--get panel padding
-  IF valid_plotpanelslice(retvals(0)) THEN
-   DIM dat as PanelSliceData Ptr
-   dat = GetPanelSliceData(plotslices(retvals(0)))
-   scriptret = dat->padding
+  sl = get_arg_panelsl(0)
+  IF sl THEN
+   scriptret = sl->PanelData->padding
   END IF
  CASE 617'--set panel padding
-  IF valid_plotpanelslice(retvals(0)) THEN
-   ChangePanelSlice plotslices(retvals(0)), , , , , retvals(1)
+  sl = get_arg_panelsl(0)
+  IF sl THEN
+   ChangePanelSlice sl, , , , , retvals(1)
   END IF
  CASE 621'--get battle countdown
   scriptret = gam.random_battle_countdown
@@ -5286,10 +5286,6 @@ END FUNCTION
 
 FUNCTION valid_plotscrollslice(byval handle as integer) as bool
  RETURN get_handle_typed_slice(handle, slScroll) <> NULL
-END FUNCTION
-
-FUNCTION valid_plotpanelslice(byval handle as integer) as bool
- RETURN get_handle_typed_slice(handle, slPanel) <> NULL
 END FUNCTION
 
 LOCAL SUB unresizable_error(sl as Slice ptr, argno as integer, reason as string, errlvl as scriptErrEnum = serrBadOp)
