@@ -460,7 +460,7 @@ def generate_datafiles_c(source, target, env):
             data = datafile.read()
             for offset in range(0, len(data), 40):
                 row = data[offset : offset + 40]
-                ret += '  ' + ','.join(str(byte) for byte in row) + ',\n'
+                ret += '  ' + ','.join(str(byte) for byte in bytearray(row)) + ',\n'
             ret += '};\n\n'
 
     ret += 'EmbeddedFileInfo *embedded_files_table = (EmbeddedFileInfo[]){\n'
