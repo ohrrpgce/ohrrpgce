@@ -577,7 +577,7 @@ End Function
 
 #endif
 
-'Deletes a slice, and any children (and their children (and their...)) and zeros out *s.
+'Deletes a slice and any descendents,  and zeros out *s.
 'If debugme is YES, dump some debug info about the slice being freed and all its children
 '(debugme > 0 is indentation depth)
 Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer=0)

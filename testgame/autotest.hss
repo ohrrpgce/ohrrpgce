@@ -4538,15 +4538,26 @@ script, slice tests, begin
 
   # Extremely unfinished!
 
-  slice collection tests  # Tests collection loaded correctly
+  variable (sl)
+
+  slice collection tests
   slice find tests
   slice tree tests
   slice correspondence tests
   slice blending tests
   slice sort tests
 
+  # slice is valid
+  assert(slice is valid(0) == false)
+  sl := create container
+  assert(slice is valid(sl))
+  free slice(sl)
+  assert(slice is valid(sl) == false)
+  assert(slice is valid(sprite layer))
+  assert(slice is valid(-1) == false)
+  assert(slice is valid(4242) == false)  # May fail
+
   # Test rect transparency
-  variable (sl)
   sl := create rect(100, 100), w
   assert(slice is rect(sl))
   assert(slice type(sl) == slicetype:rect)

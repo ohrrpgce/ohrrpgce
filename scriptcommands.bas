@@ -2342,7 +2342,7 @@ SUB script_functions(byval cmdid as integer)
     ELSEIF cmdid = 323 ANDALSO sl->SliceType <> slSprite THEN
      scripterr "free sprite: slice " & retvals(0) & " is a " & SliceTypeName(sl), serrBadOp
     ELSE
-     DeleteSlice @plotslices(retvals(0))  'TODO: needs replacement
+     DeleteSlice @sl
     END IF
    END IF
   END IF
@@ -2925,15 +2925,8 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 439'--slice is valid
-  scriptret = 0
-  IF retvals(0) >= LBOUND(plotslices) AND retvals(0) <= UBOUND(plotslices) THEN
-   IF plotslices(retvals(0)) <> 0 THEN
-    scriptret = 1
-    IF ENABLE_SLICE_DEBUG THEN
-     IF SliceDebugCheck(plotslices(retvals(0))) = NO THEN scriptret = 0
-    END IF
-   END IF
-  END IF
+  sl = get_arg_slice(0, serrIgnore)
+  scriptret = IIF(sl, 1, 0)
  CASE 440'--item in slot
   IF valid_item_slot(retvals(0)) THEN
    IF inventory(retvals(0)).used = NO THEN
@@ -5221,12 +5214,16 @@ END FUNCTION
 'and return NULL if not valid
 FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
  IF handle < LBOUND(plotslices) ORELSE handle > highest_used_slice_handle THEN  'catches handle > UBOUND(plotslices)
-  scripterr current_command_name() & ": invalid slice handle " & handle, errlvl
+  IF errlvl > serrIgnore THEN
+   scripterr current_command_name() & ": invalid slice handle " & handle, errlvl
+  END IF
   RETURN NULL
  END IF
  DIM sl as Slice ptr = plotslices(handle)
  IF sl = 0 THEN
-  scripterr current_command_name() & ": slice handle " & handle & " has already been deleted", errlvl
+  IF errlvl > serrIgnore THEN
+   scripterr current_command_name() & ": slice handle " & handle & " has already been deleted", errlvl
+  END IF
   RETURN NULL
  END IF
  IF ENABLE_SLICE_DEBUG THEN
