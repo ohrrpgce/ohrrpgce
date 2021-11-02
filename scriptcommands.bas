@@ -2536,12 +2536,14 @@ SUB script_functions(byval cmdid as integer)
    scriptret = IIF(sl->SliceType = slRectangle, 1, 0)
   END IF
  CASE 372 '--set slice width
-  IF valid_resizeable_slice(retvals(0), NO, YES) THEN
-   plotslices(retvals(0))->Width = retvals(1)
+  sl = get_arg_resizeable_slice(0, NO, YES)
+  IF sl THEN
+   sl->Width = retvals(1)
   END IF
  CASE 373 '--set slice height
-  IF valid_resizeable_slice(retvals(0), YES, NO) THEN
-   plotslices(retvals(0))->Height = retvals(1)
+  sl = get_arg_resizeable_slice(0, YES, NO)
+  IF sl THEN
+   sl->Height = retvals(1)
   END IF
  CASE 374 '--get rect style
   sl = get_arg_rectsl(0)
@@ -2687,11 +2689,12 @@ SUB script_functions(byval cmdid as integer)
    scriptret = sl->PaddingRight
   END IF
  CASE 400 '--fill parent
-  IF valid_resizeable_slice(retvals(0), YES, YES) THEN
+  sl = get_arg_resizeable_slice(0, YES, YES)
+  IF sl THEN
    'FIXME: need to ensure we don't clash with Cover Children by disabling
    'that as appropriate. See SliceLegalCoverModes.
    'TODO: there's no command to change slice fill mode!
-   plotslices(retvals(0))->Fill = (retvals(1) <> 0)
+   sl->Fill = (retvals(1) <> 0)
   END IF
  CASE 401 '--is filling parent
   sl = get_arg_slice(0)
@@ -5305,48 +5308,50 @@ FUNCTION valid_plotpanelslice(byval handle as integer) as bool
  RETURN get_handle_typed_slice(handle, slPanel) <> NULL
 END FUNCTION
 
-SUB unresizable_error(sl as Slice ptr, handle as integer, reason as string, errlvl as scriptErrEnum = serrBadOp)
+LOCAL SUB unresizable_error(sl as Slice ptr, argno as integer, reason as string, errlvl as scriptErrEnum = serrBadOp)
+ DIM handle as integer = retvals(argno)  'TODO: needs replacement
  scripterr strprintf("%s: %s slice handle %d cannot be resized%s", current_command_name(), SliceTypeName(sl), handle, reason), errlvl
 END SUB
 
-FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as bool=NO, byval vert_fill_ok as bool=NO) as bool
- IF valid_plotslice(handle) THEN
-  DIM sl as Slice Ptr
-  sl = plotslices(handle)
+'Fetch Slice ptr for the n'th script arg, if a valid resizeable slice handle
+FUNCTION get_arg_resizeable_slice(byval argno as integer, byval horiz_fill_ok as bool=NO, byval vert_fill_ok as bool=NO) as Slice ptr
+ DIM sl as Slice Ptr
+ sl = get_arg_slice(argno)
+ IF sl THEN
   IF SlicePossiblyResizable(sl) = NO THEN
    'Text slices are resizable horizontally only if and only if they wrap
    'TODO: they are never resizable vertically, but for backcompat not doing anything about that now...
    IF sl->SliceType = slText THEN
-    unresizable_error sl, handle, ", unless wrap is enabled"
+    unresizable_error sl, argno, ", unless wrap is enabled"
    ' Scaling sprite slices aren't available in games yet.
    'ELSEIF sl->SliceType = slSprite THEN
-   ' scripterr current_command_name() & ": sprite slice handle " & handle & " cannot be resized unless scaling is enabled", serrBadOp
+   ' unresizable_error sl, argno, " unless scaling is enabled"
    ELSE
-    unresizable_error sl, handle, ", due to its type"
+    unresizable_error sl, argno, ", due to its type"
    END IF
-   RETURN NO
+   RETURN NULL
   END IF
 
   'This is only for "set slice width/height"; "fill parent" needs to do its own checks
   IF ((sl->CoverChildren AND coverHoriz) ANDALSO horiz_fill_ok = NO) ORELSE _
      ((sl->CoverChildren AND coverVert)  ANDALSO vert_fill_ok = NO) THEN
-   unresizable_error sl, handle, " while Covering Children", serrWarn
-   RETURN NO
+   unresizable_error sl, argno, " while Covering Children", serrWarn
+   RETURN NULL
   END IF
 
-  IF sl->Fill = NO THEN RETURN YES
+  IF sl->Fill = NO THEN RETURN sl
   SELECT CASE sl->Fillmode
    CASE sliceFillFull
-    IF horiz_fill_ok ANDALSO vert_fill_ok THEN RETURN YES
+    IF horiz_fill_ok ANDALSO vert_fill_ok THEN RETURN sl
    CASE sliceFillHoriz
-    IF horiz_fill_ok THEN RETURN YES
+    IF horiz_fill_ok THEN RETURN sl
    CASE sliceFillVert
-    IF vert_fill_ok THEN RETURN YES
+    IF vert_fill_ok THEN RETURN sl
   END SELECT
   'Maybe this should be just an info message?
-  unresizable_error sl, handle, " while Filling Parent", serrWarn
+  unresizable_error sl, argno, " while Filling Parent", serrWarn
  END IF
- RETURN NO
+ RETURN NULL
 END FUNCTION
 
 FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
