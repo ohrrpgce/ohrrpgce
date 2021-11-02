@@ -54,12 +54,10 @@ DECLARE FUNCTION get_handle_typed_slice(byval handle as integer, byval sltype as
 #DEFINE get_arg_panelsl(argno)       get_arg_typed_slice(argno, slPanel)
 #DEFINE get_arg_layoutsl(argno)      get_arg_typed_slice(argno, slLayout)
 
-DECLARE FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
-DECLARE FUNCTION valid_plotscrollslice(byval handle as integer) as bool
-
 DECLARE FUNCTION get_arg_resizeable_slice(byval argno as integer, byval horiz_fill_ok as bool=NO, byval vert_fill_ok as bool=NO) as Slice ptr
 DECLARE FUNCTION get_slice_drawopts(sl as Slice ptr, required as bool = YES) as DrawOptions ptr
 
+DECLARE FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
 DECLARE FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
 DECLARE FUNCTION find_plotslice_handle(byval sl as Slice Ptr) as integer
 DECLARE SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)

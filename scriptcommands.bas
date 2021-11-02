@@ -4049,26 +4049,24 @@ SUB script_functions(byval cmdid as integer)
    scriptret = IIF(sl->SliceType = slScroll, 1, 0)
   END IF
  CASE 590'--set scroll bar style
-  IF valid_plotscrollslice(retvals(0)) THEN
-   IF valid_box_style(retvals(1)) THEN
-    ChangeScrollSlice plotslices(retvals(0)), retvals(1)
-   END IF
+  sl = get_arg_scrollsl(0)
+  IF sl ANDALSO valid_box_style(retvals(1)) THEN
+   ChangeScrollSlice sl, retvals(1)
   END IF
  CASE 591'--get scroll bar style
-  IF valid_plotscrollslice(retvals(0)) THEN
-   DIM dat as ScrollSliceData Ptr
-   dat = GetScrollSliceData(plotslices(retvals(0)))
-   scriptret = dat->style
+  sl = get_arg_scrollsl(0)
+  IF sl THEN
+   scriptret = sl->ScrollData->style
   END IF
  CASE 592'--set scroll check depth
-  IF valid_plotscrollslice(retvals(0)) THEN
-   ChangeScrollSlice plotslices(retvals(0)), , retvals(1)
+  sl = get_arg_scrollsl(0)
+  IF sl THEN
+   ChangeScrollSlice sl, , retvals(1)
   END IF
  CASE 593'--get scroll check depth
-  IF valid_plotscrollslice(retvals(0)) THEN
-   DIM dat as ScrollSliceData Ptr
-   dat = GetScrollSliceData(plotslices(retvals(0)))
-   scriptret = dat->check_depth
+  sl = get_arg_scrollsl(0)
+  IF sl THEN
+   scriptret = sl->ScrollData->check_depth
   END IF
  CASE 594'--scroll to child (parent, descendent, apply_padding) aka scroll to slice
   DIM as Slice ptr parent, descendent
@@ -5263,11 +5261,7 @@ FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum 
  RETURN get_handle_slice(handle, errlvl) <> NULL
 END FUNCTION
 
-'Various valid_plot* functions don't exist, not needed
-
-FUNCTION valid_plotscrollslice(byval handle as integer) as bool
- RETURN get_handle_typed_slice(handle, slScroll) <> NULL
-END FUNCTION
+'Typed valid_plot* functions don't exist, not needed
 
 LOCAL SUB unresizable_error(sl as Slice ptr, argno as integer, reason as string, errlvl as scriptErrEnum = serrBadOp)
  DIM handle as integer = retvals(argno)  'TODO: needs replacement
