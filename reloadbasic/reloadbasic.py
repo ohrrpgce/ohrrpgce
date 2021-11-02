@@ -113,8 +113,8 @@ def argList():              return "(", CHECKPNT, [")", (argumentDecl, STAR, (",
 def functionDecorators():   return QUES, ["cdecl", "overload", "pascal", "stdcall", ("alias", identifier)]
 
 # starttest/endtest are special cases for the macros defined in testing.bi
-def functionStart():        return QUES, ["private", "local", "static"], [(["function", "property", "operator"], CHECKPNT, dottedIdentifier, functionDecorators, QUES, argList, "as", typename),
-                                                     ("starttest", CHECKPNT, "(", dottedIdentifier, ")")]
+def functionStart():        return QUES, ["private", "local", "static"], [(["function", "property", "operator"], CHECKPNT, dottedIdentifier, functionDecorators, QUES, argList, QUES, "byref", "as", typename),
+                                                                          ("starttest", CHECKPNT, "(", dottedIdentifier, ")")]
 def functionEnd():          return [("end", ["function", "property", "operator"]), "endtest"]
 
 def subStart():             return QUES, ["private", "local", "static"], ["sub", "constructor", "destructor"], CHECKPNT, dottedIdentifier, functionDecorators, QUES, argList
