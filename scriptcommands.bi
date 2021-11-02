@@ -70,7 +70,6 @@ DECLARE SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
 DECLARE FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2) as integer
 DECLARE SUB replace_sprite_plotslice(byval handle as integer, byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2)
 DECLARE SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=colInvalid, byval fgcol as integer=colInvalid, byval border as RectBorderTypes=borderUndef, byval translucent as RectTransTypes=transUndef, byval fuzzfactor as integer=0, byval raw_box_border as RectBorderTypes=borderUndef)
-DECLARE FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as bool
 
 DECLARE FUNCTION find_menu_id (byval id as integer) as integer
 DECLARE FUNCTION find_menu_handle (byval handle as integer) as integer

@@ -5188,16 +5188,6 @@ END FUNCTION
 '==========================================================================================
 
 
-FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as bool
- IF sl = 0 THEN scripterr "null slice ptr in valid_spriteslice_dat", serrBug : RETURN NO
- DIM dat as SpriteSliceData Ptr = sl->SliceData
- IF dat = 0 THEN
-  scripterr SliceTypeName(sl) & " handle " & retvals(0) & " has null dat pointer", serrBug
-  RETURN NO
- END IF
- RETURN YES
-END FUNCTION
-
 'Return the Slice ptr for a slice handle, or throw an error
 'and return NULL if not valid
 FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
@@ -5242,9 +5232,7 @@ END FUNCTION
 FUNCTION valid_plotsprite(byval handle as integer) as bool
  IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slSprite THEN
-   IF valid_spriteslice_dat(plotslices(handle)) THEN
-    RETURN YES
-   END IF
+   RETURN YES
   ELSE
    scripterr current_command_name() & ": slice handle " & handle & " is not a sprite", serrBadOp
   END IF
@@ -5270,10 +5258,6 @@ END FUNCTION
 FUNCTION valid_plottextslice(byval handle as integer) as bool
  IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slText THEN
-   IF plotslices(handle)->SliceData = 0 THEN
-    scripterr current_command_name() & ": text slice handle " & handle & " has null data", serrBug
-    RETURN NO
-   END IF
    RETURN YES
   ELSE
    scripterr current_command_name() & ": slice handle " & handle & " is not text", serrBadOp
