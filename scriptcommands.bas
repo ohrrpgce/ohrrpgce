@@ -2815,32 +2815,29 @@ SUB script_functions(byval cmdid as integer)
   sl = NewSliceOfType(slText, SliceTable.scriptsprite)
   scriptret = create_plotslice_handle(sl)
  CASE 422 '--set slice text (slice, string)
-  IF valid_plottextslice(retvals(0)) THEN
-   IF valid_plotstr(retvals(1)) THEN
-    ChangeTextSlice plotslices(retvals(0)), plotstr(retvals(1)).s
-   END IF
+  sl = get_arg_textsl(0)
+  IF sl ANDALSO valid_plotstr(retvals(1)) THEN
+   ChangeTextSlice sl, plotstr(retvals(1)).s
   END IF
  CASE 423 '--get text color
-  IF valid_plottextslice(retvals(0)) THEN
-   DIM dat as TextSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = dat->col
+  sl = get_arg_textsl(0)
+  IF sl THEN
+   scriptret = sl->TextData->col
   END IF
  CASE 424 '--set text color
-  IF valid_plottextslice(retvals(0)) THEN
-   IF valid_color(retvals(1)) THEN
-    ChangeTextSlice plotslices(retvals(0)), , retvals(1)
-   END IF
+  sl = get_arg_textsl(0)
+  IF sl ANDALSO valid_color(retvals(1)) THEN
+   ChangeTextSlice sl, , retvals(1)
   END IF
  CASE 425 '--get wrap
-  IF valid_plottextslice(retvals(0)) THEN
-   DIM dat as TextSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = ABS(dat->wrap)
+  sl = get_arg_textsl(0)
+  IF sl THEN
+   scriptret = IIF(sl->TextData->wrap, 1, 0)
   END IF
  CASE 426 '--set wrap
-  IF valid_plottextslice(retvals(0)) THEN
-   ChangeTextSlice plotslices(retvals(0)), , , ,(retvals(1)<>0)
+  sl = get_arg_textsl(0)
+  IF sl THEN
+   ChangeTextSlice sl, , , , (retvals(1) <> 0)
   END IF
  CASE 427 '--slice is text
   sl = get_arg_slice(0)
@@ -2848,26 +2845,24 @@ SUB script_functions(byval cmdid as integer)
    scriptret = IIF(sl->SliceType = slText, 1, 0)
   END IF
  CASE 428 '--get text bg
-  IF valid_plottextslice(retvals(0)) THEN
-   DIM dat as TextSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = dat->bgcol
+  sl = get_arg_textsl(0)
+  IF sl THEN
+   scriptret = sl->TextData->bgcol
   END IF
  CASE 429 '--set text bg
-  IF valid_plottextslice(retvals(0)) THEN
-   IF valid_color(retvals(1)) THEN
-    ChangeTextSlice plotslices(retvals(0)), , , , , retvals(1)
-   END IF
+  sl = get_arg_textsl(0)
+  IF sl ANDALSO valid_color(retvals(1)) THEN
+   ChangeTextSlice sl, , , , , retvals(1)
   END IF
  CASE 430 '--get outline
-  IF valid_plottextslice(retvals(0)) THEN
-   DIM dat as TextSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = ABS(dat->outline)
+  sl = get_arg_textsl(0)
+  IF sl THEN
+   scriptret = IIF(sl->TextData->outline, 1, 0)
   END IF
  CASE 431 '--set outline
-  IF valid_plottextslice(retvals(0)) THEN
-   ChangeTextSlice plotslices(retvals(0)), , ,(retvals(1)<>0)
+  sl = get_arg_textsl(0)
+  IF sl THEN
+   ChangeTextSlice sl, , , (retvals(1) <> 0)
   END IF
  CASE 433'--slice at pixel(parent, x, y, num, descend, visibleonly)
   sl = get_arg_slice(0)
@@ -3502,8 +3497,9 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 530 '--get slice text (string, slice)
   IF valid_plotstr(retvals(0), serrBadOp) THEN
-   IF valid_plottextslice(retvals(1)) THEN
-    plotstr(retvals(0)).s = plotslices(retvals(1))->TextData->s
+   sl = get_arg_textsl(1)
+   IF sl THEN
+    plotstr(retvals(0)).s = sl->TextData->s
    END IF
   END IF
  CASE 531 '--get input text (string)
@@ -5278,11 +5274,7 @@ FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum 
  RETURN get_handle_slice(handle, errlvl) <> NULL
 END FUNCTION
 
-'No valid_plotsprite/rect needed
-
-FUNCTION valid_plottextslice(byval handle as integer) as bool
- RETURN get_handle_typed_slice(handle, slText) <> NULL
-END FUNCTION
+'Various valid_plot* functions don't exist, not needed
 
 FUNCTION valid_plotellipse(byval handle as integer) as bool
  RETURN get_handle_typed_slice(handle, slEllipse) <> NULL
