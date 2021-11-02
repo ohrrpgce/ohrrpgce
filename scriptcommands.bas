@@ -2756,6 +2756,7 @@ SUB script_functions(byval cmdid as integer)
   IF sl THEN
    IF sl->SpriteData->paletted = NO THEN
     scripterr "get sprite palette: this sprite is unpaletted", serrWarn
+    scriptret = -1
    ELSE
     scriptret = sl->SpriteData->pal
    END IF
