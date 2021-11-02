@@ -3049,36 +3049,34 @@ SUB script_functions(byval cmdid as integer)
    scriptret = IIF(sl->SliceType = slGrid, 1, 0)
   END IF
  CASE 455 '--set grid columns
-  IF valid_plotgridslice(retvals(0)) THEN
-   ChangeGridSlice plotslices(retvals(0)), , retvals(1)
+  sl = get_arg_gridsl(0)
+  IF sl THEN
+   ChangeGridSlice sl, , retvals(1)
   END IF
  CASE 456 '--get grid columns
-  IF valid_plotgridslice(retvals(0)) THEN
-   DIM dat as GridSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = dat->cols
+  sl = get_arg_gridsl(0)
+  IF sl THEN
+   scriptret = sl->GridData->cols
   END IF
  CASE 457 '--set grid rows
-  IF valid_plotgridslice(retvals(0)) THEN
-   ChangeGridSlice plotslices(retvals(0)), retvals(1)
+  sl = get_arg_gridsl(0)
+  IF sl THEN
+   ChangeGridSlice sl, retvals(1)
   END IF
  CASE 458 '--get grid rows
-  IF valid_plotgridslice(retvals(0)) THEN
-   DIM dat as GridSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = dat->rows
+  sl = get_arg_gridsl(0)
+  IF sl THEN
+   scriptret = sl->GridData->rows
   END IF
  CASE 459 '--show grid
-  IF valid_plotgridslice(retvals(0)) THEN
-   DIM dat as GridSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   dat->show = (retvals(1) <> 0)
+  sl = get_arg_gridsl(0)
+  IF sl THEN
+   sl->GridData->show = (retvals(1) <> 0)
   END IF
  CASE 460 '--grid is shown
-  IF valid_plotgridslice(retvals(0)) THEN
-   DIM dat as GridSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = ABS(dat->show <> 0)
+  sl = get_arg_gridsl(0)
+  IF sl THEN
+   scriptret = IIF(sl->GridData->show, 1, 0)
   END IF
  CASE 461 '--load slice collection
   IF isfile(workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld") THEN
@@ -5268,10 +5266,6 @@ FUNCTION valid_plotslice(byval handle as integer, byval errlvl as scriptErrEnum 
 END FUNCTION
 
 'Various valid_plot* functions don't exist, not needed
-
-FUNCTION valid_plotgridslice(byval handle as integer) as bool
- RETURN get_handle_typed_slice(handle, slGrid) <> NULL
-END FUNCTION
 
 FUNCTION valid_plotselectslice(byval handle as integer) as bool
  RETURN get_handle_typed_slice(handle, slSelect) <> NULL
