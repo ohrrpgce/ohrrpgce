@@ -1308,43 +1308,47 @@ def check_have_euc(target, source, env):
         print("Euphoria is required to compile HSpeak but is not installed (euc is not in the PATH)")
         Exit(1)
 
-def setup_eu_vars():
-    "Set the necessary variables on env for the euphoria EUEXE Builder."
+def setup_eu_vars(compiling):
+    """Set the necessary variables on env for the euphoria EUEXE Builder.
+    compiling: true if compiling with euc rather than binding with eubind."""
     hspeak_builddir = builddir + "hspeak"
     euc_extra_args = []
     # Work around Euphoria bug (in 4.0/4.1), where $EUDIR is ignored if another
     # copy of Euphoria is installed system-wide
     if 'EUDIR' in env['ENV']:
         euc_extra_args += ['-eudir', env['ENV']['EUDIR']]
-    # We have not found any way to capture euc's stderr on Windows so can't check version there
-    # (But currently the nightly build machine runs 4.0.5)
-    if NO_PIE and not win32 and not mac and EUC and ohrbuild.get_euphoria_version(EUC) >= 40100:
-        # On some systems (not including mac) gcc defaults to building PIE
-        # executables, but the linux euphoria 4.1.0 builds aren't built for PIE/PIC,
-        # resulting in a "recompile with -fPIC" error.
-        # But the -extra-lflags option is new in Eu 4.1.
-        euc_extra_args += ['-extra-lflags', NO_PIE]
+    if compiling:
+        # We have not found any way to capture euc's stderr on Windows so can't check version there
+        # (But currently the nightly build machine runs 4.0.5)
+        if NO_PIE and not win32 and not mac and EUC and ohrbuild.get_euphoria_version(EUC) >= 40100:
+            # On some systems (not including mac) gcc defaults to building PIE
+            # executables, but the linux euphoria 4.1.0 builds aren't built for PIE/PIC,
+            # resulting in a "recompile with -fPIC" error.
+            # But the -extra-lflags option is new in Eu 4.1.
+            euc_extra_args += ['-extra-lflags', NO_PIE]
 
-    if cross_compiling:
-        if 'eulib' not in ARGUMENTS:
-            exit('You need to pass eulib=... argument with the path to a Euphoria eu.a compiled for ' + target_prefix)
-        euc_extra_args += ['-arch', arch, '-lib', ARGUMENTS['eulib']]
-        if win32:
-            euc_extra_args += ['-plat', 'windows']
-        elif mac:
-            euc_extra_args += ['-plat', 'osx']
-        else:  # unix
-            euc_extra_args += ['-plat', 'linux']   # FIXME: not quite right
-        env['EUCMAKEFLAGS'] = ['CC=' + str(CC), 'LINKER=' + str(CC)]
+        print("CROSS", cross_compiling, win32)
+        if cross_compiling:
+            if 'eulib' not in ARGUMENTS:
+                exit('You need to pass eulib=... argument with the path to a Euphoria eu.a compiled for ' + target_prefix)
+            euc_extra_args += ['-arch', arch, '-lib', ARGUMENTS['eulib']]
+            if win32:
+                euc_extra_args += ['-plat', 'windows']
+            elif mac:
+                euc_extra_args += ['-plat', 'osx']
+            else:  # unix
+                euc_extra_args += ['-plat', 'linux']   # FIXME: not quite right
 
     env['EUFLAGS'] = euc_extra_args
     env['EUBUILDDIR'] = Dir(hspeak_builddir)  # Ensures spaces are escaped
     # euc itself creates a .mak file that's broken if the (destination)
     # path to hspeak.exe contains a space.
 
-if optimisations > 1:
+# Cross-compiling using eubind could be possible if we passed it the path to
+# eub.exe, but for now just use euc.
+if optimisations > 1 or cross_compiling:
     # Use euc to compile hspeak
-    setup_eu_vars()
+    setup_eu_vars(True)
 
     # HSpeak is built by translating to C, generating a Makefile, and running make.
     euexe = Builder(action = [Action(check_have_euc, None),
@@ -1352,9 +1356,10 @@ if optimisations > 1:
                               '$MAKE -j%d -C $EUBUILDDIR -f hspeak.mak $EUCMAKEFLAGS' % (GetOption('num_jobs'),)],
                     suffix = exe_suffix, src_suffix = '.exw')
 else:
+    setup_eu_vars(False)
     # Use eubind to combine hspeak.exw and the eui interpreter into a single (slower) executable
     euexe = Builder(action = [Action(check_have_euc, None),
-                              '$EUBIND -con $SOURCES'],
+                              '$EUBIND -con $SOURCES $EUFLAGS'],
                     suffix = exe_suffix, src_suffix = '.exw')
 
 env.Append(BUILDERS = {'EUEXE': euexe})
