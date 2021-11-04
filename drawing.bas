@@ -4362,9 +4362,7 @@ SUB SpriteSetBrowser.rebuild_menu()
 
     'ss_sl = plank_menu_append( , ss_templ)
     'ss_sl is not a plank
-    ss_sl = CloneSliceTree(ss_templ)
-    InsertSliceBefore ss_templ, ss_sl
-    ss_sl->Visible = YES
+    ss_sl = CloneTemplate(ss_templ)
     ss_sl->Lookup = SL_EDITOR_SSED_SET
     ss_sl->Extra(0) = setnum
 
@@ -4398,7 +4396,6 @@ SUB SpriteSetBrowser.rebuild_menu()
       fr_sl->Extra(2) = frameid
       DIM spr_sl as Slice ptr = edsl(ssed_frame_sprite, fr_sl)
       ChangeSpriteSlice spr_sl, sprtype, setnum, , framenum
-      spr_sl->Visible = YES
 
       'Remember previous cursor position, or nearest match
       'IF setnum = editing_setnum AND frameid <= editing_frame->frameid THEN ps.cur = fr_sl
