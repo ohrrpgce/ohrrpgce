@@ -11,7 +11,7 @@ DECLARE SUB apply_game_window_settings (reloading as bool = NO)
 DECLARE SUB set_speedcontrol (byval millisec_per_frame as integer)
 
 DECLARE SUB initgamedefaults
-DECLARE SUB innRestore ()
+DECLARE SUB innRestore (revive_dead_heroes as integer = -2)
 DECLARE SUB setmapxy
 DECLARE SUB limitcamera (byref x as integer, byref y as integer)
 DECLARE SUB showplotstrings

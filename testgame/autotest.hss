@@ -1719,8 +1719,6 @@ script, hero stat tests, begin
   # but not current values for hp, mp
   assert(get hero stat(1, stat:hp, current stat) == 10)
   assert(get hero stat(1, stat:mp, current stat) == 12)
-  # ...fix that up
-  restore hp and mp
 
   # Simple test of hero level mp
   # The hero is level 0. Other levels are tested in "hero stat growth test"
@@ -1735,6 +1733,21 @@ script, hero stat tests, begin
   assert(get level mp(1, 7) == 99)
   set level mp(1, 7, 0)
 
+  # test heal party
+  assert(get hero stat(1, stat:hp, current stat) == 10)  # Precondition
+  assert(read preference bit(4) == false)  # Precondition: "Inns don't revive dead heroes" off
+  set level mp(1, 0, 0)
+  heal party
+  assert(get hero stat(1, stat:mp, current stat) == 20)
+  assert(get level mp(1, 0, current stat) == 1)
+  set hero stat(1, stat:hp, 0, current stat)
+  heal party(false)   # Don't revive heroes
+  assert(get hero stat(1, stat:hp, current stat) == 0)
+  heal party(true)   # Revive heroes
+  assert(get hero stat(1, stat:hp, current stat) == 10)
+  set hero stat(1, stat:hp, 0, current stat)
+  heal party     # Default: Revive heroes, because of the above pref bit
+  assert(get hero stat(1, stat:hp, current stat) == 10)
 end
 
 script, equipment tests, begin

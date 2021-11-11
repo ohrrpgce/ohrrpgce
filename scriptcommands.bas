@@ -5068,6 +5068,8 @@ SUB script_functions(byval cmdid as integer)
   scriptret = get_global_sfx_volume * 255
  CASE 726 '--set global sound volume (volume)
   set_global_sfx_volume bound(retvals(0), 0, 255) / 255
+ CASE 727 '--heal party ([revive dead heroes])
+  innRestore retvals(0)  '-2 means default
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

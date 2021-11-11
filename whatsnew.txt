@@ -28,6 +28,7 @@ WHAT IS NEW?
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]
+    * "heal party" (acts like an inn) [Ralph]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

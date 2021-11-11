@@ -70,10 +70,14 @@ NEXT i
 
 END SUB
 
-SUB innRestore ()
+'revive_dead_heroes should -2 for default, or a bool
+SUB innRestore (revive_dead_heroes as integer = -2)
+ IF revive_dead_heroes = -2 THEN
+  revive_dead_heroes = (prefbit(4) = NO)  '"!Inns Revive Dead Heroes"
+ END IF
  FOR i as integer = 0 TO 3
   IF gam.hero(i).id >= 0 THEN '--hero exists
-   IF gam.hero(i).stat.cur.hp <= 0 AND prefbit(4) THEN  '"Inns Don't Revive Dead Heroes"
+   IF gam.hero(i).stat.cur.hp <= 0 ANDALSO revive_dead_heroes = NO THEN
     '--hero is dead and inn-revive is disabled
    ELSE
     '--normal revive

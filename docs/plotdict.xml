@@ -3975,6 +3975,20 @@ as returned by <ref>findhero</ref>.
 				There's not yet any command to make a permanent change (to maximum level MP).
 			</description>
 		</command>
+
+		<command id="heal party">
+			<canon>heal party (revive dead heroes)</canon>
+			<shortname>heal party</shortname>
+			<description>
+				Restores the HP, MP and level MP of the active party heroes to 100%,
+				just like inns or the textbox "Restore HP & MP" conditional do.
+				<lb/>
+				The optional <p>revive dead heroes</p> argument tells whether
+				heroes with 0 HP should be healed. If omitted, the General Preference
+				Bitset "Inns Don't Revive Dead Heroes" determines the default.
+			</description>
+		</command>
+
 		<command id="herobaseelementalresistasint">
 			<canon>hero base elemental resist as int (who, element)</canon>
 			<shortname>hero base elemental resist as int</shortname>

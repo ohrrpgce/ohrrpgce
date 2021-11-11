@@ -753,6 +753,7 @@ define function, begin
 724,layeridunderwalkabouts,0  # Get ID number of map layer under the walkabouts in the current map
 725,getglobalsoundvolume,0    # Get the sfx volume setting (0-255)
 726,setglobalsoundvolume,1,192 # Get sfx volume (0-255); default to 75% (default initial sfx volume)
+727,healparty,1,-2            # Restore active party's HP & MP ([revive dead heroes])
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
