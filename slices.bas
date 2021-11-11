@@ -985,10 +985,11 @@ End Function
 ' Initialise 'desc' to 'parent' (or parent->FirstChild to skip the parent),
 ' and then call NextDescendent repeatedly to get the next descendent.
 ' Returns NULL after the last one.
-Function NextDescendent(desc as Slice ptr, parent as Slice ptr) as Slice ptr
+' Pass descend=NO if you want to skip over the children of the current slice.
+Function NextDescendent(desc as Slice ptr, parent as Slice ptr, descend as bool = YES) as Slice ptr
  if desc = NULL then return NULL
  ' First try to go down, then across, otherwise up as far as needed.
- if desc->FirstChild then return desc->FirstChild
+ if desc->FirstChild andalso descend then return desc->FirstChild
  if desc = parent then return NULL  'Only for case parent has no children
  while desc->NextSibling = NULL
   desc = desc->Parent

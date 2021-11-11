@@ -685,11 +685,12 @@ FUNCTION find_plank_scroll (byval sl as Slice Ptr) as Slice ptr
  DIM desc as Slice ptr = sl
  DO WHILE desc
   IF desc->Template ORELSE desc->Lookup = SL_PLANK_HOLDER THEN
-   desc = desc->NextSibling
-   CONTINUE DO
+   'Skip over this subtree
+   desc = NextDescendent(desc, sl, NO)
+  ELSE
+   IF desc->SliceType = slScroll THEN RETURN desc
+   desc = NextDescendent(desc, sl)
   END IF
-  IF desc->SliceType = slScroll THEN RETURN desc
-  desc = NextDescendent(desc, sl)
  LOOP
  RETURN 0
 END FUNCTION
