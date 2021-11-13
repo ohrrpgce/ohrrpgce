@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2021-10-13)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2021-11-13)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -991,6 +991,7 @@ function toggleContent(target) {
 		<a href="#about-greyscalepalette">greyscale palette (first, last)</a><br>
 		<a href="#about-gridisshown">grid is shown (handle)</a><br>
 		<a href="#about-harmtile">harm tile</a><br>
+		<a href="#about-healparty">heal party (revive dead heroes)</a><br>
 		<a href="#about-herobaseelementalresistasint">hero base elemental resist as int (who, element)</a><br>
 		<a href="#about-herobyrank">hero by rank (where)</a><br>
 		<a href="#about-herobyslot">hero by slot (where)</a><br>
@@ -4399,9 +4400,22 @@ end</pre>
 			<a name="about-destroynpc"></a>
 				<h4>destroy NPC (reference)</h4>
 <p>
-			This command will erase the specified NPC. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or the NPC's ID number. The deletion is not permanent. Unless this is an NPC that you created with <a href="#about-createnpc" class="ref">create NPC</a>, the NPC will be back again next time the map gets loaded. If you need to permanently remove an NPC, use tags. <div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">This only deletes the one NPC you specify. If you use an NPC ID number as the argument, only the first copy of the NPC on the map will be deleted.</div><div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">This command can be also be written as <span class="param">delete NPC</span>.</div>
+			
+				This command will erase the specified NPC.
+				You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or the NPC's ID number.
+				The deletion is not permanent.
+				Unless this is an NPC that you created with <a href="#about-createnpc" class="ref">create NPC</a>, the NPC will be back again next time the map gets loaded.
+				If you need to permanently remove an NPC, use tags.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					This only deletes the one NPC you specify.
+					If you use an NPC ID number as the argument, only the first copy of the NPC on the map will be deleted.
+				</div>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					This command can be also be written as <span class="param">delete NPC</span>.
+				</div>
+			
 			
 			
 			
@@ -6153,6 +6167,10 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 			
 		</p>
 </div>
+		<div class="command">
+		<h4>heal party (revive dead heroes)</h4>
+		<p><a href="#about-healparty">Documented in the Hero Stats section.</a></p>
+		</div>
 		<hr>
 		</div>
 		<div class="section">
@@ -7321,6 +7339,7 @@ fade screen in</pre>
 		<a href="#about-setherostatcap">set hero stat cap (stat, value)</a><br>
 		<a href="#about-getlevelmp">get level MP (who, mp level slot, type)</a><br>
 		<a href="#about-setlevelmp">set level MP (who, mp level slot, new value)</a><br>
+		<a href="#about-healparty">heal party (revive dead heroes)</a><br>
 		<a href="#about-herobaseelementalresistasint">hero base elemental resist as int (who, element)</a><br>
 		<a href="#about-setherobaseelementalresist">set hero base elemental resist (who, element, percent)</a><br>
 		<a href="#about-herototalelementalresistasint">hero total elemental resist as int (who, element)</a><br>
@@ -7845,6 +7864,23 @@ as returned by <a href="#about-findhero" class="ref">find hero</a>.
 				will be erased if the hero levels up or otherwise has their MP restored
 				(e.g. by an inn).
 				There's not yet any command to make a permanent change (to maximum level MP).
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-healparty"></a>
+				<h4>heal party (revive dead heroes)</h4>
+<p>
+			
+				Restores the HP, MP and level MP of the active party heroes to 100%,
+				just like inns or the textbox "Restore HP &amp; MP" conditional do.
+				<br>
+				The optional <span class="param">revive dead heroes</span> argument tells whether
+				heroes with 0 HP should be healed. If omitted, the General Preference
+				Bitset "Inns Don't Revive Dead Heroes" determines the default.
 			
 			
 			
@@ -12267,10 +12303,15 @@ end
 				<br>
 				Freeing the same slice handle twice shows a warning
 				(if slice error reporting is enabled, e.g. while testing your game).
-				However, <span class="code">free slice (0)</span> is fine.
+				However, <span class="code">free slice (0)</span> is fine, showing no warning.
 				It's good practice to set a variable containing a slice handle to 0
 				after you free it, so that the script can test whether the slice
 				exists or not. (<a href="#about-sliceisvalid" class="ref">slice is valid</a> is not reliable.)
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					You can't delete a protected slice, which includes most
+					slices created by the engine such as NPCs and heroes.
+				</div>
 			
 			
 			<pre>
@@ -12365,6 +12406,8 @@ end
 				You can copy a protected slice (such as an NPC); the result isn't protected.
 				Any slices with special lookup codes (those listed in <a href="#about-lookupslice" class="ref">lookup slice</a>)
 				won't have their lookup codes copied; they'll be set to 0 instead.
+				If the slice is a Template then the copy won't be marked as a template,
+				but the copies of any descendents it has still will be.
 				Passing the root slice or a Map slice as <span class="param">handle</span> is an error.
 				Trying to clone a slice which has a Map slice as a descendent is OK,
 				the Map slices just won't be copied.
@@ -15742,14 +15785,21 @@ set horiz align(sl, edge:right)
 			<a name="about-freesprite"></a>
 				<h4>free sprite (handle)</h4>
 <p>
-			Unloads a sprite loaded by any of the "load x sprite" functions. This removes the sprite from the screen and removes it from memory. It is a good idea to free sprites when you are completely done with them. Unlike <a href="#about-freeslice" class="ref">free slice</a>, this command only works on sprites, but it will still also free any children of the sprite it is freeing regardless of what kind of children they are. The only purpose of this command is additional error checking.
+			
+				Deletes a sprite slice (e.g. created by <span class="code">load ... sprite</span> commands).
+				Identical to <a href="#about-freeslice" class="ref">free slice</a> except it shows an error when used on a non-sprite,
+				for additional error checking.
+				This removes the sprite from the screen, and deletes any children it has.
+				It is a good idea to free sprites when you are completely done with them.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					You can't delete a protected slice, which includes most
+					slices created by the engine such as NPC and hero sprites.
+				</div>
 			
 			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-freeslice" class="ref">free slice</a>, </li>
-<li><a href="#about-loadherosprite" class="ref">load hero sprite</a></li>
-</ul>
+			
+			<div class="seealso">See also: <ul><li><a href="#about-freeslice" class="ref">free slice</a></li></ul>
 </div>
 		</p>
 </div>
@@ -21366,7 +21416,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 913 commands (of which 14 are aliases), 27 constants and 12 definitions of types and other terms in this file.</p>
+<p>Stats: There are 914 commands (of which 14 are aliases), 27 constants and 12 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
