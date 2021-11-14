@@ -87,7 +87,8 @@ FUNCTION tag_set_grabber (byref n as integer, state as MenuState) as bool
  RETURN tag_grabber(n, state, NO)
 END FUNCTION
 
-'A tag_grabber wrapper for tag ids.
+'A tag_grabber wrapper for tag ids to define as autoset tags: no on/off
+'selection, and you usually shouldn't have multiple autoset settings for the same tag
 'Return YES if the tag has changed
 FUNCTION tag_id_grabber (byref n as integer, state as MenuState) as bool
  RETURN tag_grabber(n, state, NO, , NO)  'allowneg=NO

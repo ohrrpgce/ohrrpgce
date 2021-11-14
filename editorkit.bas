@@ -2,17 +2,21 @@
 '(C) Copyright 1997-2021 James Paige, Ralph Versteegen, and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 
+' ==== EditorKit classes ====
 ' To create an editor with EditorKit, create a UDT Extending EditorKit, and
 ' implement sub define_items(). This will be called repeatedly for:
-' refreshing: generate an array of items for display and navigation; called
-'   whenever state.need_update is true (which define_items sets during processing)
-' processing: define_items() is called every tick to handle editing of data fields
+' processing: it's called every tick to handle editing of data fields
 ' activating: clicking or space/enter activating a menu item (actually the same as
 '   the processing phase)
+' refreshing: generate an array of items for display and navigation; called
+'   whenever state.need_update is true (which define_items sets during processing)
 '
-' Then call .run(). Loading, other initialisation, and saving are your own
-' responsibility, for now.
-
+' Then call .run(). Loading, other initialisation, saving, switching records and
+' submenus are your own responsibility, for now.
+'
+' ==== Adding menu items ====
+' "Previous Menu" (customisable with prev_menu_text) is added automatically.
+'
 ' To add a menu item, call from define_items():
 ' -spacer: a blank line
 ' -section or subsection: add a section header, which is unselectable. In future,
@@ -21,56 +25,141 @@
 '
 ' Each defitem menu item is split into a "title" and a "caption" (either of
 ' which may be blank).  The title is the field description and should usually
-' end in ':'; the caption presents the value. The title is set only by defitem.
+' end in ':'; the caption presents the value. The title is set only by defitem/def*.
+' The caption is set automatically to the value but you can replace it with
+' set_caption or tell how to generate it with caption* functions.
 '
-' A menu item definition starts with defitem and ends at the next defitem/spacer/
-' etc. call. Inside the definition you can query some bool members:
+' ==== State variables ====
+' A menu item definition starting with defitem ends at the next defitem/spacer/etc
+' call. defitem by itself just creates a menu item that does nothing.
+'
+' Inside the definition you can query some bool members:
 ' -selected: this menu item is the selected item
 ' -refresh: refreshing the menu
 ' -process: selected and should do per-tick logic, such as calling intgrabber
 ' -activate: selected and should be activated (if possible), e.g. enter a submenu.
 ' -hover: mouse over this item
+' And a couple you can read/write:
+' -edited: an edit_* call changed the item's value. You should set this manually if
+'          you modify `value` manually.
+' -state.needs_update: can also be set to indicate the menu needs refreshing
 '
-' After defitem you can declare a datum that the menu item edits, using an
-' edit_* method, eg:
-'   defitem "Number of Hits:"
-'   edit_int rec(17), 1, 20   'Range 1 to 20
-' Or use is_* to display data without editing it.
-' Or write some custom code to display "if refresh" and/or edit "if process".
+' So if you want to enter a submenu:
+'     defitem "Edit details..."
+'     if activate then edit_widget_details
+' Or as a shortcut:
+'     if defitem_act("Edit details...") then edit_widget_details
 '
-' You can read the value/valuestr/valuefloat members after declaring a datum
-' with edit_*/is_*. These are also used by the functions for setting the
-' caption.  You don't need to set the value if you write custom editing code "if
-' process" and use set_caption for the caption.
+' ==== Data ====
+' Items can display and (optionally) edit a field of data, which could be an
+' integer/string/etc passed byref, a RELOAD Node, ohrrpgce_config.ini setting,
+' or general.reld setting. It works like so:
+'
+' -The datum is read into `value` (ints and bools), `valuestr` or `valuefloat`
+'  by calling val_*, as_*, edit_*, edit_as_* or def*, and its source (eg. a 
+'  Node) is recorded.
+' -The value can be shifted with `offset_int`, or a bool inverted by prefixing
+'  the title with '!' (just like editbitset). Must happen before editing or
+'  setting the caption.
+' -edit_* methods will, `if process`, call intgrabber/etc to modify `value`/etc
+'  and set `edited`. (Or you manually modify it and set `edited`.)
+' -If `edited` is true, the value is written back.
+'
+' So you don't need to set the value with val_*, etc, if you write custom
+' editing code `if process` and use set_caption for the caption.
+'
+' The families of available methods:
+'
+' -val_* to tell which value to edit. Examples:
+'     val_int gen(genItemStackSize)  'Passing a value byref to record a ptr to it
+'     val_node_int DocumentRoot(doc)  'A Node to edit (doesn't need to be byref)
+'     'Uses NodeByPath to get a child, with default value "Weapon" if missing
+'     val_node_str menunode, "/weapon/caption", "Weapon"
+'     val_bitset bits(), 0, 35  'Starting from word 0, bit 35
+'
+' -as_* to tell what the value means, e.g. a tag check, enemy ID, or script
+'  trigger - you won't use this for raw data. This just changes the default
+'  caption (normally you use edit_as_* instead). Pass value/etc as the first
+'  arg, e.g.
+'     val_int rec(42)
+'     as_enemy value
+'  Which can also be written
+'     as_enemy val_int(rec(42))
+'  As a shortcut for byref data (val_int/bool/str/float) you can skip the val_*:
+'     as_enemy rec(42)
+'
+' -edit_* to tell how to edit a value (if processing), e.g.:
+'     val_node_int boxstyle_node
+'     edit_int value, 0, 14   'Range 0 to 14
+'  ...but as a shortcut you can skip the val_* (there are edit_X functions for
+'  most val_X):
+'     edit_node_int boxstyle_node, 0, 14
+'  If you use an explicit val_* then he first arg to edit_* will be value/etc.
+'
+' -def*: As a further shortcut for simple values, you can use a def* method
+'  which combines defitem and edit_*:
+'     defitem "Default maximum item stack size:"
+'     edit_int gen(genItemStackSize), 1, 99
+'  can become:
+'     defint "Default maximum item stack size:", gen(genItemStackSize), 1, 99
+'  which is complete!
+'
+'  You can NOT write something like "defint "...", val_node_int(...), 0, 10"
+'  because the menu item doesn't start until defitem is called.
+'
+' -edit_as_* for game data like tags or enemies, extends as_* with editing,
+'  including bounds, entering browsers/submenus, etc. There's an edit_as_X for
+'  every as_X. E.g.
+'     edit_as_enemy rec(42)
+'
+' ==== "None" options and offset values ====
+' Many edit_as_* methods take an Or_None flag to indicate -1 means None:
+'     edit_as_enemy rec(42), Or_None
+'
+'  If you want 0 on-disk to be None and N > 0 to be record N-1 then use
+'  offset_int to shift `value` from the on-disk value:
+'     offset_int -1   'Can be called either before or after val_*
+'     edit_as_enemy rec(42), Or_None
+'  Alternatively:
+'     edit_as_enemy offset_int(1, rec(42)), Or_None
+'  You can write it this equivalent way:
+'     val_int rec(42)
+'     value -= 1
+'     edit_as_enemy value, Or_None
+'     value += 1
+'
+' ==== Captions ====
 ' The caption defaults to the item's value if the title ends in ':'.  Ite can be
 ' set it with set_caption, or a caption* function such as `captions` for enum
-' strings.  caption* functions (other than set_caption) must be called after
+' strings.  caption* methods (other than set_caption) must be called after
 ' value/valuestr/valuefloat is set!
-
-/' Examples
-	'! prefix to invert the display of a bit/bool/bitset
-	dim bits() as integer
-	defbitset "!Enable debugging keys", bits(), , 8
-
-	dim root as Node ptr
-	dim somenode as Node ptr '= root."foo"."bar".ptr
-
-	defitem "A RELOAD node:"
-	edit_node_int somenode, 0, 1000
-
-	defitem "A RELOAD node:"
-	edit_nodepath_int root, "/foo/bar", 0, 100
-
-        ' Not implemented
-	'defitem "A RELOAD node:"
-	'' A Node which gets deleted when equal to 0
-	'edit_nodepath_opt_int root, "/foo/bar", 0, 100
-'/
+'
+' Example:
+'     defint "Display '" & CHR(1) & "1' in inventory:", gen(genInventSlotx1Display), 0, 2
+'     captions_list("always", "never", "only if stackable")
+'
+' ==== More examples ====
+'
+' You can call methods conditionally, as long as the same defitems are called during the
+' processing and refreshing phases so the the menu item indices match.
+' For example, in the formation editor, activation handling needs to overridden:
+'     for slot as integer = 0 to ubound(form.slots)
+'       defitem "Enemy:"
+'       offset_int -1   '0 is None, 1+ is enemy ID+1
+'       as_enemy form.slots(slot).id, Or_None   'Sets caption
+'       if activate then
+'         edited or= reposition_or_change_enemy_submenu(value)
+'       else
+'         edit_as_enemy value, Or_None   'Calling both as_enemy and edit_as_enemy is harmless
+'       end if
+'       if value = -1 then set_caption "Empty"  'Override default "None" caption
+'     next
 
 #include "config.bi"
 #include "common.bi"
 #include "reloadext.bi"
 #include "editorkit.bi"
+#include "loading.bi"
 #include "customsubs.bi"
 
 using Reload.Ext
@@ -118,6 +207,7 @@ sub EditorKit.run_phase(which_phase as Phases)
 	phase = which_phase
 	cur_item_index = 0
 	started_item = NO
+	edited = NO
 
 	refresh = (phase = Phases.refreshing)
 	process = NO
@@ -125,7 +215,7 @@ sub EditorKit.run_phase(which_phase as Phases)
 
 	if refresh then clear_menu
 
-	defitem prev_menu_title
+	defitem prev_menu_text
 	if activate then want_exit = YES
 
 	define_items()
@@ -147,6 +237,12 @@ sub EditorKit.finish_defitem()
 		if keyval(ccCancel) > 1 then setkeys
 	end if
 
+	if edited then
+		state.need_update = YES
+		write_value
+		edited = NO
+	end if
+
 	cur_item_index += 1
 
 	if refresh then
@@ -154,11 +250,11 @@ sub EditorKit.finish_defitem()
 			dim as string title = .title, caption = .caption
 			' If there's no caption, use the current data value as a default
 			if len(caption) = 0 andalso ends_with(.title, ":") then
-				select case .kind
- 					case edkindBool:     caption = yesorno(value)
- 					case edkindInteger:  caption = str(value)
-					case edkindFloat:    caption = str(valuefloat)
-					case edkindString:   caption = valuestr
+				select case .dtype
+					case dtypeBool:   caption = yesorno(value)
+					case dtypeInt:    caption = str(value)
+					case dtypeFloat:  caption = str(valuefloat)
+					case dtypeStr:    caption = valuestr
 				end select
 			end if
 
@@ -171,6 +267,103 @@ sub EditorKit.finish_defitem()
 	end if
 
 	started_item = NO
+end sub
+
+' Helper for writeNodePath*
+private function create_or_delete_default_node(cur_item as EditorKitItem, is_default as bool) as Node ptr
+	with cur_item
+		dim valnode as Node ptr
+		if .delete_default andalso is_default then
+			valnode = NodeByPath(.node, .path)
+			if valnode then FreeNode valnode
+		else
+			return NodeByPath(.node, .path, YES)  'Create it
+		end if
+	end with
+end function
+
+' Write a modified value/valuestr/valuefloat back to where it was read from
+sub EditorKit.write_value()
+	with cur_item
+		if .offset then
+			assert(.dtype = dtypeInt)
+			value -= .offset
+		end if
+		if .invert_bool then
+			assert(.dtype = dtypeBool)
+			value xor= YES
+		end if
+
+		select case as const .writer
+			case writerByte
+				*.byte_ptr = value
+			case writerBoolean
+				' FB booleans take value 0/-1 but are stored in
+				' memory as a 0/1 byte (to match a C/C++ bool)
+				*.byte_ptr = iif(value, 1, 0)
+			case writerBit
+				if value then
+					*.int_ptr or= .whichbit
+				else
+					*.int_ptr and= not .whichbit
+				end if
+			case writerInt  'Includes bool
+				*.int_ptr = value
+			case writerStr
+				*.str_ptr = valuestr
+			case writerDouble
+				*.double_ptr = valuefloat
+			case writerNodeInt
+				SetContent(.node, value)
+			case writerNodeBool
+				SetContent(.node, iif(value, 1, 0))
+			case writerNodeStr
+				SetContent(.node, valuestr)
+			case writerNodeFloat
+				SetContent(.node, valuefloat)
+			case writerNodePathInt, writerNodePathBool
+				var valnode = create_or_delete_default_node(cur_item, value = .default)
+				if .writer = writerNodePathBool then
+					value = iif(value, 1, 0)
+				end if
+				if valnode then SetContent(valnode, value)
+			case writerNodePathStr
+				var valnode = create_or_delete_default_node(cur_item, valuestr = .defaultstr)
+				if valnode then SetContent(valnode, valuestr)
+			case writerNodePathFloat
+				var valnode = create_or_delete_default_node(cur_item, valuefloat = .defaultfloat)
+				if valnode then SetContent(valnode, valuefloat)
+			case writerNodePathExists
+				' If value is true, create it
+				var valnode = NodeByPath(.node, .path, value <> NO)
+				if value = NO andalso valnode then
+					' If value is false, delete it
+					FreeNode valnode
+				end if
+			case writerConfigBool
+				write_config .path, yesorno(value)
+
+			case writerNone
+				if .dtype = dtypeNone then
+					' Happens if you use just defitem, do everything yourself,
+					' but set the 'edited' flag.
+				else
+					' We should have set both .dtype and .writer in val_*
+					showbug "EditorKit: missing writer"
+				end if
+			case else
+				showbug "EditorKit: Bad writer"
+		end select
+	end with
+end sub
+
+'===============================================================================
+'                             Non-menu-item methods
+
+' Call during 'process' or 'activate' to do a conditional exit from the menu. The try_exit()
+' virtual method will still be called, which can override it if you can implement it.
+sub EditorKit.exit_menu()
+	want_exit = YES
 end sub
 
 '===============================================================================
@@ -221,7 +414,12 @@ sub EditorKit.defitem(title as zstring ptr)
 		cur_item.destructor()
 		cur_item.constructor()
 		cur_item.id = cur_item_index
-		cur_item.title = *title
+		if title andalso title[0] = asc("!") then
+			cur_item.invert_bool = YES
+			cur_item.title = *(title + 1)
+		else
+			cur_item.title = *title
+		end if
 	'end if
 
 	'return cur_item_index
@@ -233,7 +431,7 @@ function EditorKit.defitem_act(title as zstring ptr) as bool
 	return activate
 end function
 
-' Add an unselectable line. You can still use set_caption or even as_int, etc.
+' Add an unselectable line. You can still use set_caption or even val_*/as_* to set a default caption
 sub EditorKit.defunselectable(title as zstring ptr)
 	defitem title
 	cur_item.unselectable = YES
@@ -249,167 +447,20 @@ sub EditorKit.defbool(title as zstring ptr, byref datum as bool)
 	edit_bool datum
 end sub
 
+sub EditorKit.defbool(title as zstring ptr, byref datum as boolean)
+	defitem title
+	edit_bool datum
+end sub
+
 sub EditorKit.defbitset(title as zstring ptr, bitwords() as integer, wordnum as integer = 0, bitnum as integer)
 	defitem title
 	edit_bitset bitwords(), wordnum, bitnum
 end sub
 
-sub EditorKit.defstring(title as zstring ptr, byref datum as string, maxlen as integer = 0)
+sub EditorKit.defstr(title as zstring ptr, byref datum as string, maxlen as integer = 0)
 	defitem title
-	edit_string datum, maxlen
+	edit_str datum, maxlen
 end sub
-
-sub EditorKit.defgen_int(title as zstring ptr, genidx as integer, min as integer = 0, max as integer)
-	defitem title
-	edit_gen_int genidx, min, max
-end sub
-
-'===============================================================================
-'                                as_* functions
-
-sub EditorKit.as_int(byref datum as integer)
-	cur_item.kind = edkindInteger
-	value = datum
-end sub
-
-sub EditorKit.as_bool(byref datum as bool)
-	cur_item.kind = edkindBool
-	value = datum
-end sub
-
-sub EditorKit.as_string(byref datum as string)
-	cur_item.kind = edkindString
-	valuestr = datum
-end sub
-
-sub EditorKit.as_float(byref datum as double)
-	cur_item.kind = edkindFloat
-	valuefloat = datum
-end sub
-
-'===============================================================================
-'                           Data definition & editing
-
-'------------------------------- Primitive types -------------------------------
-
-function EditorKit.edit_int(byref datum as integer, min as integer, max as integer) as bool
-	cur_item.kind = edkindInteger
-	value = datum
-	if process andalso intgrabber(datum, min, max) then
-		value = datum
-		state.need_update = YES
-		return YES
-	end if
-end function
-
-function EditorKit.edit_bool(byref datum as bool) as bool
-	cur_item.kind = edkindBool
-	dim invert as bool = (cur_item.title[0] = asc("!"))
-	datum xor= invert  'Doesn't actually make any difference yet
-
-	' Note: boolgrabber checks enter_space_click, and sets state.need_update
-	dim ret as bool
-	if process orelse activate then
-		' TODO: boolgrabber doesn't support Left/Right keys or anything else where inversion matters
-		if boolgrabber(datum, state) then
-			state.need_update = YES
-			ret = YES
-		end if
-	end if
-	datum xor= invert
-	value = datum
-	return ret
-end function
-
-' Editing a bit of an integer variable. (value will be true/YES or false/NO)
-function EditorKit.edit_bit(byref bits as integer, whichbit as integer) as bool
-	'It's simpler to reuse edit_bool than to create a method that uses bitgrabber
-	value = (bits and whichbit) <> 0
-	if edit_bool(value) then
-		bits xor= whichbit
-		return YES
-	end if
-end function
-
-' Editing a bit in an array of shorts. (value will be true/YES or false/NO)
-function EditorKit.edit_bitset(bitwords() as integer, wordnum as integer = 0, bitnum as integer) as bool
-	'It's simpler to reuse edit_bool than to create a method that uses bitsetgrabber
-	value = readbit(bitwords(), wordnum, bitnum) <> 0
-	if edit_bool(value) then
-		setbit bitwords(), wordnum, bitnum, value
-		return YES
-	end if
-end function
-
-function EditorKit.edit_string(byref datum as string, maxlen as integer = 0) as bool
-	cur_item.kind = edkindString
-	if process andalso can_use_strgrabber then
-		using_strgrabber = YES  'Disabled select-by-typing
-		if strgrabber(datum, iif(maxlen, maxlen, 9999999)) then
-			valuestr = datum
-			state.need_update = YES
-			return YES
-		end if
-	end if
-	valuestr = datum
-end function
-
-'------------------------- gen() and general.reld data -------------------------
-
-' An integer in gen()
-function EditorKit.edit_gen_int(genidx as integer, min as integer = 0, max as integer) as bool
-	return edit_int(gen(genidx), min, max)
-end function
-
-'-------------------------- .ini config file settings --------------------------
-
-function EditorKit.edit_config_bool(path as zstring ptr, default as bool = NO) as bool
-	' TODO: we ought to cache the config value and only read it when refreshing
-	value = read_config_bool(path, default)
-	if edit_bool(value) then
-		write_config "thingbrowser.enable_top_level", yesorno(value)
-		return YES
-	end if
-end function
-
-'-------------------------------- RELOAD nodes ---------------------------------
-
-' No default, because the Node ptr can't be NULL
-function EditorKit.edit_node_int(node as Node ptr, min as integer = 0, max as integer) as bool
-	value = GetInteger(node)
-	if edit_int(value, min, max) then
-		SetContent(node, value)
-		return YES
-	end if
-end function
-
-' No default, because the Node ptr can't be NULL
-function EditorKit.edit_node_string(node as Node ptr, maxlen as integer = 0) as bool
-	valuestr = GetString(node)
-	if edit_string(valuestr) then
-		SetContent(node, valuestr)
-		return YES
-	end if
-end function
-
-' delete_default: if true, delete the node if it's set to the default value
-function EditorKit.edit_nodepath_int(root as Node ptr, path as zstring ptr, default as integer = 0, min as integer = 0, max as integer, delete_default as bool = NO) as bool
-	dim node as Nodeptr = NodeByPath(root, path)
-	value = iif(node, GetInteger(node), default)
-	if edit_int(value, min, max) then
-		if delete_default andalso value = default then
-			if node then FreeNode node
-		else
-			if node = null then
-				node = NodeByPath(root, path, YES)  'Create it
-			end if
-			SetContent(node, value)
-		end if
-		return YES
-	end if
-end function
-
-' TODO: Many more
 
 '===============================================================================
 '                                    Captions
@@ -428,7 +479,7 @@ sub EditorKit.caption_default_or_int(default_value as integer = 0, default_capti
 	end if
 end sub
 
-sub EditorKit.caption_default_or_string(default_caption as zstring ptr = @"[default]")
+sub EditorKit.caption_default_or_str(default_caption as zstring ptr = @"[default]")
 	if refresh then
 		cur_item.caption = iif(len(valuestr), valuestr, *default_caption)
 	end if
@@ -436,7 +487,7 @@ end sub
 
 sub EditorKit.captions_bool(nocapt as zstring ptr, yescapt as zstring ptr)
 	if refresh then
-		cur_item.caption = iif(value, yescapt, nocapt)
+		cur_item.caption = *iif(value, yescapt, nocapt)
 	end if
 end sub
 
@@ -465,6 +516,13 @@ end sub
 '===============================================================================
 '                           Other menu item attributes
 
+' Makes this menu item unselectable, but does not change its colour
+sub EditorKit.set_unselectable()
+	cur_item.unselectable = YES
+end sub
+
+' TODO: add a set_disabled() method. However ModularMenu doesn't currently support it
+
 ' The id isn't used for anything currently
 sub EditorKit.set_id(id as integer)
 	cur_item.id = id
@@ -487,10 +545,463 @@ sub EditorKit.set_tooltip(text as zstring ptr)
 end sub
 
 '===============================================================================
-'                               Other facilities
+'                          val_* value definition functions
 
-' Call during 'process' or 'activate' to do a conditional exit from the menu. The try_exit()
-' virtual method will still be called, which can override it if you can implement it.
-sub EditorKit.exit_menu()
-	want_exit = YES
+' Functions to tell which piece of data is associated with the menu item.
+' These set value/valuestr/valuefloat, and record its dtype and the writer for it.
+' These behave very similiarly to as_* functions, except those set the caption
+' immediately if not already (val_* only set the default caption), so must be
+' called after offset_int.
+
+'------------------------------ Value modifiers --------------------------------
+
+' Cause `value` to be offset from the underlying data field.
+' This can be called either before or after val_*, but must be called before
+' edit_* or as_* or setting the caption!
+sub EditorKit.offset_int(offset as integer)
+	assert(cur_item.dtype = dtypeNone orelse cur_item.dtype = dtypeInt)
+	assert(len(cur_item.caption) = 0)
+	assert(edited = NO)
+	cur_item.offset = offset
+	'If val_* hasn't been called yet this has no effect because it'll be clobbered
+	value += offset
 end sub
+
+' Convenience wrapper for one-line definitions like:
+'   edit_as_enemy offset_int(1, rec(42)), Or_None
+' But note you MUST NOT use this with defint!!
+function EditorKit.offset_int(offset as integer, byref datum as integer) as integer
+	offset_int offset
+	return val_int(datum)
+end function
+
+'------------------------------- Primitive types -------------------------------
+
+function EditorKit.val_int(byref datum as integer) as integer
+	with cur_item
+		value = datum + .offset
+		.dtype = dtypeInt
+		' Doesn't override an existing source, because this is called internally
+		' from edit_* functions, many of which are called after val_*
+		if .writer = writerNone then
+			.writer = writerInt
+			.int_ptr = @datum
+		end if
+	end with
+	return value
+end function
+
+function EditorKit.val_bool(byref datum as bool) as bool
+	value = (datum <> 0)
+	with cur_item
+		.dtype = dtypeBool
+		if .writer = writerNone then
+			.writer = writerInt
+			.int_ptr = @datum
+			' Need to make sure we only do this once!
+			value xor= .invert_bool
+		end if
+	end with
+	return value
+end function
+
+function EditorKit.val_bool(byref datum as boolean) as bool
+	value = datum
+	with cur_item
+		.dtype = dtypeBool
+		if .writer = writerNone then
+			.writer = writerBoolean
+			.byte_ptr = @datum
+			value xor= .invert_bool
+		end if
+	end with
+	return value
+end function
+
+function EditorKit.val_bit(byref bits as integer, whichbit as integer) as bool
+	value = (bits and whichbit) <> 0
+	with cur_item
+		.dtype = dtypeBool
+		if .writer = writerNone then
+			.writer = writerBit
+			.int_ptr = @bits
+			.whichbit = whichbit
+		end if
+	end with
+	return value
+end function
+
+function EditorKit.val_bitset(bitwords() as integer, wordnum as integer = 0, bitnum as integer) as bool
+	' It's a safe bet bitwords() won't be redimmed
+	'value = readbit(bitwords(), wordnum, bitnum) <> 0
+	'... setbit bitwords(), wordnum, bitnum, value
+	return val_bit(bitwords(wordnum + bitnum \ 16), 1 shl (bitnum mod 16))
+end function
+
+function EditorKit.val_str(byref datum as string) as string
+	valuestr = datum
+	with cur_item
+		.dtype = dtypeStr
+		if .writer = writerNone then
+			.writer = writerStr
+			.str_ptr = @datum
+		end if
+	end with
+	return datum
+end function
+
+function EditorKit.val_float(byref datum as double) as double
+	valuefloat = datum
+	with cur_item
+		.dtype = dtypeFloat
+		if .writer = writerNone then
+			.writer = writerDouble
+			.double_ptr = @datum
+		end if
+	end with
+	return datum
+end function
+
+'-------------------------------- RELOAD Nodes ---------------------------------
+
+function EditorKit.val_node_int(node as Node ptr) as integer
+	with cur_item
+		if .writer = writerNone then
+			.writer = writerNodeInt
+			.node = node
+		end if
+	end with
+	return val_int(GetInteger(node))  'Adds .offset
+end function
+
+' Note: `default` is the default value for a missing node, *before* adding any
+' offset (so the default for `value` is `default + offset`)
+function EditorKit.val_node_int(root as Node ptr, path as zstring ptr, default as integer = 0, delete_if_default_flag as EKFlags = 0) as integer
+	' Wrap this in "if refresh or process or hover then"?
+	with cur_item
+		if .writer = writerNone then
+			.writer = writerNodePathInt
+			.node = root
+			.path = *path
+			.default = default
+			.delete_default = (delete_if_default_flag = Delete_If_Default)
+		end if
+	end with
+	dim node as Node ptr = NodeByPath(root, path)
+	value = iif(node, GetInteger(node), default)
+	return val_int(value)  'Adds .offset
+end function
+
+' A Node written with value 0 or 1 (to match some existing RELOAD file formats)
+function EditorKit.val_node_bool(node as Node ptr) as bool
+	with cur_item
+		if .writer = writerNone then
+			.writer = writerNodeBool
+			.node = node
+		end if
+	end with
+	return val_bool(GetInteger(node))
+end function
+
+function EditorKit.val_node_bool(root as Node ptr, path as zstring ptr, default as bool = NO) as bool
+	with cur_item
+		if .writer = writerNone then
+			.writer = writerNodePathBool
+			.node = root
+			.path = *path
+			.delete_default = NO
+		end if
+	end with
+	' Wrap this in "if refresh or process or hover then"?
+	dim node as Node ptr = NodeByPath(root, path)
+	value = iif(node, GetInteger(node), default)
+	return val_bool(value)
+end function
+
+function EditorKit.val_node_str(node as Node ptr) as string
+	with cur_item
+		if .writer = writerNone then
+			.writer = writerNodeStr
+			.node = node
+		end if
+	end with
+	return val_str(GetString(node))
+end function
+
+function EditorKit.val_node_str(root as Node ptr, path as zstring ptr, default as zstring ptr = @"", delete_if_default_flag as EKFlags = 0) as string
+	with cur_item
+		if process andalso .writer = writerNone then
+			.writer = writerNodePathStr
+			.node = root
+			.path = *path
+			.defaultstr = *default
+			.delete_default = (delete_if_default_flag = Delete_If_Default)
+		end if
+	end with
+	dim node as Node ptr = NodeByPath(root, path)
+	valuestr = iif(node, GetString(node), *default)
+	return val_str(valuestr)
+end function
+
+function EditorKit.val_node_float(node as Node ptr) as double
+	with cur_item
+		if .writer = writerNone then
+			.writer = writerNodeFloat
+			.node = node
+		end if
+	end with
+	return val_float(GetFloat(node))
+end function
+
+function EditorKit.val_node_float(root as Node ptr, path as zstring ptr, default as double = 0., delete_if_default_flag as EKFlags = 0) as double
+	with cur_item
+		if process andalso .writer = writerNone then
+			.writer = writerNodePathFloat
+			.node = root
+			.path = *path
+			.defaultfloat = default
+			.delete_default = (delete_if_default_flag = Delete_If_Default)
+		end if
+	end with
+	dim node as Node ptr = NodeByPath(root, path)
+	return val_float(iif(node, GetFloat(node), default))
+end function
+
+function EditorKit.val_node_exists(root as Node ptr, path as zstring ptr) as bool
+	with cur_item
+		if process andalso .writer = writerNone then
+			.writer = writerNodePathExists
+			.node = root
+			.path = *path
+		end if
+	end with
+	return val_bool(NodeByPath(root, path) <> NULL)
+end function
+
+' TODO: enums, like edit_purchase_enumgrabber
+
+'------------------------- gen() and general.reld data -------------------------
+
+' TODO
+
+'-------------------------- .ini config file settings --------------------------
+
+function EditorKit.val_config_bool(path as zstring ptr, default as bool = NO) as bool
+	' TODO: we ought to cache the config value and only read it when refreshing
+	value = read_config_bool(path, default)
+	with cur_item
+		.dtype = dtypeBool
+		if .writer = writerNone then
+			' TODO: what about writing it with optional .edit prefix?
+			.writer = writerConfigBool
+			.path = *path
+		end if
+	end with
+	return value
+end function
+
+
+'===============================================================================
+'                                 Data editing
+
+'------------------------------- Primitive types -------------------------------
+
+function EditorKit.edit_int(byref datum as integer, min as integer, max as integer) as bool
+	val_int datum
+	if process then
+		edited or= intgrabber(value, min, max)
+		if edited then write_value
+	end if
+	return edited
+end function
+
+function EditorKit.edit_bool(byref datum as bool) as bool
+	val_bool datum
+	' Note: boolgrabber checks enter_space_click, and sets state.need_update
+	if process orelse activate then
+		' TODO: boolgrabber doesn't support Left/Right keys or anything else where inversion matters
+		edited or= boolgrabber(value, state)
+		if edited then write_value
+	end if
+	return edited
+end function
+
+function EditorKit.edit_bool(byref datum as boolean) as bool
+	val_bool datum
+	return edit_bool(value)
+end function
+
+' Editing a bit of an integer variable. (value will be true/YES or false/NO)
+function EditorKit.edit_bit(byref bits as integer, whichbit as integer) as bool
+	val_bit bits, whichbit
+	' It's simpler to reuse edit_bool than to create a method that uses bitgrabber
+	return edit_bool(value)
+end function
+
+' Editing a bit in an array of shorts. (value will be true/YES or false/NO)
+function EditorKit.edit_bitset(bitwords() as integer, wordnum as integer = 0, bitnum as integer) as bool
+	val_bitset bitwords(), wordnum, bitnum
+	' It's simpler to reuse edit_bool than to create a method that uses bitsetgrabber
+	return edit_bool(value)
+end function
+
+function EditorKit.edit_str(byref datum as string, maxlen as integer = 0) as bool
+	val_str datum
+	if process andalso can_use_strgrabber then
+		using_strgrabber = YES  'Disabled select-by-typing
+		edited or= strgrabber(valuestr, iif(maxlen, maxlen, 9999999))
+		if edited then write_value
+	end if
+	return edited
+end function
+
+' TODO: multiline_string_editor
+
+'-------------------------------- RELOAD Nodes ---------------------------------
+
+function EditorKit.edit_node_int(node as Node ptr, min as integer = 0, max as integer) as bool
+	val_node_int node
+	return edit_int(value, min, max)
+end function
+
+' Delete_If_Default flag: if passed, delete the node if it's set to the default value
+function EditorKit.edit_node_int(root as Node ptr, path as zstring ptr, default as integer = 0, min as integer = 0, max as integer, delete_if_default_flag as EKFlags = 0) as bool
+	val_node_int root, path, default, delete_if_default_flag
+	return edit_int(value, min, max)
+end function
+
+function EditorKit.edit_node_bool(node as Node ptr) as bool
+	val_node_bool node
+	return edit_bool(value)
+end function
+
+function EditorKit.edit_node_bool(root as Node ptr, path as zstring ptr, default as integer = 0) as bool
+	val_node_bool root, path, default
+	return edit_bool(value)
+end function
+
+function EditorKit.edit_node_str(node as Node ptr, maxlen as integer = 0) as bool
+	val_node_str node
+	return edit_str(valuestr, maxlen)
+end function
+
+' If Delete_If_Default flag is passed, delete the node if it's set to the default value
+function EditorKit.edit_node_str(root as Node ptr, path as zstring ptr, default as zstring ptr = @"", maxlen as integer = 0, delete_if_default_flag as EKFlags = 0) as bool
+	val_node_str root, path, default, delete_if_default_flag
+	return edit_str(valuestr, maxlen)
+end function
+
+' Toggle whether a node exists
+function EditorKit.edit_node_exists(node as Node ptr, path as zstring ptr) as bool
+	val_node_exists node, path
+	return edit_bool(value)
+end function
+
+'----------------------------- general.reld data ------------------------------
+
+' TODO
+
+'-------------------------- .ini config file settings --------------------------
+
+function EditorKit.edit_config_bool(path as zstring ptr, default as bool = NO) as bool
+	val_config_bool path, default
+	return edit_bool(value)
+end function
+
+' TODO: Many more
+
+'===============================================================================
+'                     Game data type definitions & editing
+
+'------------------------------------ Tags -------------------------------------
+
+' If you need more control over the captions, you can call tag_*_caption directly.
+' allowspecial: if true, don't warn about picking autoset tags.
+
+' Caption: "<prefix> #=ON/OFF (<tagname>)" where <tagname> is <zerocap> or
+' "Never"/"Always" for tags 0/1.  You may want to pass zerocap="Always".
+sub EditorKit.as_check_tag(byref datum as integer, prefix as zstring ptr = @"Tag", zerocap as zstring ptr = @"None")
+	val_int datum
+	if refresh andalso len(cur_item.caption) = 0 then
+		set_caption tag_condition_caption(value, *prefix, *zerocap)
+	end if
+end sub
+
+' For a tag=on/off check.
+function EditorKit.edit_check_tag(byref datum as integer, prefix as zstring ptr = @"Tag", zerocap as zstring ptr = @"None") as bool
+	as_check_tag datum, prefix, zerocap
+	if process then
+		edited or= tag_grabber(value, state, YES, NO, YES)  'allowspecial=YES, always_choice=NO, allowneg=YES
+		if edited then write_value
+	end if
+	return edited
+end function
+
+' Caption: "<prefix> #=ON/OFF [AUTOSET] (<tagname>)" where <tagname> is
+' "No tag set" or "Unchangeable" for tags 0/1.
+sub EditorKit.as_set_tag(byref datum as integer, prefix as zstring ptr = @"Set tag", allowspecial as bool = NO)
+	val_int datum
+	if refresh andalso len(cur_item.caption) = 0 then
+		set_caption tag_set_caption(value, *prefix, allowspecial)
+	end if
+end sub
+
+' For setting a tag or defining an autoset tag (for autosets use allowspecial=YES, allowneg=NO).
+function EditorKit.edit_as_set_tag(byref datum as integer, prefix as zstring ptr = @"Set tag", allowspecial as bool = NO, allowneg as bool = YES) as bool
+	as_set_tag datum, prefix, allowspecial
+	if process then
+		' With our default args, equivalent to tag_set_grabber
+		edited or= tag_grabber(value, state, allowspecial, , allowneg)
+		if edited then write_value
+	end if
+	return edited
+end function
+
+' Caption: "<prefix> # [AUTOSET] (<tagname>)" where <tagname> is "None" or
+' "Unchangeable" for tags 0/1.
+sub EditorKit.as_tag_id(byref datum as integer, prefix as zstring ptr = @"Tag", allowspecial as bool = NO)
+	val_int datum
+	if refresh andalso len(cur_item.caption) = 0 then
+		set_caption tag_choice_caption(value, *prefix, allowspecial)  'no zerocap arg
+	end if
+end sub
+
+' For selecting a tag ID without negative values or "=ON/OFF" in the caption, e.g. for toggling a tag.
+function EditorKit.edit_tag_id(byref datum as integer, prefix as zstring ptr = @"Tag", allowspecial as bool = NO) as bool
+	as_tag_id datum, prefix, allowspecial
+	if process then
+		' This differs from tag_id_grabber, which may be misnamed
+		edited or= tag_grabber(value, state, allowspecial, NO, NO)  'always_choice=NO, allowneg=NO
+		if edited then write_value
+	end if
+	return edited
+end function
+
+'----------------------------------- Enemies -----------------------------------
+
+' Or_None: -1 is None
+sub EditorKit.as_enemy(byref datum as integer, or_none_flag as EKFlags = 0)
+	val_int datum
+	if refresh andalso len(cur_item.caption) = 0 then
+		if value = -1 andalso (or_none_flag = Or_None) then
+			set_caption "None"
+		elseif value < 0 then
+			set_caption "Invalid enemy #" & value
+		else
+			dim enemy as EnemyDef
+			loadenemydata enemy, value
+			set_caption value & " " & enemy.name
+		end if
+	end if
+end sub
+
+' Sets dtype, writer if not already, caption if not already.
+function EditorKit.edit_as_enemy(byref datum as integer, or_none_flag as EKFlags = 0) as bool
+	as_enemy datum, or_none_flag
+	if process then
+		' TODO: offset and min args probably wrong
+		edited or= enemygrabber(value, state, iif(or_none_flag = Or_None, 1, 0), 0)
+		if edited then write_value
+	end if
+	return edited
+end function

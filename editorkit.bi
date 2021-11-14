@@ -10,19 +10,65 @@
 #include "reload.bi"
 #include "menus.bi"
 
+' QB relics
+#undef defint
+#undef defstr
 
-enum EditorKitDataKind
-	edkindNone
-	edkindBool
-	edkindInteger
-	edkindFloat
-	edkindString
-	'TODO: check tag, set tag, scripts, textboxes, enemies, etc
+' (Internal) Indicates which of value/valuestr/valuefloat is in use, and how to interpret it.
+enum EditorKitDataType
+	dtypeNone
+	dtypeBool      'Includes boolean
+	dtypeInt
+	dtypeStr
+	dtypeFloat
 end enum
 
+' (Internal) How to write value/valuestr/valuefloat back to the data source
+enum EditorKitDataWriter
+	writerNone
+	writerByte
+	writerBoolean
+	writerBit
+	writerInt      'Includes bool
+	writerStr
+	writerDouble
+	writerNodeInt
+	writerNodeBool
+	writerNodeStr
+	writerNodeFloat
+	writerNodePathInt
+	writerNodePathBool
+	writerNodePathStr
+	writerNodePathFloat
+	writerNodePathExists
+	writerConfigBool
+end enum
+
+' (Internal) Encapsulates most of the state of the current menu item, aside from
+' the actual data value.  Probably should split up into the part we through
+' away, and the part that could be useful to keep.
 type EditorKitItem
-	kind as EditorKitDataKind
-	id as integer        'Has no purpose
+	' Data:
+	dtype as EditorKitDataType
+	writer as EditorKitDataWriter
+	union
+		byte_ptr as byte ptr
+		int_ptr as integer ptr
+		str_ptr as string ptr
+		double_ptr as double ptr
+		node as Reload.Node ptr       'writerNode* only
+	end union
+	path as string         'writerNodePath* and writerConfig* only: path to node/setting
+	whichbit as integer    'writerBit only: a bitmask
+	offset as integer      'dtypeInt only: amount to subtract from value before writing
+	invert_bool as bool    'dtypeBool only: whether to invert value before writing
+	delete_default as bool 'writerNodePath* only: delete node if equal to default
+	default as integer     'writerNodePathInt only
+	defaultstr as string   'writerNodePathStr only
+	defaultfloat as double 'writerNodePathFloat only
+
+	' Menu item:
+	id as integer          'Has no purpose yet
 	title as string
 	caption as string
 	'helpkey as string
@@ -32,43 +78,44 @@ end type
 ' See editorkit.bas for usage information
 type EditorKit extends ModularMenu
 	'---- Menu settings
-	prev_menu_title as string = "Previous Menu"
-	'And many others in ModularMenu, including:
-	'helpkey as string       'Gets copied to default_helpkey
-	'floating as bool        'Float on top of current screen contents
-	'title as string         'Editor title, displayed at top of screen
+	prev_menu_text as string = "Previous Menu"
+	' And many others in ModularMenu, including:
+	'helpkey as string         'F1 page if not overridden for an item. Gets copied to default_helpkey
+	'floating as bool          'Float on top of current screen contents
+	'title as string           'Editor title, displayed at top of screen
 	'menuopts as MenuOptions
 
 	'---- State variables which can be accessed inside define_items().
-	selected as bool         'The current menu item is selected
-	hover as bool            'The current menu item has mouse-hover focus
+	selected as bool           'The current menu item is selected
+	hover as bool              'The current menu item has mouse-hover focus
+	edited as bool             'The value has been modified and needs to be written back
 
-	' refresh/process/activate tell the context in which the code for a menu item definition
-	' is being run.
-	' refresh is true for all menu items, while activate and process will be true for just one
-	' (the currently selected one).
+	' refresh/process/activate tell the context in which the code for a menu
+	' item definition is being run.
+	' refresh is true for all menu items while refreshing, while activate
+	' and process will be true for just one (the currently selected one).
 	' No more than one of refresh and process will be true at once.
 	refresh as bool
-	process as bool          'When called every tick to handle arbitrary input. Also the place
-	' When `process' is true `activate' is also set to true if the item was clicked/activated.
-	activate as bool
+	process as bool            'When called every tick to handle arbitrary input and do editing
+	activate as bool           'If the item was clicked/activated (implies process=true)
 
 	' Holds the value of the datum currently being edited
-	value as integer         'Includes bool/boolean
-	valuefloat as double
+	value as integer           'Includes bool/boolean data
 	valuestr as string
+	valuefloat as double
 
 	'---- The following is internal state you usually would not access
+
 	enum Phases
 		refreshing
 		processing
 		'activating
 	end enum
-	phase as Phases           'Whenever define_items() is called, this tells why
-	want_activate as bool     'Cache enter_space_click() result
-	want_exit as bool         'Called exit_menu()
+	phase as Phases            'Whenever define_items() is called, this tells why
+	want_activate as bool      'Cache enter_space_click() result
+	want_exit as bool          'Called exit_menu()
 
-	default_helpkey as string 'Default, if an item doesn't call set_helpkey.
+	default_helpkey as string  'Default, if an item doesn't call set_helpkey.
 	' Internal state to track the menu item currently being defined, while inside define_items()
 	started_item as bool
 	cur_item_index as integer
@@ -81,48 +128,40 @@ type EditorKit extends ModularMenu
 	declare function each_tick() as bool
 	declare sub run_phase(which_phase as Phases)
 	declare sub finish_defitem()
+	declare sub write_value()
 
   public:
 	' Subclasses should implement this method, nothing else is necessary.
 	declare abstract sub define_items()
 	' TODO: save, load methods
 
+	enum EKFlags
+		no_flags = 0
+		Or_None
+		Delete_If_Default
+	end enum
+
+	declare sub exit_menu()
+
+	'---- Non-data menu item types
 	declare sub spacer()
 	declare sub section(title as zstring ptr)
 	declare sub subsection(title as zstring ptr)
 
+	'---- Adding data menu items
 	declare sub defitem(title as zstring ptr)
 	declare function defitem_act(title as zstring ptr) as bool
 	declare sub defunselectable(title as zstring ptr)
 	declare sub defint(title as zstring ptr, byref datum as integer, min as integer = 0, max as integer)
-	declare sub defbool(title as zstring ptr, byref datum as bool)
+	declare sub defbool overload(title as zstring ptr, byref datum as bool)
+	declare sub defbool overload(title as zstring ptr, byref datum as boolean)
 	declare sub defbitset(title as zstring ptr, bitwords() as integer, wordnum as integer = 0, bitnum as integer)
-	declare sub defstring(title as zstring ptr, byref datum as string, maxlen as integer = 0)
-	declare sub defgen_int(title as zstring ptr, genidx as integer, min as integer = 0, max as integer)
+	declare sub defstr(title as zstring ptr, byref datum as string, maxlen as integer = 0)
 
-	declare sub as_int(byref datum as integer)
-	declare sub as_bool(byref datum as bool)
-	declare sub as_string(byref datum as string)
-	declare sub as_float(byref datum as double)
-
-	declare function edit_int(byref datum as integer, min as integer, max as integer) as bool
-	declare function edit_bool(byref datum as bool) as bool
-	declare function edit_bit(byref bits as integer, whichbit as integer) as bool
-	declare function edit_bitset(bitwords() as integer, wordnum as integer = 0, bitnum as integer) as bool
-	declare function edit_string(byref datum as string, maxlen as integer = 0) as bool
-	'declare function edit_float(byref datum as double, ...) as bool  'TODO
-
-	declare function edit_gen_int(genidx as integer, min as integer = 0, max as integer) as bool
-
-	declare function edit_config_bool(path as zstring ptr, default as bool = NO) as bool
-
-	declare function edit_node_int(node as Reload.Node ptr, min as integer = 0, max as integer) as bool
-	declare function edit_node_string(node as Reload.Node ptr, default as zstring ptr = @"", maxlen as integer = 0) as bool
-	declare function edit_nodepath_int(root as Reload.Node ptr, path as zstring ptr, default as integer = 0, min as integer = 0, max as integer, delete_default as bool = YES) as bool
-
+	'---- Captions
 	declare sub set_caption(caption as zstring ptr)
 	declare sub caption_default_or_int(default_value as integer = 0, default_caption as zstring ptr = @"default")
-	declare sub caption_default_or_string(default_caption as zstring ptr = @"[default]")
+	declare sub caption_default_or_str(default_caption as zstring ptr = @"[default]")
 	declare sub captions_bool(nocapt as zstring ptr, yescapt as zstring ptr)
 	declare sub captions(captions_array() as string, invalid_thing as zstring ptr = @"value")
 	declare sub captionsz(captions_array() as zstring ptr, invalid_thing as zstring ptr = @"value")
@@ -143,11 +182,78 @@ type EditorKit extends ModularMenu
 		end if
 	#endmacro
 
+	'---- Other menu item attributes
+	declare sub set_unselectable()
 	declare sub set_id(id as integer)
 	declare sub set_helpkey(key as zstring ptr)
 	declare sub set_tooltip(text as zstring ptr)
 
-	declare sub exit_menu()
+	'---- Value defining methods (val_*)
+
+	' Value modifiers
+	declare sub offset_int overload(offset as integer)
+	declare function offset_int overload(offset as integer, byref datum as integer) as integer
+
+	' Primitive types
+	declare function val_int(byref datum as integer) as integer
+	declare function val_bool overload(byref datum as bool) as bool
+	declare function val_bool overload(byref datum as boolean) as bool
+	declare function val_bit(byref bits as integer, whichbit as integer) as bool
+	declare function val_bitset(bitwords() as integer, wordnum as integer = 0, bitnum as integer) as bool
+	declare function val_str(byref datum as string) as string
+	declare function val_float(byref datum as double) as double
+
+	' RELOAD Nodes
+	declare function val_node_int overload(node as Reload.Node ptr) as integer
+	declare function val_node_int overload(root as Reload.Node ptr, path as zstring ptr, default as integer = 0, delete_if_default_flag as EKFlags = 0) as integer
+	declare function val_node_bool overload(node as Reload.Node ptr) as bool
+	declare function val_node_bool overload(root as Reload.Node ptr, path as zstring ptr, default as bool = NO) as bool
+	declare function val_node_str overload(node as Reload.Node ptr) as string
+	declare function val_node_str overload(root as Reload.Node ptr, path as zstring ptr, default as zstring ptr = @"", delete_if_default_flag as EKFlags = 0) as string
+	declare function val_node_float overload(node as Reload.Node ptr) as double
+	declare function val_node_float overload(root as Reload.Node ptr, path as zstring ptr, default as double = 0., delete_if_default_flag as EKFlags = 0) as double
+	declare function val_node_exists(root as Reload.Node ptr, path as zstring ptr) as bool
+
+	' .ini config file settings
+	declare function val_config_bool(path as zstring ptr, default as bool = NO) as bool
+
+	'---- Basic data editing (edit_*)
+
+	' Primitive types
+	declare function edit_int(byref datum as integer, min as integer, max as integer) as bool
+	declare function edit_bool overload(byref datum as bool) as bool
+	declare function edit_bool overload(byref datum as boolean) as bool
+	declare function edit_bit(byref bits as integer, whichbit as integer) as bool
+	declare function edit_bitset(bitwords() as integer, wordnum as integer = 0, bitnum as integer) as bool
+	declare function edit_str(byref datum as string, maxlen as integer = 0) as bool
+	'declare function edit_float(byref datum as double, ...) as bool  'TODO
+
+	' RELOAD Nodes
+	declare function edit_node_int overload(node as Reload.Node ptr, min as integer = 0, max as integer) as bool
+	declare function edit_node_int overload(root as Reload.Node ptr, path as zstring ptr, default as integer = 0, min as integer = 0, max as integer, delete_if_default_flag as EKFlags = 0) as bool
+	declare function edit_node_bool overload(node as Reload.Node ptr) as bool
+	declare function edit_node_bool overload(root as Reload.Node ptr, path as zstring ptr, default as integer = 0) as bool
+	declare function edit_node_str overload(node as Reload.Node ptr, maxlen as integer = 0) as bool
+	declare function edit_node_str overload(root as Reload.Node ptr, path as zstring ptr, default as zstring ptr = @"", maxlen as integer = 0, delete_if_default_flag as EKFlags = 0) as bool
+	declare function edit_node_exists(node as Reload.Node ptr, path as zstring ptr) as bool
+
+	' .ini config file settings
+	declare function edit_config_bool(path as zstring ptr, default as bool = NO) as bool
+
+	'---- Game data type definitions & editing (as_*, edit_as_*)
+
+	' Tags
+	declare sub as_check_tag(byref datum as integer, prefix as zstring ptr = @"Tag", zerocap as zstring ptr = @"None")
+	declare function edit_check_tag(byref datum as integer, prefix as zstring ptr = @"Tag", zerocap as zstring ptr = @"None") as bool
+	declare sub as_set_tag(byref datum as integer, prefix as zstring ptr = @"Set tag", allowspecial as bool = NO)
+	declare function edit_as_set_tag(byref datum as integer, prefix as zstring ptr = @"Set tag", allowspecial as bool = NO, allowneg as bool = YES) as bool
+	declare sub as_tag_id(byref datum as integer, prefix as zstring ptr = @"Tag", allowspecial as bool = NO)
+	declare function edit_tag_id(byref datum as integer, prefix as zstring ptr = @"Tag", allowspecial as bool = NO) as bool
+
+	' Enemies
+	declare sub as_enemy(byref id as integer, or_none_flag as EKFlags = 0)
+	declare function edit_as_enemy(byref id as integer, or_none_flag as EKFlags = 0) as bool
+
 
   private:
 	' Disable a few ModularMenu methods so they can't be called directly; they wouldn't work.
