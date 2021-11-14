@@ -722,9 +722,10 @@ SUB highlight_menu_typing_selection(menu() as string, menu_display() as string, 
 
  FOR i as integer = LBOUND(menu) TO UBOUND(menu)
   menu_display(i) = menu(i)
+  IF state.pt = i THEN
+   menu_display(i) = highlight_menu_typing_selection_string(menu(i), selectst)
+  END IF
  NEXT
-
- menu_display(state.pt) = highlight_menu_typing_selection_string(menu(state.pt), selectst)
 END SUB
 
 SUB highlight_menu_typing_selection(byref menu as BasicMenuItem vector, byref menu_display as BasicMenuItem vector, selectst as SelectTypeState, state as MenuState)
@@ -737,10 +738,13 @@ SUB highlight_menu_typing_selection(byref menu as BasicMenuItem vector, byref me
  IF state.first <> 0 OR v_len(menu) - 1 <> state.last THEN showbug "highlight_menu_typing_selection: bad MenuState"
  v_copy menu_display, menu
 
- v_at(menu_display, state.pt)->text = highlight_menu_typing_selection_string(v_at(menu, state.pt)->text, selectst)
+ IF state.pt >= 0 ANDALSO state.pt < v_len(menu_display) THEN
+  v_at(menu_display, state.pt)->text = highlight_menu_typing_selection_string(v_at(menu, state.pt)->text, selectst)
+ END IF
 END SUB
 
 'Internal function sometimes useful if a menu doesn't use a string array to store menu items
+'Returns a modification of z with the part matching the search highlighted, using markup.
 FUNCTION highlight_menu_typing_selection_string(z as string, selectst as SelectTypeState) as string
  WITH selectst
   'Initialisation
@@ -989,7 +993,7 @@ SUB init_menu_state (byref state as MenuState, menu() as string, menuopts as Men
   .first = LBOUND(menu)
   .last = UBOUND(menu)
  END WITH
- ' Fix .pt and update .top
+ ' Bound .pt and update .top
  correct_menu_state state
 END SUB
 
@@ -1906,7 +1910,7 @@ END SUB
 SUB ModularMenu.update_wrapper()
  clear_menu()
  update()
- init_menu_state state, menu()  'Updates .size, .last
+ init_menu_state state, menu()  'Updates .size, .last, .pt., .top
  'Updating shaded() is optional
  REDIM PRESERVE shaded(UBOUND(menu))
  IF use_selectable THEN
