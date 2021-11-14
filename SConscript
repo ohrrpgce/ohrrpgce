@@ -1152,6 +1152,7 @@ edit_modules = ['custom',
                 'reloadedit',
                 'editedit',
                 'editrunner',
+                'editorkit',
                 'distribmenu']
 
 # (.bas files only) 
