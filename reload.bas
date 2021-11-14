@@ -1487,7 +1487,7 @@ Function SetChildNode(byval parent as NodePtr, n as zstring ptr, val as string) 
 	return ret
 end Function
 
-'Toggle a node to a zero/nonzero value. Create the node if it does not exist
+'Toggle a node to a zero/nonzero value (sets it to 0 or 1). Creates the node if it does not exist
 Sub ToggleBoolChildNode(byval parent as NodePtr, n as zstring ptr)
 	if parent = 0 then exit sub
 	
@@ -1495,14 +1495,13 @@ Sub ToggleBoolChildNode(byval parent as NodePtr, n as zstring ptr)
 	
 	'first, check to see if this node already exists
 	dim ch as NodePtr = GetChildByName(parent, n)
-	
+
 	if ch = 0 then
 		'it does not exist, so add it (and toggle it)
-		SetChildNode(parent, n, YES)
+		SetChildNode(parent, n, 1)
 	else
-		SetChildNode(parent, n, GetInteger(ch) = 0)
+		SetChildNode(parent, n, iif(GetInteger(ch), 0, 1))
 	end if
-	
 end Sub
 
 'If the child node exists, delete it. If it does not exist, create an empty node

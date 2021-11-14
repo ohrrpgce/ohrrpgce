@@ -774,9 +774,9 @@ FUNCTION widget_editor_edit_node(byref st as WEState, byval kind as integer, byv
     changed = YES
    END IF
   CASE wedBOOL:
-   DIM b as integer = GetInteger(node) <> 0
+   DIM b as bool = GetInteger(node) <> 0
    IF toggle_item(st.state) THEN
-    SetContent node, (NOT b)
+    SetContent node, IIF(b, 0, 1)
     changed = YES
    END IF
  END SELECT
