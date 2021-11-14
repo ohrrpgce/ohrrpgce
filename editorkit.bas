@@ -170,13 +170,14 @@ using Reload.Ext
 
 sub EditorKit.update()
 	' On the first call store helpkey, as it may get clobbered
-	if len(default_helpkey) = 0 then default_helpkey = helpkey
+	if len(default_helpkey) = 0 then default_helpkey = base.helpkey
 
 	run_phase(Phases.refreshing)
 end sub
 
 function EditorKit.each_tick() as bool
-	helpkey = default_helpkey
+	base.helpkey = default_helpkey
+	base.tooltip = ""
 	want_exit = NO
 
 	want_activate = enter_space_click(state)
@@ -539,9 +540,7 @@ end sub
 ' Set text that appears at the bottom of the screen while this item is selected
 ' (TODO: if the mouse moves, depend on mouse hover instead)
 sub EditorKit.set_tooltip(text as zstring ptr)
-	if refresh then
-		if selected then base.tooltip = *text
-	end if
+	if selected then base.tooltip = *text
 end sub
 
 '===============================================================================
