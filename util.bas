@@ -1212,8 +1212,8 @@ FUNCTION safe_caption(caption_array() as string, index as integer, description a
 END FUNCTION
 
 'Overload for storing captions in a zstring ptr array, useful because unlike string arrays,
-'those can be initialised (with  = {...}).
-'Because of https://sourceforge.net/p/fbc/bugs/666/ it's not possible to define an overload for
+'those can be initialised (with  = {...}) at file scope..
+'Because of https://sourceforge.net/p/fbc/bugs/666/ (fixed in FB 1.09) it's not possible to define an overload for
 'safe_caption which takes a zstring ptr array, hence the different name.
 FUNCTION safe_captionz(caption_array() as zstring ptr, index as integer, description as string = "value") as string
  IF index >= LBOUND(caption_array) AND index <= UBOUND(caption_array) THEN

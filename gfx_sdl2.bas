@@ -543,7 +543,7 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer, actually_r
     'may have been changed externally (without this, the window becomes quite wobbly)
     set_viewport windowedmode
     'Recentering the window while fullscreen can cause the window to move to 0,0
-    'when exiting fullscreen on Windows (SDL bug gh#4750) (oddly, under X11/xfce4 that
+    'when exiting fullscreen on Windows (SDL bug gh#4750, fixed in 2.0.18) (oddly, under X11/xfce4 that
     'only happens if you do it immediately after exiting (SDL bug gh#4749)).
     IF windowedmode ANDALSO recenter_window_hint THEN
       IF debugging_io THEN debuginfo "recentering window"

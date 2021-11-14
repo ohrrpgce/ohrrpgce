@@ -1507,7 +1507,6 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  END IF
 
  state.tog = state.tog XOR 1
- DIM selected as bool
 
  'First draw the highlight rectangle, if any, behind the items
  IF menu.highlight_selection THEN
