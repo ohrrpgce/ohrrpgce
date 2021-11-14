@@ -11,6 +11,7 @@
 #include "cglobals.bi"
 #include "custom.bi"
 #include "thingbrowser.bi"
+#include "editorkit.bi"
 
 #include "const.bi"
 #include "scrconst.bi"
@@ -1171,324 +1172,190 @@ SUB startingdatamenu
  LOOP
 END SUB
 
+DIM SHARED shown_framerate_warning as bool
 
-TYPE GeneralSettingsMenu EXTENDS ModularMenu
- index(any) as integer    'gen() index, or -1
- min(any) as integer
- max(any) as integer
-
+TYPE GeneralSettingsMenu EXTENDS EditorKit
  longname as string
  aboutline as string
  titletext as string
+ last_update as double  'For game stats
 
- DECLARE SUB add_item(subtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
- DECLARE SUB gen_int(genidx as integer, minvalue as integer, maxvalue as integer)
- DECLARE SUB update()
- DECLARE SUB update_edit_time()
+ DECLARE CONSTRUCTOR()
+ DECLARE SUB save()
+ DECLARE VIRTUAL SUB define_items()
 END TYPE
 
-SUB GeneralSettingsMenu.add_item(subtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
- BASE.add_item subtype, id, text, canselect, heading
- a_append index(), 0
- a_append min(), 0
- a_append max(), 0
-END SUB
-
-'Applies to last add_item()
-SUB GeneralSettingsMenu.gen_int(genidx as integer, minvalue as integer, maxvalue as integer)
- DIM i as integer = UBOUND(index)
- index(i) = genidx
- min(i) = minvalue
- max(i) = maxvalue
-END SUB
-
-
-SUB GeneralSettingsMenu.update()
- DIM tmp as string
-
- clear_menu()
- ERASE index
- ERASE min
- ERASE max
-
- add_item -1, ,  "Return to Main Menu"
-
- header " Game Title & Info"
- add_item 1, ,  "Long name: " + this.longname
- add_item 2, ,  "About line: " + this.aboutline
- add_item 3, ,  "Title Screen..."
- add_item 22,,  "Title screen text: " + this.titletext
-
- '-------------------------
- header " Major Settings"
- add_item 4, ,  "New Games..."
- add_item 5, ,  "Saved Games..."
- add_item 8, ,  "Battle System..."
- add_item 6, ,  "Preference Bitsets..."
- add_item 7, ,  "Backwards-Compatibility..."
-
- '-------------------------
- header " Controls"
- add_item 16, , "Mouse Options..."
- add_item 15, , "Platform-Specific Controls..."
-
- '-------------------------
- header " Scripts"
- add_item 9, ,  "Special Plotscripts..."
- add_item 10, , "Error Display..."
-
- '-------------------------
- header " Graphics"
- add_item 12, , "Master Palettes..."
- add_item 14, , "Window-Size Options..."
-
- DIM fps as string
- '16ms and 33ms are special-cased to be exactly 60/30fps
- IF gen(genMillisecPerFrame) = 16 THEN
-  fps = "60"
- ELSEIF gen(genMillisecPerFrame) = 33 THEN
-  fps = "30"
- ELSE
-  fps = FORMAT(small(60., 1000 / gen(genMillisecPerFrame)), ".#")
- END IF
- add_item , , "Framerate: " & fps & " frames/sec (" & gen(genMillisecPerFrame) & "ms/frame)"
- gen_int genMillisecPerFrame, 16, 200
-
- add_item , , "Color depth: " & IIF(gen(gen32bitMode), "24-bit (true color)", "8-bit (limit to master palette)")
- gen_int gen32bitMode, 0, 1
-
- DIM ticks as integer = gen(genTicksPerWalkFrame)
- tmp = "Walk animation rate: "
- IF ticks = 0 THEN
-  ticks = wtog_ticks()
-  tmp &= "default (" & ticks & " ticks/frame, "
- ELSE
-  tmp &= ticks & " ticks/frame ("
- END IF
- tmp &= (ticks * gen(genMillisecPerFrame)) & "ms/frame)"
- add_item , , tmp
- gen_int genTicksPerWalkFrame, 0, 20
-
- tmp = "Minimap style: "
- SELECT CASE gen(genMinimapAlgorithm)
-  CASE minimapScaled :   tmp &= "Smoothly scaled down (true-color)"
-  CASE minimapScatter :  tmp &= "Pick random color"
-  CASE minimapMajority : tmp &= "Pick most common color"
-  CASE minimapScaledQuant : tmp &= "Smoothly scaled down (256 color)"
- END SELECT
- add_item , , tmp
- gen_int genMinimapAlgorithm, 0, minimapLAST
-
- tmp = "Camera following a hero/NPC centers on: "
- SELECT CASE gen(genCameraOnWalkaboutFocus)
-  CASE 0 : tmp &= "tile"
-  CASE 1 : tmp &= "sprite"
-  CASE 2 : tmp &= "sprite minus Z"
- END SELECT
- add_item , , tmp
- gen_int genCameraOnWalkaboutFocus, 0, 2
-
- '-------------------------
- header " Audio"
- add_item 11, , "Global Music and Sound Effects..."
- add_item , , "Initial music volume: " & gen(genMusicVolume) & "%"
- gen_int genMusicVolume, 0, 100
- add_item , , "Initial sound effects volume: " & gen(genSFXVolume) & "%"
- gen_int genSFXVolume, 0, 100
-
- '-------------------------
- header " Inventory"
- IF gen(genMaxInventory) = 0 THEN
-  add_item 20, , "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
- ELSE
-  add_item 20, , "Inventory size: " & (last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
- END IF
- gen_int genMaxInventory, 0, (inventoryMax + 1) \ 3
-
- tmp = "Inventory autosort: "
- SELECT CASE gen(genAutosortScheme)
-  CASE 0: tmp &= "by item type/uses"
-  CASE 1: tmp &= "by whether usable"
-  CASE 2: tmp &= "alphabetically"
-  CASE 3: tmp &= "by item ID number"
-  CASE 4: tmp &= "no reordering"
- END SELECT
- add_item , , tmp
- gen_int genAutosortScheme, 0, 4
-
- add_item , , "Default maximum item stack size: " & gen(genItemStackSize)
- gen_int genItemStackSize, 1, 99
-
- tmp = "Display '" & CHR(1) & "1' in inventory: "  'CHR(1) is the x symbol
- SELECT CASE gen(genInventSlotx1Display)
-  CASE 0: tmp &= "always"
-  CASE 1: tmp &= "never"
-  CASE 2: tmp &= "only if stackable"
- END SELECT
- add_item , , tmp
- gen_int genInventSlotx1Display, 0, 2
-
- '-------------------------
- header " Misc"
- add_item 17, , "In-App Purchases... (experimental)"
- add_item 13, , "Password For Editing..."
- add_item 21, , "Top-level thingbrowsers: " & yesorno(read_config_bool("thingbrowser.enable_top_level", YES), "YES (recommended)", "NO (for slow computers)")
-
- header " Stats"
- add_item  , , "Time spent editing...", NO
- add_item 18, , " this session:", NO
- add_item 19, , " in total:", NO
- DIM created as double = GetChildNodeFloat(get_general_reld, "created", 0.)
- IF created <> 0. THEN
-  add_item , , "Game created " & FORMAT(created, "yyyy mmm dd hh:mm"), NO
- END IF
-
- 'Next free ID number: 23
-
-END SUB
-
-'Update the edit_time display
-SUB GeneralSettingsMenu.update_edit_time()
- this.menu(a_find(this.itemtypes(), 18)) = " this session: " & format_duration(active_seconds, 0)
- 'Round edit_time to integer so it ticks in sync with 'This session'
- DIM total_edit_time as double = INT(GetChildNodeFloat(get_general_reld, "edit_time")) + active_seconds
- DIM total_text as string = " in total: "
- '"created" was added at the same time as "edit_time", so if it's missing then the total is inaccurate.
- IF GetChildNodeExists(get_general_reld, "created") = NO THEN total_text &= "at least "
- total_text &= format_duration(total_edit_time, 0)
- this.menu(a_find(this.itemtypes(), 19)) = total_text
-END SUB
-
-SUB general_data_editor ()
- STATIC shown_framerate_warning as bool = NO
-
- 'make sure genMaxInventory is a multiple of 3 (other valyes possible in older versions and Fufluns nightlies)
- IF gen(genMaxInventory) THEN gen(genMaxInventory) = last_inv_slot()
-
+SUB general_data_editor()
  DIM genmenu as GeneralSettingsMenu
- genmenu.aboutline = load_aboutline()
- genmenu.longname = load_gamename()
- genmenu.titletext = load_titletext()
- genmenu.update()
-
- DIM selectst as SelectTypeState
- DIM state as MenuState
- WITH state
-  .autosize = YES
-  .autosize_ignore_pixels = 4
-  .last = UBOUND(genmenu.menu)
- END WITH
- DIM menuopts as MenuOptions
- menuopts.disabled_col = uilook(eduiHeading)
- menuopts.itemspacing = 1
- calc_menustate_size state, menuopts, 4, 4, vpage  'Avoid scrollbar length glitch
-
- setkeys YES
- DO
-  setwait 55
-  setkeys YES
-
-  IF keyval(ccCancel) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "general_game_data"
-  usemenu state, genmenu.selectable()
-
-  IF enter_space_click(state) THEN
-   SELECT CASE genmenu.itemtypes(state.pt)
-    CASE -1:  EXIT DO
-    CASE 3
-     DIM backdropb as BackdropSpriteBrowser
-     gen(genTitle) = backdropb.browse(gen(genTitle))
-    CASE 4:  startingdatamenu
-    CASE 5:  edit_savegame_options
-    CASE 6:  edit_general_bitsets
-    CASE 7:  edit_backcompat_bitsets
-    CASE 8:  battleoptionsmenu
-    CASE 9:  generalscriptsmenu
-    CASE 10: script_error_mode_menu
-    CASE 11: generalmusicsfxmenu
-    CASE 12: masterpalettemenu
-    CASE 13: inputpasw
-    CASE 14: resolution_menu
-    CASE 15: edit_platform_controls
-    CASE 16: edit_mouse_options
-    CASE 17: edit_purchase_options
-    CASE 21:
-     toggle_top_level_thingbrowsers
-     state.need_update = YES
-   END SELECT
-  END IF
-
-  DIM enable_strgrabber as bool = NO
-
-  SELECT CASE genmenu.itemtypes(state.pt)
-   CASE 1  'Long name
-    IF LEN(selectst.query) = 0 THEN
-     enable_strgrabber = YES
-     state.need_update OR= strgrabber(genmenu.longname, 38)
-    END IF
-   CASE 2  'About line
-    IF LEN(selectst.query) = 0 THEN
-     enable_strgrabber = YES
-     state.need_update OR= strgrabber(genmenu.aboutline, 38)
-    END IF
-   CASE 20 'genMaxInventory
-    DIM as integer temp = (gen(genMaxInventory) + 1) \ 3
-    IF intgrabber(temp, genmenu.min(state.pt), genmenu.max(state.pt)) THEN
-     gen(genMaxInventory) = temp * 3 - 1
-     IF temp = 0 THEN gen(genMaxInventory) = 0
-     state.need_update = YES
-    END IF
-   CASE 22  'Title screen text
-    IF LEN(selectst.query) = 0 THEN
-     enable_strgrabber = YES
-     state.need_update OR= strgrabber(genmenu.titletext, (gen(genResolutionX) - 16) \ 8)
-    END IF
-   CASE ELSE
-    WITH genmenu
-     IF .index(state.pt) ANDALSO intgrabber(gen(.index(state.pt)), .min(state.pt), .max(state.pt)) THEN
-      state.need_update = YES
-      IF .index(state.pt) = genMillisecPerFrame ANDALSO shown_framerate_warning = NO THEN
-       show_help "framerate_warning"
-       shown_framerate_warning = YES
-      END IF
-     END IF
-    END WITH
-  END SELECT
-
-  IF state.need_update THEN
-   genmenu.update()
-   state.last = UBOUND(genmenu.menu)
-   state.need_update = NO
-  END IF
-  genmenu.update_edit_time()
-
-  IF enable_strgrabber = NO ANDALSO select_by_typing(selectst, NO) THEN
-   select_on_word_boundary genmenu.menu(), selectst, state
-  END IF
-
-  clearpage dpage
-  draw_fullscreen_scrollbar state, , dpage
-  DIM menu_display(UBOUND(genmenu.menu)) as string
-  highlight_menu_typing_selection genmenu.menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, genmenu.shaded(), 4, 4, dpage, menuopts
-
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
- 
- '--write long name and about line
- save_gamename genmenu.longname
- save_aboutline genmenu.aboutline
- save_titletext genmenu.titletext
+ genmenu.run()
+ genmenu.save()
 
  '--Also use the in-game setting for previewing stuff in Custom
  set_music_volume 0.01 * gen(genMusicVolume)
  set_global_sfx_volume 0.01 * gen(genSFXVolume)
 END SUB
 
-SUB toggle_top_level_thingbrowsers ()
- DIM b as bool
- b = NOT read_config_bool("thingbrowser.enable_top_level", YES)
- write_config "thingbrowser.enable_top_level", yesorno(b)
+CONSTRUCTOR GeneralSettingsMenu()
+ 'make sure genMaxInventory is a multiple of 3 (other values possible in older versions and Fufluns nightlies)
+ IF gen(genMaxInventory) THEN gen(genMaxInventory) = last_inv_slot()
+
+ aboutline = load_aboutline()
+ longname = load_gamename()
+ titletext = load_titletext()
+
+ last_update = TIMER
+
+ prev_menu_text = "Return to Main Menu"
+END CONSTRUCTOR
+
+SUB GeneralSettingsMenu.save()
+ save_gamename longname
+ save_aboutline aboutline
+ save_titletext titletext
+END SUB
+
+SUB GeneralSettingsMenu.define_items()
+ section "Game Title & Info"
+ defstr "Long name:", longname
+ defstr "About line:", aboutline
+ IF defitem_act("Title Screen...") THEN
+  DIM backdropb as BackdropSpriteBrowser
+  gen(genTitle) = backdropb.browse(gen(genTitle))
+ END IF
+ defstr "Title screen text:", titletext, (gen(genResolutionX) - 16) \ 8
+
+ '-------------------------
+ section "Major Settings"
+ IF defitem_act("New Games...")               THEN startingdatamenu
+ IF defitem_act("Saved Games...")             THEN edit_savegame_options
+ IF defitem_act("Battle System...")           THEN battleoptionsmenu
+ IF defitem_act("Preference Bitsets...")      THEN edit_general_bitsets
+ IF defitem_act("Backwards-Compatibility...") THEN edit_backcompat_bitsets
+
+ '-------------------------
+ section "Controls"
+ IF defitem_act("Mouse Options...") THEN edit_mouse_options
+ IF defitem_act("Platform-Specific Controls...") THEN edit_platform_controls
+
+ '-------------------------
+ section "Scripts"
+ IF defitem_act( "Special Plotscripts...") THEN generalscriptsmenu
+ IF defitem_act("Error Display...") THEN script_error_mode_menu
+
+ '-------------------------
+ section "Graphics"
+ IF defitem_act("Master Palettes...")     THEN masterpalettemenu
+ IF defitem_act("Window-Size Options...") THEN resolution_menu
+
+ defitem "Framerate:"
+ IF edit_int(gen(genMillisecPerFrame), 16, 200) THEN
+  IF shown_framerate_warning = NO THEN
+   show_help "framerate_warning"
+   shown_framerate_warning = YES
+  END IF
+ ELSEIF refresh THEN
+  DIM fps as string
+  '16ms and 33ms are special-cased to be exactly 60/30fps
+  IF gen(genMillisecPerFrame) = 16 THEN
+   fps = "60"
+  ELSEIF gen(genMillisecPerFrame) = 33 THEN
+   fps = "30"
+  ELSE
+   fps = FORMAT(small(60., 1000 / gen(genMillisecPerFrame)), ".#")
+  END IF
+  set_caption fps & " frames/sec (" & gen(genMillisecPerFrame) & "ms/frame)"
+ END IF
+
+ defint "Color depth:", gen(gen32bitMode), 0, 1
+ captions_bool "8-bit (limit to master palette)", "24-bit (true color)"
+
+ defint "Walk animation rate:", gen(genTicksPerWalkFrame), 0, 20
+ IF refresh THEN
+  DIM tmp as string
+  IF value = 0 THEN
+   value = wtog_ticks()
+   tmp &= "default (" & value & " ticks/frame, "
+  ELSE
+   tmp &= value & " ticks/frame ("
+  END IF
+  set_caption tmp & (value * gen(genMillisecPerFrame)) & "ms/frame)"
+ END IF
+
+ defint "Minimap style:", gen(genMinimapAlgorithm), 0, minimapLAST
+ SELECT CASE gen(genMinimapAlgorithm)
+  CASE minimapScaled:      set_caption "Smoothly scaled down (true-color)"
+  CASE minimapScatter:     set_caption "Pick random color"
+  CASE minimapMajority:    set_caption "Pick most common color"
+  CASE minimapScaledQuant: set_caption "Smoothly scaled down (256 color)"
+ END SELECT
+
+ defint "Camera following a hero/NPC centers on:", gen(genCameraOnWalkaboutFocus), 0, 2
+ captions_list("tile", "sprite", "sprite minus Z")
+
+ '-------------------------
+ section "Audio"
+ IF defitem_act("Global Music and Sound Effects...") then generalmusicsfxmenu
+ defint "Initial music volume:", gen(genMusicVolume), 0, 100
+ set_caption value & "%"
+ defint "Initial sound effects volume:", gen(genSFXVolume), 0, 100
+ set_caption value & "%"
+
+ '-------------------------
+ section "Inventory"
+ defitem "Inventory size:"
+ IF refresh THEN
+  'Rows should be gen(genMaxInventory) \ 3 + 1 except when defaulting
+  DIM rows as integer = (last_inv_slot() \ 3) + 1
+  IF gen(genMaxInventory) = 0 THEN
+   set_caption "Default (" & rows & " rows)"
+  ELSE
+   set_caption rows & " rows, " & gen(genMaxInventory) + 1 & " slots"
+  END IF
+ END IF
+ DIM as integer temp = (gen(genMaxInventory) + 1) \ 3
+ IF edit_int(temp, 0, (inventoryMax + 1) \ 3) THEN
+  gen(genMaxInventory) = IIF(temp, temp * 3 - 1, 0)
+ END IF
+
+ defint "Inventory autosort:", gen(genAutosortScheme), 0, 4
+ captions_list("by item type/uses", _
+               "by whether usable", _
+               "alphabetically", _
+               "by item ID number", _
+               "no reordering")
+ defint "Default maximum item stack size:", gen(genItemStackSize), 1, 99
+ defint "Display '" & CHR(1) & "1' in inventory:", gen(genInventSlotx1Display), 0, 2  'CHR(1) is the x symbol
+ captions_list("always", "never", "only if stackable")
+
+ '-------------------------
+ section "Misc"
+ IF defitem_act("In-App Purchases... (experimental)") THEN edit_purchase_options
+ IF defitem_act("Password For Editing...") THEN inputpasw
+ defitem "Top-level thingbrowsers:"
+ edit_config_bool "thingbrowser.enable_top_level", YES
+ captions_bool "NO (for slow computers)", "YES (recommended)"
+
+ '-------------------------
+ section "Stats"
+ defunselectable "Time spent editing..."
+ defunselectable " this session:"
+ set_caption format_duration(active_seconds, 0)
+ defunselectable " in total:"
+ DIM total_text as string
+ '"created" was added at the same time as "edit_time", so if it's missing then the total is inaccurate.
+ IF GetChildNodeExists(get_general_reld, "created") = NO THEN total_text &= "at least "
+ 'Round edit_time to integer so it ticks in sync with 'This session'
+ DIM total_edit_time as double = INT(GetChildNodeFloat(get_general_reld, "edit_time")) + active_seconds
+ set_caption total_text & format_duration(total_edit_time, 0)
+
+ DIM created as double = GetChildNodeFloat(get_general_reld, "created", 0.)
+ IF created <> 0. THEN
+  defunselectable "Game created " & FORMAT(created, "yyyy mmm dd hh:mm")
+ END IF
+
+ 'Force the menu to refresh at least once a second to update the editing time
+ IF phase = Phases.processing ANDALSO TIMER - last_update > 0.95 THEN
+  state.need_update = YES
+  last_update += 1.0
+ END IF
 END SUB
