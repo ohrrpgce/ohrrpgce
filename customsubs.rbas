@@ -3759,91 +3759,33 @@ SUB edit_purchase_details (byval prod as NodePtr)
  LOOP
 END SUB
 
-SUB generate_savegame_options_menu(menu() as string, save_options_node as Node ptr)
- menu(0) = "Previous Menu..."
- menu(1) = "Number of save/load slots: " & gen(genSaveSlotCount)
- menu(2) = "Name of saves directory: "
- DIM savename as string = save_options_node."savename".string
- IF LEN(savename) THEN   'False for missing or null nodes
-  menu(2) &= savename
- ELSE
-  menu(2) &= "(default)"
- END IF
- menu(3) = "Save script/sprite layer slices: " & yesorno(save_options_node."sprite_layer".exists)
- menu(4) = "Save strings: " & yesorno(save_options_node."strings".exists)
-END SUB
+TYPE SavegameOptionsEditor EXTENDS EditorKit
+ DECLARE SUB define_items()
+END TYPE
 
 SUB edit_savegame_options
- CONST maxMenu = 4
- DIM menu(maxMenu) as string
- DIM menu_display(maxMenu) as string
- DIM selectst as SelectTypeState
- DIM state as MenuState
- WITH state
-  .size = 24
-  .last = maxMenu
-  .need_update = YES
- END WITH
-
- DIM gen_root as NodePtr = get_general_reld()
- 'Create if it doesn't exist
- DIM save_options_node as NodePtr = GetOrCreateChild(gen_root, "saved_games")
-
  'Set default
  IF gen(genSaveSlotCount) <= 0 THEN gen(genSaveSlotCount) = 4
 
- setkeys
- DO
-  setwait 55
-  setkeys YES
-  usemenu state
-  IF keyval(scF1) > 1 THEN show_help "savegame_options"
-  IF keyval(ccCancel) > 1 THEN EXIT DO
-
-  IF state.pt = 0 THEN
-   IF enter_space_click(state) THEN EXIT DO
-  ELSEIF state.pt = 1 THEN  'save slot count
-   IF intgrabber(gen(genSaveSlotCount), 1, maxSaveSlotCount) THEN state.need_update = YES
-  ELSEIF state.pt = 2 ANDALSO selectst.query = "" THEN  'savedir override
-   DIM savename as string = save_options_node."savename".string
-   IF strgrabber(savename, 30) THEN
-    savename = fixfilename(savename)
-    IF LEN(savename) THEN
-     SetChildNode save_options_node, "savename", savename
-    ELSE
-     FreeChildNode save_options_node, "savename"
-    END IF
-    state.need_update = YES
-   END IF
-  END IF
-
-  IF toggle_item(state) THEN
-   IF state.pt = 3 THEN  'save slices
-    ToggleChildNode save_options_node, "sprite_layer"
-   ELSEIF state.pt = 4 THEN  'save plotstrings
-    ToggleChildNode save_options_node, "strings"
-   END IF
-   state.need_update = YES
-  END IF
-
-  IF state.need_update THEN
-   state.need_update = NO
-   generate_savegame_options_menu menu(), save_options_node
-  END IF
-
-  IF state.pt <> 2 ANDALSO select_by_typing(selectst, NO) THEN
-   select_on_word_boundary menu(), selectst, state
-  END IF
-
-  clearpage dpage
-  highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, 0, 0, dpage
-
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
+ DIM editor as SavegameOptionsEditor
+ editor.helpkey = "savegame_options"
+ editor.run()
  write_general_reld
+END SUB
+
+SUB SavegameOptionsEditor.define_items()
+ DIM save_options_node as NodePtr = GetOrCreateChild(get_general_reld(), "saved_games")
+
+ defint "Number of save/load slots:", gen(genSaveSlotCount), 1, maxSaveSlotCount
+ defitem "Name of saves directory:"
+ edit_node_str save_options_node, "/savename", "", 30, Delete_If_Default
+ valuestr = fixfilename(valuestr)
+ IF LEN(valuestr) = 0 THEN set_caption "(default)"
+
+ defitem "Save script/sprite layer slices:"
+ edit_node_exists save_options_node, "/sprite_layer"
+ defitem "Save strings:"
+ edit_node_exists save_options_node, "/strings"
 END SUB
 
 FUNCTION npc_preview_text(byref npc as NPCType) as string
