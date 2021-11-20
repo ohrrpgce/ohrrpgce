@@ -48,13 +48,14 @@ END FUNCTION
 '.pt is moved to a selectable menu item.
 'FIXME: sets state.has_been_drawn = YES although state.rect is wrong
 SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem, menuopts as MenuOptions = MenuOptions())
- calc_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
-
  WITH state
+  DIM was_drawn as bool = .has_been_drawn
+  'Position not known before it's actually drawn, fill with dummy data for now
+  calc_menustate_size state, menuopts, .rect.x, .rect.y
+
   .first = LBOUND(menu)
   .last = UBOUND(menu)
   IF .size <= 0 THEN .size = 20
-  .hover = -1
   IF .empty() THEN
    .pt = .first - 1
   ELSE
@@ -70,6 +71,9 @@ SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem, menuopt
    '(TODO: modify correct_menu_state and all usemenu overloads to do this too)
    IF .pt <> -1 THEN .top = bound(.top, .pt - .size + 1, .pt - 1)
   END IF
+  IF was_drawn = NO ORELSE in_bound(.hover, .first, .last) = NO THEN
+   .hover = .first - 1
+  END IF
   .top = bound(.top, 0, large(.last - .size, 0))
  END WITH
 END SUB
@@ -81,13 +85,17 @@ END SUB
 'menu's typetable tells the size in bytes of each menu item
 'FIXME: sets state.has_been_drawn = YES although state.rect is wrong
 SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vector, menuopts as MenuOptions = MenuOptions())
- calc_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
-
  WITH state
+  DIM was_drawn as bool = .has_been_drawn
+  'Position not known before it's actually drawn, fill with dummy data for now
+  calc_menustate_size state, menuopts, .rect.x, .rect.y
+
   .first = 0
   .last = v_len(menu) - 1
   IF .size <= 0 THEN .size = 20
-  .hover = -1
+  IF was_drawn = NO ORELSE in_bound(.hover, .first, .last) = NO THEN
+   .hover = .first - 1
+  END IF
   IF v_len(menu) = 0 THEN
    .pt = -1
   ELSE
@@ -986,10 +994,11 @@ END FUNCTION
 '(Re-)initialise menu state, preserving .pt if valid
 'FIXME: sets state.has_been_drawn = YES although state.rect is wrong
 SUB init_menu_state (byref state as MenuState, menu() as string, menuopts as MenuOptions)
- IF state.size = 0 THEN state.autosize = YES
- calc_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
-
  WITH state
+  IF .size = 0 THEN .autosize = YES
+  'Position not known before it's actually drawn, fill with dummy data for now
+  calc_menustate_size state, menuopts, .rect.x, .rect.y
+
   .first = LBOUND(menu)
   .last = UBOUND(menu)
  END WITH
@@ -1909,7 +1918,7 @@ END SUB
 SUB ModularMenu.update_wrapper()
  clear_menu()
  update()
- init_menu_state state, menu()  'Updates .size, .last, .pt., .top
+ init_menu_state state, menu(), menuopts  'Updates .size, .last, .pt., .hover, .top
  'Updating shaded() is optional
  REDIM PRESERVE shaded(UBOUND(menu))
  IF use_selectable THEN
@@ -1921,6 +1930,8 @@ SUB ModularMenu.update_wrapper()
   WEND
   correct_menu_state_top state
  END IF
+ mouse_update_hover state  'Not actually needed; hover won't be incorrect unless the menu grew
+ 'correct_menu_state state  'Also calls mouse_update_hover
 END SUB
 
 SUB ModularMenu.run()
@@ -1964,7 +1975,6 @@ SUB ModularMenu.run()
   IF state.need_update THEN
    state.need_update = NO
    update_wrapper()
-   'correct_menu_state state
   END IF
 
   IF using_strgrabber = NO ANDALSO select_by_typing(selectst, NO) THEN
