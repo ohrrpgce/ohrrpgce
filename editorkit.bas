@@ -58,9 +58,9 @@
 ' -The datum is read into `value` (ints and bools), `valuestr` or `valuefloat`
 '  by calling val_*, as_*, edit_*, edit_as_* or def*, and its source (eg. a 
 '  Node) is recorded.
-' -The value can be shifted with `offset_int`, or a bool inverted by prefixing
-'  the title with '!' (just like editbitset). Must happen before editing or
-'  setting the caption.
+' -The value can be shifted with `offset_int`, or a bool inverted with
+'  `invert_bool` or by prefixing the title with '!' (just like editbitset). Must
+'  happen before editing or setting the caption.
 ' -edit_* methods will, `if process`, call intgrabber/etc to modify `value`/etc
 '  and set `edited`. (Or you manually modify it and set `edited`.)
 ' -If `edited` is true, the value is written back.
@@ -286,11 +286,17 @@ end function
 ' Write a modified value/valuestr/valuefloat back to where it was read from
 sub EditorKit.write_value()
 	with cur_item
+		if .writer = writerNone andalso .dtype = dtypeNone then
+			' Happens if you use just defitem, do everything yourself,
+			' but set the 'edited' flag, or if you call delete_node.
+			exit sub
+		end if
+
 		if .offset then
 			assert(.dtype = dtypeInt)
 			value -= .offset
 		end if
-		if .invert_bool then
+		if .inverted_bool then
 			assert(.dtype = dtypeBool)
 			value xor= YES
 		end if
@@ -344,16 +350,9 @@ sub EditorKit.write_value()
 			case writerConfigBool
 				write_config .path, yesorno(value)
 
-			case writerNone
-				if .dtype = dtypeNone then
-					' Happens if you use just defitem, do everything yourself,
-					' but set the 'edited' flag.
-				else
-					' We should have set both .dtype and .writer in val_*
-					showbug "EditorKit: missing writer"
-				end if
-			case else
-				showbug "EditorKit: Bad writer"
+			case else  ' Including writerNone
+				' We should have set both .dtype and .writer in val_*
+				showbug "EditorKit: bad/missing writer"
 		end select
 	end with
 end sub
@@ -416,7 +415,7 @@ sub EditorKit.defitem(title as zstring ptr)
 		cur_item.constructor()
 		cur_item.id = cur_item_index
 		if title andalso title[0] = asc("!") then
-			cur_item.invert_bool = YES
+			cur_item.inverted_bool = YES
 			cur_item.title = *(title + 1)
 		else
 			cur_item.title = *title
@@ -574,6 +573,23 @@ function EditorKit.offset_int(offset as integer, byref datum as integer) as inte
 	return val_int(datum)
 end function
 
+' Invert the meaning of a bit from its underlying data field.
+' As a shortcut you can prefix the menu item title with ! instead, like
+'  defbitset "!Inns revive dead heroes", bits(), , 4
+sub EditorKit.invert_bool()
+	assert(cur_item.dtype = dtypeNone orelse cur_item.dtype = dtypeBool)
+	assert(len(cur_item.caption) = 0)
+	assert(edited = NO)
+	cur_item.inverted_bool = YES
+	'If val_* hasn't been called yet this has no effect because it'll be clobbered
+	value xor= YES
+end sub
+
+function EditorKit.invert_bool(byref datum as bool) as bool
+	invert_bool
+	return val_bool(datum)
+end function
+
 '------------------------------- Primitive types -------------------------------
 
 function EditorKit.val_int(byref datum as integer) as integer
@@ -598,7 +614,7 @@ function EditorKit.val_bool(byref datum as bool) as bool
 			.writer = writerInt
 			.int_ptr = @datum
 			' Need to make sure we only do this once!
-			value xor= .invert_bool
+			value xor= .inverted_bool
 		end if
 	end with
 	return value
@@ -611,7 +627,7 @@ function EditorKit.val_bool(byref datum as boolean) as bool
 		if .writer = writerNone then
 			.writer = writerBoolean
 			.byte_ptr = @datum
-			value xor= .invert_bool
+			value xor= .inverted_bool
 		end if
 	end with
 	return value
@@ -895,6 +911,25 @@ function EditorKit.edit_node_exists(node as Node ptr, path as zstring ptr) as bo
 	val_node_exists node, path
 	return edit_bool(value)
 end function
+
+' Deletes the node specified by any val_node_* function, if it exists
+sub EditorKit.delete_node()
+	with cur_item
+		select case as const .writer
+			case writerNodeInt, writerNodeBool, writerNodeStr, writerNodeFloat
+				FreeNode .node
+			case writerNodePathInt, writerNodePathBool, writerNodePathStr, writerNodePathFloat, writerNodePathExists
+				dim valnode as Node ptr
+				valnode = NodeByPath(.node, .path)
+				if valnode then FreeNode valnode
+			case else
+				showbug "EditorKit.delete_node: not a node datatype!"
+		end select
+		.dtype = dtypeNone
+		.writer = writerNone
+	end with
+	edited = YES
+end sub
 
 '----------------------------- general.reld data ------------------------------
 

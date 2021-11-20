@@ -61,7 +61,7 @@ type EditorKitItem
 	path as string         'writerNodePath* and writerConfig* only: path to node/setting
 	whichbit as integer    'writerBit only: a bitmask
 	offset as integer      'dtypeInt only: amount to subtract from value before writing
-	invert_bool as bool    'dtypeBool only: whether to invert value before writing
+	inverted_bool as bool  'dtypeBool only: whether to invert value before writing
 	delete_default as bool 'writerNodePath* only: delete node if equal to default
 	default as integer     'writerNodePathInt only
 	defaultstr as string   'writerNodePathStr only
@@ -193,6 +193,8 @@ type EditorKit extends ModularMenu
 	' Value modifiers
 	declare sub offset_int overload(offset as integer)
 	declare function offset_int overload(offset as integer, byref datum as integer) as integer
+	declare sub invert_bool overload()
+	declare function invert_bool overload(byref datum as bool) as bool
 
 	' Primitive types
 	declare function val_int(byref datum as integer) as integer
@@ -236,6 +238,8 @@ type EditorKit extends ModularMenu
 	declare function edit_node_str overload(node as Reload.Node ptr, maxlen as integer = 0) as bool
 	declare function edit_node_str overload(root as Reload.Node ptr, path as zstring ptr, default as zstring ptr = @"", maxlen as integer = 0, delete_if_default_flag as EKFlags = 0) as bool
 	declare function edit_node_exists(node as Reload.Node ptr, path as zstring ptr) as bool
+
+	declare sub delete_node()
 
 	' .ini config file settings
 	declare function edit_config_bool(path as zstring ptr, default as bool = NO) as bool
