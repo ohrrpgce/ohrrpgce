@@ -164,6 +164,8 @@ CONST scWinLogo = 121
 CONST scCommand = 121
 CONST scMeta = 121
 
+CONST scLASTASSIGNED = 121
+
 'Update scancodenames.bi if you add more
 
 'Used for size of arrays - does NOT include joystick/mouse scancodes

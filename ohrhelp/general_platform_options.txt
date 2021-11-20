@@ -4,7 +4,7 @@ When games are played on a phone or a tablet, a virtual gamepad overlay will app
 
 "Disable Virtual Gamepad" allows you to disable this overlay for games that are purely mouse-based. (The virtual gamepad is disabled automatically on OUYA, so you do NOT need to set this option for OUYA compatibility)
 
-"Hide V.Gamepad when suspendplayer" is good for cutscenes, hiding the overlay when "suspend player" is called.
+"Hide V.Gamepad when player suspended" is good for cutscenes, hiding the overlay when "suspend player" is called.
 
 "Touch Textboxes" lets you tap anywhere on the screen to advance text boxes, and use choice menus by tapping. Don't turn this off unless you have a very good reason!
 When a text box is displayed, the virtual gamepad is usually hidden to not obscure the text, unless there is a choicebox or menu up.
@@ -12,9 +12,8 @@ This setting is always on if "Click to advance text boxes" is On in the Mouse Op
 
 Some Android devices, such as the OUYA Console or the XPeria Play have gamepads, and most newer android devices can use a USB or Bluetooth controller, such as an XBox or Playstation controller.
 
-Press ENTER to choose a new keyboard key to map to a controller button. 
+Press ENTER to choose a new keyboard key to map to a controller button, or type in a scancode number.
 
-Press DELETE or BACKSPACE to revert the button back to the default.
+Press DELETE to revert the button back to the default, or in the case of virtual gamepad buttons, to remove it.
 
 It is strongly recommended to leave button A mapped to ENTER and button B mapped to ESC, this will allow you to navigate menus and text boxes.
-

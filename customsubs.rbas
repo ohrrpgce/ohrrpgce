@@ -20,6 +20,7 @@
 #include "customsubs.bi"
 #include "thingbrowser.bi"
 #include "sliceedit.bi"
+#include "editorkit.bi"
 
 'Subs and functions only used here
 DECLARE SUB cond_editor (cond as Condition, default as bool = NO, outer_state as MenuState)
@@ -2929,304 +2930,157 @@ FUNCTION reorderable_node(byval node as NodePtr) as integer
  RETURN NO
 END FUNCTION
 
-ENUM PlatformMenuItemType
- platformoptEXIT = mtypeLAST + 1  'Don't overlap with MenuItemType values
- platformoptTOGGLEVGAMEPAD
- platformoptBUTTON
- platformoptVBUTTON
- platformoptADDVBUTTON
- platformoptTOGGLEMULTI
- platformoptBUTTONNAMES
- platformoptTOGGLETOUCHTEXTBOXES
- platformoptTOGGLEVGAMEPADSUSPENDPLAYER
-END ENUM
+TYPE PlatformOptionsEditor EXTENDS EditorKit
+ DECLARE CONSTRUCTOR ()
+ DECLARE SUB define_items ()
+ DECLARE SUB edit_button_scancode (deletable as bool)
+ DECLARE SUB button_list (parent as Node ptr)
+ DECLARE SUB gamepad_button_menu_items (byval gamepad_node as NodePtr, use_dpad as bool, default_scancodes() as integer)
+
+ gen_root as NodePtr
+ vgp as NodePtr
+ vgpb as NodePtr
+
+ buttons(11) as string = {"A", "B", "X", "Y", "L1", "R1", "L2", "R2", "UP", "RIGHT", "DOWN", "LEFT"}
+ ouya_buttons(11) as string = {"O", "A", "U", "Y", "L1", "R1", "L2", "R2", "UP", "RIGHT", "DOWN", "LEFT"}
+ 'xperia_buttons(11) as string = {"X?", "O?", "Square", "Triangle", "L1", "R1", "Doesn't Exist", "Doesn't Exist", "UP", "RIGHT", "DOWN", "LEFT"}
+ default_scancodes(11) as integer = {scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd, scUp, scRight, scDown, scLeft}
+ default_scancodes_multiplayer(11) as integer = {scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd, scUp, scRight, scDown, scLeft}
+ player_who(3) as string = {"First", "Second", "Third", "Fourth"}
+END TYPE
 
 SUB edit_platform_controls ()
+ DIM editor as PlatformOptionsEditor
+ editor.run()
+ write_general_reld()
+END SUB
 
- DIM menu as MenuDef
+CONSTRUCTOR PlatformOptionsEditor
+ helpkey = "general_platform_options"
 
- DIM st as MenuState
- st.autosize = YES
- st.autosize_ignore_pixels = 14
- st.active = YES
- st.need_update = YES
+ gen_root = get_general_reld()
+ DIM mobile as Node ptr = GetOrCreateChild(gen_root, "mobile_options")
+ GetOrCreateChild(gen_root, "console_options")
+ GetOrCreateChild(gen_root, "gamepad")
 
- DIM gen_root as NodePtr = get_general_reld()
- DIM mobile as NodePtr = GetOrCreateChild(gen_root, "mobile_options")
- DIM console as NodePtr = GetOrCreateChild(gen_root, "console_options")
- DIM gamepad as NodePtr = GetOrCreateChild(gen_root, "gamepad")
-
- DIM vgp as NodePtr = mobile."virtual_gamepad".ptr
+ vgp = mobile."virtual_gamepad".ptr
  IF vgp = NULL THEN
-  vgp = SetChildNode(mobile, "virtual_gamepad")
+  vgp = AppendChildNode(mobile, "virtual_gamepad")
   AppendChildNode(vgp, "button", scEnter)
   AppendChildNode(vgp, "button", scESC)
  END IF
 
- DIM vgpb as NodePtr = mobile."virtual_gamepad_battle".ptr
+ vgpb = mobile."virtual_gamepad_battle".ptr
  IF vgpb = NULL THEN
-  vgpb = SetChildNode(mobile, "virtual_gamepad_battle")
+  vgpb = AppendChildNode(mobile, "virtual_gamepad_battle")
   AppendChildNode(vgpb, "button", scEnter)
   AppendChildNode(vgpb, "button", scESC)
  END IF
+END CONSTRUCTOR
 
- DIM buttons(...) as string = {"A", "B", "X", "Y", "L1", "R1", "L2", "R2", "UP", "RIGHT", "DOWN", "LEFT"}
- DIM ouya_buttons(...) as string = {"O", "A", "U", "Y", "L1", "R1", "L2", "R2", "UP", "RIGHT", "DOWN", "LEFT"}
- DIM xperia_buttons(...) as string = {"X?", "O?", "Square", "Triangle", "L1", "R1", "Doesn't Exist", "Doesn't Exist", "UP", "RIGHT", "DOWN", "LEFT"}
- DIM default_scancodes(...) as integer = {scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd, scUp, scRight, scDown, scLeft}
- DIM default_scancodes_multiplayer(...) as integer = {scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd, scUp, scRight, scDown, scLeft}
- DIM player_who(...) as string = {"First", "Second", "Third", "Fourth"}
-
- DIM vbutton_count as integer = 0
- DIM vbutton_max as integer = 6
-
- DIM has_player_node(3) as bool
- DIM pnum as integer
- 
- DIM t as integer
- DIM sub_t as integer
- DIM node as NodePtr
- DIM sc as integer
-
- setkeys
- DO
-  setwait 55
-  setkeys
-  IF keyval(scF1) > 1 THEN show_help "general_platform_options"
-  IF keyval(ccCancel) > 1 THEN EXIT DO
-
-  IF st.need_update THEN
-   DO
-    '--normally a single-pass loop. Only repeats if something
-    '-- happens during update that requires another update
-    st.need_update = NO
-    
-    DIM cap as string
-    
-    InitLikeStandardMenu menu
-    append_menu_item menu, "Previous menu..."
-    menu.last->t = platformoptEXIT
-
-    IF get_gen_bool("/mouse/click_textboxes") THEN
-     append_menu_item menu, "Touch Textboxes: YES [Click to advance textboxes ON]"
-    ELSE
-     append_menu_item menu, "Touch Textboxes: " & yesorno(get_gen_bool("/mobile_options/touch_textboxes/enabled"))
-     menu.last->t = platformoptTOGGLETOUCHTEXTBOXES
-    END IF
-
-    append_menu_item menu, "Phone/Tablet Virtual Gamepad: " & IIF(mobile."disable_virtual_gamepad".exists, "Disabled", "Enabled")
-    menu.last->t = platformoptTOGGLEVGAMEPAD
-
-    IF NOT mobile."disable_virtual_gamepad".exists THEN
-
-     append_menu_item menu, "Hide V.Gamepad when suspendplayer: " & yesorno(mobile."hide_virtual_gamepad_when_suspendplayer".integer.default(NO))
-     menu.last->t = platformoptTOGGLEVGAMEPADSUSPENDPLAYER
-
-     append_menu_item menu, ""
-     menu.last->unselectable = YES
-     append_menu_item menu, " Phone/Tablet Virtual Gamepad (Normal)"
-     menu.last->unselectable = YES
-     menu.last->col = uilook(eduiHeading)
-
-     vbutton_count = 0
-     READNODE vgp
-      WITHNODE vgp."button" as but
-       vbutton_count += 1
-       IF vbutton_count > 6 THEN
-        debug "WARNING: not allowed to have more than 6 mobile virtual gamepad buttons"
-       ELSE
-        append_menu_item menu, "Button " & vbutton_count - 1 & ": " & scancodename(GetInteger(but))
-        menu.last->t = platformoptVBUTTON
-        menu.last->dataptr = but
-       END IF
-      END WITHNODE
-     END READNODE
-     IF vbutton_count < vbutton_max THEN
-      append_menu_item menu, "Add another button"
-      menu.last->t = platformoptADDVBUTTON
-      menu.last->dataptr = vgp
-     END IF
-
-     append_menu_item menu, ""
-     menu.last->unselectable = YES
-     append_menu_item menu, " Phone/Tablet Virtual Gamepad (Battle Mode)"
-     menu.last->unselectable = YES
-     menu.last->col = uilook(eduiHeading)
-
-     vbutton_count = 0
-     READNODE vgpb
-      WITHNODE vgpb."button" as but
-       vbutton_count += 1
-       IF vbutton_count > 6 THEN
-        debug "WARNING: not allowed to have more than 6 mobile virtual gamepad buttons"
-       ELSE
-        append_menu_item menu, "Button " & vbutton_count - 1 & ": " & scancodename(GetInteger(but))
-        menu.last->t = platformoptVBUTTON
-        menu.last->dataptr = but
-       END IF
-      END WITHNODE
-     END READNODE
-     IF vbutton_count < vbutton_max THEN
-      append_menu_item menu, "Add another button"
-      menu.last->t = platformoptADDVBUTTON
-      menu.last->dataptr = vgpb
-     END IF
-    
-    END IF
-
-    append_menu_item menu, ""
-    menu.last->unselectable = YES
- 
-    append_menu_item menu, ""
-    menu.last->unselectable = YES
- 
-    append_menu_item menu, " Gamepad Buttons (Android only)"
-    menu.last->unselectable = YES
-    menu.last->col = uilook(eduiHeading)
-
-    platform_options_append_gamepad_button_menu_items gamepad, menu, NO, buttons(), default_scancodes()
-
-    append_menu_item menu, " Multiplayer Gamepad Options"
-    menu.last->unselectable = YES
-    menu.last->col = uilook(eduiHeading)
-
-    IF NOT gen_root."multiplayer_gamepads".exists THEN
-     '--this caption will change if  any other platform ever gets multiplayer gamepad support
-     append_menu_item menu, "Enable OUYA multiplayer..."
-     menu.last->t = platformoptTOGGLEMULTI
-    ELSE
-     flusharray has_player_node(), NO
-     READNODE gen_root."multiplayer_gamepads" as multi
-      WITHNODE multi."player" as player
-       pnum = GetInteger(player)
-       IF pnum < 1 ORELSE pnum > 3 THEN
-        debug "WARNING: Should not have multiplayer_gamepads.player node for player " & pnum
-       ELSE
-        has_player_node(pnum) = YES
-        append_menu_item menu, player_who(pnum) & " player buttons"
-        menu.last->unselectable = YES
-        menu.last->col = uilook(eduiHeading)
-        platform_options_append_gamepad_button_menu_items player, menu, YES, buttons(), default_scancodes_multiplayer()
-       END IF
-      END WITHNODE
-     END READNODE
-     FOR i as integer = 1 TO 3
-      IF NOT has_player_node(i) THEN
-       AppendChildNode(gen_root."multiplayer_gamepads".ptr, "player", i)
-       st.need_update = YES
-      END IF
-     NEXT i
-    END IF
-
-    append_menu_item menu, ""
-    menu.last->unselectable = YES
- 
-    append_menu_item menu, "Button name strings for text boxes..."
-    menu.last->t = platformoptBUTTONNAMES
-
-   LOOP WHILE st.need_update
-
-   'Update .last to avoid glitch on first tick, not needed for any other reason (*grumble*)
-   init_menu_state st, menu
-  END IF '--done updating menu
-
-  usemenu st, menu
-
-  t = menu.items[st.pt]->t
-  sub_t = menu.items[st.pt]->sub_t
-  node = menu.items[st.pt]->dataptr
-  
-  IF enter_space_click(st) THEN
-   SELECT CASE t
-    CASE platformoptEXIT: EXIT DO
-    CASE platformoptBUTTON:
-     sc = prompt_for_scancode()
-     IF sc >= 0 THEN
-      SetChildNode(node, buttons(sub_t), sc)
-      st.need_update = YES
-     END IF
-    CASE platformoptVBUTTON:
-     sc = prompt_for_scancode()
-     IF sc >= 0 THEN
-      SetContent(node, sc)
-      st.need_update = YES
-     END IF
-    CASE platformoptADDVBUTTON:
-     AppendChildNode(node, "button", 0)
-     st.need_update = YES
-    CASE platformoptBUTTONNAMES:
-     edit_button_name_strings
-   END SELECT
+' Edit 'value' as a scancode
+SUB PlatformOptionsEditor.edit_button_scancode(deletable as bool)
+ IF activate THEN
+  DIM sc as integer = prompt_for_scancode()
+  IF sc >= 0 THEN
+   value = sc
+   edited = YES
   END IF
-  
-  SELECT CASE t
-   CASE platformoptTOGGLEVGAMEPAD:
-    IF toggle_item(st) THEN
-     ToggleChildNode mobile, "disable_virtual_gamepad"
-     st.need_update = YES
-    END IF
-   CASE platformoptTOGGLEVGAMEPADSUSPENDPLAYER:
-    IF toggle_item(st) THEN
-     ToggleBoolChildNode mobile, "hide_virtual_gamepad_when_suspendplayer"
-     st.need_update = YES
-    END IF
-   CASE platformoptTOGGLEMULTI:
-    IF toggle_item(st) THEN
-     ToggleChildNode gen_root, "multiplayer_gamepads"
-     st.need_update = YES
-    END IF
-   CASE platformoptTOGGLETOUCHTEXTBOXES:
-    IF toggle_item(st) THEN
-     toggle_gen_bool("/mobile_options/touch_textboxes/enabled")
-     st.need_update = YES
-    END IF
-   CASE platformoptBUTTON:
-    IF keyval(scDELETE) > 1 ORELSE keyval(scBACKSPACE) > 1 THEN
-     SetChildNode(node, buttons(sub_t), 0)
-     st.need_update = YES
-    END IF
-   CASE platformoptVBUTTON:
-    IF keyval(scDELETE) > 1 ORELSE keyval(scBACKSPACE) > 1 THEN
-     FreeNode node
-     st.need_update = YES
-    END IF
-  END SELECT
-   
-  clearpage dpage
-  IF t = platformoptBUTTON THEN
-   edgeprint "OUYA Controller: " & ouya_buttons(sub_t), 0, pBottom, uilook(uiSelectedDisabled), dpage
+ ELSEIF process THEN
+  IF deletable ANDALSO (keyval(scDelete) > 1 ORELSE (value = 0 ANDALSO keyval(scBackspace) > 1)) THEN
+   delete_node
+  ELSE
+   edit_int value, 0, scLASTASSIGNED
   END IF
-  
-  draw_menu menu, st, dpage
-  SWAP vpage, dpage
-  setvispage vpage
-  
-  dowait
- LOOP
- write_general_reld()
+ END IF
 END SUB
 
-SUB platform_options_append_gamepad_button_menu_items (byval gamepad as NodePtr, menu as MenuDef, byval use_dpad as bool, buttons() as string, default_scancodes() as integer)
+SUB PlatformOptionsEditor.button_list(parent as Node ptr)
+ CONST vbutton_max = 6
+ DIM button as Node ptr = FirstChild(parent, "button")
+ DIM vbutton_count as integer
+ FOR vbutton_count = 0 TO vbutton_max - 1
+  IF button = 0 THEN EXIT FOR
+  defitem "Button " & vbutton_count & ":"
+  val_node_int button
+  button = NextSibling(button, "button")  'Before button can be deleted
+  edit_button_scancode YES  'Delete/backspace deletes the node
+  set_caption rpad(scancodename(value), " ", 13) & "(" & value & ")"
+ NEXT
+
+ IF vbutton_count > vbutton_max THEN
+  debug "Warning: shouldn't have more than " & vbutton_max & " mobile virtual gamepad buttons"
+ ELSEIF vbutton_count < vbutton_max THEN
+  IF defitem_act("Add another button") THEN
+   AppendChildNode(parent, "button", 0)
+  END IF
+ END IF
+END SUB
+
+SUB PlatformOptionsEditor.gamepad_button_menu_items (byval gamepad_node as NodePtr, use_dpad as bool, default_scancodes() as integer)
  DIM ub as integer = UBOUND(buttons)
  '--always assumes that the dpad is at the end of the buttons() list
  IF NOT use_dpad THEN ub = ub - 4
  FOR bnum as integer = 0 TO ub
   DIM b as string = buttons(bnum)
-  DIM bnode as NodePtr = GetOrCreateChild(gamepad, b)
-  DIM cap as string
-  cap = "Button " & rpad(b, " ", 2) & ": "
+  defitem "Button " & rpad(b, " ", 2) & ":"
+  val_node_int gamepad_node, "/" & b
   DIM padnum as integer = 12 - large(0, LEN(b) - 2)
-  DIM sc as integer = GetInteger(bnode)
-  IF sc THEN
-   cap &= rpad(scancodename(sc), " ", padnum) & "(" & sc & ")"
+  edit_button_scancode NO  'Doesn't delete the node
+  IF value THEN
+   set_caption rpad(scancodename(value), " ", padnum) & "(" & value & ")"
   ELSE
-   cap &= rpad(scancodename(default_scancodes(bnum)), " ", padnum) & "(Default)"
+   set_caption rpad(scancodename(default_scancodes(bnum)), " ", padnum) & "(Default)"
   END IF
-  append_menu_item menu, cap
-  menu.last->t = platformoptBUTTON
-  menu.last->sub_t = bnum
-  menu.last->dataptr = gamepad
+  set_tooltip fgcol_text("OUYA Controller: " & ouya_buttons(bnum), uilook(uiSelectedDisabled))
  NEXT bnum
+END SUB
+
+SUB PlatformOptionsEditor.define_items()
+ DIM gen_root as Node ptr = this.gen_root  'Work around reloadbasic errors
+
+ defitem "Touch Textboxes:"
+ IF get_gen_bool("/mouse/click_textboxes") THEN
+  set_caption "YES [Click to advance textboxes ON]"
+ ELSE
+  edit_node_bool gen_root, "/mobile_options/touch_textboxes/enabled"
+ END IF
+
+ defitem "Phone/Tablet Virtual Gamepad:"
+ invert_bool
+ edit_node_exists gen_root, "/mobile_options/disable_virtual_gamepad"
+ captions_bool "Disabled", "Enabled"
+
+ IF value THEN  'Virtual Gamepad enabled
+  defitem "Hide V.Gamepad when player suspended:"
+  edit_node_bool gen_root, "/mobile_options/hide_virtual_gamepad_when_suspendplayer"
+
+  section "Phone/Tablet Virtual Gamepad (Normal)"
+  button_list vgp
+  section "Phone/Tablet Virtual Gamepad (Battle Mode)"
+  button_list vgpb
+ END IF
+
+ spacer
+ section "Gamepad Buttons (Android only)"
+ gamepad_button_menu_items gen_root."gamepad".ptr, NO, default_scancodes()
+
+ section "Multiplayer Gamepad Options"
+ IF NOT gen_root."multiplayer_gamepads".exists THEN
+  '--Although all SDL2 platforms support multiplayer gamepad, OUYA multiplayer works differently...
+  defitem "Enable OUYA multiplayer..."
+  edit_node_exists gen_root, "/multiplayer_gamepads"
+  'NOTE: once you enable (create) multiplayer_gamepads there's no option to delete them!
+ ELSE
+  FOR pnum as integer = 1 TO 3
+   DIM player as Node ptr = NodeByPath(gen_root, "/multiplayer_gamepads/player[" & pnum & "]", YES) 'create=YES
+   subsection player_who(pnum) & " player buttons"
+   gamepad_button_menu_items player, YES, default_scancodes_multiplayer()
+  NEXT
+ END IF
+
+ spacer
+ IF defitem_act("Button name strings for text boxes...") THEN edit_button_name_strings
 END SUB
 
 FUNCTION prompt_for_scancode () as KBScancode
@@ -3241,7 +3095,7 @@ FUNCTION prompt_for_scancode () as KBScancode
  DIM pressed as KBScancode
  DIM presstime as double ' the timestamp when the key was first pressed
  DIM heldfor as double ' the number of seconds the key has been held
- DIM threshold as double = 0.5  ' seconds to hold to confirm a key
+ CONST threshold = 0.4  ' seconds to hold to confirm a key
  DIM keylist as string
  DIM keyname as string
  DIM count as integer

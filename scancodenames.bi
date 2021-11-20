@@ -14,7 +14,7 @@ static scancodenames(ccCancel to ...) as string * 18  = { _
   "Down",                      /' -3 '/ _
   "Up",                        /' -2 '/ _
   "Any Key",                   /' -1 '/ _
-  "",                          /' 0 '/ _
+  "None",                      /' 0 '/ _
   "Esc",                       /' 01 '/ _
   "1",                         /' 02 '/ _
   /' "Exclamation", '/         /' 02 '/ _

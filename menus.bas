@@ -1901,7 +1901,7 @@ SUB ModularMenu.draw()
  END IF
 
  IF LEN(tooltip) THEN
-  edgeprint tooltip, 0, pBottom, uilook(uiText), vpage
+  edgeprint tooltip, 0, pBottom, uilook(uiText), vpage, YES, YES  'with markup and newlines
  END IF
 END SUB
 
