@@ -19,7 +19,7 @@ enum EditorKitDataType
 	dtypeNone
 	dtypeBool      'Includes boolean
 	dtypeInt
-	dtypeStr
+	dtypeStr       'Includes string enumerations (*_str_enum)
 	dtypeFloat
 end enum
 
@@ -34,11 +34,11 @@ enum EditorKitDataWriter
 	writerDouble
 	writerNodeInt
 	writerNodeBool
-	writerNodeStr
+	writerNodeStr          'Includes string enumerations
 	writerNodeFloat
 	writerNodePathInt
 	writerNodePathBool
-	writerNodePathStr
+	writerNodePathStr      'Includes string enumerations
 	writerNodePathFloat
 	writerNodePathExists
 	writerConfigBool
@@ -71,8 +71,16 @@ type EditorKitItem
 	id as integer          'Has no purpose yet
 	title as string
 	caption as string
-	'helpkey as string
+	helpkey as string
 	unselectable as bool
+end type
+
+' An option of a string enumeration (val_str_enum)
+type StringEnumOption
+	' FB doesn't allow initialising strings in UDTs, so we use zstring ptrs
+	key as zstring ptr         'The data field value. (Can be "")
+	caption as zstring ptr     'Optional, defaults to key
+	'description as zstring ptr
 end type
 
 ' See editorkit.bas for usage information
@@ -114,6 +122,7 @@ type EditorKit extends ModularMenu
 	phase as Phases            'Whenever define_items() is called, this tells why
 	want_activate as bool      'Cache enter_space_click() result
 	want_exit as bool          'Called exit_menu()
+	initialised as bool        'update() has been called at least once
 
 	default_helpkey as string  'Default, if an item doesn't call set_helpkey.
 	' Internal state to track the menu item currently being defined, while inside define_items()
@@ -205,6 +214,9 @@ type EditorKit extends ModularMenu
 	declare function val_str(byref datum as string) as string
 	declare function val_float(byref datum as double) as double
 
+	' Derived types
+	declare function val_str_enum(byref datum as string, options() as StringEnumOption) as string
+
 	' RELOAD Nodes
 	declare function val_node_int overload(node as Reload.Node ptr) as integer
 	declare function val_node_int overload(root as Reload.Node ptr, path as zstring ptr, default as integer = 0, delete_if_default_flag as EKFlags = 0) as integer
@@ -229,6 +241,9 @@ type EditorKit extends ModularMenu
 	declare function edit_bitset(bitwords() as integer, wordnum as integer = 0, bitnum as integer) as bool
 	declare function edit_str(byref datum as string, maxlen as integer = 0) as bool
 	'declare function edit_float(byref datum as double, ...) as bool  'TODO
+
+	' Derived types
+	declare function edit_str_enum(byref datum as string, options() as StringEnumOption) as bool
 
 	' RELOAD Nodes
 	declare function edit_node_int overload(node as Reload.Node ptr, min as integer = 0, max as integer) as bool

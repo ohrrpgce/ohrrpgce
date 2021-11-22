@@ -63,7 +63,8 @@
 '  happen before editing or setting the caption.
 ' -edit_* methods will, `if process`, call intgrabber/etc to modify `value`/etc
 '  and set `edited`. (Or you manually modify it and set `edited`.)
-' -If `edited` is true, the value is written back.
+' -If `edited` is true, the value is written back. (This happens even during
+'  refresh, so it's OK to modify the value.)
 '
 ' So you don't need to set the value with val_*, etc, if you write custom
 ' editing code `if process` and use set_caption for the caption.
@@ -129,7 +130,7 @@
 '     value += 1
 '
 ' ==== Captions ====
-' The caption defaults to the item's value if the title ends in ':'.  Ite can be
+' The caption defaults to the item's value if the title ends in ':'.  It can be
 ' set it with set_caption, or a caption* function such as `captions` for enum
 ' strings.  caption* methods (other than set_caption) must be called after
 ' value/valuestr/valuefloat is set!
@@ -169,13 +170,15 @@ using Reload.Ext
 '                         ModularMenu hooks (entry points)
 
 sub EditorKit.update()
-	' On the first call store helpkey, as it may get clobbered
-	if len(default_helpkey) = 0 then default_helpkey = base.helpkey
-
 	run_phase(Phases.refreshing)
 end sub
 
 function EditorKit.each_tick() as bool
+	if initialised = NO then
+		initialised = YES
+		' On the first call store helpkey, as it may get clobbered
+		if len(default_helpkey) = 0 then default_helpkey = base.helpkey
+	end if
 	base.helpkey = default_helpkey
 	base.tooltip = ""
 	want_exit = NO
@@ -532,7 +535,7 @@ end sub
 sub EditorKit.set_helpkey(key as zstring ptr)
 	if process then
 		base.helpkey = *key
-		'cur_item.helpkey = *key
+		cur_item.helpkey = *key
 	end if
 end sub
 
@@ -675,6 +678,49 @@ function EditorKit.val_float(byref datum as double) as double
 		end if
 	end with
 	return datum
+end function
+
+'-------------------------------- Derived types --------------------------------
+
+function find_enum_index(key as string, options() as StringEnumOption) as integer
+	for idx as integer = lbound(options) to ubound(options)
+		if *options(idx).key = key then
+			return idx
+		end if
+	next
+	return lbound(options) - 1
+end function
+
+' A string which takes one of a fixed set of allowed values, each of which may have a
+' caption for display.
+' If the string is blank but "" isn't an allowed value then it's initialised to options(0).key.
+' lbound(options) can be a value other than 0.
+function EditorKit.val_str_enum(byref datum as string, options() as StringEnumOption) as string
+	val_str datum
+	if refresh or process then
+		dim index as integer = find_enum_index(valuestr, options())
+		if index < lbound(options) then
+			if len(valuestr) = 0 then
+				' Apparently uninitialised, but "" is not one of the allowed
+				' values, so initialise it to first option.
+				' (Not using the default value for writerNodePathStr)
+				if lbound(options) <= 0 andalso ubound(options) >= 0 then
+					valuestr = *options(0).key
+					edited = YES
+				end if
+			else
+				' Invalid value, maybe from a future engine version. Don't touch it!
+				if len(cur_item.caption) = 0 then
+					set_caption "Unknown value: " & valuestr
+				end if
+			end if
+		elseif len(cur_item.caption) = 0 then
+			with options(index)
+				set_caption iif(len(*.caption), .caption, .key)
+			end with
+		end if
+	end if
+	return valuestr
 end function
 
 '-------------------------------- RELOAD Nodes ---------------------------------
@@ -871,6 +917,43 @@ function EditorKit.edit_str(byref datum as string, maxlen as integer = 0) as boo
 end function
 
 ' TODO: multiline_string_editor
+
+'-------------------------------- Derived types --------------------------------
+
+' Returns whether key was modified
+function prompt_for_enum(byref key as string, prompt_text as string, options() as StringEnumOption, helpkey as string) as bool
+	dim menu() as string
+	dim start_idx as integer
+	for idx as integer = 0 TO ubound(options)
+		a_append menu(), options(idx).caption
+		if key = *options(idx).key then start_idx = idx
+	next
+	dim choice as integer
+	choice = multichoice(prompt_text, menu(), start_idx, -1, helpkey)
+	if choice = -1 then return NO
+	key = *options(choice).key
+	return YES
+end function
+
+' String enumerations: selection of a string value only from a set of allowed values.
+' If the string is blank but "" isn't an allowed value then it's initialised to options(0).key.
+' lbound(options) can be a value other than 0.
+function EditorKit.edit_str_enum(byref datum as string, options() as StringEnumOption) as bool
+	val_str_enum datum, options()
+	if activate then
+		dim prompt_text as string = rtrim(cur_item.title, ":") + "?"
+		edited or= prompt_for_enum(valuestr, prompt_text, options(), cur_item.helpkey)
+	elseif process then
+		dim index as integer = find_enum_index(valuestr, options())
+		' If valuestr is not in options() then index = lbound - 1, and we preserve
+		' it instead of clamping to lbound, but the user can still edit it.
+		if intgrabber(index, small(index, lbound(options)), ubound(options)) then
+			valuestr = *options(index).key
+			edited = YES
+		end if
+	end if
+	return edited
+end function
 
 '-------------------------------- RELOAD Nodes ---------------------------------
 
