@@ -80,7 +80,6 @@ DECLARE FUNCTION export_translations (fname as string) as bool
 DECLARE FUNCTION compile_andor_import_scripts (f as string, quickimport as bool = NO) as bool
 DECLARE SUB reimport_previous_scripts ()
 DECLARE SUB write_session_info ()
-DECLARE FUNCTION format_date(timeser as double) as string
 
 DECLARE SUB common_elementals_editor(elementals() as single, helpfile as string, byval showsign as integer = 0)
 DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page as integer)

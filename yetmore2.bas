@@ -22,6 +22,8 @@
 #include "menustuf.bi"
 #include "savegame.bi"
 #include "bmodsubs.bi"
+#include "steam.bi"
+#include "achievements.bi"
 
 Using Reload
 Using Reload.Ext
@@ -275,6 +277,9 @@ killdir tmpdir, YES  'recursively deletes playing.tmp if it exists
 v_free modified_lumps
 
 restoremode
+
+Steam.uninitialize()
+
 debuginfo "End."
 terminate_program errorout
 
@@ -1066,6 +1071,10 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
    terminate_program 10
    RETURN 1
   END IF
+ ELSEIF opt = "reset_platform_achievements" THEN
+  debug "Enqueuing platform achievement reset"
+  Achievements.definitions_reset
+  RETURN 1
  END IF
  RETURN 0
 END FUNCTION

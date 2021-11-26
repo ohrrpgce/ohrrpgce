@@ -4451,3 +4451,12 @@ end function
 sub SmoothedTimer.stop_and_print()
   if stop() then ? tell()
 end sub
+
+'----------------------------------------------------------------------
+'                       other misc functions
+
+' Argument is a timeserial
+FUNCTION format_date(timeser as double) as string
+ IF timeser = 0 THEN RETURN "0"
+ RETURN FORMAT(timeser, "yyyy mmm dd hh:mm:ss")
+END FUNCTION

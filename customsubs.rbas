@@ -2725,10 +2725,8 @@ SUB save_edit_time ()
  SetContent(timenode, GetFloat(timenode) + active_seconds - last_active_seconds)
  debuginfo "Saving - been editing for " & format_duration(active_seconds - last_active_seconds, 0)
 
- DIM saved_node as NodePtr
- saved_node = SetChildNode(gen_root, "last_saved", NOW)
- SetChildNode(saved_node, "str", format_date(NOW))
-
+ SetChildNodeDate(gen_root, "last_saved", NOW)
+ 
  last_active_seconds = active_seconds
  write_general_reld()
 END SUB

@@ -1,0 +1,21 @@
+global variable (1, slime count)
+
+plotscript, deal with slimes, begin
+    if (check tag(5)) then, begin
+        set tag(5, off)
+        slime count += 1
+        play sound (1, false, false)
+
+        if(slime count >= 5) then, begin
+            set tag(3, on)
+        end
+    end
+end
+
+plotscript, star, ignored, npc, begin
+    show text box(8)
+    settag(6, on)
+    wait(1)
+    settag(6, off)
+    destroy npc(npc)
+end

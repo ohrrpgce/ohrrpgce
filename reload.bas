@@ -1487,6 +1487,18 @@ Function SetChildNode(byval parent as NodePtr, n as zstring ptr, val as string) 
 	return ret
 end Function
 
+'Sets teh child node of name n to a double value. If n doesn't exist, it adds it.
+'Also, adds a child of n called "str" with a formatted date string
+Function SetChildNodeDate(byval parent as NodePtr, n as zstring ptr, val as double) as NodePtr
+	dim node as NodePtr = SetChildNode(parent, n, val)
+
+	if node then
+		SetChildNode(node, "str", format_date(val))
+	end if
+
+	return node
+end Function
+
 'Toggle a node to a zero/nonzero value (sets it to 0 or 1). Creates the node if it does not exist
 Sub ToggleBoolChildNode(byval parent as NodePtr, n as zstring ptr)
 	if parent = 0 then exit sub

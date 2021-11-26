@@ -6,6 +6,7 @@
 #define MORESUBS_BI
 
 #include "gfx.bi"
+#include "game_udts.bi"
 
 DECLARE SUB addhero (who as integer, slot as integer, forcelevel as integer = -1, allow_rename as bool = YES, loading as bool = NO)
 DECLARE SUB deletehero (slot as integer, resetting_game as bool = NO)

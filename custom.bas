@@ -954,10 +954,7 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
  IF vernode THEN FreeNode vernode
 
  '--Set creation time, wipe edit_time
- SetChildNode(root_node, "edit_time", 0.)
- DIM created_node as NodePtr
- created_node = SetChildNode(root_node, "created", NOW)
- SetChildNode(created_node, "str", format_date(NOW))
+ SetChildNodeDate(root_node, "edit_time", 0.)
 
  close_general_reld
 
@@ -965,12 +962,6 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
  setvispage vpage, NO
  '--re-lump files as NEW rpg file
  RETURN write_rpg_or_rpgdir(workingdir, newrpg)
-END FUNCTION
-
-' Argument is a timeserial
-FUNCTION format_date(timeser as double) as string
- IF timeser = 0 THEN RETURN "0"
- RETURN FORMAT(timeser, "yyyy mmm dd hh:mm:ss")
 END FUNCTION
 
 'Returns the last mtime of any file in a directory (excluding *.tmp)

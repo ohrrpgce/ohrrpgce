@@ -25,6 +25,7 @@
 #include "bmodsubs.bi"
 #include "purchase.bi"
 #include "scripting.bi"
+#include "achievements_runtime.bi"
 
 '--Local subs and functions
 DECLARE SUB teleporttool_load_map (map as integer, maptiles2() as TileMap, pass2 as TileMap, tilesets2() as TilesetData ptr)
@@ -1528,6 +1529,8 @@ SUB reset_game_state ()
  END READNODE
 
  remap_virtual_gamepad("virtual_gamepad")
+
+ Achievements.runtime_reset
 
 END SUB
 

@@ -1,0 +1,177 @@
+'OHRRPGCE GAME - achievement definitions
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
+#include "achievements.bi"
+#include "reload.bi"
+#include "steam.bi"
+
+' uncomment to enable debug output
+' #define DEBUG_ACHIEVEMENTS
+
+using Reload
+
+namespace Achievements
+
+  ' Local functions
+  declare function type_name_to_enum(name as string) as AchievementType
+
+  #ifdef DEBUG_ACHIEVEMENTS
+  declare sub ach_debug(msg as string)
+  #else
+  #define ach_debug(x)
+  #endif
+
+  dim shared next_id as integer = 0
+  dim shared permanent as boolean = false
+  dim shared reset_queued as boolean = false
+  dim shared achievement_defs() as AchievementDefinition
+
+  ' -- public api --
+
+  sub definitions_load(file_path as string)
+    definitions_free
+
+    DIM doc as Docptr
+    doc = LoadDocument(file_path, LoadOptions.optIgnoreMissing)
+    if doc = null then return
+
+    dim cheevos as Nodeptr = DocumentRoot(doc)
+    if cheevos = null then
+      FreeDocument(doc)
+      return
+    end if
+
+    dim num_achievements as integer = CountChildren(cheevos, "achievement")
+
+    ach_debug("loading " & num_achievements & " from disk")
+
+    if num_achievements = 0 then
+      erase achievement_defs
+    else
+      redim achievement_defs(num_achievements - 1)
+    end if
+
+    dim i as integer = 0
+
+    READNODE cheevos
+      next_id = cheevos."next_id".integer
+      permanent = cheevos."permanent".exists
+
+      WITHNODE cheevos."achievement" as cheevo
+        ach_debug("loading achievement #" & i)
+        with achievement_defs(i)
+          .id = GetInteger(cheevo)
+          .name = cheevo."name".string
+          .achievement_type = type_name_to_enum(cheevo."type".string)
+          .max_value = cheevo."max_value".integer
+          .progress_interval = cheevo."progress_interval".integer
+          .latching = cheevo."latching".exists
+          .steam_id = cheevo."steam_id".string
+
+          dim tag as Nodeptr = FirstChild(cheevo."tags".ptr, "tag")
+          while tag <> null
+            v_append .tags, GetInteger(tag)
+            tag = NextSibling(tag, "tag")
+          wend
+        end with
+        ach_debug("Finished loading achievement #" & i & ", " & achievement_defs(i).name)
+        i += 1
+      END WITHNODE
+    END READNODE
+
+    FreeDocument(doc)
+
+    if reset_queued then
+      ach_debug("Resetting achievements (hopefully this is after the steam data stuff is loaded)")
+      reset_queued = false
+
+      for i as integer = 0 to ubound(achievement_defs)
+        Steam.clear_achievement(achievement_defs(i).steam_id)
+      next
+    end if
+  end sub
+
+  sub definitions_free
+    ach_debug("definitions_free")
+    erase achievement_defs
+
+    next_id = 1
+    permanent = false
+  end sub
+
+  sub definitions_reset
+    ach_debug("definitions_reset")
+
+    reset_queued = true
+  end sub
+
+  function definitions_count() as integer
+    ach_debug("definitions_count")
+    return ubound(achievement_defs) - lbound(achievement_defs) + 1
+  end function
+
+  function get_definition_by_index(index as integer) byref as AchievementDefinition
+    ach_debug("get_definition_by_index(" & index & ")")
+
+    ERROR_IF(index < 0 orelse index > ubound(achievement_defs), "Invalid achievement index, " & index, byval null)
+
+    return achievement_defs(index)
+  end function
+
+  function get_definition_by_id(id as integer) byref as AchievementDefinition
+    for i as integer = 0 to ubound(achievement_defs)
+      if achievement_defs(i).id = id then return achievement_defs(i)
+    next
+    ERROR_IF(true, "Invalid achievement id, " & id, byval null)
+  end function
+
+  function is_permanent() as boolean
+    return permanent
+  end function
+
+  ' -- members for AchievementDefinition --
+
+  constructor AchievementDefinition
+    ach_debug("AchivementProgress constructor")
+    v_new tags
+  end constructor
+
+  destructor AchievementDefinition
+    ach_debug("AchivementDefinition destructor")
+    v_free tags
+  end destructor
+
+  ' -- internal helpers --
+
+  function type_name_to_enum(name as string) as AchievementType
+    select case name
+      case "flag"
+        return AchievementType.flag
+      case "count"
+        return AchievementType.count
+      case else
+        ach_debug("unknown achievement type string: " & name)
+        return AchievementType.flag
+    end select
+  end function
+
+  function type_enum_to_name(typ as AchievementType) as string
+    select case typ
+      case AchievementType.flag
+        return "flag"
+      case AchievementType.count
+        return "count"
+      case else
+        ach_debug("unknown achievement type enum: " & typ)
+        return "flag"
+    end select
+  end function
+
+  #ifdef DEBUG_ACHIEVEMENTS
+  private sub ach_debug(msg as string)
+    debug "achievements: " & msg
+  end sub
+  #endif
+
+end namespace

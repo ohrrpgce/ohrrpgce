@@ -17,6 +17,7 @@
 #include "moresubs.bi"
 #include "menustuf.bi"
 #include "scriptcommands.bi"
+#include "achievements_runtime.bi"
 
 USING Reload
 USING Reload.Ext
@@ -292,6 +293,8 @@ SUB gamestate_from_reload(byval node as Reload.NodePtr)
   fadeout 0, 0, 0
  END IF
 
+ Achievements.runtime_reset ' notify the acheivement subsystem that tags are going to go crazy for a bit
+
  READNODE node, default
   node."ver".ignore
   node."game_client".ignore
@@ -306,6 +309,7 @@ SUB gamestate_from_reload(byval node as Reload.NodePtr)
   gamestate_vehicle_from_reload   node."vehicle".warn.ptr
   'Added later
   gamestate_slices_from_reload    node."slices".ptr
+  Achievements.runtime_load       node."achievements".default(null).ptr
  END READNODE
 END SUB
 
@@ -861,6 +865,7 @@ SUB gamestate_to_reload(byval node as Reload.NodePtr)
  gamestate_inventory_to_reload node
  gamestate_shops_to_reload node
  gamestate_vehicle_to_reload node
+ Achievements.runtime_save node
 END SUB
 
 SUB gamestate_state_to_reload(byval parent as Reload.NodePtr)
