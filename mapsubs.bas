@@ -2664,10 +2664,9 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
    npcdef = NULL
    IF state.pt > 0 AND state.pt <= UBOUND(npcrefs) THEN
     npcinst = @st.map.npc(npcrefs(state.pt))
-    IF starts_with(menu(state.pt), "Global") THEN
-     'Oh my gosh basing this conditional on a string comparison is such an elegant solution, I hope TMC notices and feels proud of me! 
+    IF npcinst->pool = 1 THEN  'Such an elegant solution, I hope James notices and feels proud of me!
      npcdef = @st.global_npc_def(npcinst->id - 1)
-    ELSE
+    ELSEIF npcinst->pool = 0 THEN
      npcdef = @st.map.npc_def(npcinst->id - 1)
     END IF
     boxpreview = npc_preview_text(*npcdef)
