@@ -5897,7 +5897,7 @@ script, string load tests, begin
   $1="Cancel"
   get scancode name(2, cancel key)
   assert(string compare(1,2))
-  $1="Scancode 0"
+  $1="None"
   get scancode name(2, 0)
   assert(string compare(1,2))
   $1="Space"
