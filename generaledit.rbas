@@ -1402,6 +1402,122 @@ SUB SavegameOptionsEditor.define_items()
 END SUB
 
 
+TYPE AchievementsEditor EXTENDS EditorKit
+  DECLARE VIRTUAL SUB define_items()
+  DECLARE VIRTUAL FUNCTION try_exit() as bool
+
+  root as Node ptr
+  cur_ach as Node ptr   'When in the subeditor for an achievement, its node, else NULL
+  remem_pt as integer
+  next_id as integer
+END TYPE
+
+SUB achievements_editor()
+  ' Load and/or create doc
+  DIM file_path as string = workingdir & SLASH & "achievements.reld"
+  DIM doc as Docptr
+  doc = LoadDocument(file_path, LoadOptions.optIgnoreMissing)
+  IF doc = NULL THEN
+    doc = CreateDocument()
+  END IF
+
+  DIM root as Node ptr = DocumentRoot(doc)
+  IF root = NULL THEN
+    root = CreateNode(doc, "achievements")
+    SetRootNode doc, root
+  END IF
+
+  DIM editor as AchievementsEditor
+  editor.root = root
+  editor.next_id = root."next_id".integer.default(1)
+  editor.run()
+
+  SetChildNode root, "next_id", editor.next_id
+  SerializeBin file_path, doc
+  FreeDocument doc
+END SUB
+
+FUNCTION AchievementsEditor.try_exit() as bool
+  IF cur_ach = NULL THEN RETURN YES
+  cur_ach = NULL  'Leave submenu
+  SWAP remem_pt, state.pt
+  state.need_update = YES
+  RETURN NO
+END FUNCTION
+
+SUB AchievementsEditor.define_items()
+  IF cur_ach = NULL THEN  '---- Toplevel menu
+    default_helpkey = "achievements_list"
+
+    defitem "Achievements are:"
+    edit_node_exists root, "/permanent"
+    captions_bool "Per saved-game", "Global and permanent"
+
+    section "Achievements"
+    DIM ach as Node ptr = FirstChild(root, "achievement")
+    WHILE ach
+      DIM nextach as Node ptr = NextSibling(ach, "achievement")
+      'IF defitem_act(GetString(ach) & " " & blank_default(ach."name".string, "[unnamed]")) THEN
+      IF defitem_act(GetString(ach) & " " & ach."name".string) THEN
+        cur_ach = ach  'Enter submenu
+        SWAP remem_pt, state.pt
+        state.need_update = YES
+      END IF
+      deletable_node ach, "achievement"
+      set_tooltip "Enter to edit, Delete to remove"
+      ach = nextach
+    WEND
+
+    IF defitem_act("Add achievement...") THEN
+      cur_ach = AppendChildNode(root, "achievement", next_id)
+      SWAP remem_pt, state.pt
+      next_id += 1
+      state.need_update = YES
+    END IF
+
+  ELSE  '---- Editing an achievement
+    default_helpkey = "achievement"
+
+    defitem "Name:"
+    edit_node_str cur_ach, "/name", , 80  'Not sure what limit to set
+
+    defitem "Steam ID:"
+    edit_node_str cur_ach, "/steam_id"
+
+    defitem "Award condition:"
+    val_node_str cur_ach, "/type"
+    STATIC options(...) as StringEnumOption = {(@"flag", @"All requirements met"), (@"count", @"Count requirements")}
+    edit_str_enum valuestr, options()  'Default to "flag"
+
+    IF valuestr = "count" THEN
+      defitem "Required amount:"
+      edit_node_int cur_ach, "/max_value", 1, 1, INT_MAX  'Default 1
+      DIM max_value as integer = value
+
+      defitem "Progress display interval:"
+      edit_node_int cur_ach, "/progress_interval", 0, 0, max_value  'Default 0
+      IF value = 0 THEN set_caption "0 (Never)"
+    END IF
+
+    section "Tags"
+    defitem "Tags are latching:"
+    edit_node_exists cur_ach, "/latching"
+
+    DIM taglist as NodePtr = GetOrCreateChild(cur_ach, "tags")
+    DIM tagnode as NodePtr = FirstChild(taglist, "tag")
+    WHILE tagnode
+      defitem ""
+      edit_as_check_tag val_node_int(tagnode), , , NO  'allowneg=NO
+      tagnode = NextSibling(tagnode, "tag")  'Before it can be deleted
+      deletable_node  'Don't show a prompt
+      set_tooltip "Delete to remove"
+    WEND
+    IF defitem_act("Add tag...") THEN
+      AppendChildNode taglist, "tag", 0
+    END IF
+  END IF
+END SUB
+
 
 SUB generate_battlesystem_menu(menu() as string, enabled() as bool, greyout() as bool)
   flusharray enabled(), UBOUND(enabled), YES
@@ -2054,6 +2170,7 @@ SUB GeneralSettingsMenu.define_items()
 
   '-------------------------
   section "Misc"
+  IF defitem_act("Achievements... (Steam only)") THEN achievements_editor
   IF defitem_act("In-App Purchases... (experimental)") THEN edit_purchase_options
   IF defitem_act("Password For Editing...") THEN inputpasw
   defitem "Top-level thingbrowsers:"

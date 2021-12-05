@@ -1,0 +1,20 @@
+Achievements are an unfinished feature. Currently, they are useless unless you distribute your game on Steam, because the Steam Overlay is used to display notifications and there's no other effect to awarding an achievement. (That will change.) Note: you *can't* use Steam achievements just by adding a non-Steam game to your Steam game library.
+
+Name: Names are optional, and aren't used for anything yet. In future the name will be used to display popups when not playing the game under Steam.
+
+Steam ID: This is the identifier you inputted when defining the achievement in Steam. Probably something like "ACH_WON_GAME". Optional, but the achievement will do nothing if blank.
+
+Award condition: There are two types of achievements: those that count something (like "Collect 100 pointless hedgehogs") and those with a set of requirements (like "Beat the Jabberwocky without the Vorpal Blade"). In the later case all the specified tags need to be turned on.
+
+Required amount: (Counting only) E.g. 100 pointless things
+
+Progress display interval: (Counting only) How often to display a pop-up showing the player their progress. E.g. if it's 30 and the Required amount is 100, then the player will see "30/100", "60/100" and "90/100". Set it to 0 to disable.
+
+Tags:
+Currently only tags can be used as achievement requirements.
+
+Tags are latching: This means that once a tag is turned on, turning it off doesn't undo it. The tags don't all need to be on at the same time. But they do all need to be on in the same playthrough/save even if achievements are global.
+
+Note: For counting-type achievements, the count will increase by 1 every time you turn a tag on that was previous off (so toggle it on/off to repeat it), *unless* tags are latching.
+
+It doesn't matter how tags are turned on: autoset, by script, textbox, etc. If turned on in the middle of a battle, script, or menu, achievements update immediately.

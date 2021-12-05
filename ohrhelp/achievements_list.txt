@@ -1,0 +1,8 @@
+Achievements are an unfinished feature. Currently, they are useless unless you distribute your game on Steam, because the Steam Overlay is used to display notifications and there's no other effect to awarding an achievement. (That will change.) Note: you *can't* use Steam achievements just by adding a non-Steam game to your Steam game library.
+
+Achievements are:
+-Global and permanent: once you've gained an achievement in any playthrough of the game you can't get it again. But each saved game tracks progress to achievements separately.
+-Per saved-game: Every saved game has its own list of awarded achievements. Steam achievement notifications will be shown the first time you get the achievement.
+
+Each achievement has an ID number, which will be used for script commands, and which is used to record progress -- you can change the name or Steam ID of an achievement without losing progress in saved games. The ID of a deleted achievement doesn't get reused.
+Achievements also have names. The names are optional, and aren't used for anything yet. In future the names will be used to display popups when not playing the game under Steam.
