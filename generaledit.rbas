@@ -36,220 +36,218 @@ DECLARE SUB edit_purchase_details (byval prod as NodePtr)
 
 
 SUB vehicle_editor
+  DIM menu(15) as string
+  DIM veh(39) as integer
+  DIM min(39) as integer
+  DIM max(39) as integer
+  DIM offset(39) as integer
+  DIM vehbit() as IntStrPair
+  DIM tiletype(8) as string
+  DIM vehname as string = ""
+  DIM vehicle_id as integer = 0
 
-DIM menu(15) as string
-DIM veh(39) as integer
-DIM min(39) as integer
-DIM max(39) as integer
-DIM offset(39) as integer
-DIM vehbit() as IntStrPair
-DIM tiletype(8) as string
-DIM vehname as string = ""
-DIM vehicle_id as integer = 0
+  DIM state as MenuState
+  state.size = 24
+  state.last = UBOUND(menu)
+  state.need_update = YES
 
-DIM state as MenuState
-state.size = 24
-state.last = UBOUND(menu)
-state.need_update = YES
+  a_append vehbit(), -1, ""
+  a_append vehbit(), -1, " Appearance"
+  a_append vehbit(), 4,  "Do not hide leader"
+  a_append vehbit(), 5,  "Do not hide party"
+  a_append vehbit(), 8,  "Disable flying shadow"
+  a_append vehbit(), -1, ""
+  a_append vehbit(), -1, " Movement"
+  a_append vehbit(), 0,  "Pass through walls"
+  a_append vehbit(), 1,  "Pass through NPCs"
+  a_append vehbit(), 9,  "Ignore harmtiles"
+  a_append vehbit(), 6,  "Dismount one space ahead"
+  a_append vehbit(), 7,  "Pass walls while dismounting"
+  a_append vehbit(), -1, ""
+  a_append vehbit(), -1, " Activation"
+  a_append vehbit(), 2,  "Enable NPC activation"
+  a_append vehbit(), 3,  "Enable door use"
 
-a_append vehbit(), -1, ""
-a_append vehbit(), -1, " Appearance"
-a_append vehbit(), 4,  "Do not hide leader"
-a_append vehbit(), 5,  "Do not hide party"
-a_append vehbit(), 8,  "Disable flying shadow"
-a_append vehbit(), -1, ""
-a_append vehbit(), -1, " Movement"
-a_append vehbit(), 0,  "Pass through walls"
-a_append vehbit(), 1,  "Pass through NPCs"
-a_append vehbit(), 9,  "Ignore harmtiles"
-a_append vehbit(), 6,  "Dismount one space ahead"
-a_append vehbit(), 7,  "Pass walls while dismounting"
-a_append vehbit(), -1, ""
-a_append vehbit(), -1, " Activation"
-a_append vehbit(), 2,  "Enable NPC activation"
-a_append vehbit(), 3,  "Enable door use"
+  tiletype(0) = "default"
+  tiletype(1) = "A"
+  tiletype(2) = "B"
+  tiletype(3) = "A and B"
+  tiletype(4) = "A or B"
+  tiletype(5) = "not A"
+  tiletype(6) = "not B"
+  tiletype(7) = "neither A nor B"
+  tiletype(8) = "everywhere"
 
-tiletype(0) = "default"
-tiletype(1) = "A"
-tiletype(2) = "B"
-tiletype(3) = "A and B"
-tiletype(4) = "A or B"
-tiletype(5) = "not A"
-tiletype(6) = "not B"
-tiletype(7) = "neither A nor B"
-tiletype(8) = "everywhere"
-
-min(3) = 0: max(3) = 5: offset(3) = 8             'speed
-FOR i as integer = 0 TO 3
- min(5 + i) = 0: max(5 + i) = 8: offset(5 + i) = 17 + i
-NEXT i
-min(9) = -1: max(9) = 255: offset(9) = 11 'battles
-min(10) = -2: max(10) = gen(genMaxRegularScript): offset(10) = 12 'use button
-min(11) = -2: max(11) = gen(genMaxRegularScript): offset(11) = 13 'menu button
-min(12) = -max_tag(): max(12) = max_tag(): offset(12) = 14 'tag
-min(13) = gen(genMaxRegularScript) * -1: max(13) = gen(genMaxTextbox): offset(13) = 15'mount
-min(14) = gen(genMaxRegularScript) * -1: max(14) = gen(genMaxTextbox): offset(14) = 16'dismount
-min(15) = 0: max(15) = 99: offset(15) = 21'dismount
-
-LoadVehicle game + ".veh", veh(), vehname, vehicle_id
-
-setkeys YES
-DO
- setwait 55
- setkeys YES
- IF state.need_update THEN
-  state.need_update = NO
-  menu(0) = "Previous Menu"
-  menu(1) = "Vehicle " & vehicle_id
-  menu(2) = "Name: " + vehname
-
-  IF veh(offset(3)) = 3 THEN
-   menu(3) = "Speed: 10"
-  ELSE
-   menu(3) = "Speed: " & veh(8)
-  END IF
-
-  menu(4) = "Vehicle Bitsets..." '9,10
-
-  menu(5) = "Override walls: "
-  menu(6) = "Blocked by: "
-  menu(7) = "Mount from: "
-  menu(8) = "Dismount to: "
+  min(3) = 0: max(3) = 5: offset(3) = 8             'speed
   FOR i as integer = 0 TO 3
-   menu(5 + i) = menu(5 + i) + tiletype(bound(veh(offset(5 + i)), 0, 8))
+    min(5 + i) = 0: max(5 + i) = 8: offset(5 + i) = 17 + i
   NEXT i
+  min(9) = -1: max(9) = 255: offset(9) = 11 'battles
+  min(10) = -2: max(10) = gen(genMaxRegularScript): offset(10) = 12 'use button
+  min(11) = -2: max(11) = gen(genMaxRegularScript): offset(11) = 13 'menu button
+  min(12) = -max_tag(): max(12) = max_tag(): offset(12) = 14 'tag
+  min(13) = gen(genMaxRegularScript) * -1: max(13) = gen(genMaxTextbox): offset(13) = 15'mount
+  min(14) = gen(genMaxRegularScript) * -1: max(14) = gen(genMaxTextbox): offset(14) = 16'dismount
+  min(15) = 0: max(15) = 99: offset(15) = 21'dismount
 
-  DIM tmp as string
-  
-  SELECT CASE veh(offset(9))
-   CASE -1
-    tmp = "disabled"
-   CASE 0
-    tmp = "enabled"
-   CASE ELSE
-    tmp = "formation set " & veh(offset(9))
-  END SELECT
-  menu(9) = "Random Battles: " + tmp '11
+  LoadVehicle game + ".veh", veh(), vehname, vehicle_id
 
-  FOR i as integer = 0 TO 1
-   SELECT CASE veh(offset(10 + i))
-    CASE -2
-     tmp = "disabled"
-    CASE -1
-     tmp = "menu"
-    CASE 0
-     tmp = "dismount"
-    CASE ELSE
-     tmp = "script " + scriptname(ABS(veh(offset(10 + i))))
-   END SELECT
-   IF i = 0 THEN menu(10 + i) = "Use button: " + tmp'12
-   IF i = 1 THEN menu(10 + i) = "Menu button: " + tmp'13
-  NEXT i
-  
-  menu(12) = tag_set_caption(veh(offset(12)), "If riding set tag")
-  
-  SELECT CASE veh(offset(13))
-   CASE 0
-    tmp = "[script/textbox]"
-   CASE IS < 0
-    tmp = "run script " + scriptname(ABS(veh(offset(13))))
-   CASE IS > 0
-    tmp = "text box " & veh(offset(13))
-  END SELECT
-  menu(13) = "On Mount: " + tmp
-  SELECT CASE veh(offset(14))
-   CASE 0
-    tmp = "[script/textbox]"
-   CASE IS < 0
-    tmp = "run script " + scriptname(ABS(veh(offset(14))))
-   CASE IS > 0
-    tmp = "text box " & veh(offset(14))
-  END SELECT
-  menu(14) = "On Dismount: " + tmp
-  menu(15) = "Elevation: " & veh(offset(15)) & " pixels"
- END IF
- IF keyval(ccCancel) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "vehicle_editor"
- usemenu state
- SELECT CASE state.pt
-  CASE 0
-   IF enter_space_click(state) THEN
-    EXIT DO
-   END IF
-  CASE 1
-   DIM savept as integer = vehicle_id
-   IF intgrabber_with_addset(vehicle_id, 0, gen(genMaxVehicle), 32767, "vehicle") THEN
-    SaveVehicle game + ".veh", veh(), vehname, savept
-    IF vehicle_id > gen(genMaxVehicle) THEN  '--adding set
-     gen(genMaxVehicle) = vehicle_id
-     flusharray veh()
-     vehname = ""
-    ELSE
-     LoadVehicle game + ".veh", veh(), vehname, vehicle_id
+  setkeys YES
+  DO
+    setwait 55
+    setkeys YES
+    IF state.need_update THEN
+      state.need_update = NO
+      menu(0) = "Previous Menu"
+      menu(1) = "Vehicle " & vehicle_id
+      menu(2) = "Name: " + vehname
+
+      IF veh(offset(3)) = 3 THEN
+        menu(3) = "Speed: 10"
+      ELSE
+        menu(3) = "Speed: " & veh(8)
+      END IF
+
+      menu(4) = "Vehicle Bitsets..." '9,10
+
+      menu(5) = "Override walls: "
+      menu(6) = "Blocked by: "
+      menu(7) = "Mount from: "
+      menu(8) = "Dismount to: "
+      FOR i as integer = 0 TO 3
+        menu(5 + i) = menu(5 + i) + tiletype(bound(veh(offset(5 + i)), 0, 8))
+      NEXT i
+
+      DIM tmp as string
+
+      SELECT CASE veh(offset(9))
+        CASE -1
+          tmp = "disabled"
+        CASE 0
+          tmp = "enabled"
+        CASE ELSE
+          tmp = "formation set " & veh(offset(9))
+      END SELECT
+      menu(9) = "Random Battles: " + tmp '11
+
+      FOR i as integer = 0 TO 1
+        SELECT CASE veh(offset(10 + i))
+          CASE -2
+            tmp = "disabled"
+          CASE -1
+            tmp = "menu"
+          CASE 0
+            tmp = "dismount"
+          CASE ELSE
+            tmp = "script " + scriptname(ABS(veh(offset(10 + i))))
+        END SELECT
+        IF i = 0 THEN menu(10 + i) = "Use button: " + tmp'12
+        IF i = 1 THEN menu(10 + i) = "Menu button: " + tmp'13
+      NEXT i
+
+      menu(12) = tag_set_caption(veh(offset(12)), "If riding set tag")
+
+      SELECT CASE veh(offset(13))
+        CASE 0
+          tmp = "[script/textbox]"
+        CASE IS < 0
+          tmp = "run script " + scriptname(ABS(veh(offset(13))))
+        CASE IS > 0
+          tmp = "text box " & veh(offset(13))
+      END SELECT
+      menu(13) = "On Mount: " + tmp
+      SELECT CASE veh(offset(14))
+        CASE 0
+          tmp = "[script/textbox]"
+        CASE IS < 0
+          tmp = "run script " + scriptname(ABS(veh(offset(14))))
+        CASE IS > 0
+          tmp = "text box " & veh(offset(14))
+      END SELECT
+      menu(14) = "On Dismount: " + tmp
+      menu(15) = "Elevation: " & veh(offset(15)) & " pixels"
     END IF
-    state.need_update = YES
-   END IF
-  CASE 2
-   DIM oldname as string = vehname
-   strgrabber vehname, 15
-   IF oldname <> vehname THEN state.need_update = YES
-  CASE 3, 5 TO 9, 15
-   IF intgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt)) THEN
-    state.need_update = YES
-   END IF
-  CASE 12 '--tags
-   IF tag_set_grabber(veh(offset(state.pt)), state) THEN
-    state.need_update = YES
-   END IF
-  CASE 4
-   IF enter_space_click(state) THEN
-    editbitset veh(), 9, vehbit(), "vehicle_bitsets"
-   END IF
-  CASE 10, 11
-   IF enter_space_click(state) THEN
-    veh(offset(state.pt)) = large(0, veh(offset(state.pt)))
-    scriptbrowse veh(offset(state.pt)), plottrigger, "vehicle plotscript"
-    state.need_update = YES
-   ELSEIF scrintgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt), ccLeft, ccRight, 1, plottrigger) THEN
-    state.need_update = YES
-   END IF
-  CASE 13, 14 '--mount and dismount actions
-   IF veh(offset(state.pt)) > 0 ANDALSO textboxgrabber(veh(offset(state.pt)), state) THEN
-    state.need_update = YES
-   ELSEIF enter_space_click(state) THEN
-    DIM temptrig as integer = large(0, -veh(offset(state.pt)))
-    scriptbrowse temptrig, plottrigger, "vehicle plotscript"
-    veh(offset(state.pt)) = -temptrig
-    state.need_update = YES
-   ELSEIF scrintgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt), ccLeft, ccRight, -1, plottrigger) THEN
-    state.need_update = YES
-   END IF
- END SELECT
- clearpage dpage
- standardmenu menu(), state, 0, 0, dpage
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-SaveVehicle game + ".veh", veh(), vehname, vehicle_id
-
+    IF keyval(ccCancel) > 1 THEN EXIT DO
+    IF keyval(scF1) > 1 THEN show_help "vehicle_editor"
+    usemenu state
+    SELECT CASE state.pt
+      CASE 0
+        IF enter_space_click(state) THEN
+          EXIT DO
+        END IF
+      CASE 1
+        DIM savept as integer = vehicle_id
+        IF intgrabber_with_addset(vehicle_id, 0, gen(genMaxVehicle), 32767, "vehicle") THEN
+          SaveVehicle game + ".veh", veh(), vehname, savept
+          IF vehicle_id > gen(genMaxVehicle) THEN  '--adding set
+            gen(genMaxVehicle) = vehicle_id
+            flusharray veh()
+            vehname = ""
+          ELSE
+            LoadVehicle game + ".veh", veh(), vehname, vehicle_id
+          END IF
+          state.need_update = YES
+        END IF
+      CASE 2
+        DIM oldname as string = vehname
+        strgrabber vehname, 15
+        IF oldname <> vehname THEN state.need_update = YES
+      CASE 3, 5 TO 9, 15
+        IF intgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt)) THEN
+          state.need_update = YES
+        END IF
+      CASE 12 '--tags
+        IF tag_set_grabber(veh(offset(state.pt)), state) THEN
+          state.need_update = YES
+        END IF
+      CASE 4
+        IF enter_space_click(state) THEN
+          editbitset veh(), 9, vehbit(), "vehicle_bitsets"
+        END IF
+      CASE 10, 11
+        IF enter_space_click(state) THEN
+          veh(offset(state.pt)) = large(0, veh(offset(state.pt)))
+          scriptbrowse veh(offset(state.pt)), plottrigger, "vehicle plotscript"
+          state.need_update = YES
+        ELSEIF scrintgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt), ccLeft, ccRight, 1, plottrigger) THEN
+          state.need_update = YES
+        END IF
+      CASE 13, 14 '--mount and dismount actions
+        IF veh(offset(state.pt)) > 0 ANDALSO textboxgrabber(veh(offset(state.pt)), state) THEN
+          state.need_update = YES
+        ELSEIF enter_space_click(state) THEN
+          DIM temptrig as integer = large(0, -veh(offset(state.pt)))
+          scriptbrowse temptrig, plottrigger, "vehicle plotscript"
+          veh(offset(state.pt)) = -temptrig
+          state.need_update = YES
+        ELSEIF scrintgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt), ccLeft, ccRight, -1, plottrigger) THEN
+          state.need_update = YES
+        END IF
+    END SELECT
+    clearpage dpage
+    standardmenu menu(), state, 0, 0, dpage
+    SWAP vpage, dpage
+    setvispage vpage
+    dowait
+  LOOP
+  SaveVehicle game + ".veh", veh(), vehname, vehicle_id
 END SUB
 
 SUB export_master_palette ()
- DIM filename as string
+  DIM filename as string
 
- filename = inputfilename("Name of file to export to?", ".bmp", "", "input_file_export_masterpal")
- IF filename = "" THEN EXIT SUB
- filename &= ".bmp"
+  filename = inputfilename("Name of file to export to?", ".bmp", "", "input_file_export_masterpal")
+  IF filename = "" THEN EXIT SUB
+  filename &= ".bmp"
 
- DIM outsurf as Surface ptr
- gfx_surfaceCreate(16, 16, SF_32bit, SU_Staging, @outsurf)
+  DIM outsurf as Surface ptr
+  gfx_surfaceCreate(16, 16, SF_32bit, SU_Staging, @outsurf)
 
- FOR i as integer = 0 TO 255
-  outsurf->pColorData[i] = master(i)
- NEXT
- surface_export_bmp24(filename, outsurf)
- gfx_surfaceDestroy(@outsurf)
+  FOR i as integer = 0 TO 255
+    outsurf->pColorData[i] = master(i)
+  NEXT
+  surface_export_bmp24(filename, outsurf)
+  gfx_surfaceDestroy(@outsurf)
 END SUB
 
 'Position of master palette in masterpalettemenu
@@ -257,201 +255,200 @@ CONST colgridx = 33, colgridy = 100
 CONST cellheight = 6
 
 PRIVATE SUB highlight_col(colidx as integer, state as MenuState)
- drawbox colgridx + (colidx MOD 16) * 16, colgridy + (colidx \ 16) * cellheight, 16, cellheight, uilook(uiHighlight + state.tog), 1, dpage
+  drawbox colgridx + (colidx MOD 16) * 16, colgridy + (colidx \ 16) * cellheight, 16, cellheight, uilook(uiHighlight + state.tog), 1, dpage
 END SUB
 
 SUB masterpalettemenu
-DIM menu(11) as string
-DIM menu_display(11) as string
-DIM shaded(11) as bool
-DIM oldpal as integer
-DIM palnum as integer = activepalette
-load_master_and_uicol palnum
-setpal master()
-
-DIM selectst as SelectTypeState
-DIM state as MenuState
-state.size = 12
-state.last = UBOUND(menu)
-state.pt = 1
-
-update_masterpalette_menu menu(), shaded(), palnum
-
-setkeys YES
-DO
- setwait 55
- setkeys YES
-
- IF keyval(ccCancel) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "master_palette_menu"
- usemenu state
-
- oldpal = palnum
- IF keyval(ccRight) > 1 AND palnum = gen(genMaxMasterPal) THEN
-  palnum += 1
-  IF needaddset(palnum, gen(genMaxMasterPal), "Master Palette") THEN
-   IF importmasterpal("", palnum) THEN
-    setpal master()
-    state.need_update = YES
-   ELSE
-    palnum -= 1
-    gen(genMaxMasterPal) = palnum
-   END IF
-  END IF
-  setkeys
- END IF
- IF state.pt = 1 THEN
-  intgrabber(palnum, 0, gen(genMaxMasterPal))
- ELSE
-  IF keyval(ccLeft) > 1 THEN palnum += gen(genMaxMasterPal)
-  IF keyval(ccRight) > 1 THEN palnum += 1
-  palnum = palnum MOD (gen(genMaxMasterPal) + 1)
- END IF
- IF palnum <> oldpal THEN
+  DIM menu(11) as string
+  DIM menu_display(11) as string
+  DIM shaded(11) as bool
+  DIM oldpal as integer
+  DIM palnum as integer = activepalette
   load_master_and_uicol palnum
   setpal master()
-  state.need_update = YES
- END IF
 
- IF keyval(scCtrl) > 0 ANDALSO keyval(scD) > 1 THEN
-  'Ctrl-D Rescue key
-  GuessDefaultUIColors master(), uilook()
-  IF yesno("Really reset UI colors to defaults?") THEN
-   SaveUIColors uilook(), boxlook(), palnum
-  ELSE
-   load_master_and_uicol palnum
-  END IF
- END IF
+  DIM selectst as SelectTypeState
+  DIM state as MenuState
+  state.size = 12
+  state.last = UBOUND(menu)
+  state.pt = 1
 
- IF enter_space_click(state) THEN
-  SELECT CASE state.pt
-  CASE 0
-    EXIT DO
-  CASE 2
-    IF importmasterpal("", palnum) THEN
-     setpal master()
-     state.need_update = YES
-    END IF
-  CASE 3
-    export_master_palette
-  CASE 4
-    ui_color_editor palnum
-  CASE 5
-   IF yesno("Really replace all UI colors and box styles?") THEN
-    nearestui activepalette, master(), uilook(), boxlook()
-    SaveUIColors uilook(), boxlook(), palnum
-   END IF
-  CASE 6
-   notification "Copying UI colors without remapping often leads to bad colors. Normally you want to use ""Nearest-match active palette's UI colors"" instead. Press Ctrl-D to reset UI colors if the menu becomes unreadable."
-   IF yesno("Really replace all UI colors and box styles?") THEN
-    LoadUIColors uilook(), boxlook(), activepalette, master()
-    SaveUIColors uilook(), boxlook(), palnum
-   END IF
-  CASE 7
-   'Reset UI colors
-   IF yesno("Really reset UI colors to defaults?") THEN
-    GuessDefaultUIColors master(), uilook()
-    SaveUIColors uilook(), boxlook(), palnum
-   END IF
-  CASE 8
-   'Reset box styles
-   IF yesno("Really reset box styles to defaults?") THEN
-    GuessDefaultBoxStyles master(), boxlook(), YES  'colors_only=YES
-    SaveUIColors uilook(), boxlook(), palnum
-   END IF
-  CASE 9
-    gen(genMasterPal) = palnum
-    ' Keep obsolete .MAS lump up to date
-    unconvertpalette
-    'Instant live-previewing
-    xbsave game + ".gen", gen(), 1000
-    state.need_update = YES
-  CASE 10
-    activepalette = palnum
-    state.need_update = YES
-  CASE 11
-    ui_boxstyle_editor palnum
-  END SELECT
- END IF
-
- IF state.need_update THEN
-  state.need_update = NO
   update_masterpalette_menu menu(), shaded(), palnum
- END IF
 
- IF select_by_typing(selectst) THEN
-  select_on_word_boundary menu(), selectst, state
- END IF
+  setkeys YES
+  DO
+    setwait 55
+    setkeys YES
 
- 'draw the menu
- clearpage dpage
- highlight_menu_typing_selection menu(), menu_display(), selectst, state
- standardmenu menu_display(), state, shaded(), 0, 0, dpage 
+    IF keyval(ccCancel) > 1 THEN EXIT DO
+    IF keyval(scF1) > 1 THEN show_help "master_palette_menu"
+    usemenu state
 
- FOR i as integer = 0 TO 255
-  rectangle colgridx + (i MOD 16) * 16, colgridy + (i \ 16) * cellheight, 16, cellheight, i, dpage
- NEXT
- 'Highlight uilook colors
- SELECT CASE state.pt
-  CASE 4, 5, 6, 7
-   FOR i as integer = 0 TO uiColorLast
-    highlight_col uilook(i), state
-   NEXT i
- END SELECT
- 'Highlight box style colors
- SELECT CASE state.pt
-  CASE 5, 6, 8, 11
-   FOR i as integer = 0 TO uiBoxLast
-    highlight_col boxlook(i).bgcol, state
-    highlight_col boxlook(i).edgecol, state
-   NEXT i
- END SELECT
+    oldpal = palnum
+    IF keyval(ccRight) > 1 AND palnum = gen(genMaxMasterPal) THEN
+      palnum += 1
+      IF needaddset(palnum, gen(genMaxMasterPal), "Master Palette") THEN
+        IF importmasterpal("", palnum) THEN
+          setpal master()
+          state.need_update = YES
+        ELSE
+          palnum -= 1
+          gen(genMaxMasterPal) = palnum
+        END IF
+      END IF
+      setkeys
+    END IF
+    IF state.pt = 1 THEN
+      intgrabber(palnum, 0, gen(genMaxMasterPal))
+    ELSE
+      IF keyval(ccLeft) > 1 THEN palnum += gen(genMaxMasterPal)
+      IF keyval(ccRight) > 1 THEN palnum += 1
+      palnum = palnum MOD (gen(genMaxMasterPal) + 1)
+    END IF
+    IF palnum <> oldpal THEN
+      load_master_and_uicol palnum
+      setpal master()
+      state.need_update = YES
+    END IF
 
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
+    IF keyval(scCtrl) > 0 ANDALSO keyval(scD) > 1 THEN
+      'Ctrl-D Rescue key
+      GuessDefaultUIColors master(), uilook()
+      IF yesno("Really reset UI colors to defaults?") THEN
+        SaveUIColors uilook(), boxlook(), palnum
+      ELSE
+        load_master_and_uicol palnum
+      END IF
+    END IF
 
-IF activepalette <> palnum THEN
- load_master_and_uicol activepalette
- setpal master()
-END IF
+    IF enter_space_click(state) THEN
+      SELECT CASE state.pt
+        CASE 0
+          EXIT DO
+        CASE 2
+          IF importmasterpal("", palnum) THEN
+            setpal master()
+            state.need_update = YES
+          END IF
+        CASE 3
+          export_master_palette
+        CASE 4
+          ui_color_editor palnum
+        CASE 5
+          IF yesno("Really replace all UI colors and box styles?") THEN
+            nearestui activepalette, master(), uilook(), boxlook()
+            SaveUIColors uilook(), boxlook(), palnum
+          END IF
+        CASE 6
+          notification "Copying UI colors without remapping often leads to bad colors. Normally you want to use ""Nearest-match active palette's UI colors"" instead. Press Ctrl-D to reset UI colors if the menu becomes unreadable."
+          IF yesno("Really replace all UI colors and box styles?") THEN
+            LoadUIColors uilook(), boxlook(), activepalette, master()
+            SaveUIColors uilook(), boxlook(), palnum
+          END IF
+        CASE 7
+          'Reset UI colors
+          IF yesno("Really reset UI colors to defaults?") THEN
+            GuessDefaultUIColors master(), uilook()
+            SaveUIColors uilook(), boxlook(), palnum
+          END IF
+        CASE 8
+          'Reset box styles
+          IF yesno("Really reset box styles to defaults?") THEN
+            GuessDefaultBoxStyles master(), boxlook(), YES  'colors_only=YES
+            SaveUIColors uilook(), boxlook(), palnum
+          END IF
+        CASE 9
+          gen(genMasterPal) = palnum
+          ' Keep obsolete .MAS lump up to date
+          unconvertpalette
+          'Instant live-previewing
+          xbsave game + ".gen", gen(), 1000
+          state.need_update = YES
+        CASE 10
+          activepalette = palnum
+          state.need_update = YES
+        CASE 11
+          ui_boxstyle_editor palnum
+      END SELECT
+    END IF
 
+    IF state.need_update THEN
+      state.need_update = NO
+      update_masterpalette_menu menu(), shaded(), palnum
+    END IF
+
+    IF select_by_typing(selectst) THEN
+      select_on_word_boundary menu(), selectst, state
+    END IF
+
+    'draw the menu
+    clearpage dpage
+    highlight_menu_typing_selection menu(), menu_display(), selectst, state
+    standardmenu menu_display(), state, shaded(), 0, 0, dpage
+
+    FOR i as integer = 0 TO 255
+      rectangle colgridx + (i MOD 16) * 16, colgridy + (i \ 16) * cellheight, 16, cellheight, i, dpage
+    NEXT
+    'Highlight uilook colors
+    SELECT CASE state.pt
+      CASE 4, 5, 6, 7
+        FOR i as integer = 0 TO uiColorLast
+          highlight_col uilook(i), state
+        NEXT i
+    END SELECT
+    'Highlight box style colors
+    SELECT CASE state.pt
+      CASE 5, 6, 8, 11
+        FOR i as integer = 0 TO uiBoxLast
+          highlight_col boxlook(i).bgcol, state
+          highlight_col boxlook(i).edgecol, state
+        NEXT i
+    END SELECT
+
+    SWAP vpage, dpage
+    setvispage vpage
+    dowait
+  LOOP
+
+  IF activepalette <> palnum THEN
+    load_master_and_uicol activepalette
+    setpal master()
+  END IF
 END SUB
 
 SUB update_masterpalette_menu(menu() as string, shaded() as bool, palnum as integer)
- menu(0) = "Previous Menu"
- menu(1) = "<- Master Palette " & palnum & " ->"
- menu(2) = "Replace this Master Palette"
- menu(3) = "Export this palette"
- menu(4) = "Edit User Interface Colors..."
- menu(5) = "Nearest-match active palette's UI data"
- menu(6) = "Copy active palette's UI data"
- menu(7) = "Reset UI Colors to defaults"
- menu(8) = "Reset Box Styles to defaults"
- IF palnum = gen(genMasterPal) THEN
-  menu(9) = "Current default in-game Master Palette"
- ELSE
-  menu(9) = "Set as in-game Master Palette"
- END IF
- IF palnum = activepalette THEN
-  menu(10) = "Current active editing palette"
- ELSE
-  menu(10) = "Set as active editing palette"
- END IF
- menu(11) = "Edit Box Styles..."
+  menu(0) = "Previous Menu"
+  menu(1) = "<- Master Palette " & palnum & " ->"
+  menu(2) = "Replace this Master Palette"
+  menu(3) = "Export this palette"
+  menu(4) = "Edit User Interface Colors..."
+  menu(5) = "Nearest-match active palette's UI data"
+  menu(6) = "Copy active palette's UI data"
+  menu(7) = "Reset UI Colors to defaults"
+  menu(8) = "Reset Box Styles to defaults"
+  IF palnum = gen(genMasterPal) THEN
+    menu(9) = "Current default in-game Master Palette"
+  ELSE
+    menu(9) = "Set as in-game Master Palette"
+  END IF
+  IF palnum = activepalette THEN
+    menu(10) = "Current active editing palette"
+  ELSE
+    menu(10) = "Set as active editing palette"
+  END IF
+  menu(11) = "Edit Box Styles..."
 
- FOR i as integer = 0 TO UBOUND(shaded)
-  shaded(i) = NO
- NEXT
- IF palnum = activepalette THEN
-  shaded(5) = YES
-  shaded(6) = YES
-  shaded(10) = YES
- END IF
- IF palnum = gen(genMasterPal) THEN
-  shaded(9) = YES
- END IF
+  FOR i as integer = 0 TO UBOUND(shaded)
+    shaded(i) = NO
+  NEXT
+  IF palnum = activepalette THEN
+    shaded(5) = YES
+    shaded(6) = YES
+    shaded(10) = YES
+  END IF
+  IF palnum = gen(genMasterPal) THEN
+    shaded(9) = YES
+  END IF
 END SUB
 
 'Import master palette from a file and save it, together with default UI/box colors.
@@ -459,419 +456,419 @@ END SUB
 'to the new palette, but doesn't call setpal.
 'Returns true on success
 FUNCTION importmasterpal (filename as string = "", palnum as integer) as bool
- STATIC default as string
- IF filename = "" THEN
-  filename = browse(browseMasterPal, default, "", "browse_import_master_palette")
-  IF filename = "" THEN RETURN NO
- END IF
- IF LCASE(justextension(filename)) = "mas" THEN
-  xbload filename, buffer(), "MAS load error"
-  convertpalette buffer(), master()
- ELSE
-  DIM info as ImageFileInfo = image_read_info(filename)
-  IF info.size = XY(16, 16) THEN
-   palette_from_16x16_image filename, master()
-  ELSE
-   image_load_palette filename, master()
+  STATIC default as string
+  IF filename = "" THEN
+    filename = browse(browseMasterPal, default, "", "browse_import_master_palette")
+    IF filename = "" THEN RETURN NO
   END IF
- END IF
- importmasterpal master(), palnum
- RETURN YES
+  IF LCASE(justextension(filename)) = "mas" THEN
+    xbload filename, buffer(), "MAS load error"
+    convertpalette buffer(), master()
+  ELSE
+    DIM info as ImageFileInfo = image_read_info(filename)
+    IF info.size = XY(16, 16) THEN
+      palette_from_16x16_image filename, master()
+    ELSE
+      image_load_palette filename, master()
+    END IF
+  END IF
+  importmasterpal master(), palnum
+  RETURN YES
 END FUNCTION
 
 'Save new master palette newmaster(), together with default UI/box colors.
 'Note: also modifies activepalette, master(), uilook(), and boxlook()
 'to the new palette, but doesn't call setpal.
 SUB importmasterpal (newmaster() as RGBcolor, palnum as integer)
- FOR i as integer = 0 TO 255
-  master(i) = newmaster(i)
-  master(i).a = 255
- NEXT
+  FOR i as integer = 0 TO 255
+    master(i) = newmaster(i)
+    master(i).a = 255
+  NEXT
 
- 'get a default set of ui colours - nearest match to the current
- nearestui activepalette, master(), uilook(), boxlook()
+  'get a default set of ui colours - nearest match to the current
+  nearestui activepalette, master(), uilook(), boxlook()
 
- IF palnum > gen(genMaxMasterPal) THEN gen(genMaxMasterPal) = palnum
- savepalette master(), palnum
- SaveUIColors uilook(), boxlook(), palnum
+  IF palnum > gen(genMaxMasterPal) THEN gen(genMaxMasterPal) = palnum
+  savepalette master(), palnum
+  SaveUIColors uilook(), boxlook(), palnum
 END SUB
 
 SUB nearestui (byval mimicpal as integer, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)
- 'finds the nearest match newui() in newpal() to mimicpal's ui colours
- DIM referencepal(255) as RGBcolor
- DIM referenceui(uiColorLast) as integer
- DIM refboxstyle(uiBoxLast) as BoxStyle
- loadpalette referencepal(), mimicpal
- LoadUIColors referenceui(), refboxstyle(), mimicpal, referencepal()
- remappalette referencepal(), referenceui(), refboxstyle(), newmaster(), newui(), newbox()
+  'finds the nearest match newui() in newpal() to mimicpal's ui colours
+  DIM referencepal(255) as RGBcolor
+  DIM referenceui(uiColorLast) as integer
+  DIM refboxstyle(uiBoxLast) as BoxStyle
+  loadpalette referencepal(), mimicpal
+  LoadUIColors referenceui(), refboxstyle(), mimicpal, referencepal()
+  remappalette referencepal(), referenceui(), refboxstyle(), newmaster(), newui(), newbox()
 END SUB
 
 'Copy UI colours and box styles from one master palette to another, while remapping colours.
 SUB remappalette (oldmaster() as RGBcolor, oldui() as integer, oldbox() as BoxStyle, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)
- 'first the ui
- FOR i as integer = 0 TO UBOUND(oldui)
-  WITH oldmaster(oldui(i))
-   newui(i) = nearcolor(newmaster(), .r, .g, .b, , oldui(i))
-  END WITH
- NEXT
- 'Then the boxstyles
- FOR i as integer = 0 TO UBOUND(oldbox)
-  WITH oldmaster(oldbox(i).bgcol)
-   newbox(i).bgcol = nearcolor(newmaster(), .r, .g, .b, , oldbox(i).bgcol)
-  END WITH
-  WITH oldmaster(oldbox(i).edgecol)
-   newbox(i).edgecol = nearcolor(newmaster(), .r, .g, .b, , oldbox(i).edgecol)
-  END WITH
-  newbox(i).border = oldbox(i).border
- NEXT
+  'first the ui
+  FOR i as integer = 0 TO UBOUND(oldui)
+    WITH oldmaster(oldui(i))
+      newui(i) = nearcolor(newmaster(), .r, .g, .b, , oldui(i))
+    END WITH
+  NEXT
+  'Then the boxstyles
+  FOR i as integer = 0 TO UBOUND(oldbox)
+    WITH oldmaster(oldbox(i).bgcol)
+      newbox(i).bgcol = nearcolor(newmaster(), .r, .g, .b, , oldbox(i).bgcol)
+    END WITH
+    WITH oldmaster(oldbox(i).edgecol)
+      newbox(i).edgecol = nearcolor(newmaster(), .r, .g, .b, , oldbox(i).edgecol)
+    END WITH
+    newbox(i).border = oldbox(i).border
+  NEXT
 END SUB
 
 SUB inputpasw()
-DIM tog as integer = 0
-DIM oldpassword as integer = (checkpassword("") = 0)
-DIM pas as string
-setkeys YES
-DO
- setwait 55
- setkeys YES
- tog = tog XOR 1
- IF keyval(ccCancel) > 1 THEN EXIT DO
- IF keyval(scEnter) > 1 THEN
-'  IF oldpassword = NO THEN
- writepassword pas
-  EXIT DO
- END IF
- IF keyval(scF1) > 1 THEN show_help "input_password"
- strgrabber pas, 17
- clearpage dpage
- textcolor uilook(uiMenuItem), 0
- printstr "You can require a password for this", 0, 0, dpage
- printstr "game to be opened in " + CUSTOMEXE, 0, 8, dpage
- printstr "This does not encrypt your file, and", 0, 16, dpage
- printstr "should not be considered as any security", 0, 24, dpage
- IF oldpassword THEN
-  printstr "PASSWORD SET. NEW PASSWORD:", 30, 64, dpage
-  IF LEN(pas) = 0 THEN printstr "(Hit Enter to remove)", 30, 94, dpage
- ELSE
-  printstr "NO PASSWORD. NEW PASSWORD:", 30, 64, dpage
- END IF
- IF LEN(pas) THEN
-  textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
-  printstr pas, 30, 74, dpage
- ELSE
-  textcolor uilook(uiMenuItem), uilook(uiHighlight)
-  printstr "(NONE)", 30, 74, dpage
- END IF
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
+  DIM tog as integer = 0
+  DIM oldpassword as integer = (checkpassword("") = 0)
+  DIM pas as string
+  setkeys YES
+  DO
+    setwait 55
+    setkeys YES
+    tog = tog XOR 1
+    IF keyval(ccCancel) > 1 THEN EXIT DO
+    IF keyval(scEnter) > 1 THEN
+      '  IF oldpassword = NO THEN
+      writepassword pas
+      EXIT DO
+    END IF
+    IF keyval(scF1) > 1 THEN show_help "input_password"
+    strgrabber pas, 17
+    clearpage dpage
+    textcolor uilook(uiMenuItem), 0
+    printstr "You can require a password for this", 0, 0, dpage
+    printstr "game to be opened in " + CUSTOMEXE, 0, 8, dpage
+    printstr "This does not encrypt your file, and", 0, 16, dpage
+    printstr "should not be considered as any security", 0, 24, dpage
+    IF oldpassword THEN
+      printstr "PASSWORD SET. NEW PASSWORD:", 30, 64, dpage
+      IF LEN(pas) = 0 THEN printstr "(Hit Enter to remove)", 30, 94, dpage
+    ELSE
+      printstr "NO PASSWORD. NEW PASSWORD:", 30, 64, dpage
+    END IF
+    IF LEN(pas) THEN
+      textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
+      printstr pas, 30, 74, dpage
+    ELSE
+      textcolor uilook(uiMenuItem), uilook(uiHighlight)
+      printstr "(NONE)", 30, 74, dpage
+    END IF
+    SWAP vpage, dpage
+    setvispage vpage
+    dowait
+  LOOP
 END SUB
 
 
 TYPE PlatformOptionsEditor EXTENDS EditorKit
- DECLARE CONSTRUCTOR ()
- DECLARE SUB define_items ()
- DECLARE SUB edit_button_scancode (deletable as bool)
- DECLARE SUB button_list (parent as Node ptr)
- DECLARE SUB gamepad_button_menu_items (byval gamepad_node as NodePtr, use_dpad as bool, default_scancodes() as integer)
+  DECLARE CONSTRUCTOR ()
+  DECLARE SUB define_items ()
+  DECLARE SUB edit_button_scancode (deletable as bool)
+  DECLARE SUB button_list (parent as Node ptr)
+  DECLARE SUB gamepad_button_menu_items (byval gamepad_node as NodePtr, use_dpad as bool, default_scancodes() as integer)
 
- gen_root as NodePtr
- vgp as NodePtr
- vgpb as NodePtr
+  gen_root as NodePtr
+  vgp as NodePtr
+  vgpb as NodePtr
 
- buttons(11) as string = {"A", "B", "X", "Y", "L1", "R1", "L2", "R2", "UP", "RIGHT", "DOWN", "LEFT"}
- ouya_buttons(11) as string = {"O", "A", "U", "Y", "L1", "R1", "L2", "R2", "UP", "RIGHT", "DOWN", "LEFT"}
- 'xperia_buttons(11) as string = {"X?", "O?", "Square", "Triangle", "L1", "R1", "Doesn't Exist", "Doesn't Exist", "UP", "RIGHT", "DOWN", "LEFT"}
- default_scancodes(11) as integer = {scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd, scUp, scRight, scDown, scLeft}
- default_scancodes_multiplayer(11) as integer = {scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd, scUp, scRight, scDown, scLeft}
- player_who(3) as string = {"First", "Second", "Third", "Fourth"}
+  buttons(11) as string = {"A", "B", "X", "Y", "L1", "R1", "L2", "R2", "UP", "RIGHT", "DOWN", "LEFT"}
+  ouya_buttons(11) as string = {"O", "A", "U", "Y", "L1", "R1", "L2", "R2", "UP", "RIGHT", "DOWN", "LEFT"}
+  'xperia_buttons(11) as string = {"X?", "O?", "Square", "Triangle", "L1", "R1", "Doesn't Exist", "Doesn't Exist", "UP", "RIGHT", "DOWN", "LEFT"}
+  default_scancodes(11) as integer = {scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd, scUp, scRight, scDown, scLeft}
+  default_scancodes_multiplayer(11) as integer = {scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd, scUp, scRight, scDown, scLeft}
+  player_who(3) as string = {"First", "Second", "Third", "Fourth"}
 END TYPE
 
 SUB edit_platform_controls ()
- DIM editor as PlatformOptionsEditor
- editor.run()
- write_general_reld()
+  DIM editor as PlatformOptionsEditor
+  editor.run()
+  write_general_reld()
 END SUB
 
 CONSTRUCTOR PlatformOptionsEditor
- helpkey = "general_platform_options"
+  helpkey = "general_platform_options"
 
- gen_root = get_general_reld()
- DIM mobile as Node ptr = GetOrCreateChild(gen_root, "mobile_options")
- GetOrCreateChild(gen_root, "console_options")
- GetOrCreateChild(gen_root, "gamepad")
+  gen_root = get_general_reld()
+  DIM mobile as Node ptr = GetOrCreateChild(gen_root, "mobile_options")
+  GetOrCreateChild(gen_root, "console_options")
+  GetOrCreateChild(gen_root, "gamepad")
 
- vgp = mobile."virtual_gamepad".ptr
- IF vgp = NULL THEN
-  vgp = AppendChildNode(mobile, "virtual_gamepad")
-  AppendChildNode(vgp, "button", scEnter)
-  AppendChildNode(vgp, "button", scESC)
- END IF
+  vgp = mobile."virtual_gamepad".ptr
+  IF vgp = NULL THEN
+    vgp = AppendChildNode(mobile, "virtual_gamepad")
+    AppendChildNode(vgp, "button", scEnter)
+    AppendChildNode(vgp, "button", scESC)
+  END IF
 
- vgpb = mobile."virtual_gamepad_battle".ptr
- IF vgpb = NULL THEN
-  vgpb = AppendChildNode(mobile, "virtual_gamepad_battle")
-  AppendChildNode(vgpb, "button", scEnter)
-  AppendChildNode(vgpb, "button", scESC)
- END IF
+  vgpb = mobile."virtual_gamepad_battle".ptr
+  IF vgpb = NULL THEN
+    vgpb = AppendChildNode(mobile, "virtual_gamepad_battle")
+    AppendChildNode(vgpb, "button", scEnter)
+    AppendChildNode(vgpb, "button", scESC)
+  END IF
 END CONSTRUCTOR
 
 ' Edit 'value' as a scancode
 SUB PlatformOptionsEditor.edit_button_scancode(deletable as bool)
- IF activate THEN
-  DIM sc as integer = prompt_for_scancode()
-  IF sc >= 0 THEN
-   value = sc
-   edited = YES
+  IF activate THEN
+    DIM sc as integer = prompt_for_scancode()
+    IF sc >= 0 THEN
+      value = sc
+      edited = YES
+    END IF
+  ELSEIF process THEN
+    IF deletable ANDALSO (keyval(scDelete) > 1 ORELSE (value = 0 ANDALSO keyval(scBackspace) > 1)) THEN
+      delete_node
+    ELSE
+      edit_int value, 0, scLASTASSIGNED
+    END IF
   END IF
- ELSEIF process THEN
-  IF deletable ANDALSO (keyval(scDelete) > 1 ORELSE (value = 0 ANDALSO keyval(scBackspace) > 1)) THEN
-   delete_node
-  ELSE
-   edit_int value, 0, scLASTASSIGNED
-  END IF
- END IF
 END SUB
 
 SUB PlatformOptionsEditor.button_list(parent as Node ptr)
- CONST vbutton_max = 6
- DIM button as Node ptr = FirstChild(parent, "button")
- DIM vbutton_count as integer
- FOR vbutton_count = 0 TO vbutton_max - 1
-  IF button = 0 THEN EXIT FOR
-  defitem "Button " & vbutton_count & ":"
-  val_node_int button
-  button = NextSibling(button, "button")  'Before button can be deleted
-  edit_button_scancode YES  'Delete/backspace deletes the node
-  set_caption rpad(scancodename(value), " ", 13) & "(" & value & ")"
- NEXT
+  CONST vbutton_max = 6
+  DIM button as Node ptr = FirstChild(parent, "button")
+  DIM vbutton_count as integer
+  FOR vbutton_count = 0 TO vbutton_max - 1
+    IF button = 0 THEN EXIT FOR
+    defitem "Button " & vbutton_count & ":"
+    val_node_int button
+    button = NextSibling(button, "button")  'Before button can be deleted
+    edit_button_scancode YES  'Delete/backspace deletes the node
+    set_caption rpad(scancodename(value), " ", 13) & "(" & value & ")"
+  NEXT
 
- IF vbutton_count > vbutton_max THEN
-  debug "Warning: shouldn't have more than " & vbutton_max & " mobile virtual gamepad buttons"
- ELSEIF vbutton_count < vbutton_max THEN
-  IF defitem_act("Add another button") THEN
-   AppendChildNode(parent, "button", 0)
+  IF vbutton_count > vbutton_max THEN
+    debug "Warning: shouldn't have more than " & vbutton_max & " mobile virtual gamepad buttons"
+  ELSEIF vbutton_count < vbutton_max THEN
+    IF defitem_act("Add another button") THEN
+      AppendChildNode(parent, "button", 0)
+    END IF
   END IF
- END IF
 END SUB
 
 SUB PlatformOptionsEditor.gamepad_button_menu_items (byval gamepad_node as NodePtr, use_dpad as bool, default_scancodes() as integer)
- DIM ub as integer = UBOUND(buttons)
- '--always assumes that the dpad is at the end of the buttons() list
- IF NOT use_dpad THEN ub = ub - 4
- FOR bnum as integer = 0 TO ub
-  DIM b as string = buttons(bnum)
-  defitem "Button " & rpad(b, " ", 2) & ":"
-  val_node_int gamepad_node, "/" & b
-  DIM padnum as integer = 12 - large(0, LEN(b) - 2)
-  edit_button_scancode NO  'Doesn't delete the node
-  IF value THEN
-   set_caption rpad(scancodename(value), " ", padnum) & "(" & value & ")"
-  ELSE
-   set_caption rpad(scancodename(default_scancodes(bnum)), " ", padnum) & "(Default)"
-  END IF
-  set_tooltip fgcol_text("OUYA Controller: " & ouya_buttons(bnum), uilook(uiSelectedDisabled))
- NEXT bnum
+  DIM ub as integer = UBOUND(buttons)
+  '--always assumes that the dpad is at the end of the buttons() list
+  IF NOT use_dpad THEN ub = ub - 4
+  FOR bnum as integer = 0 TO ub
+    DIM b as string = buttons(bnum)
+    defitem "Button " & rpad(b, " ", 2) & ":"
+    val_node_int gamepad_node, "/" & b
+    DIM padnum as integer = 12 - large(0, LEN(b) - 2)
+    edit_button_scancode NO  'Doesn't delete the node
+    IF value THEN
+      set_caption rpad(scancodename(value), " ", padnum) & "(" & value & ")"
+    ELSE
+      set_caption rpad(scancodename(default_scancodes(bnum)), " ", padnum) & "(Default)"
+    END IF
+    set_tooltip fgcol_text("OUYA Controller: " & ouya_buttons(bnum), uilook(uiSelectedDisabled))
+  NEXT bnum
 END SUB
 
 SUB PlatformOptionsEditor.define_items()
- DIM gen_root as Node ptr = this.gen_root  'Work around reloadbasic errors
+  DIM gen_root as Node ptr = this.gen_root  'Work around reloadbasic errors
 
- defitem "Touch Textboxes:"
- IF get_gen_bool("/mouse/click_textboxes") THEN
-  set_caption "YES [Click to advance textboxes ON]"
- ELSE
-  edit_node_bool gen_root, "/mobile_options/touch_textboxes/enabled"
- END IF
+  defitem "Touch Textboxes:"
+  IF get_gen_bool("/mouse/click_textboxes") THEN
+    set_caption "YES [Click to advance textboxes ON]"
+  ELSE
+    edit_node_bool gen_root, "/mobile_options/touch_textboxes/enabled"
+  END IF
 
- defitem "Phone/Tablet Virtual Gamepad:"
- invert_bool
- edit_node_exists gen_root, "/mobile_options/disable_virtual_gamepad"
- captions_bool "Disabled", "Enabled"
+  defitem "Phone/Tablet Virtual Gamepad:"
+  invert_bool
+  edit_node_exists gen_root, "/mobile_options/disable_virtual_gamepad"
+  captions_bool "Disabled", "Enabled"
 
- IF value THEN  'Virtual Gamepad enabled
-  defitem "Hide V.Gamepad when player suspended:"
-  edit_node_bool gen_root, "/mobile_options/hide_virtual_gamepad_when_suspendplayer"
+  IF value THEN  'Virtual Gamepad enabled
+    defitem "Hide V.Gamepad when player suspended:"
+    edit_node_bool gen_root, "/mobile_options/hide_virtual_gamepad_when_suspendplayer"
 
-  section "Phone/Tablet Virtual Gamepad (Normal)"
-  button_list vgp
-  section "Phone/Tablet Virtual Gamepad (Battle Mode)"
-  button_list vgpb
- END IF
+    section "Phone/Tablet Virtual Gamepad (Normal)"
+    button_list vgp
+    section "Phone/Tablet Virtual Gamepad (Battle Mode)"
+    button_list vgpb
+  END IF
 
- spacer
- section "Gamepad Buttons (Android only)"
- gamepad_button_menu_items gen_root."gamepad".ptr, NO, default_scancodes()
+  spacer
+  section "Gamepad Buttons (Android only)"
+  gamepad_button_menu_items gen_root."gamepad".ptr, NO, default_scancodes()
 
- section "Multiplayer Gamepad Options"
- IF NOT gen_root."multiplayer_gamepads".exists THEN
-  '--Although all SDL2 platforms support multiplayer gamepad, OUYA multiplayer works differently...
-  defitem "Enable OUYA multiplayer..."
-  edit_node_exists gen_root, "/multiplayer_gamepads"
-  'NOTE: once you enable (create) multiplayer_gamepads there's no option to delete them!
- ELSE
-  FOR pnum as integer = 1 TO 3
-   DIM player as Node ptr = NodeByPath(gen_root, "/multiplayer_gamepads/player[" & pnum & "]", YES) 'create=YES
-   subsection player_who(pnum) & " player buttons"
-   gamepad_button_menu_items player, YES, default_scancodes_multiplayer()
-  NEXT
- END IF
+  section "Multiplayer Gamepad Options"
+  IF NOT gen_root."multiplayer_gamepads".exists THEN
+    '--Although all SDL2 platforms support multiplayer gamepad, OUYA multiplayer works differently...
+    defitem "Enable OUYA multiplayer..."
+    edit_node_exists gen_root, "/multiplayer_gamepads"
+    'NOTE: once you enable (create) multiplayer_gamepads there's no option to delete them!
+  ELSE
+    FOR pnum as integer = 1 TO 3
+      DIM player as Node ptr = NodeByPath(gen_root, "/multiplayer_gamepads/player[" & pnum & "]", YES) 'create=YES
+      subsection player_who(pnum) & " player buttons"
+      gamepad_button_menu_items player, YES, default_scancodes_multiplayer()
+    NEXT
+  END IF
 
- spacer
- IF defitem_act("Button name strings for text boxes...") THEN edit_button_name_strings
+  spacer
+  IF defitem_act("Button name strings for text boxes...") THEN edit_button_name_strings
 END SUB
 
 FUNCTION prompt_for_scancode () as KBScancode
- 'Return a user-specified scancode, or -1 if cancelled.
- 
- DIM result as KBScancode = -1
- 
- DIM instructions as string = "To choose a key, press and hold the desired key until the flashing bar fills. Tap ESC briefly to cancel."
- DIM toomany as string = "That is too many keys, please just press one."
- DIM nowrelease as string = "New key confirmed! Now release it."
+  'Return a user-specified scancode, or -1 if cancelled.
 
- DIM pressed as KBScancode
- DIM presstime as double ' the timestamp when the key was first pressed
- DIM heldfor as double ' the number of seconds the key has been held
- CONST threshold = 0.4  ' seconds to hold to confirm a key
- DIM keylist as string
- DIM keyname as string
- DIM count as integer
- DIM confirmed as KBScancode = 0
- DIM bartog as bool = NO
- 
- DIM root as Slice Ptr
- root = NewSliceOfType(slContainer)
- WITH *root
-  .Fill = YES
- END WITH
+  DIM result as KBScancode = -1
 
- DIM box as Slice Ptr
- box = NewSliceOfType(slRectangle, root)
- WITH *box
-  .width = 308
-  .height = 48
-  .AnchorHoriz = alignCenter
-  .AnchorVert = alignBottom
-  .AlignHoriz = alignCenter
-  .AlignVert = alignBottom
-  .paddingLeft = 8
-  .paddingRight = 8
-  .paddingTop = 8
-  .paddingBottom = 8
- END WITH
- ChangeRectangleSlice box, 1
+  DIM instructions as string = "To choose a key, press and hold the desired key until the flashing bar fills. Tap ESC briefly to cancel."
+  DIM toomany as string = "That is too many keys, please just press one."
+  DIM nowrelease as string = "New key confirmed! Now release it."
 
- DIM infosl as Slice Ptr
- infosl = NewSliceofType(slText, box)
- infosl->Fill = YES
- ChangeTextSlice infosl, instructions, , , YES
- 
- DIM bar as Slice Ptr
- bar = NewSliceOfType(slRectangle, root)
- WITH *bar
-  .width = 0
-  .height = 10
-  .AnchorHoriz = alignCenter
-  .AnchorVert = alignTop
-  .AlignHoriz = alignCenter
-  .AlignVert = alignTop
- END WITH
+  DIM pressed as KBScancode
+  DIM presstime as double ' the timestamp when the key was first pressed
+  DIM heldfor as double ' the number of seconds the key has been held
+  CONST threshold = 0.4  ' seconds to hold to confirm a key
+  DIM keylist as string
+  DIM keyname as string
+  DIM count as integer
+  DIM confirmed as KBScancode = 0
+  DIM bartog as bool = NO
 
- DIM keybox as Slice Ptr
- keybox = NewSliceofType(slContainer, root)
- WITH *keybox
-  .AnchorHoriz = alignCenter
-  .AnchorVert = alignCenter
-  .AlignHoriz = alignCenter
-  .AlignVert = alignCenter
- END WITH
- 
- DIM keysl as Slice Ptr
- keysl = NewSliceofType(slText, keybox)
-  
- setkeys
- DO
-  setwait 55
+  DIM root as Slice Ptr
+  root = NewSliceOfType(slContainer)
+  WITH *root
+    .Fill = YES
+  END WITH
+
+  DIM box as Slice Ptr
+  box = NewSliceOfType(slRectangle, root)
+  WITH *box
+    .width = 308
+    .height = 48
+    .AnchorHoriz = alignCenter
+    .AnchorVert = alignBottom
+    .AlignHoriz = alignCenter
+    .AlignVert = alignBottom
+    .paddingLeft = 8
+    .paddingRight = 8
+    .paddingTop = 8
+    .paddingBottom = 8
+  END WITH
+  ChangeRectangleSlice box, 1
+
+  DIM infosl as Slice Ptr
+  infosl = NewSliceofType(slText, box)
+  infosl->Fill = YES
+  ChangeTextSlice infosl, instructions, , , YES
+
+  DIM bar as Slice Ptr
+  bar = NewSliceOfType(slRectangle, root)
+  WITH *bar
+    .width = 0
+    .height = 10
+    .AnchorHoriz = alignCenter
+    .AnchorVert = alignTop
+    .AlignHoriz = alignCenter
+    .AlignVert = alignTop
+  END WITH
+
+  DIM keybox as Slice Ptr
+  keybox = NewSliceofType(slContainer, root)
+  WITH *keybox
+    .AnchorHoriz = alignCenter
+    .AnchorVert = alignCenter
+    .AlignHoriz = alignCenter
+    .AlignVert = alignCenter
+  END WITH
+
+  DIM keysl as Slice Ptr
+  keysl = NewSliceofType(slText, keybox)
+
   setkeys
-  IF getquitflag THEN result = -1: EXIT DO  'Unlike other menus, ESC doesn't quit, so have to check this manually
+  DO
+    setwait 55
+    setkeys
+    IF getquitflag THEN result = -1: EXIT DO  'Unlike other menus, ESC doesn't quit, so have to check this manually
 
-  IF confirmed THEN
-   'A key has been confirmed, wait for it to be released
-   ChangeTextSlice infosl, nowrelease
-   bartog = NO
-   IF keyval(pressed) = 0 THEN
-    result = pressed
-    EXIT DO
-   END IF
-  ELSE
-   keylist = ""
-   count = 0
-   FOR i as KBScancode = 0 to scLAST
-    SELECT CASE i
-     CASE scAnyEnter, scUnfilteredAlt, scAlt, scShift, scCtrl, scMeta
-      'These are less-specific keys
-      CONTINUE FOR
-    END SELECT
-    IF keyval(i) > 0 THEN
-     keyname = scancodename(i, YES)
-     IF keyname <> "" THEN
-      count += 1
-      IF pressed <> i THEN
-       presstime = TIMER
+    IF confirmed THEN
+      'A key has been confirmed, wait for it to be released
+      ChangeTextSlice infosl, nowrelease
+      bartog = NO
+      IF keyval(pressed) = 0 THEN
+        result = pressed
+        EXIT DO
       END IF
-      pressed = i
-      keylist &= keyname & !"\n"
-      IF count = 1 THEN
-       keybox->width = LEN(keyname) * 8
+    ELSE
+      keylist = ""
+      count = 0
+      FOR i as KBScancode = 0 to scLAST
+        SELECT CASE i
+          CASE scAnyEnter, scUnfilteredAlt, scAlt, scShift, scCtrl, scMeta
+            'These are less-specific keys
+            CONTINUE FOR
+        END SELECT
+        IF keyval(i) > 0 THEN
+          keyname = scancodename(i, YES)
+          IF keyname <> "" THEN
+            count += 1
+            IF pressed <> i THEN
+              presstime = TIMER
+            END IF
+            pressed = i
+            keylist &= keyname & !"\n"
+            IF count = 1 THEN
+              keybox->width = LEN(keyname) * 8
+            END IF
+            keybox->height = count * 10
+          END IF
+        END IF
+      NEXT i
+      ChangeTextSlice keysl, keylist
+      ChangeTextSlice infosl, instructions
+      IF count = 0 THEN
+        'No buttons are being held down.
+        IF pressed = scESC THEN EXIT DO
+        IF pressed = scF1 THEN show_help "prompt_for_scancode"
+        pressed = 0
+        bartog = NO
+        bar->width = 0
+      ELSEIF count > 1 THEN
+        'Too manu buttons are being held down, so none of them count.
+        ChangeTextSlice infosl, toomany
+        pressed = 0
+        bartog = NO
+        bar->width = 0
+      ELSE
+        'Just one button is being held down, so it might be valid
+        heldfor = TIMER - presstime
+        bar->width = int(root->width / threshold * heldfor)
+        bartog = NOT bartog
+        IF heldfor > threshold THEN
+          confirmed = pressed
+        END IF
       END IF
-      keybox->height = count * 10
-     END IF
     END IF
-   NEXT i
-   ChangeTextSlice keysl, keylist
-   ChangeTextSlice infosl, instructions
-   IF count = 0 THEN
-    'No buttons are being held down.
-    IF pressed = scESC THEN EXIT DO
-    IF pressed = scF1 THEN show_help "prompt_for_scancode"
-    pressed = 0
-    bartog = NO
-    bar->width = 0
-   ELSEIF count > 1 THEN
-    'Too manu buttons are being held down, so none of them count.
-    ChangeTextSlice infosl, toomany
-    pressed = 0
-    bartog = NO
-    bar->width = 0
-   ELSE
-    'Just one button is being held down, so it might be valid
-    heldfor = TIMER - presstime
-    bar->width = int(root->width / threshold * heldfor)
-    bartog = NOT bartog
-    IF heldfor > threshold THEN
-     confirmed = pressed
+
+    IF bartog THEN
+      ChangeRectangleSlice bar, , uiTimeBar, uiTimeBarFull
+    ELSE
+      ChangeRectangleSlice bar, , uiTimeBarFull, uiTimeBar
     END IF
-   END IF
-  END IF
 
-  IF bartog THEN
-   ChangeRectangleSlice bar, , uiTimeBar, uiTimeBarFull
-  ELSE
-   ChangeRectangleSlice bar, , uiTimeBarFull, uiTimeBar
-  END IF
+    clearpage dpage
+    DrawSlice root, dpage
 
-  clearpage dpage
-  DrawSlice root, dpage
-  
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
+    SWAP vpage, dpage
+    setvispage vpage
+    dowait
+  LOOP
 
- DeleteSlice @root
- RETURN result
+  DeleteSlice @root
+  RETURN result
 END FUNCTION
 
 CONST buttonnameEXIT as integer = 0
@@ -880,119 +877,117 @@ CONST buttonnameDATA as integer = 2
 CONST buttonnameBROWSE as integer = 3
 
 SUB edit_button_name_strings()
+  DIM plat_key(...) as string = {"keyboard", "touchscreen", "ouya", "console"}
+  DIM plat_detail(...) as string = {_
+      "Windows, Mac and Linux",_
+      "Any touchscreen device (Android)",_
+      "OUYA Console",_
+      "Other Android Consoles"}
 
- DIM plat_key(...) as string = {"keyboard", "touchscreen", "ouya", "console"}
- DIM plat_detail(...) as string = {_
-     "Windows, Mac and Linux",_
-     "Any touchscreen device (Android)",_
-     "OUYA Console",_
-     "Other Android Consoles"}
+  DIM menu as MenuDef
 
- DIM menu as MenuDef
- 
- DIM keynum as integer = 0
- 
- DIM st as MenuState
- st.active = YES
- st.need_update = YES
- 
- DIM gen_root as NodePtr = get_general_reld()
+  DIM keynum as integer = 0
 
- '-- the buttonnames node will be created with defaults in
- '-- update_general_data() if it does not exist already.
- DIM buttonnames as NodePtr = gen_root."buttonnames".ptr
+  DIM st as MenuState
+  st.active = YES
+  st.need_update = YES
 
- DIM codenum as integer
- DIM freenum as integer
+  DIM gen_root as NodePtr = get_general_reld()
 
- DIM t as integer
- DIM node as NodePtr
- DIM strnode as NodePtr
- DIM curstr as string
+  '-- the buttonnames node will be created with defaults in
+  '-- update_general_data() if it does not exist already.
+  DIM buttonnames as NodePtr = gen_root."buttonnames".ptr
 
- setkeys YES
- DO
-  setwait 55
+  DIM codenum as integer
+  DIM freenum as integer
+
+  DIM t as integer
+  DIM node as NodePtr
+  DIM strnode as NodePtr
+  DIM curstr as string
+
   setkeys YES
-  IF keyval(scF1) > 1 THEN show_help "edit_button_name_strings"
-  IF keyval(ccCancel) > 1 THEN EXIT DO
+  DO
+    setwait 55
+    setkeys YES
+    IF keyval(scF1) > 1 THEN show_help "edit_button_name_strings"
+    IF keyval(ccCancel) > 1 THEN EXIT DO
 
-  IF st.need_update THEN
-   st.need_update = NO
-  
-   InitLikeStandardMenu menu
+    IF st.need_update THEN
+      st.need_update = NO
 
-   append_menu_item menu, "Previous menu..."
-   menu.last->t = buttonnameEXIT
+      InitLikeStandardMenu menu
 
-   append_menu_item menu, CHR(27) & " Platform: " & plat_key(keynum) & " " & CHR(26)
-   menu.last->t = buttonnameBROWSE
+      append_menu_item menu, "Previous menu..."
+      menu.last->t = buttonnameEXIT
 
-   append_menu_item menu, " " & plat_detail(keynum)
-   menu.last->unselectable = YES
-   menu.last->col = uilook(eduiHeading)
+      append_menu_item menu, CHR(27) & " Platform: " & plat_key(keynum) & " " & CHR(26)
+      menu.last->t = buttonnameBROWSE
 
-   freenum = 0
-   READNODE buttonnames
-    WITHNODE buttonnames."code" as codenode
-     codenum = GetInteger(codenode)
-     IF freenum <= codenum THEN freenum = codenum + 1
-     curstr = GetChildNodeStr(codenode, plat_key(keynum), default_button_name_for_platform(plat_key(keynum), codenum))
-     append_menu_item menu, "${B" & codenum & "} = " & curstr
-     menu.last->t = buttonnameDATA
-     menu.last->dataptr = codenode
-    END WITHNODE
-   END READNODE
-   
-   append_menu_item menu, "Add a new button name"
-   menu.last->t = buttonnameADD
+      append_menu_item menu, " " & plat_detail(keynum)
+      menu.last->unselectable = YES
+      menu.last->col = uilook(eduiHeading)
 
-   init_menu_state st, menu
-  END IF '--done updating menu
+      freenum = 0
+      READNODE buttonnames
+        WITHNODE buttonnames."code" as codenode
+          codenum = GetInteger(codenode)
+          IF freenum <= codenum THEN freenum = codenum + 1
+          curstr = GetChildNodeStr(codenode, plat_key(keynum), default_button_name_for_platform(plat_key(keynum), codenum))
+          append_menu_item menu, "${B" & codenum & "} = " & curstr
+          menu.last->t = buttonnameDATA
+          menu.last->dataptr = codenode
+        END WITHNODE
+      END READNODE
 
-  usemenu st, menu
+      append_menu_item menu, "Add a new button name"
+      menu.last->t = buttonnameADD
 
-  t = menu.items[st.pt]->t
-  node = menu.items[st.pt]->dataptr
-  
-  IF t = buttonnameBROWSE THEN
-   IF keyval(ccLeft) > 1 THEN
-    loopvar keynum, 0, UBOUND(plat_key), -1
-    st.need_update = YES
-   END IF
-   IF keyval(ccRight) > 1 THEN
-    loopvar keynum, 0, UBOUND(plat_key), 1
-    st.need_update = YES
-   END IF
-  ELSEIF t = buttonnameDATA THEN
-   curstr = GetChildNodeStr(node, plat_key(keynum), default_button_name_for_platform(plat_key(keynum), GetInteger(node)))
-   IF strgrabber(curstr, 16) THEN
-    SetChildNode(node, plat_key(keynum), curstr)
-    st.need_update = YES
-   END IF
-  END IF
-  
-  IF enter_space_click(st) THEN
-   SELECT CASE t
-    CASE buttonnameEXIT: EXIT DO
-    CASE buttonnameADD:
-     DIM newcodenode as NodePtr = AppendChildNode(buttonnames, "code", freenum)
-     FOR i as integer = 0 TO UBOUND(plat_key)
-      AppendChildNode(newcodenode, plat_key(i), "")
-     NEXT i
-     st.need_update = YES
-   END SELECT
-  END IF
-  
-  clearpage dpage
-  
-  draw_menu menu, st, dpage
-  SWAP vpage, dpage
-  setvispage vpage
-  
-  dowait
- LOOP
+      init_menu_state st, menu
+    END IF '--done updating menu
 
+    usemenu st, menu
+
+    t = menu.items[st.pt]->t
+    node = menu.items[st.pt]->dataptr
+
+    IF t = buttonnameBROWSE THEN
+      IF keyval(ccLeft) > 1 THEN
+        loopvar keynum, 0, UBOUND(plat_key), -1
+        st.need_update = YES
+      END IF
+      IF keyval(ccRight) > 1 THEN
+        loopvar keynum, 0, UBOUND(plat_key), 1
+        st.need_update = YES
+      END IF
+    ELSEIF t = buttonnameDATA THEN
+      curstr = GetChildNodeStr(node, plat_key(keynum), default_button_name_for_platform(plat_key(keynum), GetInteger(node)))
+      IF strgrabber(curstr, 16) THEN
+        SetChildNode(node, plat_key(keynum), curstr)
+        st.need_update = YES
+      END IF
+    END IF
+
+    IF enter_space_click(st) THEN
+      SELECT CASE t
+        CASE buttonnameEXIT: EXIT DO
+        CASE buttonnameADD:
+          DIM newcodenode as NodePtr = AppendChildNode(buttonnames, "code", freenum)
+          FOR i as integer = 0 TO UBOUND(plat_key)
+            AppendChildNode(newcodenode, plat_key(i), "")
+          NEXT i
+          st.need_update = YES
+      END SELECT
+    END IF
+
+    clearpage dpage
+
+    draw_menu menu, st, dpage
+    SWAP vpage, dpage
+    setvispage vpage
+
+    dowait
+  LOOP
 END SUB
 
 
@@ -1010,1082 +1005,1082 @@ CONST editpurchKEYDER as integer = 11
 
 SUB edit_purchase_options ()
 
- DIM menu as MenuDef
- 
- DIM st as MenuState
- st.active = YES
- st.need_update = YES
+  DIM menu as MenuDef
 
- REDIM enabled(0) as bool
+  DIM st as MenuState
+  st.active = YES
+  st.need_update = YES
 
- DIM gen_root as NodePtr = get_general_reld()
- DIM purchase_root as NodePtr = GetOrCreateChild(gen_root, "purchase_root")
- DIM products as NodePtr = GetOrCreateChild(purchase_root, "products")
- 
- DIM t as integer
- DIM sub_t as integer
- DIM node as NodePtr
- 
- DIM default_stores(1) as string = {"disabled", "paypal"}
- DIM ouya_stores(1) as string = {"disabled", "ouya"}
+  REDIM enabled(0) as bool
 
- setkeys YES
- DO
-  setwait 55
+  DIM gen_root as NodePtr = get_general_reld()
+  DIM purchase_root as NodePtr = GetOrCreateChild(gen_root, "purchase_root")
+  DIM products as NodePtr = GetOrCreateChild(purchase_root, "products")
+
+  DIM t as integer
+  DIM sub_t as integer
+  DIM node as NodePtr
+
+  DIM default_stores(1) as string = {"disabled", "paypal"}
+  DIM ouya_stores(1) as string = {"disabled", "ouya"}
+
   setkeys YES
-  IF keyval(scF1) > 1 THEN show_help "edit_purchase_options"
-  IF keyval(ccCancel) > 1 THEN EXIT DO
+  DO
+    setwait 55
+    setkeys YES
+    IF keyval(scF1) > 1 THEN show_help "edit_purchase_options"
+    IF keyval(ccCancel) > 1 THEN EXIT DO
 
-  IF st.need_update THEN
-   st.need_update = NO
-   edit_purchase_options_rebuild_menu menu, st, purchase_root
-  END IF '--done updating menu
+    IF st.need_update THEN
+      st.need_update = NO
+      edit_purchase_options_rebuild_menu menu, st, purchase_root
+    END IF '--done updating menu
 
-  usemenu st, menu
+    usemenu st, menu
 
-  t = menu.items[st.pt]->t
-  sub_t = menu.items[st.pt]->sub_t
-  node = menu.items[st.pt]->dataptr
-  
-  SELECT CASE t
-   CASE editpurchSTRING:
-    IF node THEN
-     DIM curstr as string
-     curstr = GetString(node)
-     IF strgrabber(curstr, sub_t) THEN
-      SetContent(node, curstr)
-      st.need_update = YES
-     END IF
+    t = menu.items[st.pt]->t
+    sub_t = menu.items[st.pt]->sub_t
+    node = menu.items[st.pt]->dataptr
+
+    SELECT CASE t
+      CASE editpurchSTRING:
+        IF node THEN
+          DIM curstr as string
+          curstr = GetString(node)
+          IF strgrabber(curstr, sub_t) THEN
+            SetContent(node, curstr)
+            st.need_update = YES
+          END IF
+        END IF
+      CASE editpurchSTOREDEFAULT:
+        IF edit_purchase_enumgrabber(node, default_stores()) THEN st.need_update = YES
+      CASE editpurchSTOREOUYA:
+        IF edit_purchase_enumgrabber(node, ouya_stores()) THEN st.need_update = YES
+    END SELECT
+
+    IF enter_space_click(st) THEN
+      SELECT CASE t
+        CASE editpurchEXIT: EXIT DO
+        CASE editpurchADD:
+          DIM newnode as NodePtr = AppendChildNode(products, "prod")
+          st.need_update = YES
+        CASE editpurchPROD:
+          edit_purchase_details node
+          st.need_update = YES
+        CASE editpurchSTOREDEFAULT:
+          IF edit_purchase_enumbrowse("Store for In-App Purchases", node, default_stores(), "edit_purchase_options") THEN st.need_update = YES
+        CASE editpurchSTOREOUYA:
+          IF edit_purchase_enumbrowse("Store for In-App Purchases", node, ouya_stores(), "edit_purchase_options") THEN st.need_update = YES
+        CASE editpurchKEYDER:
+          DIM key_der_file as string
+          key_der_file = browse(browseAny, "", "key.der", "edit_purchase_browse_ouya_key_der")
+          IF key_der_file <> "" THEN
+            IF isfile(key_der_file) THEN
+              SetContent(node, string_from_file(key_der_file))
+              st.need_update = YES
+            ELSE
+              pop_warning "Unable to read the file """ & decode_filename(key_der_file) & """"
+            END IF
+          END IF
+      END SELECT
     END IF
-   CASE editpurchSTOREDEFAULT:
-    IF edit_purchase_enumgrabber(node, default_stores()) THEN st.need_update = YES
-   CASE editpurchSTOREOUYA:
-    IF edit_purchase_enumgrabber(node, ouya_stores()) THEN st.need_update = YES
-  END SELECT
-  
-  IF enter_space_click(st) THEN
-   SELECT CASE t
-    CASE editpurchEXIT: EXIT DO
-    CASE editpurchADD:
-     DIM newnode as NodePtr = AppendChildNode(products, "prod")
-     st.need_update = YES
-    CASE editpurchPROD:
-     edit_purchase_details node
-     st.need_update = YES
-    CASE editpurchSTOREDEFAULT:
-     IF edit_purchase_enumbrowse("Store for In-App Purchases", node, default_stores(), "edit_purchase_options") THEN st.need_update = YES
-    CASE editpurchSTOREOUYA:
-     IF edit_purchase_enumbrowse("Store for In-App Purchases", node, ouya_stores(), "edit_purchase_options") THEN st.need_update = YES
-    CASE editpurchKEYDER:
-     DIM key_der_file as string
-     key_der_file = browse(browseAny, "", "key.der", "edit_purchase_browse_ouya_key_der")
-     IF key_der_file <> "" THEN
-      IF isfile(key_der_file) THEN
-       SetContent(node, string_from_file(key_der_file))
-       st.need_update = YES
-      ELSE
-       pop_warning "Unable to read the file """ & decode_filename(key_der_file) & """"
-      END IF
-     END IF
-   END SELECT
-  END IF
-  
-  IF keyval(scDelete) > 1 THEN
-   IF yesno("Delete the selected product?", NO, NO) THEN
-    FreeNode node
-    st.need_update = YES
-   END IF
-  END IF
-  
-  clearpage dpage
-  
-  draw_menu menu, st, dpage
-  wrapprint "Don't enable purchases unless all the content in your game is original!", 0, pBottom, uilook(uiSelectedDisabled), dpage
-  
-  SWAP vpage, dpage
-  setvispage vpage
-  
-  dowait
- LOOP
 
- write_general_reld()
+    IF keyval(scDelete) > 1 THEN
+      IF yesno("Delete the selected product?", NO, NO) THEN
+        FreeNode node
+        st.need_update = YES
+      END IF
+    END IF
+
+    clearpage dpage
+
+    draw_menu menu, st, dpage
+    wrapprint "Don't enable purchases unless all the content in your game is original!", 0, pBottom, uilook(uiSelectedDisabled), dpage
+
+    SWAP vpage, dpage
+    setvispage vpage
+
+    dowait
+  LOOP
+
+  write_general_reld()
 END SUB
 
 SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval purchase_root as NodePtr)
 
- DIM store_node as NodePtr = GetOrCreateChild(purchase_root, "stores_by_platform")
- DIM ouya_node as NodePtr = GetOrCreateChild(purchase_root, "ouya")
- DIM products as NodePtr = GetOrCreateChild(purchase_root, "products")
+  DIM store_node as NodePtr = GetOrCreateChild(purchase_root, "stores_by_platform")
+  DIM ouya_node as NodePtr = GetOrCreateChild(purchase_root, "ouya")
+  DIM products as NodePtr = GetOrCreateChild(purchase_root, "products")
 
- DIM node as NodePtr
- DIM cap as string
+  DIM node as NodePtr
+  DIM cap as string
 
- InitLikeStandardMenu menu
+  InitLikeStandardMenu menu
 
- append_menu_item menu, "Previous menu..."
- menu.last->t = editpurchEXIT
+  append_menu_item menu, "Previous menu..."
+  menu.last->t = editpurchEXIT
 
- append_menu_item menu, "(This menu is experimental!)"
- menu.last->unselectable = YES
- menu.last->col = uilook(uiMouseHoverItem)
+  append_menu_item menu, "(This menu is experimental!)"
+  menu.last->unselectable = YES
+  menu.last->col = uilook(uiMouseHoverItem)
 
- append_menu_item menu, ""
- menu.last->unselectable = YES
- append_menu_item menu, " Enabled Stores"
- menu.last->unselectable = YES
- menu.last->col = uilook(eduiHeading)
+  append_menu_item menu, ""
+  menu.last->unselectable = YES
+  append_menu_item menu, " Enabled Stores"
+  menu.last->unselectable = YES
+  menu.last->col = uilook(eduiHeading)
 
- node = GetOrCreateChild(store_node, "default")
- append_menu_item menu, "Windows+Mac+Linux: " & blank_default(GetString(node), "disabled")
- menu.last->t = editpurchSTOREDEFAULT
- menu.last->dataptr = node
+  node = GetOrCreateChild(store_node, "default")
+  append_menu_item menu, "Windows+Mac+Linux: " & blank_default(GetString(node), "disabled")
+  menu.last->t = editpurchSTOREDEFAULT
+  menu.last->dataptr = node
 
- node = GetOrCreateChild(store_node, "ouya")
- append_menu_item menu, "OUYA Console: " & blank_default(GetString(node), "disabled")
- menu.last->t = editpurchSTOREOUYA
- menu.last->dataptr = node
+  node = GetOrCreateChild(store_node, "ouya")
+  append_menu_item menu, "OUYA Console: " & blank_default(GetString(node), "disabled")
+  menu.last->t = editpurchSTOREOUYA
+  menu.last->dataptr = node
 
- append_menu_item menu, ""
- menu.last->unselectable = YES
- append_menu_item menu, " OUYA Developer ID"
- menu.last->unselectable = YES
- menu.last->col = uilook(eduiHeading)
+  append_menu_item menu, ""
+  menu.last->unselectable = YES
+  append_menu_item menu, " OUYA Developer ID"
+  menu.last->unselectable = YES
+  menu.last->col = uilook(eduiHeading)
 
- node = GetOrCreateChild(ouya_node, "developer_id")
- append_menu_item menu, "> " & GetString(node)
- menu.last->t = editpurchSTRING
- menu.last->sub_t = 36
- menu.last->dataptr = node
+  node = GetOrCreateChild(ouya_node, "developer_id")
+  append_menu_item menu, "> " & GetString(node)
+  menu.last->t = editpurchSTRING
+  menu.last->sub_t = 36
+  menu.last->dataptr = node
 
- node = GetOrCreateChild(ouya_node, "key.der")
- DIM key_der_size as integer = LEN(GetString(node))
- IF key_der_size THEN
-  cap = "Replace OUYA key.der file (" & key_der_size & " bytes)"
- ELSE
-  cap = "Import OUYA key.der file"
- END IF
- append_menu_item menu, cap
- menu.last->t = editpurchKEYDER
- menu.last->dataptr = node
+  node = GetOrCreateChild(ouya_node, "key.der")
+  DIM key_der_size as integer = LEN(GetString(node))
+  IF key_der_size THEN
+    cap = "Replace OUYA key.der file (" & key_der_size & " bytes)"
+  ELSE
+    cap = "Import OUYA key.der file"
+  END IF
+  append_menu_item menu, cap
+  menu.last->t = editpurchKEYDER
+  menu.last->dataptr = node
 
- append_menu_item menu, ""
- menu.last->unselectable = YES
- append_menu_item menu, " Purchaseable Products"
- menu.last->unselectable = YES
- menu.last->col = uilook(eduiHeading)
+  append_menu_item menu, ""
+  menu.last->unselectable = YES
+  append_menu_item menu, " Purchaseable Products"
+  menu.last->unselectable = YES
+  menu.last->col = uilook(eduiHeading)
 
- READNODE products
-  WITHNODE products."prod" as prod
-   DIM n as NodePtr
-   n = GetOrCreateChild(prod, "displayname")
-   append_menu_item menu, "Product: " & GetString(n)
-   menu.last->t = editpurchPROD
-   menu.last->dataptr = prod
-  END WITHNODE
- END READNODE
- 
- append_menu_item menu, "Add a new product"
- menu.last->t = editpurchADD
+  READNODE products
+    WITHNODE products."prod" as prod
+      DIM n as NodePtr
+      n = GetOrCreateChild(prod, "displayname")
+      append_menu_item menu, "Product: " & GetString(n)
+      menu.last->t = editpurchPROD
+      menu.last->dataptr = prod
+    END WITHNODE
+  END READNODE
 
- init_menu_state st, menu
+  append_menu_item menu, "Add a new product"
+  menu.last->t = editpurchADD
+
+  init_menu_state st, menu
 END SUB
 
 SUB edit_purchase_details (byval prod as NodePtr)
- DIM menu as MenuDef
- DIM st as MenuState
- st.active = YES
- st.need_update = YES
+  DIM menu as MenuDef
+  DIM st as MenuState
+  st.active = YES
+  st.need_update = YES
 
- DIM t as integer
- DIM sub_t as integer
- DIM node as NodePtr
+  DIM t as integer
+  DIM sub_t as integer
+  DIM node as NodePtr
 
- DIM n as NodePtr
- DIM store as NodePtr
- DIM buy_action as NodePtr
- DIM cap as string
- DIM num as integer
+  DIM n as NodePtr
+  DIM store as NodePtr
+  DIM buy_action as NodePtr
+  DIM cap as string
+  DIM num as integer
 
- setkeys YES
- DO
-  setwait 55
   setkeys YES
-  IF keyval(scF1) > 1 THEN show_help "edit_purchase_details"
-  IF keyval(ccCancel) > 1 THEN EXIT DO
+  DO
+    setwait 55
+    setkeys YES
+    IF keyval(scF1) > 1 THEN show_help "edit_purchase_details"
+    IF keyval(ccCancel) > 1 THEN EXIT DO
 
-  IF st.need_update THEN
-   st.need_update = NO
-   InitLikeStandardMenu menu
+    IF st.need_update THEN
+      st.need_update = NO
+      InitLikeStandardMenu menu
 
-   append_menu_item menu, "Previous menu..."
-   menu.last->t = editpurchEXIT
-   
-   n = GetOrCreateChild(prod, "displayname")
-   append_menu_item menu, "Name: " & GetString(n)
-   menu.last->t = editpurchSTRING
-   menu.last->sub_t = 128
-   menu.last->dataptr = n
+      append_menu_item menu, "Previous menu..."
+      menu.last->t = editpurchEXIT
 
-   n = GetOrCreateChild(prod, "description")
-   append_menu_item menu, "Description: " & GetString(n)
-   menu.last->t = editpurchLONGSTRING
-   menu.last->sub_t = 99999
-   menu.last->dataptr = n
+      n = GetOrCreateChild(prod, "displayname")
+      append_menu_item menu, "Name: " & GetString(n)
+      menu.last->t = editpurchSTRING
+      menu.last->sub_t = 128
+      menu.last->dataptr = n
 
-   append_menu_item menu, "Can be purchased: " & IIF(prod."repeatable".exists, "Repeatedly", "Only Once")
-   menu.last->t = editpurchTOGGLEREPEATABLE
-   menu.last->dataptr = prod
+      n = GetOrCreateChild(prod, "description")
+      append_menu_item menu, "Description: " & GetString(n)
+      menu.last->t = editpurchLONGSTRING
+      menu.last->sub_t = 99999
+      menu.last->dataptr = n
 
-   n = GetOrCreateChild(prod, "already")
-   IF GetString(n) = "" THEN SetContent(n, "Already purchased")
-   append_menu_item menu, "Already caption: " & GetString(n)
-   menu.last->t = editpurchLONGSTRING
-   menu.last->sub_t = 99999
-   menu.last->dataptr = n
+      append_menu_item menu, "Can be purchased: " & IIF(prod."repeatable".exists, "Repeatedly", "Only Once")
+      menu.last->t = editpurchTOGGLEREPEATABLE
+      menu.last->dataptr = prod
 
-   append_menu_item menu, ""
-   menu.last->unselectable = YES
-   append_menu_item menu, " OUYA Store Settings"
-   menu.last->unselectable = YES
-   menu.last->col = uilook(eduiHeading)
+      n = GetOrCreateChild(prod, "already")
+      IF GetString(n) = "" THEN SetContent(n, "Already purchased")
+      append_menu_item menu, "Already caption: " & GetString(n)
+      menu.last->t = editpurchLONGSTRING
+      menu.last->sub_t = 99999
+      menu.last->dataptr = n
 
-   store = GetOrCreateChild(prod, "ouya")
-   n = GetOrCreateChild(store, "identifier")
-   append_menu_item menu, "Identifier: " & GetString(n)
-   menu.last->t = editpurchSTRING
-   menu.last->sub_t = 128
-   menu.last->dataptr = n
+      append_menu_item menu, ""
+      menu.last->unselectable = YES
+      append_menu_item menu, " OUYA Store Settings"
+      menu.last->unselectable = YES
+      menu.last->col = uilook(eduiHeading)
 
-   append_menu_item menu, ""
-   menu.last->unselectable = YES
-   append_menu_item menu, " Paypal Settings"
-   menu.last->unselectable = YES
-   menu.last->col = uilook(eduiHeading)
+      store = GetOrCreateChild(prod, "ouya")
+      n = GetOrCreateChild(store, "identifier")
+      append_menu_item menu, "Identifier: " & GetString(n)
+      menu.last->t = editpurchSTRING
+      menu.last->sub_t = 128
+      menu.last->dataptr = n
 
-   store = GetOrCreateChild(prod, "paypal")
-   n = GetOrCreateChild(store, "button_id")
-   append_menu_item menu, "Button ID: " & GetString(n)
-   menu.last->t = editpurchSTRING
-   menu.last->sub_t = 128
-   menu.last->dataptr = n
+      append_menu_item menu, ""
+      menu.last->unselectable = YES
+      append_menu_item menu, " Paypal Settings"
+      menu.last->unselectable = YES
+      menu.last->col = uilook(eduiHeading)
 
-   append_menu_item menu, ""
-   menu.last->unselectable = YES
-   append_menu_item menu, " Purchase Action"
-   menu.last->unselectable = YES
-   menu.last->col = uilook(eduiHeading)
+      store = GetOrCreateChild(prod, "paypal")
+      n = GetOrCreateChild(store, "button_id")
+      append_menu_item menu, "Button ID: " & GetString(n)
+      menu.last->t = editpurchSTRING
+      menu.last->sub_t = 128
+      menu.last->dataptr = n
 
-   buy_action = GetOrCreateChild(prod, "buy_action")
-   
-   n = GetOrCreateChild(buy_action, "tag")
-   num = GetInteger(n)
-   cap = "Turn ON Tag "
-   IF num > 1 THEN
-    cap &= num & " (" & load_tag_name(num) & ")"
-   ELSEIF num = 1 THEN
-    cap &= num & " [Cannot be changed!]"
-   ELSE
-    cap &= "[None selected]"
-   END IF
-   append_menu_item menu, cap
-   menu.last->t = editpurchTAGSET
-   menu.last->dataptr = n
-   
-   n = GetOrCreateChild(buy_action, "global")
-   num = GetInteger(n)
-   cap = "+1 to Global Variable ID " & zero_default(num, "[None selected]")
-   append_menu_item menu, cap
-   menu.last->t = editpurchINT
-   menu.last->sub_t = maxScriptGlobals
-   menu.last->dataptr = n
+      append_menu_item menu, ""
+      menu.last->unselectable = YES
+      append_menu_item menu, " Purchase Action"
+      menu.last->unselectable = YES
+      menu.last->col = uilook(eduiHeading)
 
-   n = GetOrCreateChild(buy_action, "thanks")
-   IF GetString(n) = "" THEN SetContent(n, "Thank you!")
-   append_menu_item menu, "Thanks Message: " & GetString(n)
-   menu.last->t = editpurchLONGSTRING
-   menu.last->sub_t = 99999
-   menu.last->dataptr = n
+      buy_action = GetOrCreateChild(prod, "buy_action")
 
-   init_menu_state st, menu
-  END IF '--done updating menu
+      n = GetOrCreateChild(buy_action, "tag")
+      num = GetInteger(n)
+      cap = "Turn ON Tag "
+      IF num > 1 THEN
+        cap &= num & " (" & load_tag_name(num) & ")"
+      ELSEIF num = 1 THEN
+        cap &= num & " [Cannot be changed!]"
+      ELSE
+        cap &= "[None selected]"
+      END IF
+      append_menu_item menu, cap
+      menu.last->t = editpurchTAGSET
+      menu.last->dataptr = n
 
-  usemenu st, menu
+      n = GetOrCreateChild(buy_action, "global")
+      num = GetInteger(n)
+      cap = "+1 to Global Variable ID " & zero_default(num, "[None selected]")
+      append_menu_item menu, cap
+      menu.last->t = editpurchINT
+      menu.last->sub_t = maxScriptGlobals
+      menu.last->dataptr = n
 
-  t = menu.items[st.pt]->t
-  sub_t = menu.items[st.pt]->sub_t
-  node = menu.items[st.pt]->dataptr
-  
-  SELECT CASE t
-   CASE editpurchSTRING, editpurchLONGSTRING:
-    IF node THEN
-     DIM curstr as string
-     curstr = GetString(node)
-     IF strgrabber(curstr, sub_t) THEN
-      SetContent(node, curstr)
-      st.need_update = YES
-     END IF
+      n = GetOrCreateChild(buy_action, "thanks")
+      IF GetString(n) = "" THEN SetContent(n, "Thank you!")
+      append_menu_item menu, "Thanks Message: " & GetString(n)
+      menu.last->t = editpurchLONGSTRING
+      menu.last->sub_t = 99999
+      menu.last->dataptr = n
+
+      init_menu_state st, menu
+    END IF '--done updating menu
+
+    usemenu st, menu
+
+    t = menu.items[st.pt]->t
+    sub_t = menu.items[st.pt]->sub_t
+    node = menu.items[st.pt]->dataptr
+
+    SELECT CASE t
+      CASE editpurchSTRING, editpurchLONGSTRING:
+        IF node THEN
+          DIM curstr as string
+          curstr = GetString(node)
+          IF strgrabber(curstr, sub_t) THEN
+            SetContent(node, curstr)
+            st.need_update = YES
+          END IF
+        END IF
+      CASE editpurchTAGSET:
+        IF node THEN
+          DIM curint as integer
+          curint = GetInteger(node)
+          IF intgrabber(curint, 0, 99999) THEN
+            SetContent(node, curint)
+            st.need_update = YES
+          END IF
+        END IF
+      CASE editpurchINT:
+        IF node THEN
+          DIM curint as integer
+          curint = GetInteger(node)
+          IF intgrabber(curint, 0, sub_t) THEN
+            SetContent(node, curint)
+            st.need_update = YES
+          END IF
+        END IF
+      CASE editpurchTOGGLEREPEATABLE:
+        IF enter_space_click(st) ORELSE keyval(ccLeft) > 1 ORELSE keyval(ccRight) > 1 THEN
+          ToggleChildNode node, "repeatable"
+          st.need_update = YES
+        END IF
+    END SELECT
+
+    IF enter_space_click(st) THEN
+      SELECT CASE t
+        CASE editpurchEXIT: EXIT DO
+        CASE editpurchTAGSET:
+          SetContent(node, tags_menu(GetInteger(node), YES, NO))
+          st.need_update = YES
+      END SELECT
     END IF
-   CASE editpurchTAGSET:
-    IF node THEN
-     DIM curint as integer
-     curint = GetInteger(node)
-     IF intgrabber(curint, 0, 99999) THEN
-      SetContent(node, curint)
-      st.need_update = YES
-     END IF
+
+    IF keyval(scAnyEnter) > 1 THEN
+      SELECT CASE t
+        CASE editpurchLONGSTRING:
+          SetContent(node, multiline_string_editor(GetString(node)))
+          st.need_update = YES
+      END SELECT
     END IF
-   CASE editpurchINT:
-    IF node THEN
-     DIM curint as integer
-     curint = GetInteger(node)
-     IF intgrabber(curint, 0, sub_t) THEN
-      SetContent(node, curint)
-      st.need_update = YES
-     END IF
-    END IF
-   CASE editpurchTOGGLEREPEATABLE:
-    IF enter_space_click(st) ORELSE keyval(ccLeft) > 1 ORELSE keyval(ccRight) > 1 THEN
-     ToggleChildNode node, "repeatable"
-     st.need_update = YES
-    END IF
-  END SELECT
-  
-  IF enter_space_click(st) THEN
-   SELECT CASE t
-    CASE editpurchEXIT: EXIT DO
-    CASE editpurchTAGSET:
-     SetContent(node, tags_menu(GetInteger(node), YES, NO))
-     st.need_update = YES
-   END SELECT
-  END IF
-  
-  IF keyval(scAnyEnter) > 1 THEN
-   SELECT CASE t
-    CASE editpurchLONGSTRING:
-     SetContent(node, multiline_string_editor(GetString(node)))
-     st.need_update = YES
-   END SELECT
-  END IF
-  
-  clearpage dpage
-  
-  draw_menu menu, st, dpage
-  SWAP vpage, dpage
-  setvispage vpage
-  
-  dowait
- LOOP
+
+    clearpage dpage
+
+    draw_menu menu, st, dpage
+    SWAP vpage, dpage
+    setvispage vpage
+
+    dowait
+  LOOP
 END SUB
 
 TYPE SavegameOptionsEditor EXTENDS EditorKit
- DECLARE SUB define_items()
+  DECLARE SUB define_items()
 END TYPE
 
 SUB edit_savegame_options
- 'Set default
- IF gen(genSaveSlotCount) <= 0 THEN gen(genSaveSlotCount) = 4
+  'Set default
+  IF gen(genSaveSlotCount) <= 0 THEN gen(genSaveSlotCount) = 4
 
- DIM editor as SavegameOptionsEditor
- editor.helpkey = "savegame_options"
- editor.run()
- write_general_reld
+  DIM editor as SavegameOptionsEditor
+  editor.helpkey = "savegame_options"
+  editor.run()
+  write_general_reld
 END SUB
 
 SUB SavegameOptionsEditor.define_items()
- DIM save_options_node as NodePtr = GetOrCreateChild(get_general_reld(), "saved_games")
+  DIM save_options_node as NodePtr = GetOrCreateChild(get_general_reld(), "saved_games")
 
- defint "Number of save/load slots:", gen(genSaveSlotCount), 1, maxSaveSlotCount
- defitem "Name of saves directory:"
- edit_node_str save_options_node, "/savename", "", 30, Delete_If_Default
- valuestr = fixfilename(valuestr)
- IF LEN(valuestr) = 0 THEN set_caption "(default)"
+  defint "Number of save/load slots:", gen(genSaveSlotCount), 1, maxSaveSlotCount
+  defitem "Name of saves directory:"
+  edit_node_str save_options_node, "/savename", "", 30, Delete_If_Default
+  valuestr = fixfilename(valuestr)
+  IF LEN(valuestr) = 0 THEN set_caption "(default)"
 
- defitem "Save script/sprite layer slices:"
- edit_node_exists save_options_node, "/sprite_layer"
- defitem "Save strings:"
- edit_node_exists save_options_node, "/strings"
+  defitem "Save script/sprite layer slices:"
+  edit_node_exists save_options_node, "/sprite_layer"
+  defitem "Save strings:"
+  edit_node_exists save_options_node, "/strings"
 END SUB
 
 
 
 SUB generate_battlesystem_menu(menu() as string, enabled() as bool, greyout() as bool)
- flusharray enabled(), UBOUND(enabled), YES
- flusharray greyout(), UBOUND(greyout), NO
+  flusharray enabled(), UBOUND(enabled), YES
+  flusharray greyout(), UBOUND(greyout), NO
 
- menu(0) = "Previous Menu"
+  menu(0) = "Previous Menu"
 
- menu(1) = " Mechanics"
- enabled(1) = NO
- greyout(1) = YES
+  menu(1) = " Mechanics"
+  enabled(1) = NO
+  greyout(1) = YES
 
- menu(2) = "Battle Mode: "
- IF gen(genBattleMode) = 0 THEN
-  menu(2) &= "Active-time"
- ELSE
-  menu(2) &= "Turn-based"
- END IF
- menu(3) = "Battle preference bitsets..."
- menu(4) = "Number of Elements: " & gen(genNumElements)
- menu(5) = "Hero Elemental Resistance Calculation..."
- menu(6) = "Mark non-elemental elementals..."
+  menu(2) = "Battle Mode: "
+  IF gen(genBattleMode) = 0 THEN
+    menu(2) &= "Active-time"
+  ELSE
+    menu(2) &= "Turn-based"
+  END IF
+  menu(3) = "Battle preference bitsets..."
+  menu(4) = "Number of Elements: " & gen(genNumElements)
+  menu(5) = "Hero Elemental Resistance Calculation..."
+  menu(6) = "Mark non-elemental elementals..."
 
- enabled(7) = NO
- menu(8) = " Stats and Experience"
- enabled(8) = NO
- greyout(8) = YES
- menu(9) = "Stat Caps..."
- menu(10) = "View Experience Chart..."
- menu(11) = "Experience given to heroes..."
- enabled(11) = NO
- menu(12) = " ...swapped-out and unlocked: " & gen(genUnlockedReserveXP) & "%"
- menu(13) = " ...swapped-out and locked: " & gen(genLockedReserveXP) & "%"
- '--Disabled because it is not ready yet
- 'menu() = "Stat Growth Options..."
+  enabled(7) = NO
+  menu(8) = " Stats and Experience"
+  enabled(8) = NO
+  greyout(8) = YES
+  menu(9) = "Stat Caps..."
+  menu(10) = "View Experience Chart..."
+  menu(11) = "Experience given to heroes..."
+  enabled(11) = NO
+  menu(12) = " ...swapped-out and unlocked: " & gen(genUnlockedReserveXP) & "%"
+  menu(13) = " ...swapped-out and locked: " & gen(genLockedReserveXP) & "%"
+  '--Disabled because it is not ready yet
+  'menu() = "Stat Growth Options..."
 
- menu(14) = "Hero Weak state below: " & gen(genHeroWeakHP) & "% " & statnames(statHP)
- menu(15) = "Enemy Weak state below: " & gen(genEnemyWeakHP) & "% " & statnames(statHP)
+  menu(14) = "Hero Weak state below: " & gen(genHeroWeakHP) & "% " & statnames(statHP)
+  menu(15) = "Enemy Weak state below: " & gen(genEnemyWeakHP) & "% " & statnames(statHP)
 
- enabled(16) = NO
- menu(17) = " Display"
- enabled(17) = NO
- greyout(17) = YES
+  enabled(16) = NO
+  menu(17) = " Display"
+  enabled(17) = NO
+  greyout(17) = YES
 
- menu(18) = "Poison Indicator: " & gen(genPoisonChar) & " " & CHR(gen(genPoisonChar))
- menu(19) = "Stun Indicator: " & gen(genStunChar) & " " & CHR(gen(genStunChar))
- menu(20) = "Mute Indicator: " & gen(genMuteChar) & " " & CHR(gen(genMuteChar))
- menu(21) = "Regen Indicator: " & gen(genRegenChar) & " " & CHR(gen(genRegenChar))
- menu(22) = "Default Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
- menu(23) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
- menu(24) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
- menu(25) = "Rewards Display: " & IIF(gen(genSkipBattleRewardsTicks) = 0, "Wait for keypress", gen(genSkipBattleRewardsTicks) & " ticks (" & seconds_estimate(gen(genSkipBattleRewardsTicks)) & " secs)")
+  menu(18) = "Poison Indicator: " & gen(genPoisonChar) & " " & CHR(gen(genPoisonChar))
+  menu(19) = "Stun Indicator: " & gen(genStunChar) & " " & CHR(gen(genStunChar))
+  menu(20) = "Mute Indicator: " & gen(genMuteChar) & " " & CHR(gen(genMuteChar))
+  menu(21) = "Regen Indicator: " & gen(genRegenChar) & " " & CHR(gen(genRegenChar))
+  menu(22) = "Default Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
+  menu(23) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
+  menu(24) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
+  menu(25) = "Rewards Display: " & IIF(gen(genSkipBattleRewardsTicks) = 0, "Wait for keypress", gen(genSkipBattleRewardsTicks) & " ticks (" & seconds_estimate(gen(genSkipBattleRewardsTicks)) & " secs)")
 
- enabled(26) = NO
- menu(27) = " Other Defaults"
- enabled(27) = NO
- greyout(27) = YES
+  enabled(26) = NO
+  menu(27) = " Other Defaults"
+  enabled(27) = NO
+  greyout(27) = YES
 
- menu(28) = "Attacks Provoke Counterattacks: " & counter_provoke_captions(gen(genDefCounterProvoke))
+  menu(28) = "Attacks Provoke Counterattacks: " & counter_provoke_captions(gen(genDefCounterProvoke))
 END SUB
 
 SUB battleoptionsmenu ()
- CONST maxMenu = 28
- DIM menu(maxMenu) as string
- DIM menu_display(maxMenu) as string
- DIM min(maxMenu) as integer
- DIM max(maxMenu) as integer
- DIM index(maxMenu) as integer
- DIM enabled(maxMenu) as bool
- DIM greyout(maxMenu) as bool
- DIM selectst as SelectTypeState
- DIM state as MenuState
- WITH state
-  .autosize = YES
-  .last = maxMenu
-  .need_update = YES
- END WITH
- DIM menuopts as MenuOptions
- menuopts.disabled_col = uilook(eduiHeading)  'For section headings
+  CONST maxMenu = 28
+  DIM menu(maxMenu) as string
+  DIM menu_display(maxMenu) as string
+  DIM min(maxMenu) as integer
+  DIM max(maxMenu) as integer
+  DIM index(maxMenu) as integer
+  DIM enabled(maxMenu) as bool
+  DIM greyout(maxMenu) as bool
+  DIM selectst as SelectTypeState
+  DIM state as MenuState
+  WITH state
+    .autosize = YES
+    .last = maxMenu
+    .need_update = YES
+  END WITH
+  DIM menuopts as MenuOptions
+  menuopts.disabled_col = uilook(eduiHeading)  'For section headings
 
- 'I think these things are here (and not upgrade) because we don't want to  force them on games
- IF gen(genPoisonChar) <= 0 THEN gen(genPoisonChar) = 161
- IF gen(genStunChar) <= 0 THEN gen(genStunChar) = 159
- IF gen(genMuteChar) <= 0 THEN gen(genMuteChar) = 163
- 'Regen icon is newer, so let's not default it unexpectedly
- IF gen(genRegenChar) <= 0 THEN gen(genRegenChar) = 32
- 
- IF gen(genBattleMode) < 0 ORELSE gen(genBattleMode) > 1 THEN
-  visible_debug "WARNING: invalid gen(genBattleMode) " & gen(genBattleMode) & " resorting to active mode"
-  gen(genBattleMode) = 0
- END IF
- 
- index(2) = genBattleMode
- min(2) = 0
- max(2) = 1
- index(4) = genNumElements
- min(4) = 1
- max(4) = 64
- index(12) = genUnlockedReserveXP
- max(12) = 1000
- index(13) = genLockedReserveXP
- max(13) = 1000
- min(14) = 1
- max(14) = 100
- index(14) = genHeroWeakHP
- min(15) = 1
- max(15) = 100
- index(15) = genEnemyWeakHP
- index(18) = genPoisonChar
- index(19) = genStunChar
- index(20) = genMuteChar
- index(21) = genRegenChar
- FOR i as integer = 18 TO 21
-  min(i) = 32
-  max(i) = 255
- NEXT
- index(22) = genEnemyDissolve
- max(22) = dissolveTypeMax
- index(23) = genDamageDisplayTicks
- max(23) = 1000
- index(24) = genDamageDisplayRise
- max(24) = 1000
- min(24) = -1000
- index(25) = genSkipBattleRewardsTicks
- max(25) = 100000
- min(25) = 0
- index(28) = genDefCounterProvoke
- max(28) = provokeLAST
- min(28) = 1  ' Can't select 'Default'
+  'I think these things are here (and not upgrade) because we don't want to  force them on games
+  IF gen(genPoisonChar) <= 0 THEN gen(genPoisonChar) = 161
+  IF gen(genStunChar) <= 0 THEN gen(genStunChar) = 159
+  IF gen(genMuteChar) <= 0 THEN gen(genMuteChar) = 163
+  'Regen icon is newer, so let's not default it unexpectedly
+  IF gen(genRegenChar) <= 0 THEN gen(genRegenChar) = 32
 
- generate_battlesystem_menu menu(), enabled(), greyout()
+  IF gen(genBattleMode) < 0 ORELSE gen(genBattleMode) > 1 THEN
+    visible_debug "WARNING: invalid gen(genBattleMode) " & gen(genBattleMode) & " resorting to active mode"
+    gen(genBattleMode) = 0
+  END IF
 
- setkeys YES
- DO
-  setwait 55
+  index(2) = genBattleMode
+  min(2) = 0
+  max(2) = 1
+  index(4) = genNumElements
+  min(4) = 1
+  max(4) = 64
+  index(12) = genUnlockedReserveXP
+  max(12) = 1000
+  index(13) = genLockedReserveXP
+  max(13) = 1000
+  min(14) = 1
+  max(14) = 100
+  index(14) = genHeroWeakHP
+  min(15) = 1
+  max(15) = 100
+  index(15) = genEnemyWeakHP
+  index(18) = genPoisonChar
+  index(19) = genStunChar
+  index(20) = genMuteChar
+  index(21) = genRegenChar
+  FOR i as integer = 18 TO 21
+    min(i) = 32
+    max(i) = 255
+  NEXT
+  index(22) = genEnemyDissolve
+  max(22) = dissolveTypeMax
+  index(23) = genDamageDisplayTicks
+  max(23) = 1000
+  index(24) = genDamageDisplayRise
+  max(24) = 1000
+  min(24) = -1000
+  index(25) = genSkipBattleRewardsTicks
+  max(25) = 100000
+  min(25) = 0
+  index(28) = genDefCounterProvoke
+  max(28) = provokeLAST
+  min(28) = 1  ' Can't select 'Default'
+
+  generate_battlesystem_menu menu(), enabled(), greyout()
+
   setkeys YES
+  DO
+    setwait 55
+    setkeys YES
 
-  IF keyval(ccCancel) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "battle_system_options"
-  usemenu state, enabled()
-  IF enter_space_click(state) THEN
-   IF state.pt = 0 THEN EXIT DO
-   IF state.pt = 3 THEN edit_battle_bitsets
-   IF state.pt = 5 THEN equipmergemenu
-   IF state.pt = 6 THEN mark_non_elemental_elementals
-   IF state.pt = 9 THEN statcapsmenu
-   IF state.pt = 10 THEN experience_chart
-   IF min(state.pt) = 32 AND max(state.pt) = 255 THEN  'Character field
-    DIM d as string = charpicker
-    IF d <> "" THEN
-     gen(index(state.pt)) = ASC(d)
-     state.need_update = YES
+    IF keyval(ccCancel) > 1 THEN EXIT DO
+    IF keyval(scF1) > 1 THEN show_help "battle_system_options"
+    usemenu state, enabled()
+    IF enter_space_click(state) THEN
+      IF state.pt = 0 THEN EXIT DO
+      IF state.pt = 3 THEN edit_battle_bitsets
+      IF state.pt = 5 THEN equipmergemenu
+      IF state.pt = 6 THEN mark_non_elemental_elementals
+      IF state.pt = 9 THEN statcapsmenu
+      IF state.pt = 10 THEN experience_chart
+      IF min(state.pt) = 32 AND max(state.pt) = 255 THEN  'Character field
+        DIM d as string = charpicker
+        IF d <> "" THEN
+          gen(index(state.pt)) = ASC(d)
+          state.need_update = YES
+        END IF
+      END IF
     END IF
-   END IF
-  END IF
-  IF index(state.pt) THEN
-   IF intgrabber(gen(index(state.pt)), min(state.pt), max(state.pt)) THEN state.need_update = YES
-  END IF
+    IF index(state.pt) THEN
+      IF intgrabber(gen(index(state.pt)), min(state.pt), max(state.pt)) THEN state.need_update = YES
+    END IF
 
-  IF state.need_update THEN
-   generate_battlesystem_menu menu(), enabled(), greyout()
-   state.need_update = NO
-  END IF
+    IF state.need_update THEN
+      generate_battlesystem_menu menu(), enabled(), greyout()
+      state.need_update = NO
+    END IF
 
-  IF select_by_typing(selectst, NO) THEN
-   select_on_word_boundary menu(), selectst, state
-  END IF
+    IF select_by_typing(selectst, NO) THEN
+      select_on_word_boundary menu(), selectst, state
+    END IF
 
-  clearpage vpage
-  draw_fullscreen_scrollbar state, , vpage
-  highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, greyout(), 0, 0, vpage, menuopts
-  setvispage vpage
-  dowait
- LOOP
+    clearpage vpage
+    draw_fullscreen_scrollbar state, , vpage
+    highlight_menu_typing_selection menu(), menu_display(), selectst, state
+    standardmenu menu_display(), state, greyout(), 0, 0, vpage, menuopts
+    setvispage vpage
+    dowait
+  LOOP
 END SUB
 
 SUB statcapsmenu
- CONST maxMenu = 15
- DIM m(maxMenu) as string
- DIM menu_display(maxMenu) as string
- DIM max(maxMenu) as integer
- DIM index(maxMenu) as integer
- DIM selectst as SelectTypeState
- DIM state as MenuState
- state.last = maxMenu
- state.size = 24
- state.need_update = YES
- DIM i as integer
+  CONST maxMenu = 15
+  DIM m(maxMenu) as string
+  DIM menu_display(maxMenu) as string
+  DIM max(maxMenu) as integer
+  DIM index(maxMenu) as integer
+  DIM selectst as SelectTypeState
+  DIM state as MenuState
+  state.last = maxMenu
+  state.size = 24
+  state.need_update = YES
+  DIM i as integer
 
- index(1) = genDamageCap
- FOR i as integer = 2 TO 2 + statLast  '2 to 13
-  index(i) = genStatCap + (i - 2)
- NEXT
- index(14) = genLevelCap
- index(15) = genMaxLevel
+  index(1) = genDamageCap
+  FOR i as integer = 2 TO 2 + statLast  '2 to 13
+    index(i) = genStatCap + (i - 2)
+  NEXT
+  index(14) = genLevelCap
+  index(15) = genMaxLevel
 
- max(1) = 32767  'Damage
- 'Stat caps
- '(note: you can use setherostat to set stats to anything, even above 32767)
- FOR i as integer = 2 TO 2 + statLast
-  max(i) = 32767
- NEXT
- max(14) = gen(genMaxLevel)  'Level cap is capped to Max Level
- max(15) = 99  'Max Level is capped to 99 ... FIXME: this could go higher!
- DO
-  setwait 55
-  setkeys YES
+  max(1) = 32767  'Damage
+  'Stat caps
+  '(note: you can use setherostat to set stats to anything, even above 32767)
+  FOR i as integer = 2 TO 2 + statLast
+    max(i) = 32767
+  NEXT
+  max(14) = gen(genMaxLevel)  'Level cap is capped to Max Level
+  max(15) = 99  'Max Level is capped to 99 ... FIXME: this could go higher!
+  DO
+    setwait 55
+    setkeys YES
 
-  IF keyval(ccCancel) > 1 OR (state.pt = 0 AND enter_space_click(state)) THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "stat_caps_menu"
-  usemenu state
-  IF state.pt > 0 THEN
-   IF intgrabber(gen(index(state.pt)), 0, max(state.pt)) THEN state.need_update = YES
-  END IF
-  IF state.need_update THEN
-   state.need_update = NO
-   m(0) = "Previous Menu"
-   m(1) = "Damage Cap: "
-   IF gen(genDamageCap) = 0 THEN m(1) += "None" ELSE m(1) &= gen(genDamageCap)
-   FOR i as integer = 0 TO statLast
-    m(2 + i) = statnames(i) + " Cap: " _
-               + IIF(gen(genStatCap + i), STR(gen(genStatCap + i)), "None")
-   NEXT
-   IF gen(genLevelCap) > gen(genMaxLevel) THEN gen(genLevelCap) = gen(genMaxLevel)
-   max(14) = gen(genMaxLevel)
-   m(14) = "Level Cap: " & gen(genLevelCap)
-   m(15) = "Maximum Level: " & gen(genMaxLevel)
-  END IF
+    IF keyval(ccCancel) > 1 OR (state.pt = 0 AND enter_space_click(state)) THEN EXIT DO
+    IF keyval(scF1) > 1 THEN show_help "stat_caps_menu"
+    usemenu state
+    IF state.pt > 0 THEN
+      IF intgrabber(gen(index(state.pt)), 0, max(state.pt)) THEN state.need_update = YES
+    END IF
+    IF state.need_update THEN
+      state.need_update = NO
+      m(0) = "Previous Menu"
+      m(1) = "Damage Cap: "
+      IF gen(genDamageCap) = 0 THEN m(1) += "None" ELSE m(1) &= gen(genDamageCap)
+      FOR i as integer = 0 TO statLast
+        m(2 + i) = statnames(i) + " Cap: " _
+            + IIF(gen(genStatCap + i), STR(gen(genStatCap + i)), "None")
+      NEXT
+      IF gen(genLevelCap) > gen(genMaxLevel) THEN gen(genLevelCap) = gen(genMaxLevel)
+      max(14) = gen(genMaxLevel)
+      m(14) = "Level Cap: " & gen(genLevelCap)
+      m(15) = "Maximum Level: " & gen(genMaxLevel)
+    END IF
 
-  IF select_by_typing(selectst, NO) THEN
-   select_on_word_boundary m(), selectst, state
-  END IF
+    IF select_by_typing(selectst, NO) THEN
+      select_on_word_boundary m(), selectst, state
+    END IF
 
-  clearpage vpage
-  highlight_menu_typing_selection m(), menu_display(), selectst, state
-  standardmenu menu_display(), state, 0, 0, vpage
-  setvispage vpage
-  dowait
- LOOP
+    clearpage vpage
+    highlight_menu_typing_selection m(), menu_display(), selectst, state
+    standardmenu menu_display(), state, 0, 0, vpage
+    setvispage vpage
+    dowait
+  LOOP
 END SUB
 
 SUB mark_non_elemental_elementals ()
- DIM g as NodePtr = get_general_reld()
- DIM elementals as NodePtr = GetOrCreateChild(g, "elementals")
- DIM non_elemental as NodePtr
- DIM eid as integer
- DIM bits(3) as integer
+  DIM g as NodePtr = get_general_reld()
+  DIM elementals as NodePtr = GetOrCreateChild(g, "elementals")
+  DIM non_elemental as NodePtr
+  DIM eid as integer
+  DIM bits(3) as integer
 
- DIM names() as string
- getelementnames names()
- FOR i as integer = 0 to UBOUND(names)
-  names(i) = "Treat " & names(i) & " attacks as non-elemental"
- NEXT i
- 
- READNODE elementals
-  WITHNODE elementals."element" as e
-   eid = GetInteger(e)
-   IF eid >= 0 ANDALSO eid < maxElements THEN
-    non_elemental = GetOrCreateChild(e, "non_elemental")
-    setbit bits(), 0, eid, GetInteger(non_elemental)
-   END IF
-  END WITHNODE
- END READNODE
+  DIM names() as string
+  getelementnames names()
+  FOR i as integer = 0 to UBOUND(names)
+    names(i) = "Treat " & names(i) & " attacks as non-elemental"
+  NEXT i
 
- editbitset bits(), 0, names(), "non_elemental_elementals"
+  READNODE elementals
+    WITHNODE elementals."element" as e
+      eid = GetInteger(e)
+      IF eid >= 0 ANDALSO eid < maxElements THEN
+        non_elemental = GetOrCreateChild(e, "non_elemental")
+        setbit bits(), 0, eid, GetInteger(non_elemental)
+      END IF
+    END WITHNODE
+  END READNODE
 
- DIM saved(maxElements - 1) as bool
+  editbitset bits(), 0, names(), "non_elemental_elementals"
 
- READNODE elementals
-  WITHNODE elementals."element" as e
-   eid = GetInteger(e)
-   IF eid >= 0 ANDALSO eid < maxElements THEN
-    non_elemental = GetOrCreateChild(e, "non_elemental")
-    SetContent non_elemental, IIF(xreadbit(bits(), eid), 1, 0)
-    saved(eid) = YES
-   END IF
-  END WITHNODE
- END READNODE
+  DIM saved(maxElements - 1) as bool
 
- DIM e as NodePtr
- FOR i as integer = 0 TO maxElements - 1
-  IF NOT saved(i) THEN
-   e = AppendChildNode(elementals, "element", i)
-   SetChildNode(e, "non_elemental", IIF(xreadbit(bits(), i), 1, 0))
-  END IF
- NEXT i
+  READNODE elementals
+    WITHNODE elementals."element" as e
+      eid = GetInteger(e)
+      IF eid >= 0 ANDALSO eid < maxElements THEN
+        non_elemental = GetOrCreateChild(e, "non_elemental")
+        SetContent non_elemental, IIF(xreadbit(bits(), eid), 1, 0)
+        saved(eid) = YES
+      END IF
+    END WITHNODE
+  END READNODE
 
- write_general_reld() 
+  DIM e as NodePtr
+  FOR i as integer = 0 TO maxElements - 1
+    IF NOT saved(i) THEN
+      e = AppendChildNode(elementals, "element", i)
+      SetChildNode(e, "non_elemental", IIF(xreadbit(bits(), i), 1, 0))
+    END IF
+  NEXT i
+
+  write_general_reld()
 END SUB
 
 FUNCTION merge_elementals_example(byval exampleno as integer, example() as single, byval formula as integer) as string
- DIM ret as string = "Ex" & exampleno
- FOR i as integer = 0 TO 3
-  DIM temp as string
-  IF i >= 1 AND i <= 2 AND formula = 2 THEN  'Show equipment as additive changes
-   temp = format_percent(example(i) - 1.0, 3)
-   IF LEFT(temp, 1) <> "-" THEN temp = "+" + temp
-  ELSE
-   temp = format_percent(example(i), 3)
-  END IF
-  ret += RIGHT("       " + temp, 9)
- NEXT
- RETURN ret
+  DIM ret as string = "Ex" & exampleno
+  FOR i as integer = 0 TO 3
+    DIM temp as string
+    IF i >= 1 AND i <= 2 AND formula = 2 THEN  'Show equipment as additive changes
+      temp = format_percent(example(i) - 1.0, 3)
+      IF LEFT(temp, 1) <> "-" THEN temp = "+" + temp
+    ELSE
+      temp = format_percent(example(i), 3)
+    END IF
+    ret += RIGHT("       " + temp, 9)
+  NEXT
+  RETURN ret
 END FUNCTION
 
 SUB generate_equipmerge_preview(byval formula as integer, menu() as string, greyed_out() as integer, ex9() as single)
- FOR i as integer = 1 TO 3
-  greyed_out(i) = YES
- NEXT
- greyed_out(1 + gen(genEquipMergeFormula)) = NO
- FOR i as integer = 4 TO UBOUND(menu)
-  menu(i) = ""
- NEXT
+  FOR i as integer = 1 TO 3
+    greyed_out(i) = YES
+  NEXT
+  greyed_out(1 + gen(genEquipMergeFormula)) = NO
+  FOR i as integer = 4 TO UBOUND(menu)
+    menu(i) = ""
+  NEXT
 
- DIM _NaN as single = 0.0f
- _NaN = 0.0f/_NaN
+  DIM _NaN as single = 0.0f
+  _NaN = 0.0f/_NaN
 
- DIM ex1(3) as single = {1, 1, 3, _NaN}
- DIM ex2(3) as single = {1, 2, 2, _NaN}
- DIM ex3(3) as single = {0, 0, 1, _NaN}
- DIM ex4(3) as single = {0.5, 1, 2, _NaN}
- DIM ex5(3) as single = {-1, 1.5, 2, _NaN}
- DIM ex6(3) as single = {-1, -1, -1, _NaN}
- DIM ex7(3) as single = {2, 0.5, 0.5, _NaN}
- DIM ex8(3) as single = {1, -1.2, -1.2, _NaN}
- ex9(3) = _NaN
+  DIM ex1(3) as single = {1, 1, 3, _NaN}
+  DIM ex2(3) as single = {1, 2, 2, _NaN}
+  DIM ex3(3) as single = {0, 0, 1, _NaN}
+  DIM ex4(3) as single = {0.5, 1, 2, _NaN}
+  DIM ex5(3) as single = {-1, 1.5, 2, _NaN}
+  DIM ex6(3) as single = {-1, -1, -1, _NaN}
+  DIM ex7(3) as single = {2, 0.5, 0.5, _NaN}
+  DIM ex8(3) as single = {1, -1.2, -1.2, _NaN}
+  ex9(3) = _NaN
 
- IF formula = -1 THEN
-  menu(9) = "Select a formula to see examples"
- ELSE
-  ex1(3) = equip_elemental_merge(ex1(), formula)
-  ex2(3) = equip_elemental_merge(ex2(), formula)
-  ex3(3) = equip_elemental_merge(ex3(), formula)
-  ex4(3) = equip_elemental_merge(ex4(), formula)
-  ex5(3) = equip_elemental_merge(ex5(), formula)
-  ex6(3) = equip_elemental_merge(ex6(), formula)
-  ex7(3) = equip_elemental_merge(ex7(), formula)
-  ex8(3) = equip_elemental_merge(ex8(), formula)
-  ex9(3) = equip_elemental_merge(ex9(), formula)
+  IF formula = -1 THEN
+    menu(9) = "Select a formula to see examples"
+  ELSE
+    ex1(3) = equip_elemental_merge(ex1(), formula)
+    ex2(3) = equip_elemental_merge(ex2(), formula)
+    ex3(3) = equip_elemental_merge(ex3(), formula)
+    ex4(3) = equip_elemental_merge(ex4(), formula)
+    ex5(3) = equip_elemental_merge(ex5(), formula)
+    ex6(3) = equip_elemental_merge(ex6(), formula)
+    ex7(3) = equip_elemental_merge(ex7(), formula)
+    ex8(3) = equip_elemental_merge(ex8(), formula)
+    ex9(3) = equip_elemental_merge(ex9(), formula)
 
-  menu(9) = "Examples:"
-  menu(10) = "        Hero   Equip1   Equip2   Result"
-  menu(11) = merge_elementals_example(1, ex1(), formula)
-  menu(12) = merge_elementals_example(2, ex2(), formula)
-  menu(13) = merge_elementals_example(3, ex3(), formula)
-  menu(14) = merge_elementals_example(4, ex4(), formula)
-  menu(15) = merge_elementals_example(5, ex5(), formula)
-  menu(16) = merge_elementals_example(6, ex6(), formula)
-  menu(17) = merge_elementals_example(7, ex7(), formula)
-  menu(18) = merge_elementals_example(8, ex8(), formula)
-  menu(19) = merge_elementals_example(9, ex9(), formula)
+    menu(9) = "Examples:"
+    menu(10) = "        Hero   Equip1   Equip2   Result"
+    menu(11) = merge_elementals_example(1, ex1(), formula)
+    menu(12) = merge_elementals_example(2, ex2(), formula)
+    menu(13) = merge_elementals_example(3, ex3(), formula)
+    menu(14) = merge_elementals_example(4, ex4(), formula)
+    menu(15) = merge_elementals_example(5, ex5(), formula)
+    menu(16) = merge_elementals_example(6, ex6(), formula)
+    menu(17) = merge_elementals_example(7, ex7(), formula)
+    menu(18) = merge_elementals_example(8, ex8(), formula)
+    menu(19) = merge_elementals_example(9, ex9(), formula)
 
-  IF formula = 2 THEN
-   menu(21) = "(Equipment values are displayed"
-   menu(22) = "differently when this is chosen)"
+    IF formula = 2 THEN
+      menu(21) = "(Equipment values are displayed"
+      menu(22) = "differently when this is chosen)"
+    END IF
   END IF
- END IF
 END SUB
 
 SUB equipmergemenu
- DIM menu(22) as string
- DIM greyed_out(22) as integer
- DIM st as MenuState
- st.size = 24
- st.last = 3
- st.need_update = YES
- DIM tog as integer
+  DIM menu(22) as string
+  DIM greyed_out(22) as integer
+  DIM st as MenuState
+  st.size = 24
+  st.last = 3
+  st.need_update = YES
+  DIM tog as integer
 
- 'Random example which changes on entering the menu
- DIM ex9(3) as single = {rando(), 3*rando()-1.5, 1+rando()}
+  'Random example which changes on entering the menu
+  DIM ex9(3) as single = {rando(), 3*rando()-1.5, 1+rando()}
 
- menu(0) = "Previous Menu"
- menu(1) = "Old awful formula (multiplication-like)"
- menu(2) = "Combine resistances by multiplication"
- menu(3) = "Combine resistances by addition"
- DO
-  setwait 55
-  setkeys
-  tog XOR= 1
-  IF keyval(ccCancel) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "equip_elemental_formula"
-  IF enter_space_click(st) THEN
-   IF st.pt = 0 THEN
-    EXIT DO
-   ELSE
-    gen(genEquipMergeFormula) = st.pt - 1
-    st.need_update = YES
-   END IF
-  END IF
-  IF usemenu(st) THEN st.need_update = YES
+  menu(0) = "Previous Menu"
+  menu(1) = "Old awful formula (multiplication-like)"
+  menu(2) = "Combine resistances by multiplication"
+  menu(3) = "Combine resistances by addition"
+  DO
+    setwait 55
+    setkeys
+    tog XOR= 1
+    IF keyval(ccCancel) > 1 THEN EXIT DO
+    IF keyval(scF1) > 1 THEN show_help "equip_elemental_formula"
+    IF enter_space_click(st) THEN
+      IF st.pt = 0 THEN
+        EXIT DO
+      ELSE
+        gen(genEquipMergeFormula) = st.pt - 1
+        st.need_update = YES
+      END IF
+    END IF
+    IF usemenu(st) THEN st.need_update = YES
 
-  IF st.need_update THEN
-   generate_equipmerge_preview st.pt - 1, menu(), greyed_out(), ex9()
-   st.need_update = NO
-  END IF
+    IF st.need_update THEN
+      generate_equipmerge_preview st.pt - 1, menu(), greyed_out(), ex9()
+      st.need_update = NO
+    END IF
 
-  clearpage vpage
-  FOR i as integer = 0 TO UBOUND(menu)
-   IF greyed_out(i) THEN
-    textcolor uilook(uiDisabledItem), 0
-    IF st.pt = i THEN textcolor uilook(uiSelectedDisabled + tog), 0
-   ELSE
-    textcolor uilook(uiMenuItem), 0
-    IF st.pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
-   END IF
-   printstr menu(i), 0, i * 8, vpage, YES
-  NEXT i
-  setvispage vpage
-  dowait
- LOOP
+    clearpage vpage
+    FOR i as integer = 0 TO UBOUND(menu)
+      IF greyed_out(i) THEN
+        textcolor uilook(uiDisabledItem), 0
+        IF st.pt = i THEN textcolor uilook(uiSelectedDisabled + tog), 0
+      ELSE
+        textcolor uilook(uiMenuItem), 0
+        IF st.pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
+      END IF
+      printstr menu(i), 0, i * 8, vpage, YES
+    NEXT i
+    setvispage vpage
+    dowait
+  LOOP
 END SUB
 
 SUB startingdatamenu
- CONST maxMenu = 6
- DIM m(maxMenu) as string
- DIM menu_display(maxMenu) as string
- DIM max(maxMenu) as integer
- DIM index(maxMenu) as integer
- DIM selectst as SelectTypeState
- DIM state as MenuState
- state.last = maxMenu
- state.size = 24
- state.need_update = YES
- DIM as integer lastmap = -1
+  CONST maxMenu = 6
+  DIM m(maxMenu) as string
+  DIM menu_display(maxMenu) as string
+  DIM max(maxMenu) as integer
+  DIM index(maxMenu) as integer
+  DIM selectst as SelectTypeState
+  DIM state as MenuState
+  state.last = maxMenu
+  state.size = 24
+  state.need_update = YES
+  DIM as integer lastmap = -1
 
- index(1) = genStartX
- index(2) = genStartY
- index(3) = genStartMap
- max(3) = gen(genMaxMap)
- index(4) = genStartHero
- max(4) = gen(genMaxHero)
- index(5) = genStartMoney
- max(5) = 32767
- index(6) = genStartTextbox
- max(6) = gen(genMaxTextbox)
- DO
-  setwait 55
-  setkeys YES
+  index(1) = genStartX
+  index(2) = genStartY
+  index(3) = genStartMap
+  max(3) = gen(genMaxMap)
+  index(4) = genStartHero
+  max(4) = gen(genMaxHero)
+  index(5) = genStartMoney
+  max(5) = 32767
+  index(6) = genStartTextbox
+  max(6) = gen(genMaxTextbox)
+  DO
+    setwait 55
+    setkeys YES
 
-  IF keyval(ccCancel) > 1 OR (state.pt = 0 AND enter_space_click(state)) THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "new_game_data"
-  usemenu state
-  IF state.pt = 6 THEN
-   state.need_update OR= textboxgrabber(gen(index(state.pt)), state)
-  ELSEIF state.pt > 0 THEN
-   IF intgrabber(gen(index(state.pt)), 0, max(state.pt)) THEN state.need_update = YES
-  END IF
-  IF state.pt = 4 THEN
-   IF enter_space_click(state) THEN
-    gen(genStartHero) = hero_picker(gen(genStartHero))
-    state.need_update = YES
-   END IF
-  END IF
-  IF state.need_update THEN
-   state.need_update = NO
-   max(3) = gen(genMaxMap)
-   max(4) = gen(genMaxHero)
-   max(6) = gen(genMaxTextbox)
-   IF lastmap <> gen(genStartMap) THEN
-    DIM mapinfo as TilemapInfo
-    GetTilemapInfo maplumpname(gen(genStartMap), "t"), mapinfo
-    max(1) = mapinfo.wide
-    max(2) = mapinfo.high
-    gen(genStartX) = small(gen(genStartX), max(1))
-    gen(genStartY) = small(gen(genStartY), max(2))
-    lastmap = gen(genStartMap)
-   END IF
+    IF keyval(ccCancel) > 1 OR (state.pt = 0 AND enter_space_click(state)) THEN EXIT DO
+    IF keyval(scF1) > 1 THEN show_help "new_game_data"
+    usemenu state
+    IF state.pt = 6 THEN
+      state.need_update OR= textboxgrabber(gen(index(state.pt)), state)
+    ELSEIF state.pt > 0 THEN
+      IF intgrabber(gen(index(state.pt)), 0, max(state.pt)) THEN state.need_update = YES
+    END IF
+    IF state.pt = 4 THEN
+      IF enter_space_click(state) THEN
+        gen(genStartHero) = hero_picker(gen(genStartHero))
+        state.need_update = YES
+      END IF
+    END IF
+    IF state.need_update THEN
+      state.need_update = NO
+      max(3) = gen(genMaxMap)
+      max(4) = gen(genMaxHero)
+      max(6) = gen(genMaxTextbox)
+      IF lastmap <> gen(genStartMap) THEN
+        DIM mapinfo as TilemapInfo
+        GetTilemapInfo maplumpname(gen(genStartMap), "t"), mapinfo
+        max(1) = mapinfo.wide
+        max(2) = mapinfo.high
+        gen(genStartX) = small(gen(genStartX), max(1))
+        gen(genStartY) = small(gen(genStartY), max(2))
+        lastmap = gen(genStartMap)
+      END IF
 
-   m(0) = "Previous Menu"
-   m(1) = "Starting X: " & gen(genStartX)
-   m(2) = "Starting Y: " & gen(genStartY)
-   m(3) = "Starting Map: " & gen(genStartMap) & " " & getmapname(gen(genStartMap))
-   m(4) = "Starting Hero: " & gen(genStartHero) & " " & getheroname(gen(genStartHero))
-   m(5) = "Starting Money: " & gen(genStartMoney)
-   IF gen(genStartTextbox) = 0 THEN
-    m(6) = "Starting Textbox: None"
-   ELSE
-    m(6) = "Starting Textbox: " & gen(genStartTextbox) & " " & textbox_preview_line(gen(genStartTextbox), vpages(vpage)->w - 60)
-   END IF
-  END IF
+      m(0) = "Previous Menu"
+      m(1) = "Starting X: " & gen(genStartX)
+      m(2) = "Starting Y: " & gen(genStartY)
+      m(3) = "Starting Map: " & gen(genStartMap) & " " & getmapname(gen(genStartMap))
+      m(4) = "Starting Hero: " & gen(genStartHero) & " " & getheroname(gen(genStartHero))
+      m(5) = "Starting Money: " & gen(genStartMoney)
+      IF gen(genStartTextbox) = 0 THEN
+        m(6) = "Starting Textbox: None"
+      ELSE
+        m(6) = "Starting Textbox: " & gen(genStartTextbox) & " " & textbox_preview_line(gen(genStartTextbox), vpages(vpage)->w - 60)
+      END IF
+    END IF
 
-  IF select_by_typing(selectst, NO) THEN
-   select_on_word_boundary m(), selectst, state
-  END IF
+    IF select_by_typing(selectst, NO) THEN
+      select_on_word_boundary m(), selectst, state
+    END IF
 
-  clearpage vpage
-  IF state.pt = 6 THEN edgeprint THINGGRABBER_TOOLTIP, 0, pBottom, uilook(uiDisabledItem), vpage
-  highlight_menu_typing_selection m(), menu_display(), selectst, state
-  standardmenu menu_display(), state, 0, 0, vpage
-  setvispage vpage
-  dowait
- LOOP
+    clearpage vpage
+    IF state.pt = 6 THEN edgeprint THINGGRABBER_TOOLTIP, 0, pBottom, uilook(uiDisabledItem), vpage
+    highlight_menu_typing_selection m(), menu_display(), selectst, state
+    standardmenu menu_display(), state, 0, 0, vpage
+    setvispage vpage
+    dowait
+  LOOP
 END SUB
 
 DIM SHARED shown_framerate_warning as bool
 
 TYPE GeneralSettingsMenu EXTENDS EditorKit
- longname as string
- aboutline as string
- titletext as string
- last_update as double  'For game stats
+  longname as string
+  aboutline as string
+  titletext as string
+  last_update as double  'For game stats
 
- DECLARE CONSTRUCTOR()
- DECLARE SUB save()
- DECLARE VIRTUAL SUB define_items()
+  DECLARE CONSTRUCTOR()
+  DECLARE SUB save()
+  DECLARE VIRTUAL SUB define_items()
 END TYPE
 
 SUB general_data_editor()
- DIM genmenu as GeneralSettingsMenu
- genmenu.run()
- genmenu.save()
+  DIM genmenu as GeneralSettingsMenu
+  genmenu.run()
+  genmenu.save()
 
- '--Also use the in-game setting for previewing stuff in Custom
- set_music_volume 0.01 * gen(genMusicVolume)
- set_global_sfx_volume 0.01 * gen(genSFXVolume)
+  '--Also use the in-game setting for previewing stuff in Custom
+  set_music_volume 0.01 * gen(genMusicVolume)
+  set_global_sfx_volume 0.01 * gen(genSFXVolume)
 END SUB
 
 CONSTRUCTOR GeneralSettingsMenu()
- 'make sure genMaxInventory is a multiple of 3 (other values possible in older versions and Fufluns nightlies)
- IF gen(genMaxInventory) THEN gen(genMaxInventory) = last_inv_slot()
+  'make sure genMaxInventory is a multiple of 3 (other values possible in older versions and Fufluns nightlies)
+  IF gen(genMaxInventory) THEN gen(genMaxInventory) = last_inv_slot()
 
- aboutline = load_aboutline()
- longname = load_gamename()
- titletext = load_titletext()
+  aboutline = load_aboutline()
+  longname = load_gamename()
+  titletext = load_titletext()
 
- last_update = TIMER
+  last_update = TIMER
 
- prev_menu_text = "Return to Main Menu"
- helpkey = "general_game_data"
+  prev_menu_text = "Return to Main Menu"
+  helpkey = "general_game_data"
 END CONSTRUCTOR
 
 SUB GeneralSettingsMenu.save()
- save_gamename longname
- save_aboutline aboutline
- save_titletext titletext
+  save_gamename longname
+  save_aboutline aboutline
+  save_titletext titletext
 END SUB
 
 SUB GeneralSettingsMenu.define_items()
- section "Game Title & Info"
- defstr "Long name:", longname
- defstr "About line:", aboutline
- IF defitem_act("Title Screen...") THEN
-  DIM backdropb as BackdropSpriteBrowser
-  gen(genTitle) = backdropb.browse(gen(genTitle))
- END IF
- defstr "Title screen text:", titletext, (gen(genResolutionX) - 16) \ 8
-
- '-------------------------
- section "Major Settings"
- IF defitem_act("New Games...")               THEN startingdatamenu
- IF defitem_act("Saved Games...")             THEN edit_savegame_options
- IF defitem_act("Battle System...")           THEN battleoptionsmenu
- IF defitem_act("Preference Bitsets...")      THEN edit_general_bitsets
- IF defitem_act("Backwards-Compatibility...") THEN edit_backcompat_bitsets
-
- '-------------------------
- section "Controls"
- IF defitem_act("Mouse Options...") THEN edit_mouse_options
- IF defitem_act("Platform-Specific Controls...") THEN edit_platform_controls
-
- '-------------------------
- section "Scripts"
- IF defitem_act("Global Script Triggers...") THEN general_scripts_menu
- IF defitem_act("Error Display...") THEN script_error_mode_menu
-
- '-------------------------
- section "Graphics"
- IF defitem_act("Master Palettes...")     THEN masterpalettemenu
- IF defitem_act("Window-Size Options...") THEN resolution_menu
-
- defitem "Framerate:"
- IF edit_int(gen(genMillisecPerFrame), 16, 200) THEN
-  IF shown_framerate_warning = NO THEN
-   show_help "framerate_warning"
-   shown_framerate_warning = YES
+  section "Game Title & Info"
+  defstr "Long name:", longname
+  defstr "About line:", aboutline
+  IF defitem_act("Title Screen...") THEN
+    DIM backdropb as BackdropSpriteBrowser
+    gen(genTitle) = backdropb.browse(gen(genTitle))
   END IF
- ELSEIF refresh THEN
-  DIM fps as string
-  '16ms and 33ms are special-cased to be exactly 60/30fps
-  IF gen(genMillisecPerFrame) = 16 THEN
-   fps = "60"
-  ELSEIF gen(genMillisecPerFrame) = 33 THEN
-   fps = "30"
-  ELSE
-   fps = FORMAT(small(60., 1000 / gen(genMillisecPerFrame)), ".#")
+  defstr "Title screen text:", titletext, (gen(genResolutionX) - 16) \ 8
+
+  '-------------------------
+  section "Major Settings"
+  IF defitem_act("New Games...")               THEN startingdatamenu
+  IF defitem_act("Saved Games...")             THEN edit_savegame_options
+  IF defitem_act("Battle System...")           THEN battleoptionsmenu
+  IF defitem_act("Preference Bitsets...")      THEN edit_general_bitsets
+  IF defitem_act("Backwards-Compatibility...") THEN edit_backcompat_bitsets
+
+  '-------------------------
+  section "Controls"
+  IF defitem_act("Mouse Options...") THEN edit_mouse_options
+  IF defitem_act("Platform-Specific Controls...") THEN edit_platform_controls
+
+  '-------------------------
+  section "Scripts"
+  IF defitem_act("Global Script Triggers...") THEN general_scripts_menu
+  IF defitem_act("Error Display...") THEN script_error_mode_menu
+
+  '-------------------------
+  section "Graphics"
+  IF defitem_act("Master Palettes...")     THEN masterpalettemenu
+  IF defitem_act("Window-Size Options...") THEN resolution_menu
+
+  defitem "Framerate:"
+  IF edit_int(gen(genMillisecPerFrame), 16, 200) THEN
+    IF shown_framerate_warning = NO THEN
+      show_help "framerate_warning"
+      shown_framerate_warning = YES
+    END IF
+  ELSEIF refresh THEN
+    DIM fps as string
+    '16ms and 33ms are special-cased to be exactly 60/30fps
+    IF gen(genMillisecPerFrame) = 16 THEN
+      fps = "60"
+    ELSEIF gen(genMillisecPerFrame) = 33 THEN
+      fps = "30"
+    ELSE
+      fps = FORMAT(small(60., 1000 / gen(genMillisecPerFrame)), ".#")
+    END IF
+    set_caption fps & " frames/sec (" & gen(genMillisecPerFrame) & "ms/frame)"
   END IF
-  set_caption fps & " frames/sec (" & gen(genMillisecPerFrame) & "ms/frame)"
- END IF
 
- defint "Color depth:", gen(gen32bitMode), 0, 1
- captions_bool "8-bit (limit to master palette)", "24-bit (true color)"
+  defint "Color depth:", gen(gen32bitMode), 0, 1
+  captions_bool "8-bit (limit to master palette)", "24-bit (true color)"
 
- defint "Walk animation rate:", gen(genTicksPerWalkFrame), 0, 20
- IF refresh THEN
-  DIM tmp as string
-  IF value = 0 THEN
-   value = wtog_ticks()
-   tmp &= "default (" & value & " ticks/frame, "
-  ELSE
-   tmp &= value & " ticks/frame ("
+  defint "Walk animation rate:", gen(genTicksPerWalkFrame), 0, 20
+  IF refresh THEN
+    DIM tmp as string
+    IF value = 0 THEN
+      value = wtog_ticks()
+      tmp &= "default (" & value & " ticks/frame, "
+    ELSE
+      tmp &= value & " ticks/frame ("
+    END IF
+    set_caption tmp & (value * gen(genMillisecPerFrame)) & "ms/frame)"
   END IF
-  set_caption tmp & (value * gen(genMillisecPerFrame)) & "ms/frame)"
- END IF
 
- defint "Minimap style:", gen(genMinimapAlgorithm), 0, minimapLAST
- SELECT CASE gen(genMinimapAlgorithm)
-  CASE minimapScaled:      set_caption "Smoothly scaled down (true-color)"
-  CASE minimapScatter:     set_caption "Pick random color"
-  CASE minimapMajority:    set_caption "Pick most common color"
-  CASE minimapScaledQuant: set_caption "Smoothly scaled down (256 color)"
- END SELECT
+  defint "Minimap style:", gen(genMinimapAlgorithm), 0, minimapLAST
+  SELECT CASE gen(genMinimapAlgorithm)
+    CASE minimapScaled:      set_caption "Smoothly scaled down (true-color)"
+    CASE minimapScatter:     set_caption "Pick random color"
+    CASE minimapMajority:    set_caption "Pick most common color"
+    CASE minimapScaledQuant: set_caption "Smoothly scaled down (256 color)"
+  END SELECT
 
- defint "Camera following a hero/NPC centers on:", gen(genCameraOnWalkaboutFocus), 0, 2
- captions_list("tile", "sprite", "sprite minus Z")
+  defint "Camera following a hero/NPC centers on:", gen(genCameraOnWalkaboutFocus), 0, 2
+  captions_list("tile", "sprite", "sprite minus Z")
 
- '-------------------------
- section "Audio"
- IF defitem_act("Global Music and Sound Effects...") then generalmusicsfxmenu
- defint "Initial music volume:", gen(genMusicVolume), 0, 100
- set_caption value & "%"
- defint "Initial sound effects volume:", gen(genSFXVolume), 0, 100
- set_caption value & "%"
+  '-------------------------
+  section "Audio"
+  IF defitem_act("Global Music and Sound Effects...") then generalmusicsfxmenu
+  defint "Initial music volume:", gen(genMusicVolume), 0, 100
+  set_caption value & "%"
+  defint "Initial sound effects volume:", gen(genSFXVolume), 0, 100
+  set_caption value & "%"
 
- '-------------------------
- section "Inventory"
- defitem "Inventory size:"
- IF refresh THEN
-  'Rows should be gen(genMaxInventory) \ 3 + 1 except when defaulting
-  DIM rows as integer = (last_inv_slot() \ 3) + 1
-  IF gen(genMaxInventory) = 0 THEN
-   set_caption "Default (" & rows & " rows)"
-  ELSE
-   set_caption rows & " rows, " & gen(genMaxInventory) + 1 & " slots"
+  '-------------------------
+  section "Inventory"
+  defitem "Inventory size:"
+  IF refresh THEN
+    'Rows should be gen(genMaxInventory) \ 3 + 1 except when defaulting
+    DIM rows as integer = (last_inv_slot() \ 3) + 1
+    IF gen(genMaxInventory) = 0 THEN
+      set_caption "Default (" & rows & " rows)"
+    ELSE
+      set_caption rows & " rows, " & gen(genMaxInventory) + 1 & " slots"
+    END IF
   END IF
- END IF
- DIM as integer temp = (gen(genMaxInventory) + 1) \ 3
- IF edit_int(temp, 0, (inventoryMax + 1) \ 3) THEN
-  gen(genMaxInventory) = IIF(temp, temp * 3 - 1, 0)
- END IF
+  DIM as integer temp = (gen(genMaxInventory) + 1) \ 3
+  IF edit_int(temp, 0, (inventoryMax + 1) \ 3) THEN
+    gen(genMaxInventory) = IIF(temp, temp * 3 - 1, 0)
+  END IF
 
- defint "Inventory autosort:", gen(genAutosortScheme), 0, 4
- captions_list("by item type/uses", _
-               "by whether usable", _
-               "alphabetically", _
-               "by item ID number", _
-               "no reordering")
- defint "Default maximum item stack size:", gen(genItemStackSize), 1, 99
- defint "Display '" & CHR(1) & "1' in inventory:", gen(genInventSlotx1Display), 0, 2  'CHR(1) is the x symbol
- captions_list("always", "never", "only if stackable")
+  defint "Inventory autosort:", gen(genAutosortScheme), 0, 4
+  captions_list("by item type/uses", _
+                "by whether usable", _
+                "alphabetically", _
+                "by item ID number", _
+                "no reordering")
+  defint "Default maximum item stack size:", gen(genItemStackSize), 1, 99
+  defint "Display '" & CHR(1) & "1' in inventory:", gen(genInventSlotx1Display), 0, 2  'CHR(1) is the x symbol
+  captions_list("always", "never", "only if stackable")
 
- '-------------------------
- section "Misc"
- IF defitem_act("In-App Purchases... (experimental)") THEN edit_purchase_options
- IF defitem_act("Password For Editing...") THEN inputpasw
- defitem "Top-level thingbrowsers:"
- edit_config_bool "thingbrowser.enable_top_level", YES
- captions_bool "NO (for slow computers)", "YES (recommended)"
+  '-------------------------
+  section "Misc"
+  IF defitem_act("In-App Purchases... (experimental)") THEN edit_purchase_options
+  IF defitem_act("Password For Editing...") THEN inputpasw
+  defitem "Top-level thingbrowsers:"
+  edit_config_bool "thingbrowser.enable_top_level", YES
+  captions_bool "NO (for slow computers)", "YES (recommended)"
 
- '-------------------------
- section "Stats"
- defunselectable "Time spent editing..."
- defunselectable " this session:"
- set_caption format_duration(active_seconds, 0)
- defunselectable " in total:"
- DIM total_text as string
- '"created" was added at the same time as "edit_time", so if it's missing then the total is inaccurate.
- IF GetChildNodeExists(get_general_reld, "created") = NO THEN total_text &= "at least "
- 'Round edit_time to integer so it ticks in sync with 'This session'
- DIM total_edit_time as double = INT(GetChildNodeFloat(get_general_reld, "edit_time")) + active_seconds
- set_caption total_text & format_duration(total_edit_time, 0)
+  '-------------------------
+  section "Stats"
+  defunselectable "Time spent editing..."
+  defunselectable " this session:"
+  set_caption format_duration(active_seconds, 0)
+  defunselectable " in total:"
+  DIM total_text as string
+  '"created" was added at the same time as "edit_time", so if it's missing then the total is inaccurate.
+  IF GetChildNodeExists(get_general_reld, "created") = NO THEN total_text &= "at least "
+  'Round edit_time to integer so it ticks in sync with 'This session'
+  DIM total_edit_time as double = INT(GetChildNodeFloat(get_general_reld, "edit_time")) + active_seconds
+  set_caption total_text & format_duration(total_edit_time, 0)
 
- DIM created as double = GetChildNodeFloat(get_general_reld, "created", 0.)
- IF created <> 0. THEN
-  defunselectable "Game created " & FORMAT(created, "yyyy mmm dd hh:mm")
- END IF
+  DIM created as double = GetChildNodeFloat(get_general_reld, "created", 0.)
+  IF created <> 0. THEN
+    defunselectable "Game created " & FORMAT(created, "yyyy mmm dd hh:mm")
+  END IF
 
- 'Force the menu to refresh at least once a second to update the editing time
- IF phase = Phases.processing ANDALSO TIMER - last_update > 0.95 THEN
-  state.need_update = YES
-  last_update += 1.0
- END IF
+  'Force the menu to refresh at least once a second to update the editing time
+  IF phase = Phases.processing ANDALSO TIMER - last_update > 0.95 THEN
+    state.need_update = YES
+    last_update += 1.0
+  END IF
 END SUB
