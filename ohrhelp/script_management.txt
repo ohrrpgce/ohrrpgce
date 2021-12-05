@@ -52,4 +52,15 @@ The script management menu allows you to access some tasks and tools related to 
   searches for references to scripts
   that have been renamed or removed.
 
+* "Global Script Triggers"
+  Choose plotscripts to be run on
+  certain special triggers like
+  beginning a game or pressing the
+  menu key.
+
+* "Error display"
+  Control which script errors will
+  be shown at runtime. See the help
+  page.
+
 You can press F5 on this menu or on Custom's main menu to immediately recompile and reimport the last script file that you imported. (Note that scripts aren't reimported automatically by the Game runner when using `Test Game' live-previewing; you will have to press F5 in-game to reload scripts.)

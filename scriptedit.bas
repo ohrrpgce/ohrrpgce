@@ -515,9 +515,9 @@ END SUB
 '==========================================================================================
 
 
-SUB scriptman ()
- DIM menu(5) as string
- DIM menu_display(5) as string
+SUB script_management ()
+ DIM menu(7) as string
+ DIM menu_display(7) as string
 
  menu(0) = "Previous Menu"
  menu(1) = "Compile and/or Import scripts (.hss/.hs)"
@@ -525,6 +525,8 @@ SUB scriptman ()
  menu(3) = "Export scripts backup copy (.hss)"
  menu(4) = "Check where scripts are used..."
  menu(5) = "Find broken script triggers..."
+ menu(6) = "Global script triggers..."
+ menu(7) = "Error display..."
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
@@ -560,6 +562,10 @@ SUB scriptman ()
      script_usage_list()
     CASE 5
      script_broken_trigger_list()
+    CASE 6
+     general_scripts_menu
+    CASE 7
+     script_error_mode_menu
    END SELECT
   END IF
 

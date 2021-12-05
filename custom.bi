@@ -44,7 +44,7 @@ DECLARE FUNCTION formation_picker_or_none (recindex as integer = -1) as integer
 DECLARE SUB importmxs ()
 DECLARE FUNCTION importmasterpal (filename as string = "", palnum as integer) as bool
 DECLARE SUB vehicle_editor ()
-DECLARE SUB scriptman ()
+DECLARE SUB script_management ()
 DECLARE SUB map_picker ()
 DECLARE SUB mapeditor (byval mapnum as integer)
 DECLARE SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)

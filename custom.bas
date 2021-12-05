@@ -437,7 +437,7 @@ SUB main_editor_menu()
    IF state.pt = 14 THEN sfx_editor_main
    IF state.pt = 15 THEN global_text_strings_editor
    IF state.pt = 16 THEN general_data_editor
-   IF state.pt = 17 THEN scriptman
+   IF state.pt = 17 THEN script_management
    IF state.pt = 18 THEN distribute_game
    #IFDEF __FB_ANDROID__
     IF state.pt = 19 THEN prompt_for_save_and_quit
