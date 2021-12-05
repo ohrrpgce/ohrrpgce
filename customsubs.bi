@@ -85,16 +85,10 @@ DECLARE SUB check_used_onetime_npcs(bits() as integer)
 DECLARE SUB menu_of_reorderable_nodes(st as MenuState, menu as MenuDef)
 DECLARE FUNCTION reorderable_node(byval node as NodePtr) as integer
 
-DECLARE SUB edit_platform_controls ()
-DECLARE FUNCTION prompt_for_scancode () as KBScancode
-DECLARE SUB edit_purchase_options ()
-DECLARE SUB edit_purchase_details (byval prod as NodePtr)
-
-DECLARE SUB edit_savegame_options ()
+DECLARE FUNCTION edit_purchase_enumgrabber(byval node as NodePtr, enumstr() as string) as bool
+DECLARE FUNCTION edit_purchase_enumbrowse(caption as string, byval node as NodePtr, enumstr() as string, helpkey as string) as bool
 
 DECLARE FUNCTION npc_preview_text(byref npc as NPCType) as string
-
-DECLARE SUB mark_non_elemental_elementals ()
 
 DECLARE FUNCTION custom_setoption(opt as string, arg as string) as integer
 
