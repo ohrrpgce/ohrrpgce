@@ -569,15 +569,16 @@ end sub
 
 '------------------------------ Value modifiers --------------------------------
 
+' Value modifiers can be called either before or after val_*, but must be called
+' before edit_* or as_* or setting the caption!
+
 ' Cause `value` to be offset from the underlying data field.
-' This can be called either before or after val_*, but must be called before
-' edit_* or as_* or setting the caption!
 sub EditorKit.offset_int(offset as integer)
 	assert(cur_item.dtype = dtypeNone orelse cur_item.dtype = dtypeInt)
 	assert(len(cur_item.caption) = 0)
 	assert(edited = NO)
 	cur_item.offset = offset
-	'If val_* hasn't been called yet this has no effect because it'll be clobbered
+	' If val_* hasn't been called yet this has no effect because it'll be clobbered
 	value += offset
 end sub
 
@@ -597,10 +598,14 @@ sub EditorKit.invert_bool()
 	assert(len(cur_item.caption) = 0)
 	assert(edited = NO)
 	cur_item.inverted_bool = YES
-	'If val_* hasn't been called yet this has no effect because it'll be clobbered
+	' If val_* hasn't been called yet this has no effect because it'll be clobbered
 	value xor= YES
 end sub
 
+' Convenience wrapper for one-line definitions like:
+'   defitem "Translucent:"
+'   edit_bool invert_bool(box.opaque)
+' But note you MUST NOT use this with defbool!!
 function EditorKit.invert_bool(byref datum as bool) as bool
 	invert_bool
 	return val_bool(datum)
@@ -608,12 +613,21 @@ end function
 
 '------------------------------- Primitive types -------------------------------
 
+' These primitive val_* functions apply data modifiers such as .offset and
+' .invert_bool only if .dtype = dtypeNone, and set .writer only if it's
+' writerNone. So other val_* functions should set .writer (if not None) but not
+' .dtype, then call these primitives with 'value' to apply modifiers.
+' Don't overwrite .writer if already set, because val_* functions can be called
+' repeatedly, such as from inside edit_*.
+
 function EditorKit.val_int(byref datum as integer) as integer
+	value = datum
 	with cur_item
-		value = datum + .offset
+		if .dtype = dtypeNone then
+			' Need to make sure we only do this once!
+			value += .offset
+		end if
 		.dtype = dtypeInt
-		' Doesn't override an existing source, because this is called internally
-		' from edit_* functions, many of which are called after val_*
 		if .writer = writerNone then
 			.writer = writerInt
 			.int_ptr = @datum
@@ -625,12 +639,14 @@ end function
 function EditorKit.val_bool(byref datum as bool) as bool
 	value = (datum <> 0)
 	with cur_item
+		if .dtype = dtypeNone then
+			' Need to make sure we only do this once!
+			value xor= .inverted_bool
+		end if
 		.dtype = dtypeBool
 		if .writer = writerNone then
 			.writer = writerInt
 			.int_ptr = @datum
-			' Need to make sure we only do this once!
-			value xor= .inverted_bool
 		end if
 	end with
 	return value
@@ -639,11 +655,14 @@ end function
 function EditorKit.val_bool(byref datum as boolean) as bool
 	value = datum
 	with cur_item
+		if .dtype = dtypeNone then
+			' Need to make sure we only do this once!
+			value xor= .inverted_bool
+		end if
 		.dtype = dtypeBool
 		if .writer = writerNone then
 			.writer = writerBoolean
 			.byte_ptr = @datum
-			value xor= .inverted_bool
 		end if
 	end with
 	return value
@@ -652,6 +671,10 @@ end function
 function EditorKit.val_bit(byref bits as integer, whichbit as integer) as bool
 	value = (bits and whichbit) <> 0
 	with cur_item
+		if .dtype = dtypeNone then
+			' Need to make sure we only do this once!
+			value xor= .inverted_bool
+		end if
 		.dtype = dtypeBool
 		if .writer = writerNone then
 			.writer = writerBit
@@ -777,6 +800,7 @@ function EditorKit.val_node_bool(node as Node ptr) as bool
 	return val_bool(GetInteger(node))
 end function
 
+' Note: `default` is the default value for a missing node, *before* applying invert_bool
 function EditorKit.val_node_bool(root as Node ptr, path as zstring ptr, default as bool = NO) as bool
 	with cur_item
 		if .writer = writerNone then
@@ -852,28 +876,26 @@ function EditorKit.val_node_exists(root as Node ptr, path as zstring ptr) as boo
 	return val_bool(NodeByPath(root, path) <> NULL)
 end function
 
-' TODO: enums, like edit_purchase_enumgrabber
-
 '------------------------- gen() and general.reld data -------------------------
 
 ' TODO
 
 '-------------------------- .ini config file settings --------------------------
 
+' Note: `default` is the default value for a missing setting, *before* applying invert_bool
 function EditorKit.val_config_bool(path as zstring ptr, default as bool = NO) as bool
 	' TODO: we ought to cache the config value and only read it when refreshing
-	value = read_config_bool(path, default)
 	with cur_item
-		.dtype = dtypeBool
 		if .writer = writerNone then
 			' TODO: what about writing it with optional .edit prefix?
 			.writer = writerConfigBool
 			.path = *path
 		end if
 	end with
-	return value
+	return val_bool(read_config_bool(path, default))
 end function
 
+' TODO
 
 '===============================================================================
 '                                 Data editing
@@ -975,6 +997,7 @@ function EditorKit.edit_node_int(node as Node ptr, min as integer = 0, max as in
 	return edit_int(value, min, max)
 end function
 
+' Note: `default` is the default value for a missing node, *before* applying offset_int
 ' Delete_If_Default flag: if passed, delete the node if it's set to the default value
 function EditorKit.edit_node_int(root as Node ptr, path as zstring ptr, default as integer = 0, min as integer = 0, max as integer, delete_if_default_flag as EKFlags = 0) as bool
 	val_node_int root, path, default, delete_if_default_flag
@@ -986,6 +1009,7 @@ function EditorKit.edit_node_bool(node as Node ptr) as bool
 	return edit_bool(value)
 end function
 
+' Note: `default` is the default value for a missing node, *before* applying invert_bool
 function EditorKit.edit_node_bool(root as Node ptr, path as zstring ptr, default as integer = 0) as bool
 	val_node_bool root, path, default
 	return edit_bool(value)
@@ -1012,6 +1036,7 @@ end function
 ' If node is null then the node specified to the previous val/edit_node_* function is used.
 ' You can pass a Node ptr for non-
 ' If thingname is null then no prompt will be shown.
+' Doesn't update value/valuestr/valuefloat.
 sub EditorKit.deletable_node(node as Node ptr = NULL, thingname as zstring ptr = NULL)
 	if delete_action() then
 		if thingname = NULL orelse yesno("Really delete this " & *thingname & "?", NO, NO) then
@@ -1053,6 +1078,7 @@ end sub
 
 '-------------------------- .ini config file settings --------------------------
 
+' Note: `default` is the default value for a missing setting, *before* applying invert_bool
 function EditorKit.edit_config_bool(path as zstring ptr, default as bool = NO) as bool
 	val_config_bool path, default
 	return edit_bool(value)
@@ -1062,6 +1088,9 @@ end function
 
 '===============================================================================
 '                     Game data type definitions & editing
+
+' It's OK for edit_as_* functions to call as_* first, setting the caption before
+' editing the value, because refreshing and processing are separate phases.
 
 '------------------------------------ Tags -------------------------------------
 
@@ -1145,7 +1174,6 @@ sub EditorKit.as_enemy(byref datum as integer, or_none_flag as EKFlags = 0)
 	end if
 end sub
 
-' Sets dtype, writer if not already, caption if not already.
 function EditorKit.edit_as_enemy(byref datum as integer, or_none_flag as EKFlags = 0) as bool
 	as_enemy datum, or_none_flag
 	if process then
