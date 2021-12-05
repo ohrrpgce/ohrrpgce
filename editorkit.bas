@@ -955,6 +955,21 @@ end function
 
 '-------------------------------- Derived types --------------------------------
 
+' For integers where values < 0 are special values and -1 is None. Like
+' zintgrabber but not offset by 1: you have to use offset_int for that.
+' When value < 0, you can type in a number as if value = 0.
+' Backspace/Delete on value <= 0 goes to -1.
+function EditorKit.edit_zint(byref datum as integer, min as integer, max as integer) as bool
+	val_int datum
+	if process then
+		value += 1
+		edited or= zintgrabber(value, min + 1, max + 1)
+		value -= 1
+		if edited then write_value
+	end if
+	return edited
+end function
+
 ' Returns whether key was modified
 function prompt_for_enum(byref key as string, prompt_text as string, options() as StringEnumOption, helpkey as string) as bool
 	dim menu() as string
@@ -987,6 +1002,7 @@ function EditorKit.edit_str_enum(byref datum as string, options() as StringEnumO
 			edited = YES
 		end if
 	end if
+	if edited then write_value
 	return edited
 end function
 
@@ -1107,10 +1123,10 @@ sub EditorKit.as_check_tag(byref datum as integer, prefix as zstring ptr = @"Tag
 end sub
 
 ' For a tag=on/off check.
-function EditorKit.edit_check_tag(byref datum as integer, prefix as zstring ptr = @"Tag", zerocap as zstring ptr = @"None") as bool
+function EditorKit.edit_as_check_tag(byref datum as integer, prefix as zstring ptr = @"Tag", zerocap as zstring ptr = @"None", allowneg as bool = YES) as bool
 	as_check_tag datum, prefix, zerocap
 	if process then
-		edited or= tag_grabber(value, state, YES, NO, YES)  'allowspecial=YES, always_choice=NO, allowneg=YES
+		edited or= tag_grabber(value, state, YES, NO, allowneg)  'allowspecial=YES, always_choice=NO
 		if edited then write_value
 	end if
 	return edited
@@ -1146,13 +1162,102 @@ sub EditorKit.as_tag_id(byref datum as integer, prefix as zstring ptr = @"Tag", 
 end sub
 
 ' For selecting a tag ID without negative values or "=ON/OFF" in the caption, e.g. for toggling a tag.
-function EditorKit.edit_tag_id(byref datum as integer, prefix as zstring ptr = @"Tag", allowspecial as bool = NO) as bool
+function EditorKit.edit_as_tag_id(byref datum as integer, prefix as zstring ptr = @"Tag", allowspecial as bool = NO) as bool
 	as_tag_id datum, prefix, allowspecial
 	if process then
 		' This differs from tag_id_grabber, which may be misnamed
 		edited or= tag_grabber(value, state, allowspecial, NO, NO)  'always_choice=NO, allowneg=NO
 		if edited then write_value
 	end if
+	return edited
+end function
+
+'----------------------------------- Sprites -----------------------------------
+
+sub EditorKit.as_spriteset(byref datum as integer, or_none_flag as EKFlags = 0)
+	val_int datum
+	if refresh andalso len(cur_item.caption) = 0 then
+		if value = -1 andalso (or_none_flag = Or_None) then
+			set_caption "None"
+		elseif value < 0 then
+			set_caption "Invalid spriteset " & value
+		end if
+	end if
+end sub
+
+function EditorKit.edit_as_spriteset(byref datum as integer, spr_type as SpriteType, or_none_flag as EKFlags = 0) as bool
+	BUG_IF(spr_type < 0 or spr_type > ubound(sprite_sizes), "Bad spr_type", NO)
+	as_spriteset datum, or_none_flag
+	if activate then
+		dim spriteb as SpriteOfTypeBrowser
+		value = spriteb.browse(value, or_none_flag = Or_None, spr_type)
+		edited = YES
+	else
+		edit_zint value, iif(or_none_flag = Or_None, -1, 0), sprite_sizes(spr_type).lastrec
+	end if
+	if edited then write_value
+	return edited
+end function
+
+' -1 means default
+sub EditorKit.as_palette(byref datum as integer)
+	val_int datum
+	if refresh andalso len(cur_item.caption) = 0 then
+		if value = -1 then
+			set_caption "Default"
+		elseif value < 0 then
+			set_caption "Invalid palette " & value
+		end if
+	end if
+end sub
+
+function EditorKit.edit_as_palette(byref datum as integer, spr_type as SpriteType = sprTypeInvalid, spr_set as integer = 0) as bool
+	BUG_IF(spr_type < 0 or spr_type > ubound(sprite_sizes), "Bad spr_type", NO)
+	as_palette datum
+	' Can't enter the browser without a spriteset to preview
+	if activate andalso spr_type <> sprTypeInvalid then
+		' There's no existing data field that doesn't allow a default palette
+		value = pal16browse(value, spr_type, spr_set, YES)  'show_default = YES
+		edited = YES
+	else
+		edit_zint value, -1, gen(genMaxPal)
+	end if
+	if edited then write_value
+	return edited
+end function
+
+'------------------------------------ Audio ------------------------------------
+
+' -1 is Silence, but -2 often also has a special meaning you need to set with set_caption
+sub EditorKit.as_song(byref datum as integer)
+	val_int datum
+	if refresh andalso len(cur_item.caption) = 0 then
+		if value = -1 then
+			set_caption "Silence"
+		else
+			set_caption getsongname(value)
+		end if
+	end if
+end sub
+
+function EditorKit.edit_as_song(byref datum as integer, min as integer = -1, preview_audio_flag as EKFlags = 0) as bool
+	as_song datum
+	if activate then
+		value = song_picker_or_none(value)
+		edited = YES
+		' Only preview after using the browser, not typing
+		if preview_audio_flag = Preview_Audio then
+			if value >= 0 then
+				playsongnum value
+			else
+				music_stop
+			end if
+		end if
+	else
+		edit_zint value, min, gen(genMaxSong)
+		if preview_audio_flag = Preview_Audio then music_stop
+	end if
+	if edited then write_value
 	return edited
 end function
 
@@ -1165,7 +1270,7 @@ sub EditorKit.as_enemy(byref datum as integer, or_none_flag as EKFlags = 0)
 		if value = -1 andalso (or_none_flag = Or_None) then
 			set_caption "None"
 		elseif value < 0 then
-			set_caption "Invalid enemy #" & value
+			set_caption "Invalid enemy " & value
 		else
 			dim enemy as EnemyDef
 			loadenemydata enemy, value

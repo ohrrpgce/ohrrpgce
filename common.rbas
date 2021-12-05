@@ -2117,7 +2117,7 @@ END FUNCTION
 FUNCTION getsongname (byval num as integer, byval prefixnum as bool = NO) as string
  DIM songd(dimbinsize(binSONGDATA)) as integer
  DIM s as string
- IF num = -1 THEN RETURN "-none-"
+ IF num <= -1 THEN RETURN "-none-"
  s = ""
  IF prefixnum THEN s = num & " "
  loadrecord songd(), workingdir + SLASH + "songdata.bin", curbinsize(binSONGDATA) \ 2, num

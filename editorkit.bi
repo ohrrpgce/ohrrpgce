@@ -149,6 +149,7 @@ type EditorKit extends ModularMenu
 		no_flags = 0
 		Or_None
 		Delete_If_Default
+		Preview_Audio
 	end enum
 
 	declare sub exit_menu()
@@ -244,6 +245,7 @@ type EditorKit extends ModularMenu
 	'declare function edit_float(byref datum as double, ...) as bool  'TODO
 
 	' Derived types
+	declare function edit_zint(byref datum as integer, min as integer, max as integer) as bool
 	declare function edit_str_enum(byref datum as string, options() as StringEnumOption) as bool
 
 	' RELOAD Nodes
@@ -265,11 +267,21 @@ type EditorKit extends ModularMenu
 
 	' Tags
 	declare sub as_check_tag(byref datum as integer, prefix as zstring ptr = @"Tag", zerocap as zstring ptr = @"None")
-	declare function edit_check_tag(byref datum as integer, prefix as zstring ptr = @"Tag", zerocap as zstring ptr = @"None") as bool
+	declare function edit_as_check_tag(byref datum as integer, prefix as zstring ptr = @"Tag", zerocap as zstring ptr = @"None", allowneg as bool = YES) as bool
 	declare sub as_set_tag(byref datum as integer, prefix as zstring ptr = @"Set tag", allowspecial as bool = NO)
 	declare function edit_as_set_tag(byref datum as integer, prefix as zstring ptr = @"Set tag", allowspecial as bool = NO, allowneg as bool = YES) as bool
 	declare sub as_tag_id(byref datum as integer, prefix as zstring ptr = @"Tag", allowspecial as bool = NO)
-	declare function edit_tag_id(byref datum as integer, prefix as zstring ptr = @"Tag", allowspecial as bool = NO) as bool
+	declare function edit_as_tag_id(byref datum as integer, prefix as zstring ptr = @"Tag", allowspecial as bool = NO) as bool
+
+	' Sprites
+	declare sub as_spriteset(byref datum as integer, or_none_flag as EKFlags = 0)
+	declare function edit_as_spriteset(byref datum as integer, spr_type as SpriteType, or_none_flag as EKFlags = 0) as bool
+	declare sub as_palette(byref datum as integer)
+	declare function edit_as_palette(byref datum as integer, spr_type as SpriteType = sprTypeInvalid, spr_set as integer = 0) as bool
+
+	' Audio
+	declare sub as_song(byref datum as integer)
+	declare function edit_as_song(byref datum as integer, min as integer = -1, preview_audio_flag as EKFlags = 0) as bool
 
 	' Enemies
 	declare sub as_enemy(byref id as integer, or_none_flag as EKFlags = 0)
