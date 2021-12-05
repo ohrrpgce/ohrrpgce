@@ -35,7 +35,7 @@ Platform-specific Controls: Specific Gamepad/Joystick. Most important for when y
 
   Scripts
 
-Special Plotscripts: Choose plotscripts to be run on certain special triggers like beginning a game or pressing the menu key.
+Global Script Triggers: Choose plotscripts to be run on certain special triggers like beginning a game or pressing the menu key.
 
 Error Display: Control which script errors will be shown at runtime. See the help page.
 

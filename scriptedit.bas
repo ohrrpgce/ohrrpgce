@@ -509,6 +509,9 @@ SUB reimport_previous_scripts ()
  browse_andor_import_scripts script_import_default, YES
 END SUB
 
+
+'==========================================================================================
+'                                 Toplevel Scripts menu
 '==========================================================================================
 
 
@@ -1452,4 +1455,185 @@ SUB autofix_broken_old_scripts()
  END IF
 
  visit_scripts @autofix_old_script_visitor
+END SUB
+
+
+'==========================================================================================
+'                                General script triggers
+'==========================================================================================
+
+
+SUB general_scripts_menu ()
+ CONST menusize = 16
+ DIM menu(menusize) as string
+ DIM menu_display(menusize) as string
+ DIM selectable(menusize) as bool
+ flusharray selectable(), , YES
+ DIM scripttype(menusize) as string
+ selectable(1) = NO
+ selectable(2) = NO  'Global script triggers:
+ scripttype(3) = "New game"
+ scripttype(4) = "Game over"
+ scripttype(5) = "Load game"
+ scripttype(6) = "Menu action"
+ scripttype(7) = "Add hero"
+ scripttype(8) = "Remove hero"
+ scripttype(9) = "Swap hero"
+
+ selectable(10) = NO
+ selectable(11) = NO  'Map default scripts:
+ scripttype(12) = "Map autorun"
+ scripttype(13) = "After battle"
+ scripttype(14) = "Instead of battle"
+ scripttype(15) = "Each-step"
+ scripttype(16) = "On-keypress"
+
+ DIM scriptgenoff(menusize) as integer = { _
+     0, 0, 0, genNewGameScript, genGameoverScript, genLoadGameScript, genEscMenuScript, _
+     genAddHeroScript, genRemoveHeroScript, genMoveHeroScript, _
+     0, 0, genDefMapAutorunScript, genDefAfterBattleScript, genDefInsteadOfBattleScript, _
+     genDefEachStepScript, genDefOnKeypressScript _
+ }
+
+ DIM selectst as SelectTypeState
+ DIM state as MenuState
+ state.size = 24
+ state.last = UBOUND(menu)
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  IF keyval(ccCancel) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "global_scripts"
+  usemenu state, selectable()
+  IF state.pt = 0 THEN
+   IF enter_space_click(state) THEN EXIT DO
+  ELSEIF scriptgenoff(state.pt) = 0 THEN
+   'This menu item is a header
+  ELSE
+   IF enter_space_click(state) THEN
+    scriptbrowse(gen(scriptgenoff(state.pt)), plottrigger, scripttype(state.pt) + " script")
+   ELSE
+    scrintgrabber(gen(scriptgenoff(state.pt)), 0, 0, ccLeft, ccRight, 1, plottrigger)
+   END IF
+  END IF
+
+  menu(0) = "Previous Menu"
+  menu(2) = fgtag(uilook(eduiHeading)) + " Global script triggers"
+  menu(11) = fgtag(uilook(eduiHeading)) + " Map default scripts"
+  FOR i as integer = 1 TO menusize
+   IF scriptgenoff(i) THEN
+    menu(i) = scripttype(i) + ": " + scriptname(gen(scriptgenoff(i)))
+   END IF
+  NEXT
+
+  IF select_by_typing(selectst, NO) THEN
+   select_on_word_boundary menu(), selectst, state
+  END IF
+
+  clearpage dpage
+  highlight_menu_typing_selection menu(), menu_display(), selectst, state
+  standardmenu menu_display(), state, 0, 0, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+END SUB
+
+'==========================================================================================
+'                                 Script error settings
+'==========================================================================================
+
+SUB script_error_mode_menu ()
+ DIM menu(1) as string
+ DIM menu_display(UBOUND(menu)) as string
+
+ DIM selectst as SelectTypeState
+ DIM state as MenuState
+ state.size = 24
+ state.last = UBOUND(menu)
+ state.need_update = YES
+
+ DIM root as Slice Ptr
+ root = NewSliceOfType(slContainer)
+ WITH *root
+  .Fill = YES
+ END WITH
+
+ DIM box as Slice Ptr
+ box = NewSliceOfType(slRectangle, root)
+ WITH *box
+  .Fill = YES
+  .FillMode = sliceFillHoriz
+  .height = 48
+  .AnchorHoriz = alignCenter
+  .AnchorVert = alignBottom
+  .AlignHoriz = alignCenter
+  .AlignVert = alignBottom
+  .paddingLeft = 8
+  .paddingRight = 8
+  .paddingTop = 8
+  .paddingBottom = 8
+ END WITH
+ ChangeRectangleSlice box, 1
+
+ DIM infosl as Slice Ptr
+ infosl = NewSliceofType(slText, box)
+ infosl->Fill = YES
+ ChangeTextSlice infosl, , , , YES
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+
+  IF keyval(ccCancel) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "general_script_error"
+   usemenu state
+
+   IF enter_space_click(state) THEN
+    SELECT CASE state.pt
+     CASE 0
+      EXIT DO
+     CASE 1
+      gen(genDebugMode) XOR= 1
+      state.need_update = YES
+    END SELECT
+   END IF
+
+   SELECT CASE state.pt
+    CASE 1
+     IF intgrabber(gen(genDebugMode), 0, 1) THEN
+      state.need_update = YES
+     END IF
+   END SELECT
+
+   IF state.need_update THEN
+    state.need_update = NO
+    menu(0) = "Previous Menu"
+    menu(1) = "Script Error Display Mode: " & yesorno(gen(genDebugMode), "debug", "release")
+    SELECT CASE gen(genDebugMode)
+     CASE 0
+      ChangeTextSlice infosl, "Release mode hides script errors and warnings. It is HIGHLY recommended that you use release mode when releasing your game. Please press F1 for more information."
+     CASE 1
+      ChangeTextSlice infosl, "Debug mode shows script errors and warnings. It is recommended while playtesting. It will automatically be turned OFF when you export your game from the ""Distribute Game"" menu. Please press F1 for more information."
+    END SELECT
+   END IF    
+   box->Height = infosl->height + box->PaddingTop + box->PaddingBottom
+
+   IF select_by_typing(selectst, NO) THEN
+    select_on_word_boundary menu(), selectst, state
+   END IF
+
+   clearpage dpage
+   DrawSlice root, dpage
+   highlight_menu_typing_selection menu(), menu_display(), selectst, state
+   standardmenu menu_display(), state, 0, 0, dpage 
+
+   SWAP vpage, dpage
+   setvispage vpage
+   dowait
+ LOOP
+ DeleteSlice @root
 END SUB

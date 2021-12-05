@@ -75,6 +75,8 @@ DECLARE SUB font_editor (font() as integer)
 DECLARE SUB font_test_menu ()
 DECLARE SUB resolution_menu ()
 DECLARE SUB translations_menu ()
+DECLARE SUB general_scripts_menu ()
+DECLARE SUB script_error_mode_menu ()
 
 DECLARE FUNCTION export_translations (fname as string) as bool
 DECLARE FUNCTION compile_andor_import_scripts (f as string, quickimport as bool = NO) as bool
