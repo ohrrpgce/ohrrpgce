@@ -106,6 +106,7 @@ type EditorKit extends ModularMenu
 	refresh as bool
 	process as bool            'When called every tick to handle arbitrary input and do editing
 	activate as bool           'If the item was clicked/activated (implies process=true)
+	declare function delete_action() as bool
 
 	' Holds the value of the datum currently being edited
 	value as integer           'Includes bool/boolean data
@@ -255,6 +256,7 @@ type EditorKit extends ModularMenu
 	declare function edit_node_exists(node as Reload.Node ptr, path as zstring ptr) as bool
 
 	declare sub delete_node()
+	declare sub deletable_node(node as Node ptr = NULL, thingname as zstring ptr = NULL)
 
 	' .ini config file settings
 	declare function edit_config_bool(path as zstring ptr, default as bool = NO) as bool

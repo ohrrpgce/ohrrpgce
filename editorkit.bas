@@ -38,6 +38,7 @@
 ' -refresh: refreshing the menu
 ' -process: selected and should do per-tick logic, such as calling intgrabber
 ' -activate: selected and should be activated (if possible), e.g. enter a submenu.
+' -delete_action: the user tried to delete this (Delete or possibly Backspace)
 ' -hover: mouse over this item
 ' And a couple you can read/write:
 ' -edited: an edit_* call changed the item's value. You should set this manually if
@@ -255,7 +256,7 @@ sub EditorKit.finish_defitem()
 			' If there's no caption, use the current data value as a default
 			if len(caption) = 0 andalso ends_with(.title, ":") then
 				select case .dtype
-					case dtypeBool:   caption = yesorno(value)
+					case dtypeBool:   caption = iif(value, "Yes", "No")
 					case dtypeInt:    caption = str(value)
 					case dtypeFloat:  caption = str(valuefloat)
 					case dtypeStr:    caption = valuestr
@@ -362,6 +363,18 @@ end sub
 
 '===============================================================================
 '                             Non-menu-item methods
+
+' User wants to delete this item (e.g. Delete key)
+' (In future, may cause a clickable delete icon to display)
+function EditorKit.delete_action() as bool
+	if process then
+		' Most editing routines already listen for Backspace
+		if can_use_strgrabber andalso cur_item.dtype = dtypeNone then
+			if keyval(scBackspace) > 1 then return YES
+		end if
+		return keyval(scDelete) > 1
+	end if
+end function
 
 ' Call during 'process' or 'activate' to do a conditional exit from the menu. The try_exit()
 ' virtual method will still be called, which can override it if you can implement it.
@@ -994,6 +1007,26 @@ function EditorKit.edit_node_exists(node as Node ptr, path as zstring ptr) as bo
 	val_node_exists node, path
 	return edit_bool(value)
 end function
+
+' Delete a Node if user presses delete/backspace, with optional prompt.
+' If node is null then the node specified to the previous val/edit_node_* function is used.
+' You can pass a Node ptr for non-
+' If thingname is null then no prompt will be shown.
+sub EditorKit.deletable_node(node as Node ptr = NULL, thingname as zstring ptr = NULL)
+	if delete_action() then
+		if thingname = NULL orelse yesno("Really delete this " & *thingname & "?", NO, NO) then
+			if node then
+				if cur_item.node = null then
+					cur_item.writer = writerNodeInt  'Dummy
+					cur_item.node = node
+				else
+					assert(node = cur_item.node)
+				end if
+			end if
+			delete_node
+		end if
+	end if
+end sub
 
 ' Deletes the node specified by any val_node_* function, if it exists
 sub EditorKit.delete_node()
