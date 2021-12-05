@@ -578,7 +578,7 @@ FUNCTION DitherMenu.each_tick() as bool
    'is (if any: not all backdrops and tilesets are transparent). Import it, disallowing anything to
    'be remapped to colour 0 (unfortunately colour 0 is the only pure black in the default palette),
    'then let the user pick.
-   '(If it's a BMP with an alpha channel, transparent pixels are also automatically mapped to 0)
+   '(If it's an image with an alpha channel, transparent pixels are also automatically mapped to 0)
    frame_assign @imported, image_import_as_frame_quantized(filename, pmask(), options)
   END IF
  END IF
@@ -651,10 +651,8 @@ FUNCTION importimage_process(filename as string, pmask() as RGBcolor) as Frame p
     RETURN NULL
    END IF
    IF paloption = 1 THEN
-    importmasterpal filename, gen(genMaxMasterPal) + 1
-    activepalette = gen(genMaxMasterPal)
+    importmasterpal filename, gen(genMaxMasterPal) + 1  'Updates master(), etc
     setpal master()
-    LoadUIColors uilook(), boxlook(), activepalette, master()
     ' For consistency, even when we add a new palette, don't use color 0 unless the
     ' user explicitly picks it as background (palmapping will be 1-to-1 except for color 0)
     loadpalette pmask(), activepalette  'Throw away pmask
