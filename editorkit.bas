@@ -162,7 +162,9 @@
 #include "reloadext.bi"
 #include "editorkit.bi"
 #include "loading.bi"
+#include "custom.bi"
 #include "customsubs.bi"
+#include "thingbrowser.bi"
 
 using Reload.Ext
 
@@ -256,7 +258,7 @@ sub EditorKit.finish_defitem()
 			' If there's no caption, use the current data value as a default
 			if len(caption) = 0 andalso ends_with(.title, ":") then
 				select case .dtype
-					case dtypeBool:   caption = iif(value, "Yes", "No")
+					case dtypeBool:   caption = iif(value, "YES", "NO")
 					case dtypeInt:    caption = str(value)
 					case dtypeFloat:  caption = str(valuefloat)
 					case dtypeStr:    caption = valuestr
@@ -742,6 +744,7 @@ function EditorKit.val_str_enum(byref datum as string, options() as StringEnumOp
 				' (Not using the default value for writerNodePathStr)
 				if lbound(options) <= 0 andalso ubound(options) >= 0 then
 					valuestr = *options(0).key
+					index = 0
 					edited = YES
 				end if
 			else
@@ -750,7 +753,8 @@ function EditorKit.val_str_enum(byref datum as string, options() as StringEnumOp
 					set_caption "Unknown value: " & valuestr
 				end if
 			end if
-		elseif len(cur_item.caption) = 0 then
+		end if
+		if len(cur_item.caption) = 0 andalso index >= lbound(options) then
 			with options(index)
 				set_caption iif(len(*.caption), .caption, .key)
 			end with
