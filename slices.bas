@@ -4636,13 +4636,13 @@ End function
 Function LoadSliceCollection(collection_kind as integer, collection_num as integer=0, return_partially_loaded as bool=YES) as Slice ptr
  ' Look in game data
  dim srcfile as string
- srcfile = workingdir & SLASH & "slicetree_" & collection_kind & "_" & collection_num & ".reld"
-
- if isfile(srcfile) = NO then
+ if collection_kind = SL_COLLECT_USERDEFINED then
+  srcfile = workingdir & SLASH & "slicetree_" & collection_kind & "_" & collection_num & ".reld"
+  if isfile(srcfile) = NO then return null  'Silent failure
+ else
   ' Otherwise look for a default (usually from an embedded file, but can be an external file)
   dim collname as string
   select case collection_kind
-   case SL_COLLECT_USERDEFINED:            return null  'Silent failure
    case SL_COLLECT_STATUSSCREEN:           collname = "status_screen"
    case SL_COLLECT_ITEMSCREEN:             collname = "item_screen"
    case SL_COLLECT_SPELLSCREEN:            collname = "spell_screen"
