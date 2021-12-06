@@ -465,7 +465,7 @@ def generate_datafiles_c(source, target, env):
 
     ret += 'EmbeddedFileInfo *embedded_files_table = (EmbeddedFileInfo[]){\n'
     for idx, path in enumerate(source):
-        path = str(path)
+        path = str(path).replace('\\', '/')
         ret += '  {"%s", %s, %d},\n' % (path, symname(path), os.stat(path).st_size)
     ret += '  {NULL, NULL, 0},\n'
     ret += '};\n'
