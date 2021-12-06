@@ -635,8 +635,6 @@ SetupGameSlices
 'This is called BEFORE the loop, because when the game is quit or a save is loaded, this will be called again there
 reset_game_state
 
-debug "test"
-
 'Load achievement data
 Achievements.definitions_load workingdir & SLASH & "achievements.reld"
 

@@ -209,6 +209,7 @@ end type
 
 extern embedded_files_table as EmbeddedFileInfo ptr
 
+declare sub list_embedded_files()
 declare function find_embedded_file(byval path as const zstring ptr) as EmbeddedFileInfo ptr
 
 type VFile as VFileFwd

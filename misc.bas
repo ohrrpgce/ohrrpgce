@@ -72,6 +72,8 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-v -version         Show version and build info" & LINE_END
 		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
 		help = help & "-buildinfo [file]   Write build metadata in ini format to file or stdout" & LINE_END
+		'Hidden:
+		'help = help & "-list-embeds        Print the list of embedded data files (for verification)" & LINE_END
 #IFDEF IS_GAME
 		help = help & "-full-upgrade       Upgrade game data completely, as Custom does (only useful for bughunting)" & LINE_END
 		help = help & "-autosnap N         Automatically save a screen snapshot every N ticks" & LINE_END
@@ -136,11 +138,15 @@ function global_setoption(opt as string, arg as string) as integer
 			debuginfo "Write buildinfo in ini format to """ & ini_file & """"
 			string_to_file help, ini_file
 		else
-			print help
+			display_help_string help
 		end if
 		terminate_program
 		return 2
-		
+	elseif opt = "list-embeds" then
+		'Prints to both stdout and *debug.txt so that you can see it on Windows
+		list_embedded_files
+		terminate_program
+		return 1
 	elseif opt = "log" then
 		dim d as string = absolute_with_orig_path(arg, YES)
 		if isdir(d) ANDALSO diriswriteable(d) then

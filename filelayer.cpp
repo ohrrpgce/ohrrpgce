@@ -694,6 +694,18 @@ struct VFile {
 	};
 };
 
+// Implementation of the --list-embeds cmdline option
+// Prints to both stdout and *debug.txt so that you can see it on Windows
+void list_embedded_files() {
+	EmbeddedFileInfo *info;
+	for (info = embedded_files_table; ; info++) {
+		if (!info->path)
+			return;
+		printf("%s  len=%d\n", info->path, info->length);
+		debug(errDebug, "%s  len=%d\n", info->path, info->length);
+	}
+}
+
 // Returns 0 if the paths are the same, ignoring differences in path seps
 static int pathcmp(const char *path1, const char *path2) {
 	while (true) {
@@ -712,7 +724,6 @@ EmbeddedFileInfo *find_embedded_file(const char *path) {
 	for (info = embedded_files_table; ; info++) {
 		if (!info->path)
 			return NULL;
-		debuginfo("%s, %s", path, info->path);
 		// Use path-separator-insensitive comparison because of cross-compiles
 		if (!pathcmp(info->path, path))
 			return info;
