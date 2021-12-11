@@ -140,7 +140,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
  menuopts.edged = YES
  menuopts.itemspacing = -1
 
- DIM style_clip as integer = 0
+ STATIC style_clip as integer = 0
 
  textbox_edit_load box, st, menu()
  setkeys YES
@@ -184,10 +184,15 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
    CASE ELSE '--not using the quick textbox chainer nor the search
     IF keyval(scAlt) > 0 AND keyval(scC) > 1 THEN style_clip = st.id
     IF keyval(scAlt) > 0 AND keyval(scV) > 1 THEN
-     IF yesno("Copy box " & style_clip & "'s style to this box?") THEN
-      textbox_copy_style_from_box style_clip, box, st
-      SaveTextBox box, st.id
-      textbox_edit_load box, st, menu()
+     IF style_clip > gen(genMaxTextBox) THEN
+      visible_debug "Oops! Text box " & style_clip & " doesn't exist, so we can't paste its style"
+      style_clip = 0
+     ELSE
+      IF yesno("Copy box " & style_clip & "'s style to this box?") THEN
+       textbox_copy_style_from_box style_clip, box, st
+       SaveTextBox box, st.id
+       textbox_edit_load box, st, menu()
+      END IF
      END IF
     END IF
     IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND gen(genMaxTextBox) < maxMaxTextbox THEN
