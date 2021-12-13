@@ -1,6 +1,6 @@
 /* OHRRPGCE - Unix versions of OS-specific window manager routines
- * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
- * Please read LICENSE.txt for GPL License details and disclaimer of liability
+ * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+ * Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
  *
  * This file contains OS-specific routines which should only be linked into
  * Game and Custom, not the commandline utils; namely, GUI/WM-related stuff.

@@ -17,10 +17,11 @@ Please see whatsnew.txt for the list of changes in each release.
 ---
 DISTRIBUTION
 
-The OHRRPGCE is free software under the terms of the GPL
-Please read LICENSE.txt for more information. Visit
-http://rpg.hamsterrepublic.com/ohrrpgce/Source to download
-the source code.
+The OHRRPGCE is free software.
+Dual licensed under the GNU GPL v2+ and MIT Licenses.
+Read LICENSE.txt for terms and disclaimer of liability.
+Visit http://rpg.hamsterrepublic.com/ohrrpgce/Source
+to download the source code.
 
 Any .RPG files you create are yours to distribute as you please.
 You may freely distribute GAME.EXE, with your .RPG files provided

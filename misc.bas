@@ -1,6 +1,6 @@
 'OHRRPGCE - Odd header/module left over from the QuickBasic to FreeBASIC move
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
-'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 '
 'FIXME: move this crud elsewhere
 
@@ -50,8 +50,9 @@ function global_setoption(opt as string, arg as string) as integer
 	dim help as string = ""
 	if opt = "v" or opt = "version" then
 		help = help & long_version & build_info & LINE_END
-		help = help & "(C) Copyright 1997-2017 James Paige and Hamster Republic Productions" & LINE_END
-		help = help & "This game engine is free software under the terms of the GNU GPL v2+" & LINE_END
+		help = help & "(C) Copyright 1997-2017 James Paige, Ralph Versteegen, and the OHRRPGCE Developers" & LINE_END
+		help = help & "Dual licensed under the GNU GPL v2+ and MIT Licenses." & LINE_END
+		help = help & "Read LICENSE.txt for terms and disclaimer of liability." & LINE_END
 		help = help & "For source-code see http://HamsterRepublic.com/ohrrpgce/source.php" & LINE_END
 		help = help & "Game data copyright and license will vary." & LINE_END
 		display_help_string help

@@ -57,6 +57,10 @@ WHAT IS NEW?
     * "free slice(0)" no longer shows a warning, I mean it this time! [Ralph]
 
   *** Stuff Only Developers Will Notice
+    * Source code license has been changed to Dual GPLv2+ & MIT license
+      by unanimous consent of all OHRRPGCE contributors [James, Ralph,
+      Mike, Simon, David, Yuriy, Jay, Matthias, Adam, Lakan, Taoki,
+      Daniel, SwordPlay, zzo38]
     * FreeBASIC 1.04+ now required to compile
 
 

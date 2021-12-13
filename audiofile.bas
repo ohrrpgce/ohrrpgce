@@ -1,6 +1,6 @@
 'OHRRPGCE - common routines for inspecting (but not playing) or finding audio files
-'(C) Copyright 2017 James Paige/OHRRPGCE developers
-'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'(C) Copyright 2017 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #include "config.bi"
 #include "util.bi"

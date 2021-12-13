@@ -14,13 +14,12 @@ source code, especially http://rpg.HamsterRepublic.com/ohrrpgce/Compiling
 Please see whatsnew.txt for the changelog.
 -----------------------------------------------------------------------------
 LICENSE:
-  This program is free software; you can redistribute it and/or modify it
-  under the terms of the GNU General Public License as published by the
-  Free Software Foundation; either version 2 of the License, or (at your
-  option) any later version. See LICENSE.txt for the full text of the GPL.
+  This program is free software; you can redistribute it and/or modify it.
+  Dual licensed under the GNU GPL v2+ and MIT Licenses.
+  Read LICENSE.txt for terms and disclaimer of liability.
 
-  Any .RPG files you create are yours to distribute as you please; the GPL
-  does not apply to games made with the engine.
+  Any .RPG files you create are yours to distribute as you please; 
+  You hold your own copyright to games you make with this engine.
 -----------------------------------------------------------------------------
 WINDOWS/LINUX/UNIX:
   Recommend FreeBASIC version 1.08.0
@@ -62,14 +61,13 @@ MAKING IMPROVEMENTS
   see http://rpg.hamsterrepublic.com/ohrrpgce/Source#Submitting_Improvements
 -----------------------------------------------------------------------------
 WHAT IF YOU WANT TO BREAK COMPATIBILITY?
-  We will not accept patches that intentionally break compatibility from the
-  official version, but you are welcome to make your own "fork" of the
-  OHRRPGCE code as long as you obey the conditions of the GPL license. This
-  means that if you make your own personal version of the OHRRPGCE based on
-  our source code, you have to give others the same freedoms we gave to you.
-  If you want to learn more about how the GPL license works, just mail us,
-  and we would be happy to elaborate. You can also find the full text of the
-  license in LICENSE.txt
+  We don't reccomend breaking compatibility from the official version,
+  but you are welcome to make your own "fork" of the OHRRPGCE code as long
+  as you obey the conditions of the Dual GPL & MIT License. For practical
+  purposes that means you can pick one licence or the other as best suits
+  your needs for your own fork, but if you wish to contribute your changes
+  back to us for inclusion in the official version, you should comply with
+  both licenses.
 -----------------------------------------------------------------------------
 HISTORY
   The OHRRPGCE's source code has a long history! The first version was
@@ -90,6 +88,9 @@ HISTORY
   The OHRRPGCE has become a joyous exercise in incrementally transforming a
   BIG BALL OF MUD into well-structured code, while maintaining backwards
   compatibility all along the way.
+  
+  In 2021 we relicenced to GPLv2+ & MIT dual license by unanimous consent
+  of all contributors.
 
   The code base is big and varied, but we hope that doesn't discourage you.
   Play around with the code, have fun, communicate with the other developers

@@ -1,7 +1,7 @@
 -- HamsterSpeak Compiler
 
---(C) Copyright 2001-2020 James Paige and Hamster Republic Productions
--- Please read LICENSE.txt for GPL License details and disclaimer of liability
+--(C) Copyright 2001-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+-- Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 -- This is a compiler for HamsterSpeak scripts used for plotscripting in
 -- the O.H.R.RPG.C.E. For more info, visit http://HamsterRepublic.com
@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ug 2021-12-12 Change license to Dual GPL+MIT (with consent of all contributors)
 --3Uf 2020-02-29 Accept non-breaking space as whitespace
 --3Ue 2019-09-09 Windows: fix double-inclusion detection
 --3Ud 2019-07-12 Windows: double-include detection now case-insensitive
@@ -184,8 +185,8 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Uf"
-constant COPYRIGHT_DATE="2020"
+constant COMPILER_SUB_VERSION="Ug"
+constant COPYRIGHT_DATE="2021"
 
 --Known single-character commandline options
 constant VALID_OPTIONS="abcdfjknstwuyz"
@@ -917,8 +918,8 @@ end procedure
 procedure check_arg_count(sequence args)
   if length(args)=2 then
     wrap_print("HamsterSpeak Compiler v%s%s\n",{COMPILER_VERSION,COMPILER_SUB_VERSION})
-    wrap_print("(C)2001-%s James Paige & Hamster Republic Productions\n",{COPYRIGHT_DATE})
-    wrap_print("Please read LICENSE.txt for GNU GPL license details and disclaimer of liability",{})
+    wrap_print("(C)2001-%s James Paige, Ralph Versteegen, and the OHRRPGCE Developers\n",{COPYRIGHT_DATE})
+    wrap_print("Please read LICENSE.txt for GNU GPL & MIT dual license details and disclaimer of liability",{})
     wrap_print(COLYEL&"%s [-%s] [long-options] source.hss [dest.hs]"&COLWHI&"\n\n",{file_only(args[2]),VALID_OPTIONS})
     color_print("   -f fast mode. Disables some optimization\n",{})
     color_print("   -j don't wait for a keypress when finished if there's no error or warning\n",{})

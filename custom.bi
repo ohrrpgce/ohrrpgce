@@ -1,6 +1,6 @@
 'OHRRPGCE - Editors and functions defined throughout Custom (not in custom.bas)
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
-'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 'Many modules would only have a couple of functions (editors) in their header files,
 'so those functions are declared here instead. See customsubs.bi for util functions.

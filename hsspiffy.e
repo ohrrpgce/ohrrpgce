@@ -1,6 +1,6 @@
 --GENERAL PURPOSE SPIFFY routines for HamsterSpeak
---(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
---Please read LICENSE.txt for GPL License details and disclaimer of liability
+--(C) Copyright 1997-2005 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+--Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 ---------------------------------------------------------------------------
 -- All of the routines in this file are general-purpose routines that
 -- are used by HSPEAK.EX but dont do anything HamsterSpeak-specific

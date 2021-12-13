@@ -1,6 +1,6 @@
 'OHRRPGCE - music_sdl and music_sdl2 audio backends
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and Hamster Republic Productions
-'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 '
 ' music_sdl.bas - This compiles to both music_sdl and music_sdl2 audio backends,
 '  music_sdl: SDL 1.2 + SDL_mixer 1.2 (when SDL_MIXER2 not defined)

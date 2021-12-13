@@ -16,8 +16,10 @@ http://rpg.hamsterrepublic.com/ohrrpgce/F.A.Q.
 ---
 DISTRIBUTION INFO
 
-GAME.EXE is a part of the OHRRPGCE, which is free software under the GPL
-License. See LICENSE.txt for details. If you want to get the source code,
+GAME.EXE is a part of the OHRRPGCE, which is free software.
+Dual licensed under the GNU GPL v2+ and MIT Licenses.
+Read LICENSE.txt for terms and disclaimer of liability.
+If you want to get the source code,
 just visit: http://HamsterRepublic.com/ohrrpgce/Source.html
 
 ---

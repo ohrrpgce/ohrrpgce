@@ -7,7 +7,7 @@ USAGE:
 
 Or you can drag your bam file and drop it on bam2mid.exe
 
-The source code is available under the GPL license. See LICENCE.txt
+The source code is dual licensed under the GNU GPL v2+ and MIT Licenses. See LICENCE.txt
 It can be downloaded from http://rpg.hamsterrepublic.com/ohrrpgce/Source
 To compile, install FreeBasic and SConscript, and run scons bam2mid
 
