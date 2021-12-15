@@ -2998,7 +2998,9 @@ Sub DrawEllipseSlice(byval sl as Slice ptr, byval p as integer)
    'NOTE: Drawing bordercol or fillcol 0 will be transparent anyway, because when .frame
    'gets drawn to the videopage, colour 0 counts as transparent. So fillcol=-1 is just an optimisation.
    if fillcol = 0 then fillcol = -1 else fillcol = ColorIndex(fillcol)
+   dim saveclip as ClipState = get_cliprect()
    ellipse .frame, w / 2 - 0.5, h / 2 - 0.5 , w / 2 - 0.5, ColorIndex(.bordercol), fillcol, h / 2 - 0.5
+   get_cliprect() = saveclip
    .last_draw_size.X = w
    .last_draw_size.Y = h
    .last_draw_bordercol = .bordercol

@@ -55,6 +55,7 @@ WHAT IS NEW?
     * At higher resolutions the map layers would be cropped to 320x200 for a
       tick when exiting the Spells, Equip or Save/Load menus [Ralph]
     * "free slice(0)" no longer shows a warning, I mean it this time! [Ralph]
+    * Modifying an ellipse slice broke child clipping for one tick [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license
