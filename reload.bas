@@ -1034,8 +1034,9 @@ local function NodeNeedsEncoding(byval node as NodePtr, byval debugging as bool,
 
 	dim dat as ubyte ptr = node->str
 	for i as integer = 0 to node->strSize - 1
-		if dat[i] < 32 then
-			if dat[i] <> asc(!"\n") and dat[i] <> asc(!"\r") and dat[i] <> asc(!"\t") then return 2
+		dim byt as ubyte = dat[i]
+		if byt < 32 then
+			if byt <> asc(!"\n") and byt <> asc(!"\r") and byt <> asc(!"\t") then return 2
 		end if
 	next
 
@@ -1053,18 +1054,9 @@ end function
 
 'Escape < and & characters in a string
 local function EscapeXMLString(s as string) as string
-	dim ret as string
-
-	for i as integer = 0 to len(s) - 1
-		if s[i] = asc("&") then
-			ret += "&amp;"
-		elseif s[i] = asc("<") then
-			ret += "&lt;"
-		else
-			ret += chr(s[i])
-		end if
-	next
-
+	dim ret as string = s
+	replacestr ret, "&", "&amp;"
+	replacestr ret, "<", "&lt;"
 	return ret
 end function
 
