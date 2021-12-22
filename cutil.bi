@@ -28,22 +28,6 @@ declare sub disable_extended_precision ()
 declare function hook_fb_End() as boolint
 declare sub unhook_fb_End()
 
-
-'In base64.c
-declare function isbase64 (byval ch as byte) as bool
-
-declare sub base64_encode (byval in as byte ptr, byval inlen as size_t, _
-                           byval out as byte ptr, byval outlen as size_t)
-
-declare function base64_encode_alloc (byval in as byte ptr, byval inlen as size_t, _
-                                      byval out as byte ptr ptr) as size_t
-
-declare function base64_decode (byval in as byte ptr, byval inlen as size_t, _
-                                byval out as byte ptr, byval outlen as size_t ptr) as bool
-
-declare function base64_decode_alloc (byval in as byte ptr, byval inlen as size_t, _
-                                      byval out as byte ptr ptr, byval outlen as size_t ptr) as bool
-
 end extern
 
 #endif
