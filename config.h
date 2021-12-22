@@ -17,7 +17,6 @@
 
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"
-#include "errorlevel.h"
 #include <stdint.h>
 #include <stdlib.h>  // For __MINGW64_VERSION_MAJOR
 

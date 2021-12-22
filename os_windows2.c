@@ -12,7 +12,7 @@
 #include <inttypes.h>  // for PRId64
 
 #include "os.h"
-#include "misc.h"
+#include "errorlog.h"
 #include "lumpfile.h"
 
 #define _CRASHRPT_NO_WRAPPERS  //Exclude C++ wrapper classes

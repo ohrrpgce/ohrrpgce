@@ -33,7 +33,7 @@ Andreas Schiffler -- aschiffler at ferzkopp dot net
 #include <string.h>
 #include <math.h>
 
-#include "misc.h"
+#include "errorlog.h"
 #include "surface.h"
 
 #define MAX(a,b)    (((a) > (b)) ? (a) : (b))

@@ -10,8 +10,8 @@
 #include <cassert>
 #include <map>
 #include <cstring>
-#include "misc.h"
-#include "errno.h"
+#include <errno.h>
+#include "errorlog.h"
 #include "mutex.hpp"
 #include "lumpfile.h"
 

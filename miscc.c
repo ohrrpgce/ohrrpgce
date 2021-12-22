@@ -9,7 +9,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <locale.h>
-#include "misc.h"
+#include "miscc.h"
+#include "errorlog.h"
 
 #ifdef _MSC_VER
 #include <intrin.h>  //for _ReturnAddress

@@ -11,7 +11,7 @@
 #include "config.h"  // for boolint
 #include "gfx_common/DllFunctionInterface.h"
 #include "gfx_msg.h"
-#include "errorlevel.h"
+#include "errorlog.h"
 
 #include "surface.h"
 #include "allmodex.h"  // for XYPair

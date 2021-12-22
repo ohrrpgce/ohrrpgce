@@ -1,13 +1,12 @@
 #pragma once
 
 #include <winerror.h>
-#include "../errorlevel.h"
 
 // gfx_directx can be linked to modules from the main engine, so we provide
 // implementations of debugc and _throw_error
-// misc.h defines debug(), debuginfo(), throw_error() and fatal_error() as
+// errorlog.h defines debug(), debuginfo(), throw_error() and fatal_error() as
 // macros which call _throw_error.
-#include "../misc.h"
+#include "../errorlog.h"
 
 extern bool input_debug;
 

@@ -8,7 +8,7 @@
 #include <string.h>
 #include <limits.h>
 
-#include "misc.h"
+#include "errorlog.h"
 #include "array.h"
 
 

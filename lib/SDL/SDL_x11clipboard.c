@@ -28,7 +28,7 @@
 #include <stdlib.h>
 
 #include "internal.h"
-#include "../../misc.h"
+#include "../../errorlog.h"
 
 void fb_Sleep(int msecs);
 double fb_Timer();

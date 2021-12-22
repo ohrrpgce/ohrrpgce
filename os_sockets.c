@@ -51,7 +51,7 @@
 #endif
 
 #include "os.h"
-#include "misc.h"
+#include "errorlog.h"
 
 
 static const char *lasterror() {

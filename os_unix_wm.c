@@ -27,7 +27,7 @@
 #include <ApplicationServices/ApplicationServices.h>
 #endif
 
-#include "misc.h"
+#include "errorlog.h"
 #include "os.h"
 
 

@@ -2,7 +2,8 @@
 '(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 '
-'FIXME: move this crud elsewhere
+'Do not confuse this with miscc.c
+'TODO: this should probably be split up and renamed
 
 #include "config.bi"
 #include "util.bi"

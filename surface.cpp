@@ -17,7 +17,7 @@
 #include "allmodex.h"
 #include "gfxRender.hpp"
 #include "rasterizer.hpp"
-#include "misc.h"
+#include "errorlog.h"
 #include "blend.h"
 
 void clampRectToSurface( SurfaceRect* inRect, SurfaceRect* outRect, Surface* pSurf );

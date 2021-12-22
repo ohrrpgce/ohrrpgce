@@ -40,7 +40,7 @@
 #include <fnmatch.h>
 #include <pthread.h>
 
-#include "misc.h"
+#include "errorlog.h"
 #include "os.h"
 #include "array.h"
 

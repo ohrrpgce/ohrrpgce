@@ -2,7 +2,7 @@
 '(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 '
-'FIXME: move this crud elsewhere. Does NOT correspond to misc.h and miscc.c!
+'Do not confuse this with miscc.c/miscc.bi
 
 #IFNDEF MISC_BI
 #DEFINE MISC_BI
