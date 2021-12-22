@@ -630,7 +630,7 @@ DFI_IMPLEMENT_CDECL(void, gfx_GetWindowState, int nID, WindowState *pState)
 		pState->zoom = min(res.cx / 320, res.cy / 200);
 	}
 	if (pState->structsize >= 9)
-		pState->maximised = IsZoomed(hwnd) ? -1 : 0;
+		pState->maximised = IsZoomed(g_Window.getWindowHandle()) ? -1 : 0;
 	pState->structsize = min(pState->structsize, WINDOWSTATE_SZ);
 }
 
