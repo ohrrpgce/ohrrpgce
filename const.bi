@@ -430,7 +430,7 @@ Enum fontTypeEnum
 End Enum
 
 'Constants for debugc
-'NOTE: enum ErrorLevel in errorlevel.h MUST be updated when this is changed!
+'NOTE: enum ErrorLevel in errorlog.h MUST be updated when this is changed!
 Enum 'ErrorLevelEnum
   errInfo = 1   'Informational spam (doesn't cause g/c_debug.txt to be kept)
                 '(== debuginfo)

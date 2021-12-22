@@ -6,6 +6,8 @@
 #ifndef MISCC_H
 #define MISCC_H
 
+#include "config.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

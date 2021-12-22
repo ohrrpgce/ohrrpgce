@@ -29,7 +29,7 @@
 
 #include "SDL_windowsclipboard.h"
 #include "internal.h"
-#include "../../misc.h"
+#include "../../errorlog.h"
 #include "../../os.h"
 #include "../../gfx_common/ohrstring.hpp"
 

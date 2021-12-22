@@ -7,7 +7,7 @@ elegant, so no appologies are necessary.
 
 #include <stdio.h>
 #include <string>
-#include "../misc.h"
+#include "../errorlog.h"
 #include "audwrap.h"
 using namespace audiere;
 
