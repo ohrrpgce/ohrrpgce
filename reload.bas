@@ -22,6 +22,7 @@
 #include "cutil.bi"
 #include "lumpfile.bi"
 #include "common_base.bi"
+#include "base64.bi"
 
 Namespace Reload
 
@@ -1067,23 +1068,6 @@ local function EscapeXMLString(s as string) as string
 	return ret
 end function
 
-'Returns a Base64 encoded string, for XML serialization
-local function GetBase64EncodedString(byval node as NodePtr) as string
-	if node = null orelse node->nodeType <> rltString then return ""
-
-	dim outbuf as zstring ptr
-	dim outlen as integer
-	outlen = base64_encode_alloc(node->str, node->strSize, @outbuf)
-	if outbuf = NULL then
-		debug "XML serialization: base64 encoding failure!"
-		return ""
-	end if
-	
-	dim ret as string = *outbuf  'This step is inefficient, but so is everything else about going to/from XML
-	deallocate outbuf
-	return ret
-end function
-
 #define INDENTTAB !"\t"
 
 'Serializes a document as XML to a file
@@ -1162,7 +1146,7 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 			'It makes me sick
 			outstr = "<r:ws>" & EscapeXMLString(GetString(nod)) & "</r:ws>"
 		elseif needsencoding = 2 then
-			outstr = GetBase64EncodedString(nod)
+			outstr = base64encode(GetString(nod))
 		elseif needsencoding = 3 then
 			outstr = "(## ZSTRING length " & nod->strSize & " hash " & hex(stringhash(nod->str, nod->strSize)) & " ##)"
 		else

@@ -8,6 +8,7 @@
 #include "util.bi"
 #include "reload.bi"
 #include "cutil.bi"
+#include "base64.bi"
 
 #include "libxml/tree.bi"
 #include "libxml/parser.bi"
@@ -104,22 +105,13 @@ print "Tore down memory in " & int((timer - starttime) * 1000) & " ms"
 print "Finished in " & int((timer - realStart) * 1000) & " ms"
 
 
-'This sub sets a node's content to binary data, calling the Base64 decoder which is in base64.c
+'This sub sets a node's content to binary data
 sub SetContent_base64(byval this as nodeptr, byval encoded as zstring ptr)
-	'This does not compute the exact length (may overestimate), find that out later
-	dim outlen as size_t = 3 * (len(*encoded) \ 4) + 2
-
-	'Change to a string, then reserve enough space
-	SetContent(this, NULL, outlen)  'An uninitialised binary blob
-
-	if base64_decode(encoded, len(*encoded), GetZString(this), @outlen) = 0 then
-		print "Malformed Base64 string, decode failure after " & outlen & " bytes!"
+	SetContent(this, base64decode(*encoded))
+	if this->strSize = 0 then
+		print "Malformed Base64 string (does it contain newlines?): " & left(*encoded, 100) & "[...]"
 		end
 	end if
-
-	'Now we set the length correctly
-	ResizeZString(this, outlen)
-
 	'optimize will still try to process this node, but w/e. This is the only decently fast code in this file
 end sub
 

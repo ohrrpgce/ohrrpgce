@@ -1090,7 +1090,7 @@ for lib in base_libraries + common_libraries:
 
 # The following are linked into all executables, except miditest.
 base_modules +=   ['util.bas',
-                   'base64.c',
+                   'base64.bas',
                    'unicode.c',
                    'array.c',
                    'miscc.c',
