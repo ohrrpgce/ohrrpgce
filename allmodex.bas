@@ -3271,7 +3271,8 @@ end sub
 ' These functions are used to supplement gfx backends not supporting
 ' io_mousebits or io_keybits.
 
-'these are wrappers provided by the polling thread
+'io_keybits implementation provided via the polling thread
+'This is called while gfxmutex is held
 sub io_amx_keybits cdecl (keybdarray as KeyBits ptr)
 	for a as KBScancode = 0 to scLAST
 		keybdarray[a] = pollthread.keybdstate(a)
@@ -3279,16 +3280,16 @@ sub io_amx_keybits cdecl (keybdarray as KeyBits ptr)
 	next
 end sub
 
+'io_mousebits implementation provided via the polling thread
+'This is called while gfxmutex is held
 sub io_amx_mousebits cdecl (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 	with pollthread
 		'get the mouse state one last time, for good measure
-		GFX_ENTER
 		io_getmouse(mx, my, mwheel, mbuttons)
 		mclicks = .mousebuttons or (mbuttons and not .mouselastbuttons)
 		.mouselastbuttons = mbuttons
 		.mousebuttons = 0
 		mbuttons = mbuttons or mclicks
-		GFX_EXIT
 	end with
 end sub
 
