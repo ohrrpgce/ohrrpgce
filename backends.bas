@@ -3,6 +3,7 @@
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #include "config.bi"
+#include "cmdline.bi"
 #include "common.bi"
 #include "gfx.bi"
 #include "music.bi"

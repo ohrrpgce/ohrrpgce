@@ -28,6 +28,7 @@
 #include "gfx.bi"
 #include "pathfinding.bi"
 #include "bcommon.bi"
+#include "cmdline.bi"
 #include "steam.bi"
 #include "achievements.bi"
 #include "achievements_runtime.bi"
@@ -391,7 +392,6 @@ ELSE  'NOT running_under_Custom
   checked_cmdline_args = YES
 
   '---IF A VALID RPG FILE WAS SPECIFIED ON THE COMMAND LINE, RUN IT, ELSE BROWSE---
-  '---ALSO CHECKS FOR GAME.EXE RENAMING
 
   'DEBUG debug "searching commandline for game"
   FOR i as integer = 0 TO UBOUND(cmdline_args)
@@ -409,6 +409,8 @@ ELSE  'NOT running_under_Custom
  END IF
 
 END IF  'NOT running_under_Custom
+
+'Check whether game.exe has been renamed, or have a bundled .rpg
 
 #IFDEF __FB_UNIX__
 IF gam.autorungame = NO THEN

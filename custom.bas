@@ -8,6 +8,7 @@
 #include "udts.bi"
 #include "const.bi"
 #include "allmodex.bi"
+#include "cmdline.bi"
 #include "common.bi"
 #include "loading.bi"
 #include "customsubs.bi"
@@ -201,10 +202,10 @@ FOR i as integer = 0 TO UBOUND(cmdline_args)
  arg = simplify_path(absolute_with_orig_path(cmdline_args(i)))
  DIM extn as string = LCASE(justextension(arg))
 
- IF (extn = "hs" OR extn = "hss" OR extn = "txt") AND isfile(arg) THEN
+ IF (extn = "hs" OR extn = "hss" OR extn = "txt") ANDALSO isfile(arg) THEN
   scriptfile = arg
   CONTINUE FOR
- ELSEIF extn = "rpg" AND isfile(arg) THEN
+ ELSEIF extn = "rpg" ANDALSO isfile(arg) THEN
   sourcerpg = arg
  ELSEIF isdir(arg) THEN
   IF isfile(arg + SLASH + "archinym.lmp") THEN 'ok, accept it

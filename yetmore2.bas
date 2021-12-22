@@ -4,6 +4,7 @@
 '
 #include "config.bi"
 #include "allmodex.bi"
+#include "cmdline.bi"
 #include "common.bi"
 #include "gglobals.bi"
 #include "const.bi"

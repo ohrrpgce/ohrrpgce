@@ -1,17 +1,16 @@
-'OHRRPGCE - Odd header/module left over from the QuickBasic to FreeBASIC move
+'OHRRPGCE - Common Game/Custom commandline arg processing
 '(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
-'
-'Do not confuse this with miscc.c
-'TODO: this should probably be split up and renamed
+
+'Many commandline args are handled by individual modules because they access internal data
 
 #include "config.bi"
 #include "util.bi"
-#include "misc.bi"
 #include "allmodex.bi"
 #include "gfx.bi"
 #include "common.bi"
-#include "music.bi"
+#include "cmdline.bi"
+#include "backends.bi"
 #ifdef IS_GAME
 #include "yetmore2.bi"
 #endif
@@ -19,11 +18,13 @@
 #include "customsubs.bi"
 #endif
 
+
 'An option was given on commandline to set zoom or fullscreen/windowed (overrides the game's settings
 'and remembered window zoom)
 dim overrode_default_zoom as bool = NO
 dim overrode_default_fullscreen as bool = NO
 dim overrode_log_dir as bool = NO
+
 
 function global_setoption(opt as string, arg as string) as integer
 	dim help as string = ""

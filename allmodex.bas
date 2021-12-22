@@ -8,6 +8,7 @@
 #include "crt/string.bi"
 #include "crt/limits.bi"
 #include "string.bi"
+#include "cmdline.bi"
 #include "common.bi"
 #include "allmodex.bi"
 #include "gfx.bi"

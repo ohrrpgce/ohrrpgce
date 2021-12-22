@@ -1,11 +1,9 @@
-'OHRRPGCE - Odd header/module left over from the QuickBasic to FreeBASIC move
+'OHRRPGCE - Common Game/Custom commandline arg processing
 '(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
-'
-'Do not confuse this with miscc.c/miscc.bi
 
-#IFNDEF MISC_BI
-#DEFINE MISC_BI
+#IFNDEF CMDLINE_BI
+#DEFINE CMDLINE_BI
 
 DECLARE SUB display_help_string (help as string)
 
