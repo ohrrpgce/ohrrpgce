@@ -12,7 +12,7 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "string.bi"  'FB header
 #include "config.bi"
 #include "util.bi"
-#include "cutil.bi"
+#include "miscc.bi"
 #include "unicode.bi"
 #include "fb/fb.bi"
 #include "lib/sha1.bi"

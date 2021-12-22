@@ -16,7 +16,7 @@
 #include "allmodex.bi"
 #include "audiofile.bi"
 #include "os.bi"
-#include "cutil.bi"
+#include "miscc.bi"
 #include "string.bi"
 #include "gfx.bi"
 
