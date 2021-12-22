@@ -9,7 +9,6 @@
 #include "util.bi"
 #include "misc.bi"
 #include "allmodex.bi"
-#include "fontdata.bi"
 #include "gfx.bi"
 #include "common.bi"
 #include "music.bi"
@@ -25,27 +24,6 @@
 dim overrode_default_zoom as bool = NO
 dim overrode_default_fullscreen as bool = NO
 dim overrode_log_dir as bool = NO
-
-#ifdef timer_variables
-dim timer_variables
-#endif
-
-'Embedded copy of import/fonts/OHRRPGCE Default.ohf
-'Latin-1 font, plus icons in the 127-160 free space, and icons for Custom in low characters
-SUB getdefaultfont(fnt() as integer)
-	for i as integer = 0 to 1023
-		fnt(i) = default_font(i)
-	next
-END SUB
-
-'Embedded copy of misc/browser font.ohf
-'Almost identical to the default font, except placement of ©, heart, spades and hamster icons in the free
-'space matching original font - some old games used these in the game longname or description.
-SUB getbrowserfont(fnt() as integer)
-	for i as integer = 0 to 1023
-		fnt(i) = browser_font(i)
-	next
-END SUB
 
 function global_setoption(opt as string, arg as string) as integer
 	dim help as string = ""
@@ -237,101 +215,3 @@ end sub
 ' It needs to be in a module other than yetmore2.bas so that it doesn't get inlined.
 SUB hook_after_attach_to_Custom(success as bool)
 END SUB
-
-FUNCTION ReadShort(byval fh as integer, byval p as long=-1) as short
-	DIM ret as short
-	IF p = -1 THEN
-		GET #fh,,ret
-	ELSEIF p >= 0 THEN
-		GET #fh,p,ret
-	END IF
-	return ret
-END FUNCTION
-
-FUNCTION ReadShort(filename as string, byval p as integer) as short
-	DIM ret as short
-	DIM fh as integer
-	OPENFILE(filename, for_binary + access_read, fh)
-	GET #fh, p, ret
-	CLOSE #fh
-	return ret
-END FUNCTION
-
-FUNCTION ReadByte(byval fh as integer, byval p as long=-1) as ubyte
-	DIM ret as ubyte
-	IF p = -1 THEN
-		GET #fh,,ret
-	ELSEIF p >= 0 THEN
-		GET #fh,p,ret
-	END IF
-	return ret
-END FUNCTION
-
-Sub WriteShort(byval fh as integer, byval p as long, byval v as integer)
-	WriteShort(fh,p,cshort(v))
-END SUB
-
-Sub WriteShort(byval fh as integer, byval p as long, byval v as short)
-	IF p = -1 THEN
-		PUT #fh,,v
-	ELSEIF p >= 0 THEN
-		PUT #fh,p,v
-	END IF
-END SUB
-
-Sub WriteShort(filename as string, byval p as integer, byval v as integer)
-	DIM fh as integer
-	OPENFILE(filename, FOR_BINARY, fh)
-	PUT #fh, p, cshort(v)
-	CLOSE #fh
-END SUB
-
-Sub WriteByte(byval fh as integer, byval v as ubyte, byval p as long=-1)
-	IF p = -1 THEN
-		PUT #fh,,v
-	ELSEIF p >= 0 THEN
-		PUT #fh,p,v
-	END IF
-END SUB
-
-Function ReadVStr(byval fh as integer, byval maxlen as integer) as string
-	dim length as short, ret as string, c as short, i as integer
-	length = readshort(fh)
-	
-	for i = 0 to maxlen - 1
-		c = readshort(fh)
-		if i < length then ret &= chr(c AND 255)
-	next
-	
-	return ret
-end function
-
-Sub WriteVStr(byval fh as integer, byval maxlen as integer, s as string)
-	dim i as integer
-	writeshort(fh, -1, small(maxlen, len(s)))
-	
-	for i = 0 to maxlen - 1
-		if i < len(s) then writeshort(fh, -1, cint(s[i])) else writeshort(fh, -1, 0)
-	next
-end sub
-
-Function ReadByteStr(byval fh as integer, byval maxlen as integer) as string
-	dim length as short, ret as string, c as ubyte, i as integer
-	length = readshort(fh)
-	
-	for i = 0 to maxlen - 1
-		c = readbyte(fh)
-		if i < length then ret = ret & chr(c)
-	next
-	
-	return ret
-end function
-
-Sub WriteByteStr(byval fh as integer, byval maxlen as integer, s as string)
-	dim i as integer
-	writeshort(fh, -1, small(maxlen, len(s)))
-	
-	for i = 0 to maxlen - 1
-		if i < len(s) then writebyte(fh, cubyte(s[i])) else writebyte(fh, 0)
-	next
-end sub

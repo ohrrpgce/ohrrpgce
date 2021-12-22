@@ -502,10 +502,26 @@ declare function lines_to_file(strarray() as string, filename as string, lineend
 
 declare function get_tmpdir () as string
 
+
+'----------------------------------------------------------------------
+'                      File read/write helpers
+
 'Slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as long, byval pos as long = 0, byval dst as any ptr, byval bytes as size_t ) as long
 declare function fput alias "fb_FilePut" ( byval fnum as long, byval pos as long = 0, byval src as any ptr, byval bytes as size_t ) as long
 declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as long, byval pos as long = 0, byval dst as any ptr, byval bytes as size_t, byval bytesread as size_t ptr ) as long
+
+declare function ReadShort overload (byval fh as integer, byval p as long=-1) as short
+declare function ReadShort overload (filename as string, byval p as integer) as short
+declare sub WriteShort overload (byval fh as integer, byval p as long, byval v as integer)
+declare sub WriteShort overload (byval fh as integer, byval p as long, byval v as short)
+declare sub WriteShort overload (filename as string, byval p as integer, byval v as integer)
+declare function ReadVStr(byval fh as integer, byval maxlen as integer) as string
+declare sub WriteVStr(byval fh as integer, byval maxlen as integer, s as string)
+declare sub WriteByte(byval fh as integer, byval v as ubyte, byval p as long=-1)
+declare function ReadByte(byval fh as integer, byval p as long=-1) as ubyte
+declare sub WriteByteStr(byval fh as integer, byval maxlen as integer, s as string)
+declare function ReadByteStr(byval fh as integer, byval maxlen as integer) as string
 
 
 '----------------------------------------------------------------------

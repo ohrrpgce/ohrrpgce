@@ -191,6 +191,8 @@ DECLARE FUNCTION readglobalstring (byval index as integer, default as zstring pt
 DECLARE FUNCTION price_string (cost as integer) as string
 DECLARE FUNCTION money_name () as string
 
+DECLARE SUB getdefaultfont (font() as integer)
+DECLARE SUB getbrowserfont (font() as integer)
 DECLARE SUB load_default_master_palette (master_palette() as RGBColor)
 DECLARE SUB load_gfx_defaults ()
 'DECLARE SUB dump_integer_array_as_hex (arraydim as string, byval start as uinteger ptr, byval _ubound as integer, byval nibbles as integer = 8)

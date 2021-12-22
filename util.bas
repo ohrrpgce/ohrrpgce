@@ -31,11 +31,8 @@ Declare Function fb_hStrRealloc Alias "fb_hStrRealloc" (byval s as FBSTRING ptr,
 Declare Function fb_hStrAllocTemp Alias "fb_hStrAllocTemp" (byval s as FBSTRING ptr, byval size as ssize_t) as FBSTRING ptr
 'Although unused, documenting this here: free a temporary FBstring which is returned (Normally would destroy it with fb_StrAssign)
 '(returns error code)
+'Declare Function fb_hStrDelTemp Alias "fb_hStrDelTemp" (s as FBSTRING ptr) as long
 
-#ifndef fb_hStrDelTemp
-  'Already defined in FB 1.04 (or earlier)
-  Declare Function fb_hStrDelTemp Alias "fb_hStrDelTemp" (s as FBSTRING ptr) as long
-#endif
 
 DECLARE FUNCTION integerptr_compare CDECL (byval a as integer ptr ptr, byval b as integer ptr ptr) as long
 DECLARE FUNCTION stringptr_compare CDECL (byval a as string ptr ptr, byval b as string ptr ptr) as long
@@ -53,6 +50,10 @@ program_start_timer = TIMER
 
 'Dummy value used to indicate the default value of a byref arg
 DIM default_arg as integer
+
+#ifdef timer_variables
+DIM timer_variables
+#endif
 
 '---------------- Initialization -----------------
 
@@ -3172,6 +3173,107 @@ FUNCTION isdir (filename as string) as bool
   #endif
   return ret
 END FUNCTION
+
+
+'--------- File read/write helpers ---------
+
+function ReadShort(byval fh as integer, byval p as long=-1) as short
+  dim ret as short
+  if p = -1 then
+    get #fh, , ret
+  elseif p >= 0 then
+    get #fh, p, ret
+  end if
+  return ret
+end function
+
+function ReadShort(filename as string, byval p as integer) as short
+  dim ret as short
+  dim fh as integer
+  openfile(filename, for_binary + access_read, fh)
+  get #fh, p, ret
+  close #fh
+  return ret
+end function
+
+function ReadByte(byval fh as integer, byval p as long=-1) as ubyte
+  dim ret as ubyte
+  if p = -1 then
+    get #fh, , ret
+  elseif p >= 0 then
+    get #fh, p, ret
+  end if
+  return ret
+end function
+
+sub WriteShort(byval fh as integer, byval p as long, byval v as integer)
+  WriteShort(fh,p,cshort(v))
+end sub
+
+sub WriteShort(byval fh as integer, byval p as long, byval v as short)
+  if p = -1 then
+    put #fh, , v
+  elseif p >= 0 then
+    put #fh, p, v
+  end if
+end sub
+
+sub WriteShort(filename as string, byval p as integer, byval v as integer)
+  dim fh as integer
+  openfile(filename, FOR_BINARY, fh)
+  put #fh, p, cshort(v)
+  close #fh
+end sub
+
+sub WriteByte(byval fh as integer, byval v as ubyte, byval p as long=-1)
+  if p = -1 then
+    put #fh, , v
+  elseif p >= 0 then
+    put #fh, p, v
+  end if
+end sub
+
+function ReadVStr(byval fh as integer, byval maxlen as integer) as string
+  dim length as short, ret as string, c as short, i as integer
+  length = readshort(fh)
+
+  for i = 0 to maxlen - 1
+    c = readshort(fh)
+    if i < length then ret &= chr(c and 255)
+  next
+
+  return ret
+end function
+
+sub WriteVStr(byval fh as integer, byval maxlen as integer, s as string)
+  dim i as integer
+  writeshort(fh, -1, small(maxlen, len(s)))
+
+  for i = 0 to maxlen - 1
+    if i < len(s) then writeshort(fh, -1, cint(s[i])) else writeshort(fh, -1, 0)
+  next
+end sub
+
+function ReadByteStr(byval fh as integer, byval maxlen as integer) as string
+  dim length as short, ret as string, c as ubyte, i as integer
+  length = readshort(fh)
+
+  for i = 0 to maxlen - 1
+    c = readbyte(fh)
+    if i < length then ret = ret & chr(c)
+  next
+
+  return ret
+end function
+
+sub WriteByteStr(byval fh as integer, byval maxlen as integer, s as string)
+  dim i as integer
+  writeshort(fh, -1, small(maxlen, len(s)))
+
+  for i = 0 to maxlen - 1
+    if i < len(s) then writebyte(fh, cubyte(s[i])) else writebyte(fh, 0)
+  next
+end sub
 
 
 '--------- Doubly Linked List ---------

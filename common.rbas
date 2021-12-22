@@ -6189,6 +6189,25 @@ SUB load_default_master_palette (master_palette() as RGBColor)
  NEXT i
 END SUB
 
+#include "fontdata.bi"
+
+'Embedded copy of import/fonts/OHRRPGCE Default.ohf
+'Latin-1 font, plus icons in the 127-160 free space, and icons for Custom in low characters
+SUB getdefaultfont(fnt() as integer)
+ FOR i as integer = 0 TO 1023
+  fnt(i) = default_font(i)
+ NEXT
+END SUB
+
+'Embedded copy of misc/browser font.ohf
+'Almost identical to the default font, except placement of ©, heart, spades and hamster icons in the free
+'space matching original font - some old games used these in the game longname or description.
+SUB getbrowserfont(fnt() as integer)
+ FOR i as integer = 0 TO 1023
+  fnt(i) = browser_font(i)
+ NEXT
+END SUB
+
 'Loads master(), uilook(), boxlook(), current_font()
 SUB load_gfx_defaults ()
  load_default_master_palette master()
