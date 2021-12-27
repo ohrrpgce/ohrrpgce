@@ -1179,10 +1179,12 @@ DO
    NEXT i
 
    'Shift/Ctrl-F# toggle layer visibility
+   'Only works for layers 0-5 because shift keys F7 and higher are reserved for other things
    IF keyval(scCtrl) > 0 ORELSE keyval(scShift) > 0 THEN
-    FOR i as integer = 0 TO UBOUND(st.map.tiles)
-     IF keyval(scF1 + i) > 1 THEN
-      clearkey(scF1 + i)
+    FOR i as integer = 0 TO small(UBOUND(st.map.tiles), 5)
+     DIM keynum as integer = scF1 + i
+     IF keyval(keynum) > 1 THEN
+      clearkey(keynum)
       IF layerisenabled(st.map.gmap(), i) THEN togglelayervisible(st.visible(), i)
      END IF
     NEXT
