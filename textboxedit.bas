@@ -1438,7 +1438,7 @@ SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu
        CASE -1: nxt_add_type = -1 'Cancelled
        CASE 0: nxt_add_tag = -1 'Always
        CASE 1:
-        nxt_add_tag = tags_menu(0, YES, NO, YES)
+        nxt_add_tag = tags_menu(0, YES, YES, YES)
         IF nxt_add_tag = 0 THEN nxt_add_type = -1 'Cancelled
       END SELECT
       IF nxt_add_type >= 0 THEN
