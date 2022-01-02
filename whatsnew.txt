@@ -25,6 +25,7 @@ WHAT IS NEW?
       NPC no matter if they are activatable or not. [James]
     * Slices can be marked as Templates, which makes them hidden and ignored for
       almost all purposes. Intended for use with "clone slice". [Ralph]
+    * Text box connection editor can insert boxes with tag contitionals [James]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

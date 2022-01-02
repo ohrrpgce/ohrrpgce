@@ -1345,6 +1345,7 @@ SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu
  DIM searchbox as TextBox
  
  DIM nxt_add_type as integer
+ DIM nxt_add_tag as integer
  DIM remember_insert as integer
  DIM remember_insert_tag as integer
  
@@ -1433,6 +1434,13 @@ SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu
      IF nxt(nxt_state.pt).add THEN
       'Add a box
       nxt_add_type = twochoice("Add a new box?", "After this box", "Instead of this box", 0, -1)
+      SELECT CASE twochoice("With a condition?", "Always", "Check a tag", 0, -1)
+       CASE -1: nxt_add_type = -1 'Cancelled
+       CASE 0: nxt_add_tag = -1 'Always
+       CASE 1:
+        nxt_add_tag = tags_menu(0, YES, NO, YES)
+        IF nxt_add_tag = 0 THEN nxt_add_type = -1 'Cancelled
+      END SELECT
       IF nxt_add_type >= 0 THEN
        '--Add a box
        gen(genMaxTextbox) += 1
@@ -1440,13 +1448,13 @@ SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu
         '--an after box
         remember_insert = box.after
         remember_insert_tag = box.after_tag
-        box.after_tag = -1
+        box.after_tag = nxt_add_tag
         box.after = gen(genMaxTextbox)
        ELSEIF nxt_add_type = 1 THEN
         '--an instead box
         remember_insert = box.instead
         remember_insert_tag = box.instead_tag
-        box.instead_tag = -1
+        box.instead_tag = nxt_add_tag
         box.instead = gen(genMaxTextbox)
        END IF
        SaveTextBox box, st.id
