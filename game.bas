@@ -503,6 +503,11 @@ gam.script_log.filename = log_dir & "script_log.txt"
 
 #IFDEF __FB_ANDROID__
 cleanup_other_temp_files
+'Hide the cleanup text so it doesn't show up under the "Loading..." which can
+'stick around for a good long while on some older Android devices
+rectangle 0, 0, rWidth, rHeight, uilook(uiBackground), vpage
+edgeprint "O.H.R.RPG.C.E", pCentered, pCentered, uilook(uiText), vpage
+setvispage vpage, NO
 #ENDIF
 
 
