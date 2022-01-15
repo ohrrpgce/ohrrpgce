@@ -26,6 +26,11 @@ WHAT IS NEW?
     * Slices can be marked as Templates, which makes them hidden and ignored for
       almost all purposes. Intended for use with "clone slice". [Ralph]
     * Text box connection editor can insert boxes with tag contitionals [James]
+    * New attacker animations "Run and Hide" and "Unhide" which behave the
+      same as "Jump" and "Land" [James]
+    * New attack bitsets "Always Hide Attacker" and "Always Unhide Attacker"
+      which can make any attack behave like Jump/Land regardless of animation
+      [James]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]
@@ -57,6 +62,7 @@ WHAT IS NEW?
       tick when exiting the Spells, Equip or Save/Load menus [Ralph]
     * "free slice(0)" no longer shows a warning, I mean it this time! [Ralph]
     * Modifying an ellipse slice broke child clipping for one tick [Ralph]
+    * Fixed "Jump" to properly prevent targetting when used by heroes [James]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license

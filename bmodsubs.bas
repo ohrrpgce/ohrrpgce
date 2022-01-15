@@ -1320,6 +1320,14 @@ SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackDa
 
  END SELECT
 
+ 'enforce "hidden" status
+ FOR i = 0 TO 11
+  'Self targetted attacks always ignore hidden status
+  IF atk.targ_class = 2 THEN CONTINUE FOR
+  'Otherwise, hidden ones can't be targetted
+  IF bslot(i).hidden THEN tmask(i) = NO
+ NEXT i
+
  'enforce attack's disabled enemy target slots
  FOR i = 0 TO 7
   IF atk.cannot_target_enemy_slot(i) THEN tmask(4 + i) = NO
