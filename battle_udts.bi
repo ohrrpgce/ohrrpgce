@@ -78,10 +78,13 @@ TYPE BattleSprite
   vis as bool   'Roughly, but not exactly, visibility:
                 'For combatants: Is alive (or dying interruptted) and visible (didn't jump).
                 '  Gets set to YES while an enemy is performing an on-death attack.
-                '  Gets set to NO while it's dissolving or fleeing after death, or
-                '  or if jumped off-screen
+                '  Gets set to NO while it's dissolving or fleeing after death
                 '  If true, treated as a valid target for attacks that can't hit dead.
                 'For other BattleSprites: is visible
+  hidden as bool ' For combatants, has been hidden by an attacker animation like "Jump" or "Run and Hide"
+                 ' or any attack with "always hides attacker" bitset. Not targetable until unhidden
+                 ' if true, excluded from all targetting except for attacks with attacker animation
+                 ' "Land" or "Unhide" or any attack with the "always unhide attacker" bit
 
   '--stats
   stat as BattleStats

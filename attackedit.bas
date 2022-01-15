@@ -296,6 +296,8 @@ a_append atkbit(), -1, ""
 a_append atkbit(), -1, " Effects: on Attacker"
 a_append atkbit(), 52, "Store target"
 a_append atkbit(), 53, "Delete stored targets"
+a_append atkbit(), 92, "Always hide attacker (any attacker animation)"
+a_append atkbit(), 93, "Always unhide attacker (any attacker animation)"
 
 a_append atkbit(), -1, ""
 a_append atkbit(), -1, " Effects: on Target"
@@ -525,18 +527,20 @@ max(AtkLimChainRate) = 100
 min(AtkLimChainRate) = 0
 
 CONST AtkLimAnimAttacker = 14
-max(AtkLimAnimAttacker) = 9
+max(AtkLimAnimAttacker) = 11
 menucapoff(AtkAnimAttacker) = capindex
 addcaption caption(), capindex, "Strike"
 addcaption caption(), capindex, "Cast"
 addcaption caption(), capindex, "Dash In"
 addcaption caption(), capindex, "SpinStrike"
-addcaption caption(), capindex, "Jump (chain to Land)"
-addcaption caption(), capindex, "Land"
+addcaption caption(), capindex, "Jump (hides)"
+addcaption caption(), capindex, "Land (unhides)"
 addcaption caption(), capindex, "Null"
 addcaption caption(), capindex, "Standing Cast"
 addcaption caption(), capindex, "Teleport"
 addcaption caption(), capindex, "Standing Strike"
+addcaption caption(), capindex, "Run and Hide (hides)"
+addcaption caption(), capindex, "Unhide (unhides)"
 
 CONST AtkLimAnimAttack = 15
 max(AtkLimAnimAttack) = 11

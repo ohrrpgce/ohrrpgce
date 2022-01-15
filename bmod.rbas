@@ -566,6 +566,12 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
    bslot(ww).zmov = moveticks
   CASE 25 'anim_checkpoint
     IF autotestmode THEN write_checkpoint
+  CASE 26 'hide(who)
+    ww = popdw
+    bslot(ww).hidden = YES
+  CASE 27 'unhide(who)
+    ww = popdw
+    bslot(ww).hidden = NO
 
   END SELECT
  LOOP UNTIL bat.wait_frames <> 0 OR bat.atk.id = -1
@@ -1476,6 +1482,10 @@ SUB update_battle_slices(bslot() as BattleSprite)
    ELSE
     .sl->Visible = NO
    END IF
+   
+   IF .hidden THEN
+    .sl->Visible = NO
+   END IF
   END WITH
  NEXT i
 END SUB
@@ -2229,6 +2239,14 @@ END SUB
 
 SUB anim_appear(byval who as integer)
  pushdw 5: pushdw who
+END SUB
+
+SUB anim_hide(byval who as integer)
+ pushdw 26: pushdw who
+END SUB
+
+SUB anim_unhide(byval who as integer)
+ pushdw 27: pushdw who
 END SUB
 
 ' For ABS(xmove_ticks) ticks, move xstep pixels in the direction SGN(xmove_ticks), and ditto for ymove_ticks/ystep.

@@ -678,12 +678,14 @@ Enum AttackerAnimation
 	atkrAnimCast = 1
 	atkrAnimDashIn = 2     ' (shows weapon)
 	atkrAnimSpinStrike = 3 ' (shows weapon)
-	atkrAnimJump = 4
-	atkrAnimLand = 5
+	atkrAnimJump = 4       ' (hides attacker)
+	atkrAnimLand = 5       ' (unhides attacker)
 	atkrAnimNull = 6
 	atkrAnimStandingCast = 7
 	atkrAnimTeleport = 8   ' (shows weapon)
 	atkrAnimStandingStrike = 9 ' (shows weapon)
+	atkrAnimRunAndHide = 10    ' (hides attacker)
+	atkrAnimUnHide = 11        ' (unhides attacker)
 End Enum
 
 Enum TransmogStatsRule
@@ -812,6 +814,8 @@ Type AttackData
 	counterattack_provoke as CounterProkeEnum
 	never_trigger_elemental_counterattacks as bool
 	poison_is_negative_regen as bool
+	always_hide_attacker as bool
+	always_unhide_attacker as bool
 End Type
 
 'An item in a hero's spell list definition (actual spell lists in HeroState.spells() array of integers)
