@@ -76,7 +76,7 @@ TYPE BattleSprite
   yspeed as integer
   zspeed as integer
   vis as bool   'Roughly, but not exactly, visibility:
-                'For combatants: Is alive (or dying interruptted) and visible (didn't jump).
+                'For combatants: Is alive (or dying interruptted).
                 '  Gets set to YES while an enemy is performing an on-death attack.
                 '  Gets set to NO while it's dissolving or fleeing after death
                 '  If true, treated as a valid target for attacks that can't hit dead.
