@@ -1368,7 +1368,6 @@ SUB anim_advance (byval who as integer, attack as AttackData, bslot() as BattleS
  DIM target as BattleSprite ptr = @bslot(t(0))
 
  IF attack.always_unhide_attacker THEN
-  anim_appear who
   anim_unhide who
  END IF
 
@@ -1457,14 +1456,12 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
    anim_relmove who, -26, 0, 13, 0
    anim_zmove who, 13, 18
    anim_waitforall
-   anim_disappear who
    anim_hide who
    anim_setframe who, frameSTAND
 
   CASE atkrAnimLand
    anim_setz who, 200
    anim_setframe who, frameLAND
-   anim_appear who
    anim_unhide who
    anim_setcenter who, t(0), 0, 0
    anim_align who, t(0), dirDown, 0
@@ -1477,7 +1474,6 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
    anim_setdir who, 1
    anim_absmove who, 320 + bslot(t(0)).w / 2, bslot(t(0)).y, 10, 1
    anim_waitforall
-   anim_disappear who
    anim_hide who
    anim_setframe who, frameSTAND
    anim_setdir who, 0
@@ -1486,7 +1482,6 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
    anim_setz who, 0
    anim_setpos who, 320 + bslot(t(0)).w / 2, bslot(t(0)).y, 0
    anim_setframe who, frameSTAND
-   anim_appear who
    anim_unhide who
    anim_absmove who, bslot(t(0)).x, bslot(t(0)).y, 10, 1
    anim_waitforall
@@ -1517,11 +1512,9 @@ SUB anim_enemy (byval who as integer, attack as AttackData, bslot() as BattleSpr
   anim_absmove who, bslot(who).x + 50, bslot(who).y, 7, 7
   anim_zmove who, 10, 20
   anim_waitforall
-  anim_disappear who
   anim_hide who
  CASE atkrAnimLand
   anim_setz who, 200
-  anim_appear who
   anim_unhide who
   anim_setpos who, bslot(t(0)).x, bslot(t(0)).y, 0
   anim_zmove who, -10, 20
@@ -1530,13 +1523,11 @@ SUB anim_enemy (byval who as integer, attack as AttackData, bslot() as BattleSpr
   anim_setdir who, 1
   anim_absmove who, 0 - bslot(t(0)).w / 2, bslot(t(0)).y, 10, 1
   anim_waitforall
-  anim_disappear who
   anim_hide who
   anim_setdir who, 0
  CASE atkrAnimRunInUnhide
   anim_setz who, 0
   anim_setpos who, 0 - bslot(t(0)).w / 2, bslot(t(0)).y, 0
-  anim_appear who
   anim_unhide who
   anim_absmove who, bslot(t(0)).x, bslot(t(0)).y, 10, 1
   anim_waitforall
@@ -1579,7 +1570,6 @@ SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleS
  END IF
 
  IF attack.always_hide_attacker THEN
-  anim_disappear who
   anim_unhide who
  END IF
 
