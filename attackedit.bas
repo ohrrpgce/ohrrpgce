@@ -322,6 +322,7 @@ a_append atkbit(), -1, " Counter-effects"
 a_append atkbit(), 78, "Don't trigger spawning on hit"
 a_append atkbit(), 79, "Don't trigger spawning on kill"
 a_append atkbit(), 87, "Don't trigger elemental counterattacks"  'Also in Spawning & Counterattacks menu
+a_append atkbit(), 94, "Block actions as a counterattack in active mode"
 
 a_append atkbit(), -1, ""
 a_append atkbit(), -1, " Failure Conditions"

@@ -4632,14 +4632,14 @@ SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat
  END SELECT
 
  DIM blocking as bool = NO
- 'counterattacks are forced non-blocking for active-mode
+ 'counterattacks are forced non-blocking for active-mode (can be overridden by a bit later in autotarget)
  IF bat.turn.mode = turnTURN THEN blocking = YES 'But in turn-based mode, they are blocking
  '--first elementals
  IF NOT attack.never_trigger_elemental_counterattacks THEN
   FOR i as integer = 0 TO gen(genNumElements) - 1
    IF attack.elemental_damage(i) THEN
     IF bslot(who).elem_counter_attack(i) > 0 THEN
-     autotarget who, bslot(who).elem_counter_attack(i) - 1, bslot(), YES, blocking
+     autotarget who, bslot(who).elem_counter_attack(i) - 1, bslot(), YES, blocking, ,YES
      EXIT SUB '-- only one counterattack per trigger attack
     END IF
    END IF
@@ -4648,7 +4648,7 @@ SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat
  '--then non-elemental attack
  IF bat.atk.non_elemental THEN
   IF bslot(who).non_elem_counter_attack > 0 THEN
-   autotarget who, bslot(who).non_elem_counter_attack - 1, bslot(), YES, blocking
+   autotarget who, bslot(who).non_elem_counter_attack - 1, bslot(), YES, blocking, ,YES
    EXIT SUB '-- only one counterattack per trigger attack
   END IF
  END IF
@@ -4656,8 +4656,7 @@ SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat
  FOR i as integer = 0 TO 11
   IF h > 0 AND targstat = i THEN
    IF bslot(who).stat_counter_attack(i) > 0 THEN
-    'counterattacks are forced non-blocking
-    autotarget who, bslot(who).stat_counter_attack(i) - 1, bslot(), YES, blocking
+    autotarget who, bslot(who).stat_counter_attack(i) - 1, bslot(), YES, blocking, ,YES
     EXIT SUB '-- only one counterattack per trigger attack
    END IF
   END IF

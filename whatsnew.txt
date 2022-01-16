@@ -31,6 +31,7 @@ WHAT IS NEW?
     * New attack bitsets "Always Hide Attacker" and "Always Unhide Attacker"
       which can make any attack behave like Jump/Land regardless of animation
       [James]
+    * New attack bitset "Block actions as a counterattack in active mode" [James]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

@@ -3200,6 +3200,7 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .dont_display_fail              = xreadbit(buf(), 27, 65)
   .always_hide_attacker           = xreadbit(buf(), 28, 65)
   .always_unhide_attacker         = xreadbit(buf(), 29, 65)
+  .blocking_counterattack         = xreadbit(buf(), 30, 65)
 
   ' If didn't do a full upgrade, then these aren't initialised
   IF getfixbit(fixAttackMultipliers) = 0 THEN

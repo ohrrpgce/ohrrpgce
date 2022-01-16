@@ -816,6 +816,7 @@ Type AttackData
 	poison_is_negative_regen as bool
 	always_hide_attacker as bool
 	always_unhide_attacker as bool
+	blocking_counterattack as bool ' Only matters in active battle mode. Not relevant for turn-based
 End Type
 
 'An item in a hero's spell list definition (actual spell lists in HeroState.spells() array of integers)
