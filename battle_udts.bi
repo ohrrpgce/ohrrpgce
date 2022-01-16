@@ -84,7 +84,7 @@ TYPE BattleSprite
   hidden as bool ' For combatants, has been hidden by an attacker animation like "Jump" or "Run and Hide"
                  ' or any attack with "always hides attacker" bitset. Not targetable until unhidden
                  ' if true, excluded from all targetting except for attacks with attacker animation
-                 ' "Land" or "Unhide" or any attack with the "always unhide attacker" bit
+                 ' "Land" or "Run In" or any attack with the "always unhide attacker" bit
 
   '--stats
   stat as BattleStats

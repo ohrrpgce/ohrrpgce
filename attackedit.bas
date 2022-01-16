@@ -541,7 +541,7 @@ addcaption caption(), capindex, "Standing Cast"
 addcaption caption(), capindex, "Teleport"
 addcaption caption(), capindex, "Standing Strike"
 addcaption caption(), capindex, "Run and Hide (hides)"
-addcaption caption(), capindex, "Unhide (unhides)"
+addcaption caption(), capindex, "Run In (unhides)"
 
 CONST AtkLimAnimAttack = 15
 max(AtkLimAnimAttack) = 11

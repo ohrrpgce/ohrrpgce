@@ -1482,7 +1482,7 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
    anim_setframe who, frameSTAND
    anim_setdir who, 0
 
-  CASE atkrAnimUnhide
+  CASE atkrAnimRunInUnhide
    anim_setz who, 0
    anim_setpos who, 320 + bslot(t(0)).w / 2, bslot(t(0)).y, 0
    anim_setframe who, frameSTAND
@@ -1533,7 +1533,7 @@ SUB anim_enemy (byval who as integer, attack as AttackData, bslot() as BattleSpr
   anim_disappear who
   anim_hide who
   anim_setdir who, 0
- CASE atkrAnimUnhide
+ CASE atkrAnimRunInUnhide
   anim_setz who, 0
   anim_setpos who, 0 - bslot(t(0)).w / 2, bslot(t(0)).y, 0
   anim_appear who

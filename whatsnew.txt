@@ -26,7 +26,7 @@ WHAT IS NEW?
     * Slices can be marked as Templates, which makes them hidden and ignored for
       almost all purposes. Intended for use with "clone slice". [Ralph]
     * Text box connection editor can insert boxes with tag contitionals [James]
-    * New attacker animations "Run and Hide" and "Unhide" which behave the
+    * New attacker animations "Run and Hide" and "Run In" which behave the
       same as "Jump" and "Land" [James]
     * New attack bitsets "Always Hide Attacker" and "Always Unhide Attacker"
       which can make any attack behave like Jump/Land regardless of animation

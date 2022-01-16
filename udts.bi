@@ -685,7 +685,7 @@ Enum AttackerAnimation
 	atkrAnimTeleport = 8   ' (shows weapon)
 	atkrAnimStandingStrike = 9 ' (shows weapon)
 	atkrAnimRunAndHide = 10    ' (hides attacker)
-	atkrAnimUnHide = 11        ' (unhides attacker)
+	atkrAnimRunInUnHide = 11   ' (unhides attacker)
 End Enum
 
 Enum TransmogStatsRule
