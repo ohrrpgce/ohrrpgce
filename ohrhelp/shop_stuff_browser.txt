@@ -11,4 +11,6 @@ Click the "+New" button to add new stuff.
 
 Right-click for a pop-up menu that lets you choose if you want to "Pick" this stuff, or if you want to edit it.
 
+Or press CTRL+ENTER or SHIFT+ENTER or Ctrl+E to edit.
+
 Press CTRL+F or click "Filter" if you want to filter the list to only show stuff that matches a certain string of text.

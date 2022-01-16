@@ -229,14 +229,15 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     '+New menubar button or Add New button at end
     do_add = YES
    elseif IsAncestor(ps.cur, thinglist) then
-    if can_edit = NO orelse edit_by_default = NO then
+    if can_edit andalso (edit_by_default orelse keyval(scCtrl) > 0 orelse keyval(scShift) > 0) then
+     'Editing a thing
+     '(Ctrl/Shift-Enter edits, to behave the same as *grabber/want_to_enter_browser)
+     edit_record = ps.cur->Extra(0)
+     do_edit = YES
+    else
      'Selected a thing
      result = ps.cur->Extra(0)
      exit do
-    else
-     'Editing a thing
-     edit_record = ps.cur->Extra(0)
-     do_edit = YES
     end if
    elseif IsAncestor(ps.cur, back_holder) then
     'Cancel out of the browser
