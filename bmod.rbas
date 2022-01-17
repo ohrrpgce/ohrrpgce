@@ -5099,6 +5099,7 @@ SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot()
     .under_player_control = YES
    END WITH
   NEXT
+  bat.player_control_debug = YES ' makes spawned and transmogrified enemies player controlled also
   notification "Player Control Of All Enemies"
  END IF
  IF dbg.def(      , scF7, "Kill all targetable enemies (F7)") THEN

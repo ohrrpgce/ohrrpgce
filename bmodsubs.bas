@@ -30,7 +30,7 @@ DECLARE FUNCTION battle_distance(byval who1 as integer, byval who2 as integer, b
 DECLARE SUB transfer_enemy_bits(byref bspr as BattleSprite)
 DECLARE SUB transfer_enemy_counterattacks (byref bspr as BattleSprite)
 DECLARE SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
-DECLARE SUB reset_enemy_state(byref bspr as BattleSprite)
+DECLARE SUB reset_enemy_state(byref bspr as BattleSprite, byref bat as BattleState)
 DECLARE SUB change_foe_stat(bspr as BattleSprite, byval stat_num as integer, byval new_max as integer, byval stat_rule as TransmogStatsRule)
 
 DIM SHARED XY00 as XYpair
@@ -1888,7 +1888,7 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
    loadenemydata .enemy, formdata.slots(slot).id, YES
 
    setup_non_volatile_enemy_state bspr
-   reset_enemy_state bspr
+   reset_enemy_state bspr, bat
 
    '--Special handling for spawning already-dead enemies
    IF allow_dead = NO THEN
@@ -1969,7 +1969,7 @@ END SUB
 
 ' Called when loading or reloading (transmogrification) an enemy,
 ' sets up anything that should be reset when transmogrifying
-SUB reset_enemy_state(byref bspr as BattleSprite)
+SUB reset_enemy_state(byref bspr as BattleSprite, byref bat as BattleState)
  WITH bspr
   .vis = YES
   .d = 0
@@ -1978,7 +1978,11 @@ SUB reset_enemy_state(byref bspr as BattleSprite)
   .fleeing = NO
   .bequesting = NO
   .self_bequesting = NO
-  .under_player_control = NO
+  IF bat.player_control_debug THEN
+   .under_player_control = YES
+  ELSE
+   .under_player_control = NO
+  END IF
  END WITH
 END SUB
 
@@ -2021,7 +2025,7 @@ SUB changefoe(bat as BattleState, byval slot as integer, transmog as TransmogDat
   loadenemydata .enemy, formdata.slots(slot).id, YES
 
   setup_non_volatile_enemy_state bspr
-  reset_enemy_state bspr
+  reset_enemy_state bspr, bat
 
   DIM old_w as integer = .w
   DIM old_h as integer = .h

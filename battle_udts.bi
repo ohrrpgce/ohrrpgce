@@ -83,7 +83,7 @@ TYPE BattleSprite
                 'For other BattleSprites: is visible
   hidden as bool ' For combatants, has been hidden by an attacker animation like "Jump" or "Run and Hide"
                  ' or any attack with "always hides attacker" bitset. Not targetable until unhidden
-                 ' if true, excluded from all targetting except for attacks with attacker animation
+                 ' if true, excluded from all targetting except for attacks with attBaacker animation
                  ' "Land" or "Run In" or any attack with the "always unhide attacker" bit
 
   '--stats
@@ -367,6 +367,7 @@ TYPE BattleState
  inv_scroll_rect as RectType
  iuse(inventoryMax / 16) as integer 'bitsets for whether items can be used by the current hero
  show_info_mode as integer '0=nothing, 1=show_enemy_meters, 2=display_attack_queue
+ player_control_debug as bool
  'The following don't do anything right now, but are handy to leave in
  test_view_mode as integer 'used for debugging new display stuff with F12
  test_future as integer    'used for debugging new display stuff with F12
