@@ -53,7 +53,7 @@ DECLARE SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, page as integer)
 DECLARE SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
-DECLARE SUB hero_attack_targetting_done(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB player_attack_targetting_done(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
@@ -765,7 +765,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
    update_turn_delays_in_attack_queue bat.player_turn
   END IF
   autotarget bat.player_turn, bslot(bat.player_turn).attack - 1, bslot()
-  hero_attack_targetting_done bat, bslot()
+  player_attack_targetting_done bat, bslot()
   EXIT SUB
  END IF
  
@@ -951,11 +951,11 @@ SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
  NEXT slot
  queue_attack bslot(bat.player_turn).attack - 1, bat.player_turn, targs()
 
- hero_attack_targetting_done bat, bslot()
+ player_attack_targetting_done bat, bslot()
 END SUB
 
 'This is called to cleanup after a hero attack has been targetted and put on atkq
-SUB hero_attack_targetting_done(byref bat as BattleState, bslot() as BattleSprite)
+SUB player_attack_targetting_done(byref bat as BattleState, bslot() as BattleSprite)
  IF bat.turn.mode = turnACTIVE THEN
   'For debug only
   bslot(bat.player_turn).active_turn_num += 1
