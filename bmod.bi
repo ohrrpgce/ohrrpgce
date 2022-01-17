@@ -78,4 +78,7 @@ DECLARE FUNCTION bslot_attack_cost_info(bslot() as BattleSprite, byref atk as At
 
 DECLARE FUNCTION attack_placement_over_target(attack as AttackData, targslot as integer, bat as BattleState, bslot() as BattleSprite, byval reverse as integer=0) as XYZTriple
 
+DECLARE SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, hero as HeroDef)
+DECLARE SUB populate_battle_menu_menudef_for_enemy (byval enemy_id as integer, bspr as BattleSprite)
+
 #ENDIF

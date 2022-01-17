@@ -96,7 +96,6 @@ DECLARE FUNCTION hero_or_enemy_can_take_a_turn (byval who as integer, bat as Bat
 DECLARE SUB cancel_blocking_attacks_for_hero_or_enemy(byval who as integer)
 DECLARE SUB update_turn_delays_in_attack_queue (byval who as integer)
 DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as bool
-DECLARE SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, hero as HeroDef)
 DECLARE SUB update_battle_menu (bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE FUNCTION enemy_is_weak(byval who as integer, bslot() as BattleSprite) as bool
@@ -206,7 +205,15 @@ FUNCTION battle (byval form as integer) as bool
   END SELECT
   
   IF bat.vic.state = vicNONE THEN
-   IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), formdata
+   IF bat.enemy_turn >= 0 THEN
+    IF bslot(bat.enemy_turn).under_player_control THEN
+     IF bat.targ.mode = targNONE THEN
+      bat.hero_turn = bat.enemy_turn
+     END IF
+    ELSE
+     enemy_ai bat, bslot(), formdata
+    END IF
+   END IF
    IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
     IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, bslot()
     IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, st(), bslot()
@@ -630,7 +637,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
   END IF
 
   IF trytheft(bat, bat.acting, targ, attack, bslot()) THEN
-   IF bat.hero_turn >= 0 THEN
+   IF bat.hero_turn >= 0 AND bat.hero_turn <= 3 THEN
     checkitemusability bat.iuse(), bslot(), bat.hero_turn
    END IF
   END IF
@@ -744,7 +751,7 @@ SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot()
 END SUB
 
 SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
- 'Just for heroes
+ 'Not just for heroes anymore!
 
  DIM do_cancel as bool = NO
  DIM do_pick as bool = NO
@@ -762,7 +769,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
   EXIT SUB
  END IF
  
- 'check to see if the hero is still allowed to do the attack.
+ 'check to see if the attacker is still allowed to do the attack.
  'This may have changed since we started targetting because the attacker
  'might have been muted, or hit with an MP-damaging attack
  ' (FIXME: Does not attempt to re-check LMP)
@@ -958,6 +965,7 @@ SUB hero_attack_targetting_done(byref bat as BattleState, bslot() as BattleSprit
  bslot(bat.hero_turn).attack = 0
  bslot(bat.hero_turn).ready_meter = 0
  bslot(bat.hero_turn).ready = NO
+ IF bat.hero_turn = bat.enemy_turn THEN bat.enemy_turn = -1
  bat.hero_turn = -1
  bat.targ.mode = targNONE
  bat.targ.hit_dead = NO
@@ -1541,6 +1549,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     (.pos) = .basepos
     .vis = YES
 
+    .under_player_control = YES 'Setting this to NO doesn't change anything yet for heroes
     .death_sfx = -1 'No death sounds for heroes (for now)
     .cursorpos.x = 0
     .cursorpos.y = 0
@@ -1693,6 +1702,56 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
 
   END WITHNODE
  END READNODE
+END SUB
+
+SUB populate_battle_menu_menudef_for_enemy (byval enemy_id as integer, bspr as BattleSprite)
+
+ ClearMenuData bspr.batmenu
+ 
+ WITH bspr.batmenu
+  .offset.x = -8
+  .offset.y = 5
+  .alignhoriz = alignRight
+  .alignvert = alignTop
+  .anchorhoriz = alignRight
+  .anchorvert = alignTop
+  .textalign = alignLeft
+  .bordersize = -5
+  .itemspacing = -2
+  .highlight_selection = YES
+  .min_chars = 10
+  .maxrows = 23
+ END WITH
+
+ 'FIXME should only use the current AI type
+
+ DIM atk_id as integer
+ DIM caption as string
+
+ FOR i as integer = 0 TO UBOUND(bspr.enemy.regular_ai)
+  IF bspr.enemy.regular_ai(i) > 0 THEN
+   atk_id = bspr.enemy.regular_ai(i) - 1
+   caption = readattackname(atk_id)
+   append_menu_item(bspr.batmenu, caption, batmenu_ATTACK, atk_id)
+  END IF
+ NEXT i
+
+ FOR i as integer = 0 TO UBOUND(bspr.enemy.desperation_ai)
+  IF bspr.enemy.desperation_ai(i) > 0 THEN
+   atk_id = bspr.enemy.desperation_ai(i) - 1
+   caption = readattackname(atk_id)
+   append_menu_item(bspr.batmenu, caption, batmenu_ATTACK, atk_id)
+  END IF
+ NEXT i
+
+ FOR i as integer = 0 TO UBOUND(bspr.enemy.alone_ai)
+  IF bspr.enemy.alone_ai(i) > 0 THEN
+   atk_id = bspr.enemy.alone_ai(i) - 1
+   caption = readattackname(atk_id)
+   append_menu_item(bspr.batmenu, caption, batmenu_ATTACK, atk_id)
+  END IF
+ NEXT i
+
 END SUB
 
 ' Updates which menu items are enabled
@@ -5033,6 +5092,14 @@ SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot()
  IF dbg.def(      , scF6, temp & " (F6)") THEN
   bat.turn.mode XOR= 1
   notification "bat.turn.mode=" & bat.turn.mode
+ END IF
+ IF dbg.def(SftCtl, scF6, "Player control of enemies (Shft/Ctrl-F6)") THEN
+  FOR slot as integer = 4 TO 11
+   WITH bslot(slot)
+    .under_player_control = YES
+   END WITH
+  NEXT
+  notification "Player Control Of All Enemies"
  END IF
  IF dbg.def(      , scF7, "Kill all targetable enemies (F7)") THEN
   FOR slot as integer = 4 TO 11

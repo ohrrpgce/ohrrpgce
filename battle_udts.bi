@@ -98,6 +98,7 @@ TYPE BattleSprite
   '--battle menu
   batmenu as MenuDef
   menust as MenuState
+  under_player_control as bool
   '--misc
   dissolve as integer      'Ticks left in death dissolving animation (for enemies).
                            'Set to 1 for dead heroes, to make them visible and use death frame, and does not count down (yuck)

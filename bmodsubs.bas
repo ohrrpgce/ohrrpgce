@@ -1924,6 +1924,9 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
     .stat.cur.sta(i) = .enemy.stat.sta(i)
     .stat.max.sta(i) = .enemy.stat.sta(i)
    NEXT i
+
+   populate_battle_menu_menudef_for_enemy slot, bspr
+
   END WITH
  END IF
 END SUB
@@ -1975,6 +1978,7 @@ SUB reset_enemy_state(byref bspr as BattleSprite)
   .fleeing = NO
   .bequesting = NO
   .self_bequesting = NO
+  .under_player_control = NO
  END WITH
 END SUB
 
