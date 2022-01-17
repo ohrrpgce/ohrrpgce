@@ -96,6 +96,7 @@ a_append enemybits(), 63, "Never flinch when attacked"
 
 a_append enemybits(), -1, ""
 a_append enemybits(), -1, " Behavior"
+a_append enemybits(), 66, "Controlled by the player"
 a_append enemybits(), 55, "MP idiot"
 a_append enemybits(), 58, "Die without boss"
 

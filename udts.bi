@@ -967,6 +967,7 @@ TYPE EnemyDef
   give_rewards_even_if_alive as bool
   never_flinch   as bool
   ignore_for_alone    as bool
+  controlled_by_player as bool
 
   Declare Constructor()
 END TYPE

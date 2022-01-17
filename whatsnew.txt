@@ -32,6 +32,7 @@ WHAT IS NEW?
       which can make any attack behave like Jump/Land regardless of animation
       [James]
     * New attack bitset "Block actions as a counterattack in active mode" [James]
+    * New Enemy bitset "Controlled By Player" [James]
     * New Battle debug-key Shift/Ctrl-F6 lets the player take control of all
       enemies in the battle [James]
 

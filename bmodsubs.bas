@@ -1978,11 +1978,9 @@ SUB reset_enemy_state(byref bspr as BattleSprite, byref bat as BattleState)
   .fleeing = NO
   .bequesting = NO
   .self_bequesting = NO
-  IF bat.player_control_debug THEN
-   .under_player_control = YES
-  ELSE
-   .under_player_control = NO
-  END IF
+  .under_player_control = NO
+  IF bspr.enemy.controlled_by_player THEN .under_player_control = YES
+  IF bat.player_control_debug THEN .under_player_control = YES
  END WITH
 END SUB
 

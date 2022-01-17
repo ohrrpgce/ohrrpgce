@@ -4096,6 +4096,7 @@ SUB convertenemydata (buf() as integer, enemy as EnemyDef)
   .never_flinch        = xreadbit(buf(), 63, 74)
   .ignore_for_alone    = xreadbit(buf(), 64, 74)
   .give_rewards_even_if_alive = xreadbit(buf(), 65, 74)
+  .controlled_by_player       = xreadbit(buf(), 66, 74)
 
   '--elementals
   IF getfixbit(fixEnemyElementals) THEN
