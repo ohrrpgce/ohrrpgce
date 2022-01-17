@@ -98,10 +98,11 @@ DECLARE SUB update_turn_delays_in_attack_queue (byval who as integer)
 DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as bool
 DECLARE SUB update_battle_menu (bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
-DECLARE FUNCTION enemy_is_weak(byval who as integer, bslot() as BattleSprite) as bool
+DECLARE FUNCTION enemy_is_weak(byref bspr as BattleSprite) as bool
 DECLARE FUNCTION check_for_unhittable_invisible_foe(attacker as integer, target as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE FUNCTION is_among_targets(byval slot as integer, t() as integer) as bool
 DECLARE FUNCTION should_victory_advance(byref bat as BattleState) as bool
+DECLARE SUB append_enemy_attacks_to_battle_menu(ai_attack_list() as integer, byref bspr as BattleSprite)
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
 
@@ -209,6 +210,8 @@ FUNCTION battle (byval form as integer) as bool
     IF bslot(bat.enemy_turn).under_player_control THEN
      IF bat.targ.mode = targNONE THEN
       bat.player_turn = bat.enemy_turn
+      'Regenerate the enemy menu, in case it has changed
+      populate_battle_menu_menudef_for_enemy bat, bslot(), bslot(bat.enemy_turn)
      END IF
     ELSE
      enemy_ai bat, bslot(), formdata
@@ -1704,7 +1707,7 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
  END READNODE
 END SUB
 
-SUB populate_battle_menu_menudef_for_enemy (byval enemy_id as integer, bspr as BattleSprite)
+SUB populate_battle_menu_menudef_for_enemy (byref bat as BattleState, bslot() as BattleSprite,  byref bspr as BattleSprite)
 
  ClearMenuData bspr.batmenu
  
@@ -1723,35 +1726,49 @@ SUB populate_battle_menu_menudef_for_enemy (byval enemy_id as integer, bspr as B
   .maxrows = 23
  END WITH
 
- 'FIXME should only use the current AI type
+ 'Which attack list to use
+ DIM ai as EnemyAIEnum = aiNormal
+ 'if HP is less than the threshold, go into desperation mode
+ IF enemy_is_weak(bslot(bat.enemy_turn)) THEN ai = aiWeak
+ 'Go into alone mode if no other enemies without "Ignored for "Alone" AI" bitset
+ IF targenemycount(bslot(), YES) <= 1 THEN ai = aiAlone
+ 'make sure that the current ai set is valid
+ 'otherwise fall back on another
+ IF count_attacks_in_ai_list(ai, bat.enemy_turn, bslot()) = 0 THEN
+  ai = aiNormal
+  IF enemy_is_weak(bslot(bat.enemy_turn)) THEN
+   ai = aiWeak
+   IF count_attacks_in_ai_list(ai, bat.enemy_turn, bslot()) = 0 THEN ai = aiNormal
+  END IF
+ END IF
+ 'if no valid ai set is available, the enemy loses its turn
+ IF count_attacks_in_ai_list(ai, bat.enemy_turn, bslot()) = 0 THEN
+  IF bat.player_turn = bat.enemy_turn THEN bat.player_turn = -1
+  bat.enemy_turn = -1
+  EXIT SUB
+ END IF
 
+ SELECT CASE ai
+  CASE aiNormal:
+   append_enemy_attacks_to_battle_menu bspr.enemy.regular_ai(), bspr
+  CASE aiWeak:
+   append_enemy_attacks_to_battle_menu bspr.enemy.desperation_ai(), bspr
+  CASE aiAlone:
+   append_enemy_attacks_to_battle_menu bspr.enemy.alone_ai(), bspr
+ END SELECT
+
+END SUB
+
+SUB append_enemy_attacks_to_battle_menu(ai_attack_list() as integer, byref bspr as BattleSprite)
  DIM atk_id as integer
  DIM caption as string
-
- FOR i as integer = 0 TO UBOUND(bspr.enemy.regular_ai)
-  IF bspr.enemy.regular_ai(i) > 0 THEN
-   atk_id = bspr.enemy.regular_ai(i) - 1
+ FOR i as integer = 0 TO UBOUND(ai_attack_list)
+  IF ai_attack_list(i) > 0 THEN
+   atk_id = ai_attack_list(i) - 1
    caption = readattackname(atk_id)
    append_menu_item(bspr.batmenu, caption, batmenu_ATTACK, atk_id)
   END IF
  NEXT i
-
- FOR i as integer = 0 TO UBOUND(bspr.enemy.desperation_ai)
-  IF bspr.enemy.desperation_ai(i) > 0 THEN
-   atk_id = bspr.enemy.desperation_ai(i) - 1
-   caption = readattackname(atk_id)
-   append_menu_item(bspr.batmenu, caption, batmenu_ATTACK, atk_id)
-  END IF
- NEXT i
-
- FOR i as integer = 0 TO UBOUND(bspr.enemy.alone_ai)
-  IF bspr.enemy.alone_ai(i) > 0 THEN
-   atk_id = bspr.enemy.alone_ai(i) - 1
-   caption = readattackname(atk_id)
-   append_menu_item(bspr.batmenu, caption, batmenu_ATTACK, atk_id)
-  END IF
- NEXT i
-
 END SUB
 
 ' Updates which menu items are enabled
@@ -2656,9 +2673,9 @@ END SUB
 '==============================================================================
 '                                   Enemy AI
 
-FUNCTION enemy_is_weak(byval who as integer, bslot() as BattleSprite) as bool
+FUNCTION enemy_is_weak(byref bspr as BattleSprite) as bool
  DIM weakhp as integer = gen(genEnemyWeakHP)
- IF bslot(who).stat.cur.hp < 0.01 * bslot(who).stat.max.hp * weakhp THEN RETURN YES
+ IF bspr.stat.cur.hp < 0.01 * bspr.stat.max.hp * weakhp THEN RETURN YES
  RETURN NO
 END FUNCTION
 
@@ -2668,7 +2685,7 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
  DIM ai as EnemyAIEnum = aiNormal
 
  'if HP is less than the threshold, go into desperation mode
- IF enemy_is_weak(bat.enemy_turn, bslot()) THEN ai = aiWeak
+ IF enemy_is_weak(bslot(bat.enemy_turn)) THEN ai = aiWeak
 
  'Go into alone mode if no other enemies without "Ignored for "Alone" AI" bitset
  IF targenemycount(bslot(), YES) <= 1 THEN ai = aiAlone
@@ -2691,7 +2708,7 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
  'otherwise fall back on another
  IF count_attacks_in_ai_list(ai, bat.enemy_turn, bslot()) = 0 THEN
   ai = aiNormal
-  IF enemy_is_weak(bat.enemy_turn, bslot()) THEN
+  IF enemy_is_weak(bslot(bat.enemy_turn)) THEN
    ai = aiWeak
    IF count_attacks_in_ai_list(ai, bat.enemy_turn, bslot()) = 0 THEN ai = aiNormal
   END IF
