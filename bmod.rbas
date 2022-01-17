@@ -69,8 +69,8 @@ DECLARE SUB battle_background_anim(byref bat as BattleState, formdata as Formati
 DECLARE FUNCTION battle_run_away(byref bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE SUB battle_animate_running_away (bslot() as BattleSprite)
 DECLARE SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
-DECLARE SUB battle_check_for_hero_turns(byref bat as BattleState, bslot() as BattleSprite)
-DECLARE FUNCTION battle_check_a_hero_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as bool
+DECLARE SUB battle_check_for_player_turns(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE FUNCTION battle_check_a_player_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as bool
 DECLARE SUB battle_check_for_enemy_turns(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE FUNCTION battle_check_an_enemy_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as bool
 DECLARE SUB battle_attack_cancel_target_attack(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, byref attack as AttackData)
@@ -208,18 +208,18 @@ FUNCTION battle (byval form as integer) as bool
    IF bat.enemy_turn >= 0 THEN
     IF bslot(bat.enemy_turn).under_player_control THEN
      IF bat.targ.mode = targNONE THEN
-      bat.hero_turn = bat.enemy_turn
+      bat.player_turn = bat.enemy_turn
      END IF
     ELSE
      enemy_ai bat, bslot(), formdata
     END IF
    END IF
-   IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
+   IF bat.player_turn >= 0 AND bat.targ.mode = targNONE THEN
     IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, bslot()
     IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, st(), bslot()
     IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), st()
    END IF
-   IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN battle_targetting bat, bslot()
+   IF bat.player_turn >= 0 AND bat.targ.mode > targNONE THEN battle_targetting bat, bslot()
   END IF
  
   IF bat.test_view_mode = 1 THEN bat.test_future = NOT bat.test_future
@@ -637,8 +637,8 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
   END IF
 
   IF trytheft(bat, bat.acting, targ, attack, bslot()) THEN
-   IF bat.hero_turn >= 0 AND bat.hero_turn <= 3 THEN
-    checkitemusability bat.iuse(), bslot(), bat.hero_turn
+   IF bat.player_turn >= 0 AND bat.player_turn <= 3 THEN
+    checkitemusability bat.iuse(), bslot(), bat.player_turn
    END IF
   END IF
  ELSE
@@ -762,9 +762,9 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
   'battle_confirm_targets doesn't get called, so some logic from that needs to be duplicated here
   'NOTE: battle_confirm_targets should be updated to match, if this block is changed.
   IF bat.turn.mode = turnACTIVE THEN
-   update_turn_delays_in_attack_queue bat.hero_turn
+   update_turn_delays_in_attack_queue bat.player_turn
   END IF
-  autotarget bat.hero_turn, bslot(bat.hero_turn).attack - 1, bslot()
+  autotarget bat.player_turn, bslot(bat.player_turn).attack - 1, bslot()
   hero_attack_targetting_done bat, bslot()
   EXIT SUB
  END IF
@@ -775,9 +775,9 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  ' (FIXME: Does not attempt to re-check LMP)
  ' FIXME: We shouldn't be checking costs here in all cases, eg an item-triggered
  ' attack that doesn't use costs (bug #1161, #1098)
- IF NOT atkallowed(bat.targ.atk, bat.hero_turn, 0, 0, bslot()) THEN
-  bslot(bat.hero_turn).attack = 0
-  bslot(bat.hero_turn).consume_lmp = -1
+ IF NOT atkallowed(bat.targ.atk, bat.player_turn, 0, 0, bslot()) THEN
+  bslot(bat.player_turn).attack = 0
+  bslot(bat.player_turn).consume_lmp = -1
   bat.targ.mode = targNONE
   clearkeys
   EXIT SUB
@@ -912,8 +912,8 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  IF carray(ccCancel) > 1 THEN do_cancel = YES
  IF do_cancel THEN
   menusound gen(genCancelSFX)
-  bslot(bat.hero_turn).attack = 0
-  bslot(bat.hero_turn).consume_lmp = -1
+  bslot(bat.player_turn).attack = 0
+  bslot(bat.player_turn).consume_lmp = -1
   bat.targ.mode = targNONE
   clearkeys
   EXIT SUB
@@ -935,7 +935,7 @@ SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
  'Note: when changing this SUB you also need to update the 'bat.targ.mode = targAUTO' block above.
 
  IF bat.turn.mode = turnACTIVE THEN
-  update_turn_delays_in_attack_queue bat.hero_turn
+  update_turn_delays_in_attack_queue bat.player_turn
  END IF
 
  bat.targ.selected(bat.targ.pointer) = YES
@@ -949,7 +949,7 @@ SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
    targnum += 1
   END IF
  NEXT slot
- queue_attack bslot(bat.hero_turn).attack - 1, bat.hero_turn, targs()
+ queue_attack bslot(bat.player_turn).attack - 1, bat.player_turn, targs()
 
  hero_attack_targetting_done bat, bslot()
 END SUB
@@ -958,15 +958,15 @@ END SUB
 SUB hero_attack_targetting_done(byref bat as BattleState, bslot() as BattleSprite)
  IF bat.turn.mode = turnACTIVE THEN
   'For debug only
-  bslot(bat.hero_turn).active_turn_num += 1
-  'debug "Hero " & bat.hero_turn & " " & bslot(bat.hero_turn).name & " turn #" & bslot(bat.hero_turn).active_turn_num
+  bslot(bat.player_turn).active_turn_num += 1
+  'debug "Hero " & bat.player_turn & " " & bslot(bat.player_turn).name & " turn #" & bslot(bat.player_turn).active_turn_num
  END IF
 
- bslot(bat.hero_turn).attack = 0
- bslot(bat.hero_turn).ready_meter = 0
- bslot(bat.hero_turn).ready = NO
- IF bat.hero_turn = bat.enemy_turn THEN bat.enemy_turn = -1
- bat.hero_turn = -1
+ bslot(bat.player_turn).attack = 0
+ bslot(bat.player_turn).ready_meter = 0
+ bslot(bat.player_turn).ready = NO
+ IF bat.player_turn = bat.enemy_turn THEN bat.enemy_turn = -1
+ bat.player_turn = -1
  bat.targ.mode = targNONE
  bat.targ.hit_dead = NO
 END SUB
@@ -1026,7 +1026,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
      END IF
 
      '--name--
-     IF i = bat.hero_turn ANDALSO bat.menu_mode = batMENUHERO THEN
+     IF i = bat.player_turn ANDALSO bat.menu_mode = batMENUHERO THEN
       col = uilook(uiSelectedItem + bat.tog)
      ELSE
       col = uilook(uiMenuItem)
@@ -1074,9 +1074,9 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
   END IF
 
   '--Draw menus for a hero that is currently taking a turn
-  IF bat.hero_turn >= 0 THEN
+  IF bat.player_turn >= 0 THEN
 
-   WITH bslot(bat.hero_turn)
+   WITH bslot(bat.player_turn)
     update_battle_menu bat, bslot()
     .menust.active = (bat.menu_mode = batMENUHERO)
     draw_menu .batmenu, .menust, page
@@ -1227,7 +1227,7 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
      'FIXME: this doesn't belong here, because this happens only once per second!
      'Stun should be a continuous block
      bslot(i).ready = NO
-     IF bat.hero_turn = i THEN bat.hero_turn = -1
+     IF bat.player_turn = i THEN bat.player_turn = -1
      IF bat.enemy_turn = i THEN bat.enemy_turn = -1
     END IF
    END WITH
@@ -1354,7 +1354,7 @@ SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata as F
  'This shows meters and extra debug info info when you press F10 the first time
  DIM c as integer
  DIM info as string
- info = bat.targ.mode & " " & bat.hero_turn & " " & bat.atk.id
+ info = bat.targ.mode & " " & bat.player_turn & " " & bat.atk.id
  edgeprint info, 10, 70, uilook(uiText), page
  FOR i as integer = 0 TO 11
   WITH bslot(i)
@@ -1756,7 +1756,7 @@ END SUB
 
 ' Updates which menu items are enabled
 SUB update_battle_menu (bat as BattleState, bslot() as BattleSprite)
- WITH bslot(bat.hero_turn)
+ WITH bslot(bat.player_turn)
   DIM atk as AttackData
   FOR i as integer = 0 TO .batmenu.numitems - 1
    WITH *.batmenu.items[i]
@@ -1765,7 +1765,7 @@ SUB update_battle_menu (bat as BattleState, bslot() as BattleSprite)
      loadattackdata atk, .sub_t
      ' FIXME: isn't this bitset misnamed, since it affects all battle menu attacks?
      IF atk.check_costs_as_weapon THEN
-      IF atkallowed(atk, bat.hero_turn, 0, 0, bslot()) = 0 THEN
+      IF atkallowed(atk, bat.player_turn, 0, 0, bslot()) = 0 THEN
        .disabled = YES
       END IF
      END IF
@@ -2069,7 +2069,7 @@ SUB reset_battle_state (byref bat as BattleState)
   .alert = ""
 
   .acting = 0
-  .hero_turn = -1
+  .player_turn = -1
   .enemy_turn = -1
   .next_hero = 0
   .next_enemy = 0
@@ -2580,8 +2580,8 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
   END WITH
  NEXT i
  '-- if it is a dead hero's turn, cancel menu
- IF bat.hero_turn = deadguy THEN
-  bat.hero_turn = -1
+ IF bat.player_turn = deadguy THEN
+  bat.player_turn = -1
   bat.menu_mode = batMENUHERO
   bat.targ.mode = targNONE
  END IF
@@ -2773,12 +2773,12 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef
  DIM do_pick as bool = NO
  DIM do_close as bool = NO
   
- WITH bslot(bat.hero_turn)
+ WITH bslot(bat.player_turn)
   IF .stat.cur.stun < .stat.max.stun THEN
    'Normally a hero cannot get a turn when stunned, but this extra check is needed
    'for the race condition that happens when a hero gets stunned while it is their tirn in turnACTIVE mode
-   bat.next_hero = bat.hero_turn
-   bat.hero_turn = -1
+   bat.next_hero = bat.player_turn
+   bat.player_turn = -1
    EXIT SUB
   END IF
 
@@ -2811,8 +2811,8 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef
   IF do_close THEN
    '--skip turn
    'debug "Requested to cancel picking attacks"
-   bat.next_hero = bat.hero_turn
-   bat.hero_turn = -1
+   bat.next_hero = bat.player_turn
+   bat.player_turn = -1
    IF bat.turn.mode = turnTURN THEN
     IF prefbit(48) = NO THEN  '"!Press ESC to cancel/change a hero's attack"
      '--Switch into "reverse", meaning go back to the previous hero
@@ -2831,7 +2831,7 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef
     IF NOT .disabled THEN
      SELECT CASE .t
       CASE batmenu_ATTACK:
-       bslot(bat.hero_turn).attack = .sub_t + 1
+       bslot(bat.player_turn).attack = .sub_t + 1
        bat.targ.mode = targSETUP
        clearkeys
        EXIT SUB
@@ -2842,7 +2842,7 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef
        bat.menu_mode = batMENUITEM
        bat.item.pt = 0
        bat.item.top = 0
-       checkitemusability bat.iuse(), bslot(), bat.hero_turn
+       checkitemusability bat.iuse(), bslot(), bat.player_turn
        bat.item_desc = ""
        IF inventory(bat.item.pt).used THEN
         bat.item_desc = readitemdescription(inventory(bat.item.pt).id)
@@ -2859,7 +2859,7 @@ END SUB
 SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
  DIM atk as AttackData
  DIM i as integer
- DIM list_type as integer = st(bat.hero_turn).list_type(bat.listslot)
+ DIM list_type as integer = st(bat.player_turn).list_type(bat.listslot)
  IF list_type < 2 THEN '--the type of this spell list is one that displays a menu
   bat.menu_mode = batMENUSPELL
   bat.sptr = 0
@@ -2870,13 +2870,13 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
     .desc = ""
     .cost = ""
     .enable = NO
-    .atk_id = gam.hero(bat.hero_turn).spells(bat.listslot, i) - 1
+    .atk_id = gam.hero(bat.player_turn).spells(bat.listslot, i) - 1
     IF .atk_id >= 0 THEN '--there is a spell in this slot
      loadattackdata atk, .atk_id
      .name = atk.name
      .desc = atk.description
-     .cost = bslot_attack_cost_info(bslot(), atk, bat.hero_turn, list_type, i \ 3)
-     .enable = atk.useable_inside_battle ANDALSO atkallowed(atk, bat.hero_turn, list_type, i \ 3, bslot())
+     .cost = bslot_attack_cost_info(bslot(), atk, bat.player_turn, list_type, i \ 3)
+     .enable = atk.useable_inside_battle ANDALSO atkallowed(atk, bat.player_turn, list_type, i \ 3, bslot())
     END IF
     .name = rpad(.name, " ", 10)
    END WITH
@@ -2887,7 +2887,7 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
   DIM spells as integer vector
   v_new spells
   FOR i = 0 TO UBOUND(bat.spell.slot)
-   DIM atkid as integer = gam.hero(bat.hero_turn).spells(bat.listslot, i) - 1
+   DIM atkid as integer = gam.hero(bat.player_turn).spells(bat.listslot, i) - 1
    IF atkid >= 0 THEN
     loadattackdata atk, atkid
     'FIXME (bug sf#2039): why don't we even call atkallowed here??
@@ -2895,7 +2895,7 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
    END IF
   NEXT i
   IF v_len(spells) > 0 THEN
-   bslot(bat.hero_turn).attack = spells[randint(v_len(spells))] + 1
+   bslot(bat.player_turn).attack = spells[randint(v_len(spells))] + 1
    bat.targ.mode = targSETUP
    clearkeys
   END IF
@@ -3010,16 +3010,16 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
   ELSE
    DIM atk as AttackData
    loadattackdata atk, atk_id
-   DIM list_type as integer = st(bat.hero_turn).list_type(bat.listslot)
+   DIM list_type as integer = st(bat.player_turn).list_type(bat.listslot)
    DIM lmp as integer = bat.sptr \ 3
    IF atk.useable_inside_battle ANDALSO _
-      atkallowed(atk, bat.hero_turn, list_type, lmp, bslot()) THEN
+      atkallowed(atk, bat.player_turn, list_type, lmp, bslot()) THEN
     '--attack is allowed
     menusound gen(genAcceptSFX)
     '--if lmp then set lmp consume flag
-    IF list_type = 1 THEN bslot(bat.hero_turn).consume_lmp = lmp
+    IF list_type = 1 THEN bslot(bat.player_turn).consume_lmp = lmp
     '--queue attack
-    bslot(bat.hero_turn).attack = atk_id + 1
+    bslot(bat.player_turn).attack = atk_id + 1
     '--exit spell menu
     bat.targ.mode = targSETUP
     bat.menu_mode = batMENUHERO
@@ -3140,7 +3140,7 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
  IF do_cancel THEN
   bat.menu_mode = batMENUHERO
   clearkeys
-  bslot(bat.hero_turn).consume_item = -1 ' -1 here indicates that this hero will not consume any item
+  bslot(bat.player_turn).consume_item = -1 ' -1 here indicates that this hero will not consume any item
   menusound gen(genCancelSFX)
   EXIT SUB
  END IF
@@ -3151,8 +3151,8 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
 
    DIM itembuf(dimbinsize(binITM)) as integer
    loaditemdata itembuf(), inventory(bat.item.pt).id
-   bslot(bat.hero_turn).consume_item = IIF(itembuf(73) = 1, bat.item.pt, -1)
-   bslot(bat.hero_turn).attack = itembuf(47)
+   bslot(bat.player_turn).consume_item = IIF(itembuf(73) = 1, bat.item.pt, -1)
+   bslot(bat.player_turn).attack = itembuf(47)
    bat.targ.mode = targSETUP
    bat.menu_mode = batMENUHERO
    clearkeys
@@ -3847,10 +3847,10 @@ SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
  bat.targ.hit_dead = NO
 
  'load attack
- loadattackdata bat.targ.atk, bslot(bat.hero_turn).attack - 1
+ loadattackdata bat.targ.atk, bslot(bat.player_turn).attack - 1
 
- get_valid_targs bat.targ.mask(), bat.hero_turn, bat.targ.atk, bslot()
- bat.targ.hit_dead = attack_can_hit_dead(bat.hero_turn, bat.targ.atk, bslot(bat.hero_turn).stored_targs_can_be_dead)
+ get_valid_targs bat.targ.mask(), bat.player_turn, bat.targ.atk, bslot()
+ bat.targ.hit_dead = attack_can_hit_dead(bat.player_turn, bat.targ.atk, bslot(bat.player_turn).stored_targs_can_be_dead)
 
  '--attacks that can target all/all-including-dead should default to the first enemy
  IF bat.targ.atk.targ_class = 3 OR bat.targ.atk.targ_class = 14 THEN
@@ -3875,7 +3875,7 @@ SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
  IF bat.targ.atk.targ_set = 3 THEN bat.targ.roulette = YES
  IF bat.targ.atk.targ_set = 4 THEN bat.targ.force_first = YES
 
- bat.targ.pointer = find_preferred_target(bat.targ.mask(), bat.hero_turn, bat.targ.atk, bslot())
+ bat.targ.pointer = find_preferred_target(bat.targ.mask(), bat.player_turn, bat.targ.atk, bslot())
  'fail if no targets are found
  IF bat.targ.pointer = -1 THEN
   bat.targ.mode = targNONE
@@ -4343,7 +4343,7 @@ FUNCTION battle_meters_can_advance(byref bat as BattleState, bslot() as BattleSp
  ' -regen, poison, stun, mute and attack delay timers should count down
  ' -when ready_meter_may_grow() = YES, ready meters for heroes and enemies can grow
 
- DIM hero_has_a_turn as bool = bat.hero_turn >= 0
+ DIM hero_has_a_turn as bool = bat.player_turn >= 0
  
  IF NOT hero_has_a_turn THEN RETURN YES
  
@@ -4476,9 +4476,9 @@ SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
 END SUB
 
 'Get the next ready hero, if any, to start their turn
-SUB battle_check_for_hero_turns(byref bat as BattleState, bslot() as BattleSprite)
+SUB battle_check_for_player_turns(byref bat as BattleState, bslot() as BattleSprite)
  loopvar bat.next_hero, 0, 3
- IF bat.hero_turn > -1 THEN
+ IF bat.player_turn > -1 THEN
   '--somebody is already taking their turn
   EXIT SUB
  END IF
@@ -4490,13 +4490,13 @@ SUB battle_check_for_hero_turns(byref bat as BattleState, bslot() as BattleSprit
 
  '--if it is not currently any hero's turn, check to see if anyone is alive and ready
  FOR i as integer = 0 TO 3
-  IF battle_check_a_hero_turn(bat, bslot(), (i + bat.next_hero) MOD 4) THEN
+  IF battle_check_a_player_turn(bat, bslot(), (i + bat.next_hero) MOD 4) THEN
    EXIT FOR
   END IF
  NEXT i
 END SUB
 
-'Note that this doesn't check everything - see battle_check_for_hero_turns
+'Note that this doesn't check everything - see battle_check_for_player_turns
 FUNCTION hero_or_enemy_can_take_a_turn (byval who as integer, bat as BattleState, bslot() as BattleSprite) as bool
  IF bslot(who).ready = NO THEN RETURN NO
  IF bslot(who).stat.cur.hp <= 0 THEN RETURN NO
@@ -4507,10 +4507,10 @@ FUNCTION hero_or_enemy_can_take_a_turn (byval who as integer, bat as BattleState
 END FUNCTION
 
 'If this hero is ready, make them start their turn
-FUNCTION battle_check_a_hero_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as bool
+FUNCTION battle_check_a_player_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as bool
  IF hero_or_enemy_can_take_a_turn(index, bat, bslot()) THEN
-  bat.hero_turn = index
-  bslot(bat.hero_turn).menust.pt = 0
+  bat.player_turn = index
+  bslot(bat.player_turn).menust.pt = 0
   bat.menu_mode = batMENUHERO
   RETURN YES
  END IF
@@ -4590,9 +4590,9 @@ SUB battle_attack_cancel_target_attack(byval targ as integer, byref bat as Battl
   '--If the currently targeting hero is the one hit, stop targetting
   '--note that stunning implies cancellation of untargetted attacks,
   '--but does not imply cancellation of already-targeted attacks.
-  IF bat.hero_turn = targ THEN
+  IF bat.player_turn = targ THEN
    bat.targ.mode = targNONE
-   bat.hero_turn = -1
+   bat.player_turn = -1
    bslot(targ).attack = 0
   END IF
  END IF
@@ -4796,7 +4796,7 @@ SUB active_mode_state_machine (bat as BattleState, bslot() as BattleSprite, form
   battle_check_delays bat, bslot()
  END IF
  fulldeathcheck -1, bat, bslot(), formdata
- battle_check_for_hero_turns bat, bslot()
+ battle_check_for_player_turns bat, bslot()
  battle_check_for_enemy_turns bat, bslot()
 END SUB
 
@@ -4807,7 +4807,7 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
 
  IF bat.atk.id > 0 THEN EXIT SUB 'an attack is animating now, wait patiently.
 
- IF bat.hero_turn >= 0 THEN EXIT SUB 'somebody already taking a turn, so wait patiently
+ IF bat.player_turn >= 0 THEN EXIT SUB 'somebody already taking a turn, so wait patiently
  IF bat.enemy_turn >= 0 THEN EXIT SUB
 
  IF bat.turn.choosing_attacks THEN
@@ -4831,8 +4831,8 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
   END IF
   
   DO WHILE bat.next_hero <= 3
-   IF battle_check_a_hero_turn(bat, bslot(), bat.next_hero) THEN
-    'debug "Hero " & bat.hero_turn & " " & bslot(bat.hero_turn).name & " is picking attack"
+   IF battle_check_a_player_turn(bat, bslot(), bat.next_hero) THEN
+    'debug "Hero " & bat.player_turn & " " & bslot(bat.player_turn).name & " is picking attack"
     bat.next_hero += 1
     EXIT SUB
    END IF
@@ -4882,7 +4882,7 @@ SUB turn_mode_time_passage (bat as BattleState, bslot() as battleSprite)
  DIM isenemytargs as integer = (targenemycount(bslot()) > 0)
  IF isenemytargs THEN
   IF bat.menu_mode > 0 THEN EXIT SUB '--no time on spell/item menus
-  IF bat.menu_mode >= 0 AND bat.hero_turn >= 0 THEN EXIT SUB '--no time if hero menu is open
+  IF bat.menu_mode >= 0 AND bat.player_turn >= 0 THEN EXIT SUB '--no time if hero menu is open
  END IF
 
  'Shift the .delay for active atkq() attacks, so the next one has .delay = 0

@@ -321,7 +321,7 @@ TYPE BattleState
  ticks as integer      'number of ticks since the battle was initialized
  acting as integer     'Hero or enemy who is currently taking their turn to act
                        '(contains garbage if noone is acting... indicated by bat.atk.id < 0?)
- hero_turn as integer  '(MOVEME) Hero currently selecting an attack
+ player_turn as integer'(MOVEME) Hero currently selecting an attack (or a player-controlled enemy)
  enemy_turn as integer '(MOVEME) Enemy currently selecting an attack
  next_hero as integer  '(MOVEME) counter that controls which ready hero will get their turn next
  next_enemy as integer 'counter that controls which ready enemy will get their turn next
