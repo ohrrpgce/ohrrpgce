@@ -1762,13 +1762,19 @@ END SUB
 SUB append_enemy_attacks_to_battle_menu(ai_attack_list() as integer, byref bspr as BattleSprite)
  DIM atk_id as integer
  DIM caption as string
+ DIM already as integer vector
+ v_new already
  FOR i as integer = 0 TO UBOUND(ai_attack_list)
   IF ai_attack_list(i) > 0 THEN
    atk_id = ai_attack_list(i) - 1
-   caption = readattackname(atk_id)
-   append_menu_item(bspr.batmenu, caption, batmenu_ATTACK, atk_id)
+   IF v_find(already, atk_id) = -1 THEN
+    caption = readattackname(atk_id)
+    append_menu_item(bspr.batmenu, caption, batmenu_ATTACK, atk_id)
+    v_append already, atk_id
+   END IF
   END IF
  NEXT i
+ v_free already
 END SUB
 
 ' Updates which menu items are enabled
