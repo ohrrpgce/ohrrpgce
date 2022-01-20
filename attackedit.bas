@@ -308,6 +308,9 @@ a_append atkbit(), 73, "Reset Regen register"
 a_append atkbit(), 74, "Reset Stun register"
 a_append atkbit(), 75, "Reset Mute register"
 a_append atkbit(), 76, "Cancel target's attack"
+a_append atkbit(), 95, "Empty target's ready meter"
+a_append atkbit(), 96, "Fill target's ready meter"
+
 a_append atkbit(), -1, ""
 a_append atkbit(), 77, "Can't be cancelled by other attacks"
 

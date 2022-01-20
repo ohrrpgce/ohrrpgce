@@ -4609,10 +4609,11 @@ SUB battle_attack_cancel_target_attack(byval targ as integer, byref bat as Battl
    END WITH
   NEXT i
  END IF
- IF attack.cancel_targets_attack OR bslot(targ).stat.cur.stun < bslot(targ).stat.max.stun THEN
+ IF attack.cancel_targets_attack OR bslot(targ).stat.cur.stun < bslot(targ).stat.max.stun OR attack.empty_target_ready_meter THEN
   '--If the currently targeting hero is the one hit, stop targetting
   '--note that stunning implies cancellation of untargetted attacks,
   '--but does not imply cancellation of already-targeted attacks.
+  '--emptying target ready meter also implies cancelling current targeting.
   IF bat.player_turn = targ THEN
    bat.targ.mode = targNONE
    bat.player_turn = -1

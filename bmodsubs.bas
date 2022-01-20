@@ -757,6 +757,18 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
  IF attack.reset_stun = YES   THEN target.stat.cur.stun   = target.stat.max.stun
  IF attack.reset_mute = YES   THEN target.stat.cur.mute   = target.stat.max.mute
  
+ IF attack.empty_target_ready_meter THEN
+  target.ready_meter = 0
+  target.ready = NO
+  'See also the logic in battle_attack_cancel_target_attack()
+ END IF
+
+ IF attack.fill_target_ready_meter THEN
+  target.ready_meter = 1000
+  target.ready = YES
+ END IF
+
+ 
  '--success!
  attacker.attack_succeeded = YES
  RETURN atkHit

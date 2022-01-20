@@ -817,6 +817,8 @@ Type AttackData
 	always_hide_attacker as bool
 	always_unhide_attacker as bool
 	blocking_counterattack as bool ' Only matters in active battle mode. Not relevant for turn-based
+	empty_target_ready_meter as bool
+	fill_target_ready_meter as bool
 End Type
 
 'An item in a hero's spell list definition (actual spell lists in HeroState.spells() array of integers)
