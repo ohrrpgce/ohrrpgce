@@ -207,7 +207,7 @@ FUNCTION battle (byval form as integer) as bool
   
   IF bat.vic.state = vicNONE THEN
    IF bat.enemy_turn >= 0 THEN
-    IF bslot(bat.enemy_turn).under_player_control THEN
+    IF bslot(bat.enemy_turn).under_player_control AND is_enemy(bat.enemy_turn) THEN
      IF bat.targ.mode = targNONE THEN
       bat.player_turn = bat.enemy_turn
       'Regenerate the enemy menu, in case it has changed
@@ -986,7 +986,7 @@ SUB player_attack_targetting_done(byref bat as BattleState, bslot() as BattleSpr
  bslot(bat.player_turn).attack = 0
  bslot(bat.player_turn).ready_meter = 0
  bslot(bat.player_turn).ready = NO
- IF bat.player_turn = bat.enemy_turn THEN bat.enemy_turn = -1
+ IF bat.player_turn = bat.enemy_turn THEN bat.enemy_turn = 3
  bat.player_turn = -1
  bat.targ.mode = targNONE
  bat.targ.hit_dead = NO
@@ -2925,6 +2925,9 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef
    'debug "Requested to cancel picking attacks"
    bat.next_hero = bat.player_turn
    bat.player_turn = -1
+   IF is_enemy(bat.next_hero) THEN
+    bat.enemy_turn = -1
+   END IF
    IF bat.turn.mode = turnTURN THEN
     IF prefbit(48) = NO THEN  '"!Press ESC to cancel/change a hero's attack"
      '--Switch into "reverse", meaning go back to the previous hero
@@ -4929,6 +4932,11 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
    'debug "Reverse! bat.next_hero=" & bat.next_hero
    DO
     bat.next_hero = large(0, bat.next_hero - 1)
+    IF is_enemy(bat.next_hero) THEN
+     bat.next_enemy = bat.next_hero
+    ELSE
+     bat.next_enemy = 4
+    END IF
     WITH bslot(bat.next_hero)
      IF .stat.cur.hp > 0 ANDALSO .no_attack_this_turn = NO ANDALSO .under_player_control THEN
       cancel_blocking_attacks_for_hero_or_enemy bat.next_hero
