@@ -640,7 +640,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
   END IF
 
   IF trytheft(bat, bat.acting, targ, attack, bslot()) THEN
-   IF bat.player_turn >= 0 AND bat.player_turn <= 3 THEN
+   IF is_hero(bat.player_turn) THEN
     checkitemusability bat.iuse(), bslot(), bat.player_turn
    END IF
   END IF
@@ -651,9 +651,9 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
    CASE 2: 'Auto control
     bslot(targ).under_player_control = NO
    CASE 3: 'Set to default
-    IF targ <= 3 THEN
+    IF is_hero(targ) THEN
      bslot(targ).under_player_control = YES
-    ELSE
+    ELSEIF is_enemy(targ) THEN
      bslot(targ).under_player_control = bslot(targ).enemy.controlled_by_player
     END IF
   END SELECT
@@ -5246,7 +5246,7 @@ END FUNCTION
 
 FUNCTION bslot_attack_cost_info(bslot() as BattleSprite, byref atk as AttackData, byval slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=-1) as string
  DIM cur_lmp as integer = 0
- IF slot >= 0 ANDALSO slot <= 3 THEN
+ IF is_hero(slot) THEN
   IF magic_list_type = 1 ANDALSO lmp_level > -1 THEN
    cur_lmp = gam.hero(slot).levelmp(lmp_level)
   END IF

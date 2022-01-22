@@ -103,21 +103,25 @@ FUNCTION BattleSprite.appeartime() as integer
  RETURN _appeartime
 END FUNCTION
 
+'FIXME: Use this everywhere in battles!
 FUNCTION is_hero(byval who as integer) as bool
  IF who >= 0 AND who <= 3 THEN RETURN YES
  RETURN NO
 END FUNCTION
 
+'FIXME: Use this everywhere in battles!
 FUNCTION is_enemy(byval who as integer) as bool
  IF who >= 4 AND who <= 11 THEN RETURN YES
  RETURN NO
 END FUNCTION
 
+'FIXME: This will eventually be phased out (but until then, use it!)
 FUNCTION is_attack(byval who as integer) as bool
  IF who >= 12 AND who <= 23 THEN RETURN YES
  RETURN NO
 END FUNCTION
 
+'FIXME: This will eventually be phased out (but until then, use it!)
 FUNCTION is_weapon(byval who as integer) as bool
  IF who = 24 THEN RETURN YES
  RETURN NO
