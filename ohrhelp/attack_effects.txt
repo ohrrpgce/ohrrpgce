@@ -1,0 +1,3 @@
+Additional effects when the attack is used.
+
+Changing the target control can be used to put an enemy under player control.

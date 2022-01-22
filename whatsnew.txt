@@ -35,6 +35,9 @@ WHAT IS NEW?
     * New Enemy bitset "Controlled By Player" [James]
     * New Battle debug-key Shift/Ctrl-F6 lets the player take control of all
       enemies in the battle [James]
+    * New attack option "Change Target Control" can put the target under
+      player control, or make it automatically controlled, or reset to default
+      [James]
     * New attack bitsets "Fill Target's Ready Meter" and "Empty target's Ready
       Meter" [James]
 

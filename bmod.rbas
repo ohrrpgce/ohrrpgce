@@ -644,6 +644,20 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
     checkitemusability bat.iuse(), bslot(), bat.player_turn
    END IF
   END IF
+  
+  SELECT CASE attack.change_control
+   CASE 1: 'Player control
+    bslot(targ).under_player_control = YES
+   CASE 2: 'Auto control
+    bslot(targ).under_player_control = NO
+   CASE 3: 'Set to default
+    IF targ <= 3 THEN
+     bslot(targ).under_player_control = YES
+    ELSE
+     bslot(targ).under_player_control = bslot(targ).enemy.controlled_by_player
+    END IF
+  END SELECT
+  
  ELSE
   'Miss or Fail
   IF result = atkMiss ANDALSO attack.dont_display_miss = NO THEN

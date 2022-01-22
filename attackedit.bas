@@ -153,8 +153,10 @@ CONST AtkFailSoundEffect = 154
 CONST AtkStealFailSoundEffect = 155
 CONST AtkAlignToTarget = 156
 CONST AtkSoundsAct = 157
+CONST AtkChangeControllable = 158
+CONST AtkEffectsAct = 159
 
-'Next menu item is 158 (remember to update MnuItems)
+'Next menu item is 160 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -236,6 +238,7 @@ CONST AtkDatXOffset = 344
 CONST AtkDatYOffset = 345
 CONST AtkDatHorizAlign = 346
 CONST AtkDatVertAlign = 347
+CONST AtkDatChangeControllable = 348
 
 'anything past this requires expanding the data
 
@@ -394,7 +397,7 @@ DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined
 STATIC copy_recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer
 STATIC have_copy as bool
 
-CONST MnuItems = 157
+CONST MnuItems = 159
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -405,8 +408,8 @@ DIM menucapoff(MnuItems) as integer
 
 DIM capindex as integer = 0
 REDIM caption(-1 TO -1) as string
-DIM max(46) as integer
-DIM min(46) as integer
+DIM max(47) as integer
+DIM min(47) as integer
 
 'Limit(0) is not used
 
@@ -756,7 +759,16 @@ CONST AtkLimSfxOrDefault = 46
 max(AtkLimSfxOrDefault) = gen(genMaxSFX) + 1
 min(AtkLimSfxOrDefault) = -1  '0 is same as Hit sound, -1 is None
 
-'next limit is 47 (remember to update the max() and min() dims)
+CONST AtkLimChangeControllable = 47
+max(AtkLimChangeControllable) = 3
+min(AtkLimChangeControllable) = 0
+menucapoff(AtkChangeControllable) = capindex
+addcaption caption(), capindex, "No change"  '0
+addcaption caption(), capindex, "Controlled by Player"  '1
+addcaption caption(), capindex, "Acts automatically"  '2
+addcaption caption(), capindex, "Reset to default"  '3
+
+'next limit is 48 (remember to update the max() and min() dims)
 
 '----------------------------------------------------------------------
 '--menu content
@@ -780,6 +792,9 @@ menutype(AtkDmgAct) = 1
 
 menu(AtkTargAct) = "Target and Aiming Settings..."
 menutype(AtkTargAct) = 1
+
+menu(AtkEffectsAct) = "Additional Effects..."
+menutype(AtkEffectsAct) = 1
 
 menu(AtkCostAct) = "Cost..."
 menutype(AtkCostAct) = 1
@@ -1188,6 +1203,11 @@ menulimits(AtkDamageColor) = AtkLimColorIndex
 menu(AtkAlignToTarget) = "Attack Animation Align to Target..."
 menutype(AtkAlignToTarget) = 1
 
+menu(AtkChangeControllable) = "Change Target Control:"
+menutype(AtkChangeControllable) = 2000 + menucapoff(AtkChangeControllable)
+menuoff(AtkChangeControllable) = AtkDatChangeControllable
+menulimits(AtkChangeControllable) = AtkLimChangeControllable
+
 '----------------------------------------------------------
 '--menu structure
 DIM workmenu(65) as integer
@@ -1198,7 +1218,7 @@ state.autosize_ignore_pixels = 12
 DIM menuopts as MenuOptions
 menuopts.fullscreen_scrollbar = YES
 
-DIM mainMenu(14) as integer
+DIM mainMenu(15) as integer
 mainMenu(0) = AtkBackAct
 mainMenu(1) = AtkChooseAct
 mainMenu(2) = AtkName
@@ -1210,10 +1230,11 @@ mainMenu(7) = AtkDmgAct
 mainMenu(8) = AtkCostAct
 mainMenu(9) = AtkChainAct
 mainMenu(10) = AtkBitAct
-mainMenu(11) = AtkElemBitAct
-mainMenu(12) = AtkElementFailAct
-mainMenu(13) = AtkTagAct
-mainMenu(14) = AtkTransmogAct
+mainMenu(11) = AtkEffectsAct
+mainMenu(12) = AtkElemBitAct
+mainMenu(13) = AtkElementFailAct
+mainMenu(14) = AtkTagAct
+mainMenu(15) = AtkTransmogAct
 
 DIM targMenu(5) as integer
 targMenu(0) = AtkBackAct
@@ -1284,6 +1305,10 @@ elementFailMenu(1) = AtkElementalFailHeader
 FOR i = 0 TO gen(genNumElements) - 1
  elementFailMenu(2 + i) = AtkElementalFails + i
 NEXT
+
+DIM effectsMenu(1) as integer
+effectsMenu(0) = AtkBackAct
+effectsMenu(1) = AtkChangeControllable
 
 '--Create the box that holds the preview
 DIM preview_box as Slice Ptr
@@ -1657,6 +1682,10 @@ DO
     saveattackdata recbuf(), recindex
     attack_alignment_editor recindex, recbuf(AtkDatXOffset), recbuf(AtkDatYOffset), recbuf(AtkDatHorizAlign), recbuf(AtkDatVertAlign)
     state.need_update = YES
+   CASE AtkEffectsAct
+    atk_edit_pushptr state, laststate, menudepth
+    setactivemenu workmenu(), effectsMenu(), state
+    helpkey = "attack_effects"
   END SELECT
  END IF
 
