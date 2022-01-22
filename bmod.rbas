@@ -217,6 +217,10 @@ FUNCTION battle (byval form as integer) as bool
      enemy_ai bat, bslot(), formdata
     END IF
    END IF
+   IF bat.player_turn >= 0 ANDALSO is_hero(bat.player_turn) ANDALSO bslot(bat.player_turn).under_player_control = NO THEN
+    hero_ai bat, bslot(bat.player_turn), bat.player_turn, bslot()
+    bat.player_turn = -1
+   END IF
    IF bat.player_turn >= 0 AND bat.targ.mode = targNONE THEN
     IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, bslot()
     IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, st(), bslot()
@@ -2691,6 +2695,77 @@ SUB enemy_death_sfx(battler as BattleSprite)
 END SUB
 
 '==============================================================================
+'                                   Hero AI
+
+SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id as integer, bslot() as BattleSprite)
+ DIM valid_for_ai as integer vector
+ v_new valid_for_ai
+
+ FOR i as integer = 0 TO bspr.batmenu.numitems - 1
+  WITH *bspr.batmenu.items[i]
+   IF NOT .disabled THEN
+    SELECT CASE .t
+     CASE batmenu_ATTACK:
+      v_append valid_for_ai, i
+     CASE batmenu_SPELLS:
+      'Hero AI doesn't support spell lists (yet)...
+     CASE batmenu_ITEMS:
+      'Hero AI doesn't support using items
+    END SELECT
+   END IF
+  END WITH
+ NEXT i
+
+ DIM safety as integer = 0
+ DIM atk as AttackData
+ DIM choice_count as integer = v_len(valid_for_ai)
+ DIM atk_id as integer = -1
+
+ DO
+  IF choice_count > 0 THEN
+   WITH *bspr.batmenu.items[randint(choice_count)]
+    atk_id = .sub_t
+    loadattackdata atk, atk_id
+    IF atkallowed(atk, attacker_id, 0, 0, bslot()) THEN
+     'this attack is good, continue on to target selection
+     EXIT DO
+    END IF
+   END WITH
+  END IF
+  safety +=1
+  IF safety > choice_count * 10 THEN 
+   'give up eventually
+   debug "Hero AI safety Warning: hero " & attacker_id & " gave up after " & safety & " tries"
+   atk_id = -1
+  END IF
+ LOOP
+
+ 'If a usable attack was found, target it
+ IF atk_id >= 0 THEN
+
+  IF bat.turn.mode = turnACTIVE THEN
+   update_turn_delays_in_attack_queue attacker_id
+  END IF
+
+  'Note: if autotargetting fails the targetless attack gets queued anyway, wasting the hero's turn
+  autotarget attacker_id, atk, bslot()
+
+  IF bat.turn.mode = turnACTIVE THEN
+   bslot(attacker_id).active_turn_num += 1
+   'debug "Hero " & attacker_id & " " & bslot(attacker_id).name & " turn #" & bslot(attacker_id).active_turn_num
+  END IF
+
+  'ready for next attack
+  bslot(attacker_id).ready = NO
+  bslot(attacker_id).ready_meter = 0
+
+ END IF
+ 
+ v_free valid_for_ai
+
+END SUB
+
+'==============================================================================
 '                                   Enemy AI
 
 FUNCTION enemy_is_weak(byref bspr as BattleSprite) as bool
@@ -2813,7 +2888,7 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef
  WITH bslot(bat.player_turn)
   IF .stat.cur.stun < .stat.max.stun THEN
    'Normally a hero cannot get a turn when stunned, but this extra check is needed
-   'for the race condition that happens when a hero gets stunned while it is their tirn in turnACTIVE mode
+   'for the race condition that happens when a hero gets stunned while it is their turn in turnACTIVE mode
    bat.next_hero = bat.player_turn
    bat.player_turn = -1
    EXIT SUB
