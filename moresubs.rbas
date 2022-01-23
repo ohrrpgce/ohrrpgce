@@ -130,6 +130,9 @@ WITH gam.hero(slot)
  .sl = create_hero_slices(slot)
 END WITH
 
+'--auto battle
+gam.hero(slot).auto_battle = her.default_auto_battle
+
 '--name
 gam.hero(slot).name = her.name
 gam.hero(slot).rename_on_status = xreadbit(her.bits(), 25)

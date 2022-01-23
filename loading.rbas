@@ -1808,6 +1808,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr, byval id as 
   END READNODE
   hero.def_level = parent."default_level".default(-1).integer
   hero.def_weapon = parent."default_weapon".integer
+  hero.default_auto_battle = parent."default_auto_battle".default(0).integer <> 0
   hero.exp_mult = parent."exp_mult".default(0.2).double
   ReadStatsNode parent."stats_at_zero".ptr, hero.Lev0
   ReadStatsNode parent."stats_at_max".ptr, hero.LevMax
@@ -1964,6 +1965,7 @@ SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
  WriteXYPairNode ch, "hand_b", hero.hand_pos(1)
  IF hero.def_level >= 0 THEN SetChildNode parent, "default_level", hero.def_level
  SetChildNode parent, "default_weapon", hero.def_weapon
+ SetChildNode parent, "default_auto_battle", IIF(hero.default_auto_battle, 1, 0)
  SetChildNode parent, "exp_mult", hero.exp_mult
 
  WriteStatsNode(parent, "stats_at_zero", hero.Lev0)

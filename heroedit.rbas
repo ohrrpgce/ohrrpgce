@@ -1423,6 +1423,7 @@ SUB update_hero_appearance_menu(byref st as HeroEditState, menu() as string, her
  menu(10) = "Hand position B..."
  menu(11) = "Portrait Picture: " & defaultint(her.portrait, "None")
  menu(12) = "Portrait Palette: " & defaultint(her.portrait_pal)
+ menu(13) = "Actions in Battle: " & IIF(her.default_auto_battle, "Automatic", "Player Controlled")
  update_hero_preview_pics st, her
  st.changed = NO
 END SUB
@@ -1495,9 +1496,9 @@ END SUB
 
 SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
  
- DIM menu(12) as string
- DIM min(12) as integer
- DIM max(12) as integer
+ DIM menu(13) as string
+ DIM min(13) as integer
+ DIM max(13) as integer
  menu(0) = "Previous Menu"
  min(1) = 0: max(1) = gen(genMaxHeroPic)
  min(2) = -1: max(2) = 32767
@@ -1511,6 +1512,7 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
  min(10) = -100:max(10) = 100
  min(11) = -1:max(11) = gen(genMaxPortrait)
  min(12) = -1:max(12) = 32767
+ min(13) = -1:max(13) = 0
 
  DIM state as MenuState
  WITH state
@@ -1577,6 +1579,10 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
      IF intgrabber(her.portrait_pal, min(state.pt), max(state.pt)) THEN
       st.changed = YES
      END IF
+    CASE 13
+     IF intgrabber(her.default_auto_battle, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
    END SELECT
    IF enter_space_click(state) THEN
     SELECT CASE state.pt
@@ -1604,6 +1610,8 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
       her.portrait = spriteb.browse(her.portrait)
      CASE 12
       her.portrait_pal = pal16browse(her.portrait_pal, sprTypePortrait, her.portrait, YES)
+     CASE 13
+      her.default_auto_battle = NOT her.default_auto_battle
     END SELECT
     st.changed = YES
    END IF
