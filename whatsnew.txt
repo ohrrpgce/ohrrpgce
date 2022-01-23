@@ -44,6 +44,7 @@ WHAT IS NEW?
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]
     * "heal party" (acts like an inn) [Ralph]
+    * "set hero auto battle", "get hero auto battle" [James]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

@@ -664,6 +664,8 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
          END IF
         END WITHNODE
        END READNODE
+       
+       .auto_battle = slot."auto_battle".default(NO).integer <> 0
 
        ' Abandoned data no longer loaded (obsolete)
        slot."rename_on_add".ignore
@@ -1138,6 +1140,7 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
    SetChildNode(slot, "exp_next", .exp_next)
    SetChildNode(slot, "exp_mult", .exp_mult)
    SetChildNode(slot, "def_wep", .def_wep)
+   SetChildNode(slot, "auto_battle", IIF(.auto_battle, 1, 0))
    
    IF gam.hero(i).id >= 0 THEN
     IF .hand_pos_overridden THEN

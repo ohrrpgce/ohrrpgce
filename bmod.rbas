@@ -656,7 +656,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
     bslot(targ).under_player_control = NO
    CASE 3: 'Set to default
     IF is_hero(targ) THEN
-     bslot(targ).under_player_control = YES
+     bslot(targ).under_player_control = NOT gam.hero(targ).auto_battle
     ELSEIF is_enemy(targ) THEN
      bslot(targ).under_player_control = bslot(targ).enemy.controlled_by_player
     END IF
@@ -1570,7 +1570,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     (.pos) = .basepos
     .vis = YES
 
-    .under_player_control = YES 'Setting this to NO doesn't change anything yet for heroes
+    .under_player_control = NOT gam.hero(i).auto_battle
     .death_sfx = -1 'No death sounds for heroes (for now)
     .cursorpos.x = 0
     .cursorpos.y = 0

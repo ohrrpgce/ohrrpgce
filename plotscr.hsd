@@ -754,6 +754,8 @@ define function, begin
 725,getglobalsoundvolume,0    # Get the sfx volume setting (0-255)
 726,setglobalsoundvolume,1,192 # Get sfx volume (0-255); default to 75% (default initial sfx volume)
 727,healparty,1,-2            # Restore active party's HP & MP ([revive dead heroes])
+728,setheroautobattle,2,0,0   # Change a hero's auto battle setting
+729,getheroautobattle,1,0     # Return true if the hero is set to auto battle
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

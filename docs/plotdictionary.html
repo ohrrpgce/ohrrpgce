@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2021-11-13)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-01-22)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -351,6 +351,10 @@ function toggleContent(target) {
 		<ul>
 		<li>
 <a href="#Hero%20Graphics">Hero Graphics</a><br>
+		<ul></ul>
+</li>
+		<li>
+<a href="#Hero%20Battle%20Settings">Hero Battle Settings</a><br>
 		<ul></ul>
 </li>
 		<li>
@@ -860,6 +864,7 @@ function toggleContent(target) {
 		<a href="#about-getglobalsoundvolume">get global sound volume</a><br>
 		<a href="#about-getgridcolumns">get grid columns (handle)</a><br>
 		<a href="#about-getgridrows">get grid rows (handle)</a><br>
+		<a href="#about-getheroautobattle">get hero auto battle (who)</a><br>
 		<a href="#about-getherohandx">get hero hand x (who, frame)</a><br>
 		<a href="#about-getherohandy">get hero hand y (who, frame)</a><br>
 		<a href="#about-getherolevel">get hero level (who)</a><br>
@@ -1323,6 +1328,7 @@ function toggleContent(target) {
 		<a href="#about-setgridrows">set grid rows (handle, rows)</a><br>
 		<a href="#about-setharmtiledamage">set harm tile damage (amount)</a><br>
 		<a href="#about-setharmtileflash">set harm tile flash (color)</a><br>
+		<a href="#about-setheroautobattle">set hero auto battle (who, bool)</a><br>
 		<a href="#about-setherobaseelementalresist">set hero base elemental resist (who, element, percent)</a><br>
 		<a href="#about-setherodirection">set hero direction (who, direction)</a><br>
 		<a href="#about-setheroframe">set hero frame (who, frame)</a><br>
@@ -7317,6 +7323,14 @@ fade screen in</pre>
 <ul></ul>
 </li>
 		<li>
+<a href="#Hero%20Battle%20Settings">Hero Battle Settings</a><br>
+		<ul class="content-shown">
+		<a href="#about-getheroautobattle">get hero auto battle (who)</a><br>
+		<a href="#about-setheroautobattle">set hero auto battle (who, bool)</a><br>
+</ul>
+<ul></ul>
+</li>
+		<li>
 <a href="#Hero%20Hand%20Position">Hero Hand Position</a><br>
 		<ul class="content-shown">
 		<a href="#about-getherohandx">get hero hand x (who, frame)</a><br>
@@ -7511,6 +7525,37 @@ fade screen in</pre>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setheropicture" class="ref">set hero picture</a></li></ul>
+</div>
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="subsection">
+<a name="Hero%20Battle%20Settings"></a>
+		<h3>
+<span class="backlink"><a href="#Hero%20Data">Hero Data</a> →
+			</span>Hero Battle Settings</h3>
+		<p></p>
+<ul></ul>
+		<div class="command">
+			<a name="about-getheroautobattle"></a>
+				<h4>get hero auto battle (who)</h4>
+<p>
+			Returns true if the hero is set to fight automatically in battles, or false if the hero will be under normal player control. The hero number should be the hero's position in the battle party (not the name or caterpillar rank)
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-setheroautobattle" class="ref">set hero auto battle</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setheroautobattle"></a>
+				<h4>set hero auto battle (who, bool)</h4>
+<p>
+			Changes whether or not the hero should fight automatically in battles (true), or if the hero will be under normal player control (false). The hero number should be the hero's position in the battle party (not the name or caterpillar rank)
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getheroautobattle" class="ref">get hero auto battle</a></li></ul>
 </div>
 		</p>
 </div>
@@ -21416,7 +21461,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 914 commands (of which 14 are aliases), 27 constants and 12 definitions of types and other terms in this file.</p>
+<p>Stats: There are 916 commands (of which 14 are aliases), 27 constants and 12 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
