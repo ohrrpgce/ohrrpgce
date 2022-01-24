@@ -1225,20 +1225,39 @@ SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackDa
   attacker_as_enemy = NOT attacker_as_enemy
  END IF
 
+ DIM targ_as_hero(11) as integer
+ DIM targ_as_enemy(11) as integer
+ FOR i = 0 to 11
+  targ_as_hero(i) = is_hero(i)
+  targ_as_enemy(i) = is_enemy(i)
+  IF bslot(i).defector_target THEN
+   targ_as_hero(i) = NOT targ_as_hero(i)
+   targ_as_enemy(i) = NOT targ_as_enemy(i)
+  END IF
+ NEXT i
+
  SELECT CASE atk.targ_class
 
  CASE 0 'foe
   IF attacker_as_hero THEN
-   FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
+   FOR i = 0 TO 11
+    IF targ_as_enemy(i) THEN tmask(i) = bslot(i).vis
+   NEXT i
   ELSEIF attacker_as_enemy THEN
-   FOR i = 0 TO 3: tmask(i) = bslot(i).vis: NEXT i
+   FOR i = 0 TO 11
+    IF targ_as_hero(i) THEN tmask(i) = bslot(i).vis
+   NEXT i
   END IF
 
  CASE 1 'ally
   IF attacker_as_hero THEN
-   FOR i = 0 TO 3: tmask(i) = bslot(i).vis: NEXT i
+   FOR i = 0 TO 11
+    IF targ_as_hero(i) THEN tmask(i) = bslot(i).vis
+   NEXT i
   ELSEIF attacker_as_enemy THEN
-   FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
+   FOR i = 0 TO 11
+    IF targ_as_enemy(i) THEN tmask(i) = bslot(i).vis
+   NEXT i
   END IF
 
  CASE 2 'self
@@ -1249,19 +1268,25 @@ SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackDa
 
  CASE 4 'ally-including-dead
   IF attacker_as_hero THEN
-   FOR i = 0 TO 3
-    IF gam.hero(i).id >= 0 THEN tmask(i) = YES
+   FOR i = 0 TO 11
+    IF (targ_as_hero(i) ANDALSO bslot(i).vis) ORELSE (is_hero(i) ANDALSO gam.hero(i).id >= 0) THEN tmask(i) = YES
    NEXT i
   ELSEIF attacker_as_enemy THEN
    'enemies don't actually support targetting of dead allies
-   FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
+   FOR i = 0 TO 11
+    IF targ_as_enemy(i) THEN tmask(i) = bslot(i).vis
+   NEXT i
   END IF
 
  CASE 5 'ally-not-self
   IF attacker_as_hero THEN
-   FOR i = 0 TO 3: tmask(i) = bslot(i).vis: NEXT i
+   FOR i = 0 TO 11
+    IF targ_as_hero(i) THEN tmask(i) = bslot(i).vis
+   NEXT i
   ELSEIF attacker_as_enemy THEN
-   FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
+   FOR i = 0 TO 11
+    IF targ_as_enemy(i) THEN tmask(i) = bslot(i).vis
+   NEXT i
   END IF
   tmask(who) = NO
 
@@ -1293,8 +1318,8 @@ SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackDa
 
  CASE 10 'dead-ally (hero only)
   IF attacker_as_hero THEN
-   FOR i = 0 TO 3
-    IF gam.hero(i).id >= 0 AND bslot(i).stat.cur.hp <= 0 THEN tmask(i) = YES
+   FOR i = 0 TO 11
+    IF targ_as_hero(i) ANDALSO is_hero(i) ANDALSO gam.hero(i).id >= 0 ANDALSO bslot(i).stat.cur.hp <= 0 THEN tmask(i) = YES
    NEXT i
   END IF
 
@@ -1317,24 +1342,32 @@ SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackDa
   END IF
 
  CASE 14 'all-including-dead
-  FOR i = 0 TO 3
-   IF gam.hero(i).id >= 0 THEN tmask(i) = YES
+  FOR i = 0 TO 11
+   IF is_hero(i) ANDALSO gam.hero(i).id >= 0 THEN tmask(i) = YES
+   IF (targ_as_hero(i) ORELSE targ_as_enemy(i)) ANDALSO bslot(i).vis THEN tmask(i) = YES
   NEXT i
-  FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
 
  CASE 15 'dead foe (enemy only)
   IF attacker_as_enemy THEN
-   FOR i = 0 TO 3
-    IF gam.hero(i).id >= 0 ANDALSO bslot(i).stat.cur.hp <= 0 THEN tmask(i) = YES
+   FOR i = 0 TO 11
+    IF is_hero(i) ANDALSO gam.hero(i).id >= 0 ANDALSO bslot(i).stat.cur.hp <= 0 THEN tmask(i) = YES
    NEXT i
   END IF
 
  CASE 16 'foe-including-dead
   IF attacker_as_hero THEN
-   FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
+   FOR i = 0 TO 11
+    IF targ_as_enemy(i) THEN
+     IF bslot(i).vis THEN tmask(i) = YES
+     IF is_hero(i) ANDALSO gam.hero(i).id >= 0 THEN tmask(i) = YES
+    END IF
+   NEXT i
   ELSEIF attacker_as_enemy THEN
-   FOR i = 0 TO 3
-    IF gam.hero(i).id >= 0 THEN tmask(i) = YES
+   FOR i = 0 TO 11
+    IF targ_as_hero(i) THEN
+     IF bslot(i).vis THEN tmask(i) = YES
+     IF is_hero(i) ANDALSO gam.hero(i).id >= 0 THEN tmask(i) = YES
+    END IF
    NEXT i
   END IF
 

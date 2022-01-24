@@ -43,6 +43,8 @@ WHAT IS NEW?
     * New battle feature "Turncoat attacker" causes an enemy or hero to
       attack their own team, and heal their foes. Can be turned on and off
       with attacks. [James]
+    * New battle feature "Defector target" causes an enemy or hero to be
+      targetted as if it is a member of the other team [James]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]
