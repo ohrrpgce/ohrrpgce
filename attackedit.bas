@@ -155,8 +155,10 @@ CONST AtkAlignToTarget = 156
 CONST AtkSoundsAct = 157
 CONST AtkChangeControllable = 158
 CONST AtkEffectsAct = 159
+CONST AtkChangeTurncoat = 160
+CONST AtkChangeDefector = 161
 
-'Next menu item is 160 (remember to update MnuItems)
+'Next menu item is 162 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -239,6 +241,8 @@ CONST AtkDatYOffset = 345
 CONST AtkDatHorizAlign = 346
 CONST AtkDatVertAlign = 347
 CONST AtkDatChangeControllable = 348
+CONST AtkDatChangeTurncoat = 349
+CONST AtkDatChangeDefector = 350
 
 'anything past this requires expanding the data
 
@@ -397,7 +401,7 @@ DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined
 STATIC copy_recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer
 STATIC have_copy as bool
 
-CONST MnuItems = 159
+CONST MnuItems = 161
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -408,8 +412,8 @@ DIM menucapoff(MnuItems) as integer
 
 DIM capindex as integer = 0
 REDIM caption(-1 TO -1) as string
-DIM max(47) as integer
-DIM min(47) as integer
+DIM max(49) as integer
+DIM min(49) as integer
 
 'Limit(0) is not used
 
@@ -768,7 +772,25 @@ addcaption caption(), capindex, "Controlled by Player"  '1
 addcaption caption(), capindex, "Acts automatically"  '2
 addcaption caption(), capindex, "Reset to default"  '3
 
-'next limit is 48 (remember to update the max() and min() dims)
+CONST AtkLimChangeTurncoat = 48
+max(AtkLimChangeTurncoat) = 3
+min(AtkLimChangeTurncoat) = 0
+menucapoff(AtkChangeTurncoat) = capindex
+addcaption caption(), capindex, "No change"  '0
+addcaption caption(), capindex, "Attacks allies"  '1
+addcaption caption(), capindex, "Attacks foes"  '2
+addcaption caption(), capindex, "Reset to default"  '3
+
+CONST AtkLimChangeDefector = 49
+max(AtkLimChangeDefector) = 3
+min(AtkLimChangeDefector) = 0
+menucapoff(AtkChangeDefector) = capindex
+addcaption caption(), capindex, "No change"  '0
+addcaption caption(), capindex, "Changes sides"  '1
+addcaption caption(), capindex, "Remains with own side"  '2
+addcaption caption(), capindex, "Reset to default"  '3
+
+'next limit is 50 (remember to update the max() and min() dims)
 
 '----------------------------------------------------------------------
 '--menu content
@@ -1208,6 +1230,16 @@ menutype(AtkChangeControllable) = 2000 + menucapoff(AtkChangeControllable)
 menuoff(AtkChangeControllable) = AtkDatChangeControllable
 menulimits(AtkChangeControllable) = AtkLimChangeControllable
 
+menu(AtkChangeTurncoat) = "Make Target a Turncoat:"
+menutype(AtkChangeTurncoat) = 2000 + menucapoff(AtkChangeTurncoat)
+menuoff(AtkChangeTurncoat) = AtkDatChangeTurncoat
+menulimits(AtkChangeTurncoat) = AtkLimChangeTurncoat
+
+menu(AtkChangeDefector) = "Make Target a Defector:"
+menutype(AtkChangeDefector) = 2000 + menucapoff(AtkChangeDefector)
+menuoff(AtkChangeDefector) = AtkDatChangeDefector
+menulimits(AtkChangeDefector) = AtkLimChangeDefector
+
 '----------------------------------------------------------
 '--menu structure
 DIM workmenu(65) as integer
@@ -1306,9 +1338,11 @@ FOR i = 0 TO gen(genNumElements) - 1
  elementFailMenu(2 + i) = AtkElementalFails + i
 NEXT
 
-DIM effectsMenu(1) as integer
+DIM effectsMenu(3) as integer
 effectsMenu(0) = AtkBackAct
 effectsMenu(1) = AtkChangeControllable
+effectsMenu(2) = AtkChangeTurncoat
+effectsMenu(3) = AtkChangeDefector
 
 '--Create the box that holds the preview
 DIM preview_box as Slice Ptr

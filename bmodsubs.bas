@@ -1995,6 +1995,8 @@ SUB reset_enemy_state(byref bspr as BattleSprite, byref bat as BattleState)
   .under_player_control = NO
   IF bspr.enemy.controlled_by_player THEN .under_player_control = YES
   IF bat.player_control_debug THEN .under_player_control = YES
+  .turncoat_attacker = NO
+  .defector_target = NO
  END WITH
 END SUB
 

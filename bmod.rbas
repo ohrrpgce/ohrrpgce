@@ -661,6 +661,24 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
      bslot(targ).under_player_control = bslot(targ).enemy.controlled_by_player
     END IF
   END SELECT
+
+  SELECT CASE attack.change_turncoat
+   CASE 1: 'Turncoat
+    bslot(targ).turncoat_attacker = YES
+   CASE 2: 'Normal
+    bslot(targ).turncoat_attacker = NO
+   CASE 3: 'Set to default
+    bslot(targ).turncoat_attacker = NO
+  END SELECT
+
+  SELECT CASE attack.change_defector
+   CASE 1: 'Defector
+    bslot(targ).defector_target = YES
+   CASE 2: 'Normal
+    bslot(targ).defector_target = NO
+   CASE 3: 'Set to default
+    bslot(targ).defector_target = NO
+  END SELECT
   
  ELSE
   'Miss or Fail

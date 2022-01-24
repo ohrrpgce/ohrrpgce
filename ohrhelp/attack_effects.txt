@@ -1,3 +1,17 @@
 Additional effects when the attack is used.
 
 Changing the target control can be used to put an enemy under player control.
+
+If a hero or enemy has turncoat status, that affects who they will be able to target with their attacks.
+
+If a hero or enemy has defector status, that affects which side they are grouped with for the purposes of other's attacks
+
+To make a hero behave like an enemy, set Control=auto, Turncoat=on, and Defector=on
+
+To make an enemy behave like a hero, set Control=player, Turncoat=on, and Defector=on
+
+[CONFUSION EXAMPLE]
+
+To make a target "Confused", set Control=auto, Turncoat=on, Defector=default
+
+To end "Confused", set Control=default, Turncoat=default, Defector=default

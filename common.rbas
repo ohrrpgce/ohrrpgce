@@ -1311,7 +1311,7 @@ END FUNCTION
 
 ' Returns the native size in BYTES of the records for the version you are running
 FUNCTION curbinsize (byval id as integer) as integer
- IF id = binATTACK     THEN RETURN 618 'attack.bin
+ IF id = binATTACK     THEN RETURN 622 'attack.bin
                                        '(size of combined attack data as on DT6 page minus 80)
  IF id = binSTF        THEN RETURN 84  '.stf
  IF id = binSONGDATA   THEN RETURN 32  'songdata.bin

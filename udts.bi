@@ -762,6 +762,8 @@ Type AttackData
 	targ_halign as integer
 	targ_valign as integer
 	change_control as integer
+	change_turncoat as integer
+	change_defector as integer
 	'----Bitsets----
 	cure_instead_of_harm as bool
 	divide_spread_damage as bool
