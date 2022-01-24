@@ -40,6 +40,9 @@ WHAT IS NEW?
       [James]
     * New attack bitsets "Fill Target's Ready Meter" and "Empty target's Ready
       Meter" [James]
+    * New battle feature "Turncoat attacker" causes an enemy or hero to
+      attack their own team, and heal their foes. Can be turned on and off
+      with attacks. [James]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

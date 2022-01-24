@@ -3964,7 +3964,7 @@ END SUB
 '==============================================================================
 
 SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
- 'setuptarg (heroes only)
+ 'setuptarg (heroes, and enemies under player control)
  DIM i as integer
 
  'init
