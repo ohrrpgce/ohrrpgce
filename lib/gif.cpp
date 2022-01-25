@@ -34,7 +34,7 @@ void indexed_tree_from_palette(GifKDTree& tree, const GifRGBA* palette, int bitD
 // firstIndex: Is the lowest allowed palette index in the output. A value of 0
 //             allows the whole palette, a value of 1 excludes palette[0].
 // maxerror:   Adjust max error propagation while dithering. Default 50, 0 disables dithering.
-void dither_image(const GifRGBA* image, uint32_t width, uint32_t height, uint8_t* result, int computePalette, GifRGBA* palette, int bitDepth, int firstIndex, int maxerror) {
+void dither_image(const GifRGBA* image, uint32_t width, uint32_t height, uint8_t* result, bool computePalette, GifRGBA* palette, int bitDepth, int firstIndex, int maxerror) {
 
     kGifMaxAccumError = maxerror;  // It's a global, yuck.
 

@@ -41,7 +41,7 @@ declare function renamefile(source as string, destination as string) as boolint
 declare function copy_file_replacing(source as zstring ptr, destination as zstring ptr) as boolint
 declare function os_rename(source as zstring ptr, destination as zstring ptr) as boolint
 
-enum FileTypeEnum
+enum 'FileTypeEnum
   fileTypeNonexistent ' Doesn't exist (or parent directory doesn't exist)
   fileTypeFile        ' Regular file or a symlink to one
   fileTypeDirectory   ' Directory or a symlink to one
@@ -50,6 +50,7 @@ enum FileTypeEnum
 
   fileTypeFileOrDir = 10 ' Special argument to findfiles ONLY. NOT a file type!
 end enum
+type FileTypeEnum as integer
 
 declare function get_file_type (fname as string) as FileTypeEnum
 
