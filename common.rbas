@@ -3653,9 +3653,11 @@ FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, dow
     'Someone forgot to put the version file in the download? But we'll proceed with whatever got downloaded
     showbug "Downloaded a fresh copy of " & appname & " but it was only version " & version_text & ", expected >= " & need_version_text
    END IF
+   RETURN ret
   END IF
  END IF
- RETURN ret
+
+ RETURN ""
 END FUNCTION
 
 'Returns "" on failure, otherwise path to the executable

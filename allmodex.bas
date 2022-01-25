@@ -7683,7 +7683,7 @@ function get_jpegtran() as string
 		'a helpful message before the download prompt
 		ret = find_helper_app("jpegtran")
 		if len(ret) = 0 then
-			visible_debug "Can only read progressive JPEGs when the jpegtran program is installed (part of libjpeg-progs)"
+			visible_debug "Can only read progressive JPEGs using the jpegtran program (part of libjpeg-progs)"
 			ret = find_helper_app("jpegtran", YES, "http://jpegclub.org/jpegtran.zip")
 		end if
 	end if

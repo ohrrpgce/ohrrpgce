@@ -78,6 +78,8 @@ WHAT IS NEW?
     * "free slice(0)" no longer shows a warning, I mean it this time! [Ralph]
     * Modifying an ellipse slice broke child clipping for one tick [Ralph]
     * Bug #1120 Heroes which have jumped count as dead for targetting [James]
+    * On Windows, detection of whether certain subprograms were installed was
+      broken, giving strange errors about "_" [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license
