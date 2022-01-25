@@ -55,13 +55,13 @@ dim gfx_setwindowed as sub (byval iswindow as integer)
 dim gfx_windowtitle as sub (byval title as zstring ptr)
 dim gfx_getwindowstate as function () as WindowState ptr
 dim gfx_get_screen_size as sub (wide as integer ptr, high as integer ptr)
-
-dim gfx_set_window_size as sub (byval newsize as XYPair, newzoom as integer)
+dim gfx_set_window_size as sub (byval newsize as XYPair = XY(-1,-1), newzoom as integer = -1)
 dim gfx_supports_variable_resolution as function () as bool
 dim gfx_get_resize as function (byref ret as XYPair) as bool
 dim gfx_set_resizable as function (enable as bool, min_width as integer, min_height as integer) as bool
 dim gfx_recenter_window_hint as sub ()
 dim gfx_vsync_supported as function () as bool
+
 dim gfx_setoption as function (byval opt as zstring ptr, byval arg as zstring ptr) as integer
 dim gfx_describe_options as function () as zstring ptr
 dim gfx_printchar as sub (byval ch as integer, byval x as integer, byval y as integer, byval col as integer)

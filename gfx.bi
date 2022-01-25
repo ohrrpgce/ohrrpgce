@@ -189,7 +189,7 @@ extern Gfx_get_resize as function (byref ret as XYPair) as bool
 '(not including the zoom factor), but width/height may not be supported!
 'If enable=NO then min_width/height are ignored. Also ignored if equal to 0.
 'Returns new resizability state: false if the backend doesn't support it.
-extern Gfx_set_resizable as function (enable as bool, min_width as integer = 0, min_height as integer = 0) as bool
+extern Gfx_set_resizable as function (enable as bool, min_width as integer, min_height as integer) as bool
 '(optional) At the next gfx_present call, recentering the window would be a good idea.
 'Called when starting a game.
 extern Gfx_recenter_window_hint as sub ()
