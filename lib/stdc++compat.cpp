@@ -6,6 +6,7 @@
 
 #include <ostream>
 #include <istream>
+#include <memory>
 #include <string>
 #include <stdarg.h>
 #include <stdio.h>
@@ -177,6 +178,7 @@ namespace std MOZ_EXPORT {
 }
 
 #if MOZ_LIBSTDCXX_VERSION >= GLIBCXX_VERSION(3, 4, 20)
+namespace __cxxabiv1 {
 /* Technically, this symbol is not in GLIBCXX_3.4.20, but in CXXABI_1.3.8,
    but that's equivalent, version-wise. Those calls are added by the compiler
    itself on `new Class[n]` calls. */
@@ -185,6 +187,7 @@ __cxa_throw_bad_array_new_length()
 {
     abort();
 }
+}  // namespace __cxxabiv1
 #endif
 
 #if MOZ_LIBSTDCXX_VERSION >= GLIBCXX_VERSION(3, 4, 21)
