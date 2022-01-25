@@ -56,7 +56,16 @@ destdir = ARGUMENTS.get ('destdir', '')
 prefix =  ARGUMENTS.get ('prefix', '/usr')
 dry_run = int(ARGUMENTS.get ('dry_run', '0'))  # Only used by uninstall
 buildtests = int(ARGUMENTS.get ('buildtests', True))
-python = ARGUMENTS.get('python', os.environ.get('PYTHON', 'python3'))
+python = ARGUMENTS.get('python', os.environ.get('PYTHON'))
+if python == None:
+    for name in ('python3', 'python', 'py'):
+        pypath = WhereIs(name)
+        # Win 10 has dummy python.exe and python3.exe helpers for installing from the Windows Store
+        if pypath and 'WindowsApps' not in pypath:
+            python = name
+            break
+    else:
+        exit("Python wasn't found. Install Python 3 and ensure python or py is in the PATH.")
 
 base_libraries = []  # libraries shared by all utilities (except bam2mid)
 
