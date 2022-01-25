@@ -872,10 +872,10 @@ if portable and (unix and not mac):
     CXXFLAGS.append ("-D_GLIBCXX_USE_CXX11_ABI=0")
     if glibc:
         # For compatibility with older glibc when linking with glibc >= 2.28 (2018-08-01),
-        # redirect certain functions like fcntl (used in libfb) to __wrap_fcntl, which
+        # redirect certain functions like fcntl (used in libfb) to __wrap_fcntl, etc, which
         # are defined in lib/glibc_compat.c.
         # See https://rpg.hamsterrepublic.com/ohrrpgce/Portable_GNU-Linux_binaries
-        syms = "fcntl", "fcntl64", "pow", "exp", "log"
+        syms = "fcntl", "fcntl64", "stat64", "pow", "exp", "log"
         CXXLINKFLAGS.append ("-Wl," + ",".join("--wrap=" + x for x in syms))
         FBLINKERFLAGS += ["--wrap=" + x for x in syms]
 
