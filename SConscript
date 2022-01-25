@@ -203,18 +203,10 @@ if not arch:
 
 ################ Other commandline arguments
 
+tiny = int(ARGUMENTS.get('tiny', 0))
+
 if int (ARGUMENTS.get ('asm', False)):
     FBFLAGS += ["-R", "-RR", "-g"]
-
-# glibc=0|1 overrides automatic detection
-glibc = int (ARGUMENTS.get ('glibc', glibc))
-if glibc:
-    CFLAGS += ["-DHAVE_GLIBC"]
-    # This includes symbols which are used by glibc's backtrace_symbols() function
-    # (unlike GDB backtraces which are created using debug info, and sadly GDB doesn't
-    # try to use these symbols)
-    CXXLINKFLAGS.append('-Wl,--export-dynamic')
-    FBLINKERFLAGS.append('--export-dynamic')
 
 pdb = int(ARGUMENTS.get('pdb', 0))
 if pdb:
@@ -223,8 +215,6 @@ if pdb:
     if not win32:
         print("pdb=1 only makes sense when targeting Windows")
         Exit(1)
-
-tiny = int(ARGUMENTS.get('tiny', 0))
 
 # There are five levels of debug here: 0, 1, 2, 3, 4 (ugh!). See the help.
 if release:
@@ -251,23 +241,45 @@ if debug >= 1 or pdb:
 # Note: fbc includes symbols (but not debug info) in .o files even without -g,
 # but strips everything if -g not passed during linking; with linkgcc we need to strip.
 linkgcc_strip = (debug == 0 and pdb == 0)  # (linkgcc only) strip debug info and unwanted symbols?
-if int(ARGUMENTS.get('lto', tiny != 0)):  # lto=0 overrides tiny=1
-    # Only use LTO on gengcc .c files. GCC throws errors if you try to use LTO
-    # across C/FB, after saying declarations don't match.
-    #CFLAGS.append('-flto')
-    GENGCC_CFLAGS.append('-flto')
-    CXXLINKFLAGS.append('-flto')
 
-if not tiny:
+lto = int(ARGUMENTS.get('lto', tiny != 0))  # lto=1 by default in tiny builds, but lto=0 overrides
+if lto:
+    CFLAGS.append('-flto')
+    GENGCC_CFLAGS.append('-flto')
+    # GCC throws many warnings about structs that harmlessly differ between C/FB (only in name?), and warns
+    # to use -fno-strict-aliasing. That might actually be needed despite the declarations being equivalent.
+    CFLAGS.append('-fno-strict-aliasing')
+    GENGCC_CFLAGS.append('-fno-strict-aliasing')
+    CXXLINKFLAGS += ['-fno-strict-aliasing', '-Wno-lto-type-mismatch']
+    #CXXLINKFLAGS.append('-flto')  # Shouldn't actually be needed?
+    if 'x86' in arch:
+        # The default Intel syntax results in link-time asm errors like "Error: junk `(%rbp)' after expression"
+        FBFLAGS += ['-asm', 'att']
+
+if not tiny and not lto:
     # Make sure we can print stack traces
     # Also -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
     CFLAGS.append('-fno-omit-frame-pointer')
     GENGCC_CFLAGS.append('-fno-omit-frame-pointer')
 
+# glibc=0|1 overrides automatic detection
+glibc = int(ARGUMENTS.get ('glibc', glibc))
+if glibc:
+    CFLAGS += ["-DHAVE_GLIBC"]
+    if not tiny or debug :
+        # This includes symbols which are used by glibc's backtrace_symbols() function
+        # (unlike GDB backtraces which are created using debug info, and sadly GDB doesn't
+        # try to use these symbols)
+        # Unfortunately it even puts in symbols for functions that don't exist because they
+        # were dead code or always inlined (especially in LTO builds)
+        CXXLINKFLAGS.append('-Wl,--export-dynamic')
+        FBLINKERFLAGS.append('--export-dynamic')
+
 portable = False
 if release and unix and not mac and not android:
     portable = True
 portable = int (ARGUMENTS.get ('portable', portable))
+
 profile = int (ARGUMENTS.get ('profile', 0))
 if profile:
     FBFLAGS.append ('-profile')
@@ -457,6 +469,8 @@ def bas_build_action(moreflags = ''):
         return ['$FBC $FBFLAGS -r $SOURCE -o ${TARGET}.c ' + moreflags,
                 '$FBCC $GENGCC_CFLAGS $FBCC_CFLAGS -c ${TARGET}.c -o $TARGET']
     else:
+        # Note in this case FBCC_CFLAGS does not apply (contains flags fbc passes automatically to FBCC),
+        # and GENGCC_CFLAGS has already been added into FBFLAGS with -Wc.
         return '$FBC $FBFLAGS -c $SOURCE -o $TARGET ' + moreflags
 
 #variant_baso creates Nodes/object files with filename prefixed with VAR_PREFIX environment variable
@@ -470,7 +484,7 @@ basmaino = Builder (action = bas_build_action('-m ${SOURCE.filebase}'),
                     source_factory = translate_rb)
 
 # Only used when linking with fbc.
-# Because fbc ignores all but the last -Wl flag, have to concatenate them.
+# Because fbc < 1.07 ignores all but the last -Wl flag, have to concatenate them.
 basexe = Builder (action = ['$FBC $FBFLAGS -x $TARGET $SOURCES $FBLINKFLAGS ${FBLINKERFLAGS and "-Wl " + ",".join(FBLINKERFLAGS)}',
                             check_binary],
                   suffix = exe_suffix, src_suffix = '.bas', source_factory = translate_rb)
@@ -1609,10 +1623,10 @@ Options:
                         symbols present (to allow basic stacktraces); adds ~300KB.
                         (Note: if gengcc=0, then debug=0 is completely unstripped)
                       optimisation: Also causes hspeak to be translated to C
-  tiny=1              Create a minimum-size build. Enables gengcc=1, debug=0,
-                      lto=1 and use -Os. Runs slower (scripts by ~20%).
-                      Adding lto=0 hugely shortens build time, is not much larger,
-                      but even slower.
+  tiny=1              Create a minimum-size build. Enables gengcc=1, debug=0 (with
+                      even less debug info), lto=1 and use -Os. Runs slower
+                      (scripts by ~20%).  Adding lto=0 hugely shortens build time,
+                      is not much larger, but even slower.
   pdb=1               (Windows only.) Produce .pdb debug info files, for CrashRpt
                       and BreakPad crash analysis. .pdb files are put in win32/.
                       Visual Studio or Visual C++ Build Tools must be installed.
