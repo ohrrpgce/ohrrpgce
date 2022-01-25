@@ -363,17 +363,23 @@ for var in 'AS', 'CC', 'CXX':
 
 # If you want to use a different C/C++ compiler do "CC=... CXX=... scons ...".
 # If CC is clang, you may want to set FBCC too.
+compiler_arg = ARGUMENTS.get('compiler', 'gcc')
 mod = globals()
-CC = ohrbuild.findtool(mod, 'CC', ARGUMENTS.get('compiler', 'gcc'))
+CC = ohrbuild.findtool(mod, 'CC', compiler_arg)
 if not CC:
     CC = ohrbuild.findtool(mod, (), 'cc')
+    if not CC:
+        exit("Missing a C compiler! (Couldn't find " + compiler_arg + " nor cc in PATH, nor is CC set. Can also try compiler=clang.)")
 # FBCC is the compiler used for fbc-generated C code (gengcc=1).
-FBCC = ohrbuild.findtool(mod, ('FBCC', 'GCC'), ARGUMENTS.get('compiler', 'gcc'))
+FBCC = ohrbuild.findtool(mod, ('FBCC', 'GCC'), compiler_arg)
 if not FBCC: FBCC = CC
-_cxx = {'gcc':'g++', 'clang':'clang++', None:'g++'}[ARGUMENTS.get('compiler')]
+_cxx = {'gcc':'g++', 'clang':'clang++'}.get(compiler_arg, 'g++')
 CXX = ohrbuild.findtool(mod, 'CXX', _cxx)
 if not CXX:
     CXX = ohrbuild.findtool(mod, (), 'c++')
+    if not CXX:
+        exit("Missing a C++ compiler! (Couldn't find " + _cxx + " nor c++ in PATH, nor is CXX set.)")
+
 if optimisations > 1:
     EUC = ohrbuild.findtool(mod, 'EUC', "euc")  # Euphoria to C compiler (None if not found)
     EUBIND = None
