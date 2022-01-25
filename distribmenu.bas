@@ -30,10 +30,10 @@ DECLARE SUB write_innosetup_script (basename as string, gamename as string, isst
 DECLARE SUB add_innosetup_file (s as string, filename as string)
 DECLARE FUNCTION win_path (filename as string) as string
 DECLARE FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as bool
-DECLARE FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+DECLARE FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, destdir as string) as bool
 DECLARE SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
 DECLARE SUB find_required_dlls(gameplayer as string, byref files as string vector)
-DECLARE FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+DECLARE FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as bool
 DECLARE SUB distribute_game_as_debian_package (which_arch as string, dest_override as string = "")
 DECLARE FUNCTION get_debian_package_version() as string
 DECLARE FUNCTION get_debian_package_name() as string
@@ -42,19 +42,19 @@ DECLARE SUB write_linux_desktop_file(title as string, filename as string, basena
 DECLARE SUB write_debian_binary_file (filename as string)
 DECLARE SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, size_in_kibibytes as integer, byref distinfo as DistribState, deb_arch as string)
 DECLARE SUB write_debian_copyright_file (filename as string)
-DECLARE FUNCTION gzip_file (filename as string) as integer
-DECLARE FUNCTION gunzip_file (filename as string) as integer
-DECLARE FUNCTION create_zipfile(start_in_dir as string, zipfile as string, files as string) as integer
-DECLARE FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as integer
-DECLARE FUNCTION extract_tarball(into_dir as string, tarball as string, files as string) as integer
-DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as integer
+DECLARE FUNCTION gzip_file (filename as string) as bool
+DECLARE FUNCTION gunzip_file (filename as string) as bool
+DECLARE FUNCTION create_zipfile(start_in_dir as string, zipfile as string, files as string) as bool
+DECLARE FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as bool
+DECLARE FUNCTION extract_tarball(into_dir as string, tarball as string, files as string) as bool
+DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as bool
 DECLARE SUB fix_deb_group_permissions(start_at_dir as string)
 DECLARE SUB write_debian_postrm_script (filename as string)
 DECLARE SUB write_debian_postinst_script (filename as string)
-DECLARE FUNCTION can_make_tarballs () as integer
-DECLARE FUNCTION can_run_windows_exes () as integer
-DECLARE FUNCTION can_make_debian_packages () as integer
-DECLARE FUNCTION can_make_mac_packages () as integer
+DECLARE FUNCTION can_make_tarballs () as bool
+DECLARE FUNCTION can_run_windows_exes () as bool
+DECLARE FUNCTION can_make_debian_packages () as bool
+DECLARE FUNCTION can_make_mac_packages () as bool
 DECLARE SUB edit_distrib_info ()
 DECLARE FUNCTION sanitize_pkgname(s as string) as string
 DECLARE FUNCTION sanitize_email(s as string) as string
@@ -63,7 +63,7 @@ DECLARE FUNCTION sanitize_url_chunk(byval s as string) as string
 DECLARE SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
 DECLARE SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wrap as integer=72)
 DECLARE SUB maybe_write_license_text_file (filename as string)
-DECLARE FUNCTION is_known_license(license_code as string) as integer
+DECLARE FUNCTION is_known_license(license_code as string) as bool
 DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
 DECLARE FUNCTION browse_licenses(old_license as string) as string
 DECLARE SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = "")
@@ -485,7 +485,7 @@ FUNCTION browse_licenses(old_license as string) as string
  RETURN known_licenses(which)
 END FUNCTION
 
-FUNCTION is_known_license(license_code as string) as integer
+FUNCTION is_known_license(license_code as string) as bool
  'duplicated known_licenses because global string arrays are a pain in the ass
  DIM known_licenses(9) as string = {"COPYRIGHT", "PUBLICDOMAIN", "GPL", "MIT", "CC-BY", "CC-BY-SA", "CC-BY-ND", "CC-BY-NC", "CC-BY-NC-SA", "CC-BY-NC-ND"}
  FOR i as integer = 0 TO UBOUND(known_licenses)
@@ -624,7 +624,7 @@ FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as boo
  RETURN YES
 END FUNCTION
 
-FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, destdir as string) as bool
  'Returns true on success, false on failure
  DIM dest_exe as string = destdir & SLASH & basename & ".exe"
  IF confirmed_copy(gameplayer, dest_exe) = NO THEN RETURN NO
@@ -722,7 +722,7 @@ SUB find_required_dlls(gameplayer as string, byref files as string vector)
  NEXT i
 END SUB
 
-FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as bool
  'Returns true on success, false on failure
  IF confirmed_copy(gameplayer, destdir & SLASH & basename) = NO THEN RETURN NO
 #IFDEF __FB_UNIX__
@@ -1318,7 +1318,7 @@ SUB write_linux_desktop_file(title as string, filename as string, basename as st
  CLOSE #fh
 END SUB
 
-FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as integer
+FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as bool
  '--Returns YES if successful, or NO if failed
 
  ' start_in_dir only applies to the ar command. The archive filename should still be either absolute or relative to the default CURDIR
@@ -1347,10 +1347,9 @@ FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as s
  IF LEN(spawn_ret) THEN dist_info spawn_ret : RETURN NO
  IF NOT isfile(archive) THEN dist_info "Could not create " & archive : RETURN NO
  RETURN YES
- 
 END FUNCTION
 
-FUNCTION create_zipfile(start_in_dir as string, zipfile as string, files as string) as integer
+FUNCTION create_zipfile(start_in_dir as string, zipfile as string, files as string) as bool
  '--Returns YES if successful, or NO if failed
 
  ' start_in_dir only applies to the zip command. The zipfile filename should still be either absolute or relative to the default CURDIR
@@ -1378,7 +1377,7 @@ FUNCTION create_zipfile(start_in_dir as string, zipfile as string, files as stri
  RETURN YES
 END FUNCTION
 
-FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as integer
+FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as bool
  '--Returns YES if successful, or NO if failed
 
  ' start_in_dir only applies to the tar command. The tarball filename should still be either absolute or relative to the default CURDIR
@@ -1462,7 +1461,7 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  RETURN YES
 END FUNCTION
 
-FUNCTION extract_tarball(into_dir as string, tarball as string, files as string) as integer
+FUNCTION extract_tarball(into_dir as string, tarball as string, files as string) as bool
  '--Returns YES if successful, or NO if failed
  
  'The tarball must already be decompressed. Don't pass in a .tar.gz (this is inconsistent
@@ -1491,10 +1490,9 @@ FUNCTION extract_tarball(into_dir as string, tarball as string, files as string)
  IF LEN(spawn_ret) THEN dist_info spawn_ret : RETURN NO
  
  RETURN YES
-
 END FUNCTION
 
-FUNCTION gzip_file (filename as string) as integer
+FUNCTION gzip_file (filename as string) as bool
  'Returns YES on success, NO on failure
  DIM gzip as string = find_helper_app("gzip", YES)
  IF gzip = "" THEN dist_info "ERROR: gzip is not available": RETURN NO
@@ -1512,7 +1510,7 @@ FUNCTION gzip_file (filename as string) as integer
  RETURN YES
 END FUNCTION
 
-FUNCTION gunzip_file (filename as string) as integer
+FUNCTION gunzip_file (filename as string) as bool
  'Returns YES on success, NO on failure
  DIM gzip as string = find_helper_app("gzip", YES)
  IF gzip = "" THEN dist_info "ERROR: gzip is not available": RETURN NO
@@ -1608,37 +1606,38 @@ FUNCTION get_debian_package_version() as string
  '& "." & MID(TIME, 1, 2)
 END FUNCTION
 
-FUNCTION can_run_windows_exes () as integer
+FUNCTION can_run_windows_exes () as bool
 #IFDEF __FB_WIN32__
  '--Of course we can always run exe files on Windows
  RETURN YES
+#ELSE
+ '--Unixen and Macs can only run exe files with wine
+ IF find_helper_app("wine") = "" THEN RETURN NO
+ IF NOT isdir(environ("HOME") & "/.wine/dosdevices/c:") THEN RETURN NO
+ RETURN YES
 #ENDIF
-'--Unixen and Macs can only run exe files with wine
-IF find_helper_app("wine") = "" THEN RETURN NO
-IF NOT isdir(environ("HOME") & "/.wine/dosdevices/c:") THEN RETURN NO
-RETURN YES
 END FUNCTION
 
-FUNCTION can_make_tarballs () as integer
-'--check to see if we can find the tools needed to create a .tar.gz tarball
-IF find_helper_app("tar") = "" THEN RETURN NO
-IF find_helper_app("gzip") = "" THEN RETURN NO
-RETURN YES
+FUNCTION can_make_tarballs () as bool
+ '--check to see if we can find the tools needed to create a .tar.gz tarball
+ IF find_helper_app("tar") = "" THEN RETURN NO
+ IF find_helper_app("gzip") = "" THEN RETURN NO
+ RETURN YES
 END FUNCTION
 
-FUNCTION can_make_debian_packages () as integer
-'--check to see if we can find the tools needed to create a .deb package
-IF find_helper_app("ar") = "" THEN RETURN NO
-IF find_helper_app("tar") = "" THEN RETURN NO
-IF find_helper_app("gzip") = "" THEN RETURN NO
-RETURN YES
+FUNCTION can_make_debian_packages () as bool
+ '--check to see if we can find the tools needed to create a .deb package
+ IF find_helper_app("ar") = "" THEN RETURN NO
+ IF find_helper_app("tar") = "" THEN RETURN NO
+ IF find_helper_app("gzip") = "" THEN RETURN NO
+ RETURN YES
 END FUNCTION
 
-FUNCTION can_make_mac_packages () as integer
-'--check to see if we can find the tools needed to compress a mac .app package
-IF find_helper_app("tar") = "" THEN RETURN NO
-IF find_helper_app("gzip") = "" THEN RETURN NO
-RETURN YES
+FUNCTION can_make_mac_packages () as bool
+ '--check to see if we can find the tools needed to compress a mac .app package
+ IF find_helper_app("tar") = "" THEN RETURN NO
+ IF find_helper_app("gzip") = "" THEN RETURN NO
+ RETURN YES
 END FUNCTION
 
 SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = "")
