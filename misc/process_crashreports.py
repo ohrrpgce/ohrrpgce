@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/usr/bin/env python3
 """
 This is a utility for analyzing crashrpt crash/bug reports, which are .zip
 files containing a Windows minidump, crashrpt xml file, {c,g}_debug.txt, and

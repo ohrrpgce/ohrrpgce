@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/usr/bin/env python3
 """
 Routines, using Breakpad and other utilities to:
 -generate a Breakpad .sym file from a .pdb file using dump_syms.exe
