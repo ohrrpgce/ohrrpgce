@@ -4220,6 +4220,7 @@ SUB saveenemydata (enemy as EnemyDef, byval index as integer, byval altfile as b
   setbit buf(), 74, 63, .never_flinch
   setbit buf(), 74, 64, .ignore_for_alone
   setbit buf(), 74, 65, .give_rewards_even_if_alive
+  setbit buf(), 74, 66, .controlled_by_player
 
   '--spawning
   buf(79) = .spawn.on_death
