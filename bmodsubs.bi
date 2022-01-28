@@ -31,6 +31,7 @@ declare function checktheftchance (byval item as integer, byval itemp as integer
 declare function trytheft (bat as BattleState, byval who as integer, byval targ as integer, attack as AttackData, bslot() as BattleSprite) as bool
 
 declare function count_available_attacks_in_ai_list (byval ai as EnemyAIEnum, byval slot as integer, bslot() as BattleSprite) as integer
+declare function is_foe_of(target as integer, attacker as integer, bslot() as BattleSprite) as bool
 declare function enemycount (bslot() as battlesprite) as integer
 declare function targenemycount (bslot() as BattleSprite, byval for_alone_ai as bool = NO) as integer
 declare sub anim_enemy (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
