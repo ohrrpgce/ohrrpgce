@@ -664,8 +664,8 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
          END IF
         END WITHNODE
        END READNODE
-       
-       .auto_battle = slot."auto_battle".default(NO).integer <> 0
+
+       .auto_battle = slot."auto_battle".bool.default(NO)
 
        ' Abandoned data no longer loaded (obsolete)
        slot."rename_on_add".ignore

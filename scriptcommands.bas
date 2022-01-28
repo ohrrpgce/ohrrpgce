@@ -4194,8 +4194,8 @@ SUB script_functions(byval cmdid as integer)
   doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40)
   'FIXME: missing forceparty call! (bug #1111)
  CASE 110'--set hero picture
-  IF valid_hero_party(retvals(0)) THEN
-   DIM heronum as integer = bound(retvals(0), 0, 40)
+  DIM heronum as integer = retvals(0)
+  IF valid_hero_party(heronum) THEN
    DIM whichsprite as integer = bound(retvals(2), 0, 2)
    SELECT CASE whichsprite
     CASE 0:
@@ -4208,8 +4208,8 @@ SUB script_functions(byval cmdid as integer)
    END SELECT
   END IF
  CASE 111'--set hero palette
-  IF valid_hero_party(retvals(0)) THEN
-   DIM heronum as integer = bound(retvals(0), 0, 40)
+  DIM heronum as integer = retvals(0)
+  IF valid_hero_party(heronum) THEN
    DIM whichsprite as integer = bound(retvals(2), 0, 2)
    SELECT CASE whichsprite
     CASE 0:
@@ -5071,13 +5071,13 @@ SUB script_functions(byval cmdid as integer)
  CASE 727 '--heal party ([revive dead heroes])
   innRestore retvals(0)  '-2 means default
  CASE 728 '--set hero auto battle (who, bool)
-  IF valid_hero_party(retvals(0)) THEN
-   DIM heronum as integer = bound(retvals(0), 0, 40)
+  DIM heronum as integer = retvals(0)
+  IF really_valid_hero_party(heronum) THEN
    gam.hero(heronum).auto_battle = retvals(1) <> 0
   END IF
  CASE 729 '--get hero auto battle (who)
-  IF valid_hero_party(retvals(0)) THEN
-   DIM heronum as integer = bound(retvals(0), 0, 40)
+  DIM heronum as integer = retvals(0)
+  IF really_valid_hero_party(heronum) THEN
    scriptret = IIF(gam.hero(heronum).auto_battle, 1, 0)
   END IF
 
