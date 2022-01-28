@@ -1763,22 +1763,9 @@ SUB populate_battle_menu_menudef_for_enemy (byref bat as BattleState, bslot() as
  END WITH
 
  'Which attack list to use
- DIM ai as EnemyAIEnum = aiNormal
- 'if HP is less than the threshold, go into desperation mode
- IF enemy_is_weak(bslot(bat.enemy_turn)) THEN ai = aiWeak
- 'Go into alone mode if no other enemies without "Ignored for "Alone" AI" bitset
- IF targenemycount(bslot(), YES) <= 1 THEN ai = aiAlone
- 'make sure that the current ai set is valid
- 'otherwise fall back on another
- IF count_attacks_in_ai_list(ai, bat.enemy_turn, bslot()) = 0 THEN
-  ai = aiNormal
-  IF enemy_is_weak(bslot(bat.enemy_turn)) THEN
-   ai = aiWeak
-   IF count_attacks_in_ai_list(ai, bat.enemy_turn, bslot()) = 0 THEN ai = aiNormal
-  END IF
- END IF
+ DIM ai as EnemyAIEnum = pick_enemy_attack_list(bat.enemy_turn, bslot())
  'if no valid ai set is available, the enemy loses its turn
- IF count_attacks_in_ai_list(ai, bat.enemy_turn, bslot()) = 0 THEN
+ IF ai = aiNone THEN
   IF bat.player_turn = bat.enemy_turn THEN bat.player_turn = -1
   bat.enemy_turn = -1
   EXIT SUB
@@ -2792,23 +2779,42 @@ FUNCTION enemy_is_weak(byref bspr as BattleSprite) as bool
  RETURN NO
 END FUNCTION
 
-SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
-
- 'Which attack list to use
+'Figure out which enemy attack list should be used.
+FUNCTION pick_enemy_attack_list(slot as integer, bslot() as BattleSprite) as EnemyAIEnum
  DIM ai as EnemyAIEnum = aiNormal
 
  'if HP is less than the threshold, go into desperation mode
- IF enemy_is_weak(bslot(bat.enemy_turn)) THEN ai = aiWeak
+ IF enemy_is_weak(bslot(slot)) THEN ai = aiWeak
 
  'Go into alone mode if no other enemies without "Ignored for "Alone" AI" bitset
  IF targenemycount(bslot(), YES) <= 1 THEN ai = aiAlone
 
- DIM slot as integer = 0
+ 'Make sure that the current attack set contains attacks that can actually be
+ 'used, otherwise fall back. MP Idiot is ignored, so fallback even if they would
+ 'normally have wasted their turn, however the player might be in control.
+ IF count_available_attacks_in_ai_list(ai, slot, bslot()) = 0 THEN
+  ai = aiNormal
+  IF enemy_is_weak(bslot(slot)) THEN
+   ai = aiWeak
+   IF count_available_attacks_in_ai_list(ai, slot, bslot()) = 0 THEN ai = aiNormal
+  END IF
+ END IF
+ IF count_available_attacks_in_ai_list(ai, slot, bslot()) = 0 THEN ai = aiNone
+
+ RETURN ai
+END FUNCTION
+
+SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+
+ 'Pick attack list before spawning any enemies which would change Alone status
+ DIM ai as EnemyAIEnum = pick_enemy_attack_list(bat.enemy_turn, bslot())
+
  'spawn allies when alone
  WITH bslot(bat.enemy_turn)
-  IF ai = aiAlone AND .enemy.spawn.when_alone > 0 THEN
+  'Count enemies without "Ignored for "Alone" AI" bit
+  IF .enemy.spawn.when_alone > 0 ANDALSO targenemycount(bslot(), YES) <= 1 THEN
    FOR j as integer = 1 TO .enemy.spawn.how_many
-    slot = find_empty_enemy_slot(formdata)
+    DIM slot as integer = find_empty_enemy_slot(formdata)
     IF slot > -1 THEN
      formdata.slots(slot).id = .enemy.spawn.when_alone - 1
      loadfoe slot, formdata, bat, bslot()
@@ -2817,18 +2823,11 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
   END IF
  END WITH
 
- 'make sure that the current ai set is valid
- 'otherwise fall back on another
- IF count_attacks_in_ai_list(ai, bat.enemy_turn, bslot()) = 0 THEN
-  ai = aiNormal
-  IF enemy_is_weak(bslot(bat.enemy_turn)) THEN
-   ai = aiWeak
-   IF count_attacks_in_ai_list(ai, bat.enemy_turn, bslot()) = 0 THEN ai = aiNormal
-  END IF
+ IF ai = aiNone THEN
+  'if no valid ai set is available, the enemy loses its turn
+  bat.enemy_turn = -1
+  EXIT SUB
  END IF
-
- 'if no valid ai set is available, the enemy loses its turn
- IF count_attacks_in_ai_list(ai, bat.enemy_turn, bslot()) = 0 THEN bat.enemy_turn = -1 : EXIT SUB
 
  'pick a random attack
  DIM atk_id as integer

@@ -8,7 +8,9 @@
 #INCLUDE "udts.bi"
 #INCLUDE "battle_udts.bi"
 
+'Which enemy AI attack list
 ENUM EnemyAIEnum
+ aiNone = -1      'No attack list available
  aiNormal = 0
  aiWeak = 1
  aiAlone = 2
@@ -50,6 +52,7 @@ DECLARE FUNCTION dieWOboss(byval who as integer, bslot() as BattleSprite) as int
 DECLARE SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB triggerfade(byval who as integer, bslot() as BattleSprite)
 DECLARE SUB enemy_death_rewards(byref bat as BattleState, battler as BattleSprite)
+declare function pick_enemy_attack_list(slot as integer, bslot() as BattleSprite) as EnemyAIEnum
 DECLARE SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id as integer, bslot() as BattleSprite)
 DECLARE SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef)

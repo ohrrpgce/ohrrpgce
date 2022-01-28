@@ -306,9 +306,10 @@ END IF
 evalitemtags
 END FUNCTION
 
-'Count number of attacks in one of an enemy's attack lists
+'Count number of attacks in one of an enemy's attack lists which it can currently use.
+'Note, attacks are excluded even if the enemy is an MP Idiot but hasn't got enough MP.
 'ai: which attack list
-FUNCTION count_attacks_in_ai_list (byval ai as EnemyAIEnum, byval slot as integer, bslot() as BattleSprite) as integer
+FUNCTION count_available_attacks_in_ai_list (byval ai as EnemyAIEnum, byval slot as integer, bslot() as BattleSprite) as integer
  DIM atk as AttackData
  DIM atk_id as integer
  DIM count as integer = 0
