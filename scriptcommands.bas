@@ -1110,9 +1110,9 @@ SUB script_functions(byval cmdid as integer)
    scriptret = mislot
   END IF
  CASE 304'--outside battle cure
-  'WARNING: This exists for backcompat, but "map cure" should be prefered.
+  'WARNING: This exists for backcompat, but "map cure" should be preferred.
   'See bug 719
-  IF bound_arg(retvals(0), 0, gen(genMaxAttack), "attack ID") THEN
+  IF valid_attack(retvals(0) + 1) THEN
    IF valid_hero_party(retvals(1)) THEN
     IF valid_hero_party(retvals(2), -1) THEN
      scriptret = ABS(outside_battle_cure(retvals(0), retvals(1), retvals(2), NO))
@@ -3126,7 +3126,7 @@ SUB script_functions(byval cmdid as integer)
    END IF
   NEXT
   debug "TRACE: " & result
- CASE 467 '--map cure
+ CASE 467 '--map cure  (replaces "outside battle cure")
   IF bound_arg(retvals(0), 1, gen(genMaxAttack)+1, "attack ID") THEN
    IF valid_hero_party(retvals(1)) THEN
     IF valid_hero_party(retvals(2), -1) THEN
@@ -3135,9 +3135,9 @@ SUB script_functions(byval cmdid as integer)
     END IF
    END IF
   END IF
- CASE 468 '--read attack name
+ CASE 468 '--read attack name(str, id+1)  (replaces "get attack name")
   scriptret = 0
-  IF valid_plotstr(retvals(0)) AND bound_arg(retvals(1), 1, gen(genMaxAttack)+1, "attack ID") THEN
+  IF valid_plotstr(retvals(0)) AND valid_attack(retvals(1)) THEN
    plotstr(retvals(0)).s = readattackname(retvals(1) - 1)
    scriptret = 1
   END IF
@@ -3427,8 +3427,7 @@ SUB script_functions(byval cmdid as integer)
    scriptret = iif(thisdoor.exists, 1, 0)
   END IF
  CASE 526 '--get attack caption
-  IF valid_plotstr(retvals(0), serrBadOp) ANDALSO _
-     bound_arg(retvals(1), 1, gen(genMaxAttack)+1, "attack ID", , serrBadOp) THEN
+  IF valid_plotstr(retvals(0), serrBadOp) ANDALSO valid_attack(retvals(1)) THEN
    plotstr(retvals(0)).s = readattackcaption(retvals(1) - 1)
    scriptret = 1
   END IF
@@ -5599,6 +5598,10 @@ END FUNCTION
 
 FUNCTION valid_plotstr(byval n as integer, byval errlvl as scriptErrEnum = serrBound) as bool
  RETURN bound_arg(n, 0, UBOUND(plotstr), "string ID", , errlvl)
+END FUNCTION
+
+FUNCTION valid_attack(byval id_plus_1 as integer) as bool
+ RETURN bound_arg(id_plus_1, 1, gen(genMaxAttack) + 1, "attack ID", , serrBadOp)
 END FUNCTION
 
 FUNCTION valid_formation(byval form as integer) as bool
