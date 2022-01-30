@@ -2721,14 +2721,16 @@ SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id a
   END WITH
  NEXT i
 
- DIM safety as integer = 0
  DIM atk as AttackData
- DIM choice_count as integer = v_len(valid_for_ai)
+ DIM choice_count as integer
+ DIM menu_id as integer
  DIM atk_id as integer = -1
 
  DO
+  choice_count = v_len(valid_for_ai)
   IF choice_count > 0 THEN
-   WITH *bspr.batmenu.items[randint(choice_count)]
+   menu_id = *v_at(valid_for_ai, randint(choice_count))
+   WITH *bspr.batmenu.items[menu_id]
     atk_id = .sub_t
     loadattackdata atk, atk_id
     IF atkallowed(atk, attacker_id, 0, 0, bslot()) THEN
@@ -2736,12 +2738,13 @@ SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id a
      EXIT DO
     END IF
    END WITH
-  END IF
-  safety +=1
-  IF safety > choice_count * 10 THEN 
-   'give up eventually
-   debug "Hero AI safety Warning: hero " & attacker_id & " gave up after " & safety & " tries"
+   'If atkallowed failed, remove this item
+   v_remove valid_for_ai, menu_id
+  ELSE
+   'All choices eliminated, fail gracefully
+   debuginfo "Hero AI: hero " & attacker_id & " gave up on finding an attack"
    atk_id = -1
+   EXIT DO
   END IF
  LOOP
 
