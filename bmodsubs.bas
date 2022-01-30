@@ -1909,12 +1909,17 @@ END FUNCTION
 FUNCTION targenemycount (bslot() as BattleSprite, byval for_alone_ai as bool = NO) as integer
  DIM count as integer = 0
  DIM ignore as bool = NO
- FOR i as integer = 4 TO 11
-  IF for_alone_ai THEN
-   ignore = bslot(i).ignore_for_alone
-  END IF
-  IF bslot(i).stat.cur.hp > 0 AND bslot(i).vis AND ignore = NO THEN
-   count = count + 1
+ FOR i as integer = 0 TO 11
+  IF (is_enemy(i) ANDALSO bslot(i).defector_target = NO) ORELSE (is_hero(i) ANDALSO bslot(i).defector_target = YES) THEN
+   IF for_alone_ai THEN
+    ignore = bslot(i).ignore_for_alone
+   ELSE
+    'We care about hidden status for time passage, but we do not care about hidden status for Alone AI
+    IF bslot(i).hidden THEN CONTINUE FOR
+   END IF
+   IF bslot(i).stat.cur.hp > 0 AND bslot(i).vis AND ignore = NO THEN
+    count = count + 1
+   END IF
   END IF
  NEXT i
  RETURN count
