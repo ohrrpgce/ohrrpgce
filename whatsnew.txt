@@ -80,6 +80,8 @@ WHAT IS NEW?
     * Bug #1120 Heroes which have jumped count as dead for targetting [James]
     * On Windows, detection of whether certain subprograms were installed was
       broken, giving strange errors about "_" [Ralph]
+    * Fix transmogrification unhiding a enemy if they tansform in the middle
+      of jump/hide state [James]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license
