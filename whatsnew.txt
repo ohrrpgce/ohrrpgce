@@ -50,6 +50,8 @@ WHAT IS NEW?
     * "dir X", "dir Y" [Ralph]
     * "heal party" (acts like an inn) [Ralph]
     * "set hero auto battle", "get hero auto battle" [James]
+    * "break" and "continue" take an argument for the number of loops to break
+      out of, for 15 years already, but it wasn't documented [Ralph]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

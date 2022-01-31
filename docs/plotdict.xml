@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-01-22">
+<plotscript version="wip" datecode="2022-01-30">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -544,13 +544,15 @@ y := hero pixel Y(me) + 10 + 20 * dir Y(dir)</example>
 
 	<section title="Flow Control">
 		<command id="begin">
-			<canon>begin,other commands,end</canon>
+			<canon>begin, other commands, end</canon>
 			<shortname>begin</shortname>
 			<description>
 				<tt>begin</tt> is a synonym for <tt>(</tt> and <tt>end</tt> is a synonym for <tt>)</tt>.
 				Parentheses are normally used for bracketing things that all fit on the same line,
-				and begin/end statements are often used to enclose very long things such as whole
-				scripts or long flow control blocks that take up several lines.
+				and <tt>begin</tt>/<tt>end</tt> statements are often used to enclose very long things
+				such as whole scripts or long flow control blocks that take up several lines.
+				But using one or the other is a matter of taste.
+				<lb/>
 				For example, the following:
 				<example>if (check tag(tag:have rusty sword)) then (show text box (5), wait for text box)</example>
 				is equivalent to:
@@ -568,14 +570,26 @@ end</example>
 		<command id="if">
 			<canon>if(condition) then(commands) else(commands)</canon>
 			<shortname>if</shortname>
-			<description>The <p>if</p> statement checks the value of its condition, and if the value is <ref>true</ref> (actually, any value other than <ref>false</ref> (which is zero) counts as true), it runs the commands in the <p>then</p> block. If the value is <ref>false</ref>, it runs the commands in its <p>else</p> block. The conditional is usually a comparison operator such as <ref>equal</ref> or <ref>notequal</ref>, or a command which returns either true or false, such as <ref>checktag</ref>. The <p>else</p> is optional as long as you have a <p>then</p>, and the <p>then</p> is optional as long as you have an <p>else</p>. You can also place one or more <ref>elseif</ref>s after the <p>then</p> (or immediately after the <p>if</p> if you skip the <p>then</p>) instead of nesting multiple <p>if</p> statements.</description>
+			<description>
+				The <p>if</p> statement checks the value of its <p>condition</p>, and if the value is <ref>true</ref>
+				(actually, any value other than <ref>false</ref> (which is zero) also counts as true),
+				it runs the commands in the <p>then</p> block.
+				If the value is <ref>false</ref>, it runs the commands in its <p>else</p> block.
+				The conditional is usually a comparison operator such as <ref>equal</ref> or <ref>notequal</ref>,
+				or a command which returns either true or false, such as <ref>checktag</ref>.
+				The <p>else</p> is optional as long as you have a <p>then</p>, and the <p>then</p>
+				is optional as long as you have an <p>else</p>.
+				You can also place one or more <ref>elseif</ref>s after the <p>then</p>
+				(or immediately after the <p>if</p> if you skip the <p>then</p>) instead of nesting multiple <p>if</p> statements.
+			</description>
 			<seealso><ref>elseif</ref></seealso>
 		</command>
 		<command id="elseif">
 			<canon>... else if(condition) then(commands) ...</canon>
 			<shortname>else if</shortname>
-			<description>This can appear after an <ref>if</ref> or <ref>then</ref> block. It is a shortcut for <ref>else</ref> followed by <ref>if</ref> which lets you omit a pairs of brackets/<ref>begin</ref> and <ref>end</ref>, as this example shows:
-			<example>if (inventory (item:apple)) then (
+			<description>This can appear after an <ref>if</ref> or <ref>then</ref> block. It is a shortcut for <ref>else</ref> followed by <ref>if</ref> which lets you omit a pairs of brackets/<ref>begin</ref> and <ref>end</ref> around the <tt>else</tt>, as this example shows:
+			<example># "inventory" returns the number you own. Remember that any number other than 0 counts as true
+if (inventory (item:apple)) then (
   show text box (10)  # "Apples! My favourite!"
 ) else if (inventory (item:orange)) then (
   show text box (11)  # "My, what a tasty looking orange..."
@@ -586,19 +600,28 @@ end</example>
 )</example>
 			</description>
 		</command>
-
 		<command id="then">
-			<alias>if</alias>
+			<canon>then</canon>
 			<shortname>then</shortname>
+			<description>See <ref>if</ref>.</description>
 		</command>
 		<command id="else">
-			<alias>if</alias>
+			<canon>else</canon>
 			<shortname>else</shortname>
+			<description>See <ref>if</ref>.</description>
 		</command>
+
 		<command id="while">
 			<canon>while(condition) do(commands)</canon>
 			<shortname>while</shortname>
-			<description>The while command checks the value of its condition, and if the value is <ref>true</ref> it runs the commands in the do block. It keeps checking the conditional and runs the do block over and over again until the conditional returns <ref>false</ref>. The conditional is usually an equality operator such as <ref>equal</ref> or <ref>notequal</ref>, or it is a check tag command.</description>
+			<description>
+				The while command checks the value of its condition, and if the value is <ref>true</ref>
+				(or any value other than 0/false) it runs the commands in the <ref>do</ref> block.
+				It keeps checking the conditional and runs the do block over and over
+				again until the conditional returns <ref>false</ref>.
+				The conditional is usually an equality operator such as <ref>equal</ref> or <ref>notequal</ref>,
+				or something else that returns <tt>true/false</tt> such as <tt>checktag</tt>.
+</description>
 		</command>
 		<command id="do">
 			<canon>do</canon>
@@ -705,16 +728,104 @@ The <p>exit returning</p> command works exactly the same as the <ref>return</ref
 			</seealso>
 		</command>
 		<command id="break">
-			<canon>break</canon>
+			<canon>break (levels)</canon>
 			<shortname>break</shortname>
 			<added>ubersetzung</added>
-			<description>Breaks out of a <ref>for</ref> or <ref>while</ref> loop or <ref>switch</ref> and continues the script after the end of the <ref>do</ref> block.</description>
+			<description>
+				Breaks out of a <ref>for</ref> or <ref>while</ref> loop or <ref>switch</ref>
+				(or even an isolated <ref>do</ref> block)
+				and continues the script after the end of the <ref>do</ref> block.
+				If breaking out of a <tt>for</tt> loop, the loop's variable isn't modified.
+				<lb/>
+				<p>levels</p> is optional (defaulting to 1), and is almost never used (see below).
+				<lb/>
+				For example:
+				<example>plotscript, search for gemstones, begin
+  variable (gems)
+  # A minimum payout of 1 gem, a maximum of 15
+  for (gems, 1, 15) do (
+    wait(20)
+    $1 = "Found "
+    append number(1, gems)
+    center string at(1)   # Show "Found 1", etc, in the center of the screen (the position is optional)
+    if (random(1, 6) == 1) then (break)  # Roll a die and stop on a 1
+  )
+  # Remove the text from the screen
+  hide string(1)
+  # "${S1} shiny rocks in the river", displays as "Found 2 shiny rocks in the river", etc
+  show textbox(17)
+end</example>
+				<p>levels</p> tells how many nested loops/blocks to break out of.
+				Remember that other flow control blocks such as <tt>if/then/else</tt> and <tt>case() do()</tt> don't count, only those listed above.
+				<example># Randomly pick one of the flowers on the map that hasn't bloomed yet and make it bloom
+plotscript, a flower blooms, begin
+  variable (x, y, found)
+  for (x, 0, map width -- 1) do (
+    for (y, 0, map height -- 1) do (
+      # Look for a flower tile (on map layer 0), suppose it's tile 10
+      if (read block(x, y) == 10) then (
+        if (random(1, 10) == 1) then (   # 10% chance of picking this one
+	  found := true
+	  break (2)  # Exit both 'for' loops. The x and y variables will remain the same
+      )
+    )
+  )
+  # The break(2) jumps to here
+
+  if (found) then (
+    # Do a little animation
+    write block(x, y, 11)
+    wait(20)
+    write block(x, y, 12)
+  )
+end</example>
+			</description>
 		</command>
 		<command id="continue">
-			<canon>continue</canon>
+			<canon>continue (levels)</canon>
 			<shortname>continue</shortname>
 			<added>ubersetzung</added>
-			<description>When used inside the <ref>do</ref> block of a <ref>for</ref> or <ref>while</ref> command, <p>continue</p> skips the rest of the do block and continues on to the next loop. When used inside a <ref>switch</ref> statement, continue causes a jump to after the next <ref>case</ref> block.</description>
+			<description>
+				When used inside the <ref>do</ref> block of a <ref>for</ref> or <ref>while</ref> command
+				(or in an isolated <ref>do</ref> block),
+				<tt>continue</tt> skips the rest of the <tt>do</tt> block and continues on to the next loop, if any.
+				That's equivalent to jumping to the bottom of the loop, so its effect is like enclosing
+				the rest of the loop in an <ref>if</ref>.
+				<lb/>
+				When used inside a <ref>switch</ref> statement, <tt>continue</tt> causes a jump into
+				the next <ref>case</ref>'s <tt>do()</tt> block, even if the <tt>case</tt> doesn't match,
+				or into the <tt>else()</tt> (aka <tt>case(else) do()</tt>) block if that follows the current <tt>case</tt>.
+				<lb/>
+				
+				<lb/>
+				<p>levels</p> is optional (defaulting to 1), and is almost never used.
+				When inside several nested loops/blocks it tells which one to continue.
+				For example if there are 3 nested <tt>for</tt> loops, <tt>continue(3)</tt> continues the outermost one,
+				in the process  breaking out of the inner two.
+				For example:
+<example>plotscript, update shadow tiles, begin
+  for (x, 0, map width -- 1) do (
+    for (y, 0, map height -- 1) do (
+
+      for (layer, 4, 7) do (
+        # Suppose tiles on any of the layers 4 to 7 are overhead tiles which cast shadows
+        if (read map block(x, y, layer) &lt;&gt; 0) then (
+          # Found a non-empty tile. Put a shadow tile (42) on the ground (layer 1)
+          write map block(x, y, 42, 1)
+	  # We don't need to check the other layers. Skipping them speeds up the script
+          continue(2)
+        )
+      )
+      # This part is reached only if the continue(2) didn't happen
+      # Remove any shadow tile on layer 1, no shadow here
+      write map block(x, y, 0, 1)
+
+      # The continue(2) jumps to here (immediately before the 'for' loops back)
+    )
+  )
+end</example>
+
+			</description>
 		</command>
 		<command id="switch">
 			<canon>switch(expression)</canon>
