@@ -2790,7 +2790,7 @@ FUNCTION pick_enemy_attack_list(slot as integer, bslot() as BattleSprite) as Ene
  'if HP is less than the threshold, go into desperation mode
  IF enemy_is_weak(bslot(slot)) THEN ai = aiWeak
 
- 'Go into alone mode if no allies without "Ignored for "Alone" AI" bit
+ 'Go into alone mode if no allies without "Ignored for "Alone" status" bit
  IF count_allies(slot, bslot()) = 0 THEN ai = aiAlone
 
  'Make sure that the current attack set contains attacks that can actually be
@@ -2815,7 +2815,7 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
 
  'spawn allies when alone
  WITH bslot(bat.enemy_turn)
-  'Any live allies without "Ignored for "Alone" AI" bit?
+  'Any live allies without "Ignored for "Alone" status" bit?
   IF .enemy.spawn.when_alone > 0 ANDALSO count_allies(bat.enemy_turn, bslot()) = 0 THEN
    FOR j as integer = 1 TO .enemy.spawn.how_many
     DIM slot as integer = find_empty_enemy_slot(formdata)

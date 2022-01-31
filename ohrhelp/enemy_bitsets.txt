@@ -23,7 +23,7 @@ Modify bitsets with Left, Right, SPACE, ENTER, or by LEFT-CLICK.
 
 The bits in this section have no direct effect on the enemy itself; they change the behaviour of other enemies or of what the heroes can do.
 
-"Ignored for "Alone" AI" - enemies with this bitset turned on aren't considered when enemies decide which set of attacks to use.
+"Ignored for "Alone" status" - enemies with this turned on aren't considered when enemies decide whether to use "Alone" attacks or whether to "Spawn when alone".
 
 "Boss" - the only effect is on other enemies with the "Die without boss" bit set.
 

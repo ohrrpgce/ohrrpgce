@@ -1,5 +1,7 @@
 This is the enemy spawning menu.
 
+Note that spawning doesn't cost an enemy its turn.
+
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
 Use the Left and Right arrow keys to change values, or you can type in numbers, or press ENTER or SPACE or CLICK to browse for an enemy to spawn, or hold CTRL or SHIFT with ENTER/SPACE/CLICK to edit an enemy.
@@ -14,7 +16,7 @@ Spawn on Death: An enemy who will be spawned when this enemy dies.
 
 Spawn on Non-Elemental Death: An enemy who will be spawned if the enemy is killed by an attack that does not have any elemental bitsets turned on.
 
-Spawn When Alone: An enemy who will be spawned whenever the enemy is the last enemy alive in a battle formation.
+Spawn When Alone: An enemy who will be spawned whenever the enemy is the last enemy alive. See help for the enemy Attacks submenu for details about Alone status.
 
 The following 'On-hit' spawn conditions may happen whenever the enemy is targetted by an attack, whether it hits, misses or fails.
 (Don't forget to set 'How Many to Spawn' to 1 or more!)

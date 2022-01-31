@@ -12,7 +12,7 @@ There are 5 slots for "Normal" attacks. Normally the enemy will choose a random 
 
 There are 5 slots for "Desperation" attacks. The enemy will randomly choose from these attacks if its HP is less that 20%. If there are no desperation attacks, it will use normal attacks instead.
 
-There are 5 slots for "Alone" attacks. The enemy will randomly choose from these attacks if it is the last enemy alive in the battle formation. If there are no alone attacks, the enemy will use normal or desperation attacks instead.
+There are 5 slots for "Alone" attacks. The enemy will randomly choose from these attacks when it's Alone: if it has no allies left alive which don't have the "Ignored for Alone status" bit. Turncoat and Defector statuses are considered when checking for allies (and hidden allies still count). If there are no alone attacks, the enemy will use normal or desperation attacks instead.
 
 On-death Bequest:
 If this is set on an enemy it will happen when the enemy dies, after they've reached 0 HP but before they fade out.

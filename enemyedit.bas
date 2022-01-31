@@ -102,7 +102,7 @@ a_append enemybits(), 58, "Die without boss"
 
 a_append enemybits(), -1, ""
 a_append enemybits(), -1, " Type"
-a_append enemybits(), 64, "Ignored for ""Alone"" AI"
+a_append enemybits(), 64, "Ignored for ""Alone"" status"
 a_append enemybits(), 56, "Boss"
 a_append enemybits(), 57, "Unescapable"
 a_append enemybits(), 62, "Win battle even if alive"
