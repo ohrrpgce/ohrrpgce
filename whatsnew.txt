@@ -78,6 +78,7 @@ WHAT IS NEW?
     * "free slice(0)" no longer shows a warning, I mean it this time! [Ralph]
     * Modifying an ellipse slice broke child clipping for one tick [Ralph]
     * Bug #1120 Heroes which have jumped count as dead for targetting [James]
+    * Bug #1107 Can escape unescapable enemies who are jumping [James]
     * On Windows, detection of whether certain subprograms were installed was
       broken, giving strange errors about "_" [Ralph]
     * Fix transmogrification unhiding a enemy if they tansform in the middle
