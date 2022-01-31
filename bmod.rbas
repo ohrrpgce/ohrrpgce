@@ -2776,6 +2776,7 @@ END SUB
 '==============================================================================
 '                                   Enemy AI
 
+'Used for enemies, not the enemy team
 FUNCTION enemy_is_weak(byref bspr as BattleSprite) as bool
  DIM weakhp as integer = gen(genEnemyWeakHP)
  IF bspr.stat.cur.hp < 0.01 * bspr.stat.max.hp * weakhp THEN RETURN YES
@@ -2789,8 +2790,8 @@ FUNCTION pick_enemy_attack_list(slot as integer, bslot() as BattleSprite) as Ene
  'if HP is less than the threshold, go into desperation mode
  IF enemy_is_weak(bslot(slot)) THEN ai = aiWeak
 
- 'Go into alone mode if no other enemies without "Ignored for "Alone" AI" bitset
- IF targenemycount(bslot(), YES) <= 1 THEN ai = aiAlone
+ 'Go into alone mode if no allies without "Ignored for "Alone" AI" bit
+ IF count_allies(slot, bslot()) = 0 THEN ai = aiAlone
 
  'Make sure that the current attack set contains attacks that can actually be
  'used, otherwise fall back. MP Idiot is ignored, so fallback even if they would
@@ -2814,8 +2815,8 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
 
  'spawn allies when alone
  WITH bslot(bat.enemy_turn)
-  'Count enemies without "Ignored for "Alone" AI" bit
-  IF .enemy.spawn.when_alone > 0 ANDALSO targenemycount(bslot(), YES) <= 1 THEN
+  'Any live allies without "Ignored for "Alone" AI" bit?
+  IF .enemy.spawn.when_alone > 0 ANDALSO count_allies(bat.enemy_turn, bslot()) = 0 THEN
    FOR j as integer = 1 TO .enemy.spawn.how_many
     DIM slot as integer = find_empty_enemy_slot(formdata)
     IF slot > -1 THEN
@@ -4486,9 +4487,9 @@ FUNCTION battle_meters_can_advance(byref bat as BattleState, bslot() as BattleSp
  DIM pause_on_spell_and_item as bool = prefbit(0) '"Pause on spell & item menus"
  DIM pause_on_targeting as bool = prefbit(35) '"Pause when targeting attacks"
 
- DIM isenemytargs as bool = (targenemycount(bslot()) > 0)
- 
- IF isenemytargs THEN
+ 'Try to avoid battle getting stuck if there are no possible actions
+ 'TODO: checking number of foes doesn't quite accomplish that
+ IF count_foes(bat.player_turn, bslot()) > 0 THEN
   IF pause_on_all THEN
    /'
    IF bat.menu_mode >= 0 ORELSE bat.targ.mode > targNONE THEN
@@ -4953,7 +4954,7 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
  'possible actions. But checking for lack of visible enemies isn't the same thing.
  /'
  IF bat.player_turn >= 0 THEN
-  IF targenemycount(bslot()) = 0 THEN
+  IF count_foes(bat.player_turn, bslot()) = 0 THEN
    'Player automatically loses turn? Add a Skip Turn option?
   END IF
  END IF

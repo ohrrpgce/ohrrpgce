@@ -333,14 +333,6 @@ FUNCTION count_available_attacks_in_ai_list (byval ai as EnemyAIEnum, byval slot
  RETURN count
 END FUNCTION
 
-FUNCTION enemycount (bslot() as BattleSprite) as integer
- DIM result as integer = 0
- FOR i as integer = 4 TO 11
-  IF bslot(i).stat.cur.hp > 0 THEN result += 1
- NEXT i
- RETURN result
-END FUNCTION
-
 'Do an attack (in-battle only).
 'Handled here:
 '- hit or miss or fail
@@ -1904,23 +1896,31 @@ FUNCTION battle_distance(byval who1 as integer, byval who2 as integer, bslot() a
  RETURN SQR(quick_battle_distance(who1, who2, bslot()))
 END FUNCTION
 
-'If for_alone_ai=YES: number of enemies left, for purpose of Alone AI
-'Otherwise: number of enemies left
-FUNCTION targenemycount (bslot() as BattleSprite, byval for_alone_ai as bool = NO) as integer
+'Count the number of live allies of_whom (excluding self) not Ignored For Alone.
+'Hidden allies are counted.
+FUNCTION count_allies(of_whom as integer, bslot() as BattleSprite) as integer
  DIM count as integer = 0
- DIM ignore as bool = NO
  FOR i as integer = 0 TO 11
-  IF (is_enemy(i) ANDALSO bslot(i).defector_target = NO) ORELSE (is_hero(i) ANDALSO bslot(i).defector_target = YES) THEN
-   IF for_alone_ai THEN
-    ignore = bslot(i).ignore_for_alone
-   ELSE
-    'We care about hidden status for time passage, but we do not care about hidden status for Alone AI
-    IF bslot(i).hidden THEN CONTINUE FOR
+  WITH bslot(i)
+   IF i <> of_whom ANDALSO is_foe_of(i, of_whom, bslot()) = NO _
+      ANDALSO .stat.cur.hp > 0 ANDALSO .vis ANDALSO .ignore_for_alone = NO THEN
+    count += 1
    END IF
-   IF bslot(i).stat.cur.hp > 0 AND bslot(i).vis AND ignore = NO THEN
-    count = count + 1
+  END WITH
+ NEXT i
+ RETURN count
+END FUNCTION
+
+'Count the number of live and non-hidden foes of_whom
+FUNCTION count_foes(of_whom as integer, bslot() as BattleSprite) as integer
+ DIM count as integer = 0
+ FOR i as integer = 0 TO 11
+  WITH bslot(i)
+   IF is_foe_of(i, of_whom, bslot()) _
+      ANDALSO .stat.cur.hp > 0 ANDALSO .vis ANDALSO .hidden = NO THEN
+    count += 1
    END IF
-  END IF
+  END WITH
  NEXT i
  RETURN count
 END FUNCTION
