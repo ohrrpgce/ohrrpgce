@@ -29,8 +29,8 @@ The bits in this section have no direct effect on the enemy itself; they change 
 
 "Win battle even if alive" enemies don't need to be killed for the player to win the battle.
 
-"Untargetable by heroes & win even if alive" makes the enemy both unkillable by heroes and has the same effect as "Win battle even if alive".
+"Untargetable by hero team & win even if alive" means the enemy can never be targeted or hit by the player/hero team (meaning heroes who aren't Turncoats and enemies who are) and also has the same effect as "Win battle even if alive".
 
-"Untargetable by enemies" - other enemies can never hit this one with an attack.
+"Untargetable by enemy team" - other enemies (who aren't Turncoats, and also heroes who are) can never target or hit this one with an attack.
 
 "Give rewards even if left alive" only affects enemies which the player doesn't need to kill because one of the two bits above is on. It makes them give out their normal rewards.
