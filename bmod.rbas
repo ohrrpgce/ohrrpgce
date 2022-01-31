@@ -4490,10 +4490,16 @@ FUNCTION battle_meters_can_advance(byref bat as BattleState, bslot() as BattleSp
  
  IF isenemytargs THEN
   IF pause_on_all THEN
+   /'
    IF bat.menu_mode >= 0 ORELSE bat.targ.mode > targNONE THEN
-    'A menu is open or an attack is being targetted
+    'Always true during a player's turn, since bat.menu_mode is never < 0.
+    'Intention was: "A menu is open or an attack is being targetted"
+    'I'm not sure if/when that differs from player_turn >= 0, because this
+    'function isn't called during an attack.
     RETURN NO
    END IF
+   '/
+   RETURN NO
   END IF
   IF pause_on_spell_and_item THEN
    IF bat.menu_mode > 0 THEN
@@ -4943,6 +4949,16 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
 
  IF bat.atk.id > 0 THEN EXIT SUB 'an attack is animating now, wait patiently.
 
+ 'FIXME: the intention is to prevent battles from getting stuck if there are no
+ 'possible actions. But checking for lack of visible enemies isn't the same thing.
+ /'
+ IF bat.player_turn >= 0 THEN
+  IF targenemycount(bslot()) = 0 THEN
+   'Player automatically loses turn? Add a Skip Turn option?
+  END IF
+ END IF
+ '/
+
  IF bat.player_turn >= 0 THEN EXIT SUB 'somebody already taking a turn, so wait patiently
  IF bat.enemy_turn >= 0 THEN EXIT SUB
 
@@ -5019,12 +5035,6 @@ SUB turn_mode_time_passage (bat as BattleState, bslot() as battleSprite)
  IF bat.caption_time > 0 THEN EXIT SUB 'Check for attack captions
 
  IF bat.away > 0 THEN EXIT SUB 'no time if the heroes have already run away
- 
- DIM isenemytargs as integer = (targenemycount(bslot()) > 0)
- IF isenemytargs THEN
-  IF bat.menu_mode > 0 THEN EXIT SUB '--no time on spell/item menus
-  IF bat.menu_mode >= 0 AND bat.player_turn >= 0 THEN EXIT SUB '--no time if hero menu is open
- END IF
 
  'Shift the .delay for active atkq() attacks, so the next one has .delay = 0
  turn_mode_decrement_attack_queue_delays bslot()
