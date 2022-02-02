@@ -1400,7 +1400,8 @@ END FUNCTION
 'For errorlevel scheme, see scriptErrEnum in const.bi
 'NOTE: this function can get called with errors which aren't caused by scripts,
 'for example findhero() called from a textbox conditional.
-SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
+'context_slice is which slice to show in the slice editor
+SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, context_slice as Slice ptr = NULL)
  'mechanism to handle scriptwatch throwing errors
  STATIC as integer recursivecall
 
@@ -1454,7 +1455,11 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  END IF
  append_menu_item menu, "Hide this error", 3
  append_menu_item menu, "Exit game", 4
- append_menu_item menu, "Enter slice debugger", 5
+ IF context_slice THEN
+  append_menu_item menu, "Show this slice in the slice editor", 5
+ ELSE
+  append_menu_item menu, "Enter slice editor/debugger", 5
+ END IF
  IF recursivecall = 1 THEN  'don't reenter the debugger if possibly already inside!
   IF gam.debug_scripts <> 0 THEN
    state.pt = append_menu_item(menu, "Return to script debugger", 6)
@@ -1496,7 +1501,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
      debuginfo "scripterr: User opted to quit"
      exitprogram NO, 1
     CASE 5
-     slice_editor SliceTable.Root
+     slice_editor SliceTable.Root, , , , , context_slice
     CASE 6 'Script debugger
      gam.debug_scripts = 2
      scriptwatcher gam.debug_scripts 'clean mode, script state view mode

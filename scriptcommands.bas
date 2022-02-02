@@ -5237,8 +5237,7 @@ SUB slice_bad_op(sl as Slice ptr, message as zstring ptr, errlev as scriptErrEnu
  IF replacestr(fullmsg, "$SL", sliceinfo) = 0 THEN
   fullmsg = sliceinfo & " " & fullmsg
  END IF
- fullmsg = !"\nSlice location: " & SlicePath(sl)
- scripterr current_command_name() & ": " & fullmsg, errlev
+ scripterr current_command_name() & ": " & fullmsg, errlev, sl
 END SUB
 
 'Return the Slice ptr for a slice handle, or throw an error

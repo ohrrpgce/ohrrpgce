@@ -174,7 +174,7 @@ CONST slgrLAYOUT2NDDIR = 4096
 
 '==============================================================================
 
-DECLARE SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
+DECLARE SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, initial_slice as Slice ptr = NULL)
 
 'Functions that might go better in slices.bas ... we shall see
 DECLARE SUB DrawSliceAnts (byval sl as Slice Ptr, byval dpage as integer)
@@ -462,7 +462,7 @@ END SUB
 ' filename: useful mainly for group = SL_COLLECT_EDITOR, to define the sub-group,
 ' and also the file to which to save (doesn't save by default if edslice doesn't match the file)
 ' (edslice won't be modified, but in case it is, passing it byref makes crashes less likely.)
-SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, filename as string = "", recursive as bool = NO, privileged as bool = NO)
+SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, filename as string = "", recursive as bool = NO, privileged as bool = NO, initial_slice as Slice ptr = NULL)
  DIM ses as SliceEditState
  ses.collection_group_number = group
  ses.collection_file = filename
@@ -490,7 +490,7 @@ SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLEC
 
  init_slice_editor_for_collection_group(ses, ses.collection_group_number)
 
- slice_editor_main ses, edslice
+ slice_editor_main ses, edslice, initial_slice
 
  IF recursive = NO THEN
   OrphanSlice rootslice
@@ -500,7 +500,7 @@ SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLEC
 END SUB
 
 ' The main function of the slice editor is not called directly, call a slice_editor() overload instead.
-SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
+SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, initial_slice as Slice ptr = NULL)
  slice_editor_load_settings ses
 
  REDIM PRESERVE editable_slice_types(9)  'Remove slLayout if previously added it
@@ -529,7 +529,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   .highlight = YES
  END WITH
 
- DIM cursor_seek as Slice Ptr = 0
+ DIM cursor_seek as Slice Ptr = initial_slice
 
  DIM jump_to_collection as integer
 
