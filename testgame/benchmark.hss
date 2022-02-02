@@ -190,7 +190,7 @@ script, run benchmark, script id, loops, begin
 
   ) else (
     # Micro-benchmark
-    $2 = " best nanoseconds per run: "
+    $2 = " best nanoseconds per loop: "
     append decimal 100 (2, 100000 * best / loops)
   )
   trace (2)
@@ -225,11 +225,11 @@ script, run benchmark, script id, loops, begin
 
   if (loops == 1) then (
     # General benchmark
-    $2 = " average microseconds (excl. outliers): "
+    $2 = " average microseconds per run (excl. outliers): "
     append decimal 100 (2, avg)
   ) else (
     # Micro-benchmark
-    $2 = " average nanoseconds (excl. outliers): "
+    $2 = " average nanoseconds per loop (excl. outliers): "
     append decimal 100 (2, 1000 * avg / loops)
   )
   trace (2)
@@ -766,12 +766,12 @@ script, benchmark: string iter, begin
   variable (it, i, ch, words, hash)
   for (it, 1, 8) do (
     $5="The quick onyx goblin jumps over the lazy dwarf. Bright vixens jump, lazy fowl quack. Amazingly few discotheques provide jukeboxes."
-    words := 0
+    words := 1
     hash := 0
     for (i, 1, string length(5)) do (
       ch := ascii from string(5, i)
       if (ch == 32) then (words += 1)
-      hash := hash * 31 + ch
+      hash += words * ch
     )
   )
 end

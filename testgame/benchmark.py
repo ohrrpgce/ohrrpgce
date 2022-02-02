@@ -119,12 +119,15 @@ def benchmark_fixedmul():
 def benchmark_string_iter():
     for i in range(8):
         s = "The quick onyx goblin jumps over the lazy dwarf. Bright vixens jump, lazy fowl quack. Amazingly few discotheques provide jukeboxes."
-        words = 0
+        words = 1
         hsh = 0
         for ch in s:
             ch = ord(ch)
             if ch == 32: words += 1
-            hsh = hsh * 31 + ch
+            hsh += words * ch
+        #if i == 0: print("HASH", hsh)
+
+#----
 
 def crappy_sqrt(fi):
   approx = -1
@@ -182,21 +185,25 @@ def crappy_sqrt(fi):
 # Test flow control
 def benchmark_crappy_sqrt():
     for i in range(0, 81):
-        crappy_sqrt (i)
+        crappy_sqrt(i)
 
 ########################################################################
 
-# FIXME: why is loops ignored?
 def run_benchmark(script, loops):
     times = timeit.repeat(script, repeat=NUM_RUNS, number=1)
     if hasattr(script, '__name__'):
         print(script.__name__)
     else:
         print("Unknown")
-    #print times
-    print(" Best microseconds per run:", min(times) * 1e6)
-    times = sorted(times)[:len(times)//2]
-    print(" average microseconds (excl. outliers):", 1e6 * sum(times) / len(times))
+    if loops > 1:
+        mult = 1e9 / loops
+        unitname = "nanoseconds per loop"
+    else:
+        mult = 1e6
+        unitname = "microseconds per run"
+    print(" best %s: %d" % (unitname, mult * min(times)))
+    times = sorted(times)[:len(times)//2 + 1]
+    print(" average %s (excl. outliers): %.2f" % (unitname, mult * sum(times) / len(times)))
 
 ########################################################################
 
