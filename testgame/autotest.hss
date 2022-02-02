@@ -4570,6 +4570,17 @@ script, slice tests, begin
   assert(slice is valid(-1) == false)
   assert(slice is valid(4242) == false)  # May fail
 
+  rect slice tests
+  text slice tests
+end
+
+########################################################################
+
+script, rect slice tests, begin
+  $0="Rect Slice tests"
+
+  variable (sl)
+
   # Test rect transparency
   sl := create rect(100, 100), w
   assert(slice is rect(sl))
@@ -4653,15 +4664,55 @@ script, slice tests, begin
   assert(get rect fg col(sl) == 249)
   assert(get rect bg col(sl) == 33)
   free slice(sl)
-  
-  # Text slices
-  $2="fee Fi\n \n foe"
+end
+
+########################################################################
+
+script, text slice tests, begin
+  $0="Text Slice tests"
+
+  # Check initial state as expected
+  variable(sl)
   sl := create text
   assert(slice is text(sl))
   assert(slice type(sl) == slicetype:text)
-  set slice text(sl, 3)
   get slice text(2, sl)
+  assert(string length(2) == 0)
+  assert(get wrap(sl) == false)
+  assert(get outline(sl) == false)
+  assert(get text color(sl) == 0)  # which means uiText
+  assert(get text bg(sl) == 0)
+
+  $2="fee Fi\n \n foe"
+  set slice text(sl, 2)
+  get slice text(3, sl)
   assert(string compare(2, 3))
+
+  # Non-wrapping slices have fixed size
+  tracevalue(slice width(sl),slice height(sl))
+  assert(slice width(sl) == 48)
+  assert(slice height(sl) == 30)  # 3 lines
+  #set slice width(sl, 10)  # throws an error
+  #set slice height(sl, 10)  # throws an error
+  assert(slice width(sl) == 48)
+  assert(slice height(sl) == 30)  # 3 lines
+
+  # Wrapping slices recompute height based on width
+  set wrap(sl, true)
+  assert(get wrap(sl) == true)
+  assert(slice width(sl) == 48) # shouldn't have changed
+  set slice width(sl, 35)
+  set wrap(sl, true)   # Modifying text slice data calls UpdateTextSlice (wait also would)
+  assert(slice width(sl) == 35)
+  assert(slice height(sl) == 40)
+  set slice height(sl, 10)  # Doesn't show an error but will be overridden when updated
+  set wrap(sl, true)   # Modifying text slice data calls UpdateTextSlice (wait also would)
+  assert(slice height(sl) == 40)
+  set wrap(sl, false)
+  assert(slice width(sl) == 48)  # Recomputes immediately
+
+  # TODO: test recomputing of embed codes
+
   $2=""
   $3=""
   free slice(sl)

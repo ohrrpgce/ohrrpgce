@@ -5299,11 +5299,17 @@ FUNCTION get_arg_resizeable_slice(byval argno as integer, byval horiz_fill_ok as
  sl = get_arg_slice(argno)
  IF sl THEN
   IF SlicePossiblyResizable(sl) = NO THEN
-   'Text slices are resizable horizontally only if and only if they wrap
-   'TODO: they are never resizable vertically, but for backcompat not doing anything about that now...
+   'Text slices are resizable horizontally if and only if they wrap
+   'They are never resizable vertically, but does it really matter if we let people momentarily
+   'change the size? Leaving it be for backcompat.
    IF sl->SliceType = slText THEN
-    unresizable_error sl, ", unless wrap is enabled"
-   ' Scaling sprite slices aren't available in games yet.
+    'IF setting_height THEN '"set slice height", but not "fill parent"
+    ' slice_bad_op sl, ": text height can never be set directly"
+    'ELSE
+     unresizable_error sl, ", unless wrap is enabled"
+    'END IF
+
+   ' Scaling sprite slices isn't available in games yet.
    'ELSEIF sl->SliceType = slSprite THEN
    ' unresizable_error sl, " unless scaling is enabled"
    ELSE
