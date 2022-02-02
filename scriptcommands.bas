@@ -2338,9 +2338,9 @@ SUB script_functions(byval cmdid as integer)
    sl = get_arg_slice(0, serrWarn)
    IF sl THEN
     IF sl->Protect THEN
-     scripterr current_command_name() & ": cannot delete protected " & SliceTypeName(sl) & " slice " & retvals(0), serrBadOp
+     slice_bad_op sl, "is protected, can't be deleted"
     ELSEIF cmdid = 323 ANDALSO sl->SliceType <> slSprite THEN
-     scripterr "free sprite: slice " & retvals(0) & " is a " & SliceTypeName(sl), serrBadOp
+     slice_bad_op sl, "isn't a sprite"
     ELSE
      DeleteSlice @sl
     END IF
@@ -2498,7 +2498,7 @@ SUB script_functions(byval cmdid as integer)
   parent = get_arg_slice(1)
   IF sl ANDALSO parent THEN
    IF sl->Protect THEN
-    scripterr "set parent: cannot reparent protected " & SliceTypeName(sl) & " slice " & retvals(0), serrBadOp
+    slice_bad_op sl, "is protected, can't be reparented"
    ELSE
     SetSliceParent sl, parent
    END IF
@@ -2782,7 +2782,7 @@ SUB script_functions(byval cmdid as integer)
   sl = get_arg_spritesl(0)
   IF sl THEN
    IF sl->SpriteData->paletted = NO THEN
-    scripterr "get sprite palette: this sprite is unpaletted", serrWarn
+    slice_bad_op sl, "is unpaletted", serrWarn
     scriptret = -1
    ELSE
     scriptret = sl->SpriteData->pal
@@ -2998,9 +2998,9 @@ SUB script_functions(byval cmdid as integer)
   DIM as Slice ptr sl0 = get_arg_slice(0), sl1 = get_arg_slice(1)
   IF sl0 ANDALSO sl1 THEN
    IF sl0 = sl1 THEN
-    scripterr "moveslicebelow: tried to move a slice below itself"
+    slice_bad_op sl0, "tried to move $SL below itself"
    ELSEIF sl0->Protect ANDALSO sl0->Parent <> sl1->Parent THEN
-    scripterr "moveslicebelow: tried to change the parent of a protected slice"
+    slice_bad_op sl0, "tried to change the parent of protected $SL"
    ELSEIF sl1->Parent = NULL THEN
     scripterr "moveslicebelow: Root can't have siblings"
    ELSE
@@ -3011,9 +3011,9 @@ SUB script_functions(byval cmdid as integer)
   DIM as Slice ptr sl0 = get_arg_slice(0), sl1 = get_arg_slice(1)
   IF sl0 ANDALSO sl1 THEN
    IF sl0 = sl1 THEN
-    scripterr "movesliceabove: tried to move a slice above itself"
+    slice_bad_op sl0, "tried to move $SL above itself"
    ELSEIF sl0->Protect ANDALSO sl0->Parent <> sl1->Parent THEN
-    scripterr "movesliceabove: tried to change the parent of a protected slice"
+    slice_bad_op sl0, "tried to change the parent of protected $SL"
    ELSEIF sl1->Parent = NULL THEN
     scripterr "movesliceabove: Root can't have siblings"
    ELSE
@@ -3110,7 +3110,7 @@ SUB script_functions(byval cmdid as integer)
    IF retvals(1) < 0 THEN
     scripterr current_command_name() & ": negative lookup codes are reserved, they can't be set.", serrBadOp
    ELSEIF sl->Lookup < 0 THEN
-    scripterr current_command_name() & ": can't modify the lookup code of a special slice.", serrBadOp
+    slice_bad_op sl, "is a special slice, can't modify its lookup"
    ELSE
     sl->Lookup = retvals(1)
    END IF
@@ -5222,6 +5222,25 @@ END FUNCTION
 '==========================================================================================
 
 
+'For script commands to raise slice errors with information about the slice.
+'message can contain $SL which is replaced with e.g. "sprite slice 11". If $SL isn't used,
+'the slice is instead prepended
+SUB slice_bad_op(sl as Slice ptr, message as zstring ptr, errlev as scriptErrEnum = serrBadOp)
+ DIM sliceinfo as string
+ IF sl THEN
+  sliceinfo = SliceTypeName(sl) & " slice " & sl->TableSlot
+ ELSE
+  'Normally this sub shouldn't be called with a null ptr
+  sliceinfo = "(invalid slice)"
+ END IF
+ DIM fullmsg as string = *message
+ IF replacestr(fullmsg, "$SL", sliceinfo) = 0 THEN
+  fullmsg = sliceinfo & " " & fullmsg
+ END IF
+ fullmsg = !"\nSlice location: " & SlicePath(sl)
+ scripterr current_command_name() & ": " & fullmsg, errlev
+END SUB
+
 'Return the Slice ptr for a slice handle, or throw an error
 'and return NULL if not valid
 FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
@@ -5234,14 +5253,14 @@ FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum
  DIM sl as Slice ptr = plotslices(handle)
  IF sl = 0 THEN
   IF errlvl > serrIgnore THEN
-   scripterr current_command_name() & ": slice handle " & handle & " has already been deleted", errlvl
+  scripterr current_command_name() & ": slice handle " & handle & " has already been deleted", errlvl
   END IF
   RETURN NULL
  END IF
  IF ENABLE_SLICE_DEBUG THEN
   IF SliceDebugCheck(sl) = NO THEN
-   scripterr current_command_name() & ": slice " & handle & " " & sl & " is not in the slice debug table!", serrBug
-   RETURN NULL
+   slice_bad_op sl, "is not in the slice debug table!", serrBug
+   RETURN NO
   END IF
  END IF
  RETURN sl
@@ -5251,7 +5270,7 @@ FUNCTION get_handle_typed_slice(byval handle as integer, byval sltype as SliceTy
  DIM sl as Slice ptr = get_handle_slice(handle, errlvl)
  IF sl = NULL THEN RETURN sl
  IF sl->SliceType <> sltype THEN
-  scripterr current_command_name() & ": slice handle " & handle & " is not a " & SliceTypeName(sltype), serrBadOp
+  slice_bad_op sl, "is not a " & SliceTypeName(sltype)
   RETURN NULL
  END IF
  RETURN sl
@@ -5271,9 +5290,8 @@ END FUNCTION
 
 '/
 
-LOCAL SUB unresizable_error(sl as Slice ptr, argno as integer, reason as string, errlvl as scriptErrEnum = serrBadOp)
- DIM handle as integer = retvals(argno)  'TODO: needs replacement
- scripterr strprintf("%s: %s slice handle %d cannot be resized%s", current_command_name(), SliceTypeName(sl), handle, reason), errlvl
+LOCAL SUB unresizable_error(sl as Slice ptr, reason as string, errlvl as scriptErrEnum = serrBadOp)
+ slice_bad_op sl, "can't be resized" & reason, errlvl
 END SUB
 
 'Fetch Slice ptr for the n'th script arg, if a valid resizeable slice handle
@@ -5285,12 +5303,12 @@ FUNCTION get_arg_resizeable_slice(byval argno as integer, byval horiz_fill_ok as
    'Text slices are resizable horizontally only if and only if they wrap
    'TODO: they are never resizable vertically, but for backcompat not doing anything about that now...
    IF sl->SliceType = slText THEN
-    unresizable_error sl, argno, ", unless wrap is enabled"
+    unresizable_error sl, ", unless wrap is enabled"
    ' Scaling sprite slices aren't available in games yet.
    'ELSEIF sl->SliceType = slSprite THEN
-   ' unresizable_error sl, argno, " unless scaling is enabled"
+   ' unresizable_error sl, " unless scaling is enabled"
    ELSE
-    unresizable_error sl, argno, ", due to its type"
+    unresizable_error sl, ", due to its type"
    END IF
    RETURN NULL
   END IF
@@ -5298,7 +5316,7 @@ FUNCTION get_arg_resizeable_slice(byval argno as integer, byval horiz_fill_ok as
   'This is only for "set slice width/height"; "fill parent" needs to do its own checks
   IF ((sl->CoverChildren AND coverHoriz) ANDALSO horiz_fill_ok = NO) ORELSE _
      ((sl->CoverChildren AND coverVert)  ANDALSO vert_fill_ok = NO) THEN
-   unresizable_error sl, argno, " while Covering Children", serrWarn
+   unresizable_error sl, " while Covering Children", serrWarn
    RETURN NULL
   END IF
 
@@ -5312,7 +5330,7 @@ FUNCTION get_arg_resizeable_slice(byval argno as integer, byval horiz_fill_ok as
     IF vert_fill_ok THEN RETURN sl
   END SELECT
   'Maybe this should be just an info message?
-  unresizable_error sl, argno, " while Filling Parent", serrWarn
+  unresizable_error sl, " while Filling Parent", serrWarn
  END IF
  RETURN NULL
 END FUNCTION
@@ -5425,9 +5443,7 @@ FUNCTION get_slice_drawopts(sl as Slice ptr, required as bool = YES) as DrawOpti
  ELSEIF sl->SliceType = slMap THEN
   RETURN @sl->MapData->drawopts
  ELSEIF required THEN
-  scripterr strprintf("%s: %s slices don't have blending settings. " _
-                      "This command can only be used on Sprite or Map layer slices", _
-                      current_command_name(), SliceTypeName(sl))
+  slice_bad_op sl, "doesn't have blending settings. This command only works on Sprite or Map layer slices"
  END IF
  RETURN NULL
 END FUNCTION

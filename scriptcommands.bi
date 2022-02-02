@@ -54,6 +54,7 @@ DECLARE FUNCTION get_handle_typed_slice(byval handle as integer, byval sltype as
 #DEFINE get_arg_panelsl(argno)       get_arg_typed_slice(argno, slPanel)
 #DEFINE get_arg_layoutsl(argno)      get_arg_typed_slice(argno, slLayout)
 
+DECLARE SUB slice_bad_op(sl as Slice ptr, message as zstring ptr, errlev as scriptErrEnum = serrBadOp)
 DECLARE FUNCTION get_arg_resizeable_slice(byval argno as integer, byval horiz_fill_ok as bool=NO, byval vert_fill_ok as bool=NO) as Slice ptr
 DECLARE FUNCTION get_slice_drawopts(sl as Slice ptr, required as bool = YES) as DrawOptions ptr
 
