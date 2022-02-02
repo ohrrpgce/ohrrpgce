@@ -469,7 +469,6 @@ Enum 'scriptErrEnum
   serrMajor = 6      'errors too big to ignore, eg interpreter can't continue or can't load script
   serrError = 7      'corrupt script data/unimplemented feature
                      'TODO: rename serrError to serrCorruption
-  serrBug = 8        'impossible condition; engine bug (interpreter stops)
 End Enum
 
 Type DirNum as integer

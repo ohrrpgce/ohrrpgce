@@ -83,9 +83,5 @@ SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context a
  IF context THEN
   full_msg = *context & ": "
  END IF
- IF errlvl >= serrBug THEN
-  showbug full_msg
- ELSEIF errlvl >= serrMajor THEN
-  print full_msg
- END IF
+ print full_msg
 END SUB

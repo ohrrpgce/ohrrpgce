@@ -511,7 +511,7 @@ SUB process_wait_conditions()
 
     CASE 3'--wait for hero
      IF .waitarg < 0 OR .waitarg > 3 THEN
-      scripterr "waiting for nonexistant hero " & .waitarg, serrBug  'should be bound by waitforhero
+      showbug "waiting for nonexistant hero " & .waitarg  'should be bound by waitforhero
       script_stop_waiting()
      ELSE
       IF herow(.waitarg).xgo = 0 ANDALSO herow(.waitarg).ygo = 0 ANDALSO NOT hero_is_pathfinding(.waitarg) THEN
@@ -597,7 +597,7 @@ SUB process_wait_conditions()
      END IF
 
     CASE ELSE
-     scripterr "illegal wait substate " & .curvalue, serrBug
+     showbug "illegal wait substate " & .curvalue
      script_stop_waiting()
    END SELECT
 
@@ -1167,7 +1167,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 518'--menu item true slot
   IF valid_menu_item_handle_ptr(retvals(0), mi, menuslot) THEN
    scriptret = dlist_find(menus(menuslot).itemlist, mi)
-   IF scriptret < 0 THEN scripterr "menuitemtrueslot: dlist corruption", serrBug
+   IF scriptret < 0 THEN showbug "menuitemtrueslot: dlist corruption"
   END IF
  CASE 619'--menu item at pixel
   FOR menuslot = topmenu TO 0 STEP -1
@@ -5258,7 +5258,7 @@ FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum
  END IF
  IF ENABLE_SLICE_DEBUG THEN
   IF SliceDebugCheck(sl) = NO THEN
-   slice_bad_op sl, "is not in the slice debug table!", serrBug
+   showbug SlicePath(sl) & " is not in the slice debug table!"
    RETURN NO
   END IF
  END IF
@@ -5341,10 +5341,10 @@ FUNCTION get_arg_resizeable_slice(byval argno as integer, byval horiz_fill_ok as
 END FUNCTION
 
 FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
- IF sl = 0 THEN scripterr "create_plotslice_handle null ptr", serrBug : RETURN 0
+ BUG_IF(sl = 0, "null ptr", 0)
  IF sl->TableSlot <> 0 THEN
   'this should not happen! Call find_plotslice_handle instead.
-  scripterr "Error: " & SliceTypeName(sl) & " " & sl & " references plotslices(" & sl->TableSlot & ") which has " & plotslices(sl->TableSlot), serrBug
+  showbug "slice references plotslices(" & sl->TableSlot & ") which has " & plotslices(sl->TableSlot)
   RETURN 0
  END IF
  'If a lot of slices have been deleted, then loop back to the beginning

@@ -5823,9 +5823,7 @@ SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context a
   EXIT SUB
  END IF
 #ENDIF
- IF errlvl >= serrBug THEN
-  showbug full_msg
- ELSEIF errlvl >= serrMajor THEN
+ IF errlvl >= serrMajor THEN
   'errlvl = serrError: Corrupt, unsupported, or unreadable data or interpreter state
   'errlvl = serrMajor: A script error that can't be ignored
   showerror full_msg

@@ -97,7 +97,7 @@ FUNCTION oldscriptstate_init (index as integer, script as ScriptData ptr) as zst
     DO
      IF tryindex < 0 ORELSE scrat(tryindex).state < 0 THEN
       'If it's a suspended script, it's in the wrong fibre
-      scripterr "Could not find parent call frame on scrat stack", serrBug
+      showbug "Could not find parent call frame on scrat stack"
       RETURN @"corrupt/unsupported script"
      END IF
      'debug "scrat(" & tryindex &") = " & scrat(tryindex).id
@@ -121,10 +121,10 @@ SUB scriptinterpreter ()
  WITH scrat(nowscript)
   SELECT CASE .state
    CASE IS < stnone
-    scripterr "illegally suspended script", serrBug
+    showbug "illegally suspended script"
     .state = ABS(.state)
    CASE stnone
-    scripterr "script " & nowscript & " became stateless", serrBug
+    showbug "script " & nowscript & " became stateless"
    CASE stwait
     EXIT SUB
    CASE ELSE
@@ -198,7 +198,7 @@ DO
           scrst.pos -= 2
           .curargn = 0
          CASE ELSE
-          scripterr "while fell out of bounds, landed on " & .curargn, serrBug
+          showbug "while fell out of bounds, landed on " & .curargn
           killallscripts
           EXIT DO
         END SELECT
@@ -212,7 +212,7 @@ DO
           writescriptvar tmpvar, readscriptvar(tmpvar) + readstack(scrst, 0)
           .curargn = 4
          CASE ELSE
-          scripterr "for fell out of bounds, landed on " & .curargn, serrBug
+          showbug "for fell out of bounds, landed on " & .curargn
           killallscripts
           EXIT DO
         END SELECT
@@ -238,7 +238,7 @@ DO
          pushstack(scrst, 2)
          pushstack(scrst, 0) '-- dummy value
         ELSEIF .depth < 0 THEN
-         scripterr "continue used outside of a do(), script will be exited", serrBadOp
+         showbug "continue used outside of a do(), script will be exited"
         ELSEIF NOT (curcmd->kind = tyflow AND (curcmd->value = flowfor OR curcmd->value = flowwhile)) THEN
          '--if this do isn't a for's or while's, then just repeat it, discarding the returned value
          scrst.pos -= 1
@@ -312,7 +312,7 @@ DO
            '--finished then but not at end of argument list: skip else
            dumpandreturn()
           CASE ELSE
-           scripterr "if statement overstepped bounds", serrBug
+           showbug "if statement overstepped bounds"
          END SELECT
         CASE flowwhile'--we got a while!
          SELECT CASE .curargn
@@ -329,7 +329,7 @@ DO
             .state = streturn'---return
            END IF
           CASE ELSE
-          scripterr "while statement has jumped the curb", serrBug
+           showbug "while statement has jumped the curb"
          END SELECT
         CASE flowfor'--we got a for!
          SELECT CASE .curargn
@@ -363,7 +363,7 @@ DO
             .state = stdoarg'---execute the do block
            END IF
           CASE ELSE
-           scripterr "for statement is being difficult", serrBug
+           showbug "for statement is being difficult"
          END SELECT
         CASE flowswitch
          IF .curargn = 0 THEN
@@ -641,7 +641,7 @@ SELECT CASE cmdptr->kind
   pushstack(scrst, cmdptr->value)
  CASE tyglobal
   IF cmdptr->value < 0 OR cmdptr->value > maxScriptGlobals THEN
-   scripterr "Illegal global variable id " & cmdptr->value, serrBadOp
+   showbug "Illegal global variable id " & cmdptr->value
    si.state = sterror
    EXIT SUB
   END IF

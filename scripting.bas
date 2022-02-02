@@ -418,12 +418,10 @@ END SUB
 ' The current script fibre starts waiting due to the current command, halting execution.
 ' When forcing a script to wait for an 'external' reason, use script_start_waiting_ticks instead
 SUB script_start_waiting(waitarg1 as integer = 0, waitarg2 as integer = 0)
- IF insideinterpreter = NO THEN scripterr "script_start_waiting called outside interpreter", serrBug
+ BUG_IF(insideinterpreter = NO, "called outside interpreter")
  WITH scriptinsts(nowscript)
   'debug commandname(curcmd->value) & ": script_start_waiting(" & waitarg1 & ", " & waitarg2 & ") on scriptinsts(" & nowscript & ") which is " & scriptname(.id)
-  IF scrat(nowscript).state <> streturn THEN
-   scripterr "script_start_waiting called outside of command handler", serrBug
-  END IF
+  BUG_IF(scrat(nowscript).state <> streturn, "called outside command handler")
   .waiting = waitingOnCmd
   .waitarg = waitarg1
   .waitarg2 = waitarg2
@@ -438,7 +436,7 @@ END SUB
 SUB script_start_waiting_ticks(whichscript as integer, ticks as integer)
  WITH scriptinsts(whichscript)
   IF .started THEN
-   scripterr "FIXME: script_start_waiting_ticks not tested on .started scripts", serrBug
+   showbug "FIXME: script_start_waiting_ticks not tested on .started scripts"
   END IF
   .waiting = waitingOnTick
   .waitarg = ticks
@@ -451,18 +449,15 @@ END SUB
 ' Can set the return value of a command if waitingOnCmd
 SUB script_stop_waiting(returnval as integer = 0)
  WITH scriptinsts(nowscript)
-  IF .waiting = waitingOnNothing THEN
-   scripterr "script_stop_waiting: script isn't waiting", serrBug
-  END IF
-
+  BUG_IF(.waiting = waitingOnNothing, "script isn't waiting")
   IF .waiting = waitingOnTick AND returnval <> 0 THEN
-   scripterr "script_stop_waiting: can't set a return value", serrBug
+   showbug "script_stop_waiting: can't set a return value"
   END IF
   IF .waiting = waitingOnCmd THEN
    WITH scrat(nowscript)
     'debug "script_stop_waiting(" & returnval & ") on scriptinsts(" & nowscript & ") which is " & scriptname(.id)
     IF .state <> stwait THEN
-     scripterr "script_stop_waiting: unexpected scrat().state = " & .state, serrBug
+     showbug "script_stop_waiting: unexpected scrat().state = " & .state
     ELSE
      .state = streturn
      scriptret = returnval
@@ -709,7 +704,7 @@ LOCAL FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptDat
    GET #fh, 15, shortvar
    .nestdepth = shortvar
    IF .nestdepth > maxScriptNesting THEN
-    scripterr "Corrupt or unsupported script data with nestdepth=" & .nestdepth & "; should be impossible", serrBug
+    scripterr "Corrupt or unsupported script data with nestdepth=" & .nestdepth & "; should be impossible", serrError
    END IF
   ELSE
    .nestdepth = 0
@@ -1439,7 +1434,6 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
  recursivecall += 1
 
  IF errorlevel = serrError THEN e = "Script data may be corrupt or unsupported:" + CHR(10) + e
- IF errorlevel >= serrBug THEN e = "PLEASE REPORT THIS POSSIBLE ENGINE BUG" + CHR(10) + e
 
  e = e + CHR(10) + CHR(10) + "  Call chain (current script last):" + CHR(10) + script_call_chain()
  split(wordwrap(e, large(80, vpages(vpage)->w - 16) \ 8), errtext())
@@ -1456,9 +1450,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
  IF errorlevel < serrError THEN
   append_menu_item menu, "Hide all " & *scripterr_names(errorlevel) & " messages", 8
  END IF
- IF errorlevel < serrBug THEN
-  append_menu_item menu, "Hide all script errors", 1
- END IF
+ append_menu_item menu, "Hide all script errors", 1
  'append_menu_item menu, "Set error suppression level to " & errorlevel, 9
  IF insideinterpreter THEN
   'Outside the interpreter there's no active fiber, can't call killscriptthread
@@ -1534,9 +1526,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
   centerbox rCenter, 12, rWidth - 10, 15, 3, vpage
   textcolor uilook(uiText), 0
   DIM header as string
-  IF errorlevel >= serrBug THEN
-   header = "Impossible error/engine bug!"
-  ELSEIF errorlevel >= serrBound THEN
+  IF errorlevel >= serrBound THEN
    header = IIF(insideinterpreter, "Script Error!", "Error!")
   ELSEIF errorlevel >= serrWarn THEN
    header = IIF(insideinterpreter, "Script Warning", "Warning")

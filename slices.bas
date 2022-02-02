@@ -560,10 +560,10 @@ End Function
     if plotslices(sl->TableSlot) = sl then
      return YES
     else
-     reporterr "TableSlot mismatch! Slice " & SlicePath(sl) & " slot is " & sl->TableSlot & " which has " & plotslices(sl->TableSlot), serrBug
+     showbug "TableSlot mismatch! Slice " & SlicePath(sl) & " slot is " & sl->TableSlot & " which has " & plotslices(sl->TableSlot)
     end if
    else
-    reporterr "TableSlot for " & SlicePath(sl) & " is invalid: " & sl->TableSlot, serrBug
+    showbug "TableSlot for " & SlicePath(sl) & " is invalid: " & sl->TableSlot
    end if
   end if
   return NO
@@ -1945,13 +1945,13 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
   dim have_copy as bool = NO
   spr = .img.sprite
   if spr = 0 then
-   reporterr "null sprite ptr for slice", serrBug
+   showbug "null slice .sprite ptr"
    sl->Visible = NO  'prevent error loop
    exit sub
   end if
 
   if .frame >= spr->arraylen or .frame < 0 then
-   reporterr "out of range frame " & .frame & " for slice " & SlicePath(sl), serrBug
+   showbug "out of range frame " & .frame & " for slice " & SlicePath(sl)
    .frame = 0
   end if
   spr = @spr[.frame]
@@ -2167,13 +2167,13 @@ Local Sub SaveDrawOpts(drawopts as DrawOptions, node as Reload.Nodeptr)
 end sub
 
 Sub SaveSpriteSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
- if sl = 0 or node = 0 then debug "SaveSpriteSlice null ptr": exit sub
+ BUG_IF(sl = 0 or node = 0, "null ptr")
  dim dat as SpriteSliceData Ptr
  dat = sl->SpriteData
  SavePropAlways node, "sprtype", dat->spritetype
  if dat->spritetype = sprTypeFrame then
   ' If it's not an asset sprite, then the Frame came from an unknown source and can't be saved
-  if dat->assetfile = NULL then reporterr "SaveSpriteSlice: tried to save Frame sprite", serrBug : exit sub
+  BUG_IF(dat->assetfile = NULL, "tried to save Frame sprite")
   SavePropAlways node, "asset", *dat->assetfile
   SaveProp node, "32bit_asset", dat->load_asset_as_32bit
  else
@@ -2277,8 +2277,7 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
  ASSERT_SLTYPE(sl, slSprite)
  with *sl->SpriteData
   if spritetype <> sprTypeInvalid then
-   ' This should never happen
-   if spritetype < sprTypeFirstLoadable or sprTypeFirst > sprTypeLastLoadable then reporterr "Invalid sprite type " & spritetype, serrBug : exit sub
+   BUG_IF(spritetype < sprTypeFirstLoadable orelse spritetype > sprTypeLastLoadable, "Invalid type " & spritetype)
    .spritetype = spritetype
    .loaded = NO
   end if
@@ -3007,10 +3006,7 @@ Sub DrawEllipseSlice(byval sl as Slice ptr, byval p as integer)
    .last_draw_fillcol = .fillcol
   end if
 
-  if .frame = 0 then
-   reporterr "null frame ptr for ellipse slice " & SlicePath(sl), serrBug
-   exit sub
-  end if
+  BUG_IF(.frame = 0, "null frame ptr")
 
   frame_draw .frame, , small(sl->screenX, sl->screenX + sl->Width), small(sl->screenY, sl->screenY + sl->Height), , p
 
