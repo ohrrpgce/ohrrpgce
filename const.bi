@@ -464,7 +464,7 @@ Enum 'scriptErrEnum
   serrInfo = 1       'informative messages
   serrWarn = 2       'possibly suspicious operation, eg. re-freeing a slice
   serrSuspicious = 3 'suspicious operation on weak type or suspicious argument type (unimplemented)
-  serrBound = 4      'warning on auto-bound() argument  (suppressed in old games)
+  serrBound = 4      'warning on auto-bound() argument  (used to be suppressed in old games)
   serrBadOp = 5      'bad argument/operation       (not suppressed by default)
   serrMajor = 6      'errors too big to ignore, eg interpreter can't continue or can't load script
   serrError = 7      'corrupt script data/unimplemented feature

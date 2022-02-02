@@ -1389,9 +1389,14 @@ END FUNCTION
 '                                   Menus and Dialogues
 '==========================================================================================
 
+DIM SHARED scripterr_names(...) as zstring ptr = { _
+           @"", @"info", @"warning", @"suspicious arg", @"out-of-range arg", _
+           @"invalid call", @"major error", @"corrupt data", @"bug" _
+}
+
 FUNCTION should_display_error_to_user(byval errorlevel as scriptErrEnum) as bool
  IF errorlevel >= serrMajor THEN RETURN YES  'Too big to ignore, inc unreadable/unsupported data, engine bugs
- IF gen(genCurrentDebugMode) = 0 THEN 'Release mode, supress most error display
+ IF gen(genCurrentDebugMode) = 0 THEN 'Release mode, suppress most error display
   RETURN NO
  END IF
  RETURN YES
@@ -1446,14 +1451,19 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
  menu.offset.y = -100 + 38 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
  menu.bordersize = -4
 
- append_menu_item menu, "Ignore", 0
- append_menu_item menu, "Don't display any more script errors", 1
+ append_menu_item menu, "Ignore once", 0
+ append_menu_item menu, "Ignore permanently", 3
+ IF errorlevel < serrError THEN
+  append_menu_item menu, "Hide all " & *scripterr_names(errorlevel) & " messages", 8
+ END IF
+ IF errorlevel < serrBug THEN
+  append_menu_item menu, "Hide all script errors", 1
+ END IF
  'append_menu_item menu, "Set error suppression level to " & errorlevel, 9
  IF insideinterpreter THEN
   'Outside the interpreter there's no active fiber, can't call killscriptthread
   append_menu_item menu, "Stop this script", 2
  END IF
- append_menu_item menu, "Hide this error", 3
  append_menu_item menu, "Exit game", 4
  IF context_slice THEN
   append_menu_item menu, "Show this slice in the slice editor", 5
@@ -1466,7 +1476,9 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
   ELSE
    append_menu_item menu, "Enter script debugger", 6
   END IF
-  IF running_under_Custom THEN append_menu_item menu, "Reload scripts", 7
+  'This is useless, since scripts are reloaded automatically when possible, and though
+  'running scripts can't be reloaded new instances of the script will use the new data.
+  'IF running_under_Custom THEN append_menu_item menu, "Reload scripts", 7
  END IF
 
  state.active = YES
@@ -1487,13 +1499,13 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
    SELECT CASE menu.items[state.pt]->t
     CASE 0 'ignore
      EXIT DO
-    CASE 1 'hide errors (but not engine bugs)
+    CASE 1 'hide all errors (but not engine bugs)
      err_suppress_lvl = serrError
      EXIT DO
     CASE 2
      killscriptthread
      EXIT DO
-    CASE 3 'hide this error
+    CASE 3 'ignore permanently
      a_append(ignorelist(), scriptcmdhash)
      a_append(ignorelist(), errmsghash)
      EXIT DO
@@ -1506,14 +1518,15 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
      gam.debug_scripts = 2
      scriptwatcher gam.debug_scripts 'clean mode, script state view mode
      EXIT DO
-    CASE 7 'reload scripts
-     reload_scripts
+    'CASE 7 'reload scripts
+    ' reload_scripts
+    ' EXIT DO
+    CASE 8 'hide some errors
+     err_suppress_lvl = errorlevel
      EXIT DO
-    'CASE 9 'hide some errors
-    ' err_suppress_lvl = errorlevel
    END SELECT
   END IF
-  
+
   usemenu state
 
   clearpage vpage
@@ -1540,8 +1553,8 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
 
   draw_menu menu, state, vpage
 
-  IF state.pt = 6 THEN
-   textcolor uilook(uiSelectedItem), 0 
+  IF menu.items[state.pt]->t = 6 THEN
+   textcolor uilook(uiMenuItem), 0
    wrapprint !"The debugger is a usability train-wreck!\n" + _
               "Press F1 inside the debugger to see help", 0, pBottom, , vpage , , , fontPlain
   END IF
@@ -1586,11 +1599,12 @@ FUNCTION script_interrupt () as integer
 
  append_menu_item menu, "Continue running", 0
  'append_menu_item menu, "Exit the top-most script", 10
- append_menu_item menu, "Stop the script fibre", 2
+ append_menu_item menu, "Stop this script", 2
  append_menu_item menu, "Stop all scripts", 3
  append_menu_item menu, "Exit game", 4
  append_menu_item menu, "Enter script debugger", 5
- IF running_under_Custom THEN append_menu_item menu, "Reload scripts", 6
+ ' Not useful
+ 'IF running_under_Custom THEN append_menu_item menu, "Reload scripts", 6
 
  state.active = YES
  init_menu_state state, menu
@@ -1626,9 +1640,9 @@ FUNCTION script_interrupt () as integer
      gam.debug_scripts = 2
      scriptwatcher gam.debug_scripts 'clean mode, script state view mode
      ret = YES
-    CASE 6 'reload scripts
-     reload_scripts
-     ret = NO
+    'CASE 6 'reload scripts
+    ' reload_scripts
+    ' ret = NO
    END SELECT
    EXIT DO
   END IF

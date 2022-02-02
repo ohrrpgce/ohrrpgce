@@ -4,12 +4,10 @@ The script at the top of the 'call chain' is not necessarily the stuck script.
 
 Choose "Continue running" to keep waiting for the script to finish.
 
-"Stop the script thread" stops the current script, the one that called it, and the one that called that... back to the original triggered script.
+"Stop this script" stops the current script, the one that called it, and the one that called that... back to the original triggered script.
 
 "Stop all scripts" kills all scripts, but doesn't stop timers.
 
 "Exit game" quits immediately.
 
-"Enter script debugger" lets you see  in more detail what's going on.
-
-"Reload scripts" appears only if the game is run from Custom (live-previewing). Currently running scripts are not reloaded, so fixing the bug and reloading will only work if the bug is in a script that is getting called repeatedly. Scripts will not normally be reloaded while the script interpreter is running.
+"Enter script debugger" lets you see in more detail what's going on.

@@ -1,0 +1,23 @@
+An error or warning occurred while running a script. If this isn't your game, you should report the problem to the game author.
+
+Script errors are shown in Debug menu and hidden in Release mode (except the most serious). Test Game automatically puts the game in Debug mode, and Distribute Game options put it in Release, but you can change the mode in Script Management and in-game debug menu.
+
+The script at the top of the 'call chain' is not necessarily the stuck script.
+
+"Ignore once" does nothing, this once.
+
+"Ignore permanently" will from now on ignore this exact error message and also this particular command in this particular script.
+
+"Ignore all info/warning/bad arg/etc messages" ignores all messages of this severity (or less), e.g. if you don't care about warnings.
+
+"Ignore all script errors" hides all errors (except engine bugs).
+
+"Stop this script" stops the current script, the one that called it, and the one that called that... back to the original triggered script.
+
+"Stop all scripts" kills all scripts, but doesn't stop timers.
+
+"Exit game" quits immediately.
+
+"Enter slice editor"/"Show this slice in the slice editor" opens the slice editor/debugger. For slice command errors it shows the slice that caused it.
+
+"Enter script debugger" lets you see in more detail what's going on.

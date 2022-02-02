@@ -644,7 +644,7 @@ END FUNCTION
 
 ' Check for a collision with the wallmap of an arbitrarily sized and positioned
 ' axis-aligned box moving in a straight line.
-' (Only used by the "check wallmap collision" command currently.)
+' (Only used by the "check wallmap collision"/etc commands currently.)
 ' Return value:
 '  -0 if hit nothing
 '  -a bitmask of 1 or 2 pass*Wall bits indicating the directions in which collision occurred
