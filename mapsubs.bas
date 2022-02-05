@@ -4878,7 +4878,7 @@ SUB mapedit_linkdoors (st as MapEditState)
   IF state.need_update THEN
    state.need_update = NO
    state.last = small(find_last_used_doorlink(st.map.doorlink()) + 1, UBOUND(st.map.doorlink))
-   recalc_menu_size state
+   calc_menustate_size state
    correct_menu_state state
    DrawDoorPair st, state.pt, 2
    last_resolution = get_resolution()
@@ -4956,7 +4956,7 @@ SUB link_one_door(st as MapEditState, linknum as integer)
  state.size = 22
  state.first = LBOUND(menu)
  state.last = UBOUND(menu)
- calc_menustate_size state, MenuOptions(), 1, 1, dpage
+ calc_menu_rect state, MenuOptions(), 1, 1, dpage
  state.spacing = 10
  
  DIM preview_delay as integer = 0

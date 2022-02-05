@@ -50,7 +50,7 @@ SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem, menuopt
  WITH state
   DIM position_was_known as bool = .position_known
   'Position not known before it's actually drawn, fill with dummy data for now
-  calc_menustate_size state, menuopts, .rect.x, .rect.y
+  calc_menu_rect state, menuopts, .rect.x, .rect.y
   .position_known = position_was_known
 
   .first = LBOUND(menu)
@@ -87,7 +87,7 @@ SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vecto
  WITH state
   DIM position_was_known as bool = .position_known
   'Position not known before it's actually drawn, fill with dummy data for now
-  calc_menustate_size state, menuopts, .rect.x, .rect.y
+  calc_menu_rect state, menuopts, .rect.x, .rect.y
   .position_known = position_was_known
 
   .first = 0
@@ -115,7 +115,7 @@ SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vecto
  END WITH
 END SUB
 
-SUB recalc_menu_size (byref state as MenuState)
+SUB calc_menustate_size (byref state as MenuState)
  'For .autosized menus (standardmenu, not MenuDef) only!
  'Run this once per frame for a menu that should fill the whole screen vertically
  'Does not work unless .spacing is set correctly (set on call to standardmenu)
@@ -123,7 +123,7 @@ SUB recalc_menu_size (byref state as MenuState)
  WITH state
   IF .spacing = 0 THEN
    ' This error is currently impossible
-   IF .position_known = YES THEN debugc errBug, "recalc_menu_size: .spacing didn't get set"
+   IF .position_known = YES THEN debugc errBug, "calc_menustate_size: .spacing didn't get set"
    EXIT SUB
   END IF
   DIM ignorepix as integer = .autosize_ignore_pixels + .autosize_ignore_lines * large(.spacing, 10)
@@ -269,7 +269,7 @@ END SUB
 FUNCTION usemenu (byref state as MenuState, byval deckey as KBScancode = ccUp, byval inckey as KBScancode = ccDown) as bool
  WITH state
   IF .autosize THEN
-   recalc_menu_size state
+   calc_menustate_size state
   END IF
 
   DIM oldptr as integer = .pt
@@ -360,7 +360,7 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as KBSc
 
  WITH state
   IF .autosize THEN
-   recalc_menu_size state
+   calc_menustate_size state
   END IF
   'TODO: .size for MenuDef menus is usually correct, since it's set by init_menu_state and draw_menu, but it's
   'possible that the menu data has just been changed
@@ -437,7 +437,7 @@ END FUNCTION
 FUNCTION scrollmenu (state as MenuState, byval deckey as KBScancode = ccUp, byval inckey as KBScancode = ccDown) as bool
  WITH state
   IF .autosize THEN
-   recalc_menu_size state
+   calc_menustate_size state
   END IF
   DIM oldtop as integer = .top
   DIM lasttop as integer = large(.first, .last - .size)
@@ -468,8 +468,7 @@ SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref ba
  NEXT
 END SUB
 
-' For standardmenu only. Not to be confused with recalc_menu_size, which only sets MenuState.size.
-' (The equivalent Sub for MenuDef menus is position_menu)
+' Overload for standardmenu. Not to be confused with calc_menustate_size, which only sets MenuState.size.
 ' Initialises/updates size and position data in MenuState, including .rect, and .size
 ' if .autosize is true.
 ' Used if you want to calculate the size of the menu before the first call to standardmenu,
@@ -477,21 +476,21 @@ END SUB
 ' (Note: 'menu' is optional, needed only to calculate width.)
 ' Sets .position_known=YES to indicate that these members have been initialised,
 ' even if not called from standardmenu.
-SUB calc_menustate_size(state as MenuState, menuopts as MenuOptions, x as RelPos, y as RelPos, page as integer = -1, menu as BasicMenuItem vector = NULL)
+SUB calc_menu_rect(state as MenuState, menuopts as MenuOptions, x as RelPos, y as RelPos, page as integer = -1, menu as BasicMenuItem vector = NULL)
  IF page = -1 THEN page = vpage
  WITH state
   IF menuopts.edged THEN .spacing = 9 ELSE .spacing = 8
   .spacing += menuopts.itemspacing
 
-  ' TODO: calc_menustate_size used to call recalc_menu_size unconditionally. So still
+  ' TODO: calc_menu_rect used to call calc_menustate_size unconditionally. So still
   ' need to call it if .size is 0. But would be cleaner to just default .autosize to YES
   IF .autosize OR (.size = 0) THEN
    ' Calculate .size.
-   ' usemenu also calls recalc_menu_size, but usemenu might not be called if the
+   ' usemenu also calls calc_menustate_size, but usemenu might not be called if the
    ' menu is inactive (more than one on-screen), and on the first tick with
    ' .autosize=YES before .spacing is set the correct .size won't be known either.
    ' (In that case, you should call init_menu_state, passing menuopts if used.)
-   recalc_menu_size state
+   calc_menustate_size state
   END IF
 
   ' Width
@@ -575,9 +574,9 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
  'The following doesn't affect simple string array menus which are converted to BasicMenuItem menus
  BUG_IF(state.first <> 0, "state.first <> 0 not supported for BasicMenuItem menus!")
 
- calc_menustate_size state, menuopts, x, y, page, menu
+ calc_menu_rect state, menuopts, x, y, page, menu
  DIM wide as integer = state.rect.wide
- 'calc_menustate_size solved from RelPos to screen positions
+ 'calc_menu_rect solved from RelPos to screen positions
  x = state.rect.x
  y = state.rect.y
 
@@ -1008,7 +1007,7 @@ SUB init_menu_state (byref state as MenuState, menu() as string, menuopts as Men
   IF .size = 0 THEN .autosize = YES
   DIM position_was_known as bool = .position_known
   'Position not known before it's actually drawn, fill with dummy data for now
-  calc_menustate_size state, menuopts, .rect.x, .rect.y
+  calc_menu_rect state, menuopts, .rect.x, .rect.y
   .position_known = position_was_known
 
   .first = LBOUND(menu)
@@ -1025,7 +1024,7 @@ SUB init_menu_state (byref state as MenuState, menu as MenuDef)
   .first = 0
   .last = count_visible_menu_items(menu) - 1
   'Compute .size, assuming vpage
-  recalc_menu_size state, menu, vpage
+  calc_menustate_size state, menu, vpage
  END WITH
  ' Pick a suitable .pt
  sort_menu_and_select_selectable_item menu, state
@@ -1502,7 +1501,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
   menu.items[i]->text = get_menu_item_caption(*menu.items[i], menu)
  NEXT
 
- position_menu menu, state, page
+ calc_menu_rect menu, state, page
 
  DIM bord as integer = 8 + menu.bordersize
 
@@ -1580,7 +1579,7 @@ END SUB
 
 ' Calculate state.size of a MenuDef menu from menu.maxrows
 ' .maxrows=0 is the MenuDef equivalent of state.autosize (which isn't used for MenuDef)
-SUB recalc_menu_size (byref state as MenuState, menu as MenuDef, page as integer)
+SUB calc_menustate_size (byref state as MenuState, menu as MenuDef, page as integer)
  WITH state
   .spacing = 10 + menu.itemspacing
   IF menu.maxrows <= 0 THEN
@@ -1613,7 +1612,7 @@ SUB recalc_menu_size (byref state as MenuState, menu as MenuDef, page as integer
 END SUB
 
 ' Calculate menu.rect and state.rect (which includes the border padding) and also state.size
-SUB position_menu (menu as MenuDef, state as MenuState, byval page as integer)
+SUB calc_menu_rect (menu as MenuDef, state as MenuState, byval page as integer)
  DIM i as integer
  DIM bord as integer
  bord = 8 + menu.bordersize
@@ -1638,7 +1637,7 @@ SUB position_menu (menu as MenuDef, state as MenuState, byval page as integer)
  menu.rect.high = small(menu.rect.high, vpages(page)->h)
 
  'Set state.size and state.spacing
- recalc_menu_size state, menu, page
+ calc_menustate_size state, menu, page
 
  menu.rect.high = small(menu.rect.high, (state.size + 1) * state.spacing - menu.itemspacing + bord * 2)
 
@@ -1936,7 +1935,7 @@ SUB ModularMenu.draw()
    where.y += 8 + titlesize.h \ 2
    state.autosize_ignore_pixels = 12 + titlesize.h
   END IF
-  calc_menustate_size state, menuopts, where.x, where.y, vpage, basicmenu
+  calc_menu_rect state, menuopts, where.x, where.y, vpage, basicmenu
   v_free basicmenu
   edgeboxstyle where.x, where.y, state.rect.wide + 10, state.rect.high + 10, 1, vpage
  END IF

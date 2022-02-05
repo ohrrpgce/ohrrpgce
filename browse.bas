@@ -184,10 +184,10 @@ browse_calc_menusize br
 br.mstate.pt = 0
 br.mstate.top = 0
 br.mstate.last = 0
-DIM _menuopts as MenuOptions  'Not used! Only for calc_menustate_size
+DIM _menuopts as MenuOptions  'Not used! Only for calc_menu_rect
 _menuopts.edged = YES
 'This is just for mouse support
-calc_menustate_size br.mstate, _menuopts, 10, 20
+calc_menu_rect br.mstate, _menuopts, 10, 20
 
 br.drivesshown = 0
 br.getdrivenames = NO

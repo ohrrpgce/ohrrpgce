@@ -6047,7 +6047,7 @@ end function
 
 'Returns the default height of a line of text of a certain font.
 'Warning: this currently returns 10 for 8x8 fonts, because that's what text slices use. Sigh.
-'However standardmenu (calc_menustate_size) by default uses 9 for fontEdged and 8 for fontPlain
+'However standardmenu (calc_menu_rect) by default uses 9 for fontEdged and 8 for fontPlain
 'and draw_menu by default uses 10. Nonstandard menus use 8-10.
 function lineheight(fontnum as integer = fontEdged) as integer
 	return get_font(fontnum, YES)->line_h

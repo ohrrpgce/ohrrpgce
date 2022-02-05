@@ -25,9 +25,10 @@ DECLARE SUB standard_to_basic_menu (menu() as string, byref state as MenuState, 
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, shaded() as bool, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB standardmenu OVERLOAD (byval menu as BasicMenuItem vector, state as MenuState, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions = MenuOptions())
-DECLARE SUB recalc_menu_size OVERLOAD (byref state as MenuState)
-DECLARE SUB recalc_menu_size OVERLOAD (byref state as MenuState, menu as MenuDef, page as integer)
-DECLARE SUB calc_menustate_size (state as MenuState, menuopts as MenuOptions, x as RelPos, y as RelPos, page as integer = -1, menu as BasicMenuItem vector = NULL)
+DECLARE SUB calc_menustate_size OVERLOAD (byref state as MenuState)
+DECLARE SUB calc_menustate_size OVERLOAD (byref state as MenuState, menu as MenuDef, page as integer)
+DECLARE SUB calc_menu_rect OVERLOAD (state as MenuState, menuopts as MenuOptions, x as RelPos, y as RelPos, page as integer = -1, menu as BasicMenuItem vector = NULL)
+DECLARE SUB calc_menu_rect OVERLOAD (menu as MenuDef, state as MenuState, byval page as integer)
 DECLARE FUNCTION menu_item_color(state as MenuState, itemno as integer, disabled as bool = NO, unselectable as bool = NO, c_normal as integer = 0, c_disabled as integer = 0, def_normal as integer = -uiMenuItem-1, def_disabled as integer = -uiDisabledItem-1) as integer
 
 
@@ -78,7 +79,6 @@ DECLARE SUB write_menu_item_int (mi as MenuDefItem, byval intoffset as integer, 
 '' Drawing MenuDefs
 DECLARE SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
 DECLARE SUB position_menu_item (menu as MenuDef, cap as string, byval i as integer, byref where as XYPair)
-DECLARE SUB position_menu (menu as MenuDef, state as MenuState, byval page as integer)
 DECLARE FUNCTION anchor_point(byval anchor as AlignType, byval size as integer) as integer
 DECLARE FUNCTION count_visible_menu_items (menu as MenuDef) as integer
 
