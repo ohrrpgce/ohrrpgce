@@ -216,6 +216,7 @@ CONSTRUCTOR GlobalTextStringsMenu ()
  add_item 139, "Found a (item)",             "Found a", 20
  add_item 141, "Found (number) (items)",     "Found", 20
  add_item 125, "Found ($)",                  "Found", 10
+ add_item 332, "Skip Turn in battle",        "Skip Turn", 20
 
  header        " Misc"
  add_item 104, "Status Prompt",              "Whose Status?", 20

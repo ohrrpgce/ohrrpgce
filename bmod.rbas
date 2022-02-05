@@ -1790,7 +1790,7 @@ SUB populate_battle_menu_menudef_for_enemy (byref bat as BattleState, bslot() as
  END SELECT
  
  IF NOT does_battle_menu_have_targets(bspr, bslot()) THEN
-  append_menu_item(bspr.batmenu, "Skip Turn", batmenu_SKIPTURN)
+  append_menu_item(bspr.batmenu, readglobalstring(332, "Skip Turn", 20), batmenu_SKIPTURN)
  END IF
 
 END SUB
