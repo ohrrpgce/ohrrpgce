@@ -105,7 +105,9 @@ type EditorKit extends ModularMenu
 	' No more than one of refresh and process will be true at once.
 	refresh as bool
 	process as bool            'When called every tick to handle arbitrary input and do editing
-	activate as bool           'If the item was clicked/activated (implies process=true)
+	activate as bool           'If process, and the item was clicked/activated
+	left_click as bool         'If process, and start of left-click on the item
+	right_click as bool        'If process, and start of right-click on the item
 	declare function delete_action() as bool
 
 	' Holds the value of the datum currently being edited

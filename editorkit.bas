@@ -40,6 +40,9 @@
 ' -activate: selected and should be activated (if possible), e.g. enter a submenu.
 ' -delete_action: the user tried to delete this (Delete or possibly Backspace)
 ' -hover: mouse over this item
+' -left_click: beginning of a left click/drag on this item. Use activate instead,
+'              if you can which checks for button release.
+' -right_click: beginning of a right click/drag.
 ' And a couple you can read/write:
 ' -edited: an edit_* call changed the item's value. You should set this manually if
 '          you modify `value` manually.
@@ -425,7 +428,9 @@ sub EditorKit.defitem(title as zstring ptr)
 	refresh = (phase = Phases.refreshing)
 	process = selected andalso (phase = Phases.processing)
 	'activate = selected andalso (phase = Phases.activating)
-	activate = selected andalso (phase = Phases.processing) andalso want_activate
+	activate = process andalso want_activate
+	left_click = process andalso (readmouse.clicks and mouseLeft)
+	right_click = process andalso (readmouse.clicks and mouseRight)
 
 	' Start new item
 	'if refresh then
@@ -983,7 +988,7 @@ function prompt_for_enum(byref key as string, prompt_text as string, options() a
 		if key = *options(idx).key then start_idx = idx
 	next
 	dim choice as integer
-	choice = multichoice(prompt_text, menu(), start_idx, -1, helpkey)
+	choice = popup_choice(prompt_text, menu(), start_idx, -1, helpkey)
 	if choice = -1 then return NO
 	key = *options(choice).key
 	return YES
@@ -994,9 +999,8 @@ end function
 ' lbound(options) can be a value other than 0.
 function EditorKit.edit_str_enum(byref datum as string, options() as StringEnumOption) as bool
 	val_str_enum datum, options()
-	if activate then
-		dim prompt_text as string = rtrim(cur_item.title, ":") + "?"
-		edited or= prompt_for_enum(valuestr, prompt_text, options(), cur_item.helpkey)
+	if activate orelse left_click then
+		edited or= prompt_for_enum(valuestr, "", options(), cur_item.helpkey)
 	elseif process then
 		dim index as integer = find_enum_index(valuestr, options())
 		' If valuestr is not in options() then index = lbound - 1, and we preserve

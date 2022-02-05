@@ -198,17 +198,19 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
 
   dim edit_record as integer
 
-  if readmouse.release AND mouseRight then
-   'When edit mode is available, but not default, then
-   ' right-clicking pops up a context menu
-   if ps.cur andalso can_edit andalso not edit_by_default then
-    dim selected_id as integer = ps.cur->Extra(0)
+  'When edit mode is available, but not default, then right-clicking on an
+  'actual thing pops up a context menu
+  '(Actually, right-clicking off any plank also works, if a thing is selected)
+  if ((readmouse.buttons or readmouse.release) and mouseRight) andalso _
+     ps.cur andalso IsAncestor(ps.cur, thinglist) andalso can_edit andalso not edit_by_default then
+   dim selected_id as integer = ps.cur->Extra(0)
+   if selected_id <> none_id then
     dim options(1) as string
     dim thing_and_id as string = thing_kind_name_singular() & " " & selected_id
     options(0) = "Pick " & thing_and_id
     options(1) = "Edit " & thing_and_id
-    select case multichoice("", options())
-     case 0: 
+    select case popup_choice("", options())
+     case 0:
       result = selected_id
       exit do
      case 1:

@@ -4730,7 +4730,7 @@ END SUB
 
 SUB SpriteSetBrowser.edit_spriteset(setnum as integer)
   DIM choices(...) as string = {"Draw spritesheet", "Export spritesheet", "Import spritesheet", "Resize"}
-  DIM choice as integer = multichoice("", choices())
+  DIM choice as integer = popup_choice("", choices())
   SELECT CASE choice
    CASE 0
     edit_any setnum, -1
