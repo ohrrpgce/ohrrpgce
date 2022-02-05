@@ -1619,6 +1619,10 @@ SUB position_menu (menu as MenuDef, byval page as integer)
  WITH menu
   .rect.x = anchor_point(.alignhoriz, vpages(page)->w) - anchor_point(.anchorhoriz, .rect.wide) + menu.offset.x
   .rect.y = anchor_point(.alignvert, vpages(page)->h) - anchor_point(.anchorvert, .rect.high) + menu.offset.y
+  IF .clamp_to_screen THEN
+   'MenuDef doesn't support RelPos, but we can reuse this function
+   .rect.xy = relative_pos(.rect.xy + XY(showLeft, showTop), vpages(page)->size, .rect.wh)
+  END IF
  END WITH
 END SUB
 

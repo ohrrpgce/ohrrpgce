@@ -3255,6 +3255,7 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
   menu.anchorhoriz = alignLeft
   menu.alignhoriz = alignLeft
   menu.offset = where
+  menu.clamp_to_screen = YES
  ELSEIF LEN(*capt) THEN
   menu.anchorvert = alignTop
   menu.alignvert = alignTop

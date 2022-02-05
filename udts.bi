@@ -107,10 +107,11 @@ TYPE MenuDef
   no_box           as bool ' Bitset 4
   no_close         as bool ' Bitset 5
   no_controls      as bool ' Bitset 6
-  prevent_main_menu as bool ' Bitset 7
+  prevent_main_menu as bool' Bitset 7
   advance_textbox  as bool ' Bitset 8
   highlight_selection as bool 'Bitset 9: Draw a rectangle behind the item while selected
-  remember_selection as bool 'Bitset 10: .pt is remember when closing
+  remember_selection as bool  'Bitset 10: .pt is remembered when closing
+  clamp_to_screen  as bool ' Bitset 11
   rect      as RectType
   offset    as XYPair
   anchorhoriz as AlignType = alignCenter  'Relative to self
