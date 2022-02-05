@@ -89,6 +89,9 @@ WHAT IS NEW?
       of jump/hide state [James]
     * An enemy set to "Ignored for Alone AI" would use its Alone attack list
       if it still had one ally [Ralph]
+    * Menus set to "Max rows to display: Default" will now extend up to the
+      screen edge (taking menu position into account) instead of always showing
+      18 items. And the menu box was the wrong size at high resolutions [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license

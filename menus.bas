@@ -55,7 +55,7 @@ SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem, menuopt
 
   .first = LBOUND(menu)
   .last = UBOUND(menu)
-  IF .size <= 0 THEN .size = 20
+  IF .size <= 0 THEN .size = 20  'This is silly, which is why .autosize is (almost?) always used
   IF .empty() THEN
    .pt = .first - 1
   ELSE
@@ -116,9 +116,10 @@ SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vecto
 END SUB
 
 SUB recalc_menu_size (byref state as MenuState)
- 'For .autosized menus (normally standardmenu, not MenuDef) only - this overrides MenuDef.maxrows!
+ 'For .autosized menus (standardmenu, not MenuDef) only!
  'Run this once per frame for a menu that should fill the whole screen vertically
  'Does not work unless .spacing is set correctly (set on call to standardmenu)
+ 'TODO: should pass the page to be drawn to to this sub.
  WITH state
   IF .spacing = 0 THEN
    ' This error is currently impossible
@@ -335,7 +336,7 @@ FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, by
  RETURN usemenu(state, selectable(), deckey, inckey)
 END FUNCTION
 
-'a version for menus with unselectable items, skip items which are .unselectable
+'A version for MenuDef.
 FUNCTION usemenu (state as MenuState, menu as MenuDef, byval deckey as KBScancode = ccUp, byval inckey as KBScancode = ccDown) as bool
  IF state.empty() THEN
   correct_menu_state state
@@ -361,6 +362,8 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as KBSc
   IF .autosize THEN
    recalc_menu_size state
   END IF
+  'TODO: .size for MenuDef menus is usually correct, since it's set by init_menu_state and draw_menu, but it's
+  'possible that the menu data has just been changed
 
   'Check there are selectable items
   DIM has_selectable as bool = NO
@@ -466,7 +469,7 @@ SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref ba
 END SUB
 
 ' For standardmenu only. Not to be confused with recalc_menu_size, which only sets MenuState.size.
-' (Equivalent for MenuDef menus is position_menu)
+' (The equivalent Sub for MenuDef menus is position_menu)
 ' Initialises/updates size and position data in MenuState, including .rect, and .size
 ' if .autosize is true.
 ' Used if you want to calculate the size of the menu before the first call to standardmenu,
@@ -496,6 +499,7 @@ SUB calc_menustate_size(state as MenuState, menuopts as MenuOptions, x as RelPos
   DIM wide as integer = menuopts.wide
   IF menuopts.calc_size ANDALSO menu THEN
    ' Widen the menu according to widest menu item
+   ' (Note this is done unconditionally for MenuDef menus)
    FOR i as integer = 0 TO small(v_len(menu) - 1, .last)
     wide = large(wide, textwidth(v_at(menu, i)->text))
    NEXT
@@ -1019,8 +1023,8 @@ SUB init_menu_state (byref state as MenuState, menu as MenuDef)
  WITH state
   .first = 0
   .last = count_visible_menu_items(menu) - 1
-  .size = menu.maxrows - 1
-  IF .size = -1 THEN .size = 17  'FIXME: this is so wrong
+  'Compute .size, assuming vpage
+  recalc_menu_size state, menu, vpage
  END WITH
  ' Pick a suitable .pt
  sort_menu_and_select_selectable_item menu, state
@@ -1497,25 +1501,9 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
   menu.items[i]->text = get_menu_item_caption(*menu.items[i], menu)
  NEXT
 
- position_menu menu, page
+ position_menu menu, state, page
 
  DIM bord as integer = 8 + menu.bordersize
- WITH state
-  .has_been_drawn = YES
-  .rect.x = menu.rect.x + bord
-  .rect.y = menu.rect.y + bord
-  .rect.wide = menu.rect.wide - bord * 2
-  .rect.high = menu.rect.high - bord * 2
-  .spacing = 10 + menu.itemspacing
- END WITH
-
- IF state.autosize THEN
-  'NOTE: .autosize is not normally used with MenuDef (and never in Game). It overrides
-  'MenuDef.maxrows.
-  'Needed to recalculate .size if autosized on first tick (also called from usemenu)
-  'Needs to be called after .spacing is set, although really should be before position_menu.
-  recalc_menu_size state
- END IF
 
  IF menu.no_box = NO THEN
   edgeboxstyle menu.rect, menu.boxstyle, page, menu.translucent, menu.suppress_borders
@@ -1589,15 +1577,49 @@ SUB position_menu_item (menu as MenuDef, cap as string, byval i as integer, byre
  END WITH
 END SUB
 
-' Calculate menu.rect (not to be confused with menustate.rect, which includes the border padding)
-SUB position_menu (menu as MenuDef, byval page as integer)
+' Calculate state.size of a MenuDef menu from menu.maxrows
+' .maxrows=0 is the MenuDef equivalent of state.autosize (which isn't used for MenuDef)
+SUB recalc_menu_size (byref state as MenuState, menu as MenuDef, page as integer)
+ WITH state
+  .spacing = 10 + menu.itemspacing
+  IF menu.maxrows <= 0 THEN
+
+   ' Calculate available vertical space
+   DIM vertspace as integer
+   IF menu.clamp_to_screen THEN
+    ' Doesn't matter how the menu is aligned
+    vertspace = vpages(page)->h
+   ELSE
+    ' The anchor point on the screen. anchory is how much space is on the screen
+    ' above the anchor point, vpages(page)->h - anchory is the space below.
+    DIM anchory as integer = anchor_point(menu.alignvert, vpages(page)->h) + menu.offset.y
+
+    SELECT CASE menu.anchorvert  'Anchor on the menu rect
+     CASE alignTop:     vertspace = vpages(page)->h - anchory
+     CASE alignBottom:  vertspace = anchory
+     CASE alignCenter:  vertspace = 2 * small(anchory, vpages(page)->h - anchory)
+    END SELECT
+   END IF
+
+   DIM bord as integer = 8 + menu.bordersize
+   .size = large(1, (vertspace - 2 * bord + menu.itemspacing) \ .spacing) - 1
+  ELSE
+   .size = menu.maxrows - 1
+  END IF
+
+  .size = small(.size, .last)
+ END WITH
+END SUB
+
+' Calculate menu.rect and state.rect (which includes the border padding) and also state.size
+SUB position_menu (menu as MenuDef, state as MenuState, byval page as integer)
  DIM i as integer
  DIM bord as integer
  bord = 8 + menu.bordersize
 
+ 'Compute total width & height of all the items and borders
  menu.rect.wide = bord * 2
  menu.rect.high = bord * 2
-
  FOR i = 0 TO menu.numitems - 1
   WITH *menu.items[i]
    'hidden items used to matter for auto-width but not auto-height; now they don't for either
@@ -1607,22 +1629,35 @@ SUB position_menu (menu as MenuDef, byval page as integer)
    IF i <> 0 THEN menu.rect.high += menu.itemspacing
   END WITH
  NEXT i
- '--enforce min width
+
+ 'Enforce min width
  menu.rect.wide = large(menu.rect.wide, menu.min_chars * 8 + bord * 2)
- '--enforce screen boundaries
+ 'Limit to screen size (this isn't strictly needed, and maxrows=0 also does the same)
  menu.rect.wide = small(menu.rect.wide, vpages(page)->w)
  menu.rect.high = small(menu.rect.high, vpages(page)->h)
- IF menu.maxrows > 0 THEN
-  menu.rect.high = small(menu.rect.high, menu.maxrows * (10 + menu.itemspacing) - menu.itemspacing + bord * 2)
- END IF
+
+ 'Set state.size and state.spacing
+ recalc_menu_size state, menu, page
+
+ menu.rect.high = small(menu.rect.high, (state.size + 1) * state.spacing - menu.itemspacing + bord * 2)
 
  WITH menu
-  .rect.x = anchor_point(.alignhoriz, vpages(page)->w) - anchor_point(.anchorhoriz, .rect.wide) + menu.offset.x
-  .rect.y = anchor_point(.alignvert, vpages(page)->h) - anchor_point(.anchorvert, .rect.high) + menu.offset.y
+  .rect.x = anchor_point(.alignhoriz, vpages(page)->w) - anchor_point(.anchorhoriz, .rect.wide) + .offset.x
+  .rect.y = anchor_point(.alignvert, vpages(page)->h) - anchor_point(.anchorvert, .rect.high) + .offset.y
+
   IF .clamp_to_screen THEN
+   'Clamping shouldn't happen when .maxrows=0
    'MenuDef doesn't support RelPos, but we can reuse this function
    .rect.xy = relative_pos(.rect.xy + XY(showLeft, showTop), vpages(page)->size, .rect.wh)
   END IF
+ END WITH
+
+ WITH state
+  .has_been_drawn = YES
+  .rect.x = menu.rect.x + bord
+  .rect.y = menu.rect.y + bord
+  .rect.wide = menu.rect.wide - bord * 2
+  .rect.high = menu.rect.high - bord * 2
  END WITH
 END SUB
 

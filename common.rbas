@@ -3320,7 +3320,6 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
     menu.offset.y = 2 + basic_textbox(capt, , vpage, pCentered - 10 - UBOUND(choices) * 5 + showTop)
    END IF
   END IF
-  menu.maxrows = (res.h - menu.offset.Y - 10) \ 10
   menu.max_chars = res.w \ 8 - 2
   init_menu_state state, menu  'Required after changing menu.maxrows
   draw_menu menu, state, vpage

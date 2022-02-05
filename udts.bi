@@ -146,8 +146,9 @@ TYPE MenuState
   size      as integer 'number of elements to display at a time - 1
   need_update as bool  'menu needs some kind of update
   tog       as bool    'For flashing cursor
-  autosize as bool     'Set this to true, and usemenu will auto-update the menu size to
-                       'fill the screen vertically
+  autosize  as bool    'Set this to true, and usemenu will auto-update the menu size to
+                       'fill the screen vertically.
+                       'For standardmenu only! For MenuDef menus, set menu.max_rows=0
   autosize_ignore_pixels as integer 'Often you only want *most* of the screen to be filled
   autosize_ignore_lines as integer = 0
   select_by_mouse_release as bool   'Prevents button-down from changing selection; if you want
