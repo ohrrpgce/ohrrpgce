@@ -64,6 +64,9 @@ declare function visibleandalive (byval who as integer, bslot() as battlesprite)
 declare sub export_battle_hero_stats (bslot() as BattleSprite)
 declare sub import_battle_hero_stats (bslot() as BattleSprite)
 
+declare function has_valid_targs OVERLOAD (byval who as integer, byval atk_id as integer, bslot() as BattleSprite) as bool
+declare function has_valid_targs OVERLOAD (byval who as integer, byref atk as AttackData, bslot() as BattleSprite) as bool
+
 declare sub get_valid_targs (tmask() as integer, byval who as integer, byref atk as AttackData, bslot() as BattleSprite)
 declare function attack_can_hit_dead OVERLOAD (attacker as integer, atk_id as integer, stored_targs_can_be_dead as bool=NO) as bool
 declare function attack_can_hit_dead OVERLOAD (attacker as integer, attack as AttackData, stored_targs_can_be_dead as bool=NO) as bool

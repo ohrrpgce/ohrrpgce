@@ -1231,6 +1231,21 @@ FUNCTION is_foe_of(target as integer, attacker as integer, bslot() as BattleSpri
  END IF
 END FUNCTION
 
+FUNCTION has_valid_targs(byval who as integer, byval atk_id as integer, bslot() as BattleSprite) as bool
+ DIM attack as AttackData
+ loadattackdata attack, atk_id
+ RETURN has_valid_targs(who, attack, bslot())
+END FUNCTION
+
+FUNCTION has_valid_targs(byval who as integer, byref atk as AttackData, bslot() as BattleSprite) as bool
+ DIM tmask(11) as bool ' Which targets are valid for the currently targetting attack
+ get_valid_targs tmask(), who, atk, bslot()
+ FOR i as integer = 0 TO UBOUND(tmask)
+  IF tmask(i) THEN RETURN YES
+ NEXT i
+ RETURN NO
+END FUNCTION
+
 'who: attacker
 SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackData, bslot() as BattleSprite)
  DIM i as integer
