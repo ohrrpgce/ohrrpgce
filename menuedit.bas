@@ -501,7 +501,7 @@ END SUB
 
 
 SUB edit_menu_bits (menu as MenuDef)
- DIM bitname(10) as string
+ DIM bitname(11) as string
  DIM bits(0) as integer
  
  bitname(0) = "Translucent box"
@@ -515,10 +515,11 @@ SUB edit_menu_bits (menu as MenuDef)
  bitname(8) = "Advance text box when menu closes"
  bitname(9) = "Highlight selection background"
  bitname(10) = "Remember selection when reopening"
+ bitname(11) = "Clamp to screen bounds"
 
  MenuBitsToArray menu, bits()
  editbitset bits(), 0, bitname(), "menu_editor_bitsets"
- MenuBitsFromArray menu, bits()  
+ MenuBitsFromArray menu, bits()
 END SUB
 
 SUB edit_menu_item_bits (mi as MenuDefItem)

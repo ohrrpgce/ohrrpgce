@@ -27,3 +27,5 @@ Note: When multiple menus are open, only the topmost menu determines whether the
  *"Highlight selection background" - Draws a rectangle behind the selected menu item (with UI color 'Highlight')
 
  *"Remember selection when reopening" - When you open the menu, whichever item you had selected last time you closed it is selected by default.
+
+ *"Clamp to screen bounds" - Moves the menu if necessary so that it doesn't go over the screen edge. If "Max rows to display: Default", this means that the menu will always stretch from the top to the bottom of the screen if there are enough menu items.

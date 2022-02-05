@@ -14,7 +14,7 @@ Text Color: The color of each non-disabled menu item, unless it specifies its ow
 
 Disabled Color: The color of each disabled menu item, unless it specifies its own disabled color. Press ENTER or SPACE for a color browser. You can also select a UI color (numbers below zero).
 
-Max rows to display: Reduce this number to make a long box scroll.
+Max rows to display: Reduce this number to make a long menu scroll. By default, the menu will be sized so that it doesn't go over the screen edges, taking into account its position and alignment.
 
 Edit Bitsets: Press ENTER or SPACE to go to a list of OFF/ON bitsets that configure various aspects of box display and behaviour. See the help screen in that menu.
 

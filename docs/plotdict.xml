@@ -6316,6 +6316,7 @@ end</example>
 					<li>menubit:advance text box when menu closes</li>
 					<li>menubit:highlight selection background</li>
 					<li>menubit:remember selection</li>
+					<li>menubit:clamp to screen bounds</li>
 				</ul>
 			</description>
 		</command>
