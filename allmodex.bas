@@ -914,7 +914,7 @@ local function compatpage_internal(pageframe as Frame ptr) as Frame ptr
 	return frame_new_view(vpages(vpage), (vpages(vpage)->w - 320) / 2, (vpages(vpage)->h - 200) / 2, 320, 200)
 end function
 
-'Return a video page which is a view on vpage hat is 320x200 (or smaller) and centred.
+'Return a video page which is a view on vpage that is 320x200 (or smaller) and centred.
 'In order to use this, draw to the returned page, but call setvispage(vpage).
 'Do not swap dpage and vpage!
 'WARNING: if a menu using compatpage calls another one that does swap dpage and

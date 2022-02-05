@@ -1833,6 +1833,30 @@ SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as in
  LOOP
 END SUB
 
+'Clear a videopage with a dark textured background which is used to indicate the size of the game's window
+SUB draw_textured_background(page as integer)
+ draw_background vpages(page), bgChequer
+ 'Make the chequer less glaring underneath text
+ fuzzyrect(0, 0, , , uilook(uiBackground), page, 50)
+END SUB
+
+'Create a videopage equal in size to the game's resolution
+FUNCTION gameres_page() as integer
+ 'TODO: possibly we could use the game's bitdepth (gen32bitMode) for this page,
+ 'but that may not work and probably isn't needed
+ DIM ret as integer = allocatepage(gen(genResolutionX), gen(genResolutionY))
+ vpages(ret)->noresize = YES
+ RETURN ret
+END FUNCTION
+
+'Draw a videopage at (by default) the bottom-right corner of destpage.
+'Typically used to draw a gameres_page, for previewing in-game graphics.
+'See also draw_textured_background
+SUB draw_viewport_page(srcpage as integer, destpage as integer, where as RelPosXY = XY(pRight, pBottom))
+ 'TODO: maybe draw a border?
+ frame_draw vpages(srcpage), , where.x + showLeft, where.y + showTop, NO, destpage
+END SUB
+
 'Returns  "prefix ABS(n) suffix [AUTOSET] (<tagname or zero/one/negonecap>)"
 'where everything except the ABS(n) is optional.
 LOCAL FUNCTION base_tag_caption(byval n as integer, prefix as string, suffix as string, zerocap as string, onecap as string, negonecap as string, byval allowspecial as bool) as string

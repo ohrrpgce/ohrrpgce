@@ -191,6 +191,7 @@ TYPE TextboxEditState
   id as integer
   portrait as GraphicPair
   search as string
+  viewport_page as integer  'For drawing the textbox to
 END TYPE
 
 TYPE TextboxConnectNode

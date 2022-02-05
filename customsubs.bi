@@ -66,6 +66,11 @@ DECLARE SUB draw_crosshairs(pos as XYPair, length as integer = 1, zoom as intege
 DECLARE SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
 DECLARE SUB xy_position_on_sprite_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
 DECLARE SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as integer, byval frame as integer, caption as string, helpkey as string)
+
+DECLARE SUB draw_textured_background(page as integer)
+DECLARE FUNCTION gameres_page() as integer
+DECLARE SUB draw_viewport_page(srcpage as integer, destpage as integer, where as RelPosXY = XY(pRight, pBottom))
+
 DECLARE FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byval y as integer=0, byval page as integer=-1) as integer
 DECLARE SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as string, excludewords as string = "")
 DECLARE FUNCTION experience_chart (byval expcurve as double=0.2) as double

@@ -634,18 +634,12 @@ END SUB
 SUB textbox_draw_with_background(byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr, page as integer)
  clearpage page
  draw_background vpages(page), uilook(uiBackground)
-
- ' Draw the textbox
- DIM fr as Frame ptr = vpages(page)
- DIM viewport as Frame ptr
- viewport = frame_new_view(fr, large(0, fr->w - gen(genResolutionX)), large(0, fr->h - gen(genResolutionY)), gen(genResolutionX), gen(genResolutionY))
- draw_background viewport, bgChequer
- fuzzyrect(viewport, XY_WH(XY(0,0), viewport->size), uilook(uiBackground), 50)  'Make the chequer less glaring underneath text
- IF backdrop THEN frame_draw backdrop, , 0, 0, box.backdrop_trans, viewport
- DIM viewport_page as integer = registerpage(viewport)
- textbox_edit_preview box, st, viewport_page
- freepage viewport_page
- frame_unload @viewport
+ ' Draw the textbox over a textured background
+ draw_textured_background st.viewport_page
+ IF backdrop THEN frame_draw backdrop, , 0, 0, box.backdrop_trans, st.viewport_page
+ textbox_edit_preview box, st, st.viewport_page
+ ' Draw it in the corner of the screen
+ draw_viewport_page st.viewport_page, page
 END SUB
 
 SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState, menu() as string)
@@ -864,6 +858,8 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
  menuopts.edged = YES
  menuopts.itemspacing = -1
 
+ st.viewport_page = gameres_page()
+
  'Show backdrop
  DIM backdrop as Frame ptr
  IF box.backdrop > 0 THEN
@@ -1009,6 +1005,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
  LOOP
  v_free menu
  frame_unload @backdrop
+ freepage st.viewport_page
  resetsfx
  music_stop
 END SUB
