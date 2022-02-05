@@ -1852,8 +1852,9 @@ END FUNCTION
 'Draw a videopage at (by default) the bottom-right corner of destpage.
 'Typically used to draw a gameres_page, for previewing in-game graphics.
 'See also draw_textured_background
-SUB draw_viewport_page(srcpage as integer, destpage as integer, where as RelPosXY = XY(pRight, pBottom))
- 'TODO: maybe draw a border?
+SUB draw_viewport_page(srcpage as integer, destpage as integer, byval where as RelPosXY = XY(pRight, pBottom))
+ DIM pagesize as XYPair = vpages(srcpage)->size
+ rectangle where.x + 1, where.y + 1, pagesize.w + 2, pagesize.h + 2, findrgb(80, 80, 80), destpage
  frame_draw vpages(srcpage), , where.x + showLeft, where.y + showTop, NO, destpage
 END SUB
 

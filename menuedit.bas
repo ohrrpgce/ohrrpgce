@@ -16,13 +16,14 @@
 DECLARE SUB update_menu_editor_menu(byval record as integer, edmenu as MenuDef, menu as MenuDef)
 DECLARE SUB update_edited_menu(menudata as MenuDef)
 DECLARE SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem)
-DECLARE SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuDef, byref record as integer, menu_set as MenuSet)
+DECLARE SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuDef, byref record as integer, menu_set as MenuSet, viewport_page as integer)
 DECLARE SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as MenuDef, byval record as integer)
 DECLARE SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as MenuDef, mi as MenuDefItem)
+DECLARE SUB preview_menu(menu as MenuDef, mstate as MenuState, viewport_page as integer, destpage as integer = -1)
 DECLARE SUB edit_menu_bits (menu as MenuDef)
 DECLARE SUB edit_menu_item_bits (mi as MenuDefItem)
-DECLARE SUB reposition_menu (menu as MenuDef, mstate as MenuState)
-DECLARE SUB reposition_anchor (menu as MenuDef, mstate as MenuState)
+DECLARE SUB reposition_menu (menu as MenuDef, mstate as MenuState, viewport_page as integer)
+DECLARE SUB reposition_anchor (menu as MenuDef, mstate as MenuState, viewport_page as integer)
 
 
 SUB menu_editor ()
@@ -36,13 +37,13 @@ DIM record as integer = 0
 DIM state as MenuState 'top level
 state.active = YES
 state.need_update = YES
-DIM mstate as MenuState 'menu
+DIM mstate as MenuState  'menu being edited
 mstate.active = NO
 mstate.need_update = YES
 DIM dstate as MenuState 'detail state
 dstate.active = NO
 
-DIM edmenu as MenuDef
+DIM edmenu as MenuDef  'top level
 WITH edmenu
  .textalign = alignLeft
  .alignhoriz = alignLeft
@@ -53,9 +54,9 @@ WITH edmenu
  .translucent = YES
  .min_chars = 38
 END WITH
-DIM menudata as MenuDef
+DIM menudata as MenuDef  'menu being edited
 LoadMenuData menu_set, menudata, record
-DIM detail as MenuDef
+DIM detail as MenuDef  'detail editing menu
 WITH detail
  .textalign = alignLeft
  .anchorhoriz = alignLeft
@@ -66,6 +67,8 @@ WITH detail
 END WITH
 
 DIM box_preview as string = ""
+
+DIM viewport_page as integer = gameres_page()
 
 setkeys YES
 DO
@@ -78,7 +81,7 @@ DO
  ELSEIF dstate.active = YES THEN
   menu_editor_detail_keys dstate, mstate, detail, *menudata.items[mstate.pt]
  ELSE
-  menu_editor_keys state, mstate, menudata, record, menu_set
+  menu_editor_keys state, mstate, menudata, record, menu_set, viewport_page
  END IF
  
  IF state.need_update THEN
@@ -106,15 +109,15 @@ DO
  END IF
  
  clearpage dpage
- IF NOT mstate.active THEN draw_menu menudata, mstate, dpage
- IF NOT mstate.active AND NOT dstate.active THEN draw_menu edmenu, state, dpage
+ preview_menu menudata, mstate, viewport_page, dpage
+
  IF mstate.active THEN
-  draw_menu menudata, mstate, dpage
   edgeprint "ENTER to edit, Shift+Arrows to re-order", 0, pBottom, uilook(uiDisabledItem), dpage
   IF record = 0 THEN
    edgeprint "CTRL+R to reload default", 0, pBottom - 10, uilook(uiDisabledItem), dpage
   END IF
  END IF
+ IF NOT mstate.active AND NOT dstate.active THEN draw_menu edmenu, state, dpage
  IF dstate.active THEN
   draw_menu detail, dstate, dpage
   IF menudata.items[mstate.pt]->t = mtypeTextBox THEN
@@ -127,10 +130,11 @@ DO
  dowait
 LOOP
 SaveMenuData menu_set, menudata, record
+freepage viewport_page
 
 END SUB
 
-SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuDef, byref record as integer, menu_set as MenuSet)
+SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuDef, byref record as integer, menu_set as MenuSet, viewport_page as integer)
  IF keyval(ccCancel) > 1 THEN state.active = NO
  IF keyval(scF1) > 1 THEN show_help "menu_editor_main"
  
@@ -174,7 +178,7 @@ SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuD
     state.need_update = YES
    END IF
   CASE 7
-   IF intgrabber(menudata.maxrows, 0, 20) THEN state.need_update = YES
+   IF intgrabber(menudata.maxrows, 0, 100) THEN state.need_update = YES
   CASE 8
    IF enter_space_click(state) THEN
     edit_menu_bits menudata
@@ -182,18 +186,18 @@ SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuD
    END IF
   CASE 9
    IF enter_space_click(state) THEN
-    reposition_menu menudata, mstate
+    reposition_menu menudata, mstate, viewport_page
    END IF
   CASE 10
    IF enter_space_click(state) THEN
-    reposition_anchor menudata, mstate
+    reposition_anchor menudata, mstate, viewport_page
    END IF
   CASE 11 ' text align
    IF intgrabber(menudata.textalign, alignLeft, alignRight) THEN state.need_update = YES
   CASE 12 ' Minimum width in chars
-   IF intgrabber(menudata.min_chars, 0, 38) THEN state.need_update = YES
+   IF intgrabber(menudata.min_chars, 0, 200) THEN state.need_update = YES
   CASE 13 ' Maximum width in chars
-   IF intgrabber(menudata.max_chars, 0, 38) THEN state.need_update = YES
+   IF intgrabber(menudata.max_chars, 0, 200) THEN state.need_update = YES
   CASE 14 ' border size
    IF intgrabber(menudata.bordersize, -100, 100) THEN state.need_update = YES
   CASE 15 ' item spacing
@@ -532,7 +536,7 @@ SUB edit_menu_item_bits (mi as MenuDefItem)
  MenuItemBitsFromArray mi, bits()  
 END SUB
 
-SUB reposition_menu (menu as MenuDef, mstate as MenuState)
+SUB reposition_menu (menu as MenuDef, mstate as MenuState, viewport_page as integer)
  setkeys
  DO
   setwait 55
@@ -543,16 +547,16 @@ SUB reposition_menu (menu as MenuDef, mstate as MenuState)
 
   DIM speed as integer = IIF(keyval(scShift) > 0, 10, 1)
   WITH menu.offset
-   IF keyval(ccUp) > 1 THEN .y -= speed
-   IF keyval(ccDown) > 1 THEN .y += speed
-   IF keyval(ccLeft) > 1 THEN .x -= speed
-   IF keyval(ccRight) > 1 THEN .x += speed
+   IF slowkey(ccUp, 100)  THEN .y -= speed
+   IF slowkey(ccDown, 100)  THEN .y += speed
+   IF slowkey(ccLeft, 100)  THEN .x -= speed
+   IF slowkey(ccRight, 100)  THEN .x += speed
   END WITH
 
   clearpage dpage
-  draw_menu menu, mstate, dpage
-  edgeprint "Offset=" & menu.offset, 0, 0, uilook(uiDisabledItem), dpage
-  edgeprint "Arrows to re-position, ESC to exit", 0, pBottom, uilook(uiDisabledItem), dpage
+  preview_menu menu, mstate, viewport_page, dpage
+  edgeprint "Offset=" & menu.offset, 0, 0, uilook(uiMenuItem), dpage
+  edgeprint "Arrows to re-position, SHIFT for speed, ESC to exit", 0, pBottom, uilook(uiMenuItem), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -560,7 +564,14 @@ SUB reposition_menu (menu as MenuDef, mstate as MenuState)
  LOOP
 END SUB
 
-SUB reposition_anchor (menu as MenuDef, mstate as MenuState)
+'Draw the menu, to the bottom-right corner of the screen onto a background rect of the size of the game window
+SUB preview_menu(menu as MenuDef, mstate as MenuState, viewport_page as integer, destpage as integer = -1)
+ draw_textured_background viewport_page
+ draw_menu menu, mstate, viewport_page
+ IF destpage > -1 THEN draw_viewport_page viewport_page, destpage
+END SUB
+
+SUB reposition_anchor (menu as MenuDef, mstate as MenuState, viewport_page as integer)
  DIM tog as integer = 0
  DIM x as integer
  DIM y as integer
@@ -581,13 +592,15 @@ SUB reposition_anchor (menu as MenuDef, mstate as MenuState)
   END WITH
  
   clearpage dpage
-  draw_menu menu, mstate, dpage
+  preview_menu menu, mstate, viewport_page
   WITH menu
    x = .rect.x - 2 + anchor_point(.anchorhoriz, .rect.wide)
    y = .rect.y - 2 + anchor_point(.anchorvert, .rect.high)
-   rectangle x, y, 5, 5, 2 + tog, dpage 
+   rectangle x, y, 5, 5, 2 + tog, viewport_page
   END WITH
-  edgeprint "Arrows to re-position, ESC to exit", 0, pBottom, uilook(uiDisabledItem), dpage
+  draw_viewport_page viewport_page, dpage
+
+  edgeprint "Arrows to re-position, ESC to exit", 0, pBottom, uilook(uiMenuItem), dpage
   
   SWAP vpage, dpage
   setvispage vpage

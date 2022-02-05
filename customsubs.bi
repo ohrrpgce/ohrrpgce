@@ -69,7 +69,7 @@ DECLARE SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref
 
 DECLARE SUB draw_textured_background(page as integer)
 DECLARE FUNCTION gameres_page() as integer
-DECLARE SUB draw_viewport_page(srcpage as integer, destpage as integer, where as RelPosXY = XY(pRight, pBottom))
+DECLARE SUB draw_viewport_page(srcpage as integer, destpage as integer, byval where as RelPosXY = XY(pRight, pBottom))
 
 DECLARE FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byval y as integer=0, byval page as integer=-1) as integer
 DECLARE SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as string, excludewords as string = "")
