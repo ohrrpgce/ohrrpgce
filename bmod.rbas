@@ -1790,7 +1790,7 @@ SUB populate_battle_menu_menudef_for_enemy (byref bat as BattleState, bslot() as
  END SELECT
  
  IF NOT does_battle_menu_have_targets(bspr, bslot()) THEN
-  'FIXME: Add "Do nothing" item here
+  append_menu_item(bspr.batmenu, "Skip Turn", batmenu_SKIPTURN)
  END IF
 
 END SUB
@@ -3021,6 +3021,8 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef
        IF inventory(bat.item.pt).used THEN
         bat.item_desc = readitemdescription(inventory(bat.item.pt).id)
        END IF
+      CASE batmenu_SKIPTURN:
+       player_attack_targetting_done bat, bslot()
      END SELECT
     END IF
    END WITH

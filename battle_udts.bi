@@ -270,6 +270,7 @@ ENUM BattleMenuItemType
  batmenu_ATTACK = mtypeLAST + 1
  batmenu_SPELLS
  batmenu_ITEMS
+ batmenu_SKIPTURN
 END ENUM
 
 'This type is just used by RewardState
