@@ -1632,7 +1632,7 @@ SUB calc_menu_rect (state as MenuState, menu as MenuDef, byval page as integer)
  'Enforce min width
  menu.rect.wide = large(menu.rect.wide, menu.min_chars * 8 + bord * 2)
  'Limit to screen size (this isn't strictly needed, and maxrows=0 also does the same)
- menu.rect.wide = small(menu.rect.wide, vpages(page)->w)
+ 'menu.rect.wide = small(menu.rect.wide, vpages(page)->w)
  menu.rect.high = small(menu.rect.high, vpages(page)->h)
 
  'Set state.size and state.spacing
