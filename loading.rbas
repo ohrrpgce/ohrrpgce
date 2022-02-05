@@ -4104,6 +4104,8 @@ SUB convertenemydata (buf() as integer, enemy as EnemyDef)
   .ignore_for_alone    = xreadbit(buf(), 64, 74)
   .give_rewards_even_if_alive = xreadbit(buf(), 65, 74)
   .controlled_by_player       = xreadbit(buf(), 66, 74)
+  .turncoat_attacker          = xreadbit(buf(), 67, 74)
+  .defector_target            = xreadbit(buf(), 68, 74)
 
   '--elementals
   IF getfixbit(fixEnemyElementals) THEN
@@ -4221,6 +4223,8 @@ SUB saveenemydata (enemy as EnemyDef, byval index as integer, byval altfile as b
   setbit buf(), 74, 64, .ignore_for_alone
   setbit buf(), 74, 65, .give_rewards_even_if_alive
   setbit buf(), 74, 66, .controlled_by_player
+  setbit buf(), 74, 67, .turncoat_attacker
+  setbit buf(), 74, 68, .defector_target
 
   '--spawning
   buf(79) = .spawn.on_death

@@ -974,6 +974,8 @@ TYPE EnemyDef
   never_flinch   as bool
   ignore_for_alone    as bool
   controlled_by_player as bool
+  turncoat_attacker as bool
+  defector_target as bool
 
   Declare Constructor()
 END TYPE

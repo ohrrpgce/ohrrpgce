@@ -668,7 +668,11 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
    CASE 2: 'Normal
     bslot(targ).turncoat_attacker = NO
    CASE 3: 'Set to default
-    bslot(targ).turncoat_attacker = NO
+    IF is_hero(targ) THEN
+     bslot(targ).turncoat_attacker = NO
+    ELSEIF is_enemy(targ) THEN
+     bslot(targ).turncoat_attacker = bslot(targ).enemy.turncoat_attacker
+    END IF
   END SELECT
 
   SELECT CASE attack.change_defector
@@ -677,7 +681,11 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
    CASE 2: 'Normal
     bslot(targ).defector_target = NO
    CASE 3: 'Set to default
-    bslot(targ).defector_target = NO
+    IF is_hero(targ) THEN
+     bslot(targ).defector_target = NO
+    ELSEIF is_enemy(targ) THEN
+     bslot(targ).defector_target = bslot(targ).enemy.defector_target
+    END IF
   END SELECT
   
  ELSE
