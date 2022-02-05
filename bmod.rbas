@@ -208,7 +208,7 @@ FUNCTION battle (byval form as integer) as bool
   IF bat.vic.state = vicNONE THEN
    IF bat.enemy_turn >= 0 THEN
     IF bslot(bat.enemy_turn).under_player_control AND is_enemy(bat.enemy_turn) THEN
-     IF bat.targ.mode = targNONE THEN
+     IF bat.targ.mode = targNONE ANDALSO bat.player_turn = -1 THEN
       bat.player_turn = bat.enemy_turn
       'Regenerate the enemy menu, in case it has changed
       populate_battle_menu_menudef_for_enemy bat, bslot(), bslot(bat.enemy_turn)
@@ -4630,6 +4630,11 @@ SUB battle_check_for_player_turns(byref bat as BattleState, bslot() as BattleSpr
  loopvar bat.next_hero, 0, 3
  IF bat.player_turn > -1 THEN
   '--somebody is already taking their turn
+  EXIT SUB
+ END IF
+ 
+ IF bat.enemy_turn > -1 ANDALSO bslot(bat.enemy_turn).under_player_control THEN
+  'It is a player-controlled enemy's turn, so let them have a turn
   EXIT SUB
  END IF
 
