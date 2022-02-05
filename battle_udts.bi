@@ -47,6 +47,8 @@ END TYPE
 
 TYPE BattleSprite
   name as string
+  index as integer 'Set in battle_init()
+  ' We don't have any swapping of bslot() but if we ever did, it would be important to update this after swapping
 
   '--Sprites/slices
   sl as Slice ptr

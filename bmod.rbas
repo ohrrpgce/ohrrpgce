@@ -326,6 +326,7 @@ SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
 
  '--Init BattleSprites
  FOR i as integer = 0 TO 11
+  bslot(i).index = i
   bslot(i).consume_item = -1
   bslot(i).consume_lmp = -1
   bslot(i).revenge = -1
