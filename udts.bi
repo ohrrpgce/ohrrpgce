@@ -131,6 +131,8 @@ TYPE MenuDef
   on_close  as integer   'Script trigger
   esc_menu  as integer   'Cancel button close action: 0=just close, >0 is menu ID + 1 to open in-place
   age as integer         'This is incremented in draw_menu and should normally be the age of the menu in ticks
+                         '(TODO: should be in MenuState instead; in-game each menu instance has its own
+                         'MenuDef, which prevents this misplacement from causing problems)
 
   Declare Constructor()
   Declare Destructor()
@@ -159,10 +161,10 @@ TYPE MenuState
                                     'button down, and activating on release. Used for popup menus.
   drag_start_top as integer         'Used internally by mouse_drag_menu()
 
-  '--These are populated when the menu is drawn by standardmenu. They should and can
-  '--only be set manually when standardmenu isn't used.
-  has_been_drawn as bool
-  rect as RectType
+  '--These are populated when the menu is drawn. They should and can be set
+  '--manually when drawing a menu manually without standardmenu/draw_menu
+  position_known as bool  'Whether rect.xy is correctly set, usually by calling standardmenu/draw_menu
+  rect as RectType      'Position and size of the menu, including border padding
   spacing as integer    'Height of each line, in pixels. Set MenuOptions.itemspacing to adjust.
 
   DECLARE FUNCTION empty() as bool

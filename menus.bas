@@ -46,12 +46,12 @@ END FUNCTION
 
 '(Re-)initialise menu state, preserving .pt if valid
 '.pt is moved to a selectable menu item.
-'FIXME: sets state.has_been_drawn = YES although state.rect is wrong
 SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem, menuopts as MenuOptions = MenuOptions())
  WITH state
-  DIM was_drawn as bool = .has_been_drawn
+  DIM position_was_known as bool = .position_known
   'Position not known before it's actually drawn, fill with dummy data for now
   calc_menustate_size state, menuopts, .rect.x, .rect.y
+  .position_known = position_was_known
 
   .first = LBOUND(menu)
   .last = UBOUND(menu)
@@ -71,7 +71,7 @@ SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem, menuopt
    '(TODO: modify correct_menu_state and all usemenu overloads to do this too)
    IF .pt <> -1 THEN .top = bound(.top, .pt - .size + 1, .pt - 1)
   END IF
-  IF was_drawn = NO ORELSE in_bound(.hover, .first, .last) = NO THEN
+  IF .position_known = NO ORELSE in_bound(.hover, .first, .last) = NO THEN
    .hover = .first - 1
   END IF
   .top = bound(.top, 0, large(.last - .size, 0))
@@ -83,17 +83,17 @@ END SUB
 '
 'menu may in fact be a vector of any type inheriting from BasicMenuItem.
 'menu's typetable tells the size in bytes of each menu item
-'FIXME: sets state.has_been_drawn = YES although state.rect is wrong
 SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vector, menuopts as MenuOptions = MenuOptions())
  WITH state
-  DIM was_drawn as bool = .has_been_drawn
+  DIM position_was_known as bool = .position_known
   'Position not known before it's actually drawn, fill with dummy data for now
   calc_menustate_size state, menuopts, .rect.x, .rect.y
+  .position_known = position_was_known
 
   .first = 0
   .last = v_len(menu) - 1
   IF .size <= 0 THEN .size = 20
-  IF was_drawn = NO ORELSE in_bound(.hover, .first, .last) = NO THEN
+  IF .position_known = NO ORELSE in_bound(.hover, .first, .last) = NO THEN
    .hover = .first - 1
   END IF
   IF v_len(menu) = 0 THEN
@@ -123,7 +123,7 @@ SUB recalc_menu_size (byref state as MenuState)
  WITH state
   IF .spacing = 0 THEN
    ' This error is currently impossible
-   IF .has_been_drawn = YES THEN debugc errBug, "recalc_menu_size: .spacing didn't get set"
+   IF .position_known = YES THEN debugc errBug, "recalc_menu_size: .spacing didn't get set"
    EXIT SUB
   END IF
   DIM ignorepix as integer = .autosize_ignore_pixels + .autosize_ignore_lines * large(.spacing, 10)
@@ -152,7 +152,7 @@ FUNCTION find_menu_item_at_point (state as MenuState, x as integer, y as integer
  'If the on-screen position overlaps a MenuState, return the index of the menu item it is touching.
  'Return a value < state.first if it's not on any menu item.
  WITH state
-  IF .has_been_drawn THEN
+  IF .position_known THEN
    DIM mpt as integer = rect_collide_point_vertical_chunk(.rect, XY(x, y), .spacing)
    IF mpt > -1 THEN
     mpt += .top
@@ -475,12 +475,11 @@ END SUB
 ' Used if you want to calculate the size of the menu before the first call to standardmenu,
 ' but unless you're using menuopts.calc_size, calling init_menu_state is sufficient.
 ' (Note: 'menu' is optional, needed only to calculate width.)
-' Sets .has_been_drawn=YES to indicate that these members have been initialised,
+' Sets .position_known=YES to indicate that these members have been initialised,
 ' even if not called from standardmenu.
 SUB calc_menustate_size(state as MenuState, menuopts as MenuOptions, x as RelPos, y as RelPos, page as integer = -1, menu as BasicMenuItem vector = NULL)
  IF page = -1 THEN page = vpage
  WITH state
-  .has_been_drawn = YES
   IF menuopts.edged THEN .spacing = 9 ELSE .spacing = 8
   .spacing += menuopts.itemspacing
 
@@ -519,6 +518,7 @@ SUB calc_menustate_size(state as MenuState, menuopts as MenuOptions, x as RelPos
   ' Now position the menu, and clamp to screen size
   .rect.x = relative_pos(x, vpages(page)->w, .rect.wide)
   .rect.y = relative_pos(y, vpages(page)->h, .rect.high)
+  .position_known = YES
   .rect.wide = small(.rect.wide, vpages(page)->w - .rect.x)
   .rect.high = small(.rect.high, vpages(page)->h - .rect.y)
  END WITH
@@ -1003,12 +1003,13 @@ FUNCTION getmenuname(byval record as integer) as string
 END FUNCTION
 
 '(Re-)initialise menu state, preserving .pt if valid
-'FIXME: sets state.has_been_drawn = YES although state.rect is wrong
 SUB init_menu_state (byref state as MenuState, menu() as string, menuopts as MenuOptions)
  WITH state
   IF .size = 0 THEN .autosize = YES
+  DIM position_was_known as bool = .position_known
   'Position not known before it's actually drawn, fill with dummy data for now
   calc_menustate_size state, menuopts, .rect.x, .rect.y
+  .position_known = position_was_known
 
   .first = LBOUND(menu)
   .last = UBOUND(menu)
@@ -1653,7 +1654,7 @@ SUB position_menu (menu as MenuDef, state as MenuState, byval page as integer)
  END WITH
 
  WITH state
-  .has_been_drawn = YES
+  .position_known = YES
   .rect.x = menu.rect.x + bord
   .rect.y = menu.rect.y + bord
   .rect.wide = menu.rect.wide - bord * 2

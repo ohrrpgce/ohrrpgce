@@ -318,9 +318,9 @@ DO
  selectst.remember_pt = br.mstate.pt
 
  WITH br.mstate
-  .has_been_drawn = YES
   .rect.x = 10
   .rect.y = 20
+  .position_known = YES
  END WITH
  FOR i as integer = br.mstate.top TO small(br.mstate.top + br.mstate.size, br.mstate.last)
   DIM fgcol as integer = catfg(tree(i).kind)

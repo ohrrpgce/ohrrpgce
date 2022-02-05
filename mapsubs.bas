@@ -6720,7 +6720,8 @@ DIM state as MenuState
 state.top = -1
 state.first = -1
 state.spacing = 25
-state.has_been_drawn = YES ' fake this because we don't call standardmenu()
+state.rect.xy = XY(0, 0)
+state.position_known = YES  'We don't call standardmenu()
 
 state.last = UBOUND(npc_def)
 '--Add "Add new NPC" option to end
@@ -6805,7 +6806,8 @@ DO
  clearpage dpage
  DIM textcol as integer
  DIM textbg as integer
- DIM y as integer
+ DIM as integer x, y
+ LET (x, y) = state.rect.xy.xy
  FOR i as integer = state.top TO state.top + state.size
   IF i > state.last THEN EXIT FOR
   textcol = uilook(uiMenuItem)
@@ -6819,23 +6821,23 @@ DO
   IF state.pt = i THEN edgebox 0, y, rWidth, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
   'Special menu items
   IF i = -1 THEN
-   printstr "Previous Menu", 0, y + 5, dpage
+   printstr "Previous Menu", x, y + 5, dpage
   ELSEIF i = state.last THEN
    '--Add new NPC option
-   printstr "Add new " & IIF(pool_id = 1, "Global ", "") & "NPC", 0, y + 5, dpage
+   printstr "Add new " & IIF(pool_id = 1, "Global ", "") & "NPC", x, y + 5, dpage
   ELSE
    '--An NPC
-   printstr "" & i, 0, y + 5, dpage
+   printstr STR(i), x, y + 5, dpage
    WITH npc_img(i)
     '--Down A frame
-    frame_draw .sprite + 4, .pal, 32, (i - state.top) * 25, , dpage
+    frame_draw .sprite + 4, .pal, x + 32, (i - state.top) * 25, , dpage
    END WITH
    textcol = uilook(uiMenuItem)
    textbg = uilook(uiHighlight)
    IF state.hover = i THEN textcol = uilook(uiMouseHoverItem)
    IF state.pt = i THEN textcol = uilook(uiText)
    textcolor textcol, textbg
-   printstr boxpreview(i), 56, y + 5, dpage
+   printstr boxpreview(i), x + 56, y + 5, dpage
   END IF
  NEXT i
  draw_fullscreen_scrollbar state, , dpage
