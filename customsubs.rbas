@@ -1835,9 +1835,8 @@ END SUB
 
 'Clear a videopage with a dark textured background which is used to indicate the size of the game's window
 SUB draw_textured_background(page as integer)
- draw_background vpages(page), bgChequer
- 'Make the chequer less glaring underneath text
- fuzzyrect(0, 0, , , uilook(uiBackground), page, 50)
+ clearpage page
+ fuzzyrect 0, 0, , , uilook(uiDisabledItem), page, 7
 END SUB
 
 'Create a videopage equal in size to the game's resolution
