@@ -1647,7 +1647,14 @@ resume player</example>
 		<command id="teleporttomap">
 			<canon>teleport to map (map, x, y)</canon>
 			<shortname>teleport to map</shortname>
-			<description>An alternative to <ref>usedoor</ref>, teleport to map moves you to a given x,y position on the specified map without the need to create a door-link on the map. Teleport to map does not fade to black. <note>An automatic <ref>wait</ref>(1) occurs immediately after this command.</note></description>
+			<description>
+				An alternative to <ref>usedoor</ref>, teleport to map moves you to a given x,y position (in tiles)
+				on the specified map without the need to create a door-link on the map.
+				Teleport to map does not fade to black.
+				<note>
+					An automatic <ref>wait</ref>(1) occurs immediately after this command.
+				</note>
+			</description>
 		</command>
 		<reference ref="gracefullydismountvehicle" />
 		<command id="heroiswalking">
