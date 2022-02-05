@@ -188,9 +188,14 @@ SUB mouse_update_selection (state as MenuState)
  DIM buttons as integer = (readmouse.buttons OR readmouse.release)
  IF state.select_by_mouse_release THEN buttons = readmouse.release
  IF (buttons AND mouseLeft) ANDALSO readmouse.drag_dist < 10  THEN
+  'Don't change selection while dragging, because dragging might be used
+  'for scrolling (if mouse_drag_menu called)
   state.pt = state.hover
  ELSEIF (buttons AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
   'Right button only selects if this is NOT a drag
+  state.pt = state.hover
+ ELSEIF state.drag_selecting AND buttons THEN
+  'Popup menus do allow drag to select (and drag to confirm)
   state.pt = state.hover
  END IF
 END SUB
@@ -233,6 +238,7 @@ SUB mouse_scroll_menu(byref state as MenuState)
  END WITH
 END SUB
 
+' By default, menus do not support scrolling by dragging the menu unless this is called.
 SUB mouse_drag_menu(byref state as MenuState, byval button as MouseButton=mouseLeft, byval threshold as integer=10, byval magnify as double=1.0)
  WITH state
   IF .spacing = 0 THEN
@@ -460,6 +466,7 @@ SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref ba
 END SUB
 
 ' For standardmenu only. Not to be confused with recalc_menu_size, which only sets MenuState.size.
+' (Equivalent for MenuDef menus is position_menu)
 ' Initialises/updates size and position data in MenuState, including .rect, and .size
 ' if .autosize is true.
 ' Used if you want to calculate the size of the menu before the first call to standardmenu,
@@ -1506,13 +1513,12 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
   'NOTE: .autosize is not normally used with MenuDef (and never in Game). It overrides
   'MenuDef.maxrows.
   'Needed to recalculate .size if autosized on first tick (also called from usemenu)
+  'Needs to be called after .spacing is set, although really should be before position_menu.
   recalc_menu_size state
  END IF
 
  IF menu.no_box = NO THEN
-  WITH menu.rect
-   edgeboxstyle .x, .y, .wide, .high, menu.boxstyle, page, menu.translucent
-  END WITH
+  edgeboxstyle menu.rect, menu.boxstyle, page, menu.translucent, menu.suppress_borders
  END IF
 
  state.tog = state.tog XOR 1
@@ -1540,8 +1546,9 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
 
     IF .visible THEN
      position_menu_item menu, .text, i, where
+
      IF .t = mtypeSpecial THEN
-      ' Check for menu items with bars behind
+      ' Check for menu items with bars behind. The bar is drawn using the menu's boxstyle and Line border
       DIM bar_width as integer = 0
       DIM metermax as integer
       metermax = small(state.rect.wide, 80)  'large(48, textwidth(.text))
@@ -1552,8 +1559,11 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
       ELSEIF .sub_t = spMargins THEN ' TV Safe Margin meter
        bar_width = get_safe_zone_margin() * metermax \ 10
       END IF
-      edgeboxstyle menu.rect.x + (menu.rect.wide - metermax) \ 2, where.y, bar_width, 10, menu.boxstyle, page, NO, YES
+      IF bar_width THEN
+       edgeboxstyle menu.rect.x + (menu.rect.wide - metermax) \ 2, where.y, bar_width, 10, menu.boxstyle, page, NO, YES
+      END IF
      END IF
+
      edgeprint .text, where.x, where.y, col, page, menu.withtags
     END IF
    END WITH

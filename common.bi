@@ -258,9 +258,12 @@ DECLARE FUNCTION bgtag(col as integer, text as string = "") as string
 DECLARE FUNCTION basic_textbox (msg as zstring ptr, col as integer = -1, page as integer, ypos as RelPos = pCentered, width as RelPos = -1, shrink as bool = NO, suppress_borders as bool = NO, fontnum as integer = fontEdged) as integer
 DECLARE FUNCTION notification (msg as zstring ptr, shrink as bool = NO) as KBScancode
 DECLARE SUB pop_warning(msg as zstring ptr, byval autoquit as bool = NO)
-DECLARE FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", centerlines as bool=YES, extra_message as zstring ptr=@"") as integer
+
+DECLARE FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", extra_message as zstring ptr=@"", where as XYPair=XY(0,0), popup_style as bool=NO) as integer
 DECLARE FUNCTION twochoice(capt as zstring ptr, strA as zstring ptr=@"Yes", strB as zstring ptr=@"No", byval defaultval as integer=0, byval escval as integer=-1, helpkey as zstring ptr=@"") as integer
 DECLARE FUNCTION yesno(capt as zstring ptr, byval defaultval as bool=YES, byval escval as bool=NO) as bool
+DECLARE FUNCTION popup_choice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", extra_message as zstring ptr=@"") as integer
+
 DECLARE FUNCTION confirmed_copy (srcfile as string, destfile as string) as bool
 DECLARE FUNCTION confirmed_copydirectory(src as string, dest as string) as bool
 DECLARE FUNCTION os_shell_move(src as string, dest as string) as bool

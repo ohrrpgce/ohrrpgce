@@ -3238,9 +3238,9 @@ END SUB
 
 'Show a message box and a multichoice menu below it, return option number.
 'Preserves the contents of the screen.
-'centerlines: whether to center-justify everything, otherwise left-justified.
 'extra_message: shown at the bottom of the screen.
-FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", centerlines as bool=YES, extra_message as zstring ptr=@"") as integer
+'popup_style: make the menu look and behave like a popup menu
+FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", extra_message as zstring ptr=@"", where as XYPair=XY(0,0), popup_style as bool=NO) as integer
  DIM state as MenuState
  DIM menu as MenuDef
  DIM result as integer
@@ -3249,11 +3249,23 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
   append_menu_item menu, choices(i)
  NEXT
 
- IF LEN(*capt) THEN
+ IF where <> 0 THEN
+  menu.anchorvert = alignTop
+  menu.alignvert = alignTop
+  menu.anchorhoriz = alignLeft
+  menu.alignhoriz = alignLeft
+  menu.offset = where
+ ELSEIF LEN(*capt) THEN
   menu.anchorvert = alignTop
   menu.alignvert = alignTop
  END IF
  menu.withtags = YES
+ menu.suppress_borders = YES
+ IF popup_style THEN
+  menu.bordersize = -6
+  menu.textalign = alignLeft
+  state.drag_selecting = readmouse.buttons
+ END IF
 
  state.active = YES
  init_menu_state state, menu
@@ -3298,7 +3310,14 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
   copypage holdscreen, vpage
   DIM res as XYPair = get_resolution()
   IF LEN(*capt) THEN
-   menu.offset.y = 2 + basic_textbox(capt, , vpage, pCentered - 10 - UBOUND(choices) * 5 + showTop)
+   IF where <> 0 THEN
+    'The caption is displayed at a separate location to the menu (leave some room for extra_message at bottom)
+    basic_textbox(capt, , vpage, IIF(where.y < 60, pBottom - 20, pTop + 2) + showTop)
+   ELSE
+    'Draw the caption far enough above the center to leave room for the menu,
+    'then put directly below where the caption box actually ends
+    menu.offset.y = 2 + basic_textbox(capt, , vpage, pCentered - 10 - UBOUND(choices) * 5 + showTop)
+   END IF
   END IF
   menu.maxrows = (res.h - menu.offset.Y - 10) \ 10
   menu.max_chars = res.w \ 8 - 2
@@ -3332,6 +3351,19 @@ FUNCTION yesno(capt as zstring ptr, byval defaultval as bool=YES, byval escval a
  result = twochoice(capt, "Yes", "No", defaultval, escval)
  IF result = 0 THEN RETURN YES
  IF result = 1 THEN RETURN NO
+END FUNCTION
+
+'Same as multichoice, but if the user clicked or has button down, show a menu at the mouse cursor;
+'capt appears at top/bottom of screen.
+'You can call this on button-down and the user can drag the mouse and select an item on button release.
+FUNCTION popup_choice(capt as string="", choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", extra_message as zstring ptr=@"") as integer
+ DIM where as XYPair
+ DIM popup_style as bool = NO
+ IF (readmouse.buttons OR readmouse.release) AND (mouseLeft OR mouseRight) THEN
+  where = readmouse.pos
+  popup_style = YES
+ END IF
+ RETURN multichoice(capt, choices(), defaultval, escval, helpkey, extra_message, where, popup_style)
 END FUNCTION
 
 SUB playsongnum (byval songnum as integer)
@@ -4364,7 +4396,7 @@ SUB check_for_broken_textbox_after_chains (branch_revision as integer)
                        "which set the After condition to Never but it falsely appeared to be " _
                        !"`Always' in the editor!\n" _
                        "Select a textbox to inspect it or ESC to ignore for now. ", _
-                       boxes(), choice, , , NO)
+                       boxes(), choice)
   IF choice = -1 THEN EXIT DO
   text_box_editor boxids(choice)
  LOOP
@@ -6227,7 +6259,10 @@ FUNCTION menu_click (state as MenuState) as bool
  use_mouse = get_gen_bool("/mouse/mouse_menus") OR (force_use_mouse > 0)
 #ENDIF
  IF use_mouse THEN
-  IF (readmouse.release AND mouseleft) ANDALSO readmouse.drag_dist < 10 THEN
+  'Don't activate while dragging, because dragging might be used
+  'for scrolling (if mouse_drag_menu called)
+  IF ((readmouse.release AND mouseleft) ANDALSO readmouse.drag_dist < 10) _
+     ORELSE (readmouse.release AND state.drag_selecting) THEN
    IF overlay_message_visible() THEN
     'If an allmodex overlay message is visible, dismiss it <s>instead</s>.
     'NOTE: because code tends to keep a copy of MouseInfo returned from readmouse,

@@ -118,6 +118,7 @@ TYPE MenuDef
   alignhoriz as AlignType = alignCenter   'Relative to screen. NOT saved or exposed to users
   alignvert as AlignType = alignCenter    'Relative to screen. NOT saved or exposed to users
   textalign as AlignType = alignCenter    'Text alignment
+  suppress_borders as bool  'Draw only boxstyle line border. NOT saved or exposed to users
   withtags as bool          'Enable text markup. NOT saved or exposed to users
 
   min_chars as integer
@@ -144,20 +145,23 @@ TYPE MenuState
   size      as integer 'number of elements to display at a time - 1
   need_update as bool  'menu needs some kind of update
   tog       as bool    'For flashing cursor
-  autosize as bool = NO 'Set this to true, and usemenu will
-                                 'auto-upate the menu size to fill the
-                                 'screen vertically
-  autosize_ignore_pixels as integer = 0 ' Often you only want
-                                 ' *most* of the screen to be filled
+  autosize as bool     'Set this to true, and usemenu will auto-update the menu size to
+                       'fill the screen vertically
+  autosize_ignore_pixels as integer 'Often you only want *most* of the screen to be filled
   autosize_ignore_lines as integer = 0
+  select_by_mouse_release as bool   'Prevents button-down from changing selection; if you want
+                                    'the selection
+                                    'This is important for menus where you need to be able to
+                                    'focus an item and pick an item with separate clicks.
+  drag_selecting as MouseButton     'Set this to allow moving pt while dragging with this mouse
+                                    'button down, and activating on release. Used for popup menus.
+  drag_start_top as integer         'Used internally by mouse_drag_menu()
+
   '--These are populated when the menu is drawn by standardmenu. They should and can
   '--only be set manually when standardmenu isn't used.
   has_been_drawn as bool
   rect as RectType
   spacing as integer    'Height of each line, in pixels. Set MenuOptions.itemspacing to adjust.
-  select_by_mouse_release as bool ' This is important for menus where you need to be able to
-                                  ' focus an item and pick an item with separate clicks
-  drag_start_top as integer 'used internally bu mouse_drag_menu()
 
   DECLARE FUNCTION empty() as bool
   DECLARE FUNCTION pt_valid() as bool

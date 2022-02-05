@@ -1328,7 +1328,7 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
  cleanup_menu(1) = "RECOVER temp files as a .rpg"
  cleanup_menu(2) = "ERASE temp files"
  DIM choice as integer
- choice = multichoice(msg, cleanup_menu(), 0, 0, helpfile, NO)  'Left justified
+ choice = multichoice(msg, cleanup_menu(), 0, 0, helpfile)
 
  IF choice = 0 THEN RETURN NO
  IF choice = 1 THEN RETURN recover_workingdir(sessinfo)
