@@ -1788,6 +1788,10 @@ SUB populate_battle_menu_menudef_for_enemy (byref bat as BattleState, bslot() as
   CASE aiAlone:
    append_enemy_attacks_to_battle_menu bspr.enemy.alone_ai(), bspr
  END SELECT
+ 
+ IF NOT does_battle_menu_have_targets(bspr, bslot()) THEN
+  'FIXME: Add "Do nothing" item here
+ END IF
 
 END SUB
 
@@ -1808,6 +1812,31 @@ SUB append_enemy_attacks_to_battle_menu(ai_attack_list() as integer, byref bspr 
  NEXT i
  v_free already
 END SUB
+
+FUNCTION does_battle_menu_have_targets(byref bspr as BattleSprite, bslot() as BattleSprite) as bool
+ 'Currently only really useful for player controlled enemies.
+ 'Does not attempt to check spell menus or items menu
+ IF bspr.batmenu.numitems = 0 THEN
+  'An empty menu is an unusable menu
+  RETURN NO
+ END IF
+ FOR i as integer = 0 TO bspr.batmenu.numitems - 1
+  WITH *bspr.batmenu.items[i]
+   IF .t = batmenu_ATTACK THEN
+    DIM atk_id as integer = .sub_t
+    IF has_valid_targs(bspr.index, atk_id, bslot()) THEN
+     RETURN YES
+    END IF
+   ELSE
+    'an unsupported menu item was found (spell list, item menu)
+    'so assume the menu is usable
+    RETURN YES
+   END IF
+  END WITH
+ NEXT i
+ 'Didn't find any usable (or unknown) menu items, so the menu has no targets
+ RETURN NO
+END FUNCTION
 
 ' Updates which menu items are enabled
 SUB update_battle_menu (bat as BattleState, bslot() as BattleSprite)
