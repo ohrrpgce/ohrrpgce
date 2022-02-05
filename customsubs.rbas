@@ -611,7 +611,7 @@ SUB cond_editor (cond as Condition, default as bool = NO, outer_state as MenuSta
  DIM mpos as XYPair = (60, 0)
 
  ' Precompute the menu size
- calc_menu_rect st, menuopts, mpos.x, mpos.y, vpage
+ calc_menu_rect st, menuopts, mpos, vpage
 
  ' Calculate screen position of the outer menu
  ' (Note: MenuState doesn't tell where the menu will be drawn; we have to assume 0,0!)
@@ -1540,7 +1540,7 @@ FUNCTION pal16browse (curpal as integer, sprite as Frame ptr, show_default as bo
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "pal16browse"
 
-  calc_menu_rect state, stateOpts, 0, 0, dpage
+  calc_menu_rect state, stateOpts, XY(0, 0), dpage
   IF state.size <> last_size THEN state.need_update = YES
   last_size = state.size
 

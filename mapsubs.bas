@@ -4956,7 +4956,7 @@ SUB link_one_door(st as MapEditState, linknum as integer)
  state.size = 22
  state.first = LBOUND(menu)
  state.last = UBOUND(menu)
- calc_menu_rect state, MenuOptions(), 1, 1, dpage
+ calc_menu_rect state, MenuOptions(), XY(1, 1), dpage
  state.spacing = 10
  
  DIM preview_delay as integer = 0

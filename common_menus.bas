@@ -138,7 +138,7 @@ FUNCTION editbitset (array() as integer, wof as integer, bits() as IntStrPair, h
  state.last = UBOUND(bitmenu)
  state.autosize = YES
  state.autosize_ignore_pixels = menupos.y
- calc_menu_rect state, MenuOptions(), 0, 0   'For autosize
+ calc_menu_rect state, MenuOptions(), XY(0, 0)   'For autosize
  correct_menu_state state
 
  DIM ret as EditBitsetResult
@@ -170,7 +170,7 @@ FUNCTION editbitset (array() as integer, wof as integer, bits() as IntStrPair, h
 
   ' Draw
   clearpage dpage
-  calc_menu_rect state, MenuOptions(), menupos.x, menupos.y  ' Recalcs .size, .rect, .spacing
+  calc_menu_rect state, MenuOptions(), menupos  ' Recalcs .size, .rect, .spacing
   draw_fullscreen_scrollbar state, , dpage
   IF LEN(title) THEN edgeprint title, pCentered, menupos.y - 12, uilook(uiMenuItem), dpage
   FOR i as integer = state.top TO small(state.top + state.size, state.last)

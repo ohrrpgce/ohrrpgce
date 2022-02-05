@@ -50,7 +50,7 @@ SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem, menuopt
  WITH state
   DIM position_was_known as bool = .position_known
   'Position not known before it's actually drawn, fill with dummy data for now
-  calc_menu_rect state, menuopts, .rect.x, .rect.y
+  calc_menu_rect state, menuopts, .rect.xy
   .position_known = position_was_known
 
   .first = LBOUND(menu)
@@ -87,7 +87,7 @@ SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vecto
  WITH state
   DIM position_was_known as bool = .position_known
   'Position not known before it's actually drawn, fill with dummy data for now
-  calc_menu_rect state, menuopts, .rect.x, .rect.y
+  calc_menu_rect state, menuopts, .rect.xy
   .position_known = position_was_known
 
   .first = 0
@@ -476,7 +476,7 @@ END SUB
 ' (Note: 'menu' is optional, needed only to calculate width.)
 ' Sets .position_known=YES to indicate that these members have been initialised,
 ' even if not called from standardmenu.
-SUB calc_menu_rect(state as MenuState, menuopts as MenuOptions, x as RelPos, y as RelPos, page as integer = -1, menu as BasicMenuItem vector = NULL)
+SUB calc_menu_rect(state as MenuState, menuopts as MenuOptions, pos as RelPosXY, page as integer = -1, menu as BasicMenuItem vector = NULL)
  IF page = -1 THEN page = vpage
  WITH state
   IF menuopts.edged THEN .spacing = 9 ELSE .spacing = 8
@@ -515,8 +515,7 @@ SUB calc_menu_rect(state as MenuState, menuopts as MenuOptions, x as RelPos, y a
   .rect.high = small(vpages(page)->h, num_menu_items * .spacing)
 
   ' Now position the menu, and clamp to screen size
-  .rect.x = relative_pos(x, vpages(page)->w, .rect.wide)
-  .rect.y = relative_pos(y, vpages(page)->h, .rect.high)
+  .rect.xy = relative_pos(pos, vpages(page)->size, .rect.wh)
   .position_known = YES
   .rect.wide = small(.rect.wide, vpages(page)->w - .rect.x)
   .rect.high = small(.rect.high, vpages(page)->h - .rect.y)
@@ -574,7 +573,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
  'The following doesn't affect simple string array menus which are converted to BasicMenuItem menus
  BUG_IF(state.first <> 0, "state.first <> 0 not supported for BasicMenuItem menus!")
 
- calc_menu_rect state, menuopts, x, y, page, menu
+ calc_menu_rect state, menuopts, XY(x, y), page, menu
  DIM wide as integer = state.rect.wide
  'calc_menu_rect solved from RelPos to screen positions
  x = state.rect.x
@@ -1007,7 +1006,7 @@ SUB init_menu_state (byref state as MenuState, menu() as string, menuopts as Men
   IF .size = 0 THEN .autosize = YES
   DIM position_was_known as bool = .position_known
   'Position not known before it's actually drawn, fill with dummy data for now
-  calc_menu_rect state, menuopts, .rect.x, .rect.y
+  calc_menu_rect state, menuopts, .rect.xy
   .position_known = position_was_known
 
   .first = LBOUND(menu)
@@ -1501,7 +1500,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
   menu.items[i]->text = get_menu_item_caption(*menu.items[i], menu)
  NEXT
 
- calc_menu_rect menu, state, page
+ calc_menu_rect state, menu, page
 
  DIM bord as integer = 8 + menu.bordersize
 
@@ -1612,7 +1611,7 @@ SUB calc_menustate_size (byref state as MenuState, menu as MenuDef, page as inte
 END SUB
 
 ' Calculate menu.rect and state.rect (which includes the border padding) and also state.size
-SUB calc_menu_rect (menu as MenuDef, state as MenuState, byval page as integer)
+SUB calc_menu_rect (state as MenuState, menu as MenuDef, byval page as integer)
  DIM i as integer
  DIM bord as integer
  bord = 8 + menu.bordersize
@@ -1935,7 +1934,7 @@ SUB ModularMenu.draw()
    where.y += 8 + titlesize.h \ 2
    state.autosize_ignore_pixels = 12 + titlesize.h
   END IF
-  calc_menu_rect state, menuopts, where.x, where.y, vpage, basicmenu
+  calc_menu_rect state, menuopts, where, vpage, basicmenu
   v_free basicmenu
   edgeboxstyle where.x, where.y, state.rect.wide + 10, state.rect.high + 10, 1, vpage
  END IF

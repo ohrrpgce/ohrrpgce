@@ -187,7 +187,7 @@ br.mstate.last = 0
 DIM _menuopts as MenuOptions  'Not used! Only for calc_menu_rect
 _menuopts.edged = YES
 'This is just for mouse support
-calc_menu_rect br.mstate, _menuopts, 10, 20
+calc_menu_rect br.mstate, _menuopts, XY(10, 20)
 
 br.drivesshown = 0
 br.getdrivenames = NO

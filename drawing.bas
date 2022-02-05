@@ -5421,7 +5421,7 @@ SUB AnimationEditor.edit_animation(anim_name as string)
  DIM mpos as XYPair = (4,4)
 
  'Precompute the menu size
- calc_menu_rect state, menuopts, mpos.x, mpos.y, vpage, cast(BasicMenuItem vector, menu)
+ calc_menu_rect state, menuopts, mpos, vpage, cast(BasicMenuItem vector, menu)
 
  DIM animating as bool = NO  'Current mode: whether playing the animation, or editing it
  DIM framenum as integer = 0
