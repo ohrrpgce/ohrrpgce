@@ -1648,8 +1648,11 @@ SUB calc_menu_rect (state as MenuState, menu as MenuDef, byval page as integer)
 
   IF .clamp_to_screen THEN
    'Clamping shouldn't happen when .maxrows=0
+   'Keep the menu 1 pixel away from the screen edge, looks better.
+   'Not really worth making this customisable.
+   DIM padding as XYPair = XY(1, 1)
    'MenuDef doesn't support RelPos, but we can reuse this function
-   .rect.xy = relative_pos(.rect.xy + XY(showLeft, showTop), vpages(page)->size, .rect.wh)
+   .rect.xy = relative_pos(.rect.xy + XY(showLeft, showTop) - padding, vpages(page)->size, .rect.wh + padding * 2) + padding
   END IF
  END WITH
 
