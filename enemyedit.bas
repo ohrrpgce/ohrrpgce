@@ -98,7 +98,7 @@ a_append enemybits(), -1, ""
 a_append enemybits(), -1, " Behavior"
 a_append enemybits(), 66, "Controlled by the player"
 a_append enemybits(), 67, "Turncoat, attacks other enemies"
-a_append enemybits(), 68, "Defector, grouped with heroes"
+a_append enemybits(), 68, "Defector, grouped with heroes & win even if alive"
 a_append enemybits(), 55, "MP idiot"
 a_append enemybits(), 58, "Die without boss"
 

@@ -1857,7 +1857,7 @@ SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot()
  dead_enemies = 0
  FOR deadguy = 4 TO 11
   WITH bslot(deadguy)
-   IF (.stat.cur.hp <= 0 ANDALSO .bequesting = NO ANDALSO .self_bequesting = NO) OR .hero_untargetable = YES OR .death_unneeded = YES THEN dead_enemies += 1
+   IF (.stat.cur.hp <= 0 ANDALSO .bequesting = NO ANDALSO .self_bequesting = NO) OR .hero_untargetable = YES OR .death_unneeded = YES OR .defector_target THEN dead_enemies += 1
   END WITH
  NEXT
  IF dead_enemies >= 8 THEN bat.death_mode = deathENEMIES
