@@ -420,7 +420,7 @@ DECLARE SUB write_game_config OVERLOAD (key as zstring ptr, value as string)
 DECLARE SUB write_game_config OVERLOAD (key as zstring ptr, value as integer)
 DECLARE SUB write_game_config OVERLOAD (key as zstring ptr, value as double)
 
-DECLARE SUB init_battle_menu (menu as MenuDef)
+DECLARE SUB init_battle_menu (menu as MenuDef, byval menu_id as integer=-1)
 
 
 'Global variables  (See also common_base.bi)

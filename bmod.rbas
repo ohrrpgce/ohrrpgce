@@ -1687,7 +1687,7 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
  DIM spells_id as integer
  DIM itembuf(dimbinsize(binITM)) as integer
 
- init_battle_menu menu
+ init_battle_menu menu, gen(genDefaultBattleMenu) - 1
  
  READNODE hero_node."battle_menus" as battle_menus
   WITHNODE battle_menus."menu" as m
@@ -1744,7 +1744,7 @@ END SUB
 
 SUB populate_battle_menu_menudef_for_enemy (byref bat as BattleState, bslot() as BattleSprite,  byref bspr as BattleSprite)
 
- init_battle_menu bspr.batmenu
+ init_battle_menu bspr.batmenu, gen(genDefaultBattleMenu) - 1
 
  'Which attack list to use
  DIM ai as EnemyAIEnum = pick_enemy_attack_list(bat.enemy_turn, bslot())

@@ -210,6 +210,7 @@ CONST genMoveHeroScript = 232    ' Script trigger called when hero moved to a di
 CONST gen8bitBlendAlgo = 233     ' Algorithm to use for palette lookups for blending in 8-bit color mode; a BlendAlgo value
 CONST genPreviewBackdrop = 234   ' 0 or ID+1 of backdrop to use for enemy previews (and maybe more in future)
 CONST gen32bitMode = 235         ' 1 for 32-bit color mode, 0 for 8-bit
+CONST genDefaultBattleMenu = 236 ' 0 for default or Menu ID + 1
 
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.

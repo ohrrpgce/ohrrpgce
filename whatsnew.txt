@@ -48,6 +48,7 @@ WHAT IS NEW?
     * New menu bit "Clamp to screen bounds". Good for mouse popup menus [Ralph]
     * Map editor setting to label only NPCs near the cursor with ID/copy [Ralph]
     * New available battle menu item "Skip Turn" [James]
+    * You can use a custom menu as a template for the Battle Menu [James]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

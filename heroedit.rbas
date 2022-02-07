@@ -833,7 +833,7 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
 
   IF st.need_update THEN
    InitLikeStandardMenu menu
-   init_battle_menu preview
+   init_battle_menu preview, gen(genDefaultBattleMenu) - 1
 
    append_menu_item menu, "Previous menu..."
    ' So much duplication with the in-game code :(

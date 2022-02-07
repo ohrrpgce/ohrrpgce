@@ -1576,10 +1576,11 @@ SUB generate_battlesystem_menu(menu() as string, enabled() as bool, greyout() as
   greyout(27) = YES
 
   menu(28) = "Attacks Provoke Counterattacks: " & counter_provoke_captions(gen(genDefCounterProvoke))
+  menu(29) = "Battle Menu: " & IIF(gen(genDefaultBattleMenu) > 0, "Menu " & (gen(genDefaultBattleMenu) - 1) & " (" & getmenuname(gen(genDefaultBattleMenu) - 1) & ") as template" , "Default")
 END SUB
 
 SUB battleoptionsmenu ()
-  CONST maxMenu = 28
+  CONST maxMenu = 29
   DIM menu(maxMenu) as string
   DIM menu_display(maxMenu) as string
   DIM min(maxMenu) as integer
@@ -1608,6 +1609,10 @@ SUB battleoptionsmenu ()
     visible_debug "WARNING: invalid gen(genBattleMode) " & gen(genBattleMode) & " resorting to active mode"
     gen(genBattleMode) = 0
   END IF
+
+  DIM preview as MenuDef
+  DIM viewport_page as integer = gameres_page()
+  DIM prst as MenuState
 
   index(2) = genBattleMode
   min(2) = 0
@@ -1646,6 +1651,9 @@ SUB battleoptionsmenu ()
   index(28) = genDefCounterProvoke
   max(28) = provokeLAST
   min(28) = 1  ' Can't select 'Default'
+  index(29) = genDefaultBattleMenu
+  max(29) = gen(genMaxMenu) + 1
+  min(29) = 0
 
   generate_battlesystem_menu menu(), enabled(), greyout()
 
@@ -1673,11 +1681,21 @@ SUB battleoptionsmenu ()
       END IF
     END IF
     IF index(state.pt) THEN
+     IF state.pt = 29 THEN
+      IF xintgrabber(gen(index(state.pt)), min(state.pt), max(state.pt)) THEN state.need_update = YES
+     ELSE
       IF intgrabber(gen(index(state.pt)), min(state.pt), max(state.pt)) THEN state.need_update = YES
+     END IF
     END IF
 
     IF state.need_update THEN
       generate_battlesystem_menu menu(), enabled(), greyout()
+      init_battle_menu preview, gen(genDefaultBattleMenu) - 1
+      append_menu_item preview, "Fight"
+      append_menu_item preview, "Spells"
+      append_menu_item preview, "Parry"
+      append_menu_item preview, "Item"
+      init_menu_state prst, preview
       state.need_update = NO
     END IF
 
@@ -1686,6 +1704,9 @@ SUB battleoptionsmenu ()
     END IF
 
     clearpage vpage
+    IF state.pt = 29 THEN
+     preview_menu preview, prst, viewport_page, vpage
+    END IF
     draw_fullscreen_scrollbar state, , vpage
     highlight_menu_typing_selection menu(), menu_display(), selectst, state
     standardmenu menu_display(), state, greyout(), 0, 0, vpage, menuopts
