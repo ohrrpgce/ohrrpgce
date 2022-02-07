@@ -95,4 +95,6 @@ DECLARE FUNCTION npc_preview_text(byref npc as NPCType) as string
 
 DECLARE FUNCTION custom_setoption(opt as string, arg as string) as integer
 
+DECLARE SUB preview_menu(menu as MenuDef, mstate as MenuState, viewport_page as integer, destpage as integer = -1)
+
 #endif

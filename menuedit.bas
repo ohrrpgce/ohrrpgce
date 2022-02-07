@@ -19,7 +19,6 @@ DECLARE SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as Men
 DECLARE SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuDef, byref record as integer, menu_set as MenuSet, viewport_page as integer)
 DECLARE SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as MenuDef, byval record as integer)
 DECLARE SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as MenuDef, mi as MenuDefItem)
-DECLARE SUB preview_menu(menu as MenuDef, mstate as MenuState, viewport_page as integer, destpage as integer = -1)
 DECLARE SUB edit_menu_bits (menu as MenuDef)
 DECLARE SUB edit_menu_item_bits (mi as MenuDefItem)
 DECLARE SUB reposition_menu (menu as MenuDef, mstate as MenuState, viewport_page as integer)
@@ -563,13 +562,6 @@ SUB reposition_menu (menu as MenuDef, mstate as MenuState, viewport_page as inte
   setvispage vpage
   dowait
  LOOP
-END SUB
-
-'Draw the menu, to the bottom-right corner of the screen onto a background rect of the size of the game window
-SUB preview_menu(menu as MenuDef, mstate as MenuState, viewport_page as integer, destpage as integer = -1)
- draw_textured_background viewport_page
- draw_menu menu, mstate, viewport_page
- IF destpage > -1 THEN draw_viewport_page viewport_page, destpage
 END SUB
 
 SUB reposition_anchor (menu as MenuDef, mstate as MenuState, viewport_page as integer)

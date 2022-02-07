@@ -2684,3 +2684,10 @@ END FUNCTION
 'Destructors can't be abstract...
 DESTRUCTOR RecordPreviewer()
 END DESTRUCTOR
+
+'Draw the menu, to the bottom-right corner of the screen onto a background rect of the size of the game window
+SUB preview_menu(menu as MenuDef, mstate as MenuState, viewport_page as integer, destpage as integer = -1)
+ draw_textured_background viewport_page
+ draw_menu menu, mstate, viewport_page
+ IF destpage > -1 THEN draw_viewport_page viewport_page, destpage
+END SUB

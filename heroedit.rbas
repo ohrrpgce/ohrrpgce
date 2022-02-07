@@ -809,6 +809,7 @@ END SUB
 SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
  DIM menu as MenuDef
  DIM preview as MenuDef
+ DIM viewport_page as integer = gameres_page()
   
  DIM st as MenuState
  st.active = YES
@@ -948,15 +949,17 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
   END IF
     
   clearpage dpage
+  preview_menu preview, prst, viewport_page, dpage
   edgeprint "INSERT=add SHIFT=move DEL=delete F1=help", 0, pBottom, uilook(uiSelectedDisabled), dpage
-  draw_menu preview, prst, dpage
-  edgeprint "Preview", prst.rect.x + 10, 0, uilook(uiText), dpage
+  edgeprint "Preview", pRight - 10, 0, uilook(uiText), dpage
   draw_menu menu, st, dpage
   SWAP vpage, dpage
   setvispage vpage
   
   dowait
  LOOP
+
+ freepage viewport_page
  
 END SUB
 
