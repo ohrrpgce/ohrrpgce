@@ -8384,3 +8384,21 @@ END SUB
 SUB write_game_config (key as zstring ptr, value as double)
  write_game_config key, FORMAT(value, "0.000")
 END SUB
+
+SUB init_battle_menu (menu as MenuDef)
+ ClearMenuData menu
+ WITH menu
+  .offset.x = -8
+  .offset.y = 5
+  .alignhoriz = alignRight
+  .alignvert = alignTop
+  .anchorhoriz = alignRight
+  .anchorvert = alignTop
+  .textalign = alignLeft
+  .bordersize = -5
+  .itemspacing = -2
+  .highlight_selection = YES
+  .min_chars = 10
+  .maxrows = 23
+ END WITH
+END SUB
