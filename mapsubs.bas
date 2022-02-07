@@ -1100,8 +1100,13 @@ DO
  END IF
  IF keyval(scCtrl) > 0 ANDALSO keyval(scD) > 1 THEN st.defpass XOR= YES
  IF keyval(scCtrl) > 0 ANDALSO keyval(scG) > 1 THEN st.show_grid XOR= YES
- IF keyval(scCtrl) > 0 ANDALSO keyval(scN) > 1 THEN loopvar st.show_npcs_all_modes, 0, showNpcsLAST
-
+ IF keyval(scCtrl) > 0 ANDALSO keyval(scN) > 1 THEN
+  IF keyval(scAlt) = 0 THEN
+   loopvar st.show_npcs_all_modes, 0, showNpcsLAST
+  ELSE
+   st.label_all_npcs XOR= YES
+  END IF
+ END IF
 
  SELECT CASE st.editmode
   '---TILEMODE------
@@ -1373,7 +1378,7 @@ DO
     FOR i as integer = 0 TO UBOUND(st.map.npc)
      WITH st.map.npc(i)
       IF .id > 0 THEN
-       IF .pos = st.pos * 20 THEN .id = 0
+       IF .pos = st.pos * tilesize THEN .id = 0
       END IF
      END WITH
     NEXT i
@@ -2158,7 +2163,9 @@ DO
     WITH st.map.npc(i)
      IF .id > 0 AND .pool = pool_i THEN
       DIM tilepos as XYPair = map_to_screen(st, .pos)  'Position in pixels of the tile the NPC is standing on
-      IF rect_collide_rect(st.viewport, XY_WH(tilepos, tilesize)) THEN
+      'If we're not labelling all NPCs, only label ones within 1 tile of the cursor
+      IF rect_collide_rect(st.viewport, XY_WH(tilepos, tilesize)) ANDALSO _
+         (st.label_all_npcs ORELSE ABS(.pos - st.pos * tilesize) <= tilesize) THEN
        DIM tile as XYPair = .pos \ tilesize
        DIM count as integer = npcs_on_tile.get_int(@tile)
        DIM text as string
@@ -6869,12 +6876,14 @@ SUB MapSettingsMenu.update ()
  add_item 0 , , "[Close]"
  DIM show_npcs_options(2) as string = {"No", "All", "Not tag-conditional"}  'ShowNPCsEnum -> string
  IF st->editmode = npc_mode THEN
-  add_item 14, , "Show NPCs (Ctrl-N): N/A (Yes)"
+  add_item 14, , "Show NPCs (Ctrl-N): N/A in NPC mode (Yes)"
  ELSE
   add_item 14, , "Show NPCs (Ctrl-N): " & show_npcs_options(st->show_npcs_all_modes)
  END IF
  DIM overlaid_npcs_options(2) as string = {"Never", "Always", "In NPC mode"}  'NPCDrawOverlaidEnum -> string
  add_item 15, , "Draw NPCs over map layers: " & overlaid_npcs_options(st->draw_npcs_overlaid)
+ add_item 17, , "Label NPCs (Alt-Ctrl-N): " & IIF(st->label_all_npcs, "All", "Nearby") & _
+     IIF(st->editmode = npc_mode, "", " (N/A)")
  add_item 1 , , "Cursor SHIFT-move speed X: " & st->shift_speed.x
  add_item 2 , , "Cursor SHIFT-move speed Y: " & st->shift_speed.y
  add_item 3 , , "Show 'O' for Overhead tiles: " & yesorno(st->show_overhead_bit)
@@ -6897,7 +6906,7 @@ SUB MapSettingsMenu.update ()
  add_item 12, , "Grid color: " & tmp
  add_item 13, , "Show in-game screen size (Ctrl-O): " & _
      IIF(st->screen_outline = outlineFollowsCursor, "Follow cursor", yesorno(st->screen_outline))
- 'Next free item type is 17
+ 'Next free item type is 18
 END SUB
 
 FUNCTION MapSettingsMenu.each_tick () as bool
@@ -6950,6 +6959,8 @@ FUNCTION MapSettingsMenu.each_tick () as bool
    changed = intgrabber(st->draw_npcs_overlaid, 0, npcsOverlaidLAST)
   CASE 16
    changed = boolgrabber(st->show_hero, state)
+  CASE 17
+   changed = boolgrabber(st->label_all_npcs, state)
 
  END SELECT
  state.need_update OR= changed
@@ -6962,11 +6973,13 @@ SUB mapedit_settings_menu (st as MapEditState)
  menu.st = @st
  menu.title = "Map editor settings"
  menu.helpkey = "mapedit_settings"
+ menu.tooltip = "F1 Help"
  menu.pan_mult_str = format_percent(st.mouse_pan_mult, 1)
  menu.run()
 
  'Save settings
  write_config "mapedit.show_npcs", st.show_npcs_all_modes
+ write_config "mapedit.label_all_npcs", st.label_all_npcs
  write_config "mapedit.draw_npcs_overlaid", st.draw_npcs_overlaid
  write_config "mapedit.shift_speed_x", st.shift_speed.x
  write_config "mapedit.shift_speed_y", st.shift_speed.y
@@ -6986,6 +6999,7 @@ END SUB
 
 SUB mapedit_load_settings (st as MapEditState)
  st.show_npcs_all_modes = bound(read_config_int("mapedit.show_npcs", showNpcsOff), 0, showNpcsLAST)
+ st.label_all_npcs = read_config_bool("mapedit.label_all_npcs", YES)
  st.draw_npcs_overlaid = bound(read_config_int("mapedit.draw_npcs_overlaid", npcsOverlaidNPCMode), 0, npcsOverlaidLAST)
  st.shift_speed.x = read_config_int("mapedit.shift_speed_x", 8)
  st.shift_speed.y = read_config_int("mapedit.shift_speed_y", 5)

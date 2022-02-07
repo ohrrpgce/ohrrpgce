@@ -379,6 +379,7 @@ TYPE MapEditState
   show_grid as bool
   grid_color as integer      'Master pal color index, or 0 to flash instead
   show_npcs_all_modes as ShowNPCsEnum 'When to show NPCs outside NPC mode
+  label_all_npcs as bool     'Label all NPCs rather than just the one under cursor
   draw_npcs_overlaid as NPCDrawOverlaidEnum 'When to draw NPCs above overhead layers
   show_hero as bool          'Show player start location
 

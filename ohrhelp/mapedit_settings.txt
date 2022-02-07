@@ -2,6 +2,10 @@ This is the Settings menu for the map editor. These settings are saved and remem
 
 Press ESC or F8 to leave or F2 thru F7 to switch to a different editing mode.
 
+Show NPCs: whether to show NPCs in editing modes other than NPC placement. You can show only NPCs that aren't tag-disabled. (All NPCs are always shown in NPC placement mode).
+
+Label NPCs: All/Nearby (NPC Placement mode only.) Normally all NPCs are labelled with their ID and copy number. You can show only NPCs near the cursor.
+
 Show 'O' for Overhead tiles: This affects picture (tilemap) mode only. Because Overhead tiles (set with O in wallmap mode) override map layers, it can be helpful to see them.
 
 Wall thickness changes the way that the walls are drawn on the map in passability (wallmap) mode. In wallmap mode, you can also press CTRL +/- to adjust it.
