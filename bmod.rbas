@@ -1733,6 +1733,11 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
     IF LEN(caption) > 0 THEN
      mitem = append_menu_item(menu, caption, batmenu_ITEMS)
     END IF
+   ELSEIF k."skip".exists THEN
+    caption = readglobalstring(332, "Skip Turn", 20)
+    IF LEN(caption) > 0 THEN
+     mitem = append_menu_item(menu, caption, batmenu_SKIPTURN)
+    END IF
    ELSE
     debug "Unknown battle menu item kind"
    END IF
@@ -2754,6 +2759,8 @@ SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id a
       'Hero AI doesn't support spell lists (yet)...
      CASE batmenu_ITEMS:
       'Hero AI doesn't support using items
+     CASE batmenu_SKIPTURN:
+      'This will not be used (but the hero will skip their turn if no other action is possible)
     END SELECT
    END IF
   END WITH

@@ -47,6 +47,7 @@ WHAT IS NEW?
       targetted as if it is a member of the other team [James]
     * New menu bit "Clamp to screen bounds". Good for mouse popup menus [Ralph]
     * Map editor setting to label only NPCs near the cursor with ID/copy [Ralph]
+    * New available battle menu item "Skip Turn" [James]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

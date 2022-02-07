@@ -822,7 +822,7 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
  DIM edit_node as NodePtr
 
  DIM itembuf(dimbinsize(binITM)) as integer
-
+ 
  setkeys YES
  DO
   setwait 55
@@ -877,6 +877,10 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
       append_menu_item menu, "Attack " & k."attack".integer & " " & readattackname(k."attack".integer)
       menu.last->dataptr = bmenu
       append_menu_item preview, readattackname(k."attack".integer)
+     ELSEIF k."skip".exists THEN
+      append_menu_item menu, "Skip Turn"
+      menu.last->dataptr = bmenu
+      append_menu_item preview, readglobalstring(332, "Skip Turn", 20)
      ELSE
       debug "Unknown battle menu item " & GetInteger(bmenu)
       append_menu_item menu, "[Invalid]"
@@ -1021,6 +1025,8 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
     menu.last->extra(1) = 3
    ELSEIF k."items".exists THEN
     append_menu_item menu, "Kind: Items Menu", edbatmenu_KIND
+   ELSEIF k."skip".exists THEN
+    append_menu_item menu, "Kind: Skip Turn", edbatmenu_KIND
    ELSE
     debug "Unknown battle menu kind"
     append_menu_item menu, "Kind: ???", edbatmenu_KIND
@@ -1147,6 +1153,7 @@ SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
    append_menu_item menu, "Specific Attack", , 2
    append_menu_item menu, "Spell List", , 3
    append_menu_item menu, "Items Menu", , 4
+   append_menu_item menu, "Skip Turn", , 5
    init_menu_state st, menu
    st.need_update = NO
   END IF
@@ -1160,6 +1167,7 @@ SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
      CASE 2: change_battle_menu_kind menu_node, "attack", YES
      CASE 3: change_battle_menu_kind menu_node, "spells", YES
      CASE 4: change_battle_menu_kind menu_node, "items"
+     CASE 5: change_battle_menu_kind menu_node, "skip"
     END SELECT
    END WITH
    EXIT DO
@@ -1183,6 +1191,7 @@ SUB change_battle_menu_kind (byval menu_node as NodePtr, new_kind as string, ini
   CASE "attack":
   CASE "spells":
   CASE "items":
+  CASE "skip":
   CASE ELSE:
    debug "change_battle_menu_kind attempted to set invalid kind: """ & new_kind & """"
    EXIT SUB
@@ -1193,6 +1202,7 @@ SUB change_battle_menu_kind (byval menu_node as NodePtr, new_kind as string, ini
  IF k."attack".exists THEN FreeNode k."attack".ptr
  IF k."spells".exists THEN FreeNode k."spells".ptr
  IF k."items".exists THEN FreeNode k."items".ptr
+ IF k."skip".exists THEN FreeNode k."skip".ptr
  DIM n as NodePtr
  n = SetChildNode(k, new_kind)
  IF init_integer THEN
