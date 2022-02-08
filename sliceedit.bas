@@ -526,7 +526,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
  WITH menuopts
   .edged = YES
   .itemspacing = -1
-  .highlight = YES
+  .highlight_selection = YES
  END WITH
 
  DIM cursor_seek as Slice Ptr = initial_slice
@@ -1308,7 +1308,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
  DIM menuopts as MenuOptions
  WITH menuopts
   .edged = YES
-  .highlight = YES
+  .highlight_selection = YES
  END WITH
 
  setkeys YES
@@ -2619,7 +2619,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
  NEXT i
 
  DIM menuopts as MenuOptions
- menuopts.highlight = YES
+ menuopts.highlight_selection = YES
 
  DIM curcode as integer = 0
 

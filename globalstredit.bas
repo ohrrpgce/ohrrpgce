@@ -285,7 +285,7 @@ SUB global_text_strings_editor()
   END IF
 
   clearpage dpage
-  menuopts.highlight = (state.pt <> 0) 'Don't hightlight Return to Main Menu
+  menuopts.highlight_selection = (state.pt <> 0) 'Don't hightlight Return to Main Menu
   menuopts.scrollbar = YES
   standardmenu menu.text(), state, 232, 0, dpage, menuopts
   'Since both halves of the menu share the same state and both are active,

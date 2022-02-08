@@ -334,7 +334,7 @@ SUB map_picker ()
  DIM selectst as SelectTypeState
  DIM menuopts as MenuOptions
  menuopts.edged = YES
- menuopts.highlight = YES
+ menuopts.highlight_selection = YES
  menuopts.drawbg = YES
 
  DIM previewer as MapPreviewer

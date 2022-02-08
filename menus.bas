@@ -602,7 +602,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
      'menuopts.highlight/.drawbg or a text bg color is across the width of the text
      rectangle x + 0, y, wide, state.spacing, .bgcol, page
     END IF
-    IF state.pt = i AND state.active AND menuopts.highlight THEN
+    IF state.pt = i AND state.active AND menuopts.highlight_selection THEN
      rectangle x + 0, y, IIF(linewidth, linewidth, wide), state.spacing, uilook(uiHighlight), page
     ELSEIF menuopts.drawbg THEN
      trans_rectangle vpages(page), XYWH(x, y, linewidth, state.spacing), curmasterpal(uilook(uiBackground)), 0.55
