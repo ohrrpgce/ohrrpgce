@@ -603,9 +603,9 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
      rectangle x + 0, y, wide, state.spacing, .bgcol, page
     END IF
     IF state.pt = i AND state.active AND menuopts.highlight THEN
-     rectangle x + 0, y, IIF(linewidth, linewidth, 9999), state.spacing, uilook(uiHighlight), page
+     rectangle x + 0, y, IIF(linewidth, linewidth, wide), state.spacing, uilook(uiHighlight), page
     ELSEIF menuopts.drawbg THEN
-     trans_rectangle vpages(page), XYWH(x, y, IIF(linewidth, linewidth, 9999), state.spacing), curmasterpal(uilook(uiBackground)), 0.55
+     trans_rectangle vpages(page), XYWH(x, y, linewidth, state.spacing), curmasterpal(uilook(uiBackground)), 0.55
     END IF
 
     DIM col as integer
@@ -1963,7 +1963,7 @@ SUB ModularMenu.draw()
  END IF
 
  IF LEN(tooltip) THEN
-  edgeprint tooltip, 0, pBottom, uilook(uiText), vpage, YES, YES  'with markup and newlines
+  wrapprintbg tooltip, 0, pBottom, uilook(uiText), vpage
  END IF
 END SUB
 

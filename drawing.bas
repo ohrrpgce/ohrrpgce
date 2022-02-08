@@ -301,6 +301,7 @@ SUB backdrop_browser ()
  mstate.need_update = YES
  DIM menuopts as MenuOptions
  menuopts.edged = YES
+ menuopts.drawbg = YES
 
  DIM byref count as integer = gen(genNumBackdrops)
  IF count = 0 THEN count = 1

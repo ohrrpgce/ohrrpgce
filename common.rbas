@@ -3326,7 +3326,7 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
   IF have_help_file THEN
    edgeprint "F1 Help", pRight, pBottom, uilook(uiMenuItem), vpage
   END IF
-  wrapprint *extra_message, pLeft, pBottom, uilook(uiMenuItem), vpage, , YES, fontBuiltinEdged
+  wrapprintbg *extra_message, pLeft, pBottom, uilook(uiMenuItem), vpage, , , , fontBuiltinEdged
   setvispage vpage
   dowait
  LOOP

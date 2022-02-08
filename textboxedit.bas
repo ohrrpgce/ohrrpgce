@@ -839,8 +839,8 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
   IF slowkey(ccDown, delay)  THEN box.portrait_pos.y += speed
 
   textbox_draw_with_background box, st, backdrop, dpage
-  edgeprint "Arrow keys to move, space to confirm", 0, 0, uilook(uiSelectedItem + tog), dpage
-  edgeprint "Offset " & box.portrait_pos, pLeft, pBottom, uilook(uiText), dpage
+  wrapprintbg "Arrow keys to move, space to confirm", 0, 0, uilook(uiText), dpage
+  wrapprintbg "Offset " & box.portrait_pos, pLeft, pBottom, uilook(uiText), dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -857,6 +857,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
  DIM menuopts as MenuOptions
  menuopts.edged = YES
  menuopts.itemspacing = -1
+ menuopts.drawbg = YES
 
  st.viewport_page = gameres_page()
 

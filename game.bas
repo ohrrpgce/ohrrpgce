@@ -5012,9 +5012,7 @@ SUB show_textbox_debug_info ()
   info &= !"\nActions afterwards:\n" & after
  END IF
 
- DIM sz as XYPair = textsize(info)
- fuzzyrect 0, pBottom, sz.w, sz.h, uilook(uiBackground), dpage, 55
- wrapprint info, 0, pBottom, uilook(uiText), dpage
+ wrapprintbg info, 0, pBottom, uilook(uiText), dpage
 END SUB
 
 'Send an email to the game author. Currently only works on Android.

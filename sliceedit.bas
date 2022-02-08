@@ -1677,7 +1677,7 @@ END FUNCTION
 'Editor to visually edit an x/y position or a width/height or both at once
 'ctrl_msg is used to tell what CTRL does (modifies xy2 instead of xy1)
 SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Slice ptr, rootsl as Slice ptr, byref show_ants as bool, ctrl_msg as string = "")
- DIM msg as string = "Arrow keys to edit, SHIFT for speed. " & ctrl_msg
+ DIM msg as string = "Arrow keys to move, SHIFT for speed. " & ctrl_msg
  setkeys
  DO
   setwait 55
