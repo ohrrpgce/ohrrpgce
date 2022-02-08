@@ -45,7 +45,6 @@ declare function random_formation (byval set as integer) as integer
 DECLARE FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as bool
 
 DECLARE SUB loadsay (byval box_id as integer)
-DECLARE SUB init_text_box_slices(txt as TextBoxState)
 DECLARE SUB cleanup_text_box ()
 DECLARE SUB advance_text_box ()
 DECLARE SUB add_rem_swap_lock_hero (box as TextBox)

@@ -14,6 +14,7 @@
 #include "scrconst.bi"
 #include "custom.bi"
 #include "thingbrowser.bi"
+#include "sliceedit.bi"
 
 '--Local subs and functions
 DECLARE FUNCTION textbox_condition_caption(tag as integer, prefix as string = "") as string
@@ -25,7 +26,7 @@ DECLARE FUNCTION box_conditional_tag_by_menu_index(byref box as TextBox, menuind
 DECLARE FUNCTION box_conditional_is_enabled(byref box as TextBox, menuindex as integer) as bool
 DECLARE SUB update_textbox_editor_main_menu (byref box as TextBox, menu() as string)
 DECLARE SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState, menu() as string)
-DECLARE SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, page as integer, override_y as integer=-1, suppress_text as bool=NO)
+DECLARE SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, page as integer, override_y as integer=-1, for_editing as bool=NO)
 DECLARE SUB textbox_draw_with_background(byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr, page as integer)
 DECLARE SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState, parent_menu() as string)
 DECLARE SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem vector, byref box as TextBox, byref st as TextboxEditState)
@@ -101,6 +102,10 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
  DIM st as TextboxEditState
  WITH st
   .search = ""
+  .rootsl = NewSlice()
+  .rootsl->Width = gen(genResolutionX)
+  .rootsl->Height = gen(genResolutionY)
+  .viewport_page = gameres_page()
  END WITH
 
  'Set st.id: textbox to edit
@@ -304,7 +309,8 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
   setvispage vpage
   dowait
  LOOP
- unload_sprite_and_pal st.portrait
+ DeleteSlice @st.rootsl
+ freepage st.viewport_page
  remember_box_id = st.id
  RETURN st.id
 END FUNCTION
@@ -603,31 +609,31 @@ END SUB
 '========================== Textbox Display/Preview ===========================
 
 
-' Draw the textbox without backdrop, optionally without text or at other y position.
-SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, page as integer, override_y as integer=-1, suppress_text as bool=NO)
- DIM ypos as integer
+' Draw the textbox slices (without backdrop)
+' override_y: optionally overrides y position, and also override x to 0, and the choicebox is
+'    always placed underneath the text box, instead of potentially appearing above it.
+' for_editing: hide the choicebox and raise the text above the portrait slices
+SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, page as integer, override_y as integer=-1, for_editing as bool=NO)
+
+ DIM text_sl as Slice ptr = LookupSliceSafe(SL_TEXTBOX_TEXT, st.rootsl)
+ IF for_editing ANDALSO text_sl->Parent THEN
+  InsertSliceAfter text_sl->Parent->LastChild, text_sl
+ END IF
+
  IF override_y >= 0 THEN
-  ypos = override_y
+  DIM box_sl as Slice ptr = LookupSliceSafe(SL_TEXTBOX_BOX, st.rootsl)
+  DIM choice_box_sl as Slice ptr = LookupSlice(SL_TEXTBOX_CHOICE_BOX, st.rootsl)
+  DrawSliceAt box_sl, 0, override_y, 320, 200, page, YES
+  IF choice_box_sl ANDALSO for_editing = NO THEN
+   DrawSliceAt choice_box_sl, 0, override_y + box_sl->Height + 12, 320, 200, page, YES
+  END IF
  ELSE
-  ypos = 4 + box.vertical_offset * 4
+  DrawSlice st.rootsl, page
  END IF
- IF box.no_box = NO THEN
-  edgeboxstyle 4, ypos, 312, get_text_box_height(box), box.boxstyle, page, (box.opaque = NO)
+
+ IF for_editing ANDALSO text_sl->Parent THEN
+  InsertSliceBefore text_sl->Parent->FirstChild, text_sl
  END IF
- IF suppress_text = NO THEN
-  DIM col as integer
-  col = IIF(box.textcolor > 0, box.textcolor, uilook(uiText))
-  FOR i as integer = 0 TO UBOUND(box.text)
-   edgeprint box.text(i), 8, 3 + ypos + i * 10, col, page
-  NEXT i
- END IF
- ' Don't draw box if portrait type is NONE
- IF box.portrait_box ANDALSO box.portrait_type <> portraitNONE THEN
-  edgeboxstyle 4 + box.portrait_pos.x, ypos  + box.portrait_pos.y, 50, 50, box.boxstyle, page, YES
- END IF
- WITH st.portrait
-  IF .sprite THEN frame_draw .sprite, .pal, 4 + box.portrait_pos.x, ypos + box.portrait_pos.y, , page
- END WITH
 END SUB
 
 ' Preview the textbox as it will appear in-game, portraying it with in-game window size
@@ -645,7 +651,7 @@ END SUB
 SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState, menu() as string)
  LoadTextBox box, st.id
  update_textbox_editor_main_menu box, menu()
- load_text_box_portrait box, st.portrait
+ init_text_box_slices st.textbox_sl, box, st.rootsl, YES
 END SUB
 
 'Set the next textbox, and auto-adjust the 'After' condition tag if appropriate.
@@ -822,6 +828,8 @@ END FUNCTION
 
 
 SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr)
+ DIM img_box as Slice ptr = LookupSliceSafe(SL_TEXTBOX_PORTRAIT_BOX, st.rootsl)
+
  DIM tog as integer = 0
  setkeys
  DO
@@ -837,6 +845,8 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
   IF slowkey(ccRight, delay) THEN box.portrait_pos.x += speed
   IF slowkey(ccUp, delay)    THEN box.portrait_pos.y -= speed
   IF slowkey(ccDown, delay)  THEN box.portrait_pos.y += speed
+  img_box->X = box.portrait_pos.x - 4  'Duplicated from init_text_box_slices
+  img_box->Y = box.portrait_pos.y - 3
 
   textbox_draw_with_background box, st, backdrop, dpage
   wrapprintbg "Arrow keys to move, space to confirm", 0, 0, uilook(uiText), dpage
@@ -856,10 +866,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
  state.autosize = YES
  DIM menuopts as MenuOptions
  menuopts.edged = YES
- menuopts.itemspacing = -1
  menuopts.drawbg = YES
-
- st.viewport_page = gameres_page()
 
  'Show backdrop
  DIM backdrop as Frame ptr
@@ -873,6 +880,11 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
   setkeys
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_appearance"
+  IF keyval(scF6) > 1 THEN
+   slice_editor st.rootsl, , , , YES  'privileged
+   state.need_update = YES
+  END IF
+
   usemenu state, cast(BasicMenuItem vector, menu)
   IF enter_space_click(state) THEN
    SELECT CASE menu[state.pt].dat
@@ -1006,7 +1018,6 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
  LOOP
  v_free menu
  frame_unload @backdrop
- freepage st.viewport_page
  resetsfx
  music_stop
 END SUB
@@ -1038,6 +1049,8 @@ SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem vector, 
  IF box.no_box = NO THEN
   menuitem 8, menu, "Translucent: " & yesorno(NOT box.opaque)
   menuitem 4, menu, "Box Style: " & box.boxstyle
+ END IF
+ IF box.no_box = NO ORELSE box.choice_enabled THEN  'Shrink affects choicebox position
   menuitem 2, menu, "Shrink: " & IIF(box.shrink = -1, "Auto", STR(box.shrink))
  END IF
 
@@ -1106,7 +1119,7 @@ SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem vector, 
  END IF
  menuitem 17, menu, "Line Sound: " & menutemp
 
- load_text_box_portrait box, st.portrait
+ init_text_box_slices st.textbox_sl, box, st.rootsl, YES
 END SUB
 
 SUB textbox_seek(byref box as TextBox, byref st as TextboxEditState)
@@ -1216,27 +1229,15 @@ END FUNCTION
 SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
  DIM text as string = textbox_lines_to_string(box)
 
- DIM textslice as Slice Ptr
- textslice = NewSliceOfType(slText)
- WITH *textslice
-  .x = 8
-  .y = 7
-  .width = 38 * 8
- END WITH
- DIM txtdata as TextSliceData Ptr = textslice->SliceData
+ DIM boxslice as Slice ptr = LookupSliceSafe(SL_TEXTBOX_BOX, st.rootsl)
+ DIM textslice as Slice ptr = LookupSliceSafe(SL_TEXTBOX_TEXT, st.rootsl, slText)
+ DIM txtdata as TextSliceData Ptr = textslice->TextData
  WITH *txtdata
-  .line_limit = maxTextboxLines
-  .insert = -1  'End of text
+  .line_limit = maxTextboxLines  'No longer actually used?
+  .insert = LEN(text)  'End of text
   .show_insert = YES
-  .outline = YES
-  .wrap = YES
-  IF box.textcolor > 0 THEN
-   .col = box.textcolor
-  ELSE
-   .col = uilook(uiText)
-  END IF
  END WITH
- 
+
  setkeys YES
  DO
   setwait 55
@@ -1249,16 +1250,18 @@ SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
   stredit(newtext, newinsert, 9999, maxTextboxLines, 38)
   IF textbox_string_to_lines(box, newtext) THEN
    'Accepted: the new text did fit in the box
-   text = newtext
-   txtdata->insert = newinsert  'May be past end, because newtext got trimmed
-   ChangeTextSlice textslice, text
+   txtdata->insert = small(newinsert, LEN(newtext))  'May be past end if newtext got trimmed
+   IF newtext <> text THEN
+    text = newtext
+    ChangeTextSlice textslice, text
+    boxslice->Height = get_text_box_height(box)
+    'The choicebox position would need updating too, but it's hidden
+   END IF
   END IF
-  
-  'Display the textbox minus the text
+
   clearpage dpage
+  'Display the textbox with the text raised above the portrait (not really sure if necessary)
   textbox_edit_preview box, st, dpage, 4, YES
-  'Display the lines in the box
-  DrawSlice textslice, dpage
   textcolor uilook(uiText), 0
   printstr "Text Box " & st.id, 0, 100, dpage
   printstr "${C0} = Leader's name", 0, 120, dpage
@@ -1273,6 +1276,8 @@ SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
   setvispage vpage
   dowait
  LOOP
+
+ txtdata->show_insert = NO
 END SUB
 
 
@@ -1280,7 +1285,6 @@ END SUB
 
 
 SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
- 'tchoice:
  DIM state as MenuState
  WITH state
   .last = 5
@@ -1292,11 +1296,11 @@ SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
  DO
   setwait 55
   setkeys YES
-  IF keyval(ccCancel) > 1 THEN EXIT SUB
+  IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_choice_editor"
   usemenu state
   IF enter_space_click(state) THEN
-   IF state.pt = 0 THEN EXIT SUB
+   IF state.pt = 0 THEN EXIT DO
    IF state.pt = 1 THEN box.choice_enabled = (NOT box.choice_enabled)
   END IF
   IF state.pt = 1 THEN
@@ -1319,6 +1323,7 @@ SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
   setvispage vpage
   dowait
  LOOP
+ init_text_box_slices st.textbox_sl, box, st.rootsl, YES
 END SUB
 
 

@@ -61,7 +61,6 @@ DECLARE FUNCTION speed_estimate(speed as integer) as string
 DECLARE FUNCTION seconds_estimate(ticks as integer) as string
 DECLARE FUNCTION stat_value_caption(statnum as integer, statval as integer) as string
 
-DECLARE SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
 DECLARE SUB draw_crosshairs(pos as XYPair, length as integer = 1, zoom as integer = 1, col as integer, page as integer)
 DECLARE SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
 DECLARE SUB xy_position_on_sprite_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)

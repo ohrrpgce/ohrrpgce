@@ -189,7 +189,8 @@ END TYPE
 
 TYPE TextboxEditState
   id as integer
-  portrait as GraphicPair
+  rootsl as Slice ptr       'Root of the slice tree, same size as in-game screen
+  textbox_sl as Slice ptr   'The SL_TEXTBOX_ROOT slice, created by init_text_box_slices
   search as string
   viewport_page as integer  'For drawing the textbox to
 END TYPE

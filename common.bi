@@ -16,6 +16,9 @@
 
 USING RELOAD
 
+'Have to avoid circular slices.bi dependency
+TYPE SliceFwd as Slice
+
 DECLARE FUNCTION common_setoption(opt as string, arg as string) as integer
 
 DECLARE SUB fadein (fadems as integer = 500)
@@ -421,6 +424,8 @@ DECLARE SUB write_game_config OVERLOAD (key as zstring ptr, value as integer)
 DECLARE SUB write_game_config OVERLOAD (key as zstring ptr, value as double)
 
 DECLARE SUB init_battle_menu (menu as MenuDef, byval menu_id as integer=-1)
+
+DECLARE SUB init_text_box_slices(byref txtsl as SliceFwd ptr, box as TextBox, parent as SliceFwd ptr, revealed as bool)
 
 
 'Global variables  (See also common_base.bi)

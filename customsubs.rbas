@@ -1684,39 +1684,6 @@ FUNCTION stat_value_caption(statnum as integer, statval as integer) as string
  END IF
 END FUNCTION
 
-SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
- 'NOTE: Compare this to the portrait loading code in game.bas:init_text_box_slices()
- 'If you update this here, you might need to update that one too!
- DIM img_id as integer = -1
- DIM pal_id as integer = -1
- DIM her as HeroDef
- unload_sprite_and_pal gfx
- WITH gfx
-  SELECT CASE box.portrait_type
-   CASE portraitSPRITESET
-    img_id = box.portrait_id
-    pal_id = box.portrait_pal
-   CASE portraitPARTYRANK
-    'In custom, no party exists, so preview using the first hero
-    loadherodata her, 0
-    img_id = her.portrait
-    pal_id = her.portrait_pal
-   CASE portraitPARTYSLOT
-    'In custom, no party exists, so preview using the first hero
-    loadherodata her, 0
-    img_id = her.portrait
-    pal_id = her.portrait_pal
-   CASE portraitHEROID
-    loadherodata her, box.portrait_id
-    img_id = her.portrait
-    pal_id = her.portrait_pal
-  END SELECT
-  IF img_id >= 0 THEN
-   load_sprite_and_pal gfx, sprTypePortrait, img_id, pal_id
-  END IF
- END WITH
-END SUB
-
 SUB draw_crosshairs(pos as XYPair, length as integer = 1, zoom as integer = 1, col as integer, page as integer)
   rectangle pos.x - length * zoom, pos.y, length * zoom, zoom, col, page
   rectangle pos.x + zoom, pos.y, length * zoom, zoom, col, page

@@ -45,10 +45,11 @@ DECLARE SUB archive_log_file(logfile as string, archivefile as string)
 
 
 #IFDEF IS_GAME
-#include "game_udts.bi"
+#include "game.bi"
 #include "gglobals.bi"
 #include "moresubs.bi"
 #include "scripting.bi"
+#include "scriptcommands.bi"
 #include "yetmore2.bi"
 #ENDIF
 
@@ -8408,5 +8409,184 @@ SUB init_battle_menu (menu as MenuDef, byval menu_id as integer=-1)
   def_menu_set.menufile = workingdir + SLASH + "menus.bin"
   def_menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
   LoadMenuData def_menu_set, menu, menu_id, YES
+ END IF
+END SUB
+
+'Creates the slices for a textbox, returning them in the txtsl variable.
+'revealed: if false, the text isn't revealed yet
+SUB init_text_box_slices(byref txtsl as Slice ptr, box as TextBox, parent as Slice ptr, revealed as bool)
+ IF txtsl THEN
+  '--free any already-loaded textbox
+  DeleteSlice @txtsl
+ END IF
+
+ 'The textbox root slice is parent to the box and choicebox
+ txtsl = NewSliceOfType(slContainer, parent, SL_TEXTBOX_ROOT)
+ WITH *txtsl
+  IF .Parent THEN
+   'Should not be set to fill, as scripts may expect to be able to move it around.
+   'Set the width and height according to parent's (which is SliceTable.TextBox) size and padding.
+   .Fill = YES
+   .Parent->ChildRefresh(.Parent, txtsl)
+   .Fill = NO
+  END IF
+ END WITH
+
+ '--Create a new slice for the text box
+ DIM text_box as Slice Ptr
+
+ '--set up box style
+ text_box = NewSliceOfType(slRectangle, txtsl, SL_TEXTBOX_BOX)
+ IF box.no_box THEN
+  'Invisible box (for the benefit of scripts)
+  ChangeRectangleSlice text_box, , , , borderNone, transHollow
+ ELSE
+  ChangeRectangleSlice text_box, box.boxstyle, , , , iif(box.opaque, transOpaque, transFuzzy)
+ END IF
+
+ '--position and size the text box
+ WITH *text_box
+  .X = 0
+  .Y = 4 + box.vertical_offset * 4
+  .Width = 312
+  .Height = get_text_box_height(box)
+  .PaddingLeft = 4
+  .PaddingRight = 4
+  .PaddingTop = 3
+  .PaddingBottom = 3
+  'Horizontal centering
+  .AlignHoriz = alignCenter
+  .AnchorHoriz = alignCenter
+  .AnchorVert = alignTop
+  .AlignVert = alignTop
+ END WITH
+
+ '--Set up the actual text
+ DIM col as integer
+ col = uilook(uiText)
+ IF box.textcolor > 0 THEN col = box.textcolor
+
+ DIM s as string = ""
+ FOR i as integer = 0 TO UBOUND(box.text)
+  s &= box.text(i) & CHR(10)
+ NEXT i
+
+ DIM text_sl as Slice Ptr
+ text_sl = NewSliceOfType(slText, text_box, SL_TEXTBOX_TEXT)
+ text_sl->Fill = YES
+ ChangeTextSlice text_sl, s, col, YES, NO
+
+ IF revealed = NO THEN
+  '--start the displayed lines as all hidden. They will be revealed in update_textbox
+  text_sl->TextData->line_limit = 0
+ END IF
+
+ '--figure out which portrait to load
+ DIM img_id as integer = -1
+ DIM pal_id as integer = -1
+ DIM hero_slot as integer = -1
+ DIM hero_id as integer = -1
+ SELECT CASE box.portrait_type
+  CASE portraitSPRITESET 'Fixed ID number
+   img_id = box.portrait_id
+   pal_id = box.portrait_pal
+  CASE portraitPARTYRANK 'Hero by caterpillar
+   #IFDEF IS_GAME
+    hero_slot = rank_to_party_slot(box.portrait_id)
+   #ELSE
+    'In Custom, no party exists, so preview using the first hero
+    hero_id = 0
+   #ENDIF
+  CASE portraitPARTYSLOT 'Hero by party slot
+   #IFDEF IS_GAME
+    hero_slot = box.portrait_id
+   #ELSE
+    'In Custom, no party exists, so preview using the first hero
+    hero_id = 0
+   #ENDIF
+  CASE portraitHEROID 'Hero by ID
+   hero_id = box.portrait_id
+   #IFDEF IS_GAME
+    'If the hero is in the party, use their current state.
+    'if there are multiple copies, use the first.
+    hero_slot = findhero(hero_id)
+    IF hero_slot = -1 THEN
+     'The hero is not in the party right now, use their default
+     DIM her as HeroDef
+     loadherodata her, hero_id
+     img_id = her.portrait
+     pal_id = her.portrait_pal
+    END IF
+   #ENDIF
+ END SELECT
+
+ #IFDEF IS_GAME
+  IF hero_slot >= 0 ANDALSO hero_slot <= UBOUND(gam.hero) THEN
+   IF gam.hero(hero_slot).id >= 0 THEN
+    img_id = gam.hero(hero_slot).portrait_pic
+    pal_id = gam.hero(hero_slot).portrait_pal
+   END IF
+  END IF
+ #ELSE
+  IF hero_id >= 0 THEN
+   DIM her as HeroDef
+   loadherodata her, hero_id
+   img_id = her.portrait
+   pal_id = her.portrait_pal
+  END IF
+ #ENDIF
+
+ IF img_id >= 0 THEN
+  '--First set up the box that holds the portrait
+  DIM img_box as Slice Ptr
+  img_box = NewSliceOfType(slRectangle, text_box, SL_TEXTBOX_PORTRAIT_BOX)
+  IF box.portrait_box THEN
+   ChangeRectangleSlice img_box, box.boxstyle, , , , transFuzzy
+  ELSE
+   'Invisible box
+   ChangeRectangleSlice img_box, , , , borderNone, transHollow
+  END IF
+  img_box->Width = 50
+  img_box->Height = 50
+  img_box->X = box.portrait_pos.x - 4
+  img_box->Y = box.portrait_pos.y - 3
+  '--Then load the portrait
+  DIM img_sl as Slice Ptr
+  img_sl = NewSliceOfType(slSprite, img_box, SL_TEXTBOX_PORTRAIT)
+  ChangeSpriteSlice img_sl, sprTypePortrait, img_id, pal_id
+ END IF
+
+ '--set up the choice-box (if any)
+ IF box.choice_enabled THEN
+  DIM choice_box as Slice Ptr
+  choice_box = NewSliceOfType(slRectangle, txtsl, SL_TEXTBOX_CHOICE_BOX)
+  WITH *choice_box
+   '--center the box
+   .AnchorHoriz = alignCenter
+   .AlignHoriz = alignCenter
+   .AnchorVert = alignTop
+   .AlignVert = alignTop
+   '--set box size
+   .Width = 10 + large(LEN(box.choice(0)) * 8, LEN(box.choice(1)) * 8)
+   .Height = 24
+   '--FIXME: This hackyness just reproduces the old method of positioning the choicebox.
+   '--FIXME: eventually the game author should have control over this.
+   '(Note that a variant on this is in textbox_edit_preview)
+   .Y = text_box->Y + text_box->Height + 12
+   IF .Y > txtsl->Height - (.Height + 4) THEN .Y = 32
+  END WITH
+  ChangeRectangleSlice choice_box, box.boxstyle
+  REDIM choice_sl(1) as Slice Ptr
+  FOR i as integer = 0 TO 1
+   choice_sl(i) = NewSliceOfType(slText, choice_box)
+   ChangeTextSlice choice_sl(i), box.choice(i), uilook(uiMenuItem), YES
+   WITH *(choice_sl(i))
+    .AnchorHoriz = alignCenter
+    .AlignHoriz = alignCenter
+    .Y = 2 + i * 10
+   END WITH
+  NEXT i
+  choice_sl(0)->Lookup = SL_TEXTBOX_CHOICE0
+  choice_sl(1)->Lookup = SL_TEXTBOX_CHOICE1
  END IF
 END SUB
