@@ -103,6 +103,7 @@ DECLARE FUNCTION check_for_unhittable_invisible_foe(attacker as integer, target 
 DECLARE FUNCTION is_among_targets(byval slot as integer, t() as integer) as bool
 DECLARE FUNCTION should_victory_advance(byref bat as BattleState) as bool
 DECLARE SUB append_enemy_attacks_to_battle_menu(ai_attack_list() as integer, byref bspr as BattleSprite)
+DECLARE FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer) as integer
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
 
@@ -3036,25 +3037,42 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
   NEXT i
 
  ELSEIF list_type = 2 THEN '-- this is a random spell list
-  '-- loop through the spell list storing attack ID numbers
-  DIM spells as integer vector
-  v_new spells
-  FOR i = 0 TO UBOUND(bat.spell.slot)
-   DIM atkid as integer = gam.hero(bat.player_turn).spells(bat.listslot, i) - 1
-   IF atkid >= 0 THEN
-    loadattackdata atk, atkid
-    'FIXME (bug sf#2039): why don't we even call atkallowed here??
-    IF atk.useable_inside_battle THEN v_append spells, atkid
-   END IF
-  NEXT i
-  IF v_len(spells) > 0 THEN
-   bslot(bat.player_turn).attack = spells[randint(v_len(spells))] + 1
+  DIM atk_id as integer
+  atk_id = random_attack_from_spell_menu(bat, bslot(bat.player_turn), bat.listslot)
+  IF atk_id >= 0 THEN
+   bslot(bat.player_turn).attack = atk_id + 1
    bat.targ.mode = targSETUP
    clearkeys
   END IF
-  v_free spells
  END IF
 END SUB
+
+FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer) as integer
+ 'Returns a random attack from a spell list or -1 if none was found
+
+ IF NOT is_hero(bspr.index) THEN RETURN -1 'only heroes have spell lists
+ 
+ '-- loop through the spell list storing attack ID numbers
+ DIM atk as AttackData
+ DIM spells as integer vector
+ v_new spells
+ FOR i as integer = 0 TO UBOUND(bat.spell.slot)
+  DIM atkid as integer = gam.hero(bspr.index).spells(spell_list_id, i) - 1
+  IF atkid >= 0 THEN
+   loadattackdata atk, atkid
+   'FIXME (bug sf#2039): why don't we even call atkallowed here??
+   ' Hmmm.... I reckon I better look at that soon... --James
+   IF atk.useable_inside_battle THEN v_append spells, atkid
+  END IF
+ NEXT i
+ 
+ DIM result as integer = -1
+ IF v_len(spells) > 0 THEN
+  result = spells[randint(v_len(spells))]
+ END IF
+ v_free spells
+ RETURN result
+END FUNCTION
 
 'Handle player controls while a spell menu is open.
 'The menu is setup in init_spell_menu and actually drawn in battle_display.
