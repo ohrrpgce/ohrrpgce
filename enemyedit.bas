@@ -991,7 +991,6 @@ DO
  END IF
 
  standardmenu dispmenu(), state, 0, 0, vpage, menuopts
- draw_fullscreen_scrollbar state, , vpage
  IF keyval(scAlt) > 0 OR show_name_ticks > 0 THEN 'holding ALT or just pressed TAB
   show_name_ticks = large(0, show_name_ticks - 1)
   DIM tmpstr as string = readenemyname(recbuf()) & " " & recindex

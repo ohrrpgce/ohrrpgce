@@ -336,6 +336,7 @@ SUB map_picker ()
  menuopts.edged = YES
  menuopts.highlight_selection = YES
  menuopts.drawbg = YES
+ menuopts.fullscreen_scrollbar = YES
 
  DIM previewer as MapPreviewer
 
@@ -382,7 +383,6 @@ SUB map_picker ()
   'If there's a scrollbar, shift the preview over to avoid it
   DIM previewx as RelPos = pRight - IIF(state.would_have_scrollbar(), 8, 0)
   previewer.draw(previewx, pBottom, vpage)
-  draw_fullscreen_scrollbar state, 0, vpage
 
   REDIM topmenu_display(LBOUND(topmenu) TO UBOUND(topmenu)) as string
   highlight_menu_typing_selection topmenu(), topmenu_display(), selectst, state
@@ -2636,8 +2636,6 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
  state.autosize = YES
  state.autosize_ignore_lines = 6
  state.need_update = YES
- DIM menuopts as MenuOptions
- menuopts.scrollbar = YES
 
  setkeys
  DO
@@ -2684,7 +2682,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
 
   clearpage dpage
   edgeprint UBOUND(npcrefs) & " NPCs at tile X=" & pos.x & " Y=" & pos.y, 0, 0, uilook(uiSelectedDisabled), dpage
-  standardmenu menu(), state, 0, 10, dpage, menuopts
+  standardmenu menu(), state, 0, 10, dpage
   IF npcdef THEN
    edgeprint !"Enter/Space/Click to edit\nDelete to remove", 0, pBottom - 21, uilook(uiSelectedDisabled), dpage, , YES
    'Display a frame in right direction
@@ -3510,8 +3508,6 @@ SUB mapedit_gmapdata(st as MapEditState)
  DIM gdidx() as integer   'Index in gmap()
  DIM menu as SimpleMenuItem vector
  DIM menu_display as SimpleMenuItem vector
- DIM menuopts as MenuOptions
- menuopts.scrollbar = YES
  DIM BYREF map as MapData = st.map
 
  DIM script_defaults(7 TO 15) as integer  'Only covers gmap indices used by scripts
@@ -3624,7 +3620,7 @@ SUB mapedit_gmapdata(st as MapEditState)
   '--Draw screen
   clearpage dpage
   highlight_menu_typing_selection cast(BasicMenuItem vector, menu), cast(BasicMenuItem vector, menu_display), selectst, state
-  standardmenu cast(BasicMenuItem vector, menu_display), state, 0, 0, dpage, menuopts
+  standardmenu cast(BasicMenuItem vector, menu_display), state, 0, 0, dpage
   IF map.gmap(10) THEN
    'Harm tile flash color preview
    rectangle 4 + 8 * LEN(menu[midx(10)].text), 8 * midx(10), 8, 8, map.gmap(10), dpage

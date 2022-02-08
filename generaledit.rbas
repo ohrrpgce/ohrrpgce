@@ -1707,7 +1707,6 @@ SUB battleoptionsmenu ()
     IF state.pt = 29 THEN
      preview_menu preview, prst, viewport_page, vpage
     END IF
-    draw_fullscreen_scrollbar state, , vpage
     highlight_menu_typing_selection menu(), menu_display(), selectst, state
     standardmenu menu_display(), state, greyout(), 0, 0, vpage, menuopts
     setvispage vpage

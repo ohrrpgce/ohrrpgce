@@ -527,6 +527,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   .edged = YES
   .itemspacing = -1
   .highlight_selection = YES
+  .no_scrollbar = YES  'We draw it ourselves, on the left
  END WITH
 
  DIM cursor_seek as Slice Ptr = initial_slice
@@ -2656,7 +2657,6 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
   END IF
 
   clearpage dpage
-  draw_fullscreen_scrollbar st, , dpage
   standardmenu cast(BasicMenuItem vector, menu), st, 0, 0, dpage, menuopts
 
   SWAP vpage, dpage

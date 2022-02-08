@@ -501,7 +501,8 @@ SUB calc_menu_rect(state as MenuState, menuopts as MenuOptions, pos as RelPosXY,
    FOR i as integer = 0 TO small(v_len(menu) - 1, .last)
     wide = large(wide, textwidth(v_at(menu, i)->text))
    NEXT
-   IF menuopts.scrollbar THEN wide += 6
+   ' Don't count a fullscreen scrollbar as being part of the menu. Probably doesn't matter.
+   IF NOT menuopts.no_scrollbar AND NOT menuopts.fullscreen_scrollbar THEN wide += 6
   END IF
   .rect.wide = small(vpages(page)->w, wide)
 
@@ -513,6 +514,10 @@ SUB calc_menu_rect(state as MenuState, menuopts as MenuOptions, pos as RelPosXY,
    num_menu_items = .size + 1  'Might be larger than actual number of items
   END IF
   .rect.high = small(vpages(page)->h, num_menu_items * .spacing)
+  ' If autosized, maybe the menu rect, and therefore the scrollbar, should reach
+  ' to the bottom of the screen regardless of autosize_ignore_lines/pixels? We
+  ' use .fullscreen_scrollbar in several places because of that.
+  'IF .autosize THEN .rect.high = vpages(page)->h
 
   ' Now position the menu, and clamp to screen size
   .rect.xy = relative_pos(pos, vpages(page)->size, .rect.wh)
@@ -583,10 +588,12 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
   state.tog XOR= 1
  END IF
 
- IF menuopts.scrollbar THEN
-  draw_scrollbar state, state.rect, 0, page
- ELSEIF menuopts.fullscreen_scrollbar THEN
-  draw_fullscreen_scrollbar state, 0, page
+ IF NOT menuopts.no_scrollbar THEN
+  IF menuopts.fullscreen_scrollbar THEN
+   draw_fullscreen_scrollbar state, 0, page
+  ELSE
+   draw_scrollbar state, state.rect, 0, page
+  END IF
  END IF
 
  DIM rememclip as ClipState = get_cliprect()
@@ -1808,7 +1815,7 @@ END FUNCTION
 '==========================================================================================
 
 'Whether this menu will be drawn with a scrollbar (because it's larger than
-'its .size), if not explicitly disabled (by MenuDef.no_scrollbar/MenuOptions.scrollbar)
+'its .size), if not explicitly disabled (by MenuDef/MenuOptions.no_scrollbar)
 FUNCTION MenuState.would_have_scrollbar() as bool
  DIM count as integer = last - first + 1
  'recall size is off-by-1
@@ -2000,7 +2007,6 @@ SUB ModularMenu.run()
  state.autosize_ignore_lines = 1  'For the tooltip
  'If floating, the title gets cut off when the menu is small
  IF floating = NO ANDALSO LEN(title) THEN state.autosize_ignore_lines += 2
- menuopts.scrollbar = YES
  menuopts.disabled_col = uilook(eduiHeading)
 
  update_wrapper()

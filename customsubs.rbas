@@ -1112,8 +1112,6 @@ SUB ui_color_editor(palnum as integer)
  state.last = UBOUND(color_menu)
  state.autosize = YES
  state.autosize_ignore_pixels = 12
- DIM menuopts as MenuOptions
- menuopts.scrollbar = YES
 
  setkeys
  DO
@@ -1172,7 +1170,7 @@ SUB ui_color_editor(palnum as integer)
   '--draw screen
   clearpage dpage
   IF draw_sample THEN draw_menu sample_menu, sample_state, dpage
-  standardmenu color_menu(), state, 10, 0, dpage, menuopts
+  standardmenu color_menu(), state, 10, 0, dpage
   FOR i as integer = large(state.top, 0) TO small(state.top + state.size, state.last)
    rectangle 0, 8 * (i - state.top), 8, 8, uilook(i), dpage
   NEXT i
@@ -1216,8 +1214,6 @@ SUB ui_boxstyle_editor(palnum as integer)
  state.last = UBOUND(color_menu)
  state.autosize = YES
  state.autosize_ignore_pixels = 12
- DIM menuopts as MenuOptions
- menuopts.scrollbar = YES
 
  setkeys
  DO
@@ -1288,7 +1284,7 @@ SUB ui_boxstyle_editor(palnum as integer)
   '--draw screen
   clearpage dpage
   IF state.pt >= 0 THEN draw_menu sample_menu, sample_state, dpage
-  standardmenu color_menu(), state, 10, 0, dpage, menuopts
+  standardmenu color_menu(), state, 10, 0, dpage
   FOR i as integer = large(state.top, 0) TO small(state.top + state.size, state.last)
    WITH boxlook(i \ NUM_BOXSTYLE_OPTIONS)
     DIM itemtype as integer = i MOD NUM_BOXSTYLE_OPTIONS
@@ -2097,7 +2093,6 @@ FUNCTION experience_chart (byval expcurve as double=0.2) as double
   END IF
 
   clearpage vpage
-  draw_fullscreen_scrollbar state, , vpage
   standardmenu menu(), state, 0, 0, vpage, menuopts
   setvispage vpage
   dowait

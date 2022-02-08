@@ -882,6 +882,8 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
   .autosize = YES
   .autosize_ignore_lines = 2
  END WITH
+ DIM menuopts as MenuOptions
+ menuopts.fullscreen_scrollbar = YES
  init_menu_state state, scriptnames()
  'Preselect the current script (which could include [none], [default],
  'or the special missing option)
@@ -904,11 +906,10 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
   END IF
 
   clearpage dpage
-  draw_fullscreen_scrollbar state, , dpage
   textcolor uilook(uiText), 0
   printstr "Pick " & LCASE(scrtype), 0, 0, dpage
   highlight_menu_typing_selection scriptnames(), scriptnames_display(), selectst, state
-  standardmenu scriptnames_display(), state, 8, 10, dpage
+  standardmenu scriptnames_display(), state, 8, 10, dpage, menuopts
   SWAP dpage, vpage
   setvispage vpage
   dowait
@@ -1335,7 +1336,6 @@ SUB script_usage_list ()
   END IF
 
   clearpage dpage
-  draw_fullscreen_scrollbar state, , dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
   standardmenu menu_display(), state, 0, 0, dpage
 
@@ -1398,7 +1398,6 @@ SUB script_broken_trigger_list()
   usemenu state
 
   clearpage dpage
-  draw_fullscreen_scrollbar state, , dpage 
   standardmenu missing_script_trigger_list(), state, 0, 0, dpage
 
   SWAP vpage, dpage

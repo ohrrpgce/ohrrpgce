@@ -391,9 +391,7 @@ SUB main_editor_menu()
  state.last = UBOUND(menu)
  state.autosize = YES
  state.autosize_ignore_pixels = 24
- DIM menuopts as MenuOptions
- menuopts.scrollbar = YES
- 
+
  setkeys YES
  DO
   setwait 55
@@ -455,7 +453,7 @@ SUB main_editor_menu()
 
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, 0, 0, dpage, menuopts
+  standardmenu menu_display(), state, 0, 0, dpage
 
   textcolor uilook(uiSelectedDisabled), 0
   printstr version_code, 0, pBottom - 16, dpage, , fontBuiltinPlain

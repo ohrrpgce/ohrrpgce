@@ -153,8 +153,6 @@ FUNCTION individual_item_editor(item_id as integer) as integer
  state.autosize = YES
  state.autosize_ignore_lines = 2
  state.autosize_ignore_pixels = 4
- DIM menuopts as MenuOptions
- menuopts.scrollbar = YES  'FIXME: this really needs to be the default!
 
  setkeys YES
  DO
@@ -299,7 +297,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
 
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, shaded(), 0, 0, dpage, menuopts
+  standardmenu menu_display(), state, shaded(), 0, 0, dpage
   IF item_is_equippable_in_slot(itembuf(), 0) THEN
    'Is a weapon
    DIM frame as integer = 0
@@ -453,8 +451,6 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
  st.last = UBOUND(menu)
  st.autosize = YES
  st.need_update = YES
- DIM menuopts as MenuOptions
- menuopts.scrollbar = YES
 
  FOR i as integer = 0 TO gen(genNumElements) - 1
   float_reprs(i) = format_percent(elementals(i))
@@ -491,7 +487,7 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
 
   clearpage vpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, st
-  standardmenu menu_display(), st, 0, 0, vpage, menuopts
+  standardmenu menu_display(), st, 0, 0, vpage
   setvispage vpage
   dowait
  LOOP
