@@ -22,7 +22,7 @@ declare function is_weapon(byval who as integer) as bool
 
 declare sub anim_advance (byval who as integer, attack as AttackData, bslot() as battlesprite, t() as integer)
 
-declare function atkallowed overload (attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer, bslot() as BattleSprite) as bool
+declare function atkallowed overload (attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer, bspr as BattleSprite) as bool
 declare function atkallowed overload (attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer) as bool
 declare sub subtract_attack_costs overload (attack as AttackData, attackerslot as integer, byref bat as BattleState, bslot() as BattleSprite)
 declare sub subtract_attack_costs overload (attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer)

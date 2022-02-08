@@ -136,9 +136,9 @@ END FUNCTION
 '--attackerslot = bslot() index of hero or enemy who is attacking
 '--spclass  = 0 for normal attacks, 1 for level-MP spells
 '--lmplev   = which level-MP level to use
-FUNCTION atkallowed (attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer, bslot() as BattleSprite) as bool
+FUNCTION atkallowed (attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer, bspr as BattleSprite) as bool
 
- DIM byref attacker as BattleSprite = bslot(attackerslot)
+ DIM byref attacker as BattleSprite = bspr
 
  '--check for mutedness
  IF attack.mutable AND attacker.stat.cur.mute < attacker.stat.max.mute THEN
@@ -154,7 +154,7 @@ FUNCTION atkallowed (attack as AttackData, attackerslot as integer, spclass as i
  'NOTE: money_cost is not checked!
 
  '--check for level-MP (heroes only)
- IF attackerslot <= 3 AND spclass = 1 THEN
+ IF is_hero(attackerslot) AND spclass = 1 THEN
   IF gam.hero(attackerslot).levelmp(lmplev) <= 0 THEN
    RETURN NO
   END IF
@@ -169,7 +169,7 @@ FUNCTION atkallowed (attack as AttackData, attackerslot as integer, spclass as i
   IF itemid > 0 THEN 'this slot is used
    ' Only hero items are checked
    ' However if an enemy uses this attack, it will add/subtract items from the player!
-   IF attackerslot <= 3 THEN
+   IF is_hero(attackerslot) THEN
     IF countitem(itemid - 1) < itemcount THEN
      'yes, this still works for adding items.
      RETURN NO
@@ -323,7 +323,7 @@ FUNCTION count_available_attacks_in_ai_list (byval ai as EnemyAIEnum, byval slot
    END SELECT
    IF atk_id >= 0 THEN
     loadattackdata atk, atk_id
-    IF atkallowed(atk, slot, 0, 0, bslot()) THEN
+    IF atkallowed(atk, slot, 0, 0, bslot(slot)) THEN
      'this attack is allowed right now
      count += 1
     END IF

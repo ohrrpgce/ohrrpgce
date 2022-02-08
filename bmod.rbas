@@ -103,7 +103,7 @@ DECLARE FUNCTION check_for_unhittable_invisible_foe(attacker as integer, target 
 DECLARE FUNCTION is_among_targets(byval slot as integer, t() as integer) as bool
 DECLARE FUNCTION should_victory_advance(byref bat as BattleState) as bool
 DECLARE SUB append_enemy_attacks_to_battle_menu(ai_attack_list() as integer, byref bspr as BattleSprite)
-DECLARE FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer) as integer
+DECLARE FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer, st() as HeroDef) as integer
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
 
@@ -824,7 +824,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  ' (FIXME: Does not attempt to re-check LMP)
  ' FIXME: We shouldn't be checking costs here in all cases, eg an item-triggered
  ' attack that doesn't use costs (bug #1161, #1098)
- IF NOT atkallowed(bat.targ.atk, bat.player_turn, 0, 0, bslot()) THEN
+ IF NOT atkallowed(bat.targ.atk, bat.player_turn, 0, 0, bslot(bat.player_turn)) THEN
   bslot(bat.player_turn).attack = 0
   bslot(bat.player_turn).consume_lmp = -1
   bat.targ.mode = targNONE
@@ -1825,7 +1825,7 @@ SUB update_battle_menu (bat as BattleState, bslot() as BattleSprite)
      loadattackdata atk, .sub_t
      ' FIXME: isn't this bitset misnamed, since it affects all battle menu attacks?
      IF atk.check_costs_as_weapon THEN
-      IF atkallowed(atk, bat.player_turn, 0, 0, bslot()) = 0 THEN
+      IF atkallowed(atk, bat.player_turn, 0, 0, bslot(bat.player_turn)) = 0 THEN
        .disabled = YES
       END IF
      END IF
@@ -2213,7 +2213,7 @@ SUB checkitemusability(iuse() as integer, bslot() as BattleSprite, byval who as 
     loadattackdata attack, itembuf(47) - 1
     IF attack.check_costs_as_item THEN
      '--This attack has the bitset that requires cost checking when used from an item
-     IF atkallowed(attack, who, 0, 0, bslot()) THEN
+     IF atkallowed(attack, who, 0, 0, bslot(who)) THEN
       setbit iuse(), 0, i, 1
      END IF
     ELSE
@@ -2749,7 +2749,7 @@ SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id a
    WITH *bspr.batmenu.items[menu_id]
     atk_id = .sub_t
     loadattackdata atk, atk_id
-    IF atkallowed(atk, attacker_id, 0, 0, bslot()) THEN
+    IF atkallowed(atk, attacker_id, 0, 0, bslot(attacker_id)) THEN
      'this attack is good, continue on to target selection
      EXIT DO
     END IF
@@ -2865,7 +2865,7 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
    'load the data for this attack
    loadattackdata atk, atk_id - 1
   
-   IF atkallowed(atk, bat.enemy_turn, 0, 0, bslot()) THEN
+   IF atkallowed(atk, bat.enemy_turn, 0, 0, bslot(bat.enemy_turn)) THEN
     'this attack is good, continue on to target selection
     EXIT DO
    ELSE
@@ -3030,7 +3030,7 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
      .name = atk.name
      .desc = atk.description
      .cost = bslot_attack_cost_info(bslot(), atk, bat.player_turn, list_type, i \ 3)
-     .enable = atk.useable_inside_battle ANDALSO atkallowed(atk, bat.player_turn, list_type, i \ 3, bslot())
+     .enable = atk.useable_inside_battle ANDALSO atkallowed(atk, bat.player_turn, list_type, i \ 3, bslot(bat.player_turn))
     END IF
     .name = rpad(.name, " ", 10)
    END WITH
@@ -3038,7 +3038,7 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
 
  ELSEIF list_type = 2 THEN '-- this is a random spell list
   DIM atk_id as integer
-  atk_id = random_attack_from_spell_menu(bat, bslot(bat.player_turn), bat.listslot)
+  atk_id = random_attack_from_spell_menu(bat, bslot(bat.player_turn), bat.listslot, st())
   IF atk_id >= 0 THEN
    bslot(bat.player_turn).attack = atk_id + 1
    bat.targ.mode = targSETUP
@@ -3047,7 +3047,7 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
  END IF
 END SUB
 
-FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer) as integer
+FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer, st() as HeroDef) as integer
  'Returns a random attack from a spell list or -1 if none was found
 
  IF NOT is_hero(bspr.index) THEN RETURN -1 'only heroes have spell lists
@@ -3060,9 +3060,8 @@ FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite,
   DIM atkid as integer = gam.hero(bspr.index).spells(spell_list_id, i) - 1
   IF atkid >= 0 THEN
    loadattackdata atk, atkid
-   'FIXME (bug sf#2039): why don't we even call atkallowed here??
-   ' Hmmm.... I reckon I better look at that soon... --James
-   IF atk.useable_inside_battle THEN v_append spells, atkid
+   DIM list_type as integer = st(bspr.index).list_type(spell_list_id)
+   IF atk.useable_inside_battle ANDALSO atkallowed(atk, bspr.index, list_type, i \ 3, bspr) THEN v_append spells, atkid
   END IF
  NEXT i
  
@@ -3184,7 +3183,7 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
    DIM list_type as integer = st(bat.player_turn).list_type(bat.listslot)
    DIM lmp as integer = bat.sptr \ 3
    IF atk.useable_inside_battle ANDALSO _
-      atkallowed(atk, bat.player_turn, list_type, lmp, bslot()) THEN
+      atkallowed(atk, bat.player_turn, list_type, lmp, bslot(bat.player_turn)) THEN
     '--attack is allowed
     menusound gen(genAcceptSFX)
     '--if lmp then set lmp consume flag
@@ -3412,7 +3411,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  IF attack.recheck_costs_after_delay THEN
   'The "Re-check costs after attack delay" is on, so cancel the attack if we can't afford it now
   '(Costs aren't subtracted until the moment of the attack against the first target, in battle_attack_do_inflict)
-  IF atkallowed(attack, bat.acting, 0, 0, bslot()) = NO THEN
+  IF atkallowed(attack, bat.acting, 0, 0, bslot(bat.acting)) = NO THEN
    bat.atk.id = -1
    EXIT SUB
   END IF
