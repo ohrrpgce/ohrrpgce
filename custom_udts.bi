@@ -188,6 +188,7 @@ TYPE HeroEditState
 END TYPE
 
 TYPE TextboxEditState
+  menu(10) as string
   id as integer
   rootsl as Slice ptr       'Root of the slice tree, same size as in-game screen
   textbox_sl as Slice ptr   'The SL_TEXTBOX_ROOT slice, created by init_text_box_slices

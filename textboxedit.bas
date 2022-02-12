@@ -25,20 +25,20 @@ DECLARE FUNCTION box_conditional_type_by_menu_index(menuindex as integer) as int
 DECLARE FUNCTION box_conditional_tag_by_menu_index(byref box as TextBox, menuindex as integer) as integer
 DECLARE FUNCTION box_conditional_is_enabled(byref box as TextBox, menuindex as integer) as bool
 DECLARE SUB update_textbox_editor_main_menu (byref box as TextBox, menu() as string)
-DECLARE SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState, menu() as string)
+DECLARE SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, page as integer, override_y as integer=-1, for_editing as bool=NO)
 DECLARE SUB textbox_draw_with_background(byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr, page as integer)
-DECLARE SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState, parent_menu() as string)
+DECLARE SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem vector, byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr)
 DECLARE SUB textbox_seek(byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_create_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
-DECLARE SUB textbox_create_from_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState, menu() as string)
-DECLARE SUB textbox_link_to_new_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState, menu() as string)
+DECLARE SUB textbox_create_from_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
+DECLARE SUB textbox_link_to_new_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_set_after_textbox (byref box as TextBox, after_textbox as integer)
 DECLARE SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
-DECLARE SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu() as string)
+DECLARE SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_connection_captions(byref node as TextboxConnectNode, id as integer, tag as integer, box as TextBox, topcation as string, use_tag as bool = YES)
 DECLARE SUB textbox_connection_draw_node(byref node as TextboxConnectNode, x as integer, y as integer, selected as integer)
 DECLARE SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
@@ -124,22 +124,21 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
   END IF
  END IF
 
- DIM menu(10) as string
- menu(0) = "Return to Previous Menu"
- menu(1) = "Text Box"
- menu(2) = "Edit Text"
- menu(3) = "Edit Conditionals"
- menu(4) = "Edit Choices"
- menu(5) = "Box Appearance & Sounds"
- menu(6) = "After:"
- menu(7) = "Text Search:"
- menu(8) = "Connected Boxes..."
- menu(9) = "Export text boxes..."
- menu(10) = "Import text boxes..."
+ st.menu(0) = "Return to Previous Menu"
+ st.menu(1) = "Text Box"
+ st.menu(2) = "Edit Text"
+ st.menu(3) = "Edit Conditionals"
+ st.menu(4) = "Edit Choices"
+ st.menu(5) = "Box Appearance & Sounds"
+ st.menu(6) = "After:"
+ st.menu(7) = "Text Search:"
+ st.menu(8) = "Connected Boxes..."
+ st.menu(9) = "Export text boxes..."
+ st.menu(10) = "Import text boxes..."
 
  DIM state as MenuState  'State of the toplevel menu
  state.pt = 1
- state.last = UBOUND(menu)
+ state.last = UBOUND(st.menu)
  state.size = 24
  DIM menuopts as MenuOptions
  menuopts.edged = YES
@@ -147,7 +146,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
 
  STATIC style_clip as integer = 0
 
- textbox_edit_load box, st, menu()
+ textbox_edit_load box, st
  setkeys YES
  DO
   setwait 55
@@ -156,7 +155,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
   IF keyval(scF1) > 1 THEN show_help "textbox_main"
   IF cropafter_keycombo(state.pt = 1) THEN
    cropafter st.id, gen(genMaxTextBox), game & ".say", curbinsize(binSAY)
-   textbox_edit_load box, st, menu()
+   textbox_edit_load box, st
   END IF
   usemenu state
 
@@ -170,10 +169,10 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
    CASE 6'quickchainer
     IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
      IF yesno("Create and link to new a textbox like this one?") THEN
-      textbox_link_to_new_box_and_load st.id, box, st, menu()
+      textbox_link_to_new_box_and_load st.id, box, st
      END IF
     ELSEIF keyval(scInsert) > 1 ANDALSO yesno("Create and link to a new textbox?") THEN
-     textbox_link_to_new_box_and_load 0,     box, st, menu()
+     textbox_link_to_new_box_and_load 0,     box, st
     ELSEIF keyval(scAlt) = 0 THEN  'Ignore alt+left/right keypresses
      ' Ctrl+Left/Right links to previous/next box. We actually let scrintgrabber
      ' handle that, by starting at box.after. So continuing to press Ctrl+Left/Right works.
@@ -183,7 +182,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
      IF scrintgrabber(box.after, 0, gen(genMaxTextbox), ccLeft, ccRight, -1, plottrigger) THEN
       textbox_set_after_textbox box, box.after
       SaveTextBox box, st.id
-      update_textbox_editor_main_menu box, menu()
+      update_textbox_editor_main_menu box, st.menu()
      END IF
     END IF
    CASE ELSE '--not using the quick textbox chainer nor the search
@@ -196,13 +195,13 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
       IF yesno("Copy box " & style_clip & "'s style to this box?") THEN
        textbox_copy_style_from_box style_clip, box, st
        SaveTextBox box, st.id
-       textbox_edit_load box, st, menu()
+       textbox_edit_load box, st
       END IF
      END IF
     END IF
     IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND gen(genMaxTextBox) < maxMaxTextbox THEN
      IF yesno("Create a textbox like this one?") THEN
-      textbox_create_from_box_and_load st.id, box, st, menu()
+      textbox_create_from_box_and_load st.id, box, st
      END IF
     END IF
   END SELECT
@@ -215,7 +214,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
      gen(genMaxTextBox) = st.id
      textbox_create_from_box 0, box, st
     END IF
-    textbox_edit_load box, st, menu()
+    textbox_edit_load box, st
    END IF
   END IF
 
@@ -225,20 +224,20 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
    IF state.pt = 2 THEN textbox_line_editor box, st
    IF state.pt = 3 THEN
     textbox_conditionals box
-    update_textbox_editor_main_menu box, menu()
+    update_textbox_editor_main_menu box, st.menu()
    END IF
    IF state.pt = 4 THEN textbox_choice_editor box, st
    IF state.pt = 5 THEN
-    textbox_appearance_editor box, st, menu()
+    textbox_appearance_editor box, st
     '--re-update the menu after the appearance editor in case we switched records
-    update_textbox_editor_main_menu box, menu()
+    update_textbox_editor_main_menu box, st.menu()
    END IF
    IF state.pt = 6 THEN
     DIM want_scriptbrowse as bool = NO
     IF box.after > 0 THEN
      '--Go to Next textbox
      st.id = box.after
-     textbox_edit_load box, st, menu()
+     textbox_edit_load box, st
     ELSEIF box.after < 0 THEN
      want_scriptbrowse = YES
     ELSE
@@ -246,23 +245,23 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
       "A new text box with default style", "A new text box with this style", "A script" _
      }
      DIM choice as integer = multichoice("Link to what after this text box?", choices())
-     IF choice = 0 THEN textbox_link_to_new_box_and_load 0,     box, st, menu()
-     IF choice = 1 THEN textbox_link_to_new_box_and_load st.id, box, st, menu()
+     IF choice = 0 THEN textbox_link_to_new_box_and_load 0,     box, st
+     IF choice = 1 THEN textbox_link_to_new_box_and_load st.id, box, st
      IF choice = 2 THEN want_scriptbrowse = YES
     END IF
     IF want_scriptbrowse THEN
      DIM temptrig as integer = ABS(box.after)
      scriptbrowse temptrig, plottrigger, "textbox plotscript"
      textbox_set_after_textbox box, -temptrig
-     update_textbox_editor_main_menu box, menu()
+     update_textbox_editor_main_menu box, st.menu()
     END IF
    END IF
    IF state.pt = 7 AND keyval(scEnter) > 1 THEN
     textbox_seek box, st
-    textbox_edit_load box, st, menu()
+    textbox_edit_load box, st
    END IF
    IF state.pt = 8 THEN
-    textbox_connections box, st, menu()
+    textbox_connections box, st
    END IF
    IF state.pt = 9 THEN '--Export textboxes to a .TXT file
     textbox_edit_exporter
@@ -278,13 +277,13 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
 
   '--Draw screen
   IF st.id = 0 THEN
-    menu(1) = CHR(27) & "Text Box 0 [template]" & CHR(26)
+    st.menu(1) = CHR(27) & "Text Box 0 [template]" & CHR(26)
   ELSE
-    menu(1) = CHR(27) & "Text Box " & st.id & CHR(26)
+    st.menu(1) = CHR(27) & "Text Box " & st.id & CHR(26)
   END IF
 
-  menu(7) = "Text Search:"
-  IF state.pt = 7 THEN menu(7) &= st.search
+  st.menu(7) = "Text Search:"
+  IF state.pt = 7 THEN st.menu(7) &= st.search
  
   '--Draw box
   clearpage dpage
@@ -303,7 +302,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
    END IF
    edgeprint tooltip, 0, pBottom, uilook(uiDisabledItem), dpage
   END IF
-  standardmenu menu(), state, 0, 0, dpage, menuopts
+  standardmenu st.menu(), state, 0, 0, dpage, menuopts
 
   SWAP vpage, dpage
   setvispage vpage
@@ -648,9 +647,9 @@ SUB textbox_draw_with_background(byref box as TextBox, byref st as TextboxEditSt
  draw_viewport_page st.viewport_page, page
 END SUB
 
-SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState, menu() as string)
+SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState)
  LoadTextBox box, st.id
- update_textbox_editor_main_menu box, menu()
+ update_textbox_editor_main_menu box, st.menu()
  init_text_box_slices st.textbox_sl, box, st.rootsl, YES
 END SUB
 
@@ -857,7 +856,7 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
  LOOP
 END SUB
 
-SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState, parent_menu() as string)
+SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState)
  DIM menu as SimpleMenuItem vector
  update_textbox_appearance_editor_menu menu, box, st
 
@@ -990,7 +989,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
    DIM remptr as integer = st.id
    IF intgrabber(st.id, 0, gen(genMaxTextBox)) THEN
     SaveTextBox box, remptr
-    textbox_edit_load box, st, parent_menu()
+    textbox_edit_load box, st
     frame_unload @backdrop
     music_stop
     IF box.backdrop > 0 THEN
@@ -1153,17 +1152,17 @@ SUB textbox_create_from_box (byval template_box_id as integer=0, byref box as Te
  SaveTextBox box, st.id
 END SUB
 
-SUB textbox_create_from_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState, menu() as string)
+SUB textbox_create_from_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
  gen(genMaxTextBox) += 1
  st.id = gen(genMaxTextBox)
  textbox_create_from_box template_box_id, box, st
- textbox_edit_load box, st, menu()
+ textbox_edit_load box, st
 END SUB
 
-SUB textbox_link_to_new_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState, menu() as string)
+SUB textbox_link_to_new_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
  textbox_set_after_textbox box, gen(genMaxTextBox) + 1
  SaveTextBox box, st.id
- textbox_create_from_box_and_load template_box_id, box, st, menu()
+ textbox_create_from_box_and_load template_box_id, box, st
 END SUB
 
 SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
@@ -1330,7 +1329,7 @@ END SUB
 '========================== Textbox Connections Viewer ========================
 
 
-SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu() as string)
+SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState)
 'TODO: menu() should be moved to become a member of st, then we wouldn't have to pass it around
  DIM do_search as bool = YES
  REDIM prev(5) as TextboxConnectNode
@@ -1425,7 +1424,7 @@ SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu
     IF enter_space_click(state) THEN
      IF prev(state.pt).id >= 0 THEN
       st.id = prev(state.pt).id
-      textbox_edit_load box, st, menu()
+      textbox_edit_load box, st
       do_search = YES
      END IF
     END IF
@@ -1472,14 +1471,14 @@ SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu
         box.instead_tag = remember_insert_tag
        END IF
        SaveTextBox box, st.id
-       textbox_edit_load box, st, menu()
+       textbox_edit_load box, st
        do_search = YES
       END IF
      ELSE
       'Navigate to a box
       IF nxt(nxt_state.pt).id >= 0 THEN
        st.id = nxt(nxt_state.pt).id
-       textbox_edit_load box, st, menu()
+       textbox_edit_load box, st
        do_search = YES
       END IF
      END IF
