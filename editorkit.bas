@@ -37,11 +37,14 @@
 ' -selected: this menu item is the selected item
 ' -refresh: refreshing the menu
 ' -process: selected and should do per-tick logic, such as calling intgrabber
+' -process_text: should be checked instead of process to decide whether to read text
+'          input. (True even if Alt is held, but not when selecting-by-typing)
+'          (Be sure to set using_strgrabber if you do.)
 ' -activate: selected and should be activated (if possible), e.g. enter a submenu.
 ' -delete_action: the user tried to delete this (Delete or possibly Backspace)
 ' -hover: mouse over this item
 ' -left_click: beginning of a left click/drag on this item. Use activate instead,
-'              if you can which checks for button release.
+'          if you can which checks for button release.
 ' -right_click: beginning of a right click/drag.
 ' And a couple you can read/write:
 ' -edited: an edit_* call changed the item's value. You should set this manually if
@@ -66,12 +69,13 @@
 '  `invert_bool` or by prefixing the title with '!' (just like editbitset). Must
 '  happen before editing or setting the caption.
 ' -edit_* methods will, `if process`, call intgrabber/etc to modify `value`/etc
-'  and set `edited`. (Or you manually modify it and set `edited`.)
-' -If `edited` is true, the value is written back. (This happens even during
-'  refresh, so it's OK to modify the value.)
+'  and set `edited`. They also immediately call write_value for safety.
+' -If `edited` is true, the value is written back; if you have custom editing
+'  code (e.g. a *grabber call) that modifies value/etc you should set `edited`.
+'  (This happens even during refresh, so it's OK to modify the value then.)
 '
-' So you don't need to set the value with val_*, etc, if you write custom
-' editing code `if process` and use set_caption for the caption.
+' You don't need to set the value with val_*/etc if you write custom editing code
+' enclosed in `if process` and use set_caption for the caption.
 '
 ' The families of available methods:
 '
@@ -199,6 +203,14 @@ function EditorKit.each_tick() as bool
 	'if state.need_update = NO then
 	'	run_phase(Phases.processing)
 	'end if
+
+	' Alt to change record. TODO: currently the subclass has to
+	' actually switch records, we just stop anything from breaking.
+	' On string fields, Alt is for entering special characters.
+	' This also means we have to do this after run_phase
+	if keyval(scAlt) > 0 andalso not using_strgrabber then
+		using_strgrabber = YES  'Disable select-by-typing
+	end if
 
 	if want_exit andalso try_exit() then return YES
 	return NO
@@ -428,7 +440,12 @@ sub EditorKit.defitem(title as zstring ptr)
 
 	'? "defitem " & cur_item_index & " " & *title
 	refresh = (phase = Phases.refreshing)
-	process = selected andalso (phase = Phases.processing)
+	var maybe_process = selected andalso (phase = Phases.processing)
+	' Hold Alt to edit the record number, except on a text field, where Alt
+	' can be used to input text.
+	process = maybe_process andalso (keyval(scAlt) = 0)
+	process_text = maybe_process andalso can_use_strgrabber
+
 	'activate = selected andalso (phase = Phases.activating)
 	activate = process andalso want_activate
 	left_click = process andalso (readmouse.clicks and mouseLeft)
@@ -441,6 +458,7 @@ sub EditorKit.defitem(title as zstring ptr)
 		cur_item.id = cur_item_index
 		if title andalso title[0] = asc("!") then
 			cur_item.inverted_bool = YES
+			' No value is set yet, don't need to invert it
 			cur_item.title = *(title + 1)
 		else
 			cur_item.title = *title
@@ -743,6 +761,7 @@ end function
 function EditorKit.val_str_enum(byref datum as string, options() as StringEnumOption) as string
 	val_str datum
 	if refresh or process then
+		' Ensure valuestr is valid and set caption
 		dim index as integer = find_enum_index(valuestr, options())
 		if index < lbound(options) then
 			if len(valuestr) = 0 then
@@ -954,8 +973,8 @@ end function
 
 function EditorKit.edit_str(byref datum as string, maxlen as integer = 0) as bool
 	val_str datum
-	if process andalso can_use_strgrabber then
-		using_strgrabber = YES  'Disabled select-by-typing
+	if process_text then
+		using_strgrabber = YES  'Disable select-by-typing
 		edited or= strgrabber(valuestr, iif(maxlen, maxlen, 9999999))
 		if edited then write_value
 	end if
