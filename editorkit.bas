@@ -1240,30 +1240,63 @@ end function
 sub EditorKit.as_song(byref datum as integer)
 	val_int datum
 	if refresh andalso len(cur_item.caption) = 0 then
-		if value = -1 then
+		if value < 0 then  '-1
 			set_caption "Silence"
 		else
-			set_caption getsongname(value)
+			set_caption value & " " & getsongname(value)
 		end if
 	end if
 end sub
 
+' Assumes min <= -1 (otherwise would need to call song_picker instead)
 function EditorKit.edit_as_song(byref datum as integer, min as integer = -1, preview_audio_flag as EKFlags = 0) as bool
 	as_song datum
 	if activate then
-		value = song_picker_or_none(value)
+		value = song_picker_or_none(value + 1) - 1  'Is offset by 1 from song_picker
 		edited = YES
-		' Only preview after using the browser, not typing
-		if preview_audio_flag = Preview_Audio then
-			if value >= 0 then
-				playsongnum value
-			else
-				music_stop
-			end if
-		end if
 	else
 		edit_zint value, min, gen(genMaxSong)
-		if preview_audio_flag = Preview_Audio then music_stop
+	end if
+	if edited then
+		if preview_audio_flag = Preview_Audio andalso value >= 0 then
+			' playsongnum doesn't stop the music if you play a nonexistent song.
+			music_stop
+			playsongnum value
+		else
+			music_stop
+		end if
+	end if
+	if edited then write_value
+	return edited
+end function
+
+sub EditorKit.as_sfx(byref datum as integer)
+	val_int datum
+	if refresh andalso len(cur_item.caption) = 0 then
+		if value < 0 then  '-1
+			set_caption "None"
+		else
+			set_caption value & " " & getsfxname(value)
+		end if
+	end if
+end sub
+
+' Assumes min <= -1 (otherwise would need to call sfx_picker instead)
+function EditorKit.edit_as_sfx(byref datum as integer, min as integer = -1, preview_audio_flag as EKFlags = 0) as bool
+	as_sfx datum
+	if activate then
+		value = sfx_picker_or_none(value + 1) - 1  'Is offset by 1 from sfx_picker
+		edited = YES
+	else
+		edit_zint value, min, gen(genMaxSFX)
+	end if
+	if edited then
+		if preview_audio_flag = Preview_Audio andalso value >= 0 then
+			resetsfx  'Stop previous sound
+			playsfx value
+		else
+			resetsfx
+		end if
 	end if
 	if edited then write_value
 	return edited

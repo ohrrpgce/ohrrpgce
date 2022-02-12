@@ -284,6 +284,8 @@ type EditorKit extends ModularMenu
 	' Audio
 	declare sub as_song(byref datum as integer)
 	declare function edit_as_song(byref datum as integer, min as integer = -1, preview_audio_flag as EKFlags = 0) as bool
+	declare sub as_sfx(byref datum as integer)
+	declare function edit_as_sfx(byref datum as integer, min as integer = -1, preview_audio_flag as EKFlags = 0) as bool
 
 	' Enemies
 	declare sub as_enemy(byref id as integer, or_none_flag as EKFlags = 0)

@@ -1713,11 +1713,6 @@ sub closemusic ()
 	debuginfo "...done"
 end sub
 
-sub resetsfx ()
-	' Stops playback and unloads cached sound effects
-	sound_reset
-end sub
-
 sub loadsong (songname as string)
 	music_play(songname, getmusictype(songname))
 end sub
@@ -1761,6 +1756,11 @@ sub playsfx (num as integer, loopcount as integer = 0, volume_mult as single = 1
 	'debug "playsfx volume_mult=" & volume_mult & " global_sfx_volume " & global_sfx_volume
 	sound_play(slot, loopcount, volume_mult * global_sfx_volume)
 	IF_PTR(sound_slotdata(slot))->original_volume = volume_mult
+end sub
+
+sub resetsfx ()
+	' Stops playback and unloads cached sound effects
+	sound_reset
 end sub
 
 sub stopsfx (num as integer)
