@@ -165,6 +165,7 @@ End Type
 'Import resource browsers
 
 Type SfxBrowser extends ThingBrowser
+ declare virtual sub leave_browser()
  declare virtual function thing_kind_name() as string
  declare virtual function init_helpkey() as string
  declare virtual function highest_id() as integer
@@ -179,6 +180,7 @@ Type SfxBrowser extends ThingBrowser
 End Type
 
 Type SongBrowser extends ThingBrowser
+ declare virtual sub leave_browser()
  declare virtual function thing_kind_name() as string
  declare virtual function init_helpkey() as string
  declare virtual function highest_id() as integer

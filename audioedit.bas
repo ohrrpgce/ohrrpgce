@@ -962,6 +962,8 @@ SUB generalmusicsfxmenu ()
       CASE 1 TO lastmusicitem
         gen(index(state.pt)) = song_picker_or_none(gen(index(state.pt)))
         state.need_update = YES
+        ' TODO: it's a bit silly to play the song/sfx only after leaving the browser, because
+        ' it plays in the browser anyway
         IF gen(index(state.pt)) > 0 THEN
          playsongnum gen(index(state.pt)) - 1
         END IF

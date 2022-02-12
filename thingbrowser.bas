@@ -846,6 +846,10 @@ End Sub
 
 '-----------------------------------------------------------------------
 
+Sub SfxBrowser.leave_browser()
+ resetsfx
+End Sub
+
 Function SfxBrowser.thing_kind_name() as string
  return "Sound Effects"
 End Function
@@ -863,6 +867,7 @@ Function SfxBrowser.highest_possible_id() as integer
 End Function
 
 Sub SfxBrowser.on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
+ resetsfx
  if id >= 0 then
   playsfx id, 0
  end if
@@ -921,6 +926,10 @@ Function SfxBrowser.create_thing_plank(byval id as integer) as Slice ptr
 End Function
 
 '-----------------------------------------------------------------------
+
+Sub SongBrowser.leave_browser()
+ music_stop
+End Sub
 
 Function SongBrowser.thing_kind_name() as string
  return "Songs"
