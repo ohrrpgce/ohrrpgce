@@ -147,6 +147,9 @@ TYPE ModularMenu EXTENDS Object
  ' Called before drawing the menu to draw any extra stuff
  DECLARE VIRTUAL SUB draw_underlays()
 
+ ' Called after drawing the menu (and tooltip) to draw any extra stuff
+ DECLARE VIRTUAL SUB draw_overlays()
+
  ' Generally you shouldn't need to override this.
  DECLARE VIRTUAL SUB draw()
 

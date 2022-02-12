@@ -141,19 +141,41 @@ type EditorKit extends ModularMenu
 	cur_item_index as integer
 	cur_item as EditorKitItem
 
+	' For record switching
+	record_id_ptr as integer ptr
+	max_record_id_ptr as integer ptr
+	max_record_offset as integer  'Added to *max_record_id_ptr
+	record_name as string
+
+        '---- Editor setup routines (call before run())
+
 	declare constructor()
+
+	declare sub setup_record_switching(byref record_id as integer, byref max_record as integer, max_record_offset as integer = 0, record_name as string = "record")
+
+	' Inherited from ModularMenu
+	'declare sub run()
 
   private:
 	declare sub update()
 	declare function each_tick() as bool
+	declare sub draw_overlays()
 	declare sub run_phase(which_phase as Phases)
 	declare sub finish_defitem()
 	declare sub write_value()
 
   public:
+
+        '---- Overridable methods
+
 	' Subclasses should implement this method, nothing else is necessary.
 	declare abstract sub define_items()
-	' TODO: save, load methods
+
+	declare virtual sub load()
+	declare virtual sub save()
+	declare virtual function get_record_name(id as integer) as string
+
+	' And also ModularMenu methods such as draw_underlays, draw_overlays, try_exit
 
 	enum EKFlags
 		no_flags = 0

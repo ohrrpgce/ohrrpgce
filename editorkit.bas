@@ -177,23 +177,47 @@ using Reload.Ext
 
 
 '===============================================================================
-'                         ModularMenu hooks (entry points)
+'                               Overridable methods
+
+' define_items is abstract, must be overridden. Others are optional.
+
+' Called when entering the menu and after switching records (the record id passed to
+' setup_record_switching is modified before calling this).
+sub Editorkit.load()
+end sub
+
+' Called when exiting the menu and before switching records (the record id passed to
+' setup_record_switching is modified after calling this).
+sub EditorKit.save()
+end sub
+
+' Used by the Alt quick record switcher, normally the name of the record, or some other
+' suitable preview text. Shouldn't include the id, it'll be appended.
+function EditorKit.get_record_name(id as integer) as string
+	return record_name
+end function
+
+'===============================================================================
+'                         ModularMenu hooks (internal)
 
 sub EditorKit.update()
+	' ModularMenu calls update() before any other hooks
+	if initialised = NO then
+		load()
+		' On the first call store helpkey, as it may get clobbered
+		if len(default_helpkey) = 0 then default_helpkey = base.helpkey
+		initialised = YES
+	end if
+
 	run_phase(Phases.refreshing)
 end sub
 
 function EditorKit.each_tick() as bool
-	if initialised = NO then
-		initialised = YES
-		' On the first call store helpkey, as it may get clobbered
-		if len(default_helpkey) = 0 then default_helpkey = base.helpkey
-	end if
 	base.helpkey = default_helpkey
 	base.tooltip = ""
 	want_exit = NO
-
 	want_activate = enter_space_click(state)
+
 	run_phase(Phases.processing)
 
 	'if enter_space_click(state) then
@@ -204,18 +228,37 @@ function EditorKit.each_tick() as bool
 	'	run_phase(Phases.processing)
 	'end if
 
-	' Alt to change record. TODO: currently the subclass has to
-	' actually switch records, we just stop anything from breaking.
-	' On string fields, Alt is for entering special characters.
-	' This also means we have to do this after run_phase
-	if keyval(scAlt) > 0 andalso not using_strgrabber then
-		using_strgrabber = YES  'Disable select-by-typing
+	' Alt to change record.
+	if record_id_ptr then
+		' On string fields, Alt is for entering special characters.
+		' This also means we have to do this after run_phase
+		if keyval(scAlt) > 0 andalso not using_strgrabber then
+			using_strgrabber = YES  'Disable select-by-typing
+
+			dim newid as integer = *record_id_ptr
+			if intgrabber(newid, 0, *max_record_id_ptr + max_record_offset) then
+				save()
+				*record_id_ptr = newid
+				load()
+				state.need_update = YES
+			end if
+		end if
 	end if
 
-	if want_exit andalso try_exit() then return YES
+	if want_exit andalso try_exit() then
+		save()
+		return YES
+	end if
 	return NO
 end function
 
+sub EditorKit.draw_overlays()
+	if record_id_ptr andalso keyval(scAlt) > 0 then
+		var id = *record_id_ptr
+		textcolor uilook(uiText), uilook(uiHighlight)
+		printstr get_record_name(id) & " " & id, pRight, 0, vpage
+	end if
+end sub
 
 '===============================================================================
 '                                   Internal
@@ -378,6 +421,16 @@ sub EditorKit.write_value()
 				showbug "EditorKit: bad/missing writer"
 		end select
 	end with
+end sub
+
+'===============================================================================
+'                             Editor setup routines
+
+sub EditorKit.setup_record_switching(byref record_id as integer, byref max_record as integer, max_record_offset_ as integer = 0, record_name_ as string = "record")
+	record_id_ptr = @record_id
+	max_record_id_ptr = @max_record
+	max_record_offset = max_record_offset_
+	record_name = record_name_
 end sub
 
 '===============================================================================

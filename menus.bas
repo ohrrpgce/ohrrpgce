@@ -1927,6 +1927,9 @@ END FUNCTION
 SUB ModularMenu.draw_underlays()
 END SUB
 
+SUB ModularMenu.draw_overlays()
+END SUB
+
 SUB ModularMenu.draw()
  draw_underlays()
 
@@ -1972,6 +1975,8 @@ SUB ModularMenu.draw()
  IF LEN(tooltip) THEN
   wrapprintbg tooltip, 0, pBottom, uilook(uiText), vpage
  END IF
+
+ draw_overlays()
 END SUB
 
 'Additional logic around update()
