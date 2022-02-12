@@ -62,10 +62,15 @@ type EditorKitItem
 	whichbit as integer    'writerBit only: a bitmask
 	offset as integer      'dtypeInt only: amount to subtract from value before writing
 	inverted_bool as bool  'dtypeBool only: whether to invert value before writing
+
 	delete_default as bool 'writerNodePath* only: delete node if equal to default
-	default as integer     'writerNodePathInt only
-	defaultstr as string   'writerNodePathStr only
-	defaultfloat as double 'writerNodePathFloat only
+	' Default value of a missing node
+	writer_default_int as integer  'writerNodePathInt only
+	writer_default_str as string   'writerNodePathStr only
+	writer_default_float as double 'writerNodePathFloat only
+
+	default_value as integer = INT_MIN
+	default_eff_value as integer   'What default_value is effectively equivalent to
 
 	' Menu item:
 	id as integer          'Has no purpose yet
@@ -115,6 +120,8 @@ type EditorKit extends ModularMenu
 	value as integer           'Includes bool/boolean data
 	valuestr as string
 	valuefloat as double
+
+	declare function eff_value() as integer  'Effective val after applying default
 
 	'---- The following is internal state you usually would not access
 
@@ -174,7 +181,7 @@ type EditorKit extends ModularMenu
 
 	'---- Captions
 	declare sub set_caption(caption as zstring ptr)
-	declare sub caption_default_or_int(default_value as integer = 0, default_caption as zstring ptr = @"default")
+	declare sub caption_default_or_int(default_value as integer = 0, default_caption as zstring ptr = @"Default")
 	declare sub caption_default_or_str(default_caption as zstring ptr = @"[default]")
 	declare sub captions_bool(nocapt as zstring ptr, yescapt as zstring ptr)
 	declare sub captions(captions_array() as string, invalid_thing as zstring ptr = @"value")
@@ -196,11 +203,16 @@ type EditorKit extends ModularMenu
 		end if
 	#endmacro
 
+	' Mostly internal
+	declare sub wrap_caption(caption as string)
+
 	'---- Other menu item attributes
 	declare sub set_unselectable()
 	declare sub set_id(id as integer)
 	declare sub set_helpkey(key as zstring ptr)
 	declare sub set_tooltip(text as zstring ptr)
+
+	declare sub default_effective_value(default_value as integer, effective_value as integer)
 
 	'---- Value defining methods (val_*)
 

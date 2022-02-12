@@ -352,16 +352,16 @@ sub EditorKit.write_value()
 			case writerNodeFloat
 				SetContent(.node, valuefloat)
 			case writerNodePathInt, writerNodePathBool
-				var valnode = create_or_delete_default_node(cur_item, outvalue = .default)
+				var valnode = create_or_delete_default_node(cur_item, outvalue = .writer_default_int)
 				if .writer = writerNodePathBool then
 					outvalue = iif(outvalue, 1, 0)
 				end if
 				if valnode then SetContent(valnode, outvalue)
 			case writerNodePathStr
-				var valnode = create_or_delete_default_node(cur_item, valuestr = .defaultstr)
+				var valnode = create_or_delete_default_node(cur_item, valuestr = .writer_default_str)
 				if valnode then SetContent(valnode, valuestr)
 			case writerNodePathFloat
-				var valnode = create_or_delete_default_node(cur_item, valuefloat = .defaultfloat)
+				var valnode = create_or_delete_default_node(cur_item, valuefloat = .writer_default_float)
 				if valnode then SetContent(valnode, valuefloat)
 			case writerNodePathExists
 				' If value is true, create it
@@ -516,8 +516,19 @@ sub EditorKit.set_caption(caption as zstring ptr)
 	end if
 end sub
 
-sub EditorKit.caption_default_or_int(default_value as integer = 0, default_caption as zstring ptr = @"default")
+' Internal
+sub EditorKit.wrap_caption(caption as string)
+	if value = cur_item.default_value then
+		set_caption "Default (" & caption & ")"
+	else
+		set_caption caption
+	end if
+end sub
+
+sub EditorKit.caption_default_or_int(default_value as integer = 0, default_caption as zstring ptr = @"Default")
 	if refresh then
+		'cur_item.default_value = default_value  'Not used for anything
+		'cur_item.default_eff_value = MIN_INT    'Unknown
 		cur_item.caption = iif(value = default_value, *default_caption, str(value))
 	end if
 end sub
@@ -584,6 +595,27 @@ end sub
 sub EditorKit.set_tooltip(text as zstring ptr)
 	if selected then base.tooltip = *text
 end sub
+
+' Set the effective value for purposes of previewing and captioning when `value`
+' is equal to `default_value`, for example:
+'  Line sound: default (6 Blip sfx)
+' (This default is distinct from the default value of a missing Node.)
+' NOTE: unlike other caption functions, must be called before edit_as_*/as_*!
+sub EditorKit.default_effective_value(default_value as integer, effective_value as integer)
+	' False alarm if set_caption called otherwise, but disallowing that doesn't matter
+	BUG_IF(len(cur_item.caption), "must be called before as_*/edit_as_*")
+	cur_item.default_value = default_value
+	cur_item.default_eff_value = effective_value
+end sub
+
+' Get the effective value (see default_effective_value)
+function EditorKit.eff_value() as integer
+	if value = cur_item.default_value then
+		return cur_item.default_eff_value
+	else
+		return value
+	end if
+end function
 
 '===============================================================================
 '                          val_* value definition functions
@@ -810,7 +842,7 @@ function EditorKit.val_node_int(root as Node ptr, path as zstring ptr, default a
 			.writer = writerNodePathInt
 			.node = root
 			.path = *path
-			.default = default
+			.writer_default_int = default
 			.delete_default = (delete_if_default_flag = Delete_If_Default)
 		end if
 	end with
@@ -862,7 +894,7 @@ function EditorKit.val_node_str(root as Node ptr, path as zstring ptr, default a
 			.writer = writerNodePathStr
 			.node = root
 			.path = *path
-			.defaultstr = *default
+			.writer_default_str = *default
 			.delete_default = (delete_if_default_flag = Delete_If_Default)
 		end if
 	end with
@@ -887,7 +919,7 @@ function EditorKit.val_node_float(root as Node ptr, path as zstring ptr, default
 			.writer = writerNodePathFloat
 			.node = root
 			.path = *path
-			.defaultfloat = default
+			.writer_default_float = default
 			.delete_default = (delete_if_default_flag = Delete_If_Default)
 		end if
 	end with
@@ -1147,7 +1179,7 @@ end function
 sub EditorKit.as_check_tag(byref datum as integer, prefix as zstring ptr = @"Tag", zerocap as zstring ptr = @"None")
 	val_int datum
 	if refresh andalso len(cur_item.caption) = 0 then
-		set_caption tag_condition_caption(value, *prefix, *zerocap)
+		wrap_caption tag_condition_caption(eff_value, *prefix, *zerocap)
 	end if
 end sub
 
@@ -1166,7 +1198,7 @@ end function
 sub EditorKit.as_set_tag(byref datum as integer, prefix as zstring ptr = @"Set tag", allowspecial as bool = NO)
 	val_int datum
 	if refresh andalso len(cur_item.caption) = 0 then
-		set_caption tag_set_caption(value, *prefix, allowspecial)
+		wrap_caption tag_set_caption(eff_value, *prefix, allowspecial)
 	end if
 end sub
 
@@ -1186,7 +1218,7 @@ end function
 sub EditorKit.as_tag_id(byref datum as integer, prefix as zstring ptr = @"Tag", allowspecial as bool = NO)
 	val_int datum
 	if refresh andalso len(cur_item.caption) = 0 then
-		set_caption tag_choice_caption(value, *prefix, allowspecial)  'no zerocap arg
+		wrap_caption tag_choice_caption(eff_value, *prefix, allowspecial)  'no zerocap arg
 	end if
 end sub
 
@@ -1206,10 +1238,11 @@ end function
 sub EditorKit.as_spriteset(byref datum as integer, or_none_flag as EKFlags = 0)
 	val_int datum
 	if refresh andalso len(cur_item.caption) = 0 then
-		if value = -1 andalso (or_none_flag = Or_None) then
-			set_caption "None"
-		elseif value < 0 then
-			set_caption "Invalid spriteset " & value
+		var id = eff_value
+		if id = -1 andalso (or_none_flag = Or_None) then
+			wrap_caption "None"
+		elseif id < 0 then
+			wrap_caption "Invalid spriteset " & id
 		end if
 	end if
 end sub
@@ -1232,10 +1265,11 @@ end function
 sub EditorKit.as_palette(byref datum as integer)
 	val_int datum
 	if refresh andalso len(cur_item.caption) = 0 then
-		if value = -1 then
-			set_caption "Default"
-		elseif value < 0 then
-			set_caption "Invalid palette " & value
+		var id = eff_value
+		if id = -1 then
+			wrap_caption "Default"
+		elseif id < 0 then
+			wrap_caption "Invalid palette " & id
 		end if
 	end if
 end sub
@@ -1257,14 +1291,15 @@ end function
 
 '------------------------------------ Audio ------------------------------------
 
-' -1 is Silence, but -2 often also has a special meaning you need to set with set_caption
+' -1 is Silence, but -2 often also has a special meaning which you need to set with set_caption
 sub EditorKit.as_song(byref datum as integer)
 	val_int datum
 	if refresh andalso len(cur_item.caption) = 0 then
-		if value < 0 then  '-1
-			set_caption "Silence"
+		var id = eff_value
+		if id < 0 then  '-1
+			wrap_caption "Silence"
 		else
-			set_caption value & " " & getsongname(value)
+			wrap_caption id & " " & getsongname(id)
 		end if
 	end if
 end sub
@@ -1279,10 +1314,10 @@ function EditorKit.edit_as_song(byref datum as integer, min as integer = -1, pre
 		edit_zint value, min, gen(genMaxSong)
 	end if
 	if edited then
-		if preview_audio_flag = Preview_Audio andalso value >= 0 then
+		if preview_audio_flag = Preview_Audio andalso eff_value >= 0 then
 			' playsongnum doesn't stop the music if you play a nonexistent song.
 			music_stop
-			playsongnum value
+			playsongnum eff_value
 		else
 			music_stop
 		end if
@@ -1294,10 +1329,11 @@ end function
 sub EditorKit.as_sfx(byref datum as integer)
 	val_int datum
 	if refresh andalso len(cur_item.caption) = 0 then
-		if value < 0 then  '-1
-			set_caption "None"
+		var id = eff_value
+		if id < 0 then  '-1
+			wrap_caption "None"
 		else
-			set_caption value & " " & getsfxname(value)
+			wrap_caption id & " " & getsfxname(id)
 		end if
 	end if
 end sub
@@ -1312,9 +1348,9 @@ function EditorKit.edit_as_sfx(byref datum as integer, min as integer = -1, prev
 		edit_zint value, min, gen(genMaxSFX)
 	end if
 	if edited then
-		if preview_audio_flag = Preview_Audio andalso value >= 0 then
+		if preview_audio_flag = Preview_Audio andalso eff_value >= 0 then
 			resetsfx  'Stop previous sound
-			playsfx value
+			playsfx eff_value
 		else
 			resetsfx
 		end if
@@ -1329,14 +1365,15 @@ end function
 sub EditorKit.as_enemy(byref datum as integer, or_none_flag as EKFlags = 0)
 	val_int datum
 	if refresh andalso len(cur_item.caption) = 0 then
-		if value = -1 andalso (or_none_flag = Or_None) then
-			set_caption "None"
-		elseif value < 0 then
-			set_caption "Invalid enemy " & value
+		var id = eff_value
+		if id = -1 andalso (or_none_flag = Or_None) then
+			wrap_caption "None"
+		elseif id < 0 then
+			wrap_caption "Invalid enemy " & id
 		else
 			dim enemy as EnemyDef
-			loadenemydata enemy, value
-			set_caption value & " " & enemy.name
+			loadenemydata enemy, id
+			wrap_caption id & " " & enemy.name
 		end if
 	end if
 end sub
