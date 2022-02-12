@@ -126,7 +126,7 @@
 '     offset_int -1   'Can be called either before or after val_*
 '     edit_as_enemy rec(42), Or_None
 '  Alternatively:
-'     edit_as_enemy offset_int(1, rec(42)), Or_None
+'     edit_as_enemy offset_int(-1, rec(42)), Or_None
 '  You can write it this equivalent way:
 '     val_int rec(42)
 '     value -= 1
@@ -301,48 +301,50 @@ sub EditorKit.write_value()
 			exit sub
 		end if
 
+		' Get the actual output integer value to write (no changes needed to string/float)
+		dim outvalue as integer = value
 		if .offset then
 			assert(.dtype = dtypeInt)
-			value -= .offset
+			outvalue -= .offset
 		end if
 		if .inverted_bool then
 			assert(.dtype = dtypeBool)
-			value xor= YES
+			outvalue xor= YES
 		end if
 
 		select case as const .writer
 			case writerByte
-				*.byte_ptr = value
+				*.byte_ptr = outvalue
 			case writerBoolean
 				' FB booleans take value 0/-1 but are stored in
 				' memory as a 0/1 byte (to match a C/C++ bool)
-				*.byte_ptr = iif(value, 1, 0)
+				*.byte_ptr = iif(outvalue, 1, 0)
 			case writerBit
-				if value then
+				if outvalue then
 					*.int_ptr or= .whichbit
 				else
 					*.int_ptr and= not .whichbit
 				end if
 			case writerInt  'Includes bool
-				*.int_ptr = value
+				*.int_ptr = outvalue
 			case writerStr
 				*.str_ptr = valuestr
 			case writerDouble
 				*.double_ptr = valuefloat
 			case writerNodeInt
-				SetContent(.node, value)
+				SetContent(.node, outvalue)
 			case writerNodeBool
-				SetContent(.node, iif(value, 1, 0))
+				SetContent(.node, iif(outvalue, 1, 0))
 			case writerNodeStr
 				SetContent(.node, valuestr)
 			case writerNodeFloat
 				SetContent(.node, valuefloat)
 			case writerNodePathInt, writerNodePathBool
-				var valnode = create_or_delete_default_node(cur_item, value = .default)
+				var valnode = create_or_delete_default_node(cur_item, outvalue = .default)
 				if .writer = writerNodePathBool then
-					value = iif(value, 1, 0)
+					outvalue = iif(outvalue, 1, 0)
 				end if
-				if valnode then SetContent(valnode, value)
+				if valnode then SetContent(valnode, outvalue)
 			case writerNodePathStr
 				var valnode = create_or_delete_default_node(cur_item, valuestr = .defaultstr)
 				if valnode then SetContent(valnode, valuestr)
@@ -351,13 +353,13 @@ sub EditorKit.write_value()
 				if valnode then SetContent(valnode, valuefloat)
 			case writerNodePathExists
 				' If value is true, create it
-				var valnode = NodeByPath(.node, .path, value <> NO)
-				if value = NO andalso valnode then
+				var valnode = NodeByPath(.node, .path, outvalue <> NO)
+				if outvalue = NO andalso valnode then
 					' If value is false, delete it
 					FreeNode valnode
 				end if
 			case writerConfigBool
-				write_config .path, yesorno(value)
+				write_config .path, yesorno(outvalue)
 
 			case else  ' Including writerNone
 				' We should have set both .dtype and .writer in val_*
@@ -972,7 +974,7 @@ function EditorKit.edit_zint(byref datum as integer, min as integer, max as inte
 	val_int datum
 	if process then
 		value += 1
-		edited or= zintgrabber(value, min + 1, max + 1)
+		edited or= zintgrabber(value, min, max)
 		value -= 1
 		if edited then write_value
 	end if
@@ -1219,12 +1221,12 @@ sub EditorKit.as_palette(byref datum as integer)
 	end if
 end sub
 
+' Always allows -1 as default (there's no existing data field that doesn't allow a default palette)
 function EditorKit.edit_as_palette(byref datum as integer, spr_type as SpriteType = sprTypeInvalid, spr_set as integer = 0) as bool
 	BUG_IF(spr_type < 0 or spr_type > ubound(sprite_sizes), "Bad spr_type", NO)
 	as_palette datum
 	' Can't enter the browser without a spriteset to preview
 	if activate andalso spr_type <> sprTypeInvalid then
-		' There's no existing data field that doesn't allow a default palette
 		value = pal16browse(value, spr_type, spr_set, YES)  'show_default = YES
 		edited = YES
 	else
