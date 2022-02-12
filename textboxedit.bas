@@ -15,6 +15,7 @@
 #include "custom.bi"
 #include "thingbrowser.bi"
 #include "sliceedit.bi"
+#include "editorkit.bi"
 
 '--Local subs and functions
 DECLARE FUNCTION textbox_condition_caption(tag as integer, prefix as string = "") as string
@@ -69,6 +70,14 @@ CONST condITEM       = 9
 CONST condBOXorSCRIPT = 10
 CONST condMENU       = 11
 CONST condSETTAG     = 12
+
+STATIC SHARED portrait_type_names(portraitLAST) as zstring ptr = {_
+    @"None", _
+    @"Fixed", _
+    @"Hero (by caterpillar order)", _
+    @"Hero (by party slot)", _
+    @"Hero (by ID)" _
+}
 
 DIM SHARED browse_default as string
 
@@ -856,270 +865,146 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
  LOOP
 END SUB
 
+
+
+'==============================================================================
+
+
+TYPE TextboxAppearanceEditor EXTENDS EditorKit
+ DECLARE SUB define_items()
+ DECLARE SUB load()
+ DECLARE SUB save()
+ DECLARE SUB draw_underlays()
+ backdrop as Frame ptr
+ boxp as TextBox ptr
+ st as TextboxEditState ptr
+END TYPE
+
 SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState)
- DIM menu as SimpleMenuItem vector
- update_textbox_appearance_editor_menu menu, box, st
+ DIM editor as TextboxAppearanceEditor
+ editor.helpkey = "textbox_appearance"
+ editor.boxp = @box
+ editor.st = @st
+ editor.menuopts.drawbg = YES
+ editor.menuopts.edged = YES
+ editor.setup_record_switching st.id, gen(genMaxTextBox), , "Text Box"
+ editor.run()
+ frame_unload @editor.backdrop
+END SUB
 
- DIM state as MenuState
- init_menu_state state, cast(BasicMenuItem vector, menu)
- state.autosize = YES
- DIM menuopts as MenuOptions
- menuopts.edged = YES
- menuopts.drawbg = YES
+SUB TextboxAppearanceEditor.save()
+ SaveTextBox *boxp, st->id
+END SUB
 
- 'Show backdrop
- DIM backdrop as Frame ptr
- IF box.backdrop > 0 THEN
-  backdrop = frame_load(sprTypeBackdrop, box.backdrop - 1)
+SUB TextboxAppearanceEditor.load()
+ ' This also loads the slices, but we don't rely on that: the backdrop
+ ' and slices are (instead) loaded in define_items
+ textbox_edit_load *boxp, *st
+ 'music_stop
+END SUB
+
+SUB TextboxAppearanceEditor.draw_underlays()
+ textbox_draw_with_background *boxp, *st, backdrop, vpage
+END SUB
+
+SUB TextboxAppearanceEditor.define_items()
+ DIM byref box as TextBox = *boxp
+
+ defint "Position:", box.vertical_offset, 0, gen(genResolutionX) \ 4 - 1
+ defint "Text Color:", box.textcolor, 0, 255
+ IF activate THEN
+  value = color_browser_256(value)
+  edited = YES
  END IF
 
- setkeys
- DO
-  setwait 55
-  setkeys
-  IF keyval(ccCancel) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "textbox_appearance"
-  IF keyval(scF6) > 1 THEN
-   slice_editor st.rootsl, , , , YES  'privileged
-   state.need_update = YES
-  END IF
-
-  usemenu state, cast(BasicMenuItem vector, menu)
-  IF enter_space_click(state) THEN
-   SELECT CASE menu[state.pt].dat
-    CASE 0: EXIT DO ' Exit the appearance menu
-    CASE 3: box.textcolor = color_browser_256(box.textcolor)
-    CASE 5:
-      DIM backdropb as BackdropSpriteBrowser
-      box.backdrop = backdropb.browse(box.backdrop - 1, YES) + 1
-      state.need_update = YES
-      frame_unload @backdrop
-      IF box.backdrop > 0 THEN
-       backdrop = frame_load(sprTypeBackdrop, box.backdrop - 1)
-      END IF
-    CASE 6:
-     box.music = song_picker_or_none(box.music)
-     IF box.music > -1 THEN playsongnum box.music - 1
-    CASE 7: box.no_box = (NOT box.no_box)
-    CASE 8: box.opaque = (NOT box.opaque)
-    CASE 9: box.restore_music = (NOT box.restore_music)
-    CASE 16: box.stop_sound_after = (NOT box.stop_sound_after)
-    CASE 18: box.backdrop_trans = (NOT box.backdrop_trans)
-    CASE 11:
-     IF box.portrait_type = portraitSPRITESET THEN
-      DIM portraitb as PortraitSpriteBrowser
-      box.portrait_id = portraitb.browse(box.portrait_id)
-      state.need_update = YES
-     END IF
-    CASE 12:
-     IF box.portrait_type = portraitSPRITESET THEN
-      box.portrait_pal = pal16browse(box.portrait_pal, sprTypePortrait, box.portrait_id, YES)
-     END IF
-    CASE 13: box.portrait_box = (NOT box.portrait_box)
-    CASE 14:
-     IF box.portrait_type <> portraitNONE THEN  'If portrait type is NONE, then the portrait+box aren't visible
-      textbox_position_portrait box, st, backdrop
-     END IF
-    CASE 15:
-     box.sound_effect = sfx_picker_or_none(box.sound_effect)
-    CASE 17:
-     box.line_sound = sfx_picker_or_none(box.line_sound)
-     IF box.line_sound = 0 ANDALSO gen(genTextboxLine) > 0 THEN
-      playsfx gen(genTextboxLine) - 1
-     END IF
-   END SELECT
-   state.need_update = YES
-  END IF
-  IF keyval(scAlt) = 0 THEN
-   'Not holding ALT
-   IF keyval(ccLeft) > 1 OR keyval(ccRight) > 1 THEN
-    SELECT CASE menu[state.pt].dat
-     CASE 7: box.no_box = (NOT box.no_box)
-     CASE 8: box.opaque = (NOT box.opaque)
-     CASE 9: box.restore_music = (NOT box.restore_music)
-     CASE 13: box.portrait_box = (NOT box.portrait_box)
-     CASE 16: box.stop_sound_after = (NOT box.stop_sound_after)
-     CASE 18: box.backdrop_trans = (NOT box.backdrop_trans)
-    END SELECT
-    state.need_update = YES
-   END IF
-   SELECT CASE menu[state.pt].dat
-    CASE 1: state.need_update OR= intgrabber(box.vertical_offset, 0, gen(genResolutionX) \ 4 - 1)
-    CASE 2: state.need_update OR= intgrabber(box.shrink, -1, 21)
-    CASE 3: state.need_update OR= intgrabber(box.textcolor, 0, 255)
-    CASE 4: state.need_update OR= intgrabber(box.boxstyle, 0, 14)
-    CASE 5:
-     IF zintgrabber(box.backdrop, -1, gen(genNumBackdrops) - 1) THEN
-      state.need_update = YES
-      frame_unload @backdrop
-      IF box.backdrop > 0 THEN
-       backdrop = frame_load(sprTypeBackdrop, box.backdrop - 1)
-      END IF
-     END IF
-    CASE 6:
-     IF zintgrabber(box.music, -2, gen(genMaxSong)) THEN
-      state.need_update = YES
-      music_stop
-     END IF
-    CASE 10:
-     state.need_update OR= intgrabber(box.portrait_type, 0, portraitLAST)
-    CASE 11:
-     SELECT CASE box.portrait_type
-      CASE portraitSPRITESET: state.need_update OR= intgrabber(box.portrait_id, 0, gen(genMaxPortrait))
-      CASE portraitPARTYRANK: state.need_update OR= intgrabber(box.portrait_id, 0, sizeActiveParty - 1)
-      CASE portraitPARTYSLOT: state.need_update OR= intgrabber(box.portrait_id, 0, sizeParty - 1)
-      CASE portraitHEROID:    state.need_update OR= intgrabber(box.portrait_id, 0, gen(genMaxHero))
-     END SELECT
-    CASE 12:
-     IF box.portrait_type = portraitSPRITESET THEN
-      state.need_update OR= intgrabber(box.portrait_pal, -1, gen(genMaxPal))
-     END IF
-    CASE 15:
-     IF zintgrabber(box.sound_effect, -1, gen(genMaxSFX)) THEN
-      state.need_update = YES
-      resetsfx
-     END IF
-    CASE 17:
-     IF zintgrabber(box.line_sound, -2, gen(genMaxSFX)) THEN
-      state.need_update = YES
-      resetsfx
-     END IF
-   END SELECT
-  ELSE '-- holding ALT
-   DIM remptr as integer = st.id
-   IF intgrabber(st.id, 0, gen(genMaxTextBox)) THEN
-    SaveTextBox box, remptr
-    textbox_edit_load box, st
-    frame_unload @backdrop
-    music_stop
-    IF box.backdrop > 0 THEN
-     backdrop = frame_load(sprTypeBackdrop, box.backdrop - 1)
-    END IF
-    state.need_update = YES
-   END IF
-  END IF
-  IF state.need_update THEN
-   state.need_update = NO
-   update_textbox_appearance_editor_menu menu, box, st
-   init_menu_state state, cast(BasicMenuItem vector, menu)
-  END IF
-
-  textbox_draw_with_background box, st, backdrop, dpage
-  standardmenu cast(BasicMenuItem vector, menu), state, 0, 0, dpage, menuopts
-
-  IF keyval(scAlt) > 0 THEN
-   textcolor uilook(uiText), uilook(uiHighlight)
-   printstr "Box " & st.id, pRight, 0, dpage
-  END IF
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
- v_free menu
- frame_unload @backdrop
- resetsfx
- music_stop
-END SUB
-
-' Append a menu item; first argument is menu item type
-PRIVATE SUB menuitem(itemdata as integer, byref menu as SimpleMenuItem vector, caption as zstring ptr, unselectable as bool = NO, col as integer = 0)
- IF itemdata = -1 THEN unselectable = YES : col = uilook(eduiHeading)
- append_simplemenu_item menu, caption, unselectable, col, itemdata
-END SUB
-
-STATIC SHARED portrait_type_names(portraitLAST) as zstring ptr = {_
-    @"NONE", _
-    @"Fixed", _
-    @"Hero (by caterpillar order)", _
-    @"Hero (by party order)", _
-    @"Hero (by ID)" _
-}
-
-SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem vector, byref box as TextBox, byref st as TextboxEditState)
- DIM menutemp as string
- v_new menu
- menuitem 0, menu, "Go Back"
- menuitem 1, menu, "Position: " & box.vertical_offset
- menuitem 3, menu, "Text Color: " & box.textcolor
-
- menuitem -1, menu, ""
- menuitem -1, menu, " Box"
- menuitem 7, menu, "Show Box: " & yesorno(NOT box.no_box)
+ section "Box"
+ defitem "Show Box:"
+ edit_bool invert_bool(box.no_box)
  IF box.no_box = NO THEN
-  menuitem 8, menu, "Translucent: " & yesorno(NOT box.opaque)
-  menuitem 4, menu, "Box Style: " & box.boxstyle
+  defitem "Translucent:"
+  edit_bool invert_bool(box.opaque)
  END IF
- IF box.no_box = NO ORELSE box.choice_enabled THEN  'Shrink affects choicebox position
-  menuitem 2, menu, "Shrink: " & IIF(box.shrink = -1, "Auto", STR(box.shrink))
+ IF box.no_box = NO ORELSE box.choice_enabled THEN  'Box Style and shrink affect the choicebox
+  defint "Box Style:", box.boxstyle, 0, 14
+  defitem "Shrink:"
+  edit_zint box.shrink, -1, 21
+  IF value = -1 THEN set_caption "Auto"
  END IF
 
- menuitem -1, menu, ""
- menuitem -1, menu, " Backdrop"
- menuitem 5, menu, "Backdrop: " & IIF(box.backdrop, STR(box.backdrop - 1), "NONE")
+ section "Backdrop"
+ defitem "Backdrop:"
+ edit_as_spriteset(offset_int(-1, box.backdrop), sprTypeBackdrop, Or_None)
  IF box.backdrop > 0 THEN
-  menuitem 18, menu, "Transparent: " & yesorno(box.backdrop_trans)
+  defbool "Transparent:", box.backdrop_trans
  END IF
 
- menuitem -1, menu, ""
- menuitem -1, menu, " Portrait"
- menuitem 10, menu, "Type: " & safe_captionz(portrait_type_names(), box.portrait_type, "type")
-
+ section "Portrait"
+ defint "Type:", box.portrait_type, 0, portraitLAST
+ captionsz portrait_type_names(), "type"
  IF box.portrait_type <> portraitNONE THEN
-  menutemp = STR(box.portrait_id)
+  defitem "ID:"
+  val_int box.portrait_id
   SELECT CASE box.portrait_type
-   CASE portraitNONE: menutemp = "(N/A)"
-   CASE portraitPARTYRANK: IF box.portrait_id = 0 THEN menutemp &= " (Leader)"
-   CASE portraitPARTYSLOT: IF box.portrait_id > 3 THEN menutemp &= " (Reserve)"
-   CASE portraitHEROID: menutemp &= " (" & getheroname(box.portrait_id) & ")"
+   CASE portraitSPRITESET: edit_as_spriteset value, sprTypePortrait
+   CASE portraitPARTYRANK: edit_int value, 0, sizeActiveParty - 1
+   CASE portraitPARTYSLOT: edit_int value, 0, sizeParty - 1
+   CASE portraitHEROID:    edit_int value, 0, gen(genMaxHero)
   END SELECT
-  menuitem 11, menu, "ID: " & menutemp
-  menutemp = defaultint(box.portrait_pal)
   SELECT CASE box.portrait_type
-   CASE portraitNONE: menutemp = "(N/A)"
-   CASE portraitSPRITESET:
-   CASE ELSE: menutemp &= " (N/A, see hero editor)"
+   CASE portraitPARTYRANK: IF value = 0 THEN set_caption value & " (Leader)"
+   CASE portraitPARTYSLOT: IF value >= sizeActiveParty THEN set_caption value & " (Reserve)"
+   CASE portraitHEROID:    set_caption value & " (" & getheroname(value) & ")"
   END SELECT
-  menuitem 12, menu, "Palette: " & menutemp
-  menuitem 13, menu, "Box: " & yesorno(box.portrait_box)
-  menuitem 14, menu, "Position Portrait..."
- END IF
 
- menuitem -1, menu, ""
- menuitem -1, menu, " Audio"
- IF box.music < 0 THEN
-  menutemp = "SILENCE"
- ELSEIF box.music = 0 THEN
-  menutemp = "NONE"
- ELSE
-  menutemp = (box.music - 1) & " " & getsongname(box.music - 1)
- END IF
- menuitem 6, menu, "Music: " & menutemp
- menuitem 9, menu, "Restore Map Music Afterwards: " & yesorno(box.restore_music)
+  defitem "Palette:"
+  SELECT CASE box.portrait_type
+   CASE portraitSPRITESET: edit_as_palette box.portrait_pal, sprTypePortrait, box.portrait_id
+   CASE ELSE:              set_caption "(N/A, see hero editor)"
+  END SELECT
 
- IF box.sound_effect = 0 THEN
-  menutemp = "NONE"
- ELSE
-  menutemp = (box.sound_effect - 1) & " " & getsfxname(box.sound_effect - 1)
- END IF
- menuitem 15, menu, "Sound Effect: " & menutemp
- IF box.sound_effect > 0 THEN
-  menuitem 16, menu, "Stop Sound Afterwards: " & yesorno(box.stop_sound_after)
- END IF
- IF box.line_sound < 0 THEN
-  menutemp = "NONE"
- ELSEIF box.line_sound = 0 THEN
-  IF gen(genTextboxLine) <= 0 THEN
-   menutemp = "default (NONE)"
-  ELSE
-   menutemp = "default (" & (gen(genTextboxLine) - 1) & " " & getsfxname(gen(genTextboxLine) - 1) & ")"
+  defbool "Box:", box.portrait_box
+
+  IF defitem_act("Position Portrait...") THEN
+   IF box.portrait_type <> portraitNONE THEN  'If portrait type is NONE, then the portrait+box aren't visible
+    textbox_position_portrait box, *st, backdrop
+   END IF
   END IF
- ELSE
-  menutemp = (box.line_sound - 1) & " " & getsfxname(box.line_sound - 1)
+  'IF box.portrait_type = portraitNONE THEN set_disabled  'Not implemented
  END IF
- menuitem 17, menu, "Line Sound: " & menutemp
 
- init_text_box_slices st.textbox_sl, box, st.rootsl, YES
+ section "Audio"
+ defitem "Music:"
+ edit_as_song offset_int(-1, box.music), -2, 'Preview_Audio
+ IF value = -2 THEN
+  set_caption "Silence"
+ ELSEIF value = -1 THEN
+  set_caption "None"
+ END IF
+ defbool "Restore Map Music Afterwards:", box.restore_music
+
+ defitem "Sound Effect:"
+ edit_as_sfx offset_int(-1, box.sound_effect), , 'Preview_Audio
+ IF box.sound_effect > 0 THEN
+  defbool "Stop Sound Afterwards:", box.stop_sound_after
+ END IF
+
+ defitem "Line Sound:"
+ default_effective_value -1, gen(genTextboxLine) - 1
+ edit_as_sfx offset_int(-1, box.line_sound), -2, 'Preview_Audio
+ IF value = -2 THEN set_caption "None"
+
+ 'Update textbox preview (refresh happens when state.need_update is true)
+ IF phase = Phases.Refreshing THEN
+  init_text_box_slices st->textbox_sl, box, st->rootsl, YES
+  frame_unload @backdrop
+  IF boxp->backdrop > 0 THEN
+   backdrop = frame_load(sprTypeBackdrop, boxp->backdrop - 1)
+  END IF
+ END IF
 END SUB
+
+'==============================================================================
+
 
 SUB textbox_seek(byref box as TextBox, byref st as TextboxEditState)
  DIM remember_id as integer = st.id
@@ -1283,46 +1168,29 @@ END SUB
 '========================== Textbox Choice Editor =============================
 
 
+TYPE ChoiceEditor EXTENDS EditorKit
+ DECLARE SUB define_items()
+ boxp as TextBox ptr
+END TYPE
+
 SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
- DIM state as MenuState
- WITH state
-  .last = 5
-  .size = 24
- END WITH
- DIM menu(5) as string
- menu(0) = "Go Back"
- setkeys YES
- DO
-  setwait 55
-  setkeys YES
-  IF keyval(ccCancel) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "textbox_choice_editor"
-  usemenu state
-  IF enter_space_click(state) THEN
-   IF state.pt = 0 THEN EXIT DO
-   IF state.pt = 1 THEN box.choice_enabled = (NOT box.choice_enabled)
-  END IF
-  IF state.pt = 1 THEN
-   IF keyval(ccLeft) > 1 OR keyval(ccRight) > 1 THEN box.choice_enabled = (NOT box.choice_enabled)
-  END IF
-  FOR i as integer = 0 TO 1
-   IF state.pt = 2 + (i * 2) THEN strgrabber box.choice(i), 15
-   IF state.pt = 3 + (i * 2) THEN tag_set_grabber box.choice_tag(i), state
-  NEXT i
-  IF box.choice_enabled THEN menu(1) = "Choice = Enabled" ELSE menu(1) = "Choice = Disabled"
-  FOR i as integer = 0 TO 1
-   menu(2 + (i * 2)) = "Option " & i & " text:" + box.choice(i)
-   menu(3 + (i * 2)) = tag_set_caption(box.choice_tag(i))
-  NEXT i
- 
-  clearpage dpage
-  standardmenu menu(), state, 0, 8, dpage
- 
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
- init_text_box_slices st.textbox_sl, box, st.rootsl, YES
+ DIM editor as ChoiceEditor
+ editor.boxp = @box
+ editor.helpkey = "textbox_choice_editor"
+ editor.run()
+ init_text_box_slices st.textbox_sl, box, st.rootsl, YES  'Update preview
+END SUB
+
+SUB ChoiceEditor.define_items()
+ DIM byref box as TextBox = *boxp
+ defbool "Choice:", box.choice_enabled
+ captions_bool "Disabled", "Enabled"
+ IF value = NO THEN EXIT SUB
+ FOR i as integer = 0 TO 1
+  defstr "Option " & i & " text:", box.choice(i), 15
+  defitem ""
+  edit_as_set_tag box.choice_tag(i)
+ NEXT i
 END SUB
 
 

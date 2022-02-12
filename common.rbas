@@ -8575,6 +8575,7 @@ SUB init_text_box_slices(byref txtsl as Slice ptr, box as TextBox, parent as Sli
    .Y = text_box->Y + text_box->Height + 12
    IF .Y > txtsl->Height - (.Height + 4) THEN .Y = 32
   END WITH
+  'The choicebox isn't affected by box.opaque or box.no_box
   ChangeRectangleSlice choice_box, box.boxstyle
   REDIM choice_sl(1) as Slice Ptr
   FOR i as integer = 0 TO 1
