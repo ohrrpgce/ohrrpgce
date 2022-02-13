@@ -3208,6 +3208,7 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .blocking_counterattack         = xreadbit(buf(), 30, 65)
   .empty_target_ready_meter       = xreadbit(buf(), 31, 65)
   .fill_target_ready_meter        = xreadbit(buf(), 32, 65)
+  .exclude_from_hero_auto_battle  = xreadbit(buf(), 33, 65)
 
   ' If didn't do a full upgrade, then these aren't initialised
   IF getfixbit(fixAttackMultipliers) = 0 THEN

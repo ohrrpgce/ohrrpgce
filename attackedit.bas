@@ -354,6 +354,7 @@ a_append atkbit(), 89, "!Useable in battle from spell lists"
 a_append atkbit(), 59, "Useable outside battle from Spells menu"
 a_append atkbit(), 84, "Delay doesn't block further actions"
 a_append atkbit(), 71, "Don't chain if attack misses or fails"
+a_append atkbit(), 97, "Exclude from hero auto-battle"
 
 DIM dmgbit(-1 TO 128) as string
 DIM maskeddmgbit(-1 TO 128) as string  'Built in attack_editor_build_damage_menu
