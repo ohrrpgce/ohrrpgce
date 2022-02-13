@@ -2786,9 +2786,9 @@ SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id a
     EXIT DO
    END IF
    'If atkallowed failed, remove this item
-   v_delete_slice valid_for_ai, index, index
-   v_delete_slice list_type_v, index, index
-   v_delete_slice lmp_lev_v, index, index
+   v_delete_slice valid_for_ai, index, index+1
+   v_delete_slice list_type_v, index, index+1
+   v_delete_slice lmp_lev_v, index, index+1
   ELSE
    'All choices eliminated, fail gracefully
    debuginfo "Hero AI: hero " & attacker_id & " gave up on finding an attack"
