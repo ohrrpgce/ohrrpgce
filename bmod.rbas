@@ -219,7 +219,7 @@ FUNCTION battle (byval form as integer) as bool
     END IF
    END IF
    IF bat.player_turn >= 0 ANDALSO is_hero(bat.player_turn) ANDALSO bslot(bat.player_turn).under_player_control = NO THEN
-    hero_ai bat, bslot(bat.player_turn), bat.player_turn, bslot()
+    hero_ai bat, bslot(bat.player_turn), bat.player_turn, bslot(), st()
     bat.player_turn = -1
    END IF
    IF bat.player_turn >= 0 AND bat.targ.mode = targNONE THEN
@@ -2716,18 +2716,25 @@ END SUB
 '==============================================================================
 '                                   Hero AI
 
-SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id as integer, bslot() as BattleSprite)
+SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id as integer, bslot() as BattleSprite, st() as HeroDef)
  DIM valid_for_ai as integer vector
  v_new valid_for_ai
+
+ DIM atk_id as integer = -1
 
  FOR i as integer = 0 TO bspr.batmenu.numitems - 1
   WITH *bspr.batmenu.items[i]
    IF NOT .disabled THEN
     SELECT CASE .t
      CASE batmenu_ATTACK:
-      v_append valid_for_ai, i
+      v_append valid_for_ai, .sub_t
      CASE batmenu_SPELLS:
-      'Hero AI doesn't support spell lists (yet)...
+      'Don't bother trying to support prefbit(54) for random spell lists. That bug was fixed
+      'before this feature was added, and costs will be re-checked in a moment anyway
+      atk_id = random_attack_from_spell_menu(bat, bspr, .sub_t, st(), YES)
+      IF atk_id > -1 THEN
+       v_append valid_for_ai, atk_id
+      END IF
      CASE batmenu_ITEMS:
       'Hero AI doesn't support using items
      CASE batmenu_SKIPTURN:
@@ -2740,22 +2747,20 @@ SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id a
  DIM atk as AttackData
  DIM choice_count as integer
  DIM menu_id as integer
- DIM atk_id as integer = -1
+ atk_id = -1
 
  DO
   choice_count = v_len(valid_for_ai)
   IF choice_count > 0 THEN
-   menu_id = *v_at(valid_for_ai, randint(choice_count))
-   WITH *bspr.batmenu.items[menu_id]
-    atk_id = .sub_t
-    loadattackdata atk, atk_id
-    IF atkallowed(atk, attacker_id, 0, 0, bslot(attacker_id)) THEN
-     'this attack is good, continue on to target selection
-     EXIT DO
-    END IF
-   END WITH
+   atk_id = *v_at(valid_for_ai, randint(choice_count))
+   loadattackdata atk, atk_id
+   'Don't attempt to check level-mp here, it will have been pre-checked in random_attack_from_spell_menu()
+   IF atkallowed(atk, attacker_id, 0, 0, bslot(attacker_id)) THEN
+    'this attack is good, continue on to target selection
+    EXIT DO
+   END IF
    'If atkallowed failed, remove this item
-   v_remove valid_for_ai, menu_id
+   v_remove valid_for_ai, atk_id
   ELSE
    'All choices eliminated, fail gracefully
    debuginfo "Hero AI: hero " & attacker_id & " gave up on finding an attack"

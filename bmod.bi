@@ -54,7 +54,7 @@ DECLARE SUB triggerfade(byval who as integer, bslot() as BattleSprite)
 DECLARE SUB enemy_death_rewards(byref bat as BattleState, battler as BattleSprite)
 declare function pick_enemy_attack_list(slot as integer, bslot() as BattleSprite) as EnemyAIEnum
 DECLARE SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
-DECLARE SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id as integer, bslot() as BattleSprite)
+DECLARE SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id as integer, bslot() as BattleSprite, st() as HeroDef)
 DECLARE SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprite)
 DECLARE SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer)
