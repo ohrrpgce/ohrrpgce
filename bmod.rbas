@@ -104,6 +104,7 @@ DECLARE FUNCTION is_among_targets(byval slot as integer, t() as integer) as bool
 DECLARE FUNCTION should_victory_advance(byref bat as BattleState) as bool
 DECLARE SUB append_enemy_attacks_to_battle_menu(ai_attack_list() as integer, byref bspr as BattleSprite)
 DECLARE FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer, st() as HeroDef, byval respect_costs as bool=YES) as integer
+DECLARE FUNCTION find_attack_in_spell_menu(byval seek_atk_id as integer, bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer, st() as HeroDef, byval respect_costs as bool) as integer
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
 
@@ -2717,10 +2718,16 @@ END SUB
 '                                   Hero AI
 
 SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id as integer, bslot() as BattleSprite, st() as HeroDef)
- DIM valid_for_ai as integer vector
+ DIM valid_for_ai as integer vector 'attack id
+ DIM list_type_v as integer vector
+ DIM lmp_lev_v as integer vector
  v_new valid_for_ai
+ v_new list_type_v
+ v_new lmp_lev_v
 
  DIM atk_id as integer = -1
+ DIM list_type as integer = 0
+ DIM lmp_lev as integer = -1
 
  FOR i as integer = 0 TO bspr.batmenu.numitems - 1
   WITH *bspr.batmenu.items[i]
@@ -2728,12 +2735,29 @@ SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id a
     SELECT CASE .t
      CASE batmenu_ATTACK:
       v_append valid_for_ai, .sub_t
+      v_append list_type_v, 0
+      v_append lmp_lev_v, -1
      CASE batmenu_SPELLS:
-      'Don't bother trying to support prefbit(54) for random spell lists. That bug was fixed
-      'before this feature was added, and costs will be re-checked in a moment anyway
-      atk_id = random_attack_from_spell_menu(bat, bspr, .sub_t, st(), YES)
+      list_type = st(bspr.index).list_type(.sub_t)
+      lmp_lev = -1
+      SELECT CASE list_type
+       CASE 0 ' Regular spells
+        atk_id = random_attack_from_spell_menu(bat, bspr, .sub_t, st(), YES)
+       CASE 1 ' Level MP
+        atk_id = random_attack_from_spell_menu(bat, bspr, .sub_t, st(), YES)
+        IF atk_id > -1 THEN
+         DIM atk_index as integer = find_attack_in_spell_menu(atk_id, bat, bspr, .sub_t, st(), YES)
+         lmp_lev = atk_index \ 3
+        END IF
+       CASE 2 ' Random spells
+        'Don't bother trying to support prefbit(54) for random spell lists. That bug was fixed
+        'before this feature was added, and costs will be re-checked in a moment anyway
+        atk_id = random_attack_from_spell_menu(bat, bspr, .sub_t, st(), YES)
+      END SELECT
       IF atk_id > -1 THEN
        v_append valid_for_ai, atk_id
+       v_append list_type_v, list_type
+       v_append lmp_lev_v, lmp_lev
       END IF
      CASE batmenu_ITEMS:
       'Hero AI doesn't support using items
@@ -2752,15 +2776,19 @@ SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id a
  DO
   choice_count = v_len(valid_for_ai)
   IF choice_count > 0 THEN
-   atk_id = *v_at(valid_for_ai, randint(choice_count))
+   DIM index as integer = randint(choice_count)
+   atk_id = *v_at(valid_for_ai, index)
+   list_type = *v_at(list_type_v, index)
+   lmp_lev = *v_at(lmp_lev_v, index)
    loadattackdata atk, atk_id
-   'Don't attempt to check level-mp here, it will have been pre-checked in random_attack_from_spell_menu()
-   IF atkallowed(atk, attacker_id, 0, 0, bslot(attacker_id)) THEN
+   IF atkallowed(atk, attacker_id, list_type, lmp_lev, bslot(attacker_id)) THEN
     'this attack is good, continue on to target selection
     EXIT DO
    END IF
    'If atkallowed failed, remove this item
-   v_remove valid_for_ai, atk_id
+   v_delete_slice valid_for_ai, index, index
+   v_delete_slice list_type_v, index, index
+   v_delete_slice lmp_lev_v, index, index
   ELSE
    'All choices eliminated, fail gracefully
    debuginfo "Hero AI: hero " & attacker_id & " gave up on finding an attack"
@@ -2778,6 +2806,7 @@ SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id a
 
   'Note: if autotargetting fails the targetless attack gets queued anyway, wasting the hero's turn
   autotarget attacker_id, atk, bslot()
+  bspr.consume_lmp = lmp_lev
 
   IF bat.turn.mode = turnACTIVE THEN
    bslot(attacker_id).active_turn_num += 1
@@ -2791,6 +2820,8 @@ SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id a
  END IF
  
  v_free valid_for_ai
+ v_free list_type_v
+ v_free lmp_lev_v
 
 END SUB
 
@@ -3076,6 +3107,29 @@ FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite,
  END IF
  v_free spells
  RETURN result
+END FUNCTION
+
+FUNCTION find_attack_in_spell_menu(byval seek_atk_id as integer, bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer, st() as HeroDef, byval respect_costs as bool) as integer
+ 'Search for an attack in a spell list, and return the index at which it was found, or -1 for not found.
+ 'If the spell is found more than once, only the first match is returned
+ 'Can optionally respect or not respect costs 
+ IF NOT is_hero(bspr.index) THEN RETURN -1 'only heroes have spell lists
+ 
+ '-- loop through the spell list.
+ DIM atk as AttackData
+ FOR i as integer = 0 TO UBOUND(bat.spell.slot)
+  DIM atkid as integer = gam.hero(bspr.index).spells(spell_list_id, i) - 1
+  IF atkid >= 0 ANDALSO atkid = seek_atk_id THEN
+   IF respect_costs THEN
+    loadattackdata atk, atkid
+    DIM list_type as integer = st(bspr.index).list_type(spell_list_id)
+    IF atk.useable_inside_battle ANDALSO atkallowed(atk, bspr.index, list_type, i \ 3, bspr) THEN RETURN i
+   ELSE
+    RETURN i
+   END IF
+  END IF
+ NEXT i
+ RETURN -1
 END FUNCTION
 
 'Handle player controls while a spell menu is open.
