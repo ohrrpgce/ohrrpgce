@@ -81,10 +81,8 @@ protected:
 	template <class T_VertexType>
 	bool drawSetup(T_VertexType *pTriangle, SurfaceRect *pRectDest, Surface *pSurfaceDest, std::queue< DrawingRange< T_VertexType > > &rasterLines);
 	void rasterColor(const DrawingRange<VertexPC>& range, Surface* pSurfaceDest);
-	void rasterTexture(const DrawingRange<VertexPT>& range, const Surface* pTexture, const RGBPalette* pPalette, Surface* pSurfaceDest);
-	void rasterTextureWithColorKey0(const DrawingRange<VertexPT>& range, const Surface* pTexture, const RGBPalette* pPalette, Surface* pSurfaceDest);
-	void rasterTextureColor(const DrawingRange<VertexPTC>& range, const Surface* pTexture, const RGBPalette* pPalette, Surface* pSurfaceDest);
-	void rasterTextureColorWithColorKey0(const DrawingRange<VertexPTC>& range, const Surface* pTexture, const RGBPalette* pPalette, Surface* pSurfaceDest);
+	void rasterTexture(const DrawingRange<VertexPT>& range, const Surface* pTexture, const RGBPalette* pPalette, bool bUseColorKey0, Surface* pSurfaceDest);
+	void rasterTextureColor(const DrawingRange<VertexPTC>& range, const Surface* pTexture, const RGBPalette* pPalette, bool bUseColorKey0, Surface* pSurfaceDest);
 public:
 	void drawTriangleColor(VertexPC* pTriangle, Color argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest);
 	void drawTriangleTexture(VertexPT* pTriangle, const Surface* pTexture, const RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest);

@@ -261,7 +261,7 @@ void TriRasterizer::rasterColor(const DrawingRange<VertexPC> &range, Surface *pS
 	}
 }
 
-void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest)
+void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Surface *pTexture, const RGBPalette *pPalette, bool bUseColorKey0, Surface *pSurfaceDest)
 {//done
 	//assumed that if source is 8bit, a palette was passed in
 
@@ -275,49 +275,26 @@ void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Sur
 	uint32_t *pDest = &pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->pitch + start];
 
 	bool is_32bit = (pTexture->format == SF_32bit);
+	int colorKey = bUseColorKey0 ? 0 : -1;
 
 	for (int i = start; i <= finish; i++, pDest++) {
 		TexCoord texel = texel_coord(range, i, length, weightFirst);
 
 		if (is_32bit)
 			srcColor = m_sampler.sample32bit(pTexture, texel.u, texel.v);
-		else
-			srcColor = Color(pPalette->col[ m_sampler.sample8bit(pTexture, texel.u, texel.v) ]);
+		else {
+			uint8_t index = m_sampler.sample8bit(pTexture, texel.u, texel.v);
+			if (index == colorKey)
+				continue;
+			srcColor = Color(pPalette->col[index]);
+		}
 
 		destColor = *pDest;
 		*pDest = blend_colors(srcColor, destColor);
 	}
 }
 
-void TriRasterizer::rasterTextureWithColorKey0(const DrawingRange<VertexPT> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest)
-{//done
-	//assumes that if source is 8bit, a palette was passed in
-	if (pTexture->format == SF_32bit)
-		return;  //BUG, should never be called
-
-	float length = range.greatest.pos.x - range.least.pos.x + 1.0f;
-	float weightFirst;
-
-	int start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
-	int finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
-
-	Color srcColor, destColor;
-	uint32_t *pDest = &pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->pitch + start];
-
-	for (int i = start; i <= finish; i++, pDest++) {
-		TexCoord texel = texel_coord(range, i, length, weightFirst);
-
-		uint8_t colorKey = m_sampler.sample8bit(pTexture, texel.u, texel.v);
-		if (!colorKey)
-			continue;
-		srcColor = Color(pPalette->col[colorKey]);
-
-		destColor = *pDest;
-		*pDest = blend_colors(srcColor, destColor);
-	}
-}
-
-void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest)
+void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, const Surface *pTexture, const RGBPalette *pPalette, bool bUseColorKey0, Surface *pSurfaceDest)
 {//done
 	//assumed that if source is 8bit, a palette was passed in
 
@@ -331,46 +308,19 @@ void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, con
 	uint32_t *pDest = &pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->pitch + start];
 
 	bool is_32bit = (pTexture->format == SF_32bit);
+	int colorKey = bUseColorKey0 ? 0 : -1;
 
 	for (int i = start; i <= finish; i++, pDest++) {
 		TexCoord texel = texel_coord(range, i, length, weightFirst);
 
 		if (is_32bit)
 			srcColor = m_sampler.sample32bit(pTexture, texel.u, texel.v);
-		else
-			srcColor = Color(pPalette->col[ m_sampler.sample8bit(pTexture, texel.u, texel.v) ]);
-
-		vertexColor = range.least.col;
-		vertexColor.scale(range.greatest.col, 255.0f * weightFirst);
-		srcColor.scale(vertexColor);
-
-		destColor = *pDest;
-		*pDest = blend_colors(srcColor, destColor);
-	}
-}
-
-void TriRasterizer::rasterTextureColorWithColorKey0(const DrawingRange<VertexPTC> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest)
-{//done
-	//assumed that if source is 8bit, a palette was passed in
-	if (pTexture->format == SF_32bit)
-		return;  //BUG, should never be called
-
-	float length = range.greatest.pos.x - range.least.pos.x + 1.0f;
-	float weightFirst;
-
-	int start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
-	int finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
-
-	Color srcColor, destColor, vertexColor;
-	uint32_t *pDest = &pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->pitch + start];
-
-	for (int i = start; i <= finish; i++, pDest++) {
-		TexCoord texel = texel_coord(range, i, length, weightFirst);
-
-		uint8_t colorKey = m_sampler.sample8bit(pTexture, texel.u, texel.v);
-		if (!colorKey)
-			continue;
-		srcColor = Color(pPalette->col[colorKey]);
+		else {
+			uint8_t index = m_sampler.sample8bit(pTexture, texel.u, texel.v);
+			if (index == colorKey)
+				continue;
+			srcColor = Color(pPalette->col[index]);
+		}
 
 		vertexColor = range.least.col;
 		vertexColor.scale(range.greatest.col, 255.0f * weightFirst);
@@ -443,10 +393,7 @@ void TriRasterizer::drawTriangleTexture(VertexPT *pTriangle, const Surface *pTex
 
 	//rasterize the polygon
 	while (!rasterLines.empty()) {
-		if(bUseColorKey0)
-			rasterTextureWithColorKey0(rasterLines.front(), pTexture, pPalette, pSurfaceDest);
-		else
-			rasterTexture(rasterLines.front(), pTexture, pPalette, pSurfaceDest);
+		rasterTexture(rasterLines.front(), pTexture, pPalette, bUseColorKey0, pSurfaceDest);
 		rasterLines.pop();
 	}
 }
@@ -473,10 +420,7 @@ void TriRasterizer::drawTriangleTextureColor(VertexPTC *pTriangle, const Surface
 
 	//rasterize the polygon
 	while (!rasterLines.empty()) {
-		if(bUseColorKey0)
-			rasterTextureColorWithColorKey0(rasterLines.front(), pTexture, pPalette, pSurfaceDest);
-		else
-			rasterTextureColor(rasterLines.front(), pTexture, pPalette, pSurfaceDest);
+		rasterTextureColor(rasterLines.front(), pTexture, pPalette, bUseColorKey0, pSurfaceDest);
 		rasterLines.pop();
 	}
 }
