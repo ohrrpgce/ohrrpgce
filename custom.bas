@@ -1659,19 +1659,20 @@ END SUB
 #ENDIF
 
 'smooth is 0, 1 or 2
-SUB rotozoom_test_with (img as GraphicPair, rotate as double, zoomx as double, zoomy as double, smooth as integer)
+FUNCTION rotozoom_test_with (img as GraphicPair, rotate as double, zoomx as double, zoomy as double, smooth as integer, raster as bool = NO, trans as bool = NO, reftime as double = 0.) as double
  clearpage vpage
 
+ 'These aren't used by raster
  DIM as Surface ptr in_surf, out_surf
  IF smooth > 0 THEN
   in_surf = frame_to_surface32(img.sprite, master())
  ELSE
-  IF gfx_surfaceCreateFrameView(img.sprite, @in_surf) THEN EXIT SUB
+  IF gfx_surfaceCreateFrameView(img.sprite, @in_surf) THEN RETURN 0
  END IF
 
  ' First warm up the CPU, because CPU frequency toggling is the norm
  ' these days and it makes timing meaningless unless at a reliable frequency
- DIM rztime as double = TIMER
+ DIM rztime as double = TIMER, copytime as double
  WHILE TIMER - rztime < 150e-3
   out_surf = rotozoomSurface(in_surf, rotate, 1., 1., NO)
   gfx_surfaceDestroy(@out_surf)
@@ -1684,41 +1685,91 @@ SUB rotozoom_test_with (img as GraphicPair, rotate as double, zoomx as double, z
   rztime = TIMER
   DIM cnt as integer = 0
   WHILE TIMER - rztime < 3e-3
-   gfx_surfaceDestroy(@out_surf)
-   IF smooth = 2 THEN
-    out_surf = surface_scale(in_surf, large(1, img.sprite->w * zoomx), large(1, img.sprite->h * zoomy))
+   IF raster THEN
+    #IFDEF USE_RASTERIZER
+     DIM position as Float2 = (vpages(vpage)->w / 2, vpages(vpage)->h / 2 - 50)
+     DIM transf as AffineTransform
+     rotozoom_transform transf, img.sprite->size, , position, rotate, XYF(zoomx, zoomy)
+     frame_draw_transformed img.sprite, master(), img.pal, transf, trans, vpages(vpage)
+    #ENDIF
+
    ELSE
-    out_surf = rotozoomSurface(in_surf, rotate, zoomx, zoomy, smooth)  'smooth 0/1
+    gfx_surfaceDestroy(@out_surf)
+    IF smooth = 2 THEN
+     out_surf = surface_scale(in_surf, large(1, img.sprite->w * zoomx), large(1, img.sprite->h * zoomy))
+    ELSE
+     out_surf = rotozoomSurface(in_surf, rotate, zoomx, zoomy, smooth)  'smooth 0/1
+    END IF
+    BUG_IF(out_surf = NULL, "rotozoom returned NULL", 0)
+
    END IF
-   BUG_IF(out_surf = NULL, "rotozoom returned NULL")
    cnt += 1
   WEND
   rzmin = small(rzmin, (TIMER - rztime) / cnt)
  NEXT
 
- DIM spr as Frame ptr = frame_with_surface(out_surf)
- frame_draw spr, img.pal, pCentered, pCentered - 50, NO, vpage
+ DIM msg as string
+
+ IF raster = NO THEN
+  copytime = TIMER
+  DIM spr as Frame ptr = frame_with_surface(out_surf)
+  frame_draw spr, img.pal, pCentered, pCentered - 50, trans, vpage
+  frame_unload @spr
+  copytime = TIMER - copytime
+
+  msg = strprintf(" (size %d*%d)", out_surf->width, out_surf->height)
+ ELSE
+  copytime = 0
+  msg = " (RASTER)"
+ END IF
+
+ DIM totaltime as double = rzmin + copytime
+ msg = strprintf("zoom %.2fx%.2f rotate %.1f smooth %d trans=%s %d-bit: %.1fus + copy %.1fus = %.1fus", _
+                 zoomx, zoomy, rotate, smooth, iif(trans, @"yes", @"no"), iif(img.sprite->surf, 32, 8), _
+                 (rzmin * 1e6), (copytime * 1e6), totaltime * 1e6) _
+       & msg
+ IF reftime > 0 THEN msg &= strprintf(", x%.3f ref time", totaltime / reftime)
+
  setvispage vpage
- notification strprintf("zoom %.2fx%.2f (size %d*%d) rotate %.1f smooth %d: %.1fus", zoomx, zoomy, out_surf->width, out_surf->height, rotate, smooth, (rzmin * 1e6))
+ visible_debug msg
 
  gfx_surfaceDestroy(@in_surf)
  gfx_surfaceDestroy(@out_surf)
- frame_unload @spr
-END SUB
+ RETURN totaltime
+END FUNCTION
 
 SUB rotozoom_tests ()
  switch_to_32bit_vpages
 
+ DIM reftime as double
  DIM img as GraphicPair
  load_sprite_and_pal img, sprTypeBackdrop, 1
- rotozoom_test_with img, 45, 1.2, 1.2, 0
- rotozoom_test_with img, 45, 1.2, 1.2, 1
- rotozoom_test_with img, 45, 1.2, 1.2, 2
+ reftime = rotozoom_test_with(img, 45, 1.2, 1.2, 0)
+ #ifdef USE_RASTERIZER
+  rotozoom_test_with(img, 45, 1.2, 1.2, 0, YES, , reftime)
+ #endif
+ rotozoom_test_with(img, 45, 1.2, 1.2, 1, , , reftime)
+ rotozoom_test_with(img, 0, 1.2, 1.2, 2, , , reftime)
+ #ifdef USE_RASTERIZER
+  reftime = rotozoom_test_with(img, 0, 1.2, 1.2, 0, YES)
+  frame_assign @img.sprite, frame_duplicate(img.sprite)
+  frame_convert_to_32bit(img.sprite, master(), img.pal)
+  palette16_unload @img.pal
+  rotozoom_test_with(img, 0, 1.2, 1.2, 0, YES, , reftime)
+ #endif
+
  unload_sprite_and_pal img
 
  load_sprite_and_pal img, sprTypeLargeEnemy, 1
  FOR zoom as double = 0.5 TO 6.501 STEP 2.
-  rotozoom_test_with img, 130, zoom, zoom, 0
+  reftime = rotozoom_test_with(img, 136, zoom, zoom, 0)
+  #ifdef USE_RASTERIZER
+   rotozoom_test_with(img, 136, zoom, zoom, 0, YES, , reftime)
+  #endif
+  reftime = rotozoom_test_with(img, 136, zoom, zoom, 0, , YES)
+  #ifdef USE_RASTERIZER
+   rotozoom_test_with(img, 136, zoom, zoom, 0, YES, YES, reftime)
+  #endif
  NEXT
  unload_sprite_and_pal img
 
