@@ -115,7 +115,6 @@ dim gfx_surfaceFillAlpha as function ( byval fillColor as RGBcolor, byval alpha 
 dim gfx_surfaceStretch as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 dim gfx_surfaceCopy as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBcolor ptr, pPal8 as Palette16 ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr, byref opts as DrawOptions ) as integer
 
-dim gfx_paletteCreate as function ( byval ppPaletteOut as RGBPalette ptr ptr) as integer
 dim gfx_paletteFromRGB as function ( byval pColorsIn as RGBcolor ptr, byval ppPaletteOut as RGBPalette ptr ptr) as integer
 dim gfx_paletteDestroy as function ( byval ppPaletteIn as RGBPalette ptr ptr ) as integer
 dim gfx_paletteUpdate as function ( byval pPaletteIn as RGBPalette ptr ) as integer
@@ -491,7 +490,6 @@ local sub default_gfx_render_procs()
 	gfx_surfaceFillAlpha = @gfx_surfaceFillAlpha_SW
 	gfx_surfaceStretch = @gfx_surfaceStretch_SW
 	gfx_surfaceCopy = @gfx_surfaceCopy_SW
-	gfx_paletteCreate = @gfx_paletteCreate_SW
 	gfx_paletteFromRGB = @gfx_paletteFromRGB_SW
 	gfx_paletteDestroy = @gfx_paletteDestroy_SW
 	gfx_paletteUpdate = @gfx_paletteUpdate_SW

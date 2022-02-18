@@ -76,8 +76,9 @@ typedef struct
 
 typedef struct
 {
-	void* handle;
 	RGBcolor col[256];
+	bool from_backend;  // True if allocated from gfx_palette* API, false from masterpal_to_gfxpal
+	//void* handle;     // Not used yet
 } RGBPalette;
 
 enum BlendMode
@@ -144,10 +145,11 @@ extern "C"
 	Surface* gfx_surfaceShrink_SW( Surface *surf, int destWidth, int destHeight );
 	int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* opts );
 
-	int gfx_paletteCreate_SW( RGBPalette** ppPaletteOut );
 	int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut );
 	int gfx_paletteDestroy_SW( RGBPalette** ppPaletteIn );
 	int gfx_paletteUpdate_SW( RGBPalette* pPaletteIn );
+
+	RGBPalette* unrollPalette16( Palette16* pPal8, RGBcolor* pPalette );
 
 	// Function pointers to the selected implementation
 	extern int (*gfx_surfaceCreate)( int32_t width, int32_t height, enum SurfaceFormat format, enum SurfaceUsage usage, Surface** ppSurfaceOut );
@@ -162,7 +164,6 @@ extern "C"
 	extern Surface* (*gfx_surfaceShrink)( Surface *surf, int destWidth, int destHeight );
 	extern int (*gfx_surfaceCopy)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* opts );
 
-	extern int (*gfx_paletteCreate)( RGBPalette** ppPaletteOut );
 	extern int (*gfx_paletteFromRGB)( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut );
 	extern int (*gfx_paletteDestroy)( RGBPalette** ppPaletteIn );
 	extern int (*gfx_paletteUpdate)( RGBPalette* pPaletteIn );

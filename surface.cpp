@@ -31,7 +31,7 @@ QuadRasterizer g_rasterizer;
 
 // Access to g_surfaces and g_palettes is gated by surfaceMutex
 std::list< Surface* > g_surfaces;
-std::list< RGBPalette* > g_palettes;
+//std::list< RGBPalette* > g_palettes;
 
 mutex surfaceMutex;
 
@@ -619,17 +619,8 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 			return -1;
 		}
 
-		RGBcolor *restrict pal32;
-		RGBcolor temppal[256];
-		if (pPal8) {
-			// Form a temp palette to avoid double-indirection on every pixel
-			pal32 = temppal;
-			for (int idx = 0; idx < pPal8->numcolors; idx++) {
-				pal32[idx] = pPalette[pPal8->col[idx]];
-			}
-		} else {
-			pal32 = pPalette;
-		}
+		// Form a temp palette to avoid double-indirection on every pixel
+		RGBcolor *restrict pal32 = unrollPalette16(pPal8, pPalette)->col;
 
 		if (bUseColorKey0) {
 			for (int itY = 0; itY < itY_max; itY++) {
@@ -667,34 +658,42 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 	return 0;
 }
 
-int gfx_paletteCreate_SW( RGBPalette** ppPaletteOut )
-{//done
-	if( !ppPaletteOut )
-		return -1;
-	*ppPaletteOut = new RGBPalette();
-	surfaceMutex.lock();
-	g_palettes.push_back(*ppPaletteOut);
-	surfaceMutex.unlock();
-	return 0;
-}
 
-// Return a Surface which is a view onto a Frame. The Surface and Frame should both
-// be destroy as normal.
+//This is slow. Use masterpal_to_gfxpal instead
 int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut )
 {
 	RGBPalette *ret = new RGBPalette;
+	ret->from_backend = true;
 	memcpy(ret->col, pColorsIn, 256 * 4);
 	for(int i = 0; i < 256; i++)
-		ret->col[i].a = 255;   // Set to opaque (alpha in the input is unused)
+		ret->col[i].a = 255;   // Set to opaque, though it should be anyway
 	*ppPaletteOut = ret;
 	return 0;
 }
 
+//Produce a temporary palette from a Palette16
+//Hack: pPalette can be either a RGBPalette* or a RGBcolor[256]; it's assumed it's actually
+//a RGBPalette* if pPal8==NULL!
+RGBPalette* unrollPalette16(Palette16* pPal8, RGBcolor* pPalette) {
+	static RGBPalette temppal;
+	if (pPal8) {
+		for (int idx = 0; idx < pPal8->numcolors; idx++) {
+			temppal.col[idx] = pPalette[pPal8->col[idx]];
+		}
+		temppal.from_backend = false;
+		return &temppal;
+	} else {
+		return (RGBPalette*)pPalette;
+	}
+}
+
 int gfx_paletteDestroy_SW (RGBPalette** ppPaletteIn) {
-	if (*ppPaletteIn) {
+	if (*ppPaletteIn && (*ppPaletteIn)->from_backend) {
+		/*
 		surfaceMutex.lock();
 		g_palettes.remove(*ppPaletteIn);
 		surfaceMutex.unlock();
+		*/
 		delete *ppPaletteIn;
 	}
 	*ppPaletteIn = NULL;

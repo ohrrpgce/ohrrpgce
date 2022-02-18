@@ -78,8 +78,9 @@ End Type
 'palettes
 
 Type RGBPalette
-	handle as any ptr
 	col(255) as RGBcolor
+	from_backend as boolean 'True if allocated from gfx_palette* API, false from masterpal_to_gfxpal
+	'handle as any ptr      'Not used yet
 End Type
 
 Enum 'BlendMode
@@ -171,7 +172,6 @@ extern "C"
 	extern gfx_surfaceStretch as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 	extern gfx_surfaceCopy as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBcolor ptr, pPal8 as Palette16Fwd ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr, byref opts as DrawOptions ) as integer
 
-	extern gfx_paletteCreate as function ( byval ppPaletteOut as RGBPalette ptr ptr) as integer
 	extern gfx_paletteFromRGB as function ( byval pColorsIn as RGBcolor ptr, byval ppPaletteOut as RGBPalette ptr ptr) as integer
 	extern gfx_paletteDestroy as function ( byval ppPaletteIn as RGBPalette ptr ptr ) as integer
 	extern gfx_paletteUpdate as function ( byval pPaletteIn as RGBPalette ptr ) as integer
@@ -224,10 +224,11 @@ extern "C"
 	declare function gfx_surfaceStretch_SW ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 	declare function gfx_surfaceCopy_SW ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBcolor ptr, pPal8 as Palette16Fwd ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr, byref opts as DrawOptions ) as integer
 
-	declare function gfx_paletteCreate_SW ( byval ppPaletteOut as RGBPalette ptr ptr ) as integer
 	declare function gfx_paletteFromRGB_SW ( byval pColorsIn as RGBcolor ptr, byval ppPaletteOut as RGBPalette ptr ptr) as integer
 	declare function gfx_paletteDestroy_SW ( byval ppPaletteIn as RGBPalette ptr ptr ) as integer
 	declare function gfx_paletteUpdate_SW ( byval pPaletteIn as RGBPalette ptr ) as integer
+
+	declare function unrollPalette16( byval pPal8 as Palette16Fwd ptr, byval pPalette as RGBcolor ptr ) as RGBPalette ptr
 
 	declare function gfx_renderQuadColor_SW ( byval pQuad as VertexPC ptr, byval argbModifier as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 	declare function gfx_renderQuadTexture_SW ( byval pQuad as VertexPT ptr, byval pTexture as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer

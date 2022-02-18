@@ -419,14 +419,15 @@ dim shared textfg as integer
 dim shared textbg as integer
 
 'Master palette copies internal to allmodex.
+'(Length 257 because they double as RGBPalettes)
 'master() is usually equal to these two, but does not take effect until setpal or fadein is called.
 'displaypal is used for display (including screenshots and gifs), while curmasterpal is for drawing.
 'curmasterpal is used for colors drawn to a 32-bit vpage, and for nearcolor lookups when drawing
 'to a 8-bit vpage (e.g. drawing with blending), and for exporting.
 'In 32-bit mode, displaypal is mever used; in 8-bit mode, displaypal gets faded in and out.
-dim shared displaypal(0 to 255) as RGBcolor   'Current display palette; in 8-bit mode includes screen fades
+dim shared displaypal(0 to 256) as RGBcolor   'Current display palette; in 8-bit mode includes screen fades
 extern "C"
-dim shared curmasterpal(0 to 255) as RGBcolor 'Palette at last setpal/fadein, excludes any screen fades
+dim shared curmasterpal(0 to 256) as RGBcolor 'Palette at last setpal/fadein, excludes any screen fades
 end extern
 
 dim shared updatepal as bool             'setpal called, load new palette at next setvispage
@@ -1358,7 +1359,8 @@ local sub present_internal_frame(drawpage as integer)
 	dim surface_pal as RGBPalette ptr
 	if surf->format = SF_8bit then
 		' Need to provide a palette
-		gfx_paletteFromRGB(@displaypal(0), @surface_pal)
+		surface_pal = masterpal_to_gfxpal(displaypal())
+		'gfx_paletteFromRGB(@displaypal(0), @surface_pal)
 	end if
 
 	gfx_present(surf, surface_pal)
@@ -1375,7 +1377,8 @@ local sub present_internal_surface(drawpage as integer)
 	dim surface_pal as RGBPalette ptr
 	if drawsurf->format = SF_8bit then
 		' Need to provide a palette
-		gfx_paletteFromRGB(@displaypal(0), @surface_pal)
+		surface_pal = masterpal_to_gfxpal(displaypal())
+		'gfx_paletteFromRGB(@displaypal(0), @surface_pal)
 	end if
 
 	gfx_present(drawsurf, surface_pal)
@@ -11132,6 +11135,17 @@ sub Palette16_mix_n_match(pal as Palette16 ptr, byval col as RGBcolor, colfrac a
 	next
 end sub
 
+'This is a faster alternative to gfx_paletteFromRGB. The result doesn't need to
+'be deallocated with gfx_paletteDestroy (it's a noop).
+'Very similar to surfaceFrameShim
+'This exists mostly as a stub, in future we might just swap the whole engine to
+'RGBPalette instead of RGBcolor FB arrays to avoid conversions.
+function masterpal_to_gfxpal(pal() as RGBcolor) as RGBPalette ptr
+	BUG_IF(UBOUND(pal) < 256, "pal() should be length 257", NULL)
+	dim ret as RGBPalette ptr = cast(RGBPalette ptr, @pal(0))
+	ret->from_backend = NO
+	return ret
+end function
 
 '==========================================================================================
 '                            SpriteSet/Animation/SpriteState

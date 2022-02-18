@@ -71,7 +71,7 @@ DEFINE_VECTOR_OF_TYPE(TilesetData ptr, TilesetData_ptr)
 
 DIM vpage as integer = 0
 DIM dpage as integer = 1
-REDIM master(255) as RGBcolor
+REDIM master(256) as RGBcolor    'Length 257 because also a RGBPalette
 REDIM uilook(uiColorLast) as integer
 REDIM boxlook(uiBoxLast) as BoxStyle
 REDIM current_font(1023) as integer

@@ -677,6 +677,7 @@ declare sub palette16_update_cache(num as integer)
 declare function palette16_describe(pal as Palette16 ptr) as string
 declare sub Palette16_transform_n_match(pal as Palette16 ptr, method as ColorOperator)
 declare sub palette16_mix_n_match(pal as Palette16 ptr, byval col as RGBcolor, colfrac as double, method as ColorMixMethod, scale as double = 1.0)
+declare function masterpal_to_gfxpal(pal() as RGBcolor) as RGBPalette ptr
 
 
 '==========================================================================================
@@ -852,7 +853,7 @@ extern "C"
 'WARNING: don't pass curmasterpal() to functions from code outside allmodex.bas!
 'That will crash because it's not a dynamic array! (FB bug: in other modules, an
 'invalid blank temp array descriptor is created and passed.)
-extern curmasterpal(255) as RGBcolor
+extern curmasterpal(256) as RGBcolor
 end extern
 
 #ENDIF
