@@ -38,9 +38,6 @@ EXTERN "C"
 'transforms from local coordinates to the specified scale, rotation (clockwise by "angle"), and translation; assembled in manner of Scale-Rotate-Transform (SRT)
 DECLARE SUB matrixLocalTransform( byval pMatrixOut as float3x3 ptr, byval angle as single, byref scale as float2, byref position as float2 )
 
-'performs the transform from the 320x200 resolution limitation to whatever the client size actually is; for back-compat
-DECLARE SUB matrixOldClientTransform( byval pMatrixOut as float3x3 ptr, byval clientWidth as single, byval clientHeight as single )
-
 'multiplies matrices together; pMatrixOut = A x B
 DECLARE SUB matrixMultiply( byval pMatrixOut as float3x3 ptr, byref A as float3x3, byref B as float3x3 )
 

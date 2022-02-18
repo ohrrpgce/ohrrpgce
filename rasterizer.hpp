@@ -78,6 +78,8 @@ protected:
 	void calculateTriangleRect(const T_VertexType* pTriangle, ClippingRectF& clipOut);
 	template <class T_VertexType>
 	void calculateRasterPixels(const Surface* pSurfaceDest, const T_VertexType* pTriangle, ClippingRectF& clipRgn, ClippingRectF& triangleRgn, std::queue< DrawingRange<T_VertexType> >& rasterLinesOut);
+	template <class T_VertexType>
+	bool drawSetup(T_VertexType *pTriangle, SurfaceRect *pRectDest, Surface *pSurfaceDest, std::queue< DrawingRange< T_VertexType > > &rasterLines);
 	void rasterColor(const DrawingRange<VertexPC>& range, Surface* pSurfaceDest);
 	void rasterTexture(const DrawingRange<VertexPT>& range, const Surface* pTexture, const RGBPalette* pPalette, Surface* pSurfaceDest);
 	void rasterTextureWithColorKey0(const DrawingRange<VertexPT>& range, const Surface* pTexture, const RGBPalette* pPalette, Surface* pSurfaceDest);

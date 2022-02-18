@@ -27,17 +27,6 @@ void matrixLocalTransform( float3x3* pMatrixOut, float angle, const float2& scal
    pMatrixOut->_33 = 1.0f;
 }
 
-void matrixOldClientTransform( float3x3* pMatrixOut, float clientWidth, float clientHeight )
-{
-   if( pMatrixOut == NULL )
-      return;
-   memset( pMatrixOut, 0, sizeof(float3x3) );
-
-   pMatrixOut->_11 = clientWidth / 320.0f;
-   pMatrixOut->_22 = clientHeight / 200.0f;
-   pMatrixOut->_33 = 1.0f;
-}
-
 void matrixMultiply( float3x3* pMatrixOut, const float3x3& A, const float3x3& B )
 {
    if( pMatrixOut == NULL )
