@@ -1579,7 +1579,8 @@ SUB quad_transforms_menu ()
  DIM spritemode as SpriteType = -1 'sprTypeHero '-1 to show master palette
  DIM spriteid as integer
 
- DIM testframe as Frame ptr
+ DIM sprpair as GraphicPair
+
  DIM vertices(3) as Float3
 
  DIM angle as single = 180
@@ -1589,9 +1590,7 @@ SUB quad_transforms_menu ()
  switch_to_32bit_vpages()
 
  DIM spriteSurface as Surface ptr
-
- DIM masterPalette as RGBPalette ptr
- gfx_paletteFromRGB(@master(0), @masterPalette)
+ DIM gfxpal as RGBPalette ptr
 
  DIM as SmoothedTimer normdrawtime, qdrawtime, mathtime
 
@@ -1599,29 +1598,23 @@ SUB quad_transforms_menu ()
   setwait 55
 
   if need_update then
-   frame_unload @testframe
+   unload_sprite_and_pal sprpair
 
    select case spritemode
-    case 0 to sprTypeLastPT
-     DIM tempsprite as GraphicPair
-     load_sprite_and_pal tempsprite, spritemode, spriteid, -1
-     'Convert from sprite palette to master palette, as needed by render API
-     with tempsprite
-      testframe = frame_new(.sprite->w, .sprite->h, , YES)
-      frame_draw .sprite, .pal, 0, 0, , testframe
-     end with
-     unload_sprite_and_pal tempsprite
     case -1
-     testframe = frame_new(16, 16)
+     sprpair.sprite = frame_new(16, 16)
      FOR i as integer = 0 TO 255
-      putpixel testframe, (i MOD 16), (i \ 16), i
+      putpixel sprpair.sprite, (i MOD 16), (i \ 16), i
      NEXT
+     gfxpal = masterpal_to_gfxpal(master())
     case else
-     testframe = frame_load(spritemode, spriteid)
+     load_sprite_and_pal sprpair, spritemode, spriteid
+     'Convert from sprite palette (which may be NULL) to a 256-color palette, as needed by render API
+     gfxpal = unrollPalette16(sprpair.pal, @master(0))
    end select
 
    gfx_surfaceDestroy( @spriteSurface )
-   gfx_surfaceCreateFrameView( testframe, @spriteSurface )
+   gfx_surfaceCreateFrameView( sprpair.sprite, @spriteSurface )
 
    DIM testframesize as Rect
    WITH testframesize
@@ -1654,7 +1647,7 @@ SUB quad_transforms_menu ()
   'opts.scale = 2  'Not supported for 32-bit frames
 
   normdrawtime.start()
-  frame_draw testframe, , 20, 50, , vpages(vpage), opts
+  frame_draw sprpair.sprite, sprpair.pal, 20, 50, , vpages(vpage), opts
   normdrawtime.stop()
 
   mathtime.start()
@@ -1680,7 +1673,7 @@ SUB quad_transforms_menu ()
   mathtime.stop()
 
   qdrawtime.start()
-  gfx_renderQuadTexture( @pt_vertices(0), spriteSurface, masterPalette, YES, NULL, vpages(vpage)->surf )
+  gfx_renderQuadTexture( @pt_vertices(0), spriteSurface, gfxpal, YES, NULL, vpages(vpage)->surf )
   qdrawtime.stop()
 
   wrapprint strprintf(!"Spritetype %d spriteid %d scale %.1f,%.1f angle %.0f \nNormal draw: %dus, quad draw: %dus, math in %.1fus", _
@@ -1691,10 +1684,10 @@ SUB quad_transforms_menu ()
   dowait
  LOOP
  setkeys
- frame_unload @testframe
+ unload_sprite_and_pal sprpair
  switch_to_8bit_vpages()
  gfx_surfaceDestroy(@spriteSurface)
- gfx_paletteDestroy(@masterPalette)
+ gfx_paletteDestroy(@gfxpal)
 END SUB
 
 #ELSE
