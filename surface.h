@@ -104,6 +104,11 @@ typedef struct
 	// (Not implemented for Surfaces)
 	int scale;
 
+	// gfx_render* and gfx_surfaceCopy API ONLY, all other functions take
+	// separate 'trans' arguments Whether colour 0 (or mask 0, in Surfaces
+	// with masks) of 8-bit source textures is transparent.
+	boolint color_key0;
+
 	// If the destination has a mask, sets the mask for the destination rectangle
 	// equal to the mask (or color-key) for the source rectangle. Does not OR them.
 	boolint write_mask;
@@ -112,6 +117,11 @@ typedef struct
 	boolint with_blending;
 
 	enum BlendMode blend_mode;
+
+	// Multiply each component of the source.
+	// Supported only by draw{Tri,Quad}Color and draw{Tri,Quad}TextureColor
+	// Default 0xffffffff.
+	RGBcolor argbModifier;
 
 	float opacity;
 } DrawOptions;
@@ -141,9 +151,9 @@ extern "C"
 	int gfx_surfaceGetData_SW( Surface* pSurfaceIn );
 	int gfx_surfaceFill_SW( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn );
 	int gfx_surfaceFillAlpha_SW( RGBcolor fillColor, double alpha, SurfaceRect* pRect, Surface* pSurface );
-	int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 	Surface* gfx_surfaceShrink_SW( Surface *surf, int destWidth, int destHeight );
-	int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* opts );
+	int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* pPalette, Palette16* pPal8, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* opts );
 
 	int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut );
 	int gfx_paletteDestroy_SW( RGBPalette** ppPaletteIn );
@@ -162,7 +172,7 @@ extern "C"
 	extern int (*gfx_surfaceFillAlpha)( RGBcolor fillColor, double alpha, SurfaceRect* pRect, Surface* pSurfaceIn );
 	extern int (*gfx_surfaceStretch)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 	extern Surface* (*gfx_surfaceShrink)( Surface *surf, int destWidth, int destHeight );
-	extern int (*gfx_surfaceCopy)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* opts );
+	extern void (*gfx_surfaceCopy)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* pPalette, Palette16* pPal8, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* opts );
 
 	extern int (*gfx_paletteFromRGB)( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut );
 	extern int (*gfx_paletteDestroy)( RGBPalette** ppPaletteIn );

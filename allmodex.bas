@@ -8903,9 +8903,11 @@ local sub draw_clipped_surf(src as Surface ptr, master_pal as RGBcolor ptr, pal 
 
 	dim destRect as SurfaceRect = (x, y, cliprect.r, cliprect.b)
 
-	if gfx_surfaceCopy(@srcRect, src, master_pal, pal, trans, @destRect, dest, opts) then
+	opts.color_key0 = trans  'Clobbers def_drawoptions.color_key0
+	if gfx_surfaceCopy(@srcRect, src, master_pal, pal, @destRect, dest, opts) then
 		debug "gfx_surfaceCopy error"
 	end if
+	def_drawoptions.color_key0 = NO
 end sub
 
 
@@ -10151,7 +10153,6 @@ end sub
 #ifdef USE_RASTERIZER
 
 ' Draw a Frame with position and transformation specified by an AffineTransform.
-' opts currently unused
 sub frame_draw_transformed(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, transf as AffineTransform, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
 	BUG_IF(dest->surf = 0 orelse dest->surf->format = SF_8bit, "32-bit dest required")
 
@@ -10185,7 +10186,9 @@ sub frame_draw_transformed(src as Frame ptr, masterpal() as RGBcolor, pal as Pal
 	dim byref cliprect as ClipState = get_cliprect(dest)
 	dim destrect as SurfaceRect = (cliprect.l, cliprect.t, cliprect.r, cliprect.b)
 
-	gfx_renderQuadTexture(@vertices(0), src_surface, gfxpal, trans, @destrect, dest_surface)
+	opts.color_key0 = trans  'Clobbers def_drawoptions.color_key0
+	gfx_renderQuadTexture(@vertices(0), src_surface, gfxpal, @destrect, dest_surface, @opts)
+	def_drawoptions.color_key0 = NO
 end sub
 
 'Calculate an AffineTransform of a slice of given 'size' by first stretching by 'zoom',

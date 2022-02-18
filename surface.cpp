@@ -274,7 +274,7 @@ int gfx_surfaceFillAlpha_SW( RGBcolor fillColor, double alpha, SurfaceRect* pRec
 	return 0;
 }
 
-int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//needs work
 	return -1;
 }
@@ -337,7 +337,8 @@ Surface* surface_duplicate( Surface* surf ) {
 	Surface *ret;
 	if (gfx_surfaceCreate( surf->width, surf->height, surf->format, surf->usage, &ret ))
 		return NULL;
-	gfx_surfaceCopy(NULL, surf, NULL, NULL, false, NULL, ret, &def_drawoptions);
+	// def_drawoptions.color_key0 == false
+	gfx_surfaceCopy(NULL, surf, NULL, NULL, NULL, ret, &def_drawoptions);
 
 	return ret;
 }
@@ -447,8 +448,7 @@ void clampRectToSurface( SurfaceRect* inRect, SurfaceRect* outRect, Surface* pSu
 // is drawn at the top-left corner of the dest rect.  The rectangles may be over
 // the edge of the respective Surfaces; they are clamped. Negative width or
 // height means the draw is a noop.
-// bUseColorKey0 says whether color 0 (or mask 0, in Surfaces with masks) in 8-bit source images is transparent
-int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts ) {
+int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* pPalette, Palette16* pPal8, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts ) {
 	if (!pSurfaceSrc || !pSurfaceDest || !pOpts) {
 		debug(errShowBug, "surfaceCopy_SW: NULL ptr %p %p %p", pSurfaceSrc, pSurfaceDest, pOpts);
 		return -1;
@@ -522,10 +522,13 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 		RGBcolor colorkey = {};
 		if (pPalette)
 			colorkey = pPalette[0];
+		if (!pOpts->color_key0)
+			colorkey.col = 0;
+
 		if (with_blending) {
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
-					if (!bUseColorKey0 || srcp32->col != colorkey.col)
+					if (srcp32->col != colorkey.col)
 						*destp32 = alpha_blend(*srcp32, *destp32, alpha, pOpts->blend_mode);
 					srcp32++;
 					destp32++;
@@ -533,7 +536,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 				srcp32 += srcLineEnd;
 				destp32 += destLineEnd;
 			}
-		} else if (bUseColorKey0) {
+		} else if (pOpts->color_key0) {
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
 					if (srcp32->col != colorkey.col)
@@ -578,7 +581,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 	} else if (pSurfaceSrc->format == SF_8bit && pSurfaceDest->format == SF_8bit) {
 		// alpha/opacity ignored, not supported. Handled by blitohr in blit.c
 		// so this path is not typically used
-		if (bUseColorKey0) {
+		if (pOpts->color_key0) {
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
 					if (pPal8) {
@@ -622,7 +625,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 		// Form a temp palette to avoid double-indirection on every pixel
 		RGBcolor *restrict pal32 = unrollPalette16(pPal8, pPalette)->col;
 
-		if (bUseColorKey0) {
+		if (pOpts->color_key0) {
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
 					if (*maskp) {
@@ -707,76 +710,28 @@ int gfx_paletteUpdate_SW( RGBPalette* pPaletteIn )
 
 #ifdef USE_RASTERIZER
 
-int gfx_renderQuadColor_SW( VertexPC* pQuad, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
-{//done
-	if( pSurfaceDest->format == SF_8bit )
-		return -1; //can't have 8bit destination
-
-	SurfaceRect tmp = {0, 0, pSurfaceDest->width - 1, pSurfaceDest->height - 1};
-	if( !pRectDest )
-		pRectDest = &tmp;
-	g_rasterizer.drawQuadColor(pQuad, argbModifier, pRectDest, pSurfaceDest);
-	return 0;
+void gfx_renderQuadColor_SW( VertexPC* pQuad, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts ) {
+	g_rasterizer.drawQuadColor(pQuad, pRectDest, pSurfaceDest, pOpts);
 }
 
-int gfx_renderQuadTexture_SW( VertexPT* pQuad, Surface* pTexture, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
-{//done
-	if( pSurfaceDest->format == SF_8bit )
-		return -1; //can't have 8bit destination
-
-	SurfaceRect tmp = {0, 0, pSurfaceDest->width - 1, pSurfaceDest->height - 1};
-	if( !pRectDest )
-		pRectDest = &tmp;
-	g_rasterizer.drawQuadTexture(pQuad, pTexture, pPalette, bUseColorKey0, pRectDest, pSurfaceDest);
-	return 0;
+void gfx_renderQuadTexture_SW( VertexPT* pQuad, Surface* pTexture, RGBPalette* pPalette, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts ) {
+	g_rasterizer.drawQuadTexture(pQuad, pTexture, pPalette, pRectDest, pSurfaceDest, pOpts);
 }
 
-int gfx_renderQuadTextureColor_SW( VertexPTC* pQuad, Surface* pTexture, RGBPalette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
-{//done
-	if( pSurfaceDest->format == SF_8bit )
-		return -1; //can't have 8bit destination
-
-	SurfaceRect tmp = {0, 0, pSurfaceDest->width - 1, pSurfaceDest->height - 1};
-	if( !pRectDest )
-		pRectDest = &tmp;
-	g_rasterizer.drawQuadTextureColor(pQuad, pTexture, pPalette, bUseColorKey0, argbModifier, pRectDest, pSurfaceDest);
-	return 0;
+void gfx_renderQuadTextureColor_SW( VertexPTC* pQuad, Surface* pTexture, RGBPalette* pPalette, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts ) {
+	g_rasterizer.drawQuadTextureColor(pQuad, pTexture, pPalette, pRectDest, pSurfaceDest, pOpts);
 }
 
-int gfx_renderTriangleColor_SW( VertexPC* pTriangle, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
-{//done
-	if( pSurfaceDest->format == SF_8bit )
-		return -1; //can't have 8bit destination
-
-	SurfaceRect tmp = {0, 0, pSurfaceDest->width - 1, pSurfaceDest->height - 1};
-	if( !pRectDest )
-		pRectDest = &tmp;
-	g_rasterizer.drawTriangleColor(pTriangle, argbModifier, pRectDest, pSurfaceDest);
-	return 0;
+void gfx_renderTriangleColor_SW( VertexPC* pTriangle, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts ) {
+	g_rasterizer.drawTriangleColor(pTriangle, pRectDest, pSurfaceDest, pOpts);
 }
 
-int gfx_renderTriangleTexture_SW( VertexPT* pTriangle, Surface* pTexture, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
-{//done
-	if( pSurfaceDest->format == SF_8bit )
-		return -1; //can't have 8bit destination
-
-	SurfaceRect tmp = {0, 0, pSurfaceDest->width - 1, pSurfaceDest->height - 1};
-	if( !pRectDest )
-		pRectDest = &tmp;
-	g_rasterizer.drawTriangleTexture(pTriangle, pTexture, pPalette, bUseColorKey0, pRectDest, pSurfaceDest);
-	return 0;
+void gfx_renderTriangleTexture_SW( VertexPT* pTriangle, Surface* pTexture, RGBPalette* pPalette, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts ) {
+	g_rasterizer.drawTriangleTexture(pTriangle, pTexture, pPalette, pRectDest, pSurfaceDest, pOpts);
 }
 
-int gfx_renderTriangleTextureColor_SW( VertexPTC* pTriangle, Surface* pTexture, RGBPalette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
-{//done
-	if( pSurfaceDest->format == SF_8bit )
-		return -1; //can't have 8bit destination
-
-	SurfaceRect tmp = {0, 0, pSurfaceDest->width - 1, pSurfaceDest->height - 1};
-	if( !pRectDest )
-		pRectDest = &tmp;
-	g_rasterizer.drawTriangleTextureColor(pTriangle, pTexture, pPalette, bUseColorKey0, argbModifier, pRectDest, pSurfaceDest);
-	return 0;
+void gfx_renderTriangleTextureColor_SW( VertexPTC* pTriangle, Surface* pTexture, RGBPalette* pPalette, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts ) {
+	g_rasterizer.drawTriangleTextureColor(pTriangle, pTexture, pPalette, pRectDest, pSurfaceDest, pOpts);
 }
 
 #endif

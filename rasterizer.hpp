@@ -80,13 +80,13 @@ protected:
 	void calculateRasterPixels(const Surface* pSurfaceDest, const T_VertexType* pTriangle, ClippingRectF& clipRgn, ClippingRectF& triangleRgn, std::queue< DrawingRange<T_VertexType> >& rasterLinesOut);
 	template <class T_VertexType>
 	bool drawSetup(T_VertexType *pTriangle, SurfaceRect *pRectDest, Surface *pSurfaceDest, std::queue< DrawingRange< T_VertexType > > &rasterLines);
-	void rasterColor(const DrawingRange<VertexPC>& range, Surface* pSurfaceDest);
-	void rasterTexture(const DrawingRange<VertexPT>& range, const Surface* pTexture, const RGBPalette* pPalette, bool bUseColorKey0, Surface* pSurfaceDest);
-	void rasterTextureColor(const DrawingRange<VertexPTC>& range, const Surface* pTexture, const RGBPalette* pPalette, bool bUseColorKey0, Surface* pSurfaceDest);
+	void rasterColor(const DrawingRange<VertexPC>& range, Surface* pSurfaceDest, DrawOptions* pOpts);
+	void rasterTexture(const DrawingRange<VertexPT>& range, const Surface* pTexture, const RGBPalette* pPalette, Surface* pSurfaceDest, DrawOptions* pOpts);
+	void rasterTextureColor(const DrawingRange<VertexPTC>& range, const Surface* pTexture, const RGBPalette* pPalette, Surface* pSurfaceDest, DrawOptions* pOpts);
 public:
-	void drawTriangleColor(VertexPC* pTriangle, Color argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest);
-	void drawTriangleTexture(VertexPT* pTriangle, const Surface* pTexture, const RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest);
-	void drawTriangleTextureColor(VertexPTC* pTriangle, const Surface* pTexture, const RGBPalette* pPalette, int bUseColorKey0, Color argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest);
+	void drawTriangleColor(VertexPC* pTriangle, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts);
+	void drawTriangleTexture(VertexPT* pTriangle, const Surface* pTexture, const RGBPalette* pPalette, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts);
+	void drawTriangleTextureColor(VertexPTC* pTriangle, const Surface* pTexture, const RGBPalette* pPalette, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts);
 };
 
 // Note: QuadRasterizer should not have state, so that g_rasterizer global is threadsafe
@@ -96,9 +96,9 @@ protected:
 	template <class T_VertexType>
 	void generateTriangles(const T_VertexType* pQuad, T_VertexType* pTriangles);
 public:
-	void drawQuadColor(const VertexPC* pQuad, Color argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest);
-	void drawQuadTexture(const VertexPT* pQuad, const Surface* pTexture, const RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest);
-	void drawQuadTextureColor(const VertexPTC* pQuad, const Surface* pTexture, const RGBPalette* pPalette, int bUseColorKey0, Color argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest);
+	void drawQuadColor(const VertexPC* pQuad, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts);
+	void drawQuadTexture(const VertexPT* pQuad, const Surface* pTexture, const RGBPalette* pPalette, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts);
+	void drawQuadTextureColor(const VertexPTC* pQuad, const Surface* pTexture, const RGBPalette* pPalette, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts);
 };
 
 #endif
