@@ -1569,54 +1569,55 @@ END SUB
 #IFDEF USE_RASTERIZER
 
 SUB quad_transforms_menu ()
- DIM menu(...) as string = {"Arrows: scale X and Y", "<, >: change angle", "[, ]: change sprite"}
- DIM st as MenuState
- st.last = 2
- st.size = 22
- st.need_update = YES
+ DIM info as string = _
+     !"Arrows: scale X and Y\n" _
+     !"<, >: change angle\n" _
+     !"[, ]: change spritetype\n" _
+     !"N/M: change sprite\n"
 
- DIM spritemode as integer = -1  ' Not a SpriteType. A .PT# number or -1 to show master palette
+ DIM need_update as bool = YES
+ DIM spritemode as SpriteType = -1 'sprTypeHero '-1 to show master palette
+ DIM spriteid as integer
 
  DIM testframe as Frame ptr
  DIM vertices(3) as Float3
 
- DIM angle as single
- DIM scale as Float2 = (2.0, 2.0)
- DIM position as Float2 = (150, 50)
+ DIM angle as single = 180
+ DIM scale as Float2 = (1.0, 1.0)
+ DIM position as Float2 = (vpages(vpage)->w / 2, vpages(vpage)->h / 2)
 
  switch_to_32bit_vpages()
- DIM vpage8 as integer = allocatepage( , , 8)
-
- DIM as double drawtime, pagecopytime
 
  DIM spriteSurface as Surface ptr
 
  DIM masterPalette as RGBPalette ptr
  gfx_paletteFromRGB(@master(0), @masterPalette)
 
+ DIM as SmoothedTimer normdrawtime, qdrawtime, mathtime
+
  DO
   setwait 55
 
-  if st.need_update then
-   if spritemode < -1 then spritemode = sprTypeLastPT
-   if spritemode > sprTypeLastPT then spritemode = -1
-
+  if need_update then
    frame_unload @testframe
 
    select case spritemode
     case 0 to sprTypeLastPT
      DIM tempsprite as GraphicPair
-     load_sprite_and_pal tempsprite, spritemode, 0, -1
+     load_sprite_and_pal tempsprite, spritemode, spriteid, -1
+     'Convert from sprite palette to master palette, as needed by render API
      with tempsprite
       testframe = frame_new(.sprite->w, .sprite->h, , YES)
       frame_draw .sprite, .pal, 0, 0, , testframe
      end with
      unload_sprite_and_pal tempsprite
-    case else
+    case -1
      testframe = frame_new(16, 16)
      FOR i as integer = 0 TO 255
       putpixel testframe, (i MOD 16), (i \ 16), i
      NEXT
+    case else
+     testframe = frame_load(spritemode, spriteid)
    end select
 
    gfx_surfaceDestroy( @spriteSurface )
@@ -1631,7 +1632,7 @@ SUB quad_transforms_menu ()
    END WITH
    vec3GenerateCorners @vertices(0), 4, testframesize
 
-   st.need_update = NO
+   need_update = NO
   end if
 
   setkeys
@@ -1640,33 +1641,25 @@ SUB quad_transforms_menu ()
   IF keyval(ccRight) THEN scale.x += 0.1
   IF keyval(ccUp)    THEN scale.y -= 0.1
   IF keyval(ccDown)  THEN scale.y += 0.1
-  IF keyval(scLeftCaret)  THEN angle -= 0.1
-  IF keyval(scRightCaret) THEN angle += 0.1
-  IF keyval(scLeftBracket) > 1 THEN spritemode -= 1: st.need_update = YES
-  IF keyval(scRightBracket) > 1 THEN spritemode += 1: st.need_update = YES
+  IF keyval(scLeftCaret)  THEN angle -= 5
+  IF keyval(scRightCaret) THEN angle += 5
+  IF keyval(scLeftBracket) > 1 THEN loopvar spritemode, -1, sprTypeBackdrop, -1: need_update = YES
+  IF keyval(scRightBracket) > 1 THEN loopvar spritemode, -1, sprTypeBackdrop, 1: need_update = YES
+  IF keyval(scN) > 1 THEN loopvar spriteid, 0, sprite_sizes(spritemode).lastrec, -1: need_update = YES
+  IF keyval(scM) > 1 THEN loopvar spriteid, 0, sprite_sizes(spritemode).lastrec, 1: need_update = YES
 
-  clearpage vpage8
-  standardmenu menu(), st, 0, 0, vpage8
-  ' We have to draw onto a temp 8-bit Surface, because frame_draw with scale
-  ' isn't supported with Surfaces yet
+  clearpage vpage
+  wrapprint info, 0, 0, , vpage
   DIM opts as DrawOptions
-  opts.scale = 2
-  frame_draw testframe, , 20, 50, , vpages(vpage8), opts
+  'opts.scale = 2  'Not supported for 32-bit frames
 
-  'Can only display the previous frame's time to draw, since we don't currently
-  'have any functions to print text to surfaces
-  printstr "Drawn in " & FIX(drawtime * 1000000) & " usec, pagecopytime = " & FIX(pagecopytime * 1000000) & " usec", 0, 190, vpage
-  debug "Drawn in " & FIX(drawtime * 1000000) & " usec, pagecopytime = " & FIX(pagecopytime * 1000000) & " usec"
+  normdrawtime.start()
+  frame_draw testframe, , 20, 50, , vpages(vpage), opts
+  normdrawtime.stop()
 
-  pagecopytime = TIMER
-  'Copy from vpage8 (8 bit Frame) to the render target surface
-  frame_draw vpages(vpage8), NULL, 0, 0, NO, vpage
-  pagecopytime = TIMER - pagecopytime
-
-  DIM starttime as double = TIMER
-
+  mathtime.start()
   DIM matrix as Float3x3
-  matrixLocalTransform @matrix, angle, scale, position
+  matrixLocalTransform @matrix, angle * 3.1416 / 180, scale, position
   DIM trans_vertices(3) as Float3
   vec3Transform @trans_vertices(0), 4, @vertices(0), 4, matrix
 
@@ -1684,16 +1677,21 @@ SUB quad_transforms_menu ()
    pt_vertices(i).pos.x = trans_vertices(i).x
    pt_vertices(i).pos.y = trans_vertices(i).y
   NEXT
+  mathtime.stop()
 
+  qdrawtime.start()
   gfx_renderQuadTexture( @pt_vertices(0), spriteSurface, masterPalette, YES, NULL, vpages(vpage)->surf )
-  drawtime = TIMER - starttime
+  qdrawtime.stop()
+
+  wrapprint strprintf(!"Spritetype %d spriteid %d scale %.1f,%.1f angle %.0f \nNormal draw: %dus, quad draw: %dus, math in %.1fus", _
+                      spritemode, spriteid, scale.x, scale.y, angle, cint(normdrawtime.smoothtime * 1e6), cint(qdrawtime.smoothtime * 1e6), mathtime.smoothtime * 1e6), _
+            0, pBottom, , vpage
 
   setvispage vpage
   dowait
  LOOP
  setkeys
  frame_unload @testframe
- freepage vpage8
  switch_to_8bit_vpages()
  gfx_surfaceDestroy(@spriteSurface)
  gfx_paletteDestroy(@masterPalette)
