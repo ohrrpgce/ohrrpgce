@@ -190,6 +190,10 @@ OPERATOR <> (lhs as XYPair, rhs as integer) as bool
   RETURN lhs.x <> rhs ORELSE lhs.y <> rhs
 END OPERATOR
 
+OPERATOR XYPair.CAST () as Float2
+  RETURN XYF(x, y)
+END OPERATOR
+
 OPERATOR XYPair.CAST () as string
   RETURN x & "," & y
 END OPERATOR
@@ -266,6 +270,11 @@ END OPERATOR
 
 OPERATOR - (lhs as XYPair) as XYPair
   RETURN TYPE(-lhs.x, -lhs.y)
+END OPERATOR
+
+
+OPERATOR Float2.CAST () as string
+  RETURN x & "," & y
 END OPERATOR
 
 

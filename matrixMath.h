@@ -9,15 +9,43 @@
 #define MATRIX_MATH_H
 
 struct float2 {
-   float x, y;
+	union {
+		struct {
+			float x, y;
+		};
+		struct {
+			float u, v;
+		};
+	};
+
+	float2() : x(0), y(0) {}
+	float2(float X, float Y) : x(X), y(Y) {}
+	float2 operator+(const float2& rhs) const {float2 tmp(x+rhs.x, y+rhs.y); return tmp;}
+	float2 operator-(const float2& rhs) const {float2 tmp(x-rhs.x, y-rhs.y); return tmp;}
+	float2 operator*(const float2& rhs) const {float2 tmp(x*rhs.x, y*rhs.y); return tmp;}
+	float2 operator/(const float2& rhs) const {float2 tmp(x/rhs.x, y/rhs.y); return tmp;}
+	float2& operator+=(const float2& rhs) {x += rhs.x; y += rhs.y; return *this;}
+	float2& operator-=(const float2& rhs) {x -= rhs.x; y -= rhs.y; return *this;}
+	float2& operator*=(const float2& rhs) {x *= rhs.x; y *= rhs.y; return *this;}
+	float2& operator/=(const float2& rhs) {x /= rhs.x; y /= rhs.y; return *this;}
+	float2 operator+(float rhs) const {float2 tmp(x+rhs, y+rhs); return tmp;}
+	float2 operator-(float rhs) const {float2 tmp(x-rhs, y-rhs); return tmp;}
+	float2 operator*(float rhs) const {float2 tmp(x*rhs, y*rhs); return tmp;}
+	float2 operator/(float rhs) const {float2 tmp(x/rhs, y/rhs); return tmp;}
+	float2& operator+=(float rhs) {x += rhs; y += rhs; return *this;}
+	float2& operator-=(float rhs) {x -= rhs; y -= rhs; return *this;}
+	float2& operator*=(float rhs) {x *= rhs; y *= rhs; return *this;}
+	float2& operator/=(float rhs) {x /= rhs; y /= rhs; return *this;}
 };
+
 struct float3 {
-   float x, y, w;
+	float x, y, w;
 };
+
 struct float3x3 {
-   float _11, _12, _13,
-         _21, _22, _23,
-         _31, _32, _33;
+	float _11, _12, _13,
+	      _21, _22, _23,
+	      _31, _32, _33;
 };
 struct SURFACE_RECT {   //TODO: replace with SurfaceRect
    int left, top, right, bottom;

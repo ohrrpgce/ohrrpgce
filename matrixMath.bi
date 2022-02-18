@@ -8,11 +8,12 @@
 #DEFINE MATRIX_MATH_BI
 
 #include "config.bi" 
+#include "util.bi"  'Contains actual Float2 type
 
-TYPE Float2
-  x as single
-  y as single
-END TYPE
+' TYPE Float2
+'   x as single
+'   y as single
+' END TYPE
 
 TYPE Float3
   x as single

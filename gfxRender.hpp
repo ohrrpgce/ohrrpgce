@@ -9,55 +9,11 @@
 #define GFXRENDER_H
 
 #include <stdint.h>
+#include "matrixMath.h"
 #include "surface.h"
 
-//vertices
-struct Position
-{
-	float x,y;
-	//FPInt x,y;
-	Position() : x(0), y(0) {}
-	Position(float X, float Y) : x(X), y(Y) {}
-	Position operator+(const Position& rhs) const {Position tmp(x+rhs.x, y+rhs.y); return tmp;}
-	Position operator-(const Position& rhs) const {Position tmp(x-rhs.x, y-rhs.y); return tmp;}
-	Position operator*(const Position& rhs) const {Position tmp(x*rhs.x, y*rhs.y); return tmp;}
-	Position operator/(const Position& rhs) const {Position tmp(x/rhs.x, y/rhs.y); return tmp;}
-	Position& operator+=(const Position& rhs) {x += rhs.x; y += rhs.y; return *this;}
-	Position& operator-=(const Position& rhs) {x -= rhs.x; y -= rhs.y; return *this;}
-	Position& operator*=(const Position& rhs) {x *= rhs.x; y *= rhs.y; return *this;}
-	Position& operator/=(const Position& rhs) {x /= rhs.x; y /= rhs.y; return *this;}
-	Position operator+(float rhs) const {Position tmp(x+rhs, y+rhs); return tmp;}
-	Position operator-(float rhs) const {Position tmp(x-rhs, y-rhs); return tmp;}
-	Position operator*(float rhs) const {Position tmp(x*rhs, y*rhs); return tmp;}
-	Position operator/(float rhs) const {Position tmp(x/rhs, y/rhs); return tmp;}
-	Position& operator+=(float rhs) {x += rhs; y += rhs; return *this;}
-	Position& operator-=(float rhs) {x -= rhs; y -= rhs; return *this;}
-	Position& operator*=(float rhs) {x *= rhs; y *= rhs; return *this;}
-	Position& operator/=(float rhs) {x /= rhs; y /= rhs; return *this;}
-};
-struct TexCoord
-{
-	float u,v;
-	//FPInt u,v;
-	TexCoord() : u(0), v(0) {}
-	TexCoord(float U, float V) : u(U), v(V) {}
-	TexCoord operator+(const TexCoord& rhs) const {TexCoord tmp(u+rhs.u, v+rhs.v); return tmp;}
-	TexCoord operator-(const TexCoord& rhs) const {TexCoord tmp(u-rhs.u, v-rhs.v); return tmp;}
-	TexCoord operator*(const TexCoord& rhs) const {TexCoord tmp(u*rhs.u, v*rhs.v); return tmp;}
-	TexCoord operator/(const TexCoord& rhs) const {TexCoord tmp(u/rhs.u, v/rhs.v); return tmp;}
-	TexCoord& operator+=(const TexCoord& rhs) {u += rhs.u; v += rhs.v; return *this;}
-	TexCoord& operator-=(const TexCoord& rhs) {u -= rhs.u; v -= rhs.v; return *this;}
-	TexCoord& operator*=(const TexCoord& rhs) {u *= rhs.u; v *= rhs.v; return *this;}
-	TexCoord& operator/=(const TexCoord& rhs) {u /= rhs.u; v /= rhs.v; return *this;}
-	TexCoord operator+(float rhs) const {TexCoord tmp(u+rhs, v+rhs); return tmp;}
-	TexCoord operator-(float rhs) const {TexCoord tmp(u-rhs, v-rhs); return tmp;}
-	TexCoord operator*(float rhs) const {TexCoord tmp(u*rhs, v*rhs); return tmp;}
-	TexCoord operator/(float rhs) const {TexCoord tmp(u/rhs, v/rhs); return tmp;}
-	TexCoord& operator+=(float rhs) {u += rhs; v += rhs; return *this;}
-	TexCoord& operator-=(float rhs) {u -= rhs; v -= rhs; return *this;}
-	TexCoord& operator*=(float rhs) {u *= rhs; v *= rhs; return *this;}
-	TexCoord& operator/=(float rhs) {u /= rhs; v /= rhs; return *this;}
-};
+typedef float2 Position;
+typedef float2 TexCoord;
 
 //argb dword
 // Was also used for storing an 8 bit palette index in 'b', but

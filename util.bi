@@ -533,7 +533,24 @@ declare function run_and_get_output(cmd as string, byref stdout_s as string, byr
 
 '----------------------------------------------------------------------
 '                              Math
+'TYPE XYPairFwd as XYPair
 
+UNION Float2
+  TYPE
+   x as single
+   y as single
+  END TYPE
+  TYPE
+   w as single
+   h as single
+  END TYPE
+  TYPE
+   u as single  'texture coords
+   v as single
+  END TYPE
+  DECLARE OPERATOR CAST () as string
+  'DECLARE OPERATOR CAST () as XYPair
+END UNION
 
 ' Don't use this directly.
 TYPE XYSimple
@@ -568,6 +585,7 @@ UNION XYPair
 
   DECLARE OPERATOR += (rhs as XYPair)
   DECLARE OPERATOR CAST () as string
+  DECLARE OPERATOR CAST () as Float2
   DECLARE OPERATOR LET (value as integer)
 END UNION
 DECLARE OPERATOR =  (lhs as XYPair, rhs as XYPair) as bool
@@ -599,9 +617,11 @@ DECLARE OPERATOR MOD (lhs as XYPair, rhs as integer) as XYPair
 DECLARE OPERATOR - (lhs as XYPair) as XYPair
 
 #DEFINE XY(x, y) TYPE<XYPair>(x, y)
+#DEFINE XYF(x, y) TYPE<Float2>(x, y)
 
 'This allows us to create vectors of XYPair using vector.bas
 DECLARE_VECTOR_OF_TYPE(XYPair, XYPair)
+
 
 DECLARE FUNCTION xypair_direction (v as XYPair, byval axis as integer, byval default as DirNum = dirNone) as DirNum
 DECLARE FUNCTION xypair_to_direction (v as XYPair) as DirNum

@@ -132,13 +132,16 @@ end extern
 
 'Vertices
 
-Type Position
-	as single x, y
-End Type
+' Type Position
+' 	as single x, y
+' End Type
 
-Type TexCoord
-	as single u, v
-End Type
+' Type TexCoord
+' 	as single u, v
+' End Type
+
+Type Position as Float2
+Type TexCoord as Float2
 
 Type VertexPC
 	pos as Position
