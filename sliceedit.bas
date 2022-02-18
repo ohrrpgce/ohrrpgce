@@ -119,7 +119,8 @@ ENUM EditRuleMode
   erEnumgrabber       'Must be used for anything that's an Enum
   erShortStrgrabber   'No full-screen text editor
   erStrgrabber        'Press ENTER for full-screen text editor
-  erToggle
+  erToggle            'Edits bools (4 bytes)
+  erToggleBoolean     'Edits booleans (1 byte)
   erPercentgrabber    'Edits doubles
   erSinglePercentgrabber 'Edits singles
   erLookupgrabber
@@ -228,7 +229,8 @@ DECLARE SUB sliceed_rule_str (rules() as EditRule, helpkey as string, mode as Ed
 DECLARE SUB sliceed_rule_enum (rules() as EditRule, helpkey as string, dataptr as ssize_t ptr, lower as integer=0, upper as integer=0, group as integer = 0)
 DECLARE SUB sliceed_rule_double (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as double ptr, lower as integer=0, upper as integer=100, group as integer = 0)
 DECLARE SUB sliceed_rule_single (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as single ptr, lower as integer=0, upper as integer=100, group as integer = 0)
-DECLARE SUB sliceed_rule_tog (rules() as EditRule, helpkey as string, dataptr as bool ptr, group as integer=0)
+DECLARE SUB sliceed_rule_tog overload (rules() as EditRule, helpkey as string, dataptr as bool ptr, group as integer=0)
+DECLARE SUB sliceed_rule_tog overload (rules() as EditRule, helpkey as string, dataptr as boolean ptr, group as integer=0)
 DECLARE SUB sliceed_rule_none (rules() as EditRule, helpkey as string, group as integer = 0)
 
 '==============================================================================
@@ -1485,6 +1487,11 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    IF boolgrabber(*n, state) THEN
     state.need_update = YES
    END IF
+  CASE erToggleBoolean
+   DIM n as boolean ptr = rule.dataptr
+   IF booleangrabber(*n, state) THEN
+    state.need_update = YES
+   END IF
   CASE erShortStrgrabber
    DIM s as string ptr = rule.dataptr
    state.need_update OR= strgrabber(*s, rule.upper)
@@ -1751,6 +1758,10 @@ END SUB
 
 SUB sliceed_rule_tog(rules() as EditRule, helpkey as string, dataptr as bool ptr, group as integer=0)
  sliceed_rule rules(), helpkey, erToggle, dataptr, -1, 0, group
+END SUB
+
+SUB sliceed_rule_tog(rules() as EditRule, helpkey as string, dataptr as boolean ptr, group as integer=0)
+ sliceed_rule rules(), helpkey, erToggleBoolean, cast(integer ptr, dataptr), -1, 0, group
 END SUB
 
 SUB sliceed_header(menu() as string, rules() as EditRule, text as string, dataptr as bool ptr = NULL, helpkey as string = "")

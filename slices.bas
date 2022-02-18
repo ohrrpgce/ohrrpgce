@@ -2159,7 +2159,7 @@ end sub
 
 Local Sub SaveDrawOpts(drawopts as DrawOptions, node as Reload.Nodeptr)
  with drawopts
-  SaveProp node, "blend", .with_blending
+  SaveProp node, "blend", cast(bool, .with_blending)
   SaveProp node, "blend_mode", .blend_mode
   if .opacity < 1. then SavePropAlways node, "opacity", .opacity
   'scale: not saved yet

@@ -4874,7 +4874,7 @@ SUB script_functions(byval cmdid as integer)
   IF sl THEN
    'Non-blendable slice types allowed
    DIM drawopts as DrawOptions ptr = get_slice_drawopts(sl, NO)
-   IF drawopts ANDALSO drawopts->with_blending THEN
+   IF drawopts <> NULL ANDALSO drawopts->with_blending THEN
     scriptret = 100 * drawopts->opacity
    ELSE
     scriptret = 100
@@ -4896,7 +4896,7 @@ SUB script_functions(byval cmdid as integer)
   IF sl THEN
    'Non-blendable slice types allowed
    DIM drawopts as DrawOptions ptr = get_slice_drawopts(sl, NO)
-   IF drawopts ANDALSO drawopts->with_blending THEN
+   IF drawopts <> NULL ANDALSO drawopts->with_blending THEN
     scriptret = 1
    END IF
   END IF
@@ -4911,7 +4911,7 @@ SUB script_functions(byval cmdid as integer)
   IF sl THEN
    'Non-blendable slice types allowed
    DIM drawopts as DrawOptions ptr = get_slice_drawopts(sl, NO)
-   IF drawopts ANDALSO drawopts->with_blending THEN
+   IF drawopts <> NULL ANDALSO drawopts->with_blending THEN
     scriptret = drawopts->blend_mode
    ELSE
     scriptret = blendModeNormal

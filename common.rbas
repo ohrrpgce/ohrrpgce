@@ -6377,6 +6377,16 @@ FUNCTION boolgrabber (byref thebool as bool, byref state as MenuState) as bool
  END IF
 END FUNCTION
 
+'Automatically sets state.need_update
+'TODO: bool should be redefined as an alias to boolean so this can be deleted
+FUNCTION booleangrabber (byref thebool as boolean, byref state as MenuState) as bool
+ IF toggle_item(state) THEN
+  thebool XOR= true
+  state.need_update = YES
+  RETURN YES
+ END IF
+END FUNCTION
+
 FUNCTION copy_keychord () as bool
  RETURN (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR (keyval(scShift) > 0 AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1)
 END FUNCTION

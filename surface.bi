@@ -108,14 +108,15 @@ Type DrawOptions
 	' gfx_render* and gfx_surfaceCopy API ONLY, all other functions take
 	' separate 'trans' arguments Whether colour 0 (or mask 0, in Surfaces
 	' with masks) of 8-bit source textures is transparent.
-	color_key0 as bool
+	color_key0 as boolean
 
 	' If the destination has a mask, sets the mask for the destination rectangle
 	' equal to the mask (or color-key) for the source rectangle. Does not OR them.
-	write_mask as bool
+	' (TODO: not implemented for 32-bit draws (gfx_surfaceCopy))
+	write_mask as boolean
 
 	' If false, all blending/modulation options are ignored. Used as an early-out
-	with_blending as bool
+	with_blending as boolean
 
 	blend_mode as BlendMode
 
