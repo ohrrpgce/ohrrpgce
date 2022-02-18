@@ -107,7 +107,7 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurfaceDest, const T_V
 {//done
 	//calculate the edge lines of the triangle
 	LineSegment segments[3];
-	for(int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 		segments[i].calculateLineSegment(pTriangle[i].pos, pTriangle[(i+1)%3].pos);
 
 	//find the left and right boundaries of each raster line
@@ -118,14 +118,12 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurfaceDest, const T_V
 	T_VertexType leftVertex, rightVertex;
 	int row = max(clipRgn.top, triangleRgn.top);
 	int rowEnd = min(clipRgn.bottom, triangleRgn.bottom);
-	for(; row <= rowEnd; row++)
-	{
+	for (; row <= rowEnd; row++) {
 		leftMost = triangleRgn.right + 1.0f;
 		leftMostIndex = -1;
 		rightMost = triangleRgn.left - 1.0f;
 		rightMostIndex = -1;
-		for(int i = 0; i < 3; i++)
-		{
+		for (int i = 0; i < 3; i++) {
 			if(!segments[i].intersects(&xIntersection[i], row))
 				continue;
 			if(xIntersection[i] < triangleRgn.left-.5f || xIntersection[i] > triangleRgn.right+.5f)
@@ -245,16 +243,15 @@ inline Color blend_colors(Color srcColor, Color destColor)
 
 void TriRasterizer::rasterColor(const DrawingRange<VertexPC> &range, Surface *pSurfaceDest)
 {//done
-	int start = 0, finish = 0;
+	float length = range.greatest.pos.x - range.least.pos.x + 1.0f;
+	float weight;
 
-	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
-	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
+	int start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
+	int finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
 
 	Color finalColor;
-	float length(range.greatest.pos.x - range.least.pos.x+1), weight;
 
-	for(int i = start; i <= finish; i++)
-	{
+	for (int i = start; i <= finish; i++) {
 		weight = 255.0f*(finish-i) / length;
 		finalColor = range.least.col;
 		finalColor.scale(range.greatest.col, weight);
@@ -269,17 +266,14 @@ void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Sur
 	float length = range.greatest.pos.x - range.least.pos.x + 1.0f;
 	float weightFirst;
 
-	int start = 0, finish = 0;
-
-	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
-	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
+	int start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
+	int finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
 
 	Color srcColor, destColor, finalColor;
 
 	bool is_32bit = (pTexture->format == SF_32bit);
 
-	for(int i = start; i <= finish; i++)
-	{
+	for (int i = start; i <= finish; i++) {
 		TexCoord texel = texel_coord(range, i, length, weightFirst);
 
 		if (is_32bit)
@@ -299,23 +293,18 @@ void TriRasterizer::rasterTextureWithColorKey0(const DrawingRange<VertexPT> &ran
 	if (pTexture->format == SF_32bit)
 		return;  //BUG, should never be called
 
-	float length(range.greatest.pos.x - range.least.pos.x+1.0f);
+	float length = range.greatest.pos.x - range.least.pos.x + 1.0f;
 	float weightFirst;
 
-	int start = 0, finish = 0;
-
-	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
-	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
+	int start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
+	int finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
 
 	Color srcColor, destColor, finalColor;
 
-	//texture is 8bit
-	uint8_t colorKey = 0;
-	for(int i = start; i <= finish; i++)
-	{
+	for (int i = start; i <= finish; i++) {
 		TexCoord texel = texel_coord(range, i, length, weightFirst);
 
-		colorKey = m_sampler.sample8bit(pTexture, texel.u, texel.v);
+		uint8_t colorKey = m_sampler.sample8bit(pTexture, texel.u, texel.v);
 		if (!colorKey)
 			continue;
 		srcColor = Color(pPalette->col[colorKey]);
@@ -330,20 +319,17 @@ void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, con
 {//done
 	//assumed that if source is 8bit, a palette was passed in
 
-	float length(range.greatest.pos.x - range.least.pos.x+1.0f);
+	float length = range.greatest.pos.x - range.least.pos.x + 1.0f;
 	float weightFirst;
 
-	int start = 0, finish = 0;
-
-	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
-	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
+	int start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
+	int finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
 
 	Color srcColor, destColor, finalColor, vertexColor;
 
 	bool is_32bit = (pTexture->format == SF_32bit);
 
-	for(int i = start; i <= finish; i++)
-	{
+	for (int i = start; i <= finish; i++) {
 		TexCoord texel = texel_coord(range, i, length, weightFirst);
 
 		if (is_32bit)
@@ -370,15 +356,12 @@ void TriRasterizer::rasterTextureColorWithColorKey0(const DrawingRange<VertexPTC
 	float length = range.greatest.pos.x - range.least.pos.x + 1.0f;
 	float weightFirst;
 
-	int start = 0, finish = 0;
-
-	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
-	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
+	int start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
+	int finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
 
 	Color srcColor, destColor, finalColor, vertexColor;
 
-	for(int i = start; i <= finish; i++)
-	{
+	for (int i = start; i <= finish; i++) {
 		TexCoord texel = texel_coord(range, i, length, weightFirst);
 
 		uint8_t colorKey = m_sampler.sample8bit(pTexture, texel.u, texel.v);
@@ -430,12 +413,11 @@ void TriRasterizer::drawTriangleColor(VertexPC *pTriangle, Color argbModifier, S
 		return;
 
 	//apply color modifier
-	for(int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 		pTriangle[i].col.scale(argbModifier);
 
 	//rasterize the polygon
-	while(!rasterLines.empty())
-	{
+	while (!rasterLines.empty()) {
 		rasterColor(rasterLines.front(), pSurfaceDest);
 		rasterLines.pop();
 	}
@@ -458,8 +440,7 @@ void TriRasterizer::drawTriangleTexture(VertexPT *pTriangle, const Surface *pTex
 		return;
 
 	//rasterize the polygon
-	while(!rasterLines.empty())
-	{
+	while (!rasterLines.empty()) {
 		if(bUseColorKey0)
 			rasterTextureWithColorKey0(rasterLines.front(), pTexture, pPalette, pSurfaceDest);
 		else
@@ -485,12 +466,11 @@ void TriRasterizer::drawTriangleTextureColor(VertexPTC *pTriangle, const Surface
 		return;
 
 	//apply color modifier
-	for(int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 		pTriangle[i].col.scale(argbModifier);
 
 	//rasterize the polygon
-	while(!rasterLines.empty())
-	{
+	while (!rasterLines.empty()) {
 		if(bUseColorKey0)
 			rasterTextureColorWithColorKey0(rasterLines.front(), pTexture, pPalette, pSurfaceDest);
 		else
@@ -513,8 +493,7 @@ void QuadRasterizer::generateTriangles(const T_VertexType* pQuad, T_VertexType* 
 	center2.interpolateComponents(pQuad[3], .5f);
 	center1.interpolateComponents(center2, .5f);
 
-	for(int i = 0; i < 4; i++)
-	{
+	for (int i = 0; i < 4; i++) {
 		pTriangles[i*3 + 0] = pQuad[i];
 		pTriangles[i*3 + 1] = pQuad[(i+1)%4];
 		pTriangles[i*3 + 2] = center1;
@@ -528,7 +507,7 @@ void QuadRasterizer::drawQuadColor(const VertexPC *pQuad, Color argbModifier, Su
 	VertexPC triangles[4*3];
 	generateTriangles(pQuad, triangles);
 
-	for(int i = 0; i < 4; i++)
+	for (int i = 0; i < 4; i++)
 		drawTriangleColor(&triangles[i*3], argbModifier, pRectDest, pSurfaceDest);
 }
 
@@ -539,7 +518,7 @@ void QuadRasterizer::drawQuadTexture(const VertexPT *pQuad, const Surface *pText
 	VertexPT triangles[4*3];
 	generateTriangles(pQuad, triangles);
 
-	for(int i = 0; i < 4; i++)
+	for (int i = 0; i < 4; i++)
 		drawTriangleTexture(&triangles[i*3], pTexture, pPalette, bUseColorKey0, pRectDest, pSurfaceDest);
 }
 
@@ -550,6 +529,6 @@ void QuadRasterizer::drawQuadTextureColor(const VertexPTC *pQuad, const Surface 
 	VertexPTC triangles[4*3];
 	generateTriangles(pQuad, triangles);
 
-	for(int i = 0; i < 4; i++)
+	for (int i = 0; i < 4; i++)
 		drawTriangleTextureColor(&triangles[i*3], pTexture, pPalette, bUseColorKey0, argbModifier, pRectDest, pSurfaceDest);
 }
